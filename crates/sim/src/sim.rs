@@ -1,17 +1,19 @@
 //! Sim orchestration: world state, spawning, orders, and the tick pipeline.
 //!
-//! Tick order: unit motion -> pivot re-forming -> soldier steering (+ disorder
-//! measurement) -> collision separation -> unit-state integration (disorder,
-//! cohesion, stamina).
+//! Tick order:
+//!   snapshot prev positions -> order delivery + reflexes -> unit motion ->
+//!   contact-mode anchor/facing adjustments -> slot re-forming ->
+//!   soldier steering (+ measurement) -> body collision -> combat ->
+//!   unit-state integration (disorder, cohesion, stamina, contact decay).
 
 use crate::class::{class_stats, UnitClassId};
 use crate::grid::SpatialHash;
-use crate::math::{dir, rotate_toward, Vec2};
+use crate::math::{dir, rotate_toward, wrap_angle, Vec2};
 use crate::movement::{pace_speed, soldier_surge_speed, update_unit_motion};
 use crate::rng::Pcg32;
 use crate::terrain::{stagger01, Terrain};
 use crate::tunables::{Pace, Tunables, DT};
-use crate::unit::{reassign_slots, slot_local, Unit};
+use crate::unit::{bearing_bucket, bucket_bearing, reassign_slots, slot_local, OrderMode, Unit};
 
 pub struct Sim {
     pub tun: Tunables,
@@ -24,6 +26,32 @@ pub struct Sim {
     /// Personal-space radius per soldier (cavalry is much bigger than men).
     pub radius: Vec<f32>,
     pub(crate) max_radius: f32,
+    /// 1 = two-circle elongated body with a rider pool at center.
+    pub mounted: Vec<u8>,
+    /// Rider health (mounted only; geometry decides who can strike it).
+    pub rider_health: Vec<f32>,
+    /// Crowd squeeze per soldier (EMA of received separation push, m/s):
+    /// measured, never written by gameplay. Kills evade, transmits force.
+    pub pressure: Vec<f32>,
+    /// EMA of the net received push vector (m/s) — transmission is directional.
+    pub(crate) press_x: Vec<f32>,
+    pub(crate) press_y: Vec<f32>,
+    pub attack_cd: Vec<f32>,
+    pub stun: Vec<f32>,
+    /// Current melee engagement (enemy soldier index, -1 = none).
+    /// Set at awareness range (~6m): drives approach facing.
+    pub target: Vec<i32>,
+    /// 1 = the engaged enemy is within actual weapon reach. Reflexes (halt,
+    /// drift tracking, drain) key on THIS — being able to see an enemy is
+    /// not being in a fight.
+    pub fighting: Vec<u8>,
+    /// Bearing of the last attacker and its time-to-live (reactive facing).
+    pub(crate) hit_dir: Vec<f32>,
+    pub(crate) hit_ttl: Vec<f32>,
+    pub(crate) prev_positions: Vec<f32>,
+    pub(crate) body_pos: Vec<f32>,
+    pub(crate) body_r: Vec<f32>,
+    pub(crate) body_owner: Vec<u32>,
     /// 1 = alive. Dead soldiers stay in the arrays as corpses; the slot
     /// machinery reshuffles the living around them.
     pub alive: Vec<u8>,
@@ -33,6 +61,10 @@ pub struct Sim {
     pub soldier_slot: Vec<u32>,
     pub units: Vec<Unit>,
     pub terrain: Terrain,
+    pub projectiles: crate::missiles::Projectiles,
+    /// Diagnostics: landings that struck a body / landed on empty ground.
+    pub missile_hits: u64,
+    pub missile_misses: u64,
     pub tick_count: u64,
     pub rng: Pcg32,
     pub(crate) grid: SpatialHash,
@@ -49,11 +81,29 @@ impl Sim {
             mass: Vec::new(),
             radius: Vec::new(),
             max_radius: tun.soldier_radius,
+            mounted: Vec::new(),
+            rider_health: Vec::new(),
+            pressure: Vec::new(),
+            press_x: Vec::new(),
+            press_y: Vec::new(),
+            attack_cd: Vec::new(),
+            stun: Vec::new(),
+            target: Vec::new(),
+            fighting: Vec::new(),
+            hit_dir: Vec::new(),
+            hit_ttl: Vec::new(),
+            prev_positions: Vec::new(),
+            body_pos: Vec::new(),
+            body_r: Vec::new(),
+            body_owner: Vec::new(),
             alive: Vec::new(),
             soldier_unit: Vec::new(),
             soldier_slot: Vec::new(),
             units: Vec::new(),
             terrain: Terrain::flat(1, 1, 4.0, Vec2::ZERO),
+            projectiles: crate::missiles::Projectiles::default(),
+            missile_hits: 0,
+            missile_misses: 0,
             tick_count: 0,
             rng: Pcg32::new(seed, 0xda3e),
             grid: SpatialHash::new(),
@@ -93,12 +143,17 @@ impl Sim {
             start: self.soldier_count(),
             count,
             files: files.max(1),
+            files_eff: files.max(1),
+            path: Vec::new(),
+            path_idx: 0,
+            waiting: false,
             spacing,
             anchor,
             facing,
             speed: 0.0,
             move_target: None,
             pending_target: None,
+            pending_mode: OrderMode::Move,
             pending_timer: 0.0,
             pending_total: 0.0,
             pace: Pace::Walk,
@@ -108,6 +163,27 @@ impl Sim {
             disorder: 0.0,
             cohesion: 1.0,
             pivoting: false,
+            mode: OrderMode::Move,
+            stance: crate::unit::Stance::Othismos,
+            charge_enabled: false,
+            charging: false,
+            resume_target: None,
+            alive_count: count,
+            deaths_since_reform: 0,
+            engaged: 0,
+            contact_hist: [0.0; 12],
+            contact_unit: 0,
+            quiet_ticks: 0,
+            recent_casualties: 0.0,
+            ammo: 0,
+            fire_at_will: true,
+            evade_auto: false,
+            morale: 0.7 + 0.3 * training.clamp(0.0, 1.0),
+            morale_ceiling: 1.0,
+            routing: false,
+            recent_missiles: 0.0,
+            losing_push: 0.0,
+            centroid: anchor,
         };
         for s in 0..count {
             let p = unit.slot_world(s);
@@ -117,6 +193,17 @@ impl Sim {
             self.health.push(1.0);
             self.mass.push(1.0);
             self.radius.push(self.tun.soldier_radius);
+            self.mounted.push(0);
+            self.rider_health.push(0.0);
+            self.pressure.push(0.0);
+            self.press_x.push(0.0);
+            self.press_y.push(0.0);
+            self.attack_cd.push(0.0);
+            self.stun.push(0.0);
+            self.target.push(-1);
+            self.fighting.push(0);
+            self.hit_dir.push(0.0);
+            self.hit_ttl.push(0.0);
             self.alive.push(1);
             self.soldier_unit.push(unit_index as u32);
             self.soldier_slot.push(s as u32);
@@ -143,30 +230,88 @@ impl Sim {
             self.health[start + s] = stats.health;
             self.mass[start + s] = stats.mass;
             self.radius[start + s] = stats.soldier_radius;
+            self.mounted[start + s] = stats.mounted as u8;
+            self.rider_health[start + s] = stats.rider_health;
         }
         self.max_radius = self.max_radius.max(stats.soldier_radius);
         let u = &mut self.units[idx];
         u.class = class;
         u.speed_mult = stats.speed_mult;
+        u.stance = stats.stance;
+        u.charge_enabled = stats.charge;
+        if let Some(spec) = crate::missiles::missile_spec(class) {
+            u.ammo = spec.ammo * count as u32;
+        }
+        u.evade_auto = matches!(class, UnitClassId::Skirmishers | UnitClassId::HorseArchers);
         idx
     }
 
-    /// Issue a move order. Well-ordered units respond at once; a disordered
-    /// unit's leader needs time to transmit it (the pie timer in the UI).
-    pub fn set_move_order(&mut self, unit: usize, target: Vec2) {
+    pub fn set_fire_at_will(&mut self, unit: usize, on: bool) {
+        if let Some(u) = self.units.get_mut(unit) {
+            u.fire_at_will = on;
+        }
+    }
+
+    pub fn set_evade_auto(&mut self, unit: usize, on: bool) {
+        if let Some(u) = self.units.get_mut(unit) {
+            u.evade_auto = on;
+        }
+    }
+
+    pub fn set_stance(&mut self, unit: usize, stance: crate::unit::Stance) {
+        if let Some(u) = self.units.get_mut(unit) {
+            u.stance = stance;
+        }
+    }
+
+    pub fn set_charge_enabled(&mut self, unit: usize, enabled: bool) {
+        if let Some(u) = self.units.get_mut(unit) {
+            u.charge_enabled = enabled;
+        }
+    }
+
+    // --- orders (all pass through the cohesion-gated transmission delay) ----
+
+    fn queue_order(&mut self, unit: usize, mode: OrderMode, target: Vec2) {
+        let tun = self.tun;
         let Some(u) = self.units.get_mut(unit) else {
             return;
         };
-        let shortfall = (self.tun.order_delay_threshold - u.cohesion).max(0.0);
-        let delay = (shortfall * self.tun.order_delay_scale).min(self.tun.order_delay_max);
+        let shortfall = (tun.order_delay_threshold - u.cohesion).max(0.0);
+        let delay = (shortfall * tun.order_delay_scale).min(tun.order_delay_max);
         if delay < 0.05 {
+            u.mode = mode;
             u.move_target = Some(target);
+            u.resume_target = None;
             u.pending_target = None;
         } else {
             u.pending_target = Some(target);
+            u.pending_mode = mode;
             u.pending_timer = delay;
             u.pending_total = delay;
         }
+    }
+
+    pub fn set_move_order(&mut self, unit: usize, target: Vec2) {
+        self.queue_order(unit, OrderMode::Move, target);
+    }
+
+    pub fn set_attack_move_order(&mut self, unit: usize, target: Vec2) {
+        self.queue_order(unit, OrderMode::AttackMove, target);
+    }
+
+    pub fn set_withdraw_order(&mut self, unit: usize, target: Vec2) {
+        self.queue_order(unit, OrderMode::Withdraw, target);
+    }
+
+    /// Latch onto an enemy unit: targeting convenience only — combat outcomes
+    /// are identical to walking into contact yourself.
+    pub fn set_attack_order(&mut self, unit: usize, enemy: usize) {
+        if enemy >= self.units.len() || unit >= self.units.len() {
+            return;
+        }
+        let anchor = self.units[enemy].anchor;
+        self.queue_order(unit, OrderMode::Attack(enemy as u32), anchor);
     }
 
     pub fn set_pace(&mut self, unit: usize, pace: Pace) {
@@ -179,6 +324,9 @@ impl Sim {
     pub fn pick_unit(&self, p: Vec2, max_dist: f32) -> Option<usize> {
         let mut best: Option<(usize, f32)> = None;
         for (i, u) in self.units.iter().enumerate() {
+            if u.alive_count == 0 {
+                continue;
+            }
             let d = (u.center() - p).len();
             if d <= max_dist && best.map_or(true, |(_, bd)| d < bd) {
                 best = Some((i, d));
@@ -190,66 +338,347 @@ impl Sim {
     pub fn tick(&mut self) {
         let dt = DT;
         let tun = self.tun;
+        let n = self.soldier_count();
+
+        // Snapshot for velocity measurement (charges, anchor drift).
+        self.prev_positions.resize(2 * n, 0.0);
+        self.prev_positions.copy_from_slice(&self.positions);
+
+        self.deliver_orders_and_reflexes(dt);
+        self.run_skirmish_evade();
+        self.navigate_units();
 
         for u in &mut self.units {
-            // Deliver queued orders once the transmission delay elapses.
-            if let Some(t) = u.pending_target {
-                u.pending_timer -= dt;
-                if u.pending_timer <= 0.0 {
-                    u.move_target = Some(t);
-                    u.pending_target = None;
-                }
-            }
-            // The formation as a whole moves at the pace of the ground under
-            // its anchor (clamped: an anchor grazing a wall mustn't freeze).
             let ground = self.terrain.speed_at(u.anchor).max(0.15);
             update_unit_motion(&tun, u, dt, ground);
         }
 
-        // Pivoting units continuously re-form: every soldier takes the
-        // nearest slot in the rotating frame, so an about-face relabels
-        // ranks instead of dragging soldiers across the formation.
+        // A halted frame with slots on impassable ground slides itself clear:
+        // the ideal formation must always be physically achievable, or the
+        // disorder measurement would report a lie forever. (Marching past
+        // rocks stays transient by design — this only acts at rest.)
         for ui in 0..self.units.len() {
-            if self.units[ui].pivoting {
-                reassign_slots(&self.units[ui], &self.positions, &mut self.soldier_slot);
+            if self.tick_count % 15 != (ui as u64) % 15 {
+                continue;
+            }
+            let u = &self.units[ui];
+            if u.move_target.is_some() || u.pivoting || u.engaged > 0 || u.alive_count == 0 {
+                continue;
+            }
+            let mut esc = Vec2::ZERO;
+            let mut bad = 0;
+            for s in (0..u.alive_count).step_by(3) {
+                let p = u.slot_world(s);
+                if self.terrain.speed_at(p) <= 0.0 {
+                    esc = esc + self.terrain.escape_dir(p);
+                    bad += 1;
+                }
+            }
+            if bad > 0 {
+                let l = esc.len();
+                let step = if l > 1e-3 {
+                    esc * (1.0 / l)
+                } else {
+                    dir(self.units[ui].facing + std::f32::consts::PI)
+                };
+                self.units[ui].anchor = self.units[ui].anchor + step * 0.45;
             }
         }
 
-        // Soldier steering + per-unit disorder measurement in one pass.
-        // Destructured so the borrow checker sees disjoint field borrows.
+        // Re-form slots while pivoting or after casualties opened gaps.
+        for ui in 0..self.units.len() {
+            let needs = self.units[ui].pivoting
+                || self.units[ui].deaths_since_reform * 50 > self.units[ui].alive_count.max(1);
+            if needs {
+                reassign_slots(&self.units[ui], &self.positions, &self.alive, &mut self.soldier_slot);
+                self.units[ui].deaths_since_reform = 0;
+            }
+        }
+
+        let measures = self.steer_soldiers(dt);
+        self.apply_separation();
+        self.run_combat();
+        self.run_missiles();
+        self.contact_anchor_and_facing(&measures, dt);
+        self.integrate_units(&measures, dt);
+
+        self.tick_count += 1;
+    }
+
+    /// Anchor intelligence: plan around impassables, squeeze through
+    /// corridors, queue behind same-flow traffic. Staggered (each unit
+    /// re-evaluates ~3x/second).
+    fn navigate_units(&mut self) {
+        for ui in 0..self.units.len() {
+            if self.tick_count % 10 != (ui as u64) % 10 {
+                continue;
+            }
+            if self.units[ui].alive_count == 0 {
+                continue;
+            }
+            // --- path planning ------------------------------------------
+            if let Some(goal) = self.units[ui].move_target {
+                let stale = self.units[ui]
+                    .path
+                    .last()
+                    .map_or(true, |&g| (g - goal).len() > 6.0);
+                if stale {
+                    match crate::path::plan(&self.terrain, self.units[ui].anchor, goal) {
+                        Some(way) => {
+                            self.units[ui].path = way;
+                            self.units[ui].path_idx = 0;
+                        }
+                        None => {
+                            self.units[ui].path.clear();
+                            self.units[ui].path_idx = 0;
+                        }
+                    }
+                }
+                let u = &mut self.units[ui];
+                while u.path_idx + 1 < u.path.len() && (u.path[u.path_idx] - u.anchor).len() < 5.0 {
+                    u.path_idx += 1;
+                }
+            } else if !self.units[ui].path.is_empty() {
+                self.units[ui].path.clear();
+                self.units[ui].path_idx = 0;
+            }
+
+            self.update_corridor(ui);
+            self.update_yield(ui);
+        }
+    }
+
+    /// Measure lateral clearance at (and just ahead of) the anchor; compress
+    /// the formation frame to fit, centered in the gap; relax on open ground.
+    fn update_corridor(&mut self, ui: usize) {
+        let (anchor, facing, files, files_eff, spacing_x, depth) = {
+            let u = &self.units[ui];
+            (u.anchor, u.facing, u.files, u.files_eff, u.spacing.x, u.depth())
+        };
+        let f = dir(facing);
+        let r = Vec2::new(f.y, -f.x);
+        let half_full = (files.max(1) - 1) as f32 * spacing_x * 0.5 + 2.0;
+        let clearance = |origin: Vec2, side: Vec2| -> f32 {
+            let mut s = 1.0;
+            while s <= half_full {
+                if self.terrain.speed_at(origin + side * s) <= 0.0 {
+                    return s - 0.5;
+                }
+                s += 1.0;
+            }
+            half_full
+        };
+        let mut corridor = f32::MAX;
+        let mut bias = 0.0;
+        for probe in [anchor, anchor + f * 5.0, anchor + f * (-0.5 * depth)] {
+            let cl = clearance(probe, r * -1.0);
+            let cr = clearance(probe, r);
+            if cl + cr < corridor {
+                corridor = cl + cr;
+                bias = cr - cl;
+            }
+        }
+        let floor = 4.min(files.max(1));
+        let target = ((corridor / spacing_x.max(0.2)) as usize).clamp(floor, files.max(1));
+        let new_eff = if target < files_eff {
+            files_eff.saturating_sub(2).max(target)
+        } else {
+            (files_eff + 1).min(target)
+        };
+        if new_eff != files_eff {
+            self.units[ui].files_eff = new_eff;
+            reassign_slots(&self.units[ui], &self.positions, &self.alive, &mut self.soldier_slot);
+        }
+        if target < files {
+            // Center the squeezed frame in the gap.
+            let shift = (bias * 0.1).clamp(-0.25, 0.25);
+            self.units[ui].anchor = self.units[ui].anchor + r * shift;
+        }
+    }
+
+    /// Inside a corridor, queue behind friendly units flowing the same way.
+    /// Different commands (opposing flows) do NOT coordinate — they push
+    /// through each other and pay the disorder, by design.
+    fn update_yield(&mut self, ui: usize) {
+        let blocked = {
+            let u = &self.units[ui];
+            if u.files_eff >= u.files || u.move_target.is_none() || u.engaged > 0 {
+                false
+            } else {
+                let f = dir(u.facing);
+                let r = Vec2::new(f.y, -f.x);
+                let half_w = u.width() * 0.5;
+                self.units.iter().enumerate().any(|(vi, v)| {
+                    if vi == ui || v.team != u.team || v.alive_count == 0 {
+                        return false;
+                    }
+                    if dir(v.facing).dot(f) < 0.3 {
+                        return false; // opposing flow: no coordination
+                    }
+                    let to = v.center() - u.anchor;
+                    let ahead = to.dot(f);
+                    let lateral = to.dot(r).abs();
+                    ahead > 0.0
+                        && ahead < 10.0 + 0.5 * v.depth()
+                        && lateral < (half_w + 0.5 * v.width()) * 0.75
+                        && v.speed < u.speed.max(0.6)
+                })
+            }
+        };
+        self.units[ui].waiting = blocked;
+    }
+
+    fn deliver_orders_and_reflexes(&mut self, dt: f32) {
+        for ui in 0..self.units.len() {
+            // Queued order transmission.
+            let u = &mut self.units[ui];
+            if let Some(t) = u.pending_target {
+                u.pending_timer -= dt;
+                if u.pending_timer <= 0.0 {
+                    u.mode = u.pending_mode;
+                    u.move_target = Some(t);
+                    u.resume_target = None;
+                    u.pending_target = None;
+                }
+            }
+
+            let engaged_frac = u.engaged as f32 / u.alive_count.max(1) as f32;
+            let mode = u.mode;
+
+            // Attack latch: chase the enemy anchor while unengaged, and burst
+            // into the charge in the measured final approach.
+            self.units[ui].charging = false;
+            if let OrderMode::Attack(e) = mode {
+                let e = e as usize;
+                let (enemy_dead, enemy_anchor) = {
+                    let ev = &self.units[e];
+                    (ev.alive_count == 0, ev.anchor)
+                };
+                let u = &mut self.units[ui];
+                if enemy_dead {
+                    u.mode = OrderMode::Move;
+                    u.move_target = u.resume_target.take();
+                } else if engaged_frac < 0.05 {
+                    u.move_target = Some(enemy_anchor);
+                    if u.charge_enabled {
+                        let charge_sp = (self.tun.base_speed
+                            + (self.tun.charge_speed - self.tun.base_speed)
+                                * crate::movement::fatigue_capacity(u.fatigue))
+                            * u.speed_mult;
+                        let dist = (enemy_anchor - u.anchor).len();
+                        u.charging = dist < charge_sp * self.tun.charge_window
+                            && dist > self.tun.arrive_radius;
+                    }
+                }
+                // Once contact begins the charge is over: the momentum has
+                // been delivered bodily (the collision impacts carry it).
+            }
+
+            let u = &mut self.units[ui];
+            // Skirmish screens never volunteer for melee: no halt-and-face —
+            // their answer to contact is their legs.
+            if engaged_frac > 0.06 && u.mode != OrderMode::Withdraw && !u.evade_auto {
+                u.quiet_ticks = 0;
+                match u.mode {
+                    OrderMode::Move => {
+                        // Halt and fight; the path resumes when contact ends.
+                        if let Some(t) = u.move_target.take() {
+                            u.resume_target = Some(t);
+                        }
+                    }
+                    OrderMode::AttackMove => {
+                        if u.resume_target.is_none() {
+                            u.resume_target = u.move_target;
+                        }
+                        u.move_target = None;
+                        u.mode = OrderMode::Attack(u.contact_unit);
+                    }
+                    OrderMode::Attack(_) => {
+                        u.move_target = None;
+                    }
+                    OrderMode::Withdraw => {}
+                }
+            } else if engaged_frac <= 0.01 {
+                u.quiet_ticks += 1;
+                if u.quiet_ticks == 90 {
+                    if let Some(t) = u.resume_target.take() {
+                        if u.move_target.is_none() {
+                            u.move_target = Some(t);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /// Per-soldier steering and measurement. Returns per-unit measures:
+    /// (err_sum, stragglers, surging, effort, engaged, drift_sum, face_dev, alive_n)
+    #[allow(clippy::type_complexity)]
+    fn steer_soldiers(&mut self, dt: f32) -> Vec<(f32, usize, usize, f32, usize, f32, f32, usize)> {
+        let tun = self.tun;
         let Sim {
             units,
             positions,
+            prev_positions,
             facings,
             soldier_slot,
             terrain,
             tick_count,
+            alive,
+            stun,
+            target,
+            fighting,
+            hit_dir,
+            hit_ttl,
             ..
         } = self;
         let tick_now = *tick_count;
 
-        let mut measures: Vec<(f32, usize, usize, f32)> = Vec::with_capacity(units.len());
+        let mut measures = Vec::with_capacity(units.len());
         for u in units.iter() {
             let f = dir(u.facing);
             let r = Vec2::new(f.y, -f.x);
             let surge_sp = soldier_surge_speed(&tun, u);
-            // Small margin over the unit's pace lets soldiers close gradual
-            // gaps without breaking into a (fatigue-draining) surge.
             let keep_up_sp = pace_speed(&tun, u) + 0.5;
+            let holds_ground = u.mode != crate::unit::OrderMode::Withdraw && !u.evade_auto;
+            let reach_u = crate::class::class_stats(u.class)
+                .weapons
+                .iter()
+                .fold(0.0f32, |m, w| m.max(w.reach));
+            let strag_thresh = tun.straggler_dist.max(0.04 * u.depth().max(u.width()));
             let mut err_sum = 0.0f32;
             let mut stragglers = 0usize;
             let mut surging = 0usize;
             let mut effort = 0.0f32;
-            // Straggling scales with formation extent: a wheeling wing file
-            // of a 140m line is meters from its slot while obeying perfectly;
-            // a tiny unit still measures absolutely.
-            let strag_thresh = tun.straggler_dist.max(0.04 * u.depth().max(u.width()));
+            let mut engaged = 0usize;
+            let mut drift_sum = 0.0f32;
+            let mut face_dev = 0.0f32;
+            let mut alive_n = 0usize;
 
             for s in 0..u.count {
                 let i = u.start + s;
-                let local = slot_local(soldier_slot[i] as usize, u.files, u.spacing);
-                let slot = u.anchor + r * local.x + f * (-local.y);
+                if alive[i] == 0 {
+                    continue;
+                }
+                alive_n += 1;
                 let p = Vec2::new(positions[2 * i], positions[2 * i + 1]);
+
+                if stun[i] > 0.0 {
+                    stun[i] -= dt;
+                    continue; // knocked down: no stepping, no turning
+                }
+
+                let aware_i = target[i] >= 0 && alive[target[i] as usize] == 1;
+                let engaged_i = fighting[i] == 1 && aware_i;
+                if engaged_i {
+                    engaged += 1;
+                    let dx = p.x - prev_positions[2 * i];
+                    let dy = p.y - prev_positions[2 * i + 1];
+                    drift_sum += dx * f.x + dy * f.y;
+                }
+
+                let local = slot_local(soldier_slot[i] as usize, u.files_eff, u.spacing);
+                let slot = u.anchor + r * local.x + f * (-local.y);
                 let to = slot - p;
                 let err = to.len();
                 err_sum += err;
@@ -262,10 +691,25 @@ impl Sim {
                 } else {
                     keep_up_sp
                 };
+                let mut steer_to = to;
+                // A man whose unit is fighting — or who is himself being
+                // struck — closes to his own weapon's distance; nobody stands
+                // being poked from a hand's-breadth beyond his reach.
+                if aware_i && holds_ground && (u.engaged > 0 || hit_ttl[i] > 0.0) {
+                    let t = target[i] as usize;
+                    let tp = Vec2::new(positions[2 * t], positions[2 * t + 1]);
+                    let tt = tp - p;
+                    let d_t = tt.len() - 0.8; // body radii, roughly
+                    if d_t > reach_u - 0.2 {
+                        // Step INSIDE your own reach, not to its very edge.
+                        steer_to = tt;
+                        max_sp = max_sp.min(keep_up_sp * 0.5);
+                    } else if engaged_i {
+                        // In range: hold ground, fight, don't chase slots.
+                        max_sp *= 0.25;
+                    }
+                }
 
-                // Ground underfoot: slow going is slow, rough going staggers
-                // each man differently (which the disorder measurement then
-                // sees), and walls stop legs entirely.
                 let ground = terrain.speed_at(p);
                 if ground < 1.0 {
                     max_sp *= ground;
@@ -275,8 +719,7 @@ impl Sim {
                     max_sp *= 1.0 - 0.5 * rough * stagger01(i, tick_now);
                 }
 
-                // Arrive steering: proportional, clamped to soldier top speed.
-                let mut v = to * tun.soldier_gain;
+                let mut v = steer_to * tun.soldier_gain;
                 let vl = v.len();
                 if vl > max_sp {
                     v = v * (max_sp / vl);
@@ -286,11 +729,8 @@ impl Sim {
                 }
                 let mut np = Vec2::new(p.x + v.x * dt, p.y + v.y * dt);
                 if ground <= 0.0 {
-                    // Standing in a wall (e.g. shoved in by the crowd):
-                    // legs are useless, get pushed toward open ground.
                     np = p + terrain.escape_dir(p) * (3.0 * dt);
                 } else if terrain.speed_at(np) <= 0.0 {
-                    // Never walk into a wall; slide along it if one axis works.
                     let slide_x = Vec2::new(np.x, p.y);
                     let slide_y = Vec2::new(p.x, np.y);
                     np = if terrain.speed_at(slide_x) > 0.0 {
@@ -304,29 +744,138 @@ impl Sim {
                 positions[2 * i] = np.x;
                 positions[2 * i + 1] = np.y;
 
-                let desired_face = if err > 0.5 { v.y.atan2(v.x) } else { u.facing };
+                // Facing: the fight in front of you, then the man who just
+                // hit you, then where you're going.
+                let desired_face = if engaged_i {
+                    let tp = Vec2::new(
+                        positions[2 * target[i] as usize],
+                        positions[2 * target[i] as usize + 1],
+                    );
+                    (tp - p).y.atan2((tp - p).x)
+                } else if hit_ttl[i] > 0.0 {
+                    hit_ttl[i] -= dt;
+                    hit_dir[i]
+                } else if err > 0.5 {
+                    v.y.atan2(v.x)
+                } else {
+                    u.facing
+                };
                 facings[i] = rotate_toward(facings[i], desired_face, tun.soldier_turn_rate * dt);
+                face_dev += (wrap_angle(facings[i] - u.facing).abs() - tun.facing_tolerance).max(0.0);
             }
-            measures.push((err_sum, stragglers, surging, effort));
+            measures.push((err_sum, stragglers, surging, effort, engaged, drift_sum, face_dev, alive_n));
         }
+        measures
+    }
 
-        self.apply_separation();
+    /// In contact: the anchor tracks the measured front (plus a small lean
+    /// when ordered to press), and unit facing follows the threat-weighted
+    /// circular mean of contact bearings, masked by adjacent friendlies.
+    fn contact_anchor_and_facing(
+        &mut self,
+        measures: &[(f32, usize, usize, f32, usize, f32, f32, usize)],
+        dt: f32,
+    ) {
+        let tun = self.tun;
+        // Friendly masking sectors, computed against unit centers.
+        let centers: Vec<(Vec2, f32, u32, usize)> = self
+            .units
+            .iter()
+            .map(|u| (u.center(), 0.5 * u.width().max(u.depth()), u.team, u.alive_count))
+            .collect();
 
-        for (u, (err_sum, stragglers, surging, effort)) in self.units.iter_mut().zip(measures) {
-            let n = u.count.max(1) as f32;
+        for ui in 0..self.units.len() {
+            let (.., engaged, drift_sum, _f, alive_n) = measures[ui];
+            let alive_n = alive_n.max(1);
+            let engaged_frac = engaged as f32 / alive_n as f32;
+            // Withdrawing and skirmishing units answer contact with their
+            // legs: their anchor obeys the path, not the fight.
+            if engaged_frac <= 0.06
+                || self.units[ui].mode == OrderMode::Withdraw
+                || self.units[ui].evade_auto
+            {
+                continue;
+            }
+
+            // --- anchor tracks the engaged front --------------------------
+            // The lean is the stance: Othismos presses the formation's weight
+            // into the contact line (rear ranks pile on, pressure transmits,
+            // the enemy gets walked back — at the cost of the front rank's
+            // room). Fence fights at weapon's length.
+            let press_intent = matches!(self.units[ui].mode, OrderMode::Attack(_) | OrderMode::AttackMove)
+                && self.units[ui].stance == crate::unit::Stance::Othismos;
+            let drift = (drift_sum / engaged.max(1) as f32 / dt).clamp(-2.0, 1.2);
+            // Depth presses: every rank steps in behind the front, so the
+            // compression rate grows with ranks — this is how a deep column's
+            // muscle reaches the contact line.
+            let ranks = (self.units[ui].alive_count / self.units[ui].files_eff.max(1)).min(12) as f32;
+            let lean = if press_intent { 0.035 * ranks } else { 0.0 };
+            let u = &mut self.units[ui];
+            let f = dir(u.facing);
+            u.anchor = u.anchor + f * ((drift + lean) * dt);
+            u.speed = 0.0;
+
+            // --- contact facing: masked circular mean ----------------------
+            let mut hist = self.units[ui].contact_hist;
+            let (my_center, my_ext, my_team, _) = centers[ui];
+            for (vi, &(c, ext, team, alive_v)) in centers.iter().enumerate() {
+                if vi == ui || team != my_team || alive_v == 0 {
+                    continue;
+                }
+                let to = c - my_center;
+                if to.len() < my_ext + ext + 25.0 {
+                    let b = bearing_bucket(to.y.atan2(to.x));
+                    hist[b] = 0.0;
+                    hist[(b + 1) % 12] = 0.0;
+                    hist[(b + 11) % 12] = 0.0;
+                }
+            }
+            let mut sum = Vec2::ZERO;
+            let mut weight = 0.0;
+            for (k, &w) in hist.iter().enumerate() {
+                sum = sum + dir(bucket_bearing(k)) * w;
+                weight += w;
+            }
+            // Rotate only on a DECISIVE contact direction. Near-opposite
+            // attacks cancel in the mean — then the frame holds still and the
+            // per-soldier reactive facing splits the men both ways (the spec).
+            if weight > 4.0 && sum.len() > 0.45 * weight {
+                let desired = sum.y.atan2(sum.x);
+                let u = &mut self.units[ui];
+                let diff = wrap_angle(desired - u.facing);
+                if diff.abs() > 0.35 {
+                    let top = soldier_surge_speed(&tun, u);
+                    let geom = tun.wheel_speed_factor * top / u.pivot_radius().max(1.0);
+                    let throttle = crate::math::lerp(tun.min_turn_frac, 1.0, u.cohesion);
+                    let center = u.center();
+                    u.facing = rotate_toward(u.facing, desired, geom * throttle * dt);
+                    u.anchor = center + dir(u.facing) * (0.5 * u.depth());
+                    u.pivoting = true; // slots keep relabeling while we wheel
+                }
+            }
+        }
+    }
+
+    fn integrate_units(
+        &mut self,
+        measures: &[(f32, usize, usize, f32, usize, f32, f32, usize)],
+        dt: f32,
+    ) {
+        let tun = self.tun;
+        use std::f32::consts::PI;
+        for (u, &(err_sum, stragglers, surging, effort, engaged, _drift, face_dev, alive_n)) in
+            self.units.iter_mut().zip(measures)
+        {
+            let n = alive_n.max(1) as f32;
             let mean_err = err_sum / n;
-            // Normalize by the formation's larger extent: wheeling swings the
-            // far soldiers proportionally to size — for a deep block that's
-            // the rear ranks, for a wide line it's the wing files. Neither is
-            // disorder; a tiny unit still measures in absolute meters.
             let extent = u.depth().max(u.width());
             let scale = (0.5 * extent).max(tun.disorder_norm_spacings * u.spacing.x.max(0.25));
             let norm = (mean_err / scale).min(1.0);
             let strag_frac = stragglers as f32 / n;
-            let observed = (0.7 * norm + 0.3 * strag_frac).clamp(0.0, 1.0);
+            let facing_term = ((face_dev / n) / (PI - tun.facing_tolerance)).min(1.0);
+            let observed =
+                (0.6 * norm + 0.25 * facing_term + 0.15 * strag_frac).clamp(0.0, 1.0);
 
-            // Disorder is a low-pass filter over the measurement: rises fast,
-            // recovers at a rate set by training. It is never mutated directly.
             let tau = if observed > u.disorder {
                 tun.disorder_rise_tau
             } else {
@@ -336,25 +885,29 @@ impl Sim {
             u.disorder += (observed - u.disorder) * alpha;
             u.cohesion = (-tun.cohesion_k * u.disorder).exp();
 
-            // Stamina economy: running and surging spend the shared reserve;
-            // standing still refills it slowly.
+            u.engaged = engaged;
+            let engaged_frac = engaged as f32 / n;
+
             let surge_frac = surging as f32 / n;
             let mut drain = tun.surge_drain * surge_frac;
             if u.pace == Pace::Run && u.speed > tun.base_speed * 1.05 {
                 drain += tun.run_drain;
             }
-            // Hard going (mud, slopes, woods) costs stamina in proportion to
-            // how much the ground fights each moving soldier.
             drain += tun.terrain_drain * (effort / n);
-            // Recovery is the net of rest vs residual exertion: a halted
-            // unit whose last stragglers are still shuffling in must not be
-            // locked out of recovering forever.
-            if u.speed < 0.1 && u.move_target.is_none() {
+            drain += tun.combat_drain * engaged_frac;
+            if u.charging {
+                drain += tun.charge_drain;
+            }
+            if u.speed < 0.1 && u.move_target.is_none() && engaged == 0 {
                 drain -= tun.rest_recover;
             }
             u.fatigue = (u.fatigue - drain * dt).clamp(0.0, 1.0);
-        }
 
-        self.tick_count += 1;
+            // Contact memory and casualty rate decay.
+            for w in &mut u.contact_hist {
+                *w *= 0.96;
+            }
+            u.recent_casualties *= 1.0 - (dt / 8.0);
+        }
     }
 }

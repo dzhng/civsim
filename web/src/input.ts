@@ -2,8 +2,12 @@ import type { Camera } from './camera';
 
 export interface OrderSink {
   pickUnit(x: number, y: number): number;
-  orderMove(unit: number, x: number, y: number): void;
+  /** Right-click: move / attack enemy under cursor / shift = withdraw.
+   *  `double` (quick second right-click) sets Run; single sets Walk. */
+  orderAt(unit: number, x: number, y: number, shift: boolean, double: boolean): void;
   togglePace(unit: number): void;
+  toggleStance(unit: number): void;
+  toggleCharge(unit: number): void;
 }
 
 const DRAG_THRESHOLD_PX = 5;
@@ -43,15 +47,21 @@ export class Input {
       }
     });
 
+    let lastRightClick = 0;
     canvas.addEventListener('contextmenu', (e) => {
       e.preventDefault();
       if (this.selected < 0) return;
       const [wx, wy] = camera.screenToWorld(e.clientX * dpr(), e.clientY * dpr());
-      sink.orderMove(this.selected, wx, wy);
+      const now = performance.now();
+      const double = now - lastRightClick < 350;
+      lastRightClick = now;
+      sink.orderAt(this.selected, wx, wy, e.shiftKey, double);
     });
 
     window.addEventListener('keydown', (e) => {
       if (e.key === 'r' && this.selected >= 0) sink.togglePace(this.selected);
+      if (e.key === 'f' && this.selected >= 0) sink.toggleStance(this.selected);
+      if (e.key === 'c' && this.selected >= 0) sink.toggleCharge(this.selected);
     });
 
     canvas.addEventListener(

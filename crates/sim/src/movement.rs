@@ -17,10 +17,16 @@ pub(crate) fn fatigue_capacity(fatigue: f32) -> f32 {
 
 /// The unit's ordered pace, degraded by fatigue (a spent unit "runs" at a walk).
 pub(crate) fn pace_speed(tun: &Tunables, u: &Unit) -> f32 {
-    let base = match u.pace {
-        Pace::Walk => tun.base_speed,
-        Pace::Run => {
-            tun.base_speed + (tun.run_speed - tun.base_speed) * fatigue_capacity(u.fatigue)
+    // The charge burst overrides pace, but ONLY in the measured final
+    // approach of an explicit attack (set in the reflex pass).
+    let base = if u.charging {
+        tun.base_speed + (tun.charge_speed - tun.base_speed) * fatigue_capacity(u.fatigue)
+    } else {
+        match u.pace {
+            Pace::Walk => tun.base_speed,
+            Pace::Run => {
+                tun.base_speed + (tun.run_speed - tun.base_speed) * fatigue_capacity(u.fatigue)
+            }
         }
     };
     base * u.speed_mult
@@ -47,18 +53,53 @@ pub(crate) fn update_unit_motion(tun: &Tunables, u: &mut Unit, dt: f32, ground: 
     // legs and therefore everything derived from them.
     let top = soldier_surge_speed(tun, u) * ground;
 
-    match u.move_target {
+    // The anchor walks its planned waypoints; the final goal uses the arrive
+    // radius, intermediate corners don't brake.
+    let intermediate = u.path_idx + 1 < u.path.len();
+    let steer_goal = if u.path_idx < u.path.len() {
+        u.move_target.map(|_| u.path[u.path_idx])
+    } else {
+        u.move_target
+    };
+
+    match steer_goal {
         Some(t) => {
             let to = t - u.anchor;
-            let dist = to.len();
-            if dist < tun.arrive_radius {
+            let mut dist = to.len();
+            if intermediate {
+                dist = dist.max(12.0); // don't decelerate into corners
+            } else if dist < tun.arrive_radius {
                 u.move_target = None;
+                u.path.clear();
+                u.path_idx = 0;
                 u.pivoting = false;
                 u.speed = move_toward(u.speed, 0.0, accel * 2.0 * dt);
                 return;
             }
+            if u.waiting {
+                // Queued behind same-flow traffic in a corridor.
+                u.speed = move_toward(u.speed, 0.0, accel * 2.0 * dt);
+                if u.speed > 0.0 {
+                    u.anchor = u.anchor + dir(u.facing) * (u.speed * dt);
+                }
+                return;
+            }
             let desired = to.y.atan2(to.x);
             let err = wrap_angle(desired - u.facing);
+
+            // Skirmish legs: loose-order troops don't wheel — they drift in
+            // any direction (back-pedaling away from a threat while still
+            // facing it), at a modest penalty. A wide screen that had to
+            // about-face like a phalanx would die where it stood.
+            if u.evade_auto {
+                u.pivoting = false;
+                u.facing = rotate_toward(u.facing, desired, 0.6 * dt);
+                let target_speed = (pace_speed(tun, u) * ground * 0.9)
+                    .min((2.0 * accel * dist).sqrt());
+                u.speed = move_toward(u.speed, target_speed, accel * dt);
+                u.anchor = u.anchor + to * (u.speed * dt / dist.max(0.01));
+                return;
+            }
 
             // Hysteresis: a big heading change enters the pivot; the unit
             // stays in it until nearly aligned, then marches out.
@@ -119,12 +160,17 @@ mod tests {
             start: 0,
             count: 0,
             files: 1,
+            files_eff: 1,
+            path: Vec::new(),
+            path_idx: 0,
+            waiting: false,
             spacing: Vec2::new(1.0, 1.0),
             anchor: Vec2::ZERO,
             facing: 0.0,
             speed: 0.0,
             move_target: Some(Vec2::new(0.0, 100.0)),
             pending_target: None,
+            pending_mode: crate::unit::OrderMode::Move,
             pending_timer: 0.0,
             pending_total: 0.0,
             pace: Pace::Walk,
@@ -134,11 +180,33 @@ mod tests {
             disorder: 1.0,
             cohesion: 0.1,
             pivoting: false,
+            mode: crate::unit::OrderMode::Move,
+            stance: crate::unit::Stance::Othismos,
+            charge_enabled: false,
+            charging: false,
+            resume_target: None,
+            alive_count: 0,
+            deaths_since_reform: 0,
+            engaged: 0,
+            contact_hist: [0.0; 12],
+            contact_unit: 0,
+            quiet_ticks: 0,
+            recent_casualties: 0.0,
+            ammo: 0,
+            fire_at_will: true,
+            evade_auto: false,
+            morale: 1.0,
+            morale_ceiling: 1.0,
+            routing: false,
+            recent_missiles: 0.0,
+            losing_push: 0.0,
+            centroid: Vec2::ZERO,
         };
         let mut ordered = Unit {
             disorder: 0.0,
             cohesion: 1.0,
             move_target: Some(Vec2::new(0.0, 100.0)),
+            path: Vec::new(),
             ..disordered
         };
         for _ in 0..15 {

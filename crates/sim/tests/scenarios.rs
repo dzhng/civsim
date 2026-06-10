@@ -77,10 +77,12 @@ fn large_turns_pivot_in_place_without_smearing() {
 }
 
 #[test]
-fn colliding_units_push_apart_and_lose_cohesion() {
+fn friendly_units_passing_through_push_apart_and_lose_cohesion() {
+    // Relief-in-place: two FRIENDLY units cross through each other. (Enemy
+    // units stopped interpenetrating when melee landed: they halt and fight.)
     let mut sim = Sim::new(Tunables::default(), SEED);
     let a = sim.spawn_unit(Vec2::new(-15.0, 0.0), 0.0, 100, 10, Vec2::new(1.0, 1.2), 0, 0.7);
-    let b = sim.spawn_unit(Vec2::new(15.0, 0.0), PI, 100, 10, Vec2::new(1.0, 1.2), 1, 0.7);
+    let b = sim.spawn_unit(Vec2::new(15.0, 0.0), PI, 100, 10, Vec2::new(1.0, 1.2), 0, 0.7);
     sim.set_move_order(a, Vec2::new(40.0, 0.0));
     sim.set_move_order(b, Vec2::new(-40.0, 0.0));
     let mut min_cohesion = 1.0f32;

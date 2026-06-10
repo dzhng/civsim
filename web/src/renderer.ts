@@ -7,6 +7,7 @@ layout(location=2) in float a_facing;  // radians, 0 = +x
 layout(location=3) in vec3 a_color;
 layout(location=4) in float a_unit;
 layout(location=5) in float a_size;    // body scale (cavalry > men)
+layout(location=6) in float a_alive;
 uniform vec4 u_cam;        // scale.xy, center.xy
 uniform float u_selected;  // selected unit index or -1
 out vec3 v_color;
@@ -16,7 +17,9 @@ void main() {
   vec2 world = a_pos + (r * a_quad.x + f * a_quad.y) * a_size;
   vec2 clip = (world - u_cam.zw) * u_cam.xy;
   gl_Position = vec4(clip, 0.0, 1.0);
-  v_color = a_color * (abs(a_unit - u_selected) < 0.5 ? 1.7 : 1.0);
+  v_color = a_alive > 0.5
+    ? a_color * (abs(a_unit - u_selected) < 0.5 ? 1.7 : 1.0)
+    : vec3(0.17, 0.13, 0.12);  // the fallen stay on the field
 }`;
 
 const SOLDIER_FS = `#version 300 es
@@ -124,6 +127,7 @@ export class Renderer {
   private colorBuf: WebGLBuffer;
   private unitBuf: WebGLBuffer;
   private sizeBuf: WebGLBuffer;
+  private aliveBuf: WebGLBuffer;
   private capacity = 0;
 
   private ground: Pass;
@@ -158,6 +162,7 @@ export class Renderer {
     this.colorBuf = this.instanceAttr(3, 3);
     this.unitBuf = this.instanceAttr(4, 1);
     this.sizeBuf = this.instanceAttr(5, 1);
+    this.aliveBuf = this.instanceAttr(6, 1);
     this.soldiers = { program: sp, vao: svao, uCam: gl.getUniformLocation(sp, 'u_cam')! };
     this.uSelected = gl.getUniformLocation(sp, 'u_selected')!;
 
@@ -259,7 +264,14 @@ export class Renderer {
     this.ensureCapacity(n);
   }
 
-  draw(positions: Float32Array, facings: Float32Array, count: number, camera: Camera, selectedUnit: number) {
+  draw(
+    positions: Float32Array,
+    facings: Float32Array,
+    alive: Float32Array,
+    count: number,
+    camera: Camera,
+    selectedUnit: number,
+  ) {
     const gl = this.gl;
     this.resizeToDisplay();
     this.ensureCapacity(count);
@@ -281,6 +293,8 @@ export class Renderer {
     gl.bufferSubData(gl.ARRAY_BUFFER, 0, positions, 0, count * 2);
     gl.bindBuffer(gl.ARRAY_BUFFER, this.facingBuf);
     gl.bufferSubData(gl.ARRAY_BUFFER, 0, facings, 0, count);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.aliveBuf);
+    gl.bufferSubData(gl.ARRAY_BUFFER, 0, alive, 0, count);
 
     gl.useProgram(this.soldiers.program);
     gl.bindVertexArray(this.soldiers.vao);
@@ -326,6 +340,8 @@ export class Renderer {
     gl.bindBuffer(gl.ARRAY_BUFFER, this.posBuf);
     gl.bufferData(gl.ARRAY_BUFFER, count * 2 * 4, gl.DYNAMIC_DRAW);
     gl.bindBuffer(gl.ARRAY_BUFFER, this.facingBuf);
+    gl.bufferData(gl.ARRAY_BUFFER, count * 4, gl.DYNAMIC_DRAW);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.aliveBuf);
     gl.bufferData(gl.ARRAY_BUFFER, count * 4, gl.DYNAMIC_DRAW);
     this.capacity = count;
   }

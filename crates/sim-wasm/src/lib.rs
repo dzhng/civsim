@@ -5,13 +5,14 @@
 //! must be re-fetched every frame — Vec reallocation can move them and grow
 //! the memory (which detaches any existing JS TypedArray views).
 
-use sim::{build_map, setup_battle, MapId, Pace, Sim, Tunables, Vec2};
+use sim::{build_map, setup_battle, MapId, Pace, Sim, Stance, Tunables, Vec2};
 use wasm_bindgen::prelude::*;
 
 /// Floats per unit in the unit_info array:
 /// [anchor_x, anchor_y, facing, speed, cohesion, disorder, team, count,
-///  fatigue, pace, target_x, target_y, has_target, class, order_delay_frac]
-pub const UNIT_INFO_STRIDE: usize = 15;
+///  fatigue, pace, target_x, target_y, has_target, class, order_delay_frac,
+///  alive_count, engaged, stance, charge (0 off / 1 armed / 2 charging), ammo]
+pub const UNIT_INFO_STRIDE: usize = 20;
 
 #[wasm_bindgen]
 pub struct Game {
@@ -110,6 +111,53 @@ impl Game {
         self.refresh_unit_info();
     }
 
+    pub fn set_charge_enabled(&mut self, unit: u32, enabled: u32) {
+        self.sim.set_charge_enabled(unit as usize, enabled != 0);
+        self.refresh_unit_info();
+    }
+
+    /// 0 = Othismos (press), anything else = Fence (fight at reach).
+    pub fn set_stance(&mut self, unit: u32, stance: u32) {
+        let stance = if stance == 0 { Stance::Othismos } else { Stance::Fence };
+        self.sim.set_stance(unit as usize, stance);
+        self.refresh_unit_info();
+    }
+
+    pub fn set_attack_order(&mut self, unit: u32, enemy: u32) {
+        self.sim.set_attack_order(unit as usize, enemy as usize);
+        self.refresh_unit_info();
+    }
+
+    pub fn set_attack_move_order(&mut self, unit: u32, x: f32, y: f32) {
+        self.sim.set_attack_move_order(unit as usize, Vec2::new(x, y));
+        self.refresh_unit_info();
+    }
+
+    pub fn set_withdraw_order(&mut self, unit: u32, x: f32, y: f32) {
+        self.sim.set_withdraw_order(unit as usize, Vec2::new(x, y));
+        self.refresh_unit_info();
+    }
+
+    pub fn alive_ptr(&self) -> *const u8 {
+        self.sim.alive.as_ptr()
+    }
+
+    pub fn projectile_count(&self) -> u32 {
+        self.sim.projectiles.len() as u32
+    }
+
+    pub fn projectile_x_ptr(&self) -> *const f32 {
+        self.sim.projectiles.x.as_ptr()
+    }
+
+    pub fn projectile_y_ptr(&self) -> *const f32 {
+        self.sim.projectiles.y.as_ptr()
+    }
+
+    pub fn projectile_kind_ptr(&self) -> *const u8 {
+        self.sim.projectiles.kind.as_ptr()
+    }
+
     /// Nearest unit to (x, y) within max_dist, or -1.
     pub fn pick_unit(&self, x: f32, y: f32, max_dist: f32) -> i32 {
         self.sim
@@ -173,6 +221,17 @@ impl Game {
                 } else {
                     0.0
                 },
+                u.alive_count as f32,
+                u.engaged as f32,
+                if u.stance == Stance::Othismos { 0.0 } else { 1.0 },
+                if u.charging {
+                    2.0
+                } else if u.charge_enabled {
+                    1.0
+                } else {
+                    0.0
+                },
+                u.ammo as f32,
             ]);
         }
     }

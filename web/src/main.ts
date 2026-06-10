@@ -99,20 +99,58 @@ function overlayVerts(withPaths: boolean): Float32Array {
       }
     }
   }
+  // Projectiles in flight: short dashes (stones darker and longer).
+  const pCount = game.projectile_count();
+  if (pCount > 0) {
+    const px = new Float32Array(wasm.memory.buffer, game.projectile_x_ptr(), pCount);
+    const py = new Float32Array(wasm.memory.buffer, game.projectile_y_ptr(), pCount);
+    const pk = new Uint8Array(wasm.memory.buffer, game.projectile_kind_ptr(), pCount);
+    for (let i = 0; i < pCount; i++) {
+      const stone = pk[i] === 2;
+      const len = stone ? 1.4 : 0.7;
+      const c = stone ? 0.25 : 0.92;
+      verts.push(px[i] - len, py[i], c, c, c * 0.9, px[i] + len, py[i], c, c, c * 0.9);
+    }
+  }
   return new Float32Array(verts);
 }
 
 const input = new Input(canvas, camera, {
   pickUnit: (x, y) => game.pick_unit(x, y, 30),
-  orderMove: (unit, x, y) => game.set_move_order(unit, x, y),
+  orderAt: (unit, x, y, shift, double) => {
+    const info = unitInfo();
+    const targetUnit = game.pick_unit(x, y, 25);
+    const isEnemy =
+      targetUnit >= 0 &&
+      info[targetUnit * STRIDE + 6] !== info[unit * STRIDE + 6] &&
+      info[targetUnit * STRIDE + 15] > 0;
+    // Single right-click walks, a quick second click breaks into a run.
+    game.set_pace(unit, double ? 1 : 0);
+    if (isEnemy) {
+      game.set_attack_order(unit, targetUnit);
+    } else if (shift) {
+      game.set_withdraw_order(unit, x, y);
+    } else {
+      game.set_move_order(unit, x, y);
+    }
+  },
   togglePace: (unit) => {
     const isRunning = unitInfo()[unit * STRIDE + 9] > 0.5;
     game.set_pace(unit, isRunning ? 0 : 1);
+  },
+  toggleStance: (unit) => {
+    const isFence = unitInfo()[unit * STRIDE + 17] > 0.5;
+    game.set_stance(unit, isFence ? 0 : 1);
+  },
+  toggleCharge: (unit) => {
+    const armed = unitInfo()[unit * STRIDE + 18] > 0.5;
+    game.set_charge_enabled(unit, armed ? 0 : 1);
   },
 });
 
 // --- Main loop -------------------------------------------------------------
 const hud = document.getElementById('hud')!;
+let aliveF32 = new Float32Array(0);
 let accumulator = 0;
 let lastFrame = performance.now();
 let tickMsAvg = 0;
@@ -136,7 +174,12 @@ function frame(now: number) {
   }
   if (ticks === maxTicks) accumulator = 0; // refuse death spiral
 
-  renderer.draw(positions(), facings(), game.soldier_count(), camera, input.selected);
+  {
+    const a = new Uint8Array(wasm.memory.buffer, game.alive_ptr(), game.soldier_count());
+    if (aliveF32.length !== a.length) aliveF32 = new Float32Array(a.length);
+    for (let i = 0; i < a.length; i++) aliveF32[i] = a[i];
+  }
+  renderer.draw(positions(), facings(), aliveF32, game.soldier_count(), camera, input.selected);
   renderer.drawOverlay(overlayVerts(showPaths), camera);
 
   hudTimer += frameDt;
@@ -161,8 +204,13 @@ function updateHud() {
     const fatigue = info[o + 8];
     const pace = info[o + 9] > 0.5 ? 'run' : 'walk';
     const cls = CLASS_NAMES[info[o + 13]] ?? '?';
+    const stance = info[o + 17] > 0.5 ? 'fence' : 'othismos';
+    const charge = info[o + 18] === 2 ? '  CHARGING' : info[o + 18] === 1 ? '  charge armed' : '';
+    const ammo = info[o + 19] > 0 ? `  ammo ${info[o + 19]}` : '';
+    const engaged = info[o + 16];
     lines.push(
-      `unit ${input.selected}  ${cls}  team ${info[o + 6]}  ${pace} ${info[o + 3].toFixed(1)} m/s`,
+      `unit ${input.selected}  ${cls}  team ${info[o + 6]}  ${pace} ${info[o + 3].toFixed(1)} m/s  ${stance}${charge}`,
+      `men ${info[o + 15]}/${info[o + 7]}${engaged > 0 ? `  engaged ${engaged}` : ''}${ammo}`,
       `cohesion ${(cohesion * 100).toFixed(0)}%  disorder ${(info[o + 5] * 100).toFixed(0)}%  stamina ${(fatigue * 100).toFixed(0)}%`,
     );
     bars =
@@ -190,6 +238,10 @@ window.__game = {
   }),
   setOrder: (u: number, x: number, y: number) => game.set_move_order(u, x, y),
   setPace: (u: number, pace: number) => game.set_pace(u, pace),
+  setStance: (u: number, s: number) => game.set_stance(u, s),
+  attackOrder: (u: number, enemy: number) => game.set_attack_order(u, enemy),
+  attackMove: (u: number, x: number, y: number) => game.set_attack_move_order(u, x, y),
+  withdraw: (u: number, x: number, y: number) => game.set_withdraw_order(u, x, y),
   // Fast-forward n ticks synchronously (verification only — lets the harness
   // test minute-scale maneuvers in real-time seconds).
   advance: (n: number) => {

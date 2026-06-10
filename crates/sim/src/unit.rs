@@ -8,6 +8,32 @@ use crate::class::UnitClassId;
 use crate::math::{dir, Vec2};
 use crate::tunables::Pace;
 
+/// Combat stance: what the rear ranks do while the front fights.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Stance {
+    /// Press: the formation leans into contact — rear ranks pile weight on
+    /// the front, transmitting pressure and walking the enemy back (push of
+    /// shields/pikes). The cost is the front rank's room: their own side's
+    /// press crushes their evade.
+    Othismos,
+    /// Fight at weapon's length: no sustained lean, room to work the blade,
+    /// evade preserved — but no shove. Open-order fencing.
+    Fence,
+}
+
+/// How a unit treats contact while executing its order.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum OrderMode {
+    /// Halt-and-face while attacked; resume the path when contact ends.
+    Move,
+    /// Latch onto whatever it meets; resume the path when the target is gone.
+    AttackMove,
+    /// Latched onto an enemy unit: anchor chases their anchor.
+    Attack(u32),
+    /// No reflexes, no attack initiation: just go (blocks/evades only).
+    Withdraw,
+}
+
 pub struct Unit {
     pub class: UnitClassId,
     /// Multiplies the global walk/run/surge speeds (cavalry ≫ infantry).
@@ -15,8 +41,16 @@ pub struct Unit {
     /// Index of this unit's first soldier in the soldier arrays.
     pub start: usize,
     pub count: usize,
-    /// Soldiers per rank.
+    /// Soldiers per rank (the formation as ordered).
     pub files: usize,
+    /// Soldiers per rank RIGHT NOW: temporarily reduced to fit corridors
+    /// (bridges, defiles); reverts to `files` on open ground.
+    pub files_eff: usize,
+    /// Waypoints the anchor follows around impassable terrain (last = goal).
+    pub path: Vec<Vec2>,
+    pub path_idx: usize,
+    /// Halted behind same-flow friendly traffic in a corridor.
+    pub waiting: bool,
     /// (lateral spacing, rank depth spacing) in meters.
     pub spacing: Vec2,
     /// Front-center of the formation; slots extend behind it.
@@ -27,6 +61,7 @@ pub struct Unit {
     /// Order awaiting transmission: a disordered unit takes time to respond.
     /// (cohesion-gated; the pie timer in the UI reads these.)
     pub pending_target: Option<Vec2>,
+    pub pending_mode: OrderMode,
     pub pending_timer: f32,
     pub pending_total: f32,
     pub pace: Pace,
@@ -43,6 +78,62 @@ pub struct Unit {
     /// True while the unit is halted and rotating in place; slots are
     /// continuously reassigned to nearest soldiers during this.
     pub pivoting: bool,
+    pub mode: OrderMode,
+    pub stance: Stance,
+    /// Charge setting: burst in the final approach of an explicit attack.
+    pub charge_enabled: bool,
+    /// True only during that final approach (measured each tick).
+    pub charging: bool,
+    /// Path stashed by the engagement reflex, resumed when contact ends.
+    pub resume_target: Option<Vec2>,
+    /// Living soldiers (formation shrinks as men fall).
+    pub alive_count: usize,
+    pub deaths_since_reform: usize,
+    /// Soldiers engaged in melee last tick (measured).
+    pub engaged: usize,
+    /// Decaying histogram of enemy-contact bearings (12 sectors, world frame):
+    /// the contact-facing rule reads this after masking friendly sectors.
+    pub contact_hist: [f32; 12],
+    /// Enemy unit most recently contacted (latch target for AttackMove).
+    pub contact_unit: u32,
+    /// Ticks with no contact, for the resume reflex.
+    pub quiet_ticks: u32,
+    /// Recent casualty count, decaying (morale reads this later).
+    pub recent_casualties: f32,
+    /// Remaining missiles for the whole unit.
+    pub ammo: u32,
+    pub fire_at_will: bool,
+    /// Skirmish reflex: automatically keep distance from approaching enemies.
+    pub evade_auto: bool,
+    /// Will to fight, 0..1. Psychology — but its inputs are all physical
+    /// facts and its outputs all physical behaviors.
+    pub morale: f32,
+    /// Rallying scars: morale can never recover above this again.
+    pub morale_ceiling: f32,
+    /// Broken: control lost, soldiers flee as bodies through whatever is in
+    /// the way.
+    pub routing: bool,
+    /// Recent missile strikes received (decaying) — being shot at without
+    /// reply erodes the will.
+    pub recent_missiles: f32,
+    /// EMA of backward contact drift while ordered to stand/advance:
+    /// "we are losing the push", the precise involuntary-displacement signal.
+    pub losing_push: f32,
+    /// Mean position of living soldiers (kept fresh; the rout frame).
+    pub centroid: Vec2,
+}
+
+/// Sector index for a world-frame bearing, 12 sectors over (-PI, PI].
+pub fn bearing_bucket(bearing: f32) -> usize {
+    use std::f32::consts::{PI, TAU};
+    let t = (crate::math::wrap_angle(bearing) + PI) / TAU;
+    ((t * 12.0) as usize).min(11)
+}
+
+/// Center bearing of a sector.
+pub fn bucket_bearing(bucket: usize) -> f32 {
+    use std::f32::consts::{PI, TAU};
+    (bucket as f32 + 0.5) / 12.0 * TAU - PI
 }
 
 pub(crate) fn slot_local(slot: usize, files: usize, spacing: Vec2) -> Vec2 {
@@ -56,11 +147,11 @@ pub(crate) fn slot_local(slot: usize, files: usize, spacing: Vec2) -> Vec2 {
 
 impl Unit {
     pub fn width(&self) -> f32 {
-        (self.files.max(1) - 1) as f32 * self.spacing.x
+        (self.files_eff.max(1) - 1) as f32 * self.spacing.x
     }
 
     pub fn depth(&self) -> f32 {
-        self.count.div_ceil(self.files.max(1)) as f32 * self.spacing.y
+        self.alive_count.max(1).div_ceil(self.files_eff.max(1)) as f32 * self.spacing.y
     }
 
     /// Distance from the rotation center to the farthest slot, for the
@@ -77,7 +168,7 @@ impl Unit {
     /// World position of a slot: lateral offset along the unit's right axis,
     /// ranks extending backward from the anchor.
     pub fn slot_world(&self, slot: usize) -> Vec2 {
-        let local = slot_local(slot, self.files, self.spacing);
+        let local = slot_local(slot, self.files_eff, self.spacing);
         let f = dir(self.facing);
         let r = Vec2::new(f.y, -f.x);
         self.anchor + r * local.x + f * (-local.y)
@@ -93,10 +184,11 @@ impl Unit {
 /// depth behind the anchor, chunk into ranks, sort each rank laterally.
 /// O(n log n), and run every tick while pivoting so ranks relabel themselves
 /// around mostly stationary soldiers.
-pub(crate) fn reassign_slots(u: &Unit, positions: &[f32], soldier_slot: &mut [u32]) {
+pub(crate) fn reassign_slots(u: &Unit, positions: &[f32], alive: &[u8], soldier_slot: &mut [u32]) {
     let f = dir(u.facing);
     let r = Vec2::new(f.y, -f.x);
     let mut order: Vec<(f32, f32, u32)> = (0..u.count)
+        .filter(|&s| alive[u.start + s] == 1)
         .map(|s| {
             let i = u.start + s;
             let p = Vec2::new(positions[2 * i], positions[2 * i + 1]) - u.anchor;
@@ -106,7 +198,7 @@ pub(crate) fn reassign_slots(u: &Unit, positions: &[f32], soldier_slot: &mut [u3
         })
         .collect();
     order.sort_by(|a, b| a.0.total_cmp(&b.0));
-    for rank in order.chunks_mut(u.files) {
+    for rank in order.chunks_mut(u.files_eff.max(1)) {
         rank.sort_by(|a, b| a.1.total_cmp(&b.1));
     }
     for (slot, &(_, _, s)) in order.iter().enumerate() {

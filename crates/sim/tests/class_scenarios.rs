@@ -14,12 +14,13 @@ fn run(sim: &mut Sim, seconds: f32) {
 
 #[test]
 fn cavalry_mass_shoves_through_infantry() {
-    // Shock cavalry rides through standing light infantry; control: the same
-    // infantry walked through by other light infantry.
+    // FRIENDLY pass-through isolates pure mass physics (enemies stop and
+    // fight since melee landed): cavalry riding through standing infantry
+    // shoves men aside far harder than infantry walking the same line.
     let displacement_by = |attacker: UnitClassId| -> f32 {
         let mut sim = Sim::new(Tunables::default(), SEED);
         let inf = sim.spawn_class(Vec2::new(0.0, 0.0), -PI / 2.0, 360, UnitClassId::LightInfantry, 0);
-        let atk = sim.spawn_class(Vec2::new(0.0, -80.0), PI / 2.0, 120, attacker, 1);
+        let atk = sim.spawn_class(Vec2::new(0.0, -80.0), PI / 2.0, 120, attacker, 0);
         let before: Vec<Vec2> = {
             let u = &sim.units[inf];
             (u.start..u.start + u.count).map(|i| sim.soldier_pos(i)).collect()

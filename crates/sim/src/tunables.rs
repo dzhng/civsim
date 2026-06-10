@@ -79,6 +79,32 @@ pub struct Tunables {
     /// Seconds of order delay per point of cohesion shortfall.
     pub order_delay_scale: f32,
     pub order_delay_max: f32,
+    /// Pressure EMA time constant (s).
+    pub press_tau: f32,
+    /// Effective-mass gain per m/s of backpressure along the push axis:
+    /// bodies transmit force like a medium (othismos, wedge penetration).
+    pub press_drive: f32,
+    /// Closing speed (m/s) above which an enemy contact is a charge impact.
+    pub charge_min_speed: f32,
+    /// Impact momentum (m_eff * closing speed) that knocks a lighter body down.
+    pub stun_momentum: f32,
+    pub stun_time: f32,
+    /// Extra displacement per m/s of closing speed at impact.
+    pub impact_push: f32,
+    /// Displacement imparted by a landed or blocked strike, scaled by the
+    /// attacker/defender effective-mass ratio.
+    pub hit_push: f32,
+    /// Unit fatigue per second when fully engaged in melee.
+    pub combat_drain: f32,
+    /// Facing-deviation tolerance (rad) before it counts as disorder.
+    pub facing_tolerance: f32,
+    /// Charge burst speed (m/s, fresh foot unit; class speed_mult applies).
+    pub charge_speed: f32,
+    /// Final-approach window: charge engages within this many seconds of
+    /// contact at charge speed.
+    pub charge_window: f32,
+    /// Fatigue per second while charging.
+    pub charge_drain: f32,
 }
 
 impl Default for Tunables {
@@ -113,6 +139,18 @@ impl Default for Tunables {
             order_delay_threshold: 0.8,
             order_delay_scale: 6.0,
             order_delay_max: 4.0,
+            press_tau: 0.4,
+            press_drive: 0.5,
+            charge_min_speed: 2.5,
+            charge_speed: 4.6,
+            charge_window: 2.0,
+            charge_drain: 1.0 / 25.0,
+            stun_momentum: 14.0,
+            stun_time: 1.3,
+            impact_push: 0.2,
+            hit_push: 0.3,
+            combat_drain: 1.0 / 50.0,
+            facing_tolerance: 0.3,
         }
     }
 }

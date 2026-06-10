@@ -85,6 +85,31 @@ fn walls_keep_soldiers_out() {
 }
 
 #[test]
+fn halted_frame_slides_off_rocks() {
+    // Park a unit ON an outcrop: the frame must creep clear so every slot is
+    // reachable and cohesion recovers — no permanent false disorder.
+    let mut t = Terrain::flat(100, 60, 4.0, Vec2::new(-200.0, -120.0));
+    t.paint_circle(Vec2::new(40.0, 0.0), 9.0, 0.0, 0.0);
+    let mut sim = Sim::new(Tunables::default(), SEED);
+    sim.terrain = t;
+    let u = sim.spawn_unit(Vec2::new(-40.0, 0.0), 0.0, 200, 20, Vec2::new(1.0, 1.2), 0, 0.7);
+    sim.set_move_order(u, Vec2::new(40.0, 0.0)); // target = the rock
+    for _ in 0..(120.0 / DT) as usize {
+        sim.tick();
+    }
+    let unit = &sim.units[u];
+    let bad_slots = (0..unit.alive_count)
+        .filter(|&s| sim.terrain.speed_at(unit.slot_world(s)) <= 0.0)
+        .count();
+    assert_eq!(bad_slots, 0, "no slot may rest inside a wall");
+    assert!(
+        unit.cohesion > 0.8,
+        "cohesion must recover once the frame is achievable, got {}",
+        unit.cohesion
+    );
+}
+
+#[test]
 fn chokepoint_funneling_disorders_the_unit() {
     // Two walls leaving a 16m gap; a 19m-wide formation must funnel through.
     let mut t = Terrain::flat(120, 80, 4.0, Vec2::new(-240.0, -160.0));

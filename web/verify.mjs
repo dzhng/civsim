@@ -125,6 +125,47 @@ await page.evaluate(() => {
 const rested = await page.evaluate(() => window.__game.unitInfo(7));
 check('rest recovers stamina', rested[8] > ran[8] + 0.08, `fatigue ${ran[8].toFixed(2)} -> ${rested[8].toFixed(2)}`);
 
+// --- Stage 6: melee — two heavies meet, fight, and leave corpses -------------
+await page.evaluate(() => {
+  window.__game.attackOrder(4, 24); // center heavies, straight clear lane
+  window.__game.attackOrder(24, 4);
+  window.__game.advance(4600); // close ~400m: mid-fight
+});
+const mid = await page.evaluate(() => window.__game.unitInfo(4));
+check('units are engaged mid-fight', mid[16] > 20, `${mid[16]} fighting`);
+await page.screenshot({ path: SHOTS + 'melee.png' });
+await page.evaluate(() => window.__game.advance(2000));
+const red = await page.evaluate(() => window.__game.unitInfo(4));
+const blue = await page.evaluate(() => window.__game.unitInfo(24));
+const redLosses = red[7] - red[15];
+const blueLosses = blue[7] - blue[15];
+check('melee inflicts casualties', redLosses + blueLosses > 30,
+  `losses red ${redLosses} / blue ${blueLosses}`);
+// (Until morale lands, to-the-death is the artificial endpoint; this guards
+// against instant one-sided deletion only.)
+check('melee is a grind, not annihilation', red[15] + blue[15] > 250,
+  `${red[15]}/${red[7]} and ${blue[15]}/${blue[7]} still standing`);
+
+// --- Stage 7: archery — volleys at an approaching enemy ----------------------
+// March red archers (unit 13) toward the blue skirmish screen until in range.
+await page.evaluate(() => {
+  const a = window.__game.unitInfo(13);
+  window.__game.setOrder(13, a[0], -40);
+  window.__game.advance(4200);
+});
+const blueArmyLosses = await page.evaluate(() => {
+  let lost = 0;
+  for (let u = 20; u < 40; u++) {
+    const i = window.__game.unitInfo(u);
+    lost += i[7] - i[15];
+  }
+  return lost;
+});
+const archerInfo = await page.evaluate(() => window.__game.unitInfo(13));
+check('archers volley the enemy', archerInfo[19] < archerInfo[7] * 30 && blueArmyLosses > 10,
+  `ammo ${archerInfo[19]}, blue losses ${blueArmyLosses}`);
+await page.screenshot({ path: SHOTS + 'archery.png' });
+
 // --- Health -------------------------------------------------------------------
 const stats2 = await page.evaluate(() => window.__game.stats());
 check('tick under budget', stats2.tickMs < 8, `${stats2.tickMs.toFixed(2)} ms avg at ${stats2.soldiers} soldiers`);

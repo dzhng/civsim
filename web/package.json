@@ -1,0 +1,17 @@
+{
+  "name": "battle-web",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --strictPort",
+    "build": "vite build",
+    "preview": "vite preview",
+    "build:wasm": "wasm-pack build ../crates/sim-wasm --target web --release --out-dir ../../web/src/wasm",
+    "verify": "node verify.mjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.60.0",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.16"
+  }
+}

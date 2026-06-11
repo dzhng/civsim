@@ -135,14 +135,24 @@ fn running_drains_fatigue_and_tired_units_slow_down() {
 
 #[test]
 fn maneuvers_cost_fatigue_and_rest_recovers_it() {
+    // With the loose surge threshold a drilled about-face is nearly free
+    // (men step a few meters) — the SURGE is what costs. Scatter the unit
+    // hard so the catch-up sprint genuinely fires.
     let mut sim = Sim::new(Tunables::default(), SEED);
     let u = test_unit(&mut sim);
-    sim.set_move_order(u, Vec2::new(-60.0, 0.0));
+    {
+        let (start, count) = (sim.units[u].start, sim.units[u].count);
+        for s in 0..count {
+            let i = start + s;
+            sim.positions[2 * i] += ((s % 9) as f32 - 4.0) * 3.0;
+            sim.positions[2 * i + 1] += ((s % 7) as f32 - 3.0) * 3.5;
+        }
+    }
     run(&mut sim, 15.0);
     let after_pivot = sim.units[u].fatigue;
     assert!(
         after_pivot < 0.98,
-        "surging through a pivot should cost fatigue, got {after_pivot}"
+        "sprinting back into formation costs fatigue, got {after_pivot}"
     );
     sim.units[u].move_target = None;
     run(&mut sim, 120.0);
@@ -167,4 +177,33 @@ fn deterministic_given_same_orders() {
     let b = build();
     assert_eq!(a.positions, b.positions);
     assert_eq!(a.facings, b.facings);
+}
+
+#[test]
+fn running_disorganizes_walking_does_not() {
+    // The same leg-speed spread, two paces: the walking line stays dressed,
+    // the running one frays the longer it runs.
+    let cohesion_after = |run: bool| -> f32 {
+        let mut sim = Sim::new(Tunables::default(), 4711);
+        let u = sim.spawn_unit(Vec2::ZERO, 0.0, 400, 40, Vec2::new(1.0, 1.2), 0, 0.7);
+        if run {
+            sim.set_pace(u, Pace::Run);
+        }
+        sim.set_move_order(u, Vec2::new(420.0, 0.0));
+        // Measure mid-march at the same DISTANCE covered, not the same time.
+        while sim.units[u].anchor.x < 170.0 { // mid-run, before fatigue ends it
+            sim.tick();
+        }
+        sim.units[u].cohesion
+    };
+    let walking = cohesion_after(false);
+    let running = cohesion_after(true);
+    assert!(
+        walking > 0.85,
+        "a walking column holds its dressing: cohesion {walking:.2}"
+    );
+    assert!(
+        running < walking - 0.12,
+        "a long run frays the formation: running {running:.2} vs walking {walking:.2}"
+    );
 }

@@ -37,6 +37,10 @@ pub struct Sim {
     pub(crate) press_x: Vec<f32>,
     pub(crate) press_y: Vec<f32>,
     pub attack_cd: Vec<f32>,
+    /// Weapon currently in hand (index into the class weapon list).
+    pub cur_weapon: Vec<u8>,
+    /// Seconds left in this soldier's weapon swap (no strikes meanwhile).
+    pub switch_cd: Vec<f32>,
     pub stun: Vec<f32>,
     /// Current melee engagement (enemy soldier index, -1 = none).
     /// Set at awareness range (~6m): drives approach facing.
@@ -87,6 +91,8 @@ impl Sim {
             press_x: Vec::new(),
             press_y: Vec::new(),
             attack_cd: Vec::new(),
+            cur_weapon: Vec::new(),
+            switch_cd: Vec::new(),
             stun: Vec::new(),
             target: Vec::new(),
             fighting: Vec::new(),
@@ -188,7 +194,12 @@ impl Sim {
             reform_timer: 0.0,
             pursue: false,
             threat_bearing: None,
-            hold_facing: false,
+            threat_unit: None,
+            latch_timer: 0.0,
+            latch_cd: 0.0,
+            weapon_pref: 0,
+            switch_timer: 0.0,
+            pending_pref: 0,
         };
         for s in 0..count {
             let p = unit.slot_world(s);
@@ -204,6 +215,8 @@ impl Sim {
             self.press_x.push(0.0);
             self.press_y.push(0.0);
             self.attack_cd.push(0.0);
+            self.cur_weapon.push(0);
+            self.switch_cd.push(0.0);
             self.stun.push(0.0);
             self.target.push(-1);
             self.fighting.push(0);
@@ -257,9 +270,13 @@ impl Sim {
         }
     }
 
+    /// Kiting is a class capability (loose order, ranged, drilled to run):
+    /// only skirmishers and horse archers can toggle it.
     pub fn set_evade_auto(&mut self, unit: usize, on: bool) {
         if let Some(u) = self.units.get_mut(unit) {
-            u.evade_auto = on;
+            if matches!(u.class, UnitClassId::Skirmishers | UnitClassId::HorseArchers) {
+                u.evade_auto = on;
+            }
         }
     }
 
@@ -302,11 +319,14 @@ impl Sim {
     }
 
     pub fn set_attack_move_order(&mut self, unit: usize, target: Vec2) {
-        self.queue_order(unit, OrderMode::AttackMove, target);
+        // Sugar for Move with the pursue bit set: latch onto whatever the
+        // advance meets (the old AttackMove, now one less mode).
+        self.set_pursue(unit, true);
+        self.queue_order(unit, OrderMode::Move, target);
     }
 
-    pub fn set_withdraw_order(&mut self, unit: usize, target: Vec2) {
-        self.queue_order(unit, OrderMode::Withdraw, target);
+    pub fn set_disengage_order(&mut self, unit: usize, target: Vec2) {
+        self.queue_order(unit, OrderMode::Disengage, target);
     }
 
     /// Latch onto an enemy unit: targeting convenience only — combat outcomes
@@ -317,20 +337,6 @@ impl Sim {
         }
         let anchor = self.units[enemy].anchor;
         self.queue_order(unit, OrderMode::Attack(enemy as u32), anchor);
-    }
-
-    /// Back-pedal / strafe to the target without turning: slower than a
-    /// march, walking pace only — the controlled way to give ground with
-    /// shields still facing the enemy. Mounted units can't moonwalk: for
-    /// them this is an ordinary move (they wheel and break off).
-    pub fn set_reverse_move_order(&mut self, unit: usize, target: Vec2) {
-        self.queue_order(unit, OrderMode::Move, target);
-        if let Some(u) = self.units.get_mut(unit) {
-            if !u.is_mounted() {
-                u.hold_facing = true;
-                u.pace = Pace::Walk;
-            }
-        }
     }
 
     /// Move order that also pivots to a final facing on arrival
@@ -373,6 +379,19 @@ impl Sim {
         // Re-seat the frame on the men's actual center of mass.
         u.anchor = u.centroid + dir(u.facing) * (0.5 * u.depth());
         reassign_slots(&self.units[unit], &self.positions, &self.alive, &mut self.soldier_slot);
+    }
+
+    /// Order the whole unit onto its secondary weapon (or back to weapons
+    /// by judgment). Takes ~1s to shout down the line, then each soldier
+    /// swaps with his own ~1s fumble.
+    pub fn set_weapon_pref(&mut self, unit: usize, secondary: bool) {
+        if let Some(u) = self.units.get_mut(unit) {
+            let pref = if secondary { 1 } else { 0 };
+            if u.weapon_pref != pref {
+                u.pending_pref = pref;
+                u.switch_timer = 1.0;
+            }
+        }
     }
 
     pub fn set_pursue(&mut self, unit: usize, on: bool) {
@@ -485,10 +504,7 @@ impl Sim {
                 continue;
             }
             // --- path planning ------------------------------------------
-            if self.units[ui].hold_facing {
-                self.units[ui].path.clear();
-                self.units[ui].path_idx = 0;
-            } else if let Some(goal) = self.units[ui].move_target {
+            if let Some(goal) = self.units[ui].move_target {
                 let stale = self.units[ui]
                     .path
                     .last()
@@ -600,6 +616,17 @@ impl Sim {
     }
 
     fn deliver_orders_and_reflexes(&mut self, dt: f32) {
+        for u in self.units.iter_mut() {
+            if u.latch_cd > 0.0 {
+                u.latch_cd -= dt;
+            }
+            if u.switch_timer > 0.0 {
+                u.switch_timer -= dt;
+                if u.switch_timer <= 0.0 {
+                    u.weapon_pref = u.pending_pref;
+                }
+            }
+        }
         // Nearest-enemy bearings (the fighting-withdrawal reflex reads them).
         let centers: Vec<(Vec2, u32, usize, f32)> = self
             .units
@@ -608,18 +635,19 @@ impl Sim {
             .collect();
         for ui in 0..self.units.len() {
             let (mc, mt, _, _) = centers[ui];
-            let mut best: Option<(f32, f32)> = None; // (edge dist, bearing)
-            for &(c, team, alive, ext) in &centers {
+            let mut best: Option<(f32, f32, u32)> = None; // (edge dist, bearing, unit)
+            for (vi, &(c, team, alive, ext)) in centers.iter().enumerate() {
                 if team == mt || alive == 0 {
                     continue;
                 }
                 let to = c - mc;
                 let d = to.len() - ext;
-                if d < 45.0 && best.map_or(true, |(bd, _)| d < bd) {
-                    best = Some((d, to.y.atan2(to.x)));
+                if d < 90.0 && best.map_or(true, |(bd, _, _)| d < bd) {
+                    best = Some((d, to.y.atan2(to.x), vi as u32));
                 }
             }
-            self.units[ui].threat_bearing = best.map(|(_, b)| b);
+            self.units[ui].threat_bearing = best.filter(|&(d, _, _)| d < 45.0).map(|(_, b, _)| b);
+            self.units[ui].threat_unit = best.map(|(d, _, v)| (v, d));
         }
 
         for ui in 0..self.units.len() {
@@ -652,6 +680,21 @@ impl Sim {
                 };
                 let enemy_routing = self.units[e].routing;
                 let u = &mut self.units[ui];
+                // A timed latch (pursue auto-charge) that can't make contact
+                // gives up: no chasing faster prey across the map.
+                if u.latch_timer > 0.0 {
+                    if engaged_frac > 0.03 {
+                        u.latch_timer = 0.0; // contact made: the latch holds
+                    } else {
+                        u.latch_timer -= dt;
+                        if u.latch_timer <= 0.0 {
+                            u.mode = OrderMode::Move;
+                            u.move_target = u.resume_target.take();
+                            u.latch_cd = 5.0;
+                            continue;
+                        }
+                    }
+                }
                 if enemy_dead || (enemy_routing && !u.pursue) {
                     // Hold ground when they break, unless told to chase.
                     u.mode = OrderMode::Move;
@@ -675,34 +718,60 @@ impl Sim {
             let u = &mut self.units[ui];
             // Skirmish screens never volunteer for melee: no halt-and-face —
             // their answer to contact is their legs.
-            if engaged_frac > 0.06 && u.mode != OrderMode::Withdraw && !u.evade_auto {
+            if engaged_frac > 0.06 && u.mode != OrderMode::Disengage && !u.evade_auto {
                 u.quiet_ticks = 0;
                 match u.mode {
                     OrderMode::Move => {
-                        // Halt and fight; the path resumes when contact ends.
-                        if let Some(t) = u.move_target.take() {
-                            u.resume_target = Some(t);
+                        if u.pursue {
+                            u.latch_timer = 6.0; // reactive latch: timed too
+                            // Pursue setting: the advance latches onto what
+                            // it meets, resuming the path afterward.
+                            if u.resume_target.is_none() {
+                                u.resume_target = u.move_target;
+                            }
+                            u.move_target = None;
+                            u.mode = OrderMode::Attack(u.contact_unit);
                         }
-                    }
-                    OrderMode::AttackMove => {
-                        if u.resume_target.is_none() {
-                            u.resume_target = u.move_target;
-                        }
-                        u.move_target = None;
-                        u.mode = OrderMode::Attack(u.contact_unit);
+                        // Otherwise ENGAGE posture: the live order keeps
+                        // driving the anchor (facing threats, drifting);
+                        // a unit without one stands and fights where it is.
                     }
                     OrderMode::Attack(_) => {
                         u.move_target = None;
                     }
-                    OrderMode::Withdraw => {}
+                    OrderMode::Disengage => {}
                 }
             } else if engaged_frac <= 0.01 {
-                u.quiet_ticks += 1;
-                if u.quiet_ticks == 90 {
-                    if let Some(t) = u.resume_target.take() {
-                        if u.move_target.is_none() {
-                            u.move_target = Some(t);
+                // Proactive auto-charge: a pursue-move latches onto any
+                // enemy that comes within range of the advance (timed).
+                if u.pursue
+                    && u.mode == OrderMode::Move
+                    && u.move_target.is_some()
+                    && u.latch_cd <= 0.0
+                {
+                    if let Some((e, d)) = u.threat_unit {
+                        if d < 70.0 && !self.units[e as usize].routing {
+                            let u = &mut self.units[ui];
+                            if u.resume_target.is_none() {
+                                u.resume_target = u.move_target;
+                            }
+                            u.mode = OrderMode::Attack(e);
+                            u.latch_timer = 6.0;
+                            continue;
                         }
+                    }
+                }
+                let u = &mut self.units[ui];
+                u.quiet_ticks += 1;
+                // Resume a stashed path only when actually idle — taking
+                // the stash while a live target exists would DESTROY it
+                // (the latch timeout needs it intact).
+                if u.quiet_ticks == 90
+                    && u.move_target.is_none()
+                    && matches!(u.mode, OrderMode::Move)
+                {
+                    if let Some(t) = u.resume_target.take() {
+                        u.move_target = Some(t);
                     }
                 }
             }
@@ -754,7 +823,16 @@ impl Sim {
             let r = Vec2::new(f.y, -f.x);
             let surge_sp = soldier_surge_speed(&tun, u);
             let keep_up_sp = pace_speed(&tun, u) + 0.5;
-            let holds_ground = u.mode != crate::unit::OrderMode::Withdraw && !u.evade_auto;
+            let drifting_out = u.mode == crate::unit::OrderMode::Move
+                && match (u.move_target, u.threat_bearing) {
+                    (Some(t), Some(threat)) => {
+                        let to = t - u.anchor;
+                        crate::math::wrap_angle(to.y.atan2(to.x) - threat).abs() > 1.35
+                    }
+                    _ => false,
+                };
+            let holds_ground =
+                u.mode != crate::unit::OrderMode::Disengage && !u.evade_auto && !drifting_out;
             let reach_u = crate::class::class_stats(u.class)
                 .weapons
                 .iter()
@@ -822,6 +900,12 @@ impl Sim {
                 } else {
                     keep_up_sp
                 };
+                // No two men run alike: each soldier has a personal TOP
+                // speed (a fixed fraction of the surge ceiling). A walking
+                // pace is below everyone's ceiling — the line stays dressed;
+                // a running pace is above the slowest fifth's — they trail,
+                // and the formation frays the longer it runs.
+                max_sp = max_sp.min((0.62 + 0.44 * stagger01(i, 0xCAFE)) * surge_sp);
                 let mut steer_to = to;
                 // A man whose unit is fighting — or who is himself being
                 // struck — closes to his own weapon's distance; nobody stands
@@ -923,9 +1007,25 @@ impl Sim {
             let engaged_frac = engaged as f32 / alive_n as f32;
             // Withdrawing and skirmishing units answer contact with their
             // legs: their anchor obeys the path, not the fight.
+            // A Move order pointing INTO the contact presses (contact owns
+            // the anchor, stance decides the lean); one pointing away or
+            // sideways drifts out under the motion controller instead.
+            let drifting_out = {
+                let u = &self.units[ui];
+                u.mode == OrderMode::Move
+                    && match (u.move_target, u.threat_bearing) {
+                        (Some(t), Some(threat)) => {
+                            let to = t - u.anchor;
+                            wrap_angle(to.y.atan2(to.x) - threat).abs() > 1.35
+                        }
+                        (Some(_), None) => true,
+                        _ => false,
+                    }
+            };
             if engaged_frac <= 0.06
-                || self.units[ui].mode == OrderMode::Withdraw
+                || self.units[ui].mode == OrderMode::Disengage
                 || self.units[ui].evade_auto
+                || drifting_out
             {
                 continue;
             }
@@ -935,8 +1035,13 @@ impl Sim {
             // into the contact line (rear ranks pile on, pressure transmits,
             // the enemy gets walked back — at the cost of the front rank's
             // room). Fence fights at weapon's length.
-            let press_intent = matches!(self.units[ui].mode, OrderMode::Attack(_) | OrderMode::AttackMove)
-                && self.units[ui].stance == crate::unit::Stance::Othismos;
+            // Othismos presses whenever the ORDER pushes into the fight —
+            // an explicit attack, or a move whose path runs through the
+            // enemy. Fence never leans; a stationary defender never leans.
+            let press_intent = self.units[ui].stance == crate::unit::Stance::Othismos
+                && (matches!(self.units[ui].mode, OrderMode::Attack(_))
+                    || (self.units[ui].mode == OrderMode::Move
+                        && self.units[ui].move_target.is_some()));
             let drift = (drift_sum / engaged.max(1) as f32 / dt).clamp(-2.0, 1.2);
             // Depth presses: every rank steps in behind the front, so the
             // compression rate grows with ranks — this is how a deep column's

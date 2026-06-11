@@ -152,6 +152,9 @@ impl Sim {
             if u.alive_count == 0 || u.ammo == 0 || !u.fire_at_will || u.routing {
                 continue;
             }
+            if u.weapon_pref == 1 {
+                continue; // swords drawn: the bows are slung
+            }
             // Halted to shoot, unless shooting from the saddle.
             if !spec.mobile_fire && u.speed > 0.3 {
                 continue;
@@ -392,7 +395,10 @@ impl Sim {
                 || u.routing
                 || u.alive_count == 0
                 || u.pending_target.is_some()
-                || matches!(u.mode, OrderMode::Withdraw | OrderMode::Attack(_))
+                // Committed to an explicit attack: no hopping away. (A
+                // finished Withdraw must NOT stick: any idle skirmisher
+                // kites again — live travel is covered by move_target.)
+                || matches!(u.mode, OrderMode::Attack(_))
                 || u.move_target.is_some()
             {
                 continue;

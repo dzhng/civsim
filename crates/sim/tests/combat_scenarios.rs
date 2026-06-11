@@ -275,7 +275,7 @@ fn withdraw_disengages_under_fire() {
     // Break contact at the run: the enemy's attack latch will pursue, and a
     // walking withdrawal never escapes a walking pursuer (correctly).
     sim.set_pace(a, sim::Pace::Run);
-    sim.set_withdraw_order(a, Vec2::new(0.0, -80.0));
+    sim.set_disengage_order(a, Vec2::new(0.0, -80.0));
     run(&mut sim, 40.0);
     assert!(
         sim.units[a].engaged < 5,
@@ -387,7 +387,8 @@ fn long_swords_cleave_but_die_in_a_press() {
             // press destination is there: the pusher's front ranks bodily
             // overlap their fighting rear ranks all fight long.
             let pusher = sim.spawn_class(Vec2::new(0.0, -22.0), FRAC_PI_2, 400, UnitClassId::HeavyInfantry, 0);
-            sim.set_withdraw_order(pusher, Vec2::new(0.0, 7.0));
+            sim.set_pace(pusher, sim::Pace::Run); // drive the press home
+            sim.set_disengage_order(pusher, Vec2::new(0.0, 7.0));
         }
         run(&mut sim, 35.0);
         let u = &sim.units[ls];

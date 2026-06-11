@@ -12,6 +12,15 @@ export class Camera {
     return [(2 * this.zoom) / this.canvas.width, (2 * this.zoom) / this.canvas.height, this.x, this.y];
   }
 
+  /** World coords to CSS-pixel screen coords (for DOM overlays). */
+  worldToScreen(wx: number, wy: number): [number, number] {
+    const dpr = window.devicePixelRatio || 1;
+    return [
+      ((wx - this.x) * this.zoom + this.canvas.width / 2) / dpr,
+      ((this.y - wy) * this.zoom + this.canvas.height / 2) / dpr,
+    ];
+  }
+
   /** Convert canvas device-pixel coords (y down) to world coords (y up). */
   screenToWorld(px: number, py: number): [number, number] {
     return [

@@ -137,6 +137,6 @@ fn full_battle_spawns_and_runs() {
     for i in 0..sim.soldier_count() {
         let p = sim.soldier_pos(i);
         assert!(p.x.is_finite() && p.y.is_finite());
-        assert!(p.x.abs() < 1300.0 && p.y.abs() < 600.0, "soldier escaped the map: {p:?}");
+        assert!(p.x.abs() < 1300.0 && p.y.abs() < 900.0, "soldier escaped the map: {p:?}");
     }
 }

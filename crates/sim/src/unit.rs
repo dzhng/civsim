@@ -26,12 +26,10 @@ pub enum Stance {
 pub enum OrderMode {
     /// Halt-and-face while attacked; resume the path when contact ends.
     Move,
-    /// Latch onto whatever it meets; resume the path when the target is gone.
-    AttackMove,
     /// Latched onto an enemy unit: anchor chases their anchor.
     Attack(u32),
     /// No reflexes, no attack initiation: just go (blocks/evades only).
-    Withdraw,
+    Disengage,
 }
 
 pub struct Unit {
@@ -94,7 +92,7 @@ pub struct Unit {
     /// Decaying histogram of enemy-contact bearings (12 sectors, world frame):
     /// the contact-facing rule reads this after masking friendly sectors.
     pub contact_hist: [f32; 12],
-    /// Enemy unit most recently contacted (latch target for AttackMove).
+    /// Enemy unit most recently contacted (latch target for pursue-moves).
     pub contact_unit: u32,
     /// Ticks with no contact, for the resume reflex.
     pub quiet_ticks: u32,
@@ -130,9 +128,22 @@ pub struct Unit {
     /// Bearing of the nearest enemy mass within threat range (refreshed each
     /// tick) — foot units keep their face to it while maneuvering nearby.
     pub threat_bearing: Option<f32>,
-    /// Reverse-move order: drift to the target WITHOUT turning (back-pedal /
-    /// strafe at a penalty, walk only). Foot classes only; horses wheel.
-    pub hold_facing: bool,
+    /// Nearest enemy unit + edge distance (refreshed with threat_bearing).
+    pub threat_unit: Option<(u32, f32)>,
+    /// Auto-latch countdown: a pursue-move that latched onto a target gives
+    /// up if it can't MAKE CONTACT before this runs out (no infinite chases
+    /// after faster prey). 0 = no timeout (explicit player attack).
+    pub latch_timer: f32,
+    /// After an expired chase, don't re-latch immediately.
+    pub latch_cd: f32,
+    /// 0 = weapons by judgment (distance), 1 = secondary drawn unit-wide
+    /// (pikes grounded / bows slung).
+    pub weapon_pref: u8,
+    /// Countdown while the unit-wide weapon order propagates (~1s; the
+    /// HUD shows it as a pie, same pattern as order delay).
+    pub switch_timer: f32,
+    /// Pending preference applied when switch_timer elapses.
+    pub pending_pref: u8,
 }
 
 /// Sector index for a world-frame bearing, 12 sectors over (-PI, PI].

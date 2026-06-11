@@ -6,7 +6,7 @@ export const SPRITE = 64; // px per cell
 export const COLS = 8;
 // 18 soldier rows (9 classes x 2 teams) + 1 decal row.
 export const ROWS = 19;
-export const FRAMES = 5; // stand, walk-a, walk-b, attack, dead
+export const FRAMES = 6; // stand, walk-a, walk-b, attack, dead, swap
 
 const TREE_COL = 0;
 const TREE_VARIANTS = 3;
@@ -71,6 +71,7 @@ function drawSoldier(g: CanvasRenderingContext2D, ox: number, oy: number, look: 
   g.translate(ox + c, oy + c);
 
   const dead = frame === 4;
+  const swap = frame === 5;
   const attack = frame === 3;
   const walkA = frame === 1;
   const walkB = frame === 2;
@@ -144,10 +145,15 @@ function drawSoldier(g: CanvasRenderingContext2D, ox: number, oy: number, look: 
   g.ellipse(-2, bodyY, 5.5, 6.2, 0, 0, 7);
   g.fill();
 
-  // Weapon (before head so it reads as held forward).
+  // Weapon (before head so it reads as held forward). Mid-swap, the weapon
+  // is held UP across the body — visibly not a fighting posture.
   const thrust = attack ? 7 : 0;
   g.strokeStyle = '#cfd2d8';
   g.fillStyle = '#cfd2d8';
+  if (swap) {
+    g.save();
+    g.rotate(-1.1);
+  }
   switch (look.weapon) {
     case 'pike':
       g.lineWidth = 2;
@@ -198,6 +204,8 @@ function drawSoldier(g: CanvasRenderingContext2D, ox: number, oy: number, look: 
       line(g, 3, 6, 11, 8);
       break;
   }
+
+  if (swap) g.restore();
 
   // Shield (left side = -y in facing frame).
   if (look.shield !== 'none') {

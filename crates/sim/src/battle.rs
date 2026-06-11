@@ -84,11 +84,41 @@ fn deploy_army(sim: &mut Sim, base: Vec2, facing: f32, team: u32) {
     sim.spawn_class(row(-60.0) + right * 340.0, facing, unit_size(HorseArchers), HorseArchers, team);
 }
 
-/// Build terrain and deploy both armies along the long axis: player west
-/// facing east, enemy east facing west, flanks sealed by the map itself.
+/// Small open fields for quick vibe checks: 0 = 1v1 heavies,
+/// 1 = 5v5 mixed line (3 infantry classes + long swords + shock cavalry).
+pub fn setup_sandbox(sim: &mut Sim, kind: u32) {
+    use crate::terrain::Terrain;
+    use std::f32::consts::FRAC_PI_2;
+    let mut t = Terrain::flat(200, 150, 4.0, Vec2::new(-400.0, -300.0));
+    // A touch of scenery; the field stays open.
+    t.paint_circle(Vec2::new(-220.0, 130.0), 60.0, 0.7, 0.6);
+    t.paint_circle(Vec2::new(240.0, -90.0), 55.0, 0.55, 0.35);
+    sim.terrain = t;
+
+    if kind == 0 {
+        sim.spawn_class(Vec2::new(0.0, -90.0), FRAC_PI_2, 240, UnitClassId::HeavyInfantry, 0);
+        sim.spawn_class(Vec2::new(0.0, 90.0), -FRAC_PI_2, 240, UnitClassId::HeavyInfantry, 1);
+        return;
+    }
+    let side = |sim: &mut Sim, y: f32, facing: f32, team: u32| {
+        let f = dir(facing);
+        let right = Vec2::new(f.y, -f.x);
+        let row = |o: f32, lat: f32| Vec2::new(0.0, y) + f * o + right * lat;
+        sim.spawn_class(row(0.0, -95.0), facing, 320, UnitClassId::HeavyInfantry, team);
+        sim.spawn_class(row(0.0, -10.0), facing, 320, UnitClassId::Phalanx, team);
+        sim.spawn_class(row(0.0, 75.0), facing, 240, UnitClassId::LightInfantry, team);
+        sim.spawn_class(row(-45.0, -10.0), facing, 120, UnitClassId::LongSwords, team);
+        sim.spawn_class(row(-15.0, 170.0), facing, 100, UnitClassId::ShockCavalry, team);
+    };
+    side(sim, -130.0, FRAC_PI_2, 0);
+    side(sim, 130.0, -FRAC_PI_2, 1);
+}
+
+/// Build terrain and deploy: player south facing north, enemy north facing
+/// south, east/west flanks sealed by the map itself.
 pub fn setup_battle(sim: &mut Sim, map: MapId) {
     sim.terrain = build(map);
-    use std::f32::consts::PI;
-    deploy_army(sim, Vec2::new(-550.0, 0.0), 0.0, 0);
-    deploy_army(sim, Vec2::new(550.0, 0.0), PI, 1);
+    use std::f32::consts::FRAC_PI_2;
+    deploy_army(sim, Vec2::new(0.0, -600.0), FRAC_PI_2, 0);
+    deploy_army(sim, Vec2::new(0.0, 600.0), -FRAC_PI_2, 1);
 }

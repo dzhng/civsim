@@ -11,18 +11,32 @@ physically stops horseflesh.</em></p>
 
 <h2>Controls</h2>
 <table>
-<tr><td>left-click / left-drag</td><td>select unit / box-select your units</td></tr>
-<tr><td>right-click ground</td><td>move (walk); <b>double right-click = run</b></td></tr>
-<tr><td>right-click enemy</td><td>attack (latch onto that unit)</td></tr>
-<tr><td>right-DRAG ground</td><td>paint a line: units form along it, facing outward, keeping class depth</td></tr>
-<tr><td>shift + right-click</td><td>withdraw (no reflexes, no attacks — just go)</td></tr>
-<tr><td>alt + right-click</td><td>reverse move: back-pedal/strafe there WITHOUT turning (foot only, walk-speed, slower than a march — horses wheel instead)</td></tr>
+<tr><td>left-click / left-drag</td><td>select unit / box-select; <b>ctrl+A</b> selects the army; click empty ground to deselect</td></tr>
+<tr><td>left-drag FROM a selected unit</td><td><b>drag-move</b>: carry the whole selection somewhere, facing preserved — destination ghosts preview while you drag</td></tr>
+<tr><td>right-click ground</td><td>group move: each cluster keeps formation, the selection turns to face the move direction; <b>double right-click = run</b></td></tr>
+<tr><td>right-click enemy</td><td>attack. A multi-unit selection approaches IN FORMATION and breaks to individual charges at ~150m</td></tr>
+<tr><td>right-click + DRAG</td><td>move to the press point and <b>end facing the drag direction</b> — destination ghosts preview live while held, then fade after release</td></tr>
+<tr><td>shift/alt + right-click</td><td><b>DISENGAGE</b> move: turn and run at full pace, answering nothing — fast but backs exposed</td></tr>
 <tr><td>R / F / C</td><td>walk-run / othismos-fence / charge setting</td></tr>
-<tr><td>G / H / V</td><td>reform / hold-pursue / fire-at-will</td></tr>
+<tr><td>G / H / V</td><td>reform / pursue (latch onto contact) / fire-at-will</td></tr>
+<tr><td>X / E</td><td>draw secondary weapons (pikes ground, bows sling — ~1s down the line, ORANGE pie) / kite reflex on-off (skirmish classes)</td></tr>
 <tr><td>P, 1, 3</td><td>pause, 1x, 3x speed</td></tr>
 <tr><td>hold Space</td><td>show anchors, paths, latch targets</td></tr>
 <tr><td>WASD / arrows</td><td>pan camera; wheel zooms</td></tr>
 </table>
+
+<h2>Group orders & clustering</h2>
+<p>A group move preserves your formation — but only within <b>clusters</b>.
+Units within ~100m of each other (chain-linked) move as one body with their
+relative positions intact. Clusters that are far apart (a detached cavalry
+wing, a reserve line) each keep their own internal formation and are
+<b>combined at the destination</b> as a compressed star: same bearings from
+the main body, gaps shrunk to a courtesy margin. The biggest cluster lands
+on your click.</p>
+<p>Every order flashes its <b>destination ghosts</b> — the formation frames
+where the units will stand, plus the path to them. Hold <b>Space</b> to see
+all paths and ghosts at any time. Group attacks hold the line until ~150m
+out, then release every unit to hunt the target itself.</p>
 
 <h2>Reading the field</h2>
 <p>Every soldier's sprite points his true facing (bright chevron at his
@@ -53,6 +67,31 @@ white pie timer: a disordered unit's orders take seconds to transmit).
 Recovery comes from soldiers physically reseating — faster with training,
 faster still under a <b>Reform</b> order (G), which re-seats the frame on the
 men and sets the sergeants shouting.</p>
+
+<h2>Secondary weapons</h2>
+<p>Units with a sidearm (phalanx side swords, archers' blades, cavalry
+swords) <b>switch by judgment automatically</b>: a soldier whose primary
+can't bear (enemy inside a pike's minimum range) draws his secondary — with
+a ~1 second fumble during which he cannot strike (watch the raised-weapon
+animation; this beat of helplessness is the pike line's nightmare when
+closed on). The <b>X</b> order draws secondaries unit-wide: ~1s for the
+order to travel (orange pie), then each man swaps. Archers with swords
+drawn sling their bows — no shooting until ordered back.</p>
+
+<h2>Pace and the run</h2>
+<p>No two men run alike. Each soldier has a personal top speed; a walking
+pace sits under everyone's ceiling, so a walking line stays dressed
+forever. A running pace is above the slowest men's — they trail, and the
+formation frays the longer it runs (and burns stamina all the while). Run
+to arrive in time; walk to arrive in ORDER.</p>
+
+<h2>Reading a unit at a glance</h2>
+<p>Every unit carries an <b>HP bar</b> (team-colored, living men / full
+strength), a <b>cohesion bar</b> (gold), and effect chips: ATK/DIS (order),
+OTH/FEN (stance), PUR (pursue), KITE, CHG! (charging), 2nd (secondary
+drawn), BRC (braced), TIRED (winded), SQZ (squeezed in a corridor), WAIT
+(queued), ⚔n (men trading blows), ROUT. White pie = order transmitting;
+orange pie = weapon order traveling.</p>
 
 <h2>Stamina (one shared pool: legs and arms)</h2>
 <p>Walk is free. Run drains in ~90&nbsp;s. The <b>surge</b> — the automatic
@@ -90,9 +129,16 @@ transmits force (a man driven from behind yields less — deep columns walk
 thin lines backward), and it removes <b>evade</b> (no room to dodge). It
 never touches morale directly — an advancing column does not rout from its
 own deliberate press.</p>
-<p>The <b>stance</b> toggle (F): <b>Othismos</b> leans the rear ranks into
-the contact line — depth converts to shove, at the cost of your own front
-rank's room. <b>Fence</b> fights at weapon's length, keeps evade, no shove.</p>
+<p>The <b>stance</b> toggle (F) governs what your weight does whenever your
+ORDER presses into a fight — an explicit attack, or a move whose path runs
+through the enemy: <b>Othismos</b> leans the rear ranks in, converting
+depth to shove (you walk through them or you don't, by mass), at the cost
+of the front rank's room. <b>Fence</b> fights at weapon's length, keeps
+evade, no shove — pressing through in Fence stalls against anyone who
+holds. Stance is moot while giving ground: there is nothing to lean into.
+The <b>pursue</b> toggle (H) is the third, separate bit: with it ON, an
+advance LATCHES onto whatever it meets and resumes its path afterward;
+with it OFF the unit fights in stride and keeps its destination.</p>
 
 <h2>Block and evade</h2>
 <p>Block (shields) works against melee and arrows but <b>only across the

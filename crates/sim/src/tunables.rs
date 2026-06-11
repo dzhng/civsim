@@ -21,7 +21,10 @@ pub struct Tunables {
     pub run_speed: f32,
     /// Catch-up sprint for out-of-position soldiers (m/s, fresh unit).
     pub surge_speed: f32,
-    /// Slot error (m) beyond which a soldier surges to regain formation.
+    /// Slot error (m) beyond which a soldier SPRINTS to regain formation.
+    /// Deliberately loose: formations are allowed to get genuinely ragged
+    /// while running or wheeling — the surge is a last-ditch correction,
+    /// not a constant tidying force.
     pub surge_err_threshold: f32,
     /// Unit fatigue drained per second while running (~90 s to empty).
     pub run_drain: f32,
@@ -115,7 +118,7 @@ impl Default for Tunables {
             base_speed: 1.7,
             run_speed: 3.4,
             surge_speed: 4.4,
-            surge_err_threshold: 2.5,
+            surge_err_threshold: 6.0,
             run_drain: 1.0 / 90.0,
             surge_drain: 1.0 / 30.0,
             rest_recover: 1.0 / 240.0,

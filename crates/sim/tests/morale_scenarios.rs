@@ -110,7 +110,9 @@ fn routed_unit_rallies_scarred_when_left_alone() {
         }
     }
     assert!(broke, "setup: must break first");
-    // Call the attackers far away and wait.
+    // Call the attackers off properly: pursue off (attack-move had set it),
+    // then march them away.
+    sim.set_pursue(strong, false);
     sim.set_move_order(strong, Vec2::new(0.0, -250.0));
     run(&mut sim, 240.0);
     let u = &sim.units[weak];

@@ -227,7 +227,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             evade: 0.25,
             stance: crate::unit::Stance::Fence,
             charge: false,
-            weapons: &[DAGGER],
+            weapons: &[SWORD],
             ..foot
         },
         Skirmishers => UnitClass {

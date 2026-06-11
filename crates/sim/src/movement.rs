@@ -101,42 +101,28 @@ pub(crate) fn update_unit_motion(tun: &Tunables, u: &mut Unit, dt: f32, ground: 
                 return;
             }
 
-            // Reverse-move order: drift to the target without turning.
-            // Face the nearest threat if one is close, else hold the facing
-            // the unit had when ordered. Walking pace, direction penalty.
-            if u.hold_facing && !u.is_mounted() {
-                u.pivoting = false;
-                if let Some(threat) = u.threat_bearing {
-                    u.facing = rotate_toward(u.facing, threat, 1.2 * dt);
-                }
-                let c = wrap_angle(desired - u.facing).cos();
-                let drift_factor = if c >= 0.0 { 0.7 + 0.3 * c } else { 0.7 + 0.15 * c };
-                let target_speed = (tun.base_speed * u.speed_mult * ground * drift_factor)
-                    .min((2.0 * accel * dist).sqrt());
-                u.speed = move_toward(u.speed, target_speed, accel * dt);
-                u.anchor = u.anchor + to * (u.speed * dt / dist.max(0.01));
-                return;
-            }
-
-            // Fighting withdrawal: a foot unit maneuvering NEAR AN ENEMY
-            // keeps its face (and shields) toward the threat and drifts —
-            // back-pedaling at a penalty — instead of showing its back.
-            // Only the explicit Withdraw order turns around. Cavalry can't
+            // ENGAGE posture (the Move default): a foot unit maneuvering
+            // near an enemy never shows its back. If the move direction
+            // points away from the threat, it keeps its face (and shields)
+            // on the enemy and DRIFTS — strafing/back-pedaling at walking
+            // pace with a direction penalty — in or out of melee; being
+            // struck (stagger, shoves) is what makes extraction slow.
+            // Disengage (Withdraw) turns and runs instead. Cavalry can't
             // sidestep: it wheels and breaks off like cavalry.
-            if u.mode != crate::unit::OrderMode::Withdraw && !u.is_mounted() {
+            if u.mode != crate::unit::OrderMode::Disengage && !u.is_mounted() {
                 if let Some(threat) = u.threat_bearing {
                     let move_off = wrap_angle(desired - threat).abs();
                     if move_off > 1.35 {
                         u.pivoting = false;
                         u.facing = rotate_toward(u.facing, threat, 1.2 * dt);
-                        // Speed penalty by drift direction relative to facing.
+                        // You cannot sprint sideways or backwards.
                         let c = wrap_angle(desired - u.facing).cos();
                         let drift_factor = if c >= 0.0 {
                             0.7 + 0.3 * c
                         } else {
                             0.7 + 0.15 * c
                         };
-                        let target_speed = (pace_speed(tun, u) * ground * drift_factor)
+                        let target_speed = (tun.base_speed * u.speed_mult * ground * drift_factor)
                             .min((2.0 * accel * dist).sqrt());
                         u.speed = move_toward(u.speed, target_speed, accel * dt);
                         u.anchor = u.anchor + to * (u.speed * dt / dist.max(0.01));
@@ -267,7 +253,12 @@ mod tests {
             reform_timer: 0.0,
             pursue: false,
             threat_bearing: None,
-            hold_facing: false,
+            threat_unit: None,
+            latch_timer: 0.0,
+            latch_cd: 0.0,
+            weapon_pref: 0,
+            switch_timer: 0.0,
+            pending_pref: 0,
         };
         let mut ordered = Unit {
             disorder: 0.0,

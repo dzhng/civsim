@@ -50,8 +50,10 @@ fn anchor_routes_around_a_rock() {
         "unit must arrive around the rock, at {:?}",
         sim.units[u].anchor
     );
+    // Loose-surge formations get visibly ragged mid-detour (by design);
+    // the face-plant this guards against read 0.09-and-stuck.
     assert!(
-        min_cohesion > 0.55,
+        min_cohesion > 0.35,
         "routing around is orderly, not a face-plant: min cohesion {min_cohesion}"
     );
 }

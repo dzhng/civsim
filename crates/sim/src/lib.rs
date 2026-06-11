@@ -30,7 +30,7 @@ pub mod tunables;
 pub mod unit;
 
 pub use ai::ai_commander;
-pub use battle::setup_battle;
+pub use battle::{setup_battle, setup_sandbox};
 pub use class::{class_stats, UnitClass, UnitClassId, Weapon};
 pub use grid::SpatialHash;
 pub use maps::{build as build_map, MapId, MAP_HALF_H, MAP_HALF_W};

@@ -67,8 +67,8 @@ impl Sim {
                 continue;
             }
             let my_team = self.units[ui].team;
-            let withdraw =
-                self.units[ui].mode == OrderMode::Withdraw || self.units[ui].routing;
+            let disengaged =
+                self.units[ui].mode == OrderMode::Disengage || self.units[ui].routing;
             let stats = class_stats(self.units[ui].class);
             let weapons = stats.weapons;
             let max_reach = weapons.iter().map(|w| w.reach).fold(0.0f32, f32::max);
@@ -148,14 +148,38 @@ impl Sim {
             self.fighting[i] = (nearest_d <= max_reach + 0.3) as u8;
             let u = &mut self.units[ui];
             u.contact_unit = self.soldier_unit[nearest as usize];
-            if withdraw {
+            if disengaged {
                 continue;
             }
 
-            // --- weapon by distance to the engaged enemy --------------------
-            let Some(weapon) = pick_weapon(weapons, nearest_d) else {
+            // --- weapon by judgment (distance), or the unit's drawn order ---
+            let desired = if self.units[ui].weapon_pref == 1 && weapons.len() > 1 {
+                Some(weapons.len() - 1)
+            } else {
+                pick_weapon_index(weapons, nearest_d)
+            };
+            let Some(desired) = desired else {
                 continue; // enemy inside every min_range and outside sidearms
             };
+            // Swapping weapons takes a moment of fumbling — no strikes
+            // mid-swap. (This is the pike line's vulnerability when closed
+            // on: a second of helplessness while the side swords come out.)
+            if self.switch_cd[i] > 0.0 {
+                self.switch_cd[i] -= 3.0 * DT;
+                if self.switch_cd[i] <= 0.0 {
+                    self.cur_weapon[i] = desired as u8;
+                }
+                continue;
+            }
+            if desired as u8 != self.cur_weapon[i] {
+                self.switch_cd[i] = 1.0;
+                continue;
+            }
+            let weapon = &weapons[self.cur_weapon[i] as usize];
+            // The weapon in hand must actually bear on the target.
+            if nearest_d < weapon.min_range || nearest_d > weapon.reach {
+                continue;
+            }
 
             // --- swing when ready and roughly aligned ------------------------
             self.attack_cd[i] -= 3.0 * DT;
@@ -311,11 +335,14 @@ impl Sim {
     }
 }
 
-fn pick_weapon(weapons: &'static [Weapon], d: f32) -> Option<&'static Weapon> {
+fn pick_weapon_index(weapons: &'static [Weapon], d: f32) -> Option<usize> {
     weapons
         .iter()
-        .find(|w| d >= w.min_range && d <= w.reach)
-        .or_else(|| weapons.last().filter(|w| d <= w.reach))
+        .position(|w| d >= w.min_range && d <= w.reach)
+        .or_else(|| {
+            let last = weapons.len().checked_sub(1)?;
+            (d <= weapons[last].reach).then_some(last)
+        })
 }
 
 /// Skirmish-class check used by later phases.

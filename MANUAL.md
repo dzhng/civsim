@@ -11,16 +11,40 @@ horseflesh.*
 
 | input | effect |
 |---|---|
-| left-click / left-drag | select unit / box-select your units |
-| right-click ground | move (walk); **double right-click = run** |
-| right-click enemy | attack (latch onto that unit) |
-| right-DRAG ground | paint a line: units form along it, facing outward, keeping class depth |
-| shift + right-click | withdraw (no reflexes, no attacks — just go) |
+| left-click / left-drag | select unit / box-select; **ctrl+A** selects the army; click empty ground deselects |
+| left-drag FROM a selected unit | **drag-move**: carry the selection somewhere, facing preserved — ghosts preview while dragging |
+| right-click ground | group move: clusters keep formation, selection faces the move direction; **double right-click = run** |
+| right-click + DRAG | move to the press point, **end facing the drag direction** — live ghost preview, fades after release |
+| right-click enemy | attack; a multi-unit selection approaches IN FORMATION, breaking to individual charges at ~150m |
+| shift/alt + right-click | **disengage** move: turn and run at full pace, answering nothing — fast but backs exposed |
 | R / F / C | walk-run / othismos-fence / charge setting |
-| G / H / V | reform / hold-pursue / fire-at-will |
+| G / H / V | reform / pursue (latch onto contact) / fire-at-will |
+| X / E | draw secondary weapons (~1s order travel, orange pie; auto-swap by judgment is always on) / kite reflex toggle (skirmish classes) |
 | P, 1, 3 | pause, 1×, 3× speed |
-| hold Space | show anchors, paths, latch targets |
-| WASD / arrows, wheel | pan, zoom |
+| hold Space | show all paths and destination ghosts |
+| WASD / arrows, edges, wheel | pan (keys or screen edge), zoom; click the minimap to jump |
+
+## Group orders & clustering
+
+A group move preserves formation **within clusters**: units within ~100 m of
+each other (chain-linked) move as one body, relative positions intact.
+Far-apart clusters each keep their internal formation and **combine at the
+destination** as a compressed star — same bearings from the main body, gaps
+shrunk to a courtesy margin, the biggest cluster landing on your click.
+Every order flashes destination ghosts (the formation frames at the end of
+the path); hold **Space** to see them all at any time.
+
+## Fighting withdrawals
+
+Every movement order has one of two postures. **Engage** (the plain
+right-click default): inside threat range (~45 m) the unit never shows its
+back — it keeps face and shields on the enemy and drifts (strafe ~0.7×,
+back-pedal ~0.55×, walking pace only), still fighting whatever stays in
+reach. This works from inside a melee: click behind the line and it
+extracts backward, still killing — slowly, because every enemy strike
+staggers and shoves the men trying to leave. **Disengage** (shift/alt):
+turn, run at full pace, answer nothing — fast but exposed. Cavalry cannot
+drift: it wheels and breaks off at speed, whichever posture you order.
 
 ## The anchor (your intent, embodied)
 
@@ -44,6 +68,24 @@ physically slows turning, acceleration, and **order response** (the white pie
 timer: a disordered unit's orders take seconds to transmit). Recovery comes
 from soldiers physically reseating — faster with training, faster still under
 a **Reform** order (G), which re-seats the frame on the men.
+
+## Secondary weapons
+
+Units with a sidearm switch **by judgment automatically**: a soldier whose
+primary can't bear (enemy inside pike minimum range) draws his secondary,
+with a ~1 s fumble during which he cannot strike. **X** draws secondaries
+unit-wide (~1 s order travel shown as an orange pie, then per-man swaps);
+archers with swords drawn sling their bows. Pursue-moves auto-charge any
+enemy that comes within range of the advance — and the latch is **timed**:
+a chase that can't make contact in ~6 s is abandoned and the path resumes
+(no chasing cavalry across the map).
+
+## Pace and the run
+
+No two men run alike: each soldier has a personal top speed. Walking sits
+under everyone's ceiling — a walking line stays dressed forever. Running
+exceeds the slowest men's — they trail and the formation frays the longer
+it runs. Run to arrive in time; walk to arrive in order.
 
 ## Stamina (one shared pool: legs and arms)
 
@@ -85,9 +127,15 @@ lines backward), and it removes **evade** (no room to dodge). It never touches
 morale directly — an advancing column does not rout from its own deliberate
 press.
 
-The **stance** toggle (F): **Othismos** leans the rear ranks into the contact
-line — depth converts to shove, at the cost of your own front rank's room.
-**Fence** fights at weapon's length, keeps evade, no shove.
+The **stance** toggle (F) governs what your weight does whenever your ORDER
+presses into a fight — an explicit attack, or a move whose path runs through
+the enemy: **Othismos** leans the rear ranks in, converting depth to shove,
+at the cost of the front rank's room. **Fence** fights at weapon's length,
+keeps evade, no shove — pressing through in Fence stalls against anyone who
+holds. Stance is moot while giving ground: there is nothing to lean into.
+The **pursue** toggle (H) is a third, separate bit: ON, an advance LATCHES
+onto whatever it meets (and resumes its path afterward); OFF, the unit
+fights in stride and keeps its destination.
 
 ## Block and evade
 

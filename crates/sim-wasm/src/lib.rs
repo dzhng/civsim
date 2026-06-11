@@ -5,15 +5,17 @@
 //! must be re-fetched every frame — Vec reallocation can move them and grow
 //! the memory (which detaches any existing JS TypedArray views).
 
-use sim::{ai_commander, build_map, setup_battle, MapId, Pace, Sim, Stance, Tunables, Vec2};
+use sim::{ai_commander, build_map, setup_battle, setup_sandbox, MapId, Pace, Sim, Stance, Tunables, Vec2};
 use wasm_bindgen::prelude::*;
 
 /// Floats per unit in the unit_info array:
 /// [anchor_x, anchor_y, facing, speed, cohesion, disorder, team, count,
 ///  fatigue, pace, target_x, target_y, has_target, class, order_delay_frac,
 ///  alive_count, engaged, stance, charge (0 off / 1 armed / 2 charging), ammo,
-///  morale, routing]
-pub const UNIT_INFO_STRIDE: usize = 22;
+///  morale, routing, final_facing, has_final_facing, mode (0 move / 1 attack /
+///  2 disengage), pursue, evade_auto, waiting, compressed, weapon_pref,
+///  switch_frac]
+pub const UNIT_INFO_STRIDE: usize = 31;
 
 #[wasm_bindgen]
 pub struct Game {
@@ -67,6 +69,12 @@ impl Game {
     pub fn load_map(&mut self, map: u32) {
         let id = if map == 0 { MapId::RiverAndCrags } else { MapId::WalledPlain };
         self.sim.terrain = build_map(id);
+    }
+
+    /// Tiny vibe-check fields: 0 = 1v1 heavies, 1 = 5v5 mixed inf + cav.
+    pub fn start_sandbox(&mut self, kind: u32) {
+        setup_sandbox(&mut self.sim, kind);
+        self.refresh_unit_info();
     }
 
     /// Build terrain AND deploy both full armies.
@@ -141,8 +149,8 @@ impl Game {
         self.refresh_unit_info();
     }
 
-    pub fn set_withdraw_order(&mut self, unit: u32, x: f32, y: f32) {
-        self.sim.set_withdraw_order(unit as usize, Vec2::new(x, y));
+    pub fn set_disengage_order(&mut self, unit: u32, x: f32, y: f32) {
+        self.sim.set_disengage_order(unit as usize, Vec2::new(x, y));
         self.refresh_unit_info();
     }
 
@@ -206,14 +214,19 @@ impl Game {
         self.refresh_unit_info();
     }
 
-    pub fn set_reverse_move_order(&mut self, unit: u32, x: f32, y: f32) {
-        self.sim.set_reverse_move_order(unit as usize, Vec2::new(x, y));
-        self.refresh_unit_info();
-    }
-
     pub fn set_reform(&mut self, unit: u32) {
         self.sim.set_reform(unit as usize);
         self.refresh_unit_info();
+    }
+
+    pub fn set_weapon_pref(&mut self, unit: u32, secondary: u32) {
+        self.sim.set_weapon_pref(unit as usize, secondary != 0);
+        self.refresh_unit_info();
+    }
+
+    /// Per-soldier weapon-swap countdown (>0 = mid-fumble; drives the anim).
+    pub fn switch_cd_ptr(&self) -> *const f32 {
+        self.sim.switch_cd.as_ptr()
     }
 
     pub fn set_pursue(&mut self, unit: u32, on: u32) {
@@ -292,6 +305,19 @@ impl Game {
                 u.ammo as f32,
                 u.morale,
                 if u.routing { 1.0 } else { 0.0 },
+                u.final_facing.unwrap_or(0.0),
+                if u.final_facing.is_some() { 1.0 } else { 0.0 },
+                match u.mode {
+                    sim::OrderMode::Move => 0.0,
+                    sim::OrderMode::Attack(_) => 1.0,
+                    sim::OrderMode::Disengage => 2.0,
+                },
+                if u.pursue { 1.0 } else { 0.0 },
+                if u.evade_auto { 1.0 } else { 0.0 },
+                if u.waiting { 1.0 } else { 0.0 },
+                if u.files_eff < u.files { 1.0 } else { 0.0 },
+                u.weapon_pref as f32,
+                if u.switch_timer > 0.0 { u.switch_timer.min(1.0) } else { 0.0 },
             ]);
         }
     }

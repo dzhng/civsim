@@ -74,10 +74,19 @@ pub fn ai_commander(sim: &mut Sim, team: u32) {
 
         match class {
             c if is_melee_line(c) => {
-                // Approach distant enemies at the double; walk the last
-                // stretch so the line arrives ordered (and not winded).
-                sim.set_pace(ui, if dist > 350.0 { crate::tunables::Pace::Run } else { crate::tunables::Pace::Walk });
-                sim.set_attack_order(ui, enemy);
+                // Two phases, like a human: APPROACH in formation — advance
+                // toward the enemy line but halt ~180m short, holding your
+                // place in the line — then, once close, pick a target and
+                // commit. No premature blobbing onto one enemy unit.
+                let run = dist > 380.0;
+                sim.set_pace(ui, if run { crate::tunables::Pace::Run } else { crate::tunables::Pace::Walk });
+                if dist > 230.0 {
+                    let to = sim.units[enemy].center() - center;
+                    let goal = center + to * ((dist - 180.0) / dist.max(0.1));
+                    sim.set_move_order(ui, goal);
+                } else {
+                    sim.set_attack_order(ui, enemy);
+                }
             }
             UnitClassId::ShockCavalry => {
                 if lines_met || dist < 180.0 {

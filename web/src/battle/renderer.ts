@@ -1,4 +1,5 @@
-import type { Camera } from './camera';
+import type { Camera } from '../shared/camera';
+import { compileProgram, uploadDataTexture, uploadMipmapTexture } from '../shared/glutil';
 import { buildAtlas, COLS, ROWS } from './atlas';
 
 /** Meters of painted wilds beyond every map edge (camera bounds match). */
@@ -186,24 +187,6 @@ in vec4 v_color;
 out vec4 o;
 void main() { o = v_color; }`;
 
-// ---------------------------------------------------------------- helpers --
-
-function compile(gl: WebGL2RenderingContext, vsSrc: string, fsSrc: string): WebGLProgram {
-  const sh = (type: number, src: string) => {
-    const s = gl.createShader(type)!;
-    gl.shaderSource(s, src);
-    gl.compileShader(s);
-    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s) ?? 'shader');
-    return s;
-  };
-  const p = gl.createProgram()!;
-  gl.attachShader(p, sh(gl.VERTEX_SHADER, vsSrc));
-  gl.attachShader(p, sh(gl.FRAGMENT_SHADER, fsSrc));
-  gl.linkProgram(p);
-  if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p) ?? 'link');
-  return p;
-}
-
 interface SpriteBufs {
   pos: WebGLBuffer;
   facing: WebGLBuffer;
@@ -248,20 +231,15 @@ export class Renderer {
   constructor(private canvas: HTMLCanvasElement) {
     const gl = canvas.getContext('webgl2', { antialias: true })!;
     this.gl = gl;
-    this.sprite = compile(gl, SPRITE_VS, SPRITE_FS);
-    this.ground = compile(gl, GROUND_VS, GROUND_FS);
-    this.line = compile(gl, LINE_VS, LINE_FS);
+    this.sprite = compileProgram(gl, SPRITE_VS, SPRITE_FS);
+    this.ground = compileProgram(gl, GROUND_VS, GROUND_FS);
+    this.line = compileProgram(gl, LINE_VS, LINE_FS);
 
     const atlas = buildAtlas();
     this.atlasCanvas = atlas.canvas;
     this.soldierRowOf = atlas.soldierRow;
     this.decalRow = atlas.decalRow;
-    this.atlasTex = gl.createTexture()!;
-    gl.bindTexture(gl.TEXTURE_2D, this.atlasTex);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, atlas.canvas);
-    gl.generateMipmap(gl.TEXTURE_2D);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    this.atlasTex = uploadMipmapTexture(gl, atlas.canvas);
 
     this.quadBuf = gl.createBuffer()!;
     gl.bindBuffer(gl.ARRAY_BUFFER, this.quadBuf);
@@ -296,7 +274,7 @@ export class Renderer {
     gl.vertexAttribPointer(1, 3, gl.FLOAT, false, 20, 8);
     gl.bindVertexArray(null);
 
-    this.tri = compile(gl, TRI_VS, TRI_FS);
+    this.tri = compileProgram(gl, TRI_VS, TRI_FS);
     this.triVao = gl.createVertexArray()!;
     this.triBuf = gl.createBuffer()!;
     gl.bindVertexArray(this.triVao);
@@ -310,13 +288,15 @@ export class Renderer {
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
-    const resize = () => {
-      const dpr = window.devicePixelRatio || 1;
-      canvas.width = canvas.clientWidth * dpr;
-      canvas.height = canvas.clientHeight * dpr;
-    };
-    resize();
-    window.addEventListener('resize', resize);
+    this.resize();
+    window.addEventListener('resize', () => this.resize());
+  }
+
+  /** Match the backing store to CSS size (also called when the battle UI is re-shown). */
+  resize() {
+    const dpr = window.devicePixelRatio || 1;
+    this.canvas.width = this.canvas.clientWidth * dpr;
+    this.canvas.height = this.canvas.clientHeight * dpr;
   }
 
   private setupSpriteVao(vao: WebGLVertexArrayObject, bufs: SpriteBufs) {
@@ -376,13 +356,8 @@ export class Renderer {
       data[i * 4 + 2] = Math.round((tint[i] / 8) * 255);
       data[i * 4 + 3] = 255;
     }
-    this.terrainTex = gl.createTexture()!;
-    gl.bindTexture(gl.TEXTURE_2D, this.terrainTex);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, data);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    if (this.terrainTex) gl.deleteTexture(this.terrainTex);
+    this.terrainTex = uploadDataTexture(gl, w, h, data);
 
     // Scatter static decals: trees on forest cells, boulders on the crags.
     const hash = (x: number, y: number, s: number) => {

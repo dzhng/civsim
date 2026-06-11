@@ -1,4 +1,4 @@
-import type { Camera } from './camera';
+import type { Camera } from '../shared/camera';
 
 export interface OrderSink {
   /** All player units whose centers fall in the world-space rect. */
@@ -38,7 +38,8 @@ export class Input {
   /** In-progress right-drag: press point + current cursor (world). */
   rightDrag: { x: number; y: number; facing: number } | null = null;
 
-  constructor(canvas: HTMLCanvasElement, camera: Camera, sink: OrderSink) {
+  /** All listeners detach (and the pan interval stops) when `signal` aborts. */
+  constructor(canvas: HTMLCanvasElement, camera: Camera, sink: OrderSink, signal: AbortSignal) {
     const dpr = () => window.devicePixelRatio || 1;
     const held = new Set<string>();
 
@@ -64,7 +65,7 @@ export class Input {
         dragMoving = hit >= 0 && this.selected.includes(hit);
       }
       if (e.button === 2) rDown = [e.clientX, e.clientY];
-    });
+    }, { signal });
 
     let rLast: [number, number] | null = null;
     window.addEventListener('mousemove', (e) => {
@@ -100,7 +101,7 @@ export class Input {
           this.box = moved > DRAG_PX ? { x0: lDown[0], y0: lDown[1], x1: e.clientX, y1: e.clientY } : null;
         }
       }
-    });
+    }, { signal });
 
     window.addEventListener('mouseup', (e) => {
       if (e.button === 0 && lDown) {
@@ -150,9 +151,9 @@ export class Input {
           sink.orderPoint(this.selected, bx, by, e.shiftKey, double, e.altKey);
         }
       }
-    });
+    }, { signal });
 
-    canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+    canvas.addEventListener('contextmenu', (e) => e.preventDefault(), { signal });
 
     window.addEventListener('keydown', (e) => {
       held.add(e.key.toLowerCase());
@@ -171,11 +172,11 @@ export class Input {
       if (e.key === 'v') sink.toggleFire(sel);
       if (e.key === 'x') sink.toggleWeapon(sel);
       if (e.key === 'e') sink.toggleKite(sel);
-    });
-    window.addEventListener('keyup', (e) => held.delete(e.key.toLowerCase()));
+    }, { signal });
+    window.addEventListener('keyup', (e) => held.delete(e.key.toLowerCase()), { signal });
 
     // Continuous pan: held keys + screen edges, applied by the main loop.
-    setInterval(() => {
+    const panTimer = setInterval(() => {
       const speed = 600 / camera.zoom;
       let px = (held.has('d') || held.has('arrowright') ? speed : 0) - (held.has('a') || held.has('arrowleft') ? speed : 0);
       let py = (held.has('w') || held.has('arrowup') ? speed : 0) - (held.has('s') || held.has('arrowdown') ? speed : 0);
@@ -189,6 +190,7 @@ export class Input {
       this.panX = px;
       this.panY = py;
     }, 50);
+    signal.addEventListener('abort', () => clearInterval(panTimer));
 
     canvas.addEventListener(
       'wheel',
@@ -196,7 +198,7 @@ export class Input {
         e.preventDefault();
         camera.zoomAt(e.clientX * dpr(), e.clientY * dpr(), Math.pow(1.0015, -e.deltaY));
       },
-      { passive: false },
+      { passive: false, signal },
     );
   }
 }

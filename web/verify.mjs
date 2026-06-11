@@ -29,7 +29,8 @@ page.on('console', (m) => {
   if (m.type() === 'error') pageErrors.push(m.text());
 });
 
-await page.goto(TARGET + '?ai=off'); // scripted stages need a passive enemy
+// ?map=A skips the main menu; scripted stages need a passive enemy.
+await page.goto(TARGET + '?map=A&ai=off');
 await page.waitForFunction(() => window.__ready === true, { timeout: 20000 });
 await page.waitForTimeout(800);
 
@@ -212,7 +213,7 @@ const statsPre = await page.evaluate(() => window.__game.stats());
 // --- Stage 8: the AI fights a battle unattended ------------------------------
 const page2 = await browser.newPage({ viewport: { width: 1280, height: 800 } });
 page2.on('pageerror', (e) => pageErrors.push('ai-page: ' + e.message));
-await page2.goto(TARGET); // AI on by default
+await page2.goto(TARGET + '?map=A'); // skip the menu; AI on by default
 await page2.waitForFunction(() => window.__ready === true, { timeout: 20000 });
 await page2.evaluate(() => window.__game.advance(21500)); // ~12 min: the AI closes, dresses its line, and fights
 const aiState = await page2.evaluate(() => {

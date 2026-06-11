@@ -84,9 +84,58 @@
       background: #11141a; cursor: crosshair;
       box-shadow: 0 4px 18px rgba(0,0,0,0.5);
     }
+    #battle-ui { display: none; }
+    #menu-ui {
+      display: none; position: fixed; inset: 0; z-index: 20;
+      flex-direction: column; align-items: center; justify-content: center; gap: 34px;
+      background:
+        radial-gradient(ellipse at 50% 20%, rgba(90, 106, 64, 0.22), transparent 60%),
+        radial-gradient(ellipse at 50% 110%, rgba(44, 69, 92, 0.30), transparent 65%),
+        #0c0e13;
+      color: #c8cdd8; font: 14px ui-monospace, Menlo, monospace;
+    }
+    #menu-ui h1 {
+      margin: 0; font: bold 52px ui-monospace, Menlo, monospace; letter-spacing: 10px;
+      color: #e8d9a8; text-shadow: 0 3px 22px rgba(0,0,0,0.9);
+    }
+    #menu-ui .tagline { margin: -22px 0 0; color: #6b7280; letter-spacing: 3px; }
+    #menu-ui .menu-section {
+      display: flex; flex-direction: column; gap: 10px; width: min(380px, 84vw);
+      background: rgba(12,14,19,0.82); border: 1px solid #3a3f4d; border-radius: 12px;
+      padding: 16px 20px 20px; box-shadow: 0 8px 30px rgba(0,0,0,0.55);
+    }
+    #menu-ui h2 {
+      margin: 0 0 4px; font-size: 13px; letter-spacing: 4px; text-transform: uppercase;
+      color: #8a9099; border-bottom: 1px solid #2a2e3a; padding-bottom: 8px;
+    }
+    #menu-ui button {
+      font: 16px ui-monospace, Menlo, monospace; color: #d8dde8; text-align: left;
+      background: rgba(34,38,48,0.9); border: 1px solid #444a5a;
+      border-radius: 8px; padding: 13px 18px; cursor: pointer;
+    }
+    #menu-ui button:hover:not(:disabled) { background: rgba(64,72,92,0.95); border-color: #6f7a96; }
+    #menu-ui button:disabled { opacity: 0.4; cursor: default; }
+    #menu-ui button small { color: #8a9099; float: right; font-size: 11px; line-height: 20px; }
   </style>
 </head>
 <body>
+  <div id="menu-ui">
+    <h1>BATTLE SIM</h1>
+    <p class="tagline">mass &middot; momentum &middot; morale</p>
+    <div class="menu-section">
+      <h2>Campaign</h2>
+      <button id="menu-new-campaign" disabled>New Campaign <small>coming soon</small></button>
+      <button id="menu-load-save" disabled>Load Save <small>coming soon</small></button>
+    </div>
+    <div class="menu-section">
+      <h2>Quick Battle</h2>
+      <button data-battle="1v1">1v1</button>
+      <button data-battle="5v5">5v5</button>
+      <button data-battle="mapA">Map A: Ridge</button>
+      <button data-battle="mapB">Map B: Meeting</button>
+    </div>
+  </div>
+  <div id="battle-ui">
   <canvas id="battlefield"></canvas>
   <div id="hud">loading wasm…</div>
   <div id="buttons">
@@ -96,6 +145,7 @@
     <button id="btn-mapa">Map A: Ridge</button>
     <button id="btn-mapb">Map B: Meeting</button>
     <button id="btn-restart">Restart</button>
+    <button id="btn-exit">Exit</button>
   </div>
   <div id="manual"></div>
   <div id="banner"></div>
@@ -117,6 +167,7 @@
     <button data-cmd="x3" title="Fast forward (3)">3×</button>
     <span class="sep"></span>
     <button data-cmd="paths" title="Show paths and destination ghosts (hold Space)">Paths</button>
+  </div>
   </div>
   <script type="module" src="/src/main.ts"></script>
 </body>

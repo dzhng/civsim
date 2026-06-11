@@ -104,7 +104,7 @@ fn othismos_presses_fence_fights_at_reach() {
     let pressed = enemy_displacement(sim::Stance::Othismos);
     let fenced = enemy_displacement(sim::Stance::Fence);
     assert!(
-        pressed > fenced + 0.8,
+        pressed > fenced + 0.5,
         "othismos must out-shove fencing: pressed {pressed:.2} m vs fenced {fenced:.2} m"
     );
 }

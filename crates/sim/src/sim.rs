@@ -777,8 +777,11 @@ impl Sim {
                     let ev = &self.units[e];
                     let me = self.units[ui].centroid;
                     let through = ev.centroid - me;
-                    let l = through.len().max(0.5);
-                    (ev.alive_count == 0, ev.centroid + through * (8.0 / l))
+                    let l = through.len();
+                    // Interpenetrated masses have no usable axis — press on
+                    // along the facing instead of flip-flopping backward.
+                    let dir_v = if l > 6.0 { through * (1.0 / l) } else { dir(self.units[ui].facing) };
+                    (ev.alive_count == 0, ev.centroid + dir_v * 8.0)
                 };
                 let enemy_routing = self.units[e].routing;
                 let u = &mut self.units[ui];
@@ -1269,16 +1272,14 @@ impl Sim {
                 // regulates battles down to a bloodless standoff.
                 let press = u.stance == crate::unit::Stance::Othismos
                     && (matches!(u.mode, OrderMode::Attack(_)) || u.move_target.is_some());
+                // ONE knob: stance. Attack, arrived-move, and standing
+                // defender all obey the same slack — othismos converts
+                // depth into press, fence holds at weapon's length.
                 let tight = if press {
                     let ranks = (u.alive_count / u.files_eff.max(1)).min(12) as f32;
-                    0.6 + 0.35 * ranks
-                } else if u.move_target.is_none() && !matches!(u.mode, OrderMode::Attack(_)) {
-                    // STAND FAST: an orderless defender's slots hold their
-                    // ground — pushed men fight to regain them rather than
-                    // the frame meekly retreating with every shove.
-                    3.0
+                    0.6 + 0.2 * ranks
                 } else {
-                    0.6
+                    1.2
                 };
                 let loose = 0.6 * u.depth() + 5.0;
                 let k = if u.mode == OrderMode::Disengage {

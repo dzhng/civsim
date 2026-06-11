@@ -30,13 +30,14 @@ fn outnumbered_unit_breaks_before_annihilation() {
         broke_with > 150 * 35 / 100,
         "breaks should come well before annihilation (historical arc): broke with {broke_with}/150"
     );
-    // Survivors flee away from the enemy mass.
+    // Survivors flee AWAY from the enemy mass (direction varies with how
+    // the press scrambled them — distance is the invariant).
     let u = &sim.units[weak];
     if u.alive_count > 10 {
+        let d = (u.centroid - sim.units[strong].centroid).len();
         assert!(
-            u.centroid.y > 20.0,
-            "the broken unit must run, centroid {:?}",
-            u.centroid
+            d > 50.0,
+            "the broken unit must get away, {d:.0}m from the enemy"
         );
     }
 }

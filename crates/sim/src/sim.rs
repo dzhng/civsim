@@ -847,8 +847,12 @@ impl Sim {
                         // FRONT (the chase point is mass+8, and the mass sits
                         // half their depth behind the front — measuring there
                         // would start the burst after contact, i.e., never).
+                        // Spent legs cannot burst: the charge is paid in
+                        // stamina (drained while charging) and needs a real
+                        // reserve to begin.
                         let to_front = dist - 8.0 - enemy_edge_ext;
-                        u.charging = to_front < charge_sp * self.tun.charge_window;
+                        u.charging = to_front < charge_sp * self.tun.charge_window
+                            && u.fatigue > 0.3;
                     }
                 }
                 // Once contact begins the charge is over: the momentum has

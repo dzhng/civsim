@@ -312,3 +312,35 @@ fn charge_opens_at_the_edge_from_face_and_flank_alike() {
         "aspect must not change the trigger: {face:.1}m vs {flank:.1}m"
     );
 }
+
+#[test]
+fn charging_costs_stamina_and_spent_legs_cannot_burst() {
+    let burst = |fresh: bool| -> (bool, f32, f32) {
+        let mut sim = Sim::new(
+            Tunables { morale_enabled: false, ..Tunables::default() },
+            SEED,
+        );
+        let line = sim.spawn_unit(Vec2::new(0.0, 40.0), PI / 2.0, 200, 40, Vec2::new(1.0, 1.1), 1, 0.7);
+        let cav = sim.spawn_class(Vec2::new(0.0, -60.0), PI / 2.0, 120, UnitClassId::ShockCavalry, 0);
+        if !fresh {
+            sim.units[cav].fatigue = 0.2; // blown horses
+        }
+        let before = sim.units[cav].fatigue;
+        sim.set_attack_order(cav, line);
+        let mut burst_seen = false;
+        for _ in 0..(30.0 / DT) as usize {
+            sim.tick();
+            burst_seen |= sim.units[cav].charging;
+        }
+        let _ = line;
+        (burst_seen, before, sim.units[cav].fatigue)
+    };
+    let (fresh_burst, b0, b1) = burst(true);
+    assert!(fresh_burst, "fresh horses burst");
+    assert!(
+        b1 < b0 - 0.02,
+        "the burst is paid in stamina: {b0:.2} -> {b1:.2}"
+    );
+    let (spent_burst, _, _) = burst(false);
+    assert!(!spent_burst, "blown horses cannot charge — they trot in");
+}

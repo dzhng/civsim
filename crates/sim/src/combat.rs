@@ -292,8 +292,21 @@ impl Sim {
         let bucket_a = crate::unit::bearing_bucket(bearing);
         self.units[ua].contact_hist[bucket_a] += 0.4;
 
-        // Evade: needs room — crush pressure removes it. No push if evaded.
-        let evade = vstats.evade * cohesion * (1.0 - self.pressure[victim] / 2.0).clamp(0.0, 1.0);
+        // Evade (read: parry/dodge): needs room — crush pressure removes
+        // it — and DIRECTION: you can't slip a blow you can't see. Full
+        // rate across the front, weakened side-on, nearly gone from square
+        // behind. (Block was always front-arc-only; this is its agile twin
+        // for the shieldless classes.)
+        let aspect_v = wrap_angle(incoming - self.facings[victim]).abs();
+        let seen = if aspect_v < 1.05 {
+            1.0
+        } else if aspect_v < 2.1 {
+            0.6
+        } else {
+            0.25
+        };
+        let evade =
+            vstats.evade * seen * cohesion * (1.0 - self.pressure[victim] / 2.0).clamp(0.0, 1.0);
         if self.rng.chance(evade) {
             return;
         }
@@ -318,8 +331,7 @@ impl Sim {
         self.stun[victim] = self.stun[victim].max(0.35);
 
         // Block: front shield arc only; still takes the push.
-        let facing_v = self.facings[victim];
-        let shielded = wrap_angle(incoming - facing_v).abs() < 1.05;
+        let shielded = aspect_v < 1.05;
         let blocked = shielded && self.rng.chance(vstats.block * (0.5 + 0.5 * cohesion));
 
         // Push: momentum through the weapon — a braced thruster hurls an

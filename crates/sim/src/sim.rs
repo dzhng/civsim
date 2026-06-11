@@ -1272,6 +1272,11 @@ impl Sim {
                 let tight = if press {
                     let ranks = (u.alive_count / u.files_eff.max(1)).min(12) as f32;
                     0.6 + 0.35 * ranks
+                } else if u.move_target.is_none() && !matches!(u.mode, OrderMode::Attack(_)) {
+                    // STAND FAST: an orderless defender's slots hold their
+                    // ground — pushed men fight to regain them rather than
+                    // the frame meekly retreating with every shove.
+                    3.0
                 } else {
                     0.6
                 };

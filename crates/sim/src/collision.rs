@@ -182,6 +182,17 @@ impl Sim {
                                     if momentum > tun.stun_momentum && m_eff(j) > m_eff(i) {
                                         stun[i] = stun[i].max(tun.stun_time);
                                     }
+                                    // The impactor KEEPS its momentum (p = m·v):
+                                    // armed here, spent driving through the
+                                    // crowd, zeroed by stagger. Capped at the
+                                    // true approach momentum — physics, not a
+                                    // bonus. A sprinting heavy carries a stride;
+                                    // half a ton of horse carries meters.
+                                    let cur = (mom_x[j] * mom_x[j] + mom_y[j] * mom_y[j]).sqrt();
+                                    if cur < momentum * 0.6 {
+                                        mom_x[j] = nx * momentum * 0.6;
+                                        mom_y[j] = ny * momentum * 0.6;
+                                    }
                                 }
                             }
                         } else {

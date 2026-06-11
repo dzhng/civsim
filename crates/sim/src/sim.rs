@@ -55,6 +55,15 @@ pub struct Sim {
     /// drift tracking, drain) key on THIS — being able to see an enemy is
     /// not being in a fight.
     pub fighting: Vec<u8>,
+    /// Same-unit comrades FIGHTING within ~6m (clamped at 10): the local
+    /// fight density that licenses a soldier's combat initiative. A man on
+    /// a quiet wing reads 0; a man beside the scrum reads high — and his
+    /// seek radius grows with it (cascading envelopment).
+    pub fight_near: Vec<u8>,
+    /// 1 = the bearing to this soldier's target is clear of friendly bodies
+    /// (within 1.5m, ±40°). The anti-blender leash: rank-3 men behind
+    /// comrades may NOT wade in regardless of seek radius.
+    pub front_clear: Vec<u8>,
     /// Bearing of the last attacker and its time-to-live (reactive facing).
     pub(crate) hit_dir: Vec<f32>,
     pub(crate) hit_ttl: Vec<f32>,
@@ -104,6 +113,8 @@ impl Sim {
             stun: Vec::new(),
             target: Vec::new(),
             fighting: Vec::new(),
+            fight_near: Vec::new(),
+            front_clear: Vec::new(),
             hit_dir: Vec::new(),
             hit_ttl: Vec::new(),
             prev_positions: Vec::new(),
@@ -231,6 +242,8 @@ impl Sim {
             self.stun.push(0.0);
             self.target.push(-1);
             self.fighting.push(0);
+            self.fight_near.push(0);
+            self.front_clear.push(1);
             self.hit_dir.push(0.0);
             self.hit_ttl.push(0.0);
             self.alive.push(1);
@@ -513,10 +526,17 @@ impl Sim {
             }
         }
 
-        // Re-form slots while pivoting or after casualties opened gaps.
+        // Re-form slots while pivoting or after casualties opened gaps —
+        // and at a slow drumbeat while FIGHTING (vacancy back-fill): a man
+        // who stepped out vacates his slot, the man behind relabels forward
+        // and marches up, arrives beside the scrum, reads high fight
+        // density, and steps out himself. The cascade is rate-limited by
+        // actual walking.
         for ui in 0..self.units.len() {
             let needs = self.units[ui].pivoting
-                || self.units[ui].deaths_since_reform * 50 > self.units[ui].alive_count.max(1);
+                || self.units[ui].deaths_since_reform * 50 > self.units[ui].alive_count.max(1)
+                || (self.units[ui].engaged > 0
+                    && self.tick_count % 60 == (ui as u64) % 60);
             if needs {
                 reassign_slots(&self.units[ui], &self.positions, &self.alive, &mut self.soldier_slot);
                 self.units[ui].deaths_since_reform = 0;
@@ -732,6 +752,7 @@ impl Sim {
 
             // Attack latch: chase the enemy anchor while unengaged, and burst
             // into the charge in the measured final approach.
+            let was_charging = self.units[ui].charging;
             self.units[ui].charging = false;
             if let OrderMode::Attack(e) = mode {
                 let e = e as usize;
@@ -756,6 +777,18 @@ impl Sim {
                         }
                     }
                 }
+                // The charge survives FIRST CONTACT: weapons come in reach
+                // ~1.5m before bodies meet, and clearing the burst there
+                // would deliver the impact at a crawl. It ends when a third
+                // of the unit is fighting — the mass has landed.
+                if was_charging && engaged_frac < 0.35 && u.charge_enabled {
+                    let charge_sp = (self.tun.base_speed
+                        + (self.tun.charge_speed - self.tun.base_speed)
+                            * crate::movement::fatigue_capacity(u.fatigue))
+                        * u.speed_mult;
+                    let dist = (enemy_anchor - u.anchor).len();
+                    u.charging = dist < charge_sp * self.tun.charge_window * 1.5;
+                }
                 if enemy_dead || (enemy_routing && !u.pursue) {
                     // Hold ground when they break, unless told to chase.
                     u.mode = OrderMode::Move;
@@ -768,8 +801,12 @@ impl Sim {
                                 * crate::movement::fatigue_capacity(u.fatigue))
                             * u.speed_mult;
                         let dist = (enemy_anchor - u.anchor).len();
-                        u.charging = dist < charge_sp * self.tun.charge_window
-                            && dist > self.tun.arrive_radius;
+                        // No arrive-guard: both anchors are FRONT-centers,
+                        // so their distance hits zero exactly at impact —
+                        // the old guard extinguished every charge at the
+                        // moment it mattered. The mass-landed check
+                        // (engaged_frac, in the persistence block) ends it.
+                        u.charging = dist < charge_sp * self.tun.charge_window;
                     }
                 }
                 // Once contact begins the charge is over: the momentum has
@@ -851,6 +888,8 @@ impl Sim {
             mass,
             mom_x,
             mom_y,
+            fight_near,
+            front_clear,
             facings,
             soldier_slot,
             terrain,
@@ -925,9 +964,16 @@ impl Sim {
 
                 if stun[i] > 0.0 {
                     stun[i] -= dt;
-                    // A staggered body sheds its momentum into the ground.
-                    mom_x[i] = 0.0;
-                    mom_y[i] = 0.0;
+                    // Stunned men can't STEP — but a body carrying momentum
+                    // still travels (the glide decays below regardless).
+                    if mom_x[i] != 0.0 || mom_y[i] != 0.0 {
+                        let v = 1.0 / mass[i].max(0.2);
+                        positions[2 * i] += mom_x[i] * v * dt;
+                        positions[2 * i + 1] += mom_y[i] * v * dt;
+                        let decay = 1.0 - (dt / 0.8);
+                        mom_x[i] *= decay;
+                        mom_y[i] *= decay;
+                    }
                     continue; // knocked down: no stepping, no turning
                 }
                 // Carried impact momentum: the body keeps moving through the
@@ -1001,10 +1047,23 @@ impl Sim {
                     let tp = Vec2::new(positions[2 * t], positions[2 * t + 1]);
                     let tt = tp - p;
                     let d_t = tt.len() - 0.8; // body radii, roughly
-                    if d_t > reach_u - 0.2 && d_t < 3.5 {
-                        // JUST out of reach: step inside it. Men deeper in
-                        // the ranks hold formation — the front fights, the
-                        // block doesn't dissolve into a blender.
+                    // Graded combat initiative: the seek radius grows with
+                    // the LOCAL fight density (comrades fighting within 6m).
+                    // A man on a quiet wing keeps the tight 3.5m leash; a
+                    // man beside the scrum reaches 6-9m and steps around the
+                    // corner of the penetration — the cascade that wraps a
+                    // line spreads at footspeed, link by link, and dies out
+                    // where the fighting does. The empty-frontage flag is
+                    // the anti-blender leash: nobody wades in through his
+                    // own comrades' backs.
+                    let r_seek = (3.5 + 0.6 * fight_near[i] as f32).min(9.0);
+                    // Never seek toward a target closing at CHARGE speeds —
+                    // you don't sprint into a gallop (you stand and brace) —
+                    // but grinding melee speeds are fair game.
+                    let tvx = positions[2 * t] - prev_positions[2 * t];
+                    let tvy = positions[2 * t + 1] - prev_positions[2 * t + 1];
+                    let closing = -(tvx * tt.x + tvy * tt.y) / (tt.len().max(0.01) * dt);
+                    if d_t > reach_u - 0.2 && d_t < r_seek && front_clear[i] == 1 && closing < 3.5 {
                         steer_to = tt;
                         max_sp = max_sp.min(keep_up_sp * 0.5);
                     } else if engaged_i {

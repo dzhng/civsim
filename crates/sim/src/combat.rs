@@ -64,6 +64,8 @@ impl Sim {
             if !near_enemy[ui] {
                 self.target[i] = -1;
                 self.fighting[i] = 0;
+                self.fight_near[i] = 0;
+                self.front_clear[i] = 1;
                 continue;
             }
             let my_team = self.units[ui].team;
@@ -76,21 +78,25 @@ impl Sim {
             let p = self.soldier_pos(i);
 
             // --- find nearest enemy + count envelope obstruction ------------
-            let search = max_reach + 1.2;
-            let range_cells = ((search / cell).ceil() as i32).clamp(1, 3);
+            // The scan covers awareness range: targeting, obstruction, AND
+            // the local fight-density measurement all come from this pass.
+            let search = (max_reach + 1.2).max(DISENGAGE_DIST);
+            let range_cells = ((search / cell).ceil() as i32).clamp(1, 4);
             let mut nearest: i32 = -1;
             let mut nearest_d = f32::MAX;
             // (victim, surface distance, bearing)
             let mut candidates: [(u32, f32, f32); 12] = [(0, 0.0, 0.0); 12];
             let mut cand_len = 0usize;
-            // Friendly bodies ahead: (bearing offset will be computed against
-            // the chosen weapon's envelope after weapon selection).
-            let mut friends: [(f32, f32); 16] = [(0.0, 0.0); 16]; // (off, d_surf)
+            // Friendly bodies nearby: raw bearing + distance (offsets are
+            // computed against facing or target bearing as needed).
+            // (bearing, d_surf, is_fighting)
+            let mut friends: [(f32, f32, bool); 24] = [(0.0, 0.0, false); 24];
             let mut friends_len = 0usize;
+            let mut fight_near = 0u32;
 
             let cx = (p.x / cell).floor() as i32;
             let cy = (p.y / cell).floor() as i32;
-            let mut seen = [usize::MAX; 49];
+            let mut seen = [usize::MAX; 81]; // 9x9: range_cells caps at 4
             let mut seen_len = 0;
             for oy in -range_cells..=range_cells {
                 for ox in -range_cells..=range_cells {
@@ -116,9 +122,12 @@ impl Sim {
                         let bearing = to.y.atan2(to.x);
                         let uj = self.soldier_unit[j] as usize;
                         if self.units[uj].team == my_team {
-                            let off = wrap_angle(bearing - self.facings[i]).abs();
-                            if d_surf < max_reach * 0.9 && off < 1.6 && friends_len < friends.len() {
-                                friends[friends_len] = (off, d_surf.max(0.05));
+                            if uj == ui && self.fighting[j] == 1 && d_surf < 6.0 {
+                                fight_near += 1;
+                            }
+                            if d_surf < (max_reach * 0.9).max(1.6) && friends_len < friends.len() {
+                                friends[friends_len] =
+                                    (bearing, d_surf.max(0.05), self.fighting[j] == 1);
                                 friends_len += 1;
                             }
                             continue;
@@ -138,12 +147,27 @@ impl Sim {
                 }
             }
 
+            self.fight_near[i] = fight_near.min(10) as u8;
             if nearest < 0 || nearest_d > DISENGAGE_DIST {
                 self.target[i] = -1;
                 self.fighting[i] = 0;
                 continue;
             }
             self.target[i] = nearest;
+            // Empty frontage toward the target: the measured anti-blender
+            // leash. Blocked = a comrade's body within 1.5m inside +-40deg
+            // of the target bearing.
+            let t_bearing = {
+                let tp = self.soldier_pos(nearest as usize);
+                (tp - p).y.atan2((tp - p).x)
+            };
+            // Blocked = a comrade ALREADY FIGHTING stands between me and my
+            // target (within 1.5m, +-40deg). A merely packed neighbor will
+            // make way; stacking behind a fighting one is the blender.
+            let blocked = friends[..friends_len].iter().any(|&(b, d, f)| {
+                f && d < 1.5 && wrap_angle(b - t_bearing).abs() < 0.7
+            });
+            self.front_clear[i] = (!blocked) as u8;
             // Awareness is not combat: the fight starts when weapons can land.
             self.fighting[i] = (nearest_d <= max_reach + 0.3) as u8;
             let u = &mut self.units[ui];
@@ -199,7 +223,8 @@ impl Sim {
             let arc_weight = weapon.arc / (weapon.arc + 0.5);
             let obstruct = friends[..friends_len]
                 .iter()
-                .filter(|&&(off, d)| {
+                .filter(|&&(b, d, _)| {
+                    let off = wrap_angle(b - self.facings[i]).abs();
                     d < weapon.reach * 0.9 && off < weapon.arc * 0.5 + (0.7 / (d + 0.5)).atan()
                 })
                 .count() as f32
@@ -274,6 +299,21 @@ impl Sim {
 
         // Any non-evaded impact staggers: you do not stride forward while a
         // pike slams your shield. (This is what makes reach walls hold.)
+        // But a stagger does not delete physics: a body moving at speed
+        // KEEPS its momentum (p = m·v) and glides through the stumble —
+        // this is how a charging line crashes home through the spear hits
+        // of the final stride instead of politely stopping at reach.
+        let vvx = (self.positions[2 * victim] - self.prev_positions[2 * victim]) / DT;
+        let vvy = (self.positions[2 * victim + 1] - self.prev_positions[2 * victim + 1]) / DT;
+        let vsp = (vvx * vvx + vvy * vvy).sqrt();
+        if vsp > 2.0 {
+            let m = self.mass[victim] * vsp * 0.8;
+            let cur = (self.mom_x[victim].powi(2) + self.mom_y[victim].powi(2)).sqrt();
+            if cur < m {
+                self.mom_x[victim] = vvx / vsp * m;
+                self.mom_y[victim] = vvy / vsp * m;
+            }
+        }
         self.stun[victim] = self.stun[victim].max(0.35);
 
         // Block: front shield arc only; still takes the push.

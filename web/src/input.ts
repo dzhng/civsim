@@ -59,9 +59,15 @@ export class Input {
       if (e.button === 2) rDown = [e.clientX, e.clientY];
     });
 
+    let rLast: [number, number] | null = null;
     window.addEventListener('mousemove', (e) => {
       mouseX = e.clientX;
       mouseY = e.clientY;
+      if (rDown && this.selected.length === 0) {
+        // No selection: the right button drags the camera itself.
+        if (rLast) camera.panPixels((e.clientX - rLast[0]) * dpr(), (e.clientY - rLast[1]) * dpr());
+        rLast = [e.clientX, e.clientY];
+      }
       if (rDown) {
         const moved = Math.hypot(e.clientX - rDown[0], e.clientY - rDown[1]);
         if (moved > DRAG_PX && this.selected.length > 0) {
@@ -115,6 +121,7 @@ export class Input {
       if (e.button === 2 && rDown) {
         const [sx, sy] = rDown;
         rDown = null;
+        rLast = null;
         const drag = this.rightDrag;
         this.rightDrag = null;
         if (this.selected.length === 0) return;

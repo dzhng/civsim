@@ -51,6 +51,22 @@
       background: rgba(255,255,255,0.08); pointer-events: none;
     }
     #unitlabels { position: fixed; inset: 0; pointer-events: none; z-index: 3; }
+    #toolbar {
+      position: fixed; bottom: 10px; left: 50%; transform: translateX(-50%);
+      display: flex; gap: 6px; align-items: center; z-index: 5;
+      background: rgba(12,14,19,0.85); border: 1px solid #3a3f4d;
+      border-radius: 10px; padding: 7px 10px;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.5);
+    }
+    #toolbar button {
+      font: 12px ui-monospace, Menlo, monospace; color: #c8cdd8;
+      background: rgba(34,38,48,0.9); border: 1px solid #444a5a;
+      border-radius: 6px; padding: 5px 10px; cursor: pointer; white-space: nowrap;
+    }
+    #toolbar button:hover { background: rgba(56,62,78,0.95); }
+    #toolbar button.on { background: #4a6, border-color: #6c8; color: #fff; }
+    #toolbar button:disabled { opacity: 0.4; cursor: default; }
+    #toolbar .sep { width: 1px; height: 18px; background: #3a3f4d; }
     .ulabel { position: absolute; width: 52px; display: none; }
     .ulabel .bar { height: 3px; background: rgba(10,10,12,0.55); border-radius: 2px; overflow: hidden; margin-bottom: 1px; }
     .ulabel .bar > div { height: 100%; }
@@ -86,7 +102,22 @@
   <div id="selbox"></div>
   <canvas id="minimap" width="240" height="160"></canvas>
   <div id="unitlabels"></div>
-  <div id="help">drag select (drag a selected unit to MOVE it, facing held) · ctrl+A all · right-click move/attack (double = run) · right-DRAG = go there facing the drag (live ghost preview) · shift/alt+rc DISENGAGE (turn and run, no fighting back) · WASD pan · wheel zoom · R run F stance C charge G reform H pursue V fire X weapon E kite · P pause 1/3 speed · Space paths</div>
+  <div id="toolbar">
+    <button data-cmd="pace" title="Walk / Run (R)&#10;Running is faster but frays the formation and burns stamina.">Run</button>
+    <button data-cmd="stance" title="Othismos / Fence (F)&#10;Othismos presses your weight into the fight; Fence fights at weapon's length.">Othismos</button>
+    <button data-cmd="charge" title="Charge (C)&#10;Burst to charge speed in the final approach of an attack.">Charge</button>
+    <button data-cmd="reform" title="Reform (G)&#10;Halt and re-dress the ranks, fast.">Reform</button>
+    <button data-cmd="pursue" title="Pursue (H)&#10;Latch onto anything the advance meets (timed); off = fight in stride.">Pursue</button>
+    <button data-cmd="fire" title="Fire at will (V)&#10;Loose arrows on judgment.">Fire</button>
+    <button data-cmd="weapon" title="Secondary weapons (X)&#10;Draw sidearms unit-wide (~1s down the line). Archers sling bows.">2nd Weapon</button>
+    <button data-cmd="kite" title="Kite (E)&#10;Skirmish reflex: hop away from approaching enemies, shooting. Skirmishers and horse archers only.">Kite</button>
+    <span class="sep"></span>
+    <button data-cmd="pause" title="Pause (P)">⏸</button>
+    <button data-cmd="x1" title="Normal speed (1)">1×</button>
+    <button data-cmd="x3" title="Fast forward (3)">3×</button>
+    <span class="sep"></span>
+    <button data-cmd="paths" title="Show paths and destination ghosts (hold Space)">Paths</button>
+  </div>
   <script type="module" src="/src/main.ts"></script>
 </body>
 </html>

@@ -54,15 +54,16 @@ void main() {
 const GROUND_VS = `#version 300 es
 layout(location=0) in vec2 a_corner;
 uniform vec4 u_cam;
-uniform vec4 u_rect;
-out vec2 v_uv;
+uniform vec4 u_rect;   // expanded quad (map + wilds margin)
+uniform vec4 u_inner;  // map sub-rect within the quad: offset.xy, size.zw
+out vec2 v_uv;         // MAP-relative uv: <0 or >1 = the wilds
 out vec2 v_world;
 void main() {
   vec2 world = u_rect.xy + a_corner * u_rect.zw;
   v_world = world;
   vec2 clip = (world - u_cam.zw) * u_cam.xy;
   gl_Position = vec4(clip, 0.0, 1.0);
-  v_uv = a_corner;
+  v_uv = (a_corner - u_inner.xy) / u_inner.zw;
 }`;
 
 // Procedural ground: the tint id picks a palette; value noise breaks it up;
@@ -88,8 +89,9 @@ float noise(vec2 p) {
 }
 
 void main() {
-  vec3 t = texture(u_terrain, v_uv).rgb;
-  float tint = floor(t.b * 8.0 + 0.5);
+  bool outside = v_uv.x < 0.0 || v_uv.x > 1.0 || v_uv.y < 0.0 || v_uv.y > 1.0;
+  vec3 t = outside ? vec3(1.0, 0.6, 0.0) : texture(u_terrain, v_uv).rgb;
+  float tint = outside ? 99.0 : floor(t.b * 8.0 + 0.5);
   float n1 = noise(v_world * 0.11);
   float n2 = noise(v_world * 0.45);
   float n = n1 * 0.7 + n2 * 0.3;
@@ -127,13 +129,23 @@ void main() {
   } else if (tint < 5.5) {     // warm marsh / mud
     col = mix(vec3(0.42, 0.35, 0.24), vec3(0.52, 0.44, 0.30), n);
     col += 0.05 * smoothstep(0.6, 0.9, noise(v_world * 0.33));
+  } else if (tint > 90.0) {    // the wilds beyond the field
+    float wild = noise(v_world * 0.06);
+    col = mix(vec3(0.30, 0.40, 0.22), vec3(0.22, 0.31, 0.18), wild);
+    col *= 0.85 + 0.15 * n2;
+    // Sparse dark canopy clumps so it reads as untamed country.
+    col = mix(col, vec3(0.16, 0.24, 0.13), smoothstep(0.62, 0.85, noise(v_world * 0.18 + 3.7)));
   } else {                     // golden field / scree
     col = mix(vec3(0.60, 0.55, 0.38), vec3(0.70, 0.64, 0.44), n2);
   }
 
   col *= 0.90 + 0.10 * t.r;    // slow ground reads darker, honestly
-  vec2 e = abs(v_uv - 0.5) * 2.0;
-  col *= 1.0 - 0.12 * pow(max(e.x, e.y), 4.0);
+  // The battlefield bound: a crisp double line at the true map edge.
+  vec2 du = fwidth(v_uv) * 2.0;
+  float bx = min(smoothstep(0.0, du.x, abs(v_uv.x)), smoothstep(0.0, du.x, abs(v_uv.x - 1.0)));
+  float by = min(smoothstep(0.0, du.y, abs(v_uv.y)), smoothstep(0.0, du.y, abs(v_uv.y - 1.0)));
+  float border = 1.0 - min(bx, by);
+  col = mix(col, vec3(0.92, 0.86, 0.62), border * 0.85);
   o = vec4(col, 1.0);
 }`;
 
@@ -423,6 +435,7 @@ export class Renderer {
     camera: Camera,
     selectedPrimary: number,
     banners: { x: number; y: number; team: number; unit: number }[],
+    bannerSize = 11,
   ) {
     const gl = this.gl;
     gl.viewport(0, 0, this.canvas.width, this.canvas.height);
@@ -434,7 +447,12 @@ export class Renderer {
     if (this.terrainTex) {
       gl.useProgram(this.ground);
       gl.uniform4f(gl.getUniformLocation(this.ground, 'u_cam'), cam[0], cam[1], cam[2], cam[3]);
-      gl.uniform4f(gl.getUniformLocation(this.ground, 'u_rect'), this.mapRect[0], this.mapRect[1], this.mapRect[2], this.mapRect[3]);
+      {
+        const M = 1600; // meters of wilds painted beyond every edge
+        const [ox, oy, w, h] = this.mapRect;
+        gl.uniform4f(gl.getUniformLocation(this.ground, 'u_rect'), ox - M, oy - M, w + 2 * M, h + 2 * M);
+        gl.uniform4f(gl.getUniformLocation(this.ground, 'u_inner'), M / (w + 2 * M), M / (h + 2 * M), w / (w + 2 * M), h / (h + 2 * M));
+      }
       gl.uniform1f(gl.getUniformLocation(this.ground, 'u_time'), time);
       gl.activeTexture(gl.TEXTURE0);
       gl.bindTexture(gl.TEXTURE_2D, this.terrainTex);
@@ -493,7 +511,7 @@ export class Renderer {
       up(this.bannerBufs.facing, new Float32Array(n).fill(Math.PI / 2));
       up(this.bannerBufs.row, new Float32Array(n).fill(this.decalRow));
       up(this.bannerBufs.frame, frame);
-      up(this.bannerBufs.size, new Float32Array(n).fill(11));
+      up(this.bannerBufs.size, new Float32Array(n).fill(bannerSize));
       up(this.bannerBufs.alive, new Float32Array(n).fill(1));
       up(this.bannerBufs.unit, unit);
       gl.uniform1f(uPass, 2);

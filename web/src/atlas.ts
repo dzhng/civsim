@@ -2,7 +2,7 @@
 // attack, and corpse frames, plus trees, banners, and rocks. Drawn once at
 // startup on a 2D canvas — no external assets, no licenses, crisp at zoom.
 
-export const SPRITE = 64; // px per cell
+export const SPRITE = 128; // px per cell (art authored at 64, scaled 2x)
 export const COLS = 8;
 // 18 soldier rows (9 classes x 2 teams) + 1 decal row.
 export const ROWS = 19;
@@ -69,6 +69,7 @@ function drawSoldier(g: CanvasRenderingContext2D, ox: number, oy: number, look: 
   const c = SPRITE / 2;
   g.save();
   g.translate(ox + c, oy + c);
+  g.scale(SPRITE / 64, SPRITE / 64);
 
   const dead = frame === 4;
   const swap = frame === 5;
@@ -223,11 +224,11 @@ function drawSoldier(g: CanvasRenderingContext2D, ox: number, oy: number, look: 
   // Facing wedge: a bright chevron at the front of the body — the unit's
   // direction must read at a glance even at distance.
   if (!dead) {
-    g.fillStyle = '#fff3d0';
+    g.fillStyle = 'rgba(255, 243, 208, 0.9)';
     g.beginPath();
-    g.moveTo(11, bodyY);
-    g.lineTo(6, bodyY - 3.4);
-    g.lineTo(6, bodyY + 3.4);
+    g.moveTo(9.5, bodyY);
+    g.lineTo(5.5, bodyY - 2.4);
+    g.lineTo(5.5, bodyY + 2.4);
     g.closePath();
     g.fill();
   }
@@ -301,6 +302,7 @@ function drawTree(g: CanvasRenderingContext2D, ox: number, oy: number, variant: 
   const c = SPRITE / 2;
   g.save();
   g.translate(ox + c, oy + c);
+  g.scale(SPRITE / 64, SPRITE / 64);
   g.fillStyle = 'rgba(0,0,0,0.3)';
   g.beginPath();
   g.ellipse(3, 4, 16, 12, 0, 0, 7);
@@ -325,6 +327,7 @@ function drawRock(g: CanvasRenderingContext2D, ox: number, oy: number) {
   const c = SPRITE / 2;
   g.save();
   g.translate(ox + c, oy + c);
+  g.scale(SPRITE / 64, SPRITE / 64);
   g.fillStyle = 'rgba(0,0,0,0.3)';
   g.beginPath();
   g.ellipse(3, 5, 20, 13, 0, 0, 7);
@@ -354,6 +357,7 @@ function drawBanner(g: CanvasRenderingContext2D, ox: number, oy: number, color: 
   const c = SPRITE / 2;
   g.save();
   g.translate(ox + c, oy + c);
+  g.scale(SPRITE / 64, SPRITE / 64);
   g.strokeStyle = '#6b5a3e';
   g.lineWidth = 3;
   line(g, 0, 26, 0, -22);

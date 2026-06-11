@@ -87,6 +87,33 @@ under everyone's ceiling — a walking line stays dressed forever. Running
 exceeds the slowest men's — they trail and the formation frays the longer
 it runs. Run to arrive in time; walk to arrive in order.
 
+## Reading a unit at a glance
+
+Every unit carries an HP bar (team-colored) and a cohesion bar (gold), plus
+effect chips:
+
+| chip | shown when |
+|---|---|
+| **ROUT** | morale broke: ignoring orders, fleeing as bodies |
+| **ATK** | an attack latch is live (explicit order or pursue auto-charge) |
+| **DIS** | a disengage order is live |
+| **CHG!** | bursting at charge speed, final approach |
+| **OTH / FEN** | current stance (always one of the two) |
+| **PUR** | pursue on: the advance latches onto what strays within reach |
+| **KITE** | skirmish reflex armed |
+| **2nd** | secondary weapons drawn unit-wide |
+| **BRC** | braced: halted with men trading blows (planted mass) |
+| **TIRED** | stamina < 35% |
+| **SQZ** | formation FRAME compressed by a terrain corridor |
+| **CRUSH** | mean crowd pressure high — packed or surrounded, evade dying (the physical squeeze, wherever it comes from) |
+| **WAIT** | queued behind same-flow friends at a chokepoint |
+| **AMMO!** | a missile unit's quivers are empty |
+| **⚔n** | n men trading blows right now |
+
+White pie = order transmitting; orange pie = weapon order traveling. The
+pale border around the field marks the true battlefield bound; everything
+beyond it is wilds.
+
 ## Stamina (one shared pool: legs and arms)
 
 Walk is free. Run drains in ~90 s. The **surge** — the automatic catch-up

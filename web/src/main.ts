@@ -165,6 +165,7 @@ function updateUnitLabels() {
 
     // Effect chips: explicit states + derived physical facts.
     const fx: string[] = [];
+    const cls2 = info[o + 13];
     const mode = info[o + 24];
     if (info[o + 21] > 0.5) fx.push('<b class="bad">ROUT</b>');
     else if (mode === 2) fx.push('<b title="disengaging">DIS</b>');
@@ -178,10 +179,61 @@ function updateUnitLabels() {
     if (info[o + 8] < 0.35) fx.push('<b class="bad" title="winded">TIRED</b>');
     if (info[o + 28] > 0.5) fx.push('<b title="squeezed into a corridor">SQZ</b>');
     if (info[o + 27] > 0.5) fx.push('<b title="queued behind friends">WAIT</b>');
+    if (info[o + 31] > 0.55) fx.push('<b class="bad" title="crushed in the press: no room, evade dying">CRUSH</b>');
+    if ([4, 5, 7, 8].includes(cls2) && info[o + 19] === 0) fx.push('<b class="bad" title="quivers empty">AMMO!</b>');
     if (info[o + 16] > 0) fx.push(`<b class="hot" title="men trading blows">⚔${info[o + 16]}</b>`);
     (d.children[2] as HTMLElement).innerHTML = fx.join('');
   }
 }
+
+// --- Toolbar ------------------------------------------------------------------
+const toolButtons = new Map<string, HTMLButtonElement>();
+document.querySelectorAll<HTMLButtonElement>('#toolbar button').forEach((b) => {
+  toolButtons.set(b.dataset.cmd!, b);
+});
+function updateToolbar() {
+  const sel = myUnits(input.selected);
+  const info = unitInfo();
+  const o = sel.length ? sel[0] * STRIDE : -1;
+  const set = (cmd: string, on: boolean, label?: string) => {
+    const b = toolButtons.get(cmd)!;
+    b.classList.toggle('on', on);
+    if (label) b.textContent = label;
+    if (!['pause', 'x1', 'x3', 'paths'].includes(cmd)) b.disabled = sel.length === 0;
+  };
+  set('pace', o >= 0 && info[o + 9] > 0.5, o >= 0 && info[o + 9] > 0.5 ? 'Running' : 'Run');
+  set('stance', false, o >= 0 ? (info[o + 17] > 0.5 ? 'Fence' : 'Othismos') : 'Othismos');
+  set('charge', o >= 0 && info[o + 18] >= 1);
+  set('reform', false);
+  set('pursue', o >= 0 && info[o + 25] > 0.5);
+  set('fire', o >= 0 && sel.length > 0 && fireOn);
+  set('weapon', o >= 0 && info[o + 29] > 0.5);
+  set('kite', o >= 0 && info[o + 26] > 0.5);
+  toolButtons.get('pause')!.classList.toggle('on', paused);
+  toolButtons.get('x1')!.classList.toggle('on', !paused && timeScale === 1);
+  toolButtons.get('x3')!.classList.toggle('on', !paused && timeScale === 3);
+  toolButtons.get('paths')!.classList.toggle('on', showPaths);
+}
+document.getElementById('toolbar')!.addEventListener('click', (e) => {
+  const b = (e.target as HTMLElement).closest('button') as HTMLButtonElement | null;
+  if (!b) return;
+  const sel = input.selected;
+  switch (b.dataset.cmd) {
+    case 'pace': sink.togglePace(sel); break;
+    case 'stance': sink.toggleStance(sel); break;
+    case 'charge': sink.toggleCharge(sel); break;
+    case 'reform': sink.reform(sel); break;
+    case 'pursue': sink.togglePursue(sel); break;
+    case 'fire': sink.toggleFire(sel); break;
+    case 'weapon': sink.toggleWeapon(sel); break;
+    case 'kite': sink.toggleKite(sel); break;
+    case 'pause': paused = !paused; break;
+    case 'x1': paused = false; timeScale = 1; break;
+    case 'x3': paused = false; timeScale = 3; break;
+    case 'paths': showPaths = !showPaths; break;
+  }
+  updateToolbar();
+});
 
 // --- Time control ------------------------------------------------------------
 let paused = false;
@@ -297,7 +349,7 @@ function tickGroupAttacks() {
   });
 }
 
-const input = new Input(canvas, camera, {
+const sink = {
   unitsInRect: (x0, y0, x1, y1) => {
     const info = unitInfo();
     const out: number[] = [];
@@ -446,11 +498,12 @@ const input = new Input(canvas, camera, {
     pursueOn = !pursueOn;
     myUnits(units).forEach((u) => game.set_pursue(u, pursueOn ? 1 : 0));
   },
-  toggleFire: (units) => {
+  toggleFire: (units: number[]) => {
     fireOn = !fireOn;
     myUnits(units).forEach((u) => game.set_fire_at_will(u, fireOn ? 1 : 0));
   },
-});
+};
+const input = new Input(canvas, camera, sink);
 let pursueOn = false;
 let fireOn = true;
 
@@ -672,7 +725,9 @@ function frame(now: number) {
       }
     }
   }
-  renderer.draw(positions(), facings(), frames, aliveF32, game.soldier_count(), camera, primary, bannerList);
+  // Banners read as UI: world-sized from afar, screen-constant up close.
+  const bannerSize = Math.min(11, 40 / camera.zoom);
+  renderer.draw(positions(), facings(), frames, aliveF32, game.soldier_count(), camera, primary, bannerList, bannerSize);
   // Attack arcs: every soldier mid-swing flashes his weapon's true envelope
   // (reach x arc) — readable combat, straight from the class table.
   if (camera.zoom > 2.5) {
@@ -731,6 +786,7 @@ function frame(now: number) {
     hudTimer = 0;
     tickGroupAttacks();
     updateHud();
+    updateToolbar();
     drawMinimap();
   }
   requestAnimationFrame(frame);

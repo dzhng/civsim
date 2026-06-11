@@ -86,12 +86,30 @@ formation frays the longer it runs (and burns stamina all the while). Run
 to arrive in time; walk to arrive in ORDER.</p>
 
 <h2>Reading a unit at a glance</h2>
-<p>Every unit carries an <b>HP bar</b> (team-colored, living men / full
-strength), a <b>cohesion bar</b> (gold), and effect chips: ATK/DIS (order),
-OTH/FEN (stance), PUR (pursue), KITE, CHG! (charging), 2nd (secondary
-drawn), BRC (braced), TIRED (winded), SQZ (squeezed in a corridor), WAIT
-(queued), ⚔n (men trading blows), ROUT. White pie = order transmitting;
-orange pie = weapon order traveling.</p>
+<p>Every unit carries an <b>HP bar</b> (team-colored: living men / full
+strength) and a <b>cohesion bar</b> (gold). Effect chips and exactly when
+they appear:</p>
+<table>
+<tr><th>chip</th><th>shown when</th></tr>
+<tr><td><b>ROUT</b></td><td>morale broke: the unit ignores orders and flees as bodies (replaces ATK/DIS)</td></tr>
+<tr><td><b>ATK</b></td><td>an attack latch is live — explicit order or a pursue auto-charge</td></tr>
+<tr><td><b>DIS</b></td><td>a disengage order is live: running, answering nothing</td></tr>
+<tr><td><b>CHG!</b></td><td>this instant: bursting at charge speed in the final approach</td></tr>
+<tr><td><b>OTH / FEN</b></td><td>always one of the two — current stance</td></tr>
+<tr><td><b>PUR</b></td><td>pursue toggle on: the advance will latch onto whatever strays within reach</td></tr>
+<tr><td><b>KITE</b></td><td>skirmish reflex armed (skirmishers / horse archers)</td></tr>
+<tr><td><b>2nd</b></td><td>secondary weapons drawn unit-wide (pikes grounded, bows slung)</td></tr>
+<tr><td><b>BRC</b></td><td>braced: halted (&lt;0.3 m/s) with men trading blows — planted mass multiplies push resistance</td></tr>
+<tr><td><b>TIRED</b></td><td>stamina below 35%: pace, swings, and recovery all sag</td></tr>
+<tr><td><b>SQZ</b></td><td>the formation FRAME is compressed below its ordered frontage — terrain corridors (gates, defiles). Crowd crush is a different thing:</td></tr>
+<tr><td><b>CRUSH</b></td><td>mean crowd pressure is high — packed or surrounded, no room to dodge; evade is dying. This is the physical squeeze, wherever it comes from</td></tr>
+<tr><td><b>WAIT</b></td><td>queued behind same-flow friendly traffic at a chokepoint</td></tr>
+<tr><td><b>AMMO!</b></td><td>a missile unit's quivers are empty</td></tr>
+<tr><td><b>⚔n</b></td><td>n men currently within weapon reach of an enemy, trading blows</td></tr>
+</table>
+<p>White pie over a unit = an order transmitting through low cohesion;
+orange pie = a weapon order traveling down the line. The pale border drawn
+around the field is the true battlefield bound.</p>
 
 <h2>Stamina (one shared pool: legs and arms)</h2>
 <p>Walk is free. Run drains in ~90&nbsp;s. The <b>surge</b> — the automatic

@@ -14,8 +14,8 @@ use wasm_bindgen::prelude::*;
 ///  alive_count, engaged, stance, charge (0 off / 1 armed / 2 charging), ammo,
 ///  morale, routing, final_facing, has_final_facing, mode (0 move / 1 attack /
 ///  2 disengage), pursue, evade_auto, waiting, compressed, weapon_pref,
-///  switch_frac]
-pub const UNIT_INFO_STRIDE: usize = 31;
+///  switch_frac, mean_pressure]
+pub const UNIT_INFO_STRIDE: usize = 32;
 
 #[wasm_bindgen]
 pub struct Game {
@@ -272,6 +272,16 @@ impl Game {
     fn refresh_unit_info(&mut self) {
         self.unit_info.clear();
         for u in &self.sim.units {
+            // Mean crowd pressure over living soldiers (the CRUSH readout).
+            let mut press = 0.0f32;
+            let mut np = 0u32;
+            for i in u.start..u.start + u.count {
+                if self.sim.alive[i] == 1 {
+                    press += self.sim.pressure[i];
+                    np += 1;
+                }
+            }
+            let mean_pressure = press / np.max(1) as f32;
             self.unit_info.extend_from_slice(&[
                 u.anchor.x,
                 u.anchor.y,
@@ -318,6 +328,7 @@ impl Game {
                 if u.files_eff < u.files { 1.0 } else { 0.0 },
                 u.weapon_pref as f32,
                 if u.switch_timer > 0.0 { u.switch_timer.min(1.0) } else { 0.0 },
+                mean_pressure,
             ]);
         }
     }

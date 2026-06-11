@@ -140,3 +140,89 @@ fn full_battle_spawns_and_runs() {
         assert!(p.x.abs() < 1300.0 && p.y.abs() < 900.0, "soldier escaped the map: {p:?}");
     }
 }
+
+#[test]
+fn dense_infantry_blunts_a_cavalry_charge_loose_gets_punched_through() {
+    // Same men, same count, same frontage discipline — ONLY the spacing
+    // differs. Dense files put more collective mass (and transmitted press)
+    // at the impact point: the charge should bog at the front ranks.
+    // Loose order leaves every man alone against half a ton of horse.
+    let charge_into = |spacing: f32| -> (f32, f32, usize, usize) {
+        let mut sim = Sim::new(
+            Tunables { morale_enabled: false, ..Tunables::default() },
+            SEED,
+        );
+        // Infantry faces south, front line at y = 30, ranks extending north.
+        let inf = sim.spawn_unit(
+            Vec2::new(0.0, 30.0),
+            -PI / 2.0,
+            400,
+            20,
+            Vec2::new(spacing, spacing * 1.1),
+            0,
+            0.7,
+        );
+        let cav = sim.spawn_class(Vec2::new(0.0, -60.0), PI / 2.0, 160, UnitClassId::ShockCavalry, 1);
+        let y0: Vec<f32> = {
+            let u = &sim.units[inf];
+            (u.start..u.start + u.count).map(|i| sim.soldier_pos(i).y).collect()
+        };
+        sim.set_pace(cav, sim::Pace::Run);
+        sim.set_attack_order(cav, inf);
+        // The impact is an EVENT: track its peaks through the whole charge
+        // instead of sampling one instant.
+        let mut peak_knocked = 0usize;
+        let mut peak_pen = f32::MIN;
+        let mut peak_shove = 0.0f32;
+        for _ in 0..(28.0 / DT) as usize {
+            sim.tick();
+            let u = &sim.units[inf];
+            let knocked = (u.start..u.start + u.count)
+                .filter(|&i| sim.alive[i] == 1 && sim.stun[i] > 0.0)
+                .count();
+            peak_knocked = peak_knocked.max(knocked);
+            let c = &sim.units[cav];
+            for i in c.start..c.start + c.count {
+                if sim.alive[i] == 1 {
+                    peak_pen = peak_pen.max(sim.soldier_pos(i).y - 30.0);
+                }
+            }
+            let mut shove = 0.0f32;
+            let mut n = 0;
+            for (k, i) in (u.start..u.start + u.count).enumerate() {
+                if sim.alive[i] == 1 {
+                    shove += (sim.soldier_pos(i).y - y0[k]).abs();
+                    n += 1;
+                }
+            }
+            peak_shove = peak_shove.max(shove / n.max(1) as f32);
+        }
+        let deaths = sim.units[inf].count - sim.units[inf].alive_count;
+        (peak_pen, peak_shove, peak_knocked, deaths)
+    };
+
+    let (pen_d, shove_d, knock_d, dead_d) = charge_into(0.75); // shields touching
+    let (pen_l, shove_l, knock_l, dead_l) = charge_into(1.8); // open order
+    println!(
+        "DENSE (0.75m): deepest horse {pen_d:.1}m past the original front, peak mean shove {shove_d:.2}m, peak {knock_d} down at once, {dead_d} dead"
+    );
+    println!(
+        "LOOSE (1.8m):  deepest horse {pen_l:.1}m past the original front, peak mean shove {shove_l:.2}m, peak {knock_l} down at once, {dead_l} dead"
+    );
+    // (Deepest-horse penetration doesn't discriminate: cavalry stops to
+    // FIGHT at first contact either way — printed for the record. The
+    // protection shows in how far men are thrown and how many die.)
+    let _ = (pen_d, pen_l);
+    assert!(
+        shove_l > shove_d * 2.0,
+        "isolated men get bodily thrown: {shove_l:.2}m vs {shove_d:.2}m peak mean shove"
+    );
+    assert!(
+        knock_l > knock_d,
+        "isolated men get bowled over: {knock_l} knocked vs {knock_d} in dense ranks"
+    );
+    assert!(
+        dead_l > dead_d,
+        "the punch-through must also cost more blood: {dead_l} vs {dead_d}"
+    );
+}

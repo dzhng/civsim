@@ -497,3 +497,33 @@ fn combat_drains_stamina() {
     );
     let _ = a;
 }
+
+#[test]
+fn surrounded_othismos_breakout_bores_toward_the_click() {
+    // A heavy block ringed by enemies, ordered to break out south with
+    // othismos: the press must move it toward the CLICK, and the indecisive
+    // contact mean must not freeze its facing away from the escape.
+    let mut sim = Sim::new(no_morale(), SEED);
+    let u = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 300, UnitClassId::HeavyInfantry, 0);
+    // The ring: four enemy units boxing it in.
+    for (x, y, f) in [
+        (0.0, 24.0, -FRAC_PI_2),
+        (0.0, -24.0, FRAC_PI_2),
+        (30.0, 0.0, PI),
+        (-30.0, 0.0, 0.0),
+    ] {
+        let e = sim.spawn_class(Vec2::new(x, y), f, 200, UnitClassId::LightInfantry, 1);
+        sim.set_attack_order(e, u);
+    }
+    // Let the encirclement close.
+    run(&mut sim, 15.0);
+    let y0 = sim.units[u].centroid.y;
+    sim.set_stance(u, sim::Stance::Othismos);
+    sim.set_move_order(u, Vec2::new(0.0, -120.0));
+    run(&mut sim, 60.0);
+    let moved = y0 - sim.units[u].centroid.y;
+    assert!(
+        moved > 8.0,
+        "the othismos breakout must grind toward the click: moved {moved:.1}m south"
+    );
+}

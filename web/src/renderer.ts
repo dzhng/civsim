@@ -1,6 +1,9 @@
 import type { Camera } from './camera';
 import { buildAtlas, COLS, ROWS } from './atlas';
 
+/** Meters of painted wilds beyond every map edge (camera bounds match). */
+export const WILDS_MARGIN = 1600;
+
 export const CLASS_NAMES = [
   'Heavy Infantry', 'Light Infantry', 'Long Swords', 'Phalanx', 'Archers',
   'Skirmishers', 'Shock Cavalry', 'Horse Archers', 'Artillery Crew',
@@ -448,7 +451,7 @@ export class Renderer {
       gl.useProgram(this.ground);
       gl.uniform4f(gl.getUniformLocation(this.ground, 'u_cam'), cam[0], cam[1], cam[2], cam[3]);
       {
-        const M = 1600; // meters of wilds painted beyond every edge
+        const M = WILDS_MARGIN;
         const [ox, oy, w, h] = this.mapRect;
         gl.uniform4f(gl.getUniformLocation(this.ground, 'u_rect'), ox - M, oy - M, w + 2 * M, h + 2 * M);
         gl.uniform4f(gl.getUniformLocation(this.ground, 'u_inner'), M / (w + 2 * M), M / (h + 2 * M), w / (w + 2 * M), h / (h + 2 * M));

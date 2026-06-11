@@ -22,6 +22,7 @@ impl Sim {
             return;
         }
         // Enemy unit summaries for geometry checks (cheap; 40 units).
+        // (center, team, alive, routing, speed, mass)
         let summaries: Vec<(Vec2, u32, usize, bool, f32, f32)> = self
             .units
             .iter()
@@ -30,7 +31,7 @@ impl Sim {
                     u.center(),
                     u.team,
                     u.alive_count,
-                    u.charging,
+                    u.routing,
                     u.speed,
                     crate::class::class_stats(u.class).mass,
                 )
@@ -75,12 +76,22 @@ impl Sim {
             let mut rout_contagion = 0.0f32;
             // Steady friends nearby brace the will.
             let mut steady_friends = 0.0f32;
-            for (vi, &(c, team, alive_v, charging, speed, mass)) in summaries.iter().enumerate() {
+            // The sight of enemy BACKS: a routing enemy emits nothing to
+            // fear — it emits relief. This is what breaks the mutual-rout
+            // race: the side that holds one beat longer gets paid for it.
+            let mut enemy_backs = 0.0f32;
+            for (vi, &(c, team, alive_v, v_routing, speed, mass)) in summaries.iter().enumerate() {
                 if vi == ui || alive_v == 0 {
                     continue;
                 }
                 let d = (c - my_center).len();
                 if team != my_team {
+                    if v_routing {
+                        if d < 90.0 {
+                            enemy_backs += 1.0 - d / 90.0;
+                        }
+                        continue; // a broken enemy frightens nobody
+                    }
                     if d < 70.0 {
                         // Mass x closing speed, scaled by proximity: a wall
                         // of horse at the gallop is terrifying whatever its
@@ -88,13 +99,12 @@ impl Sim {
                         let closing = ((my_center - c) * (1.0 / d.max(0.1))).dot(dir(
                             self.units[vi].facing,
                         )) * speed;
-                        let _ = charging;
                         if closing > 3.5 {
                             intimidation += mass * closing * (1.0 - d / 70.0) * 0.01;
                         }
                     }
                 } else if d < 80.0 {
-                    if self.units[vi].routing {
+                    if v_routing {
                         rout_contagion += 1.0 - d / 80.0;
                     } else if alive_v > 50 {
                         steady_friends += 1.0 - d / 80.0;
@@ -116,10 +126,11 @@ impl Sim {
                 + 0.05 * rout_contagion)
                 * amp;
 
-            // Recovery: quiet, distant from threats, among steady friends.
+            // Recovery: quiet, distant from FIGHTING threats (a fleeing
+            // enemy nearby is no threat at all), among steady friends.
             let nearest_enemy = summaries
                 .iter()
-                .filter(|s| s.1 != my_team && s.2 > 0)
+                .filter(|s| s.1 != my_team && s.2 > 0 && !s.3)
                 .map(|s| (s.0 - my_center).len())
                 .fold(f32::MAX, f32::min);
             let quiet = u.engaged == 0 && u.recent_casualties < 0.5 && nearest_enemy > 60.0;
@@ -127,7 +138,10 @@ impl Sim {
                 (0.012 + 0.004 * steady_friends) * (0.5 + 0.5 * u.training)
             } else {
                 0.0
-            };
+            }
+            // Watching the enemy break is worth more than any rest: it
+            // counters the casualty tail of the fight just won.
+            + 0.05 * enemy_backs;
 
             let u = &mut self.units[ui];
             u.morale = (u.morale - drain * dt + recover * dt).clamp(0.0, u.morale_ceiling);

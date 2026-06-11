@@ -1048,9 +1048,30 @@ impl Sim {
             // muscle reaches the contact line.
             let ranks = (self.units[ui].alive_count / self.units[ui].files_eff.max(1)).min(12) as f32;
             let lean = if press_intent { 0.035 * ranks } else { 0.0 };
+            // The lean presses along the ORDER (toward the latched enemy or
+            // the clicked point) — a surrounded unit bores toward its click,
+            // not wherever its frame happens to face.
+            let lean_dir = {
+                let u = &self.units[ui];
+                // Attacks press along the facing (contact facing already
+                // tracks the threat); a MOVE-press leans toward the click —
+                // the case where facing and intent can genuinely diverge
+                // (the surrounded breakout).
+                let goal = match u.mode {
+                    OrderMode::Attack(_) => None,
+                    _ => u.move_target,
+                };
+                match goal {
+                    Some(g) if (g - u.anchor).len() > 3.0 => {
+                        let v = g - u.anchor;
+                        v * (1.0 / v.len())
+                    }
+                    _ => dir(u.facing),
+                }
+            };
             let u = &mut self.units[ui];
             let f = dir(u.facing);
-            u.anchor = u.anchor + f * ((drift + lean) * dt);
+            u.anchor = u.anchor + f * (drift * dt) + lean_dir * (lean * dt);
             u.speed = 0.0;
 
             // --- contact facing: masked circular mean ----------------------
@@ -1077,8 +1098,25 @@ impl Sim {
             // Rotate only on a DECISIVE contact direction. Near-opposite
             // attacks cancel in the mean — then the frame holds still and the
             // per-soldier reactive facing splits the men both ways (the spec).
-            if weight > 4.0 && sum.len() > 0.45 * weight {
-                let desired = sum.y.atan2(sum.x);
+            let decisive = weight > 4.0 && sum.len() > 0.45 * weight;
+            let desired = if decisive {
+                Some(sum.y.atan2(sum.x))
+            } else if weight > 4.0 {
+                // Indecisive contact (surrounded: bearings cancel) — the
+                // player's live order breaks the tie, so a breakout faces
+                // its click and the press bores that way.
+                let u = &self.units[ui];
+                match (u.mode, u.move_target) {
+                    (OrderMode::Move, Some(t)) if (t - u.anchor).len() > 4.0 => {
+                        let v = t - u.anchor;
+                        Some(v.y.atan2(v.x))
+                    }
+                    _ => None,
+                }
+            } else {
+                None
+            };
+            if let Some(desired) = desired {
                 let u = &mut self.units[ui];
                 let diff = wrap_angle(desired - u.facing);
                 if diff.abs() > 0.35 {

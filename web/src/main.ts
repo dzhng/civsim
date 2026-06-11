@@ -1,6 +1,6 @@
 import init, { Game } from './wasm/sim_wasm.js';
 import { Camera } from './camera';
-import { CLASS_NAMES, Renderer } from './renderer';
+import { CLASS_NAMES, Renderer, WILDS_MARGIN } from './renderer';
 import { Input } from './input';
 import { MANUAL_HTML } from './manual';
 import { groupMoveDests, UnitSnap } from './orders';
@@ -42,9 +42,14 @@ const camera = new Camera(canvas);
 // Open looking at your own line from behind (player south, enemy north) —
 // framed to the actual map, so the sandboxes open snugly.
 {
+  const mapW = game.terrain_w() * game.terrain_cell();
   const mapH = game.terrain_h() * game.terrain_cell();
+  const ox = game.terrain_origin_x();
+  const oy = game.terrain_origin_y();
+  camera.bounds = [ox - WILDS_MARGIN, oy - WILDS_MARGIN, ox + mapW + WILDS_MARGIN, oy + mapH + WILDS_MARGIN];
   camera.y = -0.27 * mapH;
   camera.zoom = (canvas.clientHeight * (window.devicePixelRatio || 1)) / Math.min(mapH * 0.62, 1000);
+  camera.clampView();
 }
 
 const STRIDE = game.unit_info_stride();
@@ -673,6 +678,7 @@ function frame(now: number) {
 
   camera.x += input.panX * frameDt;
   camera.y += input.panY * frameDt;
+  camera.clampView();
 
   accumulator += paused ? 0 : frameDt * timeScale;
   let ticks = 0;

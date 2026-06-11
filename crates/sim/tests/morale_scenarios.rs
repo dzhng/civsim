@@ -182,3 +182,41 @@ fn anchor_never_outruns_a_jammed_column() {
         "the officer stays with his men: worst lag {worst_lag:.1} m (depth {depth:.1})"
     );
 }
+
+#[test]
+fn enemy_rout_relieves_the_victor_no_mutual_collapse() {
+    // A grinding, NEARLY even fight: without relief both sides cross the
+    // break threshold within seconds of each other (the casualty tail keeps
+    // draining after the enemy breaks). The sight of enemy backs must pay
+    // the side that held one beat longer.
+    let mut sim = Sim::new(Tunables::default(), SEED);
+    let a = sim.spawn_class(Vec2::new(0.0, 10.0), -FRAC_PI_2, 300, UnitClassId::HeavyInfantry, 0);
+    let b = sim.spawn_class(Vec2::new(0.0, -14.0), FRAC_PI_2, 330, UnitClassId::HeavyInfantry, 1);
+    sim.set_attack_order(a, b);
+    sim.set_attack_order(b, a);
+    let mut first_break: Option<usize> = None;
+    let mut morale_at_break = 0.0;
+    for _ in 0..(420.0 / DT) as usize {
+        sim.tick();
+        if first_break.is_none() {
+            if sim.units[a].routing {
+                first_break = Some(a);
+                morale_at_break = sim.units[b].morale;
+            } else if sim.units[b].routing {
+                first_break = Some(b);
+                morale_at_break = sim.units[a].morale;
+            }
+        }
+    }
+    let loser = first_break.expect("a near-even grind must eventually break someone");
+    let winner = if loser == a { b } else { a };
+    assert!(
+        !sim.units[winner].routing,
+        "the side that held must NOT follow its enemy into rout (mutual collapse)"
+    );
+    assert!(
+        sim.units[winner].morale > morale_at_break + 0.05,
+        "the sight of enemy backs must rally the victor: {} from {morale_at_break} at the break",
+        sim.units[winner].morale
+    );
+}

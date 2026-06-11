@@ -916,6 +916,8 @@ window.__game = {
     tickGroupAttacks();
   },
   groupMove: (units: number[], x: number, y: number) => groupMove(units, x, y, 'move'),
+  setFiles: (u: number, files: number) => game.set_files(u, files),
+  setCharge: (u: number, on: number) => game.set_charge_enabled(u, on),
   groupAttack: (units: number[], target: number) => {
     groupAttacks.push({ units, target, lastTx: 1e9, lastTy: 1e9 });
     tickGroupAttacks();

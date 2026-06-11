@@ -20,10 +20,64 @@ pub fn tick(map: &WorldMap, st: &mut CampaignState) {
     }
     movement(map, st);
     crate::economy::garrison_sorties(map, st);
+    ambush_triggers(map, st);
     encounters(map, st);
     crate::economy::garrison_returns(map, st);
     crate::economy::occupations(map, st);
     timers(st);
+    if st.tick % crate::visibility::VIS_EVERY == 0 {
+        crate::visibility::recompute(map, st);
+    }
+    if st.tick % 60 == 0 {
+        crate::ai::commanders(map, st);
+    }
+}
+
+/// A settled ambusher springs on the first hostile that enters its trigger
+/// tile: the victim is locked mid-march (column, long prep), the ambusher is
+/// already formed (zero prep). Expressed entirely through the ordinary
+/// encounter, flagged ambush.
+fn ambush_triggers(map: &WorldMap, st: &mut CampaignState) {
+    let n = st.armies.len();
+    for i in 0..n {
+        let Stance::Ambush { spot, settle_ticks_left: 0 } = st.armies[i].stance else { continue };
+        if st.armies[i].encounter.is_some() || !st.armies[i].alive() {
+            continue;
+        }
+        let sp = &map.ambush_spots[spot as usize];
+        let trigger = Loc::Edge { edge: sp.edge, tile: sp.tile };
+        let victim = (0..n).find(|&j| {
+            let v = &st.armies[j];
+            v.alive()
+                && v.faction != st.armies[i].faction
+                && v.encounter.is_none()
+                && v.loc == trigger
+                && !matches!(v.stance, Stance::Routed { .. } | Stance::AtSea)
+        });
+        let Some(j) = victim else { continue };
+        let id = st.next_encounter_id;
+        let seed = ((st.rng.next_u32() as u64) << 32) | st.rng.next_u32() as u64;
+        st.encounters.push(Encounter {
+            id,
+            attacker: st.armies[j].id, // the victim walked into it
+            defender: st.armies[i].id, // the ambusher holds the ground
+            prep_attacker: tun::PREP_SURPRISED_TICKS,
+            prep_defender: 0,
+            phase: EncounterPhase::Preparing,
+            ambush: true,
+            seed,
+            reinforcements: Vec::new(),
+            no_retreat: [false, false],
+        });
+        st.next_encounter_id += 1;
+        st.armies[i].encounter = Some(id);
+        st.armies[j].encounter = Some(id);
+        // Sprung: the ambusher is revealed and the victim is pinned.
+        let v = &mut st.armies[j];
+        v.path.clear();
+        v.path_idx = 0;
+        v.progress = 0.0;
+    }
 }
 
 /// Base pace, before the prep slowdown — used both for movement and for the
@@ -95,14 +149,19 @@ fn movement(map: &WorldMap, st: &mut CampaignState) {
     let halted: Vec<(Loc, ArmyId, FactionId)> = st
         .armies
         .iter()
-        .filter(|a| a.alive() && a.halted())
+        .filter(|a| a.alive() && a.halted() && !matches!(a.stance, Stance::Ambush { .. }))
         .map(|a| (a.loc, a.id, a.faction))
         .collect();
     let standing = |loc: Loc| halted.iter().find(|(l, ..)| *l == loc);
 
-    // Positions of every live army (hostiles block transit too, halted or not).
-    let positions: Vec<(Loc, ArmyId, FactionId)> =
-        st.armies.iter().filter(|a| a.alive()).map(|a| (a.loc, a.id, a.faction)).collect();
+    // Positions of every live army (hostiles block transit too, halted or
+    // not) — except hidden ambushers, who are off the road entirely.
+    let positions: Vec<(Loc, ArmyId, FactionId)> = st
+        .armies
+        .iter()
+        .filter(|a| a.alive() && !matches!(a.stance, Stance::Ambush { .. }))
+        .map(|a| (a.loc, a.id, a.faction))
+        .collect();
 
     for i in 0..st.armies.len() {
         let a = &st.armies[i];
@@ -183,6 +242,16 @@ fn encounters(map: &WorldMap, st: &mut CampaignState) {
             dissolved.push(e.id);
             continue;
         }
+        // Ambushes are sprung at point blank: nobody walks away during prep.
+        if e.ambush {
+            e.prep_attacker = e.prep_attacker.saturating_sub(1);
+            e.prep_defender = e.prep_defender.saturating_sub(1);
+            if e.prep_attacker == 0 && e.prep_defender == 0 {
+                e.phase = EncounterPhase::Pending;
+                st.battle_ready = Some(e.id);
+            }
+            continue;
+        }
         // Sustain range is one tile slacker than initiation: discrete steps
         // make an equal-speed chase oscillate between distance 1 and 2.
         if !pathfind::dist_le(map, la, ld, 2)
@@ -240,9 +309,9 @@ fn encounters(map: &WorldMap, st: &mut CampaignState) {
             {
                 continue;
             }
-            // Routed and embarked armies are intangible.
-            if matches!(a.stance, Stance::Routed { .. } | Stance::AtSea)
-                || matches!(b.stance, Stance::Routed { .. } | Stance::AtSea)
+            // Routed, embarked, and hidden armies are intangible.
+            if matches!(a.stance, Stance::Routed { .. } | Stance::AtSea | Stance::Ambush { .. })
+                || matches!(b.stance, Stance::Routed { .. } | Stance::AtSea | Stance::Ambush { .. })
                 || is_sea_tile(map, a.loc)
                 || is_sea_tile(map, b.loc)
             {
@@ -283,6 +352,11 @@ fn timers(st: &mut CampaignState) {
     for a in &mut st.armies {
         if a.embark_ticks_left > 0 {
             a.embark_ticks_left -= 1;
+        }
+        if let Stance::Ambush { settle_ticks_left, .. } = &mut a.stance {
+            if *settle_ticks_left > 0 {
+                *settle_ticks_left -= 1;
+            }
         }
         // Routs: once the retreat path is run, the army regroups after a
         // dazed day; annihilation was decided when the path was drawn.
@@ -352,5 +426,34 @@ pub fn new_state(map: &WorldMap, seed: u64, player_faction: u32) -> CampaignStat
         next_encounter_id: 0,
         battle_ready: None,
         no_rematch: std::collections::BTreeMap::new(),
+        visible: Vec::new(),
     }
+}
+
+/// Plan and set a path (shared by the player order surface and the AI).
+pub(crate) fn try_move(map: &WorldMap, st: &mut CampaignState, army: ArmyId, dest: Loc, allow_sea: bool) -> bool {
+    let Some(a) = st.armies.get(army as usize) else { return false };
+    if !a.alive()
+        || a.garrison_of.is_some()
+        || matches!(a.stance, Stance::Routed { .. } | Stance::Occupying { .. })
+    {
+        return false;
+    }
+    if let Some(eid) = a.encounter {
+        let prep = st.encounters.iter().any(|e| {
+            e.id == eid && e.phase == EncounterPhase::Preparing && !e.ambush
+        });
+        if !prep {
+            return false; // frozen: ambushed, pending, or fighting
+        }
+    }
+    let Some(path) = crate::pathfind::plan(map, a.loc, dest, allow_sea) else { return false };
+    let a = &mut st.armies[army as usize];
+    a.path = path;
+    a.path_idx = 0;
+    a.progress = 0.0;
+    if matches!(a.stance, Stance::Hold | Stance::Ambush { .. } | Stance::Camp { .. }) {
+        a.stance = Stance::March;
+    }
+    true
 }

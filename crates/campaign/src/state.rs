@@ -151,4 +151,7 @@ pub struct CampaignState {
     /// Pairs that just resolved an escape: no re-engagement until the tick
     /// expires (key is (lower id, higher id)).
     pub no_rematch: BTreeMap<(ArmyId, ArmyId), u64>,
+    /// Per-faction sets of armies it can currently see (fog of war).
+    #[serde(default)]
+    pub visible: Vec<std::collections::BTreeSet<ArmyId>>,
 }

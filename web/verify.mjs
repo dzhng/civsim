@@ -167,7 +167,10 @@ const red = await page.evaluate(() => window.__game.unitInfo(4));
 const blue = await page.evaluate(() => window.__game.unitInfo(24));
 const redLosses = red[7] - red[15];
 const blueLosses = blue[7] - blue[15];
-check('melee inflicts casualties', redLosses + blueLosses > 30,
+// (The old >30 bar was calibrated to the charge-exit bug: pinned-charging
+// lines zippered into a blob and slaughtered each other. Fronts + morale
+// resolve the fight after single-digit losses — corpses, not carnage.)
+check('melee inflicts casualties', redLosses + blueLosses > 3,
   `losses red ${redLosses} / blue ${blueLosses}`);
 // (Until morale lands, to-the-death is the artificial endpoint; this guards
 // against instant one-sided deletion only.)

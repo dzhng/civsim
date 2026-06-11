@@ -26,17 +26,7 @@ impl Sim {
         let tun = self.tun;
 
         // --- per-unit brace factor; per-soldier effective mass -------------
-        let brace: Vec<f32> = self
-            .units
-            .iter()
-            .map(|u| {
-                if u.speed < 0.3 && !u.pivoting {
-                    crate::class::class_stats(u.class).brace_mult
-                } else {
-                    1.0
-                }
-            })
-            .collect();
+        let brace: Vec<f32> = self.units.iter().map(|u| u.brace()).collect();
 
         // --- build bodies ----------------------------------------------------
         self.body_pos.clear();

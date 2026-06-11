@@ -208,6 +208,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             ..foot
         },
         Archers => UnitClass {
+            brace_mult: 1.0, // missile foot don't fight as a planted wall
             speed_mult: 1.05,
             soldier_radius: 0.32,
             mass: 0.9,
@@ -222,6 +223,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             ..foot
         },
         Skirmishers => UnitClass {
+            brace_mult: 1.0,
             speed_mult: 1.2,
             soldier_radius: 0.31,
             mass: 0.85,
@@ -272,6 +274,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             ..foot
         },
         ArtilleryCrew => UnitClass {
+            brace_mult: 1.0,
             speed_mult: 0.9,
             soldier_radius: 0.32,
             mass: 0.9,

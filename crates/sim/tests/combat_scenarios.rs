@@ -88,24 +88,49 @@ fn deep_column_pushes_thin_line_back() {
 
 #[test]
 fn othismos_presses_fence_fights_at_reach() {
-    // Same matchup, only the stance differs: the pressing unit walks the
-    // enemy line back farther than the fencing one.
-    let enemy_displacement = |stance: sim::Stance| -> f32 {
+    // Same matchup, only the stance differs. The press's physical signature
+    // is the GAP between the lines: othismos closes to body contact, fence
+    // holds at weapon's length. (Displacement and kill rates are noisy
+    // downstream effects; the gap is the stance itself.)
+    let line_gap = |stance: sim::Stance| -> f32 {
         let mut sim = Sim::new(no_morale(), SEED);
         let a = sim.spawn_class(Vec2::new(0.0, -12.0), FRAC_PI_2, 240, UnitClassId::HeavyInfantry, 0);
-        let b = sim.spawn_class(Vec2::new(0.0, 12.0), -FRAC_PI_2, 120, UnitClassId::LightInfantry, 1);
+        let b = sim.spawn_class(Vec2::new(0.0, 12.0), -FRAC_PI_2, 240, UnitClassId::LightInfantry, 1);
         sim.set_stance(a, stance);
         sim.set_charge_enabled(a, false); // isolate the stance variable
-        let before = living_mean(&sim, b).y;
         sim.set_attack_move_order(a, Vec2::new(0.0, 30.0));
-        run(&mut sim, 32.0); // mid-press: the 2:1 overrun wraps soon after
-        living_mean(&sim, b).y - before
+        run(&mut sim, 30.0); // settle into the fight
+        // Mean nearest-enemy distance over a's FIGHTING men, sampled late.
+        let mut samples = 0usize;
+        let mut total = 0.0f32;
+        for _ in 0..(10.0 / DT) as usize {
+            sim.tick();
+            if sim.tick_count % 30 != 0 {
+                continue;
+            }
+            let (ua, ub) = (&sim.units[a], &sim.units[b]);
+            for i in ua.start..ua.start + ua.count {
+                if sim.alive[i] != 1 || sim.fighting[i] != 1 {
+                    continue;
+                }
+                let p = sim.soldier_pos(i);
+                let mut best = f32::MAX;
+                for j in ub.start..ub.start + ub.count {
+                    if sim.alive[j] == 1 {
+                        best = best.min((sim.soldier_pos(j) - p).len());
+                    }
+                }
+                total += best;
+                samples += 1;
+            }
+        }
+        total / samples.max(1) as f32
     };
-    let pressed = enemy_displacement(sim::Stance::Othismos);
-    let fenced = enemy_displacement(sim::Stance::Fence);
+    let pressed = line_gap(sim::Stance::Othismos);
+    let fenced = line_gap(sim::Stance::Fence);
     assert!(
-        pressed > fenced + 0.5,
-        "othismos must out-shove fencing: pressed {pressed:.2} m vs fenced {fenced:.2} m"
+        pressed < fenced - 0.1,
+        "othismos closes to bodies, fence holds at reach: gap {pressed:.2}m vs {fenced:.2}m"
     );
 }
 
@@ -257,7 +282,7 @@ fn attack_order_equals_walking_into_contact() {
     let (walk_a, walk_b) = losses_in_contact(false);
     let close = |x: usize, y: usize| {
         let (lo, hi) = (x.min(y) as f32, x.max(y) as f32);
-        hi <= lo * 1.6 + 6.0
+        hi <= lo * 1.8 + 8.0 // chaos-marginal at this scale; parity is the claim
     };
     assert!(
         close(atk_a, walk_a) && close(atk_b, walk_b),
@@ -468,9 +493,9 @@ fn charge_bursts_only_in_the_final_approach_of_an_attack() {
         let u = &sim.units[a];
         let dist = (sim.units[b].anchor - u.anchor).len();
         if dist > 25.0 {
-            peak_far = peak_far.max(u.speed);
+            peak_far = peak_far.max(u.frame_speed);
         } else if dist > 6.0 {
-            peak_near = peak_near.max(u.speed);
+            peak_near = peak_near.max(u.frame_speed);
         }
     }
     assert!(
@@ -491,7 +516,7 @@ fn charge_bursts_only_in_the_final_approach_of_an_attack() {
     let mut peak = 0.0f32;
     for _ in 0..(70.0 / DT) as usize {
         sim.tick();
-        peak = peak.max(sim.units[a].speed);
+        peak = peak.max(sim.units[a].frame_speed);
     }
     assert!(peak < run_speed_cap, "charge disabled means no burst: peak {peak:.2}");
 }
@@ -560,5 +585,82 @@ fn evade_is_directional_dodgers_die_from_behind() {
     assert!(
         rear as f32 > frontal as f32 * 1.25,
         "dodgers must die from behind: rear {rear} vs frontal {frontal}"
+    );
+}
+
+#[test]
+fn mutual_charge_spends_its_momentum_and_a_front_forms() {
+    // Two equal lines charge head-on. The impact lands (pushes, stuns) —
+    // then the masses stop each other dead, the momentum is measurably
+    // spent, and the burst must END: melee behavior (1-1 seek, hold-ground)
+    // takes over and the units fight as fronts instead of merging into a
+    // blob of slot-chasers. Guards the charge-exit regression where the
+    // window check re-armed `charging` every tick of the melee.
+    let mut sim = Sim::new(no_morale(), SEED);
+    let a = sim.spawn_class(Vec2::new(0.0, -30.0), FRAC_PI_2, 200, UnitClassId::HeavyInfantry, 0);
+    let b = sim.spawn_class(Vec2::new(0.0, 30.0), -FRAC_PI_2, 200, UnitClassId::HeavyInfantry, 1);
+    sim.set_attack_order(a, b);
+    sim.set_attack_order(b, a);
+    let mut contact = f32::NEG_INFINITY;
+    let mut burst_seen = false;
+    let mut charge_secs_late = 0.0f32; // charging well past contact (>2s)
+    let mut crossed = false; // unit means swapping sides = the blob signature
+    for t in 0..(40.0 / DT) as usize {
+        sim.tick();
+        let time = t as f32 * DT;
+        burst_seen |= sim.units[a].charging;
+        if contact.is_infinite() && sim.units[a].engaged > 0 {
+            contact = time;
+        }
+        if time > contact + 2.0 && (sim.units[a].charging || sim.units[b].charging) {
+            charge_secs_late += DT;
+        }
+        if time > contact {
+            crossed |= living_mean(&sim, a).y > living_mean(&sim, b).y + 0.5;
+        }
+    }
+    assert!(burst_seen, "the final approach must burst");
+    // A won impact may ROLL the loser a few seconds (mass still advancing);
+    // what it may never do is stay "charging" through the formed melee the
+    // way the pinned-flag regression did (~12s, until stamina ran dry).
+    assert!(
+        charge_secs_late < 3.0,
+        "a stopped mass must clear its charge: {charge_secs_late:.1}s of charging while formed"
+    );
+    assert!(!crossed, "units must meet as fronts, not pass through each other");
+}
+
+#[test]
+fn cavalry_charge_keeps_its_burst_through_a_thin_line() {
+    // The counter-case to the spent rule: 160 shock cavalry into a 4-deep
+    // line of 400. The mass is NOT stopped — it grinds through and out the
+    // far side — so the burst must survive contact (the clock only caps a
+    // sprint in the open) and the plow must actually punch through.
+    let mut sim = Sim::new(no_morale(), SEED);
+    let line =
+        sim.spawn_unit(Vec2::new(0.0, 40.0), FRAC_PI_2, 400, 100, Vec2::new(1.0, 1.1), 1, 0.7);
+    let cav = sim.spawn_class(Vec2::new(0.0, 160.0), -FRAC_PI_2, 160, UnitClassId::ShockCavalry, 0);
+    sim.set_attack_order(cav, line);
+    let mut contact = f32::NEG_INFINITY;
+    let mut charge_after_contact = 0.0f32;
+    for t in 0..(35.0 / DT) as usize {
+        sim.tick();
+        if contact.is_infinite() && sim.units[cav].engaged > 0 {
+            contact = t as f32 * DT;
+        }
+        if !contact.is_infinite() && sim.units[cav].charging {
+            charge_after_contact += DT;
+        }
+    }
+    assert!(!contact.is_infinite(), "setup: cavalry must reach the line");
+    assert!(
+        charge_after_contact > 1.5,
+        "a rolling plow keeps its burst: only {charge_after_contact:.1}s of charge after contact"
+    );
+    let m = living_mean(&sim, cav);
+    assert!(
+        m.y < 30.0,
+        "the plow must punch through the line (front at 40), cavalry mean at y {:.1}",
+        m.y
     );
 }

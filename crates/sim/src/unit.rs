@@ -54,7 +54,11 @@ pub struct Unit {
     /// Front-center of the formation; slots extend behind it.
     pub anchor: Vec2,
     pub facing: f32,
-    pub speed: f32,
+    /// Measured gross motion of the formation FRAME (anchor displacement in
+    /// the movement pass, m/s). Honest in the open; blind to the anchor
+    /// law's leash pullback, so in a stalled press it reads ~commanded pace
+    /// while the men go nowhere — read `mass_advance` for that question.
+    pub frame_speed: f32,
     pub move_target: Option<Vec2>,
     /// Order awaiting transmission: a disordered unit takes time to respond.
     /// (cohesion-gated; the pie timer in the UI reads these.)
@@ -85,6 +89,11 @@ pub struct Unit {
     /// Seconds this burst has been running: a charge is a SPRINT, not a
     /// gait — it ends when the mass lands or the legs give out (~2x window).
     pub charge_time: f32,
+    /// The burst has reached impact speed (mass_advance ≥ charge_min_speed),
+    /// contact or not. Arms the spent check: from here, the mass falling
+    /// back below charge_spent_speed means the crowd has bled the momentum
+    /// dry — the physical end of the charge.
+    pub charge_at_speed: bool,
     /// Path stashed by the engagement reflex, resumed when contact ends.
     pub resume_target: Option<Vec2>,
     /// Living soldiers (formation shrinks as men fall).
@@ -122,6 +131,12 @@ pub struct Unit {
     pub losing_push: f32,
     /// Mean position of living soldiers (kept fresh; the rout frame).
     pub centroid: Vec2,
+    /// EMA of the MEN's forward motion (center-of-mass displacement along
+    /// facing, m/s; negative = driven back). Downstream of every physical
+    /// fact — collisions, stuns, deadlock — so unlike `frame_speed` it
+    /// cannot re-walk a leash: if the mass stopped, this reads ~0. The
+    /// charge exit reads this: momentum is what the mass actually did.
+    pub mass_advance: f32,
     /// Final facing to pivot to on arrival (line-painting orders).
     pub final_facing: Option<f32>,
     /// Reform order: accelerated re-seating for this many seconds.
@@ -175,6 +190,19 @@ pub(crate) fn slot_local(slot: usize, files: usize, spacing: Vec2) -> Vec2 {
 }
 
 impl Unit {
+    /// Planted feet couple a man to the ground: a halted formation fights
+    /// with brace-multiplied effective mass. CONTINUOUS in frame speed —
+    /// resistance fades as the formation gets moving, no cliff at a
+    /// threshold. Pivoting men are mid-step: no plant.
+    pub fn brace(&self) -> f32 {
+        let mult = crate::class::class_stats(self.class).brace_mult;
+        if self.pivoting {
+            return 1.0;
+        }
+        let planted = (1.0 - self.frame_speed / 0.6).clamp(0.0, 1.0);
+        1.0 + (mult - 1.0) * planted
+    }
+
     pub fn width(&self) -> f32 {
         (self.files_eff.max(1) - 1) as f32 * self.spacing.x
     }

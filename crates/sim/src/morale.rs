@@ -21,6 +21,12 @@ impl Sim {
         if !self.tun.morale_enabled {
             return;
         }
+        // The verdict is FINAL: once one army is finished, morale freezes —
+        // the routed stay routed (no rallies), the standing never break.
+        // The sim keeps running so the pursuit plays out as bodies.
+        if self.victor().is_some() {
+            return;
+        }
         // Enemy unit summaries for geometry checks (cheap; 40 units).
         // (center, team, alive, routing, speed, mass)
         let summaries: Vec<(Vec2, u32, usize, bool, f32, f32)> = self
@@ -32,7 +38,7 @@ impl Sim {
                     u.team,
                     u.alive_count,
                     u.routing,
-                    u.speed,
+                    u.frame_speed,
                     crate::class::class_stats(u.class).mass,
                 )
             })

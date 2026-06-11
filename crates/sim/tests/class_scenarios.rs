@@ -253,7 +253,7 @@ fn heavy_infantry_charge_carries_a_stride_not_a_gallop() {
             if contact_speed < 0.0 && sim.units[atk].engaged > 5 {
                 contact_speed = prev_speed; // the tick BEFORE the pin
             }
-            prev_speed = sim.units[atk].speed;
+            prev_speed = sim.units[atk].frame_speed;
         }
         contact_speed.max(0.0)
     };

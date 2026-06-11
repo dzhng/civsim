@@ -338,7 +338,7 @@ impl Game {
                 u.anchor.x,
                 u.anchor.y,
                 u.facing,
-                u.speed,
+                u.frame_speed,
                 u.cohesion,
                 u.disorder,
                 u.team as f32,

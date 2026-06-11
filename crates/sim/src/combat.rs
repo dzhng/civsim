@@ -238,12 +238,7 @@ impl Sim {
 
             // --- resolve the swing against everyone in the effective arc ----
             let facing = self.facings[i];
-            let m_a = self.mass[i]
-                * if self.units[ui].speed < 0.3 && !self.units[ui].pivoting {
-                    stats.brace_mult
-                } else {
-                    1.0
-                };
+            let m_a = self.mass[i] * self.units[ui].brace();
             let mut struck = 0usize;
             for k in 0..cand_len {
                 if struck >= MAX_VICTIMS {
@@ -336,12 +331,7 @@ impl Sim {
 
         // Push: momentum through the weapon — a braced thruster hurls an
         // unbraced man back bodily; equal masses just rock each other.
-        let m_v = self.mass[victim]
-            * if self.units[uv].speed < 0.3 && !self.units[uv].pivoting {
-                vstats.brace_mult
-            } else {
-                1.0
-            };
+        let m_v = self.mass[victim] * self.units[uv].brace();
         let push = tun.hit_push * (m_attacker / m_v).clamp(0.3, 3.5);
         let d = dir(bearing);
         let np = Vec2::new(

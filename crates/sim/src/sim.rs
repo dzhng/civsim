@@ -175,7 +175,7 @@ impl Sim {
             spacing,
             anchor,
             facing,
-            speed: 0.0,
+            frame_speed: 0.0,
             move_target: None,
             pending_target: None,
             pending_mode: OrderMode::Move,
@@ -193,6 +193,7 @@ impl Sim {
             charge_enabled: false,
             charging: false,
             charge_time: 0.0,
+            charge_at_speed: false,
             resume_target: None,
             alive_count: count,
             deaths_since_reform: 0,
@@ -210,6 +211,7 @@ impl Sim {
             recent_missiles: 0.0,
             losing_push: 0.0,
             centroid: anchor,
+            mass_advance: 0.0,
             final_facing: None,
             reform_timer: 0.0,
             pursue: false,
@@ -494,11 +496,13 @@ impl Sim {
             let ground = self.terrain.speed_at(u.anchor).max(0.15);
             let a0 = u.anchor;
             update_unit_motion(&tun, u, dt, ground);
-            // u.speed is a MEASUREMENT of the frame's true motion (the
-            // anchor law below may pin it against the men): bracing,
-            // charge windows, and mobile-fire gates all read reality.
+            // frame_speed MEASURES the frame's gross motion in this pass —
+            // bracing, charge windows, and mobile-fire gates read it. One
+            // blind spot: it is taken before the anchor law runs, so a
+            // leashed frame re-walking the same meter every tick still
+            // reads ~pace; mass_advance is the measurement that can't.
             if !u.pivoting {
-                u.speed = (u.anchor - a0).len() / dt;
+                u.frame_speed = (u.anchor - a0).len() / dt;
             }
         }
 
@@ -678,7 +682,7 @@ impl Sim {
                     ahead > 0.0
                         && ahead < 10.0 + 0.5 * v.depth()
                         && lateral < (half_w + 0.5 * v.width()) * 0.75
-                        && v.speed < u.speed.max(0.6)
+                        && v.frame_speed < u.frame_speed.max(0.6)
                 })
             }
         };
@@ -764,12 +768,18 @@ impl Sim {
             self.units[ui].charging = false;
             if was_charging {
                 self.units[ui].charge_time += dt;
+                // The burst LANDS when the mass reaches impact speed; armed,
+                // the spent check below watches for the crowd to bleed it.
+                if self.units[ui].mass_advance >= self.tun.charge_min_speed {
+                    self.units[ui].charge_at_speed = true;
+                }
             } else {
                 // A burst is a sprint, and sprints need recovery: the clock
                 // drains at quarter rate, so a spent burst can't chain into
                 // the next one (nobody gallops in indefinite 4s installments).
                 let ct = &mut self.units[ui].charge_time;
                 *ct = (*ct - 0.25 * dt).max(0.0);
+                self.units[ui].charge_at_speed = false;
             }
             if let OrderMode::Attack(e) = mode {
                 let e = e as usize;
@@ -819,15 +829,20 @@ impl Sim {
                 }
                 // The charge survives FIRST CONTACT: weapons come in reach
                 // ~1.5m before bodies meet, and clearing the burst there
-                // would deliver the impact at a crawl. It ends when a third
-                // of the unit is fighting — the mass has landed.
-                if was_charging
-                    && engaged_frac < 0.35
+                // would deliver the impact at a crawl. It ends when the
+                // momentum is SPENT — once the burst has reached impact
+                // speed, the mass's measured speed falling back below the
+                // spent threshold means the crowd has bled it dry (a mutual
+                // infantry impact dies in a stride; a plow through a thin
+                // line keeps rolling). The clock only caps a sprint in the
+                // OPEN (a whiffed burst gives up); once the burst is in the
+                // enemy, the crowd decides — stopped or carried through.
+                let spent = u.charge_at_speed && u.mass_advance < self.tun.charge_spent_speed;
+                let sustained = was_charging
+                    && !spent
                     && u.charge_enabled
-                    && u.charge_time < self.tun.charge_window * 2.0
-                {
-                    u.charging = true; // the burst runs to contact or the clock
-                }
+                    && (u.engaged > 0 || u.charge_time < self.tun.charge_window * 2.0);
+                u.charging = sustained;
                 if enemy_dead || (enemy_routing && !u.pursue) {
                     // Hold ground when they break, unless told to chase.
                     u.mode = OrderMode::Move;
@@ -847,12 +862,19 @@ impl Sim {
                         // FRONT (the chase point is mass+8, and the mass sits
                         // half their depth behind the front — measuring there
                         // would start the burst after contact, i.e., never).
-                        // Spent legs cannot burst: the charge is paid in
-                        // stamina (drained while charging) and needs a real
-                        // reserve to begin.
+                        // The window can only START a burst, and only from an
+                        // unengaged approach (you can't wind up a sprint in
+                        // contact — this is what ends the charge in a formed
+                        // melee), on real legs (the charge is paid in stamina,
+                        // drained while charging), with the recovery clock at
+                        // least half drained (no flickering at the budget's
+                        // edge). Sustaining is the latch's job above.
                         let to_front = dist - 8.0 - enemy_edge_ext;
-                        u.charging = to_front < charge_sp * self.tun.charge_window
-                            && u.fatigue > 0.3;
+                        let start = engaged_frac < 0.05
+                            && to_front < charge_sp * self.tun.charge_window
+                            && u.fatigue > 0.3
+                            && u.charge_time < self.tun.charge_window;
+                        u.charging = sustained || start;
                     }
                 }
                 // Once contact begins the charge is over: the momentum has
@@ -980,6 +1002,13 @@ impl Sim {
                 };
             let holds_ground =
                 u.mode != crate::unit::OrderMode::Disengage && !u.evade_auto && !drifting_out;
+            // Othismos at the SOLDIER level: the front rank leans its body
+            // onto its man instead of standing at weapon's length. This is
+            // the source of the pressure chain — the frame slack only sets
+            // how deep the slots sit; the men are what actually push.
+            let pressing = holds_ground
+                && u.stance == crate::unit::Stance::Othismos
+                && (matches!(u.mode, crate::unit::OrderMode::Attack(_)) || u.move_target.is_some());
             let reach_u = crate::class::class_stats(u.class)
                 .weapons
                 .iter()
@@ -1071,9 +1100,17 @@ impl Sim {
                 // struck — closes to his own weapon's distance; nobody stands
                 // being poked from a hand's-breadth beyond his reach.
                 // A CHARGING unit's men do not ease into weapon range —
-                // they ride their slots into contact at full speed and the
-                // collision cashes the momentum.
-                if aware_i && holds_ground && !u.charging && (u.engaged > 0 || hit_ttl[i] > 0.0) {
+                // they ride their slots INTO contact at full speed and the
+                // collision cashes the momentum. But FOOT only rides into
+                // it: a man already at weapon's length plants and fights
+                // (his momentum is in his body now — mom_x/mom_y — not in
+                // his legs), or interleaved files zipper straight through
+                // each other and two charging lines merge instead of
+                // meeting. A horseman at speed is the opposite case: he
+                // rides over the man in his reach — the trample IS the
+                // charge.
+                let met = engaged_i && !u.is_mounted();
+                if aware_i && holds_ground && (!u.charging || met) && (u.engaged > 0 || hit_ttl[i] > 0.0) {
                     let t = target[i] as usize;
                     let tp = Vec2::new(positions[2 * t], positions[2 * t + 1]);
                     let tt = tp - p;
@@ -1103,6 +1140,12 @@ impl Sim {
                         // mom_x/mom_y — so a body that arrived at speed
                         // keeps driving until the crowd bleeds it dry.)
                         max_sp *= 0.25;
+                        if pressing {
+                            // Lean ON him: a slow sustained step into the
+                            // target's body. Separation converts it into
+                            // crowd pressure and the chain transmits it.
+                            steer_to = tt;
+                        }
                     }
                 }
 
@@ -1277,7 +1320,12 @@ impl Sim {
             self.units.iter_mut().zip(measures)
         {
             let n = alive_n.max(1) as f32;
+            let c0 = u.centroid;
             u.centroid = Vec2::new(cx / n, cy / n);
+            // Measured momentum of the MASS: centroid forward speed, smoothed
+            // over ~0.4s to ride out collision jitter and casualty shifts.
+            let v_fwd = (u.centroid - c0).dot(dir(u.facing)) / dt;
+            u.mass_advance += (v_fwd - u.mass_advance) * (1.0 - (-dt / 0.4f32).exp());
 
             // THE ANCHOR LAW: the frame always pursues the order, but it is
             // leashed to the men's measured center of mass. Out of combat
@@ -1309,7 +1357,7 @@ impl Sim {
                 // depth into press, fence holds at weapon's length.
                 let tight = if press {
                     let ranks = (u.alive_count / u.files_eff.max(1)).min(12) as f32;
-                    0.6 + 0.2 * ranks
+                    0.6 + 0.25 * ranks
                 } else {
                     0.8
                 };
@@ -1332,7 +1380,7 @@ impl Sim {
                 // The frame follows the fleeing mob (so a rally has a unit
                 // to re-form around).
                 u.anchor = u.centroid + dir(u.facing) * (0.5 * u.depth());
-                u.speed = 0.0;
+                u.frame_speed = 0.0;
             }
 
             let mean_err = err_sum / n;
@@ -1364,7 +1412,7 @@ impl Sim {
 
             let surge_frac = surging as f32 / n;
             let mut drain = tun.surge_drain * surge_frac;
-            if u.pace == Pace::Run && u.speed > tun.base_speed * 1.05 {
+            if u.pace == Pace::Run && u.frame_speed > tun.base_speed * 1.05 {
                 drain += tun.run_drain;
             }
             drain += tun.terrain_drain * (effort / n);
@@ -1372,7 +1420,7 @@ impl Sim {
             if u.charging {
                 drain += tun.charge_drain;
             }
-            if u.speed < 0.1 && u.move_target.is_none() && engaged == 0 {
+            if u.frame_speed < 0.1 && u.move_target.is_none() && engaged == 0 {
                 drain -= tun.rest_recover;
             }
             u.fatigue = (u.fatigue - drain * dt).clamp(0.0, 1.0);

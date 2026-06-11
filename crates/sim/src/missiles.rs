@@ -156,7 +156,7 @@ impl Sim {
                 continue; // swords drawn: the bows are slung
             }
             // Halted to shoot, unless shooting from the saddle.
-            if !spec.mobile_fire && u.speed > 0.3 {
+            if !spec.mobile_fire && u.frame_speed > 0.3 {
                 continue;
             }
             // Pick a target unit: nearest enemy in range that is NOT in a
@@ -227,7 +227,7 @@ impl Sim {
                 // a walking block moves meters in that time.
                 let (t_speed, t_face) = {
                     let tu = &self.units[target_unit];
-                    (tu.speed, tu.facing)
+                    (tu.frame_speed, tu.facing)
                 };
                 if t_speed > 0.2 {
                     let flight_t = (aim - p).len() / (spec.launch_speed * 0.85);

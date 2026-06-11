@@ -58,9 +58,9 @@ fn large_turns_pivot_in_place_without_smearing() {
     run(&mut sim, 4.0);
     assert!(sim.units[u].pivoting, "should pivot for a 180");
     assert!(
-        sim.units[u].speed < 0.2,
+        sim.units[u].frame_speed < 0.2,
         "should halt to pivot, speed {}",
-        sim.units[u].speed
+        sim.units[u].frame_speed
     );
     run(&mut sim, 8.0);
     let mid = mean_slot_error(&sim, u);
@@ -117,7 +117,7 @@ fn running_drains_fatigue_and_tired_units_slow_down() {
     sim.set_pace(u, Pace::Run);
     sim.set_move_order(u, Vec2::new(500.0, 0.0));
     run(&mut sim, 20.0);
-    let fresh_speed = sim.units[u].speed;
+    let fresh_speed = sim.units[u].frame_speed;
     assert!(fresh_speed > 3.0, "fresh unit should run fast, got {fresh_speed}");
     run(&mut sim, 70.0);
     let tired = &sim.units[u];
@@ -127,9 +127,9 @@ fn running_drains_fatigue_and_tired_units_slow_down() {
         tired.fatigue
     );
     assert!(
-        tired.speed < fresh_speed * 0.8,
+        tired.frame_speed < fresh_speed * 0.8,
         "spent unit should sag toward a walk: {} vs fresh {fresh_speed}",
-        tired.speed
+        tired.frame_speed
     );
 }
 

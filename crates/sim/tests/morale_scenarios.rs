@@ -101,6 +101,10 @@ fn incoming_charge_intimidates_before_contact() {
 fn routed_unit_rallies_scarred_when_left_alone() {
     let mut sim = Sim::new(Tunables::default(), SEED);
     let weak = sim.spawn_class(Vec2::new(0.0, 10.0), -FRAC_PI_2, 200, UnitClassId::LightInfantry, 0);
+    // A steady teammate keeps the battle CONTESTED: a verdict freezes all
+    // morale (routs lock, the chase plays out), and a one-unit team that
+    // breaks IS the verdict — it could never rally.
+    sim.spawn_class(Vec2::new(400.0, 10.0), -FRAC_PI_2, 300, UnitClassId::HeavyInfantry, 0);
     let strong = sim.spawn_class(Vec2::new(0.0, -14.0), FRAC_PI_2, 450, UnitClassId::HeavyInfantry, 1);
     sim.set_attack_move_order(strong, Vec2::new(0.0, 20.0));
     let mut broke = false;
@@ -194,6 +198,10 @@ fn enemy_rout_relieves_the_victor_no_mutual_collapse() {
     let mut sim = Sim::new(Tunables::default(), SEED);
     let a = sim.spawn_class(Vec2::new(0.0, 10.0), -FRAC_PI_2, 300, UnitClassId::HeavyInfantry, 0);
     let b = sim.spawn_class(Vec2::new(0.0, -14.0), FRAC_PI_2, 330, UnitClassId::HeavyInfantry, 1);
+    // Far teammates on BOTH sides keep the field contested: a one-unit
+    // team's break is the verdict itself, and the verdict freezes morale.
+    sim.spawn_class(Vec2::new(420.0, 10.0), -FRAC_PI_2, 200, UnitClassId::HeavyInfantry, 0);
+    sim.spawn_class(Vec2::new(420.0, -14.0), FRAC_PI_2, 200, UnitClassId::HeavyInfantry, 1);
     sim.set_attack_order(a, b);
     sim.set_attack_order(b, a);
     let mut first_break: Option<usize> = None;
@@ -220,5 +228,53 @@ fn enemy_rout_relieves_the_victor_no_mutual_collapse() {
         sim.units[winner].morale > morale_at_break + 0.05,
         "the sight of enemy backs must rally the victor: {} from {morale_at_break} at the break",
         sim.units[winner].morale
+    );
+}
+
+#[test]
+fn the_verdict_is_final_routs_lock_and_the_chase_plays_out() {
+    // A stomp: big fresh heavies onto a small light line, morale on.
+    // The weak side is COMMITTED (attack orders): they break in contact,
+    // where breaking is fatal — uncommitted light troops just outrun a
+    // walking stomp now that the charge exit is honest (no blob kills).
+    let mut sim = Sim::new(Tunables::default(), SEED);
+    let strong = sim.spawn_class(Vec2::new(0.0, -20.0), FRAC_PI_2, 400, UnitClassId::HeavyInfantry, 0);
+    let weak_a = sim.spawn_class(Vec2::new(-25.0, 20.0), -FRAC_PI_2, 80, UnitClassId::LightInfantry, 1);
+    let weak_b = sim.spawn_class(Vec2::new(25.0, 20.0), -FRAC_PI_2, 80, UnitClassId::LightInfantry, 1);
+    sim.set_pursue(strong, true);
+    sim.set_attack_order(strong, weak_a);
+    sim.set_attack_order(weak_a, strong);
+    sim.set_attack_order(weak_b, strong);
+    let mut verdict_at = None;
+    for step in 0..(240.0 / DT) as usize {
+        sim.tick();
+        if verdict_at.is_none() && sim.victor().is_some() {
+            verdict_at = Some(step);
+            break;
+        }
+    }
+    assert!(verdict_at.is_some(), "the stomp must produce a verdict");
+    let routing_then: Vec<bool> = sim.units.iter().map(|u| u.routing).collect();
+    let prey_then = sim.units[weak_a].centroid;
+    for _ in 0..(30.0 / DT) as usize {
+        sim.tick();
+    }
+    let routing_now: Vec<bool> = sim.units.iter().map(|u| u.routing).collect();
+    assert_eq!(
+        routing_then, routing_now,
+        "after the verdict nobody rallies and nobody newly breaks"
+    );
+    let _ = weak_b;
+    // The sim keeps running: the routers keep fleeing (cornered prey may
+    // only creep, but it MOVES) and the pursuit stays on them — though
+    // blown heavy legs lose ground to fleeing light troops honestly
+    // (~1.5 m/s over the 30s window), so "on them" is a leash, not a heel.
+    assert!(
+        (sim.units[weak_a].centroid - prey_then).len() > 1.5,
+        "routers keep fleeing after the verdict"
+    );
+    assert!(
+        (sim.units[strong].centroid - sim.units[weak_a].centroid).len() < 90.0,
+        "the pursuit stays on the routers"
     );
 }

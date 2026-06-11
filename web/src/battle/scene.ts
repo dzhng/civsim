@@ -299,7 +299,6 @@ export class BattleScene implements Scene {
     menuBtn.addEventListener('click', () => this.cfg.onExit(), { signal });
     document.getElementById('gameover-watch')!.addEventListener('click', () => {
       gameover.style.display = 'none';
-      paused = false;
     }, { signal });
     let timeScale = 1;
     let showPaths = false;
@@ -823,12 +822,12 @@ export class BattleScene implements Scene {
       }
       hud.innerHTML = lines.join('<br>') + bars;
 
-      // Game over: one side dead or wholly routing — pause and offer the
-      // exits. (The sim keeps existing so the field can still be watched.)
+      // Game over: one side is dead or wholly routing. The sim keeps
+      // RUNNING — routs are locked sim-side, so the pursuit plays out
+      // visibly behind the panel instead of an abrupt freeze.
       const v = game.victor();
       if (v >= 0 && !ended) {
         ended = true;
-        paused = true;
         const win = v === 0;
         document.getElementById('gameover-title')!.textContent = win ? 'VICTORY' : 'DEFEAT';
         (document.getElementById('gameover-title') as HTMLElement).style.color = win ? '#6f9ae8' : '#e0604f';

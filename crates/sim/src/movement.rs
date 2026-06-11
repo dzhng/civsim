@@ -77,14 +77,14 @@ pub(crate) fn update_unit_motion(tun: &Tunables, u: &mut Unit, dt: f32, ground: 
                 u.path.clear();
                 u.path_idx = 0;
                 u.pivoting = false;
-                u.speed = move_toward(u.speed, 0.0, accel * 2.0 * dt);
+                u.frame_speed = move_toward(u.frame_speed, 0.0, accel * 2.0 * dt);
                 return;
             }
             if u.waiting {
                 // Queued behind same-flow traffic in a corridor.
-                u.speed = move_toward(u.speed, 0.0, accel * 2.0 * dt);
-                if u.speed > 0.0 {
-                    u.anchor = u.anchor + dir(u.facing) * (u.speed * dt);
+                u.frame_speed = move_toward(u.frame_speed, 0.0, accel * 2.0 * dt);
+                if u.frame_speed > 0.0 {
+                    u.anchor = u.anchor + dir(u.facing) * (u.frame_speed * dt);
                 }
                 return;
             }
@@ -100,8 +100,8 @@ pub(crate) fn update_unit_motion(tun: &Tunables, u: &mut Unit, dt: f32, ground: 
                 u.facing = rotate_toward(u.facing, desired, 0.6 * dt);
                 let target_speed = (pace_speed(tun, u) * ground * 0.9)
                     .min((2.0 * accel * dist).sqrt());
-                u.speed = move_toward(u.speed, target_speed, accel * dt);
-                u.anchor = u.anchor + to * (u.speed * dt / dist.max(0.01));
+                u.frame_speed = move_toward(u.frame_speed, target_speed, accel * dt);
+                u.anchor = u.anchor + to * (u.frame_speed * dt / dist.max(0.01));
                 return;
             }
 
@@ -128,8 +128,8 @@ pub(crate) fn update_unit_motion(tun: &Tunables, u: &mut Unit, dt: f32, ground: 
                         };
                         let target_speed = (tun.base_speed * u.speed_mult * ground * drift_factor)
                             .min((2.0 * accel * dist).sqrt());
-                        u.speed = move_toward(u.speed, target_speed, accel * dt);
-                        u.anchor = u.anchor + to * (u.speed * dt / dist.max(0.01));
+                        u.frame_speed = move_toward(u.frame_speed, target_speed, accel * dt);
+                        u.anchor = u.anchor + to * (u.frame_speed * dt / dist.max(0.01));
                         return;
                     }
                 }
@@ -147,20 +147,20 @@ pub(crate) fn update_unit_motion(tun: &Tunables, u: &mut Unit, dt: f32, ground: 
                 // Halt, then rotate the whole formation about its center
                 // while ranks re-form (drilled about-face), instead of
                 // dragging the block through an arc like cloth.
-                u.speed = move_toward(u.speed, 0.0, accel * 2.0 * dt);
-                if u.speed < 0.05 {
+                u.frame_speed = move_toward(u.frame_speed, 0.0, accel * 2.0 * dt);
+                if u.frame_speed < 0.05 {
                     let geom = tun.wheel_speed_factor * top / u.pivot_radius().max(1.0);
                     let rate = tun.base_turn_rate.min(geom) * turn_throttle;
                     let center = u.center();
                     u.facing = rotate_toward(u.facing, desired, rate * dt);
                     u.anchor = center + dir(u.facing) * (0.5 * u.depth());
                 } else {
-                    u.anchor = u.anchor + dir(u.facing) * (u.speed * dt);
+                    u.anchor = u.anchor + dir(u.facing) * (u.frame_speed * dt);
                 }
             } else {
                 // March, arcing toward the target. The rotation budget is the
                 // speed the rear corners have left over after marching.
-                let spare = (top * top - u.speed * u.speed).max((0.25 * top).powi(2)).sqrt();
+                let spare = (top * top - u.frame_speed * u.frame_speed).max((0.25 * top).powi(2)).sqrt();
                 let geom = tun.wheel_speed_factor * spare / u.march_turn_radius().max(1.0);
                 let rate = tun.base_turn_rate.min(geom) * turn_throttle;
                 u.facing = rotate_toward(u.facing, desired, rate * dt);
@@ -171,18 +171,18 @@ pub(crate) fn update_unit_motion(tun: &Tunables, u: &mut Unit, dt: f32, ground: 
                 } else {
                     (pace_speed(tun, u) * ground).min((2.0 * accel * dist).sqrt())
                 };
-                u.speed = move_toward(u.speed, target_speed, accel * dt);
-                u.anchor = u.anchor + dir(u.facing) * (u.speed * dt);
+                u.frame_speed = move_toward(u.frame_speed, target_speed, accel * dt);
+                u.anchor = u.anchor + dir(u.facing) * (u.frame_speed * dt);
             }
         }
         None => {
-            u.speed = move_toward(u.speed, 0.0, accel * 2.0 * dt);
-            if u.speed > 0.0 {
-                u.anchor = u.anchor + dir(u.facing) * (u.speed * dt);
+            u.frame_speed = move_toward(u.frame_speed, 0.0, accel * 2.0 * dt);
+            if u.frame_speed > 0.0 {
+                u.anchor = u.anchor + dir(u.facing) * (u.frame_speed * dt);
             }
             // Arrived with a commanded facing: pivot to it, then settle.
             if let Some(ff) = u.final_facing {
-                if u.speed < 0.05 {
+                if u.frame_speed < 0.05 {
                     let err = wrap_angle(ff - u.facing);
                     if err.abs() < 0.08 {
                         u.final_facing = None;
@@ -225,7 +225,7 @@ mod tests {
             spacing: Vec2::new(1.0, 1.0),
             anchor: Vec2::ZERO,
             facing: 0.0,
-            speed: 0.0,
+            frame_speed: 0.0,
             move_target: Some(Vec2::new(0.0, 100.0)),
             pending_target: None,
             pending_mode: crate::unit::OrderMode::Move,
@@ -243,6 +243,7 @@ mod tests {
             charge_enabled: false,
             charging: false,
             charge_time: 0.0,
+            charge_at_speed: false,
             resume_target: None,
             alive_count: 0,
             deaths_since_reform: 0,
@@ -260,6 +261,7 @@ mod tests {
             recent_missiles: 0.0,
             losing_push: 0.0,
             centroid: Vec2::ZERO,
+            mass_advance: 0.0,
             final_facing: None,
             reform_timer: 0.0,
             pursue: false,

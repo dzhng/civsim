@@ -29,7 +29,7 @@ fn engage_move_backs_off_facing_the_threat() {
     for _ in 0..(60.0 / DT) as usize {
         sim.tick();
         let foe_dist = (sim.units[1].center() - sim.units[u].center()).len();
-        if sim.units[u].speed > 0.3 && foe_dist < 43.0 { // inside the 45m threat gate, with margin
+        if sim.units[u].frame_speed > 0.3 && foe_dist < 43.0 { // inside the 45m threat gate, with margin
             // While retreating IN THREAT RANGE, the face stays on the enemy.
             // (Beyond it, turning to march is correct.)
             worst_face = worst_face.max(sim::wrap_angle(sim.units[u].facing - FRAC_PI_2).abs());
@@ -97,7 +97,7 @@ fn disengage_turns_and_goes_faster() {
         while (sim.units[u].anchor - Vec2::new(0.0, -60.0)).len() > 5.0 && t < 120.0 {
             sim.tick();
             t += DT;
-            if use_withdraw && sim.units[u].speed > 1.0 {
+            if use_withdraw && sim.units[u].frame_speed > 1.0 {
                 worst_face = worst_face.max(sim::wrap_angle(sim.units[u].facing - FRAC_PI_2).abs());
             }
         }

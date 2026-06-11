@@ -28,6 +28,8 @@ const wasm = await init();
 const game = new Game(BATTLE_SEED);
 if (SANDBOX === '1v1') game.start_sandbox(0);
 else if (SANDBOX === '5v5') game.start_sandbox(1);
+else if (SANDBOX === 'charge-front') game.start_sandbox(2);
+else if (SANDBOX === 'charge-flank') game.start_sandbox(3);
 else game.start_battle(MAP);
 if (AI_ON) game.set_ai_team(1);
 

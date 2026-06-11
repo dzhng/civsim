@@ -413,7 +413,7 @@ impl Sim {
             // trigger would keep a wide screen running forever, never
             // stopping to throw.
             let my_ext = 0.5 * u.depth();
-            let mut threat: Option<(Vec2, f32)> = None;
+            let mut threat: Option<(Vec2, f32, bool)> = None;
             for v in &self.units {
                 if v.team == my_team || v.alive_count == 0 {
                     continue;
@@ -422,15 +422,21 @@ impl Sim {
                 // axis is its DEPTH (width would make screens panic at
                 // absurd distances and park out of throw range).
                 let d = (v.center() - from).len() - 0.5 * v.depth() - my_ext;
-                if d < 24.0 && threat.map_or(true, |(_, td)| d < td) {
-                    threat = Some((v.center(), d));
+                // A pursuer mid-BURST is visible from far off — skirmishers
+                // break that much earlier (the whole craft of the screen).
+                let band = if v.charging { 38.0 } else { 24.0 };
+                if d < band && threat.map_or(true, |(_, td, _)| d < td) {
+                    threat = Some((v.center(), d, v.charging));
                 }
             }
-            if let Some((tp, _)) = threat {
-                // Short hops keep the fighting retreat INSIDE throw range.
+            if let Some((tp, _, vs_charge)) = threat {
+                // Short hops keep the fighting retreat INSIDE throw range —
+                // but a hop that doesn't clear a charge burst is a death
+                // sentence, so the screen leaps long when the horses come.
+                let hop = if vs_charge { 30.0 } else { 16.0 };
                 let away = from - tp;
                 let l = away.len().max(0.1);
-                let dest = from + away * (16.0 / l);
+                let dest = from + away * (hop / l);
                 let u = &mut self.units[ui];
                 u.move_target = Some(dest);
                 u.pace = crate::tunables::Pace::Run;

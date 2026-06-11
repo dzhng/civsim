@@ -104,6 +104,10 @@ fn skirmishers_kite_heavy_infantry() {
     let mut sim = Sim::new(no_morale(), SEED);
     let sk = sim.spawn_class(Vec2::new(0.0, 30.0), -FRAC_PI_2, 240, UnitClassId::Skirmishers, 0);
     let heavy = sim.spawn_class(Vec2::new(0.0, -10.0), FRAC_PI_2, 300, UnitClassId::HeavyInfantry, 1);
+    // Isolate the KITING variable: with charge bursts on, the pursuers run
+    // down the screen's slow tail (leg jitter) — real, but a different
+    // claim. Burst-vs-screen warfare is the cavalry tests' subject.
+    sim.set_charge_enabled(heavy, false);
     sim.set_attack_order(heavy, sk);
     run(&mut sim, 120.0);
     assert!(

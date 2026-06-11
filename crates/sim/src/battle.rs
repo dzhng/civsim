@@ -85,7 +85,8 @@ fn deploy_army(sim: &mut Sim, base: Vec2, facing: f32, team: u32) {
 }
 
 /// Small open fields for quick vibe checks: 0 = 1v1 heavies,
-/// 1 = 5v5 mixed line (3 infantry classes + long swords + shock cavalry).
+/// 1 = 5v5 mixed line, 2 = cavalry charge vs a wide line FACE-ON,
+/// 3 = the same charge into the line's FLANK (pure 1v1, nothing else).
 pub fn setup_sandbox(sim: &mut Sim, kind: u32) {
     use crate::terrain::Terrain;
     use std::f32::consts::FRAC_PI_2;
@@ -98,6 +99,18 @@ pub fn setup_sandbox(sim: &mut Sim, kind: u32) {
     if kind == 0 {
         sim.spawn_class(Vec2::new(0.0, -90.0), FRAC_PI_2, 240, UnitClassId::HeavyInfantry, 0);
         sim.spawn_class(Vec2::new(0.0, 90.0), -FRAC_PI_2, 240, UnitClassId::HeavyInfantry, 1);
+        return;
+    }
+    if kind == 2 || kind == 3 {
+        // A 100x4 line facing north; blue cavalry charges its face (kind 2)
+        // or its eastern flank (kind 3).
+        sim.spawn_unit(Vec2::new(0.0, 40.0), FRAC_PI_2, 400, 100, Vec2::new(1.0, 1.1), 1, 0.7);
+        let (p, f) = if kind == 2 {
+            (Vec2::new(0.0, 160.0), -FRAC_PI_2)
+        } else {
+            (Vec2::new(160.0, 38.0), std::f32::consts::PI)
+        };
+        sim.spawn_class(p, f, 160, UnitClassId::ShockCavalry, 0);
         return;
     }
     let side = |sim: &mut Sim, y: f32, facing: f32, team: u32| {

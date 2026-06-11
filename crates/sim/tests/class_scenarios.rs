@@ -271,3 +271,44 @@ fn heavy_infantry_charge_carries_a_stride_not_a_gallop() {
         "the burst outpaces the run-in: {v_charge:.1} vs {v_walk:.1} m/s"
     );
 }
+
+#[test]
+fn charge_opens_at_the_edge_from_face_and_flank_alike() {
+    // A 100x4 column is ~2m deep head-on and ~50m wide side-on. The burst
+    // must begin at charge distance from the EDGE the rider actually
+    // approaches — measured to the centroid it would fire 40m inside the
+    // flank, i.e., never.
+    let burst_edge_distance = |flank: bool| -> f32 {
+        let mut sim = Sim::new(
+            Tunables { morale_enabled: false, ..Tunables::default() },
+            SEED,
+        );
+        // The line faces north; its long axis runs east-west.
+        let line = sim.spawn_unit(Vec2::ZERO, PI / 2.0, 400, 100, Vec2::new(1.0, 1.1), 1, 0.7);
+        let (cav_pos, ext) = if flank {
+            (Vec2::new(120.0, -2.0), 0.5 * sim.units[line].width())
+        } else {
+            (Vec2::new(0.0, 90.0), 0.5 * sim.units[line].depth())
+        };
+        let cav = sim.spawn_class(cav_pos, (Vec2::ZERO - cav_pos).y.atan2(-cav_pos.x), 120, UnitClassId::ShockCavalry, 0);
+        sim.set_pace(cav, sim::Pace::Run);
+        sim.set_attack_order(cav, line);
+        for _ in 0..(40.0 / DT) as usize {
+            sim.tick();
+            if sim.units[cav].charging {
+                let d = (sim.units[line].centroid - sim.units[cav].anchor).len() - ext;
+                return d;
+            }
+        }
+        -1.0
+    };
+    let face = burst_edge_distance(false);
+    let flank = burst_edge_distance(true);
+    println!("burst opens {face:.1}m from the face, {flank:.1}m from the flank");
+    assert!(face > 2.0 && face < 30.0, "frontal burst at a sane edge distance: {face:.1}m");
+    assert!(flank > 2.0 && flank < 30.0, "flank burst at a sane edge distance: {flank:.1}m");
+    assert!(
+        (face - flank).abs() < 12.0,
+        "aspect must not change the trigger: {face:.1}m vs {flank:.1}m"
+    );
+}

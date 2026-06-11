@@ -121,7 +121,7 @@ function drawMinimap() {
     const o = u * STRIDE;
     if (info[o + 15] === 0) continue;
     const [mx, my] = worldToMini(info[o], info[o + 1]);
-    g.fillStyle = info[o + 21] > 0.5 ? '#888' : info[o + 6] === 0 ? '#e0604f' : '#6f9ae8';
+    g.fillStyle = info[o + 21] > 0.5 ? '#888' : info[o + 6] === 0 ? '#6f9ae8' : '#e0604f';
     g.fillRect(mx - 1.5, my - 1.5, 3, 3);
   }
   const [ax, ay] = camera.screenToWorld(0, 0);
@@ -165,7 +165,7 @@ function updateUnitLabels() {
     const hp = d.children[0].children[0] as HTMLElement;
     const coh = d.children[1].children[0] as HTMLElement;
     hp.style.width = `${((alive / info[o + 7]) * 100).toFixed(0)}%`;
-    hp.style.background = info[o + 6] === 0 ? '#e0604f' : '#6f9ae8';
+    hp.style.background = info[o + 6] === 0 ? '#6f9ae8' : '#e0604f';
     coh.style.width = `${(info[o + 4] * 100).toFixed(0)}%`;
 
     // Effect chips: explicit states + derived physical facts.
@@ -196,15 +196,26 @@ const toolButtons = new Map<string, HTMLButtonElement>();
 document.querySelectorAll<HTMLButtonElement>('#toolbar button').forEach((b) => {
   toolButtons.set(b.dataset.cmd!, b);
 });
+const KITE_CLASSES = [5, 7];
+const WEAPON_CLASSES = [3, 4, 5, 6, 7, 8]; // sidearm or slingable missile
+const MISSILE_CLASSES = [4, 5, 7, 8];
 function updateToolbar() {
   const sel = myUnits(input.selected);
   const info = unitInfo();
   const o = sel.length ? sel[0] * STRIDE : -1;
+  const classes = sel.map((u) => info[u * STRIDE + 13]);
+  const supports = (allowed: number[]) => classes.some((c) => allowed.includes(c));
   const set = (cmd: string, on: boolean, label?: string) => {
     const b = toolButtons.get(cmd)!;
     b.classList.toggle('on', on);
     if (label) b.textContent = label;
-    if (!['pause', 'x1', 'x3', 'paths'].includes(cmd)) b.disabled = sel.length === 0;
+    if (!['pause', 'x1', 'x3', 'paths'].includes(cmd)) {
+      let applies = sel.length > 0;
+      if (cmd === 'kite') applies &&= supports(KITE_CLASSES);
+      if (cmd === 'weapon') applies &&= supports(WEAPON_CLASSES);
+      if (cmd === 'fire') applies &&= supports(MISSILE_CLASSES);
+      b.disabled = !applies;
+    }
   };
   set('pace', o >= 0 && info[o + 9] > 0.5, o >= 0 && info[o + 9] > 0.5 ? 'Running' : 'Run');
   set('stance', false, o >= 0 ? (info[o + 17] > 0.5 ? 'Fence' : 'Othismos') : 'Othismos');
@@ -365,7 +376,11 @@ const sink = {
     }
     return out;
   },
-  pickUnit: (x, y) => game.pick_unit(x, y, 30),
+  // Selection picks PLAYER units only (enemies are targets, not selections).
+  pickUnit: (x, y) => {
+    const u = game.pick_unit(x, y, 30);
+    return u >= 0 && unitInfo()[u * STRIDE + 6] === 0 ? u : -1;
+  },
   allUnits: () => {
     const info = unitInfo();
     const out: number[] = [];
@@ -385,14 +400,18 @@ const sink = {
     markFlash(sel);
   },
   orderPoint: (units, x, y, shift, double, alt) => {
+    // SHIFT = queue the order after what's underway; ALT = disengage.
     const sel = myUnits(units);
     if (sel.length === 0) return;
     const info = unitInfo();
     const targetUnit = game.pick_unit(x, y, 25);
     const isEnemy = targetUnit >= 0 && info[targetUnit * STRIDE + 6] !== 0 && info[targetUnit * STRIDE + 15] > 0;
-    sel.forEach((u) => game.set_pace(u, double ? 1 : 0));
+    if (!shift) sel.forEach((u) => game.set_pace(u, double ? 1 : 0));
     if (isEnemy) {
-      if (sel.length === 1) {
+      if (shift) {
+        sel.forEach((u) => game.enqueue(u, 1, targetUnit, 0, 0, 0));
+        markFlash(sel);
+      } else if (sel.length === 1) {
         game.set_attack_order(sel[0], targetUnit);
         markFlash(sel);
       } else {
@@ -401,12 +420,31 @@ const sink = {
         groupAttacks.push({ units: [...sel], target: targetUnit, lastTx: 1e9, lastTy: 1e9 });
         tickGroupAttacks();
       }
+    } else if (shift) {
+      const snaps = sel.map(unitSnap);
+      let cx = 0, cy = 0;
+      for (const s of snaps) { cx += s.x; cy += s.y; }
+      cx /= snaps.length; cy /= snaps.length;
+      const face = Math.atan2(y - cy, x - cx);
+      for (const d of groupMoveDests(snaps, x, y)) {
+        game.enqueue(d.u, alt ? 2 : 0, d.x, d.y, face, alt ? 0 : 1);
+      }
+      markFlash(sel);
     } else {
-      groupMove(sel, x, y, shift || alt ? 'disengage' : 'move');
+      groupMove(sel, x, y, alt ? 'disengage' : 'move');
     }
   },
-  orderFacing: (units, x, y, facing) => {
-    groupMove(units, x, y, 'move', facing);
+  orderFacing: (units, x, y, facing, queued) => {
+    if (queued) {
+      const sel = myUnits(units);
+      const snaps = sel.map(unitSnap);
+      for (const d of groupMoveDests(snaps, x, y)) {
+        game.enqueue(d.u, 0, d.x, d.y, facing, 1);
+      }
+      markFlash(sel);
+    } else {
+      groupMove(units, x, y, 'move', facing);
+    }
   },
   orderLineUnused: (units: number[], x0: number, y0: number, x1: number, y1: number) => {
     const sel = myUnits(units);
@@ -539,7 +577,7 @@ function overlayVerts(withPaths: boolean): Float32Array {
   for (let u = 0; u < n; u++) {
     const o = u * STRIDE;
     const [ax, ay, facing, team] = [info[o], info[o + 1], info[o + 2], info[o + 6]];
-    const [r, g, b] = team === 0 ? [1.0, 0.55, 0.45] : [0.55, 0.7, 1.0];
+    const [r, g, b] = team === 0 ? [0.55, 0.7, 1.0] : [1.0, 0.55, 0.45];
     if (withPaths) {
       const fx = Math.cos(facing);
       const fy = Math.sin(facing);
@@ -754,7 +792,7 @@ function frame(now: number) {
       const cls = info[u * STRIDE + 13];
       const [reach, arc] = WEAPON_VIZ[cls] ?? [1.0, 1.0];
       const team = info[u * STRIDE + 6];
-      const [r, g, b] = team === 0 ? [1.0, 0.72, 0.35] : [0.55, 0.85, 1.0];
+      const [r, g, b] = team === 0 ? [0.55, 0.85, 1.0] : [1.0, 0.72, 0.35];
       const a = 0.26;
       const half = Math.max(arc, 0.18) / 2;
       const segs = arc > 1.2 ? 5 : 3;
@@ -805,11 +843,19 @@ function updateHud() {
       (paused ? '   PAUSED' : timeScale !== 1 ? `   x${timeScale}` : ''),
   ];
   let bars = '';
+  let cardUnit = -1;
   if (input.selected.length > 1) {
     lines.push(`${input.selected.length} units selected`);
   } else if (input.selected.length === 1) {
+    cardUnit = input.selected[0];
+  } else if (input.mouseCss[0] >= 0) {
+    const dpr = window.devicePixelRatio || 1;
+    const [wx, wy] = camera.screenToWorld(input.mouseCss[0] * dpr, input.mouseCss[1] * dpr);
+    cardUnit = game.pick_unit(wx, wy, 25); // hover: either side
+  }
+  if (cardUnit >= 0) {
     const info = unitInfo();
-    const o = input.selected[0] * STRIDE;
+    const o = cardUnit * STRIDE;
     const cohesion = info[o + 4];
     const fatigue = info[o + 8];
     const pace = info[o + 9] > 0.5 ? 'run' : 'walk';
@@ -820,7 +866,7 @@ function updateHud() {
     const routing = info[o + 21] > 0.5 ? '  ROUTING' : '';
     const engaged = info[o + 16];
     lines.push(
-      `unit ${input.selected[0]}  ${cls}  team ${info[o + 6]}  ${pace} ${info[o + 3].toFixed(1)} m/s  ${stance}${charge}`,
+      `${info[o + 6] === 0 ? 'YOUR' : 'ENEMY'} ${cls}  ${pace} ${info[o + 3].toFixed(1)} m/s  ${stance}${charge}`,
       `men ${info[o + 15]}/${info[o + 7]}${engaged > 0 ? `  engaged ${engaged}` : ''}${ammo}${routing}`,
       `cohesion ${(cohesion * 100).toFixed(0)}%  disorder ${(info[o + 5] * 100).toFixed(0)}%  stamina ${(fatigue * 100).toFixed(0)}%  morale ${(info[o + 20] * 100).toFixed(0)}%`,
     );
@@ -834,8 +880,8 @@ function updateHud() {
   const v = game.victor();
   if (v >= 0) {
     banner.style.display = 'block';
-    banner.textContent = v === 0 ? 'RED ARMY HOLDS THE FIELD' : 'BLUE ARMY HOLDS THE FIELD';
-    banner.style.color = v === 0 ? '#e0604f' : '#6f9ae8';
+    banner.textContent = v === 0 ? 'YOUR ARMY HOLDS THE FIELD' : 'THE ENEMY HOLDS THE FIELD';
+    banner.style.color = v === 0 ? '#6f9ae8' : '#e0604f';
   }
 }
 

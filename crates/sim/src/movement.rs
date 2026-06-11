@@ -160,7 +160,13 @@ pub(crate) fn update_unit_motion(tun: &Tunables, u: &mut Unit, dt: f32, ground: 
                 let geom = tun.wheel_speed_factor * spare / u.march_turn_radius().max(1.0);
                 let rate = tun.base_turn_rate.min(geom) * turn_throttle;
                 u.facing = rotate_toward(u.facing, desired, rate * dt);
-                let target_speed = (pace_speed(tun, u) * ground).min((2.0 * accel * dist).sqrt());
+                // A CHARGE does not brake to arrive — the whole point is
+                // to make contact at full speed and let the bodies cash it.
+                let target_speed = if u.charging {
+                    pace_speed(tun, u) * ground
+                } else {
+                    (pace_speed(tun, u) * ground).min((2.0 * accel * dist).sqrt())
+                };
                 u.speed = move_toward(u.speed, target_speed, accel * dt);
                 u.anchor = u.anchor + dir(u.facing) * (u.speed * dt);
             }
@@ -259,12 +265,14 @@ mod tests {
             weapon_pref: 0,
             switch_timer: 0.0,
             pending_pref: 0,
+            order_queue: Vec::new(),
         };
         let mut ordered = Unit {
             disorder: 0.0,
             cohesion: 1.0,
             move_target: Some(Vec2::new(0.0, 100.0)),
             path: Vec::new(),
+            order_queue: Vec::new(),
             ..disordered
         };
         for _ in 0..15 {

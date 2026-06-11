@@ -219,6 +219,25 @@ impl Game {
         self.refresh_unit_info();
     }
 
+    /// Shift-queued orders: mode 0 = move (facing optional via has_facing),
+    /// 1 = attack (x = enemy unit id), 2 = disengage.
+    pub fn enqueue(&mut self, unit: u32, mode: u32, x: f32, y: f32, facing: f32, has_facing: u32) {
+        use sim::OrderMode;
+        let f = (has_facing != 0).then_some(facing);
+        match mode {
+            1 => {
+                let e = x as usize;
+                if e < self.sim.units.len() {
+                    let anchor = self.sim.units[e].anchor;
+                    self.sim.enqueue_order(unit as usize, OrderMode::Attack(e as u32), anchor, None);
+                }
+            }
+            2 => self.sim.enqueue_order(unit as usize, OrderMode::Disengage, Vec2::new(x, y), None),
+            _ => self.sim.enqueue_order(unit as usize, OrderMode::Move, Vec2::new(x, y), f),
+        }
+        self.refresh_unit_info();
+    }
+
     pub fn set_weapon_pref(&mut self, unit: u32, secondary: u32) {
         self.sim.set_weapon_pref(unit as usize, secondary != 0);
         self.refresh_unit_info();

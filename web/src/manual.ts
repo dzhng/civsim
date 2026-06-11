@@ -16,13 +16,15 @@ physically stops horseflesh.</em></p>
 <tr><td>right-click ground</td><td>group move: each cluster keeps formation, the selection turns to face the move direction; <b>double right-click = run</b></td></tr>
 <tr><td>right-click enemy</td><td>attack. A multi-unit selection approaches IN FORMATION and breaks to individual charges at ~150m</td></tr>
 <tr><td>right-click + DRAG</td><td>move to the press point and <b>end facing the drag direction</b> — destination ghosts preview live while held, then fade after release</td></tr>
-<tr><td>shift/alt + right-click</td><td><b>DISENGAGE</b> move: turn and run at full pace, answering nothing — fast but backs exposed</td></tr>
+<tr><td>shift + any order</td><td><b>QUEUE</b> it: runs after everything already underway completes — chain waypoints, then an attack, then a withdrawal</td></tr>
+<tr><td>alt + right-click</td><td><b>DISENGAGE</b> move: turn and run at full pace, answering nothing — fast but backs exposed</td></tr>
 <tr><td>R / F / C</td><td>walk-run / othismos-fence / charge setting</td></tr>
 <tr><td>G / H / V</td><td>reform / pursue (latch onto contact) / fire-at-will</td></tr>
 <tr><td>X / E</td><td>draw secondary weapons (pikes ground, bows sling — ~1s down the line, ORANGE pie) / kite reflex on-off (skirmish classes)</td></tr>
 <tr><td>P, 1, 3</td><td>pause, 1x, 3x speed</td></tr>
 <tr><td>hold Space</td><td>show anchors, paths, latch targets</td></tr>
-<tr><td>WASD / arrows</td><td>pan camera; wheel zooms</td></tr>
+<tr><td>WASD / arrows / screen edge / middle-drag</td><td>pan camera; wheel zooms; right-drag pans when nothing is selected</td></tr>
+<tr><td>hover a unit</td><td>its stat card shows (yours or the enemy's) when nothing is selected; a selection pins its own card</td></tr>
 </table>
 
 <h2>Group orders & clustering</h2>

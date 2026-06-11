@@ -288,3 +288,41 @@ fn kite_toggle_is_for_skirmish_classes_only() {
     sim.set_evade_auto(sk, true);
     assert!(sim.units[sk].evade_auto);
 }
+
+#[test]
+fn shift_queued_orders_run_in_sequence() {
+    let mut sim = Sim::new(no_morale(), SEED);
+    let u = sim.spawn_class(Vec2::ZERO, 0.0, 160, UnitClassId::LightInfantry, 0);
+    // Queue an L: east, then north, then face west at the end.
+    sim.enqueue_order(u, sim::OrderMode::Move, Vec2::new(60.0, 0.0), None);
+    sim.enqueue_order(u, sim::OrderMode::Move, Vec2::new(60.0, 50.0), Some(std::f32::consts::PI));
+    let mut reached_corner = false;
+    for _ in 0..(150.0 / DT) as usize {
+        sim.tick();
+        if (sim.units[u].anchor - Vec2::new(60.0, 0.0)).len() < 3.0 {
+            reached_corner = true;
+        }
+    }
+    assert!(reached_corner, "the first queued leg must be walked first");
+    assert!(
+        (sim.units[u].anchor - Vec2::new(60.0, 50.0)).len() < 6.0,
+        "then the second, at {:?}",
+        sim.units[u].anchor
+    );
+    assert!(
+        sim::wrap_angle(sim.units[u].facing - std::f32::consts::PI).abs() < 0.2,
+        "and the final facing is honored"
+    );
+    // A direct order wipes the rest of a queue.
+    sim.enqueue_order(u, sim::OrderMode::Move, Vec2::new(0.0, 0.0), None);
+    sim.enqueue_order(u, sim::OrderMode::Move, Vec2::new(-60.0, 0.0), None);
+    sim.set_move_order(u, Vec2::new(60.0, 100.0));
+    for _ in 0..(60.0 / DT) as usize {
+        sim.tick();
+    }
+    assert!(
+        (sim.units[u].anchor - Vec2::new(60.0, 100.0)).len() < 4.0,
+        "a direct order replaces the queued plan, at {:?}",
+        sim.units[u].anchor
+    );
+}

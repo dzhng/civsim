@@ -226,3 +226,54 @@ fn dense_infantry_blunts_a_cavalry_charge_loose_gets_punched_through() {
         "the punch-through must also cost more blood: {dead_l} vs {dead_d}"
     );
 }
+
+#[test]
+fn heavy_infantry_charge_carries_a_stride_not_a_gallop() {
+    // p = m·v: a sprinting heavy carries SOME momentum through contact —
+    // measurably more shove than a walk-in, far less than horse.
+    let crash_into = |charge: bool| -> f32 {
+        let mut sim = Sim::new(
+            Tunables { morale_enabled: false, ..Tunables::default() },
+            SEED,
+        );
+        let inf = sim.spawn_unit(
+            Vec2::new(0.0, 30.0),
+            -PI / 2.0,
+            400,
+            20,
+            Vec2::new(1.5, 1.6),
+            0,
+            0.7,
+        );
+        let y0: Vec<f32> = {
+            let u = &sim.units[inf];
+            (u.start..u.start + u.count).map(|i| sim.soldier_pos(i).y).collect()
+        };
+        let atk = sim.spawn_class(Vec2::new(0.0, -40.0), PI / 2.0, 300, UnitClassId::HeavyInfantry, 1);
+        sim.set_charge_enabled(atk, charge);
+        sim.set_pace(atk, sim::Pace::Run);
+        sim.set_attack_order(atk, inf);
+        let mut peak_shove = 0.0f32;
+        for _ in 0..(30.0 / DT) as usize {
+            sim.tick();
+            let u = &sim.units[inf];
+            let mut shove = 0.0f32;
+            let mut n = 0;
+            for (k, i) in (u.start..u.start + u.count).enumerate() {
+                if sim.alive[i] == 1 {
+                    shove += (sim.soldier_pos(i).y - y0[k]).abs();
+                    n += 1;
+                }
+            }
+            peak_shove = peak_shove.max(shove / n.max(1) as f32);
+        }
+        peak_shove
+    };
+    let walked = crash_into(false);
+    let charged = crash_into(true);
+    println!("walk-in shove {walked:.2}m, charge shove {charged:.2}m");
+    assert!(
+        charged > walked * 1.25,
+        "a sprint must carry through contact: {charged:.2}m vs {walked:.2}m walking in"
+    );
+}

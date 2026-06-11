@@ -37,6 +37,12 @@ pub struct Sim {
     pub(crate) press_x: Vec<f32>,
     pub(crate) press_y: Vec<f32>,
     pub attack_cd: Vec<f32>,
+    /// Impact momentum carried by the body (kg·m/s, world vector): set when
+    /// a charge lands, spent against the crowd, zeroed by stagger. THIS is
+    /// what makes cavalry punch INTO a line instead of stopping at its rim —
+    /// and a heavy infantryman at a dead sprint carries a stride of it too.
+    pub mom_x: Vec<f32>,
+    pub mom_y: Vec<f32>,
     /// Weapon currently in hand (index into the class weapon list).
     pub cur_weapon: Vec<u8>,
     /// Seconds left in this soldier's weapon swap (no strikes meanwhile).
@@ -91,6 +97,8 @@ impl Sim {
             press_x: Vec::new(),
             press_y: Vec::new(),
             attack_cd: Vec::new(),
+            mom_x: Vec::new(),
+            mom_y: Vec::new(),
             cur_weapon: Vec::new(),
             switch_cd: Vec::new(),
             stun: Vec::new(),
@@ -200,6 +208,7 @@ impl Sim {
             weapon_pref: 0,
             switch_timer: 0.0,
             pending_pref: 0,
+            order_queue: Vec::new(),
         };
         for s in 0..count {
             let p = unit.slot_world(s);
@@ -215,6 +224,8 @@ impl Sim {
             self.press_x.push(0.0);
             self.press_y.push(0.0);
             self.attack_cd.push(0.0);
+            self.mom_x.push(0.0);
+            self.mom_y.push(0.0);
             self.cur_weapon.push(0);
             self.switch_cd.push(0.0);
             self.stun.push(0.0);
@@ -294,11 +305,42 @@ impl Sim {
 
     // --- orders (all pass through the cohesion-gated transmission delay) ----
 
+    /// Shift-queued order: runs after everything already underway finishes.
+    pub fn enqueue_order(
+        &mut self,
+        unit: usize,
+        mode: OrderMode,
+        target: Vec2,
+        facing: Option<f32>,
+    ) {
+        let Some(u) = self.units.get_mut(unit) else {
+            return;
+        };
+        let idle = u.move_target.is_none()
+            && u.pending_target.is_none()
+            && matches!(u.mode, OrderMode::Move)
+            && u.order_queue.is_empty();
+        if idle {
+            self.apply_order(unit, mode, target, facing);
+        } else {
+            self.units[unit].order_queue.push((mode, target, facing));
+        }
+    }
+
+    fn apply_order(&mut self, unit: usize, mode: OrderMode, target: Vec2, facing: Option<f32>) {
+        let queue = std::mem::take(&mut self.units[unit].order_queue);
+        self.queue_order(unit, mode, target);
+        let u = &mut self.units[unit];
+        u.order_queue = queue;
+        u.final_facing = facing;
+    }
+
     fn queue_order(&mut self, unit: usize, mode: OrderMode, target: Vec2) {
         let tun = self.tun;
         let Some(u) = self.units.get_mut(unit) else {
             return;
         };
+        u.order_queue.clear();
         let shortfall = (tun.order_delay_threshold - u.cohesion).max(0.0);
         let delay = (shortfall * tun.order_delay_scale).min(tun.order_delay_max);
         if delay < 0.05 {
@@ -652,7 +694,26 @@ impl Sim {
 
         for ui in 0..self.units.len() {
             if self.units[ui].routing {
+                self.units[ui].order_queue.clear();
                 continue; // no orders reach a broken unit
+            }
+            // Next queued follow-up, once everything underway has finished.
+            {
+                let u = &self.units[ui];
+                if !u.order_queue.is_empty()
+                    && u.move_target.is_none()
+                    && u.pending_target.is_none()
+                    && matches!(u.mode, OrderMode::Move)
+                    && u.engaged == 0
+                {
+                    let (mode, target, facing) = self.units[ui].order_queue.remove(0);
+                    let target = if let OrderMode::Attack(e) = mode {
+                        self.units[e as usize].anchor
+                    } else {
+                        target
+                    };
+                    self.apply_order(ui, mode, target, facing);
+                }
             }
             // Queued order transmission.
             let u = &mut self.units[ui];
@@ -787,6 +848,9 @@ impl Sim {
             units,
             positions,
             prev_positions,
+            mass,
+            mom_x,
+            mom_y,
             facings,
             soldier_slot,
             terrain,
@@ -861,7 +925,26 @@ impl Sim {
 
                 if stun[i] > 0.0 {
                     stun[i] -= dt;
+                    // A staggered body sheds its momentum into the ground.
+                    mom_x[i] = 0.0;
+                    mom_y[i] = 0.0;
                     continue; // knocked down: no stepping, no turning
+                }
+                // Carried impact momentum: the body keeps moving through the
+                // crowd, the crowd pushes back (separation), and the reserve
+                // drains away in about a second. p = m·v, so the same charge
+                // carries a horse four times as far as a man.
+                if mom_x[i] != 0.0 || mom_y[i] != 0.0 {
+                    let v = 1.0 / mass[i].max(0.2);
+                    positions[2 * i] += mom_x[i] * v * dt;
+                    positions[2 * i + 1] += mom_y[i] * v * dt;
+                    let decay = 1.0 - (dt / 0.8);
+                    mom_x[i] *= decay;
+                    mom_y[i] *= decay;
+                    if mom_x[i] * mom_x[i] + mom_y[i] * mom_y[i] < 1.0 {
+                        mom_x[i] = 0.0;
+                        mom_y[i] = 0.0;
+                    }
                 }
 
                 if u.routing {
@@ -910,7 +993,10 @@ impl Sim {
                 // A man whose unit is fighting — or who is himself being
                 // struck — closes to his own weapon's distance; nobody stands
                 // being poked from a hand's-breadth beyond his reach.
-                if aware_i && holds_ground && (u.engaged > 0 || hit_ttl[i] > 0.0) {
+                // A CHARGING unit's men do not ease into weapon range —
+                // they ride their slots into contact at full speed and the
+                // collision cashes the momentum.
+                if aware_i && holds_ground && !u.charging && (u.engaged > 0 || hit_ttl[i] > 0.0) {
                     let t = target[i] as usize;
                     let tp = Vec2::new(positions[2 * t], positions[2 * t + 1]);
                     let tt = tp - p;
@@ -923,6 +1009,9 @@ impl Sim {
                         max_sp = max_sp.min(keep_up_sp * 0.5);
                     } else if engaged_i {
                         // In range: hold ground, fight, don't chase slots.
+                        // (Impact momentum is separate REAL state — see
+                        // mom_x/mom_y — so a body that arrived at speed
+                        // keeps driving until the crowd bleeds it dry.)
                         max_sp *= 0.25;
                     }
                 }

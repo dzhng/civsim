@@ -144,6 +144,9 @@ pub struct Unit {
     pub switch_timer: f32,
     /// Pending preference applied when switch_timer elapses.
     pub pending_pref: u8,
+    /// Queued follow-up orders (shift-issued): executed in sequence as each
+    /// completes. (mode, target, final facing).
+    pub order_queue: Vec<(OrderMode, Vec2, Option<f32>)>,
 }
 
 /// Sector index for a world-frame bearing, 12 sectors over (-PI, PI].

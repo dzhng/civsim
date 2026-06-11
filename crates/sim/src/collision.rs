@@ -78,6 +78,8 @@ impl Sim {
             press_x,
             press_y,
             stun,
+            mom_x,
+            mom_y,
             soldier_unit,
             units,
             body_pos,

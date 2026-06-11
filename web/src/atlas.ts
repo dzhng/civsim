@@ -14,8 +14,8 @@ const BANNER_COL = 4;
 const ROCK_COL = 3;
 
 const TEAM: [string, string][] = [
-  ['#c8403a', '#f2806a'], // red: base, accent (warm crimson)
-  ['#3868c8', '#7aa6f0'], // blue: base, accent (bright azure)
+  ['#3868c8', '#7aa6f0'], // PLAYER blue: base, accent
+  ['#c8403a', '#f2806a'], // enemy red: base, accent
 ];
 
 // Per-class look: [skin/armor tone, helmet style, shield, weapon]

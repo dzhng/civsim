@@ -11,7 +11,7 @@ export interface OrderSink {
   /** Point order for the selection (move/attack/disengage + run on double). */
   orderPoint(units: number[], x: number, y: number, shift: boolean, double: boolean, alt: boolean): void;
   /** Right-drag: move to (x, y) and end facing `facing` (the drag arrow). */
-  orderFacing(units: number[], x: number, y: number, facing: number): void;
+  orderFacing(units: number[], x: number, y: number, facing: number, queued: boolean): void;
   togglePace(units: number[]): void;
   toggleStance(units: number[]): void;
   toggleCharge(units: number[]): void;
@@ -31,6 +31,8 @@ export class Input {
   panY = 0;
   /** Screen-space selection box while dragging, for the DOM rectangle. */
   box: { x0: number; y0: number; x1: number; y1: number } | null = null;
+  /** Latest mouse position (CSS px), for hover cards. */
+  mouseCss: [number, number] = [-1, -1];
   /** World-space translation of an in-progress drag-move of the selection. */
   dragDelta: [number, number] | null = null;
   /** In-progress right-drag: press point + current cursor (world). */
@@ -47,7 +49,12 @@ export class Input {
     let dragMoving = false;
     let mouseX = -1; // -1 = mouse never seen: edge-pan stays off
     let mouseY = -1;
+    let mDown: [number, number] | null = null;
     canvas.addEventListener('mousedown', (e) => {
+      if (e.button === 1) {
+        e.preventDefault(); // no autoscroll: middle button drags the camera
+        mDown = [e.clientX, e.clientY];
+      }
       if (e.button === 0) {
         lDown = [e.clientX, e.clientY];
         // Starting the drag ON a selected unit grabs the whole selection
@@ -63,6 +70,11 @@ export class Input {
     window.addEventListener('mousemove', (e) => {
       mouseX = e.clientX;
       mouseY = e.clientY;
+      this.mouseCss = [e.clientX, e.clientY];
+      if (mDown) {
+        camera.panPixels((e.clientX - mDown[0]) * dpr(), (e.clientY - mDown[1]) * dpr());
+        mDown = [e.clientX, e.clientY];
+      }
       if (rDown && this.selected.length === 0) {
         // No selection: the right button drags the camera itself.
         if (rLast) camera.panPixels((e.clientX - rLast[0]) * dpr(), (e.clientY - rLast[1]) * dpr());
@@ -118,6 +130,7 @@ export class Input {
           this.selected = u >= 0 ? [u] : [];
         }
       }
+      if (e.button === 1) mDown = null;
       if (e.button === 2 && rDown) {
         const [sx, sy] = rDown;
         rDown = null;
@@ -128,7 +141,7 @@ export class Input {
         const moved = Math.hypot(e.clientX - sx, e.clientY - sy);
         if (moved > DRAG_PX && drag) {
           // Drag arrow: go to the press point, face the cursor direction.
-          sink.orderFacing(this.selected, drag.x, drag.y, drag.facing);
+          sink.orderFacing(this.selected, drag.x, drag.y, drag.facing, e.shiftKey);
         } else {
           const [bx, by] = camera.screenToWorld(e.clientX * dpr(), e.clientY * dpr());
           const now = performance.now();

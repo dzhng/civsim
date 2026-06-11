@@ -8,6 +8,12 @@
 //   Team 1 mirrors as units 20-39 at y=+600 facing south.
 //   Maps are 2400x1600; east/west flanks sealed by river/crags/walls/cliffs.
 // All stages drive the sim with the synchronous advance() fast-forward.
+//
+// Default = QUICK: web-glue only (boot, zero-copy views, UI plumbing,
+// render health). Sim BEHAVIOR is the native suite's job (cargo test,
+// ~25s) — duplicating it here is what made verify time out. The heavy
+// behavioral stages live behind `npm run verify:full` for release passes.
+const FULL = process.argv.includes('--full');
 import { chromium } from 'playwright';
 import { mkdir } from 'node:fs/promises';
 
@@ -63,6 +69,7 @@ check('unit is in motion', mid4[3] > 0.3, `speed ${mid4[3].toFixed(2)} m/s`);
 check('cohesion responds to maneuver', mid4[4] < 0.998, `cohesion ${mid4[4].toFixed(3)}`);
 
 // --- Stage 2: cavalry mass plows through friendly infantry ------------------
+if (FULL) {
 // Shock cav (17) rides through the long-swords unit (9, loose order).
 const lsStart = await page.evaluate(() => window.__game.soldierStartOf(9));
 const sampleLS = () =>
@@ -101,7 +108,10 @@ if (lsInfo[4] < 0.8) {
   check('disordered unit shows order delay', true, `skipped: cohesion ${lsInfo[4].toFixed(2)} above threshold`);
 }
 
+} // end FULL stage 2-3
+
 // --- Stage 4: 180 pivot stays orderly ----------------------------------------
+if (FULL) {
 const h2 = await page.evaluate(() => window.__game.unitInfo(2));
 await page.evaluate(([x, y]) => {
   window.__game.setOrder(2, x, y - 250); // about-face: order is behind
@@ -164,6 +174,8 @@ check('melee inflicts casualties', redLosses + blueLosses > 30,
 check('melee is a grind, not annihilation', red[15] + blue[15] > 250,
   `${red[15]}/${red[7]} and ${blue[15]}/${blue[7]} still standing`);
 
+} // end FULL stages 4-6
+
 // --- Stage: cluster group-move (before/after for the vibes) ------------------
 // Select two adjacent main-line units AND the detached west cavalry wing,
 // then group-move to open ground: the line pair must keep its relative
@@ -211,6 +223,7 @@ await page.waitForTimeout(3000);
 const statsPre = await page.evaluate(() => window.__game.stats());
 
 // --- Stage 8: the AI fights a battle unattended ------------------------------
+if (FULL) {
 const page2 = await browser.newPage({ viewport: { width: 1280, height: 800 } });
 page2.on('pageerror', (e) => pageErrors.push('ai-page: ' + e.message));
 await page2.goto(TARGET + '?map=A'); // skip the menu; AI on by default
@@ -232,6 +245,7 @@ check('the AI fights', aiState.dead > 300, `${aiState.dead} casualties`);
 check('archers volley the attackers on their own', aiState.archerAmmo < 14400, `red archer ammo ${aiState.archerAmmo}`);
 await page2.screenshot({ path: SHOTS + 'ai-battle.png' });
 await page2.close();
+} // end FULL stage 8
 await page.bringToFront(); // background tabs throttle rAF: restore page 1
 
 // --- Health -------------------------------------------------------------------

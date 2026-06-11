@@ -19,7 +19,7 @@ const WEAPON_VIZ: [number, number][] = [
   [0.8, 1.0], [2.4, 0.3], [1.3, 1.4], [0.8, 1.0],
 ];
 
-export type BattleKind = '1v1' | '5v5' | 'charge-front' | 'charge-flank' | 'mapA' | 'mapB';
+export type BattleKind = 'duel' | '5v5' | 'mapA' | 'mapB';
 
 export interface BattleConfig {
   wasm: InitOutput;
@@ -29,6 +29,8 @@ export interface BattleConfig {
   onExit: () => void;
   /** Fresh battle of `kind` (Restart and the map/sandbox buttons). */
   onLaunch: (kind: BattleKind) => void;
+  /** Campaign battles: no restart, "Main Menu" reads "Continue". */
+  inCampaign?: boolean;
 }
 
 // One renderer for the page: programs/atlas/GL state are battle-independent;
@@ -286,6 +288,19 @@ export class BattleScene implements Scene {
 
     // --- Time control ------------------------------------------------------------
     let paused = false;
+    let ended = false;
+    const gameover = document.getElementById('gameover')!;
+    gameover.style.display = 'none';
+    const restartBtn = document.getElementById('gameover-restart')!;
+    restartBtn.style.display = this.cfg.inCampaign ? 'none' : 'block';
+    restartBtn.addEventListener('click', () => this.cfg.onLaunch(this.cfg.kind), { signal });
+    const menuBtn = document.getElementById('gameover-menu')!;
+    menuBtn.textContent = this.cfg.inCampaign ? 'Continue' : 'Main Menu';
+    menuBtn.addEventListener('click', () => this.cfg.onExit(), { signal });
+    document.getElementById('gameover-watch')!.addEventListener('click', () => {
+      gameover.style.display = 'none';
+      paused = false;
+    }, { signal });
     let timeScale = 1;
     let showPaths = false;
     window.addEventListener('keydown', (e) => {
@@ -623,7 +638,7 @@ export class BattleScene implements Scene {
     document.getElementById('btn-mapa')!.addEventListener('click', launch('mapA'), { signal });
     document.getElementById('btn-mapb')!.addEventListener('click', launch('mapB'), { signal });
     document.getElementById('btn-restart')!.addEventListener('click', launch(this.cfg.kind), { signal });
-    document.getElementById('btn-1v1')!.addEventListener('click', launch('1v1'), { signal });
+    document.getElementById('btn-duel')!.addEventListener('click', launch('duel'), { signal });
     document.getElementById('btn-5v5')!.addEventListener('click', launch('5v5'), { signal });
     document.getElementById('btn-exit')!.addEventListener('click', () => this.cfg.onExit(), { signal });
 
@@ -808,11 +823,19 @@ export class BattleScene implements Scene {
       }
       hud.innerHTML = lines.join('<br>') + bars;
 
+      // Game over: one side dead or wholly routing — pause and offer the
+      // exits. (The sim keeps existing so the field can still be watched.)
       const v = game.victor();
-      if (v >= 0) {
-        banner.style.display = 'block';
-        banner.textContent = v === 0 ? 'YOUR ARMY HOLDS THE FIELD' : 'THE ENEMY HOLDS THE FIELD';
-        banner.style.color = v === 0 ? '#6f9ae8' : '#e0604f';
+      if (v >= 0 && !ended) {
+        ended = true;
+        paused = true;
+        const win = v === 0;
+        document.getElementById('gameover-title')!.textContent = win ? 'VICTORY' : 'DEFEAT';
+        (document.getElementById('gameover-title') as HTMLElement).style.color = win ? '#6f9ae8' : '#e0604f';
+        document.getElementById('gameover-sub')!.textContent = win
+          ? 'The enemy army is broken. Your army holds the field.'
+          : 'Your army is broken. The enemy holds the field.';
+        gameover.style.display = 'flex';
       }
     }
 

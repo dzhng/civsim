@@ -103,6 +103,14 @@ impl Game {
         self.refresh_unit_info();
     }
 
+    /// Head-to-head testing bench: any class vs any class, by index into
+    /// the contract's ALL_CLASSES order.
+    pub fn start_duel(&mut self, a: u32, b: u32) {
+        let pick = |i: u32| contract::ALL_CLASSES[(i as usize).min(contract::ALL_CLASSES.len() - 1)];
+        sim::setup_duel(&mut self.battle.sim, pick(a), pick(b));
+        self.refresh_unit_info();
+    }
+
     /// Build terrain AND deploy both full armies.
     pub fn start_battle(&mut self, map: u32) {
         let id = if map == 0 { MapId::RiverAndCrags } else { MapId::WalledPlain };

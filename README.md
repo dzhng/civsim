@@ -36,10 +36,3 @@ cargo test -p sim
 # browser verification (needs dev server running)
 npm --prefix web run verify
 ```
-
-Controls: drag select · right-click move/attack (double-click = run) ·
-right-DRAG paint a line · shift+right-click withdraw · WASD pan · wheel zoom ·
-R run · F othismos/fence · C charge · G reform · H pursue · V fire-at-will ·
-P pause · 1/3 speed · hold Space for anchors/paths. Full mechanics: MANUAL.md
-(also in-game via the Manual button). `?map=B` for the meeting engagement;
-`?ai=off` disables the enemy commander.

@@ -7,7 +7,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "build:wasm": "wasm-pack build ../crates/game-wasm --target web --release --out-dir ../../web/src/wasm",
-    "verify": "node verify.mjs"
+    "verify": "node verify.mjs",
+    "verify:full": "node verify.mjs --full"
   },
   "devDependencies": {
     "playwright": "^1.60.0",

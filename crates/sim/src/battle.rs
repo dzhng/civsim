@@ -191,6 +191,28 @@ pub fn deploy_roster(sim: &mut Sim, dep: &contract::Deployment) -> Vec<(u64, usi
     out
 }
 
+/// Configurable head-to-head: one unit per side on an open field. The
+/// classes are the player's choice — this is the testing bench.
+pub fn setup_duel(sim: &mut Sim, a: UnitClassId, b: UnitClassId) {
+    use std::f32::consts::FRAC_PI_2;
+    let duel_count = |c: UnitClassId| -> usize {
+        use UnitClassId::*;
+        match c {
+            HeavyInfantry => 240,
+            LightInfantry => 220,
+            LongSwords => 140,
+            Phalanx => 240,
+            Archers => 140,
+            Skirmishers => 140,
+            ShockCavalry => 120,
+            HorseArchers => 100,
+            ArtilleryCrew => 40,
+        }
+    };
+    sim.spawn_class(Vec2::new(0.0, -90.0), FRAC_PI_2, duel_count(a), a, 0);
+    sim.spawn_class(Vec2::new(0.0, 90.0), -FRAC_PI_2, duel_count(b), b, 1);
+}
+
 /// Small open fields for quick vibe checks: 0 = 1v1 heavies,
 /// 1 = 5v5 mixed line, 2 = cavalry charge vs a wide line FACE-ON,
 /// 3 = the same charge into the line's FLANK (pure 1v1, nothing else).

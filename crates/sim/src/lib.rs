@@ -31,7 +31,7 @@ pub mod tunables;
 pub mod unit;
 
 pub use ai::ai_commander;
-pub use battle::{deploy_roster, setup_battle, setup_sandbox};
+pub use battle::{deploy_roster, setup_battle, setup_duel, setup_sandbox};
 pub use runner::Battle;
 pub use class::{class_stats, UnitClass, UnitClassId, Weapon};
 pub use grid::SpatialHash;

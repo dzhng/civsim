@@ -116,6 +116,30 @@
     #menu-ui button:hover:not(:disabled) { background: rgba(64,72,92,0.95); border-color: #6f7a96; }
     #menu-ui button:disabled { opacity: 0.4; cursor: default; }
     #menu-ui button small { color: #8a9099; float: right; font-size: 11px; line-height: 20px; }
+    #menu-ui .duel-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+    #menu-ui .duel-vs { color: #6b7280; font-size: 12px; }
+    #menu-ui select {
+      flex: 1; background: rgba(40,46,60,0.95); color: #cfd6e4; border: 1px solid #4a5268;
+      border-radius: 4px; padding: 6px 8px; font: inherit;
+    }
+    #menu-ui .duel-ai { display: block; color: #8a9099; font-size: 12px; margin: 0 0 8px 2px; cursor: pointer; }
+    #gameover {
+      display: none; position: absolute; inset: 0; z-index: 30;
+      background: rgba(8,10,14,0.55); align-items: center; justify-content: center;
+    }
+    #gameover .panel {
+      background: rgba(22,26,34,0.97); border: 1px solid #4a5268; border-radius: 10px;
+      padding: 28px 36px; text-align: center; min-width: 280px;
+    }
+    #gameover h2 { margin: 0 0 6px; font-size: 26px; letter-spacing: 4px; }
+    #gameover p { margin: 0 0 18px; color: #8a9099; font-size: 13px; }
+    #gameover button {
+      display: block; width: 100%; margin: 6px 0; padding: 9px 14px; cursor: pointer;
+      background: rgba(48,54,70,0.95); color: #cfd6e4; border: 1px solid #4a5268;
+      border-radius: 6px; font: inherit;
+    }
+    #gameover button:hover { background: rgba(64,72,92,0.95); border-color: #6f7a96; }
+    #gameover .watch { background: none; border: none; color: #6b7280; font-size: 12px; margin-top: 10px; }
   </style>
 </head>
 <body>
@@ -128,21 +152,37 @@
       <button id="menu-load-save">Load Save</button>
     </div>
     <div class="menu-section">
+      <h2>Duel Sandbox</h2>
+      <div class="duel-row">
+        <select id="duel-a"></select>
+        <span class="duel-vs">vs</span>
+        <select id="duel-b"></select>
+      </div>
+      <label class="duel-ai"><input type="checkbox" id="duel-ai"> enemy AI commander</label>
+      <button id="menu-duel">Fight</button>
+    </div>
+    <div class="menu-section">
       <h2>Quick Battle</h2>
-      <button data-battle="1v1">1v1</button>
       <button data-battle="5v5">5v5</button>
-      <button data-battle="charge-front">Charge: Front</button>
-      <button data-battle="charge-flank">Charge: Flank</button>
       <button data-battle="mapA">Map A: Ridge</button>
       <button data-battle="mapB">Map B: Meeting</button>
     </div>
   </div>
   <div id="battle-ui">
   <canvas id="battlefield"></canvas>
+  <div id="gameover">
+    <div class="panel">
+      <h2 id="gameover-title">VICTORY</h2>
+      <p id="gameover-sub"></p>
+      <button id="gameover-restart">Restart Battle</button>
+      <button id="gameover-menu">Main Menu</button>
+      <button class="watch" id="gameover-watch">keep watching the field</button>
+    </div>
+  </div>
   <div id="hud">loading wasm…</div>
   <div id="buttons">
     <button id="btn-manual">Manual</button>
-    <button id="btn-1v1">1v1</button>
+    <button id="btn-duel">Duel</button>
     <button id="btn-5v5">5v5</button>
     <button id="btn-mapa">Map A: Ridge</button>
     <button id="btn-mapb">Map B: Meeting</button>

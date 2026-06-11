@@ -188,6 +188,7 @@ impl Sim {
             reform_timer: 0.0,
             pursue: false,
             threat_bearing: None,
+            hold_facing: false,
         };
         for s in 0..count {
             let p = unit.slot_world(s);
@@ -316,6 +317,20 @@ impl Sim {
         }
         let anchor = self.units[enemy].anchor;
         self.queue_order(unit, OrderMode::Attack(enemy as u32), anchor);
+    }
+
+    /// Back-pedal / strafe to the target without turning: slower than a
+    /// march, walking pace only — the controlled way to give ground with
+    /// shields still facing the enemy. Mounted units can't moonwalk: for
+    /// them this is an ordinary move (they wheel and break off).
+    pub fn set_reverse_move_order(&mut self, unit: usize, target: Vec2) {
+        self.queue_order(unit, OrderMode::Move, target);
+        if let Some(u) = self.units.get_mut(unit) {
+            if !u.is_mounted() {
+                u.hold_facing = true;
+                u.pace = Pace::Walk;
+            }
+        }
     }
 
     /// Move order that also pivots to a final facing on arrival
@@ -470,7 +485,10 @@ impl Sim {
                 continue;
             }
             // --- path planning ------------------------------------------
-            if let Some(goal) = self.units[ui].move_target {
+            if self.units[ui].hold_facing {
+                self.units[ui].path.clear();
+                self.units[ui].path_idx = 0;
+            } else if let Some(goal) = self.units[ui].move_target {
                 let stale = self.units[ui]
                     .path
                     .last()

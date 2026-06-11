@@ -206,6 +206,11 @@ impl Game {
         self.refresh_unit_info();
     }
 
+    pub fn set_reverse_move_order(&mut self, unit: u32, x: f32, y: f32) {
+        self.sim.set_reverse_move_order(unit as usize, Vec2::new(x, y));
+        self.refresh_unit_info();
+    }
+
     pub fn set_reform(&mut self, unit: u32) {
         self.sim.set_reform(unit as usize);
         self.refresh_unit_info();

@@ -130,6 +130,9 @@ pub struct Unit {
     /// Bearing of the nearest enemy mass within threat range (refreshed each
     /// tick) — foot units keep their face to it while maneuvering nearby.
     pub threat_bearing: Option<f32>,
+    /// Reverse-move order: drift to the target WITHOUT turning (back-pedal /
+    /// strafe at a penalty, walk only). Foot classes only; horses wheel.
+    pub hold_facing: bool,
 }
 
 /// Sector index for a world-frame bearing, 12 sectors over (-PI, PI].

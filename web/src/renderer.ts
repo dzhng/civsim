@@ -95,34 +95,45 @@ void main() {
   float n = n1 * 0.7 + n2 * 0.3;
 
   vec3 col;
-  if (tint < 0.5) {            // grass
-    col = mix(vec3(0.318, 0.376, 0.225), vec3(0.404, 0.451, 0.255), n);
-    col *= 0.92 + 0.08 * noise(v_world * 1.7);
-  } else if (tint < 1.5) {     // water
+  if (tint < 0.5) {            // sunny meadow
+    col = mix(vec3(0.435, 0.561, 0.290), vec3(0.545, 0.682, 0.333), n);
+    col *= 0.94 + 0.06 * noise(v_world * 1.7);
+    // Wildflower speckles, because a battlefield was a meadow yesterday.
+    float fl = noise(v_world * 2.9 + 7.3);
+    if (fl > 0.935) {
+      float pick = hash(floor(v_world * 2.9 + 7.3));
+      vec3 flower = pick > 0.66 ? vec3(0.95, 0.62, 0.78)
+                  : pick > 0.33 ? vec3(0.98, 0.95, 0.85)
+                  : vec3(0.99, 0.83, 0.38);
+      col = mix(col, flower, smoothstep(0.935, 0.97, fl));
+    }
+  } else if (tint < 1.5) {     // bright water
     float w = noise(v_world * 0.22 + vec2(u_time * 0.25, u_time * 0.18));
-    col = mix(vec3(0.16, 0.27, 0.38), vec3(0.23, 0.37, 0.47), w);
-    col += 0.06 * smoothstep(0.72, 0.95, noise(v_world * 0.5 + vec2(-u_time * 0.3, 0.0)));
-  } else if (tint < 2.5) {     // rock / crags
+    col = mix(vec3(0.235, 0.455, 0.604), vec3(0.337, 0.580, 0.722), w);
+    // Sun glitter drifting downstream.
+    float sp = noise(v_world * 0.9 + vec2(-u_time * 0.7, u_time * 0.2));
+    col += vec3(0.35) * smoothstep(0.88, 0.97, sp);
+  } else if (tint < 2.5) {     // crags
     float ridge = abs(noise(v_world * 0.18) - 0.5) * 2.0;
-    col = mix(vec3(0.34, 0.33, 0.31), vec3(0.55, 0.53, 0.50), ridge);
-    col *= 0.85 + 0.15 * n2;
-  } else if (tint < 3.5) {     // city wall
+    col = mix(vec3(0.45, 0.43, 0.41), vec3(0.68, 0.65, 0.61), ridge);
+    col *= 0.88 + 0.12 * n2;
+  } else if (tint < 3.5) {     // sandstone city wall
     vec2 brick = fract(v_world * vec2(0.24, 0.5));
     float mortar = step(0.92, brick.x) + step(0.9, brick.y);
-    col = mix(vec3(0.52, 0.46, 0.40), vec3(0.40, 0.35, 0.31), clamp(mortar, 0.0, 1.0));
-    col *= 0.9 + 0.1 * n2;
+    col = mix(vec3(0.72, 0.62, 0.48), vec3(0.55, 0.47, 0.37), clamp(mortar, 0.0, 1.0));
+    col *= 0.92 + 0.08 * n2;
   } else if (tint < 4.5) {     // forest floor
-    col = mix(vec3(0.20, 0.28, 0.16), vec3(0.26, 0.34, 0.19), n);
-  } else if (tint < 5.5) {     // mud / marsh
-    col = mix(vec3(0.30, 0.26, 0.19), vec3(0.38, 0.33, 0.23), n);
-    col += 0.04 * smoothstep(0.6, 0.9, noise(v_world * 0.33));
-  } else {                     // scree / tilled field
-    col = mix(vec3(0.42, 0.39, 0.30), vec3(0.50, 0.46, 0.34), n2);
+    col = mix(vec3(0.290, 0.420, 0.235), vec3(0.365, 0.490, 0.270), n);
+  } else if (tint < 5.5) {     // warm marsh / mud
+    col = mix(vec3(0.42, 0.35, 0.24), vec3(0.52, 0.44, 0.30), n);
+    col += 0.05 * smoothstep(0.6, 0.9, noise(v_world * 0.33));
+  } else {                     // golden field / scree
+    col = mix(vec3(0.60, 0.55, 0.38), vec3(0.70, 0.64, 0.44), n2);
   }
 
-  col *= 0.88 + 0.12 * t.r;    // slow ground reads darker, honestly
+  col *= 0.90 + 0.10 * t.r;    // slow ground reads darker, honestly
   vec2 e = abs(v_uv - 0.5) * 2.0;
-  col *= 1.0 - 0.18 * pow(max(e.x, e.y), 4.0);
+  col *= 1.0 - 0.12 * pow(max(e.x, e.y), 4.0);
   o = vec4(col, 1.0);
 }`;
 
@@ -142,6 +153,23 @@ precision mediump float;
 in vec3 v_color;
 out vec4 o;
 void main() { o = vec4(v_color, 0.9); }`;
+
+const TRI_VS = `#version 300 es
+layout(location=0) in vec2 a_pos;
+layout(location=1) in vec4 a_color;
+uniform vec4 u_cam;
+out vec4 v_color;
+void main() {
+  vec2 clip = (a_pos - u_cam.zw) * u_cam.xy;
+  gl_Position = vec4(clip, 0.0, 1.0);
+  v_color = a_color;
+}`;
+
+const TRI_FS = `#version 300 es
+precision mediump float;
+in vec4 v_color;
+out vec4 o;
+void main() { o = v_color; }`;
 
 // ---------------------------------------------------------------- helpers --
 
@@ -193,6 +221,9 @@ export class Renderer {
 
   private lineVao: WebGLVertexArrayObject;
   private lineBuf: WebGLBuffer;
+  private tri: WebGLProgram;
+  private triVao: WebGLVertexArrayObject;
+  private triBuf: WebGLBuffer;
 
   readonly atlasCanvas: HTMLCanvasElement;
   private soldierRowOf: (cls: number, team: number) => number;
@@ -248,6 +279,17 @@ export class Renderer {
     gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 20, 0);
     gl.enableVertexAttribArray(1);
     gl.vertexAttribPointer(1, 3, gl.FLOAT, false, 20, 8);
+    gl.bindVertexArray(null);
+
+    this.tri = compile(gl, TRI_VS, TRI_FS);
+    this.triVao = gl.createVertexArray()!;
+    this.triBuf = gl.createBuffer()!;
+    gl.bindVertexArray(this.triVao);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.triBuf);
+    gl.enableVertexAttribArray(0);
+    gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 24, 0);
+    gl.enableVertexAttribArray(1);
+    gl.vertexAttribPointer(1, 4, gl.FLOAT, false, 24, 8);
     gl.bindVertexArray(null);
 
     gl.enable(gl.BLEND);
@@ -460,6 +502,20 @@ export class Renderer {
       gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, n);
       gl.bindVertexArray(null);
     }
+  }
+
+  /** Filled translucent triangles in world space (attack arcs, etc). */
+  drawTris(verts: Float32Array, camera: Camera) {
+    if (verts.length === 0) return;
+    const gl = this.gl;
+    const cam = camera.uniform();
+    gl.useProgram(this.tri);
+    gl.uniform4f(gl.getUniformLocation(this.tri, 'u_cam'), cam[0], cam[1], cam[2], cam[3]);
+    gl.bindVertexArray(this.triVao);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.triBuf);
+    gl.bufferData(gl.ARRAY_BUFFER, verts, gl.DYNAMIC_DRAW);
+    gl.drawArrays(gl.TRIANGLES, 0, verts.length / 6);
+    gl.bindVertexArray(null);
   }
 
   drawOverlay(verts: Float32Array, camera: Camera) {

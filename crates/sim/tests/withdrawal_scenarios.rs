@@ -97,3 +97,53 @@ fn cavalry_breaks_off_by_wheeling_not_reversing() {
         sim.units[cav].anchor
     );
 }
+
+#[test]
+fn reverse_move_backs_up_holding_facing_at_a_penalty() {
+    // No enemy at all: the facing held is the facing the unit started with.
+    let mut sim = Sim::new(no_morale(), SEED);
+    let u = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 200, UnitClassId::HeavyInfantry, 0);
+    sim.set_reverse_move_order(u, Vec2::new(0.0, -40.0));
+    let mut t_rev = 0.0;
+    let mut worst_face = 0.0f32;
+    while (sim.units[u].anchor - Vec2::new(0.0, -40.0)).len() > 3.0 && t_rev < 120.0 {
+        sim.tick();
+        t_rev += DT;
+        worst_face = worst_face.max(sim::wrap_angle(sim.units[u].facing - FRAC_PI_2).abs());
+    }
+    assert!(t_rev < 100.0, "the reverse move must arrive");
+    assert!(
+        worst_face < 0.25,
+        "reversing never turns the unit: deviation {worst_face:.2} rad"
+    );
+    // And it is slower than marching the same leg forward.
+    let mut sim2 = Sim::new(no_morale(), SEED);
+    let v = sim2.spawn_class(Vec2::new(0.0, 0.0), -FRAC_PI_2, 200, UnitClassId::HeavyInfantry, 0);
+    sim2.set_move_order(v, Vec2::new(0.0, -40.0));
+    let mut t_fwd = 0.0;
+    while (sim2.units[v].anchor - Vec2::new(0.0, -40.0)).len() > 3.0 && t_fwd < 120.0 {
+        sim2.tick();
+        t_fwd += DT;
+    }
+    assert!(
+        t_rev > t_fwd * 1.25,
+        "back-pedaling costs speed: reverse {t_rev:.0}s vs forward {t_fwd:.0}s"
+    );
+}
+
+#[test]
+fn reverse_move_ignores_run_pace() {
+    let mut sim = Sim::new(no_morale(), SEED);
+    let u = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 200, UnitClassId::HeavyInfantry, 0);
+    sim.set_pace(u, sim::Pace::Run);
+    sim.set_reverse_move_order(u, Vec2::new(0.0, -40.0));
+    let mut top_speed = 0.0f32;
+    for _ in 0..(60.0 / DT) as usize {
+        sim.tick();
+        top_speed = top_speed.max(sim.units[u].speed);
+    }
+    assert!(
+        top_speed < 1.6,
+        "you cannot sprint backwards: top speed {top_speed:.2} m/s"
+    );
+}

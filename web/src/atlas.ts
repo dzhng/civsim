@@ -14,8 +14,8 @@ const BANNER_COL = 4;
 const ROCK_COL = 3;
 
 const TEAM: [string, string][] = [
-  ['#a23b32', '#d96a52'], // red: base, accent
-  ['#2f4d8a', '#5b82c9'], // blue
+  ['#c8403a', '#f2806a'], // red: base, accent (warm crimson)
+  ['#3868c8', '#7aa6f0'], // blue: base, accent (bright azure)
 ];
 
 // Per-class look: [skin/armor tone, helmet style, shield, weapon]
@@ -117,6 +117,12 @@ function drawSoldier(g: CanvasRenderingContext2D, ox: number, oy: number, look: 
   const wob = walkA ? 1.2 : walkB ? -1.2 : 0;
   const bodyY = look.mounted ? -2 : 0;
 
+  // Cartoon outline: a dark rim a touch larger than the body.
+  g.fillStyle = 'rgba(20, 16, 12, 0.85)';
+  g.beginPath();
+  g.ellipse(0, bodyY, 10.2, 8.6, 0, 0, 7);
+  g.fill();
+
   // Limbs hint (walking only, foot troops).
   if (!look.mounted && (walkA || walkB)) {
     g.strokeStyle = '#4a4138';
@@ -206,6 +212,18 @@ function drawSoldier(g: CanvasRenderingContext2D, ox: number, oy: number, look: 
     g.stroke();
   }
 
+  // Facing wedge: a bright chevron at the front of the body — the unit's
+  // direction must read at a glance even at distance.
+  if (!dead) {
+    g.fillStyle = '#fff3d0';
+    g.beginPath();
+    g.moveTo(11, bodyY);
+    g.lineTo(6, bodyY - 3.4);
+    g.lineTo(6, bodyY + 3.4);
+    g.closePath();
+    g.fill();
+  }
+
   // Head + helmet.
   g.fillStyle = '#caa27c';
   g.beginPath();
@@ -279,7 +297,7 @@ function drawTree(g: CanvasRenderingContext2D, ox: number, oy: number, variant: 
   g.beginPath();
   g.ellipse(3, 4, 16, 12, 0, 0, 7);
   g.fill();
-  const greens = ['#2e4a26', '#37552c', '#2a4430'];
+  const greens = ['#3f7a33', '#4c8c3a', '#357044'];
   const r = 15 + variant * 2;
   for (let k = 0; k < 7; k++) {
     const a = (k / 7) * Math.PI * 2 + variant;
@@ -288,7 +306,7 @@ function drawTree(g: CanvasRenderingContext2D, ox: number, oy: number, variant: 
     g.ellipse(Math.cos(a) * r * 0.45, Math.sin(a) * r * 0.45, r * 0.6, r * 0.6, 0, 0, 7);
     g.fill();
   }
-  g.fillStyle = '#456b35';
+  g.fillStyle = '#63a648';
   g.beginPath();
   g.ellipse(-2, -2, r * 0.5, r * 0.5, 0, 0, 7);
   g.fill();

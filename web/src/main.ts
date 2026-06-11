@@ -12,9 +12,14 @@ const BATTLE_SEED = 0x5eed_c0de;
 const MAP = params.get('map') === 'B' ? 1 : 0;
 const AI_ON = params.get('ai') !== 'off';
 
-// Class table mirror (depth, lateral spacing) — must match class.rs.
+// Class table mirrors — must match class.rs.
 const CLASS_DEPTH = [8, 6, 4, 10, 4, 4, 5, 5, 4];
 const CLASS_SPACING = [0.9, 1.0, 1.5, 0.8, 1.2, 1.6, 1.8, 2.2, 2.0];
+// Primary weapon (reach, arc) for the attack-arc display.
+const WEAPON_VIZ: [number, number][] = [
+  [1.1, 1.4], [1.6, 0.6], [1.8, 2.4], [3.2, 0.22], [0.8, 1.0],
+  [0.8, 1.0], [2.4, 0.3], [1.3, 1.4], [0.8, 1.0],
+];
 
 const wasm = await init();
 const game = new Game(BATTLE_SEED);
@@ -158,7 +163,7 @@ const input = new Input(canvas, camera, {
     return out;
   },
   pickUnit: (x, y) => game.pick_unit(x, y, 30),
-  orderPoint: (units, x, y, shift, double) => {
+  orderPoint: (units, x, y, shift, double, alt) => {
     const sel = myUnits(units);
     if (sel.length === 0) return;
     const info = unitInfo();
@@ -182,6 +187,7 @@ const input = new Input(canvas, camera, {
         const tx = x + (cx - mx);
         const ty = y + (cy - my);
         if (shift) game.set_withdraw_order(u, tx, ty);
+        else if (alt) game.set_reverse_move_order(u, tx, ty);
         else game.set_move_order(u, tx, ty);
       }
     }
@@ -420,6 +426,45 @@ function frame(now: number) {
     }
   }
   renderer.draw(positions(), facings(), frames, aliveF32, game.soldier_count(), camera, primary, bannerList);
+  // Attack arcs: every soldier mid-swing flashes his weapon's true envelope
+  // (reach x arc) — readable combat, straight from the class table.
+  if (camera.zoom > 2.5) {
+    const tris: number[] = [];
+    const pos = positions();
+    const face = facings();
+    const soldierUnit = new Uint32Array(wasm.memory.buffer, game.soldier_unit_ptr(), game.soldier_count());
+    const info = unitInfo();
+    const [wx0, wy1] = camera.screenToWorld(0, 0);
+    const [wx1, wy0] = camera.screenToWorld(canvas.width, canvas.height);
+    let budget = 900;
+    for (let i = 0; i < game.soldier_count() && budget > 0; i++) {
+      if (frames[i] !== 3) continue;
+      const x = pos[2 * i];
+      const y = pos[2 * i + 1];
+      if (x < wx0 || x > wx1 || y < wy0 || y > wy1) continue;
+      const u = soldierUnit[i];
+      const cls = info[u * STRIDE + 13];
+      const [reach, arc] = WEAPON_VIZ[cls] ?? [1.0, 1.0];
+      const team = info[u * STRIDE + 6];
+      const [r, g, b] = team === 0 ? [1.0, 0.72, 0.35] : [0.55, 0.85, 1.0];
+      const a = 0.26;
+      const half = Math.max(arc, 0.18) / 2;
+      const segs = arc > 1.2 ? 5 : 3;
+      const f0 = face[i];
+      const R = reach + 0.45; // surface-to-surface reach + a body radius
+      for (let s = 0; s < segs; s++) {
+        const a0 = f0 - half + (s / segs) * arc;
+        const a1 = f0 - half + ((s + 1) / segs) * arc;
+        tris.push(
+          x, y, r, g, b, a,
+          x + Math.cos(a0) * R, y + Math.sin(a0) * R, r, g, b, 0.04,
+          x + Math.cos(a1) * R, y + Math.sin(a1) * R, r, g, b, 0.04,
+        );
+      }
+      budget--;
+    }
+    if (tris.length) renderer.drawTris(new Float32Array(tris), camera);
+  }
   renderer.drawOverlay(overlayVerts(showPaths), camera);
 
   // DOM selection rectangle.

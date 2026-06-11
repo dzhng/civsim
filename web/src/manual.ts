@@ -16,12 +16,21 @@ physically stops horseflesh.</em></p>
 <tr><td>right-click enemy</td><td>attack (latch onto that unit)</td></tr>
 <tr><td>right-DRAG ground</td><td>paint a line: units form along it, facing outward, keeping class depth</td></tr>
 <tr><td>shift + right-click</td><td>withdraw (no reflexes, no attacks — just go)</td></tr>
+<tr><td>alt + right-click</td><td>reverse move: back-pedal/strafe there WITHOUT turning (foot only, walk-speed, slower than a march — horses wheel instead)</td></tr>
 <tr><td>R / F / C</td><td>walk-run / othismos-fence / charge setting</td></tr>
 <tr><td>G / H / V</td><td>reform / hold-pursue / fire-at-will</td></tr>
 <tr><td>P, 1, 3</td><td>pause, 1x, 3x speed</td></tr>
 <tr><td>hold Space</td><td>show anchors, paths, latch targets</td></tr>
 <tr><td>WASD / arrows</td><td>pan camera; wheel zooms</td></tr>
 </table>
+
+<h2>Reading the field</h2>
+<p>Every soldier's sprite points his true facing (bright chevron at his
+front, shield on his left). A soldier mid-swing flashes his weapon's
+<b>actual arc and reach</b> as a translucent wedge — pikes show needle
+thrusts, long swords show great fans. What you see is what the combat
+geometry computes. The minimap (bottom right) shows the whole field;
+click it to jump the camera.</p>
 
 <h2>The anchor (your intent, embodied)</h2>
 <p>Each unit has an <b>anchor</b> — an ideal formation frame, the "officer at

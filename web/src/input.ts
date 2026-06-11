@@ -5,7 +5,7 @@ export interface OrderSink {
   unitsInRect(x0: number, y0: number, x1: number, y1: number): number[];
   pickUnit(x: number, y: number): number;
   /** Point order for the selection (move/attack/withdraw + run on double). */
-  orderPoint(units: number[], x: number, y: number, shift: boolean, double: boolean): void;
+  orderPoint(units: number[], x: number, y: number, shift: boolean, double: boolean, alt: boolean): void;
   /** Line-paint order: form along the segment, facing perpendicular. */
   orderLine(units: number[], x0: number, y0: number, x1: number, y1: number): void;
   togglePace(units: number[]): void;
@@ -74,7 +74,7 @@ export class Input {
           const now = performance.now();
           const double = now - lastRightUp < 350;
           lastRightUp = now;
-          sink.orderPoint(this.selected, bx, by, e.shiftKey, double);
+          sink.orderPoint(this.selected, bx, by, e.shiftKey, double, e.altKey);
         }
       }
     });

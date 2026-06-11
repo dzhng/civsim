@@ -20,6 +20,19 @@ pub struct Battle {
 }
 
 impl Battle {
+    /// Wrap a bare sim (quick battles / sandboxes): no schedule, no campaign
+    /// unit mapping — `result()` is meaningless, `victor` comes from the sim.
+    pub fn from_sim(sim: Sim) -> Battle {
+        Battle { sim, scheduled: Vec::new(), unit_map: Vec::new(), ai_teams: [false, false] }
+    }
+
+    /// Result with the victor forced by remaining strength — for battles cut
+    /// short (player quit, tick cap) before the sim declared one.
+    pub fn forced_result(&self) -> BattleResult {
+        let v = if self.strength(0) >= self.strength(1) { 0 } else { 1 };
+        self.result_with_victor(v)
+    }
+
     pub fn from_setup(setup: &BattleSetup) -> Battle {
         let mut sim = Sim::new(Tunables::default(), setup.seed);
         sim.terrain = Terrain::from_spec(&setup.terrain);

@@ -1,4 +1,4 @@
-import { Game, type InitOutput } from '../wasm/sim_wasm.js';
+import { Game, type InitOutput } from '../wasm/game_wasm.js';
 import type { Scene } from '../scene';
 import { Camera } from '../shared/camera';
 import { pushGhost, pushPie, pushRing } from '../shared/overlays';

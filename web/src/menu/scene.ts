@@ -3,10 +3,10 @@ import type { BattleKind } from '../battle/scene';
 
 export interface MenuConfig {
   onQuickBattle: (kind: BattleKind) => void;
-  // CAMPAIGN HOOK: when the campaign scene lands, add
-  //   onNewCampaign: () => void;
-  // wire it to #menu-new-campaign below, and drop the `disabled` attribute
-  // from the button in index.html.
+  onNewCampaign: () => void;
+  /** Load the named save slot; absent slot disables the button. */
+  onLoadCampaign: () => void;
+  hasSave: () => boolean;
 }
 
 /** Boot scene: plain DOM over a dark backdrop, no GL. Markup lives in #menu-ui. */
@@ -23,6 +23,11 @@ export class MenuScene implements Scene {
     this.root.querySelectorAll<HTMLButtonElement>('button[data-battle]').forEach((b) => {
       b.addEventListener('click', () => this.cfg.onQuickBattle(b.dataset.battle as BattleKind), { signal });
     });
+    const nc = this.root.querySelector<HTMLButtonElement>('#menu-new-campaign')!;
+    nc.addEventListener('click', () => this.cfg.onNewCampaign(), { signal });
+    const ls = this.root.querySelector<HTMLButtonElement>('#menu-load-save')!;
+    ls.disabled = !this.cfg.hasSave();
+    ls.addEventListener('click', () => this.cfg.onLoadCampaign(), { signal });
   }
 
   exit() {

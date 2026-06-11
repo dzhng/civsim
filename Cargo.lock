@@ -92,6 +92,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "game-wasm"
+version = "0.1.0"
+dependencies = [
+ "campaign",
+ "contract",
+ "serde_json",
+ "sim",
+ "wasm-bindgen",
+]
+
+[[package]]
 name = "itoa"
 version = "1.0.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -221,14 +232,6 @@ version = "0.1.0"
 dependencies = [
  "contract",
  "serde_json",
-]
-
-[[package]]
-name = "sim-wasm"
-version = "0.1.0"
-dependencies = [
- "sim",
- "wasm-bindgen",
 ]
 
 [[package]]

@@ -1,5 +1,5 @@
 [workspace]
-members = ["crates/contract", "crates/sim", "crates/sim-wasm", "crates/mapgen", "crates/campaign"]
+members = ["crates/contract", "crates/sim", "crates/game-wasm", "crates/mapgen", "crates/campaign"]
 resolver = "2"
 
 [profile.release]

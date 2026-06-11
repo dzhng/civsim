@@ -250,11 +250,13 @@ fn heavy_infantry_charge_carries_a_stride_not_a_gallop() {
         sim.set_pace(atk, sim::Pace::Run);
         sim.set_attack_order(atk, inf);
         let mut contact_speed = -1.0f32;
+        let mut prev_speed = 0.0f32;
         for _ in 0..(30.0 / DT) as usize {
             sim.tick();
             if contact_speed < 0.0 && sim.units[atk].engaged > 5 {
-                contact_speed = sim.units[atk].speed;
+                contact_speed = prev_speed; // the tick BEFORE the pin
             }
+            prev_speed = sim.units[atk].speed;
         }
         contact_speed.max(0.0)
     };

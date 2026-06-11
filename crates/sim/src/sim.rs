@@ -491,7 +491,14 @@ impl Sim {
 
         for u in &mut self.units {
             let ground = self.terrain.speed_at(u.anchor).max(0.15);
+            let a0 = u.anchor;
             update_unit_motion(&tun, u, dt, ground);
+            // u.speed is a MEASUREMENT of the frame's true motion (the
+            // anchor law below may pin it against the men): bracing,
+            // charge windows, and mobile-fire gates all read reality.
+            if !u.pivoting {
+                u.speed = (u.anchor - a0).len() / dt;
+            }
         }
 
         // A halted frame with slots on impassable ground slides itself clear:
@@ -547,7 +554,7 @@ impl Sim {
         self.apply_separation();
         self.run_combat();
         self.run_missiles();
-        self.contact_anchor_and_facing(&measures, dt);
+        self.contact_facing(&measures, dt);
         self.integrate_units(&measures, dt);
         self.run_morale(dt);
 
@@ -756,9 +763,16 @@ impl Sim {
             self.units[ui].charging = false;
             if let OrderMode::Attack(e) = mode {
                 let e = e as usize;
+                // The chase point sits BEYOND the enemy mass, along the line
+                // between the two masses: a press is a direction, not a
+                // destination — you never arrive at it, never overshoot it,
+                // and the leash decides how deep the frame actually gets.
                 let (enemy_dead, enemy_anchor) = {
                     let ev = &self.units[e];
-                    (ev.alive_count == 0, ev.anchor)
+                    let me = self.units[ui].centroid;
+                    let through = ev.centroid - me;
+                    let l = through.len().max(0.5);
+                    (ev.alive_count == 0, ev.centroid + through * (8.0 / l))
                 };
                 let enemy_routing = self.units[e].routing;
                 let u = &mut self.units[ui];
@@ -793,7 +807,10 @@ impl Sim {
                     // Hold ground when they break, unless told to chase.
                     u.mode = OrderMode::Move;
                     u.move_target = u.resume_target.take();
-                } else if engaged_frac < 0.05 {
+                } else {
+                    // The latch keeps the order LIVE through the fight: the
+                    // frame always pursues the enemy anchor and the leash
+                    // (anchor law) decides how deep it actually presses.
                     u.move_target = Some(enemy_anchor);
                     if u.charge_enabled {
                         let charge_sp = (self.tun.base_speed
@@ -834,9 +851,7 @@ impl Sim {
                         // driving the anchor (facing threats, drifting);
                         // a unit without one stands and fights where it is.
                     }
-                    OrderMode::Attack(_) => {
-                        u.move_target = None;
-                    }
+                    OrderMode::Attack(_) => {}
                     OrderMode::Disengage => {}
                 }
             } else if engaged_frac <= 0.01 {
@@ -877,9 +892,9 @@ impl Sim {
     }
 
     /// Per-soldier steering and measurement. Returns per-unit measures:
-    /// (err_sum, stragglers, surging, effort, engaged, drift_sum, face_dev, alive_n, cx, cy)
+    /// (err_sum, stragglers, surging, effort, engaged, face_dev, alive_n, cx, cy)
     #[allow(clippy::type_complexity)]
-    fn steer_soldiers(&mut self, dt: f32) -> Vec<(f32, usize, usize, f32, usize, f32, f32, usize, f32, f32)> {
+    fn steer_soldiers(&mut self, dt: f32) -> Vec<(f32, usize, usize, f32, usize, f32, usize, f32, f32)> {
         let tun = self.tun;
         let Sim {
             units,
@@ -946,7 +961,6 @@ impl Sim {
             let mut surging = 0usize;
             let mut effort = 0.0f32;
             let mut engaged = 0usize;
-            let mut drift_sum = 0.0f32;
             let mut face_dev = 0.0f32;
             let mut alive_n = 0usize;
             let mut cx = 0.0f32;
@@ -962,24 +976,11 @@ impl Sim {
                 cx += p.x;
                 cy += p.y;
 
-                if stun[i] > 0.0 {
-                    stun[i] -= dt;
-                    // Stunned men can't STEP — but a body carrying momentum
-                    // still travels (the glide decays below regardless).
-                    if mom_x[i] != 0.0 || mom_y[i] != 0.0 {
-                        let v = 1.0 / mass[i].max(0.2);
-                        positions[2 * i] += mom_x[i] * v * dt;
-                        positions[2 * i + 1] += mom_y[i] * v * dt;
-                        let decay = 1.0 - (dt / 0.8);
-                        mom_x[i] *= decay;
-                        mom_y[i] *= decay;
-                    }
-                    continue; // knocked down: no stepping, no turning
-                }
-                // Carried impact momentum: the body keeps moving through the
-                // crowd, the crowd pushes back (separation), and the reserve
-                // drains away in about a second. p = m·v, so the same charge
-                // carries a horse four times as far as a man.
+                // BODY, part 1 — carried momentum (p = m·v) moves the body
+                // regardless of will: armed by impacts and by being struck
+                // at speed, spent against the crowd, gone in ~a second.
+                // The same law gives charges their punch, staggered men
+                // their stumble-through, and fleeing men their escape.
                 if mom_x[i] != 0.0 || mom_y[i] != 0.0 {
                     let v = 1.0 / mass[i].max(0.2);
                     positions[2 * i] += mom_x[i] * v * dt;
@@ -991,6 +992,10 @@ impl Sim {
                         mom_x[i] = 0.0;
                         mom_y[i] = 0.0;
                     }
+                }
+                if stun[i] > 0.0 {
+                    stun[i] -= dt; // staggered: no will, body coasts above
+                    continue;
                 }
 
                 if u.routing {
@@ -1010,9 +1015,6 @@ impl Sim {
                 let engaged_i = fighting[i] == 1 && aware_i;
                 if engaged_i {
                     engaged += 1;
-                    let dx = p.x - prev_positions[2 * i];
-                    let dy = p.y - prev_positions[2 * i + 1];
-                    drift_sum += dx * f.x + dy * f.y;
                 }
 
                 let local = slot_local(soldier_slot[i] as usize, u.files_eff, u.spacing);
@@ -1128,7 +1130,7 @@ impl Sim {
                 facings[i] = rotate_toward(facings[i], desired_face, tun.soldier_turn_rate * dt);
                 face_dev += (wrap_angle(facings[i] - u.facing).abs() - tun.facing_tolerance).max(0.0);
             }
-            measures.push((err_sum, stragglers, surging, effort, engaged, drift_sum, face_dev, alive_n, cx, cy));
+            measures.push((err_sum, stragglers, surging, effort, engaged, face_dev, alive_n, cx, cy));
         }
         measures
     }
@@ -1136,9 +1138,11 @@ impl Sim {
     /// In contact: the anchor tracks the measured front (plus a small lean
     /// when ordered to press), and unit facing follows the threat-weighted
     /// circular mean of contact bearings, masked by adjacent friendlies.
-    fn contact_anchor_and_facing(
+    /// Contact FACING only — the anchor itself answers to one law (see
+    /// `clamp_anchor_to_men`): it pursues the order, leashed to the men.
+    fn contact_facing(
         &mut self,
-        measures: &[(f32, usize, usize, f32, usize, f32, f32, usize, f32, f32)],
+        measures: &[(f32, usize, usize, f32, usize, f32, usize, f32, f32)],
         dt: f32,
     ) {
         let tun = self.tun;
@@ -1150,77 +1154,15 @@ impl Sim {
             .collect();
 
         for ui in 0..self.units.len() {
-            let (_, _, _, _, engaged, drift_sum, _f, alive_n, _, _) = measures[ui];
+            let (_, _, _, _, engaged, _f, alive_n, _, _) = measures[ui];
             let alive_n = alive_n.max(1);
             let engaged_frac = engaged as f32 / alive_n as f32;
-            // Withdrawing and skirmishing units answer contact with their
-            // legs: their anchor obeys the path, not the fight.
-            // A Move order pointing INTO the contact presses (contact owns
-            // the anchor, stance decides the lean); one pointing away or
-            // sideways drifts out under the motion controller instead.
-            let drifting_out = {
-                let u = &self.units[ui];
-                u.mode == OrderMode::Move
-                    && match (u.move_target, u.threat_bearing) {
-                        (Some(t), Some(threat)) => {
-                            let to = t - u.anchor;
-                            wrap_angle(to.y.atan2(to.x) - threat).abs() > 1.35
-                        }
-                        (Some(_), None) => true,
-                        _ => false,
-                    }
-            };
             if engaged_frac <= 0.06
                 || self.units[ui].mode == OrderMode::Disengage
                 || self.units[ui].evade_auto
-                || drifting_out
             {
                 continue;
             }
-
-            // --- anchor tracks the engaged front --------------------------
-            // The lean is the stance: Othismos presses the formation's weight
-            // into the contact line (rear ranks pile on, pressure transmits,
-            // the enemy gets walked back — at the cost of the front rank's
-            // room). Fence fights at weapon's length.
-            // Othismos presses whenever the ORDER pushes into the fight —
-            // an explicit attack, or a move whose path runs through the
-            // enemy. Fence never leans; a stationary defender never leans.
-            let press_intent = self.units[ui].stance == crate::unit::Stance::Othismos
-                && (matches!(self.units[ui].mode, OrderMode::Attack(_))
-                    || (self.units[ui].mode == OrderMode::Move
-                        && self.units[ui].move_target.is_some()));
-            let drift = (drift_sum / engaged.max(1) as f32 / dt).clamp(-2.0, 1.2);
-            // Depth presses: every rank steps in behind the front, so the
-            // compression rate grows with ranks — this is how a deep column's
-            // muscle reaches the contact line.
-            let ranks = (self.units[ui].alive_count / self.units[ui].files_eff.max(1)).min(12) as f32;
-            let lean = if press_intent { 0.035 * ranks } else { 0.0 };
-            // The lean presses along the ORDER (toward the latched enemy or
-            // the clicked point) — a surrounded unit bores toward its click,
-            // not wherever its frame happens to face.
-            let lean_dir = {
-                let u = &self.units[ui];
-                // Attacks press along the facing (contact facing already
-                // tracks the threat); a MOVE-press leans toward the click —
-                // the case where facing and intent can genuinely diverge
-                // (the surrounded breakout).
-                let goal = match u.mode {
-                    OrderMode::Attack(_) => None,
-                    _ => u.move_target,
-                };
-                match goal {
-                    Some(g) if (g - u.anchor).len() > 3.0 => {
-                        let v = g - u.anchor;
-                        v * (1.0 / v.len())
-                    }
-                    _ => dir(u.facing),
-                }
-            };
-            let u = &mut self.units[ui];
-            let f = dir(u.facing);
-            u.anchor = u.anchor + f * (drift * dt) + lean_dir * (lean * dt);
-            u.speed = 0.0;
 
             // --- contact facing: masked circular mean ----------------------
             let mut hist = self.units[ui].contact_hist;
@@ -1282,31 +1224,57 @@ impl Sim {
 
     fn integrate_units(
         &mut self,
-        measures: &[(f32, usize, usize, f32, usize, f32, f32, usize, f32, f32)],
+        measures: &[(f32, usize, usize, f32, usize, f32, usize, f32, f32)],
         dt: f32,
     ) {
         let tun = self.tun;
         use std::f32::consts::PI;
-        for (u, &(err_sum, stragglers, surging, effort, engaged, _drift, face_dev, alive_n, cx, cy)) in
+        for (u, &(err_sum, stragglers, surging, effort, engaged, face_dev, alive_n, cx, cy)) in
             self.units.iter_mut().zip(measures)
         {
             let n = alive_n.max(1) as f32;
             u.centroid = Vec2::new(cx / n, cy / n);
 
-            // Congestion leash: the anchor is a smart officer at the head of
-            // the unit — it follows the general's intent but never outruns
-            // its own men. If the measured center of mass lags the frame
-            // beyond a margin (deep friendly jam, anything), the frame is
-            // pulled back to them.
-            if !u.routing {
+            // THE ANCHOR LAW: the frame always pursues the order, but it is
+            // leashed to the men's measured center of mass. Out of combat
+            // the slack is generous (jams merely hold it back); in combat it
+            // is tight — the frame sits where the men actually are, so a
+            // pushed-back front drags its slots with it (losing the push)
+            // and a winning push lets the frame advance (walking them back).
+            // Othismos with an order into the fight is the ONE deliberate
+            // bias: extra forward slack scaled by depth — the rear ranks'
+            // weight, expressed as slots the men keep pressing to reach.
+            if !u.routing && !u.charging {
                 let f = dir(u.facing);
                 let expected = u.anchor + f * (-0.5 * u.depth());
                 let lag = (expected - u.centroid).dot(f);
-                let leash = 0.6 * u.depth() + 5.0;
+                let fighting_frac = engaged as f32 / n;
+                // Slack tightens CONTINUOUSLY with engagement: a fresh
+                // contact lets the frame keep pressing in (driving more men
+                // into reach) until about a third of the unit is fighting —
+                // the natural depth of a committed front. A binary gate here
+                // regulates battles down to a bloodless standoff.
+                let press = u.stance == crate::unit::Stance::Othismos
+                    && (matches!(u.mode, OrderMode::Attack(_)) || u.move_target.is_some());
+                let tight = if press {
+                    let ranks = (u.alive_count / u.files_eff.max(1)).min(12) as f32;
+                    0.6 + 0.35 * ranks
+                } else {
+                    0.6
+                };
+                let loose = 0.6 * u.depth() + 5.0;
+                let k = (fighting_frac / 0.3).min(1.0);
+                let leash = loose + (tight - loose) * k;
                 if lag > leash {
                     u.anchor = u.anchor + f * (-(lag - leash));
+                    // Ordered to stand or advance yet measurably walked
+                    // back: the precise involuntary-displacement signal.
+                    if fighting_frac > 0.1 && u.mode != OrderMode::Disengage {
+                        let alpha = 1.0 - (-dt / 2.0f32).exp();
+                        u.losing_push += ((lag - leash) / dt - u.losing_push) * alpha;
+                    }
                 }
-            } else {
+            } else if u.routing {
                 // The frame follows the fleeing mob (so a rally has a unit
                 // to re-form around).
                 u.anchor = u.centroid + dir(u.facing) * (0.5 * u.depth());

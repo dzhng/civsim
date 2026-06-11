@@ -161,11 +161,12 @@ impl Sim {
                 let tp = self.soldier_pos(nearest as usize);
                 (tp - p).y.atan2((tp - p).x)
             };
-            // Blocked = a comrade ALREADY FIGHTING stands between me and my
-            // target (within 1.5m, +-40deg). A merely packed neighbor will
-            // make way; stacking behind a fighting one is the blender.
+            // Blocked = a comrade ALREADY FIGHTING stands DIRECTLY between
+            // me and my target (within 1.2m, +-26deg). Lateral fighting
+            // neighbors don't block — a hurled man may step back into the
+            // gap he was thrown from; only true rank-stacking is the blender.
             let blocked = friends[..friends_len].iter().any(|&(b, d, f)| {
-                f && d < 1.5 && wrap_angle(b - t_bearing).abs() < 0.7
+                f && d < 1.2 && wrap_angle(b - t_bearing).abs() < 0.45
             });
             self.front_clear[i] = (!blocked) as u8;
             // Awareness is not combat: the fight starts when weapons can land.

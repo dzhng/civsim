@@ -66,8 +66,12 @@ pub(crate) fn update_unit_motion(tun: &Tunables, u: &mut Unit, dt: f32, ground: 
         Some(t) => {
             let to = t - u.anchor;
             let mut dist = to.len();
-            if intermediate {
-                dist = dist.max(12.0); // don't decelerate into corners
+            let attacking = matches!(u.mode, crate::unit::OrderMode::Attack(_));
+            if intermediate || attacking {
+                // No deceleration into corners — and no "arriving" at an
+                // enemy: an attack drives until the leash or the kill stops
+                // it, never the arrive radius.
+                dist = dist.max(12.0);
             } else if dist < tun.arrive_radius {
                 u.move_target = None;
                 u.path.clear();

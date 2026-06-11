@@ -14,6 +14,8 @@ function createGame(kind: BattleKind): Game {
   const game = new Game(BATTLE_SEED);
   if (kind === '1v1') game.start_sandbox(0);
   else if (kind === '5v5') game.start_sandbox(1);
+  else if (kind === 'charge-front') game.start_sandbox(2);
+  else if (kind === 'charge-flank') game.start_sandbox(3);
   else game.start_battle(kind === 'mapB' ? 1 : 0);
   if (AI_ON) game.set_ai_team(1);
   return game;
@@ -67,7 +69,8 @@ const menu = new MenuScene({
 // ?battle=1v1|5v5 and ?map=A|B boot straight into the battle (old links and
 // the verify harness); a bare URL opens the main menu.
 const sandbox = params.get('battle');
-if (sandbox === '1v1' || sandbox === '5v5') launchBattle(sandbox);
+if (sandbox === '1v1' || sandbox === '5v5' || sandbox === 'charge-front' || sandbox === 'charge-flank')
+  launchBattle(sandbox);
 else if (params.has('map') || params.has('battle')) launchBattle(params.get('map') === 'B' ? 'mapB' : 'mapA');
 else switchScene(menu);
 

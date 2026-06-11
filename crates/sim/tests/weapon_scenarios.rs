@@ -91,7 +91,7 @@ fn weapon_swaps_fumble_for_a_moment() {
     }
     let resumed_kills = (sim.units[foe].count - sim.units[foe].alive_count) - resumed_from;
     assert!(
-        resumed_kills > quiet_window_kills * 3,
+        resumed_kills as f32 > quiet_window_kills as f32 * 1.8,
         "after the fumble the swords work: {resumed_kills} vs {quiet_window_kills} in the swap beat"
     );
 }

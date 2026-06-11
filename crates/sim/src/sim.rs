@@ -765,7 +765,11 @@ impl Sim {
             if was_charging {
                 self.units[ui].charge_time += dt;
             } else {
-                self.units[ui].charge_time = 0.0;
+                // A burst is a sprint, and sprints need recovery: the clock
+                // drains at quarter rate, so a spent burst can't chain into
+                // the next one (nobody gallops in indefinite 4s installments).
+                let ct = &mut self.units[ui].charge_time;
+                *ct = (*ct - 0.25 * dt).max(0.0);
             }
             if let OrderMode::Attack(e) = mode {
                 let e = e as usize;
@@ -784,6 +788,19 @@ impl Sim {
                     (ev.alive_count == 0, ev.centroid + dir_v * 8.0)
                 };
                 let enemy_routing = self.units[e].routing;
+                // The enemy's edge along MY approach: half-depth when I come
+                // at their face, half-WIDTH when I come at their flank — a
+                // 100x4 column is 2m deep head-on and 50m wide side-on, and
+                // the charge must open at the edge either way.
+                let enemy_edge_ext = {
+                    let ev = &self.units[e];
+                    let approach = ev.centroid - self.units[ui].centroid;
+                    let l = approach.len().max(0.5);
+                    let a = approach * (1.0 / l);
+                    let ef = dir(ev.facing);
+                    let er = Vec2::new(ef.y, -ef.x);
+                    a.dot(ef).abs() * 0.5 * ev.depth() + a.dot(er).abs() * 0.5 * ev.width()
+                };
                 let u = &mut self.units[ui];
                 // A timed latch (pursue auto-charge) that can't make contact
                 // gives up: no chasing faster prey across the map.
@@ -809,12 +826,7 @@ impl Sim {
                     && u.charge_enabled
                     && u.charge_time < self.tun.charge_window * 2.0
                 {
-                    let charge_sp = (self.tun.base_speed
-                        + (self.tun.charge_speed - self.tun.base_speed)
-                            * crate::movement::fatigue_capacity(u.fatigue))
-                        * u.speed_mult;
-                    let dist = ((enemy_anchor - u.anchor).len() - 8.0).max(0.0);
-                    u.charging = dist < charge_sp * self.tun.charge_window * 1.5;
+                    u.charging = true; // the burst runs to contact or the clock
                 }
                 if enemy_dead || (enemy_routing && !u.pursue) {
                     // Hold ground when they break, unless told to chase.
@@ -831,11 +843,16 @@ impl Sim {
                                 * crate::movement::fatigue_capacity(u.fatigue))
                             * u.speed_mult;
                         let dist = (enemy_anchor - u.anchor).len();
-                        // (Chase point sits 8m beyond the mass; the window
-                        // measures to the mass itself. No arrive-guard: the
-                        // mass-landed check in the persistence block ends
-                        // the burst, never proximity.)
-                        u.charging = (dist - 8.0) < charge_sp * self.tun.charge_window;
+                        // The window opens at charge-distance from the enemy
+                        // FRONT (the chase point is mass+8, and the mass sits
+                        // half their depth behind the front — measuring there
+                        // would start the burst after contact, i.e., never).
+                        // Spent legs cannot burst: the charge is paid in
+                        // stamina (drained while charging) and needs a real
+                        // reserve to begin.
+                        let to_front = dist - 8.0 - enemy_edge_ext;
+                        u.charging = to_front < charge_sp * self.tun.charge_window
+                            && u.fatigue > 0.3;
                     }
                 }
                 // Once contact begins the charge is over: the momentum has
@@ -1197,6 +1214,18 @@ impl Sim {
                 sum = sum + dir(bucket_bearing(k)) * w;
                 weight += w;
             }
+            // A live move order VOTES on the facing alongside the measured
+            // contacts — intent must be able to out-argue a self-reinforcing
+            // fight (face north -> press north -> more north contact), or a
+            // surrounded unit can never turn toward its breakout.
+            if let (OrderMode::Move, Some(t)) = (self.units[ui].mode, self.units[ui].move_target) {
+                let v = t - self.units[ui].anchor;
+                if v.len() > 4.0 {
+                    let w = weight * 0.8 + 2.0;
+                    sum = sum + v * (w / v.len());
+                    weight += w;
+                }
+            }
             // Rotate only on a DECISIVE contact direction. Near-opposite
             // attacks cancel in the mean — then the frame holds still and the
             // per-soldier reactive facing splits the men both ways (the spec).
@@ -1224,7 +1253,10 @@ impl Sim {
                 if diff.abs() > 0.35 {
                     let top = soldier_surge_speed(&tun, u);
                     let geom = tun.wheel_speed_factor * top / u.pivot_radius().max(1.0);
-                    let throttle = crate::math::lerp(tun.min_turn_frac, 1.0, u.cohesion);
+                    // A unit fighting for its life turns regardless of how
+                    // ragged it is — the breakout cannot wait for dressing.
+                    let throttle = crate::math::lerp(tun.min_turn_frac, 1.0, u.cohesion)
+                        .max(if decisive { 0.0 } else { 0.6 });
                     let center = u.center();
                     u.facing = rotate_toward(u.facing, desired, geom * throttle * dt);
                     u.anchor = center + dir(u.facing) * (0.5 * u.depth());

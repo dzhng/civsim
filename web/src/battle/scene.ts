@@ -19,7 +19,7 @@ const WEAPON_VIZ: [number, number][] = [
   [0.8, 1.0], [2.4, 0.3], [1.3, 1.4], [0.8, 1.0],
 ];
 
-export type BattleKind = '1v1' | '5v5' | 'mapA' | 'mapB';
+export type BattleKind = '1v1' | '5v5' | 'charge-front' | 'charge-flank' | 'mapA' | 'mapB';
 
 export interface BattleConfig {
   wasm: InitOutput;

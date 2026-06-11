@@ -29,7 +29,7 @@ fn engage_move_backs_off_facing_the_threat() {
     for _ in 0..(60.0 / DT) as usize {
         sim.tick();
         let foe_dist = (sim.units[1].center() - sim.units[u].center()).len();
-        if sim.units[u].speed > 0.3 && foe_dist < 48.0 {
+        if sim.units[u].speed > 0.3 && foe_dist < 43.0 { // inside the 45m threat gate, with margin
             // While retreating IN THREAT RANGE, the face stays on the enemy.
             // (Beyond it, turning to march is correct.)
             worst_face = worst_face.max(sim::wrap_angle(sim.units[u].facing - FRAC_PI_2).abs());
@@ -159,7 +159,11 @@ fn engage_move_extracts_from_melee_while_fighting() {
         let mut worst_face = 0.0f32;
         for _ in 0..(120.0 / DT) as usize {
             sim.tick();
-            if !disengage {
+            let foe_dist = (sim.units[foe].center() - sim.units[u].center()).len();
+            if !disengage && foe_dist > 16.0 && foe_dist < 43.0 { // grace for facing recovery after the interpenetration phase
+                // Below ~8m the masses are interpenetrated and "direction
+                // to the enemy" is undefined (soldiers face their own
+                // opponents); past 43m, turning to march is correct.
                 worst_face = worst_face.max(sim::wrap_angle(sim.units[u].facing - FRAC_PI_2).abs());
             }
         }

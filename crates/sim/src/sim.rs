@@ -784,6 +784,7 @@ impl Sim {
                     (ev.alive_count == 0, ev.centroid + dir_v * 8.0)
                 };
                 let enemy_routing = self.units[e].routing;
+                let enemy_half_depth = 0.5 * self.units[e].depth();
                 let u = &mut self.units[ui];
                 // A timed latch (pursue auto-charge) that can't make contact
                 // gives up: no chasing faster prey across the map.
@@ -809,12 +810,7 @@ impl Sim {
                     && u.charge_enabled
                     && u.charge_time < self.tun.charge_window * 2.0
                 {
-                    let charge_sp = (self.tun.base_speed
-                        + (self.tun.charge_speed - self.tun.base_speed)
-                            * crate::movement::fatigue_capacity(u.fatigue))
-                        * u.speed_mult;
-                    let dist = ((enemy_anchor - u.anchor).len() - 8.0).max(0.0);
-                    u.charging = dist < charge_sp * self.tun.charge_window * 1.5;
+                    u.charging = true; // the burst runs to contact or the clock
                 }
                 if enemy_dead || (enemy_routing && !u.pursue) {
                     // Hold ground when they break, unless told to chase.
@@ -831,11 +827,12 @@ impl Sim {
                                 * crate::movement::fatigue_capacity(u.fatigue))
                             * u.speed_mult;
                         let dist = (enemy_anchor - u.anchor).len();
-                        // (Chase point sits 8m beyond the mass; the window
-                        // measures to the mass itself. No arrive-guard: the
-                        // mass-landed check in the persistence block ends
-                        // the burst, never proximity.)
-                        u.charging = (dist - 8.0) < charge_sp * self.tun.charge_window;
+                        // The window opens at charge-distance from the enemy
+                        // FRONT (the chase point is mass+8, and the mass sits
+                        // half their depth behind the front — measuring there
+                        // would start the burst after contact, i.e., never).
+                        let to_front = dist - 8.0 - enemy_half_depth;
+                        u.charging = to_front < charge_sp * self.tun.charge_window;
                     }
                 }
                 // Once contact begins the charge is over: the momentum has

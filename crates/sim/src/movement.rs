@@ -242,6 +242,7 @@ mod tests {
             stance: crate::unit::Stance::Othismos,
             charge_enabled: false,
             charging: false,
+            charge_time: 0.0,
             resume_target: None,
             alive_count: 0,
             deaths_since_reform: 0,

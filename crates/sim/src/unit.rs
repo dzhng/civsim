@@ -82,6 +82,9 @@ pub struct Unit {
     pub charge_enabled: bool,
     /// True only during that final approach (measured each tick).
     pub charging: bool,
+    /// Seconds this burst has been running: a charge is a SPRINT, not a
+    /// gait — it ends when the mass lands or the legs give out (~2x window).
+    pub charge_time: f32,
     /// Path stashed by the engagement reflex, resumed when contact ends.
     pub resume_target: Option<Vec2>,
     /// Living soldiers (formation shrinks as men fall).

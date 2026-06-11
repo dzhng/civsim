@@ -192,6 +192,7 @@ impl Sim {
             stance: crate::unit::Stance::Othismos,
             charge_enabled: false,
             charging: false,
+            charge_time: 0.0,
             resume_target: None,
             alive_count: count,
             deaths_since_reform: 0,
@@ -761,6 +762,11 @@ impl Sim {
             // into the charge in the measured final approach.
             let was_charging = self.units[ui].charging;
             self.units[ui].charging = false;
+            if was_charging {
+                self.units[ui].charge_time += dt;
+            } else {
+                self.units[ui].charge_time = 0.0;
+            }
             if let OrderMode::Attack(e) = mode {
                 let e = e as usize;
                 // The chase point sits BEYOND the enemy mass, along the line
@@ -795,12 +801,16 @@ impl Sim {
                 // ~1.5m before bodies meet, and clearing the burst there
                 // would deliver the impact at a crawl. It ends when a third
                 // of the unit is fighting — the mass has landed.
-                if was_charging && engaged_frac < 0.35 && u.charge_enabled {
+                if was_charging
+                    && engaged_frac < 0.35
+                    && u.charge_enabled
+                    && u.charge_time < self.tun.charge_window * 2.0
+                {
                     let charge_sp = (self.tun.base_speed
                         + (self.tun.charge_speed - self.tun.base_speed)
                             * crate::movement::fatigue_capacity(u.fatigue))
                         * u.speed_mult;
-                    let dist = (enemy_anchor - u.anchor).len();
+                    let dist = ((enemy_anchor - u.anchor).len() - 8.0).max(0.0);
                     u.charging = dist < charge_sp * self.tun.charge_window * 1.5;
                 }
                 if enemy_dead || (enemy_routing && !u.pursue) {
@@ -818,12 +828,11 @@ impl Sim {
                                 * crate::movement::fatigue_capacity(u.fatigue))
                             * u.speed_mult;
                         let dist = (enemy_anchor - u.anchor).len();
-                        // No arrive-guard: both anchors are FRONT-centers,
-                        // so their distance hits zero exactly at impact —
-                        // the old guard extinguished every charge at the
-                        // moment it mattered. The mass-landed check
-                        // (engaged_frac, in the persistence block) ends it.
-                        u.charging = dist < charge_sp * self.tun.charge_window;
+                        // (Chase point sits 8m beyond the mass; the window
+                        // measures to the mass itself. No arrive-guard: the
+                        // mass-landed check in the persistence block ends
+                        // the burst, never proximity.)
+                        u.charging = (dist - 8.0) < charge_sp * self.tun.charge_window;
                     }
                 }
                 // Once contact begins the charge is over: the momentum has
@@ -1244,11 +1253,15 @@ impl Sim {
             // Othismos with an order into the fight is the ONE deliberate
             // bias: extra forward slack scaled by depth — the rear ranks'
             // weight, expressed as slots the men keep pressing to reach.
-            if !u.routing && !u.charging {
+            let fighting_frac = engaged as f32 / n;
+            // A charging frame is exempt only on the APPROACH (no polite
+            // pre-braking); once the mass lands, momentum does the carrying
+            // and the frame obeys the law like everyone else.
+            let charge_approach = u.charging && fighting_frac < 0.1;
+            if !u.routing && !charge_approach {
                 let f = dir(u.facing);
                 let expected = u.anchor + f * (-0.5 * u.depth());
                 let lag = (expected - u.centroid).dot(f);
-                let fighting_frac = engaged as f32 / n;
                 // Slack tightens CONTINUOUSLY with engagement: a fresh
                 // contact lets the frame keep pressing in (driving more men
                 // into reach) until about a third of the unit is fighting —
@@ -1263,7 +1276,11 @@ impl Sim {
                     0.6
                 };
                 let loose = 0.6 * u.depth() + 5.0;
-                let k = (fighting_frac / 0.3).min(1.0);
+                let k = if u.mode == OrderMode::Disengage {
+                    0.0 // fleeing slots LEAD the men out of the scrum
+                } else {
+                    (fighting_frac / 0.3).min(1.0)
+                };
                 let leash = loose + (tight - loose) * k;
                 if lag > leash {
                     u.anchor = u.anchor + f * (-(lag - leash));

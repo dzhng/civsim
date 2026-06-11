@@ -98,7 +98,7 @@ fn othismos_presses_fence_fights_at_reach() {
         sim.set_charge_enabled(a, false); // isolate the stance variable
         let before = living_mean(&sim, b).y;
         sim.set_attack_move_order(a, Vec2::new(0.0, 30.0));
-        run(&mut sim, 40.0);
+        run(&mut sim, 32.0); // mid-press: the 2:1 overrun wraps soon after
         living_mean(&sim, b).y - before
     };
     let pressed = enemy_displacement(sim::Stance::Othismos);

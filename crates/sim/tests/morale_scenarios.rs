@@ -18,6 +18,7 @@ fn outnumbered_unit_breaks_before_annihilation() {
     let weak = sim.spawn_class(Vec2::new(0.0, 10.0), -FRAC_PI_2, 150, UnitClassId::LightInfantry, 0);
     let strong = sim.spawn_class(Vec2::new(0.0, -14.0), FRAC_PI_2, 450, UnitClassId::HeavyInfantry, 1);
     sim.set_attack_move_order(strong, Vec2::new(0.0, 25.0));
+    sim.set_pursue(strong, false); // measure the rout, not the chase
     let mut broke_with = None;
     for _ in 0..(240.0 / DT) as usize {
         sim.tick();

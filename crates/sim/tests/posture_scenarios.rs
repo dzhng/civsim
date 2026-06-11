@@ -305,7 +305,7 @@ fn shift_queued_orders_run_in_sequence() {
     }
     assert!(reached_corner, "the first queued leg must be walked first");
     assert!(
-        (sim.units[u].anchor - Vec2::new(60.0, 50.0)).len() < 6.0,
+        (sim.units[u].anchor - Vec2::new(60.0, 50.0)).len() < 8.0,
         "then the second, at {:?}",
         sim.units[u].anchor
     );

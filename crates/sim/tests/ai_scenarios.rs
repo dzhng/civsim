@@ -75,23 +75,25 @@ fn reform_recovers_order_faster() {
 
 #[test]
 fn hold_ground_stops_when_the_enemy_breaks_pursue_chases() {
+    // Morale ON: the prey must BREAK for pursuit to mean anything. The
+    // meaningful outcome: pursued routers are run down; held-off ones get
+    // away.
     let chase = |pursue: bool| -> f32 {
         let mut sim = Sim::new(Tunables::default(), SEED);
         let hunter = sim.spawn_class(Vec2::new(0.0, -14.0), FRAC_PI_2, 400, UnitClassId::HeavyInfantry, 0);
         let prey = sim.spawn_class(Vec2::new(0.0, 10.0), -FRAC_PI_2, 140, UnitClassId::LightInfantry, 1);
-        let _ = prey;
         sim.set_pursue(hunter, pursue);
         sim.set_attack_order(hunter, prey);
         for _ in 0..(200.0 / DT) as usize {
             sim.tick();
         }
-        sim.units[hunter].anchor.y
+        (sim.units[prey].centroid - sim.units[hunter].centroid).len()
     };
-    let held = chase(false);
-    let chased = chase(true);
+    let escaped_gap = chase(false);
+    let chased_gap = chase(true);
     assert!(
-        chased > held + 12.0,
-        "pursuit must follow the rout, holding must not: chased to {chased:.0} vs held at {held:.0}"
+        escaped_gap > chased_gap + 15.0,
+        "held-off routers escape, pursued ones are run down: {escaped_gap:.0}m vs {chased_gap:.0}m"
     );
 }
 

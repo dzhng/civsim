@@ -260,12 +260,14 @@ fn heavy_infantry_charge_carries_a_stride_not_a_gallop() {
     let v_walk = crash_into(false);
     let v_charge = crash_into(true);
     println!("contact speed: walked in at {v_walk:.1} m/s, charged in at {v_charge:.1} m/s");
+    // (With arrive-braking gone, ANY running attack contacts at run speed —
+    // the charge's edge is the burst above it.)
     assert!(
         v_charge > 2.4,
         "the charge makes CONTACT at speed (p = m·v needs the v): {v_charge:.1} m/s"
     );
     assert!(
-        v_walk < v_charge * 0.6,
-        "a walk-in cannot: {v_walk:.1} vs {v_charge:.1} m/s"
+        v_charge > v_walk + 0.7,
+        "the burst outpaces the run-in: {v_charge:.1} vs {v_walk:.1} m/s"
     );
 }

@@ -1279,15 +1279,14 @@ impl Sim {
                     let ranks = (u.alive_count / u.files_eff.max(1)).min(12) as f32;
                     0.6 + 0.2 * ranks
                 } else {
-                    1.2
+                    0.8
                 };
-                let loose = 0.6 * u.depth() + 5.0;
-                let k = if u.mode == OrderMode::Disengage {
-                    0.0 // fleeing slots LEAD the men out of the scrum
-                } else {
-                    (fighting_frac / 0.3).min(1.0)
-                };
-                let leash = loose + (tight - loose) * k;
+                // Binary by engagement, resolved by STANCE: fence fights at
+                // weapon's length (tight), othismos presses rank-deep (its
+                // tight is wide). Disengage always runs on loose slack —
+                // fleeing slots must LEAD the men out.
+                let engaged_now = fighting_frac > 0.05 && u.mode != OrderMode::Disengage;
+                let leash = if engaged_now { tight } else { 0.6 * u.depth() + 5.0 };
                 if lag > leash {
                     u.anchor = u.anchor + f * (-(lag - leash));
                     // Ordered to stand or advance yet measurably walked

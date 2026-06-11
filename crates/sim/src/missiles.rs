@@ -149,7 +149,7 @@ impl Sim {
                 continue;
             };
             let u = &self.units[ui];
-            if u.alive_count == 0 || u.ammo == 0 || !u.fire_at_will {
+            if u.alive_count == 0 || u.ammo == 0 || !u.fire_at_will || u.routing {
                 continue;
             }
             // Halted to shoot, unless shooting from the saddle.
@@ -220,6 +220,16 @@ impl Sim {
                 let ly = self.rng.unit_f32() * t_d;
                 let mut aim = t_anchor + tr * lx + tf * (-ly);
                 let p = self.soldier_pos(i);
+                // Lead a marching target: an arrow is seconds in the air and
+                // a walking block moves meters in that time.
+                let (t_speed, t_face) = {
+                    let tu = &self.units[target_unit];
+                    (tu.speed, tu.facing)
+                };
+                if t_speed > 0.2 {
+                    let flight_t = (aim - p).len() / (spec.launch_speed * 0.85);
+                    aim = aim + crate::math::dir(t_face) * (t_speed * flight_t);
+                }
                 let d = (aim - p).len();
                 if d > spec.range || d < 4.0 {
                     continue;
@@ -343,6 +353,7 @@ impl Sim {
         self.hit_ttl[victim] = 3.0;
         let bucket = crate::unit::bearing_bucket(incoming);
         self.units[uv].contact_hist[bucket] += 0.5;
+        self.units[uv].recent_missiles += 1.0;
 
         // Shields block arrows from the front arc; nothing blocks a stone.
         if !heavy {
@@ -378,6 +389,7 @@ impl Sim {
         for ui in 0..self.units.len() {
             let u = &self.units[ui];
             if !u.evade_auto
+                || u.routing
                 || u.alive_count == 0
                 || u.pending_target.is_some()
                 || matches!(u.mode, OrderMode::Withdraw | OrderMode::Attack(_))

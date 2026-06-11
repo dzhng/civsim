@@ -83,19 +83,11 @@ fn deploy_army(sim: &mut Sim, base: Vec2, facing: f32, team: u32) {
     sim.spawn_class(row(-30.0) + right * 500.0, facing, unit_size(HorseArchers), HorseArchers, team);
 }
 
-/// Build terrain and deploy both armies. Team 0 is the player.
+/// Build terrain and deploy both armies along the long axis: player west
+/// facing east, enemy east facing west, flanks sealed by the map itself.
 pub fn setup_battle(sim: &mut Sim, map: MapId) {
     sim.terrain = build(map);
-    use std::f32::consts::FRAC_PI_2;
-    match map {
-        MapId::RidgeDefense => {
-            // Player holds the ridge (north), facing south; attacker advances.
-            deploy_army(sim, Vec2::new(0.0, 215.0), -FRAC_PI_2, 0);
-            deploy_army(sim, Vec2::new(0.0, -250.0), FRAC_PI_2, 1);
-        }
-        MapId::MeetingField => {
-            deploy_army(sim, Vec2::new(0.0, -250.0), FRAC_PI_2, 0);
-            deploy_army(sim, Vec2::new(0.0, 250.0), -FRAC_PI_2, 1);
-        }
-    }
+    use std::f32::consts::PI;
+    deploy_army(sim, Vec2::new(-550.0, 0.0), 0.0, 0);
+    deploy_army(sim, Vec2::new(550.0, 0.0), PI, 1);
 }

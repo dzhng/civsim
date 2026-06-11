@@ -7,6 +7,14 @@ use std::f32::consts::{FRAC_PI_2, PI};
 
 const SEED: u64 = 99;
 
+/// Combat-mechanics isolation: these scenarios fight to the death.
+fn no_morale() -> Tunables {
+    Tunables {
+        morale_enabled: false,
+        ..Tunables::default()
+    }
+}
+
 fn run(sim: &mut Sim, seconds: f32) {
     for _ in 0..(seconds / DT) as usize {
         sim.tick();
@@ -33,7 +41,7 @@ fn living_mean(sim: &Sim, u: usize) -> Vec2 {
 
 #[test]
 fn melee_kills_and_formations_thin() {
-    let mut sim = Sim::new(Tunables::default(), SEED);
+    let mut sim = Sim::new(no_morale(), SEED);
     let a = sim.spawn_class(Vec2::new(0.0, -12.0), FRAC_PI_2, 200, UnitClassId::HeavyInfantry, 0);
     let b = sim.spawn_class(Vec2::new(0.0, 12.0), -FRAC_PI_2, 200, UnitClassId::HeavyInfantry, 1);
     sim.set_attack_move_order(a, Vec2::new(0.0, 12.0));
@@ -59,7 +67,7 @@ fn deep_column_pushes_thin_line_back() {
     // measured backpressure converts to forward drive: against a thin enemy
     // the contact line advances; against an equal column it deadlocks.
     let advance = |enemy_count: usize| -> f32 {
-        let mut sim = Sim::new(Tunables::default(), SEED);
+        let mut sim = Sim::new(no_morale(), SEED);
         let deep =
             sim.spawn_unit(Vec2::new(0.0, -10.0), FRAC_PI_2, 300, 20, Vec2::new(1.0, 1.2), 0, 0.7);
         let enemy =
@@ -83,7 +91,7 @@ fn othismos_presses_fence_fights_at_reach() {
     // Same matchup, only the stance differs: the pressing unit walks the
     // enemy line back farther than the fencing one.
     let enemy_displacement = |stance: sim::Stance| -> f32 {
-        let mut sim = Sim::new(Tunables::default(), SEED);
+        let mut sim = Sim::new(no_morale(), SEED);
         let a = sim.spawn_class(Vec2::new(0.0, -12.0), FRAC_PI_2, 240, UnitClassId::HeavyInfantry, 0);
         let b = sim.spawn_class(Vec2::new(0.0, 12.0), -FRAC_PI_2, 120, UnitClassId::LightInfantry, 1);
         sim.set_stance(a, stance);
@@ -104,7 +112,7 @@ fn othismos_presses_fence_fights_at_reach() {
 #[test]
 fn deep_pike_wall_holds_thin_pike_line_gets_closed_on() {
     let fight = |phalanx_count: usize| -> (usize, usize) {
-        let mut sim = Sim::new(Tunables::default(), SEED);
+        let mut sim = Sim::new(no_morale(), SEED);
         let ph = sim.spawn_class(Vec2::new(0.0, 10.0), -FRAC_PI_2, phalanx_count, UnitClassId::Phalanx, 0);
         let atk = sim.spawn_class(Vec2::new(0.0, -14.0), FRAC_PI_2, 240, UnitClassId::HeavyInfantry, 1);
         sim.set_attack_move_order(atk, Vec2::new(0.0, 20.0));
@@ -136,7 +144,7 @@ fn attack_from_behind_is_deadlier_than_frontal() {
     // Shields cover the front arc and turning takes time, so rear attacks
     // land unblocked on men facing the wrong way.
     let fight = |victim_facing: f32| -> usize {
-        let mut sim = Sim::new(Tunables::default(), SEED);
+        let mut sim = Sim::new(no_morale(), SEED);
         let v = sim.spawn_class(Vec2::new(0.0, 10.0), victim_facing, 200, UnitClassId::HeavyInfantry, 0);
         let atk = sim.spawn_class(Vec2::new(0.0, -12.0), FRAC_PI_2, 200, UnitClassId::HeavyInfantry, 1);
         sim.set_attack_move_order(atk, Vec2::new(0.0, 20.0));
@@ -158,7 +166,7 @@ fn rider_reachability_is_pure_geometry() {
     // riders too — from the SIDES — which is correct; this test isolates the
     // frontal geometry claim.)
     let pool_damage = |attacker: UnitClassId, separation: f32, cav_facing: f32| -> (f32, f32) {
-        let mut sim = Sim::new(Tunables::default(), SEED);
+        let mut sim = Sim::new(no_morale(), SEED);
         let atk = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 40, attacker, 0);
         let cav = sim.spawn_class(Vec2::new(0.0, separation), cav_facing, 30, UnitClassId::ShockCavalry, 1);
         let _ = atk;
@@ -201,7 +209,7 @@ fn rider_reachability_is_pure_geometry() {
 
 #[test]
 fn charge_impact_knocks_infantry_down() {
-    let mut sim = Sim::new(Tunables::default(), SEED);
+    let mut sim = Sim::new(no_morale(), SEED);
     let inf = sim.spawn_class(Vec2::new(0.0, 30.0), -FRAC_PI_2, 200, UnitClassId::LightInfantry, 0);
     let cav = sim.spawn_class(Vec2::new(0.0, -60.0), FRAC_PI_2, 120, UnitClassId::ShockCavalry, 1);
     sim.set_pace(cav, sim::Pace::Run);
@@ -225,7 +233,7 @@ fn attack_order_equals_walking_into_contact() {
     // (Othismos) tied to attack intent, so the clean invariant comparison is
     // fencing-attack vs fencing-walk-in. No hidden combat bonuses allowed.
     let build = |use_attack_order: bool| -> Sim {
-        let mut sim = Sim::new(Tunables::default(), SEED);
+        let mut sim = Sim::new(no_morale(), SEED);
         let a = sim.spawn_class(Vec2::new(0.0, -15.0), FRAC_PI_2, 150, UnitClassId::HeavyInfantry, 0);
         let b = sim.spawn_class(Vec2::new(0.0, 15.0), -FRAC_PI_2, 150, UnitClassId::HeavyInfantry, 1);
         sim.set_stance(a, sim::Stance::Fence);
@@ -258,7 +266,7 @@ fn attack_order_equals_walking_into_contact() {
 
 #[test]
 fn withdraw_disengages_under_fire() {
-    let mut sim = Sim::new(Tunables::default(), SEED);
+    let mut sim = Sim::new(no_morale(), SEED);
     let a = sim.spawn_class(Vec2::new(0.0, -12.0), FRAC_PI_2, 200, UnitClassId::HeavyInfantry, 0);
     let b = sim.spawn_class(Vec2::new(0.0, 12.0), -FRAC_PI_2, 200, UnitClassId::HeavyInfantry, 1);
     sim.set_attack_move_order(a, Vec2::new(0.0, 12.0));
@@ -280,7 +288,7 @@ fn withdraw_disengages_under_fire() {
 
 #[test]
 fn unit_attacked_from_two_sides_splits_facing_and_loses_cohesion() {
-    let mut sim = Sim::new(Tunables::default(), SEED);
+    let mut sim = Sim::new(no_morale(), SEED);
     // Direct spec construction: enemies spawned already in contact on BOTH
     // sides of a unit facing east; nobody moves. The per-soldier reactive
     // facing rule must split the unit's men toward both threats unaided.
@@ -323,7 +331,7 @@ fn unit_attacked_from_two_sides_splits_facing_and_loses_cohesion() {
 
 #[test]
 fn flanked_line_only_the_edge_unit_turns() {
-    let mut sim = Sim::new(Tunables::default(), SEED);
+    let mut sim = Sim::new(no_morale(), SEED);
     // Three friendly heavies side by side facing north.
     let west = sim.spawn_class(Vec2::new(-40.0, 0.0), FRAC_PI_2, 200, UnitClassId::HeavyInfantry, 0);
     let center = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 200, UnitClassId::HeavyInfantry, 0);
@@ -350,7 +358,7 @@ fn long_swords_cleave_but_die_in_a_press() {
     // Cleave: against the same loose enemy, long swords (wide arc) out-kill
     // an equal number of ordinary swords.
     let kills_against_skirm = |class: UnitClassId| -> usize {
-        let mut sim = Sim::new(Tunables::default(), SEED);
+        let mut sim = Sim::new(no_morale(), SEED);
         let a = sim.spawn_class(Vec2::new(0.0, -10.0), FRAC_PI_2, 150, class, 0);
         let sk = sim.spawn_class(Vec2::new(0.0, 10.0), -FRAC_PI_2, 300, UnitClassId::Skirmishers, 1);
         sim.set_evade_auto(sk, false); // hold the loose target in place
@@ -369,7 +377,7 @@ fn long_swords_cleave_but_die_in_a_press() {
     // by a rear press (Withdraw-mode pusher parked on their backs, never
     // attacking) die faster than a free-fighting line.
     let ls_losses = |pressed: bool| -> (usize, f32) {
-        let mut sim = Sim::new(Tunables::default(), SEED);
+        let mut sim = Sim::new(no_morale(), SEED);
         let ls = sim.spawn_class(Vec2::new(0.0, -8.0), FRAC_PI_2, 120, UnitClassId::LongSwords, 0);
         let enemy = sim.spawn_class(Vec2::new(0.0, 10.0), -FRAC_PI_2, 300, UnitClassId::HeavyInfantry, 1);
         let _ = enemy;
@@ -409,7 +417,7 @@ fn long_swords_cleave_but_die_in_a_press() {
     // Crush cost 2 — lateral packing obstructs the swing: two long-sword
     // units interleaved in the same ground kill far less than twice one.
     let kills = |doubled: bool| -> usize {
-        let mut sim = Sim::new(Tunables::default(), SEED);
+        let mut sim = Sim::new(no_morale(), SEED);
         let a = sim.spawn_class(Vec2::new(0.0, -8.0), FRAC_PI_2, 120, UnitClassId::LongSwords, 0);
         let mut bsel = None;
         if doubled {
@@ -433,7 +441,7 @@ fn long_swords_cleave_but_die_in_a_press() {
 
 #[test]
 fn charge_bursts_only_in_the_final_approach_of_an_attack() {
-    let mut sim = Sim::new(Tunables::default(), SEED);
+    let mut sim = Sim::new(no_morale(), SEED);
     let a = sim.spawn_class(Vec2::new(0.0, -80.0), FRAC_PI_2, 200, UnitClassId::HeavyInfantry, 0);
     let b = sim.spawn_class(Vec2::new(0.0, 20.0), -FRAC_PI_2, 200, UnitClassId::HeavyInfantry, 1);
     let _ = b;
@@ -461,7 +469,7 @@ fn charge_bursts_only_in_the_final_approach_of_an_attack() {
     );
 
     // With the setting off, the approach stays at pace.
-    let mut sim = Sim::new(Tunables::default(), SEED);
+    let mut sim = Sim::new(no_morale(), SEED);
     let a = sim.spawn_class(Vec2::new(0.0, -80.0), FRAC_PI_2, 200, UnitClassId::HeavyInfantry, 0);
     let b = sim.spawn_class(Vec2::new(0.0, 20.0), -FRAC_PI_2, 200, UnitClassId::HeavyInfantry, 1);
     sim.set_charge_enabled(a, false);
@@ -476,7 +484,7 @@ fn charge_bursts_only_in_the_final_approach_of_an_attack() {
 
 #[test]
 fn combat_drains_stamina() {
-    let mut sim = Sim::new(Tunables::default(), SEED);
+    let mut sim = Sim::new(no_morale(), SEED);
     let a = sim.spawn_class(Vec2::new(0.0, -12.0), FRAC_PI_2, 200, UnitClassId::HeavyInfantry, 0);
     let b = sim.spawn_class(Vec2::new(0.0, 12.0), -FRAC_PI_2, 200, UnitClassId::HeavyInfantry, 1);
     sim.set_attack_move_order(a, Vec2::new(0.0, 12.0));

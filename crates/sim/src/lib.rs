@@ -11,6 +11,7 @@
 //! Soldier state lives in structure-of-arrays Vecs so the wasm layer can
 //! expose raw pointers for zero-copy rendering.
 
+pub mod ai;
 pub mod battle;
 pub mod class;
 pub mod collision;
@@ -19,6 +20,7 @@ pub mod grid;
 pub mod maps;
 pub mod math;
 pub mod missiles;
+pub mod morale;
 pub mod path;
 pub mod movement;
 pub mod rng;
@@ -27,6 +29,7 @@ pub mod terrain;
 pub mod tunables;
 pub mod unit;
 
+pub use ai::ai_commander;
 pub use battle::setup_battle;
 pub use class::{class_stats, UnitClass, UnitClassId, Weapon};
 pub use grid::SpatialHash;

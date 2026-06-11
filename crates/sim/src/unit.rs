@@ -121,6 +121,15 @@ pub struct Unit {
     pub losing_push: f32,
     /// Mean position of living soldiers (kept fresh; the rout frame).
     pub centroid: Vec2,
+    /// Final facing to pivot to on arrival (line-painting orders).
+    pub final_facing: Option<f32>,
+    /// Reform order: accelerated re-seating for this many seconds.
+    pub reform_timer: f32,
+    /// Chase routing enemies (true) or hold ground when they break (false).
+    pub pursue: bool,
+    /// Bearing of the nearest enemy mass within threat range (refreshed each
+    /// tick) — foot units keep their face to it while maneuvering nearby.
+    pub threat_bearing: Option<f32>,
 }
 
 /// Sector index for a world-frame bearing, 12 sectors over (-PI, PI].
@@ -172,6 +181,10 @@ impl Unit {
         let f = dir(self.facing);
         let r = Vec2::new(f.y, -f.x);
         self.anchor + r * local.x + f * (-local.y)
+    }
+
+    pub fn is_mounted(&self) -> bool {
+        crate::class::class_stats(self.class).mounted
     }
 
     /// The formation's midpoint (anchor is the front-center).

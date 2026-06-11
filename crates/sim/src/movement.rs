@@ -101,6 +101,33 @@ pub(crate) fn update_unit_motion(tun: &Tunables, u: &mut Unit, dt: f32, ground: 
                 return;
             }
 
+            // Fighting withdrawal: a foot unit maneuvering NEAR AN ENEMY
+            // keeps its face (and shields) toward the threat and drifts —
+            // back-pedaling at a penalty — instead of showing its back.
+            // Only the explicit Withdraw order turns around. Cavalry can't
+            // sidestep: it wheels and breaks off like cavalry.
+            if u.mode != crate::unit::OrderMode::Withdraw && !u.is_mounted() {
+                if let Some(threat) = u.threat_bearing {
+                    let move_off = wrap_angle(desired - threat).abs();
+                    if move_off > 1.35 {
+                        u.pivoting = false;
+                        u.facing = rotate_toward(u.facing, threat, 1.2 * dt);
+                        // Speed penalty by drift direction relative to facing.
+                        let c = wrap_angle(desired - u.facing).cos();
+                        let drift_factor = if c >= 0.0 {
+                            0.7 + 0.3 * c
+                        } else {
+                            0.7 + 0.15 * c
+                        };
+                        let target_speed = (pace_speed(tun, u) * ground * drift_factor)
+                            .min((2.0 * accel * dist).sqrt());
+                        u.speed = move_toward(u.speed, target_speed, accel * dt);
+                        u.anchor = u.anchor + to * (u.speed * dt / dist.max(0.01));
+                        return;
+                    }
+                }
+            }
+
             // Hysteresis: a big heading change enters the pivot; the unit
             // stays in it until nearly aligned, then marches out.
             if err.abs() > tun.pivot_facing_err {
@@ -136,10 +163,28 @@ pub(crate) fn update_unit_motion(tun: &Tunables, u: &mut Unit, dt: f32, ground: 
             }
         }
         None => {
-            u.pivoting = false;
             u.speed = move_toward(u.speed, 0.0, accel * 2.0 * dt);
             if u.speed > 0.0 {
                 u.anchor = u.anchor + dir(u.facing) * (u.speed * dt);
+            }
+            // Arrived with a commanded facing: pivot to it, then settle.
+            if let Some(ff) = u.final_facing {
+                if u.speed < 0.05 {
+                    let err = wrap_angle(ff - u.facing);
+                    if err.abs() < 0.08 {
+                        u.final_facing = None;
+                        u.pivoting = false;
+                    } else {
+                        u.pivoting = true;
+                        let geom = tun.wheel_speed_factor * top / u.pivot_radius().max(1.0);
+                        let rate = tun.base_turn_rate.min(geom) * turn_throttle;
+                        let center = u.center();
+                        u.facing = rotate_toward(u.facing, ff, rate * dt);
+                        u.anchor = center + dir(u.facing) * (0.5 * u.depth());
+                    }
+                }
+            } else {
+                u.pivoting = false;
             }
         }
     }
@@ -201,6 +246,10 @@ mod tests {
             recent_missiles: 0.0,
             losing_push: 0.0,
             centroid: Vec2::ZERO,
+            final_facing: None,
+            reform_timer: 0.0,
+            pursue: false,
+            threat_bearing: None,
         };
         let mut ordered = Unit {
             disorder: 0.0,

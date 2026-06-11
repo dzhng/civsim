@@ -6,6 +6,14 @@ use std::f32::consts::FRAC_PI_2;
 
 const SEED: u64 = 1234;
 
+/// Combat-mechanics isolation: these scenarios fight to the death.
+fn no_morale() -> Tunables {
+    Tunables {
+        morale_enabled: false,
+        ..Tunables::default()
+    }
+}
+
 fn run(sim: &mut Sim, seconds: f32) {
     for _ in 0..(seconds / DT) as usize {
         sim.tick();
@@ -18,7 +26,7 @@ fn deaths(sim: &Sim, u: usize) -> usize {
 
 #[test]
 fn archers_kill_at_range_and_spend_ammo() {
-    let mut sim = Sim::new(Tunables::default(), SEED);
+    let mut sim = Sim::new(no_morale(), SEED);
     let archers = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 240, UnitClassId::Archers, 0);
     let target = sim.spawn_class(Vec2::new(0.0, 100.0), -FRAC_PI_2, 400, UnitClassId::LightInfantry, 1);
     let ammo0 = sim.units[archers].ammo;
@@ -36,7 +44,7 @@ fn archers_kill_at_range_and_spend_ammo() {
 fn dense_blocks_take_more_arrows_than_loose_order() {
     // Same headcount, same frontage exposure time; only spacing differs.
     let losses = |spacing: f32| -> usize {
-        let mut sim = Sim::new(Tunables::default(), SEED);
+        let mut sim = Sim::new(no_morale(), SEED);
         let archers = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 240, UnitClassId::Archers, 0);
         let target =
             sim.spawn_unit(Vec2::new(0.0, 90.0), -FRAC_PI_2, 300, 20, Vec2::new(spacing, spacing), 1, 0.6);
@@ -55,7 +63,7 @@ fn dense_blocks_take_more_arrows_than_loose_order() {
 #[test]
 fn shields_block_frontal_volleys_not_rear_ones() {
     let losses = |facing: f32| -> usize {
-        let mut sim = Sim::new(Tunables::default(), SEED);
+        let mut sim = Sim::new(no_morale(), SEED);
         // Heavy infantry: big shields (block 0.45).
         let target = sim.spawn_class(Vec2::new(0.0, 90.0), facing, 300, UnitClassId::HeavyInfantry, 1);
         let archers = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 240, UnitClassId::Archers, 0);
@@ -74,7 +82,7 @@ fn shields_block_frontal_volleys_not_rear_ones() {
 #[test]
 fn volleys_near_a_melee_hold_but_arrows_do_not_discriminate() {
     // Fire discipline: a target unit tangled with friends is not volleyed.
-    let mut sim = Sim::new(Tunables::default(), SEED);
+    let mut sim = Sim::new(no_morale(), SEED);
     let archers = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 200, UnitClassId::Archers, 0);
     let friend = sim.spawn_class(Vec2::new(0.0, 80.0), FRAC_PI_2, 200, UnitClassId::HeavyInfantry, 0);
     let enemy = sim.spawn_class(Vec2::new(0.0, 95.0), -FRAC_PI_2, 200, UnitClassId::HeavyInfantry, 1);
@@ -93,7 +101,7 @@ fn volleys_near_a_melee_hold_but_arrows_do_not_discriminate() {
 
 #[test]
 fn skirmishers_kite_heavy_infantry() {
-    let mut sim = Sim::new(Tunables::default(), SEED);
+    let mut sim = Sim::new(no_morale(), SEED);
     let sk = sim.spawn_class(Vec2::new(0.0, 30.0), -FRAC_PI_2, 240, UnitClassId::Skirmishers, 0);
     let heavy = sim.spawn_class(Vec2::new(0.0, -10.0), FRAC_PI_2, 300, UnitClassId::HeavyInfantry, 1);
     sim.set_attack_order(heavy, sk);
@@ -112,7 +120,7 @@ fn skirmishers_kite_heavy_infantry() {
 
 #[test]
 fn artillery_stones_plow_through_deep_columns() {
-    let mut sim = Sim::new(Tunables::default(), SEED);
+    let mut sim = Sim::new(no_morale(), SEED);
     let art = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 60, UnitClassId::ArtilleryCrew, 0);
     // A deep column end-on: the furrow's dream target.
     let column = sim.spawn_unit(Vec2::new(0.0, 220.0), -FRAC_PI_2, 600, 10, Vec2::new(0.9, 1.1), 1, 0.6);
@@ -124,7 +132,7 @@ fn artillery_stones_plow_through_deep_columns() {
         "bouncing stones through a column must be devastating: {dead} dead"
     );
     // Stuns along the furrow at some point.
-    let mut sim2 = Sim::new(Tunables::default(), SEED);
+    let mut sim2 = Sim::new(no_morale(), SEED);
     let _art = sim2.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 60, UnitClassId::ArtilleryCrew, 0);
     let column2 = sim2.spawn_unit(Vec2::new(0.0, 220.0), -FRAC_PI_2, 600, 10, Vec2::new(0.9, 1.1), 1, 0.6);
     let mut max_stunned = 0;
@@ -139,7 +147,7 @@ fn artillery_stones_plow_through_deep_columns() {
 
 #[test]
 fn horse_archers_shoot_on_the_move() {
-    let mut sim = Sim::new(Tunables::default(), SEED);
+    let mut sim = Sim::new(no_morale(), SEED);
     let ha = sim.spawn_class(Vec2::new(0.0, 0.0), 0.0, 120, UnitClassId::HorseArchers, 0);
     let target = sim.spawn_class(Vec2::new(60.0, 60.0), -FRAC_PI_2, 300, UnitClassId::LightInfantry, 1);
     // Ride across the target's front while loosing.

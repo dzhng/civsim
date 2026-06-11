@@ -184,6 +184,10 @@ impl Sim {
             recent_missiles: 0.0,
             losing_push: 0.0,
             centroid: anchor,
+            final_facing: None,
+            reform_timer: 0.0,
+            pursue: false,
+            threat_bearing: None,
         };
         for s in 0..count {
             let p = unit.slot_world(s);
@@ -314,6 +318,54 @@ impl Sim {
         self.queue_order(unit, OrderMode::Attack(enemy as u32), anchor);
     }
 
+    /// Move order that also pivots to a final facing on arrival
+    /// (line-painting / group drag orders).
+    pub fn set_move_order_facing(&mut self, unit: usize, target: Vec2, facing: f32) {
+        self.queue_order(unit, OrderMode::Move, target);
+        if let Some(u) = self.units.get_mut(unit) {
+            u.final_facing = Some(facing);
+        }
+    }
+
+    /// Permanently reshape the formation's frontage (single-unit drag).
+    pub fn set_files(&mut self, unit: usize, files: usize) {
+        if unit >= self.units.len() {
+            return;
+        }
+        let count = self.units[unit].count;
+        let files = files.clamp(4.min(count.max(1)), count.max(1));
+        let u = &mut self.units[unit];
+        u.files = files;
+        u.files_eff = files;
+        reassign_slots(&self.units[unit], &self.positions, &self.alive, &mut self.soldier_slot);
+    }
+
+    /// Reform: halt, re-seat the frame on the men, accelerated recovery.
+    pub fn set_reform(&mut self, unit: usize) {
+        let Some(u) = self.units.get_mut(unit) else {
+            return;
+        };
+        if u.routing {
+            return;
+        }
+        u.move_target = None;
+        u.pending_target = None;
+        u.resume_target = None;
+        u.path.clear();
+        u.mode = OrderMode::Move;
+        u.final_facing = None;
+        u.reform_timer = 8.0;
+        // Re-seat the frame on the men's actual center of mass.
+        u.anchor = u.centroid + dir(u.facing) * (0.5 * u.depth());
+        reassign_slots(&self.units[unit], &self.positions, &self.alive, &mut self.soldier_slot);
+    }
+
+    pub fn set_pursue(&mut self, unit: usize, on: bool) {
+        if let Some(u) = self.units.get_mut(unit) {
+            u.pursue = on;
+        }
+    }
+
     pub fn set_pace(&mut self, unit: usize, pace: Pace) {
         if let Some(u) = self.units.get_mut(unit) {
             u.pace = pace;
@@ -401,6 +453,7 @@ impl Sim {
         self.run_missiles();
         self.contact_anchor_and_facing(&measures, dt);
         self.integrate_units(&measures, dt);
+        self.run_morale(dt);
 
         self.tick_count += 1;
     }
@@ -413,7 +466,7 @@ impl Sim {
             if self.tick_count % 10 != (ui as u64) % 10 {
                 continue;
             }
-            if self.units[ui].alive_count == 0 {
+            if self.units[ui].alive_count == 0 || self.units[ui].routing {
                 continue;
             }
             // --- path planning ------------------------------------------
@@ -529,7 +582,32 @@ impl Sim {
     }
 
     fn deliver_orders_and_reflexes(&mut self, dt: f32) {
+        // Nearest-enemy bearings (the fighting-withdrawal reflex reads them).
+        let centers: Vec<(Vec2, u32, usize, f32)> = self
+            .units
+            .iter()
+            .map(|u| (u.center(), u.team, u.alive_count, 0.5 * u.width().max(u.depth())))
+            .collect();
         for ui in 0..self.units.len() {
+            let (mc, mt, _, _) = centers[ui];
+            let mut best: Option<(f32, f32)> = None; // (edge dist, bearing)
+            for &(c, team, alive, ext) in &centers {
+                if team == mt || alive == 0 {
+                    continue;
+                }
+                let to = c - mc;
+                let d = to.len() - ext;
+                if d < 45.0 && best.map_or(true, |(bd, _)| d < bd) {
+                    best = Some((d, to.y.atan2(to.x)));
+                }
+            }
+            self.units[ui].threat_bearing = best.map(|(_, b)| b);
+        }
+
+        for ui in 0..self.units.len() {
+            if self.units[ui].routing {
+                continue; // no orders reach a broken unit
+            }
             // Queued order transmission.
             let u = &mut self.units[ui];
             if let Some(t) = u.pending_target {
@@ -554,8 +632,10 @@ impl Sim {
                     let ev = &self.units[e];
                     (ev.alive_count == 0, ev.anchor)
                 };
+                let enemy_routing = self.units[e].routing;
                 let u = &mut self.units[ui];
-                if enemy_dead {
+                if enemy_dead || (enemy_routing && !u.pursue) {
+                    // Hold ground when they break, unless told to chase.
                     u.mode = OrderMode::Move;
                     u.move_target = u.resume_target.take();
                 } else if engaged_frac < 0.05 {
@@ -612,9 +692,9 @@ impl Sim {
     }
 
     /// Per-soldier steering and measurement. Returns per-unit measures:
-    /// (err_sum, stragglers, surging, effort, engaged, drift_sum, face_dev, alive_n)
+    /// (err_sum, stragglers, surging, effort, engaged, drift_sum, face_dev, alive_n, cx, cy)
     #[allow(clippy::type_complexity)]
-    fn steer_soldiers(&mut self, dt: f32) -> Vec<(f32, usize, usize, f32, usize, f32, f32, usize)> {
+    fn steer_soldiers(&mut self, dt: f32) -> Vec<(f32, usize, usize, f32, usize, f32, f32, usize, f32, f32)> {
         let tun = self.tun;
         let Sim {
             units,
@@ -633,6 +713,22 @@ impl Sim {
             ..
         } = self;
         let tick_now = *tick_count;
+
+        // Enemy mass centers per team, for rout flight directions.
+        let mut foe_centroid = [Vec2::ZERO; 2];
+        for team in 0..2u32 {
+            let mut sum = Vec2::ZERO;
+            let mut n = 0.0;
+            for v in units.iter() {
+                if v.team != team && v.alive_count > 0 {
+                    sum = sum + v.centroid * (v.alive_count as f32);
+                    n += v.alive_count as f32;
+                }
+            }
+            if n > 0.0 {
+                foe_centroid[team as usize] = sum * (1.0 / n);
+            }
+        }
 
         let mut measures = Vec::with_capacity(units.len());
         for u in units.iter() {
@@ -654,6 +750,8 @@ impl Sim {
             let mut drift_sum = 0.0f32;
             let mut face_dev = 0.0f32;
             let mut alive_n = 0usize;
+            let mut cx = 0.0f32;
+            let mut cy = 0.0f32;
 
             for s in 0..u.count {
                 let i = u.start + s;
@@ -662,10 +760,25 @@ impl Sim {
                 }
                 alive_n += 1;
                 let p = Vec2::new(positions[2 * i], positions[2 * i + 1]);
+                cx += p.x;
+                cy += p.y;
 
                 if stun[i] > 0.0 {
                     stun[i] -= dt;
                     continue; // knocked down: no stepping, no turning
+                }
+
+                if u.routing {
+                    // Broken men run from the enemy mass, as bodies.
+                    let away = p - foe_centroid[(u.team as usize).min(1)];
+                    let l = away.len().max(0.1);
+                    let flee = away * (1.0 / l);
+                    let sp = surge_sp * terrain.speed_at(p).max(0.0);
+                    positions[2 * i] = p.x + flee.x * sp * dt;
+                    positions[2 * i + 1] = p.y + flee.y * sp * dt;
+                    let desired = flee.y.atan2(flee.x);
+                    facings[i] = rotate_toward(facings[i], desired, tun.soldier_turn_rate * dt);
+                    continue;
                 }
 
                 let aware_i = target[i] >= 0 && alive[target[i] as usize] == 1;
@@ -700,8 +813,10 @@ impl Sim {
                     let tp = Vec2::new(positions[2 * t], positions[2 * t + 1]);
                     let tt = tp - p;
                     let d_t = tt.len() - 0.8; // body radii, roughly
-                    if d_t > reach_u - 0.2 {
-                        // Step INSIDE your own reach, not to its very edge.
+                    if d_t > reach_u - 0.2 && d_t < 3.5 {
+                        // JUST out of reach: step inside it. Men deeper in
+                        // the ranks hold formation — the front fights, the
+                        // block doesn't dissolve into a blender.
                         steer_to = tt;
                         max_sp = max_sp.min(keep_up_sp * 0.5);
                     } else if engaged_i {
@@ -763,7 +878,7 @@ impl Sim {
                 facings[i] = rotate_toward(facings[i], desired_face, tun.soldier_turn_rate * dt);
                 face_dev += (wrap_angle(facings[i] - u.facing).abs() - tun.facing_tolerance).max(0.0);
             }
-            measures.push((err_sum, stragglers, surging, effort, engaged, drift_sum, face_dev, alive_n));
+            measures.push((err_sum, stragglers, surging, effort, engaged, drift_sum, face_dev, alive_n, cx, cy));
         }
         measures
     }
@@ -773,7 +888,7 @@ impl Sim {
     /// circular mean of contact bearings, masked by adjacent friendlies.
     fn contact_anchor_and_facing(
         &mut self,
-        measures: &[(f32, usize, usize, f32, usize, f32, f32, usize)],
+        measures: &[(f32, usize, usize, f32, usize, f32, f32, usize, f32, f32)],
         dt: f32,
     ) {
         let tun = self.tun;
@@ -785,7 +900,7 @@ impl Sim {
             .collect();
 
         for ui in 0..self.units.len() {
-            let (.., engaged, drift_sum, _f, alive_n) = measures[ui];
+            let (_, _, _, _, engaged, drift_sum, _f, alive_n, _, _) = measures[ui];
             let alive_n = alive_n.max(1);
             let engaged_frac = engaged as f32 / alive_n as f32;
             // Withdrawing and skirmishing units answer contact with their
@@ -858,15 +973,37 @@ impl Sim {
 
     fn integrate_units(
         &mut self,
-        measures: &[(f32, usize, usize, f32, usize, f32, f32, usize)],
+        measures: &[(f32, usize, usize, f32, usize, f32, f32, usize, f32, f32)],
         dt: f32,
     ) {
         let tun = self.tun;
         use std::f32::consts::PI;
-        for (u, &(err_sum, stragglers, surging, effort, engaged, _drift, face_dev, alive_n)) in
+        for (u, &(err_sum, stragglers, surging, effort, engaged, _drift, face_dev, alive_n, cx, cy)) in
             self.units.iter_mut().zip(measures)
         {
             let n = alive_n.max(1) as f32;
+            u.centroid = Vec2::new(cx / n, cy / n);
+
+            // Congestion leash: the anchor is a smart officer at the head of
+            // the unit — it follows the general's intent but never outruns
+            // its own men. If the measured center of mass lags the frame
+            // beyond a margin (deep friendly jam, anything), the frame is
+            // pulled back to them.
+            if !u.routing {
+                let f = dir(u.facing);
+                let expected = u.anchor + f * (-0.5 * u.depth());
+                let lag = (expected - u.centroid).dot(f);
+                let leash = 0.6 * u.depth() + 5.0;
+                if lag > leash {
+                    u.anchor = u.anchor + f * (-(lag - leash));
+                }
+            } else {
+                // The frame follows the fleeing mob (so a rally has a unit
+                // to re-form around).
+                u.anchor = u.centroid + dir(u.facing) * (0.5 * u.depth());
+                u.speed = 0.0;
+            }
+
             let mean_err = err_sum / n;
             let extent = u.depth().max(u.width());
             let scale = (0.5 * extent).max(tun.disorder_norm_spacings * u.spacing.x.max(0.25));
@@ -876,11 +1013,17 @@ impl Sim {
             let observed =
                 (0.6 * norm + 0.25 * facing_term + 0.15 * strag_frac).clamp(0.0, 1.0);
 
-            let tau = if observed > u.disorder {
+            if u.reform_timer > 0.0 {
+                u.reform_timer -= dt;
+            }
+            let mut tau = if observed > u.disorder {
                 tun.disorder_rise_tau
             } else {
                 tun.disorder_fall_tau / (0.5 + u.training)
             };
+            if u.reform_timer > 0.0 && observed <= u.disorder {
+                tau *= 0.45; // the sergeants are shouting
+            }
             let alpha = 1.0 - (-dt / tau).exp();
             u.disorder += (observed - u.disorder) * alpha;
             u.cohesion = (-tun.cohesion_k * u.disorder).exp();

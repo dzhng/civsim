@@ -67,7 +67,8 @@ impl Sim {
                 continue;
             }
             let my_team = self.units[ui].team;
-            let withdraw = self.units[ui].mode == OrderMode::Withdraw;
+            let withdraw =
+                self.units[ui].mode == OrderMode::Withdraw || self.units[ui].routing;
             let stats = class_stats(self.units[ui].class);
             let weapons = stats.weapons;
             let max_reach = weapons.iter().map(|w| w.reach).fold(0.0f32, f32::max);

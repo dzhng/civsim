@@ -109,7 +109,7 @@ fn wide_line_refaces_slower_than_deep_block() {
 #[test]
 fn full_battle_spawns_and_runs() {
     let mut sim = Sim::new(Tunables::default(), SEED);
-    setup_battle(&mut sim, MapId::RidgeDefense);
+    setup_battle(&mut sim, MapId::RiverAndCrags);
     assert_eq!(sim.units.len(), 40, "20 units per side");
     let per_side: usize = sim.units.iter().filter(|u| u.team == 0).map(|u| u.count).sum();
     assert!(
@@ -137,6 +137,6 @@ fn full_battle_spawns_and_runs() {
     for i in 0..sim.soldier_count() {
         let p = sim.soldier_pos(i);
         assert!(p.x.is_finite() && p.y.is_finite());
-        assert!(p.x.abs() < 700.0 && p.y.abs() < 500.0, "soldier escaped the map: {p:?}");
+        assert!(p.x.abs() < 1300.0 && p.y.abs() < 600.0, "soldier escaped the map: {p:?}");
     }
 }

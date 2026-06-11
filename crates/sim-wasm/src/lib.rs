@@ -5,19 +5,22 @@
 //! must be re-fetched every frame — Vec reallocation can move them and grow
 //! the memory (which detaches any existing JS TypedArray views).
 
-use sim::{build_map, setup_battle, MapId, Pace, Sim, Stance, Tunables, Vec2};
+use sim::{ai_commander, build_map, setup_battle, MapId, Pace, Sim, Stance, Tunables, Vec2};
 use wasm_bindgen::prelude::*;
 
 /// Floats per unit in the unit_info array:
 /// [anchor_x, anchor_y, facing, speed, cohesion, disorder, team, count,
 ///  fatigue, pace, target_x, target_y, has_target, class, order_delay_frac,
-///  alive_count, engaged, stance, charge (0 off / 1 armed / 2 charging), ammo]
-pub const UNIT_INFO_STRIDE: usize = 20;
+///  alive_count, engaged, stance, charge (0 off / 1 armed / 2 charging), ammo,
+///  morale, routing]
+pub const UNIT_INFO_STRIDE: usize = 22;
 
 #[wasm_bindgen]
 pub struct Game {
     sim: Sim,
     unit_info: Vec<f32>,
+    /// Team the built-in commander plays (-1 = none).
+    ai_team: i32,
 }
 
 #[wasm_bindgen]
@@ -27,6 +30,7 @@ impl Game {
         Game {
             sim: Sim::new(Tunables::default(), seed as u64),
             unit_info: Vec::new(),
+            ai_team: -1,
         }
     }
 
@@ -59,15 +63,15 @@ impl Game {
         self.sim.set_move_order(unit as usize, Vec2::new(x, y));
     }
 
-    /// 0 = RidgeDefense, anything else = MeetingField.
+    /// 0 = RiverAndCrags, anything else = WalledPlain.
     pub fn load_map(&mut self, map: u32) {
-        let id = if map == 0 { MapId::RidgeDefense } else { MapId::MeetingField };
+        let id = if map == 0 { MapId::RiverAndCrags } else { MapId::WalledPlain };
         self.sim.terrain = build_map(id);
     }
 
     /// Build terrain AND deploy both full armies.
     pub fn start_battle(&mut self, map: u32) {
-        let id = if map == 0 { MapId::RidgeDefense } else { MapId::MeetingField };
+        let id = if map == 0 { MapId::RiverAndCrags } else { MapId::WalledPlain };
         setup_battle(&mut self.sim, id);
         self.refresh_unit_info();
     }
@@ -102,6 +106,10 @@ impl Game {
 
     pub fn terrain_rough_ptr(&self) -> *const f32 {
         self.sim.terrain.rough.as_ptr()
+    }
+
+    pub fn terrain_tint_ptr(&self) -> *const u8 {
+        self.sim.terrain.tint.as_ptr()
     }
 
     /// 0 = walk, anything else = run.
@@ -158,6 +166,11 @@ impl Game {
         self.sim.projectiles.kind.as_ptr()
     }
 
+    /// -1 while contested, else the winning team.
+    pub fn victor(&self) -> i32 {
+        self.sim.victor().map_or(-1, |t| t as i32)
+    }
+
     /// Nearest unit to (x, y) within max_dist, or -1.
     pub fn pick_unit(&self, x: f32, y: f32, max_dist: f32) -> i32 {
         self.sim
@@ -167,7 +180,42 @@ impl Game {
 
     pub fn tick(&mut self) {
         self.sim.tick();
+        if self.ai_team >= 0 {
+            ai_commander(&mut self.sim, self.ai_team as u32);
+        }
         self.refresh_unit_info();
+    }
+
+    pub fn set_ai_team(&mut self, team: i32) {
+        self.ai_team = team;
+    }
+
+    pub fn set_move_order_facing(&mut self, unit: u32, x: f32, y: f32, facing: f32) {
+        self.sim
+            .set_move_order_facing(unit as usize, Vec2::new(x, y), facing);
+        self.refresh_unit_info();
+    }
+
+    pub fn set_files(&mut self, unit: u32, files: u32) {
+        self.sim.set_files(unit as usize, files as usize);
+        self.refresh_unit_info();
+    }
+
+    pub fn set_reform(&mut self, unit: u32) {
+        self.sim.set_reform(unit as usize);
+        self.refresh_unit_info();
+    }
+
+    pub fn set_pursue(&mut self, unit: u32, on: u32) {
+        self.sim.set_pursue(unit as usize, on != 0);
+    }
+
+    pub fn set_fire_at_will(&mut self, unit: u32, on: u32) {
+        self.sim.set_fire_at_will(unit as usize, on != 0);
+    }
+
+    pub fn set_evade_auto(&mut self, unit: u32, on: u32) {
+        self.sim.set_evade_auto(unit as usize, on != 0);
     }
 
     pub fn soldier_count(&self) -> u32 {
@@ -232,6 +280,8 @@ impl Game {
                     0.0
                 },
                 u.ammo as f32,
+                u.morale,
+                if u.routing { 1.0 } else { 0.0 },
             ]);
         }
     }

@@ -19,6 +19,9 @@ pub struct Terrain {
     pub speed: Vec<f32>,
     /// Roughness per cell, 0..1: uneven footing that staggers soldiers.
     pub rough: Vec<f32>,
+    /// Render hint per cell (gameplay never reads it):
+    /// 0 grass, 1 water, 2 rock, 3 wall, 4 forest, 5 mud, 6 scree/field.
+    pub tint: Vec<u8>,
 }
 
 impl Terrain {
@@ -30,6 +33,7 @@ impl Terrain {
             origin,
             speed: vec![1.0; w * h],
             rough: vec![0.0; w * h],
+            tint: vec![0; w * h],
         }
     }
 
@@ -77,7 +81,7 @@ impl Terrain {
     }
 
     pub fn paint_rect(&mut self, min: Vec2, max: Vec2, speed: f32, rough: f32) {
-        self.paint(|p| p.x >= min.x && p.x <= max.x && p.y >= min.y && p.y <= max.y, speed, rough);
+        self.paint(|p| p.x >= min.x && p.x <= max.x && p.y >= min.y && p.y <= max.y, speed, rough, 255);
     }
 
     pub fn paint_circle(&mut self, center: Vec2, radius: f32, speed: f32, rough: f32) {
@@ -89,10 +93,30 @@ impl Terrain {
             },
             speed,
             rough,
+            255,
         );
     }
 
-    fn paint<F: Fn(Vec2) -> bool>(&mut self, inside: F, speed: f32, rough: f32) {
+    /// Paint with an explicit render tint (0 grass, 1 water, 2 rock, 3 wall,
+    /// 4 forest, 5 mud, 6 scree/field). Gameplay never reads tints.
+    pub fn paint_rect_tinted(&mut self, min: Vec2, max: Vec2, speed: f32, rough: f32, tint: u8) {
+        self.paint(|p| p.x >= min.x && p.x <= max.x && p.y >= min.y && p.y <= max.y, speed, rough, tint);
+    }
+
+    pub fn paint_circle_tinted(&mut self, center: Vec2, radius: f32, speed: f32, rough: f32, tint: u8) {
+        let r2 = radius * radius;
+        self.paint(
+            |p| {
+                let d = p - center;
+                d.x * d.x + d.y * d.y <= r2
+            },
+            speed,
+            rough,
+            tint,
+        );
+    }
+
+    fn paint<F: Fn(Vec2) -> bool>(&mut self, inside: F, speed: f32, rough: f32, tint: u8) {
         for cy in 0..self.h {
             for cx in 0..self.w {
                 let p = Vec2::new(
@@ -103,6 +127,20 @@ impl Terrain {
                     let i = cy * self.w + cx;
                     self.speed[i] = speed;
                     self.rough[i] = rough;
+                    if tint != 255 {
+                        self.tint[i] = tint;
+                    } else {
+                        // Infer from the painted values (back-compat).
+                        self.tint[i] = if speed <= 0.0 {
+                            2 // rock
+                        } else if rough > 0.45 {
+                            4 // forest
+                        } else if speed < 0.85 {
+                            5 // mud
+                        } else {
+                            0
+                        };
+                    }
                 }
             }
         }

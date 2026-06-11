@@ -18,6 +18,9 @@ const SHATTER_FRAC: f32 = 0.16;
 
 impl Sim {
     pub(crate) fn run_morale(&mut self, dt: f32) {
+        if !self.tun.morale_enabled {
+            return;
+        }
         // Enemy unit summaries for geometry checks (cheap; 40 units).
         let summaries: Vec<(Vec2, u32, usize, bool, f32, f32)> = self
             .units
@@ -48,12 +51,23 @@ impl Sim {
             let missile_rate = u.recent_missiles / alive_n;
             let losing_push = u.losing_push;
 
-            // Bearing spread + exits from the contact histogram.
-            let active: Vec<usize> = (0..12)
-                .filter(|&k| u.contact_hist[k] > 1.5)
-                .collect();
-            let spread = active.len() as f32;
-            let surrounded = active.len() >= 7;
+            // Attack DIRECTIONS from the contact histogram: contiguous active
+            // sectors merge into one direction. A frontal fight (1-3 adjacent
+            // sectors) is one direction and costs nothing; flanked = 2;
+            // surrounded = 3+. Raw sector counts would panic every line fight.
+            let active: Vec<bool> = (0..12).map(|k| u.contact_hist[k] > 1.5).collect();
+            let mut groups = 0;
+            for k in 0..12 {
+                if active[k] && !active[(k + 11) % 12] {
+                    groups += 1;
+                }
+            }
+            if groups == 0 && active.iter().any(|&a| a) {
+                groups = 1; // fully encircled: every sector active
+            }
+            let spread = groups as f32;
+            let active_count = active.iter().filter(|&&a| a).count();
+            let surrounded = groups >= 3 || active_count >= 8;
 
             // Charge intimidation: incoming kinetic energy, pre-contact.
             let mut intimidation = 0.0f32;
@@ -67,12 +81,15 @@ impl Sim {
                 }
                 let d = (c - my_center).len();
                 if team != my_team {
-                    if charging && d < 70.0 {
-                        // Mass x closing speed, scaled by proximity.
+                    if d < 70.0 {
+                        // Mass x closing speed, scaled by proximity: a wall
+                        // of horse at the gallop is terrifying whatever its
+                        // controller calls the gait. Walking lines are not.
                         let closing = ((my_center - c) * (1.0 / d.max(0.1))).dot(dir(
                             self.units[vi].facing,
                         )) * speed;
-                        if closing > 2.0 {
+                        let _ = charging;
+                        if closing > 3.5 {
                             intimidation += mass * closing * (1.0 - d / 70.0) * 0.01;
                         }
                     }
@@ -91,10 +108,10 @@ impl Sim {
                 * (1.0 + 0.5 * (1.0 - u.fatigue))
                 * if surrounded { 1.6 } else { 1.0 };
 
-            let drain = (0.8 * casualty_rate
+            let drain = (0.4 * casualty_rate
                 + 0.35 * missile_rate
-                + 0.05 * losing_push
-                + 0.02 * (spread - 1.0).max(0.0)
+                + 0.02 * losing_push
+                + 0.025 * (spread - 1.0).max(0.0)
                 + 0.06 * intimidation
                 + 0.05 * rout_contagion)
                 * amp;
@@ -148,7 +165,7 @@ impl Sim {
             }
             let finished = mine
                 .iter()
-                .filter(|u| u.alive_count == 0 || u.routing)
+                .filter(|u| u.alive_count == 0 || u.routing || u.morale_ceiling < 0.45)
                 .count();
             if finished * 10 > mine.len() * 6 {
                 return Some(1 - team);

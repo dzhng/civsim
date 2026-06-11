@@ -105,6 +105,8 @@ pub struct Tunables {
     pub charge_window: f32,
     /// Fatigue per second while charging.
     pub charge_drain: f32,
+    /// Master switch (tests isolating combat mechanics turn it off).
+    pub morale_enabled: bool,
 }
 
 impl Default for Tunables {
@@ -145,6 +147,7 @@ impl Default for Tunables {
             charge_speed: 4.6,
             charge_window: 2.0,
             charge_drain: 1.0 / 25.0,
+            morale_enabled: true,
             stun_momentum: 14.0,
             stun_time: 1.3,
             impact_push: 0.2,

@@ -11,7 +11,7 @@ fn fnv1a(hash: &mut u64, v: u32) {
 }
 
 fn state_hash(sim: &Sim) -> u64 {
-    let mut h = 0xcbf29ce484222325u64;
+    let mut h = 0x245893d74d55793au64;
     for &p in &sim.positions {
         fnv1a(&mut h, p.to_bits());
     }
@@ -37,7 +37,7 @@ fn golden_state_hash_stable() {
         sim.tick();
     }
     let h = state_hash(&sim);
-    const EXPECTED: u64 = 0xe784a0fac456512d;
+    const EXPECTED: u64 = 0xc8cd9ceba625c641;
     assert_eq!(
         h, EXPECTED,
         "sim behavior changed: golden hash {h:#018x} != pinned {EXPECTED:#018x}. \

@@ -78,9 +78,10 @@ fn deploy_army(sim: &mut Sim, base: Vec2, facing: f32, team: u32) {
     );
     deploy_row(sim, &[ArtilleryCrew], row(-150.0), facing, team);
     // Cavalry wings, slightly refused.
-    sim.spawn_class(row(-20.0) + right * -420.0, facing, unit_size(ShockCavalry), ShockCavalry, team);
-    sim.spawn_class(row(-20.0) + right * 420.0, facing, unit_size(ShockCavalry), ShockCavalry, team);
-    sim.spawn_class(row(-30.0) + right * 500.0, facing, unit_size(HorseArchers), HorseArchers, team);
+    // Wings must fit inside the sealed flanks (open corridor |y| < ~360).
+    sim.spawn_class(row(-20.0) + right * -300.0, facing, unit_size(ShockCavalry), ShockCavalry, team);
+    sim.spawn_class(row(-20.0) + right * 300.0, facing, unit_size(ShockCavalry), ShockCavalry, team);
+    sim.spawn_class(row(-60.0) + right * 340.0, facing, unit_size(HorseArchers), HorseArchers, team);
 }
 
 /// Build terrain and deploy both armies along the long axis: player west

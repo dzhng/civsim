@@ -150,6 +150,11 @@ impl Game {
         self.sim.alive.as_ptr()
     }
 
+    /// 1 = actively trading blows (within weapon reach). Drives attack anims.
+    pub fn fighting_ptr(&self) -> *const u8 {
+        self.sim.fighting.as_ptr()
+    }
+
     pub fn projectile_count(&self) -> u32 {
         self.sim.projectiles.len() as u32
     }

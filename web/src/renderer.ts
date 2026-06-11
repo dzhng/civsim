@@ -1,51 +1,130 @@
 import type { Camera } from './camera';
+import { buildAtlas, COLS, ROWS } from './atlas';
 
-const SOLDIER_VS = `#version 300 es
-layout(location=0) in vec2 a_quad;     // local quad corner, meters
-layout(location=1) in vec2 a_pos;      // soldier position, world meters
-layout(location=2) in float a_facing;  // radians, 0 = +x
-layout(location=3) in vec3 a_color;
-layout(location=4) in float a_unit;
-layout(location=5) in float a_size;    // body scale (cavalry > men)
-layout(location=6) in float a_alive;
-uniform vec4 u_cam;        // scale.xy, center.xy
-uniform float u_selected;  // selected unit index or -1
-out vec3 v_color;
+export const CLASS_NAMES = [
+  'Heavy Infantry', 'Light Infantry', 'Long Swords', 'Phalanx', 'Archers',
+  'Skirmishers', 'Shock Cavalry', 'Horse Archers', 'Artillery Crew',
+];
+
+// ---------------------------------------------------------------- shaders --
+
+const SPRITE_VS = `#version 300 es
+layout(location=0) in vec2 a_quad;      // -0.5..0.5 unit quad
+layout(location=1) in vec2 a_pos;       // world meters
+layout(location=2) in float a_facing;   // radians, 0 = +x (sprites face +x)
+layout(location=3) in float a_row;      // atlas row
+layout(location=4) in float a_frame;    // atlas column
+layout(location=5) in float a_size;     // world meters across the quad
+layout(location=6) in float a_alive;    // 1 living, 0 corpse
+layout(location=7) in float a_unit;
+uniform vec4 u_cam;
+uniform float u_pass;     // 0 = corpses, 1 = living, 2 = all
+uniform float u_selected;
+uniform vec2 u_sheet;     // cols, rows
+out vec2 v_uv;
+out float v_kill;
+out float v_lit;
 void main() {
+  float want = u_pass > 1.5 ? 1.0 : (abs(a_alive - u_pass) < 0.5 ? 1.0 : 0.0);
+  v_kill = 1.0 - want;
   vec2 f = vec2(cos(a_facing), sin(a_facing));
-  vec2 r = vec2(f.y, -f.x);
-  vec2 world = a_pos + (r * a_quad.x + f * a_quad.y) * a_size;
+  vec2 r = vec2(-f.y, f.x);
+  vec2 world = a_pos + (f * a_quad.x + r * a_quad.y) * a_size;
   vec2 clip = (world - u_cam.zw) * u_cam.xy;
-  gl_Position = vec4(clip, 0.0, 1.0);
-  v_color = a_alive > 0.5
-    ? a_color * (abs(a_unit - u_selected) < 0.5 ? 1.7 : 1.0)
-    : vec3(0.17, 0.13, 0.12);  // the fallen stay on the field
+  gl_Position = vec4(clip * want, want > 0.5 ? 0.0 : 2.0, 1.0);
+  vec2 cell = vec2(a_frame, a_row);
+  v_uv = (cell + vec2(a_quad.x + 0.5, 0.5 - a_quad.y)) / u_sheet;
+  v_lit = abs(a_unit - u_selected) < 0.5 ? 1.35 : 1.0;
 }`;
 
-const SOLDIER_FS = `#version 300 es
+const SPRITE_FS = `#version 300 es
 precision mediump float;
-in vec3 v_color;
-out vec4 outColor;
-void main() { outColor = vec4(v_color, 1.0); }`;
+in vec2 v_uv;
+in float v_kill;
+in float v_lit;
+uniform sampler2D u_tex;
+out vec4 o;
+void main() {
+  if (v_kill > 0.5) discard;
+  vec4 c = texture(u_tex, v_uv);
+  if (c.a < 0.04) discard;
+  o = vec4(c.rgb * v_lit, c.a);
+}`;
 
 const GROUND_VS = `#version 300 es
-layout(location=0) in vec2 a_corner;   // 0..1 across the map rect
+layout(location=0) in vec2 a_corner;
 uniform vec4 u_cam;
-uniform vec4 u_rect;                   // origin.xy, size.xy (world meters)
+uniform vec4 u_rect;
 out vec2 v_uv;
+out vec2 v_world;
 void main() {
   vec2 world = u_rect.xy + a_corner * u_rect.zw;
+  v_world = world;
   vec2 clip = (world - u_cam.zw) * u_cam.xy;
   gl_Position = vec4(clip, 0.0, 1.0);
   v_uv = a_corner;
 }`;
 
+// Procedural ground: the tint id picks a palette; value noise breaks it up;
+// water animates. Terrain data texture: R = speed, G = rough, B = tint/8.
 const GROUND_FS = `#version 300 es
 precision mediump float;
 in vec2 v_uv;
-uniform sampler2D u_tex;
-out vec4 outColor;
-void main() { outColor = texture(u_tex, v_uv); }`;
+in vec2 v_world;
+uniform sampler2D u_terrain;
+uniform float u_time;
+out vec4 o;
+
+float hash(vec2 p) {
+  vec3 p3 = fract(vec3(p.xyx) * 0.1031);
+  p3 += dot(p3, p3.yzx + 33.33);
+  return fract((p3.x + p3.y) * p3.z);
+}
+float noise(vec2 p) {
+  vec2 i = floor(p); vec2 f = fract(p);
+  f = f * f * (3.0 - 2.0 * f);
+  return mix(mix(hash(i), hash(i + vec2(1, 0)), f.x),
+             mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), f.x), f.y);
+}
+
+void main() {
+  vec3 t = texture(u_terrain, v_uv).rgb;
+  float tint = floor(t.b * 8.0 + 0.5);
+  float n1 = noise(v_world * 0.11);
+  float n2 = noise(v_world * 0.45);
+  float n = n1 * 0.7 + n2 * 0.3;
+
+  vec3 col;
+  if (tint < 0.5) {            // grass
+    col = mix(vec3(0.318, 0.376, 0.225), vec3(0.404, 0.451, 0.255), n);
+    col *= 0.92 + 0.08 * noise(v_world * 1.7);
+  } else if (tint < 1.5) {     // water
+    float w = noise(v_world * 0.22 + vec2(u_time * 0.25, u_time * 0.18));
+    col = mix(vec3(0.16, 0.27, 0.38), vec3(0.23, 0.37, 0.47), w);
+    col += 0.06 * smoothstep(0.72, 0.95, noise(v_world * 0.5 + vec2(-u_time * 0.3, 0.0)));
+  } else if (tint < 2.5) {     // rock / crags
+    float ridge = abs(noise(v_world * 0.18) - 0.5) * 2.0;
+    col = mix(vec3(0.34, 0.33, 0.31), vec3(0.55, 0.53, 0.50), ridge);
+    col *= 0.85 + 0.15 * n2;
+  } else if (tint < 3.5) {     // city wall
+    vec2 brick = fract(v_world * vec2(0.24, 0.5));
+    float mortar = step(0.92, brick.x) + step(0.9, brick.y);
+    col = mix(vec3(0.52, 0.46, 0.40), vec3(0.40, 0.35, 0.31), clamp(mortar, 0.0, 1.0));
+    col *= 0.9 + 0.1 * n2;
+  } else if (tint < 4.5) {     // forest floor
+    col = mix(vec3(0.20, 0.28, 0.16), vec3(0.26, 0.34, 0.19), n);
+  } else if (tint < 5.5) {     // mud / marsh
+    col = mix(vec3(0.30, 0.26, 0.19), vec3(0.38, 0.33, 0.23), n);
+    col += 0.04 * smoothstep(0.6, 0.9, noise(v_world * 0.33));
+  } else {                     // scree / tilled field
+    col = mix(vec3(0.42, 0.39, 0.30), vec3(0.50, 0.46, 0.34), n2);
+  }
+
+  col *= 0.88 + 0.12 * t.r;    // slow ground reads darker, honestly
+  vec2 e = abs(v_uv - 0.5) * 2.0;
+  col *= 1.0 - 0.18 * pow(max(e.x, e.y), 4.0);
+  o = vec4(col, 1.0);
+}`;
 
 const LINE_VS = `#version 300 es
 layout(location=0) in vec2 a_pos;
@@ -61,319 +140,338 @@ void main() {
 const LINE_FS = `#version 300 es
 precision mediump float;
 in vec3 v_color;
-out vec4 outColor;
-void main() { outColor = vec4(v_color, 0.9); }`;
+out vec4 o;
+void main() { o = vec4(v_color, 0.9); }`;
 
-// Soldier footprint: wider than deep, so facing is visible even as a quad.
-const HALF_W = 0.34;
-const HALF_D = 0.2;
+// ---------------------------------------------------------------- helpers --
 
-// Class ids match Rust's UnitClassId order:
-// Heavy, Light, LongSwords, Phalanx, Archers, Skirmishers, ShockCav, HorseArchers, ArtilleryCrew
-export const CLASS_NAMES = [
-  'heavy infantry',
-  'light infantry',
-  'long swords',
-  'phalanx',
-  'archers',
-  'skirmishers',
-  'shock cavalry',
-  'horse archers',
-  'artillery crew',
-];
-
-const RED_PALETTE: [number, number, number][] = [
-  [0.72, 0.18, 0.14],
-  [0.95, 0.45, 0.35],
-  [1.0, 0.58, 0.18],
-  [0.6, 0.12, 0.2],
-  [0.9, 0.72, 0.3],
-  [0.85, 0.55, 0.5],
-  [0.95, 0.25, 0.45],
-  [1.0, 0.5, 0.6],
-  [0.7, 0.42, 0.3],
-];
-
-const BLUE_PALETTE: [number, number, number][] = [
-  [0.16, 0.3, 0.75],
-  [0.42, 0.6, 0.95],
-  [0.2, 0.75, 0.85],
-  [0.12, 0.2, 0.6],
-  [0.55, 0.78, 0.9],
-  [0.5, 0.62, 0.8],
-  [0.45, 0.35, 0.95],
-  [0.6, 0.55, 1.0],
-  [0.35, 0.45, 0.6],
-];
-
-function classColor(team: number, cls: number): [number, number, number] {
-  const palette = team === 0 ? RED_PALETTE : BLUE_PALETTE;
-  return palette[cls] ?? palette[0];
+function compile(gl: WebGL2RenderingContext, vsSrc: string, fsSrc: string): WebGLProgram {
+  const sh = (type: number, src: string) => {
+    const s = gl.createShader(type)!;
+    gl.shaderSource(s, src);
+    gl.compileShader(s);
+    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s) ?? 'shader');
+    return s;
+  };
+  const p = gl.createProgram()!;
+  gl.attachShader(p, sh(gl.VERTEX_SHADER, vsSrc));
+  gl.attachShader(p, sh(gl.FRAGMENT_SHADER, fsSrc));
+  gl.linkProgram(p);
+  if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p) ?? 'link');
+  return p;
 }
 
-interface Pass {
-  program: WebGLProgram;
-  vao: WebGLVertexArrayObject;
-  uCam: WebGLUniformLocation;
+interface SpriteBufs {
+  pos: WebGLBuffer;
+  facing: WebGLBuffer;
+  row: WebGLBuffer;
+  frame: WebGLBuffer;
+  size: WebGLBuffer;
+  alive: WebGLBuffer;
+  unit: WebGLBuffer;
 }
 
 export class Renderer {
   private gl: WebGL2RenderingContext;
+  private sprite: WebGLProgram;
+  private ground: WebGLProgram;
+  private line: WebGLProgram;
+  private atlasTex: WebGLTexture;
+  private terrainTex: WebGLTexture | null = null;
+  private mapRect: [number, number, number, number] = [0, 0, 1, 1];
 
-  private soldiers: Pass;
-  private uSelected: WebGLUniformLocation;
-  private posBuf: WebGLBuffer;
-  private facingBuf: WebGLBuffer;
-  private colorBuf: WebGLBuffer;
-  private unitBuf: WebGLBuffer;
-  private sizeBuf: WebGLBuffer;
-  private aliveBuf: WebGLBuffer;
-  private capacity = 0;
+  private quadBuf: WebGLBuffer;
+  private groundVao: WebGLVertexArrayObject;
+  private n = 0;
 
-  private ground: Pass;
-  private uRect: WebGLUniformLocation;
-  private groundTex: WebGLTexture | null = null;
-  private groundRect: [number, number, number, number] = [0, 0, 0, 0];
+  private soldierBufs: SpriteBufs;
+  private soldierVao: WebGLVertexArrayObject;
+  private decalVao: WebGLVertexArrayObject;
+  private decalCount = 0;
+  private bannerVao: WebGLVertexArrayObject;
+  private bannerBufs: SpriteBufs;
 
-  private lines: Pass;
+  private lineVao: WebGLVertexArrayObject;
   private lineBuf: WebGLBuffer;
-  private lineCapacityBytes = 0;
+
+  readonly atlasCanvas: HTMLCanvasElement;
+  private soldierRowOf: (cls: number, team: number) => number;
+  private decalRow: number;
+  private start = performance.now();
 
   constructor(private canvas: HTMLCanvasElement) {
-    const gl = canvas.getContext('webgl2');
-    if (!gl) throw new Error('WebGL2 not available');
+    const gl = canvas.getContext('webgl2', { antialias: true })!;
     this.gl = gl;
+    this.sprite = compile(gl, SPRITE_VS, SPRITE_FS);
+    this.ground = compile(gl, GROUND_VS, GROUND_FS);
+    this.line = compile(gl, LINE_VS, LINE_FS);
 
-    // --- soldier pass -------------------------------------------------------
-    const sp = this.buildProgram(SOLDIER_VS, SOLDIER_FS);
-    const svao = gl.createVertexArray()!;
-    gl.bindVertexArray(svao);
-    const quad = gl.createBuffer()!;
-    gl.bindBuffer(gl.ARRAY_BUFFER, quad);
-    gl.bufferData(
-      gl.ARRAY_BUFFER,
-      new Float32Array([-HALF_W, -HALF_D, HALF_W, -HALF_D, -HALF_W, HALF_D, HALF_W, HALF_D]),
-      gl.STATIC_DRAW,
-    );
-    gl.enableVertexAttribArray(0);
-    gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
-    this.posBuf = this.instanceAttr(1, 2);
-    this.facingBuf = this.instanceAttr(2, 1);
-    this.colorBuf = this.instanceAttr(3, 3);
-    this.unitBuf = this.instanceAttr(4, 1);
-    this.sizeBuf = this.instanceAttr(5, 1);
-    this.aliveBuf = this.instanceAttr(6, 1);
-    this.soldiers = { program: sp, vao: svao, uCam: gl.getUniformLocation(sp, 'u_cam')! };
-    this.uSelected = gl.getUniformLocation(sp, 'u_selected')!;
+    const atlas = buildAtlas();
+    this.atlasCanvas = atlas.canvas;
+    this.soldierRowOf = atlas.soldierRow;
+    this.decalRow = atlas.decalRow;
+    this.atlasTex = gl.createTexture()!;
+    gl.bindTexture(gl.TEXTURE_2D, this.atlasTex);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, atlas.canvas);
+    gl.generateMipmap(gl.TEXTURE_2D);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 
-    // --- ground pass --------------------------------------------------------
-    const gp = this.buildProgram(GROUND_VS, GROUND_FS);
-    const gvao = gl.createVertexArray()!;
-    gl.bindVertexArray(gvao);
-    const corners = gl.createBuffer()!;
-    gl.bindBuffer(gl.ARRAY_BUFFER, corners);
+    this.quadBuf = gl.createBuffer()!;
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.quadBuf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-0.5, -0.5, 0.5, -0.5, -0.5, 0.5, 0.5, 0.5]), gl.STATIC_DRAW);
+
+    this.groundVao = gl.createVertexArray()!;
+    gl.bindVertexArray(this.groundVao);
+    const gq = gl.createBuffer()!;
+    gl.bindBuffer(gl.ARRAY_BUFFER, gq);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0, 0, 1, 0, 0, 1, 1, 1]), gl.STATIC_DRAW);
     gl.enableVertexAttribArray(0);
     gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
-    this.ground = { program: gp, vao: gvao, uCam: gl.getUniformLocation(gp, 'u_cam')! };
-    this.uRect = gl.getUniformLocation(gp, 'u_rect')!;
+    gl.bindVertexArray(null);
 
-    // --- line overlay pass --------------------------------------------------
-    const lp = this.buildProgram(LINE_VS, LINE_FS);
-    const lvao = gl.createVertexArray()!;
-    gl.bindVertexArray(lvao);
+    const mkBufs = (): SpriteBufs => ({
+      pos: gl.createBuffer()!, facing: gl.createBuffer()!, row: gl.createBuffer()!,
+      frame: gl.createBuffer()!, size: gl.createBuffer()!, alive: gl.createBuffer()!, unit: gl.createBuffer()!,
+    });
+    this.soldierBufs = mkBufs();
+    this.bannerBufs = mkBufs();
+    this.soldierVao = gl.createVertexArray()!;
+    this.decalVao = gl.createVertexArray()!;
+    this.bannerVao = gl.createVertexArray()!;
+
+    this.lineVao = gl.createVertexArray()!;
     this.lineBuf = gl.createBuffer()!;
+    gl.bindVertexArray(this.lineVao);
     gl.bindBuffer(gl.ARRAY_BUFFER, this.lineBuf);
     gl.enableVertexAttribArray(0);
     gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 20, 0);
     gl.enableVertexAttribArray(1);
     gl.vertexAttribPointer(1, 3, gl.FLOAT, false, 20, 8);
-    this.lines = { program: lp, vao: lvao, uCam: gl.getUniformLocation(lp, 'u_cam')! };
-
     gl.bindVertexArray(null);
-    gl.clearColor(0.075, 0.085, 0.105, 1);
+
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
+    const resize = () => {
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = canvas.clientWidth * dpr;
+      canvas.height = canvas.clientHeight * dpr;
+    };
+    resize();
+    window.addEventListener('resize', resize);
   }
 
-  /** Build the ground texture from the sim's terrain grid (once per map). */
-  setTerrain(
-    w: number,
-    h: number,
-    cell: number,
-    originX: number,
-    originY: number,
-    speed: Float32Array,
-    rough: Float32Array,
-  ) {
+  private setupSpriteVao(vao: WebGLVertexArrayObject, bufs: SpriteBufs) {
     const gl = this.gl;
-    const rgba = new Uint8Array(w * h * 4);
-    for (let i = 0; i < w * h; i++) {
-      const s = speed[i];
-      const r = rough[i];
-      // grass -> mud as ground slows; -> dark woods as roughness rises;
-      // walls are rock gray.
-      let cr = 62, cg = 72, cb = 52;
-      if (s <= 0) {
-        cr = 92; cg = 93; cb = 99;
-      } else {
-        const mud = Math.min(1, (1 - s) * 1.5);
-        cr = cr + (94 - cr) * mud;
-        cg = cg + (78 - cg) * mud;
-        cb = cb + (58 - cb) * mud;
-        cr = cr + (38 - cr) * r;
-        cg = cg + (58 - cg) * r;
-        cb = cb + (40 - cb) * r;
-      }
-      rgba[4 * i] = cr;
-      rgba[4 * i + 1] = cg;
-      rgba[4 * i + 2] = cb;
-      rgba[4 * i + 3] = 255;
+    gl.bindVertexArray(vao);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.quadBuf);
+    gl.enableVertexAttribArray(0);
+    gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+    const inst = (loc: number, buf: WebGLBuffer, comps: number) => {
+      gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+      gl.enableVertexAttribArray(loc);
+      gl.vertexAttribPointer(loc, comps, gl.FLOAT, false, 0, 0);
+      gl.vertexAttribDivisor(loc, 1);
+    };
+    inst(1, bufs.pos, 2);
+    inst(2, bufs.facing, 1);
+    inst(3, bufs.row, 1);
+    inst(4, bufs.frame, 1);
+    inst(5, bufs.size, 1);
+    inst(6, bufs.alive, 1);
+    inst(7, bufs.unit, 1);
+    gl.bindVertexArray(null);
+  }
+
+  setStatic(soldierUnit: Uint32Array, teams: number[], classes: number[], radii: Float32Array) {
+    const gl = this.gl;
+    this.n = soldierUnit.length;
+    const rows = new Float32Array(this.n);
+    const sizes = new Float32Array(this.n);
+    const units = new Float32Array(this.n);
+    for (let i = 0; i < this.n; i++) {
+      const u = soldierUnit[i];
+      const cls = classes[u];
+      rows[i] = this.soldierRowOf(cls, teams[u]);
+      const mounted = cls === 6 || cls === 7;
+      sizes[i] = mounted ? 4.6 : Math.max(2.2, radii[i] * 6.8);
+      units[i] = u;
     }
-    this.groundTex = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, this.groundTex);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, rgba);
+    const up = (buf: WebGLBuffer, data: Float32Array) => {
+      gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+      gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
+    };
+    up(this.soldierBufs.row, rows);
+    up(this.soldierBufs.size, sizes);
+    up(this.soldierBufs.unit, units);
+    this.setupSpriteVao(this.soldierVao, this.soldierBufs);
+    this.setupSpriteVao(this.bannerVao, this.bannerBufs);
+  }
+
+  setTerrain(w: number, h: number, cell: number, ox: number, oy: number, speed: Float32Array, rough: Float32Array, tint: Uint8Array) {
+    const gl = this.gl;
+    this.mapRect = [ox, oy, w * cell, h * cell];
+    const data = new Uint8Array(w * h * 4);
+    for (let i = 0; i < w * h; i++) {
+      data[i * 4] = Math.round(speed[i] * 255);
+      data[i * 4 + 1] = Math.round(rough[i] * 255);
+      data[i * 4 + 2] = Math.round((tint[i] / 8) * 255);
+      data[i * 4 + 3] = 255;
+    }
+    this.terrainTex = gl.createTexture()!;
+    gl.bindTexture(gl.TEXTURE_2D, this.terrainTex);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, data);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    this.groundRect = [originX, originY, w * cell, h * cell];
-  }
 
-  /** Upload per-soldier data that never changes after spawn. */
-  setStatic(soldierUnit: Uint32Array, unitTeam: number[], unitClass: number[], radii: Float32Array) {
-    const n = soldierUnit.length;
-    const colors = new Float32Array(n * 3);
-    const unitIds = new Float32Array(n);
-    const sizes = new Float32Array(n);
-    for (let i = 0; i < n; i++) {
-      const unit = soldierUnit[i];
-      unitIds[i] = unit;
-      sizes[i] = radii[i] / 0.33;
-      const shade = 0.88 + 0.24 * ((unit * 2654435761) % 5) / 5;
-      const [r, g, b] = classColor(unitTeam[unit], unitClass[unit]);
-      colors[3 * i] = r * shade;
-      colors[3 * i + 1] = g * shade;
-      colors[3 * i + 2] = b * shade;
+    // Scatter static decals: trees on forest cells, boulders on the crags.
+    const hash = (x: number, y: number, s: number) => {
+      let v = (x * 374761393 + y * 668265263 + s * 1274126177) | 0;
+      v = (v ^ (v >> 13)) * 1274126177;
+      return ((v ^ (v >> 16)) >>> 0) / 4294967296;
+    };
+    const pos: number[] = [];
+    const facing: number[] = [];
+    const row: number[] = [];
+    const frame: number[] = [];
+    const size: number[] = [];
+    for (let cy = 0; cy < h; cy++) {
+      for (let cx = 0; cx < w; cx++) {
+        const t = tint[cy * w + cx];
+        const px = ox + (cx + 0.5) * cell;
+        const py = oy + (cy + 0.5) * cell;
+        if (t === 4 && hash(cx, cy, 1) < 0.16) {
+          pos.push(px + (hash(cx, cy, 2) - 0.5) * cell * 1.6, py + (hash(cx, cy, 3) - 0.5) * cell * 1.6);
+          facing.push(hash(cx, cy, 6) * 6.28);
+          row.push(this.decalRow);
+          frame.push(Math.floor(hash(cx, cy, 4) * 3));
+          size.push(7 + hash(cx, cy, 5) * 5);
+        } else if (t === 2 && hash(cx, cy, 7) < 0.015) {
+          pos.push(px, py);
+          facing.push(hash(cx, cy, 9) * 6.28);
+          row.push(this.decalRow);
+          frame.push(3);
+          size.push(9 + hash(cx, cy, 8) * 7);
+        }
+      }
     }
-    const gl = this.gl;
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.colorBuf);
-    gl.bufferData(gl.ARRAY_BUFFER, colors, gl.STATIC_DRAW);
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.unitBuf);
-    gl.bufferData(gl.ARRAY_BUFFER, unitIds, gl.STATIC_DRAW);
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.sizeBuf);
-    gl.bufferData(gl.ARRAY_BUFFER, sizes, gl.STATIC_DRAW);
-    this.ensureCapacity(n);
+    this.decalCount = facing.length;
+    const mk = (data: number[] | Float32Array) => {
+      const b = gl.createBuffer()!;
+      gl.bindBuffer(gl.ARRAY_BUFFER, b);
+      gl.bufferData(gl.ARRAY_BUFFER, data instanceof Float32Array ? data : new Float32Array(data), gl.STATIC_DRAW);
+      return b;
+    };
+    this.setupSpriteVao(this.decalVao, {
+      pos: mk(pos), facing: mk(facing), row: mk(row), frame: mk(frame),
+      size: mk(size), alive: mk(new Float32Array(this.decalCount).fill(1)),
+      unit: mk(new Float32Array(this.decalCount).fill(-2)),
+    });
   }
 
   draw(
     positions: Float32Array,
     facings: Float32Array,
+    frames: Float32Array,
     alive: Float32Array,
     count: number,
     camera: Camera,
-    selectedUnit: number,
+    selectedPrimary: number,
+    banners: { x: number; y: number; team: number; unit: number }[],
   ) {
     const gl = this.gl;
-    this.resizeToDisplay();
-    this.ensureCapacity(count);
-
     gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+    gl.clearColor(0.06, 0.07, 0.06, 1);
     gl.clear(gl.COLOR_BUFFER_BIT);
     const cam = camera.uniform();
+    const time = (performance.now() - this.start) / 1000;
 
-    if (this.groundTex) {
-      gl.useProgram(this.ground.program);
-      gl.bindVertexArray(this.ground.vao);
-      gl.uniform4fv(this.ground.uCam, cam);
-      gl.uniform4fv(this.uRect, this.groundRect);
-      gl.bindTexture(gl.TEXTURE_2D, this.groundTex);
+    if (this.terrainTex) {
+      gl.useProgram(this.ground);
+      gl.uniform4f(gl.getUniformLocation(this.ground, 'u_cam'), cam[0], cam[1], cam[2], cam[3]);
+      gl.uniform4f(gl.getUniformLocation(this.ground, 'u_rect'), this.mapRect[0], this.mapRect[1], this.mapRect[2], this.mapRect[3]);
+      gl.uniform1f(gl.getUniformLocation(this.ground, 'u_time'), time);
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, this.terrainTex);
+      gl.uniform1i(gl.getUniformLocation(this.ground, 'u_terrain'), 0);
+      gl.bindVertexArray(this.groundVao);
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+      gl.bindVertexArray(null);
     }
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.posBuf);
-    gl.bufferSubData(gl.ARRAY_BUFFER, 0, positions, 0, count * 2);
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.facingBuf);
-    gl.bufferSubData(gl.ARRAY_BUFFER, 0, facings, 0, count);
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.aliveBuf);
-    gl.bufferSubData(gl.ARRAY_BUFFER, 0, alive, 0, count);
+    gl.useProgram(this.sprite);
+    gl.uniform4f(gl.getUniformLocation(this.sprite, 'u_cam'), cam[0], cam[1], cam[2], cam[3]);
+    gl.uniform2f(gl.getUniformLocation(this.sprite, 'u_sheet'), COLS, ROWS);
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, this.atlasTex);
+    gl.uniform1i(gl.getUniformLocation(this.sprite, 'u_tex'), 0);
+    const uPass = gl.getUniformLocation(this.sprite, 'u_pass');
+    const uSel = gl.getUniformLocation(this.sprite, 'u_selected');
+    gl.uniform1f(uSel, selectedPrimary);
 
-    gl.useProgram(this.soldiers.program);
-    gl.bindVertexArray(this.soldiers.vao);
-    gl.uniform4fv(this.soldiers.uCam, cam);
-    gl.uniform1f(this.uSelected, selectedUnit);
+    const up = (buf: WebGLBuffer, data: Float32Array) => {
+      gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+      gl.bufferData(gl.ARRAY_BUFFER, data, gl.DYNAMIC_DRAW);
+    };
+    up(this.soldierBufs.pos, positions.subarray(0, count * 2));
+    up(this.soldierBufs.facing, facings.subarray(0, count));
+    up(this.soldierBufs.frame, frames.subarray(0, count));
+    up(this.soldierBufs.alive, alive.subarray(0, count));
+
+    gl.bindVertexArray(this.soldierVao);
+    gl.uniform1f(uPass, 0); // the fallen, underneath
+    gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, count);
+    gl.uniform1f(uPass, 1); // the living
     gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, count);
     gl.bindVertexArray(null);
+
+    if (this.decalCount > 0) {
+      gl.uniform1f(uPass, 2);
+      gl.uniform1f(uSel, -10);
+      gl.bindVertexArray(this.decalVao);
+      gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, this.decalCount);
+      gl.bindVertexArray(null);
+    }
+
+    if (banners.length > 0) {
+      const n = banners.length;
+      const pos = new Float32Array(n * 2);
+      const frame = new Float32Array(n);
+      const unit = new Float32Array(n);
+      banners.forEach((b, i) => {
+        pos[2 * i] = b.x;
+        pos[2 * i + 1] = b.y;
+        frame[i] = 4 + b.team;
+        unit[i] = b.unit;
+      });
+      up(this.bannerBufs.pos, pos);
+      up(this.bannerBufs.facing, new Float32Array(n).fill(Math.PI / 2));
+      up(this.bannerBufs.row, new Float32Array(n).fill(this.decalRow));
+      up(this.bannerBufs.frame, frame);
+      up(this.bannerBufs.size, new Float32Array(n).fill(11));
+      up(this.bannerBufs.alive, new Float32Array(n).fill(1));
+      up(this.bannerBufs.unit, unit);
+      gl.uniform1f(uPass, 2);
+      gl.uniform1f(uSel, selectedPrimary);
+      gl.bindVertexArray(this.bannerVao);
+      gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, n);
+      gl.bindVertexArray(null);
+    }
   }
 
-  /** Interleaved [x, y, r, g, b] pairs of line endpoints; drawn over everything. */
   drawOverlay(verts: Float32Array, camera: Camera) {
     if (verts.length === 0) return;
     const gl = this.gl;
-    gl.useProgram(this.lines.program);
-    gl.bindVertexArray(this.lines.vao);
+    const cam = camera.uniform();
+    gl.useProgram(this.line);
+    gl.uniform4f(gl.getUniformLocation(this.line, 'u_cam'), cam[0], cam[1], cam[2], cam[3]);
+    gl.bindVertexArray(this.lineVao);
     gl.bindBuffer(gl.ARRAY_BUFFER, this.lineBuf);
-    if (verts.byteLength > this.lineCapacityBytes) {
-      gl.bufferData(gl.ARRAY_BUFFER, verts.byteLength, gl.DYNAMIC_DRAW);
-      this.lineCapacityBytes = verts.byteLength;
-    }
-    gl.bufferSubData(gl.ARRAY_BUFFER, 0, verts);
-    gl.uniform4fv(this.lines.uCam, camera.uniform());
-    gl.enable(gl.BLEND);
-    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    gl.bufferData(gl.ARRAY_BUFFER, verts, gl.DYNAMIC_DRAW);
     gl.drawArrays(gl.LINES, 0, verts.length / 5);
-    gl.disable(gl.BLEND);
     gl.bindVertexArray(null);
-  }
-
-  private instanceAttr(location: number, size: number): WebGLBuffer {
-    const gl = this.gl;
-    const buf = gl.createBuffer()!;
-    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
-    gl.enableVertexAttribArray(location);
-    gl.vertexAttribPointer(location, size, gl.FLOAT, false, 0, 0);
-    gl.vertexAttribDivisor(location, 1);
-    return buf;
-  }
-
-  private ensureCapacity(count: number) {
-    if (count <= this.capacity) return;
-    const gl = this.gl;
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.posBuf);
-    gl.bufferData(gl.ARRAY_BUFFER, count * 2 * 4, gl.DYNAMIC_DRAW);
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.facingBuf);
-    gl.bufferData(gl.ARRAY_BUFFER, count * 4, gl.DYNAMIC_DRAW);
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.aliveBuf);
-    gl.bufferData(gl.ARRAY_BUFFER, count * 4, gl.DYNAMIC_DRAW);
-    this.capacity = count;
-  }
-
-  private resizeToDisplay() {
-    const dpr = window.devicePixelRatio || 1;
-    const w = Math.round(this.canvas.clientWidth * dpr);
-    const h = Math.round(this.canvas.clientHeight * dpr);
-    if (this.canvas.width !== w || this.canvas.height !== h) {
-      this.canvas.width = w;
-      this.canvas.height = h;
-    }
-  }
-
-  private buildProgram(vsSource: string, fsSource: string): WebGLProgram {
-    const gl = this.gl;
-    const compile = (type: number, source: string) => {
-      const shader = gl.createShader(type)!;
-      gl.shaderSource(shader, source);
-      gl.compileShader(shader);
-      if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-        throw new Error('shader: ' + gl.getShaderInfoLog(shader));
-      }
-      return shader;
-    };
-    const program = gl.createProgram()!;
-    gl.attachShader(program, compile(gl.VERTEX_SHADER, vsSource));
-    gl.attachShader(program, compile(gl.FRAGMENT_SHADER, fsSource));
-    gl.linkProgram(program);
-    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-      throw new Error('link: ' + gl.getProgramInfoLog(program));
-    }
-    return program;
   }
 }

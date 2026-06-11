@@ -140,12 +140,12 @@ await page.evaluate(() => {
   window.__game.setPace(24, 1);
   window.__game.attackOrder(4, 24); // center heavies, straight clear lane
   window.__game.attackOrder(24, 4);
-  window.__game.advance(10500); // close ~1km: mid-fight
+  window.__game.advance(14000); // close ~1km at the double: mid-fight
 });
 const mid = await page.evaluate(() => window.__game.unitInfo(4));
 check('units are engaged mid-fight', mid[16] > 20, `${mid[16]} fighting`);
 await page.screenshot({ path: SHOTS + 'melee.png' });
-await page.evaluate(() => window.__game.advance(2000));
+await page.evaluate(() => window.__game.advance(1800));
 const red = await page.evaluate(() => window.__game.unitInfo(4));
 const blue = await page.evaluate(() => window.__game.unitInfo(24));
 const redLosses = red[7] - red[15];
@@ -166,7 +166,7 @@ const page2 = await browser.newPage({ viewport: { width: 1280, height: 800 } });
 page2.on('pageerror', (e) => pageErrors.push('ai-page: ' + e.message));
 await page2.goto(TARGET); // AI on by default
 await page2.waitForFunction(() => window.__ready === true, { timeout: 20000 });
-await page2.evaluate(() => window.__game.advance(13000)); // ~7 min: AI closes 1km and fights
+await page2.evaluate(() => window.__game.advance(17500)); // ~10 min: the AI closes 1km and fights
 const aiState = await page2.evaluate(() => {
   let blueMoved = 0;
   let dead = 0;

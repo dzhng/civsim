@@ -29,7 +29,8 @@ const unitInfo = () =>
 
 const canvas = document.getElementById('battlefield') as HTMLCanvasElement;
 const camera = new Camera(canvas);
-camera.zoom = (canvas.clientHeight * (window.devicePixelRatio || 1)) / 900;
+// Fit the 1000m map height with a little margin.
+camera.zoom = (canvas.clientHeight * (window.devicePixelRatio || 1)) / 1060;
 
 const STRIDE = game.unit_info_stride();
 
@@ -48,7 +49,68 @@ const renderer = new Renderer(canvas);
     tw, th, game.terrain_cell(), game.terrain_origin_x(), game.terrain_origin_y(),
     new Float32Array(wasm.memory.buffer, game.terrain_speed_ptr(), tw * th),
     new Float32Array(wasm.memory.buffer, game.terrain_rough_ptr(), tw * th),
+    new Uint8Array(wasm.memory.buffer, game.terrain_tint_ptr(), tw * th),
   );
+}
+
+// --- Minimap -------------------------------------------------------------------
+const minimap = document.getElementById('minimap') as HTMLCanvasElement;
+const miniBack = document.createElement('canvas');
+{
+  const tw = game.terrain_w();
+  const th = game.terrain_h();
+  miniBack.width = minimap.width;
+  miniBack.height = minimap.height;
+  const g = miniBack.getContext('2d')!;
+  const tint = new Uint8Array(wasm.memory.buffer, game.terrain_tint_ptr(), tw * th);
+  const PAL = ['#5a6a40', '#2c455c', '#6f6c66', '#7a6c5b', '#37512c', '#56503c', '#6e6651'];
+  const img = g.createImageData(minimap.width, minimap.height);
+  for (let py = 0; py < minimap.height; py++) {
+    for (let px = 0; px < minimap.width; px++) {
+      const cx = Math.floor((px / minimap.width) * tw);
+      const cy = Math.floor(((minimap.height - 1 - py) / minimap.height) * th);
+      const c = PAL[tint[cy * tw + cx]] ?? PAL[0];
+      const n = parseInt(c.slice(1), 16);
+      const o = (py * minimap.width + px) * 4;
+      img.data[o] = n >> 16;
+      img.data[o + 1] = (n >> 8) & 0xff;
+      img.data[o + 2] = n & 0xff;
+      img.data[o + 3] = 255;
+    }
+  }
+  g.putImageData(img, 0, 0);
+}
+const worldToMini = (x: number, y: number): [number, number] => {
+  const [ox, oy] = [game.terrain_origin_x(), game.terrain_origin_y()];
+  const w = game.terrain_w() * game.terrain_cell();
+  const h = game.terrain_h() * game.terrain_cell();
+  return [((x - ox) / w) * minimap.width, (1 - (y - oy) / h) * minimap.height];
+};
+minimap.addEventListener('mousedown', (e) => {
+  const r = minimap.getBoundingClientRect();
+  const fx = (e.clientX - r.left) / r.width;
+  const fy = (e.clientY - r.top) / r.height;
+  camera.x = game.terrain_origin_x() + fx * game.terrain_w() * game.terrain_cell();
+  camera.y = game.terrain_origin_y() + (1 - fy) * game.terrain_h() * game.terrain_cell();
+});
+function drawMinimap() {
+  const g = minimap.getContext('2d')!;
+  g.drawImage(miniBack, 0, 0);
+  const info = unitInfo();
+  for (let u = 0; u < game.unit_count(); u++) {
+    const o = u * STRIDE;
+    if (info[o + 15] === 0) continue;
+    const [mx, my] = worldToMini(info[o], info[o + 1]);
+    g.fillStyle = info[o + 21] > 0.5 ? '#888' : info[o + 6] === 0 ? '#e0604f' : '#6f9ae8';
+    g.fillRect(mx - 1.5, my - 1.5, 3, 3);
+  }
+  const [ax, ay] = camera.screenToWorld(0, 0);
+  const [bx, by] = camera.screenToWorld(canvas.width, canvas.height);
+  const [m0x, m0y] = worldToMini(ax, ay);
+  const [m1x, m1y] = worldToMini(bx, by);
+  g.strokeStyle = 'rgba(255,255,255,0.8)';
+  g.lineWidth = 1;
+  g.strokeRect(Math.min(m0x, m1x), Math.min(m0y, m1y), Math.abs(m1x - m0x), Math.abs(m1y - m0y));
 }
 
 // --- Time control ------------------------------------------------------------
@@ -293,6 +355,8 @@ const hud = document.getElementById('hud')!;
 const banner = document.getElementById('banner')!;
 const selbox = document.getElementById('selbox')!;
 let aliveF32 = new Float32Array(0);
+let frames = new Float32Array(0);
+let prevPos = new Float32Array(0);
 let accumulator = 0;
 let lastFrame = performance.now();
 let tickMsAvg = 0;
@@ -320,12 +384,42 @@ function frame(now: number) {
   if (ticks === maxTicks) accumulator = 0;
 
   {
-    const a = new Uint8Array(wasm.memory.buffer, game.alive_ptr(), game.soldier_count());
-    if (aliveF32.length !== a.length) aliveF32 = new Float32Array(a.length);
-    for (let i = 0; i < a.length; i++) aliveF32[i] = a[i];
+    const n = game.soldier_count();
+    const a = new Uint8Array(wasm.memory.buffer, game.alive_ptr(), n);
+    const fighting = new Uint8Array(wasm.memory.buffer, game.fighting_ptr(), n);
+    const pos = positions();
+    if (aliveF32.length !== n) {
+      aliveF32 = new Float32Array(n);
+      frames = new Float32Array(n);
+      prevPos = new Float32Array(pos);
+    }
+    const t = now / 1000;
+    for (let i = 0; i < n; i++) {
+      aliveF32[i] = a[i];
+      if (!a[i]) {
+        frames[i] = 4; // fallen
+      } else if (fighting[i]) {
+        frames[i] = ((t * 2.5 + i * 0.7) | 0) % 2 ? 3 : 0; // trading blows
+      } else {
+        const dx = pos[2 * i] - prevPos[2 * i];
+        const dy = pos[2 * i + 1] - prevPos[2 * i + 1];
+        frames[i] = dx * dx + dy * dy > 0.0004 ? 1 + (((t * 4 + i) | 0) % 2) : 0;
+      }
+    }
+    prevPos.set(pos);
   }
   const primary = input.selected.length > 0 ? input.selected[0] : -1;
-  renderer.draw(positions(), facings(), aliveF32, game.soldier_count(), camera, primary);
+  const bannerList: { x: number; y: number; team: number; unit: number }[] = [];
+  {
+    const info = unitInfo();
+    for (let u = 0; u < game.unit_count(); u++) {
+      const o = u * STRIDE;
+      if (info[o + 15] > 0 && info[o + 21] < 0.5) {
+        bannerList.push({ x: info[o], y: info[o + 1], team: info[o + 6], unit: u });
+      }
+    }
+  }
+  renderer.draw(positions(), facings(), frames, aliveF32, game.soldier_count(), camera, primary, bannerList);
   renderer.drawOverlay(overlayVerts(showPaths), camera);
 
   // DOM selection rectangle.
@@ -343,6 +437,7 @@ function frame(now: number) {
   if (hudTimer > 0.2) {
     hudTimer = 0;
     updateHud();
+    drawMinimap();
   }
   requestAnimationFrame(frame);
 }

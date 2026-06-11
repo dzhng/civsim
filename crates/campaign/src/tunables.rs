@@ -75,3 +75,52 @@ pub const AMBUSH_SETTLE_TICKS: u16 = 15;
 
 /// Unopposed occupation of an undefended city (ticks).
 pub const OCCUPY_TICKS: u16 = 240;
+
+/// Gold per day by city tier (index 0 unused).
+pub const CITY_INCOME: [u32; 4] = [0, 80, 140, 220];
+/// Market level multiplier x100 (level 0..2).
+pub const MARKET_MULT_PCT: [u32; 3] = [100, 150, 200];
+
+/// Per-soldier upkeep in gold x1000 per day, and per-unit base overhead.
+pub fn upkeep_per_soldier_milligold(class: UnitClassId) -> u32 {
+    use UnitClassId::*;
+    match class {
+        HeavyInfantry => 20,
+        LightInfantry => 10,
+        LongSwords => 25,
+        Phalanx => 20,
+        Archers => 18,
+        Skirmishers => 12,
+        ShockCavalry => 60,
+        HorseArchers => 55,
+        ArtilleryCrew => 40,
+    }
+}
+pub const UPKEEP_UNIT_BASE: u32 = 4; // gold/day per roster entry
+
+/// Recruit cost (gold per soldier x1000) and time (ticks per soldier).
+pub fn recruit_cost_milligold(class: UnitClassId) -> u32 {
+    upkeep_per_soldier_milligold(class) * 50
+}
+pub fn recruit_ticks_per_soldier(class: UnitClassId) -> u32 {
+    use UnitClassId::*;
+    match class {
+        ShockCavalry | HorseArchers => 6,
+        ArtilleryCrew => 5,
+        HeavyInfantry | Phalanx | LongSwords => 3,
+        _ => 2,
+    }
+}
+
+/// Daily desertion per roster entry while the treasury is empty.
+pub const DESERTION_PER_DAY: f32 = 0.02;
+/// Passive replenishment per day, as a fraction of missing strength:
+/// halted at a friendly city / in friendly territory / elsewhere.
+pub const REPLENISH_CITY: f32 = 0.05;
+pub const REPLENISH_FRIENDLY: f32 = 0.02;
+pub const REPLENISH_HOSTILE: f32 = 0.005;
+/// Rally-scar recovery per day while halted at a friendly city.
+pub const MORALE_CAP_REGEN: f32 = 0.05;
+
+/// Garrison regeneration: fraction of the city's establishment per day.
+pub const GARRISON_REGEN: f32 = 0.02;

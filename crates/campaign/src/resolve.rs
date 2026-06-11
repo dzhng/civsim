@@ -272,6 +272,13 @@ pub fn apply_battle_outcome(
         }
         if a.faction == winner_faction {
             a.stance = Stance::Hold;
+            continue; // garrison winners fold back via garrison_returns
+        }
+        if a.garrison_of.is_some() {
+            // A beaten garrison has no road out of its own walls.
+            for r in &mut a.roster {
+                r.count = 0;
+            }
             continue;
         }
         // Loser: rout along a hostile-free road, or be annihilated.

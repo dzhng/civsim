@@ -15,8 +15,14 @@ use crate::tunables as tun;
 
 pub fn tick(map: &WorldMap, st: &mut CampaignState) {
     st.tick += 1;
+    if st.tick % tun::TICKS_PER_DAY as u64 == 0 {
+        crate::economy::day_tick(map, st);
+    }
     movement(map, st);
+    crate::economy::garrison_sorties(map, st);
     encounters(map, st);
+    crate::economy::garrison_returns(map, st);
+    crate::economy::occupations(map, st);
     timers(st);
 }
 
@@ -309,7 +315,7 @@ pub fn new_state(map: &WorldMap, seed: u64, player_faction: u32) -> CampaignStat
         .enumerate()
         .filter(|(_, n)| n.kind == NodeKind::City)
         .map(|(i, n)| {
-            (i as u32, CityState { owner: n.initial_owner, garrison: Vec::new() })
+            (i as u32, CityState { owner: n.initial_owner, ..Default::default() })
         })
         .collect();
     let armies = map
@@ -319,10 +325,11 @@ pub fn new_state(map: &WorldMap, seed: u64, player_faction: u32) -> CampaignStat
         .map(|(i, s)| Army {
             id: i as ArmyId,
             faction: s.faction,
+            garrison_of: None,
             roster: s
                 .roster
                 .iter()
-                .map(|&(class, count)| RosterEntry { class, count, morale_cap: 1.0 })
+                .map(|&(class, count)| RosterEntry { class, count, max: count, morale_cap: 1.0 })
                 .collect(),
             loc: Loc::Node(s.at),
             path: Vec::new(),

@@ -22,6 +22,8 @@ pub enum Loc {
 pub struct RosterEntry {
     pub class: UnitClassId,
     pub count: u32,
+    /// Establishment strength: passive replenishment refills toward this.
+    pub max: u32,
     /// Rally-scar carryover into battles; recovers at friendly cities.
     pub morale_cap: f32,
 }
@@ -45,6 +47,9 @@ pub enum Stance {
 pub struct Army {
     pub id: ArmyId,
     pub faction: FactionId,
+    /// A city garrison fighting as a temporary field army; folds back into
+    /// the city when its battle ends. Never takes movement orders.
+    pub garrison_of: Option<NodeId>,
     pub roster: Vec<RosterEntry>,
     pub loc: Loc,
     /// Remaining route; `path[path_idx]` is the next tile to enter.
@@ -110,10 +115,23 @@ pub struct Faction {
     pub ai: bool,
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct RecruitJob {
+    pub class: UnitClassId,
+    pub count: u32,
+    pub ticks_left: u32,
+}
+
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct CityState {
     pub owner: FactionId,
     pub garrison: Vec<RosterEntry>,
+    /// 0..2: income x1 / x1.5 / x2.
+    pub market_lvl: u8,
+    /// 0..2: recruit time x1 / x0.75 / x0.5.
+    pub barracks_lvl: u8,
+    /// Sequential; head is in production.
+    pub recruit_queue: Vec<RecruitJob>,
 }
 
 #[derive(Clone, Serialize, Deserialize)]

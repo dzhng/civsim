@@ -1,0 +1,262 @@
+//! Static world topology, loaded from campaign-map.json (mapgen's output).
+//! Never serialized into saves — only dynamic state is. JSON node ids (ORBIS
+//! site ids) are remapped to dense indices at load.
+
+use serde::Deserialize;
+use std::collections::BTreeMap;
+
+pub type NodeId = u32;
+pub type EdgeId = u32;
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, serde::Serialize, Deserialize)]
+pub enum TileFeature {
+    Open,
+    Forest,
+    Hill,
+    Pass,
+    Bridge,
+    Ford,
+    Sea,
+}
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub enum NodeKind {
+    City,
+    Junction,
+}
+
+pub struct Node {
+    pub name: String,
+    pub pos: [f32; 2],
+    pub kind: NodeKind,
+    pub tier: u8,
+    pub port: bool,
+    /// Initial owner (faction index; factions.len()-1 = independents). Dynamic
+    /// ownership lives in CampaignState.
+    pub initial_owner: u32,
+    /// Incident edges, sorted (determinism).
+    pub edges: Vec<EdgeId>,
+}
+
+pub struct Edge {
+    pub a: NodeId,
+    pub b: NodeId,
+    pub sea: bool,
+    pub via: Vec<[f32; 2]>,
+    /// Cumulative arc length per via point (km); last = total length.
+    pub cum: Vec<f32>,
+    pub tiles: Vec<TileFeature>,
+}
+
+pub struct AmbushSpot {
+    pub edge: EdgeId,
+    pub tile: u16,
+    pub side: i8,
+}
+
+pub struct FactionDef {
+    pub id: String,
+    pub name: String,
+    pub color: [u8; 3],
+    pub playable: bool,
+}
+
+pub struct StartArmy {
+    pub faction: u32,
+    pub at: NodeId,
+    pub roster: Vec<(contract::UnitClassId, u32)>,
+}
+
+pub struct WorldMap {
+    pub half_w: f32,
+    pub half_h: f32,
+    pub nodes: Vec<Node>,
+    pub edges: Vec<Edge>,
+    pub ambush_spots: Vec<AmbushSpot>,
+    pub factions: Vec<FactionDef>,
+    pub start_armies: Vec<StartArmy>,
+}
+
+// ---- raw JSON shapes -------------------------------------------------------
+
+#[derive(Deserialize)]
+struct RawMap {
+    half_w: f64,
+    half_h: f64,
+    nodes: Vec<RawNode>,
+    edges: Vec<RawEdge>,
+    ambush_spots: Vec<RawAmbush>,
+    factions: Vec<RawFaction>,
+    start_armies: Vec<RawStartArmy>,
+}
+
+#[derive(Deserialize)]
+struct RawNode {
+    id: u32,
+    name: String,
+    pos: [f64; 2],
+    kind: String,
+    tier: u8,
+    port: bool,
+    owner: String,
+}
+
+#[derive(Deserialize)]
+struct RawEdge {
+    a: u32,
+    b: u32,
+    kind: String,
+    via: Vec<[f64; 2]>,
+    tiles: Vec<String>,
+}
+
+#[derive(Deserialize)]
+struct RawAmbush {
+    edge: u32,
+    tile: u16,
+    side: i8,
+}
+
+#[derive(Deserialize)]
+struct RawFaction {
+    id: String,
+    name: String,
+    color: [u8; 3],
+    playable: bool,
+}
+
+#[derive(Deserialize)]
+struct RawStartArmy {
+    faction: String,
+    at: String,
+    roster: Vec<(String, u32)>,
+}
+
+fn parse_feature(s: &str) -> TileFeature {
+    match s {
+        "open" => TileFeature::Open,
+        "forest" => TileFeature::Forest,
+        "hill" => TileFeature::Hill,
+        "pass" => TileFeature::Pass,
+        "bridge" => TileFeature::Bridge,
+        "ford" => TileFeature::Ford,
+        "sea" => TileFeature::Sea,
+        other => panic!("unknown tile feature {other}"),
+    }
+}
+
+fn parse_class(s: &str) -> contract::UnitClassId {
+    serde_json::from_value(serde_json::Value::String(s.to_string())).expect("unit class name")
+}
+
+impl WorldMap {
+    pub fn from_json(json: &str) -> WorldMap {
+        let raw: RawMap = serde_json::from_str(json).expect("campaign map json");
+
+        let faction_idx: BTreeMap<&str, u32> =
+            raw.factions.iter().enumerate().map(|(i, f)| (f.id.as_str(), i as u32)).collect();
+        let independents = faction_idx["independents"];
+
+        let id_to_idx: BTreeMap<u32, NodeId> =
+            raw.nodes.iter().enumerate().map(|(i, n)| (n.id, i as NodeId)).collect();
+        let name_to_idx: BTreeMap<&str, NodeId> = raw
+            .nodes
+            .iter()
+            .enumerate()
+            .map(|(i, n)| (n.name.as_str(), i as NodeId))
+            .collect();
+
+        let mut nodes: Vec<Node> = raw
+            .nodes
+            .iter()
+            .map(|n| Node {
+                name: n.name.clone(),
+                pos: [n.pos[0] as f32, n.pos[1] as f32],
+                kind: if n.kind == "city" { NodeKind::City } else { NodeKind::Junction },
+                tier: n.tier,
+                port: n.port,
+                initial_owner: if n.owner.is_empty() {
+                    independents
+                } else {
+                    faction_idx[n.owner.as_str()]
+                },
+                edges: Vec::new(),
+            })
+            .collect();
+
+        let edges: Vec<Edge> = raw
+            .edges
+            .iter()
+            .map(|e| {
+                let via: Vec<[f32; 2]> =
+                    e.via.iter().map(|p| [p[0] as f32, p[1] as f32]).collect();
+                let mut cum = Vec::with_capacity(via.len());
+                let mut acc = 0.0f32;
+                cum.push(0.0);
+                for w in via.windows(2) {
+                    acc += ((w[1][0] - w[0][0]).powi(2) + (w[1][1] - w[0][1]).powi(2)).sqrt();
+                    cum.push(acc);
+                }
+                Edge {
+                    a: id_to_idx[&e.a],
+                    b: id_to_idx[&e.b],
+                    sea: e.kind == "sea",
+                    via,
+                    cum,
+                    tiles: e.tiles.iter().map(|t| parse_feature(t)).collect(),
+                }
+            })
+            .collect();
+
+        for (i, e) in edges.iter().enumerate() {
+            nodes[e.a as usize].edges.push(i as EdgeId);
+            nodes[e.b as usize].edges.push(i as EdgeId);
+        }
+        for n in &mut nodes {
+            n.edges.sort_unstable();
+        }
+
+        WorldMap {
+            half_w: raw.half_w as f32,
+            half_h: raw.half_h as f32,
+            nodes,
+            edges,
+            ambush_spots: raw
+                .ambush_spots
+                .iter()
+                .map(|a| AmbushSpot { edge: a.edge, tile: a.tile, side: a.side })
+                .collect(),
+            factions: raw
+                .factions
+                .iter()
+                .map(|f| FactionDef {
+                    id: f.id.clone(),
+                    name: f.name.clone(),
+                    color: f.color,
+                    playable: f.playable,
+                })
+                .collect(),
+            start_armies: raw
+                .start_armies
+                .iter()
+                .map(|s| StartArmy {
+                    faction: faction_idx[s.faction.as_str()],
+                    at: name_to_idx[s.at.as_str()],
+                    roster: s.roster.iter().map(|(c, n)| (parse_class(c), *n)).collect(),
+                })
+                .collect(),
+        }
+    }
+
+    /// World position of a tile midpoint (for rendering and battle siting).
+    pub fn tile_pos(&self, edge: EdgeId, tile: u16) -> [f32; 2] {
+        let e = &self.edges[edge as usize];
+        let total = *e.cum.last().unwrap();
+        let d = total * (tile as f32 + 0.5) / e.tiles.len() as f32;
+        let i = e.cum.partition_point(|&c| c < d).max(1).min(e.via.len() - 1);
+        let (c0, c1) = (e.cum[i - 1], e.cum[i]);
+        let t = if c1 > c0 { (d - c0) / (c1 - c0) } else { 0.0 };
+        let (p0, p1) = (e.via[i - 1], e.via[i]);
+        [p0[0] + (p1[0] - p0[0]) * t, p0[1] + (p1[1] - p0[1]) * t]
+    }
+}

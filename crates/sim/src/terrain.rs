@@ -116,6 +116,49 @@ impl Terrain {
         );
     }
 
+    /// Thick segment: roads, river reaches, wall runs at any bearing.
+    pub fn paint_capsule(&mut self, a: Vec2, b: Vec2, radius: f32, speed: f32, rough: f32, tint: u8) {
+        let ab = b - a;
+        let len2 = ab.x * ab.x + ab.y * ab.y;
+        let r2 = radius * radius;
+        self.paint(
+            |p| {
+                let t = if len2 > 0.0 {
+                    (((p.x - a.x) * ab.x + (p.y - a.y) * ab.y) / len2).clamp(0.0, 1.0)
+                } else {
+                    0.0
+                };
+                let d = p - Vec2::new(a.x + ab.x * t, a.y + ab.y * t);
+                d.x * d.x + d.y * d.y <= r2
+            },
+            speed,
+            rough,
+            tint,
+        );
+    }
+
+    /// Rasterize a data-only paint program (the campaign↔battle terrain
+    /// contract). Ops apply in order; later ops overwrite earlier ones.
+    pub fn from_spec(spec: &contract::TerrainSpec) -> Terrain {
+        let w = (2.0 * spec.half_w / spec.cell) as usize;
+        let h = (2.0 * spec.half_h / spec.cell) as usize;
+        let mut t = Terrain::flat(w, h, spec.cell, Vec2::new(-spec.half_w, -spec.half_h));
+        for op in &spec.ops {
+            match *op {
+                contract::PaintOp::Rect { min, max, speed, rough, tint } => {
+                    t.paint_rect_tinted(Vec2::new(min[0], min[1]), Vec2::new(max[0], max[1]), speed, rough, tint)
+                }
+                contract::PaintOp::Circle { center, radius, speed, rough, tint } => {
+                    t.paint_circle_tinted(Vec2::new(center[0], center[1]), radius, speed, rough, tint)
+                }
+                contract::PaintOp::Capsule { a, b, radius, speed, rough, tint } => {
+                    t.paint_capsule(Vec2::new(a[0], a[1]), Vec2::new(b[0], b[1]), radius, speed, rough, tint)
+                }
+            }
+        }
+        t
+    }
+
     fn paint<F: Fn(Vec2) -> bool>(&mut self, inside: F, speed: f32, rough: f32, tint: u8) {
         for cy in 0..self.h {
             for cx in 0..self.w {

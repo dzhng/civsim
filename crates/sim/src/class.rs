@@ -3,18 +3,9 @@
 
 use crate::math::Vec2;
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum UnitClassId {
-    HeavyInfantry,
-    LightInfantry,
-    LongSwords,
-    Phalanx,
-    Archers,
-    Skirmishers,
-    ShockCavalry,
-    HorseArchers,
-    ArtilleryCrew,
-}
+// The class id enum lives in the `contract` crate — it's the shared vocabulary
+// between campaign rosters and battle deployments. The stat tables stay here.
+pub use contract::UnitClassId;
 
 /// A weapon is a set of physical capabilities — five numbers, nothing else.
 /// A swing strikes every enemy inside the (reach × arc) envelope; bodies

@@ -24,13 +24,15 @@ pub mod morale;
 pub mod path;
 pub mod movement;
 pub mod rng;
+pub mod runner;
 pub mod sim;
 pub mod terrain;
 pub mod tunables;
 pub mod unit;
 
 pub use ai::ai_commander;
-pub use battle::{setup_battle, setup_sandbox};
+pub use battle::{deploy_roster, setup_battle, setup_sandbox};
+pub use runner::Battle;
 pub use class::{class_stats, UnitClass, UnitClassId, Weapon};
 pub use grid::SpatialHash;
 pub use maps::{build as build_map, MapId, MAP_HALF_H, MAP_HALF_W};

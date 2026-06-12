@@ -216,6 +216,7 @@ impl Sim {
             recent_missiles: 0.0,
             losing_push: 0.0,
             centroid: anchor,
+            counter_press: 0.0,
             mass_advance: 0.0,
             final_facing: None,
             reform_timer: 0.0,
@@ -961,9 +962,9 @@ impl Sim {
     }
 
     /// Per-soldier steering and measurement. Returns per-unit measures:
-    /// (err_sum, stragglers, surging, effort, engaged, face_dev, alive_n, cx, cy)
+    /// (err_sum, stragglers, surging, effort, engaged, face_dev, alive_n, cx, cy, opp_press)
     #[allow(clippy::type_complexity)]
-    fn steer_soldiers(&mut self, dt: f32) -> Vec<(f32, usize, usize, f32, usize, f32, usize, f32, f32)> {
+    fn steer_soldiers(&mut self, dt: f32) -> Vec<(f32, usize, usize, f32, usize, f32, usize, f32, f32, f32)> {
         let tun = self.tun;
         let Sim {
             units,
@@ -972,6 +973,8 @@ impl Sim {
             mass,
             mom_x,
             mom_y,
+            press_x,
+            press_y,
             fight_near,
             front_clear,
             facings,
@@ -1041,6 +1044,9 @@ impl Sim {
             let mut alive_n = 0usize;
             let mut cx = 0.0f32;
             let mut cy = 0.0f32;
+            // Received push OPPOSING the facing (the crowd's answer to the
+            // unit's drive): the unit-level braking force, measured.
+            let mut opp_press = 0.0f32;
 
             for s in 0..u.count {
                 let i = u.start + s;
@@ -1051,6 +1057,7 @@ impl Sim {
                 let p = Vec2::new(positions[2 * i], positions[2 * i + 1]);
                 cx += p.x;
                 cy += p.y;
+                opp_press += (-(press_x[i] * f.x + press_y[i] * f.y)).max(0.0);
 
                 // BODY, part 1 — carried momentum (p = m·v) moves the body
                 // regardless of will: armed by impacts and by being struck
@@ -1223,7 +1230,7 @@ impl Sim {
                 facings[i] = rotate_toward(facings[i], desired_face, tun.soldier_turn_rate * dt);
                 face_dev += (wrap_angle(facings[i] - u.facing).abs() - tun.facing_tolerance).max(0.0);
             }
-            measures.push((err_sum, stragglers, surging, effort, engaged, face_dev, alive_n, cx, cy));
+            measures.push((err_sum, stragglers, surging, effort, engaged, face_dev, alive_n, cx, cy, opp_press));
         }
         measures
     }
@@ -1235,7 +1242,7 @@ impl Sim {
     /// `clamp_anchor_to_men`): it pursues the order, leashed to the men.
     fn contact_facing(
         &mut self,
-        measures: &[(f32, usize, usize, f32, usize, f32, usize, f32, f32)],
+        measures: &[(f32, usize, usize, f32, usize, f32, usize, f32, f32, f32)],
         dt: f32,
     ) {
         let tun = self.tun;
@@ -1247,7 +1254,7 @@ impl Sim {
             .collect();
 
         for ui in 0..self.units.len() {
-            let (_, _, _, _, engaged, _f, alive_n, _, _) = measures[ui];
+            let (_, _, _, _, engaged, _f, alive_n, _, _, _) = measures[ui];
             let alive_n = alive_n.max(1);
             let engaged_frac = engaged as f32 / alive_n as f32;
             if engaged_frac <= 0.06
@@ -1332,12 +1339,12 @@ impl Sim {
 
     fn integrate_units(
         &mut self,
-        measures: &[(f32, usize, usize, f32, usize, f32, usize, f32, f32)],
+        measures: &[(f32, usize, usize, f32, usize, f32, usize, f32, f32, f32)],
         dt: f32,
     ) {
         let tun = self.tun;
         use std::f32::consts::PI;
-        for (u, &(err_sum, stragglers, _surging, effort, engaged, face_dev, alive_n, cx, cy)) in
+        for (u, &(err_sum, stragglers, _surging, effort, engaged, face_dev, alive_n, cx, cy, opp_press)) in
             self.units.iter_mut().zip(measures)
         {
             let n = alive_n.max(1) as f32;
@@ -1347,6 +1354,7 @@ impl Sim {
             // over ~0.4s to ride out collision jitter and casualty shifts.
             let v_fwd = (u.centroid - c0).dot(dir(u.facing)) / dt;
             u.mass_advance += (v_fwd - u.mass_advance) * (1.0 - (-dt / 0.4f32).exp());
+            u.counter_press = opp_press / n;
 
             // THE ANCHOR LAW: the frame always pursues the order, but it is
             // leashed to the men's measured center of mass. Out of combat

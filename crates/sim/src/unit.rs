@@ -134,6 +134,11 @@ pub struct Unit {
     pub losing_push: f32,
     /// Mean position of living soldiers (kept fresh; the rout frame).
     pub centroid: Vec2,
+    /// Mean received push OPPOSING the facing (m/s, press EMAs): the
+    /// crowd's measured answer to the unit's drive — the braking half of
+    /// the trample force balance. All sources count: the wall brakes the
+    /// front rank, the front rank brakes the ranks piling in behind.
+    pub counter_press: f32,
     /// EMA of the MEN's forward motion (center-of-mass displacement along
     /// facing, m/s; negative = driven back). Downstream of every physical
     /// fact — collisions, stuns, deadlock — so unlike `frame_speed` it

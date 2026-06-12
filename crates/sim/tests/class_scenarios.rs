@@ -181,12 +181,10 @@ fn dense_infantry_blunts_a_cavalry_charge_loose_gets_punched_through() {
                 .filter(|&i| sim.alive[i] == 1 && sim.stun[i] > 0.0)
                 .count();
             peak_knocked = peak_knocked.max(knocked);
-            let c = &sim.units[cav];
-            for i in c.start..c.start + c.count {
-                if sim.alive[i] == 1 {
-                    peak_pen = peak_pen.max(sim.soldier_pos(i).y - 30.0);
-                }
-            }
+            // Centroid penetration: the MASS's depth into the line. (The
+            // deepest single horse is an outlier metric — one breakthrough
+            // animal galloping the open field reads as "penetration".)
+            peak_pen = peak_pen.max(sim.units[cav].centroid.y - 30.0);
             let mut shove = 0.0f32;
             let mut n = 0;
             for (k, i) in (u.start..u.start + u.count).enumerate() {
@@ -382,40 +380,75 @@ fn pikes_unhorse_cavalry_swords_chip_at_horseflesh() {
 }
 
 #[test]
-fn tmp_ride_through_trace() {
-    // Thin line arm
-    let mut sim = Sim::new(no_morale(), SEED);
+fn move_order_rides_through_a_thin_line() {
+    // The order IS the intent: a move command past a thin line means the
+    // line is just terrain that happens to be made of men. No charge flag,
+    // no latch — trample is class capability x measured velocity, and the
+    // ram drag a 3-rank screen can muster only shaves the gallop. The cav
+    // arrives at its destination; the line is left stunned and bleeding.
+    let mut sim = Sim::new(Tunables { morale_enabled: false, ..Tunables::default() }, SEED);
     let line = sim.spawn_unit(Vec2::new(0.0, 40.0), PI / 2.0, 300, 100, Vec2::new(1.0, 1.1), 1, 0.7);
     let cav = sim.spawn_class(Vec2::new(0.0, 160.0), -PI / 2.0, 160, UnitClassId::ShockCavalry, 0);
     sim.set_pace(cav, sim::Pace::Run);
     sim.set_move_order(cav, Vec2::new(0.0, -80.0));
-    for t in 0..(45.0 / DT) as usize {
+    let mut stayed_move = true;
+    for _ in 0..(45.0 / DT) as usize {
         sim.tick();
-        if t % ((3.0 / DT) as usize) == 0 {
-            let m = sim.units[cav].centroid;
-            println!(
-                "THIN t={:>4.1} cav.y={:>6.1} ma={:>5.2} eng={:>3} mode={:?} line_dead={}",
-                t as f32 * DT, m.y, sim.units[cav].mass_advance, sim.units[cav].engaged,
-                sim.units[cav].mode, sim.units[line].count - sim.units[line].alive_count
-            );
-        }
+        stayed_move &= matches!(sim.units[cav].mode, sim::OrderMode::Move);
     }
-    // Deep braced column arm
-    let mut sim = Sim::new(no_morale(), SEED);
-    let block = sim.spawn_unit(Vec2::new(0.0, 40.0), PI / 2.0, 500, 25, Vec2::new(0.9, 1.0), 1, 0.7);
-    let cav = sim.spawn_class(Vec2::new(0.0, 160.0), -PI / 2.0, 160, UnitClassId::ShockCavalry, 0);
+    assert!(stayed_move, "a move order never latches into a fight");
+    let y = sim.units[cav].centroid.y;
+    assert!(y < -60.0, "the cav must ride through and arrive: centroid y {y:.1}");
+    let line_dead = sim.units[line].count - sim.units[line].alive_count;
+    assert!(line_dead > 0, "the trample leaves bodies: {line_dead} dead");
+    assert!(
+        sim.units[cav].engaged == 0,
+        "no melee at the destination: {} engaged",
+        sim.units[cav].engaged
+    );
+}
+
+#[test]
+fn move_order_into_a_deep_braced_column_bogs_into_melee() {
+    // The same order into 20 braced ranks: the column's measured counter-
+    // press outmuscles the gallop (ram drag), the mass falls below the
+    // trample threshold, the riders plant — a fight, not a ride. The
+    // destination is never reached.
+    let mut sim = Sim::new(Tunables { morale_enabled: false, ..Tunables::default() }, SEED);
+    let block = sim.spawn_unit(Vec2::new(0.0, 40.0), PI / 2.0, 800, 40, Vec2::new(0.9, 1.0), 1, 0.7);
+    let cav = sim.spawn_class(Vec2::new(0.0, 160.0), -PI / 2.0, 80, UnitClassId::ShockCavalry, 0);
+    let _ = block;
     sim.set_pace(cav, sim::Pace::Run);
     sim.set_move_order(cav, Vec2::new(0.0, -80.0));
+    run(&mut sim, 45.0);
+    let u = &sim.units[cav];
+    assert!(
+        u.centroid.y > 12.0,
+        "the column must stop the ride (rear at ~20): centroid y {:.1}",
+        u.centroid.y
+    );
+    assert!(u.engaged > 10, "bogged riders fight: {} engaged", u.engaged);
+    assert!(
+        u.mass_advance < 2.0,
+        "the gallop is spent in the press: mass_advance {:.1}",
+        u.mass_advance
+    );
+}
+
+#[test]
+fn tmp_deep_cp() {
+    let mut sim = Sim::new(Tunables { morale_enabled: false, ..Tunables::default() }, SEED);
+    let block = sim.spawn_unit(Vec2::new(0.0, 40.0), PI / 2.0, 800, 40, Vec2::new(0.9, 1.0), 1, 0.7);
+    let cav = sim.spawn_class(Vec2::new(0.0, 160.0), -PI / 2.0, 80, UnitClassId::ShockCavalry, 0);
     let _ = block;
-    for t in 0..(45.0 / DT) as usize {
+    sim.set_pace(cav, sim::Pace::Run);
+    sim.set_move_order(cav, Vec2::new(0.0, -80.0));
+    for t in 0..(40.0 / DT) as usize {
         sim.tick();
-        if t % ((3.0 / DT) as usize) == 0 {
-            let m = sim.units[cav].centroid;
-            println!(
-                "DEEP t={:>4.1} cav.y={:>6.1} ma={:>5.2} eng={:>3} mode={:?}",
-                t as f32 * DT, m.y, sim.units[cav].mass_advance, sim.units[cav].engaged,
-                sim.units[cav].mode
-            );
+        if t % ((2.0 / DT) as usize) == 0 && t as f32 * DT > 14.0 {
+            let c = &sim.units[cav];
+            println!("DC t={:>4.1} y={:>6.1} ma={:>5.2} cp={:>5.2} eng={:>3}",
+                t as f32 * DT, c.centroid.y, c.mass_advance, c.counter_press, c.engaged);
         }
     }
 }

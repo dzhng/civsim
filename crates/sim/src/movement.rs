@@ -30,7 +30,20 @@ pub(crate) fn pace_speed(tun: &Tunables, u: &Unit) -> f32 {
             }
         }
     };
-    base * u.speed_mult
+    // RAM DRAG: driving through a resisting crowd is braked by the
+    // measured ENEMY counter-press, scaled by the unit's own measured
+    // speed — the force balance that stops a trample. The pairwise
+    // collision solver alone cannot: each horse only contests the one
+    // man it overlaps this tick and outmasses him, so a braced column's
+    // collective weight has to act through this measured channel.
+    // The floor cuts column jitter (a ragged charge jostles itself) so
+    // the first slam lands at full speed; above it, EVERY opposing body
+    // counts — the wall brakes the front rank and the front rank brakes
+    // the ranks behind it (the pile-up chain is the collective force).
+    let drag = tun.press_brake
+        * (u.counter_press - tun.press_brake_floor).max(0.0)
+        * (u.mass_advance.max(0.0) / tun.base_speed);
+    (base * u.speed_mult - drag).max(0.0)
 }
 
 /// Catch-up sprint for out-of-position soldiers. Drilled troops surge harder;
@@ -270,6 +283,7 @@ mod tests {
             recent_missiles: 0.0,
             losing_push: 0.0,
             centroid: Vec2::ZERO,
+            counter_press: 0.0,
             mass_advance: 0.0,
             final_facing: None,
             reform_timer: 0.0,

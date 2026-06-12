@@ -106,6 +106,15 @@ pub struct Tunables {
     /// Final-approach window: charge engages within this many seconds of
     /// contact at charge speed.
     pub charge_window: f32,
+    /// Ram drag: commanded pace shed per (m/s of measured counter-press ×
+    /// the unit's own speed in walking paces). Collision rate grows with
+    /// speed, so a slow othismos press barely feels the crowd's answer
+    /// while a gallop into a braced wall eats its whole drive.
+    pub press_brake: f32,
+    /// Counter-press below this is column jitter, not resistance: a ragged
+    /// charging column jostles itself ~0.1 m/s, and the first slam must
+    /// land at full speed (the drag is the crowd's GRIP, not the impact).
+    pub press_brake_floor: f32,
     /// Mass speed (m/s) below which a landed charge counts as SPENT — the
     /// crowd has stopped the mass. Sits well under charge_min_speed
     /// (hysteresis): a plow grinding through a thin line keeps its burst,
@@ -153,6 +162,8 @@ impl Default for Tunables {
             charge_min_speed: 2.5,
             charge_speed: 4.6,
             charge_window: 2.0,
+            press_brake: 10.0,
+            press_brake_floor: 0.25,
             charge_spent_speed: 1.0,
             charge_drain: 1.0 / 25.0,
             morale_enabled: true,

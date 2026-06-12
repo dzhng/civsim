@@ -76,6 +76,7 @@ export class CampaignRenderer {
     factionLabels: FactionLabel[],
     roadLevels?: Uint8Array,
     outposts?: { node: number; owner: number; built: boolean }[],
+    ambushHints?: [number, number][],
   ) {
     const { ctx, canvas, data } = this;
     const z = cam.scale;
@@ -204,6 +205,19 @@ export class CampaignRenderer {
         ctx.fill();
       }
     });
+
+    // Ambush spots near the selected army: a faint thicket to slip into.
+    for (const [hx, hy] of ambushHints ?? []) {
+      const p = pt(hx, hy);
+      if (!p) continue;
+      ctx.globalAlpha = 0.55;
+      ctx.fillStyle = '#1d3a14';
+      ctx.beginPath();
+      ctx.arc(p[0] - 2.5, p[1], 3, 0, Math.PI * 2);
+      ctx.arc(p[0] + 2.5, p[1] - 1, 3.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
 
     // Outposts: a watchtower glyph in the owner's color.
     for (const o of outposts ?? []) {

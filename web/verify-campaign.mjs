@@ -154,6 +154,63 @@ if (clickSel.ok) {
   check('click-select works through the tilted camera', false, 'no own army to test with');
 }
 
+// --- B5: ambush affordance — park on a trigger tile, the button appears -----
+const tilePosOf = (e, tile) => {
+  const cum = [0];
+  for (let i = 1; i < e.via.length; i++) {
+    cum.push(cum[i - 1] + Math.hypot(e.via[i][0] - e.via[i - 1][0], e.via[i][1] - e.via[i - 1][1]));
+  }
+  const d = (cum[cum.length - 1] * (tile + 0.5)) / e.tiles.length;
+  let i = 1;
+  while (i < cum.length - 1 && cum[i] < d) i++;
+  const t = cum[i] > cum[i - 1] ? (d - cum[i - 1]) / (cum[i] - cum[i - 1]) : 0;
+  return [
+    e.via[i - 1][0] + (e.via[i][0] - e.via[i - 1][0]) * t,
+    e.via[i - 1][1] + (e.via[i][1] - e.via[i - 1][1]) * t,
+  ];
+};
+const me0 = await page.evaluate(() => window.__campaign.armies().find((a) => a.mine));
+let bestSpot = -1;
+let bestSpotD = 1e9;
+map.ambush_spots.forEach((sp, i) => {
+  const [x, y] = tilePosOf(map.edges[sp.edge], sp.tile);
+  const d = Math.hypot(x - me0.x, y - me0.y);
+  if (d < bestSpotD) {
+    bestSpotD = d;
+    bestSpot = i;
+  }
+});
+const sp = map.ambush_spots[bestSpot];
+await page.evaluate(([id, edge, tile]) => window.__campaign.orderMove(id, 1, edge, tile), [me0.id, sp.edge, sp.tile]);
+let parked = false;
+for (let i = 0; i < 30 && !parked; i++) {
+  parked = await page.evaluate((id) => {
+    window.__campaign.tick(2000);
+    const a = window.__campaign.armies().find((x) => x.id === id);
+    return a && !a.marching && window.__campaign.battleReady() < 0;
+  }, me0.id);
+}
+check('army parks on the nearest ambush trigger', parked, `spot ${bestSpot} at ${Math.round(bestSpotD)}km`);
+const parkedAt = await page.evaluate((id) => {
+  const a = window.__campaign.armies().find((x) => x.id === id);
+  window.__campaign.cam(a.x, a.y, 2.5);
+  return window.__campaign.project(a.x, a.y);
+}, me0.id);
+await page.waitForTimeout(150);
+await page.mouse.click(parkedAt[0], parkedAt[1]);
+const hasAmbushBtn = await page.evaluate(() => !!document.querySelector('#cmp-ambush'));
+check('army panel offers Ambush on the trigger tile', hasAmbushBtn);
+if (hasAmbushBtn) {
+  await page.click('#cmp-ambush');
+  const stance = await page.evaluate((id) => {
+    window.__campaign.tick(5);
+    return window.__campaign.armies().find((x) => x.id === id)?.stance;
+  }, me0.id);
+  check('ambush order settles the army into hiding', stance === 2 || stance === 3, `stance ${stance}`);
+} else {
+  check('ambush order settles the army into hiding', false, 'no button');
+}
+
 // --- A1: reinforcements spawn mid-battle and the frontend keeps up ----------
 // Fresh campaign; march BOTH player armies at the same city so the second is
 // committed as a reinforcement, then Fight (not auto-resolve) and watch

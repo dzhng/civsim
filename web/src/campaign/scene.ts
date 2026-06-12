@@ -5,7 +5,7 @@
 
 import { Campaign, Game, start_campaign_battle, report_battle, type InitOutput } from '../wasm/game_wasm.js';
 import type { Scene } from '../scene';
-import { loadCampaignData, nearestLoc, type CampaignData } from './data';
+import { loadCampaignData, nearestLoc, tilePos, type CampaignData } from './data';
 import { CampaignRenderer, type CamView } from './renderer';
 import { TerrainField } from './terrain';
 import { Territory } from './territory';
@@ -69,6 +69,7 @@ export class CampaignScene implements Scene {
   private cities = new Map<number, CityView>();
   private roadLevels: Uint8Array = new Uint8Array(0);
   private outposts: { node: number; owner: number; built: boolean }[] = [];
+  private spotPos: [number, number][] = [];
   private modal: HTMLDivElement | null = null;
   private autoResolving = false;
 
@@ -84,6 +85,10 @@ export class CampaignScene implements Scene {
     this.canvas.style.display = 'block';
     this.glCanvas.style.display = 'block';
     this.ui.style.display = 'block';
+    if (this.spotPos.length === 0) {
+      this.spotPos = this.cfg.data.map.ambush_spots.map((sp) =>
+        tilePos(this.cfg.data.map.edges[sp.edge], sp.tile));
+    }
     if (!this.field) {
       this.field = new TerrainField(this.cfg.data);
       this.territory = new Territory(this.cfg.data, this.field);
@@ -179,7 +184,11 @@ export class CampaignScene implements Scene {
     this.t3d!.resize();
     this.t3d!.clampCam(this.cam); // zoom floor = aspect-fill, pan inside the map
     this.t3d!.draw(this.cam);
-    this.renderer.draw(this.cam, this.armies, this.cities, this.selected, null, this.territory!.labels, this.roadLevels, this.outposts);
+    const sel = this.armies.find((a) => a.id === this.selected && a.mine);
+    const hints: [number, number][] = sel
+      ? this.spotPos.filter(([x, y]) => Math.hypot(x - sel.x, y - sel.y) < 12)
+      : [];
+    this.renderer.draw(this.cam, this.armies, this.cities, this.selected, null, this.territory!.labels, this.roadLevels, this.outposts, hints);
     this.updateHud();
   }
 
@@ -510,15 +519,27 @@ export class CampaignScene implements Scene {
     const buddy = me
       ? this.armies.find((a) => a.mine && a.id !== me.id && Math.hypot(a.x - me.x, a.y - me.y) < 6)
       : undefined;
+    // On a trigger tile? (wasm re-validates; this only drives button state)
+    const spotIdx = me
+      ? this.spotPos.findIndex(([x, y]) => Math.hypot(x - me.x, y - me.y) < 2.6)
+      : -1;
+    const ambushLabel = me?.stance === 3 ? 'Hidden' : me?.stance === 2 ? 'Settling…' : 'Ambush';
     panel.innerHTML = `<b>Army ${this.selected}</b>${rows}<div style="margin-top:6px">
       <button id="cmp-halt">Halt</button>
       <button id="cmp-camp">${me?.stance === 1 ? 'Camped' : 'Camp'}</button>
+      ${spotIdx >= 0 || (me && me.stance >= 2 && me.stance <= 3) ? `<button id="cmp-ambush" ${me!.stance >= 2 ? 'disabled' : ''}>${ambushLabel}</button>` : ''}
       <button id="cmp-split">Split</button>
       ${buddy ? `<button id="cmp-merge">Merge ${buddy.id}</button>` : ''}</div>`;
     panel.style.display = 'block';
     panel.querySelector('#cmp-halt')?.addEventListener('click', () => {
       this.cfg.campaign.order_halt(this.selected);
       this.refreshViews();
+    });
+    panel.querySelector('#cmp-ambush')?.addEventListener('click', () => {
+      if (spotIdx >= 0 && this.cfg.campaign.order_ambush(this.selected, spotIdx)) {
+        this.refreshViews();
+        this.updateArmyPanel();
+      }
     });
     panel.querySelector('#cmp-camp')?.addEventListener('click', () => {
       if (this.cfg.campaign.order_camp(this.selected)) {

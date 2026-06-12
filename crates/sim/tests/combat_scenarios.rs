@@ -692,3 +692,43 @@ fn tmp_breakout_probe() {
             uu.mass_advance, pm / n.max(1) as f32, uu.frame_speed);
     }
 }
+
+#[test]
+fn evade_and_block_are_directional_a_pinned_back_is_naked() {
+    // The aspect law per strike: full evade across the front arc, 0.25x
+    // from behind — and the shield arc is front-only. The differential is
+    // only MEASURABLE while the victim's facing is held: a struck man
+    // legally turns to face his nearest enemy within half a second, so
+    // "attacked from behind" persists only when something pins him —
+    // here, an anvil at TOUCH on the faced side (Disengage: never
+    // strikes, exists to own the victims' targeting), while the hammer
+    // works the measured side at max reach. Single ranks so every victim
+    // has the anvil as his nearest enemy.
+    let arm = |rear: bool, seed: u64| -> f32 {
+        let mut sim = Sim::new(no_morale(), seed);
+        let v = sim.spawn_unit(Vec2::new(0.0, 0.0), FRAC_PI_2, 60, 60, Vec2::new(1.0, 1.2), 0, 0.7);
+        // Front arm: no pin needed (facing the hammer is the engaged
+        // state); its anvil sits beyond awareness for body-count parity.
+        let (anvil_y, hammer_y) = if rear { (0.9, -1.55) } else { (-9.0, 1.55) };
+        let anvil = sim.spawn_unit(Vec2::new(0.0, anvil_y), if anvil_y > 0.0 { -FRAC_PI_2 } else { FRAC_PI_2 }, 60, 60, Vec2::new(1.0, 1.2), 1, 0.7);
+        sim.set_disengage_order(anvil, Vec2::new(0.0, anvil_y));
+        let hammer = sim.spawn_unit(Vec2::new(0.0, hammer_y), if hammer_y > 0.0 { -FRAC_PI_2 } else { FRAC_PI_2 }, 60, 60, Vec2::new(1.0, 1.2), 1, 0.7);
+        let _ = hammer;
+        run(&mut sim, 6.0);
+        let u = &sim.units[v];
+        let mut deficit = 0.0f32;
+        for i in u.start..u.start + u.count {
+            deficit += (1.0 - sim.health[i]).clamp(0.0, 1.0);
+        }
+        deficit
+    };
+    let (mut frontal, mut rear) = (0.0f32, 0.0f32);
+    for seed in [SEED, SEED + 1, SEED + 2, SEED + 3, SEED + 4] {
+        frontal += arm(false, seed);
+        rear += arm(true, seed);
+    }
+    assert!(
+        rear > frontal * 1.1,
+        "a pinned back is naked to the blade: rear damage {rear:.1} vs frontal {frontal:.1} (5 seeds)"
+    );
+}

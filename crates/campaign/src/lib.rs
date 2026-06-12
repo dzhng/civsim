@@ -677,6 +677,64 @@ mod tests {
     }
 
     #[test]
+    fn equal_speed_chaser_follows_around_the_corner() {
+        // A --e0(4)-- J --e1(8)-- C, plus J --e2(8)-- D: a corner at J.
+        let map = r#"{
+          "half_w": 100, "half_h": 100,
+          "nodes": [
+            {"id": 1, "name": "A", "pos": [0,0],   "kind": "city", "tier": 2, "port": false, "owner": "red"},
+            {"id": 2, "name": "J", "pos": [20,0],  "kind": "junction", "tier": 0, "port": false, "owner": ""},
+            {"id": 3, "name": "C", "pos": [60,0],  "kind": "city", "tier": 1, "port": false, "owner": "blue"},
+            {"id": 4, "name": "D", "pos": [20,40], "kind": "city", "tier": 1, "port": false, "owner": "blue"}
+          ],
+          "edges": [
+            {"a": 1, "b": 2, "kind": "road", "via": [[0,0],[20,0]],  "tiles": ["open","open","open","open"]},
+            {"a": 2, "b": 3, "kind": "road", "via": [[20,0],[60,0]], "tiles": ["open","open","open","open","open","open","open","open"]},
+            {"a": 2, "b": 4, "kind": "road", "via": [[20,0],[20,40]],"tiles": ["open","open","open","open","open","open","open","open"]}
+          ],
+          "ambush_spots": [],
+          "factions": [
+            {"id": "red",  "name": "Red",  "color": [200,0,0], "playable": true},
+            {"id": "blue", "name": "Blue", "color": [0,0,200], "playable": true},
+            {"id": "independents", "name": "Ind", "color": [99,99,99], "playable": false}
+          ],
+          "start_armies": [
+            {"faction": "red",  "at": "A", "roster": [["LightInfantry", 880]]},
+            {"faction": "blue", "at": "C", "roster": [["LightInfantry", 880]]}
+          ]
+        }"#;
+        let mut c = Campaign::new(map, 7, 0);
+        inert(&mut c);
+        // Blue stands one tile up the A-J road; red marches at it.
+        c.state.armies[1].loc = Loc::Edge { edge: 0, tile: 1 };
+        assert!(c.order_move(0, Loc::Edge { edge: 0, tile: 1 }));
+        for _ in 0..20_000 {
+            c.tick();
+            if !c.state.encounters.is_empty() {
+                break;
+            }
+        }
+        assert_eq!(c.state.encounters.len(), 1, "contact never made");
+        // Stretch the prep window so the flight actually covers ground, then
+        // send blue around the corner at J toward D.
+        c.state.encounters[0].prep_attacker = 4000;
+        c.state.encounters[0].prep_defender = 4000;
+        assert!(c.order_move(1, Loc::Node(3)));
+        let mut pended = false;
+        for _ in 0..40_000 {
+            c.tick();
+            if c.state.battle_ready.is_some() {
+                pended = true;
+                break;
+            }
+            if c.state.encounters.is_empty() {
+                break; // dissolved: the chaser lost the corner
+            }
+        }
+        assert!(pended, "equal-speed chase should run the defender down past the corner");
+    }
+
+    #[test]
     fn city_buildings_raise_income_and_speed_recruits() {
         let mut c = Campaign::new(test_map(), 7, 0);
         inert(&mut c);

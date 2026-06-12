@@ -268,6 +268,21 @@ fn encounters(map: &WorldMap, st: &mut CampaignState) {
             dissolved.push(e.id); // the gap opened: chase failed
             continue;
         }
+        // Chase: a fleeing defender drags the attacker's path with it — the
+        // route is re-pointed at the defender's CURRENT tile whenever it
+        // moves off the path's tail. Gated on the tail still being near the
+        // defender, so a deliberate disengage order is never hijacked.
+        if st.armies[def].marching() && st.armies[att].marching() {
+            let tail = st.armies[att].path.last().copied();
+            if tail != Some(ld) && tail.is_some_and(|t| pathfind::dist_le(map, t, ld, 2)) {
+                if let Some(path) = pathfind::plan(map, road_levels, la, ld, false) {
+                    let a = &mut st.armies[att];
+                    a.path = path;
+                    a.path_idx = 0;
+                    // progress carries over: mid-tile momentum isn't lost
+                }
+            }
+        }
         e.prep_attacker = e.prep_attacker.saturating_sub(1);
         e.prep_defender = e.prep_defender.saturating_sub(1);
         if e.prep_attacker == 0 && e.prep_defender == 0 {

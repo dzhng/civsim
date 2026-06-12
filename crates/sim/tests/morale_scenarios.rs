@@ -418,12 +418,15 @@ fn steady_friends_brace_recovery() {
 }
 
 #[test]
-fn shattered_units_never_rally() {
-    // A unit cut below the shatter fraction stays broken forever, however
-    // quiet the field gets.
+fn even_remnants_rally_given_peace() {
+    // No shatter floor: morale always recovers (scarred by RALLY_SCAR per
+    // break, but a quiet field puts any survivor back in order).
     let mut sim = Sim::new(Tunables::default(), SEED);
     let u = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 200, UnitClassId::LightInfantry, 0);
-    // Cut them to 10% by hand and break them: the claim is the RALLY gate.
+    // A distant enemy AND a standing friendly keep the field CONTESTED on
+    // both ledgers — a verdict (army broken) locks morale by design.
+    sim.spawn_class(Vec2::new(400.0, 0.0), FRAC_PI_2, 200, UnitClassId::LightInfantry, 1);
+    sim.spawn_class(Vec2::new(-400.0, 0.0), FRAC_PI_2, 200, UnitClassId::HeavyInfantry, 0);
     let (start, count) = (sim.units[u].start, sim.units[u].count);
     for s in (count / 10)..count {
         sim.kill(start + s);
@@ -433,9 +436,13 @@ fn shattered_units_never_rally() {
         sim.tick();
     }
     assert!(
-        sim.units[u].routing,
-        "a shattered remnant never reforms: routing={}",
-        sim.units[u].routing
+        !sim.units[u].routing,
+        "a quiet field rallies even a remnant"
+    );
+    assert!(
+        sim.units[u].morale_ceiling < 0.99,
+        "scarred by the break, ceiling {:.2}",
+        sim.units[u].morale_ceiling
     );
 }
 
@@ -508,5 +515,76 @@ fn wavering_masses_do_not_thunder() {
     assert!(
         bold > shaken * 4.0 + 0.005,
         "only confidence thunders: bold {bold:.3} vs shaken {shaken:.3}"
+    );
+}
+
+#[test]
+fn intimidation_is_relative_strength_not_absolute() {
+    // Fear projects the BATTLE: 400 horse closing on 100 foot is a coming
+    // massacre; 20 horse closing on the same line, at full courage,
+    // barely registers.
+    let dip = |horses: usize| -> f32 {
+        let mut sim = Sim::new(Tunables::default(), SEED);
+        let line = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 100, UnitClassId::HeavyInfantry, 0);
+        let cav = sim.spawn_class(Vec2::new(0.0, 130.0), -FRAC_PI_2, horses, UnitClassId::ShockCavalry, 1);
+        sim.set_pace(cav, sim::Pace::Run);
+        for _ in 0..(3.0 / DT) as usize {
+            sim.tick();
+        }
+        let baseline = sim.units[line].morale;
+        sim.set_attack_order(cav, line);
+        let mut lowest = baseline;
+        for _ in 0..(22.0 / DT) as usize {
+            sim.tick();
+            if sim.units[line].engaged > 5 {
+                break;
+            }
+            lowest = lowest.min(sim.units[line].morale);
+        }
+        baseline - lowest
+    };
+    let host = dip(400);
+    let token = dip(20);
+    println!("dip vs 100 foot: 400 horse {host:.3}, 20 horse {token:.3}");
+    assert!(host > 0.10, "a projected massacre terrifies: {host:.3}");
+    assert!(token < 0.03, "a token force barely registers: {token:.3}");
+}
+
+#[test]
+fn depleted_units_feel_each_loss_more() {
+    // The morale input is casualties per LIVING man: the same ten dead
+    // hit a half-strength unit twice as hard as a full one.
+    let dip_from_ten_dead = |pre_kill: bool| -> f32 {
+        let mut sim = Sim::new(Tunables::default(), SEED);
+        let u = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 200, UnitClassId::HeavyInfantry, 0);
+        // An enemy at 55m keeps the unit alert (no recovery masking).
+        sim.spawn_class(Vec2::new(0.0, 55.0), -FRAC_PI_2, 100, UnitClassId::LightInfantry, 1);
+        let (start, count) = (sim.units[u].start, sim.units[u].count);
+        if pre_kill {
+            for s in (count / 2)..count {
+                sim.kill(start + s);
+            }
+        }
+        for _ in 0..(20.0 / DT) as usize {
+            sim.tick(); // settle (and decay the pre-kill casualty window)
+        }
+        sim.units[u].morale = 0.9;
+        let before = 0.9f32;
+        for s in 0..10 {
+            sim.kill(start + s + if pre_kill { count / 4 } else { count / 2 });
+        }
+        let mut lowest = before;
+        for _ in 0..(12.0 / DT) as usize {
+            sim.tick();
+            lowest = lowest.min(sim.units[u].morale);
+        }
+        before - lowest
+    };
+    let full = dip_from_ten_dead(false);
+    let depleted = dip_from_ten_dead(true);
+    println!("dip from 10 dead: at full strength {full:.3}, at half strength {depleted:.3}");
+    assert!(
+        depleted > full * 1.5,
+        "each loss weighs more on fewer shoulders: {depleted:.3} vs {full:.3}"
     );
 }

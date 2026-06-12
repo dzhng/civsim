@@ -13,8 +13,6 @@ use crate::unit::OrderMode;
 const BREAK_AT: f32 = 0.18;
 /// Rallied units carry scars: ceiling multiplier per rout.
 const RALLY_SCAR: f32 = 0.78;
-/// A unit reduced below this fraction of its strength never rallies.
-const SHATTER_FRAC: f32 = 0.16;
 
 impl Sim {
     pub(crate) fn run_morale(&mut self, dt: f32) {
@@ -38,19 +36,29 @@ impl Sim {
         // Enemy unit summaries for geometry checks (cheap; 40 units).
         // (center, team, alive, routing, speed, mass)
         // (center, team, alive, routing, measured advance of the MASS,
-        // total living mass). Formulas read men, mass, and measured motion
-        // — never banners or commanded state (see README).
-        let summaries: Vec<(Vec2, u32, usize, bool, f32, f32, f32)> = self
+        // total living mass, offense = men x damage-per-second, pool =
+        // men x health, morale). Formulas read men, mass, and measured
+        // motion — never banners or commanded state (see README).
+        let summaries: Vec<(Vec2, u32, usize, bool, f32, f32, f32, f32, f32)> = self
             .units
             .iter()
             .map(|u| {
+                let stats = crate::class::class_stats(u.class);
+                let dps = stats
+                    .weapons
+                    .iter()
+                    .map(|w| w.damage / w.attack_interval)
+                    .fold(0.0f32, f32::max);
+                let n = u.alive_count as f32;
                 (
                     u.center(),
                     u.team,
                     u.alive_count,
                     u.routing,
                     u.mass_advance.max(0.0),
-                    u.alive_count as f32 * crate::class::class_stats(u.class).mass,
+                    n * stats.mass,
+                    n * dps,
+                    n * stats.health,
                     u.morale,
                 )
             })
@@ -100,7 +108,8 @@ impl Sim {
             let mut enemy_backs = 0.0f32;
             let my_mass = alive_n * crate::class::class_stats(u.class).mass;
             let my_morale = u.morale;
-            for (vi, &(c, team, alive_v, v_routing, advance, mass_total, v_morale)) in
+            let my_pool = summaries[ui].7;
+            for (vi, &(c, team, alive_v, v_routing, advance, mass_total, v_offense, _, v_morale)) in
                 summaries.iter().enumerate()
             {
                 if vi == ui || alive_v == 0 {
@@ -113,6 +122,7 @@ impl Sim {
                             // Relief scales with the SIZE of the rout you
                             // watch: a broken main line pays more than a
                             // fleeing handful of skirmishers.
+                            let _ = v_offense;
                             let weight = (mass_total / my_mass).min(2.0);
                             enemy_backs += weight * (1.0 - d / 90.0);
                         }
@@ -128,16 +138,23 @@ impl Sim {
                             .dot(dir(self.units[vi].facing))
                             * advance;
                         if closing > 3.5 {
-                            // Confidence SHOWS (bearing, dressing, the
-                            // noise a bold line makes): a wavering mass
-                            // doesn't thunder. You fear units bolder than
-                            // you — never shakier ones, so two trembling
-                            // lines cannot terrorize each other into
-                            // mutual collapse.
+                            // Fear is ANTICIPATED BLOOD: project the
+                            // casualty rate if this mass landed on us —
+                            // their offense against our pool of bodies.
+                            // 20 lancers bearing down on 100 heavies
+                            // project ~1%/s and barely register; 400
+                            // project a massacre. Confidence SHOWS
+                            // (bearing, dressing, noise): a wavering mass
+                            // doesn't thunder — you fear units bolder
+                            // than you, never shakier ones.
+                            let projected = (v_offense / my_pool.max(1.0)).min(0.6);
                             let edge = ((v_morale - my_morale) / 0.25 + 1.0).clamp(0.0, 1.0);
-                            let weight = (mass_total / my_mass).min(3.0);
-                            intimidation +=
-                                weight * closing * (1.0 - d / 70.0) * 0.06 * v_morale * edge;
+                            intimidation += projected
+                                * (closing / 6.0).min(1.5)
+                                * (1.0 - d / 70.0)
+                                * 14.0
+                                * v_morale
+                                * edge;
                         }
                     }
                 } else if d < 80.0 {
@@ -207,7 +224,6 @@ impl Sim {
             u.losing_push *= 1.0 - (dt / 4.0);
 
             // --- break / rally ----------------------------------------------
-            let shattered = (u.alive_count as f32) < SHATTER_FRAC * u.count as f32;
             if !u.routing && u.morale < BREAK_AT {
                 u.routing = true;
                 u.morale_ceiling *= RALLY_SCAR;
@@ -217,7 +233,7 @@ impl Sim {
                 u.path.clear();
                 u.waiting = false;
                 u.mode = OrderMode::Move;
-            } else if u.routing && !shattered && quiet && u.morale > 0.45 * u.morale_ceiling {
+            } else if u.routing && quiet && u.morale > 0.45 * u.morale_ceiling {
                 // Rallied: halt where they stand, scarred but a unit again.
                 u.routing = false;
                 u.anchor = u.centroid + dir(u.facing) * (0.5 * u.depth());

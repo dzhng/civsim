@@ -182,15 +182,19 @@ export class CampaignScene implements Scene {
       }
     }
 
-    this.renderer.resize();
-    this.t3d!.resize();
-    this.t3d!.clampCam(this.cam); // zoom floor = aspect-fill, pan inside the map
-    this.t3d!.draw(this.cam);
-    const sel = this.armies.find((a) => a.id === this.selected && a.mine);
-    const hints: [number, number][] = sel
-      ? this.spotPos.filter(([x, y]) => Math.hypot(x - sel.x, y - sel.y) < 12)
-      : [];
-    this.renderer.draw(this.cam, this.armies, this.cities, this.selected, null, this.territory!.labels, this.roadLevels, this.outposts, hints);
+    // Auto-resolve hogs the frame budget on purpose: the modal covers the
+    // screen, so don't spend milliseconds drawing the world behind it.
+    if (!this.autoResolving) {
+      this.renderer.resize();
+      this.t3d!.resize();
+      this.t3d!.clampCam(this.cam); // zoom floor = aspect-fill, pan inside the map
+      this.t3d!.draw(this.cam);
+      const sel = this.armies.find((a) => a.id === this.selected && a.mine);
+      const hints: [number, number][] = sel
+        ? this.spotPos.filter(([x, y]) => Math.hypot(x - sel.x, y - sel.y) < 12)
+        : [];
+      this.renderer.draw(this.cam, this.armies, this.cities, this.selected, null, this.territory!.labels, this.roadLevels, this.outposts, hints);
+    }
     this.updateHud();
   }
 

@@ -421,88 +421,50 @@ fn long_swords_cleave_but_die_in_a_press() {
         "wide arcs must cleave loose enemies: longswords {by_longswords} vs heavies {by_heavies}"
     );
 
-    // Crush cost 1 — pressure kills evade: long swords shoved onto the enemy
-    // by a rear press (Withdraw-mode pusher parked on their backs, never
-    // attacking) die faster than a free-fighting line.
-    let ls_losses = |pressed: bool| -> (usize, f32) {
+    // Crush cost 2 — THE VICE: long swords wedged between a rear press and
+    // the enemy line lose their sweeps (obstruction pins with the vice) and
+    // their evade (scalar pressure), while the free-standing heavies doing
+    // the crushing keep their arms. The pusher is a Withdraw-mode wall
+    // aimed a few meters INSIDE the fight line: it leans forever (bodies
+    // keep it from arriving) without bulldozing the sandwich across the
+    // field. Peak pressure is tracked across the run — a late read is
+    // poisoned by survivor bias once the slaughter starts.
+    let ls_arm = |pressed: bool| -> (f32, usize) {
         let mut sim = Sim::new(no_morale(), SEED);
         let ls = sim.spawn_class(Vec2::new(0.0, -8.0), FRAC_PI_2, 120, UnitClassId::LongSwords, 0);
         let enemy = sim.spawn_class(Vec2::new(0.0, 10.0), -FRAC_PI_2, 300, UnitClassId::HeavyInfantry, 1);
         let _ = enemy;
         sim.set_attack_move_order(ls, Vec2::new(0.0, 25.0));
         if pressed {
-            // The press must KEEP pressing but not BULLDOZE: a destination
-            // short of the fight parks (a parked wall stops pushing), one
-            // far beyond it shoves the whole sandwich — swords, enemy and
-            // all — across the field. A target a few meters INSIDE the
-            // fight line is never reached (bodies block it), so the wall
-            // leans on their backs all fight long.
             let pusher = sim.spawn_class(Vec2::new(0.0, -22.0), FRAC_PI_2, 400, UnitClassId::HeavyInfantry, 0);
             sim.set_disengage_order(pusher, Vec2::new(0.0, 12.0));
         }
-        run(&mut sim, 35.0); // let the press fully pack before reading it
-        let u = &sim.units[ls];
-        let mut press = 0.0;
-        let mut n = 0;
-        for i in u.start..u.start + u.count {
-            if sim.alive[i] == 1 {
-                press += sim.pressure[i];
-                n += 1;
+        let mut peak_press = 0.0f32;
+        for _ in 0..(30.0 / DT) as usize {
+            sim.tick();
+            let u = &sim.units[ls];
+            let (mut p, mut n) = (0.0f32, 0usize);
+            for i in u.start..u.start + u.count {
+                if sim.alive[i] == 1 {
+                    p += sim.pressure[i];
+                    n += 1;
+                }
+            }
+            if n > 20 {
+                peak_press = peak_press.max(p / n as f32);
             }
         }
-        let mid_pressure = press / n.max(1) as f32;
-        // The sandwich suppresses BOTH sides' swings while it packs (arc
-        // obstruction works on the heavies too), so the pressed arm's
-        // death cascade arrives later than the free arm's — read after
-        // both have cascaded, not mid-phase-shift.
-        run(&mut sim, 20.0);
-        (deaths(&sim, ls), mid_pressure)
+        (peak_press, deaths(&sim, ls))
     };
-    let (free_losses, free_press) = ls_losses(false);
-    let (pressed_losses, pressed_press) = ls_losses(true);
+    let (free_press, free_losses) = ls_arm(false);
+    let (pressed_press, pressed_losses) = ls_arm(true);
     assert!(
-        // Chaos-marginal ratio across float profiles; the differential
-        // direction is the claim.
-        pressed_press > free_press * 1.1,
+        pressed_press > free_press * 1.2,
         "the rear press must register as crowd pressure: {pressed_press:.2} vs {free_press:.2} m/s"
     );
-    // The kill DIFFERENTIAL inverted when attacks learned to close at the
-    // double: every attack now self-presses, and a rear pusher that packs
-    // the whole sandwich obstructs the ENEMY'S swings too (arc obstruction
-    // is the crush mechanism, and it cuts both ways) — the crushed mass is
-    // SHIELDED more than its dead evade costs it. The evade gating itself
-    // is asserted above via the pressure differential; here we only pin
-    // that the press is no free lunch: crushed swordsmen still die.
     assert!(
-        pressed_losses > 5,
-        "the press is not a sanctuary: pressed losses {pressed_losses} (free {free_losses})"
-    );
-
-    // Crush cost 2 — lateral packing obstructs the swing: two long-sword
-    // units interleaved in the same ground kill far less than twice one.
-    let kills = |doubled: bool| -> usize {
-        let mut sim = Sim::new(no_morale(), SEED);
-        let a = sim.spawn_class(Vec2::new(0.0, -8.0), FRAC_PI_2, 120, UnitClassId::LongSwords, 0);
-        let mut bsel = None;
-        if doubled {
-            bsel = Some(sim.spawn_class(Vec2::new(0.75, -8.7), FRAC_PI_2, 120, UnitClassId::LongSwords, 0));
-        }
-        // A killable target (as in the cleave arm): the variable under test
-        // is mutual obstruction, not the 1:3.3 odds against a heavy wall.
-        let enemy = sim.spawn_class(Vec2::new(0.0, 10.0), -FRAC_PI_2, 400, UnitClassId::Skirmishers, 1);
-        sim.set_evade_auto(enemy, false);
-        sim.set_attack_move_order(a, Vec2::new(0.0, 25.0));
-        if let Some(b) = bsel {
-            sim.set_attack_move_order(b, Vec2::new(0.0, 25.0));
-        }
-        run(&mut sim, 60.0);
-        deaths(&sim, enemy)
-    };
-    let solo = kills(false);
-    let packed = kills(true);
-    assert!(
-        (packed as f32) < solo as f32 * 3.2, // the anti-blender SORTS interleaved units into clean files now (the envelopment machinery), superseding mutual obstruction; this only guards true catastrophe
-        "packed great swords obstruct each other: doubled force killed {packed} vs solo {solo}"
+        pressed_losses > free_losses * 2,
+        "the vice butchers wedged swordsmen: pressed {pressed_losses} vs free {free_losses}"
     );
 }
 

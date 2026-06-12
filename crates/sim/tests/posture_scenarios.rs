@@ -216,7 +216,9 @@ fn pursue_auto_charges_intruders_but_gives_up_on_faster_prey() {
     // edge-to-edge), not the old flat 70m (an advance no longer peels off
     // after anything it can't catch inside the latch timer) -- but clear of
     // brushing CONTACT, which would zero the timer and hold the latch.
-    let cav = sim.spawn_class(Vec2::new(38.0, 70.0), -FRAC_PI_2, 100, UnitClassId::ShockCavalry, 1);
+    // (At lateral 38 the closest pass measures 22m edge-to-edge -- outside
+    // the reach; 29 passes at ~13m, inside it with contact still clear.)
+    let cav = sim.spawn_class(Vec2::new(29.0, 70.0), -FRAC_PI_2, 100, UnitClassId::ShockCavalry, 1);
     sim.set_attack_move_order(u, Vec2::new(0.0, 220.0));
     let mut latched = false;
     let mut gave_up_at = None;

@@ -8,8 +8,8 @@ use std::f32::consts::FRAC_PI_2;
 
 const SEED: u64 = 9001;
 
-/// (seconds to first rout, loser dead-fraction at that moment)
-fn mirror(class: UnitClassId) -> (f32, f32) {
+/// (seconds to first rout, loser dead-fraction, winner dead-fraction)
+fn mirror(class: UnitClassId) -> (f32, f32, f32) {
     let mut sim = Sim::new(Tunables::default(), SEED);
     let a = sim.spawn_class(Vec2::new(0.0, -40.0), FRAC_PI_2, 200, class, 0);
     let b = sim.spawn_class(Vec2::new(0.0, 40.0), -FRAC_PI_2, 200, class, 1);
@@ -20,23 +20,30 @@ fn mirror(class: UnitClassId) -> (f32, f32) {
     sim.set_attack_order(b, a);
     for step in 0..(600.0 / DT) as usize {
         sim.tick();
-        for &u in &[a, b] {
-            if sim.units[u].routing {
-                let lu = &sim.units[u];
-                let dead_frac = 1.0 - lu.alive_count as f32 / lu.count as f32;
-                return (step as f32 * DT, dead_frac);
+        for &(lu, wu) in &[(a, b), (b, a)] {
+            if sim.units[lu].routing {
+                let dead = |u: usize| 1.0 - sim.units[u].alive_count as f32 / sim.units[u].count as f32;
+                return (step as f32 * DT, dead(lu), dead(wu));
             }
         }
     }
-    (600.0, 0.0)
+    (600.0, 0.0, 0.0)
 }
 
 #[test]
 fn mirror_duels_are_attrition_grinds() {
-    let (t_heavy, dead_heavy) = mirror(UnitClassId::HeavyInfantry);
-    println!("HEAVY mirror: first rout at {t_heavy:.0}s, loser {:.0}% dead", dead_heavy * 100.0);
-    let (t_light, dead_light) = mirror(UnitClassId::LightInfantry);
-    println!("LIGHT mirror: first rout at {t_light:.0}s, loser {:.0}% dead", dead_light * 100.0);
+    let (t_heavy, dead_heavy, w_heavy) = mirror(UnitClassId::HeavyInfantry);
+    println!(
+        "HEAVY mirror: first rout at {t_heavy:.0}s, loser {:.0}% dead, winner {:.0}%",
+        dead_heavy * 100.0,
+        w_heavy * 100.0
+    );
+    let (t_light, dead_light, w_light) = mirror(UnitClassId::LightInfantry);
+    println!(
+        "LIGHT mirror: first rout at {t_light:.0}s, loser {:.0}% dead, winner {:.0}%",
+        dead_light * 100.0,
+        w_light * 100.0
+    );
     // High-tier: fights to ~20% strength (>=65% dead) over 3+ minutes.
     assert!(
         t_heavy > 180.0 && t_heavy < 540.0,
@@ -57,4 +64,14 @@ fn mirror_duels_are_attrition_grinds() {
         "lights break around half strength: {:.0}% dead",
         dead_light * 100.0
     );
+    // A mirror match is decided by morale DIVERGENCE, not free kills: the
+    // winner pays most of the butcher's bill too.
+    for (name, w, l) in [("heavy", w_heavy, dead_heavy), ("light", w_light, dead_light)] {
+        let ratio = w / l.max(1e-6);
+        assert!(
+            ratio > 0.55 && ratio <= 1.05,
+            "{name} mirror is near-peer: winner paid {:.2}x the loser's losses",
+            ratio
+        );
+    }
 }

@@ -69,6 +69,20 @@ annihilation: 118 vs 120 dead of 120 shows nothing). Pick the window where
 the arms have diverged but neither has capped, and write the reason into a
 comment on the `run(...)` line.
 
+## Anchor tests to design contracts, not current behavior
+
+When a test goes red after a change, the reflex is to re-measure and pin
+the new number. Resist it: a bar calibrated to whatever the sim currently
+does will silently encode bugs as baseline — the flash-rout spread term
+survived months because every morale test's timing was tuned DURING its
+reign, so the suite certified the bug. Write the assert from the design
+contract ("high-tier infantry fights 3-5 minutes to ~70% casualties
+before breaking") and make the sim earn it. If no explicit contract
+exists for the behavior you're testing, that's a design question for
+David, not a number to measure-and-pin. Recalibrating a margin is only
+legitimate when the CONTRACT itself changed or the metric is declared
+chaos-marginal — and the comment must say which.
+
 ## The golden hash
 
 `golden_state_hash_stable` pins exact sim behavior. ANY intentional physics

@@ -1,12 +1,12 @@
 // Terrain field derived from the background raster. mapgen paints the bg PNG
-// from a fixed palette (sea/land/mountain/lake/river — see mapgen/raster.rs),
+// from a fixed palette (sea/land/mountain/lake/river — see crates/mapgen/src/raster.rs),
 // so classifying pixels back into classes gives us a land mask and a stylized
 // heightmap without touching the asset pipeline. Heights are visual relief
 // (massively exaggerated, like every campaign map), not real elevation.
 
 import type { CampaignData } from './data';
 
-// Must match mapgen/src/raster.rs. Mountain height is graded later by range
+// Must match crates/mapgen/src/raster.rs. Mountain height is graded later by range
 // size (interior of a broad mass climbs higher than a narrow ridge).
 const PALETTE: { c: [number, number, number]; land: boolean; h: number }[] = [
   { c: [38, 60, 84], land: false, h: 0 }, // sea
@@ -16,8 +16,21 @@ const PALETTE: { c: [number, number, number]; land: boolean; h: number }[] = [
   { c: [60, 96, 124], land: true, h: 1.0 }, // river (still territory-worthy land)
 ];
 
+/** The one campaign sun (normalized): the bake below and Terrain3D's
+ * specular uniform must agree, or water glints contradict the relief. */
+/** North of this y (km) the climate turns boreal: snowline, conifers,
+ * moisture curve. The terrain3d fragment shader carries the literal 700.0
+ * twice (GLSL can't import) — change one, change all three. */
+export const TEMPERATE_Y_KM = 700;
+
+export const SUN: [number, number, number] = (() => {
+  const s = [-0.42, 0.4, 0.81];
+  const l = Math.hypot(...s);
+  return [s[0] / l, s[1] / l, s[2] / l];
+})();
+
 /** Deterministic [0,1) hash of a grid cell. */
-function hash2(x: number, y: number): number {
+export function hash2(x: number, y: number): number {
   let n = (x * 374761393 + y * 668265263) | 0;
   n = Math.imul(n ^ (n >>> 13), 1274126177);
   return ((n ^ (n >>> 16)) >>> 0) / 4294967296;
@@ -180,9 +193,7 @@ export class TerrainField {
     // Bake the (static) sun lighting. Slopes are exaggerated a touch beyond
     // the geometry so relief reads even at gentle grades.
     this.light = new Uint8Array(n);
-    const sun = [-0.42, 0.4, 0.81];
-    const sl = Math.hypot(...sun);
-    const [sx2, sy2, sz2] = [sun[0] / sl, sun[1] / sl, sun[2] / sl];
+    const [sx2, sy2, sz2] = SUN;
     const { w, h, height, cell } = this;
     for (let gy = 0; gy < h; gy++) {
       for (let gx = 0; gx < w; gx++) {
@@ -212,8 +223,8 @@ export class TerrainField {
       const lat =
         wy < -400 ? 0.08 :
         wy < 100 ? 0.08 + ((wy + 400) / 500) * 0.3 :
-        wy < 700 ? 0.38 + ((wy - 100) / 600) * 0.17 :
-        Math.min(0.8, 0.55 + ((wy - 700) / 1300) * 0.25);
+        wy < TEMPERATE_Y_KM ? 0.38 + ((wy - 100) / 600) * 0.17 :
+        Math.min(0.8, 0.55 + ((wy - TEMPERATE_Y_KM) / 1300) * 0.25);
       for (let gx = 0; gx < w; gx++) {
         const i = gy * w + gx;
         // A channel: SIGNED shore distance — 0.5 at the waterline, above on

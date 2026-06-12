@@ -13,7 +13,7 @@
 import type { CampaignData } from './data';
 import { compileProgram, uploadMipmapTexture } from '../shared/glutil';
 import type { CamView } from './renderer';
-import { TerrainField } from './terrain';
+import { hash2, SUN, TEMPERATE_Y_KM, TerrainField } from './terrain';
 
 const FOV = (45 * Math.PI) / 180;
 /** Tilt: 90° (top-down) until TILT_START, easing to MIN_PITCH by TILT_END. */
@@ -128,7 +128,7 @@ void main() {
                      nz(vec2(vXY.x, vXY.y + vH * 0.9), 0.7, px));
     ground = mix(ground, rockC, smoothstep(0.35, 0.85, b.b) * (0.7 + 0.3 * g1));
     // snowline climbs toward the south: the Alps whiten, the Atlas stays rock
-    float snowAt = 21.0 + clamp((700.0 - vXY.y) * 0.006, 0.0, 7.0);
+    float snowAt = 21.0 + clamp((700.0 - vXY.y) * 0.006, 0.0, 7.0); // 700 = TEMPERATE_Y_KM (terrain.ts)
     float snow = smoothstep(snowAt, snowAt + 5.5, vH + (nz(vXY, 0.5, px) - 0.5) * 6.0);
     ground = mix(ground, vec3(0.92, 0.93, 0.96), snow);
     // political mode reads better over calmer ground
@@ -363,19 +363,20 @@ export class Terrain3D {
             // Scatter trees over forest cells, density from the biome.
             const forest = field.biome[i * 4 + 1] / 255;
             if (forest < 0.35) continue;
-            const k = Math.round(forest * 3 * (0.5 + hash01(gx, gy) * 0.9));
+            const k = Math.round(forest * 3 * (0.5 + hash2(gx, gy) * 0.9));
             for (let t = 0; t < k; t++) {
-              const ox = (hash01(gx * 7 + t, gy * 13 + 1) - 0.5) * cell * 1.4;
-              const oy = (hash01(gx * 3 + t, gy * 17 + 5) - 0.5) * cell * 1.4;
+              const ox = (hash2(gx * 7 + t, gy * 13 + 1) - 0.5) * cell * 1.4;
+              const oy = (hash2(gx * 3 + t, gy * 17 + 5) - 0.5) * cell * 1.4;
               const x = minX + (gx + 0.5) * cell + ox;
               const y = maxY - (gy + 0.5) * cell + oy;
-              const size = 2.0 + hash01(gx + t, gy + t) * 1.8;
-              const conifer = hash01(gx * 5 + t, gy * 11) < (y > 700 ? 0.75 : 0.25) ? 1 : 0;
+              const size = 2.0 + hash2(gx + t, gy + t) * 1.8;
+              const conifer = hash2(gx * 5 + t, gy * 11) < (y > TEMPERATE_Y_KM ? 0.75 : 0.25) ? 1 : 0;
               trees.push(x, y, field.heightAt(x, y) - 0.15, size, conifer);
             }
           }
         }
         const full = buildIdx(1, tx, x1, ty, y1);
+        const half = buildIdx(2, tx, x1, ty, y1);
         if (full.length === 0) continue;
         let treeVao: WebGLVertexArrayObject | null = null;
         if (trees.length) {
@@ -395,13 +396,16 @@ export class Terrain3D {
           gl.vertexAttribDivisor(2, 1);
           gl.bindVertexArray(null);
         }
+        // Trees jitter up to 0.7*cell outside their cell (plus half a
+        // billboard): pad the cull box or border trees pop at frustum edge.
+        const pad = cell * 0.7 + 2.0;
         this.chunks.push({
           aabb: [
-            minX + (tx + 0.5) * cell, maxY - (y1 + 0.5) * cell, 0,
-            minX + (x1 + 0.5) * cell, maxY - (ty + 0.5) * cell, zMax + 6,
+            minX + (tx + 0.5) * cell - pad, maxY - (y1 + 0.5) * cell - pad, 0,
+            minX + (x1 + 0.5) * cell + pad, maxY - (ty + 0.5) * cell + pad, zMax + 6,
           ],
-          ibo: [upload(full), upload(buildIdx(2, tx, x1, ty, y1))],
-          count: [full.length, buildIdx(2, tx, x1, ty, y1).length],
+          ibo: [upload(full), upload(half)],
+          count: [full.length, half.length],
           treeVao,
           treeCount: trees.length / 5,
         });
@@ -540,7 +544,7 @@ export class Terrain3D {
     gl.useProgram(this.prog);
     const u = (n: string) => this.uni.get(n)!;
     setShared(u);
-    gl.uniform3f(u('uSun'), -0.435, 0.414, 0.8);
+    gl.uniform3f(u('uSun'), ...SUN);
     gl.uniform1f(u('uTime'), time);
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, this.terrTex);
@@ -666,9 +670,4 @@ export class Terrain3D {
   }
 }
 
-/** Deterministic [0,1) hash (tree scatter). */
-function hash01(x: number, y: number): number {
-  let n = (x * 374761393 + y * 668265263) | 0;
-  n = Math.imul(n ^ (n >>> 13), 1274126177);
-  return ((n ^ (n >>> 16)) >>> 0) / 4294967296;
-}
+

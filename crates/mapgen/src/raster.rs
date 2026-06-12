@@ -12,6 +12,8 @@ pub struct Raster {
     scale: f64, // px per km
 }
 
+// TWIN: web/src/campaign/terrain.ts classifies map pixels by nearest match
+// against these exact colors — recolor here, recolor there.
 const SEA: [u8; 3] = [38, 60, 84];
 const LAND: [u8; 3] = [196, 178, 138];
 const MOUNTAIN: [u8; 3] = [142, 120, 96];

@@ -103,7 +103,7 @@ export class Territory {
       if (n >= 0) owner[i] = cities.get(n)?.owner ?? -1;
     }
 
-    const acc = factions.map(() => ({ x: 0, y: 0, n: 0 }));
+    const cells = factions.map(() => 0);
     rgba.fill(0);
     for (let gy = 0; gy < h; gy++) {
       for (let gx = 0; gx < w; gx++) {
@@ -135,10 +135,7 @@ export class Territory {
         rgba[o + 1] = Math.min(255, Math.max(0, (c[1] + j) * k));
         rgba[o + 2] = Math.min(255, Math.max(0, (c[2] + j * 0.6) * k));
         rgba[o + 3] = frontier ? BORDER_A : seam ? REGION_A : FILL_A;
-        const a = acc[f];
-        a.x += gx;
-        a.y += gy;
-        a.n++;
+        cells[f]++;
       }
     }
 
@@ -154,7 +151,7 @@ export class Territory {
     }
     this.labels = factions.flatMap((fac, fi) => {
       const cap = capitals[fi];
-      if (!fac.playable || cap === null || acc[fi].n === 0) return [];
+      if (!fac.playable || cap === null || cells[fi] === 0) return [];
       const pos = this.data.map.nodes[cap].pos;
       return [{
         faction: fi,
@@ -162,7 +159,7 @@ export class Territory {
         color: fac.color,
         x: pos[0],
         y: pos[1] + 30, // float just north of the capital marker
-        radiusKm: Math.sqrt(acc[fi].n) * cell,
+        radiusKm: Math.sqrt(cells[fi]) * cell,
       }];
     });
   }

@@ -310,6 +310,7 @@ export class BattleScene implements Scene {
 
     // --- Time control ------------------------------------------------------------
     let paused = false;
+    let pausedBeforeFreeze = false;
     let frozen = false; // snapshot mode: no wall-clock pixels (HUD perf line, shader clock)
     let ended = false;
     const gameover = document.getElementById('gameover')!;
@@ -927,7 +928,10 @@ export class BattleScene implements Scene {
       // Snapshot mode: stop the sim and pin every wall-clock-driven pixel so
       // screenshots are reproducible (see snapshot.mjs).
       freeze: (on = true) => {
-        paused = on;
+        // The hook pins pixels; it must not OWN the pause state (an
+        // unfreeze after a user pause should stay paused).
+        if (on && !frozen) pausedBeforeFreeze = paused;
+        paused = on ? true : pausedBeforeFreeze;
         frozen = on;
         renderer.fixedTime = on ? 0 : null;
       },

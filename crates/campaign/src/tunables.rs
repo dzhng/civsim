@@ -154,4 +154,6 @@ pub const REPLENISH_HOSTILE: f32 = 0.005;
 pub const MORALE_CAP_REGEN: f32 = 0.05;
 
 /// Garrison regeneration: fraction of the city's establishment per day.
-pub const GARRISON_REGEN: f32 = 0.02;
+/// (0.02 left sacked cities open for fifty days — a razed garrison now
+/// stands again in under a month.)
+pub const GARRISON_REGEN: f32 = 0.04;

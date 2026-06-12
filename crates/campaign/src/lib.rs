@@ -677,6 +677,25 @@ mod tests {
     }
 
     #[test]
+    fn repeated_orders_do_not_stall_the_march() {
+        // The AI re-issues its attack intent hourly; a re-order toward the
+        // same next tile must not zero the step progress (it used to, which
+        // froze every AI march longer than one order interval).
+        let mut c = Campaign::new(test_map(), 7, 0);
+        inert(&mut c);
+        for _ in 0..14 * 300 {
+            assert!(c.order_move(0, Loc::Node(0)));
+            for _ in 0..60 {
+                c.tick();
+            }
+            if c.state.armies[0].loc == Loc::Node(0) {
+                return; // arrived despite hourly re-orders
+            }
+        }
+        panic!("hourly re-orders stalled the march at {:?}", c.state.armies[0].loc);
+    }
+
+    #[test]
     fn equal_speed_chaser_follows_around_the_corner() {
         // A --e0(4)-- J --e1(8)-- C, plus J --e2(8)-- D: a corner at J.
         let map = r#"{

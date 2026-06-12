@@ -119,6 +119,8 @@ export class CampaignScene implements Scene {
         return ok;
       },
       battleReady: () => this.cfg.campaign.battle_ready(),
+      currentTick: () => this.cfg.campaign.current_tick(),
+      encounterJson: (id: number) => this.cfg.campaign.encounter_json(id),
       armies: () => this.armies,
       cities: () => Object.fromEntries(this.cities),
       treasury: () => this.cfg.campaign.treasury(),

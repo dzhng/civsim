@@ -459,7 +459,13 @@ pub fn new_state(map: &WorldMap, seed: u64, player_faction: u32) -> CampaignStat
         .enumerate()
         .filter(|(_, n)| n.kind == NodeKind::City)
         .map(|(i, n)| {
-            (i as u32, CityState { owner: n.initial_owner, ..Default::default() })
+            // Garrisons open at establishment strength: an undefended world
+            // would be steamrolled by whoever marches first.
+            let garrison = crate::economy::garrison_establishment(n.tier, 0)
+                .into_iter()
+                .map(|(class, count)| RosterEntry { class, count, max: count, morale_cap: 1.0 })
+                .collect();
+            (i as u32, CityState { owner: n.initial_owner, garrison, ..Default::default() })
         })
         .collect();
     let armies = map
@@ -524,9 +530,15 @@ pub(crate) fn try_move(map: &WorldMap, st: &mut CampaignState, army: ArmyId, des
         return false;
     };
     let a = &mut st.armies[army as usize];
+    // Re-ordering toward the same next tile keeps the step's progress — the
+    // AI re-issues its intent hourly, and zeroing progress each time froze
+    // every march longer than one order interval.
+    let keep_progress = a.marching() && path.first() == Some(&a.path[a.path_idx]);
     a.path = path;
     a.path_idx = 0;
-    a.progress = 0.0;
+    if !keep_progress {
+        a.progress = 0.0;
+    }
     if matches!(a.stance, Stance::Hold | Stance::Ambush { .. } | Stance::Camp { .. }) {
         a.stance = Stance::March;
     }

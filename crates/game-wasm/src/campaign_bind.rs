@@ -72,6 +72,10 @@ impl Campaign {
         self.refresh();
     }
 
+    pub fn player_faction(&self) -> u32 {
+        self.inner.state.player_faction
+    }
+
     pub fn current_tick(&self) -> f64 {
         self.inner.state.tick as f64
     }

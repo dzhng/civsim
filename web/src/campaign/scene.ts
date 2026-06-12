@@ -658,8 +658,7 @@ export class CampaignScene implements Scene {
   }
 
   private playerFaction(): number {
-    // Player faction index is fixed at campaign creation (0 = first faction).
-    return 0;
+    return this.cfg.campaign.player_faction();
   }
 }
 

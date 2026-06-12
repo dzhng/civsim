@@ -274,6 +274,18 @@ export class CampaignRenderer {
         ctx.font = 'bold 10px system-ui';
         ctx.fillText('!', sx - 2, sy - size * 1.8);
       }
+      // At sea: a hull under the banner.
+      if (a.stance === 6) {
+        ctx.fillStyle = '#6b4a2a';
+        ctx.strokeStyle = '#1a1208';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(sx - 7, sy + 2);
+        ctx.quadraticCurveTo(sx, sy + 8, sx + 7, sy + 2);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+      }
       // Camp: a tent pitched beside the banner.
       if (a.stance === 1) {
         ctx.fillStyle = '#e8dcc0';

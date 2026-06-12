@@ -654,7 +654,7 @@ export class BattleScene implements Scene {
     type WeaponSpec = { name: string; reach: number; minRange: number; arc: number; interval: number; damage: number };
     type ClassSpec = {
       mass: number; radius: number; brace: number; block: number; evade: number;
-      training: number; speedMult: number; health: number; mountHealth: number;
+      training: number; speedMult: number; drainMult: number; health: number; mountHealth: number;
       mounted: boolean; charges: boolean; weapons: WeaponSpec[];
       missile: { name: string; range: number; interval: number; ammo: number; damage: number; mobileFire: boolean } | null;
     };
@@ -838,7 +838,7 @@ export class BattleScene implements Scene {
           lines.push(
             `mass ${spec.mass.toFixed(1)}${spec.brace > 1 ? ` (brace x${spec.brace.toFixed(1)})` : ''}  ` +
               `block ${pct(spec.block)}  evade ${pct(spec.evade)}  train ${pct(spec.training)}`,
-            `speed x${spec.speedMult.toFixed(2)}  hp ${spec.health.toFixed(1)}` +
+            `speed x${spec.speedMult.toFixed(2)}  stamina drain x${spec.drainMult.toFixed(2)}  hp ${spec.health.toFixed(1)}` +
               (spec.mounted ? ` + mount ${spec.mountHealth.toFixed(1)}` : '') +
               (spec.charges ? '  charges' : ''),
           );

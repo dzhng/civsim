@@ -136,6 +136,18 @@ pub struct Outpost {
     pub build_ticks_left: u32,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub enum BuildKind {
+    Market,
+    Barracks,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct BuildJob {
+    pub kind: BuildKind,
+    pub ticks_left: u32,
+}
+
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct CityState {
     pub owner: FactionId,
@@ -146,6 +158,9 @@ pub struct CityState {
     pub barracks_lvl: u8,
     /// Sequential; head is in production.
     pub recruit_queue: Vec<RecruitJob>,
+    /// One construction site per city.
+    #[serde(default)]
+    pub build_job: Option<BuildJob>,
 }
 
 #[derive(Clone, Serialize, Deserialize)]

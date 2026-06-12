@@ -164,6 +164,18 @@ fn think(map: &WorldMap, st: &mut CampaignState, f: FactionId) {
         }
     }
 
+    // 2c. With a fat treasury, raise a market at the richest city.
+    if st.factions[f as usize].treasury > 800 {
+        let richest = my_cities
+            .iter()
+            .copied()
+            .filter(|&n| st.cities[&n].market_lvl < 2 && st.cities[&n].build_job.is_none())
+            .max_by_key(|&n| map.nodes[n as usize].tier);
+        if let Some(n) = richest {
+            economy::build(st, n, BuildKind::Market, f);
+        }
+    }
+
     // 3. Attack: when clearly stronger locally, march the strongest free army
     //    at the weakest reachable enemy city.
     let my_total: u64 = my_free.iter().map(|(_, _, s)| *s).sum();

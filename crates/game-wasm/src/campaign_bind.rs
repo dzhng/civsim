@@ -201,6 +201,30 @@ impl Campaign {
         serde_json::json!(list).to_string()
     }
 
+    /// kind: 0 market, 1 barracks.
+    pub fn order_build(&mut self, node: u32, kind: u32) -> bool {
+        use campaign::state::BuildKind;
+        let kind = if kind == 0 { BuildKind::Market } else { BuildKind::Barracks };
+        let ok = self.inner.order_build(node, kind);
+        self.refresh();
+        ok
+    }
+
+    /// City detail for the panel: building levels and the running site.
+    pub fn city_json(&self, node: u32) -> String {
+        let Some(c) = self.inner.state.cities.get(&node) else { return "null".into() };
+        serde_json::json!({
+            "market_lvl": c.market_lvl,
+            "barracks_lvl": c.barracks_lvl,
+            "building": c.build_job.as_ref().map(|j| match j.kind {
+                campaign::state::BuildKind::Market => "market",
+                campaign::state::BuildKind::Barracks => "barracks",
+            }),
+            "build_ticks_left": c.build_job.as_ref().map_or(0, |j| j.ticks_left),
+        })
+        .to_string()
+    }
+
     pub fn order_camp(&mut self, army: u32) -> bool {
         let ok = self.owns(army) && self.inner.order_camp(army);
         self.refresh();

@@ -158,6 +158,20 @@ pub fn day_tick(map: &WorldMap, st: &mut CampaignState) {
         let job = st.cities.get_mut(&node).unwrap().recruit_queue.remove(0);
         deliver_recruits(st, node, owner, job.class, job.count);
     }
+
+    // 6. Construction sites.
+    for c in st.cities.values_mut() {
+        let Some(job) = &mut c.build_job else { continue };
+        job.ticks_left = job.ticks_left.saturating_sub(tun::TICKS_PER_DAY);
+        if job.ticks_left > 0 {
+            continue;
+        }
+        match job.kind {
+            BuildKind::Market => c.market_lvl += 1,
+            BuildKind::Barracks => c.barracks_lvl += 1,
+        }
+        c.build_job = None;
+    }
 }
 
 /// Finished recruits join a halted friendly field army at the node, or found
@@ -309,6 +323,33 @@ pub fn upgrade_road(map: &WorldMap, st: &mut CampaignState, edge: u32, f: Factio
         edge,
         RoadJob { to_level: lvl + 1, ticks_left: tun::ROAD_BUILD_TICKS_PER_TILE * tiles },
     );
+    true
+}
+
+/// Start a building at an owned city: one site at a time, paid up front.
+pub fn build(st: &mut CampaignState, node: NodeId, kind: BuildKind, f: FactionId) -> bool {
+    let Some(c) = st.cities.get(&node) else { return false };
+    if c.owner != f || c.build_job.is_some() {
+        return false;
+    }
+    let lvl = match kind {
+        BuildKind::Market => c.market_lvl,
+        BuildKind::Barracks => c.barracks_lvl,
+    };
+    if lvl >= 2 {
+        return false;
+    }
+    let cost = match kind {
+        BuildKind::Market => tun::BUILD_MARKET_COST[lvl as usize],
+        BuildKind::Barracks => tun::BUILD_BARRACKS_COST[lvl as usize],
+    };
+    let fac = &mut st.factions[f as usize];
+    if fac.treasury < cost {
+        return false;
+    }
+    fac.treasury -= cost;
+    st.cities.get_mut(&node).unwrap().build_job =
+        Some(BuildJob { kind, ticks_left: tun::BUILD_TICKS });
     true
 }
 

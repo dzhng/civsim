@@ -556,9 +556,31 @@ export class CampaignScene implements Scene {
           .map((cl, i) => `<button data-recruit="${i}" title="${cl}">${cl.replace(/[a-z]/g, '')}</button>`)
           .join(' ')}</div>`
       : '';
+    const detail = JSON.parse(this.cfg.campaign.city_json(node));
+    const buildRow = (kind: number, name: string, lvl: number, costs: number[]) => {
+      if (detail.building) {
+        return detail.building === name.toLowerCase()
+          ? `<div>${name} L${lvl} — building, ${Math.ceil(detail.build_ticks_left / 1440)}d left</div>`
+          : `<div>${name} L${lvl}</div>`;
+      }
+      return lvl < 2 && mineCity
+        ? `<div>${name} L${lvl} <button data-build="${kind}">+ (${costs[lvl]}g)</button></div>`
+        : `<div>${name} L${lvl}</div>`;
+    };
+    const buildings = detail
+      ? buildRow(0, 'Market', detail.market_lvl, [200, 300]) + buildRow(1, 'Barracks', detail.barracks_lvl, [250, 400])
+      : '';
     panel.innerHTML = `<b>${n.name}</b> (tier ${n.tier}) — ${this.cfg.data.map.factions[c.owner]?.name ?? '?'}
-      <div>garrison ${c.garrison}${c.queue ? ` | recruiting ${c.queue}` : ''}</div>${recruits}`;
+      <div>garrison ${c.garrison}${c.queue ? ` | recruiting ${c.queue}` : ''}</div>${buildings}${recruits}`;
     panel.style.display = 'block';
+    panel.querySelectorAll<HTMLButtonElement>('button[data-build]').forEach((b) =>
+      b.addEventListener('click', () => {
+        if (this.cfg.campaign.order_build(node, Number(b.dataset.build))) {
+          this.refreshViews();
+          this.openCityPanel(node);
+        }
+      }),
+    );
     panel.querySelectorAll<HTMLButtonElement>('button[data-recruit]').forEach((b) =>
       b.addEventListener('click', () => {
         this.cfg.campaign.order_recruit(node, Number(b.dataset.recruit), 240);

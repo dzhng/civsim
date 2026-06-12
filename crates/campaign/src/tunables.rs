@@ -77,6 +77,13 @@ pub const OUTPOST_VISION: u32 = 6;
 /// Concealed ambushers within this radius of an enemy outpost are exposed.
 pub const OUTPOST_REVEAL_RADIUS: u32 = 2;
 
+/// City buildings: cost of the NEXT level (index = current level), 2 days
+/// to raise either. Market multiplies income, barracks speeds recruiting and
+/// deepens the garrison establishment.
+pub const BUILD_MARKET_COST: [u32; 2] = [200, 300];
+pub const BUILD_BARRACKS_COST: [u32; 2] = [250, 400];
+pub const BUILD_TICKS: u32 = 2 * TICKS_PER_DAY;
+
 /// Routed armies: tiles of hostile-free road needed to regroup (or a nearer
 /// friendly city); no such path at battle end = captured and wiped.
 pub const ROUT_TILES: u16 = 16;

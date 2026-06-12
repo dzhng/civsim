@@ -107,6 +107,11 @@ impl Campaign {
         let f = self.state.player_faction;
         economy::build_outpost(&self.map, &mut self.state, node, f)
     }
+    /// Start a market or barracks at an owned city (player faction pays).
+    pub fn order_build(&mut self, node: u32, kind: state::BuildKind) -> bool {
+        let f = self.state.player_faction;
+        economy::build(&mut self.state, node, kind, f)
+    }
     pub fn order_disband(&mut self, army: ArmyId, entry: usize) -> bool {
         economy::disband(&mut self.state, army, entry)
     }
@@ -669,6 +674,49 @@ mod tests {
         // And the finished level round-trips too.
         let c2 = Campaign::load(test_map(), &c.save()).unwrap();
         assert_eq!(c2.state.road_level(0), 2);
+    }
+
+    #[test]
+    fn city_buildings_raise_income_and_speed_recruits() {
+        let mut c = Campaign::new(test_map(), 7, 0);
+        inert(&mut c);
+        // Silence upkeep so treasury moves on income alone.
+        for a in &mut c.state.armies {
+            for r in &mut a.roster {
+                r.count = 0;
+            }
+        }
+        let day = |c: &mut Campaign| {
+            let t0 = c.state.factions[0].treasury;
+            for _ in 0..tunables::TICKS_PER_DAY {
+                c.tick();
+            }
+            c.state.factions[0].treasury as i64 - t0 as i64
+        };
+        assert_eq!(day(&mut c), tunables::CITY_INCOME[2] as i64, "tier-2 base income");
+
+        assert!(c.order_build(0, BuildKind::Market));
+        assert!(!c.order_build(0, BuildKind::Barracks), "one site per city");
+        for _ in 0..tunables::BUILD_TICKS + tunables::TICKS_PER_DAY {
+            c.tick();
+        }
+        assert_eq!(c.state.cities[&0].market_lvl, 1);
+        assert!(c.state.cities[&0].build_job.is_none());
+        assert_eq!(
+            day(&mut c),
+            (tunables::CITY_INCOME[2] * tunables::MARKET_MULT_PCT[1] / 100) as i64,
+            "market multiplies the next day's income"
+        );
+
+        assert!(c.order_build(0, BuildKind::Barracks));
+        for _ in 0..tunables::BUILD_TICKS + tunables::TICKS_PER_DAY {
+            c.tick();
+        }
+        assert_eq!(c.state.cities[&0].barracks_lvl, 1);
+        // Barracks cuts recruit time by a quarter per level.
+        assert!(c.order_recruit(0, contract::UnitClassId::LightInfantry, 400));
+        let ticks = c.state.cities[&0].recruit_queue[0].ticks_left;
+        assert_eq!(ticks, 400 * 2 * 75 / 100);
     }
 
     #[test]

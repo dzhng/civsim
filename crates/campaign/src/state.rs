@@ -122,6 +122,12 @@ pub struct RecruitJob {
     pub ticks_left: u32,
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct RoadJob {
+    pub to_level: u8,
+    pub ticks_left: u32,
+}
+
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct CityState {
     pub owner: FactionId,
@@ -154,4 +160,17 @@ pub struct CampaignState {
     /// Per-faction sets of armies it can currently see (fog of war).
     #[serde(default)]
     pub visible: Vec<std::collections::BTreeSet<ArmyId>>,
+    /// Per-edge road level (1..=3); speed/routing multipliers in tunables.
+    /// Sized to the map at load — an old save's empty vec is re-initialized.
+    #[serde(default)]
+    pub road_levels: Vec<u8>,
+    /// In-flight upgrades, keyed by edge. One job per edge.
+    #[serde(default)]
+    pub road_jobs: BTreeMap<EdgeId, RoadJob>,
+}
+
+impl CampaignState {
+    pub fn road_level(&self, edge: EdgeId) -> u8 {
+        self.road_levels.get(edge as usize).copied().unwrap_or(1)
+    }
 }

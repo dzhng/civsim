@@ -84,7 +84,7 @@ fn ambush_triggers(map: &WorldMap, st: &mut CampaignState) {
 
 /// Base pace, before the prep slowdown — used both for movement and for the
 /// escape rule's "who is faster" comparison.
-fn army_base_speed(map: &WorldMap, a: &Army) -> f32 {
+fn army_base_speed(map: &WorldMap, roads: &[u8], a: &Army) -> f32 {
     let on_sea = matches!(a.loc, Loc::Edge { edge, .. } if map.edges[edge as usize].sea);
     if on_sea {
         return tun::SEA_TILES_PER_TICK;
@@ -95,11 +95,14 @@ fn army_base_speed(map: &WorldMap, a: &Army) -> f32 {
         .filter(|r| r.count > 0)
         .map(|r| tun::march_mult(r.class))
         .fold(f32::INFINITY, f32::min);
-    let feature = match a.loc {
-        Loc::Edge { edge, tile } => tun::feature_mult(map.edges[edge as usize].tiles[tile as usize]),
-        Loc::Node(_) => 1.0,
+    let (feature, road) = match a.loc {
+        Loc::Edge { edge, tile } => (
+            tun::feature_mult(map.edges[edge as usize].tiles[tile as usize]),
+            tun::road_mult(roads.get(edge as usize).copied().unwrap_or(1)),
+        ),
+        Loc::Node(_) => (1.0, 1.0),
     };
-    tun::BASE_TILES_PER_TICK * slowest * feature
+    tun::BASE_TILES_PER_TICK * slowest * feature * road
 }
 
 pub fn loc_pos(map: &WorldMap, loc: Loc) -> [f32; 2] {
@@ -130,8 +133,8 @@ fn moving_toward(map: &WorldMap, a: &Army, to: Loc) -> bool {
     eucl(loc_pos(map, a.path[a.path_idx]), t) < eucl(loc_pos(map, a.loc), t) - 0.01
 }
 
-fn army_speed(map: &WorldMap, _st: &CampaignState, a: &Army) -> f32 {
-    let mut speed = army_base_speed(map, a);
+fn army_speed(map: &WorldMap, st: &CampaignState, a: &Army) -> f32 {
+    let mut speed = army_base_speed(map, &st.road_levels, a);
     if a.encounter.is_some() {
         speed *= tun::PREP_SPEED_MULT; // forming up while marching
     }
@@ -234,6 +237,7 @@ fn encounters(map: &WorldMap, st: &mut CampaignState) {
     let mut dissolved: Vec<EncounterId> = Vec::new();
     let mut st_no_rematch: Vec<((ArmyId, ArmyId), u64)> = Vec::new();
     let st_tick = st.tick;
+    let road_levels = &st.road_levels;
     for e in &mut st.encounters {
         if e.phase != EncounterPhase::Preparing {
             continue;
@@ -271,7 +275,10 @@ fn encounters(map: &WorldMap, st: &mut CampaignState) {
             // or if nobody pursues. Equal or slower while chased = run down,
             // and the battle initiates mid-flight (column deployment).
             let (a, d) = (&st.armies[att], &st.armies[def]);
-            let (sa, sd) = (army_base_speed(map, a), army_base_speed(map, d));
+            let (sa, sd) = (
+                army_base_speed(map, road_levels, a),
+                army_base_speed(map, road_levels, d),
+            );
             let def_escapes = moving_away(map, d, a.loc)
                 && (sd > sa * 1.01 || !moving_toward(map, a, d.loc));
             let att_escapes = moving_away(map, a, d.loc)
@@ -390,6 +397,20 @@ fn timers(st: &mut CampaignState) {
             }
         }
     }
+    // Road works: count down, then pave.
+    let mut paved: Vec<crate::mapdata::EdgeId> = Vec::new();
+    for (&e, job) in st.road_jobs.iter_mut() {
+        job.ticks_left = job.ticks_left.saturating_sub(1);
+        if job.ticks_left == 0 {
+            paved.push(e);
+        }
+    }
+    for e in paved {
+        let lvl = st.road_jobs.remove(&e).unwrap().to_level;
+        if let Some(slot) = st.road_levels.get_mut(e as usize) {
+            *slot = lvl;
+        }
+    }
     let now = st.tick;
     st.no_rematch.retain(|_, &mut until| until > now);
 }
@@ -447,6 +468,8 @@ pub fn new_state(map: &WorldMap, seed: u64, player_faction: u32) -> CampaignStat
         battle_ready: None,
         no_rematch: std::collections::BTreeMap::new(),
         visible: Vec::new(),
+        road_levels: vec![1; map.edges.len()],
+        road_jobs: std::collections::BTreeMap::new(),
     }
 }
 
@@ -467,7 +490,9 @@ pub(crate) fn try_move(map: &WorldMap, st: &mut CampaignState, army: ArmyId, des
             return false; // frozen: ambushed, pending, or fighting
         }
     }
-    let Some(path) = crate::pathfind::plan(map, a.loc, dest, allow_sea) else { return false };
+    let Some(path) = crate::pathfind::plan(map, &st.road_levels, a.loc, dest, allow_sea) else {
+        return false;
+    };
     let a = &mut st.armies[army as usize];
     a.path = path;
     a.path_idx = 0;

@@ -17,14 +17,19 @@ fn tile_cost(f: TileFeature) -> f32 {
     }
 }
 
-fn edge_cost(map: &WorldMap, e: EdgeId) -> f32 {
+fn level_of(roads: &[u8], e: EdgeId) -> u8 {
+    roads.get(e as usize).copied().unwrap_or(1)
+}
+
+fn edge_cost(map: &WorldMap, roads: &[u8], e: EdgeId) -> f32 {
     let edge = &map.edges[e as usize];
     let base: f32 = edge.tiles.iter().map(|&t| tile_cost(t)).sum();
     // Embark + disembark overhead for hopping onto a sea lane.
     if edge.sea {
         base + 1.0
     } else {
-        base
+        // Good roads are cheaper to route over, so planning prefers them.
+        base / tunables::road_mult(level_of(roads, e))
     }
 }
 
@@ -52,6 +57,7 @@ fn other_end(map: &WorldMap, e: EdgeId, from: NodeId) -> NodeId {
 /// Dijkstra from a set of seeded nodes. Returns (cost, came_from_edge) maps.
 fn dijkstra(
     map: &WorldMap,
+    roads: &[u8],
     seeds: &[(NodeId, f32)],
     allow_sea: bool,
 ) -> (BTreeMap<NodeId, f32>, BTreeMap<NodeId, EdgeId>) {
@@ -74,7 +80,7 @@ fn dijkstra(
                 continue;
             }
             let m = other_end(map, e, n);
-            let c = cost[&n] + edge_cost(map, e);
+            let c = cost[&n] + edge_cost(map, roads, e);
             if cost.get(&m).map_or(true, |&old| c < old) {
                 cost.insert(m, c);
                 from.insert(m, e);
@@ -86,7 +92,7 @@ fn dijkstra(
 }
 
 /// Plan a tile-by-tile route. Returns None if unreachable.
-pub fn plan(map: &WorldMap, start: Loc, dest: Loc, allow_sea: bool) -> Option<Vec<Loc>> {
+pub fn plan(map: &WorldMap, roads: &[u8], start: Loc, dest: Loc, allow_sea: bool) -> Option<Vec<Loc>> {
     if start == dest {
         return Some(Vec::new());
     }
@@ -118,12 +124,13 @@ pub fn plan(map: &WorldMap, start: Loc, dest: Loc, allow_sea: bool) -> Option<Ve
                 return None;
             }
             let n = e.tiles.len() as u16;
-            let to_a: f32 = (0..=tile).map(|t| tile_cost(e.tiles[t as usize])).sum();
-            let to_b: f32 = (tile..n).map(|t| tile_cost(e.tiles[t as usize])).sum();
+            let m = if e.sea { 1.0 } else { tunables::road_mult(level_of(roads, edge)) };
+            let to_a: f32 = (0..=tile).map(|t| tile_cost(e.tiles[t as usize])).sum::<f32>() / m;
+            let to_b: f32 = (tile..n).map(|t| tile_cost(e.tiles[t as usize])).sum::<f32>() / m;
             vec![(e.a, to_a), (e.b, to_b)]
         }
     };
-    let (cost, from) = dijkstra(map, &seeds, allow_sea);
+    let (cost, from) = dijkstra(map, roads, &seeds, allow_sea);
 
     // Pick the cheapest entry to the destination.
     let (goal_node, tail): (NodeId, Vec<Loc>) = match dest {
@@ -137,8 +144,9 @@ pub fn plan(map: &WorldMap, start: Loc, dest: Loc, allow_sea: bool) -> Option<Ve
                 return None;
             }
             let n = e.tiles.len() as u16;
-            let from_a: f32 = (0..tile).map(|t| tile_cost(e.tiles[t as usize])).sum();
-            let from_b: f32 = (tile + 1..n).map(|t| tile_cost(e.tiles[t as usize])).sum();
+            let m = if e.sea { 1.0 } else { tunables::road_mult(level_of(roads, edge)) };
+            let from_a: f32 = (0..tile).map(|t| tile_cost(e.tiles[t as usize])).sum::<f32>() / m;
+            let from_b: f32 = (tile + 1..n).map(|t| tile_cost(e.tiles[t as usize])).sum::<f32>() / m;
             let ca = cost.get(&e.a).map(|c| c + from_a);
             let cb = cost.get(&e.b).map(|c| c + from_b);
             let via_a = match (ca, cb) {

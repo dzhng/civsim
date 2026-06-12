@@ -67,6 +67,7 @@ export class CampaignScene implements Scene {
   private selected = -1;
   private armies: ArmyView[] = [];
   private cities = new Map<number, CityView>();
+  private roadLevels: Uint8Array = new Uint8Array(0);
   private modal: HTMLDivElement | null = null;
   private autoResolving = false;
 
@@ -177,7 +178,7 @@ export class CampaignScene implements Scene {
     this.t3d!.resize();
     this.t3d!.clampCam(this.cam); // zoom floor = aspect-fill, pan inside the map
     this.t3d!.draw(this.cam);
-    this.renderer.draw(this.cam, this.armies, this.cities, this.selected, null, this.territory!.labels);
+    this.renderer.draw(this.cam, this.armies, this.cities, this.selected, null, this.territory!.labels, this.roadLevels);
     this.updateHud();
   }
 
@@ -206,6 +207,7 @@ export class CampaignScene implements Scene {
         mine: af[o + 11] > 0,
       });
     }
+    this.roadLevels = new Uint8Array(mem, c.road_levels_ptr(), this.cfg.data.map.edges.length);
     const cn = c.city_count();
     const cf = new Float32Array(mem, c.city_info_ptr(), cn * CITY_STRIDE);
     this.cities.clear();
@@ -295,6 +297,8 @@ export class CampaignScene implements Scene {
     const loc = best < 0 ? nearestLoc(this.cfg.data.map, wx, wy, rKm) : null;
     if (loc && loc.kind === 0 && this.cfg.data.map.nodes[loc.a].kind === 'city') {
       this.openCityPanel(loc.a);
+    } else if (loc && loc.kind === 1 && this.cfg.data.map.edges[loc.a].kind === 'road') {
+      this.openRoadPanel(loc.a);
     } else {
       this.closeCityPanel();
     }
@@ -558,6 +562,29 @@ export class CampaignScene implements Scene {
         this.openCityPanel(node);
       }),
     );
+  }
+
+  private openRoadPanel(edge: number) {
+    const panel = this.ui.querySelector('#cmp-city') as HTMLDivElement;
+    const c = this.cfg.campaign;
+    const e = this.cfg.data.map.edges[edge];
+    const lvl = c.road_level(edge);
+    const job = c.road_job_ticks(edge);
+    const cost = 15 * e.tiles.length;
+    const status =
+      job >= 0
+        ? `paving… ${Math.ceil(job / 60)}h left`
+        : lvl >= 3
+          ? 'fully paved'
+          : `<button id="cmp-road-up">Upgrade (${cost} gold)</button>`;
+    panel.innerHTML = `<b>Road</b> (${e.tiles.length} tiles) — level ${lvl}<div style="margin-top:6px">${status}</div>`;
+    panel.style.display = 'block';
+    panel.querySelector('#cmp-road-up')?.addEventListener('click', () => {
+      if (c.order_upgrade_road(edge)) {
+        this.refreshViews();
+        this.openRoadPanel(edge);
+      }
+    });
   }
 
   private closeCityPanel() {

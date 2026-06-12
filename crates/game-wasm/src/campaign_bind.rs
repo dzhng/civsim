@@ -161,6 +161,26 @@ impl Campaign {
         ok
     }
 
+    pub fn order_upgrade_road(&mut self, edge: u32) -> bool {
+        let ok = self.inner.order_upgrade_road(edge);
+        self.refresh();
+        ok
+    }
+
+    pub fn road_level(&self, edge: u32) -> u32 {
+        self.inner.state.road_level(edge) as u32
+    }
+
+    /// Remaining build ticks for an edge's road job, -1 when idle.
+    pub fn road_job_ticks(&self, edge: u32) -> i32 {
+        self.inner.state.road_jobs.get(&edge).map_or(-1, |j| j.ticks_left as i32)
+    }
+
+    /// Zero-copy view: one byte per edge, the current road level.
+    pub fn road_levels_ptr(&self) -> *const u8 {
+        self.inner.state.road_levels.as_ptr()
+    }
+
     pub fn order_camp(&mut self, army: u32) -> bool {
         let ok = self.owns(army) && self.inner.order_camp(army);
         self.refresh();

@@ -58,6 +58,16 @@ pub const CAMP_BUILD_TICKS: u16 = 60;
 /// A dug-in camp sees further (palisade towers).
 pub const CAMP_VISION_BONUS: u32 = 2;
 
+/// March/route multiplier by road level (indexed by level; 0 unused).
+pub const ROAD_SPEED_MULT: [f32; 4] = [1.0, 1.0, 1.3, 1.6];
+pub const ROAD_MAX_LEVEL: u8 = 3;
+/// Upgrades price and pace by edge length: one level step per order.
+pub const ROAD_COST_PER_TILE: u32 = 15;
+pub const ROAD_BUILD_TICKS_PER_TILE: u32 = 120;
+pub fn road_mult(level: u8) -> f32 {
+    ROAD_SPEED_MULT[level.min(ROAD_MAX_LEVEL) as usize]
+}
+
 /// Routed armies: tiles of hostile-free road needed to regroup (or a nearer
 /// friendly city); no such path at battle end = captured and wiped.
 pub const ROUT_TILES: u16 = 16;

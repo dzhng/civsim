@@ -26,7 +26,7 @@ pub fn garrison_establishment(tier: u8, barracks_lvl: u8) -> Vec<(UnitClassId, u
 /// Which faction's territory a location lies in: owner of the nearest city
 /// within a small road radius, else None (wilderness counts as hostile for
 /// replenishment).
-fn territory_of(map: &WorldMap, st: &CampaignState, loc: Loc) -> Option<FactionId> {
+pub(crate) fn territory_of(map: &WorldMap, st: &CampaignState, loc: Loc) -> Option<FactionId> {
     let mut frontier = vec![loc];
     let mut seen = std::collections::BTreeSet::new();
     seen.insert(loc);
@@ -278,6 +278,37 @@ pub fn merge(map: &WorldMap, st: &mut CampaignState, src: ArmyId, dst: ArmyId) -
             None => d.roster.push(r),
         }
     }
+    true
+}
+
+/// Start a road upgrade: one level step, paid up front, paced by length.
+/// Valid when the faction holds territory at either endpoint.
+pub fn upgrade_road(map: &WorldMap, st: &mut CampaignState, edge: u32, f: FactionId) -> bool {
+    let Some(e) = map.edges.get(edge as usize) else { return false };
+    if e.sea || st.road_jobs.contains_key(&edge) {
+        return false;
+    }
+    let lvl = st.road_level(edge);
+    if lvl >= tun::ROAD_MAX_LEVEL {
+        return false;
+    }
+    let owned = [e.a, e.b]
+        .iter()
+        .any(|&n| territory_of(map, st, Loc::Node(n)) == Some(f));
+    if !owned {
+        return false;
+    }
+    let tiles = e.tiles.len() as u32;
+    let cost = tun::ROAD_COST_PER_TILE * tiles;
+    let fac = &mut st.factions[f as usize];
+    if fac.treasury < cost {
+        return false;
+    }
+    fac.treasury -= cost;
+    st.road_jobs.insert(
+        edge,
+        RoadJob { to_level: lvl + 1, ticks_left: tun::ROAD_BUILD_TICKS_PER_TILE * tiles },
+    );
     true
 }
 

@@ -74,6 +74,7 @@ export class CampaignRenderer {
     selected: number,
     hoverPath: [number, number][] | null,
     factionLabels: FactionLabel[],
+    roadLevels?: Uint8Array,
   ) {
     const { ctx, canvas, data } = this;
     const z = cam.scale;
@@ -108,8 +109,11 @@ export class CampaignRenderer {
         on ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]);
         on = true;
       }
-      ctx.lineWidth = sea ? 1 : Math.max(1, z * 1.6);
-      ctx.strokeStyle = sea ? 'rgba(140,180,220,0.25)' : `rgba(80,60,40,${0.8 * roadAlpha})`;
+      const lvl = sea ? 1 : (roadLevels?.[ei] ?? 1);
+      ctx.lineWidth = (sea ? 1 : Math.max(1, z * 1.6)) * (0.7 + 0.3 * lvl);
+      ctx.strokeStyle = sea
+        ? 'rgba(140,180,220,0.25)'
+        : `rgba(${62 + lvl * 18},${46 + lvl * 14},${32 + lvl * 8},${0.8 * roadAlpha})`;
       ctx.setLineDash(sea ? [6, 6] : []);
       ctx.stroke();
       ctx.setLineDash([]);

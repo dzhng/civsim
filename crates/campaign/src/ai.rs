@@ -145,6 +145,25 @@ fn think(map: &WorldMap, st: &mut CampaignState, f: FactionId) {
         economy::recruit(map, st, depot, class, count);
     }
 
+    // 2b. Public works: with a healthy surplus, pave the worst road at the
+    //     capital (busiest-corridor targeting is a stretch goal).
+    if st.factions[f as usize].treasury > 600 {
+        let capital = *my_cities
+            .iter()
+            .max_by_key(|&&n| map.nodes[n as usize].tier)
+            .unwrap();
+        let worst = map.nodes[capital as usize]
+            .edges
+            .iter()
+            .copied()
+            .filter(|&e| !map.edges[e as usize].sea && !st.road_jobs.contains_key(&e))
+            .filter(|&e| st.road_level(e) < tun::ROAD_MAX_LEVEL)
+            .min_by_key(|&e| st.road_level(e));
+        if let Some(e) = worst {
+            economy::upgrade_road(map, st, e, f);
+        }
+    }
+
     // 3. Attack: when clearly stronger locally, march the strongest free army
     //    at the weakest reachable enemy city.
     let my_total: u64 = my_free.iter().map(|(_, _, s)| *s).sum();

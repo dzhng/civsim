@@ -52,7 +52,9 @@ fn ambush_triggers(map: &WorldMap, st: &mut CampaignState) {
                 && v.faction != st.armies[i].faction
                 && v.encounter.is_none()
                 && v.loc == trigger
-                && !matches!(v.stance, Stance::Routed { .. } | Stance::AtSea)
+                // A camped army is halted and watchful — never ambush bait,
+                // even when its tents stand on the trigger tile.
+                && !matches!(v.stance, Stance::Routed { .. } | Stance::AtSea | Stance::Camp { .. })
         });
         let Some(j) = victim else { continue };
         let id = st.next_encounter_id;
@@ -324,8 +326,21 @@ fn encounters(map: &WorldMap, st: &mut CampaignState) {
             if st.no_rematch.get(&key).is_some_and(|&until| st.tick < until) {
                 continue; // it just got away; the gap is becoming real
             }
-            // The mover is the attacker; ties go to the lower id.
-            let attacker_is_a = a.marching() || !b.marching();
+            // The mover is the attacker; ties go to the lower id. A dug-in
+            // camp is always the defender, formed up the moment it's hit —
+            // the surprise is on whoever marched into the palisade.
+            let a_dug_in = matches!(a.stance, Stance::Camp { build_ticks_left: 0 });
+            let b_dug_in = matches!(b.stance, Stance::Camp { build_ticks_left: 0 });
+            let attacker_is_a = if a_dug_in != b_dug_in {
+                b_dug_in
+            } else {
+                a.marching() || !b.marching()
+            };
+            let (prep_att, prep_def) = if a_dug_in != b_dug_in {
+                (tun::PREP_SURPRISED_TICKS, 0)
+            } else {
+                (tun::PREP_TICKS, tun::PREP_TICKS)
+            };
             let id = st.next_encounter_id;
             let seed = ((st.rng.next_u32() as u64) << 32) | st.rng.next_u32() as u64;
             let (ai, bi) = (st.armies[i].id, st.armies[j].id);
@@ -333,8 +348,8 @@ fn encounters(map: &WorldMap, st: &mut CampaignState) {
                 id,
                 attacker: if attacker_is_a { ai } else { bi },
                 defender: if attacker_is_a { bi } else { ai },
-                prep_attacker: tun::PREP_TICKS,
-                prep_defender: tun::PREP_TICKS,
+                prep_attacker: prep_att,
+                prep_defender: prep_def,
                 phase: EncounterPhase::Preparing,
                 ambush: false,
                 seed,
@@ -356,6 +371,11 @@ fn timers(st: &mut CampaignState) {
         if let Stance::Ambush { settle_ticks_left, .. } = &mut a.stance {
             if *settle_ticks_left > 0 {
                 *settle_ticks_left -= 1;
+            }
+        }
+        if let Stance::Camp { build_ticks_left } = &mut a.stance {
+            if *build_ticks_left > 0 {
+                *build_ticks_left -= 1;
             }
         }
         // Routs: once the retreat path is run, the army regroups after a

@@ -661,6 +661,8 @@ export class BattleScene implements Scene {
     const pauseRestart = document.getElementById('pause-restart')!;
     pauseRestart.style.display = this.cfg.inCampaign ? 'none' : 'block';
     pauseRestart.addEventListener('click', () => this.cfg.onLaunch(this.cfg.kind), { signal });
+    document.getElementById('pause-exit')!.textContent =
+      this.cfg.inCampaign ? 'Exit to Campaign' : 'Exit to Main Menu';
     document.getElementById('pause-manual')!.addEventListener('click', () => {
       const el = document.getElementById('manual')!;
       el.style.display = el.style.display === 'block' ? 'none' : 'block';

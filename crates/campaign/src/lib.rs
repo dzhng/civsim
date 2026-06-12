@@ -75,6 +75,25 @@ impl Campaign {
         true
     }
 
+    /// Dig in where the army stands: halted, on land, free of entanglements.
+    pub fn order_camp(&mut self, army: ArmyId) -> bool {
+        use state::{Loc, Stance};
+        let Some(a) = self.state.armies.get(army as usize) else { return false };
+        let on_sea = matches!(a.loc, Loc::Edge { edge, .. } if self.map.edges[edge as usize].sea);
+        if !a.alive()
+            || !a.halted()
+            || a.encounter.is_some()
+            || a.garrison_of.is_some()
+            || on_sea
+            || !matches!(a.stance, Stance::March | Stance::Hold)
+        {
+            return false;
+        }
+        self.state.armies[army as usize].stance =
+            Stance::Camp { build_ticks_left: tunables::CAMP_BUILD_TICKS };
+        true
+    }
+
     pub fn order_recruit(&mut self, node: u32, class: contract::UnitClassId, count: u32) -> bool {
         economy::recruit(&self.map, &mut self.state, node, class, count)
     }
@@ -469,5 +488,67 @@ mod tests {
         }
         assert!(embarked, "never paid the embark stop");
         assert!(matches!(c.state.armies[0].stance, Stance::AtSea));
+    }
+
+    #[test]
+    fn camped_defender_surprises_its_attacker() {
+        let mut c = Campaign::new(test_map(), 7, 0);
+        inert(&mut c);
+        // Blue digs in at C; red marches onto it. Camp must finish first.
+        assert!(c.order_camp(1));
+        for _ in 0..tunables::CAMP_BUILD_TICKS as u32 + 5 {
+            c.tick();
+        }
+        assert!(
+            matches!(c.state.armies[1].stance, Stance::Camp { build_ticks_left: 0 }),
+            "camp never finished digging in"
+        );
+        assert!(c.order_move(0, Loc::Node(2)));
+        let mut met = false;
+        for _ in 0..20_000 {
+            c.tick();
+            if let Some(e) = c.state.encounters.first() {
+                assert_eq!(e.defender, 1, "the camped side always defends");
+                assert_eq!(e.prep_defender, 0, "dug-in camp is already formed");
+                assert_eq!(e.prep_attacker, tunables::PREP_SURPRISED_TICKS);
+                met = true;
+                break;
+            }
+        }
+        assert!(met, "attacker never reached the camp");
+    }
+
+    #[test]
+    fn camp_breaks_on_a_move_order() {
+        let mut c = Campaign::new(test_map(), 7, 0);
+        inert(&mut c);
+        assert!(c.order_camp(0));
+        c.tick();
+        assert!(matches!(c.state.armies[0].stance, Stance::Camp { .. }));
+        assert!(c.order_move(0, Loc::Node(0)));
+        assert!(matches!(c.state.armies[0].stance, Stance::March));
+        // And camping is refused while marching.
+        assert!(!c.order_camp(0));
+    }
+
+    #[test]
+    fn ambush_spot_ignores_a_camped_army() {
+        let mut c = Campaign::new(test_map(), 7, 0);
+        inert(&mut c);
+        // Blue hides at the spot; red CAMPS on the trigger tile. Nothing may
+        // spring — camped armies are watchful, not bait.
+        let sp = &c.map.ambush_spots[0];
+        let trigger = Loc::Edge { edge: sp.edge, tile: sp.tile };
+        c.state.armies[1].loc = trigger;
+        assert!(c.order_ambush(1, 0));
+        for _ in 0..tunables::AMBUSH_SETTLE_TICKS as u32 + 5 {
+            c.tick();
+        }
+        c.state.armies[0].loc = trigger;
+        assert!(c.order_camp(0));
+        for _ in 0..200 {
+            c.tick();
+        }
+        assert!(c.state.encounters.is_empty(), "camped army was ambushed");
     }
 }

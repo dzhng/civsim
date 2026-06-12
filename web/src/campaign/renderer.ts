@@ -233,6 +233,19 @@ export class CampaignRenderer {
         ctx.font = 'bold 10px system-ui';
         ctx.fillText('!', sx - 2, sy - size * 1.8);
       }
+      // Camp: a tent pitched beside the banner.
+      if (a.stance === 1) {
+        ctx.fillStyle = '#e8dcc0';
+        ctx.strokeStyle = '#1a1208';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(sx - size - 6, sy);
+        ctx.lineTo(sx - size, sy);
+        ctx.lineTo(sx - size - 3, sy - 6);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+      }
       // Progress pie (prep, occupation, embark, ambush settle).
       if (a.pieKind > 0 && a.pieFrac > 0) {
         const colors = ['', '#ffffff', '#ffd24a', '#7ec8ff', '#9be37e'];

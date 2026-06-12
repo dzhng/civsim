@@ -52,6 +52,11 @@ pub const PREP_TICKS: u16 = 20;
 pub const PREP_SURPRISED_TICKS: u16 = 40;
 /// Armies preparing for battle move at half pace.
 pub const PREP_SPEED_MULT: f32 = 0.5;
+/// Digging a camp in takes an hour; the payoff is instant readiness when
+/// attacked (defender prep 0, attacker surprised) and extra vision.
+pub const CAMP_BUILD_TICKS: u16 = 60;
+/// A dug-in camp sees further (palisade towers).
+pub const CAMP_VISION_BONUS: u32 = 2;
 
 /// Routed armies: tiles of hostile-free road needed to regroup (or a nearer
 /// friendly city); no such path at battle end = captured and wiped.

@@ -161,6 +161,12 @@ impl Campaign {
         ok
     }
 
+    pub fn order_camp(&mut self, army: u32) -> bool {
+        let ok = self.owns(army) && self.inner.order_camp(army);
+        self.refresh();
+        ok
+    }
+
     /// Split roster entries (bitmask over roster indices) onto an adjacent tile.
     pub fn order_split(&mut self, army: u32, entries_mask: u32) -> bool {
         let entries: Vec<usize> = (0..32).filter(|i| entries_mask & (1u32 << i) != 0).collect();
@@ -244,9 +250,11 @@ impl Campaign {
             };
             let (stance, mut pie_kind, mut pie_frac) = match a.stance {
                 Stance::March | Stance::Hold => (0.0, 0.0, 0.0),
-                Stance::Camp { build_ticks_left } => {
-                    (1.0, if build_ticks_left > 0 { 2.0 } else { 0.0 }, 1.0 - build_ticks_left as f32 / 60.0)
-                }
+                Stance::Camp { build_ticks_left } => (
+                    1.0,
+                    if build_ticks_left > 0 { 2.0 } else { 0.0 },
+                    1.0 - build_ticks_left as f32 / campaign::tunables::CAMP_BUILD_TICKS as f32,
+                ),
                 Stance::Ambush { settle_ticks_left, .. } if settle_ticks_left > 0 => (
                     2.0,
                     4.0,

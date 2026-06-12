@@ -504,12 +504,19 @@ export class CampaignScene implements Scene {
       : undefined;
     panel.innerHTML = `<b>Army ${this.selected}</b>${rows}<div style="margin-top:6px">
       <button id="cmp-halt">Halt</button>
+      <button id="cmp-camp">${me?.stance === 1 ? 'Camped' : 'Camp'}</button>
       <button id="cmp-split">Split</button>
       ${buddy ? `<button id="cmp-merge">Merge ${buddy.id}</button>` : ''}</div>`;
     panel.style.display = 'block';
     panel.querySelector('#cmp-halt')?.addEventListener('click', () => {
       this.cfg.campaign.order_halt(this.selected);
       this.refreshViews();
+    });
+    panel.querySelector('#cmp-camp')?.addEventListener('click', () => {
+      if (this.cfg.campaign.order_camp(this.selected)) {
+        this.refreshViews();
+        this.updateArmyPanel();
+      }
     });
     panel.querySelector('#cmp-split')?.addEventListener('click', () => {
       let mask = 0;

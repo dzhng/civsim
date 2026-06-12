@@ -80,6 +80,16 @@ pub fn recompute(map: &WorldMap, st: &mut CampaignState) {
                     st.armies.iter().any(|o| o.faction == f && o.alive() && o.loc == l)
                 })
                 .is_some()
+                    // dug-in camps watch further than a column on the march
+                    || within(map, a.loc, VISION_ARMY + crate::tunables::CAMP_VISION_BONUS, |l| {
+                        st.armies.iter().any(|o| {
+                            o.faction == f
+                                && o.alive()
+                                && o.loc == l
+                                && matches!(o.stance, Stance::Camp { build_ticks_left: 0 })
+                        })
+                    })
+                    .is_some()
                     || within(map, a.loc, VISION_CITY, |l| match l {
                         Loc::Node(n) => st.cities.get(&n).is_some_and(|c| c.owner == f),
                         _ => false,

@@ -475,3 +475,42 @@ fn a_frontal_charge_through_a_thin_line_is_a_bloodbath() {
         "a frontal charge through a thin line costs ~half: {dead}/200"
     );
 }
+
+#[test]
+fn light_horse_tramples_at_half_the_butchery() {
+    // The same four-deep frontal charge through 200 light foot two deep:
+    // heavy horse rides men DOWN; light horse (horse archers) picks its
+    // way through at roughly half the deaths.
+    let impact_dead = |class: UnitClassId| -> usize {
+        let mut sim = Sim::new(
+            Tunables { morale_enabled: false, ..Tunables::default() },
+            SEED,
+        );
+        let line = sim.spawn_unit(Vec2::new(0.0, 40.0), -PI / 2.0, 200, 100, Vec2::new(1.0, 1.1), 0, 0.7);
+        let cav = sim.spawn_class(Vec2::new(0.0, -60.0), PI / 2.0, 400, class, 1);
+        sim.set_files(cav, 100); // 4 deep
+        sim.set_pace(cav, sim::Pace::Run);
+        sim.set_attack_order(cav, line);
+        let mut contact_at = None;
+        for step in 0..(40.0 / DT) as usize {
+            sim.tick();
+            if contact_at.is_none() && sim.units[line].engaged > 10 {
+                contact_at = Some(step);
+            }
+            if let Some(c) = contact_at {
+                if step > c + (4.0 / DT) as usize {
+                    break;
+                }
+            }
+        }
+        200 - sim.units[line].alive_count
+    };
+    let heavy_horse = impact_dead(UnitClassId::ShockCavalry);
+    let light_horse = impact_dead(UnitClassId::HorseArchers);
+    println!("impact dead: heavy horse {heavy_horse}, light horse {light_horse}");
+    let ratio = light_horse as f32 / heavy_horse.max(1) as f32;
+    assert!(
+        (0.3..=0.7).contains(&ratio),
+        "light horse butchers about half: {light_horse} vs {heavy_horse} (ratio {ratio:.2})"
+    );
+}

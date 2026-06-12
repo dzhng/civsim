@@ -191,17 +191,18 @@ impl Sim {
                                         let dv = momentum / w_i.max(0.1);
                                         // Bones break under a TRAMPLING mass
                                         // (horse, chariot — the classes that
-                                        // ride through). Men bumping men at a
-                                        // run bruise and fall, nothing more.
-                                        let tramples =
-                                            crate::class::class_stats(units[uj].class).tramples;
-                                        if stun[i] <= 0.0 && tramples {
+                                        // ride through), each at its own
+                                        // weight of hoof. Men bumping men at
+                                        // a run bruise and fall, nothing more.
+                                        let trample =
+                                            crate::class::class_stats(units[uj].class).trample_damage;
+                                        if stun[i] <= 0.0 && trample > 0.0 {
                                             let pool = if mounted[i] == 1 {
                                                 &mut mount_health[i]
                                             } else {
                                                 &mut health[i]
                                             };
-                                            *pool -= tun.impact_damage * dv;
+                                            *pool -= tun.impact_damage * trample * dv;
                                             if *pool <= 0.0 {
                                                 impact_kills.push(i);
                                             }

@@ -64,6 +64,10 @@ pub struct UnitClass {
     /// (Independent of `mounted`, which is body geometry: two circles and
     /// a rider pool.)
     pub tramples: bool,
+    /// How hard this trampling mass breaks what it fells (multiplier on
+    /// the knockdown damage). Heavy horse rides men down at 1.0; light
+    /// horse picks its way through at a fraction.
+    pub trample_damage: f32,
     /// Stamina drain multiplier: the cost of the kit. Every draining second
     /// (running, fighting, charging, bad ground) is scaled by this — armor
     /// is paid for in wind, so heavies blow out long before a screen does.
@@ -162,6 +166,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
         stance: Stance::Othismos,
         charge: true,
         tramples: false,
+        trample_damage: 0.0,
         drain_mult: 1.0,
         weapons: &[SWORD],
     };
@@ -264,6 +269,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             brace_mult: 1.0,
             mounted: true,
             tramples: true,
+            trample_damage: 1.0,
             spacing: Vec2::new(1.8, 2.4),
             default_depth: 5,
             health: 1.43,
@@ -284,6 +290,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             brace_mult: 1.0,
             mounted: true,
             tramples: true,
+            trample_damage: 0.5,
             spacing: Vec2::new(2.2, 2.6),
             default_depth: 5,
             health: 1.3,

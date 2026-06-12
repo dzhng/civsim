@@ -75,8 +75,13 @@ impl Sim {
             body_pos,
             body_r,
             body_owner,
+            health,
+            mount_health,
+            mounted,
             ..
         } = self;
+        // Collision damage is applied after the pass (kill() needs &mut self).
+        let mut impact_kills: Vec<usize> = Vec::new();
         grid.rebuild(cell, body_pos);
         // scratch: per-soldier [push_x, push_y]; plus raw pressure accumulators.
         scratch.clear();
@@ -176,6 +181,31 @@ impl Sim {
                                     push.x += nx * closing * tun.impact_push * DT * share;
                                     push.y += ny * closing * tun.impact_push * DT * share;
                                     if momentum > tun.stun_momentum * w_i {
+                                        // Being KNOCKED DOWN hurts, in
+                                        // proportion to the throw (Δv =
+                                        // momentum over your braced, backed
+                                        // mass). One hurt per knockdown —
+                                        // the impulse, not a grind — and
+                                        // braced men who keep their feet
+                                        // keep their bones.
+                                        let dv = momentum / w_i.max(0.1);
+                                        // Bones break under a TRAMPLING mass
+                                        // (horse, chariot — the classes that
+                                        // ride through). Men bumping men at a
+                                        // run bruise and fall, nothing more.
+                                        let tramples =
+                                            crate::class::class_stats(units[uj].class).tramples;
+                                        if stun[i] <= 0.0 && tramples {
+                                            let pool = if mounted[i] == 1 {
+                                                &mut mount_health[i]
+                                            } else {
+                                                &mut health[i]
+                                            };
+                                            *pool -= tun.impact_damage * dv;
+                                            if *pool <= 0.0 {
+                                                impact_kills.push(i);
+                                            }
+                                        }
                                         stun[i] = stun[i].max(tun.stun_time);
                                     }
                                     // The impactor RETAINS 0.6 of its closing
@@ -238,6 +268,11 @@ impl Sim {
             pressure[i] += (raw_mag[i] / DT - pressure[i]) * alpha;
             press_x[i] += (raw_x[i] / DT - press_x[i]) * alpha;
             press_y[i] += (raw_y[i] / DT - press_y[i]) * alpha;
+        }
+
+        // The throws that broke bodies: bookkeeping after the borrow ends.
+        for &i in &impact_kills {
+            self.kill(i);
         }
     }
 }

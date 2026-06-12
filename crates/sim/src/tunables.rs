@@ -96,10 +96,9 @@ pub struct Tunables {
     pub stun_time: f32,
     /// Extra displacement per m/s of closing speed at impact.
     pub impact_push: f32,
-    /// Knockdown damage per (m/s)^2 of knockback — kinetic energy, once
-    /// per felling. Quadratic is the gate: horse-grade throws break
-    /// bones, man-grade bumps bruise. Braced, backed men who keep their
-    /// feet keep their bones.
+    /// Damage per m/s of knockback when a TRAMPLING mass (horse, chariot)
+    /// fells you — the impulse, once per knockdown. Braced, backed men
+    /// who keep their feet keep their bones; men bumping men just fall.
     pub impact_damage: f32,
     /// Displacement imparted by a landed or blocked strike, scaled by the
     /// attacker/defender effective-mass ratio.
@@ -185,7 +184,7 @@ impl Default for Tunables {
             stun_momentum: 14.0,
             stun_time: 1.3,
             impact_push: 0.2,
-            impact_damage: 0.0014,
+            impact_damage: 0.035,
             hit_push: 0.3,
             combat_drain: 1.0 / 50.0,
             facing_tolerance: 0.3,

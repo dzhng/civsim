@@ -64,10 +64,11 @@ pub struct UnitClass {
     /// (Independent of `mounted`, which is body geometry: two circles and
     /// a rider pool.)
     pub tramples: bool,
-    /// Scales the knockdown damage this unit's body DEALS (on the
-    /// universal dv² knockback hurt). Not a gate — physics already
-    /// separates horse-grade throws from man-grade bumps — but intent:
-    /// light horse picks its way through where heavy horse rides down.
+    /// Knockdown-damage multiplier for what this body DEALS when it fells
+    /// a man. Pure per-unit data: foot 0 (men bowling men bruise), heavy
+    /// horse 1.0, light horse picks its way through at a fraction; a
+    /// chariot would put nearly everything here and nothing in weapon dps.
+    /// (`tramples` above is pure BEHAVIOR: keep riding through contact.)
     pub knockback_mult: f32,
     /// Stamina drain multiplier: the cost of the kit. Every draining second
     /// (running, fighting, charging, bad ground) is scaled by this — armor
@@ -167,7 +168,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
         stance: Stance::Othismos,
         charge: true,
         tramples: false,
-        knockback_mult: 1.0,
+        knockback_mult: 0.35, // a charging mass of men hurts what it fells
         drain_mult: 1.0,
         weapons: &[SWORD],
     };
@@ -270,6 +271,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             brace_mult: 1.0,
             mounted: true,
             tramples: true,
+            knockback_mult: 1.0,
             spacing: Vec2::new(1.8, 2.4),
             default_depth: 5,
             health: 1.43,
@@ -290,7 +292,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             brace_mult: 1.0,
             mounted: true,
             tramples: true,
-            knockback_mult: 0.4, // light horse picks its way through
+            knockback_mult: 0.5,
             spacing: Vec2::new(2.2, 2.6),
             default_depth: 5,
             health: 1.3,

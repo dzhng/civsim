@@ -492,6 +492,7 @@ fn light_horse_tramples_at_half_the_butchery() {
         let line = sim.spawn_unit(Vec2::new(0.0, 40.0), -PI / 2.0, 200, 100, Vec2::new(1.0, 1.1), 0, 0.7);
         let cav = sim.spawn_class(Vec2::new(0.0, -60.0), PI / 2.0, 400, class, 1);
         sim.set_files(cav, 100); // 4 deep
+        sim.set_charge_enabled(cav, true); // equal posture: the variable is the HOOF
         sim.set_pace(cav, sim::Pace::Run);
         sim.set_attack_order(cav, line);
         let mut contact_at = None;

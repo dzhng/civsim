@@ -15,6 +15,23 @@ pub(crate) fn fatigue_capacity(fatigue: f32) -> f32 {
     (fatigue / 0.7).min(1.0).powf(1.5)
 }
 
+/// Off-axis legs: full pace straight ahead, ~0.7 for a sidestep, sliding
+/// toward ~0.55 walking backwards — you cannot sprint sideways or
+/// backwards. One law for every loose-order drift (kiting flight, the
+/// engage-posture strafe).
+pub(crate) fn drift_factor(desired: f32, facing: f32) -> f32 {
+    let c = wrap_angle(desired - facing).cos();
+    if c >= 0.0 {
+        0.7 + 0.3 * c
+    } else {
+        0.7 + 0.15 * c
+    }
+}
+
+/// Facing swing rate (rad/s) for loose-order drift — individuals turning,
+/// not a formation wheeling.
+const DRIFT_TURN_RATE: f32 = 1.2;
+
 /// The unit's effective pace, degraded by fatigue (a spent unit "runs" at a
 /// walk). Attacks close at the double regardless of the ordered pace.
 pub(crate) fn pace_speed(tun: &Tunables, u: &Unit) -> f32 {
@@ -115,15 +132,8 @@ pub(crate) fn update_unit_motion(tun: &Tunables, u: &mut Unit, dt: f32, ground: 
             // about-face like a phalanx would die where it stood.
             if u.evade_auto {
                 u.pivoting = false;
-                u.facing = rotate_toward(u.facing, desired, 1.2 * dt);
-                // Loose-order legs pay by DIRECTION, same law as the engage
-                // drift below: flight straight ahead (facing swung) runs at
-                // full pace; sidestepping and back-pedaling pay. A flat 0.9
-                // made a fleeing screen slower than its own legs — fatal now
-                // that pursuers close at the double.
-                let c = wrap_angle(desired - u.facing).cos();
-                let drift_factor = if c >= 0.0 { 0.7 + 0.3 * c } else { 0.7 + 0.15 * c };
-                let target_speed = (pace_speed(tun, u) * ground * drift_factor)
+                u.facing = rotate_toward(u.facing, desired, DRIFT_TURN_RATE * dt);
+                let target_speed = (pace_speed(tun, u) * ground * drift_factor(desired, u.facing))
                     .min((2.0 * accel * dist).sqrt());
                 u.frame_speed = move_toward(u.frame_speed, target_speed, accel * dt);
                 u.anchor = u.anchor + to * (u.frame_speed * dt / dist.max(0.01));
@@ -143,16 +153,13 @@ pub(crate) fn update_unit_motion(tun: &Tunables, u: &mut Unit, dt: f32, ground: 
                     let move_off = wrap_angle(desired - threat).abs();
                     if move_off > 1.35 {
                         u.pivoting = false;
-                        u.facing = rotate_toward(u.facing, threat, 1.2 * dt);
-                        // You cannot sprint sideways or backwards.
-                        let c = wrap_angle(desired - u.facing).cos();
-                        let drift_factor = if c >= 0.0 {
-                            0.7 + 0.3 * c
-                        } else {
-                            0.7 + 0.15 * c
-                        };
-                        let target_speed = (tun.base_speed * u.speed_mult * ground * drift_factor)
-                            .min((2.0 * accel * dist).sqrt());
+                        u.facing = rotate_toward(u.facing, threat, DRIFT_TURN_RATE * dt);
+                        // Walking pace by design (a strafe is never a run);
+                        // ram drag is immaterial here — quadratic in speed,
+                        // it reads ~0 at a walk.
+                        let target_speed =
+                            (tun.base_speed * u.speed_mult * ground * drift_factor(desired, u.facing))
+                                .min((2.0 * accel * dist).sqrt());
                         u.frame_speed = move_toward(u.frame_speed, target_speed, accel * dt);
                         u.anchor = u.anchor + to * (u.frame_speed * dt / dist.max(0.01));
                         return;
@@ -267,6 +274,7 @@ mod tests {
             stance: crate::unit::Stance::Othismos,
             charge_enabled: false,
             charging: false,
+            fear_adapt: 0.0,
             charge_time: 0.0,
             charge_at_speed: false,
             drain_mult: 1.0,

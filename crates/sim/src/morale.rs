@@ -37,6 +37,9 @@ impl Sim {
         }
         // Enemy unit summaries for geometry checks (cheap; 40 units).
         // (center, team, alive, routing, speed, mass)
+        // (center, team, alive, routing, measured advance of the MASS,
+        // total living mass). Formulas read men, mass, and measured motion
+        // — never banners or commanded state (see README).
         let summaries: Vec<(Vec2, u32, usize, bool, f32, f32)> = self
             .units
             .iter()
@@ -46,8 +49,8 @@ impl Sim {
                     u.team,
                     u.alive_count,
                     u.routing,
-                    u.frame_speed,
-                    crate::class::class_stats(u.class).mass,
+                    u.mass_advance.max(0.0),
+                    u.alive_count as f32 * crate::class::class_stats(u.class).mass,
                 )
             })
             .collect();
@@ -94,7 +97,10 @@ impl Sim {
             // fear — it emits relief. This is what breaks the mutual-rout
             // race: the side that holds one beat longer gets paid for it.
             let mut enemy_backs = 0.0f32;
-            for (vi, &(c, team, alive_v, v_routing, speed, mass)) in summaries.iter().enumerate() {
+            let my_mass = alive_n * crate::class::class_stats(u.class).mass;
+            for (vi, &(c, team, alive_v, v_routing, advance, mass_total)) in
+                summaries.iter().enumerate()
+            {
                 if vi == ui || alive_v == 0 {
                     continue;
                 }
@@ -102,24 +108,35 @@ impl Sim {
                 if team != my_team {
                     if v_routing {
                         if d < 90.0 {
-                            enemy_backs += 1.0 - d / 90.0;
+                            // Relief scales with the SIZE of the rout you
+                            // watch: a broken main line pays more than a
+                            // fleeing handful of skirmishers.
+                            let weight = (mass_total / my_mass).min(2.0);
+                            enemy_backs += weight * (1.0 - d / 90.0);
                         }
                         continue; // a broken enemy frightens nobody
                     }
                     if d < 70.0 {
-                        // Mass x closing speed, scaled by proximity: a wall
-                        // of horse at the gallop is terrifying whatever its
-                        // controller calls the gait. Walking lines are not.
-                        let closing = ((my_center - c) * (1.0 / d.max(0.1))).dot(dir(
-                            self.units[vi].facing,
-                        )) * speed;
+                        // Approaching MOMENTUM, relative to the mass it's
+                        // aimed at: a wall of horse at the gallop is
+                        // terrifying; five survivors of that wall are not.
+                        // Measured advance, not commanded pace — a unit
+                        // pinned in a jam frightens nobody.
+                        let closing = ((my_center - c) * (1.0 / d.max(0.1)))
+                            .dot(dir(self.units[vi].facing))
+                            * advance;
                         if closing > 3.5 {
-                            intimidation += mass * closing * (1.0 - d / 70.0) * 0.01;
+                            let weight = (mass_total / my_mass).min(3.0);
+                            intimidation += weight * closing * (1.0 - d / 70.0) * 0.06;
                         }
                     }
                 } else if d < 80.0 {
                     if v_routing {
-                        rout_contagion += 1.0 - d / 80.0;
+                        // Panic spreads from fleeing BODIES, not banners:
+                        // an 8-man remnant streaming past is a sad sight,
+                        // a 300-man collapse is a catastrophe.
+                        let weight = (mass_total / my_mass).min(2.0);
+                        rout_contagion += weight * (1.0 - d / 80.0);
                     } else if alive_v > 50 {
                         steady_friends += 1.0 - d / 80.0;
                     }
@@ -143,11 +160,17 @@ impl Sim {
             // flash-breaks nobody. The shove only registers as a real
             // drive-back; fear terms (charge, contagion) stay small.
             let directions = 1.0 + 0.5 * (spread - 1.0).max(0.0);
+            // Fear HABITUATES: the stimulus drains by what exceeds the
+            // adapted level (plus a quarter that always leaks through —
+            // men never fully ignore cavalry at their backs). Blood does
+            // not habituate.
+            let fear = 0.05 * intimidation + 0.025 * rout_contagion;
+            let fear_adapt = self.units[ui].fear_adapt;
+            let fear_eff = (fear - fear_adapt).max(0.0) + 0.25 * fear;
             let drain = (0.038 * casualty_rate * directions
                 + 0.06 * missile_rate
                 + 0.002 * (losing_push - 1.2).max(0.0)
-                + 0.05 * intimidation
-                + 0.025 * rout_contagion)
+                + fear_eff)
                 * amp;
 
             // Recovery: quiet, distant from FIGHTING threats (a fleeing
@@ -168,6 +191,7 @@ impl Sim {
             + 0.05 * enemy_backs;
 
             let u = &mut self.units[ui];
+            u.fear_adapt += (fear - u.fear_adapt) * (1.0 - (-dt / 15.0f32).exp());
             u.morale = (u.morale - drain * dt + recover * dt).clamp(0.0, u.morale_ceiling);
             u.recent_missiles *= 1.0 - (dt / 8.0);
             u.losing_push *= 1.0 - (dt / 4.0);

@@ -196,6 +196,7 @@ impl Sim {
             stance: crate::unit::Stance::Othismos,
             charge_enabled: false,
             charging: false,
+            fear_adapt: 0.0,
             charge_time: 0.0,
             charge_at_speed: false,
             drain_mult: 1.0,

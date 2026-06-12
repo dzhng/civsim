@@ -139,6 +139,11 @@ pub struct Unit {
     /// the trample force balance. All sources count: the wall brakes the
     /// front rank, the front rank brakes the ranks piling in behind.
     pub counter_press: f32,
+    /// Habituation level for the fear inputs (intimidation, contagion):
+    /// an EMA of the sustained stimulus. Fear drains on what EXCEEDS it —
+    /// a fresh charge hits with full force, a threat that circles without
+    /// landing fades to a quarter of its first impression.
+    pub fear_adapt: f32,
     /// EMA of the MEN's forward motion (center-of-mass displacement along
     /// facing, m/s; negative = driven back). Downstream of every physical
     /// fact — collisions, stuns, deadlock — so unlike `frame_speed` it

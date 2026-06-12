@@ -21,6 +21,31 @@ realizes it over time, rate-limited by **cohesion**. Cohesion is *measured*
 from physical soldier state (slot error vs. the intended formation), never
 stored as a freestanding scalar — so it can't drift from what's on screen.
 
+## Formulas read the physical world — a hard rule
+
+Every formula in the sim takes its inputs in physical units: **men, mass,
+measured motion**. Never banners, commanded state, or classifier counts.
+Each historical violation of this rule produced the same bug — an effect
+wildly out of proportion to what's actually happening on the field:
+
+- A "flanked" morale penalty counted *contact-direction groups* (a
+  classifier that flickers in any honest scrum) and flash-routed healthy
+  units 19x faster than the blood being spilled justified.
+- Intimidation read *per-soldier class mass*, so five surviving horses
+  terrified a line like a full wing; and it read the *commanded* frame
+  speed, so a unit pinned in a jam "charged" on paper.
+- Rout contagion and rally relief counted *units* in a radius, so an
+  8-man broken remnant panicked neighbors like a 300-man collapse — and
+  reorganizing the same men into more, smaller units changed the morale
+  economics of the whole army.
+
+The test for any new term: if you double the men but keep the banners, or
+freeze the bodies but keep the orders, does the term respond to the men
+and the bodies? If not, it's reading bookkeeping, and its scale is a lie
+waiting for a context that exposes it. Discrete classifications (counts,
+thresholds, flags) may *gate* or *amplify* a physical quantity, but must
+never be a drain or force of their own.
+
 ## Develop
 
 ```sh

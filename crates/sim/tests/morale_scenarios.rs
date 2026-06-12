@@ -277,3 +277,105 @@ fn the_verdict_is_final_routs_lock_and_the_chase_plays_out() {
         "the pursuit stays on the routers"
     );
 }
+
+/// Morale of `unit` after `secs` of whatever the setup put nearby.
+fn morale_after(sim: &mut Sim, unit: usize, secs: f32) -> f32 {
+    for _ in 0..(secs / DT) as usize {
+        sim.tick();
+    }
+    sim.units[unit].morale
+}
+
+#[test]
+fn intimidation_scales_with_the_mass_not_the_banner() {
+    // The same charge bearing down: a full wing of horse vs five survivors
+    // under the same flag. Fear reads MEN AND MASS, not the banner.
+    let dip = |horses: usize| -> f32 {
+        let mut sim = Sim::new(Tunables::default(), SEED);
+        let line = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 200, UnitClassId::HeavyInfantry, 0);
+        let cav = sim.spawn_class(Vec2::new(0.0, 120.0), -FRAC_PI_2, horses, UnitClassId::ShockCavalry, 1);
+        sim.set_pace(cav, sim::Pace::Run);
+        // Let spawn morale settle to its baseline FIRST (the dip must
+        // measure fear, not the spawn transient).
+        for _ in 0..(3.0 / DT) as usize {
+            sim.tick();
+        }
+        let baseline = sim.units[line].morale;
+        sim.set_attack_order(cav, line);
+        // Measure morale as the charge closes, before contact does damage.
+        let mut lowest = baseline;
+        for _ in 0..(20.0 / DT) as usize {
+            sim.tick();
+            if sim.units[line].engaged > 5 {
+                break;
+            }
+            lowest = lowest.min(sim.units[line].morale);
+        }
+        baseline - lowest
+    };
+    let wing = dip(200);
+    let remnant = dip(5);
+    println!("pre-contact morale dip: 200 horses {wing:.3}, 5 horses {remnant:.3}");
+    assert!(
+        wing > remnant * 3.0 + 0.005,
+        "a wall of horse terrifies, five survivors do not: {wing:.3} vs {remnant:.3}"
+    );
+}
+
+#[test]
+fn threats_that_never_land_lose_their_terror() {
+    // Cavalry sweeping back and forth at speed just outside reach, never
+    // charging home: the first pass costs, the tenth is background noise.
+    let mut sim = Sim::new(Tunables::default(), SEED);
+    let line = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 200, UnitClassId::HeavyInfantry, 0);
+    let cav = sim.spawn_class(Vec2::new(-120.0, 45.0), 0.0, 160, UnitClassId::ShockCavalry, 1);
+    sim.set_pace(cav, sim::Pace::Run);
+    // Endless laps across the line's front at gallop, inside the fear radius.
+    for lap in 0..12 {
+        let x = if lap % 2 == 0 { 120.0 } else { -120.0 };
+        sim.set_move_order(cav, Vec2::new(x, 45.0));
+        for _ in 0..(25.0 / DT) as usize {
+            sim.tick();
+        }
+    }
+    let m = morale_after(&mut sim, line, 1.0);
+    assert!(
+        !sim.units[line].routing && m > 0.55,
+        "five minutes of circus hasn't broken the line: morale {m:.2}"
+    );
+}
+
+#[test]
+fn contagion_spreads_from_fleeing_bodies_not_banners() {
+    // A friendly unit breaks within sight: panic in the watchers scales
+    // with the SIZE of the rout streaming past.
+    let dip = |fleeing: usize| -> f32 {
+        let mut sim = Sim::new(Tunables::default(), SEED);
+        let watchers = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 200, UnitClassId::HeavyInfantry, 0);
+        let doomed = sim.spawn_class(Vec2::new(30.0, 20.0), FRAC_PI_2, fleeing, UnitClassId::LightInfantry, 0);
+        // An enemy line standing off at 55m keeps the watchers ALERT
+        // (recovery off) without fighting: in peacetime, rest masks panic.
+        sim.spawn_class(Vec2::new(0.0, 55.0), -FRAC_PI_2, 200, UnitClassId::HeavyInfantry, 1);
+        for _ in 0..(3.0 / DT) as usize {
+            sim.tick(); // settle the spawn transient
+        }
+        // Break them by hand: the experiment is the WATCHERS' reaction.
+        sim.units[doomed].morale = 0.0;
+        let before = sim.units[watchers].morale;
+        // The panic is a TRANSIENT (habituation damps the lingering rout):
+        // measure the deepest dip, not the endpoint.
+        let mut lowest = before;
+        for _ in 0..(25.0 / DT) as usize {
+            sim.tick();
+            lowest = lowest.min(sim.units[watchers].morale);
+        }
+        before - lowest
+    };
+    let big = dip(300);
+    let small = dip(12);
+    println!("watcher morale dip: 300-man collapse {big:.3}, 12-man remnant {small:.3}");
+    assert!(
+        big > small * 3.0 + 0.005,
+        "a collapse panics, a remnant saddens: {big:.3} vs {small:.3}"
+    );
+}

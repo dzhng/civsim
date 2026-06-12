@@ -11,7 +11,9 @@
     "verify:full": "node verify.mjs --full"
   },
   "devDependencies": {
+    "pixelmatch": "^7.2.0",
     "playwright": "^1.60.0",
+    "pngjs": "^7.0.0",
     "typescript": "^6.0.3",
     "vite": "^8.0.16"
   }

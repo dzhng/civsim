@@ -2,3 +2,4 @@
 node_modules/
 web/dist/
 web/src/wasm/
+web/shots/diff/

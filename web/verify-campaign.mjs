@@ -4,6 +4,7 @@
 // battle modal (auto-pause) -> auto-resolve -> outcome -> save/load.
 import { chromium } from 'playwright';
 import { mkdir, readFile } from 'node:fs/promises';
+import { snapCheck } from './snapshot.mjs';
 
 const TARGET = process.env.VERIFY_URL ?? 'http://localhost:5173';
 const SHOTS = new URL('./shots/', import.meta.url).pathname;
@@ -38,6 +39,15 @@ check('campaign boots with armies', armies.length >= 10 && mine.length >= 2,
 const cities = await page.evaluate(() => window.__campaign.cities());
 check('cities loaded', Object.keys(cities).length > 400, `${Object.keys(cities).length} cities`);
 await page.screenshot({ path: SHOTS + 'campaign-map.png' });
+
+// Pixel regression at deterministic moments: Day 1, paused, fixed camera,
+// before any ticking (later states depend on the random campaign seed).
+await page.evaluate(() => window.__campaign.cam(-100, 250, 0.16));
+await page.waitForTimeout(250);
+await snapCheck(page, 'campaign-political', check);
+await page.evaluate(() => window.__campaign.cam(-456, 446, 2.5)); // Roma, tilted
+await page.waitForTimeout(250);
+await snapCheck(page, 'campaign-3d', check);
 
 // March the player's first army (at Roma) on the nearest independent city.
 const roma = map.nodes.findIndex((n) => n.name === 'Roma');
@@ -102,6 +112,46 @@ await page.click('#menu-load-save');
 await page.waitForFunction(() => window.__campaignReady === true, { timeout: 30000 });
 const reloaded = await page.evaluate(() => window.__campaign.armies().length);
 check('save loads back into a live campaign', reloaded >= 1, `${reloaded} armies visible`);
+
+// --- Territory overlay & 3D camera ------------------------------------------
+const ts = await page.evaluate(() => window.__campaign.terrStats());
+check('territory voronoi covers the owned world', ts.filled > 50000 && ts.labels.length >= 6,
+  `${ts.filled} land cells claimed, ${ts.labels.length} faction labels`);
+
+await page.evaluate(() => window.__campaign.cam(-100, 250, 0.16));
+let cam = await page.evaluate(() => window.__campaign.camGet());
+let terrA = await page.evaluate(() => window.__campaign.territoryAlpha());
+check('zoomed out: top-down political map with territories', cam.pitchDeg > 85 && terrA > 0.7,
+  `pitch ${cam.pitchDeg.toFixed(1)}°, territory alpha ${terrA.toFixed(2)}`);
+await page.waitForTimeout(250);
+await page.screenshot({ path: SHOTS + 'campaign-political.png' });
+
+await page.evaluate(() => window.__campaign.cam(-456, 446, 2.5)); // Roma
+cam = await page.evaluate(() => window.__campaign.camGet());
+terrA = await page.evaluate(() => window.__campaign.territoryAlpha());
+check('zoomed in: camera tilts to 3D, territory fades', cam.pitchDeg < 60 && terrA < 0.3,
+  `pitch ${cam.pitchDeg.toFixed(1)}°, territory alpha ${terrA.toFixed(2)}`);
+await page.waitForTimeout(250);
+await page.screenshot({ path: SHOTS + 'campaign-3d.png' });
+
+// Click-selection must survive the 3D projection: center on one of my armies,
+// click its on-screen banner base, expect it selected.
+const clickSel = await page.evaluate(() => {
+  const me = window.__campaign.armies().find((a) => a.mine);
+  if (!me) return { ok: false };
+  window.__campaign.select(-1);
+  window.__campaign.cam(me.x, me.y, 2.5);
+  const [px, py] = window.__campaign.project(me.x, me.y);
+  return { ok: true, id: me.id, px, py };
+});
+if (clickSel.ok) {
+  await page.waitForTimeout(150);
+  await page.mouse.click(clickSel.px, clickSel.py);
+  const sel = await page.evaluate(() => window.__campaign.selected());
+  check('click-select works through the tilted camera', sel === clickSel.id, `selected ${sel}, wanted ${clickSel.id}`);
+} else {
+  check('click-select works through the tilted camera', false, 'no own army to test with');
+}
 
 check('no page errors', pageErrors.length === 0, pageErrors.slice(0, 3).join(' | '));
 

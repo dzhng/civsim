@@ -260,6 +260,8 @@ export class Renderer {
   private soldierRowOf: (cls: number, team: number) => number;
   private decalRow: number;
   private start = performance.now();
+  /** Pin the ambient-animation clock (water/grass shimmer) for pixel-deterministic shots. */
+  fixedTime: number | null = null;
 
   constructor(private canvas: HTMLCanvasElement) {
     const gl = canvas.getContext('webgl2', { antialias: true })!;
@@ -453,7 +455,7 @@ export class Renderer {
     gl.clearColor(0.06, 0.07, 0.06, 1);
     gl.clear(gl.COLOR_BUFFER_BIT);
     const cam = camera.uniform();
-    const time = (performance.now() - this.start) / 1000;
+    const time = this.fixedTime ?? (performance.now() - this.start) / 1000;
 
     if (this.terrainTex) {
       gl.useProgram(this.ground);

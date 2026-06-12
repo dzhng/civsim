@@ -16,6 +16,7 @@
 const FULL = process.argv.includes('--full');
 import { chromium } from 'playwright';
 import { mkdir } from 'node:fs/promises';
+import { snapCheck } from './snapshot.mjs';
 
 const TARGET = process.env.VERIFY_URL ?? 'http://localhost:5173';
 const SHOTS = new URL('./shots/', import.meta.url).pathname;
@@ -44,6 +45,13 @@ const stats = await page.evaluate(() => window.__game.stats());
 check('full battle spawned', stats.soldiers >= 25000 && stats.units === 40,
   `${stats.soldiers} soldiers, ${stats.units} units`);
 await page.screenshot({ path: SHOTS + 'initial.png' });
+
+// Pixel regression on the deployed battlefield: freeze pins the shader clock
+// and the HUD perf line; the idle deployment is seed-fixed.
+await page.evaluate(() => window.__game.freeze());
+await page.waitForTimeout(150);
+await snapCheck(page, 'battle-initial', check);
+await page.evaluate(() => window.__game.freeze(false));
 
 // The in-game manual opens and has content.
 await page.click('#btn-menu');

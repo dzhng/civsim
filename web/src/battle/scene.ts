@@ -310,6 +310,7 @@ export class BattleScene implements Scene {
 
     // --- Time control ------------------------------------------------------------
     let paused = false;
+    let frozen = false; // snapshot mode: no wall-clock pixels (HUD perf line, shader clock)
     let ended = false;
     const gameover = document.getElementById('gameover')!;
     gameover.style.display = 'none';
@@ -817,8 +818,10 @@ export class BattleScene implements Scene {
     function updateHud() {
       const lines = [
         `soldiers ${game.soldier_count().toLocaleString()}   units ${game.unit_count()}`,
-        `fps ${fpsAvg.toFixed(0)}   tick ${tickMsAvg.toFixed(2)} ms` +
-          (paused ? '   PAUSED' : timeScale !== 1 ? `   x${timeScale}` : ''),
+        frozen
+          ? 'fps —   tick — ms   PAUSED'
+          : `fps ${fpsAvg.toFixed(0)}   tick ${tickMsAvg.toFixed(2)} ms` +
+            (paused ? '   PAUSED' : timeScale !== 1 ? `   x${timeScale}` : ''),
       ];
       let bars = '';
       let cardUnit = -1;
@@ -920,6 +923,13 @@ export class BattleScene implements Scene {
       advance: (n: number) => {
         for (let i = 0; i < n; i++) game.tick();
         tickGroupAttacks();
+      },
+      // Snapshot mode: stop the sim and pin every wall-clock-driven pixel so
+      // screenshots are reproducible (see snapshot.mjs).
+      freeze: (on = true) => {
+        paused = on;
+        frozen = on;
+        renderer.fixedTime = on ? 0 : null;
       },
       groupMove: (units: number[], x: number, y: number) => groupMove(units, x, y, 'move'),
       setFiles: (u: number, files: number) => game.set_files(u, files),

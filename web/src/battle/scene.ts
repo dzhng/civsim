@@ -626,20 +626,29 @@ export class BattleScene implements Scene {
       return new Float32Array(verts);
     }
 
-    // --- Buttons / manual / banner -------------------------------------------------
-    document.getElementById('btn-manual')!.addEventListener('click', () => {
-      const el = document.getElementById('manual')!;
-      el.style.display = el.style.display === 'block' ? 'none' : 'block';
-    }, { signal });
+    // --- The one Menu button: restart or exit --------------------------------------
     document.getElementById('manual')!.innerHTML = MANUAL_HTML;
     document.getElementById('manual')!.style.display = 'none';
-    const launch = (kind: BattleKind) => () => this.cfg.onLaunch(kind);
-    document.getElementById('btn-mapa')!.addEventListener('click', launch('mapA'), { signal });
-    document.getElementById('btn-mapb')!.addEventListener('click', launch('mapB'), { signal });
-    document.getElementById('btn-restart')!.addEventListener('click', launch(this.cfg.kind), { signal });
-    document.getElementById('btn-duel')!.addEventListener('click', launch('duel'), { signal });
-    document.getElementById('btn-5v5')!.addEventListener('click', launch('5v5'), { signal });
-    document.getElementById('btn-exit')!.addEventListener('click', () => this.cfg.onExit(), { signal });
+    const pausemenu = document.getElementById('pausemenu')!;
+    pausemenu.style.display = 'none';
+    document.getElementById('btn-menu')!.addEventListener('click', () => {
+      pausemenu.style.display = pausemenu.style.display === 'flex' ? 'none' : 'flex';
+    }, { signal });
+    const pauseRestart = document.getElementById('pause-restart')!;
+    pauseRestart.style.display = this.cfg.inCampaign ? 'none' : 'block';
+    pauseRestart.addEventListener('click', () => this.cfg.onLaunch(this.cfg.kind), { signal });
+    document.getElementById('pause-manual')!.addEventListener('click', () => {
+      const el = document.getElementById('manual')!;
+      el.style.display = el.style.display === 'block' ? 'none' : 'block';
+      pausemenu.style.display = 'none';
+    }, { signal });
+    document.getElementById('pause-exit')!.addEventListener('click', () => this.cfg.onExit(), { signal });
+    document.getElementById('pause-close')!.addEventListener('click', () => {
+      pausemenu.style.display = 'none';
+    }, { signal });
+    pausemenu.addEventListener('click', (e) => {
+      if (e.target === pausemenu) pausemenu.style.display = 'none';
+    }, { signal });
 
     // --- Main loop -----------------------------------------------------------------
     const hud = document.getElementById('hud')!;

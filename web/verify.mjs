@@ -46,11 +46,12 @@ check('full battle spawned', stats.soldiers >= 25000 && stats.units === 40,
 await page.screenshot({ path: SHOTS + 'initial.png' });
 
 // The in-game manual opens and has content.
-await page.click('#btn-manual');
+await page.click('#btn-menu');
+await page.click('#pause-manual');
 const manualLen = await page.evaluate(() => document.getElementById('manual').innerHTML.length);
 check('the field manual opens in-game', manualLen > 4000, `${manualLen} chars`);
 await page.screenshot({ path: SHOTS + 'manual.png' });
-await page.click('#btn-manual');
+await page.evaluate(() => { document.getElementById('manual').style.display = 'none'; });
 
 // --- Stage 1: straight march (unit 4: center heavy infantry) ----------------
 const info4 = await page.evaluate(() => window.__game.unitInfo(4));

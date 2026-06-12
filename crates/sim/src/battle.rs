@@ -242,18 +242,26 @@ pub fn setup_sandbox(sim: &mut Sim, kind: u32) {
         sim.spawn_class(p, f, 160, UnitClassId::ShockCavalry, 0);
         return;
     }
+    // Clash of Arms: the full roster, one of everything per side — a
+    // combined-arms field battle in miniature. Skirmish screen out front,
+    // a four-unit line of battle, archers and engines behind, both kinds
+    // of horse on the wing.
     let side = |sim: &mut Sim, y: f32, facing: f32, team: u32| {
         let f = dir(facing);
         let right = Vec2::new(f.y, -f.x);
         let row = |o: f32, lat: f32| Vec2::new(0.0, y) + f * o + right * lat;
-        sim.spawn_class(row(0.0, -95.0), facing, 320, UnitClassId::HeavyInfantry, team);
-        sim.spawn_class(row(0.0, -10.0), facing, 320, UnitClassId::Phalanx, team);
-        sim.spawn_class(row(0.0, 75.0), facing, 240, UnitClassId::LightInfantry, team);
-        sim.spawn_class(row(-45.0, -10.0), facing, 120, UnitClassId::LongSwords, team);
-        sim.spawn_class(row(-15.0, 170.0), facing, 100, UnitClassId::ShockCavalry, team);
+        sim.spawn_class(row(25.0, 30.0), facing, 120, UnitClassId::Skirmishers, team);
+        sim.spawn_class(row(0.0, -110.0), facing, 280, UnitClassId::HeavyInfantry, team);
+        sim.spawn_class(row(0.0, -25.0), facing, 280, UnitClassId::Phalanx, team);
+        sim.spawn_class(row(0.0, 55.0), facing, 140, UnitClassId::LongSwords, team);
+        sim.spawn_class(row(0.0, 125.0), facing, 220, UnitClassId::LightInfantry, team);
+        sim.spawn_class(row(-40.0, -30.0), facing, 140, UnitClassId::Archers, team);
+        sim.spawn_class(row(-55.0, 60.0), facing, 40, UnitClassId::ArtilleryCrew, team);
+        sim.spawn_class(row(-10.0, 200.0), facing, 110, UnitClassId::ShockCavalry, team);
+        sim.spawn_class(row(-30.0, -190.0), facing, 90, UnitClassId::HorseArchers, team);
     };
-    side(sim, -130.0, FRAC_PI_2, 0);
-    side(sim, 130.0, -FRAC_PI_2, 1);
+    side(sim, -140.0, FRAC_PI_2, 0);
+    side(sim, 140.0, -FRAC_PI_2, 1);
 }
 
 /// Build terrain and deploy: player south facing north, enemy north facing

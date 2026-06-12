@@ -102,7 +102,8 @@ impl Campaign {
             "attacker": army(e.attacker),
             "defender": army(e.defender),
             "no_retreat": e.no_retreat,
-            "reinforcements": e.reinforcements.len(),
+            // not committed until Fight — show what WOULD join
+            "reinforcements": campaign::resolve::eligible_reinforcements(&self.inner.map, st, e.id).len(),
             "player_faction": st.player_faction,
         })
         .to_string()
@@ -149,11 +150,23 @@ impl Campaign {
     }
 
     pub fn order_disband(&mut self, army: u32, entry: u32) -> bool {
-        self.owns(army) && self.inner.order_disband(army, entry as usize)
+        let ok = self.owns(army) && self.inner.order_disband(army, entry as usize);
+        self.refresh();
+        ok
     }
 
     pub fn order_merge(&mut self, src: u32, dst: u32) -> bool {
-        self.owns(src) && self.owns(dst) && self.inner.order_merge(src, dst)
+        let ok = self.owns(src) && self.owns(dst) && self.inner.order_merge(src, dst);
+        self.refresh();
+        ok
+    }
+
+    /// Split roster entries (bitmask over roster indices) onto an adjacent tile.
+    pub fn order_split(&mut self, army: u32, entries_mask: u32) -> bool {
+        let entries: Vec<usize> = (0..32).filter(|i| entries_mask & (1u32 << i) != 0).collect();
+        let ok = self.owns(army) && self.inner.order_split(army, &entries);
+        self.refresh();
+        ok
     }
 
     // ---- flat state out (refreshed after tick/orders) -----------------------

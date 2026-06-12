@@ -59,10 +59,14 @@ fn tiles_within(map: &WorldMap, start: Loc, radius: u32) -> Vec<(Loc, u32)> {
     out
 }
 
-/// Commit nearby friendly armies of both combatant factions as battle
-/// reinforcements; freeze them by tagging them with the encounter id.
-fn commit_reinforcements(map: &WorldMap, st: &mut CampaignState, eid: EncounterId) {
-    let e = st.encounters.iter().find(|e| e.id == eid).unwrap().clone();
+/// Armies eligible to join the battle (id, arrival delay, approach bearing).
+/// Read-only: the initiation screen shows this before anything is frozen.
+pub fn eligible_reinforcements(
+    map: &WorldMap,
+    st: &CampaignState,
+    eid: EncounterId,
+) -> Vec<(ArmyId, f32, f32)> {
+    let Some(e) = st.encounters.iter().find(|e| e.id == eid) else { return Vec::new() };
     let (att, def) = (&st.armies[e.attacker as usize], &st.armies[e.defender as usize]);
     let factions = [att.faction, def.faction];
     let site = def.loc;
@@ -95,6 +99,12 @@ fn commit_reinforcements(map: &WorldMap, st: &mut CampaignState, eid: EncounterI
         let bearing = world_bearing(map, site, a.loc) - att_bearing - std::f32::consts::FRAC_PI_2;
         committed.push((a.id, delay, bearing));
     }
+    committed
+}
+
+/// Commit the eligible armies: freeze them by tagging with the encounter id.
+fn commit_reinforcements(map: &WorldMap, st: &mut CampaignState, eid: EncounterId) {
+    let committed = eligible_reinforcements(map, st, eid);
     for &(id, ..) in &committed {
         st.armies[id as usize].encounter = Some(eid);
     }

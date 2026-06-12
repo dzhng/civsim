@@ -101,6 +101,16 @@ export class CampaignScene implements Scene {
       },
       orderMove: (army: number, kind: number, a: number, b: number) =>
         this.cfg.campaign.order_move(army, kind, a, b),
+      orderSplit: (army: number, mask: number) => {
+        const ok = this.cfg.campaign.order_split(army, mask);
+        this.refreshViews();
+        return ok;
+      },
+      orderMerge: (src: number, dst: number) => {
+        const ok = this.cfg.campaign.order_merge(src, dst);
+        this.refreshViews();
+        return ok;
+      },
       battleReady: () => this.cfg.campaign.battle_ready(),
       armies: () => this.armies,
       cities: () => Object.fromEntries(this.cities),
@@ -480,16 +490,42 @@ export class CampaignScene implements Scene {
       panel.style.display = 'none';
       return;
     }
+    // checkbox index = roster index (split takes a bitmask over them)
     const rows = roster
-      .filter((r: any) => r.count > 0)
-      .map((r: any) => `<div>${r.class}: ${r.count}/${r.max} (morale ${Math.round(r.morale_cap * 100)}%)</div>`)
+      .map((r: any, i: number) =>
+        r.count > 0
+          ? `<div><label><input type="checkbox" data-entry="${i}"> ${r.class}: ${r.count}/${r.max} (morale ${Math.round(r.morale_cap * 100)}%)</label></div>`
+          : '')
       .join('');
+    const me = this.armies.find((a) => a.id === this.selected);
+    // merge candidate: another of my halted armies on the same/adjacent tile
+    const buddy = me
+      ? this.armies.find((a) => a.mine && a.id !== me.id && Math.hypot(a.x - me.x, a.y - me.y) < 6)
+      : undefined;
     panel.innerHTML = `<b>Army ${this.selected}</b>${rows}<div style="margin-top:6px">
-      <button id="cmp-halt">Halt</button></div>`;
+      <button id="cmp-halt">Halt</button>
+      <button id="cmp-split">Split</button>
+      ${buddy ? `<button id="cmp-merge">Merge ${buddy.id}</button>` : ''}</div>`;
     panel.style.display = 'block';
     panel.querySelector('#cmp-halt')?.addEventListener('click', () => {
       this.cfg.campaign.order_halt(this.selected);
       this.refreshViews();
+    });
+    panel.querySelector('#cmp-split')?.addEventListener('click', () => {
+      let mask = 0;
+      panel.querySelectorAll<HTMLInputElement>('input[data-entry]:checked').forEach((b) => {
+        mask |= 1 << Number(b.dataset.entry);
+      });
+      if (mask && this.cfg.campaign.order_split(this.selected, mask)) {
+        this.refreshViews();
+        this.updateArmyPanel();
+      }
+    });
+    panel.querySelector('#cmp-merge')?.addEventListener('click', () => {
+      if (buddy && this.cfg.campaign.order_merge(buddy.id, this.selected)) {
+        this.refreshViews();
+        this.updateArmyPanel();
+      }
     });
   }
 

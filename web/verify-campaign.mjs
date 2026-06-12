@@ -154,6 +154,73 @@ if (clickSel.ok) {
   check('click-select works through the tilted camera', false, 'no own army to test with');
 }
 
+// --- A1: reinforcements spawn mid-battle and the frontend keeps up ----------
+// Fresh campaign; march BOTH player armies at the same city so the second is
+// committed as a reinforcement, then Fight (not auto-resolve) and watch
+// unit_count grow inside the battle.
+await page.click('#cmp-exit');
+await page.waitForSelector('#menu-ui', { state: 'visible', timeout: 5000 });
+await page.click('#menu-new-campaign');
+await page.waitForFunction(() => window.__campaignReady === true, { timeout: 30000 });
+// A3: split a stack off the Roma army (it lands on an adjacent tile, well
+// inside the 12-tile reinforcement radius), then merge-ability both ways.
+const splitRes = await page.evaluate(() => {
+  const c = window.__campaign;
+  const before = c.armies().length;
+  const me = c.armies().filter((a) => a.mine)[0];
+  const ok = c.orderSplit(me.id, 0b10); // second roster entry
+  const after = c.armies();
+  const kid = after.filter((a) => a.mine && a.id !== me.id && Math.hypot(a.x - me.x, a.y - me.y) < 8);
+  return { ok, before, count: after.length, adjacent: kid.length > 0, parent: me.id };
+});
+check('split detaches a stack onto an adjacent tile', splitRes.ok && splitRes.count === splitRes.before + 1 && splitRes.adjacent,
+  `${splitRes.before} -> ${splitRes.count} armies`);
+const mergeRes = await page.evaluate((parent) => {
+  const c = window.__campaign;
+  const before = c.armies().filter((a) => a.mine && a.soldiers > 0).length;
+  const kid = c.armies().filter((a) => a.mine).slice(-1)[0];
+  const ok = c.orderMerge(kid.id, parent);
+  return { ok, before, after: c.armies().filter((a) => a.mine && a.soldiers > 0).length };
+}, splitRes.parent);
+check('merge folds the stack back in', mergeRes.ok && mergeRes.after === mergeRes.before - 1,
+  `${mergeRes.before} -> ${mergeRes.after} live armies`);
+
+// Split again and leave the detachment home: it becomes the reinforcement.
+await page.evaluate(() => {
+  const c = window.__campaign;
+  const me = c.armies().filter((a) => a.mine)[0];
+  c.orderSplit(me.id, 0b10);
+});
+let ready2 = -1;
+await page.evaluate((t) => {
+  const me = window.__campaign.armies().filter((a) => a.mine)[0];
+  window.__campaign.orderMove(me.id, 0, t, 0);
+}, target);
+for (let i = 0; i < 40 && ready2 < 0; i++) {
+  ready2 = await page.evaluate(() => {
+    window.__campaign.tick(2000);
+    return window.__campaign.battleReady();
+  });
+}
+check('march leads to a pending battle with the detachment nearby', ready2 >= 0);
+await page.keyboard.press('1');
+await page.waitForSelector('.cmp-box', { timeout: 5000 });
+const modalText2 = await page.evaluate(() => document.querySelector('.cmp-box').textContent);
+check('initiation modal announces reinforcements', /will join/.test(modalText2),
+  modalText2.replace(/\s+/g, ' ').slice(0, 110));
+await page.click('#cmp-fight');
+await page.waitForFunction(() => window.__ready === true, { timeout: 30000 });
+const units0 = await page.evaluate(() => window.__game.stats().units);
+let unitsNow = units0;
+for (let i = 0; i < 60 && unitsNow <= units0; i++) {
+  unitsNow = await page.evaluate(() => {
+    window.__game.advance(600); // 20 battle-seconds per chunk
+    return window.__game.stats().units;
+  });
+}
+check('reinforcement column arrives and renders', unitsNow > units0, `${units0} -> ${unitsNow} units`);
+await page.screenshot({ path: SHOTS + 'campaign-reinforcement.png' });
+
 check('no page errors', pageErrors.length === 0, pageErrors.slice(0, 3).join(' | '));
 
 await browser.close();

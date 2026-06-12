@@ -113,14 +113,19 @@ export class BattleScene implements Scene {
       camera.clampView();
     }
 
-    {
+    // Static-per-soldier arrays. Campaign battles can spawn reinforcement
+    // units mid-fight, so this re-runs whenever the counts grow (pointers are
+    // re-fetched every time — wasm memory may have moved).
+    const applyStatic = () => {
       const soldierUnit = new Uint32Array(wasm.memory.buffer, game.soldier_unit_ptr(), game.soldier_count());
       const info = unitInfo();
       const teams = Array.from({ length: game.unit_count() }, (_, u) => info[u * STRIDE + 6]);
       const classes = Array.from({ length: game.unit_count() }, (_, u) => info[u * STRIDE + 13]);
       const radii = new Float32Array(wasm.memory.buffer, game.radius_ptr(), game.soldier_count());
       renderer.setStatic(soldierUnit, teams, classes, radii);
-
+    };
+    applyStatic();
+    {
       const tw = game.terrain_w();
       const th = game.terrain_h();
       renderer.setTerrain(
@@ -194,13 +199,14 @@ export class BattleScene implements Scene {
     // --- Per-unit labels: HP + cohesion bars and effect icons --------------------
     const labelsRoot = document.getElementById('unitlabels')!;
     const labelDivs: HTMLDivElement[] = [];
-    for (let u = 0; u < game.unit_count(); u++) {
+    const addUnitLabel = () => {
       const d = document.createElement('div');
       d.className = 'ulabel';
       d.innerHTML = '<div class="bar hp"><div></div></div><div class="bar coh"><div></div></div><div class="fx"></div>';
       labelsRoot.appendChild(d);
       labelDivs.push(d);
-    }
+    };
+    for (let u = 0; u < game.unit_count(); u++) addUnitLabel();
     this.cleanups.push(() => { labelsRoot.innerHTML = ''; });
 
     function updateUnitLabels() {
@@ -711,6 +717,12 @@ export class BattleScene implements Scene {
         ticks++;
       }
       if (ticks === maxTicks) accumulator = 0;
+
+      // Reinforcements: campaign battles grow units mid-fight.
+      if (game.unit_count() > labelDivs.length) {
+        applyStatic();
+        while (labelDivs.length < game.unit_count()) addUnitLabel();
+      }
 
       {
         const n = game.soldier_count();

@@ -7,6 +7,9 @@ import { Campaign, Game, start_campaign_battle, report_battle, type InitOutput }
 import type { Scene } from '../scene';
 import { loadCampaignData, nearestLoc, type CampaignData } from './data';
 import { CampaignRenderer, type CamView } from './renderer';
+import { TerrainField } from './terrain';
+import { Territory } from './territory';
+import { Terrain3D } from './terrain3d';
 
 export const ARMY_STRIDE = 12;
 const CITY_STRIDE = 4;
@@ -47,8 +50,14 @@ export interface CampaignConfig {
 
 export class CampaignScene implements Scene {
   private canvas!: HTMLCanvasElement;
+  private glCanvas!: HTMLCanvasElement;
   private ui!: HTMLDivElement;
   private renderer!: CampaignRenderer;
+  // Terrain/territory live across battle round-trips (enter/exit cycles).
+  private field: TerrainField | null = null;
+  private territory: Territory | null = null;
+  private t3d: Terrain3D | null = null;
+  private ownerHash = 0;
   private ac: AbortController | null = null;
   private cam: CamView;
   private speed = 0; // index into SPEEDS, -1 = paused
@@ -68,10 +77,18 @@ export class CampaignScene implements Scene {
   enter() {
     if (!document.getElementById('campaign-canvas')) this.buildDom();
     this.canvas = document.getElementById('campaign-canvas') as HTMLCanvasElement;
+    this.glCanvas = document.getElementById('campaign-gl') as HTMLCanvasElement;
     this.ui = document.getElementById('campaign-ui') as HTMLDivElement;
     this.canvas.style.display = 'block';
+    this.glCanvas.style.display = 'block';
     this.ui.style.display = 'block';
-    this.renderer = new CampaignRenderer(this.canvas, this.cfg.data);
+    if (!this.field) {
+      this.field = new TerrainField(this.cfg.data);
+      this.territory = new Territory(this.cfg.data, this.field);
+      this.t3d = new Terrain3D(this.glCanvas, this.field, this.cfg.data);
+    }
+    this.renderer = new CampaignRenderer(this.canvas, this.cfg.data, this.t3d!, this.field);
+    this.ownerHash = 0; // force a territory recolor on (re)entry
     this.ac = new AbortController();
     this.wireInput(this.ac.signal);
     this.last = performance.now();
@@ -90,7 +107,25 @@ export class CampaignScene implements Scene {
       treasury: () => this.cfg.campaign.treasury(),
       save: () => this.cfg.campaign.save(),
       select: (id: number) => (this.selected = id),
+      selected: () => this.selected,
       paused: () => this.paused,
+      /** world km -> CSS px (for synthetic mouse events) */
+      project: (wx: number, wy: number) => {
+        const p = this.renderer.toScreen(wx, wy);
+        return [p[0] / devicePixelRatio, p[1] / devicePixelRatio];
+      },
+      cam: (x: number, y: number, scale: number) => {
+        this.cam = { x, y, scale };
+        this.t3d!.updateCamera(this.cam);
+      },
+      camGet: () => ({ ...this.cam, pitchDeg: (this.t3d!.pitch * 180) / Math.PI }),
+      territoryAlpha: () => this.t3d!.territoryAlpha(this.cam.scale),
+      terrStats: () => {
+        const t = this.territory!;
+        let filled = 0;
+        for (let i = 3; i < t.rgba.length; i += 4) if (t.rgba[i] > 0) filled++;
+        return { filled, total: t.rgba.length / 4, labels: t.labels };
+      },
     };
     (window as any).__campaignReady = true;
   }
@@ -100,6 +135,7 @@ export class CampaignScene implements Scene {
     this.ac?.abort();
     this.ac = null;
     this.canvas.style.display = 'none';
+    this.glCanvas.style.display = 'none';
     this.ui.style.display = 'none';
     this.closeModal();
   }
@@ -124,7 +160,9 @@ export class CampaignScene implements Scene {
     }
 
     this.renderer.resize();
-    this.renderer.draw(this.cam, this.armies, this.cities, this.selected, null);
+    this.t3d!.resize();
+    this.t3d!.draw(this.cam);
+    this.renderer.draw(this.cam, this.armies, this.cities, this.selected, null, this.territory!.labels);
     this.updateHud();
   }
 
@@ -156,9 +194,17 @@ export class CampaignScene implements Scene {
     const cn = c.city_count();
     const cf = new Float32Array(mem, c.city_info_ptr(), cn * CITY_STRIDE);
     this.cities.clear();
+    let hash = 0;
     for (let i = 0; i < cn; i++) {
       const o = i * CITY_STRIDE;
       this.cities.set(cf[o], { owner: cf[o + 1], garrison: cf[o + 2], queue: cf[o + 3] });
+      hash = (Math.imul(hash, 31) + cf[o] * 7 + cf[o + 1]) | 0;
+    }
+    // Recolor territory only when some city changed hands.
+    if (hash !== this.ownerHash && this.territory && this.t3d) {
+      this.ownerHash = hash;
+      this.territory.rebuild(this.cities);
+      this.t3d.updateTerritory(this.territory.rgba);
     }
   }
 
@@ -190,9 +236,10 @@ export class CampaignScene implements Scene {
     cv.addEventListener('wheel', (e) => {
       e.preventDefault();
       const f = Math.exp(-e.deltaY * 0.0015);
-      const [wx, wy] = this.renderer.toWorld(this.cam, e.offsetX * devicePixelRatio, e.offsetY * devicePixelRatio);
-      this.cam.scale = Math.min(4, Math.max(0.05, this.cam.scale * f));
-      const [nx, ny] = this.renderer.toWorld(this.cam, e.offsetX * devicePixelRatio, e.offsetY * devicePixelRatio);
+      const [wx, wy] = this.renderer.toWorld(e.offsetX * devicePixelRatio, e.offsetY * devicePixelRatio);
+      this.cam.scale = Math.min(8, Math.max(0.05, this.cam.scale * f));
+      this.t3d!.updateCamera(this.cam); // zoom-to-cursor needs the new basis now
+      const [nx, ny] = this.renderer.toWorld(e.offsetX * devicePixelRatio, e.offsetY * devicePixelRatio);
       this.cam.x += wx - nx;
       this.cam.y += wy - ny;
     }, { signal, passive: false });
@@ -217,7 +264,7 @@ export class CampaignScene implements Scene {
 
   private click(px: number, py: number) {
     // Select the nearest of my armies; second preference: open a city panel.
-    const [wx, wy] = this.renderer.toWorld(this.cam, px, py);
+    const [wx, wy] = this.renderer.toWorld(px, py);
     const rKm = 14 / this.cam.scale;
     let best = -1;
     let bestD = rKm;
@@ -240,7 +287,7 @@ export class CampaignScene implements Scene {
 
   private rightClick(px: number, py: number) {
     if (this.selected < 0) return;
-    const [wx, wy] = this.renderer.toWorld(this.cam, px, py);
+    const [wx, wy] = this.renderer.toWorld(px, py);
     const loc = nearestLoc(this.cfg.data.map, wx, wy, 60 / this.cam.scale);
     if (!loc) return;
     this.cfg.campaign.order_move(this.selected, loc.kind, loc.a, loc.b);
@@ -343,6 +390,11 @@ export class CampaignScene implements Scene {
   // ---- DOM --------------------------------------------------------------------
 
   private buildDom() {
+    // WebGL terrain underneath, transparent marker canvas on top.
+    const gl = document.createElement('canvas');
+    gl.id = 'campaign-gl';
+    gl.style.cssText = 'position:fixed;inset:0;width:100vw;height:100vh;display:none;';
+    document.body.appendChild(gl);
     const cv = document.createElement('canvas');
     cv.id = 'campaign-canvas';
     cv.style.cssText = 'position:fixed;inset:0;width:100vw;height:100vh;display:none;';

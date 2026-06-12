@@ -1,23 +1,35 @@
-// Campaign map renderer: plain Canvas2D. At this scale (hundreds of polylines,
-// dozens of markers) 2D wins on simplicity over the battle's instanced WebGL.
-// World units are km, +y north; canvas y flips.
+// Campaign overlay renderer: Canvas2D markers (roads, banners, labels) drawn
+// on a transparent canvas above the WebGL terrain. Everything is positioned
+// through the terrain camera's projection, so banners sit on the 3D ground at
+// any tilt. World units are km, +y north.
 
 import type { CampaignData } from './data';
 import { ARMY_STRIDE, type ArmyView, type CityView } from './scene';
+import type { TerrainField } from './terrain';
+import type { Terrain3D } from './terrain3d';
+import type { FactionLabel } from './territory';
 
 export interface CamView {
   x: number;
   y: number;
-  scale: number; // px per km
+  scale: number; // px per km at the look-at point
 }
 
 const FACTION_FALLBACK: [number, number, number] = [150, 150, 150];
 
 export class CampaignRenderer {
   private ctx: CanvasRenderingContext2D;
+  /** terrain height at each edge's via points, sampled once (terrain is static) */
+  private edgeHeights: (Float32Array | null)[];
 
-  constructor(private canvas: HTMLCanvasElement, private data: CampaignData) {
+  constructor(
+    private canvas: HTMLCanvasElement,
+    private data: CampaignData,
+    private t3d: Terrain3D,
+    private field: TerrainField,
+  ) {
     this.ctx = canvas.getContext('2d')!;
+    this.edgeHeights = data.map.edges.map(() => null);
   }
 
   resize() {
@@ -30,18 +42,13 @@ export class CampaignRenderer {
     }
   }
 
-  toScreen(cam: CamView, wx: number, wy: number): [number, number] {
-    return [
-      (wx - cam.x) * cam.scale + this.canvas.width / 2,
-      (cam.y - wy) * cam.scale + this.canvas.height / 2,
-    ];
+  /** World ground point -> canvas px (on the terrain surface). */
+  toScreen(wx: number, wy: number): [number, number] {
+    return this.t3d.project(wx, wy, this.field.heightAt(wx, wy)) ?? [-9999, -9999];
   }
 
-  toWorld(cam: CamView, sx: number, sy: number): [number, number] {
-    return [
-      (sx - this.canvas.width / 2) / cam.scale + cam.x,
-      cam.y - (sy - this.canvas.height / 2) / cam.scale,
-    ];
+  toWorld(sx: number, sy: number): [number, number] {
+    return this.t3d.unproject(sx, sy);
   }
 
   factionColor(idx: number): string {
@@ -49,31 +56,51 @@ export class CampaignRenderer {
     return `rgb(${c[0]},${c[1]},${c[2]})`;
   }
 
-  draw(cam: CamView, armies: ArmyView[], cities: Map<number, CityView>, selected: number, hoverPath: [number, number][] | null) {
+  private viaHeights(ei: number): Float32Array {
+    let hs = this.edgeHeights[ei];
+    if (!hs) {
+      const via = this.data.map.edges[ei].via;
+      hs = new Float32Array(via.length);
+      for (let i = 0; i < via.length; i++) hs[i] = this.field.heightAt(via[i][0], via[i][1]);
+      this.edgeHeights[ei] = hs;
+    }
+    return hs;
+  }
+
+  draw(
+    cam: CamView,
+    armies: ArmyView[],
+    cities: Map<number, CityView>,
+    selected: number,
+    hoverPath: [number, number][] | null,
+    factionLabels: FactionLabel[],
+  ) {
     const { ctx, canvas, data } = this;
     const z = cam.scale;
     ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.fillStyle = '#1a2330';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Background raster, draped by its world rectangle.
-    const r = data.bgRect;
-    const [x0, y0] = this.toScreen(cam, r.min[0], r.max[1]);
-    const [x1, y1] = this.toScreen(cam, r.max[0], r.min[1]);
-    ctx.imageSmoothingEnabled = true;
-    ctx.drawImage(data.bg, x0, y0, x1 - x0, y1 - y0);
-
-    // Edges. Roads solid, sea lanes faint dashes; features tint short dashes.
-    for (const e of data.map.edges) {
+    // Edges. Roads fade out at political-map zoom; sea lanes faint dashes.
+    const roadAlpha = Math.min(1, Math.max(0, (z - 0.1) / 0.15));
+    for (let ei = 0; ei < data.map.edges.length; ei++) {
+      const e = data.map.edges[ei];
       const sea = e.kind === 'sea';
-      if (sea && z < 0.12) continue;
+      if (sea && z < 0.22) continue;
+      if (!sea && roadAlpha <= 0.02) continue;
+      const hs = this.viaHeights(ei);
       ctx.beginPath();
+      let on = false;
       for (let i = 0; i < e.via.length; i++) {
-        const [sx, sy] = this.toScreen(cam, e.via[i][0], e.via[i][1]);
-        i === 0 ? ctx.moveTo(sx, sy) : ctx.lineTo(sx, sy);
+        const p = this.t3d.project(e.via[i][0], e.via[i][1], sea ? 0 : hs[i]);
+        if (!p) {
+          on = false;
+          continue;
+        }
+        on ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]);
+        on = true;
       }
       ctx.lineWidth = sea ? 1 : Math.max(1, z * 1.6);
-      ctx.strokeStyle = sea ? 'rgba(140,180,220,0.25)' : 'rgba(80,60,40,0.8)';
+      ctx.strokeStyle = sea ? 'rgba(140,180,220,0.25)' : `rgba(80,60,40,${0.8 * roadAlpha})`;
       ctx.setLineDash(sea ? [6, 6] : []);
       ctx.stroke();
       ctx.setLineDash([]);
@@ -82,9 +109,15 @@ export class CampaignRenderer {
     // Order preview path.
     if (hoverPath && hoverPath.length > 1) {
       ctx.beginPath();
+      let on = false;
       for (let i = 0; i < hoverPath.length; i++) {
-        const [sx, sy] = this.toScreen(cam, hoverPath[i][0], hoverPath[i][1]);
-        i === 0 ? ctx.moveTo(sx, sy) : ctx.lineTo(sx, sy);
+        const p = this.toScreen(hoverPath[i][0], hoverPath[i][1]);
+        if (p[0] < -9000) {
+          on = false;
+          continue;
+        }
+        on ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]);
+        on = true;
       }
       ctx.lineWidth = 2;
       ctx.strokeStyle = 'rgba(255,255,255,0.6)';
@@ -93,12 +126,43 @@ export class CampaignRenderer {
       ctx.setLineDash([]);
     }
 
+    // Faction names over their territory at political-map zoom.
+    const labelAlpha = 1 - Math.min(1, Math.max(0, (z - 0.2) / 0.12));
+    if (labelAlpha > 0.02) {
+      for (const l of factionLabels) {
+        const p = this.toScreen(l.x, l.y);
+        if (p[0] < -9000) continue;
+        const size = Math.min(52, Math.max(17, l.radiusKm * z * 0.6));
+        ctx.font = `600 ${size}px system-ui, sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.globalAlpha = labelAlpha;
+        ctx.lineWidth = Math.max(2, size / 9);
+        ctx.strokeStyle = 'rgba(10,12,16,0.65)';
+        ctx.fillStyle = `rgb(${Math.min(255, l.color[0] + 90)},${Math.min(255, l.color[1] + 90)},${Math.min(255, l.color[2] + 90)})`;
+        ctx.strokeText(l.name, p[0], p[1]);
+        ctx.fillText(l.name, p[0], p[1]);
+        ctx.globalAlpha = 1;
+        ctx.textAlign = 'left';
+      }
+    }
+
     // Cities: squares colored by owner, sized by tier; junction dots at zoom.
     data.map.nodes.forEach((n, i) => {
-      const [sx, sy] = this.toScreen(cam, n.pos[0], n.pos[1]);
+      const [sx, sy] = this.toScreen(n.pos[0], n.pos[1]);
       if (sx < -40 || sy < -40 || sx > canvas.width + 40 || sy > canvas.height + 40) return;
       if (n.kind === 'city') {
         const c = cities.get(i);
+        // Political zoom: minor cities collapse to flat dots so the
+        // territory mosaic stays readable.
+        if (z < 0.3 && n.tier < 3) {
+          ctx.fillStyle = c ? this.factionColor(c.owner) : '#888';
+          ctx.globalAlpha = 0.85;
+          ctx.beginPath();
+          ctx.arc(sx, sy, 1.5 + n.tier * 0.6, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.globalAlpha = 1;
+          return;
+        }
         const s = 4 + n.tier * 2 + z * 1.2;
         ctx.fillStyle = c ? this.factionColor(c.owner) : '#888';
         ctx.strokeStyle = '#1a1208';
@@ -127,7 +191,7 @@ export class CampaignRenderer {
 
     // Armies: banners (pennant triangles) colored by faction.
     for (const a of armies) {
-      const [sx, sy] = this.toScreen(cam, a.x, a.y);
+      const [sx, sy] = this.toScreen(a.x, a.y);
       if (sx < -40 || sy < -40 || sx > canvas.width + 40 || sy > canvas.height + 40) continue;
       const sel = a.id === selected;
       const size = sel ? 13 : 11;

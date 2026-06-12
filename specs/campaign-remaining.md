@@ -25,7 +25,8 @@ Repo: `/Users/david/dev/game`, branch `main`. The campaign work merged at
   ORBIS + Natural Earth + `overrides.json` → `web/public/data/campaign-map.json`
   + `campaign-bg.png`. Source data: `crates/mapgen/data/fetch.sh`.
 - `web/src` — `main.ts` (scene dispatcher) → `menu/`, `battle/`, `campaign/`
-  scenes. Campaign renders with Canvas2D; battle with WebGL.
+  scenes. Campaign renders WebGL2 terrain (`campaign/terrain3d.ts`) under a
+  transparent Canvas2D marker overlay; battle with WebGL.
 
 Build/verify:
 
@@ -34,9 +35,17 @@ cargo test --workspace                      # 21 suites, all green at handover
 npm --prefix web run build:wasm             # wasm-pack → web/src/wasm/game_wasm.js
 npx --prefix web tsc --noEmit -p web
 npm --prefix web run dev                    # then:
-node web/verify.mjs           # battle harness, 22 checks (needs dev server)
-node web/verify-campaign.mjs  # campaign harness, 14 checks
+node web/verify.mjs           # battle harness (needs dev server)
+node web/verify-campaign.mjs  # campaign harness
 ```
+
+Both harnesses include exact pixel-regression snapshots (`web/snapshot.mjs`)
+against baselines in `web/shots/baseline/` — any UI-affecting change fails
+with a diff image in `web/shots/diff/`. After an *intentional* visual change,
+re-bless with `UPDATE_SHOTS=1 node web/verify*.mjs` and commit the new
+baselines. New snapshots must capture deterministic moments only: fixed
+camera, sim paused (battle: `window.__game.freeze()` pins the shader clock
+and HUD perf line), nothing seed- or wall-clock-dependent on screen.
 
 Time model: 1 campaign tick = 1 minute; day = 1440 ticks; 1 road tile = 5 km;
 battle ticks are 1/30 s. Campaign↔battle unit identity:

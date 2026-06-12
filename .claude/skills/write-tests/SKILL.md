@@ -93,6 +93,17 @@ hash is profile-dependent (opt-level changes float results); changing
 profiles means one deliberate re-pin plus a margin check on
 chaos-marginal tests.
 
+## Probes change the physics (opt-level 2)
+
+An eprintln/dbg! added inside lib hot code changes float codegen enough
+to flip chaos-marginal tests — a probe that prints NOTHING can still
+alter the outcome you're diagnosing (observed: a dead-branch eprintln in
+run_morale flipped a marginal test 57/48 -> 51/58). Even changing a
+float literal (.min(0.6) -> .min(2.5)) shifts marginal outcomes by ULP
+drift when the branch never binds. Prefer probing from the TEST side
+(public state every N ticks); if you must instrument the lib, expect
+marginal tests to wobble and re-judge them only after the probe is gone.
+
 ## When a test goes red after a sim change
 
 In order of likelihood:

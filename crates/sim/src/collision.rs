@@ -162,14 +162,20 @@ impl Sim {
                             push.y += (ny + slide * nx) * overlap;
 
                             // Charge impact: a fast enemy body slamming in
-                            // knocks the lighter party down and bowls it back.
+                            // knocks men down and bowls them back. Felling is
+                            // a contest of masses: the threshold scales with
+                            // the victim's FULL effective mass — brace and
+                            // the press chain behind him both hold him up, so
+                            // the front rank of a braced, backed column keeps
+                            // its feet (and keeps transmitting) where a loose
+                            // man is bowled over.
                             if units[ui].team != units[uj].team {
                                 let closing = (vel(j) - vel(i)).dot(Vec2::new(nx, ny)).max(0.0);
                                 if closing > tun.charge_min_speed {
                                     let momentum = m_eff(j) * closing;
                                     push.x += nx * closing * tun.impact_push * DT * share;
                                     push.y += ny * closing * tun.impact_push * DT * share;
-                                    if momentum > tun.stun_momentum && m_eff(j) > m_eff(i) {
+                                    if momentum > tun.stun_momentum * w_i {
                                         stun[i] = stun[i].max(tun.stun_time);
                                     }
                                     // The impactor RETAINS 0.6 of its closing

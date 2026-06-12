@@ -149,8 +149,12 @@ impl Sim {
                             // 400 project a massacre. Confidence SHOWS:
                             // a wavering mass doesn't thunder — you fear
                             // units bolder than you, never shakier ones.
+                            // The cap sits HIGH: a 10:1 mass closing in is
+                            // hopeless, and hopelessness reads as exactly
+                            // that — a token line breaks before the wall
+                            // arrives, at full courage.
                             let arriving = v_offense + 0.01 * mass_total * closing;
-                            let projected = (arriving / my_pool.max(1.0)).min(0.6);
+                            let projected = (arriving / my_pool.max(1.0)).min(2.5);
                             let edge = ((v_morale - my_morale) / 0.25 + 1.0).clamp(0.0, 1.0);
                             intimidation += projected
                                 * (closing / 6.0).min(1.5)

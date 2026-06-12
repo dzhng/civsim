@@ -302,7 +302,7 @@ mod tests {
             pursue: false,
             threat_bearing: None,
             threat_unit: None,
-            latch_timer: 0.0,
+            latch_best: f32::INFINITY,
             latch_cd: 0.0,
             weapon_pref: 0,
             switch_timer: 0.0,

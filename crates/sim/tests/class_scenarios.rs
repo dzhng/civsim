@@ -438,3 +438,21 @@ fn move_order_into_a_deep_braced_column_bogs_into_melee() {
         u.mass_advance
     );
 }
+
+#[test]
+fn tmp_8rank_wall() {
+    let mut sim = Sim::new(Tunables { morale_enabled: false, ..Tunables::default() }, SEED);
+    let block = sim.spawn_class(Vec2::new(0.0, 40.0), PI / 2.0, 800, UnitClassId::HeavyInfantry, 1);
+    let cav = sim.spawn_class(Vec2::new(0.0, 160.0), -PI / 2.0, 80, UnitClassId::ShockCavalry, 0);
+    let _ = block;
+    sim.set_pace(cav, sim::Pace::Run);
+    sim.set_move_order(cav, Vec2::new(0.0, -80.0));
+    for t in 0..(45.0 / DT) as usize {
+        sim.tick();
+        if t % ((3.0 / DT) as usize) == 0 && t as f32 * DT > 12.0 {
+            let c = &sim.units[cav];
+            println!("W8 t={:>4.1} cav.y={:>6.1} ma={:>5.2} cp={:>5.2} eng={:>3}",
+                t as f32 * DT, c.centroid.y, c.mass_advance, c.counter_press, c.engaged);
+        }
+    }
+}

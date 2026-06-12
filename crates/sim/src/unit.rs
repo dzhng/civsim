@@ -161,10 +161,12 @@ pub struct Unit {
     pub threat_bearing: Option<f32>,
     /// Nearest enemy unit + edge distance (refreshed with threat_bearing).
     pub threat_unit: Option<(u32, f32)>,
-    /// Auto-latch countdown: a pursue-move that latched onto a target gives
-    /// up if it can't MAKE CONTACT before this runs out (no infinite chases
-    /// after faster prey). 0 = no timeout (explicit player attack).
-    pub latch_timer: f32,
+    /// Best (smallest) edge gap measured since this auto-latch began: the
+    /// chase gives up when the gap has OPENED past this by latch_slip —
+    /// "am I gaining?" measured, not a clock. INFINITY = permanent latch
+    /// (explicit player attack, or contact made); MAX = revocable latch
+    /// armed, first measurement pending.
+    pub latch_best: f32,
     /// After an expired chase, don't re-latch immediately.
     pub latch_cd: f32,
     /// 0 = weapons by judgment (distance), 1 = secondary drawn unit-wide

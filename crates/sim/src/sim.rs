@@ -224,7 +224,7 @@ impl Sim {
             pursue: false,
             threat_bearing: None,
             threat_unit: None,
-            latch_timer: 0.0,
+            latch_best: f32::INFINITY,
             latch_cd: 0.0,
             weapon_pref: 0,
             switch_timer: 0.0,
@@ -794,21 +794,6 @@ impl Sim {
             }
             if let OrderMode::Attack(e) = mode {
                 let e = e as usize;
-                // The chase point sits BEYOND the enemy mass, along the line
-                // between the two masses: a press is a direction, not a
-                // destination — you never arrive at it, never overshoot it,
-                // and the leash decides how deep the frame actually gets.
-                let (enemy_dead, enemy_anchor) = {
-                    let ev = &self.units[e];
-                    let me = self.units[ui].centroid;
-                    let through = ev.centroid - me;
-                    let l = through.len();
-                    // Interpenetrated masses have no usable axis — press on
-                    // along the facing instead of flip-flopping backward.
-                    let dir_v = if l > 6.0 { through * (1.0 / l) } else { dir(self.units[ui].facing) };
-                    (ev.alive_count == 0, ev.centroid + dir_v * 8.0)
-                };
-                let enemy_routing = self.units[e].routing;
                 // The enemy's edge along MY approach: half-depth when I come
                 // at their face, half-WIDTH when I come at their flank — a
                 // 100x4 column is 2m deep head-on and 50m wide side-on, and
@@ -822,20 +807,46 @@ impl Sim {
                     let er = Vec2::new(ef.y, -ef.x);
                     a.dot(ef).abs() * 0.5 * ev.depth() + a.dot(er).abs() * 0.5 * ev.width()
                 };
+                // The chase point sits BEYOND the enemy mass — past its far
+                // edge along my approach, footprint-derived (a press through
+                // a 20-rank column must aim past the whole column): a press
+                // is a direction, not a destination — you never arrive at
+                // it, never overshoot it, and the leash decides how deep the
+                // frame actually gets.
+                let standoff = enemy_edge_ext + 5.0;
+                let (enemy_dead, enemy_anchor) = {
+                    let ev = &self.units[e];
+                    let me = self.units[ui].centroid;
+                    let through = ev.centroid - me;
+                    let l = through.len();
+                    // Interpenetrated masses have no usable axis — press on
+                    // along the facing instead of flip-flopping backward.
+                    let dir_v = if l > 6.0 { through * (1.0 / l) } else { dir(self.units[ui].facing) };
+                    (ev.alive_count == 0, ev.centroid + dir_v * standoff)
+                };
+                let enemy_routing = self.units[e].routing;
+                // An auto-latch that is measurably LOSING GROUND gives up:
+                // no chasing faster prey across the map. The question is
+                // "am I gaining?", asked of the gap itself — a clock can't
+                // tell approaching prey from escaping prey.
+                let gap = {
+                    let ev = &self.units[e];
+                    let me = &self.units[ui];
+                    (ev.centroid - me.centroid).len()
+                        - 0.5 * ev.width().max(ev.depth())
+                        - 0.5 * me.width().max(me.depth())
+                };
                 let u = &mut self.units[ui];
-                // A timed latch (pursue auto-charge) that can't make contact
-                // gives up: no chasing faster prey across the map.
-                if u.latch_timer > 0.0 {
+                if u.latch_best.is_finite() {
                     if engaged_frac > 0.03 {
-                        u.latch_timer = 0.0; // contact made: the latch holds
-                    } else {
-                        u.latch_timer -= dt;
-                        if u.latch_timer <= 0.0 {
-                            u.mode = OrderMode::Move;
-                            u.move_target = u.resume_target.take();
-                            u.latch_cd = 5.0;
-                            continue;
-                        }
+                        u.latch_best = f32::INFINITY; // contact made: the latch holds
+                    } else if gap < u.latch_best {
+                        u.latch_best = gap;
+                    } else if gap > u.latch_best + self.tun.latch_slip {
+                        u.mode = OrderMode::Move;
+                        u.move_target = u.resume_target.take();
+                        u.latch_cd = 5.0;
+                        continue;
                     }
                 }
                 // The charge survives FIRST CONTACT: weapons come in reach
@@ -880,7 +891,7 @@ impl Sim {
                         // drained while charging), with the recovery clock at
                         // least half drained (no flickering at the budget's
                         // edge). Sustaining is the latch's job above.
-                        let to_front = dist - 8.0 - enemy_edge_ext;
+                        let to_front = dist - standoff - enemy_edge_ext;
                         let start = engaged_frac < 0.05
                             && to_front < charge_sp * self.tun.charge_window
                             && u.fatigue > 0.3
@@ -900,7 +911,7 @@ impl Sim {
                 match u.mode {
                     OrderMode::Move => {
                         if u.pursue {
-                            u.latch_timer = 6.0; // reactive latch: timed too
+                            u.latch_best = f32::MAX; // reactive latch: revocable too
                             // Pursue setting: the advance latches onto what
                             // it meets, resuming the path afterward.
                             if u.resume_target.is_none() {
@@ -943,7 +954,7 @@ impl Sim {
                                 u.resume_target = u.move_target;
                             }
                             u.mode = OrderMode::Attack(e);
-                            u.latch_timer = 6.0;
+                            u.latch_best = f32::MAX;
                             continue;
                         }
                     }
@@ -1370,10 +1381,12 @@ impl Sim {
             // bias: extra forward slack scaled by depth — the rear ranks'
             // weight, expressed as slots the men keep pressing to reach.
             let fighting_frac = engaged as f32 / n;
-            // A charging frame is exempt only on the APPROACH (no polite
-            // pre-braking); once the mass lands, momentum does the carrying
-            // and the frame obeys the law like everyone else.
-            let charge_approach = u.charging && fighting_frac < 0.1;
+            // A charging frame is exempt only while the MASS still moves at
+            // impact speed (no polite pre-braking); the moment the crowd
+            // bleeds it below charge grade, the frame obeys the law like
+            // everyone else — the exemption ends when the momentum does,
+            // by measurement, not by an engagement threshold.
+            let charge_approach = u.charging && u.mass_advance > tun.charge_min_speed;
             if !u.routing && !charge_approach {
                 let f = dir(u.facing);
                 let expected = u.anchor + f * (-0.5 * u.depth());

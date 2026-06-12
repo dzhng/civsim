@@ -89,7 +89,9 @@ pub struct Tunables {
     pub press_drive: f32,
     /// Closing speed (m/s) above which an enemy contact is a charge impact.
     pub charge_min_speed: f32,
-    /// Impact momentum (m_eff * closing speed) that knocks a lighter body down.
+    /// Impact momentum (m_eff x closing speed) that knocks a body down, PER
+    /// unit of the victim's effective mass (brace and backpressure included):
+    /// felling is a contest of masses, and the press chain holds a man up.
     pub stun_momentum: f32,
     pub stun_time: f32,
     /// Extra displacement per m/s of closing speed at impact.
@@ -106,6 +108,11 @@ pub struct Tunables {
     /// Final-approach window: charge engages within this many seconds of
     /// contact at charge speed.
     pub charge_window: f32,
+    /// An auto-latched chase gives up once the edge gap has OPENED this
+    /// many meters past the best it ever achieved: measured loss of ground,
+    /// with enough slack that wheeling and collision jitter don't spook a
+    /// real pursuit. (Explicit attack orders never give up.)
+    pub latch_slip: f32,
     /// Ram drag: commanded pace shed per (m/s of measured counter-press ×
     /// the unit's own speed in walking paces). Collision rate grows with
     /// speed, so a slow othismos press barely feels the crowd's answer
@@ -164,6 +171,7 @@ impl Default for Tunables {
             charge_min_speed: 2.5,
             charge_speed: 4.6,
             charge_window: 2.0,
+            latch_slip: 4.0,
             press_brake: 10.0,
             press_brake_floor: 0.45,
             charge_spent_speed: 1.0,

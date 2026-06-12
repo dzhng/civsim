@@ -357,18 +357,22 @@ fn threats_that_never_land_lose_their_terror() {
 #[test]
 fn dying_from_two_directions_breaks_faster_than_frontal() {
     // The directions term: the same blood from two sides costs more will.
-    // Equal attacker mass, split front+rear vs all frontal; compare the
-    // DEFENDER's casualties at its break.
+    // The SAME two attacker units, stacked in column at the front vs split
+    // front-and-rear (a single wide wall would WRAP and contaminate the
+    // frontal control); compare the DEFENDER's casualties at its break.
     let dead_at_break = |split: bool| -> f32 {
         let mut sim = Sim::new(Tunables::default(), SEED);
-        let v = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 160, UnitClassId::HeavyInfantry, 0);
+        let v = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 240, UnitClassId::HeavyInfantry, 0);
         let attackers = if split {
             vec![
-                sim.spawn_class(Vec2::new(0.0, 30.0), -FRAC_PI_2, 150, UnitClassId::HeavyInfantry, 1),
-                sim.spawn_class(Vec2::new(0.0, -30.0), FRAC_PI_2, 150, UnitClassId::HeavyInfantry, 1),
+                sim.spawn_class(Vec2::new(0.0, 32.0), -FRAC_PI_2, 220, UnitClassId::HeavyInfantry, 1),
+                sim.spawn_class(Vec2::new(0.0, -32.0), FRAC_PI_2, 220, UnitClassId::HeavyInfantry, 1),
             ]
         } else {
-            vec![sim.spawn_class(Vec2::new(0.0, 30.0), -FRAC_PI_2, 300, UnitClassId::HeavyInfantry, 1)]
+            vec![
+                sim.spawn_class(Vec2::new(0.0, 32.0), -FRAC_PI_2, 220, UnitClassId::HeavyInfantry, 1),
+                sim.spawn_class(Vec2::new(0.0, 95.0), -FRAC_PI_2, 220, UnitClassId::HeavyInfantry, 1),
+            ]
         };
         for a in attackers {
             sim.set_charge_enabled(a, false);
@@ -381,7 +385,7 @@ fn dying_from_two_directions_breaks_faster_than_frontal() {
             }
         }
         assert!(sim.units[v].routing, "outnumbered 2:1, it must break eventually");
-        1.0 - sim.units[v].alive_count as f32 / 160.0
+        1.0 - sim.units[v].alive_count as f32 / 240.0
     };
     let frontal = dead_at_break(false);
     let enveloped = dead_at_break(true);
@@ -586,5 +590,36 @@ fn depleted_units_feel_each_loss_more() {
     assert!(
         depleted > full * 1.5,
         "each loss weighs more on fewer shoulders: {depleted:.3} vs {full:.3}"
+    );
+}
+
+#[test]
+fn a_hopeless_wall_of_horse_routs_the_token_line_before_contact() {
+    // 400 heavy horse closing on 40 foot: the projection is a massacre at
+    // 10:1 — the line breaks at FULL courage before the wall lands. (And
+    // since fear is amplified by disorder, a bigger but raggeder line
+    // breaks the same way.)
+    let mut sim = Sim::new(Tunables::default(), SEED);
+    let line = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 40, UnitClassId::HeavyInfantry, 0);
+    let cav = sim.spawn_class(Vec2::new(0.0, 140.0), -FRAC_PI_2, 400, UnitClassId::ShockCavalry, 1);
+    sim.set_pace(cav, sim::Pace::Run);
+    for _ in 0..(3.0 / DT) as usize {
+        sim.tick();
+    }
+    sim.units[line].morale = 1.0; // full courage — it doesn't matter
+    sim.set_attack_order(cav, line);
+    let mut broke_with_dead = None;
+    for _ in 0..(30.0 / DT) as usize {
+        sim.tick();
+        if sim.units[line].routing {
+            broke_with_dead = Some(40 - sim.units[line].alive_count);
+            break;
+        }
+    }
+    let dead = broke_with_dead.expect("the token line must break");
+    println!("token line broke having lost {dead} men");
+    assert!(
+        dead < 10,
+        "it breaks from the PROJECTION, not the impact: {dead} dead"
     );
 }

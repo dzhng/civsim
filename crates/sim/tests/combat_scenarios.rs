@@ -168,8 +168,11 @@ fn attack_from_behind_is_deadlier_than_frontal() {
     // formation rectangle): victim faces the attacker vs faces away.
     // Shields cover the front arc and turning takes time, so rear attacks
     // land unblocked on men facing the wrong way.
-    let fight = |victim_facing: f32| -> usize {
-        let mut sim = Sim::new(no_morale(), SEED);
+    // Summed over seeds: a single realization of a 200-man scrum is chaos
+    // (the margin flapped with every unrelated calibration breath); the
+    // CLAIM is directional and emerges over the ensemble.
+    let fight = |victim_facing: f32, seed: u64| -> usize {
+        let mut sim = Sim::new(no_morale(), seed);
         let v = sim.spawn_class(Vec2::new(0.0, 10.0), victim_facing, 200, UnitClassId::HeavyInfantry, 0);
         let atk = sim.spawn_class(Vec2::new(0.0, -12.0), FRAC_PI_2, 200, UnitClassId::HeavyInfantry, 1);
         // Isolate the STRIKE asymmetry: a live charge's impact kills (pushes,
@@ -180,11 +183,15 @@ fn attack_from_behind_is_deadlier_than_frontal() {
         run(&mut sim, 60.0);
         deaths(&sim, v)
     };
-    let frontal = fight(-FRAC_PI_2); // facing the attacker
-    let rear = fight(FRAC_PI_2); // facing away
+    let mut frontal = 0;
+    let mut rear = 0;
+    for seed in [SEED, SEED + 1, SEED + 2] {
+        frontal += fight(-FRAC_PI_2, seed); // facing the attacker
+        rear += fight(FRAC_PI_2, seed); // facing away
+    }
     assert!(
         rear as f32 > frontal as f32 * 1.05, // heavies barely evade: this arm carries the BLOCK asymmetry
-        "rear attacks must be deadlier: rear {rear} vs frontal {frontal}"
+        "rear attacks must be deadlier: rear {rear} vs frontal {frontal} (3 seeds)"
     );
 }
 
@@ -313,7 +320,10 @@ fn withdraw_disengages_under_fire() {
     // bursts on the way IN, so the unit starts the extraction deeper and
     // more spent. Measure displacement from the order point, not a fixed
     // line — how far it pressed is the attack's business, not this test's.)
-    run(&mut sim, 50.0);
+    // 60s: the attack embeds deeper now (braced men stay on their feet and
+    // a winning roll runs unleashed), so the about-face out of a full
+    // embedment takes most of a minute before the gap opens.
+    run(&mut sim, 60.0);
     assert!(
         sim.units[a].engaged < 10, // a trailing straggler or two is contact noise
         "withdrawing unit must break contact, engaged {}",

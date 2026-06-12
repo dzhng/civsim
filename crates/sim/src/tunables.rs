@@ -27,10 +27,10 @@ pub struct Tunables {
     /// not a constant tidying force.
     pub surge_err_threshold: f32,
     /// Unit fatigue drained per second while running (~90 s to empty).
+    /// (Surging itself is drain-free: it is a CORRECTION the controller
+    /// orders, not a pace anyone chose — taxing it punished units for
+    /// being jostled, and churny motion like kiting paid double.)
     pub run_drain: f32,
-    /// Fatigue drained per second if the whole unit is surging (scaled by
-    /// the surging fraction; ~30 s to empty at full surge).
-    pub surge_drain: f32,
     /// Fatigue recovered per second at rest (~4 min for a full bar).
     pub rest_recover: f32,
     /// Fatigue drained per second of fighting fully resistive ground
@@ -125,7 +125,6 @@ impl Default for Tunables {
             surge_speed: 4.4,
             surge_err_threshold: 6.0,
             run_drain: 1.0 / 90.0,
-            surge_drain: 1.0 / 30.0,
             rest_recover: 1.0 / 240.0,
             terrain_drain: 1.0 / 70.0,
             base_turn_rate: 1.0,

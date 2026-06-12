@@ -134,10 +134,10 @@ fn running_drains_fatigue_and_tired_units_slow_down() {
 }
 
 #[test]
-fn maneuvers_cost_fatigue_and_rest_recovers_it() {
-    // With the loose surge threshold a drilled about-face is nearly free
-    // (men step a few meters) — the SURGE is what costs. Scatter the unit
-    // hard so the catch-up sprint genuinely fires.
+fn re_forming_is_free_running_drains_and_rest_recovers() {
+    // Surging is a CORRECTION the controller orders, not a pace anyone
+    // chose — so re-seating a scattered unit costs nothing. The chosen
+    // exertions (a run) are what drain, and rest gives it back.
     let mut sim = Sim::new(Tunables::default(), SEED);
     let u = test_unit(&mut sim);
     {
@@ -148,19 +148,23 @@ fn maneuvers_cost_fatigue_and_rest_recovers_it() {
             sim.positions[2 * i + 1] += ((s % 7) as f32 - 3.0) * 3.5;
         }
     }
-    run(&mut sim, 4.0); // read at the trough, before rest heals it
-    let after_pivot = sim.units[u].fatigue;
+    run(&mut sim, 6.0); // the catch-up sprint fires and re-seats
+    let after_reform = sim.units[u].fatigue;
     assert!(
-        after_pivot < 0.99,
-        "sprinting back into formation costs fatigue, got {after_pivot}"
+        after_reform > 0.99,
+        "re-forming is stamina-free (the surge is a correction): {after_reform}"
     );
+    sim.set_pace(u, sim::Pace::Run);
+    sim.set_move_order(u, Vec2::new(0.0, 120.0));
+    run(&mut sim, 30.0);
+    let ran = sim.units[u].fatigue;
+    assert!(ran < 0.8, "a chosen run drains: {ran}");
     sim.units[u].move_target = None;
     run(&mut sim, 120.0);
     let rested = sim.units[u].fatigue;
-    let expected = (after_pivot + 0.2).min(0.995);
     assert!(
-        rested > expected,
-        "rest should recover fatigue: {rested} after {after_pivot}"
+        rested > (ran + 0.2).min(0.995),
+        "rest should recover fatigue: {rested} after {ran}"
     );
 }
 

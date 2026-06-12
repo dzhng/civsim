@@ -352,9 +352,10 @@ impl Sim {
         let attacker_p = self.soldier_pos(attacker);
         let victim_p = self.soldier_pos(victim);
         let to_center = (victim_p - attacker_p).len() - self.radius[attacker] - 0.35;
-        if self.mounted[victim] == 1 && to_center <= weapon.reach {
-            self.rider_health[victim] -= weapon.damage;
-            if self.rider_health[victim] <= 0.0 {
+        if self.mounted[victim] == 1 && to_center > weapon.reach {
+            // Only the mount's body is in reach: the horse soaks it.
+            self.mount_health[victim] -= weapon.damage;
+            if self.mount_health[victim] <= 0.0 {
                 self.kill(victim);
             }
         } else {

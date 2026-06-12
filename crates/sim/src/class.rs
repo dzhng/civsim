@@ -42,10 +42,11 @@ pub struct UnitClass {
     pub spacing: Vec2,
     /// Ranks for the group-drag depth invariant.
     pub default_depth: usize,
-    /// Body health (the horse's, when mounted).
+    /// The MAN's health, every class (the rider, when mounted — he sits
+    /// at the body's center, reachable only when the weapon spans to him).
     pub health: f32,
-    /// Rider health (mounted only).
-    pub rider_health: f32,
+    /// The mount's body pool (mounted only; the horse is the big target).
+    pub mount_health: f32,
     /// Chance to block (melee + missiles, front arc only; still pushed).
     pub block: f32,
     /// Chance to evade (melee only, no push; zero under crush pressure).
@@ -63,6 +64,10 @@ pub struct UnitClass {
     /// (Independent of `mounted`, which is body geometry: two circles and
     /// a rider pool.)
     pub tramples: bool,
+    /// Stamina drain multiplier: the cost of the kit. Every draining second
+    /// (running, fighting, charging, bad ground) is scaled by this — armor
+    /// is paid for in wind, so heavies blow out long before a screen does.
+    pub drain_mult: f32,
     pub weapons: &'static [Weapon],
 }
 
@@ -150,17 +155,19 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
         spacing: Vec2::new(1.0, 1.2),
         default_depth: 6,
         health: 1.0,
-        rider_health: 0.0,
+        mount_health: 0.0,
         block: 0.15,
         evade: 0.2,
         training: 0.6,
         stance: Stance::Othismos,
         charge: true,
         tramples: false,
+        drain_mult: 1.0,
         weapons: &[SWORD],
     };
     match id {
         HeavyInfantry => UnitClass {
+            drain_mult: 1.35,
             speed_mult: 0.9,
             soldier_radius: 0.34,
             mass: 1.3,
@@ -175,6 +182,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             ..foot
         },
         LightInfantry => UnitClass {
+            drain_mult: 0.85,
             speed_mult: 1.1,
             soldier_radius: 0.32,
             mass: 0.95,
@@ -188,6 +196,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             ..foot
         },
         LongSwords => UnitClass {
+            drain_mult: 1.25,
             soldier_radius: 0.33,
             mass: 1.1,
             spacing: Vec2::new(1.5, 1.4),
@@ -201,6 +210,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             ..foot
         },
         Phalanx => UnitClass {
+            drain_mult: 1.3,
             speed_mult: 0.85,
             mass: 1.2,
             brace_mult: 4.0,
@@ -215,6 +225,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             ..foot
         },
         Archers => UnitClass {
+            drain_mult: 0.85,
             brace_mult: 1.0, // missile foot don't fight as a planted wall
             speed_mult: 1.05,
             soldier_radius: 0.32,
@@ -230,6 +241,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             ..foot
         },
         Skirmishers => UnitClass {
+            drain_mult: 0.65,
             brace_mult: 1.0,
             speed_mult: 1.2,
             soldier_radius: 0.31,
@@ -254,8 +266,9 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             tramples: true,
             spacing: Vec2::new(1.8, 2.4),
             default_depth: 5,
-            health: 1.8,
-            rider_health: 1.1,
+            health: 1.1,
+            mount_health: 6.5, // a horse is a LOT of animal: short blades
+                               // chip at it while the rider stays safe
             block: 0.25,
             evade: 0.12,
             training: 0.75,
@@ -264,6 +277,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             ..foot
         },
         HorseArchers => UnitClass {
+            drain_mult: 0.8,
             speed_mult: 2.8,
             soldier_radius: 0.55,
             mass: 3.8,
@@ -272,8 +286,8 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             tramples: true,
             spacing: Vec2::new(2.2, 2.6),
             default_depth: 5,
-            health: 1.4,
-            rider_health: 1.0,
+            health: 1.0,
+            mount_health: 5.0,
             block: 0.1,
             evade: 0.25,
             training: 0.65,

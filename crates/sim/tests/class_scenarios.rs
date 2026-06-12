@@ -266,8 +266,11 @@ fn heavy_infantry_charge_carries_a_stride_not_a_gallop() {
         v_charge > 2.4,
         "the charge makes CONTACT at speed (p = m·v needs the v): {v_charge:.1} m/s"
     );
+    // (Armor is paid for in wind now: a heavy's long running approach
+    // arrives with drained legs, so the burst's measurable edge is a
+    // stride's worth, not a gallop's — same bar as the combat-suite twin.)
     assert!(
-        v_charge > v_walk + 0.7,
+        v_charge > v_walk + 0.25,
         "the burst outpaces the run-in: {v_charge:.1} vs {v_walk:.1} m/s"
     );
 }
@@ -343,4 +346,37 @@ fn charging_costs_stamina_and_spent_legs_cannot_burst() {
     );
     let (spent_burst, _, _) = burst(false);
     assert!(!spent_burst, "blown horses cannot charge — they trot in");
+}
+
+#[test]
+fn pikes_unhorse_cavalry_swords_chip_at_horseflesh() {
+    // Target priority is GEOMETRY: a strike lands on the rider whenever the
+    // weapon spans to his perch (to_center <= reach), and only soaks into
+    // the mount otherwise. Pikes fight at 3.2m and span to the man; swords
+    // at 1.1m almost never do — and a horse is several times the man's
+    // health, so chipping at horseflesh is a losing proposition.
+    let cav_dead = |attacker: UnitClassId| -> usize {
+        let mut sim = Sim::new(
+            Tunables { morale_enabled: false, ..Tunables::default() },
+            SEED,
+        );
+        let atk = sim.spawn_class(Vec2::new(0.0, -14.0), PI / 2.0, 240, attacker, 0);
+        let cav = sim.spawn_class(Vec2::new(0.0, 14.0), -PI / 2.0, 120, UnitClassId::ShockCavalry, 1);
+        sim.set_charge_enabled(atk, false); // isolate weapon geometry
+        sim.set_attack_order(atk, cav);
+        // Early window: frontal geometry dominates before the scrum
+        // interpenetrates and gives swords side access to the riders.
+        for _ in 0..(20.0 / DT) as usize {
+            sim.tick();
+        }
+        let u = &sim.units[cav];
+        u.count - u.alive_count
+    };
+    let by_pikes = cav_dead(UnitClassId::Phalanx);
+    let by_swords = cav_dead(UnitClassId::HeavyInfantry);
+    println!("cav dead: pikes {by_pikes}, swords {by_swords}");
+    assert!(
+        by_pikes as f32 > by_swords as f32 * 2.0,
+        "pikes unhorse riders, swords struggle: {by_pikes} vs {by_swords}"
+    );
 }

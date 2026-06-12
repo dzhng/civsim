@@ -203,11 +203,12 @@ fn rider_reachability_is_pure_geometry() {
         // step-to-range scrum interpenetrates everything.
         run(&mut sim, 3.0);
         let u = &sim.units[cav];
+        let stats = sim::class_stats(UnitClassId::ShockCavalry);
         let mut horse_dmg = 0.0;
         let mut rider_dmg = 0.0;
         for s in u.start..u.start + u.count {
-            horse_dmg += (1.8 - sim.health[s]).max(0.0);
-            rider_dmg += (1.1 - sim.rider_health[s]).max(0.0);
+            horse_dmg += (stats.mount_health - sim.mount_health[s]).max(0.0);
+            rider_dmg += (stats.health - sim.health[s]).max(0.0);
         }
         (rider_dmg, horse_dmg)
     };
@@ -489,7 +490,10 @@ fn long_swords_cleave_but_die_in_a_press() {
 #[test]
 fn charge_bursts_only_in_the_final_approach_of_an_attack() {
     let mut sim = Sim::new(no_morale(), SEED);
-    let a = sim.spawn_class(Vec2::new(0.0, -80.0), FRAC_PI_2, 200, UnitClassId::HeavyInfantry, 0);
+    // Close enough that the heavies arrive with LEGS: armor is paid for in
+    // wind now, and a 100m running approach reaches the window too blown to
+    // burst (correct, but it would test depletion instead of the window).
+    let a = sim.spawn_class(Vec2::new(0.0, -40.0), FRAC_PI_2, 200, UnitClassId::HeavyInfantry, 0);
     let b = sim.spawn_class(Vec2::new(0.0, 20.0), -FRAC_PI_2, 200, UnitClassId::HeavyInfantry, 1);
     let _ = b;
     sim.set_attack_order(a, b);
@@ -576,11 +580,20 @@ fn surrounded_othismos_breakout_bores_toward_the_click() {
     let y0 = sim.units[u].centroid.y;
     sim.set_stance(u, sim::Stance::Othismos);
     sim.set_move_order(u, Vec2::new(0.0, -120.0));
-    run(&mut sim, 60.0);
-    let moved = y0 - sim.units[u].centroid.y;
+    // Track the bore WHILE the block lives: to-the-death in a 1:2.7 ring
+    // annihilates it eventually (armor is paid for in wind; a blown block
+    // loses its defenses), and a dead unit's mean reads garbage. The claim
+    // is the grind toward the click, not survival.
+    let mut peak = f32::NEG_INFINITY;
+    for _ in 0..(60.0 / DT) as usize {
+        sim.tick();
+        if sim.units[u].alive_count > 50 {
+            peak = peak.max(y0 - sim.units[u].centroid.y);
+        }
+    }
     assert!(
-        moved > 8.0,
-        "the othismos breakout must grind toward the click: moved {moved:.1}m south"
+        peak > 8.0,
+        "the othismos breakout must grind toward the click: peak {peak:.1}m south"
     );
 }
 

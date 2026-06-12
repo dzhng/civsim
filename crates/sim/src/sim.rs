@@ -29,7 +29,7 @@ pub struct Sim {
     /// 1 = two-circle elongated body with a rider pool at center.
     pub mounted: Vec<u8>,
     /// Rider health (mounted only; geometry decides who can strike it).
-    pub rider_health: Vec<f32>,
+    pub mount_health: Vec<f32>,
     /// Crowd squeeze per soldier (EMA of received separation push, m/s):
     /// measured, never written by gameplay. Kills evade, transmits force.
     pub pressure: Vec<f32>,
@@ -101,7 +101,7 @@ impl Sim {
             radius: Vec::new(),
             max_radius: tun.soldier_radius,
             mounted: Vec::new(),
-            rider_health: Vec::new(),
+            mount_health: Vec::new(),
             pressure: Vec::new(),
             press_x: Vec::new(),
             press_y: Vec::new(),
@@ -194,6 +194,7 @@ impl Sim {
             charging: false,
             charge_time: 0.0,
             charge_at_speed: false,
+            drain_mult: 1.0,
             resume_target: None,
             alive_count: count,
             deaths_since_reform: 0,
@@ -233,7 +234,7 @@ impl Sim {
             self.mass.push(1.0);
             self.radius.push(self.tun.soldier_radius);
             self.mounted.push(0);
-            self.rider_health.push(0.0);
+            self.mount_health.push(0.0);
             self.pressure.push(0.0);
             self.press_x.push(0.0);
             self.press_y.push(0.0);
@@ -276,7 +277,7 @@ impl Sim {
             self.mass[start + s] = stats.mass;
             self.radius[start + s] = stats.soldier_radius;
             self.mounted[start + s] = stats.mounted as u8;
-            self.rider_health[start + s] = stats.rider_health;
+            self.mount_health[start + s] = stats.mount_health;
         }
         self.max_radius = self.max_radius.max(stats.soldier_radius);
         let u = &mut self.units[idx];
@@ -284,6 +285,7 @@ impl Sim {
         u.speed_mult = stats.speed_mult;
         u.stance = stats.stance;
         u.charge_enabled = stats.charge;
+        u.drain_mult = stats.drain_mult;
         if let Some(spec) = crate::missiles::missile_spec(class) {
             u.ammo = spec.ammo * count as u32;
         }
@@ -1335,7 +1337,7 @@ impl Sim {
     ) {
         let tun = self.tun;
         use std::f32::consts::PI;
-        for (u, &(err_sum, stragglers, surging, effort, engaged, face_dev, alive_n, cx, cy)) in
+        for (u, &(err_sum, stragglers, _surging, effort, engaged, face_dev, alive_n, cx, cy)) in
             self.units.iter_mut().zip(measures)
         {
             let n = alive_n.max(1) as f32;
@@ -1429,8 +1431,11 @@ impl Sim {
             u.engaged = engaged;
             let engaged_frac = engaged as f32 / n;
 
-            let surge_frac = surging as f32 / n;
-            let mut drain = tun.surge_drain * surge_frac;
+            // Surging is drain-free by design: it is a CORRECTION the
+            // controller orders, not a pace anyone chose. The chosen
+            // exertions drain, and the kit scales the bill (drain_mult):
+            // armor is paid for in wind.
+            let mut drain = 0.0f32;
             if u.effective_pace() == Pace::Run && u.frame_speed > tun.base_speed * 1.05 {
                 drain += tun.run_drain;
             }
@@ -1439,6 +1444,7 @@ impl Sim {
             if u.charging {
                 drain += tun.charge_drain;
             }
+            drain *= u.drain_mult;
             if u.frame_speed < 0.1 && u.move_target.is_none() && engaged == 0 {
                 drain -= tun.rest_recover;
             }

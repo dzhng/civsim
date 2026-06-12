@@ -373,9 +373,10 @@ impl Sim {
         }
         let _ = from;
 
-        if self.mounted[victim] == 1 && self.rng.chance(0.45) {
-            self.rider_health[victim] -= damage;
-            if self.rider_health[victim] <= 0.0 {
+        if self.mounted[victim] == 1 && !self.rng.chance(0.45) {
+            // The arrow finds the horse, not the man (55% of the profile).
+            self.mount_health[victim] -= damage;
+            if self.mount_health[victim] <= 0.0 {
                 self.kill(victim);
             }
         } else {

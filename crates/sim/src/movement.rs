@@ -252,6 +252,7 @@ mod tests {
             charging: false,
             charge_time: 0.0,
             charge_at_speed: false,
+            drain_mult: 1.0,
             resume_target: None,
             alive_count: 0,
             deaths_since_reform: 0,

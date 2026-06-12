@@ -89,6 +89,9 @@ pub struct Unit {
     /// Seconds this burst has been running: a charge is a SPRINT, not a
     /// gait — it ends when the mass lands or the legs give out (~2x window).
     pub charge_time: f32,
+    /// Stamina drain multiplier from the class (the cost of the kit):
+    /// every draining second is scaled by it — armor is paid for in wind.
+    pub drain_mult: f32,
     /// The burst has reached impact speed (mass_advance ≥ charge_min_speed),
     /// contact or not. Arms the spent check: from here, the mass falling
     /// back below charge_spent_speed means the crowd has bled the momentum
@@ -243,7 +246,9 @@ impl Unit {
 
     /// The pace the legs actually use: an attack closes at the double
     /// regardless of the ordered pace — movement intent, not a combat
-    /// bonus. (The charge burst overrides higher still, in pace_speed.)
+    /// bonus. (The charge burst overrides higher still, in pace_speed.
+    /// In a stalled press the run drain self-gates on measured frame
+    /// speed; the rear ranks' run-pace shove IS the attack pressing.)
     pub fn effective_pace(&self) -> Pace {
         if matches!(self.mode, OrderMode::Attack(_)) {
             Pace::Run

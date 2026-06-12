@@ -160,7 +160,7 @@ impl Game {
                     "training": c.training,
                     "speedMult": c.speed_mult,
                     "health": c.health,
-                    "riderHealth": c.rider_health,
+                    "mountHealth": c.mount_health,
                     "mounted": c.mounted,
                     "charges": c.charge,
                     "weapons": weapons,

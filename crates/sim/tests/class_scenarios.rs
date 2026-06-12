@@ -583,3 +583,46 @@ fn a_braced_pike_front_keeps_its_feet_under_the_charge() {
     );
     let _ = peak_felled;
 }
+
+#[test]
+fn eight_ranks_of_swords_toll_the_ride_but_cannot_hold_it() {
+    // LOCKED BEHAVIOR (sword walls vs cavalry, by design): dense sword
+    // infantry without pole-arms cannot STOP heavy horse — only points
+    // can (see the ignored Waterloo contract and specs/impale.md) — but
+    // eight braced ranks exact a real toll: the slam carries the riders
+    // through the wall, the tangle behind it drops the mass below trample
+    // speed, the MAJORITY of the cavalry plants into honest melee for a
+    // few seconds, and only then do they shove free and ride on. The ride
+    // survives; the charge does not.
+    let mut sim = Sim::new(Tunables { morale_enabled: false, ..Tunables::default() }, SEED);
+    let block = sim.spawn_class(Vec2::new(0.0, 40.0), PI / 2.0, 800, UnitClassId::HeavyInfantry, 1);
+    let cav = sim.spawn_class(Vec2::new(0.0, 160.0), -PI / 2.0, 80, UnitClassId::ShockCavalry, 0);
+    let _ = block;
+    sim.set_pace(cav, sim::Pace::Run);
+    sim.set_move_order(cav, Vec2::new(0.0, -80.0));
+    let mut min_ma = f32::INFINITY;
+    let mut melee_secs = 0.0f32;
+    for _ in 0..(45.0 / DT) as usize {
+        sim.tick();
+        let c = &sim.units[cav];
+        min_ma = min_ma.min(c.mass_advance);
+        if c.engaged * 2 >= c.alive_count {
+            melee_secs += DT;
+        }
+    }
+    let c = &sim.units[cav];
+    assert!(
+        min_ma < 1.0,
+        "the tangle stops the mass below trample speed: min mass_advance {min_ma:.2}"
+    );
+    assert!(
+        melee_secs > 2.0,
+        "the majority of the cavalry fights as melee for a few seconds: {melee_secs:.1}s"
+    );
+    assert!(
+        c.centroid.y < -60.0,
+        "and they shove their way out and ride on: centroid y {:.1}",
+        c.centroid.y
+    );
+    assert!(c.alive_count >= 70, "the toll is a toll, not a grave: {} left", c.alive_count);
+}

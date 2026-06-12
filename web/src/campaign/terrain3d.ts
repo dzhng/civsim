@@ -38,6 +38,15 @@ vec4 project(vec3 wp) {
   return vec4(x * uFA.x / uFA.y, y * uFA.x, zc, zv);
 }`;
 
+// Rome 2-style grade: warm tone tilt, saturation lift, gentle contrast.
+const GRADE = `
+vec3 grade(vec3 c) {
+  c = pow(max(c, 0.0), vec3(0.93, 0.97, 1.04));
+  float l = dot(c, vec3(0.299, 0.587, 0.114));
+  c = mix(vec3(l), c, 1.22);
+  return clamp(c * 1.08 - 0.015, 0.0, 1.0);
+}`;
+
 const NOISE = `
 float hash(vec2 p) {
   p = fract(p * vec2(123.34, 456.21));
@@ -81,6 +90,7 @@ uniform vec2 uFx; // territory alpha, fog strength
 uniform float uFogD, uTime;
 out vec4 outColor;
 ${NOISE}
+${GRADE}
 // An octave whose wavelength nears one screen pixel collapses to its mean
 // instead of aliasing into static. px = world km per screen px here.
 float nz(vec2 p, float freq, float px) {
@@ -100,15 +110,15 @@ void main() {
     float m = b.r;
     float g1 = nz(vXY, 0.9, px);
     float g2 = nz(vXY, 3.1, px);
-    vec3 grass = mix(vec3(0.55, 0.51, 0.30), vec3(0.25, 0.40, 0.18), smoothstep(0.28, 0.62, m));
+    vec3 grass = mix(vec3(0.52, 0.50, 0.27), vec3(0.22, 0.42, 0.15), smoothstep(0.22, 0.55, m));
     grass *= 0.86 + 0.18 * g1 + 0.10 * g2;
     float dune = abs(nz(vXY, 0.16, px) * 2.0 - 1.0);
-    vec3 sand = mix(vec3(0.83, 0.74, 0.54), vec3(0.71, 0.60, 0.42), dune);
+    vec3 sand = mix(vec3(0.86, 0.75, 0.52), vec3(0.73, 0.61, 0.40), dune);
     sand *= 0.93 + 0.10 * nz(vXY, 1.6, px);
     vec3 ground = mix(sand, grass, smoothstep(0.16, 0.32, m));
     // beach: a narrow sandy rim where land meets water (b.a in shore units)
     float landShore = (b.a - 0.5) * 24.0; // cells from the waterline
-    ground = mix(vec3(0.80, 0.73, 0.55), ground, smoothstep(0.1, 0.8, landShore));
+    ground = mix(vec3(0.80, 0.73, 0.55), ground, smoothstep(0.05, 0.6, landShore));
     // forest canopy clumps
     float canopy = smoothstep(0.25, 0.7, b.g * (0.55 + 0.9 * nz(vXY, 0.55, px)));
     vec3 forestC = mix(vec3(0.13, 0.25, 0.10), vec3(0.20, 0.33, 0.14), nz(vXY, 1.9, px));
@@ -116,8 +126,10 @@ void main() {
     // rock strata above the treeline, snow only on the broadest masses
     vec3 rockC = mix(vec3(0.44, 0.41, 0.37), vec3(0.61, 0.58, 0.53),
                      nz(vec2(vXY.x, vXY.y + vH * 0.9), 0.7, px));
-    ground = mix(ground, rockC, smoothstep(0.3, 0.75, b.b) * (0.7 + 0.3 * g1));
-    float snow = smoothstep(21.0, 26.5, vH + (nz(vXY, 0.5, px) - 0.5) * 6.0);
+    ground = mix(ground, rockC, smoothstep(0.35, 0.85, b.b) * (0.7 + 0.3 * g1));
+    // snowline climbs toward the south: the Alps whiten, the Atlas stays rock
+    float snowAt = 21.0 + clamp((700.0 - vXY.y) * 0.006, 0.0, 7.0);
+    float snow = smoothstep(snowAt, snowAt + 5.5, vH + (nz(vXY, 0.5, px) - 0.5) * 6.0);
     ground = mix(ground, vec3(0.92, 0.93, 0.96), snow);
     // political mode reads better over calmer ground
     float grey = dot(ground, vec3(0.333));
@@ -138,15 +150,16 @@ void main() {
     float wx = nz(p1 + vec2(e, 0), 0.35, px) * 0.65 + nz(p2 + vec2(e, 0), 1.15, px) * 0.35 - w0;
     float wy = nz(p1 + vec2(0, e), 0.35, px) * 0.65 + nz(p2 + vec2(0, e), 1.15, px) * 0.35 - w0;
     vec3 wn = normalize(vec3(-wx * 1.6, -wy * 1.6, 1.0));
-    vec3 wcol = mix(vec3(0.13, 0.38, 0.42), vec3(0.03, 0.11, 0.21), smoothstep(0.0, 0.6, depth));
-    wcol += 0.05 * (w0 - 0.5);
+    float shelf = smoothstep(0.0, 0.28, depth + (nz(vXY, 0.5, px) - 0.5) * 0.1);
+    vec3 wcol = mix(vec3(0.10, 0.40, 0.44), vec3(0.02, 0.15, 0.28), shelf);
+    wcol += 0.06 * (w0 - 0.5);
     vec3 V = normalize(uEye - vec3(vXY, 0.0));
-    wcol += vec3(1.0, 0.93, 0.75) * pow(max(dot(reflect(-uSun, wn), V), 0.0), 90.0)
-            * 0.5 * clamp(1.0 - 0.6 * px, 0.0, 1.0);
-    wcol = mix(wcol, vec3(0.36, 0.46, 0.55), pow(1.0 - max(dot(wn, V), 0.0), 3.0) * 0.3);
-    float foam = smoothstep(0.5, 0.0, (0.5 - b.a) * 24.0)
-               * smoothstep(0.45, 0.85, nz(vXY + vec2(uTime * 3.0, -uTime * 2.0), 2.3, px));
-    wcol = mix(wcol, vec3(0.85, 0.90, 0.92), foam * 0.6);
+    wcol += vec3(1.0, 0.95, 0.8) * pow(max(dot(reflect(-uSun, wn), V), 0.0), 70.0)
+            * 0.7 * clamp(1.0 - 0.6 * px, 0.0, 1.0);
+    wcol = mix(wcol, vec3(0.34, 0.48, 0.55), pow(1.0 - max(dot(wn, V), 0.0), 3.0) * 0.3);
+    float foam = smoothstep(0.6, 0.0, (0.5 - b.a) * 24.0)
+               * smoothstep(0.4, 0.8, nz(vXY + vec2(uTime * 3.0, -uTime * 2.0), 2.3, px));
+    wcol = mix(wcol, vec3(0.88, 0.93, 0.94), foam * 0.7);
     col = mix(col, wcol, water);
   }
 
@@ -154,7 +167,7 @@ void main() {
     float fog = (1.0 - exp(-pow(vZ * uFogD, 2.0))) * uFx.y;
     col = mix(col, uFogC, clamp(fog, 0.0, 1.0));
   }
-  outColor = vec4(col, 1.0);
+  outColor = vec4(grade(col), 1.0);
 }`;
 
 const TREE_VS = `#version 300 es
@@ -187,6 +200,7 @@ uniform vec3 uFogC;
 uniform vec2 uFx;
 uniform float uFogD;
 out vec4 outColor;
+${GRADE}
 void main() {
   vec4 c = texture(uAtlas, vUV);
   if (c.a < 0.5) discard;
@@ -195,7 +209,7 @@ void main() {
     float fog = (1.0 - exp(-pow(vZ * uFogD, 2.0))) * uFx.y;
     col = mix(col, uFogC, clamp(fog, 0.0, 1.0));
   }
-  outColor = vec4(col, c.a);
+  outColor = vec4(grade(col), c.a);
 }`;
 
 /** Procedural 2-variant tree atlas: broadleaf | conifer. */
@@ -445,12 +459,50 @@ export class Terrain3D {
     return 0.92 - t * 0.74;
   }
 
+  /** Keep the whole viewport on the map: zoom floor = aspect-fill (no void
+   *  past the edges), and pan stays inside the map rect. Mutates cam. */
+  clampCam(cam: CamView) {
+    const cssW = this.canvas.clientWidth || this.canvas.width;
+    const cssH = this.canvas.clientHeight || this.canvas.height;
+    const [minX, minY, maxX, maxY] = this.bgRect;
+    cam.scale = Math.max(cam.scale, Math.max(cssW / (maxX - minX), cssH / (maxY - minY)));
+    this.updateCamera(cam);
+    // Push the viewport's ground footprint back inside the map (twice: a
+    // tilted footprint shifts a little as the camera moves).
+    const W = this.canvas.width;
+    const H = this.canvas.height;
+    for (let iter = 0; iter < 2; iter++) {
+      let lo = [Infinity, Infinity];
+      let hi = [-Infinity, -Infinity];
+      for (const [sx, sy] of [[0, 0], [W, 0], [0, H], [W, H]]) {
+        const [wx, wy] = this.unproject(sx, sy);
+        lo = [Math.min(lo[0], wx), Math.min(lo[1], wy)];
+        hi = [Math.max(hi[0], wx), Math.max(hi[1], wy)];
+      }
+      let dx = 0;
+      let dy = 0;
+      if (hi[0] - lo[0] >= maxX - minX) dx = (maxX + minX) / 2 - (hi[0] + lo[0]) / 2;
+      else if (lo[0] < minX) dx = minX - lo[0];
+      else if (hi[0] > maxX) dx = maxX - hi[0];
+      if (hi[1] - lo[1] >= maxY - minY) dy = (maxY + minY) / 2 - (hi[1] + lo[1]) / 2;
+      else if (lo[1] < minY) dy = minY - lo[1];
+      else if (hi[1] > maxY) dy = maxY - hi[1];
+      if (Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5) break;
+      cam.x += dx;
+      cam.y += dy;
+      this.updateCamera(cam);
+    }
+  }
+
   /** Recompute the camera basis. draw() does this; call it directly when you
    *  need project/unproject to reflect a cam change before the next frame. */
   updateCamera(cam: CamView) {
     const p = this.pitchFor(cam.scale);
     this.pitch = p;
-    this.dist = this.canvas.height / (2 * cam.scale * Math.tan(FOV / 2));
+    // cam.scale is CSS px per km, so the apparent zoom is identical on any
+    // devicePixelRatio — high-dpi screens just render more detail.
+    const cssH = this.canvas.clientHeight || this.canvas.height;
+    this.dist = cssH / (2 * cam.scale * Math.tan(FOV / 2));
     const cp = Math.cos(p);
     const sp = Math.sin(p);
     this.eye = [cam.x, cam.y - this.dist * cp, this.dist * sp];
@@ -469,7 +521,7 @@ export class Terrain3D {
     const time = this.fixedTime ?? performance.now() / 1000;
 
     gl.viewport(0, 0, canvas.width, canvas.height);
-    gl.clearColor(0.05, 0.08, 0.11, 1);
+    gl.clearColor(0.07, 0.09, 0.10, 1);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     const setShared = (u: (n: string) => WebGLUniformLocation) => {
@@ -480,7 +532,7 @@ export class Terrain3D {
       gl.uniform2f(u('uFA'), this.f, aspect);
       gl.uniform2f(u('uNF'), near, far);
       gl.uniform4fv(u('uBgRect'), this.bgRect);
-      gl.uniform3f(u('uFogC'), 0.64, 0.69, 0.77);
+      gl.uniform3f(u('uFogC'), 0.71, 0.71, 0.68); // warm Mediterranean haze
       gl.uniform2f(u('uFx'), this.territoryAlpha(cam.scale), tilt * 0.85);
       gl.uniform1f(u('uFogD'), 1 / (this.dist * 4.5));
     };

@@ -195,7 +195,7 @@ export class TerrainField {
         const ny = ((hy1 - hy0) / (2 * cell)) * 1.6; // gy grows southward
         const inv = 1 / Math.hypot(nx, ny, 1);
         const lambert = Math.max(0, nx * inv * sx2 + ny * inv * sy2 + inv * sz2);
-        this.light[i] = Math.min(255, (0.52 + 0.55 * lambert) * 128);
+        this.light[i] = Math.min(255, (0.58 + 0.58 * lambert) * 128);
       }
     }
 

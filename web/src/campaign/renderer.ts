@@ -77,21 +77,30 @@ export class CampaignRenderer {
   ) {
     const { ctx, canvas, data } = this;
     const z = cam.scale;
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // Draw in CSS px on a device-px backing store: constants below are
+    // resolution-independent and stay crisp on high-dpi screens.
+    const dpr = window.devicePixelRatio || 1;
+    const W = canvas.width / dpr;
+    const H = canvas.height / dpr;
+    const pt = (wx: number, wy: number, wh?: number): [number, number] | null => {
+      const p = this.t3d.project(wx, wy, wh ?? this.field.heightAt(wx, wy));
+      return p ? [p[0] / dpr, p[1] / dpr] : null;
+    };
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, W, H);
 
     // Edges. Roads fade out at political-map zoom; sea lanes faint dashes.
-    const roadAlpha = Math.min(1, Math.max(0, (z - 0.1) / 0.15));
+    const roadAlpha = Math.min(1, Math.max(0, (z - 0.3) / 0.2));
     for (let ei = 0; ei < data.map.edges.length; ei++) {
       const e = data.map.edges[ei];
       const sea = e.kind === 'sea';
-      if (sea && z < 0.22) continue;
+      if (sea && z < 0.35) continue;
       if (!sea && roadAlpha <= 0.02) continue;
       const hs = this.viaHeights(ei);
       ctx.beginPath();
       let on = false;
       for (let i = 0; i < e.via.length; i++) {
-        const p = this.t3d.project(e.via[i][0], e.via[i][1], sea ? 0 : hs[i]);
+        const p = pt(e.via[i][0], e.via[i][1], sea ? 0 : hs[i]);
         if (!p) {
           on = false;
           continue;
@@ -111,8 +120,8 @@ export class CampaignRenderer {
       ctx.beginPath();
       let on = false;
       for (let i = 0; i < hoverPath.length; i++) {
-        const p = this.toScreen(hoverPath[i][0], hoverPath[i][1]);
-        if (p[0] < -9000) {
+        const p = pt(hoverPath[i][0], hoverPath[i][1]);
+        if (!p) {
           on = false;
           continue;
         }
@@ -127,11 +136,11 @@ export class CampaignRenderer {
     }
 
     // Faction names over their territory at political-map zoom.
-    const labelAlpha = 1 - Math.min(1, Math.max(0, (z - 0.2) / 0.12));
+    const labelAlpha = 1 - Math.min(1, Math.max(0, (z - 0.3) / 0.12));
     if (labelAlpha > 0.02) {
       for (const l of factionLabels) {
-        const p = this.toScreen(l.x, l.y);
-        if (p[0] < -9000) continue;
+        const p = pt(l.x, l.y);
+        if (!p) continue;
         const size = Math.min(52, Math.max(17, l.radiusKm * z * 0.6));
         ctx.font = `600 ${size}px system-ui, sans-serif`;
         ctx.textAlign = 'center';
@@ -148,8 +157,10 @@ export class CampaignRenderer {
 
     // Cities: squares colored by owner, sized by tier; junction dots at zoom.
     data.map.nodes.forEach((n, i) => {
-      const [sx, sy] = this.toScreen(n.pos[0], n.pos[1]);
-      if (sx < -40 || sy < -40 || sx > canvas.width + 40 || sy > canvas.height + 40) return;
+      const p = pt(n.pos[0], n.pos[1]);
+      if (!p) return;
+      const [sx, sy] = p;
+      if (sx < -40 || sy < -40 || sx > W + 40 || sy > H + 40) return;
       if (n.kind === 'city') {
         const c = cities.get(i);
         // Political zoom: minor cities collapse to flat dots so the
@@ -173,7 +184,7 @@ export class CampaignRenderer {
           ctx.fillStyle = '#bdf';
           ctx.fillRect(sx - 2, sy + s / 2, 4, 3);
         }
-        if (z > 0.25 || n.tier >= 3) {
+        if (z > 0.45 || n.tier >= 3) {
           ctx.font = `${Math.min(15, 10 + z)}px system-ui, sans-serif`;
           ctx.fillStyle = 'rgba(245,238,220,0.92)';
           ctx.strokeStyle = 'rgba(0,0,0,0.7)';
@@ -191,8 +202,10 @@ export class CampaignRenderer {
 
     // Armies: banners (pennant triangles) colored by faction.
     for (const a of armies) {
-      const [sx, sy] = this.toScreen(a.x, a.y);
-      if (sx < -40 || sy < -40 || sx > canvas.width + 40 || sy > canvas.height + 40) continue;
+      const p = pt(a.x, a.y);
+      if (!p) continue;
+      const [sx, sy] = p;
+      if (sx < -40 || sy < -40 || sx > W + 40 || sy > H + 40) continue;
       const sel = a.id === selected;
       const size = sel ? 13 : 11;
       // Pole + pennant.
@@ -238,7 +251,7 @@ export class CampaignRenderer {
         ctx.stroke();
       }
       // Strength tag when zoomed.
-      if (z > 0.2) {
+      if (z > 0.35) {
         ctx.font = '9px system-ui';
         ctx.fillStyle = 'rgba(255,255,255,0.85)';
         ctx.strokeStyle = 'rgba(0,0,0,0.7)';

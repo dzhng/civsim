@@ -116,7 +116,7 @@ export class CampaignScene implements Scene {
       },
       cam: (x: number, y: number, scale: number) => {
         this.cam = { x, y, scale };
-        this.t3d!.updateCamera(this.cam);
+        this.t3d!.clampCam(this.cam);
       },
       camGet: () => ({ ...this.cam, pitchDeg: (this.t3d!.pitch * 180) / Math.PI }),
       territoryAlpha: () => this.t3d!.territoryAlpha(this.cam.scale),
@@ -165,6 +165,7 @@ export class CampaignScene implements Scene {
 
     this.renderer.resize();
     this.t3d!.resize();
+    this.t3d!.clampCam(this.cam); // zoom floor = aspect-fill, pan inside the map
     this.t3d!.draw(this.cam);
     this.renderer.draw(this.cam, this.armies, this.cities, this.selected, null, this.territory!.labels);
     this.updateHud();
@@ -233,19 +234,20 @@ export class CampaignScene implements Scene {
     cv.addEventListener('mousemove', (e) => {
       if (dragging && (e.movementX || e.movementY)) {
         moved = true;
-        this.cam.x -= (e.movementX * devicePixelRatio) / this.cam.scale;
-        this.cam.y += (e.movementY * devicePixelRatio) / this.cam.scale;
+        this.cam.x -= e.movementX / this.cam.scale;
+        this.cam.y += e.movementY / this.cam.scale;
       }
     }, { signal });
     cv.addEventListener('wheel', (e) => {
       e.preventDefault();
       const f = Math.exp(-e.deltaY * 0.0015);
       const [wx, wy] = this.renderer.toWorld(e.offsetX * devicePixelRatio, e.offsetY * devicePixelRatio);
-      this.cam.scale = Math.min(8, Math.max(0.05, this.cam.scale * f));
-      this.t3d!.updateCamera(this.cam); // zoom-to-cursor needs the new basis now
+      this.cam.scale = Math.min(8, this.cam.scale * f);
+      this.t3d!.clampCam(this.cam); // zoom floor + new basis for zoom-to-cursor
       const [nx, ny] = this.renderer.toWorld(e.offsetX * devicePixelRatio, e.offsetY * devicePixelRatio);
       this.cam.x += wx - nx;
       this.cam.y += wy - ny;
+      this.t3d!.clampCam(this.cam);
     }, { signal, passive: false });
     cv.addEventListener('contextmenu', (e) => {
       e.preventDefault();

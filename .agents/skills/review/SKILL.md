@@ -144,6 +144,27 @@ Flag in review:
   each term side by side (a 0.012 on a count that steps by 1.0 dwarfs a
   0.05 on a rate of magnitude 0.03).
 
+## 18. Units know only what they can see
+
+A unit's behavior may read of OTHER units only what a man on the field
+could observe: positions, measured motion (`frame_speed`,
+`mass_advance`, centroid), facing, formation extent, visible fighting,
+routing (men running away). Never another unit's private state: orders,
+`mode`, `charging`, `pursue`, internal clocks (`latch_timer`,
+`charge_time`), or reserves (`fatigue`, `morale`). Canonical violation:
+the kite band once read the enemy's `charging` flag — the screen fled a
+charge before the horses moved.
+
+Flag in review:
+- Any cross-unit read of `mode`, `charging`, `pursue`, `move_target`,
+  `fatigue`, `morale`, or a timer, in reflex/steering/combat code.
+  Self-reads are fine (a unit knows its own orders and its own legs).
+- The test: could a soldier standing there know this? Intent must be
+  inferred from motion, or not at all.
+- The AI commander counts as a PLAYER: it reads the field (and what the
+  HUD would show its side), never the opposing player's orders or unit
+  internals.
+
 ## Your task
 
 Review: $ARGUMENTS

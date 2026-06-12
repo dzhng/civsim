@@ -46,6 +46,26 @@ waiting for a context that exposes it. Discrete classifications (counts,
 thresholds, flags) may *gate* or *amplify* a physical quantity, but must
 never be a drain or force of their own.
 
+## Units know only what they can see — a hard rule
+
+The sibling rule, about *whose* state a formula may read. A unit's
+behavior may read of OTHER units only what a man standing on the field
+could observe: positions, measured motion, facing, formation extent,
+visible fighting, men running away. Never another unit's orders, mode,
+flags, internal clocks, or reserves — that information exists only
+inside the other unit's head.
+
+The canonical violation: the skirmisher screen read the enemy's
+`charging` flag to widen its flee distance — reacting to a charge
+*before the horses moved*. Telepathy. The fix reads the pursuer's
+measured speed instead; the anticipation a real screen gets comes from
+real signs (the speed developing), not from the enemy's intent.
+
+The test for any cross-unit read: could a soldier standing there know
+this? Intent must be inferred from motion, or not at all. The AI
+commander counts as a player and obeys the same rule — it reads the
+field, not the opposing player's orders.
+
 ## Develop
 
 ```sh

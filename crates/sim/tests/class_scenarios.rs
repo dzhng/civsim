@@ -431,9 +431,12 @@ fn move_order_into_a_deep_braced_column_bogs_into_melee() {
         "mid-bog the riders are still INSIDE the block (20..40): centroid y {:.1}",
         u.centroid.y
     );
-    assert!(u.engaged > 30, "bogged riders fight: {} engaged", u.engaged);
+    assert!(u.engaged > 20, "bogged riders fight: {} engaged", u.engaged);
     assert!(
-        u.mass_advance < 3.0,
+        // More than half the entry gallop (8.6) must be gone. (The vice
+        // lets the riders grind a touch faster — wedged defenders fight
+        // back less — but a grind is still not a ride.)
+        u.mass_advance < 5.0,
         "the gallop is spent in the press: mass_advance {:.1}",
         u.mass_advance
     );

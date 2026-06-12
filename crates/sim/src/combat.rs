@@ -32,6 +32,15 @@ const DISENGAGE_DIST: f32 = 6.0;
 /// A man covers this arc (rad from facing) with shield and eyes: full
 /// block and full evade inside it. One arc for melee and missiles alike.
 pub(crate) const FRONT_ARC: f32 = 1.05;
+/// Canceling push (m/s) at which a man is fully WEDGED — the vice that
+/// pins his elbows. Measured as scalar pressure minus the net push vector:
+/// shoved from one side they nearly cancel out to zero (you yield a step
+/// and keep your arms); pressed from opposing sides the magnitudes stay
+/// and the net dies — that remainder is the vice.
+const VICE_PIN: f32 = 0.5;
+/// Crowding penalty an UNWEDGED man still pays: a comrade in your arc is
+/// geometry you must work around even with room to step and time the sweep.
+const OBSTRUCT_FLOOR: f32 = 0.7;
 /// Out to here a blow comes side-on: evade degrades; behind it, a blow
 /// lands on a man facing the wrong way.
 const SIDE_ARC: f32 = 2.1;
@@ -229,7 +238,7 @@ impl Sim {
             // thread past comrades' shoulders — that's why pikes work in
             // ranks; sweeps need clearance, so wide arcs choke in a press.
             let arc_weight = weapon.arc / (weapon.arc + 0.5);
-            let obstruct = friends[..friends_len]
+            let crowded = friends[..friends_len]
                 .iter()
                 .filter(|&&(b, d, _)| {
                     let off = wrap_angle(b - self.facings[i]).abs();
@@ -237,6 +246,19 @@ impl Sim {
                 })
                 .count() as f32
                 * arc_weight;
+            // ...weighted by the VICE: crowding is geometry, the vice is
+            // what stops you working around it. A man shoved from ONE side
+            // yields a step and times his sweep between shoulders; a man
+            // wedged between opposing masses has his elbows pinned. This is
+            // also one-sided crush working as intended: compressing an
+            // enemy chokes THEIR swings without choking the free-standing
+            // men doing the crushing.
+            let net = (self.press_x[i] * self.press_x[i]
+                + self.press_y[i] * self.press_y[i])
+                .sqrt();
+            let vice = (self.pressure[i] - net).max(0.0);
+            let pinned = (vice / VICE_PIN).clamp(0.0, 1.0);
+            let obstruct = crowded * (OBSTRUCT_FLOOR + (1.0 - OBSTRUCT_FLOOR) * pinned);
             let arc_eff = weapon.arc / (1.0 + obstruct);
             let capacity = fatigue_capacity(self.units[ui].fatigue);
             let interval =

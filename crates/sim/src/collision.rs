@@ -189,20 +189,25 @@ impl Sim {
                                         // braced men who keep their feet
                                         // keep their bones.
                                         let dv = momentum / w_i.max(0.1);
-                                        // Bones break under a TRAMPLING mass
-                                        // (horse, chariot — the classes that
-                                        // ride through), each at its own
-                                        // weight of hoof. Men bumping men at
-                                        // a run bruise and fall, nothing more.
-                                        let trample =
-                                            crate::class::class_stats(units[uj].class).trample_damage;
-                                        if stun[i] <= 0.0 && trample > 0.0 {
+                                        // ANY violent felling hurts, scaling
+                                        // with the SQUARE of the throw (it's
+                                        // kinetic energy): half a ton at the
+                                        // gallop (dv ~25) breaks bones; a man
+                                        // bowling you over (dv ~6) carries
+                                        // 1/17th the energy and bruises. No
+                                        // class gate — the physics separates
+                                        // the regimes by itself.
+                                        if stun[i] <= 0.0 {
                                             let pool = if mounted[i] == 1 {
                                                 &mut mount_health[i]
                                             } else {
                                                 &mut health[i]
                                             };
-                                            *pool -= tun.impact_damage * trample * dv;
+                                            *pool -= tun.impact_damage
+                                                * crate::class::class_stats(units[uj].class)
+                                                    .knockback_mult
+                                                * dv
+                                                * dv;
                                             if *pool <= 0.0 {
                                                 impact_kills.push(i);
                                             }

@@ -102,6 +102,11 @@ impl Campaign {
         let f = self.state.player_faction;
         economy::upgrade_road(&self.map, &mut self.state, edge, f)
     }
+    /// Raise a watchtower on a junction (player faction pays).
+    pub fn order_build_outpost(&mut self, node: u32) -> bool {
+        let f = self.state.player_faction;
+        economy::build_outpost(&self.map, &mut self.state, node, f)
+    }
     pub fn order_disband(&mut self, army: ArmyId, entry: usize) -> bool {
         economy::disband(&mut self.state, army, entry)
     }
@@ -525,6 +530,83 @@ mod tests {
             {"faction": "red", "at": "A", "roster": [["LightInfantry", 880]]}
           ]
         }"#
+    }
+
+    /// A(red) --e0, 6 tiles, ambush spot at tile 4-- J(junction) --e1-- C(blue).
+    /// J sits 2 tiles from the spot and inside red's territory radius.
+    fn outpost_map() -> &'static str {
+        r#"{
+          "half_w": 100, "half_h": 100,
+          "nodes": [
+            {"id": 1, "name": "A", "pos": [0,0],  "kind": "city", "tier": 2, "port": false, "owner": "red"},
+            {"id": 2, "name": "J", "pos": [35,0], "kind": "junction", "tier": 0, "port": false, "owner": ""},
+            {"id": 3, "name": "C", "pos": [70,0], "kind": "city", "tier": 1, "port": false, "owner": "blue"}
+          ],
+          "edges": [
+            {"a": 1, "b": 2, "kind": "road", "via": [[0,0],[35,0]], "tiles": ["open","open","open","forest","forest","open"]},
+            {"a": 2, "b": 3, "kind": "road", "via": [[35,0],[70,0]], "tiles": ["open","open","open","open","open","open"]}
+          ],
+          "ambush_spots": [{"edge": 0, "tile": 4, "side": 0}],
+          "factions": [
+            {"id": "red",  "name": "Red",  "color": [200,0,0], "playable": true},
+            {"id": "blue", "name": "Blue", "color": [0,0,200], "playable": true},
+            {"id": "independents", "name": "Ind", "color": [99,99,99], "playable": false}
+          ],
+          "start_armies": [
+            {"faction": "red",  "at": "A", "roster": [["LightInfantry", 880]]},
+            {"faction": "blue", "at": "C", "roster": [["Phalanx", 1280]]}
+          ]
+        }"#
+    }
+
+    #[test]
+    fn outpost_unmasks_a_concealed_ambusher() {
+        let mut c = Campaign::new(outpost_map(), 7, 0);
+        inert(&mut c);
+        // Blue settles into the spot, 2 tiles from J.
+        let sp = &c.map.ambush_spots[0];
+        c.state.armies[1].loc = Loc::Edge { edge: sp.edge, tile: sp.tile };
+        assert!(c.order_ambush(1, 0));
+        for _ in 0..tunables::AMBUSH_SETTLE_TICKS as u32 + 10 {
+            c.tick();
+        }
+        assert!(
+            !c.state.visible[0].contains(&1),
+            "concealed ambusher should be invisible without an outpost"
+        );
+        // A finished red watchtower at J turns the woods transparent.
+        c.state.outposts.insert(1, Outpost { owner: 0, build_ticks_left: 0 });
+        for _ in 0..visibility::VIS_EVERY + 1 {
+            c.tick();
+        }
+        assert!(c.state.visible[0].contains(&1), "outpost should reveal the ambusher");
+    }
+
+    #[test]
+    fn enemy_halt_razes_an_outpost() {
+        let mut c = Campaign::new(outpost_map(), 7, 0);
+        inert(&mut c);
+        let gold0 = c.state.factions[0].treasury;
+        assert!(c.order_build_outpost(1), "J is a junction in red territory");
+        assert!(!c.order_build_outpost(1), "one outpost per node");
+        assert_eq!(c.state.factions[0].treasury, gold0 - tunables::OUTPOST_COST);
+        for _ in 0..tunables::OUTPOST_BUILD_TICKS + 5 {
+            c.tick();
+        }
+        assert_eq!(c.state.outposts[&1].build_ticks_left, 0, "tower finished");
+        // Round-trips through a save.
+        let mut c = Campaign::load(outpost_map(), &c.save()).unwrap();
+        inert(&mut c);
+        assert_eq!(c.state.outposts[&1].owner, 0);
+        // Blue marches onto J and halts: the tower comes down.
+        assert!(c.order_move(1, Loc::Node(1)));
+        for _ in 0..20_000 {
+            c.tick();
+            if c.state.outposts.is_empty() {
+                break;
+            }
+        }
+        assert!(c.state.outposts.is_empty(), "enemy halt should raze the outpost");
     }
 
     #[test]

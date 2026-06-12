@@ -68,6 +68,7 @@ export class CampaignScene implements Scene {
   private armies: ArmyView[] = [];
   private cities = new Map<number, CityView>();
   private roadLevels: Uint8Array = new Uint8Array(0);
+  private outposts: { node: number; owner: number; built: boolean }[] = [];
   private modal: HTMLDivElement | null = null;
   private autoResolving = false;
 
@@ -178,7 +179,7 @@ export class CampaignScene implements Scene {
     this.t3d!.resize();
     this.t3d!.clampCam(this.cam); // zoom floor = aspect-fill, pan inside the map
     this.t3d!.draw(this.cam);
-    this.renderer.draw(this.cam, this.armies, this.cities, this.selected, null, this.territory!.labels, this.roadLevels);
+    this.renderer.draw(this.cam, this.armies, this.cities, this.selected, null, this.territory!.labels, this.roadLevels, this.outposts);
     this.updateHud();
   }
 
@@ -208,6 +209,7 @@ export class CampaignScene implements Scene {
       });
     }
     this.roadLevels = new Uint8Array(mem, c.road_levels_ptr(), this.cfg.data.map.edges.length);
+    this.outposts = JSON.parse(c.outposts_json());
     const cn = c.city_count();
     const cf = new Float32Array(mem, c.city_info_ptr(), cn * CITY_STRIDE);
     this.cities.clear();
@@ -297,6 +299,8 @@ export class CampaignScene implements Scene {
     const loc = best < 0 ? nearestLoc(this.cfg.data.map, wx, wy, rKm) : null;
     if (loc && loc.kind === 0 && this.cfg.data.map.nodes[loc.a].kind === 'city') {
       this.openCityPanel(loc.a);
+    } else if (loc && loc.kind === 0 && this.cfg.data.map.nodes[loc.a].kind === 'junction') {
+      this.openJunctionPanel(loc.a);
     } else if (loc && loc.kind === 1 && this.cfg.data.map.edges[loc.a].kind === 'road') {
       this.openRoadPanel(loc.a);
     } else {
@@ -583,6 +587,23 @@ export class CampaignScene implements Scene {
       if (c.order_upgrade_road(edge)) {
         this.refreshViews();
         this.openRoadPanel(edge);
+      }
+    });
+  }
+
+  private openJunctionPanel(node: number) {
+    const panel = this.ui.querySelector('#cmp-city') as HTMLDivElement;
+    const c = this.cfg.campaign;
+    const o = this.outposts.find((x) => x.node === node);
+    const body = o
+      ? `${this.cfg.data.map.factions[o.owner]?.name ?? '?'} outpost ${o.built ? '' : '(building…)'}`
+      : `<button id="cmp-outpost">Build outpost (150 gold)</button>`;
+    panel.innerHTML = `<b>${this.cfg.data.map.nodes[node].name}</b> (junction)<div style="margin-top:6px">${body}</div>`;
+    panel.style.display = 'block';
+    panel.querySelector('#cmp-outpost')?.addEventListener('click', () => {
+      if (c.order_build_outpost(node)) {
+        this.refreshViews();
+        this.openJunctionPanel(node);
       }
     });
   }

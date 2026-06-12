@@ -312,6 +312,24 @@ pub fn upgrade_road(map: &WorldMap, st: &mut CampaignState, edge: u32, f: Factio
     true
 }
 
+/// Raise a watchtower on a junction in friendly territory. Paid up front.
+pub fn build_outpost(map: &WorldMap, st: &mut CampaignState, node: NodeId, f: FactionId) -> bool {
+    let Some(n) = map.nodes.get(node as usize) else { return false };
+    if n.kind != NodeKind::Junction || st.outposts.contains_key(&node) {
+        return false;
+    }
+    if territory_of(map, st, Loc::Node(node)) != Some(f) {
+        return false;
+    }
+    let fac = &mut st.factions[f as usize];
+    if fac.treasury < tun::OUTPOST_COST {
+        return false;
+    }
+    fac.treasury -= tun::OUTPOST_COST;
+    st.outposts.insert(node, Outpost { owner: f, build_ticks_left: tun::OUTPOST_BUILD_TICKS });
+    true
+}
+
 /// Split entries out of an army onto a free adjacent tile.
 pub fn split(map: &WorldMap, st: &mut CampaignState, army: ArmyId, entries: &[usize]) -> bool {
     let Some(a) = st.armies.get(army as usize) else { return false };

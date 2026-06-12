@@ -66,15 +66,25 @@ pub fn recompute(map: &WorldMap, st: &mut CampaignState) {
                 visible[f as usize].insert(a.id);
                 continue;
             }
+            let outpost_at = |l: Loc| match l {
+                Loc::Node(n) => st
+                    .outposts
+                    .get(&n)
+                    .is_some_and(|o| o.owner == f && o.build_ticks_left == 0),
+                _ => false,
+            };
             let is_concealed = concealed(a);
             let seen = if is_concealed {
-                // Only a moving enemy with scouts at one tile smells the woods.
+                // Only a moving enemy with scouts at one tile smells the
+                // woods — or a standing watchtower close by.
                 within(map, a.loc, VISION_SCOUT_AMBUSH, |l| {
                     st.armies.iter().any(|o| {
                         o.faction == f && o.alive() && o.loc == l && o.marching() && has_scouts(o)
                     })
                 })
                 .is_some()
+                    || within(map, a.loc, crate::tunables::OUTPOST_REVEAL_RADIUS, outpost_at)
+                        .is_some()
             } else {
                 within(map, a.loc, VISION_ARMY, |l| {
                     st.armies.iter().any(|o| o.faction == f && o.alive() && o.loc == l)
@@ -95,6 +105,7 @@ pub fn recompute(map: &WorldMap, st: &mut CampaignState) {
                         _ => false,
                     })
                     .is_some()
+                    || within(map, a.loc, crate::tunables::OUTPOST_VISION, outpost_at).is_some()
             };
             if seen {
                 visible[f as usize].insert(a.id);

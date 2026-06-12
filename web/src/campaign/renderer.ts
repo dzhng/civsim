@@ -75,6 +75,7 @@ export class CampaignRenderer {
     hoverPath: [number, number][] | null,
     factionLabels: FactionLabel[],
     roadLevels?: Uint8Array,
+    outposts?: { node: number; owner: number; built: boolean }[],
   ) {
     const { ctx, canvas, data } = this;
     const z = cam.scale;
@@ -203,6 +204,28 @@ export class CampaignRenderer {
         ctx.fill();
       }
     });
+
+    // Outposts: a watchtower glyph in the owner's color.
+    for (const o of outposts ?? []) {
+      const n = data.map.nodes[o.node];
+      const p = pt(n.pos[0], n.pos[1]);
+      if (!p || p[0] < -20 || p[1] < -20 || p[0] > W + 20 || p[1] > H + 20) continue;
+      const [sx, sy] = p;
+      ctx.globalAlpha = o.built ? 1 : 0.5;
+      ctx.fillStyle = this.factionColor(o.owner);
+      ctx.strokeStyle = '#1a1208';
+      ctx.lineWidth = 1;
+      ctx.fillRect(sx - 2.5, sy - 9, 5, 9); // tower
+      ctx.strokeRect(sx - 2.5, sy - 9, 5, 9);
+      ctx.beginPath(); // roof
+      ctx.moveTo(sx - 4.5, sy - 9);
+      ctx.lineTo(sx + 4.5, sy - 9);
+      ctx.lineTo(sx, sy - 14);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
 
     // Armies: banners (pennant triangles) colored by faction.
     for (const a of armies) {

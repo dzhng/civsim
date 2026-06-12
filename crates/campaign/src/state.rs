@@ -128,6 +128,14 @@ pub struct RoadJob {
     pub ticks_left: u32,
 }
 
+/// A watchtower on a junction: extends vision and unmasks nearby ambushers
+/// once built. Razed the moment an enemy army halts on its node.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Outpost {
+    pub owner: FactionId,
+    pub build_ticks_left: u32,
+}
+
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct CityState {
     pub owner: FactionId,
@@ -167,6 +175,9 @@ pub struct CampaignState {
     /// In-flight upgrades, keyed by edge. One job per edge.
     #[serde(default)]
     pub road_jobs: BTreeMap<EdgeId, RoadJob>,
+    /// Watchtowers, one per junction node.
+    #[serde(default)]
+    pub outposts: BTreeMap<NodeId, Outpost>,
 }
 
 impl CampaignState {

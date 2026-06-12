@@ -181,6 +181,26 @@ impl Campaign {
         self.inner.state.road_levels.as_ptr()
     }
 
+    pub fn order_build_outpost(&mut self, node: u32) -> bool {
+        let ok = self.inner.order_build_outpost(node);
+        self.refresh();
+        ok
+    }
+
+    /// All outposts: [{node, owner, built}].
+    pub fn outposts_json(&self) -> String {
+        let list: Vec<_> = self
+            .inner
+            .state
+            .outposts
+            .iter()
+            .map(|(&n, o)| {
+                serde_json::json!({ "node": n, "owner": o.owner, "built": o.build_ticks_left == 0 })
+            })
+            .collect();
+        serde_json::json!(list).to_string()
+    }
+
     pub fn order_camp(&mut self, army: u32) -> bool {
         let ok = self.owns(army) && self.inner.order_camp(army);
         self.refresh();

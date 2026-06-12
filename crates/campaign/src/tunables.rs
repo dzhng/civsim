@@ -68,6 +68,15 @@ pub fn road_mult(level: u8) -> f32 {
     ROAD_SPEED_MULT[level.min(ROAD_MAX_LEVEL) as usize]
 }
 
+/// Outposts: junction watchtowers. Counter-play to ambush stance. An enemy
+/// army halting on the node razes the tower instantly (no siege timer —
+/// it's a wooden platform, not a fort).
+pub const OUTPOST_COST: u32 = 150;
+pub const OUTPOST_BUILD_TICKS: u32 = 720;
+pub const OUTPOST_VISION: u32 = 6;
+/// Concealed ambushers within this radius of an enemy outpost are exposed.
+pub const OUTPOST_REVEAL_RADIUS: u32 = 2;
+
 /// Routed armies: tiles of hostile-free road needed to regroup (or a nearer
 /// friendly city); no such path at battle end = captured and wiped.
 pub const ROUT_TILES: u16 = 16;

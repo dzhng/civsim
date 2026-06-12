@@ -18,7 +18,7 @@ physically stops horseflesh.</em></p>
 <tr><td>right-click + DRAG</td><td>move to the press point and <b>end facing the drag direction</b> — destination ghosts preview live while held, then fade after release</td></tr>
 <tr><td>shift + any order</td><td><b>QUEUE</b> it: runs after everything already underway completes — chain waypoints, then an attack, then a withdrawal</td></tr>
 <tr><td>alt + right-click</td><td><b>DISENGAGE</b> move: turn and run at full pace, answering nothing — fast but backs exposed</td></tr>
-<tr><td>R / F / C</td><td>walk-run / othismos-fence / charge setting</td></tr>
+<tr><td>R / F</td><td>walk-run / othismos-fence</td></tr>
 <tr><td>G / H / V</td><td>reform / pursue (latch onto contact) / fire-at-will</td></tr>
 <tr><td>X / E</td><td>draw secondary weapons (pikes ground, bows sling — ~1s down the line, ORANGE pie) / kite reflex on-off (skirmish classes)</td></tr>
 <tr><td>P, 1, 3</td><td>pause, 1x, 3x speed</td></tr>
@@ -171,9 +171,10 @@ evades. Both degrade as cohesion fails.</p>
 <p>A horse is a long body; the rider sits at its center. From the front only
 a pike's reach finds the rider — swords just hack horseflesh (a big pool).
 From the flanks anything reaches him. Charges are momentum: mass &times;
-closing speed knocks men down and bowls them back. The <b>charge setting</b>
-(C) bursts to charge speed only in the final ~2 seconds of an explicit
-attack. Tired horses trot; manage their legs or arrive harmless.</p>
+closing speed knocks men down and bowls them back. An explicit attack
+bursts to charge speed by itself in the final ~2 seconds of the approach
+— no setting to arm. Tired horses trot; manage their legs or arrive
+harmless.</p>
 
 <h2>Missiles — real objects in the air</h2>
 <p>Arrows fly ballistic arcs to a point and hit whoever stands there —

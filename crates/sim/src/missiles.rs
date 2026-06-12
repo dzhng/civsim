@@ -21,6 +21,12 @@ pub enum MissileKind {
     Stone,
 }
 
+/// Of the missiles that strike a mounted element, the share that finds the
+/// RIDER rather than the horse. A tuning constant, deliberately not derived
+/// from sprite geometry: it sets how archer-fragile cavalry feels, and the
+/// horse is the big pool — keep this low or arrows delete the expensive arm.
+const RIDER_HIT_SHARE: f32 = 0.2;
+
 /// Per-class missile armament (None = melee only). Data, not code.
 pub struct MissileSpec {
     pub kind: MissileKind,
@@ -191,9 +197,7 @@ impl Sim {
             // point in the target: scatter does the rest.
             let (start, count) = (self.units[ui].start, self.units[ui].count);
             let tu = &self.units[target_unit];
-            let (t_start, t_count) = (tu.start, tu.count);
             let team = self.units[ui].team;
-            let mut shots = 0u32;
             for s in 0..count {
                 let i = start + s;
                 if i % 3 != phase || self.alive[i] == 0 || self.stun[i] > 0.0 {
@@ -212,7 +216,6 @@ impl Sim {
                 // Volley the block's AREA: a random point inside the target
                 // formation's footprint. Density decides how many arrows find
                 // flesh — loose order is the defense.
-                let _ = (t_start, t_count);
                 let (t_anchor, t_facing, t_w, t_d) = {
                     let tu = &self.units[target_unit];
                     (tu.anchor, tu.facing, tu.width().max(2.0), tu.depth().max(2.0))
@@ -250,10 +253,8 @@ impl Sim {
                 let to = (aim - p) * (1.0 / dist.max(0.01));
                 self.projectiles.push(p, to * horiz, vert, spec.kind, team, spec.damage);
                 self.attack_cd[i] = spec.interval * (0.8 + 0.4 * self.rng.unit_f32());
-                shots += 1;
                 self.units[ui].ammo = self.units[ui].ammo.saturating_sub(1);
             }
-            let _ = shots;
         }
     }
 
@@ -283,7 +284,7 @@ impl Sim {
                 }
                 if let Some(victim) = self.body_at(p, 0.8) {
                     let dmg = self.projectiles.damage[i];
-                    self.hit_by_missile(victim, p, vel, dmg, true);
+                    self.hit_by_missile(victim, vel, dmg, true);
                 }
                 // Roll on: decelerate, stay grounded.
                 let nv = vel * (1.0 - 4.0 * DT / speed.max(1.0)).max(0.0);
@@ -303,7 +304,7 @@ impl Sim {
                 let window = if kind == MissileKind::Javelin as u8 { 0.25 } else { 0.18 };
                 if let Some(victim) = self.body_at(p, window) {
                     let dmg = self.projectiles.damage[i];
-                    self.hit_by_missile(victim, p, vel, dmg, false);
+                    self.hit_by_missile(victim, vel, dmg, false);
                     self.missile_hits += 1;
                 } else {
                     self.missile_misses += 1;
@@ -348,7 +349,7 @@ impl Sim {
         best.map(|(o, _)| o)
     }
 
-    fn hit_by_missile(&mut self, victim: usize, from: Vec2, vel: Vec2, damage: f32, heavy: bool) {
+    fn hit_by_missile(&mut self, victim: usize, vel: Vec2, damage: f32, heavy: bool) {
         let uv = self.soldier_unit[victim] as usize;
         let vstats = crate::class::class_stats(self.units[uv].class);
         let incoming = wrap_angle(vel.y.atan2(vel.x) + std::f32::consts::PI);
@@ -360,7 +361,8 @@ impl Sim {
 
         // Shields block arrows from the front arc; nothing blocks a stone.
         if !heavy {
-            let shielded = wrap_angle(incoming - self.facings[victim]).abs() < 1.05;
+            let shielded =
+                wrap_angle(incoming - self.facings[victim]).abs() < crate::combat::FRONT_ARC;
             if shielded && self.rng.chance(vstats.block * (0.5 + 0.5 * self.units[uv].cohesion)) {
                 return;
             }
@@ -371,10 +373,9 @@ impl Sim {
             self.positions[2 * victim] += d.x * 0.8;
             self.positions[2 * victim + 1] += d.y * 0.8;
         }
-        let _ = from;
 
-        if self.mounted[victim] == 1 && !self.rng.chance(0.45) {
-            // The arrow finds the horse, not the man (55% of the profile).
+        if self.mounted[victim] == 1 && !self.rng.chance(RIDER_HIT_SHARE) {
+            // The arrow finds the horse, not the man.
             self.mount_health[victim] -= damage;
             if self.mount_health[victim] <= 0.0 {
                 self.kill(victim);
@@ -433,16 +434,14 @@ impl Sim {
                 // absurd distances and park out of throw range).
                 let d = (v.center() - from).len() - 0.5 * v.depth() - my_ext;
                 // The screen breaks earlier the FASTER the threat closes:
-                // a walker at 24m, a runner (attacks close at the double
-                // now) proportionally further, a burst at the full 38m —
-                // the charging flag still arms the band before the speed
-                // develops (mid-burst is visible from far off). And a BLOWN
-                // screen gives ground: with no burst left in the legs,
-                // holding javelin range on a runner is suicide, so the
-                // standoff grows as the reserve drains.
-                let sp = v
-                    .frame_speed
-                    .max(if v.charging { 2.0 * self.tun.base_speed } else { 0.0 });
+                // a walker at 24m, a runner proportionally further, a
+                // burst at the full 38m — MEASURED speed only (a flag is a
+                // banner, and a pinned unit must not read as galloping; the
+                // ~1s a real burst takes to develop is covered by the hop
+                // chaining below). And a BLOWN screen gives ground: with no
+                // burst left in the legs, holding javelin range on a runner
+                // is suicide, so the standoff grows as the reserve drains.
+                let sp = v.frame_speed;
                 let tired = 12.0 * (1.0 - crate::movement::fatigue_capacity(u.fatigue));
                 let band = (24.0 + tired + 2.5 * (sp - self.tun.base_speed).max(0.0))
                     .clamp(24.0, 50.0);

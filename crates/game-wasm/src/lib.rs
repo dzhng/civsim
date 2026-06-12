@@ -230,11 +230,6 @@ impl Game {
         self.refresh_unit_info();
     }
 
-    pub fn set_charge_enabled(&mut self, unit: u32, enabled: u32) {
-        self.battle.sim.set_charge_enabled(unit as usize, enabled != 0);
-        self.refresh_unit_info();
-    }
-
     /// 0 = Othismos (press), anything else = Fence (fight at reach).
     pub fn set_stance(&mut self, unit: u32, stance: u32) {
         let stance = if stance == 0 { Stance::Othismos } else { Stance::Fence };

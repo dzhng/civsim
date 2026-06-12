@@ -321,6 +321,9 @@ impl Sim {
         }
     }
 
+    /// Test-isolation hook only: in the game, charging is the class
+    /// capability, applied automatically on an explicit attack — there is
+    /// no player toggle. Scenario tests switch it off to isolate variables.
     pub fn set_charge_enabled(&mut self, unit: usize, enabled: bool) {
         if let Some(u) = self.units.get_mut(unit) {
             u.charge_enabled = enabled;
@@ -1132,12 +1135,12 @@ impl Sim {
                 // tramples by the same physics as a charge, and "arriving"
                 // on a latched enemy is just the stall that drops the mass
                 // below the threshold and turns the ride into a fight.
-                // (A per-body momentum gate was tried and REJECTED here:
-                // mom re-arms on every fresh body slammed, so it rewards
-                // target density and dense blocks sustained the trample
-                // better than open order. The unit's measured mass_advance
-                // can't be gamed that way — the crowd either stopped the
-                // mass or it didn't.)
+                // (Do NOT gate this on the body's own mom_x/mom_y: that
+                // momentum re-arms on every fresh body slammed, so it
+                // rewards target density — a dense block would sustain a
+                // trample better than open order. The unit's measured
+                // mass_advance can't be gamed that way: the crowd either
+                // stopped the mass or it didn't.)
                 let trampling = u.tramples() && u.mass_advance > tun.charge_spent_speed;
                 if aware_i && holds_ground && !trampling && (u.engaged > 0 || hit_ttl[i] > 0.0) {
                     let t = target[i] as usize;
@@ -1450,7 +1453,11 @@ impl Sim {
             }
             drain += tun.terrain_drain * (effort / n);
             drain += tun.combat_drain * engaged_frac;
-            if u.charging {
+            // Gated on the MEN's measured motion (not the frame's — the
+            // leash pins the frame even while the mass rolls): the burst is
+            // paid while the mass actually sprints. A charge pinned dead in
+            // a bog drains as a fight, not as a gallop.
+            if u.charging && u.mass_advance > tun.base_speed * 1.05 {
                 drain += tun.charge_drain;
             }
             drain *= u.drain_mult;

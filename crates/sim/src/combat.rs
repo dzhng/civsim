@@ -26,8 +26,15 @@ use crate::unit::OrderMode;
 const AIM_TOLERANCE: f32 = 0.35;
 /// Victims struck by one swing, at most (sanity cap; arc decides reality).
 const MAX_VICTIMS: usize = 5;
-/// Engagement breaks beyond this surface distance (m).
+/// Engagement breaks beyond this surface distance (m). Doubles as the
+/// local-fight-density radius (fight_near): one awareness bubble.
 const DISENGAGE_DIST: f32 = 6.0;
+/// A man covers this arc (rad from facing) with shield and eyes: full
+/// block and full evade inside it. One arc for melee and missiles alike.
+pub(crate) const FRONT_ARC: f32 = 1.05;
+/// Out to here a blow comes side-on: evade degrades; behind it, a blow
+/// lands on a man facing the wrong way.
+const SIDE_ARC: f32 = 2.1;
 
 impl Sim {
     /// One combat pass; call every tick. Soldier i acts when i % 3 == phase.
@@ -122,7 +129,7 @@ impl Sim {
                         let bearing = to.y.atan2(to.x);
                         let uj = self.soldier_unit[j] as usize;
                         if self.units[uj].team == my_team {
-                            if uj == ui && self.fighting[j] == 1 && d_surf < 6.0 {
+                            if uj == ui && self.fighting[j] == 1 && d_surf < DISENGAGE_DIST {
                                 fight_near += 1;
                             }
                             if d_surf < (max_reach * 0.9).max(1.6) && friends_len < friends.len() {
@@ -293,9 +300,9 @@ impl Sim {
         // behind. (Block was always front-arc-only; this is its agile twin
         // for the shieldless classes.)
         let aspect_v = wrap_angle(incoming - self.facings[victim]).abs();
-        let seen = if aspect_v < 1.05 {
+        let seen = if aspect_v < FRONT_ARC {
             1.0
-        } else if aspect_v < 2.1 {
+        } else if aspect_v < SIDE_ARC {
             0.6
         } else {
             0.25
@@ -326,7 +333,7 @@ impl Sim {
         self.stun[victim] = self.stun[victim].max(0.35);
 
         // Block: front shield arc only; still takes the push.
-        let shielded = aspect_v < 1.05;
+        let shielded = aspect_v < FRONT_ARC;
         let blocked = shielded && self.rng.chance(vstats.block * (0.5 + 0.5 * cohesion));
 
         // Push: momentum through the weapon — a braced thruster hurls an

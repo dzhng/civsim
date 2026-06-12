@@ -71,7 +71,10 @@ fn weapon_swaps_fumble_for_a_moment() {
     let ph = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 300, UnitClassId::Phalanx, 0);
     let foe = sim.spawn_class(Vec2::new(0.0, 12.0), -FRAC_PI_2, 300, UnitClassId::HeavyInfantry, 1);
     sim.set_attack_order(foe, ph);
-    for _ in 0..(25.0 / DT) as usize {
+    // (Longer setup than it looks: pike cadence slowed in the pacing pass,
+    // and attackers no longer pay phantom charge drain while ground to a
+    // halt — fresher men block more thrusts.)
+    for _ in 0..(35.0 / DT) as usize {
         sim.tick(); // pike work underway
     }
     let kills_before = sim.units[foe].count - sim.units[foe].alive_count;

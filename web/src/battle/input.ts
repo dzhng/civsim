@@ -14,7 +14,6 @@ export interface OrderSink {
   orderFacing(units: number[], x: number, y: number, facing: number, queued: boolean): void;
   togglePace(units: number[]): void;
   toggleStance(units: number[]): void;
-  toggleCharge(units: number[]): void;
   reform(units: number[]): void;
   toggleWeapon(units: number[]): void;
   toggleKite(units: number[]): void;
@@ -166,7 +165,6 @@ export class Input {
       if (sel.length === 0) return;
       if (e.key === 'r') sink.togglePace(sel);
       if (e.key === 'f') sink.toggleStance(sel);
-      if (e.key === 'c') sink.toggleCharge(sel);
       if (e.key === 'g') sink.reform(sel);
       if (e.key === 'h') sink.togglePursue(sel);
       if (e.key === 'v') sink.toggleFire(sel);

@@ -703,25 +703,3 @@ fn cavalry_charge_keeps_its_burst_through_a_thin_line() {
         m.y
     );
 }
-
-#[test]
-fn tmp_rear_trace() {
-    for facing in [-FRAC_PI_2, FRAC_PI_2] {
-        let mut sim = Sim::new(no_morale(), SEED);
-        let v = sim.spawn_class(Vec2::new(0.0, 10.0), facing, 200, UnitClassId::HeavyInfantry, 0);
-        let atk = sim.spawn_class(Vec2::new(0.0, -12.0), FRAC_PI_2, 200, UnitClassId::HeavyInfantry, 1);
-        sim.set_attack_move_order(atk, Vec2::new(0.0, 20.0));
-        for t in 0..(60.0 / DT) as usize {
-            sim.tick();
-            if t % ((10.0 / DT) as usize) == ((10.0 / DT) as usize - 1) {
-                let time = (t + 1) as f32 * DT;
-                println!(
-                    "facing={:>5.2} t={:>4.1} v.deaths={:>3} atk.chg={} atk.eng={:>3} v.y={:>5.1}",
-                    facing, time, deaths(&sim, v), sim.units[atk].charging,
-                    sim.units[atk].engaged, living_mean(&sim, v).y
-                );
-            }
-        }
-        println!("facing={facing:.2} final deaths {}", deaths(&sim, v));
-    }
-}

@@ -278,7 +278,6 @@ export class BattleScene implements Scene {
       };
       set('pace', o >= 0 && info[o + 9] > 0.5, o >= 0 && info[o + 9] > 0.5 ? 'Running' : 'Run');
       set('stance', false, o >= 0 ? (info[o + 17] > 0.5 ? 'Fence' : 'Othismos') : 'Othismos');
-      set('charge', o >= 0 && info[o + 18] >= 1);
       set('reform', false);
       set('pursue', o >= 0 && info[o + 25] > 0.5);
       set('fire', o >= 0 && sel.length > 0 && fireOn);
@@ -296,7 +295,6 @@ export class BattleScene implements Scene {
       switch (b.dataset.cmd) {
         case 'pace': sink.togglePace(sel); break;
         case 'stance': sink.toggleStance(sel); break;
-        case 'charge': sink.toggleCharge(sel); break;
         case 'reform': sink.reform(sel); break;
         case 'pursue': sink.togglePursue(sel); break;
         case 'fire': sink.toggleFire(sel); break;
@@ -528,12 +526,6 @@ export class BattleScene implements Scene {
         const info = unitInfo();
         const anyOth = sel.some((u) => info[u * STRIDE + 17] < 0.5);
         sel.forEach((u) => game.set_stance(u, anyOth ? 1 : 0));
-      },
-      toggleCharge: (units: number[]) => {
-        const sel = myUnits(units);
-        const info = unitInfo();
-        const anyOff = sel.some((u) => info[u * STRIDE + 18] < 0.5);
-        sel.forEach((u) => game.set_charge_enabled(u, anyOff ? 1 : 0));
       },
       reform: (units: number[]) => myUnits(units).forEach((u) => game.set_reform(u)),
       toggleWeapon: (units: number[]) => {
@@ -847,7 +839,7 @@ export class BattleScene implements Scene {
         const pace = info[o + 9] > 0.5 ? 'run' : 'walk';
         const cls = CLASS_NAMES[info[o + 13]] ?? '?';
         const stance = info[o + 17] > 0.5 ? 'fence' : 'othismos';
-        const charge = info[o + 18] === 2 ? '  CHARGING' : info[o + 18] === 1 ? '  charge armed' : '';
+        const charge = info[o + 18] === 2 ? '  CHARGING' : '';
         const ammo = info[o + 19] > 0 ? `  ammo ${info[o + 19]}` : '';
         const routing = info[o + 21] > 0.5 ? '  ROUTING' : '';
         const engaged = info[o + 16];
@@ -931,7 +923,6 @@ export class BattleScene implements Scene {
       },
       groupMove: (units: number[], x: number, y: number) => groupMove(units, x, y, 'move'),
       setFiles: (u: number, files: number) => game.set_files(u, files),
-      setCharge: (u: number, on: number) => game.set_charge_enabled(u, on),
       groupAttack: (units: number[], target: number) => {
         groupAttacks.push({ units, target, lastTx: 1e9, lastTy: 1e9 });
         tickGroupAttacks();

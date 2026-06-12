@@ -57,8 +57,8 @@ fn archery_softens_advances_but_gates_nobody() {
         "a heavy advance pays a real but survivable toll (8-22%): {heavy}/240"
     );
     assert!(
-        (4..=24).contains(&light),
-        "a loose fast line slips through cheaper (2-11%): {light}/220"
+        (4..=34).contains(&light), // lights lost their over-armored hp in the class rebalance: arrows bite them honestly now
+        "a loose fast line pays in skin, not armor (2-15%): {light}/220"
     );
     assert!(cav <= 9, "horse crosses nearly free (<=8%): {cav}/120");
 }

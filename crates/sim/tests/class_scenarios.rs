@@ -548,7 +548,7 @@ fn a_grinding_press_breaks_no_bones() {
 }
 
 #[test]
-#[ignore = "Waterloo contract, blocked on the IMPALE term: hit_push scales by attacker/victim mass ratio, so a pikeman 'shoves' a half-ton horse 0.17m/thrust — the missing physics is the planted point returning the CLOSING victim's own momentum (kin closing x momentum share), plus likely contact-weighted drag. One focused session."]
+#[ignore = "Waterloo contract, advanced but not closed: presented-point impale at reach (combat.rs), trample-speed gate, planted-footing knockdown immunity took the ride-through from y90 to y46 (front at 40) — the arrest still leaks ~3 ranks. Perverse K-sensitivity diagnosed: shove-backs re-slam fresh impacts. Candidates: phase-compensated stop rate (scan runs tick%3), arrest-vs-momentum-arming pass order, contact-weighted ram drag with a sword-wall guard. One more focused session."]
 fn a_braced_pike_front_keeps_its_feet_under_the_charge() {
     // The wall-side of the impact contract: the front rank of a DEEP,
     // braced phalanx is held up by its own mass and the press chain

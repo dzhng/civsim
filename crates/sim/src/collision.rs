@@ -178,9 +178,57 @@ impl Sim {
                                 let closing = (vel(j) - vel(i)).dot(Vec2::new(nx, ny)).max(0.0);
                                 if closing > tun.charge_min_speed {
                                     let momentum = m_eff(j) * closing;
+                                    // IMPALE: when the body I am slamming
+                                    // into holds a PLANTED POLE (reach is
+                                    // the physics: a pike braces to grip,
+                                    // rear hand, ground; a sword absorbs
+                                    // and deflects), the point returns my
+                                    // own closing momentum every tick of
+                                    // the contact — a hedge is a brake,
+                                    // not a cadence. Self-gating to
+                                    // charge-grade closings: slow pressers
+                                    // pay nothing (deep-pike infantry
+                                    // contract). Waterloo squares.
+                                    let pole = crate::class::class_stats(units[uj].class)
+                                        .weapons
+                                        .iter()
+                                        .fold(0.0f32, |m, w| m.max(w.reach));
+                                    let planted = ((pole - 1.0) / 2.2).clamp(0.0, 1.0);
+                                    // A braced man behind a planted POLE
+                                    // keeps his feet against the very mass
+                                    // his point is arresting — the horse
+                                    // never truly reaches a standing pike
+                                    // (its stop happens at reach). Without
+                                    // this, the wall's own shove-back
+                                    // re-slams the front rank prone and
+                                    // the storm opens the hedge.
+                                    let my_pole = crate::class::class_stats(units[ui].class)
+                                        .weapons
+                                        .iter()
+                                        .fold(0.0f32, |m, w| m.max(w.reach));
+                                    let my_planted = ((my_pole - 1.0) / 2.2).clamp(0.0, 1.0);
+                                    let footing = 1.0 + 5.0 * my_planted * my_planted * (units[ui].brace() - 1.0).max(0.0);
                                     push.x += nx * closing * tun.impact_push * DT * share;
                                     push.y += ny * closing * tun.impact_push * DT * share;
-                                    if momentum > tun.stun_momentum * w_i {
+                                    // ...and a planted POLE bleeds the
+                                    // arriving body's CARRIED momentum
+                                    // itself — the charge spends on the
+                                    // point, every tick of the contact
+                                    // (a position push saturates against
+                                    // the separation cap; the glide is
+                                    // where the charge actually lives).
+                                    // Quadratic in the shaft: swords
+                                    // shrug, spears resist, pikes WALL.
+                                    if planted > 0.0 {
+                                        let toward = -(mom_x[i] * nx + mom_y[i] * ny);
+                                        if toward > 0.0 {
+                                            let grip =
+                                                (1.6 * share * planted * planted).min(0.5);
+                                            mom_x[i] += nx * toward * grip;
+                                            mom_y[i] += ny * toward * grip;
+                                        }
+                                    }
+                                    if momentum > tun.stun_momentum * w_i * footing {
                                         // Being KNOCKED DOWN hurts, in
                                         // proportion to the throw (Δv =
                                         // momentum over your braced, backed

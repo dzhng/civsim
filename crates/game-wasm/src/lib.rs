@@ -152,6 +152,7 @@ impl Game {
                     })
                 });
                 serde_json::json!({
+                    "cost": contract::unit_cost(id),
                     "mass": c.mass,
                     "radius": c.soldier_radius,
                     "brace": c.brace_mult,

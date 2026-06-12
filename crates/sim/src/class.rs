@@ -87,7 +87,7 @@ const SPEAR: Weapon = Weapon {
     min_range: 0.0,
     arc: 0.6,
     attack_interval: 2.2,
-    damage: 0.13,
+    damage: 0.095,
 };
 
 const SWORD: Weapon = Weapon {
@@ -95,7 +95,7 @@ const SWORD: Weapon = Weapon {
     min_range: 0.0,
     arc: 1.4,
     attack_interval: 1.79,
-    damage: 0.16,
+    damage: 0.2,
 };
 
 const LONG_SWORD: Weapon = Weapon {
@@ -113,7 +113,7 @@ const PIKE: Weapon = Weapon {
     // A thrust-and-recover cycle, not a sweep: the wall's stopping power is
     // cadence x hurl; lethality per poke stays modest.
     attack_interval: 1.38,
-    damage: 0.12,
+    damage: 0.22,
 };
 
 const SIDE_SWORD: Weapon = Weapon {
@@ -181,7 +181,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             brace_mult: 2.0,
             spacing: Vec2::new(0.9, 1.1),
             default_depth: 8,
-            health: 1.69,
+            health: 2.4, // the armor IS the class: a third more body than the levy, plus the shield
             block: 0.45,
             evade: 0.08,
             training: 0.75,
@@ -195,7 +195,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             mass: 0.95,
             spacing: Vec2::new(1.0, 1.2),
             default_depth: 6,
-            health: 2.3, // low tier breaks on MORALE (~half strength) — the bodies still take minutes to chew through
+            health: 1.55, // unarmored: the levy lives by numbers, not body
             block: 0.15,
             evade: 0.3,
             training: 0.55,
@@ -223,7 +223,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             brace_mult: 4.0,
             spacing: Vec2::new(0.8, 1.0),
             default_depth: 10,
-            health: 1.43,
+            health: 2.2, // phalangites wore armor too — the wall is bodies AND bronze
             block: 0.35,
             evade: 0.08,
             training: 0.8,
@@ -274,7 +274,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             knockback_mult: 1.0,
             spacing: Vec2::new(1.8, 2.4),
             default_depth: 5,
-            health: 1.43,
+            health: 2.2, // phalangites wore armor too — the wall is bodies AND bronze
             mount_health: 8.45, // a horse is a LOT of animal: short blades
                                // chip at it while the rider stays safe
             block: 0.25,

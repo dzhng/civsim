@@ -187,7 +187,7 @@ impl Default for Tunables {
             stun_momentum: 14.0,
             stun_time: 1.3,
             impact_push: 0.2,
-            impact_damage: 0.035,
+            impact_damage: 0.032,
             micro_rough: 1.0,
             hit_push: 0.3,
             combat_drain: 1.0 / 50.0,

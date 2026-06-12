@@ -22,6 +22,25 @@ pub enum UnitClassId {
     ArtilleryCrew,
 }
 
+/// Gold cost of a full unit at duel strength. Anchors per David: light
+/// infantry 300, heavy 1000 (one heavy unit beats two light units head-on
+/// — the premium prices concentration of force). The rest follow the
+/// measured matchup matrix: pikes own the ground war frontally, cavalry
+/// owns everything pikes don't, horse archers tax all foot.
+pub fn unit_cost(c: UnitClassId) -> u32 {
+    match c {
+        UnitClassId::HeavyInfantry => 1000,
+        UnitClassId::LightInfantry => 300,
+        UnitClassId::LongSwords => 450,
+        UnitClassId::Phalanx => 1300,
+        UnitClassId::Archers => 500,
+        UnitClassId::Skirmishers => 250,
+        UnitClassId::ShockCavalry => 1400,
+        UnitClassId::HorseArchers => 1100,
+        UnitClassId::ArtilleryCrew => 700,
+    }
+}
+
 pub const ALL_CLASSES: [UnitClassId; 9] = [
     UnitClassId::HeavyInfantry,
     UnitClassId::LightInfantry,

@@ -224,6 +224,62 @@ impl Sim {
                 continue;
             }
 
+            // IMPALE — a PRESENTED point, before any swing: a body closing
+            // at charge grade onto a planted pole spends its own momentum
+            // on the point, every tick it is in reach (presentation is
+            // free; only thrusting has a cadence — this is how a hedge
+            // stops horses at reach, BEFORE the bodies meet and the
+            // knockdown storm flattens the front rank). Reach is the
+            // physics: a pole braces to grip, rear hand, ground; a sword
+            // absorbs and deflects. Closing reads kin_* (measured motion,
+            // never position deltas — the phantom door stays shut).
+            {
+                let planted = ((weapon.reach - 1.0) / 2.2).clamp(0.0, 1.0);
+                if planted > 0.0 {
+                    let v = nearest as usize;
+                    let p = self.soldier_pos(i);
+                    let tp = self.soldier_pos(v);
+                    let to = tp - p;
+                    let l = to.len().max(0.1);
+                    let d = to * (1.0 / l);
+                    let kin = Vec2::new(self.kin_vx[v], self.kin_vy[v]);
+                    let closing = (-(kin.dot(d))).max(0.0);
+                    // Charge-grade gate for men (slow infantry pressers pay
+                    // nothing extra — the deep-pike contract); a TRAMPLING
+                    // body feeds itself onto the point at ANY speed — a
+                    // horse has no shield to put between itself and a pike.
+                    let vu = self.soldier_unit[v] as usize;
+                    let gate = if self.units[vu].tramples() {
+                        0.5
+                    } else {
+                        tun.charge_min_speed
+                    };
+                    if closing > gate {
+                        let w_i = self.mass[i] * self.units[ui].brace();
+                        let share = w_i / (w_i + self.mass[v]);
+                        let stop = closing * DT * share * planted * planted * 8.0;
+                        let np = Vec2::new(
+                            self.positions[v * 2] + d.x * stop,
+                            self.positions[v * 2 + 1] + d.y * stop,
+                        );
+                        if self.terrain.speed_at(np) > 0.0 {
+                            self.positions[v * 2] = np.x;
+                            self.positions[v * 2 + 1] = np.y;
+                            self.recv_x[v] += d.x * stop;
+                            self.recv_y[v] += d.y * stop;
+                            self.recv_mag[v] += stop;
+                        }
+                        // ...and the point bleeds the carried glide itself.
+                        let toward = -(self.mom_x[v] * d.x + self.mom_y[v] * d.y);
+                        if toward > 0.0 {
+                            let grip = (share * planted * planted * 0.8).min(0.45);
+                            self.mom_x[v] += d.x * toward * grip;
+                            self.mom_y[v] += d.y * toward * grip;
+                        }
+                    }
+                }
+            }
+
             // --- swing when ready and roughly aligned ------------------------
             self.attack_cd[i] -= 3.0 * DT;
             if self.attack_cd[i] > 0.0 {

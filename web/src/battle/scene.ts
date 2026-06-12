@@ -74,20 +74,44 @@ export class BattleScene implements Scene {
     const camera = new Camera(canvas);
     const renderer = (sharedRenderer ??= new Renderer(canvas));
     renderer.resize(); // the canvas may have been display:none through a window resize
-    // Open looking at your own line from behind (player south, enemy north) —
-    // framed to the actual map, so the sandboxes open snugly.
+    const STRIDE = game.unit_info_stride();
+
+    // Open framed to the ARMIES (bbox + margin), not the map: a two-unit
+    // duel opens snug on the action; full deployments span the field and
+    // fall back to the map framing.
     {
       const mapW = game.terrain_w() * game.terrain_cell();
       const mapH = game.terrain_h() * game.terrain_cell();
       const ox = game.terrain_origin_x();
       const oy = game.terrain_origin_y();
       camera.bounds = [ox - WILDS_MARGIN, oy - WILDS_MARGIN, ox + mapW + WILDS_MARGIN, oy + mapH + WILDS_MARGIN];
-      camera.y = -0.27 * mapH;
-      camera.zoom = (canvas.clientHeight * (window.devicePixelRatio || 1)) / Math.min(mapH * 0.62, 1000);
+      const info = unitInfo();
+      let [x0, y0, x1, y1] = [Infinity, Infinity, -Infinity, -Infinity];
+      for (let u = 0; u < game.unit_count(); u++) {
+        const o = u * STRIDE;
+        x0 = Math.min(x0, info[o]); x1 = Math.max(x1, info[o]);
+        y0 = Math.min(y0, info[o + 1]); y1 = Math.max(y1, info[o + 1]);
+      }
+      const dpr = window.devicePixelRatio || 1;
+      const mapZoom = (canvas.clientHeight * dpr) / Math.min(mapH * 0.62, 1000);
+      const fit = Number.isFinite(x0)
+        ? Math.min(
+            (canvas.clientWidth * dpr) / (x1 - x0 + 130),
+            (canvas.clientHeight * dpr) / (y1 - y0 + 130),
+          )
+        : 0;
+      if (fit > mapZoom) {
+        // Small field (duels, sandboxes): open snug on the action.
+        camera.x = (x0 + x1) / 2;
+        camera.y = (y0 + y1) / 2;
+        camera.zoom = Math.min(fit, 6);
+      } else {
+        // Full deployment: open behind your own line, framed to the map.
+        camera.y = -0.27 * mapH;
+        camera.zoom = mapZoom;
+      }
       camera.clampView();
     }
-
-    const STRIDE = game.unit_info_stride();
 
     {
       const soldierUnit = new Uint32Array(wasm.memory.buffer, game.soldier_unit_ptr(), game.soldier_count());

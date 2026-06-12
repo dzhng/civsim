@@ -194,7 +194,11 @@ pub fn deploy_roster(sim: &mut Sim, dep: &contract::Deployment) -> Vec<(u64, usi
 /// Configurable head-to-head: one unit per side on an open field. The
 /// classes are the player's choice — this is the testing bench.
 pub fn setup_duel(sim: &mut Sim, a: UnitClassId, b: UnitClassId) {
+    use crate::terrain::Terrain;
     use std::f32::consts::FRAC_PI_2;
+    // The same compact open field as the sandboxes — without this the duel
+    // runs on the default terrain and the camera frames an ocean of grass.
+    sim.terrain = Terrain::flat(200, 150, 4.0, Vec2::new(-400.0, -300.0));
     let duel_count = |c: UnitClassId| -> usize {
         use UnitClassId::*;
         match c {

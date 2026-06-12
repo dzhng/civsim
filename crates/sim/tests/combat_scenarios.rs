@@ -421,12 +421,13 @@ fn long_swords_cleave_but_die_in_a_press() {
         let _ = enemy;
         sim.set_attack_move_order(ls, Vec2::new(0.0, 25.0));
         if pressed {
-            // The long swords FIGHT at the enemy line (y near 8-10), so the
-            // press destination is there: the pusher's front ranks bodily
-            // overlap their fighting rear ranks all fight long.
+            // The press must KEEP pressing: a destination at the fight line
+            // would arrive and park (a parked wall stops pushing), and a
+            // running pusher bulldozes the swords clean through the enemy.
+            // A walking pusher aimed beyond the fight leans on their backs
+            // all fight long — the sandwich, not the bowling ball.
             let pusher = sim.spawn_class(Vec2::new(0.0, -22.0), FRAC_PI_2, 400, UnitClassId::HeavyInfantry, 0);
-            sim.set_pace(pusher, sim::Pace::Run); // drive the press home
-            sim.set_disengage_order(pusher, Vec2::new(0.0, 7.0));
+            sim.set_disengage_order(pusher, Vec2::new(0.0, 40.0));
         }
         run(&mut sim, 35.0); // let the press fully pack before reading it
         let u = &sim.units[ls];

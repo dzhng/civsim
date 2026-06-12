@@ -172,8 +172,11 @@ fn engage_move_extracts_from_melee_while_fighting() {
     };
     let (y_eng, kills_eng, face_eng) = extraction(false);
     let (_y_dis, kills_dis, _) = extraction(true);
+    // (A charging pursuer's men FIGHT at reach now instead of slot-riding
+    // past, so a fighting extraction under live pursuit crawls — the claim
+    // is sustained extraction, not pace.)
     assert!(
-        y_eng < -25.0,
+        y_eng < -12.0,
         "the engage move must actually extract the unit, centroid y {y_eng:.1}"
     );
     assert!(

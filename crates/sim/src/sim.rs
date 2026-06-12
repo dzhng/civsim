@@ -30,6 +30,9 @@ pub struct Sim {
     pub mounted: Vec<u8>,
     /// Rider health (mounted only; geometry decides who can strike it).
     pub mount_health: Vec<f32>,
+    /// Seconds the instantaneous victor condition has held (morale.rs):
+    /// the verdict must be sustained before it locks.
+    pub(crate) verdict_hold: f32,
     /// Crowd squeeze per soldier (EMA of received separation push, m/s):
     /// measured, never written by gameplay. Kills evade, transmits force.
     pub pressure: Vec<f32>,
@@ -102,6 +105,7 @@ impl Sim {
             max_radius: tun.soldier_radius,
             mounted: Vec::new(),
             mount_health: Vec::new(),
+            verdict_hold: 0.0,
             pressure: Vec::new(),
             press_x: Vec::new(),
             press_y: Vec::new(),
@@ -1113,25 +1117,21 @@ impl Sim {
                 // A man whose unit is fighting — or who is himself being
                 // struck — closes to his own weapon's distance; nobody stands
                 // being poked from a hand's-breadth beyond his reach.
-                // A CHARGING unit's men do not ease into weapon range —
-                // they ride their slots INTO contact at full speed and the
-                // collision cashes the momentum. But only INTO it: a man
-                // already at weapon's length plants and fights (his
-                // momentum is in his body now — mom_x/mom_y — not in his
-                // legs), or interleaved files zipper straight through each
-                // other and two charging lines merge instead of meeting.
-                // Trampling classes (horses; chariots someday) are the
-                // declared exception: their propulsion continues through
-                // contact — the trample IS the charge. (A momentum-gated
-                // version — drive while the body carries charge-grade
-                // momentum — was tried and REJECTED: momentum re-arms on
-                // every fresh body slammed, so it rewards target density
-                // and a dense block sustains the trample better than open
-                // order, inverting dense-blunts-cavalry. The flag states
-                // the intent; the collision physics — brace mass, stuns —
-                // does the discriminating.)
-                let met = engaged_i && !u.tramples();
-                if aware_i && holds_ground && (!u.charging || met) && (u.engaged > 0 || hit_ttl[i] > 0.0) {
+                // TRAMPLE is the exception, and it is class × measured
+                // velocity, no order or charge flag involved: a trampling
+                // body whose unit is still moving at speed rides over the
+                // man in his reach — a move order THROUGH a thin line
+                // tramples by the same physics as a charge, and "arriving"
+                // on a latched enemy is just the stall that drops the mass
+                // below the threshold and turns the ride into a fight.
+                // (A per-body momentum gate was tried and REJECTED here:
+                // mom re-arms on every fresh body slammed, so it rewards
+                // target density and dense blocks sustained the trample
+                // better than open order. The unit's measured mass_advance
+                // can't be gamed that way — the crowd either stopped the
+                // mass or it didn't.)
+                let trampling = u.tramples() && u.mass_advance > tun.charge_spent_speed;
+                if aware_i && holds_ground && !trampling && (u.engaged > 0 || hit_ttl[i] > 0.0) {
                     let t = target[i] as usize;
                     let tp = Vec2::new(positions[2 * t], positions[2 * t + 1]);
                     let tt = tp - p;

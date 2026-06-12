@@ -21,9 +21,17 @@ impl Sim {
         if !self.tun.morale_enabled {
             return;
         }
-        // The verdict is FINAL: once one army is finished, morale freezes —
-        // the routed stay routed (no rallies), the standing never break.
-        // The sim keeps running so the pursuit plays out as bodies.
+        // The verdict must be SUSTAINED: a momentary rout (which may yet
+        // rally) is not a decision — a 1v1 duel used to end the instant a
+        // unit broke. Once the field has stayed decided for a few seconds,
+        // the verdict is FINAL: morale freezes — the routed stay routed,
+        // the standing never break — and the sim keeps running so the
+        // pursuit plays out as bodies.
+        if self.raw_victor().is_some() {
+            self.verdict_hold += dt;
+        } else {
+            self.verdict_hold = 0.0;
+        }
         if self.victor().is_some() {
             return;
         }
@@ -174,9 +182,17 @@ impl Sim {
         }
     }
 
-    /// 0 or 1 once one army is finished (>60% of its units routing or dead),
-    /// u32::MAX while contested.
+    /// 0 or 1 once one army has been finished (>60% of its units routing or
+    /// dead) for a SUSTAINED beat — transient routs may still rally.
     pub fn victor(&self) -> Option<u32> {
+        if self.verdict_hold < 8.0 {
+            return None;
+        }
+        self.raw_victor()
+    }
+
+    /// The instantaneous read of the same condition.
+    fn raw_victor(&self) -> Option<u32> {
         for team in [0u32, 1] {
             let mine: Vec<&crate::unit::Unit> =
                 self.units.iter().filter(|u| u.team == team).collect();

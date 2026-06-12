@@ -380,3 +380,42 @@ fn pikes_unhorse_cavalry_swords_chip_at_horseflesh() {
         "pikes unhorse riders, swords struggle: {by_pikes} vs {by_swords}"
     );
 }
+
+#[test]
+fn tmp_ride_through_trace() {
+    // Thin line arm
+    let mut sim = Sim::new(no_morale(), SEED);
+    let line = sim.spawn_unit(Vec2::new(0.0, 40.0), PI / 2.0, 300, 100, Vec2::new(1.0, 1.1), 1, 0.7);
+    let cav = sim.spawn_class(Vec2::new(0.0, 160.0), -PI / 2.0, 160, UnitClassId::ShockCavalry, 0);
+    sim.set_pace(cav, sim::Pace::Run);
+    sim.set_move_order(cav, Vec2::new(0.0, -80.0));
+    for t in 0..(45.0 / DT) as usize {
+        sim.tick();
+        if t % ((3.0 / DT) as usize) == 0 {
+            let m = sim.units[cav].centroid;
+            println!(
+                "THIN t={:>4.1} cav.y={:>6.1} ma={:>5.2} eng={:>3} mode={:?} line_dead={}",
+                t as f32 * DT, m.y, sim.units[cav].mass_advance, sim.units[cav].engaged,
+                sim.units[cav].mode, sim.units[line].count - sim.units[line].alive_count
+            );
+        }
+    }
+    // Deep braced column arm
+    let mut sim = Sim::new(no_morale(), SEED);
+    let block = sim.spawn_unit(Vec2::new(0.0, 40.0), PI / 2.0, 500, 25, Vec2::new(0.9, 1.0), 1, 0.7);
+    let cav = sim.spawn_class(Vec2::new(0.0, 160.0), -PI / 2.0, 160, UnitClassId::ShockCavalry, 0);
+    sim.set_pace(cav, sim::Pace::Run);
+    sim.set_move_order(cav, Vec2::new(0.0, -80.0));
+    let _ = block;
+    for t in 0..(45.0 / DT) as usize {
+        sim.tick();
+        if t % ((3.0 / DT) as usize) == 0 {
+            let m = sim.units[cav].centroid;
+            println!(
+                "DEEP t={:>4.1} cav.y={:>6.1} ma={:>5.2} eng={:>3} mode={:?}",
+                t as f32 * DT, m.y, sim.units[cav].mass_advance, sim.units[cav].engaged,
+                sim.units[cav].mode
+            );
+        }
+    }
+}

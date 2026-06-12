@@ -6,11 +6,12 @@
 
 import type { CampaignData } from './data';
 
-// Must match mapgen/src/raster.rs.
+// Must match mapgen/src/raster.rs. Mountain height is graded later by range
+// size (interior of a broad mass climbs higher than a narrow ridge).
 const PALETTE: { c: [number, number, number]; land: boolean; h: number }[] = [
   { c: [38, 60, 84], land: false, h: 0 }, // sea
   { c: [196, 178, 138], land: true, h: 2.2 }, // land
-  { c: [142, 120, 96], land: true, h: 26 }, // mountain
+  { c: [142, 120, 96], land: true, h: 6 }, // mountain (base, graded below)
   { c: [52, 84, 110], land: false, h: 0 }, // lake
   { c: [60, 96, 124], land: true, h: 1.0 }, // river (still territory-worthy land)
 ];
@@ -20,6 +21,50 @@ function hash2(x: number, y: number): number {
   let n = (x * 374761393 + y * 668265263) | 0;
   n = Math.imul(n ^ (n >>> 13), 1274126177);
   return ((n ^ (n >>> 16)) >>> 0) / 4294967296;
+}
+
+/** Smooth value noise over the cell grid, [0,1). */
+function vnoise2(x: number, y: number): number {
+  const xi = Math.floor(x);
+  const yi = Math.floor(y);
+  const sx = (x - xi) ** 2 * (3 - 2 * (x - xi));
+  const sy = (y - yi) ** 2 * (3 - 2 * (y - yi));
+  const a = hash2(xi, yi);
+  const b = hash2(xi + 1, yi);
+  const c = hash2(xi, yi + 1);
+  const d = hash2(xi + 1, yi + 1);
+  return a + (b - a) * sx + (c - a) * sy + (a - b - c + d) * sx * sy;
+}
+
+function smooth01(t: number): number {
+  const x = Math.min(1, Math.max(0, t));
+  return x * x * (3 - 2 * x);
+}
+
+/** Two-pass chamfer distance (in cells) to the nearest cell matching `isSrc`. */
+function chamfer<T extends Uint8Array>(src: T, isSrc: (v: number) => boolean, w: number, h: number): Float32Array {
+  const d = new Float32Array(w * h).fill(1e9);
+  for (let i = 0; i < w * h; i++) if (isSrc(src[i])) d[i] = 0;
+  const D = Math.SQRT2;
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const i = y * w + x;
+      if (x > 0) d[i] = Math.min(d[i], d[i - 1] + 1);
+      if (y > 0) d[i] = Math.min(d[i], d[i - w] + 1);
+      if (x > 0 && y > 0) d[i] = Math.min(d[i], d[i - w - 1] + D);
+      if (x < w - 1 && y > 0) d[i] = Math.min(d[i], d[i - w + 1] + D);
+    }
+  }
+  for (let y = h - 1; y >= 0; y--) {
+    for (let x = w - 1; x >= 0; x--) {
+      const i = y * w + x;
+      if (x < w - 1) d[i] = Math.min(d[i], d[i + 1] + 1);
+      if (y < h - 1) d[i] = Math.min(d[i], d[i + w] + 1);
+      if (x < w - 1 && y < h - 1) d[i] = Math.min(d[i], d[i + w + 1] + D);
+      if (x > 0 && y < h - 1) d[i] = Math.min(d[i], d[i + w - 1] + D);
+    }
+  }
+  return d;
 }
 
 export class TerrainField {
@@ -36,6 +81,8 @@ export class TerrainField {
   land: Uint8Array;
   /** baked lambert light per cell, value = light * 128 (terrain is static) */
   light: Uint8Array;
+  /** per-cell biome, RGBA: moisture, forest, rock, shore-distance (0=at water) */
+  biome: Uint8Array;
   maxH = 0;
 
   constructor(data: CampaignData) {
@@ -56,6 +103,7 @@ export class TerrainField {
     const n = this.w * this.h;
     this.height = new Float32Array(n);
     this.land = new Uint8Array(n);
+    const cls = new Uint8Array(n); // palette index, kept for the biome pass
     for (let i = 0; i < n; i++) {
       const [pr, pg, pb] = [px[i * 4], px[i * 4 + 1], px[i * 4 + 2]];
       let best = 0;
@@ -68,8 +116,45 @@ export class TerrainField {
           best = k;
         }
       }
+      cls[i] = best;
       this.height[i] = PALETTE[best].h;
       this.land[i] = PALETTE[best].land ? 1 : 0;
+    }
+
+    // Rivers are painted ~1 px wide at full bg resolution — the downsample
+    // above blends them away. Re-scan the full-res raster and mark any cell
+    // whose source block contains river pixels (the Nile must stay green).
+    {
+      const fcv = new OffscreenCanvas(data.bg.width, data.bg.height);
+      const fctx = fcv.getContext('2d')!;
+      fctx.drawImage(data.bg, 0, 0);
+      const fpx = fctx.getImageData(0, 0, data.bg.width, data.bg.height).data;
+      const rc = PALETTE[4].c;
+      for (let sy = 0; sy < data.bg.height; sy++) {
+        const gy = Math.min(this.h - 1, Math.floor((sy / data.bg.height) * this.h));
+        for (let sx = 0; sx < data.bg.width; sx++) {
+          const o = (sy * data.bg.width + sx) * 4;
+          const d = (fpx[o] - rc[0]) ** 2 + (fpx[o + 1] - rc[1]) ** 2 + (fpx[o + 2] - rc[2]) ** 2;
+          if (d < 900) {
+            const gx = Math.min(this.w - 1, Math.floor((sx / data.bg.width) * this.w));
+            const i = gy * this.w + gx;
+            if (this.land[i]) cls[i] = 4;
+          }
+        }
+      }
+    }
+
+    // Grade mountain height by how deep a cell sits inside its range — broad
+    // masses (Alps) climb high, narrow ridges stay hills — then carve peaks
+    // and valleys with ridged noise so a massif isn't a flat-topped plateau.
+    const ridgeD = chamfer(cls, (v) => v !== 2, this.w, this.h);
+    for (let gy = 0; gy < this.h; gy++) {
+      for (let gx = 0; gx < this.w; gx++) {
+        const i = gy * this.w + gx;
+        if (cls[i] !== 2) continue;
+        const crest = 1 - Math.abs(vnoise2(gx / 3.5 + 3.3, gy / 3.5 + 9.1) * 2 - 1);
+        this.height[i] = 5 + Math.min(ridgeD[i], 6) * 3.9 * (0.35 + 0.95 * crest);
+      }
     }
 
     // Smooth the class plateaus into slopes, roughen, smooth again lightly.
@@ -111,6 +196,43 @@ export class TerrainField {
         const inv = 1 / Math.hypot(nx, ny, 1);
         const lambert = Math.max(0, nx * inv * sx2 + ny * inv * sy2 + inv * sz2);
         this.light[i] = Math.min(255, (0.52 + 0.55 * lambert) * 128);
+      }
+    }
+
+    // ---- Biome: moisture, forest, rock, shore distance --------------------
+    // Moisture is a latitude gradient (Sahara dry, Gaul wet) lifted near
+    // rivers (the Nile ribbon) and coasts, broken up by large-scale noise.
+    const shoreD = chamfer(this.land, (v) => v === 0, w, h);
+    const landD = chamfer(this.land, (v) => v === 1, w, h);
+    const riverD = chamfer(cls, (v) => v === 4, w, h);
+    this.biome = new Uint8Array(n * 4);
+    for (let gy = 0; gy < h; gy++) {
+      const wy = this.maxY - (gy + 0.5) * this.cell;
+      // piecewise latitude base: desert south, temperate north
+      const lat =
+        wy < -400 ? 0.08 :
+        wy < 100 ? 0.08 + ((wy + 400) / 500) * 0.3 :
+        wy < 700 ? 0.38 + ((wy - 100) / 600) * 0.17 :
+        Math.min(0.8, 0.55 + ((wy - 700) / 1300) * 0.25);
+      for (let gx = 0; gx < w; gx++) {
+        const i = gy * w + gx;
+        // A channel: SIGNED shore distance — 0.5 at the waterline, above on
+        // land, below on water. The shader carves the coast from this; linear
+        // filtering smooths it far beyond the 8 km cell grid.
+        const signed = 0.5 + (this.land[i] ? shoreD[i] : -landD[i]) / 24;
+        this.biome[i * 4 + 3] = Math.min(255, Math.max(0, signed * 255));
+        if (!this.land[i]) continue;
+        const river = Math.max(0, 1 - riverD[i] / 3);
+        const coast = Math.max(0, 1 - shoreD[i] / 6);
+        // noise matters less where the climate is decisively dry
+        const moisture = Math.min(1, Math.max(0,
+          lat + river * 0.55 + coast * 0.1 + (vnoise2(gx / 22, gy / 22) - 0.5) * 0.3 * (0.35 + lat)));
+        const patch = vnoise2(gx / 16 + 31.7, gy / 16 + 11.3) * 0.7 + vnoise2(gx / 5 + 7.1, gy / 5 + 3.9) * 0.3;
+        const forest = smooth01((moisture - 0.5) / 0.25) * smooth01((patch - 0.42) / 0.25);
+        const rock = smooth01((this.height[i] - 6) / 16);
+        this.biome[i * 4] = moisture * 255;
+        this.biome[i * 4 + 1] = forest * (1 - rock * 0.7) * 255;
+        this.biome[i * 4 + 2] = rock * 255;
       }
     }
   }

@@ -142,16 +142,27 @@ export class Territory {
       }
     }
 
+    // Anchor each label at the faction's capital (highest-tier owned city):
+    // a territory centroid can land between disconnected patches.
+    const capitals: (number | null)[] = factions.map(() => null);
+    for (const [node, cv] of cities) {
+      const f = cv.owner;
+      if (f < 0 || !factions[f]?.playable) continue;
+      const cur = capitals[f];
+      const nodes = this.data.map.nodes;
+      if (cur === null || nodes[node].tier > nodes[cur].tier) capitals[f] = node;
+    }
     this.labels = factions.flatMap((fac, fi) => {
-      const a = acc[fi];
-      if (!fac.playable || a.n === 0) return [];
+      const cap = capitals[fi];
+      if (!fac.playable || cap === null || acc[fi].n === 0) return [];
+      const pos = this.data.map.nodes[cap].pos;
       return [{
         faction: fi,
         name: fac.name.toUpperCase(),
         color: fac.color,
-        x: this.field.minX + (a.x / a.n + 0.5) * cell,
-        y: this.field.maxY - (a.y / a.n + 0.5) * cell,
-        radiusKm: Math.sqrt(a.n) * cell,
+        x: pos[0],
+        y: pos[1] + 30, // float just north of the capital marker
+        radiusKm: Math.sqrt(acc[fi].n) * cell,
       }];
     });
   }

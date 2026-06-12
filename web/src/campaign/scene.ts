@@ -120,6 +120,10 @@ export class CampaignScene implements Scene {
       },
       camGet: () => ({ ...this.cam, pitchDeg: (this.t3d!.pitch * 180) / Math.PI }),
       territoryAlpha: () => this.t3d!.territoryAlpha(this.cam.scale),
+      /** Snapshot mode: pin the water clock (campaign is already paused). */
+      freeze: (on = true) => {
+        this.t3d!.fixedTime = on ? 0 : null;
+      },
       terrStats: () => {
         const t = this.territory!;
         let filled = 0;

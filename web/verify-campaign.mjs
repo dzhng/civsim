@@ -41,7 +41,8 @@ check('cities loaded', Object.keys(cities).length > 400, `${Object.keys(cities).
 await page.screenshot({ path: SHOTS + 'campaign-map.png' });
 
 // Pixel regression at deterministic moments: Day 1, paused, fixed camera,
-// before any ticking (later states depend on the random campaign seed).
+// water clock frozen, before any ticking (later states depend on the seed).
+await page.evaluate(() => window.__campaign.freeze());
 await page.evaluate(() => window.__campaign.cam(-100, 250, 0.16));
 await page.waitForTimeout(250);
 await snapCheck(page, 'campaign-political', check);

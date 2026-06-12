@@ -138,21 +138,24 @@ impl Sim {
                             .dot(dir(self.units[vi].facing))
                             * advance;
                         if closing > 3.5 {
-                            // Fear is ANTICIPATED BLOOD: project the
-                            // casualty rate if this mass landed on us —
-                            // their offense against our pool of bodies.
-                            // 20 lancers bearing down on 100 heavies
-                            // project ~1%/s and barely register; 400
-                            // project a massacre. Confidence SHOWS
-                            // (bearing, dressing, noise): a wavering mass
-                            // doesn't thunder — you fear units bolder
-                            // than you, never shakier ones.
-                            let projected = (v_offense / my_pool.max(1.0)).min(0.6);
+                            // Fear is ANTICIPATED HARM, both ledgers: the
+                            // blood their weapons will draw (men x dps)
+                            // PLUS the trample (mass x closing — the same
+                            // momentum the collision system will cash on
+                            // impact as knockdowns and displacement). The
+                            // kinetic term is why horse out-frightens
+                            // foot of equal dps: it arrives as a wall.
+                            // 20 lancers on 100 heavies project ~nothing;
+                            // 400 project a massacre. Confidence SHOWS:
+                            // a wavering mass doesn't thunder — you fear
+                            // units bolder than you, never shakier ones.
+                            let arriving = v_offense + 0.01 * mass_total * closing;
+                            let projected = (arriving / my_pool.max(1.0)).min(0.6);
                             let edge = ((v_morale - my_morale) / 0.25 + 1.0).clamp(0.0, 1.0);
                             intimidation += projected
                                 * (closing / 6.0).min(1.5)
                                 * (1.0 - d / 70.0)
-                                * 14.0
+                                * 3.0
                                 * v_morale
                                 * edge;
                         }

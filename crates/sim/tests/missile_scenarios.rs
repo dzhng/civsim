@@ -161,10 +161,20 @@ fn horse_archers_shoot_on_the_move() {
     let target = sim.spawn_class(Vec2::new(60.0, 60.0), -FRAC_PI_2, 300, UnitClassId::LightInfantry, 1);
     // Ride across the target's front while loosing.
     sim.set_move_order(ha, Vec2::new(160.0, 0.0));
+    let ammo_before = sim.units[ha].ammo;
     run(&mut sim, 50.0);
+    // The CLAIM is the mechanism — arrows fly WHILE RIDING (foot archers
+    // must halt). Lethality lives in the volley tests; hardier bodies
+    // (pacing retune) mean a drive-by wounds many and drops few.
+    let ammo_after = sim.units[ha].ammo;
     assert!(
-        deaths(&sim, target) > 5,
-        "mounted archery on the move: {} dead",
+        ammo_before - ammo_after > 200,
+        "the ride looses arrows: {} spent",
+        ammo_before - ammo_after
+    );
+    assert!(
+        deaths(&sim, target) >= 1,
+        "and they hurt: {} dead",
         deaths(&sim, target)
     );
 }

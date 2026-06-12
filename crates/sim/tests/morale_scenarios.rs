@@ -28,9 +28,9 @@ fn outnumbered_unit_breaks_before_annihilation() {
     }
     let broke_with = broke_with.expect("the outnumbered unit must break");
     assert!(
-        broke_with > 150 * 35 / 100,
+        broke_with > 150 * 25 / 100,
         "breaks should come well before annihilation (historical arc): broke with {broke_with}/150"
-    );
+    ); // the retuned will endures deeper losses (low tier breaks ~half, outnumbered+flanked deeper)
     // Survivors flee AWAY from the enemy mass (direction varies with how
     // the press scrambled them — distance is the invariant).
     let u = &sim.units[weak];
@@ -239,14 +239,14 @@ fn the_verdict_is_final_routs_lock_and_the_chase_plays_out() {
     // walking stomp now that the charge exit is honest (no blob kills).
     let mut sim = Sim::new(Tunables::default(), SEED);
     let strong = sim.spawn_class(Vec2::new(0.0, -20.0), FRAC_PI_2, 400, UnitClassId::HeavyInfantry, 0);
+    // One prey: a second unit kept the field contested forever (the hunter
+    // chases the router while the fresh unit stands at full morale).
     let weak_a = sim.spawn_class(Vec2::new(-25.0, 20.0), -FRAC_PI_2, 80, UnitClassId::LightInfantry, 1);
-    let weak_b = sim.spawn_class(Vec2::new(25.0, 20.0), -FRAC_PI_2, 80, UnitClassId::LightInfantry, 1);
     sim.set_pursue(strong, true);
     sim.set_attack_order(strong, weak_a);
     sim.set_attack_order(weak_a, strong);
-    sim.set_attack_order(weak_b, strong);
     let mut verdict_at = None;
-    for step in 0..(240.0 / DT) as usize {
+    for step in 0..(420.0 / DT) as usize { // the new grind: lights endure ~2min of focused stomp
         sim.tick();
         if verdict_at.is_none() && sim.victor().is_some() {
             verdict_at = Some(step);
@@ -264,7 +264,6 @@ fn the_verdict_is_final_routs_lock_and_the_chase_plays_out() {
         routing_then, routing_now,
         "after the verdict nobody rallies and nobody newly breaks"
     );
-    let _ = weak_b;
     // The sim keeps running: the routers keep fleeing (cornered prey may
     // only creep, but it MOVES) and the pursuit stays on them — though
     // blown heavy legs lose ground to fleeing light troops honestly

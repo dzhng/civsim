@@ -128,16 +128,26 @@ impl Sim {
 
             // --- amplifiers -------------------------------------------------
             let u = &self.units[ui];
+            // Discipline is the endurance of the will: a drilled line eats
+            // casualties that send a levy running (the tier knob).
+            let discipline = 1.85 - 1.4 * u.training;
             let amp = (1.0 + (1.0 - u.cohesion))
                 * (1.0 + 0.5 * (1.0 - u.fatigue))
-                * if surrounded { 1.6 } else { 1.0 };
+                * if surrounded { 1.6 } else { 1.0 }
+                * discipline;
 
-            let drain = (0.4 * casualty_rate
-                + 0.35 * missile_rate
-                + 0.02 * losing_push
-                + 0.025 * (spread - 1.0).max(0.0)
-                + 0.06 * intimidation
-                + 0.05 * rout_contagion)
+            // BLOOD is the primary breaker — a mirror grind runs minutes and
+            // ends deep in the casualty list. Attack DIRECTIONS amplify the
+            // blood (dying to blows from two sides breaks faster than the
+            // same losses frontally) but flanking alone, with nobody dying,
+            // flash-breaks nobody. The shove only registers as a real
+            // drive-back; fear terms (charge, contagion) stay small.
+            let directions = 1.0 + 0.5 * (spread - 1.0).max(0.0);
+            let drain = (0.038 * casualty_rate * directions
+                + 0.06 * missile_rate
+                + 0.002 * (losing_push - 1.2).max(0.0)
+                + 0.05 * intimidation
+                + 0.025 * rout_contagion)
                 * amp;
 
             // Recovery: quiet, distant from FIGHTING threats (a fleeing

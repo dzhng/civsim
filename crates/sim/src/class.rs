@@ -80,7 +80,7 @@ const SPEAR: Weapon = Weapon {
     reach: 1.6,
     min_range: 0.0,
     arc: 0.6,
-    attack_interval: 1.6,
+    attack_interval: 2.2,
     damage: 0.13,
 };
 
@@ -88,7 +88,7 @@ const SWORD: Weapon = Weapon {
     reach: 1.1,
     min_range: 0.0,
     arc: 1.4,
-    attack_interval: 1.3,
+    attack_interval: 1.79,
     damage: 0.16,
 };
 
@@ -96,7 +96,7 @@ const LONG_SWORD: Weapon = Weapon {
     reach: 1.8,
     min_range: 0.3,
     arc: 2.4,
-    attack_interval: 1.9,
+    attack_interval: 2.61,
     damage: 0.3,
 };
 
@@ -106,7 +106,7 @@ const PIKE: Weapon = Weapon {
     arc: 0.08,
     // A thrust-and-recover cycle, not a sweep: the wall's stopping power is
     // cadence x hurl; lethality per poke stays modest.
-    attack_interval: 1.0,
+    attack_interval: 1.38,
     damage: 0.12,
 };
 
@@ -114,7 +114,7 @@ const SIDE_SWORD: Weapon = Weapon {
     reach: 1.0,
     min_range: 0.0,
     arc: 1.2,
-    attack_interval: 1.3,
+    attack_interval: 1.79,
     damage: 0.14,
 };
 
@@ -122,7 +122,7 @@ const DAGGER: Weapon = Weapon {
     reach: 0.8,
     min_range: 0.0,
     arc: 1.0,
-    attack_interval: 1.0,
+    attack_interval: 1.38,
     damage: 0.11,
 };
 
@@ -130,7 +130,7 @@ const LANCE: Weapon = Weapon {
     reach: 2.4,
     min_range: 0.7,
     arc: 0.25,
-    attack_interval: 2.2,
+    attack_interval: 3.02,
     damage: 0.32,
 };
 
@@ -138,7 +138,7 @@ const CAV_SWORD: Weapon = Weapon {
     reach: 1.3,
     min_range: 0.0,
     arc: 1.4,
-    attack_interval: 1.4,
+    attack_interval: 1.93,
     damage: 0.2,
 };
 
@@ -154,7 +154,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
         mounted: false,
         spacing: Vec2::new(1.0, 1.2),
         default_depth: 6,
-        health: 1.0,
+        health: 1.3,
         mount_health: 0.0,
         block: 0.15,
         evade: 0.2,
@@ -174,7 +174,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             brace_mult: 2.0,
             spacing: Vec2::new(0.9, 1.1),
             default_depth: 8,
-            health: 1.3,
+            health: 1.69,
             block: 0.45,
             evade: 0.08,
             training: 0.75,
@@ -188,7 +188,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             mass: 0.95,
             spacing: Vec2::new(1.0, 1.2),
             default_depth: 6,
-            health: 1.0,
+            health: 2.3, // low tier breaks on MORALE (~half strength) — the bodies still take minutes to chew through
             block: 0.15,
             evade: 0.3,
             training: 0.55,
@@ -201,7 +201,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             mass: 1.1,
             spacing: Vec2::new(1.5, 1.4),
             default_depth: 4,
-            health: 1.15,
+            health: 1.49,
             block: 0.2,
             evade: 0.22,
             training: 0.8,
@@ -216,7 +216,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             brace_mult: 4.0,
             spacing: Vec2::new(0.8, 1.0),
             default_depth: 10,
-            health: 1.1,
+            health: 1.43,
             block: 0.35,
             evade: 0.08,
             training: 0.8,
@@ -232,7 +232,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             mass: 0.9,
             spacing: Vec2::new(1.2, 1.3),
             default_depth: 4,
-            health: 0.9,
+            health: 1.17,
             block: 0.1,
             evade: 0.25,
             stance: crate::unit::Stance::Fence,
@@ -248,7 +248,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             mass: 0.85,
             spacing: Vec2::new(1.6, 1.6),
             default_depth: 4,
-            health: 0.9,
+            health: 1.17,
             block: 0.12,
             evade: 0.35,
             training: 0.5,
@@ -266,8 +266,8 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             tramples: true,
             spacing: Vec2::new(1.8, 2.4),
             default_depth: 5,
-            health: 1.1,
-            mount_health: 6.5, // a horse is a LOT of animal: short blades
+            health: 1.43,
+            mount_health: 8.45, // a horse is a LOT of animal: short blades
                                // chip at it while the rider stays safe
             block: 0.25,
             evade: 0.12,
@@ -286,8 +286,8 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             tramples: true,
             spacing: Vec2::new(2.2, 2.6),
             default_depth: 5,
-            health: 1.0,
-            mount_health: 5.0,
+            health: 1.3,
+            mount_health: 6.5,
             block: 0.1,
             evade: 0.25,
             training: 0.65,
@@ -303,7 +303,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             mass: 0.9,
             spacing: Vec2::new(2.0, 2.0),
             default_depth: 4,
-            health: 0.9,
+            health: 1.17,
             block: 0.05,
             evade: 0.15,
             stance: crate::unit::Stance::Fence,

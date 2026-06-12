@@ -330,18 +330,112 @@ fn threats_that_never_land_lose_their_terror() {
     let line = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 200, UnitClassId::HeavyInfantry, 0);
     let cav = sim.spawn_class(Vec2::new(-120.0, 45.0), 0.0, 160, UnitClassId::ShockCavalry, 1);
     sim.set_pace(cav, sim::Pace::Run);
-    // Endless laps across the line's front at gallop, inside the fear radius.
+    // Feinted charges: diagonal passes that genuinely CLOSE on the line
+    // (parallel sweeps have no closing and rightly frighten nobody), then
+    // peel away before contact. Repeat for five minutes.
+    let mut min_m = 1.0f32;
     for lap in 0..12 {
-        let x = if lap % 2 == 0 { 120.0 } else { -120.0 };
-        sim.set_move_order(cav, Vec2::new(x, 45.0));
+        let (x, y) = if lap % 2 == 0 { (120.0, 4.0) } else { (-120.0, 56.0) };
+        sim.set_move_order(cav, Vec2::new(x, y));
         for _ in 0..(25.0 / DT) as usize {
             sim.tick();
+            min_m = min_m.min(sim.units[line].morale);
         }
     }
     let m = morale_after(&mut sim, line, 1.0);
+    println!("circus: min morale {min_m:.3}, final {m:.3}");
+    // Each pass costs ~0.07 and recovery refills it between passes: the
+    // equilibrium oscillates near baseline forever. Both halves matter —
+    // the feints REGISTER, and they can never accumulate into a rout.
+    assert!(min_m < 0.94, "the feints must actually register as threats: min {min_m:.3}");
     assert!(
-        !sim.units[line].routing && m > 0.55,
+        !sim.units[line].routing && m > 0.80,
         "five minutes of circus hasn't broken the line: morale {m:.2}"
+    );
+}
+
+#[test]
+fn dying_from_two_directions_breaks_faster_than_frontal() {
+    // The directions term: the same blood from two sides costs more will.
+    // Equal attacker mass, split front+rear vs all frontal; compare the
+    // DEFENDER's casualties at its break.
+    let dead_at_break = |split: bool| -> f32 {
+        let mut sim = Sim::new(Tunables::default(), SEED);
+        let v = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 160, UnitClassId::HeavyInfantry, 0);
+        let attackers = if split {
+            vec![
+                sim.spawn_class(Vec2::new(0.0, 30.0), -FRAC_PI_2, 150, UnitClassId::HeavyInfantry, 1),
+                sim.spawn_class(Vec2::new(0.0, -30.0), FRAC_PI_2, 150, UnitClassId::HeavyInfantry, 1),
+            ]
+        } else {
+            vec![sim.spawn_class(Vec2::new(0.0, 30.0), -FRAC_PI_2, 300, UnitClassId::HeavyInfantry, 1)]
+        };
+        for a in attackers {
+            sim.set_charge_enabled(a, false);
+            sim.set_attack_order(a, v);
+        }
+        for _ in 0..(420.0 / DT) as usize {
+            sim.tick();
+            if sim.units[v].routing {
+                break;
+            }
+        }
+        assert!(sim.units[v].routing, "outnumbered 2:1, it must break eventually");
+        1.0 - sim.units[v].alive_count as f32 / 160.0
+    };
+    let frontal = dead_at_break(false);
+    let enveloped = dead_at_break(true);
+    println!("dead at break: frontal {:.0}%, two directions {:.0}%", frontal * 100.0, enveloped * 100.0);
+    assert!(
+        enveloped < frontal - 0.05,
+        "two directions break the will on less blood: {enveloped:.2} vs {frontal:.2}"
+    );
+}
+
+#[test]
+fn steady_friends_brace_recovery() {
+    // Rattled men recover faster among steady comrades than alone.
+    let recovered = |with_friends: bool| -> f32 {
+        let mut sim = Sim::new(Tunables::default(), SEED);
+        let u = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 200, UnitClassId::LightInfantry, 0);
+        if with_friends {
+            sim.spawn_class(Vec2::new(-40.0, 0.0), FRAC_PI_2, 240, UnitClassId::HeavyInfantry, 0);
+            sim.spawn_class(Vec2::new(40.0, 0.0), FRAC_PI_2, 240, UnitClassId::HeavyInfantry, 0);
+        }
+        sim.units[u].morale = 0.2; // badly rattled, not broken
+        for _ in 0..(30.0 / DT) as usize {
+            sim.tick();
+        }
+        sim.units[u].morale
+    };
+    let braced = recovered(true);
+    let alone = recovered(false);
+    println!("recovery from 0.2 after 30s: braced {braced:.3}, alone {alone:.3}");
+    assert!(
+        braced > alone + 0.05,
+        "steady friends brace the will: {braced:.3} vs {alone:.3}"
+    );
+}
+
+#[test]
+fn shattered_units_never_rally() {
+    // A unit cut below the shatter fraction stays broken forever, however
+    // quiet the field gets.
+    let mut sim = Sim::new(Tunables::default(), SEED);
+    let u = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 200, UnitClassId::LightInfantry, 0);
+    // Cut them to 10% by hand and break them: the claim is the RALLY gate.
+    let (start, count) = (sim.units[u].start, sim.units[u].count);
+    for s in (count / 10)..count {
+        sim.kill(start + s);
+    }
+    sim.units[u].morale = 0.0;
+    for _ in 0..(300.0 / DT) as usize {
+        sim.tick();
+    }
+    assert!(
+        sim.units[u].routing,
+        "a shattered remnant never reforms: routing={}",
+        sim.units[u].routing
     );
 }
 

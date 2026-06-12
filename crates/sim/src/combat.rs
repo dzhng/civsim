@@ -373,7 +373,9 @@ impl Sim {
         }
     }
 
-    pub(crate) fn kill(&mut self, i: usize) {
+    /// Public for scenario tests and sandbox tooling: drop a soldier dead
+    /// where he stands (bookkeeping included).
+    pub fn kill(&mut self, i: usize) {
         if self.alive[i] == 0 {
             return;
         }

@@ -156,7 +156,8 @@ fn artillery_stones_plow_through_deep_columns() {
 
 #[test]
 fn horse_archers_shoot_on_the_move() {
-    let mut sim = Sim::new(no_morale(), SEED);
+    // Parade ground: the subject is mobile fire, not footing.
+    let mut sim = Sim::new(Tunables { micro_rough: 0.0, ..no_morale() }, SEED);
     let ha = sim.spawn_class(Vec2::new(0.0, 0.0), 0.0, 120, UnitClassId::HorseArchers, 0);
     let target = sim.spawn_class(Vec2::new(60.0, 60.0), -FRAC_PI_2, 300, UnitClassId::LightInfantry, 1);
     // Ride across the target's front while loosing.

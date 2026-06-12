@@ -40,6 +40,6 @@ pub use math::{dir, lerp, move_toward, rotate_toward, wrap_angle, Vec2};
 pub use missiles::{missile_spec, MissileKind, Projectiles};
 pub use rng::Pcg32;
 pub use sim::Sim;
-pub use terrain::Terrain;
+pub use terrain::{micro_rough, Terrain};
 pub use tunables::{Pace, Tunables, DT};
 pub use unit::{OrderMode, Stance, Unit};

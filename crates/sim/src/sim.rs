@@ -33,12 +33,28 @@ pub struct Sim {
     /// Seconds the instantaneous victor condition has held (morale.rs):
     /// the verdict must be sustained before it locks.
     pub(crate) verdict_hold: f32,
-    /// Crowd squeeze per soldier (EMA of received separation push, m/s):
-    /// measured, never written by gameplay. Kills evade, transmits force.
+    /// Crowd squeeze per soldier (EMA of received push, m/s): measured,
+    /// never written by gameplay. Kills evade, transmits force.
     pub pressure: Vec<f32>,
-    /// EMA of the net received push vector (m/s) — transmission is directional.
+    /// THE LEDGER — raw received push this tick, posted by every system
+    /// that displaces a soldier against his will (separation solver,
+    /// weapon hit-push, stone bowls). Own legs and carried momentum never
+    /// post. Zeroed each tick; folded into the pressure EMAs at the end,
+    /// after the last poster — so a pike hedge hammering a charger is
+    /// pressure exactly like a crowd squeezing him.
+    pub(crate) recv_x: Vec<f32>,
+    pub(crate) recv_y: Vec<f32>,
+    pub(crate) recv_mag: Vec<f32>,
+    /// EMA of the net received push vector (m/s), ALL sources — the vice
+    /// and the ram drag read this (a hedge of thrusts is compression).
     pub(crate) press_x: Vec<f32>,
     pub(crate) press_y: Vec<f32>,
+    /// EMA of the net COLLISION push vector only — the othismos force
+    /// chain (bodies conducting momentum through contact). A sword blow
+    /// compresses a man; it does not make him a better pusher, so the
+    /// conduction term must not read weapon pushes.
+    pub(crate) cond_x: Vec<f32>,
+    pub(crate) cond_y: Vec<f32>,
     pub attack_cd: Vec<f32>,
     /// Impact momentum carried by the body (kg·m/s, world vector): set when
     /// a charge lands, spent against the crowd, zeroed by stagger. THIS is
@@ -70,6 +86,13 @@ pub struct Sim {
     /// Bearing of the last attacker and its time-to-live (reactive facing).
     pub(crate) hit_dir: Vec<f32>,
     pub(crate) hit_ttl: Vec<f32>,
+    /// Honest kinematic velocity per soldier (m/s): steering + carried
+    /// momentum, captured after the steer pass and BEFORE the separation
+    /// solver — the impact stack reads this, never position deltas, which
+    /// in a packed scrum carry 5-9 m/s of solver oscillation ("phantom
+    /// velocity") that minted momentum and chipped stun-locked men dead.
+    pub(crate) kin_vx: Vec<f32>,
+    pub(crate) kin_vy: Vec<f32>,
     pub(crate) prev_positions: Vec<f32>,
     pub(crate) body_pos: Vec<f32>,
     pub(crate) body_r: Vec<f32>,
@@ -87,6 +110,9 @@ pub struct Sim {
     /// Diagnostics: landings that struck a body / landed on empty ground.
     pub missile_hits: u64,
     pub missile_misses: u64,
+    /// Diagnostics: men killed by collision impact (knockdown wounds) —
+    /// the scrum-chip regression reads this (a grind must show ZERO).
+    pub impact_casualties: u64,
     pub tick_count: u64,
     pub rng: Pcg32,
     pub(crate) grid: SpatialHash,
@@ -107,8 +133,13 @@ impl Sim {
             mount_health: Vec::new(),
             verdict_hold: 0.0,
             pressure: Vec::new(),
+            recv_x: Vec::new(),
+            recv_y: Vec::new(),
+            recv_mag: Vec::new(),
             press_x: Vec::new(),
             press_y: Vec::new(),
+            cond_x: Vec::new(),
+            cond_y: Vec::new(),
             attack_cd: Vec::new(),
             mom_x: Vec::new(),
             mom_y: Vec::new(),
@@ -121,6 +152,8 @@ impl Sim {
             front_clear: Vec::new(),
             hit_dir: Vec::new(),
             hit_ttl: Vec::new(),
+            kin_vx: Vec::new(),
+            kin_vy: Vec::new(),
             prev_positions: Vec::new(),
             body_pos: Vec::new(),
             body_r: Vec::new(),
@@ -133,6 +166,7 @@ impl Sim {
             projectiles: crate::missiles::Projectiles::default(),
             missile_hits: 0,
             missile_misses: 0,
+            impact_casualties: 0,
             tick_count: 0,
             rng: Pcg32::new(seed, 0xda3e),
             grid: SpatialHash::new(),
@@ -256,6 +290,13 @@ impl Sim {
             self.front_clear.push(1);
             self.hit_dir.push(0.0);
             self.hit_ttl.push(0.0);
+            self.kin_vx.push(0.0);
+            self.kin_vy.push(0.0);
+            self.recv_x.push(0.0);
+            self.recv_y.push(0.0);
+            self.recv_mag.push(0.0);
+            self.cond_x.push(0.0);
+            self.cond_y.push(0.0);
             self.alive.push(1);
             self.soldier_unit.push(unit_index as u32);
             self.soldier_slot.push(s as u32);
@@ -498,6 +539,10 @@ impl Sim {
         // Snapshot for velocity measurement (charges, anchor drift).
         self.prev_positions.resize(2 * n, 0.0);
         self.prev_positions.copy_from_slice(&self.positions);
+        // Open the received-push ledger for this tick.
+        for v in self.recv_x.iter_mut().chain(self.recv_y.iter_mut()).chain(self.recv_mag.iter_mut()) {
+            *v = 0.0;
+        }
 
         self.deliver_orders_and_reflexes(dt);
         self.run_skirmish_evade();
@@ -567,9 +612,28 @@ impl Sim {
         }
 
         let measures = self.steer_soldiers(dt);
+        // Honest kinematics: what each body's own legs and carried momentum
+        // did this tick (prev_positions snapshots the tick start; nothing
+        // but the steer pass has moved anyone yet). Captured BEFORE the
+        // separation solver so impacts read motion, not constraint churn.
+        for i in 0..self.kin_vx.len() {
+            self.kin_vx[i] = (self.positions[2 * i] - self.prev_positions[2 * i]) / dt;
+            self.kin_vy[i] = (self.positions[2 * i + 1] - self.prev_positions[2 * i + 1]) / dt;
+        }
         self.apply_separation();
         self.run_combat();
         self.run_missiles();
+        // Close the ledger: fold this tick's received pushes into the
+        // pressure EMAs, after the LAST poster (separation, strikes,
+        // stones have all run).
+        {
+            let alpha = 1.0 - (-dt / self.tun.press_tau).exp();
+            for i in 0..self.pressure.len() {
+                self.pressure[i] += (self.recv_mag[i] / dt - self.pressure[i]) * alpha;
+                self.press_x[i] += (self.recv_x[i] / dt - self.press_x[i]) * alpha;
+                self.press_y[i] += (self.recv_y[i] / dt - self.press_y[i]) * alpha;
+            }
+        }
         self.contact_facing(&measures, dt);
         self.integrate_units(&measures, dt);
         self.run_morale(dt);
@@ -1101,7 +1165,10 @@ impl Sim {
                     let away = p - foe_centroid[(u.team as usize).min(1)];
                     let l = away.len().max(0.1);
                     let flee = away * (1.0 / l);
-                    let sp = surge_sp * terrain.speed_at(p).max(0.0);
+                    let sp = surge_sp
+                        * (terrain.speed_at(p)
+                            * (1.0 - tun.micro_rough * (1.0 - crate::terrain::micro_rough(p))))
+                        .max(0.0);
                     positions[2 * i] = p.x + flee.x * sp * dt;
                     positions[2 * i + 1] = p.y + flee.y * sp * dt;
                     let desired = flee.y.atan2(flee.x);
@@ -1192,7 +1259,8 @@ impl Sim {
                     }
                 }
 
-                let ground = terrain.speed_at(p);
+                let micro = 1.0 - tun.micro_rough * (1.0 - crate::terrain::micro_rough(p));
+                let ground = terrain.speed_at(p) * micro;
                 if ground < 1.0 {
                     max_sp *= ground;
                 }

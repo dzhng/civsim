@@ -59,14 +59,17 @@ impl Sim {
 
         let Sim {
             positions,
-            prev_positions,
+            kin_vx,
+            kin_vy,
             grid,
             scratch,
             terrain,
             mass,
-            pressure,
-            press_x,
-            press_y,
+            recv_x,
+            recv_y,
+            recv_mag,
+            cond_x,
+            cond_y,
             stun,
             mom_x,
             mom_y,
@@ -83,20 +86,17 @@ impl Sim {
         // Collision damage is applied after the pass (kill() needs &mut self).
         let mut impact_kills: Vec<usize> = Vec::new();
         grid.rebuild(cell, body_pos);
+        let mut raw_cx = vec![0.0f32; n];
+        let mut raw_cy = vec![0.0f32; n];
         // scratch: per-soldier [push_x, push_y]; plus raw pressure accumulators.
         scratch.clear();
         scratch.resize(2 * n, 0.0);
-        let mut raw_x = vec![0.0f32; n];
-        let mut raw_y = vec![0.0f32; n];
-        let mut raw_mag = vec![0.0f32; n];
 
         let m_eff = |i: usize| mass[i] * brace[soldier_unit[i] as usize];
-        let vel = |i: usize| -> Vec2 {
-            Vec2::new(
-                (positions[2 * i] - prev_positions[2 * i]) / DT,
-                (positions[2 * i + 1] - prev_positions[2 * i + 1]) / DT,
-            )
-        };
+        // The impact stack reads HONEST velocity (legs + carried momentum,
+        // recorded pre-solver) — position deltas in a scrum are dominated
+        // by separation churn that carries no kinetic energy.
+        let vel = |i: usize| -> Vec2 { Vec2::new(kin_vx[i], kin_vy[i]) };
 
         for bi in 0..nb {
             let i = body_owner[bi] as usize;
@@ -154,11 +154,11 @@ impl Sim {
                             let drive_i = 1.0
                                 + tun.press_drive
                                     * gate_i
-                                    * (-(press_x[i] * nx + press_y[i] * ny)).max(0.0);
+                                    * (-(cond_x[i] * nx + cond_y[i] * ny)).max(0.0);
                             let drive_j = 1.0
                                 + tun.press_drive
                                     * gate_j
-                                    * (press_x[j] * nx + press_y[j] * ny).max(0.0);
+                                    * (cond_x[j] * nx + cond_y[j] * ny).max(0.0);
                             let w_i = m_eff(i) * drive_i;
                             let w_j = m_eff(j) * drive_j;
                             let share = w_j / (w_i + w_j);
@@ -196,19 +196,13 @@ impl Sim {
                                         // a run bruise and fall, nothing more.
                                         let knockback =
                                             crate::class::class_stats(units[uj].class).knockback_mult;
-                                        // ...and only in a REAL charge (the
-                                        // burst, or the ride-through it pays
-                                        // for — charge_time is the measured
-                                        // clock), on EITHER side: a charging
-                                        // man hurts what he fells AND pays
-                                        // for what he slams into. Scrum
-                                        // separation spikes carry no charge
-                                        // state and chip nobody to death.
-                                        let real_charge = units[ui].charging
-                                            || units[ui].charge_time > 0.0
-                                            || units[uj].charging
-                                            || units[uj].charge_time > 0.0;
-                                        if stun[i] <= 0.0 && knockback > 0.0 && real_charge {
+                                        // Universal: ANYONE felled at
+                                        // charge-grade closing gets hurt —
+                                        // no charge-state gate needed now
+                                        // that closing is honest motion
+                                        // (a scrum's churn reads ~0 and
+                                        // can neither fell nor mint).
+                                        if stun[i] <= 0.0 && knockback > 0.0 {
                                             let pool = if mounted[i] == 1 {
                                                 &mut mount_health[i]
                                             } else {
@@ -244,12 +238,15 @@ impl Sim {
             }
             scratch[2 * i] += push.x;
             scratch[2 * i + 1] += push.y;
-            raw_x[i] += push.x;
-            raw_y[i] += push.y;
-            raw_mag[i] += push.len();
+            recv_x[i] += push.x;
+            recv_y[i] += push.y;
+            recv_mag[i] += push.len();
+            raw_cx[i] += push.x;
+            raw_cy[i] += push.y;
         }
 
-        // --- apply (capped per soldier, walls slide) + update pressure EMAs --
+        // --- apply (capped per soldier, walls slide) + fold the CONDUCTION
+        // chain EMA (collision-only; the full ledger folds at tick end) ----
         let alpha = 1.0 - (-DT / tun.press_tau).exp();
         for i in 0..n {
             let mut px = scratch[2 * i];
@@ -278,12 +275,12 @@ impl Sim {
             positions[2 * i] = np.x;
             positions[2 * i + 1] = np.y;
 
-            pressure[i] += (raw_mag[i] / DT - pressure[i]) * alpha;
-            press_x[i] += (raw_x[i] / DT - press_x[i]) * alpha;
-            press_y[i] += (raw_y[i] / DT - press_y[i]) * alpha;
+            cond_x[i] += (raw_cx[i] / DT - cond_x[i]) * alpha;
+            cond_y[i] += (raw_cy[i] / DT - cond_y[i]) * alpha;
         }
 
         // The throws that broke bodies: bookkeeping after the borrow ends.
+        self.impact_casualties += impact_kills.len() as u64;
         for &i in &impact_kills {
             self.kill(i);
         }

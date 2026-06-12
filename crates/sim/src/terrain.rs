@@ -54,6 +54,47 @@ impl Terrain {
     pub fn rough_at(&self, p: Vec2) -> f32 {
         self.index(p).map_or(0.0, |i| self.rough[i])
     }
+}
+
+/// Micro-terrain: rocks, potholes, roots — one-man-wide disturbances
+/// scattered every ~3-10 m across EVERY map, flat ground included. A pure
+/// deterministic function of position (no storage; the renderer evaluates
+/// the same field per fragment, so what you see is what trips you).
+/// Soldiers crossing one slow briefly; over a long march those individual
+/// stumbles accumulate into measured disorder. Frames and pathfinding
+/// ignore it — formations flow over it, men trip on it.
+pub fn micro_rough(p: Vec2) -> f32 {
+    const CELL: f32 = 3.0;
+    let cx = (p.x / CELL).floor();
+    let cy = (p.y / CELL).floor();
+    let h = micro_hash(cx as i32, cy as i32);
+    // ~35% of 3m cells hold a disturbance: mean spacing ~5m (3-10m).
+    if (h & 0xff) < 89 {
+        let r = 0.4 + 0.35 * (((h >> 8) & 0xff) as f32 / 255.0);
+        let jx = (((h >> 16) & 0xff) as f32 / 255.0) * (CELL - 2.0 * r) + r;
+        let jy = (((h >> 24) & 0xff) as f32 / 255.0) * (CELL - 2.0 * r) + r;
+        let dx = p.x - (cx * CELL + jx);
+        let dy = p.y - (cy * CELL + jy);
+        if dx * dx + dy * dy < r * r {
+            return 0.45; // a stumble, not a wall
+        }
+    }
+    1.0
+}
+
+/// Integer hash (wrapping ops only — the GLSL twin in the ground shader
+/// must produce the SAME field; change one, change both).
+fn micro_hash(x: i32, y: i32) -> u32 {
+    let mut h = (x as u32).wrapping_mul(0x85eb_ca6b) ^ (y as u32).wrapping_mul(0xc2b2_ae35);
+    h ^= h >> 13;
+    h = h.wrapping_mul(0x27d4_eb2f);
+    h ^= h >> 16;
+    h
+}
+
+#[allow(dead_code)]
+struct TerrainEndMarker;
+impl Terrain {
 
     /// Direction toward passable ground for a soldier standing in a wall:
     /// search rings of 8 bearings at growing radius for the nearest passable

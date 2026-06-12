@@ -36,8 +36,10 @@ pub(crate) const FRONT_ARC: f32 = 1.05;
 /// pins his elbows. Measured as scalar pressure minus the net push vector:
 /// shoved from one side they nearly cancel out to zero (you yield a step
 /// and keep your arms); pressed from opposing sides the magnitudes stay
-/// and the net dies — that remainder is the vice.
-const VICE_PIN: f32 = 0.5;
+/// and the net dies — that remainder is the vice. (Scaled to the FULL
+/// received-push ledger — weapon pushes post too, roughly doubling melee
+/// pressure readings relative to the collision-only era.)
+const VICE_PIN: f32 = 1.0;
 /// Crowding penalty an UNWEDGED man still pays: a comrade in your arc is
 /// geometry you must work around even with room to step and time the sweep.
 const OBSTRUCT_FLOOR: f32 = 0.7;
@@ -330,7 +332,7 @@ impl Sim {
             0.25
         };
         let evade =
-            vstats.evade * seen * cohesion * (1.0 - self.pressure[victim] / 2.0).clamp(0.0, 1.0);
+            vstats.evade * seen * cohesion * (1.0 - self.pressure[victim] / 4.2).clamp(0.0, 1.0);
         if self.rng.chance(evade) {
             return;
         }
@@ -370,6 +372,11 @@ impl Sim {
         if self.terrain.speed_at(np) > 0.0 {
             self.positions[2 * victim] = np.x;
             self.positions[2 * victim + 1] = np.y;
+            // Weapon pushes are received force like any other: a hedge of
+            // thrusts hammering a man IS compression — post to the ledger.
+            self.recv_x[victim] += d.x * push;
+            self.recv_y[victim] += d.y * push;
+            self.recv_mag[victim] += push;
         }
 
         if blocked {

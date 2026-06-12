@@ -91,6 +91,32 @@ float noise(vec2 p) {
   return mix(mix(hash(i), hash(i + vec2(1, 0)), f.x),
              mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), f.x), f.y);
 }
+// Micro-terrain: the GLSL twin of sim terrain.rs::micro_rough — the SAME
+// integer hash over the SAME 3m cells, so every rendered rock is a real
+// stumble and vice versa. Change one, change both.
+uint microHash(int x, int y) {
+  uint h = uint(x) * 2246822507u ^ uint(y) * 3266489917u;
+  h ^= h >> 13;
+  h *= 668265263u;
+  h ^= h >> 16;
+  return h;
+}
+float microRock(vec2 w) {
+  vec2 c = floor(w / 3.0);
+  uint h = microHash(int(c.x), int(c.y));
+  if ((h & 255u) < 89u) {
+    float r = 0.4 + 0.35 * float((h >> 8) & 255u) / 255.0;
+    float jx = float((h >> 16) & 255u) / 255.0 * (3.0 - 2.0 * r) + r;
+    float jy = float((h >> 24) & 255u) / 255.0 * (3.0 - 2.0 * r) + r;
+    vec2 d = w - (c * 3.0 + vec2(jx, jy));
+    float dd = dot(d, d);
+    if (dd < r * r) {
+      // 1 at the rim, ~2 in the heart: callers shade by depth.
+      return 2.0 - dd / (r * r);
+    }
+  }
+  return 0.0;
+}
 
 void main() {
   bool outside = v_uv.x < 0.0 || v_uv.x > 1.0 || v_uv.y < 0.0 || v_uv.y > 1.0;
@@ -144,6 +170,13 @@ void main() {
   }
 
   col *= 0.90 + 0.10 * t.r;    // slow ground reads darker, honestly
+  // Rocks and potholes: one-man-wide, every 3-10m, everywhere — the same
+  // field the sim trips on. Dry stone with a darker heart.
+  float rock = microRock(v_world);
+  if (rock > 0.0 && tint != 1.0 && !outside) {
+    vec3 stone = mix(vec3(0.42, 0.40, 0.34), vec3(0.30, 0.28, 0.24), min(rock - 1.0, 1.0));
+    col = mix(col, stone, 0.85);
+  }
   // The battlefield bound: a crisp double line at the true map edge.
   vec2 du = fwidth(v_uv) * 2.0;
   float bx = min(smoothstep(0.0, du.x, abs(v_uv.x)), smoothstep(0.0, du.x, abs(v_uv.x - 1.0)));

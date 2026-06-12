@@ -1,0 +1,59 @@
+//! Micro-terrain: one-man-wide disturbances scattered every 3-10m on every
+//! map. Men trip on them; formations flow over them; long marches fray.
+
+use sim::{Pace, Sim, Tunables, Vec2, DT};
+
+const SEED: u64 = 31337;
+
+#[test]
+fn the_field_is_scattered_with_disturbances_every_3_to_10_meters() {
+    // Sample the pure field: density and size match the spec.
+    let mut hits = 0;
+    let mut total = 0;
+    for ix in 0..400 {
+        for iy in 0..400 {
+            let p = Vec2::new(ix as f32 * 0.5 - 100.0, iy as f32 * 0.5 - 100.0);
+            total += 1;
+            if sim::micro_rough(p) < 1.0 {
+                hits += 1;
+            }
+        }
+    }
+    let area_frac = hits as f32 / total as f32;
+    // ~21% of 3m cells hold a disc of r~0.35-0.6: ~1.5-3% of ground area.
+    println!("disturbed ground: {:.1}%", area_frac * 100.0);
+    assert!(
+        (0.008..=0.05).contains(&area_frac),
+        "one-man-wide rocks, sparse but everywhere: {:.1}% of ground",
+        area_frac * 100.0
+    );
+}
+
+#[test]
+fn long_marches_fray_over_rough_ground() {
+    // The same walking column, parade ground vs real ground: rocks and
+    // potholes cost individual men steps, and the dressing pays for it.
+    let cohesion_after = |micro: f32| -> f32 {
+        let mut sim = Sim::new(Tunables { micro_rough: micro, ..Tunables::default() }, SEED);
+        let u = sim.spawn_unit(Vec2::new(-150.0, 0.0), 0.0, 300, 30, Vec2::new(1.0, 1.2), 0, 0.7);
+        sim.set_pace(u, Pace::Walk);
+        sim.set_move_order(u, Vec2::new(250.0, 0.0));
+        let mut min_cohesion = 1.0f32;
+        for _ in 0..(240.0 / DT) as usize {
+            sim.tick();
+            min_cohesion = min_cohesion.min(sim.units[u].cohesion);
+        }
+        min_cohesion
+    };
+    let parade = cohesion_after(0.0);
+    let field = cohesion_after(1.0);
+    println!("min cohesion on the march: parade {parade:.3}, field {field:.3}");
+    assert!(
+        field < parade - 0.01,
+        "real ground frays a long walking march: {field:.3} vs {parade:.3}"
+    );
+    assert!(
+        field > 0.55,
+        "but it's a fraying, not a rout of order: {field:.3}"
+    );
+}

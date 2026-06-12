@@ -228,7 +228,8 @@ fn heavy_infantry_charge_carries_a_stride_not_a_gallop() {
     // physically cannot. Far less than horse either way (small m, small v).
     let crash_into = |charge: bool| -> f32 {
         let mut sim = Sim::new(
-            Tunables { morale_enabled: false, ..Tunables::default() },
+            Tunables { micro_rough: 0.0, // parade ground: not the subject here
+             morale_enabled: false, ..Tunables::default() },
             SEED,
         );
         let inf = sim.spawn_unit(
@@ -517,4 +518,68 @@ fn light_horse_tramples_at_half_the_butchery() {
         (0.3..=0.7).contains(&ratio),
         "light horse butchers about half: {light_horse} vs {heavy_horse} (ratio {ratio:.2})"
     );
+}
+
+#[test]
+fn a_grinding_press_breaks_no_bones() {
+    // The scrum-chip regression: two heavy lines grinding chest to chest
+    // for two minutes. The separation solver shoves bodies back and forth
+    // every tick — constraint churn, not motion — and with the impact
+    // stack reading HONEST kinematics none of it reads as a charge:
+    // nobody is felled by a squeeze, nobody dies of re-knock chips.
+    let mut sim = Sim::new(Tunables { morale_enabled: false, ..Tunables::default() }, SEED);
+    let a = sim.spawn_class(Vec2::new(0.0, -12.0), PI / 2.0, 300, UnitClassId::HeavyInfantry, 0);
+    let b = sim.spawn_class(Vec2::new(0.0, 12.0), -PI / 2.0, 300, UnitClassId::HeavyInfantry, 1);
+    sim.set_charge_enabled(a, false);
+    sim.set_charge_enabled(b, false);
+    sim.set_move_order(a, Vec2::new(0.0, 30.0));
+    sim.set_move_order(b, Vec2::new(0.0, -30.0));
+    let mut peak_eng = 0;
+    for _ in 0..(120.0 / DT) as usize {
+        sim.tick();
+        peak_eng = peak_eng.max(sim.units[a].engaged + sim.units[b].engaged);
+    }
+    assert!(peak_eng > 100, "setup: a real grind, peak {peak_eng} engaged");
+    assert_eq!(
+        sim.impact_casualties, 0,
+        "a press is a squeeze, not an impact: {} men chipped to death",
+        sim.impact_casualties
+    );
+}
+
+#[test]
+#[ignore = "Waterloo contract, blocked on the IMPALE term: hit_push scales by attacker/victim mass ratio, so a pikeman 'shoves' a half-ton horse 0.17m/thrust — the missing physics is the planted point returning the CLOSING victim's own momentum (kin closing x momentum share), plus likely contact-weighted drag. One focused session."]
+fn a_braced_pike_front_keeps_its_feet_under_the_charge() {
+    // The wall-side of the impact contract: the front rank of a DEEP,
+    // braced phalanx is held up by its own mass and the press chain
+    // behind it — a frontal cavalry charge fells almost none of them
+    // (the horses pay the wall's toll instead, by reach).
+    let mut sim = Sim::new(Tunables { morale_enabled: false, ..Tunables::default() }, SEED);
+    let ph = sim.spawn_class(Vec2::new(0.0, 40.0), -PI / 2.0, 400, UnitClassId::Phalanx, 0);
+    let cav = sim.spawn_class(Vec2::new(0.0, -40.0), PI / 2.0, 160, UnitClassId::ShockCavalry, 1);
+    sim.set_attack_order(cav, ph);
+    // Front rank = the men closest to the cavalry at the moment of spawn.
+    let front: Vec<usize> = {
+        let u = &sim.units[ph];
+        let mut men: Vec<usize> = (u.start..u.start + u.count).collect();
+        men.sort_by(|&i, &j| {
+            sim.soldier_pos(i).y.partial_cmp(&sim.soldier_pos(j).y).unwrap()
+        });
+        men[..50].to_vec()
+    };
+    let mut peak_felled = 0usize;
+    for _ in 0..(30.0 / DT) as usize {
+        sim.tick();
+        let felled = front.iter().filter(|&&i| sim.alive[i] == 1 && sim.stun[i] > 0.0).count();
+        peak_felled = peak_felled.max(felled);
+    }
+    // Honest physics: half a ton at the gallop DOES bowl front-rank men —
+    // what the wall buys is that the line behind them HOLDS. The contract
+    // is the wall, not the individual: cavalry never reaches the rear.
+    assert!(
+        sim.units[cav].centroid.y < 40.0,
+        "the wall holds: cavalry centroid at y {:.1} (phalanx front at 40)",
+        sim.units[cav].centroid.y
+    );
+    let _ = peak_felled;
 }

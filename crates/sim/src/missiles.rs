@@ -196,7 +196,6 @@ impl Sim {
             // Each armed soldier shoots on his own cadence at a soldier-sized
             // point in the target: scatter does the rest.
             let (start, count) = (self.units[ui].start, self.units[ui].count);
-            let tu = &self.units[target_unit];
             let team = self.units[ui].team;
             for s in 0..count {
                 let i = start + s;
@@ -372,6 +371,9 @@ impl Sim {
             let d = dir(vel.y.atan2(vel.x));
             self.positions[2 * victim] += d.x * 0.8;
             self.positions[2 * victim + 1] += d.y * 0.8;
+            self.recv_x[victim] += d.x * 0.8;
+            self.recv_y[victim] += d.y * 0.8;
+            self.recv_mag[victim] += 0.8;
         }
 
         if self.mounted[victim] == 1 && !self.rng.chance(RIDER_HIT_SHARE) {

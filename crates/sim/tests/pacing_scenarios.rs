@@ -10,7 +10,9 @@ const SEED: u64 = 9001;
 
 /// (seconds to first rout, loser dead-fraction, winner dead-fraction)
 fn mirror(class: UnitClassId) -> (f32, f32, f32) {
-    let mut sim = Sim::new(Tunables::default(), SEED);
+    // Parade ground: the pacing contract measures the COMBAT economy;
+    // micro-terrain adds approach noise that belongs to other tests.
+    let mut sim = Sim::new(Tunables { micro_rough: 0.0, ..Tunables::default() }, SEED);
     let a = sim.spawn_class(Vec2::new(0.0, -40.0), FRAC_PI_2, 200, class, 0);
     let b = sim.spawn_class(Vec2::new(0.0, 40.0), -FRAC_PI_2, 200, class, 1);
     // Charge dynamics are tuned elsewhere; pacing measures the GRIND.

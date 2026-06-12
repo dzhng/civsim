@@ -100,6 +100,9 @@ pub struct Tunables {
     /// fells you — the impulse, once per knockdown. Braced, backed men
     /// who keep their feet keep their bones; men bumping men just fall.
     pub impact_damage: f32,
+    /// Micro-terrain strength: 1 = full stumble (speed x0.6 inside a
+    /// disturbance), 0 = parade ground (tests that need a smooth field).
+    pub micro_rough: f32,
     /// Displacement imparted by a landed or blocked strike, scaled by the
     /// attacker/defender effective-mass ratio.
     pub hit_push: f32,
@@ -185,6 +188,7 @@ impl Default for Tunables {
             stun_time: 1.3,
             impact_push: 0.2,
             impact_damage: 0.035,
+            micro_rough: 1.0,
             hit_push: 0.3,
             combat_drain: 1.0 / 50.0,
             facing_tolerance: 0.3,

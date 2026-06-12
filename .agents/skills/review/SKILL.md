@@ -118,6 +118,32 @@ The most valuable test suite is the one most decoupled from the implementation i
 - This applies recursively. If your change touches the Rust enum, the wasm export, and two TS call sites, and the literals already drifted in three places, fix all of them — don't leave two clean and two stale.
 - "I'll do that in a follow-up" is how the codebase rots. The reviewer test: after your change, is there exactly ONE place a future contributor would look to add a new value?
 
+## 17. Formulas read the physical world — men, mass, measured motion
+
+Every formula in the sim takes physical inputs: **men, mass, measured
+motion**. Never banners (unit counts), commanded state (orders, frame
+speed, pace), or classifier outputs (thresholded counts, flags). Each
+historical violation produced an effect wildly out of proportion to the
+field: a contact-direction count flash-routed healthy units 19x; a
+per-soldier mass term made five surviving horses as terrifying as a full
+wing; unit-counting contagion meant reorganizing the same men into more
+banners changed the army's morale economics.
+
+Flag in review:
+- Any term reading `frame_speed`, `pace`, or an order where the question
+  is what the bodies are DOING — use `mass_advance`, measured positions,
+  or per-soldier state.
+- Any per-unit loop weighting by unit COUNT or per-class constants where
+  the physical quantity is total living mass or men (`alive_count x
+  class mass`); ask the doubling test — double the men but keep the
+  banners: does the term respond?
+- Any discrete classification (sector groups, thresholds, booleans)
+  acting as a standalone drain/force. Classifications may GATE or
+  AMPLIFY a physical quantity, never be the quantity.
+- New scalar coefficients in a sum: check the operating MAGNITUDE of
+  each term side by side (a 0.012 on a count that steps by 1.0 dwarfs a
+  0.05 on a rate of magnitude 0.03).
+
 ## Your task
 
 Review: $ARGUMENTS

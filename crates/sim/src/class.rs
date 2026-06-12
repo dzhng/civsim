@@ -57,6 +57,12 @@ pub struct UnitClass {
     /// Charge by default: burst to charge speed in the last ~2s of an
     /// explicit attack approach. (Player can toggle; pikes hold formation.)
     pub charge: bool,
+    /// Keeps driving through contact while charging instead of planting at
+    /// weapon's length: the trample is the charge. Horses today; the knob
+    /// exists for chariots — or shock infantry, if the engine goes fancy.
+    /// (Independent of `mounted`, which is body geometry: two circles and
+    /// a rider pool.)
+    pub tramples: bool,
     pub weapons: &'static [Weapon],
 }
 
@@ -150,6 +156,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
         training: 0.6,
         stance: Stance::Othismos,
         charge: true,
+        tramples: false,
         weapons: &[SWORD],
     };
     match id {
@@ -244,6 +251,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             mass: 4.5,
             brace_mult: 1.0,
             mounted: true,
+            tramples: true,
             spacing: Vec2::new(1.8, 2.4),
             default_depth: 5,
             health: 1.8,
@@ -261,6 +269,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             mass: 3.8,
             brace_mult: 1.0,
             mounted: true,
+            tramples: true,
             spacing: Vec2::new(2.2, 2.6),
             default_depth: 5,
             health: 1.4,

@@ -914,7 +914,19 @@ impl Sim {
                     && u.latch_cd <= 0.0
                 {
                     if let Some((e, d)) = u.threat_unit {
-                        if d < 70.0 && !self.units[e as usize].routing {
+                        // The latch only reaches what the legs can: enemies
+                        // within a 5s RUN (fatigue-aware, class speed) — and
+                        // attacks close at the double (effective_pace), so
+                        // anything latched is reachable inside the 6s timer.
+                        // An expiry now MEANS the prey is pulling away. (A
+                        // flat 70m here used to latch a walking advance,
+                        // time out, and sit in the cooldown across contact —
+                        // mutual attack-moves never burst.)
+                        let run_sp = (self.tun.base_speed
+                            + (self.tun.run_speed - self.tun.base_speed)
+                                * crate::movement::fatigue_capacity(u.fatigue))
+                            * u.speed_mult;
+                        if d < run_sp * 5.0 && !self.units[e as usize].routing {
                             let u = &mut self.units[ui];
                             if u.resume_target.is_none() {
                                 u.resume_target = u.move_target;
@@ -1101,15 +1113,22 @@ impl Sim {
                 // being poked from a hand's-breadth beyond his reach.
                 // A CHARGING unit's men do not ease into weapon range —
                 // they ride their slots INTO contact at full speed and the
-                // collision cashes the momentum. But FOOT only rides into
-                // it: a man already at weapon's length plants and fights
-                // (his momentum is in his body now — mom_x/mom_y — not in
-                // his legs), or interleaved files zipper straight through
-                // each other and two charging lines merge instead of
-                // meeting. A horseman at speed is the opposite case: he
-                // rides over the man in his reach — the trample IS the
-                // charge.
-                let met = engaged_i && !u.is_mounted();
+                // collision cashes the momentum. But only INTO it: a man
+                // already at weapon's length plants and fights (his
+                // momentum is in his body now — mom_x/mom_y — not in his
+                // legs), or interleaved files zipper straight through each
+                // other and two charging lines merge instead of meeting.
+                // Trampling classes (horses; chariots someday) are the
+                // declared exception: their propulsion continues through
+                // contact — the trample IS the charge. (A momentum-gated
+                // version — drive while the body carries charge-grade
+                // momentum — was tried and REJECTED: momentum re-arms on
+                // every fresh body slammed, so it rewards target density
+                // and a dense block sustains the trample better than open
+                // order, inverting dense-blunts-cavalry. The flag states
+                // the intent; the collision physics — brace mass, stuns —
+                // does the discriminating.)
+                let met = engaged_i && !u.tramples();
                 if aware_i && holds_ground && (!u.charging || met) && (u.engaged > 0 || hit_ttl[i] > 0.0) {
                     let t = target[i] as usize;
                     let tp = Vec2::new(positions[2 * t], positions[2 * t + 1]);
@@ -1412,7 +1431,7 @@ impl Sim {
 
             let surge_frac = surging as f32 / n;
             let mut drain = tun.surge_drain * surge_frac;
-            if u.pace == Pace::Run && u.frame_speed > tun.base_speed * 1.05 {
+            if u.effective_pace() == Pace::Run && u.frame_speed > tun.base_speed * 1.05 {
                 drain += tun.run_drain;
             }
             drain += tun.terrain_drain * (effort / n);

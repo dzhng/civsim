@@ -15,14 +15,15 @@ pub(crate) fn fatigue_capacity(fatigue: f32) -> f32 {
     (fatigue / 0.7).min(1.0).powf(1.5)
 }
 
-/// The unit's ordered pace, degraded by fatigue (a spent unit "runs" at a walk).
+/// The unit's effective pace, degraded by fatigue (a spent unit "runs" at a
+/// walk). Attacks close at the double regardless of the ordered pace.
 pub(crate) fn pace_speed(tun: &Tunables, u: &Unit) -> f32 {
     // The charge burst overrides pace, but ONLY in the measured final
     // approach of an explicit attack (set in the reflex pass).
     let base = if u.charging {
         tun.base_speed + (tun.charge_speed - tun.base_speed) * fatigue_capacity(u.fatigue)
     } else {
-        match u.pace {
+        match u.effective_pace() {
             Pace::Walk => tun.base_speed,
             Pace::Run => {
                 tun.base_speed + (tun.run_speed - tun.base_speed) * fatigue_capacity(u.fatigue)
@@ -97,8 +98,15 @@ pub(crate) fn update_unit_motion(tun: &Tunables, u: &mut Unit, dt: f32, ground: 
             // about-face like a phalanx would die where it stood.
             if u.evade_auto {
                 u.pivoting = false;
-                u.facing = rotate_toward(u.facing, desired, 0.6 * dt);
-                let target_speed = (pace_speed(tun, u) * ground * 0.9)
+                u.facing = rotate_toward(u.facing, desired, 1.2 * dt);
+                // Loose-order legs pay by DIRECTION, same law as the engage
+                // drift below: flight straight ahead (facing swung) runs at
+                // full pace; sidestepping and back-pedaling pay. A flat 0.9
+                // made a fleeing screen slower than its own legs — fatal now
+                // that pursuers close at the double.
+                let c = wrap_angle(desired - u.facing).cos();
+                let drift_factor = if c >= 0.0 { 0.7 + 0.3 * c } else { 0.7 + 0.15 * c };
+                let target_speed = (pace_speed(tun, u) * ground * drift_factor)
                     .min((2.0 * accel * dist).sqrt());
                 u.frame_speed = move_toward(u.frame_speed, target_speed, accel * dt);
                 u.anchor = u.anchor + to * (u.frame_speed * dt / dist.max(0.01));

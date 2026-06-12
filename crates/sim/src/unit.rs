@@ -235,6 +235,23 @@ impl Unit {
         crate::class::class_stats(self.class).mounted
     }
 
+    /// Keeps driving through contact while charging (no plant at weapon's
+    /// length) — the trample is the charge. See `UnitClass::tramples`.
+    pub fn tramples(&self) -> bool {
+        crate::class::class_stats(self.class).tramples
+    }
+
+    /// The pace the legs actually use: an attack closes at the double
+    /// regardless of the ordered pace — movement intent, not a combat
+    /// bonus. (The charge burst overrides higher still, in pace_speed.)
+    pub fn effective_pace(&self) -> Pace {
+        if matches!(self.mode, OrderMode::Attack(_)) {
+            Pace::Run
+        } else {
+            self.pace
+        }
+    }
+
     /// The formation's midpoint (anchor is the front-center).
     pub fn center(&self) -> Vec2 {
         self.anchor + dir(self.facing) * (-0.5 * self.depth())

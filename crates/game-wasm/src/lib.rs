@@ -103,6 +103,74 @@ impl Game {
         self.refresh_unit_info();
     }
 
+    /// The full class table as JSON, for the stat card: attributes, melee
+    /// weapons, missile spec. Static data — call once. Weapon display
+    /// names live here (the sim's Weapon struct is anonymous physics).
+    pub fn class_specs(&self) -> String {
+        let weapon_names: [&[&str]; 9] = [
+            &["sword"],
+            &["sword"],
+            &["great sword"],
+            &["pike", "side sword"],
+            &["sword"],
+            &["dagger"],
+            &["lance", "sword"],
+            &["sword"],
+            &["dagger"],
+        ];
+        let missile_names: [&str; 9] = [
+            "", "", "", "", "bow", "javelin", "", "bow", "ballista",
+        ];
+        let specs: Vec<serde_json::Value> = contract::ALL_CLASSES
+            .iter()
+            .enumerate()
+            .map(|(ci, &id)| {
+                let c = sim::class_stats(id);
+                let weapons: Vec<serde_json::Value> = c
+                    .weapons
+                    .iter()
+                    .enumerate()
+                    .map(|(wi, w)| {
+                        serde_json::json!({
+                            "name": weapon_names[ci].get(wi).copied().unwrap_or("weapon"),
+                            "reach": w.reach,
+                            "minRange": w.min_range,
+                            "arc": w.arc,
+                            "interval": w.attack_interval,
+                            "damage": w.damage,
+                        })
+                    })
+                    .collect();
+                let missile = sim::missile_spec(id).map(|m| {
+                    serde_json::json!({
+                        "name": missile_names[ci],
+                        "range": m.range,
+                        "interval": m.interval,
+                        "ammo": m.ammo,
+                        "damage": m.damage,
+                        "mobileFire": m.mobile_fire,
+                    })
+                });
+                serde_json::json!({
+                    "mass": c.mass,
+                    "radius": c.soldier_radius,
+                    "brace": c.brace_mult,
+                    "block": c.block,
+                    "evade": c.evade,
+                    "training": c.training,
+                    "speedMult": c.speed_mult,
+                    "health": c.health,
+                    "riderHealth": c.rider_health,
+                    "mounted": c.mounted,
+                    "charges": c.charge,
+                    "weapons": weapons,
+                    "missile": missile,
+                })
+            })
+            .collect();
+        serde_json::to_string(&specs).unwrap()
+    }
+
     /// Head-to-head testing bench: any class vs any class, by index into
     /// the contract's ALL_CLASSES order.
     pub fn start_duel(&mut self, a: u32, b: u32) {
@@ -344,7 +412,9 @@ impl Game {
                 u.team as f32,
                 u.count as f32,
                 u.fatigue,
-                if u.pace == Pace::Walk { 0.0 } else { 1.0 },
+                // Effective: an attack closes at the double, and the HUD
+                // should say so even if the ordered pace is a walk.
+                if u.effective_pace() == Pace::Walk { 0.0 } else { 1.0 },
                 u.move_target.map_or(0.0, |t| t.x),
                 u.move_target.map_or(0.0, |t| t.y),
                 if u.move_target.is_some() { 1.0 } else { 0.0 },

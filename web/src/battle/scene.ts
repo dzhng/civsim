@@ -651,6 +651,14 @@ export class BattleScene implements Scene {
     }, { signal });
 
     // --- Main loop -----------------------------------------------------------------
+    type WeaponSpec = { name: string; reach: number; minRange: number; arc: number; interval: number; damage: number };
+    type ClassSpec = {
+      mass: number; radius: number; brace: number; block: number; evade: number;
+      training: number; speedMult: number; health: number; riderHealth: number;
+      mounted: boolean; charges: boolean; weapons: WeaponSpec[];
+      missile: { name: string; range: number; interval: number; ammo: number; damage: number; mobileFire: boolean } | null;
+    };
+    const CLASS_SPECS: ClassSpec[] = JSON.parse(game.class_specs());
     const hud = document.getElementById('hud')!;
     const banner = document.getElementById('banner')!;
     const selbox = document.getElementById('selbox')!;
@@ -824,6 +832,32 @@ export class BattleScene implements Scene {
           `men ${info[o + 15]}/${info[o + 7]}${engaged > 0 ? `  engaged ${engaged}` : ''}${ammo}${routing}`,
           `cohesion ${(cohesion * 100).toFixed(0)}%  disorder ${(info[o + 5] * 100).toFixed(0)}%  stamina ${(fatigue * 100).toFixed(0)}%  morale ${(info[o + 20] * 100).toFixed(0)}%`,
         );
+        const spec = CLASS_SPECS[info[o + 13]];
+        if (spec) {
+          const pct = (x: number) => `${(x * 100).toFixed(0)}%`;
+          lines.push(
+            `mass ${spec.mass.toFixed(1)}${spec.brace > 1 ? ` (brace x${spec.brace.toFixed(1)})` : ''}  ` +
+              `block ${pct(spec.block)}  evade ${pct(spec.evade)}  train ${pct(spec.training)}`,
+            `speed x${spec.speedMult.toFixed(2)}  hp ${spec.health.toFixed(1)}` +
+              (spec.mounted ? ` + rider ${spec.riderHealth.toFixed(1)}` : '') +
+              (spec.charges ? '  charges' : ''),
+          );
+          for (const w of spec.weapons) {
+            const deg = ((w.arc * 180) / Math.PI / 2).toFixed(0);
+            lines.push(
+              `&nbsp;${w.name}: ${w.reach.toFixed(1)}m ±${deg}°  ` +
+                `dmg ${w.damage.toFixed(2)} / ${w.interval.toFixed(1)}s` +
+                (w.minRange > 0 ? `  (dead <${w.minRange.toFixed(1)}m)` : ''),
+            );
+          }
+          if (spec.missile) {
+            const m = spec.missile;
+            lines.push(
+              `&nbsp;${m.name}: ${m.range.toFixed(0)}m  dmg ${m.damage.toFixed(2)} / ${m.interval.toFixed(0)}s  ` +
+                `ammo ${m.ammo}${m.mobileFire ? '  fires mounted' : ''}`,
+            );
+          }
+        }
         bars =
           `<div class="bar"><div style="width:${(cohesion * 100).toFixed(0)}%"></div></div>` +
           `<div class="bar"><div style="width:${(fatigue * 100).toFixed(0)}%;background:#d9a13b"></div></div>` +

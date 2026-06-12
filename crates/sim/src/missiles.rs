@@ -397,11 +397,20 @@ impl Sim {
                 || u.pending_target.is_some()
                 // Committed to an explicit attack: no hopping away. (A
                 // finished Withdraw must NOT stick: any idle skirmisher
-                // kites again — live travel is covered by move_target.)
+                // kites again.)
                 || matches!(u.mode, OrderMode::Attack(_))
-                || u.move_target.is_some()
             {
                 continue;
+            }
+            // Live travel is covered by move_target — but only until the
+            // ARRIVE BRAKING cone at its end. A pressed screen must chain
+            // the next hop BEFORE braking: a hop-stop-hop saw-tooth
+            // averages under a pursuer's flat run and gets walked down,
+            // 16 meters at a time.
+            if let Some(t) = u.move_target {
+                if (t - u.center()).len() > 8.0 {
+                    continue;
+                }
             }
             // Kite band: hop away at 28m, stop ~18m further out — close
             // enough to keep throwing, far enough that even a charge burst
@@ -413,7 +422,7 @@ impl Sim {
             // trigger would keep a wide screen running forever, never
             // stopping to throw.
             let my_ext = 0.5 * u.depth();
-            let mut threat: Option<(Vec2, f32, bool)> = None;
+            let mut threat: Option<(Vec2, f32, f32)> = None; // (center, dist, band)
             for v in &self.units {
                 if v.team == my_team || v.alive_count == 0 {
                     continue;
@@ -422,18 +431,29 @@ impl Sim {
                 // axis is its DEPTH (width would make screens panic at
                 // absurd distances and park out of throw range).
                 let d = (v.center() - from).len() - 0.5 * v.depth() - my_ext;
-                // A pursuer mid-BURST is visible from far off — skirmishers
-                // break that much earlier (the whole craft of the screen).
-                let band = if v.charging { 38.0 } else { 24.0 };
+                // The screen breaks earlier the FASTER the threat closes:
+                // a walker at 24m, a runner (attacks close at the double
+                // now) proportionally further, a burst at the full 38m —
+                // the charging flag still arms the band before the speed
+                // develops (mid-burst is visible from far off). And a BLOWN
+                // screen gives ground: with no burst left in the legs,
+                // holding javelin range on a runner is suicide, so the
+                // standoff grows as the reserve drains.
+                let sp = v
+                    .frame_speed
+                    .max(if v.charging { 2.0 * self.tun.base_speed } else { 0.0 });
+                let tired = 12.0 * (1.0 - crate::movement::fatigue_capacity(u.fatigue));
+                let band = (24.0 + tired + 2.5 * (sp - self.tun.base_speed).max(0.0))
+                    .clamp(24.0, 50.0);
                 if d < band && threat.map_or(true, |(_, td, _)| d < td) {
-                    threat = Some((v.center(), d, v.charging));
+                    threat = Some((v.center(), d, band));
                 }
             }
-            if let Some((tp, _, vs_charge)) = threat {
+            if let Some((tp, _, band)) = threat {
                 // Short hops keep the fighting retreat INSIDE throw range —
-                // but a hop that doesn't clear a charge burst is a death
-                // sentence, so the screen leaps long when the horses come.
-                let hop = if vs_charge { 30.0 } else { 16.0 };
+                // but a hop that doesn't clear a fast pursuer is a death
+                // sentence, so the leap grows with the band that tripped.
+                let hop = 16.0 + (band - 24.0);
                 let away = from - tp;
                 let l = away.len().max(0.1);
                 let dest = from + away * (hop / l);

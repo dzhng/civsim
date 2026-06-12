@@ -212,7 +212,11 @@ fn pursue_auto_charges_intruders_but_gives_up_on_faster_prey() {
     // Heavy unit attack-moves north; enemy cavalry loiters near the path
     // but NEVER attacks — the latch must be proactive, not a counterpunch.
     let u = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 240, UnitClassId::HeavyInfantry, 0);
-    let cav = sim.spawn_class(Vec2::new(45.0, 70.0), -FRAC_PI_2, 100, UnitClassId::ShockCavalry, 1);
+    // Within the latch's reach -- a 5s RUN for the advancing heavies (~15m
+    // edge-to-edge), not the old flat 70m (an advance no longer peels off
+    // after anything it can't catch inside the latch timer) -- but clear of
+    // brushing CONTACT, which would zero the timer and hold the latch.
+    let cav = sim.spawn_class(Vec2::new(38.0, 70.0), -FRAC_PI_2, 100, UnitClassId::ShockCavalry, 1);
     sim.set_attack_move_order(u, Vec2::new(0.0, 220.0));
     let mut latched = false;
     let mut gave_up_at = None;
@@ -266,7 +270,9 @@ fn kiting_pauses_for_disengage_then_resumes() {
     for _ in 0..(120.0 / DT) as usize {
         sim.tick();
         let gap = (sim.units[foe].center() - sim.units[sk].center()).len();
-        if sim.units[sk].move_target.is_some() && gap < 40.0 {
+        // The band widens for fast pursuers and tired screens now, so the
+        // wake-up hop fires further out than the old 40m.
+        if sim.units[sk].move_target.is_some() && gap < 55.0 {
             hopped = true;
         }
     }

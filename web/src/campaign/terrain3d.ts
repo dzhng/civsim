@@ -28,7 +28,7 @@ import '@babylonjs/core/Meshes/thinInstanceMesh';
 
 import type { CampaignData } from './data';
 import type { CamView } from './renderer';
-import { TerrainField } from './terrain';
+import { TerrainField, SUN, TEMPERATE_Y_KM, hash2 } from './terrain';
 
 const FOV = (45 * Math.PI) / 180;
 /** Tilt: 90° (top-down) until TILT_START, easing to MIN_PITCH by TILT_END. */
@@ -310,7 +310,7 @@ export class Terrain3D {
     this.terrainMat.setTexture('uTerr', this.terrTex);
     this.terrainMat.setTexture('uLight', lightTex);
     this.terrainMat.setTexture('uBiome', biomeTex);
-    this.terrainMat.setVector3('uSun', new Vector3(-0.435, 0.414, 0.8).normalize());
+    this.terrainMat.setVector3('uSun', new Vector3(...SUN)); // the one campaign sun
     this.terrainMat.setColor3('uFogC', new Color3(0.71, 0.71, 0.68));
     this.terrainMat.setFloat('uTime', 0);
     this.terrainMat.setVector4('uBgRect', new Vector4(...this.bgRect));
@@ -386,11 +386,6 @@ export class Terrain3D {
    *  atlas halves). The camera never yaws, so fixed billboards read fine. */
   private buildTrees() {
     const { w, h, cell, minX, maxY } = this.field;
-    const hash01 = (x: number, y: number) => {
-      let n = (x * 374761393 + y * 668265263) | 0;
-      n = Math.imul(n ^ (n >>> 13), 1274126177);
-      return ((n ^ (n >>> 16)) >>> 0) / 4294967296;
-    };
     const broadleaf: number[] = [];
     const conifer: number[] = [];
     for (let gy = 0; gy < h; gy++) {
@@ -398,15 +393,15 @@ export class Terrain3D {
         const i = gy * w + gx;
         const forest = this.field.biome[i * 4 + 1] / 255;
         if (forest < 0.35) continue;
-        const k = Math.round(forest * 3 * (0.5 + hash01(gx, gy) * 0.9));
+        const k = Math.round(forest * 3 * (0.5 + hash2(gx, gy) * 0.9));
         for (let t = 0; t < k; t++) {
-          const ox = (hash01(gx * 7 + t, gy * 13 + 1) - 0.5) * cell * 1.4;
-          const oy = (hash01(gx * 3 + t, gy * 17 + 5) - 0.5) * cell * 1.4;
+          const ox = (hash2(gx * 7 + t, gy * 13 + 1) - 0.5) * cell * 1.4;
+          const oy = (hash2(gx * 3 + t, gy * 17 + 5) - 0.5) * cell * 1.4;
           const x = minX + (gx + 0.5) * cell + ox;
           const y = maxY - (gy + 0.5) * cell + oy;
-          const size = 2.0 + hash01(gx + t, gy + t) * 1.8;
+          const size = 2.0 + hash2(gx + t, gy + t) * 1.8;
           const z = this.field.heightAt(x, y) - 0.15;
-          const out = hash01(gx * 5 + t, gy * 11) < (y > 700 ? 0.75 : 0.25) ? conifer : broadleaf;
+          const out = hash2(gx * 5 + t, gy * 11) < (y > TEMPERATE_Y_KM ? 0.75 : 0.25) ? conifer : broadleaf;
           // column-major TRS: scale (w, 1, h), translate (x, y, z)
           out.push(size * 0.72, 0, 0, 0, 0, 1, 0, 0, 0, 0, size, 0, x, y, z, 1);
         }

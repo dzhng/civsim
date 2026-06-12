@@ -40,7 +40,7 @@ impl Sim {
         // (center, team, alive, routing, measured advance of the MASS,
         // total living mass). Formulas read men, mass, and measured motion
         // — never banners or commanded state (see README).
-        let summaries: Vec<(Vec2, u32, usize, bool, f32, f32)> = self
+        let summaries: Vec<(Vec2, u32, usize, bool, f32, f32, f32)> = self
             .units
             .iter()
             .map(|u| {
@@ -51,6 +51,7 @@ impl Sim {
                     u.routing,
                     u.mass_advance.max(0.0),
                     u.alive_count as f32 * crate::class::class_stats(u.class).mass,
+                    u.morale,
                 )
             })
             .collect();
@@ -98,7 +99,8 @@ impl Sim {
             // race: the side that holds one beat longer gets paid for it.
             let mut enemy_backs = 0.0f32;
             let my_mass = alive_n * crate::class::class_stats(u.class).mass;
-            for (vi, &(c, team, alive_v, v_routing, advance, mass_total)) in
+            let my_morale = u.morale;
+            for (vi, &(c, team, alive_v, v_routing, advance, mass_total, v_morale)) in
                 summaries.iter().enumerate()
             {
                 if vi == ui || alive_v == 0 {
@@ -126,8 +128,16 @@ impl Sim {
                             .dot(dir(self.units[vi].facing))
                             * advance;
                         if closing > 3.5 {
+                            // Confidence SHOWS (bearing, dressing, the
+                            // noise a bold line makes): a wavering mass
+                            // doesn't thunder. You fear units bolder than
+                            // you — never shakier ones, so two trembling
+                            // lines cannot terrorize each other into
+                            // mutual collapse.
+                            let edge = ((v_morale - my_morale) / 0.25 + 1.0).clamp(0.0, 1.0);
                             let weight = (mass_total / my_mass).min(3.0);
-                            intimidation += weight * closing * (1.0 - d / 70.0) * 0.06;
+                            intimidation +=
+                                weight * closing * (1.0 - d / 70.0) * 0.06 * v_morale * edge;
                         }
                     }
                 } else if d < 80.0 {

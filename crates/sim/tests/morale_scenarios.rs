@@ -379,3 +379,40 @@ fn contagion_spreads_from_fleeing_bodies_not_banners() {
         "a collapse panics, a remnant saddens: {big:.3} vs {small:.3}"
     );
 }
+
+#[test]
+fn wavering_masses_do_not_thunder() {
+    // The same 200-horse charge, but the riders themselves are shaken:
+    // you fear units bolder than you, never shakier ones.
+    let dip = |cav_morale: f32| -> f32 {
+        let mut sim = Sim::new(Tunables::default(), SEED);
+        let line = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 200, UnitClassId::HeavyInfantry, 0);
+        let cav = sim.spawn_class(Vec2::new(0.0, 120.0), -FRAC_PI_2, 200, UnitClassId::ShockCavalry, 1);
+        sim.set_pace(cav, sim::Pace::Run);
+        for _ in 0..(3.0 / DT) as usize {
+            sim.tick();
+        }
+        sim.units[cav].morale = cav_morale;
+        let baseline = sim.units[line].morale;
+        sim.set_attack_order(cav, line);
+        let mut lowest = baseline;
+        for _ in 0..(20.0 / DT) as usize {
+            sim.tick();
+            if sim.units[line].engaged > 5 {
+                break;
+            }
+            lowest = lowest.min(sim.units[line].morale);
+            // Hold the riders' morale down: the experiment pins THEIR nerve.
+            let m = sim.units[cav].morale;
+            sim.units[cav].morale = m.min(cav_morale);
+        }
+        baseline - lowest
+    };
+    let bold = dip(1.0);
+    let shaken = dip(0.3);
+    println!("charge dip: bold riders {bold:.3}, shaken riders {shaken:.3}");
+    assert!(
+        bold > shaken * 4.0 + 0.005,
+        "only confidence thunders: bold {bold:.3} vs shaken {shaken:.3}"
+    );
+}

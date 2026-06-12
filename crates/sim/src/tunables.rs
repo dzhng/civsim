@@ -111,9 +111,11 @@ pub struct Tunables {
     /// speed, so a slow othismos press barely feels the crowd's answer
     /// while a gallop into a braced wall eats its whole drive.
     pub press_brake: f32,
-    /// Counter-press below this is column jitter, not resistance: a ragged
-    /// charging column jostles itself ~0.1 m/s, and the first slam must
-    /// land at full speed (the drag is the crowd's GRIP, not the impact).
+    /// Counter-press where the crowd's GRIP begins: column jitter reads
+    /// ~0.1, a deliberate othismos press ~0.3-0.5 (the press must NOT
+    /// brake itself), a column gripping a trample 0.7+. The drag gates in
+    /// above this and then the FULL counter-press counts — a wall is not
+    /// taxed by the threshold that exists to spare the shove.
     pub press_brake_floor: f32,
     /// Mass speed (m/s) below which a landed charge counts as SPENT — the
     /// crowd has stopped the mass. Sits well under charge_min_speed
@@ -163,7 +165,7 @@ impl Default for Tunables {
             charge_speed: 4.6,
             charge_window: 2.0,
             press_brake: 10.0,
-            press_brake_floor: 0.25,
+            press_brake_floor: 0.45,
             charge_spent_speed: 1.0,
             charge_drain: 1.0 / 25.0,
             morale_enabled: true,

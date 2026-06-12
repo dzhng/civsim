@@ -36,13 +36,17 @@ pub(crate) fn pace_speed(tun: &Tunables, u: &Unit) -> f32 {
     // collision solver alone cannot: each horse only contests the one
     // man it overlaps this tick and outmasses him, so a braced column's
     // collective weight has to act through this measured channel.
-    // The floor cuts column jitter (a ragged charge jostles itself) so
-    // the first slam lands at full speed; above it, EVERY opposing body
+    // The gate spares working contact (column jitter, the othismos shove)
+    // and ramps in over a narrow band; past it the FULL counter-press
     // counts — the wall brakes the front rank and the front rank brakes
-    // the ranks behind it (the pile-up chain is the collective force).
-    let drag = tun.press_brake
-        * (u.counter_press - tun.press_brake_floor).max(0.0)
-        * (u.mass_advance.max(0.0) / tun.base_speed);
+    // the ranks piling in behind (the chain is the collective force).
+    let grip = ((u.counter_press - tun.press_brake_floor) / (0.6 * tun.press_brake_floor))
+        .clamp(0.0, 1.0);
+    // Quadratic in the unit's own speed — ram pressure, not sticky mud:
+    // a slow press into a wall keeps its shove (the pikes kill it by
+    // reach, not by rule), a gallop into the same wall eats its drive.
+    let v = u.mass_advance.max(0.0) / tun.base_speed;
+    let drag = tun.press_brake * grip * u.counter_press * v * v;
     (base * u.speed_mult - drag).max(0.0)
 }
 

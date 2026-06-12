@@ -626,3 +626,29 @@ fn eight_ranks_of_swords_toll_the_ride_but_cannot_hold_it() {
     );
     assert!(c.alive_count >= 70, "the toll is a toll, not a grave: {} left", c.alive_count);
 }
+
+#[test]
+fn a_charge_stopped_in_the_crowd_is_spent_even_if_it_never_reached_speed() {
+    // A long fatigued approach can sag under charge_min_speed right at
+    // ignition: the burst then never arms the at-speed spent check. Once
+    // it stands stopped in the crowd, it is dead all the same — CHARGING
+    // must clear (it used to stick through whole melees, bleeding drain).
+    let mut sim = Sim::new(Tunables::default(), 0x5eed_c0de_u64);
+    sim::setup_duel(&mut sim, UnitClassId::HeavyInfantry, UnitClassId::HeavyInfantry);
+    sim.set_attack_order(0, 1);
+    sim.set_attack_order(1, 0);
+    let mut stuck = 0.0f32;
+    for _ in 0..(60.0 / DT) as usize {
+        sim.tick();
+        for u in [0usize, 1] {
+            let x = &sim.units[u];
+            if x.charging && x.engaged * 3 > x.alive_count && x.mass_advance < 0.5 {
+                stuck += DT / 2.0; // per-unit half-step: total stuck-seconds
+            }
+        }
+    }
+    assert!(
+        stuck < 2.0,
+        "a stopped, engaged 'charge' must clear within a couple of seconds: {stuck:.1}s stuck"
+    );
+}

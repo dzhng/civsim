@@ -155,7 +155,17 @@ impl Sim {
                 continue;
             };
             let u = &self.units[ui];
-            if u.alive_count == 0 || u.ammo == 0 || !u.fire_at_will || u.routing {
+            // A unit in a REAL melee has swords out, not bows — point-blank
+            // volleys into the men fighting your own front rank were
+            // deleting heavy infantry at zero scatter. A fighting RETREAT
+            // (skirmish hops, a brushed flank: <25% engaged) still throws
+            // over its own rear ranks — that part is the peltast's craft.
+            if u.alive_count == 0
+                || u.ammo == 0
+                || !u.fire_at_will
+                || u.routing
+                || u.engaged * 4 > u.alive_count
+            {
                 continue;
             }
             if u.weapon_pref == 1 {
@@ -176,7 +186,15 @@ impl Sim {
                     continue;
                 }
                 let d = (v.center() - from).len();
-                if d < spec.range + 0.5 * v.width().max(v.depth())
+                // A bow has a MINIMUM arc: nobody volleys across a contact
+                // gap (point-blank fire into the men at your shields read
+                // as laser accuracy — scatter scales with range). Measured
+                // along the contact axis (DEPTHS, not widths: wide loose
+                // lines would read negative at honest throw range). The
+                // peltast hop band starts ~16m; 10m of gap clears it.
+                let gap = d - 0.5 * v.depth() - 0.5 * u.depth();
+                if gap > 10.0
+                    && d < spec.range + 0.5 * v.width().max(v.depth())
                     && best.map_or(true, |(_, bd)| d < bd)
                 {
                     // Hold fire into melees that involve OTHER friendly
@@ -359,10 +377,14 @@ impl Sim {
         self.units[uv].recent_missiles += 1.0;
 
         // Shields block arrows from the front arc; nothing blocks a stone.
+        // NOT cohesion-scaled (unlike melee block): a shield is between you
+        // and the sky however ragged the dressing — without this, fraying
+        // lines lost their shields exactly when the volleys mattered, and
+        // armored blocks melted FASTER than loose skirmish lines.
         if !heavy {
             let shielded =
                 wrap_angle(incoming - self.facings[victim]).abs() < crate::combat::FRONT_ARC;
-            if shielded && self.rng.chance(vstats.block * (0.5 + 0.5 * self.units[uv].cohesion)) {
+            if shielded && self.rng.chance(vstats.block) {
                 return;
             }
         } else {

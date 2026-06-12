@@ -923,7 +923,13 @@ impl Sim {
                 // line keeps rolling). The clock only caps a sprint in the
                 // OPEN (a whiffed burst gives up); once the burst is in the
                 // enemy, the crowd decides — stopped or carried through.
-                let spent = u.charge_at_speed && u.mass_advance < self.tun.charge_spent_speed;
+                // ...and a burst that never even REACHED impact speed (a
+                // fatigued run can sag under charge_min right at ignition)
+                // is equally dead once it stands stopped in the crowd —
+                // without this, the unarmed spent-check let CHARGING stick
+                // through whole melees, bleeding charge drain.
+                let spent = u.mass_advance < self.tun.charge_spent_speed
+                    && (u.charge_at_speed || u.engaged > 0);
                 let sustained = was_charging
                     && !spent
                     && u.charge_enabled

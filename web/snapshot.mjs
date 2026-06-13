@@ -24,6 +24,11 @@ const DIFF = new URL('./shots/diff/', import.meta.url).pathname;
  *  clocks, same GPU), so ANY differing pixel is a real change. Loosen
  *  threshold/maxDiffRatio only for a snap with a proven noise source. */
 export async function snapCheck(page, name, check, { threshold = 0, maxDiffRatio = 0 } = {}) {
+  // SNAP=<substr> runs only the snaps whose name contains <substr> (comma-OR).
+  // The harness still drives all setup, but unmatched snaps are skipped — no
+  // compare, no diff/actual written. Use it to iterate on one view fast.
+  const only = process.env.SNAP;
+  if (only && !only.split(',').some((s) => name.includes(s.trim()))) return;
   const shot = await page.screenshot();
   await mkdir(BASELINE, { recursive: true });
   const basePath = BASELINE + name + '.png';

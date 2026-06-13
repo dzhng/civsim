@@ -65,6 +65,19 @@ and deterministically. `verify-campaign-visual.mjs` snapshots all of those —
 extend it when you change an army/city model. Re-bless with
 `UPDATE_SHOTS=1 node verify-campaign-visual.mjs`.
 
+## Running just one snapshot
+
+Each harness is a flat top-to-bottom script — there is no per-test runner. To
+iterate on a single view, set `SNAP=<substr>`: `snapCheck` compares only snaps
+whose name contains the substring (comma-separated = OR), skipping the rest
+(no compare, no diff written). The harness still drives all setup — e.g.
+`SNAP=battle-initial node verify.mjs` still spawns the battle, it just snaps
+that one frame. For campaign-marker work prefer `verify-campaign-visual.mjs`
+(the fake `?campaign=test` map) — it never spawns a battle, so it won't churn
+the tracked battle scratch shots (`initial.png`, `manual.png`, `cluster-*.png`)
+that the battle harness rewrites every run. Restore those with
+`git checkout -- 'web/shots/*.png'` after a battle run.
+
 ## Adding a regression snapshot
 
 One call in `verify.mjs`, `verify-campaign.mjs`, or `verify-campaign-visual.mjs`:

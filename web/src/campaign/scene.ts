@@ -115,6 +115,11 @@ export class CampaignScene implements Scene {
       },
       orderMove: (army: number, kind: number, a: number, b: number) =>
         this.cfg.campaign.order_move(army, kind, a, b),
+      /** Test-only: teleport an army onto a loc (kind 0 node, 1 edge tile). */
+      place: (army: number, kind: number, a: number, b: number) => {
+        this.cfg.campaign.debug_place(army, kind, a, b);
+        this.refreshViews();
+      },
       orderSplit: (army: number, mask: number) => {
         const ok = this.cfg.campaign.order_split(army, mask);
         this.refreshViews();

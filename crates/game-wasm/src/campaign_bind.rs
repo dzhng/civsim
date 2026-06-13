@@ -230,6 +230,20 @@ impl Campaign {
         .to_string()
     }
 
+    /// Debug/test only: drop an army onto a loc, halted and disentangled, so
+    /// the visual harness can pose it on a road tile or any city.
+    pub fn debug_place(&mut self, army: u32, kind: u32, a: u32, b: u32) {
+        if let Some(ar) = self.inner.state.armies.get_mut(army as usize) {
+            ar.loc = loc_decode(kind, a, b);
+            ar.path.clear();
+            ar.path_idx = 0;
+            ar.progress = 0.0;
+            ar.encounter = None;
+            ar.stance = Stance::Hold;
+        }
+        self.refresh();
+    }
+
     pub fn order_camp(&mut self, army: u32) -> bool {
         let ok = self.owns(army) && self.inner.order_camp(army);
         self.refresh();

@@ -3,6 +3,7 @@ import { currentScene, switchScene } from './scene';
 import { MenuScene } from './menu/scene';
 import { BattleScene, type BattleKind } from './battle/scene';
 import { CampaignScene, loadCampaignData } from './campaign/scene';
+import type { CampaignData } from './campaign/data';
 
 const wasm = await init();
 
@@ -57,8 +58,45 @@ function launchBattle(kind: BattleKind) {
 
 const SAVE_KEY = 'campaign-save';
 
-async function launchCampaign(fromSave: boolean) {
-  const { data, mapJson } = await loadCampaignData();
+// A fake one-road, two-city map for the visual harness: our city (Roma) — road
+// — a neutral city (Neapolis), one mixed-roster player army to pose. The bg
+// raster is a flat land swatch (classifies to grass); no fetch, no sea, no
+// garrison battles — just a controlled stage for army/city model screenshots.
+async function buildTestCampaign(): Promise<{ data: CampaignData; mapJson: string }> {
+  // y ~ 450 puts the stage in a temperate (green-grass) latitude band.
+  const Y = 450;
+  const map = {
+    half_w: 60,
+    half_h: 500,
+    attribution: 'test',
+    nodes: [
+      { id: 1, name: 'Roma', pos: [-25, Y], kind: 'city', tier: 2, port: false, owner: 'rome' },
+      { id: 2, name: 'Neapolis', pos: [25, Y], kind: 'city', tier: 2, port: false, owner: 'independents' },
+    ],
+    edges: [
+      { a: 1, b: 2, kind: 'road', via: [[-25, Y], [25, Y]], tiles: Array(8).fill('open') },
+    ],
+    ambush_spots: [],
+    factions: [
+      { id: 'rome', name: 'Rome', color: [200, 40, 40], playable: true },
+      { id: 'independents', name: 'Independent', color: [130, 130, 130], playable: false },
+    ],
+    start_armies: [
+      { faction: 'rome', at: 'Roma', roster: [['HeavyInfantry', 1000], ['LightInfantry', 500], ['Archers', 500], ['ShockCavalry', 300]] },
+    ],
+  } as unknown as CampaignData['map'];
+  const bgRect = { min: [-45, Y - 28] as [number, number], max: [45, Y + 28] as [number, number] };
+  const cv = new OffscreenCanvas(180, 112);
+  const g = cv.getContext('2d')!;
+  g.fillStyle = 'rgb(196,178,138)'; // the mapgen LAND colour → classifies to grass
+  g.fillRect(0, 0, cv.width, cv.height);
+  const bg = await createImageBitmap(cv);
+  const nodeIndex = new Map(map.nodes.map((n, i) => [n.id, i]));
+  return { data: { map, bg, bgRect, nodeIndex }, mapJson: JSON.stringify(map) };
+}
+
+async function launchCampaign(fromSave: boolean, testData?: { data: CampaignData; mapJson: string }) {
+  const { data, mapJson } = testData ?? await loadCampaignData();
   const save = fromSave ? localStorage.getItem(SAVE_KEY) : null;
   const campaign = save ? Campaign.load(mapJson, save) : new Campaign(mapJson, (Math.random() * 2 ** 31) | 0, 0);
   if (!campaign) return;
@@ -100,7 +138,8 @@ const menu = new MenuScene({
 // ?battle=duel&a=0&b=6&ai=on, ?battle=5v5, ?map=A|B boot straight into the
 // battle (deep links and the verify harness); a bare URL opens the menu.
 const sandbox = params.get('battle');
-if (sandbox === 'duel' || sandbox === '5v5') launchBattle(sandbox);
+if (params.get('campaign') === 'test') void launchCampaign(false, await buildTestCampaign());
+else if (sandbox === 'duel' || sandbox === '5v5') launchBattle(sandbox);
 else if (params.has('map') || params.has('battle')) launchBattle(params.get('map') === 'B' ? 'mapB' : 'mapA');
 else switchScene(menu);
 

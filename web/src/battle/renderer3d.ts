@@ -199,30 +199,82 @@ varying vec4 vColor;
 void main() { gl_FragColor = vColor; }`;
 
 
-/** A low-poly soldier: tapered body, head, and a front nub so facing reads. */
-function soldierVertexData(): VertexData {
-  const positions: number[] = [];
-  const indices: number[] = [];
+// Per-class look (local +y = forward, +z = up). A weapon length, a shield,
+// and whether the trooper is mounted are enough to read every class apart
+// in silhouette — the same distinctions the atlas sprites draw.
+interface ClassLook {
+  weapon: 'sword' | 'spear' | 'greatsword' | 'pike' | 'bow' | 'javelin' | 'lance' | 'none';
+  shield: 'tall' | 'round' | 'small' | 'none';
+  crest: boolean;
+  mounted: boolean;
+}
+const CLASS_LOOK: ClassLook[] = [
+  { weapon: 'sword', shield: 'tall', crest: true, mounted: false }, // 0 heavy
+  { weapon: 'spear', shield: 'round', crest: false, mounted: false }, // 1 light
+  { weapon: 'greatsword', shield: 'none', crest: false, mounted: false }, // 2 longswords
+  { weapon: 'pike', shield: 'small', crest: true, mounted: false }, // 3 phalanx
+  { weapon: 'bow', shield: 'none', crest: false, mounted: false }, // 4 archers
+  { weapon: 'javelin', shield: 'small', crest: false, mounted: false }, // 5 skirmishers
+  { weapon: 'lance', shield: 'round', crest: true, mounted: true }, // 6 shock cav
+  { weapon: 'bow', shield: 'none', crest: false, mounted: true }, // 7 horse archers
+  { weapon: 'none', shield: 'none', crest: false, mounted: false }, // 8 artillery crew
+];
+
+/** Low-poly per-class soldier (or rider on a horse). Built once per class,
+ *  thin-instanced. */
+function classGeometry(cls: number): VertexData {
+  const L = CLASS_LOOK[cls] ?? CLASS_LOOK[0];
+  const pos: number[] = [];
+  const idx: number[] = [];
   const box = (x0: number, y0: number, z0: number, x1: number, y1: number, z1: number) => {
-    const b = positions.length / 3;
+    const b = pos.length / 3;
     const c = [
       [x0, y0, z0], [x1, y0, z0], [x1, y1, z0], [x0, y1, z0],
       [x0, y0, z1], [x1, y0, z1], [x1, y1, z1], [x0, y1, z1],
     ];
-    for (const v of c) positions.push(v[0], v[1], v[2]);
-    const f = [
+    for (const v of c) pos.push(v[0], v[1], v[2]);
+    for (const [a, bb, cc, d] of [
       [0, 1, 2, 3], [4, 7, 6, 5], [0, 4, 5, 1], [3, 2, 6, 7], [1, 5, 6, 2], [0, 3, 7, 4],
-    ];
-    for (const [a, bb, cc, d] of f) indices.push(b + a, b + bb, b + cc, b + a, b + cc, b + d);
+    ]) idx.push(b + a, b + bb, b + cc, b + a, b + cc, b + d);
   };
-  box(-0.17, -0.11, 0.0, 0.17, 0.11, 1.12); // body
-  box(-0.1, -0.1, 1.12, 0.1, 0.1, 1.5); // head
-  box(-0.05, 0.08, 1.18, 0.05, 0.2, 1.34); // facing nub
+
+  // Rider sits higher when mounted; the horse goes under him.
+  const foot = L.mounted ? 0.95 : 0.0;
+  if (L.mounted) {
+    box(-0.16, -0.7, 0.0, 0.16, 0.55, 0.92); // horse barrel
+    box(-0.13, 0.5, 0.55, 0.13, 0.95, 0.78); // neck
+    box(-0.11, 0.9, 0.66, 0.11, 1.18, 0.9); // head
+    box(-0.16, -0.62, 0.0, -0.08, -0.5, 0.6); // a back leg hint
+    box(0.08, 0.42, 0.0, 0.16, 0.54, 0.6); // a front leg hint
+  }
+  box(-0.16, -0.1, foot, 0.16, 0.1, foot + 1.0); // torso + legs
+  box(-0.1, -0.09, foot + 1.0, 0.1, 0.11, foot + 1.34); // head
+  if (L.crest) box(-0.03, -0.05, foot + 1.34, 0.03, 0.14, foot + 1.5); // helmet crest
+
+  // Shield on the left arm (-x), facing forward.
+  if (L.shield !== 'none') {
+    const sh = { tall: [0.5, 0.78], round: [0.42, 0.55], small: [0.32, 0.4] }[L.shield];
+    box(-0.27, 0.02, foot + 0.35, -0.19, 0.06 + sh[0] * 0.0 + 0.0, foot + 0.35 + sh[1]);
+  }
+
+  // Weapon on the right (+x), reaching forward (+y) for poles, upright for blades/bows.
+  const wx = 0.2;
+  switch (L.weapon) {
+    case 'pike': box(wx - 0.02, -0.2, foot + 0.7, wx + 0.02, 3.0, foot + 0.78); break;
+    case 'lance': box(wx - 0.02, -0.1, foot + 0.55, wx + 0.02, 2.0, foot + 0.62); break;
+    case 'spear': box(wx - 0.02, -0.2, foot + 0.6, wx + 0.02, 1.4, foot + 0.66); break;
+    case 'javelin': box(wx - 0.02, -0.1, foot + 0.7, wx + 0.02, 0.9, foot + 0.74); break;
+    case 'sword': box(wx - 0.02, 0.0, foot + 0.5, wx + 0.03, 0.06, foot + 1.2); break;
+    case 'greatsword': box(wx - 0.03, 0.0, foot + 0.4, wx + 0.04, 0.08, foot + 1.7); break;
+    case 'bow': box(wx + 0.04, -0.02, foot + 0.4, wx + 0.1, 0.02, foot + 1.4); break;
+    case 'none': break;
+  }
+
   const vd = new VertexData();
-  vd.positions = positions;
-  vd.indices = indices;
+  vd.positions = pos;
+  vd.indices = idx;
   const normals: number[] = [];
-  VertexData.ComputeNormals(positions, indices, normals);
+  VertexData.ComputeNormals(pos, idx, normals);
   vd.normals = normals;
   return vd;
 }
@@ -231,9 +283,12 @@ export class BattleRenderer3D {
   private engine: Engine;
   private scene: Scene;
   private camera: FreeCamera;
-  // 3D path: one mesh per team. 2D path: one atlas-textured sprite mesh.
-  private teamMesh: Mesh[] = [];
-  private teamMats: Float32Array[] = [new Float32Array(0), new Float32Array(0)];
+  // 3D path: one mesh per (class, team) so each carries its own model and
+  // team colour; soldiers route to bucket cls*2+team. 2D path: one
+  // atlas-textured sprite mesh.
+  private classMesh: Mesh[] = [];
+  private classMats: Float32Array[] = [];
+  private classN: number[] = [];
   private sprite!: Mesh;
   private spriteMats = new Float32Array(0);
   private spriteCells = new Float32Array(0);
@@ -246,6 +301,7 @@ export class BattleRenderer3D {
   private cap = 0;
   // Per-soldier static data (indexed by soldier id).
   private teamOf: Uint8Array = new Uint8Array(0);
+  private classOf: Uint8Array = new Uint8Array(0);
   private scaleOf = new Float32Array(0); // 3D mesh scale
   private rowOf = new Float32Array(0); // atlas row (class+team)
   private sizeOf = new Float32Array(0); // sprite world size
@@ -282,19 +338,24 @@ export class BattleRenderer3D {
     this.ground.material = this.groundMat;
     this.ground.freezeWorldMatrix();
 
-    // 3D soldier meshes (one per team).
-    const geom = soldierVertexData();
-    for (let t = 0; t < 2; t++) {
-      const mesh = new Mesh(`soldier${t}`, this.scene);
-      geom.applyToMesh(mesh);
-      const mat = new StandardMaterial(`soldier${t}`, this.scene);
-      const c = TEAM_COLOR[t];
-      mat.diffuseColor = new Color3(c[0], c[1], c[2]);
-      mat.specularColor = new Color3(0.05, 0.05, 0.05);
-      mesh.material = mat;
-      mesh.alwaysSelectAsActiveMesh = true;
-      mesh.isVisible = false;
-      this.teamMesh.push(mesh);
+    // 3D soldier meshes: one per (class, team). Geometry is shared per
+    // class (built once), applied to a blue and a red mesh.
+    for (let cls = 0; cls < CLASS_LOOK.length; cls++) {
+      const geom = classGeometry(cls);
+      for (let t = 0; t < 2; t++) {
+        const mesh = new Mesh(`soldier_${cls}_${t}`, this.scene);
+        geom.applyToMesh(mesh);
+        const mat = new StandardMaterial(`soldier_${cls}_${t}`, this.scene);
+        const c = TEAM_COLOR[t];
+        mat.diffuseColor = new Color3(c[0], c[1], c[2]);
+        mat.specularColor = new Color3(0.05, 0.05, 0.05);
+        mesh.material = mat;
+        mesh.alwaysSelectAsActiveMesh = true;
+        mesh.isVisible = false;
+        this.classMesh[cls * 2 + t] = mesh;
+        this.classMats[cls * 2 + t] = new Float32Array(0);
+        this.classN[cls * 2 + t] = 0;
+      }
     }
 
     // 2D sprite billboard (unit quad in xy, atlas-textured).
@@ -378,6 +439,7 @@ export class BattleRenderer3D {
   setStatic(soldierUnit: Uint32Array, teams: number[], classes: number[], radii: Float32Array) {
     const n = soldierUnit.length;
     this.teamOf = new Uint8Array(n);
+    this.classOf = new Uint8Array(n);
     this.scaleOf = new Float32Array(n);
     this.rowOf = new Float32Array(n);
     this.sizeOf = new Float32Array(n);
@@ -386,6 +448,7 @@ export class BattleRenderer3D {
       const cls = classes[u];
       const team = teams[u];
       this.teamOf[i] = team === 1 ? 1 : 0;
+      this.classOf[i] = Math.min(cls, CLASS_LOOK.length - 1);
       this.scaleOf[i] = Math.max(0.6, radii[i] / 0.33);
       this.rowOf[i] = this.soldierRowOf(cls, team);
       const mounted = cls === 6 || cls === 7;
@@ -423,7 +486,6 @@ export class BattleRenderer3D {
   private ensureCapacity(count: number) {
     if (count <= this.cap) return;
     this.cap = Math.max(count, Math.ceil(this.cap * 1.5), 1024);
-    this.teamMats = [new Float32Array(this.cap * 16), new Float32Array(this.cap * 16)];
     this.spriteMats = new Float32Array(this.cap * 16);
     this.spriteCells = new Float32Array(this.cap * 2);
   }
@@ -449,47 +511,61 @@ export class BattleRenderer3D {
 
     if (use3D) {
       this.sprite.isVisible = false;
-      this.drawMeshes(positions, facings, alive, count);
+      this.drawMeshes(positions, facings, frames, alive, count);
     } else {
-      this.teamMesh[0].isVisible = false;
-      this.teamMesh[1].isVisible = false;
+      for (const m of this.classMesh) m.isVisible = false;
       this.drawSprites(positions, facings, frames, alive, count);
     }
     this.groundMat.setFloat('uTime', this.fixedTime ?? (performance.now() - this.start) / 1000);
     this.triMesh.isVisible = false; // repopulated by drawTris, if any
   }
 
-  private drawMeshes(positions: Float32Array, facings: Float32Array, alive: Float32Array, count: number) {
-    const m0 = this.teamMats[0], m1 = this.teamMats[1];
-    let n0 = 0, n1 = 0;
+  private drawMeshes(
+    positions: Float32Array, facings: Float32Array, frames: Float32Array, alive: Float32Array, count: number,
+  ) {
+    for (let k = 0; k < this.classN.length; k++) this.classN[k] = 0;
     for (let i = 0; i < count; i++) {
-      const team = this.teamOf[i];
-      const buf = team === 1 ? m1 : m0;
-      const o = (team === 1 ? n1++ : n0++) * 16;
+      const bucket = this.classOf[i] * 2 + this.teamOf[i];
+      let buf = this.classMats[bucket];
+      const n = this.classN[bucket];
+      if ((n + 1) * 16 > buf.length) {
+        const grown = new Float32Array(Math.max((n + 1) * 16, buf.length * 2, 256 * 16));
+        grown.set(buf);
+        this.classMats[bucket] = grown;
+        buf = grown;
+      }
+      this.classN[bucket] = n + 1;
+      const o = n * 16;
       const x = positions[2 * i], y = positions[2 * i + 1], s = this.scaleOf[i] || 1;
-      const a = facings[i] - Math.PI / 2;
+      const f = facings[i];
+      const a = f - Math.PI / 2;
       const ca = Math.cos(a), sa = Math.sin(a);
       if (alive[i] < 0.5) {
+        // Fallen: tipped onto the ground along the facing.
         buf[o] = ca * s; buf[o + 1] = sa * s; buf[o + 2] = 0; buf[o + 3] = 0;
         buf[o + 4] = 0; buf[o + 5] = 0; buf[o + 6] = s; buf[o + 7] = 0;
         buf[o + 8] = sa * 0.25 * s; buf[o + 9] = -ca * 0.25 * s; buf[o + 10] = 0.25 * s; buf[o + 11] = 0;
         buf[o + 12] = x; buf[o + 13] = y; buf[o + 14] = 0.05; buf[o + 15] = 1;
       } else {
+        // Animation from the sim's frame: a marching bob (walk beats 1/2)
+        // and a forward thrust (attack beat 3, alternating with 0).
+        const fr = frames[i];
+        const bob = fr === 1 ? 0.06 : fr === 3 ? 0.04 : 0;
+        const lurch = fr === 3 ? 0.16 : 0;
         buf[o] = ca * s; buf[o + 1] = sa * s; buf[o + 2] = 0; buf[o + 3] = 0;
         buf[o + 4] = -sa * s; buf[o + 5] = ca * s; buf[o + 6] = 0; buf[o + 7] = 0;
         buf[o + 8] = 0; buf[o + 9] = 0; buf[o + 10] = s; buf[o + 11] = 0;
-        buf[o + 12] = x; buf[o + 13] = y; buf[o + 14] = 0; buf[o + 15] = 1;
+        buf[o + 12] = x + lurch * Math.cos(f); buf[o + 13] = y + lurch * Math.sin(f);
+        buf[o + 14] = bob; buf[o + 15] = 1;
       }
     }
-    this.commitMesh(0, n0);
-    this.commitMesh(1, n1);
-  }
-
-  private commitMesh(t: number, n: number) {
-    const mesh = this.teamMesh[t];
-    mesh.isVisible = n > 0;
-    if (n > 0) mesh.thinInstanceSetBuffer('matrix', this.teamMats[t].subarray(0, n * 16), 16, false);
-    mesh.thinInstanceCount = n;
+    for (let k = 0; k < this.classMesh.length; k++) {
+      const mesh = this.classMesh[k];
+      const n = this.classN[k];
+      mesh.isVisible = n > 0;
+      if (n > 0) mesh.thinInstanceSetBuffer('matrix', this.classMats[k].subarray(0, n * 16), 16, false);
+      mesh.thinInstanceCount = n;
+    }
   }
 
   private drawSprites(

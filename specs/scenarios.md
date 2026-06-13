@@ -3,10 +3,12 @@
 ## Goal, in one sentence
 
 Replace the three bespoke flat verify harnesses with one runner over a
-directory of named, individually-runnable **scenarios**, each booting a
-declared world (real map or test map) and asserting one or more visual
-snapshots and/or behavioral checks — so that every screenshot a run writes is
-a blessed regression baseline and nothing else.
+directory of named, individually-runnable **scenarios** — each either a
+`visual` case (a fixture world asserting pixels) or a `flow` case (a real-map
+world asserting behavior) — so that the real-map/fixture split that today's two
+campaign harnesses stumbled into becomes the deliberate organizing axis, and
+every screenshot a run writes is a blessed regression baseline and nothing
+else.
 
 This document is **proposed design** except where a paragraph is marked
 *(measured fact)*. Solve the problem; the file layout and `ctx` shape below
@@ -106,51 +108,128 @@ Greppable anchors the implementer will need:
 
 ## The design
 
+### The organizing principle: what you verify dictates which world
+
+The split between today's two campaign harnesses is not arbitrary, and the new
+design must make it deliberate rather than incidental. `verify-campaign.mjs`
+drives the **real map** to verify *behavior* (march → garrison battle →
+save/load → territory voronoi → AI). `verify-campaign-visual.mjs` boots a
+**fixture** — the controlled one-road/two-city map — to verify *rendering*
+(what the army/city markers look like). They use different worlds because they
+answer different questions, and the real map is actively *hostile* to the
+visual question: red armies on red cities (no contrast), garrison battles fire
+on any move, and the layout is seed-dependent.
+
+So every scenario is one of two **kinds**, and the kind picks the world family:
+
+- **`flow`** — verifies behavior. Drives real game systems on a **real-map
+  world** and asserts on *outcomes* (positions, casualties, soldier counts,
+  modal text, save/load round-trips). Outcomes, rarely pixels. A test map would
+  give false confidence here — a two-city map cannot exercise the AI, voronoi,
+  or pathfinding.
+- **`visual`** — verifies rendering. Boots a **fixture world** (minimal,
+  deterministic, contrast-clean) and asserts on *pixels* (`snap`). Fast, no
+  game logic, no seed dependence. This is where the test maps earn their keep.
+
+A scenario should be one kind. The current battle harness violates this — it
+takes the `battle-initial` deployment snap, then drives a melee, then snaps
+mid-fight: a `visual` concern wearing a `flow` harness, which is exactly why it
+litters scratch PNGs through nondeterministic mid-battle states. Splitting it
+into a `visual` `battle-deploy` (snap the clean deployment) and a `flow`
+`battle-melee` (assert casualties, no pixels) removes the litter by design.
+
+### Fixtures are first-class and uniform across battle and campaign
+
+The campaign test map exists today as a one-off: `buildTestCampaign` buried in
+`main.ts`, reachable via `?campaign=test`. Elegance here means making *fixture*
+a first-class, uniform facility — the same shape for battle and campaign — so
+"a small deterministic world built to make one thing legible" is a pattern, not
+a hack you reinvent per domain:
+
+```
+web/scenarios/fixtures/        # the builders, one per fixture
+  campaign-test.ts             # migrate buildTestCampaign out of main.ts
+  battle-1v1.ts                # two opposed units on flat ground (NEW)
+  battle-5v5.ts                # a small line clash for combat-visual snaps (NEW)
+```
+
+A fixture is triggered by a uniform URL-param convention (`?fixture=<name>`,
+subsuming today's `?campaign=test` and `?test=banners`) and registered in one
+place so the runner and the game agree on the list. Battle gets fixtures it
+never had: the loose `sandbox-1v1.png` / `labels-5v5.png` / `combat-*.png`
+scratch shots in `web/shots/` are the ghosts of visual cases that were never
+given a deterministic home — fixtures are that home. *(The exact param name is
+proposed; the binding requirement is that battle and campaign fixtures are
+built and addressed the same way, and that `buildTestCampaign` stops being a
+special case.)*
+
 ### Layout
 
 ```
 web/scenario.mjs            # the single runner / CLI entry
 web/scenarios/
-  worlds.mjs                # world name -> { url, ready, freeze, dpr }
-  battle-deploy.mjs         # one scenario per file
-  battle-maneuver.mjs
-  battle-melee.mjs
-  battle-cluster.mjs
-  battle-ai.mjs             # tier: 'full'
-  banner-gallery.mjs        # world: 'none' (pure DOM route)
+  worlds.mjs                # world name -> { url, ready, freeze, dpr }; real + fixture
+  fixtures/                 # fixture builders (see above)
+  # --- visual scenarios (fixture worlds, pixels) ---
+  battle-deploy.mjs         # world: battle-1v1 (or the real deploy moment); the clean line
+  battle-formations.mjs     # world: battle-5v5; line/charge/melee poses
+  campaign-markers.mjs      # world: campaign-test; the tiny-* poses
+  banner-gallery.mjs        # world: banner fixture (pure DOM route)
+  # --- flow scenarios (real-map worlds, outcomes) ---
+  battle-maneuver.mjs       # real map: march, pivot, stamina
+  battle-cluster.mjs        # real map: group-move keeps formation
+  battle-ai.mjs             # real map; tier: 'full'
   campaign-conquest.mjs     # real map: march -> battle -> save/load
-  campaign-territory.mjs    # real map: voronoi + 3D camera tilt
+  campaign-territory.mjs    # real map: voronoi + 3D camera tilt + click-select
   campaign-ambush.mjs       # real map
   campaign-reinforcement.mjs# real map; tier: 'full'
-  campaign-markers.mjs      # test map: the tiny-* poses
 ```
 
-The three `verify-*.mjs` files are deleted; their stages migrate into
-scenarios. `web/snapshot.mjs` stays as-is (it is the safety property — see
-below).
+The three `verify-*.mjs` files are deleted; their stages migrate into scenarios
+along the kind boundary above. `web/snapshot.mjs` stays as-is (it is the safety
+property — see below).
 
 ### A scenario module
 
 ```js
+// A visual scenario — boots a fixture, asserts pixels.
 export const meta = {
   name: 'campaign-markers',
-  world: 'campaign-test',        // key into worlds.mjs; 'none' = no goto
+  kind: 'visual',                // 'visual' (fixture, pixels) | 'flow' (real map, outcomes)
+  world: 'campaign-test',        // key into worlds.mjs; a fixture world for visual kind
   describe: 'Army & city markers over road / our city / neutral city.',
   tier: 'quick',                 // 'quick' (default run) | 'full' (release only)
 };
 
-export async function run({ page, check, snap, world }) {
+export async function run({ page, check, snap }) {
   // world is already booted, frozen, at the fixed viewport.
   await snap('overview', { cam: [0, 450, 16] });
   await snap('army-road', {
     before: () => page.evaluate(() => window.__campaign.place(0, 1, 0, 4)),
     cam: [0, 450, 20],
   });
-  // behavioral checks coexist; they write no PNG:
-  const army = await page.evaluate(() => window.__campaign.armies().find(a => a.mine));
-  check('test campaign boots with a player army', !!army, `${army?.soldiers} soldiers`);
 }
 ```
+
+```js
+// A flow scenario — drives the real map, asserts outcomes, writes no PNG.
+export const meta = {
+  name: 'campaign-conquest',
+  kind: 'flow',
+  world: 'campaign-real',
+  describe: 'March on an independent city, fight the garrison, save and reload.',
+  tier: 'quick',
+};
+
+export async function run({ page, check }) {
+  // ...orderMove, tick until battleReady, auto-resolve, save/load...
+  check('battle consumed (no pending)', ready === -1);
+}
+```
+
+The runner may assert the invariant directly: a `visual` scenario that calls no
+`snap`, or a `flow` scenario whose world is a fixture, is a wiring mistake worth
+failing on.
 
 ### The runner contract (`ctx` passed to `run`)
 
@@ -164,7 +243,8 @@ export async function run({ page, check, snap, world }) {
   `opts.maxDiffRatio`/`opts.threshold` pass through for a *named* noise source.
   There is no `ctx.screenshot`-to-disk; bare `page.screenshot({path})` to a
   tracked location is forbidden (a lint/grep check in the runner can enforce
-  it: fail if `shots/` gains a file outside `baseline/` and `diff/`).
+  it: fail if `shots/` gains a file outside `baseline/` and `diff/`). A `flow`
+  scenario writes no PNG at all — outcomes are asserted via `check`.
 - `world` — the resolved world descriptor (handy for `world.freeze(false)`).
 
 ### The CLI
@@ -213,12 +293,18 @@ drop rather than bless, so a reader knows coverage shrank deliberately.
    rule in `screenshot-regression/SKILL.md` must survive. The migration is a
    refactor of *where* the calls live, never a relaxation of *whether* they
    run. A snap with no preceding `freeze()` is a bug, not a scenario.
-3. **The debug hooks** (`window.__game`, `window.__campaign`, `__ready`,
-   `__campaignReady`, `?test=banners`, `?campaign=test`). Scenarios drive
-   through the existing seams; do not add production-side hooks to make a
-   scenario convenient.
-4. **Sim / renderer / campaign code.** This is a test-harness reorg only. No
-   change under `crates/` or `web/src/`.
+3. **The debug-hook capabilities** (`window.__game`, `window.__campaign`,
+   `__ready`, `__campaignReady`, and the freeze/place/cam seams). Scenarios
+   drive through these; do not add *new* production-side hooks to make a
+   scenario convenient. The fixture *entry points* may be unified
+   (`?campaign=test`/`?test=banners` → a single `?fixture=<name>` convention) —
+   that is in scope; the runtime capabilities they expose are not to grow.
+4. **Sim / renderer / gameplay behavior.** This is a test-harness reorg. The
+   only `web/src/` change in scope is relocating fixture *builders*
+   (`buildTestCampaign` and new battle fixtures) into the uniform facility and
+   wiring the `?fixture=` param — pure test scaffolding. No change to combat,
+   formation, campaign, or rendering logic; no change under `crates/`. If a
+   fixture needs a new capability from the sim, that is a separate spec.
 
 ## Contracts — the tests are the spec
 
@@ -248,6 +334,13 @@ Must BECOME true (the acceptance, write these as runner self-checks):
   old flat ones on the blessing machine (bless with `UPDATE_SHOTS=1`, then
   `cmp` old vs new before deleting the old). The golden pixels move paths, not
   content.
+- Kind invariant holds: every `visual` scenario calls `snap` at least once and
+  boots a fixture world; every `flow` scenario writes zero PNGs. The runner
+  fails the run if either is violated.
+- Fixtures are uniform: `buildTestCampaign` no longer lives in `main.ts` as a
+  special case; it and the new battle fixtures are built and addressed by the
+  same mechanism. Adding a fixture touches only `scenarios/fixtures/` + its
+  registration.
 
 ## Process requirements
 
@@ -271,6 +364,10 @@ Must BECOME true (the acceptance, write these as runner self-checks):
 
 - [ ] One runner (`web/scenario.mjs`) + `web/scenarios/*.mjs`; the three
       `verify-*.mjs` deleted; package.json scripts updated.
+- [ ] Each scenario is one `kind`; `visual` scenarios run on fixtures, `flow`
+      on real-map worlds. The deployment snap is split out of the melee.
+- [ ] Fixtures live in `scenarios/fixtures/` behind one `?fixture=` convention;
+      `buildTestCampaign` migrated out of `main.ts`; battle fixtures added.
 - [ ] Every old check ported and green (quick + `--full`), per the table above.
 - [ ] No bare `page.screenshot({path})` to a tracked location remains; `git
       status` clean after `--full`; `web/shots/` holds only `baseline/`+`diff/`.

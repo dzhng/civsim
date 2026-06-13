@@ -29,29 +29,57 @@ and tempts you to gitignore it. If a frame is worth capturing, capture it with
 it. (This is why the smell "I want to gitignore `shots/*.png`" means the harness
 is writing shots no test owns — see `specs/scenarios.md`.)
 
+## Two kinds — what you verify dictates which world
+
+Every scenario is exactly one **kind**, and the kind picks the world:
+
+- **`visual`** — verifies *rendering*. Boots a **fixture** (a minimal,
+  deterministic, contrast-clean world) and asserts *pixels* via `snap`. Fast,
+  no game logic, no seed dependence.
+- **`flow`** — verifies *behavior*. Drives real game systems on the **real
+  map** and asserts *outcomes* via `check` (positions, casualties, soldier
+  counts, modal text, save/load). Writes **no** PNG.
+
+Don't mix them. A heavy behavioral flow that also snaps pixels mid-run is what
+produced the old scratch-shot litter — the frames landed in nondeterministic
+mid-battle states no baseline could pin. If you want to *both* drive a flow and
+guard a frame, the frame almost always belongs to a separate `visual` scenario
+on a fixture posed to that exact moment. The real map is *hostile* to visual
+tests: no colour contrast (red on red), garrison battles fire on any move, and
+the layout is seed-dependent — fixtures exist precisely to remove all three.
+
 ## Anatomy of a scenario
 
 ```js
 export const meta = {
   name: 'campaign-markers',      // unique, kebab; CLI selects by this
+  kind: 'visual',                // 'visual' (fixture, pixels) | 'flow' (real map, outcomes)
   world: 'campaign-test',        // key into scenarios/worlds.mjs ('none' = no boot)
   describe: 'Army & city markers over road / our city / neutral city.',
   tier: 'quick',                 // 'quick' = default run; 'full' = release-only
 };
 
-export async function run({ page, check, snap, world }) {
-  // The world is already booted, frozen, at the 1280x800 viewport.
-
-  // A visual test: snap() is the ONLY way a PNG gets written.
+export async function run({ page, snap }) {
+  // The fixture is already booted, frozen, at the 1280x800 viewport.
+  // snap() is the ONLY way a PNG gets written.
   await snap('overview', { cam: [0, 450, 16] });
   await snap('army-road', {
     before: () => page.evaluate(() => window.__campaign.place(0, 1, 0, 4)),
     cam: [0, 450, 20],
   });
+}
+```
 
-  // A behavioral test coexists in the same scenario; it writes no PNG.
-  const army = await page.evaluate(() => window.__campaign.armies().find(a => a.mine));
-  check('test campaign boots with a player army', !!army, `${army?.soldiers} soldiers`);
+```js
+// A flow scenario — real map, outcomes, no PNG.
+export const meta = {
+  name: 'campaign-conquest', kind: 'flow', world: 'campaign-real',
+  describe: 'March on an independent city, fight the garrison, save and reload.',
+  tier: 'quick',
+};
+export async function run({ page, check }) {
+  // ...orderMove, tick until battleReady, auto-resolve, save/load...
+  check('battle consumed (no pending)', ready === -1);
 }
 ```
 
@@ -63,29 +91,37 @@ export async function run({ page, check, snap, world }) {
   code. Assert observable outcomes (positions, casualties, soldier counts,
   rendered frames) — never internal call order.
 
-## Choosing the world
+## Worlds: real maps and fixtures
 
 `scenarios/worlds.mjs` owns boot + readiness + freeze for each world; a
-scenario just names one in `meta.world`:
+scenario names one in `meta.world`. Worlds come in two families.
 
-- `battle` — `?map=A&ai=off`, ready `window.__ready`, freeze `__game.freeze()`.
-  Drive via `window.__game` (`select/setOrder/advance/groupMove/unitInfo/...`).
+**Real-map worlds** (for `flow` scenarios — exercise the actual systems):
+- `battle-real` — `?map=A&ai=off`, ready `window.__ready`, freeze
+  `__game.freeze()`. Drive via `window.__game`
+  (`select/setOrder/advance/groupMove/unitInfo/...`).
 - `campaign-real` — menu → `#menu-new-campaign`, ready `__campaignReady`,
-  freeze `__campaign.freeze()`. The full map: garrison battles, save/load,
-  territory. Use when the behavior under test needs the real world.
-- `campaign-test` — `?campaign=test`, the controlled one-road / two-city fake
-  map (`buildTestCampaign` in `main.ts`), opened at `deviceScaleFactor: 2`.
-  Our city (Roma) — a road — a neutral city (Neapolis), one mixed-roster player
-  army. Teleport it with `window.__campaign.place(0, kind, a, b)` (kind 0 =
-  node index, 1 = edge tile) to pose over road / our city / neutral city
-  exactly. **Prefer this for marker/model rendering** — no red-on-red contrast,
-  no garrison battle, fully deterministic.
-- `none` — no `goto`; for a pure-DOM route like the banner gallery
-  (`?test=banners`). The scenario navigates itself.
+  freeze `__campaign.freeze()`. The full ~400-city map: garrison battles,
+  save/load, territory, AI. Use when the behavior under test *needs* the real
+  world — a fixture can't exercise the AI, voronoi, or pathfinding.
 
-Pick the **smallest world that still exercises the thing under test**. A marker
-rendering change is a `campaign-test` scenario; a conquest-flow change is a
-`campaign-real` scenario. Don't reach for the real map to snap a model.
+**Fixtures** (for `visual` scenarios — minimal, deterministic, contrast-clean).
+A fixture is a first-class facility, built the **same way for battle and
+campaign** under `scenarios/fixtures/` and triggered by one `?fixture=<name>`
+convention:
+- `campaign-test` — the controlled one-road / two-city map, opened at
+  `deviceScaleFactor: 2`: our city (Roma) — a road — a neutral city (Neapolis),
+  one mixed-roster player army. Teleport it with
+  `window.__campaign.place(0, kind, a, b)` (kind 0 = node, 1 = edge tile) to
+  pose over road / our city / neutral city exactly.
+- `battle-1v1`, `battle-5v5` — small opposed-unit clashes for combat/marker
+  visual snaps.
+- a banner fixture — the pure-DOM gallery route.
+
+Need a fixture that doesn't exist? Add a builder under `scenarios/fixtures/` and
+register it — do not hand-pose the real map and do not add a one-off boot path
+in `main.ts`. Pick the **smallest world that exercises the thing under test**;
+never reach for the real map to snap a model.
 
 ## Determinism is non-negotiable
 
@@ -122,10 +158,13 @@ re-blessed.
 ## Checklist for a new scenario
 
 - [ ] One file `scenarios/<name>.mjs`, exporting `meta` + `run`.
-- [ ] `meta.world` is the smallest world that exercises the change.
+- [ ] Exactly one `kind`: `visual` → a fixture world + at least one `snap`;
+      `flow` → a real-map world + zero PNGs.
+- [ ] `meta.world` is the smallest world that exercises the change; if you
+      needed a new fixture, it lives in `scenarios/fixtures/`, not `main.ts`.
 - [ ] Every captured frame is a `snap()`; zero bare `page.screenshot({path})`.
 - [ ] Each snap: freeze active, camera set, settle waited.
 - [ ] `tier: 'full'` if it is slow/heavy (AI games, long advances); else quick.
-- [ ] Behavioral checks assert observable outcomes, not internals.
+- [ ] `flow` checks assert observable outcomes, not internals.
 - [ ] Baselines committed under `shots/baseline/<name>/`; `git status` clean.
 - [ ] You looked at the new baseline PNGs yourself.

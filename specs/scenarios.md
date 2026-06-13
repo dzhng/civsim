@@ -1,9 +1,9 @@
 # Spec: Scenarios — one runner, 100% catalog-driven visual coverage
 
-> Sibling spec: `specs/simulation-matrix.md` applies the same principle to the
-> Rust sim — generate the test surface from the registries, gate it for
-> completeness. This file is the *visual* half (web/pixels); that one is the
-> *behavioral* half (cargo/sim). Shared creed: **tests are a generated
+> Sibling spec: `specs/simulation-matrix.md` covers the Rust sim — which splits
+> into a generated **balance** matrix (stats-vs-price, exhaustive) and an
+> authored **behavior/physics** suite. This file is the *visual* half
+> (web/pixels). Shared creed for the exhaustive parts: **tests are a generated
 > projection of the source-of-truth registries, not a hand-maintained list.**
 
 ## Goal, in one sentence

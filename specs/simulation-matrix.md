@@ -1,237 +1,230 @@
-# Spec: Simulation matrix — every encounter golden-pinned, every tunable exercised
+# Spec: Sim tests — balance matrix (generated) vs behavior suite (authored)
 
-> Sibling spec: `specs/scenarios.md` applies the same principle to the web
-> frontend — catalog-driven, gated 100% *visual* coverage. This file is the
-> *behavioral* half (cargo/sim). Shared creed: **tests are a generated
-> projection of the source-of-truth registries, not a hand-maintained list.**
+> Sibling spec: `specs/scenarios.md` applies the same creed to the web frontend
+> — catalog-driven, gated 100% *visual* coverage. Shared creed: **the
+> exhaustive part of a test suite is a generated projection of the
+> source-of-truth registries, not a hand-maintained list.**
 
 ## Goal, in one sentence
 
-Turn the sim's behavioral test suite from 112 hand-written one-off scenarios
-into a *generated projection of the tunable registries*: the full discrete
-encounter matrix (every class pair × the discrete combat axes) simulated and
-its outcome golden-pinned, and every continuous tunable guarded by at least one
-test that provably moves when it changes — so adding a class or retuning a
-number cannot leave an encounter unsimulated or a tunable unguarded.
+Split the sim's tests into two families that are confused today — **balance**
+tests (does each class's combat performance match its price?) and
+**behavior/physics** tests (does a mechanism work — distance lowers morale, a
+cavalry charge breaks a thin line?) — and make the balance family an
+exhaustive, cost-aware, golden-pinned matrix generated from `ALL_CLASSES`,
+while the behavior family stays the authored emergent suite it already is.
 
 This document marks **measured fact** (binding) vs **proposed design** (deviate
-where the code disagrees). The binding core is the two coverage gates in
-*Contracts*; the matrix shape and axis selection are proposed.
+where the code disagrees). The binding core: the balance matrix is generated &
+complete, the two families are separated, and the completeness gates fail
+closed. Cost-normalisation and axis choices are proposed.
 
-## The problem, with the evidence
+## The two families — why the split is the whole point
 
-*(measured fact)* The enumerable inputs already exist as clean registries:
-- `crates/contract/src/lib.rs:12-54` — `enum UnitClassId` (9 variants) and
-  `pub const ALL_CLASSES: [UnitClassId; 9]`. This is the spine.
-- `crates/sim/src/class.rs:10-25` — `struct Weapon` (the five numbers: `reach,
-  min_range, arc, attack_interval, damage`); `:85-150` the 8 weapon consts;
-  `:151-324` `class_stats(id) -> UnitClass` (mass, brace_mult, health, block,
-  evade, training, stance, charge, tramples, drain_mult, weapons…).
-- `crates/sim/src/tunables.rs:10-197` — `struct Tunables`, ~55 fields, `Default`
-  at `:145-197`. Plus `enum Pace` (Walk, Run) at `:10-14`.
-- `crates/sim/src/unit.rs:11-33` — `enum Stance` (Othismos, Fence),
-  `enum OrderMode` (Move, Attack(u32), Disengage).
-- `crates/campaign/src/mapdata.rs:11-20` — `enum TileFeature` (Open, Forest,
-  Hill, Pass, Bridge, Ford, Sea).
-- `crates/sim/src/missiles.rs:17-22` — `enum MissileKind` (Arrow, Javelin,
-  Stone); per-class specs at `:45-90`.
+*(the distinction, in the owner's words:)* A **balance test** checks that
+*performance (stats) matches the price* — the 9×9 duel board is the canonical
+one. A **behavior test** checks a physics/mechanism claim — "distance affects
+morale," "a cavalry charge breaks a line," "a braced pike hedge stops a horse."
+They want opposite things from their test infrastructure:
 
-*(measured fact)* Determinism is already proven and is what makes pinning
-possible: `crates/contract/src/rng.rs` `Pcg32::new(seed, stream)` gives a
-bit-identical float sequence (self-test `:54-59`); `Sim::rng =
-Pcg32::new(seed, 0xda3e)` (`crates/sim/src/sim.rs:171`); the golden-hash
-regression `crates/sim/tests/golden.rs:40` pins a scripted scenario's hashed
-end-state. The engine is deterministic; we are not adding determinism, we are
-building a higher-level golden on top of it.
+| | Balance | Behavior / physics |
+|---|---|---|
+| Question | do stats match price? | does the mechanism work? |
+| Shape | **exhaustive matrix**, every class pair | **specific** crafted encounters |
+| Source | generated from `ALL_CLASSES` | hand-authored, one per claim |
+| Assertion | matches golden table; cost-fair within bands | a measured outcome crosses a threshold |
+| On new class | matrix grows automatically; gate demands it | nothing — unless the class adds a mechanism |
+| Map | tiny, 2 units, flat | whatever the mechanism needs |
+| Future | **emits a replay per cell → dashboard** | stays assert-only |
 
-*(measured fact)* The encounter matrix is *half-built and unasserted*:
-- `crates/sim/tests/balance_matrix.rs:39-62` — `fn duel(a, b, seed) ->
-  (victor, surv_a%, surv_b%, duration)` over `setup_duel(a, b)`
-  (`crates/sim/src/battle.rs:196-222`).
-- `measure_the_matrix()` iterates all 9×9 = 81 pairs but only **prints** the
-  board — no assertion. So 81 encounters run every test session and prove
-  nothing.
-- `the_counter_web_holds():120-147` hand-asserts **12** monotonic matchups
-  (HeavyInfantry > LightInfantry, Phalanx > ShockCavalry, …). The other 69
-  cells are uncharacterized.
-- 112 `#[test]`s across 16 files (`grep -c '^#\[test\]'`), each a bespoke
-  setup. No parametrization over `ALL_CLASSES`; adding a 10th class adds zero
-  tests automatically and the 81-cell print silently becomes a 100-cell print
-  that still asserts nothing.
+The split is load-bearing because the *failure modes differ*. A balance
+regression is "class X now wins matchups its price doesn't justify" — caught by
+diffing a complete table. A behavior regression is "morale stopped responding
+to distance" — caught by one targeted assertion. Generating the behavior suite
+would be nonsense (there is no enumerable list of mechanisms); hand-listing the
+balance suite is what left 69 of 81 cells uncharacterised today.
 
-The gap: the discrete encounter space is small and fully enumerable (81 pairs,
-×2 stances ×2 paces = 324 — tractable), yet it is neither asserted nor
-regenerated from the registry. And no structure connects a `Tunables` field to
-a test that would catch a regression in it.
+## The evidence (measured fact)
+
+- Registry spine: `crates/contract/src/lib.rs:12-54` — `enum UnitClassId` (9),
+  `pub const ALL_CLASSES: [UnitClassId; 9]`.
+- Stats: `crates/sim/src/class.rs:151-324` `class_stats(id)`; the five weapon
+  numbers `struct Weapon` at `:10-25`; 8 weapon consts `:85-150`.
+- **Price** lives in campaign tunables, already keyed by class:
+  `crates/campaign/src/tunables.rs` — `recruit_cost_milligold(class)`,
+  `upkeep_per_soldier_milligold(class)`, `unit_size(class)`,
+  `recruit_ticks_per_soldier(class)`. Balance is the relation between
+  `class_stats` (what you get) and these (what you pay).
+- Determinism (why pinning works): `Pcg32::new(seed, stream)`
+  (`crates/contract/src/rng.rs`), `Sim::rng = Pcg32::new(seed, 0xda3e)`
+  (`crates/sim/src/sim.rs:171`), state-hash golden `crates/sim/tests/golden.rs:40`.
+- The balance matrix is half-built: `crates/sim/tests/balance_matrix.rs:39-62`
+  `fn duel(a, b, seed)`, over `setup_duel(a, b)` (`crates/sim/src/battle.rs:196-222`,
+  class-specific headcounts 240/220/120). `measure_the_matrix()` runs all 81
+  pairs but only **prints** — proving runtime is cheap (81 tiny 2-unit headless
+  duels already run every session) and proving the assertion is missing.
+  `the_counter_web_holds():120-147` asserts **12** matchups by hand.
+- Behavior suite: ~112 `#[test]`s across 16 files; the emergent ones live in
+  `combat_scenarios.rs`, `morale_scenarios.rs`, `class_scenarios.rs`,
+  `missile_scenarios.rs`, `terrain_scenarios.rs`, etc.
 
 ## Rejected approaches — do not retry naively
 
-- **Blind full cross-product.** 9×9 classes × 2 stance(a) × 2 stance(b) × 2
-  pace × 2 charge ≈ 648² ≈ 420k duels, times sweeping 55 continuous tunables →
-  effectively infinite, dominated by redundant or nonsensical cells (a pike has
-  no charge; artillery has no melee stance that matters). It would run for
-  hours, and a 420k-row golden is unreviewable — a balance change would diff
-  thousands of cells and teach you nothing. The simulation must be *exhaustive
-  over the discrete, meaningful axes* and *sensitivity-tested over the
-  continuous ones*, not blindly producted. This is the central design judgment.
-- **Keep hand-asserting matchups** (`the_counter_web_holds` style). Does not
-  scale: 12 of 81 today, and every new class needs N hand-written rows that
-  someone will forget. The relationships should be *derived from the generated
-  table*, not re-typed.
-- **Assert absolute outcome numbers per cell** (`surv_a == 0.43`). Too brittle —
-  every tuning churns every literal. Pin the *table as a golden artifact*
-  (re-pinned deliberately, once, per intended change) and assert *monotonic
-  relationships* (A beats B) derived from it; reserve exact numbers for the
-  golden file the way `golden.rs` already does for state hashes.
+- **Blind full cross-product of every tunable.** 81 pairs × stance² × pace ×
+  charge × 7 terrain × sweeping 55 continuous tunables → effectively infinite
+  and mostly redundant (a pike has no charge; artillery has no melee stance).
+  The balance matrix is exhaustive over **classes** (the dimension you balance)
+  and over a small set of axes that demonstrably flip outcomes — not blindly
+  producted. The class×class 81 is mandatory and cheap; axis variants are added
+  with a stated reason each.
+- **Generating the behavior suite.** Mechanisms are not enumerable; a generator
+  would produce noise. Behavior tests stay authored.
+- **Asserting absolute per-cell numbers** (`surv_a == 0.43`). Brittle — every
+  tune churns every literal. Pin the *table as a golden artifact* (re-pinned
+  deliberately, once per intended change; the diff is the balance review) and
+  bucket survivor% into bands so seed jitter doesn't churn it.
+- **Equal-headcount as the balance signal.** 240-vs-220 men tells you who wins,
+  not whether the price is fair. The balance question is **equal cost** (below).
 
 ## The design
 
-### One: the encounter matrix is generated and golden-pinned
+### Balance matrix: complete, cost-aware, golden-pinned
 
-Replace `measure_the_matrix`'s print with an asserted golden table generated
-from `ALL_CLASSES`:
+Live in a dedicated home (`crates/sim/tests/balance/`, or `balance_matrix.rs`
+rewritten) and generate from the registry:
 
 ```rust
-// pseudo — crates/sim/tests/matrix.rs
-let mut table = Vec::new();
 for &a in &ALL_CLASSES {
-    for &b in &ALL_CLASSES {
-        // a small, justified axis fan-out per cell (see "axes" below)
-        for axes in MATRIX_AXES {                 // e.g. [(Run, charge), (Walk, no-charge)]
-            table.push(Cell { a, b, axes, ..duel_with(a, b, axes, SEED) });
+    for &b in &ALL_CLASSES {                  // full 81 — the dimension you balance
+        for axes in BALANCE_AXES {            // a few, each justified (see below)
+            let cell = duel_equal_cost(a, b, axes, SEED);  // headcounts normalised by gold
+            table.push(cell);                 // { a, b, axes, victor, surv_a%, surv_b%, secs, cost_a, cost_b }
         }
     }
 }
-assert_matrix_matches_golden(&table, "tests/golden/encounter-matrix.txt");
+assert_matches_golden(&table, "tests/golden/balance-matrix.txt");
 ```
 
-- The golden file is human-readable (one row per cell: classes, axes, victor,
-  surv%, duration band). A balance change re-pins it in **one** commit, and the
-  diff *is* the balance review — exactly the artifact `balance-unit` work wants.
-- Bucket survivor% into bands (e.g. 0/≤25/≤50/≤75/100) before pinning so
-  sub-percent RNG jitter doesn't churn the golden; the band width is the
-  declared tolerance. *(proposed: tune the bands so a real balance shift crosses
-  a band but seed noise doesn't.)*
-- The 12 hand-asserted counters become a **derived** check over the generated
-  table (`assert beats(Phalanx, ShockCavalry)`), not separate setups. Deleting
-  `the_counter_web_holds`'s bespoke duels removes duplication.
+- **Cost-normalised duels** *(proposed, the key balance idea)*: instead of fixed
+  240/220, spend ~equal gold per side — derive headcounts from
+  `recruit_cost_milligold` (+ an upkeep horizon if you want the campaign-true
+  cost). Then a balanced roster yields outcomes clustered near 50/50 across the
+  board; a class that wins its equal-cost matchups decisively is *underpriced*,
+  one that loses them is *overpriced*. The matrix becomes the instrument you
+  literally balance the game with, not just a regression pin. Keep an
+  equal-headcount variant too if it aids reading raw combat power vs price.
+- **Golden table** is human-readable, one row per cell, survivor% in bands
+  (0/≤25/≤50/≤75/100) so sub-percent RNG jitter doesn't churn it. A balance
+  change re-pins it in one reviewed commit.
+- The 12 counter-web relationships become a **derived** check over the table
+  (`assert beats(Phalanx, ShockCavalry)`), deleting the bespoke duels.
+- Runtime: 81 × |BALANCE_AXES| tiny 2-unit headless duels. `measure_the_matrix`
+  already runs the 81 cheaply; target |BALANCE_AXES| ≤ 6 (≤ ~500 duels). Log the
+  measured wall-time; if it dominates, feature-gate the heavy axes like the web
+  harness gates `--full`.
 
-### Two: the discrete axes, chosen not producted
+### BALANCE_AXES — chosen, not producted
 
-`MATRIX_AXES` *(proposed)* is a curated handful where the axis is known to flip
-outcomes, not the full product:
-- pace/charge: `(Run + charge)` vs `(Walk + braced)` — the charge-vs-brace
-  interaction is the single most outcome-defining axis (see the impale spec).
-- stance: add a `Fence`-vs-`Othismos` slice for the infantry sub-matrix where
-  `class_stats().stance` differs.
-- terrain: a `TileFeature::Open` baseline plus one rough slice (Forest/Hill)
-  for the classes whose `drain_mult`/speed make terrain decisive (cavalry,
-  skirmishers). Not all 7 features × 81 pairs.
-Each included axis carries a one-line comment for *why this axis flips this
-sub-matrix*; an axis with no such reason does not belong in the product. State
-the cell count in a `log`/test name so a reader sees the matrix size at a glance.
+A curated handful, each with a one-line "why this flips the board": the
+charge-vs-brace axis `(Run+charge)` vs `(Walk+braced)` (the single most
+outcome-defining interaction — see the impale spec), a `Fence`-vs-`Othismos`
+slice for the infantry sub-matrix where `class_stats().stance` differs, and an
+`Open` vs one rough terrain (Forest/Hill) slice for the classes terrain
+decides (cavalry, skirmishers). An axis with no stated reason does not belong.
 
-### Three: every continuous tunable has a sensitivity test
+### Behavior suite: keep it, just name it
 
-The tractable reading of "every permutation between the tunables is simulated":
-each of the ~55 `Tunables` fields (and each `class_stats` field, and each of the
-5×8 weapon numbers) must have **at least one test whose assertion changes if
-that field changes**. Build a provenance table:
+The emergent tests stay authored and stay where they are; the only change is
+*labelling* the families clearly (a module doc-comment, or grouping the
+emergent files under a `behavior/` umbrella) so a reader knows "balance =
+generated matrix, behavior = these crafted scenarios." Do not generate them, do
+not fold them into the matrix.
 
-```
-crates/sim/tests/tunable_provenance.rs
-  TUNABLE_GUARDS: &[(&str /* field path */, &str /* test name that guards it */)]
-```
+### Tunable provenance (spans both families)
 
-A meta-test asserts every field of `Tunables` (enumerated via a derive or an
-exhaustive match — see below) appears in `TUNABLE_GUARDS`. Optionally, a CI
-mutation pass perturbs each field by ±10% and asserts its named guard test goes
-red — proving the guard is real, not nominal. *(proposed; the binding part is
-the completeness check that no field is unlisted.)*
+Each continuous tunable (~55 `Tunables` fields, the 5×8 weapon numbers, the
+`class_stats` fields) must have **at least one test that changes if it
+changes** — usually a behavior test, sometimes a matrix cell. A meta-test
+asserts every field is named in a `TUNABLE_GUARDS` table; enforce field
+completeness with an exhaustive `let Tunables { a, b, c } = t;` destructure
+*without* `..`, so adding a field fails compilation until it is guarded.
+*(proposed; the binding part is that no tunable is unguarded.)*
 
-### Four: the gates that make it future-proof
+### Future: replays and the balance dashboard
 
-- **Class completeness** *(binding)*: a test asserts the generated matrix's
-  dimension equals `ALL_CLASSES.len()` and that every variant appears as both
-  attacker and defender. Adding a 10th class fails this until the golden is
-  regenerated — i.e. until the new class's 19 new matchups are characterized.
-- **Tunable completeness** *(binding)*: the provenance meta-test above fails if
-  any `Tunables`/weapon/`class_stats` field lacks a named guard. Adding a
-  tunable fails until it is guarded.
-- Both gates fail *closed*: new surface area is unsimulated by default and the
-  suite says so, rather than silently leaving it uncovered.
-
-### Enumerating struct fields exhaustively
-
-`Tunables` has no enum; to make "every field is guarded" enforceable, either
-(a) add a `#[derive]`/macro that emits the field-name list, or (b) write one
-exhaustive destructuring `let Tunables { base_speed, run_speed, .. } = t;`
-*without* `..` so the compiler errors when a field is added until it is handled
-in the provenance list. Option (b) needs no macro and gives a compile-time gate
-— prefer it. *(proposed.)*
+Replays do not exist yet, but the balance matrix is designed to feed them. Each
+cell is fully reproducible from its descriptor `{ a, b, axes, headcounts, seed }`
+— that is already what regenerates the golden. When replay serialization lands,
+the balance runner emits **one replay artifact per cell**, and a dashboard loads
+them into the existing battle renderer so a human can *watch* any matchup that
+looks mispriced, not just read a number. Design constraints to honor now so this
+is nearly free later:
+- keep each cell's descriptor serializable and self-contained (no reliance on
+  ambient global state to reconstruct the duel);
+- keep the duel reproducible purely from `(descriptor, seed)` — no wall-clock,
+  no `HashMap` iteration order, nothing the replay can't capture;
+- name cells deterministically (`<a>_vs_<b>__<axes>`) so a replay file maps 1:1
+  to a matrix row and the dashboard can index by matchup.
+This is forward-looking direction, not in this spec's acceptance — but a balance
+matrix that violates the three constraints above would have to be reworked to
+support replays, so honor them.
 
 ## What must NOT change
 
 1. **The five weapon numbers stay five** *(locked philosophy)*. The matrix
-   reads `reach/min_range/arc/attack_interval/damage`; it must not motivate a
-   sixth. Formulas read men, mass, measured motion — the matrix characterizes
-   that physics, it does not add knobs to pass itself.
-2. **`golden.rs`'s state-hash regression** *(locked)*. The new encounter-matrix
-   golden is additive; the bit-identical hash test stays as the determinism
-   floor. If the matrix golden moves but the hash golden does not, the change
-   is in setup/axes, not the engine — and vice versa.
-3. **`Pcg32` seeding and BTree ordering** *(locked)*. The matrix is only
-   pinnable because replay is deterministic; do not introduce `HashMap`
-   iteration or unseeded RNG into any path the duel touches.
-4. **The existing emergent scenarios stay.** The generated matrix covers
-   *pairwise duels*; the hand-written multi-unit tests (cavalry plowing a line,
-   morale rout geometry, missile scatter) cover *emergent* behavior the matrix
-   cannot. Keep them; the matrix replaces only `measure_the_matrix` and the
-   bespoke duels inside `the_counter_web_holds`.
+   characterises the physics; it must not motivate a sixth knob. Formulas read
+   men, mass, measured motion.
+2. **`golden.rs`'s state-hash regression** *(locked)*. The balance-matrix golden
+   is additive; the bit-identical hash test stays as the determinism floor.
+3. **`Pcg32` seeding and BTree ordering** *(locked)* — the matrix and any future
+   replay are only reproducible because replay is deterministic.
+4. **The behavior suite's coverage** *(locked)*. Generating the matrix must not
+   delete a single emergent mechanism test; it replaces only `measure_the_matrix`
+   and the bespoke duels inside `the_counter_web_holds`.
 
 ## Contracts — the tests are the spec
 
 Must BECOME true (acceptance):
-- `crates/sim/tests/matrix.rs` generates the full `ALL_CLASSES × ALL_CLASSES ×
-  MATRIX_AXES` table from the registry and asserts it against
-  `tests/golden/encounter-matrix.txt`. The print-only `measure_the_matrix` is
-  gone.
-- Class-completeness gate green and *load-bearing*: temporarily appending a
-  variant to `ALL_CLASSES` makes it fail (verify once, then revert).
-- Tunable-provenance gate green: every `Tunables`/weapon/`class_stats` field is
-  named in `TUNABLE_GUARDS` (or guarded by the no-`..` destructure); adding a
-  dummy field fails compilation/test until guarded.
-- The 12 counter-web relationships now assert against the generated table, with
-  no bespoke duel setups left in `balance_matrix.rs`.
+- A generated, cost-aware, golden-pinned balance matrix over the full
+  `ALL_CLASSES × ALL_CLASSES × BALANCE_AXES`; print-only `measure_the_matrix`
+  gone; counter-web derived from the table; no bespoke duels left.
+- **Class-completeness gate** *(binding)*: the matrix dimension equals
+  `ALL_CLASSES.len()` and every variant appears as attacker and defender;
+  appending a variant fails the gate until the golden is regenerated (verify
+  once, revert).
+- **Tunable-completeness gate** *(binding)*: every `Tunables`/weapon/`class_stats`
+  field is guarded (the no-`..` destructure makes a new field a compile error
+  until handled).
+- The two families are clearly separated and labelled in the tree.
 
 Must STAY green:
-- `golden.rs` state hash; all emergent scenario tests in
-  `combat_scenarios.rs`, `morale_scenarios.rs`, `class_scenarios.rs`, etc.
-- `cargo test --workspace` wall-time stays sane: the matrix is 81×|MATRIX_AXES|
-  duels (target |MATRIX_AXES| ≤ 6, so ≤ ~500 duels), each a short headless run.
-  If it dominates runtime, gate the heavy axes behind a `--ignored`/feature
-  flag the way the web harness gates `--full`. State the measured matrix
-  runtime in the postmortem.
+- `golden.rs`; every emergent behavior test in `combat_scenarios.rs`,
+  `morale_scenarios.rs`, `class_scenarios.rs`, `missile_scenarios.rs`,
+  `terrain_scenarios.rs`, … .
+- `cargo test --workspace` wall-time stays sane (matrix runtime logged; heavy
+  axes feature-gated if needed).
 
 ## Process requirements
 
-- `cargo test` before anything; probes/float codegen can shift results — pin
-  the golden from a clean build, never from a build with debug probes compiled
-  in (a known float-codegen hazard in this repo).
-- Re-pinning the matrix golden is a deliberate, reviewed act, like re-blessing a
-  screenshot baseline: regenerate, read the diff as a balance review, commit the
-  golden in the same change that caused it. Never auto-bless in CI.
-- See the `balance-unit` skill for how a single class is tuned; this matrix is
-  the safety net that catches what a tuning pass moved elsewhere.
+- `cargo test` before anything; debug probes shift float codegen — pin the
+  golden from a clean build, never one with probes compiled in (known hazard).
+- Re-pinning the balance golden is deliberate and reviewed, like re-blessing a
+  screenshot baseline: regenerate, read the diff *as a balance review*, commit
+  the golden in the same change that moved it. Never auto-bless in CI.
+- See the `balance-unit` skill for tuning a single class; this matrix is the net
+  that catches what a tuning pass moved elsewhere.
 
 ## Acceptance
 
-- [ ] Generated, golden-pinned encounter matrix from `ALL_CLASSES`; print-only
-      version deleted; counter-web derived from the table.
-- [ ] Curated `MATRIX_AXES`, each with a why-this-axis comment; cell count
-      logged; runtime measured and acceptable (or heavy axes feature-gated).
-- [ ] Class-completeness and tunable-completeness gates, both verified to fail
-      closed when surface area is added.
-- [ ] `golden.rs`, determinism seams, emergent scenarios untouched and green.
-- [ ] Postmortem note here (matrix size, runtime, how many cells the first
-      golden characterized vs the old 12), then delete this file.
+- [ ] Balance and behavior families separated and labelled in the test tree.
+- [ ] Full `ALL_CLASSES²` balance matrix generated, cost-normalised, golden-
+      pinned; counter-web derived; print-only version deleted.
+- [ ] `BALANCE_AXES` curated with a why-each comment; cell count + wall-time
+      logged and acceptable (or heavy axes feature-gated).
+- [ ] Class- and tunable-completeness gates verified to fail closed.
+- [ ] Behavior suite intact and green; `golden.rs` + determinism seams untouched.
+- [ ] Cell descriptors are serializable and reproducible from `(descriptor,
+      seed)` alone — replay-ready, per the future section's three constraints.
+- [ ] Postmortem here (matrix size, wall-time, how many cells the first golden
+      characterised vs the old 12, and whether cost-normalisation surfaced any
+      mispriced class), then delete this file.

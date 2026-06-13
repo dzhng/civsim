@@ -1,10 +1,11 @@
 # Spec: Scenarios — one runner, 100% catalog-driven visual coverage
 
-> Sibling spec: `specs/simulation-matrix.md` covers the Rust sim — which splits
-> into a generated **balance** matrix (stats-vs-price, exhaustive) and an
-> authored **behavior/physics** suite. This file is the *visual* half
-> (web/pixels). Shared creed for the exhaustive parts: **tests are a generated
-> projection of the source-of-truth registries, not a hand-maintained list.**
+> Sibling spec: `specs/balance-harness.md` covers the Rust sim — a runtime-
+> configurable balance surface + N-seed scenario harness feeding a generated
+> **balance** matrix (stats-vs-price) alongside the authored **behavior/physics**
+> suite. This file is the *visual* half (web/pixels). Shared creed for the
+> exhaustive parts: **tests are a generated projection of the source-of-truth
+> registries, not a hand-maintained list.**
 
 ## Goal, in one sentence
 

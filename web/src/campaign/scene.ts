@@ -69,6 +69,7 @@ export class CampaignScene implements Scene {
   private acc = 0;
   private last = 0;
   private selected = -1;
+  private hover = -1;
   private armies: ArmyView[] = [];
   private cities = new Map<number, CityView>();
   private roadLevels: Uint8Array = new Uint8Array(0);
@@ -192,7 +193,7 @@ export class CampaignScene implements Scene {
       this.renderer.resize();
       this.t3d!.resize();
       this.t3d!.clampCam(this.cam); // zoom floor = aspect-fill, pan inside the map
-      this.t3d!.setArmies(this.armies, this.cam.scale); // 3D models under the floating banners
+      this.t3d!.setArmies(this.armies, this.cam.scale, this.selected, this.hover); // 3D models under the floating banners
       this.t3d!.draw(this.cam);
       const sel = this.armies.find((a) => a.id === this.selected && a.mine);
       const hints: [number, number][] = sel
@@ -271,7 +272,21 @@ export class CampaignScene implements Scene {
         moved = true;
         this.cam.x -= e.movementX / this.cam.scale;
         this.cam.y += e.movementY / this.cam.scale;
+        return;
       }
+      // Hover: the nearest of my armies under the cursor (mirrors click).
+      const [wx, wy] = this.renderer.toWorld(e.offsetX * devicePixelRatio, e.offsetY * devicePixelRatio);
+      const rKm = 14 / this.cam.scale;
+      let best = -1;
+      let bestD = rKm;
+      for (const a of this.armies) {
+        const d = Math.hypot(a.x - wx, a.y - wy);
+        if (a.mine && d < bestD) {
+          bestD = d;
+          best = a.id;
+        }
+      }
+      this.hover = best;
     }, { signal });
     cv.addEventListener('wheel', (e) => {
       e.preventDefault();

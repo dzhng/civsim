@@ -242,6 +242,7 @@ varying vec3 vN;
 varying vec3 vFaction;
 varying vec3 vTint;
 varying float vFac;
+varying float vHi;
 varying float vZ;
 void main() {
   mat4 world = mat4(world0, world1, world2, world3);
@@ -251,6 +252,7 @@ void main() {
   vFaction = iColor.rgb;
   vTint = color.rgb;
   vFac = color.a;
+  vHi = iColor.a; // per-instance highlight: 0 none, ~0.5 hover, 1 selected
   vZ = gl_Position.w;
 }`;
 
@@ -260,6 +262,7 @@ varying vec3 vN;
 varying vec3 vFaction;
 varying vec3 vTint;
 varying float vFac;
+varying float vHi;
 varying float vZ;
 uniform vec3 uSun, uFogC;
 uniform float uFogD, uFogStr;
@@ -268,12 +271,48 @@ void main() {
   float li = 0.45 + 0.7 * max(dot(normalize(vN), uSun), 0.0);
   // neutral parts keep their material; livery parts take the faction hue
   vec3 col = vTint * mix(vec3(1.0), vFaction, vFac) * li;
+  // selection/hover: lift toward a warm glow so the picked army reads
+  col = mix(col, col * 1.5 + vec3(0.28, 0.22, 0.08), vHi);
   if (uFogStr > 0.001) {
     float fog = (1.0 - exp(-pow(vZ * uFogD, 2.0))) * uFogStr;
     col = mix(col, uFogC, clamp(fog, 0.0, 1.0));
   }
   gl_FragColor = vec4(grade(col), 1.0);
 }`;
+
+// Contact shadows: soft dark discs the army/city models drop on the ground,
+// nudged toward the anti-sun direction so they read as cast shadows. Cheap
+// and deterministic — true CSM would need shadow-map plumbing through every
+// custom material.
+ShaderStore.ShadersStore['campShadowVertexShader'] = `
+precision highp float;
+attribute vec3 position;       // unit quad, XY in [-0.5, 0.5]
+attribute vec4 world0;
+attribute vec4 world1;
+attribute vec4 world2;
+attribute vec4 world3;
+uniform mat4 viewProjection;
+varying vec2 vL;
+void main() {
+  mat4 world = mat4(world0, world1, world2, world3);
+  gl_Position = viewProjection * world * vec4(position, 1.0);
+  vL = position.xy;
+}`;
+
+ShaderStore.ShadersStore['campShadowFragmentShader'] = `
+precision highp float;
+varying vec2 vL;
+uniform float uStr;
+void main() {
+  float a = clamp(1.0 - length(vL) * 2.0, 0.0, 1.0);
+  gl_FragColor = vec4(0.0, 0.0, 0.0, a * a * uStr);
+}`;
+
+/** Anti-sun ground direction (where shadows fall), from the one campaign sun. */
+const SHADOW_DIR: [number, number] = (() => {
+  const l = Math.hypot(SUN[0], SUN[1]) || 1;
+  return [-SUN[0] / l, -SUN[1] / l];
+})();
 
 /** Procedural 2-variant tree atlas: broadleaf | conifer. */
 function buildTreeAtlas(scene: Scene): Texture {
@@ -328,6 +367,9 @@ export class Terrain3D {
   private armyMesh: Mesh | null = null;
   private armyCount = 0;
   private cityMesh: Mesh | null = null;
+  private shadowMat!: ShaderMaterial;
+  private armyShadow: Mesh | null = null;
+  private cityShadow: Mesh | null = null;
   /** city node index per thin instance, for owner-color lookups */
   private cityNodes: number[] = [];
   private factionColors: number[][];
@@ -406,6 +448,15 @@ export class Terrain3D {
     });
     this.modelMat.setVector3('uSun', new Vector3(...SUN));
     this.modelMat.setColor3('uFogC', new Color3(0.71, 0.71, 0.68));
+
+    this.shadowMat = new ShaderMaterial('shadow', scene, 'campShadow', {
+      attributes: ['position', 'world0', 'world1', 'world2', 'world3'],
+      uniforms: ['viewProjection', 'uStr'],
+    });
+    this.shadowMat.setFloat('uStr', 0.5);
+    this.shadowMat.alpha = 0.999; // flag the transparent pass (it blends, never writes depth)
+    this.shadowMat.backFaceCulling = false;
+    this.shadowMat.disableDepthWrite = true;
 
     this.buildTerrain();
     this.buildTrees();
@@ -523,6 +574,30 @@ export class Terrain3D {
     return m;
   }
 
+  /** A unit quad (XY plane) carrying the shadow material, for thin instances. */
+  private shadowQuad(name: string): Mesh {
+    const m = new Mesh(name, this.scene);
+    const vd = new VertexData();
+    vd.positions = [-0.5, -0.5, 0, 0.5, -0.5, 0, -0.5, 0.5, 0, 0.5, 0.5, 0];
+    vd.indices = [0, 1, 2, 2, 1, 3];
+    vd.applyToMesh(m);
+    m.material = this.shadowMat;
+    m.alwaysSelectAsActiveMesh = true;
+    m.setEnabled(false);
+    return m;
+  }
+
+  /** A flat disc of radius `r` on the ground at (x,y,z), nudged toward the
+   *  anti-sun direction so it reads as a cast shadow. Writes one 4x4 (16). */
+  private shadowMatrix(buf: Float32Array, o: number, x: number, y: number, z: number, r: number) {
+    // Push the disc clear of the footprint so the shadow reads beside the
+    // model (toward anti-sun) rather than hiding under its base.
+    buf[o] = 2 * r; buf[o + 5] = 2 * r; buf[o + 10] = 1; buf[o + 15] = 1;
+    buf[o + 12] = x + SHADOW_DIR[0] * r * 0.85;
+    buf[o + 13] = y + SHADOW_DIR[1] * r * 0.85;
+    buf[o + 14] = z + 0.06; // float just above the ground to dodge z-fighting
+  }
+
   private buildArmyModel() {
     const parts: Mesh[] = [];
     const base = CreateCylinder('b', { diameterTop: 2.6, diameterBottom: 3.2, height: 0.35, tessellation: 20 }, this.scene);
@@ -559,6 +634,7 @@ export class Terrain3D {
     merged.alwaysSelectAsActiveMesh = true; // dynamic instance set; skip culling
     merged.setEnabled(false);
     this.armyMesh = merged;
+    this.armyShadow = this.shadowQuad('armyShadow');
   }
 
   /** One settlement — a walled knot of terracotta-roofed buildings under a
@@ -614,6 +690,7 @@ export class Terrain3D {
       .map((n, i) => ({ n, i }))
       .filter((x) => x.n.kind === 'city');
     const mats = new Float32Array(cityList.length * 16);
+    const shadows = new Float32Array(cityList.length * 16);
     this.cityNodes = [];
     cityList.forEach((c, k) => {
       const S = c.n.tier >= 3 ? 1.9 : c.n.tier === 2 ? 1.35 : 0.95;
@@ -623,13 +700,16 @@ export class Terrain3D {
       const o = k * 16;
       mats[o] = S; mats[o + 5] = S; mats[o + 10] = S; mats[o + 15] = 1;
       mats[o + 12] = x; mats[o + 13] = y; mats[o + 14] = z;
+      this.shadowMatrix(shadows, o, x, y, z, 4.8 * S); // ~the rampart footprint
       this.cityNodes.push(c.i);
     });
+    this.cityShadow = this.shadowQuad('cityShadow');
+    this.cityShadow.thinInstanceSetBuffer('matrix', shadows, 16, true);
     merged.thinInstanceSetBuffer('matrix', mats, 16, true);
     const cols = new Float32Array(cityList.length * 4);
     for (let k = 0; k < cityList.length; k++) {
       cols[k * 4] = cols[k * 4 + 1] = cols[k * 4 + 2] = 0.55;
-      cols[k * 4 + 3] = 1;
+      cols[k * 4 + 3] = 0; // highlight flag: cities never glow
     }
     merged.thinInstanceSetBuffer('iColor', cols, 4, false);
     merged.setEnabled(false);
@@ -646,24 +726,26 @@ export class Terrain3D {
     for (let k = 0; k < n; k++) {
       const owner = cities.get(this.cityNodes[k])?.owner ?? -1;
       const c = owner >= 0 ? this.factionColors[owner] ?? [0.55, 0.55, 0.55] : [0.55, 0.55, 0.55];
-      cols[k * 4] = c[0]; cols[k * 4 + 1] = c[1]; cols[k * 4 + 2] = c[2]; cols[k * 4 + 3] = 1;
+      cols[k * 4] = c[0]; cols[k * 4 + 1] = c[1]; cols[k * 4 + 2] = c[2]; cols[k * 4 + 3] = 0;
     }
     m.thinInstanceSetBuffer('iColor', cols, 4, false);
   }
 
   /** Reposition the army models from the live army list (called each frame
    *  before draw). Cheap: a few dozen instances, two small buffers. */
-  setArmies(armies: { x: number; y: number; faction: number }[], scale: number) {
+  setArmies(armies: { id: number; x: number; y: number; faction: number }[], scale: number, selected = -1, hover = -1) {
     const m = this.armyMesh;
     if (!m) return;
     const n = armies.length;
     this.armyCount = n;
     if (n === 0) {
       m.thinInstanceCount = 0;
+      if (this.armyShadow) this.armyShadow.thinInstanceCount = 0;
       return;
     }
     const mats = new Float32Array(n * 16);
     const cols = new Float32Array(n * 4);
+    const shadows = new Float32Array(n * 16);
     // Hold a roughly constant on-screen footprint (the model is ~3.2 km wide
     // per unit S; scale is CSS px/km) so armies read at play zoom without
     // ballooning up close — clamped so they never dwarf the map or vanish.
@@ -675,10 +757,14 @@ export class Terrain3D {
       mats[o] = S; mats[o + 5] = S; mats[o + 10] = S; mats[o + 15] = 1;
       mats[o + 12] = a.x; mats[o + 13] = a.y; mats[o + 14] = z;
       const c = this.factionColors[a.faction] ?? [0.6, 0.6, 0.6];
-      cols[i * 4] = c[0]; cols[i * 4 + 1] = c[1]; cols[i * 4 + 2] = c[2]; cols[i * 4 + 3] = 1;
+      // iColor.a is the highlight flag the shader reads (not opacity).
+      const hi = a.id === selected ? 1 : a.id === hover ? 0.5 : 0;
+      cols[i * 4] = c[0]; cols[i * 4 + 1] = c[1]; cols[i * 4 + 2] = c[2]; cols[i * 4 + 3] = hi;
+      this.shadowMatrix(shadows, o, a.x, a.y, z, 1.9 * S);
     }
     m.thinInstanceSetBuffer('matrix', mats, 16, false);
     m.thinInstanceSetBuffer('iColor', cols, 4, false);
+    this.armyShadow?.thinInstanceSetBuffer('matrix', shadows, 16, false);
   }
 
   updateTerritory(rgba: Uint8Array) {
@@ -771,7 +857,9 @@ export class Terrain3D {
     for (const c of this.chunks) c.setEnabled(!coarseView);
     for (const t of this.treeMeshes) t.setEnabled(cam.scale >= TREE_MIN_SCALE);
     this.armyMesh?.setEnabled(cam.scale >= ARMY_MIN_SCALE && this.armyCount > 0);
+    this.armyShadow?.setEnabled(cam.scale >= ARMY_MIN_SCALE && this.armyCount > 0);
     this.cityMesh?.setEnabled(cam.scale >= CITY_MODEL_MIN_SCALE);
+    this.cityShadow?.setEnabled(cam.scale >= CITY_MODEL_MIN_SCALE);
 
     this.terrainMat.setVector3('uEyePos', this.camera.position);
     this.terrainMat.setVector2('uFx', new Vector2(this.territoryAlpha(cam.scale), tilt * 0.85));

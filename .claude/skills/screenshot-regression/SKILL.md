@@ -39,9 +39,23 @@ Gaul `(-1020, 938, 2.5)`, Egypt/Nile `(1131, -686, 2.5)`, Alps `(-450, 1080, 1.8
 Scratch screenshots go in `web/shots/` but DELETE them before committing —
 `shots/` is tracked; only harness-written artifacts belong there.
 
+## The controlled campaign stage (`verify-campaign-visual.mjs`)
+
+For the campaign 3D markers, prefer the **fake map** over the real one. The
+real map is a bad test bed — our red armies sit on red Roman cities (no
+contrast) and any move triggers a garrison battle. `?campaign=test` boots a
+controlled stage (`buildTestCampaign` in `main.ts`): our city (Roma) — a road
+— a neutral city (Neapolis), one mixed-roster player army, a flat green bg
+synthesized in JS (no fetch). The army teleports with the debug hook
+`window.__campaign.place(army, kind, a, b)` (kind 0 = node index, 1 = edge
+tile), so you can pose it over the road / our city / the neutral city exactly
+and deterministically. `verify-campaign-visual.mjs` snapshots all of those —
+extend it when you change an army/city model. Re-bless with
+`UPDATE_SHOTS=1 node verify-campaign-visual.mjs`.
+
 ## Adding a regression snapshot
 
-One call in `verify.mjs` or `verify-campaign.mjs`:
+One call in `verify.mjs`, `verify-campaign.mjs`, or `verify-campaign-visual.mjs`:
 
 ```js
 import { snapCheck } from './snapshot.mjs';

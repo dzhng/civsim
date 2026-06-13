@@ -6,7 +6,7 @@
 import type { CampaignData } from './data';
 import { ARMY_STRIDE, type ArmyView, type CityView } from './scene';
 import type { TerrainField } from './terrain';
-import type { Terrain3D } from './terrain3d';
+import { type Terrain3D, CITY_MODEL_MIN_SCALE } from './terrain3d';
 import type { FactionLabel } from './territory';
 
 export interface CamView {
@@ -181,14 +181,18 @@ export class CampaignRenderer {
           return;
         }
         const s = 4 + n.tier * 2 + z * 1.2;
-        ctx.fillStyle = c ? this.factionColor(c.owner) : '#888';
-        ctx.strokeStyle = '#1a1208';
-        ctx.lineWidth = 1.5;
-        ctx.fillRect(sx - s / 2, sy - s / 2, s, s);
-        ctx.strokeRect(sx - s / 2, sy - s / 2, s, s);
-        if (n.port) {
-          ctx.fillStyle = '#bdf';
-          ctx.fillRect(sx - 2, sy + s / 2, 4, 3);
+        // Above the model zoom the 3D settlement carries the city; the flat
+        // square would only z-fight with it. Keep the name label either way.
+        if (z < CITY_MODEL_MIN_SCALE) {
+          ctx.fillStyle = c ? this.factionColor(c.owner) : '#888';
+          ctx.strokeStyle = '#1a1208';
+          ctx.lineWidth = 1.5;
+          ctx.fillRect(sx - s / 2, sy - s / 2, s, s);
+          ctx.strokeRect(sx - s / 2, sy - s / 2, s, s);
+          if (n.port) {
+            ctx.fillStyle = '#bdf';
+            ctx.fillRect(sx - 2, sy + s / 2, 4, 3);
+          }
         }
         if (z > 0.45 || n.tier >= 3) {
           ctx.font = `${Math.min(15, 10 + z)}px system-ui, sans-serif`;

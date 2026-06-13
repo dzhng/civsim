@@ -34,12 +34,12 @@ export interface BattleConfig {
   inCampaign?: boolean;
 }
 
-// One renderer for the page: programs/atlas/GL state are battle-independent;
-// per-battle data arrives through setStatic/setTerrain. `?gfx=3d` selects
-// the Babylon renderer (the migration target); the GL path is the default.
+// One renderer for the page: engine/atlas state is battle-independent;
+// per-battle data arrives through setStatic/setTerrain. The battlefield
+// runs on Babylon; `?gfx=2d` falls back to the legacy GL sprite renderer.
 type BattleGfx = Renderer | BattleRenderer3D;
 let sharedRenderer: BattleGfx | null = null;
-const USE_3D = new URLSearchParams(location.search).get('gfx') === '3d';
+const USE_3D = new URLSearchParams(location.search).get('gfx') !== '2d';
 
 export class BattleScene implements Scene {
   private cleanups: (() => void)[] = [];

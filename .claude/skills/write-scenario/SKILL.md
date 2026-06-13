@@ -29,13 +29,37 @@ and tempts you to gitignore it. If a frame is worth capturing, capture it with
 it. (This is why the smell "I want to gitignore `shots/*.png`" means the harness
 is writing shots no test owns — see `specs/scenarios.md`.)
 
+## Visual coverage is 100% and catalog-driven — don't hand-list it
+
+Before you write a *visual* scenario, ask whether the thing you're capturing is
+an **atomic** primitive or a **composite** scene:
+
+- **Atomic** — one renderable primitive in isolation: a unit class/team/pose, a
+  status chip, a terrain tint, a marker stance, a city-ownership ring. These are
+  enumerated in `scenarios/catalog.mjs`, which builds the list *from the same
+  registries the renderer uses* (`CLASS_LOOK`, the chip list, the tint table).
+  You do **not** write a scenario file per primitive — you add the primitive to
+  the registry/catalog and the generator (`atomic.mjs` driving a specimen
+  fixture) snaps it. The **coverage gate** fails the run if any catalog entry
+  lacks a baseline, so adding a class *forces* its new screenshots.
+- **Composite** — an emergent layout that is not a product of primitives: the
+  deployment line, a melee crowd, the political voronoi map, a modal. These
+  *are* authored as `visual` scenario files, but they are a curated list, not a
+  completeness claim.
+
+So: **adding a new renderable primitive = a catalog/registry edit + new
+baselines, never a new scenario file.** If you find yourself copy-pasting a
+visual scenario to cover one more class or chip, stop — that belongs in the
+catalog.
+
 ## Two kinds — what you verify dictates which world
 
 Every scenario is exactly one **kind**, and the kind picks the world:
 
 - **`visual`** — verifies *rendering*. Boots a **fixture** (a minimal,
   deterministic, contrast-clean world) and asserts *pixels* via `snap`. Fast,
-  no game logic, no seed dependence.
+  no game logic, no seed dependence. Atomic coverage is generated from the
+  catalog; composite scenes are authored visual scenarios.
 - **`flow`** — verifies *behavior*. Drives real game systems on the **real
   map** and asserts *outcomes* via `check` (positions, casualties, soldier
   counts, modal text, save/load). Writes **no** PNG.
@@ -108,15 +132,15 @@ scenario names one in `meta.world`. Worlds come in two families.
 **Fixtures** (for `visual` scenarios — minimal, deterministic, contrast-clean).
 A fixture is a first-class facility, built the **same way for battle and
 campaign** under `scenarios/fixtures/` and triggered by one `?fixture=<name>`
-convention:
-- `campaign-test` — the controlled one-road / two-city map, opened at
-  `deviceScaleFactor: 2`: our city (Roma) — a road — a neutral city (Neapolis),
-  one mixed-roster player army. Teleport it with
-  `window.__campaign.place(0, kind, a, b)` (kind 0 = node, 1 = edge tile) to
-  pose over road / our city / neutral city exactly.
-- `battle-1v1`, `battle-5v5` — small opposed-unit clashes for combat/marker
-  visual snaps.
-- a banner fixture — the pure-DOM gallery route.
+convention. Two roles:
+- **Specimen fixtures** render exactly *one* atomic catalog entry, parameterised
+  by URL — `?fixture=specimen-soldier&class=3&team=1&pose=attack`, one marker
+  stance, one terrain tint, one chip. The catalog generator drives these; this
+  is the machinery behind 100% atomic coverage. You rarely write a specimen
+  scenario by hand — you extend the catalog and the generator does the snapping.
+- **Stage fixtures** host composite scenes: `campaign-test` (the one-road /
+  two-city map, `deviceScaleFactor: 2`; teleport the army with
+  `window.__campaign.place(0, kind, a, b)`), `battle-5v5` (a small line clash).
 
 Need a fixture that doesn't exist? Add a builder under `scenarios/fixtures/` and
 register it — do not hand-pose the real map and do not add a one-off boot path
@@ -157,6 +181,9 @@ re-blessed.
 
 ## Checklist for a new scenario
 
+- [ ] Is this an atomic primitive? If so it belongs in `catalog.mjs` (a registry
+      edit + new baselines), NOT a new scenario file. Only composites and flows
+      are scenario files.
 - [ ] One file `scenarios/<name>.mjs`, exporting `meta` + `run`.
 - [ ] Exactly one `kind`: `visual` → a fixture world + at least one `snap`;
       `flow` → a real-map world + zero PNGs.

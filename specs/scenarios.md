@@ -1,19 +1,27 @@
-# Spec: Scenarios — addressable visual/behavioral cases on one runner
+# Spec: Scenarios — one runner, 100% catalog-driven visual coverage
+
+> Sibling spec: `specs/simulation-matrix.md` applies the same principle to the
+> Rust sim — generate the test surface from the registries, gate it for
+> completeness. This file is the *visual* half (web/pixels); that one is the
+> *behavioral* half (cargo/sim). Shared creed: **tests are a generated
+> projection of the source-of-truth registries, not a hand-maintained list.**
 
 ## Goal, in one sentence
 
-Replace the three bespoke flat verify harnesses with one runner over a
-directory of named, individually-runnable **scenarios** — each either a
-`visual` case (a fixture world asserting pixels) or a `flow` case (a real-map
-world asserting behavior) — so that the real-map/fixture split that today's two
-campaign harnesses stumbled into becomes the deliberate organizing axis, and
-every screenshot a run writes is a blessed regression baseline and nothing
-else.
+Replace the three bespoke flat verify harnesses with one runner over
+individually-runnable **scenarios** — each either a `flow` case (a real-map
+world asserting behavior) or a `visual` case (a fixture world asserting pixels)
+— and make visual coverage *catalog-driven and gated to 100%*: enumerate every
+renderable primitive from the same registries the renderer is built from, snap
+each, and fail the run if any enumerable visual state has no baseline — so that
+adding a unit class, status chip, terrain tint, or marker stance automatically
+demands a screenshot and cannot ship uncovered.
 
-This document is **proposed design** except where a paragraph is marked
-*(measured fact)*. Solve the problem; the file layout and `ctx` shape below
-are a starting point, not gospel — deviate where the code disagrees, but do
-not weaken the two load-bearing invariants in **What must NOT change**.
+This document is **proposed design** except where marked *(measured fact)* or
+*(binding)*. Solve the problem; the file layout and `ctx` shape are a starting
+point — deviate where the code disagrees. What you may NOT weaken: the locked
+invariants in **What must NOT change**, and the *(binding)* coverage/mirror
+gates — the 100%-or-fail property is the whole point, not a nice-to-have.
 
 ## The contract this unlocks
 
@@ -138,6 +146,66 @@ litters scratch PNGs through nondeterministic mid-battle states. Splitting it
 into a `visual` `battle-deploy` (snap the clean deployment) and a `flow`
 `battle-melee` (assert casualties, no pixels) removes the litter by design.
 
+### Visual coverage is catalog-driven and gated to 100%
+
+Hand-listing visual scenarios cannot reach 100% and cannot stay there — someone
+adds a class and forgets the snap. The renderer draws from enumerable
+registries; the test suite must be a *generated projection* of those registries,
+with a gate that fails when the projection has a hole. Two tiers:
+
+- **Atomic visual states** — the cartesian product of the renderer's
+  registries, each a single primitive shown in isolation. These are 100%
+  enumerable and 100% gated. *(measured fact — the registries:)*
+  - 9 unit classes (`web/src/shared/soldierModel.ts` `CLASS_LOOK`) × 2 teams
+    (`TEAM_COLOR`, renderer3d.ts) × pose. Poses: the 6 atlas frames
+    (idle / walk-a / walk-b / attack / dead / weapon-swap) and the
+    `classGeometry(cls, rest)` forward-vs-at-ease variant for pole arms.
+  - highlight state: none / hover / selected.
+  - ~18 status chips (`unitBanner.ts`: OTH ATK FEN CHG! ⚔N ROUT TIRED KITE
+    AMMO! 2nd CRUSH BRC PUR SQZ WAIT …) × chip kind (plain/hot/bad); HP and
+    cohesion bars at 100/75/50/25/0.
+  - 7 battle terrain tints (0 grass,1 water,2 rock,3 wall,4 forest,5 mud,
+    6 scree) and the scatter props (rock/bush/tree), tree variants
+    (broadleaf/conifer).
+  - campaign marker stances (idle / camp / settling / hidden / routed /
+    embarked) and pie kinds (prep/occupation/embark/ambush); city ownership
+    ring (own-green / enemy-faction / neutral-grey) × 3 city tiers.
+  - LOD bands (`ZOOM_FLAT 6` / `ZOOM_SWAP 12` / `ZOOM_3D 18`): the sprite↔3D
+    transition is itself a visual state.
+- **Composite scenes** — emergent layouts that are *not* a product of
+  primitives and cannot be enumerated: the 40-unit deployment, a melee crowd,
+  a cluster group-move, the political voronoi map, the battle-initiation modal.
+  These are curated (a deliberate, named list), not gated for completeness —
+  you cannot enumerate "every battle layout," only "every primitive."
+
+**The catalog** is one data module (`scenarios/catalog.mjs`) that *builds the
+atomic list from the registries*, not by hand:
+
+```js
+export const ATOMIC = CLASSES.flatMap(c =>
+  TEAMS.flatMap(t => POSES.map(p => ({ group: 'soldier', class: c, team: t, pose: p }))));
+// + CHIPS, + TERRAIN_TINTS, + MARKER_STANCES, + CITY_OWNERSHIP, + LOD_BANDS …
+```
+
+The catalog imports the registry lists so a registry edit propagates. The web
+copies of the registries (`CLASS_LOOK`, the chip list) are *mirrors* of the
+canonical Rust `ALL_CLASSES` — a gate keeps them honest (below).
+
+**The coverage gate** *(binding)* is a runner self-check:
+1. every `ATOMIC` entry has a baseline at its deterministic path — else FAIL,
+   naming the missing states;
+2. every baseline under `shots/baseline/` maps to a live catalog entry or a
+   listed composite — else FAIL (orphan: a primitive was removed, delete its
+   shot);
+3. the mirror gate: `CLASS_LOOK.length` and the chip list match what the wasm
+   exposes (drive `window.__game`/the contract enum count) — else the catalog
+   is enumerating a stale registry.
+
+Adding a class grows `ATOMIC` by `2 teams × |POSES|` entries; the gate fails
+until each is snapped. That is what makes 100% real and self-maintaining: the
+only way to go green is to add the screenshots, and the only way to add a
+catalog entry is to touch the registry the game already reads.
+
 ### Fixtures are first-class and uniform across battle and campaign
 
 The campaign test map exists today as a one-off: `buildTestCampaign` buried in
@@ -148,46 +216,63 @@ a hack you reinvent per domain:
 
 ```
 web/scenarios/fixtures/        # the builders, one per fixture
-  campaign-test.ts             # migrate buildTestCampaign out of main.ts
-  battle-1v1.ts                # two opposed units on flat ground (NEW)
-  battle-5v5.ts                # a small line clash for combat-visual snaps (NEW)
+  campaign-test.ts             # migrate buildTestCampaign out of main.ts (composite stage)
+  battle-5v5.ts                # a small line clash for composite combat snaps (NEW)
+  specimen-soldier.ts          # render ONE soldier: ?fixture=specimen-soldier&class=&team=&pose= (NEW)
+  specimen-marker.ts           # render ONE campaign marker at a given stance/roster (NEW)
+  specimen-terrain.ts          # render ONE terrain tint / prop / tree variant (NEW)
+  specimen-banner.ts           # the DOM banner gallery, parameterised per chip (was ?test=banners)
 ```
 
-A fixture is triggered by a uniform URL-param convention (`?fixture=<name>`,
+Two fixture roles, matching the two coverage tiers:
+- **Specimen fixtures** render exactly one atomic catalog entry in isolation,
+  parameterised by URL — a single soldier of a given class/team/pose, one
+  marker stance, one terrain tint, one chip. The catalog generator drives these
+  to snap every atomic state; they are the machinery behind the 100% gate.
+- **Stage fixtures** (campaign-test, battle-5v5) host composite scenes —
+  several primitives arranged to show emergent layout.
+
+A fixture is triggered by a uniform URL-param convention (`?fixture=<name>&…`,
 subsuming today's `?campaign=test` and `?test=banners`) and registered in one
-place so the runner and the game agree on the list. Battle gets fixtures it
-never had: the loose `sandbox-1v1.png` / `labels-5v5.png` / `combat-*.png`
-scratch shots in `web/shots/` are the ghosts of visual cases that were never
-given a deterministic home — fixtures are that home. *(The exact param name is
-proposed; the binding requirement is that battle and campaign fixtures are
-built and addressed the same way, and that `buildTestCampaign` stops being a
-special case.)*
+place so the runner and the game agree on the list. The loose `sandbox-1v1.png`
+/ `labels-5v5.png` / `combat-*.png` scratch shots in `web/shots/` are the ghosts
+of visual cases that were never given a deterministic home — specimen and stage
+fixtures are that home. *(The exact param name is proposed; the binding
+requirement is that fixtures are built and addressed the same way across battle
+and campaign, that a specimen can render any single catalog entry, and that
+`buildTestCampaign` stops being a special case.)*
 
 ### Layout
 
 ```
-web/scenario.mjs            # the single runner / CLI entry
+web/scenario.mjs            # the single runner / CLI entry + coverage gate
 web/scenarios/
   worlds.mjs                # world name -> { url, ready, freeze, dpr }; real + fixture
-  fixtures/                 # fixture builders (see above)
-  # --- visual scenarios (fixture worlds, pixels) ---
-  battle-deploy.mjs         # world: battle-1v1 (or the real deploy moment); the clean line
-  battle-formations.mjs     # world: battle-5v5; line/charge/melee poses
-  campaign-markers.mjs      # world: campaign-test; the tiny-* poses
-  banner-gallery.mjs        # world: banner fixture (pure DOM route)
-  # --- flow scenarios (real-map worlds, outcomes) ---
-  battle-maneuver.mjs       # real map: march, pivot, stamina
-  battle-cluster.mjs        # real map: group-move keeps formation
-  battle-ai.mjs             # real map; tier: 'full'
-  campaign-conquest.mjs     # real map: march -> battle -> save/load
-  campaign-territory.mjs    # real map: voronoi + 3D camera tilt + click-select
-  campaign-ambush.mjs       # real map
-  campaign-reinforcement.mjs# real map; tier: 'full'
+  catalog.mjs               # ATOMIC[] built from the registries + COMPOSITES[] list
+  fixtures/                 # specimen + stage fixture builders (see above)
+  # --- visual: atomic (generated from catalog, one snap per primitive) ---
+  atomic.mjs                # iterates catalog.ATOMIC, drives a specimen fixture, snaps each
+  # --- visual: composite scenes (authored; emergent layouts) ---
+  battle-deploy.mjs         # the 40-unit deployment line
+  battle-melee.mjs          # a melee crowd (visual; the OLD melee snap, no behavioral asserts)
+  campaign-markers.mjs      # markers posed over road / our city / neutral city (campaign-test)
+  # --- flow: behavior on the real map (no PNGs) ---
+  battle-maneuver.mjs       # march, pivot, stamina
+  battle-cluster.mjs        # group-move keeps formation
+  battle-ai.mjs             # tier: 'full'
+  campaign-conquest.mjs     # march -> battle -> save/load
+  campaign-territory.mjs    # voronoi + 3D camera tilt + click-select
+  campaign-ambush.mjs
+  campaign-reinforcement.mjs# tier: 'full'
 ```
 
-The three `verify-*.mjs` files are deleted; their stages migrate into scenarios
-along the kind boundary above. `web/snapshot.mjs` stays as-is (it is the safety
-property — see below).
+`atomic.mjs` is the workhorse: it is not 100 hand-written files but one
+generator over `catalog.ATOMIC`, so 100% atomic coverage costs one module that
+never needs editing when a class is added — only the catalog (i.e. the
+registry) and the baselines change. The three `verify-*.mjs` files are deleted;
+their behavioral stages migrate into `flow` scenarios and their incidental snaps
+either become catalog entries (if atomic) or composite scenes (if emergent).
+`web/snapshot.mjs` stays as-is (it is the safety property — see below).
 
 ### A scenario module
 
@@ -274,13 +359,15 @@ commit so no orphans linger.
 
 ### Which scratch shots become snaps
 
-Every loose `page.screenshot({path})` in the old harnesses is triaged: promote
-to a `snap()` if the frame is worth guarding (the deployment, the melee, the
-cluster before/after, the AI battle, the campaign map/modal/after-battle — all
-of them are; that is why a human wanted to look at them), otherwise delete it.
-The expected outcome is zero loose shots: `web/shots/` contains only
-`baseline/` and `diff/`. Note in the migration commit any frame you chose to
-drop rather than bless, so a reader knows coverage shrank deliberately.
+Every loose `page.screenshot({path})` in the old harnesses is triaged into the
+two tiers: a primitive in isolation (a class, a chip, a terrain tint) becomes a
+**catalog** entry snapped by `atomic.mjs`; an emergent layout (deployment,
+melee crowd, cluster, political map, modal) becomes a **composite** scene
+scenario; anything that is neither becomes nothing. The expected outcome is zero
+loose shots: `web/shots/` contains only `baseline/` and `diff/`. The atomic gate
+then *expands* coverage far past what the scratch shots ever had — the loose
+`combat-*`/`sandbox-*` shots were a sparse, unasserted sample of a space the
+catalog now covers exhaustively.
 
 ## What must NOT change
 
@@ -300,11 +387,14 @@ drop rather than bless, so a reader knows coverage shrank deliberately.
    (`?campaign=test`/`?test=banners` → a single `?fixture=<name>` convention) —
    that is in scope; the runtime capabilities they expose are not to grow.
 4. **Sim / renderer / gameplay behavior.** This is a test-harness reorg. The
-   only `web/src/` change in scope is relocating fixture *builders*
-   (`buildTestCampaign` and new battle fixtures) into the uniform facility and
-   wiring the `?fixture=` param — pure test scaffolding. No change to combat,
-   formation, campaign, or rendering logic; no change under `crates/`. If a
-   fixture needs a new capability from the sim, that is a separate spec.
+   `web/src/` changes in scope are pure test scaffolding: relocating fixture
+   *builders* into the uniform facility, wiring the `?fixture=` param, and
+   adding specimen entry points that pose a single primitive by reusing the
+   existing render path (a specimen does not re-implement rendering — it asks
+   the real renderer to draw one soldier/marker/tile). A read-only registry
+   count for the mirror gate is fine. No change to combat, formation, campaign,
+   or rendering *logic*; no change under `crates/`. If a fixture needs a new
+   capability from the sim, that is a separate spec.
 
 ## Contracts — the tests are the spec
 
@@ -324,9 +414,14 @@ Must STAY green (behavioral parity — port each, do not drop):
 - Campaign (test): `test campaign boots with a player army`, `no page errors`.
 
 Must BECOME true (the acceptance, write these as runner self-checks):
+- **Visual coverage gate** (headline): every `catalog.ATOMIC` entry has a
+  baseline; every baseline maps to a live catalog entry or a listed composite;
+  no orphans. The run FAILS otherwise, naming the gaps. Verify it fails closed:
+  add a pose to a registry and confirm the gate goes red until snapped.
+- **Mirror gate**: the web registry mirrors (`CLASS_LOOK` length, the chip
+  list) match the canonical wasm/contract counts; drift fails the run.
 - `git status --porcelain` is empty after `node scenario.mjs --full` — no
-  loose shots written. This is the headline contract; if it fails, the smell
-  is back.
+  loose shots written. If it fails, the smell is back.
 - `web/shots/` contains only `baseline/` and `diff/` (no top-level `*.png`).
 - `node scenario.mjs campaign-markers` boots exactly one world and runs only
   that scenario's snaps (assert by run time and by the printed check set).
@@ -366,8 +461,12 @@ Must BECOME true (the acceptance, write these as runner self-checks):
       `verify-*.mjs` deleted; package.json scripts updated.
 - [ ] Each scenario is one `kind`; `visual` scenarios run on fixtures, `flow`
       on real-map worlds. The deployment snap is split out of the melee.
+- [ ] `catalog.mjs` builds `ATOMIC` from the registries; `atomic.mjs` snaps
+      every atomic state via specimen fixtures; the coverage gate + mirror gate
+      pass and are verified to fail closed.
 - [ ] Fixtures live in `scenarios/fixtures/` behind one `?fixture=` convention;
-      `buildTestCampaign` migrated out of `main.ts`; battle fixtures added.
+      specimen fixtures render any single catalog entry; `buildTestCampaign`
+      migrated out of `main.ts`.
 - [ ] Every old check ported and green (quick + `--full`), per the table above.
 - [ ] No bare `page.screenshot({path})` to a tracked location remains; `git
       status` clean after `--full`; `web/shots/` holds only `baseline/`+`diff/`.

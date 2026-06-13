@@ -249,7 +249,6 @@ export class BattleRenderer3D {
   private scaleOf = new Float32Array(0); // 3D mesh scale
   private rowOf = new Float32Array(0); // atlas row (class+team)
   private sizeOf = new Float32Array(0); // sprite world size
-  private mapRect: [number, number, number, number] = [0, 0, 1, 1];
   /** Live view tilt (camera.ts mirrors it for picking). */
   pitch = 0;
   fixedTime: number | null = null;
@@ -337,7 +336,7 @@ export class BattleRenderer3D {
       m.backFaceCulling = false;
       m.alpha = 0.999; // mark transparent so the vertex alpha blends
       m.disableDepthWrite = true;
-      if (lineList) m.fillMode = 6; // MATERIAL_LineListDrawMode
+      if (lineList) m.fillMode = Constants.MATERIAL_LineListDrawMode;
       return m;
     };
     this.triMesh = new Mesh('wedges', this.scene);
@@ -399,7 +398,6 @@ export class BattleRenderer3D {
     speed: Float32Array, rough: Float32Array, tint: Uint8Array,
   ) {
     const M = WILDS_MARGIN;
-    this.mapRect = [ox, oy, w * cell, h * cell];
     const x0 = ox - M, y0 = oy - M, x1 = ox + w * cell + M, y1 = oy + h * cell + M;
     const vd = new VertexData();
     vd.positions = [x0, y0, 0, x1, y0, 0, x1, y1, 0, x0, y1, 0];

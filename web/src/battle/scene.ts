@@ -217,6 +217,12 @@ export class BattleScene implements Scene {
     function updateUnitLabels() {
       const info = unitInfo();
       const showAll = camera.zoom > 1.1;
+      // Dock the bars to the top of the unit's banner so they read as its
+      // header. In 3D the standard's cloth-top sits at a height (and, reclined,
+      // a little north); the flat 2D renderer has no banner, so the bars stay
+      // at the centroid.
+      const anc = renderer instanceof BattleRenderer3D
+        ? renderer.bannerAnchor(camera.zoom) : { dy: 0, dz: 0 };
       for (let u = 0; u < game.unit_count(); u++) {
         const d = labelDivs[u];
         const o = u * STRIDE;
@@ -225,13 +231,13 @@ export class BattleScene implements Scene {
           d.style.display = 'none';
           continue;
         }
-        const [sx, sy] = camera.worldToScreen(info[o], info[o + 1]);
+        const [sx, sy] = camera.worldToScreenH(info[o], info[o + 1] + anc.dy, anc.dz);
         if (sx < -60 || sy < -40 || sx > window.innerWidth + 60 || sy > window.innerHeight + 40) {
           d.style.display = 'none';
           continue;
         }
         d.style.display = 'block';
-        d.style.transform = `translate(${(sx - 26).toFixed(0)}px, ${(sy - 34).toFixed(0)}px)`;
+        d.style.transform = `translate(${(sx - 26).toFixed(0)}px, ${(sy - 30).toFixed(0)}px)`;
         const hp = d.children[0].children[0] as HTMLElement;
         const coh = d.children[1].children[0] as HTMLElement;
         hp.style.width = `${((alive / info[o + 7]) * 100).toFixed(0)}%`;

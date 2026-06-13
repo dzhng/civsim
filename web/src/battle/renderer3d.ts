@@ -42,6 +42,17 @@ const ZOOM_3D = 18;
 const ZOOM_SWAP = 12;
 const MAX_PITCH = 0.42;
 
+// Banners are UI, not scenery: they scale toward a steady on-screen size so a
+// unit's standard stays readable from any zoom (bigger in world as you pull
+// out). The camera is always near-overhead, so a vertical flag would foreshorten
+// to an edge-on sliver — BANNER_LEAN reclines the standard toward the camera
+// (which always looks north from the south) so the cloth keeps its face to the
+// viewer at every pitch. BANNER_CLOTH_TOP is the local height of the cloth top,
+// where the DOM unit panel docks.
+const BANNER_CLOTH_TOP = 5.5;
+const BANNER_LEAN = -0.5; // radians; reclines the cloth to face the near-overhead camera
+const bannerScale = (zoom: number) => Math.min(3.5, Math.max(0.7, 16 / zoom));
+
 const smoothstep = (a: number, b: number, x: number) => {
   const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
   return t * t * (3 - 2 * t);
@@ -365,6 +376,12 @@ function bannerGeom(col: [number, number, number]): VertexData {
   pushBox(p, i, c, -0.06, -0.06, 0, 0.06, 0.06, 5.6, wood); // pole, tall enough to clear the ranks
   pushBox(p, i, c, -0.11, -0.11, 5.5, 0.11, 0.11, 5.74, wood); // finial
   pushBox(p, i, c, 0.06, -0.04, 4.0, 2.05, 0.04, 5.5, col); // the cloth, floating above the press
+  // Recline the whole standard about its foot so the cloth faces the camera.
+  const cl = Math.cos(BANNER_LEAN), sl = Math.sin(BANNER_LEAN);
+  for (let k = 0; k < p.length; k += 3) {
+    const y = p[k + 1], z = p[k + 2];
+    p[k + 1] = y * cl - z * sl; p[k + 2] = y * sl + z * cl;
+  }
   return finishGeom(p, i, c);
 }
 // The sim/ground-shader micro hash, in JS, so the scattered props land on
@@ -673,16 +690,14 @@ export class BattleRenderer3D {
       this.sprite.isVisible = false;
       this.drawMeshes(positions, facings, frames, alive, count);
       this.updateScatter(camera);
-      // In-world banners only make sense once the view has tilted — straight
-      // down they'd be invisible poles; the DOM labels carry the flat view.
-      this.drawBanners(banners, selectedPrimary, time);
     } else {
       for (const m of this.classMesh) m.isVisible = false;
       for (const m of this.scatterMesh) m.isVisible = false;
-      for (const m of this.bannerMesh) m.isVisible = false;
       this.scatterKey = ''; // force a rebuild when we tilt back in
       this.drawSprites(positions, facings, frames, alive, count);
     }
+    // Banners are UI markers, drawn at every zoom and scaled to stay readable.
+    this.drawBanners(banners, selectedPrimary, time, zoom);
     this.groundMat.setFloat('uTime', time);
     // Fade the flat speckle out as the 3D props fade in, so the pockets aren't
     // painted twice.
@@ -845,11 +860,22 @@ export class BattleRenderer3D {
 
   /** Stand a team-coloured standard at each unit's centroid. The cloth flutters
    *  on a cheap per-unit sway; the selected unit's banner stands taller. */
+  /** World offset (north dy, height dz) of the reclined cloth top at this zoom
+   *  — where the DOM unit panel docks so it reads as the standard's header. */
+  bannerAnchor(zoom: number): { dy: number; dz: number } {
+    const zs = bannerScale(zoom);
+    return {
+      dy: -BANNER_CLOTH_TOP * Math.sin(BANNER_LEAN) * zs,
+      dz: BANNER_CLOTH_TOP * Math.cos(BANNER_LEAN) * zs,
+    };
+  }
+
   private drawBanners(
     banners: { x: number; y: number; team: number; unit: number }[],
-    selectedPrimary: number, time: number,
+    selectedPrimary: number, time: number, zoom: number,
   ) {
     const counts = [0, 0];
+    const zs = bannerScale(zoom);
     for (let t = 0; t < 2; t++) {
       const need = banners.length * 16;
       if (this.bannerMats[t].length < need) this.bannerMats[t] = new Float32Array(Math.max(need, 64 * 16));
@@ -859,7 +885,7 @@ export class BattleRenderer3D {
       const m = this.bannerMats[t];
       const n = counts[t];
       const o = n * 16;
-      const s = b.unit === selectedPrimary ? 1.3 : 1.0;
+      const s = (b.unit === selectedPrimary ? 1.3 : 1.0) * zs;
       const yaw = 0.14 * Math.sin(time * 1.6 + b.unit * 0.9); // breeze
       const cy = Math.cos(yaw), sy = Math.sin(yaw);
       m[o] = cy * s; m[o + 1] = sy * s; m[o + 2] = 0; m[o + 3] = 0;

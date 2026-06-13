@@ -548,7 +548,7 @@ export class Terrain3D {
 
   /** Reposition the army models from the live army list (called each frame
    *  before draw). Cheap: a few dozen instances, two small buffers. */
-  setArmies(armies: { x: number; y: number; faction: number }[]) {
+  setArmies(armies: { x: number; y: number; faction: number }[], scale: number) {
     const m = this.armyMesh;
     if (!m) return;
     const n = armies.length;
@@ -559,7 +559,10 @@ export class Terrain3D {
     }
     const mats = new Float32Array(n * 16);
     const cols = new Float32Array(n * 4);
-    const S = 1.5; // ~7 km cluster: a clear marker without dwarfing a city
+    // Hold a roughly constant on-screen footprint (the model is ~3.2 km wide
+    // per unit S; scale is CSS px/km) so armies read at play zoom without
+    // ballooning up close — clamped so they never dwarf a city or vanish.
+    const S = Math.min(6, Math.max(2.5, 40 / (3.2 * scale)));
     for (let i = 0; i < n; i++) {
       const a = armies[i];
       const z = Math.max(0, this.field.heightAt(a.x, a.y));

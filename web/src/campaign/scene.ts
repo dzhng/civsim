@@ -192,7 +192,7 @@ export class CampaignScene implements Scene {
       this.renderer.resize();
       this.t3d!.resize();
       this.t3d!.clampCam(this.cam); // zoom floor = aspect-fill, pan inside the map
-      this.t3d!.setArmies(this.armies); // 3D models under the floating banners
+      this.t3d!.setArmies(this.armies, this.cam.scale); // 3D models under the floating banners
       this.t3d!.draw(this.cam);
       const sel = this.armies.find((a) => a.id === this.selected && a.mine);
       const hints: [number, number][] = sel

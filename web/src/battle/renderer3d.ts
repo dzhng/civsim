@@ -11,6 +11,7 @@ import { Engine } from '@babylonjs/core/Engines/engine';
 import { Scene } from '@babylonjs/core/scene';
 import { FreeCamera } from '@babylonjs/core/Cameras/freeCamera';
 import { Camera as BCamera } from '@babylonjs/core/Cameras/camera';
+import { PostProcess } from '@babylonjs/core/PostProcesses/postProcess';
 import { HemisphericLight } from '@babylonjs/core/Lights/hemisphericLight';
 import { DirectionalLight } from '@babylonjs/core/Lights/directionalLight';
 import { Vector2, Vector3, Vector4 } from '@babylonjs/core/Maths/math.vector';
@@ -207,6 +208,23 @@ ShaderStore.ShadersStore['battleOverlayFragmentShader'] = `
 precision highp float;
 varying vec4 vColor;
 void main() { gl_FragColor = vColor; }`;
+
+// Full-frame colour grade — the SAME warm tone the campaign map wears
+// (terrain3d.ts), so the two views feel like one game: a touch of warm tone
+// tilt, a saturation lift, gentle contrast. Run as a post-process so it
+// covers the custom ground shader, the StandardMaterial soldiers, and the
+// sprites uniformly.
+ShaderStore.ShadersStore['battleGradeFragmentShader'] = `
+precision highp float;
+varying vec2 vUV;
+uniform sampler2D textureSampler;
+void main() {
+  vec3 c = texture2D(textureSampler, vUV).rgb;
+  c = pow(max(c, 0.0), vec3(0.93, 0.97, 1.04));
+  float l = dot(c, vec3(0.299, 0.587, 0.114));
+  c = mix(vec3(l), c, 1.22);
+  gl_FragColor = vec4(clamp(c * 1.08 - 0.015, 0.0, 1.0), 1.0);
+}`;
 
 
 // Per-class look (local +y = forward, +z = up). A weapon length, a shield,
@@ -413,6 +431,8 @@ export class BattleRenderer3D {
     this.camera.mode = BCamera.ORTHOGRAPHIC_CAMERA;
     this.camera.minZ = -5000;
     this.camera.maxZ = 5000;
+    // Cohesion with the campaign map: the same warm grade over the whole frame.
+    new PostProcess('grade', 'battleGrade', null, null, 1.0, this.camera);
 
     const sky = new HemisphericLight('sky', new Vector3(0, 0, 1), this.scene);
     sky.intensity = 0.78;

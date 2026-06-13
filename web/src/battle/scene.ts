@@ -205,6 +205,10 @@ export class BattleScene implements Scene {
     // --- Per-unit banners: standard + HP/cohesion bars + status chips ------------
     const labelsRoot = document.getElementById('unitlabels')!;
     const unitBanners: UnitBanner[] = [];
+    // Northmost (top-on-screen) world-y per unit, refreshed each frame from the
+    // soldiers — where the standard plants so it rises clear above the block,
+    // not buried in a deep formation. Centred on the centroid in x.
+    let unitTopY = new Float32Array(0);
     const addUnitBanner = () => {
       const b = new UnitBanner();
       b.setVisible(false);
@@ -252,7 +256,11 @@ export class BattleScene implements Scene {
           b.setVisible(false);
           continue;
         }
-        const [sx, sy] = camera.worldToScreen(info[o], info[o + 1]);
+        // Plant at the top-centre of the block: centroid x ([32]), and the
+        // unit's northmost soldier in y, so the standard rises clear above the
+        // ranks (centred, not buried, not floating off in empty field).
+        const topY = unitTopY[u] > -Infinity ? unitTopY[u] : info[o + 33];
+        const [sx, sy] = camera.worldToScreen(info[o + 32], topY);
         if (sx < -60 || sy < -40 || sx > window.innerWidth + 60 || sy > window.innerHeight + 40) {
           b.setVisible(false);
           continue;
@@ -762,19 +770,25 @@ export class BattleScene implements Scene {
           const o = u * STRIDE;
           if (info[o + 15] <= 0) continue;
           if (!(info[o + 3] < 0.1 && info[o + 16] === 0 && info[o + 21] < 0.5)) continue;
-          const ux = info[o], uy = info[o + 1], team = info[o + 6];
+          const ux = info[o + 32], uy = info[o + 33], team = info[o + 6];
           let near2 = Infinity;
           for (let e = 0; e < uc; e++) {
             const eo = e * STRIDE;
             if (info[eo + 6] === team || info[eo + 15] <= 0) continue;
-            const dx = info[eo] - ux, dy = info[eo + 1] - uy;
+            const dx = info[eo + 32] - ux, dy = info[eo + 33] - uy;
             near2 = Math.min(near2, dx * dx + dy * dy);
           }
           atEase[u] = near2 > 200 * 200 ? 1 : 0;
         }
+        if (unitTopY.length < uc) unitTopY = new Float32Array(uc);
+        unitTopY.fill(-Infinity, 0, uc);
         const t = now / 1000;
         for (let i = 0; i < n; i++) {
           aliveF32[i] = a[i];
+          if (a[i]) {
+            const wy = pos[2 * i + 1]; // top-on-screen is northmost (max world-y)
+            if (wy > unitTopY[sUnit[i]]) unitTopY[sUnit[i]] = wy;
+          }
           if (!a[i]) {
             frames[i] = 4; // fallen
           } else if (switchCd[i] > 0) {

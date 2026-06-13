@@ -7,6 +7,20 @@ import { CampaignScene, loadCampaignData } from './campaign/scene';
 const wasm = await init();
 
 const params = new URLSearchParams(location.search);
+
+// Standalone component harness: render the unit-banner gallery and stop, so the
+// component can be eyeballed and pixel-snapshotted without the sim or engine.
+if (params.get('test') === 'banners') {
+  const { mountBannerGallery } = await import('./battle/unitBanner');
+  const root = document.createElement('div');
+  document.body.appendChild(root);
+  mountBannerGallery(root);
+  (window as unknown as { __ready: boolean }).__ready = true;
+} else {
+  await main();
+}
+
+async function main() {
 const BATTLE_SEED = 0x5eed_c0de;
 const AI_ON = params.get('ai') !== 'off';
 
@@ -95,3 +109,4 @@ function frame(now: number) {
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
+}

@@ -43,17 +43,6 @@ const ZOOM_3D = 18;
 const ZOOM_SWAP = 12;
 const MAX_PITCH = 0.42;
 
-// Banners are UI, not scenery: they scale toward a steady on-screen size so a
-// unit's standard stays readable from any zoom (bigger in world as you pull
-// out). The camera is always near-overhead, so a vertical flag would foreshorten
-// to an edge-on sliver — BANNER_LEAN reclines the standard toward the camera
-// (which always looks north from the south) so the cloth keeps its face to the
-// viewer at every pitch. BANNER_CLOTH_TOP is the local height of the cloth top,
-// where the DOM unit panel docks.
-const BANNER_CLOTH_TOP = 5.5;
-const BANNER_LEAN = -0.5; // radians; reclines the cloth to face the near-overhead camera
-const bannerScale = (zoom: number) => Math.min(3.5, Math.max(0.7, 16 / zoom));
-
 const smoothstep = (a: number, b: number, x: number) => {
   const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
   return t * t * (3 - 2 * t);
@@ -287,24 +276,6 @@ function treeGeom(): VertexData {
   pushBox(p, i, c, -0.25, -0.25, 1.3, 0.25, 0.25, 1.7, [0.24, 0.40, 0.18]); // crown
   return finishGeom(p, i, c);
 }
-// A unit banner: a wooden pole topped by a team-coloured cloth, tall enough
-// to read above the press. The cloth lies in the x-z plane so its broad face
-// points along ±y — square to the camera, which always looks north from the
-// south. Vertex-coloured (pole brown, cloth the team hue).
-function bannerGeom(col: [number, number, number]): VertexData {
-  const p: number[] = [], i: number[] = [], c: number[] = [];
-  const wood: [number, number, number] = [0.30, 0.22, 0.13];
-  pushBox(p, i, c, -0.06, -0.06, 0, 0.06, 0.06, 5.6, wood); // pole, tall enough to clear the ranks
-  pushBox(p, i, c, -0.11, -0.11, 5.5, 0.11, 0.11, 5.74, wood); // finial
-  pushBox(p, i, c, 0.06, -0.04, 4.0, 2.05, 0.04, 5.5, col); // the cloth, floating above the press
-  // Recline the whole standard about its foot so the cloth faces the camera.
-  const cl = Math.cos(BANNER_LEAN), sl = Math.sin(BANNER_LEAN);
-  for (let k = 0; k < p.length; k += 3) {
-    const y = p[k + 1], z = p[k + 2];
-    p[k + 1] = y * cl - z * sl; p[k + 2] = y * sl + z * cl;
-  }
-  return finishGeom(p, i, c);
-}
 // The sim/ground-shader micro hash, in JS, so the scattered props land on
 // the SAME 3m discs the sim trips on and the shader speckles.
 function microHashJS(x: number, y: number): number {
@@ -335,9 +306,6 @@ export class BattleRenderer3D {
   // Thin-instanced from whatever 3m discs fall in the visible AABB.
   private scatterMesh: Mesh[] = [];
   private scatterMats: Float32Array[] = [new Float32Array(0), new Float32Array(0), new Float32Array(0)];
-  // Unit banners standing at each unit's centroid: one mesh per team.
-  private bannerMesh: Mesh[] = [];
-  private bannerMats: Float32Array[] = [new Float32Array(0), new Float32Array(0)];
   // The tint grid + dims, kept so updateScatter can read the ground type
   // under each pocket and pick rock vs bush vs tree.
   private tintGrid: Uint8Array = new Uint8Array(0);
@@ -428,25 +396,6 @@ export class BattleRenderer3D {
       mesh.alwaysSelectAsActiveMesh = true;
       mesh.isVisible = false;
       this.scatterMesh[s] = mesh;
-    }
-
-    // Unit banners: a pole + team cloth, one mesh per team. A touch of
-    // emissive keeps the cloth legible even in the soldiers' shadow.
-    for (let t = 0; t < 2; t++) {
-      const c = TEAM_COLOR[t];
-      const mesh = new Mesh(`banner_${t}`, this.scene);
-      bannerGeom([c[0], c[1], c[2]]).applyToMesh(mesh);
-      const mat = new StandardMaterial(`banner_${t}`, this.scene);
-      mat.diffuseColor = new Color3(1, 1, 1); // colour rides on the vertex colours
-      mat.specularColor = new Color3(0.03, 0.03, 0.03);
-      // The cloth hangs vertical, so the camera-facing face is back-lit; a
-      // team-tinted emissive makes the standard read its colour from any angle.
-      mat.emissiveColor = new Color3(c[0] * 0.5, c[1] * 0.5, c[2] * 0.5);
-      mat.backFaceCulling = false;
-      mesh.material = mat;
-      mesh.alwaysSelectAsActiveMesh = true;
-      mesh.isVisible = false;
-      this.bannerMesh[t] = mesh;
     }
 
     // 2D sprite billboard (unit quad in xy, atlas-textured).
@@ -594,8 +543,8 @@ export class BattleRenderer3D {
     alive: Float32Array,
     count: number,
     camera: Camera,
-    selectedPrimary: number,
-    banners: { x: number; y: number; team: number; unit: number }[],
+    _selectedPrimary: number,
+    _banners: { x: number; y: number; team: number; unit: number }[],
     _bannerSize = 11,
   ) {
     this.ensureCapacity(count);
@@ -617,8 +566,6 @@ export class BattleRenderer3D {
       this.scatterKey = ''; // force a rebuild when we tilt back in
       this.drawSprites(positions, facings, frames, alive, count);
     }
-    // Banners are UI markers, drawn at every zoom and scaled to stay readable.
-    this.drawBanners(banners, selectedPrimary, time, zoom);
     this.groundMat.setFloat('uTime', time);
     // Fade the flat speckle out as the 3D props fade in, so the pockets aren't
     // painted twice.
@@ -775,51 +722,6 @@ export class BattleRenderer3D {
       const n = counts[s];
       mesh.isVisible = n > 0;
       if (n > 0) mesh.thinInstanceSetBuffer('matrix', mats[s].subarray(0, n * 16), 16, false);
-      mesh.thinInstanceCount = n;
-    }
-  }
-
-  /** Stand a team-coloured standard at each unit's centroid. The cloth flutters
-   *  on a cheap per-unit sway; the selected unit's banner stands taller. */
-  /** World offset (north dy, height dz) of the reclined cloth top at this zoom
-   *  — where the DOM unit panel docks so it reads as the standard's header. */
-  bannerAnchor(zoom: number): { dy: number; dz: number } {
-    const zs = bannerScale(zoom);
-    return {
-      dy: -BANNER_CLOTH_TOP * Math.sin(BANNER_LEAN) * zs,
-      dz: BANNER_CLOTH_TOP * Math.cos(BANNER_LEAN) * zs,
-    };
-  }
-
-  private drawBanners(
-    banners: { x: number; y: number; team: number; unit: number }[],
-    selectedPrimary: number, time: number, zoom: number,
-  ) {
-    const counts = [0, 0];
-    const zs = bannerScale(zoom);
-    for (let t = 0; t < 2; t++) {
-      const need = banners.length * 16;
-      if (this.bannerMats[t].length < need) this.bannerMats[t] = new Float32Array(Math.max(need, 64 * 16));
-    }
-    for (const b of banners) {
-      const t = b.team === 1 ? 1 : 0;
-      const m = this.bannerMats[t];
-      const n = counts[t];
-      const o = n * 16;
-      const s = (b.unit === selectedPrimary ? 1.3 : 1.0) * zs;
-      const yaw = 0.14 * Math.sin(time * 1.6 + b.unit * 0.9); // breeze
-      const cy = Math.cos(yaw), sy = Math.sin(yaw);
-      m[o] = cy * s; m[o + 1] = sy * s; m[o + 2] = 0; m[o + 3] = 0;
-      m[o + 4] = -sy * s; m[o + 5] = cy * s; m[o + 6] = 0; m[o + 7] = 0;
-      m[o + 8] = 0; m[o + 9] = 0; m[o + 10] = s; m[o + 11] = 0;
-      m[o + 12] = b.x; m[o + 13] = b.y; m[o + 14] = 0; m[o + 15] = 1;
-      counts[t] = n + 1;
-    }
-    for (let t = 0; t < 2; t++) {
-      const mesh = this.bannerMesh[t];
-      const n = counts[t];
-      mesh.isVisible = n > 0;
-      if (n > 0) mesh.thinInstanceSetBuffer('matrix', this.bannerMats[t].subarray(0, n * 16), 16, false);
       mesh.thinInstanceCount = n;
     }
   }

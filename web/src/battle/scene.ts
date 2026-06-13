@@ -4,6 +4,7 @@ import { Camera } from '../shared/camera';
 import { pushGhost, pushPie, pushRing } from '../shared/overlays';
 import { CLASS_NAMES, Renderer, WILDS_MARGIN } from './renderer';
 import { BattleRenderer3D } from './renderer3d';
+import { UnitBanner, type BannerChip } from './unitBanner';
 import { Input } from './input';
 import { MANUAL_HTML } from './manual';
 import { groupMoveDests, UnitSnap } from './orders';
@@ -201,69 +202,70 @@ export class BattleScene implements Scene {
       g.strokeRect(Math.min(m0x, m1x), Math.min(m0y, m1y), Math.abs(m1x - m0x), Math.abs(m1y - m0y));
     }
 
-    // --- Per-unit labels: HP + cohesion bars and effect icons --------------------
+    // --- Per-unit banners: standard + HP/cohesion bars + status chips ------------
     const labelsRoot = document.getElementById('unitlabels')!;
-    const labelDivs: HTMLDivElement[] = [];
-    const addUnitLabel = () => {
-      const d = document.createElement('div');
-      d.className = 'ulabel';
-      d.innerHTML = '<div class="bar hp"><div></div></div><div class="bar coh"><div></div></div><div class="fx"></div>';
-      labelsRoot.appendChild(d);
-      labelDivs.push(d);
+    const unitBanners: UnitBanner[] = [];
+    const addUnitBanner = () => {
+      const b = new UnitBanner();
+      b.setVisible(false);
+      labelsRoot.appendChild(b.el);
+      unitBanners.push(b);
     };
-    for (let u = 0; u < game.unit_count(); u++) addUnitLabel();
+    for (let u = 0; u < game.unit_count(); u++) addUnitBanner();
     this.cleanups.push(() => { labelsRoot.innerHTML = ''; });
 
-    function updateUnitLabels() {
+    // Translate a unit's sim row into status chips: explicit states first, then
+    // the physical facts the press makes true.
+    function unitChips(info: Float32Array, o: number): BannerChip[] {
+      const chips: BannerChip[] = [];
+      const cls2 = info[o + 13];
+      const mode = info[o + 24];
+      if (info[o + 21] > 0.5) chips.push({ text: 'ROUT', kind: 'bad' });
+      else if (mode === 2) chips.push({ text: 'DIS', title: 'disengaging' });
+      else if (mode === 1) chips.push({ text: 'ATK', title: 'attacking' });
+      if (info[o + 18] === 2) chips.push({ text: 'CHG!', kind: 'hot', title: 'charging' });
+      chips.push(info[o + 17] > 0.5
+        ? { text: 'FEN', title: 'fence: fight at reach' }
+        : { text: 'OTH', title: 'othismos: press with weight' });
+      if (info[o + 25] > 0.5) chips.push({ text: 'PUR', title: 'pursue: latch onto contact' });
+      if (info[o + 26] > 0.5) chips.push({ text: 'KITE', title: 'kiting reflex on' });
+      if (info[o + 29] > 0.5) chips.push({ text: '2nd', kind: 'hot', title: 'secondary weapon drawn' });
+      if (info[o + 3] < 0.3 && info[o + 16] > 0) chips.push({ text: 'BRC', title: 'braced: planted mass' });
+      if (info[o + 8] < 0.35) chips.push({ text: 'TIRED', kind: 'bad', title: 'winded' });
+      if (info[o + 28] > 0.5) chips.push({ text: 'SQZ', title: 'squeezed into a corridor' });
+      if (info[o + 27] > 0.5) chips.push({ text: 'WAIT', title: 'queued behind friends' });
+      if (info[o + 31] > 0.55) chips.push({ text: 'CRUSH', kind: 'bad', title: 'crushed in the press: no room, evade dying' });
+      if ([4, 5, 7, 8].includes(cls2) && info[o + 19] === 0) chips.push({ text: 'AMMO!', kind: 'bad', title: 'quivers empty' });
+      if (info[o + 16] > 0) chips.push({ text: `⚔${info[o + 16]}`, kind: 'hot', title: 'men trading blows' });
+      return chips;
+    }
+
+    function updateUnitBanners() {
       const info = unitInfo();
       const showAll = camera.zoom > 1.1;
-      // Dock the bars to the top of the unit's banner so they read as its
-      // header. In 3D the standard's cloth-top sits at a height (and, reclined,
-      // a little north); the flat 2D renderer has no banner, so the bars stay
-      // at the centroid.
-      const anc = renderer instanceof BattleRenderer3D
-        ? renderer.bannerAnchor(camera.zoom) : { dy: 0, dz: 0 };
+      const sel = input.selected.length > 0 ? input.selected[0] : -1;
       for (let u = 0; u < game.unit_count(); u++) {
-        const d = labelDivs[u];
+        const b = unitBanners[u];
         const o = u * STRIDE;
         const alive = info[o + 15];
         if (alive === 0 || !showAll) {
-          d.style.display = 'none';
+          b.setVisible(false);
           continue;
         }
-        const [sx, sy] = camera.worldToScreenH(info[o], info[o + 1] + anc.dy, anc.dz);
+        const [sx, sy] = camera.worldToScreen(info[o], info[o + 1]);
         if (sx < -60 || sy < -40 || sx > window.innerWidth + 60 || sy > window.innerHeight + 40) {
-          d.style.display = 'none';
+          b.setVisible(false);
           continue;
         }
-        d.style.display = 'block';
-        d.style.transform = `translate(${(sx - 26).toFixed(0)}px, ${(sy - 30).toFixed(0)}px)`;
-        const hp = d.children[0].children[0] as HTMLElement;
-        const coh = d.children[1].children[0] as HTMLElement;
-        hp.style.width = `${((alive / info[o + 7]) * 100).toFixed(0)}%`;
-        hp.style.background = info[o + 6] === 0 ? '#6f9ae8' : '#e0604f';
-        coh.style.width = `${(info[o + 4] * 100).toFixed(0)}%`;
-
-        // Effect chips: explicit states + derived physical facts.
-        const fx: string[] = [];
-        const cls2 = info[o + 13];
-        const mode = info[o + 24];
-        if (info[o + 21] > 0.5) fx.push('<b class="bad">ROUT</b>');
-        else if (mode === 2) fx.push('<b title="disengaging">DIS</b>');
-        else if (mode === 1) fx.push('<b title="attacking">ATK</b>');
-        if (info[o + 18] === 2) fx.push('<b class="hot" title="charging">CHG!</b>');
-        fx.push(info[o + 17] > 0.5 ? '<b title="fence: fight at reach">FEN</b>' : '<b title="othismos: press with weight">OTH</b>');
-        if (info[o + 25] > 0.5) fx.push('<b title="pursue: latch onto contact">PUR</b>');
-        if (info[o + 26] > 0.5) fx.push('<b title="kiting reflex on">KITE</b>');
-        if (info[o + 29] > 0.5) fx.push('<b class="hot" title="secondary weapon drawn">2nd</b>');
-        if (info[o + 3] < 0.3 && info[o + 16] > 0) fx.push('<b title="braced: planted mass">BRC</b>');
-        if (info[o + 8] < 0.35) fx.push('<b class="bad" title="winded">TIRED</b>');
-        if (info[o + 28] > 0.5) fx.push('<b title="squeezed into a corridor">SQZ</b>');
-        if (info[o + 27] > 0.5) fx.push('<b title="queued behind friends">WAIT</b>');
-        if (info[o + 31] > 0.55) fx.push('<b class="bad" title="crushed in the press: no room, evade dying">CRUSH</b>');
-        if ([4, 5, 7, 8].includes(cls2) && info[o + 19] === 0) fx.push('<b class="bad" title="quivers empty">AMMO!</b>');
-        if (info[o + 16] > 0) fx.push(`<b class="hot" title="men trading blows">⚔${info[o + 16]}</b>`);
-        (d.children[2] as HTMLElement).innerHTML = fx.join('');
+        b.setVisible(true);
+        b.place(sx, sy);
+        b.update({
+          team: info[o + 6] === 0 ? 0 : 1,
+          hp: alive / info[o + 7],
+          cohesion: info[o + 4],
+          chips: unitChips(info, o),
+          selected: u === sel,
+        });
       }
     }
 
@@ -732,9 +734,9 @@ export class BattleScene implements Scene {
       if (ticks === maxTicks) accumulator = 0;
 
       // Reinforcements: campaign battles grow units mid-fight.
-      if (game.unit_count() > labelDivs.length) {
+      if (game.unit_count() > unitBanners.length) {
         applyStatic();
-        while (labelDivs.length < game.unit_count()) addUnitLabel();
+        while (unitBanners.length < game.unit_count()) addUnitBanner();
       }
 
       {
@@ -766,19 +768,9 @@ export class BattleScene implements Scene {
         prevPos.set(pos);
       }
       const primary = input.selected.length > 0 ? input.selected[0] : -1;
-      const bannerList: { x: number; y: number; team: number; unit: number }[] = [];
-      {
-        const info = unitInfo();
-        for (let u = 0; u < game.unit_count(); u++) {
-          const o = u * STRIDE;
-          if (info[o + 15] > 0 && info[o + 21] < 0.5) {
-            bannerList.push({ x: info[o], y: info[o + 1], team: info[o + 6], unit: u });
-          }
-        }
-      }
-      // Banners read as UI: world-sized from afar, screen-constant up close.
-      const bannerSize = Math.min(11, 40 / camera.zoom);
-      renderer.draw(positions(), facings(), frames, aliveF32, game.soldier_count(), camera, primary, bannerList, bannerSize);
+      // Unit standards + state are a DOM component now (see UnitBanner), so the
+      // renderers draw no banners — the empty list keeps the shared draw() shape.
+      renderer.draw(positions(), facings(), frames, aliveF32, game.soldier_count(), camera, primary, [], 0);
       // Attack arcs: every soldier mid-swing flashes his weapon's true envelope
       // (reach x arc) — readable combat, straight from the class table.
       if (camera.zoom > 2.5) {
@@ -831,7 +823,7 @@ export class BattleScene implements Scene {
         selbox.style.display = 'none';
       }
 
-      updateUnitLabels();
+      updateUnitBanners();
       hudTimer += frameDt;
       if (hudTimer > 0.2) {
         hudTimer = 0;

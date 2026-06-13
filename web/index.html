@@ -67,17 +67,33 @@
     #toolbar button.on { background: #4a6, border-color: #6c8; color: #fff; }
     #toolbar button:disabled { opacity: 0.4; cursor: default; }
     #toolbar .sep { width: 1px; height: 18px; background: #3a3f4d; }
-    .ulabel { position: absolute; width: 52px; display: none; }
-    .ulabel .bar { height: 3px; background: rgba(10,10,12,0.55); border-radius: 2px; overflow: hidden; margin-bottom: 1px; }
-    .ulabel .bar > div { height: 100%; }
-    .ulabel .bar.coh > div { background: #d9c75a; }
-    .ulabel .fx { display: flex; flex-wrap: wrap; gap: 1px; margin-top: 1px; }
-    .ulabel .fx b {
+    /* Unit banner: one component = standard (SVG flag) + health/cohesion bars + status chips. */
+    .ubanner { position: absolute; width: 56px; display: none; will-change: transform; }
+    .ubanner.sel { filter: drop-shadow(0 0 2.5px rgba(255,255,255,0.9)); }
+    .ubanner-flag { display: block; width: 56px; height: 24px; overflow: visible; }
+    .ubanner.sel .ubanner-flag { transform: scale(1.12); transform-origin: 28px 24px; }
+    .ubanner-bars { width: 52px; margin: 1px 2px 0; }
+    .ubar { height: 3px; background: rgba(10,10,12,0.55); border-radius: 2px; overflow: hidden; margin-bottom: 1px; }
+    .ubar > div { height: 100%; }
+    .ubar.coh > div { background: #d9c75a; }
+    .ubanner-fx { display: flex; flex-wrap: wrap; justify-content: center; gap: 1px; margin-top: 1px; width: 56px; }
+    .ubanner-fx b {
       font: 600 7px ui-monospace, Menlo, monospace; color: #e8e4d8;
       background: rgba(14,16,20,0.72); border-radius: 2px; padding: 0 2px;
     }
-    .ulabel .fx b.hot { color: #ffc46b; }
-    .ulabel .fx b.bad { color: #ff7a6b; }
+    .ubanner-fx b.hot { color: #ffc46b; }
+    .ubanner-fx b.bad { color: #ff7a6b; }
+    /* Standalone visual-regression gallery (?test=banners). */
+    #banner-gallery {
+      position: fixed; inset: 0; background: #2c3a22; z-index: 50;
+      display: flex; flex-wrap: wrap; align-content: flex-start; gap: 22px; padding: 28px;
+    }
+    #banner-gallery .ubanner-cell {
+      width: 96px; display: flex; flex-direction: column; align-items: center; gap: 8px;
+      background: rgba(0,0,0,0.18); border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 8px; padding: 12px 8px;
+    }
+    #banner-gallery .ubanner-cap { font: 600 10px ui-monospace, Menlo, monospace; color: #cfe0bf; }
     #minimap {
       position: fixed; right: 12px; bottom: 30px;
       border: 1px solid #3a3f4d; border-radius: 6px;

@@ -46,15 +46,6 @@ export class Camera {
     ];
   }
 
-  /** Like worldToScreen, but for a point at height wz (meters above ground).
-   *  In the tilted ortho view a height projects straight up the screen by
-   *  wz·sin(pitch)·zoom; x and the y-foreshortening are unchanged. */
-  worldToScreenH(wx: number, wy: number, wz: number): [number, number] {
-    const [sx, sy] = this.worldToScreen(wx, wy);
-    const dpr = window.devicePixelRatio || 1;
-    return [sx, sy - (wz * Math.sin(this.pitch) * this.zoom) / dpr];
-  }
-
   /** Convert canvas device-pixel coords (y down) to world coords (y up). */
   screenToWorld(px: number, py: number): [number, number] {
     return [

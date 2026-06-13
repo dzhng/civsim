@@ -272,6 +272,14 @@ check('tick under budget', stats2.tickMs < 8, `${stats2.tickMs.toFixed(2)} ms av
 check('frame rate alive (headless/software GL)', statsPre.fps > 4, `${statsPre.fps.toFixed(0)} fps`);
 check('no page errors', pageErrors.length === 0, pageErrors.slice(0, 3).join(' | '));
 
+// --- Unit-banner component: standalone visual regression (last; navigates away)
+// The banner (standard + HP/cohesion bars + status chips) renders on its own
+// gallery route, no sim or engine — a pure-DOM snapshot, so it can be exact.
+await page.goto(TARGET + '?test=banners');
+await page.waitForSelector('#banner-gallery .ubanner', { timeout: 10000 });
+await page.waitForTimeout(150);
+await snapCheck(page, 'banner-gallery', check);
+
 await browser.close();
 console.log(failures.length ? `\n${failures.length} FAILURE(S)` : '\nALL CHECKS PASSED');
 process.exit(failures.length ? 1 : 0);

@@ -181,6 +181,24 @@ void main() {
 
 }`;
 
+// --- Overlay shader: world-space vertex-coloured tris/lines for attack-arc
+// wedges, paths, selection rings and ghosts, drawn flat on the field.
+ShaderStore.ShadersStore['battleOverlayVertexShader'] = `
+precision highp float;
+attribute vec3 position;
+attribute vec4 color;
+uniform mat4 viewProjection;
+varying vec4 vColor;
+void main() {
+  gl_Position = viewProjection * vec4(position, 1.0);
+  vColor = color;
+}`;
+ShaderStore.ShadersStore['battleOverlayFragmentShader'] = `
+precision highp float;
+varying vec4 vColor;
+void main() { gl_FragColor = vColor; }`;
+
+
 /** A low-poly soldier: tapered body, head, and a front nub so facing reads. */
 function soldierVertexData(): VertexData {
   const positions: number[] = [];
@@ -222,6 +240,8 @@ export class BattleRenderer3D {
   private ground: Mesh;
   private groundMat!: ShaderMaterial;
   private terrTex: RawTexture | null = null;
+  private overlayMesh!: Mesh; // path/selection/ghost line work
+  private triMesh!: Mesh;     // attack-arc wedges (translucent fill)
   private start = performance.now();
   private cap = 0;
   // Per-soldier static data (indexed by soldier id).
@@ -305,6 +325,49 @@ export class BattleRenderer3D {
     this.sprite.alwaysSelectAsActiveMesh = true;
     this.sprite.isVisible = false;
     this.sprite.position.z = 0.12;
+
+    // Overlay meshes: rebuilt per frame from world-space vertex-coloured
+    // verts. Triangles for the attack-arc wedges, a line list for paths,
+    // selection rings and ghost outlines.
+    const overlayMat = (lineList: boolean) => {
+      const m = new ShaderMaterial('overlay', this.scene, 'battleOverlay', {
+        attributes: ['position', 'color'],
+        uniforms: ['viewProjection'],
+      });
+      m.backFaceCulling = false;
+      m.alpha = 0.999; // mark transparent so the vertex alpha blends
+      m.disableDepthWrite = true;
+      if (lineList) m.fillMode = 6; // MATERIAL_LineListDrawMode
+      return m;
+    };
+    this.triMesh = new Mesh('wedges', this.scene);
+    this.triMesh.material = overlayMat(false);
+    this.triMesh.alwaysSelectAsActiveMesh = true;
+    this.triMesh.isVisible = false;
+    this.overlayMesh = new Mesh('overlay', this.scene);
+    this.overlayMesh.material = overlayMat(true);
+    this.overlayMesh.alwaysSelectAsActiveMesh = true;
+    this.overlayMesh.isVisible = false;
+  }
+
+  /** Rebuild a dynamic overlay mesh from packed [x,y, r,g,b(,a)] verts. */
+  private fillOverlay(mesh: Mesh, verts: Float32Array, stride: number, z: number) {
+    const n = (verts.length / stride) | 0;
+    if (n === 0) { mesh.isVisible = false; return; }
+    const pos = new Float32Array(n * 3);
+    const col = new Float32Array(n * 4);
+    const idx = new Array<number>(n);
+    for (let i = 0; i < n; i++) {
+      const o = i * stride;
+      pos[i * 3] = verts[o]; pos[i * 3 + 1] = verts[o + 1]; pos[i * 3 + 2] = z;
+      col[i * 4] = verts[o + 2]; col[i * 4 + 1] = verts[o + 3]; col[i * 4 + 2] = verts[o + 4];
+      col[i * 4 + 3] = stride > 5 ? verts[o + 5] : 0.9;
+      idx[i] = i;
+    }
+    const vd = new VertexData();
+    vd.positions = pos; vd.colors = col; vd.indices = idx;
+    vd.applyToMesh(mesh, true);
+    mesh.isVisible = true;
   }
 
   private soldierRowOf: (cls: number, team: number) => number = () => 0;
@@ -395,7 +458,7 @@ export class BattleRenderer3D {
       this.drawSprites(positions, facings, frames, alive, count);
     }
     this.groundMat.setFloat('uTime', this.fixedTime ?? (performance.now() - this.start) / 1000);
-    this.scene.render();
+    this.triMesh.isVisible = false; // repopulated by drawTris, if any
   }
 
   private drawMeshes(positions: Float32Array, facings: Float32Array, alive: Float32Array, count: number) {
@@ -471,7 +534,15 @@ export class BattleRenderer3D {
     this.camera.upVector.set(0, Math.cos(p), Math.sin(p));
   }
 
-  // --- overlays — Phase: ported next (wedges, paths, selection, banners).
-  drawTris(_verts: Float32Array, _camera: Camera) {}
-  drawOverlay(_verts: Float32Array, _camera: Camera) {}
+  // Attack-arc wedges: [x,y, r,g,b,a] triangles.
+  drawTris(verts: Float32Array, _camera: Camera) {
+    this.fillOverlay(this.triMesh, verts, 6, 0.18);
+  }
+
+  // Paths, selection rings, ghost outlines: [x,y, r,g,b] line pairs. This is
+  // the last renderer call each frame, so it commits the scene.
+  drawOverlay(verts: Float32Array, _camera: Camera) {
+    this.fillOverlay(this.overlayMesh, verts, 5, 0.16);
+    this.scene.render();
+  }
 }

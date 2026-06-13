@@ -65,6 +65,7 @@ varying vec2 vUV;
 varying vec2 vWorld;
 uniform sampler2D uTerrain;
 uniform float uTime;
+uniform float uFlatRock; // 1 = paint flat micro-rocks (far view), 0 = the 3D props carry them (near)
 float hash(vec2 p) {
   vec3 p3 = fract(vec3(p.xyx) * 0.1031);
   p3 += dot(p3, p3.yzx + 33.33);
@@ -128,8 +129,17 @@ void main() {
   } else if (tint < 4.5) {
     col = mix(vec3(0.290, 0.420, 0.235), vec3(0.365, 0.490, 0.270), n);
   } else if (tint < 5.5) {
-    col = mix(vec3(0.42, 0.35, 0.24), vec3(0.52, 0.44, 0.30), n);
-    col += 0.05 * smoothstep(0.6, 0.9, noise(vWorld * 0.33));
+    // Churned wet earth: dark mottled browns, with puddles that turn the
+    // ground slate-grey and catch a sheen, and boot-churned streaks.
+    float churn = noise(vWorld * 0.5);
+    col = mix(vec3(0.30, 0.24, 0.17), vec3(0.45, 0.37, 0.26), churn);
+    col *= 0.84 + 0.16 * noise(vWorld * 1.3 + 4.1);
+    float streak = noise(vWorld * vec2(0.18, 0.9) + 2.7);
+    col *= 0.9 + 0.1 * smoothstep(0.4, 0.7, streak);
+    float puddle = smoothstep(0.60, 0.80, noise(vWorld * 0.27 + 2.1));
+    vec3 wet = mix(vec3(0.20, 0.19, 0.17), vec3(0.38, 0.39, 0.37), n2);
+    col = mix(col, wet, puddle * 0.7);
+    col += vec3(0.12) * smoothstep(0.86, 0.96, noise(vWorld * 0.85 + vec2(0.0, 1.7))) * puddle;
   } else if (tint > 90.0) {
     float wild = noise(vWorld * 0.06);
     col = mix(vec3(0.30, 0.40, 0.22), vec3(0.22, 0.31, 0.18), wild);
@@ -140,9 +150,9 @@ void main() {
   }
   col *= 0.90 + 0.10 * t.r;
   float rock = microRock(vWorld);
-  if (rock > 0.0 && tint != 1.0 && !outside) {
+  if (rock > 0.0 && tint != 1.0 && !outside && uFlatRock > 0.01) {
     vec3 stone = mix(vec3(0.42, 0.40, 0.34), vec3(0.30, 0.28, 0.24), min(rock - 1.0, 1.0));
-    col = mix(col, stone, 0.85);
+    col = mix(col, stone, 0.85 * uFlatRock);
   }
   vec2 du = fwidth(vUV) * 2.0;
   float bx = min(smoothstep(0.0, du.x, abs(vUV.x)), smoothstep(0.0, du.x, abs(vUV.x - 1.0)));
@@ -279,6 +289,63 @@ function classGeometry(cls: number): VertexData {
   return vd;
 }
 
+
+// Box accumulator for low-poly props; optional per-vertex colour.
+function pushBox(
+  pos: number[], idx: number[], col: number[] | null,
+  x0: number, y0: number, z0: number, x1: number, y1: number, z1: number,
+  c?: [number, number, number],
+) {
+  const b = pos.length / 3;
+  const cs = [
+    [x0, y0, z0], [x1, y0, z0], [x1, y1, z0], [x0, y1, z0],
+    [x0, y0, z1], [x1, y0, z1], [x1, y1, z1], [x0, y1, z1],
+  ];
+  for (const v of cs) { pos.push(v[0], v[1], v[2]); if (col && c) col.push(c[0], c[1], c[2], 1); }
+  for (const [a, bb, cc, d] of [
+    [0, 1, 2, 3], [4, 7, 6, 5], [0, 4, 5, 1], [3, 2, 6, 7], [1, 5, 6, 2], [0, 3, 7, 4],
+  ]) idx.push(b + a, b + bb, b + cc, b + a, b + cc, b + d);
+}
+function finishGeom(pos: number[], idx: number[], col: number[] | null): VertexData {
+  const vd = new VertexData();
+  vd.positions = pos; vd.indices = idx;
+  const normals: number[] = [];
+  VertexData.ComputeNormals(pos, idx, normals);
+  vd.normals = normals;
+  if (col) vd.colors = col;
+  return vd;
+}
+// A boulder: a squat tapered block. A bush: a clump of leafy boxes. A short
+// tree: brown stem + a green canopy (vertex-coloured). Unit-ish scale (~1m);
+// per-instance matrix sizes them to the micro-pocket radius.
+function rockGeom(): VertexData {
+  const p: number[] = [], i: number[] = [];
+  pushBox(p, i, null, -0.5, -0.4, 0, 0.4, 0.5, 0.42);
+  pushBox(p, i, null, -0.3, -0.2, 0.38, 0.25, 0.28, 0.6);
+  return finishGeom(p, i, null);
+}
+function bushGeom(): VertexData {
+  const p: number[] = [], i: number[] = [];
+  pushBox(p, i, null, -0.45, -0.4, 0, 0.4, 0.45, 0.5);
+  pushBox(p, i, null, -0.25, -0.2, 0.4, 0.3, 0.3, 0.72);
+  pushBox(p, i, null, 0.1, -0.35, 0.2, 0.5, 0.1, 0.6);
+  return finishGeom(p, i, null);
+}
+function treeGeom(): VertexData {
+  const p: number[] = [], i: number[] = [], c: number[] = [];
+  pushBox(p, i, c, -0.08, -0.08, 0, 0.08, 0.08, 0.7, [0.32, 0.22, 0.13]); // stem
+  pushBox(p, i, c, -0.4, -0.4, 0.55, 0.4, 0.4, 1.4, [0.20, 0.34, 0.15]); // canopy
+  pushBox(p, i, c, -0.25, -0.25, 1.3, 0.25, 0.25, 1.7, [0.24, 0.40, 0.18]); // crown
+  return finishGeom(p, i, c);
+}
+// The sim/ground-shader micro hash, in JS, so the scattered props land on
+// the SAME 3m discs the sim trips on and the shader speckles.
+function microHashJS(x: number, y: number): number {
+  let h = (Math.imul(x >>> 0, 0x85ebca6b) ^ Math.imul(y >>> 0, 0xc2b2ae35)) >>> 0;
+  h ^= h >>> 13; h = Math.imul(h, 0x27d4eb2f) >>> 0; h ^= h >>> 16;
+  return h >>> 0;
+}
+
 export class BattleRenderer3D {
   private engine: Engine;
   private scene: Scene;
@@ -297,6 +364,18 @@ export class BattleRenderer3D {
   private terrTex: RawTexture | null = null;
   private overlayMesh!: Mesh; // path/selection/ghost line work
   private triMesh!: Mesh;     // attack-arc wedges (translucent fill)
+  // Scatter props standing on the micro-pockets: 0 rock, 1 bush, 2 tree.
+  // Thin-instanced from whatever 3m discs fall in the visible AABB.
+  private scatterMesh: Mesh[] = [];
+  private scatterMats: Float32Array[] = [new Float32Array(0), new Float32Array(0), new Float32Array(0)];
+  // The tint grid + dims, kept so updateScatter can read the ground type
+  // under each pocket and pick rock vs bush vs tree.
+  private tintGrid: Uint8Array = new Uint8Array(0);
+  private terrW = 0;
+  private terrH = 0;
+  private terrCell = 1;
+  private terrOx = 0;
+  private terrOy = 0;
   private start = performance.now();
   private cap = 0;
   // Per-soldier static data (indexed by soldier id).
@@ -331,7 +410,7 @@ export class BattleRenderer3D {
     this.ground = new Mesh('ground', this.scene);
     this.groundMat = new ShaderMaterial('ground', this.scene, 'battleGround', {
       attributes: ['position'],
-      uniforms: ['viewProjection', 'uMapRect', 'uTime'],
+      uniforms: ['viewProjection', 'uMapRect', 'uTime', 'uFlatRock'],
       samplers: ['uTerrain'],
     });
     this.groundMat.backFaceCulling = false;
@@ -356,6 +435,27 @@ export class BattleRenderer3D {
         this.classMats[cls * 2 + t] = new Float32Array(0);
         this.classN[cls * 2 + t] = 0;
       }
+    }
+
+    // Scatter props for the micro-pockets. Rock & bush carry one flat colour
+    // (a solid material), the tree is vertex-coloured (stem vs leaves), so it
+    // wants useVertexColor. All three lit by the same sun/sky as the soldiers.
+    const scatterGeom = [rockGeom(), bushGeom(), treeGeom()];
+    const scatterCol: [number, number, number][] = [
+      [0.45, 0.43, 0.40], // rock grey
+      [0.26, 0.40, 0.20], // bush green
+      [1, 1, 1], // tree: vertex colours carry the real hue
+    ];
+    for (let s = 0; s < 3; s++) {
+      const mesh = new Mesh(`scatter_${s}`, this.scene);
+      scatterGeom[s].applyToMesh(mesh);
+      const mat = new StandardMaterial(`scatter_${s}`, this.scene);
+      mat.diffuseColor = new Color3(...scatterCol[s]);
+      mat.specularColor = new Color3(0.04, 0.04, 0.04);
+      mesh.material = mat; // tree's vertex colours apply automatically (mesh.useVertexColors)
+      mesh.alwaysSelectAsActiveMesh = true;
+      mesh.isVisible = false;
+      this.scatterMesh[s] = mesh;
     }
 
     // 2D sprite billboard (unit quad in xy, atlas-textured).
@@ -460,6 +560,11 @@ export class BattleRenderer3D {
     w: number, h: number, cell: number, ox: number, oy: number,
     speed: Float32Array, rough: Float32Array, tint: Uint8Array,
   ) {
+    // Copy: `tint` is a view over wasm memory, which detaches the moment the
+    // sim grows its heap — by the time updateScatter samples it, the view
+    // would be empty. The scatter needs a stable snapshot.
+    this.tintGrid = new Uint8Array(tint);
+    this.terrW = w; this.terrH = h; this.terrCell = cell; this.terrOx = ox; this.terrOy = oy;
     const M = WILDS_MARGIN;
     const x0 = ox - M, y0 = oy - M, x1 = ox + w * cell + M, y1 = oy + h * cell + M;
     const vd = new VertexData();
@@ -512,11 +617,17 @@ export class BattleRenderer3D {
     if (use3D) {
       this.sprite.isVisible = false;
       this.drawMeshes(positions, facings, frames, alive, count);
+      this.updateScatter(camera);
     } else {
       for (const m of this.classMesh) m.isVisible = false;
+      for (const m of this.scatterMesh) m.isVisible = false;
+      this.scatterKey = ''; // force a rebuild when we tilt back in
       this.drawSprites(positions, facings, frames, alive, count);
     }
     this.groundMat.setFloat('uTime', this.fixedTime ?? (performance.now() - this.start) / 1000);
+    // Fade the flat speckle out as the 3D props fade in, so the pockets aren't
+    // painted twice.
+    this.groundMat.setFloat('uFlatRock', 1 - smoothstep(ZOOM_SWAP - 1, ZOOM_SWAP + 3, zoom));
     this.triMesh.isVisible = false; // repopulated by drawTris, if any
   }
 
@@ -592,6 +703,85 @@ export class BattleRenderer3D {
       this.sprite.thinInstanceSetBuffer('cell', cells.subarray(0, count * 2), 2, false);
     }
     this.sprite.thinInstanceCount = count;
+  }
+
+  // Scatter cache: only rebuild the prop instances when the view actually
+  // moves, otherwise re-iterating thousands of cells every frame is waste.
+  private scatterKey = '';
+
+  /** Stand rocks/bushes/short trees on the visible micro-pockets — the same
+   *  3m discs the sim trips on and the ground shader speckles. Type is chosen
+   *  from the tint beneath each pocket (forest→tree, crag/scree→rock,
+   *  mud→bush, meadow→a mix), so the scatter reads as the terrain it sits on. */
+  private updateScatter(c: Camera) {
+    const W = this.canvas.width, H = this.canvas.height;
+    // Visible world AABB: map the four screen corners through the tilt and
+    // bound them. Quantise the key so tiny pans don't force a rebuild.
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (const [px, py] of [[0, 0], [W, 0], [0, H], [W, H]] as const) {
+      const [wx, wy] = c.screenToWorld(px, py);
+      minX = Math.min(minX, wx); maxX = Math.max(maxX, wx);
+      minY = Math.min(minY, wy); maxY = Math.max(maxY, wy);
+    }
+    const key = `${Math.round(minX / 6)},${Math.round(minY / 6)},${Math.round(maxX / 6)},${Math.round(maxY / 6)}`;
+    if (key === this.scatterKey) return;
+    this.scatterKey = key;
+
+    const CAP = 4000;
+    const counts = [0, 0, 0];
+    const mats = this.scatterMats;
+    for (let s = 0; s < 3; s++) if (mats[s].length < CAP * 16) mats[s] = new Float32Array(CAP * 16);
+
+    const cx0 = Math.floor(minX / 3) - 1, cx1 = Math.ceil(maxX / 3) + 1;
+    const cy0 = Math.floor(minY / 3) - 1, cy1 = Math.ceil(maxY / 3) + 1;
+    let placed = 0;
+    for (let cy = cy0; cy <= cy1 && placed < CAP; cy++) {
+      for (let cx = cx0; cx <= cx1 && placed < CAP; cx++) {
+        const h = microHashJS(cx, cy);
+        if ((h & 255) >= 89) continue; // no disc here (matches the shader)
+        const r = 0.4 + 0.35 * ((h >> 8) & 255) / 255;
+        const jx = ((h >> 16) & 255) / 255 * (3 - 2 * r) + r;
+        const jy = ((h >> 24) & 255) / 255 * (3 - 2 * r) + r;
+        const wx = cx * 3 + jx, wy = cy * 3 + jy;
+
+        // Ground type under the pocket.
+        const gx = Math.floor((wx - this.terrOx) / this.terrCell);
+        const gy = Math.floor((wy - this.terrOy) / this.terrCell);
+        const inMap = gx >= 0 && gx < this.terrW && gy >= 0 && gy < this.terrH;
+        const tint = inMap ? this.tintGrid[gy * this.terrW + gx] : 99;
+        if (tint === 1) continue; // no props on water (matches the shader)
+
+        // Choose rock / bush / tree from the tint, with a deterministic
+        // per-disc roll so each ground type gets a believable mix.
+        const roll = (h >> 5) & 7;
+        let type: number;
+        if (tint === 4 || tint === 99) type = roll < 5 ? 2 : 1; // forest/wilds: mostly trees
+        else if (tint === 2 || tint === 6 || tint === 3) type = roll < 6 ? 0 : 1; // crag/scree/wall: rock
+        else if (tint === 5) type = roll < 6 ? 1 : 0; // mud: scrubby bushes
+        else type = roll < 4 ? 0 : roll < 7 ? 1 : 2; // meadow: rock/bush, a rare tree
+
+        const n = counts[type];
+        const m = mats[type];
+        const o = n * 16;
+        // Scale to the pocket radius; bushes/trees a touch taller than wide.
+        const sx = r * 1.6, sz = type === 2 ? r * 1.5 : type === 1 ? r * 1.3 : r * 1.4;
+        const yaw = ((h >> 3) & 255) / 255 * Math.PI * 2;
+        const cyaw = Math.cos(yaw), syaw = Math.sin(yaw);
+        m[o] = cyaw * sx; m[o + 1] = syaw * sx; m[o + 2] = 0; m[o + 3] = 0;
+        m[o + 4] = -syaw * sx; m[o + 5] = cyaw * sx; m[o + 6] = 0; m[o + 7] = 0;
+        m[o + 8] = 0; m[o + 9] = 0; m[o + 10] = sz; m[o + 11] = 0;
+        m[o + 12] = wx; m[o + 13] = wy; m[o + 14] = 0; m[o + 15] = 1;
+        counts[type] = n + 1;
+        placed++;
+      }
+    }
+    for (let s = 0; s < 3; s++) {
+      const mesh = this.scatterMesh[s];
+      const n = counts[s];
+      mesh.isVisible = n > 0;
+      if (n > 0) mesh.thinInstanceSetBuffer('matrix', mats[s].subarray(0, n * 16), 16, false);
+      mesh.thinInstanceCount = n;
+    }
   }
 
   /** Match the Babylon ortho camera to the 2D Camera (center, zoom, tilt). */

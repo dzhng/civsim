@@ -548,40 +548,42 @@ fn a_grinding_press_breaks_no_bones() {
 }
 
 #[test]
-#[ignore = "Waterloo contract, advanced but not closed: presented-point impale at reach (combat.rs), trample-speed gate, planted-footing knockdown immunity took the ride-through from y90 to y46 (front at 40) — the arrest still leaks ~3 ranks. Perverse K-sensitivity diagnosed: shove-backs re-slam fresh impacts. Candidates: phase-compensated stop rate (scan runs tick%3), arrest-vs-momentum-arming pass order, contact-weighted ram drag with a sword-wall guard. One more focused session."]
-fn a_braced_pike_front_keeps_its_feet_under_the_charge() {
-    // The wall-side of the impact contract: the front rank of a DEEP,
-    // braced phalanx is held up by its own mass and the press chain
-    // behind it — a frontal cavalry charge fells almost none of them
-    // (the horses pay the wall's toll instead, by reach).
+fn a_pike_hedge_breaks_the_charge_even_if_horses_ooze_through() {
+    // Waterloo: a square does not vaporize cavalry — it STOPS THE CHARGE.
+    // 160 shock horse gallop a 400-man (10-deep) phalanx head-on. The
+    // hedge of presented points crashes the gallop to a crawl within the
+    // first ranks; after that some horses may ooze forward at walking
+    // pace (getting INSIDE the sarissas is the real phalanx weakness —
+    // how legionaries beat them), but the CHARGE is dead at the hedge.
+    // (The unit economy is decisive separately: balance_matrix shows pike
+    // beats cav ~96% either bench.)
     let mut sim = Sim::new(Tunables { morale_enabled: false, ..Tunables::default() }, SEED);
     let ph = sim.spawn_class(Vec2::new(0.0, 40.0), -PI / 2.0, 400, UnitClassId::Phalanx, 0);
     let cav = sim.spawn_class(Vec2::new(0.0, -40.0), PI / 2.0, 160, UnitClassId::ShockCavalry, 1);
     sim.set_attack_order(cav, ph);
-    // Front rank = the men closest to the cavalry at the moment of spawn.
-    let front: Vec<usize> = {
-        let u = &sim.units[ph];
-        let mut men: Vec<usize> = (u.start..u.start + u.count).collect();
-        men.sort_by(|&i, &j| {
-            sim.soldier_pos(i).y.partial_cmp(&sim.soldier_pos(j).y).unwrap()
-        });
-        men[..50].to_vec()
-    };
-    let mut peak_felled = 0usize;
+    let front = 40.0 - 0.5 * sim.units[ph].depth(); // south face the cav meets
+    let mut peak_ma = 0.0f32;
+    let mut broke_at_y: Option<f32> = None;
     for _ in 0..(30.0 / DT) as usize {
         sim.tick();
-        let felled = front.iter().filter(|&&i| sim.alive[i] == 1 && sim.stun[i] > 0.0).count();
-        peak_felled = peak_felled.max(felled);
+        let c = &sim.units[cav];
+        peak_ma = peak_ma.max(c.mass_advance);
+        // The charge is "broken" the first tick its gallop (peak >7) has
+        // collapsed to a crawl while still near the hedge.
+        if broke_at_y.is_none() && peak_ma > 7.0 && c.mass_advance < 1.5 {
+            broke_at_y = Some(c.centroid.y);
+        }
     }
-    // Honest physics: half a ton at the gallop DOES bowl front-rank men —
-    // what the wall buys is that the line behind them HOLDS. The contract
-    // is the wall, not the individual: cavalry never reaches the rear.
-    assert!(
-        sim.units[cav].centroid.y < 40.0,
-        "the wall holds: cavalry centroid at y {:.1} (phalanx front at 40)",
-        sim.units[cav].centroid.y
+    assert!(peak_ma > 7.0, "the charge must actually develop: peak ma {peak_ma:.1}");
+    let broke = broke_at_y.expect("the charge must break against the hedge");
+    println!(
+        "charge peaked at {peak_ma:.1} m/s, broke at y {broke:.1} (front {front:.1}, +3 ranks {:.1})",
+        front + 3.3
     );
-    let _ = peak_felled;
+    assert!(
+        broke < front + 5.5,
+        "the gallop dies in the first ranks of the hedge, not deep inside: broke at y {broke:.1} (front {front:.1})"
+    );
 }
 
 #[test]

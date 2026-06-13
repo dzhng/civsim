@@ -17,6 +17,32 @@ export interface CamView {
 
 const FACTION_FALLBACK: [number, number, number] = [150, 150, 150];
 
+/** Clip a world polyline by an arc-length margin at each end (km), inserting
+ *  interpolated boundary points. Empty when the trims overlap. */
+function clipPolyline(via: [number, number][], trimA: number, trimB: number): [number, number][] {
+  const n = via.length;
+  if (n < 2) return via;
+  const cum = [0];
+  for (let i = 1; i < n; i++) {
+    cum.push(cum[i - 1] + Math.hypot(via[i][0] - via[i - 1][0], via[i][1] - via[i - 1][1]));
+  }
+  const L = cum[n - 1];
+  const a0 = trimA;
+  const a1 = L - trimB;
+  if (a1 <= a0 + 0.5) return [];
+  const at = (arc: number): [number, number] => {
+    let i = 1;
+    while (i < n - 1 && cum[i] < arc) i++;
+    const seg = cum[i] - cum[i - 1] || 1;
+    const t = (arc - cum[i - 1]) / seg;
+    return [via[i - 1][0] + (via[i][0] - via[i - 1][0]) * t, via[i - 1][1] + (via[i][1] - via[i - 1][1]) * t];
+  };
+  const out: [number, number][] = [at(a0)];
+  for (let i = 0; i < n; i++) if (cum[i] > a0 && cum[i] < a1) out.push(via[i]);
+  out.push(at(a1));
+  return out;
+}
+
 export class CampaignRenderer {
   private ctx: CanvasRenderingContext2D;
   /** terrain height at each edge's via points, sampled once (terrain is static) */
@@ -54,6 +80,18 @@ export class CampaignRenderer {
   factionColor(idx: number): string {
     const c = this.data.map.factions[idx]?.color ?? FACTION_FALLBACK;
     return `rgb(${c[0]},${c[1]},${c[2]})`;
+  }
+
+  /** Road trim radius (km) at a node: a city's wall footprint once its model
+   *  shows, else 0. Matches the tier scales in terrain3d's buildCityModel. */
+  private cityTrim(data: CampaignData, nodeId: number, z: number): number {
+    if (z < CITY_MODEL_MIN_SCALE) return 0;
+    const idx = data.nodeIndex.get(nodeId); // edges carry node ids, not indices
+    if (idx === undefined) return 0;
+    const n = data.map.nodes[idx];
+    if (n.kind !== 'city') return 0;
+    const s = n.tier >= 3 ? 1.9 : n.tier === 2 ? 1.35 : 0.95;
+    return 4.3 * s; // ~the rampart ring (diameter 9.5 * s) in world km
   }
 
   private viaHeights(ei: number): Float32Array {
@@ -99,11 +137,20 @@ export class CampaignRenderer {
       const sea = e.kind === 'sea';
       if (sea && z < 0.35) continue;
       if (!sea && roadAlpha <= 0.02) continue;
+      // Stop roads at the town's edge once the 3D settlement shows — the
+      // overlay paints over the model, so a road crossing the city center
+      // streaks across the rooftops. Junctions have no model: no trim.
+      const trimA = sea ? 0 : this.cityTrim(data, e.a, z);
+      const trimB = sea ? 0 : this.cityTrim(data, e.b, z);
       const hs = this.viaHeights(ei);
+      const poly: [number, number, number][] =
+        trimA > 0 || trimB > 0
+          ? clipPolyline(e.via, trimA, trimB).map(([x, y]) => [x, y, this.field.heightAt(x, y)])
+          : e.via.map((v, i) => [v[0], v[1], sea ? 0 : hs[i]]);
       ctx.beginPath();
       let on = false;
-      for (let i = 0; i < e.via.length; i++) {
-        const p = pt(e.via[i][0], e.via[i][1], sea ? 0 : hs[i]);
+      for (const [x, y, h] of poly) {
+        const p = pt(x, y, h);
         if (!p) {
           on = false;
           continue;

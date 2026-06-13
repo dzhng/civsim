@@ -10,6 +10,18 @@ Both verify harnesses compare screenshots against committed baselines at
 snapshot is taken at a *deterministic moment*; the discipline below is what
 keeps it that way.
 
+## ALWAYS look at the screenshot before you respond
+
+A green harness run is NOT verification. Pixel regression only proves the
+output didn't change from the baseline — it says nothing about whether the
+output is *correct*, and a freshly-blessed baseline can bless a bug. Before
+you tell the user a visual change is done, **open the actual PNG with the Read
+tool and look at it yourself.** Confirm with your own eyes that the thing you
+changed looks the way you claimed (the road stops at the army, the ring is
+green, the model is bigger). If you re-blessed a baseline, look at the new
+baseline too — you are certifying it as ground truth for every future run.
+Never report a visual result you have only inferred from "the script passed."
+
 ## Taking a screenshot (ad-hoc, to look at something)
 
 Dev server first (5173 is usually taken by the old `/Users/david/dev/game`

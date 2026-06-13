@@ -33,6 +33,7 @@ import '@babylonjs/core/Meshes/thinInstanceMesh';
 import type { CampaignData } from './data';
 import type { CamView } from './renderer';
 import { TerrainField, SUN, TEMPERATE_Y_KM, hash2 } from './terrain';
+import { classGeometry } from '../shared/soldierModel';
 
 const FOV = (45 * Math.PI) / 180;
 /** Tilt: 90° (top-down) until TILT_START, easing to MIN_PITCH by TILT_END. */
@@ -604,27 +605,31 @@ export class Terrain3D {
     base.rotation.x = Math.PI / 2; // cylinder axis Y -> world up Z
     base.position.z = 0.18;
     parts.push(this.paint(base, 0.32, 0.32, 0.34)); // dark muted footprint, faction-tinted
-    // A soldier: tapered body + a head, standing on the base.
-    const soldier = (sx: number, sy: number, hgt: number) => {
-      const body = CreateCylinder('s', { diameterTop: 0.45, diameterBottom: 0.8, height: hgt, tessellation: 6 }, this.scene);
-      body.rotation.x = Math.PI / 2;
-      body.position.set(sx, sy, 0.35 + hgt / 2);
-      parts.push(this.paint(body, 1, 1, 1)); // full faction color
-      const head = CreateBox('h', { size: 0.62 }, this.scene);
-      head.rotation.z = Math.PI / 4;
-      head.position.set(sx, sy, 0.35 + hgt + 0.22);
-      parts.push(this.paint(head, 0.85, 0.72, 0.6)); // flesh, faction-tinted
+    // Reuse the battle's per-class soldier geometry (shared/soldierModel) so
+    // the marker is built from the same troopers the battle fields — a
+    // representative mix gives the knot a readable silhouette. classGeometry
+    // is +z up, foot at 0; a zero UV keeps the merge layout-consistent with
+    // the uv-carrying base/pole.
+    const trooper = (sx: number, sy: number, cls: number) => {
+      const m = new Mesh('t', this.scene);
+      classGeometry(cls).applyToMesh(m);
+      m.setVerticesData(VertexBuffer.UVKind, new Float32Array(m.getTotalVertices() * 2));
+      m.scaling.setAll(1.35);
+      m.position.set(sx, sy, 0.35);
+      parts.push(this.paint(m, 1, 1, 1)); // faction livery
     };
-    soldier(0, 0.25, 3.1); // the standard-bearer, taller and central
-    soldier(1.15, 0.35, 2.3);
-    soldier(-1.15, 0.45, 2.3);
-    soldier(0.55, -1.1, 2.3);
-    soldier(-0.65, -1.0, 2.3);
-    // The standard: a pole rising from the central figure (the 3D twin of the
-    // flat pennant that flies above it).
+    // Compact, upright-weapon classes so nothing spears out of the knot
+    // (the phalanx pike / cavalry lance reach far forward in the battle model).
+    trooper(0.0, 0.2, 2); // longswords — a tall blade held high, the centerpiece
+    trooper(0.95, 0.5, 0); // heavy infantry (sword + tall shield)
+    trooper(-0.95, 0.55, 0);
+    trooper(0.5, -0.75, 1); // spearmen
+    trooper(-0.6, -0.7, 4); // archer
+    trooper(1.25, -0.15, 0); // heavy infantry
+    // The standard rises over the knot (the 3D twin of the flat pennant).
     const pole = CreateBox('p', { width: 0.13, depth: 0.13, height: 4.0 }, this.scene);
     pole.rotation.x = Math.PI / 2;
-    pole.position.set(0, 0.25, 0.35 + 2.0);
+    pole.position.set(-0.2, 0.3, 0.35 + 2.0);
     parts.push(this.paint(pole, 0.5, 0.4, 0.3)); // wood, faction-tinted
 
     const merged = Mesh.MergeMeshes(parts, true, true);

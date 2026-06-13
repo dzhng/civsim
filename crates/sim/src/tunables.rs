@@ -110,6 +110,12 @@ pub struct Tunables {
     pub combat_drain: f32,
     /// Facing-deviation tolerance (rad) before it counts as disorder.
     pub facing_tolerance: f32,
+    /// "At ease" range (m): a unit with no living, non-routing enemy nearer
+    /// than this is at ease — it recovers morale (see morale.rs), and the
+    /// renderer reads the same range to relax its stance (pikes up). Inside it
+    /// the unit is alert and recovers nothing. Combat mass (brace_mult) is a
+    /// separate, distance-independent thing — see Unit::brace.
+    pub at_ease_range: f32,
     /// Charge burst speed (m/s, fresh foot unit; class speed_mult applies).
     pub charge_speed: f32,
     /// Final-approach window: charge engages within this many seconds of
@@ -192,6 +198,7 @@ impl Default for Tunables {
             hit_push: 0.3,
             combat_drain: 1.0 / 50.0,
             facing_tolerance: 0.3,
+            at_ease_range: 60.0,
         }
     }
 }

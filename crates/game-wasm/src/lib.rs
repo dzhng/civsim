@@ -212,6 +212,12 @@ impl Game {
         self.battle.sim.terrain.origin.y
     }
 
+    /// The one at-ease range (m): morale recovery, the rest pose, and the idle
+    /// fidget all key off it. The renderer reads it so the pose matches the sim.
+    pub fn at_ease_range(&self) -> f32 {
+        self.battle.sim.tun.at_ease_range
+    }
+
     pub fn terrain_speed_ptr(&self) -> *const f32 {
         self.battle.sim.terrain.speed.as_ptr()
     }

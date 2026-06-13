@@ -64,8 +64,10 @@ export function classGeometry(cls: number, rest = false): VertexData {
     box(-0.27, 0.02, foot + 0.35, -0.19, 0.06 + sh[0] * 0.0 + 0.0, foot + 0.35 + sh[1]);
   }
 
-  // Weapon on the right (+x). Pole arms level forward (+y) to fight, or — at
-  // ease — stand vertical (+z), butt by the foot, a forest of raised shafts.
+  // Weapon on the right (+x). At ease every arm relaxes: pole arms stand
+  // vertical (+z, butt by the foot — a forest of raised shafts), blades drop
+  // to the side or rest their point on the ground, bows hang low. In the
+  // fighting pose each comes up: poles level forward (+y), blades and bows up.
   const wx = 0.2;
   // A grounded vertical shaft of height h (the rest pose for a pole arm).
   const upright = (h: number) => box(wx - 0.04, -0.04, foot, wx + 0.04, 0.04, foot + h);
@@ -74,9 +76,15 @@ export function classGeometry(cls: number, rest = false): VertexData {
     case 'lance': rest ? upright(2.3) : box(wx - 0.02, -0.1, foot + 0.55, wx + 0.02, 2.0, foot + 0.62); break;
     case 'spear': rest ? upright(1.9) : box(wx - 0.02, -0.2, foot + 0.6, wx + 0.02, 1.4, foot + 0.66); break;
     case 'javelin': rest ? upright(1.4) : box(wx - 0.02, -0.1, foot + 0.7, wx + 0.02, 0.9, foot + 0.74); break;
-    case 'sword': box(wx - 0.02, 0.0, foot + 0.5, wx + 0.03, 0.06, foot + 1.2); break;
-    case 'greatsword': box(wx - 0.03, 0.0, foot + 0.4, wx + 0.04, 0.08, foot + 1.7); break;
-    case 'bow': box(wx + 0.04, -0.02, foot + 0.4, wx + 0.1, 0.02, foot + 1.4); break;
+    // Blade dropped to the side at ease, raised to guard in the fight.
+    case 'sword': rest ? box(wx - 0.02, 0.0, foot + 0.1, wx + 0.03, 0.06, foot + 0.8)
+                       : box(wx - 0.02, 0.0, foot + 0.5, wx + 0.03, 0.06, foot + 1.2); break;
+    // Greatsword grounded (resting on its point) at ease, hefted high to fight.
+    case 'greatsword': rest ? box(wx - 0.03, 0.0, foot + 0.0, wx + 0.04, 0.08, foot + 1.2)
+                            : box(wx - 0.03, 0.0, foot + 0.4, wx + 0.04, 0.08, foot + 1.7); break;
+    // Bow held low at ease, raised to draw.
+    case 'bow': rest ? box(wx + 0.04, -0.02, foot + 0.1, wx + 0.1, 0.02, foot + 1.0)
+                     : box(wx + 0.04, -0.02, foot + 0.4, wx + 0.1, 0.02, foot + 1.4); break;
     case 'none': break;
   }
 

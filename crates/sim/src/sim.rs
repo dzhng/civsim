@@ -1097,15 +1097,6 @@ impl Sim {
         for u in units.iter() {
             let f = dir(u.facing);
             let r = Vec2::new(f.y, -f.x);
-            // At ease: no enemy mass within a charge's reach. Standing men in
-            // real armies are never statues — they shuffle and glance about —
-            // but once an enemy is within striking range the unit BRACES and
-            // holds its rank. The idle fidget below applies only at ease, so it
-            // costs the last percent of a deployment's cohesion without ever
-            // softening the wall that receives a charge (the range is generous:
-            // a charge crosses a lot of ground in the seconds a line needs to
-            // dress itself back up).
-            let at_ease = (u.centroid - foe_centroid[(u.team as usize).min(1)]).len() > 200.0;
             let surge_sp = soldier_surge_speed(&tun, u);
             let keep_up_sp = pace_speed(&tun, u) + 0.5;
             let drifting_out = u.mode == crate::unit::OrderMode::Move
@@ -1224,21 +1215,6 @@ impl Sim {
                 // and the formation frays the longer it runs.
                 max_sp = max_sp.min((0.62 + 0.44 * stagger01(i, 0xCAFE)) * surge_sp);
                 let mut steer_to = to;
-                // Idle fidget — purely to make a standing line look alive, not
-                // a balance lever. A man at ease (his unit formed up, no enemy
-                // within charge reach, not moving or fighting) drifts a
-                // hand's-breadth off his exact slot, deterministically
-                // (stagger01, off the sim RNG). Gated to at-ease so it never
-                // touches a unit that is maneuvering, fighting, or braced for a
-                // charge — combat and the whole balance matrix are untouched.
-                // (Facing drifts the same way below.)
-                let idle = at_ease && u.move_target.is_none() && u.engaged == 0
-                    && hit_ttl[i] <= 0.0 && err < 0.6;
-                if idle {
-                    let fx = stagger01(i * 3, tick_now / 4) - 0.5;
-                    let fy = stagger01(i * 3 + 1, tick_now / 4) - 0.5;
-                    steer_to = to + Vec2::new(fx, fy) * 0.30; // ±15 cm drift
-                }
                 // A man whose unit is fighting — or who is himself being
                 // struck — closes to his own weapon's distance; nobody stands
                 // being poked from a hand's-breadth beyond his reach.
@@ -1343,12 +1319,8 @@ impl Sim {
                     hit_dir[i]
                 } else if err > 0.5 {
                     v.y.atan2(v.x)
-                } else if at_ease {
-                    // Standing easy: the glance drifts, so a man's facing never
-                    // sits dead on the line — the unit looks human, not machined.
-                    u.facing + (stagger01(i * 3 + 2, tick_now / 4) - 0.5) * 0.18 // ±5°
                 } else {
-                    u.facing // a charge bears down: eyes front, hold the line
+                    u.facing
                 };
                 facings[i] = rotate_toward(facings[i], desired_face, tun.soldier_turn_rate * dt);
                 face_dev += (wrap_angle(facings[i] - u.facing).abs() - tun.facing_tolerance).max(0.0);

@@ -214,7 +214,11 @@ impl Sim {
                 .filter(|s| s.1 != my_team && s.2 > 0 && !s.3)
                 .map(|s| (s.0 - my_center).len())
                 .fold(f32::MAX, f32::min);
-            let quiet = u.engaged == 0 && u.recent_casualties < 0.5 && nearest_enemy > 60.0;
+            // "At ease": no living, non-routing enemy within at_ease_range (the
+            // SAME range that relaxes the stance and lets the line shuffle — a
+            // unit at ease in one sense is at ease in all).
+            let quiet =
+                u.engaged == 0 && u.recent_casualties < 0.5 && nearest_enemy > self.tun.at_ease_range;
             let recover = if quiet {
                 (0.012 + 0.004 * steady_friends) * (0.5 + 0.5 * u.training)
             } else {

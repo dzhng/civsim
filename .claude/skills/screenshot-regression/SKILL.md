@@ -67,11 +67,16 @@ extend it when you change an army/city model. Re-bless with
 
 ## Running just one snapshot
 
+> The flat harnesses are being replaced by addressable **scenarios** (one
+> runner over `web/scenarios/*.mjs`); see `specs/scenarios.md` and the
+> `write-scenario` skill. Until that lands, the harnesses below are the
+> reality and the `SNAP=` filter is the only way to scope a run.
+
 Each harness is a flat top-to-bottom script — there is no per-test runner. To
 iterate on a single view, set `SNAP=<substr>`: `snapCheck` compares only snaps
 whose name contains the substring (comma-separated = OR), skipping the rest
 (no compare, no diff written). The harness still drives all setup — e.g.
-`SNAP=battle-initial node verify.mjs` still spawns the battle, it just snaps
+`SNAP=battle-initial node verify-battle.mjs` still spawns the battle, it just snaps
 that one frame. For campaign-marker work prefer `verify-campaign-visual.mjs`
 (the fake `?campaign=test` map) — it never spawns a battle, so it won't churn
 the tracked battle scratch shots (`initial.png`, `manual.png`, `cluster-*.png`)
@@ -80,7 +85,7 @@ that the battle harness rewrites every run. Restore those with
 
 ## Adding a regression snapshot
 
-One call in `verify.mjs`, `verify-campaign.mjs`, or `verify-campaign-visual.mjs`:
+One call in `verify-battle.mjs`, `verify-campaign.mjs`, or `verify-campaign-visual.mjs`:
 
 ```js
 import { snapCheck } from './snapshot.mjs';
@@ -123,7 +128,7 @@ exactly and writes `web/shots/diff/<name>.png` (highlighted) plus
 
 ```sh
 UPDATE_SHOTS=1 VERIFY_URL=http://localhost:5174 node verify-campaign.mjs
-UPDATE_SHOTS=1 VERIFY_URL=http://localhost:5174 node verify.mjs
+UPDATE_SHOTS=1 VERIFY_URL=http://localhost:5174 node verify-battle.mjs
 ```
 
 4. Suspected nondeterminism → run the harness twice; if the second run isn't

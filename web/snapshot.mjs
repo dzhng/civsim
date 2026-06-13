@@ -6,7 +6,7 @@
 // fails and shots/diff/<name>.png (highlighted diff) + <name>-actual.png are
 // written for inspection. Re-bless intentional UI changes with:
 //
-//   UPDATE_SHOTS=1 node verify.mjs / verify-campaign.mjs
+//   UPDATE_SHOTS=1 node verify-battle.mjs / verify-campaign.mjs
 //
 // Snapshots only stay green if the moment is deterministic: fixed viewport,
 // fixed camera, sim paused/frozen (battle: window.__game.freeze()), no

@@ -22,8 +22,8 @@ in TypeScript.
   a painted background raster) from source geodata.
 - `web` — Vite + TypeScript shell. Battle: WebGL2 instanced renderer. Campaign:
   a Babylon.js 3D terrain under a transparent Canvas2D marker layer.
-- `web/verify.mjs`, `web/verify-campaign.mjs` — Playwright harnesses that load
-  the game headless and assert on behavior, performance, and screenshots.
+- `web/verify-battle.mjs`, `web/verify-campaign.mjs` — Playwright harnesses that
+  load the game headless and assert on behavior, performance, and screenshots.
 
 Core design: the player issues *intent*; each unit's formation controller
 realizes it over time, rate-limited by **cohesion**. Cohesion is *measured*
@@ -259,8 +259,9 @@ cargo test -p campaign
 cargo test --workspace
 
 # browser verification (needs the dev server running)
-node web/verify.mjs            # battle
-node web/verify-campaign.mjs   # campaign
+node web/verify-battle.mjs           # battle
+node web/verify-campaign.mjs         # campaign (real map: behavior + screenshots)
+node web/verify-campaign-visual.mjs  # campaign markers (controlled test map)
 # re-bless screenshot baselines after an intentional visual change:
 UPDATE_SHOTS=1 node web/verify-campaign.mjs
 ```

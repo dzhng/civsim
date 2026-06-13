@@ -1,4 +1,4 @@
-// Browser verification harness. Run from web/: `npm run verify`
+// Battle browser verification harness. Run from web/: `npm run verify`
 // (expects the dev server on :5173, e.g. `npm run dev` in another shell).
 //
 // Battle layout (team 0 = player army at y=-600 facing north, deploy order):

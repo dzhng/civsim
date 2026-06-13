@@ -7,8 +7,10 @@
     "build": "vite build",
     "preview": "vite preview",
     "build:wasm": "wasm-pack build ../crates/game-wasm --target web --release --out-dir ../../web/src/wasm",
-    "verify": "node verify.mjs",
-    "verify:full": "node verify.mjs --full"
+    "verify": "node verify-battle.mjs",
+    "verify:full": "node verify-battle.mjs --full",
+    "verify:campaign": "node verify-campaign.mjs",
+    "verify:campaign-visual": "node verify-campaign-visual.mjs"
   },
   "devDependencies": {
     "pixelmatch": "^7.2.0",

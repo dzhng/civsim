@@ -15,6 +15,9 @@ import { FreeCamera } from '@babylonjs/core/Cameras/freeCamera';
 import { Vector2, Vector3, Vector4 } from '@babylonjs/core/Maths/math.vector';
 import { Color3, Color4 } from '@babylonjs/core/Maths/math.color';
 import { Mesh } from '@babylonjs/core/Meshes/mesh';
+import { CreateCylinder } from '@babylonjs/core/Meshes/Builders/cylinderBuilder';
+import { CreateBox } from '@babylonjs/core/Meshes/Builders/boxBuilder';
+import { VertexBuffer } from '@babylonjs/core/Buffers/buffer';
 import { BoundingInfo } from '@babylonjs/core/Culling/boundingInfo';
 import { VertexData } from '@babylonjs/core/Meshes/mesh.vertexData';
 import { ShaderMaterial } from '@babylonjs/core/Materials/shaderMaterial';
@@ -37,6 +40,9 @@ const TILT_END = 1.5;
 const MIN_PITCH = (52 * Math.PI) / 180;
 /** Trees pop in below this height (cam.scale), once they'd be > a few px. */
 const TREE_MIN_SCALE = 0.45;
+/** Army models show once the world tilts toward 3D; the flat pennant carries
+ *  the political map below this. */
+const ARMY_MIN_SCALE = 0.4;
 
 const NOISE = `
 float hash(vec2 p) {
@@ -212,6 +218,52 @@ void main() {
   gl_FragColor = vec4(grade(col), c.a);
 }`;
 
+// Army models: low-poly meshes, thin-instanced per army. world0..3 carry the
+// per-army transform, iColor the faction tint; lit by the one campaign sun.
+ShaderStore.ShadersStore['campArmyVertexShader'] = `
+precision highp float;
+attribute vec3 position;
+attribute vec3 normal;
+attribute vec4 world0;
+attribute vec4 world1;
+attribute vec4 world2;
+attribute vec4 world3;
+attribute vec4 iColor;
+attribute vec4 color;     // baked part tint: dark base, bright figures
+uniform mat4 viewProjection;
+varying vec3 vN;
+varying vec3 vCol;
+varying vec3 vTint;
+varying float vZ;
+void main() {
+  mat4 world = mat4(world0, world1, world2, world3);
+  vec4 wp = world * vec4(position, 1.0);
+  gl_Position = viewProjection * wp;
+  vN = normalize((world * vec4(normal, 0.0)).xyz);
+  vCol = iColor.rgb;
+  vTint = color.rgb;
+  vZ = gl_Position.w;
+}`;
+
+ShaderStore.ShadersStore['campArmyFragmentShader'] = `
+precision highp float;
+varying vec3 vN;
+varying vec3 vCol;
+varying vec3 vTint;
+varying float vZ;
+uniform vec3 uSun, uFogC;
+uniform float uFogD, uFogStr;
+${GRADE}
+void main() {
+  float li = 0.45 + 0.7 * max(dot(normalize(vN), uSun), 0.0);
+  vec3 col = vCol * vTint * li;
+  if (uFogStr > 0.001) {
+    float fog = (1.0 - exp(-pow(vZ * uFogD, 2.0))) * uFogStr;
+    col = mix(col, uFogC, clamp(fog, 0.0, 1.0));
+  }
+  gl_FragColor = vec4(grade(col), 1.0);
+}`;
+
 /** Procedural 2-variant tree atlas: broadleaf | conifer. */
 function buildTreeAtlas(scene: Scene): Texture {
   const tex = new DynamicTexture('treeAtlas', { width: 256, height: 256 }, scene, true);
@@ -258,9 +310,13 @@ export class Terrain3D {
   private camera: FreeCamera;
   private terrainMat: ShaderMaterial;
   private treeMat: ShaderMaterial;
+  private armyMat!: ShaderMaterial;
   private chunks: Mesh[] = [];
   private coarse!: Mesh;
   private treeMeshes: Mesh[] = [];
+  private armyMesh: Mesh | null = null;
+  private armyCount = 0;
+  private factionColors: number[][];
   private terrTex: RawTexture;
   /** Pin the water/foam clock for pixel-deterministic snapshots. */
   fixedTime: number | null = null;
@@ -291,6 +347,8 @@ export class Terrain3D {
 
     const r = data.bgRect;
     this.bgRect = [r.min[0], r.min[1], r.max[0], r.max[1]];
+    this.factionColors = data.map.factions.map((f) =>
+      (f.color ?? [150, 150, 150]).map((v) => v / 255));
 
     const { w, h } = field;
     const dataTex = (bytes: Uint8Array) =>
@@ -328,8 +386,16 @@ export class Terrain3D {
     this.treeMat.setVector4('uBgRect', new Vector4(...this.bgRect));
     this.treeMat.backFaceCulling = false;
 
+    this.armyMat = new ShaderMaterial('army', scene, 'campArmy', {
+      attributes: ['position', 'normal', 'color', 'world0', 'world1', 'world2', 'world3', 'iColor'],
+      uniforms: ['viewProjection', 'uSun', 'uFogC', 'uFogD', 'uFogStr'],
+    });
+    this.armyMat.setVector3('uSun', new Vector3(...SUN));
+    this.armyMat.setColor3('uFogC', new Color3(0.71, 0.71, 0.68));
+
     this.buildTerrain();
     this.buildTrees();
+    this.buildArmyModel();
 
     // FXAA + a whisper of bloom and vignette: the part of the Rome 2 look
     // the surface shaders can't do alone.
@@ -427,6 +493,86 @@ export class Terrain3D {
     makeTreeMesh('conifers', conifer, 0.5);
   }
 
+  /** One low-poly model — a banner-bearer's knot on a round base — merged
+   *  once and thin-instanced per army (faction-tinted, repositioned each
+   *  frame). Built standing along +z (world up); base sits on the ground. */
+  private buildArmyModel() {
+    const parts: Mesh[] = [];
+    // Bake a flat part tint into vertex colors: the per-army faction color
+    // (iColor) multiplies this, so the base reads as a muted dark footprint
+    // while the figures carry the full faction hue.
+    const tint = (m: Mesh, r: number, g: number, b: number) => {
+      const v = m.getTotalVertices();
+      const c = new Float32Array(v * 4);
+      for (let i = 0; i < v; i++) {
+        c[i * 4] = r; c[i * 4 + 1] = g; c[i * 4 + 2] = b; c[i * 4 + 3] = 1;
+      }
+      m.setVerticesData(VertexBuffer.ColorKind, c);
+      parts.push(m);
+    };
+    const base = CreateCylinder('b', { diameterTop: 2.6, diameterBottom: 3.2, height: 0.35, tessellation: 20 }, this.scene);
+    base.rotation.x = Math.PI / 2; // cylinder axis Y -> world up Z
+    base.position.z = 0.18;
+    tint(base, 0.32, 0.32, 0.34); // dark muted footprint
+    // A soldier: tapered body + a head, standing on the base.
+    const soldier = (sx: number, sy: number, hgt: number) => {
+      const body = CreateCylinder('s', { diameterTop: 0.45, diameterBottom: 0.8, height: hgt, tessellation: 6 }, this.scene);
+      body.rotation.x = Math.PI / 2;
+      body.position.set(sx, sy, 0.35 + hgt / 2);
+      tint(body, 1, 1, 1); // full faction color
+      const head = CreateBox('h', { size: 0.62 }, this.scene);
+      head.rotation.z = Math.PI / 4;
+      head.position.set(sx, sy, 0.35 + hgt + 0.22);
+      tint(head, 0.85, 0.72, 0.6); // flesh, faction-tinted
+    };
+    soldier(0, 0.25, 3.1); // the standard-bearer, taller and central
+    soldier(1.15, 0.35, 2.3);
+    soldier(-1.15, 0.45, 2.3);
+    soldier(0.55, -1.1, 2.3);
+    soldier(-0.65, -1.0, 2.3);
+    // The standard: a pole rising from the central figure (the 3D twin of the
+    // flat pennant that flies above it).
+    const pole = CreateBox('p', { width: 0.13, depth: 0.13, height: 4.0 }, this.scene);
+    pole.rotation.x = Math.PI / 2;
+    pole.position.set(0, 0.25, 0.35 + 2.0);
+    tint(pole, 0.5, 0.4, 0.3); // wood, faction-tinted
+
+    const merged = Mesh.MergeMeshes(parts, true, true);
+    if (!merged) return;
+    merged.name = 'armies';
+    merged.material = this.armyMat;
+    merged.alwaysSelectAsActiveMesh = true; // dynamic instance set; skip culling
+    merged.setEnabled(false);
+    this.armyMesh = merged;
+  }
+
+  /** Reposition the army models from the live army list (called each frame
+   *  before draw). Cheap: a few dozen instances, two small buffers. */
+  setArmies(armies: { x: number; y: number; faction: number }[]) {
+    const m = this.armyMesh;
+    if (!m) return;
+    const n = armies.length;
+    this.armyCount = n;
+    if (n === 0) {
+      m.thinInstanceCount = 0;
+      return;
+    }
+    const mats = new Float32Array(n * 16);
+    const cols = new Float32Array(n * 4);
+    const S = 1.5; // ~7 km cluster: a clear marker without dwarfing a city
+    for (let i = 0; i < n; i++) {
+      const a = armies[i];
+      const z = Math.max(0, this.field.heightAt(a.x, a.y));
+      const o = i * 16;
+      mats[o] = S; mats[o + 5] = S; mats[o + 10] = S; mats[o + 15] = 1;
+      mats[o + 12] = a.x; mats[o + 13] = a.y; mats[o + 14] = z;
+      const c = this.factionColors[a.faction] ?? [0.6, 0.6, 0.6];
+      cols[i * 4] = c[0]; cols[i * 4 + 1] = c[1]; cols[i * 4 + 2] = c[2]; cols[i * 4 + 3] = 1;
+    }
+    m.thinInstanceSetBuffer('matrix', mats, 16, false);
+    m.thinInstanceSetBuffer('iColor', cols, 4, false);
+  }
+
   updateTerritory(rgba: Uint8Array) {
     this.terrTex.update(rgba);
   }
@@ -516,6 +662,7 @@ export class Terrain3D {
     this.coarse.setEnabled(coarseView);
     for (const c of this.chunks) c.setEnabled(!coarseView);
     for (const t of this.treeMeshes) t.setEnabled(cam.scale >= TREE_MIN_SCALE);
+    this.armyMesh?.setEnabled(cam.scale >= ARMY_MIN_SCALE && this.armyCount > 0);
 
     this.terrainMat.setVector3('uEyePos', this.camera.position);
     this.terrainMat.setVector2('uFx', new Vector2(this.territoryAlpha(cam.scale), tilt * 0.85));
@@ -524,6 +671,8 @@ export class Terrain3D {
     this.terrainMat.setVector2('uViewport', new Vector2(this.canvas.width, this.canvas.height));
     this.treeMat.setVector2('uFx', new Vector2(0, tilt * 0.85));
     this.treeMat.setFloat('uFogD', 1 / (this.dist * 4.5));
+    this.armyMat.setFloat('uFogD', 1 / (this.dist * 4.5));
+    this.armyMat.setFloat('uFogStr', tilt * 0.85);
 
     this.engine.beginFrame();
     this.scene.render();

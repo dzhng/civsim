@@ -13,8 +13,12 @@ import { Terrain3D } from './terrain3d';
 
 export const ARMY_STRIDE = 12;
 const CITY_STRIDE = 4;
-/** Campaign ticks per real second at 1x (one tick = one campaign minute). */
-const TICKS_PER_SEC = 10;
+/** Campaign ticks per real second at 1x (one tick = one campaign minute).
+ * 60 = one game-hour per real second: at the old 10 an army crawled a few
+ * px/minute on screen. Everything is tick-driven (movement, economy, AI), so
+ * raising this fast-forwards the whole world in lockstep — balance ratios and
+ * the 1x/3x/10x labels stay honest. */
+const TICKS_PER_SEC = 60;
 const SPEEDS = [1, 3, 10];
 const SAVE_KEY = 'campaign-save';
 
@@ -188,6 +192,7 @@ export class CampaignScene implements Scene {
       this.renderer.resize();
       this.t3d!.resize();
       this.t3d!.clampCam(this.cam); // zoom floor = aspect-fill, pan inside the map
+      this.t3d!.setArmies(this.armies); // 3D models under the floating banners
       this.t3d!.draw(this.cam);
       const sel = this.armies.find((a) => a.id === this.selected && a.mine);
       const hints: [number, number][] = sel

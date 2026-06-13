@@ -213,8 +213,12 @@ pub fn setup_duel(sim: &mut Sim, a: UnitClassId, b: UnitClassId) {
             ArtilleryCrew => 40,
         }
     };
-    sim.spawn_class(Vec2::new(0.0, -90.0), FRAC_PI_2, duel_count(a), a, 0);
-    sim.spawn_class(Vec2::new(0.0, 90.0), -FRAC_PI_2, duel_count(b), b, 1);
+    let ua = sim.spawn_class(Vec2::new(0.0, -90.0), FRAC_PI_2, duel_count(a), a, 0);
+    let ub = sim.spawn_class(Vec2::new(0.0, 90.0), -FRAC_PI_2, duel_count(b), b, 1);
+    // A duel is a COMMITTED clash: both advance at the run (the matrix
+    // measures the meeting of two charges, not two strolls).
+    sim.set_pace(ua, crate::tunables::Pace::Run);
+    sim.set_pace(ub, crate::tunables::Pace::Run);
 }
 
 /// Small open fields for quick vibe checks: 0 = 1v1 heavies,

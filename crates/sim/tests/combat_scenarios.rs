@@ -98,6 +98,7 @@ fn othismos_presses_fence_fights_at_reach() {
         let b = sim.spawn_class(Vec2::new(0.0, 12.0), -FRAC_PI_2, 240, UnitClassId::LightInfantry, 1);
         sim.set_stance(a, stance);
         sim.set_charge_enabled(a, false); // isolate the stance variable
+        sim.set_pace(a, sim::Pace::Run); // a committed press
         sim.set_attack_move_order(a, Vec2::new(0.0, 30.0));
         run(&mut sim, 30.0); // settle into the fight
         // Mean nearest-enemy distance over a's FIGHTING men, sampled late.

@@ -17,6 +17,7 @@ fn kills_before_contact(target: UnitClassId, n: usize) -> (usize, f32) {
     let mut sim = Sim::new(no_morale(), SEED);
     let archers = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 140, UnitClassId::Archers, 0);
     let adv = sim.spawn_class(Vec2::new(0.0, 160.0), -FRAC_PI_2, n, target, 1);
+    sim.set_pace(adv, sim::Pace::Run); // you cross a kill zone at the run
     sim.set_attack_order(adv, archers);
     let _ = archers;
     for step in 0..(120.0 / DT) as usize {

@@ -362,6 +362,7 @@ fn pikes_unhorse_cavalry_swords_chip_at_horseflesh() {
         let atk = sim.spawn_class(Vec2::new(0.0, -14.0), PI / 2.0, 240, attacker, 0);
         let cav = sim.spawn_class(Vec2::new(0.0, 14.0), -PI / 2.0, 120, UnitClassId::ShockCavalry, 1);
         sim.set_charge_enabled(atk, false); // isolate weapon geometry
+        sim.set_pace(atk, sim::Pace::Run); // a committed assault
         sim.set_attack_order(atk, cav);
         // Early window: frontal geometry dominates before the scrum
         // interpenetrates and gives swords side access to the riders.

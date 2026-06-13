@@ -145,3 +145,39 @@ fn the_counter_web_holds() {
         );
     }
 }
+
+/// The defender's edge: an equal unit that HOLDS its ground (braced, fresh)
+/// beats one that charges into it head-on. Charging a set line frontally
+/// without support is a losing proposition — you want the flank, the
+/// fatigue, or the numbers, not a fair frontal clash against a braced foe.
+#[test]
+fn a_held_braced_line_beats_an_equal_frontal_attacker() {
+    let outcome = |atk_pace: sim::Pace| -> (u32, usize, usize) {
+        let mut sim = Sim::new(Tunables::default(), SEED);
+        let atk = sim.spawn_class(Vec2::new(0.0, -60.0), FRAC_PI_2, 240, UnitClassId::HeavyInfantry, 0);
+        let def = sim.spawn_class(Vec2::new(0.0, 60.0), -FRAC_PI_2, 240, UnitClassId::HeavyInfantry, 1);
+        sim.set_pace(atk, atk_pace);
+        sim.set_attack_order(atk, def); // the defender HOLDS — no order, braced
+        let mut verdict = None;
+        for _ in 0..(600.0 / DT) as usize {
+            sim.tick();
+            if verdict.is_none() {
+                verdict = sim.victor();
+            }
+        }
+        (
+            verdict.unwrap_or(9),
+            sim.units[atk].alive_count,
+            sim.units[def].alive_count,
+        )
+    };
+    for pace in [sim::Pace::Walk, sim::Pace::Run] {
+        let (v, atk_left, def_left) = outcome(pace);
+        println!("{pace:?} attacker {atk_left}/240 vs held def {def_left}/240, verdict {v}");
+        assert_eq!(v, 1, "the held braced line must win against a frontal {pace:?} attack");
+        assert!(
+            def_left > atk_left,
+            "and stand thicker than the attacker it broke: def {def_left} vs atk {atk_left}"
+        );
+    }
+}

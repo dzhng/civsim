@@ -261,12 +261,13 @@ impl Unit {
     /// bonus. (The charge burst overrides higher still, in pace_speed.
     /// In a stalled press the run drain self-gates on measured frame
     /// speed; the rear ranks' run-pace shove IS the attack pressing.)
+    /// An attack advances at the player's ORDERED pace (the walk/run
+    /// toggle) — no forced sprint. The charge BURST fires on its own near
+    /// contact regardless of pace (sim.rs ignition reads distance, not
+    /// gait), so a walked-in attack still charges home; a run-in attack
+    /// arrives faster but tired. The player owns the trade.
     pub fn effective_pace(&self) -> Pace {
-        if matches!(self.mode, OrderMode::Attack(_)) {
-            Pace::Run
-        } else {
-            self.pace
-        }
+        self.pace
     }
 
     /// The formation's midpoint (anchor is the front-center).

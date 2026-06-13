@@ -11,7 +11,7 @@ import { TerrainField } from './terrain';
 import { Territory } from './territory';
 import { Terrain3D } from './terrain3d';
 
-export const ARMY_STRIDE = 12;
+export const ARMY_STRIDE = 21; // 12 base + 9 per-class soldier counts
 const CITY_STRIDE = 4;
 /** Campaign ticks per real second at 1x (one tick = one campaign minute).
  * 60 = one game-hour per real second: at the old 10 an army crawled a few
@@ -35,6 +35,8 @@ export interface ArmyView {
   encounter: number;
   moraleCap: number;
   mine: boolean;
+  /** soldiers per class (index = UnitClassId), for the 3D army marker */
+  roster: number[];
 }
 
 export interface CityView {
@@ -227,6 +229,7 @@ export class CampaignScene implements Scene {
         encounter: af[o + 9],
         moraleCap: af[o + 10],
         mine: af[o + 11] > 0,
+        roster: Array.from(af.subarray(o + 12, o + 21)),
       });
     }
     this.roadLevels = new Uint8Array(mem, c.road_levels_ptr(), this.cfg.data.map.edges.length);

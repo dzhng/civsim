@@ -315,6 +315,33 @@ const SHADOW_DIR: [number, number] = (() => {
   return [-SUN[0] / l, -SUN[1] / l];
 })();
 
+/** Up to 20 figure slots in a packed disc (golden-angle spiral), so an army's
+ *  soldiers stand around its standard. Figure i takes slot i; a small army
+ *  fills the inner slots, a large one (capped at 20) fills them all. */
+const ARMY_SLOTS: [number, number][] = Array.from({ length: 20 }, (_, i) => {
+  const a = i * 2.399963;
+  const r = 0.38 * Math.sqrt(i);
+  return [Math.cos(a) * r, Math.sin(a) * r];
+});
+/** One figure per ~250 soldiers, clamped to [1, 20]. */
+function figureCount(soldiers: number): number {
+  return Math.max(1, Math.min(ARMY_SLOTS.length, Math.round(soldiers / 250)));
+}
+/** Allocate `n` figures across the 9 classes by soldier share (largest
+ *  remainder), so the cluster mirrors the army's real composition. */
+function allocFigures(roster: number[], n: number): number[] {
+  const total = roster.reduce((a, b) => a + b, 0);
+  if (total <= 0) return [n, 0, 0, 0, 0, 0, 0, 0, 0];
+  const ideal = roster.map((c) => (n * c) / total);
+  const out = ideal.map(Math.floor);
+  let rem = n - out.reduce((a, b) => a + b, 0);
+  const order = ideal
+    .map((v, i) => [v - Math.floor(v), i] as [number, number])
+    .sort((a, b) => b[0] - a[0]);
+  for (let k = 0; rem > 0; k++, rem--) out[order[k % 9][1]]++;
+  return out;
+}
+
 /** Procedural 2-variant tree atlas: broadleaf | conifer. */
 function buildTreeAtlas(scene: Scene): Texture {
   const tex = new DynamicTexture('treeAtlas', { width: 256, height: 256 }, scene, true);
@@ -365,7 +392,8 @@ export class Terrain3D {
   private chunks: Mesh[] = [];
   private coarse!: Mesh;
   private treeMeshes: Mesh[] = [];
-  private armyMesh: Mesh | null = null;
+  private armyBase: Mesh | null = null; // base disc + standard, one per army
+  private classMeshes: (Mesh | null)[] = []; // per-class soldiers, one per figure
   private armyCount = 0;
   private cityMesh: Mesh | null = null;
   private shadowMat!: ShaderMaterial;
@@ -461,7 +489,7 @@ export class Terrain3D {
 
     this.buildTerrain();
     this.buildTrees();
-    this.buildArmyModel();
+    this.buildArmyModels();
     this.buildCityModel(data);
 
     // FXAA + a whisper of bloom and vignette: the part of the Rome 2 look
@@ -599,46 +627,40 @@ export class Terrain3D {
     buf[o + 14] = z + 0.06; // float just above the ground to dodge z-fighting
   }
 
-  private buildArmyModel() {
+  /** Army markers are assembled per frame from two thin-instanced pieces: a
+   *  base+standard (one per army) and the battle's per-class soldier meshes
+   *  (one instance per figure). Built once here, filled in setArmies. */
+  private buildArmyModels() {
+    // Base disc + standard pole, merged, one instance per army.
     const parts: Mesh[] = [];
     const base = CreateCylinder('b', { diameterTop: 2.6, diameterBottom: 3.2, height: 0.35, tessellation: 20 }, this.scene);
     base.rotation.x = Math.PI / 2; // cylinder axis Y -> world up Z
     base.position.z = 0.18;
     parts.push(this.paint(base, 0.32, 0.32, 0.34)); // dark muted footprint, faction-tinted
-    // Reuse the battle's per-class soldier geometry (shared/soldierModel) so
-    // the marker is built from the same troopers the battle fields — a
-    // representative mix gives the knot a readable silhouette. classGeometry
-    // is +z up, foot at 0; a zero UV keeps the merge layout-consistent with
-    // the uv-carrying base/pole.
-    const trooper = (sx: number, sy: number, cls: number) => {
-      const m = new Mesh('t', this.scene);
-      classGeometry(cls).applyToMesh(m);
-      m.setVerticesData(VertexBuffer.UVKind, new Float32Array(m.getTotalVertices() * 2));
-      m.scaling.setAll(1.35);
-      m.position.set(sx, sy, 0.35);
-      parts.push(this.paint(m, 1, 1, 1)); // faction livery
-    };
-    // Compact, upright-weapon classes so nothing spears out of the knot
-    // (the phalanx pike / cavalry lance reach far forward in the battle model).
-    trooper(0.0, 0.2, 2); // longswords — a tall blade held high, the centerpiece
-    trooper(0.95, 0.5, 0); // heavy infantry (sword + tall shield)
-    trooper(-0.95, 0.55, 0);
-    trooper(0.5, -0.75, 1); // spearmen
-    trooper(-0.6, -0.7, 4); // archer
-    trooper(1.25, -0.15, 0); // heavy infantry
-    // The standard rises over the knot (the 3D twin of the flat pennant).
     const pole = CreateBox('p', { width: 0.13, depth: 0.13, height: 4.0 }, this.scene);
     pole.rotation.x = Math.PI / 2;
-    pole.position.set(-0.2, 0.3, 0.35 + 2.0);
+    pole.position.set(0, 0, 0.35 + 2.0);
     parts.push(this.paint(pole, 0.5, 0.4, 0.3)); // wood, faction-tinted
-
-    const merged = Mesh.MergeMeshes(parts, true, true);
-    if (!merged) return;
-    merged.name = 'armies';
-    merged.material = this.modelMat;
-    merged.alwaysSelectAsActiveMesh = true; // dynamic instance set; skip culling
-    merged.setEnabled(false);
-    this.armyMesh = merged;
+    const baseMesh = Mesh.MergeMeshes(parts, true, true);
+    if (baseMesh) {
+      baseMesh.name = 'armyBase';
+      baseMesh.material = this.modelMat;
+      baseMesh.alwaysSelectAsActiveMesh = true;
+      baseMesh.setEnabled(false);
+      this.armyBase = baseMesh;
+    }
+    // One soldier mesh per class (the battle's classGeometry), thin-instanced
+    // across every figure of every army. Vertex colour (1,1,1, faction-flag)
+    // so each instance's iColor paints it the owner's hue.
+    for (let c = 0; c < 9; c++) {
+      const m = new Mesh(`armyCls${c}`, this.scene);
+      classGeometry(c).applyToMesh(m);
+      this.paint(m, 1, 1, 1, 1);
+      m.material = this.modelMat;
+      m.alwaysSelectAsActiveMesh = true;
+      m.setEnabled(false);
+      this.classMeshes[c] = m;
+    }
     this.armyShadow = this.shadowQuad('armyShadow');
   }
 
@@ -738,38 +760,70 @@ export class Terrain3D {
 
   /** Reposition the army models from the live army list (called each frame
    *  before draw). Cheap: a few dozen instances, two small buffers. */
-  setArmies(armies: { id: number; x: number; y: number; faction: number }[], scale: number, selected = -1, hover = -1) {
-    const m = this.armyMesh;
-    if (!m) return;
+  setArmies(
+    armies: { id: number; x: number; y: number; faction: number; soldiers: number; roster: number[] }[],
+    scale: number,
+    selected = -1,
+    hover = -1,
+  ) {
+    const baseM = this.armyBase;
+    if (!baseM) return;
     const n = armies.length;
     this.armyCount = n;
     if (n === 0) {
-      m.thinInstanceCount = 0;
+      baseM.thinInstanceCount = 0;
       if (this.armyShadow) this.armyShadow.thinInstanceCount = 0;
+      for (const m of this.classMeshes) if (m) m.thinInstanceCount = 0;
       return;
     }
-    const mats = new Float32Array(n * 16);
-    const cols = new Float32Array(n * 4);
-    const shadows = new Float32Array(n * 16);
-    // Hold a roughly constant on-screen footprint (the model is ~3.2 km wide
-    // per unit S; scale is CSS px/km) so armies read at play zoom without
-    // ballooning up close — clamped so they never dwarf the map or vanish.
+    // Hold a roughly constant on-screen footprint (scale is CSS px/km) so
+    // armies read at play zoom without ballooning up close.
     const S = Math.min(13, Math.max(5, 80 / (3.2 * scale)));
+    const figScale = S * 1.25;
+    const baseMats = new Float32Array(n * 16);
+    const baseCols = new Float32Array(n * 4);
+    const shadows = new Float32Array(n * 16);
+    // Per-class figure instances, accumulated across all armies.
+    const fmats: number[][] = Array.from({ length: 9 }, () => []);
+    const fcols: number[][] = Array.from({ length: 9 }, () => []);
     for (let i = 0; i < n; i++) {
       const a = armies[i];
       const z = Math.max(0, this.field.heightAt(a.x, a.y));
-      const o = i * 16;
-      mats[o] = S; mats[o + 5] = S; mats[o + 10] = S; mats[o + 15] = 1;
-      mats[o + 12] = a.x; mats[o + 13] = a.y; mats[o + 14] = z;
       const c = this.factionColors[a.faction] ?? [0.6, 0.6, 0.6];
       // iColor.a is the highlight flag the shader reads (not opacity).
       const hi = a.id === selected ? 1 : a.id === hover ? 0.5 : 0;
-      cols[i * 4] = c[0]; cols[i * 4 + 1] = c[1]; cols[i * 4 + 2] = c[2]; cols[i * 4 + 3] = hi;
+      const o = i * 16;
+      baseMats[o] = S; baseMats[o + 5] = S; baseMats[o + 10] = S; baseMats[o + 15] = 1;
+      baseMats[o + 12] = a.x; baseMats[o + 13] = a.y; baseMats[o + 14] = z;
+      baseCols[i * 4] = c[0]; baseCols[i * 4 + 1] = c[1]; baseCols[i * 4 + 2] = c[2]; baseCols[i * 4 + 3] = hi;
       this.shadowMatrix(shadows, o, a.x, a.y, z, 1.9 * S);
+      // Figures: count by size, classes by composition, placed in the slots.
+      const alloc = allocFigures(a.roster, figureCount(a.soldiers));
+      let slot = 0;
+      for (let cls = 0; cls < 9; cls++) {
+        for (let k = 0; k < alloc[cls] && slot < ARMY_SLOTS.length; k++, slot++) {
+          const [ox, oy] = ARMY_SLOTS[slot];
+          fmats[cls].push(
+            figScale, 0, 0, 0, 0, figScale, 0, 0, 0, 0, figScale, 0,
+            a.x + ox * S, a.y + oy * S, z, 1,
+          );
+          fcols[cls].push(c[0], c[1], c[2], hi);
+        }
+      }
     }
-    m.thinInstanceSetBuffer('matrix', mats, 16, false);
-    m.thinInstanceSetBuffer('iColor', cols, 4, false);
+    baseM.thinInstanceSetBuffer('matrix', baseMats, 16, false);
+    baseM.thinInstanceSetBuffer('iColor', baseCols, 4, false);
     this.armyShadow?.thinInstanceSetBuffer('matrix', shadows, 16, false);
+    for (let cls = 0; cls < 9; cls++) {
+      const m = this.classMeshes[cls];
+      if (!m) continue;
+      if (fmats[cls].length) {
+        m.thinInstanceSetBuffer('matrix', new Float32Array(fmats[cls]), 16, false);
+        m.thinInstanceSetBuffer('iColor', new Float32Array(fcols[cls]), 4, false);
+      } else {
+        m.thinInstanceCount = 0;
+      }
+    }
   }
 
   updateTerritory(rgba: Uint8Array) {
@@ -861,8 +915,10 @@ export class Terrain3D {
     this.coarse.setEnabled(coarseView);
     for (const c of this.chunks) c.setEnabled(!coarseView);
     for (const t of this.treeMeshes) t.setEnabled(cam.scale >= TREE_MIN_SCALE);
-    this.armyMesh?.setEnabled(cam.scale >= ARMY_MIN_SCALE && this.armyCount > 0);
-    this.armyShadow?.setEnabled(cam.scale >= ARMY_MIN_SCALE && this.armyCount > 0);
+    const armiesOn = cam.scale >= ARMY_MIN_SCALE && this.armyCount > 0;
+    this.armyBase?.setEnabled(armiesOn);
+    this.armyShadow?.setEnabled(armiesOn);
+    for (const m of this.classMeshes) m?.setEnabled(armiesOn);
     this.cityMesh?.setEnabled(cam.scale >= CITY_MODEL_MIN_SCALE);
     this.cityShadow?.setEnabled(cam.scale >= CITY_MODEL_MIN_SCALE);
 

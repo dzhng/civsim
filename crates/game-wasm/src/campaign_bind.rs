@@ -8,11 +8,12 @@ use wasm_bindgen::prelude::*;
 
 /// Floats per army in the army_info array:
 /// [id, x, y, faction, soldiers, stance, pie_kind, pie_frac, marching,
-///  encounter (-1 none), morale_cap_mean, is_player]
+///  encounter (-1 none), morale_cap_mean, is_player, then 9 per-class
+///  soldier counts (index = UnitClassId)]
 /// stance: 0 march/hold, 1 camp, 2 ambush-settling, 3 ambush-hidden,
 ///         4 routed, 5 occupying, 6 at sea. pie_kind: 0 none, 1 battle prep,
 ///         2 occupation, 3 embark, 4 ambush settle.
-pub const ARMY_INFO_STRIDE: usize = 12;
+pub const ARMY_INFO_STRIDE: usize = 21;
 /// Floats per city: [node, owner, garrison_soldiers, queue_len].
 pub const CITY_INFO_STRIDE: usize = 4;
 
@@ -374,6 +375,13 @@ impl Campaign {
                 cap,
                 if mine { 1.0 } else { 0.0 },
             ]);
+            // Per-class soldier counts (index = UnitClassId), so the map can
+            // build each army marker from its real composition.
+            let mut by_class = [0u32; 9];
+            for r in &a.roster {
+                by_class[r.class as usize] += r.count;
+            }
+            self.army_info.extend(by_class.iter().map(|&c| c as f32));
         }
         self.city_info.clear();
         for (&node, c) in &st.cities {

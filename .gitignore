@@ -5,3 +5,6 @@ node_modules/
 web/dist/
 web/src/wasm/
 web/shots/diff/
+
+# throwaway debug/probe tests (write-tests skill) — never commit
+crates/*/tests/dbg*.rs

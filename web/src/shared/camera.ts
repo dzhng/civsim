@@ -1,27 +1,38 @@
-// 2D orthographic camera. World units are meters, y-up.
-// zoom = device pixels per meter.
+// Orthographic battle camera. World units are meters, y-up.
+// zoom = device pixels per meter. A non-zero `pitch` tilts the view for the
+// 3D renderer; because the projection stays orthographic, the ground (z=0)
+// maps affinely — the north axis just compresses by cos(pitch) on screen —
+// so picking and DOM overlays remain exact with a single cosine factor.
 export class Camera {
   x = 0;
   y = 0;
   zoom = 4;
+  /** View tilt from straight-down, radians (0 = top-down 2D). */
+  pitch = 0;
   /** Hard view bounds (the painted world: map + wilds). Set once known. */
   bounds: [number, number, number, number] | null = null;
 
   constructor(private canvas: HTMLCanvasElement) {}
 
+  /** Screen-vertical world-meters per device pixel: north foreshortens. */
+  private cosP() {
+    return Math.max(0.2, Math.cos(this.pitch));
+  }
+
   /** Keep the entire viewport inside the painted world — no black, ever. */
   clampView() {
     if (!this.bounds) return;
     const [x0, y0, x1, y1] = this.bounds;
-    const minZoom = Math.max(this.canvas.width / (x1 - x0), this.canvas.height / (y1 - y0));
+    const cp = this.cosP();
+    const minZoom = Math.max(this.canvas.width / (x1 - x0), (this.canvas.height / cp) / (y1 - y0));
     this.zoom = Math.min(60, Math.max(minZoom, this.zoom));
     const hw = this.canvas.width / (2 * this.zoom);
-    const hh = this.canvas.height / (2 * this.zoom);
+    const hh = this.canvas.height / (2 * this.zoom * cp);
     this.x = Math.min(x1 - hw, Math.max(x0 + hw, this.x));
     this.y = Math.min(y1 - hh, Math.max(y0 + hh, this.y));
   }
 
-  /** [scaleX, scaleY, centerX, centerY] for the vertex shader. */
+  /** [scaleX, scaleY, centerX, centerY] for the 2D vertex shader. */
   uniform(): [number, number, number, number] {
     return [(2 * this.zoom) / this.canvas.width, (2 * this.zoom) / this.canvas.height, this.x, this.y];
   }
@@ -31,7 +42,7 @@ export class Camera {
     const dpr = window.devicePixelRatio || 1;
     return [
       ((wx - this.x) * this.zoom + this.canvas.width / 2) / dpr,
-      ((this.y - wy) * this.zoom + this.canvas.height / 2) / dpr,
+      ((this.y - wy) * this.zoom * this.cosP() + this.canvas.height / 2) / dpr,
     ];
   }
 
@@ -39,13 +50,13 @@ export class Camera {
   screenToWorld(px: number, py: number): [number, number] {
     return [
       this.x + (px - this.canvas.width / 2) / this.zoom,
-      this.y - (py - this.canvas.height / 2) / this.zoom,
+      this.y - (py - this.canvas.height / 2) / (this.zoom * this.cosP()),
     ];
   }
 
   panPixels(dx: number, dy: number) {
     this.x -= dx / this.zoom;
-    this.y += dy / this.zoom;
+    this.y += dy / (this.zoom * this.cosP());
     this.clampView();
   }
 

@@ -3,6 +3,7 @@ import type { Scene } from '../scene';
 import { Camera } from '../shared/camera';
 import { pushGhost, pushPie, pushRing } from '../shared/overlays';
 import { CLASS_NAMES, Renderer, WILDS_MARGIN } from './renderer';
+import { BattleRenderer3D } from './renderer3d';
 import { Input } from './input';
 import { MANUAL_HTML } from './manual';
 import { groupMoveDests, UnitSnap } from './orders';
@@ -34,8 +35,11 @@ export interface BattleConfig {
 }
 
 // One renderer for the page: programs/atlas/GL state are battle-independent;
-// per-battle data arrives through setStatic/setTerrain.
-let sharedRenderer: Renderer | null = null;
+// per-battle data arrives through setStatic/setTerrain. `?gfx=3d` selects
+// the Babylon renderer (the migration target); the GL path is the default.
+type BattleGfx = Renderer | BattleRenderer3D;
+let sharedRenderer: BattleGfx | null = null;
+const USE_3D = new URLSearchParams(location.search).get('gfx') === '3d';
 
 export class BattleScene implements Scene {
   private cleanups: (() => void)[] = [];
@@ -72,7 +76,8 @@ export class BattleScene implements Scene {
 
     const canvas = document.getElementById('battlefield') as HTMLCanvasElement;
     const camera = new Camera(canvas);
-    const renderer = (sharedRenderer ??= new Renderer(canvas));
+    const renderer = (sharedRenderer ??= USE_3D ? new BattleRenderer3D(canvas) : new Renderer(canvas));
+    if (renderer instanceof BattleRenderer3D) camera.pitch = renderer.pitch;
     renderer.resize(); // the canvas may have been display:none through a window resize
     const STRIDE = game.unit_info_stride();
 

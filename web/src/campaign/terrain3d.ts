@@ -328,8 +328,7 @@ export class Terrain3D {
   private armyMesh: Mesh | null = null;
   private armyCount = 0;
   private cityMesh: Mesh | null = null;
-  /** static per-city transforms (positions + tier scale), built once */
-  private cityMatrices: Float32Array = new Float32Array(0);
+  /** city node index per thin instance, for owner-color lookups */
   private cityNodes: number[] = [];
   private factionColors: number[][];
   private terrTex: RawTexture;
@@ -626,7 +625,6 @@ export class Terrain3D {
       mats[o + 12] = x; mats[o + 13] = y; mats[o + 14] = z;
       this.cityNodes.push(c.i);
     });
-    this.cityMatrices = mats;
     merged.thinInstanceSetBuffer('matrix', mats, 16, true);
     const cols = new Float32Array(cityList.length * 4);
     for (let k = 0; k < cityList.length; k++) {

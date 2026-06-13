@@ -7,14 +7,23 @@ in TypeScript.
 
 ## Architecture
 
-- `crates/sim` — pure simulation logic (formations, movement, cohesion).
-  No wasm dependencies; unit-tested natively.
-- `crates/sim-wasm` — thin wasm-bindgen boundary. JS issues rare small calls
-  (orders); bulk state is read zero-copy via pointers into wasm memory.
-- `web` — Vite + TypeScript shell: WebGL2 instanced renderer, camera, input,
-  HUD. Served cross-origin-isolated so SharedArrayBuffer/threads work later.
-- `web/verify.mjs` — Playwright harness that loads the game headless and asserts on
-  behavior, performance, and screenshots.
+- `crates/sim` — pure battle logic (formations, movement, cohesion). No wasm
+  dependencies; unit-tested natively.
+- `crates/campaign` — pure campaign logic (a pausable-real-time strategy layer
+  over a road graph: economy, AI, encounters, pathfinding). Depends only on
+  `contract`; never on `sim`. Also natively tested.
+- `crates/contract` — the only vocabulary shared between the two games
+  (`UnitClassId`, `Pcg32`, `BattleSetup`/`BattleResult`). A type lives here
+  only if both genuinely need it.
+- `crates/game-wasm` — the composition root and the single place the two games
+  meet. Thin wasm-bindgen boundary: JS issues rare small calls (orders); bulk
+  state is read zero-copy via pointers into wasm memory.
+- `crates/mapgen` — offline pipeline that bakes the campaign map (road graph +
+  a painted background raster) from source geodata.
+- `web` — Vite + TypeScript shell. Battle: WebGL2 instanced renderer. Campaign:
+  a Babylon.js 3D terrain under a transparent Canvas2D marker layer.
+- `web/verify.mjs`, `web/verify-campaign.mjs` — Playwright harnesses that load
+  the game headless and assert on behavior, performance, and screenshots.
 
 Core design: the player issues *intent*; each unit's formation controller
 realizes it over time, rate-limited by **cohesion**. Cohesion is *measured*
@@ -154,6 +163,87 @@ File-local physics constants (deliberate, documented in place):
 `RIDER_HIT_SHARE`, `GRAVITY` (missiles.rs); `DRIFT_TURN_RATE`
 (movement.rs).
 
+## The campaign layer — what building it taught
+
+The campaign is a second simulation, and it inherits the battle sim's
+discipline (measured state, intent realized over time) plus three rules the
+strategy layer forced into the open.
+
+**Determinism is load-bearing — a hard rule.** The campaign runs for thousands
+of ticks and must save, load, and replay bit-identically — an autosave
+mid-march, an AI turn, a battle handed off and reported back all have to land
+on the same state every time. So dynamic state lives in BTree collections
+(HashMap iteration order is nondeterministic and would silently desync two
+runs), armies are always processed in id order, every random draw goes through
+the seeded `state.rng`, and nothing reads the wall clock. New state fields take
+`#[serde(default)]` or an old save fails to load. One test —
+`save_load_roundtrip_is_deterministic` — guards the whole invariant and is
+extended whenever state grows, because the cost of breaking it is invisible
+until a replay or a save quietly diverges.
+
+**An order is idempotent intent, not an event.** The player and the AI both
+issue *intent* — "march here" — realized over many ticks; the AI re-states its
+intent every campaign hour. For a long time that silently froze it: `try_move`
+zeroed the step's sub-tile progress on every order, and at ~260 ticks per tile
+a fresh order every 60 ticks meant no AI army ever finished crossing a single
+tile. No AI faction had ever taken a city. The fix was one line — re-issuing
+the same next step keeps its accumulated progress — but the principle is the
+sim's own creed applied upward: a command states a destination, not a moment,
+so it must be safe to repeat. The bug was invisible to unit tests (each issues
+one order) and only surfaced when a scripted run replayed the real AI cadence.
+Test the cadence the system actually runs, not one call of it.
+
+**The map obeys the rule the simulation obeys.** Territory coloring is
+nearest-city ownership — `economy::territory_of`, the *same* function the sim
+uses to decide whose ground an army stands on for replenishment. The picture
+cannot draw one border while the sim enforces another, or the player learns a
+lie. Every glyph follows suit: the camp tent, the dimmed hidden ambusher, the
+road drawn wider by level all read the stance codes and levels the sim sets,
+never a parallel guess on the frontend. (Sibling of the battle rule that
+cohesion is *measured* from bodies, never stored.)
+
+## The 3D map — a swappable engine behind a fixed seam
+
+The campaign renders a tilting heightfield — straight-down political map when
+zoomed out, Total War tilt as you descend — with a transparent Canvas2D layer
+of markers on top. Two principles kept it honest through an engine rewrite.
+
+**The camera is the only seam.** `Terrain3D` exposes `project` / `unproject` /
+`clampCam` and reveals nothing else about how it draws. The overlay places
+every banner and label through `project`; clicks ray-march the ground through
+`unproject`; the zoom floor and pan bounds live in `clampCam`. So the renderer
+underneath is replaceable, and proving it was the test: swapping a hand-rolled
+WebGL renderer for Babylon.js rewrote `terrain3d.ts` alone and touched neither
+the scene, the input, nor the harness. Define the boundary as a small
+projection contract and the machinery behind it stops being load-bearing.
+
+**A screenshot is a regression test only if the frame is reproducible.**
+`web/snapshot.mjs` compares against committed baselines at *zero* pixel
+tolerance — sound only because every snapshot is taken at a deterministic
+moment: fixed viewport, fixed camera, sim paused, and every wall-clock-driven
+pixel pinned (the water shader's animation clock, the HUD's fps line, the
+seed-dependent state left untouched before the first tick). The `freeze()` hook
+*pins* those pixels but must not *own* the pause state — an unfreeze restores
+whatever pause it found, or the hook starts dictating gameplay. Bless the
+baseline once, and thereafter any unintended drift fails loudly — including a
+whole-engine swap that was supposed to change nothing. Confirm the checker
+still bites by mutating a color constant and watching it go red.
+
+**Read the terrain back from the asset you already paint.** The heightmap, land
+mask, and biome field (moisture, forest, rock, signed shore distance) are
+classified out of the campaign's background PNG by its known palette — no
+second data pipeline, no extra mapgen pass, no hand-authored elevation. The
+price is a color contract between the painter and the reader: the palette in
+`crates/mapgen/src/raster.rs` and the classifier in `web/src/campaign/terrain.ts`
+point at each other in comment — recolor one and you must recolor the other.
+
+**A library that runs the frame loop assumes it owns it.** The campaign keeps
+its own render loop and calls Babylon's `scene.render()` by hand. That silently
+disables anything wired to *Babylon's* loop: its post-process pipeline never
+presented to the canvas, so the screen stayed black until the vignette moved
+into the terrain shader. When you drive a framework's render yourself, expect
+its loop-time conveniences to no-op, and plan to reimplement the ones you want.
+
 ## Develop
 
 ```sh
@@ -163,9 +253,16 @@ npm --prefix web run build:wasm
 # dev server (http://localhost:5173)
 npm --prefix web run dev
 
-# native sim tests (fast inner loop)
+# native tests (fast inner loop) — one crate, or the lot
 cargo test -p sim
+cargo test -p campaign
+cargo test --workspace
 
-# browser verification (needs dev server running)
-npm --prefix web run verify
+# browser verification (needs the dev server running)
+node web/verify.mjs            # battle
+node web/verify-campaign.mjs   # campaign
+# re-bless screenshot baselines after an intentional visual change:
+UPDATE_SHOTS=1 node web/verify-campaign.mjs
 ```
+
+See `.claude/skills/screenshot-regression/` for the snapshot workflow.

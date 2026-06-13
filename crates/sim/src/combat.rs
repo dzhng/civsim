@@ -235,6 +235,21 @@ impl Sim {
             // never position deltas — the phantom door stays shut).
             {
                 let planted = ((weapon.reach - 1.0) / 2.2).clamp(0.0, 1.0);
+                // HEDGE depth: a wall is points DEEP. The stop is the
+                // per-point leverage (reach², `planted²`) times the
+                // fraction of the reach-deep hedge that is actually manned
+                // — a sarissa block projects ~3 ranks of points, a thin
+                // line one. So a deep phalanx walls horse, a 2-deep pike
+                // file merely pricks it, and a short spear can never build
+                // a hedge its reach can't reach. (Bounded to 1: a hedge
+                // never returns MORE than its full depth.)
+                let hedge = {
+                    let pu = &self.units[ui];
+                    let ranks = pu.alive_count as f32 / pu.files_eff.max(1) as f32;
+                    let spacing = class_stats(pu.class).spacing.y.max(0.5);
+                    let reach_ranks = (weapon.reach / spacing).max(1.0);
+                    (ranks / reach_ranks).clamp(0.0, 1.0)
+                };
                 if planted > 0.0 {
                     let v = nearest as usize;
                     let p = self.soldier_pos(i);
@@ -257,7 +272,7 @@ impl Sim {
                     if closing > gate {
                         let w_i = self.mass[i] * self.units[ui].brace();
                         let share = w_i / (w_i + self.mass[v]);
-                        let stop = closing * DT * share * planted * planted * 8.0;
+                        let stop = closing * DT * share * planted * planted * hedge * 8.0;
                         let np = Vec2::new(
                             self.positions[v * 2] + d.x * stop,
                             self.positions[v * 2 + 1] + d.y * stop,
@@ -272,7 +287,7 @@ impl Sim {
                         // ...and the point bleeds the carried glide itself.
                         let toward = -(self.mom_x[v] * d.x + self.mom_y[v] * d.y);
                         if toward > 0.0 {
-                            let grip = (share * planted * planted * 0.8).min(0.45);
+                            let grip = (share * planted * planted * hedge * 0.8).min(0.45);
                             self.mom_x[v] += d.x * toward * grip;
                             self.mom_y[v] += d.y * toward * grip;
                         }

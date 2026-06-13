@@ -194,6 +194,20 @@ impl Sim {
                                         .iter()
                                         .fold(0.0f32, |m, w| m.max(w.reach));
                                     let planted = ((pole - 1.0) / 2.2).clamp(0.0, 1.0);
+                                    // Hedge depth (mirrors the combat impale):
+                                    // the brake at contact is the per-point
+                                    // grip times the fraction of the reach-
+                                    // deep hedge that is manned.
+                                    let hedge = {
+                                        let pu = &units[uj];
+                                        let ranks = pu.alive_count as f32
+                                            / pu.files_eff.max(1) as f32;
+                                        let sp = crate::class::class_stats(pu.class)
+                                            .spacing
+                                            .y
+                                            .max(0.5);
+                                        (ranks / (pole / sp).max(1.0)).clamp(0.0, 1.0)
+                                    };
                                     // A braced man behind a planted POLE
                                     // keeps his feet against the very mass
                                     // his point is arresting — the horse
@@ -223,7 +237,7 @@ impl Sim {
                                         let toward = -(mom_x[i] * nx + mom_y[i] * ny);
                                         if toward > 0.0 {
                                             let grip =
-                                                (1.6 * share * planted * planted).min(0.5);
+                                                (1.6 * share * planted * planted * hedge).min(0.5);
                                             mom_x[i] += nx * toward * grip;
                                             mom_y[i] += ny * toward * grip;
                                         }

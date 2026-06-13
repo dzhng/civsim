@@ -176,7 +176,7 @@ export class CampaignRenderer {
     // The overlay paints over the 3D army/city models, so once they show the
     // road is gapped where it would streak across one: trimmed at town walls
     // and broken around each army's footprint.
-    const armyR = z >= ARMY_MIN_SCALE ? 1.7 * Math.min(13, Math.max(5, 80 / (3.2 * z))) : 0;
+    const armyR = z >= ARMY_MIN_SCALE ? 1.9 * Math.min(13, Math.max(5, 80 / (3.2 * z))) : 0;
     const armyPts = armyR > 0 ? armies.map((a) => ({ x: a.x, y: a.y, r: armyR })) : [];
 
     // Edges. Roads fade out at political-map zoom; sea lanes faint dashes.
@@ -191,11 +191,18 @@ export class CampaignRenderer {
       if (sea) {
         segments = [e.via.map((v, i) => [v[0], v[1], 0])];
       } else {
-        // Junctions have no model: only cities trim. Gap around nearby armies.
+        // Junctions have no model: only cities trim. Gap around nearby armies
+        // — test against the edge's bbox (a road tile's via endpoints are far
+        // from a mid-road army; roadPolylines does the exact per-segment test).
         const trimA = this.cityTrim(data, e.a, z);
         const trimB = this.cityTrim(data, e.b, z);
+        let exmin = Infinity, exmax = -Infinity, eymin = Infinity, eymax = -Infinity;
+        for (const v of e.via) {
+          exmin = Math.min(exmin, v[0]); exmax = Math.max(exmax, v[0]);
+          eymin = Math.min(eymin, v[1]); eymax = Math.max(eymax, v[1]);
+        }
         const near = armyPts.filter((g) =>
-          e.via.some((v) => Math.abs(v[0] - g.x) < armyR + 12 && Math.abs(v[1] - g.y) < armyR + 12));
+          g.x > exmin - armyR && g.x < exmax + armyR && g.y > eymin - armyR && g.y < eymax + armyR);
         segments = roadPolylines(e.via, trimA, trimB, near).map((seg) =>
           seg.map(([x, y]) => [x, y, this.field.heightAt(x, y)]));
       }

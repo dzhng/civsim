@@ -669,11 +669,13 @@ export class Terrain3D {
    *  positions, tier-scaled, owner color set by setCityOwners. */
   private buildCityModel(data: CampaignData) {
     const parts: Mesh[] = [];
-    // Rampart ring (a flat torus laid on the ground): neutral stone.
+    // Rampart ring (a flat torus laid on the ground): this is the OWNERSHIP
+    // marker — livery (alpha 1) so its per-city iColor shows (green = ours,
+    // the owner's faction colour otherwise). The buildings stay neutral.
     const wall = CreateTorus('cw', { diameter: 9.5, thickness: 1.4, tessellation: 18 }, this.scene);
     wall.rotation.x = Math.PI / 2; // ring from XZ plane down onto the XY ground
     wall.position.z = 0.7;
-    parts.push(this.paint(wall, 0.64, 0.6, 0.53, 0));
+    parts.push(this.paint(wall, 0.85, 0.85, 0.85, 1));
     // A building: sandstone walls + a wider terracotta roof cap. Boxes only,
     // so orientation stays trivial under the model camera.
     const building = (sx: number, sy: number, w: number, d: number, hgt: number) => {
@@ -684,9 +686,7 @@ export class Terrain3D {
       const roof = CreateBox('br', { width: w * 1.18, depth: d * 1.18, height: hgt * 0.38 }, this.scene);
       roof.rotation.x = Math.PI / 2;
       roof.position.set(sx, sy, hgt + hgt * 0.19);
-      // clay roof carrying half the owner's hue, so whose city it is reads at
-      // a glance (Roman red, Macedonian blue) without losing the tiled look
-      parts.push(this.paint(roof, 0.66, 0.4, 0.3, 0.5));
+      parts.push(this.paint(roof, 0.66, 0.4, 0.3, 0)); // neutral terracotta — every city alike
     };
     building(0, 0, 2.4, 2.4, 3.0); // the forum/temple at the center
     let s = 2654435761 | 0;
@@ -743,16 +743,20 @@ export class Terrain3D {
     this.cityMesh = merged;
   }
 
-  /** Recolor each settlement's standard to its current owner (called when
-   *  ownership changes — same trigger as the territory recolor). */
-  setCityOwners(cities: Map<number, { owner: number }>) {
+  /** Recolor each settlement's ring + standard to its owner — green for the
+   *  player's own cities, the owner's faction colour otherwise. Called when
+   *  ownership changes (same trigger as the territory recolor). */
+  setCityOwners(cities: Map<number, { owner: number }>, playerFaction: number) {
     const m = this.cityMesh;
     if (!m) return;
+    const own: [number, number, number] = [0.35, 0.8, 0.35]; // "this is mine"
     const n = this.cityNodes.length;
     const cols = new Float32Array(n * 4);
     for (let k = 0; k < n; k++) {
       const owner = cities.get(this.cityNodes[k])?.owner ?? -1;
-      const c = owner >= 0 ? this.factionColors[owner] ?? [0.55, 0.55, 0.55] : [0.55, 0.55, 0.55];
+      const c = owner === playerFaction ? own
+        : owner >= 0 ? this.factionColors[owner] ?? [0.55, 0.55, 0.55]
+        : [0.55, 0.55, 0.55];
       cols[k * 4] = c[0]; cols[k * 4 + 1] = c[1]; cols[k * 4 + 2] = c[2]; cols[k * 4 + 3] = 0;
     }
     m.thinInstanceSetBuffer('iColor', cols, 4, false);

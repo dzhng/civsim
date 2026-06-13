@@ -201,24 +201,23 @@ impl Sim {
             let fear = 0.05 * intimidation + 0.025 * rout_contagion;
             let fear_adapt = self.units[ui].fear_adapt;
             let fear_eff = (fear - fear_adapt).max(0.0) + 0.25 * fear;
+            // Missiles break a unit through the BODIES they drop, not the noise
+            // they make: the dead are already in `casualty_rate`, so the direct
+            // missile term is small on purpose — just the dread of a fire you
+            // can't answer, not a second copy of the casualties it causes. A
+            // line that's being shot but not bled (shields shedding the volley)
+            // holds; a line losing men breaks on the men, from any source.
+            let missile_drain = 0.012 * missile_rate;
             let drain = (0.038 * casualty_rate * directions
-                + 0.06 * missile_rate
+                + missile_drain
                 + 0.002 * (losing_push - 1.2).max(0.0)
                 + fear_eff)
                 * amp;
 
-            // Recovery: quiet, distant from FIGHTING threats (a fleeing
-            // enemy nearby is no threat at all), among steady friends.
-            let nearest_enemy = summaries
-                .iter()
-                .filter(|s| s.1 != my_team && s.2 > 0 && !s.3)
-                .map(|s| (s.0 - my_center).len())
-                .fold(f32::MAX, f32::min);
-            // "At ease": no living, non-routing enemy within at_ease_range (the
-            // SAME range that relaxes the stance and lets the line shuffle — a
-            // unit at ease in one sense is at ease in all).
-            let quiet =
-                u.engaged == 0 && u.recent_casualties < 0.5 && nearest_enemy > self.tun.at_ease_range;
+            // Recovery: at ease (no living, non-routing enemy within
+            // at_ease_range — the one shared flag that also relaxes the stance),
+            // not in melee, no fresh casualties, among steady friends.
+            let quiet = u.at_ease && u.engaged == 0 && u.recent_casualties < 0.5;
             let recover = if quiet {
                 (0.012 + 0.004 * steady_friends) * (0.5 + 0.5 * u.training)
             } else {

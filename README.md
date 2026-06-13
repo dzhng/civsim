@@ -75,6 +75,44 @@ this? Intent must be inferred from motion, or not at all. The AI
 commander counts as a player and obeys the same rule — it reads the
 field, not the opposing player's orders.
 
+## Visual tests are the ground truth for realism — a hard rule
+
+Cargo tests prove the formulas are self-consistent and the contracts hold *as
+numbers*. They cannot tell you the result is *realistic* — that a charge looks
+like a charge, that an idle line breathes like men and not like a spreadsheet.
+This sim is emergent: simple physics produce the behavior, and whether that
+behavior matches reality is a question only the eye can answer. So every change
+to how bodies move or lay out is verified by **watching** it — the Playwright
+snapshots (`web/verify*.mjs`) are not decoration; they are the test that the
+physics is real, and a change that touches soldier motion or layout is not done
+until it has been *seen* and pinned as a reproducible snapshot.
+
+The canonical lesson: a barely-visible idle drift (±6 cm) swung whole cavalry
+charges. The numeric contracts flagged that *something* moved, but it was
+eyeballing it — a drift you can hardly see, yet combat flipped — that exposed
+the cause: `reassign_slots` re-sorts the whole formation every few ticks, so a
+centimetre of jitter could teleport-swap two men a full rank apart. The math
+was a valid sort; the behavior was men blinking across the field. No unit test
+calls that unrealistic. A look does.
+
+That drift is also a permanent **litmus test for non-robust logic**: when a
+6 cm sway swings a battle, the logic has a *cliff* — a hard threshold a hair of
+input flips — and the fix is to remove the cliff, never to silence the drift or
+shrink it until the symptom hides. The reassign cliff was fixed at its source:
+the steer pass records each idle man's sway in `fidget_offset`, and the re-form
+*subtracts* it before sorting, so jitter never reaches the ranks while a fighting
+man (zero offset) sorts byte-for-byte as before — the golden hash, untouched, is
+the proof that combat geometry was not disturbed. The tempting wrong fixes —
+quantizing the sort, or making formations sticky — pass more tests by quietly
+*distorting combat* (stiffer scrums, tipped matchups); a stabilizer that moves
+the golden hash is reshaping fights to go green, which is the one thing never
+allowed. And a red contract is not automatically a regression: the same drift
+revealed trample tests that were only ever passing by seed-luck (their true value
+chaotic across seeds), and deep blocks that *should* bog cavalry down rather than
+let it ride through. The judge is always the same question — *is this the more
+realistic result?* — not the test's colour. See
+`.claude/skills/debug-battle-behavior`.
+
 ## The simulation model — measured quantities and the laws that read them
 
 Soldiers are bodies (position, mass, radius); units are formation FRAMES

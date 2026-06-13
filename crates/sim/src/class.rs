@@ -47,9 +47,15 @@ pub struct UnitClass {
     pub health: f32,
     /// The mount's body pool (mounted only; the horse is the big target).
     pub mount_health: f32,
-    /// Chance to block (melee + missiles, front arc only; still pushed).
+    /// Chance to block (melee + missiles, front arc only; still pushed). The
+    /// shield: a fortress to the front, nothing to the flank or back — this is
+    /// what makes a shielded unit take ~2x the deaths from behind.
     pub block: f32,
-    /// Chance to evade (melee only, no push; zero under crush pressure).
+    /// Chance to evade — dodge/parry (melee AND missiles; no push). Melee evade
+    /// degrades by arc (you can't slip a blow you can't see) and dies under
+    /// crush pressure; missile evade has NO arc (an arrow is seen from any
+    /// quarter), so a shieldless unit's evade shaves the same off front and
+    /// back — it eats arrows about equally from either face.
     pub evade: f32,
     pub training: f32,
     /// Default combat stance (player can toggle): Othismos = press the
@@ -182,7 +188,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             spacing: Vec2::new(0.9, 1.1),
             default_depth: 8,
             health: 2.4, // the armor IS the class: a third more body than the levy, plus the shield
-            block: 0.45,
+            block: 0.45, // a real shield wall sheds ~half the frontal arrows; the back is bare (back ~1.8x deaths)
             evade: 0.08,
             training: 0.75,
             weapons: &[SWORD],
@@ -196,8 +202,8 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             spacing: Vec2::new(1.0, 1.2),
             default_depth: 6,
             health: 1.55, // unarmored: the levy lives by numbers, not body
-            block: 0.15,
-            evade: 0.3,
+            block: 0.35, // a light shield: real frontal cover, ~1.5x deaths from behind
+            evade: 0.15, // a shield, not a skirmisher's legs: modest dodge on top of the block
             training: 0.55,
             weapons: &[SPEAR],
             ..foot
@@ -209,8 +215,8 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             spacing: Vec2::new(1.5, 1.4),
             default_depth: 4,
             health: 1.49,
-            block: 0.2,
-            evade: 0.22,
+            block: 0.0, // a two-hander: no shield at all — arrows and blows land the same from any face
+            evade: 0.35,
             training: 0.8,
             stance: crate::unit::Stance::Fence,
             weapons: &[LONG_SWORD],
@@ -224,7 +230,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             spacing: Vec2::new(0.8, 1.0),
             default_depth: 10,
             health: 2.2, // phalangites wore armor too — the wall is bodies AND bronze
-            block: 0.35,
+            block: 0.55, // the great shield: the firmest front-arc wall, ~2.2x deaths from behind
             evade: 0.08,
             training: 0.8,
             charge: false,
@@ -240,8 +246,8 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             spacing: Vec2::new(1.2, 1.3),
             default_depth: 4,
             health: 1.17,
-            block: 0.1,
-            evade: 0.25,
+            block: 0.0, // no shield: a dodge, not a wall — same from any face
+            evade: 0.28,
             stance: crate::unit::Stance::Fence,
             charge: false,
             weapons: &[SWORD],
@@ -256,8 +262,8 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             spacing: Vec2::new(1.6, 1.6),
             default_depth: 4,
             health: 1.17,
-            block: 0.12,
-            evade: 0.35,
+            block: 0.0, // no shield: pure dodge, same from any face
+            evade: 0.42, // the nimblest foot — slips both blows and arrows, any quarter
             training: 0.5,
             stance: crate::unit::Stance::Fence,
             charge: false,
@@ -277,7 +283,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             health: 2.2, // phalangites wore armor too — the wall is bodies AND bronze
             mount_health: 8.45, // a horse is a LOT of animal: short blades
                                // chip at it while the rider stays safe
-            block: 0.25,
+            block: 0.25, // a horseman's shield: solid frontal cover (~1.7x deaths from the flank/rear)
             evade: 0.12,
             training: 0.75,
             stance: crate::unit::Stance::Fence,
@@ -297,8 +303,8 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             default_depth: 5,
             health: 1.3,
             mount_health: 6.5,
-            block: 0.1,
-            evade: 0.25,
+            block: 0.0, // no shield: speed and a dodge, same from any face
+            evade: 0.32,
             training: 0.65,
             stance: crate::unit::Stance::Fence,
             charge: false,
@@ -313,10 +319,25 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             spacing: Vec2::new(2.0, 2.0),
             default_depth: 4,
             health: 1.17,
-            block: 0.05,
-            evade: 0.15,
+            block: 0.0, // no shield wall; same from any face
+            evade: 0.18,
             stance: crate::unit::Stance::Fence,
             charge: false,
+            weapons: &[DAGGER],
+            ..foot
+        },
+        Peasant => UnitClass {
+            drain_mult: 1.5, // a levy's nerve is thin — first blood and they waver
+            speed_mult: 1.05,
+            soldier_radius: 0.32,
+            mass: 0.9,
+            brace_mult: 1.0, // no drill, no brace: a mob, not a wall
+            spacing: Vec2::new(1.1, 1.3),
+            default_depth: 6,
+            health: 1.0, // a smock, no armor: the frailest body on the field
+            block: 0.0, // no shield at all — arrows and blows land the same from any face
+            evade: 0.12, // untrained: a clumsy flinch, not a skirmisher's slip
+            training: 0.3,
             weapons: &[DAGGER],
             ..foot
         },

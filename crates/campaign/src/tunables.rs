@@ -25,6 +25,7 @@ pub fn march_mult(class: UnitClassId) -> f32 {
         ShockCavalry => 2.2,
         HorseArchers => 2.4,
         ArtilleryCrew => 0.7,
+        Peasant => 1.05,
     }
 }
 
@@ -125,6 +126,7 @@ pub fn upkeep_per_soldier_milligold(class: UnitClassId) -> u32 {
         ShockCavalry => 60,
         HorseArchers => 55,
         ArtilleryCrew => 40,
+        Peasant => 4, // they feed themselves off the land
     }
 }
 pub const UPKEEP_UNIT_BASE: u32 = 4; // gold/day per roster entry

@@ -190,10 +190,11 @@ varying vec2 vUV;
 uniform sampler2D uAtlas;
 void main() {
   vec4 c = texture2D(uAtlas, vUV);
-  if (c.a < 0.3) discard;
+  // Match the 2D renderer's gentle cutoff: a high alpha-test against the
+  // mip-minified atlas makes thin soldier sprites dip under the threshold and
+  // blink out as the camera drifts when zoomed out. Keep them solid.
+  if (c.a < 0.04) discard;
   gl_FragColor = c;
-
-
 }`;
 
 // --- Overlay shader: world-space vertex-coloured tris/lines for attack-arc
@@ -335,6 +336,13 @@ export class BattleRenderer3D {
     this.scene.useRightHandedSystem = true; // x east, y north, z up
     this.scene.clearColor = new Color4(0.06, 0.07, 0.06, 1);
     this.scene.skipPointerMovePicking = true;
+    // We do all selection/camera input ourselves off the legacy mouse events
+    // (see input.ts). Babylon's scene input preventDefault()s every pointerdown/
+    // up, which suppresses the compatibility mouse events those handlers rely on
+    // — so left-click select and right-drag pan would silently die. Let the
+    // pointer events through; Babylon does no picking of its own here.
+    this.scene.preventDefaultOnPointerDown = false;
+    this.scene.preventDefaultOnPointerUp = false;
 
     this.camera = new FreeCamera('battle', new Vector3(0, 0, 1000), this.scene);
     this.camera.mode = BCamera.ORTHOGRAPHIC_CAMERA;

@@ -30,6 +30,7 @@ fn short(c: UnitClassId) -> &'static str {
         UnitClassId::ShockCavalry => "CAV",
         UnitClassId::HorseArchers => "HAR",
         UnitClassId::ArtilleryCrew => "ART",
+        UnitClassId::Peasant => "PEA",
     }
 }
 
@@ -131,7 +132,11 @@ fn the_counter_web_holds() {
         (ShockCavalry, HeavyInfantry, 0, "horse rides over swords"),
         (ShockCavalry, HorseArchers, 0, "lancers catch the bow-horse"),
         (HorseArchers, HeavyInfantry, 0, "unsupported foot loses to the kite"),
-        (HorseArchers, Phalanx, 1, "but a patient wall outlasts the quiver"),
+        // HorseArchers vs Phalanx is split into its two real mechanics — the
+        // quiver-vs-shield-wall kite (a_phalanx_outlasts_the_quiver...) and the
+        // frontal charge (a_frontal_charge_into_pikes...) — because the head-on
+        // duel here is neither: the bow-horse closes to melee and the quiver
+        // never empties, so a single verdict mislabels the matchup.
         (ShockCavalry, Archers, 0, "horse eats archers"),
         (ArtilleryCrew, Skirmishers, 1, "a crew alone loses to anyone"),
     ];

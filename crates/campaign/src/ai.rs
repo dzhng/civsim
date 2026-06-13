@@ -128,7 +128,9 @@ fn think(map: &WorldMap, st: &mut CampaignState, f: FactionId) {
             for r in &a.roster {
                 use UnitClassId::*;
                 match r.class {
-                    HeavyInfantry | Phalanx | LongSwords | LightInfantry => line += r.count as u64,
+                    HeavyInfantry | Phalanx | LongSwords | LightInfantry | Peasant => {
+                        line += r.count as u64
+                    }
                     Archers | Skirmishers | ArtilleryCrew => ranged += r.count as u64,
                     ShockCavalry | HorseArchers => cav += r.count as u64,
                 }

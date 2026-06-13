@@ -370,24 +370,43 @@ impl Sim {
         let uv = self.soldier_unit[victim] as usize;
         let vstats = crate::class::class_stats(self.units[uv].class);
         let incoming = wrap_angle(vel.y.atan2(vel.x) + std::f32::consts::PI);
-        self.hit_dir[victim] = incoming;
-        self.hit_ttl[victim] = 3.0;
-        let bucket = crate::unit::bearing_bucket(incoming);
-        self.units[uv].contact_hist[bucket] += 0.5;
-        self.units[uv].recent_missiles += 1.0;
 
-        // Shields block arrows from the front arc; nothing blocks a stone.
-        // NOT cohesion-scaled (unlike melee block): a shield is between you
-        // and the sky however ragged the dressing — without this, fraying
-        // lines lost their shields exactly when the volleys mattered, and
-        // armored blocks melted FASTER than loose skirmish lines.
+        // Shields block arrows from the front arc BEFORE anything registers: a
+        // cleanly-shielded arrow neither wounds nor frightens nor turns a head
+        // — it thunks off the boss and is gone. Nothing blocks a stone. NOT
+        // cohesion-scaled (unlike melee block): a shield is between you and the
+        // sky however ragged the dressing — without this, fraying lines lost
+        // their shields exactly when the volleys mattered, and armored blocks
+        // melted FASTER than loose skirmish lines. The early return is also why
+        // a shield wall doesn't BREAK under frontal fire it's shrugging off:
+        // the blocked arrows never reach recent_missiles, so the morale drain
+        // tracks the volleys that actually land, not the volleys that arrive.
         if !heavy {
             let shielded =
                 wrap_angle(incoming - self.facings[victim]).abs() < crate::combat::FRONT_ARC;
             if shielded && self.rng.chance(vstats.block) {
                 return;
             }
-        } else {
+        }
+
+        self.hit_dir[victim] = incoming;
+        self.hit_ttl[victim] = 3.0;
+        let bucket = crate::unit::bearing_bucket(incoming);
+        self.units[uv].contact_hist[bucket] += 0.5;
+        self.units[uv].recent_missiles += 1.0;
+
+        // Dodge: an arrow sidestepped or knocked from the air. UNLIKE the
+        // shield (front-arc only), a dodge has NO arc — a missile is seen
+        // coming from any quarter — so it shaves the SAME off front and back.
+        // It is the only missile defense the shieldless have, which is why a
+        // nimble skirmisher (high evade, no block) eats arrows about equally
+        // from either face while a shield wall is a fortress only to its front.
+        // Cohesion-scaled like its melee twin; stones can't be dodged.
+        if !heavy && self.rng.chance(vstats.evade * self.units[uv].cohesion) {
+            return;
+        }
+
+        if heavy {
             // The stone bowls men over along its path.
             self.stun[victim] = self.stun[victim].max(1.0);
             let d = dir(vel.y.atan2(vel.x));

@@ -295,6 +295,7 @@ mod tests {
             recent_missiles: 0.0,
             losing_push: 0.0,
             centroid: Vec2::ZERO,
+            at_ease: false,
             counter_press: 0.0,
             mass_advance: 0.0,
             final_facing: None,

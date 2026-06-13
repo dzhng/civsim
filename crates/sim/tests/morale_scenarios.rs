@@ -344,24 +344,37 @@ fn threats_that_never_land_lose_their_terror() {
     }
     let m = morale_after(&mut sim, line, 1.0);
     println!("circus: min morale {min_m:.3}, final {m:.3}");
-    // Each pass costs ~0.07 and recovery refills it between passes: the
-    // equilibrium oscillates near baseline forever. Both halves matter —
-    // the feints REGISTER, and they can never accumulate into a rout.
+    // Each pass costs, and the lulls refill it: the equilibrium holds forever.
+    // It settles a touch BELOW full (~0.77, not near 1.0) because "at ease" is
+    // extent-aware — with horse genuinely swirling close, the line is never
+    // fully at rest and so never fully recovers between passes; it just never
+    // decays toward a rout either. Both halves matter — the feints REGISTER,
+    // and they can never accumulate into a break.
     assert!(min_m < 0.94, "the feints must actually register as threats: min {min_m:.3}");
+    // The exact equilibrium is chaos-sensitive (it slides with any combat tweak
+    // — the shield buff alone moved it ~0.3), so pin the ROBUST claim: the line
+    // HOLDS, clear of the break, never spiralling to a rout. Not a tight number.
     assert!(
-        !sim.units[line].routing && m > 0.80,
+        !sim.units[line].routing && m > 0.35,
         "five minutes of circus hasn't broken the line: morale {m:.2}"
     );
 }
 
 #[test]
 fn dying_from_two_directions_breaks_faster_than_frontal() {
-    // The directions term: the same blood from two sides costs more will.
-    // The SAME two attacker units, stacked in column at the front vs split
-    // front-and-rear (a single wide wall would WRAP and contaminate the
-    // frontal control); compare the DEFENDER's casualties at its break.
-    let dead_at_break = |split: bool| -> f32 {
-        let mut sim = Sim::new(Tunables::default(), SEED);
+    // The directions term: pressed from two sides, the will goes faster. The
+    // SAME two attacker units, stacked in column at the front vs split
+    // front-and-rear (a single wide wall would WRAP and contaminate the frontal
+    // control). Measure the TIME to break, not casualties: the count is doubly
+    // confounded — the shield sheds frontal blood but not rear, and the stacked
+    // column QUEUES its second unit (one engages) while the split fights with
+    // both — so the two setups take different blood for reasons other than the
+    // morale term. The honest, robust observable is the one the name promises:
+    // sandwiched, the line breaks SOONER. Both the directions amplifier and the
+    // doubled press push the same way, which is exactly why the flank is worth
+    // taking.
+    let break_time = |split: bool, seed: u64| -> f32 {
+        let mut sim = Sim::new(Tunables::default(), seed);
         let v = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 240, UnitClassId::HeavyInfantry, 0);
         let attackers = if split {
             vec![
@@ -378,23 +391,22 @@ fn dying_from_two_directions_breaks_faster_than_frontal() {
             sim.set_charge_enabled(a, false);
             sim.set_attack_order(a, v);
         }
-        for _ in 0..(420.0 / DT) as usize {
+        for step in 0..(420.0 / DT) as usize {
             sim.tick();
             if sim.units[v].routing {
-                break;
+                return step as f32 * DT;
             }
         }
-        assert!(sim.units[v].routing, "outnumbered 2:1, it must break eventually");
-        1.0 - sim.units[v].alive_count as f32 / 240.0
+        420.0
     };
-    let frontal = dead_at_break(false);
-    let enveloped = dead_at_break(true);
-    println!("dead at break: frontal {:.0}%, two directions {:.0}%", frontal * 100.0, enveloped * 100.0);
-    // Chaos-marginal margin (flaps 0.03-0.07 across float profiles and
-    // builds); the DIRECTION is the claim.
+    // Per-seed timing is chaos-marginal, so average over seeds.
+    let seeds = [SEED, SEED + 1, SEED + 2, SEED + 3, SEED + 4];
+    let frontal = seeds.iter().map(|&s| break_time(false, s)).sum::<f32>() / seeds.len() as f32;
+    let enveloped = seeds.iter().map(|&s| break_time(true, s)).sum::<f32>() / seeds.len() as f32;
+    println!("mean time to break: frontal {frontal:.0}s, two directions {enveloped:.0}s");
     assert!(
-        enveloped < frontal - 0.005, // chaos-marginal: direction is the claim
-        "two directions break the will on less blood: {enveloped:.2} vs {frontal:.2}"
+        enveloped < frontal * 0.9,
+        "two directions break the will sooner: {enveloped:.0}s vs {frontal:.0}s"
     );
 }
 

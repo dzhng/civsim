@@ -15,6 +15,16 @@ use crate::terrain::{stagger01, Terrain};
 use crate::tunables::{Pace, Tunables, DT};
 use crate::unit::{bearing_bucket, bucket_bearing, reassign_slots, slot_local, OrderMode, Unit};
 
+/// Idle-fidget drift amplitude (m, peak ≈ this) and glance drift (rad, peak). A
+/// standing man is never a fence-post: he drifts off his slot and his eye
+/// wanders, off the sim RNG (stagger01) so it's reproducible. Gated only on
+/// being idle — NOT on the enemy's distance — so the line never tightens or
+/// untightens as a foe drifts in and out of range; he simply stops the moment
+/// he moves or fights. The drift is real, so a charge that lands on a still-idle
+/// line meets it a hair loose; that is the (small, accepted) cost.
+const IDLE_FIDGET: f32 = 0.12;
+const IDLE_GLANCE: f32 = 0.18;
+
 pub struct Sim {
     pub tun: Tunables,
     /// Interleaved soldier positions [x0, y0, x1, y1, ...].
@@ -104,6 +114,13 @@ pub struct Sim {
     pub soldier_unit: Vec<u32>,
     /// Formation slot per soldier; remapped while a unit pivots/re-forms.
     pub soldier_slot: Vec<u32>,
+    /// This tick's idle-fidget displacement per soldier (world, zero unless the
+    /// man is currently fidgeting in place). Recorded by the steer pass and
+    /// SUBTRACTED by the re-form sort, so the deliberate liveliness drift never
+    /// reaches formation logic — a standing man's 6 cm sway can't reorder the
+    /// ranks. Combat men carry zero here, so the re-form is byte-for-byte the
+    /// clean-formation sort; nothing in a fight is perturbed.
+    pub(crate) fidget_offset: Vec<Vec2>,
     pub units: Vec<Unit>,
     pub terrain: Terrain,
     pub projectiles: crate::missiles::Projectiles,
@@ -161,6 +178,7 @@ impl Sim {
             alive: Vec::new(),
             soldier_unit: Vec::new(),
             soldier_slot: Vec::new(),
+            fidget_offset: Vec::new(),
             units: Vec::new(),
             terrain: Terrain::flat(1, 1, 4.0, Vec2::ZERO),
             projectiles: crate::missiles::Projectiles::default(),
@@ -251,6 +269,7 @@ impl Sim {
             recent_missiles: 0.0,
             losing_push: 0.0,
             centroid: anchor,
+            at_ease: false,
             counter_press: 0.0,
             mass_advance: 0.0,
             final_facing: None,
@@ -300,6 +319,7 @@ impl Sim {
             self.alive.push(1);
             self.soldier_unit.push(unit_index as u32);
             self.soldier_slot.push(s as u32);
+            self.fidget_offset.push(Vec2::ZERO);
         }
         self.units.push(unit);
         unit_index
@@ -468,7 +488,7 @@ impl Sim {
         let u = &mut self.units[unit];
         u.files = files;
         u.files_eff = files;
-        reassign_slots(&self.units[unit], &self.positions, &self.alive, &mut self.soldier_slot);
+        reassign_slots(&self.units[unit], &self.positions, &self.fidget_offset, &self.alive, &mut self.soldier_slot);
     }
 
     /// Reform: halt, re-seat the frame on the men, accelerated recovery.
@@ -488,7 +508,7 @@ impl Sim {
         u.reform_timer = 8.0;
         // Re-seat the frame on the men's actual center of mass.
         u.anchor = u.centroid + dir(u.facing) * (0.5 * u.depth());
-        reassign_slots(&self.units[unit], &self.positions, &self.alive, &mut self.soldier_slot);
+        reassign_slots(&self.units[unit], &self.positions, &self.fidget_offset, &self.alive, &mut self.soldier_slot);
     }
 
     /// Order the whole unit onto its secondary weapon (or back to weapons
@@ -594,19 +614,19 @@ impl Sim {
             }
         }
 
-        // Re-form slots while pivoting or after casualties opened gaps —
-        // and at a slow drumbeat while FIGHTING (vacancy back-fill): a man
-        // who stepped out vacates his slot, the man behind relabels forward
-        // and marches up, arrives beside the scrum, reads high fight
-        // density, and steps out himself. The cascade is rate-limited by
-        // actual walking.
+        // Re-form slots while pivoting or after casualties opened gaps — and at
+        // a slow drumbeat while FIGHTING (vacancy back-fill): a man who stepped
+        // out vacates his slot, the man behind relabels forward and marches up,
+        // arrives beside the scrum, reads high fight density, and steps out
+        // himself. The cascade is rate-limited by actual walking. The re-form's
+        // sort is jitter-stable (see reassign_slots), so idle drift in the rear
+        // ranks can't churn the line and swing the fight.
         for ui in 0..self.units.len() {
             let needs = self.units[ui].pivoting
                 || self.units[ui].deaths_since_reform * 50 > self.units[ui].alive_count.max(1)
-                || (self.units[ui].engaged > 0
-                    && self.tick_count % 60 == (ui as u64) % 60);
+                || (self.units[ui].engaged > 0 && self.tick_count % 60 == (ui as u64) % 60);
             if needs {
-                reassign_slots(&self.units[ui], &self.positions, &self.alive, &mut self.soldier_slot);
+                reassign_slots(&self.units[ui], &self.positions, &self.fidget_offset, &self.alive, &mut self.soldier_slot);
                 self.units[ui].deaths_since_reform = 0;
             }
         }
@@ -636,9 +656,39 @@ impl Sim {
         }
         self.contact_facing(&measures, dt);
         self.integrate_units(&measures, dt);
+        self.mark_at_ease(); // fresh centroids; before morale reads it
         self.run_morale(dt);
 
         self.tick_count += 1;
+    }
+
+    /// Refresh each unit's `at_ease` flag: no living, non-routing enemy whose
+    /// formation comes within at_ease_range. EXTENT-AWARE — the gap is measured
+    /// edge to edge (centroid distance less each unit's bounding half-radius),
+    /// because "at ease" is a fact about the nearest steel, not about centres: a
+    /// 200-wide line whose flank a column nearly touches is NOT at ease even if
+    /// the centroids sit far apart, and a deep block is threatened the moment
+    /// its front rank is in reach, not when its middle is. The one shared notion
+    /// of "safe" — it gates morale recovery here and the relaxed stance in the
+    /// renderer (same range), so a unit at ease in one sense is at ease in all.
+    /// A fleeing enemy is no threat and doesn't count. Cheap O(units^2).
+    fn mark_at_ease(&mut self) {
+        let snap: Vec<(Vec2, u32, bool, f32)> = self
+            .units
+            .iter()
+            .map(|u| {
+                let r = 0.5 * u.width().hypot(u.depth()); // formation bounding radius
+                (u.centroid, u.team, u.routing || u.alive_count == 0, r)
+            })
+            .collect();
+        let range = self.tun.at_ease_range;
+        for i in 0..self.units.len() {
+            let (ci, ti, _, ri) = snap[i];
+            let threatened = snap.iter().any(|&(cj, tj, gone, rj)| {
+                tj != ti && !gone && (ci - cj).len() - ri - rj < range
+            });
+            self.units[i].at_ease = !threatened;
+        }
     }
 
     /// Anchor intelligence: plan around impassables, squeeze through
@@ -723,7 +773,7 @@ impl Sim {
         };
         if new_eff != files_eff {
             self.units[ui].files_eff = new_eff;
-            reassign_slots(&self.units[ui], &self.positions, &self.alive, &mut self.soldier_slot);
+            reassign_slots(&self.units[ui], &self.positions, &self.fidget_offset, &self.alive, &mut self.soldier_slot);
         }
         if target < files {
             // Center the squeezed frame in the gap.
@@ -1065,6 +1115,7 @@ impl Sim {
             front_clear,
             facings,
             soldier_slot,
+            fidget_offset,
             terrain,
             tick_count,
             alive,
@@ -1215,6 +1266,27 @@ impl Sim {
                 // and the formation frays the longer it runs.
                 max_sp = max_sp.min((0.62 + 0.44 * stagger01(i, 0xCAFE)) * surge_sp);
                 let mut steer_to = to;
+                // Idle fidget: a standing man drifts off slot and his glance
+                // wanders (below, in the facing). Gated only on idle — no enemy
+                // test — so there's no tighten/untighten as a foe nears; he
+                // holds the drift until he marches or fights. tick/4 holds each
+                // offset ~a third of a second.
+                let idle = u.move_target.is_none() && u.engaged == 0
+                    && hit_ttl[i] <= 0.0 && err < 0.6;
+                // Only a MINORITY shift at any moment — a standing formation is
+                // mostly crisp, a few men easing their weight off-slot while the
+                // rest hold exactly. A per-man roll (re-cast each window) picks
+                // who, so the unit never dissolves into uniform shimmer.
+                let fidgeting = idle && stagger01(i * 7 + 5, tick_now / 4) > 0.65;
+                fidget_offset[i] = if fidgeting {
+                    let fx = stagger01(i * 3, tick_now / 4) - 0.5;
+                    let fy = stagger01(i * 3 + 1, tick_now / 4) - 0.5;
+                    let off = Vec2::new(fx, fy) * IDLE_FIDGET;
+                    steer_to = to + off;
+                    off // recorded so the re-form sort can subtract it (see field)
+                } else {
+                    Vec2::ZERO
+                };
                 // A man whose unit is fighting — or who is himself being
                 // struck — closes to his own weapon's distance; nobody stands
                 // being poked from a hand's-breadth beyond his reach.
@@ -1319,6 +1391,10 @@ impl Sim {
                     hit_dir[i]
                 } else if err > 0.5 {
                     v.y.atan2(v.x)
+                } else if idle {
+                    // Standing easy: the glance drifts, so a line of facings is
+                    // never machine-perfect (and never snaps back when a foe nears).
+                    u.facing + (stagger01(i * 3 + 2, tick_now / 4) - 0.5) * IDLE_GLANCE
                 } else {
                     u.facing
                 };

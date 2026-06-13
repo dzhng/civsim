@@ -20,6 +20,9 @@ pub enum UnitClassId {
     ShockCavalry,
     HorseArchers,
     ArtilleryCrew,
+    /// Levy with a dagger and no shield — cheap cannon fodder. Added last so the
+    /// existing class indices (shared with the wasm/web class id table) hold.
+    Peasant,
 }
 
 /// Gold cost of a full unit at duel strength. Anchors per David: light
@@ -38,10 +41,11 @@ pub fn unit_cost(c: UnitClassId) -> u32 {
         UnitClassId::ShockCavalry => 1400,
         UnitClassId::HorseArchers => 1100,
         UnitClassId::ArtilleryCrew => 700,
+        UnitClassId::Peasant => 175, // a sack of grain and a knife — cannon fodder
     }
 }
 
-pub const ALL_CLASSES: [UnitClassId; 9] = [
+pub const ALL_CLASSES: [UnitClassId; 10] = [
     UnitClassId::HeavyInfantry,
     UnitClassId::LightInfantry,
     UnitClassId::LongSwords,
@@ -51,6 +55,7 @@ pub const ALL_CLASSES: [UnitClassId; 9] = [
     UnitClassId::ShockCavalry,
     UnitClassId::HorseArchers,
     UnitClassId::ArtilleryCrew,
+    UnitClassId::Peasant,
 ];
 
 /// A battle map as a data-only paint program over a flat terrain grid.

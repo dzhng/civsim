@@ -54,8 +54,9 @@ fn archery_softens_advances_but_gates_nobody() {
     let (cav, _) = kills_before_contact(UnitClassId::ShockCavalry, 120);
     println!("tolls: heavy {heavy}/240, light {light}/220, cav {cav}/120");
     assert!(
-        (15..=55).contains(&heavy),
-        "a heavy advance pays a real but survivable toll (8-22%): {heavy}/240"
+        (4..=40).contains(&heavy),
+        "a heavy advance pays a real but small toll — the shield wall sheds \
+         most of the frontal arrows: {heavy}/240"
     );
     assert!(
         (4..=34).contains(&light), // lights lost their over-armored hp in the class rebalance: arrows bite them honestly now
@@ -78,13 +79,73 @@ fn shields_are_a_front_arc_fact_for_arrows() {
         side as f32 > front as f32 * 2.0,
         "the side arc is past the shields too: side {side} vs front {front}"
     );
-    // Lights carry little shield: the aspect barely matters.
+    // Lights carry a real shield, but a light one: a meaningful front/back gap,
+    // smaller than the heavy wall's.
     let lf = kills_by_aspect(UnitClassId::LightInfantry, 220, Vec2::new(0.0, 90.0));
     let lr = kills_by_aspect(UnitClassId::LightInfantry, 220, Vec2::new(0.0, -90.0));
     println!("light under fire 30s: front {lf}, rear {lr}");
     assert!(
-        (lr as f32) < (lf as f32) * 2.5 + 6.0,
-        "little shield, little arc: rear {lr} vs front {lf}"
+        lr as f32 > lf as f32 * 1.2,
+        "a light shield still sheds the front: rear {lr} vs front {lf}"
+    );
+
+    // The SHIELDLESS take ~the SAME from any face — a dodge has no arc, and
+    // they have no shield to make a front of. The residual gap (a back-shot mob
+    // frays a little harder) is FAR below a shield's: peasants land near 1x
+    // under heavy fire, vs the heavy wall's ~3-4x above. The claim is the
+    // CONTRAST — no shield, no real front.
+    let pf = kills_by_aspect(UnitClassId::Peasant, 220, Vec2::new(0.0, 90.0));
+    let pr = kills_by_aspect(UnitClassId::Peasant, 220, Vec2::new(0.0, -90.0));
+    println!("shieldless peasant under fire 30s: front {pf}, rear {pr}");
+    let pea_ratio = pr as f32 / pf.max(1) as f32;
+    let heavy_ratio = rear as f32 / front.max(1) as f32;
+    assert!(
+        pea_ratio < 1.7 && pea_ratio < heavy_ratio * 0.6,
+        "no shield, no real front: peasant {pea_ratio:.2} vs heavy wall {heavy_ratio:.2}"
+    );
+}
+
+#[test]
+fn a_phalanx_outlasts_the_quiver_frontally_but_not_from_behind() {
+    // The balance of quiver depth (24/bow) and arrow damage (0.5) against the
+    // shield wall, morale ON. A bow-horse that stands off and empties itself
+    // into a phalanx's FRONT runs DRY before it breaks the wall: shields shed
+    // most of the volleys (the blocked ones never even register as a threat)
+    // and drilled troops eat the rest without bolting. The SAME fire into the
+    // unshielded BACK routs it long before the quiver is spent. This is the
+    // contract horse-archers live by — they beat formed foot by working a
+    // flank, never by out-shooting a braced front.
+    //
+    // Neither unit is ordered: the HAR holds at range and auto-fires, the
+    // phalanx stands. (A real phalanx would close or wheel; this isolates the
+    // pure attrition-vs-quiver balance with the line pinned in the worst case.)
+    let kite = |face_them: bool| -> (bool, Option<u32>) {
+        let mut sim = Sim::new(Tunables::default(), SEED);
+        let facing = if face_them { FRAC_PI_2 } else { -FRAC_PI_2 };
+        let pik = sim.spawn_class(Vec2::new(0.0, 0.0), facing, 200, UnitClassId::Phalanx, 0);
+        let har = sim.spawn_class(Vec2::new(0.0, 70.0), -FRAC_PI_2, 160, UnitClassId::HorseArchers, 1);
+        let mut dry_at = None;
+        for step in 0..(220.0 / DT) as usize {
+            sim.tick();
+            if dry_at.is_none() && sim.units[har].ammo == 0 {
+                dry_at = Some((step as f32 * DT) as u32);
+            }
+            if sim.units[pik].routing {
+                return (true, dry_at);
+            }
+        }
+        (false, dry_at)
+    };
+    let (front_routed, front_dry) = kite(true);
+    let (back_routed, _) = kite(false);
+    println!("FRONT routed={front_routed} (quiver dry at {front_dry:?}s); BACK routed={back_routed}");
+    assert!(
+        front_dry.is_some() && !front_routed,
+        "frontally the bow-horse runs dry before it breaks the shield wall (dry={front_dry:?}, routed={front_routed})"
+    );
+    assert!(
+        back_routed,
+        "the same fire into the unshielded back routs the phalanx before the quiver is spent"
     );
 }
 

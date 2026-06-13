@@ -134,6 +134,12 @@ pub struct Unit {
     pub losing_push: f32,
     /// Mean position of living soldiers (kept fresh; the rout frame).
     pub centroid: Vec2,
+    /// No living, non-routing enemy within at_ease_range of this unit's
+    /// formation (centroid distance less each unit's half-extent, so a long
+    /// line's near edge counts). Drives morale recovery; the renderer derives
+    /// the rest pose from the same range. Refreshed each tick (see
+    /// Sim::mark_at_ease). Cheap O(units^2).
+    pub at_ease: bool,
     /// Mean received push OPPOSING the facing (m/s, press EMAs): the
     /// crowd's measured answer to the unit's drive — the braking half of
     /// the trample force balance. All sources count: the wall brakes the
@@ -277,20 +283,41 @@ impl Unit {
 }
 
 /// Give every soldier the nearest slot in the unit's current frame: sort by
-/// depth behind the anchor, chunk into ranks, sort each rank laterally.
-/// O(n log n), and run every tick while pivoting so ranks relabel themselves
-/// around mostly stationary soldiers.
-pub(crate) fn reassign_slots(u: &Unit, positions: &[f32], alive: &[u8], soldier_slot: &mut [u32]) {
+/// depth behind the anchor, chunk into ranks, sort each rank laterally, pack
+/// onto slots `0..alive_count`. This is the formation re-form — it flows the
+/// line with whatever has happened to it: a charge shoves men back and they
+/// relabel to nearer slots (the line absorbs, never an unnaturally rigid wall);
+/// the dead vacate slots and the survivors re-pack to fill them (when a column
+/// breaks through the middle, the men on both sides swamp the breach). Run on
+/// pivot, on casualties, and at a slow drumbeat while engaged. O(n log n).
+///
+/// `fidget_offset[i]` (the idle-liveliness sway the steer pass added in place)
+/// is SUBTRACTED before sorting, so the sort sees each man at his true settled
+/// position. This is the whole reason a standing line stays stable: a raw sort
+/// has no memory, so a man's ~6 cm idle drift could flip two near-level
+/// neighbours' order and SWAP their slots — a full spacing of pointless motion
+/// that cascades and, in a fight, flips whether a charge tramples through or
+/// stalls (see README, "Visual tests are the ground truth"). Removing the
+/// deterministic drift at the source is EXACT: a fighting man carries zero
+/// offset, so the re-form is byte-for-byte the clean-formation sort and no
+/// combat geometry is touched — unlike quantizing the keys, which can't help
+/// but reshape dense scrums and tip matchups that should never move.
+pub(crate) fn reassign_slots(
+    u: &Unit,
+    positions: &[f32],
+    fidget_offset: &[Vec2],
+    alive: &[u8],
+    soldier_slot: &mut [u32],
+) {
     let f = dir(u.facing);
     let r = Vec2::new(f.y, -f.x);
     let mut order: Vec<(f32, f32, u32)> = (0..u.count)
         .filter(|&s| alive[u.start + s] == 1)
         .map(|s| {
             let i = u.start + s;
-            let p = Vec2::new(positions[2 * i], positions[2 * i + 1]) - u.anchor;
-            let depth = -p.dot(f);
-            let lateral = p.dot(r);
-            (depth, lateral, s as u32)
+            let pos = Vec2::new(positions[2 * i], positions[2 * i + 1]) - fidget_offset[i];
+            let p = pos - u.anchor;
+            (-p.dot(f), p.dot(r), s as u32)
         })
         .collect();
     order.sort_by(|a, b| a.0.total_cmp(&b.0));

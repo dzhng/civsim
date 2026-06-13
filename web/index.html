@@ -68,11 +68,14 @@
     #toolbar button:disabled { opacity: 0.4; cursor: default; }
     #toolbar .sep { width: 1px; height: 18px; background: #3a3f4d; }
     /* Unit banner: one component = standard (SVG flag) + health/cohesion bars + status chips. */
-    .ubanner { position: absolute; width: 56px; display: none; will-change: transform; }
+    .ubanner {
+      position: absolute; width: 56px; display: none; will-change: transform;
+      flex-direction: column; align-items: center; left: 0; top: 0;
+    }
     .ubanner.sel { filter: drop-shadow(0 0 2.5px rgba(255,255,255,0.9)); }
     .ubanner-flag { display: block; width: 56px; height: 24px; overflow: visible; }
-    .ubanner.sel .ubanner-flag { transform: scale(1.12); transform-origin: 28px 24px; }
-    .ubanner-bars { width: 52px; margin: 1px 2px 0; }
+    .ubanner.sel .ubanner-flag { transform: scale(1.12); transform-origin: 28px 1px; }
+    .ubanner-bars { width: 52px; margin: 0 2px 1px; }
     .ubar { height: 3px; background: rgba(10,10,12,0.55); border-radius: 2px; overflow: hidden; margin-bottom: 1px; }
     .ubar > div { height: 100%; }
     .ubar.coh > div { background: #d9c75a; }

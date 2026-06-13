@@ -42,6 +42,9 @@ const ZOOM_FLAT = 6;
 const ZOOM_3D = 18;
 const ZOOM_SWAP = 12;
 const MAX_PITCH = 0.42;
+// Soldier mesh buckets: [0, REST_BUCKET) fighting pose, [REST_BUCKET, 2x) at ease.
+const REST_BUCKET = CLASS_LOOK.length * 2;
+const FRAME_REST = 6; // sim frame value the scene tags an at-ease (standing) man with
 
 const smoothstep = (a: number, b: number, x: number) => {
   const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
@@ -357,23 +360,28 @@ export class BattleRenderer3D {
     this.ground.material = this.groundMat;
     this.ground.freezeWorldMatrix();
 
-    // 3D soldier meshes: one per (class, team). Geometry is shared per
-    // class (built once), applied to a blue and a red mesh.
-    for (let cls = 0; cls < CLASS_LOOK.length; cls++) {
-      const geom = classGeometry(cls);
-      for (let t = 0; t < 2; t++) {
-        const mesh = new Mesh(`soldier_${cls}_${t}`, this.scene);
-        geom.applyToMesh(mesh);
-        const mat = new StandardMaterial(`soldier_${cls}_${t}`, this.scene);
-        const c = TEAM_COLOR[t];
-        mat.diffuseColor = new Color3(c[0], c[1], c[2]);
-        mat.specularColor = new Color3(0.05, 0.05, 0.05);
-        mesh.material = mat;
-        mesh.alwaysSelectAsActiveMesh = true;
-        mesh.isVisible = false;
-        this.classMesh[cls * 2 + t] = mesh;
-        this.classMats[cls * 2 + t] = new Float32Array(0);
-        this.classN[cls * 2 + t] = 0;
+    // 3D soldier meshes: one per (class, team) in two poses — a fighting pose
+    // and an at-ease pose (REST_BUCKET offset), so a resting man can stand his
+    // pike vertical and level it again to fight. Geometry per (class, pose) is
+    // built once and shared by the blue and red mesh.
+    for (let pose = 0; pose < 2; pose++) {
+      for (let cls = 0; cls < CLASS_LOOK.length; cls++) {
+        const geom = classGeometry(cls, pose === 1);
+        for (let t = 0; t < 2; t++) {
+          const bucket = pose * REST_BUCKET + cls * 2 + t;
+          const mesh = new Mesh(`soldier_${pose}_${cls}_${t}`, this.scene);
+          geom.applyToMesh(mesh);
+          const mat = new StandardMaterial(`soldier_${cls}_${t}`, this.scene);
+          const c = TEAM_COLOR[t];
+          mat.diffuseColor = new Color3(c[0], c[1], c[2]);
+          mat.specularColor = new Color3(0.05, 0.05, 0.05);
+          mesh.material = mat;
+          mesh.alwaysSelectAsActiveMesh = true;
+          mesh.isVisible = false;
+          this.classMesh[bucket] = mesh;
+          this.classMats[bucket] = new Float32Array(0);
+          this.classN[bucket] = 0;
+        }
       }
     }
 
@@ -578,7 +586,8 @@ export class BattleRenderer3D {
   ) {
     for (let k = 0; k < this.classN.length; k++) this.classN[k] = 0;
     for (let i = 0; i < count; i++) {
-      const bucket = this.classOf[i] * 2 + this.teamOf[i];
+      // At-ease men route to the rest-pose mesh (pikes up); everyone else fights.
+      const bucket = (frames[i] === FRAME_REST ? REST_BUCKET : 0) + this.classOf[i] * 2 + this.teamOf[i];
       let buf = this.classMats[bucket];
       const n = this.classN[bucket];
       if ((n + 1) * 16 > buf.length) {
@@ -636,7 +645,9 @@ export class BattleRenderer3D {
       m[o + 4] = -sa * s; m[o + 5] = ca * s; m[o + 6] = 0; m[o + 7] = 0;
       m[o + 8] = 0; m[o + 9] = 0; m[o + 10] = s; m[o + 11] = 0;
       m[o + 12] = x; m[o + 13] = y; m[o + 14] = alive[i] < 0.5 ? -0.05 : 0; m[o + 15] = 1;
-      cells[2 * i] = frames[i];
+      // The atlas has no at-ease frame (you can't read a raised pike from afar);
+      // standing is standing in the flat 2D view.
+      cells[2 * i] = frames[i] === FRAME_REST ? 0 : frames[i];
       cells[2 * i + 1] = this.rowOf[i];
     }
     this.sprite.isVisible = count > 0;

@@ -76,7 +76,10 @@ export class UnitBanner {
     this.fx = document.createElement('div');
     this.fx.className = 'ubanner-fx';
 
-    el.append(svg, bars, this.fx);
+    // Stats on top, the standard at the bottom: the pole's foot anchors to the
+    // unit (see place), so the standard plants in the ranks and the readout
+    // rides above it as one piece.
+    el.append(this.fx, bars, svg);
     this.cloth = cloth;
     this.el = el;
   }
@@ -109,13 +112,16 @@ export class UnitBanner {
     }
   }
 
-  /** Position the standard so its pole foot sits at (x, y) screen pixels. */
+  /** Plant the standard so its pole foot sits at (x, y) screen pixels: the
+   *  element is bottom-anchored (−100% of its own height) and centred (−50%),
+   *  so the flag rises from the unit and the stats stack above it, whatever the
+   *  chip count. */
   place(x: number, y: number) {
-    this.el.style.transform = `translate(${(x - 28).toFixed(0)}px, ${(y - 52).toFixed(0)}px)`;
+    this.el.style.transform = `translate(${x.toFixed(0)}px, ${y.toFixed(0)}px) translate(-50%, -100%)`;
   }
 
   setVisible(v: boolean) {
-    this.el.style.display = v ? 'block' : 'none';
+    this.el.style.display = v ? 'flex' : 'none';
   }
 }
 
@@ -159,7 +165,7 @@ export function mountBannerGallery(root: HTMLElement) {
     const b = new UnitBanner();
     b.update(state);
     b.el.style.position = 'static';
-    b.el.style.display = 'block';
+    b.el.style.display = 'flex';
     b.el.style.transform = 'none';
     const cap = document.createElement('div');
     cap.className = 'ubanner-cap';

@@ -744,11 +744,33 @@ export class BattleScene implements Scene {
         const a = new Uint8Array(wasm.memory.buffer, game.alive_ptr(), n);
         const fighting = new Uint8Array(wasm.memory.buffer, game.fighting_ptr(), n);
         const switchCd = new Float32Array(wasm.memory.buffer, game.switch_cd_ptr(), n);
+        const sUnit = new Uint32Array(wasm.memory.buffer, game.soldier_unit_ptr(), n);
         const pos = positions();
         if (aliveF32.length !== n) {
           aliveF32 = new Float32Array(n);
           frames = new Float32Array(n);
           prevPos = new Float32Array(pos);
+        }
+        // Which units are at ease: halted, nobody fighting, not routing, and no
+        // enemy within charge reach (200 m, matching the sim's brace range).
+        // Their standing men hold the at-ease pose (pikes up). One per-unit pass,
+        // then a cheap lookup per soldier.
+        const info = unitInfo();
+        const uc = game.unit_count();
+        const atEase = new Uint8Array(uc);
+        for (let u = 0; u < uc; u++) {
+          const o = u * STRIDE;
+          if (info[o + 15] <= 0) continue;
+          if (!(info[o + 3] < 0.1 && info[o + 16] === 0 && info[o + 21] < 0.5)) continue;
+          const ux = info[o], uy = info[o + 1], team = info[o + 6];
+          let near2 = Infinity;
+          for (let e = 0; e < uc; e++) {
+            const eo = e * STRIDE;
+            if (info[eo + 6] === team || info[eo + 15] <= 0) continue;
+            const dx = info[eo] - ux, dy = info[eo + 1] - uy;
+            near2 = Math.min(near2, dx * dx + dy * dy);
+          }
+          atEase[u] = near2 > 200 * 200 ? 1 : 0;
         }
         const t = now / 1000;
         for (let i = 0; i < n; i++) {
@@ -762,7 +784,8 @@ export class BattleScene implements Scene {
           } else {
             const dx = pos[2 * i] - prevPos[2 * i];
             const dy = pos[2 * i + 1] - prevPos[2 * i + 1];
-            frames[i] = dx * dx + dy * dy > 0.0004 ? 1 + (((t * 4 + i) | 0) % 2) : 0;
+            if (dx * dx + dy * dy > 0.0004) frames[i] = 1 + (((t * 4 + i) | 0) % 2); // marching
+            else frames[i] = atEase[sUnit[i]] ? 6 : 0; // at ease (pikes up) or alert stand
           }
         }
         prevPos.set(pos);

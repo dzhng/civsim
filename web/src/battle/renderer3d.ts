@@ -289,7 +289,6 @@ function classGeometry(cls: number): VertexData {
   return vd;
 }
 
-
 // Box accumulator for low-poly props; optional per-vertex colour.
 function pushBox(
   pos: number[], idx: number[], col: number[] | null,
@@ -453,8 +452,8 @@ export class BattleRenderer3D {
     }
 
     // Scatter props for the micro-pockets. Rock & bush carry one flat colour
-    // (a solid material), the tree is vertex-coloured (stem vs leaves), so it
-    // wants useVertexColor. All three lit by the same sun/sky as the soldiers.
+    // (the material's diffuse); the tree is vertex-coloured (brown stem, green
+    // canopy). All three lit by the same sun/sky as the soldiers.
     const scatterGeom = [rockGeom(), bushGeom(), treeGeom()];
     const scatterCol: [number, number, number][] = [
       [0.45, 0.43, 0.40], // rock grey
@@ -599,6 +598,7 @@ export class BattleRenderer3D {
     // would be empty. The scatter needs a stable snapshot.
     this.tintGrid = new Uint8Array(tint);
     this.terrW = w; this.terrH = h; this.terrCell = cell; this.terrOx = ox; this.terrOy = oy;
+    this.scatterKey = ''; // a new terrain invalidates the cached scatter
     const M = WILDS_MARGIN;
     const x0 = ox - M, y0 = oy - M, x1 = ox + w * cell + M, y1 = oy + h * cell + M;
     const vd = new VertexData();

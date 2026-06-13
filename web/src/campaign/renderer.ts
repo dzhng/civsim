@@ -6,7 +6,7 @@
 import type { CampaignData } from './data';
 import { ARMY_STRIDE, type ArmyView, type CityView } from './scene';
 import type { TerrainField } from './terrain';
-import { type Terrain3D, CITY_MODEL_MIN_SCALE } from './terrain3d';
+import { type Terrain3D, CITY_MODEL_MIN_SCALE, ARMY_MIN_SCALE } from './terrain3d';
 import type { FactionLabel } from './territory';
 
 export interface CamView {
@@ -17,11 +17,17 @@ export interface CamView {
 
 const FACTION_FALLBACK: [number, number, number] = [150, 150, 150];
 
-/** Clip a world polyline by an arc-length margin at each end (km), inserting
- *  interpolated boundary points. Empty when the trims overlap. */
-function clipPolyline(via: [number, number][], trimA: number, trimB: number): [number, number][] {
+/** Split a world polyline into drawable sub-polylines: trimmed by an arc-length
+ *  margin at each end (km, for town walls) and gapped where it passes within
+ *  `r` of an army center (so the road doesn't paint over the army model). */
+function roadPolylines(
+  via: [number, number][],
+  trimA: number,
+  trimB: number,
+  gaps: { x: number; y: number; r: number }[],
+): [number, number][][] {
   const n = via.length;
-  if (n < 2) return via;
+  if (n < 2) return [via];
   const cum = [0];
   for (let i = 1; i < n; i++) {
     cum.push(cum[i - 1] + Math.hypot(via[i][0] - via[i - 1][0], via[i][1] - via[i - 1][1]));
@@ -37,10 +43,47 @@ function clipPolyline(via: [number, number][], trimA: number, trimB: number): [n
     const t = (arc - cum[i - 1]) / seg;
     return [via[i - 1][0] + (via[i][0] - via[i - 1][0]) * t, via[i - 1][1] + (via[i][1] - via[i - 1][1]) * t];
   };
-  const out: [number, number][] = [at(a0)];
-  for (let i = 0; i < n; i++) if (cum[i] > a0 && cum[i] < a1) out.push(via[i]);
-  out.push(at(a1));
-  return out;
+  // Arc intervals to remove: where the road passes within r of an army.
+  const cuts: [number, number][] = [];
+  for (const g of gaps) {
+    let best = Infinity;
+    let bestArc = 0;
+    for (let i = 1; i < n; i++) {
+      const ax = via[i - 1][0];
+      const ay = via[i - 1][1];
+      const dx = via[i][0] - ax;
+      const dy = via[i][1] - ay;
+      const len2 = dx * dx + dy * dy || 1;
+      const t = Math.max(0, Math.min(1, ((g.x - ax) * dx + (g.y - ay) * dy) / len2));
+      const d = Math.hypot(ax + dx * t - g.x, ay + dy * t - g.y);
+      if (d < best) {
+        best = d;
+        bestArc = cum[i - 1] + Math.sqrt(len2) * t;
+      }
+    }
+    if (best < g.r) cuts.push([bestArc - g.r, bestArc + g.r]);
+  }
+  // Kept = [a0, a1] minus the union of cuts.
+  cuts.sort((p, q) => p[0] - q[0]);
+  const kept: [number, number][] = [];
+  let cur = a0;
+  for (const [cs, ce] of cuts) {
+    const s = Math.max(cs, a0);
+    const e = Math.min(ce, a1);
+    if (e <= cur) continue;
+    if (s > cur) kept.push([cur, s]);
+    cur = Math.max(cur, e);
+  }
+  if (cur < a1) kept.push([cur, a1]);
+  // Materialize each kept interval into a sub-polyline.
+  return kept
+    .filter(([s, e]) => e - s > 0.5)
+    .map(([s, e]) => {
+      const seg: [number, number][] = [at(s)];
+      for (let i = 0; i < n; i++) if (cum[i] > s && cum[i] < e) seg.push(via[i]);
+      seg.push(at(e));
+      return seg;
+    });
 }
 
 export class CampaignRenderer {
@@ -130,6 +173,12 @@ export class CampaignRenderer {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, W, H);
 
+    // The overlay paints over the 3D army/city models, so once they show the
+    // road is gapped where it would streak across one: trimmed at town walls
+    // and broken around each army's footprint.
+    const armyR = z >= ARMY_MIN_SCALE ? 1.7 * Math.min(13, Math.max(5, 80 / (3.2 * z))) : 0;
+    const armyPts = armyR > 0 ? armies.map((a) => ({ x: a.x, y: a.y, r: armyR })) : [];
+
     // Edges. Roads fade out at political-map zoom; sea lanes faint dashes.
     const roadAlpha = Math.min(1, Math.max(0, (z - 0.3) / 0.2));
     for (let ei = 0; ei < data.map.edges.length; ei++) {
@@ -137,26 +186,18 @@ export class CampaignRenderer {
       const sea = e.kind === 'sea';
       if (sea && z < 0.35) continue;
       if (!sea && roadAlpha <= 0.02) continue;
-      // Stop roads at the town's edge once the 3D settlement shows — the
-      // overlay paints over the model, so a road crossing the city center
-      // streaks across the rooftops. Junctions have no model: no trim.
-      const trimA = sea ? 0 : this.cityTrim(data, e.a, z);
-      const trimB = sea ? 0 : this.cityTrim(data, e.b, z);
       const hs = this.viaHeights(ei);
-      const poly: [number, number, number][] =
-        trimA > 0 || trimB > 0
-          ? clipPolyline(e.via, trimA, trimB).map(([x, y]) => [x, y, this.field.heightAt(x, y)])
-          : e.via.map((v, i) => [v[0], v[1], sea ? 0 : hs[i]]);
-      ctx.beginPath();
-      let on = false;
-      for (const [x, y, h] of poly) {
-        const p = pt(x, y, h);
-        if (!p) {
-          on = false;
-          continue;
-        }
-        on ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]);
-        on = true;
+      let segments: [number, number, number][][];
+      if (sea) {
+        segments = [e.via.map((v, i) => [v[0], v[1], 0])];
+      } else {
+        // Junctions have no model: only cities trim. Gap around nearby armies.
+        const trimA = this.cityTrim(data, e.a, z);
+        const trimB = this.cityTrim(data, e.b, z);
+        const near = armyPts.filter((g) =>
+          e.via.some((v) => Math.abs(v[0] - g.x) < armyR + 12 && Math.abs(v[1] - g.y) < armyR + 12));
+        segments = roadPolylines(e.via, trimA, trimB, near).map((seg) =>
+          seg.map(([x, y]) => [x, y, this.field.heightAt(x, y)]));
       }
       const lvl = sea ? 1 : (roadLevels?.[ei] ?? 1);
       ctx.lineWidth = (sea ? 1 : Math.max(1, z * 1.6)) * (0.7 + 0.3 * lvl);
@@ -164,7 +205,20 @@ export class CampaignRenderer {
         ? 'rgba(140,180,220,0.25)'
         : `rgba(${62 + lvl * 18},${46 + lvl * 14},${32 + lvl * 8},${0.8 * roadAlpha})`;
       ctx.setLineDash(sea ? [6, 6] : []);
-      ctx.stroke();
+      for (const poly of segments) {
+        ctx.beginPath();
+        let on = false;
+        for (const [x, y, h] of poly) {
+          const p = pt(x, y, h);
+          if (!p) {
+            on = false;
+            continue;
+          }
+          on ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]);
+          on = true;
+        }
+        ctx.stroke();
+      }
       ctx.setLineDash([]);
     }
 

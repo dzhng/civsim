@@ -44,7 +44,7 @@ const MIN_PITCH = (52 * Math.PI) / 180;
 const TREE_MIN_SCALE = 0.45;
 /** Army models show once the world tilts toward 3D; the flat pennant carries
  *  the political map below this. */
-const ARMY_MIN_SCALE = 0.4;
+export const ARMY_MIN_SCALE = 0.4;
 /** Above this zoom, 3D settlements replace the flat city squares (the overlay
  *  reads the same constant to suppress its squares). */
 export const CITY_MODEL_MIN_SCALE = 0.5;
@@ -654,7 +654,7 @@ export class Terrain3D {
     // so each instance's iColor paints it the owner's hue.
     for (let c = 0; c < 9; c++) {
       const m = new Mesh(`armyCls${c}`, this.scene);
-      classGeometry(c).applyToMesh(m);
+      classGeometry(c, true).applyToMesh(m); // at-ease: pole arms stand vertical
       this.paint(m, 1, 1, 1, 1);
       m.material = this.modelMat;
       m.alwaysSelectAsActiveMesh = true;

@@ -87,37 +87,8 @@ impl Game {
         id as u32
     }
 
-    /// Spawn a unit with full CLASS stats (so per-class behaviour — coherence,
-    /// brace, weapons — is exercised), unlike the raw `spawn_unit` above which is
-    /// always light-infantry. `class` is the `UnitClassId` index. Used by the
-    /// per-class vibe checks.
-    pub fn spawn_class(
-        &mut self,
-        x: f32,
-        y: f32,
-        facing: f32,
-        count: u32,
-        team: u32,
-        class: u32,
-    ) -> u32 {
-        let class = contract::ALL_CLASSES[class as usize];
-        let id = self
-            .battle
-            .sim
-            .spawn_class(Vec2::new(x, y), facing, count as usize, class, team);
-        self.refresh_unit_info();
-        id as u32
-    }
-
     pub fn set_move_order(&mut self, unit: u32, x: f32, y: f32) {
         self.battle.sim.set_move_order(unit as usize, Vec2::new(x, y));
-    }
-
-    /// Global formation-weave OVERRIDE for the vibe weave-level sweep (0 = rigid
-    /// grid, 1 = pure net). Forces one blend on every unit; pass <0 to release it
-    /// back to each class's own coherence stat (the live default).
-    pub fn set_weave(&mut self, w: f32) {
-        self.battle.sim.tun.weave = w;
     }
 
     /// 0 = RiverAndCrags, anything else = WalledPlain.

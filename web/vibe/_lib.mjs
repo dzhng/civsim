@@ -20,10 +20,6 @@ export async function openBattle(query) {
   page.on('console', (m) => { if (m.type() === 'error') errs.push(m.text()); });
   await page.goto(`${TARGET}/?${query}`);
   await page.waitForFunction(() => window.__ready === true, { timeout: 20000 });
-  // WEAVE env overrides the formation-weave level for this run (the sweep).
-  if (process.env.WEAVE !== undefined) {
-    await page.evaluate((w) => window.__game.setWeave(w), Number(process.env.WEAVE));
-  }
   await page.waitForTimeout(500);
   return { browser, page, errs };
 }

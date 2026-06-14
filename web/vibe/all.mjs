@@ -13,6 +13,9 @@ const webDir = dirname(dirname(fileURLToPath(import.meta.url))); // web/
 // name -> shots/<name>/ ; script + env are how it's driven (class ids).
 const SCENARIOS = [
   { name: '1v1', script: '1v1.mjs', env: {} },                       // heavy vs heavy
+  // heavy-duel writes TWO folders itself (heavy-both, heavy-attack-defend) — the
+  // offense/defense posture split on one class. NAME is ignored.
+  { name: 'heavy-duel', script: 'heavy-duel.mjs', env: {} },
   { name: 'phalanx-v-heavy', script: '1v1.mjs', env: { A: 3, B: 0 } },
   { name: 'cav-v-heavy', script: '1v1.mjs', env: { A: 6, B: 0 } },
   { name: 'cav-v-pike', script: 'charge.mjs', env: { ATK: 6, DEF: 3 } },     // points stop horse

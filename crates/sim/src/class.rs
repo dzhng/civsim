@@ -112,8 +112,9 @@ pub struct UnitClass {
     /// than his absolute slot. Low = a disciplined wall that holds its shape and
     /// punches clean (phalanx, spear); high = a loose sheet that dimples to patch
     /// a breach and wraps to envelop, but blobs under pressure (skirmishers, mob).
-    /// Stay below ~0.8: at 1.0 the slot anchor vanishes and the line never
-    /// advances into contact. (See web/vibe/weave-sweep.mjs.)
+    /// Stay below ~0.8: the slot pull is the formation's only tie to its
+    /// commanded position, so at 1.0 that anchor vanishes and the line drifts as
+    /// a free blob — it never advances into contact.
     pub weave: f32,
     pub weapons: WeaponSet,
 }
@@ -267,7 +268,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             evade: 0.35,
             training: 0.8,
             stance: crate::unit::Stance::Fence,
-            weave: 0.55, // open-order two-handers: a looser sheet
+            weave: 0.65, // open-order two-handers: a loose, draping sheet
             weapons: one(LONG_SWORD),
             ..foot
         },

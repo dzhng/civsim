@@ -1057,16 +1057,10 @@ export class BattleScene implements Scene {
       freeze: (on = true) => doFreeze(on),
       groupMove: (units: number[], x: number, y: number) => groupMove(units, x, y, 'move'),
       setFiles: (u: number, files: number) => game.set_files(u, files),
-      setWeave: (w: number) => game.set_weave(w),
       // Spawn an arbitrary unit (vibe scenarios: multi-column penetration, etc.).
       // Raw spawn — light-infantry stats; enough to exercise FORMATION behaviour.
       spawnUnit: (x: number, y: number, facing: number, count: number, files: number, team: number) =>
         game.spawn_unit(x, y, facing, count, files, 1.0, 1.2, team, 0.7),
-      // Spawn with full CLASS stats (per-class coherence/brace/weapons) — for the
-      // per-class vibe checks. files come from the class's default depth; reshape
-      // with setFiles if a scenario needs a fixed width.
-      spawnClass: (x: number, y: number, facing: number, count: number, team: number, cls: number) =>
-        game.spawn_class(x, y, facing, count, team, cls),
       groupAttack: (units: number[], target: number) => {
         groupAttacks.push({ units, target, lastTx: 1e9, lastTy: 1e9 });
         tickGroupAttacks();

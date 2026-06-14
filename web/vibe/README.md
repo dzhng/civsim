@@ -26,6 +26,8 @@ table in `all.mjs` when you add a scenario.
 | folder | script | what it shows |
 |---|---|---|
 | `1v1` | `1v1.mjs` | heavy vs heavy, both charge → grind → one routs |
+| `heavy-both` | `heavy-duel.mjs` | heavy vs heavy, BOTH attack — two charges meet, each front wraps the other |
+| `heavy-attack-defend` | `heavy-duel.mjs` | same heavies, one attacks + one holds — attacker frays wrapping in, defender holds its line and dimples |
 | `phalanx-v-heavy` | `1v1.mjs A=3 B=0` | pikes outreach swords |
 | `cav-v-heavy` | `1v1.mjs A=6 B=0` | horse rides over swords |
 | `cav-v-pike` | `charge.mjs ATK=6 DEF=3` | points stop horse (charge into a held pike wall) |

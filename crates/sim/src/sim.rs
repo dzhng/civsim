@@ -1350,9 +1350,7 @@ impl Sim {
                         }
                     }
                     if nn > 0.0 {
-                        // Per-class coherence by default; the global tun.weave is
-                        // a sweep override (≥0 forces every unit, <0 = use class).
-                        let weave = if tun.weave >= 0.0 { tun.weave } else { u.stats.weave };
+                        let weave = u.stats.weave; // per-class formation coherence
                         let net_to = nsum * (1.0 / nn) - p;
                         to = to * (1.0 - weave) + net_to * weave;
                     }

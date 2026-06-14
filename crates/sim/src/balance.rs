@@ -222,6 +222,38 @@ pub fn run_over_seeds(
     }
 }
 
+/// One scenario measured under a candidate config beside the default
+/// (baseline) — the before/after an agent reads while tuning.
+#[derive(Clone, Debug)]
+pub struct ReportRow {
+    pub baseline: Aggregate,
+    pub candidate: Aggregate,
+}
+
+impl ReportRow {
+    /// Change in side-0 win-rate from baseline to candidate (the headline shift
+    /// a balance edit produced on this matchup).
+    pub fn win_delta(&self) -> f32 {
+        self.candidate.win_rate[0] - self.baseline.win_rate[0]
+    }
+}
+
+/// The agent tuning loop's read: run each scenario under both the default
+/// config and a candidate, over the seed set, and pair them. The agent reads
+/// the deltas, judges, edits the candidate `BalanceConfig`, calls again. (No
+/// objective function — fairness is the agent's call, by design.)
+pub fn report(candidate: &BalanceConfig, scenarios: &[Scenario], seeds: &[u64]) -> Vec<ReportRow> {
+    let base = BalanceConfig::default();
+    let tun = Tunables::default();
+    scenarios
+        .iter()
+        .map(|s| ReportRow {
+            baseline: run_over_seeds(s, &base, &tun, seeds),
+            candidate: run_over_seeds(s, candidate, &tun, seeds),
+        })
+        .collect()
+}
+
 fn stat(xs: impl Iterator<Item = f32>) -> Stat {
     let v: Vec<f32> = xs.collect();
     if v.is_empty() {

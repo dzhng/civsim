@@ -32,7 +32,7 @@ pub mod tunables;
 pub mod unit;
 
 pub use ai::ai_commander;
-pub use balance::{run_once, run_over_seeds, Aggregate, Outcome, Scenario, SEEDS};
+pub use balance::{report, run_once, run_over_seeds, Aggregate, Outcome, ReportRow, Scenario, SEEDS};
 pub use battle::{deploy_roster, setup_battle, setup_duel, setup_sandbox};
 pub use runner::Battle;
 pub use class::{class_stats, BalanceConfig, UnitClass, UnitClassId, Weapon};

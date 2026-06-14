@@ -258,11 +258,18 @@ pub fn setup_sandbox(sim: &mut Sim, kind: u32) {
         return;
     }
     if kind == 5 {
-        // PIN + FLANK: a Heavy (team 1) pinned frontally by a Light, flanked on
-        // its right side by a Long sword — the long sword's intended role.
+        // PIN + FLANK: a Heavy (team 1) pinned frontally by ANOTHER Heavy — a
+        // real threat it can't safely turn from — and flanked on its right by a
+        // compact Long-sword block. Divided defense: it can't face both, so the
+        // flank lands and the pinned heavy is cracked. The long sword's role.
+        {
+            let mut s = sim.balance.get(UnitClassId::LongSwords);
+            s.default_depth = 12; // a compact block that concentrates on the flank, not a thin line
+            sim.balance.set(UnitClassId::LongSwords, s);
+        }
         sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 240, UnitClassId::HeavyInfantry, 1);
-        sim.spawn_class(Vec2::new(0.0, 30.0), -FRAC_PI_2, 220, UnitClassId::LightInfantry, 0);
-        sim.spawn_class(Vec2::new(34.0, 6.0), std::f32::consts::PI, 190, UnitClassId::LongSwords, 0);
+        sim.spawn_class(Vec2::new(0.0, 30.0), -FRAC_PI_2, 240, UnitClassId::HeavyInfantry, 0);
+        sim.spawn_class(Vec2::new(30.0, 2.0), std::f32::consts::PI, 190, UnitClassId::LongSwords, 0);
         return;
     }
     if kind == 2 || kind == 3 {

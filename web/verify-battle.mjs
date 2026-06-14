@@ -16,6 +16,7 @@
 const FULL = process.argv.includes('--full');
 import { chromium } from 'playwright';
 import { mkdir } from 'node:fs/promises';
+import { PNG } from 'pngjs';
 import { snapCheck } from './snapshot.mjs';
 
 const TARGET = process.env.VERIFY_URL ?? 'http://localhost:5173';
@@ -46,9 +47,11 @@ check('full battle spawned', stats.soldiers >= 25000 && stats.units === 40,
   `${stats.soldiers} soldiers, ${stats.units} units`);
 await page.screenshot({ path: SHOTS + 'initial.png' });
 
-// Pixel regression on the deployed battlefield: freeze pins the shader clock
-// and the HUD perf line; the idle deployment is seed-fixed.
-await page.evaluate(() => window.__game.freeze());
+// Pixel regression on the deployed battlefield: freezeAtTick pins the shader
+// clock, the HUD perf line, AND the absolute sim tick — idle men carry a fidget
+// sway that re-rolls every few ticks, so a stable snapshot must land on a fixed
+// tick, not "whenever ~1s of real-time happened to elapse".
+await page.evaluate(() => window.__game.freezeAtTick(240));
 await page.waitForTimeout(150);
 // Babylon renders the battle; on headless SwiftShader its frame timing
 // jitters a handful of sub-pixel AA edges (~0.002%) run-to-run even when
@@ -66,10 +69,63 @@ await page.evaluate(() => {
   const c = window.__cam;
   c.x = a[32]; c.y = a[33] + 6; c.zoom = 9; c.clampView?.();
 });
-await page.evaluate(() => window.__game.freeze());
+await page.evaluate(() => window.__game.freezeAtTick(480));
 await page.waitForTimeout(150);
 await snapCheck(page, 'battle-banner', check, { maxDiffRatio: 0.0008 });
 await page.evaluate(() => window.__game.freeze(false));
+
+// --- Soldier level-of-detail: a unit must read as its team-coloured block at
+// every zoom — never a black slab (far) nor washed-out specks (mid). The 2D
+// sprite atlas is straight-alpha with wide transparent margins; without the
+// coverage-divide in the sprite shader, minified soldiers average to near-black
+// and the alpha-test writes that, so a zoomed-out block collapses to black.
+// Render ONE unit (a duel) in isolation and measure its own pixels across zooms.
+{
+  const lod = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+  lod.on('pageerror', (e) => pageErrors.push('lod-page: ' + e.message));
+  await lod.goto(TARGET + '?battle=duel&a=0&b=0&ai=off'); // HeavyInfantry (blue), enemy idle
+  await lod.waitForFunction(() => window.__ready === true, { timeout: 20000 });
+  await lod.waitForTimeout(400);
+  for (const z of [1, 2, 4, 6, 9]) {
+    // Frame unit 0's centroid at this zoom, freeze, and grab its men's screen AABB.
+    const box = await lod.evaluate((zoom) => {
+      const a = window.__game.unitInfo(0);
+      const c = window.__cam;
+      c.x = a[32]; c.y = a[33]; c.zoom = zoom; c.pitch = 0; c.clampView?.();
+      window.__game.freeze();
+      const cnt = a[7];
+      let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+      const dpr = window.devicePixelRatio || 1;
+      for (let i = 0; i < cnt; i++) {
+        const [wx, wy] = window.__game.soldierPos(i);
+        const [sx, sy] = c.worldToScreen(wx, wy).map((v) => v * dpr);
+        x0 = Math.min(x0, sx); x1 = Math.max(x1, sx);
+        y0 = Math.min(y0, sy); y1 = Math.max(y1, sy);
+      }
+      return [x0, y0, x1, y1];
+    }, z);
+    const buf = await lod.screenshot();
+    await lod.evaluate(() => window.__game.freeze(false));
+    const png = PNG.sync.read(buf);
+    const cx0 = Math.max(0, Math.floor(box[0] - 4)), cx1 = Math.min(png.width - 1, Math.ceil(box[2] + 4));
+    const cy0 = Math.max(0, Math.floor(box[1] - 4)), cy1 = Math.min(png.height - 1, Math.ceil(box[3] + 4));
+    let n = 0, unit = 0, blue = 0, dark = 0;
+    for (let y = cy0; y <= cy1; y++) {
+      for (let x = cx0; x <= cx1; x++) {
+        const o = (y * png.width + x) * 4;
+        const r = png.data[o], g = png.data[o + 1], b = png.data[o + 2];
+        n++;
+        if (Math.max(r, g, b) < 45) dark++;
+        if (!(g > r + 8 && g > b + 8)) { unit++; if (b - r > 20 && b > 70) blue++; } // non-grass = the unit
+      }
+    }
+    const darkFrac = dark / n, blueShare = unit ? blue / unit : 0;
+    const detail = `darkFrac ${(darkFrac * 100).toFixed(0)}% blueShare ${(blueShare * 100).toFixed(0)}%`;
+    check(`LOD z${z}: unit is not a black slab`, darkFrac < 0.2, detail);
+    check(`LOD z${z}: unit reads team-blue`, blueShare > 0.55, detail);
+  }
+  await lod.close();
+}
 
 // The in-game manual opens and has content.
 await page.click('#btn-menu');

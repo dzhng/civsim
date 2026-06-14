@@ -369,6 +369,11 @@ export class BattleScene implements Scene {
     let paused = false;
     let pausedBeforeFreeze = false;
     let frozen = false; // snapshot mode: no wall-clock pixels (HUD perf line, shader clock)
+    // Absolute sim ticks driven so far (real-time loop + scripted advance). The
+    // verify harness reads this to pin a snapshot to a fixed tick: idle men carry
+    // a fidget sway that re-rolls every few ticks, so a stable pixel snapshot must
+    // freeze at a known tick, not "whenever ~1s of wall-clock happened to land".
+    let simTick = 0;
     let ended = false;
     const gameover = document.getElementById('gameover')!;
     gameover.style.display = 'none';
@@ -765,6 +770,7 @@ export class BattleScene implements Scene {
       while (accumulator >= TICK_DT && ticks < maxTicks) {
         const t0 = performance.now();
         game.tick();
+        simTick++;
         tickMsAvg += (performance.now() - t0 - tickMsAvg) * 0.1;
         accumulator -= TICK_DT;
         ticks++;
@@ -997,6 +1003,15 @@ export class BattleScene implements Scene {
     this.frameFn = frame;
 
     // --- Debug/verify API ------------------------------------------------------------
+    // Snapshot mode: stop the sim and pin every wall-clock-driven pixel so
+    // screenshots are reproducible (see snapshot.mjs). It must not OWN the pause
+    // state (an unfreeze after a user pause should stay paused).
+    const doFreeze = (on = true) => {
+      if (on && !frozen) pausedBeforeFreeze = paused;
+      paused = on ? true : pausedBeforeFreeze;
+      frozen = on;
+      renderer.fixedTime = on ? 0 : null;
+    };
     window.__game = {
       stats: () => ({
         soldiers: game.soldier_count(),
@@ -1015,19 +1030,22 @@ export class BattleScene implements Scene {
       attackMove: (u: number, x: number, y: number) => game.set_attack_move_order(u, x, y),
       disengage: (u: number, x: number, y: number) => game.set_disengage_order(u, x, y),
       advance: (n: number) => {
-        for (let i = 0; i < n; i++) game.tick();
+        for (let i = 0; i < n; i++) { game.tick(); simTick++; }
         tickGroupAttacks();
       },
-      // Snapshot mode: stop the sim and pin every wall-clock-driven pixel so
-      // screenshots are reproducible (see snapshot.mjs).
-      freeze: (on = true) => {
-        // The hook pins pixels; it must not OWN the pause state (an
-        // unfreeze after a user pause should stay paused).
-        if (on && !frozen) pausedBeforeFreeze = paused;
-        paused = on ? true : pausedBeforeFreeze;
-        frozen = on;
-        renderer.fixedTime = on ? 0 : null;
+      // Absolute ticks driven so far — the harness pins a snapshot to a fixed
+      // tick so the idle fidget sway can't jitter the pixels run-to-run.
+      tickCount: () => simTick,
+      // Freeze, then drive the sim to an exact absolute tick (advancing only
+      // forward). Gives a byte-stable deployment snapshot regardless of how many
+      // real-time ticks happened to elapse before the call.
+      freezeAtTick: (target: number) => {
+        doFreeze(true);
+        const n = target - simTick;
+        for (let i = 0; i < n; i++) { game.tick(); simTick++; }
+        tickGroupAttacks();
       },
+      freeze: (on = true) => doFreeze(on),
       groupMove: (units: number[], x: number, y: number) => groupMove(units, x, y, 'move'),
       setFiles: (u: number, files: number) => game.set_files(u, files),
       groupAttack: (units: number[], target: number) => {

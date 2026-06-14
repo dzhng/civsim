@@ -201,11 +201,15 @@ varying vec2 vUV;
 uniform sampler2D uAtlas;
 void main() {
   vec4 c = texture2D(uAtlas, vUV);
-  // Match the 2D renderer's gentle cutoff: a high alpha-test against the
-  // mip-minified atlas makes thin soldier sprites dip under the threshold and
-  // blink out as the camera drifts when zoomed out. Keep them solid.
+  // The atlas is straight-alpha with a wide transparent margin around each
+  // figure. The mip chain box-filters those (0,0,0,0) texels into RGB, so a
+  // minified soldier samples near-black even though the man isn't — and with an
+  // opaque alpha-test that black is what gets written, collapsing a zoomed-out
+  // block of men into a solid black slab. Divide by coverage to recover the
+  // figure's true (alpha-weighted) colour. A low cutoff keeps the block solid;
+  // a high one makes thin sprites blink out as the camera drifts.
   if (c.a < 0.04) discard;
-  gl_FragColor = c;
+  gl_FragColor = vec4(c.rgb / c.a, 1.0);
 }`;
 
 // --- Overlay shader: world-space vertex-coloured tris/lines for attack-arc

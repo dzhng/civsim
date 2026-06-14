@@ -81,11 +81,14 @@ function drawSoldier(g: CanvasRenderingContext2D, ox: number, oy: number, look: 
     g.globalAlpha = 0.85;
   }
 
-  // Shadow.
+  // Contact shadow. The 2D sprite path renders opaque (alpha-test, no blend),
+  // so any surviving shadow texel writes as flat colour, not a soft blend —
+  // keep it small and a desaturated ground-brown (never pure black) so it reads
+  // as shaded earth at the feet instead of a black smear that darkens the block.
   if (!dead) {
-    g.fillStyle = 'rgba(0,0,0,0.30)';
+    g.fillStyle = 'rgba(28,24,16,0.22)';
     g.beginPath();
-    g.ellipse(0, 2, look.mounted ? 22 : 11, look.mounted ? 12 : 8, 0, 0, 7);
+    g.ellipse(0, 2.5, look.mounted ? 20 : 9, look.mounted ? 10 : 6, 0, 0, 7);
     g.fill();
   }
 
@@ -119,10 +122,13 @@ function drawSoldier(g: CanvasRenderingContext2D, ox: number, oy: number, look: 
   const wob = walkA ? 1.2 : walkB ? -1.2 : 0;
   const bodyY = look.mounted ? -2 : 0;
 
-  // Cartoon outline: a dark rim a touch larger than the body.
-  g.fillStyle = 'rgba(20, 16, 12, 0.85)';
+  // Cartoon outline: a rim a touch larger than the body for definition. Kept
+  // softer than black — in the opaque sprite path a hard-black rim is the bulk
+  // of what a minified soldier averages to, dragging a zoomed-out block toward a
+  // grey slab instead of its team colour.
+  g.fillStyle = 'rgba(36, 30, 22, 0.7)';
   g.beginPath();
-  g.ellipse(0, bodyY, 10.2, 8.6, 0, 0, 7);
+  g.ellipse(0, bodyY, 9.8, 8.3, 0, 0, 7);
   g.fill();
 
   // Limbs hint (walking only, foot troops).

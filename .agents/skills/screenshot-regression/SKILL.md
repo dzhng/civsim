@@ -22,6 +22,15 @@ green, the model is bigger). If you re-blessed a baseline, look at the new
 baseline too — you are certifying it as ground truth for every future run.
 Never report a visual result you have only inferred from "the script passed."
 
+**Crop and upscale before you theorise.** A unit is ~16 px in a 1280 px frame —
+you cannot diagnose a soldier-rendering bug by eyeballing the whole shot, and
+guessing the cause (mipmap? blend? lighting?) from a thumbnail wastes turns.
+Cut the suspect region and nearest-neighbour upscale it 4–8× (pngjs: copy each
+source pixel into a `scale×scale` block, write a new PNG), then Read it. Seeing
+a clean black rectangle vs. a dark-blue-with-edges blob tells you in one look
+whether it's coverage/mip darkening or something else. Let the pixels, not a
+hypothesis, name the bug.
+
 ## Rebuild the wasm before you trust ANY screenshot
 
 The browser loads the **prebuilt** wasm under `web/src/wasm`, never your live
@@ -73,6 +82,30 @@ tile), so you can pose it over the road / our city / the neutral city exactly
 and deterministically. `verify-campaign-visual.mjs` snapshots all of those —
 extend it when you change an army/city model. Re-bless with
 `UPDATE_SHOTS=1 node verify-campaign-visual.mjs`.
+
+## Measuring content, not just exact-match (LOD / colour bugs)
+
+Exact-match snapshots catch *change*; they don't assert the picture is *good*.
+For "a unit must read as its team colour at every zoom" the right test renders
+ONE unit in isolation and measures its own pixels. Spawn a duel
+(`?battle=duel&a=0&b=0&ai=off` — one unit per side, enemy idle), frame unit 0's
+centroid, and at each zoom compute the screen AABB of its men
+(`worldToScreen` over `soldierPos`) and classify pixels inside it: `darkFrac`
+(near-black) and, among non-grass pixels, the team-colour share. Assert across a
+zoom sweep `[1,2,4,6,9]`. This is the `LOD z*` stage in `verify-battle.mjs`; it
+catches both the far-zoom **black-block** bug and the mid-zoom **faint-soldier**
+bug with one metric, and isn't fooled by legitimate grass between ranks (the
+flaw in any whole-box "mean colour" check).
+
+Root cause that metric guards: the 2D sprite atlas is **straight-alpha with a
+wide transparent margin per cell**, drawn **opaque with an alpha-test** (no
+blend). The mip chain box-filters those `(0,0,0,0)` margin texels into RGB, so a
+minified soldier samples near-black — and the alpha-test writes it, collapsing a
+zoomed-out block of men into a solid black slab. Fix in the sprite fragment
+shader: divide by coverage, `gl_FragColor = vec4(c.rgb / c.a, 1.0)`, to recover
+the figure's true alpha-weighted colour. Keep per-soldier outline/shadow
+*soft*, never pure black — in an opaque renderer a hard-black rim is the bulk of
+what a minified man averages to.
 
 ## Running just one snapshot
 
@@ -145,6 +178,17 @@ UPDATE_SHOTS=1 VERIFY_URL=http://localhost:5174 node verify-battle.mjs
    rather than loosening tolerance — `snapCheck` accepts per-snap
    `{ threshold, maxDiffRatio }` overrides, but only use them for a *proven*
    noise source you can name in a comment.
+   - **A living formation is the classic culprit.** Idle men carry a fidget
+     sway that re-rolls every few *ticks* (deterministic in tick count, not
+     wall-clock). `freeze()` pins the clock but NOT the tick the sim landed on
+     when ~1s of real-time elapsed, so consecutive runs catch adjacent sway
+     windows and the snapshot *alternates* 0 px / N px. Fix: freeze at a FIXED
+     absolute tick — `window.__game.freezeAtTick(240)` — so the deployment is
+     byte-identical every run. Don't paper over it with a looser ratio.
+   - A higher-contrast render can *expose* latent jitter a darker one masked (a
+     1-px sway flips far more pixels when soldiers read bright-blue than
+     near-black). The jitter was always there; still pin the tick, don't raise
+     the threshold.
 
 ## Verifying the checker still checks
 

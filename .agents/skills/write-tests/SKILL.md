@@ -134,6 +134,19 @@ drift when the branch never binds. Prefer probing from the TEST side
 (public state every N ticks); if you must instrument the lib, expect
 marginal tests to wobble and re-judge them only after the probe is gone.
 
+## Prove a regression test is really red
+
+When you write a test for a bug you ALREADY fixed (common for visual/LOD bugs:
+fix, then add the guard), the test only earns trust if you watch it FAIL on the
+unfixed code. Stash or revert the fix, run, see red, restore, run, see green.
+But verify the revert actually took: `git stash push <pathspec>` with a wrong
+relative path (e.g. `src/...` from the repo root when the file is `web/src/...`)
+stashes NOTHING, silently, and your "red" run quietly tests the fixed code and
+PASSES — false confidence that the test discriminates. The tell: the "red"
+numbers equal the green numbers. Always sanity-check `git stash list` (or that
+the metric moved) before believing the red. A test you never saw fail is not a
+regression test, it's decoration.
+
 ## When a test goes red after a sim change
 
 In order of likelihood:

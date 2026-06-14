@@ -57,6 +57,20 @@ await page.waitForTimeout(150);
 await snapCheck(page, 'battle-initial', check, { maxDiffRatio: 0.0008 });
 await page.evaluate(() => window.__game.freeze(false));
 
+// The unit banner is a 3D billboard now (team standard + HP/cohesion bars +
+// chips), not a DOM overlay — pin it rendering centred ABOVE a block under the
+// pitched camera, the framing where the old screen-projected banner drifted off
+// the ranks. Frame a unit's centroid, zoom past the show-banners cutoff, freeze.
+await page.evaluate(() => {
+  const a = window.__game.unitInfo(0);
+  const c = window.__cam;
+  c.x = a[32]; c.y = a[33] + 6; c.zoom = 9; c.clampView?.();
+});
+await page.evaluate(() => window.__game.freeze());
+await page.waitForTimeout(150);
+await snapCheck(page, 'battle-banner', check, { maxDiffRatio: 0.0008 });
+await page.evaluate(() => window.__game.freeze(false));
+
 // The in-game manual opens and has content.
 await page.click('#btn-menu');
 await page.click('#pause-manual');

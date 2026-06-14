@@ -1202,6 +1202,24 @@ impl Sim {
             let mut opp_press = 0.0f32;
             let mut opp_pressed_n = 0usize;
 
+            // The WEAVE: invert the slot map (slot index -> soldier) so each man
+            // can find the men netted to him — the slots beside and behind — and
+            // pull toward holding rest spacing with them. This lets the formation
+            // deform as a CONNECTED sheet (dimple around a penetration, drape and
+            // wrap on the advance) instead of every man tugging a rigid grid
+            // point on his own. The slot still anchors the sheet so it springs
+            // back to shape.
+            let mut soldier_at_slot = vec![usize::MAX; u.count];
+            for s in 0..u.count {
+                let i = u.start + s;
+                if alive[i] == 1 {
+                    let sl = soldier_slot[i] as usize;
+                    if sl < u.count {
+                        soldier_at_slot[sl] = i;
+                    }
+                }
+            }
+
             for s in 0..u.count {
                 let i = u.start + s;
                 if alive[i] == 0 {
@@ -1284,7 +1302,43 @@ impl Sim {
 
                 let local = slot_local(soldier_slot[i] as usize, u.files_eff, u.spacing);
                 let slot = u.anchor + r * local.x + f * (-local.y);
-                let to = slot - p;
+                let mut to = slot - p;
+                // Weave: blend the rigid-slot pull with where my NEIGHBOURS want
+                // me — rest spacing from the men beside and behind. Undeformed,
+                // the two agree (the net's rest shape IS the grid); when a
+                // neighbour is shoved, I follow him, so a dimple or a drape
+                // propagates through the sheet and the line never tears. The slot
+                // share keeps it anchored so it recovers its shape.
+                {
+                    let si = soldier_slot[i] as usize;
+                    let files = u.files_eff.max(1);
+                    let (file, rank) = (si % files, si / files);
+                    let (sx, sy) = (u.spacing.x, u.spacing.y);
+                    let nbrs = [
+                        (file > 0, si.wrapping_sub(1), r * sx),       // left: I sit at his +r
+                        (file + 1 < files, si + 1, r * (-sx)),        // right
+                        (rank > 0, si.wrapping_sub(files), f * (-sy)), // front: I sit behind him
+                        (true, si + files, f * sy),                   // back
+                    ];
+                    let mut nsum = Vec2::ZERO;
+                    let mut nn = 0.0f32;
+                    for (ok, ns, off) in nbrs {
+                        if !ok || ns >= u.count {
+                            continue;
+                        }
+                        let j = soldier_at_slot[ns];
+                        if j != usize::MAX {
+                            nsum = nsum
+                                + Vec2::new(prev_positions[2 * j], prev_positions[2 * j + 1])
+                                + off;
+                            nn += 1.0;
+                        }
+                    }
+                    if nn > 0.0 {
+                        let net_to = nsum * (1.0 / nn) - p;
+                        to = to * (1.0 - tun.weave) + net_to * tun.weave;
+                    }
+                }
                 let err = to.len();
                 err_sum += err;
                 if err > strag_thresh {

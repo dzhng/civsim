@@ -103,10 +103,12 @@ pub struct Tunables {
     /// Micro-terrain strength: 1 = full stumble (speed x0.6 inside a
     /// disturbance), 0 = parade ground (tests that need a smooth field).
     pub micro_rough: f32,
-    /// Formation WEAVE: how much each man steers to hold rest spacing with his
-    /// netted neighbours vs. his rigid grid slot. 0 = rigid grid (old), 1 = pure
-    /// net (deforms freely, can drift). The blend lets the line dimple/drape as
-    /// a connected sheet while the slot share keeps it anchored to its shape.
+    /// Formation WEAVE — GLOBAL OVERRIDE for the vibe sweep, NOT the live value.
+    /// <0 (the default) means "use each class's `weave` coherence stat"; setting
+    /// it ≥0 forces that single blend on every unit on the field (web/vibe/
+    /// weave-sweep.mjs drives this through set_weave). The blend itself: how much
+    /// each man steers to hold rest spacing with his netted neighbours (1) vs. his
+    /// rigid grid slot (0) — a connected sheet that dimples/drapes yet recovers.
     pub weave: f32,
     /// Displacement imparted by a landed or blocked strike, scaled by the
     /// attacker/defender effective-mass ratio.
@@ -200,7 +202,7 @@ impl Default for Tunables {
             impact_push: 0.2,
             impact_damage: 0.032,
             micro_rough: 1.0,
-            weave: 0.5,
+            weave: -1.0, // <0 = use each class's coherence stat; the sweep overrides
             hit_push: 0.3,
             combat_drain: 1.0 / 50.0,
             facing_tolerance: 0.3,

@@ -106,6 +106,15 @@ pub struct UnitClass {
     /// (running, fighting, charging, bad ground) is scaled by this — armor
     /// is paid for in wind, so heavies blow out long before a screen does.
     pub drain_mult: f32,
+    /// Formation coherence (0 = rigid grid, every man nailed to his slot; ~0.75
+    /// = a draping net, each man mostly follows his neighbours' spacing). The
+    /// share of a soldier's restoring pull that comes from his neighbours rather
+    /// than his absolute slot. Low = a disciplined wall that holds its shape and
+    /// punches clean (phalanx, spear); high = a loose sheet that dimples to patch
+    /// a breach and wraps to envelop, but blobs under pressure (skirmishers, mob).
+    /// Stay below ~0.8: at 1.0 the slot anchor vanishes and the line never
+    /// advances into contact. (See web/vibe/weave-sweep.mjs.)
+    pub weave: f32,
     pub weapons: WeaponSet,
 }
 
@@ -211,6 +220,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
         tramples: false,
         knockback_mult: 0.35, // a charging mass of men hurts what it fells
         drain_mult: 1.0,
+        weave: 0.5, // mid: a line that bends to wrap but recovers its shape
         weapons: one(SWORD),
     };
     match id {
@@ -226,6 +236,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             block: 0.45, // a real shield wall sheds ~half the frontal arrows; the back is bare (back ~1.8x deaths)
             evade: 0.08,
             training: 0.75,
+            weave: 0.35, // an armoured wall: bends a little, holds its line
             weapons: one(SWORD),
             ..foot
         },
@@ -240,6 +251,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             block: 0.35, // a light shield: real frontal cover, ~1.5x deaths from behind
             evade: 0.15, // a shield, not a skirmisher's legs: modest dodge on top of the block
             training: 0.55,
+            weave: 0.42, // a shielded levy line: fairly cohesive
             weapons: one(SPEAR),
             ..foot
         },
@@ -255,6 +267,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             evade: 0.35,
             training: 0.8,
             stance: crate::unit::Stance::Fence,
+            weave: 0.55, // open-order two-handers: a looser sheet
             weapons: one(LONG_SWORD),
             ..foot
         },
@@ -270,6 +283,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             evade: 0.08,
             training: 0.8,
             charge: false,
+            weave: 0.2, // the rigid pike wall: it holds its shape or it dies
             weapons: two(PIKE, SIDE_SWORD),
             ..foot
         },
@@ -286,6 +300,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             evade: 0.28,
             stance: crate::unit::Stance::Fence,
             charge: false,
+            weave: 0.6, // loose missile order, no shoving wall to hold
             weapons: one(SWORD),
             ..foot
         },
@@ -303,6 +318,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             training: 0.5,
             stance: crate::unit::Stance::Fence,
             charge: false,
+            weave: 0.72, // every man for himself: the loosest sheet on the field
             weapons: one(DAGGER),
             ..foot
         },
@@ -324,6 +340,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             evade: 0.12,
             training: 0.75,
             stance: crate::unit::Stance::Fence,
+            weave: 0.4, // a wedge that drives through, not a sheet that drapes
             weapons: two(LANCE, CAV_SWORD),
             ..foot
         },
@@ -345,6 +362,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             training: 0.65,
             stance: crate::unit::Stance::Fence,
             charge: false,
+            weave: 0.6, // a loose mounted swarm, never a shoving line
             weapons: one(CAV_SWORD),
             ..foot
         },
@@ -360,6 +378,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             evade: 0.18,
             stance: crate::unit::Stance::Fence,
             charge: false,
+            weave: 0.6, // crew, not a battle line
             weapons: one(DAGGER),
             ..foot
         },
@@ -375,6 +394,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             block: 0.0, // no shield at all — arrows and blows land the same from any face
             evade: 0.12, // untrained: a clumsy flinch, not a skirmisher's slip
             training: 0.3,
+            weave: 0.7, // a mob with no drill to hold a shape
             weapons: one(DAGGER),
             ..foot
         },
@@ -410,6 +430,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             block: 0.45,
             evade: 0.08,
             training: 0.75,
+            weave: 0.25, // a set spear wall holds shape harder than a sword line
             weapons: one(SPEAR),
             ..foot
         },

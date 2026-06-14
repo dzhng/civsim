@@ -5,7 +5,7 @@
 // nobody get launched into orbit?
 import { openBattle, vibeCapture, fitDuel, duelSample, duelLabel } from './_lib.mjs';
 
-const A = Number(process.env.A ?? 0); // class id, 0 = HeavyInfantry
+const A = Number(process.env.A ?? 0); // class id, 0 = HeavySword
 const B = Number(process.env.B ?? 0);
 
 const { browser, page, errs } = await openBattle(`battle=duel&a=${A}&b=${B}&ai=off`);

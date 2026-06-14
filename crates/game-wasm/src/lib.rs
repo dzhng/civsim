@@ -91,6 +91,12 @@ impl Game {
         self.battle.sim.set_move_order(unit as usize, Vec2::new(x, y));
     }
 
+    /// Live formation-weave knob (0 = rigid grid, 1 = pure net) — for the vibe
+    /// weave-level sweep. Global; per-class coherence is a separate stat.
+    pub fn set_weave(&mut self, w: f32) {
+        self.battle.sim.tun.weave = w;
+    }
+
     /// 0 = RiverAndCrags, anything else = WalledPlain.
     pub fn load_map(&mut self, map: u32) {
         let id = if map == 0 { MapId::RiverAndCrags } else { MapId::WalledPlain };

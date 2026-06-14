@@ -1057,6 +1057,7 @@ export class BattleScene implements Scene {
       freeze: (on = true) => doFreeze(on),
       groupMove: (units: number[], x: number, y: number) => groupMove(units, x, y, 'move'),
       setFiles: (u: number, files: number) => game.set_files(u, files),
+      setWeave: (w: number) => game.set_weave(w),
       // Spawn an arbitrary unit (vibe scenarios: multi-column penetration, etc.).
       // Raw spawn — light-infantry stats; enough to exercise FORMATION behaviour.
       spawnUnit: (x: number, y: number, facing: number, count: number, files: number, team: number) =>

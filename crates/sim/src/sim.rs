@@ -1451,16 +1451,20 @@ impl Sim {
                         }
                     }
                 } else if advancing && holds_ground && !trampling && u.engaged > 0 {
-                    // OFFENSE WRAP: no enemy in front of me, but my unit is
-                    // attacking and already in a fight — drive on where the
-                    // fighting IS so my overlapping flank curls inward. The weave
-                    // keeps me tied to my neighbours, so the cloth DRAPES around
-                    // the enemy instead of the flank running off as loose men.
-                    if let Some(fc) = fight_centroid {
-                        let to_fc = fc - p;
-                        if to_fc.len() > reach_u {
-                            steer_to = to_fc;
-                            max_sp = max_sp.min(keep_up_sp * 0.5);
+                    // OFFENSE WRAP: a FRONT-rank man with no enemy ahead drives on
+                    // where the fighting is, so the overlapping flank curls inward
+                    // and the cloth drapes around the enemy. Gated to the front
+                    // rank: a buried man has friendlies ahead, so driving him
+                    // forward just rams the formation into itself (the 1v1 blob).
+                    // The weave drags the ranks behind the curling front along.
+                    let rank = soldier_slot[i] as usize / u.files_eff.max(1);
+                    if rank == 0 {
+                        if let Some(fc) = fight_centroid {
+                            let to_fc = fc - p;
+                            if to_fc.len() > reach_u {
+                                steer_to = to_fc;
+                                max_sp = max_sp.min(keep_up_sp * 0.5);
+                            }
                         }
                     }
                 }

@@ -17,14 +17,14 @@ const units = await page.evaluate(() => {
   const LANES = [-65, 0, 65]; // far apart -> three DISTINCT breaches, not one merged bulge
   // a very wide held line at y=0 facing north (600/150 = 4 ranks)
   const def = window.__game.spawnUnit(X, 0, HP, 600, 150, 0);
-  const cols = LANES.map((dx) => window.__game.spawnUnit(X + dx, 110, -HP, 90, 8, 1));
+  const cols = LANES.map((dx) => window.__game.spawnUnit(X + dx, 130, -HP, 160, 8, 1));
   for (let k = 0; k < cols.length; k++) {
     window.__game.setPace(cols[k], 1);
-    // PLAIN move (no pursue) straight INTO the line on its own lane and hold —
-    // pursue would make all three chase the centre and merge to one bulge; a
-    // through-target lets them walk out the back without bogging. Aim AT the
-    // line so each column drives in and sticks, bulging its own spot.
-    window.__game.setOrder(cols[k], X + LANES[k], -5);
+    // attack-move (pursue) straight DOWN its own lane and out the back — drive
+    // THROUGH and LATCH while plowing, like the single-column test. The lanes
+    // are 65 m apart, so each column latches its own stretch of the line rather
+    // than all three chasing the centre (160 men / 8 files ~ 20 ranks deep).
+    window.__game.attackMove(cols[k], X + LANES[k], -90);
   }
   return { def, cols };
 });

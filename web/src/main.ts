@@ -41,6 +41,7 @@ function createGame(kind: BattleKind): Game {
     return game;
   }
   if (kind === '5v5') game.start_sandbox(1);
+  else if (kind === 'surround') game.start_sandbox(4);
   else game.start_battle(kind === 'mapB' ? 1 : 0);
   if (AI_ON) game.set_ai_team(1);
   return game;
@@ -139,7 +140,7 @@ const menu = new MenuScene({
 // battle (deep links and the verify harness); a bare URL opens the menu.
 const sandbox = params.get('battle');
 if (params.get('campaign') === 'test') void launchCampaign(false, await buildTestCampaign());
-else if (sandbox === 'duel' || sandbox === '5v5') launchBattle(sandbox);
+else if (sandbox === 'duel' || sandbox === '5v5' || sandbox === 'surround') launchBattle(sandbox);
 else if (params.has('map') || params.has('battle')) launchBattle(params.get('map') === 'B' ? 'mapB' : 'mapA');
 else switchScene(menu);
 

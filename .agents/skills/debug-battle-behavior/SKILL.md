@@ -244,6 +244,29 @@ ground truth; the formula is just your hypothesis about it. This is the same
 spirit as "watch it in the renderer" — observe the actual behavior over time,
 numerically or visually, before you trust any model of it.
 
+## ALWAYS screenshot the scenario and eyeball the geometry
+
+Numbers hide geometric facts. Before trusting a measurement of a scenario,
+**render it and look** — the picture catches setup bugs the numbers can't.
+Field case: a "long sword surrounded" measurement looked decisive (kills ~0),
+but the screenshot showed the long swords deployed as a 40-wide *thin line*
+with the "surrounding" units merely flanking its ends — not an envelopment at
+all. Re-running with the block deepened to a ~13×13 square ringed on four sides
+was a *different* (correct) scenario. Had I trusted the numbers, I'd have drawn
+the wrong conclusion about what "surrounded" does.
+
+- Spin a scenario up as a sandbox (`setup_sandbox` kind + a `?battle=<name>`
+  URL) and drive it with the `__game` hooks (`attackOrder`, `advance`,
+  `freeze`) via Playwright; screenshot deploy AND a few seconds in.
+- **Look at it yourself** (open the PNG), the way the `screenshot-regression`
+  skill demands for any visual claim — confirm the geometry is what you think
+  you measured.
+- **Keep the shots.** A scenario sandbox + its committed screenshots double as
+  a **visual-regression baseline** (`web/shots/`): the same picture that gut-
+  checks the physics today catches the day a change quietly reshapes it. The
+  `?battle=surround` sandbox + `shots/surround-{deploy,mobbed}.png` are exactly
+  this — a vibe-check bench and a regression pin in one.
+
 ## Fragile metrics flip on any breeze
 
 Several red tests are not behavior bugs at all — they measure a real mechanism

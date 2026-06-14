@@ -240,6 +240,23 @@ pub fn setup_sandbox(sim: &mut Sim, kind: u32) {
         sim.spawn_class(Vec2::new(0.0, 90.0), -FRAC_PI_2, 240, UnitClassId::HeavyInfantry, 1);
         return;
     }
+    if kind == 4 {
+        // SURROUND gut-check: a long-sword BLOCK (deepened to a ~square so it's
+        // a compact body, not a wide line) encircled by heavy infantry on all
+        // four sides — a true envelopment, the scenario behind the surround-
+        // sensitivity check.
+        {
+            let mut s = sim.balance.get(UnitClassId::LongSwords);
+            s.default_depth = 13; // 169 men -> ~13x13 block instead of a 40-wide line
+            sim.balance.set(UnitClassId::LongSwords, s);
+        }
+        sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 169, UnitClassId::LongSwords, 0);
+        sim.spawn_class(Vec2::new(0.0, 26.0), -FRAC_PI_2, 90, UnitClassId::HeavyInfantry, 1);
+        sim.spawn_class(Vec2::new(0.0, -26.0), FRAC_PI_2, 90, UnitClassId::HeavyInfantry, 1);
+        sim.spawn_class(Vec2::new(26.0, 0.0), std::f32::consts::PI, 90, UnitClassId::HeavyInfantry, 1);
+        sim.spawn_class(Vec2::new(-26.0, 0.0), 0.0, 90, UnitClassId::HeavyInfantry, 1);
+        return;
+    }
     if kind == 2 || kind == 3 {
         // A 100x4 line facing north; blue cavalry charges its face (kind 2)
         // or its eastern flank (kind 3).

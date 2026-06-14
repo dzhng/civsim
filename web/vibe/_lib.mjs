@@ -24,6 +24,38 @@ export async function openBattle(query) {
   return { browser, page, errs };
 }
 
+// Class ids (match class.rs / CLASS_NAMES).
+export const CLS = {
+  heavy: 0, light: 1, longsword: 2, phalanx: 3, archers: 4,
+  skirmishers: 5, cavalry: 6, horsearchers: 7, artillery: 8, peasant: 9,
+};
+
+/** Fit both duel units (centroids + margin) into view — ~2.5 holds both lines
+ *  when they spawn ~400 m apart, ~20 reads individual men once they collide. */
+export const fitDuel = (page) => page.evaluate(() => {
+  const a = window.__game.unitInfo(0), b = window.__game.unitInfo(1);
+  const cv = document.getElementById('battlefield');
+  const spanX = Math.abs(a[32] - b[32]) + 55, spanY = Math.abs(a[33] - b[33]) + 55;
+  const c = window.__cam;
+  c.x = (a[32] + b[32]) / 2; c.y = (a[33] + b[33]) / 2; c.pitch = 0;
+  c.zoom = Math.max(2.5, Math.min(20, Math.min(cv.width / spanX, cv.height / spanY)));
+  c.clampView?.();
+});
+
+/** Status of the two duel units (a = unit 0, b = unit 1). */
+export const duelSample = (page) => page.evaluate(() => {
+  const a = window.__game.unitInfo(0), b = window.__game.unitInfo(1);
+  return {
+    victor: window.__game.stats().victor,
+    aAlive: a[15], aTotal: a[7], aCoh: a[4], aFight: a[16], aAmmo: a[19],
+    bAlive: b[15], bTotal: b[7], bCoh: b[4], bFight: b[16], bAmmo: b[19],
+  };
+});
+
+export const duelLabel = (secs, s) =>
+  `t=${String(secs).padStart(3)}s  A ${s.aAlive}/${s.aTotal} (coh ${s.aCoh.toFixed(2)})  `
+  + `B ${s.bAlive}/${s.bTotal} (coh ${s.bCoh.toFixed(2)})  fighting ${s.aFight}/${s.bFight}  victor ${s.victor}`;
+
 /** Screenshot `name` every `stepSecs` sim-seconds until `done(sample)` (or
  *  `maxSteps`). Per step: position the camera (`frame`), freeze + hide the
  *  victory panel, snap to shots/<name>/t###s.png, log (`label`), then advance.

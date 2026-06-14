@@ -132,7 +132,11 @@ const SWORD: Weapon = Weapon {
 
 const LONG_SWORD: Weapon = Weapon {
     reach: 1.8,
-    min_range: 0.3,
+    // No dead zone: a two-hander half-swords and pommels in close, so a foe
+    // crowding inside doesn't disarm him. Being pressed is ALREADY punished by
+    // the swing choke (a wide arc can't sweep in a crush); a min_range on top
+    // is double jeopardy — the same perverse coupling the lance had (see LANCE).
+    min_range: 0.0,
     arc: 2.4,
     attack_interval: 2.61,
     damage: 0.3,

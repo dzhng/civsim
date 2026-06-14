@@ -104,7 +104,7 @@ fn tuning_a_candidate_config_moves_the_matchup() {
 fn duel_scenario_exists_for_every_class() {
     assert_eq!(
         sim::ALL_CLASSES.len(),
-        10,
+        12,
         "class count changed — regenerate the balance matrix golden, then bump this"
     );
     for &a in &sim::ALL_CLASSES {

@@ -50,6 +50,8 @@ pub fn duel_strength(c: UnitClassId) -> usize {
         HorseArchers => 100,
         ArtilleryCrew => 40,
         Peasant => 300,
+        LightSword => 220,
+        HeavySpear => 240,
     }
 }
 

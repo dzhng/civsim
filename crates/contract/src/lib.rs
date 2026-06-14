@@ -23,6 +23,12 @@ pub enum UnitClassId {
     /// Levy with a dagger and no shield — cheap cannon fodder. Added last so the
     /// existing class indices (shared with the wasm/web class id table) hold.
     Peasant,
+    /// Light armour, sword + small shield — the cheap sword line (HeavyInfantry
+    /// is the heavy sword). Added after Peasant so existing indices hold.
+    LightSword,
+    /// Heavy armour, spear + big shield — the armoured spear wall (LightInfantry
+    /// is the light spear). Added last so existing indices hold.
+    HeavySpear,
 }
 
 /// Gold cost of a full unit at duel strength. Anchors per David: light
@@ -42,10 +48,12 @@ pub fn unit_cost(c: UnitClassId) -> u32 {
         UnitClassId::HorseArchers => 1100,
         UnitClassId::ArtilleryCrew => 700,
         UnitClassId::Peasant => 175, // a sack of grain and a knife — cannon fodder
+        UnitClassId::LightSword => 400, // cheap sword line: shield + blade, light armour
+        UnitClassId::HeavySpear => 1100, // armoured spear wall: anti-charge line
     }
 }
 
-pub const ALL_CLASSES: [UnitClassId; 10] = [
+pub const ALL_CLASSES: [UnitClassId; 12] = [
     UnitClassId::HeavyInfantry,
     UnitClassId::LightInfantry,
     UnitClassId::LongSwords,
@@ -56,6 +64,8 @@ pub const ALL_CLASSES: [UnitClassId; 10] = [
     UnitClassId::HorseArchers,
     UnitClassId::ArtilleryCrew,
     UnitClassId::Peasant,
+    UnitClassId::LightSword,
+    UnitClassId::HeavySpear,
 ];
 
 /// A battle map as a data-only paint program over a flat terrain grid.

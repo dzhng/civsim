@@ -378,6 +378,41 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             weapons: one(DAGGER),
             ..foot
         },
+        // The cheap sword line: light infantry's body, a sword instead of a
+        // spear. More aggressive (sword arc, a touch more dodge) but the same
+        // light shield — HeavyInfantry is the armoured sword.
+        LightSword => UnitClass {
+            drain_mult: 0.9,
+            speed_mult: 1.1,
+            soldier_radius: 0.32,
+            mass: 0.95,
+            spacing: Vec2::new(1.0, 1.2),
+            default_depth: 6,
+            health: 1.5,
+            block: 0.3, // a light shield, a hair less than the spear line's
+            evade: 0.18,
+            training: 0.55,
+            weapons: one(SWORD),
+            ..foot
+        },
+        // The armoured spear wall: heavy infantry's body and shield, a spear
+        // instead of a sword — braces hard, holds a line, anti-charge.
+        // LightInfantry is the light spear.
+        HeavySpear => UnitClass {
+            drain_mult: 1.35,
+            speed_mult: 0.9,
+            soldier_radius: 0.34,
+            mass: 1.3,
+            brace_mult: 2.5, // a set spear line braces harder than a sword wall
+            spacing: Vec2::new(0.9, 1.1),
+            default_depth: 8,
+            health: 2.4,
+            block: 0.45,
+            evade: 0.08,
+            training: 0.75,
+            weapons: one(SPEAR),
+            ..foot
+        },
     }
 }
 

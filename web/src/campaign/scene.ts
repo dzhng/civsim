@@ -606,7 +606,7 @@ export class CampaignScene implements Scene {
     const c = this.cities.get(node);
     if (!c) return;
     const mineCity = this.cfg.data.map.factions[c.owner]?.playable !== undefined && c.owner === this.playerFaction();
-    const classes = ['HeavyInfantry', 'LightInfantry', 'LongSwords', 'Phalanx', 'Archers', 'Skirmishers', 'ShockCavalry', 'HorseArchers', 'ArtilleryCrew', 'Peasant'];
+    const classes = ['HeavyInfantry', 'LightInfantry', 'LongSwords', 'Phalanx', 'Archers', 'Skirmishers', 'ShockCavalry', 'HorseArchers', 'ArtilleryCrew', 'Peasant', 'LightSword', 'HeavySpear'];
     const recruits = mineCity
       ? `<div style="margin-top:6px">${classes
           .map((cl, i) => `<button data-recruit="${i}" title="${cl}">${cl.replace(/[a-z]/g, '')}</button>`)

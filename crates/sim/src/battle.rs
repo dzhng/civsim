@@ -21,6 +21,8 @@ pub fn unit_size(class: UnitClassId) -> usize {
         HorseArchers => 240,
         ArtilleryCrew => 80,
         Peasant => 1400, // cheap: they come in droves
+        LightSword => 880,
+        HeavySpear => 1280,
     }
 }
 
@@ -140,9 +142,9 @@ pub fn deploy_roster(sim: &mut Sim, dep: &contract::Deployment) -> Vec<(u64, usi
 
     // Formed: group by role, lay rows like deploy_army does.
     let role = |c: UnitClassId| match c {
-        Skirmishers => 0,                          // screen
-        HeavyInfantry | Phalanx | LongSwords => 1, // main line
-        LightInfantry | Peasant => 2,              // second line / levy
+        Skirmishers => 0,                                       // screen
+        HeavyInfantry | Phalanx | LongSwords | HeavySpear => 1, // main line
+        LightInfantry | Peasant | LightSword => 2,              // second line / levy
         Archers => 3,                              // ranged
         ArtilleryCrew => 4,
         ShockCavalry | HorseArchers => 5, // wings
@@ -213,6 +215,8 @@ pub fn setup_duel(sim: &mut Sim, a: UnitClassId, b: UnitClassId) {
             HorseArchers => 100,
             ArtilleryCrew => 40,
             Peasant => 300,
+            LightSword => 220,
+            HeavySpear => 240,
         }
     };
     let ua = sim.spawn_class(Vec2::new(0.0, -90.0), FRAC_PI_2, duel_count(a), a, 0);

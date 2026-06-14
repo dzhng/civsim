@@ -8,6 +8,7 @@ export const WILDS_MARGIN = 1600;
 export const CLASS_NAMES = [
   'Heavy Infantry', 'Light Infantry', 'Long Swords', 'Phalanx', 'Archers',
   'Skirmishers', 'Shock Cavalry', 'Horse Archers', 'Artillery Crew',
+  'Peasants', 'Light Sword', 'Heavy Spear',
 ];
 
 // ---------------------------------------------------------------- shaders --

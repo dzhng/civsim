@@ -20,6 +20,8 @@ fn short(c: UnitClassId) -> &'static str {
         UnitClassId::HorseArchers => "HAR",
         UnitClassId::ArtilleryCrew => "ART",
         UnitClassId::Peasant => "PEA",
+        UnitClassId::LightSword => "LSD",
+        UnitClassId::HeavySpear => "HSP",
     }
 }
 
@@ -31,7 +33,7 @@ fn short(c: UnitClassId) -> &'static str {
 /// scenarios — see `balance_harness.rs`.) Survivor% is banded to 25% so seed
 /// jitter never churns the golden.
 ///
-/// `#[ignore]`d because it runs 100 cells × the seed set (~minutes) — a
+/// `#[ignore]`d because it runs 144 cells × the seed set (~minutes) — a
 /// measurement and a deliberate regression, not an every-session gate (the
 /// counter-web below is the fast always-on net). Bless after an intended
 /// balance change and read the diff AS the balance review:

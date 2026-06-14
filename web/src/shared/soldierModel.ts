@@ -25,6 +25,8 @@ export const CLASS_LOOK: ClassLook[] = [
   { weapon: 'bow', shield: 'none', crest: false, mounted: true }, // 7 horse archers
   { weapon: 'none', shield: 'none', crest: false, mounted: false }, // 8 artillery crew
   { weapon: 'sword', shield: 'none', crest: false, mounted: false }, // 9 peasant (a knife, no shield)
+  { weapon: 'sword', shield: 'round', crest: false, mounted: false }, // 10 light sword (sword + light shield)
+  { weapon: 'spear', shield: 'tall', crest: true, mounted: false }, // 11 heavy spear (spear + big shield)
 ];
 
 /** Per-class soldier (or rider on a horse) as one box mesh. `rest` is a

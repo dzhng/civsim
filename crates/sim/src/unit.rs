@@ -34,6 +34,11 @@ pub enum OrderMode {
 
 pub struct Unit {
     pub class: UnitClassId,
+    /// This unit's resolved class stats under the battle's `BalanceConfig`,
+    /// captured at spawn. Read instead of the `class_stats` consts so a tuned
+    /// config flows into combat. (Fixed for the battle; the config can't change
+    /// mid-fight.)
+    pub stats: crate::class::UnitClass,
     /// Multiplies the global walk/run/surge speeds (cavalry ≫ infantry).
     pub speed_mult: f32,
     /// Index of this unit's first soldier in the soldier arrays.
@@ -216,7 +221,7 @@ impl Unit {
     /// resistance fades as the formation gets moving, no cliff at a
     /// threshold. Pivoting men are mid-step: no plant.
     pub fn brace(&self) -> f32 {
-        let mult = crate::class::class_stats(self.class).brace_mult;
+        let mult = self.stats.brace_mult;
         if self.pivoting {
             return 1.0;
         }
@@ -253,13 +258,13 @@ impl Unit {
     }
 
     pub fn is_mounted(&self) -> bool {
-        crate::class::class_stats(self.class).mounted
+        self.stats.mounted
     }
 
     /// Keeps driving through contact while charging (no plant at weapon's
     /// length) — the trample is the charge. See `UnitClass::tramples`.
     pub fn tramples(&self) -> bool {
-        crate::class::class_stats(self.class).tramples
+        self.stats.tramples
     }
 
     /// The pace the legs actually use: an attack closes at the double

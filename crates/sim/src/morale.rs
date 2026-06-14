@@ -43,7 +43,7 @@ impl Sim {
             .units
             .iter()
             .map(|u| {
-                let stats = crate::class::class_stats(u.class);
+                let stats = u.stats;
                 let dps = stats
                     .weapons
                     .iter()
@@ -106,7 +106,7 @@ impl Sim {
             // fear — it emits relief. This is what breaks the mutual-rout
             // race: the side that holds one beat longer gets paid for it.
             let mut enemy_backs = 0.0f32;
-            let my_mass = alive_n * crate::class::class_stats(u.class).mass;
+            let my_mass = alive_n * u.stats.mass;
             let my_morale = u.morale;
             let my_pool = summaries[ui].7;
             for (vi, &(c, team, alive_v, v_routing, advance, mass_total, v_offense, _, v_morale)) in

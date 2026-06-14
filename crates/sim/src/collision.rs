@@ -189,7 +189,7 @@ impl Sim {
                                     // charge-grade closings: slow pressers
                                     // pay nothing (deep-pike infantry
                                     // contract). Waterloo squares.
-                                    let pole = crate::class::class_stats(units[uj].class)
+                                    let pole = units[uj].stats
                                         .weapons
                                         .iter()
                                         .fold(0.0f32, |m, w| m.max(w.reach));
@@ -202,10 +202,7 @@ impl Sim {
                                         let pu = &units[uj];
                                         let ranks = pu.alive_count as f32
                                             / pu.files_eff.max(1) as f32;
-                                        let sp = crate::class::class_stats(pu.class)
-                                            .spacing
-                                            .y
-                                            .max(0.5);
+                                        let sp = pu.stats.spacing.y.max(0.5);
                                         (ranks / (pole / sp).max(1.0)).clamp(0.0, 1.0)
                                     };
                                     // A braced man behind a planted POLE
@@ -216,7 +213,7 @@ impl Sim {
                                     // this, the wall's own shove-back
                                     // re-slams the front rank prone and
                                     // the storm opens the hedge.
-                                    let my_pole = crate::class::class_stats(units[ui].class)
+                                    let my_pole = units[ui].stats
                                         .weapons
                                         .iter()
                                         .fold(0.0f32, |m, w| m.max(w.reach));
@@ -257,7 +254,7 @@ impl Sim {
                                         // weight of hoof. Men bumping men at
                                         // a run bruise and fall, nothing more.
                                         let knockback =
-                                            crate::class::class_stats(units[uj].class).knockback_mult;
+                                            units[uj].stats.knockback_mult;
                                         // Universal: ANYONE felled at
                                         // charge-grade closing gets hurt —
                                         // no charge-state gate needed now

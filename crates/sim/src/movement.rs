@@ -246,6 +246,7 @@ mod tests {
         let tun = Tunables::default();
         let mut disordered = Unit {
             class: crate::class::UnitClassId::LightInfantry,
+            stats: crate::class::class_stats(crate::class::UnitClassId::LightInfantry),
             speed_mult: 1.0,
             start: 0,
             count: 0,

@@ -27,6 +27,9 @@ const IDLE_GLANCE: f32 = 0.18;
 
 pub struct Sim {
     pub tun: Tunables,
+    /// Per-class balance surface (stats/weapons), injected. Units capture their
+    /// stats from it at spawn; `Default` == the `class_stats` tables.
+    pub balance: crate::class::BalanceConfig,
     /// Interleaved soldier positions [x0, y0, x1, y1, ...].
     pub positions: Vec<f32>,
     pub facings: Vec<f32>,
@@ -138,8 +141,15 @@ pub struct Sim {
 
 impl Sim {
     pub fn new(tun: Tunables, seed: u64) -> Self {
+        Self::with_balance(tun, crate::class::BalanceConfig::default(), seed)
+    }
+
+    /// As `new`, but with a tuned balance surface — the seam the balance
+    /// harness uses to sweep configs against one compiled binary.
+    pub fn with_balance(tun: Tunables, balance: crate::class::BalanceConfig, seed: u64) -> Self {
         Self {
             tun,
+            balance,
             positions: Vec::new(),
             facings: Vec::new(),
             health: Vec::new(),
@@ -220,6 +230,7 @@ impl Sim {
         let unit_index = self.units.len();
         let unit = Unit {
             class: UnitClassId::LightInfantry,
+            stats: class_stats(UnitClassId::LightInfantry),
             speed_mult: 1.0,
             start: self.soldier_count(),
             count,
@@ -335,7 +346,7 @@ impl Sim {
         class: UnitClassId,
         team: u32,
     ) -> usize {
-        let stats = class_stats(class);
+        let stats = self.balance.get(class);
         let files = count.div_ceil(stats.default_depth.max(1));
         let idx = self.spawn_unit(anchor, facing, count, files, stats.spacing, team, stats.training);
         let start = self.units[idx].start;
@@ -349,6 +360,7 @@ impl Sim {
         self.max_radius = self.max_radius.max(stats.soldier_radius);
         let u = &mut self.units[idx];
         u.class = class;
+        u.stats = stats;
         u.speed_mult = stats.speed_mult;
         u.stance = stats.stance;
         u.charge_enabled = stats.charge;
@@ -1167,7 +1179,7 @@ impl Sim {
             let pressing = holds_ground
                 && u.stance == crate::unit::Stance::Othismos
                 && (matches!(u.mode, crate::unit::OrderMode::Attack(_)) || u.move_target.is_some());
-            let reach_u = crate::class::class_stats(u.class)
+            let reach_u = u.stats
                 .weapons
                 .iter()
                 .fold(0.0f32, |m, w| m.max(w.reach));

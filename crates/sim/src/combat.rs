@@ -15,7 +15,7 @@
 //!
 //! Runs at 10 Hz per soldier (round-robin thirds), deterministic.
 
-use crate::class::{class_stats, UnitClassId, Weapon};
+use crate::class::{UnitClassId, Weapon};
 use crate::math::{dir, wrap_angle, Vec2};
 use crate::movement::fatigue_capacity;
 use crate::sim::Sim;
@@ -89,7 +89,7 @@ impl Sim {
             let my_team = self.units[ui].team;
             let disengaged =
                 self.units[ui].mode == OrderMode::Disengage || self.units[ui].routing;
-            let stats = class_stats(self.units[ui].class);
+            let stats = self.units[ui].stats;
             let weapons = stats.weapons;
             let max_reach = weapons.iter().map(|w| w.reach).fold(0.0f32, f32::max);
             let my_r = self.radius[i];
@@ -246,7 +246,7 @@ impl Sim {
                 let hedge = {
                     let pu = &self.units[ui];
                     let ranks = pu.alive_count as f32 / pu.files_eff.max(1) as f32;
-                    let spacing = class_stats(pu.class).spacing.y.max(0.5);
+                    let spacing = pu.stats.spacing.y.max(0.5);
                     let reach_ranks = (weapon.reach / spacing).max(1.0);
                     (ranks / reach_ranks).clamp(0.0, 1.0)
                 };
@@ -376,7 +376,7 @@ impl Sim {
         tun: &crate::tunables::Tunables,
     ) {
         let uv = self.soldier_unit[victim] as usize;
-        let vstats = class_stats(self.units[uv].class);
+        let vstats = self.units[uv].stats;
         let cohesion = self.units[uv].cohesion;
 
         // Reactive facing memory + unit contact bookkeeping.

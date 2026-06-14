@@ -368,7 +368,7 @@ impl Sim {
 
     fn hit_by_missile(&mut self, victim: usize, vel: Vec2, damage: f32, heavy: bool) {
         let uv = self.soldier_unit[victim] as usize;
-        let vstats = crate::class::class_stats(self.units[uv].class);
+        let vstats = self.units[uv].stats;
         let incoming = wrap_angle(vel.y.atan2(vel.x) + std::f32::consts::PI);
 
         // Shields block arrows from the front arc BEFORE anything registers: a

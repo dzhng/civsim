@@ -369,3 +369,39 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
         },
     }
 }
+
+/// The full per-class balance surface, resolved once and injected into a `Sim`.
+/// Lifting the stat tables out of the `class_stats` consts into runtime data is
+/// what lets a tuner sweep configs without recompiling. `Default` reproduces
+/// `class_stats` exactly — so the default config is behaviour-neutral and the
+/// golden hash is untouched.
+#[derive(Clone, Debug)]
+pub struct BalanceConfig {
+    /// Indexed by `UnitClassId as usize`; covers every variant in `ALL_CLASSES`.
+    stats: [UnitClass; contract::ALL_CLASSES.len()],
+}
+
+impl BalanceConfig {
+    /// The class's stats under this config.
+    #[inline]
+    pub fn get(&self, class: UnitClassId) -> UnitClass {
+        self.stats[class as usize]
+    }
+    /// Override one class's stats (the tuner's single mutation).
+    pub fn set(&mut self, class: UnitClassId, stats: UnitClass) {
+        self.stats[class as usize] = stats;
+    }
+}
+
+impl Default for BalanceConfig {
+    fn default() -> Self {
+        // Fill, then overwrite every variant from the canonical table. The
+        // filler is immediately replaced for all 10 ids; it just seeds the
+        // array (UnitClass is not Default).
+        let mut stats = [class_stats(UnitClassId::HeavyInfantry); contract::ALL_CLASSES.len()];
+        for &c in &contract::ALL_CLASSES {
+            stats[c as usize] = class_stats(c);
+        }
+        Self { stats }
+    }
+}

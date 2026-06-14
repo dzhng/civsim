@@ -1,25 +1,28 @@
-// Vibe check: OFFENSE — a wide ATTACKING line drives onto a narrow enemy block.
-// The line's overlapping flanks should wrap inward and ENVELOP the block (the
-// cloth blown into the ball). Eyeball web/vibe/shots/offense/.
-//   Default heavy vs heavy. Override classes: ATK=6 DEF=0 node vibe/offense.mjs
-import { openBattle, vibeCapture, CLS } from './_lib.mjs';
+// Vibe check: OFFENSE — a WIDE attacking line drives onto a NARROW block. The
+// flanks overlap the block with no enemy in front of them, so on the offensive
+// they should curl IN and the cloth should DRAPE around it (envelop). Eyeball
+// web/vibe/shots/offense/. Built with the spawn hook so the block is narrow and
+// shallow enough to actually engage (a deep tank just stalls the line).
+import { openBattle, vibeCapture } from './_lib.mjs';
 
-const ATK = Number(process.env.ATK ?? CLS.heavy); // unit 0, the wide attacking line
-const DEF = Number(process.env.DEF ?? CLS.heavy); // unit 1, the narrow enemy
+const { browser, page, errs } = await openBattle('battle=duel&a=0&b=0&ai=off');
 
-const { browser, page, errs } = await openBattle(`battle=duel&a=${ATK}&b=${DEF}&ai=off`);
-await page.evaluate(() => {
-  window.__game.setFiles(0, 70); // attacker: WIDE line
-  window.__game.setFiles(1, 10); // enemy: NARROW block
-  window.__game.setPace(0, 1);
-  const d = window.__game.unitInfo(1);
-  window.__game.attackMove(0, d[32], d[33]); // drive onto and over the block
-  // the narrow enemy holds (no order) — the wide line should wrap it
+const units = await page.evaluate(() => {
+  const HP = Math.PI / 2;
+  const X = 200; // east of the idle duel pair
+  // wide attacking line (team 0) at y=0, facing north toward the block
+  const atk = window.__game.spawnUnit(X, 0, HP, 400, 100, 0);
+  // narrow shallow enemy block (team 1) just north of centre, held
+  const def = window.__game.spawnUnit(X, 55, -HP, 150, 12, 1);
+  window.__game.setPace(atk, 1);
+  window.__game.attackMove(atk, X, 70); // drive into and over the block
+  return { atk, def };
 });
+const ids = await page.evaluate((u) => [u.atk, u.def], units);
 
-const frame = () => page.evaluate(() => {
+const frame = () => page.evaluate((ids) => {
   let minx = 1e9, miny = 1e9, maxx = -1e9, maxy = -1e9;
-  for (const u of [0, 1]) {
+  for (const u of ids) {
     const cnt = window.__game.unitInfo(u)[7];
     const start = window.__game.soldierStartOf(u);
     for (let i = start; i < start + cnt; i++) {
@@ -33,15 +36,15 @@ const frame = () => page.evaluate(() => {
   c.pitch = 0; c.x = (minx + maxx) / 2; c.y = (miny + maxy) / 2;
   c.zoom = Math.max(3, Math.min(20, Math.min(cv.width / (maxx - minx + 40), cv.height / (maxy - miny + 40))));
   c.clampView?.();
-});
-const sample = () => page.evaluate(() => {
-  const a = window.__game.unitInfo(0), b = window.__game.unitInfo(1);
-  return { victor: window.__game.stats().victor, aAlive: a[15], aTotal: a[7], bAlive: b[15], bTotal: b[7] };
-});
-const label = (s, m) => `t=${String(s).padStart(3)}s  line ${m.aAlive}/${m.aTotal}  block ${m.bAlive}/${m.bTotal}  victor ${m.victor}`;
+}, ids);
+const sample = () => page.evaluate((ids) => {
+  const a = window.__game.unitInfo(ids[0]), b = window.__game.unitInfo(ids[1]);
+  return { lineAlive: a[15], lineTotal: a[7], blockAlive: b[15], blockTotal: b[7] };
+}, ids);
+const label = (s, m) => `t=${String(s).padStart(3)}s  line ${m.lineAlive}/${m.lineTotal}  block ${m.blockAlive}/${m.blockTotal}`;
 
 const { shots, dir } = await vibeCapture(page, process.env.NAME ?? 'offense', {
-  stepSecs: 12, maxSteps: 16, frame, sample, label, done: (m) => m.victor >= 0,
+  stepSecs: 12, maxSteps: 16, frame, sample, label, done: () => false,
 });
 console.log(`\n${shots.length} frames -> ${dir}`);
 if (errs.length) console.log('page errors:', errs.slice(0, 3));

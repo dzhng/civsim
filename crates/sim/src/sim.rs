@@ -1180,9 +1180,14 @@ impl Sim {
             // onto its man instead of standing at weapon's length. This is
             // the source of the pressure chain — the frame slack only sets
             // how deep the slots sit; the men are what actually push.
-            let pressing = holds_ground
-                && u.stance == crate::unit::Stance::Othismos
-                && (matches!(u.mode, crate::unit::OrderMode::Attack(_)) || u.move_target.is_some());
+            // OFFENSE vs DEFENSE: a unit with a forward intent (attack/move) is
+            // on the offensive — its men step INTO the enemy and the cloth drapes
+            // and wraps. A braced defender (no order) HOLDS: it fights what
+            // reaches it and lets the breach dimple it BACK, it does not reach
+            // forward to grab the column.
+            let advancing =
+                matches!(u.mode, crate::unit::OrderMode::Attack(_)) || u.move_target.is_some();
+            let pressing = holds_ground && u.stance == crate::unit::Stance::Othismos && advancing;
             let reach_u = u.stats
                 .weapons
                 .iter()
@@ -1210,6 +1215,10 @@ impl Sim {
             // point on his own. The slot still anchors the sheet so it springs
             // back to shape.
             let mut soldier_at_slot = vec![usize::MAX; u.count];
+            // Where this unit's fight IS (mean of its men in contact). On the
+            // OFFENSIVE, men with no enemy in front drive on this — so the
+            // overlapping flanks curl in and the cloth wraps the enemy.
+            let (mut fcx, mut fcy, mut fcn) = (0.0f32, 0.0f32, 0.0f32);
             for s in 0..u.count {
                 let i = u.start + s;
                 if alive[i] == 1 {
@@ -1217,8 +1226,14 @@ impl Sim {
                     if sl < u.count {
                         soldier_at_slot[sl] = i;
                     }
+                    if fighting[i] == 1 {
+                        fcx += positions[2 * i];
+                        fcy += positions[2 * i + 1];
+                        fcn += 1.0;
+                    }
                 }
             }
+            let fight_centroid = (fcn > 0.0).then(|| Vec2::new(fcx / fcn, fcy / fcn));
 
             for s in 0..u.count {
                 let i = u.start + s;
@@ -1416,7 +1431,10 @@ impl Sim {
                     let tvx = positions[2 * t] - prev_positions[2 * t];
                     let tvy = positions[2 * t + 1] - prev_positions[2 * t + 1];
                     let closing = -(tvx * tt.x + tvy * tt.y) / (tt.len().max(0.01) * dt);
-                    if d_t > reach_u - 0.2 && d_t < r_seek && front_clear[i] == 1 && closing < 3.5 {
+                    // Step onto a near enemy ONLY on the offensive — a braced
+                    // defender does NOT reach forward to close the gap; it lets
+                    // the enemy come and dimples BACK (the `advancing` gate).
+                    if advancing && d_t > reach_u - 0.2 && d_t < r_seek && front_clear[i] == 1 && closing < 3.5 {
                         steer_to = tt;
                         max_sp = max_sp.min(keep_up_sp * 0.5);
                     } else if engaged_i {
@@ -1430,6 +1448,19 @@ impl Sim {
                             // target's body. Separation converts it into
                             // crowd pressure and the chain transmits it.
                             steer_to = tt;
+                        }
+                    }
+                } else if advancing && holds_ground && !trampling && u.engaged > 0 {
+                    // OFFENSE WRAP: no enemy in front of me, but my unit is
+                    // attacking and already in a fight — drive on where the
+                    // fighting IS so my overlapping flank curls inward. The weave
+                    // keeps me tied to my neighbours, so the cloth DRAPES around
+                    // the enemy instead of the flank running off as loose men.
+                    if let Some(fc) = fight_centroid {
+                        let to_fc = fc - p;
+                        if to_fc.len() > reach_u {
+                            steer_to = to_fc;
+                            max_sp = max_sp.min(keep_up_sp * 0.5);
                         }
                     }
                 }

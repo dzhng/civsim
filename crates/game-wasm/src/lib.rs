@@ -141,6 +141,7 @@ impl Game {
                             "arc": w.arc,
                             "interval": w.attack_interval,
                             "damage": w.damage,
+                            "braced": w.braced,
                         })
                     })
                     .collect();
@@ -353,6 +354,13 @@ impl Game {
     /// Per-soldier weapon-swap countdown (>0 = mid-fumble; drives the anim).
     pub fn switch_cd_ptr(&self) -> *const f32 {
         self.battle.sim.switch_cd.as_ptr()
+    }
+
+    /// Per-soldier index of the weapon in hand (into the class's weapon list) —
+    /// so the attack-arc viz draws the weapon actually swung (pike vs side-sword),
+    /// not always the primary.
+    pub fn cur_weapon_ptr(&self) -> *const u8 {
+        self.battle.sim.cur_weapon.as_ptr()
     }
 
     pub fn set_pursue(&mut self, unit: u32, on: u32) {

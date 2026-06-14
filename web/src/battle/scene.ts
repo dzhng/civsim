@@ -18,12 +18,6 @@ const MAX_TICKS_PER_FRAME = 4;
 const CLASS_DEPTH = [8, 6, 4, 10, 4, 4, 5, 5, 4, 6, 6, 8];
 const CLASS_SPACING = [0.9, 1.0, 1.5, 0.8, 1.2, 1.6, 1.8, 2.2, 2.0, 1.1, 1.0, 0.9];
 // Primary weapon (reach, arc) for the attack-arc display.
-const WEAPON_VIZ: [number, number][] = [
-  [1.1, 1.4], [1.6, 0.6], [1.8, 2.4], [3.2, 0.22], [0.8, 1.0],
-  [0.8, 1.0], [2.4, 0.3], [1.3, 1.4], [0.8, 1.0], [0.8, 1.0],
-  [1.1, 1.4], [1.6, 0.6],
-];
-
 export type BattleKind = 'duel' | '5v5' | 'surround' | 'flank' | 'mapA' | 'mapB';
 
 export interface BattleConfig {
@@ -738,7 +732,7 @@ export class BattleScene implements Scene {
     }, { signal });
 
     // --- Main loop -----------------------------------------------------------------
-    type WeaponSpec = { name: string; reach: number; minRange: number; arc: number; interval: number; damage: number };
+    type WeaponSpec = { name: string; reach: number; minRange: number; arc: number; interval: number; damage: number; braced: boolean };
     type ClassSpec = {
       cost: number;
       mass: number; radius: number; brace: number; block: number; evade: number;
@@ -857,11 +851,15 @@ export class BattleScene implements Scene {
       // renderers draw no banners — the empty list keeps the shared draw() shape.
       renderer.draw(positions(), facings(), frames, aliveF32, game.soldier_count(), camera, primary, [], 0);
       // Attack arcs: every soldier mid-swing flashes his weapon's true envelope
-      // (reach x arc) — readable combat, straight from the class table.
+      // (reach x arc) — readable combat, straight from the class table. The arc
+      // tracks the weapon ACTUALLY in hand (pike vs side-sword) and, for a braced
+      // pike, the UNIT's frontage — never the man's own facing — so a flanked
+      // phalanx shows side-swords, not a porcupine of sideways pikes.
       if (camera.zoom > 2.5) {
         const tris: number[] = [];
         const pos = positions();
         const face = facings();
+        const curWeapon = new Uint8Array(wasm.memory.buffer, game.cur_weapon_ptr(), game.soldier_count());
         const soldierUnit = new Uint32Array(wasm.memory.buffer, game.soldier_unit_ptr(), game.soldier_count());
         const info = unitInfo();
         const [wx0, wy1] = camera.screenToWorld(0, 0);
@@ -874,13 +872,17 @@ export class BattleScene implements Scene {
           if (x < wx0 || x > wx1 || y < wy0 || y > wy1) continue;
           const u = soldierUnit[i];
           const cls = info[u * STRIDE + 13];
-          const [reach, arc] = WEAPON_VIZ[cls] ?? [1.0, 1.0];
+          const w = CLASS_SPECS[cls]?.weapons[curWeapon[i]];
+          if (!w) continue;
+          const { reach, arc } = w;
           const team = info[u * STRIDE + 6];
           const [r, g, b] = team === 0 ? [0.55, 0.85, 1.0] : [1.0, 0.72, 0.35];
           const a = 0.26;
           const half = Math.max(arc, 0.18) / 2;
           const segs = arc > 1.2 ? 5 : 3;
-          const f0 = face[i];
+          // A braced pike can't be slewed in the ranks — it bears along the unit's
+          // facing, not the man's; everything else tracks the man as he squares up.
+          const f0 = w?.braced ? info[u * STRIDE + 2] : face[i];
           const R = reach + 0.45; // surface-to-surface reach + a body radius
           for (let s = 0; s < segs; s++) {
             const a0 = f0 - half + (s / segs) * arc;

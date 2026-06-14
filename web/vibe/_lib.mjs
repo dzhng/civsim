@@ -60,6 +60,12 @@ export const duelLabel = (secs, s) =>
  *  `maxSteps`). Per step: position the camera (`frame`), freeze + hide the
  *  victory panel, snap to shots/<name>/t###s.png, log (`label`), then advance.
  *  `sample` returns a status object passed to `label`/`done`. */
+// Every scenario keeps filming this many frames PAST its verdict, so you always
+// see the aftermath — above all HOW the loser routs (a clump fleeing toward its
+// home edge, not a scatter). The tail is part of the harness, not a per-test
+// option: a fight isn't done at the verdict, it's done when the field clears.
+const TAIL_FRAMES = 3;
+
 export async function vibeCapture(page, name, {
   stepSecs = 30, maxSteps = 20, frame, sample, label, done,
 } = {}) {
@@ -67,7 +73,8 @@ export async function vibeCapture(page, name, {
   await rm(dir, { recursive: true, force: true });
   await mkdir(dir, { recursive: true });
   const shots = [];
-  for (let step = 0; step <= maxSteps; step++) {
+  let post = -1; // -1 until the verdict frame; then counts frames filmed since
+  for (let step = 0; ; step++) {
     if (frame) await frame();
     await page.evaluate(() => window.__game.freeze());
     await page.waitForTimeout(120);
@@ -82,8 +89,10 @@ export async function vibeCapture(page, name, {
     shots.push(path);
     if (label) console.log(label(secs, s));
     await page.evaluate(() => window.__game.freeze(false));
-    if (done && done(s)) return { shots, resolved: true, dir };
+    if (post >= 0) post++;                       // already past the verdict: film the tail
+    else if (done && done(s)) post = 0;          // this frame IS the verdict
+    if (post >= TAIL_FRAMES) return { shots, resolved: true, dir };
+    if (post < 0 && step >= maxSteps) return { shots, resolved: false, dir }; // capped before a verdict
     await page.evaluate((n) => window.__game.advance(n), stepSecs * TPS);
   }
-  return { shots, resolved: false, dir };
 }

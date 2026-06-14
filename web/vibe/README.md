@@ -18,8 +18,10 @@ JOBS=2 node vibe/all.mjs     # fewer in parallel (default 4)
 ```
 
 Then flip through `web/vibe/shots/<name>/` — a folder per scenario, one PNG every
-~20–30 sim-seconds (`t000s.png`, `t030s.png`, …). Add a row to the `SCENARIOS`
-table in `all.mjs` when you add a scenario.
+~20–30 sim-seconds (`t000s.png`, `t030s.png`, …). Every scenario keeps filming a
+few frames past its verdict, so the last shots show the aftermath — above all how
+the loser routs (a clump fleeing home, not a scatter). Add a row to the
+`SCENARIOS` table in `all.mjs` when you add a scenario.
 
 ## Scenarios
 
@@ -33,8 +35,6 @@ table in `all.mjs` when you add a scenario.
 | `cav-v-pike` | `charge.mjs ATK=6 DEF=3` | points stop horse (charge into a held pike wall) |
 | `cav-v-heavy-held` | `charge.mjs ATK=6 DEF=0` | a braced line beats a charge |
 | `heavy-v-archers` | `missile.mjs` | arrows attrite the advance, then melee |
-| `rout-heavy` | `rout.mjs ATK=0 DEF=0` | a rout flees home as a clump (keeps shooting past the verdict) |
-| `rout-cav-heavy` | `rout.mjs ATK=6 DEF=0` | same, cavalry breaking |
 | `penetration` | `penetration.mjs` | DEFENSE: one column punches a wide held line (does it dimple + close?) |
 | `multi-penetration` | `multi-penetration.mjs` | DEFENSE: three columns at once (does the breach logic generalize?) |
 | `offense` | `offense.mjs` | OFFENSE: a wide attacking line onto a block (does it wrap/envelop?) |

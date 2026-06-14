@@ -20,8 +20,6 @@ const SCENARIOS = [
   { name: 'cav-v-pike', script: 'charge.mjs', env: { ATK: 6, DEF: 3 } },     // points stop horse
   { name: 'cav-v-heavy-held', script: 'charge.mjs', env: { ATK: 6, DEF: 0 } }, // braced line vs charge
   { name: 'heavy-v-archers', script: 'missile.mjs', env: {} },
-  { name: 'rout-heavy', script: 'rout.mjs', env: { ATK: 0, DEF: 0 } },       // watch a rout flee home
-  { name: 'rout-cav-heavy', script: 'rout.mjs', env: { ATK: 6, DEF: 0 } },
   { name: 'penetration', script: 'penetration.mjs', env: {} },               // defense: 1 column into a held line
   { name: 'multi-penetration', script: 'multi-penetration.mjs', env: {} },   // defense: 3 columns at once
   { name: 'offense', script: 'offense.mjs', env: {} },                       // offense: wide line wraps a block

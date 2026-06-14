@@ -194,12 +194,41 @@ arm: `speed_mult`, `mass`, `brace_mult`, `mounted`, `health`/`mount_health`,
 `tramples` (rides through contact at speed), `knockback_mult` (how much a
 violent throw hurts), `drain_mult` (the cost of the kit), spacing/depth,
 and the weapon list (each weapon: reach, min_range, arc, attack_interval,
-damage — five numbers, nothing else).
+damage — five numbers, nothing else). The `class_stats` tables are the
+*default*; the whole surface is also a runtime `BalanceConfig` injected via
+`Sim::with_balance`, so a tuning pass sweeps configs without recompiling.
+`BalanceConfig::default()` reproduces the tables byte-for-byte — the golden
+hash is the proof.
 
 File-local physics constants (deliberate, documented in place):
 `VICE_PIN`, `OBSTRUCT_FLOOR`, `FRONT_ARC`/`SIDE_ARC` (combat.rs);
 `RIDER_HIT_SHARE`, `GRAVITY` (missiles.rs); `DRIFT_TURN_RATE`
 (movement.rs).
+
+## Two test families: balance vs behavior
+
+Sim tests answer two different questions and want opposite things from
+their harness:
+
+- **Balance** — *does combat performance match price?* Generated from the
+  class registry, measured over a seed set. The harness is
+  `crates/sim/src/balance.rs`: build a `Scenario` (N-v-M forces, head-on,
+  flat field), `run_over_seeds` it against a `BalanceConfig`, read the
+  `Aggregate` (per-side win-rate + survivor mean/median/stdev + duration).
+  One duel is RNG-dependent, so a measurement is always the seed-set
+  aggregate — a coin-flip matchup shows up as *variance*, not a flapping
+  pass. `report(candidate, scenarios, seeds)` pairs a tuned config against
+  the default so the deltas are legible: this is the seam for tuning the
+  game (today by hand/eye, ultimately by an agent). Beyond 1v1 is just a
+  bigger `Scenario` (the slot-efficiency anchor — one heavy solos two lights
+  at ~3× the gold but half the army slots — is a balance test, not physics).
+- **Behavior / physics** — *does a mechanism work?* (distance lowers morale,
+  a charge breaks a line). Hand-authored, one per claim; never generated.
+  These are the bulk of `crates/sim/tests/*_scenarios.rs`.
+
+Whichever family, the golden hash (`tests/golden.rs`) is the determinism
+floor: a change that moves it is reshaping fights, which a balance tune may
+intend but a refactor never may.
 
 ## The campaign layer — what building it taught
 

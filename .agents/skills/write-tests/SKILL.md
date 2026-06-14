@@ -61,6 +61,31 @@ physical signature instead:
 - If you must assert an outcome differential, give it a wide margin and a
   comment naming it chaos-marginal. A 1.05x bar WILL flip someday.
 
+## Balance tests use the seed-set harness, not single seeds
+
+Two families of sim test, and they want different things (see the README):
+**behavior/physics** tests (the bulk) assert a mechanism crosses a threshold
+at the smallest scale — everything above is about those. **Balance** tests
+ask "does performance match price?" and live on the harness in
+`crates/sim/src/balance.rs`:
+
+- Build a `Scenario` (`Scenario::duel(a, b)` for a 1v1 cell, or an N-v-M
+  `Scenario { sides, .. }` for combined arms / outnumbered stands), then
+  `run_over_seeds(&scn, &BalanceConfig::default(), &Tunables::default(),
+  &SEEDS)`. You get an `Aggregate`: per-side win-rate + survivor
+  mean/median/**stdev** + median duration.
+- This is the principled answer to "measure the mechanism, not the noise"
+  for outcomes you *can't* reduce to a physical signature: a duel result IS
+  chaotic per-seed, so assert on the **aggregate over the seed set**
+  (`agg.winner()`, `win_rate >= 7/8`), and let `stdev` tell you when a
+  matchup is a genuine coin-flip rather than widening a single-seed margin.
+- To check a *tuning* change, `report(&candidate, &scenarios, &SEEDS)` pairs
+  a tuned `BalanceConfig` against the default — read the deltas. Stats are
+  runtime now (`Sim::with_balance`); you do not recompile to sweep.
+- A balance test that is really about slot/price (one heavy solos two lights
+  — fair because the heavy costs more gold but fewer army slots) belongs
+  here, not in `*_scenarios.rs`. See `tests/balance_harness.rs`.
+
 ## Watch the saturation window
 
 Differential tests die two ways: measure too early (mechanism hasn't

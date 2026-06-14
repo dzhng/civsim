@@ -5,6 +5,33 @@
 > of a test suite is a generated projection of the source-of-truth registries,
 > not a hand-maintained list.**
 
+## Implementation status (2026-06-14) — partially landed; keep this spec
+
+**Done and green** (golden hash byte-identical throughout):
+- `WeaponSet`: `UnitClass.weapons` owns its weapons inline so a class can be
+  built at runtime (`class.rs`).
+- Runtime `BalanceConfig` (`class.rs`): per-class stats lifted out of the
+  `class_stats` consts, `Default` byte-identical, injected via
+  `Sim::with_balance`; units capture `stats` at spawn and all hot-path reads go
+  through `unit.stats`.
+- N-seed harness (`crates/sim/src/balance.rs`): `Scenario` (1v1 and N-v-M),
+  `run_over_seeds` → `Aggregate` (win-rate + survivor mean/median/stdev),
+  `report(candidate, scenarios, seeds)` for tuning, `SEEDS`. Tests in
+  `crates/sim/tests/balance_harness.rs` (incl. the slot-efficiency anchor and
+  an end-to-end tuning check).
+
+**Remaining** (the design below still applies):
+- §4/§Contracts: the *generated golden matrix* over `ALL_CLASSES²` with the
+  three **cost lenses** (headcount/gold/slot). Needs the price crate-boundary
+  resolved (gold lens — `recruit_cost` lives in `campaign`; likely lift the
+  per-class price into `contract`). Then delete the print-only
+  `measure_the_matrix` and derive `the_counter_web_holds` from the table.
+- §6 **tunable-provenance gate**: the exhaustive no-`..` destructure of
+  `BalanceConfig`/`Tunables` so a new field is a compile error until guarded.
+  (Class-completeness is partly covered by
+  `balance_harness::duel_scenario_exists_for_every_class`.)
+- §7 replay emission — still design-for-later.
+
 ## Goal, in one sentence
 
 Give the sim a **runtime-configurable balance surface** (per-class stats,

@@ -88,12 +88,20 @@ stat card — no other wiring needed.
 1. **Measure the board.** `cargo test -p sim --test balance_matrix
    measure_the_matrix -- --nocapture` prints the full 9×9 (verdict,
    survivor %, time). Add the new class to `ALL`/`short` first. Read where
-   it lands.
+   it lands. For a *seed-robust* read of one matchup (a single-seed cell can
+   mislead), use the harness: `sim::balance::run_over_seeds(&Scenario::duel(a,
+   b), &BalanceConfig::default(), &Tunables::default(), &SEEDS)` and read the
+   `Aggregate` — win-rate and survivor **stdev** tell you edge vs coin-flip.
 2. **Calibrate to the archetype's counters**, not to "wins more". Tune the
    handful of stats from Step 1 until the new unit beats what its sketch
    says it should and loses to what should beat it. Re-run the matrix.
    Expect knock-on: a damage/hp change ripples; re-judge the mirror pacing
    (`pacing_scenarios`) and the anchor (`one_heavy_solos_two_lights`).
+   Stats are runtime-injectable now (`BalanceConfig` via `Sim::with_balance`):
+   to trial a change without editing `class.rs`, build a candidate config and
+   read `sim::balance::report(&candidate, &scenarios, &SEEDS)` — the
+   baseline-vs-candidate deltas. Commit the winning numbers back into
+   `class.rs` (the `Default` must always equal the tables).
 3. **Pin contracts** in `balance_matrix.rs::the_counter_web_holds` — add
    the new unit's defining matchups (what it counters, what counters it)
    as `(attacker, defender, expected_winner)` rows with a one-line "why".

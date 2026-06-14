@@ -16,6 +16,7 @@ const SCENARIOS = [
   { name: 'heavy-attack-defend', script: 'duel-posture.mjs', env: { ATK: 0, DEF: 0, POSTURE: 'hold' } }, // same heavies, one holds
   { name: 'heavy-v-phalanx-defend', script: 'duel-posture.mjs', env: { ATK: 0, DEF: 3, POSTURE: 'hold' } }, // heavy charges a holding pike wall
   { name: 'phalanx-v-heavy', script: 'duel-posture.mjs', env: { ATK: 3, DEF: 0, POSTURE: 'both' } },  // pikes outreach swords
+  { name: 'pike-v-pike', script: 'duel-posture.mjs', env: { ATK: 3, DEF: 3, POSTURE: 'both' } },      // two pike walls, both attack
   { name: 'cav-v-heavy', script: 'duel-posture.mjs', env: { ATK: 6, DEF: 0, POSTURE: 'both' } },      // horse rides over swords
   { name: 'cav-v-pike', script: 'charge.mjs', env: { ATK: 6, DEF: 3 } },     // points stop horse
   { name: 'cav-v-heavy-held', script: 'charge.mjs', env: { ATK: 6, DEF: 0 } }, // braced line vs charge

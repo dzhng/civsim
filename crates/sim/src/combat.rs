@@ -196,10 +196,28 @@ impl Sim {
             }
 
             // --- weapon by judgment (distance), or the unit's drawn order ---
+            // A braced weapon (the sarissa) bears only on a target inside its arc
+            // of the UNIT's frontage — you can't pivot a grounded pike in the
+            // ranks. Off the front (flanked, rear) it can't engage, so the man
+            // drops to a free side-arm that still reaches. (This is also what
+            // keeps the IMPALE below frontal: it only fires while a long planted
+            // weapon is the one in hand.)
+            let front_off = wrap_angle(t_bearing - self.units[ui].facing).abs();
+            let bears = |wi: usize| {
+                !weapons[wi].braced || front_off <= weapons[wi].arc * 0.5 + AIM_TOLERANCE
+            };
             let desired = if self.units[ui].weapon_pref == 1 && weapons.len() > 1 {
                 Some(weapons.len() - 1)
             } else {
                 pick_weapon_index(&weapons, nearest_d)
+                    .filter(|&wi| bears(wi))
+                    .or_else(|| {
+                        (0..weapons.len()).rev().find(|&wi| {
+                            !weapons[wi].braced
+                                && nearest_d >= weapons[wi].min_range
+                                && nearest_d <= weapons[wi].reach
+                        })
+                    })
             };
             let Some(desired) = desired else {
                 continue; // enemy inside every min_range and outside sidearms
@@ -223,6 +241,15 @@ impl Sim {
             if nearest_d < weapon.min_range || nearest_d > weapon.reach {
                 continue;
             }
+            // A braced weapon aims along the UNIT's frontage (a grounded sarissa
+            // can't be turned in the ranks); everything else tracks the man's own
+            // facing as he squares up. Used by the aim gate, the obstruction
+            // check, and the swing alike.
+            let aim_facing = if weapon.braced {
+                self.units[ui].facing
+            } else {
+                self.facings[i]
+            };
 
             // IMPALE — a PRESENTED point, before any swing: a body closing
             // at charge grade onto a planted pole spends its own momentum
@@ -301,9 +328,9 @@ impl Sim {
                 continue;
             }
             let target_p = self.soldier_pos(nearest as usize);
-            let aim = wrap_angle((target_p - p).y.atan2((target_p - p).x) - self.facings[i]);
+            let aim = wrap_angle((target_p - p).y.atan2((target_p - p).x) - aim_facing);
             if aim.abs() > weapon.arc * 0.5 + AIM_TOLERANCE {
-                continue; // still turning to face
+                continue; // still turning to face (a braced pike never turns)
             }
 
             // Obstruction: friendly bodies inside THIS weapon's swing envelope
@@ -314,7 +341,7 @@ impl Sim {
             let crowded = friends[..friends_len]
                 .iter()
                 .filter(|&&(b, d, _)| {
-                    let off = wrap_angle(b - self.facings[i]).abs();
+                    let off = wrap_angle(b - aim_facing).abs();
                     d < weapon.reach * 0.9 && off < weapon.arc * 0.5 + (0.7 / (d + 0.5)).atan()
                 })
                 .count() as f32
@@ -339,7 +366,7 @@ impl Sim {
             self.attack_cd[i] = interval;
 
             // --- resolve the swing against everyone in the effective arc ----
-            let facing = self.facings[i];
+            let facing = aim_facing;
             let m_a = self.mass[i] * self.units[ui].brace();
             let mut struck = 0usize;
             for k in 0..cand_len {

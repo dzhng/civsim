@@ -7,7 +7,7 @@ use crate::math::Vec2;
 // between campaign rosters and battle deployments. The stat tables stay here.
 pub use contract::UnitClassId;
 
-/// A weapon is a set of physical capabilities — five numbers, nothing else.
+/// A weapon is a set of physical capabilities — a few numbers, nothing else.
 /// A swing strikes every enemy inside the (reach × arc) envelope; bodies
 /// crowding the envelope obstruct the swing (that IS crush sensitivity).
 #[derive(Clone, Copy, Debug)]
@@ -22,6 +22,12 @@ pub struct Weapon {
     pub attack_interval: f32,
     /// Damage per landed hit.
     pub damage: f32,
+    /// Braced to the formation's frontage: a long shaft (the sarissa) you can't
+    /// slew sideways in a packed rank, so it aims along the UNIT's facing, not
+    /// the man's, and bears ONLY on targets in its forward arc. Flanked or from
+    /// the rear it can't engage — the man drops to his side-arm. (This is also
+    /// what keeps a pike hedge's anti-charge stop frontal.)
+    pub braced: bool,
 }
 
 /// A class's weapons, owned inline so a `UnitClass` can be built at runtime (a
@@ -130,6 +136,7 @@ const SPEAR: Weapon = Weapon {
     arc: 0.6,
     attack_interval: 2.2,
     damage: 0.095,
+    braced: false,
 };
 
 const SWORD: Weapon = Weapon {
@@ -138,6 +145,7 @@ const SWORD: Weapon = Weapon {
     arc: 1.4,
     attack_interval: 1.79,
     damage: 0.2,
+    braced: false,
 };
 
 const LONG_SWORD: Weapon = Weapon {
@@ -150,6 +158,7 @@ const LONG_SWORD: Weapon = Weapon {
     arc: 2.4,
     attack_interval: 2.61,
     damage: 0.3,
+    braced: false,
 };
 
 const PIKE: Weapon = Weapon {
@@ -160,6 +169,7 @@ const PIKE: Weapon = Weapon {
     // cadence x hurl; lethality per poke stays modest.
     attack_interval: 1.38,
     damage: 0.22,
+    braced: true, // the sarissa: frontal only, drop to the side-sword off-axis
 };
 
 const SIDE_SWORD: Weapon = Weapon {
@@ -168,6 +178,7 @@ const SIDE_SWORD: Weapon = Weapon {
     arc: 1.2,
     attack_interval: 1.79,
     damage: 0.14,
+    braced: false,
 };
 
 const DAGGER: Weapon = Weapon {
@@ -176,6 +187,7 @@ const DAGGER: Weapon = Weapon {
     arc: 1.0,
     attack_interval: 1.38,
     damage: 0.11,
+    braced: false,
 };
 
 const LANCE: Weapon = Weapon {
@@ -189,6 +201,7 @@ const LANCE: Weapon = Weapon {
     arc: 0.25,
     attack_interval: 3.02,
     damage: 0.32,
+    braced: false,
 };
 
 const CAV_SWORD: Weapon = Weapon {
@@ -197,6 +210,7 @@ const CAV_SWORD: Weapon = Weapon {
     arc: 1.4,
     attack_interval: 1.93,
     damage: 0.2,
+    braced: false,
 };
 
 pub fn class_stats(id: UnitClassId) -> UnitClass {

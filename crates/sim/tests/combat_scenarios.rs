@@ -169,6 +169,38 @@ fn deep_pike_wall_holds_thin_pike_line_gets_closed_on() {
 }
 
 #[test]
+fn pikes_bite_only_to_the_front() {
+    // The sarissa is braced to the formation's frontage: it skewers what's ahead
+    // of the UNIT and nothing else. Same phalanx (holding, facing +y), same heavy
+    // assault driven onto it, same closing distance — but from the FRONT vs the
+    // REAR. Frontal, the hedge is a meat grinder and the wall barely bleeds. From
+    // behind, the pikes can't bear (the men fall to their short side-swords), so
+    // the attacker walks in and it's the phalanx that pays. No 360° porcupine.
+    let trial = |rear: bool| -> (usize, usize) {
+        let mut sim = Sim::new(no_morale(), SEED);
+        let ph = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 300, UnitClassId::Phalanx, 0); // faces +y
+        let y = if rear { -16.0 } else { 16.0 };
+        let face = if rear { FRAC_PI_2 } else { -FRAC_PI_2 };
+        let atk = sim.spawn_class(Vec2::new(0.0, y), face, 240, UnitClassId::HeavySword, 1);
+        sim.set_attack_move_order(atk, Vec2::new(0.0, 0.0)); // drive into the wall
+        run(&mut sim, 70.0);
+        (deaths(&sim, atk), deaths(&sim, ph)) // (attacker dead, phalanx dead)
+    };
+    let (atk_front, ph_front) = trial(false);
+    let (atk_rear, ph_rear) = trial(true);
+    // A frontal assault is a meat grinder for the attacker; a rear one is not.
+    assert!(
+        atk_front > 2 * atk_rear,
+        "pikes must punish the FRONT far more than the rear: attacker died {atk_front} (front) vs {atk_rear} (rear)"
+    );
+    // And the phalanx is the one that bleeds when its hedge faces the wrong way.
+    assert!(
+        ph_rear > ph_front,
+        "a phalanx hit from behind has no pikes there, so it pays: phalanx died {ph_rear} (rear) vs {ph_front} (front)"
+    );
+}
+
+#[test]
 fn attack_from_behind_is_deadlier_than_frontal() {
     // Footprint-identical comparison: victim faces the attacker vs faces
     // away. Shields cover the front arc, so rear strikes land unblocked —

@@ -20,16 +20,24 @@
   `crates/sim/tests/balance_harness.rs` (incl. the slot-efficiency anchor and
   an end-to-end tuning check).
 
+- Generated golden matrix (`balance_matrix.rs::golden_balance_matrix`): the
+  full `ALL_CLASSES²` board run through the harness, pinned to
+  `tests/golden/balance-matrix.txt`, annotated with the **gold lens**
+  (`contract::unit_cost` — no crate move needed, the price anchor was already
+  in `contract`). `#[ignore]`d (~minutes); bless with `UPDATE_BALANCE=1`.
+  Print-only `measure_the_matrix` and the bespoke `duel()` deleted;
+  `the_counter_web_holds` derives from the same runner.
+
 **Remaining** (the design below still applies):
-- §4/§Contracts: the *generated golden matrix* over `ALL_CLASSES²` with the
-  three **cost lenses** (headcount/gold/slot). Needs the price crate-boundary
-  resolved (gold lens — `recruit_cost` lives in `campaign`; likely lift the
-  per-class price into `contract`). Then delete the print-only
-  `measure_the_matrix` and derive `the_counter_web_holds` from the table.
+- The **headcount/slot lenses** as distinct *measurements* (the matrix is 1v1,
+  so slots are 1/1 and headcount is duel-strength — annotated, not run as
+  separate equal-slot/equal-gold battles). Equal-cost army-scale scenarios
+  (§3) are where these lenses do real work; only the gold *annotation* landed.
 - §6 **tunable-provenance gate**: the exhaustive no-`..` destructure of
-  `BalanceConfig`/`Tunables` so a new field is a compile error until guarded.
-  (Class-completeness is partly covered by
-  `balance_harness::duel_scenario_exists_for_every_class`.)
+  `Tunables` (48 fields) so a new field is a compile error until acknowledged.
+  Deferred as a low-value speed-bump unless paired with real per-field guards;
+  class-completeness IS covered by
+  `balance_harness::duel_scenario_exists_for_every_class`.
 - §7 replay emission — still design-for-later.
 
 ## Goal, in one sentence

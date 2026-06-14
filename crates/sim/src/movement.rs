@@ -245,8 +245,8 @@ mod tests {
     fn low_cohesion_turns_slower() {
         let tun = Tunables::default();
         let mut disordered = Unit {
-            class: crate::class::UnitClassId::LightInfantry,
-            stats: crate::class::class_stats(crate::class::UnitClassId::LightInfantry),
+            class: crate::class::UnitClassId::LightSpear,
+            stats: crate::class::class_stats(crate::class::UnitClassId::LightSpear),
             speed_mult: 1.0,
             start: 0,
             count: 0,

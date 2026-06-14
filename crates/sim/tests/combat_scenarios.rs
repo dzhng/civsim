@@ -42,8 +42,8 @@ fn living_mean(sim: &Sim, u: usize) -> Vec2 {
 #[test]
 fn melee_kills_and_formations_thin() {
     let mut sim = Sim::new(no_morale(), SEED);
-    let a = sim.spawn_class(Vec2::new(0.0, -12.0), FRAC_PI_2, 200, UnitClassId::HeavyInfantry, 0);
-    let b = sim.spawn_class(Vec2::new(0.0, 12.0), -FRAC_PI_2, 200, UnitClassId::HeavyInfantry, 1);
+    let a = sim.spawn_class(Vec2::new(0.0, -12.0), FRAC_PI_2, 200, UnitClassId::HeavySword, 0);
+    let b = sim.spawn_class(Vec2::new(0.0, 12.0), -FRAC_PI_2, 200, UnitClassId::HeavySword, 1);
     sim.set_attack_move_order(a, Vec2::new(0.0, 12.0));
     let mut peak_engaged = 0;
     for _ in 0..(90.0 / DT) as usize {
@@ -99,8 +99,8 @@ fn othismos_presses_fence_fights_at_reach() {
     // downstream effects; the gap is the stance itself.)
     let line_gap = |stance: sim::Stance| -> f32 {
         let mut sim = Sim::new(no_morale(), SEED);
-        let a = sim.spawn_class(Vec2::new(0.0, -12.0), FRAC_PI_2, 240, UnitClassId::HeavyInfantry, 0);
-        let b = sim.spawn_class(Vec2::new(0.0, 12.0), -FRAC_PI_2, 240, UnitClassId::LightInfantry, 1);
+        let a = sim.spawn_class(Vec2::new(0.0, -12.0), FRAC_PI_2, 240, UnitClassId::HeavySword, 0);
+        let b = sim.spawn_class(Vec2::new(0.0, 12.0), -FRAC_PI_2, 240, UnitClassId::LightSpear, 1);
         sim.set_stance(a, stance);
         sim.set_charge_enabled(a, false); // isolate the stance variable
         sim.set_pace(a, sim::Pace::Run); // a committed press
@@ -145,7 +145,7 @@ fn deep_pike_wall_holds_thin_pike_line_gets_closed_on() {
     let fight = |phalanx_count: usize| -> (usize, usize) {
         let mut sim = Sim::new(no_morale(), SEED);
         let ph = sim.spawn_class(Vec2::new(0.0, 10.0), -FRAC_PI_2, phalanx_count, UnitClassId::Phalanx, 0);
-        let atk = sim.spawn_class(Vec2::new(0.0, -14.0), FRAC_PI_2, 240, UnitClassId::HeavyInfantry, 1);
+        let atk = sim.spawn_class(Vec2::new(0.0, -14.0), FRAC_PI_2, 240, UnitClassId::HeavySword, 1);
         sim.set_attack_move_order(atk, Vec2::new(0.0, 20.0));
         run(&mut sim, 90.0);
         (deaths(&sim, ph), deaths(&sim, atk))
@@ -189,10 +189,10 @@ fn attack_from_behind_is_deadlier_than_frontal() {
     let damage_taken = |face_north: bool, seed: u64| -> f32 {
         let mut sim = Sim::new(no_morale(), seed);
         let facing = if face_north { FRAC_PI_2 } else { -FRAC_PI_2 };
-        let v = sim.spawn_class(Vec2::new(0.0, 0.0), facing, 200, UnitClassId::HeavyInfantry, 0);
+        let v = sim.spawn_class(Vec2::new(0.0, 0.0), facing, 200, UnitClassId::HeavySword, 0);
         // Spawned within a sword's reach so both faces are fought from tick 0 —
         // no approach for the press to hold off, just blows on shield vs back.
-        let atk = sim.spawn_class(Vec2::new(0.0, -1.4), FRAC_PI_2, 200, UnitClassId::HeavyInfantry, 1);
+        let atk = sim.spawn_class(Vec2::new(0.0, -1.4), FRAC_PI_2, 200, UnitClassId::HeavySword, 1);
         sim.set_charge_enabled(atk, false);
         let (vs, vc) = (sim.units[v].start, sim.units[v].count);
         let before: f32 = (vs..vs + vc).map(|i| sim.health[i]).sum();
@@ -238,7 +238,7 @@ fn rider_reachability_is_pure_geometry() {
         (rider_dmg, horse_dmg)
     };
     // Swords vs horse fronts: only horseflesh in reach.
-    let (rider, horse) = pool_damage(UnitClassId::HeavyInfantry, 2.4, -FRAC_PI_2);
+    let (rider, horse) = pool_damage(UnitClassId::HeavySword, 2.4, -FRAC_PI_2);
     let sword_share = rider / (rider + horse).max(1e-6);
     assert!(
         horse > 0.25 && sword_share < 0.2,
@@ -255,7 +255,7 @@ fn rider_reachability_is_pure_geometry() {
          (share {pike_share:.2} vs sword {sword_share:.2})"
     );
     // Swords against the horses' SIDE: the rider is suddenly in reach.
-    let (rider, horse) = pool_damage(UnitClassId::HeavyInfantry, 1.6, 0.0);
+    let (rider, horse) = pool_damage(UnitClassId::HeavySword, 1.6, 0.0);
     assert!(
         rider > 0.15,
         "side swords reach riders: rider {rider:.2} vs horse {horse:.2}"
@@ -265,7 +265,7 @@ fn rider_reachability_is_pure_geometry() {
 #[test]
 fn charge_impact_knocks_infantry_down() {
     let mut sim = Sim::new(no_morale(), SEED);
-    let inf = sim.spawn_class(Vec2::new(0.0, 30.0), -FRAC_PI_2, 200, UnitClassId::LightInfantry, 0);
+    let inf = sim.spawn_class(Vec2::new(0.0, 30.0), -FRAC_PI_2, 200, UnitClassId::LightSpear, 0);
     let cav = sim.spawn_class(Vec2::new(0.0, -60.0), FRAC_PI_2, 120, UnitClassId::ShockCavalry, 1);
     sim.set_pace(cav, sim::Pace::Run);
     sim.set_attack_move_order(cav, Vec2::new(0.0, 60.0));
@@ -289,8 +289,8 @@ fn attack_order_equals_walking_into_contact() {
     // Attack latches) — so compare the same 20 seconds of CONTACT.
     let losses_in_contact = |use_attack_order: bool| -> (usize, usize) {
         let mut sim = Sim::new(no_morale(), SEED);
-        let a = sim.spawn_class(Vec2::new(0.0, -12.0), FRAC_PI_2, 240, UnitClassId::HeavyInfantry, 0);
-        let b = sim.spawn_class(Vec2::new(0.0, 15.0), -FRAC_PI_2, 150, UnitClassId::HeavyInfantry, 1);
+        let a = sim.spawn_class(Vec2::new(0.0, -12.0), FRAC_PI_2, 240, UnitClassId::HeavySword, 0);
+        let b = sim.spawn_class(Vec2::new(0.0, 15.0), -FRAC_PI_2, 150, UnitClassId::HeavySword, 1);
         sim.set_stance(a, sim::Stance::Fence);
         sim.set_charge_enabled(a, false); // charge is attack-gated by design
         if use_attack_order {
@@ -323,8 +323,8 @@ fn attack_order_equals_walking_into_contact() {
 #[test]
 fn withdraw_disengages_under_fire() {
     let mut sim = Sim::new(no_morale(), SEED);
-    let a = sim.spawn_class(Vec2::new(0.0, -12.0), FRAC_PI_2, 200, UnitClassId::HeavyInfantry, 0);
-    let b = sim.spawn_class(Vec2::new(0.0, 12.0), -FRAC_PI_2, 200, UnitClassId::HeavyInfantry, 1);
+    let a = sim.spawn_class(Vec2::new(0.0, -12.0), FRAC_PI_2, 200, UnitClassId::HeavySword, 0);
+    let b = sim.spawn_class(Vec2::new(0.0, 12.0), -FRAC_PI_2, 200, UnitClassId::HeavySword, 1);
     sim.set_attack_move_order(a, Vec2::new(0.0, 12.0));
     run(&mut sim, 30.0);
     assert!(sim.units[a].engaged > 10, "setup: must be engaged first");
@@ -360,8 +360,8 @@ fn unit_attacked_from_two_sides_splits_facing_and_loses_cohesion() {
     // Front AND rear contact (the spec's case): whole ranks engage each way.
     // Victim faces east: front line at x=3.5, rear at x=-8.5.
     let v = sim.spawn_unit(Vec2::new(0.0, 0.0), 0.0, 240, 26, Vec2::new(1.0, 1.2), 0, 0.7);
-    let e = sim.spawn_class(Vec2::new(5.6, 0.0), PI, 160, UnitClassId::LightInfantry, 1);
-    let w = sim.spawn_class(Vec2::new(-10.6, 0.0), 0.0, 160, UnitClassId::LightInfantry, 1);
+    let e = sim.spawn_class(Vec2::new(5.6, 0.0), PI, 160, UnitClassId::LightSpear, 1);
+    let w = sim.spawn_class(Vec2::new(-10.6, 0.0), 0.0, 160, UnitClassId::LightSpear, 1);
     let _ = (e, w);
     run(&mut sim, 25.0);
     let unit = &sim.units[v];
@@ -398,12 +398,12 @@ fn unit_attacked_from_two_sides_splits_facing_and_loses_cohesion() {
 fn flanked_line_only_the_edge_unit_turns() {
     let mut sim = Sim::new(no_morale(), SEED);
     // Three friendly heavies side by side facing north.
-    let west = sim.spawn_class(Vec2::new(-40.0, 0.0), FRAC_PI_2, 200, UnitClassId::HeavyInfantry, 0);
-    let center = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 200, UnitClassId::HeavyInfantry, 0);
-    let east = sim.spawn_class(Vec2::new(40.0, 0.0), FRAC_PI_2, 200, UnitClassId::HeavyInfantry, 0);
+    let west = sim.spawn_class(Vec2::new(-40.0, 0.0), FRAC_PI_2, 200, UnitClassId::HeavySword, 0);
+    let center = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 200, UnitClassId::HeavySword, 0);
+    let east = sim.spawn_class(Vec2::new(40.0, 0.0), FRAC_PI_2, 200, UnitClassId::HeavySword, 0);
     let _ = east;
     // Enemy hits the west unit from due west.
-    let atk = sim.spawn_class(Vec2::new(-90.0, -8.0), 0.0, 240, UnitClassId::HeavyInfantry, 1);
+    let atk = sim.spawn_class(Vec2::new(-90.0, -8.0), 0.0, 240, UnitClassId::HeavySword, 1);
     sim.set_attack_move_order(atk, Vec2::new(-30.0, -8.0));
     run(&mut sim, 50.0);
     let west_turn = sim::wrap_angle(sim.units[west].facing - FRAC_PI_2).abs();
@@ -433,7 +433,7 @@ fn long_swords_cleave_but_die_in_a_press() {
         deaths(&sim, sk)
     };
     let by_longswords = kills_against_skirm(UnitClassId::LongSwords);
-    let by_heavies = kills_against_skirm(UnitClassId::HeavyInfantry);
+    let by_heavies = kills_against_skirm(UnitClassId::HeavySword);
     assert!(
         by_longswords as f32 > by_heavies as f32 * 1.05,
         "wide arcs must cleave loose enemies: longswords {by_longswords} vs heavies {by_heavies}"
@@ -450,11 +450,11 @@ fn long_swords_cleave_but_die_in_a_press() {
     let ls_arm = |pressed: bool| -> (f32, usize) {
         let mut sim = Sim::new(no_morale(), SEED);
         let ls = sim.spawn_class(Vec2::new(0.0, -8.0), FRAC_PI_2, 120, UnitClassId::LongSwords, 0);
-        let enemy = sim.spawn_class(Vec2::new(0.0, 10.0), -FRAC_PI_2, 300, UnitClassId::HeavyInfantry, 1);
+        let enemy = sim.spawn_class(Vec2::new(0.0, 10.0), -FRAC_PI_2, 300, UnitClassId::HeavySword, 1);
         let _ = enemy;
         sim.set_attack_move_order(ls, Vec2::new(0.0, 25.0));
         if pressed {
-            let pusher = sim.spawn_class(Vec2::new(0.0, -22.0), FRAC_PI_2, 400, UnitClassId::HeavyInfantry, 0);
+            let pusher = sim.spawn_class(Vec2::new(0.0, -22.0), FRAC_PI_2, 400, UnitClassId::HeavySword, 0);
             sim.set_disengage_order(pusher, Vec2::new(0.0, 12.0));
         }
         let mut peak_press = 0.0f32;
@@ -498,8 +498,8 @@ fn charge_bursts_only_in_the_final_approach_of_an_attack() {
     // Close enough that the heavies arrive with LEGS: armor is paid for in
     // wind now, and a 100m running approach reaches the window too blown to
     // burst (correct, but it would test depletion instead of the window).
-    let a = sim.spawn_class(Vec2::new(0.0, -40.0), FRAC_PI_2, 200, UnitClassId::HeavyInfantry, 0);
-    let b = sim.spawn_class(Vec2::new(0.0, 20.0), -FRAC_PI_2, 200, UnitClassId::HeavyInfantry, 1);
+    let a = sim.spawn_class(Vec2::new(0.0, -40.0), FRAC_PI_2, 200, UnitClassId::HeavySword, 0);
+    let b = sim.spawn_class(Vec2::new(0.0, 20.0), -FRAC_PI_2, 200, UnitClassId::HeavySword, 1);
     let _ = b;
     sim.set_attack_order(a, b);
     // Attacks close at the double now (effective_pace), so the cap outside
@@ -535,8 +535,8 @@ fn charge_bursts_only_in_the_final_approach_of_an_attack() {
 
     // With the setting off, the approach stays at pace.
     let mut sim = Sim::new(no_morale(), SEED);
-    let a = sim.spawn_class(Vec2::new(0.0, -80.0), FRAC_PI_2, 200, UnitClassId::HeavyInfantry, 0);
-    let b = sim.spawn_class(Vec2::new(0.0, 20.0), -FRAC_PI_2, 200, UnitClassId::HeavyInfantry, 1);
+    let a = sim.spawn_class(Vec2::new(0.0, -80.0), FRAC_PI_2, 200, UnitClassId::HeavySword, 0);
+    let b = sim.spawn_class(Vec2::new(0.0, 20.0), -FRAC_PI_2, 200, UnitClassId::HeavySword, 1);
     sim.set_charge_enabled(a, false);
     sim.set_attack_order(a, b);
     let mut peak = 0.0f32;
@@ -550,8 +550,8 @@ fn charge_bursts_only_in_the_final_approach_of_an_attack() {
 #[test]
 fn combat_drains_stamina() {
     let mut sim = Sim::new(no_morale(), SEED);
-    let a = sim.spawn_class(Vec2::new(0.0, -12.0), FRAC_PI_2, 200, UnitClassId::HeavyInfantry, 0);
-    let b = sim.spawn_class(Vec2::new(0.0, 12.0), -FRAC_PI_2, 200, UnitClassId::HeavyInfantry, 1);
+    let a = sim.spawn_class(Vec2::new(0.0, -12.0), FRAC_PI_2, 200, UnitClassId::HeavySword, 0);
+    let b = sim.spawn_class(Vec2::new(0.0, 12.0), -FRAC_PI_2, 200, UnitClassId::HeavySword, 1);
     sim.set_attack_move_order(a, Vec2::new(0.0, 12.0));
     run(&mut sim, 60.0);
     assert!(
@@ -569,7 +569,7 @@ fn surrounded_othismos_breakout_bores_toward_the_click() {
     // othismos: the press must move it toward the CLICK, and the indecisive
     // contact mean must not freeze its facing away from the escape.
     let mut sim = Sim::new(no_morale(), SEED);
-    let u = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 300, UnitClassId::HeavyInfantry, 0);
+    let u = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 300, UnitClassId::HeavySword, 0);
     // The ring: four enemy units boxing it in.
     for (x, y, f) in [
         (0.0, 24.0, -FRAC_PI_2),
@@ -577,7 +577,7 @@ fn surrounded_othismos_breakout_bores_toward_the_click() {
         (30.0, 0.0, PI),
         (-30.0, 0.0, 0.0),
     ] {
-        let e = sim.spawn_class(Vec2::new(x, y), f, 200, UnitClassId::LightInfantry, 1);
+        let e = sim.spawn_class(Vec2::new(x, y), f, 200, UnitClassId::LightSpear, 1);
         sim.set_charge_enabled(e, false); // isolate the BREAKOUT variable: counter-bursts shove the block around
         sim.set_attack_order(e, u);
     }
@@ -615,8 +615,8 @@ fn mutual_charge_spends_its_momentum_and_a_front_forms() {
     // blob of slot-chasers. Guards the charge-exit regression where the
     // window check re-armed `charging` every tick of the melee.
     let mut sim = Sim::new(no_morale(), SEED);
-    let a = sim.spawn_class(Vec2::new(0.0, -30.0), FRAC_PI_2, 200, UnitClassId::HeavyInfantry, 0);
-    let b = sim.spawn_class(Vec2::new(0.0, 30.0), -FRAC_PI_2, 200, UnitClassId::HeavyInfantry, 1);
+    let a = sim.spawn_class(Vec2::new(0.0, -30.0), FRAC_PI_2, 200, UnitClassId::HeavySword, 0);
+    let b = sim.spawn_class(Vec2::new(0.0, 30.0), -FRAC_PI_2, 200, UnitClassId::HeavySword, 1);
     sim.set_attack_order(a, b);
     sim.set_attack_order(b, a);
     let mut contact = f32::NEG_INFINITY;
@@ -686,9 +686,9 @@ fn cavalry_charge_keeps_its_burst_through_a_thin_line() {
 #[test]
 fn tmp_breakout_probe() {
     let mut sim = Sim::new(no_morale(), SEED);
-    let u = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 300, UnitClassId::HeavyInfantry, 0);
+    let u = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 300, UnitClassId::HeavySword, 0);
     for (x, y, f) in [(0.0, 24.0, -FRAC_PI_2), (0.0, -24.0, FRAC_PI_2), (30.0, 0.0, PI), (-30.0, 0.0, 0.0)] {
-        let e = sim.spawn_class(Vec2::new(x, y), f, 200, UnitClassId::LightInfantry, 1);
+        let e = sim.spawn_class(Vec2::new(x, y), f, 200, UnitClassId::LightSpear, 1);
         sim.set_charge_enabled(e, false);
         sim.set_attack_order(e, u);
     }

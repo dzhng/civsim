@@ -15,8 +15,8 @@ export interface ClassLook {
 }
 
 export const CLASS_LOOK: ClassLook[] = [
-  { weapon: 'sword', shield: 'tall', crest: true, mounted: false }, // 0 heavy
-  { weapon: 'spear', shield: 'round', crest: false, mounted: false }, // 1 light
+  { weapon: 'sword', shield: 'tall', crest: true, mounted: false }, // 0 heavy sword
+  { weapon: 'spear', shield: 'round', crest: false, mounted: false }, // 1 light spear
   { weapon: 'greatsword', shield: 'none', crest: false, mounted: false }, // 2 longswords
   { weapon: 'pike', shield: 'small', crest: true, mounted: false }, // 3 phalanx
   { weapon: 'bow', shield: 'none', crest: false, mounted: false }, // 4 archers

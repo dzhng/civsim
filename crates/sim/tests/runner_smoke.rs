@@ -21,7 +21,7 @@ fn spec() -> TerrainSpec {
 
 fn roster(id_base: u64, n: u32) -> Vec<RosterUnit> {
     vec![
-        RosterUnit { id: id_base, class: UnitClassId::HeavyInfantry, count: n, training: 0.7, morale_cap: 1.0 },
+        RosterUnit { id: id_base, class: UnitClassId::HeavySword, count: n, training: 0.7, morale_cap: 1.0 },
         RosterUnit { id: id_base + 1, class: UnitClassId::Archers, count: 240, training: 0.6, morale_cap: 1.0 },
     ]
 }

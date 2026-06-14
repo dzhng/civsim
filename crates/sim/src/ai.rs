@@ -14,8 +14,8 @@ use crate::unit::OrderMode;
 fn is_melee_line(c: UnitClassId) -> bool {
     matches!(
         c,
-        UnitClassId::HeavyInfantry
-            | UnitClassId::LightInfantry
+        UnitClassId::HeavySword
+            | UnitClassId::LightSpear
             | UnitClassId::Phalanx
             | UnitClassId::LongSwords
     )

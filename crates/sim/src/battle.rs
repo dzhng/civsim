@@ -11,8 +11,8 @@ use UnitClassId::*;
 /// Soldiers per unit by class (data, freely tunable).
 pub fn unit_size(class: UnitClassId) -> usize {
     match class {
-        HeavyInfantry => 1280,
-        LightInfantry => 880,
+        HeavySword => 1280,
+        LightSpear => 880,
         LongSwords => 360,
         Phalanx => 1280,
         Archers => 480,
@@ -60,21 +60,21 @@ fn deploy_army(sim: &mut Sim, base: Vec2, facing: f32, team: u32) {
     deploy_row(sim, &[Skirmishers, Skirmishers], row(45.0), facing, team);
     deploy_row(
         sim,
-        &[HeavyInfantry, Phalanx, HeavyInfantry, Phalanx, HeavyInfantry],
+        &[HeavySword, Phalanx, HeavySword, Phalanx, HeavySword],
         row(0.0),
         facing,
         team,
     );
     deploy_row(
         sim,
-        &[LightInfantry, HeavyInfantry, LongSwords, HeavyInfantry, LightInfantry],
+        &[LightSpear, HeavySword, LongSwords, HeavySword, LightSpear],
         row(-55.0),
         facing,
         team,
     );
     deploy_row(
         sim,
-        &[Archers, LightInfantry, Archers, Archers],
+        &[Archers, LightSpear, Archers, Archers],
         row(-110.0),
         facing,
         team,
@@ -143,8 +143,8 @@ pub fn deploy_roster(sim: &mut Sim, dep: &contract::Deployment) -> Vec<(u64, usi
     // Formed: group by role, lay rows like deploy_army does.
     let role = |c: UnitClassId| match c {
         Skirmishers => 0,                                       // screen
-        HeavyInfantry | Phalanx | LongSwords | HeavySpear => 1, // main line
-        LightInfantry | Peasant | LightSword => 2,              // second line / levy
+        HeavySword | Phalanx | LongSwords | HeavySpear => 1, // main line
+        LightSpear | Peasant | LightSword => 2,              // second line / levy
         Archers => 3,                              // ranged
         ArtilleryCrew => 4,
         ShockCavalry | HorseArchers => 5, // wings
@@ -205,8 +205,8 @@ pub fn setup_duel(sim: &mut Sim, a: UnitClassId, b: UnitClassId) {
     let duel_count = |c: UnitClassId| -> usize {
         use UnitClassId::*;
         match c {
-            HeavyInfantry => 240,
-            LightInfantry => 220,
+            HeavySword => 240,
+            LightSpear => 220,
             LongSwords => 190, // a full line unit, not a small elite (see balance::duel_strength)
             Phalanx => 240,
             Archers => 140,
@@ -240,8 +240,8 @@ pub fn setup_sandbox(sim: &mut Sim, kind: u32) {
     sim.terrain = t;
 
     if kind == 0 {
-        sim.spawn_class(Vec2::new(0.0, -90.0), FRAC_PI_2, 240, UnitClassId::HeavyInfantry, 0);
-        sim.spawn_class(Vec2::new(0.0, 90.0), -FRAC_PI_2, 240, UnitClassId::HeavyInfantry, 1);
+        sim.spawn_class(Vec2::new(0.0, -90.0), FRAC_PI_2, 240, UnitClassId::HeavySword, 0);
+        sim.spawn_class(Vec2::new(0.0, 90.0), -FRAC_PI_2, 240, UnitClassId::HeavySword, 1);
         return;
     }
     if kind == 4 {
@@ -255,10 +255,10 @@ pub fn setup_sandbox(sim: &mut Sim, kind: u32) {
             sim.balance.set(UnitClassId::LongSwords, s);
         }
         sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 169, UnitClassId::LongSwords, 0);
-        sim.spawn_class(Vec2::new(0.0, 26.0), -FRAC_PI_2, 90, UnitClassId::HeavyInfantry, 1);
-        sim.spawn_class(Vec2::new(0.0, -26.0), FRAC_PI_2, 90, UnitClassId::HeavyInfantry, 1);
-        sim.spawn_class(Vec2::new(26.0, 0.0), std::f32::consts::PI, 90, UnitClassId::HeavyInfantry, 1);
-        sim.spawn_class(Vec2::new(-26.0, 0.0), 0.0, 90, UnitClassId::HeavyInfantry, 1);
+        sim.spawn_class(Vec2::new(0.0, 26.0), -FRAC_PI_2, 90, UnitClassId::HeavySword, 1);
+        sim.spawn_class(Vec2::new(0.0, -26.0), FRAC_PI_2, 90, UnitClassId::HeavySword, 1);
+        sim.spawn_class(Vec2::new(26.0, 0.0), std::f32::consts::PI, 90, UnitClassId::HeavySword, 1);
+        sim.spawn_class(Vec2::new(-26.0, 0.0), 0.0, 90, UnitClassId::HeavySword, 1);
         return;
     }
     if kind == 5 {
@@ -271,8 +271,8 @@ pub fn setup_sandbox(sim: &mut Sim, kind: u32) {
             s.default_depth = 12; // a compact block that concentrates on the flank, not a thin line
             sim.balance.set(UnitClassId::LongSwords, s);
         }
-        sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 240, UnitClassId::HeavyInfantry, 1);
-        sim.spawn_class(Vec2::new(0.0, 30.0), -FRAC_PI_2, 240, UnitClassId::HeavyInfantry, 0);
+        sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 240, UnitClassId::HeavySword, 1);
+        sim.spawn_class(Vec2::new(0.0, 30.0), -FRAC_PI_2, 240, UnitClassId::HeavySword, 0);
         sim.spawn_class(Vec2::new(30.0, 2.0), std::f32::consts::PI, 190, UnitClassId::LongSwords, 0);
         return;
     }
@@ -297,10 +297,10 @@ pub fn setup_sandbox(sim: &mut Sim, kind: u32) {
         let right = Vec2::new(f.y, -f.x);
         let row = |o: f32, lat: f32| Vec2::new(0.0, y) + f * o + right * lat;
         sim.spawn_class(row(25.0, 30.0), facing, 120, UnitClassId::Skirmishers, team);
-        sim.spawn_class(row(0.0, -110.0), facing, 280, UnitClassId::HeavyInfantry, team);
+        sim.spawn_class(row(0.0, -110.0), facing, 280, UnitClassId::HeavySword, team);
         sim.spawn_class(row(0.0, -25.0), facing, 280, UnitClassId::Phalanx, team);
         sim.spawn_class(row(0.0, 55.0), facing, 140, UnitClassId::LongSwords, team);
-        sim.spawn_class(row(0.0, 125.0), facing, 220, UnitClassId::LightInfantry, team);
+        sim.spawn_class(row(0.0, 125.0), facing, 220, UnitClassId::LightSpear, team);
         sim.spawn_class(row(-40.0, -30.0), facing, 140, UnitClassId::Archers, team);
         sim.spawn_class(row(-55.0, 60.0), facing, 40, UnitClassId::ArtilleryCrew, team);
         sim.spawn_class(row(-10.0, 200.0), facing, 110, UnitClassId::ShockCavalry, team);

@@ -49,8 +49,8 @@ fn archery_softens_advances_but_gates_nobody() {
     // an advancing line pays a TOLL in arrows — it is never stopped by
     // them. Armored shields make the crossing cheaper per second but the
     // slow line is exposed longer; horse crosses nearly free.
-    let (heavy, _) = kills_before_contact(UnitClassId::HeavyInfantry, 240);
-    let (light, _) = kills_before_contact(UnitClassId::LightInfantry, 220);
+    let (heavy, _) = kills_before_contact(UnitClassId::HeavySword, 240);
+    let (light, _) = kills_before_contact(UnitClassId::LightSpear, 220);
     let (cav, _) = kills_before_contact(UnitClassId::ShockCavalry, 120);
     println!("tolls: heavy {heavy}/240, light {light}/220, cav {cav}/120");
     assert!(
@@ -67,9 +67,9 @@ fn archery_softens_advances_but_gates_nobody() {
 
 #[test]
 fn shields_are_a_front_arc_fact_for_arrows() {
-    let front = kills_by_aspect(UnitClassId::HeavyInfantry, 240, Vec2::new(0.0, 90.0));
-    let side = kills_by_aspect(UnitClassId::HeavyInfantry, 240, Vec2::new(90.0, 0.0));
-    let rear = kills_by_aspect(UnitClassId::HeavyInfantry, 240, Vec2::new(0.0, -90.0));
+    let front = kills_by_aspect(UnitClassId::HeavySword, 240, Vec2::new(0.0, 90.0));
+    let side = kills_by_aspect(UnitClassId::HeavySword, 240, Vec2::new(90.0, 0.0));
+    let rear = kills_by_aspect(UnitClassId::HeavySword, 240, Vec2::new(0.0, -90.0));
     println!("heavy under fire 30s: front {front}, side {side}, rear {rear}");
     assert!(
         rear as f32 > front as f32 * 2.5,
@@ -81,8 +81,8 @@ fn shields_are_a_front_arc_fact_for_arrows() {
     );
     // Lights carry a real shield, but a light one: a meaningful front/back gap,
     // smaller than the heavy wall's.
-    let lf = kills_by_aspect(UnitClassId::LightInfantry, 220, Vec2::new(0.0, 90.0));
-    let lr = kills_by_aspect(UnitClassId::LightInfantry, 220, Vec2::new(0.0, -90.0));
+    let lf = kills_by_aspect(UnitClassId::LightSpear, 220, Vec2::new(0.0, 90.0));
+    let lr = kills_by_aspect(UnitClassId::LightSpear, 220, Vec2::new(0.0, -90.0));
     println!("light under fire 30s: front {lf}, rear {lr}");
     assert!(
         lr as f32 > lf as f32 * 1.2,
@@ -180,7 +180,7 @@ fn the_line_pays_dearly_but_breaks_the_archers() {
     // reads as 'archers beat heavies'; they don't.)
     let mut sim = Sim::new(no_morale(), SEED);
     let archers = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 140, UnitClassId::Archers, 0);
-    let heavies = sim.spawn_class(Vec2::new(0.0, 160.0), -FRAC_PI_2, 240, UnitClassId::HeavyInfantry, 1);
+    let heavies = sim.spawn_class(Vec2::new(0.0, 160.0), -FRAC_PI_2, 240, UnitClassId::HeavySword, 1);
     sim.set_attack_order(heavies, archers);
     for _ in 0..(240.0 / DT) as usize {
         sim.tick();
@@ -205,8 +205,8 @@ fn the_line_pays_dearly_but_breaks_the_archers() {
 #[test]
 fn measure_the_board() {
     for (name, class, n) in [
-        ("HEAVY", UnitClassId::HeavyInfantry, 240),
-        ("LIGHT", UnitClassId::LightInfantry, 220),
+        ("HEAVY", UnitClassId::HeavySword, 240),
+        ("LIGHT", UnitClassId::LightSpear, 220),
         ("CAV  ", UnitClassId::ShockCavalry, 120),
     ] {
         let (dead, t) = kills_before_contact(class, n);
@@ -217,8 +217,8 @@ fn measure_the_board() {
         ("side ", Vec2::new(90.0, 0.0)),
         ("rear ", Vec2::new(0.0, -90.0)),
     ] {
-        let heavy = kills_by_aspect(UnitClassId::HeavyInfantry, 240, from);
-        let light = kills_by_aspect(UnitClassId::LightInfantry, 220, from);
+        let heavy = kills_by_aspect(UnitClassId::HeavySword, 240, from);
+        let light = kills_by_aspect(UnitClassId::LightSpear, 220, from);
         println!("aspect {aspect}: heavy {heavy}/240, light {light}/220 in 30s");
     }
     // archer mirror

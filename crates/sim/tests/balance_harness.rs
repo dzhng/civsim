@@ -16,8 +16,8 @@ fn run(scn: &Scenario) -> sim::Aggregate {
 #[test]
 fn heavy_beats_light_across_seeds() {
     let agg = run(&Scenario::duel(
-        UnitClassId::HeavyInfantry,
-        UnitClassId::LightInfantry,
+        UnitClassId::HeavySword,
+        UnitClassId::LightSpear,
     ));
     println!(
         "{}: win {:?} draw {:.2} survA {:.2}±{:.2} survB {:.2}±{:.2} @{:.0}s",
@@ -47,10 +47,10 @@ fn one_heavy_solos_two_lights() {
     let scn = Scenario {
         name: "1xHeavy_vs_2xLight".into(),
         sides: [
-            vec![(UnitClassId::HeavyInfantry, duel_strength(UnitClassId::HeavyInfantry))],
+            vec![(UnitClassId::HeavySword, duel_strength(UnitClassId::HeavySword))],
             vec![
-                (UnitClassId::LightInfantry, 220),
-                (UnitClassId::LightInfantry, 220),
+                (UnitClassId::LightSpear, 220),
+                (UnitClassId::LightSpear, 220),
             ],
         ],
         run: true,
@@ -76,11 +76,11 @@ fn one_heavy_solos_two_lights() {
 #[test]
 fn tuning_a_candidate_config_moves_the_matchup() {
     let mut candidate = BalanceConfig::default();
-    let mut hv = candidate.get(UnitClassId::HeavyInfantry);
+    let mut hv = candidate.get(UnitClassId::HeavySword);
     hv.health *= 1.4; // thicker armor
-    candidate.set(UnitClassId::HeavyInfantry, hv);
+    candidate.set(UnitClassId::HeavySword, hv);
 
-    let scn = Scenario::duel(UnitClassId::HeavyInfantry, UnitClassId::LightInfantry);
+    let scn = Scenario::duel(UnitClassId::HeavySword, UnitClassId::LightSpear);
     let rows = report(&candidate, std::slice::from_ref(&scn), &SEEDS[..3]);
     let r = &rows[0];
     println!(
@@ -120,7 +120,7 @@ fn duel_scenario_exists_for_every_class() {
 /// not couple to a stat such that more of it loses; if they do, that's a bug,
 /// not emergent realism. (A horse with a bigger shield once SURVIVED the contact
 /// better, got pinned deeper in the press, and was ground down — block going UP
-/// made it LOSE.) Sweep ShockCavalry's block against HeavyInfantry: the cav's
+/// made it LOSE.) Sweep ShockCavalry's block against HeavySword: the cav's
 /// survival margin must not fall as block rises. The harness makes this cheap —
 /// block is a runtime BalanceConfig field, no recompile per rung.
 #[test]
@@ -133,7 +133,7 @@ fn more_block_never_makes_cavalry_worse() {
         cav.block = b;
         cfg.set(UnitClassId::ShockCavalry, cav);
         let agg = run_over_seeds(
-            &Scenario::duel(UnitClassId::ShockCavalry, UnitClassId::HeavyInfantry),
+            &Scenario::duel(UnitClassId::ShockCavalry, UnitClassId::HeavySword),
             &cfg,
             &Tunables::default(),
             &SEEDS,
@@ -171,7 +171,7 @@ fn more_block_never_makes_cavalry_worse() {
 /// the matchup is close; see the comment there.)
 #[test]
 fn cavalry_usually_rides_over_heavy_swords() {
-    let agg = run(&Scenario::duel(UnitClassId::ShockCavalry, UnitClassId::HeavyInfantry));
+    let agg = run(&Scenario::duel(UnitClassId::ShockCavalry, UnitClassId::HeavySword));
     println!(
         "cav vs heavy over seeds: win {:?} surv {:.2} vs {:.2}",
         agg.win_rate, agg.surv[0].mean, agg.surv[1].mean,

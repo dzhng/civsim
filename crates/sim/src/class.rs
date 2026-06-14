@@ -214,7 +214,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
         weapons: one(SWORD),
     };
     match id {
-        HeavyInfantry => UnitClass {
+        HeavySword => UnitClass {
             drain_mult: 1.35,
             speed_mult: 0.9,
             soldier_radius: 0.34,
@@ -229,7 +229,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             weapons: one(SWORD),
             ..foot
         },
-        LightInfantry => UnitClass {
+        LightSpear => UnitClass {
             drain_mult: 0.85,
             speed_mult: 1.1,
             soldier_radius: 0.32,
@@ -380,7 +380,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
         },
         // The cheap sword line: light infantry's body, a sword instead of a
         // spear. More aggressive (sword arc, a touch more dodge) but the same
-        // light shield — HeavyInfantry is the armoured sword.
+        // light shield — HeavySword is the armoured sword.
         LightSword => UnitClass {
             drain_mult: 0.9,
             speed_mult: 1.1,
@@ -397,7 +397,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
         },
         // The armoured spear wall: heavy infantry's body and shield, a spear
         // instead of a sword — braces hard, holds a line, anti-charge.
-        // LightInfantry is the light spear.
+        // LightSpear is the light spear.
         HeavySpear => UnitClass {
             drain_mult: 1.35,
             speed_mult: 0.9,
@@ -444,7 +444,7 @@ impl Default for BalanceConfig {
         // Fill, then overwrite every variant from the canonical table. The
         // filler is immediately replaced for all 10 ids; it just seeds the
         // array (UnitClass is not Default).
-        let mut stats = [class_stats(UnitClassId::HeavyInfantry); contract::ALL_CLASSES.len()];
+        let mut stats = [class_stats(UnitClassId::HeavySword); contract::ALL_CLASSES.len()];
         for &c in &contract::ALL_CLASSES {
             stats[c as usize] = class_stats(c);
         }

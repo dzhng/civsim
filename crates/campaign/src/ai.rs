@@ -128,7 +128,7 @@ fn think(map: &WorldMap, st: &mut CampaignState, f: FactionId) {
             for r in &a.roster {
                 use UnitClassId::*;
                 match r.class {
-                    HeavyInfantry | Phalanx | LongSwords | LightInfantry | Peasant | LightSword
+                    HeavySword | Phalanx | LongSwords | LightSpear | Peasant | LightSword
                     | HeavySpear => line += r.count as u64,
                     Archers | Skirmishers | ArtilleryCrew => ranged += r.count as u64,
                     ShockCavalry | HorseArchers => cav += r.count as u64,
@@ -137,7 +137,7 @@ fn think(map: &WorldMap, st: &mut CampaignState, f: FactionId) {
         }
         let total = (line + ranged + cav).max(1);
         let (class, count) = if line * 100 / total < 50 {
-            (UnitClassId::LightInfantry, 440)
+            (UnitClassId::LightSpear, 440)
         } else if ranged * 100 / total < 25 {
             (UnitClassId::Archers, 240)
         } else {

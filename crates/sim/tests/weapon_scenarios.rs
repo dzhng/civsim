@@ -27,7 +27,7 @@ fn archers_carry_swords() {
 fn drawn_swords_silence_the_bows_after_the_order_travels() {
     let mut sim = Sim::new(no_morale(), SEED);
     let a = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 200, UnitClassId::Archers, 0);
-    let _t = sim.spawn_class(Vec2::new(0.0, 100.0), -FRAC_PI_2, 300, UnitClassId::HeavyInfantry, 1);
+    let _t = sim.spawn_class(Vec2::new(0.0, 100.0), -FRAC_PI_2, 300, UnitClassId::HeavySword, 1);
     // Let them shoot a little.
     for _ in 0..(10.0 / DT) as usize {
         sim.tick();
@@ -69,7 +69,7 @@ fn weapon_swaps_fumble_for_a_moment() {
     // sword work begins.
     let mut sim = Sim::new(no_morale(), SEED);
     let ph = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 300, UnitClassId::Phalanx, 0);
-    let foe = sim.spawn_class(Vec2::new(0.0, 12.0), -FRAC_PI_2, 300, UnitClassId::HeavyInfantry, 1);
+    let foe = sim.spawn_class(Vec2::new(0.0, 12.0), -FRAC_PI_2, 300, UnitClassId::HeavySword, 1);
     sim.set_attack_order(foe, ph);
     // (Longer setup than it looks: pike cadence slowed in the pacing pass,
     // and attackers no longer pay phantom charge drain while ground to a

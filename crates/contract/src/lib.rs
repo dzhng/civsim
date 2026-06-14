@@ -11,8 +11,8 @@ use serde::{Deserialize, Serialize};
 /// march speeds and costs live in campaign's tunables — both keyed by this.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub enum UnitClassId {
-    HeavyInfantry,
-    LightInfantry,
+    HeavySword,
+    LightSpear,
     LongSwords,
     Phalanx,
     Archers,
@@ -23,10 +23,10 @@ pub enum UnitClassId {
     /// Levy with a dagger and no shield — cheap cannon fodder. Added last so the
     /// existing class indices (shared with the wasm/web class id table) hold.
     Peasant,
-    /// Light armour, sword + small shield — the cheap sword line (HeavyInfantry
+    /// Light armour, sword + small shield — the cheap sword line (HeavySword
     /// is the heavy sword). Added after Peasant so existing indices hold.
     LightSword,
-    /// Heavy armour, spear + big shield — the armoured spear wall (LightInfantry
+    /// Heavy armour, spear + big shield — the armoured spear wall (LightSpear
     /// is the light spear). Added last so existing indices hold.
     HeavySpear,
 }
@@ -38,8 +38,8 @@ pub enum UnitClassId {
 /// owns everything pikes don't, horse archers tax all foot.
 pub fn unit_cost(c: UnitClassId) -> u32 {
     match c {
-        UnitClassId::HeavyInfantry => 1000,
-        UnitClassId::LightInfantry => 300,
+        UnitClassId::HeavySword => 1000,
+        UnitClassId::LightSpear => 300,
         UnitClassId::LongSwords => 450,
         UnitClassId::Phalanx => 1300,
         UnitClassId::Archers => 500,
@@ -54,8 +54,8 @@ pub fn unit_cost(c: UnitClassId) -> u32 {
 }
 
 pub const ALL_CLASSES: [UnitClassId; 12] = [
-    UnitClassId::HeavyInfantry,
-    UnitClassId::LightInfantry,
+    UnitClassId::HeavySword,
+    UnitClassId::LightSpear,
     UnitClassId::LongSwords,
     UnitClassId::Phalanx,
     UnitClassId::Archers,

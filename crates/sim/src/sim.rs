@@ -235,8 +235,8 @@ impl Sim {
         let map_mid_y = self.terrain.origin.y + 0.5 * self.terrain.h as f32 * self.terrain.cell;
         let home_dir_y = if anchor.y >= map_mid_y { 1.0 } else { -1.0 };
         let unit = Unit {
-            class: UnitClassId::LightInfantry,
-            stats: class_stats(UnitClassId::LightInfantry),
+            class: UnitClassId::LightSpear,
+            stats: class_stats(UnitClassId::LightSpear),
             speed_mult: 1.0,
             start: self.soldier_count(),
             count,

@@ -10,8 +10,8 @@ const SEED: u64 = 146;
 
 fn short(c: UnitClassId) -> &'static str {
     match c {
-        UnitClassId::HeavyInfantry => "HVY",
-        UnitClassId::LightInfantry => "LGT",
+        UnitClassId::HeavySword => "HSD",
+        UnitClassId::LightSpear => "LSP",
         UnitClassId::LongSwords => "LSW",
         UnitClassId::Phalanx => "PIK",
         UnitClassId::Archers => "ARC",
@@ -104,18 +104,18 @@ fn the_counter_web_holds() {
     let tun = Tunables::default();
     // (attacker, defender, expected winner: 0 = attacker)
     let expect = [
-        (HeavyInfantry, LightInfantry, 0, "armor beats numbers' class"),
-        (LightInfantry, HeavyInfantry, 1, "...from either bench"),
-        (HeavyInfantry, Phalanx, 1, "a sword line cannot out-front a sarissa hedge"),
-        (Phalanx, HeavyInfantry, 0, "the hedge advances over swords"),
+        (HeavySword, LightSpear, 0, "armor beats numbers' class"),
+        (LightSpear, HeavySword, 1, "...from either bench"),
+        (HeavySword, Phalanx, 1, "a sword line cannot out-front a sarissa hedge"),
+        (Phalanx, HeavySword, 0, "the hedge advances over swords"),
         (ShockCavalry, Phalanx, 1, "POINTS STOP HORSE (frontally)"),
         (Phalanx, ShockCavalry, 0, "and the hedge can walk horse off a field"),
-        // ShockCavalry vs HeavyInfantry — "horse rides over swords" — is a CLOSE
+        // ShockCavalry vs HeavySword — "horse rides over swords" — is a CLOSE
         // matchup (the cav wins ~3/4 of seeds, not all), so a single-seed verdict
         // here is a coin that lands either way. It lives on the seed-set harness
         // instead (cavalry_usually_rides_over_heavy_swords in balance_harness).
         (ShockCavalry, HorseArchers, 0, "lancers catch the bow-horse"),
-        (HorseArchers, HeavyInfantry, 0, "unsupported foot loses to the kite"),
+        (HorseArchers, HeavySword, 0, "unsupported foot loses to the kite"),
         // HorseArchers vs Phalanx is split into its two real mechanics — the
         // quiver-vs-shield-wall kite (a_phalanx_outlasts_the_quiver...) and the
         // frontal charge (a_frontal_charge_into_pikes...) — because the head-on
@@ -145,8 +145,8 @@ fn the_counter_web_holds() {
 fn a_held_braced_line_beats_an_equal_frontal_attacker() {
     let outcome = |atk_pace: sim::Pace| -> (u32, usize, usize) {
         let mut sim = Sim::new(Tunables::default(), SEED);
-        let atk = sim.spawn_class(Vec2::new(0.0, -60.0), FRAC_PI_2, 240, UnitClassId::HeavyInfantry, 0);
-        let def = sim.spawn_class(Vec2::new(0.0, 60.0), -FRAC_PI_2, 240, UnitClassId::HeavyInfantry, 1);
+        let atk = sim.spawn_class(Vec2::new(0.0, -60.0), FRAC_PI_2, 240, UnitClassId::HeavySword, 0);
+        let def = sim.spawn_class(Vec2::new(0.0, 60.0), -FRAC_PI_2, 240, UnitClassId::HeavySword, 1);
         sim.set_pace(atk, atk_pace);
         sim.set_attack_order(atk, def); // the defender HOLDS — no order, braced
         let mut verdict = None;

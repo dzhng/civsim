@@ -11,12 +11,12 @@ use contract::UnitClassId;
 /// Garrison establishment by city tier: what the city regenerates toward.
 pub fn garrison_establishment(tier: u8, barracks_lvl: u8) -> Vec<(UnitClassId, u32)> {
     use UnitClassId::*;
-    let mut g = vec![(LightInfantry, 440)];
+    let mut g = vec![(LightSpear, 440)];
     if tier >= 2 {
         g.push((Archers, 240));
     }
     if tier >= 3 {
-        g.push((HeavyInfantry, 640));
+        g.push((HeavySword, 640));
     }
     // Barracks deepen the establishment.
     let mult = 100 + 25 * barracks_lvl as u32;

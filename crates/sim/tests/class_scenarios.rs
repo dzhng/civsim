@@ -25,7 +25,7 @@ fn cavalry_mass_shoves_through_infantry() {
     // displaced third is squarely the corridor, where the signal lives.
     let displacement_by = |attacker: UnitClassId| -> f32 {
         let mut sim = Sim::new(Tunables::default(), SEED);
-        let inf = sim.spawn_class(Vec2::new(0.0, 0.0), -PI / 2.0, 360, UnitClassId::LightInfantry, 0);
+        let inf = sim.spawn_class(Vec2::new(0.0, 0.0), -PI / 2.0, 360, UnitClassId::LightSpear, 0);
         let atk = sim.spawn_class(Vec2::new(0.0, -80.0), PI / 2.0, 120, attacker, 0);
         let before: Vec<Vec2> = {
             let u = &sim.units[inf];
@@ -51,7 +51,7 @@ fn cavalry_mass_shoves_through_infantry() {
     };
 
     let by_cavalry = displacement_by(UnitClassId::ShockCavalry);
-    let by_infantry = displacement_by(UnitClassId::LightInfantry);
+    let by_infantry = displacement_by(UnitClassId::LightSpear);
     assert!(
         by_cavalry > by_infantry * 1.5,
         "horse mass must shove men aside far harder: cav {by_cavalry:.2} vs inf {by_infantry:.2}"
@@ -61,7 +61,7 @@ fn cavalry_mass_shoves_through_infantry() {
 #[test]
 fn disordered_unit_delays_orders_with_visible_timer() {
     let mut sim = Sim::new(Tunables::default(), SEED);
-    let u = sim.spawn_class(Vec2::ZERO, 0.0, 360, UnitClassId::LightInfantry, 0);
+    let u = sim.spawn_class(Vec2::ZERO, 0.0, 360, UnitClassId::LightSpear, 0);
     // Manufacture disorder: scatter soldiers off their slots.
     {
         let unit = &sim.units[u];
@@ -91,7 +91,7 @@ fn disordered_unit_delays_orders_with_visible_timer() {
 #[test]
 fn ordered_unit_responds_instantly() {
     let mut sim = Sim::new(Tunables::default(), SEED);
-    let u = sim.spawn_class(Vec2::ZERO, 0.0, 360, UnitClassId::LightInfantry, 0);
+    let u = sim.spawn_class(Vec2::ZERO, 0.0, 360, UnitClassId::LightSpear, 0);
     sim.set_move_order(u, Vec2::new(80.0, 0.0));
     assert!(sim.units[u].move_target.is_some(), "fresh unit obeys at once");
 }
@@ -131,7 +131,7 @@ fn full_battle_spawns_and_runs() {
     );
     // All classes present.
     for class in [
-        UnitClassId::HeavyInfantry,
+        UnitClassId::HeavySword,
         UnitClassId::Phalanx,
         UnitClassId::LongSwords,
         UnitClassId::Archers,
@@ -254,7 +254,7 @@ fn heavy_infantry_charge_carries_a_stride_not_a_gallop() {
             0,
             0.7,
         );
-        let atk = sim.spawn_class(Vec2::new(0.0, -40.0), PI / 2.0, 300, UnitClassId::HeavyInfantry, 1);
+        let atk = sim.spawn_class(Vec2::new(0.0, -40.0), PI / 2.0, 300, UnitClassId::HeavySword, 1);
         sim.set_charge_enabled(atk, charge);
         sim.set_pace(atk, sim::Pace::Run);
         sim.set_attack_order(atk, inf);
@@ -386,7 +386,7 @@ fn pikes_unhorse_cavalry_swords_chip_at_horseflesh() {
         u.count - u.alive_count
     };
     let by_pikes = cav_dead(UnitClassId::Phalanx);
-    let by_swords = cav_dead(UnitClassId::HeavyInfantry);
+    let by_swords = cav_dead(UnitClassId::HeavySword);
     println!("cav dead: pikes {by_pikes}, swords {by_swords}");
     assert!(
         by_pikes as f32 > by_swords as f32 * 2.0,
@@ -568,7 +568,7 @@ fn a_frontal_charge_into_pikes_is_no_bloodbath() {
         run(&mut sim, 25.0);
         200 - sim.units[def].alive_count
     };
-    let cav_line = cost(UnitClassId::ShockCavalry, UnitClassId::LightInfantry);
+    let cav_line = cost(UnitClassId::ShockCavalry, UnitClassId::LightSpear);
     let cav_pike = cost(UnitClassId::ShockCavalry, UnitClassId::Phalanx);
     let har_pike = cost(UnitClassId::HorseArchers, UnitClassId::Phalanx);
     println!("frontal charge dead: cav->line {cav_line}, cav->pike {cav_pike}, har->pike {har_pike}");
@@ -591,8 +591,8 @@ fn a_grinding_press_breaks_no_bones() {
     // stack reading HONEST kinematics none of it reads as a charge:
     // nobody is felled by a squeeze, nobody dies of re-knock chips.
     let mut sim = Sim::new(Tunables { morale_enabled: false, ..Tunables::default() }, SEED);
-    let a = sim.spawn_class(Vec2::new(0.0, -12.0), PI / 2.0, 300, UnitClassId::HeavyInfantry, 0);
-    let b = sim.spawn_class(Vec2::new(0.0, 12.0), -PI / 2.0, 300, UnitClassId::HeavyInfantry, 1);
+    let a = sim.spawn_class(Vec2::new(0.0, -12.0), PI / 2.0, 300, UnitClassId::HeavySword, 0);
+    let b = sim.spawn_class(Vec2::new(0.0, 12.0), -PI / 2.0, 300, UnitClassId::HeavySword, 1);
     sim.set_charge_enabled(a, false);
     sim.set_charge_enabled(b, false);
     sim.set_move_order(a, Vec2::new(0.0, 30.0));
@@ -660,7 +660,7 @@ fn eight_ranks_of_swords_toll_the_ride_but_cannot_hold_it() {
     // few seconds, and only then do they shove free and ride on. The ride
     // survives; the charge does not.
     let mut sim = Sim::new(Tunables { morale_enabled: false, ..Tunables::default() }, SEED);
-    let block = sim.spawn_class(Vec2::new(0.0, 40.0), PI / 2.0, 800, UnitClassId::HeavyInfantry, 1);
+    let block = sim.spawn_class(Vec2::new(0.0, 40.0), PI / 2.0, 800, UnitClassId::HeavySword, 1);
     let cav = sim.spawn_class(Vec2::new(0.0, 160.0), -PI / 2.0, 80, UnitClassId::ShockCavalry, 0);
     let _ = block;
     sim.set_pace(cav, sim::Pace::Run);
@@ -699,7 +699,7 @@ fn a_charge_stopped_in_the_crowd_is_spent_even_if_it_never_reached_speed() {
     // it stands stopped in the crowd, it is dead all the same — CHARGING
     // must clear (it used to stick through whole melees, bleeding drain).
     let mut sim = Sim::new(Tunables::default(), 0x5eed_c0de_u64);
-    sim::setup_duel(&mut sim, UnitClassId::HeavyInfantry, UnitClassId::HeavyInfantry);
+    sim::setup_duel(&mut sim, UnitClassId::HeavySword, UnitClassId::HeavySword);
     sim.set_attack_order(0, 1);
     sim.set_attack_order(1, 0);
     let mut stuck = 0.0f32;

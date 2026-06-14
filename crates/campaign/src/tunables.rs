@@ -16,8 +16,8 @@ pub const BASE_TILES_PER_TICK: f32 = (30.0 / TILE_KM) / TICKS_PER_DAY as f32;
 pub fn march_mult(class: UnitClassId) -> f32 {
     use UnitClassId::*;
     match class {
-        HeavyInfantry => 0.9,
-        LightInfantry => 1.1,
+        HeavySword => 0.9,
+        LightSpear => 1.1,
         LongSwords => 1.0,
         Phalanx => 0.85,
         Archers => 1.0,
@@ -119,8 +119,8 @@ pub const MARKET_MULT_PCT: [u32; 3] = [100, 150, 200];
 pub fn upkeep_per_soldier_milligold(class: UnitClassId) -> u32 {
     use UnitClassId::*;
     match class {
-        HeavyInfantry => 20,
-        LightInfantry => 10,
+        HeavySword => 20,
+        LightSpear => 10,
         LongSwords => 25,
         Phalanx => 20,
         Archers => 18,
@@ -144,7 +144,7 @@ pub fn recruit_ticks_per_soldier(class: UnitClassId) -> u32 {
     match class {
         ShockCavalry | HorseArchers => 6,
         ArtilleryCrew => 5,
-        HeavyInfantry | Phalanx | LongSwords => 3,
+        HeavySword | Phalanx | LongSwords => 3,
         _ => 2,
     }
 }

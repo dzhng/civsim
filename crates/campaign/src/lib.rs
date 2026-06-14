@@ -171,7 +171,7 @@ mod tests {
             {"id": "independents", "name": "Ind", "color": [99,99,99], "playable": false}
           ],
           "start_armies": [
-            {"faction": "red",  "at": "B", "roster": [["LightInfantry", 880]]},
+            {"faction": "red",  "at": "B", "roster": [["LightSpear", 880]]},
             {"faction": "blue", "at": "C", "roster": [["Phalanx", 1280]]}
           ]
         }"#
@@ -325,7 +325,7 @@ mod tests {
         inert(&mut c);
         c.state.armies[1].roster[0].count = 0; // no blue field army
         c.state.cities.get_mut(&2).unwrap().garrison.push(RosterEntry {
-            class: contract::UnitClassId::LightInfantry, count: 440, max: 440, morale_cap: 1.0,
+            class: contract::UnitClassId::LightSpear, count: 440, max: 440, morale_cap: 1.0,
         });
         assert!(c.order_move(0, Loc::Node(2)));
         let mut pended = false;
@@ -532,7 +532,7 @@ mod tests {
             {"id": "independents", "name": "Ind", "color": [99,99,99], "playable": false}
           ],
           "start_armies": [
-            {"faction": "red", "at": "A", "roster": [["LightInfantry", 880]]}
+            {"faction": "red", "at": "A", "roster": [["LightSpear", 880]]}
           ]
         }"#
     }
@@ -558,7 +558,7 @@ mod tests {
             {"id": "independents", "name": "Ind", "color": [99,99,99], "playable": false}
           ],
           "start_armies": [
-            {"faction": "red",  "at": "A", "roster": [["LightInfantry", 880]]},
+            {"faction": "red",  "at": "A", "roster": [["LightSpear", 880]]},
             {"faction": "blue", "at": "C", "roster": [["Phalanx", 1280]]}
           ]
         }"#
@@ -718,8 +718,8 @@ mod tests {
             {"id": "independents", "name": "Ind", "color": [99,99,99], "playable": false}
           ],
           "start_armies": [
-            {"faction": "red",  "at": "A", "roster": [["LightInfantry", 880]]},
-            {"faction": "blue", "at": "C", "roster": [["LightInfantry", 880]]}
+            {"faction": "red",  "at": "A", "roster": [["LightSpear", 880]]},
+            {"faction": "blue", "at": "C", "roster": [["LightSpear", 880]]}
           ]
         }"#;
         let mut c = Campaign::new(map, 7, 0);
@@ -791,7 +791,7 @@ mod tests {
         }
         assert_eq!(c.state.cities[&0].barracks_lvl, 1);
         // Barracks cuts recruit time by a quarter per level.
-        assert!(c.order_recruit(0, contract::UnitClassId::LightInfantry, 400));
+        assert!(c.order_recruit(0, contract::UnitClassId::LightSpear, 400));
         let ticks = c.state.cities[&0].recruit_queue[0].ticks_left;
         assert_eq!(ticks, 400 * 2 * 75 / 100);
     }

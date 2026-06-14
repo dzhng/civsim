@@ -84,7 +84,7 @@ async function buildTestCampaign(): Promise<{ data: CampaignData; mapJson: strin
       { id: 'independents', name: 'Independent', color: [130, 130, 130], playable: false },
     ],
     start_armies: [
-      { faction: 'rome', at: 'Roma', roster: [['HeavyInfantry', 1000], ['LightInfantry', 500], ['Archers', 500], ['ShockCavalry', 300]] },
+      { faction: 'rome', at: 'Roma', roster: [['HeavySword', 1000], ['LightSpear', 500], ['Archers', 500], ['ShockCavalry', 300]] },
     ],
   } as unknown as CampaignData['map'];
   const bgRect = { min: [-45, Y - 28] as [number, number], max: [45, Y + 28] as [number, number] };

@@ -34,13 +34,13 @@ fn mirror(class: UnitClassId) -> (f32, f32, f32) {
 
 #[test]
 fn mirror_duels_are_attrition_grinds() {
-    let (t_heavy, dead_heavy, w_heavy) = mirror(UnitClassId::HeavyInfantry);
+    let (t_heavy, dead_heavy, w_heavy) = mirror(UnitClassId::HeavySword);
     println!(
         "HEAVY mirror: first rout at {t_heavy:.0}s, loser {:.0}% dead, winner {:.0}%",
         dead_heavy * 100.0,
         w_heavy * 100.0
     );
-    let (t_light, dead_light, w_light) = mirror(UnitClassId::LightInfantry);
+    let (t_light, dead_light, w_light) = mirror(UnitClassId::LightSpear);
     println!(
         "LIGHT mirror: first rout at {t_light:.0}s, loser {:.0}% dead, winner {:.0}%",
         dead_light * 100.0,

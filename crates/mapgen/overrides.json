@@ -11,17 +11,17 @@
     { "id": "independents", "name": "Independent Cities", "color": [130, 130, 130], "capital": null, "cities": [], "playable": false }
   ],
   "start_armies": [
-    { "faction": "rome", "at": "Roma", "roster": [["HeavyInfantry", 1280], ["LightInfantry", 880], ["Archers", 480], ["ShockCavalry", 280]] },
-    { "faction": "rome", "at": "Capua", "roster": [["LightInfantry", 880], ["Skirmishers", 360]] },
-    { "faction": "carthage", "at": "Carthago", "roster": [["Phalanx", 1280], ["LightInfantry", 880], ["Archers", 480], ["ShockCavalry", 280]] },
-    { "faction": "carthage", "at": "Hadrumetum", "roster": [["LightInfantry", 880], ["HorseArchers", 240]] },
-    { "faction": "macedon", "at": "Pella", "roster": [["Phalanx", 1280], ["LightInfantry", 880], ["Skirmishers", 360], ["ShockCavalry", 280]] },
-    { "faction": "macedon", "at": "Thessalonica", "roster": [["LightInfantry", 880], ["Archers", 480]] },
-    { "faction": "arverni", "at": "Lugdunum", "roster": [["LongSwords", 360], ["LightInfantry", 880], ["Skirmishers", 360], ["ShockCavalry", 280]] },
-    { "faction": "arverni", "at": "Augustodunum", "roster": [["LightInfantry", 880], ["LongSwords", 360]] },
+    { "faction": "rome", "at": "Roma", "roster": [["HeavySword", 1280], ["LightSpear", 880], ["Archers", 480], ["ShockCavalry", 280]] },
+    { "faction": "rome", "at": "Capua", "roster": [["LightSpear", 880], ["Skirmishers", 360]] },
+    { "faction": "carthage", "at": "Carthago", "roster": [["Phalanx", 1280], ["LightSpear", 880], ["Archers", 480], ["ShockCavalry", 280]] },
+    { "faction": "carthage", "at": "Hadrumetum", "roster": [["LightSpear", 880], ["HorseArchers", 240]] },
+    { "faction": "macedon", "at": "Pella", "roster": [["Phalanx", 1280], ["LightSpear", 880], ["Skirmishers", 360], ["ShockCavalry", 280]] },
+    { "faction": "macedon", "at": "Thessalonica", "roster": [["LightSpear", 880], ["Archers", 480]] },
+    { "faction": "arverni", "at": "Lugdunum", "roster": [["LongSwords", 360], ["LightSpear", 880], ["Skirmishers", 360], ["ShockCavalry", 280]] },
+    { "faction": "arverni", "at": "Augustodunum", "roster": [["LightSpear", 880], ["LongSwords", 360]] },
     { "faction": "egypt", "at": "Alexandria", "roster": [["Phalanx", 1280], ["Archers", 480], ["Skirmishers", 360], ["HorseArchers", 240]] },
-    { "faction": "egypt", "at": "Memphis", "roster": [["LightInfantry", 880], ["Archers", 480]] },
-    { "faction": "seleucid", "at": "Antiochia", "roster": [["Phalanx", 1280], ["LightInfantry", 880], ["HorseArchers", 240], ["ShockCavalry", 280]] },
-    { "faction": "seleucid", "at": "Damascus", "roster": [["LightInfantry", 880], ["Skirmishers", 360]] }
+    { "faction": "egypt", "at": "Memphis", "roster": [["LightSpear", 880], ["Archers", 480]] },
+    { "faction": "seleucid", "at": "Antiochia", "roster": [["Phalanx", 1280], ["LightSpear", 880], ["HorseArchers", 240], ["ShockCavalry", 280]] },
+    { "faction": "seleucid", "at": "Damascus", "roster": [["LightSpear", 880], ["Skirmishers", 360]] }
   ]
 }

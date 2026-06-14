@@ -6,7 +6,7 @@ import { buildAtlas, COLS, ROWS } from './atlas';
 export const WILDS_MARGIN = 1600;
 
 export const CLASS_NAMES = [
-  'Heavy Infantry', 'Light Infantry', 'Long Swords', 'Phalanx', 'Archers',
+  'Heavy Sword', 'Light Spear', 'Long Swords', 'Phalanx', 'Archers',
   'Skirmishers', 'Shock Cavalry', 'Horse Archers', 'Artillery Crew',
   'Peasants', 'Light Sword', 'Heavy Spear',
 ];

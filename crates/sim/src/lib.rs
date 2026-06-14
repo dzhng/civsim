@@ -12,6 +12,7 @@
 //! expose raw pointers for zero-copy rendering.
 
 pub mod ai;
+pub mod balance;
 pub mod battle;
 pub mod class;
 pub mod collision;
@@ -31,9 +32,11 @@ pub mod tunables;
 pub mod unit;
 
 pub use ai::ai_commander;
+pub use balance::{run_once, run_over_seeds, Aggregate, Outcome, Scenario, SEEDS};
 pub use battle::{deploy_roster, setup_battle, setup_duel, setup_sandbox};
 pub use runner::Battle;
 pub use class::{class_stats, BalanceConfig, UnitClass, UnitClassId, Weapon};
+pub use contract::ALL_CLASSES;
 pub use grid::SpatialHash;
 pub use maps::{build as build_map, MapId, MAP_HALF_H, MAP_HALF_W};
 pub use math::{dir, lerp, move_toward, rotate_toward, wrap_angle, Vec2};

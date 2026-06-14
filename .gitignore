@@ -8,3 +8,6 @@ web/shots/diff/
 
 # throwaway debug/probe tests (write-tests skill) — never commit
 crates/*/tests/dbg*.rs
+
+# manual vibe-check captures (web/vibe/*.mjs) — throwaway, never baselines
+web/vibe/shots/

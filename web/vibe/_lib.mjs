@@ -70,9 +70,11 @@ export async function vibeCapture(page, name, {
   for (let step = 0; step <= maxSteps; step++) {
     if (frame) await frame();
     await page.evaluate(() => window.__game.freeze());
-    // Keep the field visible at resolution: hide the VICTORY/DEFEAT panel.
-    await page.evaluate(() => { const g = document.getElementById('gameover'); if (g) g.style.display = 'none'; });
     await page.waitForTimeout(120);
+    // Keep the field visible at resolution: hide the VICTORY/DEFEAT panel the
+    // scene pops on a verdict. Do it AFTER the settle, right before the shot, so
+    // it wins the race with the frame loop that re-shows the panel.
+    await page.evaluate(() => { const g = document.getElementById('gameover'); if (g) g.style.display = 'none'; });
     const s = sample ? await sample() : {};
     const secs = step * stepSecs;
     const path = `${dir}t${String(secs).padStart(3, '0')}s.png`;

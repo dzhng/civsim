@@ -78,6 +78,12 @@ pub struct Unit {
     /// 0..1, scales how fast the unit re-seats and recovers order.
     pub training: f32,
     pub team: u32,
+    /// Which way home lies along y: +1 if this unit deployed in the top half of
+    /// the field, -1 in the bottom half — i.e. toward its own map edge (where
+    /// campaign reinforcements also arrive). A broken unit flees straight this
+    /// way. Fixed at spawn (a sign, so it holds even if the unit is later shoved
+    /// past the edge).
+    pub home_dir_y: f32,
     /// Smoothed, measured misalignment 0..1. Derived from soldier state.
     pub disorder: f32,
     /// exp(-k * disorder). Throttles turn rate, accel, order response.

@@ -264,17 +264,79 @@ fn the_verdict_is_final_routs_lock_and_the_chase_plays_out() {
         routing_then, routing_now,
         "after the verdict nobody rallies and nobody newly breaks"
     );
-    // The sim keeps running: the routers keep fleeing (cornered prey may
-    // only creep, but it MOVES) and the pursuit stays on them — though
-    // blown heavy legs lose ground to fleeing light troops honestly
-    // (~1.5 m/s over the 30s window), so "on them" is a leash, not a heel.
+    // The sim keeps running: the routers keep fleeing and the pursuit stays
+    // on them — but a rout now flees as a COHESIVE MOB (one shared heading,
+    // not a starburst), so the broken light troops cover real ground at a run
+    // (~4 m/s) and blown heavy legs trail them honestly. "On them" is a leash
+    // that lengthens, not a heel: ~100 m over the 30s window, the heavies
+    // still chasing, just losing ground to fresher legs (you catch a coherent
+    // rout with cavalry, not tired infantry).
     assert!(
         (sim.units[weak_a].centroid - prey_then).len() > 1.5,
         "routers keep fleeing after the verdict"
     );
     assert!(
-        (sim.units[strong].centroid - sim.units[weak_a].centroid).len() < 90.0,
+        (sim.units[strong].centroid - sim.units[weak_a].centroid).len() < 135.0,
         "the pursuit stays on the routers"
+    );
+}
+
+/// A broken unit flees for its OWN side — the map edge it deployed from — and
+/// stays a clump while doing it, not a starburst sprayed across the field.
+#[test]
+fn a_rout_runs_for_its_own_edge_as_a_clump() {
+    // A small committed light line is overmatched by a heavy block to its
+    // NORTH; it deploys in the southern half, so home is the south (-y) edge.
+    let mut sim = Sim::new(Tunables::default(), SEED);
+    let strong = sim.spawn_class(Vec2::new(0.0, 40.0), -FRAC_PI_2, 400, UnitClassId::HeavyInfantry, 1);
+    let weak = sim.spawn_class(Vec2::new(0.0, -40.0), FRAC_PI_2, 80, UnitClassId::LightInfantry, 0);
+    sim.set_attack_order(strong, weak);
+    sim.set_attack_order(weak, strong);
+
+    let mut broke = false;
+    for _ in 0..(300.0 / DT) as usize {
+        sim.tick();
+        if sim.units[weak].routing {
+            broke = true;
+            break;
+        }
+    }
+    assert!(broke, "the overmatched light line must break");
+
+    // (mean soldier distance from the unit centroid, centroid.y).
+    let measure = |sim: &Sim| -> (f32, f32) {
+        let u = &sim.units[weak];
+        let c = u.centroid;
+        let (mut sum, mut n) = (0.0f32, 0.0f32);
+        for s in 0..u.count {
+            let i = u.start + s;
+            if sim.alive[i] == 0 {
+                continue;
+            }
+            sum += (Vec2::new(sim.positions[2 * i], sim.positions[2 * i + 1]) - c).len();
+            n += 1.0;
+        }
+        (sum / n.max(1.0), c.y)
+    };
+
+    let (_, y0) = measure(&sim);
+    for _ in 0..(40.0 / DT) as usize {
+        sim.tick();
+    }
+    let (spread, y1) = measure(&sim);
+
+    // Runs for its OWN (south) edge: the centroid drops well to the -y side,
+    // AWAY from the enemy it just fled — not sideways, not back into the fight.
+    assert!(
+        y1 < y0 - 30.0,
+        "the rout heads for its home edge (south): centroid y {y0:.0} -> {y1:.0}"
+    );
+    // Stays a clump: an 80-man light unit is a few metres across; a routing
+    // MOB holds within a tight knot, nowhere near a field-wide scatter (the old
+    // per-man radial flee fanned them out unboundedly).
+    assert!(
+        spread < 30.0,
+        "routers stay a clump (mean spread {spread:.1} m), not a starburst"
     );
 }
 

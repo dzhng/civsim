@@ -268,6 +268,7 @@ mod tests {
             fatigue: 1.0,
             training: 0.5,
             team: 0,
+            home_dir_y: -1.0,
             disorder: 1.0,
             cohesion: 0.1,
             pivoting: false,

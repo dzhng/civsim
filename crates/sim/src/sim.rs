@@ -228,6 +228,12 @@ impl Sim {
         training: f32,
     ) -> usize {
         let unit_index = self.units.len();
+        // Which way home lies: the half of the field this unit deploys in fixes
+        // the edge it will flee to if broken (the same edge campaign
+        // reinforcements enter from). A sign, not a coordinate, so a unit shoved
+        // past its own edge still flees outward, not back into the fight.
+        let map_mid_y = self.terrain.origin.y + 0.5 * self.terrain.h as f32 * self.terrain.cell;
+        let home_dir_y = if anchor.y >= map_mid_y { 1.0 } else { -1.0 };
         let unit = Unit {
             class: UnitClassId::LightInfantry,
             stats: class_stats(UnitClassId::LightInfantry),
@@ -252,6 +258,7 @@ impl Sim {
             fatigue: 1.0,
             training: training.clamp(0.0, 1.0),
             team,
+            home_dir_y,
             disorder: 0.0,
             cohesion: 1.0,
             pivoting: false,
@@ -1140,22 +1147,6 @@ impl Sim {
         } = self;
         let tick_now = *tick_count;
 
-        // Enemy mass centers per team, for rout flight directions.
-        let mut foe_centroid = [Vec2::ZERO; 2];
-        for team in 0..2u32 {
-            let mut sum = Vec2::ZERO;
-            let mut n = 0.0;
-            for v in units.iter() {
-                if v.team != team && v.alive_count > 0 {
-                    sum = sum + v.centroid * (v.alive_count as f32);
-                    n += v.alive_count as f32;
-                }
-            }
-            if n > 0.0 {
-                foe_centroid[team as usize] = sum * (1.0 / n);
-            }
-        }
-
         let mut measures = Vec::with_capacity(units.len());
         for u in units.iter() {
             let f = dir(u.facing);
@@ -1236,17 +1227,38 @@ impl Sim {
                 }
 
                 if u.routing {
-                    // Broken men run from the enemy mass, as bodies.
-                    let away = p - foe_centroid[(u.team as usize).min(1)];
-                    let l = away.len().max(0.1);
-                    let flee = away * (1.0 / l);
+                    // Broken men flee as a MOB, not a starburst. The whole unit
+                    // shares ONE escape heading — away from the enemy mass taken
+                    // from the UNIT centroid, so every man runs the same way. (A
+                    // per-man "away from MY spot" gives each soldier a different
+                    // radial heading, which is exactly what fans a rout across
+                    // the whole field.) A man who has drifted wide of his fellows
+                    // bends his run back toward the centroid, so the rout stays a
+                    // clump that holds together and can later rally.
+                    // Run for our OWN side — straight for the map edge (top or
+                    // bottom) this unit deployed from, where campaign
+                    // reinforcements also arrive. Broken men sprint for that
+                    // baseline as one body; they don't wheel around the nearest
+                    // enemy. The whole unit shares the one heading, so the rout
+                    // runs as a clump, not a starburst.
+                    let flee = Vec2::new(0.0, u.home_dir_y);
+                    let to_c = u.centroid - p;
+                    let cl = to_c.len();
+                    let bend = if cl > 1.0 {
+                        // up to half-weight toward the mob, ramped over ~15 m out
+                        to_c * ((0.5 * (cl / 15.0).min(1.0)) / cl)
+                    } else {
+                        Vec2::ZERO
+                    };
+                    let run = flee + bend;
+                    let run = run * (1.0 / run.len().max(1e-3));
                     let sp = surge_sp
                         * (terrain.speed_at(p)
                             * (1.0 - tun.micro_rough * (1.0 - crate::terrain::micro_rough(p))))
                         .max(0.0);
-                    positions[2 * i] = p.x + flee.x * sp * dt;
-                    positions[2 * i + 1] = p.y + flee.y * sp * dt;
-                    let desired = flee.y.atan2(flee.x);
+                    positions[2 * i] = p.x + run.x * sp * dt;
+                    positions[2 * i + 1] = p.y + run.y * sp * dt;
+                    let desired = run.y.atan2(run.x);
                     facings[i] = rotate_toward(facings[i], desired, tun.soldier_turn_rate * dt);
                     continue;
                 }

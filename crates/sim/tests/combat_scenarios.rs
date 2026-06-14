@@ -80,8 +80,13 @@ fn deep_column_pushes_thin_line_back() {
     };
     let vs_thin = advance(100); // 5 ranks
     let vs_equal = advance(300); // 15 ranks: mirror match
+    // Depth still wins the push war — but the margin is now slim because the
+    // thin line CLOSES UP as it bleeds (sheds width to hold 3 ranks, see the
+    // casualty reshape), gaining the very depth that was its disadvantage. A
+    // thinning line condensing to resist harder is the intended behaviour; the
+    // deep column advances farther against it, just not by the old wide margin.
     assert!(
-        vs_thin > vs_equal + 1.0, // margin narrowed when light foot's evade dropped (fewer skipped pushes); depth still wins
+        vs_thin > vs_equal,
         "depth must win the push war: front at {vs_thin:.1} vs {vs_equal:.1} against equal depth"
     );
 }

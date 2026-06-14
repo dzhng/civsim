@@ -503,7 +503,11 @@ impl Sim {
             return;
         }
         let count = self.units[unit].count;
-        let files = files.clamp(4.min(count.max(1)), count.max(1));
+        // Never wider than 3 ranks deep — a line thinner than that isn't a line,
+        // it's a brittle string. (Enforced here so any width control, including
+        // a future right-drag-to-widen, can't cross it.)
+        let lower = 4.min(count.max(1));
+        let files = files.clamp(lower, (count / 3).max(lower));
         let u = &mut self.units[unit];
         u.files = files;
         u.files_eff = files;
@@ -756,9 +760,9 @@ impl Sim {
     /// Measure lateral clearance at (and just ahead of) the anchor; compress
     /// the formation frame to fit, centered in the gap; relax on open ground.
     fn update_corridor(&mut self, ui: usize) {
-        let (anchor, facing, files, files_eff, spacing_x, depth) = {
+        let (anchor, facing, files, files_eff, spacing_x, depth, alive) = {
             let u = &self.units[ui];
-            (u.anchor, u.facing, u.files, u.files_eff, u.spacing.x, u.depth())
+            (u.anchor, u.facing, u.files, u.files_eff, u.spacing.x, u.depth(), u.alive_count)
         };
         let f = dir(facing);
         let r = Vec2::new(f.y, -f.x);
@@ -784,7 +788,16 @@ impl Sim {
             }
         }
         let floor = 4.min(files.max(1));
-        let target = ((corridor / spacing_x.max(0.2)) as usize).clamp(floor, files.max(1));
+        // Casualties reshape the block: it sheds DEPTH at full width until it
+        // would fall below 3 ranks, then it closes up and sheds WIDTH instead,
+        // never thinner than 3 ranks. The line stays a coherent cloth as it
+        // bleeds, rather than fraying into a one-deep skirmish string. (The
+        // casualty cap overrides the corridor floor — a dying unit narrows past
+        // it.)
+        let casualty_cap = (alive / 3).max(1);
+        let target = ((corridor / spacing_x.max(0.2)) as usize)
+            .clamp(floor, files.max(1))
+            .min(casualty_cap);
         let new_eff = if target < files_eff {
             files_eff.saturating_sub(2).max(target)
         } else {

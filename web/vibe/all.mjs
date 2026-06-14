@@ -20,6 +20,9 @@ const SCENARIOS = [
   { name: 'heavy-v-archers', script: 'missile.mjs', env: {} },
   { name: 'rout-heavy', script: 'rout.mjs', env: { A: 0, B: 0 } },           // watch a rout flee home
   { name: 'rout-cav-heavy', script: 'rout.mjs', env: { A: 6, B: 0 } },
+  { name: 'penetration', script: 'penetration.mjs', env: {} },               // defense: 1 column into a held line
+  { name: 'multi-penetration', script: 'multi-penetration.mjs', env: {} },   // defense: 3 columns at once
+  { name: 'offense', script: 'offense.mjs', env: {} },                       // offense: wide line wraps a block
 ];
 
 const CONCURRENCY = Math.max(1, Number(process.env.JOBS ?? 4));

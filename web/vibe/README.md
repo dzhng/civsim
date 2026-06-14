@@ -33,6 +33,9 @@ table in `all.mjs` when you add a scenario.
 | `heavy-v-archers` | `missile.mjs` | arrows attrite the advance, then melee |
 | `rout-heavy` | `rout.mjs A=0 B=0` | a rout flees home as a clump (keeps shooting past the verdict) |
 | `rout-cav-heavy` | `rout.mjs A=6 B=0` | same, cavalry breaking |
+| `penetration` | `penetration.mjs` | DEFENSE: one column punches a wide held line (does it dimple + close?) |
+| `multi-penetration` | `multi-penetration.mjs` | DEFENSE: three columns at once (does the breach logic generalize?) |
+| `offense` | `offense.mjs` | OFFENSE: a wide attacking line onto a block (does it wrap/envelop?) |
 
 Run one on its own to iterate, overriding the matchup by class id:
 

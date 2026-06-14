@@ -234,6 +234,12 @@ impl Sim {
             u.losing_push *= 1.0 - (dt / 4.0);
 
             // --- break / rally ----------------------------------------------
+            // A unit ground down to a 3x3 knot (9 men) is finished — no square,
+            // no line, no fight left in it. Guaranteed break, whatever its
+            // nominal morale.
+            if !u.routing && u.alive_count > 0 && u.alive_count <= 9 {
+                u.morale = 0.0;
+            }
             if !u.routing && u.morale < BREAK_AT {
                 u.routing = true;
                 u.morale_ceiling *= RALLY_SCAR;

@@ -1,23 +1,12 @@
-//! The 1v1 matchup matrix: every class pair at duel strength, head-on,
-//! morale on. The measurement base for game balance — run with
-//! --nocapture to see the full board.
+//! The class balance matrix and counter-web. Both are *balance* tests
+//! (performance vs price), generated from `ALL_CLASSES` and run through the
+//! shared seed-set harness (`sim::balance`) — not hand-listed duels.
 
-use sim::{Sim, Tunables, UnitClassId, Vec2, DT};
+use sim::balance::{run_once, run_over_seeds, Scenario};
+use sim::{unit_cost, Sim, Tunables, UnitClassId, Vec2, ALL_CLASSES, DT, SEEDS};
 use std::f32::consts::FRAC_PI_2;
 
 const SEED: u64 = 146;
-
-pub const ALL: [UnitClassId; 9] = [
-    UnitClassId::HeavyInfantry,
-    UnitClassId::LightInfantry,
-    UnitClassId::LongSwords,
-    UnitClassId::Phalanx,
-    UnitClassId::Archers,
-    UnitClassId::Skirmishers,
-    UnitClassId::ShockCavalry,
-    UnitClassId::HorseArchers,
-    UnitClassId::ArtilleryCrew,
-];
 
 fn short(c: UnitClassId) -> &'static str {
     match c {
@@ -34,93 +23,83 @@ fn short(c: UnitClassId) -> &'static str {
     }
 }
 
-/// Head-on duel at setup_duel strengths. Returns (verdict, a_left_frac,
-/// b_left_frac, seconds). verdict: 0 = a wins, 1 = b wins, 2 = no verdict
-/// in the window (a standoff is a real outcome: kiters vs slow melee).
-pub fn duel(a: UnitClassId, b: UnitClassId, seed: u64) -> (u32, f32, f32, f32) {
-    let mut sim = Sim::new(Tunables::default(), seed);
-    sim::setup_duel(&mut sim, a, b);
-    sim.set_attack_order(0, 1);
-    sim.set_attack_order(1, 0);
-    let (na, nb) = (sim.units[0].count as f32, sim.units[1].count as f32);
-    for step in 0..(600.0 / DT) as usize {
-        sim.tick();
-        if let Some(v) = sim.victor() {
-            return (
-                v,
-                sim.units[0].alive_count as f32 / na,
-                sim.units[1].alive_count as f32 / nb,
-                step as f32 * DT,
-            );
-        }
-    }
-    (
-        2,
-        sim.units[0].alive_count as f32 / na,
-        sim.units[1].alive_count as f32 / nb,
-        600.0,
-    )
-}
-
+/// The full `ALL_CLASSES²` board, generated and golden-pinned. Each cell is a
+/// 1v1 at duel strength over the seed set; the row reports the seed-median
+/// outcome plus the **gold lens** (`unit_cost` per side) so a reader can judge
+/// price fairness: CAV beating HVY is fine if it cost more, suspect if it
+/// didn't. (Slot lens is 1/1 for every 1v1 cell; it matters in the N-v-M
+/// scenarios — see `balance_harness.rs`.) Survivor% is banded to 25% so seed
+/// jitter never churns the golden.
+///
+/// `#[ignore]`d because it runs 100 cells × the seed set (~minutes) — a
+/// measurement and a deliberate regression, not an every-session gate (the
+/// counter-web below is the fast always-on net). Bless after an intended
+/// balance change and read the diff AS the balance review:
+///   UPDATE_BALANCE=1 cargo test -p sim --test balance_matrix \
+///     golden_balance_matrix -- --ignored --nocapture
 #[test]
-fn measure_the_matrix() {
-    println!("\n      defender →");
-    print!("atk ↓ ");
-    for d in ALL {
-        print!("{:>14}", short(d));
-    }
-    println!();
-    for a in ALL {
-        print!("{:>5} ", short(a));
-        for d in ALL {
-            let (v, fa, fb, t) = duel(a, d, SEED);
-            let cell = match v {
-                0 => format!("W {:>3.0}%@{:>3.0}s", fa * 100.0, t),
-                1 => format!("L {:>3.0}%@{:>3.0}s", fb * 100.0, t),
-                _ => format!("draw {:>2.0}/{:>2.0}%", fa * 100.0, fb * 100.0),
+#[ignore = "full N-seed matrix (~minutes); run on demand / when tuning"]
+fn golden_balance_matrix() {
+    let base = sim::BalanceConfig::default();
+    let tun = Tunables::default();
+    let band = |x: f32| (((x * 100.0) / 25.0).round() * 25.0) as i32;
+
+    let mut out = String::new();
+    out.push_str("# Balance matrix — 1v1 at duel strength, seed-median, morale on.\n");
+    out.push_str("# RES: A = row (attacker) wins, B = col (defender) wins, . = no verdict.\n");
+    out.push_str("# survA/survB banded to 25%; gold = unit_cost per side (the price lens).\n");
+    out.push_str(&format!(
+        "{:<4} {:<4} {:>3} {:>5} {:>5} {:>5} {:>6} {:>6}\n",
+        "ATK", "DEF", "RES", "survA", "survB", "t", "goldA", "goldB"
+    ));
+    for &a in &ALL_CLASSES {
+        for &b in &ALL_CLASSES {
+            let mut scn = Scenario::duel(a, b);
+            scn.dur_secs = 300.0; // cap standoffs (kiters vs slow melee)
+            let agg = run_over_seeds(&scn, &base, &tun, &SEEDS);
+            let res = match agg.winner() {
+                Some(0) => "A",
+                Some(1) => "B",
+                _ => ".",
             };
-            print!("{cell:>14}");
+            out.push_str(&format!(
+                "{:<4} {:<4} {:>3} {:>4}% {:>4}% {:>4.0}s {:>6} {:>6}\n",
+                short(a),
+                short(b),
+                res,
+                band(agg.surv[0].median),
+                band(agg.surv[1].median),
+                agg.secs_median,
+                unit_cost(a),
+                unit_cost(b),
+            ));
         }
-        println!();
+    }
+
+    let path = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/golden/balance-matrix.txt");
+    if std::env::var("UPDATE_BALANCE").is_ok() || !std::path::Path::new(path).exists() {
+        std::fs::create_dir_all(concat!(env!("CARGO_MANIFEST_DIR"), "/tests/golden")).unwrap();
+        std::fs::write(path, &out).unwrap();
+        println!("blessed balance matrix:\n{out}");
+    } else {
+        let want = std::fs::read_to_string(path).unwrap();
+        assert_eq!(
+            out, want,
+            "balance matrix moved — if intended, re-bless with UPDATE_BALANCE=1 \
+             and read the diff as a balance review"
+        );
     }
 }
 
-/// David's anchor: one heavy unit solos TWO light units, all head-on.
-#[test]
-fn one_heavy_solos_two_lights_head_on() {
-    let mut sim = Sim::new(Tunables::default(), SEED);
-    let hv = sim.spawn_class(Vec2::new(0.0, -60.0), FRAC_PI_2, 240, UnitClassId::HeavyInfantry, 0);
-    let l1 = sim.spawn_class(Vec2::new(-25.0, 60.0), -FRAC_PI_2, 220, UnitClassId::LightInfantry, 1);
-    let l2 = sim.spawn_class(Vec2::new(25.0, 60.0), -FRAC_PI_2, 220, UnitClassId::LightInfantry, 1);
-    sim.set_attack_order(l1, hv);
-    sim.set_attack_order(l2, hv);
-    sim.set_attack_order(hv, l1);
-    let mut verdict = None;
-    for _ in 0..(600.0 / DT) as usize {
-        sim.tick();
-        verdict = sim.victor();
-        if verdict.is_some() {
-            break;
-        }
-    }
-    println!(
-        "heavy {}/240 vs lights {}+{}/440, verdict {:?}",
-        sim.units[hv].alive_count, sim.units[l1].alive_count, sim.units[l2].alive_count, verdict
-    );
-    assert_eq!(verdict, Some(0), "armor beats numbers head-on: the heavy unit must win");
-    assert!(
-        sim.units[hv].alive_count > 60,
-        "and live to tell it: {}/240",
-        sim.units[hv].alive_count
-    );
-}
-
-/// The counter web, pinned from the measured matrix (run measure_the_matrix
-/// --nocapture for the live board). Every class pair RUNS in that board;
-/// these are the matchups history has opinions about.
+/// The counter-web: the matchups history has opinions about, asserted through
+/// the same harness runner as the matrix (single seed for speed — this is the
+/// fast always-on directional gate; the golden matrix is the seed-robust
+/// board). These are *derived* from the matrix, not a separate bench.
 #[test]
 fn the_counter_web_holds() {
     use UnitClassId::*;
+    let base = sim::BalanceConfig::default();
+    let tun = Tunables::default();
     // (attacker, defender, expected winner: 0 = attacker)
     let expect = [
         (HeavyInfantry, LightInfantry, 0, "armor beats numbers' class"),
@@ -141,12 +120,14 @@ fn the_counter_web_holds() {
         (ArtilleryCrew, Skirmishers, 1, "a crew alone loses to anyone"),
     ];
     for (a, d, want, why) in expect {
-        let (v, fa, fb, t) = duel(a, d, SEED);
+        let o = run_once(&Scenario::duel(a, d), &base, &tun, SEED);
         assert_eq!(
-            v, want,
-            "{a:?} vs {d:?}: {why} (got verdict {v}, {:.0}%/{:.0}% at {t:.0}s)",
-            fa * 100.0,
-            fb * 100.0
+            o.victor, want,
+            "{a:?} vs {d:?}: {why} (got verdict {}, {:.0}%/{:.0}% at {:.0}s)",
+            o.victor,
+            o.surv[0] * 100.0,
+            o.surv[1] * 100.0,
+            o.secs
         );
     }
 }

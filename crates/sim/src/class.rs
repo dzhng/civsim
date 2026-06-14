@@ -24,6 +24,32 @@ pub struct Weapon {
     pub damage: f32,
 }
 
+/// A class's weapons, owned inline so a `UnitClass` can be built at runtime (a
+/// tunable `BalanceConfig`) without a `'static` lifetime — yet stays `Copy`.
+/// No class carries more than two (a pole-arm plus its side-arm). Derefs to a
+/// slice, so every reader (`.iter()`, `w[0]`) is unchanged.
+#[derive(Clone, Copy, Debug)]
+pub struct WeaponSet {
+    arr: [Weapon; 2],
+    len: u8,
+}
+
+/// One weapon. The second slot is filled with a copy and never read (`len` 1).
+pub const fn one(w: Weapon) -> WeaponSet {
+    WeaponSet { arr: [w, w], len: 1 }
+}
+/// A primary plus a side-arm.
+pub const fn two(a: Weapon, b: Weapon) -> WeaponSet {
+    WeaponSet { arr: [a, b], len: 2 }
+}
+
+impl core::ops::Deref for WeaponSet {
+    type Target = [Weapon];
+    fn deref(&self) -> &[Weapon] {
+        &self.arr[..self.len as usize]
+    }
+}
+
 #[derive(Clone, Copy, Debug)]
 pub struct UnitClass {
     pub id: UnitClassId,
@@ -80,7 +106,7 @@ pub struct UnitClass {
     /// (running, fighting, charging, bad ground) is scaled by this — armor
     /// is paid for in wind, so heavies blow out long before a screen does.
     pub drain_mult: f32,
-    pub weapons: &'static [Weapon],
+    pub weapons: WeaponSet,
 }
 
 /// Offset of a mounted body's two circles from its center, along facing (m).
@@ -176,7 +202,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
         tramples: false,
         knockback_mult: 0.35, // a charging mass of men hurts what it fells
         drain_mult: 1.0,
-        weapons: &[SWORD],
+        weapons: one(SWORD),
     };
     match id {
         HeavyInfantry => UnitClass {
@@ -191,7 +217,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             block: 0.45, // a real shield wall sheds ~half the frontal arrows; the back is bare (back ~1.8x deaths)
             evade: 0.08,
             training: 0.75,
-            weapons: &[SWORD],
+            weapons: one(SWORD),
             ..foot
         },
         LightInfantry => UnitClass {
@@ -205,7 +231,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             block: 0.35, // a light shield: real frontal cover, ~1.5x deaths from behind
             evade: 0.15, // a shield, not a skirmisher's legs: modest dodge on top of the block
             training: 0.55,
-            weapons: &[SPEAR],
+            weapons: one(SPEAR),
             ..foot
         },
         LongSwords => UnitClass {
@@ -219,7 +245,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             evade: 0.35,
             training: 0.8,
             stance: crate::unit::Stance::Fence,
-            weapons: &[LONG_SWORD],
+            weapons: one(LONG_SWORD),
             ..foot
         },
         Phalanx => UnitClass {
@@ -234,7 +260,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             evade: 0.08,
             training: 0.8,
             charge: false,
-            weapons: &[PIKE, SIDE_SWORD],
+            weapons: two(PIKE, SIDE_SWORD),
             ..foot
         },
         Archers => UnitClass {
@@ -250,7 +276,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             evade: 0.28,
             stance: crate::unit::Stance::Fence,
             charge: false,
-            weapons: &[SWORD],
+            weapons: one(SWORD),
             ..foot
         },
         Skirmishers => UnitClass {
@@ -267,7 +293,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             training: 0.5,
             stance: crate::unit::Stance::Fence,
             charge: false,
-            weapons: &[DAGGER],
+            weapons: one(DAGGER),
             ..foot
         },
         ShockCavalry => UnitClass {
@@ -287,7 +313,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             evade: 0.12,
             training: 0.75,
             stance: crate::unit::Stance::Fence,
-            weapons: &[LANCE, CAV_SWORD],
+            weapons: two(LANCE, CAV_SWORD),
             ..foot
         },
         HorseArchers => UnitClass {
@@ -308,7 +334,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             training: 0.65,
             stance: crate::unit::Stance::Fence,
             charge: false,
-            weapons: &[CAV_SWORD],
+            weapons: one(CAV_SWORD),
             ..foot
         },
         ArtilleryCrew => UnitClass {
@@ -323,7 +349,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             evade: 0.18,
             stance: crate::unit::Stance::Fence,
             charge: false,
-            weapons: &[DAGGER],
+            weapons: one(DAGGER),
             ..foot
         },
         Peasant => UnitClass {
@@ -338,7 +364,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             block: 0.0, // no shield at all — arrows and blows land the same from any face
             evade: 0.12, // untrained: a clumsy flinch, not a skirmisher's slip
             training: 0.3,
-            weapons: &[DAGGER],
+            weapons: one(DAGGER),
             ..foot
         },
     }

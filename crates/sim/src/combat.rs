@@ -199,7 +199,7 @@ impl Sim {
             let desired = if self.units[ui].weapon_pref == 1 && weapons.len() > 1 {
                 Some(weapons.len() - 1)
             } else {
-                pick_weapon_index(weapons, nearest_d)
+                pick_weapon_index(&weapons, nearest_d)
             };
             let Some(desired) = desired else {
                 continue; // enemy inside every min_range and outside sidearms
@@ -488,7 +488,7 @@ impl Sim {
     }
 }
 
-fn pick_weapon_index(weapons: &'static [Weapon], d: f32) -> Option<usize> {
+fn pick_weapon_index(weapons: &[Weapon], d: f32) -> Option<usize> {
     weapons
         .iter()
         .position(|w| d >= w.min_range && d <= w.reach)

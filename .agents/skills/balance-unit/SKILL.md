@@ -19,9 +19,9 @@ interpolating against the shipped classes (the anchors, `crates/sim/src/class.rs
 
 | Axis | Field | What the word means | Anchors |
 |---|---|---|---|
-| Armor / body | `health` | "unarmored" → low, "heavy/armored" → high. This is THE armor axis. | levy 1.55 · longsword 1.49 · pike 2.2 · heavy 2.4 · (horse body `mount_health` 6.5–8.45) |
-| Shield | `block` | front-arc block vs melee AND arrows; "shieldless" 0.1, "buckler/light" 0.15–0.2, "big shield" 0.35–0.45 | skirm 0.12 · light 0.15 · longsword 0.2 · pike 0.35 · heavy 0.45 |
-| Agility | `evade` | parry/dodge, DIRECTIONAL (front full, 0.25× from behind); "nimble/loose" high, "armored/packed" low | heavy 0.08 · longsword 0.22 · light 0.3 · skirm 0.35 |
+| Armor / body | `health` | "unarmored" → low, "heavy/armored" → high. This is THE armor axis. | peasant 1.0 · longsword 1.49 · light sword 1.5 · light spear 1.55 · pike 2.2 · heavy sword / heavy spear 2.4 · (horse body `mount_health` 6.5–8.45) |
+| Shield | `block` | front-arc block vs melee AND arrows; "shieldless" 0.0, "light shield" 0.3–0.35, "big shield" 0.45–0.55 | shieldless (skirm/archer/peasant/HA) 0.0 · longsword 0.1 (blade parry, no shield) · light sword 0.3 · light spear 0.35 · cav 0.4 · heavy sword / heavy spear 0.45 · pike 0.55 |
+| Agility | `evade` | parry/dodge, DIRECTIONAL (front full, 0.25× from behind); "nimble/loose" high, "armored/packed" low | heavy/pike 0.08 · light spear 0.15 · light sword 0.18 · archer 0.28 · longsword 0.35 · skirm 0.42 |
 | Weight | `mass` | body + kit; drives push, charge resistance, who-shoves-whom | skirm 0.85 · light 0.95 · longsword 1.1 · pike 1.2 · heavy 1.3 · horse 3.8–4.5 |
 | Discipline | `brace_mult` | planted-formation mass multiplier (halted); "drilled wall" high, "loose/missile/mounted" 1.0 | missile/mounted 1.0 · foot 1.3 · heavy 2.0 · pike 4.0 |
 | Drill | `training` | morale endurance + cohesion recovery; "levy/rabble" low, "elite/professional" high | skirm 0.5 · light 0.55 · heavy/longsword/pike 0.75–0.8 |
@@ -66,10 +66,12 @@ and let ammo/interval set sustained output.
 ## Step 3 — set the price, or honor the given one
 
 `crates/contract/src/lib.rs::unit_cost`. The anchors are David's: **light
-infantry 300, heavy 1000** (a heavy unit beats two lights head-on — the
+spear 300, heavy sword 1000** (a heavy unit beats two lights head-on — the
 premium prices concentration of force, not raw efficiency). Current board:
-SKR 250 · LGT 300 · LSW 450 · ARC 500 · ART 700 · HVY 1000 · HAR 1100 ·
-PIK 1300 · CAV 1400.
+PEA 175 · SKR 250 · LSP (light spear) 300 · LSD (light sword) 400 · LSW
+(long sword) 450 · ARC 500 · ART 700 · HSD (heavy sword) 1000 · HAR 1100 ·
+HSP (heavy spear) 1100 · PIK 1300 · CAV 1400. (Infantry is a {light,heavy}×
+{sword,spear} 2×2: sword = aggressive arc, spear = anti-charge brace.)
 
 The pricing principle: **cost ≈ what the matrix says it beats.** A unit
 that hard-counters expensive things (pike vs cav, cav vs foot) prices
@@ -85,12 +87,19 @@ stat card — no other wiring needed.
 
 ## Step 4 — measure, calibrate, pin (the actual loop)
 
-1. **Measure the board.** `cargo test -p sim --test balance_matrix
-   measure_the_matrix -- --nocapture` prints the full 9×9 (verdict,
-   survivor %, time). Add the new class to `ALL`/`short` first. Read where
-   it lands. For a *seed-robust* read of one matchup (a single-seed cell can
-   mislead), use the harness: `sim::balance::run_over_seeds(&Scenario::duel(a,
-   b), &BalanceConfig::default(), &Tunables::default(), &SEEDS)` and read the
+1. **Measure the board.** The full board is `golden_balance_matrix` in
+   `balance_matrix.rs` — generated from `ALL_CLASSES²` (12×12 = 144 cells
+   today), seed-median over `SEEDS`, with the `unit_cost` gold lens per cell.
+   It's `#[ignore]`d (runs ~minutes), so measure/re-bless on demand:
+   `UPDATE_BALANCE=1 cargo test -p sim --test balance_matrix
+   golden_balance_matrix -- --ignored --nocapture` writes
+   `tests/golden/balance-matrix.txt` and prints it; read the diff AS the
+   balance review. Add the new class to `ALL_CLASSES`/`short()` first (and bump
+   the count assert in `duel_scenario_exists_for_every_class`). The fast
+   always-on net is `the_counter_web_holds` (single-seed directional gate). For
+   a *seed-robust* read of one matchup without the whole board, call the harness
+   directly: `sim::balance::run_over_seeds(&Scenario::duel(a, b),
+   &BalanceConfig::default(), &Tunables::default(), &SEEDS)` and read the
    `Aggregate` — win-rate and survivor **stdev** tell you edge vs coin-flip.
 2. **Calibrate to the archetype's counters**, not to "wins more". Tune the
    handful of stats from Step 1 until the new unit beats what its sketch
@@ -114,10 +123,11 @@ stat card — no other wiring needed.
 
 ## Reference: the matchup web these must respect
 
-PIK > HVY > LGT (armor beats numbers, reach beats armor). PIK breaks
-frontal CAV (points stop horse); CAV beats everything else incl HAR; HAR
-kites foot but loses to pike patience (ammo runs out); ART dies alone;
-SKR/ARC soften then lose the melee. A new unit must slot into this without
+PIK > HSD (heavy sword) > LSP (light spear) (armor beats numbers, reach
+beats armor). PIK breaks frontal CAV (points stop horse); CAV beats
+everything else incl HAR; HAR kites foot but loses to pike patience (ammo
+runs out); ART dies alone; SKR/ARC soften then lose the melee. A new unit
+must slot into this without
 inverting it — if your shielded spearman suddenly beats heavy infantry
 AND pikes AND cavalry, the stats are too generous; find the one axis its
 sketch doesn't justify and cut it.

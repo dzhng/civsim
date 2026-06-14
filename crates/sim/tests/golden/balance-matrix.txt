@@ -8,7 +8,7 @@ HVY  LSW    A  100%   25%   93s   1000    450
 HVY  PIK    B   25%   75%  152s   1000   1300
 HVY  ARC    A  100%   25%   71s   1000    500
 HVY  SKR    A  100%   50%   58s   1000    250
-HVY  CAV    B   50%   75%  118s   1000   1400
+HVY  CAV    .   50%   50%  114s   1000   1400
 HVY  HAR    B   25%  100%   67s   1000   1100
 HVY  ART    A  100%    0%   55s   1000    700
 HVY  PEA    A  100%   50%   92s   1000    175
@@ -18,7 +18,7 @@ LGT  LSW    A  100%   50%   96s    300    450
 LGT  PIK    B   25%  100%   85s    300   1300
 LGT  ARC    A  100%   50%   76s    300    500
 LGT  SKR    A  100%   50%   77s    300    250
-LGT  CAV    B   25%  100%   55s    300   1400
+LGT  CAV    B   25%  100%   56s    300   1400
 LGT  HAR    B   25%  100%   43s    300   1100
 LGT  ART    A  100%    0%   56s    300    700
 LGT  PEA    A  100%   50%   94s    300    175
@@ -28,7 +28,7 @@ LSW  LSW    B   25%   50%   96s    450    450
 LSW  PIK    B   25%  100%   60s    450   1300
 LSW  ARC    B   50%   50%   79s    450    500
 LSW  SKR    A  100%   25%   72s    450    250
-LSW  CAV    B   25%  100%   68s    450   1400
+LSW  CAV    B   25%  100%   65s    450   1400
 LSW  HAR    B   25%  100%   49s    450   1100
 LSW  ART    A  100%    0%   56s    450    700
 LSW  PEA    B   25%   75%  103s    450    175
@@ -38,7 +38,7 @@ PIK  LSW    A  100%   25%   61s   1300    450
 PIK  PIK    A  100%   25%  101s   1300   1300
 PIK  ARC    A  100%   25%   51s   1300    500
 PIK  SKR    A  100%   50%   55s   1300    250
-PIK  CAV    A  100%   50%   92s   1300   1400
+PIK  CAV    A  100%   50%   96s   1300   1400
 PIK  HAR    A   50%   50%   83s   1300   1100
 PIK  ART    A  100%    0%   49s   1300    700
 PIK  PEA    A  100%   50%   54s   1300    175
@@ -62,14 +62,14 @@ SKR  CAV    B   25%  100%   28s    250   1400
 SKR  HAR    B   25%  100%   39s    250   1100
 SKR  ART    A  100%   25%   80s    250    700
 SKR  PEA    B   50%  100%   69s    250    175
-CAV  HVY    A   75%   50%  108s   1400   1000
+CAV  HVY    A   75%   25%  111s   1400   1000
 CAV  LGT    A  100%   25%   56s   1400    300
-CAV  LSW    A  100%   25%   68s   1400    450
-CAV  PIK    B   50%  100%   94s   1400   1300
+CAV  LSW    A  100%   25%   66s   1400    450
+CAV  PIK    B   50%  100%  100s   1400   1300
 CAV  ARC    A  100%   25%   31s   1400    500
 CAV  SKR    A  100%   25%   27s   1400    250
-CAV  CAV    B   75%   75%  167s   1400   1400
-CAV  HAR    A  100%   50%  159s   1400   1100
+CAV  CAV    B   50%   50%   99s   1400   1400
+CAV  HAR    A  100%   50%  100s   1400   1100
 CAV  ART    A  100%   75%   26s   1400    700
 CAV  PEA    A  100%   25%   29s   1400    175
 HAR  HVY    A  100%   25%   67s   1100   1000
@@ -78,7 +78,7 @@ HAR  LSW    A  100%    0%   49s   1100    450
 HAR  PIK    A   75%   25%   78s   1100   1300
 HAR  ARC    A  100%    0%   40s   1100    500
 HAR  SKR    A  100%   25%   39s   1100    250
-HAR  CAV    B   50%  100%  166s   1100   1400
+HAR  CAV    B   50%  100%   95s   1100   1400
 HAR  HAR    B   50%   50%  208s   1100   1100
 HAR  ART    A  100%   50%   33s   1100    700
 HAR  PEA    A  100%   25%   37s   1100    175

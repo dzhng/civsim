@@ -36,6 +36,8 @@ table in `all.mjs` when you add a scenario.
 | `penetration` | `penetration.mjs` | DEFENSE: one column punches a wide held line (does it dimple + close?) |
 | `multi-penetration` | `multi-penetration.mjs` | DEFENSE: three columns at once (does the breach logic generalize?) |
 | `offense` | `offense.mjs` | OFFENSE: a wide attacking line onto a block (does it wrap/envelop?) |
+| `surround` | `surround.mjs` | 3v1: a square block held, surrounded front/side/back (does the weave hold?) |
+| `surround-attack` | `surround.mjs ATTACK=1` | same composition, but the middle sallies out — see what the attack order changes |
 
 Run one on its own to iterate, overriding the matchup by class id:
 

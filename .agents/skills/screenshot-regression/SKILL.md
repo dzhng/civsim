@@ -22,6 +22,15 @@ green, the model is bigger). If you re-blessed a baseline, look at the new
 baseline too — you are certifying it as ground truth for every future run.
 Never report a visual result you have only inferred from "the script passed."
 
+## Rebuild the wasm before you trust ANY screenshot
+
+The browser loads the **prebuilt** wasm under `web/src/wasm`, never your live
+Rust source. If you touched anything in `crates/`, run `npm run build:wasm` from
+`web/` FIRST — otherwise every screenshot, and every green `verify`, reflects a
+STALE binary. This has shipped a boot-crashing regression past a passing verify:
+a new unit class was in the sim source but not in the wasm the browser actually
+ran, and `class_specs` panicked the moment a real build loaded it.
+
 ## Taking a screenshot (ad-hoc, to look at something)
 
 Dev server first (5173 is usually taken by the old `/Users/david/dev/game`

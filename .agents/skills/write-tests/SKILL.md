@@ -20,6 +20,11 @@ description: How to write and iterate on tests in this repo — fast cargo first
    render health. `npm run verify:full` adds the slow behavioral stages —
    release passes only. NEVER use the browser to verify sim behavior; if a
    behavior matters, it gets a Rust test.
+   - **REBUILD THE WASM FIRST if you touched any Rust** (`npm run build:wasm`
+     from `web/`). The verify harness loads the prebuilt wasm, NOT your live
+     source — skip the rebuild and you're testing a stale binary. This once let
+     a boot-crashing regression (a new class panicking `class_specs`) pass a
+     green `verify` and ship: the sim source had the class, the wasm didn't.
 4. **Check the exit code, not just the output.** A python heredoc that
    prints "ok" then a cargo grep that prints nothing looks like success and
    is a compile error. `echo rc=$?` after every suite run.

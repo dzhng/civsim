@@ -311,7 +311,7 @@ function microHashJS(x: number, y: number): number {
 export interface BannerSlot {
   team: 0 | 1;
   x: number; // centroid world-x
-  y: number; // north/top edge world-y
+  y: number; // centroid world-y (the pole foot is planted here)
   hp: number;
   cohesion: number;
   chips: { text: string; kind?: 'plain' | 'hot' | 'bad' }[];
@@ -452,7 +452,13 @@ export class BattleRenderer3D {
   fixedTime: number | null = null;
 
   constructor(private canvas: HTMLCanvasElement) {
-    this.engine = new Engine(canvas, true, { preserveDrawingBuffer: true, stencil: false }, false);
+    // adaptToDeviceRatio = true: size the backing store to device pixels
+    // (clientWidth * dpr), the same convention the old 2D renderer used and
+    // that camera.ts / input.ts assume (zoom is device-px-per-metre, picks
+    // multiply clientX by dpr). With it false the canvas stayed CSS-sized, so on
+    // a Retina screen every click mapped to the wrong world point and selected
+    // nothing. It also renders the field at full resolution instead of upscaled.
+    this.engine = new Engine(canvas, true, { preserveDrawingBuffer: true, stencil: false }, true);
     this.scene = new Scene(this.engine);
     this.scene.useRightHandedSystem = true; // x east, y north, z up
     this.scene.clearColor = new Color4(0.06, 0.07, 0.06, 1);

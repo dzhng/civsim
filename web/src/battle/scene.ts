@@ -258,9 +258,11 @@ export class BattleScene implements Scene {
       const sel = input.selected.length > 0 ? input.selected[0] : -1;
       const n = game.unit_count();
       if (is3D) {
-        // World-space billboards: hand the renderer one slot per unit (centroid
-        // x, the block's north edge y) and let it place + face the quads. The
-        // layer owns the show-when-zoomed gate and the per-unit redraw cache.
+        // World-space billboards: hand the renderer one slot per unit at the
+        // unit's CENTROID and let it place + face the quads. The pole foot is
+        // bottom-anchored there, so the standard reads as planted in the middle
+        // of the block and rising from it. The layer owns the show-when-zoomed
+        // gate and the per-unit redraw cache.
         const slots: (BannerSlot | null)[] = new Array(n);
         for (let u = 0; u < n; u++) {
           const o = u * STRIDE;
@@ -268,7 +270,7 @@ export class BattleScene implements Scene {
           if (alive === 0) { slots[u] = null; continue; }
           slots[u] = {
             x: info[o + 32],
-            y: unitTopY[u] > -Infinity ? unitTopY[u] : info[o + 33],
+            y: info[o + 33],
             team: info[o + 6] === 0 ? 0 : 1,
             hp: alive / info[o + 7],
             cohesion: info[o + 4],
@@ -1024,6 +1026,10 @@ export class BattleScene implements Scene {
       select: (u: number) => {
         input.selected = u >= 0 ? [u] : [];
       },
+      // The live selection (read-only snapshot) — lets the verify harness assert
+      // what a real click or drag-box actually selected, exercising the input
+      // path end to end rather than the `select` shortcut.
+      selected: () => input.selected.slice(),
       setPace: (u: number, pace: number) => game.set_pace(u, pace),
       setStance: (u: number, s: number) => game.set_stance(u, s),
       attackOrder: (u: number, enemy: number) => game.set_attack_order(u, enemy),

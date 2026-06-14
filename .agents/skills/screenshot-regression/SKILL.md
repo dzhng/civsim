@@ -107,6 +107,30 @@ the figure's true alpha-weighted colour. Keep per-soldier outline/shadow
 *soft*, never pure black — in an opaque renderer a hard-black rim is the bulk of
 what a minified man averages to.
 
+## Testing input/selection — and the device-pixel-ratio trap
+
+Click-to-select and drag-box are real input paths; drive them with
+`page.mouse.click` / `page.mouse.down|move|up` and read the live selection
+(`window.__game.selected()`), not the `select()` shortcut. Two traps:
+
+1. **dpr=1 hides Retina selection bugs.** The headless default is
+   `deviceScaleFactor: 1`, where CSS px == device px and every dpr factor
+   cancels. The renderer, `camera.ts`, and `input.ts` must AGREE on whether the
+   canvas backing store is CSS- or device-sized. The 2D renderer sized it device
+   px (`clientWidth * dpr`); the Babylon engine defaulted to CSS px
+   (`adaptToDeviceRatio` **false**) while camera/input still multiply `clientX`
+   by dpr — so on a real Retina screen every click mapped to the wrong world
+   point and selected nothing. Always add a `deviceScaleFactor: 2` page to the
+   input stage; dpr 1 alone is worthless here.
+2. **Click the TRUE rendered pixel, not `worldToScreen`.** To find where to
+   click, project from the canvas BACKING store:
+   `cssX = ((wx-camx)*zoom + canvas.width/2) * (canvas.clientWidth/canvas.width)`
+   (and the y-flip / `cosP` for north). Do NOT use `worldToScreen` — it carries
+   the SAME dpr assumption as the input handler, so a self-consistent error
+   cancels and your click lands exactly where the broken pick expects it: the
+   test passes while the real game is broken. Centre the camera OFF the unit
+   (a centred unit sits at the screen midpoint where every scale error is zero).
+
 ## Running just one snapshot
 
 > The flat harnesses are being replaced by addressable **scenarios** (one

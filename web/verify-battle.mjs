@@ -127,6 +127,58 @@ await page.evaluate(() => window.__game.freeze(false));
   await lod.close();
 }
 
+// --- Selection works at any device-pixel-ratio --------------------------------
+// Clicking and drag-boxing units must select them. The bug this guards: the 3D
+// engine left the canvas CSS-sized while camera/input assume a device-pixel
+// canvas, so on a Retina screen (dpr 2) the click maps to the wrong world point
+// and selects nothing. dpr 1 hid it (CSS px == device px). We drive a REAL click
+// at the unit's true on-screen pixel (computed from the canvas backing store, so
+// it's valid whether the canvas is CSS- or device-sized) and read the live
+// selection — exercising mousedown→pickUnit→selected end to end.
+for (const dpr of [1, 2]) {
+  const sp = await browser.newPage({ viewport: { width: 1280, height: 800 }, deviceScaleFactor: dpr });
+  sp.on('pageerror', (e) => pageErrors.push(`sel-page(dpr${dpr}): ` + e.message));
+  await sp.goto(TARGET + '?map=A&ai=off');
+  await sp.waitForFunction(() => window.__ready === true, { timeout: 20000 });
+  await sp.waitForTimeout(400);
+  // Where unit u is actually drawn, in CSS px (== where a user clicks).
+  const trueScreen = (u) => sp.evaluate((u) => {
+    const a = window.__game.unitInfo(u);
+    const c = window.__cam;
+    const cv = document.getElementById('battlefield');
+    const cosP = Math.max(0.2, Math.cos(c.pitch || 0));
+    const canvasX = (a[32] - c.x) * c.zoom + cv.width / 2;
+    const canvasY = (c.y - a[33]) * c.zoom * cosP + cv.height / 2;
+    return { x: canvasX * (cv.clientWidth / cv.width), y: canvasY * (cv.clientHeight / cv.height) };
+  }, u);
+  // Frame unit 4 OFF-CENTRE (a centred unit hides the scale error), flat zoom.
+  await sp.evaluate(() => {
+    const a = window.__game.unitInfo(4); const c = window.__cam;
+    c.zoom = 3; c.pitch = 0; c.x = a[32] - 90; c.y = a[33]; c.clampView?.();
+    window.__game.select(-1);
+  });
+  await sp.waitForTimeout(150);
+  const cpt = await trueScreen(4);
+  await sp.mouse.click(cpt.x, cpt.y);
+  await sp.waitForTimeout(120);
+  const clicked = await sp.evaluate(() => window.__game.selected());
+  check(`dpr${dpr}: left-click selects the unit under the cursor`, clicked.includes(4),
+    `clicked (${cpt.x.toFixed(0)},${cpt.y.toFixed(0)}) -> selected ${JSON.stringify(clicked)}`);
+  // Drag-box around the same unit selects it.
+  await sp.evaluate(() => window.__game.select(-1));
+  const c2 = await trueScreen(4);
+  await sp.mouse.move(c2.x - 70, c2.y - 45);
+  await sp.mouse.down();
+  await sp.mouse.move(c2.x, c2.y, { steps: 3 });
+  await sp.mouse.move(c2.x + 70, c2.y + 45, { steps: 5 });
+  await sp.mouse.up();
+  await sp.waitForTimeout(120);
+  const boxed = await sp.evaluate(() => window.__game.selected());
+  check(`dpr${dpr}: drag-box selects the unit inside it`, boxed.includes(4),
+    `box around (${c2.x.toFixed(0)},${c2.y.toFixed(0)}) -> selected ${JSON.stringify(boxed)}`);
+  await sp.close();
+}
+
 // The in-game manual opens and has content.
 await page.click('#btn-menu');
 await page.click('#pause-manual');

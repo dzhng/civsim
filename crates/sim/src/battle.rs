@@ -205,7 +205,7 @@ pub fn setup_duel(sim: &mut Sim, a: UnitClassId, b: UnitClassId) {
         match c {
             HeavyInfantry => 240,
             LightInfantry => 220,
-            LongSwords => 140,
+            LongSwords => 190, // a full line unit, not a small elite (see balance::duel_strength)
             Phalanx => 240,
             Archers => 140,
             Skirmishers => 140,

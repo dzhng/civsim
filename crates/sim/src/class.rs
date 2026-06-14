@@ -246,7 +246,8 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             spacing: Vec2::new(1.5, 1.4),
             default_depth: 4,
             health: 1.49,
-            block: 0.0, // a two-hander: no shield at all — arrows and blows land the same from any face
+            block: 0.1, // no shield, but a drilled two-hander parries some frontal blows
+                        // with the blade — a thin front-arc edge, far below any shield wall
             evade: 0.35,
             training: 0.8,
             stance: crate::unit::Stance::Fence,

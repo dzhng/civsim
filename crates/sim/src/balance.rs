@@ -42,7 +42,7 @@ pub fn duel_strength(c: UnitClassId) -> usize {
     match c {
         HeavyInfantry => 240,
         LightInfantry => 220,
-        LongSwords => 140,
+        LongSwords => 190,
         Phalanx => 240,
         Archers => 140,
         Skirmishers => 140,

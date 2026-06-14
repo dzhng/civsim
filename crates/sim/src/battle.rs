@@ -257,6 +257,14 @@ pub fn setup_sandbox(sim: &mut Sim, kind: u32) {
         sim.spawn_class(Vec2::new(-26.0, 0.0), 0.0, 90, UnitClassId::HeavyInfantry, 1);
         return;
     }
+    if kind == 5 {
+        // PIN + FLANK: a Heavy (team 1) pinned frontally by a Light, flanked on
+        // its right side by a Long sword — the long sword's intended role.
+        sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 240, UnitClassId::HeavyInfantry, 1);
+        sim.spawn_class(Vec2::new(0.0, 30.0), -FRAC_PI_2, 220, UnitClassId::LightInfantry, 0);
+        sim.spawn_class(Vec2::new(34.0, 6.0), std::f32::consts::PI, 190, UnitClassId::LongSwords, 0);
+        return;
+    }
     if kind == 2 || kind == 3 {
         // A 100x4 line facing north; blue cavalry charges its face (kind 2)
         // or its eastern flank (kind 3).

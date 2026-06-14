@@ -107,7 +107,7 @@ impl Game {
     /// weapons, missile spec. Static data — call once. Weapon display
     /// names live here (the sim's Weapon struct is anonymous physics).
     pub fn class_specs(&self) -> String {
-        let weapon_names: [&[&str]; 9] = [
+        let weapon_names: [&[&str]; contract::ALL_CLASSES.len()] = [
             &["sword"],
             &["sword"],
             &["great sword"],
@@ -117,9 +117,10 @@ impl Game {
             &["lance", "sword"],
             &["sword"],
             &["dagger"],
+            &["dagger"], // peasant
         ];
-        let missile_names: [&str; 9] = [
-            "", "", "", "", "bow", "javelin", "", "bow", "ballista",
+        let missile_names: [&str; contract::ALL_CLASSES.len()] = [
+            "", "", "", "", "bow", "javelin", "", "bow", "ballista", "",
         ];
         let specs: Vec<serde_json::Value> = contract::ALL_CLASSES
             .iter()

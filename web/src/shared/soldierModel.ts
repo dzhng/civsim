@@ -24,13 +24,19 @@ export const CLASS_LOOK: ClassLook[] = [
   { weapon: 'lance', shield: 'round', crest: true, mounted: true }, // 6 shock cav
   { weapon: 'bow', shield: 'none', crest: false, mounted: true }, // 7 horse archers
   { weapon: 'none', shield: 'none', crest: false, mounted: false }, // 8 artillery crew
+  { weapon: 'sword', shield: 'none', crest: false, mounted: false }, // 9 peasant (a knife, no shield)
 ];
 
-/** Per-class soldier (or rider on a horse) as one box mesh. When `rest` is set,
- *  pole arms (pike, spear, javelin, lance) stand vertical — the at-ease pose a
- *  unit holds when no enemy is in reach; otherwise they level forward to fight. */
-export function classGeometry(cls: number, rest = false): VertexData {
+/** Per-class soldier (or rider on a horse) as one box mesh. `rest` is a
+ *  continuous 0..1 pose blend: at 1 the pole arms (pike, spear, javelin, lance)
+ *  stand vertical — the at-ease pose a unit holds when no enemy is in reach —
+ *  and blades/bows drop low; at 0 they level forward to fight. Intermediate
+ *  values lerp each weapon box's corners, so the renderer can build a small
+ *  ladder of poses and sweep a pike smoothly up or down. Passing a boolean
+ *  (the old rest/fight callers) coerces to 0/1 and reproduces the endpoints. */
+export function classGeometry(cls: number, rest: number | boolean = 0): VertexData {
   const L = CLASS_LOOK[cls] ?? CLASS_LOOK[0];
+  const r = rest === true ? 1 : rest === false ? 0 : Math.min(1, Math.max(0, rest));
   const pos: number[] = [];
   const idx: number[] = [];
   const box = (x0: number, y0: number, z0: number, x1: number, y1: number, z1: number) => {
@@ -44,6 +50,17 @@ export function classGeometry(cls: number, rest = false): VertexData {
       [0, 1, 2, 3], [4, 7, 6, 5], [0, 4, 5, 1], [3, 2, 6, 7], [1, 5, 6, 2], [0, 3, 7, 4],
     ]) idx.push(b + a, b + bb, b + cc, b + a, b + cc, b + d);
   };
+  // Lerp a box between its fighting corners (f*) and its rest corners (e*),
+  // by the pose blend r. Each weapon's two poses are written as the two corner
+  // sextuples; the renderer's ladder rebuilds this mesh at each r step.
+  const lx = (a: number, b: number) => a + (b - a) * r;
+  const lerpBox = (
+    fx0: number, fy0: number, fz0: number, fx1: number, fy1: number, fz1: number,
+    ex0: number, ey0: number, ez0: number, ex1: number, ey1: number, ez1: number,
+  ) => box(
+    lx(fx0, ex0), lx(fy0, ey0), lx(fz0, ez0),
+    lx(fx1, ex1), lx(fy1, ey1), lx(fz1, ez1),
+  );
 
   // Rider sits higher when mounted; the horse goes under him.
   const foot = L.mounted ? 0.95 : 0.0;
@@ -69,22 +86,31 @@ export function classGeometry(cls: number, rest = false): VertexData {
   // to the side or rest their point on the ground, bows hang low. In the
   // fighting pose each comes up: poles level forward (+y), blades and bows up.
   const wx = 0.2;
-  // A grounded vertical shaft of height h (the rest pose for a pole arm).
-  const upright = (h: number) => box(wx - 0.04, -0.04, foot, wx + 0.04, 0.04, foot + h);
+  // The rest pose for a pole arm: a grounded vertical shaft of height h, given
+  // as the (fight-box, rest-box) corner pair so the lerp sweeps the shaft from
+  // forward-level to upright. The shaft pivots about the grip near the foot, so
+  // the lerp reads as a raise/lower rather than a slide.
+  const pole = (
+    fy0: number, fz0: number, fy1: number, fz1: number, // fighting box (level)
+    h: number,                                          // rest height (upright)
+  ) => lerpBox(
+    wx - 0.02, fy0, foot + fz0, wx + 0.02, fy1, foot + fz1,
+    wx - 0.04, -0.04, foot, wx + 0.04, 0.04, foot + h,
+  );
   switch (L.weapon) {
-    case 'pike': rest ? upright(3.4) : box(wx - 0.02, -0.2, foot + 0.7, wx + 0.02, 3.0, foot + 0.78); break;
-    case 'lance': rest ? upright(2.3) : box(wx - 0.02, -0.1, foot + 0.55, wx + 0.02, 2.0, foot + 0.62); break;
-    case 'spear': rest ? upright(1.9) : box(wx - 0.02, -0.2, foot + 0.6, wx + 0.02, 1.4, foot + 0.66); break;
-    case 'javelin': rest ? upright(1.4) : box(wx - 0.02, -0.1, foot + 0.7, wx + 0.02, 0.9, foot + 0.74); break;
+    case 'pike': pole(-0.2, 0.7, 3.0, 0.78, 3.4); break;
+    case 'lance': pole(-0.1, 0.55, 2.0, 0.62, 2.3); break;
+    case 'spear': pole(-0.2, 0.6, 1.4, 0.66, 1.9); break;
+    case 'javelin': pole(-0.1, 0.7, 0.9, 0.74, 1.4); break;
     // Blade dropped to the side at ease, raised to guard in the fight.
-    case 'sword': rest ? box(wx - 0.02, 0.0, foot + 0.1, wx + 0.03, 0.06, foot + 0.8)
-                       : box(wx - 0.02, 0.0, foot + 0.5, wx + 0.03, 0.06, foot + 1.2); break;
+    case 'sword': lerpBox(wx - 0.02, 0.0, foot + 0.5, wx + 0.03, 0.06, foot + 1.2,
+                          wx - 0.02, 0.0, foot + 0.1, wx + 0.03, 0.06, foot + 0.8); break;
     // Greatsword grounded (resting on its point) at ease, hefted high to fight.
-    case 'greatsword': rest ? box(wx - 0.03, 0.0, foot + 0.0, wx + 0.04, 0.08, foot + 1.2)
-                            : box(wx - 0.03, 0.0, foot + 0.4, wx + 0.04, 0.08, foot + 1.7); break;
+    case 'greatsword': lerpBox(wx - 0.03, 0.0, foot + 0.4, wx + 0.04, 0.08, foot + 1.7,
+                               wx - 0.03, 0.0, foot + 0.0, wx + 0.04, 0.08, foot + 1.2); break;
     // Bow held low at ease, raised to draw.
-    case 'bow': rest ? box(wx + 0.04, -0.02, foot + 0.1, wx + 0.1, 0.02, foot + 1.0)
-                     : box(wx + 0.04, -0.02, foot + 0.4, wx + 0.1, 0.02, foot + 1.4); break;
+    case 'bow': lerpBox(wx + 0.04, -0.02, foot + 0.4, wx + 0.1, 0.02, foot + 1.4,
+                        wx + 0.04, -0.02, foot + 0.1, wx + 0.1, 0.02, foot + 1.0); break;
     case 'none': break;
   }
 

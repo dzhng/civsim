@@ -42,8 +42,14 @@ const ZOOM_FLAT = 6;
 const ZOOM_3D = 18;
 const ZOOM_SWAP = 12;
 const MAX_PITCH = 0.42;
-// Soldier mesh buckets: [0, REST_BUCKET) fighting pose, [REST_BUCKET, 2x) at ease.
-const REST_BUCKET = CLASS_LOOK.length * 2;
+// A man stands his pike up (or levels it) over a sweep, not a snap. We build a
+// ladder of POSE_STEPS pose meshes per (class, team) — geometry lerped from the
+// fighting box (step 0) to the at-ease box (last step) — and route each soldier
+// to the nearest step of his live restFrac. Six steps reads smooth at battle
+// distance. Buckets: step*POSE_BUCKET + cls*2 + team.
+const POSE_STEPS = 6;
+const POSE_BUCKET = CLASS_LOOK.length * 2;
+const REST_FULL_SECS = 0.8; // wall-clock time for a full raise/lower
 const FRAME_REST = 6; // sim frame value the scene tags an at-ease (standing) man with
 
 const smoothstep = (a: number, b: number, x: number) => {
@@ -326,6 +332,10 @@ export class BattleRenderer3D {
   private scaleOf = new Float32Array(0); // 3D mesh scale
   private rowOf = new Float32Array(0); // atlas row (class+team)
   private sizeOf = new Float32Array(0); // sprite world size
+  // Per-soldier at-ease blend in [0,1], eased toward its target (1 when the
+  // sim tags the man at-ease, else 0) each frame so the pose sweeps, not snaps.
+  private restFrac = new Float32Array(0);
+  private lastPoseT = 0; // wall-clock of the last pose-blend step, for dt
   /** Live view tilt (camera.ts mirrors it for picking). */
   pitch = 0;
   fixedTime: number | null = null;
@@ -368,15 +378,16 @@ export class BattleRenderer3D {
     this.ground.material = this.groundMat;
     this.ground.freezeWorldMatrix();
 
-    // 3D soldier meshes: one per (class, team) in two poses — a fighting pose
-    // and an at-ease pose (REST_BUCKET offset), so a resting man can stand his
-    // pike vertical and level it again to fight. Geometry per (class, pose) is
-    // built once and shared by the blue and red mesh.
-    for (let pose = 0; pose < 2; pose++) {
+    // 3D soldier meshes: one per (class, team) at each rung of the pose ladder,
+    // geometry lerped from the fighting box (step 0) to the at-ease box (last
+    // step), so a resting man can sweep his pike up and level it again to fight.
+    // Geometry per (class, step) is built once and shared by the blue and red mesh.
+    for (let pose = 0; pose < POSE_STEPS; pose++) {
+      const restFrac = pose / (POSE_STEPS - 1);
       for (let cls = 0; cls < CLASS_LOOK.length; cls++) {
-        const geom = classGeometry(cls, pose === 1);
+        const geom = classGeometry(cls, restFrac);
         for (let t = 0; t < 2; t++) {
-          const bucket = pose * REST_BUCKET + cls * 2 + t;
+          const bucket = pose * POSE_BUCKET + cls * 2 + t;
           const mesh = new Mesh(`soldier_${pose}_${cls}_${t}`, this.scene);
           geom.applyToMesh(mesh);
           const mat = new StandardMaterial(`soldier_${cls}_${t}`, this.scene);
@@ -499,6 +510,7 @@ export class BattleRenderer3D {
     this.scaleOf = new Float32Array(n);
     this.rowOf = new Float32Array(n);
     this.sizeOf = new Float32Array(n);
+    this.restFrac = new Float32Array(n);
     for (let i = 0; i < n; i++) {
       const u = soldierUnit[i];
       const cls = classes[u];
@@ -593,9 +605,25 @@ export class BattleRenderer3D {
     positions: Float32Array, facings: Float32Array, frames: Float32Array, alive: Float32Array, count: number,
   ) {
     for (let k = 0; k < this.classN.length; k++) this.classN[k] = 0;
+    // Ease every man's at-ease blend toward its target (1 at-ease, else 0) by a
+    // step sized so a full raise/lower takes REST_FULL_SECS of wall-clock, then
+    // route him to the nearest rung of the pose ladder. Frozen frames hold the
+    // clock, so the blend doesn't drift — the deployment snapshot stays stable.
+    const nowT = this.fixedTime ?? (performance.now() - this.start) / 1000;
+    const dt = Math.min(0.1, Math.max(0, nowT - this.lastPoseT));
+    this.lastPoseT = nowT;
+    const step = dt / REST_FULL_SECS;
+    const rf = this.restFrac;
     for (let i = 0; i < count; i++) {
-      // At-ease men route to the rest-pose mesh (pikes up); everyone else fights.
-      const bucket = (frames[i] === FRAME_REST ? REST_BUCKET : 0) + this.classOf[i] * 2 + this.teamOf[i];
+      const target = frames[i] === FRAME_REST ? 1 : 0;
+      const d = target - rf[i];
+      rf[i] += d > step ? step : d < -step ? -step : d;
+    }
+    for (let i = 0; i < count; i++) {
+      // Each man routes to the pose-ladder rung nearest his eased at-ease blend;
+      // a sweeping pike passes through the intermediate rungs, not a snap.
+      const poseStep = Math.round(rf[i] * (POSE_STEPS - 1));
+      const bucket = poseStep * POSE_BUCKET + this.classOf[i] * 2 + this.teamOf[i];
       let buf = this.classMats[bucket];
       const n = this.classN[bucket];
       if ((n + 1) * 16 > buf.length) {

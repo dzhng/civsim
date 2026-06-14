@@ -3,7 +3,7 @@ import type { Scene } from '../scene';
 import { Camera } from '../shared/camera';
 import { pushGhost, pushPie, pushRing } from '../shared/overlays';
 import { CLASS_NAMES, Renderer, WILDS_MARGIN } from './renderer';
-import { BattleRenderer3D } from './renderer3d';
+import { BattleRenderer3D, type BannerSlot } from './renderer3d';
 import { UnitBanner, type BannerChip } from './unitBanner';
 import { Input } from './input';
 import { MANUAL_HTML } from './manual';
@@ -204,19 +204,27 @@ export class BattleScene implements Scene {
     }
 
     // --- Per-unit banners: standard + HP/cohesion bars + status chips ------------
+    // In-game banners are world-space BILLBOARDS in the Babylon scene (see
+    // renderer3d.ts UnitBannerLayer): a quad above each unit, always facing the
+    // camera, so the standard tracks the block in 3D and depth-sorts instead of
+    // being projected onto the screen. The legacy `?gfx=2d` GL renderer has no
+    // billboard layer, so it falls back to the DOM component placed by an exact
+    // (pitch-free) screen projection.
+    const is3D = renderer instanceof BattleRenderer3D;
     const labelsRoot = document.getElementById('unitlabels')!;
-    const unitBanners: UnitBanner[] = [];
+    const domBanners: UnitBanner[] = [];
     // Northmost (top-on-screen) world-y per unit, refreshed each frame from the
     // soldiers — where the standard plants so it rises clear above the block,
     // not buried in a deep formation. Centred on the centroid in x.
     let unitTopY = new Float32Array(0);
-    const addUnitBanner = () => {
+    const addDomBanner = () => {
       const b = new UnitBanner();
       b.setVisible(false);
       labelsRoot.appendChild(b.el);
-      unitBanners.push(b);
+      domBanners.push(b);
     };
-    for (let u = 0; u < game.unit_count(); u++) addUnitBanner();
+    if (!is3D) for (let u = 0; u < game.unit_count(); u++) addDomBanner();
+    let knownUnits = game.unit_count(); // last-seen count (campaign reinforcements grow it)
     this.cleanups.push(() => { labelsRoot.innerHTML = ''; });
 
     // Translate a unit's sim row into status chips: explicit states first, then
@@ -247,19 +255,40 @@ export class BattleScene implements Scene {
 
     function updateUnitBanners() {
       const info = unitInfo();
-      const showAll = camera.zoom > 1.1;
       const sel = input.selected.length > 0 ? input.selected[0] : -1;
-      for (let u = 0; u < game.unit_count(); u++) {
-        const b = unitBanners[u];
+      const n = game.unit_count();
+      if (is3D) {
+        // World-space billboards: hand the renderer one slot per unit (centroid
+        // x, the block's north edge y) and let it place + face the quads. The
+        // layer owns the show-when-zoomed gate and the per-unit redraw cache.
+        const slots: (BannerSlot | null)[] = new Array(n);
+        for (let u = 0; u < n; u++) {
+          const o = u * STRIDE;
+          const alive = info[o + 15];
+          if (alive === 0) { slots[u] = null; continue; }
+          slots[u] = {
+            x: info[o + 32],
+            y: unitTopY[u] > -Infinity ? unitTopY[u] : info[o + 33],
+            team: info[o + 6] === 0 ? 0 : 1,
+            hp: alive / info[o + 7],
+            cohesion: info[o + 4],
+            chips: unitChips(info, o),
+            selected: u === sel,
+          };
+        }
+        (renderer as BattleRenderer3D).updateBanners(slots, camera.zoom);
+        return;
+      }
+      // Legacy 2D GL renderer: DOM banners on an exact (pitch-free) projection.
+      const showAll = camera.zoom > 1.1;
+      for (let u = 0; u < n; u++) {
+        const b = domBanners[u];
         const o = u * STRIDE;
         const alive = info[o + 15];
         if (alive === 0 || !showAll) {
           b.setVisible(false);
           continue;
         }
-        // Plant at the top-centre of the block: centroid x ([32]), and the
-        // unit's northmost soldier in y, so the standard rises clear above the
-        // ranks (centred, not buried, not floating off in empty field).
         const topY = unitTopY[u] > -Infinity ? unitTopY[u] : info[o + 33];
         const [sx, sy] = camera.worldToScreen(info[o + 32], topY);
         if (sx < -60 || sy < -40 || sx > window.innerWidth + 60 || sy > window.innerHeight + 40) {
@@ -742,10 +771,13 @@ export class BattleScene implements Scene {
       }
       if (ticks === maxTicks) accumulator = 0;
 
-      // Reinforcements: campaign battles grow units mid-fight.
-      if (game.unit_count() > unitBanners.length) {
+      // Reinforcements: campaign battles grow units mid-fight. The 3D billboard
+      // layer grows itself from the slot count; only the DOM fallback needs
+      // banners minted here.
+      if (game.unit_count() > knownUnits) {
+        knownUnits = game.unit_count();
         applyStatic();
-        while (unitBanners.length < game.unit_count()) addUnitBanner();
+        if (!is3D) while (domBanners.length < game.unit_count()) addDomBanner();
       }
 
       {

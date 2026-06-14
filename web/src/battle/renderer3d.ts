@@ -28,9 +28,14 @@ import { DynamicTexture } from '@babylonjs/core/Materials/Textures/dynamicTextur
 import { Constants } from '@babylonjs/core/Engines/constants';
 import '@babylonjs/core/Meshes/thinInstanceMesh';
 
+import { CreatePlane } from '@babylonjs/core/Meshes/Builders/planeBuilder';
+
 import type { Camera } from '../shared/camera';
 import { WILDS_MARGIN } from './renderer';
 import { buildAtlas, COLS, ROWS } from './atlas';
+import {
+  drawBannerCanvas, BANNER_DESIGN_W, BANNER_DESIGN_H, type BannerState,
+} from './unitBanner';
 
 const TEAM_COLOR: [number, number, number][] = [
   [0.22, 0.41, 0.78], // player blue
@@ -294,6 +299,107 @@ function microHashJS(x: number, y: number): number {
   return h >>> 0;
 }
 
+// One world-space banner above a unit: a camera-facing quad textured with the
+// standard + HP/cohesion bars + status chips, drawn fresh only when the unit's
+// state changes (keyed like the DOM component's chipKey). The plane sits at the
+// unit's world point and is billboarded, so it tracks the block perfectly in 3D
+// — no screen projection, and it depth-sorts/occludes against terrain & ranks.
+export interface BannerSlot {
+  team: 0 | 1;
+  x: number; // centroid world-x
+  y: number; // north/top edge world-y
+  hp: number;
+  cohesion: number;
+  chips: { text: string; kind?: 'plain' | 'hot' | 'bad' }[];
+  selected: boolean;
+}
+
+// Texture DPI: the design box is 56x56 CSS units; render it this many device
+// px wide so the bars/text stay crisp zoomed in.
+const BANNER_TEX_W = 256;
+const BANNER_DPI = BANNER_TEX_W / BANNER_DESIGN_W;
+const BANNER_TEX_H = Math.round(BANNER_DESIGN_H * BANNER_DPI);
+// World height the banner spans at zoom 1 (meters), tuned so it reads as a
+// standard planted in the ranks. Scaled by 1/zoom each frame so it stays a
+// roughly constant size on screen (mirrors the old DOM banner, which was fixed
+// CSS pixels). Hidden below this zoom, like the old `showAll`.
+const BANNER_WORLD_H = 64;
+const BANNER_SHOW_ZOOM = 1.1;
+
+class UnitBannerLayer {
+  private meshes: Mesh[] = [];
+  private textures: DynamicTexture[] = [];
+  private ctxs: CanvasRenderingContext2D[] = [];
+  private keys: string[] = [];
+
+  constructor(private scene: Scene) {}
+
+  private ensure(n: number) {
+    while (this.meshes.length < n) {
+      const i = this.meshes.length;
+      const tex = new DynamicTexture(
+        `banner_${i}`, { width: BANNER_TEX_W, height: BANNER_TEX_H }, this.scene, true,
+      );
+      tex.hasAlpha = true;
+      const ctx = tex.getContext() as unknown as CanvasRenderingContext2D;
+      const mat = new StandardMaterial(`bannerMat_${i}`, this.scene);
+      mat.diffuseTexture = tex;
+      mat.opacityTexture = tex;
+      mat.emissiveColor = new Color3(1, 1, 1); // unlit: read at any sun angle
+      mat.disableLighting = true;
+      mat.backFaceCulling = false;
+      // The banner is HUD-like signage: draw it on top of soldiers/terrain so it
+      // is never buried in a deep block, while still tracking its world point.
+      mat.disableDepthWrite = true;
+      const aspect = BANNER_TEX_W / BANNER_TEX_H;
+      const plane = CreatePlane(`banner_${i}`, { width: aspect, height: 1 }, this.scene);
+      plane.material = mat;
+      plane.billboardMode = Mesh.BILLBOARDMODE_ALL;
+      plane.isPickable = false;
+      plane.alwaysSelectAsActiveMesh = true;
+      plane.renderingGroupId = 1; // after the world (group 0): always on top
+      plane.isVisible = false;
+      this.meshes.push(plane);
+      this.textures.push(tex);
+      this.ctxs.push(ctx);
+      this.keys.push('');
+    }
+  }
+
+  /** Place + texture every live banner; hide the rest. `zoom` scales the world
+   *  size so it stays roughly constant on screen, and gates visibility. */
+  update(slots: (BannerSlot | null)[], zoom: number) {
+    this.ensure(slots.length);
+    const show = zoom > BANNER_SHOW_ZOOM;
+    const worldH = BANNER_WORLD_H / zoom;
+    for (let u = 0; u < this.meshes.length; u++) {
+      const m = this.meshes[u];
+      const slot = u < slots.length ? slots[u] : null;
+      if (!slot || !show) { m.isVisible = false; continue; }
+      m.isVisible = true;
+      m.scaling.set(worldH, worldH, 1);
+      // The texture is bottom-anchored on the pole foot; lift the plane by half
+      // its height so the foot sits at the unit's top edge (z just above ground).
+      m.position.set(slot.x, slot.y, worldH * 0.5 + 0.2);
+      // Redraw the texture only when the unit's state actually changes (quantise
+      // the bars so a sub-pixel cohesion drift doesn't churn the canvas), like
+      // the DOM component's chipKey.
+      const key = `${slot.team}|${(slot.hp * 64) | 0}|${(slot.cohesion * 64) | 0}|${slot.selected ? 1 : 0}|`
+        + slot.chips.map((c) => (c.kind ?? '') + c.text).join('|');
+      if (key !== this.keys[u]) {
+        this.keys[u] = key;
+        const state: BannerState = {
+          team: slot.team, hp: slot.hp, cohesion: slot.cohesion, chips: slot.chips, selected: slot.selected,
+        };
+        const ctx = this.ctxs[u];
+        ctx.clearRect(0, 0, BANNER_TEX_W, BANNER_TEX_H);
+        drawBannerCanvas(ctx, state, BANNER_DPI);
+        this.textures[u].update();
+      }
+    }
+  }
+}
+
 export class BattleRenderer3D {
   private engine: Engine;
   private scene: Scene;
@@ -312,6 +418,7 @@ export class BattleRenderer3D {
   private terrTex: RawTexture | null = null;
   private overlayMesh!: Mesh; // path/selection/ghost line work
   private triMesh!: Mesh;     // attack-arc wedges (translucent fill)
+  private banners!: UnitBannerLayer; // world-space unit standards (billboards)
   // Scatter props standing on the micro-pockets: 0 rock, 1 bush, 2 tree.
   // Thin-instanced from whatever 3m discs fall in the visible AABB.
   private scatterMesh: Mesh[] = [];
@@ -475,6 +582,14 @@ export class BattleRenderer3D {
     this.overlayMesh.material = overlayMat(true);
     this.overlayMesh.alwaysSelectAsActiveMesh = true;
     this.overlayMesh.isVisible = false;
+
+    this.banners = new UnitBannerLayer(this.scene);
+  }
+
+  /** Place + draw the per-unit standards as world-space billboards. Called by
+   *  the scene each frame with one slot per unit (null = hidden/dead). */
+  updateBanners(slots: (BannerSlot | null)[], zoom: number) {
+    this.banners.update(slots, zoom);
   }
 
   /** Rebuild a dynamic overlay mesh from packed [x,y, r,g,b(,a)] verts. */

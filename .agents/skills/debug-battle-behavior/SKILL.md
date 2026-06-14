@@ -99,6 +99,35 @@ horse"). A mechanics test that uses two different units is measuring mechanism
 and balance at once, and you won't know which one moved when it goes red. See
 [write-tests](../write-tests/SKILL.md) "Control your variables".
 
+## A stat increase must never make a unit WORSE (monotonicity)
+
+If raising a stat — more armour, more block, more health, more damage — makes a
+unit perform *worse*, that is a **bug**, full stop. Mechanics must not be coupled
+to a stat such that improving it degrades the outcome. **Do NOT rationalise a
+monotonicity violation as "emergent realism"** — I did exactly that with the
+horse below ("cavalry is a striker not a tank, the sim correctly punishes a tanky
+horse") and it was wrong. Emergence explains *which* unit wins a fair fight; it
+never excuses *more of a good stat losing*. When you catch yourself writing a
+just-so story for why a buff hurt, stop — you're papering over a stat-coupled
+mechanic.
+
+**Test it by sweeping the stat.** Runtime `BalanceConfig` (`cfg.set(class, stats)`
++ `Sim::with_balance`) lets you sweep a stat across N values with no recompile;
+`run_over_seeds` aggregates each rung. Assert the outcome is non-decreasing —
+`more_block_never_makes_cavalry_worse` sweeps ShockCavalry block over
+{0.2..0.6} and asserts the survival margin doesn't fall. A monotonicity
+regression test is the cheapest guard against a whole class of these.
+
+The canonical case: raising cavalry `block` made it LOSE to heavy infantry.
+Trajectory: more block → the cav's front rank *survived* the contact → it stayed
+pinned deeper in the press → crowded *inside its lance's `min_range`* → it
+dropped to its weak sidearm → its offense collapsed and it was ground down. The
+bug was a **weapon `min_range` cliff** — a hard dead zone that made weapon
+effectiveness depend on crowding, which depended on survival, which depended on
+block. The fix removed the dead zone (a melee lance works couched or shortened),
+so being crowded no longer disarms the rider — and now more block monotonically
+helps, which is what let block finally be *raised* the way it always should have.
+
 ## The fidget is a litmus test for non-robust logic
 
 There is a deliberate idle "fidget" — a small, deterministic (`stagger01`, no

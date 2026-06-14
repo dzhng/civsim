@@ -115,3 +115,70 @@ fn duel_scenario_exists_for_every_class() {
         }
     }
 }
+
+/// MONOTONICITY — a stat increase must never make a unit WORSE. Mechanics must
+/// not couple to a stat such that more of it loses; if they do, that's a bug,
+/// not emergent realism. (A horse with a bigger shield once SURVIVED the contact
+/// better, got pinned deeper in the press, and was ground down — block going UP
+/// made it LOSE.) Sweep ShockCavalry's block against HeavyInfantry: the cav's
+/// survival margin must not fall as block rises. The harness makes this cheap —
+/// block is a runtime BalanceConfig field, no recompile per rung.
+#[test]
+fn more_block_never_makes_cavalry_worse() {
+    let blocks = [0.2f32, 0.3, 0.4, 0.5, 0.6];
+    let mut margin = Vec::new();
+    for &b in &blocks {
+        let mut cfg = BalanceConfig::default();
+        let mut cav = cfg.get(UnitClassId::ShockCavalry);
+        cav.block = b;
+        cfg.set(UnitClassId::ShockCavalry, cav);
+        let agg = run_over_seeds(
+            &Scenario::duel(UnitClassId::ShockCavalry, UnitClassId::HeavyInfantry),
+            &cfg,
+            &Tunables::default(),
+            &SEEDS,
+        );
+        let m = agg.surv[0].mean - agg.surv[1].mean; // cav advantage over the heavy
+        println!(
+            "cav block {b:.2}: win {:.2} surv {:.2} vs {:.2} -> margin {m:+.2}",
+            agg.win_rate[0], agg.surv[0].mean, agg.surv[1].mean,
+        );
+        margin.push(m);
+    }
+    // No higher-block rung may do meaningfully worse than the lowest, and the
+    // most armour must end at least as strong as the least. (Win-rate is the
+    // crisp monotone here — 0.62->0.88 with the fix, vs a FALLING 0.88->0.75
+    // before — but its 1/8 quantisation reads as noise; the smoother survivor
+    // margin carries the same verdict with a robust band.)
+    let base = margin[0];
+    for (i, &m) in margin.iter().enumerate() {
+        assert!(
+            m >= base - 0.06,
+            "block {:.2} made the cavalry worse than block {:.2}: margin {m:+.2} < {base:+.2}",
+            blocks[i], blocks[0],
+        );
+    }
+    assert!(
+        *margin.last().unwrap() >= base,
+        "the most armour must not be worse than the least: {:+.2} < {base:+.2}",
+        margin.last().unwrap(),
+    );
+}
+
+/// "Horse rides over swords" as a seed-set fact, not a single-seed coin: the
+/// pricier shock cavalry USUALLY beats heavy infantry head-on — a clear
+/// majority of seeds. (Moved off the_counter_web's single-seed matrix because
+/// the matchup is close; see the comment there.)
+#[test]
+fn cavalry_usually_rides_over_heavy_swords() {
+    let agg = run(&Scenario::duel(UnitClassId::ShockCavalry, UnitClassId::HeavyInfantry));
+    println!(
+        "cav vs heavy over seeds: win {:?} surv {:.2} vs {:.2}",
+        agg.win_rate, agg.surv[0].mean, agg.surv[1].mean,
+    );
+    assert!(
+        agg.win_rate[0] > agg.win_rate[1] && agg.win_rate[0] >= 0.6,
+        "the pricier horse must usually ride over swords: cav won only {:.0}% of seeds",
+        agg.win_rate[0] * 100.0,
+    );
+}

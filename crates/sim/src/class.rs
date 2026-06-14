@@ -166,7 +166,12 @@ const DAGGER: Weapon = Weapon {
 
 const LANCE: Weapon = Weapon {
     reach: 2.4,
-    min_range: 0.7,
+    // No dead zone: a horseman fights the lance couched OR shortened, so a foe
+    // who crowds inside it doesn't disarm him. A min_range here was a perverse
+    // stat coupling — surviving the contact better (more block/armour) pinned
+    // the rider deeper, dropped him to his sidearm, and made MORE armour LOSE.
+    // (See more_block_never_makes_cavalry_worse + debug-battle-behavior.)
+    min_range: 0.0,
     arc: 0.25,
     attack_interval: 3.02,
     damage: 0.32,
@@ -309,7 +314,8 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             health: 2.2, // phalangites wore armor too — the wall is bodies AND bronze
             mount_health: 8.45, // a horse is a LOT of animal: short blades
                                // chip at it while the rider stays safe
-            block: 0.25, // a horseman's shield: solid frontal cover (~1.7x deaths from the flank/rear)
+            block: 0.4, // an armoured horseman's shield: strong frontal cover. Safe to raise now that
+                        // the lance has no dead zone — more block monotonically helps (see the test).
             evade: 0.12,
             training: 0.75,
             stance: crate::unit::Stance::Fence,

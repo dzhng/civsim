@@ -108,7 +108,10 @@ fn the_counter_web_holds() {
         (Phalanx, HeavyInfantry, 0, "the hedge advances over swords"),
         (ShockCavalry, Phalanx, 1, "POINTS STOP HORSE (frontally)"),
         (Phalanx, ShockCavalry, 0, "and the hedge can walk horse off a field"),
-        (ShockCavalry, HeavyInfantry, 0, "horse rides over swords"),
+        // ShockCavalry vs HeavyInfantry — "horse rides over swords" — is a CLOSE
+        // matchup (the cav wins ~3/4 of seeds, not all), so a single-seed verdict
+        // here is a coin that lands either way. It lives on the seed-set harness
+        // instead (cavalry_usually_rides_over_heavy_swords in balance_harness).
         (ShockCavalry, HorseArchers, 0, "lancers catch the bow-horse"),
         (HorseArchers, HeavyInfantry, 0, "unsupported foot loses to the kite"),
         // HorseArchers vs Phalanx is split into its two real mechanics — the

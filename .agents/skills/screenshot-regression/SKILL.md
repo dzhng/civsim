@@ -22,6 +22,19 @@ green, the model is bigger). If you re-blessed a baseline, look at the new
 baseline too — you are certifying it as ground truth for every future run.
 Never report a visual result you have only inferred from "the script passed."
 
+**For a timeline (vibe checks that snap every N seconds): read EVERY frame, in
+order. Do not sample two or three and infer the story between them.** The whole
+reason the harness shoots `t000s`, `t012s`, `t024s`, … is so you can *watch* the
+behaviour unfold — and the in-between frames routinely tell a different story
+than the endpoints. (Real miss: from a "surrounded square sallies out" test I
+read t48 and t72, saw the block forward and the front enemy dying, and reported
+"it breaks out of the encirclement." Reading every frame showed the square ran
+off after the *front* unit at t12 and the other two attackers never made contact
+at all — there was no encirclement, and the scenario was broken. Two frames + a
+plausible narrative = a confident wrong conclusion.) Open `t000s.png` onward and
+describe what each shows before you draw any conclusion; if a unit "wins," trace
+*how* across the frames, don't assume it from the final count.
+
 **Crop and upscale before you theorise.** A unit is ~16 px in a 1280 px frame —
 you cannot diagnose a soldier-rendering bug by eyeballing the whole shot, and
 guessing the cause (mipmap? blend? lighting?) from a thumbnail wastes turns.

@@ -15,12 +15,17 @@ const units = await page.evaluate((attack) => {
   const N = Math.PI / 2, S = -Math.PI / 2, W = Math.PI;
   // middle: a 256-man, 16-file SQUARE (team 0), facing north
   const mid = window.__game.spawnUnit(X, 0, N, 256, 16, 0);
-  // three attackers (team 1): front (north), side (east), back (south)
-  const front = window.__game.spawnUnit(X, 55, S, 130, 13, 1);
-  const side = window.__game.spawnUnit(X + 55, 0, W, 130, 13, 1);
-  const back = window.__game.spawnUnit(X, -55, N, 130, 13, 1);
+  // three attackers (team 1): front (north), side (east), back (south), spawned
+  // CLOSE so they all make contact before the square can move — a real surround,
+  // not a foot race.
+  const front = window.__game.spawnUnit(X, 24, S, 130, 13, 1);
+  const side = window.__game.spawnUnit(X + 24, 0, W, 130, 13, 1);
+  const back = window.__game.spawnUnit(X, -24, N, 130, 13, 1);
   for (const u of [front, side, back]) { window.__game.setPace(u, 1); window.__game.attackMove(u, X, 0); }
-  if (attack) { window.__game.setPace(mid, 1); window.__game.attackMove(mid, X, 30); } // sally into the FRONT unit
+  // ATTACK: latch onto the FRONT unit (attack-order, not a move) so the square
+  // fights forward but is pinned in place by the side+back attackers — offence
+  // WHILE surrounded, rather than chasing one unit off across the field.
+  if (attack) window.__game.attackOrder(mid, front);
   return { mid, front, side, back };
 }, ATTACK);
 const ids = await page.evaluate((u) => [u.mid, u.front, u.side, u.back], units);

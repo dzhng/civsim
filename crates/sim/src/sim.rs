@@ -1504,9 +1504,13 @@ impl Sim {
                 positions[2 * i] = np.x;
                 positions[2 * i + 1] = np.y;
 
-                // Facing: the fight in front of you, then the man who just
-                // hit you, then where you're going.
-                let desired_face = if engaged_i {
+                // Facing: a nearby enemy (turn to meet a threat even before he's
+                // in reach, and even while the crowd shoves you), then the man who
+                // just hit you, then where you're going. This is per-SOLDIER only
+                // — the unit's commanded facing never changes, so a flanked block
+                // doesn't wheel itself and override the player's order; its edge
+                // men just turn outward to face who's on them.
+                let desired_face = if aware_i {
                     let tp = Vec2::new(
                         positions[2 * target[i] as usize],
                         positions[2 * target[i] as usize + 1],

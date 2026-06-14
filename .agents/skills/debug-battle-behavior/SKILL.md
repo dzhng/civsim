@@ -180,6 +180,45 @@ passes unchanged. If your "stabilizer" moves the golden hash, it is reshaping
 combat — that's the quantize hack, not the exact fix. Use the golden hash as the
 oracle: *does this change touch a fight, or only idle men?*
 
+## Measure the signal BEFORE you add or tune a lever
+
+A lever (a per-class knob, a sensitivity multiplier, a new term) is only a
+multiplier on some underlying signal. **Before you build it or spend a session
+tuning it, measure that signal in the exact conditions you want it to
+discriminate.** If the signal doesn't differ across those conditions — or is
+already floored/saturated at the baseline — the lever is *inert*, and no value
+of it will work. The lever's dynamic range is bounded by the signal's. Three
+checks, all answerable with a throwaway probe over `BalanceConfig` +
+`run_over_seeds`:
+
+1. **Does the signal actually differ across the conditions you mean to split?**
+   Print it (e.g. mean over the front rank) in condition A vs B. Same number →
+   dead lever.
+2. **Is there headroom at the baseline?** A choke that already saturates (or a
+   term already ~0) leaves nothing for a multiplier to move.
+3. **Are you keying on the right component?** Total vs the directional vs the
+   cancelling part of a vector signal are different things.
+
+Field example (long-sword offense/defense). The goal was a unit *strong
+attacking, weak defending* via a "pressure sensitivity" knob — physically
+reasonable: a great sword can't sweep when pressed. Measuring the candidate
+signals first, before tuning, killed it in minutes instead of hours:
+- The `vice` (`pressure − |net push|`) is ~0 in a frontal clash — it only
+  spikes when *wedged between opposing masses* (surrounded). A lever on vice was
+  inert in any head-on duel. (Right instinct — "loses when pressed" — wrong
+  signal: vice measures *surround*, not *contact*.)
+- Total received pressure (`self.pressure[i]`) was **identical** attacking vs
+  defending: charge-offense 0.39, fence-offense 0.39, held-defense 0.36. The
+  `Fence` stance doesn't actually hold a unit at weapon's length, so there is no
+  offense/defense pressure *differential* for **any** pressure lever to exploit.
+
+Conclusion the measurement forced: the knob couldn't work until a deeper
+mechanic (Fence enforcing a standoff that bleeds less contact pressure) creates
+the differential. Measuring turned "add a sensitivity stat and tune it" into
+"the premise doesn't hold yet — here's the prerequisite," and avoided committing
+an inert lever. Don't add the lever, *then* discover it does nothing; measure
+the signal, *then* decide if the lever can exist.
+
 ## Method: instrument the trajectory, don't theorize
 
 Battle outcomes are integrals over a chaotic process; reasoning about them from

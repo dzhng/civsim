@@ -43,9 +43,12 @@ const TEAM_COLOR: [number, number, number][] = [
 ];
 // Below ZOOM_FLAT: pure top-down 2D sprites. Above ZOOM_3D: full tilt + 3D
 // meshes. Between, the camera tilts and the renderer switches at ZOOM_SWAP.
-const ZOOM_FLAT = 6;
-const ZOOM_3D = 18;
-const ZOOM_SWAP = 12;
+// The band sits just above the fully-zoomed-out strategic view (minZoom ≈ 1.5–2
+// for a whole battlefield): 2D is ONLY for that all-the-way-out look; any closer
+// and you're in 3D models. (zoom = device px per metre; battle default ≈ 6.)
+const ZOOM_FLAT = 2;
+const ZOOM_3D = 7;
+const ZOOM_SWAP = 2.4;
 const MAX_PITCH = 0.42;
 // A man stands his pike up (or levels it) over a sweep, not a snap. We build a
 // ladder of POSE_STEPS pose meshes per (class, team) — geometry lerped from the
@@ -326,9 +329,8 @@ const BANNER_TEX_H = Math.round(BANNER_DESIGN_H * BANNER_DPI);
 // World height the banner spans at zoom 1 (meters), tuned so it reads as a
 // standard planted in the ranks. Scaled by 1/zoom each frame so it stays a
 // roughly constant size on screen (mirrors the old DOM banner, which was fixed
-// CSS pixels). Hidden below this zoom, like the old `showAll`.
+// CSS pixels). Always shown — a banner marks its unit at every zoom.
 const BANNER_WORLD_H = 64;
-const BANNER_SHOW_ZOOM = 1.1;
 
 class UnitBannerLayer {
   private meshes: Mesh[] = [];
@@ -371,15 +373,14 @@ class UnitBannerLayer {
   }
 
   /** Place + texture every live banner; hide the rest. `zoom` scales the world
-   *  size so it stays roughly constant on screen, and gates visibility. */
+   *  size so the banner stays roughly constant on screen at every zoom. */
   update(slots: (BannerSlot | null)[], zoom: number) {
     this.ensure(slots.length);
-    const show = zoom > BANNER_SHOW_ZOOM;
     const worldH = BANNER_WORLD_H / zoom;
     for (let u = 0; u < this.meshes.length; u++) {
       const m = this.meshes[u];
       const slot = u < slots.length ? slots[u] : null;
-      if (!slot || !show) { m.isVisible = false; continue; }
+      if (!slot) { m.isVisible = false; continue; }
       m.isVisible = true;
       m.scaling.set(worldH, worldH, 1);
       // The texture is bottom-anchored on the pole foot; lift the plane by half

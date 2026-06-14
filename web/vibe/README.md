@@ -25,16 +25,16 @@ table in `all.mjs` when you add a scenario.
 
 | folder | script | what it shows |
 |---|---|---|
-| `1v1` | `1v1.mjs` | heavy vs heavy, both charge → grind → one routs |
-| `heavy-both` | `heavy-duel.mjs` | heavy vs heavy, BOTH attack — two charges meet, each front wraps the other |
-| `heavy-attack-defend` | `heavy-duel.mjs` | same heavies, one attacks + one holds — attacker frays wrapping in, defender holds its line and dimples |
-| `phalanx-v-heavy` | `1v1.mjs A=3 B=0` | pikes outreach swords |
-| `cav-v-heavy` | `1v1.mjs A=6 B=0` | horse rides over swords |
+| `heavy-both` | `duel-posture.mjs ATK=0 DEF=0 POSTURE=both` | heavy vs heavy, BOTH attack — two charges meet, each front wraps the other |
+| `heavy-attack-defend` | `duel-posture.mjs ATK=0 DEF=0 POSTURE=hold` | same heavies, one attacks + one holds — attacker frays wrapping in, defender holds its line and dimples |
+| `heavy-v-phalanx-defend` | `duel-posture.mjs ATK=0 DEF=3 POSTURE=hold` | heavy charges a holding pike wall — do the points stop the press? |
+| `phalanx-v-heavy` | `duel-posture.mjs ATK=3 DEF=0 POSTURE=both` | pikes outreach swords |
+| `cav-v-heavy` | `duel-posture.mjs ATK=6 DEF=0 POSTURE=both` | horse rides over swords |
 | `cav-v-pike` | `charge.mjs ATK=6 DEF=3` | points stop horse (charge into a held pike wall) |
 | `cav-v-heavy-held` | `charge.mjs ATK=6 DEF=0` | a braced line beats a charge |
 | `heavy-v-archers` | `missile.mjs` | arrows attrite the advance, then melee |
-| `rout-heavy` | `rout.mjs A=0 B=0` | a rout flees home as a clump (keeps shooting past the verdict) |
-| `rout-cav-heavy` | `rout.mjs A=6 B=0` | same, cavalry breaking |
+| `rout-heavy` | `rout.mjs ATK=0 DEF=0` | a rout flees home as a clump (keeps shooting past the verdict) |
+| `rout-cav-heavy` | `rout.mjs ATK=6 DEF=0` | same, cavalry breaking |
 | `penetration` | `penetration.mjs` | DEFENSE: one column punches a wide held line (does it dimple + close?) |
 | `multi-penetration` | `multi-penetration.mjs` | DEFENSE: three columns at once (does the breach logic generalize?) |
 | `offense` | `offense.mjs` | OFFENSE: a wide attacking line onto a block (does it wrap/envelop?) |
@@ -44,10 +44,11 @@ table in `all.mjs` when you add a scenario.
 Run one on its own to iterate, overriding the matchup by class id:
 
 ```sh
-node vibe/1v1.mjs                 # default heavy vs heavy
-A=3 B=6 node vibe/1v1.mjs         # phalanx vs cavalry
-ATK=6 DEF=3 node vibe/charge.mjs  # cav charges a held phalanx
-NAME=my-test A=2 B=0 node vibe/1v1.mjs   # write to shots/my-test/
+node vibe/duel-posture.mjs                          # default heavy vs heavy, both attack
+ATK=3 DEF=6 POSTURE=both node vibe/duel-posture.mjs # phalanx vs cavalry
+ATK=0 DEF=3 POSTURE=hold node vibe/duel-posture.mjs # heavy attacks a holding phalanx
+ATK=6 DEF=3 node vibe/charge.mjs                    # cav charges a held phalanx
+NAME=my-test ATK=2 DEF=0 node vibe/duel-posture.mjs # write to shots/my-test/
 ```
 
 Class ids: 0 heavy · 1 light · 2 longsword · 3 phalanx · 4 archers ·
@@ -65,5 +66,5 @@ Shared plumbing is in `_lib.mjs`: `openBattle(query)` boots into a battle and
 waits for the debug bridge; `vibeCapture(page, name, { frame, sample, label,
 done })` runs the screenshot loop (position camera → freeze → snap → advance,
 until `done`); `fitDuel`/`duelSample`/`duelLabel`/`CLS` cover the common
-two-unit case. A new scenario is a dozen lines — copy `1v1.mjs` — then add it to
-the `SCENARIOS` table in `all.mjs` so the sweep includes it.
+two-unit case. A new scenario is a dozen lines — copy `duel-posture.mjs` — then
+add it to the `SCENARIOS` table in `all.mjs` so the sweep includes it.

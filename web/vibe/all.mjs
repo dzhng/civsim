@@ -12,17 +12,16 @@ const webDir = dirname(dirname(fileURLToPath(import.meta.url))); // web/
 
 // name -> shots/<name>/ ; script + env are how it's driven (class ids).
 const SCENARIOS = [
-  { name: '1v1', script: '1v1.mjs', env: {} },                       // heavy vs heavy
-  // heavy-duel writes TWO folders itself (heavy-both, heavy-attack-defend) — the
-  // offense/defense posture split on one class. NAME is ignored.
-  { name: 'heavy-duel', script: 'heavy-duel.mjs', env: {} },
-  { name: 'phalanx-v-heavy', script: '1v1.mjs', env: { A: 3, B: 0 } },
-  { name: 'cav-v-heavy', script: '1v1.mjs', env: { A: 6, B: 0 } },
+  { name: 'heavy-both', script: 'duel-posture.mjs', env: { ATK: 0, DEF: 0, POSTURE: 'both' } },        // heavy v heavy, both attack
+  { name: 'heavy-attack-defend', script: 'duel-posture.mjs', env: { ATK: 0, DEF: 0, POSTURE: 'hold' } }, // same heavies, one holds
+  { name: 'heavy-v-phalanx-defend', script: 'duel-posture.mjs', env: { ATK: 0, DEF: 3, POSTURE: 'hold' } }, // heavy charges a holding pike wall
+  { name: 'phalanx-v-heavy', script: 'duel-posture.mjs', env: { ATK: 3, DEF: 0, POSTURE: 'both' } },  // pikes outreach swords
+  { name: 'cav-v-heavy', script: 'duel-posture.mjs', env: { ATK: 6, DEF: 0, POSTURE: 'both' } },      // horse rides over swords
   { name: 'cav-v-pike', script: 'charge.mjs', env: { ATK: 6, DEF: 3 } },     // points stop horse
   { name: 'cav-v-heavy-held', script: 'charge.mjs', env: { ATK: 6, DEF: 0 } }, // braced line vs charge
   { name: 'heavy-v-archers', script: 'missile.mjs', env: {} },
-  { name: 'rout-heavy', script: 'rout.mjs', env: { A: 0, B: 0 } },           // watch a rout flee home
-  { name: 'rout-cav-heavy', script: 'rout.mjs', env: { A: 6, B: 0 } },
+  { name: 'rout-heavy', script: 'rout.mjs', env: { ATK: 0, DEF: 0 } },       // watch a rout flee home
+  { name: 'rout-cav-heavy', script: 'rout.mjs', env: { ATK: 6, DEF: 0 } },
   { name: 'penetration', script: 'penetration.mjs', env: {} },               // defense: 1 column into a held line
   { name: 'multi-penetration', script: 'multi-penetration.mjs', env: {} },   // defense: 3 columns at once
   { name: 'offense', script: 'offense.mjs', env: {} },                       // offense: wide line wraps a block

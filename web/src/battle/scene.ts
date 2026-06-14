@@ -741,12 +741,18 @@ export class BattleScene implements Scene {
       missile: { name: string; range: number; interval: number; ammo: number; damage: number; mobileFire: boolean } | null;
     };
     const CLASS_SPECS: ClassSpec[] = JSON.parse(game.class_specs());
+    // Index of each class's braced weapon (the pike), or -1. A man not holding
+    // his braced weapon has stowed the pike upright — the renderer must not level
+    // it (a flanked phalangite turned to his side-sword would otherwise swing the
+    // 3D pike sideways: a porcupine).
+    const classBracedIdx: number[] = CLASS_SPECS.map((c) => c.weapons.findIndex((w) => w.braced));
     const hud = document.getElementById('hud')!;
     const banner = document.getElementById('banner')!;
     const selbox = document.getElementById('selbox')!;
     banner.style.display = 'none';
     let aliveF32 = new Float32Array(0);
     let frames = new Float32Array(0);
+    let renderFacings = new Float32Array(0); // per-soldier facing for the MESH (pikes ride the frontage)
     let prevPos = new Float32Array(0);
     let accumulator = 0;
     let lastFrame = performance.now();
@@ -791,12 +797,15 @@ export class BattleScene implements Scene {
         const fighting = new Uint8Array(wasm.memory.buffer, game.fighting_ptr(), n);
         const switchCd = new Float32Array(wasm.memory.buffer, game.switch_cd_ptr(), n);
         const sUnit = new Uint32Array(wasm.memory.buffer, game.soldier_unit_ptr(), n);
+        const curWeapon = new Uint8Array(wasm.memory.buffer, game.cur_weapon_ptr(), n);
         const pos = positions();
         if (aliveF32.length !== n) {
           aliveF32 = new Float32Array(n);
           frames = new Float32Array(n);
+          renderFacings = new Float32Array(n);
           prevPos = new Float32Array(pos);
         }
+        const rawFace = facings();
         // Which units are at ease: halted, nobody fighting, not routing, and no
         // enemy within the sim's at_ease_range — the same notion that governs
         // morale recovery and the idle fidget, read from the sim so they agree.
@@ -843,13 +852,28 @@ export class BattleScene implements Scene {
             if (dx * dx + dy * dy > 0.0004) frames[i] = 1 + (((t * 4 + i) | 0) % 2); // marching
             else frames[i] = atEase[sUnit[i]] ? 6 : 0; // at ease (pikes up) or alert stand
           }
+          // Render the weapon in hand, aimed EXACTLY as physics aims it (so the
+          // picture never lies about who can hit whom). A braced pike is leveled
+          // down the UNIT's frontage (combat's aim_facing for a braced weapon);
+          // on the side-arm the pike is stowed UPRIGHT (frame 7) and he turns his
+          // body to fight. This applies mid-swap too (cur_weapon holds the OLD
+          // weapon while switch_cd runs) — otherwise a fumbling man would render
+          // his old pike leveled along his turned facing: the sideways stragglers.
+          renderFacings[i] = rawFace[i];
+          if (a[i]) {
+            const bi = classBracedIdx[info[sUnit[i] * STRIDE + 13]];
+            if (bi >= 0) {
+              if (curWeapon[i] === bi) renderFacings[i] = info[sUnit[i] * STRIDE + 2]; // pike rides the frontage
+              else frames[i] = 7; // FRAME_STOW: sword in hand, pike snapped upright
+            }
+          }
         }
         prevPos.set(pos);
       }
       const primary = input.selected.length > 0 ? input.selected[0] : -1;
       // Unit standards + state are a DOM component now (see UnitBanner), so the
       // renderers draw no banners — the empty list keeps the shared draw() shape.
-      renderer.draw(positions(), facings(), frames, aliveF32, game.soldier_count(), camera, primary, [], 0);
+      renderer.draw(positions(), renderFacings, frames, aliveF32, game.soldier_count(), camera, primary, [], 0);
       // Attack arcs: every soldier mid-swing flashes his weapon's true envelope
       // (reach x arc) — readable combat, straight from the class table. The arc
       // tracks the weapon ACTUALLY in hand (pike vs side-sword) and, for a braced

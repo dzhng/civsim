@@ -59,6 +59,10 @@ const POSE_STEPS = 6;
 const POSE_BUCKET = CLASS_LOOK.length * 2;
 const REST_FULL_SECS = 0.8; // wall-clock time for a full raise/lower
 const FRAME_REST = 6; // sim frame value the scene tags an at-ease (standing) man with
+// A pikeman who has drawn his side-arm: pike stowed UPRIGHT, but snapped there at
+// once (not the slow at-ease sweep) — so a flank fighter never shows a half-
+// leveled pike pointing aside, and the fast-forward vibe harness reads true.
+const FRAME_STOW = 7;
 
 const smoothstep = (a: number, b: number, x: number) => {
   const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
@@ -741,6 +745,7 @@ export class BattleRenderer3D {
     const step = dt / REST_FULL_SECS;
     const rf = this.restFrac;
     for (let i = 0; i < count; i++) {
+      if (frames[i] === FRAME_STOW) { rf[i] = 1; continue; } // pike snaps upright, no sweep
       const target = frames[i] === FRAME_REST ? 1 : 0;
       const d = target - rf[i];
       rf[i] += d > step ? step : d < -step ? -step : d;
@@ -809,7 +814,7 @@ export class BattleRenderer3D {
       m[o + 12] = x; m[o + 13] = y; m[o + 14] = alive[i] < 0.5 ? -0.05 : 0; m[o + 15] = 1;
       // The atlas has no at-ease frame (you can't read a raised pike from afar);
       // standing is standing in the flat 2D view.
-      cells[2 * i] = frames[i] === FRAME_REST ? 0 : frames[i];
+      cells[2 * i] = frames[i] === FRAME_REST || frames[i] === FRAME_STOW ? 0 : frames[i];
       cells[2 * i + 1] = this.rowOf[i];
     }
     this.sprite.isVisible = count > 0;

@@ -196,28 +196,33 @@ impl Sim {
             }
 
             // --- weapon by judgment (distance), or the unit's drawn order ---
-            // A braced weapon (the sarissa) bears only on a target inside its arc
-            // of the UNIT's frontage — you can't pivot a grounded pike in the
-            // ranks. Off the front (flanked, rear) it can't engage, so the man
-            // drops to a free side-arm that still reaches. (This is also what
-            // keeps the IMPALE below frontal: it only fires while a long planted
-            // weapon is the one in hand.)
+            // A braced weapon (the sarissa) is held by DEFAULT, leveled down the
+            // unit's frontage. It can only bear on a foe inside its arc of that
+            // frontage — you can't pivot a grounded pike in the ranks. So: keep
+            // the pike unless a foe the pike CAN'T take (too close, or off the
+            // front) is within side-arm reach — then draw the sword; the moment
+            // nobody is in sword reach, fall back to the leveled pike. This is the
+            // one source of truth for what's in hand: the renderer draws it, and
+            // the IMPALE below only fires while the pike is up.
             let front_off = wrap_angle(t_bearing - self.units[ui].facing).abs();
-            let bears = |wi: usize| {
-                !weapons[wi].braced || front_off <= weapons[wi].arc * 0.5 + AIM_TOLERANCE
-            };
             let desired = if self.units[ui].weapon_pref == 1 && weapons.len() > 1 {
                 Some(weapons.len() - 1)
+            } else if let Some(bi) = weapons.iter().position(|w| w.braced) {
+                let pike = &weapons[bi];
+                let pike_bears = front_off <= pike.arc * 0.5 + AIM_TOLERANCE
+                    && nearest_d >= pike.min_range
+                    && nearest_d <= pike.reach;
+                if pike_bears {
+                    Some(bi)
+                } else if let Some(si) = weapons.iter().position(|w| !w.braced) {
+                    // a foe the pike can't take: sword if it's in reach, else hold
+                    // the pike leveled to the front (the default)
+                    if nearest_d <= weapons[si].reach { Some(si) } else { Some(bi) }
+                } else {
+                    Some(bi)
+                }
             } else {
                 pick_weapon_index(&weapons, nearest_d)
-                    .filter(|&wi| bears(wi))
-                    .or_else(|| {
-                        (0..weapons.len()).rev().find(|&wi| {
-                            !weapons[wi].braced
-                                && nearest_d >= weapons[wi].min_range
-                                && nearest_d <= weapons[wi].reach
-                        })
-                    })
             };
             let Some(desired) = desired else {
                 continue; // enemy inside every min_range and outside sidearms

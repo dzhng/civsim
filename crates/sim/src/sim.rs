@@ -1739,56 +1739,50 @@ impl Sim {
                 sum = sum + dir(bucket_bearing(k)) * w;
                 weight += w;
             }
-            // A live ORDER votes on the facing alongside the measured contacts —
-            // intent must out-argue a self-reinforcing fight (face north ->
-            // press north -> more north contact -> wheel), or a head-on clash
-            // pirouettes and a surrounded unit can never turn to its breakout.
-            // A MOVE votes toward its waypoint; an ATTACK votes toward the foe's
-            // CENTROID (stable — not the jittering anchor) so a latched line
-            // holds its face square to the enemy and grinds head-on instead of
-            // wheeling. This is what kept the MOVE clash from swirling; the
-            // attack was missing its vote entirely.
-            let intent = match self.units[ui].mode {
-                OrderMode::Move => self
-                    .units[ui]
-                    .move_target
-                    .map(|t| t - self.units[ui].anchor),
+            // Where the unit WANTS to face. An ordered unit faces its objective
+            // DIRECTLY — a Move toward its waypoint, an Attack toward the foe's
+            // CENTROID (the stable mean of the enemy mass, not the jittering
+            // anchor, and not the self-reinforcing local contacts). This is the
+            // whole reason a head-on grind doesn't pinwheel: the line holds its
+            // face square to the enemy and lets the fight rage across the front,
+            // instead of chasing the contact mean a few degrees off-axis and
+            // wheeling to 90°. Only an ORDERLESS unit — holding, or its order
+            // spent — reads the measured contact bearings to find the fight;
+            // near-opposite contacts cancel there, so it holds still and the
+            // per-soldier reactive facing splits the men both ways.
+            let intent_dir = match self.units[ui].mode {
+                OrderMode::Move => self.units[ui].move_target.map(|t| t - self.units[ui].anchor),
                 OrderMode::Attack(e) => {
                     Some(self.units[e as usize].centroid - self.units[ui].anchor)
                 }
                 _ => None,
-            };
-            if let Some(v) = intent {
-                if v.len() > 4.0 {
-                    let w = weight * 0.8 + 2.0;
-                    sum = sum + v * (w / v.len());
-                    weight += w;
-                }
             }
-            // Rotate only on a DECISIVE contact direction. Near-opposite
-            // attacks cancel in the mean — then the frame holds still and the
-            // per-soldier reactive facing splits the men both ways (the spec).
-            let decisive = weight > 4.0 && sum.len() > 0.45 * weight;
-            let desired = if decisive {
-                Some(sum.y.atan2(sum.x))
-            } else if weight > 4.0 {
-                // Indecisive contact (surrounded: bearings cancel) — the
-                // player's live order breaks the tie, so a breakout faces
-                // its click and the press bores that way.
-                match self.units[ui].mode {
-                    OrderMode::Move => self.units[ui]
-                        .move_target
-                        .map(|t| t - self.units[ui].anchor)
-                        .filter(|v| v.len() > 4.0)
-                        .map(|v| v.y.atan2(v.x)),
-                    OrderMode::Attack(e) => {
-                        let v = self.units[e as usize].centroid - self.units[ui].anchor;
-                        (v.len() > 4.0).then(|| v.y.atan2(v.x))
-                    }
-                    _ => None,
-                }
+            .filter(|v| v.len() > 4.0);
+            // `hard_turn`: an orderless unit reacting to a decisive contact
+            // turns regardless of how ragged it is (a surrounded breakout can't
+            // wait for dressing). An ORDERED unit turns at its normal,
+            // cohesion-throttled rate — it's not desperate, it's maneuvering.
+            let locked = engaged_frac > 0.08;
+            let ordered = matches!(
+                self.units[ui].mode,
+                OrderMode::Move | OrderMode::Attack(_)
+            );
+            let (desired, hard_turn) = if locked && ordered {
+                // Ordered and locked in a grind: HOLD the facing you met the
+                // enemy at. Tracking his moving centroid from in here IS the
+                // swirl — each side pivots toward the other's shifting mass and
+                // the pair pinwheels. A line fights across its whole front, it
+                // doesn't chase. Keyed on HAVING an order, not on the target
+                // being far: once the fronts touch the foe's centroid is metres
+                // away, and a distance gate here would unlock mid-grind and let
+                // the wheel resume. (Approach still faces the target; an
+                // orderless unit still reads the contacts to find where it's hit.)
+                (None, false)
+            } else if let Some(v) = intent_dir {
+                (Some(v.y.atan2(v.x)), false)
             } else {
-                None
+                let decisive = weight > 4.0 && sum.len() > 0.45 * weight;
+                (decisive.then(|| sum.y.atan2(sum.x)), decisive)
             };
             if let Some(desired) = desired {
                 let u = &mut self.units[ui];
@@ -1796,10 +1790,8 @@ impl Sim {
                 if diff.abs() > 0.35 {
                     let top = soldier_surge_speed(&tun, u);
                     let geom = tun.wheel_speed_factor * top / u.pivot_radius().max(1.0);
-                    // A unit fighting for its life turns regardless of how
-                    // ragged it is — the breakout cannot wait for dressing.
                     let throttle = crate::math::lerp(tun.min_turn_frac, 1.0, u.cohesion)
-                        .max(if decisive { 0.0 } else { 0.6 });
+                        .max(if hard_turn { 0.0 } else { 0.6 });
                     let center = u.center();
                     u.facing = rotate_toward(u.facing, desired, geom * throttle * dt);
                     u.anchor = center + dir(u.facing) * (0.5 * u.depth());

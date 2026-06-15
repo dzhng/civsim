@@ -140,15 +140,24 @@ pub(crate) fn update_unit_motion(tun: &Tunables, u: &mut Unit, dt: f32, ground: 
                 return;
             }
 
+            // Locked in melee (a third of the unit fighting): the FACING is
+            // owned by the contact pass (face the enemy across the whole
+            // front), not by any maneuvering heading here. A grinding line
+            // neither strafes, pivots, nor arcs toward its order — that is what
+            // let an attack wheel toward its jittering / behind-the-line target
+            // while a steady-target move held. It still creeps its anchor along
+            // its current facing under the leash.
+            let locked = u.engaged * 12 > u.alive_count.max(1);
+
             // ENGAGE posture (the Move default): a foot unit maneuvering
             // near an enemy never shows its back. If the move direction
             // points away from the threat, it keeps its face (and shields)
             // on the enemy and DRIFTS — strafing/back-pedaling at walking
-            // pace with a direction penalty — in or out of melee; being
-            // struck (stagger, shoves) is what makes extraction slow.
+            // pace with a direction penalty. NOT once locked in a grind: a
+            // committed line holds and fights, it doesn't sidestep.
             // Disengage (Withdraw) turns and runs instead. Cavalry can't
             // sidestep: it wheels and breaks off like cavalry.
-            if u.mode != crate::unit::OrderMode::Disengage && !u.is_mounted() {
+            if !locked && u.mode != crate::unit::OrderMode::Disengage && !u.is_mounted() {
                 if let Some(threat) = u.threat_bearing {
                     let move_off = wrap_angle(desired - threat).abs();
                     if move_off > 1.35 {
@@ -168,10 +177,11 @@ pub(crate) fn update_unit_motion(tun: &Tunables, u: &mut Unit, dt: f32, ground: 
             }
 
             // Hysteresis: a big heading change enters the pivot; the unit
-            // stays in it until nearly aligned, then marches out.
-            if err.abs() > tun.pivot_facing_err {
+            // stays in it until nearly aligned, then marches out. Never while
+            // locked — melee is not the time for a drilled about-face.
+            if !locked && err.abs() > tun.pivot_facing_err {
                 u.pivoting = true;
-            } else if err.abs() < tun.pivot_exit_err {
+            } else if locked || err.abs() < tun.pivot_exit_err {
                 u.pivoting = false;
             }
 
@@ -192,10 +202,13 @@ pub(crate) fn update_unit_motion(tun: &Tunables, u: &mut Unit, dt: f32, ground: 
             } else {
                 // March, arcing toward the target. The rotation budget is the
                 // speed the rear corners have left over after marching.
-                let spare = (top * top - u.frame_speed * u.frame_speed).max((0.25 * top).powi(2)).sqrt();
-                let geom = tun.wheel_speed_factor * spare / u.march_turn_radius().max(1.0);
-                let rate = tun.base_turn_rate.min(geom) * turn_throttle;
-                u.facing = rotate_toward(u.facing, desired, rate * dt);
+                if !locked {
+                    let spare =
+                        (top * top - u.frame_speed * u.frame_speed).max((0.25 * top).powi(2)).sqrt();
+                    let geom = tun.wheel_speed_factor * spare / u.march_turn_radius().max(1.0);
+                    let rate = tun.base_turn_rate.min(geom) * turn_throttle;
+                    u.facing = rotate_toward(u.facing, desired, rate * dt);
+                }
                 // A CHARGE does not brake to arrive — the whole point is
                 // to make contact at full speed and let the bodies cash it.
                 let target_speed = if u.charging {

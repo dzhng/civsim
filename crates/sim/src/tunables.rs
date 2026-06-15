@@ -61,6 +61,12 @@ pub struct Tunables {
     /// Disorder per radian of mean bond PIVOT (the lattice bent/sheared/wrapped
     /// off its rest grid). Tuned so a line wrapped into a U sheds ~20% cohesion.
     pub cohesion_pivot: f32,
+    /// Enemy MAGNET: peak pull (at weapon reach) toward the nearest enemy body.
+    pub magnet_strength: f32,
+    /// Magnet decay length (m): the pull falls off as exp(-(dist-reach)/scale),
+    /// so the front man is drawn in hard and the ranks behind barely feel it —
+    /// the front line is geometry, not a flag.
+    pub magnet_scale: f32,
     /// Turn-rate multiplier at zero cohesion.
     pub min_turn_frac: f32,
     /// Acceleration multiplier at zero cohesion.
@@ -183,6 +189,8 @@ impl Default for Tunables {
             cohesion_k: 2.5,
             cohesion_stretch: 0.5,
             cohesion_pivot: 0.055,
+            magnet_strength: 3.0,
+            magnet_scale: 2.0,
             min_turn_frac: 0.3,
             min_accel_frac: 0.4,
             soldier_radius: 0.33,

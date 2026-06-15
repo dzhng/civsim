@@ -1470,123 +1470,46 @@ impl Sim {
                 // a running pace is above the slowest fifth's — they trail,
                 // and the formation frays the longer it runs.
                 max_sp = max_sp.min((0.62 + 0.44 * stagger01(i, 0xCAFE)) * surge_sp);
-                let mut steer_to = to;
-                // Idle fidget: a standing man drifts off slot and his glance
-                // wanders (below, in the facing). Gated only on idle — no enemy
-                // test — so there's no tighten/untighten as a foe nears; he
-                // holds the drift until he marches or fights. tick/4 holds each
-                // offset ~a third of a second.
                 let idle = u.move_target.is_none() && u.engaged == 0
                     && hit_ttl[i] <= 0.0 && err < 0.6;
-                // Only a MINORITY shift at any moment — a standing formation is
-                // mostly crisp, a few men easing their weight off-slot while the
-                // rest hold exactly. A per-man roll (re-cast each window) picks
-                // who, so the unit never dissolves into uniform shimmer.
-                let fidgeting = idle && stagger01(i * 7 + 5, tick_now / 4) > 0.65;
-                fidget_offset[i] = if fidgeting {
-                    let fx = stagger01(i * 3, tick_now / 4) - 0.5;
-                    let fy = stagger01(i * 3 + 1, tick_now / 4) - 0.5;
-                    let off = Vec2::new(fx, fy) * IDLE_FIDGET;
-                    steer_to = to + off;
-                    off // recorded so the re-form sort can subtract it (see field)
-                } else {
-                    Vec2::ZERO
-                };
-                // A man whose unit is fighting — or who is himself being
-                // struck — closes to his own weapon's distance; nobody stands
-                // being poked from a hand's-breadth beyond his reach.
-                // TRAMPLE is the exception, and it is class × measured
-                // velocity, no order or charge flag involved: a trampling
-                // body whose unit is still moving at speed rides over the
-                // man in his reach — a move order THROUGH a thin line
-                // tramples by the same physics as a charge, and "arriving"
-                // on a latched enemy is just the stall that drops the mass
-                // below the threshold and turns the ride into a fight.
-                // (Do NOT gate this on the body's own mom_x/mom_y: that
-                // momentum re-arms on every fresh body slammed, so it
-                // rewards target density — a dense block would sustain a
-                // trample better than open order. The unit's measured
-                // mass_advance can't be gamed that way: the crowd either
-                // stopped the mass or it didn't.)
+                // WEAVE: a man is held by his neighbour SPRINGS (net_target — the
+                // dominant cohesion); the slot is only a weak locator the order
+                // drags the whole sheet around by.
+                let mut steer_to = net_target.unwrap_or(to);
                 let trampling = u.tramples() && u.mass_advance > tun.charge_spent_speed;
-                if aware_i && holds_ground && !trampling && (u.engaged > 0 || hit_ttl[i] > 0.0) {
-                    let t = target[i] as usize;
-                    let tp = Vec2::new(positions[2 * t], positions[2 * t + 1]);
-                    let tt = tp - p;
-                    let d_t = tt.len() - 0.8; // body radii, roughly
-                    // Stepping onto a near enemy is a FRONT-RANK act only. A
-                    // buried man holds his slot; if he reached forward over his
-                    // own front rank's shoulders the formation would melt into a
-                    // blob that merely keeps its neighbour spacing (high
-                    // cohesion, no grid). The front rank closes the last gap to
-                    // the foe; everyone behind keeps the grid and feeds the line
-                    // by dressing, not by lunging.
-                    let rank = soldier_slot[i] as usize / u.files_eff.max(1);
-                    let r_seek = 3.5;
-                    // Never seek toward a target closing at CHARGE speeds —
-                    // you don't sprint into a gallop (you stand and brace) —
-                    // but grinding melee speeds are fair game.
-                    let tvx = positions[2 * t] - prev_positions[2 * t];
-                    let tvy = positions[2 * t + 1] - prev_positions[2 * t + 1];
-                    let closing = -(tvx * tt.x + tvy * tt.y) / (tt.len().max(0.01) * dt);
-                    // Step onto a near enemy ONLY on the offensive — a braced
-                    // defender does NOT reach forward to close the gap; it lets
-                    // the enemy come and dimples BACK (the `advancing` gate).
-                    if rank == 0
-                        && advancing
-                        && d_t > reach_u - 0.2
-                        && d_t < r_seek
-                        && front_clear[i] == 1
-                        && closing < 3.5
-                    {
-                        steer_to = tt;
-                        max_sp = max_sp.min(keep_up_sp * 0.5);
-                    } else if engaged_i {
-                        // In range: hold ground, fight, don't chase slots.
-                        // (Impact momentum is separate REAL state — see
-                        // mom_x/mom_y — so a body that arrived at speed
-                        // keeps driving until the crowd bleeds it dry.)
-                        max_sp *= 0.25;
-                        if pressing {
-                            // Lean ON him: a slow sustained step into the
-                            // target's body. Separation converts it into
-                            // crowd pressure and the chain transmits it.
-                            steer_to = tt;
-                        }
-                        // A man FIGHTING a foe holds at reach — he does not march
-                        // on THROUGH the body he's fighting (which is what walks a
-                        // whole unit clean through its enemy, attack or move
-                        // alike). Kill any forward, into-the-target drive; he
-                        // still dresses sideways and gives ground if shoved, and
-                        // his othismos lean still registers as pressure (the
-                        // enemy wall converts it, the chain transmits it) — it
-                        // just can't carry his feet past the man in front of him.
-                        // TRAMPLE is the exception: a horse attacks WHILE driving
-                        // through, the crowd stops it by bleeding momentum.
-                        if !trampling {
-                            let n = tt * (1.0 / tt.len().max(0.01));
-                            let into = steer_to.dot(n);
-                            if into > 0.0 {
-                                steer_to = steer_to - n * into;
-                            }
+                // PLANTED: in reach and fighting, his own drive goes quiet — only
+                // the springs hold him. So the FRONT LINE STOPS ITSELF (no wall),
+                // and the rear, still pulled forward by its slots, COMPRESSES the
+                // springs against him; that compression's restoring push is
+                // othismos, mass for mass. Trample never plants — it rides through.
+                let planted = engaged_i && !trampling;
+                fidget_offset[i] = Vec2::ZERO;
+                if !planted {
+                    steer_to = steer_to + to * tun.slot_pull;
+                    // ENEMY MAGNET: drawn to the nearest enemy body, the pull
+                    // rising EXPONENTIALLY as he closes — far off it is nothing
+                    // (the rear keeps its ranks), in close it overwhelms the slot
+                    // and he RUNS IN. An overhang man with no foe dead ahead is
+                    // pulled to the nearest body all the same and curls round it:
+                    // the wrap falls out of the same law, no special case.
+                    if aware_i {
+                        let te = target[i] as usize;
+                        let ep = Vec2::new(positions[2 * te], positions[2 * te + 1]);
+                        let d = ep - p;
+                        let dist = d.len();
+                        if dist > 1e-3 {
+                            let pull = tun.magnet_strength
+                                * (-((dist - reach_u).max(0.0)) / tun.magnet_scale).exp();
+                            steer_to = steer_to + d * (pull / dist);
                         }
                     }
-                } else if advancing && holds_ground && !trampling && u.engaged > 0 {
-                    // OFFENSE WRAP: a FRONT-rank man with no enemy ahead drives on
-                    // where the fighting is, so the overlapping flank curls inward
-                    // and the cloth drapes around the enemy. Gated to the front
-                    // rank: a buried man has friendlies ahead, so driving him
-                    // forward just rams the formation into itself (the 1v1 blob).
-                    // The weave drags the ranks behind the curling front along.
-                    let rank = soldier_slot[i] as usize / u.files_eff.max(1);
-                    if rank == 0 {
-                        if let Some(fc) = fight_centroid {
-                            let to_fc = fc - p;
-                            if to_fc.len() > reach_u {
-                                steer_to = to_fc;
-                                max_sp = max_sp.min(keep_up_sp * 0.5);
-                            }
-                        }
+                    // Idle fidget: a few standing men ease off-slot at a time
+                    // (recorded so the re-form sort can subtract it).
+                    if idle && stagger01(i * 7 + 5, tick_now / 4) > 0.65 {
+                        let fx = stagger01(i * 3, tick_now / 4) - 0.5;
+                        let fy = stagger01(i * 3 + 1, tick_now / 4) - 0.5;
+                        fidget_offset[i] = Vec2::new(fx, fy) * IDLE_FIDGET;
+                        steer_to = steer_to + fidget_offset[i];
                     }
                 }
 
@@ -1600,28 +1523,6 @@ impl Sim {
                     max_sp *= 1.0 - 0.5 * rough * stagger01(i, tick_now);
                 }
 
-                // A1 — the draping net as an additive RESTORING SPRING on the
-                // final steer (whatever the man wanted: seek, press, hold slot).
-                // Zero when he's at his neighbours' rest spacing (so the line
-                // advances at full speed undeformed), strong when he strays — so
-                // a man can't peel off around a flank or outrun his rank; the
-                // formation BENDS and COMPRESSES around an obstacle as one body.
-                if let Some(net) = net_target {
-                    steer_to = steer_to + net * tun.slot_pull;
-                }
-                // DRESS THE LINE: if I'm already forward of my rank-neighbours,
-                // I can't step further forward — the men beside me set the line.
-                // (Falling back and dressing sideways stay free.) This is what
-                // propagates a blocked centre OUTWARD so the flanks hold instead
-                // of flowing around the enemy. Front rank only would suffice in
-                // principle, but every rank dressing keeps deep blocks square.
-                if let Some(line) = dress_line {
-                    let ahead = p.dot(f) - line;
-                    let fwd = steer_to.dot(f);
-                    if ahead > 0.0 && fwd > 0.0 {
-                        steer_to = steer_to - f * fwd;
-                    }
-                }
                 let mut v = steer_to * tun.soldier_gain;
                 let vl = v.len();
                 if vl > max_sp {
@@ -1631,66 +1532,10 @@ impl Sim {
                     effort += 1.0 - ground;
                 }
                 let mut np = Vec2::new(p.x + v.x * dt, p.y + v.y * dt);
-                // HARD BLOCK: a body cannot END a step inside an enemy it can
-                // see (its target). Projected back onto the contact ring, this
-                // is the physical wall the porous separation push can't be — a
-                // fast run can't tunnel through. With the net holding the rear
-                // and the dressing holding the flanks, ONE blocked front rank
-                // now stops the whole formation at contact instead of ghosting
-                // through. Trample drives on; a felled (stunned) foe is no wall.
-                if aware_i && !trampling {
-                    let te = target[i] as usize;
-                    let ep = Vec2::new(positions[2 * te], positions[2 * te + 1]);
-                    let to_e = ep - np;
-                    let de = to_e.len();
-                    let contact = radius[i] + radius[te];
-                    if de > 1e-3 && de < contact && stun[te] <= 0.0 {
-                        np = ep - to_e * (contact / de);
-                    }
-                }
-                // CONTACT-LINE RESTORING FORCE: a fighting man cannot drive PAST
-                // the foe he is engaged with. Along the unit's line of advance,
-                // clamp his position to the foe's line minus weapon reach — he
-                // holds at fighting distance, no further. The hard block above
-                // only stops him ending inside ONE body's circle, which a man
-                // slips around tangentially; THIS pins his advance to the battle
-                // line itself. It is symmetric — both sides clamp at the SAME
-                // mutual line — so the contact line is a STABLE fixed point:
-                // neither a MOVE nor an ATTACK walks a unit through an equal
-                // enemy (the divergence the move/attack invariant exposed). When
-                // the foe yields — dies, is shoved back — his line recedes and
-                // the man follows it forward, so winning still advances over the
-                // ground taken. Trample rides through. Released when the foe
-                // ROUTS: a broken enemy is prey to run down, not a line to hold
-                // against — the chaser closes and overruns instead of pacing him.
-                if engaged_i
-                    && !trampling
-                    && stun[i] <= 0.0
-                    && stun[target[i] as usize] <= 0.0
-                    && !units[soldier_unit[target[i] as usize] as usize].routing
-                {
-                    let te = target[i] as usize;
-                    let ep = Vec2::new(positions[2 * te], positions[2 * te + 1]);
-                    let fdir = dir(u.facing);
-                    let ahead = np.dot(fdir) - (ep.dot(fdir) - reach_u);
-                    if ahead > 0.0 {
-                        np = np - fdir * ahead;
-                    }
-                }
-                // HOLD DEPTH: a man may not climb forward past rest-spacing
-                // behind the rank ahead of him. With the front rank pinned at
-                // the enemy (above), this propagates back rank by rank and the
-                // block keeps its full depth instead of collapsing into a
-                // shallow blob. Trample drives through.
-                if let Some(lim) = depth_limit {
-                    if !trampling && stun[i] <= 0.0 {
-                        let fdir = dir(u.facing);
-                        let ahead = np.dot(fdir) - lim;
-                        if ahead > 0.0 {
-                            np = np - fdir * ahead;
-                        }
-                    }
-                }
+                // No imaginary walls: the man is stopped only by real bodies he
+                // can't walk through (the separation solver) and the springs that
+                // tie him to his neighbours. A planted front line + collision is
+                // the contact stop; nothing here clamps a position to a rule.
                 if ground <= 0.0 {
                     np = p + terrain.escape_dir(p) * (3.0 * dt);
                 } else if terrain.speed_at(np) <= 0.0 {

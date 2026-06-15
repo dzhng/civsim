@@ -176,11 +176,11 @@ fn trace_sim(mut sim: Sim, secs: f32) -> Trace {
         }
         if std::env::var("TRACE").is_ok() && step % 60 == 0 {
             eprintln!(
-                "t={:5.1} gap={:6.1} coh t/b={:.2}/{:.2} pen t/b={:.2}/{:.2} slotErr t/b={:.1}/{:.1} alive t/b={}/{}",
-                t, gap, tu.cohesion, bu.cohesion,
-                interpenetration(&sim, top, 1.2), interpenetration(&sim, bot, 1.2),
-                mean_slot_error(&sim, top), mean_slot_error(&sim, bot),
-                tu.alive_count, bu.alive_count,
+                "t={:5.1} gap={:6.1} topY={:6.1} botY={:6.1} eng t/b={}/{} frameSp t/b={:.2}/{:.2} mt t/b=({:.0},{:.0})/({:.0},{:.0})",
+                t, gap, tu.centroid.y, bu.centroid.y, tu.engaged, bu.engaged,
+                tu.frame_speed, bu.frame_speed,
+                tu.move_target.map_or(0.0, |m| m.x), tu.move_target.map_or(0.0, |m| m.y),
+                bu.move_target.map_or(0.0, |m| m.x), bu.move_target.map_or(0.0, |m| m.y),
             );
         }
     }

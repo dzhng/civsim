@@ -147,7 +147,9 @@ pub(crate) fn update_unit_motion(tun: &Tunables, u: &mut Unit, dt: f32, ground: 
             // let an attack wheel toward its jittering / behind-the-line target
             // while a steady-target move held. It still creeps its anchor along
             // its current facing under the leash.
-            let locked = u.engaged * 12 > u.alive_count.max(1);
+            // Mounted units are exempt — cavalry wheels and re-charges, it
+            // doesn't grind in place; let it keep steering.
+            let locked = !u.is_mounted() && u.engaged * 12 > u.alive_count.max(1);
 
             // ENGAGE posture (the Move default): a foot unit maneuvering
             // near an enemy never shows its back. If the move direction

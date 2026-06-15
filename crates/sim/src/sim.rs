@@ -1646,6 +1646,7 @@ impl Sim {
                 // against — the chaser closes and overruns instead of pacing him.
                 if engaged_i
                     && !trampling
+                    && stun[i] <= 0.0
                     && stun[target[i] as usize] <= 0.0
                     && !units[soldier_unit[target[i] as usize] as usize].routing
                 {
@@ -1663,7 +1664,7 @@ impl Sim {
                 // block keeps its full depth instead of collapsing into a
                 // shallow blob. Trample drives through.
                 if let Some(lim) = depth_limit {
-                    if !trampling {
+                    if !trampling && stun[i] <= 0.0 {
                         let fdir = dir(u.facing);
                         let ahead = np.dot(fdir) - lim;
                         if ahead > 0.0 {
@@ -1795,7 +1796,10 @@ impl Sim {
             // turns regardless of how ragged it is (a surrounded breakout can't
             // wait for dressing). An ORDERED unit turns at its normal,
             // cohesion-throttled rate — it's not desperate, it's maneuvering.
-            let locked = engaged_frac > 0.08;
+            // Mounted units are EXEMPT: cavalry maneuvers in contact (rides
+            // through, wheels, re-charges) rather than grinding in place like an
+            // infantry line, so it must keep steering its facing to its target.
+            let locked = engaged_frac > 0.08 && !self.units[ui].is_mounted();
             let ordered = matches!(
                 self.units[ui].mode,
                 OrderMode::Move | OrderMode::Attack(_)

@@ -1171,10 +1171,10 @@ impl Sim {
             mom_y,
             press_x,
             press_y,
-            fight_near,
             front_clear,
             facings,
             soldier_slot,
+            soldier_unit,
             fidget_offset,
             terrain,
             tick_count,
@@ -1345,7 +1345,7 @@ impl Sim {
 
                 let local = slot_local(soldier_slot[i] as usize, u.files_eff, u.spacing);
                 let slot = u.anchor + r * local.x + f * (-local.y);
-                let mut to = slot - p;
+                let to = slot - p;
                 // Disorder input (B4): the neighbour residual, set in the block
                 // below. A man with no live neighbours has only his absolute slot
                 // to judge by — an isolated soldier IS out of formation.
@@ -1476,16 +1476,15 @@ impl Sim {
                     let tp = Vec2::new(positions[2 * t], positions[2 * t + 1]);
                     let tt = tp - p;
                     let d_t = tt.len() - 0.8; // body radii, roughly
-                    // Graded combat initiative: the seek radius grows with
-                    // the LOCAL fight density (comrades fighting within 6m).
-                    // A man on a quiet wing keeps the tight 3.5m leash; a
-                    // man beside the scrum reaches 6-9m and steps around the
-                    // corner of the penetration — the cascade that wraps a
-                    // line spreads at footspeed, link by link, and dies out
-                    // where the fighting does. The empty-frontage flag is
-                    // the anti-blender leash: nobody wades in through his
-                    // own comrades' backs.
-                    let r_seek = (3.5 + 0.6 * fight_near[i] as f32).min(9.0);
+                    // Stepping onto a near enemy is a FRONT-RANK act only. A
+                    // buried man holds his slot; if he reached forward over his
+                    // own front rank's shoulders the formation would melt into a
+                    // blob that merely keeps its neighbour spacing (high
+                    // cohesion, no grid). The front rank closes the last gap to
+                    // the foe; everyone behind keeps the grid and feeds the line
+                    // by dressing, not by lunging.
+                    let rank = soldier_slot[i] as usize / u.files_eff.max(1);
+                    let r_seek = 3.5;
                     // Never seek toward a target closing at CHARGE speeds —
                     // you don't sprint into a gallop (you stand and brace) —
                     // but grinding melee speeds are fair game.
@@ -1495,7 +1494,13 @@ impl Sim {
                     // Step onto a near enemy ONLY on the offensive — a braced
                     // defender does NOT reach forward to close the gap; it lets
                     // the enemy come and dimples BACK (the `advancing` gate).
-                    if advancing && d_t > reach_u - 0.2 && d_t < r_seek && front_clear[i] == 1 && closing < 3.5 {
+                    if rank == 0
+                        && advancing
+                        && d_t > reach_u - 0.2
+                        && d_t < r_seek
+                        && front_clear[i] == 1
+                        && closing < 3.5
+                    {
                         steer_to = tt;
                         max_sp = max_sp.min(keep_up_sp * 0.5);
                     } else if engaged_i {
@@ -1605,6 +1610,34 @@ impl Sim {
                         np = ep - to_e * (contact / de);
                     }
                 }
+                // CONTACT-LINE RESTORING FORCE: a fighting man cannot drive PAST
+                // the foe he is engaged with. Along the unit's line of advance,
+                // clamp his position to the foe's line minus weapon reach — he
+                // holds at fighting distance, no further. The hard block above
+                // only stops him ending inside ONE body's circle, which a man
+                // slips around tangentially; THIS pins his advance to the battle
+                // line itself. It is symmetric — both sides clamp at the SAME
+                // mutual line — so the contact line is a STABLE fixed point:
+                // neither a MOVE nor an ATTACK walks a unit through an equal
+                // enemy (the divergence the move/attack invariant exposed). When
+                // the foe yields — dies, is shoved back — his line recedes and
+                // the man follows it forward, so winning still advances over the
+                // ground taken. Trample rides through. Released when the foe
+                // ROUTS: a broken enemy is prey to run down, not a line to hold
+                // against — the chaser closes and overruns instead of pacing him.
+                if engaged_i
+                    && !trampling
+                    && stun[target[i] as usize] <= 0.0
+                    && !units[soldier_unit[target[i] as usize] as usize].routing
+                {
+                    let te = target[i] as usize;
+                    let ep = Vec2::new(positions[2 * te], positions[2 * te + 1]);
+                    let fdir = dir(u.facing);
+                    let ahead = np.dot(fdir) - (ep.dot(fdir) - reach_u);
+                    if ahead > 0.0 {
+                        np = np - fdir * ahead;
+                    }
+                }
                 if ground <= 0.0 {
                     np = p + terrain.escape_dir(p) * (3.0 * dt);
                 } else if terrain.speed_at(np) <= 0.0 {
@@ -1706,12 +1739,26 @@ impl Sim {
                 sum = sum + dir(bucket_bearing(k)) * w;
                 weight += w;
             }
-            // A live move order VOTES on the facing alongside the measured
-            // contacts — intent must be able to out-argue a self-reinforcing
-            // fight (face north -> press north -> more north contact), or a
-            // surrounded unit can never turn toward its breakout.
-            if let (OrderMode::Move, Some(t)) = (self.units[ui].mode, self.units[ui].move_target) {
-                let v = t - self.units[ui].anchor;
+            // A live ORDER votes on the facing alongside the measured contacts —
+            // intent must out-argue a self-reinforcing fight (face north ->
+            // press north -> more north contact -> wheel), or a head-on clash
+            // pirouettes and a surrounded unit can never turn to its breakout.
+            // A MOVE votes toward its waypoint; an ATTACK votes toward the foe's
+            // CENTROID (stable — not the jittering anchor) so a latched line
+            // holds its face square to the enemy and grinds head-on instead of
+            // wheeling. This is what kept the MOVE clash from swirling; the
+            // attack was missing its vote entirely.
+            let intent = match self.units[ui].mode {
+                OrderMode::Move => self
+                    .units[ui]
+                    .move_target
+                    .map(|t| t - self.units[ui].anchor),
+                OrderMode::Attack(e) => {
+                    Some(self.units[e as usize].centroid - self.units[ui].anchor)
+                }
+                _ => None,
+            };
+            if let Some(v) = intent {
                 if v.len() > 4.0 {
                     let w = weight * 0.8 + 2.0;
                     sum = sum + v * (w / v.len());
@@ -1728,11 +1775,15 @@ impl Sim {
                 // Indecisive contact (surrounded: bearings cancel) — the
                 // player's live order breaks the tie, so a breakout faces
                 // its click and the press bores that way.
-                let u = &self.units[ui];
-                match (u.mode, u.move_target) {
-                    (OrderMode::Move, Some(t)) if (t - u.anchor).len() > 4.0 => {
-                        let v = t - u.anchor;
-                        Some(v.y.atan2(v.x))
+                match self.units[ui].mode {
+                    OrderMode::Move => self.units[ui]
+                        .move_target
+                        .map(|t| t - self.units[ui].anchor)
+                        .filter(|v| v.len() > 4.0)
+                        .map(|v| v.y.atan2(v.x)),
+                    OrderMode::Attack(e) => {
+                        let v = self.units[e as usize].centroid - self.units[ui].anchor;
+                        (v.len() > 4.0).then(|| v.y.atan2(v.x))
                     }
                     _ => None,
                 }

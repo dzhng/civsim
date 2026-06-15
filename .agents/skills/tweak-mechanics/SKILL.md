@@ -74,6 +74,71 @@ centroid-distance standing in for edge-distance between sized bodies; (c) a
 cap/clamp whose real consumer already bounds itself tighter. Each is a
 chance to route everything through the one true measure.
 
+### A contact line that fails needs a RESTORING force, not damping
+
+When two equal lines pass through each other, or swirl/orbit, the deep cause
+is almost always that **the contact line is an unstable equilibrium with no
+restoring force**. Any tiny asymmetry → one side edges ahead → the geometry
+rewards it → it runs away (pass-through or wheel). Symptoms you'll chase in
+circles if you don't see this:
+
+- Every single-parameter damping you try is **seed-fragile** — works on one
+  seed, ghosts on the next, non-monotonic in the knob. That fragility *is*
+  the tell: you're damping an unstable equilibrium instead of stabilizing it.
+- The "stop" you do have works **by accident** — e.g. an attack halts only
+  because interpenetration jitter trips the *pivot* (a wheeling rule), not
+  because anything physical blocked it. A move (steady far target) never trips
+  it and walks clean through. If a behavior only works through an unrelated
+  mechanism's side effect, it's a crutch; make the honest mechanism carry it.
+- Forcing `frame_speed = 0` on **both** sides still lets them cross — proof
+  the creep is **soldier-level** (the combat-seek), not the frame. When a
+  frame-level fix is fragile, instrument to confirm which layer actually drives
+  the motion before fixing the wrong one.
+
+The fix is a **symmetric restoring force**: a man cannot advance past the
+*line of the foe he is fighting* (enemy-anchored, along the unit facing). Both
+sides clamp to the **same mutual line**, so the contact line becomes a *stable*
+fixed point — push past and you're pulled back; when the foe yields the line
+recedes and you follow, so winning still advances. Crucially this is
+**enemy-anchored**, which is the only reference that distinguishes a *legal
+bend* (men keep neighbour spacing — allowed) from an *illegal breakthrough*
+(men keep neighbour spacing AND cross the line — forbidden). Neighbour-relative
+cohesion (weave/dressing) **cannot** tell those apart; don't try to fix a
+pass-through with cohesion alone.
+
+### Move == Attack is the litmus for first-principled-ness
+
+An attack latch is just a move order to a point past the foe (plus charge +
+give-up). So **two units attacking each other must behave the same as two
+units moving onto each other's start** — same cohesion, same interpenetration,
+no centroid swap. If they diverge, some code path is gated on
+`OrderMode::Move` vs `OrderMode::Attack` when it should key off the physical
+situation. Real example from this work: the contact-facing **intent vote**
+(what keeps a unit pointed at its goal) only fired for `Move`, so the move held
+its heading head-on while the attack wheeled. Grep for `OrderMode::` gates when
+move and attack diverge.
+
+### Measure the mechanism, not just the outcome — facing catches swirl early
+
+A swirl is two lines **wheeling** around each other. The centroid-swap check
+catches it, but late (after they've already turned ~45°+). The *early,
+direct* signal is **facing**: a head-on clash must keep both fronts pointed
+±y. Track the max off-axis facing angle (`asin(|cos(facing)|)` in degrees) and
+assert it stays within a few degrees. `face_dev = 90°` means the lines turned
+fully sideways — an unmistakable swirl readout that fires before the centroids
+even cross.
+
+### Don't relax a test to pass — the red is usually telling the truth
+
+When a strict check (centroids never swap on y) goes red after your change,
+the strong default is **the check is right and your change is incomplete**.
+Relaxing the threshold ("allow a few metres of charge dent") to go green is how
+a suite certifies a bug — it did exactly that here: loosening the centroid-swap
+tolerance hid a 90° swirl that the shots plainly showed. If you believe a red
+check is genuinely too strict, prove it with a shot first, and write the new
+threshold around the *physically correct* behavior, not around the current
+(broken) number.
+
 ## The two-layer loop (do them in order)
 
 ### Layer 1 — fast Rust mechanics tests (the gate)

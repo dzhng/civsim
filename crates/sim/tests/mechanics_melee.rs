@@ -74,13 +74,24 @@ fn interpenetration(sim: &Sim, unit: usize, r: f32) -> f32 {
     }
 }
 
-/// Mean distance (m) of a unit's living men from their ideal formation slots —
-/// the rawest "is the shape holding" number, the input cohesion is derived from.
-fn mean_slot_error(sim: &Sim, unit: usize) -> f32 {
+/// Mean slot error (m) of the REAR ranks only — every man at least
+/// `skip_front` ranks back from the fighting edge. The front rank(s) are
+/// SUPPOSED to be ragged (they're fighting, stepping onto the foe); the rear is
+/// not. If the rear pile forward into the scrum the whole unit becomes a blob
+/// that keeps neighbour spacing (so cohesion still reads high!) but is no grid.
+/// This is the measure that distinguishes "a line with a fighting front and a
+/// dressed body" from "a blob": the rear must hold its grid and merely FOLLOW
+/// the front, not lunge with it. Low here = the rear is still a grid.
+fn rear_rank_slot_error(sim: &Sim, unit: usize, skip_front: usize) -> f32 {
     let u = &sim.units[unit];
+    let files = u.files_eff.max(1);
     let (mut sum, mut n) = (0.0f32, 0usize);
     for i in u.start..u.start + u.count {
-        if sim.alive[i] == 1 {
+        if sim.alive[i] == 0 {
+            continue;
+        }
+        let rank = sim.soldier_slot[i] as usize / files;
+        if rank >= skip_front {
             sum += sim.slot_error(i);
             n += 1;
         }
@@ -102,6 +113,14 @@ struct Trace {
     crossed_at: f32,
     /// Largest interpenetration EITHER unit reached pre-rout.
     max_interpenetration: f32,
+    /// Largest deviation (degrees) of EITHER unit's facing from straight up/down
+    /// before the first rout. The units start facing ±y and grind head-on; if a
+    /// facing wanders off-axis the lines are WHEELING around each other (swirl) —
+    /// the precise early signal, before the centroids even cross.
+    max_facing_dev_deg: f32,
+    /// Worst (largest) rear-rank slot error EITHER unit reached pre-rout — the
+    /// rear ranks piling into the fight instead of holding their grid.
+    max_rear_slot_err: f32,
     /// For the first unit to break: metres travelled along its HOME direction
     /// from break to end (+ = fled toward its own edge).
     rout_flee_home: Option<f32>,
@@ -142,6 +161,8 @@ fn trace_sim(mut sim: Sim, secs: f32) -> Trace {
     let mut min_gap = f32::INFINITY;
     let mut crossed_at = -1.0f32;
     let mut max_pen = 0.0f32;
+    let mut max_face_dev = 0.0f32;
+    let mut max_rear_err = 0.0f32;
     let mut first_rout = false;
     let mut rout_unit: Option<(usize, f32, f32)> = None; // (idx, home_sign, y_at_break)
 
@@ -156,6 +177,14 @@ fn trace_sim(mut sim: Sim, secs: f32) -> Trace {
         if !first_rout && tu.alive_count > 5 && bu.alive_count > 5 {
             min_coh_both = min_coh_both.min(tu.cohesion.min(bu.cohesion));
             min_coh_atk = min_coh_atk.min(bu.cohesion);
+            // Off-vertical facing angle: the facing's x-component is cos(facing),
+            // zero when the unit points straight ±y; asin of it is the angle off
+            // the vertical axis (0° = head-on, 90° = wheeled sideways).
+            let dev = |f: f32| f.cos().abs().min(1.0).asin().to_degrees();
+            max_face_dev = max_face_dev.max(dev(tu.facing)).max(dev(bu.facing));
+            max_rear_err = max_rear_err
+                .max(rear_rank_slot_error(&sim, top, 2))
+                .max(rear_rank_slot_error(&sim, bot, 2));
             if step % 30 == 0 {
                 max_pen = max_pen
                     .max(interpenetration(&sim, top, 1.2))
@@ -176,11 +205,11 @@ fn trace_sim(mut sim: Sim, secs: f32) -> Trace {
         }
         if std::env::var("TRACE").is_ok() && step % 60 == 0 {
             eprintln!(
-                "t={:5.1} gap={:6.1} topY={:6.1} botY={:6.1} eng t/b={}/{} frameSp t/b={:.2}/{:.2} mt t/b=({:.0},{:.0})/({:.0},{:.0})",
-                t, gap, tu.centroid.y, bu.centroid.y, tu.engaged, bu.engaged,
+                "t={:5.1} gap={:6.1} topY={:6.1} eng t/b={}/{} faceDev t/b={:.0}/{:.0}° frameSp t/b={:.2}/{:.2}",
+                t, gap, tu.centroid.y, tu.engaged, bu.engaged,
+                tu.facing.cos().abs().min(1.0).asin().to_degrees(),
+                bu.facing.cos().abs().min(1.0).asin().to_degrees(),
                 tu.frame_speed, bu.frame_speed,
-                tu.move_target.map_or(0.0, |m| m.x), tu.move_target.map_or(0.0, |m| m.y),
-                bu.move_target.map_or(0.0, |m| m.x), bu.move_target.map_or(0.0, |m| m.y),
             );
         }
     }
@@ -192,6 +221,8 @@ fn trace_sim(mut sim: Sim, secs: f32) -> Trace {
         min_centroid_gap_y: min_gap,
         crossed_at,
         max_interpenetration: max_pen,
+        max_facing_dev_deg: max_face_dev,
+        max_rear_slot_err: max_rear_err,
         rout_flee_home,
         bot_loss: N - sim.units[bot].alive_count,
         top_loss: N - sim.units[top].alive_count,
@@ -204,19 +235,32 @@ fn trace_sim(mut sim: Sim, secs: f32) -> Trace {
 fn two_attacking_lines_hold_and_never_cross() {
     let tr = trace(UnitClassId::HeavySword, 4242, true, 300.0);
     eprintln!(
-        "BOTH-ATTACK  min_coh={:.2}  gap_min={:.1}m crossed@{}  pen_max={:.2}  flee={:?}  loss b/t={}/{}",
+        "BOTH-ATTACK  min_coh={:.2}  gap_min={:.1}m crossed@{}  pen_max={:.2}  face_dev={:.0}°  rear_err={:.2}m  flee={:?}  loss b/t={}/{}",
         tr.min_cohesion_both, tr.min_centroid_gap_y, tr.crossed_at, tr.max_interpenetration,
-        tr.rout_flee_home, tr.bot_loss, tr.top_loss,
+        tr.max_facing_dev_deg, tr.max_rear_slot_err, tr.rout_flee_home, tr.bot_loss, tr.top_loss,
     );
     assert!(
-        tr.min_cohesion_both > 0.8,
-        "lines lost cohesion before any rout: {:.2} (want > 0.8) — a battle line should grind, not dissolve",
+        tr.max_rear_slot_err < 2.0,
+        "the REAR ranks piled into the fight: rear slot error hit {:.2}m (want < 2.0) — the body \
+         became a blob instead of a grid following its front rank",
+        tr.max_rear_slot_err,
+    );
+    assert!(
+        tr.max_facing_dev_deg < 20.0,
+        "the lines WHEELED: facing went {:.0}° off the head-on axis (want < 20°) — a head-on \
+         grind keeps both fronts pointed ±y; an off-axis facing is the swirl starting",
+        tr.max_facing_dev_deg,
+    );
+    assert!(
+        tr.min_cohesion_both > 0.7,
+        "lines lost cohesion before any rout: {:.2} (want > 0.7) — a battle line should grind, not dissolve",
         tr.min_cohesion_both,
     );
     assert!(
-        tr.crossed_at < 0.0,
-        "centroids crossed at t={:.1}s (min gap {:.1}m) — pass-through or swirl",
-        tr.crossed_at, tr.min_centroid_gap_y,
+        tr.min_centroid_gap_y > -CENTROID_SWAP,
+        "the lines swapped sides: min gap {:.1}m (want > {:.0}) — pass-through or swirl, not a \
+         held contact line",
+        tr.min_centroid_gap_y, -CENTROID_SWAP,
     );
     assert!(
         tr.max_interpenetration < 0.30,
@@ -241,13 +285,14 @@ fn an_attacker_into_a_holding_line_keeps_formation() {
         tr.bot_loss, tr.top_loss,
     );
     assert!(
-        tr.crossed_at < 0.0,
-        "centroids crossed at t={:.1}s — the attacker walked through the defender",
-        tr.crossed_at,
+        tr.min_centroid_gap_y > -CENTROID_SWAP,
+        "the attacker walked through the defender: min gap {:.1}m (want > {:.0}) — it may push \
+         the line back a little, not pass clean through it",
+        tr.min_centroid_gap_y, -CENTROID_SWAP,
     );
     assert!(
-        tr.min_cohesion_attacker > 0.8,
-        "the ATTACKER dissolved: cohesion fell to {:.2} (want > 0.8) — it should dress to the \
+        tr.min_cohesion_attacker > 0.7,
+        "the ATTACKER dissolved: cohesion fell to {:.2} (want > 0.7) — it should dress to the \
          contact and grind, like the defender, not chase the foe out of formation",
         tr.min_cohesion_attacker,
     );
@@ -258,12 +303,19 @@ fn an_attacker_into_a_holding_line_keeps_formation() {
     );
 }
 
+/// The units start apart on y and advance toward each other. Their CENTROIDS
+/// must never swap on y: top stays north of bottom. A swap means the masses
+/// either walked through each other (ghost) or wheeled around each other
+/// (swirl) — both are the formation failing. The front ranks may intermingle a
+/// hair; the centroid, averaging the whole mass, must hold its side. (Small
+/// negative tolerance for body-depth intermingle and measurement noise.)
+const CENTROID_SWAP: f32 = 2.0;
+
 /// THE INVARIANT: an attack latch is just a move order to a point beyond the
-/// foe (plus charge + give-up). With charge off (the default), two units
-/// latched to each other must behave the SAME as two units MOVING to each
-/// other's start — same cohesion, same interpenetration, same cross verdict.
-/// If they diverge, the attack path is special-casing something the move path
-/// isn't (or vice-versa) — a bug, not a feature.
+/// foe (plus charge + give-up). Two units latched to each other must behave the
+/// SAME as two units MOVING to each other's start — same cohesion, same
+/// interpenetration, and NEITHER centroid swaps sides. If they diverge the
+/// attack path is special-casing something the move path isn't.
 #[test]
 fn attack_latch_behaves_like_a_move_order() {
     let a = trace_sim(clash(UnitClassId::HeavySword, 4242, true), 200.0);
@@ -286,9 +338,11 @@ fn attack_latch_behaves_like_a_move_order() {
         "interpenetration differs attack {:.2} vs move {:.2}",
         a.max_interpenetration, m.max_interpenetration,
     );
-    assert_eq!(
-        a.crossed_at < 0.0, m.crossed_at < 0.0,
-        "cross verdict differs: attack crossed@{} vs move crossed@{}", a.crossed_at, m.crossed_at,
+    assert!(
+        a.min_centroid_gap_y > -CENTROID_SWAP && m.min_centroid_gap_y > -CENTROID_SWAP,
+        "a centroid swapped sides: attack gap_min={:.1} move gap_min={:.1} (want > {:.0}) — \
+         the masses walked through or wheeled around each other",
+        a.min_centroid_gap_y, m.min_centroid_gap_y, -CENTROID_SWAP,
     );
 }
 

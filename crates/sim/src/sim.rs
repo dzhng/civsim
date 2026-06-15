@@ -697,22 +697,49 @@ impl Sim {
     /// renderer (same range), so a unit at ease in one sense is at ease in all.
     /// A fleeing enemy is no threat and doesn't count. Cheap O(units^2).
     fn mark_at_ease(&mut self) {
-        let snap: Vec<(Vec2, u32, bool, f32)> = self
-            .units
-            .iter()
-            .map(|u| {
-                let r = 0.5 * u.width().hypot(u.depth()); // formation bounding radius
-                (u.centroid, u.team, u.routing || u.alive_count == 0, r)
-            })
-            .collect();
+        let snap = self.threat_snapshot();
         let range = self.tun.at_ease_range;
         for i in 0..self.units.len() {
-            let (ci, ti, _, ri) = snap[i];
-            let threatened = snap.iter().any(|&(cj, tj, gone, rj)| {
-                tj != ti && !gone && (ci - cj).len() - ri - rj < range
-            });
-            self.units[i].at_ease = !threatened;
+            // At ease unless the nearest enemy's steel is within range.
+            self.units[i].at_ease =
+                Self::nearest_enemy(&snap, i).map_or(true, |(gap, _, _)| gap >= range);
         }
+    }
+
+    /// Per-unit basis for every "how near is the nearest enemy" question:
+    /// live centroid, team, a "no threat" flag (routing or wiped out), and
+    /// the formation bounding radius (0.5 * width⊕depth). `at_ease` and the
+    /// threat scan share this snapshot AND `nearest_enemy` below, so they can
+    /// never disagree about who is close — one notion of "the nearest steel".
+    fn threat_snapshot(&self) -> Vec<(Vec2, u32, bool, f32)> {
+        self.units
+            .iter()
+            .map(|u| {
+                let r = 0.5 * u.width().hypot(u.depth());
+                (u.centroid, u.team, u.routing || u.alive_count == 0, r)
+            })
+            .collect()
+    }
+
+    /// Nearest living, non-routing enemy to unit `i`: (edge gap, bearing,
+    /// unit index). The gap subtracts BOTH formations' bounding radii — the
+    /// distance between their nearest steel, not their centres, so a wide
+    /// line is "close" when its flank is neared and a deep block when its
+    /// front rank is in reach. None if no enemy remains.
+    fn nearest_enemy(snap: &[(Vec2, u32, bool, f32)], i: usize) -> Option<(f32, f32, u32)> {
+        let (ci, ti, _, ri) = snap[i];
+        let mut best: Option<(f32, f32, u32)> = None;
+        for (vi, &(cj, tj, gone, rj)) in snap.iter().enumerate() {
+            if tj == ti || gone {
+                continue;
+            }
+            let to = cj - ci;
+            let gap = to.len() - ri - rj;
+            if best.map_or(true, |(bg, _, _)| gap < bg) {
+                best = Some((gap, to.y.atan2(to.x), vi as u32));
+            }
+        }
+        best
     }
 
     /// Anchor intelligence: plan around impassables, squeeze through
@@ -859,27 +886,19 @@ impl Sim {
                 }
             }
         }
-        // Nearest-enemy bearings (the fighting-withdrawal reflex reads them).
-        let centers: Vec<(Vec2, u32, usize, f32)> = self
-            .units
-            .iter()
-            .map(|u| (u.center(), u.team, u.alive_count, 0.5 * u.width().max(u.depth())))
-            .collect();
+        // Nearest-enemy gap + bearing, off the SAME snapshot/measure as
+        // `at_ease` (see `nearest_enemy`). `threat_bearing` is retained only
+        // while NOT at ease (gap < at_ease_range): a unit that isn't at ease
+        // is precisely the one that won't regen morale AND turns to face the
+        // enemy — the two can't disagree. `threat_unit` keeps the true gap
+        // uncapped for the pursue latch, which gates its own reach.
+        let snap = self.threat_snapshot();
         for ui in 0..self.units.len() {
-            let (mc, mt, _, _) = centers[ui];
-            let mut best: Option<(f32, f32, u32)> = None; // (edge dist, bearing, unit)
-            for (vi, &(c, team, alive, ext)) in centers.iter().enumerate() {
-                if team == mt || alive == 0 {
-                    continue;
-                }
-                let to = c - mc;
-                let d = to.len() - ext;
-                if d < 90.0 && best.map_or(true, |(bd, _, _)| d < bd) {
-                    best = Some((d, to.y.atan2(to.x), vi as u32));
-                }
-            }
-            self.units[ui].threat_bearing = best.filter(|&(d, _, _)| d < 45.0).map(|(_, b, _)| b);
-            self.units[ui].threat_unit = best.map(|(d, _, v)| (v, d));
+            let best = Self::nearest_enemy(&snap, ui);
+            self.units[ui].threat_bearing = best
+                .filter(|&(g, _, _)| g < self.tun.at_ease_range)
+                .map(|(_, b, _)| b);
+            self.units[ui].threat_unit = best.map(|(g, _, v)| (v, g));
         }
 
         for ui in 0..self.units.len() {

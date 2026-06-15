@@ -177,10 +177,13 @@ pub struct Unit {
     pub reform_timer: f32,
     /// Chase routing enemies (true) or hold ground when they break (false).
     pub pursue: bool,
-    /// Bearing of the nearest enemy mass within threat range (refreshed each
-    /// tick) — foot units keep their face to it while maneuvering nearby.
+    /// Bearing of the nearest enemy mass while NOT at ease (within
+    /// at_ease_range, edge to edge — the same gap that gates morale recovery;
+    /// refreshed each tick) — foot units keep their face to it while
+    /// maneuvering nearby.
     pub threat_bearing: Option<f32>,
-    /// Nearest enemy unit + edge distance (refreshed with threat_bearing).
+    /// Nearest enemy unit + its edge gap, uncapped (refreshed with
+    /// threat_bearing); the pursue latch gates its own reach off the gap.
     pub threat_unit: Option<(u32, f32)>,
     /// Best (smallest) edge gap measured since this auto-latch began: the
     /// chase gives up when the gap has OPENED past this by latch_slip —

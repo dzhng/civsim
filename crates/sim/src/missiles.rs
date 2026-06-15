@@ -412,9 +412,6 @@ impl Sim {
             let d = dir(vel.y.atan2(vel.x));
             self.positions[2 * victim] += d.x * 0.8;
             self.positions[2 * victim + 1] += d.y * 0.8;
-            self.recv_x[victim] += d.x * 0.8;
-            self.recv_y[victim] += d.y * 0.8;
-            self.recv_mag[victim] += 0.8;
         }
 
         if self.mounted[victim] == 1 && !self.rng.chance(RIDER_HIT_SHARE) {

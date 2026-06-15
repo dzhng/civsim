@@ -312,9 +312,6 @@ impl Sim {
                         if self.terrain.speed_at(np) > 0.0 {
                             self.positions[v * 2] = np.x;
                             self.positions[v * 2 + 1] = np.y;
-                            self.recv_x[v] += d.x * stop;
-                            self.recv_y[v] += d.y * stop;
-                            self.recv_mag[v] += stop;
                         }
                         // ...and the point bleeds the carried glide itself.
                         let toward = -(self.mom_x[v] * d.x + self.mom_y[v] * d.y);
@@ -475,11 +472,8 @@ impl Sim {
         if self.terrain.speed_at(np) > 0.0 {
             self.positions[2 * victim] = np.x;
             self.positions[2 * victim + 1] = np.y;
-            // Weapon pushes are received force like any other: a hedge of
-            // thrusts hammering a man IS compression — post to the ledger.
-            self.recv_x[victim] += d.x * push;
-            self.recv_y[victim] += d.y * push;
-            self.recv_mag[victim] += push;
+            // The shove itself IS the pressure input: it shortens his bonds,
+            // and the weave reads that compression as crush next tick.
         }
 
         if blocked {

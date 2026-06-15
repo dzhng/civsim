@@ -65,9 +65,6 @@ impl Sim {
             scratch,
             terrain,
             mass,
-            recv_x,
-            recv_y,
-            recv_mag,
             cond_x,
             cond_y,
             stun,
@@ -321,9 +318,6 @@ impl Sim {
             }
             scratch[2 * i] += push.x;
             scratch[2 * i + 1] += push.y;
-            recv_x[i] += push.x;
-            recv_y[i] += push.y;
-            recv_mag[i] += push.len();
             raw_cx[i] += push.x;
             raw_cy[i] += push.y;
         }

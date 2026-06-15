@@ -349,6 +349,75 @@ fn an_advancing_block_compresses_both_itself_and_the_one_it_presses() {
     assert!(b_min > 0.66, "the pressed block must not crush to a blob: {b_min:.2}");
 }
 
+/// Mean (pressure, vice) over a unit's living men whose y is in [lo, hi].
+fn crush_band(sim: &Sim, unit: usize, lo: f32, hi: f32) -> (f32, f32) {
+    let u = &sim.units[unit];
+    let (mut p, mut v, mut n) = (0.0f32, 0.0f32, 0.0f32);
+    for i in u.start..u.start + u.count {
+        if sim.alive[i] == 0 {
+            continue;
+        }
+        let y = sim.soldier_pos(i).y;
+        if y >= lo && y <= hi {
+            p += sim.pressure[i];
+            v += sim.soldier_vice(i);
+            n += 1.0;
+        }
+    }
+    (p / n.max(1.0), v / n.max(1.0))
+}
+
+#[test]
+fn a_two_sided_squeeze_reads_as_a_vice_a_one_sided_shove_does_not() {
+    // The pressure READOUT in isolation: take one block and crush it in y to a
+    // known packing, then read the springs. An INTERIOR man has a neighbour
+    // ahead AND behind, both driven inside rest — two large OPPOSED loads: high
+    // scalar pressure, near-zero net vector = a VICE. An EDGE man (front or back
+    // rank) has a neighbour on ONE side only: one load, so pressure ~= |net| and
+    // almost no vice, even though he is pressed just as hard. This is exactly
+    // what combat reads to pin a wedged man's arms while sparing the man merely
+    // shoved from one side — and it now comes straight off the weave springs.
+    let (mut sim, u) = block(6, 8, 1.0); // 6 wide, 8 deep, facing +y
+    scale_y(&mut sim, u, 0.55); // crush the depth: every rank driven inside rest
+    // A few ticks for the spring loads to register in the EMA; the block barely
+    // relaxes in that time (full recovery takes ~1.5 s).
+    for _ in 0..6 {
+        sim.tick();
+    }
+    let cy = sim.units[u].centroid.y;
+    let (_, half_d) = extent(&sim, u);
+    let edge = half_d * 0.5 - 0.6; // beyond this from centre = front/back rank
+    // Interior = the middle ranks (|y-cy| small); edge = front+back ranks.
+    let (p_in, v_in) = crush_band(&sim, u, cy - 0.6, cy + 0.6);
+    let mut p_edge = 0.0f32;
+    let mut v_edge = 0.0f32;
+    let mut ne = 0.0f32;
+    for i in sim.units[u].start..sim.units[u].start + sim.units[u].count {
+        if sim.alive[i] == 1 && (sim.soldier_pos(i).y - cy).abs() > edge {
+            p_edge += sim.pressure[i];
+            v_edge += sim.soldier_vice(i);
+            ne += 1.0;
+        }
+    }
+    p_edge /= ne.max(1.0);
+    v_edge /= ne.max(1.0);
+    eprintln!(
+        "VICE  interior: press {p_in:.2} vice {v_in:.2}  |  edge: press {p_edge:.2} vice {v_edge:.2}"
+    );
+    // The interior is genuinely crushed.
+    assert!(p_in > 0.3, "interior must feel real pressure: {p_in:.2}");
+    // ...and it reads as a VICE: opposing loads cancel, so vice is most of it.
+    assert!(v_in > 0.6 * p_in, "two-sided crush must read as a vice: vice {v_in:.2} of press {p_in:.2}");
+    // The edge ranks are pressed too, but one-sided — scalar ~= vector, so they
+    // carry far less vice than the interior for the same crush.
+    assert!(
+        v_edge / p_edge.max(1e-3) < 0.5 * (v_in / p_in.max(1e-3)),
+        "one-sided edge must read far less vice-per-crush than two-sided interior: edge {:.2} vs interior {:.2}",
+        v_edge / p_edge.max(1e-3),
+        v_in / p_in.max(1e-3),
+    );
+}
+
 // --- Tier 2: enemies, with the MAGNET, made invulnerable (no death) --------
 //
 // One variable at a time: Tier 1 added a second unit (collision + springs);

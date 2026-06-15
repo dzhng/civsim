@@ -46,20 +46,12 @@ pub struct Sim {
     /// Seconds the instantaneous victor condition has held (morale.rs):
     /// the verdict must be sustained before it locks.
     pub(crate) verdict_hold: f32,
-    /// Crowd squeeze per soldier (EMA of received push, m/s): measured,
-    /// never written by gameplay. Kills evade, transmits force.
+    /// Crowd squeeze per soldier (EMA of WEAVE spring load): the friendly net
+    /// crushing him plus the enemy reach-spring shoving him back. Measured off
+    /// the weave, never written by gameplay. Kills evade, drives the vice.
     pub pressure: Vec<f32>,
-    /// THE LEDGER — raw received push this tick, posted by every system
-    /// that displaces a soldier against his will (separation solver,
-    /// weapon hit-push, stone bowls). Own legs and carried momentum never
-    /// post. Zeroed each tick; folded into the pressure EMAs at the end,
-    /// after the last poster — so a pike hedge hammering a charger is
-    /// pressure exactly like a crowd squeezing him.
-    pub(crate) recv_x: Vec<f32>,
-    pub(crate) recv_y: Vec<f32>,
-    pub(crate) recv_mag: Vec<f32>,
-    /// EMA of the net received push vector (m/s), ALL sources — the vice
-    /// and the ram drag read this (a hedge of thrusts is compression).
+    /// EMA of the net crush VECTOR — the friendly squeeze plus the enemy reach-
+    /// spring. The vice (scalar minus this) and the ram drag read it.
     pub(crate) press_x: Vec<f32>,
     pub(crate) press_y: Vec<f32>,
     /// EMA of the net COLLISION push vector only — the othismos force
@@ -160,9 +152,6 @@ impl Sim {
             mount_health: Vec::new(),
             verdict_hold: 0.0,
             pressure: Vec::new(),
-            recv_x: Vec::new(),
-            recv_y: Vec::new(),
-            recv_mag: Vec::new(),
             press_x: Vec::new(),
             press_y: Vec::new(),
             cond_x: Vec::new(),
@@ -208,6 +197,16 @@ impl Sim {
 
     pub fn soldier_pos(&self, i: usize) -> Vec2 {
         Vec2::new(self.positions[2 * i], self.positions[2 * i + 1])
+    }
+
+    /// The VICE on soldier `i` (m/s of spring load): scalar crush minus the net
+    /// push vector. A man squeezed equally from opposing sides has a large
+    /// scalar crush but a near-zero net vector — that gap is the vice, and it is
+    /// what pins his arms (combat reads it). A man shoved from one side has
+    /// scalar ≈ |net| and so feels no vice.
+    pub fn soldier_vice(&self, i: usize) -> f32 {
+        let net = (self.press_x[i] * self.press_x[i] + self.press_y[i] * self.press_y[i]).sqrt();
+        (self.pressure[i] - net).max(0.0)
     }
 
     /// Distance from soldier `i` to its currently assigned slot.
@@ -329,9 +328,6 @@ impl Sim {
             self.hit_ttl.push(0.0);
             self.kin_vx.push(0.0);
             self.kin_vy.push(0.0);
-            self.recv_x.push(0.0);
-            self.recv_y.push(0.0);
-            self.recv_mag.push(0.0);
             self.cond_x.push(0.0);
             self.cond_y.push(0.0);
             self.alive.push(1);
@@ -590,10 +586,6 @@ impl Sim {
         // Snapshot for velocity measurement (charges, anchor drift).
         self.prev_positions.resize(2 * n, 0.0);
         self.prev_positions.copy_from_slice(&self.positions);
-        // Open the received-push ledger for this tick.
-        for v in self.recv_x.iter_mut().chain(self.recv_y.iter_mut()).chain(self.recv_mag.iter_mut()) {
-            *v = 0.0;
-        }
 
         self.deliver_orders_and_reflexes(dt);
         self.run_skirmish_evade();
@@ -674,17 +666,6 @@ impl Sim {
         self.apply_separation();
         self.run_combat();
         self.run_missiles();
-        // Close the ledger: fold this tick's received pushes into the
-        // pressure EMAs, after the LAST poster (separation, strikes,
-        // stones have all run).
-        {
-            let alpha = 1.0 - (-dt / self.tun.press_tau).exp();
-            for i in 0..self.pressure.len() {
-                self.pressure[i] += (self.recv_mag[i] / dt - self.pressure[i]) * alpha;
-                self.press_x[i] += (self.recv_x[i] / dt - self.press_x[i]) * alpha;
-                self.press_y[i] += (self.recv_y[i] / dt - self.press_y[i]) * alpha;
-            }
-        }
         self.contact_facing(&measures, dt);
         self.integrate_units(&measures, dt);
         self.mark_at_ease(); // fresh centroids; before morale reads it
@@ -1168,6 +1149,7 @@ impl Sim {
             mass,
             mom_x,
             mom_y,
+            pressure,
             press_x,
             press_y,
             front_clear,
@@ -1185,6 +1167,11 @@ impl Sim {
             ..
         } = self;
         let tick_now = *tick_count;
+        // Pressure is read straight off the WEAVE now: a man's crush is the
+        // load on his springs — the friendly net squeezing him plus the enemy
+        // reach-spring shoving him back when ranks pile him inside reach. No
+        // separate force ledger; the same springs that move him measure him.
+        let press_alpha = 1.0 - (-dt / tun.press_tau).exp();
 
         let mut measures = Vec::with_capacity(units.len());
         for u in units.iter() {
@@ -1338,6 +1325,10 @@ impl Sim {
                 // keeps its spacing) AND the contact hold (a front man's foe-weave
                 // won't crush flat, so backpressure can't drive him through it).
                 let mut comp_push = Vec2::ZERO;
+                // The scalar crush: the SUM of spring-load magnitudes (each bond's
+                // push, plus the enemy reach-spring below). Vector cancels under a
+                // two-sided squeeze; this scalar does not — that gap IS the vice.
+                let mut crush_scalar = 0.0f32;
                 // Weave: blend the rigid-slot pull with where my NEIGHBOURS want
                 // me — rest spacing from the men beside and behind. Undeformed,
                 // the two agree (the net's rest shape IS the grid); when a
@@ -1392,6 +1383,7 @@ impl Sim {
                                 let push = tun.compress_strength
                                     * ((comp / tun.compress_scale).exp() - 1.0);
                                 comp_push = comp_push + d * (push / al);
+                                crush_scalar += push;
                             }
                         }
                     }
@@ -1437,6 +1429,9 @@ impl Sim {
                 // A man is steered by their sum; he is STOPPED only by real bodies
                 // (collision), never by a positional rule.
                 let mut steer_to = net_target.unwrap_or(to) + comp_push;
+                // The crush VECTOR: the friendly squeeze, plus the enemy reach-
+                // spring's shove-back (added in the magnet block when it repels).
+                let mut crush_vec = comp_push;
                 let trampling = u.tramples() && u.mass_advance > tun.charge_spent_speed;
                 steer_to = steer_to + to * slot_pull_u;
                 // ENEMY MAGNET — the front line's glue, a SPRING to the foe with
@@ -1460,7 +1455,15 @@ impl Sim {
                         let off = dist - reach_u;
                         let pull = tun.magnet_strength
                             * (1.0 - (-off / tun.magnet_scale).exp());
-                        steer_to = steer_to + d * (pull / dist);
+                        let mvec = d * (pull / dist);
+                        steer_to = steer_to + mvec;
+                        // REPEL (pull < 0, shoved inside reach) is the enemy
+                        // crushing me back — a loaded spring like any other. The
+                        // ATTRACT half (running to contact) is not crush.
+                        if pull < 0.0 {
+                            crush_vec = crush_vec + mvec;
+                            crush_scalar += -pull;
+                        }
                     }
                 }
                 // Idle fidget: a few standing men ease off-slot at a time
@@ -1531,6 +1534,12 @@ impl Sim {
                 }
                 positions[2 * i] = np.x;
                 positions[2 * i + 1] = np.y;
+
+                // Read the crush off the weave: EMA the spring load so a strike's
+                // jolt or a momentary squeeze doesn't flicker the vice/evade.
+                pressure[i] += (crush_scalar - pressure[i]) * press_alpha;
+                press_x[i] += (crush_vec.x - press_x[i]) * press_alpha;
+                press_y[i] += (crush_vec.y - press_y[i]) * press_alpha;
 
                 // Facing: a nearby enemy (turn to meet a threat even before he's
                 // in reach, and even while the crowd shoves you), then the man who

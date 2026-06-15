@@ -1166,6 +1166,7 @@ impl Sim {
             positions,
             prev_positions,
             mass,
+            radius,
             mom_x,
             mom_y,
             press_x,
@@ -1387,17 +1388,15 @@ impl Sim {
                             nsum = nsum + jp + off;
                             nn += 1.0;
                             if k < 2 {
-                                // left/right: the men beside me in my rank.
                                 rank_fwd += jp.dot(f);
                                 rank_n += 1.0;
                             }
                         }
                     }
-                    // DRESS THE LINE: I do not advance past the men beside me. If
-                    // I'm forward of my rank-neighbours' mean, that surplus is
-                    // surrendered from my final step (below) — so when the centre
-                    // of a rank is blocked, the block dresses OUTWARD along the
-                    // line and the flanks can't peel forward around the enemy.
+                    // DRESS THE LINE: I don't advance past my rank-neighbours'
+                    // MEAN forward — the line keeps pace together, but a blocked
+                    // centre pulls the mean back and the flanks dress to it
+                    // instead of peeling forward around the enemy.
                     if rank_n > 0.0 {
                         dress_line = Some(rank_fwd / rank_n);
                     }
@@ -1589,6 +1588,23 @@ impl Sim {
                     effort += 1.0 - ground;
                 }
                 let mut np = Vec2::new(p.x + v.x * dt, p.y + v.y * dt);
+                // HARD BLOCK: a body cannot END a step inside an enemy it can
+                // see (its target). Projected back onto the contact ring, this
+                // is the physical wall the porous separation push can't be — a
+                // fast run can't tunnel through. With the net holding the rear
+                // and the dressing holding the flanks, ONE blocked front rank
+                // now stops the whole formation at contact instead of ghosting
+                // through. Trample drives on; a felled (stunned) foe is no wall.
+                if aware_i && !trampling {
+                    let te = target[i] as usize;
+                    let ep = Vec2::new(positions[2 * te], positions[2 * te + 1]);
+                    let to_e = ep - np;
+                    let de = to_e.len();
+                    let contact = radius[i] + radius[te];
+                    if de > 1e-3 && de < contact && stun[te] <= 0.0 {
+                        np = ep - to_e * (contact / de);
+                    }
+                }
                 if ground <= 0.0 {
                     np = p + terrain.escape_dir(p) * (3.0 * dt);
                 } else if terrain.speed_at(np) <= 0.0 {

@@ -33,6 +33,39 @@ already wrong upstream. Question every existing knob too: "is this still
 needed now that X exists?" Then **prove the answer with a test or a shot**,
 not an argument.
 
+### NO IMAGINARY WALLS
+
+A soldier is stopped only by **real bodies** (collision) and pulled only by
+**real forces** (his weave springs, the enemy magnet, terrain). Never by a
+positional clamp that says "you may not stand past this line." A "hold at
+weapon reach" clamp, a "don't pass your rank-neighbour" dress line, a
+"don't cross the foe's centroid" restoring force — all imaginary walls. They
+each looked like they fixed something (ghost-through, blob, swirl) and each
+quietly broke an emergent behaviour somewhere else (othismos push, the wrap,
+fights that resolve). If you find yourself clamping a position to enforce a
+*rule*, stop: the right stop is a *body* the man can't walk through, and the
+right "he holds at reach" is that a phalanx with enough spear DENSITY
+physically pushes him back by striking — not a wall the engine draws.
+
+### The weave is a mass-spring lattice (the model to build toward)
+
+Each soldier is a node tied to its ≤4 neighbours (3 on an edge, 2 at a
+corner) by springs that resist **stretch and compression**, with angular
+stiffness at the node that resists **shear/pivot** (the grid wants to stay
+square). With no other force a bent lattice springs straight; under force it
+**bends and compresses** and then recovers. The only external pulls are the
+**enemy magnet** (a soldier in reach of an enemy block is drawn to it —
+strongest at the node nearest the block, the attraction radiating outward one
+soldier at a time so the line WRAPS) and **collision**. Everything we kept
+bolting on — formation-keeping, draping round an obstacle, the offensive
+wrap, othismos (= the lattice compressing because the rear ranks push) —
+must FALL OUT of this, not be a separate rule. A soldier always moves toward
+the enemy attacking him; the weave tension (not a rank gate or a wall) is
+what keeps that from dissolving the formation — there is a magnet-like
+tension between where the front man wants to go and how far his springs let
+him stray. Othismos is mass-driven (rear weight compressing the springs), so
+NEVER model it by counting ranks — that ignores soldier mass.
+
 ### One physical quantity → one canonical measurement
 
 When two pieces of code ask the *same physical question* ("how near is the

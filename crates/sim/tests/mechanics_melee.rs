@@ -28,8 +28,12 @@ fn clash(class: UnitClassId, seed: u64, top_attacks: bool) -> Sim {
         tun.slot_pull = v.parse().unwrap();
     }
     let mut sim = Sim::new(tun, seed);
-    let bot = sim.spawn_class(Vec2::new(0.0, -40.0), FRAC_PI_2, N, class, 0);
-    let top = sim.spawn_class(Vec2::new(0.0, 40.0), -FRAC_PI_2, N, class, 1);
+    // Spawn CLOSE (fronts a short march apart). A long run-up frays cohesion ON
+    // PURPOSE — randomized top speeds + terrain pockets — so the player must
+    // halt and regroup before charging for a perfect line. These tests measure
+    // the FIGHT's coherence, not the charge's, so they keep the approach short.
+    let bot = sim.spawn_class(Vec2::new(0.0, -13.0), FRAC_PI_2, N, class, 0);
+    let top = sim.spawn_class(Vec2::new(0.0, 13.0), -FRAC_PI_2, N, class, 1);
     assert_eq!((bot, top), (0, 1));
     sim.set_pace(bot, Pace::Run);
     sim.set_pace(top, Pace::Run);
@@ -176,8 +180,12 @@ fn move_clash(class: UnitClassId, seed: u64) -> Sim {
         tun.slot_pull = v.parse().unwrap();
     }
     let mut sim = Sim::new(tun, seed);
-    let bot = sim.spawn_class(Vec2::new(0.0, -40.0), FRAC_PI_2, N, class, 0);
-    let top = sim.spawn_class(Vec2::new(0.0, 40.0), -FRAC_PI_2, N, class, 1);
+    // Spawn CLOSE (fronts a short march apart). A long run-up frays cohesion ON
+    // PURPOSE — randomized top speeds + terrain pockets — so the player must
+    // halt and regroup before charging for a perfect line. These tests measure
+    // the FIGHT's coherence, not the charge's, so they keep the approach short.
+    let bot = sim.spawn_class(Vec2::new(0.0, -13.0), FRAC_PI_2, N, class, 0);
+    let top = sim.spawn_class(Vec2::new(0.0, 13.0), -FRAC_PI_2, N, class, 1);
     let (bot0, top0) = (sim.units[bot].centroid, sim.units[top].centroid);
     sim.set_pace(bot, Pace::Run);
     sim.set_pace(top, Pace::Run);
@@ -245,11 +253,11 @@ fn trace_sim(mut sim: Sim, secs: f32) -> Trace {
         }
         if std::env::var("TRACE").is_ok() && step % 60 == 0 {
             eprintln!(
-                "t={:5.1} gap={:6.1} topY={:6.1} eng t/b={}/{} faceDev t/b={:.0}/{:.0}° frameSp t/b={:.2}/{:.2}",
-                t, gap, tu.centroid.y, tu.engaged, bu.engaged,
-                tu.facing.cos().abs().min(1.0).asin().to_degrees(),
+                "t={:5.1} gap={:6.1} coh t/b={:.2}/{:.2} eng t/b={}/{} depth t/b={:.2}/{:.2} faceDev={:.0}° frameSp={:.2}",
+                t, gap, tu.cohesion, bu.cohesion, tu.engaged, bu.engaged,
+                depth_ratio(&sim, top), depth_ratio(&sim, bot),
                 bu.facing.cos().abs().min(1.0).asin().to_degrees(),
-                tu.frame_speed, bu.frame_speed,
+                bu.frame_speed,
             );
         }
     }
@@ -401,4 +409,35 @@ fn symmetric_clash_is_even_handed() {
         "identical units took lopsided losses {}/{} — a mechanical bias, not balance",
         tr.bot_loss, tr.top_loss,
     );
+}
+
+/// The leash-tuning knob, in isolation: a unit Running a LONG way frays — its
+/// men have varied top speeds and the frame leads them, so the block pulls
+/// ragged — but it must not DISSOLVE. It should arrive partly frayed (~0.7), so
+/// a player who wants a perfect line has to halt and regroup before charging.
+/// Tune the engaged/march leash against this: looser = frays sooner.
+///
+/// TUNING HARNESS, not a gate yet: with the current dressed-march leash a 600m
+/// run over-frays (target: land it ~0.7 by tuning the leash against the fray
+/// sources). #[ignore]d until that pass; run `cargo test -- --ignored` to read.
+#[ignore]
+#[test]
+fn a_long_run_frays_the_line_but_does_not_dissolve() {
+    let mut tun = Tunables::default();
+    tun.micro_rough = 0.0; // isolate the leash + speed-variation fray from terrain
+    let mut sim = Sim::new(tun, 7);
+    let u = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, N, UnitClassId::HeavySword, 0);
+    sim.set_pace(u, Pace::Run);
+    sim.set_move_order(u, Vec2::new(0.0, 600.0));
+    let mut min_coh = 1.0f32;
+    for _ in 0..(220.0 / DT) as usize {
+        sim.tick();
+        min_coh = min_coh.min(sim.units[u].cohesion);
+        if sim.units[u].centroid.y > 590.0 {
+            break;
+        }
+    }
+    eprintln!("LONG-RUN  min_coh over 600m = {:.2}", min_coh);
+    assert!(min_coh < 0.85, "a long run must fray the line: min_coh {min_coh:.2}");
+    assert!(min_coh > 0.45, "but a run must not DISSOLVE it: min_coh {min_coh:.2}");
 }

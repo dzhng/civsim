@@ -1,5 +1,18 @@
 # Vibe checks
 
+> **Weave vibe shots are separate.** The WEAVE layer (the mass-spring lattice,
+> tested in `crates/sim/tests/mechanics_weave.rs`) has its own picture generator
+> that reduces variables to the bone — single units, same-team presses,
+> invulnerable clashes — and does NOT go through this web/Playwright harness.
+> Render them with `cargo run -p sim --example weave_shots`; they land in
+> `web/vibe/shots/weave/<scenario>/`, one folder per weave test:
+> `t0-stretch|compress|bend|shear|uwrap|death` (the Tier-0 spring perturbations;
+> `t0-stretch` doubles as the settle/no-oscillation case), `t1-press` (same-team
+> compression), `t2-wrap-attack|wrap-hold` (attacking drapes, holding doesn't),
+> `t2-glue-1v1`, and `t2-t-hold|t-attack` (the T-junction — a holding stem keeps
+> its shape, an attacking one drapes along the bar). Keep them OUT of the combat
+> scenarios below: the whole point of the weave layer is to test it in isolation.
+
 Manual, eyeball-it harnesses — **not** pass/fail gates. Each spawns a scenario,
 screenshots it every N sim-seconds, and dumps the frames to flip through. The
 `verify-*.mjs` harnesses *assert*; these just let you *look* (does a fight look

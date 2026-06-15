@@ -8,3 +8,4 @@ contract = { path = "../contract" }
 
 [dev-dependencies]
 serde_json = "1"
+png = "0.17"

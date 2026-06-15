@@ -1166,7 +1166,6 @@ impl Sim {
             positions,
             prev_positions,
             mass,
-            radius,
             mom_x,
             mom_y,
             press_x,
@@ -1174,7 +1173,6 @@ impl Sim {
             front_clear,
             facings,
             soldier_slot,
-            soldier_unit,
             fidget_offset,
             terrain,
             tick_count,
@@ -1194,28 +1192,15 @@ impl Sim {
             let r = Vec2::new(f.y, -f.x);
             let surge_sp = soldier_surge_speed(&tun, u);
             let keep_up_sp = pace_speed(&tun, u) + 0.5;
-            let drifting_out = u.mode == crate::unit::OrderMode::Move
-                && match (u.move_target, u.threat_bearing) {
-                    (Some(t), Some(threat)) => {
-                        let to = t - u.anchor;
-                        crate::math::wrap_angle(to.y.atan2(to.x) - threat).abs() > 1.35
-                    }
-                    _ => false,
-                };
-            let holds_ground =
-                u.mode != crate::unit::OrderMode::Disengage && !u.evade_auto && !drifting_out;
-            // Othismos at the SOLDIER level: the front rank leans its body
-            // onto its man instead of standing at weapon's length. This is
-            // the source of the pressure chain — the frame slack only sets
-            // how deep the slots sit; the men are what actually push.
-            // OFFENSE vs DEFENSE: a unit with a forward intent (attack/move) is
-            // on the offensive — its men step INTO the enemy and the cloth drapes
-            // and wraps. A braced defender (no order) HOLDS: it fights what
-            // reaches it and lets the breach dimple it BACK, it does not reach
-            // forward to grab the column.
+            // Slot attraction depends on INTENT: a unit attacking or moving
+            // loosens its slots so the NEIGHBOUR SPRINGS hold it together (and
+            // the sheet can drape and wrap); a unit just holding grips its grid.
+            // Loose-and-spring-held actually frays LESS on the march than
+            // tight-and-slot-chasing, where the fast men overshoot the advancing
+            // anchor and stretch the block.
             let advancing =
                 matches!(u.mode, crate::unit::OrderMode::Attack(_)) || u.move_target.is_some();
-            let pressing = holds_ground && u.stance == crate::unit::Stance::Othismos && advancing;
+            let slot_pull_u = if advancing { tun.slot_pull } else { tun.slot_pull_hold };
             let reach_u = u.stats
                 .weapons
                 .iter()
@@ -1244,10 +1229,6 @@ impl Sim {
             // point on his own. The slot still anchors the sheet so it springs
             // back to shape.
             let mut soldier_at_slot = vec![usize::MAX; u.count];
-            // Where this unit's fight IS (mean of its men in contact). On the
-            // OFFENSIVE, men with no enemy in front drive on this — so the
-            // overlapping flanks curl in and the cloth wraps the enemy.
-            let (mut fcx, mut fcy, mut fcn) = (0.0f32, 0.0f32, 0.0f32);
             for s in 0..u.count {
                 let i = u.start + s;
                 if alive[i] == 1 {
@@ -1255,14 +1236,8 @@ impl Sim {
                     if sl < u.count {
                         soldier_at_slot[sl] = i;
                     }
-                    if fighting[i] == 1 {
-                        fcx += positions[2 * i];
-                        fcy += positions[2 * i + 1];
-                        fcn += 1.0;
-                    }
                 }
             }
-            let fight_centroid = (fcn > 0.0).then(|| Vec2::new(fcx / fcn, fcy / fcn));
 
             for s in 0..u.count {
                 let i = u.start + s;
@@ -1357,17 +1332,12 @@ impl Sim {
                 // not just the slot-seek — so a man who is seeking or pressing an
                 // enemy is still held in formation by his neighbours.
                 let mut net_target: Option<Vec2> = None;
-                // Mean forward coord (along facing) of my rank-neighbours: I may
-                // not advance past it (dress the line). Set in the net block.
-                let mut dress_line: Option<f32> = None;
-                // Forward coord (along facing) the man directly AHEAD of me sits
-                // at: I may not climb closer than rest-spacing behind him. This
-                // holds the formation's DEPTH — when the front rank is stopped
-                // at the enemy, rank 2 stops a spacing back, rank 3 behind that,
-                // and the block keeps its grid instead of compressing into a
-                // shallow blob (high cohesion, no grid). The front rank has no
-                // one ahead, so it's bounded by the enemy (the restoring force).
-                let mut depth_limit: Option<f32> = None;
+                // The weave's COMPRESSION push: summed over my squeezed bonds, a
+                // shove away from each neighbour that grows exponentially as the
+                // bond crushes toward zero. This is the anti-blob (the lattice
+                // keeps its spacing) AND the contact hold (a front man's foe-weave
+                // won't crush flat, so backpressure can't drive him through it).
+                let mut comp_push = Vec2::ZERO;
                 // Weave: blend the rigid-slot pull with where my NEIGHBOURS want
                 // me — rest spacing from the men beside and behind. Undeformed,
                 // the two agree (the net's rest shape IS the grid); when a
@@ -1387,8 +1357,6 @@ impl Sim {
                     ];
                     let mut nsum = Vec2::ZERO;
                     let mut nn = 0.0f32;
-                    let mut rank_fwd = 0.0f32; // mean forward coord of live rank-neighbours
-                    let mut rank_n = 0.0f32;
                     // Weave strain, the raw material of COHESION. A bond's rest
                     // is `off` (where I sit relative to that neighbour); the live
                     // bond is `p - jp`. STRETCH (only — compression is natural and
@@ -1398,7 +1366,7 @@ impl Sim {
                     // U-wrapped line racks up pivot while keeping its spacings.
                     let mut bond_stretch = 0.0f32;
                     let mut bond_pivot = 0.0f32;
-                    for (k, (ok, ns, off)) in nbrs.into_iter().enumerate() {
+                    for (_k, (ok, ns, off)) in nbrs.into_iter().enumerate() {
                         if !ok || ns >= u.count {
                             continue;
                         }
@@ -1414,29 +1382,18 @@ impl Sim {
                                 let c = ((d.x * off.x + d.y * off.y) / (al * rl)).clamp(-1.0, 1.0);
                                 bond_pivot += c.acos();
                             }
-                            if k < 2 {
-                                rank_fwd += jp.dot(f);
-                                rank_n += 1.0;
-                            }
-                            if k == 2 {
-                                // The man in the rank ahead. I may close up UNDER
-                                // PRESS to a fraction of rest spacing — melee
-                                // packs, it isn't a parade — but no nearer, so
-                                // the depth compresses a little and holds rather
-                                // than collapsing into a shallow blob. The floor
-                                // is what keeps the rear ranks feeding the fight
-                                // (men in contact = casualties) without piling
-                                // clean through their own front rank.
-                                depth_limit = Some(jp.dot(f) - 0.5 * sy);
+                            // COMPRESSION push: when the bond is shorter than rest,
+                            // shove away from the neighbour, the force climbing
+                            // exponentially as the gap closes — the lattice yields
+                            // a little under press but guards its spacing without
+                            // bound near collapse. No squeeze, no push.
+                            let comp = rl - al;
+                            if comp > 0.0 && al > 1e-3 {
+                                let push = tun.compress_strength
+                                    * ((comp / tun.compress_scale).exp() - 1.0);
+                                comp_push = comp_push + d * (push / al);
                             }
                         }
-                    }
-                    // DRESS THE LINE: I don't advance past my rank-neighbours'
-                    // MEAN forward — the line keeps pace together, but a blocked
-                    // centre pulls the mean back and the flanks dress to it
-                    // instead of peeling forward around the enemy.
-                    if rank_n > 0.0 {
-                        dress_line = Some(rank_fwd / rank_n);
                     }
                     if nn > 0.0 {
                         // The draping net: where my live neighbours want me to
@@ -1472,48 +1429,48 @@ impl Sim {
                 max_sp = max_sp.min((0.62 + 0.44 * stagger01(i, 0xCAFE)) * surge_sp);
                 let idle = u.move_target.is_none() && u.engaged == 0
                     && hit_ttl[i] <= 0.0 && err < 0.6;
-                // WEAVE: a man is held by his neighbour SPRINGS (net_target — the
-                // dominant cohesion); the slot is only a weak locator the order
-                // drags the whole sheet around by.
-                let mut steer_to = net_target.unwrap_or(to);
+                // WEAVE, the sum of real forces — no walls, no clamps:
+                //   net_target  the neighbour SPRINGS pulling toward rest shape
+                //   comp_push   the exponential push-apart that guards spacing
+                //   slot_pull   a weak locator the order drags the sheet by
+                //   magnet      the pull onto the enemy (the front line's glue)
+                // A man is steered by their sum; he is STOPPED only by real bodies
+                // (collision), never by a positional rule.
+                let mut steer_to = net_target.unwrap_or(to) + comp_push;
                 let trampling = u.tramples() && u.mass_advance > tun.charge_spent_speed;
-                // PLANTED: in reach and fighting, his own drive goes quiet — only
-                // the springs hold him. So the FRONT LINE STOPS ITSELF (no wall),
-                // and the rear, still pulled forward by its slots, COMPRESSES the
-                // springs against him; that compression's restoring push is
-                // othismos, mass for mass. Trample never plants — it rides through.
-                let planted = engaged_i && !trampling;
+                steer_to = steer_to + to * slot_pull_u;
+                // ENEMY MAGNET — the front line's glue, a SPRING to the foe with
+                // rest length = weapon reach. Far from his foe a man is pulled in
+                // hard (he RUNS to contact); at reach the force is zero (he STOPS
+                // — "once attacking it stops moving"); pushed INSIDE reach it
+                // REPELS, exponentially, so no backpressure drives him deeper onto
+                // (or through) his foe — he holds at weapon's length and the shove
+                // passes through their bodies into the enemy instead. Because the
+                // bond is to the foe he is FIGHTING, not the nearest body, he does
+                // not chase: he advances a step only when that foe falls and he
+                // re-targets. Gated on FRONT_CLEAR so only the front (and an
+                // overhang man with an open shot — the wrap) feels it. Trample is
+                // the absence of glue: a plowing mass barely feels it.
+                if aware_i && front_clear[i] == 1 && !trampling {
+                    let te = target[i] as usize;
+                    let ep = Vec2::new(positions[2 * te], positions[2 * te + 1]);
+                    let d = ep - p;
+                    let dist = d.len();
+                    if dist > 1e-3 {
+                        let off = dist - reach_u;
+                        let pull = tun.magnet_strength
+                            * (1.0 - (-off / tun.magnet_scale).exp());
+                        steer_to = steer_to + d * (pull / dist);
+                    }
+                }
+                // Idle fidget: a few standing men ease off-slot at a time
+                // (recorded so the re-form sort can subtract it).
                 fidget_offset[i] = Vec2::ZERO;
-                if !planted {
-                    steer_to = steer_to + to * tun.slot_pull;
-                    // ENEMY MAGNET: drawn to the nearest enemy body, the pull
-                    // rising EXPONENTIALLY as he closes — far off it is nothing
-                    // (the rear keeps its ranks), in close it overwhelms the slot
-                    // and he RUNS IN. Gated on FRONT_CLEAR: you cannot run at an
-                    // enemy your own comrade is standing in front of (no path),
-                    // so only the actual front of the line — and an overhang man
-                    // with open ground to the foe's flank — feels it. THAT keeps
-                    // a clean single-rank contact instead of every near rank
-                    // piling in. The overhang's open shot curls it round: wrap.
-                    if aware_i && front_clear[i] == 1 {
-                        let te = target[i] as usize;
-                        let ep = Vec2::new(positions[2 * te], positions[2 * te + 1]);
-                        let d = ep - p;
-                        let dist = d.len();
-                        if dist > 1e-3 {
-                            let pull = tun.magnet_strength
-                                * (-((dist - reach_u).max(0.0)) / tun.magnet_scale).exp();
-                            steer_to = steer_to + d * (pull / dist);
-                        }
-                    }
-                    // Idle fidget: a few standing men ease off-slot at a time
-                    // (recorded so the re-form sort can subtract it).
-                    if idle && stagger01(i * 7 + 5, tick_now / 4) > 0.65 {
-                        let fx = stagger01(i * 3, tick_now / 4) - 0.5;
-                        let fy = stagger01(i * 3 + 1, tick_now / 4) - 0.5;
-                        fidget_offset[i] = Vec2::new(fx, fy) * IDLE_FIDGET;
-                        steer_to = steer_to + fidget_offset[i];
-                    }
+                if idle && !engaged_i && stagger01(i * 7 + 5, tick_now / 4) > 0.65 {
+                    let fx = stagger01(i * 3, tick_now / 4) - 0.5;
+                    let fy = stagger01(i * 3 + 1, tick_now / 4) - 0.5;
+                    fidget_offset[i] = Vec2::new(fx, fy) * IDLE_FIDGET;
+                    steer_to = steer_to + fidget_offset[i];
                 }
 
                 let micro = 1.0 - tun.micro_rough * (1.0 - crate::terrain::micro_rough(p));
@@ -1534,11 +1491,31 @@ impl Sim {
                 if vl > 0.2 {
                     effort += 1.0 - ground;
                 }
+                // FIGHTING PACE, directional: a man already engaged may not drive
+                // INTO his foe faster than a fighting step. This caps only the
+                // velocity component TOWARD the foe — so a charging front rank
+                // can't punch through its enemy and stretch off its own rank (the
+                // violent depth spike at contact) — while leaving his LATERAL
+                // motion free, so an attacker still drapes/wraps along the line.
+                // He still surges if torn badly out of place (err high).
+                if engaged_i && err < tun.surge_err_threshold {
+                    let te = target[i] as usize;
+                    let ep = Vec2::new(positions[2 * te], positions[2 * te + 1]);
+                    let e = ep - p;
+                    let el = e.len();
+                    if el > 1e-3 {
+                        let eh = e * (1.0 / el);
+                        let fwd = v.x * eh.x + v.y * eh.y;
+                        if fwd > tun.base_speed {
+                            v = v - eh * (fwd - tun.base_speed);
+                        }
+                    }
+                }
                 let mut np = Vec2::new(p.x + v.x * dt, p.y + v.y * dt);
-                // No imaginary walls: the man is stopped only by real bodies he
-                // can't walk through (the separation solver) and the springs that
-                // tie him to his neighbours. A planted front line + collision is
-                // the contact stop; nothing here clamps a position to a rule.
+                // No "halt at your foe" clamp, no "hold the rank" clamp: the man
+                // is stopped by his foe's BODY (collision) and held on it by the
+                // magnet. The ranks behind stop because the lattice in front of
+                // them won't compress flat. Real forces only.
                 if ground <= 0.0 {
                     np = p + terrain.escape_dir(p) * (3.0 * dt);
                 } else if terrain.speed_at(np) <= 0.0 {
@@ -1747,28 +1724,27 @@ impl Sim {
                 let f = dir(u.facing);
                 let expected = u.anchor + f * (-0.5 * u.depth());
                 let lag = (expected - u.centroid).dot(f);
-                // Slack tightens CONTINUOUSLY with engagement: a fresh
-                // contact lets the frame keep pressing in (driving more men
-                // into reach) until about a third of the unit is fighting —
-                // the natural depth of a committed front. A binary gate here
-                // regulates battles down to a bloodless standoff.
-                let press = u.stance == crate::unit::Stance::Othismos
-                    && (matches!(u.mode, OrderMode::Attack(_)) || u.move_target.is_some());
-                // ONE knob: stance. Attack, arrived-move, and standing
-                // defender all obey the same slack — othismos converts
-                // depth into press, fence holds at weapon's length.
-                let tight = if press {
-                    let ranks = (u.alive_count / u.files_eff.max(1)).min(12) as f32;
-                    0.6 + 0.25 * ranks
-                } else {
-                    0.8
-                };
-                // Binary by engagement, resolved by STANCE: fence fights at
-                // weapon's length (tight), othismos presses rank-deep (its
-                // tight is wide). Disengage always runs on loose slack —
-                // fleeing slots must LEAD the men out.
-                let engaged_now = fighting_frac > 0.05 && u.mode != OrderMode::Disengage;
-                let leash = if engaged_now { tight } else { 0.6 * u.depth() + 5.0 };
+                // The frame sits AT the men when engaged — no rank-counting
+                // forward slack. Othismos is NOT a slack that shoves the slots
+                // ahead of the line (a phantom drive that drags the rear into
+                // the front and blobs the block); it EMERGES from the rear ranks
+                // physically compressing the weave springs against the planted
+                // front. So the leash is just "the frame holds with the men"; the
+                // press is real, paid in compression, by mass.
+                // Disengage/rout aside, the frame is leashed TIGHT and BOTH
+                // WAYS: it never runs far ahead of its men (which would tow the
+                // front out and stretch the block on the march — the run-fray)
+                // nor lag behind them. Tight on the march keeps the block
+                // dressed as it closes; tight in the fight keeps the slots on
+                // the men so the rear bonds don't tear. Disengage stays loose
+                // (fleeing slots must LEAD the men out).
+                let disengaging = u.mode == OrderMode::Disengage;
+                // Tight when engaged/marching so a short approach arrives dressed
+                // (a long run still frays through the men's varied top speeds and
+                // terrain pockets — a charge over distance is meant to cost
+                // coherence, so the player halts to regroup). Disengage runs loose
+                // (fleeing slots must LEAD the men out).
+                let leash = if disengaging { 0.6 * u.depth() + 5.0 } else { 0.3 * u.depth() + 1.5 };
                 if lag > leash {
                     u.anchor = u.anchor + f * (-(lag - leash));
                     // Ordered to stand or advance yet measurably walked
@@ -1777,6 +1753,8 @@ impl Sim {
                         let alpha = 1.0 - (-dt / 2.0f32).exp();
                         u.losing_push += ((lag - leash) / dt - u.losing_push) * alpha;
                     }
+                } else if !disengaging && lag < -leash {
+                    u.anchor = u.anchor + f * (-(lag + leash));
                 }
             } else if u.routing {
                 // The frame follows the fleeing mob (so a rally has a unit

@@ -61,6 +61,17 @@ pub struct Tunables {
     /// Disorder per radian of mean bond PIVOT (the lattice bent/sheared/wrapped
     /// off its rest grid). Tuned so a line wrapped into a U sheds ~20% cohesion.
     pub cohesion_pivot: f32,
+    /// Bond COMPRESSION resistance: the push-apart force grows as
+    /// exp(compress/scale) - 1, so a slightly squeezed lattice barely
+    /// resists but one crushed toward zero spacing pushes back without
+    /// bound — the weave can compress (othismos) but NEVER collapses to a
+    /// blob. This same resistance is what holds a contact line: backpressure
+    /// can't shove the front man through his foe because the foe's weave
+    /// won't crush flat. Peak push per unit of (rest - live) over scale.
+    pub compress_strength: f32,
+    /// Compression decay length (m): squeeze beyond this and the push-apart
+    /// climbs steeply. Small = the lattice guards its spacing hard.
+    pub compress_scale: f32,
     /// Enemy MAGNET: peak pull (at weapon reach) toward the nearest enemy body.
     pub magnet_strength: f32,
     /// Magnet decay length (m): the pull falls off as exp(-(dist-reach)/scale),
@@ -86,6 +97,12 @@ pub struct Tunables {
     /// chases his own slot independently and peels off around a block. The net
     /// coupling is the remainder (1 - slot_pull).
     pub slot_pull: f32,
+    /// Slot attraction for a unit that is NOT attacking (no forward order): much
+    /// stronger than `slot_pull`. A holding/defending unit grips its grid, so a
+    /// single corner touching an enemy does NOT drag the whole formation out to
+    /// wrap him — only a unit with attacking INTENT loosens its slots enough to
+    /// drape and envelop. Attacking = weak slots (the wrap); holding = stiff.
+    pub slot_pull_hold: f32,
     /// Heading error (rad) beyond which a unit halts and pivots in place,
     /// continuously re-forming ranks, instead of arcing while marching.
     pub pivot_facing_err: f32,
@@ -189,14 +206,17 @@ impl Default for Tunables {
             cohesion_k: 2.5,
             cohesion_stretch: 0.5,
             cohesion_pivot: 0.055,
+            compress_strength: 1.2,
+            compress_scale: 0.22,
             magnet_strength: 3.0,
             magnet_scale: 0.7,
             min_turn_frac: 0.3,
             min_accel_frac: 0.4,
             soldier_radius: 0.33,
             separation_slide: 0.3,
-            separation_max_push: 0.1,
+            separation_max_push: 0.25,
             slot_pull: 0.2,
+            slot_pull_hold: 0.8,
             pivot_facing_err: 0.9,
             pivot_exit_err: 0.15,
             wheel_speed_factor: 1.0,

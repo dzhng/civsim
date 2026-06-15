@@ -6,10 +6,19 @@
 //! formation tests — they exercise only the neighbour springs, decoupled from
 //! combat, the magnet, and orders. Nail these before anything touches an enemy.
 //!
+//! Tier 1: TWO units, SAME team (so there is zero combat — no magnet, no kills,
+//! no swirl), one pressing into the other. This is the weave under EXTERNAL
+//! load: the only thing that stops two lattices interpenetrating is body
+//! collision, and the only thing that keeps each lattice from crushing into a
+//! blob is its own compression spring. A press must compress BOTH the pusher
+//! (its front stalls on the obstacle, its rear keeps coming) and the pushed
+//! (its front is driven back into its own ranks) — and neither may collapse to
+//! nothing, nor pour straight through the other.
+//!
 //! Facing is fixed NORTH (+y) so the unit's right-axis is +x and its
 //! forward-axis is +y; "width" is the x-spread, "depth" is the y-spread.
 
-use sim::{Sim, Tunables, Vec2, DT};
+use sim::{Pace, Sim, Tunables, Vec2, DT};
 use std::f32::consts::FRAC_PI_2;
 
 const SEED: u64 = 7;
@@ -19,8 +28,13 @@ fn block(files: usize, ranks: usize, spacing: f32) -> (Sim, usize) {
     let mut tun = Tunables::default();
     tun.micro_rough = 0.0;
     tun.morale_enabled = false;
+    // Tier 0 isolates the SPRINGS: give a holding unit the same (low) slot pull
+    // as an attacking one, so these tests read the lattice restoring force, not
+    // the hold-vs-attack slot-stiffness policy (a Tier 1/2 concern).
+    tun.slot_pull_hold = tun.slot_pull;
     if let Ok(v) = std::env::var("SLOTPULL") {
         tun.slot_pull = v.parse().unwrap();
+        tun.slot_pull_hold = tun.slot_pull;
     }
     let mut sim = Sim::new(tun, SEED);
     let u = sim.spawn_unit(
@@ -174,6 +188,353 @@ fn wrap_u(sim: &mut Sim, unit: usize, span_rad: f32) {
     }
 }
 
+// --- Tier 1: two same-team blocks, one pressing the other ------------------
+
+/// Two blocks on a parade ground, SAME team — so there is NO combat at all (no
+/// magnet, no kills, no swirl). The only thing that stops the two lattices
+/// interpenetrating is body collision; the only thing that keeps each from
+/// crushing into a blob is its own compression spring. This is the weave under
+/// pure mechanical load, every combat variable removed. Both face north (+y);
+/// `a` sits south, `b` north. The presser must use WALK pace: the separation
+/// solver relieves overlap up to `separation_max_push` (0.1 m) per tick, which
+/// exceeds a walk step (~0.057 m) but not a run — so a walk presses cleanly
+/// while a run would outrun the solver and leak through. Returns (sim, a, b).
+fn two_blocks(
+    a_files: usize,
+    a_ranks: usize,
+    a_y: f32,
+    b_files: usize,
+    b_ranks: usize,
+    b_y: f32,
+    spacing: f32,
+) -> (Sim, usize, usize) {
+    let mut tun = Tunables::default();
+    tun.micro_rough = 0.0;
+    tun.morale_enabled = false;
+    // Friendly bodies normally SLIDE around each other (funnelling); zero it so
+    // a head-on press deadlocks instead, isolating compression from the
+    // tangential funnel — one fewer variable in the weave-only picture.
+    tun.separation_slide = 0.0;
+    let mut sim = Sim::new(tun, SEED);
+    let a = sim.spawn_unit(
+        Vec2::new(0.0, a_y),
+        FRAC_PI_2,
+        a_files * a_ranks,
+        a_files,
+        Vec2::new(spacing, spacing),
+        0,
+        0.8,
+    );
+    let b = sim.spawn_unit(
+        Vec2::new(0.0, b_y),
+        FRAC_PI_2,
+        b_files * b_ranks,
+        b_files,
+        Vec2::new(spacing, spacing),
+        0,
+        0.8,
+    );
+    for _ in 0..30 {
+        sim.tick();
+    }
+    (sim, a, b)
+}
+
+/// Mean nearest-neighbour distance among a unit's living men — the weave's
+/// PACKING. At rest it is the file spacing; a compressed lattice reads less, a
+/// stretched one more. Robust to a ragged front (unlike the y-extent).
+fn pack(sim: &Sim, unit: usize) -> f32 {
+    let u = &sim.units[unit];
+    let men: Vec<Vec2> = (u.start..u.start + u.count)
+        .filter(|&i| sim.alive[i] == 1)
+        .map(|i| sim.soldier_pos(i))
+        .collect();
+    let (mut sum, mut n) = (0.0f32, 0.0f32);
+    for (k, &p) in men.iter().enumerate() {
+        let mut best = f32::INFINITY;
+        for (l, &q) in men.iter().enumerate() {
+            if k != l {
+                best = best.min((p - q).len());
+            }
+        }
+        if best.is_finite() {
+            sum += best;
+            n += 1.0;
+        }
+    }
+    sum / n.max(1.0)
+}
+
+/// Fraction of unit `a`'s living men with an ENEMY (other-team) body within
+/// `0.8` m — the body-level "are the two sides intermingled" measure. A clean
+/// glued front has only the front rank in contact (small); a blender threads
+/// enemies all through the block (large).
+fn intermix(sim: &Sim, a: usize, b: usize) -> f32 {
+    let ua = &sim.units[a];
+    let ub = &sim.units[b];
+    let bmen: Vec<Vec2> = (ub.start..ub.start + ub.count)
+        .filter(|&i| sim.alive[i] == 1)
+        .map(|i| sim.soldier_pos(i))
+        .collect();
+    let (mut touched, mut n) = (0.0f32, 0.0f32);
+    for i in ua.start..ua.start + ua.count {
+        if sim.alive[i] == 0 {
+            continue;
+        }
+        n += 1.0;
+        let p = sim.soldier_pos(i);
+        if bmen.iter().any(|&q| (p - q).len() < 0.8) {
+            touched += 1.0;
+        }
+    }
+    touched / n.max(1.0)
+}
+
+/// Mean y of a unit's living men.
+fn mean_y(sim: &Sim, unit: usize) -> f32 {
+    let u = &sim.units[unit];
+    let (mut sum, mut n) = (0.0f32, 0.0f32);
+    for i in u.start..u.start + u.count {
+        if sim.alive[i] == 1 {
+            sum += sim.soldier_pos(i).y;
+            n += 1.0;
+        }
+    }
+    sum / n.max(1.0)
+}
+
+#[test]
+fn an_advancing_block_compresses_both_itself_and_the_one_it_presses() {
+    // A walks north into B (SAME team — pure weave, no combat). The press must
+    // compress BOTH lattices: A's front stalls on B while A's rear keeps
+    // coming (A packs hard), and B is driven into its own ranks (B packs).
+    // Neither may crush to a body-contact blob — the exponential compression
+    // spring holds the spacing. (Whether the press HOLDS or A eventually wedges
+    // through is a COMBAT-tier question: without the enemy magnet gluing front
+    // to front and the enemy collision wall, friendly bodies have nothing to
+    // hold the contact, so this test asserts compression only, not the hold.)
+    let (mut sim, a, b) = two_blocks(10, 10, -10.0, 10, 8, 2.0, 1.0);
+    let a_rest = pack(&sim, a);
+    let b_rest = pack(&sim, b);
+    let b_y0 = mean_y(&sim, b);
+    sim.set_pace(a, Pace::Walk); // walk: the separation solver can fully relieve a walk step
+    sim.set_move_order(a, Vec2::new(0.0, 30.0)); // drive clean through where B stands
+
+    let (mut a_min, mut b_min) = (f32::INFINITY, f32::INFINITY);
+    for step in 0..(18.0 / DT) as usize {
+        sim.tick();
+        a_min = a_min.min(pack(&sim, a));
+        b_min = b_min.min(pack(&sim, b));
+        if std::env::var("TRACE").is_ok() && step % 30 == 0 {
+            eprintln!(
+                "  t={:.1} A_y={:.1} pack={:.2} | B_y={:.1} pack={:.2}",
+                step as f32 * DT,
+                mean_y(&sim, a), pack(&sim, a),
+                mean_y(&sim, b), pack(&sim, b),
+            );
+        }
+    }
+    let _ = b_y0;
+    eprintln!(
+        "PRESS  A pack {:.2}->min {:.2}  B pack {:.2}->min {:.2}",
+        a_rest, a_min, b_rest, b_min
+    );
+    // Both lattices packed tighter than rest spacing (~1.0) — the advance
+    // compressed itself AND the block it pressed.
+    assert!(a_min < 0.85, "the pusher's own lattice must compress: {a_min:.2}");
+    assert!(b_min < 0.97, "the pressed lattice must compress: {b_min:.2}");
+    // Neither crushed to a body-contact blob (~0.66 = 2×radius). The
+    // exponential compression spring holds the spacing well above it.
+    assert!(a_min > 0.66, "the pusher must not crush to a blob: {a_min:.2}");
+    assert!(b_min > 0.66, "the pressed block must not crush to a blob: {b_min:.2}");
+}
+
+// --- Tier 2: enemies, with the MAGNET, made invulnerable (no death) --------
+//
+// One variable at a time: Tier 1 added a second unit (collision + springs);
+// Tier 2 now adds the enemy MAGNET and the front-line glue, but keeps death
+// switched OFF (invulnerable) so the geometry is not muddied by attrition. The
+// clash mechanics — glue, wrap, the hold-vs-attack slot stiffness — show in
+// isolation.
+
+/// Two blocks, OPPOSING teams, facing each other (a north, b south), made
+/// INVULNERABLE after settling so the magnet glues and bodies block but nobody
+/// dies. Returns (sim, a, b).
+fn two_armies(
+    a_files: usize,
+    a_ranks: usize,
+    a_y: f32,
+    b_files: usize,
+    b_ranks: usize,
+    b_y: f32,
+    spacing: f32,
+) -> (Sim, usize, usize) {
+    let mut tun = Tunables::default();
+    tun.micro_rough = 0.0;
+    tun.morale_enabled = false;
+    let mut sim = Sim::new(tun, SEED);
+    let a = sim.spawn_unit(
+        Vec2::new(0.0, a_y),
+        FRAC_PI_2,
+        a_files * a_ranks,
+        a_files,
+        Vec2::new(spacing, spacing),
+        0,
+        0.8,
+    );
+    let b = sim.spawn_unit(
+        Vec2::new(0.0, b_y),
+        -FRAC_PI_2,
+        b_files * b_ranks,
+        b_files,
+        Vec2::new(spacing, spacing),
+        1,
+        0.8,
+    );
+    for _ in 0..30 {
+        sim.tick();
+    }
+    for h in sim.health.iter_mut() {
+        *h = 1.0e9;
+    }
+    (sim, a, b)
+}
+
+#[test]
+fn an_attacking_line_wraps_a_deep_column_a_holding_one_does_not() {
+    // A wide LINE meets a narrow deep COLUMN head-on (invulnerable, no death).
+    // ATTACKING, the line's overhanging flanks have open shots to the column's
+    // sides — the magnet curls them in and the loose attack-slots let the sheet
+    // drape, so the line WRAPS the column (deep bow, cohesion shed). The same
+    // line merely HOLDING (no order, stiff slots) must NOT wrap: a corner
+    // touch can't drag the rigid grid out to envelop.
+    for (attacking, expect_wrap) in [(true, true), (false, false)] {
+        let (mut sim, line, col) = two_armies(18, 3, -8.0, 3, 18, 6.0, 1.0);
+        let coh_flat = sim.units[line].cohesion;
+        let (_, line_d0) = extent(&sim, line);
+        if attacking {
+            sim.set_pace(line, Pace::Walk);
+            sim.set_attack_order(line, col);
+        }
+        // the column just holds (no order) in both cases
+        let mut line_depth_max: f32 = 0.0;
+        let mut coh_min = f32::INFINITY;
+        for _ in 0..(14.0 / DT) as usize {
+            sim.tick();
+            line_depth_max = line_depth_max.max(extent(&sim, line).1);
+            coh_min = coh_min.min(sim.units[line].cohesion);
+        }
+        let bow = line_depth_max - line_d0;
+        eprintln!(
+            "WRAP[{}]  line depth {:.1}->{:.1} (bow {:.1})  cohesion {:.2}->min {:.2}",
+            if attacking { "attack" } else { "hold" },
+            line_d0, line_depth_max, bow, coh_flat, coh_min
+        );
+        if expect_wrap {
+            // The spring-magnet holds the front at weapon's length, so the
+            // attacker forms a CLEAN CUP around the column (it doesn't pile
+            // through it as the old constant-pull magnet did) — a smaller, more
+            // honest bow. What matters is the contrast with the holding line.
+            assert!(bow > 2.0, "the attacking line must wrap the column: bow {bow:.1}");
+            assert!(coh_min < coh_flat - 0.05, "the wrap must shed cohesion: {coh_flat:.2}->{coh_min:.2}");
+        } else {
+            assert!(bow < 1.5, "a holding line must NOT wrap on a corner touch: bow {bow:.1}");
+        }
+    }
+}
+
+#[test]
+fn two_invulnerable_lines_glue_at_contact_and_hold_a_clean_front() {
+    // Full 1v1 with the magnet, death OFF. Two equal lines attack each other.
+    // The front ranks GLUE at contact (a single touching front, not a tangled
+    // intermix) and the blocks meet near the midline — neither pours through.
+    let (mut sim, a, b) = two_armies(12, 6, -8.0, 12, 6, 8.0, 1.0);
+    sim.set_pace(a, Pace::Walk);
+    sim.set_pace(b, Pace::Walk);
+    sim.set_attack_order(a, b);
+    sim.set_attack_order(b, a);
+    let mut max_intermix = 0.0f32;
+    for _ in 0..(16.0 / DT) as usize {
+        sim.tick();
+        max_intermix = max_intermix.max(intermix(&sim, a, b));
+    }
+    let gap = mean_y(&sim, b) - mean_y(&sim, a); // b is north, a south: stays positive
+    eprintln!("GLUE   centroid_gap={:.1}  max_intermix={:.2}", gap, max_intermix);
+    // The two centroids did not swap sides (no walk-through).
+    assert!(gap > 0.0, "the lines walked through each other: gap {gap:.1}");
+    // Contact stayed a front, not a blender: only a fraction of each line ever
+    // has an enemy body intermingled among its own men.
+    assert!(max_intermix < 0.5, "the front turned into a blob/intermix: {max_intermix:.2}");
+}
+
+/// A T-junction setup: a wide BAR (16x4, along x, facing north, team 0) and a
+/// narrow STEM (3x12, along y, facing south, team 1) whose tip overlaps the
+/// bar's centre. Invulnerable, no death. Returns (sim, stem, bar).
+fn t_junction() -> (Sim, usize, usize) {
+    let mut tun = Tunables::default();
+    tun.micro_rough = 0.0;
+    tun.morale_enabled = false;
+    let mut sim = Sim::new(tun, SEED);
+    let bar = sim.spawn_unit(Vec2::new(0.0, 0.0), FRAC_PI_2, 64, 16, Vec2::new(1.0, 1.0), 0, 0.8);
+    let stem = sim.spawn_unit(Vec2::new(0.0, 6.0), -FRAC_PI_2, 36, 3, Vec2::new(1.0, 1.0), 1, 0.8);
+    for _ in 0..30 {
+        sim.tick();
+    }
+    for h in sim.health.iter_mut() {
+        *h = 1.0e9;
+    }
+    (sim, stem, bar)
+}
+
+#[test]
+fn a_holding_stem_does_not_merge_into_the_bar() {
+    // Stem and bar both HOLD (no order). The magnet glues the touching men;
+    // left loose they would reel together into one blob. Stiff hold-slots stop
+    // it: the stem keeps its narrow column and the bar keeps its width — they
+    // meet at the junction without either dissolving into the other.
+    let (mut sim, stem, bar) = t_junction();
+    let (stem_w0, _) = extent(&sim, stem);
+    let (bar_w0, _) = extent(&sim, bar);
+    let (mut stem_w_max, mut bar_w_max) = (stem_w0, bar_w0);
+    for _ in 0..(14.0 / DT) as usize {
+        sim.tick();
+        stem_w_max = stem_w_max.max(extent(&sim, stem).0);
+        bar_w_max = bar_w_max.max(extent(&sim, bar).0);
+    }
+    eprintln!(
+        "T-HOLD   stem width {:.1}->max {:.1}  bar width {:.1}->max {:.1}",
+        stem_w0, stem_w_max, bar_w0, bar_w_max
+    );
+    // The holding stem stays a narrow stem — it is NOT reeled out along the bar.
+    assert!(stem_w_max < stem_w0 + 3.0, "the holding stem splayed along the bar: {stem_w0:.1}->{stem_w_max:.1}");
+    assert!(bar_w_max < bar_w0 + 3.0, "the holding bar splayed at the junction: {bar_w0:.1}->{bar_w_max:.1}");
+}
+
+#[test]
+fn an_attacking_stem_drapes_along_the_bar() {
+    // The mirror case: the stem ATTACKS the bar. Because it is attacking (loose
+    // slots + the magnet pulling its men onto open enemies along the line), it
+    // does NOT keep its column — its men fan out and DRAPE along the bar's face
+    // (the attacker wraps). Its width grows well past its narrow rest.
+    let (mut sim, stem, bar) = t_junction();
+    let (stem_w0, _) = extent(&sim, stem);
+    sim.set_pace(stem, Pace::Walk);
+    sim.set_attack_order(stem, bar);
+    let mut stem_w_max = stem_w0;
+    for _ in 0..(16.0 / DT) as usize {
+        sim.tick();
+        stem_w_max = stem_w_max.max(extent(&sim, stem).0);
+    }
+    eprintln!("T-ATTACK stem width {:.1}->max {:.1}", stem_w0, stem_w_max);
+    // Attacking, the stem drapes wider than its rest along the bar (clearly more
+    // than a HOLDING stem, which stays ~+2 — see the hold test). The tight
+    // engaged leash keeps the drape modest; the contrast is what matters.
+    assert!(
+        stem_w_max > stem_w0 + 2.8,
+        "the attacking stem must drape along the bar: width {stem_w0:.1}->{stem_w_max:.1}"
+    );
+}
+
 // ---------------------------------------------------------------------------
 
 #[test]
@@ -255,7 +616,7 @@ fn a_bent_block_straightens() {
 #[test]
 fn a_sheared_block_squares_up() {
     let (mut sim, u) = block(10, 5, 1.0);
-    shear(&mut sim, u, 0.6); // lean it over: x += 0.6*(y-cy)
+    shear(&mut sim, u, 1.0); // lean it over hard: x += 1.0*(y-cy)
     let lean0 = lean(&sim, u);
     assert!(lean0 > 1.5, "setup: it must start leaned ({lean0:.1})");
     settle(&mut sim, 8.0);

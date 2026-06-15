@@ -79,6 +79,35 @@ fn settle(sim: &mut Sim, secs: f32) {
     }
 }
 
+/// Mean-x of the back half minus the front half — the block's LEAN (0 when
+/// square, large when sheared into a parallelogram). Facing is north (+y), so
+/// "back" is the high-y half.
+fn lean(sim: &Sim, unit: usize) -> f32 {
+    let u = &sim.units[unit];
+    let mut ys: Vec<(f32, f32)> = (u.start..u.start + u.count)
+        .filter(|&i| sim.alive[i] == 1)
+        .map(|i| (sim.soldier_pos(i).y, sim.soldier_pos(i).x))
+        .collect();
+    ys.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
+    let h = ys.len() / 2;
+    let front_x: f32 = ys[..h].iter().map(|p| p.1).sum::<f32>() / h.max(1) as f32;
+    let back_x: f32 = ys[h..].iter().map(|p| p.1).sum::<f32>() / (ys.len() - h).max(1) as f32;
+    back_x - front_x
+}
+
+/// Kill men (from the rear) until the unit is down to `target` alive.
+fn kill_to(sim: &mut Sim, unit: usize, target: usize) {
+    let (s, e) = (sim.units[unit].start, sim.units[unit].start + sim.units[unit].count);
+    for i in (s..e).rev() {
+        if sim.units[unit].alive_count <= target {
+            break;
+        }
+        if sim.alive[i] == 1 {
+            sim.kill(i);
+        }
+    }
+}
+
 // --- the perturbations: write world positions directly ---------------------
 
 /// Scale every man's x-offset from the unit centroid by `k` (lateral stretch
@@ -226,24 +255,41 @@ fn a_bent_block_straightens() {
 #[test]
 fn a_sheared_block_squares_up() {
     let (mut sim, u) = block(10, 5, 1.0);
-    let (_, d0) = extent(&sim, u);
     shear(&mut sim, u, 0.6); // lean it over: x += 0.6*(y-cy)
-    let (_, d_sheared) = extent(&sim, u);
-    // a shear keeps the same y-spread but the grid is no longer square; we
-    // measure recovery by the y-spread returning to rest AND the block
-    // un-leaning (depth back to nominal — shear leaves depth ~unchanged, so the
-    // real tell is the grid angle; here we use the simplest proxy: it settles
-    // back toward its rest depth without collapsing).
-    eprintln!("SHEAR    rest_d={:.2}  sheared depth {:.2}", d0, d_sheared);
+    let lean0 = lean(&sim, u);
+    assert!(lean0 > 1.5, "setup: it must start leaned ({lean0:.1})");
     settle(&mut sim, 8.0);
-    let (_, d1) = extent(&sim, u);
-    eprintln!("SHEAR    recovered depth {:.2}", d1);
+    let lean1 = lean(&sim, u);
+    eprintln!("SHEAR    lean {:.2} -> recovered {:.2}", lean0, lean1);
     assert!(
-        (d1 - d0).abs() < 0.2 * d0,
-        "a sheared block must square back up: depth {:.2} vs rest {:.2}",
-        d1,
-        d0
+        lean1.abs() < 0.4,
+        "a sheared block must square back up: lean {:.2} (was {:.2})",
+        lean1,
+        lean0
     );
+}
+
+#[test]
+fn a_dying_block_sheds_depth_then_width() {
+    // The 3-deep rule: as men die the block gets SHALLOWER at full width until
+    // it would drop below 3 ranks, then it closes up and sheds WIDTH instead.
+    let (mut sim, u) = block(12, 8, 1.0); // 96 men, 12 wide × 8 deep
+    let w0 = sim.units[u].files_eff;
+    assert_eq!(w0, 12, "setup: starts 12 wide");
+    // Down to half: alive/3 = 16 > 12, so width holds and DEPTH sheds (to ~4).
+    kill_to(&mut sim, u, 48);
+    settle(&mut sim, 5.0);
+    let w_half = sim.units[u].files_eff;
+    eprintln!("DEATH    96->48: width {} -> {} (depth ~{})", w0, w_half, 48 / w_half.max(1));
+    assert!(w_half >= 11, "at half strength it sheds DEPTH, keeps width: {w_half}");
+    // Down to 24: alive/3 = 8 < 12, so it must now shed WIDTH, never below 3 deep.
+    kill_to(&mut sim, u, 24);
+    settle(&mut sim, 6.0);
+    let w_q = sim.units[u].files_eff;
+    let ranks = 24 / w_q.max(1);
+    eprintln!("DEATH    48->24: width {} (depth ~{})", w_q, ranks);
+    assert!(w_q < 11, "now it must shed WIDTH: {w_q}");
+    assert!(ranks >= 3, "but never thinner than 3 deep: {ranks} ranks");
 }
 
 #[test]

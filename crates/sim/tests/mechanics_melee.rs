@@ -82,6 +82,39 @@ fn interpenetration(sim: &Sim, unit: usize, r: f32) -> f32 {
 /// This is the measure that distinguishes "a line with a fighting front and a
 /// dressed body" from "a blob": the rear must hold its grid and merely FOLLOW
 /// the front, not lunge with it. Low here = the rear is still a grid.
+/// Measured front-to-back DEPTH of a unit's living men (extent along the
+/// facing axis) as a fraction of the nominal depth (ranks × rank-spacing).
+/// Anchor-independent — it reads the men themselves, so it can't be fooled by
+/// the frame floating ahead. ≈1 = the block keeps its depth; ≪1 = it has
+/// collapsed into a shallow blob (the rear piled into the front). The clean
+/// test of "did the depth collapse", with no absolute-slot confound.
+fn depth_ratio(sim: &Sim, unit: usize) -> f32 {
+    let u = &sim.units[unit];
+    let f = sim_dir(u.facing);
+    let (mut lo, mut hi) = (f32::INFINITY, f32::NEG_INFINITY);
+    let mut n = 0usize;
+    for i in u.start..u.start + u.count {
+        if sim.alive[i] == 0 {
+            continue;
+        }
+        let d = sim.soldier_pos(i).x * f.0 + sim.soldier_pos(i).y * f.1;
+        lo = lo.min(d);
+        hi = hi.max(d);
+        n += 1;
+    }
+    if n == 0 {
+        return 1.0;
+    }
+    let ranks = (u.count as f32 / u.files_eff.max(1) as f32).max(1.0);
+    let nominal = ((ranks - 1.0) * u.spacing.y).max(0.5);
+    (hi - lo) / nominal
+}
+
+fn sim_dir(a: f32) -> (f32, f32) {
+    (a.cos(), a.sin())
+}
+
+#[allow(dead_code)]
 fn rear_rank_slot_error(sim: &Sim, unit: usize, skip_front: usize) -> f32 {
     let u = &sim.units[unit];
     let files = u.files_eff.max(1);
@@ -121,6 +154,9 @@ struct Trace {
     /// Worst (largest) rear-rank slot error EITHER unit reached pre-rout — the
     /// rear ranks piling into the fight instead of holding their grid.
     max_rear_slot_err: f32,
+    /// Smallest formation depth ratio EITHER unit reached pre-rout — anchor-free
+    /// "did the block keep its depth or collapse into a blob".
+    min_depth_ratio: f32,
     /// For the first unit to break: metres travelled along its HOME direction
     /// from break to end (+ = fled toward its own edge).
     rout_flee_home: Option<f32>,
@@ -163,6 +199,7 @@ fn trace_sim(mut sim: Sim, secs: f32) -> Trace {
     let mut max_pen = 0.0f32;
     let mut max_face_dev = 0.0f32;
     let mut max_rear_err = 0.0f32;
+    let mut min_depth = f32::INFINITY;
     let mut first_rout = false;
     let mut rout_unit: Option<(usize, f32, f32)> = None; // (idx, home_sign, y_at_break)
 
@@ -185,6 +222,9 @@ fn trace_sim(mut sim: Sim, secs: f32) -> Trace {
             max_rear_err = max_rear_err
                 .max(rear_rank_slot_error(&sim, top, 2))
                 .max(rear_rank_slot_error(&sim, bot, 2));
+            min_depth = min_depth
+                .min(depth_ratio(&sim, top))
+                .min(depth_ratio(&sim, bot));
             if step % 30 == 0 {
                 max_pen = max_pen
                     .max(interpenetration(&sim, top, 1.2))
@@ -223,6 +263,7 @@ fn trace_sim(mut sim: Sim, secs: f32) -> Trace {
         max_interpenetration: max_pen,
         max_facing_dev_deg: max_face_dev,
         max_rear_slot_err: max_rear_err,
+        min_depth_ratio: min_depth,
         rout_flee_home,
         bot_loss: N - sim.units[bot].alive_count,
         top_loss: N - sim.units[top].alive_count,
@@ -235,15 +276,15 @@ fn trace_sim(mut sim: Sim, secs: f32) -> Trace {
 fn two_attacking_lines_hold_and_never_cross() {
     let tr = trace(UnitClassId::HeavySword, 4242, true, 300.0);
     eprintln!(
-        "BOTH-ATTACK  min_coh={:.2}  gap_min={:.1}m crossed@{}  pen_max={:.2}  face_dev={:.0}°  rear_err={:.2}m  flee={:?}  loss b/t={}/{}",
+        "BOTH-ATTACK  min_coh={:.2}  gap_min={:.1}m crossed@{}  pen_max={:.2}  face_dev={:.0}°  rear_err={:.2}m  depth={:.2}  flee={:?}  loss b/t={}/{}",
         tr.min_cohesion_both, tr.min_centroid_gap_y, tr.crossed_at, tr.max_interpenetration,
-        tr.max_facing_dev_deg, tr.max_rear_slot_err, tr.rout_flee_home, tr.bot_loss, tr.top_loss,
+        tr.max_facing_dev_deg, tr.max_rear_slot_err, tr.min_depth_ratio, tr.rout_flee_home, tr.bot_loss, tr.top_loss,
     );
     assert!(
-        tr.max_rear_slot_err < 2.0,
-        "the REAR ranks piled into the fight: rear slot error hit {:.2}m (want < 2.0) — the body \
-         became a blob instead of a grid following its front rank",
-        tr.max_rear_slot_err,
+        tr.min_depth_ratio > 0.6,
+        "the block COLLAPSED into a blob: depth fell to {:.0}% of nominal (want > 60%) — the rear \
+         ranks piled into the front instead of holding their grid depth",
+        tr.min_depth_ratio * 100.0,
     );
     assert!(
         tr.max_facing_dev_deg < 20.0,

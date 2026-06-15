@@ -106,8 +106,30 @@ struct Trace {
     top_loss: usize,
 }
 
+/// Two IDENTICAL blocks given MOVE orders to each other's starting centroid — a
+/// point BEYOND the contact, exactly like the attack latch's chase point. The
+/// invariant: an attack latch is just a move order (plus charge + give-up), so
+/// with charge off (the default here) this must behave the SAME as `clash(.,.,
+/// true)`. The leash governs where the frame actually sits, not the target.
+fn move_clash(class: UnitClassId, seed: u64) -> Sim {
+    let mut tun = Tunables::default();
+    tun.micro_rough = 0.0;
+    let mut sim = Sim::new(tun, seed);
+    let bot = sim.spawn_class(Vec2::new(0.0, -40.0), FRAC_PI_2, N, class, 0);
+    let top = sim.spawn_class(Vec2::new(0.0, 40.0), -FRAC_PI_2, N, class, 1);
+    let (bot0, top0) = (sim.units[bot].centroid, sim.units[top].centroid);
+    sim.set_pace(bot, Pace::Run);
+    sim.set_pace(top, Pace::Run);
+    sim.set_move_order(bot, top0); // each marches to where the other started
+    sim.set_move_order(top, bot0);
+    sim
+}
+
 fn trace(class: UnitClassId, seed: u64, top_attacks: bool, secs: f32) -> Trace {
-    let mut sim = clash(class, seed, top_attacks);
+    trace_sim(clash(class, seed, top_attacks), secs)
+}
+
+fn trace_sim(mut sim: Sim, secs: f32) -> Trace {
     let (bot, top) = (0usize, 1usize);
     let mut min_coh_both = 1.0f32;
     let mut min_coh_atk = 1.0f32;
@@ -227,6 +249,40 @@ fn an_attacker_into_a_holding_line_keeps_formation() {
         tr.max_interpenetration < 0.30,
         "lines interpenetrated: {:.0}% had enemies in reach (want < 30%)",
         tr.max_interpenetration * 100.0,
+    );
+}
+
+/// THE INVARIANT: an attack latch is just a move order to a point beyond the
+/// foe (plus charge + give-up). With charge off (the default), two units
+/// latched to each other must behave the SAME as two units MOVING to each
+/// other's start — same cohesion, same interpenetration, same cross verdict.
+/// If they diverge, the attack path is special-casing something the move path
+/// isn't (or vice-versa) — a bug, not a feature.
+#[test]
+fn attack_latch_behaves_like_a_move_order() {
+    let a = trace_sim(clash(UnitClassId::HeavySword, 4242, true), 200.0);
+    let m = trace_sim(move_clash(UnitClassId::HeavySword, 4242), 200.0);
+    eprintln!(
+        "ATTACK  coh={:.2} pen={:.2} gap_min={:.1} cross@{}",
+        a.min_cohesion_both, a.max_interpenetration, a.min_centroid_gap_y, a.crossed_at
+    );
+    eprintln!(
+        "MOVE    coh={:.2} pen={:.2} gap_min={:.1} cross@{}",
+        m.min_cohesion_both, m.max_interpenetration, m.min_centroid_gap_y, m.crossed_at
+    );
+    assert!(
+        (a.min_cohesion_both - m.min_cohesion_both).abs() < 0.12,
+        "cohesion differs attack {:.2} vs move {:.2} — the latch is special-casing formation",
+        a.min_cohesion_both, m.min_cohesion_both,
+    );
+    assert!(
+        (a.max_interpenetration - m.max_interpenetration).abs() < 0.15,
+        "interpenetration differs attack {:.2} vs move {:.2}",
+        a.max_interpenetration, m.max_interpenetration,
+    );
+    assert_eq!(
+        a.crossed_at < 0.0, m.crossed_at < 0.0,
+        "cross verdict differs: attack crossed@{} vs move crossed@{}", a.crossed_at, m.crossed_at,
     );
 }
 

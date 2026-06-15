@@ -1653,21 +1653,7 @@ impl Sim {
                     let te = target[i] as usize;
                     let ep = Vec2::new(positions[2 * te], positions[2 * te + 1]);
                     let fdir = dir(u.facing);
-                    // OTHISMOS as DEPTH balance — pure geometry, no push signal to
-                    // corrupt and no circularity. A man's shove power is the
-                    // weight of ranks behind him; pit my column's depth against
-                    // my foe's. Deeper wins: I grind PAST reach and walk him
-                    // back, he is pinned further back and gives ground until
-                    // losing_push breaks him. EQUAL depth cancels EXACTLY — the
-                    // symmetric clash is the untouched hold (no ghost, no
-                    // collapse) — so this only moves a line that SHOULD move,
-                    // where numbers/depth actually differ.
-                    let eu = soldier_unit[te] as usize;
-                    let my_ranks = u.alive_count as f32 / u.files_eff.max(1) as f32;
-                    let foe_ranks =
-                        units[eu].alive_count as f32 / units[eu].files_eff.max(1) as f32;
-                    let give = (0.15 * (my_ranks - foe_ranks)).clamp(-reach_u, 2.0 * reach_u);
-                    let ahead = np.dot(fdir) - (ep.dot(fdir) - reach_u + give);
+                    let ahead = np.dot(fdir) - (ep.dot(fdir) - reach_u);
                     if ahead > 0.0 {
                         np = np - fdir * ahead;
                     }

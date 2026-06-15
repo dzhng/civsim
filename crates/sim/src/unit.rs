@@ -137,6 +137,10 @@ pub struct Unit {
     /// Broken: control lost, soldiers flee as bodies through whatever is in
     /// the way.
     pub routing: bool,
+    /// This attacking unit is markedly WIDER than the foe it's latched to (a line
+    /// overhanging a column): it keeps advancing its hanging flanks to WRAP rather
+    /// than halting at contact like an equal clash. Set each tick in the latch.
+    pub overhung: bool,
     /// Recent missile strikes received (decaying) — being shot at without
     /// reply erodes the will.
     pub recent_missiles: f32,

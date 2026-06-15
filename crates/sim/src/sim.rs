@@ -487,6 +487,14 @@ impl Sim {
         }
         let anchor = self.units[enemy].anchor;
         self.queue_order(unit, OrderMode::Attack(enemy as u32), anchor);
+        // An attack has no commanded final facing: the unit faces wherever the
+        // chase takes it — squared up on the enemy, refreshed each tick as the
+        // move_target tracks the foe. A stale final_facing from a prior order
+        // would otherwise freeze the destination ghost (and the arrival pivot)
+        // to the heading the unit happened to hold when the order was given.
+        if let Some(u) = self.units.get_mut(unit) {
+            u.final_facing = None;
+        }
     }
 
     /// Move order that also pivots to a final facing on arrival

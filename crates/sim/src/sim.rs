@@ -1357,6 +1357,14 @@ impl Sim {
                 // Mean forward coord (along facing) of my rank-neighbours: I may
                 // not advance past it (dress the line). Set in the net block.
                 let mut dress_line: Option<f32> = None;
+                // Forward coord (along facing) the man directly AHEAD of me sits
+                // at: I may not climb closer than rest-spacing behind him. This
+                // holds the formation's DEPTH — when the front rank is stopped
+                // at the enemy, rank 2 stops a spacing back, rank 3 behind that,
+                // and the block keeps its grid instead of compressing into a
+                // shallow blob (high cohesion, no grid). The front rank has no
+                // one ahead, so it's bounded by the enemy (the restoring force).
+                let mut depth_limit: Option<f32> = None;
                 // Weave: blend the rigid-slot pull with where my NEIGHBOURS want
                 // me — rest spacing from the men beside and behind. Undeformed,
                 // the two agree (the net's rest shape IS the grid); when a
@@ -1390,6 +1398,10 @@ impl Sim {
                             if k < 2 {
                                 rank_fwd += jp.dot(f);
                                 rank_n += 1.0;
+                            }
+                            if k == 2 {
+                                // the man in the rank ahead: I sit `sy` behind him
+                                depth_limit = Some(jp.dot(f) - sy);
                             }
                         }
                     }
@@ -1636,6 +1648,20 @@ impl Sim {
                     let ahead = np.dot(fdir) - (ep.dot(fdir) - reach_u);
                     if ahead > 0.0 {
                         np = np - fdir * ahead;
+                    }
+                }
+                // HOLD DEPTH: a man may not climb forward past rest-spacing
+                // behind the rank ahead of him. With the front rank pinned at
+                // the enemy (above), this propagates back rank by rank and the
+                // block keeps its full depth instead of collapsing into a
+                // shallow blob. Trample drives through.
+                if let Some(lim) = depth_limit {
+                    if !trampling {
+                        let fdir = dir(u.facing);
+                        let ahead = np.dot(fdir) - lim;
+                        if ahead > 0.0 {
+                            np = np - fdir * ahead;
+                        }
                     }
                 }
                 if ground <= 0.0 {

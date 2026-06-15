@@ -1477,6 +1477,23 @@ impl Sim {
                             // crowd pressure and the chain transmits it.
                             steer_to = tt;
                         }
+                        // A man FIGHTING a foe holds at reach — he does not march
+                        // on THROUGH the body he's fighting (which is what walks a
+                        // whole unit clean through its enemy, attack or move
+                        // alike). Kill any forward, into-the-target drive; he
+                        // still dresses sideways and gives ground if shoved, and
+                        // his othismos lean still registers as pressure (the
+                        // enemy wall converts it, the chain transmits it) — it
+                        // just can't carry his feet past the man in front of him.
+                        // TRAMPLE is the exception: a horse attacks WHILE driving
+                        // through, the crowd stops it by bleeding momentum.
+                        if !trampling {
+                            let n = tt * (1.0 / tt.len().max(0.01));
+                            let into = steer_to.dot(n);
+                            if into > 0.0 {
+                                steer_to = steer_to - n * into;
+                            }
+                        }
                     }
                 } else if advancing && holds_ground && !trampling && u.engaged > 0 {
                     // OFFENSE WRAP: a FRONT-rank man with no enemy ahead drives on

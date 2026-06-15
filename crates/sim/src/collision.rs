@@ -126,9 +126,6 @@ impl Sim {
                         let dx = px - body_pos[2 * bj];
                         let dy = py - body_pos[2 * bj + 1];
                         let d2 = dx * dx + dy * dy;
-                        let ui = soldier_unit[i] as usize;
-                        let uj = soldier_unit[j] as usize;
-                        let enemies = units[ui].team != units[uj].team;
                         let min_dist = body_r[bi] + body_r[bj];
                         if d2 >= min_dist * min_dist {
                             continue;
@@ -140,7 +137,9 @@ impl Sim {
                             // funneling). Enemies don't politely sidestep each
                             // other: head-on enemy contact deadlocks into a
                             // battle line, which is the point.
-                            let slide = if !enemies {
+                            let ui = soldier_unit[i] as usize;
+                            let uj = soldier_unit[j] as usize;
+                            let slide = if units[ui].team == units[uj].team {
                                 tun.separation_slide
                             } else {
                                 0.0

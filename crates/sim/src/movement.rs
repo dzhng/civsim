@@ -99,24 +99,9 @@ pub(crate) fn update_unit_motion(tun: &Tunables, u: &mut Unit, dt: f32, ground: 
 
     match steer_goal {
         Some(t) => {
-            let attacking = matches!(u.mode, crate::unit::OrderMode::Attack(_));
-            // ENGAGED: the attack has REACHED the enemy. Stop driving and turning
-            // toward the target now — once in contact, chasing the (off-axis,
-            // orbiting) enemy pivots the whole frame a little more each tick and
-            // the two lines spin into a swirl. Hold the heading we arrived squared
-            // up with and grind; the men fight from a stable frame. (Advance to
-            // contact, then hold — what makes a defender's line stay pristine.)
-            if attacking
-                && !u.charging
-                && !u.overhung
-                && u.engaged as f32 > 0.06 * (u.alive_count.max(1) as f32)
-            {
-                u.pivoting = false;
-                u.frame_speed = move_toward(u.frame_speed, 0.0, accel * 2.0 * dt);
-                return;
-            }
             let to = t - u.anchor;
             let mut dist = to.len();
+            let attacking = matches!(u.mode, crate::unit::OrderMode::Attack(_));
             if intermediate || attacking {
                 // No deceleration into corners — and no "arriving" at an
                 // enemy: an attack drives until the leash or the kill stops
@@ -309,7 +294,6 @@ mod tests {
             morale: 1.0,
             morale_ceiling: 1.0,
             routing: false,
-            overhung: false,
             recent_missiles: 0.0,
             losing_push: 0.0,
             centroid: Vec2::ZERO,

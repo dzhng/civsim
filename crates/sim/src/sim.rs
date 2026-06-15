@@ -284,7 +284,6 @@ impl Sim {
             morale: 0.7 + 0.3 * training.clamp(0.0, 1.0),
             morale_ceiling: 1.0,
             routing: false,
-            overhung: false,
             recent_missiles: 0.0,
             losing_push: 0.0,
             centroid: anchor,
@@ -968,10 +967,6 @@ impl Sim {
             }
             if let OrderMode::Attack(e) = mode {
                 let e = e as usize;
-                // OVERHANG: am I markedly wider than the foe I'm latched to (a line
-                // vs a column)? Then I keep advancing my hanging flanks to WRAP it,
-                // instead of halting at contact like an equal clash.
-                self.units[ui].overhung = self.units[ui].width() > self.units[e].width() * 1.5;
                 // The enemy's edge along MY approach: half-depth when I come
                 // at their face, half-WIDTH when I come at their flank — a
                 // 100x4 column is 2m deep head-on and 50m wide side-on, and
@@ -1054,21 +1049,10 @@ impl Sim {
                     u.mode = OrderMode::Move;
                     u.move_target = u.resume_target.take();
                 } else {
-                    // The latch keeps the order LIVE through the fight, but it aims
-                    // for CONTACT, not the enemy's center: a standoff just short of
-                    // the enemy's front, so the two fronts meet and the centroids
-                    // stay a formation-depth apart. Driving to the enemy anchor made
-                    // the fronts pass THROUGH each other until the centers merged —
-                    // and a merged center makes "face the enemy" spin, swirling the
-                    // press. The leash (anchor law) still decides press depth.
-                    let to = enemy_anchor - u.anchor;
-                    let d = to.len();
-                    let target = if d > 1.5 {
-                        u.anchor + to * ((d - 1.5) / d)
-                    } else {
-                        u.anchor
-                    };
-                    u.move_target = Some(target);
+                    // The latch keeps the order LIVE through the fight: the
+                    // frame always pursues the enemy anchor and the leash
+                    // (anchor law) decides how deep it actually presses.
+                    u.move_target = Some(enemy_anchor);
                     if u.charge_enabled {
                         let charge_sp = (self.tun.base_speed
                             + (self.tun.charge_speed - self.tun.base_speed)
@@ -1228,19 +1212,8 @@ impl Sim {
             // and wraps. A braced defender (no order) HOLDS: it fights what
             // reaches it and lets the breach dimple it BACK, it does not reach
             // forward to grab the column.
-            // ...UNTIL broadly engaged. A line whose whole front has met the enemy
-            // has arrived: it stops driving forward and HOLDS like a defender, so
-            // its frame and slots go still and the men dress to them instead of
-            // chasing a moving frame into a swirl. A NARROW contact (a wide line
-            // overhanging a column) stays under the bar, so it keeps advancing its
-            // hanging flanks to wrap. This is "advance to contact, then hold".
-            // Advance to contact, then HOLD (men dress to a still frame) — UNLESS
-            // we overhang the foe (a wide line on a column), where the hanging
-            // flanks keep driving in to wrap. Equal clashes hold; overhangs wrap.
-            let broadly_engaged = u.engaged as f32 > 0.06 * (u.alive_count.max(1) as f32);
-            let advancing = (matches!(u.mode, crate::unit::OrderMode::Attack(_))
-                || u.move_target.is_some())
-                && (!broadly_engaged || u.overhung);
+            let advancing =
+                matches!(u.mode, crate::unit::OrderMode::Attack(_)) || u.move_target.is_some();
             let pressing = holds_ground && u.stance == crate::unit::Stance::Othismos && advancing;
             let reach_u = u.stats
                 .weapons
@@ -1288,24 +1261,6 @@ impl Sim {
                 }
             }
             let fight_centroid = (fcn > 0.0).then(|| Vec2::new(fcx / fcn, fcy / fcn));
-            // The engaged FRONTAGE: the span of front-rank files actually in
-            // contact. A man OUTSIDE [eng_lo, eng_hi] is a hanging flank with
-            // nothing ahead of him — he wraps. If the WHOLE front rank is engaged
-            // the span is full and nobody wraps: the line holds cohesion. This
-            // scales to any number of foes (the span is just wherever contact is),
-            // and an interior hole from a felled foe stays inside the span, so a
-            // momentary gap doesn't peel the line open.
-            let files_pp = u.files_eff.max(1);
-            let (mut eng_lo, mut eng_hi) = (usize::MAX, 0usize);
-            for f in 0..files_pp {
-                let s = soldier_at_slot[f]; // rank-0 slot index == file
-                if s != usize::MAX && fighting[s] == 1 {
-                    if eng_lo == usize::MAX {
-                        eng_lo = f;
-                    }
-                    eng_hi = f;
-                }
-            }
 
             for s in 0..u.count {
                 let i = u.start + s;
@@ -1331,15 +1286,7 @@ impl Sim {
                     let v = 1.0 / mass[i].max(0.2);
                     positions[2 * i] += mom_x[i] * v * dt;
                     positions[2 * i + 1] += mom_y[i] * v * dt;
-                    // A line that has ARRIVED and is holding bleeds carried momentum
-                    // FAST, so a charge's punch doesn't coast the men straight through
-                    // the enemy front (which scatters an equal clash). Overhanging
-                    // wrappers and still-advancing units keep the normal ~0.8s coast.
-                    let decay = if broadly_engaged && !u.overhung {
-                        1.0 - (dt / 0.2)
-                    } else {
-                        1.0 - (dt / 0.8)
-                    };
+                    let decay = 1.0 - (dt / 0.8);
                     mom_x[i] *= decay;
                     mom_y[i] *= decay;
                     if mom_x[i] * mom_x[i] + mom_y[i] * mom_y[i] < 1.0 {
@@ -1519,13 +1466,11 @@ impl Sim {
                         steer_to = tt;
                         max_sp = max_sp.min(keep_up_sp * 0.5);
                     } else if engaged_i {
-                        // In range: fight in place. No slot-chase throttle — once
-                        // a line is broadly engaged its FRAME is held still (see
-                        // `broadly_engaged`), so the men dress to STABLE slots and
-                        // there is nothing to dart toward; the old 0.25 throttle
-                        // was a bandaid for a moving frame. (Impact momentum is
-                        // separate REAL state — mom_x/mom_y — so a body that
-                        // arrived at speed keeps driving until the crowd bleeds it.)
+                        // In range: hold ground, fight, don't chase slots.
+                        // (Impact momentum is separate REAL state — see
+                        // mom_x/mom_y — so a body that arrived at speed
+                        // keeps driving until the crowd bleeds it dry.)
+                        max_sp *= 0.25;
                         if pressing {
                             // Lean ON him: a slow sustained step into the
                             // target's body. Separation converts it into
@@ -1534,26 +1479,14 @@ impl Sim {
                         }
                     }
                 } else if advancing && holds_ground && !trampling && u.engaged > 0 {
-                    // OFFENSE WRAP: a FRONT-rank man on a HANGING FLANK (outside the
-                    // engaged frontage — nothing ahead of him) drives on where the
-                    // fighting is, so the overlap curls inward and the cloth drapes
-                    // around the enemy. A fully-engaged front rank has no hanging
-                    // flank, so two matched lines just grind straight instead of
-                    // curling into a blob; and a rigid wall (low weave) holds its
-                    // shape. Front rank only: a buried man has friendlies ahead, so
-                    // driving him forward rams the formation into itself.
-                    let files = u.files_eff.max(1);
-                    let (rank, file) = (soldier_slot[i] as usize / files, soldier_slot[i] as usize % files);
-                    // Wrap only when the line markedly OVERHANGS its contact — the
-                    // engaged frontage is well under two-thirds the line's width, so
-                    // it's a column being enveloped, not an equal line merely
-                    // drifting against a peer. Then the files OUTSIDE the engaged
-                    // span (the genuine hanging flanks) curl in. Equal widths never
-                    // trip it; a rigid wall (low weave) still won't curl.
-                    let span = if eng_lo == usize::MAX { 0 } else { eng_hi - eng_lo + 1 };
-                    let overhung = span >= 1 && span * 3 < files * 2;
-                    let hanging = overhung && (file < eng_lo || file > eng_hi);
-                    if rank == 0 && hanging && u.stats.weave > 0.3 {
+                    // OFFENSE WRAP: a FRONT-rank man with no enemy ahead drives on
+                    // where the fighting is, so the overlapping flank curls inward
+                    // and the cloth drapes around the enemy. Gated to the front
+                    // rank: a buried man has friendlies ahead, so driving him
+                    // forward just rams the formation into itself (the 1v1 blob).
+                    // The weave drags the ranks behind the curling front along.
+                    let rank = soldier_slot[i] as usize / u.files_eff.max(1);
+                    if rank == 0 {
                         if let Some(fc) = fight_centroid {
                             let to_fc = fc - p;
                             if to_fc.len() > reach_u {
@@ -1574,21 +1507,6 @@ impl Sim {
                     max_sp *= 1.0 - 0.5 * rough * stagger01(i, tick_now);
                 }
 
-                // A man does not SURGE past his slot. The slot — leashed to the
-                // unit, a bit forward for the press — is his leash; once he has
-                // reached it he fights IN PLACE rather than chasing a foe out of
-                // the line. This is what keeps an ATTACKING formation dressed: it
-                // advances to contact, then holds, exactly as a defender does
-                // (whose men never had a forward drive to begin with). Catching up
-                // from behind, dressing laterally, and dimpling BACK stay free —
-                // only overrunning the front of one's own slot is denied.
-                {
-                    let fwd_slot = to.dot(f); // >0: slot ahead (catch up); <0: past it
-                    let sf = steer_to.dot(f);
-                    if fwd_slot < 0.0 && sf > 0.0 {
-                        steer_to = steer_to - f * sf;
-                    }
-                }
                 let mut v = steer_to * tun.soldier_gain;
                 let vl = v.len();
                 if vl > max_sp {
@@ -1671,11 +1589,7 @@ impl Sim {
             let (_, _, _, _, engaged, _f, alive_n, _, _, _, _) = measures[ui];
             let alive_n = alive_n.max(1);
             let engaged_frac = engaged as f32 / alive_n as f32;
-            // Skip the idle 90%, BUT a unit with a live move/attack order still
-            // faces where it's going even before contact — so it arrives squared
-            // up on the enemy instead of sideways (it was only ever re-facing once
-            // already engaged).
-            if (engaged_frac <= 0.06 && self.units[ui].move_target.is_none())
+            if engaged_frac <= 0.06
                 || self.units[ui].mode == OrderMode::Disengage
                 || self.units[ui].evade_auto
             {
@@ -1719,22 +1633,20 @@ impl Sim {
             // attacks cancel in the mean — then the frame holds still and the
             // per-soldier reactive facing splits the men both ways (the spec).
             let decisive = weight > 4.0 && sum.len() > 0.45 * weight;
-            let u = &self.units[ui];
-            let broadly_engaged = engaged_frac > 0.06; // CURRENT-tick contact (from measures)
-            let desired = if broadly_engaged {
-                // ARRIVED: hold the heading we squared up with on the approach.
-                // Re-aiming at the enemy while broadly engaged is the swirl — once
-                // the lines drift off-axis, each unit chasing the other's center
-                // makes the whole engagement ORBIT. Hold the axis and grind.
-                None
-            } else if let Some(t) = u.move_target {
-                // Approaching: face the target so we arrive squared up on the enemy
-                // (off-axis attacks used to fight sideways).
-                let v = t - u.center();
-                (v.len() > 4.0).then(|| v.y.atan2(v.x))
-            } else if decisive {
-                // No order (a standing defender): face where the fighting is.
+            let desired = if decisive {
                 Some(sum.y.atan2(sum.x))
+            } else if weight > 4.0 {
+                // Indecisive contact (surrounded: bearings cancel) — the
+                // player's live order breaks the tie, so a breakout faces
+                // its click and the press bores that way.
+                let u = &self.units[ui];
+                match (u.mode, u.move_target) {
+                    (OrderMode::Move, Some(t)) if (t - u.anchor).len() > 4.0 => {
+                        let v = t - u.anchor;
+                        Some(v.y.atan2(v.x))
+                    }
+                    _ => None,
+                }
             } else {
                 None
             };

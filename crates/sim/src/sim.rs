@@ -1159,7 +1159,7 @@ impl Sim {
     /// (err_sum, stragglers, surging, effort, engaged, face_dev, alive_n, cx,
     /// cy, opp_press, opp_pressed_n)
     #[allow(clippy::type_complexity)]
-    fn steer_soldiers(&mut self, dt: f32) -> Vec<(f32, usize, usize, f32, usize, f32, usize, f32, f32, f32, usize)> {
+    fn steer_soldiers(&mut self, dt: f32) -> Vec<(f32, usize, usize, f32, usize, f32, usize, f32, f32, f32, usize, f32)> {
         let tun = self.tun;
         let Sim {
             units,
@@ -1222,6 +1222,7 @@ impl Sim {
                 .fold(0.0f32, |m, w| m.max(w.reach));
             let strag_thresh = tun.straggler_dist.max(0.04 * u.depth().max(u.width()));
             let mut err_sum = 0.0f32;
+            let mut pivot_sum = 0.0f32;
             let mut stragglers = 0usize;
             let mut surging = 0usize;
             let mut effort = 0.0f32;
@@ -1346,10 +1347,12 @@ impl Sim {
                 let local = slot_local(soldier_slot[i] as usize, u.files_eff, u.spacing);
                 let slot = u.anchor + r * local.x + f * (-local.y);
                 let to = slot - p;
-                // Disorder input (B4): the neighbour residual, set in the block
-                // below. A man with no live neighbours has only his absolute slot
-                // to judge by — an isolated soldier IS out of formation.
-                let mut net_resid = to.len();
+                // Weave-derived disorder, set in the block below: how far my
+                // bonds are STRETCHED, and how far they've PIVOTED. A man with no
+                // live neighbours has only his absolute slot to judge by — an
+                // isolated soldier IS out of formation.
+                let mut soldier_stretch = to.len();
+                let mut soldier_pivot = 0.0f32;
                 // The draping net's pull (A1), applied to the FINAL steer below —
                 // not just the slot-seek — so a man who is seeking or pressing an
                 // enemy is still held in formation by his neighbours.
@@ -1386,6 +1389,15 @@ impl Sim {
                     let mut nn = 0.0f32;
                     let mut rank_fwd = 0.0f32; // mean forward coord of live rank-neighbours
                     let mut rank_n = 0.0f32;
+                    // Weave strain, the raw material of COHESION. A bond's rest
+                    // is `off` (where I sit relative to that neighbour); the live
+                    // bond is `p - jp`. STRETCH (only — compression is natural and
+                    // owns its own pressure cost, so we don't double-count it) is
+                    // how much longer than rest. PIVOT is how far the bond has
+                    // rotated off its rest direction — a sheared, bent, or
+                    // U-wrapped line racks up pivot while keeping its spacings.
+                    let mut bond_stretch = 0.0f32;
+                    let mut bond_pivot = 0.0f32;
                     for (k, (ok, ns, off)) in nbrs.into_iter().enumerate() {
                         if !ok || ns >= u.count {
                             continue;
@@ -1395,6 +1407,13 @@ impl Sim {
                             let jp = Vec2::new(prev_positions[2 * j], prev_positions[2 * j + 1]);
                             nsum = nsum + jp + off;
                             nn += 1.0;
+                            let d = p - jp;
+                            let (al, rl) = (d.len(), off.len());
+                            bond_stretch += (al - rl).max(0.0);
+                            if al > 1e-3 && rl > 1e-3 {
+                                let c = ((d.x * off.x + d.y * off.y) / (al * rl)).clamp(-1.0, 1.0);
+                                bond_pivot += c.acos();
+                            }
                             if k < 2 {
                                 rank_fwd += jp.dot(f);
                                 rank_n += 1.0;
@@ -1421,21 +1440,21 @@ impl Sim {
                     }
                     if nn > 0.0 {
                         // The draping net: where my live neighbours want me to
-                        // sit (their positions + my rest offset from each).
+                        // sit (their positions + my rest offset from each) — the
+                        // spring that holds the lattice.
                         let net_to = nsum * (1.0 / nn) - p;
-                        // B4 — disorder is the NET RESIDUAL: how far I am from
-                        // where my neighbours want me, NOT from my absolute slot.
-                        // A formation that BENDS or COMPRESSES but keeps its
-                        // neighbour spacings reads ~0 here; only a TORN net
-                        // (stretched, sheared, neighbours gone) reads disorder.
-                        // (The old measure was absolute-slot distance, which
-                        // punished every honest bend.)
-                        net_resid = net_to.len();
                         net_target = Some(net_to);
+                        soldier_stretch = bond_stretch / nn;
+                        soldier_pivot = bond_pivot / nn;
                     }
                 }
-                let err = net_resid;
+                // STRETCH drives "out of place" (surge / straggler): a man torn
+                // from his neighbours has long bonds; a packed man (compression)
+                // does not surge. PIVOT feeds cohesion only (a wrapped line is in
+                // formation, just bent).
+                let err = soldier_stretch;
                 err_sum += err;
+                pivot_sum += soldier_pivot;
                 if err > strag_thresh {
                     stragglers += 1;
                 }
@@ -1717,7 +1736,7 @@ impl Sim {
             }
             measures.push((
                 err_sum, stragglers, surging, effort, engaged, face_dev, alive_n, cx, cy,
-                opp_press, opp_pressed_n,
+                opp_press, opp_pressed_n, pivot_sum,
             ));
         }
         measures
@@ -1730,7 +1749,7 @@ impl Sim {
     /// `clamp_anchor_to_men`): it pursues the order, leashed to the men.
     fn contact_facing(
         &mut self,
-        measures: &[(f32, usize, usize, f32, usize, f32, usize, f32, f32, f32, usize)],
+        measures: &[(f32, usize, usize, f32, usize, f32, usize, f32, f32, f32, usize, f32)],
         dt: f32,
     ) {
         let tun = self.tun;
@@ -1742,7 +1761,7 @@ impl Sim {
             .collect();
 
         for ui in 0..self.units.len() {
-            let (_, _, _, _, engaged, _f, alive_n, _, _, _, _) = measures[ui];
+            let (_, _, _, _, engaged, _f, alive_n, _, _, _, _, _) = measures[ui];
             let alive_n = alive_n.max(1);
             let engaged_frac = engaged as f32 / alive_n as f32;
             if engaged_frac <= 0.06
@@ -1840,14 +1859,13 @@ impl Sim {
 
     fn integrate_units(
         &mut self,
-        measures: &[(f32, usize, usize, f32, usize, f32, usize, f32, f32, f32, usize)],
+        measures: &[(f32, usize, usize, f32, usize, f32, usize, f32, f32, f32, usize, f32)],
         dt: f32,
     ) {
         let tun = self.tun;
-        use std::f32::consts::PI;
         for (
             u,
-            &(err_sum, stragglers, _surging, effort, engaged, face_dev, alive_n, cx, cy, opp_press, opp_pressed_n),
+            &(err_sum, _stragglers, _surging, effort, engaged, _face_dev, alive_n, cx, cy, opp_press, opp_pressed_n, pivot_sum),
         ) in
             self.units.iter_mut().zip(measures)
         {
@@ -1919,14 +1937,17 @@ impl Sim {
                 u.frame_speed = 0.0;
             }
 
-            let mean_err = err_sum / n;
-            let extent = u.depth().max(u.width());
-            let scale = (0.5 * extent).max(tun.disorder_norm_spacings * u.spacing.x.max(0.25));
-            let norm = (mean_err / scale).min(1.0);
-            let strag_frac = stragglers as f32 / n;
-            let facing_term = ((face_dev / n) / (PI - tun.facing_tolerance)).min(1.0);
-            let observed =
-                (0.6 * norm + 0.25 * facing_term + 0.15 * strag_frac).clamp(0.0, 1.0);
+            // COHESION is the weave's strain. STRETCH — men torn from the
+            // lattice, their bonds pulled long — and PIVOT — the lattice bent,
+            // sheared, or wrapped off its rest grid. Compression is deliberately
+            // ABSENT: a packed formation is natural and already pays through
+            // pressure, so counting it here would double-penalise it. Both terms
+            // fall straight out of the same neighbour bonds the springs use.
+            let mean_stretch = err_sum / n; // mean bond stretch (m)
+            let mean_pivot = pivot_sum / n; // mean bond pivot (rad)
+            let observed = (mean_stretch * tun.cohesion_stretch
+                + mean_pivot * tun.cohesion_pivot)
+                .clamp(0.0, 1.0);
 
             if u.reform_timer > 0.0 {
                 u.reform_timer -= dt;

@@ -56,6 +56,11 @@ pub struct Tunables {
     pub disorder_fall_tau: f32,
     /// cohesion = exp(-k * disorder).
     pub cohesion_k: f32,
+    /// Disorder per metre of mean bond STRETCH (men torn from the lattice).
+    pub cohesion_stretch: f32,
+    /// Disorder per radian of mean bond PIVOT (the lattice bent/sheared/wrapped
+    /// off its rest grid). Tuned so a line wrapped into a U sheds ~20% cohesion.
+    pub cohesion_pivot: f32,
     /// Turn-rate multiplier at zero cohesion.
     pub min_turn_frac: f32,
     /// Acceleration multiplier at zero cohesion.
@@ -176,6 +181,8 @@ impl Default for Tunables {
             disorder_rise_tau: 0.4,
             disorder_fall_tau: 1.6,
             cohesion_k: 2.5,
+            cohesion_stretch: 0.5,
+            cohesion_pivot: 0.055,
             min_turn_frac: 0.3,
             min_accel_frac: 0.4,
             soldier_radius: 0.33,

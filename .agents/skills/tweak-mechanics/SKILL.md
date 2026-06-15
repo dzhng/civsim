@@ -33,38 +33,40 @@ already wrong upstream. Question every existing knob too: "is this still
 needed now that X exists?" Then **prove the answer with a test or a shot**,
 not an argument.
 
-### NO IMAGINARY WALLS
+### When rebuilding a foundation, IGNORE the old scenario tests
 
-A soldier is stopped only by **real bodies** (collision) and pulled only by
-**real forces** (his weave springs, the enemy magnet, terrain). Never by a
-positional clamp that says "you may not stand past this line." A "hold at
-weapon reach" clamp, a "don't pass your rank-neighbour" dress line, a
-"don't cross the foe's centroid" restoring force — all imaginary walls. They
-each looked like they fixed something (ghost-through, blob, swirl) and each
-quietly broke an emergent behaviour somewhere else (othismos push, the wrap,
-fights that resolve). If you find yourself clamping a position to enforce a
-*rule*, stop: the right stop is a *body* the man can't walk through, and the
-right "he holds at reach" is that a phalanx with enough spear DENSITY
-physically pushes him back by striking — not a wall the engine draws.
+If you're replacing a core mechanic from first principles, the existing
+scenario/balance/combat tests encode the OLD behaviour — they are a map of the
+local maximum you're trying to escape. Chasing them green during the rebuild
+steers you straight back into it (this is how a string of "fixes" each broke
+something else: every one was optimising for the old tests). Instead: write
+the FEW new tests that capture the foundation's true behaviour in isolation,
+make THOSE perfect, and only then go fix the downstream scenarios — expecting
+that a lot of the old supporting logic will get changed or deleted to fit the
+better foundation. A correct foundation makes the rest fall out; a foundation
+bent to satisfy old tests makes nothing fall out. Net code should go DOWN when
+a unifying mechanic lands (a real foundation absorbs special-cases), so if a
+rebuild is adding complexity, you're probably not at the foundation yet.
 
-### The weave is a mass-spring lattice (the model to build toward)
+### Forces, not walls; emergence, not special-cases
 
-Each soldier is a node tied to its ≤4 neighbours (3 on an edge, 2 at a
-corner) by springs that resist **stretch and compression**, with angular
-stiffness at the node that resists **shear/pivot** (the grid wants to stay
-square). With no other force a bent lattice springs straight; under force it
-**bends and compresses** and then recovers. The only external pulls are the
-**enemy magnet** (a soldier in reach of an enemy block is drawn to it —
-strongest at the node nearest the block, the attraction radiating outward one
-soldier at a time so the line WRAPS) and **collision**. Everything we kept
-bolting on — formation-keeping, draping round an obstacle, the offensive
-wrap, othismos (= the lattice compressing because the rear ranks push) —
-must FALL OUT of this, not be a separate rule. A soldier always moves toward
-the enemy attacking him; the weave tension (not a rank gate or a wall) is
-what keeps that from dissolving the formation — there is a magnet-like
-tension between where the front man wants to go and how far his springs let
-him stray. Othismos is mass-driven (rear weight compressing the springs), so
-NEVER model it by counting ranks — that ignores soldier mass.
+A soldier moves because **real forces** act on him (his neighbours, the
+enemies near him, the ground) and stops because of **real bodies** he can't
+walk through. He is never moved or held by a positional clamp that exists to
+enforce a *rule* — "you may not stand past this line", "don't pass your
+rank-neighbour", "hold at exactly weapon reach". Those imaginary walls each
+look like they fix one thing and quietly break an emergent behaviour
+elsewhere; reach for one and the rule you actually want is almost always a
+*force* that produces it as a side effect.
+
+The same way, don't special-case a role (the "front rank", the "flank file")
+with a flag or a gate. If the rule is right, the geometry already singles
+those soldiers out — the man nearest the enemy feels the strongest pull, the
+man with neighbours on three sides can't lunge. Let position and the force law
+decide who does what; a gate that names a role is a smell that the underlying
+force is missing or wrong. Collective effects (a deep mass shoving a thin one
+back) must come from the **measured physics** that scales with mass, never
+from a proxy like counting ranks.
 
 ### One physical quantity → one canonical measurement
 

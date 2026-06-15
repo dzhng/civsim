@@ -123,7 +123,49 @@ fn shear(sim: &mut Sim, unit: usize, k: f32) {
     }
 }
 
+/// Wrap the block into a U (semicircle opening forward): map each man's x to an
+/// arc angle and place him on a circle, ranks stacked radially. A 180° span is a
+/// full U around a column.
+fn wrap_u(sim: &mut Sim, unit: usize, span_rad: f32) {
+    let u = &sim.units[unit];
+    let (s, e, files, sp) = (u.start, u.start + u.count, u.files_eff.max(1), u.spacing.y);
+    let cx = sim.units[unit].centroid.x;
+    let cy = sim.units[unit].centroid.y;
+    let hw = (extent(sim, unit).0 * 0.5).max(0.5);
+    let radius = hw / (span_rad * 0.5).max(0.1);
+    for i in s..e {
+        // recover (file, rank) from the live slot
+        let slot = sim.soldier_slot[i] as usize;
+        let (file, rank) = (slot % files, slot / files);
+        let t = (file as f32 / (files.max(2) - 1) as f32) * 2.0 - 1.0; // -1..1
+        let a = t * span_rad * 0.5;
+        let rr = radius + rank as f32 * sp;
+        sim.positions[2 * i] = cx + rr * a.sin();
+        sim.positions[2 * i + 1] = cy + rr * (1.0 - a.cos());
+    }
+}
+
 // ---------------------------------------------------------------------------
+
+#[test]
+fn a_u_wrapped_line_loses_about_20_percent_cohesion() {
+    let (mut sim, u) = block(24, 3, 1.0);
+    let coh_flat = sim.units[u].cohesion;
+    // Hold the U (re-impose it each tick) so cohesion settles to the wrapped
+    // shape rather than springing flat — this isolates the cohesion MEASURE.
+    for _ in 0..150 {
+        sim.tick();
+        wrap_u(&mut sim, u, std::f32::consts::PI); // full 180° U
+    }
+    let coh_u = sim.units[u].cohesion;
+    eprintln!("U-WRAP   cohesion flat={:.2}  wrapped={:.2}  (loss {:.0}%)", coh_flat, coh_u, (1.0 - coh_u / coh_flat) * 100.0);
+    assert!(
+        (coh_u - 0.8).abs() < 0.08,
+        "a line wrapped into a U should shed ~20% cohesion: got {:.2} (flat {:.2})",
+        coh_u,
+        coh_flat
+    );
+}
 
 #[test]
 fn a_stretched_block_recovers_its_rest_width() {
@@ -160,19 +202,23 @@ fn a_compressed_block_recovers_its_rest_depth() {
 }
 
 #[test]
-fn a_bent_line_straightens() {
-    let (mut sim, u) = block(14, 1, 1.0); // single rank
-    let (_, d0) = extent(&sim, u); // ~0 when straight
-    bend(&mut sim, u, 3.0); // bow it 3m forward at the centre
+fn a_bent_block_straightens() {
+    // A LEGAL block (>=3 deep, so the 3-deep rule doesn't reshape it). Bow the
+    // whole thing forward into a banana; with no other force it must straighten
+    // back to its rest depth.
+    let (mut sim, u) = block(24, 3, 1.0);
+    let (_, d0) = extent(&sim, u); // rest depth ~2 (3 ranks)
+    bend(&mut sim, u, 3.0); // wings bowed 3m forward of the centre
     let (_, d_bent) = extent(&sim, u);
-    assert!(d_bent > 2.0, "setup: it must start bent ({d_bent:.1})");
+    assert!(d_bent > d0 + 2.0, "setup: it must start bent ({d_bent:.1} vs rest {d0:.1})");
     settle(&mut sim, 8.0);
     let (_, d1) = extent(&sim, u);
-    eprintln!("BEND     straight_d={:.2}  bent {:.2} -> recovered {:.2}", d0, d_bent, d1);
+    eprintln!("BEND     rest_d={:.2}  bent {:.2} -> recovered {:.2}", d0, d_bent, d1);
     assert!(
-        d1 < 0.6,
-        "a bent line with no other force must straighten: depth {:.2} (bent was {:.2})",
+        d1 < d0 + 0.6,
+        "a bent block with no other force must straighten: depth {:.2} (rest {:.2}, bent was {:.2})",
         d1,
+        d0,
         d_bent
     );
 }

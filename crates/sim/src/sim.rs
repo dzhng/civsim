@@ -1400,8 +1400,15 @@ impl Sim {
                                 rank_n += 1.0;
                             }
                             if k == 2 {
-                                // the man in the rank ahead: I sit `sy` behind him
-                                depth_limit = Some(jp.dot(f) - sy);
+                                // The man in the rank ahead. I may close up UNDER
+                                // PRESS to a fraction of rest spacing — melee
+                                // packs, it isn't a parade — but no nearer, so
+                                // the depth compresses a little and holds rather
+                                // than collapsing into a shallow blob. The floor
+                                // is what keeps the rear ranks feeding the fight
+                                // (men in contact = casualties) without piling
+                                // clean through their own front rank.
+                                depth_limit = Some(jp.dot(f) - 0.5 * sy);
                             }
                         }
                     }

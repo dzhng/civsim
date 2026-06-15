@@ -24,6 +24,9 @@ fn clash(class: UnitClassId, seed: u64, top_attacks: bool) -> Sim {
     if let Ok(v) = std::env::var("SEPCAP") {
         tun.separation_max_push = v.parse().unwrap();
     }
+    if let Ok(v) = std::env::var("SLOTPULL") {
+        tun.slot_pull = v.parse().unwrap();
+    }
     let mut sim = Sim::new(tun, seed);
     let bot = sim.spawn_class(Vec2::new(0.0, -40.0), FRAC_PI_2, N, class, 0);
     let top = sim.spawn_class(Vec2::new(0.0, 40.0), -FRAC_PI_2, N, class, 1);
@@ -114,6 +117,9 @@ struct Trace {
 fn move_clash(class: UnitClassId, seed: u64) -> Sim {
     let mut tun = Tunables::default();
     tun.micro_rough = 0.0;
+    if let Ok(v) = std::env::var("SLOTPULL") {
+        tun.slot_pull = v.parse().unwrap();
+    }
     let mut sim = Sim::new(tun, seed);
     let bot = sim.spawn_class(Vec2::new(0.0, -40.0), FRAC_PI_2, N, class, 0);
     let top = sim.spawn_class(Vec2::new(0.0, 40.0), -FRAC_PI_2, N, class, 1);

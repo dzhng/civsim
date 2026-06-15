@@ -1345,6 +1345,17 @@ impl Sim {
                 let local = slot_local(soldier_slot[i] as usize, u.files_eff, u.spacing);
                 let slot = u.anchor + r * local.x + f * (-local.y);
                 let mut to = slot - p;
+                // Disorder input (B4): the neighbour residual, set in the block
+                // below. A man with no live neighbours has only his absolute slot
+                // to judge by — an isolated soldier IS out of formation.
+                let mut net_resid = to.len();
+                // The draping net's pull (A1), applied to the FINAL steer below —
+                // not just the slot-seek — so a man who is seeking or pressing an
+                // enemy is still held in formation by his neighbours.
+                let mut net_target: Option<Vec2> = None;
+                // Mean forward coord (along facing) of my rank-neighbours: I may
+                // not advance past it (dress the line). Set in the net block.
+                let mut dress_line: Option<f32> = None;
                 // Weave: blend the rigid-slot pull with where my NEIGHBOURS want
                 // me — rest spacing from the men beside and behind. Undeformed,
                 // the two agree (the net's rest shape IS the grid); when a
@@ -1364,25 +1375,48 @@ impl Sim {
                     ];
                     let mut nsum = Vec2::ZERO;
                     let mut nn = 0.0f32;
-                    for (ok, ns, off) in nbrs {
+                    let mut rank_fwd = 0.0f32; // mean forward coord of live rank-neighbours
+                    let mut rank_n = 0.0f32;
+                    for (k, (ok, ns, off)) in nbrs.into_iter().enumerate() {
                         if !ok || ns >= u.count {
                             continue;
                         }
                         let j = soldier_at_slot[ns];
                         if j != usize::MAX {
-                            nsum = nsum
-                                + Vec2::new(prev_positions[2 * j], prev_positions[2 * j + 1])
-                                + off;
+                            let jp = Vec2::new(prev_positions[2 * j], prev_positions[2 * j + 1]);
+                            nsum = nsum + jp + off;
                             nn += 1.0;
+                            if k < 2 {
+                                // left/right: the men beside me in my rank.
+                                rank_fwd += jp.dot(f);
+                                rank_n += 1.0;
+                            }
                         }
                     }
+                    // DRESS THE LINE: I do not advance past the men beside me. If
+                    // I'm forward of my rank-neighbours' mean, that surplus is
+                    // surrendered from my final step (below) — so when the centre
+                    // of a rank is blocked, the block dresses OUTWARD along the
+                    // line and the flanks can't peel forward around the enemy.
+                    if rank_n > 0.0 {
+                        dress_line = Some(rank_fwd / rank_n);
+                    }
                     if nn > 0.0 {
-                        let weave = u.stats.weave; // per-class formation coherence
+                        // The draping net: where my live neighbours want me to
+                        // sit (their positions + my rest offset from each).
                         let net_to = nsum * (1.0 / nn) - p;
-                        to = to * (1.0 - weave) + net_to * weave;
+                        // B4 — disorder is the NET RESIDUAL: how far I am from
+                        // where my neighbours want me, NOT from my absolute slot.
+                        // A formation that BENDS or COMPRESSES but keeps its
+                        // neighbour spacings reads ~0 here; only a TORN net
+                        // (stretched, sheared, neighbours gone) reads disorder.
+                        // (The old measure was absolute-slot distance, which
+                        // punished every honest bend.)
+                        net_resid = net_to.len();
+                        net_target = Some(net_to);
                     }
                 }
-                let err = to.len();
+                let err = net_resid;
                 err_sum += err;
                 if err > strag_thresh {
                     stragglers += 1;
@@ -1524,6 +1558,28 @@ impl Sim {
                     max_sp *= 1.0 - 0.5 * rough * stagger01(i, tick_now);
                 }
 
+                // A1 — the draping net as an additive RESTORING SPRING on the
+                // final steer (whatever the man wanted: seek, press, hold slot).
+                // Zero when he's at his neighbours' rest spacing (so the line
+                // advances at full speed undeformed), strong when he strays — so
+                // a man can't peel off around a flank or outrun his rank; the
+                // formation BENDS and COMPRESSES around an obstacle as one body.
+                if let Some(net) = net_target {
+                    steer_to = steer_to + net * tun.slot_pull;
+                }
+                // DRESS THE LINE: if I'm already forward of my rank-neighbours,
+                // I can't step further forward — the men beside me set the line.
+                // (Falling back and dressing sideways stay free.) This is what
+                // propagates a blocked centre OUTWARD so the flanks hold instead
+                // of flowing around the enemy. Front rank only would suffice in
+                // principle, but every rank dressing keeps deep blocks square.
+                if let Some(line) = dress_line {
+                    let ahead = p.dot(f) - line;
+                    let fwd = steer_to.dot(f);
+                    if ahead > 0.0 && fwd > 0.0 {
+                        steer_to = steer_to - f * fwd;
+                    }
+                }
                 let mut v = steer_to * tun.soldier_gain;
                 let vl = v.len();
                 if vl > max_sp {

@@ -67,6 +67,14 @@ pub struct Tunables {
     pub separation_slide: f32,
     /// Cap on total separation displacement per soldier per tick (m).
     pub separation_max_push: f32,
+    /// How strongly a soldier is pulled toward his ABSOLUTE formation slot,
+    /// versus holding station on his live NEIGHBOURS (the draping-net cloth).
+    /// Small: the formation is a net that bends and compresses around an
+    /// obstacle as one coherent body — the slot is only a weak locating pull so
+    /// the sheet stays on the frame. Large (→1): a rigid grid where each man
+    /// chases his own slot independently and peels off around a block. The net
+    /// coupling is the remainder (1 - slot_pull).
+    pub slot_pull: f32,
     /// Heading error (rad) beyond which a unit halts and pivots in place,
     /// continuously re-forming ranks, instead of arcing while marching.
     pub pivot_facing_err: f32,
@@ -173,6 +181,7 @@ impl Default for Tunables {
             soldier_radius: 0.33,
             separation_slide: 0.3,
             separation_max_push: 0.1,
+            slot_pull: 0.2,
             pivot_facing_err: 0.9,
             pivot_exit_err: 0.15,
             wheel_speed_factor: 1.0,

@@ -88,6 +88,15 @@ impl Sim {
         grid.rebuild(cell, body_pos);
         let mut raw_cx = vec![0.0f32; n];
         let mut raw_cy = vec![0.0f32; n];
+        // The REAL WALL: deepest enemy body a soldier overlaps this tick. The
+        // capped push relieves crowds gently; an ENEMY body, though, a man may
+        // not END the tick standing inside — he is snapped to its contact ring.
+        // This (not any reach-based rule) is what stops a clash walking through:
+        // the planted front line is a wall of bodies the rear can't shove past.
+        let mut wall_depth = vec![-1.0f32; n];
+        let mut wall_cx = vec![0.0f32; n];
+        let mut wall_cy = vec![0.0f32; n];
+        let mut wall_r = vec![0.0f32; n];
         // scratch: per-soldier [push_x, push_y]; plus raw pressure accumulators.
         scratch.clear();
         scratch.resize(2 * n, 0.0);
@@ -165,6 +174,21 @@ impl Sim {
                             let overlap = (min_dist - d) * share;
                             push.x += (nx - slide * ny) * overlap;
                             push.y += (ny + slide * nx) * overlap;
+
+                            // Track the deepest ENEMY body for the hard wall —
+                            // unless this body is trampling (it rides through).
+                            if units[ui].team != units[uj].team
+                                && !(units[ui].tramples()
+                                    && units[ui].mass_advance > tun.charge_spent_speed)
+                            {
+                                let depth = min_dist - d;
+                                if depth > wall_depth[i] {
+                                    wall_depth[i] = depth;
+                                    wall_cx[i] = body_pos[2 * bj];
+                                    wall_cy[i] = body_pos[2 * bj + 1];
+                                    wall_r[i] = min_dist;
+                                }
+                            }
 
                             // Charge impact: a fast enemy body slamming in
                             // knocks men down and bowls them back. Felling is
@@ -330,6 +354,19 @@ impl Sim {
                 } else {
                     p
                 }
+            };
+            // Hard wall: a man may not end the tick inside an enemy body. Snap
+            // him out to the contact ring of the deepest one he overlaps.
+            let np = if wall_depth[i] >= 0.0 {
+                let to = Vec2::new(np.x - wall_cx[i], np.y - wall_cy[i]);
+                let dd = to.len();
+                if dd > 1e-4 && dd < wall_r[i] {
+                    Vec2::new(wall_cx[i] + to.x * (wall_r[i] / dd), wall_cy[i] + to.y * (wall_r[i] / dd))
+                } else {
+                    np
+                }
+            } else {
+                np
             };
             positions[2 * i] = np.x;
             positions[2 * i + 1] = np.y;

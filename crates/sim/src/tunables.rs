@@ -190,7 +190,7 @@ impl Default for Tunables {
             cohesion_stretch: 0.5,
             cohesion_pivot: 0.055,
             magnet_strength: 3.0,
-            magnet_scale: 2.0,
+            magnet_scale: 0.7,
             min_turn_frac: 0.3,
             min_accel_frac: 0.4,
             soldier_radius: 0.33,

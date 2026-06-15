@@ -1489,10 +1489,13 @@ impl Sim {
                     // ENEMY MAGNET: drawn to the nearest enemy body, the pull
                     // rising EXPONENTIALLY as he closes — far off it is nothing
                     // (the rear keeps its ranks), in close it overwhelms the slot
-                    // and he RUNS IN. An overhang man with no foe dead ahead is
-                    // pulled to the nearest body all the same and curls round it:
-                    // the wrap falls out of the same law, no special case.
-                    if aware_i {
+                    // and he RUNS IN. Gated on FRONT_CLEAR: you cannot run at an
+                    // enemy your own comrade is standing in front of (no path),
+                    // so only the actual front of the line — and an overhang man
+                    // with open ground to the foe's flank — feels it. THAT keeps
+                    // a clean single-rank contact instead of every near rank
+                    // piling in. The overhang's open shot curls it round: wrap.
+                    if aware_i && front_clear[i] == 1 {
                         let te = target[i] as usize;
                         let ep = Vec2::new(positions[2 * te], positions[2 * te + 1]);
                         let d = ep - p;

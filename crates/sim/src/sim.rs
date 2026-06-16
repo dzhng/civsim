@@ -1481,12 +1481,17 @@ impl Sim {
                 // fallback (no live neighbours = no weave to stiffen). A stiffer
                 // lattice holds its rank against the magnet, so only the
                 // frontline closes and the back ranks don't pile in.
+                // weave_stiffness stiffens the REST-SHAPE spring (hold the grid),
+                // NOT the compression: a pressing block must still squeeze axially
+                // (othismos — the rear ranks compress against the held front), so
+                // comp_push stays at baseline. The two deformations are different
+                // animals — a PANCAKE is a shear (pivot_stiffness resists it), an
+                // OTHISMOS is axial compression (left free). Lumping compression
+                // into stiffness fought the very press it's meant to win.
                 let mut steer_to = match net_target {
-                    Some(nt) => (nt + comp_push) * tun.weave_stiffness,
-                    None => to + comp_push * tun.weave_stiffness,
+                    Some(nt) => nt * tun.weave_stiffness + comp_push,
+                    None => to + comp_push,
                 };
-                // The pivot spring is its OWN knob — it resists bend/shear, the
-                // deformation the length springs are blind to.
                 steer_to = steer_to + pivot_push * tun.pivot_stiffness;
                 // The crush VECTOR: the friendly squeeze, plus the enemy reach-
                 // spring's shove-back (added in the magnet block when it repels).

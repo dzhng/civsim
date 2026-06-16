@@ -359,13 +359,14 @@ fn main() {
     }
 
     // --- Tier 3: the GLUE under a deep push -------------------------------
-    // A deep narrow column drives a thin SAME-WIDTH line: the fronts must stay
+    // A deep column drives a SHALLOWER SAME-WIDTH line: the fronts must stay
     // welded (glued 1-to-1) and the line is pushed back as a body — the column
-    // must NOT detach and thread through it. (mechanics_weave: the_fronts_stay
-    // _welded.)
+    // must NOT detach and thread through it. Both 4 files wide (the engine won't
+    // hold a line thinner than 3 ranks, so the defender is 4x3, not 4x2).
+    // (mechanics_weave: the_fronts_stay_welded.)
     {
         let mut sim = Sim::new(base_tun(), SEED);
-        let def = spawn(&mut sim, 0.0, 6.0, -FRAC_PI_2, 4, 2, 0.9, 0);
+        let def = spawn(&mut sim, 0.0, 6.0, -FRAC_PI_2, 4, 3, 0.9, 0);
         let col = spawn(&mut sim, 0.0, -6.0, FRAC_PI_2, 4, 8, 0.9, 1);
         settle(&mut sim, 30);
         invuln(&mut sim);

@@ -954,13 +954,16 @@ fn front_detach(pusher_deep: usize, def_deep: usize) -> f32 {
 }
 
 /// BEHAVIOUR 1 — the FRONT-GLUE. The fronts attract, so a pusher can drive a
-/// thinner defender BACK but cannot DETACH from it and walk into a gap: its
-/// front man stays welded to the defender's front man. Today the glue is too
-/// weak (a capped, soft-steering magnet that the hard collision overruns), so a
-/// deep column shears clean off and through. This pins the glue.
+/// SHALLOWER defender BACK but cannot DETACH from it and walk into a gap: its
+/// front man stays welded to the defender's front man. Both blocks are the SAME
+/// WIDTH (4 files) so they meet front-to-front 1-to-1 — the column has no spare
+/// file to walk past the defender's flank. The defender is 3 deep, not 2: the
+/// formation engine never holds a block thinner than 3 ranks (it auto-narrows a
+/// 2-deep line into a 2-wide×4-deep string — `files_eff` casualty cap), so a
+/// "4-wide×2-deep" line is really a 2-wide one the wider column trivially flanks.
 #[test]
 fn the_fronts_stay_welded_a_pusher_drives_not_detaches() {
-    let detach = front_detach(8, 2);
+    let detach = front_detach(8, 3);
     eprintln!("FRONT-GLUE  pusher front got {detach:.1}m past the defender front (0 = welded)");
     assert!(
         detach < 1.0,

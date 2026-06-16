@@ -68,68 +68,6 @@ force is missing or wrong. Collective effects (a deep mass shoving a thin one
 back) must come from the **measured physics** that scales with mass, never
 from a proxy like counting ranks.
 
-### The weave is STIFF by default — a committed CHARGE is the one carve-out
-
-It is tempting to model weave stiffness as "willingness to hold formation" and
-scale it down with *motion* (soft while moving, stiff when set). **That is wrong,
-and it was measured wrong** — twice (via `brace_ramp`, then via forward speed
-`mass_advance`). The reasons it fails are worth keeping:
-
-- **A grinding press moves slowly but is still WILLING.** Two lines shoving at a
-  dead stall jitter at ~1.7 m/s and creep forward a hair — by any motion signal
-  they read as "moving → soft," and they **blob**. But they are absolutely trying
-  to keep formation. Speed does not separate "wants to hold" from "committed to
-  move."
-- **Stiff weave does NOT stop the two-attacker blob anyway.** The blob is the
-  mutual front-SQUEEZE (both sides push, the fronts have nowhere forward and splay
-  sideways) — a collision-geometry problem, not a weave-softness one. Cranking
-  stiffness leaves it ~unchanged. A crisp press is what you get when ONE side
-  HOLDS (it isn't pushing, so nothing squeezes its front); a braced holder stays
-  crisp at constant stiffness.
-- **The wrap does NOT need soft weave.** A wide line wraps a column at full
-  constant stiffness — the envelopment is the magnet pulling the overhang men
-  around, which a stiff lattice still allows.
-
-So the lattice is **stiff for everyone, always** — the default is to hold. The
-single genuine exception is a **committed charge (trample)**: it suspends its own
-weave so the formation stretches *into* the gallop instead of the springs reeling
-the front back and bleeding it (a charging cav otherwise arrives slow and spent).
-That is a **discrete** carve-out keyed on the trample state, not a continuous
-gradient. When you reach for "soft while X," check first whether X really wants to
-abandon formation (a charge does) or merely *moves while still holding* (a press, a
-march, a wheel — these keep their shape). Only the former earns the carve-out.
-
-### Conserve energy: every force is a SPRING or a DRAG, never an active push
-
-Audit each force by what it does to the system's energy:
-
-- **Conservative (a spring):** depends only on POSITION and has a rest
-  state it restores toward — neighbour cohesion, compression, the pivot/angular
-  spring, the slot tether, the enemy magnet (a spring to weapon-reach), bodies
-  not overlapping. Stores and returns energy; settles to equilibrium; symmetric
-  inputs cancel. **Prefer these.**
-- **Dissipative (a drag):** removes energy — the velocity cap, fighting-pace,
-  the trample momentum-bleed. Always stabilising. Fine, and necessary.
-- **Active (an injected push):** does positive work with no rest state — the
-  classic being "shove the FOE back out of my reach". This is a motor: it pumps
-  energy into the system, and coupled with its own feedback (push him away → he
-  pushes you less) it AMPLIFIES any asymmetry until a symmetric clash buckles
-  one way and routs. **These are the bug.** Replace an active push with the
-  reactive spring that has the same intent: don't shove the foe off you — recoil
-  off the foe (a restoring spring with equilibrium at reach). Both ends recoil,
-  it's symmetric, and it settles instead of running away.
-
-The test of an active force: imagine two identical lines meeting dead-on. A
-field of springs + drag reaches a stable, even standoff. An active push tips —
-if your mechanic makes a mirror-symmetric clash pick a winner, you have an
-energy source where you wanted a spring.
-
-Corollary — **a stiff spring needs damping or it rings.** Cranking a
-conservative spring's stiffness with no velocity damping makes it overshoot and
-oscillate (a settled block buzzes; a press explodes). If you raise stiffness and
-a "settles without oscillating" test goes red, the fix is damping (a drag), not
-a softer spring.
-
 ### One physical quantity → one canonical measurement
 
 When two pieces of code ask the *same physical question* ("is the enemy
@@ -219,25 +157,6 @@ tolerance hid a 90° swirl that the shots plainly showed. If you believe a red
 check is genuinely too strict, prove it with a shot first, and write the new
 threshold around the *physically correct* behavior, not around the current
 (broken) number.
-
-### VERIFY THE SCENARIO VISUALLY before you trust (or chase) a test
-
-A test asserts on numbers, but it first **builds a scene** — and the scene can
-silently be something other than what you wrote. Spawns get reshaped, paces and
-orders interact, "immortal" units still get stunned, a `4-wide × 2-deep` block
-becomes `2-wide × 4-deep` because the formation engine never holds a line
-thinner than 3 ranks (the `files_eff` casualty cap). If you grind a mechanic
-against a test whose scene is wrong, you are tuning physics to defeat a rigged
-setup — and every "fix" is noise.
-
-So: **the FIRST time you write or rely on a mechanics test, render its opening
-frames as a vibe shot and LOOK.** Confirm the blocks are the width, depth,
-facing, spacing, and separation you intended *before* you read the pass/fail or
-touch the sim. A whole session was spent fighting a "deep column threads a thin
-line" failure that was really a 4-wide column walking around a 2-wide defender
-the test had quietly narrowed. One glance at `t000.png` would have caught it.
-This is the same lesson as "the red is telling the truth," one level earlier:
-make sure the test is even *asking the right question* before you answer it.
 
 ### The OTHER red: when a first-principles fix breaks a BALANCE test, the test may be the cheese
 

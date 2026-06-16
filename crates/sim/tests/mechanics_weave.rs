@@ -23,6 +23,34 @@ use std::f32::consts::FRAC_PI_2;
 
 const SEED: u64 = 7;
 
+/// A stiff weave must not DRAG a run: an 8x8 infantry block running on open
+/// ground covers about as much as it would with a soft weave. (Without the run
+/// carve-out, weave_stiffness=3 reels the stretching run back — ~20m -> ~16m, a
+/// 20% tax. The carve-out softens the lattice while committed to a move order.)
+#[test]
+fn a_stiff_weave_does_not_drag_a_run() {
+    let mut tun = Tunables::default();
+    tun.micro_rough = 0.0;
+    tun.morale_enabled = false;
+    let mut sim = Sim::new(tun, SEED);
+    let u = sim.spawn_unit(Vec2::new(0.0, 0.0), FRAC_PI_2, 64, 8, Vec2::new(1.0, 1.0), 0, 0.8);
+    for _ in 0..30 {
+        sim.tick();
+    }
+    let y0 = sim.units[u].centroid.y;
+    sim.set_pace(u, Pace::Run);
+    sim.set_move_order(u, Vec2::new(0.0, 300.0));
+    for _ in 0..(10.0 / DT) as usize {
+        sim.tick();
+    }
+    let d = sim.units[u].centroid.y - y0;
+    eprintln!("RUN  infantry moved {d:.1}m in 10s ({:.2} m/s)", d / 10.0);
+    assert!(
+        d > 18.0,
+        "the stiff weave dragged the run: only {d:.1}m in 10s (a soft weave does ~20m) — a running unit must soften its lattice",
+    );
+}
+
 /// A clean rectangular block, facing north, on a parade ground.
 fn block(files: usize, ranks: usize, spacing: f32) -> (Sim, usize) {
     let mut tun = Tunables::default();

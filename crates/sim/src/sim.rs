@@ -1521,13 +1521,20 @@ impl Sim {
                 // The weave is STIFF by default — every unit wants to hold its
                 // grid, even while pressing (a grinding clash moves slowly but is
                 // still trying to keep formation; speed does NOT mark unwillingness).
-                // The ONE exception is a committed CHARGE: a trampler suspends its
-                // own cohesion so the formation stretches INTO the charge instead
-                // of the weave reeling the front back and bleeding the gallop. (A
-                // continuous "soft when moving" was tried and is wrong — it makes a
-                // slow press soft and blobs it, while not being what a charge needs;
-                // the discrete trample exemption is the right and only carve-out.)
-                let mut steer_to = if trampling {
+                // Two DISCRETE carve-outs, both "committed to movement, formation
+                // stretches INTO the motion instead of the stiff weave dragging it":
+                //   - a CHARGE (trampler riding through), and
+                //   - a RUN under a MOVE order (a march/run to a destination — the
+                //     stiff weave otherwise reels the stretching run back and bleeds
+                //     ~20% of the pace).
+                // A FIGHTING unit (no move order) or one that has ARRIVED (stalled,
+                // mass_advance low) stays stiff and holds — so a press, a wrap-
+                // attack, and a defence are all full-stiff; only genuine locomotion
+                // is soft. This is NOT the continuous "soft when moving" gradient
+                // (which wrongly softened a slow press and blobbed it).
+                let running = u.move_target.is_some()
+                    && u.mass_advance > tun.charge_spent_speed;
+                let mut steer_to = if trampling || running {
                     Vec2::ZERO
                 } else {
                     let s = match net_target {

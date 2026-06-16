@@ -69,11 +69,18 @@ fn run_speed_per_class_is_tracked() {
         "run speeds drifted: light {light:.2} (was {LIGHT_RUN}), heavy {heavy:.2} (was {HEAVY_RUN}), cav {cav:.2} (was {CAV_RUN}) — a movement side effect; confirm it's wanted, then update the golden",
     );
 }
-// Golden values (m/s), captured 2026-06-16. Light and heavy share a run_speed
-// stat (3.4) yet land far apart and far below it — heavy is the densest/heaviest
-// block, so its frame leads less and its men lag more (a denser lattice tracks a
-// moving frame worse), pinning it near a walk; light, lighter and looser, tracks
-// better. Cav's higher stat + low mass lets it nearly reach its leg pace.
+// Golden values (m/s), captured 2026-06-16. All sit below the run_speed stat
+// (light/heavy 3.4) because a formed unit is a coupled loop (the frame advances
+// toward run_speed; the men chase formation slots through a weak lag; the leash
+// caps the frame's lead). LIGHT reaches a stable MOVING equilibrium: its frame
+// recedes faster (speed_mult 1.1 -> pace 3.74) than its men, so the men always
+// have a gap to chase and sustain ~2.56. HEAVY collapses: pace 3.06 (speed_mult
+// 0.9) and a deeper block, so when the lag hits its (bigger) leash the leash
+// PINS the anchor to the men -> the slots stop advancing -> the men catch up and
+// stall -> the unit locks near a walk (the "leashed frame re-walks the same
+// meter" deadlock; frame_speed still reads ~pace, mass_advance is the honest
+// measure). That heavy crash is a real bug in the frame<->men coupling, not a
+// stat — it is TRACKED here, awaiting a feed-forward frame-tracking redesign.
 const LIGHT_RUN: f32 = 2.56;
 const HEAVY_RUN: f32 = 1.00;
 const CAV_RUN: f32 = 3.86;

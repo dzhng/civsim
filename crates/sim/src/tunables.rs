@@ -161,6 +161,12 @@ pub struct Tunables {
     /// ranks of braced infantry bog the charge below trample speed; a moving line
     /// lets it ride deeper. The grip is the BODY (brace), not the weapon.
     pub trample_bleed: f32,
+    /// Seconds a man stays BOWLED after a committed charge rides into him — his
+    /// weave is suppressed and his neighbours skip him, so the charge opens a
+    /// lane that heals this long after it passes (or bogs). Long enough to clear
+    /// a path for a galloping rank, short enough that a SPENT charge gets re-
+    /// formed around and pinned.
+    pub trample_recover: f32,
     /// Extra displacement per m/s of closing speed at impact.
     pub impact_push: f32,
     /// Damage per m/s of knockback when a TRAMPLING mass (horse, chariot)
@@ -271,6 +277,7 @@ impl Default for Tunables {
             weapon_repel: 15.0,
             brace_ramp_secs: 3.0,
             trample_bleed: 1.5,
+            trample_recover: 0.4,
             impact_push: 0.2,
             impact_damage: 0.040,
             micro_rough: 1.0,

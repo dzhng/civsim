@@ -9,7 +9,7 @@
 //! Run:  cargo run -p sim --example weave_shots
 //! Then flip through web/vibe/shots/weave/<name>/t###.png.
 
-use sim::{Pace, Sim, Tunables, Vec2, DT};
+use sim::{Pace, Sim, Tunables, UnitClassId, Vec2, DT};
 use std::f32::consts::FRAC_PI_2;
 use std::fs::{create_dir_all, File};
 use std::io::BufWriter;
@@ -398,6 +398,20 @@ fn main() {
         sim.set_pace(col, Pace::Run);
         sim.set_attack_order(col, line);
         shoot("t3-deep-push-wide", sim, 16.0, 0.5);
+    }
+
+    // --- Tier 3: a CAVALRY charge into a heavy block ----------------------
+    // Shock cavalry (a trampler) charges a holding HeavySword block. A committed
+    // charge should ride IN a few ranks (bowling men out of the weave), then bog
+    // and be pinned — not bounce off a too-rigid formation.
+    {
+        let mut sim = Sim::new(base_tun(), SEED);
+        let block = sim.spawn_class(Vec2::new(0.0, 0.0), -FRAC_PI_2, 6 * 8, UnitClassId::HeavySword, 1);
+        let cav = sim.spawn_class(Vec2::new(0.0, -32.0), FRAC_PI_2, 60, UnitClassId::ShockCavalry, 0);
+        settle(&mut sim, 30);
+        sim.set_pace(cav, Pace::Run);
+        sim.set_attack_order(cav, block);
+        shoot("t3-cav-v-heavy", sim, 13.0, 0.4);
     }
 
     println!("done.");

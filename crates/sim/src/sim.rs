@@ -66,6 +66,11 @@ pub struct Sim {
     /// Seconds left in this soldier's weapon swap (no strikes meanwhile).
     pub switch_cd: Vec<f32>,
     pub stun: Vec<f32>,
+    /// Seconds left being RUN DOWN by a committed charge: the man is bowled and
+    /// staggered, so his weave (will to hold formation) is suppressed and his
+    /// neighbours treat him as a gap — the charge punches a hole that heals once
+    /// it bogs. Distinct from stun (no felling/lethality coupling).
+    pub(crate) trampled: Vec<f32>,
     /// Current melee engagement (enemy soldier index, -1 = none).
     /// Set at awareness range (~6m): drives approach facing.
     pub target: Vec<i32>,
@@ -154,6 +159,7 @@ impl Sim {
             cur_weapon: Vec::new(),
             switch_cd: Vec::new(),
             stun: Vec::new(),
+            trampled: Vec::new(),
             target: Vec::new(),
             fighting: Vec::new(),
             fight_near: Vec::new(),
@@ -313,6 +319,7 @@ impl Sim {
             self.cur_weapon.push(0);
             self.switch_cd.push(0.0);
             self.stun.push(0.0);
+            self.trampled.push(0.0);
             self.target.push(-1);
             self.fighting.push(0);
             self.fight_near.push(0);
@@ -1151,6 +1158,7 @@ impl Sim {
             tick_count,
             alive,
             stun,
+            trampled,
             target,
             fighting,
             hit_dir,
@@ -1251,6 +1259,14 @@ impl Sim {
                 }
                 if stun[i] > 0.0 {
                     stun[i] -= dt; // staggered: no will, body coasts above
+                    continue;
+                }
+                // BOWLED by a committed charge: no will to hold the line, the body
+                // just coasts under the collision/momentum — the weave is erased
+                // here so the charge keeps its lane (the last soft force the
+                // trample exemption was missing). Heals as the timer runs out.
+                if trampled[i] > 0.0 {
+                    trampled[i] -= dt;
                     continue;
                 }
 
@@ -1372,7 +1388,10 @@ impl Sim {
                             continue;
                         }
                         let j = soldier_at_slot[ns];
-                        if j != usize::MAX {
+                        // A bowled neighbour is a GAP: don't weave to a man a charge
+                        // just ran through, or the formation follows him into the
+                        // lane (and re-closes the hole the charge needs).
+                        if j != usize::MAX && trampled[j] <= 0.0 {
                             let jp = Vec2::new(prev_positions[2 * j], prev_positions[2 * j + 1]);
                             nsum = nsum + jp + off;
                             nn += 1.0;
@@ -1492,11 +1511,22 @@ impl Sim {
                 // animals — a PANCAKE is a shear (pivot_stiffness resists it), an
                 // OTHISMOS is axial compression (left free). Lumping compression
                 // into stiffness fought the very press it's meant to win.
-                let mut steer_to = match net_target {
-                    Some(nt) => nt * tun.weave_stiffness + comp_push,
-                    None => to + comp_push,
+                // A COMMITTED CHARGE suspends its OWN cohesion: the formation
+                // stretches INTO the charge, the front not reeled back by the
+                // weave (which, stiff, otherwise bleeds the gallop — a charging
+                // line arrives slow and spent). It rides forward on its order
+                // (slot_pull) alone, and re-forms when the charge spends. Same
+                // trample exemption as the magnet — the soft formation forces are
+                // off while the hard physics (momentum, bodies, bleed) rule.
+                let mut steer_to = if trampling {
+                    Vec2::ZERO
+                } else {
+                    let s = match net_target {
+                        Some(nt) => nt * tun.weave_stiffness + comp_push,
+                        None => to + comp_push,
+                    };
+                    s + pivot_push * tun.pivot_stiffness
                 };
-                steer_to = steer_to + pivot_push * tun.pivot_stiffness;
                 // The crush VECTOR: the friendly squeeze, plus the enemy reach-
                 // spring's shove-back (added in the magnet block when it repels).
                 let crush_vec = comp_push;

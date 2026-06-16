@@ -66,6 +66,7 @@ impl Sim {
             terrain,
             mass,
             stun,
+            trampled,
             mom_x,
             mom_y,
             soldier_unit,
@@ -228,6 +229,15 @@ impl Sim {
                                                 .min(0.85);
                                             mom_x[i] += nx * toward * grip;
                                             mom_y[i] += ny * toward * grip;
+                                        }
+                                        // BOWL the victim: while the charge is still
+                                        // committed (riding at speed, not bogged), the
+                                        // man it runs into is staggered out of the
+                                        // weave so the lane stays open. A SPENT charge
+                                        // (below trample speed) no longer bowls — the
+                                        // line re-forms and pins it.
+                                        if units[ui].mass_advance > tun.charge_spent_speed {
+                                            trampled[j] = tun.trample_recover;
                                         }
                                     }
                                     // A felling blow resolves to ONE state,

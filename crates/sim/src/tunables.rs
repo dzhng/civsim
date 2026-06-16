@@ -87,11 +87,6 @@ pub struct Tunables {
     /// pair — PIVOTS, and only this force feels it. Restores each bond's heading
     /// toward rest (length untouched): a conservative angular spring.
     pub pivot_stiffness: f32,
-    /// Pivot decay length (RADIANS): the angle scale of the exponential pivot
-    /// force, `exp(angle/pivot_scale) - 1`. Small = a sharper knee (free to bend
-    /// a little, near-rigid past the scale). A small bend (wrap/drape/jitter)
-    /// costs almost nothing; a big shear (pancake) is fiercely resisted.
-    pub pivot_scale: f32,
     /// Enemy MAGNET: peak pull (at weapon reach) toward the nearest enemy body.
     pub magnet_strength: f32,
     /// Magnet decay length (m): the pull falls off as exp(-(dist-reach)/scale),
@@ -245,8 +240,7 @@ impl Default for Tunables {
             compress_strength: 1.2,
             compress_scale: 0.22,
             weave_stiffness: 3.0,
-            pivot_stiffness: 1.5,
-            pivot_scale: 0.4,
+            pivot_stiffness: 4.0,
             magnet_strength: 3.0,
             magnet_scale: 0.7,
             min_turn_frac: 0.3,

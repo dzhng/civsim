@@ -1382,22 +1382,17 @@ impl Sim {
                             if al > 1e-3 && rl > 1e-3 {
                                 let (dh, oh) = (d * (1.0 / al), off * (1.0 / rl));
                                 let dot = (dh.x * oh.x + dh.y * oh.y).clamp(-1.0, 1.0);
-                                let ang = dot.acos();
-                                bond_pivot += ang;
-                                // Angular spring, EXPONENTIAL in the bend angle:
-                                // a small pivot is nearly free (wrap, drape and the
-                                // settle-jitter cost almost nothing, so they don't
-                                // ring), but the force climbs exponentially as the
-                                // bond swings away — a big shear (the pancake) hits
-                                // a near-rigid wall. Direction is the part of the
-                                // rest heading PERPENDICULAR to the live bond (swing
-                                // the bond back without changing its length).
+                                bond_pivot += dot.acos();
+                                // Angular spring: the part of the rest heading
+                                // PERPENDICULAR to the live bond, scaled by the
+                                // bond's length — a tangential pull that swings the
+                                // bond back to rest without changing its length.
+                                // (Linear in sin(angle): an exponential knee held
+                                // its shape stiffer but read as too rigid and choked
+                                // the wrap — a wrap is the same large bend, so any
+                                // sharp angle law that stops a pancake stops a curl.)
                                 let tang = oh - dh * dot;
-                                let tl = tang.len();
-                                if tl > 1e-4 {
-                                    let mag = (ang / tun.pivot_scale).exp() - 1.0;
-                                    pivot_push = pivot_push + tang * (mag / tl);
-                                }
+                                pivot_push = pivot_push + tang * al;
                             }
                             // COMPRESSION push: when the bond is shorter than rest,
                             // shove away from the neighbour, the force climbing

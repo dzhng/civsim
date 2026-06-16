@@ -127,6 +127,18 @@ pub struct Tunables {
     /// felling is a contest of masses, and the press chain holds a man up.
     pub stun_momentum: f32,
     pub stun_time: f32,
+    /// Seconds a halted formation takes to set its feet and reach full brace
+    /// (it drops instantly when moving). A charge landing inside this window
+    /// hits a not-yet-braced line and rides through.
+    pub brace_ramp_secs: f32,
+    /// How fast a trampler bleeds its INTO-the-foe momentum per tick of contact,
+    /// per unit of the foe's brace above 1 — a still, braced body brakes the
+    /// charge with its mass; a man on the move barely slows it. Scaled by the
+    /// mass share, so a LIGHTER charger (smaller mass in the denominator) bleeds
+    /// faster and bogs in fewer ranks for free — no per-class knob needed. A few
+    /// ranks of braced infantry bog the charge below trample speed; a moving line
+    /// lets it ride deeper. The grip is the BODY (brace), not the weapon.
+    pub trample_bleed: f32,
     /// Extra displacement per m/s of closing speed at impact.
     pub impact_push: f32,
     /// Damage per m/s of knockback when a TRAMPLING mass (horse, chariot)
@@ -232,6 +244,8 @@ impl Default for Tunables {
             morale_enabled: true,
             stun_momentum: 16.0,
             stun_time: 1.3,
+            brace_ramp_secs: 3.0,
+            trample_bleed: 1.5,
             impact_push: 0.2,
             impact_damage: 0.040,
             micro_rough: 1.0,

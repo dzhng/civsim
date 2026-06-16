@@ -64,6 +64,10 @@ pub struct Unit {
     /// law's leash pullback, so in a stalled press it reads ~commanded pace
     /// while the men go nowhere — read `mass_advance` for that question.
     pub frame_speed: f32,
+    /// How braced the unit currently is, 0..1: ramps toward "planted" while
+    /// halted (over `brace_ramp_secs`), drops instantly when it gets moving. See
+    /// `brace()`.
+    pub brace_ramp: f32,
     pub move_target: Option<Vec2>,
     /// Order awaiting transmission: a disordered unit takes time to respond.
     /// (cohesion-gated; the pie timer in the UI reads these.)
@@ -220,16 +224,17 @@ pub(crate) fn slot_local(slot: usize, files: usize, spacing: Vec2) -> Vec2 {
 
 impl Unit {
     /// Planted feet couple a man to the ground: a halted formation fights
-    /// with brace-multiplied effective mass. CONTINUOUS in frame speed —
-    /// resistance fades as the formation gets moving, no cliff at a
-    /// threshold. Pivoting men are mid-step: no plant.
+    /// with brace-multiplied effective mass. Bracing RAMPS UP — a line has to
+    /// stand a moment to set its feet, plant its shields, ground its butts — so
+    /// `brace_ramp` (0..1, integrated over time while halted, dropped instantly
+    /// when moving) is how braced it actually is. A unit caught on the move, or
+    /// one that only just halted, isn't braced yet: a charge that arrives before
+    /// the ramp completes rides through it. Pivoting men are mid-step: no plant.
     pub fn brace(&self) -> f32 {
-        let mult = self.stats.brace_mult;
         if self.pivoting {
             return 1.0;
         }
-        let planted = (1.0 - self.frame_speed / 0.6).clamp(0.0, 1.0);
-        1.0 + (mult - 1.0) * planted
+        1.0 + (self.stats.brace_mult - 1.0) * self.brace_ramp
     }
 
     pub fn width(&self) -> f32 {

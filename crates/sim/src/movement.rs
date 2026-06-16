@@ -274,6 +274,7 @@ mod tests {
             anchor: Vec2::ZERO,
             facing: 0.0,
             frame_speed: 0.0,
+            brace_ramp: 0.0,
             move_target: Some(Vec2::new(0.0, 100.0)),
             pending_target: None,
             pending_mode: crate::unit::OrderMode::Move,

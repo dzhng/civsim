@@ -729,3 +729,4 @@ fn a_charge_stopped_in_the_crowd_is_spent_even_if_it_never_reached_speed() {
         "a stopped, engaged 'charge' must clear within a couple of seconds: {stuck:.1}s stuck"
     );
 }
+

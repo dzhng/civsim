@@ -240,6 +240,7 @@ impl Sim {
             anchor,
             facing,
             frame_speed: 0.0,
+            brace_ramp: 0.0,
             move_target: None,
             pending_target: None,
             pending_mode: OrderMode::Move,
@@ -1656,6 +1657,17 @@ impl Sim {
             // over ~0.4s to ride out collision jitter and casualty shifts.
             let v_fwd = (u.centroid - c0).dot(dir(u.facing)) / dt;
             u.mass_advance += (v_fwd - u.mass_advance) * (1.0 - (-dt / 0.4f32).exp());
+            // BRACE RAMP: a halted line takes a few seconds to set its feet and
+            // reach full brace; the instant it gets moving (or is told to march)
+            // it loses the set. So a charge that lands before the ramp completes
+            // hits a not-yet-braced line and rides through. Measured frame speed,
+            // not the order, decides "halted" — a line stalled in contact starts
+            // bracing on its own.
+            if u.frame_speed < 0.3 && !u.pivoting {
+                u.brace_ramp = (u.brace_ramp + dt / self.tun.brace_ramp_secs).min(1.0);
+            } else {
+                u.brace_ramp = 0.0;
+            }
             let _ = opp_pressed_n;
             u.counter_press = opp_press / n;
 

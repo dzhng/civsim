@@ -506,6 +506,7 @@ impl Sim {
             return;
         }
         self.alive[i] = 0;
+        self.stun[i] = 0.0; // a corpse is not also stunned (one state, not flags)
         self.target[i] = -1;
         let u = &mut self.units[self.soldier_unit[i] as usize];
         u.alive_count = u.alive_count.saturating_sub(1);

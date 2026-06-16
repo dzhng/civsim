@@ -203,101 +203,72 @@ impl Sim {
                                 let closing = (vel(j) - vel(i)).dot(Vec2::new(nx, ny)).max(0.0);
                                 if closing > tun.charge_min_speed {
                                     let momentum = m_eff(j) * closing;
-                                    // IMPALE: when the body I am slamming
-                                    // into holds a PLANTED POLE (reach is
-                                    // the physics: a pike braces to grip,
-                                    // rear hand, ground; a sword absorbs
-                                    // and deflects), the point returns my
-                                    // own closing momentum every tick of
-                                    // the contact — a hedge is a brake,
-                                    // not a cadence. Self-gating to
-                                    // charge-grade closings: slow pressers
-                                    // pay nothing (deep-pike infantry
-                                    // contract). Waterloo squares.
-                                    let pole = units[uj].stats
-                                        .weapons
-                                        .iter()
-                                        .fold(0.0f32, |m, w| m.max(w.reach));
-                                    let planted = ((pole - 1.0) / 2.2).clamp(0.0, 1.0);
-                                    // Hedge depth (mirrors the combat impale):
-                                    // the brake at contact is the per-point
-                                    // grip times the fraction of the reach-
-                                    // deep hedge that is manned.
-                                    let hedge = {
-                                        let pu = &units[uj];
-                                        let ranks = pu.alive_count as f32
-                                            / pu.files_eff.max(1) as f32;
-                                        let sp = pu.stats.spacing.y.max(0.5);
-                                        (ranks / (pole / sp).max(1.0)).clamp(0.0, 1.0)
-                                    };
-                                    // A braced man behind a planted POLE
-                                    // keeps his feet against the very mass
-                                    // his point is arresting — the horse
-                                    // never truly reaches a standing pike
-                                    // (its stop happens at reach). Without
-                                    // this, the wall's own shove-back
-                                    // re-slams the front rank prone and
-                                    // the storm opens the hedge.
-                                    let my_pole = units[ui].stats
-                                        .weapons
-                                        .iter()
-                                        .fold(0.0f32, |m, w| m.max(w.reach));
-                                    let my_planted = ((my_pole - 1.0) / 2.2).clamp(0.0, 1.0);
-                                    let footing = 1.0 + 5.0 * my_planted * my_planted * (units[ui].brace() - 1.0).max(0.0);
                                     push.x += nx * closing * tun.impact_push * DT * share;
                                     push.y += ny * closing * tun.impact_push * DT * share;
-                                    // ...and a planted POLE bleeds the
-                                    // arriving body's CARRIED momentum
-                                    // itself — the charge spends on the
-                                    // point, every tick of the contact
-                                    // (a position push saturates against
-                                    // the separation cap; the glide is
-                                    // where the charge actually lives).
-                                    // Quadratic in the shaft: swords
-                                    // shrug, spears resist, pikes WALL.
-                                    if planted > 0.0 {
+                                    // TRAMPLE BLEED: a trampler spends its CARRIED
+                                    // momentum on every enemy BODY it rides into,
+                                    // proportional to that man's BRACE — a
+                                    // planted, braced line brakes the charge with
+                                    // its mass; a man on the move (brace ~1)
+                                    // barely slows it. So rank by rank the charge
+                                    // bleeds, and a few ranks of BRACED infantry
+                                    // bog it below trample speed (then the body
+                                    // wall pins it), while a MOVING line lets it
+                                    // ride deeper. The grip is the BODY, not the
+                                    // weapon — pikes brake hardest only because
+                                    // they brace hardest (brace_mult). The glide
+                                    // is where the charge lives (a position push
+                                    // saturates against the separation cap).
+                                    // TRAMPLE BLEED: the charge spends its carried
+                                    // momentum on every enemy body it rides into,
+                                    // scaled by that man's BRACE (always some — a
+                                    // running man slows the horse a little; a
+                                    // braced, planted one brakes it hard) and by
+                                    // the mass share (a lighter charger bogs
+                                    // sooner). Rank by rank it bleeds, so DEPTH
+                                    // decides: a few ranks of braced infantry bog
+                                    // it below trample speed (then the body wall
+                                    // pins it); a thin line is cleared before it
+                                    // spends.
+                                    if units[ui].tramples() {
                                         let toward = -(mom_x[i] * nx + mom_y[i] * ny);
                                         if toward > 0.0 {
-                                            let grip =
-                                                (1.6 * share * planted * planted * hedge).min(0.5);
+                                            let grip = (tun.trample_bleed * share * units[uj].brace())
+                                                .min(0.85);
                                             mom_x[i] += nx * toward * grip;
                                             mom_y[i] += ny * toward * grip;
                                         }
                                     }
-                                    if momentum > tun.stun_momentum * w_i * footing {
-                                        // Being KNOCKED DOWN hurts, in
-                                        // proportion to the throw (Δv =
-                                        // momentum over your braced, backed
-                                        // mass). One hurt per knockdown —
-                                        // the impulse, not a grind — and
-                                        // braced men who keep their feet
-                                        // keep their bones.
+                                    // A felling blow resolves to ONE state,
+                                    // never both: KILL xor KNOCK-DOWN. Only a man
+                                    // on his feet (stun == 0) is felled afresh —
+                                    // a man already down is ridden over, not
+                                    // re-stunned into a permanent ragdoll. The
+                                    // blow's damage (Δv over his braced, backed
+                                    // mass; tramplers only — men bumping men at a
+                                    // run bruise and fall) decides: if it drops
+                                    // him he DIES, otherwise he is STUNNED. A
+                                    // corpse is never also stunned; a stunned man
+                                    // never also dying.
+                                    // The felling threshold scales with the
+                                    // victim's effective mass — w_i already folds
+                                    // in his BRACE (a planted, backed man keeps
+                                    // his feet; a loose man is bowled over), so no
+                                    // extra pole/footing factor is needed.
+                                    if momentum > tun.stun_momentum * w_i && stun[i] <= 0.0 {
                                         let dv = momentum / w_i.max(0.1);
-                                        // Bones break under a TRAMPLING mass
-                                        // (horse, chariot — the classes that
-                                        // ride through), each at its own
-                                        // weight of hoof. Men bumping men at
-                                        // a run bruise and fall, nothing more.
-                                        let knockback =
-                                            units[uj].stats.knockback_mult;
-                                        // Universal: ANYONE felled at
-                                        // charge-grade closing gets hurt —
-                                        // no charge-state gate needed now
-                                        // that closing is honest motion
-                                        // (a scrum's churn reads ~0 and
-                                        // can neither fell nor mint).
-                                        if stun[i] <= 0.0 && knockback > 0.0 {
-                                            let pool = if mounted[i] == 1 {
-                                                &mut mount_health[i]
-                                            } else {
-                                                &mut health[i]
-                                            };
-                                            *pool -= tun.impact_damage * knockback * dv;
-                                            if *pool <= 0.0 {
-                                                impact_kills.push(i);
-                                            }
+                                        let knockback = units[uj].stats.knockback_mult;
+                                        let pool = if mounted[i] == 1 {
+                                            &mut mount_health[i]
+                                        } else {
+                                            &mut health[i]
+                                        };
+                                        *pool -= tun.impact_damage * knockback * dv;
+                                        if *pool <= 0.0 {
+                                            impact_kills.push(i); // killed — not stunned
+                                        } else {
+                                            stun[i] = tun.stun_time; // survived — knocked down
                                         }
-                                        stun[i] = stun[i].max(tun.stun_time);
                                     }
                                     // The impactor RETAINS 0.6 of its closing
                                     // momentum as carried drive (the rest bleeds

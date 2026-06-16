@@ -979,7 +979,7 @@ fn the_fronts_stay_welded_a_pusher_drives_not_detaches() {
 /// enough weave forbids that. Measures the worst (over the run): how intermixed
 /// the two sides get (>~1 rank's worth = the fronts blended/threaded) and how
 /// far either block's width spreads from its rest frontage.
-fn equal_press_deform(secs: f32) -> (f32, f32) {
+fn equal_press_deform(secs: f32) -> (f32, f32, f32) {
     let mut tun = Tunables::default();
     tun.micro_rough = 0.0;
     tun.morale_enabled = false;
@@ -998,9 +998,14 @@ fn equal_press_deform(secs: f32) -> (f32, f32) {
     sim.set_attack_order(b, a);
     let rest_w = (w as f32 - 1.0) * sp; // nominal frontage
     let (mut max_mix, mut max_spread) = (0.0f32, 0.0f32);
+    let mut min_gap = f32::INFINITY;
     for step in 0..(secs / DT) as usize {
         sim.tick();
-        // skip the approach; measure once they are in contact.
+        // The fronts must actually MEET — closest enemy-pair distance. A stiff
+        // weave that freezes the units short of contact would otherwise "pass"
+        // (no contact = no deform), the textbook false-positive: assert contact.
+        min_gap = min_gap.min(closest_pair(&sim, a, b));
+        // skip the approach; measure deform once they are in contact.
         if step < (3.0 / DT) as usize {
             continue;
         }
@@ -1010,13 +1015,38 @@ fn equal_press_deform(secs: f32) -> (f32, f32) {
             max_spread = max_spread.max(wx - rest_w);
         }
     }
-    (max_mix, max_spread)
+    (max_mix, max_spread, min_gap)
+}
+
+/// Smallest distance between any living man of `a` and any of `b`.
+fn closest_pair(sim: &Sim, a: usize, b: usize) -> f32 {
+    let ua = &sim.units[a];
+    let ub = &sim.units[b];
+    let bmen: Vec<Vec2> = (ub.start..ub.start + ub.count)
+        .filter(|&i| sim.alive[i] == 1)
+        .map(|i| sim.soldier_pos(i))
+        .collect();
+    let mut best = f32::INFINITY;
+    for i in ua.start..ua.start + ua.count {
+        if sim.alive[i] == 0 {
+            continue;
+        }
+        let p = sim.soldier_pos(i);
+        for &q in &bmen {
+            best = best.min((p - q).len());
+        }
+    }
+    best
 }
 
 #[test]
 fn two_equal_immortal_blocks_press_without_deforming() {
-    let (mix, spread) = equal_press_deform(14.0);
-    eprintln!("EQUAL-PRESS  intermix={mix:.2} (0=only fronts touch)  width_spread={spread:.1}m (0=holds frontage)");
+    let (mix, spread, gap) = equal_press_deform(14.0);
+    eprintln!("EQUAL-PRESS  intermix={mix:.2} (0=only fronts touch)  width_spread={spread:.1}m (0=holds frontage)  min_gap={gap:.1}m (must close to fight)");
+    assert!(
+        gap < 1.2,
+        "the blocks never MET (closest pair {gap:.1}m): a weave so stiff it freezes the advance short of contact is not a pass — the magnet must still close the frontline",
+    );
     assert!(
         mix < 0.35 && spread < 1.5,
         "two equal immortal blocks DEFORMED: intermix {mix:.2} (want <0.35), width spread {spread:.1}m (want <1.5) — the weave is too soft, the magnet drags the ranks in",

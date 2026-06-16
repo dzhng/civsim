@@ -71,9 +71,10 @@ fn a_charging_unit_reaches_charge_speed() {
 /// EVERY class — not merely a high fraction of a (possibly low) charge pace. This
 /// is the assertion that actually catches the failure mode: if a class's charge
 /// ceiling sat at or below its run (heavy once did, clamped to the surge), this
-/// trips even when the % test still "passes". Compares the same two things a
-/// player feels — the speed the mass sustains at a run vs. the speed it peaks at
-/// in the charge — and demands a clear margin on top.
+/// trips even when the % test still "passes". Both numbers are the same physical
+/// quantity — centroid forward speed — the run as a 6 s sustained mean, the charge
+/// as the peak of its mass_advance (that EMA LAGS a rising burst, so the charge
+/// number is conservative: the felt margin is at least this, never less).
 #[test]
 fn a_charge_is_clearly_faster_than_a_run() {
     for class in [UnitClassId::LightSword, UnitClassId::HeavySword, UnitClassId::ShockCavalry] {
@@ -492,7 +493,6 @@ fn an_advancing_block_compresses_both_itself_and_the_one_it_presses() {
     let (mut sim, a, b) = two_blocks(10, 10, -10.0, 10, 8, 2.0, 1.0);
     let a_rest = pack(&sim, a);
     let b_rest = pack(&sim, b);
-    let b_y0 = mean_y(&sim, b);
     sim.set_pace(a, Pace::Walk); // walk: the separation solver can fully relieve a walk step
     sim.set_move_order(a, Vec2::new(0.0, 30.0)); // drive clean through where B stands
 
@@ -510,7 +510,6 @@ fn an_advancing_block_compresses_both_itself_and_the_one_it_presses() {
             );
         }
     }
-    let _ = b_y0;
     eprintln!(
         "PRESS  A pack {:.2}->min {:.2}  B pack {:.2}->min {:.2}",
         a_rest, a_min, b_rest, b_min
@@ -1228,6 +1227,6 @@ fn a_braced_block_holds_its_grid_under_a_press() {
     );
     assert!(
         mix < 0.35 && spread < 2.5,
-        "the BRACED holder deformed: intermix {mix:.2} (want <0.35), width spread {spread:.1}m (want <2.0) — a set, willing block must keep its grid under a press",
+        "the BRACED holder deformed: intermix {mix:.2} (want <0.35), width spread {spread:.1}m (want <2.5) — a set, willing block must keep its grid under a press",
     );
 }

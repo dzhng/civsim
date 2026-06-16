@@ -72,12 +72,12 @@ pub struct Tunables {
     /// Compression decay length (m): squeeze beyond this and the push-apart
     /// climbs steeply. Small = the lattice guards its spacing hard.
     pub compress_scale: f32,
-    /// WEAVE STIFFNESS: one multiplier on the whole neighbour lattice — both the
-    /// draping-net spring (pull to rest shape) AND the compression resistance
-    /// (the push-back that holds a rank against the press). The RESISTANCE that
-    /// keeps the back ranks from piling onto the front: only the frontline feels
-    /// the enemy magnet, and a stiff enough lattice means that pull cannot drag
-    /// the ranks behind it forward. Does NOT touch the slot tether or the magnet.
+    /// WEAVE STIFFNESS: multiplier on the draping-net REST-SHAPE spring only (the
+    /// pull back to rest grid) — NOT the compression push-apart, which stays at
+    /// baseline so a pressed block can still squeeze axially (othismos). A stiffer
+    /// rest-spring is what keeps the back ranks from piling onto the front: only
+    /// the frontline feels the enemy magnet, and a stiff enough lattice means that
+    /// pull cannot drag the ranks behind it forward. Does NOT touch slot or magnet.
     pub weave_stiffness: f32,
     /// PIVOT STIFFNESS: the angular spring that snaps a BENT formation straight.
     /// The net/compression springs only police bond LENGTH, so a shear or splay

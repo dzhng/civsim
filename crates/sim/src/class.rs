@@ -59,7 +59,7 @@ impl core::ops::Deref for WeaponSet {
 #[derive(Clone, Copy, Debug)]
 pub struct UnitClass {
     pub id: UnitClassId,
-    /// Multiplies the global walk/run/surge speeds.
+    /// Scales the above-walk speed range (run/surge/charge), not the walk floor.
     pub pace_mult: f32,
     pub soldier_radius: f32,
     /// Collision/push mass. Bracing multiplies effective mass on top.

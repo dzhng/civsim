@@ -1549,9 +1549,6 @@ impl Sim {
                     };
                     s + pivot_push * tun.pivot_stiffness
                 };
-                // The crush VECTOR: the friendly squeeze, plus the enemy reach-
-                // spring's shove-back (added in the magnet block when it repels).
-                let crush_vec = comp_push;
                 steer_to = steer_to + to * slot_pull_u;
                 // ENEMY MAGNET — the SEEK, and nothing else. A pure attract
                 // toward the foe a man is fighting: far off he is pulled in hard
@@ -1673,8 +1670,8 @@ impl Sim {
                 // Read the crush off the weave: EMA the spring load so a strike's
                 // jolt or a momentary squeeze doesn't flicker the vice/evade.
                 pressure[i] += (crush_scalar - pressure[i]) * press_alpha;
-                press_x[i] += (crush_vec.x - press_x[i]) * press_alpha;
-                press_y[i] += (crush_vec.y - press_y[i]) * press_alpha;
+                press_x[i] += (comp_push.x - press_x[i]) * press_alpha;
+                press_y[i] += (comp_push.y - press_y[i]) * press_alpha;
 
                 // Facing: a nearby enemy (turn to meet a threat even before he's
                 // in reach, and even while the crowd shoves you), then the man who

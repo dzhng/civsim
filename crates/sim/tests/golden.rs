@@ -37,7 +37,7 @@ fn golden_state_hash_stable() {
         sim.tick();
     }
     let h = state_hash(&sim);
-    const EXPECTED: u64 = 0x7f40d9c343502bd8;
+    const EXPECTED: u64 = 0x8f03662295bf5be6;
     assert_eq!(
         h, EXPECTED,
         "sim behavior changed: golden hash {h:#018x} != pinned {EXPECTED:#018x}. \

@@ -158,6 +158,25 @@ check is genuinely too strict, prove it with a shot first, and write the new
 threshold around the *physically correct* behavior, not around the current
 (broken) number.
 
+### VERIFY THE SCENARIO VISUALLY before you trust (or chase) a test
+
+A test asserts on numbers, but it first **builds a scene** — and the scene can
+silently be something other than what you wrote. Spawns get reshaped, paces and
+orders interact, "immortal" units still get stunned, a `4-wide × 2-deep` block
+becomes `2-wide × 4-deep` because the formation engine never holds a line
+thinner than 3 ranks (the `files_eff` casualty cap). If you grind a mechanic
+against a test whose scene is wrong, you are tuning physics to defeat a rigged
+setup — and every "fix" is noise.
+
+So: **the FIRST time you write or rely on a mechanics test, render its opening
+frames as a vibe shot and LOOK.** Confirm the blocks are the width, depth,
+facing, spacing, and separation you intended *before* you read the pass/fail or
+touch the sim. A whole session was spent fighting a "deep column threads a thin
+line" failure that was really a 4-wide column walking around a 2-wide defender
+the test had quietly narrowed. One glance at `t000.png` would have caught it.
+This is the same lesson as "the red is telling the truth," one level earlier:
+make sure the test is even *asking the right question* before you answer it.
+
 ### The OTHER red: when a first-principles fix breaks a BALANCE test, the test may be the cheese
 
 The rule above ("don't relax a red") is about *mechanics* tests — those are

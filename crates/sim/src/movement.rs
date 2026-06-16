@@ -192,6 +192,7 @@ pub(crate) fn update_unit_motion(tun: &Tunables, u: &mut Unit, dt: f32, ground: 
                 // while ranks re-form (drilled about-face), instead of
                 // dragging the block through an arc like cloth.
                 u.frame_speed = move_toward(u.frame_speed, 0.0, accel * 2.0 * dt);
+                u.cruise = move_toward(u.cruise, 0.0, accel * 2.0 * dt);
                 if u.frame_speed < 0.05 {
                     let geom = tun.wheel_speed_factor * top / u.pivot_radius().max(1.0);
                     let rate = tun.base_turn_rate.min(geom) * turn_throttle;
@@ -219,11 +220,15 @@ pub(crate) fn update_unit_motion(tun: &Tunables, u: &mut Unit, dt: f32, ground: 
                     (pace_speed(tun, u) * ground).min((2.0 * accel * dist).sqrt())
                 };
                 u.frame_speed = move_toward(u.frame_speed, target_speed, accel * dt);
+                // CRUISE is the clean, leash-immune copy of this intended speed —
+                // the men feed it forward to track the frame without lag.
+                u.cruise = move_toward(u.cruise, target_speed, accel * dt);
                 u.anchor = u.anchor + dir(u.facing) * (u.frame_speed * dt);
             }
         }
         None => {
             u.frame_speed = move_toward(u.frame_speed, 0.0, accel * 2.0 * dt);
+            u.cruise = move_toward(u.cruise, 0.0, accel * 2.0 * dt);
             if u.frame_speed > 0.0 {
                 u.anchor = u.anchor + dir(u.facing) * (u.frame_speed * dt);
             }
@@ -274,6 +279,7 @@ mod tests {
             anchor: Vec2::ZERO,
             facing: 0.0,
             frame_speed: 0.0,
+            cruise: 0.0,
             brace_ramp: 0.0,
             move_target: Some(Vec2::new(0.0, 100.0)),
             pending_target: None,

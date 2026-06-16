@@ -64,6 +64,11 @@ pub struct Unit {
     /// law's leash pullback, so in a stalled press it reads ~commanded pace
     /// while the men go nowhere — read `mass_advance` for that question.
     pub frame_speed: f32,
+    /// CLEAN commanded cruise speed (m/s): ramps toward the unit's pace under a
+    /// move order and decays to 0 otherwise. Unlike `frame_speed` it is the
+    /// INTENDED speed, never the leash-corrupted measurement — so the men can
+    /// feed it forward to track the frame without the loop death-spiralling.
+    pub cruise: f32,
     /// How braced the unit currently is, 0..1: ramps toward "planted" while
     /// halted (over `brace_ramp_secs`), drops instantly when it gets moving. See
     /// `brace()`.

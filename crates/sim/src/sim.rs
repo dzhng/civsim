@@ -246,6 +246,7 @@ impl Sim {
             anchor,
             facing,
             frame_speed: 0.0,
+            cruise: 0.0,
             brace_ramp: 0.0,
             move_target: None,
             pending_target: None,
@@ -1599,6 +1600,30 @@ impl Sim {
                 if vl > 0.2 {
                     effort += 1.0 - ground;
                 }
+                // FRAME FEED-FORWARD: under a MOVE order a man rides at the FRAME's
+                // own advance speed, not the weak slot-chase. The slot-chase is a
+                // first-order lag — the men trail the moving frame, the leash caps
+                // the lead, and the unit never reaches its pace (worse, a slow/deep
+                // frame gets PINNED by the leash and the loop deadlocks into a
+                // walk). Carrying the frame's velocity makes the formation TRACK
+                // its frame with no lag; the slots/weave still dress it laterally,
+                // and the per-man max_sp cap below leaves the slow tail to fray.
+                // Applies to ANY advancing order — a MOVE (relocate) or an ATTACK
+                // (close to contact, incl. a charge): the men track the frame's
+                // cruise so the unit reaches its commanded pace / charge speed
+                // instead of lagging. Stops per-man once he ENGAGES (the fighting
+                // pace owns him then), so the rear ranks keep pressing up while the
+                // front fights. (cruise ramps to charge_speed when u.charging.)
+                let advancing =
+                    u.move_target.is_some() || matches!(u.mode, OrderMode::Attack(_));
+                if advancing && !engaged_i {
+                    let md = dir(u.facing);
+                    let fwd = v.x * md.x + v.y * md.y;
+                    let want = u.cruise.min(max_sp);
+                    if want > fwd {
+                        v = v + md * (want - fwd);
+                    }
+                }
                 // FIGHTING PACE, directional: a man already engaged may not drive
                 // INTO his foe faster than a fighting step. This caps only the
                 // velocity component TOWARD the foe — so a charging front rank
@@ -1773,7 +1798,12 @@ impl Sim {
                 u.brace_ramp = 0.0;
             }
             let _ = opp_pressed_n;
-            u.counter_press = opp_press / n;
+            // The ram-drag reads ENEMY counter-press, but the per-soldier crush it
+            // sums also carries FRIENDLY compression — so a unit NOT in contact
+            // must report zero, or its own internal squeeze (e.g. the rear ranks
+            // piling onto the front as it accelerates) is misread as an enemy wall
+            // braking it, and a clean open-ground run brakes itself to a halt.
+            u.counter_press = if u.engaged > 0 { opp_press / n } else { 0.0 };
 
             // THE ANCHOR LAW: the frame always pursues the order, but it is
             // leashed to the men's measured center of mass. Out of combat

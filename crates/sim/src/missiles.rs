@@ -199,9 +199,12 @@ impl Sim {
                 {
                     // Hold fire into melees that involve OTHER friendly
                     // units. Our own fighting retreat is our own affair —
-                    // peltasts threw over their own rear ranks.
+                    // peltasts threw over their own rear ranks. The threshold
+                    // is LOW: even a handful of friends in the tangle (~5% of
+                    // the foe's line in contact) is enough to stay the captain's
+                    // hand — you do not loose into your own men to thin a few.
                     let friends_engaged =
-                        v.engaged > v.alive_count / 10 && v.contact_unit != ui as u32;
+                        v.engaged > v.alive_count / 20 && v.contact_unit != ui as u32;
                     if !friends_engaged {
                         best = Some((vi, d));
                     }

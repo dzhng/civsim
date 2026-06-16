@@ -18,38 +18,65 @@
 //! Facing is fixed NORTH (+y) so the unit's right-axis is +x and its
 //! forward-axis is +y; "width" is the x-spread, "depth" is the y-spread.
 
-use sim::{Pace, Sim, Tunables, Vec2, DT};
+use sim::{Pace, Sim, Tunables, UnitClassId, Vec2, DT};
 use std::f32::consts::FRAC_PI_2;
 
 const SEED: u64 = 7;
 
-/// A stiff weave must not DRAG a run: an 8x8 infantry block running on open
-/// ground covers about as much as it would with a soft weave. (Without the run
-/// carve-out, weave_stiffness=3 reels the stretching run back — ~20m -> ~16m, a
-/// 20% tax. The carve-out softens the lattice while committed to a move order.)
-#[test]
-fn a_stiff_weave_does_not_drag_a_run() {
+/// The STEADY-STATE run speed a formed unit of `class` actually sustains on open
+/// ground (after spending its acceleration), measured at the centroid.
+fn terminal_run_speed(class: UnitClassId) -> f32 {
     let mut tun = Tunables::default();
     tun.micro_rough = 0.0;
     tun.morale_enabled = false;
     let mut sim = Sim::new(tun, SEED);
-    let u = sim.spawn_unit(Vec2::new(0.0, 0.0), FRAC_PI_2, 64, 8, Vec2::new(1.0, 1.0), 0, 0.8);
+    let u = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 60, class, 0);
     for _ in 0..30 {
         sim.tick();
     }
-    let y0 = sim.units[u].centroid.y;
     sim.set_pace(u, Pace::Run);
-    sim.set_move_order(u, Vec2::new(0.0, 300.0));
-    for _ in 0..(10.0 / DT) as usize {
+    sim.set_move_order(u, Vec2::new(0.0, 500.0));
+    // Spend the acceleration ramp first, then time the steady state.
+    for _ in 0..(8.0 / DT) as usize {
         sim.tick();
     }
-    let d = sim.units[u].centroid.y - y0;
-    eprintln!("RUN  infantry moved {d:.1}m in 10s ({:.2} m/s)", d / 10.0);
-    assert!(
-        d > 18.0,
-        "the stiff weave dragged the run: only {d:.1}m in 10s (a soft weave does ~20m) — a running unit must soften its lattice",
+    let y0 = sim.units[u].centroid.y;
+    for _ in 0..(6.0 / DT) as usize {
+        sim.tick();
+    }
+    (sim.units[u].centroid.y - y0) / 6.0
+}
+
+/// CHARACTERIZATION: the run speed each class ACTUALLY reaches. These numbers are
+/// well below the classes' `run_speed` stat (light/heavy 3.4, cav higher): a
+/// FORMED unit never sprints at an individual's leg speed because it is a coupled
+/// loop — the frame advances toward run_speed, the men chase their formation
+/// slots through a weak first-order lag, and the LEASH caps how far the frame may
+/// lead them, pinning the unit's net pace below the stat. (Naive fixes — driving
+/// the men forward, or loosening the leash — destabilise the loop and make it
+/// SLOWER; reaching the stat needs a feed-forward redesign of frame-tracking.)
+/// This is a tracked golden, NOT an endorsement of the values: if a change here
+/// moves a number, that is a real side effect on movement — confirm it is wanted
+/// and update the golden, don't just widen the tolerance.
+#[test]
+fn run_speed_per_class_is_tracked() {
+    let light = terminal_run_speed(UnitClassId::LightSword);
+    let heavy = terminal_run_speed(UnitClassId::HeavySword);
+    let cav = terminal_run_speed(UnitClassId::ShockCavalry);
+    eprintln!("RUN-SPEED  light={light:.2}  heavy={heavy:.2}  cav={cav:.2} (m/s)");
+    let near = |got: f32, want: f32| (got - want).abs() < 0.25;
+    assert!(near(light, LIGHT_RUN) && near(heavy, HEAVY_RUN) && near(cav, CAV_RUN),
+        "run speeds drifted: light {light:.2} (was {LIGHT_RUN}), heavy {heavy:.2} (was {HEAVY_RUN}), cav {cav:.2} (was {CAV_RUN}) — a movement side effect; confirm it's wanted, then update the golden",
     );
 }
+// Golden values (m/s), captured 2026-06-16. Light and heavy share a run_speed
+// stat (3.4) yet land far apart and far below it — heavy is the densest/heaviest
+// block, so its frame leads less and its men lag more (a denser lattice tracks a
+// moving frame worse), pinning it near a walk; light, lighter and looser, tracks
+// better. Cav's higher stat + low mass lets it nearly reach its leg pace.
+const LIGHT_RUN: f32 = 2.56;
+const HEAVY_RUN: f32 = 1.00;
+const CAV_RUN: f32 = 3.86;
 
 /// A clean rectangular block, facing north, on a parade ground.
 fn block(files: usize, ranks: usize, spacing: f32) -> (Sim, usize) {

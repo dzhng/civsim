@@ -670,13 +670,15 @@ fn eight_ranks_of_swords_toll_the_ride_but_cannot_hold_it() {
     // survives; the charge does not.
     let mut sim = Sim::new(Tunables { morale_enabled: false, ..Tunables::default() }, SEED);
     let block = sim.spawn_class(Vec2::new(0.0, 40.0), PI / 2.0, 800, UnitClassId::HeavySword, 1);
-    let cav = sim.spawn_class(Vec2::new(0.0, 160.0), -PI / 2.0, 80, UnitClassId::ShockCavalry, 0);
+    // Start a stride out (y=100): a move order rides at RUN pace (~3.9 m/s), so
+    // the window measures the toll-and-ride-through, not a long open approach.
+    let cav = sim.spawn_class(Vec2::new(0.0, 100.0), -PI / 2.0, 80, UnitClassId::ShockCavalry, 0);
     let _ = block;
     sim.set_pace(cav, sim::Pace::Run);
     sim.set_move_order(cav, Vec2::new(0.0, -80.0));
     let mut min_ma = f32::INFINITY;
     let mut melee_secs = 0.0f32;
-    for _ in 0..(45.0 / DT) as usize {
+    for _ in 0..(58.0 / DT) as usize {
         sim.tick();
         let c = &sim.units[cav];
         min_ma = min_ma.min(c.mass_advance);

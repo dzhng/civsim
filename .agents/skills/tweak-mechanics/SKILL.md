@@ -68,6 +68,37 @@ force is missing or wrong. Collective effects (a deep mass shoving a thin one
 back) must come from the **measured physics** that scales with mass, never
 from a proxy like counting ranks.
 
+### Conserve energy: every force is a SPRING or a DRAG, never an active push
+
+Audit each force by what it does to the system's energy:
+
+- **Conservative (a spring):** depends only on POSITION and has a rest
+  state it restores toward — neighbour cohesion, compression, the pivot/angular
+  spring, the slot tether, the enemy magnet (a spring to weapon-reach), bodies
+  not overlapping. Stores and returns energy; settles to equilibrium; symmetric
+  inputs cancel. **Prefer these.**
+- **Dissipative (a drag):** removes energy — the velocity cap, fighting-pace,
+  the trample momentum-bleed. Always stabilising. Fine, and necessary.
+- **Active (an injected push):** does positive work with no rest state — the
+  classic being "shove the FOE back out of my reach". This is a motor: it pumps
+  energy into the system, and coupled with its own feedback (push him away → he
+  pushes you less) it AMPLIFIES any asymmetry until a symmetric clash buckles
+  one way and routs. **These are the bug.** Replace an active push with the
+  reactive spring that has the same intent: don't shove the foe off you — recoil
+  off the foe (a restoring spring with equilibrium at reach). Both ends recoil,
+  it's symmetric, and it settles instead of running away.
+
+The test of an active force: imagine two identical lines meeting dead-on. A
+field of springs + drag reaches a stable, even standoff. An active push tips —
+if your mechanic makes a mirror-symmetric clash pick a winner, you have an
+energy source where you wanted a spring.
+
+Corollary — **a stiff spring needs damping or it rings.** Cranking a
+conservative spring's stiffness with no velocity damping makes it overshoot and
+oscillate (a settled block buzzes; a press explodes). If you raise stiffness and
+a "settles without oscillating" test goes red, the fix is damping (a drag), not
+a softer spring.
+
 ### One physical quantity → one canonical measurement
 
 When two pieces of code ask the *same physical question* ("is the enemy

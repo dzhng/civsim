@@ -403,11 +403,13 @@ fn move_order_rides_through_a_thin_line() {
     // arrives at its destination; the line is left stunned and bleeding.
     let mut sim = Sim::new(Tunables { morale_enabled: false, ..Tunables::default() }, SEED);
     let line = sim.spawn_unit(Vec2::new(0.0, 40.0), PI / 2.0, 300, 100, Vec2::new(1.0, 1.1), 1, 0.7);
-    let cav = sim.spawn_class(Vec2::new(0.0, 160.0), -PI / 2.0, 160, UnitClassId::ShockCavalry, 0);
+    // Start a stride out (y=100): a move order rides at RUN pace (~3.9 m/s, not
+    // a charge burst), so the test measures the ride-through, not a long gallop.
+    let cav = sim.spawn_class(Vec2::new(0.0, 100.0), -PI / 2.0, 160, UnitClassId::ShockCavalry, 0);
     sim.set_pace(cav, sim::Pace::Run);
     sim.set_move_order(cav, Vec2::new(0.0, -80.0));
     let mut stayed_move = true;
-    for _ in 0..(45.0 / DT) as usize {
+    for _ in 0..(55.0 / DT) as usize {
         sim.tick();
         stayed_move &= matches!(sim.units[cav].mode, sim::OrderMode::Move);
     }
@@ -435,11 +437,13 @@ fn move_order_into_a_deep_braced_column_bogs_into_melee() {
     // gets ridden through regardless of brace — depth in TIME grips.)
     let mut sim = Sim::new(Tunables { morale_enabled: false, ..Tunables::default() }, SEED);
     let block = sim.spawn_unit(Vec2::new(0.0, 40.0), PI / 2.0, 800, 40, Vec2::new(0.9, 1.0), 1, 0.7);
-    let cav = sim.spawn_class(Vec2::new(0.0, 160.0), -PI / 2.0, 80, UnitClassId::ShockCavalry, 0);
+    // Start a stride out (y=100): a move order rides at RUN pace, so contact is
+    // ~15s and the sample lands squarely mid-bog, not on the long approach.
+    let cav = sim.spawn_class(Vec2::new(0.0, 100.0), -PI / 2.0, 80, UnitClassId::ShockCavalry, 0);
     let _ = block;
     sim.set_pace(cav, sim::Pace::Run);
     sim.set_move_order(cav, Vec2::new(0.0, -80.0));
-    run(&mut sim, 30.0); // contact ~18s; sample mid-bog
+    run(&mut sim, 26.0); // contact ~15s; sample mid-bog
     let u = &sim.units[cav];
     assert!(
         u.centroid.y > 20.0,

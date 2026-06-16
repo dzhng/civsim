@@ -1296,6 +1296,19 @@ impl Sim {
                 if engaged_i {
                     engaged += 1;
                 }
+                // Trample = ride through, no glue, on either of two intents: a
+                // MOVE order (the enemy is terrain to ride past) OR a charge
+                // still carrying speed (the momentum overruns whatever it hits).
+                // The move half never flickers when a thin screen checks the
+                // gallop — the ORDER, not the instantaneous pace, holds the glue
+                // off. The speed half lets a CHARGE (attack order) plow a thin
+                // line and bloody it, yet still bog in a DEEP block: there the
+                // mass stalls below charge speed, the glue snaps back on,
+                // collision pins it, and the rider fights. Computed BEFORE the
+                // weave so the enemy bond (which welds at reach) also yields to a
+                // plowing mass — a horse must ride through, not glue to, its prey.
+                let trampling = u.tramples()
+                    && (u.move_target.is_some() || u.mass_advance > tun.charge_spent_speed);
 
                 let local = slot_local(soldier_slot[i] as usize, u.files_eff, u.spacing);
                 let slot = u.anchor + r * local.x + f * (-local.y);
@@ -1387,6 +1400,37 @@ impl Sim {
                         soldier_stretch = bond_stretch / nn;
                         soldier_pivot = bond_pivot / nn;
                     }
+                    // ENEMY BOND — the binary CONNECTED state, and the ONE force
+                    // that holds a man AT his foe. A man within reach is bonded to
+                    // him by the SAME weave spring as a friendly neighbour: rest
+                    // length = reach. It WELDS the fronts (the pusher drives his
+                    // foe back but cannot detach and walk through) and, being a
+                    // WEAVE spring — the exponential, UN-capped comp_push — it owns
+                    // the inside-reach standoff outright: the magnet no longer
+                    // repels here, so this is the only "off my foe" push and it
+                    // cannot fight a capped twin. A plowing horse (trample) does
+                    // not weld to its prey — it rides through.
+                    if aware_i && fighting[i] == 1 && !trampling {
+                        let te = target[i] as usize;
+                        let ep = Vec2::new(prev_positions[2 * te], prev_positions[2 * te + 1]);
+                        let d = p - ep; // foe -> me
+                        let al = d.len();
+                        if al > 1e-3 {
+                            // Rest: sit at reach from the foe, along the line to
+                            // him. Blend the weld into the net target at half
+                            // weight (the bond is one strong neighbour).
+                            let bond_to = ep + d * (reach_u / al) - p;
+                            net_target = Some(net_target.map_or(bond_to, |nt| (nt + bond_to) * 0.5));
+                            // Same exponential shove-apart if I am inside his reach.
+                            let comp = reach_u - al;
+                            if comp > 0.0 {
+                                let push = tun.compress_strength
+                                    * ((comp / tun.compress_scale).exp() - 1.0);
+                                comp_push = comp_push + d * (push / al);
+                                crush_scalar += push;
+                            }
+                        }
+                    }
                 }
                 // STRETCH drives "out of place" (surge / straggler): a man torn
                 // from his neighbours has long bonds; a packed man (compression)
@@ -1422,31 +1466,19 @@ impl Sim {
                 let mut steer_to = net_target.unwrap_or(to) + comp_push;
                 // The crush VECTOR: the friendly squeeze, plus the enemy reach-
                 // spring's shove-back (added in the magnet block when it repels).
-                let mut crush_vec = comp_push;
-                // Trample = ride through, no glue, on either of two intents: a
-                // MOVE order (the enemy is terrain to ride past) OR a charge
-                // still carrying speed (the momentum overruns whatever it hits).
-                // The move half never flickers when a thin screen checks the
-                // gallop — the ORDER, not the instantaneous pace, holds the
-                // magnet off. The speed half lets a CHARGE (attack order) plow a
-                // thin line and bloody it, yet still bog in a DEEP block: there
-                // the mass stalls below charge speed, the magnet snaps back on,
-                // collision pins it, and the rider fights.
-                let trampling = u.tramples()
-                    && (u.move_target.is_some() || u.mass_advance > tun.charge_spent_speed);
+                let crush_vec = comp_push;
                 steer_to = steer_to + to * slot_pull_u;
-                // ENEMY MAGNET — the front line's glue, a SPRING to the foe with
-                // rest length = weapon reach. Far from his foe a man is pulled in
-                // hard (he RUNS to contact); at reach the force is zero (he STOPS
-                // — "once attacking it stops moving"); pushed INSIDE reach it
-                // REPELS, exponentially, so no backpressure drives him deeper onto
-                // (or through) his foe — he holds at weapon's length and the shove
-                // passes through their bodies into the enemy instead. Because the
-                // bond is to the foe he is FIGHTING, not the nearest body, he does
-                // not chase: he advances a step only when that foe falls and he
-                // re-targets. Gated on FRONT_CLEAR so only the front (and an
-                // overhang man with an open shot — the wrap) feels it. Trample is
-                // the absence of glue: a plowing mass barely feels it.
+                // ENEMY MAGNET — the SEEK, and nothing else. A pure attract
+                // toward the foe a man is fighting: far off he is pulled in hard
+                // (he RUNS to contact); at reach the force fades to zero (he STOPS
+                // — "once attacking it stops moving"). It does NOT repel inside
+                // reach: that standoff is the enemy BOND's job (one force, one
+                // place), so the two no longer stack a capped push against an
+                // uncapped one at the contact line. Because the bond is to the foe
+                // he is FIGHTING, not the nearest body, he does not chase: he
+                // advances a step only when that foe falls and he re-targets.
+                // Gated on FRONT_CLEAR so only the front (and an overhang man with
+                // an open shot — the wrap) seeks. A plowing mass does not seek.
                 if aware_i && front_clear[i] == 1 && !trampling {
                     let te = target[i] as usize;
                     let ep = Vec2::new(positions[2 * te], positions[2 * te + 1]);
@@ -1454,17 +1486,10 @@ impl Sim {
                     let dist = d.len();
                     if dist > 1e-3 {
                         let off = dist - reach_u;
-                        let pull = tun.magnet_strength
-                            * (1.0 - (-off / tun.magnet_scale).exp());
-                        let mvec = d * (pull / dist);
-                        steer_to = steer_to + mvec;
-                        // REPEL (pull < 0, shoved inside reach) is the enemy
-                        // crushing me back — a loaded spring like any other. The
-                        // ATTRACT half (running to contact) is not crush.
-                        if pull < 0.0 {
-                            crush_vec = crush_vec + mvec;
-                            crush_scalar += -pull;
-                        }
+                        let pull = (tun.magnet_strength
+                            * (1.0 - (-off / tun.magnet_scale).exp()))
+                        .max(0.0);
+                        steer_to = steer_to + d * (pull / dist);
                     }
                 }
                 // Idle fidget: a few standing men ease off-slot at a time

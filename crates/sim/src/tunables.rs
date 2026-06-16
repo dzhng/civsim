@@ -127,6 +127,13 @@ pub struct Tunables {
     /// felling is a contest of masses, and the press chain holds a man up.
     pub stun_momentum: f32,
     pub stun_time: f32,
+    /// Weapon REPEL: how hard a man's leveled weapon pushes an enemy back out of
+    /// its reach, per metre the foe is inside it. A real two-way force in the
+    /// collision medium (not a wall): both fronts push each other, so the line
+    /// holds at weapon's length — yet a deeper, better-backed enemy can overpower
+    /// it and close. A pike (long reach) keeps men far; a sword (short) at arm's
+    /// length. Same rule, the reach is the only difference.
+    pub weapon_repel: f32,
     /// Seconds a halted formation takes to set its feet and reach full brace
     /// (it drops instantly when moving). A charge landing inside this window
     /// hits a not-yet-braced line and rides through.
@@ -244,6 +251,7 @@ impl Default for Tunables {
             morale_enabled: true,
             stun_momentum: 16.0,
             stun_time: 1.3,
+            weapon_repel: 15.0,
             brace_ramp_secs: 3.0,
             trample_bleed: 1.5,
             impact_push: 0.2,

@@ -542,3 +542,75 @@ fn a_wide_line_wraps_a_narrow_block() {
         "the wide line must ENVELOP the block (enemies all through it), not stall at its face: {wrapped:.2}",
     );
 }
+
+/// THE COLUMN-AND-LINE STORY (immortal soldiers, so it is pure formation
+/// physics — nobody dies, the only question is how the line DEFORMS). A narrow
+/// deep column drives the centre of a wide held line. The right behaviour is a
+/// story, not a single number:
+///   1. the fronts ATTRACT — the line's centre men stay glued to the column's,
+///      so as the column presses, the centre is dragged BACK: the line BULGES
+///      (a dimple, the centre well behind the flanks);
+///   2. the weave SELF-CORRECTS — the stretched springs pull the flanks inward,
+///      so the line narrows around the dimple instead of tearing;
+///   3. it does NOT simply part like a curtain — the column's centroid must not
+///      walk clean through while the line still stands.
+/// Today the line shows none of this: it just gets penetrated. This pins the
+/// bulge so the fix has a target.
+#[test]
+fn a_column_bulges_a_held_line_it_does_not_part_it() {
+    let mut tun = Tunables::default();
+    tun.micro_rough = 0.0;
+    tun.morale_enabled = false;
+    let mut sim = Sim::new(tun, 11);
+    // Wide held line (no order — it defends), ~4 deep, immortal.
+    let line = sim.spawn_class(Vec2::new(0.0, 13.0), -FRAC_PI_2, 280, UnitClassId::HeavySword, 1);
+    sim.set_files(line, 70);
+    // Narrow deep column, ordered THROUGH the centre, immortal.
+    let col = sim.spawn_class(Vec2::new(0.0, -25.0), FRAC_PI_2, 128, UnitClassId::HeavySword, 0);
+    sim.set_files(col, 8);
+    for u in [line, col] {
+        let (s, e) = (sim.units[u].start, sim.units[u].start + sim.units[u].count);
+        for k in s..e {
+            sim.health[k] = 1.0e9;
+        }
+    }
+    sim.set_pace(col, Pace::Run);
+    sim.set_attack_move_order(col, Vec2::new(0.0, 60.0));
+
+    // Line men near x=0 (the struck centre) vs the flanks (|x| large).
+    let profile = |s: &Sim| -> (f32, f32, f32) {
+        let u = &s.units[line];
+        let (mut cy, mut cn, mut fy, mut fn_, mut wmax) = (0.0f32, 0.0f32, 0.0f32, 0.0f32, 0.0f32);
+        for i in u.start..u.start + u.count {
+            if s.alive[i] == 0 {
+                continue;
+            }
+            let p = s.soldier_pos(i);
+            wmax = wmax.max(p.x.abs());
+            if p.x.abs() < 5.0 {
+                cy += p.y;
+                cn += 1.0;
+            } else if p.x.abs() > 15.0 {
+                fy += p.y;
+                fn_ += 1.0;
+            }
+        }
+        (cy / cn.max(1.0), fy / fn_.max(1.0), wmax)
+    };
+    let w0 = profile(&sim).2;
+    let (mut max_bulge, mut min_width, mut crossed) = (0.0f32, f32::INFINITY, false);
+    for _ in 0..(40.0 / DT) as usize {
+        sim.tick();
+        let (cyc, fyc, w) = profile(&sim);
+        // line faces -y; pushed BACK = +y, so centre-behind-flanks is cy - fy.
+        max_bulge = max_bulge.max(cyc - fyc);
+        min_width = min_width.min(w);
+        if sim.units[col].centroid.y >= sim.units[line].centroid.y {
+            crossed = true;
+        }
+    }
+    eprintln!("BULGE  max centre-dimple={max_bulge:.1}m  width {w0:.0}->{min_width:.0}m  col_crossed={crossed}");
+    assert!(!crossed, "the column parted the line and walked through (centroids crossed)");
+    assert!(max_bulge > 3.0, "the line did not BULGE under the column: centre dimpled only {max_bulge:.1}m");
+    assert!(min_width < w0 - 1.0, "the flanks did not draw inward to self-correct: width {w0:.0}->{min_width:.0}m");
+}

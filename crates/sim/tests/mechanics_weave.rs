@@ -909,3 +909,61 @@ fn two_braced_walls_hold_a_standoff_neither_centroid_crosses() {
         "fronts interpenetrated to {min_front:.2} m — the braced pole fence did not hold (reach 3.5)",
     );
 }
+
+// --- Column-and-line, built one behaviour at a time (immortal soldiers = pure
+// --- weave physics; compound these, don't solve all at once). ---------------
+
+/// A deep narrow block immortal-pushes a thin same-width defender straight back.
+/// (lhs y-extent half is `depth*spacing/2`.) Returns, over the run, the largest
+/// amount the PUSHER's front got PAST the defender's front — i.e. how far the
+/// glue let go. 0 = the fronts stayed welded (the pusher only ever drove the
+/// defender back); large = the pusher detached and walked through.
+fn front_detach(pusher_deep: usize, def_deep: usize) -> f32 {
+    let mut tun = Tunables::default();
+    tun.micro_rough = 0.0;
+    tun.morale_enabled = false;
+    let mut sim = Sim::new(tun, SEED);
+    let files = 4usize;
+    // defender at +y facing -y (south); pusher at -y facing +y, attacks.
+    let def = sim.spawn_unit(Vec2::new(0.0, 6.0), -FRAC_PI_2, files * def_deep, files, Vec2::new(0.9, 1.0), 1, 0.8);
+    let push = sim.spawn_unit(Vec2::new(0.0, -6.0), FRAC_PI_2, files * pusher_deep, files, Vec2::new(0.9, 1.0), 0, 0.8);
+    for u in [def, push] {
+        let (s, e) = (sim.units[u].start, sim.units[u].start + sim.units[u].count);
+        for k in s..e {
+            sim.health[k] = 1.0e9;
+        }
+    }
+    sim.set_pace(push, Pace::Run);
+    sim.set_attack_order(push, def);
+    let front = |s: &Sim, u: usize, sign: f32| {
+        (s.units[u].start..s.units[u].start + s.units[u].count)
+            .filter(|&i| s.alive[i] == 1)
+            .map(|i| s.soldier_pos(i).y * sign)
+            .fold(f32::MIN, f32::max)
+            * sign
+    };
+    let mut max_detach = 0.0f32;
+    for _ in 0..(30.0 / DT) as usize {
+        sim.tick();
+        // pusher faces +y so its front is its MAX y; defender's front is its MIN y.
+        let pf = front(&sim, push, 1.0);
+        let df = front(&sim, def, -1.0);
+        max_detach = max_detach.max(pf - df); // pusher front past defender front
+    }
+    max_detach
+}
+
+/// BEHAVIOUR 1 — the FRONT-GLUE. The fronts attract, so a pusher can drive a
+/// thinner defender BACK but cannot DETACH from it and walk into a gap: its
+/// front man stays welded to the defender's front man. Today the glue is too
+/// weak (a capped, soft-steering magnet that the hard collision overruns), so a
+/// deep column shears clean off and through. This pins the glue.
+#[test]
+fn the_fronts_stay_welded_a_pusher_drives_not_detaches() {
+    let detach = front_detach(8, 2);
+    eprintln!("FRONT-GLUE  pusher front got {detach:.1}m past the defender front (0 = welded)");
+    assert!(
+        detach < 1.0,
+        "the pusher detached and walked through the defender: {detach:.1}m past its front (the fronts must stay welded)",
+    );
+}

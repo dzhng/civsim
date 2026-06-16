@@ -70,76 +70,60 @@ from a proxy like counting ranks.
 
 ### One physical quantity → one canonical measurement
 
-When two pieces of code ask the *same physical question* ("how near is the
-nearest enemy steel?"), they must measure it the **same way** and key off
-the **same number**. If they don't, they will silently disagree and drift
-apart as the code evolves. Hunt for this — it's the highest-value
-simplification in this codebase.
+When two pieces of code ask the *same physical question* ("is the enemy
+close?"), they must measure it the **same way** and key off the **same
+number**. Different formulas for one question silently disagree and drift apart
+as the code evolves — and the disagreement IS a bug (a unit can be "at ease"
+for morale yet "threatened" for facing at once). Collapsing them onto one
+measure is both a simplification and a correctness fix: the shared meaning can
+no longer self-contradict.
 
-The tell: several thresholds that all mean "the enemy is close" but use
-different formulas and different constants. We had **three** answers to one
-question:
+Look for: the same "is X near / engaged / done" answered by different constants
+in different files; centroid-distance standing in for edge-distance between
+*sized* bodies (almost always wrong — a wide line is threatened at its flank, a
+deep block at its front rank); a cap/clamp whose only consumer already bounds
+itself tighter (dead scaffolding — delete, don't tune). Route everything
+through the one true measure.
 
-- `mark_at_ease` — 60 m, edge-to-edge (subtract **both** units' bounding
-  radii), off the live `centroid`. The *correct* one.
-- `threat_bearing` (face/strafe trigger) — 45 m, subtracting only the
-  *enemy's* extent, off the anchor-derived `center()`. An under-measuring
-  centroid proxy.
-- `threat_unit` (pursue latch) — a 90 m scan **cap**.
+### A pass-through / swirl is a missing FORCE, never a missing wall
 
-Collapsing all three onto the `mark_at_ease` formula was pure win:
+When two lines pass through each other, or swirl/orbit, the deep cause is that
+the force which should hold a man off his foe is **absent, too weak, or one-
+sided** — so something else (a rear-rank shove, the combat-seek) wins and drives
+him through. Diagnostic tells that you're looking at a force problem:
 
-1. **It's semantically meaningful, not just dedup.** "Not at ease" now means
-   exactly one thing: won't regen morale **and** turns to face the enemy.
-   Those two facts can no longer disagree — a unit calmly recovering morale
-   while also strafing to face a foe is now impossible by construction.
-2. **The shared measurement was the more-correct one.** Edge-to-edge with
-   both radii respects unit extent: a 200-wide line is threatened when its
-   *flank* is neared, a deep block when its *front rank* is in reach — not
-   when some centroid crosses a ring. Centroid-distance is almost always the
-   wrong physical fact when units have size; prefer edge gap.
-3. **A "cap" is not a threshold.** The 90 m was never a behavior boundary —
-   its only consumer (the latch) self-gates on `run_sp * 5` (~17–25 m), far
-   inside it. A magic number that no consumer actually depends on is dead
-   scaffolding; delete it, don't tune it.
+- Every single-parameter *damping* you try is **seed-fragile** — works on one
+  seed, ghosts on the next. Damping doesn't stabilize an equilibrium that has no
+  restoring force; it just slows the runaway.
+- The "stop" you do have works **by accident** — through some unrelated
+  mechanism's side effect (a wheel rule tripping on jitter, say). A crutch.
+- Two layers can drive the same motion; **instrument to find which one** before
+  fixing the wrong layer (e.g. zeroing the frame still lets men cross → the
+  drive is soldier-level, not the frame).
 
-Pattern to look for next time: (a) the same "is X near / engaged / done"
-question answered by different constants in different files; (b)
-centroid-distance standing in for edge-distance between sized bodies; (c) a
-cap/clamp whose real consumer already bounds itself tighter. Each is a
-chance to route everything through the one true measure.
+The fix is a **real, two-way force**, never a positional clamp. A clamp (snap a
+man to a line, a "wall" he can't cross) *overrides* physics instead of letting
+behavior emerge from it — it papers over the missing force and silently breaks
+the emergent things that force would have produced. Instead, find the force that
+*should* keep them apart and make it honest:
 
-### A contact line that fails needs a RESTORING force, not damping
+- **Two-way.** The repulsion that holds a man off his foe must also PUSH the
+  foe — Newton's third law. A force that moves only its own bearer can't hold a
+  line against the enemy's advance.
+- **Strong enough, but soft.** Strong enough that the equilibrium is stable
+  (the rear ranks can't shove the front through), yet soft enough that a better-
+  *backed* enemy can overpower it and close — a contest of forces decides the
+  distance, which a wall forbids. (A pike keeps a sword line at bay by *pushing*,
+  and a deep, well-backed line can still press in.)
+- **In the right medium.** A soft steering nudge loses to a hard position
+  correction (collision). If the holding force lives in the weak layer and the
+  thing overpowering it lives in the strong one, move the force, don't clamp the
+  position.
 
-When two equal lines pass through each other, or swirl/orbit, the deep cause
-is almost always that **the contact line is an unstable equilibrium with no
-restoring force**. Any tiny asymmetry → one side edges ahead → the geometry
-rewards it → it runs away (pass-through or wheel). Symptoms you'll chase in
-circles if you don't see this:
-
-- Every single-parameter damping you try is **seed-fragile** — works on one
-  seed, ghosts on the next, non-monotonic in the knob. That fragility *is*
-  the tell: you're damping an unstable equilibrium instead of stabilizing it.
-- The "stop" you do have works **by accident** — e.g. an attack halts only
-  because interpenetration jitter trips the *pivot* (a wheeling rule), not
-  because anything physical blocked it. A move (steady far target) never trips
-  it and walks clean through. If a behavior only works through an unrelated
-  mechanism's side effect, it's a crutch; make the honest mechanism carry it.
-- Forcing `frame_speed = 0` on **both** sides still lets them cross — proof
-  the creep is **soldier-level** (the combat-seek), not the frame. When a
-  frame-level fix is fragile, instrument to confirm which layer actually drives
-  the motion before fixing the wrong one.
-
-The fix is a **symmetric restoring force**: a man cannot advance past the
-*line of the foe he is fighting* (enemy-anchored, along the unit facing). Both
-sides clamp to the **same mutual line**, so the contact line becomes a *stable*
-fixed point — push past and you're pulled back; when the foe yields the line
-recedes and you follow, so winning still advances. Crucially this is
-**enemy-anchored**, which is the only reference that distinguishes a *legal
-bend* (men keep neighbour spacing — allowed) from an *illegal breakthrough*
-(men keep neighbour spacing AND cross the line — forbidden). Neighbour-relative
-cohesion (weave/dressing) **cannot** tell those apart; don't try to fix a
-pass-through with cohesion alone.
+The foundational example of this done right is the **weave** itself: contact,
+depth, and the line all emerge from springs and bodies — real forces — with no
+"hold here" walls. When you reach for a clamp, you've stopped looking for the
+force.
 
 ### Move == Attack is the litmus for first-principled-ness
 

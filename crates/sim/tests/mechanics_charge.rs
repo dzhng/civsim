@@ -67,15 +67,9 @@ fn charge_penetration(depth: usize, brace_mult: f32) -> f32 {
             .fold(f32::MIN, f32::max)
     };
     let mut peak = f32::MIN;
-    for step in 0..(20.0 / DT) as usize {
+    for _ in 0..(20.0 / DT) as usize {
         sim.tick();
         peak = peak.max(cav_front(&sim) / 1.1); // ranks past the block front (y=0, spacing 1.1)
-        if std::env::var("CHARGE_TRACE").is_ok() && step % 30 == 0 {
-            eprintln!(
-                "t={:4.1} cav_front={:5.2}m mass_adv={:.2} frame_sp={:.2}",
-                step as f32 * DT, cav_front(&sim), sim.units[cav].mass_advance, sim.units[cav].frame_speed,
-            );
-        }
     }
     peak
 }

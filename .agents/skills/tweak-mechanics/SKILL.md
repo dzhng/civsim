@@ -68,6 +68,37 @@ force is missing or wrong. Collective effects (a deep mass shoving a thin one
 back) must come from the **measured physics** that scales with mass, never
 from a proxy like counting ranks.
 
+### Weave stiffness is WILLINGNESS to hold formation — not a fixed material
+
+The lattice springs are not a constant property of the unit; they are **how much
+it wants to keep its shape right now**. A **braced / holding** unit has high
+willingness — it is set, dressing the line, digging in — so its weave is **stiff**
+and it holds its grid against a press (no pancake). A **moving / attacking /
+charging** unit has **low** willingness — it is committed to advancing, wrapping,
+plowing — so its weave is **soft** and it flexes freely. Scale stiffness with the
+brace state (`brace_ramp`: 0 moving → 1 set); do not gate it on a role.
+
+This one idea dissolves a whole cluster of problems that looked separate:
+
+- **A charging unit doesn't fight its own cohesion.** A stiff constant weave reels
+  the stretching front of a charge back and bleeds the gallop — a cavalry charge
+  arrived slow and spent. Low willingness while moving lets the formation stretch
+  *into* the charge. (The same was true, less visibly, for any marching/wheeling
+  line.)
+- **Hold-vs-wrap is a willingness difference, not a force-shape problem.** A wide
+  line WRAPS a column because, attacking, it is willing to bend (soft); the column,
+  holding, keeps its shape (stiff). No sharp/exponential angle law can separate a
+  wrap from a pancake — they are the same bend — but *brace state* separates them
+  cleanly, because the wrapper is moving and the holder is set.
+- **Two ATTACKING blocks deforming at contact is CORRECT.** Both are low-willingness,
+  so they churn at the messy interface. A crisp, un-deformed press is what you get
+  when a block is BRACED — so a "do two equal blocks hold their grid" test must
+  brace them, or it is asking the wrong question (both attacking *should* deform).
+
+The deep point: many things we want to be *contextual* (wrap here, hold there;
+charge soft, defend stiff) are already encoded by a physical state the soldier is
+in — brace. Reach for that state, not a new flag.
+
 ### Conserve energy: every force is a SPRING or a DRAG, never an active push
 
 Audit each force by what it does to the system's energy:

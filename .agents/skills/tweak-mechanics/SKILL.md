@@ -174,6 +174,42 @@ check is genuinely too strict, prove it with a shot first, and write the new
 threshold around the *physically correct* behavior, not around the current
 (broken) number.
 
+### The OTHER red: when a first-principles fix breaks a BALANCE test, the test may be the cheese
+
+The rule above ("don't relax a red") is about *mechanics* tests — those are
+physics, keep them strict. The converse case is just as important: when a
+principled change breaks a **balance/outcome** test (a win-rate, a survivor
+spread, a "X usually beats Y"), do NOT reflexively re-pin it or revert the fix.
+A more correct mechanic frequently **exposes a balance test that was only ever
+passing because of a cheesy/overtuned mechanic** — the red is the fix doing its
+job. Distinguish:
+
+- **Invariant** (physics truth — always holds, keep strict): "centroids never
+  cross", "a charge can't plow through an immortal deep block".
+- **Outcome** (tuning-dependent — allowed to move): "cav wins 60% of seeds".
+  Breaking an invariant is a regression; moving an outcome may mean the outcome
+  was wrong.
+
+**Measure the mechanism, never argue from the score.** Before deciding a balance
+red is right or wrong, instrument the *cause*: count kill sources, disable one
+mechanic and re-run, isolate with **immortal / zero-damage fake units** so no
+tuning leaks in. Worked case from this repo: `cavalry_usually_rides_over_heavy_swords`
+asserted cav beats deep heavy 100%, but instrumenting showed **71% of the
+infantry deaths were charge-impact knockdowns**, and disabling charge-impact
+flipped it to cav **0%** — the test had pinned shock-cheese as if it were a
+combat fact. A 120-horse line should NOT bulldoze clean through 8 braced ranks;
+cavalry earns its keep by repeated shock and on the flank. When you conclude a
+test is wrong, **fix or delete it and say why** — don't leave two tests
+asserting opposite things ("rides through" vs "bogs down") in the suite.
+
+The sharpest tool for an invariant is a **mechanical test with immortal /
+zero-damage fake units**: nobody dies, so the only question left is the pure
+physics ("can the charge physically shove through?"). It's balance-proof — a
+future rebalance can't move it — and it pins the *floor* a balance number must
+later sit on. Write that floor as a `mechanics_*` test (mark it `#[ignore]` with
+a rationale if the mechanic isn't built yet — an explicit target beats a silent
+gap), not as a balance assertion.
+
 ## The two-layer loop (do them in order)
 
 ### Layer 1 — fast Rust mechanics tests (the gate)

@@ -1382,13 +1382,22 @@ impl Sim {
                             if al > 1e-3 && rl > 1e-3 {
                                 let (dh, oh) = (d * (1.0 / al), off * (1.0 / rl));
                                 let dot = (dh.x * oh.x + dh.y * oh.y).clamp(-1.0, 1.0);
-                                bond_pivot += dot.acos();
-                                // Angular spring: the part of the rest heading
-                                // PERPENDICULAR to the live bond, scaled by the
-                                // bond's length — a tangential pull that swings the
-                                // bond back to rest without changing its length.
+                                let ang = dot.acos();
+                                bond_pivot += ang;
+                                // Angular spring, EXPONENTIAL in the bend angle:
+                                // a small pivot is nearly free (wrap, drape and the
+                                // settle-jitter cost almost nothing, so they don't
+                                // ring), but the force climbs exponentially as the
+                                // bond swings away — a big shear (the pancake) hits
+                                // a near-rigid wall. Direction is the part of the
+                                // rest heading PERPENDICULAR to the live bond (swing
+                                // the bond back without changing its length).
                                 let tang = oh - dh * dot;
-                                pivot_push = pivot_push + tang * al;
+                                let tl = tang.len();
+                                if tl > 1e-4 {
+                                    let mag = (ang / tun.pivot_scale).exp() - 1.0;
+                                    pivot_push = pivot_push + tang * (mag / tl);
+                                }
                             }
                             // COMPRESSION push: when the bond is shorter than rest,
                             // shove away from the neighbour, the force climbing

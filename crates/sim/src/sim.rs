@@ -1422,16 +1422,17 @@ impl Sim {
                 // The crush VECTOR: the friendly squeeze, plus the enemy reach-
                 // spring's shove-back (added in the magnet block when it repels).
                 let mut crush_vec = comp_push;
-                // Trample is a matter of INTENT, not instantaneous speed: a
-                // trample-capable unit under a MOVE order treats the enemy as
-                // terrain and rides through (no glue), even as the crowd slows
-                // it — the old `mass_advance > spent` gate flickered the magnet
-                // back on the instant a thin screen checked the gallop, gluing
-                // the rider to a fight he was ordered to ride past. An ATTACK
-                // order is the opposite intent: glue on, engage. The bog in a
-                // DEEP block still emerges — collision stalls the mass and the
-                // proximity-based `fighting` flag lights up regardless of glue.
-                let trampling = u.tramples() && u.move_target.is_some();
+                // Trample = ride through, no glue, on either of two intents: a
+                // MOVE order (the enemy is terrain to ride past) OR a charge
+                // still carrying speed (the momentum overruns whatever it hits).
+                // The move half never flickers when a thin screen checks the
+                // gallop — the ORDER, not the instantaneous pace, holds the
+                // magnet off. The speed half lets a CHARGE (attack order) plow a
+                // thin line and bloody it, yet still bog in a DEEP block: there
+                // the mass stalls below charge speed, the magnet snaps back on,
+                // collision pins it, and the rider fights.
+                let trampling = u.tramples()
+                    && (u.move_target.is_some() || u.mass_advance > tun.charge_spent_speed);
                 steer_to = steer_to + to * slot_pull_u;
                 // ENEMY MAGNET — the front line's glue, a SPRING to the foe with
                 // rest length = weapon reach. Far from his foe a man is pulled in

@@ -426,29 +426,12 @@ fn unit_attacked_from_two_sides_splits_facing_and_loses_cohesion() {
     );
 }
 
-#[test]
-fn flanked_line_only_the_edge_unit_turns() {
-    let mut sim = Sim::new(no_morale(), SEED);
-    // Three friendly heavies side by side facing north.
-    let west = sim.spawn_class(Vec2::new(-40.0, 0.0), FRAC_PI_2, 200, UnitClassId::HeavySword, 0);
-    let center = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 200, UnitClassId::HeavySword, 0);
-    let east = sim.spawn_class(Vec2::new(40.0, 0.0), FRAC_PI_2, 200, UnitClassId::HeavySword, 0);
-    let _ = east;
-    // Enemy hits the west unit from due west.
-    let atk = sim.spawn_class(Vec2::new(-90.0, -8.0), 0.0, 240, UnitClassId::HeavySword, 1);
-    sim.set_attack_move_order(atk, Vec2::new(-30.0, -8.0));
-    run(&mut sim, 50.0);
-    let west_turn = sim::wrap_angle(sim.units[west].facing - FRAC_PI_2).abs();
-    let center_turn = sim::wrap_angle(sim.units[center].facing - FRAC_PI_2).abs();
-    assert!(
-        west_turn > 0.5,
-        "the flanked edge unit must wheel out, turned {west_turn:.2} rad"
-    );
-    assert!(
-        center_turn < 0.2,
-        "the line holds: center must not turn, turned {center_turn:.2} rad"
-    );
-}
+// (Deleted flanked_line_only_the_edge_unit_turns: it asserted a flanked line
+// WHEELS as a formation to face its attacker. By design a unit attacked does
+// not magically turn — an ordered unit holds the facing it met the enemy at
+// (the anti-swirl rule in contact_facing), and the per-soldier reactive facing
+// turns the edge MEN, not the block. There is no formation-wheel-on-attack to
+// test for.)
 
 #[test]
 fn long_swords_cleave_but_die_in_a_press() {

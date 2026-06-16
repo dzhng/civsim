@@ -1422,7 +1422,16 @@ impl Sim {
                 // The crush VECTOR: the friendly squeeze, plus the enemy reach-
                 // spring's shove-back (added in the magnet block when it repels).
                 let mut crush_vec = comp_push;
-                let trampling = u.tramples() && u.mass_advance > tun.charge_spent_speed;
+                // Trample is a matter of INTENT, not instantaneous speed: a
+                // trample-capable unit under a MOVE order treats the enemy as
+                // terrain and rides through (no glue), even as the crowd slows
+                // it — the old `mass_advance > spent` gate flickered the magnet
+                // back on the instant a thin screen checked the gallop, gluing
+                // the rider to a fight he was ordered to ride past. An ATTACK
+                // order is the opposite intent: glue on, engage. The bog in a
+                // DEEP block still emerges — collision stalls the mass and the
+                // proximity-based `fighting` flag lights up regardless of glue.
+                let trampling = u.tramples() && u.move_target.is_some();
                 steer_to = steer_to + to * slot_pull_u;
                 // ENEMY MAGNET — the front line's glue, a SPRING to the foe with
                 // rest length = weapon reach. Far from his foe a man is pulled in

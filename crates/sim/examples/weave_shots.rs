@@ -358,5 +358,33 @@ fn main() {
         shoot("t2-t-attack", sim, 16.0, 0.5);
     }
 
+    // --- Tier 3: the GLUE under a deep push -------------------------------
+    // A deep narrow column drives a thin SAME-WIDTH line: the fronts must stay
+    // welded (glued 1-to-1) and the line is pushed back as a body — the column
+    // must NOT detach and thread through it. (mechanics_weave: the_fronts_stay
+    // _welded.)
+    {
+        let mut sim = Sim::new(base_tun(), SEED);
+        let def = spawn(&mut sim, 0.0, 6.0, -FRAC_PI_2, 4, 2, 0.9, 0);
+        let col = spawn(&mut sim, 0.0, -6.0, FRAC_PI_2, 4, 8, 0.9, 1);
+        settle(&mut sim, 30);
+        invuln(&mut sim);
+        sim.set_pace(col, Pace::Run);
+        sim.set_attack_order(col, def);
+        shoot("t3-deep-push-thin", sim, 16.0, 0.5);
+    }
+    // The same column into a WIDE (10-file) line: it pushes the centre back
+    // less, and the line's FLANKS curl in around the bulge the column digs.
+    {
+        let mut sim = Sim::new(base_tun(), SEED);
+        let line = spawn(&mut sim, 0.0, 6.0, -FRAC_PI_2, 10, 3, 0.9, 0);
+        let col = spawn(&mut sim, 0.0, -6.0, FRAC_PI_2, 4, 8, 0.9, 1);
+        settle(&mut sim, 30);
+        invuln(&mut sim);
+        sim.set_pace(col, Pace::Run);
+        sim.set_attack_order(col, line);
+        shoot("t3-deep-push-wide", sim, 16.0, 0.5);
+    }
+
     println!("done.");
 }

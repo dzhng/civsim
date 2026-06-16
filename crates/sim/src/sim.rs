@@ -1329,6 +1329,12 @@ impl Sim {
                 // keeps its spacing) AND the contact hold (a front man's foe-weave
                 // won't crush flat, so backpressure can't drive him through it).
                 let mut comp_push = Vec2::ZERO;
+                // The weave's PIVOT spring: summed over my bonds, a TANGENTIAL
+                // shove that rotates each bond back toward its rest heading
+                // (length untouched) — the force that snaps a bent/sheared line
+                // straight, which the length-only net & compression springs can't
+                // feel. Scaled by pivot_stiffness below.
+                let mut pivot_push = Vec2::ZERO;
                 // The scalar crush: the SUM of spring-load magnitudes (each bond's
                 // push, plus the enemy reach-spring below). Vector cancels under a
                 // two-sided squeeze; this scalar does not — that gap IS the vice.
@@ -1374,8 +1380,15 @@ impl Sim {
                             let (al, rl) = (d.len(), off.len());
                             bond_stretch += (al - rl).max(0.0);
                             if al > 1e-3 && rl > 1e-3 {
-                                let c = ((d.x * off.x + d.y * off.y) / (al * rl)).clamp(-1.0, 1.0);
-                                bond_pivot += c.acos();
+                                let (dh, oh) = (d * (1.0 / al), off * (1.0 / rl));
+                                let dot = (dh.x * oh.x + dh.y * oh.y).clamp(-1.0, 1.0);
+                                bond_pivot += dot.acos();
+                                // Angular spring: the part of the rest heading
+                                // PERPENDICULAR to the live bond, scaled by the
+                                // bond's length — a tangential pull that swings the
+                                // bond back to rest without changing its length.
+                                let tang = oh - dh * dot;
+                                pivot_push = pivot_push + tang * al;
                             }
                             // COMPRESSION push: when the bond is shorter than rest,
                             // shove away from the neighbour, the force climbing
@@ -1463,7 +1476,18 @@ impl Sim {
                 //   magnet      the pull onto the enemy (the front line's glue)
                 // A man is steered by their sum; he is STOPPED only by real bodies
                 // (collision), never by a positional rule.
-                let mut steer_to = net_target.unwrap_or(to) + comp_push;
+                // WEAVE STIFFNESS scales the neighbour lattice — the rest-shape
+                // spring AND the compression resistance — but NOT the slot
+                // fallback (no live neighbours = no weave to stiffen). A stiffer
+                // lattice holds its rank against the magnet, so only the
+                // frontline closes and the back ranks don't pile in.
+                let mut steer_to = match net_target {
+                    Some(nt) => (nt + comp_push) * tun.weave_stiffness,
+                    None => to + comp_push * tun.weave_stiffness,
+                };
+                // The pivot spring is its OWN knob — it resists bend/shear, the
+                // deformation the length springs are blind to.
+                steer_to = steer_to + pivot_push * tun.pivot_stiffness;
                 // The crush VECTOR: the friendly squeeze, plus the enemy reach-
                 // spring's shove-back (added in the magnet block when it repels).
                 let crush_vec = comp_push;

@@ -374,6 +374,19 @@ fn main() {
         sim.set_attack_order(col, def);
         shoot("t3-deep-push-thin", sim, 16.0, 0.5);
     }
+    // Two EQUAL immortal blocks both attack: they must press front-to-front and
+    // HOLD their grid (only the front rank touches), not splay or blend. The
+    // gate for weave_stiffness + pivot_stiffness.
+    {
+        let mut sim = Sim::new(base_tun(), SEED);
+        let a = spawn(&mut sim, 0.0, -6.0, FRAC_PI_2, 6, 6, 1.0, 0);
+        let b = spawn(&mut sim, 0.0, 6.0, -FRAC_PI_2, 6, 6, 1.0, 1);
+        settle(&mut sim, 30);
+        invuln(&mut sim);
+        sim.set_attack_order(a, b);
+        sim.set_attack_order(b, a);
+        shoot("t3-equal-press", sim, 14.0, 0.5);
+    }
     // The same column into a WIDE (10-file) line: it pushes the centre back
     // less, and the line's FLANKS curl in around the bulge the column digs.
     {

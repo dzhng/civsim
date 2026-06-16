@@ -970,3 +970,55 @@ fn the_fronts_stay_welded_a_pusher_drives_not_detaches() {
         "the pusher detached and walked through the defender: {detach:.1}m past its front (the fronts must stay welded)",
     );
 }
+
+/// BEHAVIOUR 2 — TWO EQUAL BLOCKS DON'T DEFORM. Immortal (no deaths), same
+/// width AND depth, both attacking: they should press front-to-front and HOLD
+/// their grid — only the front rank touches, the shape stays rectangular. With
+/// nobody dying there is no hole to backfill, so the only thing that could
+/// dissolve the formation is the magnet dragging the back ranks in; a stiff
+/// enough weave forbids that. Measures the worst (over the run): how intermixed
+/// the two sides get (>~1 rank's worth = the fronts blended/threaded) and how
+/// far either block's width spreads from its rest frontage.
+fn equal_press_deform(secs: f32) -> (f32, f32) {
+    let mut tun = Tunables::default();
+    tun.micro_rough = 0.0;
+    tun.morale_enabled = false;
+    let mut sim = Sim::new(tun, SEED);
+    let w = 6usize;
+    let sp = 1.0f32;
+    let a = sim.spawn_unit(Vec2::new(0.0, -6.0), FRAC_PI_2, w * w, w, Vec2::new(sp, sp), 0, 0.8);
+    let b = sim.spawn_unit(Vec2::new(0.0, 6.0), -FRAC_PI_2, w * w, w, Vec2::new(sp, sp), 1, 0.8);
+    for u in [a, b] {
+        let (s, e) = (sim.units[u].start, sim.units[u].start + sim.units[u].count);
+        for k in s..e {
+            sim.health[k] = 1.0e9;
+        }
+    }
+    sim.set_attack_order(a, b);
+    sim.set_attack_order(b, a);
+    let rest_w = (w as f32 - 1.0) * sp; // nominal frontage
+    let (mut max_mix, mut max_spread) = (0.0f32, 0.0f32);
+    for step in 0..(secs / DT) as usize {
+        sim.tick();
+        // skip the approach; measure once they are in contact.
+        if step < (3.0 / DT) as usize {
+            continue;
+        }
+        max_mix = max_mix.max(intermix(&sim, a, b));
+        for u in [a, b] {
+            let (wx, _) = extent(&sim, u);
+            max_spread = max_spread.max(wx - rest_w);
+        }
+    }
+    (max_mix, max_spread)
+}
+
+#[test]
+fn two_equal_immortal_blocks_press_without_deforming() {
+    let (mix, spread) = equal_press_deform(14.0);
+    eprintln!("EQUAL-PRESS  intermix={mix:.2} (0=only fronts touch)  width_spread={spread:.1}m (0=holds frontage)");
+    assert!(
+        mix < 0.35 && spread < 1.5,
+        "two equal immortal blocks DEFORMED: intermix {mix:.2} (want <0.35), width spread {spread:.1}m (want <1.5) — the weave is too soft, the magnet drags the ranks in",
+    );
+}

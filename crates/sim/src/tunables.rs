@@ -72,6 +72,21 @@ pub struct Tunables {
     /// Compression decay length (m): squeeze beyond this and the push-apart
     /// climbs steeply. Small = the lattice guards its spacing hard.
     pub compress_scale: f32,
+    /// WEAVE STIFFNESS: one multiplier on the whole neighbour lattice — both the
+    /// draping-net spring (pull to rest shape) AND the compression resistance
+    /// (the push-back that holds a rank against the press). The RESISTANCE that
+    /// keeps the back ranks from piling onto the front: only the frontline feels
+    /// the enemy magnet, and a stiff enough lattice means that pull cannot drag
+    /// the ranks behind it forward. Does NOT touch the slot tether or the magnet.
+    pub weave_stiffness: f32,
+    /// PIVOT STIFFNESS: the angular spring that snaps a BENT formation straight.
+    /// The net/compression springs only police bond LENGTH, so a shear or splay
+    /// that keeps its spacings is invisible to them. A frontline man has three
+    /// bonds (two lateral + one to the rank behind); when the block PANCAKES
+    /// (depth shears into width) that back bond — perpendicular to the lateral
+    /// pair — PIVOTS, and only this force feels it. Restores each bond's heading
+    /// toward rest (length untouched): a conservative angular spring.
+    pub pivot_stiffness: f32,
     /// Enemy MAGNET: peak pull (at weapon reach) toward the nearest enemy body.
     pub magnet_strength: f32,
     /// Magnet decay length (m): the pull falls off as exp(-(dist-reach)/scale),
@@ -224,6 +239,8 @@ impl Default for Tunables {
             cohesion_pivot: 0.055,
             compress_strength: 1.2,
             compress_scale: 0.22,
+            weave_stiffness: 1.0,
+            pivot_stiffness: 0.0,
             magnet_strength: 3.0,
             magnet_scale: 0.7,
             min_turn_frac: 0.3,

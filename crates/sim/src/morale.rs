@@ -154,7 +154,11 @@ impl Sim {
                             // that — a token line breaks before the wall
                             // arrives, at full courage.
                             let arriving = v_offense + 0.01 * mass_total * closing;
-                            let projected = (arriving / my_pool.max(1.0)).min(2.5);
+                            // Cap sits HIGH so a TRULY hopeless projection (a
+                            // 10:1 wall) overwhelms habituation and breaks a
+                            // token line before contact; moderate odds sit well
+                            // under it and are unchanged.
+                            let projected = (arriving / my_pool.max(1.0)).min(4.0);
                             let edge = ((v_morale - my_morale) / 0.25 + 1.0).clamp(0.0, 1.0);
                             intimidation += projected
                                 * (closing / 6.0).min(1.5)
@@ -200,7 +204,7 @@ impl Sim {
             // not habituate.
             let fear = 0.05 * intimidation + 0.025 * rout_contagion;
             let fear_adapt = self.units[ui].fear_adapt;
-            let fear_eff = (fear - fear_adapt).max(0.0) + 0.25 * fear;
+            let fear_eff = (fear - fear_adapt).max(0.0) + 0.35 * fear;
             // Missiles break a unit through the BODIES they drop, not the noise
             // they make: the dead are already in `casualty_rate`, so the direct
             // missile term is small on purpose — just the dread of a fire you

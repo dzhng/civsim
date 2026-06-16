@@ -793,3 +793,119 @@ fn the_lattice_settles_without_oscillating() {
         last
     );
 }
+
+// --- Tier 3: the braced-pole wall -----------------------------------------
+//
+// A leveled pike is a body: an enemy can no more walk through the wall of
+// POINTS at weapon's length than through the torsos behind it. This was the
+// pike "trample" bug — the soft enemy-magnet stopped a front man at reach, but
+// a deep block's rear ranks out-shoved one front rank's spring, squashed it
+// across the empty reach-gap, and the two lattices slid clean through each
+// other (then turned and did it again, an oscillation that looked like cavalry
+// trampling). A short weapon never showed it: its standoff sits at body
+// contact, where the body wall already catches it.
+//
+// FAKE units: a plain block given one fixed braced weapon, so the test pins the
+// MECHANIC (a hard standoff at reach) and never drifts when a real class is
+// rebalanced. Both walls attack head-on; the invariant is that their centroids
+// NEVER cross — neither block ends up on the far side of the other.
+
+/// Mean-y of a unit's living men (its centroid along the clash axis).
+fn centroid_y(sim: &Sim, unit: usize) -> f32 {
+    let u = &sim.units[unit];
+    let mut sum = 0.0f32;
+    let mut n = 0.0f32;
+    for i in u.start..u.start + u.count {
+        if sim.alive[i] == 1 {
+            sum += sim.soldier_pos(i).y;
+            n += 1.0;
+        }
+    }
+    sum / n.max(1.0)
+}
+
+/// (front-most y, rear-most y) of a unit's living men.
+fn y_span(sim: &Sim, unit: usize) -> (f32, f32) {
+    let u = &sim.units[unit];
+    let (mut lo, mut hi) = (f32::INFINITY, f32::NEG_INFINITY);
+    for i in u.start..u.start + u.count {
+        if sim.alive[i] == 1 {
+            let y = sim.soldier_pos(i).y;
+            lo = lo.min(y);
+            hi = hi.max(y);
+        }
+    }
+    (lo, hi)
+}
+
+#[test]
+fn two_braced_walls_hold_a_standoff_neither_centroid_crosses() {
+    let mut tun = Tunables::default();
+    tun.micro_rough = 0.0;
+    tun.morale_enabled = false; // isolate the mechanic from routing
+    let mut sim = Sim::new(tun, SEED);
+
+    // A fixed sarissa: long, braced, and BLUNT (zero damage). Every value is
+    // pinned here, not read from any class table, so a future rebalance can't
+    // move this test — and the blunt point makes it a pure SHOVING contest: no
+    // deaths, no attrition, so the only question left is the mechanical one —
+    // do two deep blocks driving into each other HOLD at weapon's length, or
+    // pour through (the old pike "trample")?
+    let pike = sim::Weapon {
+        reach: 3.5,
+        min_range: 1.1,
+        arc: 0.08,
+        attack_interval: 1.4,
+        damage: 0.0,
+        braced: true,
+    };
+
+    // Two deep blocks (10 ranks of rear-rank shove — the exact load that broke
+    // the soft magnet), facing each other 50 m apart on the y-axis.
+    let south = sim.spawn_unit(Vec2::new(0.0, -25.0), FRAC_PI_2, 200, 20, Vec2::new(0.8, 1.0), 0, 0.85);
+    let north = sim.spawn_unit(Vec2::new(0.0, 25.0), -FRAC_PI_2, 200, 20, Vec2::new(0.8, 1.0), 1, 0.85);
+    for &u in &[south, north] {
+        sim.units[u].stats.weapons = sim::class::one(pike);
+    }
+    sim.set_pace(south, Pace::Run);
+    sim.set_pace(north, Pace::Run);
+    sim.set_attack_order(south, north);
+    sim.set_attack_order(north, south);
+
+    // Centroids start 59 m apart (anchor 25 + half a 10-rank block). Held at the
+    // points, the blocks settle ~12 m apart (reach + two half-depths); a pass-
+    // through would collapse that gap through zero. min_front is the closest any
+    // two opposing men get — staggered columns let a front man jitter a hair
+    // past, but a real interpenetration would plunge it deeply negative.
+    let (mut min_centroid_gap, mut min_front, mut closed) = (f32::INFINITY, f32::INFINITY, false);
+    for _ in 0..(80.0 / DT) as usize {
+        sim.tick();
+        let (cs, cn) = (centroid_y(&sim, south), centroid_y(&sim, north));
+        // THE INVARIANT: south stays south of north — they never trade sides.
+        assert!(
+            cs < cn,
+            "centroids crossed: south {cs:.2} >= north {cn:.2} (the blocks ran through each other)",
+        );
+        let (_, south_front) = y_span(&sim, south); // south advances +y
+        let (north_front, _) = y_span(&sim, north); // north advances -y
+        if cn - cs < 50.0 {
+            closed = true; // they actually met (not a trivial pass)
+            min_centroid_gap = min_centroid_gap.min(cn - cs);
+            min_front = min_front.min(north_front - south_front);
+        }
+    }
+    eprintln!("POLE-WALL  closed={closed}  min centroid gap={min_centroid_gap:.2} m  min front gap={min_front:.2} m");
+    assert!(closed, "the walls never closed to contact — test is vacuous");
+    // The blocks held well clear of a pass-through. Under constant shoving each
+    // block compresses against the standoff (so the gap sits below the ~12 m a
+    // static standoff would show), but the old trample collapsed it through zero.
+    assert!(
+        min_centroid_gap > 4.0,
+        "blocks collapsed to {min_centroid_gap:.2} m centroid gap — the braced pole fence did not hold the standoff",
+    );
+    // Fronts never deeply interpenetrated (a hair of column-stagger jitter aside).
+    assert!(
+        min_front > -1.0,
+        "fronts interpenetrated to {min_front:.2} m — the braced pole fence did not hold (reach 3.5)",
+    );
+}

@@ -76,6 +76,7 @@ impl Sim {
             health,
             mount_health,
             mounted,
+            cur_weapon,
             ..
         } = self;
         // Collision damage is applied after the pass (kill() needs &mut self).
@@ -84,12 +85,27 @@ impl Sim {
         // The REAL WALL: deepest enemy body a soldier overlaps this tick. The
         // capped push relieves crowds gently; an ENEMY body, though, a man may
         // not END the tick standing inside — he is snapped to its contact ring.
-        // This (not any reach-based rule) is what stops a clash walking through:
-        // the planted front line is a wall of bodies the rear can't shove past.
+        // This is what stops a SHORT-weapon clash walking through: the planted
+        // front line is a wall of bodies the rear can't shove past. Long braced
+        // weapons extend the same wall out to reach (the pole pass below).
         let mut wall_depth = vec![-1.0f32; n];
         let mut wall_cx = vec![0.0f32; n];
         let mut wall_cy = vec![0.0f32; n];
         let mut wall_r = vec![0.0f32; n];
+        // The braced-pole FENCE (filled in the pole pass below): for a man held
+        // off by an enemy's leveled points, the line he may not cross — the
+        // bearer's position, his frontage normal, and the reach. Deepest
+        // penetration wins. A FENCE, not a ring: it clamps only the forward
+        // axis (you can't close past the points) and leaves lateral motion free,
+        // so a man jostled sideways slides ALONG the hedge instead of escaping
+        // it — the failure mode a radial snap had, where one lateral slip past
+        // the bearer dropped the wall and the blocks poured through.
+        let mut pole_pen = vec![-1.0f32; n];
+        let mut pole_jx = vec![0.0f32; n];
+        let mut pole_jy = vec![0.0f32; n];
+        let mut pole_ax = vec![0.0f32; n];
+        let mut pole_ay = vec![0.0f32; n];
+        let mut pole_reach = vec![0.0f32; n];
         // scratch: per-soldier [push_x, push_y].
         scratch.clear();
         scratch.resize(2 * n, 0.0);
@@ -308,6 +324,99 @@ impl Sim {
             scratch[2 * i + 1] += push.y;
         }
 
+        // --- BRACED-POLE WALL: a leveled pike is a body. ---------------------
+        // A man's torso isn't his only impassable part: a grounded sarissa puts
+        // a wall of POINTS out at weapon's length, and an enemy can no more walk
+        // through that than through the bodies behind it. The soft enemy-magnet
+        // (steer_soldiers) STOPS a front man at reach, but a spring is over-
+        // powerable: a deep block's rear ranks out-shove one front rank's
+        // magnet, squash it across the empty reach-gap, and once the lattices
+        // interpenetrate the front/target geometry collapses and the blocks
+        // slide clean through each other (the pike "trample"). For a SHORT
+        // weapon the magnet's standoff sits at body contact, where this same
+        // wall already catches it, so the gap never opens — which is why heavy
+        // settles and pikes ran through. The cure is to make the standoff a HARD
+        // constraint at reach, exactly as it is at body radius: a front man may
+        // not end the tick inside an enemy's leveled brace.
+        let max_brace_reach = units.iter().fold(0.0f32, |m, u| {
+            let cw = u.stats.weapons;
+            m.max(cw.iter().filter(|w| w.braced).fold(0.0, |a, w| a.max(w.reach)))
+        });
+        if max_brace_reach > 0.0 {
+            // The grid is built at body-pair resolution; a pole reaches far
+            // past that, so scan a wider window around each bearer.
+            let pole_cells = (max_brace_reach / cell).ceil() as i32 + 1;
+            for bi in 0..nb {
+                let j = body_owner[bi] as usize;
+                let uj = soldier_unit[j] as usize;
+                // Is a braced weapon actually IN HAND? (a pike dropped to its
+                // side-sword presents no points — same source of truth the
+                // renderer and the combat impale read.)
+                let held = cur_weapon[j] as usize;
+                let weapons = units[uj].stats.weapons;
+                if held >= weapons.len() || !weapons[held].braced {
+                    continue;
+                }
+                let reach = weapons[held].reach;
+                // The sarissa aims down the UNIT's frontage — it can't be slewed
+                // in the ranks — so the fence it throws is frontal only. The
+                // lateral half-width is one file's spacing, so each bearer guards
+                // his own column and adjacent bearers' fences overlap into a
+                // continuous hedge with no slip-through gaps.
+                let aim = crate::math::dir(units[uj].facing);
+                let (perp_x, perp_y) = (-aim.y, aim.x);
+                let half_w = units[uj].spacing.x.max(0.5);
+                let (jx, jy) = (body_pos[2 * bi], body_pos[2 * bi + 1]);
+                let cx = (jx / cell).floor() as i32;
+                let cy = (jy / cell).floor() as i32;
+                for oy in -pole_cells..=pole_cells {
+                    for ox in -pole_cells..=pole_cells {
+                        let b = grid.bucket(cx + ox, cy + oy);
+                        let (lo, hi) = (grid.starts[b] as usize, grid.starts[b + 1] as usize);
+                        for &bk in &grid.entries[lo..hi] {
+                            let i = body_owner[bk as usize] as usize;
+                            let ui = soldier_unit[i] as usize;
+                            if units[ui].team == units[uj].team {
+                                continue;
+                            }
+                            // A trampler (horse, chariot) is never held off by
+                            // the fence: charging it rides ONTO the points and
+                            // the impale above is its reckoning; bogged it dies
+                            // in the hedge by body contact. The fence is the
+                            // anti-pass-through device for FORMED foot — shoving
+                            // a spent horse back out to pike-length would only
+                            // spare it the very pressure that should finish it.
+                            if units[ui].tramples() {
+                                continue;
+                            }
+                            let dx = body_pos[2 * bk as usize] - jx;
+                            let dy = body_pos[2 * bk as usize + 1] - jy;
+                            let fwd = dx * aim.x + dy * aim.y;
+                            // In the forward band (0, reach) and in this bearer's
+                            // column. Behind the bearer or off his column: not his
+                            // to hold.
+                            if fwd <= 0.0 || fwd >= reach {
+                                continue;
+                            }
+                            let lat = dx * perp_x + dy * perp_y;
+                            if lat.abs() > half_w {
+                                continue;
+                            }
+                            let pen = reach - fwd;
+                            if pen > pole_pen[i] {
+                                pole_pen[i] = pen;
+                                pole_jx[i] = jx;
+                                pole_jy[i] = jy;
+                                pole_ax[i] = aim.x;
+                                pole_ay[i] = aim.y;
+                                pole_reach[i] = reach;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         // --- apply the non-overlap correction (capped per soldier, walls slide).
         for i in 0..n {
             let mut px = scratch[2 * i];
@@ -340,6 +449,21 @@ impl Sim {
                 let dd = to.len();
                 if dd > 1e-4 && dd < wall_r[i] {
                     Vec2::new(wall_cx[i] + to.x * (wall_r[i] / dd), wall_cy[i] + to.y * (wall_r[i] / dd))
+                } else {
+                    np
+                }
+            } else {
+                np
+            };
+            // Braced-pole fence: a man may not close past an enemy's leveled
+            // points. Clamp ONLY the forward axis back to reach (lateral free,
+            // so he slides along the hedge), recomputed on his final position so
+            // the rear's shove can't tunnel him through.
+            let np = if pole_pen[i] >= 0.0 {
+                let aim = Vec2::new(pole_ax[i], pole_ay[i]);
+                let fwd = (np.x - pole_jx[i]) * aim.x + (np.y - pole_jy[i]) * aim.y;
+                if fwd < pole_reach[i] {
+                    np + aim * (pole_reach[i] - fwd)
                 } else {
                     np
                 }

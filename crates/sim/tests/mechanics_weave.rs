@@ -46,12 +46,13 @@ fn a_running_unit_reaches_its_speed_stat() {
 
 /// GOAL: a CHARGE actually reaches (most of) charge speed at the men's legs — the
 /// burst (a higher pace in the final approach) must arrive as real velocity, not
-/// be swallowed by the frame<->men lag like the run was. Each class peaks at
-/// ~73-78% of its charge pace (base + (charge-base)×pace_mult): the burst
-/// genuinely lands, but the brief ~2s window, the per-man top-speed spread, and
-/// the mass_advance smoothing keep it short of the full stat. NOTE heavy's charge
-/// pace (~4.31) only modestly beats its run pace (~3.23): its surge/max_sp caps
-/// the men, so the burst is partly wasted for heavy — a separate charge tune.
+/// be swallowed by the frame<->men lag or clamped back to a surge. Each class
+/// peaks at a uniform ~78-81% of its charge pace (base + (charge-base)×pace_mult):
+/// the burst genuinely lands, the same fraction for fast and slow alike, short of
+/// the full stat only by the per-man top-speed spread and the mass_advance
+/// smoothing over the final ~10 m. (The men's sprint ceiling is the CHARGE pace
+/// while charging — soldier_charge_speed — not the catch-up surge, or the burst
+/// would be clamped to a surge and a charge would be no faster than a hard run.)
 #[test]
 fn a_charging_unit_reaches_charge_speed() {
     let tun = Tunables::default();
@@ -62,6 +63,32 @@ fn a_charging_unit_reaches_charge_speed() {
         assert!(
             got > 0.68 * pace,
             "{class:?} charged at only {got:.2} m/s of its {pace:.2} charge pace — the burst isn't reaching the men",
+        );
+    }
+}
+
+/// BULLETPROOF: a charge must be CLEARLY faster than a run, in ABSOLUTE m/s, for
+/// EVERY class — not merely a high fraction of a (possibly low) charge pace. This
+/// is the assertion that actually catches the failure mode: if a class's charge
+/// ceiling sat at or below its run (heavy once did, clamped to the surge), this
+/// trips even when the % test still "passes". Compares the same two things a
+/// player feels — the speed the mass sustains at a run vs. the speed it peaks at
+/// in the charge — and demands a clear margin on top.
+#[test]
+fn a_charge_is_clearly_faster_than_a_run() {
+    for class in [UnitClassId::LightSword, UnitClassId::HeavySword, UnitClassId::ShockCavalry] {
+        let run = terminal_run_speed(class);
+        let charge = peak_charge_speed(class);
+        eprintln!("FASTER  {class:?}: run {run:.2}  charge {charge:.2}  (+{:.0}%)", 100.0 * (charge / run - 1.0));
+        // A real charge buys a clear burst. The margin is class-shaped — heavy
+        // armour sprints only ~8% over its run, light ~14%, cavalry ~24% — so the
+        // bar is 6%, below the slowest (heavy) with headroom for noise but well
+        // clear of the old near-TIE (heavy charge once sat +0.6% over its run, a
+        // charge no faster than a hard run). If this fails, the per-man charge
+        // ceiling is clamping the burst back to a surge — fix it, don't relax this.
+        assert!(
+            charge > 1.06 * run,
+            "{class:?} charge ({charge:.2} m/s) is not clearly faster than its run ({run:.2} m/s) — the burst is being clamped (per-man ceiling) or the charge stat is too low",
         );
     }
 }
@@ -107,11 +134,17 @@ fn peak_charge_speed(class: UnitClassId) -> f32 {
     sim.set_pace(charger, Pace::Run);
     sim.set_attack_order(charger, enemy);
     let mut peak = 0.0f32;
-    for _ in 0..(20.0 / DT) as usize {
+    // 45 s so even the SLOWEST class finishes its 70 m approach and its full
+    // charge burst before the clock runs out (a shorter window cut the slow
+    // classes off mid-charge — a measurement artifact, not a speed difference).
+    for _ in 0..(45.0 / DT) as usize {
         sim.tick();
-        // only the free approach, before the front bogs in the enemy.
-        if sim.units[charger].centroid.y < 60.0 {
-            peak = peak.max(sim.units[charger].mass_advance);
+        // The charge BURST itself: the men are charging but the front has not yet
+        // bogged into the enemy (engaged == 0). No magic y-cutoff — this is the
+        // speed the mass actually reaches in the final sprint, for any class.
+        let u = &sim.units[charger];
+        if u.charging && u.engaged == 0 {
+            peak = peak.max(u.mass_advance);
         }
     }
     peak
@@ -141,6 +174,30 @@ fn run_speed_per_class_is_tracked() {
 const LIGHT_RUN: f32 = 3.43;
 const HEAVY_RUN: f32 = 3.11;
 const CAV_RUN: f32 = 6.06;
+
+/// EXACT-VALUE tracker for the CHARGE peak (companion to run_speed_per_class_is_
+/// tracked). Pins the precise charge m/s per class so any side effect on the burst
+/// — the per-man ceiling, the charge stat, the ramp, the leash — trips here even
+/// if it stays within the goal-test band. If a change moves a number, confirm it
+/// is wanted, then re-baseline; do not just widen the tolerance.
+#[test]
+fn charge_speed_per_class_is_tracked() {
+    let light = peak_charge_speed(UnitClassId::LightSword);
+    let heavy = peak_charge_speed(UnitClassId::HeavySword);
+    let cav = peak_charge_speed(UnitClassId::ShockCavalry);
+    eprintln!("CHARGE-SPEED  light={light:.2}  heavy={heavy:.2}  cav={cav:.2} (m/s)");
+    let near = |got: f32, want: f32| (got - want).abs() < 0.25;
+    assert!(near(light, LIGHT_CHARGE) && near(heavy, HEAVY_CHARGE) && near(cav, CAV_CHARGE),
+        "charge speeds drifted: light {light:.2} (was {LIGHT_CHARGE}), heavy {heavy:.2} (was {HEAVY_CHARGE}), cav {cav:.2} (was {CAV_CHARGE}) — a movement side effect; confirm it's wanted, then update the golden",
+    );
+}
+// Golden charge peaks (m/s), captured 2026-06-16 from the charge-aware per-man
+// ceiling (soldier_charge_speed) alone — no charge_speed change. Each sits at
+// ~78-81% of its charge pace and a clear +8% (heavy) / +14% (light) / +24% (cav)
+// above its run (light 3.43, heavy 3.11, cav 6.06).
+const LIGHT_CHARGE: f32 = 3.92;
+const HEAVY_CHARGE: f32 = 3.37;
+const CAV_CHARGE: f32 = 7.49;
 
 /// A clean rectangular block, facing north, on a parade ground.
 fn block(files: usize, ranks: usize, spacing: f32) -> (Sim, usize) {

@@ -9,7 +9,7 @@
 use crate::class::{class_stats, UnitClassId};
 use crate::grid::SpatialHash;
 use crate::math::{dir, rotate_toward, wrap_angle, Vec2};
-use crate::movement::{pace_speed, soldier_surge_speed, update_unit_motion};
+use crate::movement::{pace_speed, soldier_charge_speed, soldier_surge_speed, update_unit_motion};
 use crate::rng::Pcg32;
 use crate::terrain::{stagger01, Terrain};
 use crate::tunables::{Pace, Tunables, DT};
@@ -1178,6 +1178,10 @@ impl Sim {
             let f = dir(u.facing);
             let r = Vec2::new(f.y, -f.x);
             let surge_sp = soldier_surge_speed(&tun, u);
+            // The per-man sprint ceiling: a CHARGING unit's men may run all the way
+            // to charge pace; otherwise the ceiling is the catch-up surge. Without
+            // the charge branch the cap below clamps a charge back down to a surge.
+            let sprint_sp = if u.charging { soldier_charge_speed(&tun, u) } else { surge_sp };
             let keep_up_sp = pace_speed(&tun, u) + 0.5;
             // Slot attraction depends on INTENT: a unit attacking or moving
             // loosens its slots so the NEIGHBOUR SPRINGS hold it together (and
@@ -1481,16 +1485,17 @@ impl Sim {
                 }
                 let mut max_sp = if err > tun.surge_err_threshold {
                     surging += 1;
-                    surge_sp
+                    sprint_sp
                 } else {
                     keep_up_sp
                 };
                 // No two men run alike: each soldier has a personal TOP
-                // speed (a fixed fraction of the surge ceiling). A walking
+                // speed (a fixed fraction of the sprint ceiling). A walking
                 // pace is below everyone's ceiling — the line stays dressed;
                 // a running pace is above the slowest fifth's — they trail,
-                // and the formation frays the longer it runs.
-                max_sp = max_sp.min((0.62 + 0.44 * stagger01(i, 0xCAFE)) * surge_sp);
+                // and the formation frays the longer it runs. The ceiling is
+                // the charge sprint while charging, so the burst isn't clamped.
+                max_sp = max_sp.min((0.62 + 0.44 * stagger01(i, 0xCAFE)) * sprint_sp);
                 let idle = u.move_target.is_none() && u.engaged == 0
                     && hit_ttl[i] <= 0.0 && err < 0.6;
                 // WEAVE, the sum of real forces — no walls, no clamps:

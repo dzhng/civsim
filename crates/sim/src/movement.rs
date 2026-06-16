@@ -80,6 +80,17 @@ pub(crate) fn soldier_surge_speed(tun: &Tunables, u: &Unit) -> f32 {
         + (tun.surge_speed - tun.base_speed) * fatigue_capacity(u.fatigue) * drill * u.pace_mult
 }
 
+/// Per-man top-speed ceiling DURING A CHARGE — the all-out final-approach burst,
+/// faster than the catch-up surge. The men's per-man speed cap is normally built
+/// on the surge ceiling; if a charge were capped there too, the charge pace
+/// (cruise) would be clamped back down to a surge and a charge would be no faster
+/// than a hard run. Same shape as the surge, but off charge_speed.
+pub(crate) fn soldier_charge_speed(tun: &Tunables, u: &Unit) -> f32 {
+    let drill = 0.85 + 0.3 * u.training;
+    tun.base_speed
+        + (tun.charge_speed - tun.base_speed) * fatigue_capacity(u.fatigue) * drill * u.pace_mult
+}
+
 pub(crate) fn update_unit_motion(tun: &Tunables, u: &mut Unit, dt: f32, ground: f32) {
     // Cohesion throttles rotation MULTIPLICATIVELY with the geometric cap:
     // when the measurement says soldiers aren't tracking the rotation (mud

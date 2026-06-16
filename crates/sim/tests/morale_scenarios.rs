@@ -364,9 +364,11 @@ fn intimidation_scales_with_the_mass_not_the_banner() {
         }
         let baseline = sim.units[line].morale;
         sim.set_attack_order(cav, line);
-        // Measure morale as the charge closes, before contact does damage.
+        // Measure morale as the charge closes, before contact does damage. The
+        // window must outlast the RUN-pace approach (~30s from 120m) — it breaks
+        // at contact, so a generous cap just guarantees the wall arrives.
         let mut lowest = baseline;
-        for _ in 0..(20.0 / DT) as usize {
+        for _ in 0..(36.0 / DT) as usize {
             sim.tick();
             if sim.units[line].engaged > 5 {
                 break;
@@ -577,7 +579,7 @@ fn wavering_masses_do_not_thunder() {
         let baseline = sim.units[line].morale;
         sim.set_attack_order(cav, line);
         let mut lowest = baseline;
-        for _ in 0..(20.0 / DT) as usize {
+        for _ in 0..(36.0 / DT) as usize {
             sim.tick();
             if sim.units[line].engaged > 5 {
                 break;
@@ -614,7 +616,7 @@ fn intimidation_is_relative_strength_not_absolute() {
         let baseline = sim.units[line].morale;
         sim.set_attack_order(cav, line);
         let mut lowest = baseline;
-        for _ in 0..(22.0 / DT) as usize {
+        for _ in 0..(36.0 / DT) as usize {
             sim.tick();
             if sim.units[line].engaged > 5 {
                 break;
@@ -685,7 +687,7 @@ fn a_hopeless_wall_of_horse_routs_the_token_line_before_contact() {
     sim.units[line].morale = 1.0; // full courage — it doesn't matter
     sim.set_attack_order(cav, line);
     let mut broke_with_dead = None;
-    for _ in 0..(30.0 / DT) as usize {
+    for _ in 0..(40.0 / DT) as usize {
         sim.tick();
         if sim.units[line].routing {
             broke_with_dead = Some(40 - sim.units[line].alive_count);

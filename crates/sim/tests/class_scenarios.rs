@@ -258,16 +258,21 @@ fn heavy_infantry_charge_carries_a_stride_not_a_gallop() {
         sim.set_charge_enabled(atk, charge);
         sim.set_pace(atk, sim::Pace::Run);
         sim.set_attack_order(atk, inf);
-        let mut contact_speed = -1.0f32;
-        let mut prev_speed = 0.0f32;
+        // The charge's edge is its BURST — the peak pace it reaches over the
+        // final approach. (Sampling frame_speed at the engagement tick misses
+        // it: the charge arrives so fast it is already braking into the magnet
+        // and the enemy bodies when the pin lands, reading SLOWER than a steady
+        // walk-in even though it crashed home harder. Peak is the honest "at
+        // speed".)
+        let mut peak = 0.0f32;
         for _ in 0..(30.0 / DT) as usize {
             sim.tick();
-            if contact_speed < 0.0 && sim.units[atk].engaged > 5 {
-                contact_speed = prev_speed; // the tick BEFORE the pin
+            if sim.units[atk].engaged > 5 {
+                break;
             }
-            prev_speed = sim.units[atk].frame_speed;
+            peak = peak.max(sim.units[atk].frame_speed);
         }
-        contact_speed.max(0.0)
+        peak
     };
     let v_walk = crash_into(false);
     let v_charge = crash_into(true);

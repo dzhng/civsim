@@ -68,36 +68,36 @@ force is missing or wrong. Collective effects (a deep mass shoving a thin one
 back) must come from the **measured physics** that scales with mass, never
 from a proxy like counting ranks.
 
-### Weave stiffness is WILLINGNESS to hold formation — not a fixed material
+### The weave is STIFF by default — a committed CHARGE is the one carve-out
 
-The lattice springs are not a constant property of the unit; they are **how much
-it wants to keep its shape right now**. A **braced / holding** unit has high
-willingness — it is set, dressing the line, digging in — so its weave is **stiff**
-and it holds its grid against a press (no pancake). A **moving / attacking /
-charging** unit has **low** willingness — it is committed to advancing, wrapping,
-plowing — so its weave is **soft** and it flexes freely. Scale stiffness with the
-brace state (`brace_ramp`: 0 moving → 1 set); do not gate it on a role.
+It is tempting to model weave stiffness as "willingness to hold formation" and
+scale it down with *motion* (soft while moving, stiff when set). **That is wrong,
+and it was measured wrong** — twice (via `brace_ramp`, then via forward speed
+`mass_advance`). The reasons it fails are worth keeping:
 
-This one idea dissolves a whole cluster of problems that looked separate:
+- **A grinding press moves slowly but is still WILLING.** Two lines shoving at a
+  dead stall jitter at ~1.7 m/s and creep forward a hair — by any motion signal
+  they read as "moving → soft," and they **blob**. But they are absolutely trying
+  to keep formation. Speed does not separate "wants to hold" from "committed to
+  move."
+- **Stiff weave does NOT stop the two-attacker blob anyway.** The blob is the
+  mutual front-SQUEEZE (both sides push, the fronts have nowhere forward and splay
+  sideways) — a collision-geometry problem, not a weave-softness one. Cranking
+  stiffness leaves it ~unchanged. A crisp press is what you get when ONE side
+  HOLDS (it isn't pushing, so nothing squeezes its front); a braced holder stays
+  crisp at constant stiffness.
+- **The wrap does NOT need soft weave.** A wide line wraps a column at full
+  constant stiffness — the envelopment is the magnet pulling the overhang men
+  around, which a stiff lattice still allows.
 
-- **A charging unit doesn't fight its own cohesion.** A stiff constant weave reels
-  the stretching front of a charge back and bleeds the gallop — a cavalry charge
-  arrived slow and spent. Low willingness while moving lets the formation stretch
-  *into* the charge. (The same was true, less visibly, for any marching/wheeling
-  line.)
-- **Hold-vs-wrap is a willingness difference, not a force-shape problem.** A wide
-  line WRAPS a column because, attacking, it is willing to bend (soft); the column,
-  holding, keeps its shape (stiff). No sharp/exponential angle law can separate a
-  wrap from a pancake — they are the same bend — but *brace state* separates them
-  cleanly, because the wrapper is moving and the holder is set.
-- **Two ATTACKING blocks deforming at contact is CORRECT.** Both are low-willingness,
-  so they churn at the messy interface. A crisp, un-deformed press is what you get
-  when a block is BRACED — so a "do two equal blocks hold their grid" test must
-  brace them, or it is asking the wrong question (both attacking *should* deform).
-
-The deep point: many things we want to be *contextual* (wrap here, hold there;
-charge soft, defend stiff) are already encoded by a physical state the soldier is
-in — brace. Reach for that state, not a new flag.
+So the lattice is **stiff for everyone, always** — the default is to hold. The
+single genuine exception is a **committed charge (trample)**: it suspends its own
+weave so the formation stretches *into* the gallop instead of the springs reeling
+the front back and bleeding it (a charging cav otherwise arrives slow and spent).
+That is a **discrete** carve-out keyed on the trample state, not a continuous
+gradient. When you reach for "soft while X," check first whether X really wants to
+abandon formation (a charge does) or merely *moves while still holding* (a press, a
+march, a wheel — these keep their shape). Only the former earns the carve-out.
 
 ### Conserve energy: every force is a SPRING or a DRAG, never an active push
 

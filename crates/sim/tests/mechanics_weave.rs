@@ -971,15 +971,15 @@ fn the_fronts_stay_welded_a_pusher_drives_not_detaches() {
     );
 }
 
-/// BEHAVIOUR 2 — A BRACED BLOCK DOESN'T DEFORM under a press. Immortal (no
-/// deaths). Weave stiffness is WILLINGNESS to hold formation, so the crisp-grid
-/// claim only applies to a unit that is SET: block `a` HOLDS (no order → it sets
-/// its feet and braces → high willingness → stiff), block `b` ATTACKS into it.
-/// `a`'s grid must stay rectangular (only its front rank touches), driven back
-/// as a body, not pancaked. (Two ATTACKERS would both be unwilling and churn —
-/// that is correct, not a bug, so it is NOT what this pins.) Measures the worst
-/// over the run: intermix (fronts blended/threaded) and the HOLDER's width
-/// spread from rest frontage.
+/// BEHAVIOUR 2 — A HOLDING BLOCK DOESN'T DEFORM under a press. Immortal (no
+/// deaths). The crisp-grid claim is for a block that HOLDS, not one that pushes:
+/// block `a` holds (no order), block `b` ATTACKS into it. `a`'s grid must stay
+/// rectangular (only its front rank touches), driven back as a body, not
+/// pancaked — it isn't pushing, so nothing squeezes its front. (Two ATTACKERS
+/// both push and the mutual front-SQUEEZE splays them — a collision-geometry
+/// blob the stiff weave does NOT fix, so that is a separate problem, not what
+/// this pins.) Measures the worst over the run: intermix (fronts blended) and
+/// the HOLDER's width spread from rest frontage.
 fn equal_press_deform(secs: f32) -> (f32, f32, f32) {
     let mut tun = Tunables::default();
     tun.micro_rough = 0.0;

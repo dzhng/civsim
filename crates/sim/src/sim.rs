@@ -1518,24 +1518,23 @@ impl Sim {
                 // (slot_pull) alone, and re-forms when the charge spends. Same
                 // trample exemption as the magnet — the soft formation forces are
                 // off while the hard physics (momentum, bodies, bleed) rule.
-                // Weave stiffness is WILLINGNESS to hold formation, not a constant.
-                // A set/braced unit is willing (stiff → holds its grid, no
-                // pancake); a moving/attacking/charging one is unwilling (soft →
-                // marches, wheels, WRAPS, and charges without the weave reeling the
-                // deforming line back — the drag that bled a charging cav). Scaled
-                // by brace_ramp (0 moving → 1 set), so hold-vs-wrap and charge-soft
-                // -vs-defend-stiff all fall out of one physical state, no role gate.
-                let bramp = u.brace_ramp;
-                let weave_k = 1.0 + (tun.weave_stiffness - 1.0) * bramp;
-                let pivot_k = tun.pivot_stiffness * bramp;
+                // The weave is STIFF by default — every unit wants to hold its
+                // grid, even while pressing (a grinding clash moves slowly but is
+                // still trying to keep formation; speed does NOT mark unwillingness).
+                // The ONE exception is a committed CHARGE: a trampler suspends its
+                // own cohesion so the formation stretches INTO the charge instead
+                // of the weave reeling the front back and bleeding the gallop. (A
+                // continuous "soft when moving" was tried and is wrong — it makes a
+                // slow press soft and blobs it, while not being what a charge needs;
+                // the discrete trample exemption is the right and only carve-out.)
                 let mut steer_to = if trampling {
                     Vec2::ZERO
                 } else {
                     let s = match net_target {
-                        Some(nt) => nt * weave_k + comp_push,
+                        Some(nt) => nt * tun.weave_stiffness + comp_push,
                         None => to + comp_push,
                     };
-                    s + pivot_push * pivot_k
+                    s + pivot_push * tun.pivot_stiffness
                 };
                 // The crush VECTOR: the friendly squeeze, plus the enemy reach-
                 // spring's shove-back (added in the magnet block when it repels).

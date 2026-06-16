@@ -186,9 +186,13 @@ fn deterministic_given_same_orders() {
 #[test]
 fn running_disorganizes_walking_does_not() {
     // The same leg-speed spread, two paces: the walking line stays dressed,
-    // the running one frays the longer it runs.
+    // the running one frays the longer it runs. Smooth field (micro_rough off)
+    // so PACE is the only variable — micro-terrain stumbles disturb a march
+    // independent of pace and are tested separately (terrain_micro). With the
+    // weave cohesion, a walk below every man's top speed holds perfect dressing
+    // (~1.0); a run above the slowest fifth's top frays from the spread alone.
     let cohesion_after = |run: bool| -> f32 {
-        let mut sim = Sim::new(Tunables::default(), 4711);
+        let mut sim = Sim::new(Tunables { micro_rough: 0.0, ..Tunables::default() }, 4711);
         let u = sim.spawn_unit(Vec2::ZERO, 0.0, 400, 40, Vec2::new(1.0, 1.2), 0, 0.7);
         if run {
             sim.set_pace(u, Pace::Run);

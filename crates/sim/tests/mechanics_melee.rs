@@ -437,3 +437,108 @@ fn a_free_march_holds_its_cohesion() {
     eprintln!("MARCH-40   cohesion after a 40m free run = {:.2}", end_coh);
     assert!(end_coh > 0.9, "a free march must hold its line: {end_coh:.2}");
 }
+
+// --- The vibe regressions, pinned (all pre-existing melee issues; a concurrent
+// --- "kill the melee swirl" effort owns the fix — these lock the targets).
+
+/// PHALANX vs HEAVY must NOT swirl. Two lines meeting head-on keep their fronts
+/// pointed ±y and never orbit each other. The same-class clash can't see this —
+/// a swirl is a wheel feedback loop and class asymmetry is what seeds it. Pins
+/// the [vibe: phalanx-v-heavy] regression.
+#[test]
+fn phalanx_and_heavy_clash_without_swirling() {
+    let mut tun = Tunables::default();
+    tun.micro_rough = 0.0;
+    let mut sim = Sim::new(tun, 4242);
+    let bot = sim.spawn_class(Vec2::new(0.0, -13.0), FRAC_PI_2, N, UnitClassId::Phalanx, 0);
+    let top = sim.spawn_class(Vec2::new(0.0, 13.0), -FRAC_PI_2, N, UnitClassId::HeavySword, 1);
+    sim.set_pace(bot, Pace::Run);
+    sim.set_pace(top, Pace::Run);
+    sim.set_attack_order(bot, top);
+    sim.set_attack_order(top, bot);
+    let tr = trace_sim(sim, 120.0);
+    eprintln!(
+        "PHALANX-v-HEAVY faceDev={:.0}° crossed@{:.1} pen={:.2}",
+        tr.max_facing_dev_deg, tr.crossed_at, tr.max_interpenetration
+    );
+    assert!(
+        tr.max_facing_dev_deg < 25.0,
+        "the lines must not wheel/swirl: faceDev reached {:.0}°",
+        tr.max_facing_dev_deg
+    );
+    assert!(
+        tr.crossed_at < 0.0,
+        "the lines must not pass through each other (centroids crossed at {:.1}s)",
+        tr.crossed_at
+    );
+}
+
+/// A held WIDE line must not be SPLIT by a narrow COLUMN driving its centre. The
+/// column may dent and press the line back, but it cannot walk clean through and
+/// out the back while the line stands — the line must fold on the breach, not
+/// part like a curtain. Pins the [vibe: penetration] regression.
+#[test]
+fn a_held_line_is_not_split_by_a_narrow_column() {
+    let mut tun = Tunables::default();
+    tun.micro_rough = 0.0;
+    tun.morale_enabled = false;
+    let mut sim = Sim::new(tun, 11);
+    // Wide held line (no order — it defends), ~4 deep.
+    let line = sim.spawn_class(Vec2::new(0.0, 13.0), -FRAC_PI_2, 280, UnitClassId::HeavySword, 1);
+    sim.set_files(line, 70);
+    // Narrow deep column, ordered THROUGH the centre and out the back.
+    let col = sim.spawn_class(Vec2::new(0.0, -25.0), FRAC_PI_2, 128, UnitClassId::HeavySword, 0);
+    sim.set_files(col, 8);
+    sim.set_pace(col, Pace::Run);
+    sim.set_attack_move_order(col, Vec2::new(0.0, 60.0));
+    let mut crossed_at = -1.0f32;
+    for step in 0..(45.0 / DT) as usize {
+        sim.tick();
+        if crossed_at < 0.0 && sim.units[col].centroid.y >= sim.units[line].centroid.y {
+            crossed_at = step as f32 * DT;
+        }
+    }
+    eprintln!("COLUMN-v-LINE  column crossed line centroid at {crossed_at:.1}s (-1 = held)");
+    assert!(
+        crossed_at < 0.0,
+        "the column walked clean through the held line — it did not fold on the breach (crossed at {crossed_at:.1}s)",
+    );
+}
+
+/// A WIDE attacking line must WRAP a narrow block, not pour through it: its
+/// overhanging flanks keep advancing and curl inward, so the block ends up with
+/// enemies on its flanks/rear (enveloped), NOT with the line split in two behind
+/// it. Measured as: many of the block's men have attackers within reach AND the
+/// line's centroid never crosses the block's (no pass-through). Pins the
+/// [vibe: offense] regression.
+#[test]
+fn a_wide_line_wraps_a_narrow_block() {
+    let mut tun = Tunables::default();
+    tun.micro_rough = 0.0;
+    tun.morale_enabled = false;
+    let mut sim = Sim::new(tun, 11);
+    // Narrow block, holding.
+    let block = sim.spawn_class(Vec2::new(0.0, 13.0), -FRAC_PI_2, 120, UnitClassId::HeavySword, 1);
+    sim.set_files(block, 12);
+    // Wide attacking line, ~3 deep — it overhangs the block on both flanks.
+    let line = sim.spawn_class(Vec2::new(0.0, -13.0), FRAC_PI_2, 210, UnitClassId::HeavySword, 0);
+    sim.set_files(line, 70);
+    sim.set_pace(line, Pace::Run);
+    sim.set_attack_order(line, block);
+    let mut crossed = false;
+    for _ in 0..(60.0 / DT) as usize {
+        sim.tick();
+        if sim.units[line].centroid.y >= sim.units[block].centroid.y {
+            crossed = true;
+        }
+    }
+    // Envelopment: a wrapped block has attackers in reach all THROUGH it (its
+    // flanks are turned), not just a clean front rank.
+    let wrapped = interpenetration(&sim, block, 1.5);
+    eprintln!("WIDE-WRAP  block envelopment={wrapped:.2}  line crossed block={crossed}");
+    assert!(!crossed, "the wide line poured through instead of wrapping (centroids crossed)");
+    assert!(
+        wrapped > 0.35,
+        "the wide line must ENVELOP the block (enemies all through it), not stall at its face: {wrapped:.2}",
+    );
+}

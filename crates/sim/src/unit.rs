@@ -209,12 +209,6 @@ pub fn bearing_bucket(bearing: f32) -> usize {
     ((t * 12.0) as usize).min(11)
 }
 
-/// Center bearing of a sector.
-pub fn bucket_bearing(bucket: usize) -> f32 {
-    use std::f32::consts::{PI, TAU};
-    (bucket as f32 + 0.5) / 12.0 * TAU - PI
-}
-
 pub(crate) fn slot_local(slot: usize, files: usize, spacing: Vec2) -> Vec2 {
     let file = slot % files;
     let rank = slot / files;

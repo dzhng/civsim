@@ -13,7 +13,7 @@ use crate::movement::{pace_speed, soldier_surge_speed, update_unit_motion};
 use crate::rng::Pcg32;
 use crate::terrain::{stagger01, Terrain};
 use crate::tunables::{Pace, Tunables, DT};
-use crate::unit::{bearing_bucket, bucket_bearing, reassign_slots, slot_local, OrderMode, Unit};
+use crate::unit::{reassign_slots, slot_local, OrderMode, Unit};
 
 /// Idle-fidget drift amplitude (m, peak ≈ this) and glance drift (rad, peak). A
 /// standing man is never a fence-post: he drifts off his slot and his eye
@@ -1587,13 +1587,6 @@ impl Sim {
         dt: f32,
     ) {
         let tun = self.tun;
-        // Friendly masking sectors, computed against unit centers.
-        let centers: Vec<(Vec2, f32, u32, usize)> = self
-            .units
-            .iter()
-            .map(|u| (u.center(), 0.5 * u.width().max(u.depth()), u.team, u.alive_count))
-            .collect();
-
         for ui in 0..self.units.len() {
             let (_, _, _, _, engaged, _f, alive_n, _, _, _, _, _) = measures[ui];
             let alive_n = alive_n.max(1);
@@ -1605,38 +1598,19 @@ impl Sim {
                 continue;
             }
 
-            // --- contact facing: masked circular mean ----------------------
-            let mut hist = self.units[ui].contact_hist;
-            let (my_center, my_ext, my_team, _) = centers[ui];
-            for (vi, &(c, ext, team, alive_v)) in centers.iter().enumerate() {
-                if vi == ui || team != my_team || alive_v == 0 {
-                    continue;
-                }
-                let to = c - my_center;
-                if to.len() < my_ext + ext + 25.0 {
-                    let b = bearing_bucket(to.y.atan2(to.x));
-                    hist[b] = 0.0;
-                    hist[(b + 1) % 12] = 0.0;
-                    hist[(b + 11) % 12] = 0.0;
-                }
-            }
-            let mut sum = Vec2::ZERO;
-            let mut weight = 0.0;
-            for (k, &w) in hist.iter().enumerate() {
-                sum = sum + dir(bucket_bearing(k)) * w;
-                weight += w;
-            }
-            // Where the unit WANTS to face. An ordered unit faces its objective
-            // DIRECTLY — a Move toward its waypoint, an Attack toward the foe's
-            // CENTROID (the stable mean of the enemy mass, not the jittering
-            // anchor, and not the self-reinforcing local contacts). This is the
-            // whole reason a head-on grind doesn't pinwheel: the line holds its
-            // face square to the enemy and lets the fight rage across the front,
-            // instead of chasing the contact mean a few degrees off-axis and
-            // wheeling to 90°. Only an ORDERLESS unit — holding, or its order
-            // spent — reads the measured contact bearings to find the fight;
-            // near-opposite contacts cancel there, so it holds still and the
-            // per-soldier reactive facing splits the men both ways.
+            // A unit faces its OBJECTIVE, never the local contacts. An ORDERED
+            // unit aims at its waypoint (Move) or the foe's CENTROID (Attack)
+            // during the approach; once it locks into a grind it HOLDS the
+            // facing it met the enemy at — tracking the shifting centroid from
+            // inside the grind IS the swirl. A unit with NO order does not turn
+            // at all: it holds the facing the player gave it. The sim does not
+            // wheel a line toward whatever wanders into its flank — a mistake in
+            // positioning is the player's (or the AI's) to own, and a unit may
+            // be deliberately keeping its front for a bigger threat than the
+            // peasant on its side. The per-soldier reactive facing still turns
+            // the edge MEN to meet who is on them; the FORMATION holds its
+            // commanded front. Cavalry is exempt from the lock: it maneuvers in
+            // contact (rides through, wheels, re-charges) instead of grinding.
             let intent_dir = match self.units[ui].mode {
                 OrderMode::Move => self.units[ui].move_target.map(|t| t - self.units[ui].anchor),
                 OrderMode::Attack(e) => {
@@ -1645,43 +1619,15 @@ impl Sim {
                 _ => None,
             }
             .filter(|v| v.len() > 4.0);
-            // `hard_turn`: an orderless unit reacting to a decisive contact
-            // turns regardless of how ragged it is (a surrounded breakout can't
-            // wait for dressing). An ORDERED unit turns at its normal,
-            // cohesion-throttled rate — it's not desperate, it's maneuvering.
-            // Mounted units are EXEMPT: cavalry maneuvers in contact (rides
-            // through, wheels, re-charges) rather than grinding in place like an
-            // infantry line, so it must keep steering its facing to its target.
             let locked = engaged_frac > 0.08 && !self.units[ui].is_mounted();
-            let ordered = matches!(
-                self.units[ui].mode,
-                OrderMode::Move | OrderMode::Attack(_)
-            );
-            let (desired, hard_turn) = if locked && ordered {
-                // Ordered and locked in a grind: HOLD the facing you met the
-                // enemy at. Tracking his moving centroid from in here IS the
-                // swirl — each side pivots toward the other's shifting mass and
-                // the pair pinwheels. A line fights across its whole front, it
-                // doesn't chase. Keyed on HAVING an order, not on the target
-                // being far: once the fronts touch the foe's centroid is metres
-                // away, and a distance gate here would unlock mid-grind and let
-                // the wheel resume. (Approach still faces the target; an
-                // orderless unit still reads the contacts to find where it's hit.)
-                (None, false)
-            } else if let Some(v) = intent_dir {
-                (Some(v.y.atan2(v.x)), false)
-            } else {
-                let decisive = weight > 4.0 && sum.len() > 0.45 * weight;
-                (decisive.then(|| sum.y.atan2(sum.x)), decisive)
-            };
+            let desired = if locked { None } else { intent_dir.map(|v| v.y.atan2(v.x)) };
             if let Some(desired) = desired {
                 let u = &mut self.units[ui];
                 let diff = wrap_angle(desired - u.facing);
                 if diff.abs() > 0.35 {
                     let top = soldier_surge_speed(&tun, u);
                     let geom = tun.wheel_speed_factor * top / u.pivot_radius().max(1.0);
-                    let throttle = crate::math::lerp(tun.min_turn_frac, 1.0, u.cohesion)
-                        .max(if hard_turn { 0.0 } else { 0.6 });
+                    let throttle = crate::math::lerp(tun.min_turn_frac, 1.0, u.cohesion).max(0.6);
                     let center = u.center();
                     u.facing = rotate_toward(u.facing, desired, geom * throttle * dt);
                     u.anchor = center + dir(u.facing) * (0.5 * u.depth());

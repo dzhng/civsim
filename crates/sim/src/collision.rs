@@ -2,15 +2,15 @@
 //!
 //! Soldiers are circles; mounted soldiers are TWO circles (an elongated horse)
 //! whose rider sits at the center — rider reachability is pure geometry.
-//! Overlapping bodies push apart, the lighter yielding more. A body being
-//! driven from behind (measured backpressure) yields less and so transmits
-//! force forward — deep columns push thin lines back, pike walls hold, and
-//! crowds crush, all from this one rule.
+//! Overlapping bodies push apart, the lighter yielding more, sharing the
+//! correction by effective mass. Force TRANSMISSION (deep columns walking thin
+//! lines back, pike walls holding) is not modelled here — it emerges from the
+//! weave springs in steer_soldiers, and CRUSH is read off that same weave
+//! compression, not from the pushes posted here.
 //!
-//! Per-soldier outputs measured here (never written by gameplay):
-//! - pressure: EMA |received push| (m/s) — crush; kills evade.
-//! - press vector: EMA net received push — directional transmission.
-//! Charge impacts (closing speed × effective mass) stun and displace.
+//! What this pass owns: the hard non-overlap correction, the REAL WALL (a man
+//! may not end the tick inside an enemy body), and charge impacts (closing
+//! speed × effective mass) that stun and displace.
 
 use crate::class::{HORSE_BODY_R, HORSE_HALF_LEN};
 use crate::math::Vec2;

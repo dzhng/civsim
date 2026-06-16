@@ -189,7 +189,7 @@ pub struct Tunables {
     /// the unit is alert and recovers nothing. Combat mass (brace_mult) is a
     /// separate, distance-independent thing — see Unit::brace.
     pub at_ease_range: f32,
-    /// Charge burst speed (m/s, fresh foot unit; class speed_mult applies).
+    /// Charge burst speed (m/s, fresh foot unit; class pace_mult applies).
     pub charge_speed: f32,
     /// Final-approach window: charge engages within this many seconds of
     /// contact at charge speed.

@@ -60,7 +60,7 @@ impl core::ops::Deref for WeaponSet {
 pub struct UnitClass {
     pub id: UnitClassId,
     /// Multiplies the global walk/run/surge speeds.
-    pub speed_mult: f32,
+    pub pace_mult: f32,
     pub soldier_radius: f32,
     /// Collision/push mass. Bracing multiplies effective mass on top.
     pub mass: f32,
@@ -208,7 +208,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
     use UnitClassId::*;
     let foot = UnitClass {
         id,
-        speed_mult: 1.0,
+        pace_mult: 1.0,
         soldier_radius: 0.33,
         mass: 1.0,
         brace_mult: 1.3,
@@ -230,7 +230,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
     match id {
         HeavySword => UnitClass {
             drain_mult: 1.35,
-            speed_mult: 0.9,
+            pace_mult: 0.9,
             soldier_radius: 0.34,
             mass: 1.3,
             brace_mult: 2.0,
@@ -245,7 +245,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
         },
         LightSpear => UnitClass {
             drain_mult: 0.85,
-            speed_mult: 1.1,
+            pace_mult: 1.1,
             soldier_radius: 0.32,
             mass: 0.95,
             spacing: Vec2::new(1.0, 1.2),
@@ -274,7 +274,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
         },
         Phalanx => UnitClass {
             drain_mult: 1.3,
-            speed_mult: 0.85,
+            pace_mult: 0.85,
             mass: 1.2,
             brace_mult: 4.0,
             spacing: Vec2::new(0.8, 1.0),
@@ -290,7 +290,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
         Archers => UnitClass {
             drain_mult: 0.85,
             brace_mult: 1.0, // missile foot don't fight as a planted wall
-            speed_mult: 1.05,
+            pace_mult: 1.05,
             soldier_radius: 0.32,
             mass: 0.9,
             spacing: Vec2::new(1.2, 1.3),
@@ -306,7 +306,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
         Skirmishers => UnitClass {
             drain_mult: 0.65,
             brace_mult: 1.0,
-            speed_mult: 1.2,
+            pace_mult: 1.2,
             soldier_radius: 0.31,
             mass: 0.85,
             spacing: Vec2::new(1.6, 1.6),
@@ -321,7 +321,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             ..foot
         },
         ShockCavalry => UnitClass {
-            speed_mult: 2.6,
+            pace_mult: 2.6,
             soldier_radius: 0.55,
             mass: 4.5,
             brace_mult: 1.0,
@@ -343,7 +343,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
         },
         HorseArchers => UnitClass {
             drain_mult: 0.8,
-            speed_mult: 2.8,
+            pace_mult: 2.8,
             soldier_radius: 0.55,
             mass: 3.8,
             brace_mult: 1.0,
@@ -364,7 +364,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
         },
         ArtilleryCrew => UnitClass {
             brace_mult: 1.0,
-            speed_mult: 0.9,
+            pace_mult: 0.9,
             soldier_radius: 0.32,
             mass: 0.9,
             spacing: Vec2::new(2.0, 2.0),
@@ -379,7 +379,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
         },
         Peasant => UnitClass {
             drain_mult: 1.5, // a levy's nerve is thin — first blood and they waver
-            speed_mult: 1.05,
+            pace_mult: 1.05,
             soldier_radius: 0.32,
             mass: 0.9,
             brace_mult: 1.0, // no drill, no brace: a mob, not a wall
@@ -397,7 +397,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
         // light shield — HeavySword is the armoured sword.
         LightSword => UnitClass {
             drain_mult: 0.9,
-            speed_mult: 1.1,
+            pace_mult: 1.1,
             soldier_radius: 0.32,
             mass: 0.95,
             spacing: Vec2::new(1.0, 1.2),
@@ -414,7 +414,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
         // LightSpear is the light spear.
         HeavySpear => UnitClass {
             drain_mult: 1.35,
-            speed_mult: 0.9,
+            pace_mult: 0.9,
             soldier_radius: 0.34,
             mass: 1.3,
             brace_mult: 2.5, // a set spear line braces harder than a sword wall

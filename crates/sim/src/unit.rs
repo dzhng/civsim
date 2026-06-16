@@ -39,8 +39,10 @@ pub struct Unit {
     /// config flows into combat. (Fixed for the battle; the config can't change
     /// mid-fight.)
     pub stats: crate::class::UnitClass,
-    /// Multiplies the global walk/run/surge speeds (cavalry ≫ infantry).
-    pub speed_mult: f32,
+    /// Scales the ABOVE-walk speed range (run/surge/charge), not the walk floor:
+    /// every class walks at ~base_speed, but a fast class (cavalry ≫ infantry)
+    /// opens a wide gap at the run and a wider one at the charge.
+    pub pace_mult: f32,
     /// Index of this unit's first soldier in the soldier arrays.
     pub start: usize,
     pub count: usize,

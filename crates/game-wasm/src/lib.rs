@@ -163,7 +163,7 @@ impl Game {
                     "block": c.block,
                     "evade": c.evade,
                     "training": c.training,
-                    "speedMult": c.speed_mult,
+                    "paceMult": c.pace_mult,
                     "drainMult": c.drain_mult,
                     "health": c.health,
                     "mountHealth": c.mount_health,

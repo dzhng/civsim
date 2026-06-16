@@ -37,16 +37,19 @@ const DRIFT_TURN_RATE: f32 = 1.2;
 pub(crate) fn pace_speed(tun: &Tunables, u: &Unit) -> f32 {
     // The charge burst overrides pace, but ONLY in the measured final
     // approach of an explicit attack (set in the reflex pass).
-    let base = if u.charging {
-        tun.base_speed + (tun.charge_speed - tun.base_speed) * fatigue_capacity(u.fatigue)
+    let top = if u.charging {
+        tun.charge_speed
     } else {
         match u.effective_pace() {
             Pace::Walk => tun.base_speed,
-            Pace::Run => {
-                tun.base_speed + (tun.run_speed - tun.base_speed) * fatigue_capacity(u.fatigue)
-            }
+            Pace::Run => tun.run_speed,
         }
     };
+    // pace_mult scales the ABOVE-WALK range only, not the walk floor — every
+    // class walks at ~base_speed (a horse walks about like a marching man), but a
+    // fast class opens a big gap at the run and a huge one at the charge. (Scaling
+    // the whole speed made cavalry "walk" at 4.4 m/s.)
+    let base = tun.base_speed + (top - tun.base_speed) * fatigue_capacity(u.fatigue) * u.pace_mult;
     // RAM DRAG: driving through a resisting crowd is braked by the
     // measured ENEMY counter-press, scaled by the unit's own measured
     // speed — the force balance that stops a trample. The pairwise
@@ -64,15 +67,17 @@ pub(crate) fn pace_speed(tun: &Tunables, u: &Unit) -> f32 {
     // reach, not by rule), a gallop into the same wall eats its drive.
     let v = u.mass_advance.max(0.0) / tun.base_speed;
     let drag = tun.press_brake * grip * u.counter_press * v * v;
-    (base * u.speed_mult - drag).max(0.0)
+    (base - drag).max(0.0)
 }
 
 /// Catch-up sprint for out-of-position soldiers. Drilled troops surge harder;
 /// tired units sag toward walking pace, so they re-form (and wheel) slower.
 pub(crate) fn soldier_surge_speed(tun: &Tunables, u: &Unit) -> f32 {
     let drill = 0.85 + 0.3 * u.training;
-    (tun.base_speed + (tun.surge_speed - tun.base_speed) * fatigue_capacity(u.fatigue) * drill)
-        * u.speed_mult
+    // pace_mult on the above-walk range only (matches pace_speed) — a slow class
+    // still sprints from ~base_speed, a fast one sprints far harder.
+    tun.base_speed
+        + (tun.surge_speed - tun.base_speed) * fatigue_capacity(u.fatigue) * drill * u.pace_mult
 }
 
 pub(crate) fn update_unit_motion(tun: &Tunables, u: &mut Unit, dt: f32, ground: f32) {
@@ -165,12 +170,12 @@ pub(crate) fn update_unit_motion(tun: &Tunables, u: &mut Unit, dt: f32, ground: 
                     if move_off > 1.35 {
                         u.pivoting = false;
                         u.facing = rotate_toward(u.facing, threat, DRIFT_TURN_RATE * dt);
-                        // Walking pace by design (a strafe is never a run);
-                        // ram drag is immaterial here — quadratic in speed,
-                        // it reads ~0 at a walk.
-                        let target_speed =
-                            (tun.base_speed * u.speed_mult * ground * drift_factor(desired, u.facing))
-                                .min((2.0 * accel * dist).sqrt());
+                        // Walking pace by design (a strafe is never a run), and
+                        // walk is class-independent now, so no pace_mult here; ram
+                        // drag is immaterial (quadratic in speed, ~0 at a walk).
+                        let target_speed = (tun.base_speed * ground
+                            * drift_factor(desired, u.facing))
+                        .min((2.0 * accel * dist).sqrt());
                         u.frame_speed = move_toward(u.frame_speed, target_speed, accel * dt);
                         u.anchor = u.anchor + to * (u.frame_speed * dt / dist.max(0.01));
                         return;
@@ -267,7 +272,7 @@ mod tests {
         let mut disordered = Unit {
             class: crate::class::UnitClassId::LightSpear,
             stats: crate::class::class_stats(crate::class::UnitClassId::LightSpear),
-            speed_mult: 1.0,
+            pace_mult: 1.0,
             start: 0,
             count: 0,
             files: 1,

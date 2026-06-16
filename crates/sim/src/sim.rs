@@ -234,7 +234,7 @@ impl Sim {
         let unit = Unit {
             class: UnitClassId::LightSpear,
             stats: class_stats(UnitClassId::LightSpear),
-            speed_mult: 1.0,
+            pace_mult: 1.0,
             start: self.soldier_count(),
             count,
             files: files.max(1),
@@ -363,7 +363,7 @@ impl Sim {
         let u = &mut self.units[idx];
         u.class = class;
         u.stats = stats;
-        u.speed_mult = stats.speed_mult;
+        u.pace_mult = stats.pace_mult;
         u.stance = stats.stance;
         u.charge_enabled = stats.charge;
         u.drain_mult = stats.drain_mult;
@@ -1034,10 +1034,10 @@ impl Sim {
                     // (anchor law) decides how deep it actually presses.
                     u.move_target = Some(enemy_anchor);
                     if u.charge_enabled {
-                        let charge_sp = (self.tun.base_speed
+                        let charge_sp = self.tun.base_speed
                             + (self.tun.charge_speed - self.tun.base_speed)
-                                * crate::movement::fatigue_capacity(u.fatigue))
-                            * u.speed_mult;
+                                * crate::movement::fatigue_capacity(u.fatigue)
+                                * u.pace_mult;
                         let dist = (enemy_anchor - u.anchor).len();
                         // The window opens at charge-distance from the enemy
                         // FRONT (the chase point is mass+8, and the mass sits
@@ -1103,10 +1103,10 @@ impl Sim {
                         // flat 70m here used to latch a walking advance,
                         // time out, and sit in the cooldown across contact —
                         // mutual attack-moves never burst.)
-                        let run_sp = (self.tun.base_speed
+                        let run_sp = self.tun.base_speed
                             + (self.tun.run_speed - self.tun.base_speed)
-                                * crate::movement::fatigue_capacity(u.fatigue))
-                            * u.speed_mult;
+                                * crate::movement::fatigue_capacity(u.fatigue)
+                                * u.pace_mult;
                         if d < run_sp * 5.0 && !self.units[e as usize].routing {
                             let u = &mut self.units[ui];
                             if u.resume_target.is_none() {

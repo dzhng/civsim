@@ -25,16 +25,17 @@ const SEED: u64 = 7;
 
 /// GOAL: a formed unit running on open ground actually reaches its speed STAT —
 /// the run_speed it advertises must be a pace it can sustain, not a number it
-/// never touches. Every class within ~12% of pace_speed (run_speed × speed_mult),
-/// and crucially HEAVY must not COLLAPSE (the leash-deadlock that pinned it near
-/// a walk). One law, no per-class tuning: the men track the frame's velocity, so
-/// fast/slow and shallow/deep all reach their pace.
+/// never touches. Every class within ~12% of its pace_speed, and crucially HEAVY
+/// must not COLLAPSE (the leash-deadlock that pinned it near a walk). One law, no
+/// per-class tuning: the men track the frame's velocity, so fast/slow and
+/// shallow/deep all reach their pace. NOTE everyone WALKS the same (base_speed);
+/// pace_mult scales only the ABOVE-walk range, so pace = base + (run-base)×mult.
 #[test]
 fn a_running_unit_reaches_its_speed_stat() {
-    let run_speed = Tunables::default().run_speed;
+    let tun = Tunables::default();
     for class in [UnitClassId::LightSword, UnitClassId::HeavySword, UnitClassId::ShockCavalry] {
         let got = terminal_run_speed(class);
-        let pace = run_speed * class_stats(class).speed_mult;
+        let pace = tun.base_speed + (tun.run_speed - tun.base_speed) * class_stats(class).pace_mult;
         eprintln!("REACH  {class:?}: ran {got:.2} of pace {pace:.2} ({:.0}%)", 100.0 * got / pace);
         assert!(
             got > 0.88 * pace,
@@ -46,17 +47,17 @@ fn a_running_unit_reaches_its_speed_stat() {
 /// GOAL: a CHARGE actually reaches (most of) charge speed at the men's legs — the
 /// burst (a higher pace in the final approach) must arrive as real velocity, not
 /// be swallowed by the frame<->men lag like the run was. Each class peaks at
-/// ~72-79% of its charge pace (charge_speed × speed_mult): the burst genuinely
-/// lands, but the brief ~2s window, the per-man top-speed spread, and the
-/// mass_advance smoothing keep it short of the full stat. NOTE heavy's charge
-/// (~2.98) barely beats its run pace (3.06): its surge/max_sp caps the men below
-/// charge pace, so the burst is mostly wasted for heavy — a separate charge tune.
+/// ~73-78% of its charge pace (base + (charge-base)×pace_mult): the burst
+/// genuinely lands, but the brief ~2s window, the per-man top-speed spread, and
+/// the mass_advance smoothing keep it short of the full stat. NOTE heavy's charge
+/// pace (~4.31) only modestly beats its run pace (~3.23): its surge/max_sp caps
+/// the men, so the burst is partly wasted for heavy — a separate charge tune.
 #[test]
 fn a_charging_unit_reaches_charge_speed() {
-    let charge_speed = Tunables::default().charge_speed;
+    let tun = Tunables::default();
     for class in [UnitClassId::LightSword, UnitClassId::HeavySword, UnitClassId::ShockCavalry] {
         let got = peak_charge_speed(class);
-        let pace = charge_speed * class_stats(class).speed_mult;
+        let pace = tun.base_speed + (tun.charge_speed - tun.base_speed) * class_stats(class).pace_mult;
         eprintln!("CHARGE  {class:?}: peaked {got:.2} of charge pace {pace:.2} ({:.0}%)", 100.0 * got / pace);
         assert!(
             got > 0.68 * pace,
@@ -131,14 +132,15 @@ fn run_speed_per_class_is_tracked() {
         "run speeds drifted: light {light:.2} (was {LIGHT_RUN}), heavy {heavy:.2} (was {HEAVY_RUN}), cav {cav:.2} (was {CAV_RUN}) — a movement side effect; confirm it's wanted, then update the golden",
     );
 }
-// Golden values (m/s), re-captured 2026-06-16 after the frame-tracking fix (the
-// men feed-forward the frame's clean `cruise` velocity). Each now sits at ~96-97%
-// of its pace_speed (light 3.74, heavy 3.06, cav 8.84) — the old frame<->men lag
-// (and heavy's leash-deadlock to ~1.0) is gone. The exact numbers are tracked so
-// any movement side effect trips here: confirm it's wanted, then re-baseline.
-const LIGHT_RUN: f32 = 3.58;
-const HEAVY_RUN: f32 = 2.96;
-const CAV_RUN: f32 = 8.55;
+// Golden values (m/s), re-captured 2026-06-16 after the walk-decouple: everyone
+// walks at base_speed and pace_mult scales only the above-walk range, so
+// pace = base + (run-base)×mult (light 3.57, heavy 3.23, cav 6.12). Each sits at
+// ~96-99% of that pace — the old frame<->men lag (and heavy's leash-deadlock to
+// ~1.0) is gone. The exact numbers are tracked so any movement side effect trips
+// here: confirm it's wanted, then re-baseline.
+const LIGHT_RUN: f32 = 3.43;
+const HEAVY_RUN: f32 = 3.11;
+const CAV_RUN: f32 = 6.06;
 
 /// A clean rectangular block, facing north, on a parade ground.
 fn block(files: usize, ranks: usize, spacing: f32) -> (Sim, usize) {

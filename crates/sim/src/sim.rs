@@ -25,6 +25,27 @@ use crate::unit::{reassign_slots, slot_local, OrderMode, Unit};
 const IDLE_FIDGET: f32 = 0.12;
 const IDLE_GLANCE: f32 = 0.18;
 
+/// Per-unit aggregates `steer_soldiers` measures over its men in one pass, for
+/// `contact_facing` and `integrate_units` to consume. Centroid is carried as the
+/// running sums (cx, cy); divide by `alive_n` to get the mean.
+struct UnitMeasure {
+    /// Sum of per-soldier slot stretch (m) — feeds mean bond stretch / cohesion.
+    err_sum: f32,
+    /// Accumulated terrain effort (per-man (1 - ground) while moving).
+    effort: f32,
+    /// Living men in contact (engaged > 0).
+    engaged: usize,
+    /// Living men.
+    alive_n: usize,
+    /// Centroid running sums (x, y); mean = cx/alive_n, cy/alive_n.
+    cx: f32,
+    cy: f32,
+    /// Received push OPPOSING the facing — the unit-level braking force.
+    opp_press: f32,
+    /// Sum of per-soldier bond pivot — feeds cohesion.
+    pivot_sum: f32,
+}
+
 pub struct Sim {
     pub tun: Tunables,
     /// Per-class balance surface (stats/weapons), injected. Units capture their
@@ -1135,11 +1156,8 @@ impl Sim {
         }
     }
 
-    /// Per-soldier steering and measurement. Returns per-unit measures:
-    /// (err_sum, stragglers, surging, effort, engaged, face_dev, alive_n, cx,
-    /// cy, opp_press, opp_pressed_n)
-    #[allow(clippy::type_complexity)]
-    fn steer_soldiers(&mut self, dt: f32) -> Vec<(f32, usize, usize, f32, usize, f32, usize, f32, f32, f32, usize, f32)> {
+    /// Per-soldier steering and measurement. Returns one `UnitMeasure` per unit.
+    fn steer_soldiers(&mut self, dt: f32) -> Vec<UnitMeasure> {
         let tun = self.tun;
         let Sim {
             units,
@@ -1196,21 +1214,16 @@ impl Sim {
                 .weapons
                 .iter()
                 .fold(0.0f32, |m, w| m.max(w.reach));
-            let strag_thresh = tun.straggler_dist.max(0.04 * u.depth().max(u.width()));
             let mut err_sum = 0.0f32;
             let mut pivot_sum = 0.0f32;
-            let mut stragglers = 0usize;
-            let mut surging = 0usize;
             let mut effort = 0.0f32;
             let mut engaged = 0usize;
-            let mut face_dev = 0.0f32;
             let mut alive_n = 0usize;
             let mut cx = 0.0f32;
             let mut cy = 0.0f32;
             // Received push OPPOSING the facing (the crowd's answer to the
             // unit's drive): the unit-level braking force, measured.
             let mut opp_press = 0.0f32;
-            let mut opp_pressed_n = 0usize;
 
             // The WEAVE: invert the slot map (slot index -> soldier) so each man
             // can find the men netted to him — the slots beside and behind — and
@@ -1239,11 +1252,7 @@ impl Sim {
                 let p = Vec2::new(positions[2 * i], positions[2 * i + 1]);
                 cx += p.x;
                 cy += p.y;
-                let op = (-(press_x[i] * f.x + press_y[i] * f.y)).max(0.0);
-                opp_press += op;
-                if op > 0.05 {
-                    opp_pressed_n += 1;
-                }
+                opp_press += (-(press_x[i] * f.x + press_y[i] * f.y)).max(0.0);
 
                 // BODY, part 1 — carried momentum (p = m·v) moves the body
                 // regardless of will: armed by impacts and by being struck
@@ -1480,11 +1489,7 @@ impl Sim {
                 let err = soldier_stretch;
                 err_sum += err;
                 pivot_sum += soldier_pivot;
-                if err > strag_thresh {
-                    stragglers += 1;
-                }
                 let mut max_sp = if err > tun.surge_err_threshold {
-                    surging += 1;
                     sprint_sp
                 } else {
                     keep_up_sp
@@ -1698,12 +1703,17 @@ impl Sim {
                     u.facing
                 };
                 facings[i] = rotate_toward(facings[i], desired_face, tun.soldier_turn_rate * dt);
-                face_dev += (wrap_angle(facings[i] - u.facing).abs() - tun.facing_tolerance).max(0.0);
             }
-            measures.push((
-                err_sum, stragglers, surging, effort, engaged, face_dev, alive_n, cx, cy,
-                opp_press, opp_pressed_n, pivot_sum,
-            ));
+            measures.push(UnitMeasure {
+                err_sum,
+                effort,
+                engaged,
+                alive_n,
+                cx,
+                cy,
+                opp_press,
+                pivot_sum,
+            });
         }
         measures
     }
@@ -1713,15 +1723,10 @@ impl Sim {
     /// circular mean of contact bearings, masked by adjacent friendlies.
     /// Contact FACING only — the anchor itself answers to one law (see
     /// `clamp_anchor_to_men`): it pursues the order, leashed to the men.
-    fn contact_facing(
-        &mut self,
-        measures: &[(f32, usize, usize, f32, usize, f32, usize, f32, f32, f32, usize, f32)],
-        dt: f32,
-    ) {
+    fn contact_facing(&mut self, measures: &[UnitMeasure], dt: f32) {
         let tun = self.tun;
         for ui in 0..self.units.len() {
-            let (_, _, _, _, engaged, _f, alive_n, _, _, _, _, _) = measures[ui];
-            let alive_n = alive_n.max(1);
+            let (engaged, alive_n) = (measures[ui].engaged, measures[ui].alive_n.max(1));
             let engaged_frac = engaged as f32 / alive_n as f32;
             if engaged_frac <= 0.06
                 || self.units[ui].mode == OrderMode::Disengage
@@ -1769,17 +1774,12 @@ impl Sim {
         }
     }
 
-    fn integrate_units(
-        &mut self,
-        measures: &[(f32, usize, usize, f32, usize, f32, usize, f32, f32, f32, usize, f32)],
-        dt: f32,
-    ) {
+    fn integrate_units(&mut self, measures: &[UnitMeasure], dt: f32) {
         let tun = self.tun;
         for (
             u,
-            &(err_sum, _stragglers, _surging, effort, engaged, _face_dev, alive_n, cx, cy, opp_press, opp_pressed_n, pivot_sum),
-        ) in
-            self.units.iter_mut().zip(measures)
+            &UnitMeasure { err_sum, effort, engaged, alive_n, cx, cy, opp_press, pivot_sum },
+        ) in self.units.iter_mut().zip(measures)
         {
             let n = alive_n.max(1) as f32;
             let c0 = u.centroid;
@@ -1799,7 +1799,6 @@ impl Sim {
             } else {
                 u.brace_ramp = 0.0;
             }
-            let _ = opp_pressed_n;
             // The ram-drag reads ENEMY counter-press, but the per-soldier crush it
             // sums also carries FRIENDLY compression — so a unit NOT in contact
             // must report zero, or its own internal squeeze (e.g. the rear ranks

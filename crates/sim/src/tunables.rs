@@ -46,8 +46,6 @@ pub struct Tunables {
     pub soldier_turn_rate: f32,
     /// Distance from move target at which the order completes (m).
     pub arrive_radius: f32,
-    /// Slot error beyond which a soldier counts as a straggler (m).
-    pub straggler_dist: f32,
     /// Slot error is normalized by this many multiples of file spacing.
     pub disorder_norm_spacings: f32,
     /// Time constant for disorder rising (s).
@@ -181,8 +179,6 @@ pub struct Tunables {
     pub hit_push: f32,
     /// Unit fatigue per second when fully engaged in melee.
     pub combat_drain: f32,
-    /// Facing-deviation tolerance (rad) before it counts as disorder.
-    pub facing_tolerance: f32,
     /// "At ease" range (m): a unit with no living, non-routing enemy nearer
     /// than this is at ease — it recovers morale (see morale.rs), and the
     /// renderer reads the same range to relax its stance (pikes up). Inside it
@@ -236,7 +232,6 @@ impl Default for Tunables {
             soldier_gain: 3.0,
             soldier_turn_rate: 8.0,
             arrive_radius: 1.5,
-            straggler_dist: 3.0,
             disorder_norm_spacings: 3.0,
             disorder_rise_tau: 0.4,
             disorder_fall_tau: 1.6,
@@ -283,7 +278,6 @@ impl Default for Tunables {
             micro_rough: 1.0,
             hit_push: 0.3,
             combat_drain: 1.0 / 50.0,
-            facing_tolerance: 0.3,
             at_ease_range: 60.0,
         }
     }

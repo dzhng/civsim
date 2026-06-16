@@ -469,6 +469,52 @@ fn two_armies(
     (sim, a, b)
 }
 
+/// Two opposing blocks of equal WIDTH, head-on, both attacking, invulnerable.
+/// `a` (south, faces north) has `a_ranks` depth; `b` (north) has `b_ranks`.
+/// Returns the MIDLINE drift north over `secs`: positive = the contact line was
+/// walked toward b's side, i.e. a out-pushed b.
+fn depth_contest(a_ranks: usize, b_ranks: usize, secs: f32) -> f32 {
+    let mut tun = Tunables::default();
+    tun.micro_rough = 0.0;
+    tun.morale_enabled = false;
+    let mut sim = Sim::new(tun, SEED);
+    let w = 6;
+    let a = sim.spawn_unit(Vec2::new(0.0, -6.0), FRAC_PI_2, w * a_ranks, w, Vec2::new(1.0, 1.0), 0, 0.8);
+    let b = sim.spawn_unit(Vec2::new(0.0, 6.0), -FRAC_PI_2, w * b_ranks, w, Vec2::new(1.0, 1.0), 1, 0.8);
+    for _ in 0..30 {
+        sim.tick();
+    }
+    for h in sim.health.iter_mut() {
+        *h = 1.0e9;
+    }
+    let mid0 = (mean_y(&sim, a) + mean_y(&sim, b)) * 0.5;
+    sim.set_pace(a, Pace::Walk);
+    sim.set_pace(b, Pace::Walk);
+    sim.set_attack_order(a, b);
+    sim.set_attack_order(b, a);
+    for _ in 0..(secs / DT) as usize {
+        sim.tick();
+    }
+    (mean_y(&sim, a) + mean_y(&sim, b)) * 0.5 - mid0
+}
+
+#[test]
+fn a_deep_column_walks_a_thin_line_back_equal_depths_hold() {
+    // Othismos, emergent from the weave alone (no force-conduction term). Two
+    // invulnerable blocks of equal width shove head-on. When one is far deeper,
+    // its extra ranks each add a compression spring driving the rank ahead, so
+    // the column walks the thin line back — the contact MIDLINE drifts toward
+    // the thin side. Equal depths have equal spring chains: the line holds, the
+    // midline barely moves. This is the transmission that `press_drive` used to
+    // bolt onto the collision solver; the springs do it on their own now.
+    let deep = depth_contest(14, 3, 12.0);
+    let even = depth_contest(8, 8, 12.0);
+    eprintln!("DEPTH  deep-vs-thin midline drift {deep:+.2}m  |  equal-vs-equal {even:+.2}m");
+    assert!(deep > 2.5, "a deep column must walk a thin line back: {deep:+.2}m");
+    assert!(even.abs() < 1.0, "equal depths must hold a steady contact line: {even:+.2}m");
+    assert!(deep > 3.0 * even.abs() + 1.0, "depth must decide it, not noise: deep {deep:+.2} vs equal {even:+.2}");
+}
+
 #[test]
 fn an_attacking_line_wraps_a_deep_column_a_holding_one_does_not() {
     // A wide LINE meets a narrow deep COLUMN head-on (invulnerable, no death).

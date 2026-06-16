@@ -65,8 +65,6 @@ impl Sim {
             scratch,
             terrain,
             mass,
-            cond_x,
-            cond_y,
             stun,
             mom_x,
             mom_y,
@@ -83,8 +81,6 @@ impl Sim {
         // Collision damage is applied after the pass (kill() needs &mut self).
         let mut impact_kills: Vec<usize> = Vec::new();
         grid.rebuild(cell, body_pos);
-        let mut raw_cx = vec![0.0f32; n];
-        let mut raw_cy = vec![0.0f32; n];
         // The REAL WALL: deepest enemy body a soldier overlaps this tick. The
         // capped push relieves crowds gently; an ENEMY body, though, a man may
         // not END the tick standing inside — he is snapped to its contact ring.
@@ -94,7 +90,7 @@ impl Sim {
         let mut wall_cx = vec![0.0f32; n];
         let mut wall_cy = vec![0.0f32; n];
         let mut wall_r = vec![0.0f32; n];
-        // scratch: per-soldier [push_x, push_y]; plus raw pressure accumulators.
+        // scratch: per-soldier [push_x, push_y].
         scratch.clear();
         scratch.resize(2 * n, 0.0);
 
@@ -150,23 +146,15 @@ impl Sim {
                             } else {
                                 0.0
                             };
-                            // Directional transmission: a body pushed from
-                            // behind (its measured press vector driving it
-                            // along -n, i.e. into j) yields less. A staggered
-                            // man absorbs the press instead of transmitting
-                            // it — sustained strikes break the force chain.
-                            let gate_i = if stun[i] > 0.0 { 0.0 } else { 1.0 };
-                            let gate_j = if stun[j] > 0.0 { 0.0 } else { 1.0 };
-                            let drive_i = 1.0
-                                + tun.press_drive
-                                    * gate_i
-                                    * (-(cond_x[i] * nx + cond_y[i] * ny)).max(0.0);
-                            let drive_j = 1.0
-                                + tun.press_drive
-                                    * gate_j
-                                    * (cond_x[j] * nx + cond_y[j] * ny).max(0.0);
-                            let w_i = m_eff(i) * drive_i;
-                            let w_j = m_eff(j) * drive_j;
+                            // Non-overlap shares by effective mass alone (brace
+                            // included). Force TRANSMISSION — a deep column out-
+                            // pushing a thin line — is no longer bolted on here:
+                            // it emerges from the weave, where each rank's
+                            // compression spring shoves the rank ahead, so depth
+                            // wins on its own (measured: a 14-deep block walks a
+                            // 3-deep one back, equal depths hold).
+                            let w_i = m_eff(i);
+                            let w_j = m_eff(j);
                             let share = w_j / (w_i + w_j);
                             let overlap = (min_dist - d) * share;
                             push.x += (nx - slide * ny) * overlap;
@@ -318,13 +306,9 @@ impl Sim {
             }
             scratch[2 * i] += push.x;
             scratch[2 * i + 1] += push.y;
-            raw_cx[i] += push.x;
-            raw_cy[i] += push.y;
         }
 
-        // --- apply (capped per soldier, walls slide) + fold the CONDUCTION
-        // chain EMA (collision-only; the full ledger folds at tick end) ----
-        let alpha = 1.0 - (-DT / tun.press_tau).exp();
+        // --- apply the non-overlap correction (capped per soldier, walls slide).
         for i in 0..n {
             let mut px = scratch[2 * i];
             let mut py = scratch[2 * i + 1];
@@ -364,9 +348,6 @@ impl Sim {
             };
             positions[2 * i] = np.x;
             positions[2 * i + 1] = np.y;
-
-            cond_x[i] += (raw_cx[i] / DT - cond_x[i]) * alpha;
-            cond_y[i] += (raw_cy[i] / DT - cond_y[i]) * alpha;
         }
 
         // The throws that broke bodies: bookkeeping after the borrow ends.

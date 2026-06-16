@@ -120,9 +120,6 @@ pub struct Tunables {
     pub order_delay_max: f32,
     /// Pressure EMA time constant (s).
     pub press_tau: f32,
-    /// Effective-mass gain per m/s of backpressure along the push axis:
-    /// bodies transmit force like a medium (othismos, wedge penetration).
-    pub press_drive: f32,
     /// Closing speed (m/s) above which an enemy contact is a charge impact.
     pub charge_min_speed: f32,
     /// Impact momentum (m_eff x closing speed) that knocks a body down, PER
@@ -224,7 +221,6 @@ impl Default for Tunables {
             order_delay_scale: 6.0,
             order_delay_max: 4.0,
             press_tau: 0.4,
-            press_drive: 0.5,
             charge_min_speed: 2.5,
             charge_speed: 4.6,
             charge_window: 2.0,

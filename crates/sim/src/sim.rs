@@ -54,12 +54,6 @@ pub struct Sim {
     /// spring. The vice (scalar minus this) and the ram drag read it.
     pub(crate) press_x: Vec<f32>,
     pub(crate) press_y: Vec<f32>,
-    /// EMA of the net COLLISION push vector only — the othismos force
-    /// chain (bodies conducting momentum through contact). A sword blow
-    /// compresses a man; it does not make him a better pusher, so the
-    /// conduction term must not read weapon pushes.
-    pub(crate) cond_x: Vec<f32>,
-    pub(crate) cond_y: Vec<f32>,
     pub attack_cd: Vec<f32>,
     /// Impact momentum carried by the body (kg·m/s, world vector): set when
     /// a charge lands, spent against the crowd, zeroed by stagger. THIS is
@@ -154,8 +148,6 @@ impl Sim {
             pressure: Vec::new(),
             press_x: Vec::new(),
             press_y: Vec::new(),
-            cond_x: Vec::new(),
-            cond_y: Vec::new(),
             attack_cd: Vec::new(),
             mom_x: Vec::new(),
             mom_y: Vec::new(),
@@ -328,8 +320,6 @@ impl Sim {
             self.hit_ttl.push(0.0);
             self.kin_vx.push(0.0);
             self.kin_vy.push(0.0);
-            self.cond_x.push(0.0);
-            self.cond_y.push(0.0);
             self.alive.push(1);
             self.soldier_unit.push(unit_index as u32);
             self.soldier_slot.push(s as u32);

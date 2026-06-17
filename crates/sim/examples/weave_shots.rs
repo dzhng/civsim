@@ -456,5 +456,22 @@ fn main() {
         shoot("t3-phalanx-heavy", sim, 60.0, 2.0);
     }
 
+    // TWO BRACED POLE WALLS (10-deep, blunt braced pikes) shove head-on: do they
+    // HOLD at the points, or pancake/merge? (two_braced_walls_hold_a_standoff.)
+    {
+        let mut sim = Sim::new(base_tun(), 7);
+        let pike = sim::Weapon { reach: 3.5, min_range: 1.1, arc: 0.08, attack_interval: 1.4, damage: 0.0, braced: true };
+        let south = sim.spawn_unit(Vec2::new(0.0, -25.0), FRAC_PI_2, 200, 20, Vec2::new(0.8, 1.0), 0, 0.85);
+        let north = sim.spawn_unit(Vec2::new(0.0, 25.0), -FRAC_PI_2, 200, 20, Vec2::new(0.8, 1.0), 1, 0.85);
+        for &u in &[south, north] {
+            sim.units[u].stats.weapons = sim::class::one(pike);
+        }
+        sim.set_pace(south, Pace::Run);
+        sim.set_pace(north, Pace::Run);
+        sim.set_attack_order(south, north);
+        sim.set_attack_order(north, south);
+        shoot("t3-braced-walls", sim, 80.0, 3.0);
+    }
+
     println!("done.");
 }

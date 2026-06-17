@@ -578,21 +578,29 @@ fn a_wide_line_wraps_a_narrow_block() {
     sim.set_files(line, 70);
     sim.set_pace(line, Pace::Run);
     sim.set_attack_order(line, block);
-    let mut crossed = false;
     for _ in 0..(60.0 / DT) as usize {
         sim.tick();
-        if sim.units[line].centroid.y >= sim.units[block].centroid.y {
-            crossed = true;
-        }
     }
     // Envelopment: a wrapped block has attackers in reach all THROUGH it (its
-    // flanks are turned), not just a clean front rank.
+    // flanks are turned), not just a clean front rank. This is the real wrap
+    // signal — a pour-through ABANDONS the block (envelopment ~0), a stall touches
+    // only the front rank (envelopment ~0.1). (A centroid-swap check was a FALSE
+    // POSITIVE here, vibe-verified in weave_shots/t3-wide-wrap: a wide thin line
+    // wrapping a DEEP narrow block curls its flanks AROUND past the block's far
+    // edge, so the line's centroid legitimately rises above the deep block's
+    // MIDDLE centroid — that's the wrap, not a pass-through.)
     let wrapped = interpenetration(&sim, block, 1.5);
-    eprintln!("WIDE-WRAP  block envelopment={wrapped:.2}  line crossed block={crossed}");
-    assert!(!crossed, "the wide line poured through instead of wrapping (centroids crossed)");
+    // The block is the DEFENDER: a clean wrap leaves it surrounded but still
+    // FACING the fight; a swirl would wheel it off its line.
+    let block_face_dev = sim.units[block].facing.cos().abs().min(1.0).asin().to_degrees();
+    eprintln!("WIDE-WRAP  block envelopment={wrapped:.2}  block faceDev={block_face_dev:.0}");
     assert!(
         wrapped > 0.35,
-        "the wide line must ENVELOP the block (enemies all through it), not stall at its face: {wrapped:.2}",
+        "the wide line must ENVELOP the block (enemies all through it), not stall at its face or pour through: {wrapped:.2}",
+    );
+    assert!(
+        block_face_dev < 25.0,
+        "the block must hold its line, not be wheeled around by the wrap: {block_face_dev:.0} deg",
     );
 }
 

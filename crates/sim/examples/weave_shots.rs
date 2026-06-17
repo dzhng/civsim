@@ -414,5 +414,19 @@ fn main() {
         shoot("t3-cav-v-heavy", sim, 13.0, 0.4);
     }
 
+    // WIDE thin line (70 wide, 3 deep) vs a NARROW deep block (12 wide, 10 deep):
+    // does the wide line WRAP the block (flanks curl around its sides) or pour
+    // straight THROUGH it? (a_wide_line_wraps_a_narrow_block.)
+    {
+        let mut sim = Sim::new(base_tun(), 11);
+        let block = sim.spawn_class(Vec2::new(0.0, 13.0), -FRAC_PI_2, 120, UnitClassId::HeavySword, 1);
+        sim.set_files(block, 12);
+        let line = sim.spawn_class(Vec2::new(0.0, -13.0), FRAC_PI_2, 210, UnitClassId::HeavySword, 0);
+        sim.set_files(line, 70);
+        sim.set_pace(line, Pace::Run);
+        sim.set_attack_order(line, block);
+        shoot("t3-wide-wrap", sim, 60.0, 2.0);
+    }
+
     println!("done.");
 }

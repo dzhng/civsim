@@ -73,7 +73,14 @@ pub(crate) fn pace_speed(tun: &Tunables, u: &Unit) -> f32 {
     } else {
         (u.counter_press, 0.45, 0.6 * 0.45)
     };
-    let grip = ((press - floor) / ramp).clamp(0.0, 1.0);
+    // A trampler rides CLEAN through a shallow screen however wide — its per-man
+    // press is inflated by the screen's width into the wall band, but a few ranks
+    // have no DEPTH to stop a horse. Below a few ranks the drag is waived outright.
+    let grip = if u.tramples() && u.foe_ranks > 0.0 && u.foe_ranks <= 3.0 {
+        0.0
+    } else {
+        ((press - floor) / ramp).clamp(0.0, 1.0)
+    };
     // Quadratic in the unit's own speed — ram pressure, not sticky mud:
     // a slow press into a wall keeps its shove (the pikes kill it by
     // reach, not by rule), a gallop into the same wall eats its drive.
@@ -368,6 +375,7 @@ mod tests {
             recent_missiles: 0.0,
             losing_push: 0.0,
             ram_press: 0.0,
+            foe_ranks: 0.0,
             centroid: Vec2::ZERO,
             at_ease: false,
             counter_press: 0.0,

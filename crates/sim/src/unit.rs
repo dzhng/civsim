@@ -159,6 +159,11 @@ pub struct Unit {
     /// from a wall (high, bog). The instantaneous press spikes alike on both for a
     /// frame; only the average separates them.
     pub ram_press: f32,
+    /// Rank-depth of the enemy this unit is in contact with (copied each tick). A
+    /// trampler rides clean through a SHALLOW screen no matter how WIDE it is (its
+    /// per-man press is inflated by width into the wall band, but a few ranks have
+    /// no depth to stop a horse), so the ram-drag is waived below a few ranks.
+    pub foe_ranks: f32,
     /// Mean position of living soldiers (kept fresh; the rout frame).
     pub centroid: Vec2,
     /// No living, non-routing enemy within at_ease_range of this unit's

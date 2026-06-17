@@ -307,6 +307,7 @@ impl Sim {
             recent_missiles: 0.0,
             losing_push: 0.0,
             ram_press: 0.0,
+            foe_ranks: 0.0,
             centroid: anchor,
             at_ease: false,
             counter_press: 0.0,
@@ -1797,11 +1798,23 @@ impl Sim {
 
     fn integrate_units(&mut self, measures: &[UnitMeasure], dt: f32) {
         let tun = self.tun;
+        // Rank-depth of every unit, so a trampler can read its foe's depth (the
+        // ram-drag waives a shallow screen however wide).
+        let ranks: Vec<f32> = self
+            .units
+            .iter()
+            .map(|u| u.alive_count.max(1).div_ceil(u.files_eff.max(1)) as f32)
+            .collect();
         for (
             u,
             &UnitMeasure { err_sum, effort, engaged, alive_n, cx, cy, opp_press, pivot_sum },
         ) in self.units.iter_mut().zip(measures)
         {
+            u.foe_ranks = if u.engaged > 0 {
+                ranks.get(u.contact_unit as usize).copied().unwrap_or(0.0)
+            } else {
+                0.0
+            };
             let n = alive_n.max(1) as f32;
             let c0 = u.centroid;
             u.centroid = Vec2::new(cx / n, cy / n);

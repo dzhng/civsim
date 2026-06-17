@@ -185,6 +185,54 @@ assert it stays within a few degrees. `face_dev = 90°` means the lines turned
 fully sideways — an unmistakable swirl readout that fires before the centroids
 even cross.
 
+### A metric can encode the WRONG thing — verify it against the picture, and measure in the formation's OWN frame
+
+A red test has two possible causes, and they look identical from the number: the
+*sim* is wrong, or the *detector* is wrong. **Before chasing a force, render the
+vibe shot and LOOK** — the metric is a lens, and a bent lens invents a problem that
+isn't there. Worked case: a `depth_ratio` of 0.40 screamed "the block pancaked into
+a blob", and I spent a dozen force-tweaks trying to fix a pancake — but the shots
+showed the back ranks holding a *perfect grid*; the block was merely **rotating** as
+it swirled. Two detector bugs, both classics:
+
+- **Wrong FRAME.** Depth was projected onto the held *facing* (a fixed world axis),
+  so a block that rotates reads as shallow — pure rotation masqueraded as collapse.
+  **Measure a formation property in the formation's OWN frame** (PCA of the men's
+  positions → its major/minor axes), so the number is invariant to rotation/shear.
+  A quantity that should be rotation-invariant but is measured against a world axis
+  is a latent bug.
+- **Wrong WINDOW (transient vs sustained).** It took the `min` over the whole run,
+  which caught the **impact transient** — two lines crash, the front compresses for
+  ~1 s, then springs back (depth 0.39 → 1.8). A `min`/`max` over a run reports the
+  worst *moment*, not the *state*. For "did X collapse and STAY collapsed", skip the
+  impact warmup or measure the sustained/late value. (Same trap bit `mud` and
+  `long_marches`: the min-cohesion caught a mid-march dip, not the settled fraying.)
+
+The tell that your metric — not your physics — is the problem: **it stays invariant
+under every force that should move it.** I scaled the repel, the compress, the
+slot-grip, an axial cap — six levers — and the blob's interpenetration never budged
+off 0.81 while each *regressed* the foundation. A number deaf to every relevant force
+is almost never a force imbalance; it's the metric or the dynamics. Stop tuning, go
+look.
+
+### The hardest class of bug is an EQUILIBRIUM failure — a spring system does not auto-settle
+
+Forces that *pull toward a target* (a magnet to the foe, glue between locked units,
+a slot spring) do NOT guarantee the system reaches a stable **steady state**. Pointed
+at an unreachable target — a unit blocked head-on by an enemy it's ordered to walk
+*through* — the system keeps chasing forever: it leans, shears, and **swirls, because
+rotating is the only way left to "reach" an anchor it can't reach straight on.** Over
+a short fight casualties end it before the instability blooms; under an **immortal /
+infinite run it has nowhere to hide**, so the immortal long-grind is the *stress test*
+for equilibrium, and a slowly-growing swirl/blob/lean is its signature. Crucially,
+**these are usually ONE bug, not three** — don't fix swirl, blob, and lean separately;
+find the shared "never settles" root. The fix is to make the system actually settle:
+the driving force must go to **zero at equilibrium** (a man at his fighting distance
+should stop being pulled in, not keep pressing), or the contested degree of freedom
+needs damping / a restoring force that kills the runaway. If your "glue + magnet were
+supposed to settle it" and they don't, the question is not "which force is too weak"
+but "what steady state does this system have, and does any force drive it there."
+
 ### Don't relax a test to pass — the red is usually telling the truth
 
 When a strict check (centroids never swap on y) goes red after your change,

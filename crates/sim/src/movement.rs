@@ -230,8 +230,15 @@ pub(crate) fn update_unit_motion(tun: &Tunables, u: &mut Unit, dt: f32, ground: 
                 }
                 // A CHARGE does not brake to arrive — the whole point is
                 // to make contact at full speed and let the bodies cash it.
+                // LOCKED in melee: the frame HOLDS at the men (target 0) — a
+                // grinding line never drives its anchor toward a goal past the
+                // foe (that towed the slots through the enemy: the pass-through).
+                // Advance is OTHISMOS — the men shove through by compression and
+                // the leash drags the anchor behind. The frame follows the fight.
                 let target_speed = if u.charging {
                     pace_speed(tun, u) * ground
+                } else if locked {
+                    0.0
                 } else {
                     (pace_speed(tun, u) * ground).min((2.0 * accel * dist).sqrt())
                 };

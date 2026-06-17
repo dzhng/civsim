@@ -1254,6 +1254,16 @@ impl Sim {
                 cy += p.y;
                 opp_press += (-(press_x[i] * f.x + press_y[i] * f.y)).max(0.0);
 
+                // Only a TRAMPLER (cavalry) carries ballistic momentum — a horse
+                // rides through. Infantry crash and grind: their carried momentum,
+                // re-armed every tick by the strike/impact ledgers from grind
+                // jitter, otherwise towed the whole block clean THROUGH the enemy
+                // line (the centroid pass-through). A felling-blow knockback is a
+                // separate concern (the victim is staggered out of the weave).
+                if !u.tramples() {
+                    mom_x[i] = 0.0;
+                    mom_y[i] = 0.0;
+                }
                 // BODY, part 1 — carried momentum (p = m·v) moves the body
                 // regardless of will: armed by impacts and by being struck
                 // at speed, spent against the crowd, gone in ~a second.
@@ -1846,7 +1856,17 @@ impl Sim {
                 // terrain pockets — a charge over distance is meant to cost
                 // coherence, so the player halts to regroup). Disengage runs loose
                 // (fleeing slots must LEAD the men out).
-                let leash = if disengaging { 0.6 * u.depth() + 5.0 } else { 0.3 * u.depth() + 1.5 };
+                let leash = if disengaging {
+                    0.6 * u.depth() + 5.0
+                } else if fighting_frac > 0.1 {
+                    // ENGAGED: the frame sits AT the men, no depth slack — slack
+                    // lets the slots LEAD the fighting line and tow it through the
+                    // enemy. The forward press is paid in compression by the rear
+                    // ranks, never by a leading frame.
+                    1.0
+                } else {
+                    0.3 * u.depth() + 1.5
+                };
                 if lag > leash {
                     u.anchor = u.anchor + f * (-(lag - leash));
                     // Ordered to stand or advance yet measurably walked

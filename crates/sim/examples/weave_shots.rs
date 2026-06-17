@@ -473,5 +473,19 @@ fn main() {
         shoot("t3-braced-walls", sim, 80.0, 3.0);
     }
 
+    // 180-deg IN-PLACE PIVOT: a 200-man block (20x10) marching +x is reversed to
+    // -x. Does it rotate as a coherent block or SMEAR? (large_turns_pivot.) Start
+    // the shot AT the reversal so the flip-book is the pivot itself.
+    {
+        let mut sim = Sim::new(base_tun(), 42);
+        let u = sim.spawn_unit(Vec2::new(0.0, 0.0), 0.0, 200, 20, Vec2::new(1.0, 1.2), 0, 0.7);
+        sim.set_move_order(u, Vec2::new(40.0, 0.0));
+        for _ in 0..(10.0 / DT) as usize {
+            sim.tick();
+        }
+        sim.set_move_order(u, Vec2::new(-60.0, 0.0));
+        shoot("t3-pivot-180", sim, 24.0, 1.0);
+    }
+
     println!("done.");
 }

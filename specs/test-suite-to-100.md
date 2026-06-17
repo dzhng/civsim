@@ -8,26 +8,33 @@ whole suite sat on). What remains collapses onto **two keystone reworks** plus a
 tail of real-but-isolated regressions. Every cluster below was tested to a verdict
 this session — the "tried" notes are measured, do not re-discover them.
 
-## Keystone 1 — frame-hold needs a winning-advance equilibrium
+## Keystone 1 — frame-hold winning-advance: BUILT, but NOT the lever (disproved)
 
 The fix that holds the clash is `target_speed = 0` when `locked` (movement.rs, the
-march branch). It works — but it pins a WINNING attacker in place too, because the
-frame can no longer carry the unit forward even when its men are shoving the foe
-back. This is the single root of several failures:
+march branch). It pins a winning attacker too. I built the relative winning signal
+and tested it — and it does NOT fix the tests I thought, so do not chase it:
 
-- `the_counter_web_holds` — Phalanx ATTACKING HeavySword loses (29%/68%); the hedge
-  can't advance over swords (`expect` row `(Phalanx, HeavySword, 0)`).
-- `mechanics_melee::a_column_bulges`, `a_wide_line_wraps` — the attacker can't
-  advance to bulge/envelop, reads as a cross.
-- contributes to `a_held_braced_line`, `dense_infantry`.
+**Tried (reverted, both):**
+1. `target_speed = mass_advance.max(0).min(pace)` — lets winners advance BUT
+   reintroduces the clash pass-through (119→116): `mass_advance` is positive in a
+   symmetric grind too.
+2. The RIGHT relative signal — added `Unit::enemy_losing_push` (copy the foe's
+   `losing_push` each tick; advance the frame only when `enemy_losing_push > 1.0 &&
+   own losing_push < 0.5`). Result: **clash still holds (correctly reads the
+   stalemate), but it fixed ZERO tests** (119/36 unchanged). Because:
+   - `the_counter_web_holds` (Phalanx attacking HeavySword loses 29%/68%) is a
+     COMBAT-DEPTH loss — the phalanx loses the kill-exchange once swords close
+     inside the sarissas, not the shove. A combat/balance problem, not frame motion.
+   - `a_wide_line_wraps`, `a_column_bulges` — the wide line's FLANKS (the part that
+     should curl in to envelop) have no enemy ahead, so they are NOT `locked`; the
+     frame-hold never gated them. They pour straight because the WRAP mechanic
+     (flanks turning inward toward the foe's exposed sides) is missing, not because
+     the frame is pinned.
 
-**Tried (regressed, reverted):** `target_speed = mass_advance.max(0).min(pace)` —
-lets winners advance BUT reintroduces the clash pass-through (119→116), because
-`mass_advance` is positive even in a symmetric grind. The needed signal is
-"winning vs stalemate," which `mass_advance` alone does not separate. Candidate:
-gate the advance on the ENEMY losing ground (its centroid retreating / it routing /
-my `losing_push` negative while its is positive) — a relative measure, not raw
-speed. This is the othismos equilibrium and it is real work, not a constant.
+So keystone 1 as "let winners advance" is a dead end for these tests. The real
+roots are (a) pike-vs-sword combat depth (the sword closes inside the pike and wins
+the exchange) and (b) a missing envelopment/wrap behavior (free flanks should seek
+the foe's flanks, not march straight). Both are their own work.
 
 ## Keystone 2 — impale momentum-return (`specs/impale.md`)
 

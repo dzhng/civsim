@@ -42,8 +42,24 @@ migrations into `balance_combat.rs` / `balance_charge.rs`.
   The honest fix is to make `weapon_swaps`' fumble-beat assert robust (it compares
   kills in a 2s window, knife-edge) AND take the disable — then it's net +1.
 
-### Deep reworks (specced; each its own multi-iteration pass)
-- **Trample/impale (×7):** `move_order_rides_through`, `cavalry_charge_keeps_burst`,
+### LANDED this session — the trample rework (`5a63a9b`)
+The trample cluster cracked WITHOUT impale, via a measured insight: the cav's
+INSTANTANEOUS counter-press spikes alike on a screen and a wall, but the SUSTAINED
+average separates them (screen ~3-8, wall ~11+). So a new `Unit::ram_press` smooths
+counter-press (~0.4s EMA) and the TRAMPLER ram-drag gates on it with floor 8 + a
+tight ramp; INFANTRY keep the instantaneous press + low floor (their clash must brake
+at first contact, no lag — kept on a separate channel so the foundation is untouched).
+Fixed `cavalry_charge_keeps_burst`, `a_frontal_charge_bloodbath`, `light_horse_tramples`;
+`mechanics_charge` + `mechanics_melee` both still 5/5; golden stable.
+
+REMAINING 4 (`move_order_rides` [−51 vs −60, close], `dense_infantry`, `eight_ranks`,
+`cavalry_usually_rides`): these are a WIDE thin line, whose `ram_press` (~9-10) is
+inflated by WIDTH (many men in contact) into the braced-6 band (~10.8) — no floor
+separates them. They need a per-FILE depth signal (the enemy's RANK count, like the
+impale's `hedge`), plumbed into the cav's ram-drag, not the width-conflated total.
+
+### Other deep reworks (specced; each its own multi-iteration pass)
+- **(superseded — see LANDED above) Trample/impale (×7):** `move_order_rides_through`, `cavalry_charge_keeps_burst`,
   `dense_infantry`, `a_frontal_charge_bloodbath`, `eight_ranks_toll`,
   `light_horse_tramples`, `cavalry_usually_rides`. Ram-drag `v²` spikes on contact and
   bogs a thin-line plow. **MEASURED this session (probe the cav's `counter_press`):**

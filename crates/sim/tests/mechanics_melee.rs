@@ -625,3 +625,35 @@ fn a_column_bulges_a_held_line_it_does_not_part_it() {
     assert!(max_bulge > 3.0, "the line did not BULGE under the column: centre dimpled only {max_bulge:.1}m");
     assert!(min_width < w0 - 1.0, "the flanks did not draw inward to self-correct: width {w0:.0}->{min_width:.0}m");
 }
+
+// ── migrated from combat_scenarios.rs: a head-on clash of IDENTICAL lines is a
+// grind, not an instant deletion, and the front ranks engage. Even-handedness +
+// grind-duration + engagement are physics invariants (symmetric units, no
+// pricing), so they live with the other mechanics here, not among the balance
+// outcomes. (Asserts on losses only as the even-handedness proxy, never on wins.)
+fn no_morale() -> Tunables {
+    Tunables { morale_enabled: false, ..Tunables::default() }
+}
+fn deaths(sim: &Sim, u: usize) -> usize {
+    sim.units[u].count - sim.units[u].alive_count
+}
+
+#[test]
+fn melee_kills_and_formations_thin() {
+    let mut sim = Sim::new(no_morale(), 99);
+    let a = sim.spawn_class(Vec2::new(0.0, -12.0), FRAC_PI_2, 200, UnitClassId::HeavySword, 0);
+    let b = sim.spawn_class(Vec2::new(0.0, 12.0), -FRAC_PI_2, 200, UnitClassId::HeavySword, 1);
+    sim.set_attack_move_order(a, Vec2::new(0.0, 12.0));
+    let mut peak_engaged = 0;
+    for _ in 0..(90.0 / DT) as usize {
+        sim.tick();
+        peak_engaged = peak_engaged.max(sim.units[a].engaged);
+    }
+    assert!(deaths(&sim, a) > 5, "a should take losses, got {}", deaths(&sim, a));
+    assert!(deaths(&sim, b) > 5, "b should take losses, got {}", deaths(&sim, b));
+    assert!(
+        sim.units[a].alive_count + sim.units[b].alive_count > 60,
+        "the line fight must grind, not annihilate in 90s"
+    );
+    assert!(peak_engaged > 10, "front ranks should be engaged at the height");
+}

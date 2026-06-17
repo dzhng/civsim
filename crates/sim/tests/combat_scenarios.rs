@@ -39,27 +39,9 @@ fn living_mean(sim: &Sim, u: usize) -> Vec2 {
     sum * (1.0 / n.max(1) as f32)
 }
 
-#[test]
-fn melee_kills_and_formations_thin() {
-    let mut sim = Sim::new(no_morale(), SEED);
-    let a = sim.spawn_class(Vec2::new(0.0, -12.0), FRAC_PI_2, 200, UnitClassId::HeavySword, 0);
-    let b = sim.spawn_class(Vec2::new(0.0, 12.0), -FRAC_PI_2, 200, UnitClassId::HeavySword, 1);
-    sim.set_attack_move_order(a, Vec2::new(0.0, 12.0));
-    let mut peak_engaged = 0;
-    for _ in 0..(90.0 / DT) as usize {
-        sim.tick();
-        peak_engaged = peak_engaged.max(sim.units[a].engaged);
-    }
-    assert!(deaths(&sim, a) > 5, "a should take losses, got {}", deaths(&sim, a));
-    assert!(deaths(&sim, b) > 5, "b should take losses, got {}", deaths(&sim, b));
-    // (Morale will end real fights long before this; to-the-death is the
-    // artificial case. The bar guards against one-sided instant deletion.)
-    assert!(
-        sim.units[a].alive_count + sim.units[b].alive_count > 60,
-        "the line fight must grind, not annihilate in 90s"
-    );
-    assert!(peak_engaged > 10, "front ranks should be engaged at the height");
-}
+// `melee_kills_and_formations_thin` MOVED to `mechanics_melee.rs` — even-
+// handedness, grind-duration, and engagement are physics invariants of a
+// symmetric clash, not pricing outcomes, so they belong in the mechanics bucket.
 
 #[test]
 fn deep_column_pushes_thin_line_back() {

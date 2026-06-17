@@ -73,6 +73,13 @@ fn one_heavy_solos_two_lights() {
 /// report shows the shift — proving a tuned `BalanceConfig` actually flows into
 /// combat (the whole point of lifting stats to runtime). A beefier heavy must
 /// leave more men standing in the duel it already wins.
+///
+/// Measured against LongSwords, not LightSpear: vs the light spears the heavy
+/// already survives ~0.99 (the loser routs before its reach can bloody plate),
+/// so survival is pinned at the ceiling and a health buff has nowhere to show.
+/// LongSwords is a duel the heavy still wins decisively but with real attrition
+/// (~0.90 survivors), so the +40% health leaves a visible margin of men
+/// standing — the headroom the measurement needs.
 #[test]
 fn tuning_a_candidate_config_moves_the_matchup() {
     let mut candidate = BalanceConfig::default();
@@ -80,7 +87,7 @@ fn tuning_a_candidate_config_moves_the_matchup() {
     hv.health *= 1.4; // thicker armor
     candidate.set(UnitClassId::HeavySword, hv);
 
-    let scn = Scenario::duel(UnitClassId::HeavySword, UnitClassId::LightSpear);
+    let scn = Scenario::duel(UnitClassId::HeavySword, UnitClassId::LongSwords);
     let rows = report(&candidate, std::slice::from_ref(&scn), &SEEDS[..3]);
     let r = &rows[0];
     println!(
@@ -182,3 +189,4 @@ fn cavalry_usually_rides_over_heavy_swords() {
         agg.win_rate[0] * 100.0,
     );
 }
+

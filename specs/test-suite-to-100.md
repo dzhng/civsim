@@ -52,11 +52,20 @@ at first contact, no lag — kept on a separate channel so the foundation is unt
 Fixed `cavalry_charge_keeps_burst`, `a_frontal_charge_bloodbath`, `light_horse_tramples`;
 `mechanics_charge` + `mechanics_melee` both still 5/5; golden stable.
 
-REMAINING 4 (`move_order_rides` [−51 vs −60, close], `dense_infantry`, `eight_ranks`,
-`cavalry_usually_rides`): these are a WIDE thin line, whose `ram_press` (~9-10) is
-inflated by WIDTH (many men in contact) into the braced-6 band (~10.8) — no floor
-separates them. They need a per-FILE depth signal (the enemy's RANK count, like the
-impale's `hedge`), plumbed into the cav's ram-drag, not the width-conflated total.
+`move_order_rides` FIXED (`c0f6ef6`): the wide thin line's `ram_press` (~9-10) is
+inflated by WIDTH into the braced band, so the press gate alone bogged it. Plumbed
+the foe's rank-depth (`Unit::foe_ranks` from `contact_unit`) and WAIVE the trampler
+drag below ~3 ranks — a horse rides clean through a shallow screen however wide. Deep
+braced lines keep the press gate (a_pike_hedge's 20-rank phalanx untouched).
+
+REMAINING 3 (`eight_ranks`, `dense_infantry`, `cavalry_usually_rides`): these are
+KILL-THROUGH, not ride-through — the cav must THIN a mortal block (8 ranks of swords)
+as it grinds, dropping its EFFECTIVE depth, whereas the immortal `enough_depth_bogs`
+(8 ranks) must still bog. `foe_ranks` is the whole block's current ranks, so it does
+drop as the cav kills — but the cav bogs (ram_press > floor) before it thins enough.
+The fix is a kill-rate/thinning interaction (or a charge-burst that carries the cav
+deeper before the drag spins up), not another threshold. `cavalry_usually_rides` is a
+balance outcome that moved with the trample physics — re-judge after the above.
 
 ### Other deep reworks (specced; each its own multi-iteration pass)
 - **(superseded — see LANDED above) Trample/impale (×7):** `move_order_rides_through`, `cavalry_charge_keeps_burst`,

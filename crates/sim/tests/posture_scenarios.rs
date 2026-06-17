@@ -120,6 +120,7 @@ fn cavalry_breaks_off_by_wheeling_not_reversing() {
     let mut sim = Sim::new(no_morale(), SEED);
     let cav = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 120, UnitClassId::ShockCavalry, 0);
     let _foe = sim.spawn_class(Vec2::new(0.0, 30.0), -FRAC_PI_2, 200, UnitClassId::HeavySword, 1);
+    sim.set_pace(cav, sim::Pace::Run); // a break-off is a gallop, not a walk
     sim.set_move_order(cav, Vec2::new(0.0, -80.0));
     let mut turned = false;
     for _ in 0..(50.0 / DT) as usize {

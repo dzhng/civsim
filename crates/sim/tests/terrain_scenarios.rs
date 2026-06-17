@@ -16,8 +16,8 @@ fn run_collect(sim: &mut Sim, seconds: f32, unit: usize) -> (f32, f32) {
     (min_cohesion, min_fatigue)
 }
 
-fn march_unit_over(terrain: Option<Terrain>) -> (f32, f32, Vec2) {
-    let mut sim = Sim::new(Tunables::default(), SEED);
+fn march_unit_over(seed: u64, terrain: Option<Terrain>) -> (f32, f32, Vec2) {
+    let mut sim = Sim::new(Tunables::default(), seed);
     if let Some(t) = terrain {
         sim.terrain = t;
     }
@@ -27,13 +27,32 @@ fn march_unit_over(terrain: Option<Terrain>) -> (f32, f32, Vec2) {
     (coh, fat, sim.units[u].anchor)
 }
 
-#[test]
-fn mud_slows_drains_and_disorders_a_march() {
-    let (coh_flat, fat_flat, end_flat) = march_unit_over(None);
-
+fn mud_strip() -> Terrain {
     let mut mud = Terrain::flat(100, 60, 4.0, Vec2::new(-200.0, -120.0));
     mud.paint_rect(Vec2::new(-20.0, -120.0), Vec2::new(20.0, 120.0), 0.5, 0.35);
-    let (coh_mud, fat_mud, end_mud) = march_unit_over(Some(mud));
+    mud
+}
+
+/// END cohesion after the march (not the min): a flat march DIPS mid-stride and
+/// RE-FORMS, so its minimum equals the mud's — only the FINAL order shows that the
+/// mud left the unit lastingly frayed while the flat unit recovered.
+fn march_end_cohesion(seed: u64, terrain: Option<Terrain>) -> f32 {
+    let mut sim = Sim::new(Tunables::default(), seed);
+    if let Some(t) = terrain {
+        sim.terrain = t;
+    }
+    let u = sim.spawn_unit(Vec2::new(-60.0, 0.0), 0.0, 200, 20, Vec2::new(1.0, 1.2), 0, 0.7);
+    sim.set_move_order(u, Vec2::new(60.0, 0.0));
+    for _ in 0..(75.0 / DT) as usize {
+        sim.tick();
+    }
+    sim.units[u].cohesion
+}
+
+#[test]
+fn mud_slows_drains_and_disorders_a_march() {
+    let (_, fat_flat, end_flat) = march_unit_over(SEED, None);
+    let (_, fat_mud, end_mud) = march_unit_over(SEED, Some(mud_strip()));
 
     // Same 75s: the flat unit has long arrived; the mud unit lost time.
     assert!((end_flat - Vec2::new(60.0, 0.0)).len() < 3.0);
@@ -46,9 +65,17 @@ fn mud_slows_drains_and_disorders_a_march() {
         fat_mud < fat_flat - 0.05,
         "mud must drain stamina: {fat_mud} vs flat {fat_flat}"
     );
+    // The END cohesion is CHAOTIC per seed — a marching unit's order oscillates
+    // and the 75s snapshot catches a random phase — so the "mud disorders MORE"
+    // claim is the seed AVERAGE of the FINAL order: across seeds the mud crossing
+    // ends measurably more frayed than the flat march, which re-forms.
+    let seeds = [SEED, SEED + 1, SEED + 2, SEED + 3, SEED + 4, SEED + 5, SEED + 6, SEED + 7];
+    let n = seeds.len() as f32;
+    let coh_flat = seeds.iter().map(|&s| march_end_cohesion(s, None)).sum::<f32>() / n;
+    let coh_mud = seeds.iter().map(|&s| march_end_cohesion(s, Some(mud_strip()))).sum::<f32>() / n;
     assert!(
         coh_mud < coh_flat - 0.05,
-        "uneven mud must disorder the unit: {coh_mud} vs flat {coh_flat}"
+        "uneven mud must disorder the unit: mean mud {coh_mud:.2} vs flat {coh_flat:.2}"
     );
 }
 
@@ -56,8 +83,8 @@ fn mud_slows_drains_and_disorders_a_march() {
 fn woods_stagger_a_crossing_formation() {
     let mut woods = Terrain::flat(100, 60, 4.0, Vec2::new(-200.0, -120.0));
     woods.paint_rect(Vec2::new(-25.0, -120.0), Vec2::new(25.0, 120.0), 0.7, 0.6);
-    let (coh_woods, _, _) = march_unit_over(Some(woods));
-    let (coh_flat, _, _) = march_unit_over(None);
+    let (coh_woods, _, _) = march_unit_over(SEED, Some(woods));
+    let (coh_flat, _, _) = march_unit_over(SEED, None);
     assert!(
         coh_woods < coh_flat - 0.08,
         "rough woods must break up formation: {coh_woods} vs flat {coh_flat}"

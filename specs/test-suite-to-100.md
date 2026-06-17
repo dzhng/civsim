@@ -193,5 +193,17 @@ files mesh and the depth compresses away. The weapon_repel/compress hold the gro
 position (centroid) but not the front-line integrity. The fix is a front-line-holding
 force (catch men who've slipped past the enemy front, or a compress that won't let the
 rear pancake) — a weave-equilibrium rework. TESTED levers that DON'T do it alone:
-braced repel ×2.5 (holds centroid, fronts still mesh), press floor, frame-hold. This is
-the single highest-leverage remaining rework (6+ tests), and it's multi-iteration.
+braced repel ×2.5 (holds centroid, fronts still mesh — net-zero); **`compress_strength`
+1.2→2.0** (IMPROVES the blob: depth 0.40→0.51, interpenetration 0.81→0.72 — the right
+DIRECTION — but REGRESSES 5 weave/clash tests, the foundation equilibrium it tunes,
+net −5, reverted); press floor; frame-hold. So a GLOBAL compress is wrong — the fix must
+be a TARGETED contact-line force (acts only at the enemy front, not the whole lattice).
+DIAGNOSTIC (tested): tightening the engaged man's AXIAL drive-into-foe cap (base_speed
+→ 0.3×) did NOT reduce interpenetration (stayed 0.80) and regressed 8 foundation tests.
+So the mesh is NOT forward creep — it is LATERAL interleave: staggered files slide
+SIDEWAYS between enemy columns (the bodies thread the gaps), not men punching straight
+through. The fix must seal the lateral gaps at the contact (e.g. front-rank men close
+ranks against the enemy front so there's no gap to thread, or a lateral push that ejects
+a man who has slid behind the enemy front), NOT an axial brake. Single highest-leverage
+rework (6-7 tests), multi-iteration — and now its mechanism is bounded to lateral gap-
+sealing, so the next pass doesn't re-chase the axial/compress dead ends.

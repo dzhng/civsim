@@ -267,3 +267,26 @@ Every engaged-keyed change regresses because the foundation clash/weave tests ar
 to the CURRENT (swirling) dynamics — so the equilibrium fix must CO-DESIGN the restoring
 force AND re-judge the clash/weave tests against the new (settled) behavior. This is the
 single open root behind the standoff ×4 + blob ×2 + the cav-vs-pike slip.
+
+## Addendum — force-model review + cohesion is NOT a pure metric artifact (unlike depth)
+
+Ran /review on the force model. Findings: the forces are mostly clean and single-purpose;
+the two soft overlaps are net_target vs slot_pull (both hold formation — net is neighbour-
+relative so BLIND to a rigid rotation; slot is facing-aligned but deliberately weak), and
+magnet+weapon_repel form an UNDAMPED spring at reach. The first-principles GAP (not a tuning
+bug): a frictionless spring lattice in a SYMMETRIC, unending standoff (heavy-v-heavy immortal)
+has no energy sink and no frame-rigid anti-shear restoring, so it cannot settle → slow swirl.
+
+Checked whether cohesion is rotation-confounded like depth was: `u.disorder = bond_stretch
+(al-rl, rotation-INVARIANT) + bond_pivot (live-bond heading vs facing-aligned rest, rotation-
+CONFOUNDED)`. So the swirl's rotation DOES inflate disorder via bond_pivot — BUT that rotation
+is the REAL swirl (the block genuinely tilts off its held facing), not a pure measurement
+artifact like the un-pancaked depth was. So cohesion's red is honest; do NOT "fix the metric."
+pivot_push (the angular spring on bond_pivot) is exactly the facing-aligned restoring that
+SHOULD un-twist the block, but it's overpowered at the contact (pivot_stiffness ×3 only moved
+min_coh 0.56→0.59). 7 per-man force levers tested this session (damping ×2, accommodation,
+lateral-damp, slot-grip, stuck-grip, magnet-head-on) — ALL leave cohesion 0.15-0.20 and
+regress the foundation. CONCLUSION: the fix is the missing STRUCTURAL pair — contact friction
+(dissipation) + a strong-enough facing-aligned restoring (pivot or slot) at the contact — and
+it MUST be co-designed with re-judging the clash/weave tests, which are pinned to today's
+swirling dynamics. This is a deliberate multi-iteration rework, not a tail-of-session tweak.

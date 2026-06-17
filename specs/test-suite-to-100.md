@@ -36,6 +36,16 @@ roots are (a) pike-vs-sword combat depth (the sword closes inside the pike and w
 the exchange) and (b) a missing envelopment/wrap behavior (free flanks should seek
 the foe's flanks, not march straight). Both are their own work.
 
+**Envelopment is NOT a lock-threshold issue either (tried, reverted).** A wide line
+vs a narrow block engages only its centre (~12-24 of 210), under both lock gates, so
+its frame drives the overhanging flanks straight through. Adding an absolute
+`engaged >= 10` lock floor REGRESSED 5 tests (over-locks units that merely brush an
+enemy) AND did not fix `a_wide_line` (the flanks pour even when the frame is held —
+the magnet does not curl them inward). The wrap needs an ACTIVE behavior: an
+overhanging flank man, with no foe directly ahead but an enemy off his inner side,
+must steer toward that exposed flank (turn the line's wings in), not just hold. New
+force, not a gate tweak.
+
 ## Keystone 2 — impale momentum-return (`specs/impale.md`)
 
 The trample bog: a cavalry plow plowing a THIN line bogs (ram-drag `v²` spikes on

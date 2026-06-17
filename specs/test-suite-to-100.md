@@ -154,3 +154,19 @@ harness), this matchup should move out too, but that alone won't fix the inversi
 Note: this session FIXED the_counter_web's earlier-failing Phalanx-vs-HeavySword
 matchup (now 20/20 phalanx wins; SEED 146 was an outlier) — the web now fails one
 matchain further down, not regressed.
+
+## Addendum — the braced standoff is a column-MESH, not just under-push (measured)
+
+`two_braced_walls`: two 10-rank braced pike blocks (reach 3.5) collapse through each
+other. TRIED a braced-only repel ×2.5 (`collision.rs`, the weapon_repel push): it
+FIXED the centroid-cross (gap 1.19→5.59, > the 4m bar) and did NOT regress the sword
+clash or charge (clash 5/5, charge 5/5) — BUT the deeper assert still fails: min FRONT
+gap −7.35 (the bar is −1). The front men slip ~7m PAST each other. Root: the frontal
+repel only acts within reach (3.5m); staggered columns let a front man weave laterally
+between enemy files and slip BEYOND the reach, where no repel can pull him back — a
+column INTERLEAVE/MESH, not a gross under-push. So strengthening the repel holds the
+blocks' centroids but not their fronts. The real fix needs a force that catches a man
+who has slipped PAST the enemy front (e.g. detect interleaved men and push them back
+out), or a non-overlap that won't let staggered files mesh. Same mesh likely lets a cav
+charge slip inside the pike reach (the cav-vs-pike inversion above). REVERTED the ×2.5
+(net-zero alone). This is the deep weave-equilibrium rework the standoff cluster needs.

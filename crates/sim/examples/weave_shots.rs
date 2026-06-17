@@ -428,5 +428,20 @@ fn main() {
         shoot("t3-wide-wrap", sim, 60.0, 2.0);
     }
 
+    // NARROW DEEP column (8 wide, 16 deep) ordered THROUGH a WIDE held line (70
+    // wide, 4 deep): does the column BULGE the line (dimple, line holds) or PART
+    // it and walk through? (a_column_bulges_a_held_line_it_does_not_part_it.)
+    {
+        let mut sim = Sim::new(base_tun(), 11);
+        let line = sim.spawn_class(Vec2::new(0.0, 13.0), -FRAC_PI_2, 280, UnitClassId::HeavySword, 1);
+        sim.set_files(line, 70);
+        let col = sim.spawn_class(Vec2::new(0.0, -25.0), FRAC_PI_2, 128, UnitClassId::HeavySword, 0);
+        sim.set_files(col, 8);
+        invuln(&mut sim);
+        sim.set_pace(col, Pace::Run);
+        sim.set_attack_move_order(col, Vec2::new(0.0, 60.0));
+        shoot("t3-col-bulge", sim, 30.0, 1.5);
+    }
+
     println!("done.");
 }

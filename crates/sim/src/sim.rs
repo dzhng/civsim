@@ -1576,6 +1576,7 @@ impl Sim {
                 // advances a step only when that foe falls and he re-targets.
                 // Gated on FRONT_CLEAR so only the front (and an overhang man with
                 // an open shot — the wrap) seeks. A plowing mass does not seek.
+                let mut seeking_flank = false;
                 if aware_i && front_clear[i] == 1 && !trampling {
                     let te = target[i] as usize;
                     let ep = Vec2::new(positions[2 * te], positions[2 * te + 1]);
@@ -1587,6 +1588,15 @@ impl Sim {
                             * (1.0 - (-off / tun.magnet_scale).exp()))
                         .max(0.0);
                         steer_to = steer_to + d * (pull / dist);
+                        // An OVERHANGING flank man — his foe is well OFF the unit's
+                        // facing axis (to his inner side, not ahead) — must CURL IN
+                        // to envelop, not be towed straight ahead by the frame
+                        // feed-forward (which would pour the wing past the foe). The
+                        // magnet already pulls him inward; just don't override it.
+                        let md = dir(u.facing);
+                        if d.dot(md) / dist < 0.45 {
+                            seeking_flank = true;
+                        }
                     }
                 }
                 // Idle fidget: a few standing men ease off-slot at a time
@@ -1633,7 +1643,7 @@ impl Sim {
                 // front fights. (cruise ramps to charge_speed when u.charging.)
                 let advancing =
                     u.move_target.is_some() || matches!(u.mode, OrderMode::Attack(_));
-                if advancing && !engaged_i {
+                if advancing && !engaged_i && !seeking_flank {
                     let md = dir(u.facing);
                     let fwd = v.x * md.x + v.y * md.y;
                     let want = u.cruise.min(max_sp);

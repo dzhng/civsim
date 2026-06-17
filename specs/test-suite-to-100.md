@@ -58,14 +58,18 @@ the foe's rank-depth (`Unit::foe_ranks` from `contact_unit`) and WAIVE the tramp
 drag below ~3 ranks — a horse rides clean through a shallow screen however wide. Deep
 braced lines keep the press gate (a_pike_hedge's 20-rank phalanx untouched).
 
-REMAINING 3 (`eight_ranks`, `dense_infantry`, `cavalry_usually_rides`): these are
-KILL-THROUGH, not ride-through — the cav must THIN a mortal block (8 ranks of swords)
-as it grinds, dropping its EFFECTIVE depth, whereas the immortal `enough_depth_bogs`
-(8 ranks) must still bog. `foe_ranks` is the whole block's current ranks, so it does
-drop as the cav kills — but the cav bogs (ram_press > floor) before it thins enough.
-The fix is a kill-rate/thinning interaction (or a charge-burst that carries the cav
-deeper before the drag spins up), not another threshold. `cavalry_usually_rides` is a
-balance outcome that moved with the trample physics — re-judge after the above.
+REMAINING 3 (`eight_ranks`, `dense_infantry`, `cavalry_usually_rides`): one shared
+root — **the cav doesn't KILL heavy infantry**. MEASURED: in `eight_ranks` the cav
+oozes through an 800-man 8-rank block but kills only **3 of 800** — at bogged speed
+(mass_adv ~1) the trample is speed-gated OFF, and its melee barely dents heavy swords.
+So the block never thins, `foe_ranks` stays 8, the override never fires, and the cav's
+stretched column stays tangled (reaches y≈12, needs <−60). `cavalry_usually_rides` is
+the same fact at duel scale — the cav LOSES 100% to heavy swords (survivors 0.47 vs
+0.93). The fix is cav LETHALITY against heavy infantry: either a low-speed trample
+that still wounds (a horse shoving through a press does kill), or stronger cav melee —
+a BALANCE change that ripples the duel matrix, so retune with the matrix golden and
+re-judge `pikes_unhorse`/`mirror_duels` alongside. Needs vibe-shot ground truth (the
+"is the cav meant to win, and by how much" call), unavailable headless.
 
 ### Other deep reworks (specced; each its own multi-iteration pass)
 - **(superseded — see LANDED above) Trample/impale (×7):** `move_order_rides_through`, `cavalry_charge_keeps_burst`,

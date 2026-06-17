@@ -102,27 +102,53 @@ fn the_counter_web_holds() {
     use UnitClassId::*;
     let base = sim::BalanceConfig::default();
     let tun = Tunables::default();
-    // (attacker, defender, expected winner: 0 = attacker)
+    // The ROBUST counter-relationships (verified holding). The CONTESTED cav-vs-pike
+    // and kite-vs-foot verdicts are decoupled into the_counter_web_contested below —
+    // they're RED today for known lethality reasons and were holding these working
+    // relationships hostage. (attacker, defender, expected winner: 0 = attacker)
     let expect = [
         (HeavySword, LightSpear, 0, "armor beats numbers' class"),
         (LightSpear, HeavySword, 1, "...from either bench"),
         (HeavySword, Phalanx, 1, "a sword line cannot out-front a sarissa hedge"),
         (Phalanx, HeavySword, 0, "the hedge advances over swords"),
-        (ShockCavalry, Phalanx, 1, "POINTS STOP HORSE (frontally)"),
-        (Phalanx, ShockCavalry, 0, "and the hedge can walk horse off a field"),
         // ShockCavalry vs HeavySword — "horse rides over swords" — is a CLOSE
         // matchup (the cav wins ~3/4 of seeds, not all), so a single-seed verdict
         // here is a coin that lands either way. It lives on the seed-set harness
         // instead (cavalry_usually_rides_over_heavy_swords in balance_harness).
         (ShockCavalry, HorseArchers, 0, "lancers catch the bow-horse"),
-        (HorseArchers, HeavySword, 0, "unsupported foot loses to the kite"),
-        // HorseArchers vs Phalanx is split into its two real mechanics — the
-        // quiver-vs-shield-wall kite (a_phalanx_outlasts_the_quiver...) and the
-        // frontal charge (a_frontal_charge_into_pikes...) — because the head-on
-        // duel here is neither: the bow-horse closes to melee and the quiver
-        // never empties, so a single verdict mislabels the matchup.
         (ShockCavalry, Archers, 0, "horse eats archers"),
         (ArtilleryCrew, Skirmishers, 1, "a crew alone loses to anyone"),
+    ];
+    for (a, d, want, why) in expect {
+        let o = run_once(&Scenario::duel(a, d), &base, &tun, SEED);
+        assert_eq!(
+            o.victor, want,
+            "{a:?} vs {d:?}: {why} (got verdict {}, {:.0}%/{:.0}% at {:.0}s)",
+            o.victor,
+            o.surv[0] * 100.0,
+            o.surv[1] * 100.0,
+            o.secs
+        );
+    }
+}
+
+/// The CONTESTED matchups decoupled out of the_counter_web — all RED today for
+/// known lethality reasons, kept as ONE explicit target so the robust web above
+/// goes green:
+///  - ShockCavalry vs Phalanx (either bench) DRAWS instead of the pikes winning —
+///    "POINTS STOP HORSE" needs the impale/pike-lethality rework: the cav isn't
+///    killed fast enough at reach (specs/impale.md).
+///  - HorseArchers vs HeavySword: the kite should run unsupported foot to death,
+///    but the bow-horse closes to melee and loses — a kite/missile-economy gap.
+#[test]
+fn the_counter_web_contested_matchups_need_lethality_reworks() {
+    use UnitClassId::*;
+    let base = sim::BalanceConfig::default();
+    let tun = Tunables::default();
+    let expect = [
+        (ShockCavalry, Phalanx, 1, "POINTS STOP HORSE (frontally)"),
+        (Phalanx, ShockCavalry, 0, "and the hedge can walk horse off a field"),
+        (HorseArchers, HeavySword, 0, "unsupported foot loses to the kite"),
     ];
     for (a, d, want, why) in expect {
         let o = run_once(&Scenario::duel(a, d), &base, &tun, SEED);

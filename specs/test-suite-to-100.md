@@ -43,16 +43,21 @@ migrations into `balance_combat.rs` / `balance_charge.rs`.
 
 ## The remaining 28 — by root cause
 
-### Chaos/morale-coupled (a correct fix exists but trades another test) — do NOT force
-- **`engage_move_backs_off`, `engage_move_extracts`:** the frame feed-forward drives
-  a backing-off man along his FACING (+y, toward the threat) while the frame retreats
-  (−y) — deadlock. Two fixes TRIED & REVERTED: (1) re-head the feed-forward toward
-  the move target — hijacks verdict-locked routers (`the_verdict` regresses, real
-  morale break); (2) DISABLE the feed-forward when the target is behind the facing —
-  morale stays clean (19/0) and fixes `engage_move_backs_off`, BUT chaos-flips
-  `weapon_swaps` (whose green was itself flank-curl chaos-luck). Net-zero either way.
-  The honest fix is to make `weapon_swaps`' fumble-beat assert robust (it compares
-  kills in a 2s window, knife-edge) AND take the disable — then it's net +1.
+### Engage-move
+- **`engage_move_backs_off` — FIXED (`c7df9f4`).** The disable (skip the frame feed-
+  forward when the move target is behind the facing) was net-zero ONLY because it
+  chaos-flipped the knife-edge `weapon_swaps`. So first made `weapon_swaps` robust
+  (sum its 2s/20s swap-beat windows over a seed set — the fumble-then-resume claim
+  holds 88-vs-27 on average), THEN took the disable. Net +1, morale 19/0, golden ok.
+- **`engage_move_extracts` — still red, DEEPER.** This is the *locked* Move-extraction
+  (back out shields-front WHILE fighting). The engage-drift (back-pedal facing) is
+  gated `!locked`; the unit is in melee (engaged>20) so it can't drift and grinds
+  +y INTO the foe (centroid +8.9, needs <−12). TRIED removing the `!locked` gate
+  (the `move_off>1.35` check should limit it to backing-off orders) — it REGRESSED
+  the clash (mechanics_melee 5→4: clashing units with an off-axis move component
+  started sidestepping) and didn't even fix the extraction. REVERTED. Needs a drift
+  that distinguishes a genuine EXTRACTION (whole unit ordered away) from a clashing
+  unit's incidental off-axis move — not just the per-man move_off angle.
 
 ### LANDED this session — the trample rework (`5a63a9b`)
 The trample cluster cracked WITHOUT impale, via a measured insight: the cav's

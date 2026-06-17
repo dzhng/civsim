@@ -154,6 +154,11 @@ pub struct Unit {
     /// EMA of backward contact drift while ordered to stand/advance:
     /// "we are losing the push", the precise involuntary-displacement signal.
     pub losing_push: f32,
+    /// SMOOTHED `counter_press` (~0.4s) — the SUSTAINED enemy resistance, used by
+    /// the trampler ram-drag to tell a screen (low sustained press, ride through)
+    /// from a wall (high, bog). The instantaneous press spikes alike on both for a
+    /// frame; only the average separates them.
+    pub ram_press: f32,
     /// Mean position of living soldiers (kept fresh; the rout frame).
     pub centroid: Vec2,
     /// No living, non-routing enemy within at_ease_range of this unit's

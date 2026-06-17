@@ -60,13 +60,25 @@ pub(crate) fn pace_speed(tun: &Tunables, u: &Unit) -> f32 {
     // and ramps in over a narrow band; past it the FULL counter-press
     // counts — the wall brakes the front rank and the front rank brakes
     // the ranks piling in behind (the chain is the collective force).
-    let grip = ((u.counter_press - tun.press_brake_floor) / (0.6 * tun.press_brake_floor))
-        .clamp(0.0, 1.0);
+    // The high floor on the SMOOTHED press is a TRAMPLER signal — it lets a horse
+    // ride through a thin screen (low sustained press) yet bog on a wall (high).
+    // Infantry keep the instantaneous press and a low floor: their grind into a
+    // press IS braked (the clash holds at first contact, no lag), only a working
+    // shove below the floor is spared.
+    // Trampler: a TIGHT ramp on the smoothed press so a braced wall (just over the
+    // floor) grips fully while a screen (just under) is spared — the brace/no-brace
+    // line is narrow. Infantry: the original wide ramp on the instantaneous press.
+    let (press, floor, ramp) = if u.tramples() {
+        (u.ram_press, tun.press_brake_floor, 0.3 * tun.press_brake_floor)
+    } else {
+        (u.counter_press, 0.45, 0.6 * 0.45)
+    };
+    let grip = ((press - floor) / ramp).clamp(0.0, 1.0);
     // Quadratic in the unit's own speed — ram pressure, not sticky mud:
     // a slow press into a wall keeps its shove (the pikes kill it by
     // reach, not by rule), a gallop into the same wall eats its drive.
     let v = u.mass_advance.max(0.0) / tun.base_speed;
-    let drag = tun.press_brake * grip * u.counter_press * v * v;
+    let drag = tun.press_brake * grip * press * v * v;
     (base - drag).max(0.0)
 }
 
@@ -355,6 +367,7 @@ mod tests {
             routing: false,
             recent_missiles: 0.0,
             losing_push: 0.0,
+            ram_press: 0.0,
             centroid: Vec2::ZERO,
             at_ease: false,
             counter_press: 0.0,

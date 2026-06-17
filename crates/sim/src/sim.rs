@@ -306,6 +306,7 @@ impl Sim {
             routing: false,
             recent_missiles: 0.0,
             losing_push: 0.0,
+            ram_press: 0.0,
             centroid: anchor,
             at_ease: false,
             counter_press: 0.0,
@@ -1825,6 +1826,13 @@ impl Sim {
             // piling onto the front as it accelerates) is misread as an enemy wall
             // braking it, and a clean open-ground run brakes itself to a halt.
             u.counter_press = if u.engaged > 0 { opp_press / n } else { 0.0 };
+            // SMOOTHED copy for the trampler ram-drag only: the instantaneous crush
+            // spikes alike on a thin screen and a braced wall for a frame, so it
+            // can't tell them apart — but the SUSTAINED average can (a screen the cav
+            // rides through averages ~5, a wall it bogs against ~11+). Infantry keep
+            // the instantaneous press (their clash must brake at first contact, no
+            // lag), so this is a separate channel.
+            u.ram_press += (u.counter_press - u.ram_press) * (1.0 - (-dt / 0.4f32).exp());
 
             // THE ANCHOR LAW: the frame always pursues the order, but it is
             // leashed to the men's measured center of mass. Out of combat

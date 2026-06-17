@@ -201,10 +201,12 @@ pub struct Tunables {
     /// while a gallop into a braced wall eats its whole drive.
     pub press_brake: f32,
     /// Counter-press where the crowd's GRIP begins: column jitter reads
-    /// ~0.1, a deliberate othismos press ~0.3-0.5 (the press must NOT
-    /// brake itself), a column gripping a trample 0.7+. The drag gates in
-    /// above this and then the FULL counter-press counts — a wall is not
-    /// taxed by the threshold that exists to spare the shove.
+    /// Reads the SMOOTHED counter-press (sustained, not the contact spike). Set
+    /// BETWEEN what a screen the cav rides through sustains (~3-8) and what a wall
+    /// it bogs against sustains (~11+): a braced or deep-enough block grips, a thin
+    /// or shallow screen is spared. Below the floor the drag is off entirely (a
+    /// working othismos shove never brakes itself); above it ramps to full over
+    /// ~0.6× the floor.
     pub press_brake_floor: f32,
     /// Mass speed (m/s) below which a landed charge counts as SPENT — the
     /// crowd has stopped the mass. Sits well under charge_min_speed
@@ -263,7 +265,7 @@ impl Default for Tunables {
             charge_window: 2.0,
             latch_slip: 4.0,
             press_brake: 4.0,
-            press_brake_floor: 0.45,
+            press_brake_floor: 8.0,
             charge_spent_speed: 1.0,
             charge_drain: 1.0 / 25.0,
             morale_enabled: true,

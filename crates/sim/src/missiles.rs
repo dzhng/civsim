@@ -305,6 +305,32 @@ impl Sim {
                 if let Some(victim) = self.body_at(p, 0.8) {
                     let dmg = self.projectiles.damage[i];
                     self.hit_by_missile(victim, vel, dmg, true);
+                    // SPLASH: men just beside the furrow are BOWLED OVER (stunned),
+                    // not killed — a near-miss from a rolling boulder knocks a man
+                    // flat. Without this, the furrow only ever kills (the man it
+                    // hits dies), so a deep column is never left stunned-and-living.
+                    let cell = self.grid.cell_size;
+                    let cx = (p.x / cell).floor() as i32;
+                    let cy = (p.y / cell).floor() as i32;
+                    let st = self.tun.stun_time;
+                    for oy in -1..=1i32 {
+                        for ox in -1..=1i32 {
+                            let b = self.grid.bucket(cx + ox, cy + oy);
+                            let (lo, hi) = (self.grid.starts[b] as usize, self.grid.starts[b + 1] as usize);
+                            for ei in lo..hi {
+                                let bj = self.grid.entries[ei] as usize;
+                                let owner = self.body_owner[bj] as usize;
+                                if owner == victim || self.alive[owner] == 0 {
+                                    continue;
+                                }
+                                let dx = self.body_pos[2 * bj] - p.x;
+                                let dy = self.body_pos[2 * bj + 1] - p.y;
+                                if dx * dx + dy * dy < 1.8 * 1.8 {
+                                    self.stun[owner] = self.stun[owner].max(st);
+                                }
+                            }
+                        }
+                    }
                 }
                 // Roll on: decelerate, stay grounded.
                 let nv = vel * (1.0 - 4.0 * DT / speed.max(1.0)).max(0.0);

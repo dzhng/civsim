@@ -114,13 +114,39 @@ That last result is the key diagnostic: the crossing mass is something OTHER tha
 So it is **multi-factor in the frame/slot drive**, not a single force or cap. The
 frame keeps advancing toward the past-foe attack target (`frameSp` ~2 m/s even when
 fully engaged), the slots advance with it, and the men chase their slots through
-the enemy; the leash slack amplifies it but isn't the whole drive. The fix likely
-combines: (a) tighten the engaged leash to match its own comment (code/comment
-mismatch — a real bug, partial fix above); (b) when locked in melee, drive the
-frame at the MEASURED forward progress (`mass_advance`), not at `pace_speed`, so a
-stalemate holds and only a winning shove advances; (c) verify the contact
-equilibrium is stable (symmetric clash must tie, not buckle one way — it currently
-buckles: depth_ratio of one block diverges to ~9× while the other collapses).
+the enemy; the leash slack amplifies it but isn't the whole drive.
+
+**Tried (a)+(b) together — exposes the REAL blocker, a compression explosion.**
+Setting the locked frame `target_speed=0` (frame holds at the men, movement.rs:233)
+PLUS tightening the engaged leash to ~1m (sim.rs:1849): `frameSp` correctly drops to
+0 and faceDev stays 0° — but at full engagement (t≈12→14s) the gap jumps +0.3→−29.7m
+in 2s and `depth_ratio` EXPLODES to 16-22× nominal (men flung ~100m along the axis).
+With the frame held, the rear ranks' pressure (slot_pull + the EXPONENTIAL weave
+`comp_push`, sim.rs ~1439) builds at the contact line with nothing stable to resist
+it, until the capped collision can't hold and the front squirts violently through.
+So there is **no stable contact equilibrium**: the system either walks through
+(frame drives) or explodes through (frame holds, compression builds). Both reverted.
+
+**The real fix must give the contact a STABLE equilibrium under compression**, so the
+rear-rank press reaches "rear pushing = front held" instead of building to a squirt.
+Candidates: (i) a hard enemy non-overlap CONSTRAINT (projection, uncapped) rather
+than a capped spring, so a pile-up can't tunnel/launch; (ii) soften/cap the
+exponential `comp_push` under deep compression (it is the launch term); (iii)
+swept/iterated collision so men can't pass through each other between single-pass
+solves. Likely (i)+(ii) together. The frame-hold + tight-leash changes (a)+(b) are
+correct in spirit and align with the code's own comments — re-apply them ONCE the
+contact is stable, or they just convert walk-through into explosion.
+
+## Triage: the 58 are foundation-GATED, not stale (do not repin)
+
+Checked the non-clash failures (terrain, nav, missile, pacing, posture, scenarios,
+balance_matrix): nearly all are SYMPTOMS of this same broken foundation, not
+independently-stale thresholds — cohesion-won't-recover-after-a-defile, pivots
+smear, the pike matchup won't stop the horse, artillery impact stuns nobody,
+skirmishers can't kite. Repinning them to current behavior would certify the bug
+(the skill forbids it). So there is no large pool of "stale tests" to harvest: the
+road to 100% green runs THROUGH this contact-stability fix. The golden hash must be
+re-pinned LAST, once the foundation settles (it will move again with the fix).
 
 ## The design (PROPOSED — the evidence above is binding, this is not)
 

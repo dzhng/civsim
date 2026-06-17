@@ -350,6 +350,16 @@ impl Sim {
                 let (jx, jy) = (body_pos[2 * bi], body_pos[2 * bi + 1]);
                 let cx = (jx / cell).floor() as i32;
                 let cy = (jy / cell).floor() as i32;
+                // The NEAREST frontal foe in this bearer's column — the one man his
+                // points actually fence. Only that pair is pushed: a pike bears on
+                // the enemy DIRECTLY ahead, not on the ranks stacked behind him
+                // (their own front man is between). Summing a push against every
+                // foe in the reach cone (3-4 enemy ranks deep) over-counts and
+                // launches the front man clean out — the standoff is one foe, one
+                // hold.
+                let mut near_i = usize::MAX;
+                let mut near_fwd = f32::INFINITY;
+                let mut near_pen = 0.0f32;
                 for oy in -reach_cells..=reach_cells {
                     for ox in -reach_cells..=reach_cells {
                         let b = grid.bucket(cx + ox, cy + oy);
@@ -377,24 +387,37 @@ impl Sim {
                             if lat.abs() > half_w {
                                 continue;
                             }
-                            // Back the BEARER off his foe, ∝ how deep the foe is
-                            // inside reach. NOT a shove on the foe: pushing the foe
-                            // is positive feedback (he retreats, presses less, and
-                            // a head-on clash of equals BUCKLES one way and routs).
-                            // Backing off is a mutual SPRING — both fronts push
-                            // themselves out, settle at weapon's length, and grind
-                            // evenly, the way two bodies settle at contact. Summed
-                            // over ALL frontal foes (not just my one target), so it
-                            // seals the lateral GAPS a single-foe bond leaves open:
-                            // a man cannot thread between two enemies to walk
-                            // through the line. The rear ranks press the planted
-                            // front man via the friendly weave; the deeper column
-                            // wins the contact line and BULGES the thinner foe.
-                            let f = (rdist - fwd) * tun.weapon_repel * DT;
-                            repel[2 * j] -= aim.x * f;
-                            repel[2 * j + 1] -= aim.y * f;
+                            if fwd < near_fwd {
+                                near_fwd = fwd;
+                                near_i = i;
+                                near_pen = rdist - fwd;
+                            }
                         }
                     }
+                }
+                if near_i != usize::MAX {
+                    // The weapon's points are a leveled body: the SAME two-way,
+                    // mass-shared separation the bodies use (above), just acting at
+                    // REACH instead of body radius. Newton's third law — the pike
+                    // PUSHES the foe back out (resisting his advance, not merely
+                    // backing the bearer off; a force that moves only its bearer
+                    // can't hold a line) and recoils the bearer by the equal
+                    // reaction. The split is by effective mass (brace included),
+                    // exactly as for two colliding bodies: a BRACED, deep-backed
+                    // bearer has a huge m_eff, so he barely recoils and the foe is
+                    // shoved out — the standoff holds — while his own rear ranks get
+                    // no back-shove to squirt sideways through. SOFT (∝ how deep the
+                    // foe is inside reach), so it is no wall: a heavier / better-
+                    // backed enemy out-masses the share and presses in, the contest
+                    // of forces deciding the distance.
+                    let i = near_i;
+                    let (wj, wi) = (m_eff(j), m_eff(i));
+                    let inv = 1.0 / (wi + wj);
+                    let push = near_pen * tun.weapon_repel * DT;
+                    repel[2 * i] += aim.x * push * (wj * inv);
+                    repel[2 * i + 1] += aim.y * push * (wj * inv);
+                    repel[2 * j] -= aim.x * push * (wi * inv);
+                    repel[2 * j + 1] -= aim.y * push * (wi * inv);
                 }
             }
         }

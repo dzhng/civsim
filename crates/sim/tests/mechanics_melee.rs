@@ -27,6 +27,9 @@ fn clash(class: UnitClassId, seed: u64, top_attacks: bool) -> Sim {
     if let Ok(v) = std::env::var("SLOTPULL") {
         tun.slot_pull = v.parse().unwrap();
     }
+    if let Ok(v) = std::env::var("PRESSBRAKE") {
+        tun.press_brake = v.parse().unwrap();
+    }
     let mut sim = Sim::new(tun, seed);
     // Spawn CLOSE (fronts a short march apart). A long run-up frays cohesion ON
     // PURPOSE — randomized top speeds + terrain pockets — so the player must

@@ -68,10 +68,10 @@ fn pikes_unhorse_cavalry_swords_chip_at_horseflesh() {
     // the mount otherwise. Pikes fight at 3.2m and span to the man; swords
     // at 1.1m almost never do — and a horse is several times the man's
     // health, so chipping at horseflesh is a losing proposition.
-    let cav_dead = |attacker: UnitClassId| -> usize {
+    let cav_dead = |attacker: UnitClassId, seed: u64| -> usize {
         let mut sim = Sim::new(
             Tunables { morale_enabled: false, ..Tunables::default() },
-            SEED,
+            seed,
         );
         let atk = sim.spawn_class(Vec2::new(0.0, -14.0), PI / 2.0, 240, attacker, 0);
         let cav = sim.spawn_class(Vec2::new(0.0, 14.0), -PI / 2.0, 120, UnitClassId::ShockCavalry, 1);
@@ -86,11 +86,15 @@ fn pikes_unhorse_cavalry_swords_chip_at_horseflesh() {
         let u = &sim.units[cav];
         u.count - u.alive_count
     };
-    let by_pikes = cav_dead(UnitClassId::Phalanx);
-    let by_swords = cav_dead(UnitClassId::HeavySword);
-    println!("cav dead: pikes {by_pikes}, swords {by_swords}");
+    // Per-seed the kill counts are tiny (0-4) and knife-edge — a single seed can
+    // read 1-vs-1. The GEOMETRY (pikes span to the rider, swords almost never) is
+    // the seed AVERAGE, so SUM over a seed set and compare the totals.
+    let seeds = [SEED, SEED + 1, SEED + 2, SEED + 3, SEED + 4];
+    let by_pikes: usize = seeds.iter().map(|&s| cav_dead(UnitClassId::Phalanx, s)).sum();
+    let by_swords: usize = seeds.iter().map(|&s| cav_dead(UnitClassId::HeavySword, s)).sum();
+    println!("cav dead over {} seeds: pikes {by_pikes}, swords {by_swords}", seeds.len());
     assert!(
         by_pikes as f32 > by_swords as f32 * 2.0,
-        "pikes unhorse riders, swords struggle: {by_pikes} vs {by_swords}"
+        "pikes unhorse riders, swords struggle: {by_pikes} vs {by_swords} over seeds"
     );
 }

@@ -175,3 +175,20 @@ who has slipped PAST the enemy front (e.g. detect interleaved men and push them 
 out), or a non-overlap that won't let staggered files mesh. Same mesh likely lets a cav
 charge slip inside the pike reach (the cav-vs-pike inversion above). REVERTED the ×2.5
 (net-zero alone). This is the deep weave-equilibrium rework the standoff cluster needs.
+
+## Addendum — standoff ×4 + blob ×2 share ONE root: the sustained-grind MESH
+
+`two_attacking_lines` (blob) MEASURED: min_coh 0.15, depth 0.40, **interpenetration
+0.81**, face_dev 0°, no cross. So the lines DON'T swirl or pass through (the foundation
+holds the short clash) — but over the 300s grind the front ranks INTERLEAVE (81% of men
+end with enemies in reach, not the <30% of a clean front) and the formation PANCAKES
+(depth → 40%, rear ranks pile into front). This is the SAME column-mesh as
+`two_braced_walls` (fronts slip −7.35m past each other). So the standoff cluster (×4)
+and the blob (×2) — and likely the cav-vs-pike inversion (cav slips inside the reach) —
+are ONE deep root: nothing holds the contact LINE over a sustained grind; staggered
+files mesh and the depth compresses away. The weapon_repel/compress hold the gross
+position (centroid) but not the front-line integrity. The fix is a front-line-holding
+force (catch men who've slipped past the enemy front, or a compress that won't let the
+rear pancake) — a weave-equilibrium rework. TESTED levers that DON'T do it alone:
+braced repel ×2.5 (holds centroid, fronts still mesh), press floor, frame-hold. This is
+the single highest-leverage remaining rework (6+ tests), and it's multi-iteration.

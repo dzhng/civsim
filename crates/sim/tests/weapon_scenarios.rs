@@ -67,34 +67,48 @@ fn weapon_swaps_fumble_for_a_moment() {
     // Phalanx engaged at pike range ordered onto side swords: during the
     // swap window the unit's strike output collapses (helpless beat), then
     // sword work begins.
-    let mut sim = Sim::new(no_morale(), SEED);
-    let ph = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 300, UnitClassId::Phalanx, 0);
-    let foe = sim.spawn_class(Vec2::new(0.0, 12.0), -FRAC_PI_2, 300, UnitClassId::HeavySword, 1);
-    sim.set_attack_order(foe, ph);
     // (Longer setup than it looks: pike cadence slowed in the pacing pass,
     // and attackers no longer pay phantom charge drain while ground to a
     // halt — fresher men block more thrusts.)
-    for _ in 0..(35.0 / DT) as usize {
-        sim.tick(); // pike work underway
+    let windows = |seed: u64| -> (usize, usize, usize) {
+        let mut sim = Sim::new(no_morale(), seed);
+        let ph = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 300, UnitClassId::Phalanx, 0);
+        let foe = sim.spawn_class(Vec2::new(0.0, 12.0), -FRAC_PI_2, 300, UnitClassId::HeavySword, 1);
+        sim.set_attack_order(foe, ph);
+        for _ in 0..(35.0 / DT) as usize {
+            sim.tick(); // pike work underway
+        }
+        let kills_before = sim.units[foe].count - sim.units[foe].alive_count;
+        sim.set_weapon_pref(ph, true); // ground pikes, draw swords
+        // Order travel (1s) + per-man fumble (1s): a quiet beat.
+        let before = sim.units[foe].count - sim.units[foe].alive_count;
+        for _ in 0..(2.0 / DT) as usize {
+            sim.tick();
+        }
+        let quiet = (sim.units[foe].count - sim.units[foe].alive_count) - before;
+        // Then swords come out and the killing resumes.
+        let resumed_from = sim.units[foe].count - sim.units[foe].alive_count;
+        for _ in 0..(20.0 / DT) as usize {
+            sim.tick();
+        }
+        let resumed = (sim.units[foe].count - sim.units[foe].alive_count) - resumed_from;
+        (kills_before, quiet, resumed)
+    };
+    // Per-seed the swap-beat kill counts are tiny (1-5 in the 2s quiet window) and
+    // knife-edge — one seed can read the quiet beat as busy as the resumed one. The
+    // "fumble then resume" claim is the seed AVERAGE: sum the windows over a seed set
+    // and compare totals (like the other small-count combat tests).
+    let seeds = [SEED, SEED + 1, SEED + 2, SEED + 3, SEED + 4, SEED + 5, SEED + 6, SEED + 7];
+    let (mut kills_before, mut quiet_window_kills, mut resumed_kills) = (0usize, 0usize, 0usize);
+    for &s in &seeds {
+        let (kb, q, r) = windows(s);
+        kills_before += kb;
+        quiet_window_kills += q;
+        resumed_kills += r;
     }
-    let kills_before = sim.units[foe].count - sim.units[foe].alive_count;
-    assert!(kills_before > 3, "setup: pikes must be landing");
-    sim.set_weapon_pref(ph, true); // ground pikes, draw swords
-    // Order travel (1s) + per-man fumble (1s): expect a quiet beat.
-    let mut quiet_window_kills = 0;
-    let before = sim.units[foe].count - sim.units[foe].alive_count;
-    for _ in 0..(2.0 / DT) as usize {
-        sim.tick();
-    }
-    quiet_window_kills = (sim.units[foe].count - sim.units[foe].alive_count) - before;
-    // Then swords come out and the killing resumes.
-    let resumed_from = sim.units[foe].count - sim.units[foe].alive_count;
-    for _ in 0..(20.0 / DT) as usize {
-        sim.tick();
-    }
-    let resumed_kills = (sim.units[foe].count - sim.units[foe].alive_count) - resumed_from;
+    assert!(kills_before > 3 * seeds.len(), "setup: pikes must be landing: {kills_before} over seeds");
     assert!(
         resumed_kills as f32 > quiet_window_kills as f32 * 1.8,
-        "after the fumble the swords work: {resumed_kills} vs {quiet_window_kills} in the swap beat"
+        "after the fumble the swords work: {resumed_kills} vs {quiet_window_kills} (quiet) over seeds"
     );
 }

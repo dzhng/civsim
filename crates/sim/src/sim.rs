@@ -1654,7 +1654,15 @@ impl Sim {
                 // front fights. (cruise ramps to charge_speed when u.charging.)
                 let advancing =
                     u.move_target.is_some() || matches!(u.mode, OrderMode::Attack(_));
-                if advancing && !engaged_i && !seeking_flank {
+                // A man whose move target is BEHIND his facing is BACKING OFF (the
+                // engage withdrawal: shields to the threat, feet to the rear). Don't
+                // carry the cruise FORWARD along his facing then — it shoves him back
+                // INTO the threat and deadlocks the retreat; the slot-chase walks him
+                // out. (Attacks/advances face their target, so dot ≥ 0 — unaffected.)
+                let backing_off = u
+                    .move_target
+                    .map_or(false, |mt| (mt - p).dot(dir(u.facing)) < 0.0);
+                if advancing && !engaged_i && !seeking_flank && !backing_off {
                     let md = dir(u.facing);
                     let fwd = v.x * md.x + v.y * md.y;
                     let want = u.cruise.min(max_sp);

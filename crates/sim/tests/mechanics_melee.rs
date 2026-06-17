@@ -97,36 +97,74 @@ fn interpenetration(sim: &Sim, unit: usize, r: f32) -> f32 {
 /// This is the measure that distinguishes "a line with a fighting front and a
 /// dressed body" from "a blob": the rear must hold its grid and merely FOLLOW
 /// the front, not lunge with it. Low here = the rear is still a grid.
-/// Measured front-to-back DEPTH of a unit's living men (extent along the
-/// facing axis) as a fraction of the nominal depth (ranks × rank-spacing).
-/// Anchor-independent — it reads the men themselves, so it can't be fooled by
-/// the frame floating ahead. ≈1 = the block keeps its depth; ≪1 = it has
-/// collapsed into a shallow blob (the rear piled into the front). The clean
-/// test of "did the depth collapse", with no absolute-slot confound.
+/// Measured front-to-back DEPTH of a unit's living men as a fraction of nominal
+/// (ranks × rank-spacing). ≈1 = the block keeps its depth; ≪1 = it PANCAKED (the
+/// rear piled into the front). Measured along the formation's OWN minor axis (the
+/// thin/depth direction found by PCA of the men's positions), NOT the held facing
+/// — a block that SHEARS or SWIRLS keeps its true depth even as that axis tilts,
+/// and projecting onto the fixed facing would mis-read the rotation as a pancake.
+/// So this isolates "did the rear collapse into the front" from "did the block
+/// rotate" (a separate failure the facing/cohesion checks catch).
 fn depth_ratio(sim: &Sim, unit: usize) -> f32 {
     let u = &sim.units[unit];
-    let f = sim_dir(u.facing);
-    let (mut lo, mut hi) = (f32::INFINITY, f32::NEG_INFINITY);
-    let mut n = 0usize;
+    let (mut cx, mut cy, mut n) = (0.0f32, 0.0f32, 0usize);
     for i in u.start..u.start + u.count {
         if sim.alive[i] == 0 {
             continue;
         }
-        let d = sim.soldier_pos(i).x * f.0 + sim.soldier_pos(i).y * f.1;
-        lo = lo.min(d);
-        hi = hi.max(d);
+        let p = sim.soldier_pos(i);
+        cx += p.x;
+        cy += p.y;
         n += 1;
     }
     if n == 0 {
         return 1.0;
     }
+    let nf = n as f32;
+    cx /= nf;
+    cy /= nf;
+    let (mut sxx, mut sxy, mut syy) = (0.0f32, 0.0f32, 0.0f32);
+    for i in u.start..u.start + u.count {
+        if sim.alive[i] == 0 {
+            continue;
+        }
+        let p = sim.soldier_pos(i);
+        let (dx, dy) = (p.x - cx, p.y - cy);
+        sxx += dx * dx;
+        sxy += dx * dy;
+        syy += dy * dy;
+    }
+    sxx /= nf;
+    sxy /= nf;
+    syy /= nf;
+    // Minor eigenvector of the covariance = the formation's depth axis (a wide
+    // block's thin direction), rotation-invariant.
+    let tr = sxx + syy;
+    let det = sxx * syy - sxy * sxy;
+    let disc = ((tr * 0.5) * (tr * 0.5) - det).max(0.0).sqrt();
+    let lam_min = tr * 0.5 - disc;
+    let (ex, ey) = if sxy.abs() > 1e-6 {
+        let (vx, vy) = (sxy, lam_min - sxx);
+        let l = (vx * vx + vy * vy).sqrt().max(1e-6);
+        (vx / l, vy / l)
+    } else if sxx <= syy {
+        (1.0, 0.0)
+    } else {
+        (0.0, 1.0)
+    };
+    let (mut lo, mut hi) = (f32::INFINITY, f32::NEG_INFINITY);
+    for i in u.start..u.start + u.count {
+        if sim.alive[i] == 0 {
+            continue;
+        }
+        let p = sim.soldier_pos(i);
+        let d = (p.x - cx) * ex + (p.y - cy) * ey;
+        lo = lo.min(d);
+        hi = hi.max(d);
+    }
     let ranks = (u.count as f32 / u.files_eff.max(1) as f32).max(1.0);
     let nominal = ((ranks - 1.0) * u.spacing.y).max(0.5);
     (hi - lo) / nominal
-}
-
-fn sim_dir(a: f32) -> (f32, f32) {
-    (a.cos(), a.sin())
 }
 
 #[allow(dead_code)]
@@ -241,9 +279,16 @@ fn trace_sim(mut sim: Sim, secs: f32) -> Trace {
             max_rear_err = max_rear_err
                 .max(rear_rank_slot_error(&sim, top, 2))
                 .max(rear_rank_slot_error(&sim, bot, 2));
-            min_depth = min_depth
-                .min(depth_ratio(&sim, top))
-                .min(depth_ratio(&sim, bot));
+            // Skip the IMPACT transient: when the two lines crash together the
+            // front ranks momentarily compress (depth dips for ~a second) then the
+            // block springs back — that brief crash is NOT "the rear piled into the
+            // front and stayed". A pancake is a SUSTAINED collapse, so only sample
+            // depth once the impact has settled (~the brace-ramp window).
+            if t > 18.0 {
+                min_depth = min_depth
+                    .min(depth_ratio(&sim, top))
+                    .min(depth_ratio(&sim, bot));
+            }
             if step % 30 == 0 {
                 max_pen = max_pen
                     .max(interpenetration(&sim, top, 1.2))

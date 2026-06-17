@@ -46,9 +46,18 @@ migrations into `balance_combat.rs` / `balance_charge.rs`.
 - **Trample/impale (×7):** `move_order_rides_through`, `cavalry_charge_keeps_burst`,
   `dense_infantry`, `a_frontal_charge_bloodbath`, `eight_ranks_toll`,
   `light_horse_tramples`, `cavalry_usually_rides`. Ram-drag `v²` spikes on contact and
-  bogs a thin-line plow. Ram-drag is the ONLY propulsion brake (removing/​depth-gating
-  it collapses `mechanics_charge` 5→2), so it needs the impale momentum-return as a
-  REPLACEMENT charge-stop first (`specs/impale.md`).
+  bogs a thin-line plow. **MEASURED this session (probe the cav's `counter_press`):**
+  a thin 3-rank line spikes ~10 at contact then SUSTAINS ~5; a pike hedge spikes ~27
+  then DROPS to ~5 as the cav penetrates; only a 20-rank column SUSTAINS ~12. So the
+  thin line (ride) and the pike hedge (stop) have the SAME sustained press (~5) — no
+  instantaneous `press_brake_floor` separates them. Tried floor 0.45→11: thin trample
+  rides (`move_order_rides_through` +1) and the deep column still bogs, BUT
+  `bracing_is_what_stops_the_charge` + `enough_depth_bogs_the_charge` regress (they
+  read the stop as `mass_advance` falling, which the pike-hedge gets from ram-drag,
+  now under the floor). REVERTED. **Conclusion: the pike/brace stop must come from
+  KILLING (impale momentum-return) draining the cav's MASS/momentum, not from
+  ram-drag** — only then can the floor rise so thin screens ride. The rework ripples
+  combat balance; re-judge the charge-stop tests with it (`specs/impale.md`).
 - **Blob (`two_attacking_lines`, `an_attacker_into_a_holding_line`):** holds position
   but the grid stretches ~2.5× and frays to cohesion 0.23 over the grind. Softer
   ram-drag (post-impale) should reduce the impact compression.

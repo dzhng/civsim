@@ -239,8 +239,8 @@ fn rider_reachability_is_pure_geometry() {
     // first seconds of strikes damage. (In a prolonged scrum swords reach
     // riders too — from the SIDES — which is correct; this test isolates the
     // frontal geometry claim.)
-    let pool_damage = |attacker: UnitClassId, separation: f32, cav_facing: f32| -> (f32, f32) {
-        let mut sim = Sim::new(no_morale(), SEED);
+    let pool_damage = |seed: u64, attacker: UnitClassId, separation: f32, cav_facing: f32| -> (f32, f32) {
+        let mut sim = Sim::new(no_morale(), seed);
         let atk = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 40, attacker, 0);
         let cav = sim.spawn_class(Vec2::new(0.0, separation), cav_facing, 30, UnitClassId::ShockCavalry, 1);
         let _ = atk;
@@ -257,28 +257,43 @@ fn rider_reachability_is_pure_geometry() {
         }
         (rider_dmg, horse_dmg)
     };
+    // The frontal-geometry claim is a seed AVERAGE, not one roll: a single seed's
+    // interpenetration jitter can let a stray sword reach a rider (sword_share
+    // swings 0.00-0.29 across seeds), so the GEOMETRY — swords reach horseflesh,
+    // pikes reach the man — is what holds on the mean. (Pinning one seed left it
+    // chaos-marginal; averaging pins the geometry, not the dice.)
+    let seeds = [SEED, SEED + 1, SEED + 2, SEED + 3, SEED + 4];
+    let agg = |attacker: UnitClassId, sep: f32, facing: f32| -> (f32, f32, f32) {
+        let (mut share, mut rider, mut horse) = (0.0f32, 0.0f32, 0.0f32);
+        for &s in &seeds {
+            let (r, h) = pool_damage(s, attacker, sep, facing);
+            share += r / (r + h).max(1e-6);
+            rider += r;
+            horse += h;
+        }
+        let n = seeds.len() as f32;
+        (share / n, rider / n, horse / n)
+    };
     // Swords vs horse fronts: only horseflesh in reach.
-    let (rider, horse) = pool_damage(UnitClassId::HeavySword, 2.4, -FRAC_PI_2);
-    let sword_share = rider / (rider + horse).max(1e-6);
+    let (sword_share, _, horse) = agg(UnitClassId::HeavySword, 2.4, -FRAC_PI_2);
     assert!(
         horse > 0.25 && sword_share < 0.2,
-        "frontal swords hack horses: rider {rider:.2} vs horse {horse:.2} (share {sword_share:.2})"
+        "frontal swords hack horses: mean horse {horse:.2}, mean rider share {sword_share:.2}"
     );
     // Pikes at reach: front-rank pikes find riders (rear-rank pikes can only
     // poke the horses' noses — also correct geometry), so the rider SHARE is
     // what discriminates pikes from swords.
-    let (rider, horse) = pool_damage(UnitClassId::Phalanx, 3.4, -FRAC_PI_2);
-    let pike_share = rider / (rider + horse).max(1e-6);
+    let (pike_share, pike_rider, _) = agg(UnitClassId::Phalanx, 3.4, -FRAC_PI_2);
     assert!(
-        rider > 0.12 && pike_share > sword_share + 0.1, // absolute bound tracks pike poke damage (chaos-marginal)
-        "frontal pikes find riders far better than swords: rider {rider:.2} vs horse {horse:.2} \
+        pike_rider > 0.12 && pike_share > sword_share + 0.1,
+        "frontal pikes find riders far better than swords: mean rider {pike_rider:.2} \
          (share {pike_share:.2} vs sword {sword_share:.2})"
     );
     // Swords against the horses' SIDE: the rider is suddenly in reach.
-    let (rider, horse) = pool_damage(UnitClassId::HeavySword, 1.6, 0.0);
+    let (_, side_rider, _) = agg(UnitClassId::HeavySword, 1.6, 0.0);
     assert!(
-        rider > 0.15,
-        "side swords reach riders: rider {rider:.2} vs horse {horse:.2}"
+        side_rider > 0.15,
+        "side swords reach riders: mean rider {side_rider:.2}"
     );
 }
 

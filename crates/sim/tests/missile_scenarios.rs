@@ -163,19 +163,29 @@ fn horse_archers_shoot_on_the_move() {
     // Ride across the target's front while loosing.
     sim.set_move_order(ha, Vec2::new(160.0, 0.0));
     let ammo_before = sim.units[ha].ammo;
+    let hp_before: f32 = {
+        let u = &sim.units[target];
+        (u.start..u.start + u.count).map(|i| sim.health[i]).sum()
+    };
     run(&mut sim, 50.0);
     // The CLAIM is the mechanism — arrows fly WHILE RIDING (foot archers
-    // must halt). Lethality lives in the volley tests; hardier bodies
-    // (pacing retune) mean a drive-by wounds many and drops few.
+    // must halt) and they HURT. Lethality (kill counts) lives in the volley
+    // tests; hardier bodies (pacing retune) mean a drive-by WOUNDS many and
+    // drops few, so the death count is a chaos-marginal 0/1 here — assert on
+    // the wound (health lost), the robust signal of "the arrows landed".
     let ammo_after = sim.units[ha].ammo;
     assert!(
         ammo_before - ammo_after > 200,
         "the ride looses arrows: {} spent",
         ammo_before - ammo_after
     );
+    let hp_after: f32 = {
+        let u = &sim.units[target];
+        (u.start..u.start + u.count).map(|i| sim.health[i]).sum()
+    };
     assert!(
-        deaths(&sim, target) >= 1,
-        "and they hurt: {} dead",
-        deaths(&sim, target)
+        hp_before - hp_after > 20.0,
+        "and they hurt: only {:.0} hp wounded off the target",
+        hp_before - hp_after
     );
 }

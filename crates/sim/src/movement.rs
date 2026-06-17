@@ -203,10 +203,14 @@ pub(crate) fn update_unit_motion(tun: &Tunables, u: &mut Unit, dt: f32, ground: 
 
             // Hysteresis: a big heading change enters the pivot; the unit
             // stays in it until nearly aligned, then marches out. Never while
-            // locked — melee is not the time for a drilled about-face.
-            if !locked && err.abs() > tun.pivot_facing_err {
+            // locked — melee is not the time for a drilled about-face — EXCEPT a
+            // WITHDRAW, which MUST about-face out of contact to flee (a locked
+            // unit otherwise keeps facing the foe and drives its frame straight
+            // back INTO it instead of away).
+            let disengaging = matches!(u.mode, crate::unit::OrderMode::Disengage);
+            if (!locked || disengaging) && err.abs() > tun.pivot_facing_err {
                 u.pivoting = true;
-            } else if locked || err.abs() < tun.pivot_exit_err {
+            } else if (locked && !disengaging) || err.abs() < tun.pivot_exit_err {
                 u.pivoting = false;
             }
 
@@ -244,7 +248,10 @@ pub(crate) fn update_unit_motion(tun: &Tunables, u: &mut Unit, dt: f32, ground: 
                 // the leash drags the anchor behind. The frame follows the fight.
                 let target_speed = if u.charging {
                     pace_speed(tun, u) * ground
-                } else if locked {
+                } else if locked && !matches!(u.mode, crate::unit::OrderMode::Disengage) {
+                    // A WITHDRAW still drives its frame AWAY even while the rear is
+                    // in contact — the frame must LEAD the men out, or the leash
+                    // pins the disengaging unit in the grind it is trying to flee.
                     0.0
                 } else {
                     (pace_speed(tun, u) * ground).min((2.0 * accel * dist).sqrt())

@@ -131,11 +131,41 @@ So there is **no stable contact equilibrium**: the system either walks through
 rear-rank press reaches "rear pushing = front held" instead of building to a squirt.
 Candidates: (i) a hard enemy non-overlap CONSTRAINT (projection, uncapped) rather
 than a capped spring, so a pile-up can't tunnel/launch; (ii) soften/cap the
-exponential `comp_push` under deep compression (it is the launch term); (iii)
-swept/iterated collision so men can't pass through each other between single-pass
-solves. Likely (i)+(ii) together. The frame-hold + tight-leash changes (a)+(b) are
-correct in spirit and align with the code's own comments — re-apply them ONCE the
-contact is stable, or they just convert walk-through into explosion.
+exponential `comp_push` under deep compression; (iii) swept/iterated collision so men
+can't pass through each other between single-pass solves.
+
+## BREAKTHROUGH: carried momentum (`mom_*`) is the SWIRL cause (measured)
+
+`NOMOM=1` (zero every man's `mom_x/mom_y` each tick at the integration site,
+sim.rs:1263) → **gap 0.8m, NEVER crosses, faceDev 0°.** The clash HOLDS. So the
+pass-through is the **carried-momentum fling**: a charging infantry man's momentum,
+re-armed every tick by the strike ledger (combat.rs:449, any struck man moving
+>2 m/s) AND the collision-impact ledger (collision.rs:283, any closing >charge_min),
+persists through the grind and tows the whole block ballistically through the enemy.
+`comp_push` cap and `hit_push=0` do NOT reproduce this — only zeroing `mom` does.
+
+But the fix is COUPLED and not yet clean — two findings the next pass needs:
+1. **Arresting `mom` for fighting non-tramplers** (`if fighting[i]==1 && !u.tramples()
+   { mom=0 }` at sim.rs:1263) KILLS THE SWIRL (faceDev 90°→1°) and is physically
+   right (infantry crash and grind; cavalry ride through). BUT it only gets the gap
+   to −59 (a residual centroid DRIFT remains, now with no swirl), AND it **regresses
+   `mechanics_charge` 5→4** — because a charge legitimately needs its momentum and
+   `fighting`/`engaged` fire during the charge crash too. Gating is the hard part:
+   infantry must keep `mom` for the approach stride + the crash, but shed it in the
+   settled grind, without zeroing the cavalry trample or the charge-vs-block tests.
+   `u.engaged>0` is WORSE than per-man `fighting[i]` (−78 vs −59) — granularity matters.
+2. **The residual −59 drift (swirl gone) is the DIRECT position pushes**, not `mom`
+   (a fighting man's `mom` is already zeroed, so the fling is `hit_push` combat.rs:469
+   + collision). It is NON-MONOTONIC in `hit_push`: with mom-arrest, `hit_push≈0.4`
+   gives the best gap (−32, faceDev 0°) and LOWERING it is worse (−76) — so `hit_push`
+   is *separating* the lines, not flinging them. Do not naively zero it.
+
+So the contact has TWO coupled pass-through channels — ballistic `mom` (the swirl) and
+the direct grind pushes (the drift) — and the momentum one is entangled with the
+charge. The clean fix likely: shed infantry `mom` only once a charge is SPENT (not
+merely engaged), so the crash keeps its stride but the grind sheds it; plus a stable
+enemy contact for the residual drift. The frame-hold + tight-leash changes are correct
+in spirit but expose the compression explosion until the contact is stable.
 
 ## Triage: the 58 are foundation-GATED, not stale (do not repin)
 

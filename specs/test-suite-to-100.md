@@ -238,3 +238,32 @@ below nominal, over several seconds), so it engages only when a grind is collaps
 not at every contact. That signal does not exist yet; building it (and the depth-pin it
 gates) is the rework. SIX force levers now ruled out — the avenue is force-shaped but
 the GATE is the hard part, and it's a new measured signal, not a tunable.
+
+## Addendum — the blob is a SWIRL (no equilibrium), not a pancake — VIBE-VERIFIED + detector fixed
+
+David ran the vibe shots and corrected the whole diagnosis: t2-glue-1v1 does NOT
+pancake — the back ranks hold a clean grid through ~t26, then the contact line
+SHEARS/rotates ~25° (it blobs by LEANING). Root: an immortal mass-spring system whose
+springs only PUSH toward targets never SETTLES — it chases its (unreachable, past-the-
+enemy) anchor forever; swirling is the only way it "reaches" the anchor.
+
+DETECTOR FIXED (`73d7627`): the old `depth_ratio` lied twice — projected onto the held
+FACING (a rotated block reads shallow → rotation looked like pancake) and took the MIN
+over the run (caught the IMPACT transient: lines crash, depth 0.39 for ~1s, springs
+back to 1.8). Now: depth along the formation's OWN minor axis (PCA, rotation-invariant)
++ skip the impact warmup. Blob now reads depth ~1.3 (NOT pancaked); it fails only on
+the REAL cohesion/interpenetration (the swirl). Principles added to the tweak skill.
+
+THE CRUX (tested, all reverted): the into-foe PRESS is BOTH the contact HOLD and the
+shear driver. (a) Remove it (contact-accommodation) → mesh drops hard (interpen 0.81→
+0.44) but the lines PASS THROUGH (the hold is gone). (b) Velocity-damp engaged men →
+reduces mesh but regresses clash/weave AND cohesion NEVER improves (the swirl is a slow
+ROTATION, tiny velocity to damp). (c) Lateral-only damp → charge holds but clash/weave
+still regress. So: the swirl is the formation ROTATING relative to its held facing; the
+fix is a FACING-ALIGNED RESTORING force (un-rotate toward ±y) — NOT damping and NOT
+removing the press. The slot/net SHOULD restore it but is too weak for attacking units
+(slot_pull is low when advancing); strengthening it engaged-keyed regresses the clash.
+Every engaged-keyed change regresses because the foundation clash/weave tests are tuned
+to the CURRENT (swirling) dynamics — so the equilibrium fix must CO-DESIGN the restoring
+force AND re-judge the clash/weave tests against the new (settled) behavior. This is the
+single open root behind the standoff ×4 + blob ×2 + the cav-vs-pike slip.

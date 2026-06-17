@@ -2,8 +2,11 @@
 
 ## State
 
-`cargo test -p sim --no-fail-fast` → **134 passing / 21 failing** (up from 112/43 at
-the start of the foundation work). The contact foundation HOLDS. Lessons, in order of
+`cargo test -p sim --no-fail-fast` → **135 passing / 20 failing** (up from 112/43 at
+the start of the foundation work). The contact foundation HOLDS. The single biggest
+remaining lever is the **sustained-grind column MESH** (see the bottom addendum): it
+is the shared root of the standoff ×4, the blob ×2, and likely the cav-vs-pike
+inversion — ~6-7 tests behind one weave-equilibrium rework. Lessons, in order of
 power: **(1) trace the exact failure to ONE mechanism and fix that** (surgical);
 **(2) for the hard cluster, MEASURE then tune** (cracked the trample cluster via the
 smoothed-press signal — the biggest mechanical lever); **(3) rewrite chaos-marginal /

@@ -226,3 +226,15 @@ holding its depth. The rework must add a mechanism that pins inter-rank depth at
 contact (the front rank can't be pushed back into rank 2, and rank 2 can't climb into
 rank 1) WITHOUT the global compress that regresses the open-field weave. Multi-iteration,
 but now precisely scoped: a CONTACT-only inter-rank depth pin, not a global spring.
+
+**6th lever tested (engaged-keyed comp_push ×2, reverted):** scaling the lattice
+push-apart for ENGAGED men improved the blob (depth 0.40→0.47, interpen 0.81→0.74) but
+regressed 6 foundation tests. The reason is the crux for the next pass: **`engaged` is
+ALSO the clash front rank** — so keying the depth-pin on engagement shifts the very
+clash equilibrium the foundation tests pin. The fix therefore CANNOT key on `engaged`;
+it must key on the BLOB-specific condition (a SUSTAINED mutual push that is pancaking
+the depth — e.g. both this unit AND its foe are locked-and-pressing, depth already
+below nominal, over several seconds), so it engages only when a grind is collapsing,
+not at every contact. That signal does not exist yet; building it (and the depth-pin it
+gates) is the rework. SIX force levers now ruled out — the avenue is force-shaped but
+the GATE is the hard part, and it's a new measured signal, not a tunable.

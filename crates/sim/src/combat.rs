@@ -456,9 +456,15 @@ impl Sim {
         }
         self.stun[victim] = self.stun[victim].max(0.35);
 
-        // Block: front shield arc only; still takes the push.
+        // Block: front shield arc only; still takes the push. A BRACED point
+        // (a leveled pike) is hard to parry — it arrives from beyond the shield's
+        // working distance, planted and on-line, not swung — so the block lands
+        // far less often than against a sword's arc. Without this, a cohesive
+        // (well-dressed) line blocks most pike thrusts and the hedge stops
+        // landing — the foundation that raised cohesion made the parry too good.
         let shielded = aspect_v < FRONT_ARC;
-        let blocked = shielded && self.rng.chance(vstats.block * (0.5 + 0.5 * cohesion));
+        let braced_thrust = if weapon.braced { 0.35 } else { 1.0 };
+        let blocked = shielded && self.rng.chance(vstats.block * (0.5 + 0.5 * cohesion) * braced_thrust);
 
         // Push: momentum through the weapon — a braced thruster hurls an
         // unbraced man back bodily; equal masses just rock each other.

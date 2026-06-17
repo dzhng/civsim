@@ -38,6 +38,11 @@ fn clash(class: UnitClassId, seed: u64, top_attacks: bool) -> Sim {
     let bot = sim.spawn_class(Vec2::new(0.0, -13.0), FRAC_PI_2, N, class, 0);
     let top = sim.spawn_class(Vec2::new(0.0, 13.0), -FRAC_PI_2, N, class, 1);
     assert_eq!((bot, top), (0, 1));
+    if std::env::var("IMMORTAL").is_ok() {
+        for k in 0..sim.soldier_count() {
+            sim.health[k] = 1.0e9;
+        }
+    }
     sim.set_pace(bot, Pace::Run);
     sim.set_pace(top, Pace::Run);
     sim.set_attack_order(bot, top);

@@ -97,12 +97,30 @@ That last result is the key diagnostic: the crossing mass is something OTHER tha
   ±26°, not only a fighting one) made the clash WORSE (−80.7 vs −75.3), and the
   pure MOVE case crosses by 18m with no seeking at all. So it is NOT the
   magnet/front_clear path.
-- That leaves **the body-contact layer itself** (hypothesis 1 below) as the path:
-  the capped (0.25/tick) non-overlap + overlap-only hard wall cannot hold a driven
-  column — men thread the lateral gaps and the cap can't relieve the cumulative
-  uncapped steering drive of the ranks behind. Confirmed direction; the remaining
-  unknown is the exact channel (carried `mom_*` from the slam vs slot_pull vs the
-  collision push spilling sideways-then-forward) — isolate it before the fix.
+- **Attrition is RULED OUT** (tested `IMMORTAL=1`, all health 1e9): immortal lines
+  cross identically (−78). So it is not "front dies, rear advances into the gap" —
+  solid blocks of soldiers physically pass through each other.
+- **Raising the body-contact cap is RULED OUT** (`SEPCAP` 0.25→8): no help (−76,
+  saturates at 1.0). The non-overlap is NOT cap-bound.
+- **The leash slack is a PARTIAL cause** (the real lever found so far): the engaged
+  frame leash is `0.3*depth + 1.5` ≈ **4.4m** for these blocks (sim.rs:1849),
+  despite the comment at sim.rs:1830 claiming "the frame sits AT the men when
+  engaged — no forward slack." That slack lets the slots sit ~4m AHEAD of the
+  fighting line and tow it forward. Tightening it when `fighting_frac>0.1` to a flat
+  ~0 helps a lot but does NOT close it: gap −75→−42, crossed 17s→38s, faceDev 0°,
+  losses 85/145→29/169. So the leash is one factor; a residual forward drive
+  remains even at zero slack.
+
+So it is **multi-factor in the frame/slot drive**, not a single force or cap. The
+frame keeps advancing toward the past-foe attack target (`frameSp` ~2 m/s even when
+fully engaged), the slots advance with it, and the men chase their slots through
+the enemy; the leash slack amplifies it but isn't the whole drive. The fix likely
+combines: (a) tighten the engaged leash to match its own comment (code/comment
+mismatch — a real bug, partial fix above); (b) when locked in melee, drive the
+frame at the MEASURED forward progress (`mass_advance`), not at `pace_speed`, so a
+stalemate holds and only a winning shove advances; (c) verify the contact
+equilibrium is stable (symmetric clash must tie, not buckle one way — it currently
+buckles: depth_ratio of one block diverges to ~9× while the other collapses).
 
 ## The design (PROPOSED — the evidence above is binding, this is not)
 

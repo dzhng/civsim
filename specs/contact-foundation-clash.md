@@ -1,5 +1,31 @@
 # Spec: Two attacking infantry lines must hold contact, not pass through
 
+## STATUS: pass-through + swirl SOLVED (commit 8709636); blob + regressions remain
+
+The centroid pass-through and the 90° swirl are FIXED by three coupled changes
+(frame-holds-when-locked, movement.rs; tight engaged leash, sim.rs ~1849; infantry
+sheds carried momentum so only tramplers ride through, sim.rs ~1262). The clash now
+holds: gap +0.8m, never crosses, faceDev 0°; `mechanics_charge` stays 5/5.
+
+REMAINING (two_attacking_lines still RED on cohesion, not crossing):
+1. **The blob** — coh 0.23 (want >0.7), depth 0.40 (want >0.6). With the frame held,
+   the rear ranks pile FORWARD into the contact and collapse the block's depth/grid.
+   The othismos equilibrium: the rear press must propagate back (whole block stops),
+   not crush the front. This is the last clash blocker.
+2. **The downstream regression sweep** — the foundation shift traded reds: FIXED
+   symmetric_clash, attack_latch, pikes_bite, halted_defender; REGRESSED weapon_swaps,
+   deep_pike_wall, a_held_braced_line, pikes_unhorse, unit_attacked_from_two_sides.
+   Net suite ~flat (+1 from the golden re-pin). Each regression needs the judge:
+   legit-downstream (old behavior was the bug) vs real break (the broad infantry
+   mom-zero is the prime suspect — it kills knockback/stagger; narrowing it to
+   enemy-contact-only without losing the clash hold is the open tuning).
+
+Everything below is the ORIGINAL diagnosis that led here — kept for the mom/charge
+coupling notes, still relevant to narrowing the mom-zero.
+
+---
+
+
 ## Goal, in one sentence
 
 When two identical infantry blocks attack each other head-on, the contact must

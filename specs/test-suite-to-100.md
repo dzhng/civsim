@@ -207,3 +207,16 @@ ranks against the enemy front so there's no gap to thread, or a lateral push tha
 a man who has slid behind the enemy front), NOT an axial brake. Single highest-leverage
 rework (6-7 tests), multi-iteration — and now its mechanism is bounded to lateral gap-
 sealing, so the next pass doesn't re-chase the axial/compress dead ends.
+
+**CRUCIAL diagnostic (4 forces tested, ALL reverted): the blob's interpenetration is
+FORCE-INVARIANT** — it stayed at 0.80-0.81 under braced-repel ×2.5, compress ×2.0,
+axial-cap 0.3×, AND engaged slot-grip→slot_pull_hold (each also regressed 5-9 foundation
+tests). A metric that doesn't budge under every contact force that should affect it is
+almost certainly NOT a force imbalance — it is a GRIND-DYNAMICS / MEASUREMENT artifact:
+over the 300s window both lines take ~50% casualties, the survivors cluster at the
+contact, and the depth pancakes as the rear advances over its own dead. So the next
+pass should NOT chase another force — it should either (a) treat this as a metric/window
+judgment (is 81%-near-enemies after a 300s half-casualty grind a "blob", or the natural
+shape of a long attrition fight? — a VIBE-SHOT call), or (b) investigate the casualty/
+advance dynamics (why the rear advances over the dead instead of holding depth). The
+force-tuning avenue is closed — that is the value of these 4 reverts.

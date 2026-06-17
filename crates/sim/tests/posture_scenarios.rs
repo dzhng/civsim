@@ -235,6 +235,7 @@ fn pursue_auto_charges_intruders_but_gives_up_on_faster_prey() {
             latched = true;
             // The moment it latches, the cavalry runs (and it is faster).
             if sim.units[cav].move_target.is_none() {
+                sim.set_pace(cav, sim::Pace::Run); // faster PREY must actually run
                 sim.set_disengage_order(cav, Vec2::new(600.0, 500.0));
             }
         }

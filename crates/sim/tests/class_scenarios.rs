@@ -346,6 +346,7 @@ fn charging_costs_stamina_and_spent_legs_cannot_burst() {
             sim.units[cav].fatigue = 0.2; // blown horses
         }
         let before = sim.units[cav].fatigue;
+        sim.set_pace(cav, sim::Pace::Run); // a charge is ORDERED at speed
         sim.set_attack_order(cav, line);
         let mut burst_seen = false;
         for _ in 0..(30.0 / DT) as usize {
@@ -632,6 +633,8 @@ fn a_pike_hedge_breaks_the_charge_even_if_horses_ooze_through() {
     let mut sim = Sim::new(Tunables { morale_enabled: false, ..Tunables::default() }, SEED);
     let ph = sim.spawn_class(Vec2::new(0.0, 40.0), -PI / 2.0, 400, UnitClassId::Phalanx, 0);
     let cav = sim.spawn_class(Vec2::new(0.0, -40.0), PI / 2.0, 160, UnitClassId::ShockCavalry, 1);
+    sim.set_pace(cav, sim::Pace::Run); // a charge is ORDERED at speed — an attack
+                                       // walks in at the ordered pace otherwise
     sim.set_attack_order(cav, ph);
     let front = 40.0 - 0.5 * sim.units[ph].depth(); // south face the cav meets
     let mut peak_ma = 0.0f32;

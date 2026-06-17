@@ -591,6 +591,7 @@ fn cavalry_charge_keeps_its_burst_through_a_thin_line() {
     let line =
         sim.spawn_unit(Vec2::new(0.0, 40.0), FRAC_PI_2, 400, 100, Vec2::new(1.0, 1.1), 1, 0.7);
     let cav = sim.spawn_class(Vec2::new(0.0, 160.0), -FRAC_PI_2, 160, UnitClassId::ShockCavalry, 0);
+    sim.set_pace(cav, sim::Pace::Run); // a charge is ORDERED at speed
     sim.set_attack_order(cav, line);
     let mut contact = f32::NEG_INFINITY;
     let mut charge_after_contact = 0.0f32;

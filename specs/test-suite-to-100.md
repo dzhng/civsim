@@ -290,3 +290,26 @@ regress the foundation. CONCLUSION: the fix is the missing STRUCTURAL pair — c
 (dissipation) + a strong-enough facing-aligned restoring (pivot or slot) at the contact — and
 it MUST be co-designed with re-judging the clash/weave tests, which are pinned to today's
 swirling dynamics. This is a deliberate multi-iteration rework, not a tail-of-session tweak.
+
+## Addendum — the dissipation fix WORKS but couples to the brace (the co-design, pinned)
+
+`the_lattice_settles` is a real numerical limit-cycle: under-constrained EDGE men overshoot
+their rest and bounce in a ~2-tick cycle (max_step pinned at 0.0733, centroid stable — it's a
+RING, not a drift). A bond dashpot using last-tick velocity REINFORCES it (on a 2-tick cycle
+last = −current). The right fix is a velocity LOW-PASS `v = v*0.75 + last_v*0.25` (a steady
+march passes through; a v≈−last bounce cancels) — and it WORKS: the_lattice_settles 0.0733 →
+0.0015, passes.
+
+But applied to static/holding units it costs MORE than it fixes (net −2): it damps the BRACED
+DEFENDER's pre-contact settle, weakening the brace, so `bracing_is_what_stops_the_charge`,
+`dense_infantry`, `pikes_unhorse` all regress. The defender is a holding unit (no move order)
+that the gate `move_target.is_none() && !engaged` catches BEFORE contact, altering its impact
+formation. So the missing dissipation and the brace mechanic are coupled through the pre-
+contact holding state — exactly the "co-design the damping WITH re-judging the foundation
+tests" the user named. Gentler blends (0.1) don't decay the ring at all yet still regress.
+
+CONCLUSION for the next pass: the velocity low-pass is the correct dissipation primitive
+(keep it), but it needs either (a) a gate that excludes a unit about to be charged / building
+brace_ramp, or (b) the brace tests re-judged against the (correct, damped) settling behavior.
+That's a bounded 3-test co-design, not a blind tweak — the primitive and its one coupling are
+now both identified.

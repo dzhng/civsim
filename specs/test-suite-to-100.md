@@ -211,12 +211,18 @@ sealing, so the next pass doesn't re-chase the axial/compress dead ends.
 **CRUCIAL diagnostic (4 forces tested, ALL reverted): the blob's interpenetration is
 FORCE-INVARIANT** — it stayed at 0.80-0.81 under braced-repel ×2.5, compress ×2.0,
 axial-cap 0.3×, AND engaged slot-grip→slot_pull_hold (each also regressed 5-9 foundation
-tests). A metric that doesn't budge under every contact force that should affect it is
-almost certainly NOT a force imbalance — it is a GRIND-DYNAMICS / MEASUREMENT artifact:
-over the 300s window both lines take ~50% casualties, the survivors cluster at the
-contact, and the depth pancakes as the rear advances over its own dead. So the next
-pass should NOT chase another force — it should either (a) treat this as a metric/window
-judgment (is 81%-near-enemies after a 300s half-casualty grind a "blob", or the natural
-shape of a long attrition fight? — a VIBE-SHOT call), or (b) investigate the casualty/
-advance dynamics (why the rear advances over the dead instead of holding depth). The
-force-tuning avenue is closed — that is the value of these 4 reverts.
+tests). A metric that doesn't budge under every contact force that should affect it is not a
+simple force-imbalance. **DECISIVE TEST (`IMMORTAL=1`, zero casualties): the lines STILL
+blob** — cohesion 0.28, interpen 0.70, depth 0.40 (vs mortal 0.15 / 0.81 / 0.40). So it
+is NOT a casualty/measurement artifact (an earlier lean, now CORRECTED) — it is a REAL
+formation-DYNAMICS bug, independent of deaths: under sustained contact the two lattices
+PANCAKE (depth halves: rear ranks pile into the front — this is purely dynamics, 0.40
+immortal == 0.40 mortal) and INTERPENETRATE (0.70 immortal; casualties add the last
+0.11). Casualties worsen it but don't cause it. So it CANNOT be repinned (real bug, not
+wrong metric) and the accessible forces don't fix it (compress ×2 nudged depth 0.40→0.51
+but regressed 5; everything else left interpen at ~0.70-0.81). The pancake is the core:
+something lets the rear ranks advance INTO the front under contact instead of the front
+holding its depth. The rework must add a mechanism that pins inter-rank depth at the
+contact (the front rank can't be pushed back into rank 2, and rank 2 can't climb into
+rank 1) WITHOUT the global compress that regresses the open-field weave. Multi-iteration,
+but now precisely scoped: a CONTACT-only inter-rank depth pin, not a global spring.

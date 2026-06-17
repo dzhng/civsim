@@ -443,5 +443,18 @@ fn main() {
         shoot("t3-col-bulge", sim, 30.0, 1.5);
     }
 
+    // PHALANX vs HEAVY head-on: an asymmetric matchup (long reach vs short) — does
+    // it grind head-on or WHEEL 90 deg (swirl)? (phalanx_and_heavy_clash_without_swirling.)
+    {
+        let mut sim = Sim::new(base_tun(), 4242);
+        let bot = sim.spawn_class(Vec2::new(0.0, -13.0), FRAC_PI_2, 120, UnitClassId::Phalanx, 0);
+        let top = sim.spawn_class(Vec2::new(0.0, 13.0), -FRAC_PI_2, 120, UnitClassId::HeavySword, 1);
+        sim.set_pace(bot, Pace::Run);
+        sim.set_pace(top, Pace::Run);
+        sim.set_attack_order(bot, top);
+        sim.set_attack_order(top, bot);
+        shoot("t3-phalanx-heavy", sim, 60.0, 2.0);
+    }
+
     println!("done.");
 }

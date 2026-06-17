@@ -165,7 +165,14 @@ pub(crate) fn update_unit_motion(tun: &Tunables, u: &mut Unit, dt: f32, ground: 
             // its current facing under the leash.
             // Mounted units are exempt — cavalry wheels and re-charges, it
             // doesn't grind in place; let it keep steering.
-            let locked = !u.is_mounted() && u.engaged * 12 > u.alive_count.max(1);
+            // Locked when a third of the unit fights OR the whole FRONT RANK is in
+            // contact — the latter catches a NARROW deep column, whose front is
+            // fully engaged but is far under a third of its mass, so it would
+            // otherwise never lock and would drive its frame clean through the
+            // line it is supposed to grind against (the asymmetric pass-through).
+            let locked = !u.is_mounted()
+                && (u.engaged * 12 > u.alive_count.max(1)
+                    || u.engaged >= u.files_eff.max(1) as usize);
 
             // ENGAGE posture (the Move default): a foot unit maneuvering
             // near an enemy never shows its back. If the move direction

@@ -512,8 +512,12 @@ impl Sim {
                 // is suicide, so the standoff grows as the reserve drains.
                 let sp = v.frame_speed;
                 let tired = 12.0 * (1.0 - crate::movement::fatigue_capacity(u.fatigue));
-                let band = (24.0 + tired + 2.5 * (sp - self.tun.base_speed).max(0.0))
-                    .clamp(24.0, 50.0);
+                // Break EARLY even from a slow walker: a screen that waits until
+                // the foe is at 24m loses its rear tail before it is at full
+                // flight (a hop-stop saw-tooth averages under the closing pace).
+                // Bolt at 32m, sooner against a faster close.
+                let band = (32.0 + tired + 2.5 * (sp - self.tun.base_speed).max(0.0))
+                    .clamp(32.0, 55.0);
                 if d < band && threat.map_or(true, |(_, td, _)| d < td) {
                     threat = Some((v.center(), d, band));
                 }

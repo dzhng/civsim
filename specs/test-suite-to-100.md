@@ -123,3 +123,22 @@ Cargo first; golden re-pins on any sim-value change (it has no stones/skirmisher
 missile/posture fixes don't move it). Concurrent sessions share the tree — scope
 commits by path. The surgical-trace pattern is the one that works — reach for it
 before any equilibrium rework.
+
+## Addendum — the cav-vs-infantry inversion (measured, this session)
+
+`the_counter_web`'s failing matchup is ShockCav-vs-Phalanx (20/20 DRAWS, cav 80%
+vs phalanx 42% — the cav OUT-ATTRITS the pikes). Root, measured: the cav survives
+BETTER vs pikes (80%) than vs swords (47%, from cavalry_usually_rides) — an
+inversion. Physical cause: the cav bogs at the pike HEDGE (only the front rank's
+points reach it) but penetrates a sword mass and gets SURROUNDED (more blades
+reach). The design (POINTS STOP HORSE) needs the REAR pike ranks to project their
+points OVER the front rank at the bogged cav — a multi-rank-reach combat behavior
+that isn't firing. Same family as eight_ranks/cavalry_usually_rides. This is a
+combat-depth rework + a duel-matrix rebalance, needs vibe-shot ground truth on the
+intended cav/pike outcome. The single-seed verdict also can't express the DRAW —
+per the existing pattern (the cav-vs-HeavySword matchup was moved to a seed-set
+harness), this matchup should move out too, but that alone won't fix the inversion.
+
+Note: this session FIXED the_counter_web's earlier-failing Phalanx-vs-HeavySword
+matchup (now 20/20 phalanx wins; SEED 146 was an outlier) — the web now fails one
+matchain further down, not regressed.

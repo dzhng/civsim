@@ -2,11 +2,23 @@
 
 ## State
 
-`cargo test -p sim --no-fail-fast` → **127 passing / 28 failing** (up from 112/43 at
-the start of the foundation work, 119/36 at the start of this session). The contact
-foundation HOLDS (the clash no longer passes through or swirls). The big lesson of
-this session: **deep-equilibrium reworks all regressed; surgical fixes of specific
-traced behaviors all landed.** Trace the exact failure, fix the one mechanism.
+`cargo test -p sim --no-fail-fast` → **134 passing / 21 failing** (up from 112/43 at
+the start of the foundation work). The contact foundation HOLDS. Lessons, in order of
+power: **(1) trace the exact failure to ONE mechanism and fix that** (surgical);
+**(2) for the hard cluster, MEASURE then tune** (cracked the trample cluster via the
+smoothed-press signal — the biggest mechanical lever); **(3) rewrite chaos-marginal /
+wrong-metric tests to their ROBUST claim** (seed-average a knife-edge geometry/balance
+test; measure FINAL order not the mid-march minimum). Deep-equilibrium reworks all
+regressed as single tweaks — leave those for dedicated multi-iteration passes.
+
+The remaining 21 split into: **balance needing vibe-shot ground truth** (cav-vs-
+infantry lethality/inversion → the_counter_web, cavalry_usually_rides, eight_ranks,
+dense_infantry; defender edge → a_held_braced_line, mirror_duels), **deep weave-
+equilibrium** (standoff ×4, blob ×2, envelopment ×2, swirl, pivot), **engage_move**
+(chaos-coupled, net-zero tested), and **terrain/stance judgments** (halted_frame,
+long_marches, othismos). Sections below are the per-cluster detail (some headers
+predate the trample/chaos-marginal wins — see the dated addenda at the bottom for the
+latest measured roots).
 
 ## What landed this session (the pattern that works — keep doing this)
 

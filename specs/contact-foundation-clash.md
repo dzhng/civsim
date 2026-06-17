@@ -90,11 +90,19 @@ reverted):
   `interpenetration` drops (0.55→0.29) but the cross persists.
 
 That last result is the key diagnostic: the crossing mass is something OTHER than
-"engaged front men driving into the foe." Candidates not yet isolated: rear men
-whose nearest target is reachable through a lateral gap (front_clear false-negative
-when the blocking comrade isn't `fighting`), carried momentum (`mom_*`) from the
-contact slam, slot_pull toward the advancing frame, or the collision push itself
-spilling men sideways-then-forward.
+"engaged front men driving into the foe."
+
+- **Rear-rank seeking is RULED OUT** (tested): dropping the `fighting` requirement
+  in the front_clear gate (combat.rs:186, block on ANY frontal comrade within 1.2m
+  ±26°, not only a fighting one) made the clash WORSE (−80.7 vs −75.3), and the
+  pure MOVE case crosses by 18m with no seeking at all. So it is NOT the
+  magnet/front_clear path.
+- That leaves **the body-contact layer itself** (hypothesis 1 below) as the path:
+  the capped (0.25/tick) non-overlap + overlap-only hard wall cannot hold a driven
+  column — men thread the lateral gaps and the cap can't relieve the cumulative
+  uncapped steering drive of the ranks behind. Confirmed direction; the remaining
+  unknown is the exact channel (carried `mom_*` from the slam vs slot_pull vs the
+  collision push spilling sideways-then-forward) — isolate it before the fix.
 
 ## The design (PROPOSED — the evidence above is binding, this is not)
 

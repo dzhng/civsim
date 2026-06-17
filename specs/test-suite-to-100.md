@@ -68,9 +68,17 @@ disorder-triggered re-sort fixes `corridor` but perturbs float state and chaos-f
 `weapon_swaps`/`deep_pike_wall` (net-zero). Needs a re-form that doesn't perturb.
 
 ### Isolated balance/geometry: `mirror_duels` (heavy/light rout-time inversion),
-`othismos_presses` (stance gap collapsed to 1.18), `large_turns_pivot` (180° smears
-4.39), `rider_reachability` (sword-vs-rider geometry shifted), `weapon_swaps` (see
-above).
+`large_turns_pivot` (180° smears 4.39), `rider_reachability` (sword-vs-rider geometry
+shifted), `weapon_swaps` (see above).
+
+- **`othismos_presses` — `Unit::stance` is a DEAD field** (set at spawn, read
+  NOWHERE in the physics), so both stances give the same 1.18m gap. Wiring it does
+  fix the test (scale the magnet stop `reach_u` ×1.5 for Fence — `sim.rs:1213`), BUT
+  it RIPPLES: the Phalanx and spear CLASSES default to Fence (not just the test's
+  explicit `set_stance`), so their standoff moves and `pikes_unhorse` + `long_swords`
+  (tuned to the current reach) break — net −1. Wiring the stance is a real behavior
+  change that needs those two balance tests re-tuned alongside it, not an isolated
+  fix. (Tried ×1.5, reverted.)
 
 ## Process
 Cargo first; golden re-pins on any sim-value change (it has no stones/skirmishers, so

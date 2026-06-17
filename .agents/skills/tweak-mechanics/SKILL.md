@@ -125,6 +125,44 @@ depth, and the line all emerge from springs and bodies — real forces — with 
 "hold here" walls. When you reach for a clamp, you've stopped looking for the
 force.
 
+### Crutches are debts — keep a ledger, pay them down
+
+A **crutch** is a non-physical patch that compensates for the kinematic
+abstraction instead of being a real force or a real constraint. The sim is a
+*hybrid*: ballistic motion (carried momentum `mom_*`, charges, knockback) is
+honest dynamics — `p = m·v`, drained through collisions by `trample_bleed` — but
+a soldier's *propulsion* is **kinematic**: his velocity is his capped intent,
+re-asserted every tick. A velocity-controlled agent does **not** decelerate when
+it pushes on a body the way a real mass would, so anything that fakes that
+deceleration is a crutch.
+
+The honest load-bearers — what work *should* route through — are exactly two:
+1. **Geometric non-overlap constraints** (bodies can't interpenetrate; the energy
+   is incompressibility, not a stored spring).
+2. **Forces/returns sourced from measured motion** — magnitude drawn from a real
+   `kin_*` velocity or `mom_*` momentum some body actually paid for ("men, mass,
+   measured motion"). An impale that returns the charger's own momentum is honest;
+   a `tunable × penetration` spring or a `tunable × hit` shove is not.
+
+Known crutches in the tree (name them as such in comments; don't let them hide):
+- **`counter_press` / ram-drag** (movement.rs) — a unit-mean measured pressure
+  fed back as a *pace reduction*. Exists only because kinematic propulsion won't
+  slow on contact; a fully dynamic model wouldn't need it. ram-drag (the v² brake)
+  is the more defensible half; the `counter_press` *signal* (diluted unit-mean) is
+  the replaceable part.
+- **`weapon_repel` penetration spring** and **`hit_push` mass-ratio shove** — the
+  two cross-line forces whose magnitude is a tunable, not a measured momentum.
+
+The goal is **as few crutches as possible.** Each is a debt: it makes the system
+harder to reason about and silently co-tunes with everything around it. Before
+keeping one, run the experiment that tries to delete it — **turn the crutch off,
+strengthen the honest channel, measure the invariant** (charge penetration depth,
+the hold). Keep it only if measurement proves an irreplaceable gap, and when you
+do, **say in a comment that it is a crutch and what gap forces it to stay** (e.g.
+the position-push saturates at `separation_max_push`, so the collective weight has
+no uncapped honest channel — fix *that*, don't add a second patch). It is fine to
+still need a crutch; it is not fine to forget it is one.
+
 ### Move == Attack is the litmus for first-principled-ness
 
 An attack latch is just a move order to a point past the foe (plus charge +

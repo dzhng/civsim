@@ -75,8 +75,11 @@ pub(crate) fn pace_speed(tun: &Tunables, u: &Unit) -> f32 {
     };
     // A trampler rides CLEAN through a shallow screen however wide — its per-man
     // press is inflated by the screen's width into the wall band, but a few ranks
-    // have no DEPTH to stop a horse. Below a few ranks the drag is waived outright.
-    let grip = if u.tramples() && u.foe_ranks > 0.0 && u.foe_ranks <= 3.0 {
+    // have no DEPTH to stop a horse. At/below 4 ranks the drag is waived outright:
+    // a 4-deep line is grinds-through territory (the charge keeps its burst and
+    // punches out the far side); the brake earns its keep from ~6 braced ranks up
+    // (bracing_is_what_stops_the_charge bogs at depth 6, enough_depth at 8).
+    let grip = if u.tramples() && u.foe_ranks > 0.0 && u.foe_ranks <= 4.0 {
         0.0
     } else {
         ((press - floor) / ramp).clamp(0.0, 1.0)

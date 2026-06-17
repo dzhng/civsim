@@ -669,7 +669,16 @@ impl Sim {
         for ui in 0..self.units.len() {
             let needs = self.units[ui].pivoting
                 || self.units[ui].deaths_since_reform * 50 > self.units[ui].alive_count.max(1)
-                || (self.units[ui].engaged > 0 && self.tick_count % 60 == (ui as u64) % 60);
+                || (self.units[ui].engaged > 0 && self.tick_count % 60 == (ui as u64) % 60)
+                // A SETTLED, AT-EASE unit (halted, no enemy near) that frayed on
+                // the march RE-FORMS on a slow drumbeat so order RECOVERS — without
+                // this a unit kept its march disorder forever (nothing re-sorted a
+                // standing, unengaged line). Gated on at_ease so it NEVER fires near
+                // a fight (re-sorting mid-combat would perturb the scrum).
+                || (self.units[ui].at_ease
+                    && self.units[ui].frame_speed < 0.3
+                    && self.units[ui].cohesion < 0.9
+                    && self.tick_count % 45 == (ui as u64) % 45);
             if needs {
                 reassign_slots(&self.units[ui], &self.positions, &self.fidget_offset, &self.alive, &mut self.soldier_slot);
                 self.units[ui].deaths_since_reform = 0;

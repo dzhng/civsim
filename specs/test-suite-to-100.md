@@ -2,7 +2,7 @@
 
 ## State
 
-`cargo test -p sim --no-fail-fast` → **146 passing / 12 failing** (up from 112/43 at
+`cargo test -p sim --no-fail-fast` → **148 passing / 12 failing** (up from 112/43 at
 the start of the foundation work; see the dated addenda at the bottom for the latest).
 The contact foundation HOLDS. The single biggest
 remaining lever is the **sustained-grind column MESH** (see the bottom addendum): it
@@ -472,3 +472,28 @@ lock only when engaged men span ~my full width AND my width ≈ the enemy's), pl
 rout-release (which is proven). That is a structural controller change — the dedicated
 swirl pass — not a local threshold. Reverted to hold 146/12. The rrout-release and the
 swirl→passthrough link (phalanx) are the reusable findings for that pass.
+
+### Decoupling round (same session): two coupled tests split, freeing a green half each
+
+Applied the "split a coupled test so its real passing sub-claim is freed" pattern (same
+as eight_ranks / mirror_duels / counter_web earlier) to two MECHANICS tests whose
+distinct claims had different verdicts:
+
+- **`large_turns_pivot_in_place_without_smearing`** → split into
+  `large_turns_pivot_in_place_and_the_order_completes` (GREEN — the 180° order halts,
+  pivots in place, completes, and cohesion recovers >0.85) and
+  `large_turns_pivot_keeps_its_ranks_during_the_turn` (RED — mid-pivot mean slot error
+  ~4.5m, the smear). The working maneuver was being held hostage to the mid-turn
+  discipline; they are distinct properties (a pivot can finish clean yet smear midway).
+- **`halted_frame_slides_off_rocks`** → split into
+  `halted_frame_slides_every_slot_clear_of_the_rock` (GREEN — the anchor creeps off the
+  outcrop so no slot rests in a wall) and `halted_frame_recovers_cohesion_once_clear`
+  (RED — cohesion ~0.22, the men never re-seat; task #56). Escape geometry vs re-seat
+  are distinct mechanics.
+
+NOT split (would certify a bug): `a_column_bulges` — its `max_bulge > 3.0` "passes" only
+because the column is THREADING THROUGH and shoving the centre men back; the bulge is the
+penetration symptom, not elastic absorption (the doc comment itself says "it just gets
+penetrated"). And `two_braced_walls`' `closed` is a vacuity guard, not a claim. The rule:
+split only when the green sub-claim passes for the RIGHT reason, never to inflate the
+count. 146/12 → 148/12.

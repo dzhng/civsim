@@ -1899,12 +1899,23 @@ impl Sim {
                 // the men so the rear bonds don't tear. Disengage stays loose
                 // (fleeing slots must LEAD the men out).
                 let disengaging = u.mode == OrderMode::Disengage;
+                // A locked MOVE whose target is BEHIND the facing is a shields-front
+                // WITHDRAWAL: like a Disengage, its frame must LEAD the men out (the
+                // loose leash), or the tight engaged leash pins it in the grind and
+                // the order never extracts. (Attack/latch is excluded — its target is
+                // the foe AHEAD — so the clash is untouched.)
+                let backing_off = u.mode == OrderMode::Move
+                    && fighting_frac > 0.1
+                    && u.move_target.map_or(false, |mt| {
+                        let to = mt - u.anchor;
+                        to.dot(f) < -0.2 * to.len()
+                    });
                 // Tight when engaged/marching so a short approach arrives dressed
                 // (a long run still frays through the men's varied top speeds and
                 // terrain pockets — a charge over distance is meant to cost
                 // coherence, so the player halts to regroup). Disengage runs loose
                 // (fleeing slots must LEAD the men out).
-                let leash = if disengaging {
+                let leash = if disengaging || backing_off {
                     0.6 * u.depth() + 5.0
                 } else if fighting_frac > 0.1 {
                     // ENGAGED: the frame sits AT the men, no depth slack — slack
@@ -1923,7 +1934,7 @@ impl Sim {
                         let alpha = 1.0 - (-dt / 2.0f32).exp();
                         u.losing_push += ((lag - leash) / dt - u.losing_push) * alpha;
                     }
-                } else if !disengaging && lag < -leash {
+                } else if !disengaging && !backing_off && lag < -leash {
                     u.anchor = u.anchor + f * (-(lag + leash));
                 }
             } else if u.routing {

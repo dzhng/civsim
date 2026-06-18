@@ -268,8 +268,21 @@ pub(crate) fn update_unit_motion(tun: &Tunables, u: &mut Unit, dt: f32, ground: 
                 // foe (that towed the slots through the enemy: the pass-through).
                 // Advance is OTHISMOS — the men shove through by compression and
                 // the leash drags the anchor behind. The frame follows the fight.
+                // A locked MOVE (not Attack, not Disengage) whose target is BEHIND the
+                // facing is a shields-front WITHDRAWAL: the men keep facing/fighting
+                // the foe, but the frame drives in REVERSE toward the order — paired
+                // with the loose backing-off leash in the anchor law, this actually
+                // extracts the unit instead of it grinding forward on the magnet.
+                let backing_off = locked
+                    && matches!(u.mode, crate::unit::OrderMode::Move)
+                    && u.move_target.map_or(false, |mt| {
+                        let to = mt - u.anchor;
+                        to.dot(dir(u.facing)) < -0.2 * to.len()
+                    });
                 let target_speed = if u.charging {
                     pace_speed(tun, u) * ground
+                } else if backing_off {
+                    (pace_speed(tun, u) * ground * 0.6).min((2.0 * accel * dist).sqrt())
                 } else if locked && !matches!(u.mode, crate::unit::OrderMode::Disengage) {
                     // A WITHDRAW still drives its frame AWAY even while the rear is
                     // in contact — the frame must LEAD the men out, or the leash
@@ -282,7 +295,18 @@ pub(crate) fn update_unit_motion(tun: &Tunables, u: &mut Unit, dt: f32, ground: 
                 // CRUISE is the clean, leash-immune copy of this intended speed —
                 // the men feed it forward to track the frame without lag.
                 u.cruise = move_toward(u.cruise, target_speed, accel * dt);
-                u.anchor = u.anchor + dir(u.facing) * (u.frame_speed * dt);
+                // Backing off drives the anchor toward the ORDER (reverse), not along
+                // the held facing (which points at the foe).
+                let drive = if backing_off {
+                    u.move_target.map_or(dir(u.facing), |mt| {
+                        let to = mt - u.anchor;
+                        let l = to.len();
+                        if l > 0.01 { to * (1.0 / l) } else { dir(u.facing) }
+                    })
+                } else {
+                    dir(u.facing)
+                };
+                u.anchor = u.anchor + drive * (u.frame_speed * dt);
             }
         }
         None => {

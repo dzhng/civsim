@@ -1,5 +1,26 @@
 # Spec: a directional (+y/−y) bias decides the symmetric clash
 
+## ★★ MINIMAL REPRO + scale-flip (2026-06-18) — start debugging from HERE
+
+`crates/sim/tests/mechanics_symmetry.rs` is the dedicated minimal repro (RED, by
+design — do not repin):
+- **1v1 (TWO soldiers): the north (+y) unit wins ~24/24** — every event is
+  traceable. This is the smallest case.
+- The bias **FLIPS SIGN with unit size**: south-win-count is 0/16 at n=3, ~15/16
+  at n=120, crossing ~even at n=16–30. So it is not "south always wins" — it is a
+  scale-dependent positional preference that REVERSES. A real fix must make BOTH
+  ends fair, not move the crossover.
+
+1v1 trace facts (seed 0, evade/block on, morale off): the APPROACH is a bit-perfect
+180° mirror (`south+north == (0,0)` exactly) until contact at t≈3.4; the break is
+entirely at CONTACT. It is NOT spawn/index order (spawning north as index 0 still
+gives north the win), NOT the combat round-robin phase (processing all soldiers
+every tick instead of `(phase..n).step_by(3)` does not fix it), NOT RNG. It is
+POSITIONAL (the +y/−y placement), i.e. the cos-even facing seed (below) decided in
+the contact dynamics. Trace the 1v1 contact tick-by-tick to see which soldier's
+halt/strike/push diverges from its mirror first — with two bodies there is nowhere
+to hide.
+
 ## ★ ROOT CAUSE FOUND (2026-06-18) — read this, the rest is the trail
 
 The seed is **`cos` evenness in the facing direction**, amplified by the

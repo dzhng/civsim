@@ -96,6 +96,32 @@ disagree): disable `run_morale`/`contact_facing`/the wheel one at a time over th
 16-seed set and watch for the count to drop to ~8. The cheapest first check:
 `bearing_bucket(θ)` and `bearing_bucket(−θ)` — they should be mirror buckets; if
 the boundaries are `[0,30)` rather than `[−15,15)`, that IS the handedness.
+(Checked — bearing_bucket IS symmetric: +y→9, −y→3, mirror about 6. Not it.)
+
+## KEY narrowing: the bias needs COMBAT, not movement (2026-06-18)
+
+The decisive control I'd missed: run the two lines into each other with **MOVE
+orders** (no attack, no targeting, no strikes — only bodies colliding). Result:
+**cohesion is SYMMETRIC** (at t15 north is even HIGHER, 0.798 vs 0.683; it
+oscillates with no consistent winner). The disorder asymmetry only appears with
+**attack orders** (the fighting state on). So:
+
+- It is NOT pure movement or the collision solver (move-only is clean).
+- It IS in the combat-contact layer that only activates when `fighting[i]==1`:
+  the enemy MAGNET (front men pulled toward their specific `target`), `weapon_repel`,
+  and the strike push/evade — their interaction. (My earlier "immortal proves it's
+  not combat" was WRONG: immortal units still FIGHT, just don't die. move-only is
+  the real no-combat control.)
+- Consistent with the force bisect: zeroing `weapon_repel` or `magnet` (both
+  combat-contact forces) each collapsed the cohesion gap.
+
+So the hunt is now scoped to: **what does the magnet/strike contact do differently
+to a +y-facing vs −y-facing fighting front?** Instrument, for one south front man
+and the mirror north front man at equal contact geometry, the magnet pull vector,
+the chosen target, front_clear, and the strike push — find the divergence. The
+win-rate is morale-amplified (north disorders a hair more → breaks first → loses),
+so even a small combat-contact asymmetry yields 16/16; bisect on the cohesion gap
+(deterministic) for the ROOT, then confirm on win-rate.
 
 Next probe to ROOT it: take ONE south man and the mirror-image north man at the
 SAME relative contact geometry, and log what `weapon_repel`/`magnet` each computes

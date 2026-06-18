@@ -609,3 +609,19 @@ closes the thread), but the bond it touches is load-bearing for every clash, so 
 the mesh and holding the foundation cannot both be done by tuning this one force — it needs
 the front-line-targeting + re-judged matrix co-design. Six bounded/targeted mechanisms now
 measured this session; this one is the most promising for the dedicated pass to start from.
+
+### Column-mesh: reach-gating ALSO breaks the pike foundation — the cluster is conclusively foundation-bound
+
+Final variant: gate the past-foe correction on LONG reach (>2m, pikes only) so the sword
+melee is exempt. RESULT: −6 net (143/18). It restored mechanics_charge (5/0) but the
+mechanics_melee PIKE tests + combat_scenarios pike tests (pikes_bite / deep_pike_wall /
+a_pike_hedge) regressed — because the SAME enemy-bond that threads in two_braced is the one
+that holds EVERY pike standoff; shoving a "past" pike man back perturbs the legitimate pike
+clashes. So no gate (past-depth 0/0.3/0.6, reach>2, threshold sweep) separates the
+threading from the real pike standoff: they are the same force on the same bond. EIGHT
+column-mesh mechanisms now measured this session, all foundation-bound. CONCLUSION (final):
+two_braced / the_fronts / a_column / phalanx-passthrough cannot be closed by tuning the
+bond; they need the bond REDESIGNED (directional weld + front-line targeting) with the
+pike-clash and duel matrix goldens RE-DERIVED and RE-BLESSED — a balance-owning co-design
+pass, not any bounded change. The targeted past-foe fix (gap 0.39→3.11) is the prototype to
+start that pass from.

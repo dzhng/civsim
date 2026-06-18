@@ -11,6 +11,26 @@ design — do not repin):
   scale-dependent positional preference that REVERSES. A real fix must make BOTH
   ends fair, not move the crossover.
 
+★ THE FIRST DIVERGENCE (velocity log, 1v1): at t84 both soldiers have v.y = ±3.296
+(perfect mirror); at **t85 south surges** (v.y jumps 3.296 → 3.519) while north
+stays 3.333; **north surges one tick later, t86** (v.y → −4.22). The AMPLIFIER is
+the SURGE: `max_sp = if err > surge_err_threshold { sprint_sp } else { keep_up_sp }`
+(sim.rs ~1518) — a DISCRETE switch that snaps a man's speed cap up to the sprint
+ceiling the instant his stretch `err` crosses the threshold. The two mirror
+soldiers cross it ONE TICK APART (a sub-threshold `err` difference decides which
+crosses first), and the surge's big velocity step turns that into the visible
+mirror break; the one who surges first reaches contact first, halts first, and the
+other advances past it and wins. So the surge threshold is the discrete amplifier
+(per the tipping-point thesis); the SEED is the sub-threshold `err` (stretch)
+difference between the two mirror soldiers at ~t85. NEXT: log `err`/`soldier_stretch`
+for both at t83–85 and find why one is fractionally larger — that is the true seed
+(candidate: the per-man speed cap `stagger01(i)` is index-keyed, so the two have
+slightly different caps → slightly different lag → different stretch; a constant cap
+did NOT fix the WIN though, so the seed and the positional WIN may be two effects —
+verify the constant cap makes the v.y mirror EXACT first). Possible FIX once the
+seed is known: make the surge SMOOTH (ramp the cap with err) instead of a discrete
+step, so a sub-threshold difference can't be amplified into a one-tick speed jump.
+
 PASS bisect (env-gated mirror check after each tick pass, 1v1, sum=`pos[0]+pos[2]`):
 the 180° mirror first breaks **inside `steer_soldiers`** (the FIRST pass) — the Y
 component drifts from 0 at ~t85 (DURING the approach, ~5 m apart, well before

@@ -557,3 +557,20 @@ targeting — which ripples every clash's target selection and must be re-judged
 matrix. Confirmed: a sustained combat-balance co-design pass, not a bounded collision tweak.
 TWO bounded mechanisms now measured-dead this session (pivot wheel-slowdown, friendly-slide
 gate); the cluster does not yield to a local change.
+
+### Column-mesh: the directional-bond fix (the PRECISE root) breaks the foundation — measured
+
+Traced the thread to its exact root: the enemy-bond rest is `ep + d*(reach/al)` with
+`d = p - ep` (foe→me). When a man is shoved PAST his foe, `d` flips to point DEEPER into
+the enemy, so the bond pulls him further in — the slow mesh. The targeted fix is a
+DIRECTIONAL bond: anchor the weld to the man's facing-front side (`ep − facing*reach`),
+plus push back along −facing when inside reach OR past the foe, so a man driven past is
+pulled BACK to the contact line. IMPLEMENTED and MEASURED: it did NOT fix the mesh
+(two_braced gap 0.64/front −17.9, the_fronts 5.4m — unchanged) AND regressed the FOUNDATION
+hard (mechanics_melee 10→5 pass, mechanics_charge 5→3): the facing-based weld is wrong for a
+normal clash (men's facings aren't reliable enough, and −facing*reach is the wrong rest when
+a man is correctly in front). So the bond geometry that produces the thread is the SAME
+geometry the whole clash depends on — fixing the thread requires re-deriving the weld for
+every clash and re-judging the foundation, not a local change. THREE column-mesh mechanisms
+now measured-dead this session (slide-disable −10, directional-bond breaks foundation,
+hysteresis reasoned-dead). Definitively a foundation-level co-design pass, not bounded.

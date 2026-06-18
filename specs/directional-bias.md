@@ -43,6 +43,34 @@ every 5 s plus each side's centroid/width — see WHERE south's edge appears (fi
 strikes? formation? a drift?). The divergence starts ~t20-30 from a tiny edge, so
 look at the OPENING, not the settled grind.
 
+## Localization so far (2026-06-18 follow-up — narrowed, not yet rooted)
+
+Ran the bisects. Ruled OUT and IN:
+
+- **NOT combat damage.** Immortal (zero-damage) clash still has north disordering
+  more: S.coh 0.35 vs N.coh 0.15 at t25. So it is a MOVEMENT/CONTACT-force
+  asymmetry, not who-kills-whom.
+- **NOT lattice ties / grid-scan tiebreaks.** A 0.05 m per-soldier position jitter
+  (breaking exact equal-distance ties) does NOT move it — still 16/16 south.
+  Speed jitter (`micro_rough`) doesn't either. It is a true structural asymmetry,
+  not a float/tiebreak artifact.
+- **NOT `separation_slide`** (the obvious chirality suspect — its `(−slide·ny,
+  +slide·nx)` is a fixed +90° world rotation). Zeroing it: still 16/16.
+- **AMPLIFIED BY `weapon_repel` AND `magnet`.** In the immortal cohesion-gap
+  bisect (avg S.coh−N.coh over t15-30; +0.144 default), zeroing EITHER force
+  collapses it: `weapon_repel=0` → +0.035, `magnet_strength=0` → +0.028. `hit_push`,
+  `separation_max_push`, `slot_pull` do not. So the bias lives in (or is amplified
+  by) the two enemy-facing contact forces — both read foe geometry off `aim`
+  (the unit facing, +y vs −y) and the grid.
+
+Next probe to ROOT it: take ONE south man and the mirror-image north man at the
+SAME relative contact geometry, and log what `weapon_repel`/`magnet` each computes
+— which foe is selected, the push vector, the recoil. They should be exact
+mirrors; find the line where they diverge. The `aim`/`perp = (−aim.y, aim.x)`
+construction and the per-cell grid scan order (`for oy in −r..=r`) are the prime
+suspects for a +y/−y handedness; instrument, don't guess (every guess so far —
+slide, ties — was wrong).
+
 ## The test is correct; the engine is not
 
 `symmetric_clash_has_no_mechanical_bias` (win-count ∈ [5,15] over 20 seeds) is the

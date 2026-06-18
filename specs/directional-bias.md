@@ -11,6 +11,20 @@ design — do not repin):
   scale-dependent positional preference that REVERSES. A real fix must make BOTH
   ends fair, not move the crossover.
 
+1v1 force bisect (the decisive narrowing): disabling EVERY tunable contact force
+one at a time — `hit_push`, `magnet_strength`, `weapon_repel`, `compress_strength`,
+`separation_max_push` — leaves the 1v1 at 0/24 (north always wins). Snapping the
+cos-even residue in `dir()` to exact zero also does NOT fix it. So the asymmetry is
+in the NON-TUNABLE CORE: the non-overlap collision solver (`apply_separation`), the
+strike resolution geometry (`combat.rs strike()`), or the kinematic integration —
+NOT any spring/magnet/repel/push you can dial. It is positional (the +y/−y placement)
+and scale-flipping. Next step is source-level: at the 1v1 contact tick, instrument
+each of those three for the south soldier and the mirror north soldier and diff the
+outputs bit-for-bit — the first divergence is the bug. (The trace shows south HALTS
+at y=−1.349 while north ADVANCES through to ~0 and ends deeper; chase WHY the halt/
+advance is not mirrored — likely the in-tick Gauss-Seidel position update order in
+the collision or integrate pass, which is positional only via who-reads-stale-whom.)
+
 1v1 trace facts (seed 0, evade/block on, morale off): the APPROACH is a bit-perfect
 180° mirror (`south+north == (0,0)` exactly) until contact at t≈3.4; the break is
 entirely at CONTACT. It is NOT spawn/index order (spawning north as index 0 still

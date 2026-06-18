@@ -207,6 +207,19 @@ it swirled. Two detector bugs, both classics:
   worst *moment*, not the *state*. For "did X collapse and STAY collapsed", skip the
   impact warmup or measure the sustained/late value. (Same trap bit `mud` and
   `long_marches`: the min-cohesion caught a mid-march dip, not the settled fraying.)
+- **A half-and-half SPLIT metric lies when the split crosses a quantised band.** A
+  `lean()` helper measured shear as (mean-x of the low-y half) − (high-y half). With 5
+  ranks × 10 files the median split landed *inside* the centre rank, and the index
+  tiebreak sorted that rank's low-x files into one half and its high-x files into the
+  other — manufacturing a ~1.0 phantom lean on a **perfectly square** block, so the
+  recovery assertion (< 0.4) was unreachable by ANY block and a correctly-squaring
+  block read as broken for a dozen tweaks. The block had been fine all along. Fix:
+  measure with a **slope/PCA fit** (least-squares dx/dy), not a partition of a
+  discrete grid. Whenever men live on ranks/files (a quantised lattice), any "split
+  the population in two and compare halves" statistic is fragile — a continuous fit is
+  the honest measure. The tell is the same as the others: **the number is wrong even
+  on the trivial/rest configuration** — always evaluate a detector on a KNOWN-good
+  baseline (an unperturbed block) before trusting it on the failure case.
 
 The tell that your metric — not your physics — is the problem: **it stays invariant
 under every force that should move it.** I scaled the repel, the compress, the
@@ -232,6 +245,33 @@ should stop being pulled in, not keep pressing), or the contested degree of free
 needs damping / a restoring force that kills the runaway. If your "glue + magnet were
 supposed to settle it" and they don't, the question is not "which force is too weak"
 but "what steady state does this system have, and does any force drive it there."
+
+**Worked instance — damping a frictionless lattice, WITHOUT poisoning combat.** An
+idle block, scaled/perturbed, rang forever at 0.073 m/tick: the edge men step out, the
+separation solver shoves them back, repeat — a 2-tick limit cycle a *frictionless*
+spring re-injects every tick. The fix is dissipation, but naive global velocity drag
+**regressed combat -5 to -13 every time** (the same springs move the fighting men;
+damping them changed every clash). What worked is two gates that make the damping
+**provably invisible to the fight**:
+- **Gate on a state combat can never be in.** `at_ease` (no living enemy within
+  at_ease_range) is true for an idle formation and FALSE for anything fighting or
+  closing to a fight — so damping behind it cannot touch a clash by construction. (Plus
+  `move_target.is_none() && engaged==0 && frame_speed<0.5` so it never drags a march or
+  a re-form surge.) Find the predicate that is *definitionally* off during the case you
+  must not perturb.
+- **Damp only the OSCILLATION, not all motion.** Drag only the velocity component that
+  *reverses* against last tick's (`v · v_prev < 0`). A limit cycle reverses every tick
+  → it dies; a steady motion (a friendly push compressing the block, a settle toward
+  rest) doesn't reverse → it's untouched. A flat low-pass instead compressed the
+  resting block ~17%; the reversal-gate left its shape intact. **Reversal-gated drag is
+  a scalpel; uniform drag is a hammer.**
+
+The same trace showed the OTHER half of the swirl — the combat-side wheel — is the
+grind facing-lock *releasing* mid-grind (engaged dips below the lock threshold as a
+losing line is driven back → it re-acquires the slid enemy centroid → wheels → repeat
+to 90°). A naive latch fixes the swirl but is too sticky (a winner must still wheel to
+wrap/pursue); the correct latch holds only a unit that is LOSING the push. Same family:
+the runaway is a feedback loop re-armed by a threshold that toggles under noise.
 
 ### Don't relax a test to pass — the red is usually telling the truth
 

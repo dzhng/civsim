@@ -2,8 +2,9 @@
 
 ## State
 
-`cargo test -p sim --no-fail-fast` → **135 passing / 20 failing** (up from 112/43 at
-the start of the foundation work). The contact foundation HOLDS. The single biggest
+`cargo test -p sim --no-fail-fast` → **146 passing / 12 failing** (up from 112/43 at
+the start of the foundation work; see the dated addenda at the bottom for the latest).
+The contact foundation HOLDS. The single biggest
 remaining lever is the **sustained-grind column MESH** (see the bottom addendum): it
 is the shared root of the standoff ×4, the blob ×2, and likely the cav-vs-pike
 inversion — ~6-7 tests behind one weave-equilibrium rework. Lessons, in order of
@@ -357,3 +358,62 @@ faster, or perturbs the morale race toward the cav. So the cav/pike balance is c
 intuitive: a blind lethality bonus makes it WORSE. It needs careful magnitude+mechanism
 tuning against David,Rs contract values (and probably the COLLISION-side momentum-return, not
 just the combat-side wound), not a one-shot bonus. Reverted to hold 144/14.
+
+## Addendum — 2026-06-18 session: +2 metric/equilibrium wins, swirl ROOT found (146/12)
+
+Two clean wins, both by the "wrong-metric / measure-in-the-right-frame" pattern:
+
+- **the_lattice_settles** (commit 3948a33): an idle, at-ease formation never reached
+  equilibrium — a frictionless spring lattice re-injects its residual every tick and
+  rings in a limit cycle (0.073 m/tick forever). FIX: reversal-gated viscous damping
+  in the steer (`idle_settle_damp = 0.5`) — damp only the velocity component OPPOSING
+  last tick's motion, gated on `at_ease && move_target.is_none() && engaged==0 &&
+  frame_speed<0.5`. The at_ease gate (no enemy within at_ease_range) is the key: it
+  can NEVER touch a unit fighting or closing to a fight, so combat is untouched. The
+  reversal-gate (not a flat low-pass) is what lets a friendly PUSH still compress the
+  block (steady motion) while the oscillation dies. 0.073 -> 0.0017 m/tick.
+- **a_sheared_block_squares_up** (commit 9524d76): the `lean()` test helper was BROKEN
+  — it compared mean-x of the low-y half vs the high-y half, and with 5 ranks x 10
+  files the median split lands INSIDE the centre rank; the file-order tiebreak put
+  low-x files in one half, high-x in the other, manufacturing a ~1.0 phantom lean on a
+  PERFECTLY SQUARE block. The block had been squaring up correctly all along (1.49 ->
+  0.00 with the fixed metric). FIX: lean = least-squares slope of x on y (dx/dy).
+  GENERAL LESSON (add to the metric-can-lie list): a half-and-half split metric is
+  garbage whenever the split crosses a quantised band (a rank) — use a slope/PCA fit.
+
+### Swirl ROOT, precisely traced (phalanx_and_heavy, the 90° wheel) — and why the
+### obvious fix regresses
+
+TRACED the swirl to its exact mechanism. The losing unit (HeavySword driven back by
+the Phalanx) swirls because the grind FACING LOCK RELEASES mid-grind. The lock engages
+at `engaged_frac > 0.08` (in BOTH `contact_facing` in sim.rs AND a second `locked` in
+movement.rs:195). As the losing line is driven back, its engaged count DIPS below the
+threshold; the lock releases; the controller re-acquires the enemy centroid — which has
+slid past its shoulder — and wheels a few degrees toward it; repeat each dip = the slow
+creep that ends at 90°. Two phases in the trace: a stable locked plateau (~10-21°) for
+~50s, then a runaway to 90° once engagement starts dipping.
+
+TRIED a LATCH (`grind_locked` field on Unit, set once engaged_frac>0.08, held until
+engaged_frac<0.02 or a new order, applied in BOTH lock sites). RESULT: swirl FIXED —
+faceDev 90° -> 24° (< the 25° gate). BUT -5 net (146 -> 141): the latch is too sticky
+for units that must RE-MANEUVER while engaged — it broke `a_wide_line_wraps` (an
+attacker must wheel its edges in to envelop), `hold_ground..pursue_chases` and
+`the_verdict..routs` (a winner must re-orient when the enemy breaks), and moved the
+golden hash. AND phalanx_and_heavy STILL fails after the swirl fix — on `crossed_at`
+(PASSTHROUGH), the column-mesh, which is the REAL shared blocker.
+
+What a correct swirl fix needs: latch ONLY a unit that is LOSING THE PUSH (`losing_push
+> 0` / being driven back) — a winning/wrapping/pursuing unit must stay free to wheel.
+Distinguish "my engagement dipped because I'm losing" (stay locked) from "the enemy
+broke, go pursue" (release). Reverted to hold 146/12.
+
+### The real lever is still the column-MESH / PASSTHROUGH (4 tests behind it)
+
+phalanx_and_heavy (crossed@14.7), a_column_bulges (crossed), the_fronts_stay_welded
+(5.6m detach), two_braced_walls (-17m, blunt braced pike reach 3.5) ALL fail because a
+deep/braced formation drives THROUGH a shallower line instead of welding front-to-front
+and walking it back. The weapon-repel (collision.rs:299) only acts on the NEAREST
+FRONTAL foe (fwd>0): once the fronts interpenetrate at Run-pace closing, fwd<0 and the
+repel switches off — all-or-nothing, no recovery. Fixing the weld/passthrough is the
+single highest-value target (4 tests), but it lives in the collision/weave force balance
+and touches combat — a measured multi-iteration pass, not a bounded tweak.

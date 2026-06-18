@@ -444,3 +444,31 @@ winner whose centre is pushed back, and (c) a unit whose enemy just broke. Candi
 arm on a HIGH engaged_frac (full-width grind, ~0.15+) rather than losing_push (a partial-
 contact wrap never reaches it), plus release when the engaged enemy is routing/gone.
 Left for the dedicated swirl pass. Reverted to hold 146/12.
+
+### DEFINITIVE: why the swirl has no LOCAL discriminator (measured losing_push)
+
+Tried the latch armed on engaged_frac>0.15 + a rout-release (release when this unit
+routs OR its target enemy routs). The rout-release WORKS — it cleanly fixed the two
+pursue/rout regressions (`hold_ground..pursue`, `the_verdict..routs`). But two facts
+killed the rest:
+
+1. **engaged_frac doesn't separate wrap from grind.** A successful wrap ENGAGES MORE of
+   the wide line as it curls around the block, so its engaged_frac climbs past 0.15 too
+   — a_wide_line still armed and stalled (envelopment 0.20 vs 0.35).
+2. **losing_push is BACKWARDS.** Measured peak losing_push: the WRAPPING WINNER
+   (a_wide_line's wide line) sustains **1.6–1.95**; the LOSING phalanx heavy-sword sits
+   at **~0** once the grind settles (spikes 1.08 only for ~1s at first contact). So the
+   winner being-pushed-back reads HIGHER than the loser. No push/engagement threshold
+   separates them.
+
+ROOT, stated cleanly: the wrap and the swirl are the **same kinematic move** — the
+formation re-aiming/wheeling toward the enemy centroid during an engagement dip. For a
+wide line vs a narrow block that wheel CURLS the line around the block (envelopment,
+GOOD); for an equal-front losing grind it ROTATES the whole line off its front (swirl,
+BAD). The only thing that distinguishes them is GLOBAL FRONTAGE GEOMETRY: my engaged
+men span my FULL width in a frontal grind, but only my CENTRE in a wrap (edges free).
+So the swirl fix needs an engaged-lateral-spread / relative-frontage signal (arm the
+lock only when engaged men span ~my full width AND my width ≈ the enemy's), plus the
+rout-release (which is proven). That is a structural controller change — the dedicated
+swirl pass — not a local threshold. Reverted to hold 146/12. The rrout-release and the
+swirl→passthrough link (phalanx) are the reusable findings for that pass.

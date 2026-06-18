@@ -95,6 +95,7 @@ pub struct Sim {
     /// Current melee engagement (enemy soldier index, -1 = none).
     /// Set at awareness range (~6m): drives approach facing.
     pub target: Vec<i32>,
+    pub attacked_by: Vec<u16>,
     /// 1 = the engaged enemy is within actual weapon reach. Reflexes (halt,
     /// drift tracking, drain) key on THIS — being able to see an enemy is
     /// not being in a fight.
@@ -182,6 +183,7 @@ impl Sim {
             stun: Vec::new(),
             trampled: Vec::new(),
             target: Vec::new(),
+            attacked_by: Vec::new(),
             fighting: Vec::new(),
             fight_near: Vec::new(),
             front_clear: Vec::new(),
@@ -345,6 +347,7 @@ impl Sim {
             self.stun.push(0.0);
             self.trampled.push(0.0);
             self.target.push(-1);
+            self.attacked_by.push(0);
             self.fighting.push(0);
             self.fight_near.push(0);
             self.front_clear.push(1);

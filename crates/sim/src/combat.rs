@@ -58,6 +58,27 @@ impl Sim {
         let phase = (self.tick_count % 3) as usize;
         let cell = self.grid.cell_size;
 
+        // Each attacker's RANK among the men targeting his victim (index order,
+        // from last tick's targets). Only the first GANG_CAP may SWING: you can't
+        // get your weapon onto a foe two comrades already crowd. This caps the
+        // gang's DAMAGE without touching targeting or the magnet — every man keeps
+        // his foe and his place in the line, so the front and flank geometry are
+        // untouched; the (cap+1)th man just presses, unable to land a blow. Capping
+        // the local outnumbering is what stops a thinning line being ground 3:1.
+        for a in self.attacked_by.iter_mut() {
+            *a = 0;
+        }
+        let mut gang_rank = vec![0u16; n];
+        for i in 0..n {
+            if self.alive[i] == 1 {
+                let t = self.target[i];
+                if t >= 0 {
+                    gang_rank[i] = self.attacked_by[t as usize];
+                    self.attacked_by[t as usize] += 1;
+                }
+            }
+        }
+
         // Units anywhere near an enemy (coarse gate so the quiet 90% of the
         // battlefield costs nothing).
         let near_enemy: Vec<bool> = self
@@ -329,6 +350,11 @@ impl Sim {
             if self.attack_cd[i] > 0.0 {
                 continue;
             }
+            // GANG CAP: a foe already crowded by gang_cap comrades leaves no room
+            // for this man's blade to WOUND — but he still swings and SHOVES (the
+            // push that holds the contact line apart), so the front neither blobs
+            // nor loses the standoff; only the gang's DAMAGE is capped.
+            let can_wound = gang_rank[i] < tun.gang_cap;
             let target_p = self.soldier_pos(nearest as usize);
             let aim = wrap_angle((target_p - p).y.atan2((target_p - p).x) - aim_facing);
             if aim.abs() > weapon.arc * 0.5 + AIM_TOLERANCE {
@@ -389,7 +415,7 @@ impl Sim {
                     continue;
                 }
                 struck += 1;
-                self.strike(i, v, weapon, bearing, m_a, &tun);
+                self.strike(i, v, weapon, bearing, m_a, can_wound, &tun);
             }
         }
     }
@@ -402,6 +428,7 @@ impl Sim {
         weapon: &Weapon,
         bearing: f32,
         m_attacker: f32,
+        can_wound: bool,
         tun: &crate::tunables::Tunables,
     ) {
         let uv = self.soldier_unit[victim] as usize;
@@ -482,7 +509,9 @@ impl Sim {
             // and the weave reads that compression as crush next tick.
         }
 
-        if blocked {
+        // Blocked, or gang-capped (no room to land the blade): the shove above
+        // still happened — only the wound is denied.
+        if blocked || !can_wound {
             return;
         }
 

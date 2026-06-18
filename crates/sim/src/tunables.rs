@@ -147,6 +147,12 @@ pub struct Tunables {
     /// it and close. A pike (long reach) keeps men far; a sword (short) at arm's
     /// length. Same rule, the reach is the only difference.
     pub weapon_repel: f32,
+    /// Most attackers that may WOUND one man at once. Beyond this a man is crowded
+    /// but no further blade can reach him — the (cap+1)th attacker presses and
+    /// shoves but cannot land a hit. Caps the local outnumbering that snowballs a
+    /// thinning line into the attrition runaway (a wrapped flank ground far past
+    /// even). A large value (≥99) is effectively uncapped.
+    pub gang_cap: u16,
     /// Seconds a halted formation takes to set its feet and reach full brace
     /// (it drops instantly when moving). A charge landing inside this window
     /// hits a not-yet-braced line and rides through.
@@ -278,6 +284,7 @@ impl Default for Tunables {
             stun_momentum: 16.0,
             stun_time: 1.3,
             weapon_repel: 15.0,
+            gang_cap: 3,
             brace_ramp_secs: 3.0,
             trample_bleed: 1.5,
             trample_recover: 0.4,

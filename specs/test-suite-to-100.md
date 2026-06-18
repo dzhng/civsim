@@ -2,7 +2,7 @@
 
 ## State
 
-`cargo test -p sim --no-fail-fast` → **148 passing / 12 failing** (up from 112/43 at
+`cargo test -p sim --no-fail-fast` → **149 passing / 11 failing** (the 12 below minus the a_held_braced charge-half now green) (up from 112/43 at
 the start of the foundation work; see the dated addenda at the bottom for the latest).
 The contact foundation HOLDS. The single biggest
 remaining lever is the **sustained-grind column MESH** (see the bottom addendum): it
@@ -574,3 +574,22 @@ geometry the whole clash depends on — fixing the thread requires re-deriving t
 every clash and re-judging the foundation, not a local change. THREE column-mesh mechanisms
 now measured-dead this session (slide-disable −10, directional-bond breaks foundation,
 hysteresis reasoned-dead). Definitively a foundation-level co-design pass, not bounded.
+
+### Decoupling round 2 (same session): a_held_braced split by pace — the CHARGE-defence is green
+
+Checked every remaining multi-claim test for a passing sub-claim (the productive split
+pattern). Found one: `a_held_braced_line_beats_an_equal_frontal_attacker` looped Walk AND
+Run. Measured per-pace: vs a CHARGE (Run) the braced defender WINS (def 108 vs atk 54) —
+the correct "don't charge a set line" mechanic; vs a controlled WALK it LOSES (def 47 vs
+atk 203) — the pressure-evade inversion. Split into `a_held_braced_line_breaks_a_frontal_
+charge` (GREEN) + `a_held_braced_line_should_beat_a_walking_attacker` (RED, the pressure-
+evade debt). 148→149.
+
+CHECKED and NOT splittable (no passing half, verified by measurement): two_braced (both
+gap 0.39 AND front −17 fail over the immortal run), the_counter_web_contested (all 3
+matchups fail: cav-pike draws ×2, kite loses to foot), eight_ranks (ride-clear centroid 6.9
+AND the cav over-bleeds — both fail), mirror_heavy (routs 147<165 AND snowballs 0.17, both
+fail), phalanx (swirl AND passthrough both fail), a_column (the bulge "passes" only as the
+penetration symptom — splitting would certify the bug). The decoupling vein is now mined
+dry: every freeable passing claim has been freed (large_turns, halted_frame, a_held_braced,
++ the earlier eight_ranks/mirror/counter_web bog/grind/web splits).

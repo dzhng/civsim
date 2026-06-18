@@ -145,6 +145,26 @@ fronts can't thread the gaps (or push against ALL frontal foes in the band with 
 shared cap, not just the single nearest-in-column). Validate by watching MIN FRONT
 gap (not centroid) — it must stay ≳ −1 m. Start there next; do not touch the scalar.
 
+**Measurement (2026-06-18, THIRD attempt — enemy collision PADDING, FALSIFIED.)**
+Tried the "pad each soldier's body vs enemies" idea: added `enemy_separation_pad`
+(0.25 m) to the non-overlap `min_dist` for enemy pairs (so two 0.8 m-spaced
+staggered fronts can't mesh into each other's gaps without overlapping). Result:
+two_braced_walls MIN FRONT gap **unchanged at −17 m** — the pad did nothing — and
+it broke `symmetric_clash_is_even_handed`. Reverted.
+
+Why padding fails: the hard wall (collision.rs:481-493) snaps a man out of the
+**single deepest** enemy body he overlaps, to that one body's contact ring. The
+zipper is men threading the **corridors between enemy FILES** — staying ≥ min_dist
+from every individual body while marching deep into the formation lattice. A
+per-body wall (even a padded one) can't see a corridor; ejecting from the deepest
+body just shoves the man toward the next file's corridor. So the limiter is **wall
+ENFORCEMENT for dense opposing lattices, not any trigger distance or force scalar.**
+A real fix is a proper position-based constraint solve (iterate the non-overlap to
+convergence, or a formation-front constraint that treats the enemy front rank as a
+line, not a bag of circles) — a collision-solver project, not a tunable. Three
+scalar/local attempts (repel strength, velocity damp, body pad) are now falsified;
+stop trying local knobs.
+
 ## The design (proposed; ranked)
 
 Pick ONE owner for the target pair, arbitrated by `two_braced_walls` +

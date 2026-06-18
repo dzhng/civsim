@@ -497,3 +497,29 @@ penetration symptom, not elastic absorption (the doc comment itself says "it jus
 penetrated"). And `two_braced_walls`' `closed` is a vacuity guard, not a claim. The rule:
 split only when the green sub-claim passes for the RIGHT reason, never to inflate the
 count. 146/12 → 148/12.
+
+### Pivot smear (large_turns_pivot_keeps_ranks): VIBE-VERIFIED real, and why a tunable can't fix it
+
+VERIFIED via vibe shot (rendered the 180° in-place pivot flip-book and looked): the
+block genuinely SMEARS — the ranks bend/curve as it rotates (mid-pivot mean slot error
+~4.5m), they don't hold straight rows. So it is a REAL bug, NOT a wrong threshold — a
+repin to 4.5 would certify the smear. (Confirms the conservative call; the vibe shot is
+the ground truth.)
+
+ROOT: `wheel_speed_factor = 1.0` lets the OUTER slot rotate at the men's own top speed,
+so a man chasing his rotating slot has ZERO margin to close his following error — he lags
+forever and the block smears. The only lever is to rotate the slots SLOWER (give chase
+headroom). TRIED a pivot-only `PIVOT_WHEEL_FRAC`, gated `at_ease && err>2rad` so it only
+touches a drilled parade pivot, never a tactical wheel:
+- 0.3 fixes large_turns but −7 (combat wheels — break-off/withdraw/pursue — go sluggish).
+- at_ease+large gate recovers all but `drifting_is_slower_than_marching`, whose OPEN-FIELD
+  baseline is itself a no-threat 180-then-march: slowing that pivot lengthens the baseline
+  and breaks its `drift > open_field*1.2` ratio.
+- SWEPT: large_turns needs frac ≤0.4; drifting needs frac ≈1.0 (any slowdown breaks its
+  ratio). NO value threads both — the windows don't overlap.
+
+So drilled-pivot QUALITY and pivot/maneuver SPEED are in irreducible tension at
+wheel_speed_factor=1.0; a tunable trades one test for the other. The real fix is a
+different pivot KINEMATIC (stage the re-form, or chase-gain boost during rotation so men
+keep up at full wheel speed without the time cost) — a controller change, not a knob.
+Reverted to hold 148/12.

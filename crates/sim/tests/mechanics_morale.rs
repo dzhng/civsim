@@ -47,6 +47,33 @@ fn allied_support_lets_a_unit_hold_past_where_it_breaks_alone() {
     );
 }
 
+/// The support scales with the NUMBER of friends: one unit behind helps, three
+/// help more — same fight, only the count of steady friends changes.
+#[test]
+fn support_scales_with_the_number_of_friends() {
+    let alone = break_pct(0, UnitClassId::HeavySword, UnitClassId::HeavySword);
+    let one = break_pct(1, UnitClassId::HeavySword, UnitClassId::HeavySword);
+    let three = break_pct(3, UnitClassId::HeavySword, UnitClassId::HeavySword);
+    eprintln!(
+        "break: alone {:.0}%  +1 friend {:.0}%  +3 friends {:.0}%",
+        alone * 100.0,
+        one * 100.0,
+        three * 100.0
+    );
+    assert!(
+        one > alone + 0.03,
+        "even one steady friend must help: alone {:.0}% vs +1 {:.0}%",
+        alone * 100.0,
+        one * 100.0
+    );
+    assert!(
+        three >= one,
+        "three friends must steady at least as much as one: +1 {:.0}% vs +3 {:.0}%",
+        one * 100.0,
+        three * 100.0
+    );
+}
+
 /// A high-AURA class (heavy horse) steadies a wavering line more than the same
 /// number and size of ordinary infantry — the aura is a per-class knob.
 #[test]

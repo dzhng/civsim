@@ -351,7 +351,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             evade: 0.12,
             training: 0.75,
             bravery: 1.3,     // armoured shock riders hold their nerve
-            morale_aura: 2.6, // and the sight of friendly heavy horse steadies a line
+            morale_aura: 2.0, // and the sight of friendly heavy horse steadies a line
             stance: crate::unit::Stance::Fence,
             weapons: two(LANCE, CAV_SWORD),
             ..foot

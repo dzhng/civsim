@@ -14,7 +14,7 @@ const BREAK_AT: f32 = 0.18;
 /// How strongly nearby allied steadiness (size × aura, summed) divides the morale
 /// drain. Tuned so a unit ringed by big, bold friends holds to ~85% casualties
 /// where it would break near ~half alone.
-const MORALE_SUPPORT: f32 = 0.25;
+const MORALE_SUPPORT: f32 = 0.10;
 /// Rallied units carry scars: ceiling multiplier per rout.
 const RALLY_SCAR: f32 = 0.78;
 
@@ -75,6 +75,11 @@ impl Sim {
             }
             let my_team = u.team;
             let my_center = u.center();
+            // Morale geometry is EDGE-to-EDGE: a 300-man block's near face, not its
+            // distant centre, is what a neighbour feels (a friend pressed against
+            // your flank steadies you even if its centroid is 30 m off). Half the
+            // larger span is a cheap circular bound on each unit's reach.
+            let my_half = 0.5 * u.width().max(u.depth());
             let alive_n = u.alive_count.max(1) as f32;
 
             // --- physical inputs ------------------------------------------
@@ -119,7 +124,15 @@ impl Sim {
                 if vi == ui || alive_v == 0 {
                     continue;
                 }
-                let d = (c - my_center).len();
+                // EDGE-to-edge is the default for steadiness/relief geometry.
+                // CHARGE intimidation is the one exception that keeps CENTRE
+                // distance: it is the momentum of an approaching MASS (its whole
+                // body bears down, not just the near rank), and it is finely
+                // calibrated against the morale_scenarios — edge distance double-
+                // counts the wall's depth and breaks a line before contact.
+                let their_half = 0.5 * self.units[vi].width().max(self.units[vi].depth());
+                let d_center = (c - my_center).len();
+                let d = (d_center - my_half - their_half).max(0.0);
                 if team != my_team {
                     if v_routing {
                         if d < 90.0 {
@@ -132,13 +145,13 @@ impl Sim {
                         }
                         continue; // a broken enemy frightens nobody
                     }
-                    if d < 70.0 {
+                    if d_center < 70.0 {
                         // Approaching MOMENTUM, relative to the mass it's
                         // aimed at: a wall of horse at the gallop is
                         // terrifying; five survivors of that wall are not.
                         // Measured advance, not commanded pace — a unit
                         // pinned in a jam frightens nobody.
-                        let closing = ((my_center - c) * (1.0 / d.max(0.1)))
+                        let closing = ((my_center - c) * (1.0 / d_center.max(0.1)))
                             .dot(dir(self.units[vi].facing))
                             * advance;
                         if closing > 3.5 {

@@ -117,6 +117,34 @@ ONLY once damped). Do NOT land a bare `weapon_repel` bump; it will pass at one
 seed and rout at the next. (Same lesson as the hold-front lean in commit 2b956e5:
 a chaotic scalar knob is the wrong tool — use a structural/stable mechanism.)
 
+**Measurement (2026-06-18, FOLLOW-UP — the velocity-damp idea above is FALSIFIED.)**
+Implemented exactly the recommended fix: a braced-only repel term resisting the
+foe's inward closing speed (`close = (v_bearer − v_foe)·aim`, added to the push,
+new tunable `weapon_repel_damp`). Swept damp ∈ {8,16,24,32,48} × 3 seeds:
+
+```
+damp= 8  gaps [ 2.5,  1.3,  0.2]      damp=24  gaps [ 5.5, -0.8, -1.2]
+damp=16  gaps [ 0.9, -2.2,  0.7]      damp=48  gaps [-1.0,  0.7,  5.8]
+```
+
+Still chaotic and seed-fragile — NO value holds across seeds. Velocity damping
+does NOT kill the buckle; reverted (kept the combat guards green throughout —
+pikes_bite, deep_pike_wall, a_braced_block all stayed ok, so the blast radius of a
+braced-only repel term is safely small, but the term doesn't work).
+
+**The real signal: it is not a centroid buckle, it is a FRONT ZIPPER.** In the
+failing run the centroid gap sits at ~0.8 m while the MIN FRONT gap is **−17 m** —
+the two fronts interpenetrate 17 m deep. The blocks are 0.8 m-spaced and staggered,
+so opposing men slot into each other's lateral gaps like a zipper and the repel's
+per-column foe-finder MISSES them: `weapon_repel` only pushes the nearest frontal
+foe whose lateral offset `|lat| ≤ half_w` (one file spacing, collision.rs:387) —
+a man offset half a file by the stagger falls OUTSIDE every enemy's column gate, so
+nothing pushes him and he walks straight in. **The fix is almost certainly in the
+foe-FINDING, not the force magnitude:** widen/overlap the lateral gate so staggered
+fronts can't thread the gaps (or push against ALL frontal foes in the band with a
+shared cap, not just the single nearest-in-column). Validate by watching MIN FRONT
+gap (not centroid) — it must stay ≳ −1 m. Start there next; do not touch the scalar.
+
 ## The design (proposed; ranked)
 
 Pick ONE owner for the target pair, arbitrated by `two_braced_walls` +

@@ -523,3 +523,19 @@ wheel_speed_factor=1.0; a tunable trades one test for the other. The real fix is
 different pivot KINEMATIC (stage the re-form, or chase-gain boost during rotation so men
 keep up at full wheel speed without the time cost) — a controller change, not a knob.
 Reverted to hold 148/12.
+
+### two_braced_walls: directly traced — standoff FORMS then slowly THREADS (not 85m, not a transient)
+
+Re-measured the current behavior (the 85m figure above is stale — pre-contact-foundation).
+Traced front_gap per second: the blocks close (gap 50→3 by t9), HOLD a real standoff at
+~2-3m for ~7s (t9-16 — the braced bond's exponential comp_push works), then the fronts
+SLOWLY thread past each other monotonically: −1 (t17), −2 (t20), −4 (t25), −6 (t29)... to
+−17 by t80, the centroid gap creeping 7.0→5.6. This is NOT an impact transient (no spike-
+and-recover, so the depth_ratio skip-impact trick does NOT apply — checked) and NOT a
+wrong metric: it is the staggered columns (20 files, 0.8 spacing) interleaving through
+each other's lateral GAPS while each man's bond holds him only off his DIRECT target. Same
+root as the_fronts_stay_welded — the column-MESH. The bond owns the head-on standoff but
+nothing stops the lateral slide-through, so over time the fronts mesh. The fix is lateral
+interleave prevention (an enemy body must block a man's lateral slide, not just his direct
+foe), which lives in the collision/weave force balance and ripples combat — the documented
+multi-iteration standoff repair. VERIFIED real, not repinnable.

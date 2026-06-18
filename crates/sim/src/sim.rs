@@ -1226,6 +1226,26 @@ impl Sim {
                 matches!(u.mode, crate::unit::OrderMode::Attack(_)) || u.move_target.is_some();
             let slot_pull_u = if advancing { tun.slot_pull } else { tun.slot_pull_hold };
             let my_files = u.files_eff.max(1);
+            // How WIDE is the band of my own front under contact? A full press
+            // engages across my whole frontage; a narrow column (even several side
+            // by side) engages only the span it covers. Measured as the lateral
+            // (perp-to-facing) extent of my FIGHTING men over my frontage width —
+            // this reads "broad" no matter how many enemy UNITS deliver the press,
+            // where checking a single foe unit's width cannot. (fighting[] is last
+            // tick's — a contact band doesn't jump rank to rank.)
+            let broad_press = {
+                let (mut lo, mut hi, mut any) = (f32::INFINITY, f32::NEG_INFINITY, false);
+                for s in 0..u.count {
+                    let i = u.start + s;
+                    if alive[i] == 1 && fighting[i] == 1 {
+                        let lat = positions[2 * i] * r.x + positions[2 * i + 1] * r.y;
+                        lo = lo.min(lat);
+                        hi = hi.max(lat);
+                        any = true;
+                    }
+                }
+                any && (hi - lo) > 0.5 * (my_files as f32 * u.spacing.x)
+            };
             let reach_u = u.stats
                 .weapons
                 .iter()
@@ -1582,21 +1602,23 @@ impl Sim {
                 };
                 let fi = target[i];
                 let foe_mounted = fi >= 0 && mounted[fi as usize] == 1;
-                // A foe of roughly EQUAL width is a press; far fewer files is a
-                // narrow column poking the line. (×2 ≥ my_files: foe at least half
-                // my width.)
+                // The foe I'm fighting is itself ~as wide as my line — a single
+                // equal press. This fires from FIRST contact (it needs no developed
+                // band), so a set line leans in time to trade the OPENING exchange
+                // evenly. `broad_press` (above) is the complement: a wide contact
+                // band assembled from ANY number of narrower units. A narrow column
+                // is narrow on BOTH, so it still can't trigger the lean.
                 let foe_broad = fi >= 0
                     && units[soldier_unit[fi as usize] as usize].files_eff.max(1) * 2 >= my_files;
-                // The engaged FRONT of a HOLDING line leans into an equal-width
-                // press: a softened slot grip lets the enemy magnet draw it forward
-                // to MEET the foe with as many men as the attacker leans in with, so
-                // a set line trades the opening exchange evenly instead of being
-                // pinned back and ground down. The REAR keeps the strong hold-grip
-                // (it must not lunge with the front and blob). Gated `foe_broad` so a
-                // narrow column can't trigger it and part the line; and against a
-                // CHARGE (mounted) the braced front PLANTS, it doesn't step onto the
-                // hooves, so the anti-charge stop is untouched.
-                let slot_pull_i = if !advancing && engaged_i && !foe_mounted && foe_broad {
+                // The engaged FRONT of a HOLDING line leans into a broad press: a
+                // softened slot grip lets the enemy magnet draw it forward to MEET
+                // the foe with as many men as the attacker leans in with, so a set
+                // line trades the opening evenly instead of being pinned back and
+                // ground down. The REAR keeps the strong hold-grip (it must not lunge
+                // with the front and blob). Against a CHARGE (mounted) the braced
+                // front PLANTS, it doesn't step onto the hooves, so the anti-charge
+                // stop is untouched.
+                let slot_pull_i = if !advancing && engaged_i && !foe_mounted && (foe_broad || broad_press) {
                     0.65
                 } else {
                     slot_pull_u

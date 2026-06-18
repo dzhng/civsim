@@ -44,6 +44,25 @@ set by `integrate_units` between t84 and t85. NEXT: log `unit.anchor`,
 t84→t85 and find the FIRST quantity that isn't a 180° mirror. That single
 non-mirror value, in the frame/anchor integration, is the true seed.
 
+UPDATE 2: traced the UNIT-level state (anchor, centroid, frame_speed) across
+t84→t86 — they are bit-perfect mirrors through t85 (`frame_speed` 3.33371 == 3.33371),
+the centroid breaking only at t86 (+0.006 y). So the UNIT integration is symmetric;
+the break is purely SOLDIER-level. At 1v1 the soldier's `err = |anchor − p|` is 1-D
+in y and bit-identical for the mirror pair, so the surge comparison is symmetric —
+the only soldier-level quantity that differs by index is the per-man speed cap
+`(0.62 + 0.44·stagger01(i))·sprint`. But replacing it with a constant did NOT fix
+the win (still 0/24). CONCLUSION: the bias is MULTIPLY-DETERMINED — several coupled
+discrete switches (the surge step, the index-keyed per-man cap, the contact-halt
+detection) each amplify the same sub-ULP seed, and equalizing any ONE leaves the
+others to decide the winner. There is no single bad line; the combat+movement
+equilibrium is a tipping point that converts sub-ULP noise into a decided battle.
+The real fix is to make the amplifiers continuous/symmetric TOGETHER (smooth surge,
+non-index per-man speed, symmetric contact detection) so a sub-ULP seed decays
+instead of being switch-amplified — a comprehensive stabilization, exactly the
+program in the combat-instability analysis. The 1v1 in mechanics_symmetry.rs is the
+green-light test for that program: when a 2-soldier duel becomes a coin-flip, the
+amplifiers are tamed.
+
 PASS bisect (env-gated mirror check after each tick pass, 1v1, sum=`pos[0]+pos[2]`):
 the 180° mirror first breaks **inside `steer_soldiers`** (the FIRST pass) — the Y
 component drifts from 0 at ~t85 (DURING the approach, ~5 m apart, well before

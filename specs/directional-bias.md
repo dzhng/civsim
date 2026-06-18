@@ -31,6 +31,19 @@ verify the constant cap makes the v.y mirror EXACT first). Possible FIX once the
 seed is known: make the surge SMOOTH (ramp the cap with err) instead of a discrete
 step, so a sub-threshold difference can't be amplified into a one-tick speed jump.
 
+UPDATE: tried the smooth surge (ramp keep_up→sprint across a 2 m band). It did NOT
+fix the win (n=1 still 0/20, n=240 still 20/20). So the surge step is a SYMPTOM/
+amplifier, not the seed — even ramped, the soldier with fractionally larger `err`
+still moves a touch faster, reaches contact first, and loses. Reverted. The seed is
+DEEPER: the two mirror soldiers' `err` (=`soldier_stretch`, which at 1v1 is just
+`|anchor − p|`) is bit-identical at t84 but DIVERGES by t85 despite mirror
+positions. Since `|to|` = `sqrt(to.x²+to.y²)` is bit-exactly mirror-invariant, the
+divergence must come from a non-mirror INPUT to t85 — the anchor or the position,
+set by `integrate_units` between t84 and t85. NEXT: log `unit.anchor`,
+`unit.centroid`, `frame_speed`, and each soldier's `p` for both units across
+t84→t85 and find the FIRST quantity that isn't a 180° mirror. That single
+non-mirror value, in the frame/anchor integration, is the true seed.
+
 PASS bisect (env-gated mirror check after each tick pass, 1v1, sum=`pos[0]+pos[2]`):
 the 180° mirror first breaks **inside `steer_soldiers`** (the FIRST pass) — the Y
 component drifts from 0 at ~t85 (DURING the approach, ~5 m apart, well before

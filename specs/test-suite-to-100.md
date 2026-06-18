@@ -417,3 +417,30 @@ FRONTAL foe (fwd>0): once the fronts interpenetrate at Run-pace closing, fwd<0 a
 repel switches off — all-or-nothing, no recovery. Fixing the weld/passthrough is the
 single highest-value target (4 tests), but it lives in the collision/weave force balance
 and touches combat — a measured multi-iteration pass, not a bounded tweak.
+
+### Refinement (same session): the swirl latch — losing_push arm, and the swirl→passthrough LINK
+
+Re-attempted the latch with a smarter arm: a `grind_locked` field SET only while the
+unit is being driven back (`losing_push > 0.3 && engaged_frac > 0.08 && !routing`), held
+continuously, released at `engaged_frac < 0.02` / new order. RESULT on phalanx_and_heavy:
+**both** assertions pass — faceDev 90°→24° AND crossed 15.5s → NEVER (crossed@-1.0). KEY
+FINDING: **phalanx's passthrough was SWIRL-DRIVEN** — the 90° wheel opens the line's
+flank and the enemy walks through the gap; kill the wheel and the front holds, no
+passthrough. So for phalanx, swirl and passthrough are ONE bug.
+
+BUT still -2 net (146→144): the `losing_push` arm is not a clean winner/loser
+discriminator. It misfires three ways: (1) `a_wide_line_wraps` — a WRAPPING winner's
+centre is pushed back as it envelops, so losing_push rises, the latch arms, and it can't
+wheel its edges in (envelopment 0.20 vs needed 0.35); (2) `hold_ground..pursue` and (3)
+`the_verdict..routs` — the latch must RELEASE when the enemy breaks (go pursue) or this
+unit routs, but the field stays armed until engaged<0.02. AND the latch does NOT help
+a_column_bulges / the_fronts_stay_welded — their passthrough is the column-MESH
+(threading through body gaps), independent of swirl, so it persists with the line
+perfectly square.
+
+So the swirl fix is real and greens phalanx, but needs a discriminator that
+distinguishes (a) a losing frontal grind that must hold its facing, from (b) a wrapping
+winner whose centre is pushed back, and (c) a unit whose enemy just broke. Candidate:
+arm on a HIGH engaged_frac (full-width grind, ~0.15+) rather than losing_push (a partial-
+contact wrap never reaches it), plus release when the engaged enemy is routing/gone.
+Left for the dedicated swirl pass. Reverted to hold 146/12.

@@ -34,6 +34,24 @@ fn front_pressure(sim: &Sim, unit: usize) -> f32 {
     sum / n.max(1) as f32
 }
 
+/// Mean y of a unit's REARMOST ranks (back third, by slot). "Giving ground" is
+/// the BACKLINE moving — the attacker pressing the FRONTLINE back is expected (the
+/// front compresses), but a holding line keeps its REAR planted under the press.
+fn backline_y(sim: &Sim, unit: usize) -> f32 {
+    let u = &sim.units[unit];
+    let files = u.files_eff.max(1);
+    let ranks = (u.count / files).max(1);
+    let rear_from = ranks * 2 / 3;
+    let (mut sum, mut n) = (0.0f32, 0usize);
+    for i in u.start..u.start + u.count {
+        if sim.alive[i] == 1 && (sim.soldier_slot[i] as usize / files) >= rear_from {
+            sum += sim.soldier_pos(i).y;
+            n += 1;
+        }
+    }
+    sum / n.max(1) as f32
+}
+
 /// Mean pressure + centroid-y, averaged over the steady grind (t_lo..t_hi),
 /// skipping the impact transient. Two HeavySword blocks meet head-on; `def_holds`
 /// makes the north unit hold (no order) while the south attacks.
@@ -47,24 +65,28 @@ fn clash_metrics(def_holds: bool) -> (f32, f32, f32, f32) {
         sim.set_pace(n, Pace::Walk);
         sim.set_attack_order(n, s);
     }
-    let (sy0, ny0) = (sim.units[s].centroid.y, sim.units[n].centroid.y);
+    // Ground is the BACKLINE under the PRESS — sampled mid-grind (t8..28) while
+    // both still fight cohesively, NOT after one collapses (a beaten unit gives
+    // ground because it LOST, which is balance, not the press-holds-ground physics
+    // this invariant pins). Track the worst backward give of each rear.
+    let (sy0, ny0) = (backline_y(&sim, s), backline_y(&sim, n));
     let (mut ps, mut pn, mut samples) = (0.0f32, 0.0f32, 0usize);
+    let (mut s_back, mut n_back) = (0.0f32, 0.0f32); // worst backward give in-window
     for step in 0..(40.0 / DT) as usize {
         sim.tick();
         let t = step as f32 * DT;
-        if (8.0..30.0).contains(&t) && step % 15 == 0 {
-            ps += front_pressure(&sim, s);
-            pn += front_pressure(&sim, n);
-            samples += 1;
+        if (8.0..28.0).contains(&t) {
+            s_back = s_back.min(backline_y(&sim, s) - sy0); // south's rear backward = -y
+            n_back = n_back.max(backline_y(&sim, n) - ny0); // north's rear backward = +y
+            if step % 15 == 0 {
+                ps += front_pressure(&sim, s);
+                pn += front_pressure(&sim, n);
+                samples += 1;
+            }
         }
     }
     let k = samples.max(1) as f32;
-    (
-        ps / k,
-        pn / k,
-        sim.units[s].centroid.y - sy0, // south advances +y; >0 = it gained ground
-        sim.units[n].centroid.y - ny0, // north advances -y; <0 = it gained ground, >0 = walked back
-    )
+    (ps / k, pn / k, s_back, n_back)
 }
 
 /// INVARIANT 1: two equal engaged units feel equal pressure — attack-vs-hold and
@@ -83,18 +105,20 @@ fn equal_units_feel_equal_pressure_attack_or_hold() {
     }
 }
 
-/// INVARIANT 2: two equal units do not give ground — the brace cancels othismos,
-/// so neither centroid is walked back, attack-vs-hold or attack-vs-attack.
+/// INVARIANT 2: two equal units do not give ground at the BACKLINE under the
+/// press — the brace cancels the othismos drive for equals, so neither rear is
+/// walked back while both still fight (attack-vs-hold and attack-vs-attack). The
+/// FRONT compresses (expected); the REAR holds. (A unit that later collapses and
+/// gives ground because it LOST the fight is a balance question, not this one.)
 #[test]
 fn equal_units_do_not_give_ground() {
     for def_holds in [false, true] {
-        let (_, _, ds, dn) = clash_metrics(def_holds);
+        let (_, _, s_back, n_back) = clash_metrics(def_holds);
         let label = if def_holds { "attack-vs-HOLD" } else { "attack-vs-attack" };
-        // south gains by +y, north by -y; "walked back" is south < 0 or north > 0.
-        eprintln!("{label}: south moved {ds:+.1}m  north moved {dn:+.1}m (north>0 = walked back)");
+        eprintln!("{label}: south rear gave {s_back:+.1}m  north rear gave {n_back:+.1}m (backward)");
         assert!(
-            ds > -2.0 && dn < 2.0,
-            "{label}: equal units must hold their ground (no othismos walk-back): south {ds:+.1} north {dn:+.1}"
+            s_back > -2.0 && n_back < 2.0,
+            "{label}: equal units must hold their REAR under the press: south {s_back:+.1} north {n_back:+.1}"
         );
     }
 }

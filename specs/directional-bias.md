@@ -63,6 +63,26 @@ Ran the bisects. Ruled OUT and IN:
   by) the two enemy-facing contact forces — both read foe geometry off `aim`
   (the unit facing, +y vs −y) and the grid.
 
+**CAUTION — the cohesion-gap localization above is a PARTIAL RED HERRING.** It
+identified forces that move the COHESION metric, but the WIN-RATE bias survives
+removing them: south still wins 15/16 with BOTH `weapon_repel=0` AND
+`magnet_strength=0` (weapon_repel alone shaves it to 12/16 — a real but minor
+contribution; magnet to 15/16). So who-WINS is decided by something the cohesion
+gap doesn't capture, robust to zeroing the two big contact forces. The root is
+deeper / multi-causal. Measure the WIN-RATE (over a seed set), not the cohesion
+gap, when bisecting next — they disagree.
+
+What's left standing as the suspect surface: the bias is positional (the y-mirror
+RESPECTS it — the −13/+y unit wins whether team0 or team1), deterministic, and
+survives position+speed jitter and removal of weapon_repel/magnet/slide/hit_push.
+That points at something STRUCTURAL and always-on: the per-unit or per-soldier
+PROCESSING ORDER combined with in-place position updates (Gauss-Seidel coupling)
+in steer_soldiers / collision / combat, where the ABSOLUTE y of a unit (not its
+index) selects which gets the stale-vs-fresh read. Index order was ruled out, but
+a y-keyed read inside one of those passes was not. This needs a dedicated session
+with careful win-rate bisection — not more single-force guesses (slide, ties,
+repel, magnet were all wrong or partial).
+
 Next probe to ROOT it: take ONE south man and the mirror-image north man at the
 SAME relative contact geometry, and log what `weapon_repel`/`magnet` each computes
 — which foe is selected, the push vector, the recoil. They should be exact

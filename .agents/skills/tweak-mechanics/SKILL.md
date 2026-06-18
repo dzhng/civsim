@@ -332,10 +332,19 @@ Rules for a mechanics test:
 
 1. **Zero stat variability.** Use IDENTICAL units (same class both sides)
    or hand-built fake units. Any asymmetry you didn't introduce on purpose
-   is noise that hides the signal. A symmetric setup also lets you assert
-   *even-handedness* (identical units must take comparable losses — a
-   lopsided result with no stat difference is a mechanical bias, e.g. the
-   side whose order lands a tick earlier steamrolling).
+   is noise that hides the signal. A symmetric setup lets you assert the
+   physics *invariants* tightly and deterministically (centroids don't
+   cross, no blob, the line holds — one seed, exact threshold). But do NOT
+   assert *even-handedness* on a single seed: identical units in one fight
+   are EXPECTED to take lopsided losses (the fight is decisive, the loser
+   routs and is chased). "No side is systematically favored" is a
+   **distribution** property — a win-rate band over a seed set, not a
+   single-seed "comparable losses" check. That single-seed check is BLIND:
+   it certifies whatever the lucky seed did and *masks* real
+   directional/processing-order bias (this session, a single-seed even-
+   losses pin hid a 20/20 one-side-always-wins bias for months; the
+   distribution rewrite caught it on the first run). **Mechanical = tight +
+   deterministic; fairness = distribution.** See `write-tests`.
 2. **Never assert wins/losses.** Assert on values close to the physics:
    - **cohesion** (`unit.cohesion`, export `[4]`) — does the line hold its
      shape, or dissolve?

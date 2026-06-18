@@ -66,6 +66,39 @@ physical signature instead:
 - If you must assert an outcome differential, give it a wide margin and a
   comment naming it chaos-marginal. A 1.05x bar WILL flip someday.
 
+## The one-line split: mechanical = tight + deterministic; balance = distribution
+
+The two families want OPPOSITE things from a number, and conflating them is the
+single most expensive test-design mistake in this repo:
+
+- **Mechanical invariant** — a physics truth that holds *every* run. Assert it
+  **tight and deterministic**: one seed is fine (the physics is deterministic),
+  an exact threshold ("centroids never cross", "cohesion > 0.8", "no blob:
+  interpenetration < 0.3"). A mechanical invariant that needs many seeds to hold
+  isn't an invariant — it's a balance outcome in disguise.
+- **Balance / fairness outcome** — anything tuning-dependent or stochastic
+  ("cav wins ~60%", "identical units are even-handed"). Assert it as a
+  **DISTRIBUTION over a seed set**, NEVER a single-seed value. A single decisive
+  battle is *expected* to be lopsided (the loser routs and is chased — a lopsided
+  LOSS COUNT is correct); fairness is "neither side wins systematically across
+  N seeds", a band like `win_count ∈ [5, 15]` of 20.
+
+**Why a single-seed balance pin is a trap (worked case, this session):**
+`symmetric_clash_is_even_handed` asserted "identical units take even losses" on
+the hard-coded seed 4242. It passed for months — because 4242 happened to land an
+even-ish split. Rewriting it as a *distribution* (`win_count` over 20 seeds)
+exposed, on the first run, a **systematic directional bias: the south-facing unit
+won 20/20** — a real engine bug the single-seed pin had masked the whole time.
+The lesson: **a single-seed assertion on a stochastic outcome is not a weak test,
+it is a BLIND one — it certifies whatever the lucky seed did.** If the property is
+"no side is favored", it is definitionally a distribution; pin it as one.
+
+(Corollary: "even-handedness" is therefore NOT a mechanical test — do not assert
+two identical units take comparable losses in *one* fight. The mechanical
+invariants of a symmetric clash are the *physics* — centroids don't cross, no
+blob, the line holds — never the score; the score's fairness is a win-rate band
+over the seed set.)
+
 ## Balance tests use the seed-set harness, not single seeds
 
 Two families of sim test, and they want different things (see the README):

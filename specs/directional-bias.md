@@ -11,6 +11,20 @@ design — do not repin):
   scale-dependent positional preference that REVERSES. A real fix must make BOTH
   ends fair, not move the crossover.
 
+PASS bisect (env-gated mirror check after each tick pass, 1v1, sum=`pos[0]+pos[2]`):
+the 180° mirror first breaks **inside `steer_soldiers`** (the FIRST pass) — the Y
+component drifts from 0 at ~t85 (DURING the approach, ~5 m apart, well before
+contact at ~t102) and grows monotonically; `apply_separation`/`run_combat`/
+`integrate` do NOT change the sum within a tick (the whole break is steer's). So
+it is a MOVEMENT asymmetry, not collision or combat. Ruled out inside steer: the
+index-keyed per-man speed cap `(0.62 + 0.44*stagger01(i,…))` (replacing it with a
+constant still gives 0/24). NEXT: instrument the individual force contributions to
+`steer_to` for the two mirror soldiers (slot_pull, neighbour net, comp_push toward
+the FOE, magnet, frame feed-forward/cruise) and diff them — the first that isn't a
+mirror is the bug. The frame feed-forward cruise (toward the move/attack target,
+read from the foe's centroid/position) is the prime suspect — a Gauss-Seidel
+in-steer read where unit 1 sees unit 0's freshly-updated state.
+
 1v1 force bisect (the decisive narrowing): disabling EVERY tunable contact force
 one at a time — `hit_push`, `magnet_strength`, `weapon_repel`, `compress_strength`,
 `separation_max_push` — leaves the 1v1 at 0/24 (north always wins). Snapping the

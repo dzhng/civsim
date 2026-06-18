@@ -111,10 +111,12 @@ fn walls_keep_soldiers_out() {
     );
 }
 
-#[test]
-fn halted_frame_slides_off_rocks() {
-    // Park a unit ON an outcrop: the frame must creep clear so every slot is
-    // reachable and cohesion recovers — no permanent false disorder.
+/// Park a unit ON an outcrop (ordered straight into it): the frame must creep
+/// clear so NO slot rests inside the rock — the geometry/escape half of the old
+/// `halted_frame_slides_off_rocks`. This is the nav-escape mechanic (anchor
+/// creeps off impassable ground); whether the MEN then re-seat into the cleared
+/// frame is the separate cohesion-recovery claim, decoupled below (RED today).
+fn halted_on_rock() -> (Sim, usize) {
     let mut t = Terrain::flat(100, 60, 4.0, Vec2::new(-200.0, -120.0));
     t.paint_circle(Vec2::new(40.0, 0.0), 9.0, 0.0, 0.0);
     let mut sim = Sim::new(Tunables::default(), SEED);
@@ -124,11 +126,29 @@ fn halted_frame_slides_off_rocks() {
     for _ in 0..(120.0 / DT) as usize {
         sim.tick();
     }
+    (sim, u)
+}
+
+#[test]
+fn halted_frame_slides_every_slot_clear_of_the_rock() {
+    let (sim, u) = halted_on_rock();
     let unit = &sim.units[u];
     let bad_slots = (0..unit.alive_count)
         .filter(|&s| sim.terrain.speed_at(unit.slot_world(s)) <= 0.0)
         .count();
     assert_eq!(bad_slots, 0, "no slot may rest inside a wall");
+}
+
+/// The cohesion-recovery half: once the frame is achievable (every slot on clear
+/// ground — proven by the test above), the MEN must re-seat into it, so a unit
+/// parked on a rock recovers order instead of holding permanent false disorder.
+/// RED today (cohesion ~0.22): the frame escapes but the men never settle — the
+/// residual-disorder bug (task #56), decoupled here so the escape geometry isn't
+/// held hostage to the unsolved re-seat.
+#[test]
+fn halted_frame_recovers_cohesion_once_clear() {
+    let (sim, u) = halted_on_rock();
+    let unit = &sim.units[u];
     assert!(
         unit.cohesion > 0.8,
         "cohesion must recover once the frame is achievable, got {}",

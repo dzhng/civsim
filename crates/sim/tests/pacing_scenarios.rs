@@ -51,7 +51,6 @@ fn mirror_duels_light_is_a_near_peer_grind() {
 }
 
 #[test]
-#[ignore = "KNOWN GAP (not a pass): the heavy mirror SNOWBALLS (morale divergence runs away) instead of grinding near-peer — morale rework, specs/test-suite-to-100.md."]
 fn mirror_duels_heavy_should_be_a_near_peer_grind() {
     // High-tier: should fight to ~20% strength over 3+ minutes, near-peer. Currently
     // RED — the heavy mirror SNOWBALLS (winner ~0.17x the loser's losses, routs ~147s

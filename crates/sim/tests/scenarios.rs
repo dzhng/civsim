@@ -89,7 +89,6 @@ fn large_turns_pivot_in_place_and_the_order_completes() {
 /// mid-turn discipline; this stays as the explicit target for the wheel/re-form
 /// rework.
 #[test]
-#[ignore = "KNOWN GAP (not a pass): vibe-verified mid-pivot smear (~4.5m). Needs a pivot KINEMATIC change (wheel slowdown trades against drifting) — specs/test-suite-to-100.md (pivot)."]
 fn large_turns_pivot_keeps_its_ranks_during_the_turn() {
     let mut sim = Sim::new(Tunables::default(), SEED);
     let u = test_unit(&mut sim);

@@ -141,7 +141,6 @@ fn the_counter_web_holds() {
 ///  - HorseArchers vs HeavySword: the kite should run unsupported foot to death,
 ///    but the bow-horse closes to melee and loses — a kite/missile-economy gap.
 #[test]
-#[ignore = "KNOWN GAP (not a pass): cav-vs-pike draws and kite-vs-foot inverts — the impale/cav-lethality rework is UNBUILT (specs/impale.md, task #66)."]
 fn the_counter_web_contested_matchups_need_lethality_reworks() {
     use UnitClassId::*;
     let base = sim::BalanceConfig::default();
@@ -208,7 +207,6 @@ fn a_held_braced_line_breaks_a_frontal_charge() {
 /// Decoupled from the charge case (which passes) so this isolates the balance
 /// debt — the same pressure-evade root as mirror_duels_heavy.
 #[test]
-#[ignore = "KNOWN GAP (not a pass): the pressure-evade coupling lets a controlled attacker grind the held line (def 47 vs atk 203). Balance rework, 9 attempts regress — specs/test-suite-to-100.md."]
 fn a_held_braced_line_should_beat_a_walking_attacker() {
     let (v, atk_left, def_left) = held_braced_outcome(sim::Pace::Walk);
     println!("WALK attacker {atk_left}/240 vs held def {def_left}/240, verdict {v}");

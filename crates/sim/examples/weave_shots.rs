@@ -228,6 +228,34 @@ fn kill_to(sim: &mut Sim, u: usize, target: usize) {
 fn main() {
     println!("rendering weave vibe shots → web/vibe/shots/weave/");
 
+    // HELD line (north, no order) vs a WALKING attacker (south) — does the held
+    // front lean in to MEET the press (David's "holders fight back"), and is the
+    // grind even, or does the holder collapse? (a_held_braced.)
+    {
+        let mut sim = Sim::new(base_tun(), 146);
+        let atk = sim.spawn_unit(Vec2::new(0.0, -12.0), FRAC_PI_2, 240, 20, Vec2::new(1.0, 1.2), 0, 0.7);
+        let def = sim.spawn_unit(Vec2::new(0.0, 12.0), -FRAC_PI_2, 240, 20, Vec2::new(1.0, 1.2), 1, 0.7);
+        sim.units[atk].stats = sim::class_stats(UnitClassId::HeavySword);
+        sim.units[def].stats = sim::class_stats(UnitClassId::HeavySword);
+        sim.set_pace(atk, Pace::Walk);
+        sim.set_attack_order(atk, def);
+        shoot("held-vs-walk", sim, 24.0, 1.0);
+    }
+
+    // NARROW COLUMN (south, Run, ordered THROUGH and out the back) vs a WIDE HELD
+    // line (north, no order). Does the held line FOLD on the breach, or does the
+    // lean pull its front apart so the column splits it like a curtain?
+    {
+        let mut sim = Sim::new(base_tun(), 11);
+        let line = sim.spawn_class(Vec2::new(0.0, 13.0), -FRAC_PI_2, 280, UnitClassId::HeavySword, 1);
+        sim.set_files(line, 70);
+        let col = sim.spawn_class(Vec2::new(0.0, -25.0), FRAC_PI_2, 128, UnitClassId::HeavySword, 0);
+        sim.set_files(col, 8);
+        sim.set_pace(col, Pace::Run);
+        sim.set_attack_move_order(col, Vec2::new(0.0, 60.0));
+        shoot("column-vs-held", sim, 40.0, 0.6);
+    }
+
     // --- Tier 0: one unit, perturb then let the springs restore it ----------
     let perturb_secs = 7.0;
     {

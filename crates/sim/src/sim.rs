@@ -1172,6 +1172,7 @@ impl Sim {
         let tun = self.tun;
         let Sim {
             units,
+            soldier_unit,
             positions,
             prev_positions,
             kin_vx,
@@ -1195,6 +1196,7 @@ impl Sim {
             fighting,
             hit_dir,
             hit_ttl,
+            mounted,
             ..
         } = self;
         let tick_now = *tick_count;
@@ -1223,6 +1225,7 @@ impl Sim {
             let advancing =
                 matches!(u.mode, crate::unit::OrderMode::Attack(_)) || u.move_target.is_some();
             let slot_pull_u = if advancing { tun.slot_pull } else { tun.slot_pull_hold };
+            let my_files = u.files_eff.max(1);
             let reach_u = u.stats
                 .weapons
                 .iter()
@@ -1577,7 +1580,28 @@ impl Sim {
                     };
                     s + pivot_push * tun.pivot_stiffness
                 };
-                steer_to = steer_to + to * slot_pull_u;
+                let fi = target[i];
+                let foe_mounted = fi >= 0 && mounted[fi as usize] == 1;
+                // A foe of roughly EQUAL width is a press; far fewer files is a
+                // narrow column poking the line. (×2 ≥ my_files: foe at least half
+                // my width.)
+                let foe_broad = fi >= 0
+                    && units[soldier_unit[fi as usize] as usize].files_eff.max(1) * 2 >= my_files;
+                // The engaged FRONT of a HOLDING line leans into an equal-width
+                // press: a softened slot grip lets the enemy magnet draw it forward
+                // to MEET the foe with as many men as the attacker leans in with, so
+                // a set line trades the opening exchange evenly instead of being
+                // pinned back and ground down. The REAR keeps the strong hold-grip
+                // (it must not lunge with the front and blob). Gated `foe_broad` so a
+                // narrow column can't trigger it and part the line; and against a
+                // CHARGE (mounted) the braced front PLANTS, it doesn't step onto the
+                // hooves, so the anti-charge stop is untouched.
+                let slot_pull_i = if !advancing && engaged_i && !foe_mounted && foe_broad {
+                    0.65
+                } else {
+                    slot_pull_u
+                };
+                steer_to = steer_to + to * slot_pull_i;
                 // ENEMY MAGNET — the SEEK, and nothing else. A pure attract
                 // toward the foe a man is fighting: far off he is pulled in hard
                 // (he RUNS to contact); at reach the force fades to zero (he STOPS

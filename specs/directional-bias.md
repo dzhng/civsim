@@ -23,7 +23,28 @@ The seed is **`cos` evenness in the facing direction**, amplified by the
   they are the amplifier, not the source (they are bit-exactly M-equivariant — the
   source is the cos-even facing seed they magnify).
 
-**The fix is STABILIZATION, not a force hunt.** The seed (FP error in cos/sin of a
+**The win bias is MULTIPLY-amplified — no single amplifier owns it.** Critical
+caveat to the above: zeroing `compress_strength` OR `pivot_stiffness` drives the
+early-symmetry break `dev@1s` to 0.000, but the 300 s WIN-rate stays **20/20**.
+So the early weave-lattice ringing is ONE amplifier of the cos-even seed, not THE
+one that decides the fight. The win bias also survives removing magnet, weapon_repel,
+combat RNG (evade/block=0 still 11-vs-23), the gang cap, and position jitter. The
+seed (cos-even facing, −4.37e−8) is unavoidable; the system amplifies it through
+SEVERAL coupled positive-feedback loops (the weave ring, the contact press, the
+morale break-first cascade), so killing any one leaves the rest. This is the
+"system lives on a tipping point" thesis in full — the directional bias is the
+canary for a fundamentally unstable combat equilibrium, not a single bad force.
+
+**The fix is STABILIZATION, not a force hunt.** And not ONE stabilizer — the
+comprehensive program (frontage-preserving re-slot so a thinning line keeps its
+frontage, the gang cap, earlier morale break, and lateral lattice damping that
+works during motion) applied TOGETHER, each removing one amplifier, until a
+−4.37e−8 seed decays instead of growing to a decided battle. Tried and FAILED to
+fix the win-rate alone: gang cap, extending the idle reversal-damp to non-at_ease,
+a lateral (perp-to-facing) reversal-damp on the steer velocity (even a HARD one
+that kills the reversing lateral entirely — still 20/20, because the amplification
+lives in the collision/position layer the steer-velocity damp can't reach), and
+zeroing compress/pivot. Each kills ONE loop; the fight stays decided by the others. The seed (FP error in cos/sin of a
 facing) is unavoidable for arbitrary facings; the bug is that the lattice amplifies
 it instead of damping it. The existing fix template — reversal-gated `idle_settle_damp`
 (`v·v_prev < 0` → scale) — does NOT reach this case: it is gated on `at_ease`

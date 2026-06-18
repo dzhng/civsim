@@ -328,3 +328,7 @@ the frame to the men, so it can't LEAD them out — backing_off needs the loose 
 target momentarily sits behind after it advances) — needs to exclude Attack mode or require a
 sustained away-order. The reverse-drive frame is the correct mechanism; it's a 2-file change
 (movement.rs frame + sim.rs leash) + a tighter gate, reverted to hold 143/15.
+
+**UPDATE: engage_move_extracts is FIXED (commit cd52e18).** The reverse-drive frame +
+loose backing-off leash + Move-only gate landed clean: extracts past -12, posture 10/0,
+all foundations (clash/charge/weave/golden) hold. 143/15 -> 144/14.

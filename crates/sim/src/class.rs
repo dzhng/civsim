@@ -90,6 +90,17 @@ pub struct UnitClass {
     /// back — it eats arrows about equally from either face.
     pub evade: f32,
     pub training: f32,
+    /// Morale RESILIENCE: divides the casualty/fear drain on this unit's own
+    /// will. 1.0 = baseline; >1 a steadfast class that eats losses a levy would
+    /// run from, <1 a flighty one. Independent of `training` (drill, which also
+    /// sets cohesion recovery) — a class can be well-drilled yet brittle, or a
+    /// raw fanatic. This is THE per-class own-morale knob.
+    pub bravery: f32,
+    /// Morale AURA: steadiness this class radiates to nearby allies, per living
+    /// man. 1.0 = ordinary foot; elites (heavy horse, a general's retinue) inspire
+    /// more, skirmishers less. A unit ringed by high-aura friends holds far past
+    /// where it would break alone — the "fights on with support" effect.
+    pub morale_aura: f32,
     /// Default combat stance (player can toggle): Othismos = press the
     /// shove; Fence = fight at weapon's length.
     pub stance: crate::unit::Stance,
@@ -220,6 +231,8 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
         block: 0.15,
         evade: 0.2,
         training: 0.6,
+        bravery: 1.0,
+        morale_aura: 1.0,
         stance: Stance::Othismos,
         charge: true,
         tramples: false,
@@ -337,6 +350,8 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
                         // the lance has no dead zone — more block monotonically helps (see the test).
             evade: 0.12,
             training: 0.75,
+            bravery: 1.3,     // armoured shock riders hold their nerve
+            morale_aura: 2.6, // and the sight of friendly heavy horse steadies a line
             stance: crate::unit::Stance::Fence,
             weapons: two(LANCE, CAV_SWORD),
             ..foot
@@ -357,6 +372,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             block: 0.0, // no shield: speed and a dodge, same from any face
             evade: 0.32,
             training: 0.65,
+            morale_aura: 1.6, // mounted, but lighter — a smaller steadying presence
             stance: crate::unit::Stance::Fence,
             charge: false,
             weapons: one(CAV_SWORD),
@@ -389,6 +405,8 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             block: 0.0, // no shield at all — arrows and blows land the same from any face
             evade: 0.12, // untrained: a clumsy flinch, not a skirmisher's slip
             training: 0.3,
+            bravery: 0.6,     // a levy's nerve is thin — breaks early
+            morale_aura: 0.7, // a wavering mob steadies no one
             weapons: one(DAGGER),
             ..foot
         },

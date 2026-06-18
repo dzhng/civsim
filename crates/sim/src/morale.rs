@@ -11,6 +11,10 @@ use crate::unit::OrderMode;
 
 /// Morale below this breaks the unit.
 const BREAK_AT: f32 = 0.18;
+/// How strongly nearby allied steadiness (size × aura, summed) divides the morale
+/// drain. Tuned so a unit ringed by big, bold friends holds to ~85% casualties
+/// where it would break near ~half alone.
+const MORALE_SUPPORT: f32 = 0.25;
 /// Rallied units carry scars: ceiling multiplier per rout.
 const RALLY_SCAR: f32 = 0.78;
 
@@ -175,8 +179,14 @@ impl Sim {
                         // a 300-man collapse is a catastrophe.
                         let weight = (mass_total / my_mass).min(2.0);
                         rout_contagion += weight * (1.0 - d / 80.0);
-                    } else if alive_v > 50 {
-                        steady_friends += 1.0 - d / 80.0;
+                    } else if alive_v > 0 {
+                        // Steady friends brace the will — weighted by how MANY
+                        // they are and how much their CLASS inspires (heavy horse
+                        // and a general's retinue carry a high aura; a wavering
+                        // skirmisher screen, low). A line ringed by big, bold
+                        // friends holds far past where it would break alone.
+                        let aura = self.units[vi].stats.morale_aura;
+                        steady_friends += (alive_v as f32 / 100.0) * aura * (1.0 - d / 80.0);
                     }
                 }
             }
@@ -212,11 +222,19 @@ impl Sim {
             // line that's being shot but not bled (shields shedding the volley)
             // holds; a line losing men breaks on the men, from any source.
             let missile_drain = 0.012 * missile_rate;
+            // Own RESILIENCE (class bravery) and ALLIED SUPPORT both stiffen the
+            // will: they divide the whole drain. Bravery is 1.0 for ordinary foot
+            // (no change); support is 0 when alone (a 1v1 is unchanged), and grows
+            // with the size+aura of nearby friends so a well-backed unit endures
+            // far more blood before breaking (toward ~85% casualties vs ~half
+            // alone). The ≤9-man guaranteed break below still overrides it.
+            let support = u.stats.bravery * (1.0 + MORALE_SUPPORT * steady_friends);
             let drain = (0.038 * casualty_rate * directions
                 + missile_drain
                 + 0.002 * (losing_push - 1.2).max(0.0)
                 + fear_eff)
-                * amp;
+                * amp
+                / support.max(0.1);
 
             // Recovery: at ease (no living, non-routing enemy within
             // at_ease_range — the one shared flag that also relaxes the stance),

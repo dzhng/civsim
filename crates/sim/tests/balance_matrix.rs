@@ -163,38 +163,56 @@ fn the_counter_web_contested_matchups_need_lethality_reworks() {
     }
 }
 
-/// The defender's edge: an equal unit that HOLDS its ground (braced, fresh)
-/// beats one that charges into it head-on. Charging a set line frontally
-/// without support is a losing proposition — you want the flank, the
-/// fatigue, or the numbers, not a fair frontal clash against a braced foe.
-#[test]
-fn a_held_braced_line_beats_an_equal_frontal_attacker() {
-    let outcome = |atk_pace: sim::Pace| -> (u32, usize, usize) {
-        let mut sim = Sim::new(Tunables::default(), SEED);
-        let atk = sim.spawn_class(Vec2::new(0.0, -60.0), FRAC_PI_2, 240, UnitClassId::HeavySword, 0);
-        let def = sim.spawn_class(Vec2::new(0.0, 60.0), -FRAC_PI_2, 240, UnitClassId::HeavySword, 1);
-        sim.set_pace(atk, atk_pace);
-        sim.set_attack_order(atk, def); // the defender HOLDS — no order, braced
-        let mut verdict = None;
-        for _ in 0..(600.0 / DT) as usize {
-            sim.tick();
-            if verdict.is_none() {
-                verdict = sim.victor();
-            }
+/// Held braced line vs an equal frontal attacker at a given pace. Returns
+/// (verdict, attacker survivors, defender survivors). The defender HOLDS (braced,
+/// fresh, no order); the attacker drives in.
+fn held_braced_outcome(atk_pace: sim::Pace) -> (u32, usize, usize) {
+    let mut sim = Sim::new(Tunables::default(), SEED);
+    let atk = sim.spawn_class(Vec2::new(0.0, -60.0), FRAC_PI_2, 240, UnitClassId::HeavySword, 0);
+    let def = sim.spawn_class(Vec2::new(0.0, 60.0), -FRAC_PI_2, 240, UnitClassId::HeavySword, 1);
+    sim.set_pace(atk, atk_pace);
+    sim.set_attack_order(atk, def);
+    let mut verdict = None;
+    for _ in 0..(600.0 / DT) as usize {
+        sim.tick();
+        if verdict.is_none() {
+            verdict = sim.victor();
         }
-        (
-            verdict.unwrap_or(9),
-            sim.units[atk].alive_count,
-            sim.units[def].alive_count,
-        )
-    };
-    for pace in [sim::Pace::Walk, sim::Pace::Run] {
-        let (v, atk_left, def_left) = outcome(pace);
-        println!("{pace:?} attacker {atk_left}/240 vs held def {def_left}/240, verdict {v}");
-        assert_eq!(v, 1, "the held braced line must win against a frontal {pace:?} attack");
-        assert!(
-            def_left > atk_left,
-            "and stand thicker than the attacker it broke: def {def_left} vs atk {atk_left}"
-        );
     }
+    (verdict.unwrap_or(9), sim.units[atk].alive_count, sim.units[def].alive_count)
+}
+
+/// The defender's edge vs a CHARGE: a braced, fresh holding line BREAKS an equal
+/// attacker that CHARGES it head-on — charging a set line frontally disorders the
+/// charger on the planted front and the holder wins standing thicker. (The
+/// classic "don't charge a set line without the flank/fatigue/numbers".) This is
+/// the half that HOLDS; the controlled-walk case is decoupled below (RED — the
+/// pressure-evade debt).
+#[test]
+fn a_held_braced_line_breaks_a_frontal_charge() {
+    let (v, atk_left, def_left) = held_braced_outcome(sim::Pace::Run);
+    println!("RUN attacker {atk_left}/240 vs held def {def_left}/240, verdict {v}");
+    assert_eq!(v, 1, "the held braced line must win against a frontal charge");
+    assert!(
+        def_left > atk_left,
+        "and stand thicker than the attacker it broke: def {def_left} vs atk {atk_left}"
+    );
+}
+
+/// The defender's edge should also hold against a CONTROLLED (Walk) advance — a
+/// fresh braced line should beat an equal attacker that walks in IN GOOD ORDER,
+/// not only one that disorders itself charging. RED today: a controlled attacker
+/// GRINDS the held line down (def 47 vs atk 203), because the pressure-evade
+/// coupling makes a pinned/pressed defender evade worse and inverts its edge.
+/// Decoupled from the charge case (which passes) so this isolates the balance
+/// debt — the same pressure-evade root as mirror_duels_heavy.
+#[test]
+fn a_held_braced_line_should_beat_a_walking_attacker() {
+    let (v, atk_left, def_left) = held_braced_outcome(sim::Pace::Walk);
+    println!("WALK attacker {atk_left}/240 vs held def {def_left}/240, verdict {v}");
+    assert_eq!(v, 1, "the held braced line must win against a controlled frontal walk");
+    assert!(
+        def_left > atk_left,
+        "and stand thicker than the attacker it broke: def {def_left} vs atk {atk_left}"
+    );
 }

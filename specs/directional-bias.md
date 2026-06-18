@@ -1,5 +1,29 @@
 # Spec: a directional (+y/−y) bias decides the symmetric clash
 
+## It is a REAL gameplay bug, not a test idealization — fix must be structural
+
+Tested whether a realistic battlefield position jitter randomizes the winner (which
+would make the bias a parade-ground artifact safe to ignore): per-seed random
+position noise of 0.1, 0.3, even 0.6 m does NOT move it — 1v1 stays 0/20, 120v120
+stays 19-20/20. The deterministic bias dominates well past any real deployment
+variation. So two evenly-matched units genuinely favor one side in play, and the
+"accept it, test fairness over seeds with jitter" reframe is DEAD.
+
+The fix must therefore be STRUCTURAL — make the contact passes M-equivariant by
+construction: double-buffer them (Jacobi: compute all forces/strikes from the
+tick-start snapshot, apply together) instead of in-place Gauss-Seidel where the
+second-processed body reads the first's freshly-updated state, and symmetrize the
+discrete switches (surge, per-man speed cap keyed on slot not index, contact
+detection) together. Big blast radius (re-validate the whole combat suite), but it
+is the only thing that makes a sub-ULP seed DECAY instead of being switch-amplified
+into a decided battle. `mechanics_symmetry.rs` (1v1 coin-flip) is the gate.
+
+(Amplifiers neutralized individually with NO effect on the win — do not re-try in
+isolation: surge step, per-man speed cap, every tunable contact force, dir() cos
+residue, spawn/index order, round-robin phase, RNG, frontage re-slot, gang cap,
+position jitter to 0.6 m. The instability re-seeds from whatever sub-ULP asymmetry
+remains; only making the core M-equivariant removes the re-seeding.)
+
 ## HOW TO RUN THE REPRO
 
 ```

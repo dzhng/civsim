@@ -332,3 +332,15 @@ sustained away-order. The reverse-drive frame is the correct mechanism; it's a 2
 **UPDATE: engage_move_extracts is FIXED (commit cd52e18).** The reverse-drive frame +
 loose backing-off leash + Move-only gate landed clean: extracts past -12, posture 10/0,
 all foundations (clash/charge/weave/golden) hold. 143/15 -> 144/14.
+
+## Addendum — othismos stance is entangled with the Phalanx (measured, -10)
+
+TRIED wiring the stance: othismos pulls the front to BODY CONTACT (magnet hold = 0.5*reach,
+leaving the weapon-reach BOND untouched so pikes keep their 3.5m point). The mechanism WORKS
+(othismos gap 1.15m vs fence 1.23m), and pikes_unhorse + the_counter_web held -- but it
+regressed -10 OVERALL, because the PHALANX defaults to Stance::Othismos (class.rs:223), so
+pulling its front in 2x closer ripples across every Phalanx matchup/scenario. So othismos is
+NOT an isolated test: wiring it correctly DOES change the phalanx (by design -- a phalanx
+shoves), so it needs co-design with re-judging the Phalanx balance, not a bounded tweak.
+The forward-push magnitude (0.5) also under-closes the test by 0.02 (needs <fence-0.1, got
+-0.08). Reverted to hold 144/14.

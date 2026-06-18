@@ -344,3 +344,16 @@ NOT an isolated test: wiring it correctly DOES change the phalanx (by design -- 
 shoves), so it needs co-design with re-judging the Phalanx balance, not a bounded tweak.
 The forward-push magnitude (0.5) also under-closes the test by 0.02 (needs <fence-0.1, got
 -0.08). Reverted to hold 144/14.
+
+## Addendum — impale (cav/pike lethality) BACKFIRES blind (measured)
+
+TRIED the impale (task #66): a BRACED point wounds a CHARGING rider by his own momentum
+(weapon.damage * (vsp/charge_min_speed - 1).clamp(0,1.5)), gated to braced+mounted+charge
+speed so only the cav-vs-pike matchup is touched. RESULT: pikes_unhorse, a_pike_hedge, and
+mechanics_charge all HELD (no foundation regression) -- but ShockCav-vs-Phalanx went from a
+DRAW (verdict 2, 57/44) to a CAV WIN (verdict 0, 62/31), the WRONG direction. Killing the
+front chargers evidently thins the cav at contact in a way that lets the rest break through
+faster, or perturbs the morale race toward the cav. So the cav/pike balance is counter-
+intuitive: a blind lethality bonus makes it WORSE. It needs careful magnitude+mechanism
+tuning against David,Rs contract values (and probably the COLLISION-side momentum-return, not
+just the combat-side wound), not a one-shot bonus. Reverted to hold 144/14.

@@ -185,6 +185,12 @@ pub struct Tunables {
     /// the unit is alert and recovers nothing. Combat mass (brace_mult) is a
     /// separate, distance-independent thing — see Unit::brace.
     pub at_ease_range: f32,
+    /// Velocity retained per tick by a HALTED, at-ease formation's steer (the
+    /// rest is bled as viscous drag). A frictionless lattice would ring forever
+    /// in a limit cycle; this turns it into a damped oscillator that settles to
+    /// rest — the equilibrium a standing line must reach. Only an idle, enemy-
+    /// free, unordered unit is damped, so it never touches a fight or a march.
+    pub idle_settle_damp: f32,
     /// Charge burst speed (m/s, fresh foot unit; class pace_mult applies).
     pub charge_speed: f32,
     /// Final-approach window: charge engages within this many seconds of
@@ -281,6 +287,7 @@ impl Default for Tunables {
             hit_push: 0.3,
             combat_drain: 1.0 / 50.0,
             at_ease_range: 60.0,
+            idle_settle_damp: 0.5,
         }
     }
 }

@@ -1174,6 +1174,8 @@ impl Sim {
             units,
             positions,
             prev_positions,
+            kin_vx,
+            kin_vy,
             mass,
             mom_x,
             mom_y,
@@ -1688,6 +1690,31 @@ impl Sim {
                         if fwd > tun.base_speed {
                             v = v - eh * (fwd - tun.base_speed);
                         }
+                    }
+                }
+                // Idle settle damping: a HALTED formation with no enemy near
+                // (at_ease) has no force left to chase — only its own spring
+                // residual. A frictionless lattice re-injects that residual every
+                // tick and RINGS in a limit cycle: the edge men step out, the
+                // separation solver shoves them back, repeat — a velocity that
+                // REVERSES every tick. Damping only that reversing component (the
+                // steer velocity opposing last tick's motion) turns the spring
+                // into a damped oscillator that settles to rest, WITHOUT dragging
+                // a steady motion — so a friendly push compressing this block
+                // (consistent, non-reversing motion) is untouched; only the
+                // oscillation dies. Gated on at_ease (no living enemy within
+                // at_ease_range) so it can NEVER reach a unit fighting or closing
+                // to a fight, and on a halted, unordered frame so it never drags a
+                // march or a re-form surge. (kin_v* hold last tick's steer motion,
+                // captured after the previous steer pass.)
+                if u.at_ease
+                    && u.move_target.is_none()
+                    && u.engaged == 0
+                    && u.frame_speed < 0.5
+                {
+                    let last = Vec2::new(kin_vx[i], kin_vy[i]);
+                    if v.dot(last) < 0.0 {
+                        v = v * tun.idle_settle_damp;
                     }
                 }
                 let mut np = Vec2::new(p.x + v.x * dt, p.y + v.y * dt);

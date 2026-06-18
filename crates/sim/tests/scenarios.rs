@@ -48,8 +48,16 @@ fn marches_to_target_and_recovers_cohesion() {
     assert!(unit.cohesion > 0.85, "cohesion should recover after halt");
 }
 
+/// A reversed (180°) order HALTS the block, pivots it in place, and the order
+/// COMPLETES with the formation re-formed. This is the maneuver-outcome half of
+/// the old `large_turns_pivot_in_place_without_smearing` — it does NOT assert the
+/// ranks stay tight DURING the turn (that mid-pivot smear is the separate
+/// mechanical claim, decoupled into `..._keeps_its_ranks_during_the_turn` below,
+/// which is RED today). These are distinct properties: a pivot can finish clean
+/// yet smear at its midpoint, or hold tight yet fail to seat — pinning them apart
+/// keeps each honest.
 #[test]
-fn large_turns_pivot_in_place_without_smearing() {
+fn large_turns_pivot_in_place_and_the_order_completes() {
     let mut sim = Sim::new(Tunables::default(), SEED);
     let u = test_unit(&mut sim);
     sim.set_move_order(u, Vec2::new(40.0, 0.0));
@@ -62,10 +70,7 @@ fn large_turns_pivot_in_place_without_smearing() {
         "should halt to pivot, speed {}",
         sim.units[u].frame_speed
     );
-    run(&mut sim, 8.0);
-    let mid = mean_slot_error(&sim, u);
-    assert!(mid < 3.0, "pivot should keep ranks formed, mean err {mid}");
-    run(&mut sim, 80.0);
+    run(&mut sim, 88.0);
     let unit = &sim.units[u];
     assert!(unit.move_target.is_none(), "order should complete");
     assert!((unit.anchor - Vec2::new(-60.0, 0.0)).len() < 3.0);
@@ -74,6 +79,26 @@ fn large_turns_pivot_in_place_without_smearing() {
         "cohesion should recover, got {}",
         unit.cohesion
     );
+}
+
+/// The MID-PIVOT discipline half: a 180° in-place pivot must keep its ranks
+/// dressed THROUGH the turn (no smear — the block must not drag through an arc
+/// like cloth). RED today: the mid-pivot mean slot error sits at ~4.5 m (the
+/// block smears at its midpoint before re-forming). Decoupled from the
+/// order-completes claim above so the working maneuver isn't held hostage to the
+/// mid-turn discipline; this stays as the explicit target for the wheel/re-form
+/// rework.
+#[test]
+fn large_turns_pivot_keeps_its_ranks_during_the_turn() {
+    let mut sim = Sim::new(Tunables::default(), SEED);
+    let u = test_unit(&mut sim);
+    sim.set_move_order(u, Vec2::new(40.0, 0.0));
+    run(&mut sim, 10.0);
+    sim.set_move_order(u, Vec2::new(-60.0, 0.0));
+    run(&mut sim, 4.0);
+    run(&mut sim, 8.0);
+    let mid = mean_slot_error(&sim, u);
+    assert!(mid < 3.0, "pivot should keep ranks formed, mean err {mid}");
 }
 
 #[test]

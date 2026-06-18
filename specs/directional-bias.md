@@ -126,13 +126,39 @@ amplifier than the gang the cap bounds). If so the "fix" is either M-equivariant
 combat math (hard) or accepting a sub-ULP lean and asserting fairness with a wider
 band — but 20/20 is not sub-ULP in OUTCOME, so something amplifies it consistently.
 
-So the hunt is now scoped to: **what does the magnet/strike contact do differently
-to a +y-facing vs −y-facing fighting front?** Instrument, for one south front man
-and the mirror north front man at equal contact geometry, the magnet pull vector,
-the chosen target, front_clear, and the strike push — find the divergence. The
-win-rate is morale-amplified (north disorders a hair more → breaks first → loses),
-so even a small combat-contact asymmetry yields 16/16; bisect on the cohesion gap
-(deterministic) for the ROOT, then confirm on win-rate.
+## STRONGEST localization (2026-06-18, no-RNG mirror probe) — read this first
+
+Set evade=block=0 (no combat RNG) and run the perfect-mirror clash. It is STILL
+biased (south loses 11, north 23) — so the root is DETERMINISTIC geometry, not RNG
+ordering. Tracked the 180° symmetry directly (the two units are point-reflections:
+`north_pos == −south_pos` for matching slots; check `max |south+north|` over slots):
+
+- The symmetry breaks at **t=0.40 s — during the APPROACH, long before contact
+  (~t4)** — and the break is in the LATERAL **X** component (`sum.y ≈ 0` always,
+  `sum.x` grows 0.001 → 0.2 m by t=0.7).
+- It **oscillates between fixed slots** (115 ↔ 157, dev 0.170 ↔ 0.197) — a 2-state
+  LIMIT CYCLE, i.e. the frictionless-lattice ringing the tweak-mechanics skill
+  documents (edge men step out, separation solver shoves back, repeat), here with
+  a HANDEDNESS that breaks the mirror and is then amplified by the contact grind.
+- NOT the magnet (zeroing magnet_strength leaves dev@1s at 0.197), NOT lattice
+  ties (0.04 m position jitter leaves it at 0.186), NOT RNG (above).
+
+So the ROOT is a MOVEMENT-LAYER x-asymmetry under attack orders — a steering/
+collision limit-cycle or wheel/frame handedness active while the block is RUNNING
+(`at_ease` is false, so the skill's reversal-gated idle damping does NOT fire here).
+Move-only (MOVE orders) read symmetric on COHESION, but attack orders differ in
+more than the magnet (the facing/intent-vote can wheel under Attack — grep the
+`OrderMode::Attack` vs `Move` divergence). Next bisect: zero the steering forces
+one at a time (slot_pull, comp_push, the frame feed-forward/cruise, the wheel) and
+watch `dev@1s` — the one that drops it to ~0 is the non-M-equivariant op. This is
+the same "frictionless lattice rings, needs damping that doesn't poison combat"
+family as the idle-block limit cycle; the fix is likely to make that op
+M-equivariant or to extend reversal-gated damping to the moving case.
+
+Older note (the combat-contact angle, now superseded by the approach-time finding
+above): what does the magnet/strike contact do differently to a +y vs −y front?
+The win-rate is morale-amplified (north disorders a hair more → breaks first →
+loses), so even a small asymmetry yields 16/16.
 
 Next probe to ROOT it: take ONE south man and the mirror-image north man at the
 SAME relative contact geometry, and log what `weapon_repel`/`magnet` each computes

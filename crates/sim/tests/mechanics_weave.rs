@@ -273,17 +273,34 @@ fn settle(sim: &mut Sim, secs: f32) {
 /// Mean-x of the back half minus the front half — the block's LEAN (0 when
 /// square, large when sheared into a parallelogram). Facing is north (+y), so
 /// "back" is the high-y half.
+/// Shear of the block: the least-squares slope of x on y (dx/dy). A SQUARE
+/// block reads ~0; a parallelogram sheared by `shear(k)` reads ~k. This is the
+/// honest lean measure — the old "mean-x of the low-y half minus the high-y
+/// half" manufactured a phantom ~1.0 lean on a PERFECT block, because the
+/// median y-split lands inside a rank and the tiebreak sorts that rank's low-x
+/// files into one half and its high-x files into the other.
 fn lean(sim: &Sim, unit: usize) -> f32 {
     let u = &sim.units[unit];
-    let mut ys: Vec<(f32, f32)> = (u.start..u.start + u.count)
+    let pts: Vec<(f32, f32)> = (u.start..u.start + u.count)
         .filter(|&i| sim.alive[i] == 1)
-        .map(|i| (sim.soldier_pos(i).y, sim.soldier_pos(i).x))
+        .map(|i| {
+            let p = sim.soldier_pos(i);
+            (p.y, p.x)
+        })
         .collect();
-    ys.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
-    let h = ys.len() / 2;
-    let front_x: f32 = ys[..h].iter().map(|p| p.1).sum::<f32>() / h.max(1) as f32;
-    let back_x: f32 = ys[h..].iter().map(|p| p.1).sum::<f32>() / (ys.len() - h).max(1) as f32;
-    back_x - front_x
+    let n = pts.len() as f32;
+    if n < 2.0 {
+        return 0.0;
+    }
+    let my = pts.iter().map(|p| p.0).sum::<f32>() / n;
+    let mx = pts.iter().map(|p| p.1).sum::<f32>() / n;
+    let cov: f32 = pts.iter().map(|(y, x)| (y - my) * (x - mx)).sum();
+    let vary: f32 = pts.iter().map(|(y, _)| (y - my) * (y - my)).sum();
+    if vary > 1e-6 {
+        cov / vary
+    } else {
+        0.0
+    }
 }
 
 /// Kill men (from the rear) until the unit is down to `target` alive.
@@ -906,9 +923,9 @@ fn a_bent_block_straightens() {
 #[test]
 fn a_sheared_block_squares_up() {
     let (mut sim, u) = block(10, 5, 1.0);
-    shear(&mut sim, u, 1.0); // lean it over hard: x += 1.0*(y-cy)
+    shear(&mut sim, u, 1.5); // lean it over hard: x += 1.5*(y-cy) → shear slope ~1.5
     let lean0 = lean(&sim, u);
-    assert!(lean0 > 1.5, "setup: it must start leaned ({lean0:.1})");
+    assert!(lean0 > 1.2, "setup: it must start clearly sheared ({lean0:.2})");
     settle(&mut sim, 8.0);
     let lean1 = lean(&sim, u);
     eprintln!("SHEAR    lean {:.2} -> recovered {:.2}", lean0, lean1);

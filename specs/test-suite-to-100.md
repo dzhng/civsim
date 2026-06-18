@@ -625,3 +625,37 @@ bond; they need the bond REDESIGNED (directional weld + front-line targeting) wi
 pike-clash and duel matrix goldens RE-DERIVED and RE-BLESSED — a balance-owning co-design
 pass, not any bounded change. The targeted past-foe fix (gap 0.39→3.11) is the prototype to
 start that pass from.
+
+## Addendum — a_held_braced ROOT FOUND + the lean-in fix (David collaboration)
+
+David reframed the whole defender's-edge problem into BASE-UP mechanical invariants
+(committed in `tests/mechanics_pressure.rs`, all green): (1) equal engaged units feel
+equal pressure, (2) neither's BACKLINE is walked back under the press (the FRONT
+compresses — measure the rear, not the centroid; this was my key mismeasure), (3) a
+flanker feels less pressure than the frontline. With those locked in, the mechanical
+foundation is proven SOUND — a braced holder holds its ground.
+
+So a_held_braced is a PURE BALANCE bug, and its root is now MEASURED (ruled out, in
+order: evade, block, cohesion, offense-choke/vice, facing/aspect — none is it):
+**FIRST-CONTACT ENGAGEMENT.** At the moment of meeting, the driving attacker brings ~50
+men to bear vs the holder's ~38, and scores a ~12:1 kill ratio in the first 10s (t80-90)
+that cascades — everything else (cohesion, facing, engagement) equalises AFTER, too late.
+The cause: the holder's strong `slot_pull_hold` (0.8) PINS its engaged front to its
+stationary slots, while the attacker's advancing slots let its front lean into contact.
+
+THE FIX (confirmed, nearly lands): give the ENGAGED FRONT of a HOLDING line the WEAK
+(advancing) slot pull so the magnet brings it forward to MEET the foe — `slot_pull_i =
+if !advancing && engaged_i && !foe_mounted { tun.slot_pull } else { slot_pull_u }` at the
+`steer_to + to * slot_pull_u` line in steer_soldiers (add `mounted` to the destructure).
+The `!foe_mounted` gate is essential: a braced line PLANTS against a CHARGE (don't step
+onto the hooves) — without it the charge-stop tests break; WITH it they pass 5/5. Result:
+a_held_braced def 47 → 94 (vs atk 105 — nearly even, RUN case wins 192), charge-stop
+intact, invariants 1-2 hold.
+
+REMAINING (needs David's design review, NOT a bounded fix): the lean-in is a FOUNDATIONAL
+holding-line behaviour change — it ripples 4 infantry tests that encode the OLD passive-
+holding (`a_flanker` Inv3, `an_attacker_into_a_holding_line_keeps_formation`,
+`an_attacking_line_wraps`, `long_swords_die_in_a_press`). These likely need RE-JUDGING to
+the new "holder fights its front forward" behaviour (vibe-shot it first), after which a
+slightly stronger lean flips a_held_braced the last few %. This is the matrix-shifting
+co-design the whole cluster needs — now with the mechanism pinned and a working prototype.

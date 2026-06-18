@@ -1,5 +1,44 @@
 # Spec: a directional (+y/−y) bias decides the symmetric clash
 
+## ★ ROOT CAUSE FOUND (2026-06-18) — read this, the rest is the trail
+
+The seed is **`cos` evenness in the facing direction**, amplified by the
+**marginally-unstable frictionless weave lattice**:
+
+- A head-on clash is symmetric under a 180° rotation M: `(x,y)→(−x,−y)`,
+  `facing→facing+π`. North should be the exact point-reflection of south.
+- `dir(facing) = (cos f, sin f)`. For the two facings ±π/2:
+  `dir(+π/2) = (−4.371e−8, +1)`, `dir(−π/2) = (−4.371e−8, −1)`. The y-component
+  negates correctly (sin is odd), but the **x-component is IDENTICAL, not negated**,
+  because **cos is EVEN** (`cos(+π/2) == cos(−π/2)` bit-for-bit; both are the FP
+  residue −4.37e−8, not 0). So under M the facing-x fails to flip: both units carry
+  the SAME tiny −x facing bias.
+- That −4.37e−8 lateral nudge enters every force that uses `dir(facing)` (frame
+  feed-forward, slot layout). The weave's compression + pivot springs form a
+  **frictionless, marginally-unstable lattice** (the limit cycle the tweak-mechanics
+  skill documents for idle blocks); running, it AMPLIFIES the perturbation
+  exponentially — measured 4e−8 → 0.2 m lateral by t=1 s — which the contact grind
+  then runs up to a 20/20 win bias. Confirmed: zeroing `compress_strength` OR
+  `pivot_stiffness` (killing the amplifier) makes the mirror PERFECT (dev 0.0000);
+  they are the amplifier, not the source (they are bit-exactly M-equivariant — the
+  source is the cos-even facing seed they magnify).
+
+**The fix is STABILIZATION, not a force hunt.** The seed (FP error in cos/sin of a
+facing) is unavoidable for arbitrary facings; the bug is that the lattice amplifies
+it instead of damping it. The existing fix template — reversal-gated `idle_settle_damp`
+(`v·v_prev < 0` → scale) — does NOT reach this case: it is gated on `at_ease`
+(false in a clash) AND, more fundamentally, during RUNNING the forward velocity
+masks the lateral oscillation's reversal (total `v·last > 0` even as the lateral
+component flips), so the gate never fires. A real fix needs to damp the LATERAL
+(perp-to-motion) reversing component during motion too — decompose `v` into
+along-`last` and perp, damp the perp part when it reverses — WITHOUT dragging the
+steady press (re-validate combat: the skill warns naive global drag regressed
+combat −5 to −13). Tried: extending the damp gate by removing `at_ease` alone —
+did NOT fix it (20/20), because of the forward-masking above. The gang cap also
+does NOT fix it (still 20/20): it bounds the local-outnumbering amplifier, a
+different one from the lattice instability.
+
+
 ## The finding (2026-06-18)
 
 Rewriting `symmetric_clash_is_even_handed` (single-seed, "even losses") as

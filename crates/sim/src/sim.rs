@@ -1641,7 +1641,13 @@ impl Sim {
                 let mut seeking_flank = false;
                 if aware_i && front_clear[i] == 1 && !trampling {
                     let te = target[i] as usize;
-                    let ep = Vec2::new(positions[2 * te], positions[2 * te + 1]);
+                    // Tick-start snapshot, NOT live positions: the steer loop writes
+                    // positions[i] in place, so a live read gives an already-moved foe
+                    // for low-index soldiers and a stale one for high-index — a
+                    // Gauss-Seidel skew that breaks the 180° mirror of a head-on clash.
+                    // Every other neighbor read in this loop already snapshots; this
+                    // magnet was the lone hole (see specs/directional-bias.md).
+                    let ep = Vec2::new(prev_positions[2 * te], prev_positions[2 * te + 1]);
                     let d = ep - p;
                     let dist = d.len();
                     if dist > 1e-3 {

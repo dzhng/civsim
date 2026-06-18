@@ -1,5 +1,22 @@
 # Spec: a directional (+y/−y) bias decides the symmetric clash
 
+## HOW TO RUN THE REPRO
+
+```
+cargo test -p sim --test mechanics_symmetry -- --nocapture
+```
+Both tests are RED today (by design — they catch the instability):
+- `a_one_on_one_duel_is_a_coin_flip_not_a_fixed_winner` — the 2-soldier case;
+  prints `1v1: south won N/24` (≈12 = fair). It is the GREEN-LIGHT test: when this
+  passes, the amplifiers are tamed and the symmetric/mirror suite goes green with it.
+- `the_clash_winner_does_not_depend_on_unit_size` — pins the scale-flip.
+
+To re-trace from scratch, the throwaway probes used (recreate in `tests/dbgN.rs`,
+delete after): a unit-size sweep (south-win-count vs n ∈ {1,3,8,16,30,60,120,240}),
+a per-pass mirror check (`std::env::var("DBGM")`-gated `pos[0]+pos[2]` print after
+each tick pass), and a per-soldier velocity log before the position update. See the
+commits `spec: …` on this file for the exact numbers each produced.
+
 ## ★★ MINIMAL REPRO + scale-flip (2026-06-18) — start debugging from HERE
 
 `crates/sim/tests/mechanics_symmetry.rs` is the dedicated minimal repro (RED, by

@@ -451,16 +451,28 @@ fn attack_latch_behaves_like_a_move_order() {
 /// Identical units in a symmetric clash take comparable losses — a large
 /// asymmetry with no stat difference is a MECHANICAL bias (e.g. the unit that
 /// gets its order a tick earlier steamrolling), not balance.
+/// Identical units must have NO MECHANICAL BIAS — neither side may systematically
+/// win. This is a DISTRIBUTION property, not a single-battle one: any one clash of
+/// equal units is decisive (the loser routs and is chased — a lopsided loss count
+/// is EXPECTED and correct), but across many seeds each side should win about half
+/// the time. A side that wins regardless of the dice is a bug in the engine
+/// (processing order, a directional force); a fair-but-decisive system splits
+/// ~evenly. (The old single-seed "even losses" assertion pinned the outcome of a
+/// decisive process and passed only on a lucky seed — it measured the wrong thing.)
 #[test]
-fn symmetric_clash_is_even_handed() {
-    let tr = trace(UnitClassId::HeavySword, 4242, true, 300.0);
-    let (a, b) = (tr.bot_loss as f32, tr.top_loss as f32);
-    let (hi, lo) = (a.max(b).max(1.0), a.min(b));
-    eprintln!("losses bot/top = {}/{} (ratio {:.2})", tr.bot_loss, tr.top_loss, lo / hi);
+fn symmetric_clash_has_no_mechanical_bias() {
+    let seeds = 20u64;
+    let mut bot_wins = 0;
+    for seed in 0..seeds {
+        let tr = trace(UnitClassId::HeavySword, seed, true, 300.0);
+        if tr.bot_loss < tr.top_loss {
+            bot_wins += 1;
+        }
+    }
+    eprintln!("bot won {bot_wins}/{seeds} (≈half = fair; near 0 or {seeds} = mechanical bias)");
     assert!(
-        lo / hi > 0.5,
-        "identical units took lopsided losses {}/{} — a mechanical bias, not balance",
-        tr.bot_loss, tr.top_loss,
+        (5..=15).contains(&bot_wins),
+        "one side wins systematically ({bot_wins}/{seeds}) — a mechanical bias, not the luck of a decisive fight"
     );
 }
 

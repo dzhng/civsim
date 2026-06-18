@@ -115,6 +115,17 @@ oscillates with no consistent winner). The disorder asymmetry only appears with
 - Consistent with the force bisect: zeroing `weapon_repel` or `magnet` (both
   combat-contact forces) each collapsed the cohesion gap.
 
+**The gang cap does NOT fix it** (still 20/20 south at cap 99/3/2; 19/20 at cap 1).
+So it is not the local-outnumbering runaway the cap bounds — capping the gang
+damps the loss MAGNITUDE (ratio 0.3→0.56) but not the win DIRECTION. The bias is a
+deterministic directional preference present every tick, robust to capping the
+amplifier. Leading remaining hypothesis: **sub-ULP floating-point non-antisymmetry**
+(atan2/sin/cos are not bit-exact antisymmetric in y) in the combat-contact geometry,
+deterministically one-signed, amplified by the grind's core feedback (a different
+amplifier than the gang the cap bounds). If so the "fix" is either M-equivariant
+combat math (hard) or accepting a sub-ULP lean and asserting fairness with a wider
+band — but 20/20 is not sub-ULP in OUTCOME, so something amplifies it consistently.
+
 So the hunt is now scoped to: **what does the magnet/strike contact do differently
 to a +y-facing vs −y-facing fighting front?** Instrument, for one south front man
 and the mirror north front man at equal contact geometry, the magnet pull vector,

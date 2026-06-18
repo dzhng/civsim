@@ -83,6 +83,20 @@ a y-keyed read inside one of those passes was not. This needs a dedicated sessio
 with careful win-rate bisection — not more single-force guesses (slide, ties,
 repel, magnet were all wrong or partial).
 
+**Final localization (the GRIND itself, not approach/charge).** Start the two
+lines nearly in contact (sep 3 m) at WALK pace — no run-in, no charge burst —
+and south STILL wins 16/16. So the asymmetry is in the steady contact grind, not
+the closing. Combined with everything ruled out, the remaining suspects are the
+per-unit grind machinery keyed (directly or via a non-symmetric bucketing) on
+the absolute facing/bearing: `contact_facing` + the `contact_hist` bearing
+buckets (if `bearing_bucket()` isn't symmetric about the facing, +y and −y
+bearings bin differently), the weave's response to a +y vs −y shove, or the
+collision hard-wall snap order. Bisect by WIN-RATE (not cohesion gap — they
+disagree): disable `run_morale`/`contact_facing`/the wheel one at a time over the
+16-seed set and watch for the count to drop to ~8. The cheapest first check:
+`bearing_bucket(θ)` and `bearing_bucket(−θ)` — they should be mirror buckets; if
+the boundaries are `[0,30)` rather than `[−15,15)`, that IS the handedness.
+
 Next probe to ROOT it: take ONE south man and the mirror-image north man at the
 SAME relative contact geometry, and log what `weapon_repel`/`magnet` each computes
 — which foe is selected, the push vector, the recoil. They should be exact

@@ -93,6 +93,30 @@ can you see (and remove) the double-count without it hiding in the noise.
 This is measured fact. Everything in "The design" below is proposed — deviate if
 the repair's measurements disagree.
 
+**Measurement (2026-06-18, follow-up probe `tests/dbg_standoff.rs`, throwaway):**
+ran the `two_braced_walls` geometry (200-man 20×10 braced-pike blocks, Run, head-on)
+and swept `tun.weapon_repel` while measuring the min centroid gap (want > 4 m):
+
+```
+repel 15 (default) -> -1.50    repel 25 -> -1.35    repel 30 -> +5.46
+repel 35 -> -2.12              repel 45 -> +5.79    repel 60 -> +5.71
+```
+
+**The limiter is repel STRENGTH (15 is too weak), but raising it is NON-MONOTONE
+and CHAOTIC** — 30 holds, 35 collapses, 45 holds. Cranking `separation_max_push`
+(the cap) alone made it WORSE (-2.75 at 4×). This is the positive-feedback BUCKLE
+the collision.rs:435-442 comment predicts: once one front slips a hair ahead the
+uncapped frontal shove drives the other back harder, and a head-on clash of equal
+lines buckles one way — the buckle DIRECTION (hold vs collapse) flips on tiny
+asymmetries, so any single `weapon_repel` value that "passes" is brittle (seed-
+and value-fragile), not a fix. **Conclusion: the standoff repair is a STABILITY
+problem, not a tuning knob.** A real fix must damp the positive feedback (e.g.
+make the braced repel resist the foe's INWARD closing velocity, not just his
+penetration depth — a damping term kills the buckle — and/or raise the braced cap
+ONLY once damped). Do NOT land a bare `weapon_repel` bump; it will pass at one
+seed and rout at the next. (Same lesson as the hold-front lean in commit 2b956e5:
+a chaotic scalar knob is the wrong tool — use a structural/stable mechanism.)
+
 ## The design (proposed; ranked)
 
 Pick ONE owner for the target pair, arbitrated by `two_braced_walls` +

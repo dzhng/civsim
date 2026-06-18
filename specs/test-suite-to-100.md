@@ -2,7 +2,7 @@
 
 ## State
 
-`cargo test -p sim --no-fail-fast` → **149 passing / 11 failing** (the 12 below minus the a_held_braced charge-half now green) (up from 112/43 at
+`cargo test -p sim --no-fail-fast` → **149 passing / 12 failing** (up from 112/43 at
 the start of the foundation work; see the dated addenda at the bottom for the latest).
 The contact foundation HOLDS. The single biggest
 remaining lever is the **sustained-grind column MESH** (see the bottom addendum): it

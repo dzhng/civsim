@@ -376,3 +376,49 @@ slide, ties — was wrong).
 RIGHT shape and should STAY — it asserts fairness as a distribution. It will go
 green once the directional asymmetry is fixed. Do NOT revert it to the single-seed
 pin to "pass"; that re-masks the bug.
+
+## ROOTED (2026-06): the magnet live-read + the index-order combat economy
+
+Two distinct seeds, found by tracing a 1v1 (`DBGE` probe: log `err`, `max_sp`,
+`steer_to` for both mirror soldiers at the break tick).
+
+**1v1 seed — target acquisition threshold.** `err` is bit-identical for the two
+mirror men, but south's `steer_to` surges (the enemy magnet switching on) one
+tick before north's. The magnet is gated on `aware_i` (target acquired) crossing
+`DISENGAGE_DIST`; the two men cross that hard threshold one tick apart from a
+sub-ULP FP residue, and the one-tick magnet lead is decisive in a 1v1. This is
+NOT combat order: the round-robin (`for i in (phase..n).step_by(3)`, phase=tick%3)
+means only ONE of the two soldiers acts in combat per tick, so Jacobi-fying combat
+cannot touch the 1v1.
+
+**The magnet live-read (FIXED, committed 7c43ac0).** The enemy-seek magnet read
+`positions[2*te]` — the LIVE, in-place foe position. steer writes positions[i] as
+it iterates, so a low-index man saw his foe at tick-start and a high-index man saw
+it already moved — a Gauss-Seidel skew. Now reads `prev_positions`. Net +2 on the
+suite. (Two more live foe-reads exist in steer — the fighting-pace clamp ~L1759
+and the reactive facing ~L1830. Snapshotting them is M-correct but moves the
+front-rank facing/velocity one tick, which the charge/bracing tests are tuned to,
+so it regressed ~+4. Left as live for now; they belong with a charge/bracing
+recalibration, not a free fix.)
+
+**Army-scale seed — combat index order.** Combat applies kill / stun / push IN
+PLACE in index order. Team 0 (south) has the lower indices, so a south front-ranker
+strikes, kills/stuns, and shoves his north opposite BEFORE that north man acts the
+same tick (`alive==0 || stun>0` skip at combat.rs:99) — a systematic first-mover
+advantage that compounds with press depth.
+
+**Jacobi combat — tried, REVERTED.** Deferring death+stun+push (accumulate during
+the pass, apply after, so mutual kills are mutual) DOES reduce the bias: n=8 even
+clash went perfectly fair (survivor diff 0), n=120 diff fell 163→~82. But it
+disrupts the finely-tuned charge / bracing / standoff / pike-wall economy — the
+hit_push timing and "who dies at the charge contact" are load-bearing for those
+contracts — costing net +18 failing tests. Per "revert if it doesn't work," the
+combat-Jacobi was reverted; only the magnet snapshot was kept.
+
+**Conclusion / next step.** The army-scale bias is genuinely the combat economy's
+index-order resolution. A correct fix (simultaneous strike resolution) is sound in
+principle but REQUIRES re-deriving the charge/bracing/pike/standoff test targets
+with David — the current numbers encode the Gauss-Seidel behavior. It is a
+design-targets task, not a structural free win. Until then the symmetry gates
+(`a_one_on_one_duel...`, `the_clash_winner_does_not_depend_on_unit_size`,
+`symmetric_clash_has_no_mechanical_bias`, `mirror_duels_*`) stay RED — correctly.

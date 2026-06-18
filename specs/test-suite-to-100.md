@@ -313,3 +313,18 @@ CONCLUSION for the next pass: the velocity low-pass is the correct dissipation p
 brace_ramp, or (b) the brace tests re-judged against the (correct, damped) settling behavior.
 That's a bounded 3-test co-design, not a blind tweak — the primitive and its one coupling are
 now both identified.
+
+## Addendum — engage_move_extracts: the reverse-drive is RIGHT but needs leash + a clean gate
+
+engage_move_extracts (a locked unit ordered to back out shields-front) fails because the
+locked-frame holds at target_speed 0 (line ~273 movement.rs) so the men just grind forward
+on the magnet (centroid +8.9, wants <-12). TRIED: detect backing_off (locked, !Disengage,
+move_target BEHIND the facing) and (a) drive the frame at 0.6 pace and (b) move the anchor
+toward the ORDER not along the held facing. RESULT: big improvement (+8.9 -> -0.6, a 9.5m
+reverse drive!) but still short of -12 AND regressed 1 melee test. Two things remain for the
+next pass: (1) the tight ENGAGED leash (anchor law, sim.rs, 1.0m for fighting_frac>0.1) pins
+the frame to the men, so it can't LEAD them out — backing_off needs the loose Disengage leash
+(0.6*depth+5) too; (2) the backing_off gate catches a clashing unit (an Attack/latch whose
+target momentarily sits behind after it advances) — needs to exclude Attack mode or require a
+sustained away-order. The reverse-drive frame is the correct mechanism; it's a 2-file change
+(movement.rs frame + sim.rs leash) + a tighter gate, reverted to hold 143/15.

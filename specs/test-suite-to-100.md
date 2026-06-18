@@ -539,3 +539,21 @@ nothing stops the lateral slide-through, so over time the fronts mesh. The fix i
 interleave prevention (an enemy body must block a man's lateral slide, not just his direct
 foe), which lives in the collision/weave force balance and ripples combat — the documented
 multi-iteration standoff repair. VERIFIED real, not repinnable.
+
+### Column-mesh: the friendly-slide-disable mechanism is DISPROVEN (measured)
+
+Hypothesis: the lateral threading is fighting front-men sliding sideways into enemy gaps
+via the friendly separation-slide, so disabling the slide for men in contact (gate
+`fighting[i]==0 && fighting[j]==0` on the slide in collision.rs) should deadlock the front
+and stop the thread. MEASURED: it did NOT fix it (the_fronts 5.6→5.4m, two_braced still
+threads) AND regressed −10 (the slide is essential friendly combat relief — rear ranks
+funnel/dress through it). So the threading is NOT slide-driven. Reverted.
+
+That leaves the bond RE-TARGETING as the likely root: a man who creeps past front-foe A
+re-acquires deeper foe B and holds at reach from B (deeper in), then C... a slow creep
+through the ranks via target hand-off, not a lateral slide. The fix would pin a man to the
+FRONT-line foe (no re-target to a deeper enemy while a nearer one lives), in combat.rs's
+targeting — which ripples every clash's target selection and must be re-judged against the
+matrix. Confirmed: a sustained combat-balance co-design pass, not a bounded collision tweak.
+TWO bounded mechanisms now measured-dead this session (pivot wheel-slowdown, friendly-slide
+gate); the cluster does not yield to a local change.

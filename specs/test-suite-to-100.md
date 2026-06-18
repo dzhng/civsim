@@ -593,3 +593,19 @@ fail), phalanx (swirl AND passthrough both fail), a_column (the bulge "passes" o
 penetration symptom — splitting would certify the bug). The decoupling vein is now mined
 dry: every freeable passing claim has been freed (large_turns, halted_frame, a_held_braced,
 + the earlier eight_ranks/mirror/counter_web bog/grind/web splits).
+
+### Column-mesh: the TARGETED past-foe fix — improves the mesh, still −5 foundation (definitive)
+
+Refined the directional-bond fix to fire ONLY for a man PAST his foe (d·f > 0 — the
+threading case), leaving normally-placed clash men (d·f ≤ 0) on the exact original
+foe→me rest, so in principle the foundation is untouched. MEASURED: it WORKS on the mesh —
+two_braced centroid gap 0.39 → 3.11 (needs >4), front −17 → −12.9; the_fronts 5.6 → 3.8 —
+the closest any fix has come. BUT it still regresses the foundation: mechanics_melee 10→6,
+mechanics_charge 5→4 (−5 total), and greens no mesh test. Raising the past-threshold to
+0.6 made BOTH worse (mesh gap 2.38, melee 5/5) — so the regression is NOT transient
+clash-oversteps; the back-push is entangled with the clash dynamics at every depth. This
+is the DEFINITIVE column-mesh result: the fix is real and on the right track (it visibly
+closes the thread), but the bond it touches is load-bearing for every clash, so closing
+the mesh and holding the foundation cannot both be done by tuning this one force — it needs
+the front-line-targeting + re-judged matrix co-design. Six bounded/targeted mechanisms now
+measured this session; this one is the most promising for the dedicated pass to start from.

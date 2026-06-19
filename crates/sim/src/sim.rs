@@ -1564,7 +1564,19 @@ impl Sim {
                 // a running pace is above the slowest fifth's — they trail,
                 // and the formation frays the longer it runs. The ceiling is
                 // the charge sprint while charging, so the burst isn't clamped.
-                max_sp = max_sp.min((0.62 + 0.44 * stagger01(i, 0xCAFE)) * sprint_sp);
+                // Keyed by a MIRROR-INVARIANT slot id, not the raw soldier index:
+                // under the 180° clash mirror south's man at (file f, rank r) maps
+                // to north's at (file F-1-f, rank r), so an index key (south = low
+                // indices, north = high) gives the two front ranks DIFFERENT cap
+                // patterns — one line systematically faster, the army-scale
+                // directional bias. `rank` is preserved under M and `min(f,F-1-f)`
+                // is symmetric across the file flip, so mirror-paired men draw the
+                // SAME personal top speed (see specs/directional-bias.md).
+                let files_n = u.files_eff.max(1) as usize;
+                let slot_id = soldier_slot[i] as usize;
+                let (file_id, rank_id) = (slot_id % files_n, slot_id / files_n);
+                let mkey = rank_id * files_n + file_id.min(files_n - 1 - file_id);
+                max_sp = max_sp.min((0.62 + 0.44 * stagger01(mkey, 0xCAFE)) * sprint_sp);
                 let idle = u.move_target.is_none() && u.engaged == 0
                     && hit_ttl[i] <= 0.0 && err < 0.6;
                 // WEAVE, the sum of real forces — no walls, no clamps:

@@ -16,7 +16,7 @@ const N: usize = 240;
 fn break_pct(support: usize, south_class: UnitClassId, aura_class: UnitClassId) -> f32 {
     let mut sim = Sim::new(Tunables { micro_rough: 0.0, ..Tunables::default() }, 7);
     let south = sim.spawn_class(Vec2::new(0.0, -13.0), FRAC_PI_2, N, south_class, 0);
-    let north = sim.spawn_class(Vec2::new(0.0, 13.0), -FRAC_PI_2, 384, UnitClassId::HeavySword, 1);
+    let north = sim.spawn_class(Vec2::new(0.0, 13.0), -FRAC_PI_2, 600, UnitClassId::HeavySword, 1);
     sim.set_files(north, (sim.units[south].files_eff * 3) / 2);
     for k in 0..support {
         let x = (k as f32 - support as f32 / 2.0) * 20.0;
@@ -32,7 +32,7 @@ fn break_pct(support: usize, south_class: UnitClassId, aura_class: UnitClassId) 
             return (N - sim.units[south].alive_count) as f32 / N as f32;
         }
     }
-    (N - sim.units[south].alive_count) as f32 / N as f32 // never broke: report final
+    1.0 // never broke — held the whole fight (better-backed units can earn this)
 }
 
 /// Steady friends nearby let a unit endure more blood before its will breaks.

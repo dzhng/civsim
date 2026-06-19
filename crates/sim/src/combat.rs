@@ -75,8 +75,6 @@ impl Sim {
         self.dmg_acc.resize(n, 0.0);
         self.mount_dmg_acc.clear();
         self.mount_dmg_acc.resize(n, 0.0);
-        self.stun_acc.clear();
-        self.stun_acc.resize(n, 0.0);
         self.push_acc.clear();
         self.push_acc.resize(2 * n, 0.0);
         let mut gang_rank = vec![0u16; n];
@@ -459,13 +457,7 @@ impl Sim {
                 self.health[v] -= self.dmg_acc[v];
                 if self.health[v] <= 0.0 {
                     self.kill(v);
-                    continue;
                 }
-            }
-            // Survivors carry the stagger into next tick (kill() already cleared
-            // it for the dead, hence the continues above).
-            if self.stun_acc[v] > 0.0 {
-                self.stun[v] = self.stun[v].max(self.stun_acc[v]);
             }
         }
     }
@@ -514,12 +506,14 @@ impl Sim {
             return;
         }
 
-        // Any non-evaded impact staggers: you do not stride forward while a
-        // pike slams your shield. (This is what makes reach walls hold.)
-        // But a stagger does not delete physics: a body moving at speed
-        // KEEPS its momentum (p = m·v) and glides through the stumble —
-        // this is how a charging line crashes home through the spear hits
-        // of the final stride instead of politely stopping at reach.
+        // A hit does not delete physics: a body moving at speed KEEPS its
+        // momentum (p = m·v) and glides through the impact — this is how a
+        // charging line crashes home through the spear hits of the final stride
+        // instead of politely stopping at reach. (There is no melee "stagger"
+        // stun: a landed blow does not freeze a man's strike or step — only a
+        // real KNOCK-DOWN, from a charge or a missile, takes him off his feet.
+        // The reach wall is held by the weapon-repel FORCE, not by stunning the
+        // attacker mid-stride.)
         let vvx = (self.positions[2 * victim] - self.prev_positions[2 * victim]) / DT;
         let vvy = (self.positions[2 * victim + 1] - self.prev_positions[2 * victim + 1]) / DT;
         let vsp = (vvx * vvx + vvy * vvy).sqrt();
@@ -531,7 +525,6 @@ impl Sim {
                 self.mom_y[victim] = vvy / vsp * m;
             }
         }
-        self.stun_acc[victim] = self.stun_acc[victim].max(0.35);
 
         // Block: front shield arc only; still takes the push. A BRACED point
         // (a leveled pike) is hard to parry — it arrives from beyond the shield's

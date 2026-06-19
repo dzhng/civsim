@@ -106,7 +106,6 @@ pub struct Sim {
     // specs/directional-bias.md). Staged, mutual blows are mutual.
     pub(crate) dmg_acc: Vec<f32>,
     pub(crate) mount_dmg_acc: Vec<f32>,
-    pub(crate) stun_acc: Vec<f32>,
     /// Hit-shove deltas (2·n), summed over the tick's strikes.
     pub(crate) push_acc: Vec<f32>,
     /// 1 = the engaged enemy is within actual weapon reach. Reflexes (halt,
@@ -199,7 +198,6 @@ impl Sim {
             attacked_by: Vec::new(),
             dmg_acc: Vec::new(),
             mount_dmg_acc: Vec::new(),
-            stun_acc: Vec::new(),
             push_acc: Vec::new(),
             fighting: Vec::new(),
             fight_near: Vec::new(),

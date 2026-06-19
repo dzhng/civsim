@@ -11,10 +11,17 @@ use crate::unit::OrderMode;
 
 /// Morale below this breaks the unit.
 const BREAK_AT: f32 = 0.18;
-/// How strongly nearby allied steadiness (size × aura, summed) divides the morale
-/// drain. Tuned so a unit ringed by big, bold friends holds to ~85% casualties
-/// where it would break near ~half alone.
-const MORALE_SUPPORT: f32 = 0.10;
+/// Blood is the primary breaker. Coefficient on the casualty-rate drain. With
+/// the enemy-press / friend-support factors at their even-fight baseline, tuned
+/// so two equal lines grind to ~80% casualties before the loser's will breaks.
+const CAS_DRAIN: f32 = 0.026;
+/// Nearby standing ENEMY strength (size × aura, summed) multiplies the blood
+/// drain — being pressed by a big, bold mass makes each loss bite. Mirror of
+/// SUPPORT_LIFT.
+const THREAT_DRAIN: f32 = 0.05;
+/// Nearby steady FRIEND strength (size × aura, summed) divides the blood drain —
+/// a well-backed line endures far more before breaking.
+const SUPPORT_LIFT: f32 = 0.16;
 /// Rallied units carry scars: ceiling multiplier per rout.
 const RALLY_SCAR: f32 = 0.78;
 
@@ -111,6 +118,11 @@ impl Sim {
             let mut rout_contagion = 0.0f32;
             // Steady friends nearby brace the will.
             let mut steady_friends = 0.0f32;
+            // Standing enemies nearby press the will — the mirror of steady
+            // friends. Their size×aura summed; folded against my own backing as
+            // ODDS, so an even matchup is neutral and only being OUT-massed
+            // (outnumbered, or facing a high-aura shock arm) accelerates the break.
+            let mut enemy_threat = 0.0f32;
             // The sight of enemy BACKS: a routing enemy emits nothing to
             // fear — it emits relief. This is what breaks the mutual-rout
             // race: the side that holds one beat longer gets paid for it.
@@ -144,6 +156,15 @@ impl Sim {
                             enemy_backs += weight * (1.0 - d / 90.0);
                         }
                         continue; // a broken enemy frightens nobody
+                    }
+                    // Standing-enemy pressure: the same size×aura×proximity the
+                    // friendly branch reads, summed for the foes in steadiness
+                    // range. This is the SLOW will-drain of being pressed by a
+                    // big bold enemy, distinct from the pre-contact charge fear
+                    // below (which is momentum, centre-distance, and habituates).
+                    if d < 80.0 {
+                        let aura = self.units[vi].stats.morale_aura;
+                        enemy_threat += (alive_v as f32 / 100.0) * aura * (1.0 - d / 80.0);
                     }
                     if d_center < 70.0 {
                         // Approaching MOMENTUM, relative to the mass it's
@@ -235,19 +256,25 @@ impl Sim {
             // line that's being shot but not bled (shields shedding the volley)
             // holds; a line losing men breaks on the men, from any source.
             let missile_drain = 0.012 * missile_rate;
-            // Own RESILIENCE (class bravery) and ALLIED SUPPORT both stiffen the
-            // will: they divide the whole drain. Bravery is 1.0 for ordinary foot
-            // (no change); support is 0 when alone (a 1v1 is unchanged), and grows
-            // with the size+aura of nearby friends so a well-backed unit endures
-            // far more blood before breaking (toward ~85% casualties vs ~half
-            // alone). The ≤9-man guaranteed break below still overrides it.
-            let support = u.stats.bravery * (1.0 + MORALE_SUPPORT * steady_friends);
-            let drain = (0.038 * casualty_rate * directions
+            // The will-drain is the BLOOD, pressed between two crowds: nearby
+            // standing ENEMIES (size×aura) multiply it — being pressed by a big,
+            // bold mass makes each loss feel like losing — and nearby steady
+            // FRIENDS divide it. The baseline (one equal enemy, no friends) is
+            // calibrated so an even fight grinds to ~80% casualties before the
+            // loser breaks. Out-massed (a wider/deeper line, a shock arm) the
+            // enemy press is larger → breaks sooner; well-backed → holds longer.
+            // Neither term reads MY OWN dwindling count, so a losing line does not
+            // death-spiral on its own casualties (the enemy term shrinks only as
+            // the ENEMY dies). Bravery (per class) divides the whole drain; the
+            // ≤9-man guaranteed break below still overrides.
+            let enemy_press = 1.0 + THREAT_DRAIN * enemy_threat;
+            let friend_support = 1.0 + SUPPORT_LIFT * steady_friends;
+            let drain = (CAS_DRAIN * casualty_rate * directions * enemy_press
                 + missile_drain
                 + 0.002 * (losing_push - 1.2).max(0.0)
                 + fear_eff)
                 * amp
-                / support.max(0.1);
+                / (u.stats.bravery * friend_support).max(0.1);
 
             // Recovery: at ease (no living, non-routing enemy within
             // at_ease_range — the one shared flag that also relaxes the stance),

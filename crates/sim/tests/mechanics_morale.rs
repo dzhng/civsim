@@ -9,13 +9,15 @@ use std::f32::consts::FRAC_PI_2;
 const N: usize = 240;
 
 /// Casualty fraction (0..1) of the SOUTH unit when it ROUTS — its break point.
-/// North is 1.6× so south is the clear loser; `support` friendly `aura_class`
-/// units stand ~32 m behind south (in support range, out of the fight).
+/// North is 1.6× AND wider, so it overlaps south's frontage and wraps both
+/// flanks: south fights on three sides (the `directions` amplifier) and is the
+/// clear loser that actually breaks. `support` friendly `aura_class` units stand
+/// ~32 m behind south, in steadiness range but out of the fight.
 fn break_pct(support: usize, south_class: UnitClassId, aura_class: UnitClassId) -> f32 {
     let mut sim = Sim::new(Tunables { micro_rough: 0.0, ..Tunables::default() }, 7);
     let south = sim.spawn_class(Vec2::new(0.0, -13.0), FRAC_PI_2, N, south_class, 0);
     let north = sim.spawn_class(Vec2::new(0.0, 13.0), -FRAC_PI_2, 384, UnitClassId::HeavySword, 1);
-    sim.set_files(north, sim.units[south].files_eff);
+    sim.set_files(north, (sim.units[south].files_eff * 3) / 2);
     for k in 0..support {
         let x = (k as f32 - support as f32 / 2.0) * 20.0;
         sim.spawn_class(Vec2::new(x, -45.0), FRAC_PI_2, 200, aura_class, 0);

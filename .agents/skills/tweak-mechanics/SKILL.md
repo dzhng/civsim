@@ -48,6 +48,40 @@ bent to satisfy old tests makes nothing fall out. Net code should go DOWN when
 a unifying mechanic lands (a real foundation absorbs special-cases), so if a
 rebuild is adding complexity, you're probably not at the foundation yet.
 
+### A HIGHER failing-test count can be progress — judge the foundation, not the scoreboard
+
+Do not optimize for the green number. When a change makes the engine more
+**architecturally sound** — more correct from first principles — it is FINE, and
+often expected, for the failing-test count to go *up* in the same step. Many of
+this suite's balance/scenario pins were calibrated to the old (subtly wrong)
+behavior; a foundation fix moves the physics out from under them, and they go red
+because they were encoding the bug, not because the fix is wrong. Build
+**foundation-up**: get the mechanic right, accept the brittle pins fall, then
+re-derive those pins (with David) against the corrected physics. Reverting a sound
+foundation to keep brittle tests green is backwards — it re-installs the bug.
+
+The discriminator is the SAME as everywhere else in this skill: separate the
+**invariant** from the **outcome**. A foundation fix may freely break outcome pins
+(win-rates, survivor spreads, "X usually beats Y"); it must NOT break a physics
+**invariant** (centroids don't cross, no blob, charge can't plow an immortal deep
+block). So when the count jumps, read WHICH tests fell: a pile of outcome/balance
+reds + the mechanical invariants still green = progress; a mechanical invariant red
+= stop, you broke physics. Always commit the foundation with a note saying which
+pins it deliberately regresses and why, so the red is legible as intent, not drift.
+
+**Worked instance — M-equivariant contact passes (the directional bias).** A
+head-on clash of identical units is symmetric under the 180° mirror, yet the engine
+resolved each tick's contact in soldier-INDEX order, in place — so the lower-indexed
+team killed/stunned/shoved its foe before that foe acted the same tick, a systematic
+first-mover bias (see `specs/directional-bias.md`). The fix (stage strikes and apply
+them together — "Jacobi"; read `prev_positions` snapshots, not live in-place
+positions) is unambiguously more correct, and it made an even clash fair at small
+scale. It also **deliberately regressed ~9 charge/bracing/standoff balance pins**
+that were tuned to the old in-place shove timing. That regression is the fix working,
+not breaking — those pins get re-derived to the corrected physics, not used as a
+reason to revert. (The decision to keep it was David's explicit call: sound sim
+first, brittle tests after.)
+
 ### Forces, not walls; emergence, not special-cases
 
 A soldier moves because **real forces** act on him (his neighbours, the

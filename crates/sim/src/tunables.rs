@@ -277,7 +277,7 @@ impl Default for Tunables {
             charge_window: 2.0,
             latch_slip: 4.0,
             press_brake: 4.0,
-            press_brake_floor: 8.0,
+            press_brake_floor: 6.0,
             charge_spent_speed: 1.0,
             charge_drain: 1.0 / 25.0,
             morale_enabled: true,

@@ -346,6 +346,35 @@ cavalry earns its keep by repeated shock and on the flank. When you conclude a
 test is wrong, **fix or delete it and say why** — don't leave two tests
 asserting opposite things ("rides through" vs "bogs down") in the suite.
 
+### Don't abandon a sound mechanic because a test goes red — diagnose the red FIRST
+
+A theoretically-sound change (a missing force you can argue from first principles)
+that makes a few tests red is NOT thereby disproven. Reverting it on the red
+count alone throws away the fix and keeps the bug. Before discarding, diagnose
+EACH red — it is one of three things, and they have different answers:
+
+1. **Tunable** — the mechanic is right but a coefficient is too strong; a weaker
+   value keeps the new behavior AND the old test. **Sweep the parameter before
+   concluding.** Worked case: a sword **standoff force** (sound — two sword lines
+   had no enemy-standoff, so their lattices interleaved into a blob) broke
+   `equal_units_feel_equal_pressure` and `melee_kills` at standoff-softness 0.35.
+   Nearly reverted it as "net zero." Sweeping the softness down to 0.20 kept the
+   blob fixed AND both tests green — the red was a margin, not a refutation.
+2. **A fragile/marginal test** — it was passing by a hair and the sound change
+   nudged it over. Widen it (with a comment naming it chaos-marginal) — but only
+   after you've confirmed by instrumenting that the *mechanism* is still correct.
+3. **A real coupling the change EXPOSED** — the change is right and reveals a
+   second bug. Worked case: the same standoff broke `attack_latch` (the move==attack
+   litmus) — instrumenting showed a MOVE order drives into contact harder than an
+   ATTACK (interpen 0.56 vs 0.32), a pre-existing move/attack-drive asymmetry the
+   standoff merely surfaced. The fix belongs on THAT asymmetry, not on reverting
+   the standoff.
+
+The rule: **it is a deterministic sim — measure why each red is red** (sweep the
+knob, print the mechanism, isolate with immortals) before you let a red-count
+veto a first-principles fix. Keep less-blob/more-correct physics and chase the
+reds you understand; only revert once you've shown the mechanic itself is wrong.
+
 The sharpest tool for an invariant is a **mechanical test with immortal /
 zero-damage fake units**: nobody dies, so the only question left is the pure
 physics ("can the charge physically shove through?"). It's balance-proof — a

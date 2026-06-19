@@ -305,9 +305,15 @@ impl Sim {
                                     // physically justifies — a sprinting heavy
                                     // carries a stride; half a ton of horse
                                     // carries meters.
-                                    let cur = (mom0_x[j] * mom0_x[j] + mom0_y[j] * mom0_y[j]).sqrt();
+                                    // Record the retain FLOOR (the largest 0.6×
+                                    // closing momentum over this tick's impacts).
+                                    // It is applied as a floor on the BLED momentum
+                                    // after the pass — NOT an overwrite, or it would
+                                    // erase the trample bleed and the charge would
+                                    // never bog (it plowed clean through deep braced
+                                    // blocks while this was a `=`).
                                     let want = momentum * 0.6;
-                                    if cur < want && want > set_mag[j] {
+                                    if want > set_mag[j] {
                                         set_mag[j] = want;
                                         set_nx[j] = nx;
                                         set_ny[j] = ny;
@@ -324,15 +330,20 @@ impl Sim {
             scratch[2 * i + 1] += push.y;
         }
 
-        // Apply the staged charge momentum together: bleed first (the trampler
-        // spends carried drive into braced bodies), then the retain-set (a bowled
-        // victim carries 0.6 of the impact) where it exceeds the snapshot.
+        // Apply the staged charge momentum together: BLEED first (the trample
+        // spends the charger's carried drive into braced bodies), THEN raise to
+        // the retain FLOOR only where the bled momentum fell below it — a floor,
+        // not an overwrite. As the charge bogs, its closing speed (and so the
+        // floor) drops with it, and the bleed finally wins and it stops.
         for s in 0..n_sol {
             mom_x[s] += bleed_x[s];
             mom_y[s] += bleed_y[s];
             if set_mag[s] > 0.0 {
-                mom_x[s] = set_nx[s] * set_mag[s];
-                mom_y[s] = set_ny[s] * set_mag[s];
+                let cur = (mom_x[s] * mom_x[s] + mom_y[s] * mom_y[s]).sqrt();
+                if cur < set_mag[s] {
+                    mom_x[s] = set_nx[s] * set_mag[s];
+                    mom_y[s] = set_ny[s] * set_mag[s];
+                }
             }
         }
 

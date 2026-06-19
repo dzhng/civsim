@@ -39,9 +39,13 @@ fn kills_in_30s(att_fatigue: f32) -> usize {
     let att = sim.spawn_class(Vec2::new(0.0, -10.0), FRAC_PI_2, 200, UnitClassId::HeavySword, 0);
     let def = sim.spawn_class(Vec2::new(0.0, 10.0), -FRAC_PI_2, 200, UnitClassId::HeavySword, 1);
     let def_n0 = sim.units[def].alive_count;
-    sim.set_pace(att, Pace::Walk);
+    // Press IN (Run): a fresh line drives to solid reach and trades; a spent one
+    // both closes slower AND swings slower, so it lands fewer killing blows. (A
+    // Walk approach barely reaches past the standoff and trades almost nothing —
+    // too gentle to read the fatigue effect; Run gives a real fight to measure.)
+    sim.set_pace(att, Pace::Run);
     sim.set_attack_order(att, def);
-    for _ in 0..(30.0 / DT) as usize {
+    for _ in 0..(40.0 / DT) as usize {
         sim.units[att].fatigue = att_fatigue; // pin the attacker's wind
         sim.tick();
     }

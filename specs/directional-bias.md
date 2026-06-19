@@ -422,3 +422,41 @@ with David — the current numbers encode the Gauss-Seidel behavior. It is a
 design-targets task, not a structural free win. Until then the symmetry gates
 (`a_one_on_one_duel...`, `the_clash_winner_does_not_depend_on_unit_size`,
 `symmetric_clash_has_no_mechanical_bias`, `mirror_duels_*`) stay RED — correctly.
+
+## UPDATE (2026-06): Jacobi KEPT — contact passes are now M-equivariant
+
+David's call: make the sim architecturally sound first, recalibrate the brittle
+tests after. So the Jacobi combat was NOT reverted — it and the rest of the
+M-equivariance work are committed:
+
+- **Combat** stages strikes (dmg / mount_dmg / stun / push accumulators) and
+  applies them after the whole pass — mutual blows are mutual (commit 423cefa).
+- **Steer** reads `prev_positions` snapshots for the enemy magnet, the
+  fighting-pace clamp, and the reactive facing (was live in-place).
+- **Magnet engage** fades in smoothly over its outer band (no hard on-switch the
+  tick a target is acquired).
+- **Collision charge-impact** momentum (trample bleed + retain-set) is staged and
+  applied after the body loop — cross-body Gauss-Seidel removed (commit f619baf).
+
+Result on an even HeavySword clash (8 seeds, survivor diff; 0 = fair):
+n=8 → 0, n=30 → ~2, n=120 → ~136 (was ~163 fully in-place). So small/medium
+scale is now FAIR; a deep-press residual persists at n=120.
+
+**The n=120 residual is NOT a per-pass order bug** (those are now all
+M-equivariant) — it is morale's positive feedback amplifying a sub-ULP FP residue
+into a systematic rout. Two things were RULED OUT as the residual: snapping the
+`dir()` cos-even handedness (no change, n=30 worse) and slot-keying the per-man
+speed cap (worse — the slot layout is itself mirror-FLIPPED under M, so slot ==
+slot pairs mirror-opposite men).
+
+**The likely lever for the n=120 distribution:** the per-man speed cap
+`stagger01(i, 0xCAFE)` uses a FIXED salt, so the exact same cap pattern repeats
+every seed and biases the same side every run. Mixing the run seed into the salt
+would make per-man variation vary battle-to-battle, so over the seed set neither
+side is favored (the symmetry gate is a DISTRIBUTION, so this is the right shape).
+That is a behavioral/design change (per-man traits become seed-varying; moves the
+golden hash and every per-man-speed outcome) — flagged for David, not yet done.
+
+These regressions are DELIBERATE and expected (charge/bracing/standoff/pike pins
+were calibrated to the old in-place physics); they get re-derived to the corrected
+physics, per "sound sim first."

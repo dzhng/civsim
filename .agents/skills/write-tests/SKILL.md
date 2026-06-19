@@ -51,6 +51,28 @@ Every comparison test isolates ONE variable; everything else is pinned:
 If a test breaks after a sim change, first ask "did an unrelated mechanic
 leak into this experiment?" before touching constants.
 
+## Validate, don't assume — in a sim EVERYTHING is measurable
+
+It is a deterministic simulation: every claim about a MECHANISM — what causes
+what, where the deaths come from, which force dominates, whether a rout or the
+fight did the killing — is directly observable. So never *reason* your way to a
+mechanism conclusion and act on it; instrument the scenario and read the number.
+A plausible story is not evidence, and in this codebase the plausible story is
+wrong often enough to burn a session.
+
+- The cost of validating is one throwaway probe (a `tests/dbgN.rs` that polls
+  public state and prints); the cost of assuming wrong is a fix aimed at the
+  wrong cause. The probe always wins — write it FIRST, before theorising.
+- Worked case: the hypothesis was "morale rout is causing all the casualties —
+  the loser breaks and gets chased down." A 10-line probe that recorded each
+  unit's alive-count *at the moment it routed* vs at the end showed the opposite:
+  ~50 of ~54 loser deaths happened BEFORE the rout (n=60), the chase added ~4.
+  The fight, not the rout, was the killer — so tuning rout/pursuit would have
+  fixed nothing. One probe redirected the whole effort.
+- This is the affirmative twin of "measure the mechanism, not the noise" below:
+  that rule says don't ASSERT on chaotic outcomes; this one says when you have a
+  question about CAUSE, the sim can answer it exactly — go ask it, don't guess.
+
 ## Measure the mechanism, not the noise
 
 Outcome metrics (kill counts, displacement) are CHAOTIC downstream of the

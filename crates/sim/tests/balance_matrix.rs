@@ -171,22 +171,32 @@ fn the_counter_web_contested_matchups_need_lethality_reworks() {
 }
 
 /// Held braced line vs an equal frontal attacker at a given pace. Returns
-/// (verdict, attacker survivors, defender survivors). The defender HOLDS (braced,
-/// fresh, no order); the attacker drives in.
-fn held_braced_outcome(atk_pace: sim::Pace) -> (u32, usize, usize) {
-    let mut sim = Sim::new(Tunables::default(), SEED);
-    let atk = sim.spawn_class(Vec2::new(0.0, -60.0), FRAC_PI_2, 240, UnitClassId::HeavySword, 0);
-    let def = sim.spawn_class(Vec2::new(0.0, 60.0), -FRAC_PI_2, 240, UnitClassId::HeavySword, 1);
-    sim.set_pace(atk, atk_pace);
-    sim.set_attack_order(atk, def);
-    let mut verdict = None;
-    for _ in 0..(600.0 / DT) as usize {
-        sim.tick();
-        if verdict.is_none() {
-            verdict = sim.victor();
+/// (attacker survivors, defender survivors) SUMMED over BOTH side assignments
+/// (attacker on +y and on −y). The defender HOLDS (braced, fresh, no order); the
+/// attacker drives in. Summing both sides CANCELS the engine's residual
+/// directional bias (at 240v240 the southern side wins ~regardless — see
+/// specs/directional-bias.md), so the survivor totals isolate the BRACE/charge
+/// effect this test is about, not which corner of the field a unit spawned in.
+fn held_braced_outcome(atk_pace: sim::Pace) -> (usize, usize) {
+    let one = |atk_south: bool| -> (usize, usize) {
+        let mut sim = Sim::new(Tunables::default(), SEED);
+        let (ay, dy, af, df) = if atk_south {
+            (-60.0, 60.0, FRAC_PI_2, -FRAC_PI_2)
+        } else {
+            (60.0, -60.0, -FRAC_PI_2, FRAC_PI_2)
+        };
+        let atk = sim.spawn_class(Vec2::new(0.0, ay), af, 240, UnitClassId::HeavySword, 0);
+        let def = sim.spawn_class(Vec2::new(0.0, dy), df, 240, UnitClassId::HeavySword, 1);
+        sim.set_pace(atk, atk_pace);
+        sim.set_attack_order(atk, def);
+        for _ in 0..(600.0 / DT) as usize {
+            sim.tick();
         }
-    }
-    (verdict.unwrap_or(9), sim.units[atk].alive_count, sim.units[def].alive_count)
+        (sim.units[atk].alive_count, sim.units[def].alive_count)
+    };
+    let (a0, d0) = one(true);
+    let (a1, d1) = one(false);
+    (a0 + a1, d0 + d1)
 }
 
 /// The defender's edge vs a CHARGE: a braced, fresh holding line BREAKS an equal
@@ -197,12 +207,13 @@ fn held_braced_outcome(atk_pace: sim::Pace) -> (u32, usize, usize) {
 /// pressure-evade debt).
 #[test]
 fn a_held_braced_line_breaks_a_frontal_charge() {
-    let (v, atk_left, def_left) = held_braced_outcome(sim::Pace::Run);
-    println!("RUN attacker {atk_left}/240 vs held def {def_left}/240, verdict {v}");
-    assert_eq!(v, 1, "the held braced line must win against a frontal charge");
+    let (atk_left, def_left) = held_braced_outcome(sim::Pace::Run);
+    println!("RUN (both sides) attacker {atk_left}/480 vs held def {def_left}/480");
+    // Bias-canceled: the braced HOLDER out-survives a charger that disorders
+    // itself on its planted front — clearly, not by a hair.
     assert!(
-        def_left > atk_left,
-        "and stand thicker than the attacker it broke: def {def_left} vs atk {atk_left}"
+        def_left > atk_left + 40,
+        "the held braced line must BREAK a frontal charge and stand thicker: def {def_left} vs atk {atk_left} (of 480 each)"
     );
 }
 
@@ -215,15 +226,15 @@ fn a_held_braced_line_breaks_a_frontal_charge() {
 /// with the charge case so the two halves of the defender's edge stay decoupled.)
 #[test]
 fn a_held_braced_line_trades_evenly_with_a_walking_attacker() {
-    let (_v, atk_left, def_left) = held_braced_outcome(sim::Pace::Walk);
-    println!("WALK attacker {atk_left}/240 vs held def {def_left}/240");
+    let (atk_left, def_left) = held_braced_outcome(sim::Pace::Walk);
+    println!("WALK (both sides) attacker {atk_left}/480 vs held def {def_left}/480");
     let (lo, hi) = (atk_left.min(def_left), atk_left.max(def_left));
     assert!(
-        hi < lo * 3 / 2 + 10,
-        "equal fronts must trade ~evenly on a walk-in, not a blowout: def {def_left} vs atk {atk_left}"
+        hi < lo * 3 / 2 + 20,
+        "equal fronts must trade ~evenly on a walk-in, not a blowout: def {def_left} vs atk {atk_left} (of 480 each)"
     );
     assert!(
-        lo > 60,
+        lo > 120,
         "both sides survive a real grind, neither is annihilated: def {def_left} vs atk {atk_left}"
     );
 }

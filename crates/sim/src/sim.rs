@@ -96,6 +96,19 @@ pub struct Sim {
     /// Set at awareness range (~6m): drives approach facing.
     pub target: Vec<i32>,
     pub attacked_by: Vec<u16>,
+    // --- Jacobi combat staging (M-equivariance) ---------------------------
+    // A tick's strikes do not mutate the field as they iterate; they ACCUMULATE
+    // here and are applied together after the whole combat pass. In place, the
+    // round-robin's index order (team 0 holds the lower indices) was a systematic
+    // first-mover advantage — a low-index man killed / stunned / shoved his foe
+    // before that foe acted the same tick, robbing the simultaneous strike back.
+    // That index handedness is the engine's directional bias (see
+    // specs/directional-bias.md). Staged, mutual blows are mutual.
+    pub(crate) dmg_acc: Vec<f32>,
+    pub(crate) mount_dmg_acc: Vec<f32>,
+    pub(crate) stun_acc: Vec<f32>,
+    /// Hit-shove deltas (2·n), summed over the tick's strikes.
+    pub(crate) push_acc: Vec<f32>,
     /// 1 = the engaged enemy is within actual weapon reach. Reflexes (halt,
     /// drift tracking, drain) key on THIS — being able to see an enemy is
     /// not being in a fight.
@@ -184,6 +197,10 @@ impl Sim {
             trampled: Vec::new(),
             target: Vec::new(),
             attacked_by: Vec::new(),
+            dmg_acc: Vec::new(),
+            mount_dmg_acc: Vec::new(),
+            stun_acc: Vec::new(),
+            push_acc: Vec::new(),
             fighting: Vec::new(),
             fight_near: Vec::new(),
             front_clear: Vec::new(),
@@ -1655,7 +1672,18 @@ impl Sim {
                         let pull = (tun.magnet_strength
                             * (1.0 - (-off / tun.magnet_scale).exp()))
                         .max(0.0);
-                        steer_to = steer_to + d * (pull / dist);
+                        // Smooth ENGAGE ramp: the seek fades IN over the outer
+                        // ~2 m of its range instead of snapping to full pull the
+                        // tick the target is acquired. A hard on-switch let a
+                        // sub-ULP difference in WHEN two mirror duelists cross the
+                        // acquisition range (one tick) decide the entire 1v1 — a
+                        // full magnet's pull vs zero. Ramped, that one-tick lead is
+                        // worth ~0 force, so the duel is decided by the fight (the
+                        // RNG) and comes out a coin flip. Keyed on `off` (reach-
+                        // relative) so every class fades in at its own contact band.
+                        let t = ((4.0 - off) * 0.5).clamp(0.0, 1.0);
+                        let engage = t * t * (3.0 - 2.0 * t);
+                        steer_to = steer_to + d * (pull * engage / dist);
                         // An OVERHANGING flank man — his foe is well OFF the unit's
                         // facing axis (to his inner side, not ahead) — must CURL IN
                         // to envelop, not be towed straight ahead by the frame
@@ -1736,7 +1764,11 @@ impl Sim {
                 // He still surges if torn badly out of place (err high).
                 if engaged_i && err < tun.surge_err_threshold {
                     let te = target[i] as usize;
-                    let ep = Vec2::new(positions[2 * te], positions[2 * te + 1]);
+                    // Snapshot, not live: this fighting-pace clamp reads the FOE's
+                    // position; in place a low-index front-ranker reads his foe
+                    // already moved this tick and a high-index one does not — a
+                    // front-line Gauss-Seidel skew that compounds with depth.
+                    let ep = Vec2::new(prev_positions[2 * te], prev_positions[2 * te + 1]);
                     let e = ep - p;
                     let el = e.len();
                     if el > 1e-3 {
@@ -1806,9 +1838,11 @@ impl Sim {
                 // doesn't wheel itself and override the player's order; its edge
                 // men just turn outward to face who's on them.
                 let desired_face = if aware_i {
+                    // Snapshot, not live: face the foe's tick-start position so the
+                    // two front ranks of a clash turn symmetrically.
                     let tp = Vec2::new(
-                        positions[2 * target[i] as usize],
-                        positions[2 * target[i] as usize + 1],
+                        prev_positions[2 * target[i] as usize],
+                        prev_positions[2 * target[i] as usize + 1],
                     );
                     (tp - p).y.atan2((tp - p).x)
                 } else if hit_ttl[i] > 0.0 {

@@ -68,6 +68,17 @@ impl Sim {
         for a in self.attacked_by.iter_mut() {
             *a = 0;
         }
+        // Jacobi staging: zero the per-victim accumulators. Strikes add to them
+        // and the whole tick's wounds / shoves / staggers land together after the
+        // pass, so index order is not a first-mover advantage (see sim.rs).
+        self.dmg_acc.clear();
+        self.dmg_acc.resize(n, 0.0);
+        self.mount_dmg_acc.clear();
+        self.mount_dmg_acc.resize(n, 0.0);
+        self.stun_acc.clear();
+        self.stun_acc.resize(n, 0.0);
+        self.push_acc.clear();
+        self.push_acc.resize(2 * n, 0.0);
         let mut gang_rank = vec![0u16; n];
         for i in 0..n {
             if self.alive[i] == 1 {
@@ -418,6 +429,45 @@ impl Sim {
                 self.strike(i, v, weapon, bearing, m_a, can_wound, &tun);
             }
         }
+
+        // --- Jacobi apply: every blow dealt this tick lands now, together. ----
+        // Deaths resolve only here, so within a tick no strike is cancelled by an
+        // earlier one in index order — the mutual blows of a head-on clash are
+        // mutual, which is what makes the engine M-equivariant.
+        for v in 0..n {
+            if self.alive[v] == 0 {
+                continue;
+            }
+            // Shove first (a survivor's bonds must reflect the displacement before
+            // next tick reads crush; a corpse needs no update).
+            let (sx, sy) = (self.push_acc[2 * v], self.push_acc[2 * v + 1]);
+            if sx != 0.0 || sy != 0.0 {
+                let np = Vec2::new(self.positions[2 * v] + sx, self.positions[2 * v + 1] + sy);
+                if self.terrain.speed_at(np) > 0.0 {
+                    self.positions[2 * v] = np.x;
+                    self.positions[2 * v + 1] = np.y;
+                }
+            }
+            if self.mount_dmg_acc[v] > 0.0 {
+                self.mount_health[v] -= self.mount_dmg_acc[v];
+                if self.mount_health[v] <= 0.0 {
+                    self.kill(v);
+                    continue;
+                }
+            }
+            if self.dmg_acc[v] > 0.0 {
+                self.health[v] -= self.dmg_acc[v];
+                if self.health[v] <= 0.0 {
+                    self.kill(v);
+                    continue;
+                }
+            }
+            // Survivors carry the stagger into next tick (kill() already cleared
+            // it for the dead, hence the continues above).
+            if self.stun_acc[v] > 0.0 {
+                self.stun[v] = self.stun[v].max(self.stun_acc[v]);
+            }
+        }
     }
 
     /// One strike: evade / block / wound, with push on anything not evaded.
@@ -481,7 +531,7 @@ impl Sim {
                 self.mom_y[victim] = vvy / vsp * m;
             }
         }
-        self.stun[victim] = self.stun[victim].max(0.35);
+        self.stun_acc[victim] = self.stun_acc[victim].max(0.35);
 
         // Block: front shield arc only; still takes the push. A BRACED point
         // (a leveled pike) is hard to parry — it arrives from beyond the shield's
@@ -498,16 +548,12 @@ impl Sim {
         let m_v = self.mass[victim] * self.units[uv].brace();
         let push = tun.hit_push * (m_attacker / m_v).clamp(0.3, 3.5);
         let d = dir(bearing);
-        let np = Vec2::new(
-            self.positions[2 * victim] + d.x * push,
-            self.positions[2 * victim + 1] + d.y * push,
-        );
-        if self.terrain.speed_at(np) > 0.0 {
-            self.positions[2 * victim] = np.x;
-            self.positions[2 * victim + 1] = np.y;
-            // The shove itself IS the pressure input: it shortens his bonds,
-            // and the weave reads that compression as crush next tick.
-        }
+        // Stage the shove: all of a tick's shoves on this victim sum and land
+        // together after the pass (the terrain clamp is applied there). The shove
+        // IS the pressure input — it shortens his bonds, and the weave reads that
+        // compression as crush next tick.
+        self.push_acc[2 * victim] += d.x * push;
+        self.push_acc[2 * victim + 1] += d.y * push;
 
         // Blocked, or gang-capped (no room to land the blade): the shove above
         // still happened — only the wound is denied.
@@ -520,17 +566,13 @@ impl Sim {
         let attacker_p = self.soldier_pos(attacker);
         let victim_p = self.soldier_pos(victim);
         let to_center = (victim_p - attacker_p).len() - self.radius[attacker] - 0.35;
+        // Stage the wound; it is applied (and the kill resolved) after the pass,
+        // so a man mortally hit by a low-index foe still lands his simultaneous
+        // strike this tick.
         if self.mounted[victim] == 1 && to_center > weapon.reach {
-            // Only the mount's body is in reach: the horse soaks it.
-            self.mount_health[victim] -= weapon.damage;
-            if self.mount_health[victim] <= 0.0 {
-                self.kill(victim);
-            }
+            self.mount_dmg_acc[victim] += weapon.damage;
         } else {
-            self.health[victim] -= weapon.damage;
-            if self.health[victim] <= 0.0 {
-                self.kill(victim);
-            }
+            self.dmg_acc[victim] += weapon.damage;
         }
     }
 

@@ -17,6 +17,17 @@ use crate::math::Vec2;
 use crate::sim::Sim;
 use crate::tunables::DT;
 
+/// A non-braced weapon (a sword) holds an enemy this far past body contact — the
+/// standoff band that stops two sword lines interleaving their lattices into a
+/// blob (a rear man squirting into the gap between two enemies). Body separation
+/// forbids only OVERLAP, so without this the lattices superimpose.
+const SWORD_STANDOFF: f32 = 0.5;
+/// The standoff band's repel is this fraction of the overlap repel — WEAK, so it
+/// resists deep interleaving without moving where the front rank FIGHTS (a
+/// full-strength standoff shifted the fight distance and rippled pressure/kills;
+/// at this softness both stay green). Combat reach is far longer regardless.
+const SWORD_STANDOFF_SOFT: f32 = 0.2;
+
 impl Sim {
     pub(crate) fn apply_separation(&mut self) {
         let n = self.soldier_count();
@@ -404,10 +415,38 @@ impl Sim {
                             if units[ui].tramples() {
                                 continue;
                             }
-                            let rdist = if braced { reach } else { body_r[bi] + body_r[bk as usize] };
+                            let bsum = body_r[bi] + body_r[bk as usize];
                             let dx = body_pos[2 * bk as usize] - jx;
                             let dy = body_pos[2 * bk as usize + 1] - jy;
                             let fwd = dx * aim.x + dy * aim.y;
+                            // The standoff holds only in a FRONTAL clash — where this
+                            // bearer sits along the foe's OWN facing axis (the foe is
+                            // squared up to him, two lines meeting). When the foe is
+                            // taken on his FLANK or rear (this bearer is off to the
+                            // foe's side — a wide line wrapping a block) there is no
+                            // standoff: the wrapping man closes to body contact so the
+                            // block is ENVELOPED, not held at arm's length. Keyed on
+                            // the CONTACT direction (foe→bearer) vs the foe's facing,
+                            // not the bearer's — a held block faces one way, so its
+                            // flank men only read as flanked by where the foe stands.
+                            // This is what separates the blob (frontal interleave,
+                            // bad) from a wrap (flank envelopment, the point).
+                            let foe_aim = crate::math::dir(units[ui].facing);
+                            let d2c = dx * dx + dy * dy;
+                            let frontal = (-dx * foe_aim.x - dy * foe_aim.y) > 0.55 * d2c.sqrt();
+                            // A sword holds a SOFT standoff past body contact: full
+                            // repel on overlap (front contact, where men FIGHT, is
+                            // unchanged) plus a WEAK ramp in the standoff band beyond
+                            // it — enough to resist a rear man squirting into the
+                            // gaps between enemies (the blob), not enough to move the
+                            // front line out. A braced point holds at its full reach.
+                            // FOOT vs FOOT only: the blob is an infantry-line
+                            // problem. Cavalry rides through and maneuvers in contact
+                            // (its reach is the rider-reachability contract), so a
+                            // horse-involved contact keeps body radius — no standoff.
+                            let foot = mounted[j] == 0 && mounted[i] == 0;
+                            let standoff_dist = if frontal && foot { SWORD_STANDOFF } else { 0.0 };
+                            let rdist = if braced { reach } else { bsum + standoff_dist };
                             // Inside the forward reach band, in this man's column.
                             if fwd <= 0.0 || fwd >= rdist {
                                 continue;
@@ -419,7 +458,13 @@ impl Sim {
                             if fwd < near_fwd {
                                 near_fwd = fwd;
                                 near_i = i;
-                                near_pen = rdist - fwd;
+                                near_pen = if braced {
+                                    rdist - fwd
+                                } else {
+                                    let overlap = (bsum - fwd).max(0.0);
+                                    let standoff = (rdist - fwd.max(bsum)).max(0.0);
+                                    overlap + SWORD_STANDOFF_SOFT * standoff
+                                };
                             }
                         }
                     }

@@ -1254,7 +1254,21 @@ impl Sim {
             // anchor and stretch the block.
             let advancing =
                 matches!(u.mode, crate::unit::OrderMode::Attack(_)) || u.move_target.is_some();
-            let slot_pull_u = if advancing { tun.slot_pull } else { tun.slot_pull_hold };
+            // A unit doing a FREE in-place pivot (a drilled about-face, not a
+            // contact wheel) grips its grid HARD: the whole lattice turns in place,
+            // so the men must chase the rotating slots tightly or the stiff weave
+            // holds the old shape and the block smears through the arc like cloth
+            // (the rear corners lag the spinning grid). Loose advancing-grip is for
+            // the MARCH, where chasing a moving anchor overshoots; an in-place pivot
+            // has no anchor drift to overshoot. Gated on NOT engaged so a braced
+            // line micro-wheeling in contact keeps its normal contact grip.
+            let slot_pull_u = if u.pivoting && u.engaged == 0 {
+                tun.slot_pull_hold.max(tun.slot_pull)
+            } else if advancing {
+                tun.slot_pull
+            } else {
+                tun.slot_pull_hold
+            };
             let my_files = u.files_eff.max(1);
             // How WIDE is the band of my own front under contact? A full press
             // engages across my whole frontage; a narrow column (even several side

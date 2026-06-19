@@ -1670,18 +1670,7 @@ impl Sim {
                         let pull = (tun.magnet_strength
                             * (1.0 - (-off / tun.magnet_scale).exp()))
                         .max(0.0);
-                        // Smooth ENGAGE ramp: the seek fades IN over the outer
-                        // ~2 m of its range instead of snapping to full pull the
-                        // tick the target is acquired. A hard on-switch let a
-                        // sub-ULP difference in WHEN two mirror duelists cross the
-                        // acquisition range (one tick) decide the entire 1v1 — a
-                        // full magnet's pull vs zero. Ramped, that one-tick lead is
-                        // worth ~0 force, so the duel is decided by the fight (the
-                        // RNG) and comes out a coin flip. Keyed on `off` (reach-
-                        // relative) so every class fades in at its own contact band.
-                        let t = ((4.0 - off) * 0.5).clamp(0.0, 1.0);
-                        let engage = t * t * (3.0 - 2.0 * t);
-                        steer_to = steer_to + d * (pull * engage / dist);
+                        steer_to = steer_to + d * (pull / dist);
                         // An OVERHANGING flank man — his foe is well OFF the unit's
                         // facing axis (to his inner side, not ahead) — must CURL IN
                         // to envelop, not be towed straight ahead by the frame

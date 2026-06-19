@@ -82,6 +82,21 @@ impl Sim {
         } = self;
         // Collision damage is applied after the pass (kill() needs &mut self).
         let mut impact_kills: Vec<usize> = Vec::new();
+        // Jacobi impact: the charge stack READS carried momentum (the trample
+        // bleed reads the trampler's, the retain-set reads the victim's) and
+        // WRITES it across bodies. In place those reads/writes ran in body-index
+        // order — a head-on charge resolved one side's momentum before the
+        // other's, the deep-press half of the directional bias. Read the
+        // tick-start snapshot; stage the bleed (additive) and the retain (a
+        // max-magnitude set) and apply both after the body loop.
+        let n_sol = mom_x.len();
+        let mom0_x = mom_x.clone();
+        let mom0_y = mom_y.clone();
+        let mut bleed_x = vec![0.0f32; n_sol];
+        let mut bleed_y = vec![0.0f32; n_sol];
+        let mut set_mag = vec![0.0f32; n_sol];
+        let mut set_nx = vec![0.0f32; n_sol];
+        let mut set_ny = vec![0.0f32; n_sol];
         grid.rebuild(cell, body_pos);
         // The REAL WALL: deepest enemy body a soldier overlaps this tick. The
         // capped push relieves crowds gently; an ENEMY body, though, a man may
@@ -223,12 +238,12 @@ impl Sim {
                                     // pins it); a thin line is cleared before it
                                     // spends.
                                     if units[ui].tramples() {
-                                        let toward = -(mom_x[i] * nx + mom_y[i] * ny);
+                                        let toward = -(mom0_x[i] * nx + mom0_y[i] * ny);
                                         if toward > 0.0 {
                                             let grip = (tun.trample_bleed * share * units[uj].brace())
                                                 .min(0.85);
-                                            mom_x[i] += nx * toward * grip;
-                                            mom_y[i] += ny * toward * grip;
+                                            bleed_x[i] += nx * toward * grip;
+                                            bleed_y[i] += ny * toward * grip;
                                         }
                                         // BOWL the victim: while the charge is still
                                         // committed (riding at speed, not bogged), the
@@ -279,10 +294,12 @@ impl Sim {
                                     // physically justifies — a sprinting heavy
                                     // carries a stride; half a ton of horse
                                     // carries meters.
-                                    let cur = (mom_x[j] * mom_x[j] + mom_y[j] * mom_y[j]).sqrt();
-                                    if cur < momentum * 0.6 {
-                                        mom_x[j] = nx * momentum * 0.6;
-                                        mom_y[j] = ny * momentum * 0.6;
+                                    let cur = (mom0_x[j] * mom0_x[j] + mom0_y[j] * mom0_y[j]).sqrt();
+                                    let want = momentum * 0.6;
+                                    if cur < want && want > set_mag[j] {
+                                        set_mag[j] = want;
+                                        set_nx[j] = nx;
+                                        set_ny[j] = ny;
                                     }
                                 }
                             }
@@ -294,6 +311,18 @@ impl Sim {
             }
             scratch[2 * i] += push.x;
             scratch[2 * i + 1] += push.y;
+        }
+
+        // Apply the staged charge momentum together: bleed first (the trampler
+        // spends carried drive into braced bodies), then the retain-set (a bowled
+        // victim carries 0.6 of the impact) where it exceeds the snapshot.
+        for s in 0..n_sol {
+            mom_x[s] += bleed_x[s];
+            mom_y[s] += bleed_y[s];
+            if set_mag[s] > 0.0 {
+                mom_x[s] = set_nx[s] * set_mag[s];
+                mom_y[s] = set_ny[s] * set_mag[s];
+            }
         }
 
         // --- WEAPON REPEL: a leveled weapon PUSHES the enemy out of its reach.

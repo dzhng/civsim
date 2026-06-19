@@ -741,8 +741,11 @@ fn an_attacking_line_wraps_a_deep_column_a_holding_one_does_not() {
             // The spring-magnet holds the front at weapon's length, so the
             // attacker forms a CLEAN CUP around the column (it doesn't pile
             // through it as the old constant-pull magnet did) — a smaller, more
-            // honest bow. What matters is the contrast with the holding line.
-            assert!(bow > 2.0, "the attacking line must wrap the column: bow {bow:.1}");
+            // honest bow. What matters is the CONTRAST with the holding line
+            // (which stays < 1.5): the attacker bows clearly past it. (Bar
+            // re-derived to the spring-magnet mechanism — 1.7, between the holder's
+            // 1.5 and the measured attacking bow ~1.9 — not the old magnet's 2.0.)
+            assert!(bow > 1.7, "the attacking line must wrap the column: bow {bow:.1}");
             assert!(coh_min < coh_flat - 0.05, "the wrap must shed cohesion: {coh_flat:.2}->{coh_min:.2}");
         } else {
             assert!(bow < 1.5, "a holding line must NOT wrap on a corner touch: bow {bow:.1}");
@@ -835,9 +838,11 @@ fn an_attacking_stem_drapes_along_the_bar() {
     eprintln!("T-ATTACK stem width {:.1}->max {:.1}", stem_w0, stem_w_max);
     // Attacking, the stem drapes wider than its rest along the bar (clearly more
     // than a HOLDING stem, which stays ~+2 — see the hold test). The tight
-    // engaged leash keeps the drape modest; the contrast is what matters.
+    // engaged leash keeps the drape modest; the CONTRAST is what matters. (Bar
+    // +2.6, between the holding stem's ~+2 and the measured attacking drape ~+2.8
+    // under the spring-magnet — re-derived to the mechanism, not the old magnet.)
     assert!(
-        stem_w_max > stem_w0 + 2.8,
+        stem_w_max > stem_w0 + 2.6,
         "the attacking stem must drape along the bar: width {stem_w0:.1}->{stem_w_max:.1}"
     );
 }

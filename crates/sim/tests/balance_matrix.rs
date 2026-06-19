@@ -119,15 +119,18 @@ fn the_counter_web_holds() {
         (ShockCavalry, Archers, 0, "horse eats archers"),
         (ArtilleryCrew, Skirmishers, 1, "a crew alone loses to anyone"),
     ];
+    // A small SEED SET (majority verdict), not one seed: several of these are
+    // genuine but CLOSE relationships (HeavySword-vs-Phalanx — the phalanx wins
+    // most seeds, but a single seed can land a draw), so a one-seed gate is a
+    // coin that occasionally lands the wrong way. The majority-of-seeds winner is
+    // the robust directional verdict; the full golden matrix is the exhaustive board.
+    let seeds: [u64; 5] = [SEED, SEED ^ 0xA1, SEED ^ 0xB2, SEED ^ 0xC3, SEED ^ 0xD4];
     for (a, d, want, why) in expect {
-        let o = run_once(&Scenario::duel(a, d), &base, &tun, SEED);
+        let agg = run_over_seeds(&Scenario::duel(a, d), &base, &tun, &seeds);
         assert_eq!(
-            o.victor, want,
-            "{a:?} vs {d:?}: {why} (got verdict {}, {:.0}%/{:.0}% at {:.0}s)",
-            o.victor,
-            o.surv[0] * 100.0,
-            o.surv[1] * 100.0,
-            o.secs
+            agg.winner(), Some(want as usize),
+            "{a:?} vs {d:?}: {why} (win-rates {:.0}%/{:.0}%, draw {:.0}%)",
+            agg.win_rate[0] * 100.0, agg.win_rate[1] * 100.0, agg.draw_rate * 100.0
         );
     }
 }

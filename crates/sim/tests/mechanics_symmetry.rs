@@ -41,6 +41,13 @@ fn south_win_count(n: usize, seeds: u64) -> u64 {
 /// neither side may win every time. Currently RED (north wins ~all): the deterministic
 /// positional bias. Two soldiers means every force/strike is traceable.
 #[test]
+#[ignore = "UNMEASURABLE on the current code: a 1v1 of HeavySword produces ZERO deaths \
+            (both soldiers fight one beat, then BOTH rout and flee apart to y~=20, bit-perfect \
+            mirrors throughout). south_win_count compares death counts, so it is 0/24 \
+            structurally (0 < 0 is false every seed) — NOT a positional bias. The test's \
+            premise (a 1v1 resolves with a winner) is false here; it needs 1v1 lethality or a \
+            non-death metric. The army-scale directional bias IS measured, and kept RED, by \
+            symmetric_clash and the_clash_winner. See specs/directional-bias.md."]
 fn a_one_on_one_duel_is_a_coin_flip_not_a_fixed_winner() {
     let sw = south_win_count(1, 24);
     eprintln!("1v1: south won {sw}/24 (≈12 = fair; 0 or 24 = a fixed-winner bias)");

@@ -16,11 +16,21 @@ use std::f32::consts::FRAC_PI_2;
 
 /// Over `seeds`, how often does the SOUTH unit (at −y, facing +y) win an n-vs-n
 /// head-on clash of identical HeavySword units? Fair ⇒ about half.
+///
+/// Morale is OFF: these tests measure the COMBAT/positional bias, and morale is a
+/// confound — at small n the ≤9-man guaranteed-break rule (a unit ground to ≤9 men
+/// is finished — the intended design) routs BOTH 1v1/3v3 units on the first beat
+/// for zero deaths, so the death-count winner is structurally 0 (0 < 0 is false).
+/// With morale off the duel actually resolves, so the win-count reflects the combat
+/// fairness the test is about.
 fn south_win_count(n: usize, seeds: u64) -> u64 {
     let files = (n as f32).sqrt().ceil() as usize;
     (0..seeds)
         .filter(|&seed| {
-            let mut sim = Sim::new(Tunables { micro_rough: 0.0, ..Tunables::default() }, seed);
+            let mut sim = Sim::new(
+                Tunables { micro_rough: 0.0, morale_enabled: false, ..Tunables::default() },
+                seed,
+            );
             let s = sim.spawn_class(Vec2::new(0.0, -8.0), FRAC_PI_2, n, UnitClassId::HeavySword, 0);
             let no = sim.spawn_class(Vec2::new(0.0, 8.0), -FRAC_PI_2, n, UnitClassId::HeavySword, 1);
             sim.set_files(s, files);
@@ -38,16 +48,10 @@ fn south_win_count(n: usize, seeds: u64) -> u64 {
 }
 
 /// THE minimal repro: a 1v1 (two soldiers). Identical units, mirrored placement —
-/// neither side may win every time. Currently RED (north wins ~all): the deterministic
-/// positional bias. Two soldiers means every force/strike is traceable.
+/// neither side may win every time. With morale off the duel resolves to a death
+/// each (one winner per seed); over 24 seeds it sits inside the fair band (a real
+/// decisive fight is expected to be lopsided, but no SIDE may win systematically).
 #[test]
-#[ignore = "UNMEASURABLE on the current code: a 1v1 of HeavySword produces ZERO deaths \
-            (both soldiers fight one beat, then BOTH rout and flee apart to y~=20, bit-perfect \
-            mirrors throughout). south_win_count compares death counts, so it is 0/24 \
-            structurally (0 < 0 is false every seed) — NOT a positional bias. The test's \
-            premise (a 1v1 resolves with a winner) is false here; it needs 1v1 lethality or a \
-            non-death metric. The army-scale directional bias IS measured, and kept RED, by \
-            symmetric_clash and the_clash_winner. See specs/directional-bias.md."]
 fn a_one_on_one_duel_is_a_coin_flip_not_a_fixed_winner() {
     let sw = south_win_count(1, 24);
     eprintln!("1v1: south won {sw}/24 (≈12 = fair; 0 or 24 = a fixed-winner bias)");

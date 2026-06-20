@@ -39,7 +39,7 @@ page.on('console', (m) => {
 
 // ?map=A skips the main menu; scripted stages need a passive enemy.
 await page.goto(TARGET + '?map=A&ai=off');
-await page.waitForFunction(() => window.__ready === true, { timeout: 20000 });
+await page.waitForFunction(() => window.__ready === true, undefined, { timeout: 20000 });
 await page.waitForTimeout(800);
 
 const stats = await page.evaluate(() => window.__game.stats());
@@ -84,7 +84,7 @@ await page.evaluate(() => window.__game.freeze(false));
   const lod = await browser.newPage({ viewport: { width: 1280, height: 800 } });
   lod.on('pageerror', (e) => pageErrors.push('lod-page: ' + e.message));
   await lod.goto(TARGET + '?battle=duel&a=0&b=0&ai=off'); // HeavyInfantry (blue), enemy idle
-  await lod.waitForFunction(() => window.__ready === true, { timeout: 20000 });
+  await lod.waitForFunction(() => window.__ready === true, undefined, { timeout: 20000 });
   await lod.waitForTimeout(400);
   for (const z of [1, 2, 4, 6, 9]) {
     // Frame unit 0's centroid at this zoom, freeze, and grab its men's screen AABB.
@@ -139,7 +139,7 @@ for (const dpr of [1, 2]) {
   const sp = await browser.newPage({ viewport: { width: 1280, height: 800 }, deviceScaleFactor: dpr });
   sp.on('pageerror', (e) => pageErrors.push(`sel-page(dpr${dpr}): ` + e.message));
   await sp.goto(TARGET + '?map=A&ai=off');
-  await sp.waitForFunction(() => window.__ready === true, { timeout: 20000 });
+  await sp.waitForFunction(() => window.__ready === true, undefined, { timeout: 20000 });
   await sp.waitForTimeout(400);
   // Where unit u is actually drawn, in CSS px (== where a user clicks).
   const trueScreen = (u) => sp.evaluate((u) => {
@@ -246,61 +246,74 @@ if (lsInfo[4] < 0.8) {
 
 } // end FULL stage 2-3
 
-// --- Stage 4: 180 pivot stays orderly ----------------------------------------
+// --- Stage 4-5: mechanics smoke on a small page ------------------------------
 if (FULL) {
-const h2 = await page.evaluate(() => window.__game.unitInfo(2));
-await page.evaluate(([x, y]) => {
-  window.__game.setOrder(2, x, y - 250); // about-face: order is behind
-  window.__game.advance(500);
-}, [h2[0], h2[1]]);
-const midPivot = await page.evaluate(() => window.__game.unitInfo(2));
-// A 143m line about-facing IS disruptive (cohesion dips into the 0.3-0.5
-// band, throttling its own rotation); ragging looked like 0.09-and-stuck.
-// The strict detector is the native large_turns mean-slot-error test.
-check('pivot keeps cohesion (no rag)', midPivot[4] > 0.3, `cohesion mid-pivot ${midPivot[4].toFixed(2)}`);
-await page.evaluate(() => window.__game.advance(5400)); // wide lines re-face slowly
-const postPivot = await page.evaluate(() => window.__game.unitInfo(2));
-const facingErr = Math.abs(postPivot[2] + Math.PI / 2); // facing south
-check('unit completed the 180', facingErr < 0.5, `facing ${postPivot[2].toFixed(2)} rad`);
-await page.screenshot({ path: SHOTS + 'pivot-after.png' });
+// These are web/export smoke checks for mechanics already pinned natively.
+// Keep them on a 480-soldier duel page: the 30k map made a single wide unit
+// take minutes to settle and turned a mechanics check into a perf test.
+const mech = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+mech.on('pageerror', (e) => pageErrors.push('mech-page: ' + e.message));
+await mech.goto(TARGET + '?battle=duel&a=0&b=0&ai=off');
+await mech.waitForFunction(() => window.__ready === true, undefined, { timeout: 20000 });
+await mech.waitForTimeout(300);
 
-// --- Stage 5: stamina economy -------------------------------------------------
-const la = await page.evaluate(() => window.__game.unitInfo(7));
-await page.evaluate(([x, y]) => {
-  window.__game.setPace(7, 1);
-  window.__game.setOrder(7, x, y + 250);
+const h0 = await mech.evaluate(() => window.__game.unitInfo(0));
+await mech.evaluate(([x, y]) => {
+  window.__game.setOrder(0, x, y - 80); // about-face: order is behind
+  window.__game.advance(500);
+}, [h0[0], h0[1]]);
+const midPivot = await mech.evaluate(() => window.__game.unitInfo(0));
+check('pivot keeps cohesion (no rag)', midPivot[4] > 0.3, `cohesion mid-pivot ${midPivot[4].toFixed(2)}`);
+await mech.evaluate(() => window.__game.advance(5400));
+const postPivot = await mech.evaluate(() => window.__game.unitInfo(0));
+const facingErr = Math.abs(postPivot[2] + Math.PI / 2); // facing south
+check('unit completed the 180', postPivot[12] === 0 && postPivot[4] > 0.85 && facingErr < 0.5,
+  `facing ${postPivot[2].toFixed(2)} rad, cohesion ${postPivot[4].toFixed(2)}, target ${postPivot[12]}`);
+await mech.screenshot({ path: SHOTS + 'pivot-after.png' });
+
+const la = await mech.evaluate(() => window.__game.unitInfo(0));
+await mech.evaluate(([x, y]) => {
+  window.__game.setPace(0, 1);
+  window.__game.setOrder(0, x + 250, y);
   window.__game.advance(1800);
 }, [la[0], la[1]]);
-const ran = await page.evaluate(() => window.__game.unitInfo(7));
-check('running drains stamina', ran[8] < 0.75, `fatigue ${ran[8].toFixed(2)} after 60s run`);
-await page.evaluate(() => {
-  const i = window.__game.unitInfo(7);
-  window.__game.setOrder(7, i[0], i[1]);
+const ran = await mech.evaluate(() => window.__game.unitInfo(0));
+check('running drains stamina', ran[8] < 0.75, `stamina ${ran[8].toFixed(2)} after 60s run`);
+await mech.evaluate(() => {
+  const i = window.__game.unitInfo(0);
+  window.__game.setPace(0, 0);
+  window.__game.setOrder(0, i[0], i[1]);
   window.__game.advance(4500); // halt + 150s rest (re-forming first)
 });
-const rested = await page.evaluate(() => window.__game.unitInfo(7));
-check('rest recovers stamina', rested[8] > ran[8] + 0.08, `fatigue ${ran[8].toFixed(2)} -> ${rested[8].toFixed(2)}`);
+const rested = await mech.evaluate(() => window.__game.unitInfo(0));
+check('rest recovers stamina', rested[8] > ran[8] + 0.08, `stamina ${ran[8].toFixed(2)} -> ${rested[8].toFixed(2)}`);
+await mech.close();
 
 // --- Stage 6: melee — two heavies meet, fight, and leave corpses -------------
 // Morale ends fights on its own schedule now, so sample for the PEAK of the
 // engagement rather than betting on one instant.
-const peakEngaged = await page.evaluate(() => {
-  window.__game.setPace(4, 1); // the long map needs the double
-  window.__game.setPace(24, 1);
-  window.__game.attackOrder(4, 24); // center heavies, straight clear lane
-  window.__game.attackOrder(24, 4);
-  window.__game.advance(7000); // the approach (both close at the double)
+const meleePage = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+meleePage.on('pageerror', (e) => pageErrors.push('melee-page: ' + e.message));
+await meleePage.goto(TARGET + '?battle=duel&a=0&b=0&ai=off');
+await meleePage.waitForFunction(() => window.__ready === true, undefined, { timeout: 20000 });
+await meleePage.waitForTimeout(300);
+const peakEngaged = await meleePage.evaluate(() => {
+  window.__game.setPace(0, 1);
+  window.__game.setPace(1, 1);
+  window.__game.attackOrder(0, 1);
+  window.__game.attackOrder(1, 0);
+  window.__game.advance(2200);
   let peak = 0;
-  for (let k = 0; k < 24; k++) {
-    window.__game.advance(350);
-    peak = Math.max(peak, window.__game.unitInfo(4)[16]);
+  for (let k = 0; k < 12; k++) {
+    window.__game.advance(200);
+    peak = Math.max(peak, window.__game.unitInfo(0)[16]);
   }
   return peak;
 });
 check('units are engaged mid-fight', peakEngaged > 20, `${peakEngaged} fighting at the peak`);
-await page.screenshot({ path: SHOTS + 'melee.png' });
-const red = await page.evaluate(() => window.__game.unitInfo(4));
-const blue = await page.evaluate(() => window.__game.unitInfo(24));
+await meleePage.screenshot({ path: SHOTS + 'melee.png' });
+const red = await meleePage.evaluate(() => window.__game.unitInfo(0));
+const blue = await meleePage.evaluate(() => window.__game.unitInfo(1));
 const redLosses = red[7] - red[15];
 const blueLosses = blue[7] - blue[15];
 // (The old >30 bar was calibrated to the charge-exit bug: pinned-charging
@@ -312,6 +325,7 @@ check('melee inflicts casualties', redLosses + blueLosses > 3,
 // against instant one-sided deletion only.)
 check('melee is a grind, not annihilation', red[15] + blue[15] > 250,
   `${red[15]}/${red[7]} and ${blue[15]}/${blue[7]} still standing`);
+await meleePage.close();
 
 } // end FULL stages 4-6
 
@@ -365,23 +379,34 @@ const statsPre = await page.evaluate(() => window.__game.stats());
 if (FULL) {
 const page2 = await browser.newPage({ viewport: { width: 1280, height: 800 } });
 page2.on('pageerror', (e) => pageErrors.push('ai-page: ' + e.message));
-await page2.goto(TARGET + '?map=A'); // skip the menu; AI on by default
-await page2.waitForFunction(() => window.__ready === true, { timeout: 20000 });
-await page2.evaluate(() => window.__game.advance(21500)); // ~12 min: the AI closes, dresses its line, and fights
+// Use the smaller 5v5 sandbox for the AI smoke. The 30k campaign-scale map is
+// already covered by the quick boot/render/perf checks; synchronously advancing
+// it for 12 battle-minutes made verify:full take many minutes for no extra UI
+// coverage.
+await page2.goto(TARGET + '?battle=5v5&ai=on');
+await page2.waitForFunction(() => window.__ready === true, undefined, { timeout: 20000 });
+const ammoBefore = await page2.evaluate(() => {
+  const rows = [];
+  for (let u = 0; u < window.__game.stats().units; u++) rows.push(window.__game.unitInfo(u)[19]);
+  return rows;
+});
+await page2.evaluate(() => window.__game.advance(6000)); // small battle: closes and resolves quickly
 const aiState = await page2.evaluate(() => {
   let blueMoved = 0;
   let dead = 0;
-  for (let u = 0; u < 40; u++) {
+  const ammoAfter = [];
+  for (let u = 0; u < window.__game.stats().units; u++) {
     const i = window.__game.unitInfo(u);
     dead += i[7] - i[15];
-    if (i[6] === 1 && i[1] < 530) blueMoved++;
+    ammoAfter.push(i[19]);
+    if (i[6] === 1 && i[1] < 100) blueMoved++;
   }
-  const archers = window.__game.unitInfo(13); // red archers: fire-at-will
-  return { blueMoved, dead, archerAmmo: archers[19], victor: window.__game.stats().victor };
+  return { blueMoved, dead, ammoAfter, victor: window.__game.stats().victor };
 });
-check('the AI advances its army', aiState.blueMoved >= 5, `${aiState.blueMoved} blue units left their line`);
+const ammoSpent = ammoBefore.reduce((sum, before, u) => sum + Math.max(0, before - aiState.ammoAfter[u]), 0);
+check('the AI advances its army', aiState.blueMoved >= 3, `${aiState.blueMoved} blue units left their line`);
 check('the AI fights', aiState.dead > 300, `${aiState.dead} casualties`);
-check('archers volley the attackers on their own', aiState.archerAmmo < 14400, `red archer ammo ${aiState.archerAmmo}`);
+check('archers volley the attackers on their own', ammoSpent > 0, `${ammoSpent} shots spent`);
 await page2.screenshot({ path: SHOTS + 'ai-battle.png' });
 await page2.close();
 } // end FULL stage 8

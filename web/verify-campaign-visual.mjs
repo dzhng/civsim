@@ -34,7 +34,7 @@ page.on('console', (m) => {
 });
 
 await page.goto(TARGET + '/?campaign=test');
-await page.waitForFunction(() => window.__campaignReady === true, { timeout: 30000 });
+await page.waitForFunction(() => window.__campaignReady === true, undefined, { timeout: 30000 });
 await page.evaluate(() => window.__campaign.freeze()); // pin the water clock for stable pixels
 
 const Y = 450; // matches buildTestCampaign

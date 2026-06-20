@@ -29,7 +29,7 @@ page.on('console', (m) => {
 await page.goto(TARGET);
 await page.waitForSelector('#menu-new-campaign', { timeout: 20000 });
 await page.click('#menu-new-campaign');
-await page.waitForFunction(() => window.__campaignReady === true, { timeout: 30000 });
+await page.waitForFunction(() => window.__campaignReady === true, undefined, { timeout: 30000 });
 await page.waitForTimeout(500);
 
 const armies = await page.evaluate(() => window.__campaign.armies());
@@ -90,7 +90,7 @@ await page.screenshot({ path: SHOTS + 'campaign-battle-modal.png' });
 
 // Auto-resolve (headless real sim, chunked).
 await page.click('#cmp-auto');
-await page.waitForFunction(() => !document.querySelector('.cmp-box'), { timeout: 300000 });
+await page.waitForFunction(() => !document.querySelector('.cmp-box'), undefined, { timeout: 300000 });
 check('auto-resolve completes', true);
 const after = await page.evaluate(() => ({
   armies: window.__campaign.armies(),
@@ -110,7 +110,7 @@ await page.waitForSelector('#menu-ui', { state: 'visible', timeout: 5000 });
 const loadEnabled = await page.evaluate(() => !document.querySelector('#menu-load-save').disabled);
 check('load button enabled after save', loadEnabled);
 await page.click('#menu-load-save');
-await page.waitForFunction(() => window.__campaignReady === true, { timeout: 30000 });
+await page.waitForFunction(() => window.__campaignReady === true, undefined, { timeout: 30000 });
 const reloaded = await page.evaluate(() => window.__campaign.armies().length);
 check('save loads back into a live campaign', reloaded >= 1, `${reloaded} armies visible`);
 
@@ -197,7 +197,7 @@ for (let i = 0; i < 30 && !parked; i++) {
     if (await page.evaluate(() => window.__campaign.paused())) await page.keyboard.press('1');
     await page.waitForSelector('.cmp-box', { timeout: 10000 });
     await page.click('#cmp-auto');
-    await page.waitForFunction(() => !document.querySelector('.cmp-box'), { timeout: 300000 });
+    await page.waitForFunction(() => !document.querySelector('.cmp-box'), undefined, { timeout: 300000 });
     await page.evaluate(() => {
       if (!window.__campaign.paused()) document.querySelector('#cmp-pause').click();
     });
@@ -234,7 +234,7 @@ if (hasAmbushBtn) {
 await page.click('#cmp-exit');
 await page.waitForSelector('#menu-ui', { state: 'visible', timeout: 5000 });
 await page.click('#menu-new-campaign');
-await page.waitForFunction(() => window.__campaignReady === true, { timeout: 30000 });
+await page.waitForFunction(() => window.__campaignReady === true, undefined, { timeout: 30000 });
 // A3: split a stack off the Roma army (it lands on an adjacent tile, well
 // inside the 12-tile reinforcement radius), then merge-ability both ways.
 const splitRes = await page.evaluate(() => {
@@ -282,7 +282,7 @@ const modalText2 = await page.evaluate(() => document.querySelector('.cmp-box').
 check('initiation modal announces reinforcements', /will join/.test(modalText2),
   modalText2.replace(/\s+/g, ' ').slice(0, 110));
 await page.click('#cmp-fight');
-await page.waitForFunction(() => window.__ready === true, { timeout: 30000 });
+await page.waitForFunction(() => window.__ready === true, undefined, { timeout: 30000 });
 const units0 = await page.evaluate(() => window.__game.stats().units);
 let unitsNow = units0;
 for (let i = 0; i < 60 && unitsNow <= units0; i++) {

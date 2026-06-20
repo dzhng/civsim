@@ -434,7 +434,9 @@ export class CampaignScene implements Scene {
     overlay.className = 'cmp-modal';
     overlay.innerHTML = `<div class="cmp-box"><h2>Resolving battle…</h2><div id="cmp-prog">0:00</div></div>`;
     this.ui.appendChild(overlay);
-    const cap = 30 * 60 * 20; // 20 battle-minutes
+    // Match the native headless auto-resolve cap: long grinds are decided by
+    // remaining strength instead of making the UI burn minutes of wasm time.
+    const cap = 30 * 60 * 12; // 12 battle-minutes
     let ticks = 0;
     const pump = () => {
       const v = game.auto_step(30 * 10); // 10 battle-seconds per frame

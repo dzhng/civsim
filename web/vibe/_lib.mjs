@@ -19,7 +19,7 @@ export async function openBattle(query) {
   page.on('pageerror', (e) => errs.push(e.message));
   page.on('console', (m) => { if (m.type() === 'error') errs.push(m.text()); });
   await page.goto(`${TARGET}/?${query}`);
-  await page.waitForFunction(() => window.__ready === true, { timeout: 20000 });
+  await page.waitForFunction(() => window.__ready === true, undefined, { timeout: 20000 });
   await page.waitForTimeout(500);
   return { browser, page, errs };
 }

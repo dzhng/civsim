@@ -3,7 +3,7 @@
 //! Each test changes ONE knob against an otherwise identical losing fight, so the
 //! direction it moves the break point is the invariant — never the exact percent.
 
-use sim::{Sim, Tunables, UnitClassId, Vec2, DT};
+use sim::{BalanceConfig, Sim, Tunables, UnitClassId, Vec2, DT};
 use std::f32::consts::FRAC_PI_2;
 
 const N: usize = 240;
@@ -14,7 +14,20 @@ const N: usize = 240;
 /// clear loser that actually breaks. `support` friendly `aura_class` units stand
 /// ~32 m behind south, in steadiness range but out of the fight.
 fn break_pct(support: usize, south_class: UnitClassId, aura_class: UnitClassId) -> f32 {
-    let mut sim = Sim::new(Tunables { micro_rough: 0.0, ..Tunables::default() }, 7);
+    break_pct_with_balance(support, south_class, aura_class, BalanceConfig::default())
+}
+
+fn break_pct_with_balance(
+    support: usize,
+    south_class: UnitClassId,
+    aura_class: UnitClassId,
+    balance: BalanceConfig,
+) -> f32 {
+    let mut sim = Sim::with_balance(
+        Tunables { micro_rough: 0.0, ..Tunables::default() },
+        balance,
+        7,
+    );
     let south = sim.spawn_class(Vec2::new(0.0, -13.0), FRAC_PI_2, N, south_class, 0);
     let north = sim.spawn_class(Vec2::new(0.0, 13.0), -FRAC_PI_2, 600, UnitClassId::HeavySword, 1);
     sim.set_files(north, (sim.units[south].files_eff * 3) / 2);
@@ -91,17 +104,29 @@ fn a_high_aura_ally_steadies_more_than_ordinary_foot() {
     );
 }
 
-/// A timid class (a levy) breaks earlier than a steadfast one (armoured heavies)
-/// in the SAME losing fight — bravery is a per-class knob, independent of drill.
+/// A timid class breaks earlier than a steadfast one in the SAME losing fight.
+/// Isolate the morale knob: give a Peasant-class unit the HeavySword physical
+/// body and only change `bravery`, so health/block/evade/training cannot hide
+/// whether the morale model honors the per-class resilience field.
 #[test]
 fn a_brave_class_holds_longer_than_a_timid_one() {
     let heavy = break_pct(0, UnitClassId::HeavySword, UnitClassId::HeavySword);
-    let levy = break_pct(0, UnitClassId::Peasant, UnitClassId::HeavySword);
-    eprintln!("break: HeavySword {:.0}%  Peasant {:.0}%", heavy * 100.0, levy * 100.0);
+    let mut balance = BalanceConfig::default();
+    let mut timid_heavy_body = balance.get(UnitClassId::HeavySword);
+    timid_heavy_body.id = UnitClassId::Peasant;
+    timid_heavy_body.bravery = balance.get(UnitClassId::Peasant).bravery;
+    balance.set(UnitClassId::Peasant, timid_heavy_body);
+    let timid = break_pct_with_balance(
+        0,
+        UnitClassId::Peasant,
+        UnitClassId::HeavySword,
+        balance,
+    );
+    eprintln!("break: brave {:.0}%  timid {:.0}%", heavy * 100.0, timid * 100.0);
     assert!(
-        levy < heavy - 0.10,
-        "a timid levy must break earlier than steadfast heavies: levy {:.0}% vs heavy {:.0}%",
-        levy * 100.0,
+        timid < heavy - 0.10,
+        "a timid unit must break earlier than a brave one: timid {:.0}% vs brave {:.0}%",
+        timid * 100.0,
         heavy * 100.0
     );
 }

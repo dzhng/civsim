@@ -775,3 +775,43 @@ holding (`a_flanker` Inv3, `an_attacker_into_a_holding_line_keeps_formation`,
 the new "holder fights its front forward" behaviour (vibe-shot it first), after which a
 slightly stronger lean flips a_held_braced the last few %. This is the matrix-shifting
 co-design the whole cluster needs — now with the mechanism pinned and a working prototype.
+
+## CONSOLIDATED TRIAGE (2026-06-20): the suite is 121 PASS / 8 FAIL / 7 IGNORED, and ALL 8 FAILURES ARE THE ONE KEYSTONE
+
+After this session's independently-fixable repins landed (stance deletion; rider-reach
+geometry bound; cav-vs-heavy reframed to the locked design on the SURVIVOR metric; the
+1v1 symmetry coin-flip with morale off), every remaining red test is a symptom of the
+SAME contact-dynamics root. The 8:
+
+- `symmetric_clash_has_no_mechanical_bias`, `the_clash_winner_does_not_depend_on_unit_size`
+  — the bias gates (army-scale +y/-y winner). RED by design (see directional-bias.md).
+- `attack_latch_behaves_like_a_move_order` — fails on INTERPENETRATION (attack 0.63 vs
+  move 0.32): the attack drives DEEPER into the foe = the blob.
+- `phalanx_and_heavy_clash_without_swirling` — faceDev reaches 90°: the wheel/swirl.
+- `a_column_bulges_a_held_line_it_does_not_part_it` — the bulge/self-correct geometry.
+- `two_braced_walls_hold_a_standoff_neither_centroid_crosses` — "the blocks ran through
+  each other" (centroids cross): the non-overlap failing outright.
+- `a_deep_column_walks_a_thin_line_back_equal_depths_hold` — the push-war drift is too weak.
+- `a_flanker_feels_less_pressure_than_the_frontline` — flank pressure 0.90x the frontline
+  (wants <0.85x): the over-compression inflates side pressure (mechanism direction holds,
+  margin is keystone-shrunk — do NOT loosen it, it would mask the root).
+
+**THE ROOT, pinpointed: `collision.rs` ~L510-535, the CAPPED non-overlap correction**
+(`tun.separation_max_push`). The collective rear-rank press exceeds the per-soldier cap,
+so bodies interpenetrate (blob) -> gang-cap denies wounds (low lethality, incl. why a cav
+charge leaves the infantry at ~96% survivors) -> the capped push has no uncapped honest
+channel, so centroids cross / lines bulge / fronts swirl / the sub-ULP cos seed is
+switch-amplified into a decided battle.
+
+**WHY IT IS NOT A QUICK FIX — the cap is DELIBERATE.** The L520-527 comment is explicit:
+an UNCAPPED frontal shove is positive feedback — the side a hair ahead shoves the other
+back harder, a head-on clash BUCKLES one way and routs. The cap was added precisely to
+stop that. So naive uncapping makes the bias gates WORSE. The real fix is the one
+directional-bias.md defers: an ITERATIVE, uncapped, bit-exactly M-EQUIVARIANT non-overlap
+constraint solve (project overlaps out over several relaxation passes, symmetric by
+construction so a sub-ULP seed DECAYS instead of amplifying), co-designed with the
+charge/trample stack (cav still punches a thin line per `tramples()`, a braced wall is
+not tunneled) and RE-BLESSED against David's locked cav targets (frontal cav loses to
+formed heavy foot, cav ~30-40%; a repulsed charge still costs the foot ~25-40% — the
+`a_frontal_charge_bloodies_the_infantry_even_when_repulsed` ignored target). This re-pins
+golden and moves many balance outcomes — a dedicated, high-churn pass, not a tweak.

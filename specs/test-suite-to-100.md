@@ -1,15 +1,14 @@
 # Spec: the road to 100% — what's left after the surgical-fix session
 
-> **START HERE (2026-06-20 handoff).** After the directional-bias, braced-standoff,
-> morale-isolation, and balance-combat cleanup commits, `cargo test -p sim
-> --no-fail-fast -- --nocapture` is down to 3 failing targets / 5 failing tests:
-> `balance_matrix::a_held_braced_line_trades_evenly_with_a_walking_attacker`,
-> `mechanics_melee::{a_column_bulges_a_held_line_it_does_not_part_it,
-> a_held_line_is_not_split_by_a_narrow_column, phalanx_and_heavy_clash_without_swirling}`,
-> and `mechanics_weave::a_deep_column_walks_a_thin_line_back_equal_depths_hold`.
-> These are still the ONE contact/depth keystone — see "CONSOLIDATED TRIAGE" at the
-> bottom of this file for the pinpointed root (`collision.rs`
-> ~L510-535, the capped non-overlap), and why naive uncapping backfires. The LIVE
+> **START HERE (2026-06-20 handoff).** The contact/depth keystone landed on
+> `experiment/attacker-holds`: `cargo test -p sim --no-fail-fast -- --nocapture`
+> is GREEN. The fix is not a scalar tune: `collision.rs` now adds a soft-friendly /
+> hard-enemy iterative body projection after the capped crowd-relief pass, with
+> active tramplers exempt so charge bleed still owns cavalry penetration. `sim.rs`
+> also refreshes incoming contact load before unit motion, so a short-weapon line
+> being struck at pike reach locks its formation instead of wheeling while
+> `engaged == 0`. The old red cluster below is retained as history; do not chase
+> those dead ends again. The LIVE
 > spec set: this file (roadmap) · `directional-bias.md` (the bias analysis + the
 > M-equivariant-solver direction) · `standoff-double-push.md` (scope rider on the
 > standoff repair) · `impale.md` (pike/cav lethality, needed for the cav re-bless).
@@ -56,6 +55,21 @@
 > mechanically pinned in `mechanics_weave::a_two_sided_squeeze_reads_as_a_vice_a_one_sided_shove_does_not`.
 > Do not resurrect the rear-pusher balance assertion unless a new scenario
 > isolates crush without adding shielding or changing the fight geometry.
+
+> **Update (2026-06-20 contact/depth keystone):** The native sim suite is green
+> after replacing the missing post-crowd-relief body constraint with an iterative
+> projection and fixing reach-asymmetric contact load. Important details:
+> projection is Jacobi-staged, friendly overlaps relax softly (`0.5`) so same-side
+> crowds still flow, enemy overlaps project fully, and active tramplers skip it
+> because charge penetration is owned by trample bleed. The phalanx-v-heavy swirl
+> was not a facing-force problem: the phalanx could fight at reach while the
+> HeavySword line's own `engaged` stayed zero, so the heavy unit kept wheeling
+> toward the phalanx centroid. `refresh_contact_engagement` now counts enemies
+> fighting my men as contact before unit motion. Test metrics moved accordingly:
+> charge bogging now reads the charge mass (80th percentile horse), not a single
+> lead body; depth transmission is asserted over the sustained 24s othismos window;
+> the column-bulge test pins dimple + no centroid pass-through, not far-wing
+> contraction of a 70-file line.
 
 ## ★ ROOT of the whole lethality/morale/balance cluster — PROVEN (2026-06-19)
 

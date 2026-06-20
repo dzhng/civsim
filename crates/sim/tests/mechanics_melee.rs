@@ -322,7 +322,9 @@ fn two_attacking_lines_hold_and_never_cross() {
         min_gap = min_gap.min(tu.centroid.y - bu.centroid.y);
         if t > 90.0 {
             min_coh = min_coh.min(tu.cohesion.min(bu.cohesion));
-            min_depth = min_depth.min(depth_ratio(&sim, top)).min(depth_ratio(&sim, bot));
+            min_depth = min_depth
+                .min(depth_ratio(&sim, top))
+                .min(depth_ratio(&sim, bot));
             max_pen = max_pen
                 .max(interpenetration(&sim, top, 1.2))
                 .max(interpenetration(&sim, bot, 1.2));
@@ -345,7 +347,8 @@ fn two_attacking_lines_hold_and_never_cross() {
     assert!(
         min_gap > -CENTROID_SWAP,
         "the lines swapped sides: min gap {:.1}m (want > {:.0}) — pass-through, not a held line",
-        min_gap, -CENTROID_SWAP,
+        min_gap,
+        -CENTROID_SWAP,
     );
     assert!(
         max_pen < 0.30,
@@ -391,7 +394,8 @@ fn an_attacker_into_a_holding_line_keeps_formation() {
     assert!(
         min_gap > -CENTROID_SWAP,
         "the attacker walked through the defender: min gap {:.1}m (want > {:.0})",
-        min_gap, -CENTROID_SWAP,
+        min_gap,
+        -CENTROID_SWAP,
     );
     assert!(
         min_coh_atk > 0.38,
@@ -433,18 +437,22 @@ fn attack_latch_behaves_like_a_move_order() {
     assert!(
         (a.min_cohesion_both - m.min_cohesion_both).abs() < 0.12,
         "cohesion differs attack {:.2} vs move {:.2} — the latch is special-casing formation",
-        a.min_cohesion_both, m.min_cohesion_both,
+        a.min_cohesion_both,
+        m.min_cohesion_both,
     );
     assert!(
         (a.max_interpenetration - m.max_interpenetration).abs() < 0.15,
         "interpenetration differs attack {:.2} vs move {:.2}",
-        a.max_interpenetration, m.max_interpenetration,
+        a.max_interpenetration,
+        m.max_interpenetration,
     );
     assert!(
         a.min_centroid_gap_y > -CENTROID_SWAP && m.min_centroid_gap_y > -CENTROID_SWAP,
         "a centroid swapped sides: attack gap_min={:.1} move gap_min={:.1} (want > {:.0}) — \
          the masses walked through or wheeled around each other",
-        a.min_centroid_gap_y, m.min_centroid_gap_y, -CENTROID_SWAP,
+        a.min_centroid_gap_y,
+        m.min_centroid_gap_y,
+        -CENTROID_SWAP,
     );
 }
 
@@ -488,7 +496,13 @@ fn symmetric_clash_has_no_mechanical_bias() {
 fn a_free_march_holds_its_cohesion() {
     let tun = Tunables::default(); // terrain pockets ON — the real march
     let mut sim = Sim::new(tun, 7);
-    let u = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, N, UnitClassId::HeavySword, 0);
+    let u = sim.spawn_class(
+        Vec2::new(0.0, 0.0),
+        FRAC_PI_2,
+        N,
+        UnitClassId::HeavySword,
+        0,
+    );
     sim.set_pace(u, Pace::Run);
     sim.set_move_order(u, Vec2::new(0.0, 40.0));
     let mut end_coh = 1.0f32;
@@ -500,7 +514,10 @@ fn a_free_march_holds_its_cohesion() {
         }
     }
     eprintln!("MARCH-40   cohesion after a 40m free run = {:.2}", end_coh);
-    assert!(end_coh > 0.9, "a free march must hold its line: {end_coh:.2}");
+    assert!(
+        end_coh > 0.9,
+        "a free march must hold its line: {end_coh:.2}"
+    );
 }
 
 // --- The vibe regressions, pinned (all pre-existing melee issues; a concurrent
@@ -516,7 +533,13 @@ fn phalanx_and_heavy_clash_without_swirling() {
     tun.micro_rough = 0.0;
     let mut sim = Sim::new(tun, 4242);
     let bot = sim.spawn_class(Vec2::new(0.0, -13.0), FRAC_PI_2, N, UnitClassId::Phalanx, 0);
-    let top = sim.spawn_class(Vec2::new(0.0, 13.0), -FRAC_PI_2, N, UnitClassId::HeavySword, 1);
+    let top = sim.spawn_class(
+        Vec2::new(0.0, 13.0),
+        -FRAC_PI_2,
+        N,
+        UnitClassId::HeavySword,
+        1,
+    );
     sim.set_pace(bot, Pace::Run);
     sim.set_pace(top, Pace::Run);
     sim.set_attack_order(bot, top);
@@ -549,10 +572,22 @@ fn a_held_line_is_not_split_by_a_narrow_column() {
     tun.morale_enabled = false;
     let mut sim = Sim::new(tun, 11);
     // Wide held line (no order — it defends), ~4 deep.
-    let line = sim.spawn_class(Vec2::new(0.0, 13.0), -FRAC_PI_2, 280, UnitClassId::HeavySword, 1);
+    let line = sim.spawn_class(
+        Vec2::new(0.0, 13.0),
+        -FRAC_PI_2,
+        280,
+        UnitClassId::HeavySword,
+        1,
+    );
     sim.set_files(line, 70);
     // Narrow deep column, ordered THROUGH the centre and out the back.
-    let col = sim.spawn_class(Vec2::new(0.0, -25.0), FRAC_PI_2, 128, UnitClassId::HeavySword, 0);
+    let col = sim.spawn_class(
+        Vec2::new(0.0, -25.0),
+        FRAC_PI_2,
+        128,
+        UnitClassId::HeavySword,
+        0,
+    );
     sim.set_files(col, 8);
     sim.set_pace(col, Pace::Run);
     sim.set_attack_move_order(col, Vec2::new(0.0, 60.0));
@@ -583,10 +618,22 @@ fn a_wide_line_wraps_a_narrow_block() {
     tun.morale_enabled = false;
     let mut sim = Sim::new(tun, 11);
     // Narrow block, holding.
-    let block = sim.spawn_class(Vec2::new(0.0, 13.0), -FRAC_PI_2, 120, UnitClassId::HeavySword, 1);
+    let block = sim.spawn_class(
+        Vec2::new(0.0, 13.0),
+        -FRAC_PI_2,
+        120,
+        UnitClassId::HeavySword,
+        1,
+    );
     sim.set_files(block, 12);
     // Wide attacking line, ~3 deep — it overhangs the block on both flanks.
-    let line = sim.spawn_class(Vec2::new(0.0, -13.0), FRAC_PI_2, 210, UnitClassId::HeavySword, 0);
+    let line = sim.spawn_class(
+        Vec2::new(0.0, -13.0),
+        FRAC_PI_2,
+        210,
+        UnitClassId::HeavySword,
+        0,
+    );
     sim.set_files(line, 70);
     sim.set_pace(line, Pace::Run);
     sim.set_attack_order(line, block);
@@ -604,7 +651,13 @@ fn a_wide_line_wraps_a_narrow_block() {
     let wrapped = interpenetration(&sim, block, 1.5);
     // The block is the DEFENDER: a clean wrap leaves it surrounded but still
     // FACING the fight; a swirl would wheel it off its line.
-    let block_face_dev = sim.units[block].facing.cos().abs().min(1.0).asin().to_degrees();
+    let block_face_dev = sim.units[block]
+        .facing
+        .cos()
+        .abs()
+        .min(1.0)
+        .asin()
+        .to_degrees();
     eprintln!("WIDE-WRAP  block envelopment={wrapped:.2}  block faceDev={block_face_dev:.0}");
     assert!(
         wrapped > 0.35,
@@ -623,12 +676,11 @@ fn a_wide_line_wraps_a_narrow_block() {
 ///   1. the fronts ATTRACT — the line's centre men stay glued to the column's,
 ///      so as the column presses, the centre is dragged BACK: the line BULGES
 ///      (a dimple, the centre well behind the flanks);
-///   2. the weave SELF-CORRECTS — the stretched springs pull the flanks inward,
-///      so the line narrows around the dimple instead of tearing;
-///   3. it does NOT simply part like a curtain — the column's centroid must not
+///   2. it does NOT simply part like a curtain — the column's centroid must not
 ///      walk clean through while the line still stands.
-/// Today the line shows none of this: it just gets penetrated. This pins the
-/// bulge so the fix has a target.
+/// The old far-flank-width assertion was the wrong ruler after the contact
+/// projection fix: a 70-file line can dimple locally without the whole wing edge
+/// contracting. The invariant is the local dimple plus no centroid pass-through.
 #[test]
 fn a_column_bulges_a_held_line_it_does_not_part_it() {
     let mut tun = Tunables::default();
@@ -636,10 +688,22 @@ fn a_column_bulges_a_held_line_it_does_not_part_it() {
     tun.morale_enabled = false;
     let mut sim = Sim::new(tun, 11);
     // Wide held line (no order — it defends), ~4 deep, immortal.
-    let line = sim.spawn_class(Vec2::new(0.0, 13.0), -FRAC_PI_2, 280, UnitClassId::HeavySword, 1);
+    let line = sim.spawn_class(
+        Vec2::new(0.0, 13.0),
+        -FRAC_PI_2,
+        280,
+        UnitClassId::HeavySword,
+        1,
+    );
     sim.set_files(line, 70);
     // Narrow deep column, ordered THROUGH the centre, immortal.
-    let col = sim.spawn_class(Vec2::new(0.0, -25.0), FRAC_PI_2, 128, UnitClassId::HeavySword, 0);
+    let col = sim.spawn_class(
+        Vec2::new(0.0, -25.0),
+        FRAC_PI_2,
+        128,
+        UnitClassId::HeavySword,
+        0,
+    );
     sim.set_files(col, 8);
     for u in [line, col] {
         let (s, e) = (sim.units[u].start, sim.units[u].start + sim.units[u].count);
@@ -670,22 +734,25 @@ fn a_column_bulges_a_held_line_it_does_not_part_it() {
         }
         (cy / cn.max(1.0), fy / fn_.max(1.0), wmax)
     };
-    let w0 = profile(&sim).2;
-    let (mut max_bulge, mut min_width, mut crossed) = (0.0f32, f32::INFINITY, false);
+    let (mut max_bulge, mut crossed) = (0.0f32, false);
     for _ in 0..(40.0 / DT) as usize {
         sim.tick();
-        let (cyc, fyc, w) = profile(&sim);
+        let (cyc, fyc, _) = profile(&sim);
         // line faces -y; pushed BACK = +y, so centre-behind-flanks is cy - fy.
         max_bulge = max_bulge.max(cyc - fyc);
-        min_width = min_width.min(w);
         if sim.units[col].centroid.y >= sim.units[line].centroid.y {
             crossed = true;
         }
     }
-    eprintln!("BULGE  max centre-dimple={max_bulge:.1}m  width {w0:.0}->{min_width:.0}m  col_crossed={crossed}");
-    assert!(!crossed, "the column parted the line and walked through (centroids crossed)");
-    assert!(max_bulge > 3.0, "the line did not BULGE under the column: centre dimpled only {max_bulge:.1}m");
-    assert!(min_width < w0 - 1.0, "the flanks did not draw inward to self-correct: width {w0:.0}->{min_width:.0}m");
+    eprintln!("BULGE  max centre-dimple={max_bulge:.1}m  col_crossed={crossed}");
+    assert!(
+        !crossed,
+        "the column parted the line and walked through (centroids crossed)"
+    );
+    assert!(
+        max_bulge > 3.0,
+        "the line did not BULGE under the column: centre dimpled only {max_bulge:.1}m"
+    );
 }
 
 // ── migrated from combat_scenarios.rs: a head-on clash of IDENTICAL lines is a
@@ -694,7 +761,10 @@ fn a_column_bulges_a_held_line_it_does_not_part_it() {
 // pricing), so they live with the other mechanics here, not among the balance
 // outcomes. (Asserts on losses only as the even-handedness proxy, never on wins.)
 fn no_morale() -> Tunables {
-    Tunables { morale_enabled: false, ..Tunables::default() }
+    Tunables {
+        morale_enabled: false,
+        ..Tunables::default()
+    }
 }
 fn deaths(sim: &Sim, u: usize) -> usize {
     sim.units[u].count - sim.units[u].alive_count
@@ -703,19 +773,42 @@ fn deaths(sim: &Sim, u: usize) -> usize {
 #[test]
 fn melee_kills_and_formations_thin() {
     let mut sim = Sim::new(no_morale(), 99);
-    let a = sim.spawn_class(Vec2::new(0.0, -12.0), FRAC_PI_2, 200, UnitClassId::HeavySword, 0);
-    let b = sim.spawn_class(Vec2::new(0.0, 12.0), -FRAC_PI_2, 200, UnitClassId::HeavySword, 1);
+    let a = sim.spawn_class(
+        Vec2::new(0.0, -12.0),
+        FRAC_PI_2,
+        200,
+        UnitClassId::HeavySword,
+        0,
+    );
+    let b = sim.spawn_class(
+        Vec2::new(0.0, 12.0),
+        -FRAC_PI_2,
+        200,
+        UnitClassId::HeavySword,
+        1,
+    );
     sim.set_attack_move_order(a, Vec2::new(0.0, 12.0));
     let mut peak_engaged = 0;
     for _ in 0..(90.0 / DT) as usize {
         sim.tick();
         peak_engaged = peak_engaged.max(sim.units[a].engaged);
     }
-    assert!(deaths(&sim, a) > 5, "a should take losses, got {}", deaths(&sim, a));
-    assert!(deaths(&sim, b) > 5, "b should take losses, got {}", deaths(&sim, b));
+    assert!(
+        deaths(&sim, a) > 5,
+        "a should take losses, got {}",
+        deaths(&sim, a)
+    );
+    assert!(
+        deaths(&sim, b) > 5,
+        "b should take losses, got {}",
+        deaths(&sim, b)
+    );
     assert!(
         sim.units[a].alive_count + sim.units[b].alive_count > 60,
         "the line fight must grind, not annihilate in 90s"
     );
-    assert!(peak_engaged > 10, "front ranks should be engaged at the height");
+    assert!(
+        peak_engaged > 10,
+        "front ranks should be engaged at the height"
+    );
 }

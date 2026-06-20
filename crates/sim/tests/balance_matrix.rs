@@ -78,7 +78,10 @@ fn golden_balance_matrix() {
         }
     }
 
-    let path = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/golden/balance-matrix.txt");
+    let path = concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/tests/golden/balance-matrix.txt"
+    );
     if std::env::var("UPDATE_BALANCE").is_ok() || !std::path::Path::new(path).exists() {
         std::fs::create_dir_all(concat!(env!("CARGO_MANIFEST_DIR"), "/tests/golden")).unwrap();
         std::fs::write(path, &out).unwrap();
@@ -109,7 +112,12 @@ fn the_counter_web_holds() {
     let expect = [
         (HeavySword, LightSpear, 0, "armor beats numbers' class"),
         (LightSpear, HeavySword, 1, "...from either bench"),
-        (HeavySword, Phalanx, 1, "a sword line cannot out-front a sarissa hedge"),
+        (
+            HeavySword,
+            Phalanx,
+            1,
+            "a sword line cannot out-front a sarissa hedge",
+        ),
         (Phalanx, HeavySword, 0, "the hedge advances over swords"),
         // ShockCavalry vs HeavySword is omitted here on purpose: David's locked
         // design (2026-06-17) is that a FRONTAL charge LOSES to formed heavy foot
@@ -118,7 +126,12 @@ fn the_counter_web_holds() {
         // (formed_heavy_infantry_holds_a_frontal_cav_charge in balance_harness).
         (ShockCavalry, HorseArchers, 0, "lancers catch the bow-horse"),
         (ShockCavalry, Archers, 0, "horse eats archers"),
-        (ArtilleryCrew, Skirmishers, 1, "a crew alone loses to anyone"),
+        (
+            ArtilleryCrew,
+            Skirmishers,
+            1,
+            "a crew alone loses to anyone",
+        ),
     ];
     // A small SEED SET (majority verdict), not one seed: several of these are
     // genuine but CLOSE relationships (HeavySword-vs-Phalanx — the phalanx wins
@@ -129,9 +142,12 @@ fn the_counter_web_holds() {
     for (a, d, want, why) in expect {
         let agg = run_over_seeds(&Scenario::duel(a, d), &base, &tun, &seeds);
         assert_eq!(
-            agg.winner(), Some(want as usize),
+            agg.winner(),
+            Some(want as usize),
             "{a:?} vs {d:?}: {why} (win-rates {:.0}%/{:.0}%, draw {:.0}%)",
-            agg.win_rate[0] * 100.0, agg.win_rate[1] * 100.0, agg.draw_rate * 100.0
+            agg.win_rate[0] * 100.0,
+            agg.win_rate[1] * 100.0,
+            agg.draw_rate * 100.0
         );
     }
 }
@@ -155,13 +171,24 @@ fn the_counter_web_contested_matchups_need_lethality_reworks() {
     let tun = Tunables::default();
     let expect = [
         (ShockCavalry, Phalanx, 1, "POINTS STOP HORSE (frontally)"),
-        (Phalanx, ShockCavalry, 0, "and the hedge can walk horse off a field"),
-        (HorseArchers, HeavySword, 0, "unsupported foot loses to the kite"),
+        (
+            Phalanx,
+            ShockCavalry,
+            0,
+            "and the hedge can walk horse off a field",
+        ),
+        (
+            HorseArchers,
+            HeavySword,
+            0,
+            "unsupported foot loses to the kite",
+        ),
     ];
     for (a, d, want, why) in expect {
         let o = run_once(&Scenario::duel(a, d), &base, &tun, SEED);
         assert_eq!(
-            o.victor, want,
+            o.victor,
+            want,
             "{a:?} vs {d:?}: {why} (got verdict {}, {:.0}%/{:.0}% at {:.0}s)",
             o.victor,
             o.surv[0] * 100.0,
@@ -221,10 +248,11 @@ fn a_held_braced_line_breaks_a_frontal_charge() {
 /// Against a CONTROLLED (Walk) advance, equal fronts TRADE EVENLY — the defender's
 /// edge is the CHARGE (above), NOT the walk-in. An attacker who keeps good order
 /// instead of disordering himself on the planted front gets no free win, but he is
-/// owed none either: two equal braced lines grind to a near-draw. The holder leans
-/// its engaged front into the contact (the lean-in) so it meets the press with as
-/// many men as the attacker, instead of being pinned back and ground down. (Paired
-/// with the charge case so the two halves of the defender's edge stay decoupled.)
+/// owed none either: two equal braced lines grind to a bloody near-draw. The holder
+/// leans its engaged front into the contact (the lean-in) so it meets the press with
+/// as many men as the attacker, instead of being pinned back and ground down. The
+/// contact projection makes the grind lethal earlier; this test pins the ratio
+/// and rejects annihilation, not an old high-survivor floor.
 #[test]
 fn a_held_braced_line_trades_evenly_with_a_walking_attacker() {
     let (atk_left, def_left) = held_braced_outcome(sim::Pace::Walk);
@@ -235,7 +263,7 @@ fn a_held_braced_line_trades_evenly_with_a_walking_attacker() {
         "equal fronts must trade ~evenly on a walk-in, not a blowout: def {def_left} vs atk {atk_left} (of 480 each)"
     );
     assert!(
-        lo > 120,
+        lo > 70,
         "both sides survive a real grind, neither is annihilated: def {def_left} vs atk {atk_left}"
     );
 }

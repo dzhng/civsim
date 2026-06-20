@@ -529,6 +529,7 @@ impl Sim {
                 }
             }
         }
+        self.has_fighting = self.fighting.iter().any(|&f| f == 1);
     }
 
     /// One strike: evade / block / wound, with push on anything not evaded.

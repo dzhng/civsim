@@ -91,6 +91,9 @@ impl Sim {
             health,
             mount_health,
             mounted,
+            facings,
+            radius,
+            alive,
             cur_weapon,
             ..
         } = self;
@@ -130,8 +133,26 @@ impl Sim {
         // pushes that decides the standoff distance), not get flattened by the
         // crowd-relief separation cap into a binary win/lose wall.
         let mut repel = vec![0.0f32; 2 * n];
+        let mut project_unit_active = vec![0u8; units.len()];
+        let mut project_any = false;
 
         let m_eff = |i: usize| mass[i] * brace[soldier_unit[i] as usize];
+        let unit_near_enemy: Vec<bool> = units
+            .iter()
+            .map(|u| {
+                if u.tramples() && u.mass_advance > tun.charge_spent_speed {
+                    return false;
+                }
+                let eu = 0.5 * u.width().max(u.depth());
+                units.iter().any(|v| {
+                    v.team != u.team
+                        && v.alive_count > 0
+                        && !(v.tramples() && v.mass_advance > tun.charge_spent_speed)
+                        && (v.center() - u.center()).len()
+                            < eu + 0.5 * v.width().max(v.depth()) + 40.0
+                })
+            })
+            .collect();
         // The impact stack reads HONEST velocity (legs + carried momentum,
         // recorded pre-solver) — position deltas in a scrum are dominated
         // by separation churn that carries no kinetic energy.
@@ -169,6 +190,20 @@ impl Sim {
                         if d2 >= min_dist * min_dist {
                             continue;
                         }
+                        let ui = soldier_unit[i] as usize;
+                        let uj = soldier_unit[j] as usize;
+                        let enemies = units[ui].team != units[uj].team;
+                        if bj > bi
+                            && !((units[ui].tramples()
+                                && units[ui].mass_advance > tun.charge_spent_speed)
+                                || (units[uj].tramples()
+                                    && units[uj].mass_advance > tun.charge_spent_speed))
+                            && (enemies || unit_near_enemy[ui] || unit_near_enemy[uj])
+                        {
+                            project_unit_active[ui] = 1;
+                            project_unit_active[uj] = 1;
+                            project_any = true;
+                        }
                         if d2 > 1e-8 {
                             let d = d2.sqrt();
                             let (nx, ny) = (dx / d, dy / d);
@@ -176,8 +211,6 @@ impl Sim {
                             // funneling). Enemies don't politely sidestep each
                             // other: head-on enemy contact deadlocks into a
                             // battle line, which is the point.
-                            let ui = soldier_unit[i] as usize;
-                            let uj = soldier_unit[j] as usize;
                             let slide = if units[ui].team == units[uj].team {
                                 tun.separation_slide
                             } else {
@@ -199,7 +232,7 @@ impl Sim {
 
                             // Track the deepest ENEMY body for the hard wall —
                             // unless this body is trampling (it rides through).
-                            if units[ui].team != units[uj].team
+                            if enemies
                                 && !(units[ui].tramples()
                                     && units[ui].mass_advance > tun.charge_spent_speed)
                             {
@@ -220,7 +253,7 @@ impl Sim {
                             // the front rank of a braced, backed column keeps
                             // its feet (and keeps transmitting) where a loose
                             // man is bowled over.
-                            if units[ui].team != units[uj].team {
+                            if enemies {
                                 let closing = (vel(j) - vel(i)).dot(Vec2::new(nx, ny)).max(0.0);
                                 if closing > tun.charge_min_speed {
                                     let momentum = m_eff(j) * closing;
@@ -254,8 +287,9 @@ impl Sim {
                                     if units[ui].tramples() {
                                         let toward = -(mom0_x[i] * nx + mom0_y[i] * ny);
                                         if toward > 0.0 {
-                                            let grip = (tun.trample_bleed * share * units[uj].brace())
-                                                .min(0.85);
+                                            let grip =
+                                                (tun.trample_bleed * share * units[uj].brace())
+                                                    .min(0.85);
                                             bleed_x[i] += nx * toward * grip;
                                             bleed_y[i] += ny * toward * grip;
                                         }
@@ -504,6 +538,10 @@ impl Sim {
                     // backed enemy out-masses the share and presses in, the contest
                     // of forces deciding the distance.
                     let i = near_i;
+                    let ui = soldier_unit[i] as usize;
+                    project_unit_active[ui] = 1;
+                    project_unit_active[uj] = 1;
+                    project_any = true;
                     let (wj, wi) = (m_eff(j), m_eff(i));
                     let inv = 1.0 / (wi + wj);
                     let push = near_pen * tun.weapon_repel * DT;
@@ -564,7 +602,10 @@ impl Sim {
                 let to = Vec2::new(np.x - wall_cx[i], np.y - wall_cy[i]);
                 let dd = to.len();
                 if dd > 1e-4 && dd < wall_r[i] {
-                    Vec2::new(wall_cx[i] + to.x * (wall_r[i] / dd), wall_cy[i] + to.y * (wall_r[i] / dd))
+                    Vec2::new(
+                        wall_cx[i] + to.x * (wall_r[i] / dd),
+                        wall_cy[i] + to.y * (wall_r[i] / dd),
+                    )
                 } else {
                     np
                 }
@@ -573,6 +614,132 @@ impl Sim {
             };
             positions[2 * i] = np.x;
             positions[2 * i + 1] = np.y;
+        }
+
+        // ITERATIVE BODY PROJECTION: the one-shot separation above is capped as
+        // crowd relief, but after a deep press it can leave enemy bodies still
+        // interpenetrating. A second, symmetric constraint solve removes only
+        // the remaining physical impossibility: two bodies occupying the same
+        // space. Corrections are Jacobi-staged per pass (all reads come from the
+        // pass-start candidate positions, then apply together) so pair order does
+        // not make one line shove with freshly-updated state.
+        const BODY_PROJECTION_PASSES: usize = 3;
+        if project_any {
+            for _ in 0..BODY_PROJECTION_PASSES {
+                body_pos.clear();
+                body_r.clear();
+                body_owner.clear();
+                for i in 0..n {
+                    if alive[i] == 0 {
+                        continue;
+                    }
+                    let px = positions[2 * i];
+                    let py = positions[2 * i + 1];
+                    if mounted[i] == 1 {
+                        let f = crate::math::dir(facings[i]);
+                        for s in [-1.0f32, 1.0] {
+                            body_pos.push(px + f.x * HORSE_HALF_LEN * s);
+                            body_pos.push(py + f.y * HORSE_HALF_LEN * s);
+                            body_r.push(HORSE_BODY_R);
+                            body_owner.push(i as u32);
+                        }
+                    } else {
+                        body_pos.push(px);
+                        body_pos.push(py);
+                        body_r.push(radius[i]);
+                        body_owner.push(i as u32);
+                    }
+                }
+                grid.rebuild(cell, body_pos);
+                scratch.clear();
+                scratch.resize(2 * n, 0.0);
+                let mut any = false;
+                for bi in 0..body_owner.len() {
+                    let i = body_owner[bi] as usize;
+                    let ui = soldier_unit[i] as usize;
+                    if project_unit_active[ui] == 0 {
+                        continue;
+                    }
+                    let px = body_pos[2 * bi];
+                    let py = body_pos[2 * bi + 1];
+                    let cx = (px / cell).floor() as i32;
+                    let cy = (py / cell).floor() as i32;
+                    let mut seen = [usize::MAX; 9];
+                    let mut seen_len = 0;
+                    for oy in -1..=1i32 {
+                        for ox in -1..=1i32 {
+                            let b = grid.bucket(cx + ox, cy + oy);
+                            if seen[..seen_len].contains(&b) {
+                                continue;
+                            }
+                            seen[seen_len] = b;
+                            seen_len += 1;
+                            let (lo, hi) = (grid.starts[b] as usize, grid.starts[b + 1] as usize);
+                            for &bj in &grid.entries[lo..hi] {
+                                let bj = bj as usize;
+                                let j = body_owner[bj] as usize;
+                                let uj = soldier_unit[j] as usize;
+                                if j == i || (project_unit_active[uj] != 0 && bj <= bi) {
+                                    continue;
+                                }
+                                if units[ui].team != units[uj].team
+                                    && ((units[ui].tramples()
+                                        && units[ui].mass_advance > tun.charge_spent_speed)
+                                        || (units[uj].tramples()
+                                            && units[uj].mass_advance > tun.charge_spent_speed))
+                                {
+                                    continue;
+                                }
+                                let relax = if units[ui].team == units[uj].team {
+                                    0.5
+                                } else {
+                                    1.0
+                                };
+                                let dx = px - body_pos[2 * bj];
+                                let dy = py - body_pos[2 * bj + 1];
+                                let min_dist = body_r[bi] + body_r[bj];
+                                let d2 = dx * dx + dy * dy;
+                                if d2 >= min_dist * min_dist {
+                                    continue;
+                                }
+                                let (nx, ny, d) = if d2 > 1e-8 {
+                                    let d = d2.sqrt();
+                                    (dx / d, dy / d, d)
+                                } else if i < j {
+                                    (1.0, 0.0, 0.0)
+                                } else {
+                                    (-1.0, 0.0, 0.0)
+                                };
+                                let w_i = m_eff(i);
+                                let w_j = m_eff(j);
+                                let inv = 1.0 / (w_i + w_j);
+                                let overlap = min_dist - d;
+                                let si = w_j * inv;
+                                let sj = w_i * inv;
+                                scratch[2 * i] += nx * overlap * si * relax;
+                                scratch[2 * i + 1] += ny * overlap * si * relax;
+                                scratch[2 * j] -= nx * overlap * sj * relax;
+                                scratch[2 * j + 1] -= ny * overlap * sj * relax;
+                                any = true;
+                            }
+                        }
+                    }
+                }
+                if !any {
+                    break;
+                }
+                for i in 0..n {
+                    if alive[i] == 0 {
+                        continue;
+                    }
+                    let p = Vec2::new(positions[2 * i], positions[2 * i + 1]);
+                    let np = Vec2::new(p.x + scratch[2 * i], p.y + scratch[2 * i + 1]);
+                    if terrain.speed_at(np) > 0.0 || terrain.speed_at(p) <= 0.0 {
+                        positions[2 * i] = np.x;
+                        positions[2 * i + 1] = np.y;
+                    }
+                }
+            }
         }
 
         // The throws that broke bodies: bookkeeping after the borrow ends.

@@ -112,6 +112,11 @@ pub struct Sim {
     /// drift tracking, drain) key on THIS — being able to see an enemy is
     /// not being in a fight.
     pub fighting: Vec<u8>,
+    /// Cached by the previous combat pass: at least one soldier had
+    /// `fighting == 1`. This lets pre-motion contact refresh skip peaceful
+    /// 30k-soldier ticks without guessing from unit-level `engaged`, which
+    /// can legitimately be zero for the reach-asymmetric victim.
+    pub(crate) has_fighting: bool,
     /// Same-unit comrades FIGHTING within ~6m (clamped at 10): the local
     /// fight density that licenses a soldier's combat initiative. A man on
     /// a quiet wing reads 0; a man beside the scrum reads high — and his
@@ -200,6 +205,7 @@ impl Sim {
             mount_dmg_acc: Vec::new(),
             push_acc: Vec::new(),
             fighting: Vec::new(),
+            has_fighting: false,
             fight_near: Vec::new(),
             front_clear: Vec::new(),
             hit_dir: Vec::new(),
@@ -390,7 +396,15 @@ impl Sim {
     ) -> usize {
         let stats = self.balance.get(class);
         let files = count.div_ceil(stats.default_depth.max(1));
-        let idx = self.spawn_unit(anchor, facing, count, files, stats.spacing, team, stats.training);
+        let idx = self.spawn_unit(
+            anchor,
+            facing,
+            count,
+            files,
+            stats.spacing,
+            team,
+            stats.training,
+        );
         let start = self.units[idx].start;
         for s in 0..count {
             self.health[start + s] = stats.health;
@@ -423,12 +437,14 @@ impl Sim {
     /// only skirmishers and horse archers can toggle it.
     pub fn set_evade_auto(&mut self, unit: usize, on: bool) {
         if let Some(u) = self.units.get_mut(unit) {
-            if matches!(u.class, UnitClassId::Skirmishers | UnitClassId::HorseArchers) {
+            if matches!(
+                u.class,
+                UnitClassId::Skirmishers | UnitClassId::HorseArchers
+            ) {
                 u.evade_auto = on;
             }
         }
     }
-
 
     /// Test-isolation hook only: in the game, charging is the class
     /// capability, applied automatically on an explicit attack — there is
@@ -560,7 +576,13 @@ impl Sim {
         let u = &mut self.units[unit];
         u.files = files;
         u.files_eff = files;
-        reassign_slots(&self.units[unit], &self.positions, &self.fidget_offset, &self.alive, &mut self.soldier_slot);
+        reassign_slots(
+            &self.units[unit],
+            &self.positions,
+            &self.fidget_offset,
+            &self.alive,
+            &mut self.soldier_slot,
+        );
     }
 
     /// Reform: halt, re-seat the frame on the men, accelerated recovery.
@@ -580,7 +602,13 @@ impl Sim {
         u.reform_timer = 8.0;
         // Re-seat the frame on the men's actual center of mass.
         u.anchor = u.centroid + dir(u.facing) * (0.5 * u.depth());
-        reassign_slots(&self.units[unit], &self.positions, &self.fidget_offset, &self.alive, &mut self.soldier_slot);
+        reassign_slots(
+            &self.units[unit],
+            &self.positions,
+            &self.fidget_offset,
+            &self.alive,
+            &mut self.soldier_slot,
+        );
     }
 
     /// Order the whole unit onto its secondary weapon (or back to weapons
@@ -632,6 +660,7 @@ impl Sim {
         self.prev_positions.resize(2 * n, 0.0);
         self.prev_positions.copy_from_slice(&self.positions);
 
+        self.refresh_contact_engagement();
         self.deliver_orders_and_reflexes(dt);
         self.run_skirmish_evade();
         self.navigate_units();
@@ -703,7 +732,13 @@ impl Sim {
                     && self.units[ui].cohesion < 0.9
                     && self.tick_count % 45 == (ui as u64) % 45);
             if needs {
-                reassign_slots(&self.units[ui], &self.positions, &self.fidget_offset, &self.alive, &mut self.soldier_slot);
+                reassign_slots(
+                    &self.units[ui],
+                    &self.positions,
+                    &self.fidget_offset,
+                    &self.alive,
+                    &mut self.soldier_slot,
+                );
                 self.units[ui].deaths_since_reform = 0;
             }
         }
@@ -726,6 +761,38 @@ impl Sim {
         self.run_morale(dt);
 
         self.tick_count += 1;
+    }
+
+    fn refresh_contact_engagement(&mut self) {
+        if !self.has_fighting {
+            return;
+        }
+        let mut incoming = vec![0usize; self.units.len()];
+        let mut contact_unit = vec![u32::MAX; self.units.len()];
+        for i in 0..self.soldier_count() {
+            if self.alive[i] == 0 || self.fighting[i] == 0 || self.target[i] < 0 {
+                continue;
+            }
+            let target = self.target[i] as usize;
+            if self.alive[target] == 0 {
+                continue;
+            }
+            let attacker_u = self.soldier_unit[i] as usize;
+            let victim_u = self.soldier_unit[target] as usize;
+            if attacker_u == victim_u || self.units[attacker_u].team == self.units[victim_u].team {
+                continue;
+            }
+            incoming[victim_u] += 1;
+            if contact_unit[victim_u] == u32::MAX {
+                contact_unit[victim_u] = attacker_u as u32;
+            }
+        }
+        for (ui, u) in self.units.iter_mut().enumerate() {
+            if incoming[ui] > u.engaged {
+                u.engaged = incoming[ui];
+                u.contact_unit = contact_unit[ui];
+            }
+        }
     }
 
     /// Refresh each unit's `at_ease` flag: no living, non-routing enemy whose
@@ -832,7 +899,15 @@ impl Sim {
     fn update_corridor(&mut self, ui: usize) {
         let (anchor, facing, files, files_eff, spacing_x, depth, alive) = {
             let u = &self.units[ui];
-            (u.anchor, u.facing, u.files, u.files_eff, u.spacing.x, u.depth(), u.alive_count)
+            (
+                u.anchor,
+                u.facing,
+                u.files,
+                u.files_eff,
+                u.spacing.x,
+                u.depth(),
+                u.alive_count,
+            )
         };
         let f = dir(facing);
         let r = Vec2::new(f.y, -f.x);
@@ -875,7 +950,13 @@ impl Sim {
         };
         if new_eff != files_eff {
             self.units[ui].files_eff = new_eff;
-            reassign_slots(&self.units[ui], &self.positions, &self.fidget_offset, &self.alive, &mut self.soldier_slot);
+            reassign_slots(
+                &self.units[ui],
+                &self.positions,
+                &self.fidget_offset,
+                &self.alive,
+                &mut self.soldier_slot,
+            );
         }
         if target < files {
             // Center the squeezed frame in the gap.
@@ -1029,7 +1110,11 @@ impl Sim {
                     let l = through.len();
                     // Interpenetrated masses have no usable axis — press on
                     // along the facing instead of flip-flopping backward.
-                    let dir_v = if l > 6.0 { through * (1.0 / l) } else { dir(self.units[ui].facing) };
+                    let dir_v = if l > 6.0 {
+                        through * (1.0 / l)
+                    } else {
+                        dir(self.units[ui].facing)
+                    };
                     (ev.alive_count == 0, ev.centroid + dir_v * standoff)
                 };
                 let enemy_routing = self.units[e].routing;
@@ -1125,7 +1210,8 @@ impl Sim {
                 match u.mode {
                     OrderMode::Move => {
                         if u.pursue {
-                            u.latch_best = f32::MAX; // reactive latch: revocable too
+                            // Reactive latch: revocable too.
+                            u.latch_best = f32::MAX;
                             // Pursue setting: the advance latches onto what
                             // it meets, resuming the path afterward.
                             if u.resume_target.is_none() {
@@ -1237,7 +1323,11 @@ impl Sim {
             // The per-man sprint ceiling: a CHARGING unit's men may run all the way
             // to charge pace; otherwise the ceiling is the catch-up surge. Without
             // the charge branch the cap below clamps a charge back down to a surge.
-            let sprint_sp = if u.charging { soldier_charge_speed(&tun, u) } else { surge_sp };
+            let sprint_sp = if u.charging {
+                soldier_charge_speed(&tun, u)
+            } else {
+                surge_sp
+            };
             let keep_up_sp = pace_speed(&tun, u) + 0.5;
             // Slot attraction depends on INTENT: a unit attacking or moving
             // loosens its slots so the NEIGHBOUR SPRINGS hold it together (and
@@ -1283,10 +1373,7 @@ impl Sim {
                 }
                 any && (hi - lo) > 0.5 * (my_files as f32 * u.spacing.x)
             };
-            let reach_u = u.stats
-                .weapons
-                .iter()
-                .fold(0.0f32, |m, w| m.max(w.reach));
+            let reach_u = u.stats.weapons.iter().fold(0.0f32, |m, w| m.max(w.reach));
             let mut err_sum = 0.0f32;
             let mut pivot_sum = 0.0f32;
             let mut effort = 0.0f32;
@@ -1464,10 +1551,10 @@ impl Sim {
                     let (file, rank) = (si % files, si / files);
                     let (sx, sy) = (u.spacing.x, u.spacing.y);
                     let nbrs = [
-                        (file > 0, si.wrapping_sub(1), r * sx),       // left: I sit at his +r
-                        (file + 1 < files, si + 1, r * (-sx)),        // right
+                        (file > 0, si.wrapping_sub(1), r * sx), // left: I sit at his +r
+                        (file + 1 < files, si + 1, r * (-sx)),  // right
                         (rank > 0, si.wrapping_sub(files), f * (-sy)), // front: I sit behind him
-                        (true, si + files, f * sy),                   // back
+                        (true, si + files, f * sy),             // back
                     ];
                     let mut nsum = Vec2::ZERO;
                     let mut nn = 0.0f32;
@@ -1553,7 +1640,8 @@ impl Sim {
                             // him. Blend the weld into the net target at half
                             // weight (the bond is one strong neighbour).
                             let bond_to = ep + d * (reach_u / al) - p;
-                            net_target = Some(net_target.map_or(bond_to, |nt| (nt + bond_to) * 0.5));
+                            net_target =
+                                Some(net_target.map_or(bond_to, |nt| (nt + bond_to) * 0.5));
                             // Same exponential shove-apart if I am inside his reach.
                             let comp = reach_u - al;
                             if comp > 0.0 {
@@ -1596,8 +1684,8 @@ impl Sim {
                 let (file_id, rank_id) = (slot_id % files_n, slot_id / files_n);
                 let mkey = rank_id * files_n + file_id.min(files_n - 1 - file_id);
                 max_sp = max_sp.min((0.62 + 0.44 * stagger01(mkey, 0xCAFE)) * sprint_sp);
-                let idle = u.move_target.is_none() && u.engaged == 0
-                    && hit_ttl[i] <= 0.0 && err < 0.6;
+                let idle =
+                    u.move_target.is_none() && u.engaged == 0 && hit_ttl[i] <= 0.0 && err < 0.6;
                 // WEAVE, the sum of real forces — no walls, no clamps:
                 //   net_target  the neighbour SPRINGS pulling toward rest shape
                 //   comp_push   the exponential push-apart that guards spacing
@@ -1638,8 +1726,7 @@ impl Sim {
                 // attack, and a defence are all full-stiff; only genuine locomotion
                 // is soft. This is NOT the continuous "soft when moving" gradient
                 // (which wrongly softened a slow press and blobbed it).
-                let running = u.move_target.is_some()
-                    && u.mass_advance > tun.charge_spent_speed;
+                let running = u.move_target.is_some() && u.mass_advance > tun.charge_spent_speed;
                 let mut steer_to = if trampling || running {
                     Vec2::ZERO
                 } else {
@@ -1667,11 +1754,12 @@ impl Sim {
                 // with the front and blob). Against a CHARGE (mounted) the braced
                 // front PLANTS, it doesn't step onto the hooves, so the anti-charge
                 // stop is untouched.
-                let slot_pull_i = if !advancing && engaged_i && !foe_mounted && (foe_broad || broad_press) {
-                    0.65
-                } else {
-                    slot_pull_u
-                };
+                let slot_pull_i =
+                    if !advancing && engaged_i && !foe_mounted && (foe_broad || broad_press) {
+                        0.65
+                    } else {
+                        slot_pull_u
+                    };
                 steer_to = steer_to + to * slot_pull_i;
                 // ENEMY MAGNET — the SEEK, and nothing else. A pure attract
                 // toward the foe a man is fighting: far off he is pulled in hard
@@ -1698,9 +1786,8 @@ impl Sim {
                     let dist = d.len();
                     if dist > 1e-3 {
                         let off = dist - reach_u;
-                        let pull = (tun.magnet_strength
-                            * (1.0 - (-off / tun.magnet_scale).exp()))
-                        .max(0.0);
+                        let pull = (tun.magnet_strength * (1.0 - (-off / tun.magnet_scale).exp()))
+                            .max(0.0);
                         steer_to = steer_to + d * (pull / dist);
                         // An OVERHANGING flank man — his foe is well OFF the unit's
                         // facing axis (to his inner side, not ahead) — must CURL IN
@@ -1755,8 +1842,7 @@ impl Sim {
                 // instead of lagging. Stops per-man once he ENGAGES (the fighting
                 // pace owns him then), so the rear ranks keep pressing up while the
                 // front fights. (cruise ramps to charge_speed when u.charging.)
-                let advancing =
-                    u.move_target.is_some() || matches!(u.mode, OrderMode::Attack(_));
+                let advancing = u.move_target.is_some() || matches!(u.mode, OrderMode::Attack(_));
                 // A man whose move target is BEHIND his facing is BACKING OFF (the
                 // engage withdrawal: shields to the threat, feet to the rear). Don't
                 // carry the cruise FORWARD along his facing then — it shoves him back
@@ -1812,11 +1898,7 @@ impl Sim {
                 // to a fight, and on a halted, unordered frame so it never drags a
                 // march or a re-form surge. (kin_v* hold last tick's steer motion,
                 // captured after the previous steer pass.)
-                if u.at_ease
-                    && u.move_target.is_none()
-                    && u.engaged == 0
-                    && u.frame_speed < 0.5
-                {
+                if u.at_ease && u.move_target.is_none() && u.engaged == 0 && u.frame_speed < 0.5 {
                     let last = Vec2::new(kin_vx[i], kin_vy[i]);
                     if v.dot(last) < 0.0 {
                         v = v * tun.idle_settle_damp;
@@ -1922,7 +2004,9 @@ impl Sim {
             // commanded front. Cavalry is exempt from the lock: it maneuvers in
             // contact (rides through, wheels, re-charges) instead of grinding.
             let intent_dir = match self.units[ui].mode {
-                OrderMode::Move => self.units[ui].move_target.map(|t| t - self.units[ui].anchor),
+                OrderMode::Move => self.units[ui]
+                    .move_target
+                    .map(|t| t - self.units[ui].anchor),
                 OrderMode::Attack(e) => {
                     Some(self.units[e as usize].centroid - self.units[ui].anchor)
                 }
@@ -1930,7 +2014,11 @@ impl Sim {
             }
             .filter(|v| v.len() > 4.0);
             let locked = engaged_frac > 0.08 && !self.units[ui].is_mounted();
-            let desired = if locked { None } else { intent_dir.map(|v| v.y.atan2(v.x)) };
+            let desired = if locked {
+                None
+            } else {
+                intent_dir.map(|v| v.y.atan2(v.x))
+            };
             if let Some(desired) = desired {
                 let u = &mut self.units[ui];
                 let diff = wrap_angle(desired - u.facing);
@@ -1958,7 +2046,16 @@ impl Sim {
             .collect();
         for (
             u,
-            &UnitMeasure { err_sum, effort, engaged, alive_n, cx, cy, opp_press, pivot_sum },
+            &UnitMeasure {
+                err_sum,
+                effort,
+                engaged,
+                alive_n,
+                cx,
+                cy,
+                opp_press,
+                pivot_sum,
+            },
         ) in self.units.iter_mut().zip(measures)
         {
             u.foe_ranks = if u.engaged > 0 {
@@ -2086,8 +2183,7 @@ impl Sim {
             // fall straight out of the same neighbour bonds the springs use.
             let mean_stretch = err_sum / n; // mean bond stretch (m)
             let mean_pivot = pivot_sum / n; // mean bond pivot (rad)
-            let observed = (mean_stretch * tun.cohesion_stretch
-                + mean_pivot * tun.cohesion_pivot)
+            let observed = (mean_stretch * tun.cohesion_stretch + mean_pivot * tun.cohesion_pivot)
                 .clamp(0.0, 1.0);
 
             if u.reform_timer > 0.0 {

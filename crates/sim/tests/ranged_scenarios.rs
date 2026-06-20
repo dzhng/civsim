@@ -4,12 +4,16 @@
 //! archers who let the line reach them.
 
 use sim::{Sim, Tunables, UnitClassId, Vec2, DT};
-use std::f32::consts::{FRAC_PI_2, PI};
+use std::f32::consts::FRAC_PI_2;
 
 const SEED: u64 = 1453;
 
 fn no_morale() -> Tunables {
-    Tunables { morale_enabled: false, micro_rough: 0.0, ..Tunables::default() }
+    Tunables {
+        morale_enabled: false,
+        micro_rough: 0.0,
+        ..Tunables::default()
+    }
 }
 
 /// Advancing target: kills the archers score BEFORE first contact.
@@ -123,7 +127,13 @@ fn a_phalanx_outlasts_the_quiver_frontally_but_not_from_behind() {
         let mut sim = Sim::new(Tunables::default(), SEED);
         let facing = if face_them { FRAC_PI_2 } else { -FRAC_PI_2 };
         let pik = sim.spawn_class(Vec2::new(0.0, 0.0), facing, 200, UnitClassId::Phalanx, 0);
-        let har = sim.spawn_class(Vec2::new(0.0, 70.0), -FRAC_PI_2, 160, UnitClassId::HorseArchers, 1);
+        let har = sim.spawn_class(
+            Vec2::new(0.0, 70.0),
+            -FRAC_PI_2,
+            160,
+            UnitClassId::HorseArchers,
+            1,
+        );
         let mut dry_at = None;
         for step in 0..(220.0 / DT) as usize {
             sim.tick();
@@ -138,7 +148,9 @@ fn a_phalanx_outlasts_the_quiver_frontally_but_not_from_behind() {
     };
     let (front_routed, front_dry) = kite(true);
     let (back_routed, _) = kite(false);
-    println!("FRONT routed={front_routed} (quiver dry at {front_dry:?}s); BACK routed={back_routed}");
+    println!(
+        "FRONT routed={front_routed} (quiver dry at {front_dry:?}s); BACK routed={back_routed}"
+    );
     assert!(
         front_dry.is_some() && !front_routed,
         "frontally the bow-horse runs dry before it breaks the shield wall (dry={front_dry:?}, routed={front_routed})"
@@ -152,8 +164,20 @@ fn a_phalanx_outlasts_the_quiver_frontally_but_not_from_behind() {
 #[test]
 fn archer_mirrors_grind_and_neither_side_routs_free() {
     let mut sim = Sim::new(no_morale(), SEED);
-    let a = sim.spawn_class(Vec2::new(0.0, -60.0), FRAC_PI_2, 140, UnitClassId::Archers, 0);
-    let b = sim.spawn_class(Vec2::new(0.0, 60.0), -FRAC_PI_2, 140, UnitClassId::Archers, 1);
+    let a = sim.spawn_class(
+        Vec2::new(0.0, -60.0),
+        FRAC_PI_2,
+        140,
+        UnitClassId::Archers,
+        0,
+    );
+    let b = sim.spawn_class(
+        Vec2::new(0.0, 60.0),
+        -FRAC_PI_2,
+        140,
+        UnitClassId::Archers,
+        1,
+    );
     for _ in 0..(60.0 / DT) as usize {
         sim.tick();
     }
@@ -180,7 +204,13 @@ fn the_line_pays_dearly_but_breaks_the_archers() {
     // reads as 'archers beat heavies'; they don't.)
     let mut sim = Sim::new(no_morale(), SEED);
     let archers = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 140, UnitClassId::Archers, 0);
-    let heavies = sim.spawn_class(Vec2::new(0.0, 160.0), -FRAC_PI_2, 240, UnitClassId::HeavySword, 1);
+    let heavies = sim.spawn_class(
+        Vec2::new(0.0, 160.0),
+        -FRAC_PI_2,
+        240,
+        UnitClassId::HeavySword,
+        1,
+    );
     sim.set_attack_order(heavies, archers);
     for _ in 0..(240.0 / DT) as usize {
         sim.tick();
@@ -223,8 +253,20 @@ fn measure_the_board() {
     }
     // archer mirror
     let mut sim = Sim::new(no_morale(), SEED);
-    let a = sim.spawn_class(Vec2::new(0.0, -60.0), FRAC_PI_2, 140, UnitClassId::Archers, 0);
-    let b = sim.spawn_class(Vec2::new(0.0, 60.0), -FRAC_PI_2, 140, UnitClassId::Archers, 1);
+    let a = sim.spawn_class(
+        Vec2::new(0.0, -60.0),
+        FRAC_PI_2,
+        140,
+        UnitClassId::Archers,
+        0,
+    );
+    let b = sim.spawn_class(
+        Vec2::new(0.0, 60.0),
+        -FRAC_PI_2,
+        140,
+        UnitClassId::Archers,
+        1,
+    );
     for _ in 0..(60.0 / DT) as usize {
         sim.tick();
     }

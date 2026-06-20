@@ -33,10 +33,17 @@ const SEED: u64 = 7;
 #[test]
 fn a_running_unit_reaches_its_speed_stat() {
     let tun = Tunables::default();
-    for class in [UnitClassId::LightSword, UnitClassId::HeavySword, UnitClassId::ShockCavalry] {
+    for class in [
+        UnitClassId::LightSword,
+        UnitClassId::HeavySword,
+        UnitClassId::ShockCavalry,
+    ] {
         let got = terminal_run_speed(class);
         let pace = tun.base_speed + (tun.run_speed - tun.base_speed) * class_stats(class).pace_mult;
-        eprintln!("REACH  {class:?}: ran {got:.2} of pace {pace:.2} ({:.0}%)", 100.0 * got / pace);
+        eprintln!(
+            "REACH  {class:?}: ran {got:.2} of pace {pace:.2} ({:.0}%)",
+            100.0 * got / pace
+        );
         assert!(
             got > 0.88 * pace,
             "{class:?} reached only {got:.2} m/s of its {pace:.2} pace — the frame<->men loop is throttling/deadlocking the run",
@@ -56,10 +63,18 @@ fn a_running_unit_reaches_its_speed_stat() {
 #[test]
 fn a_charging_unit_reaches_charge_speed() {
     let tun = Tunables::default();
-    for class in [UnitClassId::LightSword, UnitClassId::HeavySword, UnitClassId::ShockCavalry] {
+    for class in [
+        UnitClassId::LightSword,
+        UnitClassId::HeavySword,
+        UnitClassId::ShockCavalry,
+    ] {
         let got = peak_charge_speed(class);
-        let pace = tun.base_speed + (tun.charge_speed - tun.base_speed) * class_stats(class).pace_mult;
-        eprintln!("CHARGE  {class:?}: peaked {got:.2} of charge pace {pace:.2} ({:.0}%)", 100.0 * got / pace);
+        let pace =
+            tun.base_speed + (tun.charge_speed - tun.base_speed) * class_stats(class).pace_mult;
+        eprintln!(
+            "CHARGE  {class:?}: peaked {got:.2} of charge pace {pace:.2} ({:.0}%)",
+            100.0 * got / pace
+        );
         assert!(
             got > 0.68 * pace,
             "{class:?} charged at only {got:.2} m/s of its {pace:.2} charge pace — the burst isn't reaching the men",
@@ -77,10 +92,17 @@ fn a_charging_unit_reaches_charge_speed() {
 /// number is conservative: the felt margin is at least this, never less).
 #[test]
 fn a_charge_is_clearly_faster_than_a_run() {
-    for class in [UnitClassId::LightSword, UnitClassId::HeavySword, UnitClassId::ShockCavalry] {
+    for class in [
+        UnitClassId::LightSword,
+        UnitClassId::HeavySword,
+        UnitClassId::ShockCavalry,
+    ] {
         let run = terminal_run_speed(class);
         let charge = peak_charge_speed(class);
-        eprintln!("FASTER  {class:?}: run {run:.2}  charge {charge:.2}  (+{:.0}%)", 100.0 * (charge / run - 1.0));
+        eprintln!(
+            "FASTER  {class:?}: run {run:.2}  charge {charge:.2}  (+{:.0}%)",
+            100.0 * (charge / run - 1.0)
+        );
         // A real charge buys a clear burst. The margin is class-shaped — heavy
         // armour sprints only ~8% over its run, light ~14%, cavalry ~24% — so the
         // bar is 6%, below the slowest (heavy) with headroom for noise but well
@@ -127,8 +149,17 @@ fn peak_charge_speed(class: UnitClassId) -> f32 {
     tun.morale_enabled = false;
     let mut sim = Sim::new(tun, SEED);
     let charger = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 60, class, 0);
-    let enemy = sim.spawn_class(Vec2::new(0.0, 70.0), -FRAC_PI_2, 60, UnitClassId::HeavySword, 1);
-    let (s, e) = (sim.units[enemy].start, sim.units[enemy].start + sim.units[enemy].count);
+    let enemy = sim.spawn_class(
+        Vec2::new(0.0, 70.0),
+        -FRAC_PI_2,
+        60,
+        UnitClassId::HeavySword,
+        1,
+    );
+    let (s, e) = (
+        sim.units[enemy].start,
+        sim.units[enemy].start + sim.units[enemy].count,
+    );
     for k in s..e {
         sim.health[k] = 1.0e9; // immortal target so the charge has a wall to reach
     }
@@ -233,8 +264,12 @@ fn block(files: usize, ranks: usize, spacing: f32) -> (Sim, usize) {
 /// (width = x-spread, depth = y-spread) of the living men, world axes.
 fn extent(sim: &Sim, unit: usize) -> (f32, f32) {
     let u = &sim.units[unit];
-    let (mut lo_x, mut hi_x, mut lo_y, mut hi_y) =
-        (f32::INFINITY, f32::NEG_INFINITY, f32::INFINITY, f32::NEG_INFINITY);
+    let (mut lo_x, mut hi_x, mut lo_y, mut hi_y) = (
+        f32::INFINITY,
+        f32::NEG_INFINITY,
+        f32::INFINITY,
+        f32::NEG_INFINITY,
+    );
     for i in u.start..u.start + u.count {
         if sim.alive[i] == 0 {
             continue;
@@ -305,7 +340,10 @@ fn lean(sim: &Sim, unit: usize) -> f32 {
 
 /// Kill men (from the rear) until the unit is down to `target` alive.
 fn kill_to(sim: &mut Sim, unit: usize, target: usize) {
-    let (s, e) = (sim.units[unit].start, sim.units[unit].start + sim.units[unit].count);
+    let (s, e) = (
+        sim.units[unit].start,
+        sim.units[unit].start + sim.units[unit].count,
+    );
     for i in (s..e).rev() {
         if sim.units[unit].alive_count <= target {
             break;
@@ -522,8 +560,10 @@ fn an_advancing_block_compresses_both_itself_and_the_one_it_presses() {
             eprintln!(
                 "  t={:.1} A_y={:.1} pack={:.2} | B_y={:.1} pack={:.2}",
                 step as f32 * DT,
-                mean_y(&sim, a), pack(&sim, a),
-                mean_y(&sim, b), pack(&sim, b),
+                mean_y(&sim, a),
+                pack(&sim, a),
+                mean_y(&sim, b),
+                pack(&sim, b),
             );
         }
     }
@@ -533,12 +573,24 @@ fn an_advancing_block_compresses_both_itself_and_the_one_it_presses() {
     );
     // Both lattices packed tighter than rest spacing (~1.0) — the advance
     // compressed itself AND the block it pressed.
-    assert!(a_min < 0.85, "the pusher's own lattice must compress: {a_min:.2}");
-    assert!(b_min < 0.97, "the pressed lattice must compress: {b_min:.2}");
+    assert!(
+        a_min < 0.85,
+        "the pusher's own lattice must compress: {a_min:.2}"
+    );
+    assert!(
+        b_min < 0.97,
+        "the pressed lattice must compress: {b_min:.2}"
+    );
     // Neither crushed to a body-contact blob (~0.66 = 2×radius). The
     // exponential compression spring holds the spacing well above it.
-    assert!(a_min > 0.66, "the pusher must not crush to a blob: {a_min:.2}");
-    assert!(b_min > 0.66, "the pressed block must not crush to a blob: {b_min:.2}");
+    assert!(
+        a_min > 0.66,
+        "the pusher must not crush to a blob: {a_min:.2}"
+    );
+    assert!(
+        b_min > 0.66,
+        "the pressed block must not crush to a blob: {b_min:.2}"
+    );
 }
 
 /// Mean (pressure, vice) over a unit's living men whose y is in [lo, hi].
@@ -571,15 +623,15 @@ fn a_two_sided_squeeze_reads_as_a_vice_a_one_sided_shove_does_not() {
     // shoved from one side — and it now comes straight off the weave springs.
     let (mut sim, u) = block(6, 8, 1.0); // 6 wide, 8 deep, facing +y
     scale_y(&mut sim, u, 0.55); // crush the depth: every rank driven inside rest
-    // A few ticks for the spring loads to register in the EMA; the block barely
-    // relaxes in that time (full recovery takes ~1.5 s).
+                                // A few ticks for the spring loads to register in the EMA; the block barely
+                                // relaxes in that time (full recovery takes ~1.5 s).
     for _ in 0..6 {
         sim.tick();
     }
     let cy = sim.units[u].centroid.y;
     let (_, half_d) = extent(&sim, u);
     let edge = half_d * 0.5 - 0.6; // beyond this from centre = front/back rank
-    // Interior = the middle ranks (|y-cy| small); edge = front+back ranks.
+                                   // Interior = the middle ranks (|y-cy| small); edge = front+back ranks.
     let (p_in, v_in) = crush_band(&sim, u, cy - 0.6, cy + 0.6);
     let mut p_edge = 0.0f32;
     let mut v_edge = 0.0f32;
@@ -599,7 +651,10 @@ fn a_two_sided_squeeze_reads_as_a_vice_a_one_sided_shove_does_not() {
     // The interior is genuinely crushed.
     assert!(p_in > 0.3, "interior must feel real pressure: {p_in:.2}");
     // ...and it reads as a VICE: opposing loads cancel, so vice is most of it.
-    assert!(v_in > 0.6 * p_in, "two-sided crush must read as a vice: vice {v_in:.2} of press {p_in:.2}");
+    assert!(
+        v_in > 0.6 * p_in,
+        "two-sided crush must read as a vice: vice {v_in:.2} of press {p_in:.2}"
+    );
     // The edge ranks are pressed too, but one-sided — scalar ~= vector, so they
     // carry far less vice than the interior for the same crush.
     assert!(
@@ -671,8 +726,24 @@ fn depth_contest(a_ranks: usize, b_ranks: usize, secs: f32) -> f32 {
     tun.morale_enabled = false;
     let mut sim = Sim::new(tun, SEED);
     let w = 6;
-    let a = sim.spawn_unit(Vec2::new(0.0, -6.0), FRAC_PI_2, w * a_ranks, w, Vec2::new(1.0, 1.0), 0, 0.8);
-    let b = sim.spawn_unit(Vec2::new(0.0, 6.0), -FRAC_PI_2, w * b_ranks, w, Vec2::new(1.0, 1.0), 1, 0.8);
+    let a = sim.spawn_unit(
+        Vec2::new(0.0, -6.0),
+        FRAC_PI_2,
+        w * a_ranks,
+        w,
+        Vec2::new(1.0, 1.0),
+        0,
+        0.8,
+    );
+    let b = sim.spawn_unit(
+        Vec2::new(0.0, 6.0),
+        -FRAC_PI_2,
+        w * b_ranks,
+        w,
+        Vec2::new(1.0, 1.0),
+        1,
+        0.8,
+    );
     for _ in 0..30 {
         sim.tick();
     }
@@ -699,12 +770,23 @@ fn a_deep_column_walks_a_thin_line_back_equal_depths_hold() {
     // the thin side. Equal depths have equal spring chains: the line holds, the
     // midline barely moves. This is the transmission that `press_drive` used to
     // bolt onto the collision solver; the springs do it on their own now.
-    let deep = depth_contest(14, 3, 12.0);
-    let even = depth_contest(8, 8, 12.0);
+    // The contact projection removes the old impact shove-through transient, so
+    // depth expresses as a sustained othismos drift rather than a first-12s lurch.
+    let deep = depth_contest(14, 3, 24.0);
+    let even = depth_contest(8, 8, 24.0);
     eprintln!("DEPTH  deep-vs-thin midline drift {deep:+.2}m  |  equal-vs-equal {even:+.2}m");
-    assert!(deep > 2.5, "a deep column must walk a thin line back: {deep:+.2}m");
-    assert!(even.abs() < 1.0, "equal depths must hold a steady contact line: {even:+.2}m");
-    assert!(deep > 3.0 * even.abs() + 1.0, "depth must decide it, not noise: deep {deep:+.2} vs equal {even:+.2}");
+    assert!(
+        deep > 4.0,
+        "a deep column must walk a thin line back: {deep:+.2}m"
+    );
+    assert!(
+        even.abs() < 1.0,
+        "equal depths must hold a steady contact line: {even:+.2}m"
+    );
+    assert!(
+        deep > 3.0 * even.abs() + 1.0,
+        "depth must decide it, not noise: deep {deep:+.2} vs equal {even:+.2}"
+    );
 }
 
 #[test]
@@ -735,7 +817,11 @@ fn an_attacking_line_wraps_a_deep_column_a_holding_one_does_not() {
         eprintln!(
             "WRAP[{}]  line depth {:.1}->{:.1} (bow {:.1})  cohesion {:.2}->min {:.2}",
             if attacking { "attack" } else { "hold" },
-            line_d0, line_depth_max, bow, coh_flat, coh_min
+            line_d0,
+            line_depth_max,
+            bow,
+            coh_flat,
+            coh_min
         );
         if expect_wrap {
             // The spring-magnet holds the front at weapon's length, so the
@@ -745,10 +831,19 @@ fn an_attacking_line_wraps_a_deep_column_a_holding_one_does_not() {
             // (which stays < 1.5): the attacker bows clearly past it. (Bar
             // re-derived to the spring-magnet mechanism — 1.7, between the holder's
             // 1.5 and the measured attacking bow ~1.9 — not the old magnet's 2.0.)
-            assert!(bow > 1.7, "the attacking line must wrap the column: bow {bow:.1}");
-            assert!(coh_min < coh_flat - 0.05, "the wrap must shed cohesion: {coh_flat:.2}->{coh_min:.2}");
+            assert!(
+                bow > 1.7,
+                "the attacking line must wrap the column: bow {bow:.1}"
+            );
+            assert!(
+                coh_min < coh_flat - 0.05,
+                "the wrap must shed cohesion: {coh_flat:.2}->{coh_min:.2}"
+            );
         } else {
-            assert!(bow < 1.5, "a holding line must NOT wrap on a corner touch: bow {bow:.1}");
+            assert!(
+                bow < 1.5,
+                "a holding line must NOT wrap on a corner touch: bow {bow:.1}"
+            );
         }
     }
 }
@@ -769,12 +864,21 @@ fn two_invulnerable_lines_glue_at_contact_and_hold_a_clean_front() {
         max_intermix = max_intermix.max(intermix(&sim, a, b));
     }
     let gap = mean_y(&sim, b) - mean_y(&sim, a); // b is north, a south: stays positive
-    eprintln!("GLUE   centroid_gap={:.1}  max_intermix={:.2}", gap, max_intermix);
+    eprintln!(
+        "GLUE   centroid_gap={:.1}  max_intermix={:.2}",
+        gap, max_intermix
+    );
     // The two centroids did not swap sides (no walk-through).
-    assert!(gap > 0.0, "the lines walked through each other: gap {gap:.1}");
+    assert!(
+        gap > 0.0,
+        "the lines walked through each other: gap {gap:.1}"
+    );
     // Contact stayed a front, not a blender: only a fraction of each line ever
     // has an enemy body intermingled among its own men.
-    assert!(max_intermix < 0.5, "the front turned into a blob/intermix: {max_intermix:.2}");
+    assert!(
+        max_intermix < 0.5,
+        "the front turned into a blob/intermix: {max_intermix:.2}"
+    );
 }
 
 /// A T-junction setup: a wide BAR (16x4, along x, facing north, team 0) and a
@@ -785,8 +889,24 @@ fn t_junction() -> (Sim, usize, usize) {
     tun.micro_rough = 0.0;
     tun.morale_enabled = false;
     let mut sim = Sim::new(tun, SEED);
-    let bar = sim.spawn_unit(Vec2::new(0.0, 0.0), FRAC_PI_2, 64, 16, Vec2::new(1.0, 1.0), 0, 0.8);
-    let stem = sim.spawn_unit(Vec2::new(0.0, 6.0), -FRAC_PI_2, 36, 3, Vec2::new(1.0, 1.0), 1, 0.8);
+    let bar = sim.spawn_unit(
+        Vec2::new(0.0, 0.0),
+        FRAC_PI_2,
+        64,
+        16,
+        Vec2::new(1.0, 1.0),
+        0,
+        0.8,
+    );
+    let stem = sim.spawn_unit(
+        Vec2::new(0.0, 6.0),
+        -FRAC_PI_2,
+        36,
+        3,
+        Vec2::new(1.0, 1.0),
+        1,
+        0.8,
+    );
     for _ in 0..30 {
         sim.tick();
     }
@@ -816,8 +936,14 @@ fn a_holding_stem_does_not_merge_into_the_bar() {
         stem_w0, stem_w_max, bar_w0, bar_w_max
     );
     // The holding stem stays a narrow stem — it is NOT reeled out along the bar.
-    assert!(stem_w_max < stem_w0 + 3.0, "the holding stem splayed along the bar: {stem_w0:.1}->{stem_w_max:.1}");
-    assert!(bar_w_max < bar_w0 + 3.0, "the holding bar splayed at the junction: {bar_w0:.1}->{bar_w_max:.1}");
+    assert!(
+        stem_w_max < stem_w0 + 3.0,
+        "the holding stem splayed along the bar: {stem_w0:.1}->{stem_w_max:.1}"
+    );
+    assert!(
+        bar_w_max < bar_w0 + 3.0,
+        "the holding bar splayed at the junction: {bar_w0:.1}->{bar_w_max:.1}"
+    );
 }
 
 #[test]
@@ -860,7 +986,12 @@ fn a_u_wrapped_line_loses_about_20_percent_cohesion() {
         wrap_u(&mut sim, u, std::f32::consts::PI); // full 180° U
     }
     let coh_u = sim.units[u].cohesion;
-    eprintln!("U-WRAP   cohesion flat={:.2}  wrapped={:.2}  (loss {:.0}%)", coh_flat, coh_u, (1.0 - coh_u / coh_flat) * 100.0);
+    eprintln!(
+        "U-WRAP   cohesion flat={:.2}  wrapped={:.2}  (loss {:.0}%)",
+        coh_flat,
+        coh_u,
+        (1.0 - coh_u / coh_flat) * 100.0
+    );
     assert!(
         (coh_u - 0.8).abs() < 0.08,
         "a line wrapped into a U should shed ~20% cohesion: got {:.2} (flat {:.2})",
@@ -874,10 +1005,16 @@ fn a_stretched_block_recovers_its_rest_width() {
     let (mut sim, u) = block(10, 5, 1.0);
     let (w0, _) = extent(&sim, u);
     scale_x(&mut sim, u, 1.6); // yank it 60% wider
-    assert!(extent(&sim, u).0 > w0 * 1.4, "setup: it must start stretched");
+    assert!(
+        extent(&sim, u).0 > w0 * 1.4,
+        "setup: it must start stretched"
+    );
     settle(&mut sim, 6.0);
     let (w1, _) = extent(&sim, u);
-    eprintln!("STRETCH  rest_w={:.2}  stretched recovered to {:.2}", w0, w1);
+    eprintln!(
+        "STRETCH  rest_w={:.2}  stretched recovered to {:.2}",
+        w0, w1
+    );
     assert!(
         (w1 - w0).abs() < 0.15 * w0,
         "the lattice must pull back to rest spacing: width {:.2} vs rest {:.2}",
@@ -891,10 +1028,16 @@ fn a_compressed_block_recovers_its_rest_depth() {
     let (mut sim, u) = block(8, 6, 1.0);
     let (_, d0) = extent(&sim, u);
     scale_y(&mut sim, u, 0.6); // squash the ranks together (still > body diameter)
-    assert!(extent(&sim, u).1 < d0 * 0.75, "setup: it must start compressed");
+    assert!(
+        extent(&sim, u).1 < d0 * 0.75,
+        "setup: it must start compressed"
+    );
     settle(&mut sim, 6.0);
     let (_, d1) = extent(&sim, u);
-    eprintln!("COMPRESS rest_d={:.2}  compressed recovered to {:.2}", d0, d1);
+    eprintln!(
+        "COMPRESS rest_d={:.2}  compressed recovered to {:.2}",
+        d0, d1
+    );
     assert!(
         (d1 - d0).abs() < 0.18 * d0,
         "the lattice must push back to rest spacing: depth {:.2} vs rest {:.2}",
@@ -912,10 +1055,16 @@ fn a_bent_block_straightens() {
     let (_, d0) = extent(&sim, u); // rest depth ~2 (3 ranks)
     bend(&mut sim, u, 3.0); // wings bowed 3m forward of the centre
     let (_, d_bent) = extent(&sim, u);
-    assert!(d_bent > d0 + 2.0, "setup: it must start bent ({d_bent:.1} vs rest {d0:.1})");
+    assert!(
+        d_bent > d0 + 2.0,
+        "setup: it must start bent ({d_bent:.1} vs rest {d0:.1})"
+    );
     settle(&mut sim, 8.0);
     let (_, d1) = extent(&sim, u);
-    eprintln!("BEND     rest_d={:.2}  bent {:.2} -> recovered {:.2}", d0, d_bent, d1);
+    eprintln!(
+        "BEND     rest_d={:.2}  bent {:.2} -> recovered {:.2}",
+        d0, d_bent, d1
+    );
     assert!(
         d1 < d0 + 0.6,
         "a bent block with no other force must straighten: depth {:.2} (rest {:.2}, bent was {:.2})",
@@ -930,7 +1079,10 @@ fn a_sheared_block_squares_up() {
     let (mut sim, u) = block(10, 5, 1.0);
     shear(&mut sim, u, 1.5); // lean it over hard: x += 1.5*(y-cy) → shear slope ~1.5
     let lean0 = lean(&sim, u);
-    assert!(lean0 > 1.2, "setup: it must start clearly sheared ({lean0:.2})");
+    assert!(
+        lean0 > 1.2,
+        "setup: it must start clearly sheared ({lean0:.2})"
+    );
     settle(&mut sim, 8.0);
     let lean1 = lean(&sim, u);
     eprintln!("SHEAR    lean {:.2} -> recovered {:.2}", lean0, lean1);
@@ -953,8 +1105,16 @@ fn a_dying_block_sheds_depth_then_width() {
     kill_to(&mut sim, u, 48);
     settle(&mut sim, 5.0);
     let w_half = sim.units[u].files_eff;
-    eprintln!("DEATH    96->48: width {} -> {} (depth ~{})", w0, w_half, 48 / w_half.max(1));
-    assert!(w_half >= 11, "at half strength it sheds DEPTH, keeps width: {w_half}");
+    eprintln!(
+        "DEATH    96->48: width {} -> {} (depth ~{})",
+        w0,
+        w_half,
+        48 / w_half.max(1)
+    );
+    assert!(
+        w_half >= 11,
+        "at half strength it sheds DEPTH, keeps width: {w_half}"
+    );
     // Down to 24: alive/3 = 8 < 12, so it must now shed WIDTH, never below 3 deep.
     kill_to(&mut sim, u, 24);
     settle(&mut sim, 6.0);
@@ -983,7 +1143,10 @@ fn the_lattice_settles_without_oscillating() {
         }
         last = m;
     }
-    eprintln!("SETTLE   peak_after_1s={:.4}  final_step={:.4}", peak_after_1s, last);
+    eprintln!(
+        "SETTLE   peak_after_1s={:.4}  final_step={:.4}",
+        peak_after_1s, last
+    );
     assert!(
         last < 0.01,
         "the lattice must come to rest, final per-tick motion {:.4} m",
@@ -1059,8 +1222,24 @@ fn two_braced_walls_hold_a_standoff_neither_centroid_crosses() {
 
     // Two deep blocks (10 ranks of rear-rank shove — the exact load that broke
     // the soft magnet), facing each other 50 m apart on the y-axis.
-    let south = sim.spawn_unit(Vec2::new(0.0, -25.0), FRAC_PI_2, 200, 20, Vec2::new(0.8, 1.0), 0, 0.85);
-    let north = sim.spawn_unit(Vec2::new(0.0, 25.0), -FRAC_PI_2, 200, 20, Vec2::new(0.8, 1.0), 1, 0.85);
+    let south = sim.spawn_unit(
+        Vec2::new(0.0, -25.0),
+        FRAC_PI_2,
+        200,
+        20,
+        Vec2::new(0.8, 1.0),
+        0,
+        0.85,
+    );
+    let north = sim.spawn_unit(
+        Vec2::new(0.0, 25.0),
+        -FRAC_PI_2,
+        200,
+        20,
+        Vec2::new(0.8, 1.0),
+        1,
+        0.85,
+    );
     for &u in &[south, north] {
         sim.units[u].stats.weapons = sim::class::one(pike);
     }
@@ -1092,7 +1271,10 @@ fn two_braced_walls_hold_a_standoff_neither_centroid_crosses() {
         }
     }
     eprintln!("POLE-WALL  closed={closed}  min centroid gap={min_centroid_gap:.2} m  min front gap={min_front:.2} m");
-    assert!(closed, "the walls never closed to contact — test is vacuous");
+    assert!(
+        closed,
+        "the walls never closed to contact — test is vacuous"
+    );
     // The blocks held well clear of a pass-through. Under constant shoving each
     // block compresses against the standoff (so the gap sits below the ~12 m a
     // static standoff would show), but the old trample collapsed it through zero.
@@ -1122,8 +1304,24 @@ fn front_detach(pusher_deep: usize, def_deep: usize) -> f32 {
     let mut sim = Sim::new(tun, SEED);
     let files = 4usize;
     // defender at +y facing -y (south); pusher at -y facing +y, attacks.
-    let def = sim.spawn_unit(Vec2::new(0.0, 6.0), -FRAC_PI_2, files * def_deep, files, Vec2::new(0.9, 1.0), 1, 0.8);
-    let push = sim.spawn_unit(Vec2::new(0.0, -6.0), FRAC_PI_2, files * pusher_deep, files, Vec2::new(0.9, 1.0), 0, 0.8);
+    let def = sim.spawn_unit(
+        Vec2::new(0.0, 6.0),
+        -FRAC_PI_2,
+        files * def_deep,
+        files,
+        Vec2::new(0.9, 1.0),
+        1,
+        0.8,
+    );
+    let push = sim.spawn_unit(
+        Vec2::new(0.0, -6.0),
+        FRAC_PI_2,
+        files * pusher_deep,
+        files,
+        Vec2::new(0.9, 1.0),
+        0,
+        0.8,
+    );
     for u in [def, push] {
         let (s, e) = (sim.units[u].start, sim.units[u].start + sim.units[u].count);
         for k in s..e {
@@ -1184,8 +1382,24 @@ fn equal_press_deform(secs: f32) -> (f32, f32, f32) {
     let mut sim = Sim::new(tun, SEED);
     let w = 6usize;
     let sp = 1.0f32;
-    let a = sim.spawn_unit(Vec2::new(0.0, -6.0), FRAC_PI_2, w * w, w, Vec2::new(sp, sp), 0, 0.8);
-    let b = sim.spawn_unit(Vec2::new(0.0, 6.0), -FRAC_PI_2, w * w, w, Vec2::new(sp, sp), 1, 0.8);
+    let a = sim.spawn_unit(
+        Vec2::new(0.0, -6.0),
+        FRAC_PI_2,
+        w * w,
+        w,
+        Vec2::new(sp, sp),
+        0,
+        0.8,
+    );
+    let b = sim.spawn_unit(
+        Vec2::new(0.0, 6.0),
+        -FRAC_PI_2,
+        w * w,
+        w,
+        Vec2::new(sp, sp),
+        1,
+        0.8,
+    );
     for u in [a, b] {
         let (s, e) = (sim.units[u].start, sim.units[u].start + sim.units[u].count);
         for k in s..e {

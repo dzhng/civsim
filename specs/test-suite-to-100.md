@@ -20,6 +20,26 @@
 > remains open; do not count `two_braced_walls` among the active reds unless it
 > regresses again.
 
+> **Update (2026-06-20 follow-up):** Current full sim suite is 5 failing targets /
+> 7 failing tests: `balance_combat::long_swords_cleave_but_die_in_a_press`,
+> `balance_matrix::a_held_braced_line_trades_evenly_with_a_walking_attacker`,
+> `mechanics_melee::{a_column_bulges_a_held_line_it_does_not_part_it,
+> a_held_line_is_not_split_by_a_narrow_column, phalanx_and_heavy_clash_without_swirling}`,
+> `mechanics_morale::a_brave_class_holds_longer_than_a_timid_one`, and
+> `mechanics_weave::a_deep_column_walks_a_thin_line_back_equal_depths_hold`.
+> Probed the non-braced column/depth cluster from a throwaway test:
+> the narrow column engages only a ~10–14m span of the ~56m held line, so the
+> current broad-press holder lean-in deliberately does not fire; repeating the
+> all-engaged holder lean makes crossing earlier (41.1s → 38.0s) and is still
+> wrong. A contact-load facing lock for phalanx-v-heavy worsened faceDev
+> (31° → 47°). Scalar sweeps (`pivot_stiffness`, `weave_stiffness`,
+> `compress_strength`, `separation_max_push`, and combinations) can stop the
+> narrow column crossing in some cases, but they do not produce the required flank
+> self-correction, keep depth drift under target, and often worsen phalanx
+> (up to 50–60° faceDev). Conclusion: no simple knob/lean/facing patch owns this;
+> the remaining mechanical cluster needs a structural front-line/depth transmission
+> redesign, not more local tuning.
+
 ## ★ ROOT of the whole lethality/morale/balance cluster — PROVEN (2026-06-19)
 
 The morale tests (`allied_support`, `support_scales`, `a_high_aura`, `a_brave_class`),

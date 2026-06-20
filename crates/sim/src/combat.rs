@@ -47,6 +47,53 @@ const OBSTRUCT_FLOOR: f32 = 0.7;
 /// lands on a man facing the wrong way.
 const SIDE_ARC: f32 = 2.1;
 
+const MAX_NEARBY_FRIENDS: usize = 24;
+type ScanPriority = (i32, i32, u32); // local forward cell, local lateral cell, local soldier
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+struct NearbyFriend {
+    owner: u32,
+    bearing: f32,
+    distance: f32,
+    fighting: bool,
+    priority: ScanPriority,
+}
+
+/// Record one nearby friendly soldier, independent of body/grid scan order.
+/// Mounted soldiers contribute two collision bodies but only one pair of arms;
+/// keep the nearer body geometry rather than counting the rider twice. When the
+/// sanity cap fills, local-frame scan priority chooses the sample; fixed world
+/// cell traversal must never decide who obstructs a swing.
+fn record_friend(
+    friends: &mut [Option<NearbyFriend>; MAX_NEARBY_FRIENDS],
+    friends_len: &mut usize,
+    friend: NearbyFriend,
+) {
+    if let Some(existing) = friends[..*friends_len]
+        .iter_mut()
+        .flatten()
+        .find(|f| f.owner == friend.owner)
+    {
+        if friend.distance < existing.distance {
+            *existing = friend;
+        }
+    } else if *friends_len < MAX_NEARBY_FRIENDS {
+        friends[*friends_len] = Some(friend);
+        *friends_len += 1;
+    } else {
+        let least_preferred = friends
+            .iter()
+            .flatten()
+            .enumerate()
+            .max_by_key(|(_, f)| f.priority)
+            .map(|(k, _)| k)
+            .unwrap();
+        if friend.priority < friends[least_preferred].unwrap().priority {
+            friends[least_preferred] = Some(friend);
+        }
+    }
+}
+
 impl Sim {
     /// One combat pass; call every tick. Soldier i acts when i % 3 == phase.
     pub(crate) fn run_combat(&mut self) {
@@ -117,13 +164,14 @@ impl Sim {
                 continue;
             }
             let my_team = self.units[ui].team;
-            let disengaged =
-                self.units[ui].mode == OrderMode::Disengage || self.units[ui].routing;
+            let disengaged = self.units[ui].mode == OrderMode::Disengage || self.units[ui].routing;
             let stats = self.units[ui].stats;
             let weapons = stats.weapons;
             let max_reach = weapons.iter().map(|w| w.reach).fold(0.0f32, f32::max);
             let my_r = self.radius[i];
             let p = self.soldier_pos(i);
+            let local_f = dir(self.facings[i]);
+            let local_r = Vec2::new(local_f.y, -local_f.x);
 
             // --- find nearest enemy + count envelope obstruction ------------
             // The scan covers awareness range: targeting, obstruction, AND
@@ -135,10 +183,10 @@ impl Sim {
             // (victim, surface distance, bearing)
             let mut candidates: [(u32, f32, f32); 12] = [(0, 0.0, 0.0); 12];
             let mut cand_len = 0usize;
-            // Friendly bodies nearby: raw bearing + distance (offsets are
+            // Friendly soldiers nearby: raw bearing + distance (offsets are
             // computed against facing or target bearing as needed).
-            // (bearing, d_surf, is_fighting)
-            let mut friends: [(f32, f32, bool); 24] = [(0.0, 0.0, false); 24];
+            let mut friends: [Option<NearbyFriend>; MAX_NEARBY_FRIENDS] =
+                [None; MAX_NEARBY_FRIENDS];
             let mut friends_len = 0usize;
             let mut fight_near = 0u32;
 
@@ -154,7 +202,10 @@ impl Sim {
                     }
                     seen[seen_len] = b;
                     seen_len += 1;
-                    let (lo, hi) = (self.grid.starts[b] as usize, self.grid.starts[b + 1] as usize);
+                    let (lo, hi) = (
+                        self.grid.starts[b] as usize,
+                        self.grid.starts[b + 1] as usize,
+                    );
                     for &bj in &self.grid.entries[lo..hi] {
                         let bj = bj as usize;
                         let j = self.body_owner[bj] as usize;
@@ -173,10 +224,23 @@ impl Sim {
                             if uj == ui && self.fighting[j] == 1 && d_surf < DISENGAGE_DIST {
                                 fight_near += 1;
                             }
-                            if d_surf < (max_reach * 0.9).max(1.6) && friends_len < friends.len() {
-                                friends[friends_len] =
-                                    (bearing, d_surf.max(0.05), self.fighting[j] == 1);
-                                friends_len += 1;
+                            if d_surf < (max_reach * 0.9).max(1.6) {
+                                let priority = (
+                                    (to.dot(local_f) / cell).floor() as i32,
+                                    (to.dot(local_r) / cell).floor() as i32,
+                                    (j - self.units[uj].start) as u32,
+                                );
+                                record_friend(
+                                    &mut friends,
+                                    &mut friends_len,
+                                    NearbyFriend {
+                                        owner: j as u32,
+                                        bearing,
+                                        distance: d_surf.max(0.05),
+                                        fighting: self.fighting[j] == 1,
+                                        priority,
+                                    },
+                                );
                             }
                             continue;
                         }
@@ -213,8 +277,8 @@ impl Sim {
             // me and my target (within 1.2m, +-26deg). Lateral fighting
             // neighbors don't block — a hurled man may step back into the
             // gap he was thrown from; only true rank-stacking is the blender.
-            let blocked = friends[..friends_len].iter().any(|&(b, d, f)| {
-                f && d < 1.2 && wrap_angle(b - t_bearing).abs() < 0.45
+            let blocked = friends[..friends_len].iter().flatten().any(|f| {
+                f.fighting && f.distance < 1.2 && wrap_angle(f.bearing - t_bearing).abs() < 0.45
             });
             self.front_clear[i] = (!blocked) as u8;
             // Awareness is not combat: the fight starts when weapons can land.
@@ -247,7 +311,11 @@ impl Sim {
                 } else if let Some(si) = weapons.iter().position(|w| !w.braced) {
                     // a foe the pike can't take: sword if it's in reach, else hold
                     // the pike leveled to the front (the default)
-                    if nearest_d <= weapons[si].reach { Some(si) } else { Some(bi) }
+                    if nearest_d <= weapons[si].reach {
+                        Some(si)
+                    } else {
+                        Some(bi)
+                    }
                 } else {
                     Some(bi)
                 }
@@ -377,9 +445,11 @@ impl Sim {
             let arc_weight = weapon.arc / (weapon.arc + 0.5);
             let crowded = friends[..friends_len]
                 .iter()
-                .filter(|&&(b, d, _)| {
-                    let off = wrap_angle(b - aim_facing).abs();
-                    d < weapon.reach * 0.9 && off < weapon.arc * 0.5 + (0.7 / (d + 0.5)).atan()
+                .flatten()
+                .filter(|f| {
+                    let off = wrap_angle(f.bearing - aim_facing).abs();
+                    f.distance < weapon.reach * 0.9
+                        && off < weapon.arc * 0.5 + (0.7 / (f.distance + 0.5)).atan()
                 })
                 .count() as f32
                 * arc_weight;
@@ -390,9 +460,8 @@ impl Sim {
             // also one-sided crush working as intended: compressing an
             // enemy chokes THEIR swings without choking the free-standing
             // men doing the crushing.
-            let net = (self.press_x[i] * self.press_x[i]
-                + self.press_y[i] * self.press_y[i])
-                .sqrt();
+            let net =
+                (self.press_x[i] * self.press_x[i] + self.press_y[i] * self.press_y[i]).sqrt();
             let vice = (self.pressure[i] - net).max(0.0);
             let pinned = (vice / VICE_PIN).clamp(0.0, 1.0);
             let obstruct = crowded * (OBSTRUCT_FLOOR + (1.0 - OBSTRUCT_FLOOR) * pinned);
@@ -534,7 +603,10 @@ impl Sim {
         // landing — the foundation that raised cohesion made the parry too good.
         let shielded = aspect_v < FRONT_ARC;
         let braced_thrust = if weapon.braced { 0.35 } else { 1.0 };
-        let blocked = shielded && self.rng.chance(vstats.block * (0.5 + 0.5 * cohesion) * braced_thrust);
+        let blocked = shielded
+            && self
+                .rng
+                .chance(vstats.block * (0.5 + 0.5 * cohesion) * braced_thrust);
 
         // Push: momentum through the weapon — a braced thruster hurls an
         // unbraced man back bodily; equal masses just rock each other.
@@ -582,6 +654,74 @@ impl Sim {
         u.alive_count = u.alive_count.saturating_sub(1);
         u.deaths_since_reform += 1;
         u.recent_casualties += 1.0;
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{record_friend, NearbyFriend, MAX_NEARBY_FRIENDS};
+
+    fn normalized(order: impl IntoIterator<Item = NearbyFriend>) -> Vec<NearbyFriend> {
+        let mut friends = [None; MAX_NEARBY_FRIENDS];
+        let mut friends_len = 0usize;
+        for friend in order {
+            record_friend(&mut friends, &mut friends_len, friend);
+        }
+        let mut measured: Vec<_> = friends[..friends_len].iter().flatten().copied().collect();
+        measured.sort_by_key(|f| f.owner);
+        measured
+    }
+
+    #[test]
+    fn nearby_friend_measure_is_body_scan_order_independent() {
+        let bodies = [
+            NearbyFriend {
+                owner: 7,
+                bearing: 0.3,
+                distance: 1.2,
+                fighting: true,
+                priority: (0, 2, 7),
+            },
+            NearbyFriend {
+                owner: 2,
+                bearing: -0.1,
+                distance: 0.8,
+                fighting: false,
+                priority: (0, 1, 2),
+            },
+            NearbyFriend {
+                owner: 7,
+                bearing: 0.2,
+                distance: 0.6,
+                fighting: true,
+                priority: (0, 2, 7),
+            }, // nearer body of the same mounted soldier
+        ];
+        assert_eq!(normalized(bodies), normalized(bodies.into_iter().rev()));
+        assert_eq!(
+            normalized(bodies)[1],
+            NearbyFriend {
+                owner: 7,
+                bearing: 0.2,
+                distance: 0.6,
+                fighting: true,
+                priority: (0, 2, 7)
+            }
+        );
+
+        let crowded: Vec<_> = (0..40)
+            .map(|i| NearbyFriend {
+                owner: i,
+                bearing: 0.0,
+                distance: 1.0,
+                fighting: true,
+                priority: (i as i32 / 8, i as i32 % 8, i),
+            })
+            .collect();
+        assert_eq!(
+            normalized(crowded.clone()),
+            normalized(crowded.into_iter().rev())
+        );
     }
 }
 

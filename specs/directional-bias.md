@@ -1,5 +1,23 @@
 # Spec: a directional (+y/−y) bias decides the symmetric clash
 
+## Fix note (2026-06-20): bounded friendly-obstruction scan was world-ordered
+
+The remaining army-scale bias after the Jacobi contact work came from combat's
+friendly-obstruction measurement. Each striker kept at most 24 nearby friendly
+bodies, but the cap was filled by fixed world-grid scan order. In a dense clash,
+the +y and −y mirror formations therefore sampled different friendly bodies before
+computing swing obstruction; the difference was small per soldier but systematic
+across the line, producing the 120-v-120 fixed winner.
+
+The fix keeps the existing 24-friend sanity cap (the model is tuned around that
+density) but makes the cap M-equivariant: mounted duplicate bodies are deduped to
+one soldier using the nearer body, and when more than 24 friends qualify the kept
+set is chosen by canonical local-frame scan priority (`forward cell`, `lateral
+cell`, local soldier id) rather than world-cell arrival order. Mirror-paired
+soldiers now sample the same obstruction neighborhood. Gate result:
+`the_clash_winner_does_not_depend_on_unit_size` moves from `n=120 -> 16/16` south
+wins to `9/16` (or `11/16` in nearby post-refactor runs), inside the fair band.
+
 ## It is a REAL gameplay bug, not a test idealization — fix must be structural
 
 Tested whether a realistic battlefield position jitter randomizes the winner (which

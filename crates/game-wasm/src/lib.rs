@@ -5,7 +5,7 @@
 //! must be re-fetched every frame — Vec reallocation can move them and grow
 //! the memory (which detaches any existing JS TypedArray views).
 
-use sim::{build_map, setup_battle, setup_sandbox, Battle, MapId, Pace, Sim, Stance, Tunables, Vec2};
+use sim::{build_map, setup_battle, setup_sandbox, Battle, MapId, Pace, Sim, Tunables, Vec2};
 use wasm_bindgen::prelude::*;
 
 mod campaign_bind;
@@ -241,13 +241,6 @@ impl Game {
         self.refresh_unit_info();
     }
 
-    /// 0 = Othismos (press), anything else = Fence (fight at reach).
-    pub fn set_stance(&mut self, unit: u32, stance: u32) {
-        let stance = if stance == 0 { Stance::Othismos } else { Stance::Fence };
-        self.battle.sim.set_stance(unit as usize, stance);
-        self.refresh_unit_info();
-    }
-
     pub fn set_attack_order(&mut self, unit: u32, enemy: u32) {
         self.battle.sim.set_attack_order(unit as usize, enemy as usize);
         self.refresh_unit_info();
@@ -440,7 +433,7 @@ impl Game {
                 },
                 u.alive_count as f32,
                 u.engaged as f32,
-                if u.stance == Stance::Othismos { 0.0 } else { 1.0 },
+                0.0, // (was stance; feature removed — slot kept to preserve render layout)
                 if u.charging {
                     2.0
                 } else if u.charge_enabled {

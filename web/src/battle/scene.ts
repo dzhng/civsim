@@ -234,9 +234,6 @@ export class BattleScene implements Scene {
       else if (mode === 2) chips.push({ text: 'DIS', title: 'disengaging' });
       else if (mode === 1) chips.push({ text: 'ATK', title: 'attacking' });
       if (info[o + 18] === 2) chips.push({ text: 'CHG!', kind: 'hot', title: 'charging' });
-      chips.push(info[o + 17] > 0.5
-        ? { text: 'FEN', title: 'fence: fight at reach' }
-        : { text: 'OTH', title: 'othismos: press with weight' });
       if (info[o + 25] > 0.5) chips.push({ text: 'PUR', title: 'pursue: latch onto contact' });
       if (info[o + 26] > 0.5) chips.push({ text: 'KITE', title: 'kiting reflex on' });
       if (info[o + 29] > 0.5) chips.push({ text: '2nd', kind: 'hot', title: 'secondary weapon drawn' });
@@ -333,7 +330,6 @@ export class BattleScene implements Scene {
         }
       };
       set('pace', o >= 0 && info[o + 9] > 0.5, o >= 0 && info[o + 9] > 0.5 ? 'Running' : 'Run');
-      set('stance', false, o >= 0 ? (info[o + 17] > 0.5 ? 'Fence' : 'Othismos') : 'Othismos');
       set('reform', false);
       set('pursue', o >= 0 && info[o + 25] > 0.5);
       set('fire', o >= 0 && sel.length > 0 && fireOn);
@@ -350,7 +346,6 @@ export class BattleScene implements Scene {
       const sel = input.selected;
       switch (b.dataset.cmd) {
         case 'pace': sink.togglePace(sel); break;
-        case 'stance': sink.toggleStance(sel); break;
         case 'reform': sink.reform(sel); break;
         case 'pursue': sink.togglePursue(sel); break;
         case 'fire': sink.toggleFire(sel); break;
@@ -583,12 +578,6 @@ export class BattleScene implements Scene {
         const info = unitInfo();
         const anyWalk = sel.some((u) => info[u * STRIDE + 9] < 0.5);
         sel.forEach((u) => game.set_pace(u, anyWalk ? 1 : 0));
-      },
-      toggleStance: (units: number[]) => {
-        const sel = myUnits(units);
-        const info = unitInfo();
-        const anyOth = sel.some((u) => info[u * STRIDE + 17] < 0.5);
-        sel.forEach((u) => game.set_stance(u, anyOth ? 1 : 0));
       },
       reform: (units: number[]) => myUnits(units).forEach((u) => game.set_reform(u)),
       toggleWeapon: (units: number[]) => {
@@ -971,13 +960,12 @@ export class BattleScene implements Scene {
         const fatigue = info[o + 8];
         const pace = info[o + 9] > 0.5 ? 'run' : 'walk';
         const cls = CLASS_NAMES[info[o + 13]] ?? '?';
-        const stance = info[o + 17] > 0.5 ? 'fence' : 'othismos';
         const charge = info[o + 18] === 2 ? '  CHARGING' : '';
         const ammo = info[o + 19] > 0 ? `  ammo ${info[o + 19]}` : '';
         const routing = info[o + 21] > 0.5 ? '  ROUTING' : '';
         const engaged = info[o + 16];
         lines.push(
-          `${info[o + 6] === 0 ? 'YOUR' : 'ENEMY'} ${cls}  ${pace} ${info[o + 3].toFixed(1)} m/s  ${stance}${charge}`,
+          `${info[o + 6] === 0 ? 'YOUR' : 'ENEMY'} ${cls}  ${pace} ${info[o + 3].toFixed(1)} m/s${charge}`,
           `men ${info[o + 15]}/${info[o + 7]}${engaged > 0 ? `  engaged ${engaged}` : ''}${ammo}${routing}`,
           `cohesion ${(cohesion * 100).toFixed(0)}%  disorder ${(info[o + 5] * 100).toFixed(0)}%  stamina ${(fatigue * 100).toFixed(0)}%  morale ${(info[o + 20] * 100).toFixed(0)}%`,
         );
@@ -1060,7 +1048,6 @@ export class BattleScene implements Scene {
       // path end to end rather than the `select` shortcut.
       selected: () => input.selected.slice(),
       setPace: (u: number, pace: number) => game.set_pace(u, pace),
-      setStance: (u: number, s: number) => game.set_stance(u, s),
       attackOrder: (u: number, enemy: number) => game.set_attack_order(u, enemy),
       attackMove: (u: number, x: number, y: number) => game.set_attack_move_order(u, x, y),
       disengage: (u: number, x: number, y: number) => game.set_disengage_order(u, x, y),

@@ -74,60 +74,6 @@ fn deep_column_pushes_thin_line_back() {
 }
 
 #[test]
-#[ignore = "the Othismos/Fence stance is an UNBUILT mechanic: `u.stance` is written by \
-            set_stance but NEVER read anywhere in crates/sim/src, so the two stances \
-            produce an identical contact gap. The press-vs-fence distinction needs to be \
-            wired into the standoff (Othismos closes to bodies, Fence holds at reach) \
-            before this can pass."]
-fn othismos_presses_fence_fights_at_reach() {
-    // Same matchup, only the stance differs. The press's physical signature
-    // is the GAP between the lines: othismos closes to body contact, fence
-    // holds at weapon's length. (Displacement and kill rates are noisy
-    // downstream effects; the gap is the stance itself.)
-    let line_gap = |stance: sim::Stance| -> f32 {
-        let mut sim = Sim::new(no_morale(), SEED);
-        let a = sim.spawn_class(Vec2::new(0.0, -12.0), FRAC_PI_2, 240, UnitClassId::HeavySword, 0);
-        let b = sim.spawn_class(Vec2::new(0.0, 12.0), -FRAC_PI_2, 240, UnitClassId::LightSpear, 1);
-        sim.set_stance(a, stance);
-        sim.set_charge_enabled(a, false); // isolate the stance variable
-        sim.set_pace(a, sim::Pace::Run); // a committed press
-        sim.set_attack_move_order(a, Vec2::new(0.0, 30.0));
-        run(&mut sim, 30.0); // settle into the fight
-        // Mean nearest-enemy distance over a's FIGHTING men, sampled late.
-        let mut samples = 0usize;
-        let mut total = 0.0f32;
-        for _ in 0..(10.0 / DT) as usize {
-            sim.tick();
-            if sim.tick_count % 30 != 0 {
-                continue;
-            }
-            let (ua, ub) = (&sim.units[a], &sim.units[b]);
-            for i in ua.start..ua.start + ua.count {
-                if sim.alive[i] != 1 || sim.fighting[i] != 1 {
-                    continue;
-                }
-                let p = sim.soldier_pos(i);
-                let mut best = f32::MAX;
-                for j in ub.start..ub.start + ub.count {
-                    if sim.alive[j] == 1 {
-                        best = best.min((sim.soldier_pos(j) - p).len());
-                    }
-                }
-                total += best;
-                samples += 1;
-            }
-        }
-        total / samples.max(1) as f32
-    };
-    let pressed = line_gap(sim::Stance::Othismos);
-    let fenced = line_gap(sim::Stance::Fence);
-    assert!(
-        pressed < fenced - 0.1,
-        "othismos closes to bodies, fence holds at reach: gap {pressed:.2}m vs {fenced:.2}m"
-    );
-}
-
-#[test]
 #[ignore = "thin-vs-wall ratio is noise at the current near-zero pike lethality \
             (~1.5% losses): the 'thin line gets closed on' half needs the impale / \
             pike-lethality rework (task #66) to be robust; the deep-punishes half holds"]
@@ -334,7 +280,6 @@ fn attack_order_equals_walking_into_contact() {
         let mut sim = Sim::new(no_morale(), SEED);
         let a = sim.spawn_class(Vec2::new(0.0, -12.0), FRAC_PI_2, 240, UnitClassId::HeavySword, 0);
         let b = sim.spawn_class(Vec2::new(0.0, 15.0), -FRAC_PI_2, 150, UnitClassId::HeavySword, 1);
-        sim.set_stance(a, sim::Stance::Fence);
         sim.set_charge_enabled(a, false); // charge is attack-gated by design
         if use_attack_order {
             sim.set_attack_order(a, b);
@@ -526,9 +471,9 @@ fn combat_drains_stamina() {
 
 #[test]
 #[ignore = "regressed to peak -0.0m in the class-economy rebalance (heavy hp 2.4/dmg 0.2, light hp 1.55): the surrounded block no longer grinds south. Mechanism suspect: the heavier block now KILLS its ring before pressing through it, or the press equilibrium shifted. Needs its own look alongside the Waterloo session."]
-fn surrounded_othismos_breakout_bores_toward_the_click() {
+fn surrounded_unit_breakout_bores_toward_the_click() {
     // A heavy block ringed by enemies, ordered to break out south with
-    // othismos: the press must move it toward the CLICK, and the indecisive
+    // the move order must drive it toward the CLICK, and the indecisive
     // contact mean must not freeze its facing away from the escape.
     let mut sim = Sim::new(no_morale(), SEED);
     let u = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 300, UnitClassId::HeavySword, 0);
@@ -546,7 +491,6 @@ fn surrounded_othismos_breakout_bores_toward_the_click() {
     // Let the encirclement close.
     run(&mut sim, 15.0);
     let y0 = sim.units[u].centroid.y;
-    sim.set_stance(u, sim::Stance::Othismos);
     sim.set_move_order(u, Vec2::new(0.0, -120.0));
     // Track the bore WHILE the block lives: to-the-death in a 1:2.7 ring
     // annihilates it eventually (armor is paid for in wind; a blown block
@@ -564,7 +508,7 @@ fn surrounded_othismos_breakout_bores_toward_the_click() {
     // charges, the surrounded grind is honest shoving again.)
     assert!(
         peak > 2.5,
-        "the othismos breakout must grind toward the click: peak {peak:.1}m south"
+        "the breakout must grind toward the click: peak {peak:.1}m south"
     );
 }
 
@@ -657,7 +601,6 @@ fn tmp_breakout_probe() {
     }
     run(&mut sim, 15.0);
     let y0 = sim.units[u].centroid.y;
-    sim.set_stance(u, sim::Stance::Othismos);
     sim.set_move_order(u, Vec2::new(0.0, -120.0));
     for k in 0..6 {
         run(&mut sim, 5.0);

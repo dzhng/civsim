@@ -8,19 +8,6 @@ use crate::class::UnitClassId;
 use crate::math::{dir, Vec2};
 use crate::tunables::Pace;
 
-/// Combat stance: what the rear ranks do while the front fights.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Stance {
-    /// Press: the formation leans into contact — rear ranks pile weight on
-    /// the front, transmitting pressure and walking the enemy back (push of
-    /// shields/pikes). The cost is the front rank's room: their own side's
-    /// press crushes their evade.
-    Othismos,
-    /// Fight at weapon's length: no sustained lean, room to work the blade,
-    /// evade preserved — but no shove. Open-order fencing.
-    Fence,
-}
-
 /// How a unit treats contact while executing its order.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum OrderMode {
@@ -103,7 +90,6 @@ pub struct Unit {
     /// continuously reassigned to nearest soldiers during this.
     pub pivoting: bool,
     pub mode: OrderMode,
-    pub stance: Stance,
     /// Charge setting: burst in the final approach of an explicit attack.
     pub charge_enabled: bool,
     /// True only during that final approach (measured each tick).

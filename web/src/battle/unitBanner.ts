@@ -253,9 +253,9 @@ export class UnitBanner {
 // covers the component's whole surface (both teams, every bar level, the chip
 // kinds, selection) without the sim or the engine.
 export const BANNER_GALLERY: { label: string; state: BannerState }[] = [
-  { label: 'fresh / player', state: { team: 0, hp: 1, cohesion: 1, selected: false, chips: [{ text: 'OTH', title: 'othismos' }] } },
-  { label: 'fresh / enemy', state: { team: 1, hp: 1, cohesion: 1, selected: false, chips: [{ text: 'OTH' }] } },
-  { label: 'selected', state: { team: 0, hp: 0.86, cohesion: 0.93, selected: true, chips: [{ text: 'ATK', title: 'attacking' }, { text: 'FEN' }] } },
+  { label: 'fresh / player', state: { team: 0, hp: 1, cohesion: 1, selected: false, chips: [] } },
+  { label: 'fresh / enemy', state: { team: 1, hp: 1, cohesion: 1, selected: false, chips: [] } },
+  { label: 'selected', state: { team: 0, hp: 0.86, cohesion: 0.93, selected: true, chips: [{ text: 'ATK', title: 'attacking' }, { text: 'CHG!', kind: 'hot', title: 'charging' }] } },
   {
     label: 'fighting',
     state: {

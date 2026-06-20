@@ -13,7 +13,6 @@ export interface OrderSink {
   /** Right-drag: move to (x, y) and end facing `facing` (the drag arrow). */
   orderFacing(units: number[], x: number, y: number, facing: number, queued: boolean): void;
   togglePace(units: number[]): void;
-  toggleStance(units: number[]): void;
   reform(units: number[]): void;
   toggleWeapon(units: number[]): void;
   toggleKite(units: number[]): void;
@@ -164,7 +163,6 @@ export class Input {
       const sel = this.selected;
       if (sel.length === 0) return;
       if (e.key === 'r') sink.togglePace(sel);
-      if (e.key === 'f') sink.toggleStance(sel);
       if (e.key === 'g') sink.reform(sel);
       if (e.key === 'h') sink.togglePursue(sel);
       if (e.key === 'v') sink.toggleFire(sel);

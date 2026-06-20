@@ -101,9 +101,6 @@ pub struct UnitClass {
     /// more, skirmishers less. A unit ringed by high-aura friends holds far past
     /// where it would break alone — the "fights on with support" effect.
     pub morale_aura: f32,
-    /// Default combat stance (player can toggle): Othismos = press the
-    /// shove; Fence = fight at weapon's length.
-    pub stance: crate::unit::Stance,
     /// Charge by default: burst to charge speed in the last ~2s of an
     /// explicit attack approach. (Player can toggle; pikes hold formation.)
     pub charge: bool,
@@ -215,7 +212,6 @@ const CAV_SWORD: Weapon = Weapon {
 };
 
 pub fn class_stats(id: UnitClassId) -> UnitClass {
-    use crate::unit::Stance;
     use UnitClassId::*;
     let foot = UnitClass {
         id,
@@ -233,7 +229,6 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
         training: 0.6,
         bravery: 1.0,
         morale_aura: 1.0,
-        stance: Stance::Othismos,
         charge: true,
         tramples: false,
         knockback_mult: 0.35, // a charging mass of men hurts what it fells
@@ -281,7 +276,6 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
                         // with the blade — a thin front-arc edge, far below any shield wall
             evade: 0.35,
             training: 0.8,
-            stance: crate::unit::Stance::Fence,
             weapons: one(LONG_SWORD),
             ..foot
         },
@@ -311,7 +305,6 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             health: 1.17,
             block: 0.0, // no shield: a dodge, not a wall — same from any face
             evade: 0.28,
-            stance: crate::unit::Stance::Fence,
             charge: false,
             weapons: one(SWORD),
             ..foot
@@ -328,7 +321,6 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             block: 0.0, // no shield: pure dodge, same from any face
             evade: 0.42, // the nimblest foot — slips both blows and arrows, any quarter
             training: 0.5,
-            stance: crate::unit::Stance::Fence,
             charge: false,
             weapons: one(DAGGER),
             ..foot
@@ -352,7 +344,6 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             training: 0.75,
             bravery: 1.3,     // armoured shock riders hold their nerve
             morale_aura: 2.0, // and the sight of friendly heavy horse steadies a line
-            stance: crate::unit::Stance::Fence,
             weapons: two(LANCE, CAV_SWORD),
             ..foot
         },
@@ -373,7 +364,6 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             evade: 0.32,
             training: 0.65,
             morale_aura: 1.6, // mounted, but lighter — a smaller steadying presence
-            stance: crate::unit::Stance::Fence,
             charge: false,
             weapons: one(CAV_SWORD),
             ..foot
@@ -388,7 +378,6 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             health: 1.17,
             block: 0.0, // no shield wall; same from any face
             evade: 0.18,
-            stance: crate::unit::Stance::Fence,
             charge: false,
             weapons: one(DAGGER),
             ..foot

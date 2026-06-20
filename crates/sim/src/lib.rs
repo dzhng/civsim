@@ -45,4 +45,4 @@ pub use rng::Pcg32;
 pub use sim::Sim;
 pub use terrain::{micro_rough, Terrain};
 pub use tunables::{Pace, Tunables, DT};
-pub use unit::{OrderMode, Stance, Unit};
+pub use unit::{OrderMode, Unit};

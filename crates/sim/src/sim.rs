@@ -300,7 +300,6 @@ impl Sim {
             cohesion: 1.0,
             pivoting: false,
             mode: OrderMode::Move,
-            stance: crate::unit::Stance::Othismos,
             charge_enabled: false,
             charging: false,
             fear_adapt: 0.0,
@@ -405,7 +404,6 @@ impl Sim {
         u.class = class;
         u.stats = stats;
         u.pace_mult = stats.pace_mult;
-        u.stance = stats.stance;
         u.charge_enabled = stats.charge;
         u.drain_mult = stats.drain_mult;
         if let Some(spec) = crate::missiles::missile_spec(class) {
@@ -431,11 +429,6 @@ impl Sim {
         }
     }
 
-    pub fn set_stance(&mut self, unit: usize, stance: crate::unit::Stance) {
-        if let Some(u) = self.units.get_mut(unit) {
-            u.stance = stance;
-        }
-    }
 
     /// Test-isolation hook only: in the game, charging is the class
     /// capability, applied automatically on an explicit attack — there is

@@ -18,7 +18,7 @@ physically stops horseflesh.</em></p>
 <tr><td>right-click + DRAG</td><td>move to the press point and <b>end facing the drag direction</b> — destination ghosts preview live while held, then fade after release</td></tr>
 <tr><td>shift + any order</td><td><b>QUEUE</b> it: runs after everything already underway completes — chain waypoints, then an attack, then a withdrawal</td></tr>
 <tr><td>alt + right-click</td><td><b>DISENGAGE</b> move: turn and run at full pace, answering nothing — fast but backs exposed</td></tr>
-<tr><td>R / F</td><td>walk-run / othismos-fence</td></tr>
+<tr><td>R</td><td>walk-run</td></tr>
 <tr><td>G / H / V</td><td>reform / pursue (latch onto contact) / fire-at-will</td></tr>
 <tr><td>X / E</td><td>draw secondary weapons (pikes ground, bows sling — ~1s down the line, ORANGE pie) / kite reflex on-off (skirmish classes)</td></tr>
 <tr><td>P, 1, 3</td><td>pause, 1x, 3x speed</td></tr>
@@ -97,7 +97,6 @@ they appear:</p>
 <tr><td><b>ATK</b></td><td>an attack latch is live — explicit order or a pursue auto-charge</td></tr>
 <tr><td><b>DIS</b></td><td>a disengage order is live: running, answering nothing</td></tr>
 <tr><td><b>CHG!</b></td><td>this instant: bursting at charge speed in the final approach</td></tr>
-<tr><td><b>OTH / FEN</b></td><td>always one of the two — current stance</td></tr>
 <tr><td><b>PUR</b></td><td>pursue toggle on: the advance will latch onto whatever strays within reach</td></tr>
 <tr><td><b>KITE</b></td><td>skirmish reflex armed (skirmishers / horse archers)</td></tr>
 <tr><td><b>2nd</b></td><td>secondary weapons drawn unit-wide (pikes grounded, bows slung)</td></tr>
@@ -138,7 +137,7 @@ swords need loose order and die in crowds). Inside its min range a weapon is
 useless: a phalanx that lets you reach its bodies is fighting with side
 swords.</p>
 
-<h2>Pushes, pressure, othismos</h2>
+<h2>Pushes and pressure</h2>
 <p>Every landed <b>or blocked</b> strike shoves the defender — by the
 attacker/defender effective-mass ratio (bracing multiplies mass: a planted
 phalanx hurls men a meter per thrust). Every strike also <b>staggers</b> its
@@ -149,16 +148,9 @@ transmits force (a man driven from behind yields less — deep columns walk
 thin lines backward), and it removes <b>evade</b> (no room to dodge). It
 never touches morale directly — an advancing column does not rout from its
 own deliberate press.</p>
-<p>The <b>stance</b> toggle (F) governs what your weight does whenever your
-ORDER presses into a fight — an explicit attack, or a move whose path runs
-through the enemy: <b>Othismos</b> leans the rear ranks in, converting
-depth to shove (you walk through them or you don't, by mass), at the cost
-of the front rank's room. <b>Fence</b> fights at weapon's length, keeps
-evade, no shove — pressing through in Fence stalls against anyone who
-holds. Stance is moot while giving ground: there is nothing to lean into.
-The <b>pursue</b> toggle (H) is the third, separate bit: with it ON, an
-advance LATCHES onto whatever it meets and resumes its path afterward;
-with it OFF the unit fights in stride and keeps its destination.</p>
+<p>The <b>pursue</b> toggle (H): with it ON, an advance LATCHES onto
+whatever it meets and resumes its path afterward; with it OFF the unit
+fights in stride and keeps its destination.</p>
 
 <h2>Block and evade</h2>
 <p>Block (shields) works against melee and arrows but <b>only across the

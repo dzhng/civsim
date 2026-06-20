@@ -378,7 +378,6 @@ mod tests {
             cohesion: 0.1,
             pivoting: false,
             mode: crate::unit::OrderMode::Move,
-            stance: crate::unit::Stance::Othismos,
             charge_enabled: false,
             charging: false,
             fear_adapt: 0.0,

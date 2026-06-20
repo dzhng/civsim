@@ -27,6 +27,9 @@ const SWORD_STANDOFF: f32 = 0.5;
 /// full-strength standoff shifted the fight distance and rippled pressure/kills;
 /// at this softness both stay green). Combat reach is far longer regardless.
 const SWORD_STANDOFF_SOFT: f32 = 0.2;
+/// A braced pole line is a hedge, not isolated one-file pokes: adjacent leveled
+/// points overlap laterally so staggered fronts cannot zipper through the gaps.
+const BRACED_REPEL_FILE_OVERLAP: f32 = 4.0;
 
 impl Sim {
     pub(crate) fn apply_separation(&mut self) {
@@ -392,12 +395,17 @@ impl Sim {
                 let braced = weapons[held].braced;
                 let reach = weapons[held].reach;
                 // The weapon points down the UNIT's frontage; its push is frontal,
-                // along that line. The lateral half-width is one file's spacing,
-                // so each man covers his own column and neighbours overlap into a
-                // continuous shove with no slip-through gaps.
+                // along that line. Swords cover one file; braced pole points overlap
+                // several files into a continuous hedge so a staggered front cannot
+                // zipper between isolated columns.
                 let aim = crate::math::dir(units[uj].facing);
                 let (perp_x, perp_y) = (-aim.y, aim.x);
-                let half_w = units[uj].spacing.x.max(0.5);
+                let half_w = units[uj].spacing.x.max(0.5)
+                    * if braced {
+                        BRACED_REPEL_FILE_OVERLAP
+                    } else {
+                        1.0
+                    };
                 let (jx, jy) = (body_pos[2 * bi], body_pos[2 * bi + 1]);
                 let cx = (jx / cell).floor() as i32;
                 let cy = (jy / cell).floor() as i32;

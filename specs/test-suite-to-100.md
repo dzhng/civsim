@@ -12,6 +12,14 @@
 > (Deleted as subsumed: `attrition-runaway.md`, `contact-foundation-clash.md` — the
 > front-line-integrity root they chased is the consolidated triage below.)
 
+> **Update (2026-06-20):** `two_braced_walls_hold_a_standoff_neither_centroid_crosses`
+> is GREEN on this branch after braced weapon-repel columns were widened into an
+> overlapping hedge (`BRACED_REPEL_FILE_OVERLAP = 4.0`). The fix preserves
+> `the_fronts_stay_welded`, `mechanics_symmetry`, `mechanics_charge`, `golden`, and
+> the pike front/rear geometry guard. The non-braced column/held-line/depth cluster
+> remains open; do not count `two_braced_walls` among the active reds unless it
+> regresses again.
+
 ## ★ ROOT of the whole lethality/morale/balance cluster — PROVEN (2026-06-19)
 
 The morale tests (`allied_support`, `support_scales`, `a_high_aura`, `a_brave_class`),

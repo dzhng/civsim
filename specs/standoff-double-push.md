@@ -165,6 +165,16 @@ line, not a bag of circles) — a collision-solver project, not a tunable. Three
 scalar/local attempts (repel strength, velocity damp, body pad) are now falsified;
 stop trying local knobs.
 
+**Measurement (2026-06-20, after braced hedge overlap made `two_braced_walls`
+green):** tried option 1 directly — skip the bearer's own `target` in
+`weapon_repel`, leaving the enemy bond to own that pair. `two_braced_walls` still
+held (`min centroid gap ≈ 5.94`, `min front gap ≈ -0.51`), but
+`the_fronts_stay_welded_a_pusher_drives_not_detaches` failed immediately: the
+pusher's front got **3.2 m** past the defender. Conclusion: the target double-push
+is still real, but the current bond does NOT own the weld/standoff strongly enough
+to remove target repel alone. Do not retry the bare skip; it must be paired with a
+bond/weld redesign that keeps `the_fronts_stay_welded` green.
+
 ## The design (proposed; ranked)
 
 Pick ONE owner for the target pair, arbitrated by `two_braced_walls` +

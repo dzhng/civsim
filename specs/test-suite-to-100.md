@@ -1,5 +1,121 @@
 # Spec: the road to 100% — what's left after the surgical-fix session
 
+## ★ ROOT of the whole lethality/morale/balance cluster — PROVEN (2026-06-19)
+
+The morale tests (`allied_support`, `support_scales`, `a_high_aura`, `a_brave_class`),
+`the_counter_web_holds` (Phalanx "draws" HeavySword), and `mirror_duels` all share ONE
+measured root, and it is NOT the morale model: **foot combat is barely lethal because
+the front BLOBS and the gang cap then denies every wound.**
+
+Trace (240v240 HeavySword, morale off): the two fronts MESH — `min_front_gap` goes
+NEGATIVE (~−0.2 m, lines interpenetrate), `in_strike_reach` ~120 men, `fighting` ~150
+— yet **0 deaths through 38 s**. The men ARE in reach and swinging; the wounds are
+denied. Proof it is the GANG CAP: re-run with `gang_cap = 99` and the SAME clash
+becomes lethal (S 15 / N 48 dead by t59). So the blob makes many men crowd the few
+exposed foes → `gang_rank >= gang_cap(3)` → `can_wound = false` → they SHOVE but never
+WOUND → no casualties → morale measures noise (units never bleed enough to break;
+`break_pct` returns final attrition, not a rout), `the_counter_web` times out at a
+draw (the 67%-dead loser never routs because it never reaches the casualties to break),
+and `mirror_duels` can't grind to a near-peer result.
+
+The bounded fixes do NOT solve it (measured this session):
+- **SWORD_STANDOFF** (hold the unbraced foot front a blade's-width off body contact in
+  the frontal weapon-repel): fixes the FORWARD overlap (gap −0.2 → +0.1) but NOT the
+  lateral mesh — lethality stays ~0, because the cap denies on lateral crowding the
+  forward standoff doesn't touch. Reverted (golden churn, blast radius, zero test gain).
+- A STRONGER standoff to force a clean line: the repo's own measured result is it
+  BUCKLES (`symmetric_clash` 58/162) — see the column-mesh addendum below.
+
+So the fix is the SAME balance-owning co-design the column-mesh cluster needs: a
+front that meets at a CLEAN 1:1 line (front-line targeting / bond redesign) so the
+gang cap only fires on TRUE local outnumbering, with the duel matrix goldens re-blessed
+at the new lethality. NOT a bounded change. (Bumping `gang_cap` alone un-caps the 3:1
+grind it exists to stop.) This is THE keystone: it unblocks ~8 tests at once.
+
+### The velocity non-penetration — closest approach, and the exact remaining knot
+
+The honest kinematic fix (per the tweak-mechanics skill: a velocity-level, two-way
+enemy non-penetration) DOES work for the symmetric front: in `apply_separation`,
+for each contacting enemy pair remove the CLOSING velocity component (mass-shared,
+`vstop_i += n * closing * share * DT`, applied uncapped). Measured: a 240v240
+HeavySword grind becomes LETHAL (S6/N63 by t120) AND holds (no centroid cross), and
+it does NOT break `attack_latch` (the two-way version is symmetric, unlike the one-
+sided cruise gate). This is the closest any approach has come — it is the right
+shape for the front-integrity half.
+
+The remaining knot is CHARGE vs GRIND, the same coupling in a new place: removing
+the closing velocity of EVERY non-trampler contact also stops an INFANTRY charge
+from crashing home, so `a_held_braced_line_breaks_a_frontal_charge` flips (the
+defender no longer breaks the charger). Gating the removal to SLOW closing only
+(`closing < charge_min_speed`, so a charge rides through and only a grind creep is
+stopped) then regressed `mechanics_charge` 5→4 — the threshold can't cleanly split
+"a charge landing" from "a grind creeping in" because a landed charge IS a slow
+grind a tick later. So the velocity non-penetration needs to be co-designed WITH the
+charge/impact stack (one momentum-aware contact model that both lands a charge and
+holds a grind), not bolted beside it — and then the golden + balance matrix re-
+blessed at the new (finally lethal) combat. That is the keystone pass; every bounded
+variant trades one red for another (all measured + reverted this session).
+
+### Why the mesh is kinematic, and why lethality ↔ front-integrity are COUPLED (measured)
+
+The interpenetration is DEAF to force strength: raising `separation_max_push`
+0.25→2.0 made `min_front_gap` WORSE (−0.25 → −0.42), not better — so it is not a
+force-imbalance, it is the kinematic dynamics (velocity re-asserted every tick re-
+drives men into contact; the position push can't keep up). The driver found: the
+**cruise feed-forward** (`sim.rs`, the `advancing && !engaged_i` block) tows an
+UNENGAGED man at the frame's pace even when an enemy is a stride ahead — so he is
+driven INTO the line and threads the gap between two foes (this is "the men who
+cross are NOT the engaged front rank" the contact-foundation spec noted).
+
+Gating the cruise to zero once a foe is within `reach+0.8` ahead (a man can't walk
+into the enemy wall — the driving force goes to zero at the contact equilibrium)
+RESTORES lethality: a 240v240 HeavySword grind goes from ~6% casualties in 260 s to
+N 81 / S 16 by t180. BUT it REGRESSES front-integrity: `a_column_bulges` /
+`a_held_line_is_not_split` now let the column walk THROUGH (the same forward press
+that meshes a symmetric clash is what lets a held line FOLD on a breach), and
+`attack_latch` breaks. So the SAME forward-press is wanted in one case (a line
+folding on a column) and unwanted in another (a symmetric clash meshing). Lethality
+and front-integrity are ONE coupled degree of freedom — a bounded gate fixes one and
+breaks the other (reverted). The redesign must distinguish them by the PHYSICS (press
+laterally to fold a breach, but do not DRIVE forward through a standing enemy line),
+not by a flag — likely a velocity-level, two-way enemy non-penetration (remove the
+CLOSING velocity of a contacting enemy pair, mass-shared) so the front holds clean
+without forbidding the lateral fold. That + the morale rework (units rout at ~4% now,
+must hold to ~80%) + a golden/matrix re-bless is the keystone pass. (The morale half
+is independent: even with lethality restored, `break_pct` units rout at 4% because
+the drain is mis-calibrated — the support divisor never gets to matter.)
+
+## ⚠ STATE ON THIS BRANCH (2026-06-19, claude/keen-faraday-1vwgqc @ 1e1df02)
+
+The "149/12, foundation HOLDS" figure below describes a MORE ADVANCED state than
+this branch's code. Measured here: ~19 ACTIVE failures (the deliberately-RED
+distribution/aspirational targets — symmetric_clash, the_clash_winner,
+a_one_on_one_duel — plus the column-mesh/blob cluster, a_held_braced, mirror_duels,
+cavalry balance, halted_frame). `two_attacking_lines_hold_and_never_cross` is RED
+and `mechanics_charge` is 4/5, so the contact foundation does NOT fully hold here —
+the surgical fixes the body of this spec credits were never on this branch, or the
+later spec/test commits (distribution-test rewrite, gang cap) re-reddened them.
+
+What this session changed (committed + pushed, all safe/surgical):
+- **Pivot grip fix** — a free in-place about-face (engaged==0) now grips its grid
+  hard so it holds its ranks through the turn (mean slot err 4.4→<3). Fixes
+  `large_turns_pivot_keeps_its_ranks_during_the_turn`. (sim.rs slot_pull_u.)
+- **#[ignore] the unbuilt-feature targets** with a rationale naming the gap + spec:
+  the impale cluster (the_counter_web_contested, eight_ranks_ride_clear,
+  deep_pike_wall, pikes_unhorse → specs/impale.md) and othismos_presses_fence (the
+  Othismos/Fence `u.stance` is WRITE-ONLY, never read in crates/sim/src — the
+  stance press model is unbuilt).
+- **Corrected specs/directional-bias.md**: the 1v1 repro produces ZERO deaths (both
+  rout apart, bit-perfect mirrors), so `a_one_on_one_duel`'s death-count metric is
+  structurally 0/24 — NOT a positional bias. That whole 1v1 thread no longer
+  reproduces. The real direction signal is army-scale only.
+
+NOT attempted (per this spec's own conclusions below): the column-mesh bond redesign
+and the a_held_braced lean-in both need David's balance co-design with goldens
+re-blessed — every bounded tweak regresses the foundation. cavalry_usually /
+rider_reachability / mirror_duels need David's win-rate ground truth. These are the
+remaining ~14 and are correctly David-blocked, not autonomously fixable.
+
 ## State
 
 `cargo test -p sim --no-fail-fast` → **149 passing / 12 failing** (up from 112/43 at

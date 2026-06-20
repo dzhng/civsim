@@ -98,6 +98,40 @@ fn nearest_passable(t: &Terrain, p: Vec2) -> Option<(i32, i32)> {
     None
 }
 
+/// Resolve a MOVE destination off impassable ground to where men can actually
+/// stand. If `to` is already standable it is returned unchanged (pathfinding
+/// routes around any obstacle in the way). If `to` is inside an impassable (a
+/// rock, water), return the NEAR FACE along the approach — march back from `to`
+/// toward the ordered-from point `from` to the first standable point — so the
+/// unit halts cleanly in front of the obstacle instead of wandering the long way
+/// round to a far-side rim (which arrives scattered) or chasing a point it can
+/// never reach (steering at the raw target once its path exhausts → never
+/// arrives, never re-seats, cohesion stuck low). Falls back to the geometric
+/// nearest passable cell, then to `to`, if the approach march finds nothing.
+pub(crate) fn clamp_to_passable(t: &Terrain, from: Vec2, to: Vec2) -> Vec2 {
+    if t.speed_at(to) > 0.0 {
+        return to;
+    }
+    let d = to - from;
+    let len = d.len();
+    if len > 1e-3 {
+        let dirv = d * (1.0 / len);
+        let step = (t.cell * 0.5).max(0.5);
+        let mut s = len;
+        while s > 0.0 {
+            let p = from + dirv * s;
+            if t.speed_at(p) > 0.0 {
+                return p;
+            }
+            s -= step;
+        }
+    }
+    match nearest_passable(t, to) {
+        Some(c) => cell_center(t, c.0, c.1),
+        None => to,
+    }
+}
+
 /// A* from `from` to `to`, returning smoothed waypoints (excluding `from`,
 /// ending at `to` or the nearest passable point). None = no path or trivial.
 pub fn plan(t: &Terrain, from: Vec2, to: Vec2) -> Option<Vec<Vec2>> {

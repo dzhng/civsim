@@ -480,6 +480,18 @@ impl Sim {
 
     fn queue_order(&mut self, unit: usize, mode: OrderMode, target: Vec2) {
         let tun = self.tun;
+        // A MOVE/DISENGAGE onto impassable ground (a rock, water) resolves to the
+        // nearest standable point — men can't stand inside a cliff, and a target
+        // they can never reach is chased forever (steering at the raw point once
+        // the path exhausts), so the frame never arrives and the men never re-seat
+        // (cohesion stays low). An ATTACK tracks a live enemy anchor refreshed each
+        // tick, so it is not clamped here.
+        let target = if matches!(mode, OrderMode::Attack(_)) {
+            target
+        } else {
+            let from = self.units.get(unit).map_or(target, |u| u.anchor);
+            crate::path::clamp_to_passable(&self.terrain, from, target)
+        };
         let Some(u) = self.units.get_mut(unit) else {
             return;
         };

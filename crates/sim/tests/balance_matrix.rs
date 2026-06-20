@@ -111,10 +111,11 @@ fn the_counter_web_holds() {
         (LightSpear, HeavySword, 1, "...from either bench"),
         (HeavySword, Phalanx, 1, "a sword line cannot out-front a sarissa hedge"),
         (Phalanx, HeavySword, 0, "the hedge advances over swords"),
-        // ShockCavalry vs HeavySword — "horse rides over swords" — is a CLOSE
-        // matchup (the cav wins ~3/4 of seeds, not all), so a single-seed verdict
-        // here is a coin that lands either way. It lives on the seed-set harness
-        // instead (cavalry_usually_rides_over_heavy_swords in balance_harness).
+        // ShockCavalry vs HeavySword is omitted here on purpose: David's locked
+        // design (2026-06-17) is that a FRONTAL charge LOSES to formed heavy foot
+        // (cav ~30-40% of seeds), so the verdict is infantry-favoured and seed-set,
+        // not single-seed. It lives on the seed-set harness instead
+        // (formed_heavy_infantry_holds_a_frontal_cav_charge in balance_harness).
         (ShockCavalry, HorseArchers, 0, "lancers catch the bow-horse"),
         (ShockCavalry, Archers, 0, "horse eats archers"),
         (ArtilleryCrew, Skirmishers, 1, "a crew alone loses to anyone"),

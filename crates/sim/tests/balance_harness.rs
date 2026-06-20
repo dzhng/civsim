@@ -172,21 +172,52 @@ fn more_block_never_makes_cavalry_worse() {
     );
 }
 
-/// "Horse rides over swords" as a seed-set fact, not a single-seed coin: the
-/// pricier shock cavalry USUALLY beats heavy infantry head-on — a clear
-/// majority of seeds. (Moved off the_counter_web's single-seed matrix because
-/// the matchup is close; see the comment there.)
+/// David's locked design (2026-06-17): a FRONTAL cav charge into formed heavy
+/// infantry LOSES. The horse meets a wall of braced men and the rider sits
+/// elevated behind a shield of horseflesh; the foot's job is to HOLD the front,
+/// the cavalry's is the flank and the rout pursuit.
+///
+/// SURVIVOR SHARE over seeds is the physical metric (win-rate is a coarse binary
+/// that throws away "by how much"). The robust, forward-compatible invariant: the
+/// infantry holds the field with FAR more men standing than the mauled charge. The
+/// charge is a death ride — cav ends a minority (~35% standing, which David signed
+/// off as right); the foot ends a clear majority. The exact survivor band re-tunes
+/// when the cav charge-impact model lands (cav win ~30-40% of seeds will lift cav
+/// survivors); until then "heavy clearly out-survives the charge" is the truth.
+/// Do NOT repin to "horse rides over swords" — that was the pre-decision metric.
 #[test]
-fn cavalry_usually_rides_over_heavy_swords() {
+fn formed_heavy_infantry_holds_a_frontal_cav_charge() {
     let agg = run(&Scenario::duel(UnitClassId::ShockCavalry, UnitClassId::HeavySword));
     println!(
-        "cav vs heavy over seeds: win {:?} surv {:.2} vs {:.2}",
-        agg.win_rate, agg.surv[0].mean, agg.surv[1].mean,
+        "frontal cav vs heavy over seeds: cav surv {:.2}, heavy surv {:.2}, win {:?}",
+        agg.surv[0].mean, agg.surv[1].mean, agg.win_rate,
     );
     assert!(
-        agg.win_rate[0] > agg.win_rate[1] && agg.win_rate[0] >= 0.6,
-        "the pricier horse must usually ride over swords: cav won only {:.0}% of seeds",
-        agg.win_rate[0] * 100.0,
+        agg.surv[1].mean > agg.surv[0].mean + 0.2,
+        "heavy infantry must hold a frontal charge with far more men standing \
+         (David's locked design): cav surv {:.0}%, heavy surv {:.0}%",
+        agg.surv[0].mean * 100.0, agg.surv[1].mean * 100.0,
+    );
+}
+
+/// David (2026-06-17): a frontal charge that LOSES must still BLOODY the line — a
+/// charge of lancers does not break on a hedge of men for free. Infantry ending at
+/// ~96% survivors means the charge lands almost no damage: the SAME lethality
+/// keystone as the army-scale bias (the front blobs -> gang-cap denies wounds ->
+/// the charge grinds without killing; specs/test-suite-to-100.md). Target: a
+/// repulsed charge still costs the foot ~25-40% casualties (survivors ~60-75%).
+/// Un-ignore when the lethality keystone lands.
+#[test]
+#[ignore = "lethality keystone: a repulsed frontal charge should still cost the \
+            infantry ~25-40% casualties; they currently survive ~96% (blob -> \
+            gang-cap wound denial, specs/test-suite-to-100.md)"]
+fn a_frontal_charge_bloodies_the_infantry_even_when_repulsed() {
+    let agg = run(&Scenario::duel(UnitClassId::ShockCavalry, UnitClassId::HeavySword));
+    println!("heavy survivors vs a frontal charge: {:.2}", agg.surv[1].mean);
+    assert!(
+        agg.surv[1].mean <= 0.75,
+        "a repulsed charge must still bloody the infantry: heavy surv {:.0}% (want <=75%)",
+        agg.surv[1].mean * 100.0,
     );
 }
 

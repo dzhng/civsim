@@ -1,5 +1,16 @@
 # Spec: the road to 100% — what's left after the surgical-fix session
 
+> **START HERE (2026-06-20 handoff).** Suite is 121 PASS / 8 FAIL / 7 IGNORED; all
+> 8 failures are the ONE contact keystone — see "CONSOLIDATED TRIAGE" at the bottom
+> of this file for the exact test list, the pinpointed root (`collision.rs`
+> ~L510-535, the capped non-overlap), and why naive uncapping backfires. The LIVE
+> spec set: this file (roadmap) · `directional-bias.md` (the bias analysis + the
+> M-equivariant-solver direction) · `standoff-double-push.md` (scope rider on the
+> standoff repair) · `impale.md` (pike/cav lethality, needed for the cav re-bless).
+> `balance-harness.md` + `scenarios.md` are infrastructure-design reference.
+> (Deleted as subsumed: `attrition-runaway.md`, `contact-foundation-clash.md` — the
+> front-line-integrity root they chased is the consolidated triage below.)
+
 ## ★ ROOT of the whole lethality/morale/balance cluster — PROVEN (2026-06-19)
 
 The morale tests (`allied_support`, `support_scales`, `a_high_aura`, `a_brave_class`),

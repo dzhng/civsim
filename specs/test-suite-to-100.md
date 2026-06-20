@@ -1,8 +1,14 @@
 # Spec: the road to 100% — what's left after the surgical-fix session
 
-> **START HERE (2026-06-20 handoff).** Suite is 121 PASS / 8 FAIL / 7 IGNORED; all
-> 8 failures are the ONE contact keystone — see "CONSOLIDATED TRIAGE" at the bottom
-> of this file for the exact test list, the pinpointed root (`collision.rs`
+> **START HERE (2026-06-20 handoff).** After the directional-bias, braced-standoff,
+> morale-isolation, and balance-combat cleanup commits, `cargo test -p sim
+> --no-fail-fast -- --nocapture` is down to 3 failing targets / 5 failing tests:
+> `balance_matrix::a_held_braced_line_trades_evenly_with_a_walking_attacker`,
+> `mechanics_melee::{a_column_bulges_a_held_line_it_does_not_part_it,
+> a_held_line_is_not_split_by_a_narrow_column, phalanx_and_heavy_clash_without_swirling}`,
+> and `mechanics_weave::a_deep_column_walks_a_thin_line_back_equal_depths_hold`.
+> These are still the ONE contact/depth keystone — see "CONSOLIDATED TRIAGE" at the
+> bottom of this file for the pinpointed root (`collision.rs`
 > ~L510-535, the capped non-overlap), and why naive uncapping backfires. The LIVE
 > spec set: this file (roadmap) · `directional-bias.md` (the bias analysis + the
 > M-equivariant-solver direction) · `standoff-double-push.md` (scope rider on the
@@ -39,6 +45,17 @@
 > (up to 50–60° faceDev). Conclusion: no simple knob/lean/facing patch owns this;
 > the remaining mechanical cluster needs a structural front-line/depth transmission
 > redesign, not more local tuning.
+
+> **Update (2026-06-20 balance-combat cleanup):** `balance_combat::long_swords_cleave_but_die_in_a_press`
+> was a bad combined experiment. Its cleave half is valid and remains as
+> `long_swords_cleave_loose_enemies`: LongSwords out-kill HeavySword against the
+> same loose Skirmisher target. The rear-pusher "die in a press" half was false
+> as written: a throwaway probe measured the pressed setup as a shield/sanctuary,
+> not a cleaner vice (`free` peak mean pressure/vice ≈ 51.07/30.85, `pressed`
+> ≈ 57.22/22.09, with pressed losses lower). The actual vice readout is already
+> mechanically pinned in `mechanics_weave::a_two_sided_squeeze_reads_as_a_vice_a_one_sided_shove_does_not`.
+> Do not resurrect the rear-pusher balance assertion unless a new scenario
+> isolates crush without adding shielding or changing the fight geometry.
 
 ## ★ ROOT of the whole lethality/morale/balance cluster — PROVEN (2026-06-19)
 

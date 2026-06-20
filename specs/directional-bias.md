@@ -460,3 +460,54 @@ golden hash and every per-man-speed outcome) — flagged for David, not yet done
 These regressions are DELIBERATE and expected (charge/bracing/standoff/pike pins
 were calibrated to the old in-place physics); they get re-derived to the corrected
 physics, per "sound sim first."
+## Three MORE isolated fixes ruled out (2026-06-20) — the keystone is deferred
+
+(From the parallel session. Note on #1: this branch carries the FULLER form of
+simultaneous resolution — the `dmg_acc`/`mount_dmg_acc`/`push_acc` accumulators
+above stage ALL damage + push to tick-end, not just the lethal blow, so the
+`pending_kills` variant is subsumed and was not separately applied here. The
+ruled-out negatives (slot_pull fade, near-side wall snap) and the localization
+below are the load-bearing additions.)
+
+This session re-confirmed the multiply-amplified thesis the hard way: three further
+*structural* (not tunable) changes, each tried and reverted because it left the bias
+maximal and/or traded a clean mechanical test for a regression.
+
+1. **Simultaneous (Jacobi) combat resolution.** Staged all kills to the end of the
+   combat pass so a man alive at tick-start always lands his swing, even if a
+   lower-indexed attacker fells him the same tick — removing the index-order kill
+   race. Result: `symmetric_clash` stayed **19/20**. Combat *resolution order* is
+   NOT the bias. (Kept anyway — it is strictly more correct; the index-order race
+   was a real, if non-decisive, determinism wart.)
+
+2. **`slot_pull` fade at contact.** Faded the engaged front rank's frame
+   feed-forward tow (`slot_pull`) to zero once `fighting[i]==1` (at reach of a live
+   foe), so the press would route through honest rear-rank compression (othismos)
+   instead of a per-man forward tow that never settles — the textbook "drive the
+   equilibrium force to zero" stabilization. Result: bias unchanged
+   (`the_clash_winner` n=3 → 0/16, n=120 → 16/16) AND it broke `attack_latch`
+   (the front stopped holding → pass-through, centroid swap at t≈24). Reverted.
+
+3. **Near-side hard-wall snap.** The "real wall" in `apply_separation` snaps a man
+   who would end inside an enemy body to that body's *nearest* contact ring — which,
+   for a man whose push carried him past the enemy's CENTRE, is the FAR ring
+   (tunnelling through). Changed it to eject to the ring on the side he CAME FROM
+   (his tick-start position) — a stricter, more physical non-overlap constraint.
+   Result: bias barely moved (n=120 16→15/16) and it BLOBBED `two_attacking_lines`
+   (`max_pen` 0.87, centroid gap collapses to 1.6 m while never crossing). The
+   far-side snap turns out to be a deliberate *pressure-relief valve* that keeps the
+   two fronts clean; remove it and the capped separation (`separation_max_push`)
+   can't resist the rear-rank press, so the blocks compress into each other. The
+   "tunnelling causes the runaway" hypothesis is **disproven**. Reverted.
+
+**What this localizes.** The amplifier is the contact press living on a capped
+position-push (`separation_max_push`) with the collective weight having no uncapped
+honest channel — the blob ↔ gang-cap ↔ lethality-denial ↔ morale-break cluster.
+The genuine fix is a contact-dynamics rebuild: an iterative, uncapped non-overlap
+constraint solve engineered to be bit-exactly M-equivariant, so a sub-ULP cos-even
+seed decays instead of being switch-amplified to a decided battle. That is a large,
+high-churn, multi-session change (re-pins golden, moves many balance outcomes) and
+is **deferred to a dedicated pass** rather than chased with more isolated tweaks.
+Until then the pure bias GATES (`symmetric_clash`, `the_clash_winner`, the 1v1)
+stay RED — they correctly document a real engine instability and MUST NOT be
+re-pinned green.

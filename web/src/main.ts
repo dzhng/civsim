@@ -17,6 +17,11 @@ if (params.get('test') === 'banners') {
   document.body.appendChild(root);
   mountBannerGallery(root);
   (window as unknown as { __ready: boolean }).__ready = true;
+} else if (params.get('test') === 'models') {
+  // Turntable: stand one soldier per class on a flat field and orbit the camera
+  // for 360° model review (vibe/turntable.mjs). No sim, no menu.
+  const { mountTurntable } = await import('./battle/turntable');
+  mountTurntable();
 } else {
   await main();
 }

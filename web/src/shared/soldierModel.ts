@@ -64,23 +64,43 @@ export function classGeometry(cls: number, rest: number | boolean = 0): VertexDa
     lx(fx1, ex1), lx(fy1, ey1), lx(fz1, ez1),
   );
 
-  // Rider sits higher when mounted; the horse goes under him.
+  // Rider sits higher when mounted; the horse goes under him. The legged figure
+  // is built bottom-up: legs (or, mounted, a horse + draped thighs), then a
+  // torso a touch wider at the shoulders than the hips, head, crest. A man is
+  // legs + a body, not a single post — the gap between the legs is what reads.
   const foot = L.mounted ? 0.95 : 0.0;
   if (L.mounted) {
-    box(-0.16, -0.7, 0.0, 0.16, 0.55, 0.92); // horse barrel
-    box(-0.13, 0.5, 0.55, 0.13, 0.95, 0.78); // neck
-    box(-0.11, 0.9, 0.66, 0.11, 1.18, 0.9); // head
-    box(-0.16, -0.62, 0.0, -0.08, -0.5, 0.6); // a back leg hint
-    box(0.08, 0.42, 0.0, 0.16, 0.54, 0.6); // a front leg hint
+    // Horse facing +y: four legs, a barrel, an arched neck + head, a tail.
+    box(-0.17, -0.62, 0.42, 0.17, 0.5, 0.98); // barrel
+    box(-0.16, 0.3, 0.0, -0.06, 0.46, 0.48); // front-left leg
+    box(0.06, 0.3, 0.0, 0.16, 0.46, 0.48); // front-right leg
+    box(-0.16, -0.55, 0.0, -0.06, -0.39, 0.48); // hind-left leg
+    box(0.06, -0.55, 0.0, 0.16, -0.39, 0.48); // hind-right leg
+    box(-0.1, 0.42, 0.82, 0.1, 0.64, 1.24); // neck
+    box(-0.09, 0.55, 1.1, 0.09, 0.96, 1.4); // head
+    box(-0.04, -0.66, 0.32, 0.04, -0.52, 0.86); // tail
+    box(-0.2, -0.06, foot - 0.06, -0.09, 0.2, foot + 0.2); // left thigh on the flank
+    box(0.09, -0.06, foot - 0.06, 0.2, 0.2, foot + 0.2); // right thigh
+  } else {
+    box(-0.14, -0.09, foot, -0.02, 0.09, foot + 0.5); // left leg
+    box(0.02, -0.09, foot, 0.14, 0.09, foot + 0.5); // right leg
   }
-  box(-0.16, -0.1, foot, 0.16, 0.1, foot + 1.0); // torso + legs
-  box(-0.1, -0.09, foot + 1.0, 0.1, 0.11, foot + 1.34); // head
-  if (L.crest) box(-0.03, -0.05, foot + 1.34, 0.03, 0.14, foot + 1.5); // helmet crest
+  const torsoBot = L.mounted ? foot + 0.1 : foot + 0.46;
+  const shZ = foot + (L.mounted ? 0.92 : 1.05); // shoulder height
+  box(-0.17, -0.11, torsoBot, 0.17, 0.13, shZ); // chest, wider than the hips
+  box(-0.1, -0.09, shZ, 0.1, 0.11, shZ + 0.34); // head
+  if (L.crest) box(-0.03, -0.05, shZ + 0.34, 0.03, 0.14, shZ + 0.5); // helmet crest
 
-  // Shield on the left arm (-x), facing forward.
+  // Arm stubs at the shoulders so the shield and weapon hang off a body, not
+  // thin air: the shield arm on the left (-x), the weapon arm on the right (+x).
+  box(-0.23, -0.05, shZ - 0.34, -0.15, 0.07, shZ - 0.02); // left arm
+  if (L.weapon !== 'none') box(0.15, -0.05, shZ - 0.34, 0.23, 0.07, shZ - 0.02); // right arm
+
+  // Shield on the left, a broad plate facing forward (+y): wide in x, tall in z,
+  // thin in y — a face turned at the enemy, not a plank seen edge-on.
   if (L.shield !== 'none') {
-    const sh = { tall: [0.5, 0.78], round: [0.42, 0.55], small: [0.32, 0.4] }[L.shield];
-    box(-0.27, 0.02, foot + 0.35, -0.19, 0.06 + sh[0] * 0.0 + 0.0, foot + 0.35 + sh[1]);
+    const [w, h] = { tall: [0.34, 0.8], round: [0.28, 0.56], small: [0.2, 0.42] }[L.shield];
+    box(-0.32, 0.1, foot + 0.32, -0.32 + w, 0.17, foot + 0.32 + h);
   }
 
   // Weapon on the right (+x). At ease every arm relaxes: pole arms stand
@@ -110,9 +130,15 @@ export function classGeometry(cls: number, rest: number | boolean = 0): VertexDa
     // Greatsword grounded (resting on its point) at ease, hefted high to fight.
     case 'greatsword': lerpBox(wx - 0.03, 0.0, foot + 0.4, wx + 0.04, 0.08, foot + 1.7,
                                wx - 0.03, 0.0, foot + 0.0, wx + 0.04, 0.08, foot + 1.2); break;
-    // Bow held low at ease, raised to draw.
-    case 'bow': lerpBox(wx + 0.04, -0.02, foot + 0.4, wx + 0.1, 0.02, foot + 1.4,
-                        wx + 0.04, -0.02, foot + 0.1, wx + 0.1, 0.02, foot + 1.0); break;
+    // Bow: a tall vertical stave held forward (raised to draw in the fight,
+    // lowered at ease), plus a nocked arrow pointing forward at hand height so
+    // the silhouette reads as an archer, not a man with a stick.
+    case 'bow':
+      lerpBox(wx + 0.02, -0.03, foot + 0.2, wx + 0.08, 0.03, foot + 1.62,
+              wx + 0.02, -0.03, foot + 0.05, wx + 0.08, 0.03, foot + 1.15); // stave
+      lerpBox(wx - 0.01, 0.0, foot + 0.92, wx + 0.03, 0.52, foot + 0.98,
+              wx - 0.01, -0.04, foot + 0.7, wx + 0.03, 0.06, foot + 0.76); // nocked arrow
+      break;
     case 'none': break;
   }
 

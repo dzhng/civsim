@@ -22,8 +22,8 @@ pub mod maps;
 pub mod math;
 pub mod missiles;
 pub mod morale;
-pub mod path;
 pub mod movement;
+pub mod path;
 pub mod rng;
 pub mod runner;
 pub mod sim;
@@ -32,9 +32,10 @@ pub mod tunables;
 pub mod unit;
 
 pub use ai::ai_commander;
-pub use balance::{report, run_once, run_over_seeds, Aggregate, Outcome, ReportRow, Scenario, SEEDS};
+pub use balance::{
+    report, run_once, run_over_seeds, Aggregate, Outcome, ReportRow, Scenario, SEEDS,
+};
 pub use battle::{deploy_roster, setup_battle, setup_duel, setup_sandbox};
-pub use runner::Battle;
 pub use class::{class_stats, BalanceConfig, UnitClass, UnitClassId, Weapon};
 pub use contract::{unit_cost, ALL_CLASSES};
 pub use grid::SpatialHash;
@@ -42,6 +43,7 @@ pub use maps::{build as build_map, MapId, MAP_HALF_H, MAP_HALF_W};
 pub use math::{dir, lerp, move_toward, rotate_toward, wrap_angle, Vec2};
 pub use missiles::{missile_spec, MissileKind, Projectiles};
 pub use rng::Pcg32;
+pub use runner::Battle;
 pub use sim::Sim;
 pub use terrain::{micro_rough, Terrain};
 pub use tunables::{Pace, Tunables, DT};

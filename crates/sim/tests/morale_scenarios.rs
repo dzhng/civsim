@@ -1,7 +1,7 @@
 //! Morale emergence: breaks before annihilation, panic spreads through
 //! physical proximity, charges terrify before they land, rallies scar.
 
-mod common;
+pub mod common;
 
 use common::run;
 use sim::{Sim, Tunables, UnitClassId, Vec2, DT};
@@ -12,8 +12,20 @@ const SEED: u64 = 555;
 #[test]
 fn outnumbered_unit_breaks_before_annihilation() {
     let mut sim = Sim::new(Tunables::default(), SEED);
-    let weak = sim.spawn_class(Vec2::new(0.0, 10.0), -FRAC_PI_2, 150, UnitClassId::LightSpear, 0);
-    let strong = sim.spawn_class(Vec2::new(0.0, -14.0), FRAC_PI_2, 450, UnitClassId::HeavySword, 1);
+    let weak = sim.spawn_class(
+        Vec2::new(0.0, 10.0),
+        -FRAC_PI_2,
+        150,
+        UnitClassId::LightSpear,
+        0,
+    );
+    let strong = sim.spawn_class(
+        Vec2::new(0.0, -14.0),
+        FRAC_PI_2,
+        450,
+        UnitClassId::HeavySword,
+        1,
+    );
     sim.set_attack_move_order(strong, Vec2::new(0.0, 25.0));
     sim.set_pursue(strong, false); // measure the rout, not the chase
     let mut broke_with = None;
@@ -28,8 +40,8 @@ fn outnumbered_unit_breaks_before_annihilation() {
         broke_with > 150 * 25 / 100,
         "breaks should come well before annihilation (historical arc): broke with {broke_with}/150"
     ); // the retuned will endures deeper losses (low tier breaks ~half, outnumbered+flanked deeper)
-    // Survivors flee AWAY from the enemy mass (direction varies with how
-    // the press scrambled them — distance is the invariant).
+       // Survivors flee AWAY from the enemy mass (direction varies with how
+       // the press scrambled them — distance is the invariant).
     let u = &sim.units[weak];
     if u.alive_count > 10 {
         let d = (u.centroid - sim.units[strong].centroid).len();
@@ -46,10 +58,28 @@ fn routing_neighbors_shake_a_units_will() {
     // past. Control: the same unit with a steady neighbor.
     let morale_with_neighbor = |neighbor_breaks: bool| -> f32 {
         let mut sim = Sim::new(Tunables::default(), SEED);
-        let watcher = sim.spawn_class(Vec2::new(40.0, 10.0), -FRAC_PI_2, 200, UnitClassId::HeavySword, 0);
-        let neighbor = sim.spawn_class(Vec2::new(0.0, 10.0), -FRAC_PI_2, 150, UnitClassId::LightSpear, 0);
+        let watcher = sim.spawn_class(
+            Vec2::new(40.0, 10.0),
+            -FRAC_PI_2,
+            200,
+            UnitClassId::HeavySword,
+            0,
+        );
+        let neighbor = sim.spawn_class(
+            Vec2::new(0.0, 10.0),
+            -FRAC_PI_2,
+            150,
+            UnitClassId::LightSpear,
+            0,
+        );
         if neighbor_breaks {
-            let crusher = sim.spawn_class(Vec2::new(0.0, -14.0), FRAC_PI_2, 450, UnitClassId::HeavySword, 1);
+            let crusher = sim.spawn_class(
+                Vec2::new(0.0, -14.0),
+                FRAC_PI_2,
+                450,
+                UnitClassId::HeavySword,
+                1,
+            );
             sim.set_attack_order(crusher, neighbor);
         }
         run(&mut sim, 120.0);
@@ -67,8 +97,20 @@ fn routing_neighbors_shake_a_units_will() {
 #[test]
 fn incoming_charge_intimidates_before_contact() {
     let mut sim = Sim::new(Tunables::default(), SEED);
-    let target = sim.spawn_class(Vec2::new(0.0, 60.0), -FRAC_PI_2, 200, UnitClassId::LightSpear, 0);
-    let cav = sim.spawn_class(Vec2::new(0.0, -40.0), FRAC_PI_2, 150, UnitClassId::ShockCavalry, 1);
+    let target = sim.spawn_class(
+        Vec2::new(0.0, 60.0),
+        -FRAC_PI_2,
+        200,
+        UnitClassId::LightSpear,
+        0,
+    );
+    let cav = sim.spawn_class(
+        Vec2::new(0.0, -40.0),
+        FRAC_PI_2,
+        150,
+        UnitClassId::ShockCavalry,
+        1,
+    );
     sim.set_pace(cav, sim::Pace::Run);
     sim.set_attack_order(cav, target);
     // Compare morale at the moment the threat enters awareness (~70m) to the
@@ -97,12 +139,30 @@ fn incoming_charge_intimidates_before_contact() {
 #[test]
 fn routed_unit_rallies_scarred_when_left_alone() {
     let mut sim = Sim::new(Tunables::default(), SEED);
-    let weak = sim.spawn_class(Vec2::new(0.0, 10.0), -FRAC_PI_2, 200, UnitClassId::LightSpear, 0);
+    let weak = sim.spawn_class(
+        Vec2::new(0.0, 10.0),
+        -FRAC_PI_2,
+        200,
+        UnitClassId::LightSpear,
+        0,
+    );
     // A steady teammate keeps the battle CONTESTED: a verdict freezes all
     // morale (routs lock, the chase plays out), and a one-unit team that
     // breaks IS the verdict — it could never rally.
-    sim.spawn_class(Vec2::new(400.0, 10.0), -FRAC_PI_2, 300, UnitClassId::HeavySword, 0);
-    let strong = sim.spawn_class(Vec2::new(0.0, -14.0), FRAC_PI_2, 450, UnitClassId::HeavySword, 1);
+    sim.spawn_class(
+        Vec2::new(400.0, 10.0),
+        -FRAC_PI_2,
+        300,
+        UnitClassId::HeavySword,
+        0,
+    );
+    let strong = sim.spawn_class(
+        Vec2::new(0.0, -14.0),
+        FRAC_PI_2,
+        450,
+        UnitClassId::HeavySword,
+        1,
+    );
     sim.set_attack_move_order(strong, Vec2::new(0.0, 20.0));
     let mut broke = false;
     for _ in 0..(180.0 / DT) as usize {
@@ -166,9 +226,25 @@ fn anchor_never_outruns_a_jammed_column() {
     // March a unit straight through a parked friendly mass: the frame must
     // stay leashed to the men instead of sailing to the far side.
     let mut sim = Sim::new(Tunables::default(), SEED);
-    let mover = sim.spawn_unit(Vec2::new(0.0, -40.0), FRAC_PI_2, 200, 10, Vec2::new(0.9, 1.1), 0, 0.7);
+    let mover = sim.spawn_unit(
+        Vec2::new(0.0, -40.0),
+        FRAC_PI_2,
+        200,
+        10,
+        Vec2::new(0.9, 1.1),
+        0,
+        0.7,
+    );
     // A dense plug of friends, parked.
-    sim.spawn_unit(Vec2::new(0.0, 10.0), FRAC_PI_2, 900, 30, Vec2::new(0.9, 1.1), 0, 0.7);
+    sim.spawn_unit(
+        Vec2::new(0.0, 10.0),
+        FRAC_PI_2,
+        900,
+        30,
+        Vec2::new(0.9, 1.1),
+        0,
+        0.7,
+    );
     sim.set_move_order(mover, Vec2::new(0.0, 90.0));
     let mut worst_lag = 0.0f32;
     for _ in 0..(150.0 / DT) as usize {
@@ -193,12 +269,36 @@ fn enemy_rout_relieves_the_victor_no_mutual_collapse() {
     // draining after the enemy breaks). The sight of enemy backs must pay
     // the side that held one beat longer.
     let mut sim = Sim::new(Tunables::default(), SEED);
-    let a = sim.spawn_class(Vec2::new(0.0, 10.0), -FRAC_PI_2, 300, UnitClassId::HeavySword, 0);
-    let b = sim.spawn_class(Vec2::new(0.0, -14.0), FRAC_PI_2, 330, UnitClassId::HeavySword, 1);
+    let a = sim.spawn_class(
+        Vec2::new(0.0, 10.0),
+        -FRAC_PI_2,
+        300,
+        UnitClassId::HeavySword,
+        0,
+    );
+    let b = sim.spawn_class(
+        Vec2::new(0.0, -14.0),
+        FRAC_PI_2,
+        330,
+        UnitClassId::HeavySword,
+        1,
+    );
     // Far teammates on BOTH sides keep the field contested: a one-unit
     // team's break is the verdict itself, and the verdict freezes morale.
-    sim.spawn_class(Vec2::new(420.0, 10.0), -FRAC_PI_2, 200, UnitClassId::HeavySword, 0);
-    sim.spawn_class(Vec2::new(420.0, -14.0), FRAC_PI_2, 200, UnitClassId::HeavySword, 1);
+    sim.spawn_class(
+        Vec2::new(420.0, 10.0),
+        -FRAC_PI_2,
+        200,
+        UnitClassId::HeavySword,
+        0,
+    );
+    sim.spawn_class(
+        Vec2::new(420.0, -14.0),
+        FRAC_PI_2,
+        200,
+        UnitClassId::HeavySword,
+        1,
+    );
     sim.set_attack_order(a, b);
     sim.set_attack_order(b, a);
     let mut first_break: Option<usize> = None;
@@ -235,15 +335,28 @@ fn the_verdict_is_final_routs_lock_and_the_chase_plays_out() {
     // where breaking is fatal — uncommitted light troops just outrun a
     // walking stomp now that the charge exit is honest (no blob kills).
     let mut sim = Sim::new(Tunables::default(), SEED);
-    let strong = sim.spawn_class(Vec2::new(0.0, -20.0), FRAC_PI_2, 400, UnitClassId::HeavySword, 0);
+    let strong = sim.spawn_class(
+        Vec2::new(0.0, -20.0),
+        FRAC_PI_2,
+        400,
+        UnitClassId::HeavySword,
+        0,
+    );
     // One prey: a second unit kept the field contested forever (the hunter
     // chases the router while the fresh unit stands at full morale).
-    let weak_a = sim.spawn_class(Vec2::new(-25.0, 20.0), -FRAC_PI_2, 80, UnitClassId::LightSpear, 1);
+    let weak_a = sim.spawn_class(
+        Vec2::new(-25.0, 20.0),
+        -FRAC_PI_2,
+        80,
+        UnitClassId::LightSpear,
+        1,
+    );
     sim.set_pursue(strong, true);
     sim.set_attack_order(strong, weak_a);
     sim.set_attack_order(weak_a, strong);
     let mut verdict_at = None;
-    for step in 0..(420.0 / DT) as usize { // the new grind: lights endure ~2min of focused stomp
+    for step in 0..(420.0 / DT) as usize {
+        // the new grind: lights endure ~2min of focused stomp
         sim.tick();
         if verdict_at.is_none() && sim.victor().is_some() {
             verdict_at = Some(step);
@@ -285,8 +398,20 @@ fn a_rout_runs_for_its_own_edge_as_a_clump() {
     // A small committed light line is overmatched by a heavy block to its
     // NORTH; it deploys in the southern half, so home is the south (-y) edge.
     let mut sim = Sim::new(Tunables::default(), SEED);
-    let strong = sim.spawn_class(Vec2::new(0.0, 40.0), -FRAC_PI_2, 400, UnitClassId::HeavySword, 1);
-    let weak = sim.spawn_class(Vec2::new(0.0, -40.0), FRAC_PI_2, 80, UnitClassId::LightSpear, 0);
+    let strong = sim.spawn_class(
+        Vec2::new(0.0, 40.0),
+        -FRAC_PI_2,
+        400,
+        UnitClassId::HeavySword,
+        1,
+    );
+    let weak = sim.spawn_class(
+        Vec2::new(0.0, -40.0),
+        FRAC_PI_2,
+        80,
+        UnitClassId::LightSpear,
+        0,
+    );
     sim.set_attack_order(strong, weak);
     sim.set_attack_order(weak, strong);
 
@@ -351,8 +476,20 @@ fn intimidation_scales_with_the_mass_not_the_banner() {
     // under the same flag. Fear reads MEN AND MASS, not the banner.
     let dip = |horses: usize| -> f32 {
         let mut sim = Sim::new(Tunables::default(), SEED);
-        let line = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 200, UnitClassId::HeavySword, 0);
-        let cav = sim.spawn_class(Vec2::new(0.0, 120.0), -FRAC_PI_2, horses, UnitClassId::ShockCavalry, 1);
+        let line = sim.spawn_class(
+            Vec2::new(0.0, 0.0),
+            FRAC_PI_2,
+            200,
+            UnitClassId::HeavySword,
+            0,
+        );
+        let cav = sim.spawn_class(
+            Vec2::new(0.0, 120.0),
+            -FRAC_PI_2,
+            horses,
+            UnitClassId::ShockCavalry,
+            1,
+        );
         sim.set_pace(cav, sim::Pace::Run);
         // Let spawn morale settle to its baseline FIRST (the dip must
         // measure fear, not the spawn transient).
@@ -388,15 +525,31 @@ fn threats_that_never_land_lose_their_terror() {
     // Cavalry sweeping back and forth at speed just outside reach, never
     // charging home: the first pass costs, the tenth is background noise.
     let mut sim = Sim::new(Tunables::default(), SEED);
-    let line = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 200, UnitClassId::HeavySword, 0);
-    let cav = sim.spawn_class(Vec2::new(-120.0, 45.0), 0.0, 160, UnitClassId::ShockCavalry, 1);
+    let line = sim.spawn_class(
+        Vec2::new(0.0, 0.0),
+        FRAC_PI_2,
+        200,
+        UnitClassId::HeavySword,
+        0,
+    );
+    let cav = sim.spawn_class(
+        Vec2::new(-120.0, 45.0),
+        0.0,
+        160,
+        UnitClassId::ShockCavalry,
+        1,
+    );
     sim.set_pace(cav, sim::Pace::Run);
     // Feinted charges: diagonal passes that genuinely CLOSE on the line
     // (parallel sweeps have no closing and rightly frighten nobody), then
     // peel away before contact. Repeat for five minutes.
     let mut min_m = 1.0f32;
     for lap in 0..12 {
-        let (x, y) = if lap % 2 == 0 { (120.0, 4.0) } else { (-120.0, 56.0) };
+        let (x, y) = if lap % 2 == 0 {
+            (120.0, 4.0)
+        } else {
+            (-120.0, 56.0)
+        };
         sim.set_move_order(cav, Vec2::new(x, y));
         for _ in 0..(25.0 / DT) as usize {
             sim.tick();
@@ -411,7 +564,10 @@ fn threats_that_never_land_lose_their_terror() {
     // fully at rest and so never fully recovers between passes; it just never
     // decays toward a rout either. Both halves matter — the feints REGISTER,
     // and they can never accumulate into a break.
-    assert!(min_m < 0.94, "the feints must actually register as threats: min {min_m:.3}");
+    assert!(
+        min_m < 0.94,
+        "the feints must actually register as threats: min {min_m:.3}"
+    );
     // The exact equilibrium is chaos-sensitive (it slides with any combat tweak
     // — the shield buff alone moved it ~0.3), so pin the ROBUST claim: the line
     // HOLDS, clear of the break, never spiralling to a rout. Not a tight number.
@@ -436,16 +592,46 @@ fn dying_from_two_directions_breaks_faster_than_frontal() {
     // taking.
     let break_time = |split: bool, seed: u64| -> f32 {
         let mut sim = Sim::new(Tunables::default(), seed);
-        let v = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 240, UnitClassId::HeavySword, 0);
+        let v = sim.spawn_class(
+            Vec2::new(0.0, 0.0),
+            FRAC_PI_2,
+            240,
+            UnitClassId::HeavySword,
+            0,
+        );
         let attackers = if split {
             vec![
-                sim.spawn_class(Vec2::new(0.0, 32.0), -FRAC_PI_2, 220, UnitClassId::HeavySword, 1),
-                sim.spawn_class(Vec2::new(0.0, -32.0), FRAC_PI_2, 220, UnitClassId::HeavySword, 1),
+                sim.spawn_class(
+                    Vec2::new(0.0, 32.0),
+                    -FRAC_PI_2,
+                    220,
+                    UnitClassId::HeavySword,
+                    1,
+                ),
+                sim.spawn_class(
+                    Vec2::new(0.0, -32.0),
+                    FRAC_PI_2,
+                    220,
+                    UnitClassId::HeavySword,
+                    1,
+                ),
             ]
         } else {
             vec![
-                sim.spawn_class(Vec2::new(0.0, 32.0), -FRAC_PI_2, 220, UnitClassId::HeavySword, 1),
-                sim.spawn_class(Vec2::new(0.0, 95.0), -FRAC_PI_2, 220, UnitClassId::HeavySword, 1),
+                sim.spawn_class(
+                    Vec2::new(0.0, 32.0),
+                    -FRAC_PI_2,
+                    220,
+                    UnitClassId::HeavySword,
+                    1,
+                ),
+                sim.spawn_class(
+                    Vec2::new(0.0, 95.0),
+                    -FRAC_PI_2,
+                    220,
+                    UnitClassId::HeavySword,
+                    1,
+                ),
             ]
         };
         for a in attackers {
@@ -476,10 +662,28 @@ fn steady_friends_brace_recovery() {
     // Rattled men recover faster among steady comrades than alone.
     let recovered = |with_friends: bool| -> f32 {
         let mut sim = Sim::new(Tunables::default(), SEED);
-        let u = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 200, UnitClassId::LightSpear, 0);
+        let u = sim.spawn_class(
+            Vec2::new(0.0, 0.0),
+            FRAC_PI_2,
+            200,
+            UnitClassId::LightSpear,
+            0,
+        );
         if with_friends {
-            sim.spawn_class(Vec2::new(-40.0, 0.0), FRAC_PI_2, 240, UnitClassId::HeavySword, 0);
-            sim.spawn_class(Vec2::new(40.0, 0.0), FRAC_PI_2, 240, UnitClassId::HeavySword, 0);
+            sim.spawn_class(
+                Vec2::new(-40.0, 0.0),
+                FRAC_PI_2,
+                240,
+                UnitClassId::HeavySword,
+                0,
+            );
+            sim.spawn_class(
+                Vec2::new(40.0, 0.0),
+                FRAC_PI_2,
+                240,
+                UnitClassId::HeavySword,
+                0,
+            );
         }
         sim.units[u].morale = 0.2; // badly rattled, not broken
         for _ in 0..(30.0 / DT) as usize {
@@ -501,11 +705,29 @@ fn even_remnants_rally_given_peace() {
     // No shatter floor: morale always recovers (scarred by RALLY_SCAR per
     // break, but a quiet field puts any survivor back in order).
     let mut sim = Sim::new(Tunables::default(), SEED);
-    let u = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 200, UnitClassId::LightSpear, 0);
+    let u = sim.spawn_class(
+        Vec2::new(0.0, 0.0),
+        FRAC_PI_2,
+        200,
+        UnitClassId::LightSpear,
+        0,
+    );
     // A distant enemy AND a standing friendly keep the field CONTESTED on
     // both ledgers — a verdict (army broken) locks morale by design.
-    sim.spawn_class(Vec2::new(400.0, 0.0), FRAC_PI_2, 200, UnitClassId::LightSpear, 1);
-    sim.spawn_class(Vec2::new(-400.0, 0.0), FRAC_PI_2, 200, UnitClassId::HeavySword, 0);
+    sim.spawn_class(
+        Vec2::new(400.0, 0.0),
+        FRAC_PI_2,
+        200,
+        UnitClassId::LightSpear,
+        1,
+    );
+    sim.spawn_class(
+        Vec2::new(-400.0, 0.0),
+        FRAC_PI_2,
+        200,
+        UnitClassId::HeavySword,
+        0,
+    );
     let (start, count) = (sim.units[u].start, sim.units[u].count);
     for s in (count / 10)..count {
         sim.kill(start + s);
@@ -531,11 +753,29 @@ fn contagion_spreads_from_fleeing_bodies_not_banners() {
     // with the SIZE of the rout streaming past.
     let dip = |fleeing: usize| -> f32 {
         let mut sim = Sim::new(Tunables::default(), SEED);
-        let watchers = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 200, UnitClassId::HeavySword, 0);
-        let doomed = sim.spawn_class(Vec2::new(30.0, 20.0), FRAC_PI_2, fleeing, UnitClassId::LightSpear, 0);
+        let watchers = sim.spawn_class(
+            Vec2::new(0.0, 0.0),
+            FRAC_PI_2,
+            200,
+            UnitClassId::HeavySword,
+            0,
+        );
+        let doomed = sim.spawn_class(
+            Vec2::new(30.0, 20.0),
+            FRAC_PI_2,
+            fleeing,
+            UnitClassId::LightSpear,
+            0,
+        );
         // An enemy line standing off at 55m keeps the watchers ALERT
         // (recovery off) without fighting: in peacetime, rest masks panic.
-        sim.spawn_class(Vec2::new(0.0, 55.0), -FRAC_PI_2, 200, UnitClassId::HeavySword, 1);
+        sim.spawn_class(
+            Vec2::new(0.0, 55.0),
+            -FRAC_PI_2,
+            200,
+            UnitClassId::HeavySword,
+            1,
+        );
         for _ in 0..(3.0 / DT) as usize {
             sim.tick(); // settle the spawn transient
         }
@@ -566,8 +806,20 @@ fn wavering_masses_do_not_thunder() {
     // you fear units bolder than you, never shakier ones.
     let dip = |cav_morale: f32| -> f32 {
         let mut sim = Sim::new(Tunables::default(), SEED);
-        let line = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 200, UnitClassId::HeavySword, 0);
-        let cav = sim.spawn_class(Vec2::new(0.0, 120.0), -FRAC_PI_2, 200, UnitClassId::ShockCavalry, 1);
+        let line = sim.spawn_class(
+            Vec2::new(0.0, 0.0),
+            FRAC_PI_2,
+            200,
+            UnitClassId::HeavySword,
+            0,
+        );
+        let cav = sim.spawn_class(
+            Vec2::new(0.0, 120.0),
+            -FRAC_PI_2,
+            200,
+            UnitClassId::ShockCavalry,
+            1,
+        );
         sim.set_pace(cav, sim::Pace::Run);
         for _ in 0..(3.0 / DT) as usize {
             sim.tick();
@@ -604,8 +856,20 @@ fn intimidation_is_relative_strength_not_absolute() {
     // barely registers.
     let dip = |horses: usize| -> f32 {
         let mut sim = Sim::new(Tunables::default(), SEED);
-        let line = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 100, UnitClassId::HeavySword, 0);
-        let cav = sim.spawn_class(Vec2::new(0.0, 130.0), -FRAC_PI_2, horses, UnitClassId::ShockCavalry, 1);
+        let line = sim.spawn_class(
+            Vec2::new(0.0, 0.0),
+            FRAC_PI_2,
+            100,
+            UnitClassId::HeavySword,
+            0,
+        );
+        let cav = sim.spawn_class(
+            Vec2::new(0.0, 130.0),
+            -FRAC_PI_2,
+            horses,
+            UnitClassId::ShockCavalry,
+            1,
+        );
         sim.set_pace(cav, sim::Pace::Run);
         for _ in 0..(3.0 / DT) as usize {
             sim.tick();
@@ -635,9 +899,21 @@ fn depleted_units_feel_each_loss_more() {
     // hit a half-strength unit twice as hard as a full one.
     let dip_from_ten_dead = |pre_kill: bool| -> f32 {
         let mut sim = Sim::new(Tunables::default(), SEED);
-        let u = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 200, UnitClassId::HeavySword, 0);
+        let u = sim.spawn_class(
+            Vec2::new(0.0, 0.0),
+            FRAC_PI_2,
+            200,
+            UnitClassId::HeavySword,
+            0,
+        );
         // An enemy at 55m keeps the unit alert (no recovery masking).
-        sim.spawn_class(Vec2::new(0.0, 55.0), -FRAC_PI_2, 100, UnitClassId::LightSpear, 1);
+        sim.spawn_class(
+            Vec2::new(0.0, 55.0),
+            -FRAC_PI_2,
+            100,
+            UnitClassId::LightSpear,
+            1,
+        );
         let (start, count) = (sim.units[u].start, sim.units[u].count);
         if pre_kill {
             for s in (count / 2)..count {
@@ -675,8 +951,20 @@ fn a_hopeless_wall_of_horse_routs_the_token_line_before_contact() {
     // since fear is amplified by disorder, a bigger but raggeder line
     // breaks the same way.)
     let mut sim = Sim::new(Tunables::default(), SEED);
-    let line = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 40, UnitClassId::HeavySword, 0);
-    let cav = sim.spawn_class(Vec2::new(0.0, 140.0), -FRAC_PI_2, 400, UnitClassId::ShockCavalry, 1);
+    let line = sim.spawn_class(
+        Vec2::new(0.0, 0.0),
+        FRAC_PI_2,
+        40,
+        UnitClassId::HeavySword,
+        0,
+    );
+    let cav = sim.spawn_class(
+        Vec2::new(0.0, 140.0),
+        -FRAC_PI_2,
+        400,
+        UnitClassId::ShockCavalry,
+        1,
+    );
     sim.set_pace(cav, sim::Pace::Run);
     for _ in 0..(3.0 / DT) as usize {
         sim.tick();

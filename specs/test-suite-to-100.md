@@ -9,9 +9,10 @@
 > being struck at pike reach locks its formation instead of wheeling while
 > `engaged == 0`. The old red cluster below is retained as history; do not chase
 > those dead ends again. The LIVE
-> spec set: this file (roadmap) · `directional-bias.md` (the bias analysis + the
-> M-equivariant-solver direction) · `standoff-double-push.md` (scope rider on the
-> standoff repair) · `impale.md` (pike/cav lethality, needed for the cav re-bless).
+> spec set: this file (roadmap) · `directional-bias.md` (fixed postmortem and
+> rationale for the symmetry gates) · `standoff-double-push.md` (scope rider on
+> the standoff repair) · `impale.md` (pike/cav lethality, needed for the cav
+> re-bless).
 > `balance-harness.md` + `scenarios.md` are infrastructure-design reference;
 > `crates/sim/tests/README.md` is the mechanical-vs-balance decoupling standard.
 > (Deleted as subsumed: `attrition-runaway.md`, `contact-foundation-clash.md` — the
@@ -25,7 +26,8 @@
 > remains open; do not count `two_braced_walls` among the active reds unless it
 > regresses again.
 
-> **Update (2026-06-20 follow-up):** Current full sim suite is 5 failing targets /
+> **Historical update (2026-06-20 follow-up, superseded by the contact/depth
+> keystone below):** At this point the full sim suite had 5 failing targets /
 > 7 failing tests: `balance_combat::long_swords_cleave_but_die_in_a_press`,
 > `balance_matrix::a_held_braced_line_trades_evenly_with_a_walking_attacker`,
 > `mechanics_melee::{a_column_bulges_a_held_line_it_does_not_part_it,
@@ -67,7 +69,7 @@
 > toward the phalanx centroid. `refresh_contact_engagement` now counts enemies
 > fighting my men as contact before unit motion. Test metrics moved accordingly:
 > charge bogging now reads the charge mass (80th percentile horse), not a single
-> lead body; depth transmission is asserted over the sustained 24s othismos window;
+> lead body; depth transmission is asserted over the sustained 24s compression window;
 > the column-bulge test pins dimple + no centroid pass-through, not far-wing
 > contraction of a 70-file line.
 
@@ -173,9 +175,8 @@ What this session changed (committed + pushed, all safe/surgical):
   `large_turns_pivot_keeps_its_ranks_during_the_turn`. (sim.rs slot_pull_u.)
 - **#[ignore] the unbuilt-feature targets** with a rationale naming the gap + spec:
   the impale cluster (the_counter_web_contested, eight_ranks_ride_clear,
-  deep_pike_wall, pikes_unhorse → specs/impale.md) and othismos_presses_fence (the
-  Othismos/Fence `u.stance` is WRITE-ONLY, never read in crates/sim/src — the
-  stance press model is unbuilt).
+  deep_pike_wall, pikes_unhorse → specs/impale.md) and the deleted stance-pressure
+  experiment (it was an unbuilt write-only API, not a live mechanics hook).
 - **Corrected specs/directional-bias.md**: the 1v1 repro produces ZERO deaths (both
   rout apart, bit-perfect mirrors), so `a_one_on_one_duel`'s death-count metric is
   structurally 0/24 — NOT a positional bias. That whole 1v1 thread no longer
@@ -207,7 +208,7 @@ infantry lethality/inversion → the_counter_web, cavalry_usually_rides, eight_r
 dense_infantry; defender edge → a_held_braced_line, mirror_duels), **deep weave-
 equilibrium** (standoff ×4, blob ×2, envelopment ×2, swirl, pivot), **engage_move**
 (chaos-coupled, net-zero tested), and **terrain/stance judgments** (halted_frame,
-long_marches, othismos). Sections below are the per-cluster detail (some headers
+long_marches, sustained compression). Sections below are the per-cluster detail (some headers
 predate the trample/chaos-marginal wins — see the dated addenda at the bottom for the
 latest measured roots).
 
@@ -317,14 +318,11 @@ disorder-triggered re-sort fixes `corridor` but perturbs float state and chaos-f
 `large_turns_pivot` (180° smears 4.39), `rider_reachability` (sword-vs-rider geometry
 shifted), `weapon_swaps` (see above).
 
-- **`othismos_presses` — `Unit::stance` is a DEAD field** (set at spawn, read
-  NOWHERE in the physics), so both stances give the same 1.18m gap. Wiring it does
-  fix the test (scale the magnet stop `reach_u` ×1.5 for Fence — `sim.rs:1213`), BUT
-  it RIPPLES: the Phalanx and spear CLASSES default to Fence (not just the test's
-  explicit `set_stance`), so their standoff moves and `pikes_unhorse` + `long_swords`
-  (tuned to the current reach) break — net −1. Wiring the stance is a real behavior
-  change that needs those two balance tests re-tuned alongside it, not an isolated
-  fix. (Tried ×1.5, reverted.)
+- **Deleted stance-pressure experiment** — `Unit::stance` was a dead field (set at
+  spawn, read nowhere in the physics). Wiring it as a separate reach/press toggle
+  did move the gap, but it rippled across pike and spear balance; the branch later
+  removed the API instead of preserving a write-only feature. Depth pressure is now
+  treated as an emergent compression effect, not a player stance.
 
 ## Process
 Cargo first; golden re-pins on any sim-value change (it has no stones/skirmishers, so
@@ -521,17 +519,15 @@ sustained away-order. The reverse-drive frame is the correct mechanism; it's a 2
 loose backing-off leash + Move-only gate landed clean: extracts past -12, posture 10/0,
 all foundations (clash/charge/weave/golden) hold. 143/15 -> 144/14.
 
-## Addendum — othismos stance is entangled with the Phalanx (measured, -10)
+## Addendum — separate stance pressure was entangled with the Phalanx (measured, -10)
 
-TRIED wiring the stance: othismos pulls the front to BODY CONTACT (magnet hold = 0.5*reach,
-leaving the weapon-reach BOND untouched so pikes keep their 3.5m point). The mechanism WORKS
-(othismos gap 1.15m vs fence 1.23m), and pikes_unhorse + the_counter_web held -- but it
-regressed -10 OVERALL, because the PHALANX defaults to Stance::Othismos (class.rs:223), so
-pulling its front in 2x closer ripples across every Phalanx matchup/scenario. So othismos is
-NOT an isolated test: wiring it correctly DOES change the phalanx (by design -- a phalanx
-shoves), so it needs co-design with re-judging the Phalanx balance, not a bounded tweak.
-The forward-push magnitude (0.5) also under-closes the test by 0.02 (needs <fence-0.1, got
--0.08). Reverted to hold 144/14.
+TRIED wiring a separate reach/press stance: pressing pulled the front to body contact
+(magnet hold = 0.5*reach, leaving the weapon-reach bond untouched so pikes kept their
+3.5m point). The mechanism moved the gap, and pikes_unhorse + the_counter_web held --
+but it regressed -10 OVERALL because changing Phalanx standoff rippled across every
+Phalanx matchup/scenario. The branch later deleted the write-only stance API rather
+than preserving an unbuilt toggle; any future depth-pressure work should be co-designed
+with Phalanx balance, not treated as an isolated UI switch.
 
 ## Addendum — impale (cav/pike lethality) BACKFIRES blind (measured)
 
@@ -847,7 +843,7 @@ the new "holder fights its front forward" behaviour (vibe-shot it first), after 
 slightly stronger lean flips a_held_braced the last few %. This is the matrix-shifting
 co-design the whole cluster needs — now with the mechanism pinned and a working prototype.
 
-## CONSOLIDATED TRIAGE (2026-06-20): the suite is 121 PASS / 8 FAIL / 7 IGNORED, and ALL 8 FAILURES ARE THE ONE KEYSTONE
+## HISTORICAL CONSOLIDATED TRIAGE (2026-06-20): the suite was 121 PASS / 8 FAIL / 7 IGNORED, and ALL 8 FAILURES WERE THE ONE KEYSTONE
 
 After this session's independently-fixable repins landed (stance deletion; rider-reach
 geometry bound; cav-vs-heavy reframed to the locked design on the SURVIVOR metric; the
@@ -855,7 +851,7 @@ geometry bound; cav-vs-heavy reframed to the locked design on the SURVIVOR metri
 SAME contact-dynamics root. The 8:
 
 - `symmetric_clash_has_no_mechanical_bias`, `the_clash_winner_does_not_depend_on_unit_size`
-  — the bias gates (army-scale +y/-y winner). RED by design (see directional-bias.md).
+  — the bias gates (army-scale +y/-y winner; see directional-bias.md).
 - `attack_latch_behaves_like_a_move_order` — fails on INTERPENETRATION (attack 0.63 vs
   move 0.32): the attack drives DEEPER into the foe = the blob.
 - `phalanx_and_heavy_clash_without_swirling` — faceDev reaches 90°: the wheel/swirl.
@@ -878,7 +874,7 @@ switch-amplified into a decided battle.
 an UNCAPPED frontal shove is positive feedback — the side a hair ahead shoves the other
 back harder, a head-on clash BUCKLES one way and routs. The cap was added precisely to
 stop that. So naive uncapping makes the bias gates WORSE. The real fix is the one
-directional-bias.md defers: an ITERATIVE, uncapped, bit-exactly M-EQUIVARIANT non-overlap
+directional-bias.md pointed toward: an ITERATIVE, uncapped, bit-exactly M-EQUIVARIANT non-overlap
 constraint solve (project overlaps out over several relaxation passes, symmetric by
 construction so a sub-ULP seed DECAYS instead of amplifying), co-designed with the
 charge/trample stack (cav still punches a thin line per `tramples()`, a braced wall is

@@ -56,7 +56,7 @@ pub(crate) fn pace_speed(tun: &Tunables, u: &Unit) -> f32 {
     // collision solver alone cannot: each horse only contests the one
     // man it overlaps this tick and outmasses him, so a braced column's
     // collective weight has to act through this measured channel.
-    // The gate spares working contact (column jitter, the othismos shove)
+    // The gate spares working contact (column jitter, the slow shove)
     // and ramps in over a narrow band; past it the FULL counter-press
     // counts — the wall brakes the front rank and the front rank brakes
     // the ranks piling in behind (the chain is the collective force).
@@ -69,7 +69,11 @@ pub(crate) fn pace_speed(tun: &Tunables, u: &Unit) -> f32 {
     // floor) grips fully while a screen (just under) is spared — the brace/no-brace
     // line is narrow. Infantry: the original wide ramp on the instantaneous press.
     let (press, floor, ramp) = if u.tramples() {
-        (u.ram_press, tun.press_brake_floor, 0.3 * tun.press_brake_floor)
+        (
+            u.ram_press,
+            tun.press_brake_floor,
+            0.3 * tun.press_brake_floor,
+        )
     } else {
         (u.counter_press, 0.45, 0.6 * 0.45)
     };
@@ -213,9 +217,9 @@ pub(crate) fn update_unit_motion(tun: &Tunables, u: &mut Unit, dt: f32, ground: 
                         // Walking pace by design (a strafe is never a run), and
                         // walk is class-independent now, so no pace_mult here; ram
                         // drag is immaterial (quadratic in speed, ~0 at a walk).
-                        let target_speed = (tun.base_speed * ground
-                            * drift_factor(desired, u.facing))
-                        .min((2.0 * accel * dist).sqrt());
+                        let target_speed =
+                            (tun.base_speed * ground * drift_factor(desired, u.facing))
+                                .min((2.0 * accel * dist).sqrt());
                         u.frame_speed = move_toward(u.frame_speed, target_speed, accel * dt);
                         u.anchor = u.anchor + to * (u.frame_speed * dt / dist.max(0.01));
                         return;
@@ -255,8 +259,9 @@ pub(crate) fn update_unit_motion(tun: &Tunables, u: &mut Unit, dt: f32, ground: 
                 // March, arcing toward the target. The rotation budget is the
                 // speed the rear corners have left over after marching.
                 if !locked {
-                    let spare =
-                        (top * top - u.frame_speed * u.frame_speed).max((0.25 * top).powi(2)).sqrt();
+                    let spare = (top * top - u.frame_speed * u.frame_speed)
+                        .max((0.25 * top).powi(2))
+                        .sqrt();
                     let geom = tun.wheel_speed_factor * spare / u.march_turn_radius().max(1.0);
                     let rate = tun.base_turn_rate.min(geom) * turn_throttle;
                     u.facing = rotate_toward(u.facing, desired, rate * dt);
@@ -301,7 +306,11 @@ pub(crate) fn update_unit_motion(tun: &Tunables, u: &mut Unit, dt: f32, ground: 
                     u.move_target.map_or(dir(u.facing), |mt| {
                         let to = mt - u.anchor;
                         let l = to.len();
-                        if l > 0.01 { to * (1.0 / l) } else { dir(u.facing) }
+                        if l > 0.01 {
+                            to * (1.0 / l)
+                        } else {
+                            dir(u.facing)
+                        }
                     })
                 } else {
                     dir(u.facing)

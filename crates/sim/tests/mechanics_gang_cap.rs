@@ -13,11 +13,31 @@ use std::f32::consts::FRAC_PI_2;
 fn defender_damage(gang_cap: u16) -> f32 {
     // Morale off so the small defender STANDS and is mobbed (it would otherwise
     // rout from the odds and flee out of reach before taking any blows).
-    let tun = Tunables { micro_rough: 0.0, gang_cap, morale_enabled: false, ..Tunables::default() };
+    let tun = Tunables {
+        micro_rough: 0.0,
+        gang_cap,
+        morale_enabled: false,
+        ..Tunables::default()
+    };
     let mut sim = Sim::new(tun, 5);
-    let def = sim.spawn_class(Vec2::new(0.0, 0.0), -FRAC_PI_2, 30, UnitClassId::HeavySword, 1);
-    let atk = sim.spawn_class(Vec2::new(0.0, -8.0), FRAC_PI_2, 240, UnitClassId::HeavySword, 0);
-    let (s, e) = (sim.units[def].start, sim.units[def].start + sim.units[def].count);
+    let def = sim.spawn_class(
+        Vec2::new(0.0, 0.0),
+        -FRAC_PI_2,
+        30,
+        UnitClassId::HeavySword,
+        1,
+    );
+    let atk = sim.spawn_class(
+        Vec2::new(0.0, -8.0),
+        FRAC_PI_2,
+        240,
+        UnitClassId::HeavySword,
+        0,
+    );
+    let (s, e) = (
+        sim.units[def].start,
+        sim.units[def].start + sim.units[def].count,
+    );
     for k in s..e {
         sim.health[k] = 1.0e4; // high but f32-precise: survives 25s, damage registers
     }

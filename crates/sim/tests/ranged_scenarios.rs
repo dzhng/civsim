@@ -3,7 +3,7 @@
 //! by aspect (shields are a FRONT-arc fact), and the melee fate of
 //! archers who let the line reach them.
 
-mod common;
+pub mod common;
 
 use common::no_morale_parade as no_morale;
 use sim::{Sim, Tunables, UnitClassId, Vec2, DT};

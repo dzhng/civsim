@@ -2,7 +2,7 @@
 //! the narrow stuff, queue behind your own traffic — march straight through
 //! everything merely slow.
 
-mod common;
+pub mod common;
 
 use common::run;
 use sim::{Sim, Terrain, Tunables, Vec2, DT};
@@ -30,7 +30,15 @@ fn anchor_routes_around_a_rock() {
     t.paint_circle(Vec2::new(0.0, 0.0), 14.0, 0.0, 0.0);
     let mut sim = Sim::new(Tunables::default(), SEED);
     sim.terrain = t;
-    let u = sim.spawn_unit(Vec2::new(-60.0, 0.0), 0.0, 200, 20, Vec2::new(1.0, 1.2), 0, 0.7);
+    let u = sim.spawn_unit(
+        Vec2::new(-60.0, 0.0),
+        0.0,
+        200,
+        20,
+        Vec2::new(1.0, 1.2),
+        0,
+        0.7,
+    );
     sim.set_move_order(u, Vec2::new(60.0, 0.0));
     let mut min_cohesion = 1.0f32;
     for _ in 0..(120.0 / DT) as usize {
@@ -63,7 +71,15 @@ fn formation_compresses_through_a_corridor_and_recovers() {
     t.paint_rect(Vec2::new(-8.0, -120.0), Vec2::new(8.0, -6.0), 0.0, 0.0);
     let mut sim = Sim::new(Tunables::default(), SEED);
     sim.terrain = t;
-    let u = sim.spawn_unit(Vec2::new(-60.0, 0.0), 0.0, 200, 20, Vec2::new(1.0, 1.2), 0, 0.7);
+    let u = sim.spawn_unit(
+        Vec2::new(-60.0, 0.0),
+        0.0,
+        200,
+        20,
+        Vec2::new(1.0, 1.2),
+        0,
+        0.7,
+    );
     sim.set_move_order(u, Vec2::new(60.0, 0.0));
     let mut min_files = usize::MAX;
     for _ in 0..(140.0 / DT) as usize {
@@ -79,7 +95,10 @@ fn formation_compresses_through_a_corridor_and_recovers() {
         "the formation reverts on open ground"
     );
     let through = living_frac_with(&sim, u, |p| p.x > 10.0);
-    assert!(through > 0.85, "most men must make it through, got {through:.2}");
+    assert!(
+        through > 0.85,
+        "most men must make it through, got {through:.2}"
+    );
     assert!(
         sim.units[u].cohesion > 0.75,
         "order recovers after the defile, cohesion {}",
@@ -94,9 +113,33 @@ fn same_flow_units_queue_at_a_gate() {
     t.paint_rect(Vec2::new(-8.0, -120.0), Vec2::new(8.0, -5.0), 0.0, 0.0);
     let mut sim = Sim::new(Tunables::default(), SEED);
     sim.terrain = t;
-    let a = sim.spawn_unit(Vec2::new(-45.0, 0.0), 0.0, 160, 16, Vec2::new(1.0, 1.2), 0, 0.7);
-    let b = sim.spawn_unit(Vec2::new(-70.0, 0.0), 0.0, 160, 16, Vec2::new(1.0, 1.2), 0, 0.7);
-    let c = sim.spawn_unit(Vec2::new(-95.0, 0.0), 0.0, 160, 16, Vec2::new(1.0, 1.2), 0, 0.7);
+    let a = sim.spawn_unit(
+        Vec2::new(-45.0, 0.0),
+        0.0,
+        160,
+        16,
+        Vec2::new(1.0, 1.2),
+        0,
+        0.7,
+    );
+    let b = sim.spawn_unit(
+        Vec2::new(-70.0, 0.0),
+        0.0,
+        160,
+        16,
+        Vec2::new(1.0, 1.2),
+        0,
+        0.7,
+    );
+    let c = sim.spawn_unit(
+        Vec2::new(-95.0, 0.0),
+        0.0,
+        160,
+        16,
+        Vec2::new(1.0, 1.2),
+        0,
+        0.7,
+    );
     for u in [a, b, c] {
         sim.set_move_order(u, Vec2::new(70.0, 0.0));
     }
@@ -118,7 +161,10 @@ fn same_flow_units_queue_at_a_gate() {
     );
     for u in [a, b, c] {
         let through = living_frac_with(&sim, u, |p| p.x > 9.0);
-        assert!(through > 0.8, "unit {u} must eventually cross, got {through:.2}");
+        assert!(
+            through > 0.8,
+            "unit {u} must eventually cross, got {through:.2}"
+        );
     }
 }
 
@@ -127,8 +173,24 @@ fn opposing_commands_cross_without_coordination() {
     // Two friendly units with opposite orders walk through each other —
     // no yielding, just shoulders (and the cohesion bill).
     let mut sim = Sim::new(Tunables::default(), SEED);
-    let east = sim.spawn_unit(Vec2::new(-30.0, 0.0), 0.0, 160, 16, Vec2::new(1.0, 1.2), 0, 0.7);
-    let west = sim.spawn_unit(Vec2::new(30.0, 0.0), std::f32::consts::PI, 160, 16, Vec2::new(1.0, 1.2), 0, 0.7);
+    let east = sim.spawn_unit(
+        Vec2::new(-30.0, 0.0),
+        0.0,
+        160,
+        16,
+        Vec2::new(1.0, 1.2),
+        0,
+        0.7,
+    );
+    let west = sim.spawn_unit(
+        Vec2::new(30.0, 0.0),
+        std::f32::consts::PI,
+        160,
+        16,
+        Vec2::new(1.0, 1.2),
+        0,
+        0.7,
+    );
     sim.set_move_order(east, Vec2::new(50.0, 0.0));
     sim.set_move_order(west, Vec2::new(-50.0, 0.0));
     run(&mut sim, 90.0);

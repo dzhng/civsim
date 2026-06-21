@@ -4,8 +4,6 @@
 //! scenario's policy, leave it local to that scenario file so the assertion
 //! remains readable at the call site.
 
-#![allow(dead_code)]
-
 use sim::{Sim, Tunables, Vec2, DT};
 
 /// Mechanics isolation: disable morale so geometry/pressure/combat mechanics

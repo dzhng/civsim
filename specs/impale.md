@@ -121,7 +121,7 @@ design — "deep pike blocks hold charges by push rate").
 
 Golden hash will move; re-pin deliberately, once, in the same commit.
 
-## Process requirements (hard-won; see `.claude/skills/write-tests/SKILL.md`)
+## Process requirements (hard-won; see `.agents/skills/write-tests/SKILL.md`)
 
 - Cargo first; browser verify last; rebuild wasm before browser checks.
 - Probes change the physics: instrument from the test side in throwaway

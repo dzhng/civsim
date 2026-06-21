@@ -28,11 +28,27 @@ fn south_win_count(n: usize, seeds: u64) -> u64 {
     (0..seeds)
         .filter(|&seed| {
             let mut sim = Sim::new(
-                Tunables { micro_rough: 0.0, morale_enabled: false, ..Tunables::default() },
+                Tunables {
+                    micro_rough: 0.0,
+                    morale_enabled: false,
+                    ..Tunables::default()
+                },
                 seed,
             );
-            let s = sim.spawn_class(Vec2::new(0.0, -8.0), FRAC_PI_2, n, UnitClassId::HeavySword, 0);
-            let no = sim.spawn_class(Vec2::new(0.0, 8.0), -FRAC_PI_2, n, UnitClassId::HeavySword, 1);
+            let s = sim.spawn_class(
+                Vec2::new(0.0, -8.0),
+                FRAC_PI_2,
+                n,
+                UnitClassId::HeavySword,
+                0,
+            );
+            let no = sim.spawn_class(
+                Vec2::new(0.0, 8.0),
+                -FRAC_PI_2,
+                n,
+                UnitClassId::HeavySword,
+                1,
+            );
             sim.set_files(s, files);
             sim.set_files(no, files);
             sim.set_pace(s, Pace::Run);
@@ -68,7 +84,9 @@ fn a_one_on_one_duel_is_a_coin_flip_not_a_fixed_winner() {
 fn the_clash_winner_does_not_depend_on_unit_size() {
     let small = south_win_count(3, 16); // small: north favored
     let large = south_win_count(120, 16); // army: south favored
-    eprintln!("south wins: n=3 → {small}/16,  n=120 → {large}/16 (both ≈8 = fair, scale-independent)");
+    eprintln!(
+        "south wins: n=3 → {small}/16,  n=120 → {large}/16 (both ≈8 = fair, scale-independent)"
+    );
     assert!(
         (3..=13).contains(&small) && (3..=13).contains(&large),
         "the winner depends on UNIT SIZE (n=3: {small}/16, n=120: {large}/16) — the \

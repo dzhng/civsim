@@ -111,7 +111,7 @@ revealed trample tests that were only ever passing by seed-luck (their true valu
 chaotic across seeds), and deep blocks that *should* bog cavalry down rather than
 let it ride through. The judge is always the same question — *is this the more
 realistic result?* — not the test's colour. See
-`.claude/skills/debug-battle-behavior`.
+`.agents/skills/debug-battle-behavior`.
 
 ## The simulation model — measured quantities and the laws that read them
 
@@ -134,8 +134,8 @@ quantity and a law that reads it.
 
 **The laws:**
 - ANCHOR LAW — the frame pursues the order but is leashed to the measured
-  centroid; stance sets the slack (othismos converts depth into press,
-  fence holds at weapon's length).
+  centroid; depth compression becomes press while reach-holding weapons
+  keep their contact distance.
 - RAM DRAG — commanded pace is braked by `press_brake × gated
   counter_press × (mass_advance/base)²`: a slow press into a wall keeps
   its shove, a gallop into the same wall eats its drive. This is what
@@ -178,7 +178,7 @@ runtime, no recompile):
 - **Impact**: `stun_momentum` (felling threshold per unit of victim
   effective mass), `stun_time`, `impact_push`, `impact_damage`, `hit_push`.
 - **Ram drag**: `press_brake`, `press_brake_floor` (the grip gate — spares
-  jitter and the deliberate othismos shove).
+  jitter and the deliberate slow shove).
 - **Pressure**: `press_tau` (EMA window — also the grip's onset lag),
   `press_drive` (backpressure → effective mass: the force chain).
 - **Stamina**: `run_drain`, `combat_drain`, `terrain_drain`, `rest_recover`.

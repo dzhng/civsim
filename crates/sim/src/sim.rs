@@ -1700,11 +1700,11 @@ impl Sim {
                 // frontline closes and the back ranks don't pile in.
                 // weave_stiffness stiffens the REST-SHAPE spring (hold the grid),
                 // NOT the compression: a pressing block must still squeeze axially
-                // (othismos — the rear ranks compress against the held front), so
-                // comp_push stays at baseline. The two deformations are different
-                // animals — a PANCAKE is a shear (pivot_stiffness resists it), an
-                // OTHISMOS is axial compression (left free). Lumping compression
-                // into stiffness fought the very press it's meant to win.
+                // (rear ranks compressing against the held front), so comp_push
+                // stays at baseline. The two deformations are different animals —
+                // a PANCAKE is a shear (pivot_stiffness resists it), while axial
+                // depth compression is left free. Lumping compression into
+                // stiffness fought the very press it's meant to win.
                 // A COMMITTED CHARGE suspends its OWN cohesion: the formation
                 // stretches INTO the charge, the front not reeled back by the
                 // weave (which, stiff, otherwise bleeds the gallop — a charging
@@ -2101,9 +2101,8 @@ impl Sim {
             // is tight — the frame sits where the men actually are, so a
             // pushed-back front drags its slots with it (losing the push)
             // and a winning push lets the frame advance (walking them back).
-            // Othismos with an order into the fight is the ONE deliberate
-            // bias: extra forward slack scaled by depth — the rear ranks'
-            // weight, expressed as slots the men keep pressing to reach.
+            // Depth's forward pressure is not a separate command bit; it
+            // emerges from the rear ranks' mass compressing the formation.
             let fighting_frac = engaged as f32 / n;
             // A charging frame is exempt only while the MASS still moves at
             // impact speed (no polite pre-braking); the moment the crowd
@@ -2116,12 +2115,12 @@ impl Sim {
                 let expected = u.anchor + f * (-0.5 * u.depth());
                 let lag = (expected - u.centroid).dot(f);
                 // The frame sits AT the men when engaged — no rank-counting
-                // forward slack. Othismos is NOT a slack that shoves the slots
-                // ahead of the line (a phantom drive that drags the rear into
-                // the front and blobs the block); it EMERGES from the rear ranks
-                // physically compressing the weave springs against the planted
-                // front. So the leash is just "the frame holds with the men"; the
-                // press is real, paid in compression, by mass.
+                // forward slack shoving slots ahead of the line (a phantom drive
+                // that drags the rear into the front and blobs the block). Depth
+                // pressure emerges from rear ranks physically compressing the
+                // weave springs against the planted front. So the leash is just
+                // "the frame holds with the men"; the press is real, paid in
+                // compression, by mass.
                 // Disengage/rout aside, the frame is leashed TIGHT and BOTH
                 // WAYS: it never runs far ahead of its men (which would tow the
                 // front out and stretch the block on the march — the run-fray)

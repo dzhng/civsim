@@ -19,7 +19,7 @@ const SCENARIOS = [
   { name: 'phalanx-v-heavy', script: 'duel-posture.mjs', env: { ATK: 3, DEF: 0, POSTURE: 'both' } },  // pikes outreach swords
   { name: 'pike-v-pike', script: 'duel-posture.mjs', env: { ATK: 3, DEF: 3, POSTURE: 'both' } },      // two pike walls, both attack
   { name: 'cav-v-heavy', script: 'duel-posture.mjs', env: { ATK: 6, DEF: 0, POSTURE: 'both' } },      // horse rides over swords
-  { name: 'cav-v-pike', script: 'charge.mjs', env: { ATK: 6, DEF: 3 } },     // points stop horse
+  { name: 'cav-v-pike', script: 'charge.mjs', env: { ATK: 6, DEF: 3 } },     // impale/charge gate: can held pikes stop horse?
   { name: 'cav-v-heavy-held', script: 'charge.mjs', env: { ATK: 6, DEF: 0 } }, // braced line vs charge
   { name: 'heavy-v-archers', script: 'missile.mjs', env: {} },
   { name: 'penetration', script: 'penetration.mjs', env: {} },               // defense: 1 column into a held line

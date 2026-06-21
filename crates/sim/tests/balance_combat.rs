@@ -6,7 +6,7 @@
 //! Migrated out of `combat_scenarios.rs` so the physics invariants and the
 //! pricing outcomes are no longer interleaved in one file.
 
-mod common;
+pub mod common;
 
 use common::{deaths, no_morale, run};
 use sim::{Sim, UnitClassId, Vec2};
@@ -21,7 +21,13 @@ fn long_swords_cleave_loose_enemies() {
     let kills_against_skirm = |class: UnitClassId| -> usize {
         let mut sim = Sim::new(no_morale(), SEED);
         let a = sim.spawn_class(Vec2::new(0.0, -10.0), FRAC_PI_2, 150, class, 0);
-        let sk = sim.spawn_class(Vec2::new(0.0, 10.0), -FRAC_PI_2, 300, UnitClassId::Skirmishers, 1);
+        let sk = sim.spawn_class(
+            Vec2::new(0.0, 10.0),
+            -FRAC_PI_2,
+            300,
+            UnitClassId::Skirmishers,
+            1,
+        );
         sim.set_evade_auto(sk, false); // hold the loose target in place
         sim.set_charge_enabled(a, false); // isolate the ARC variable
         sim.set_attack_move_order(a, Vec2::new(0.0, 25.0));

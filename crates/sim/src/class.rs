@@ -42,11 +42,17 @@ pub struct WeaponSet {
 
 /// One weapon. The second slot is filled with a copy and never read (`len` 1).
 pub const fn one(w: Weapon) -> WeaponSet {
-    WeaponSet { arr: [w, w], len: 1 }
+    WeaponSet {
+        arr: [w, w],
+        len: 1,
+    }
 }
 /// A primary plus a side-arm.
 pub const fn two(a: Weapon, b: Weapon) -> WeaponSet {
-    WeaponSet { arr: [a, b], len: 2 }
+    WeaponSet {
+        arr: [a, b],
+        len: 2,
+    }
 }
 
 impl core::ops::Deref for WeaponSet {
@@ -259,8 +265,8 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             spacing: Vec2::new(1.0, 1.2),
             default_depth: 6,
             health: 1.55, // unarmored: the levy lives by numbers, not body
-            block: 0.35, // a light shield: real frontal cover, ~1.5x deaths from behind
-            evade: 0.15, // a shield, not a skirmisher's legs: modest dodge on top of the block
+            block: 0.35,  // a light shield: real frontal cover, ~1.5x deaths from behind
+            evade: 0.15,  // a shield, not a skirmisher's legs: modest dodge on top of the block
             training: 0.55,
             weapons: one(SPEAR),
             ..foot
@@ -273,7 +279,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             default_depth: 4,
             health: 1.49,
             block: 0.1, // no shield, but a drilled two-hander parries some frontal blows
-                        // with the blade — a thin front-arc edge, far below any shield wall
+            // with the blade — a thin front-arc edge, far below any shield wall
             evade: 0.35,
             training: 0.8,
             weapons: one(LONG_SWORD),
@@ -318,7 +324,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             spacing: Vec2::new(1.6, 1.6),
             default_depth: 4,
             health: 1.17,
-            block: 0.0, // no shield: pure dodge, same from any face
+            block: 0.0,  // no shield: pure dodge, same from any face
             evade: 0.42, // the nimblest foot — slips both blows and arrows, any quarter
             training: 0.5,
             charge: false,
@@ -337,9 +343,9 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             default_depth: 5,
             health: 2.2, // phalangites wore armor too — the wall is bodies AND bronze
             mount_health: 8.45, // a horse is a LOT of animal: short blades
-                               // chip at it while the rider stays safe
+            // chip at it while the rider stays safe
             block: 0.4, // an armoured horseman's shield: strong frontal cover. Safe to raise now that
-                        // the lance has no dead zone — more block monotonically helps (see the test).
+            // the lance has no dead zone — more block monotonically helps (see the test).
             evade: 0.12,
             training: 0.75,
             bravery: 1.3,     // armoured shock riders hold their nerve
@@ -391,7 +397,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             spacing: Vec2::new(1.1, 1.3),
             default_depth: 6,
             health: 1.0, // a smock, no armor: the frailest body on the field
-            block: 0.0, // no shield at all — arrows and blows land the same from any face
+            block: 0.0,  // no shield at all — arrows and blows land the same from any face
             evade: 0.12, // untrained: a clumsy flinch, not a skirmisher's slip
             training: 0.3,
             bravery: 0.6,     // a levy's nerve is thin — breaks early

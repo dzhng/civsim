@@ -277,8 +277,9 @@ impl Sim {
                 / (u.stats.bravery * friend_support).max(0.1);
 
             // Recovery: at ease (no living, non-routing enemy within
-            // at_ease_range — the one shared flag that also relaxes the stance),
-            // not in melee, no fresh casualties, among steady friends.
+            // at_ease_range — the one shared flag that also relaxes rendered
+            // weapon posture), not in melee, no fresh casualties, among steady
+            // friends.
             let quiet = u.at_ease && u.engaged == 0 && u.recent_casualties < 0.5;
             let recover = if quiet {
                 (0.012 + 0.004 * steady_friends) * (0.5 + 0.5 * u.training)

@@ -22,10 +22,21 @@ fn light_horse_tramples_at_a_third_the_butchery() {
     // the robust central tendency, not one lucky roll.
     let impact_dead = |class: UnitClassId, seed: u64| -> usize {
         let mut sim = Sim::new(
-            Tunables { morale_enabled: false, ..Tunables::default() },
+            Tunables {
+                morale_enabled: false,
+                ..Tunables::default()
+            },
             seed,
         );
-        let line = sim.spawn_unit(Vec2::new(0.0, 40.0), -PI / 2.0, 200, 100, Vec2::new(1.0, 1.1), 0, 0.7);
+        let line = sim.spawn_unit(
+            Vec2::new(0.0, 40.0),
+            -PI / 2.0,
+            200,
+            100,
+            Vec2::new(1.0, 1.1),
+            0,
+            0.7,
+        );
         let cav = sim.spawn_class(Vec2::new(0.0, -60.0), PI / 2.0, 400, class, 1);
         sim.set_files(cav, 100); // 4 deep
         sim.set_charge_enabled(cav, true); // equal posture: the variable is the HOOF
@@ -52,7 +63,10 @@ fn light_horse_tramples_at_a_third_the_butchery() {
         light_sum += impact_dead(UnitClassId::HorseArchers, s);
     }
     let ratio = light_sum as f32 / heavy_sum.max(1) as f32;
-    println!("impact dead over {} seeds: heavy {heavy_sum}, light {light_sum} (ratio {ratio:.2})", seeds.len());
+    println!(
+        "impact dead over {} seeds: heavy {heavy_sum}, light {light_sum} (ratio {ratio:.2})",
+        seeds.len()
+    );
     // ~a third, and unambiguously LESS than heavy. Wide band: the claim is
     // the fraction's magnitude, not a knife-edge number.
     assert!(
@@ -72,11 +86,20 @@ fn pikes_unhorse_cavalry_swords_chip_at_horseflesh() {
     // health, so chipping at horseflesh is a losing proposition.
     let cav_dead = |attacker: UnitClassId, seed: u64| -> usize {
         let mut sim = Sim::new(
-            Tunables { morale_enabled: false, ..Tunables::default() },
+            Tunables {
+                morale_enabled: false,
+                ..Tunables::default()
+            },
             seed,
         );
         let atk = sim.spawn_class(Vec2::new(0.0, -14.0), PI / 2.0, 240, attacker, 0);
-        let cav = sim.spawn_class(Vec2::new(0.0, 14.0), -PI / 2.0, 120, UnitClassId::ShockCavalry, 1);
+        let cav = sim.spawn_class(
+            Vec2::new(0.0, 14.0),
+            -PI / 2.0,
+            120,
+            UnitClassId::ShockCavalry,
+            1,
+        );
         sim.set_charge_enabled(atk, false); // isolate weapon geometry
         sim.set_pace(atk, sim::Pace::Run); // a committed assault
         sim.set_attack_order(atk, cav);
@@ -92,9 +115,18 @@ fn pikes_unhorse_cavalry_swords_chip_at_horseflesh() {
     // read 1-vs-1. The GEOMETRY (pikes span to the rider, swords almost never) is
     // the seed AVERAGE, so SUM over a seed set and compare the totals.
     let seeds = [SEED, SEED + 1, SEED + 2, SEED + 3, SEED + 4];
-    let by_pikes: usize = seeds.iter().map(|&s| cav_dead(UnitClassId::Phalanx, s)).sum();
-    let by_swords: usize = seeds.iter().map(|&s| cav_dead(UnitClassId::HeavySword, s)).sum();
-    println!("cav dead over {} seeds: pikes {by_pikes}, swords {by_swords}", seeds.len());
+    let by_pikes: usize = seeds
+        .iter()
+        .map(|&s| cav_dead(UnitClassId::Phalanx, s))
+        .sum();
+    let by_swords: usize = seeds
+        .iter()
+        .map(|&s| cav_dead(UnitClassId::HeavySword, s))
+        .sum();
+    println!(
+        "cav dead over {} seeds: pikes {by_pikes}, swords {by_swords}",
+        seeds.len()
+    );
     assert!(
         by_pikes as f32 > by_swords as f32 * 2.0,
         "pikes unhorse riders, swords struggle: {by_pikes} vs {by_swords} over seeds"

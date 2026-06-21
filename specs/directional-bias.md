@@ -42,15 +42,16 @@ residue, spawn/index order, round-robin phase, RNG, frontage re-slot, gang cap,
 position jitter to 0.6 m. The instability re-seeds from whatever sub-ULP asymmetry
 remains; only making the core M-equivariant removes the re-seeding.)
 
-## HOW TO RUN THE REPRO
+## HOW TO RUN THE GATES
 
 ```
 cargo test -p sim --test mechanics_symmetry -- --nocapture
 ```
-Both tests are RED today (by design — they catch the instability):
+These tests were the repro while the spec was live; on the fixed branch they are
+expected to stay green:
 - `a_one_on_one_duel_is_a_coin_flip_not_a_fixed_winner` — the 2-soldier case;
-  prints `1v1: south won N/24` (≈12 = fair). It is the GREEN-LIGHT test: when this
-  passes, the amplifiers are tamed and the symmetric/mirror suite goes green with it.
+  prints `1v1: south won N/24` (≈12 = fair). It is the GREEN-LIGHT test for
+  directional neutrality.
 - `the_clash_winner_does_not_depend_on_unit_size` — pins the scale-flip.
 
 To re-trace from scratch, the throwaway probes used (recreate in `tests/dbgN.rs`,
@@ -500,7 +501,7 @@ maximal and/or traded a clean mechanical test for a regression.
 
 2. **`slot_pull` fade at contact.** Faded the engaged front rank's frame
    feed-forward tow (`slot_pull`) to zero once `fighting[i]==1` (at reach of a live
-   foe), so the press would route through honest rear-rank compression (othismos)
+   foe), so the press would route through honest rear-rank compression
    instead of a per-man forward tow that never settles — the textbook "drive the
    equilibrium force to zero" stabilization. Result: bias unchanged
    (`the_clash_winner` n=3 → 0/16, n=120 → 16/16) AND it broke `attack_latch`

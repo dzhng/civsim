@@ -1,7 +1,7 @@
 //! Class & mass emergence tests: every class difference must flow from the
 //! stat table through physics — no class-conditional logic exists anywhere.
 
-mod common;
+pub mod common;
 
 use common::run;
 use sim::{setup_battle, MapId, Sim, Tunables, UnitClassId, Vec2, DT};
@@ -22,11 +22,19 @@ fn cavalry_mass_shoves_through_infantry() {
     // displaced third is squarely the corridor, where the signal lives.
     let displacement_by = |attacker: UnitClassId| -> f32 {
         let mut sim = Sim::new(Tunables::default(), SEED);
-        let inf = sim.spawn_class(Vec2::new(0.0, 0.0), -PI / 2.0, 360, UnitClassId::LightSpear, 0);
+        let inf = sim.spawn_class(
+            Vec2::new(0.0, 0.0),
+            -PI / 2.0,
+            360,
+            UnitClassId::LightSpear,
+            0,
+        );
         let atk = sim.spawn_class(Vec2::new(0.0, -80.0), PI / 2.0, 120, attacker, 0);
         let before: Vec<Vec2> = {
             let u = &sim.units[inf];
-            (u.start..u.start + u.count).map(|i| sim.soldier_pos(i)).collect()
+            (u.start..u.start + u.count)
+                .map(|i| sim.soldier_pos(i))
+                .collect()
         };
         sim.set_pace(atk, sim::Pace::Run);
         sim.set_move_order(atk, Vec2::new(0.0, 120.0));
@@ -72,7 +80,10 @@ fn disordered_unit_delays_orders_with_visible_timer() {
     for _ in 0..30 {
         sim.tick(); // let the measurement see the mess
     }
-    assert!(sim.units[u].cohesion < 0.6, "setup: unit should be disordered");
+    assert!(
+        sim.units[u].cohesion < 0.6,
+        "setup: unit should be disordered"
+    );
     sim.set_move_order(u, Vec2::new(80.0, 0.0));
     let unit = &sim.units[u];
     assert!(unit.move_target.is_none(), "order must not apply instantly");
@@ -90,7 +101,10 @@ fn ordered_unit_responds_instantly() {
     let mut sim = Sim::new(Tunables::default(), SEED);
     let u = sim.spawn_class(Vec2::ZERO, 0.0, 360, UnitClassId::LightSpear, 0);
     sim.set_move_order(u, Vec2::new(80.0, 0.0));
-    assert!(sim.units[u].move_target.is_some(), "fresh unit obeys at once");
+    assert!(
+        sim.units[u].move_target.is_some(),
+        "fresh unit obeys at once"
+    );
 }
 
 #[test]
@@ -121,7 +135,12 @@ fn full_battle_spawns_and_runs() {
     let mut sim = Sim::new(Tunables::default(), SEED);
     setup_battle(&mut sim, MapId::RiverAndCrags);
     assert_eq!(sim.units.len(), 40, "20 units per side");
-    let per_side: usize = sim.units.iter().filter(|u| u.team == 0).map(|u| u.count).sum();
+    let per_side: usize = sim
+        .units
+        .iter()
+        .filter(|u| u.team == 0)
+        .map(|u| u.count)
+        .sum();
     assert!(
         (12_000..=18_000).contains(&per_side),
         "~15k per side, got {per_side}"
@@ -147,7 +166,10 @@ fn full_battle_spawns_and_runs() {
     for i in 0..sim.soldier_count() {
         let p = sim.soldier_pos(i);
         assert!(p.x.is_finite() && p.y.is_finite());
-        assert!(p.x.abs() < 1300.0 && p.y.abs() < 900.0, "soldier escaped the map: {p:?}");
+        assert!(
+            p.x.abs() < 1300.0 && p.y.abs() < 900.0,
+            "soldier escaped the map: {p:?}"
+        );
     }
 }
 
@@ -159,7 +181,10 @@ fn dense_infantry_blunts_a_cavalry_charge_loose_gets_punched_through() {
     // Loose order leaves every man alone against half a ton of horse.
     let charge_into = |spacing: f32| -> (f32, f32, usize, usize) {
         let mut sim = Sim::new(
-            Tunables { morale_enabled: false, ..Tunables::default() },
+            Tunables {
+                morale_enabled: false,
+                ..Tunables::default()
+            },
             SEED,
         );
         // Infantry faces south, front line at y = 30, ranks extending north.
@@ -172,10 +197,18 @@ fn dense_infantry_blunts_a_cavalry_charge_loose_gets_punched_through() {
             0,
             0.7,
         );
-        let cav = sim.spawn_class(Vec2::new(0.0, -60.0), PI / 2.0, 160, UnitClassId::ShockCavalry, 1);
+        let cav = sim.spawn_class(
+            Vec2::new(0.0, -60.0),
+            PI / 2.0,
+            160,
+            UnitClassId::ShockCavalry,
+            1,
+        );
         let y0: Vec<f32> = {
             let u = &sim.units[inf];
-            (u.start..u.start + u.count).map(|i| sim.soldier_pos(i).y).collect()
+            (u.start..u.start + u.count)
+                .map(|i| sim.soldier_pos(i).y)
+                .collect()
         };
         sim.set_pace(cav, sim::Pace::Run);
         sim.set_attack_order(cav, inf);
@@ -239,8 +272,11 @@ fn heavy_infantry_charge_carries_a_stride_not_a_gallop() {
     // physically cannot. Far less than horse either way (small m, small v).
     let crash_into = |charge: bool| -> f32 {
         let mut sim = Sim::new(
-            Tunables { micro_rough: 0.0, // parade ground: not the subject here
-             morale_enabled: false, ..Tunables::default() },
+            Tunables {
+                micro_rough: 0.0, // parade ground: not the subject here
+                morale_enabled: false,
+                ..Tunables::default()
+            },
             SEED,
         );
         let inf = sim.spawn_unit(
@@ -252,7 +288,13 @@ fn heavy_infantry_charge_carries_a_stride_not_a_gallop() {
             0,
             0.7,
         );
-        let atk = sim.spawn_class(Vec2::new(0.0, -40.0), PI / 2.0, 300, UnitClassId::HeavySword, 1);
+        let atk = sim.spawn_class(
+            Vec2::new(0.0, -40.0),
+            PI / 2.0,
+            300,
+            UnitClassId::HeavySword,
+            1,
+        );
         sim.set_charge_enabled(atk, charge);
         sim.set_pace(atk, sim::Pace::Run);
         sim.set_attack_order(atk, inf);
@@ -298,7 +340,10 @@ fn charge_opens_at_the_edge_from_face_and_flank_alike() {
     // flank, i.e., never.
     let burst_edge_distance = |flank: bool| -> f32 {
         let mut sim = Sim::new(
-            Tunables { morale_enabled: false, ..Tunables::default() },
+            Tunables {
+                morale_enabled: false,
+                ..Tunables::default()
+            },
             SEED,
         );
         // The line faces north; its long axis runs east-west.
@@ -308,7 +353,13 @@ fn charge_opens_at_the_edge_from_face_and_flank_alike() {
         } else {
             (Vec2::new(0.0, 90.0), 0.5 * sim.units[line].depth())
         };
-        let cav = sim.spawn_class(cav_pos, (Vec2::ZERO - cav_pos).y.atan2(-cav_pos.x), 120, UnitClassId::ShockCavalry, 0);
+        let cav = sim.spawn_class(
+            cav_pos,
+            (Vec2::ZERO - cav_pos).y.atan2(-cav_pos.x),
+            120,
+            UnitClassId::ShockCavalry,
+            0,
+        );
         sim.set_pace(cav, sim::Pace::Run);
         sim.set_attack_order(cav, line);
         for _ in 0..(40.0 / DT) as usize {
@@ -323,8 +374,14 @@ fn charge_opens_at_the_edge_from_face_and_flank_alike() {
     let face = burst_edge_distance(false);
     let flank = burst_edge_distance(true);
     println!("burst opens {face:.1}m from the face, {flank:.1}m from the flank");
-    assert!(face > 2.0 && face < 30.0, "frontal burst at a sane edge distance: {face:.1}m");
-    assert!(flank > 2.0 && flank < 30.0, "flank burst at a sane edge distance: {flank:.1}m");
+    assert!(
+        face > 2.0 && face < 30.0,
+        "frontal burst at a sane edge distance: {face:.1}m"
+    );
+    assert!(
+        flank > 2.0 && flank < 30.0,
+        "flank burst at a sane edge distance: {flank:.1}m"
+    );
     assert!(
         (face - flank).abs() < 12.0,
         "aspect must not change the trigger: {face:.1}m vs {flank:.1}m"
@@ -335,11 +392,28 @@ fn charge_opens_at_the_edge_from_face_and_flank_alike() {
 fn charging_costs_stamina_and_spent_legs_cannot_burst() {
     let burst = |fresh: bool| -> (bool, f32, f32) {
         let mut sim = Sim::new(
-            Tunables { morale_enabled: false, ..Tunables::default() },
+            Tunables {
+                morale_enabled: false,
+                ..Tunables::default()
+            },
             SEED,
         );
-        let line = sim.spawn_unit(Vec2::new(0.0, 40.0), PI / 2.0, 200, 40, Vec2::new(1.0, 1.1), 1, 0.7);
-        let cav = sim.spawn_class(Vec2::new(0.0, -60.0), PI / 2.0, 120, UnitClassId::ShockCavalry, 0);
+        let line = sim.spawn_unit(
+            Vec2::new(0.0, 40.0),
+            PI / 2.0,
+            200,
+            40,
+            Vec2::new(1.0, 1.1),
+            1,
+            0.7,
+        );
+        let cav = sim.spawn_class(
+            Vec2::new(0.0, -60.0),
+            PI / 2.0,
+            120,
+            UnitClassId::ShockCavalry,
+            0,
+        );
         if !fresh {
             sim.units[cav].fatigue = 0.2; // blown horses
         }
@@ -375,11 +449,31 @@ fn move_order_rides_through_a_thin_line() {
     // no latch — trample is class capability x measured velocity, and the
     // ram drag a 3-rank screen can muster only shaves the gallop. The cav
     // arrives at its destination; the line is left stunned and bleeding.
-    let mut sim = Sim::new(Tunables { morale_enabled: false, ..Tunables::default() }, SEED);
-    let line = sim.spawn_unit(Vec2::new(0.0, 40.0), PI / 2.0, 300, 100, Vec2::new(1.0, 1.1), 1, 0.7);
+    let mut sim = Sim::new(
+        Tunables {
+            morale_enabled: false,
+            ..Tunables::default()
+        },
+        SEED,
+    );
+    let line = sim.spawn_unit(
+        Vec2::new(0.0, 40.0),
+        PI / 2.0,
+        300,
+        100,
+        Vec2::new(1.0, 1.1),
+        1,
+        0.7,
+    );
     // Start a stride out (y=100): a move order rides at RUN pace (~3.9 m/s, not
     // a charge burst), so the test measures the ride-through, not a long gallop.
-    let cav = sim.spawn_class(Vec2::new(0.0, 100.0), -PI / 2.0, 160, UnitClassId::ShockCavalry, 0);
+    let cav = sim.spawn_class(
+        Vec2::new(0.0, 100.0),
+        -PI / 2.0,
+        160,
+        UnitClassId::ShockCavalry,
+        0,
+    );
     sim.set_pace(cav, sim::Pace::Run);
     sim.set_move_order(cav, Vec2::new(0.0, -80.0));
     let mut stayed_move = true;
@@ -389,7 +483,10 @@ fn move_order_rides_through_a_thin_line() {
     }
     assert!(stayed_move, "a move order never latches into a fight");
     let y = sim.units[cav].centroid.y;
-    assert!(y < -60.0, "the cav must ride through and arrive: centroid y {y:.1}");
+    assert!(
+        y < -60.0,
+        "the cav must ride through and arrive: centroid y {y:.1}"
+    );
     let line_dead = sim.units[line].count - sim.units[line].alive_count;
     assert!(line_dead > 0, "the trample leaves bodies: {line_dead} dead");
     assert!(
@@ -409,11 +506,31 @@ fn move_order_into_a_deep_braced_column_bogs_into_melee() {
     // claim here is the bog, not a permanent wall. NOTE: a block only ~8
     // ranks deep is crossed inside the drag's spin-up at gallop speed and
     // gets ridden through regardless of brace — depth in TIME grips.)
-    let mut sim = Sim::new(Tunables { morale_enabled: false, ..Tunables::default() }, SEED);
-    let block = sim.spawn_unit(Vec2::new(0.0, 40.0), PI / 2.0, 800, 40, Vec2::new(0.9, 1.0), 1, 0.7);
+    let mut sim = Sim::new(
+        Tunables {
+            morale_enabled: false,
+            ..Tunables::default()
+        },
+        SEED,
+    );
+    let block = sim.spawn_unit(
+        Vec2::new(0.0, 40.0),
+        PI / 2.0,
+        800,
+        40,
+        Vec2::new(0.9, 1.0),
+        1,
+        0.7,
+    );
     // Start a stride out (y=100): a move order rides at RUN pace, so contact is
     // ~15s and the sample lands squarely mid-bog, not on the long approach.
-    let cav = sim.spawn_class(Vec2::new(0.0, 100.0), -PI / 2.0, 80, UnitClassId::ShockCavalry, 0);
+    let cav = sim.spawn_class(
+        Vec2::new(0.0, 100.0),
+        -PI / 2.0,
+        80,
+        UnitClassId::ShockCavalry,
+        0,
+    );
     let _ = block;
     sim.set_pace(cav, sim::Pace::Run);
     sim.set_move_order(cav, Vec2::new(0.0, -80.0));
@@ -444,11 +561,28 @@ fn a_frontal_charge_through_a_thin_line_is_a_bloodbath() {
     // run is enough, but we average a few to keep it off any one roll's edge.
     let dead = |seed: u64| -> usize {
         let mut sim = Sim::new(
-            Tunables { morale_enabled: false, ..Tunables::default() },
+            Tunables {
+                morale_enabled: false,
+                ..Tunables::default()
+            },
             seed,
         );
-        let line = sim.spawn_unit(Vec2::new(0.0, 40.0), -PI / 2.0, 200, 100, Vec2::new(1.0, 1.1), 0, 0.7);
-        let cav = sim.spawn_class(Vec2::new(0.0, -60.0), PI / 2.0, 400, UnitClassId::ShockCavalry, 1);
+        let line = sim.spawn_unit(
+            Vec2::new(0.0, 40.0),
+            -PI / 2.0,
+            200,
+            100,
+            Vec2::new(1.0, 1.1),
+            0,
+            0.7,
+        );
+        let cav = sim.spawn_class(
+            Vec2::new(0.0, -60.0),
+            PI / 2.0,
+            400,
+            UnitClassId::ShockCavalry,
+            1,
+        );
         sim.set_files(cav, 100); // 4 deep
         sim.set_pace(cav, sim::Pace::Run);
         sim.set_attack_order(cav, line);
@@ -471,7 +605,10 @@ fn a_frontal_charge_through_a_thin_line_is_a_bloodbath() {
     };
     let seeds = [SEED, SEED + 1, SEED + 2, SEED + 3, SEED + 4];
     let mean = seeds.iter().map(|&s| dead(s)).sum::<usize>() as f32 / seeds.len() as f32;
-    println!("impact + 4s mean over {} seeds: {mean:.0} of 200 down", seeds.len());
+    println!(
+        "impact + 4s mean over {} seeds: {mean:.0} of 200 down",
+        seeds.len()
+    );
     assert!(
         (100.0..=165.0).contains(&mean),
         "a frontal charge through a thin line costs well over half: mean {mean:.0}/200"
@@ -491,7 +628,13 @@ fn a_frontal_charge_into_pikes_is_no_bloodbath() {
     // lightest of the horse, are feeblest of all frontally — the bow-horse
     // beats formed foot by working a flank, never by charging the spears.
     let cost = |attacker: UnitClassId, defender: UnitClassId| -> usize {
-        let mut sim = Sim::new(Tunables { morale_enabled: false, ..Tunables::default() }, SEED);
+        let mut sim = Sim::new(
+            Tunables {
+                morale_enabled: false,
+                ..Tunables::default()
+            },
+            SEED,
+        );
         let def = sim.spawn_class(Vec2::new(0.0, 0.0), PI / 2.0, 200, defender, 0);
         let atk = sim.spawn_class(Vec2::new(0.0, 60.0), -PI / 2.0, 200, attacker, 1);
         sim.set_charge_enabled(atk, true);
@@ -503,8 +646,13 @@ fn a_frontal_charge_into_pikes_is_no_bloodbath() {
     let cav_line = cost(UnitClassId::ShockCavalry, UnitClassId::LightSpear);
     let cav_pike = cost(UnitClassId::ShockCavalry, UnitClassId::Phalanx);
     let har_pike = cost(UnitClassId::HorseArchers, UnitClassId::Phalanx);
-    println!("frontal charge dead: cav->line {cav_line}, cav->pike {cav_pike}, har->pike {har_pike}");
-    assert!(cav_line >= 10, "control: the charge bloodies an unpiked line: {cav_line}");
+    println!(
+        "frontal charge dead: cav->line {cav_line}, cav->pike {cav_pike}, har->pike {har_pike}"
+    );
+    assert!(
+        cav_line >= 10,
+        "control: the charge bloodies an unpiked line: {cav_line}"
+    );
     assert!(
         cav_pike < 10 && (cav_pike as f32) < cav_line as f32 / 3.0,
         "points stop horse: a pike hedge takes far less than a line ({cav_pike} vs {cav_line})"
@@ -522,9 +670,27 @@ fn a_grinding_press_breaks_no_bones() {
     // every tick — constraint churn, not motion — and with the impact
     // stack reading HONEST kinematics none of it reads as a charge:
     // nobody is felled by a squeeze, nobody dies of re-knock chips.
-    let mut sim = Sim::new(Tunables { morale_enabled: false, ..Tunables::default() }, SEED);
-    let a = sim.spawn_class(Vec2::new(0.0, -12.0), PI / 2.0, 300, UnitClassId::HeavySword, 0);
-    let b = sim.spawn_class(Vec2::new(0.0, 12.0), -PI / 2.0, 300, UnitClassId::HeavySword, 1);
+    let mut sim = Sim::new(
+        Tunables {
+            morale_enabled: false,
+            ..Tunables::default()
+        },
+        SEED,
+    );
+    let a = sim.spawn_class(
+        Vec2::new(0.0, -12.0),
+        PI / 2.0,
+        300,
+        UnitClassId::HeavySword,
+        0,
+    );
+    let b = sim.spawn_class(
+        Vec2::new(0.0, 12.0),
+        -PI / 2.0,
+        300,
+        UnitClassId::HeavySword,
+        1,
+    );
     sim.set_charge_enabled(a, false);
     sim.set_charge_enabled(b, false);
     sim.set_move_order(a, Vec2::new(0.0, 30.0));
@@ -534,7 +700,10 @@ fn a_grinding_press_breaks_no_bones() {
         sim.tick();
         peak_eng = peak_eng.max(sim.units[a].engaged + sim.units[b].engaged);
     }
-    assert!(peak_eng > 100, "setup: a real grind, peak {peak_eng} engaged");
+    assert!(
+        peak_eng > 100,
+        "setup: a real grind, peak {peak_eng} engaged"
+    );
     assert_eq!(
         sim.impact_casualties, 0,
         "a press is a squeeze, not an impact: {} men chipped to death",
@@ -552,9 +721,27 @@ fn a_pike_hedge_breaks_the_charge_even_if_horses_ooze_through() {
     // how legionaries beat them), but the CHARGE is dead at the hedge.
     // (The unit economy is decisive separately: balance_matrix shows pike
     // beats cav ~96% either bench.)
-    let mut sim = Sim::new(Tunables { morale_enabled: false, ..Tunables::default() }, SEED);
-    let ph = sim.spawn_class(Vec2::new(0.0, 40.0), -PI / 2.0, 400, UnitClassId::Phalanx, 0);
-    let cav = sim.spawn_class(Vec2::new(0.0, -40.0), PI / 2.0, 160, UnitClassId::ShockCavalry, 1);
+    let mut sim = Sim::new(
+        Tunables {
+            morale_enabled: false,
+            ..Tunables::default()
+        },
+        SEED,
+    );
+    let ph = sim.spawn_class(
+        Vec2::new(0.0, 40.0),
+        -PI / 2.0,
+        400,
+        UnitClassId::Phalanx,
+        0,
+    );
+    let cav = sim.spawn_class(
+        Vec2::new(0.0, -40.0),
+        PI / 2.0,
+        160,
+        UnitClassId::ShockCavalry,
+        1,
+    );
     sim.set_pace(cav, sim::Pace::Run); // a charge is ORDERED at speed — an attack
                                        // walks in at the ordered pace otherwise
     sim.set_attack_order(cav, ph);
@@ -572,7 +759,10 @@ fn a_pike_hedge_breaks_the_charge_even_if_horses_ooze_through() {
             broke_at_y = Some(c.centroid.y);
         }
     }
-    assert!(peak_ma > 6.0, "the charge must actually develop: peak ma {peak_ma:.1}");
+    assert!(
+        peak_ma > 6.0,
+        "the charge must actually develop: peak ma {peak_ma:.1}"
+    );
     let broke = broke_at_y.expect("the charge must break against the hedge");
     println!(
         "charge peaked at {peak_ma:.1} m/s, broke at y {broke:.1} (front {front:.1}, +3 ranks {:.1})",
@@ -590,9 +780,27 @@ fn a_pike_hedge_breaks_the_charge_even_if_horses_ooze_through() {
 // left). Shared by the two DECOUPLED claims below — the bogging MECHANIC (which
 // works) and the ride-clear LETHALITY (which doesn't yet).
 fn eight_ranks_charge() -> (f32, f32, f32, usize) {
-    let mut sim = Sim::new(Tunables { morale_enabled: false, ..Tunables::default() }, SEED);
-    let _block = sim.spawn_class(Vec2::new(0.0, 40.0), PI / 2.0, 800, UnitClassId::HeavySword, 1);
-    let cav = sim.spawn_class(Vec2::new(0.0, 100.0), -PI / 2.0, 80, UnitClassId::ShockCavalry, 0);
+    let mut sim = Sim::new(
+        Tunables {
+            morale_enabled: false,
+            ..Tunables::default()
+        },
+        SEED,
+    );
+    let _block = sim.spawn_class(
+        Vec2::new(0.0, 40.0),
+        PI / 2.0,
+        800,
+        UnitClassId::HeavySword,
+        1,
+    );
+    let cav = sim.spawn_class(
+        Vec2::new(0.0, 100.0),
+        -PI / 2.0,
+        80,
+        UnitClassId::ShockCavalry,
+        0,
+    );
     sim.set_pace(cav, sim::Pace::Run);
     sim.set_move_order(cav, Vec2::new(0.0, -80.0));
     let mut min_ma = f32::INFINITY;

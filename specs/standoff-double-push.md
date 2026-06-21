@@ -14,7 +14,8 @@ see below), so the double-push cannot be removed and validated in isolation.
 
 ## The contracts (all in the same orbit; the standoff repair owns them)
 
-Must end green (currently RED — pre-existing, the standoff under-holds):
+Must stay green (these were red when the rider was written, but the braced
+standoff repair landed later):
 - `crates/sim/tests/mechanics_weave.rs::two_braced_walls_hold_a_standoff_neither_centroid_crosses`
   — two 20×10 braced-pike blocks run head-on; the invariant is their centroids
   never cross. Today they pass clean through (panics "centroids crossed").
@@ -26,8 +27,8 @@ Must end green (currently RED — pre-existing, the standoff under-holds):
 Must stay green (the calibration boundary):
 - `mechanics_weave.rs::a_braced_block_holds_its_grid_under_a_press` — a braced
   holder keeps its grid under an attacker's press (intermix < 0.35, spread < 2.5).
-- `combat_scenarios.rs::pikes_bite_only_to_the_front`, `deep_pike_wall_*`,
-  `othismos_presses_fence_fights_at_reach` — the reach standoff and front-vs-rear
+- `combat_scenarios.rs::pikes_bite_only_to_the_front`, `deep_pike_wall_*`, and
+  the current reach-holding posture checks — the reach standoff and front-vs-rear
   pike geometry.
 
 New pin to WRITE (the thing this rider actually asserts): a 1v1 contact-distance

@@ -1,7 +1,7 @@
 //! Secondary weapons: switching takes a moment (per soldier AND down the
 //! unit line), the drawn order overrides judgment, slung bows go quiet.
 
-mod common;
+pub mod common;
 
 use common::no_morale;
 use sim::{class_stats, Sim, UnitClassId, Vec2, DT};
@@ -23,7 +23,13 @@ fn archers_carry_swords() {
 fn drawn_swords_silence_the_bows_after_the_order_travels() {
     let mut sim = Sim::new(no_morale(), SEED);
     let a = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 200, UnitClassId::Archers, 0);
-    let _t = sim.spawn_class(Vec2::new(0.0, 100.0), -FRAC_PI_2, 300, UnitClassId::HeavySword, 1);
+    let _t = sim.spawn_class(
+        Vec2::new(0.0, 100.0),
+        -FRAC_PI_2,
+        300,
+        UnitClassId::HeavySword,
+        1,
+    );
     // Let them shoot a little.
     for _ in 0..(10.0 / DT) as usize {
         sim.tick();
@@ -35,7 +41,10 @@ fn drawn_swords_silence_the_bows_after_the_order_travels() {
     for _ in 0..(0.5 / DT) as usize {
         sim.tick();
     }
-    assert_eq!(sim.units[a].weapon_pref, 0, "the order is still propagating");
+    assert_eq!(
+        sim.units[a].weapon_pref, 0,
+        "the order is still propagating"
+    );
     for _ in 0..(20.0 / DT) as usize {
         sim.tick();
     }
@@ -72,14 +81,20 @@ fn weapon_swaps_fumble_for_a_moment() {
     let windows = |seed: u64| -> (usize, usize, usize) {
         let mut sim = Sim::new(no_morale(), seed);
         let ph = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 300, UnitClassId::Phalanx, 0);
-        let foe = sim.spawn_class(Vec2::new(0.0, 12.0), -FRAC_PI_2, 300, UnitClassId::HeavySword, 1);
+        let foe = sim.spawn_class(
+            Vec2::new(0.0, 12.0),
+            -FRAC_PI_2,
+            300,
+            UnitClassId::HeavySword,
+            1,
+        );
         sim.set_attack_order(foe, ph);
         for _ in 0..(35.0 / DT) as usize {
             sim.tick(); // pike work underway
         }
         let kills_before = sim.units[foe].count - sim.units[foe].alive_count;
         sim.set_weapon_pref(ph, true); // ground pikes, draw swords
-        // Order travel (1s) + per-man fumble (1s): a quiet beat.
+                                       // Order travel (1s) + per-man fumble (1s): a quiet beat.
         let before = sim.units[foe].count - sim.units[foe].alive_count;
         for _ in 0..(2.0 / DT) as usize {
             sim.tick();
@@ -97,7 +112,16 @@ fn weapon_swaps_fumble_for_a_moment() {
     // knife-edge — one seed can read the quiet beat as busy as the resumed one. The
     // "fumble then resume" claim is the seed AVERAGE: sum the windows over a seed set
     // and compare totals (like the other small-count combat tests).
-    let seeds = [SEED, SEED + 1, SEED + 2, SEED + 3, SEED + 4, SEED + 5, SEED + 6, SEED + 7];
+    let seeds = [
+        SEED,
+        SEED + 1,
+        SEED + 2,
+        SEED + 3,
+        SEED + 4,
+        SEED + 5,
+        SEED + 6,
+        SEED + 7,
+    ];
     let (mut kills_before, mut quiet_window_kills, mut resumed_kills) = (0usize, 0usize, 0usize);
     for &s in &seeds {
         let (kb, q, r) = windows(s);
@@ -105,7 +129,10 @@ fn weapon_swaps_fumble_for_a_moment() {
         quiet_window_kills += q;
         resumed_kills += r;
     }
-    assert!(kills_before > 3 * seeds.len(), "setup: pikes must be landing: {kills_before} over seeds");
+    assert!(
+        kills_before > 3 * seeds.len(),
+        "setup: pikes must be landing: {kills_before} over seeds"
+    );
     assert!(
         resumed_kills as f32 > quiet_window_kills as f32 * 1.8,
         "after the fumble the swords work: {resumed_kills} vs {quiet_window_kills} (quiet) over seeds"

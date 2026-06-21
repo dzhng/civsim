@@ -90,7 +90,7 @@ below), not a physics mechanism.
 - The balance surface is split across compile-time consts today:
   - `crates/sim/src/class.rs:151-324` `class_stats(id) -> UnitClass` — **hardcoded
     `const`-style match** (mass, brace_mult, health, block, evade, training,
-    stance, charge, tramples, drain_mult, `weapons`). This is the main thing you
+    charge, tramples, drain_mult, `weapons`). This is the main thing you
     tune, and it is not injectable.
   - `crates/sim/src/class.rs:10-25,85-150` — `struct Weapon` (the five numbers)
     + 8 weapon consts. Also compile-time.

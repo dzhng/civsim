@@ -82,9 +82,27 @@ fn deploy_army(sim: &mut Sim, base: Vec2, facing: f32, team: u32) {
     deploy_row(sim, &[ArtilleryCrew], row(-150.0), facing, team);
     // Cavalry wings, slightly refused.
     // Wings must fit inside the sealed flanks (open corridor |y| < ~360).
-    sim.spawn_class(row(-20.0) + right * -300.0, facing, unit_size(ShockCavalry), ShockCavalry, team);
-    sim.spawn_class(row(-20.0) + right * 300.0, facing, unit_size(ShockCavalry), ShockCavalry, team);
-    sim.spawn_class(row(-60.0) + right * 340.0, facing, unit_size(HorseArchers), HorseArchers, team);
+    sim.spawn_class(
+        row(-20.0) + right * -300.0,
+        facing,
+        unit_size(ShockCavalry),
+        ShockCavalry,
+        team,
+    );
+    sim.spawn_class(
+        row(-20.0) + right * 300.0,
+        facing,
+        unit_size(ShockCavalry),
+        ShockCavalry,
+        team,
+    );
+    sim.spawn_class(
+        row(-60.0) + right * 340.0,
+        facing,
+        unit_size(HorseArchers),
+        HorseArchers,
+        team,
+    );
 }
 
 /// Deploy a campaign roster. Entries are split into battle-sized units
@@ -106,7 +124,11 @@ pub fn deploy_roster(sim: &mut Sim, dep: &contract::Deployment) -> Vec<(u64, usi
             let n = left.min(full);
             // Avoid splinter units: fold a small remainder into the previous.
             if left == n && n < full / 4 {
-                if let Some(prev) = units.iter_mut().rev().find(|u| u.0 == r.id && u.1 == r.class) {
+                if let Some(prev) = units
+                    .iter_mut()
+                    .rev()
+                    .find(|u| u.0 == r.id && u.1 == r.class)
+                {
                     prev.2 += n;
                     break;
                 }
@@ -116,7 +138,15 @@ pub fn deploy_roster(sim: &mut Sim, dep: &contract::Deployment) -> Vec<(u64, usi
         }
     }
 
-    let spawn = |sim: &mut Sim, id: u64, class: UnitClassId, count: usize, training: f32, cap: f32, anchor: Vec2, face: f32, out: &mut Vec<(u64, usize)>| {
+    let spawn = |sim: &mut Sim,
+                 id: u64,
+                 class: UnitClassId,
+                 count: usize,
+                 training: f32,
+                 cap: f32,
+                 anchor: Vec2,
+                 face: f32,
+                 out: &mut Vec<(u64, usize)>| {
         let idx = sim.spawn_class(anchor, face, count, class, dep.team);
         let u = &mut sim.units[idx];
         u.training = training.clamp(0.05, 1.0);
@@ -134,7 +164,17 @@ pub fn deploy_roster(sim: &mut Sim, dep: &contract::Deployment) -> Vec<(u64, usi
             let depth = (count.div_ceil(unit_size(class).div_ceil(s.default_depth.max(1)).max(1)))
                 as f32
                 * s.spacing.y;
-            spawn(sim, id, class, count, training, cap, center - f * (fwd + 0.5 * depth), facing, &mut out);
+            spawn(
+                sim,
+                id,
+                class,
+                count,
+                training,
+                cap,
+                center - f * (fwd + 0.5 * depth),
+                facing,
+                &mut out,
+            );
             fwd += depth + 18.0;
         }
         return out;
@@ -142,10 +182,10 @@ pub fn deploy_roster(sim: &mut Sim, dep: &contract::Deployment) -> Vec<(u64, usi
 
     // Formed: group by role, lay rows like deploy_army does.
     let role = |c: UnitClassId| match c {
-        Skirmishers => 0,                                       // screen
+        Skirmishers => 0,                                    // screen
         HeavySword | Phalanx | LongSwords | HeavySpear => 1, // main line
         LightSpear | Peasant | LightSword => 2,              // second line / levy
-        Archers => 3,                              // ranged
+        Archers => 3,                                        // ranged
         ArtilleryCrew => 4,
         ShockCavalry | HorseArchers => 5, // wings
     };
@@ -174,11 +214,25 @@ pub fn deploy_roster(sim: &mut Sim, dep: &contract::Deployment) -> Vec<(u64, usi
         }
         for (k, row_members) in rows.iter().enumerate() {
             let fwd = row_fwd[r] - k as f32 * 45.0;
-            let total: f32 = row_members.iter().map(|m| unit_width(m.1) + GAP).sum::<f32>() - GAP;
+            let total: f32 = row_members
+                .iter()
+                .map(|m| unit_width(m.1) + GAP)
+                .sum::<f32>()
+                - GAP;
             let mut x = -0.5 * total;
             for &&(id, class, count, training, cap) in row_members {
                 let w = unit_width(class);
-                spawn(sim, id, class, count, training, cap, center + f * fwd + right * (x + 0.5 * w), facing, &mut out);
+                spawn(
+                    sim,
+                    id,
+                    class,
+                    count,
+                    training,
+                    cap,
+                    center + f * fwd + right * (x + 0.5 * w),
+                    facing,
+                    &mut out,
+                );
                 x += w + GAP;
             }
         }
@@ -189,7 +243,17 @@ pub fn deploy_roster(sim: &mut Sim, dep: &contract::Deployment) -> Vec<(u64, usi
     for (k, &&(id, class, count, training, cap)) in wings.iter().enumerate() {
         let side = if k % 2 == 0 { 1.0 } else { -1.0 };
         let lane = 300.0 + (k / 2) as f32 * 60.0;
-        spawn(sim, id, class, count, training, cap, center + f * -20.0 + right * (side * lane), facing, &mut out);
+        spawn(
+            sim,
+            id,
+            class,
+            count,
+            training,
+            cap,
+            center + f * -20.0 + right * (side * lane),
+            facing,
+            &mut out,
+        );
     }
     out
 }
@@ -240,8 +304,20 @@ pub fn setup_sandbox(sim: &mut Sim, kind: u32) {
     sim.terrain = t;
 
     if kind == 0 {
-        sim.spawn_class(Vec2::new(0.0, -90.0), FRAC_PI_2, 240, UnitClassId::HeavySword, 0);
-        sim.spawn_class(Vec2::new(0.0, 90.0), -FRAC_PI_2, 240, UnitClassId::HeavySword, 1);
+        sim.spawn_class(
+            Vec2::new(0.0, -90.0),
+            FRAC_PI_2,
+            240,
+            UnitClassId::HeavySword,
+            0,
+        );
+        sim.spawn_class(
+            Vec2::new(0.0, 90.0),
+            -FRAC_PI_2,
+            240,
+            UnitClassId::HeavySword,
+            1,
+        );
         return;
     }
     if kind == 4 {
@@ -254,10 +330,34 @@ pub fn setup_sandbox(sim: &mut Sim, kind: u32) {
             s.default_depth = 13; // 169 men -> ~13x13 block instead of a 40-wide line
             sim.balance.set(UnitClassId::LongSwords, s);
         }
-        sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 169, UnitClassId::LongSwords, 0);
-        sim.spawn_class(Vec2::new(0.0, 26.0), -FRAC_PI_2, 90, UnitClassId::HeavySword, 1);
-        sim.spawn_class(Vec2::new(0.0, -26.0), FRAC_PI_2, 90, UnitClassId::HeavySword, 1);
-        sim.spawn_class(Vec2::new(26.0, 0.0), std::f32::consts::PI, 90, UnitClassId::HeavySword, 1);
+        sim.spawn_class(
+            Vec2::new(0.0, 0.0),
+            FRAC_PI_2,
+            169,
+            UnitClassId::LongSwords,
+            0,
+        );
+        sim.spawn_class(
+            Vec2::new(0.0, 26.0),
+            -FRAC_PI_2,
+            90,
+            UnitClassId::HeavySword,
+            1,
+        );
+        sim.spawn_class(
+            Vec2::new(0.0, -26.0),
+            FRAC_PI_2,
+            90,
+            UnitClassId::HeavySword,
+            1,
+        );
+        sim.spawn_class(
+            Vec2::new(26.0, 0.0),
+            std::f32::consts::PI,
+            90,
+            UnitClassId::HeavySword,
+            1,
+        );
         sim.spawn_class(Vec2::new(-26.0, 0.0), 0.0, 90, UnitClassId::HeavySword, 1);
         return;
     }
@@ -271,15 +371,41 @@ pub fn setup_sandbox(sim: &mut Sim, kind: u32) {
             s.default_depth = 12; // a compact block that concentrates on the flank, not a thin line
             sim.balance.set(UnitClassId::LongSwords, s);
         }
-        sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 240, UnitClassId::HeavySword, 1);
-        sim.spawn_class(Vec2::new(0.0, 30.0), -FRAC_PI_2, 240, UnitClassId::HeavySword, 0);
-        sim.spawn_class(Vec2::new(30.0, 2.0), std::f32::consts::PI, 190, UnitClassId::LongSwords, 0);
+        sim.spawn_class(
+            Vec2::new(0.0, 0.0),
+            FRAC_PI_2,
+            240,
+            UnitClassId::HeavySword,
+            1,
+        );
+        sim.spawn_class(
+            Vec2::new(0.0, 30.0),
+            -FRAC_PI_2,
+            240,
+            UnitClassId::HeavySword,
+            0,
+        );
+        sim.spawn_class(
+            Vec2::new(30.0, 2.0),
+            std::f32::consts::PI,
+            190,
+            UnitClassId::LongSwords,
+            0,
+        );
         return;
     }
     if kind == 2 || kind == 3 {
         // A 100x4 line facing north; blue cavalry charges its face (kind 2)
         // or its eastern flank (kind 3).
-        sim.spawn_unit(Vec2::new(0.0, 40.0), FRAC_PI_2, 400, 100, Vec2::new(1.0, 1.1), 1, 0.7);
+        sim.spawn_unit(
+            Vec2::new(0.0, 40.0),
+            FRAC_PI_2,
+            400,
+            100,
+            Vec2::new(1.0, 1.1),
+            1,
+            0.7,
+        );
         let (p, f) = if kind == 2 {
             (Vec2::new(0.0, 160.0), -FRAC_PI_2)
         } else {
@@ -302,9 +428,27 @@ pub fn setup_sandbox(sim: &mut Sim, kind: u32) {
         sim.spawn_class(row(0.0, 55.0), facing, 140, UnitClassId::LongSwords, team);
         sim.spawn_class(row(0.0, 125.0), facing, 220, UnitClassId::LightSpear, team);
         sim.spawn_class(row(-40.0, -30.0), facing, 140, UnitClassId::Archers, team);
-        sim.spawn_class(row(-55.0, 60.0), facing, 40, UnitClassId::ArtilleryCrew, team);
-        sim.spawn_class(row(-10.0, 200.0), facing, 110, UnitClassId::ShockCavalry, team);
-        sim.spawn_class(row(-30.0, -190.0), facing, 90, UnitClassId::HorseArchers, team);
+        sim.spawn_class(
+            row(-55.0, 60.0),
+            facing,
+            40,
+            UnitClassId::ArtilleryCrew,
+            team,
+        );
+        sim.spawn_class(
+            row(-10.0, 200.0),
+            facing,
+            110,
+            UnitClassId::ShockCavalry,
+            team,
+        );
+        sim.spawn_class(
+            row(-30.0, -190.0),
+            facing,
+            90,
+            UnitClassId::HorseArchers,
+            team,
+        );
     };
     side(sim, -140.0, FRAC_PI_2, 0);
     side(sim, 140.0, -FRAC_PI_2, 1);

@@ -5,13 +5,16 @@
 > that reduces variables to the bone — single units, same-team presses,
 > invulnerable clashes — and does NOT go through this web/Playwright harness.
 > Render them with `cargo run -p sim --example weave_shots`; they land in
-> `web/vibe/shots/weave/<scenario>/`, one folder per weave test:
-> `t0-stretch|compress|bend|shear|uwrap|death` (the Tier-0 spring perturbations;
-> `t0-stretch` doubles as the settle/no-oscillation case), `t1-press` (same-team
-> compression), `t2-wrap-attack|wrap-hold` (attacking drapes, holding doesn't),
-> `t2-glue-1v1`, and `t2-t-hold|t-attack` (the T-junction — a holding stem keeps
-> its shape, an attacking one drapes along the bar). Keep them OUT of the combat
-> scenarios below: the whole point of the weave layer is to test it in isolation.
+> `web/vibe/shots/weave/<scenario>/`, one folder per weave test. The set covers
+> `held-vs-walk` and `column-vs-held`, the Tier-0 perturbations
+> (`t0-stretch|compress|bend|shear|uwrap|death`; `t0-stretch` doubles as the
+> settle/no-oscillation case), `t1-press` same-team compression, the Tier-2
+> wrap/glue/T-junction checks (`t2-wrap-attack|wrap-hold`, `t2-glue-1v1`,
+> `t2-t-hold|t-attack`), and Tier-3 pressure/charge/rotation checks
+> (`t3-deep-push-thin|wide`, `t3-equal-press`, `t3-cav-v-heavy`, `t3-wide-wrap`,
+> `t3-col-bulge`, `t3-phalanx-heavy`, `t3-braced-walls`, `t3-pivot-180`). Keep
+> them OUT of the combat scenarios below: the whole point of the weave layer is
+> to test it in isolation.
 
 Manual, eyeball-it harnesses — **not** pass/fail gates. Each spawns a scenario,
 screenshots it every N sim-seconds, and dumps the frames to flip through. The
@@ -41,12 +44,13 @@ the loser routs (a clump fleeing home, not a scatter). Add a row to the
 | folder | script | what it shows |
 |---|---|---|
 | `heavy-both` | `duel-posture.mjs ATK=0 DEF=0 POSTURE=both` | heavy vs heavy, BOTH attack — two charges meet, each front wraps the other |
+| `heavy-move-clash` | `move-clash.mjs ATK=0 DEF=0` | same heavies, both MOVE toward each other's start — should resemble a clash without charge bonuses |
 | `heavy-attack-defend` | `duel-posture.mjs ATK=0 DEF=0 POSTURE=hold` | same heavies, one attacks + one holds — attacker frays wrapping in, defender holds its line and dimples |
 | `heavy-v-phalanx-defend` | `duel-posture.mjs ATK=0 DEF=3 POSTURE=hold` | heavy charges a holding pike wall — do the points stop the press? |
 | `phalanx-v-heavy` | `duel-posture.mjs ATK=3 DEF=0 POSTURE=both` | pikes outreach swords |
 | `pike-v-pike` | `duel-posture.mjs ATK=3 DEF=3 POSTURE=both` | two pike walls, both attack — points-out standoff |
 | `cav-v-heavy` | `duel-posture.mjs ATK=6 DEF=0 POSTURE=both` | horse rides over swords |
-| `cav-v-pike` | `charge.mjs ATK=6 DEF=3` | points stop horse (charge into a held pike wall) |
+| `cav-v-pike` | `charge.mjs ATK=6 DEF=3` | impale/charge gate: does a held pike wall stop horse cleanly? |
 | `cav-v-heavy-held` | `charge.mjs ATK=6 DEF=0` | a braced line beats a charge |
 | `heavy-v-archers` | `missile.mjs` | arrows attrite the advance, then melee |
 | `penetration` | `penetration.mjs` | DEFENSE: one column punches a wide held line (does it dimple + close?) |

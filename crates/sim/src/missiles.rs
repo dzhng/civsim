@@ -238,7 +238,12 @@ impl Sim {
                 // flesh — loose order is the defense.
                 let (t_anchor, t_facing, t_w, t_d) = {
                     let tu = &self.units[target_unit];
-                    (tu.anchor, tu.facing, tu.width().max(2.0), tu.depth().max(2.0))
+                    (
+                        tu.anchor,
+                        tu.facing,
+                        tu.width().max(2.0),
+                        tu.depth().max(2.0),
+                    )
                 };
                 let tf = crate::math::dir(t_facing);
                 let tr = Vec2::new(tf.y, -tf.x);
@@ -266,12 +271,14 @@ impl Sim {
 
                 // Ballistics: solve launch elevation for this range (low arc).
                 let dist = (aim - p).len();
-                let s2 = (dist * GRAVITY / (spec.launch_speed * spec.launch_speed)).clamp(-1.0, 1.0);
+                let s2 =
+                    (dist * GRAVITY / (spec.launch_speed * spec.launch_speed)).clamp(-1.0, 1.0);
                 let theta = 0.5 * s2.asin();
                 let horiz = spec.launch_speed * theta.cos();
                 let vert = spec.launch_speed * theta.sin();
                 let to = (aim - p) * (1.0 / dist.max(0.01));
-                self.projectiles.push(p, to * horiz, vert, spec.kind, team, spec.damage);
+                self.projectiles
+                    .push(p, to * horiz, vert, spec.kind, team, spec.damage);
                 self.attack_cd[i] = spec.interval * (0.8 + 0.4 * self.rng.unit_f32());
                 self.units[ui].ammo = self.units[ui].ammo.saturating_sub(1);
             }
@@ -316,7 +323,10 @@ impl Sim {
                     for oy in -1..=1i32 {
                         for ox in -1..=1i32 {
                             let b = self.grid.bucket(cx + ox, cy + oy);
-                            let (lo, hi) = (self.grid.starts[b] as usize, self.grid.starts[b + 1] as usize);
+                            let (lo, hi) = (
+                                self.grid.starts[b] as usize,
+                                self.grid.starts[b + 1] as usize,
+                            );
                             for ei in lo..hi {
                                 let bj = self.grid.entries[ei] as usize;
                                 let owner = self.body_owner[bj] as usize;
@@ -347,7 +357,11 @@ impl Sim {
                 // Arrow/javelin: strikes a BODY at the landing spot — the
                 // hit window is body-sized, so loose order (below saturation
                 // density) genuinely sheds volleys.
-                let window = if kind == MissileKind::Javelin as u8 { 0.25 } else { 0.18 };
+                let window = if kind == MissileKind::Javelin as u8 {
+                    0.25
+                } else {
+                    0.18
+                };
                 if let Some(victim) = self.body_at(p, window) {
                     let dmg = self.projectiles.damage[i];
                     self.hit_by_missile(victim, vel, dmg, false);
@@ -377,7 +391,10 @@ impl Sim {
                 }
                 seen[seen_len] = b;
                 seen_len += 1;
-                let (lo, hi) = (self.grid.starts[b] as usize, self.grid.starts[b + 1] as usize);
+                let (lo, hi) = (
+                    self.grid.starts[b] as usize,
+                    self.grid.starts[b + 1] as usize,
+                );
                 for &bj in &self.grid.entries[lo..hi] {
                     let bj = bj as usize;
                     let owner = self.body_owner[bj] as usize;
@@ -516,8 +533,8 @@ impl Sim {
                 // the foe is at 24m loses its rear tail before it is at full
                 // flight (a hop-stop saw-tooth averages under the closing pace).
                 // Bolt at 32m, sooner against a faster close.
-                let band = (32.0 + tired + 2.5 * (sp - self.tun.base_speed).max(0.0))
-                    .clamp(32.0, 55.0);
+                let band =
+                    (32.0 + tired + 2.5 * (sp - self.tun.base_speed).max(0.0)).clamp(32.0, 55.0);
                 if d < band && threat.map_or(true, |(_, td, _)| d < td) {
                     threat = Some((v.center(), d, band));
                 }

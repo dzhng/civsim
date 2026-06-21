@@ -154,7 +154,10 @@ pub fn plan(t: &Terrain, from: Vec2, to: Vec2) -> Option<Vec<Vec2>> {
         (dx.max(dy) + 0.41421 * dx.min(dy)) * t.cell
     };
     g[idx(start)] = 0.0;
-    heap.push(Node { f: h(start), idx: idx(start) });
+    heap.push(Node {
+        f: h(start),
+        idx: idx(start),
+    });
 
     const DIRS: [(i32, i32, f32); 8] = [
         (1, 0, 1.0),
@@ -197,7 +200,10 @@ pub fn plan(t: &Terrain, from: Vec2, to: Vec2) -> Option<Vec<Vec2>> {
             if ng < g[ni] {
                 g[ni] = ng;
                 came[ni] = ci as u32;
-                heap.push(Node { f: ng + h(nc), idx: ni });
+                heap.push(Node {
+                    f: ng + h(nc),
+                    idx: ni,
+                });
             }
         }
     }

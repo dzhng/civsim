@@ -208,13 +208,14 @@ signals first, before tuning, killed it in minutes instead of hours:
   inert in any head-on duel. (Right instinct — "loses when pressed" — wrong
   signal: vice measures *surround*, not *contact*.)
 - Total received pressure (`self.pressure[i]`) was **identical** attacking vs
-  defending: charge-offense 0.39, fence-offense 0.39, held-defense 0.36. The
-  `Fence` stance doesn't actually hold a unit at weapon's length, so there is no
-  offense/defense pressure *differential* for **any** pressure lever to exploit.
+  defending: charge-offense 0.39, cautious-offense 0.39, held-defense 0.36. The
+  proposed reach-holding stance did not actually create a weapon-length standoff,
+  so there was no offense/defense pressure *differential* for **any** pressure
+  lever to exploit.
 
 Conclusion the measurement forced: the knob couldn't work until a deeper
-mechanic (Fence enforcing a standoff that bleeds less contact pressure) creates
-the differential. Measuring turned "add a sensitivity stat and tune it" into
+mechanic (a real standoff that bleeds less contact pressure) creates the
+differential. Measuring turned "add a sensitivity stat and tune it" into
 "the premise doesn't hold yet — here's the prerequisite," and avoided committing
 an inert lever. Don't add the lever, *then* discover it does nothing; measure
 the signal, *then* decide if the lever can exist.

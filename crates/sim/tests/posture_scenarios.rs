@@ -6,7 +6,7 @@
 //! (Withdraw): turn and run at full pace, answering nothing.
 //! Cavalry cannot drift: it wheels and breaks off, both ways.
 
-mod common;
+pub mod common;
 
 use common::no_morale;
 use sim::{Sim, UnitClassId, Vec2, DT};
@@ -18,14 +18,27 @@ const SEED: u64 = 31337;
 fn engage_move_backs_off_facing_the_threat() {
     let mut sim = Sim::new(no_morale(), SEED);
     // Heavy line faces an enemy 25m north; ordered to fall back 40m south.
-    let u = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 200, UnitClassId::HeavySword, 0);
-    let _foe = sim.spawn_class(Vec2::new(0.0, 25.0), -FRAC_PI_2, 200, UnitClassId::HeavySword, 1);
+    let u = sim.spawn_class(
+        Vec2::new(0.0, 0.0),
+        FRAC_PI_2,
+        200,
+        UnitClassId::HeavySword,
+        0,
+    );
+    let _foe = sim.spawn_class(
+        Vec2::new(0.0, 25.0),
+        -FRAC_PI_2,
+        200,
+        UnitClassId::HeavySword,
+        1,
+    );
     sim.set_move_order(u, Vec2::new(0.0, -40.0));
     let mut worst_face = 0.0f32;
     for _ in 0..(60.0 / DT) as usize {
         sim.tick();
         let foe_dist = (sim.units[1].center() - sim.units[u].center()).len();
-        if sim.units[u].frame_speed > 0.3 && foe_dist < 43.0 { // inside the 45m threat gate, with margin
+        if sim.units[u].frame_speed > 0.3 && foe_dist < 43.0 {
+            // inside the 45m threat gate, with margin
             // While retreating IN THREAT RANGE, the face stays on the enemy.
             // (Beyond it, turning to march is correct.)
             worst_face = worst_face.max(sim::wrap_angle(sim.units[u].facing - FRAC_PI_2).abs());
@@ -49,9 +62,21 @@ fn drifting_is_slower_than_marching_and_never_sprints() {
     // pace cannot speed it up.
     let time_back = |threat: bool, run: bool| -> f32 {
         let mut sim = Sim::new(no_morale(), SEED);
-        let u = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 200, UnitClassId::HeavySword, 0);
+        let u = sim.spawn_class(
+            Vec2::new(0.0, 0.0),
+            FRAC_PI_2,
+            200,
+            UnitClassId::HeavySword,
+            0,
+        );
         if threat {
-            sim.spawn_class(Vec2::new(0.0, 25.0), -FRAC_PI_2, 200, UnitClassId::HeavySword, 1);
+            sim.spawn_class(
+                Vec2::new(0.0, 25.0),
+                -FRAC_PI_2,
+                200,
+                UnitClassId::HeavySword,
+                1,
+            );
         }
         if run {
             sim.set_pace(u, sim::Pace::Run);
@@ -81,8 +106,20 @@ fn drifting_is_slower_than_marching_and_never_sprints() {
 fn disengage_turns_and_goes_faster() {
     let time_back = |use_withdraw: bool| -> (f32, f32) {
         let mut sim = Sim::new(no_morale(), SEED);
-        let u = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 200, UnitClassId::HeavySword, 0);
-        let _foe = sim.spawn_class(Vec2::new(0.0, 25.0), -FRAC_PI_2, 200, UnitClassId::HeavySword, 1);
+        let u = sim.spawn_class(
+            Vec2::new(0.0, 0.0),
+            FRAC_PI_2,
+            200,
+            UnitClassId::HeavySword,
+            0,
+        );
+        let _foe = sim.spawn_class(
+            Vec2::new(0.0, 25.0),
+            -FRAC_PI_2,
+            200,
+            UnitClassId::HeavySword,
+            1,
+        );
         if use_withdraw {
             sim.set_disengage_order(u, Vec2::new(0.0, -60.0));
         } else {
@@ -114,8 +151,20 @@ fn disengage_turns_and_goes_faster() {
 #[test]
 fn cavalry_breaks_off_by_wheeling_not_reversing() {
     let mut sim = Sim::new(no_morale(), SEED);
-    let cav = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 120, UnitClassId::ShockCavalry, 0);
-    let _foe = sim.spawn_class(Vec2::new(0.0, 30.0), -FRAC_PI_2, 200, UnitClassId::HeavySword, 1);
+    let cav = sim.spawn_class(
+        Vec2::new(0.0, 0.0),
+        FRAC_PI_2,
+        120,
+        UnitClassId::ShockCavalry,
+        0,
+    );
+    let _foe = sim.spawn_class(
+        Vec2::new(0.0, 30.0),
+        -FRAC_PI_2,
+        200,
+        UnitClassId::HeavySword,
+        1,
+    );
     sim.set_pace(cav, sim::Pace::Run); // a break-off is a gallop, not a walk
     sim.set_move_order(cav, Vec2::new(0.0, -80.0));
     let mut turned = false;
@@ -126,7 +175,10 @@ fn cavalry_breaks_off_by_wheeling_not_reversing() {
             turned = true; // facing now points the way it is going
         }
     }
-    assert!(turned, "horses wheel to break off — no back-pedaling mounts");
+    assert!(
+        turned,
+        "horses wheel to break off — no back-pedaling mounts"
+    );
     assert!(
         (sim.units[cav].anchor - Vec2::new(0.0, -80.0)).len() < 6.0,
         "and they get there, at {:?}",
@@ -141,8 +193,20 @@ fn engage_move_extracts_from_melee_while_fighting() {
     // without answering.
     let extraction = |disengage: bool| -> (f32, usize, f32) {
         let mut sim = Sim::new(no_morale(), SEED);
-        let u = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 240, UnitClassId::HeavySword, 0);
-        let foe = sim.spawn_class(Vec2::new(0.0, 8.0), -FRAC_PI_2, 240, UnitClassId::HeavySword, 1);
+        let u = sim.spawn_class(
+            Vec2::new(0.0, 0.0),
+            FRAC_PI_2,
+            240,
+            UnitClassId::HeavySword,
+            0,
+        );
+        let foe = sim.spawn_class(
+            Vec2::new(0.0, 8.0),
+            -FRAC_PI_2,
+            240,
+            UnitClassId::HeavySword,
+            1,
+        );
         sim.set_attack_order(foe, u);
         for _ in 0..(20.0 / DT) as usize {
             sim.tick();
@@ -157,7 +221,8 @@ fn engage_move_extracts_from_melee_while_fighting() {
         for _ in 0..(120.0 / DT) as usize {
             sim.tick();
             let foe_dist = (sim.units[foe].center() - sim.units[u].center()).len();
-            if !disengage && foe_dist > 16.0 && foe_dist < 43.0 { // grace for facing recovery after the interpenetration phase
+            if !disengage && foe_dist > 16.0 && foe_dist < 43.0 {
+                // grace for facing recovery after the interpenetration phase
                 // Below ~8m the masses are interpenetrated and "direction
                 // to the enemy" is undefined (soldiers face their own
                 // opponents); past 43m, turning to march is correct.
@@ -194,8 +259,20 @@ fn halted_defender_still_stands_and_fights() {
     // No live order: contact pins the unit where it stands (it does not
     // wander off mid-fight just because the reflex no longer stashes).
     let mut sim = Sim::new(no_morale(), SEED);
-    let u = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 240, UnitClassId::HeavySword, 0);
-    let foe = sim.spawn_class(Vec2::new(0.0, 12.0), -FRAC_PI_2, 240, UnitClassId::HeavySword, 1);
+    let u = sim.spawn_class(
+        Vec2::new(0.0, 0.0),
+        FRAC_PI_2,
+        240,
+        UnitClassId::HeavySword,
+        0,
+    );
+    let foe = sim.spawn_class(
+        Vec2::new(0.0, 12.0),
+        -FRAC_PI_2,
+        240,
+        UnitClassId::HeavySword,
+        1,
+    );
     sim.set_attack_order(foe, u);
     let start = sim.units[u].center();
     for _ in 0..(60.0 / DT) as usize {
@@ -214,14 +291,26 @@ fn pursue_auto_charges_intruders_but_gives_up_on_faster_prey() {
     let mut sim = Sim::new(no_morale(), SEED);
     // Heavy unit attack-moves north; enemy cavalry loiters near the path
     // but NEVER attacks — the latch must be proactive, not a counterpunch.
-    let u = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 240, UnitClassId::HeavySword, 0);
+    let u = sim.spawn_class(
+        Vec2::new(0.0, 0.0),
+        FRAC_PI_2,
+        240,
+        UnitClassId::HeavySword,
+        0,
+    );
     // Within the latch's reach -- a 5s RUN for the advancing heavies (~15m
     // edge-to-edge), not the old flat 70m (an advance no longer peels off
     // after anything it can't catch inside the latch timer) -- but clear of
     // brushing CONTACT, which would zero the timer and hold the latch.
     // (At lateral 38 the closest pass measures 22m edge-to-edge -- outside
     // the reach; 29 passes at ~13m, inside it with contact still clear.)
-    let cav = sim.spawn_class(Vec2::new(29.0, 70.0), -FRAC_PI_2, 100, UnitClassId::ShockCavalry, 1);
+    let cav = sim.spawn_class(
+        Vec2::new(29.0, 70.0),
+        -FRAC_PI_2,
+        100,
+        UnitClassId::ShockCavalry,
+        1,
+    );
     sim.set_attack_move_order(u, Vec2::new(0.0, 220.0));
     let mut latched = false;
     let mut gave_up_at = None;
@@ -240,7 +329,10 @@ fn pursue_auto_charges_intruders_but_gives_up_on_faster_prey() {
             gave_up_at = Some(step as f32 * DT);
         }
     }
-    assert!(latched, "the advance must auto-charge the loitering cavalry");
+    assert!(
+        latched,
+        "the advance must auto-charge the loitering cavalry"
+    );
     let gave_up = gave_up_at.expect("an uncatchable chase must be abandoned");
     assert!(
         gave_up < 60.0,
@@ -256,8 +348,20 @@ fn pursue_auto_charges_intruders_but_gives_up_on_faster_prey() {
 #[test]
 fn kiting_pauses_for_disengage_then_resumes() {
     let mut sim = Sim::new(no_morale(), SEED);
-    let sk = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 120, UnitClassId::Skirmishers, 0);
-    let foe = sim.spawn_class(Vec2::new(0.0, 50.0), -FRAC_PI_2, 300, UnitClassId::HeavySword, 1);
+    let sk = sim.spawn_class(
+        Vec2::new(0.0, 0.0),
+        FRAC_PI_2,
+        120,
+        UnitClassId::Skirmishers,
+        0,
+    );
+    let foe = sim.spawn_class(
+        Vec2::new(0.0, 50.0),
+        -FRAC_PI_2,
+        300,
+        UnitClassId::HeavySword,
+        1,
+    );
     sim.set_attack_move_order(foe, Vec2::new(0.0, -200.0));
     // Ordered disengage: the skirmishers go WHERE TOLD, no kite hops.
     sim.set_pace(sk, sim::Pace::Run);
@@ -283,7 +387,10 @@ fn kiting_pauses_for_disengage_then_resumes() {
         }
     }
     let gap = (sim.units[foe].center() - sim.units[sk].center()).len();
-    assert!(hopped, "the kite reflex must resume after the disengage completes");
+    assert!(
+        hopped,
+        "the kite reflex must resume after the disengage completes"
+    );
     assert!(
         sim.units[sk].alive_count > 110,
         "and it keeps them alive: {} left",
@@ -299,8 +406,14 @@ fn kite_toggle_is_for_skirmish_classes_only() {
     let sk = sim.spawn_class(Vec2::new(50.0, 0.0), 0.0, 120, UnitClassId::Skirmishers, 0);
     sim.set_evade_auto(ph, true);
     sim.set_evade_auto(sk, false);
-    assert!(!sim.units[ph].evade_auto, "a phalanx cannot adopt skirmish legs");
-    assert!(!sim.units[sk].evade_auto, "skirmishers can switch their reflex off");
+    assert!(
+        !sim.units[ph].evade_auto,
+        "a phalanx cannot adopt skirmish legs"
+    );
+    assert!(
+        !sim.units[sk].evade_auto,
+        "skirmishers can switch their reflex off"
+    );
     sim.set_evade_auto(sk, true);
     assert!(sim.units[sk].evade_auto);
 }
@@ -311,7 +424,12 @@ fn shift_queued_orders_run_in_sequence() {
     let u = sim.spawn_class(Vec2::ZERO, 0.0, 160, UnitClassId::LightSpear, 0);
     // Queue an L: east, then north, then face west at the end.
     sim.enqueue_order(u, sim::OrderMode::Move, Vec2::new(60.0, 0.0), None);
-    sim.enqueue_order(u, sim::OrderMode::Move, Vec2::new(60.0, 50.0), Some(std::f32::consts::PI));
+    sim.enqueue_order(
+        u,
+        sim::OrderMode::Move,
+        Vec2::new(60.0, 50.0),
+        Some(std::f32::consts::PI),
+    );
     let mut reached_corner = false;
     for _ in 0..(150.0 / DT) as usize {
         sim.tick();

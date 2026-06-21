@@ -78,7 +78,6 @@ export class BattleScene implements Scene {
     if (renderer instanceof BattleRenderer3D) camera.pitch = renderer.pitch;
     renderer.resize(); // the canvas may have been display:none through a window resize
     const STRIDE = game.unit_info_stride();
-    const atEaseRange = game.at_ease_range(); // one shared range: morale, pose, fidget
 
     // Open framed to the ARMIES (bbox + margin), not the map: a two-unit
     // duel opens snug on the action; full deployments span the field and
@@ -797,30 +796,14 @@ export class BattleScene implements Scene {
           prevPos = new Float32Array(pos);
         }
         const rawFace = facings();
-        // Which units are at ease: halted, nobody fighting, not routing, and no
-        // enemy within the sim's at_ease_range — the same notion that governs
-        // morale recovery and the idle fidget, read from the sim so they agree.
-        // Their standing men hold the at-ease pose (pikes up). One per-unit pass,
-        // then a cheap lookup per soldier.
+        // Which units are at ease: read directly from the sim so rendered pike
+        // posture agrees with morale recovery and idle fidget.
         const info = unitInfo();
         const uc = game.unit_count();
         const atEase = new Uint8Array(uc);
-        const range2 = atEaseRange * atEaseRange; // the one shared at-ease range, from the sim
         for (let u = 0; u < uc; u++) {
           const o = u * STRIDE;
-          if (info[o + 15] <= 0) continue;
-          if (!(info[o + 3] < 0.1 && info[o + 16] === 0 && info[o + 21] < 0.5)) continue;
-          const ux = info[o + 32], uy = info[o + 33], team = info[o + 6];
-          let near2 = Infinity;
-          for (let e = 0; e < uc; e++) {
-            const eo = e * STRIDE;
-            // nearest LIVING, NON-routing enemy (a fleeing enemy is no threat) —
-            // the same test morale recovery uses.
-            if (info[eo + 6] === team || info[eo + 15] <= 0 || info[eo + 21] > 0.5) continue;
-            const dx = info[eo + 32] - ux, dy = info[eo + 33] - uy;
-            near2 = Math.min(near2, dx * dx + dy * dy);
-          }
-          atEase[u] = near2 > range2 ? 1 : 0;
+          atEase[u] = info[o + 17] > 0.5 ? 1 : 0;
         }
         if (unitTopY.length < uc) unitTopY = new Float32Array(uc);
         unitTopY.fill(-Infinity, 0, uc);

@@ -24,12 +24,21 @@ fn break_pct_with_balance(
     balance: BalanceConfig,
 ) -> f32 {
     let mut sim = Sim::with_balance(
-        Tunables { micro_rough: 0.0, ..Tunables::default() },
+        Tunables {
+            micro_rough: 0.0,
+            ..Tunables::default()
+        },
         balance,
         7,
     );
     let south = sim.spawn_class(Vec2::new(0.0, -13.0), FRAC_PI_2, N, south_class, 0);
-    let north = sim.spawn_class(Vec2::new(0.0, 13.0), -FRAC_PI_2, 600, UnitClassId::HeavySword, 1);
+    let north = sim.spawn_class(
+        Vec2::new(0.0, 13.0),
+        -FRAC_PI_2,
+        600,
+        UnitClassId::HeavySword,
+        1,
+    );
     sim.set_files(north, (sim.units[south].files_eff * 3) / 2);
     for k in 0..support {
         let x = (k as f32 - support as f32 / 2.0) * 20.0;
@@ -53,7 +62,11 @@ fn break_pct_with_balance(
 fn allied_support_lets_a_unit_hold_past_where_it_breaks_alone() {
     let alone = break_pct(0, UnitClassId::HeavySword, UnitClassId::HeavySword);
     let backed = break_pct(3, UnitClassId::HeavySword, UnitClassId::HeavySword);
-    eprintln!("break: alone {:.0}%  +3 friends {:.0}%", alone * 100.0, backed * 100.0);
+    eprintln!(
+        "break: alone {:.0}%  +3 friends {:.0}%",
+        alone * 100.0,
+        backed * 100.0
+    );
     assert!(
         backed > alone + 0.08,
         "steady friends must let a unit hold longer: alone {:.0}% vs backed {:.0}%",
@@ -95,7 +108,11 @@ fn support_scales_with_the_number_of_friends() {
 fn a_high_aura_ally_steadies_more_than_ordinary_foot() {
     let inf = break_pct(3, UnitClassId::HeavySword, UnitClassId::HeavySword);
     let cav = break_pct(3, UnitClassId::HeavySword, UnitClassId::ShockCavalry);
-    eprintln!("break: +3 infantry {:.0}%  +3 cavalry {:.0}%", inf * 100.0, cav * 100.0);
+    eprintln!(
+        "break: +3 infantry {:.0}%  +3 cavalry {:.0}%",
+        inf * 100.0,
+        cav * 100.0
+    );
     assert!(
         cav >= inf,
         "high-aura cavalry must steady at least as much as equal infantry: inf {:.0}% vs cav {:.0}%",
@@ -116,13 +133,12 @@ fn a_brave_class_holds_longer_than_a_timid_one() {
     timid_heavy_body.id = UnitClassId::Peasant;
     timid_heavy_body.bravery = balance.get(UnitClassId::Peasant).bravery;
     balance.set(UnitClassId::Peasant, timid_heavy_body);
-    let timid = break_pct_with_balance(
-        0,
-        UnitClassId::Peasant,
-        UnitClassId::HeavySword,
-        balance,
+    let timid = break_pct_with_balance(0, UnitClassId::Peasant, UnitClassId::HeavySword, balance);
+    eprintln!(
+        "break: brave {:.0}%  timid {:.0}%",
+        heavy * 100.0,
+        timid * 100.0
     );
-    eprintln!("break: brave {:.0}%  timid {:.0}%", heavy * 100.0, timid * 100.0);
     assert!(
         timid < heavy - 0.10,
         "a timid unit must break earlier than a brave one: timid {:.0}% vs brave {:.0}%",
@@ -135,14 +151,38 @@ fn a_brave_class_holds_longer_than_a_timid_one() {
 /// allied support rings it — no square, no line, no fight left.
 #[test]
 fn nine_or_fewer_men_always_break_even_under_massive_support() {
-    let mut sim = Sim::new(Tunables { micro_rough: 0.0, ..Tunables::default() }, 7);
-    let tiny = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 9, UnitClassId::HeavySword, 0);
+    let mut sim = Sim::new(
+        Tunables {
+            micro_rough: 0.0,
+            ..Tunables::default()
+        },
+        7,
+    );
+    let tiny = sim.spawn_class(
+        Vec2::new(0.0, 0.0),
+        FRAC_PI_2,
+        9,
+        UnitClassId::HeavySword,
+        0,
+    );
     // Ring it with massive high-aura support and an enemy in sight (not at ease).
     for k in 0..4 {
         let x = (k as f32 - 2.0) * 15.0;
-        sim.spawn_class(Vec2::new(x, -20.0), FRAC_PI_2, 240, UnitClassId::ShockCavalry, 0);
+        sim.spawn_class(
+            Vec2::new(x, -20.0),
+            FRAC_PI_2,
+            240,
+            UnitClassId::ShockCavalry,
+            0,
+        );
     }
-    sim.spawn_class(Vec2::new(0.0, 20.0), -FRAC_PI_2, 100, UnitClassId::HeavySword, 1);
+    sim.spawn_class(
+        Vec2::new(0.0, 20.0),
+        -FRAC_PI_2,
+        100,
+        UnitClassId::HeavySword,
+        1,
+    );
     for _ in 0..(3.0 / DT) as usize {
         sim.tick();
     }

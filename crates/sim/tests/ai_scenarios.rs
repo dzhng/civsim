@@ -11,16 +11,46 @@ fn ai_brings_a_battle_to_a_verdict() {
     // Compact battle (the full 30k field is exercised in browser verify).
     let mut sim = Sim::new(Tunables::default(), SEED);
     let lay = |sim: &mut Sim, team: u32, y: f32, facing: f32| {
-        sim.spawn_class(Vec2::new(-60.0, y), facing, 300, UnitClassId::HeavySword, team);
+        sim.spawn_class(
+            Vec2::new(-60.0, y),
+            facing,
+            300,
+            UnitClassId::HeavySword,
+            team,
+        );
         sim.spawn_class(Vec2::new(0.0, y), facing, 320, UnitClassId::Phalanx, team);
-        sim.spawn_class(Vec2::new(60.0, y), facing, 300, UnitClassId::LightSpear, team);
-        sim.spawn_class(Vec2::new(0.0, y - facing.sin() * 30.0), facing, 160, UnitClassId::Archers, team);
-        sim.spawn_class(Vec2::new(120.0, y), facing, 100, UnitClassId::ShockCavalry, team);
+        sim.spawn_class(
+            Vec2::new(60.0, y),
+            facing,
+            300,
+            UnitClassId::LightSpear,
+            team,
+        );
+        sim.spawn_class(
+            Vec2::new(0.0, y - facing.sin() * 30.0),
+            facing,
+            160,
+            UnitClassId::Archers,
+            team,
+        );
+        sim.spawn_class(
+            Vec2::new(120.0, y),
+            facing,
+            100,
+            UnitClassId::ShockCavalry,
+            team,
+        );
     };
     lay(&mut sim, 0, -80.0, FRAC_PI_2);
     lay(&mut sim, 1, 80.0, -FRAC_PI_2);
     // Slight asymmetry so somebody wins.
-    sim.spawn_class(Vec2::new(-120.0, -80.0), FRAC_PI_2, 200, UnitClassId::HeavySword, 0);
+    sim.spawn_class(
+        Vec2::new(-120.0, -80.0),
+        FRAC_PI_2,
+        200,
+        UnitClassId::HeavySword,
+        0,
+    );
     let mut victor = None;
     for _ in 0..(900.0 / DT) as usize {
         sim.tick();
@@ -83,8 +113,20 @@ fn hold_ground_stops_when_the_enemy_breaks_pursue_chases() {
     // away.
     let chase = |pursue: bool| -> f32 {
         let mut sim = Sim::new(Tunables::default(), SEED);
-        let hunter = sim.spawn_class(Vec2::new(0.0, -14.0), FRAC_PI_2, 400, UnitClassId::HeavySword, 0);
-        let prey = sim.spawn_class(Vec2::new(0.0, 10.0), -FRAC_PI_2, 140, UnitClassId::LightSpear, 1);
+        let hunter = sim.spawn_class(
+            Vec2::new(0.0, -14.0),
+            FRAC_PI_2,
+            400,
+            UnitClassId::HeavySword,
+            0,
+        );
+        let prey = sim.spawn_class(
+            Vec2::new(0.0, 10.0),
+            -FRAC_PI_2,
+            140,
+            UnitClassId::LightSpear,
+            1,
+        );
         sim.set_pursue(hunter, pursue);
         sim.set_attack_order(hunter, prey);
         for _ in 0..(200.0 / DT) as usize {

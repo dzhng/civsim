@@ -763,15 +763,15 @@ fn depth_contest(a_ranks: usize, b_ranks: usize, secs: f32) -> f32 {
 
 #[test]
 fn a_deep_column_walks_a_thin_line_back_equal_depths_hold() {
-    // Othismos, emergent from the weave alone (no force-conduction term). Two
-    // invulnerable blocks of equal width shove head-on. When one is far deeper,
-    // its extra ranks each add a compression spring driving the rank ahead, so
-    // the column walks the thin line back — the contact MIDLINE drifts toward
-    // the thin side. Equal depths have equal spring chains: the line holds, the
+    // Depth pressure, emergent from the weave alone (no force-conduction term).
+    // Two invulnerable blocks of equal width shove head-on. When one is far
+    // deeper, its extra ranks each add a compression spring driving the rank
+    // ahead, so the column walks the thin line back — the contact MIDLINE drifts
+    // toward the thin side. Equal depths have equal spring chains: the line holds, the
     // midline barely moves. This is the transmission that `press_drive` used to
     // bolt onto the collision solver; the springs do it on their own now.
     // The contact projection removes the old impact shove-through transient, so
-    // depth expresses as a sustained othismos drift rather than a first-12s lurch.
+    // depth expresses as sustained compression drift rather than a first-12s lurch.
     let deep = depth_contest(14, 3, 24.0);
     let even = depth_contest(8, 8, 24.0);
     eprintln!("DEPTH  deep-vs-thin midline drift {deep:+.2}m  |  equal-vs-equal {even:+.2}m");
@@ -1280,12 +1280,12 @@ fn two_braced_walls_hold_a_standoff_neither_centroid_crosses() {
     // static standoff would show), but the old trample collapsed it through zero.
     assert!(
         min_centroid_gap > 4.0,
-        "blocks collapsed to {min_centroid_gap:.2} m centroid gap — the braced pole fence did not hold the standoff",
+        "blocks collapsed to {min_centroid_gap:.2} m centroid gap — the braced pole hedge did not hold the standoff",
     );
     // Fronts never deeply interpenetrated (a hair of column-stagger jitter aside).
     assert!(
         min_front > -1.0,
-        "fronts interpenetrated to {min_front:.2} m — the braced pole fence did not hold (reach 3.5)",
+        "fronts interpenetrated to {min_front:.2} m — the braced pole hedge did not hold (reach 3.5)",
     );
 }
 

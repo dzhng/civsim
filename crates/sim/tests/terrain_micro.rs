@@ -41,8 +41,22 @@ fn long_marches_fray_over_rough_ground() {
     // same wrong-metric the mud test had: the min catches a transient; only the end
     // tells fray from rout).
     let cohesion_after = |micro: f32| -> (f32, f32) {
-        let mut sim = Sim::new(Tunables { micro_rough: micro, ..Tunables::default() }, SEED);
-        let u = sim.spawn_unit(Vec2::new(-150.0, 0.0), 0.0, 300, 30, Vec2::new(1.0, 1.2), 0, 0.7);
+        let mut sim = Sim::new(
+            Tunables {
+                micro_rough: micro,
+                ..Tunables::default()
+            },
+            SEED,
+        );
+        let u = sim.spawn_unit(
+            Vec2::new(-150.0, 0.0),
+            0.0,
+            300,
+            30,
+            Vec2::new(1.0, 1.2),
+            0,
+            0.7,
+        );
         sim.set_pace(u, Pace::Walk);
         sim.set_move_order(u, Vec2::new(250.0, 0.0));
         let mut min_cohesion = 1.0f32;

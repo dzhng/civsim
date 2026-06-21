@@ -2,7 +2,7 @@
 //! emergent property the design promises — if the emergence breaks, so does
 //! the test.
 
-mod common;
+pub mod common;
 
 use common::run;
 use sim::{Pace, Sim, Tunables, Vec2, DT};
@@ -16,7 +16,10 @@ fn test_unit(sim: &mut Sim) -> usize {
 
 fn mean_slot_error(sim: &Sim, unit: usize) -> f32 {
     let u = &sim.units[unit];
-    (u.start..u.start + u.count).map(|i| sim.slot_error(i)).sum::<f32>() / u.count as f32
+    (u.start..u.start + u.count)
+        .map(|i| sim.slot_error(i))
+        .sum::<f32>()
+        / u.count as f32
 }
 
 #[test]
@@ -102,8 +105,24 @@ fn friendly_units_passing_through_push_apart_and_lose_cohesion() {
     // Relief-in-place: two FRIENDLY units cross through each other. (Enemy
     // units stopped interpenetrating when melee landed: they halt and fight.)
     let mut sim = Sim::new(Tunables::default(), SEED);
-    let a = sim.spawn_unit(Vec2::new(-15.0, 0.0), 0.0, 100, 10, Vec2::new(1.0, 1.2), 0, 0.7);
-    let b = sim.spawn_unit(Vec2::new(15.0, 0.0), PI, 100, 10, Vec2::new(1.0, 1.2), 0, 0.7);
+    let a = sim.spawn_unit(
+        Vec2::new(-15.0, 0.0),
+        0.0,
+        100,
+        10,
+        Vec2::new(1.0, 1.2),
+        0,
+        0.7,
+    );
+    let b = sim.spawn_unit(
+        Vec2::new(15.0, 0.0),
+        PI,
+        100,
+        10,
+        Vec2::new(1.0, 1.2),
+        0,
+        0.7,
+    );
     sim.set_move_order(a, Vec2::new(40.0, 0.0));
     sim.set_move_order(b, Vec2::new(-40.0, 0.0));
     let mut min_cohesion = 1.0f32;
@@ -116,7 +135,10 @@ fn friendly_units_passing_through_push_apart_and_lose_cohesion() {
         "unit a should push through, anchor {:?}",
         sim.units[a].anchor
     );
-    assert!(mean_slot_error(&sim, a) < 1.0, "unit a should re-form after crossing");
+    assert!(
+        mean_slot_error(&sim, a) < 1.0,
+        "unit a should re-form after crossing"
+    );
     assert!(
         min_cohesion < 0.9,
         "crossing a unit should cost cohesion, min was {min_cohesion}"
@@ -128,7 +150,10 @@ fn friendly_units_passing_through_push_apart_and_lose_cohesion() {
             min_d = min_d.min((sim.soldier_pos(i) - sim.soldier_pos(j)).len());
         }
     }
-    assert!(min_d > 0.4, "soldiers should not stack, min distance {min_d}");
+    assert!(
+        min_d > 0.4,
+        "soldiers should not stack, min distance {min_d}"
+    );
 }
 
 #[test]
@@ -139,7 +164,10 @@ fn running_drains_fatigue_and_tired_units_slow_down() {
     sim.set_move_order(u, Vec2::new(500.0, 0.0));
     run(&mut sim, 20.0);
     let fresh_speed = sim.units[u].frame_speed;
-    assert!(fresh_speed > 3.0, "fresh unit should run fast, got {fresh_speed}");
+    assert!(
+        fresh_speed > 3.0,
+        "fresh unit should run fast, got {fresh_speed}"
+    );
     run(&mut sim, 70.0);
     let tired = &sim.units[u];
     assert!(
@@ -213,14 +241,21 @@ fn running_disorganizes_walking_does_not() {
     // weave cohesion, a walk below every man's top speed holds perfect dressing
     // (~1.0); a run above the slowest fifth's top frays from the spread alone.
     let cohesion_after = |run: bool| -> f32 {
-        let mut sim = Sim::new(Tunables { micro_rough: 0.0, ..Tunables::default() }, 4711);
+        let mut sim = Sim::new(
+            Tunables {
+                micro_rough: 0.0,
+                ..Tunables::default()
+            },
+            4711,
+        );
         let u = sim.spawn_unit(Vec2::ZERO, 0.0, 400, 40, Vec2::new(1.0, 1.2), 0, 0.7);
         if run {
             sim.set_pace(u, Pace::Run);
         }
         sim.set_move_order(u, Vec2::new(420.0, 0.0));
         // Measure mid-march at the same DISTANCE covered, not the same time.
-        while sim.units[u].anchor.x < 170.0 { // mid-run, before fatigue ends it
+        while sim.units[u].anchor.x < 170.0 {
+            // mid-run, before fatigue ends it
             sim.tick();
         }
         sim.units[u].cohesion

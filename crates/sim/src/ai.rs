@@ -79,7 +79,14 @@ pub fn ai_commander(sim: &mut Sim, team: u32) {
                 // place in the line — then, once close, pick a target and
                 // commit. No premature blobbing onto one enemy unit.
                 let run = dist > 380.0;
-                sim.set_pace(ui, if run { crate::tunables::Pace::Run } else { crate::tunables::Pace::Walk });
+                sim.set_pace(
+                    ui,
+                    if run {
+                        crate::tunables::Pace::Run
+                    } else {
+                        crate::tunables::Pace::Walk
+                    },
+                );
                 if dist > 230.0 {
                     let to = sim.units[enemy].center() - center;
                     let goal = center + to * ((dist - 180.0) / dist.max(0.1));

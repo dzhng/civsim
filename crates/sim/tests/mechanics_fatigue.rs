@@ -10,8 +10,20 @@ use std::f32::consts::FRAC_PI_2;
 
 /// Metres a Running unit covers in 8 s, held at a fixed fatigue.
 fn run_distance(fatigue: f32) -> f32 {
-    let mut sim = Sim::new(Tunables { micro_rough: 0.0, ..Tunables::default() }, 1);
-    let u = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 120, UnitClassId::HeavySword, 0);
+    let mut sim = Sim::new(
+        Tunables {
+            micro_rough: 0.0,
+            ..Tunables::default()
+        },
+        1,
+    );
+    let u = sim.spawn_class(
+        Vec2::new(0.0, 0.0),
+        FRAC_PI_2,
+        120,
+        UnitClassId::HeavySword,
+        0,
+    );
     let y0 = sim.units[u].centroid.y;
     sim.set_pace(u, Pace::Run);
     sim.set_move_order(u, Vec2::new(0.0, 200.0));
@@ -35,9 +47,27 @@ fn fatigue_saps_run_speed() {
 
 /// Kills a south attacker inflicts on a held north line in 30 s, at fixed fatigue.
 fn kills_in_30s(att_fatigue: f32) -> usize {
-    let mut sim = Sim::new(Tunables { micro_rough: 0.0, ..Tunables::default() }, 3);
-    let att = sim.spawn_class(Vec2::new(0.0, -10.0), FRAC_PI_2, 200, UnitClassId::HeavySword, 0);
-    let def = sim.spawn_class(Vec2::new(0.0, 10.0), -FRAC_PI_2, 200, UnitClassId::HeavySword, 1);
+    let mut sim = Sim::new(
+        Tunables {
+            micro_rough: 0.0,
+            ..Tunables::default()
+        },
+        3,
+    );
+    let att = sim.spawn_class(
+        Vec2::new(0.0, -10.0),
+        FRAC_PI_2,
+        200,
+        UnitClassId::HeavySword,
+        0,
+    );
+    let def = sim.spawn_class(
+        Vec2::new(0.0, 10.0),
+        -FRAC_PI_2,
+        200,
+        UnitClassId::HeavySword,
+        1,
+    );
     let def_n0 = sim.units[def].alive_count;
     // Press IN (Run): a fresh line drives to solid reach and trades; a spent one
     // both closes slower AND swings slower, so it lands fewer killing blows. (A

@@ -25,7 +25,9 @@ struct Canvas {
 }
 impl Canvas {
     fn new() -> Self {
-        Canvas { buf: vec![250u8; (W * H * 3) as usize] }
+        Canvas {
+            buf: vec![250u8; (W * H * 3) as usize],
+        }
     }
     fn px(&mut self, x: i32, y: i32, c: [u8; 3]) {
         if x < 0 || y < 0 || x >= W as i32 || y >= H as i32 {
@@ -53,7 +55,10 @@ impl Canvas {
         let mut enc = png::Encoder::new(BufWriter::new(file), W, H);
         enc.set_color(png::ColorType::Rgb);
         enc.set_depth(png::BitDepth::Eight);
-        enc.write_header().unwrap().write_image_data(&self.buf).unwrap();
+        enc.write_header()
+            .unwrap()
+            .write_image_data(&self.buf)
+            .unwrap();
     }
 }
 
@@ -66,7 +71,11 @@ struct Frame {
 /// render the flip-book with a single FIXED camera (fit to the whole motion)
 /// so the eye reads movement, not a jittering view.
 fn shoot(name: &str, mut sim: Sim, secs: f32, step: f32) {
-    let dir = format!("{}/../../web/vibe/shots/weave/{}", env!("CARGO_MANIFEST_DIR"), name);
+    let dir = format!(
+        "{}/../../web/vibe/shots/weave/{}",
+        env!("CARGO_MANIFEST_DIR"),
+        name
+    );
     create_dir_all(&dir).unwrap();
     let mut frames: Vec<Frame> = Vec::new();
     let steps = (secs / step).round() as usize;
@@ -87,8 +96,12 @@ fn shoot(name: &str, mut sim: Sim, secs: f32, step: f32) {
         }
     }
     // Fixed camera: bounds over all LIVE men across all frames.
-    let (mut lo_x, mut hi_x, mut lo_y, mut hi_y) =
-        (f32::INFINITY, f32::NEG_INFINITY, f32::INFINITY, f32::NEG_INFINITY);
+    let (mut lo_x, mut hi_x, mut lo_y, mut hi_y) = (
+        f32::INFINITY,
+        f32::NEG_INFINITY,
+        f32::INFINITY,
+        f32::NEG_INFINITY,
+    );
     for f in &frames {
         for &(x, y, _, a) in &f.men {
             if a {
@@ -113,8 +126,8 @@ fn shoot(name: &str, mut sim: Sim, secs: f32, step: f32) {
     let r = (0.33 * scale).max(2.0);
     let team_col = |t: u32, alive: bool| -> [u8; 3] {
         match (t, alive) {
-            (0, true) => [50, 90, 210],   // team 0 blue
-            (1, true) => [210, 70, 55],   // team 1 red
+            (0, true) => [50, 90, 210],    // team 0 blue
+            (1, true) => [210, 70, 55],    // team 1 red
             (_, false) => [205, 205, 205], // a fallen man, grey
             _ => [120, 120, 120],
         }
@@ -130,7 +143,12 @@ fn shoot(name: &str, mut sim: Sim, secs: f32, step: f32) {
         }
         cv.write(&format!("{}/t{:03}.png", dir, s));
     }
-    println!("  {} → {} frames  (web/vibe/shots/weave/{}/)", name, frames.len(), name);
+    println!(
+        "  {} → {} frames  (web/vibe/shots/weave/{}/)",
+        name,
+        frames.len(),
+        name
+    );
 }
 
 // --- scenario builders (mirror tests/mechanics_weave.rs) -------------------
@@ -142,8 +160,25 @@ fn base_tun() -> Tunables {
     t
 }
 
-fn spawn(sim: &mut Sim, x: f32, y: f32, face: f32, files: usize, ranks: usize, sp: f32, team: u32) -> usize {
-    sim.spawn_unit(Vec2::new(x, y), face, files * ranks, files, Vec2::new(sp, sp), team, 0.8)
+fn spawn(
+    sim: &mut Sim,
+    x: f32,
+    y: f32,
+    face: f32,
+    files: usize,
+    ranks: usize,
+    sp: f32,
+    team: u32,
+) -> usize {
+    sim.spawn_unit(
+        Vec2::new(x, y),
+        face,
+        files * ranks,
+        files,
+        Vec2::new(sp, sp),
+        team,
+        0.8,
+    )
 }
 
 fn settle(sim: &mut Sim, n: usize) {
@@ -233,8 +268,24 @@ fn main() {
     // grind even, or does the holder collapse? (a_held_braced.)
     {
         let mut sim = Sim::new(base_tun(), 146);
-        let atk = sim.spawn_unit(Vec2::new(0.0, -12.0), FRAC_PI_2, 240, 20, Vec2::new(1.0, 1.2), 0, 0.7);
-        let def = sim.spawn_unit(Vec2::new(0.0, 12.0), -FRAC_PI_2, 240, 20, Vec2::new(1.0, 1.2), 1, 0.7);
+        let atk = sim.spawn_unit(
+            Vec2::new(0.0, -12.0),
+            FRAC_PI_2,
+            240,
+            20,
+            Vec2::new(1.0, 1.2),
+            0,
+            0.7,
+        );
+        let def = sim.spawn_unit(
+            Vec2::new(0.0, 12.0),
+            -FRAC_PI_2,
+            240,
+            20,
+            Vec2::new(1.0, 1.2),
+            1,
+            0.7,
+        );
         sim.units[atk].stats = sim::class_stats(UnitClassId::HeavySword);
         sim.units[def].stats = sim::class_stats(UnitClassId::HeavySword);
         sim.set_pace(atk, Pace::Walk);
@@ -247,9 +298,21 @@ fn main() {
     // lean pull its front apart so the column splits it like a curtain?
     {
         let mut sim = Sim::new(base_tun(), 11);
-        let line = sim.spawn_class(Vec2::new(0.0, 13.0), -FRAC_PI_2, 280, UnitClassId::HeavySword, 1);
+        let line = sim.spawn_class(
+            Vec2::new(0.0, 13.0),
+            -FRAC_PI_2,
+            280,
+            UnitClassId::HeavySword,
+            1,
+        );
         sim.set_files(line, 70);
-        let col = sim.spawn_class(Vec2::new(0.0, -25.0), FRAC_PI_2, 128, UnitClassId::HeavySword, 0);
+        let col = sim.spawn_class(
+            Vec2::new(0.0, -25.0),
+            FRAC_PI_2,
+            128,
+            UnitClassId::HeavySword,
+            0,
+        );
         sim.set_files(col, 8);
         sim.set_pace(col, Pace::Run);
         sim.set_attack_move_order(col, Vec2::new(0.0, 60.0));
@@ -434,8 +497,20 @@ fn main() {
     // and be pinned — not bounce off a too-rigid formation.
     {
         let mut sim = Sim::new(base_tun(), SEED);
-        let block = sim.spawn_class(Vec2::new(0.0, 0.0), -FRAC_PI_2, 6 * 8, UnitClassId::HeavySword, 1);
-        let cav = sim.spawn_class(Vec2::new(0.0, -32.0), FRAC_PI_2, 60, UnitClassId::ShockCavalry, 0);
+        let block = sim.spawn_class(
+            Vec2::new(0.0, 0.0),
+            -FRAC_PI_2,
+            6 * 8,
+            UnitClassId::HeavySword,
+            1,
+        );
+        let cav = sim.spawn_class(
+            Vec2::new(0.0, -32.0),
+            FRAC_PI_2,
+            60,
+            UnitClassId::ShockCavalry,
+            0,
+        );
         settle(&mut sim, 30);
         sim.set_pace(cav, Pace::Run);
         sim.set_attack_order(cav, block);
@@ -447,9 +522,21 @@ fn main() {
     // straight THROUGH it? (a_wide_line_wraps_a_narrow_block.)
     {
         let mut sim = Sim::new(base_tun(), 11);
-        let block = sim.spawn_class(Vec2::new(0.0, 13.0), -FRAC_PI_2, 120, UnitClassId::HeavySword, 1);
+        let block = sim.spawn_class(
+            Vec2::new(0.0, 13.0),
+            -FRAC_PI_2,
+            120,
+            UnitClassId::HeavySword,
+            1,
+        );
         sim.set_files(block, 12);
-        let line = sim.spawn_class(Vec2::new(0.0, -13.0), FRAC_PI_2, 210, UnitClassId::HeavySword, 0);
+        let line = sim.spawn_class(
+            Vec2::new(0.0, -13.0),
+            FRAC_PI_2,
+            210,
+            UnitClassId::HeavySword,
+            0,
+        );
         sim.set_files(line, 70);
         sim.set_pace(line, Pace::Run);
         sim.set_attack_order(line, block);
@@ -461,9 +548,21 @@ fn main() {
     // it and walk through? (a_column_bulges_a_held_line_it_does_not_part_it.)
     {
         let mut sim = Sim::new(base_tun(), 11);
-        let line = sim.spawn_class(Vec2::new(0.0, 13.0), -FRAC_PI_2, 280, UnitClassId::HeavySword, 1);
+        let line = sim.spawn_class(
+            Vec2::new(0.0, 13.0),
+            -FRAC_PI_2,
+            280,
+            UnitClassId::HeavySword,
+            1,
+        );
         sim.set_files(line, 70);
-        let col = sim.spawn_class(Vec2::new(0.0, -25.0), FRAC_PI_2, 128, UnitClassId::HeavySword, 0);
+        let col = sim.spawn_class(
+            Vec2::new(0.0, -25.0),
+            FRAC_PI_2,
+            128,
+            UnitClassId::HeavySword,
+            0,
+        );
         sim.set_files(col, 8);
         invuln(&mut sim);
         sim.set_pace(col, Pace::Run);
@@ -475,8 +574,20 @@ fn main() {
     // it grind head-on or WHEEL 90 deg (swirl)? (phalanx_and_heavy_clash_without_swirling.)
     {
         let mut sim = Sim::new(base_tun(), 4242);
-        let bot = sim.spawn_class(Vec2::new(0.0, -13.0), FRAC_PI_2, 120, UnitClassId::Phalanx, 0);
-        let top = sim.spawn_class(Vec2::new(0.0, 13.0), -FRAC_PI_2, 120, UnitClassId::HeavySword, 1);
+        let bot = sim.spawn_class(
+            Vec2::new(0.0, -13.0),
+            FRAC_PI_2,
+            120,
+            UnitClassId::Phalanx,
+            0,
+        );
+        let top = sim.spawn_class(
+            Vec2::new(0.0, 13.0),
+            -FRAC_PI_2,
+            120,
+            UnitClassId::HeavySword,
+            1,
+        );
         sim.set_pace(bot, Pace::Run);
         sim.set_pace(top, Pace::Run);
         sim.set_attack_order(bot, top);
@@ -488,9 +599,32 @@ fn main() {
     // HOLD at the points, or pancake/merge? (two_braced_walls_hold_a_standoff.)
     {
         let mut sim = Sim::new(base_tun(), 7);
-        let pike = sim::Weapon { reach: 3.5, min_range: 1.1, arc: 0.08, attack_interval: 1.4, damage: 0.0, braced: true };
-        let south = sim.spawn_unit(Vec2::new(0.0, -25.0), FRAC_PI_2, 200, 20, Vec2::new(0.8, 1.0), 0, 0.85);
-        let north = sim.spawn_unit(Vec2::new(0.0, 25.0), -FRAC_PI_2, 200, 20, Vec2::new(0.8, 1.0), 1, 0.85);
+        let pike = sim::Weapon {
+            reach: 3.5,
+            min_range: 1.1,
+            arc: 0.08,
+            attack_interval: 1.4,
+            damage: 0.0,
+            braced: true,
+        };
+        let south = sim.spawn_unit(
+            Vec2::new(0.0, -25.0),
+            FRAC_PI_2,
+            200,
+            20,
+            Vec2::new(0.8, 1.0),
+            0,
+            0.85,
+        );
+        let north = sim.spawn_unit(
+            Vec2::new(0.0, 25.0),
+            -FRAC_PI_2,
+            200,
+            20,
+            Vec2::new(0.8, 1.0),
+            1,
+            0.85,
+        );
         for &u in &[south, north] {
             sim.units[u].stats.weapons = sim::class::one(pike);
         }
@@ -506,7 +640,15 @@ fn main() {
     // the shot AT the reversal so the flip-book is the pivot itself.
     {
         let mut sim = Sim::new(base_tun(), 42);
-        let u = sim.spawn_unit(Vec2::new(0.0, 0.0), 0.0, 200, 20, Vec2::new(1.0, 1.2), 0, 0.7);
+        let u = sim.spawn_unit(
+            Vec2::new(0.0, 0.0),
+            0.0,
+            200,
+            20,
+            Vec2::new(1.0, 1.2),
+            0,
+            0.7,
+        );
         sim.set_move_order(u, Vec2::new(40.0, 0.0));
         for _ in 0..(10.0 / DT) as usize {
             sim.tick();

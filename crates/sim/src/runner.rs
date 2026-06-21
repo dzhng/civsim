@@ -23,13 +23,22 @@ impl Battle {
     /// Wrap a bare sim (quick battles / sandboxes): no schedule, no campaign
     /// unit mapping — `result()` is meaningless, `victor` comes from the sim.
     pub fn from_sim(sim: Sim) -> Battle {
-        Battle { sim, scheduled: Vec::new(), unit_map: Vec::new(), ai_teams: [false, false] }
+        Battle {
+            sim,
+            scheduled: Vec::new(),
+            unit_map: Vec::new(),
+            ai_teams: [false, false],
+        }
     }
 
     /// Result with the victor forced by remaining strength — for battles cut
     /// short (player quit, tick cap) before the sim declared one.
     pub fn forced_result(&self) -> BattleResult {
-        let v = if self.strength(0) >= self.strength(1) { 0 } else { 1 };
+        let v = if self.strength(0) >= self.strength(1) {
+            0
+        } else {
+            1
+        };
         self.result_with_victor(v)
     }
 
@@ -45,10 +54,20 @@ impl Battle {
         let mut scheduled: Vec<(u64, Reinforcement)> = setup
             .reinforcements
             .iter()
-            .map(|r| (((r.delay_secs / crate::tunables::DT) as u64).max(1), r.clone()))
+            .map(|r| {
+                (
+                    ((r.delay_secs / crate::tunables::DT) as u64).max(1),
+                    r.clone(),
+                )
+            })
             .collect();
         scheduled.sort_by_key(|(due, _)| *due);
-        Battle { sim, scheduled, unit_map, ai_teams: [false, false] }
+        Battle {
+            sim,
+            scheduled,
+            unit_map,
+            ai_teams: [false, false],
+        }
     }
 
     pub fn set_ai(&mut self, team: u32, on: bool) {

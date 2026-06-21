@@ -83,7 +83,7 @@ Greppable anchors the implementer will need:
   `window.__campaign` (`armies/cities/cam/freeze/place/orderMove/tick/
   battleReady/project/select/...`), the DOM-only banner gallery at
   `?test=banners`.
-- The determinism discipline lives in `.claude/skills/screenshot-regression/
+- The determinism discipline lives in `.agents/skills/screenshot-regression/
   SKILL.md` — fixed 1280×800 viewport, explicit camera, freeze the clock,
   snap on Day 1 before any `tick()`, wait ~250ms after a camera move. Every
   rule there must survive the migration; a scenario that drops a `freeze()`
@@ -451,7 +451,7 @@ Must BECOME true (the acceptance, write these as runner self-checks):
 - Scratch shots regenerate mid-run today; until they are eliminated, a rebase
   needs `git checkout -- 'web/shots/*.png'` first. The whole point of this work
   is to retire that step.
-- Update `.claude/skills/screenshot-regression/SKILL.md` and the
+- Update `.agents/skills/screenshot-regression/SKILL.md` and the
   `write-scenario` skill to describe the runner as it lands, and update the
   README commands. The `write-scenario` skill is the durable artifact; this
   spec is deleted on completion.

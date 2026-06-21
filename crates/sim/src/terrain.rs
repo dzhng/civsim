@@ -92,10 +92,7 @@ fn micro_hash(x: i32, y: i32) -> u32 {
     h
 }
 
-#[allow(dead_code)]
-struct TerrainEndMarker;
 impl Terrain {
-
     /// Direction toward passable ground for a soldier standing in a wall:
     /// search rings of 8 bearings at growing radius for the nearest passable
     /// cell. Deterministic; zero vector only if fully entombed.
@@ -122,7 +119,12 @@ impl Terrain {
     }
 
     pub fn paint_rect(&mut self, min: Vec2, max: Vec2, speed: f32, rough: f32) {
-        self.paint(|p| p.x >= min.x && p.x <= max.x && p.y >= min.y && p.y <= max.y, speed, rough, 255);
+        self.paint(
+            |p| p.x >= min.x && p.x <= max.x && p.y >= min.y && p.y <= max.y,
+            speed,
+            rough,
+            255,
+        );
     }
 
     pub fn paint_circle(&mut self, center: Vec2, radius: f32, speed: f32, rough: f32) {
@@ -141,10 +143,22 @@ impl Terrain {
     /// Paint with an explicit render tint (0 grass, 1 water, 2 rock, 3 wall,
     /// 4 forest, 5 mud, 6 scree/field). Gameplay never reads tints.
     pub fn paint_rect_tinted(&mut self, min: Vec2, max: Vec2, speed: f32, rough: f32, tint: u8) {
-        self.paint(|p| p.x >= min.x && p.x <= max.x && p.y >= min.y && p.y <= max.y, speed, rough, tint);
+        self.paint(
+            |p| p.x >= min.x && p.x <= max.x && p.y >= min.y && p.y <= max.y,
+            speed,
+            rough,
+            tint,
+        );
     }
 
-    pub fn paint_circle_tinted(&mut self, center: Vec2, radius: f32, speed: f32, rough: f32, tint: u8) {
+    pub fn paint_circle_tinted(
+        &mut self,
+        center: Vec2,
+        radius: f32,
+        speed: f32,
+        rough: f32,
+        tint: u8,
+    ) {
         let r2 = radius * radius;
         self.paint(
             |p| {
@@ -158,7 +172,15 @@ impl Terrain {
     }
 
     /// Thick segment: roads, river reaches, wall runs at any bearing.
-    pub fn paint_capsule(&mut self, a: Vec2, b: Vec2, radius: f32, speed: f32, rough: f32, tint: u8) {
+    pub fn paint_capsule(
+        &mut self,
+        a: Vec2,
+        b: Vec2,
+        radius: f32,
+        speed: f32,
+        rough: f32,
+        tint: u8,
+    ) {
         let ab = b - a;
         let len2 = ab.x * ab.x + ab.y * ab.y;
         let r2 = radius * radius;
@@ -186,15 +208,47 @@ impl Terrain {
         let mut t = Terrain::flat(w, h, spec.cell, Vec2::new(-spec.half_w, -spec.half_h));
         for op in &spec.ops {
             match *op {
-                contract::PaintOp::Rect { min, max, speed, rough, tint } => {
-                    t.paint_rect_tinted(Vec2::new(min[0], min[1]), Vec2::new(max[0], max[1]), speed, rough, tint)
-                }
-                contract::PaintOp::Circle { center, radius, speed, rough, tint } => {
-                    t.paint_circle_tinted(Vec2::new(center[0], center[1]), radius, speed, rough, tint)
-                }
-                contract::PaintOp::Capsule { a, b, radius, speed, rough, tint } => {
-                    t.paint_capsule(Vec2::new(a[0], a[1]), Vec2::new(b[0], b[1]), radius, speed, rough, tint)
-                }
+                contract::PaintOp::Rect {
+                    min,
+                    max,
+                    speed,
+                    rough,
+                    tint,
+                } => t.paint_rect_tinted(
+                    Vec2::new(min[0], min[1]),
+                    Vec2::new(max[0], max[1]),
+                    speed,
+                    rough,
+                    tint,
+                ),
+                contract::PaintOp::Circle {
+                    center,
+                    radius,
+                    speed,
+                    rough,
+                    tint,
+                } => t.paint_circle_tinted(
+                    Vec2::new(center[0], center[1]),
+                    radius,
+                    speed,
+                    rough,
+                    tint,
+                ),
+                contract::PaintOp::Capsule {
+                    a,
+                    b,
+                    radius,
+                    speed,
+                    rough,
+                    tint,
+                } => t.paint_capsule(
+                    Vec2::new(a[0], a[1]),
+                    Vec2::new(b[0], b[1]),
+                    radius,
+                    speed,
+                    rough,
+                    tint,
+                ),
             }
         }
         t
@@ -235,7 +289,8 @@ impl Terrain {
 /// coarse time bucket, so rough ground staggers different men differently
 /// each moment — without touching the sim RNG stream.
 pub fn stagger01(soldier: usize, tick: u64) -> f32 {
-    let mut x = (soldier as u64).wrapping_mul(0x9E3779B97F4A7C15) ^ (tick / 8).wrapping_mul(0xBF58476D1CE4E5B9);
+    let mut x = (soldier as u64).wrapping_mul(0x9E3779B97F4A7C15)
+        ^ (tick / 8).wrapping_mul(0xBF58476D1CE4E5B9);
     x ^= x >> 30;
     x = x.wrapping_mul(0xBF58476D1CE4E5B9);
     x ^= x >> 27;

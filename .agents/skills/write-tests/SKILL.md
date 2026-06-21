@@ -78,7 +78,7 @@ wrong often enough to burn a session.
 Outcome metrics (kill counts, displacement) are CHAOTIC downstream of the
 mechanism — they flip sign across seeds and float profiles. Assert the
 physical signature instead:
-- Othismos = crowd pressure / line gap, not "pushed 0.5m farther".
+- Depth pressure = crowd pressure / line gap, not "pushed 0.5m farther".
 - Charge = burst speed at contact and momentum carried, not corpse count.
 - Rear vulnerability = use victims who actually evade (light classes);
   heavies barely evade, so their rear test carries the BLOCK asymmetry.

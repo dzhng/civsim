@@ -8,7 +8,7 @@
 //!
 //! See the `tweak-mechanics` skill for the workflow these encode.
 
-mod common;
+pub mod common;
 
 use common::{deaths, no_morale};
 use sim::{Pace, Sim, Tunables, UnitClassId, Vec2, DT};
@@ -168,28 +168,6 @@ fn depth_ratio(sim: &Sim, unit: usize) -> f32 {
     let ranks = (u.count as f32 / u.files_eff.max(1) as f32).max(1.0);
     let nominal = ((ranks - 1.0) * u.spacing.y).max(0.5);
     (hi - lo) / nominal
-}
-
-#[allow(dead_code)]
-fn rear_rank_slot_error(sim: &Sim, unit: usize, skip_front: usize) -> f32 {
-    let u = &sim.units[unit];
-    let files = u.files_eff.max(1);
-    let (mut sum, mut n) = (0.0f32, 0usize);
-    for i in u.start..u.start + u.count {
-        if sim.alive[i] == 0 {
-            continue;
-        }
-        let rank = sim.soldier_slot[i] as usize / files;
-        if rank >= skip_front {
-            sum += sim.slot_error(i);
-            n += 1;
-        }
-    }
-    if n == 0 {
-        0.0
-    } else {
-        sum / n as f32
-    }
 }
 
 struct Trace {

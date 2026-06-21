@@ -14,7 +14,7 @@ pub use campaign_bind::*;
 /// Floats per unit in the unit_info array:
 /// [anchor_x, anchor_y, facing, speed, cohesion, disorder, team, count,
 ///  fatigue, pace, target_x, target_y, has_target, class, order_delay_frac,
-///  alive_count, engaged, stance, charge (0 off / 1 armed / 2 charging), ammo,
+///  alive_count, engaged, at_ease, charge (0 off / 1 armed / 2 charging), ammo,
 ///  morale, routing, final_facing, has_final_facing, mode (0 move / 1 attack /
 ///  2 disengage), pursue, evade_auto, waiting, compressed, weapon_pref,
 ///  switch_frac, mean_pressure, centroid_x, centroid_y]
@@ -214,12 +214,6 @@ impl Game {
 
     pub fn terrain_origin_y(&self) -> f32 {
         self.battle.sim.terrain.origin.y
-    }
-
-    /// The one at-ease range (m): morale recovery, the rest pose, and the idle
-    /// fidget all key off it. The renderer reads it so the pose matches the sim.
-    pub fn at_ease_range(&self) -> f32 {
-        self.battle.sim.tun.at_ease_range
     }
 
     pub fn terrain_speed_ptr(&self) -> *const f32 {
@@ -444,7 +438,7 @@ impl Game {
                 },
                 u.alive_count as f32,
                 u.engaged as f32,
-                0.0, // (was stance; feature removed — slot kept to preserve render layout)
+                if u.at_ease { 1.0 } else { 0.0 },
                 if u.charging {
                     2.0
                 } else if u.charge_enabled {

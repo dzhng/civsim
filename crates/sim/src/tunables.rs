@@ -62,7 +62,7 @@ pub struct Tunables {
     /// Bond COMPRESSION resistance: the push-apart force grows as
     /// exp(compress/scale) - 1, so a slightly squeezed lattice barely
     /// resists but one crushed toward zero spacing pushes back without
-    /// bound — the weave can compress (othismos) but NEVER collapses to a
+    /// bound — the weave can compress under depth pressure but NEVER collapses to a
     /// blob. This same resistance is what holds a contact line: backpressure
     /// can't shove the front man through his foe because the foe's weave
     /// won't crush flat. Peak push per unit of (rest - live) over scale.
@@ -72,7 +72,7 @@ pub struct Tunables {
     pub compress_scale: f32,
     /// WEAVE STIFFNESS: multiplier on the draping-net REST-SHAPE spring only (the
     /// pull back to rest grid) — NOT the compression push-apart, which stays at
-    /// baseline so a pressed block can still squeeze axially (othismos). A stiffer
+    /// baseline so a pressed block can still squeeze axially. A stiffer
     /// rest-spring is what keeps the back ranks from piling onto the front: only
     /// the frontline feels the enemy magnet, and a stiff enough lattice means that
     /// pull cannot drag the ranks behind it forward. Does NOT touch slot or magnet.
@@ -187,8 +187,8 @@ pub struct Tunables {
     pub combat_drain: f32,
     /// "At ease" range (m): a unit with no living, non-routing enemy nearer
     /// than this is at ease — it recovers morale (see morale.rs), and the
-    /// renderer reads the same range to relax its stance (pikes up). Inside it
-    /// the unit is alert and recovers nothing. Combat mass (brace_mult) is a
+    /// renderer reads the same range to relax weapon posture (pikes up). Inside
+    /// it the unit is alert and recovers nothing. Combat mass (brace_mult) is a
     /// separate, distance-independent thing — see Unit::brace.
     pub at_ease_range: f32,
     /// Velocity retained per tick by a HALTED, at-ease formation's steer (the
@@ -209,7 +209,7 @@ pub struct Tunables {
     pub latch_slip: f32,
     /// Ram drag: commanded pace shed per (m/s of measured counter-press ×
     /// the unit's own speed in walking paces). Collision rate grows with
-    /// speed, so a slow othismos press barely feels the crowd's answer
+    /// speed, so a slow depth press barely feels the crowd's answer
     /// while a gallop into a braced wall eats its whole drive.
     pub press_brake: f32,
     /// Counter-press where the crowd's GRIP begins: column jitter reads
@@ -217,7 +217,7 @@ pub struct Tunables {
     /// BETWEEN what a screen the cav rides through sustains (~3-8) and what a wall
     /// it bogs against sustains (~11+): a braced or deep-enough block grips, a thin
     /// or shallow screen is spared. Below the floor the drag is off entirely (a
-    /// working othismos shove never brakes itself); above it ramps to full over
+    /// working slow shove never brakes itself); above it ramps to full over
     /// ~0.6× the floor.
     pub press_brake_floor: f32,
     /// Mass speed (m/s) below which a landed charge counts as SPENT — the

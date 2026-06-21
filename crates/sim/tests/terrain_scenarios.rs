@@ -21,7 +21,15 @@ fn march_unit_over(seed: u64, terrain: Option<Terrain>) -> (f32, f32, Vec2) {
     if let Some(t) = terrain {
         sim.terrain = t;
     }
-    let u = sim.spawn_unit(Vec2::new(-60.0, 0.0), 0.0, 200, 20, Vec2::new(1.0, 1.2), 0, 0.7);
+    let u = sim.spawn_unit(
+        Vec2::new(-60.0, 0.0),
+        0.0,
+        200,
+        20,
+        Vec2::new(1.0, 1.2),
+        0,
+        0.7,
+    );
     sim.set_move_order(u, Vec2::new(60.0, 0.0));
     let (coh, fat) = run_collect(&mut sim, 75.0, u);
     (coh, fat, sim.units[u].anchor)
@@ -41,7 +49,15 @@ fn march_end_cohesion(seed: u64, terrain: Option<Terrain>) -> f32 {
     if let Some(t) = terrain {
         sim.terrain = t;
     }
-    let u = sim.spawn_unit(Vec2::new(-60.0, 0.0), 0.0, 200, 20, Vec2::new(1.0, 1.2), 0, 0.7);
+    let u = sim.spawn_unit(
+        Vec2::new(-60.0, 0.0),
+        0.0,
+        200,
+        20,
+        Vec2::new(1.0, 1.2),
+        0,
+        0.7,
+    );
     sim.set_move_order(u, Vec2::new(60.0, 0.0));
     for _ in 0..(75.0 / DT) as usize {
         sim.tick();
@@ -69,10 +85,27 @@ fn mud_slows_drains_and_disorders_a_march() {
     // and the 75s snapshot catches a random phase — so the "mud disorders MORE"
     // claim is the seed AVERAGE of the FINAL order: across seeds the mud crossing
     // ends measurably more frayed than the flat march, which re-forms.
-    let seeds = [SEED, SEED + 1, SEED + 2, SEED + 3, SEED + 4, SEED + 5, SEED + 6, SEED + 7];
+    let seeds = [
+        SEED,
+        SEED + 1,
+        SEED + 2,
+        SEED + 3,
+        SEED + 4,
+        SEED + 5,
+        SEED + 6,
+        SEED + 7,
+    ];
     let n = seeds.len() as f32;
-    let coh_flat = seeds.iter().map(|&s| march_end_cohesion(s, None)).sum::<f32>() / n;
-    let coh_mud = seeds.iter().map(|&s| march_end_cohesion(s, Some(mud_strip()))).sum::<f32>() / n;
+    let coh_flat = seeds
+        .iter()
+        .map(|&s| march_end_cohesion(s, None))
+        .sum::<f32>()
+        / n;
+    let coh_mud = seeds
+        .iter()
+        .map(|&s| march_end_cohesion(s, Some(mud_strip())))
+        .sum::<f32>()
+        / n;
     assert!(
         coh_mud < coh_flat - 0.05,
         "uneven mud must disorder the unit: mean mud {coh_mud:.2} vs flat {coh_flat:.2}"
@@ -97,7 +130,15 @@ fn walls_keep_soldiers_out() {
     t.paint_rect(Vec2::new(-10.0, -40.0), Vec2::new(10.0, 40.0), 0.0, 0.0);
     let mut sim = Sim::new(Tunables::default(), SEED);
     sim.terrain = t;
-    let u = sim.spawn_unit(Vec2::new(-50.0, 0.0), 0.0, 200, 20, Vec2::new(1.0, 1.2), 0, 0.7);
+    let u = sim.spawn_unit(
+        Vec2::new(-50.0, 0.0),
+        0.0,
+        200,
+        20,
+        Vec2::new(1.0, 1.2),
+        0,
+        0.7,
+    );
     sim.set_move_order(u, Vec2::new(50.0, 0.0));
     for _ in 0..(60.0 / DT) as usize {
         sim.tick();
@@ -121,7 +162,15 @@ fn halted_on_rock() -> (Sim, usize) {
     t.paint_circle(Vec2::new(40.0, 0.0), 9.0, 0.0, 0.0);
     let mut sim = Sim::new(Tunables::default(), SEED);
     sim.terrain = t;
-    let u = sim.spawn_unit(Vec2::new(-40.0, 0.0), 0.0, 200, 20, Vec2::new(1.0, 1.2), 0, 0.7);
+    let u = sim.spawn_unit(
+        Vec2::new(-40.0, 0.0),
+        0.0,
+        200,
+        20,
+        Vec2::new(1.0, 1.2),
+        0,
+        0.7,
+    );
     sim.set_move_order(u, Vec2::new(40.0, 0.0)); // target = the rock
     for _ in 0..(120.0 / DT) as usize {
         sim.tick();
@@ -164,7 +213,15 @@ fn chokepoint_funneling_disorders_the_unit() {
     t.paint_rect(Vec2::new(-6.0, -150.0), Vec2::new(6.0, -8.0), 0.0, 0.0);
     let mut sim = Sim::new(Tunables::default(), SEED);
     sim.terrain = t;
-    let u = sim.spawn_unit(Vec2::new(-50.0, 0.0), 0.0, 200, 20, Vec2::new(1.0, 1.2), 0, 0.7);
+    let u = sim.spawn_unit(
+        Vec2::new(-50.0, 0.0),
+        0.0,
+        200,
+        20,
+        Vec2::new(1.0, 1.2),
+        0,
+        0.7,
+    );
     sim.set_move_order(u, Vec2::new(60.0, 0.0));
     let (min_cohesion, _) = run_collect(&mut sim, 110.0, u);
     assert!(

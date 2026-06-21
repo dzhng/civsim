@@ -6,7 +6,7 @@
 //! The contract (David's design):
 //!  1. Two EQUAL engaged units feel EQUAL pressure — whether both attack or one
 //!     holds. Order intent must not create a pressure asymmetry between equals.
-//!  2. Two EQUAL units do NOT give ground — the brace cancels othismos for
+//!  2. Two EQUAL units do NOT give ground — the brace cancels depth pressure for
 //!     equals, so neither centroid is walked back, attack-vs-hold or attack-vs-
 //!     attack alike.
 //!  3. A FLANKING unit feels LESS pressure than one in the frontline (a 2v1: the
@@ -56,9 +56,27 @@ fn backline_y(sim: &Sim, unit: usize) -> f32 {
 /// skipping the impact transient. Two HeavySword blocks meet head-on; `def_holds`
 /// makes the north unit hold (no order) while the south attacks.
 fn clash_metrics(def_holds: bool) -> (f32, f32, f32, f32) {
-    let mut sim = Sim::new(Tunables { micro_rough: 0.0, ..Tunables::default() }, SEED);
-    let s = sim.spawn_class(Vec2::new(0.0, -12.0), FRAC_PI_2, N, UnitClassId::HeavySword, 0);
-    let n = sim.spawn_class(Vec2::new(0.0, 12.0), -FRAC_PI_2, N, UnitClassId::HeavySword, 1);
+    let mut sim = Sim::new(
+        Tunables {
+            micro_rough: 0.0,
+            ..Tunables::default()
+        },
+        SEED,
+    );
+    let s = sim.spawn_class(
+        Vec2::new(0.0, -12.0),
+        FRAC_PI_2,
+        N,
+        UnitClassId::HeavySword,
+        0,
+    );
+    let n = sim.spawn_class(
+        Vec2::new(0.0, 12.0),
+        -FRAC_PI_2,
+        N,
+        UnitClassId::HeavySword,
+        1,
+    );
     sim.set_pace(s, Pace::Walk);
     sim.set_attack_order(s, n);
     if !def_holds {
@@ -95,8 +113,15 @@ fn clash_metrics(def_holds: bool) -> (f32, f32, f32, f32) {
 fn equal_units_feel_equal_pressure_attack_or_hold() {
     for def_holds in [false, true] {
         let (ps, pn, _, _) = clash_metrics(def_holds);
-        let label = if def_holds { "attack-vs-HOLD" } else { "attack-vs-attack" };
-        eprintln!("{label}: south press {ps:.2}  north press {pn:.2}  ratio {:.2}", ps / pn.max(1e-3));
+        let label = if def_holds {
+            "attack-vs-HOLD"
+        } else {
+            "attack-vs-attack"
+        };
+        eprintln!(
+            "{label}: south press {ps:.2}  north press {pn:.2}  ratio {:.2}",
+            ps / pn.max(1e-3)
+        );
         let (lo, hi) = (ps.min(pn), ps.max(pn));
         assert!(
             hi < lo * 1.25 + 0.3,
@@ -106,7 +131,7 @@ fn equal_units_feel_equal_pressure_attack_or_hold() {
 }
 
 /// INVARIANT 2: two equal units do not give ground at the BACKLINE under the
-/// press — the brace cancels the othismos drive for equals, so neither rear is
+/// press — the brace cancels the depth drive for equals, so neither rear is
 /// walked back while both still fight (attack-vs-hold and attack-vs-attack). The
 /// FRONT compresses (expected); the REAR holds. (A unit that later collapses and
 /// gives ground because it LOST the fight is a balance question, not this one.)
@@ -114,8 +139,14 @@ fn equal_units_feel_equal_pressure_attack_or_hold() {
 fn equal_units_do_not_give_ground() {
     for def_holds in [false, true] {
         let (_, _, s_back, n_back) = clash_metrics(def_holds);
-        let label = if def_holds { "attack-vs-HOLD" } else { "attack-vs-attack" };
-        eprintln!("{label}: south rear gave {s_back:+.1}m  north rear gave {n_back:+.1}m (backward)");
+        let label = if def_holds {
+            "attack-vs-HOLD"
+        } else {
+            "attack-vs-attack"
+        };
+        eprintln!(
+            "{label}: south rear gave {s_back:+.1}m  north rear gave {n_back:+.1}m (backward)"
+        );
         assert!(
             s_back > -2.0 && n_back < 2.0,
             "{label}: equal units must hold their REAR under the press: south {s_back:+.1} north {n_back:+.1}"
@@ -129,11 +160,35 @@ fn equal_units_do_not_give_ground() {
 /// open side — so the flanker's pressure is the lower of the two.
 #[test]
 fn a_flanker_feels_less_pressure_than_the_frontline() {
-    let mut sim = Sim::new(Tunables { micro_rough: 0.0, ..Tunables::default() }, SEED);
-    let def = sim.spawn_class(Vec2::new(0.0, 12.0), -FRAC_PI_2, N, UnitClassId::HeavySword, 1);
-    let front = sim.spawn_class(Vec2::new(0.0, -12.0), FRAC_PI_2, N, UnitClassId::HeavySword, 0);
+    let mut sim = Sim::new(
+        Tunables {
+            micro_rough: 0.0,
+            ..Tunables::default()
+        },
+        SEED,
+    );
+    let def = sim.spawn_class(
+        Vec2::new(0.0, 12.0),
+        -FRAC_PI_2,
+        N,
+        UnitClassId::HeavySword,
+        1,
+    );
+    let front = sim.spawn_class(
+        Vec2::new(0.0, -12.0),
+        FRAC_PI_2,
+        N,
+        UnitClassId::HeavySword,
+        0,
+    );
     // The flank attacker comes in from the defender's RIGHT (+x), facing -x.
-    let flank = sim.spawn_class(Vec2::new(24.0, 12.0), std::f32::consts::PI, N, UnitClassId::HeavySword, 0);
+    let flank = sim.spawn_class(
+        Vec2::new(24.0, 12.0),
+        std::f32::consts::PI,
+        N,
+        UnitClassId::HeavySword,
+        0,
+    );
     sim.set_pace(front, Pace::Walk);
     sim.set_attack_order(front, def);
     sim.set_pace(flank, Pace::Walk);
@@ -150,7 +205,10 @@ fn a_flanker_feels_less_pressure_than_the_frontline() {
     }
     let k = samples.max(1) as f32;
     let (pf, pl) = (pf / k, pl / k);
-    eprintln!("frontline press {pf:.2}  flanker press {pl:.2}  ratio {:.2}", pl / pf.max(1e-3));
+    eprintln!(
+        "frontline press {pf:.2}  flanker press {pl:.2}  ratio {:.2}",
+        pl / pf.max(1e-3)
+    );
     assert!(
         pl < pf * 0.85,
         "a flanking unit must feel LESS pressure than the frontline presser: flank {pl:.2} vs front {pf:.2}"

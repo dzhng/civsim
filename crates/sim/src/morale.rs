@@ -338,13 +338,13 @@ impl Sim {
             if mine.is_empty() {
                 continue;
             }
-            // Only VISIBLE reality counts: dead or currently fleeing. (A
-            // rally-scarred ceiling used to count standing, fighting units
-            // as finished — the player saw one rout flip an apparently
-            // healthy battle to game over.)
+            // Only VISIBLE reality counts: dead, currently fleeing, or ground
+            // down to a 3x3 knot. (A rally-scarred ceiling used to count
+            // standing, fighting units as finished — the player saw one rout
+            // flip an apparently healthy battle to game over.)
             let finished = mine
                 .iter()
-                .filter(|u| u.alive_count == 0 || u.routing)
+                .filter(|u| u.alive_count == 0 || u.routing || u.alive_count <= 9)
                 .count();
             if finished * 10 > mine.len() * 6 {
                 return Some(1 - team);

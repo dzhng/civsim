@@ -365,6 +365,8 @@ impl Sim {
             // never position deltas — the phantom door stays shut).
             {
                 let planted = ((weapon.reach - 1.0) / 2.2).clamp(0.0, 1.0);
+                let target_p = self.soldier_pos(nearest as usize);
+                let aim = wrap_angle((target_p - p).y.atan2((target_p - p).x) - aim_facing).abs();
                 // HEDGE depth: a wall is points DEEP. The stop is the
                 // per-point leverage (reach², `planted²`) times the
                 // fraction of the reach-deep hedge that is actually manned
@@ -380,7 +382,16 @@ impl Sim {
                     let reach_ranks = (weapon.reach / spacing).max(1.0);
                     (ranks / reach_ranks).clamp(0.0, 1.0)
                 };
-                if planted > 0.0 {
+                // A grounded/braced point is locked to the formation frontage:
+                // it can stop what is presented to the formation's FRONT cone,
+                // not a flank/rear charge. This is deliberately broader than
+                // the thrust's damage arc: adjacent points overlap into a hedge
+                // for charge-stopping, while the later swing gate remains
+                // narrow.
+                // Mobile long weapons (lances, long swords) are not a fixed
+                // hedge; keep their existing charge-presentation behavior.
+                let hedge_bears = aim <= 1.25;
+                if planted > 0.0 && (!weapon.braced || hedge_bears) {
                     let v = nearest as usize;
                     let p = self.soldier_pos(i);
                     let tp = self.soldier_pos(v);
@@ -417,6 +428,26 @@ impl Sim {
                             let grip = (share * planted * planted * hedge * 0.8).min(0.45);
                             self.mom_x[v] += d.x * toward * grip;
                             self.mom_y[v] += d.y * toward * grip;
+                        }
+                        if weapon.braced && self.units[vu].tramples() {
+                            // A horse feeding itself onto a presented point pays
+                            // in flesh as well as momentum. This is not a swing
+                            // (no cadence, block, or flourish): it is the
+                            // mounted body doing the work by closing onto the
+                            // braced shaft. Off-axis/flank charges are already
+                            // excluded by `hedge_bears` above.
+                            let to_center = (tp - p).len() - self.radius[i] - 0.35;
+                            let dmg = weapon.damage
+                                * (closing / tun.charge_min_speed.max(0.1)).clamp(0.0, 2.0)
+                                * planted
+                                * hedge
+                                * DT
+                                * 6.0;
+                            if to_center > weapon.reach {
+                                self.mount_dmg_acc[v] += dmg;
+                            } else {
+                                self.dmg_acc[v] += dmg;
+                            }
                         }
                     }
                 }

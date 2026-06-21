@@ -117,9 +117,11 @@ fn deep_pike_wall_holds_thin_pike_line_gets_closed_on() {
         "a deep pike wall keeps swords out of sword range: min gap {wall_gap:.2}m, sword-fighters {wall_swords}"
     );
     // 2 ranks of pikes: not enough push rate; the enemy closes to sword range.
+    // `thin_swords` is the direct signal; `thin_gap` is a sanity rail with a
+    // little geometry slack because body radii/reach sit right around 1.1m.
     let (_, _, thin_gap, thin_swords) = fight(60);
     assert!(
-        thin_gap < 1.1 && thin_swords > 0,
+        thin_swords > 0 && thin_gap < 1.15,
         "a thin pike line must get closed on: min gap {thin_gap:.2}m, sword-fighters {thin_swords}"
     );
 }

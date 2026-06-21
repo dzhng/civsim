@@ -6,7 +6,8 @@
 //! `class_scenarios.rs` so the physics emergence and the matchup pricing are
 //! no longer interleaved in one file.
 
-use sim::{class_stats, Sim, Tunables, UnitClassId, Vec2, DT};
+use sim::balance::{run_over_seeds, Scenario};
+use sim::{class_stats, BalanceConfig, Sim, Tunables, UnitClassId, Vec2, DT};
 use std::f32::consts::PI;
 
 const SEED: u64 = 11;
@@ -147,4 +148,38 @@ fn pikes_reach_riders_swords_chip_at_horseflesh() {
         pike_ratio > sword_ratio + 0.25,
         "pikes should concentrate damage higher on the rider than swords do: {pike_ratio:.2} vs {sword_ratio:.2}"
     );
+}
+
+#[test]
+fn frontal_phalanx_denies_shock_cavalry_a_majority_verdict() {
+    // The slow golden matrix catches this across the full class board, but the
+    // pike/cavalry contract is important enough to live in the fast suite too:
+    // a frontal horse charge can bog, scatter, or draw out, but it must not
+    // majority-flip into cavalry beating a presented sarissa hedge.
+    let seeds = [SEED, SEED + 1, SEED + 2, SEED + 3, SEED + 4];
+    let base = BalanceConfig::default();
+    let tun = Tunables::default();
+    for (scn, cav_side) in [
+        (
+            Scenario::duel(UnitClassId::Phalanx, UnitClassId::ShockCavalry),
+            1,
+        ),
+        (
+            Scenario::duel(UnitClassId::ShockCavalry, UnitClassId::Phalanx),
+            0,
+        ),
+    ] {
+        let name = scn.name.clone();
+        let agg = run_over_seeds(&scn, &base, &tun, &seeds);
+        assert_ne!(
+            agg.winner(),
+            Some(cav_side),
+            "{name}: frontal cavalry must not majority-beat a presented phalanx \
+             (win-rates {:.0}%/{:.0}%, draw {:.0}%, median {:.0}s)",
+            agg.win_rate[0] * 100.0,
+            agg.win_rate[1] * 100.0,
+            agg.draw_rate * 100.0,
+            agg.secs_median
+        );
+    }
 }

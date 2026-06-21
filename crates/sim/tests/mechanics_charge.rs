@@ -214,3 +214,84 @@ fn a_line_takes_a_few_seconds_to_set_its_brace() {
         "after a few seconds it is fully braced: {late:.2} vs {mult:.1}"
     );
 }
+
+fn class_charge_mass_progress(def_class: UnitClassId, flank: bool) -> f32 {
+    let mut sim = Sim::new(
+        Tunables {
+            micro_rough: 0.0,
+            morale_enabled: false,
+            ..Tunables::default()
+        },
+        SEED,
+    );
+    // Defender holds facing +y. A phalanx therefore presents points only to the
+    // north; a flank charge from the west crosses the shafts, not their tips.
+    let def = sim.spawn_class_with_files(Vec2::ZERO, FRAC_PI_2, 160, 8, def_class, 1);
+    let (start, facing, goal, axis) = if flank {
+        (
+            Vec2::new(-70.0, 0.0),
+            0.0,
+            Vec2::new(70.0, 0.0),
+            Vec2::new(1.0, 0.0),
+        )
+    } else {
+        (
+            Vec2::new(0.0, 70.0),
+            -FRAC_PI_2,
+            Vec2::new(0.0, -70.0),
+            Vec2::new(0.0, -1.0),
+        )
+    };
+    let cav = sim.spawn_class(start, facing, 96, UnitClassId::ShockCavalry, 0);
+    sim.set_files(cav, 24); // 4-deep shock front
+    sim.set_pace(cav, Pace::Run);
+    sim.set_attack_move_order(cav, goal);
+
+    let def_center = sim.units[def].centroid;
+    let mut peak_p80 = f32::NEG_INFINITY;
+    for _ in 0..(30.0 / DT) as usize {
+        sim.tick();
+        let u = &sim.units[cav];
+        let mut along = Vec::new();
+        for i in u.start..u.start + u.count {
+            if sim.alive[i] == 1 {
+                along.push((sim.soldier_pos(i) - def_center).dot(axis));
+            }
+        }
+        if along.is_empty() {
+            break;
+        }
+        along.sort_by(|a, b| a.partial_cmp(b).unwrap());
+        peak_p80 = peak_p80.max(along[(along.len() * 8 / 10).min(along.len() - 1)]);
+    }
+    peak_p80
+}
+
+#[test]
+fn phalanx_points_stop_horses_only_to_the_front() {
+    let front = class_charge_mass_progress(UnitClassId::Phalanx, false);
+    let flank = class_charge_mass_progress(UnitClassId::Phalanx, true);
+    eprintln!("PHALANX-CAV  frontal p80 progress {front:.1}m  flank {flank:.1}m");
+    assert!(
+        front < 12.0,
+        "a frontal charge onto presented pikes should be stopped near the hedge: {front:.1}m"
+    );
+    assert!(
+        flank > 6.0 && flank > front + 1.0,
+        "pikes aimed frontally must not behave like a 360° porcupine: flank progress {flank:.1}m vs frontal {front:.1}m"
+    );
+}
+
+#[test]
+fn ordinary_spears_do_not_wall_cavalry_like_a_phalanx() {
+    let pike = class_charge_mass_progress(UnitClassId::Phalanx, false);
+    let spear = class_charge_mass_progress(UnitClassId::LightSpear, false);
+    let sword = class_charge_mass_progress(UnitClassId::HeavySword, false);
+    eprintln!(
+        "SPEAR-CAV  phalanx p80 progress {pike:.1}m  light-spear {spear:.1}m  sword {sword:.1}m"
+    );
+    assert!(
+        (spear - sword).abs() < 4.0,
+        "light spears should behave like ordinary infantry bodies, not like a special pike hedge: spear {spear:.1}m vs sword {sword:.1}m"
+    );
+}

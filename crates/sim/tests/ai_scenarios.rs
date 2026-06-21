@@ -63,9 +63,21 @@ fn ai_brings_a_battle_to_a_verdict() {
     }
     let _ = MapId::WalledPlain;
     let _: fn(&mut Sim, MapId) = setup_battle;
-    assert!(victor.is_some(), "two AI armies must produce a verdict");
     let total: usize = sim.units.iter().map(|u| u.count).sum();
     let dead: usize = sim.units.iter().map(|u| u.count - u.alive_count).sum();
+    let alive = |team: u32| -> usize {
+        sim.units
+            .iter()
+            .filter(|u| u.team == team)
+            .map(|u| u.alive_count)
+            .sum()
+    };
+    assert!(
+        victor.is_some(),
+        "two AI armies must produce a verdict; alive team0={} team1={} dead={dead}/{total}",
+        alive(0),
+        alive(1)
+    );
     // Morale decides battles well before heavy attrition — that's the
     // design. The floor guards against a bloodless stall, nothing more.
     // Boundary note: 2560 total men; morale verdicts land at ~120-150 dead.

@@ -538,6 +538,10 @@ fn main() {
             UnitClassId::HeavySword,
             0,
         );
+        // Match `a_wide_line_wraps_a_narrow_block`: this shot is the pure
+        // formation invariant (does the sheet drape, or split), not the separate
+        // casualty/backfill contract.
+        invuln(&mut sim);
         sim.set_pace(line, Pace::Run);
         sim.set_attack_order(line, block);
         shoot("t3-wide-wrap", sim, 60.0, 2.0);

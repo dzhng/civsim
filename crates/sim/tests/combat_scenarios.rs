@@ -295,6 +295,7 @@ fn rider_reachability_is_pure_geometry() {
 #[test]
 fn charge_impact_knocks_infantry_down() {
     let mut sim = Sim::new(no_morale(), SEED);
+    let start_impact_kills = sim.impact_casualties;
     let inf = sim.spawn_class(
         Vec2::new(0.0, 30.0),
         -FRAC_PI_2,
@@ -311,18 +312,14 @@ fn charge_impact_knocks_infantry_down() {
     );
     sim.set_pace(cav, sim::Pace::Run);
     sim.set_attack_move_order(cav, Vec2::new(0.0, 60.0));
-    let mut max_stunned = 0usize;
     for _ in 0..(60.0 / DT) as usize {
         sim.tick();
-        let u = &sim.units[inf];
-        let stunned = (u.start..u.start + u.count)
-            .filter(|&s| sim.stun[s] > 0.0)
-            .count();
-        max_stunned = max_stunned.max(stunned);
     }
+    let impact_kills = sim.impact_casualties - start_impact_kills;
+    let dead = sim.units[inf].count - sim.units[inf].alive_count;
     assert!(
-        max_stunned >= 4,
-        "a cavalry charge should bowl men over, max stunned {max_stunned}"
+        impact_kills >= 4 && dead >= impact_kills as usize,
+        "a cavalry charge should fell men by impact: {impact_kills} impact kills, {dead} total dead"
     );
 }
 

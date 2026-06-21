@@ -213,16 +213,10 @@ fn formed_heavy_infantry_holds_a_frontal_cav_charge() {
 }
 
 /// David (2026-06-17): a frontal charge that LOSES must still BLOODY the line — a
-/// charge of lancers does not break on a hedge of men for free. Infantry ending at
-/// ~96% survivors means the charge lands almost no damage: the SAME lethality
-/// keystone as the army-scale bias (the front blobs -> gang-cap denies wounds ->
-/// the charge grinds without killing; specs/test-suite-to-100.md). Target: a
-/// repulsed charge still costs the foot ~25-40% casualties (survivors ~60-75%).
-/// Un-ignore when the lethality keystone lands.
+/// charge of lancers does not break on a hedge of men for free. The locked outcome
+/// is still infantry-favoured (above), but the charge should cost the foot
+/// ~25-40% casualties (survivors ~60-75%) rather than bouncing off at 96%+.
 #[test]
-#[ignore = "lethality keystone: a repulsed frontal charge should still cost the \
-            infantry ~25-40% casualties; they currently survive ~96% (blob -> \
-            gang-cap wound denial, specs/test-suite-to-100.md)"]
 fn a_frontal_charge_bloodies_the_infantry_even_when_repulsed() {
     let agg = run(&Scenario::duel(
         UnitClassId::ShockCavalry,

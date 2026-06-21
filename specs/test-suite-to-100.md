@@ -183,9 +183,11 @@ What this session changed (committed + pushed, all safe/surgical):
   `balance_charge::pikes_reach_riders_swords_chip_at_horseflesh`, asserting rider
   damage concentration instead of rare early kills; the cavalry-through-deep-block target was
   deleted as an obsolete target because a deep stable block bogging cavalry is the
-  intended foundation. The remaining live ignores are the slow golden matrix, the
-  contested counter-web (pike/cav + kite economy), and the frontal-charge lethality
-  target.
+  intended foundation. The bundled contested counter-web ignore was deleted as an
+  obsolete single-seed bundle now covered by narrower active pike/rider and
+  horse-archer contracts; the frontal-charge lethality target was promoted and is
+  active. The only remaining live ignored Rust test is the slow full
+  `golden_balance_matrix`, and it is current as of this audit.
 - **Corrected specs/directional-bias.md**: the 1v1 repro produces ZERO deaths (both
   rout apart, bit-perfect mirrors), so `a_one_on_one_duel`'s death-count metric is
   structurally 0/24 — NOT a positional bias. That whole 1v1 thread no longer

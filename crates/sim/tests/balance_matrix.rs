@@ -2,7 +2,7 @@
 //! (performance vs price), generated from `ALL_CLASSES` and run through the
 //! shared seed-set harness (`sim::balance`) — not hand-listed duels.
 
-use sim::balance::{run_once, run_over_seeds, Scenario};
+use sim::balance::{run_over_seeds, Scenario};
 use sim::{unit_cost, Sim, Tunables, UnitClassId, Vec2, ALL_CLASSES, DT, SEEDS};
 use std::f32::consts::FRAC_PI_2;
 
@@ -54,28 +54,46 @@ fn golden_balance_matrix() {
         "{:<4} {:<4} {:>3} {:>5} {:>5} {:>5} {:>6} {:>6}\n",
         "ATK", "DEF", "RES", "survA", "survB", "t", "goldA", "goldB"
     ));
-    for &a in &ALL_CLASSES {
-        for &b in &ALL_CLASSES {
-            let mut scn = Scenario::duel(a, b);
-            scn.dur_secs = 300.0; // cap standoffs (kiters vs slow melee)
-            let agg = run_over_seeds(&scn, &base, &tun, &SEEDS);
-            let res = match agg.winner() {
-                Some(0) => "A",
-                Some(1) => "B",
-                _ => ".",
-            };
-            out.push_str(&format!(
-                "{:<4} {:<4} {:>3} {:>4}% {:>4}% {:>4.0}s {:>6} {:>6}\n",
-                short(a),
-                short(b),
-                res,
-                band(agg.surv[0].median),
-                band(agg.surv[1].median),
-                agg.secs_median,
-                unit_cost(a),
-                unit_cost(b),
-            ));
+    let rows = std::thread::scope(|scope| {
+        let mut handles = Vec::new();
+        for (row_idx, &a) in ALL_CLASSES.iter().enumerate() {
+            let base = base.clone();
+            handles.push(scope.spawn(move || {
+                let tun = tun;
+                let mut row = String::new();
+                for &b in &ALL_CLASSES {
+                    let mut scn = Scenario::duel(a, b);
+                    scn.dur_secs = 300.0; // cap standoffs (kiters vs slow melee)
+                    let agg = run_over_seeds(&scn, &base, &tun, &SEEDS);
+                    let res = match agg.winner() {
+                        Some(0) => "A",
+                        Some(1) => "B",
+                        _ => ".",
+                    };
+                    row.push_str(&format!(
+                        "{:<4} {:<4} {:>3} {:>4}% {:>4}% {:>4.0}s {:>6} {:>6}\n",
+                        short(a),
+                        short(b),
+                        res,
+                        band(agg.surv[0].median),
+                        band(agg.surv[1].median),
+                        agg.secs_median,
+                        unit_cost(a),
+                        unit_cost(b),
+                    ));
+                }
+                (row_idx, row)
+            }));
         }
+        let mut rows = Vec::new();
+        for handle in handles {
+            rows.push(handle.join().unwrap());
+        }
+        rows.sort_by_key(|(row_idx, _)| *row_idx);
+        rows
+    });
+    for (_, row) in rows {
+        out.push_str(&row);
     }
 
     let path = concat!(
@@ -148,52 +166,6 @@ fn the_counter_web_holds() {
             agg.win_rate[0] * 100.0,
             agg.win_rate[1] * 100.0,
             agg.draw_rate * 100.0
-        );
-    }
-}
-
-/// The CONTESTED matchups decoupled out of the_counter_web — all RED today for
-/// known lethality reasons, kept as ONE explicit target so the robust web above
-/// goes green:
-///  - ShockCavalry vs Phalanx (either bench) DRAWS instead of the pikes winning —
-///    "POINTS STOP HORSE" needs the impale/pike-lethality rework: the cav isn't
-///    killed fast enough at reach (specs/impale.md).
-///  - HorseArchers vs HeavySword: the kite should run unsupported foot to death,
-///    but the bow-horse closes to melee and loses — a kite/missile-economy gap.
-/// Marked #[ignore] (not deleted): an unbuilt-feature target (impale/pike +
-/// kite-economy reworks, task #66 / specs/impale.md) belongs ignored-with-
-/// rationale, not a permanent red that reads like a regression.
-#[test]
-#[ignore = "unbuilt: impale/pike-lethality + kite-economy reworks (task #66)"]
-fn the_counter_web_contested_matchups_need_lethality_reworks() {
-    use UnitClassId::*;
-    let base = sim::BalanceConfig::default();
-    let tun = Tunables::default();
-    let expect = [
-        (ShockCavalry, Phalanx, 1, "POINTS STOP HORSE (frontally)"),
-        (
-            Phalanx,
-            ShockCavalry,
-            0,
-            "and the hedge can walk horse off a field",
-        ),
-        (
-            HorseArchers,
-            HeavySword,
-            0,
-            "unsupported foot loses to the kite",
-        ),
-    ];
-    for (a, d, want, why) in expect {
-        let o = run_once(&Scenario::duel(a, d), &base, &tun, SEED);
-        assert_eq!(
-            o.victor,
-            want,
-            "{a:?} vs {d:?}: {why} (got verdict {}, {:.0}%/{:.0}% at {:.0}s)",
-            o.victor,
-            o.surv[0] * 100.0,
-            o.surv[1] * 100.0,
-            o.secs
         );
     }
 }

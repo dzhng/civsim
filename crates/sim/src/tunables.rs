@@ -289,7 +289,7 @@ impl Default for Tunables {
             trample_bleed: 1.5,
             trample_recover: 0.4,
             impact_push: 0.2,
-            impact_damage: 0.040,
+            impact_damage: 0.120,
             micro_rough: 1.0,
             hit_push: 0.3,
             combat_drain: 1.0 / 50.0,

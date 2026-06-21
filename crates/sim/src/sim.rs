@@ -396,6 +396,25 @@ impl Sim {
     ) -> usize {
         let stats = self.balance.get(class);
         let files = count.div_ceil(stats.default_depth.max(1));
+        self.spawn_class_with_files(anchor, facing, count, files, class, team)
+    }
+
+    /// Spawn a class unit already dressed at a chosen frontage. This is for
+    /// scenario/test setup where the initial shape is part of the experiment.
+    /// Use `set_files` for live player reshapes; it deliberately keeps the men
+    /// in place and makes them reform into the new slots over time.
+    pub fn spawn_class_with_files(
+        &mut self,
+        anchor: Vec2,
+        facing: f32,
+        count: usize,
+        files: usize,
+        class: UnitClassId,
+        team: u32,
+    ) -> usize {
+        let stats = self.balance.get(class);
+        let lower = 4.min(count.max(1));
+        let files = files.clamp(lower, (count / 3).max(lower));
         let idx = self.spawn_unit(
             anchor,
             facing,

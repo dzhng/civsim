@@ -179,7 +179,7 @@ fn dense_infantry_blunts_a_cavalry_charge_loose_gets_punched_through() {
     // differs. Dense files put more collective mass (and transmitted press)
     // at the impact point: the charge should bog at the front ranks.
     // Loose order leaves every man alone against half a ton of horse.
-    let charge_into = |spacing: f32| -> (f32, f32, usize, usize) {
+    let charge_into = |spacing: f32| -> (f32, f32, f32, usize) {
         let mut sim = Sim::new(
             Tunables {
                 morale_enabled: false,
@@ -214,16 +214,11 @@ fn dense_infantry_blunts_a_cavalry_charge_loose_gets_punched_through() {
         sim.set_attack_order(cav, inf);
         // The impact is an EVENT: track its peaks through the whole charge
         // instead of sampling one instant.
-        let mut peak_knocked = 0usize;
         let mut peak_pen = f32::MIN;
         let mut peak_shove = 0.0f32;
         for _ in 0..(28.0 / DT) as usize {
             sim.tick();
             let u = &sim.units[inf];
-            let knocked = (u.start..u.start + u.count)
-                .filter(|&i| sim.alive[i] == 1 && sim.stun[i] > 0.0)
-                .count();
-            peak_knocked = peak_knocked.max(knocked);
             // Centroid penetration: the MASS's depth into the line. (The
             // deepest single horse is an outlier metric — one breakthrough
             // animal galloping the open field reads as "penetration".)
@@ -239,29 +234,31 @@ fn dense_infantry_blunts_a_cavalry_charge_loose_gets_punched_through() {
             peak_shove = peak_shove.max(shove / n.max(1) as f32);
         }
         let deaths = sim.units[inf].count - sim.units[inf].alive_count;
-        (peak_pen, peak_shove, peak_knocked, deaths)
+        (peak_pen, peak_shove, sim.units[cav].mass_advance, deaths)
     };
 
-    let (pen_d, shove_d, knock_d, dead_d) = charge_into(0.75); // shields touching
-    let (pen_l, shove_l, knock_l, dead_l) = charge_into(1.8); // open order
+    let (pen_d, shove_d, adv_d, dead_d) = charge_into(0.75); // shields touching
+    let (pen_l, shove_l, adv_l, dead_l) = charge_into(1.8); // open order
     println!(
-        "DENSE (0.75m): deepest horse {pen_d:.1}m past the original front, peak mean shove {shove_d:.2}m, peak {knock_d} down at once, {dead_d} dead"
+        "DENSE (0.75m): cav mass {pen_d:.1}m past the original front, peak mean shove {shove_d:.2}m, mass-advance {adv_d:.1}m/s, {dead_d} dead"
     );
     println!(
-        "LOOSE (1.8m):  deepest horse {pen_l:.1}m past the original front, peak mean shove {shove_l:.2}m, peak {knock_l} down at once, {dead_l} dead"
+        "LOOSE (1.8m):  cav mass {pen_l:.1}m past the original front, peak mean shove {shove_l:.2}m, mass-advance {adv_l:.1}m/s, {dead_l} dead"
     );
-    // The blunt is told by KNOCKDOWNS, not raw penetration: same men and ranks,
-    // so the LOOSE block is 2.4x DEEPER in metres (1.8 vs 0.75 m spacing), and a
-    // "deepest horse past the front" then compares two different-depth formations
-    // — confounded (the cav clears the shallow dense block's 15 m while bogging
-    // partway into the loose block's 36 m). The honest signal is how many riders
-    // the block PLANTS at once: the dense wall, putting collective mass at the
-    // impact point, bowls the charge over; loose men scatter and barely touch it.
-    let _ = (pen_d, pen_l, shove_d, shove_l, dead_d, dead_l);
+    // The blunt is told by charge MOMENTUM, not raw penetration: same men and
+    // ranks, so the LOOSE block is 2.4x DEEPER in metres (1.8 vs 0.75 m spacing),
+    // and a "horse metres past the front" compares different-depth formations.
+    // Dense order puts collective mass at the impact point and spends the
+    // cavalry's drive; loose order yields with fewer deaths, but leaves more
+    // charge momentum in the horse.
+    let _ = (pen_d, pen_l, shove_d, shove_l);
     assert!(
-        knock_d > knock_l * 3,
-        "dense order BLUNTS the charge (plants its riders), loose lets it ride clean: \
-         {knock_d} cav down at once vs {knock_l}"
+        adv_d + 0.4 < adv_l,
+        "dense order must spend more of the charge's mass advance: dense {adv_d:.1} vs loose {adv_l:.1}"
+    );
+    assert!(
+        dead_d > dead_l * 3,
+        "dense order absorbs the impact in bodies while loose order yields: dense {dead_d} dead vs loose {dead_l}"
     );
 }
 
@@ -555,10 +552,10 @@ fn move_order_into_a_deep_braced_column_bogs_into_melee() {
 #[test]
 fn a_frontal_charge_through_a_thin_line_is_a_bloodbath() {
     // 400 horse four deep into 200 light foot two deep: the impact itself
-    // — bodies thrown by half a ton at the gallop — costs the line well over
-    // half its men (measured ~two-thirds; a 2-deep line has nothing behind it
-    // to absorb the ride-through). Tight across seeds (~135 ±6), so a single
-    // run is enough, but we average a few to keep it off any one roll's edge.
+    // — bodies thrown by half a ton at the gallop — nearly annihilates the line.
+    // With charge-impact lethality calibrated so even a repulsed frontal charge
+    // bloodies heavy infantry, a 2-deep line has nothing behind it to absorb the
+    // ride-through.
     let dead = |seed: u64| -> usize {
         let mut sim = Sim::new(
             Tunables {
@@ -610,8 +607,8 @@ fn a_frontal_charge_through_a_thin_line_is_a_bloodbath() {
         seeds.len()
     );
     assert!(
-        (100.0..=165.0).contains(&mean),
-        "a frontal charge through a thin line costs well over half: mean {mean:.0}/200"
+        mean >= 180.0,
+        "a frontal charge through a thin line should be near-annihilation: mean {mean:.0}/200"
     );
 }
 

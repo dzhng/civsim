@@ -298,22 +298,22 @@ fn main() {
     // lean pull its front apart so the column splits it like a curtain?
     {
         let mut sim = Sim::new(base_tun(), 11);
-        let line = sim.spawn_class(
+        let _line = sim.spawn_class_with_files(
             Vec2::new(0.0, 13.0),
             -FRAC_PI_2,
             280,
+            70,
             UnitClassId::HeavySword,
             1,
         );
-        sim.set_files(line, 70);
-        let col = sim.spawn_class(
+        let col = sim.spawn_class_with_files(
             Vec2::new(0.0, -25.0),
             FRAC_PI_2,
             128,
+            8,
             UnitClassId::HeavySword,
             0,
         );
-        sim.set_files(col, 8);
         sim.set_pace(col, Pace::Run);
         sim.set_attack_move_order(col, Vec2::new(0.0, 60.0));
         shoot("column-vs-held", sim, 40.0, 0.6);
@@ -522,22 +522,22 @@ fn main() {
     // straight THROUGH it? (a_wide_line_wraps_a_narrow_block.)
     {
         let mut sim = Sim::new(base_tun(), 11);
-        let block = sim.spawn_class(
+        let block = sim.spawn_class_with_files(
             Vec2::new(0.0, 13.0),
             -FRAC_PI_2,
             120,
+            12,
             UnitClassId::HeavySword,
             1,
         );
-        sim.set_files(block, 12);
-        let line = sim.spawn_class(
+        let line = sim.spawn_class_with_files(
             Vec2::new(0.0, -13.0),
             FRAC_PI_2,
             210,
+            70,
             UnitClassId::HeavySword,
             0,
         );
-        sim.set_files(line, 70);
         sim.set_pace(line, Pace::Run);
         sim.set_attack_order(line, block);
         shoot("t3-wide-wrap", sim, 60.0, 2.0);
@@ -548,22 +548,22 @@ fn main() {
     // it and walk through? (a_column_bulges_a_held_line_it_does_not_part_it.)
     {
         let mut sim = Sim::new(base_tun(), 11);
-        let line = sim.spawn_class(
+        let _line = sim.spawn_class_with_files(
             Vec2::new(0.0, 13.0),
             -FRAC_PI_2,
             280,
+            70,
             UnitClassId::HeavySword,
             1,
         );
-        sim.set_files(line, 70);
-        let col = sim.spawn_class(
+        let col = sim.spawn_class_with_files(
             Vec2::new(0.0, -25.0),
             FRAC_PI_2,
             128,
+            8,
             UnitClassId::HeavySword,
             0,
         );
-        sim.set_files(col, 8);
         invuln(&mut sim);
         sim.set_pace(col, Pace::Run);
         sim.set_attack_move_order(col, Vec2::new(0.0, 60.0));

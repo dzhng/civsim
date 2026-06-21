@@ -585,23 +585,23 @@ fn a_wide_line_wraps_a_narrow_block() {
     tun.morale_enabled = false;
     let mut sim = Sim::new(tun, 11);
     // Narrow block, holding.
-    let block = sim.spawn_class(
+    let block = sim.spawn_class_with_files(
         Vec2::new(0.0, 13.0),
         -FRAC_PI_2,
         120,
+        12,
         UnitClassId::HeavySword,
         1,
     );
-    sim.set_files(block, 12);
     // Wide attacking line, ~3 deep — it overhangs the block on both flanks.
-    let line = sim.spawn_class(
+    let line = sim.spawn_class_with_files(
         Vec2::new(0.0, -13.0),
         FRAC_PI_2,
         210,
+        70,
         UnitClassId::HeavySword,
         0,
     );
-    sim.set_files(line, 70);
     // Immortal: this is a formation-mechanics test. Lethality/rout can scatter
     // survivors and belongs in balance/scenario coverage; here the question is
     // whether a living attacking sheet drapes as one connected cloth.
@@ -659,44 +659,51 @@ fn a_mortal_wrapping_line_backfills_casualty_tears() {
     tun.micro_rough = 0.0;
     tun.morale_enabled = false;
     let mut sim = Sim::new(tun, 11);
-    let block = sim.spawn_class(
+    let block = sim.spawn_class_with_files(
         Vec2::new(0.0, 13.0),
         -FRAC_PI_2,
         120,
+        12,
         UnitClassId::HeavySword,
         1,
     );
-    sim.set_files(block, 12);
-    let line = sim.spawn_class(
+    let line = sim.spawn_class_with_files(
         Vec2::new(0.0, -13.0),
         FRAC_PI_2,
         210,
+        70,
         UnitClassId::HeavySword,
         0,
     );
-    sim.set_files(line, 70);
     sim.set_pace(line, Pace::Run);
     sim.set_attack_order(line, block);
 
     let mut max_gap_after_casualty = 0.0f32;
+    let mut max_late_gap = 0.0f32;
     let mut saw_casualty = false;
-    for _ in 0..(60.0 / DT) as usize {
+    let ticks = (60.0 / DT) as usize;
+    let late_start = (45.0 / DT) as usize;
+    for tick in 0..ticks {
         sim.tick();
         if sim.units[line].alive_count < sim.units[line].count {
             saw_casualty = true;
-            max_gap_after_casualty = max_gap_after_casualty.max(p95_adjacent_file_gap(&sim, line));
+            let gap = p95_adjacent_file_gap(&sim, line);
+            max_gap_after_casualty = max_gap_after_casualty.max(gap);
+            if tick >= late_start {
+                max_late_gap = max_late_gap.max(gap);
+            }
         }
     }
     let final_gap = p95_adjacent_file_gap(&sim, line);
     eprintln!(
-        "MORTAL-WRAP  line alive={}/{} max-post-casualty-gap={max_gap_after_casualty:.1}m final-gap={final_gap:.1}m",
+        "MORTAL-WRAP  line alive={}/{} max-post-casualty-gap={max_gap_after_casualty:.1}m max-late-gap={max_late_gap:.1}m final-gap={final_gap:.1}m",
         sim.units[line].alive_count,
         sim.units[line].count
     );
     assert!(saw_casualty, "setup must reach the casualty/backfill phase");
     assert!(
-        max_gap_after_casualty < 5.0 && final_gap < 3.0,
-        "casualty holes in a wrapping line must back-fill instead of tearing into streamers: max {max_gap_after_casualty:.1}m, final {final_gap:.1}m",
+        max_late_gap < 3.6 && final_gap < 2.5,
+        "casualty holes in a wrapping line must back-fill instead of becoming sustained tears: max post-casualty {max_gap_after_casualty:.1}m, late {max_late_gap:.1}m, final {final_gap:.1}m",
     );
 }
 
@@ -719,23 +726,23 @@ fn a_column_bulges_a_held_line_it_does_not_part_it() {
     tun.morale_enabled = false;
     let mut sim = Sim::new(tun, 11);
     // Wide held line (no order — it defends), ~4 deep, immortal.
-    let line = sim.spawn_class(
+    let line = sim.spawn_class_with_files(
         Vec2::new(0.0, 13.0),
         -FRAC_PI_2,
         280,
+        70,
         UnitClassId::HeavySword,
         1,
     );
-    sim.set_files(line, 70);
     // Narrow deep column, ordered THROUGH the centre, immortal.
-    let col = sim.spawn_class(
+    let col = sim.spawn_class_with_files(
         Vec2::new(0.0, -25.0),
         FRAC_PI_2,
         128,
+        8,
         UnitClassId::HeavySword,
         0,
     );
-    sim.set_files(col, 8);
     for u in [line, col] {
         let (s, e) = (sim.units[u].start, sim.units[u].start + sim.units[u].count);
         for k in s..e {

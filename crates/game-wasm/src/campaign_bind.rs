@@ -215,6 +215,83 @@ impl Campaign {
         ok
     }
 
+    // ---- diplomacy --------------------------------------------------------
+
+    /// The great powers and the player's standing with each, for the diplomacy
+    /// panel. Independents (neutral, un-treatyable) are omitted.
+    pub fn diplomacy_json(&self) -> String {
+        use campaign::state::Relation;
+        let st = &self.inner.state;
+        let p = st.player_faction;
+        let list: Vec<_> = self
+            .inner
+            .map
+            .factions
+            .iter()
+            .enumerate()
+            .filter(|(_, fac)| fac.playable)
+            .map(|(i, fac)| {
+                let f = i as u32;
+                let cities = st.cities.values().filter(|c| c.owner == f).count();
+                let soldiers: u32 = st
+                    .armies
+                    .iter()
+                    .filter(|a| a.faction == f && a.alive())
+                    .map(|a| a.soldiers())
+                    .sum();
+                let relation = if f == p {
+                    "self"
+                } else {
+                    match st.relation(p, f) {
+                        Relation::War => "war",
+                        Relation::Peace => "peace",
+                        Relation::Alliance => "alliance",
+                    }
+                };
+                serde_json::json!({
+                    "id": f,
+                    "name": fac.name,
+                    "color": fac.color,
+                    "is_player": f == p,
+                    "relation": relation,
+                    "cities": cities,
+                    "soldiers": soldiers,
+                })
+            })
+            .collect();
+        serde_json::json!(list).to_string()
+    }
+
+    pub fn declare_war(&mut self, other: u32) -> bool {
+        let ok = self.inner.declare_war(other);
+        self.refresh();
+        ok
+    }
+
+    pub fn make_peace(&mut self, other: u32) -> bool {
+        let ok = self.inner.make_peace(other);
+        self.refresh();
+        ok
+    }
+
+    pub fn propose_alliance(&mut self, other: u32) -> bool {
+        let ok = self.inner.propose_alliance(other);
+        self.refresh();
+        ok
+    }
+
+    pub fn break_alliance(&mut self, other: u32) -> bool {
+        let ok = self.inner.break_alliance(other);
+        self.refresh();
+        ok
+    }
+
+    pub fn gift_gold(&mut self, other: u32, amount: u32) -> bool {
+        let ok = self.inner.gift_gold(other, amount);
+        self.refresh();
+        ok
+    }
+
     /// City detail for the panel: building levels and the running site.
     pub fn city_json(&self, node: u32) -> String {
         let Some(c) = self.inner.state.cities.get(&node) else { return "null".into() };

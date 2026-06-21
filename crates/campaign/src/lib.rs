@@ -122,6 +122,62 @@ impl Campaign {
         economy::split(&self.map, &mut self.state, army, entries)
     }
 
+    // ---- diplomacy (player-driven) ----------------------------------------
+
+    /// The player's current stance toward another faction.
+    pub fn relation_to(&self, other: FactionId) -> state::Relation {
+        self.state.relation(self.state.player_faction, other)
+    }
+
+    pub fn declare_war(&mut self, other: FactionId) -> bool {
+        self.set_player_relation(other, state::Relation::War)
+    }
+
+    pub fn make_peace(&mut self, other: FactionId) -> bool {
+        self.set_player_relation(other, state::Relation::Peace)
+    }
+
+    /// Propose an alliance. The other power refuses if it badly outclasses you —
+    /// there's nothing in it for a giant to ally a minnow.
+    pub fn propose_alliance(&mut self, other: FactionId) -> bool {
+        let p = self.state.player_faction;
+        if other == p {
+            return false;
+        }
+        let cities = |f: FactionId| self.state.cities.values().filter(|c| c.owner == f).count();
+        if cities(other) > cities(p).saturating_mul(3).max(3) {
+            return false;
+        }
+        self.state.set_relation(p, other, state::Relation::Alliance);
+        true
+    }
+
+    /// Walk away from an alliance, back to an uneasy peace.
+    pub fn break_alliance(&mut self, other: FactionId) -> bool {
+        self.set_player_relation(other, state::Relation::Peace)
+    }
+
+    /// Send gold to another faction (a gift, a bribe, or tribute).
+    pub fn gift_gold(&mut self, other: FactionId, amount: u32) -> bool {
+        let p = self.state.player_faction;
+        if other == p || self.state.factions[p as usize].treasury < amount {
+            return false;
+        }
+        self.state.factions[p as usize].treasury -= amount;
+        let t = &mut self.state.factions[other as usize].treasury;
+        *t = t.saturating_add(amount);
+        true
+    }
+
+    fn set_player_relation(&mut self, other: FactionId, r: state::Relation) -> bool {
+        let p = self.state.player_faction;
+        if other == p {
+            return false;
+        }
+        self.state.set_relation(p, other, r);
+        true
+    }
+
     pub fn save(&self) -> String {
         serde_json::to_string(&self.state).unwrap()
     }

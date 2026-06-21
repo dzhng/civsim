@@ -62,8 +62,11 @@ pub fn commanders(map: &WorldMap, st: &mut CampaignState) {
 /// default War — neutral ground everyone is free to conquer.
 pub fn diplomacy(map: &WorldMap, st: &mut CampaignState) {
     use crate::state::Relation;
+    // The player runs their own foreign policy — the AI never rewrites treaties
+    // that involve the player, only those among the other powers.
+    let player = st.player_faction;
     let powers: Vec<FactionId> = (0..map.factions.len() as FactionId)
-        .filter(|&f| map.factions[f as usize].playable)
+        .filter(|&f| f != player && map.factions[f as usize].playable)
         .filter(|&f| st.cities.values().any(|c| c.owner == f))
         .collect();
     if powers.len() <= 1 {

@@ -270,6 +270,9 @@ pub fn apply_battle_outcome(
         .chain(e.reinforcements.iter().map(|&(id, ..)| id))
         .collect();
     let winner_faction = if result.victor == att_team { att_faction } else { def_faction };
+    // The force a beaten army must break away from: the main army on the
+    // winning side. Every other hostile can still run it down mid-flight.
+    let victor_army = if att_faction == winner_faction { e.attacker } else { e.defender };
 
     for id in involved {
         let a = &mut st.armies[id as usize];
@@ -298,7 +301,11 @@ pub fn apply_battle_outcome(
                 let a = &mut st.armies[id as usize];
                 let tiles = path.len() as u16;
                 a.path = path;
-                a.stance = Stance::Routed { tiles_left: tiles, daze_ticks_left: tun::ROUT_DAZE_TICKS };
+                a.stance = Stance::Routed {
+                    tiles_left: tiles,
+                    regroup_ticks_left: tun::ROUT_REGROUP_TICKS,
+                    by: victor_army,
+                };
             }
             None => {
                 // Nowhere to regroup: captured and wiped.

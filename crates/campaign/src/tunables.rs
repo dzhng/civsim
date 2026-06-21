@@ -90,9 +90,12 @@ pub const BUILD_TICKS: u32 = 2 * TICKS_PER_DAY;
 /// Routed armies: tiles of hostile-free road needed to regroup (or a nearer
 /// friendly city); no such path at battle end = captured and wiped.
 pub const ROUT_TILES: u16 = 16;
+/// After a routed army outruns the force that beat it, this is how long it
+/// stays a vulnerable, run-downable rabble before regrouping. Short: a beaten
+/// army that isn't pursued is back in play soon, but a pursuer who catches it
+/// in this window destroys it — so a won battle can actually clear a front.
+pub const ROUT_REGROUP_TICKS: u32 = 120;
 pub const ROUT_SPEED_MULT: f32 = 1.15;
-/// After regrouping, uncontrollable for this long.
-pub const ROUT_DAZE_TICKS: u32 = TICKS_PER_DAY;
 
 /// Reinforcements: armies within this road distance (tiles) join a battle.
 pub const REINFORCE_RADIUS_TILES: u32 = 12;
@@ -163,3 +166,26 @@ pub const MORALE_CAP_REGEN: f32 = 0.05;
 /// (0.02 left sacked cities open for fifty days — a razed garrison now
 /// stands again in under a month.)
 pub const GARRISON_REGEN: f32 = 0.04;
+
+// ---- AI fiscal discipline --------------------------------------------------
+// Without these the AI recruited whenever it had >400 gold, ballooning armies
+// to 3x in two months while treasuries hit zero. Now it keeps a war chest and
+// only grows the army while upkeep stays under a slice of income — so force
+// size equilibrates to what the realm can sustain, and the way to field a
+// bigger army is to conquer more cities.
+/// Days of income the AI keeps in reserve before spending on troops/works.
+pub const AI_RESERVE_DAYS: u32 = 6;
+/// Field-army ceiling per owned city. A realm only raises as many troops as
+/// its territory can supply, so the road to a bigger army is conquest. (Upkeep
+/// gold can't cap army size here — it's ~1% of income, so it never bites.)
+pub const AI_SOLDIERS_PER_CITY: u32 = 2000;
+/// How many of the nearest enemy cities the AI weighs (with a defender probe)
+/// before falling back to simply advancing on the nearest one.
+pub const AI_TARGET_CANDIDATES: usize = 8;
+/// How many of its strongest free armies a faction sends on the offensive each
+/// cycle. More than one keeps a front pressed and lets a beaten enemy be run
+/// down by the next army instead of one lone army winning then wandering off.
+pub const AI_ATTACKERS: usize = 3;
+/// How close (road tiles) a visible enemy army must be to a target city to
+/// count among its defenders when the AI weighs an assault.
+pub const AI_THREAT_RADIUS: u32 = 6;

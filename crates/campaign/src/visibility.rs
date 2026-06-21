@@ -7,7 +7,7 @@ use crate::mapdata::WorldMap;
 use crate::pathfind;
 use crate::state::*;
 use contract::UnitClassId;
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 
 pub const VISION_CITY: u32 = 8;
 pub const VISION_ARMY: u32 = 4;
@@ -29,86 +29,93 @@ fn concealed(a: &Army) -> bool {
     matches!(a.stance, Stance::Ambush { settle_ticks_left: 0, .. })
 }
 
-/// Road distance from `from` to the nearest matching target, capped.
-fn within<F: Fn(Loc) -> bool>(map: &WorldMap, from: Loc, radius: u32, hit: F) -> Option<u32> {
-    if hit(from) {
-        return Some(0);
-    }
-    let mut seen: BTreeSet<Loc> = BTreeSet::new();
-    seen.insert(from);
-    let mut frontier = vec![from];
-    for depth in 1..=radius {
-        let mut next = Vec::new();
-        for &l in &frontier {
-            for n in pathfind::neighbors(map, l) {
-                if !seen.insert(n) {
-                    continue;
-                }
-                if hit(n) {
-                    return Some(depth);
-                }
-                next.push(n);
-            }
-        }
-        frontier = next;
-    }
-    None
-}
-
 pub fn recompute(map: &WorldMap, st: &mut CampaignState) {
     let nfactions = st.factions.len();
     let mut visible: Vec<BTreeSet<ArmyId>> = vec![BTreeSet::new(); nfactions];
+    let mut bfs = pathfind::Visited::new(map);
+    let camp_radius = VISION_ARMY + crate::tunables::CAMP_VISION_BONUS;
+    let outpost_vision = crate::tunables::OUTPOST_VISION;
+    let outpost_reveal = crate::tunables::OUTPOST_REVEAL_RADIUS;
 
+    // Who stands where: one pass, so each tile's occupants are an O(1) lookup
+    // instead of re-scanning every army inside the BFS.
+    let mut army_at: BTreeMap<Loc, Vec<usize>> = BTreeMap::new();
+    for (i, a) in st.armies.iter().enumerate() {
+        if a.alive() {
+            army_at.entry(a.loc).or_default().push(i);
+        }
+    }
+
+    // The BFS around an army is the same whatever faction is looking; only the
+    // asset test differs. So flood once per army to the widest relevant radius,
+    // then read each faction's vision off the reached tiles.
+    let mut reached: Vec<(Loc, u32)> = Vec::new();
+    let mut seen_by = vec![false; nfactions];
     for a in st.armies.iter().filter(|a| a.alive()) {
-        // BFS once around the army; every faction reads its own assets out.
-        for f in 0..nfactions as u32 {
-            if f == a.faction {
-                visible[f as usize].insert(a.id);
-                continue;
+        visible[a.faction as usize].insert(a.id); // own armies, always
+
+        let is_concealed = concealed(a);
+        let max_radius = if is_concealed { outpost_reveal } else { VISION_CITY };
+
+        // Flood out to max_radius, recording depth per tile.
+        reached.clear();
+        reached.push((a.loc, 0));
+        bfs.clear();
+        bfs.insert(map, a.loc);
+        let mut frontier = vec![a.loc];
+        for depth in 1..=max_radius {
+            let mut next = Vec::new();
+            for &l in &frontier {
+                for n in pathfind::neighbors(map, l) {
+                    if bfs.insert(map, n) {
+                        reached.push((n, depth));
+                        next.push(n);
+                    }
+                }
             }
-            let outpost_at = |l: Loc| match l {
-                Loc::Node(n) => st
-                    .outposts
-                    .get(&n)
-                    .is_some_and(|o| o.owner == f && o.build_ticks_left == 0),
-                _ => false,
-            };
-            let is_concealed = concealed(a);
-            let seen = if is_concealed {
-                // Only a moving enemy with scouts at one tile smells the
-                // woods — or a standing watchtower close by.
-                within(map, a.loc, VISION_SCOUT_AMBUSH, |l| {
-                    st.armies.iter().any(|o| {
-                        o.faction == f && o.alive() && o.loc == l && o.marching() && has_scouts(o)
-                    })
-                })
-                .is_some()
-                    || within(map, a.loc, crate::tunables::OUTPOST_REVEAL_RADIUS, outpost_at)
-                        .is_some()
-            } else {
-                within(map, a.loc, VISION_ARMY, |l| {
-                    st.armies.iter().any(|o| o.faction == f && o.alive() && o.loc == l)
-                })
-                .is_some()
-                    // dug-in camps watch further than a column on the march
-                    || within(map, a.loc, VISION_ARMY + crate::tunables::CAMP_VISION_BONUS, |l| {
-                        st.armies.iter().any(|o| {
-                            o.faction == f
-                                && o.alive()
-                                && o.loc == l
-                                && matches!(o.stance, Stance::Camp { build_ticks_left: 0 })
-                        })
-                    })
-                    .is_some()
-                    || within(map, a.loc, VISION_CITY, |l| match l {
-                        Loc::Node(n) => st.cities.get(&n).is_some_and(|c| c.owner == f),
-                        _ => false,
-                    })
-                    .is_some()
-                    || within(map, a.loc, crate::tunables::OUTPOST_VISION, outpost_at).is_some()
-            };
-            if seen {
-                visible[f as usize].insert(a.id);
+            frontier = next;
+        }
+
+        for s in seen_by.iter_mut() {
+            *s = false;
+        }
+        for &(l, d) in &reached {
+            // Enemy armies parked within sight reveal `a` to their owner.
+            for &oi in army_at.get(&l).map(|v| v.as_slice()).unwrap_or(&[]) {
+                let o = &st.armies[oi];
+                if o.faction == a.faction {
+                    continue;
+                }
+                if is_concealed {
+                    if d <= VISION_SCOUT_AMBUSH && o.marching() && has_scouts(o) {
+                        seen_by[o.faction as usize] = true;
+                    }
+                } else if d <= VISION_ARMY
+                    || (d <= camp_radius && matches!(o.stance, Stance::Camp { build_ticks_left: 0 }))
+                {
+                    seen_by[o.faction as usize] = true;
+                }
+            }
+            if let Loc::Node(n) = l {
+                // A city sees out to VISION_CITY (not for concealed ambushers).
+                if !is_concealed && d <= VISION_CITY {
+                    if let Some(c) = st.cities.get(&n) {
+                        seen_by[c.owner as usize] = true;
+                    }
+                }
+                // A finished watchtower reaches OUTPOST_VISION normally, but only
+                // OUTPOST_REVEAL_RADIUS to unmask a concealed ambusher.
+                if let Some(o) = st.outposts.get(&n) {
+                    let r = if is_concealed { outpost_reveal } else { outpost_vision };
+                    if o.build_ticks_left == 0 && d <= r {
+                        seen_by[o.owner as usize] = true;
+                    }
+                }
+            }
+        }
+        for f in 0..nfactions {
+            if f != a.faction as usize && seen_by[f] {
+                visible[f].insert(a.id);
             }
         }
     }

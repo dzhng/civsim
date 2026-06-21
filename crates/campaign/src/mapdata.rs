@@ -75,6 +75,10 @@ pub struct WorldMap {
     pub ambush_spots: Vec<AmbushSpot>,
     pub factions: Vec<FactionDef>,
     pub start_armies: Vec<StartArmy>,
+    /// Dense `Loc` enumeration for O(1) BFS visited-buffers: nodes occupy
+    /// `0..nodes.len()`, then edge `e`'s tiles start at `nodes.len() + tile_base[e]`.
+    tile_base: Vec<u32>,
+    n_locs: usize,
 }
 
 // ---- raw JSON shapes -------------------------------------------------------
@@ -216,6 +220,15 @@ impl WorldMap {
             n.edges.sort_unstable();
         }
 
+        // Prefix sums of edge tile counts, for the dense Loc index.
+        let mut tile_base = Vec::with_capacity(edges.len());
+        let mut acc = 0u32;
+        for e in &edges {
+            tile_base.push(acc);
+            acc += e.tiles.len() as u32;
+        }
+        let n_locs = nodes.len() + acc as usize;
+
         WorldMap {
             half_w: raw.half_w as f32,
             half_h: raw.half_h as f32,
@@ -245,6 +258,24 @@ impl WorldMap {
                     roster: s.roster.iter().map(|(c, n)| (parse_class(c), *n)).collect(),
                 })
                 .collect(),
+            tile_base,
+            n_locs,
+        }
+    }
+
+    /// Number of distinct `Loc`s — size a BFS visited-buffer to this.
+    pub fn loc_count(&self) -> usize {
+        self.n_locs
+    }
+
+    /// Dense index of a `Loc` in `0..loc_count()`.
+    pub fn loc_index(&self, loc: crate::state::Loc) -> usize {
+        use crate::state::Loc;
+        match loc {
+            Loc::Node(n) => n as usize,
+            Loc::Edge { edge, tile } => {
+                self.nodes.len() + self.tile_base[edge as usize] as usize + tile as usize
+            }
         }
     }
 

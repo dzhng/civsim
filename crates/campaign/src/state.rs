@@ -36,8 +36,12 @@ pub enum Stance {
     Hold,
     Camp { build_ticks_left: u16 },
     Ambush { spot: u32, settle_ticks_left: u16 },
-    /// Uncontrollable retreat; regroups at a friendly city or after the tiles run out.
-    Routed { tiles_left: u16, daze_ticks_left: u32 },
+    /// Uncontrollable retreat. Intangible to `by` (the army that beat it) while
+    /// still fleeing — long enough to break away from that one force. Every
+    /// other hostile can already cut it down mid-flight, and once its flee path
+    /// is run a regroup window opens in which anyone in contact runs it down;
+    /// survive the window and it regroups (Hold).
+    Routed { tiles_left: u16, regroup_ticks_left: u32, by: ArmyId },
     Occupying { city: NodeId, ticks_left: u16 },
     /// Embarked on a sea lane.
     AtSea,
@@ -113,6 +117,17 @@ pub struct Encounter {
 pub struct Faction {
     pub treasury: u32,
     pub ai: bool,
+}
+
+/// The war's verdict. The contest is between the playable powers; independents
+/// are neutral scenery, never a blocker. Decided when at most one playable
+/// power still holds a city.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub enum Outcome {
+    /// One playable power outlasted all the others.
+    Victory(FactionId),
+    /// No playable power holds a city — mutual collapse.
+    Draw,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -193,6 +208,9 @@ pub struct CampaignState {
     /// Watchtowers, one per junction node.
     #[serde(default)]
     pub outposts: BTreeMap<NodeId, Outpost>,
+    /// Set once the war is decided; `None` while it is still being fought.
+    #[serde(default)]
+    pub outcome: Option<Outcome>,
 }
 
 impl CampaignState {

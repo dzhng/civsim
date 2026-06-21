@@ -234,7 +234,9 @@ intend but a refactor never may.
 
 The campaign is a second simulation, and it inherits the battle sim's
 discipline (measured state, intent realized over time) plus three rules the
-strategy layer forced into the open.
+strategy layer forced into the open. The faction commander that plays the
+non-player powers — its doctrine, the four phases of a think cycle, and its
+tunables — is documented in [docs/campaign-ai.md](docs/campaign-ai.md).
 
 **Determinism is load-bearing — a hard rule.** The campaign runs for thousands
 of ticks and must save, load, and replay bit-identically — an autosave

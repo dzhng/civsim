@@ -711,17 +711,22 @@ impl Sim {
             }
         }
 
-        // Re-form slots while pivoting or after casualties opened gaps — and at
-        // a slow drumbeat while FIGHTING (vacancy back-fill): a man who stepped
-        // out vacates his slot, the man behind relabels forward and marches up,
-        // arrives beside the scrum, reads high fight density, and steps out
-        // himself. The cascade is rate-limited by actual walking. The re-form's
-        // sort is jitter-stable (see reassign_slots), so idle drift in the rear
-        // ranks can't churn the line and swing the fight.
+        // Re-form slots while pivoting, after casualties opened real gaps, and
+        // on a slow drumbeat for DEEP engaged blocks. Do NOT periodically re-sort
+        // a living thin line: a dimpled or wrapped sheet needs neighbour identity
+        // to persist while it is deformed. Re-labeling a still-alive 3-4-rank
+        // line to its current ragged shape erases that memory and turns a clean
+        // bulge into streamers. Deep blocks are different: they need periodic
+        // vacancy/back-rank flow to keep a grind from pancaking, and their depth
+        // makes the sort stable. Deaths still back-fill promptly through
+        // `deaths_since_reform` while the unit is coherent enough to sort safely.
         for ui in 0..self.units.len() {
+            let ranks = self.units[ui].alive_count as f32 / self.units[ui].files_eff.max(1) as f32;
             let needs = self.units[ui].pivoting
-                || self.units[ui].deaths_since_reform * 50 > self.units[ui].alive_count.max(1)
-                || (self.units[ui].engaged > 0 && self.tick_count % 60 == (ui as u64) % 60)
+                || (self.units[ui].deaths_since_reform > 0 && self.units[ui].cohesion > 0.7)
+                || (self.units[ui].engaged > 0
+                    && ranks >= 5.0
+                    && self.tick_count % 60 == (ui as u64) % 60)
                 // A SETTLED, AT-EASE unit (halted, no enemy near) that frayed on
                 // the march RE-FORMS on a slow drumbeat so order RECOVERS — without
                 // this a unit kept its march disorder forever (nothing re-sorted a

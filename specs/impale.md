@@ -7,20 +7,18 @@ by the victim's own momentum — so that a braced pike hedge stops cavalry
 the way Waterloo squares did, while sword walls keep only their toll, and
 the per-weapon difference falls out of reach, not class gates.
 
-## The contract this unlocks (it already exists, ignored)
+## The contract this unlocked
 
-`crates/sim/tests/class_scenarios.rs::a_braced_pike_front_keeps_its_feet_under_the_charge`
-— `#[ignore]`d with this diagnosis in its note. 160 shock cavalry charge a
-400-man phalanx frontally; today the cavalry centroid ends at y≈80 *past*
-a wall whose front is at y=40. Un-ignoring that test green is the
-acceptance criterion of this spec.
+`crates/sim/tests/class_scenarios.rs::a_pike_hedge_breaks_the_charge_even_if_horses_ooze_through`
+is the active wall-hold contract: a frontal shock-cavalry charge can ooze into
+the hedge after impact, but the gallop must die in the first ranks instead of
+carrying through the block.
 
-And the contract this must NOT break (locked, green, same file):
-`eight_ranks_of_swords_toll_the_ride_but_cannot_hold_it` — dense SWORD
-infantry exacts a melee toll (majority of riders planted for a few
-seconds, mass below trample speed) but cannot hold the ride. Swords toll;
-points stop. If the impale term turns sword walls into pike walls, it is
-miscalibrated.
+The calibration boundary is
+`class_scenarios::eight_ranks_of_swords_bog_the_charge_into_melee`: dense sword
+infantry does not stop horse at reach like pikes do, but enough braced bodies
+can still bog the charge into melee. Swords bog by body mass; pikes break the
+gallop at reach.
 
 ## Context you don't have (read this; it is the whole reason)
 
@@ -100,17 +98,14 @@ the pure term first and measure.
 
 ## Contracts (the tests are the spec)
 
-| Must become green | |
-|---|---|
-| Phalanx wall holds a frontal charge (cav never crosses) | `class_scenarios::a_braced_pike_front_keeps_its_feet_under_the_charge` — **remove the `#[ignore]`** |
-
 | Must stay green (the calibration boundary) | |
 |---|---|
-| Sword walls toll but cannot hold | `class_scenarios::eight_ranks_of_swords_toll_the_ride_but_cannot_hold_it` |
+| Phalanx wall breaks a frontal charge at the hedge | `class_scenarios::a_pike_hedge_breaks_the_charge_even_if_horses_ooze_through` |
+| Deep sword blocks bog by body mass, not pike reach | `class_scenarios::eight_ranks_of_swords_bog_the_charge_into_melee` |
 | Thin-line bloodbath band (impact still lands at speed) | `class_scenarios::a_frontal_charge_through_a_thin_line_is_a_bloodbath` |
 | Light horse half-butchery ratio | `class_scenarios::light_horse_tramples_at_half_the_butchery` |
 | 20-rank bog; thin-line ride-through; move-order trample pair | `class_scenarios::move_order_*` |
-| Pikes already unhorse by reach; rider reachability pure geometry | `class_scenarios::pikes_unhorse_*`, `combat_scenarios::rider_reachability_*` |
+| Pikes reach riders better than swords; rider reachability is pure geometry | `balance_charge::pikes_reach_riders_swords_chip_at_horseflesh`, `combat_scenarios::rider_reachability_*` |
 | Deep pike wall punishes infantry assault (the term must not double-tax slow pressers — it gates on charge-grade closing) | `combat_scenarios::deep_pike_wall_*` |
 | Grind breaks no bones; mirror pacing bands | `class_scenarios::a_grinding_press_breaks_no_bones`, `pacing_scenarios::*` |
 

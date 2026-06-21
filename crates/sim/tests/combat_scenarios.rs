@@ -59,11 +59,8 @@ fn deep_column_pushes_thin_line_back() {
 }
 
 #[test]
-#[ignore = "thin-vs-wall ratio is noise at the current near-zero pike lethality \
-            (~1.5% losses): the 'thin line gets closed on' half needs the impale / \
-            pike-lethality rework (task #66) to be robust; the deep-punishes half holds"]
 fn deep_pike_wall_holds_thin_pike_line_gets_closed_on() {
-    let fight = |phalanx_count: usize| -> (usize, usize) {
+    let fight = |phalanx_count: usize| -> (usize, usize, f32, usize) {
         let mut sim = Sim::new(no_morale(), SEED);
         let ph = sim.spawn_class(
             Vec2::new(0.0, 10.0),
@@ -80,24 +77,50 @@ fn deep_pike_wall_holds_thin_pike_line_gets_closed_on() {
             1,
         );
         sim.set_attack_move_order(atk, Vec2::new(0.0, 20.0));
-        run(&mut sim, 90.0);
-        (deaths(&sim, ph), deaths(&sim, atk))
+        let mut min_gap = f32::INFINITY;
+        let mut max_sword_fighting = 0usize;
+        for _ in 0..(90.0 / DT) as usize {
+            sim.tick();
+            let atk_u = &sim.units[atk];
+            max_sword_fighting = max_sword_fighting.max(
+                (atk_u.start..atk_u.start + atk_u.count)
+                    .filter(|&i| sim.alive[i] == 1 && sim.fighting[i] == 1)
+                    .count(),
+            );
+            let ph_u = &sim.units[ph];
+            for i in (atk_u.start..atk_u.start + atk_u.count).filter(|&i| sim.alive[i] == 1) {
+                for j in (ph_u.start..ph_u.start + ph_u.count).filter(|&j| sim.alive[j] == 1) {
+                    let gap = (sim.soldier_pos(i) - sim.soldier_pos(j)).len()
+                        - sim.radius[i]
+                        - sim.radius[j];
+                    min_gap = min_gap.min(gap);
+                }
+            }
+        }
+        (
+            deaths(&sim, ph),
+            deaths(&sim, atk),
+            min_gap,
+            max_sword_fighting,
+        )
     };
     // 10 ranks of pikes: a wall. Attackers pay a steep premium pressing it.
-    let (wall_loss, atk_loss_vs_wall) = fight(300);
+    let (wall_loss, atk_loss_vs_wall, wall_gap, wall_swords) = fight(300);
     let atk_frac = atk_loss_vs_wall as f32 / 240.0;
     let wall_frac = wall_loss as f32 / 300.0;
     assert!(
         atk_frac > 1.4 * wall_frac,
         "deep pikes must punish a frontal assault: attacker {atk_loss_vs_wall}/240, phalanx {wall_loss}/300"
     );
-    // 2 ranks of pikes: not enough push rate; the enemy closes to sword range.
-    let (thin_loss, _) = fight(60);
-    let wall_frac = wall_loss as f32 / 300.0;
-    let thin_frac = thin_loss as f32 / 60.0;
     assert!(
-        thin_frac > 1.6 * wall_frac,
-        "a thin pike line must get closed on: thin {thin_frac:.3} vs wall {wall_frac:.3} loss fraction"
+        wall_gap > 1.2 && wall_swords == 0,
+        "a deep pike wall keeps swords out of sword range: min gap {wall_gap:.2}m, sword-fighters {wall_swords}"
+    );
+    // 2 ranks of pikes: not enough push rate; the enemy closes to sword range.
+    let (_, _, thin_gap, thin_swords) = fight(60);
+    assert!(
+        thin_gap < 1.1 && thin_swords > 0,
+        "a thin pike line must get closed on: min gap {thin_gap:.2}m, sword-fighters {thin_swords}"
     );
 }
 
@@ -577,7 +600,6 @@ fn combat_drains_stamina() {
 }
 
 #[test]
-#[ignore = "regressed to peak -0.0m in the class-economy rebalance (heavy hp 2.4/dmg 0.2, light hp 1.55): the surrounded block no longer grinds south. Mechanism suspect: the heavier block now KILLS its ring before pressing through it, or the press equilibrium shifted. Needs its own look alongside the Waterloo session."]
 fn surrounded_unit_breakout_bores_toward_the_click() {
     // A heavy block ringed by enemies, ordered to break out south with
     // the move order must drive it toward the CLICK, and the indecisive

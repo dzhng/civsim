@@ -68,9 +68,6 @@ fn drawn_swords_silence_the_bows_after_the_order_travels() {
 }
 
 #[test]
-#[ignore = "blocked on pike-lethality / impale rework (task #66): the setup needs pikes \
-            LANDING (>24 kills) to have a swap-fumble to measure, but they land ~5 — \
-            points don't kill fast enough at reach yet (specs/impale.md)"]
 fn weapon_swaps_fumble_for_a_moment() {
     // Phalanx engaged at pike range ordered onto side swords: during the
     // swap window the unit's strike output collapses (helpless beat), then

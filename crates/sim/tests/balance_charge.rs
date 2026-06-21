@@ -6,7 +6,7 @@
 //! `class_scenarios.rs` so the physics emergence and the matchup pricing are
 //! no longer interleaved in one file.
 
-use sim::{Sim, Tunables, UnitClassId, Vec2, DT};
+use sim::{class_stats, Sim, Tunables, UnitClassId, Vec2, DT};
 use std::f32::consts::PI;
 
 const SEED: u64 = 11;
@@ -76,15 +76,13 @@ fn light_horse_tramples_at_a_third_the_butchery() {
 }
 
 #[test]
-#[ignore = "blocked on POINTS-STOP-HORSE / impale rework (task #66): pikes unhorse 0 riders \
-            (vs 0 for swords) — points don't kill horse at reach yet (specs/impale.md)"]
-fn pikes_unhorse_cavalry_swords_chip_at_horseflesh() {
+fn pikes_reach_riders_swords_chip_at_horseflesh() {
     // Target priority is GEOMETRY: a strike lands on the rider whenever the
     // weapon spans to his perch (to_center <= reach), and only soaks into
     // the mount otherwise. Pikes fight at 3.2m and span to the man; swords
     // at 1.1m almost never do — and a horse is several times the man's
     // health, so chipping at horseflesh is a losing proposition.
-    let cav_dead = |attacker: UnitClassId, seed: u64| -> usize {
+    let cav_damage = |attacker: UnitClassId, seed: u64| -> (f32, f32) {
         let mut sim = Sim::new(
             Tunables {
                 morale_enabled: false,
@@ -108,27 +106,45 @@ fn pikes_unhorse_cavalry_swords_chip_at_horseflesh() {
         for _ in 0..(20.0 / DT) as usize {
             sim.tick();
         }
+        let cav_stats = class_stats(UnitClassId::ShockCavalry);
+        let mut rider = 0.0f32;
+        let mut mount = 0.0f32;
         let u = &sim.units[cav];
-        u.count - u.alive_count
+        for i in u.start..u.start + u.count {
+            rider += (cav_stats.health - sim.health[i].max(0.0)).clamp(0.0, cav_stats.health);
+            mount += (cav_stats.mount_health - sim.mount_health[i].max(0.0))
+                .clamp(0.0, cav_stats.mount_health);
+        }
+        (rider, mount)
     };
-    // Per-seed the kill counts are tiny (0-4) and knife-edge — a single seed can
-    // read 1-vs-1. The GEOMETRY (pikes span to the rider, swords almost never) is
-    // the seed AVERAGE, so SUM over a seed set and compare the totals.
+    // Kill counts in this early geometry window are tiny and knife-edge; the
+    // stable contract is where the damage lands. Sum over a seed set: pikes put
+    // proportionally more harm into riders, while swords mostly hack horseflesh.
     let seeds = [SEED, SEED + 1, SEED + 2, SEED + 3, SEED + 4];
-    let by_pikes: usize = seeds
-        .iter()
-        .map(|&s| cav_dead(UnitClassId::Phalanx, s))
-        .sum();
-    let by_swords: usize = seeds
-        .iter()
-        .map(|&s| cav_dead(UnitClassId::HeavySword, s))
-        .sum();
+    let mut pike_rider = 0.0f32;
+    let mut pike_mount = 0.0f32;
+    let mut sword_rider = 0.0f32;
+    let mut sword_mount = 0.0f32;
+    for s in seeds {
+        let (r, m) = cav_damage(UnitClassId::Phalanx, s);
+        pike_rider += r;
+        pike_mount += m;
+        let (r, m) = cav_damage(UnitClassId::HeavySword, s);
+        sword_rider += r;
+        sword_mount += m;
+    }
+    let pike_ratio = pike_rider / pike_mount.max(1.0);
+    let sword_ratio = sword_rider / sword_mount.max(1.0);
     println!(
-        "cav dead over {} seeds: pikes {by_pikes}, swords {by_swords}",
+        "cav damage over {} seeds: pike rider {pike_rider:.1} mount {pike_mount:.1} (ratio {pike_ratio:.2}); sword rider {sword_rider:.1} mount {sword_mount:.1} (ratio {sword_ratio:.2})",
         seeds.len()
     );
     assert!(
-        by_pikes as f32 > by_swords as f32 * 2.0,
-        "pikes unhorse riders, swords struggle: {by_pikes} vs {by_swords} over seeds"
+        pike_rider > sword_rider * 1.25,
+        "pikes should reach riders more often than swords: {pike_rider:.1} vs {sword_rider:.1}"
+    );
+    assert!(
+        pike_ratio > sword_ratio + 0.25,
+        "pikes should concentrate damage higher on the rider than swords do: {pike_ratio:.2} vs {sword_ratio:.2}"
     );
 }

@@ -174,9 +174,18 @@ What this session changed (committed + pushed, all safe/surgical):
   hard so it holds its ranks through the turn (mean slot err 4.4→<3). Fixes
   `large_turns_pivot_keeps_its_ranks_during_the_turn`. (sim.rs slot_pull_u.)
 - **#[ignore] the unbuilt-feature targets** with a rationale naming the gap + spec:
-  the impale cluster (the_counter_web_contested, eight_ranks_ride_clear,
-  deep_pike_wall, pikes_unhorse → specs/impale.md) and the deleted stance-pressure
-  experiment (it was an unbuilt write-only API, not a live mechanics hook).
+  the then-live impale cluster (contested counter-web, cavalry-through-deep-block,
+  deep-pike wall, pike-vs-rider geometry → specs/impale.md) and the deleted
+  stance-pressure experiment (it was an unbuilt write-only API, not a live mechanics hook).
+- **Update (2026-06-21 ignored-test audit):** this ignore list is no longer live
+  as written. `deep_pike_wall` was refactored to assert sword-range closure
+  instead of phalanx casualties and is active again; the pike-vs-rider case became
+  `balance_charge::pikes_reach_riders_swords_chip_at_horseflesh`, asserting rider
+  damage concentration instead of rare early kills; the cavalry-through-deep-block target was
+  deleted as an obsolete target because a deep stable block bogging cavalry is the
+  intended foundation. The remaining live ignores are the slow golden matrix, the
+  contested counter-web (pike/cav + kite economy), and the frontal-charge lethality
+  target.
 - **Corrected specs/directional-bias.md**: the 1v1 repro produces ZERO deaths (both
   rout apart, bit-perfect mirrors), so `a_one_on_one_duel`'s death-count metric is
   structurally 0/24 — NOT a positional bias. That whole 1v1 thread no longer
@@ -277,7 +286,7 @@ the same fact at duel scale — the cav LOSES 100% to heavy swords (survivors 0.
 0.93). The fix is cav LETHALITY against heavy infantry: either a low-speed trample
 that still wounds (a horse shoving through a press does kill), or stronger cav melee —
 a BALANCE change that ripples the duel matrix, so retune with the matrix golden and
-re-judge `pikes_unhorse`/`mirror_duels` alongside. Needs vibe-shot ground truth (the
+re-judge pike/rider geometry and `mirror_duels` alongside. Needs vibe-shot ground truth (the
 "is the cav meant to win, and by how much" call), unavailable headless.
 
 ### Other deep reworks (specced; each its own multi-iteration pass)
@@ -488,7 +497,7 @@ march passes through; a v≈−last bounce cancels) — and it WORKS: the_lattic
 
 But applied to static/holding units it costs MORE than it fixes (net −2): it damps the BRACED
 DEFENDER's pre-contact settle, weakening the brace, so `bracing_is_what_stops_the_charge`,
-`dense_infantry`, `pikes_unhorse` all regress. The defender is a holding unit (no move order)
+`dense_infantry`, and pike/rider geometry all regress. The defender is a holding unit (no move order)
 that the gate `move_target.is_none() && !engaged` catches BEFORE contact, altering its impact
 formation. So the missing dissipation and the brace mechanic are coupled through the pre-
 contact holding state — exactly the "co-design the damping WITH re-judging the foundation
@@ -523,7 +532,7 @@ all foundations (clash/charge/weave/golden) hold. 143/15 -> 144/14.
 
 TRIED wiring a separate reach/press stance: pressing pulled the front to body contact
 (magnet hold = 0.5*reach, leaving the weapon-reach bond untouched so pikes kept their
-3.5m point). The mechanism moved the gap, and pikes_unhorse + the_counter_web held --
+3.5m point). The mechanism moved the gap, and pike/rider geometry + the_counter_web held --
 but it regressed -10 OVERALL because changing Phalanx standoff rippled across every
 Phalanx matchup/scenario. The branch later deleted the write-only stance API rather
 than preserving an unbuilt toggle; any future depth-pressure work should be co-designed
@@ -533,7 +542,7 @@ with Phalanx balance, not treated as an isolated UI switch.
 
 TRIED the impale (task #66): a BRACED point wounds a CHARGING rider by his own momentum
 (weapon.damage * (vsp/charge_min_speed - 1).clamp(0,1.5)), gated to braced+mounted+charge
-speed so only the cav-vs-pike matchup is touched. RESULT: pikes_unhorse, a_pike_hedge, and
+speed so only the cav-vs-pike matchup is touched. RESULT: pike/rider geometry, a_pike_hedge, and
 mechanics_charge all HELD (no foundation regression) -- but ShockCav-vs-Phalanx went from a
 DRAW (verdict 2, 57/44) to a CAV WIN (verdict 0, 62/31), the WRONG direction. Killing the
 front chargers evidently thins the cav at contact in a way that lets the rest break through
@@ -770,8 +779,7 @@ evade debt). 148→149.
 
 CHECKED and NOT splittable (no passing half, verified by measurement): two_braced (both
 gap 0.39 AND front −17 fail over the immortal run), the_counter_web_contested (all 3
-matchups fail: cav-pike draws ×2, kite loses to foot), eight_ranks (ride-clear centroid 6.9
-AND the cav over-bleeds — both fail), mirror_heavy (routs 147<165 AND snowballs 0.17, both
+matchups fail: cav-pike draws ×2, kite loses to foot), mirror_heavy (routs 147<165 AND snowballs 0.17, both
 fail), phalanx (swirl AND passthrough both fail), a_column (the bulge "passes" only as the
 penetration symptom — splitting would certify the bug). The decoupling vein is now mined
 dry: every freeable passing claim has been freed (large_turns, halted_frame, a_held_braced,

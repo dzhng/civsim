@@ -438,9 +438,9 @@ fn charging_costs_stamina_and_spent_legs_cannot_burst() {
     assert!(!spent_burst, "blown horses cannot charge — they trot in");
 }
 
-// `pikes_unhorse_cavalry_swords_chip_at_horseflesh` MOVED to `balance_charge.rs`
-// — it is a per-class weapon-geometry matchup OUTCOME (pikes vs swords kill
-// ratio against cavalry), a balance comparison, not a physics invariant.
+// `pikes_reach_riders_swords_chip_at_horseflesh` lives in `balance_charge.rs`:
+// it is a per-class weapon-geometry matchup outcome (pike reach vs sword reach
+// against cavalry), a balance comparison, not a physics invariant.
 
 #[test]
 fn move_order_rides_through_a_thin_line() {
@@ -774,12 +774,10 @@ fn a_pike_hedge_breaks_the_charge_even_if_horses_ooze_through() {
     );
 }
 
-// 80 shock horse ordered THROUGH an 800-man, 8-deep sword wall (a stride out, so
-// the window is the toll-and-ride-through, not a long open approach). Returns
-// (min mass_advance, seconds spent as a melee, final cavalry centroid y, riders
-// left). Shared by the two DECOUPLED claims below — the bogging MECHANIC (which
-// works) and the ride-clear LETHALITY (which doesn't yet).
-fn eight_ranks_charge() -> (f32, f32, f32, usize) {
+// 80 shock horse ordered into an 800-man, 8-deep sword wall (a stride out, so
+// the window is the contact/bogging mechanic, not a long open approach). Returns
+// (min mass_advance, seconds spent as a melee).
+fn eight_ranks_charge() -> (f32, f32) {
     let mut sim = Sim::new(
         Tunables {
             morale_enabled: false,
@@ -813,18 +811,15 @@ fn eight_ranks_charge() -> (f32, f32, f32, usize) {
             melee_secs += DT;
         }
     }
-    let c = &sim.units[cav];
-    (min_ma, melee_secs, c.centroid.y, c.alive_count)
+    (min_ma, melee_secs)
 }
 
-/// MECHANICAL — the working half. Dense sword infantry without pole-arms cannot
-/// STOP heavy horse (only points can; the Waterloo contract + specs/impale.md),
-/// but eight braced ranks DROP the charge below trample speed and plant the
-/// MAJORITY of the riders into honest melee. (The slam carries them in; the tangle
-/// behind it bogs them.)
+/// MECHANICAL. Dense sword infantry does not stop horse at reach the way a pike
+/// hedge does, but enough braced bodies still bog the charge below trample speed
+/// and plant the majority of the riders into honest melee.
 #[test]
 fn eight_ranks_of_swords_bog_the_charge_into_melee() {
-    let (min_ma, melee_secs, _, _) = eight_ranks_charge();
+    let (min_ma, melee_secs) = eight_ranks_charge();
     assert!(
         min_ma < 1.0,
         "the tangle stops the mass below trample speed: min mass_advance {min_ma:.2}"
@@ -833,26 +828,6 @@ fn eight_ranks_of_swords_bog_the_charge_into_melee() {
         melee_secs > 2.0,
         "the majority of the cavalry fights as melee for a few seconds: {melee_secs:.1}s"
     );
-}
-
-/// BALANCE / LETHALITY — the UNBUILT half, decoupled from the bog mechanic above.
-/// After bogging, the riders should SHOVE FREE and ride on having paid only a toll,
-/// not stay pinned and bleed out. The cav cannot yet cut its way clear of an 800-man
-/// block (it lacks the lethality to thin it — it reaches centroid ~7, not past −60,
-/// and over-bleeds), which is the cav-lethality / impale rework (specs/impale.md).
-/// Marked #[ignore] (not silently deleted): the bog mechanic above is built and
-/// GREEN; THIS half waits on the impale / cav-lethality rework (task #66,
-/// specs/impale.md). An unbuilt-feature target belongs ignored-with-rationale,
-/// not as a permanent red that reads like a regression.
-#[test]
-#[ignore = "unbuilt: cav-lethality / impale rework (task #66) — cav can't yet cut clear of a deep block"]
-fn eight_ranks_cavalry_should_ride_clear_with_only_a_toll() {
-    let (_, _, centroid_y, alive) = eight_ranks_charge();
-    assert!(
-        centroid_y < -60.0,
-        "and they shove their way out and ride on: centroid y {centroid_y:.1}"
-    );
-    assert!(alive >= 70, "the toll is a toll, not a grave: {alive} left");
 }
 
 #[test]

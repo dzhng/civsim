@@ -13,7 +13,7 @@
 > M-equivariant-solver direction) · `standoff-double-push.md` (scope rider on the
 > standoff repair) · `impale.md` (pike/cav lethality, needed for the cav re-bless).
 > `balance-harness.md` + `scenarios.md` are infrastructure-design reference;
-> `test-taxonomy.md` is the mechanical-vs-balance decoupling standard.
+> `crates/sim/tests/README.md` is the mechanical-vs-balance decoupling standard.
 > (Deleted as subsumed: `attrition-runaway.md`, `contact-foundation-clash.md` — the
 > front-line-integrity root they chased is the consolidated triage below.)
 

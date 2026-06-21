@@ -8,6 +8,9 @@
 //!
 //! See the `tweak-mechanics` skill for the workflow these encode.
 
+mod common;
+
+use common::{deaths, no_morale};
 use sim::{Pace, Sim, Tunables, UnitClassId, Vec2, DT};
 use std::f32::consts::FRAC_PI_2;
 
@@ -760,16 +763,6 @@ fn a_column_bulges_a_held_line_it_does_not_part_it() {
 // grind-duration + engagement are physics invariants (symmetric units, no
 // pricing), so they live with the other mechanics here, not among the balance
 // outcomes. (Asserts on losses only as the even-handedness proxy, never on wins.)
-fn no_morale() -> Tunables {
-    Tunables {
-        morale_enabled: false,
-        ..Tunables::default()
-    }
-}
-fn deaths(sim: &Sim, u: usize) -> usize {
-    sim.units[u].count - sim.units[u].alive_count
-}
-
 #[test]
 fn melee_kills_and_formations_thin() {
     let mut sim = Sim::new(no_morale(), 99);

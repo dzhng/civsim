@@ -2,42 +2,13 @@
 //! from the five weapon numbers + bodies + pressure. There is no class- or
 //! situation-conditional combat logic to fall back on.
 
-use sim::{Sim, Tunables, UnitClassId, Vec2, DT};
+mod common;
+
+use common::{deaths, living_mean, no_morale, run};
+use sim::{Sim, UnitClassId, Vec2, DT};
 use std::f32::consts::{FRAC_PI_2, PI};
 
 const SEED: u64 = 99;
-
-/// Combat-mechanics isolation: these scenarios fight to the death.
-fn no_morale() -> Tunables {
-    Tunables {
-        morale_enabled: false,
-        ..Tunables::default()
-    }
-}
-
-fn run(sim: &mut Sim, seconds: f32) {
-    for _ in 0..(seconds / DT) as usize {
-        sim.tick();
-    }
-}
-
-fn deaths(sim: &Sim, u: usize) -> usize {
-    sim.units[u].count - sim.units[u].alive_count
-}
-
-/// Mean position of a unit's living soldiers.
-fn living_mean(sim: &Sim, u: usize) -> Vec2 {
-    let unit = &sim.units[u];
-    let mut sum = Vec2::ZERO;
-    let mut n = 0;
-    for s in unit.start..unit.start + unit.count {
-        if sim.alive[s] == 1 {
-            sum = sum + sim.soldier_pos(s);
-            n += 1;
-        }
-    }
-    sum * (1.0 / n.max(1) as f32)
-}
 
 // `melee_kills_and_formations_thin` MOVED to `mechanics_melee.rs` — even-
 // handedness, grind-duration, and engagement are physics invariants of a

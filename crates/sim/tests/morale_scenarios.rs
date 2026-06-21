@@ -1,16 +1,13 @@
 //! Morale emergence: breaks before annihilation, panic spreads through
 //! physical proximity, charges terrify before they land, rallies scar.
 
+mod common;
+
+use common::run;
 use sim::{Sim, Tunables, UnitClassId, Vec2, DT};
 use std::f32::consts::FRAC_PI_2;
 
 const SEED: u64 = 555;
-
-fn run(sim: &mut Sim, seconds: f32) {
-    for _ in 0..(seconds / DT) as usize {
-        sim.tick();
-    }
-}
 
 #[test]
 fn outnumbered_unit_breaks_before_annihilation() {

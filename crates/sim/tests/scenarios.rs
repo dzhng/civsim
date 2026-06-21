@@ -2,17 +2,13 @@
 //! emergent property the design promises — if the emergence breaks, so does
 //! the test.
 
+mod common;
+
+use common::run;
 use sim::{Pace, Sim, Tunables, Vec2, DT};
 use std::f32::consts::PI;
 
 const SEED: u64 = 42;
-
-fn run(sim: &mut Sim, seconds: f32) {
-    let ticks = (seconds / DT) as usize;
-    for _ in 0..ticks {
-        sim.tick();
-    }
-}
 
 fn test_unit(sim: &mut Sim) -> usize {
     sim.spawn_unit(Vec2::ZERO, 0.0, 200, 20, Vec2::new(1.0, 1.2), 0, 0.7)

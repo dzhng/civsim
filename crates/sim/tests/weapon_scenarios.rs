@@ -1,17 +1,13 @@
 //! Secondary weapons: switching takes a moment (per soldier AND down the
 //! unit line), the drawn order overrides judgment, slung bows go quiet.
 
-use sim::{class_stats, Sim, Tunables, UnitClassId, Vec2, DT};
+mod common;
+
+use common::no_morale;
+use sim::{class_stats, Sim, UnitClassId, Vec2, DT};
 use std::f32::consts::FRAC_PI_2;
 
 const SEED: u64 = 808;
-
-fn no_morale() -> Tunables {
-    Tunables {
-        morale_enabled: false,
-        ..Tunables::default()
-    }
-}
 
 #[test]
 fn archers_carry_swords() {

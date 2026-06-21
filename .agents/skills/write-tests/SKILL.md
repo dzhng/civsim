@@ -13,7 +13,7 @@ description: How to write and iterate on tests in this repo — fast cargo first
    failures often share a single root cause, and the cheapest diagnosis is
    the union of their messages.
 2. **Target single tests while diagnosing**: `cargo test -p sim --test
-   combat_scenarios <name> -- --nocapture`. Print diagnostics with the
+   mechanics_melee <name> -- --nocapture`. Print diagnostics with the
    assert (`"got {x:.1}m"`) so a red test IS the trace.
 3. **Only when cargo is green**, run `npm run verify` from `web/` (~75s).
    It covers web-only glue: wasm boundary, zero-copy views, UI plumbing,
@@ -90,6 +90,19 @@ physical signature instead:
 
 ## The one-line split: mechanical = tight + deterministic; balance = distribution
 
+`crates/sim/tests/README.md` is the current test map. Use it before adding a
+new file or moving a test; the short version is:
+
+| Bucket | Question answered by a failure |
+|---|---|
+| `mechanics_*` | "Did the physics/invariant break?" |
+| `balance_*` | "Did the stat-vs-price outcome move?" |
+| `*_scenarios` | "Did a public-API behavior stop emerging?" |
+
+Use `crates/sim/tests/common/` only for neutral mechanics like ticking, no-morale
+tunables, death counts, and simple living-unit geometry. Scenario-specific
+measurements stay local so the assertion remains readable.
+
 The two families want OPPOSITE things from a number, and conflating them is the
 single most expensive test-design mistake in this repo:
 
@@ -123,7 +136,8 @@ over the seed set.)
 
 ## Balance tests use the seed-set harness, not single seeds
 
-Two families of sim test, and they want different things (see the README):
+Two families of sim test, and they want different things (see
+`crates/sim/tests/README.md`):
 **behavior/physics** tests (the bulk) assert a mechanism crosses a threshold
 at the smallest scale — everything above is about those. **Balance** tests
 ask "does performance match price?" and live on the harness in

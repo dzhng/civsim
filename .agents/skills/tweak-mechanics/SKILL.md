@@ -456,11 +456,15 @@ t=19.9s". Trust the measurement, then confirm the feel.)
 
 ## Test taxonomy (keep it explicit)
 
+`crates/sim/tests/README.md` is the canonical map for the Rust sim tests. The
+quick routing table:
+
 | Prefix | What it is | Asserts on | Skill |
 |---|---|---|---|
 | `mechanics_*.rs` | first-principles physics: how the world works | cohesion, centroids, pressure, facing — NOT wins | this one |
 | `balance_*.rs` | performance-vs-price over a seed set | win-rate / survivor spread / the counter-web | `balance-unit` |
-| everything else | general: nav, terrain, golden, runner smoke, AI integration, and the older `*_scenarios.rs` emergence tests | varies | `write-tests` |
+| `*_scenarios.rs` | public-API emergence contracts | player-visible behavior across systems | `write-tests` |
+| infrastructure | determinism, runners, micro-harnesses | hashes, smoke checks, harness contracts | `write-tests` |
 
 New physics tests go in `mechanics_*.rs`. The legacy `*_scenarios.rs`
 (combat, class, morale, posture…) are emergence tests that mostly belong in

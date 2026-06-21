@@ -6,17 +6,13 @@
 //! (Withdraw): turn and run at full pace, answering nothing.
 //! Cavalry cannot drift: it wheels and breaks off, both ways.
 
-use sim::{Sim, Tunables, UnitClassId, Vec2, DT};
+mod common;
+
+use common::no_morale;
+use sim::{Sim, UnitClassId, Vec2, DT};
 use std::f32::consts::FRAC_PI_2;
 
 const SEED: u64 = 31337;
-
-fn no_morale() -> Tunables {
-    Tunables {
-        morale_enabled: false,
-        ..Tunables::default()
-    }
-}
 
 #[test]
 fn engage_move_backs_off_facing_the_threat() {

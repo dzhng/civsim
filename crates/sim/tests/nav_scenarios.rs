@@ -2,15 +2,12 @@
 //! the narrow stuff, queue behind your own traffic — march straight through
 //! everything merely slow.
 
+mod common;
+
+use common::run;
 use sim::{Sim, Terrain, Tunables, Vec2, DT};
 
 const SEED: u64 = 77;
-
-fn run(sim: &mut Sim, seconds: f32) {
-    for _ in 0..(seconds / DT) as usize {
-        sim.tick();
-    }
-}
 
 fn living_frac_with<F: Fn(Vec2) -> bool>(sim: &Sim, u: usize, pred: F) -> f32 {
     let unit = &sim.units[u];

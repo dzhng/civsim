@@ -1,16 +1,13 @@
 //! Class & mass emergence tests: every class difference must flow from the
 //! stat table through physics — no class-conditional logic exists anywhere.
 
+mod common;
+
+use common::run;
 use sim::{setup_battle, MapId, Sim, Tunables, UnitClassId, Vec2, DT};
 use std::f32::consts::PI;
 
 const SEED: u64 = 11;
-
-fn run(sim: &mut Sim, seconds: f32) {
-    for _ in 0..(seconds / DT) as usize {
-        sim.tick();
-    }
-}
 
 #[test]
 fn cavalry_mass_shoves_through_infantry() {
@@ -675,4 +672,3 @@ fn a_charge_stopped_in_the_crowd_is_spent_even_if_it_never_reached_speed() {
         "a stopped, engaged 'charge' must clear within a couple of seconds: {stuck:.1}s stuck"
     );
 }
-

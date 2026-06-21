@@ -6,24 +6,13 @@
 //! Migrated out of `combat_scenarios.rs` so the physics invariants and the
 //! pricing outcomes are no longer interleaved in one file.
 
-use sim::{Sim, Tunables, UnitClassId, Vec2, DT};
+mod common;
+
+use common::{deaths, no_morale, run};
+use sim::{Sim, UnitClassId, Vec2};
 use std::f32::consts::FRAC_PI_2;
 
 const SEED: u64 = 99;
-
-fn no_morale() -> Tunables {
-    Tunables { morale_enabled: false, ..Tunables::default() }
-}
-
-fn run(sim: &mut Sim, seconds: f32) {
-    for _ in 0..(seconds / DT) as usize {
-        sim.tick();
-    }
-}
-
-fn deaths(sim: &Sim, u: usize) -> usize {
-    sim.units[u].count - sim.units[u].alive_count
-}
 
 #[test]
 fn long_swords_cleave_loose_enemies() {

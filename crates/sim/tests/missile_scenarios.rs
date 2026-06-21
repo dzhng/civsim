@@ -1,28 +1,13 @@
 //! Missile emergence tests: projectiles are physical objects — density,
 //! shields, and geometry decide everything.
 
+mod common;
+
+use common::{deaths, no_morale, run};
 use sim::{Sim, Tunables, UnitClassId, Vec2, DT};
 use std::f32::consts::FRAC_PI_2;
 
 const SEED: u64 = 1234;
-
-/// Combat-mechanics isolation: these scenarios fight to the death.
-fn no_morale() -> Tunables {
-    Tunables {
-        morale_enabled: false,
-        ..Tunables::default()
-    }
-}
-
-fn run(sim: &mut Sim, seconds: f32) {
-    for _ in 0..(seconds / DT) as usize {
-        sim.tick();
-    }
-}
-
-fn deaths(sim: &Sim, u: usize) -> usize {
-    sim.units[u].count - sim.units[u].alive_count
-}
 
 #[test]
 fn archers_kill_at_range_and_spend_ammo() {

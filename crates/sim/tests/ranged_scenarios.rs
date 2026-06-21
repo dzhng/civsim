@@ -3,18 +3,13 @@
 //! by aspect (shields are a FRONT-arc fact), and the melee fate of
 //! archers who let the line reach them.
 
+mod common;
+
+use common::no_morale_parade as no_morale;
 use sim::{Sim, Tunables, UnitClassId, Vec2, DT};
 use std::f32::consts::FRAC_PI_2;
 
 const SEED: u64 = 1453;
-
-fn no_morale() -> Tunables {
-    Tunables {
-        morale_enabled: false,
-        micro_rough: 0.0,
-        ..Tunables::default()
-    }
-}
 
 /// Advancing target: kills the archers score BEFORE first contact.
 fn kills_before_contact(target: UnitClassId, n: usize) -> (usize, f32) {

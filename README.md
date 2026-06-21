@@ -325,6 +325,11 @@ cargo test -p sim
 cargo test -p campaign
 cargo test --workspace
 
+# focused sim buckets
+cargo test -p sim --test mechanics_melee
+cargo test -p sim --test balance_harness
+cargo test -p sim --test ranged_scenarios
+
 # browser verification (needs the dev server running)
 node web/verify-battle.mjs           # battle
 node web/verify-campaign.mjs         # campaign (real map: behavior + screenshots)
@@ -333,4 +338,5 @@ node web/verify-campaign-visual.mjs  # campaign markers (controlled test map)
 UPDATE_SHOTS=1 node web/verify-campaign.mjs
 ```
 
-See `.claude/skills/screenshot-regression/` for the snapshot workflow.
+See `crates/sim/tests/README.md` for the sim test taxonomy and
+`.agents/skills/screenshot-regression/` for the snapshot workflow.

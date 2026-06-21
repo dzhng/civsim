@@ -653,6 +653,53 @@ fn a_wide_line_wraps_a_narrow_block() {
     );
 }
 
+#[test]
+fn a_mortal_wrapping_line_backfills_casualty_tears() {
+    let mut tun = Tunables::default();
+    tun.micro_rough = 0.0;
+    tun.morale_enabled = false;
+    let mut sim = Sim::new(tun, 11);
+    let block = sim.spawn_class(
+        Vec2::new(0.0, 13.0),
+        -FRAC_PI_2,
+        120,
+        UnitClassId::HeavySword,
+        1,
+    );
+    sim.set_files(block, 12);
+    let line = sim.spawn_class(
+        Vec2::new(0.0, -13.0),
+        FRAC_PI_2,
+        210,
+        UnitClassId::HeavySword,
+        0,
+    );
+    sim.set_files(line, 70);
+    sim.set_pace(line, Pace::Run);
+    sim.set_attack_order(line, block);
+
+    let mut max_gap_after_casualty = 0.0f32;
+    let mut saw_casualty = false;
+    for _ in 0..(60.0 / DT) as usize {
+        sim.tick();
+        if sim.units[line].alive_count < sim.units[line].count {
+            saw_casualty = true;
+            max_gap_after_casualty = max_gap_after_casualty.max(p95_adjacent_file_gap(&sim, line));
+        }
+    }
+    let final_gap = p95_adjacent_file_gap(&sim, line);
+    eprintln!(
+        "MORTAL-WRAP  line alive={}/{} max-post-casualty-gap={max_gap_after_casualty:.1}m final-gap={final_gap:.1}m",
+        sim.units[line].alive_count,
+        sim.units[line].count
+    );
+    assert!(saw_casualty, "setup must reach the casualty/backfill phase");
+    assert!(
+        max_gap_after_casualty < 5.0 && final_gap < 3.0,
+        "casualty holes in a wrapping line must back-fill instead of tearing into streamers: max {max_gap_after_casualty:.1}m, final {final_gap:.1}m",
+    );
+}
+
 /// THE COLUMN-AND-LINE STORY (immortal soldiers, so it is pure formation
 /// physics — nobody dies, the only question is how the line DEFORMS). A narrow
 /// deep column drives the centre of a wide held line. The right behaviour is a

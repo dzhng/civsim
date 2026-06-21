@@ -719,11 +719,12 @@ impl Sim {
         // bulge into streamers. Deep blocks are different: they need periodic
         // vacancy/back-rank flow to keep a grind from pancaking, and their depth
         // makes the sort stable. Deaths still back-fill promptly through
-        // `deaths_since_reform` while the unit is coherent enough to sort safely.
+        // `deaths_since_reform`: a dead hole is a real vacancy, even in a
+        // low-cohesion wrap, and must not leave a living sheet torn open.
         for ui in 0..self.units.len() {
             let ranks = self.units[ui].alive_count as f32 / self.units[ui].files_eff.max(1) as f32;
             let needs = self.units[ui].pivoting
-                || (self.units[ui].deaths_since_reform > 0 && self.units[ui].cohesion > 0.7)
+                || self.units[ui].deaths_since_reform * 50 > self.units[ui].alive_count.max(1)
                 || (self.units[ui].engaged > 0
                     && ranks >= 5.0
                     && self.tick_count % 60 == (ui as u64) % 60)

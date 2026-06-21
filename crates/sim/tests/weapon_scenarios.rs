@@ -90,10 +90,19 @@ fn weapon_swaps_fumble_for_a_moment() {
             sim.tick(); // pike work underway
         }
         let kills_before = sim.units[foe].count - sim.units[foe].alive_count;
-        sim.set_weapon_pref(ph, true); // ground pikes, draw swords
-                                       // Order travel (1s) + per-man fumble (1s): a quiet beat.
+        // Ground pikes, draw swords.
+        sim.set_weapon_pref(ph, true);
+        // The shouted order takes ~1s to reach the line. Do not count that as
+        // the fumble: until `weapon_pref` flips, the pikes are still the legal
+        // weapon in hand and can keep killing.
+        for _ in 0..(1.1 / DT) as usize {
+            sim.tick();
+        }
+        assert_eq!(sim.units[ph].weapon_pref, 1, "sword order arrived");
+        // Per-man fumble: men that were holding pikes spend a beat switching
+        // instead of striking.
         let before = sim.units[foe].count - sim.units[foe].alive_count;
-        for _ in 0..(2.0 / DT) as usize {
+        for _ in 0..(1.0 / DT) as usize {
             sim.tick();
         }
         let quiet = (sim.units[foe].count - sim.units[foe].alive_count) - before;

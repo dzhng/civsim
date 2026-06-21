@@ -298,6 +298,17 @@ impl Game {
         self.refresh_unit_info();
     }
 
+    /// Run several sim ticks but refresh the exported unit-info buffer once.
+    /// The renderer only reads unit info after a frame/batch; rebuilding it
+    /// after every internal tick made fast-forward and catch-up pay UI-copy
+    /// cost hundreds of unnecessary times.
+    pub fn advance_ticks(&mut self, n: u32) {
+        for _ in 0..n {
+            self.battle.tick();
+        }
+        self.refresh_unit_info();
+    }
+
     pub fn set_ai_team(&mut self, team: i32) {
         if (0..2).contains(&team) {
             self.battle.set_ai(team as u32, true);

@@ -762,12 +762,14 @@ export class BattleScene implements Scene {
       let ticks = 0;
       const maxTicks = MAX_TICKS_PER_FRAME * timeScale;
       while (accumulator >= TICK_DT && ticks < maxTicks) {
-        const t0 = performance.now();
-        game.tick();
-        simTick++;
-        tickMsAvg += (performance.now() - t0 - tickMsAvg) * 0.1;
         accumulator -= TICK_DT;
         ticks++;
+      }
+      if (ticks > 0) {
+        const t0 = performance.now();
+        game.advance_ticks(ticks);
+        simTick += ticks;
+        tickMsAvg += ((performance.now() - t0) / ticks - tickMsAvg) * 0.1;
       }
       if (ticks === maxTicks) accumulator = 0;
 
@@ -1052,7 +1054,8 @@ export class BattleScene implements Scene {
       attackMove: (u: number, x: number, y: number) => game.set_attack_move_order(u, x, y),
       disengage: (u: number, x: number, y: number) => game.set_disengage_order(u, x, y),
       advance: (n: number) => {
-        for (let i = 0; i < n; i++) { game.tick(); simTick++; }
+        game.advance_ticks(n);
+        simTick += n;
         tickGroupAttacks();
       },
       // Absolute ticks driven so far — the harness pins a snapshot to a fixed
@@ -1064,7 +1067,10 @@ export class BattleScene implements Scene {
       freezeAtTick: (target: number) => {
         doFreeze(true);
         const n = target - simTick;
-        for (let i = 0; i < n; i++) { game.tick(); simTick++; }
+        if (n > 0) {
+          game.advance_ticks(n);
+          simTick += n;
+        }
         tickGroupAttacks();
       },
       freeze: (on = true) => doFreeze(on),

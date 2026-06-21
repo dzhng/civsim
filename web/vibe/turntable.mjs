@@ -1,20 +1,25 @@
 // 360° model-review turntable. Boots the ?test=models harness (one soldier per
 // class on a flat field, no sim), orbits each model through 8 facings in every
-// stance, and writes one contact sheet per class to vibe/shots/models/. Review
-// the sheets, tweak src/shared/soldierModel.ts, re-run.
+// stance, and snap-checks one contact sheet per class against its committed
+// baseline. The sheet is both the thing you review (tweak soldierModel.ts, re-
+// run, eyeball the baselines) AND a gate: an unintended geometry/renderer change
+// turns a class red with a highlighted diff in shots/diff/. Re-bless intended
+// model changes with UPDATE_SHOTS=1.
 //
-//   node vibe/turntable.mjs            # all 12 classes
-//   ONLY=0,3,6 node vibe/turntable.mjs # just these class ids
+//   node vibe/turntable.mjs                 # all 12 classes, hero 3/4 angle
+//   ONLY=0,3,6 node vibe/turntable.mjs      # just these class ids
+//   PITCH=ingame node vibe/turntable.mjs    # the battle's real top-down tilt
+//   UPDATE_SHOTS=1 node vibe/turntable.mjs  # re-bless after a model change
 import { chromium } from 'playwright';
-import { mkdir, writeFile } from 'node:fs/promises';
 import { PNG } from 'pngjs';
+import { snapCheck } from '../snapshot.mjs';
 
 const TARGET = process.env.VERIFY_URL ?? 'http://localhost:5173';
 // PITCH=ingame renders at the battle's real max tilt (0.42 rad, near top-down)
-// into shots/models-ingame/ to confirm the models still read as the engine
-// actually shows them; default is the side-on hero angle for geometry review.
+// under shots/baseline/models-ingame/ to confirm the models still read as the
+// engine actually shows them; default is the side-on hero angle for geometry.
 const INGAME = process.env.PITCH === 'ingame';
-const OUT = new URL(INGAME ? './shots/models-ingame/' : './shots/models/', import.meta.url).pathname;
+const GROUP = INGAME ? 'models-ingame' : 'models';
 
 // Thumbnail = the whole (small) viewport, so the montage just tiles screenshots
 // with no resize. Portrait: a standing figure with his pike raised.
@@ -85,11 +90,13 @@ await page.goto(`${TARGET}/?test=models`);
 await page.waitForFunction(() => window.__ready === true, undefined, { timeout: 20000 });
 await page.waitForTimeout(300);
 
-await mkdir(OUT, { recursive: true });
 const classes = only ?? Array.from({ length: 12 }, (_, i) => i);
 
-// Detail sheet picks front (0°), 3/4-front (45°) and right profile (90°).
-const DETAIL = [0, 1, 2];
+let fails = 0;
+const check = (label, ok, detail) => {
+  if (!ok) fails++;
+  console.log(`${ok ? 'ok  ' : 'DIFF'} ${label}${detail ? `  ${detail}` : ''}`);
+};
 
 for (const cls of classes) {
   const name = CLASS_NAMES[cls];
@@ -109,10 +116,12 @@ for (const cls of classes) {
     rows.push(row);
   }
   const id = String(cls).padStart(2, '0');
-  await writeFile(`${OUT}${id}-${name}.png`, montage(rows, TW, TH));
-  await writeFile(`${OUT}${id}-${name}-detail.png`, montage(rows.map((r) => DETAIL.map((k) => r[k])), TW, TH));
-  console.log(`${name}: turntable ${rows.length}×${rows[0].length} + detail -> ${id}-${name}.png`);
+  // The full 8-angle × 4-stance sheet IS the regression target; one image per
+  // class (no separate detail crop — it's a subset of this).
+  await snapCheck(page, `${GROUP}/${id}-${name}`, check,
+    { threshold: 0.1, maxDiffRatio: 0.003, shot: montage(rows, TW, TH) });
 }
 
 if (errs.length) console.log('page errors:', errs.slice(0, 8));
 await browser.close();
+process.exit(fails);

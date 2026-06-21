@@ -1,7 +1,7 @@
 // Vibe check: DEFENSE against MULTIPLE columns. A wide HELD line takes three
 // narrow columns punching through it at once — the breach logic has to
 // generalize (each column dimples the cloth locally, the line stays connected
-// between them). Eyeball web/vibe/shots/multi-penetration/.
+// between them). Eyeball web/shots/baseline/vibe/multi-penetration/.
 //
 // Built with the raw spawn hook (light-infantry stats), spawned clear of the
 // duel's two idle units up north so they sit off-frame.
@@ -54,9 +54,10 @@ const sample = () => page.evaluate((ids) => {
 }, ids);
 const label = (s, m) => `t=${String(s).padStart(3)}s  defender ${m.defAlive}/${m.defTotal} (coh ${m.defCoh.toFixed(2)})`;
 
-const { shots, dir } = await vibeCapture(page, 'multi-penetration', {
+const { frames, fails } = await vibeCapture(page, 'multi-penetration', {
   stepSecs: 12, maxSteps: 14, frame, sample, label, done: () => false,
 });
-console.log(`\n${shots.length} frames -> ${dir}`);
+console.log(`\n${frames} frames`);
 if (errs.length) console.log('page errors:', errs.slice(0, 3));
 await browser.close();
+process.exit(fails);

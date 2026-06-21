@@ -17,12 +17,13 @@ await page.evaluate(() => {
   window.__game.attackOrder(0, 1);
 });
 
-const { shots, resolved, dir } = await vibeCapture(page, process.env.NAME ?? 'charge', {
+const { frames, resolved, fails } = await vibeCapture(page, process.env.NAME ?? 'charge', {
   frame: () => fitDuel(page), sample: () => duelSample(page),
   label: duelLabel, done: (s) => s.victor >= 0,
 });
 
-console.log(resolved ? `\nresolved in ${shots.length} frames -> ${dir}` : `\nUNRESOLVED -> ${dir}`);
+console.log(resolved ? `\nresolved in ${frames} frames` : `\nUNRESOLVED`);
 console.log('A = attacker (charging), B = defender (held)');
 if (errs.length) console.log('page errors:', errs.slice(0, 3));
 await browser.close();
+process.exit(fails);

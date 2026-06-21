@@ -53,9 +53,10 @@ const sample = () => page.evaluate((ids) => {
 }, ids);
 const label = (s, m) => `t=${String(s).padStart(3)}s  middle ${m.midAlive}/${m.midTotal} (coh ${m.midCoh.toFixed(2)})`;
 
-const { shots, dir } = await vibeCapture(page, process.env.NAME ?? (ATTACK ? 'surround-attack' : 'surround'), {
+const { frames, fails } = await vibeCapture(page, process.env.NAME ?? (ATTACK ? 'surround-attack' : 'surround'), {
   stepSecs: 12, maxSteps: 16, frame, sample, label, done: () => false,
 });
-console.log(`\n${shots.length} frames -> ${dir}`);
+console.log(`\n${frames} frames`);
 if (errs.length) console.log('page errors:', errs.slice(0, 3));
 await browser.close();
+process.exit(fails);

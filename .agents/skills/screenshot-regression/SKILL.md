@@ -1,14 +1,28 @@
 ---
 name: screenshot-regression
-description: How to take screenshots of the game and use pixel-exact snapshot regression in the verify harnesses. Use when verifying UI/rendering changes, adding a new visual feature, re-blessing baselines after an intentional visual change, or debugging a snapshot failure.
+description: How to take screenshots of the game and use pixel-exact snapshot regression — across the verify harnesses, the vibe timelines, and the model turntable. Use when verifying UI/rendering changes, adding a new visual feature, re-blessing baselines after an intentional visual or mechanics change, or debugging a snapshot failure.
 ---
 
 # Screenshots and pixel-level regression testing
 
-Both verify harnesses compare screenshots against committed baselines at
-**zero tolerance** — a single differing pixel fails. This works because every
-snapshot is taken at a *deterministic moment*; the discipline below is what
-keeps it that way.
+**One primitive, every shot.** `snapCheck` (`web/snapshot.mjs`) is the single
+path every visual artifact flows through — the verify harnesses, the vibe battle
+timelines (`vibe/*.mjs`), and the model turntable (`vibe/turntable.mjs`). A
+committed baseline under `web/shots/baseline/<name>.png` is at once the picture
+you review, the image a PR diff shows, and the gate. There is no "review-only"
+tier: every shot is a regression target, so a downstream mechanics change is
+visible as a red frame with a highlighted diff, not just a number that moved.
+
+The verify UI snaps compare at **zero tolerance** — a single differing pixel
+fails — because each is a *deterministic moment* (the discipline below is what
+keeps it that way). Full-battle scenes and the 3D models render through Babylon
+on headless SwiftShader, which wobbles a handful of sub-pixel AA edges run to
+run even when frozen; those callers pass a small `maxDiffRatio` (named in a
+comment) that absorbs the wobble and nothing more.
+
+`snapCheck`'s `name` may carry a subfolder, so the baselines organize by source:
+`baseline/battle-initial.png` (verify), `baseline/vibe/<scenario>/t###s.png`
+(vibe timelines), `baseline/models/<id>-<class>.png` (turntable).
 
 ## ALWAYS look at the screenshot before you respond
 
@@ -164,17 +178,27 @@ that the battle harness rewrites every run. Restore those with
 
 ## Adding a regression snapshot
 
-One call in `verify-battle.mjs`, `verify-campaign.mjs`, or `verify-campaign-visual.mjs`:
+One call in a verify harness, a vibe scenario, or the turntable:
 
 ```js
-import { snapCheck } from './snapshot.mjs';
+import { snapCheck } from './snapshot.mjs';     // from web/; vibe/ uses '../snapshot.mjs'
 await snapCheck(page, 'my-snap-name', check);
+await snapCheck(page, 'vibe/my-scenario/t020s', check, { threshold: 0.1, maxDiffRatio: 0.004 });
+await snapCheck(null, 'models/12-foo', check, { shot: pngBuffer });  // compare a buffer you already hold
 ```
 
-First run creates `web/shots/baseline/my-snap-name.png` and passes
-("baseline created") — **commit the baseline**. Every later run compares
-exactly and writes `web/shots/diff/<name>.png` (highlighted) plus
-`<name>-actual.png` on failure (`shots/diff/` is gitignored).
+First run creates `web/shots/baseline/<name>.png` and passes ("baseline
+created") — so a first run never spuriously fails; **commit the baseline**.
+Every later run compares and writes `web/shots/diff/<name>.png` (highlighted)
+plus `<name>-actual.png` on failure (`shots/diff/` is gitignored). Pass an
+already-captured `shot` buffer (a composited contact sheet, a reused frame) to
+skip the internal `page.screenshot()`.
+
+- **Verify harness:** a stage in `verify-battle.mjs` / `verify-campaign*.mjs`.
+- **Vibe timeline:** don't call `snapCheck` directly — `vibeCapture` does it for
+  every frame; just add the scenario (copy `vibe/duel-posture.mjs`).
+- **Model:** the turntable snap-checks one contact sheet per class; extend
+  `CLASS_H`/`STANCES` in `vibe/turntable.mjs` when the roster changes.
 
 ### The determinism checklist — every snapshot must satisfy ALL of these
 

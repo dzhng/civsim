@@ -4,10 +4,13 @@
 node_modules/
 web/dist/
 web/src/wasm/
-web/shots/diff/
 
 # throwaway debug/probe tests (write-tests skill) — never commit
 crates/*/tests/dbg*.rs
 
-# manual vibe-check captures (web/vibe/*.mjs) — throwaway, never baselines
+# highlighted pixel diffs from a failed snapCheck (regenerated every run)
+web/shots/diff/
+
+# weave example output (cargo run -p sim --example weave_shots) + ad-hoc throwaway.
+# The web harnesses' shots are committed baselines under web/shots/baseline/.
 web/vibe/shots/

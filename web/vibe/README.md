@@ -1,43 +1,53 @@
 # Vibe checks
 
-> **Weave vibe shots are separate.** The WEAVE layer (the mass-spring lattice,
-> tested in `crates/sim/tests/mechanics_weave.rs`) has its own picture generator
-> that reduces variables to the bone — single units, same-team presses,
-> invulnerable clashes — and does NOT go through this web/Playwright harness.
-> Render them with `cargo run -p sim --example weave_shots`; they land in
-> `web/vibe/shots/weave/<scenario>/`, one folder per weave test. The set covers
-> `held-vs-walk` and `column-vs-held`, the Tier-0 perturbations
-> (`t0-stretch|compress|bend|shear|uwrap|death`; `t0-stretch` doubles as the
-> settle/no-oscillation case), `t1-press` same-team compression, the Tier-2
-> wrap/glue/T-junction checks (`t2-wrap-attack|wrap-hold`, `t2-glue-1v1`,
-> `t2-t-hold|t-attack`), and Tier-3 pressure/charge/rotation checks
-> (`t3-deep-push-thin|wide`, `t3-equal-press`, `t3-cav-v-heavy`, `t3-wide-wrap`,
-> `t3-col-bulge`, `t3-phalanx-heavy`, `t3-braced-walls`, `t3-pivot-180`). Keep
-> them OUT of the combat scenarios below: the whole point of the weave layer is
-> to test it in isolation.
+Each vibe scenario spawns a battle and **films a timeline** — a frame every N
+sim-seconds, from the approach through contact, the grind, the break, and a few
+frames past the verdict (so you always see *how* the loser routs: a clump
+fleeing home, not a scatter). You flip through the frames to see whether a fight
+looks like a fight.
 
-Manual, eyeball-it harnesses — **not** pass/fail gates. Each spawns a scenario,
-screenshots it every N sim-seconds, and dumps the frames to flip through. The
-`verify-*.mjs` harnesses *assert*; these just let you *look* (does a fight look
-like a fight, does a rout flee home as a clump, does nobody get launched into
-orbit).
+Every frame is **also a committed pixel-regression baseline.** There is no
+longer a "review-only" tier: a vibe frame is at once the picture you eyeball,
+the image that shows up in a PR diff, and a gate that turns red when a downstream
+mechanics change moves the battle. They run through the same `snapCheck`
+primitive (`../snapshot.mjs`) the verify harnesses use, so the discipline is
+identical — see the **screenshot-regression** skill.
+
+- **Where the shots live:** `web/shots/baseline/vibe/<scenario>/t###s.png` —
+  committed. (Highlighted diffs from a failed frame land in
+  `web/shots/diff/vibe/...`, gitignored.)
+- **First run** of a new scenario creates its baselines and passes
+  ("baseline created") — commit them.
+- **Later runs** compare every frame; a scenario exits non-zero on any drift.
+- **Re-bless** an intended mechanics/visual change with `UPDATE_SHOTS=1`, then
+  commit the new baselines — the git image-diff *is* the visual review of what
+  the change did.
 
 Needs the dev server up (`npx vite --port 5173 --strictPort` from `web/`), and
-the wasm current (`npm run build:wasm` after any `crates/` change).
+the wasm current (`npm run build:wasm` after any `crates/` change — the browser
+runs the prebuilt binary, never your live Rust).
+
+> **Weave shots are separate.** The WEAVE layer (mass-spring lattice, tested in
+> `crates/sim/tests/mechanics_weave.rs`) has its own Rust picture generator —
+> `cargo run -p sim --example weave_shots`, landing in `web/vibe/shots/weave/`
+> (gitignored). It reduces variables to the bone (single units, same-team
+> presses, invulnerable clashes) and deliberately does NOT go through this
+> web/Playwright harness; keep it out of the combat scenarios below.
 
 ## The sanity sweep (one command)
 
 ```sh
 cd web
-node vibe/all.mjs            # refresh EVERY scenario into web/vibe/shots/<name>/
-JOBS=2 node vibe/all.mjs     # fewer in parallel (default 4)
+node vibe/all.mjs                 # check EVERY scenario against its baselines
+JOBS=2 node vibe/all.mjs          # fewer in parallel (default 4)
+UPDATE_SHOTS=1 node vibe/all.mjs  # re-bless after an intended mechanics change
 ```
 
-Then flip through `web/vibe/shots/<name>/` — a folder per scenario, one PNG every
-~20–30 sim-seconds (`t000s.png`, `t030s.png`, …). Every scenario keeps filming a
-few frames past its verdict, so the last shots show the aftermath — above all how
-the loser routs (a clump fleeing home, not a scatter). Add a row to the
-`SCENARIOS` table in `all.mjs` when you add a scenario.
+A scenario that drifts exits non-zero; the sweep lists which, and the
+highlighted diffs are under `web/shots/diff/vibe/<name>/`. Review the baselines
+in `web/shots/baseline/vibe/<name>/` — one folder per scenario, one PNG every
+~20–30 sim-seconds (`t000s.png`, `t020s.png`, …). Add a row to the `SCENARIOS`
+table in `all.mjs` when you add a scenario.
 
 ## Scenarios
 
@@ -66,23 +76,34 @@ node vibe/duel-posture.mjs                          # default heavy vs heavy, bo
 ATK=3 DEF=6 POSTURE=both node vibe/duel-posture.mjs # phalanx vs cavalry
 ATK=0 DEF=3 POSTURE=hold node vibe/duel-posture.mjs # heavy attacks a holding phalanx
 ATK=6 DEF=3 node vibe/charge.mjs                    # cav charges a held phalanx
-NAME=my-test ATK=2 DEF=0 node vibe/duel-posture.mjs # write to shots/my-test/
+NAME=my-test ATK=2 DEF=0 node vibe/duel-posture.mjs # baselines under shots/baseline/vibe/my-test/
 ```
 
 Class ids: 0 heavy · 1 light · 2 longsword · 3 phalanx · 4 archers ·
 5 skirmishers · 6 cavalry · 7 horse archers · 8 artillery · 9 peasant.
 
-## Where the shots go
+## The model turntable (`turntable.mjs`)
 
-`web/vibe/shots/<name>/` — **gitignored**, throwaway, never baselines. (Pixel-exact
-regression baselines live in `web/shots/baseline/` and are owned by the verify
-harnesses; don't mix the two.)
+Not a battle — a 360° review of the 3D soldier models. Boots `?test=models` (one
+soldier per class on a flat field, no sim), orbits each class through 8 facings
+× 4 stances (ease / ready / attack / march), and snap-checks one contact sheet
+per class against `web/shots/baseline/models/<id>-<class>.png`. Same deal: the
+sheet is what you review AND a gate — an unintended geometry/renderer change
+turns a class red.
+
+```sh
+node vibe/turntable.mjs                 # all 12 classes, hero 3/4 angle
+ONLY=0,3,6 node vibe/turntable.mjs      # just these class ids
+PITCH=ingame node vibe/turntable.mjs    # the battle's real top-down tilt (review only)
+UPDATE_SHOTS=1 node vibe/turntable.mjs  # re-bless after a model change
+```
 
 ## Adding a scenario
 
 Shared plumbing is in `_lib.mjs`: `openBattle(query)` boots into a battle and
 waits for the debug bridge; `vibeCapture(page, name, { frame, sample, label,
-done })` runs the screenshot loop (position camera → freeze → snap → advance,
-until `done`); `fitDuel`/`duelSample`/`duelLabel`/`CLS` cover the common
-two-unit case. A new scenario is a dozen lines — copy `duel-posture.mjs` — then
-add it to the `SCENARIOS` table in `all.mjs` so the sweep includes it.
+done })` runs the screenshot+regression loop (position camera → freeze →
+snapCheck → advance, until `done`) and returns `{ frames, resolved, fails }`;
+`fitDuel`/`duelSample`/`duelLabel`/`CLS` cover the common two-unit case. A new
+scenario is a dozen lines — copy `duel-posture.mjs`, end with
+`process.exit(fails)` — then add it to the `SCENARIOS` table in `all.mjs`.

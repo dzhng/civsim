@@ -52,7 +52,7 @@ fn ambush_triggers(map: &WorldMap, st: &mut CampaignState) {
         let victim = (0..n).find(|&j| {
             let v = &st.armies[j];
             v.alive()
-                && v.faction != st.armies[i].faction
+                && st.at_war(v.faction, st.armies[i].faction)
                 && v.encounter.is_none()
                 && v.loc == trigger
                 // A camped army is halted and watchful — never ambush bait,
@@ -200,9 +200,13 @@ fn movement(map: &WorldMap, st: &mut CampaignState) {
         let next = a.path[a.path_idx];
         let (id, faction) = (a.id, a.faction);
 
-        // A hostile standing on (or marching in) the next tile is a wall —
-        // the encounter machinery decides what happens, not the mover.
-        if positions.iter().any(|&(l, oid, of)| l == next && of != faction && oid != id) {
+        // A war-enemy standing on (or marching in) the next tile is a wall —
+        // the encounter machinery decides what happens, not the mover. Armies
+        // at peace don't bar the road (they only can't be stacked on, below).
+        if positions
+            .iter()
+            .any(|&(l, oid, of)| l == next && oid != id && crate::state::rel_at_war(&st.relations, of, faction))
+        {
             continue; // hold at the boundary, fully wound up
         }
         // May not END a move on any standing army's tile: halt short.
@@ -255,7 +259,7 @@ fn run_down_routers(map: &WorldMap, st: &mut CampaignState) {
             }
             let e = &st.armies[j];
             e.alive()
-                && e.faction != r.faction
+                && st.at_war(e.faction, r.faction)
                 // While still breaking away, the one army that beat it can't
                 // catch it; every other hostile can, and so can it once the
                 // flee path is run and the regroup window is open.
@@ -377,7 +381,7 @@ fn encounters(map: &WorldMap, st: &mut CampaignState) {
             let (a, b) = (&st.armies[i], &st.armies[j]);
             if !a.alive()
                 || !b.alive()
-                || a.faction == b.faction
+                || !st.at_war(a.faction, b.faction)
                 || a.encounter.is_some()
                 || b.encounter.is_some()
             {
@@ -437,9 +441,14 @@ fn encounters(map: &WorldMap, st: &mut CampaignState) {
 
 /// An enemy army halting on an outpost's node tears it down on the spot.
 fn outpost_razing(st: &mut CampaignState) {
+    let relations = &st.relations;
+    let armies = &st.armies;
     st.outposts.retain(|&node, o| {
-        !st.armies.iter().any(|a| {
-            a.alive() && a.halted() && a.faction != o.owner && a.loc == Loc::Node(node)
+        !armies.iter().any(|a| {
+            a.alive()
+                && a.halted()
+                && crate::state::rel_at_war(relations, a.faction, o.owner)
+                && a.loc == Loc::Node(node)
         })
     });
 }
@@ -557,6 +566,8 @@ pub fn new_state(map: &WorldMap, seed: u64, player_faction: u32) -> CampaignStat
         road_jobs: std::collections::BTreeMap::new(),
         outposts: std::collections::BTreeMap::new(),
         outcome: None,
+        relations: std::collections::BTreeMap::new(),
+        diplo_target: std::collections::BTreeMap::new(),
     }
 }
 

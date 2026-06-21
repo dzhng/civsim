@@ -38,6 +38,9 @@ fn road_dist(
 }
 
 pub fn commanders(map: &WorldMap, st: &mut CampaignState) {
+    if st.tick % tun::DIPLOMACY_EVERY as u64 == 0 {
+        diplomacy(map, st);
+    }
     let mut bfs = pathfind::Visited::new(map);
     for f in 0..st.factions.len() as u32 {
         if !st.factions[f as usize].ai {
@@ -51,6 +54,76 @@ pub fn commanders(map: &WorldMap, st: &mut CampaignState) {
     }
 }
 
+/// Re-draw the diplomatic map. Each active power focuses war on the weakest
+/// rival it can actually reach, makes peace with the rest to mass its army on
+/// that one front, and allies with anyone who shares its victim. The weakest
+/// powers get ganged up on and eaten, a new weakest emerges, and the six-power
+/// standoff resolves instead of freezing at parity. Independents are left at the
+/// default War — neutral ground everyone is free to conquer.
+pub fn diplomacy(map: &WorldMap, st: &mut CampaignState) {
+    use crate::state::Relation;
+    let powers: Vec<FactionId> = (0..map.factions.len() as FactionId)
+        .filter(|&f| map.factions[f as usize].playable)
+        .filter(|&f| st.cities.values().any(|c| c.owner == f))
+        .collect();
+    if powers.len() <= 1 {
+        return;
+    }
+
+    // Rank powers by cost-weighted army plus a per-city weight (a wide realm is
+    // a real power even if thinly garrisoned).
+    let strengths: std::collections::BTreeMap<FactionId, u64> = powers
+        .iter()
+        .map(|&f| {
+            let army: u64 = st
+                .armies
+                .iter()
+                .filter(|a| a.faction == f && a.alive())
+                .map(|a| strength(&a.roster))
+                .sum();
+            let cities = st.cities.values().filter(|c| c.owner == f).count() as u64;
+            (f, army + cities * tun::DIPLO_CITY_WEIGHT)
+        })
+        .collect();
+
+    // Each power hunts the weakest rival — the easiest meal and, when several
+    // pick the same victim, the seed of a coalition. Re-chosen each cycle so the
+    // war follows the shifting balance of power (sticky targeting consolidated
+    // more cleanly but then froze when a victim drifted out of reach). Whether
+    // armies can actually march there is settled by the offensive's own land
+    // flood; gating reachability here only silenced the whole map into peace.
+    let mut target: std::collections::BTreeMap<FactionId, FactionId> = std::collections::BTreeMap::new();
+    for &f in &powers {
+        if let Some(&victim) = powers
+            .iter()
+            .filter(|&&g| g != f)
+            .min_by_key(|&&g| (strengths[&g], g))
+        {
+            target.insert(f, victim);
+        }
+    }
+
+    // Treaties (playable pairs only): war if either is hunting the other; an
+    // alliance if they share a victim; peace otherwise.
+    for i in 0..powers.len() {
+        for j in i + 1..powers.len() {
+            let (a, b) = (powers[i], powers[j]);
+            let (at, bt) = (target.get(&a).copied(), target.get(&b).copied());
+            let rel = if at == Some(b) || bt == Some(a) {
+                Relation::War
+            } else if at.is_some() && at == bt {
+                Relation::Alliance
+            } else {
+                Relation::Peace
+            };
+            st.set_relation(a, b, rel);
+        }
+    }
+
+    // Hand the commander each power's objective so it can mass on one front.
+    st.diplo_target = target;
+}
+
 fn think(map: &WorldMap, st: &mut CampaignState, f: FactionId, bfs: &mut pathfind::Visited) {
     let my_cities: Vec<NodeId> =
         st.cities.iter().filter(|(_, c)| c.owner == f).map(|(&n, _)| n).collect();
@@ -61,7 +134,7 @@ fn think(map: &WorldMap, st: &mut CampaignState, f: FactionId, bfs: &mut pathfin
     let hostiles: Vec<(ArmyId, Loc, u64)> = st
         .armies
         .iter()
-        .filter(|a| a.alive() && a.faction != f && visible.contains(&a.id))
+        .filter(|a| a.alive() && st.at_war(f, a.faction) && visible.contains(&a.id))
         .map(|a| (a.id, a.loc, strength(&a.roster)))
         .collect();
     let my_free: Vec<(ArmyId, Loc, u64)> = st
@@ -185,7 +258,27 @@ fn think(map: &WorldMap, st: &mut CampaignState, f: FactionId, bfs: &mut pathfin
     let my_total: u64 = my_free.iter().map(|(_, _, s)| *s).sum();
     let mut attackers: Vec<(ArmyId, Loc, u64)> = my_free.clone();
     attackers.sort_by_key(|&(_, _, s)| std::cmp::Reverse(s));
+
+    // Diplomatic focus: if we have a war objective whose cities we can reach,
+    // mass every attacker on its weakest one. Concentrating force on a single
+    // point is what manufactures the local superiority a parity border denies —
+    // it's the move that finally breaks the six-power standoff.
+    let focus_city: Option<NodeId> = st.diplo_target.get(&f).copied().and_then(|tgt| {
+        let from = attackers.first().map(|&(_, l, _)| l)?;
+        let costs = pathfind::costs_from(map, &st.road_levels, from, false);
+        st.cities
+            .iter()
+            .filter(|(_, c)| c.owner == tgt)
+            .filter(|(n, _)| costs.contains_key(n))
+            .min_by_key(|(&n, c)| (strength(&c.garrison), costs[&n] as u64))
+            .map(|(&n, _)| n)
+    });
+
     for &(army, aloc, astr) in attackers.iter().take(tun::AI_ATTACKERS) {
+        if let Some(fc) = focus_city {
+            crate::sim::try_move(map, st, army, Loc::Node(fc), true);
+            continue;
+        }
         // Flood out from the army only until the nearest handful of enemy cities
         // turn up — no radius cap (a target across an independent buffer is still
         // found), but it stops early instead of mapping the whole graph.
@@ -194,7 +287,7 @@ fn think(map: &WorldMap, st: &mut CampaignState, f: FactionId, bfs: &mut pathfin
             &st.road_levels,
             aloc,
             false,
-            |n| st.cities.get(&n).is_some_and(|c| c.owner != f),
+            |n| st.cities.get(&n).is_some_and(|c| st.at_war(f, c.owner)),
             tun::AI_TARGET_CANDIDATES,
         );
         // Assault the nearest one we clearly outmatch (garrison + visible enemy

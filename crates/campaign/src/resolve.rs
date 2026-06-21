@@ -118,7 +118,7 @@ fn rout_path(map: &WorldMap, st: &CampaignState, army: &Army) -> Option<Vec<Loc>
     let blocked: BTreeSet<Loc> = st
         .armies
         .iter()
-        .filter(|o| o.alive() && o.faction != army.faction && o.id != army.id)
+        .filter(|o| o.alive() && st.at_war(o.faction, army.faction) && o.id != army.id)
         .map(|o| o.loc)
         .collect();
     let friendly_city = |l: Loc| match l {
@@ -294,7 +294,22 @@ pub fn apply_battle_outcome(
             }
             continue;
         }
-        // Loser: rout along a hostile-free road, or be annihilated.
+        // A field army beaten while defending one of its own cities is overrun
+        // with the walls — no clean retreat, it's destroyed like a garrison.
+        // This is what makes a massed assault actually take the city instead of
+        // the defender routing off and marching straight back.
+        let a = &st.armies[id as usize];
+        let defending_city = std::iter::once(a.loc)
+            .chain(pathfind::neighbors(map, a.loc))
+            .any(|l| matches!(l, Loc::Node(n) if st.cities.get(&n).is_some_and(|c| c.owner == a.faction)));
+        if defending_city {
+            let a = &mut st.armies[id as usize];
+            for r in &mut a.roster {
+                r.count = 0;
+            }
+            continue;
+        }
+        // Otherwise rout along a hostile-free road, or be annihilated.
         let a = &st.armies[id as usize];
         match rout_path(map, st, a) {
             Some(path) => {

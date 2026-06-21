@@ -460,7 +460,7 @@ pub fn garrison_sorties(map: &WorldMap, st: &mut CampaignState) {
         for nbr in std::iter::once(a.loc).chain(pathfind::neighbors(map, a.loc)) {
             let Loc::Node(n) = nbr else { continue };
             if let Some(c) = st.cities.get(&n) {
-                if c.owner != a.faction && c.garrison.iter().any(|r| r.count > 0) {
+                if st.at_war(c.owner, a.faction) && c.garrison.iter().any(|r| r.count > 0) {
                     threatened.insert(n);
                 }
             }
@@ -500,7 +500,7 @@ pub fn garrison_returns(map: &WorldMap, st: &mut CampaignState) {
         }
         let threatened = st.armies.iter().any(|o| {
             o.alive()
-                && o.faction != a.faction
+                && st.at_war(o.faction, a.faction)
                 && !matches!(o.stance, Stance::Routed { .. } | Stance::AtSea)
                 && pathfind::in_contact(map, o.loc, a.loc)
         });
@@ -533,7 +533,7 @@ pub fn occupations(map: &WorldMap, st: &mut CampaignState) {
             Stance::Occupying { city, ticks_left } => {
                 let hostile_near = st.armies.iter().any(|o| {
                     o.alive()
-                        && o.faction != a.faction
+                        && st.at_war(o.faction, a.faction)
                         && !matches!(o.stance, Stance::Routed { .. } | Stance::AtSea)
                         && pathfind::in_contact(map, o.loc, a.loc)
                 });
@@ -554,7 +554,7 @@ pub fn occupations(map: &WorldMap, st: &mut CampaignState) {
                 }
                 let Some(c) = st.cities.get(&n) else { continue };
                 let garrisoned = c.garrison.iter().any(|r| r.count > 0);
-                if c.owner != a.faction && !garrisoned {
+                if st.at_war(c.owner, a.faction) && !garrisoned {
                     let a = &mut st.armies[i];
                     a.stance = Stance::Occupying { city: n, ticks_left: tun::OCCUPY_TICKS };
                 }

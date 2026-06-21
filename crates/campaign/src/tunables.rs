@@ -189,3 +189,16 @@ pub const AI_ATTACKERS: usize = 3;
 /// How close (road tiles) a visible enemy army must be to a target city to
 /// count among its defenders when the AI weighs an assault.
 pub const AI_THREAT_RADIUS: u32 = 6;
+
+// ---- diplomacy -------------------------------------------------------------
+// Diplomacy is what breaks the six-power peer standoff: instead of every power
+// fighting every neighbour at parity, each focuses war on its weakest reachable
+// peer, makes peace elsewhere to mass its army on one front, and allies with
+// anyone who shares its victim. The weakest get ganged and eaten, a new weakest
+// emerges, and the map resolves instead of freezing.
+/// How often (ticks) factions re-evaluate treaties. Weekly: sticky enough not
+/// to thrash, responsive enough to follow the shifting balance of power.
+pub const DIPLOMACY_EVERY: u32 = 7 * TICKS_PER_DAY;
+/// A city's worth in the strength yardstick when ranking powers for diplomacy
+/// (so a wide, lightly-garrisoned realm still reads as a real power).
+pub const DIPLO_CITY_WEIGHT: u64 = 3000;

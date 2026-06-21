@@ -22,7 +22,15 @@ export async function openBattle(query) {
   page.on('console', (m) => { if (m.type() === 'error') errs.push(m.text()); });
   await page.goto(`${TARGET}/?${query}`);
   await page.waitForFunction(() => window.__ready === true, undefined, { timeout: 20000 });
-  await page.waitForTimeout(500);
+  // Pin a deterministic starting tick. Boot accrues a wall-clock-VARIABLE handful
+  // of real-time ticks before the harness takes control; in chaotic combat a few
+  // ticks of offset compound into whole soldiers dying differently (6% of pixels
+  // run-to-run). freezeAtTick freezes, then drives to an EXACT absolute tick — and
+  // the sim is deterministic in total ticks-from-boot regardless of how they were
+  // delivered — so every run reaches the identical seed-determined state. From
+  // here orders are issued and the timeline stepped entirely under freeze().
+  await page.evaluate(() => window.__game.freezeAtTick(90));
+  await page.waitForTimeout(200); // let a frame render (frozen: no ticks accrue)
   return { browser, page, errs };
 }
 
@@ -74,30 +82,36 @@ const TAIL_FRAMES = 3;
 
 export async function vibeCapture(page, name, {
   stepSecs = 30, maxSteps = 20, frame, sample, label, done,
-  // Full-battle scenes on headless SwiftShader wobble a few sub-pixel AA edges
-  // run-to-run even when frozen; absorb that and nothing more.
-  threshold = 0.1, maxDiffRatio = 0.004,
+  // The sim is fully deterministic (freezeAtTick pins the exact tick), so a frame
+  // SHOULD be byte-identical — except headless SwiftShader rasterizes a dense
+  // melee of overlapping alpha-blended soldiers with ~1% run-to-run wobble. A
+  // higher per-pixel threshold ignores the AA edge jitter; the ratio caps the
+  // count well below any real mechanics change (a moved soldier shifts a
+  // contiguous block, not scattered edges — we measured 5–8% for a 3-tick offset).
+  threshold = 0.2, maxDiffRatio = 0.02,
 } = {}) {
   let fails = 0, frames = 0;
   const check = (label2, ok, detail) => {
     if (!ok) fails++;
     console.log(`  ${ok ? 'ok  ' : 'DIFF'} ${label2}${detail ? `  ${detail}` : ''}`);
   };
+  // The sim is frozen from openBattle and STAYS frozen the whole timeline: a
+  // frozen rAF loop adds zero ticks, so advance() is the only clock and every
+  // frame lands on an exact, reproducible tick. Never freeze(false) here — that
+  // would let wall-clock ticks slip in between steps and reintroduce the drift.
   let post = -1; // -1 until the verdict frame; then counts frames filmed since
   for (let step = 0; ; step++) {
     if (frame) await frame();
-    await page.evaluate(() => window.__game.freeze());
     await page.waitForTimeout(120);
     // Keep the field visible at resolution: hide the VICTORY/DEFEAT panel the
-    // scene pops on a verdict. Do it AFTER the settle, right before the shot, so
-    // it wins the race with the frame loop that re-shows the panel.
+    // scene pops on a verdict. Do it right before the shot, so it wins the race
+    // with the frame loop that re-shows the panel.
     await page.evaluate(() => { const g = document.getElementById('gameover'); if (g) g.style.display = 'none'; });
     const s = sample ? await sample() : {};
     const secs = step * stepSecs;
     if (label) console.log(label(secs, s));
     await snapCheck(page, `vibe/${name}/t${String(secs).padStart(3, '0')}s`, check, { threshold, maxDiffRatio });
     frames++;
-    await page.evaluate(() => window.__game.freeze(false));
     if (post >= 0) post++;                       // already past the verdict: film the tail
     else if (done && done(s)) post = 0;          // this frame IS the verdict
     if (post >= TAIL_FRAMES) return { frames, resolved: true, fails };

@@ -51,6 +51,7 @@ the loser routs (a clump fleeing home, not a scatter). Add a row to the
 | `pike-v-pike` | `duel-posture.mjs ATK=3 DEF=3 POSTURE=both` | two pike walls, both attack — points-out standoff |
 | `cav-v-heavy` | `duel-posture.mjs ATK=6 DEF=0 POSTURE=both` | horse rides over swords |
 | `cav-v-pike` | `charge.mjs ATK=6 DEF=3` | impale/charge gate: does a held pike wall stop horse cleanly? |
+| `cav-v-pike-flank` | `charge.mjs ATK=6 DEF=3 FLANK=1` | side-on control: pikes face north, so horse crossing the shafts should trample deeper |
 | `cav-v-heavy-held` | `charge.mjs ATK=6 DEF=0` | a braced line beats a charge |
 | `heavy-v-archers` | `missile.mjs` | arrows attrite the advance, then melee |
 | `penetration` | `penetration.mjs` | DEFENSE: one column punches a wide held line (does it dimple + close?) |
@@ -66,6 +67,7 @@ node vibe/duel-posture.mjs                          # default heavy vs heavy, bo
 ATK=3 DEF=6 POSTURE=both node vibe/duel-posture.mjs # phalanx vs cavalry
 ATK=0 DEF=3 POSTURE=hold node vibe/duel-posture.mjs # heavy attacks a holding phalanx
 ATK=6 DEF=3 node vibe/charge.mjs                    # cav charges a held phalanx
+ATK=6 DEF=3 FLANK=1 node vibe/charge.mjs            # cav hits the same phalanx from the side
 NAME=my-test ATK=2 DEF=0 node vibe/duel-posture.mjs # write to shots/my-test/
 ```
 

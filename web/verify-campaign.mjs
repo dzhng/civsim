@@ -258,12 +258,33 @@ const mergeRes = await page.evaluate((parent) => {
 check('merge folds the stack back in', mergeRes.ok && mergeRes.after === mergeRes.before - 1,
   `${mergeRes.before} -> ${mergeRes.after} live armies`);
 
-// Split again and leave the detachment home: it becomes the reinforcement.
-await page.evaluate(() => {
-  const c = window.__campaign;
-  const me = c.armies().filter((a) => a.mine)[0];
-  c.orderSplit(me.id, 0b10);
-});
+// Split a detachment, then stage BOTH stacks on the road into the target: the
+// main army one tile out (it will strike the city), the detachment three tiles
+// back, well inside the 12-tile reinforcement radius. Teleporting both makes
+// the join deterministic regardless of where the nearest enemy now sits (each
+// faction owns a contiguous home region, so independents are no longer next door).
+const targetId = map.nodes[target].id;
+const approach = map.edges.findIndex(
+  (e) => e.kind !== 'sea' && (e.a === targetId || e.b === targetId) && e.tiles.length >= 4,
+);
+const e = map.edges[approach];
+const fromA = approach >= 0 && e.a === targetId; // is the target the low-tile end?
+const mainTile = approach < 0 ? 0 : fromA ? 1 : e.tiles.length - 2;
+const detTile = approach < 0 ? 0 : fromA ? 3 : e.tiles.length - 4;
+await page.evaluate(
+  ([ei, mt, dt]) => {
+    const c = window.__campaign;
+    const me = c.armies().filter((a) => a.mine)[0];
+    c.orderSplit(me.id, 0b10);
+    const mine = c.armies().filter((a) => a.mine);
+    const det = mine[mine.length - 1]; // the freshest stack
+    if (ei >= 0) {
+      c.place(me.id, 1, ei, mt);
+      c.place(det.id, 1, ei, dt);
+    }
+  },
+  [approach, mainTile, detTile],
+);
 let ready2 = -1;
 await page.evaluate((t) => {
   const me = window.__campaign.armies().filter((a) => a.mine)[0];

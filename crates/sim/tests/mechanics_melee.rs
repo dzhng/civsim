@@ -97,6 +97,10 @@ fn interpenetration(sim: &Sim, unit: usize, r: f32) -> f32 {
 /// or wrap stretches locally but keeps neighboring files close; a streamer tear
 /// creates multi-meter gaps while centroid/envelopment metrics can still pass.
 fn p95_adjacent_file_gap(sim: &Sim, unit: usize) -> f32 {
+    adjacent_file_gap_stats(sim, unit).0
+}
+
+fn adjacent_file_gap_stats(sim: &Sim, unit: usize) -> (f32, f32) {
     let u = &sim.units[unit];
     let files = u.files_eff.max(1);
     let mut sums = vec![Vec2::ZERO; files];
@@ -115,11 +119,41 @@ fn p95_adjacent_file_gap(sim: &Sim, unit: usize) -> f32 {
         .filter_map(|(p, n)| (n > 0.0).then_some(p * (1.0 / n)))
         .collect();
     if centers.len() < 2 {
-        return 0.0;
+        return (0.0, 0.0);
     }
     let mut gaps: Vec<f32> = centers.windows(2).map(|w| (w[1] - w[0]).len()).collect();
     gaps.sort_by(|a, b| a.total_cmp(b));
-    gaps[(gaps.len() * 95 / 100).min(gaps.len() - 1)]
+    (
+        gaps[(gaps.len() * 95 / 100).min(gaps.len() - 1)],
+        *gaps.last().unwrap(),
+    )
+}
+
+fn max_file_span(sim: &Sim, unit: usize) -> f32 {
+    let u = &sim.units[unit];
+    let files = u.files_eff.max(1);
+    let mut min = vec![Vec2::new(f32::INFINITY, f32::INFINITY); files];
+    let mut max = vec![Vec2::new(f32::NEG_INFINITY, f32::NEG_INFINITY); files];
+    let mut ns = vec![0usize; files];
+    for i in u.start..u.start + u.count {
+        if sim.alive[i] == 0 {
+            continue;
+        }
+        let file = sim.soldier_slot[i] as usize % files;
+        let p = sim.soldier_pos(i);
+        min[file].x = min[file].x.min(p.x);
+        min[file].y = min[file].y.min(p.y);
+        max[file].x = max[file].x.max(p.x);
+        max[file].y = max[file].y.max(p.y);
+        ns[file] += 1;
+    }
+    let mut span = 0.0f32;
+    for file in 0..files {
+        if ns[file] > 1 {
+            span = span.max((max[file] - min[file]).len());
+        }
+    }
+    span
 }
 
 /// Mean slot error (m) of the REAR ranks only — every man at least
@@ -245,6 +279,12 @@ fn move_clash(class: UnitClassId, seed: u64) -> Sim {
 
 fn trace(class: UnitClassId, seed: u64, top_attacks: bool, secs: f32) -> Trace {
     trace_sim(clash(class, seed, top_attacks), secs)
+}
+
+fn make_immortal(sim: &mut Sim) {
+    for k in 0..sim.soldier_count() {
+        sim.health[k] = 1.0e9;
+    }
 }
 
 fn trace_sim(mut sim: Sim, secs: f32) -> Trace {
@@ -435,8 +475,12 @@ const CENTROID_SWAP: f32 = 2.0;
 /// attack path is special-casing something the move path isn't.
 #[test]
 fn attack_latch_behaves_like_a_move_order() {
-    let a = trace_sim(clash(UnitClassId::HeavySword, 4242, true), 200.0);
-    let m = trace_sim(move_clash(UnitClassId::HeavySword, 4242), 200.0);
+    let mut attack = clash(UnitClassId::HeavySword, 4242, true);
+    let mut mov = move_clash(UnitClassId::HeavySword, 4242);
+    make_immortal(&mut attack);
+    make_immortal(&mut mov);
+    let a = trace_sim(attack, 200.0);
+    let m = trace_sim(mov, 200.0);
     eprintln!(
         "ATTACK  coh={:.2} pen={:.2} gap_min={:.1} cross@{}",
         a.min_cohesion_both, a.max_interpenetration, a.min_centroid_gap_y, a.crossed_at
@@ -644,7 +688,8 @@ fn a_wide_line_wraps_a_narrow_block() {
             }
         }
     }
-    let line_gap = p95_adjacent_file_gap(&sim, line);
+    let (line_gap, line_max_gap) = adjacent_file_gap_stats(&sim, line);
+    let line_file_span = max_file_span(&sim, line);
     let line_coh = sim.units[line].cohesion;
     // The block is the DEFENDER: a clean wrap leaves it surrounded but still
     // FACING the fight; a swirl would wheel it off its line.
@@ -656,7 +701,7 @@ fn a_wide_line_wraps_a_narrow_block() {
         .asin()
         .to_degrees();
     eprintln!(
-        "WIDE-WRAP  side={side} rear={rear} corridor-rear={corridor_rear} block faceDev={block_face_dev:.0} line coh={line_coh:.2} p95-file-gap={line_gap:.1}m"
+        "WIDE-WRAP  side={side} rear={rear} corridor-rear={corridor_rear} block faceDev={block_face_dev:.0} line coh={line_coh:.2} p95-file-gap={line_gap:.1}m max-file-gap={line_max_gap:.1}m max-file-span={line_file_span:.1}m"
     );
     assert!(
         side > 90 && rear > 20 && corridor_rear <= 4,
@@ -669,6 +714,14 @@ fn a_wide_line_wraps_a_narrow_block() {
     assert!(
         line_coh > 0.45 && line_gap < 4.0,
         "the wrapping line must stay a connected cloth, not dissolve into streamers: cohesion {line_coh:.2}, p95 adjacent-file gap {line_gap:.1}m",
+    );
+    assert!(
+        line_max_gap < 6.0,
+        "the wrapping line's extreme wing files must not tear into streamers: max adjacent-file gap {line_max_gap:.1}m",
+    );
+    assert!(
+        line_file_span < 9.0,
+        "the wrapping line's files must not stretch into front/back streamers: max file span {line_file_span:.1}m",
     );
 }
 
@@ -698,7 +751,11 @@ fn a_mortal_wrapping_line_backfills_casualty_tears() {
     sim.set_attack_order(line, block);
 
     let mut max_gap_after_casualty = 0.0f32;
+    let mut max_file_gap_after_casualty = 0.0f32;
+    let mut max_file_span_after_casualty = 0.0f32;
     let mut max_late_gap = 0.0f32;
+    let mut max_late_file_gap = 0.0f32;
+    let mut max_late_file_span = 0.0f32;
     let mut saw_casualty = false;
     let ticks = (60.0 / DT) as usize;
     let late_start = (45.0 / DT) as usize;
@@ -706,16 +763,25 @@ fn a_mortal_wrapping_line_backfills_casualty_tears() {
         sim.tick();
         if sim.units[line].alive_count < sim.units[line].count {
             saw_casualty = true;
-            let gap = p95_adjacent_file_gap(&sim, line);
+            let (gap, file_gap) = adjacent_file_gap_stats(&sim, line);
+            let file_span = max_file_span(&sim, line);
             max_gap_after_casualty = max_gap_after_casualty.max(gap);
+            max_file_gap_after_casualty = max_file_gap_after_casualty.max(file_gap);
+            max_file_span_after_casualty = max_file_span_after_casualty.max(file_span);
             if tick >= late_start {
                 max_late_gap = max_late_gap.max(gap);
+                max_late_file_gap = max_late_file_gap.max(file_gap);
+                max_late_file_span = max_late_file_span.max(file_span);
             }
         }
     }
-    let final_gap = p95_adjacent_file_gap(&sim, line);
+    let (final_gap, final_file_gap) = adjacent_file_gap_stats(&sim, line);
+    let final_file_span = max_file_span(&sim, line);
+    // The file-span numbers expose the still-unfixed visual streamer: p95 gaps
+    // can pass while one file stretches into a long front/back rope. Keep them
+    // in the trace until the mechanics fix can turn them into a real assertion.
     eprintln!(
-        "MORTAL-WRAP  line alive={}/{} max-post-casualty-gap={max_gap_after_casualty:.1}m max-late-gap={max_late_gap:.1}m final-gap={final_gap:.1}m",
+        "MORTAL-WRAP  line alive={}/{} max-post-casualty-gap={max_gap_after_casualty:.1}m max-post-file-gap={max_file_gap_after_casualty:.1}m max-post-file-span={max_file_span_after_casualty:.1}m max-late-gap={max_late_gap:.1}m max-late-file-gap={max_late_file_gap:.1}m max-late-file-span={max_late_file_span:.1}m final-gap={final_gap:.1}m final-file-gap={final_file_gap:.1}m final-file-span={final_file_span:.1}m",
         sim.units[line].alive_count,
         sim.units[line].count
     );
@@ -723,6 +789,10 @@ fn a_mortal_wrapping_line_backfills_casualty_tears() {
     assert!(
         max_gap_after_casualty < 5.5 && max_late_gap < 4.0 && final_gap < 2.5,
         "casualty holes in a wrapping line must back-fill instead of becoming sustained tears: max post-casualty {max_gap_after_casualty:.1}m, late {max_late_gap:.1}m, final {final_gap:.1}m",
+    );
+    assert!(
+        final_file_gap < 4.0,
+        "casualty holes must not leave sustained extreme file-to-file streamer tears: late {max_late_file_gap:.1}m, final {final_file_gap:.1}m",
     );
 }
 

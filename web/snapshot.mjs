@@ -31,10 +31,15 @@ function safeSnapshotPath(name) {
 }
 
 /** Clear a baseline folder before a full re-bless, so shorter regenerated
- *  timelines cannot leave stale frames behind. Deliberately disabled with SNAP:
- *  a targeted one-frame update should not erase the rest of the folder. */
+ *  timelines cannot leave stale frames behind. */
 export async function clearSnapshotFolder(name) {
-  if (!process.env.UPDATE_SHOTS || process.env.SNAP) return;
+  if (!process.env.UPDATE_SHOTS) return;
+  if (process.env.SNAP) {
+    throw new Error(
+      `Refusing UPDATE_SHOTS with SNAP while refreshing ${name}: `
+      + 'timeline re-blesses must clear the whole folder first so stale frames cannot survive.',
+    );
+  }
   safeSnapshotPath(name);
   await rm(BASELINE + name, { recursive: true, force: true });
   await mkdir(BASELINE + name, { recursive: true });

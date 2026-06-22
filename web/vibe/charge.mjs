@@ -3,7 +3,9 @@
 // and "a held braced line beats a frontal charge": does the charge crash in and
 // shove (not launch men), does the pike wall halt a horse, does the braced line
 // hold?
-//   Default: cavalry charges a held phalanx (POINTS STOP HORSE).
+//   Default: cavalry charges a held phalanx. A narrower pike front can stop the
+//   head-on contacts while still letting a wider cavalry line wrap/trample the
+//   exposed flanks; use WALL=1 for the no-flank frontal control.
 //   Override: ATK=6 DEF=0 node vibe/charge.mjs  (cav into a held heavy line)
 //   Flank:    FLANK=1 ATK=6 DEF=3 node vibe/charge.mjs  (pikes face north, cav rides east)
 //   Wall:     WALL=1 ATK=6 DEF=3 node vibe/charge.mjs   (wide pike front, no flank wrap)

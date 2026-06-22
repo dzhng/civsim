@@ -236,8 +236,9 @@ UPDATE_SHOTS=1 VERIFY_URL=http://localhost:5174 node verify-battle.mjs
 
 Full vibe/turntable re-blesses clear their baseline folder before writing new
 shots, so shorter regenerated timelines cannot leave stale old frames behind.
-This cleanup is intentionally disabled when `SNAP=...` is set; a targeted
-one-frame update must not erase unrelated baselines in the same folder.
+Timeline re-blesses intentionally refuse `UPDATE_SHOTS=1 SNAP=...`: a filtered
+regen would skip frames after clearing the folder, while not clearing the folder
+can leave stale frames behind. Unset `SNAP` and re-bless the whole timeline.
 
 4. Suspected nondeterminism → run the harness twice; if the second run isn't
    `0 px differ`, something on screen escaped the freeze path. Track it down

@@ -6,8 +6,7 @@
 //! `class_scenarios.rs` so the physics emergence and the matchup pricing are
 //! no longer interleaved in one file.
 
-use sim::balance::{run_over_seeds, Scenario};
-use sim::{class_stats, BalanceConfig, Sim, Tunables, UnitClassId, Vec2, DT};
+use sim::{class_stats, Sim, Tunables, UnitClassId, Vec2, DT, SEEDS};
 use std::f32::consts::PI;
 
 const SEED: u64 = 11;
@@ -151,35 +150,52 @@ fn pikes_reach_riders_swords_chip_at_horseflesh() {
 }
 
 #[test]
-fn frontal_phalanx_denies_shock_cavalry_a_majority_verdict() {
-    // The slow golden matrix catches this across the full class board, but the
-    // pike/cavalry contract is important enough to live in the fast suite too:
-    // a frontal horse charge can bog, scatter, or draw out, but it must not
-    // majority-flip into cavalry beating a presented sarissa hedge.
-    let seeds = [SEED, SEED + 1, SEED + 2, SEED + 3, SEED + 4];
-    let base = BalanceConfig::default();
-    let tun = Tunables::default();
-    for (scn, cav_side) in [
-        (
-            Scenario::duel(UnitClassId::Phalanx, UnitClassId::ShockCavalry),
-            1,
-        ),
-        (
-            Scenario::duel(UnitClassId::ShockCavalry, UnitClassId::Phalanx),
-            0,
-        ),
-    ] {
-        let name = scn.name.clone();
-        let agg = run_over_seeds(&scn, &base, &tun, &seeds);
-        assert_ne!(
-            agg.winner(),
-            Some(cav_side),
-            "{name}: frontal cavalry must not majority-beat a presented phalanx \
-             (win-rates {:.0}%/{:.0}%, draw {:.0}%, median {:.0}s)",
-            agg.win_rate[0] * 100.0,
-            agg.win_rate[1] * 100.0,
-            agg.draw_rate * 100.0,
-            agg.secs_median
-        );
+fn frontal_cavalry_charge_does_not_majority_beat_a_presented_phalanx() {
+    // The slow matrix measures committed duels: both units run at each other.
+    // This contract is narrower and older than that matrix cell: a horse charge
+    // into a PRESENTED pike hedge can bog, scatter, or draw out, but it must not
+    // majority-flip into cavalry beating the braced front. Measure both field
+    // orientations over the canonical balance seed set so this does not hide a
+    // directional bias behind five friendly local seeds.
+    let mut cav_wins = 0usize;
+    let mut pike_wins = 0usize;
+    let mut draws = 0usize;
+
+    for &seed in &SEEDS {
+        for cav_south in [true, false] {
+            let mut sim = Sim::new(Tunables::default(), seed);
+            let (cy, py, cf, pf) = if cav_south {
+                (-90.0, 90.0, PI / 2.0, -PI / 2.0)
+            } else {
+                (90.0, -90.0, -PI / 2.0, PI / 2.0)
+            };
+            let cav = sim.spawn_class(Vec2::new(0.0, cy), cf, 120, UnitClassId::ShockCavalry, 0);
+            let pike = sim.spawn_class(Vec2::new(0.0, py), pf, 240, UnitClassId::Phalanx, 1);
+            sim.set_pace(cav, sim::Pace::Run);
+            sim.set_attack_order(cav, pike);
+
+            let mut victor = None;
+            for _ in 0..(600.0 / DT) as usize {
+                sim.tick();
+                if let Some(v) = sim.victor() {
+                    victor = Some(v);
+                    break;
+                }
+            }
+            match victor {
+                Some(0) => cav_wins += 1,
+                Some(1) => pike_wins += 1,
+                _ => draws += 1,
+            }
+        }
     }
+
+    let trials = SEEDS.len() * 2;
+    println!(
+        "presented pike vs frontal cav over {trials} trials: cav {cav_wins}, pike {pike_wins}, draws {draws}"
+    );
+    assert!(
+        cav_wins * 2 <= trials,
+        "frontal cavalry must not majority-beat a presented phalanx: cav {cav_wins}/{trials}, pike {pike_wins}/{trials}, draws {draws}/{trials}"
+    );
 }

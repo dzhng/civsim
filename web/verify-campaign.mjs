@@ -3,12 +3,10 @@
 // Drives: menu -> new campaign -> march on an independent city -> garrison
 // battle modal (auto-pause) -> auto-resolve -> outcome -> save/load.
 import { chromium } from 'playwright';
-import { mkdir, readFile } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
 import { snapCheck } from './snapshot.mjs';
 
 const TARGET = process.env.VERIFY_URL ?? 'http://localhost:5173';
-const SHOTS = new URL('./shots/', import.meta.url).pathname;
-await mkdir(SHOTS, { recursive: true });
 
 const failures = [];
 const check = (name, ok, detail) => {
@@ -38,10 +36,11 @@ check('campaign boots with armies', armies.length >= 10 && mine.length >= 2,
   `${armies.length} visible, ${mine.length} mine`);
 const cities = await page.evaluate(() => window.__campaign.cities());
 check('cities loaded', Object.keys(cities).length > 400, `${Object.keys(cities).length} cities`);
-await page.screenshot({ path: SHOTS + 'campaign-map.png' });
 
-// Pixel regression at deterministic moments: Day 1, paused, fixed camera,
-// water clock frozen, before any ticking (later states depend on the seed).
+// Pixel regression at deterministic moments: Day 1, paused, fixed camera, water
+// clock frozen, before any ticking. Anything AFTER a tick() depends on the
+// campaign's per-boot random seed, so those states stay behavioral-only (no
+// pixel snap) — see the dropped captures below.
 await page.evaluate(() => window.__campaign.freeze());
 await page.evaluate(() => window.__campaign.cam(-100, 250, 0.16));
 await page.waitForTimeout(250);
@@ -86,7 +85,6 @@ await page.waitForSelector('.cmp-box', { timeout: 5000 });
 const modalText = await page.evaluate(() => document.querySelector('.cmp-box').textContent);
 check('initiation modal shows both sides', /Attacker/.test(modalText) && /Defender/.test(modalText));
 check('campaign auto-paused for the battle', await page.evaluate(() => window.__campaign.paused()));
-await page.screenshot({ path: SHOTS + 'campaign-battle-modal.png' });
 
 // Auto-resolve (headless real sim, chunked).
 await page.click('#cmp-auto');
@@ -99,7 +97,6 @@ const after = await page.evaluate(() => ({
 const myArmy = after.armies.find((a) => a.id === 0);
 check('battle consumed (no pending)', after.ready === -1);
 check('player army took casualties or won cleanly', !!myArmy, myArmy ? `${myArmy.soldiers} soldiers left` : 'army wiped');
-await page.screenshot({ path: SHOTS + 'campaign-after-battle.png' });
 
 // Save, exit to menu, load.
 await page.click('#cmp-save');
@@ -124,16 +121,12 @@ let cam = await page.evaluate(() => window.__campaign.camGet());
 let terrA = await page.evaluate(() => window.__campaign.territoryAlpha());
 check('zoomed out: top-down political map with territories', cam.pitchDeg > 85 && terrA > 0.7,
   `pitch ${cam.pitchDeg.toFixed(1)}°, territory alpha ${terrA.toFixed(2)}`);
-await page.waitForTimeout(250);
-await page.screenshot({ path: SHOTS + 'campaign-political.png' });
 
 await page.evaluate(() => window.__campaign.cam(-456, 446, 2.5)); // Roma
 cam = await page.evaluate(() => window.__campaign.camGet());
 terrA = await page.evaluate(() => window.__campaign.territoryAlpha());
 check('zoomed in: camera tilts to 3D, territory fades', cam.pitchDeg < 60 && terrA < 0.3,
   `pitch ${cam.pitchDeg.toFixed(1)}°, territory alpha ${terrA.toFixed(2)}`);
-await page.waitForTimeout(250);
-await page.screenshot({ path: SHOTS + 'campaign-3d.png' });
 
 // Click-selection must survive the 3D projection: center on one of my armies,
 // click its on-screen banner base, expect it selected.
@@ -298,7 +291,6 @@ for (let i = 0; i < 60 && unitsNow <= units0; i++) {
   });
 }
 check('reinforcement column arrives and renders', unitsNow > units0, `${units0} -> ${unitsNow} units`);
-await page.screenshot({ path: SHOTS + 'campaign-reinforcement.png' });
 
 check('no page errors', pageErrors.length === 0, pageErrors.slice(0, 3).join(' | '));
 

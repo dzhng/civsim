@@ -172,7 +172,7 @@ const PIKE: Weapon = Weapon {
     // A thrust-and-recover cycle, not a sweep: the wall's stopping power is
     // cadence x hurl; lethality per poke stays modest.
     attack_interval: 1.38,
-    damage: 0.22,
+    damage: 0.16,
     braced: true, // the sarissa: frontal only, drop to the side-sword off-axis
 };
 

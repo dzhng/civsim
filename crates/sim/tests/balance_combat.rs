@@ -9,7 +9,7 @@
 pub mod common;
 
 use common::{deaths, no_morale, run};
-use sim::{Sim, UnitClassId, Vec2};
+use sim::{Pace, Sim, UnitClassId, Vec2, DT};
 use std::f32::consts::FRAC_PI_2;
 
 const SEED: u64 = 99;
@@ -39,5 +39,46 @@ fn long_swords_cleave_loose_enemies() {
     assert!(
         by_longswords as f32 > by_heavies as f32 * 1.05,
         "wide arcs must cleave loose enemies: longswords {by_longswords} vs heavies {by_heavies}"
+    );
+}
+
+#[test]
+fn heavy_shields_make_phalanx_a_grind_not_a_deletion() {
+    // Balance contract for the phalanx-v-heavy vibe shots: pikes beat swords
+    // frontally, but heavy infantry carry large shields and armor. A phalanx
+    // should win the reach contest; it should not erase an equal heavy line
+    // before the player can read a real shielded grind.
+    let mut sim = Sim::new(no_morale(), 4242);
+    let ph = sim.spawn_class(
+        Vec2::new(0.0, -13.0),
+        FRAC_PI_2,
+        120,
+        UnitClassId::Phalanx,
+        0,
+    );
+    let hv = sim.spawn_class(
+        Vec2::new(0.0, 13.0),
+        -FRAC_PI_2,
+        120,
+        UnitClassId::HeavySword,
+        1,
+    );
+    sim.set_pace(ph, Pace::Run);
+    sim.set_pace(hv, Pace::Run);
+    sim.set_attack_order(ph, hv);
+    sim.set_attack_order(hv, ph);
+    for _ in 0..(120.0 / DT) as usize {
+        sim.tick();
+    }
+    let heavy_alive = sim.units[hv].alive_count;
+    let phalanx_alive = sim.units[ph].alive_count;
+    eprintln!("PHALANX-GRIND  phalanx {phalanx_alive}/120 heavy {heavy_alive}/120 after 120s");
+    assert!(
+        heavy_alive >= 50,
+        "heavy shields/armor should make this a grind, not a deletion: {heavy_alive}/120 alive after 120s"
+    );
+    assert!(
+        phalanx_alive > heavy_alive,
+        "the phalanx should still be winning the frontal reach contest: phalanx {phalanx_alive}, heavy {heavy_alive}"
     );
 }

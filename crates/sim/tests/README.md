@@ -55,5 +55,6 @@ encoding “what this scenario means,” it belongs beside the assertion, not in
   geometry or pressure regressions.
 - Balance tests should use seed sets or aggregate verdicts when asserting a
   priced outcome. Do not pin a decisive matchup to one lucky seed.
-- Ignored tests must name the missing mechanic or spec gate. Active tests should
-  pass before a change is pushed.
+- Ignored tests must either be explicit slow review gates (for example the full
+  generated balance matrix) or name the missing mechanic/spec gate. Active tests
+  should pass before a change is pushed.

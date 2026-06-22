@@ -46,6 +46,10 @@ const OBSTRUCT_FLOOR: f32 = 0.7;
 /// Out to here a blow comes side-on: evade degrades; behind it, a blow
 /// lands on a man facing the wrong way.
 const SIDE_ARC: f32 = 2.1;
+/// Braced points are harder to shield away than swords, but not magic.
+/// Heavy shields should make a frontal pike fight a grind instead of making
+/// armor meaningless.
+const BRACED_THRUST_BLOCK_MULT: f32 = 0.6;
 
 const MAX_NEARBY_FRIENDS: usize = 24;
 type ScanPriority = (i32, i32, u32); // local forward cell, local lateral cell, local soldier
@@ -628,13 +632,15 @@ impl Sim {
         }
 
         // Block: front shield arc only; still takes the push. A BRACED point
-        // (a leveled pike) is hard to parry — it arrives from beyond the shield's
-        // working distance, planted and on-line, not swung — so the block lands
-        // far less often than against a sword's arc. Without this, a cohesive
-        // (well-dressed) line blocks most pike thrusts and the hedge stops
-        // landing — the foundation that raised cohesion made the parry too good.
+        // (a leveled pike) is harder to parry than a sword's arc, but it still
+        // has to interact with heavy shields or phalanx-vs-heavy stops reading
+        // as a long shielded grind.
         let shielded = aspect_v < FRONT_ARC;
-        let braced_thrust = if weapon.braced { 0.35 } else { 1.0 };
+        let braced_thrust = if weapon.braced {
+            BRACED_THRUST_BLOCK_MULT
+        } else {
+            1.0
+        };
         let blocked = shielded
             && self
                 .rng

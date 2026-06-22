@@ -87,6 +87,30 @@ impl Game {
         id as u32
     }
 
+    pub fn spawn_class(
+        &mut self,
+        x: f32,
+        y: f32,
+        facing: f32,
+        count: u32,
+        files: u32,
+        class_id: u32,
+        team: u32,
+    ) -> u32 {
+        let class =
+            contract::ALL_CLASSES[(class_id as usize).min(contract::ALL_CLASSES.len() - 1)];
+        let id = self.battle.sim.spawn_class_with_files(
+            Vec2::new(x, y),
+            facing,
+            count as usize,
+            files as usize,
+            class,
+            team,
+        );
+        self.refresh_unit_info();
+        id as u32
+    }
+
     pub fn set_move_order(&mut self, unit: u32, x: f32, y: f32) {
         self.battle.sim.set_move_order(unit as usize, Vec2::new(x, y));
     }

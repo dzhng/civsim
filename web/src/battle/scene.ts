@@ -1063,6 +1063,10 @@ export class BattleScene implements Scene {
       // Raw spawn — light-infantry stats; enough to exercise FORMATION behaviour.
       spawnUnit: (x: number, y: number, facing: number, count: number, files: number, team: number) =>
         game.spawn_unit(x, y, facing, count, files, 1.0, 1.2, team, 0.7),
+      // Spawn a real class unit for vibe scenarios that are tied to Rust
+      // mechanics/balance contracts rather than raw formation probes.
+      spawnClass: (x: number, y: number, facing: number, count: number, files: number, cls: number, team: number) =>
+        game.spawn_class(x, y, facing, count, files, cls, team),
       groupAttack: (units: number[], target: number) => {
         groupAttacks.push({ units, target, lastTx: 1e9, lastTy: 1e9 });
         tickGroupAttacks();

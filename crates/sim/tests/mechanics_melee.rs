@@ -702,7 +702,7 @@ fn a_mortal_wrapping_line_backfills_casualty_tears() {
     );
     assert!(saw_casualty, "setup must reach the casualty/backfill phase");
     assert!(
-        max_late_gap < 4.0 && final_gap < 2.5,
+        max_gap_after_casualty < 4.3 && max_late_gap < 4.0 && final_gap < 2.5,
         "casualty holes in a wrapping line must back-fill instead of becoming sustained tears: max post-casualty {max_gap_after_casualty:.1}m, late {max_late_gap:.1}m, final {final_gap:.1}m",
     );
 }

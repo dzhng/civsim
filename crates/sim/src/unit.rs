@@ -344,3 +344,20 @@ pub(crate) fn reassign_slots(
         soldier_slot[u.start + s as usize] = slot as u32;
     }
 }
+
+/// Close casualty holes while preserving the living sheet's existing slot order.
+/// This is not a geometric re-form: a thin line already bent into a U has real
+/// neighbour identity along the cloth, and sorting it against the unit's flat
+/// frame erases that identity. Casualty compaction only removes vacant slots so
+/// springs can flow into the gaps without relabelling a curved sheet as a new
+/// rectangle.
+pub(crate) fn compact_slots_preserving_order(u: &Unit, alive: &[u8], soldier_slot: &mut [u32]) {
+    let mut order: Vec<(u32, usize)> = (0..u.count)
+        .filter(|&s| alive[u.start + s] == 1)
+        .map(|s| (soldier_slot[u.start + s], s))
+        .collect();
+    order.sort_by(|a, b| a.0.cmp(&b.0).then_with(|| a.1.cmp(&b.1)));
+    for (slot, &(_, s)) in order.iter().enumerate() {
+        soldier_slot[u.start + s] = slot as u32;
+    }
+}

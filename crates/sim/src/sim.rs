@@ -13,7 +13,7 @@ use crate::movement::{pace_speed, soldier_charge_speed, soldier_surge_speed, upd
 use crate::rng::Pcg32;
 use crate::terrain::{stagger01, Terrain};
 use crate::tunables::{Pace, Tunables, DT};
-use crate::unit::{reassign_slots, slot_local, OrderMode, Unit};
+use crate::unit::{compact_slots_preserving_order, reassign_slots, slot_local, OrderMode, Unit};
 
 /// Idle-fidget drift amplitude (m, peak ≈ this) and glance drift (rad, peak). A
 /// standing man is never a fence-post: he drifts off his slot and his eye
@@ -746,6 +746,10 @@ impl Sim {
             let ranks = self.units[ui].alive_count as f32 / self.units[ui].files_eff.max(1) as f32;
             let advancing = self.units[ui].move_target.is_some()
                 || matches!(self.units[ui].mode, OrderMode::Attack(_));
+            let mounted_contact = self
+                .units
+                .get(self.units[ui].contact_unit as usize)
+                .map_or(false, Unit::is_mounted);
             let casualty_reform = self.units[ui].deaths_since_reform * 50
                 > self.units[ui].alive_count.max(1)
                 && (self.units[ui].engaged == 0 || ranks >= 5.0 || advancing);
@@ -764,13 +768,26 @@ impl Sim {
                     && self.units[ui].cohesion < 0.9
                     && self.tick_count % 45 == (ui as u64) % 45);
             if needs {
-                reassign_slots(
-                    &self.units[ui],
-                    &self.positions,
-                    &self.fidget_offset,
-                    &self.alive,
-                    &mut self.soldier_slot,
-                );
+                if casualty_reform
+                    && advancing
+                    && ranks < 5.0
+                    && !mounted_contact
+                    && !self.units[ui].pivoting
+                {
+                    compact_slots_preserving_order(
+                        &self.units[ui],
+                        &self.alive,
+                        &mut self.soldier_slot,
+                    );
+                } else {
+                    reassign_slots(
+                        &self.units[ui],
+                        &self.positions,
+                        &self.fidget_offset,
+                        &self.alive,
+                        &mut self.soldier_slot,
+                    );
+                }
                 self.units[ui].deaths_since_reform = 0;
             }
         }

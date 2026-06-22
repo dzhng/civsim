@@ -21,7 +21,9 @@ identical — see the **screenshot-regression** skill.
 - **Later runs** compare every frame; a scenario exits non-zero on any drift.
 - **Re-bless** an intended mechanics/visual change with `UPDATE_SHOTS=1`, then
   commit the new baselines — the git image-diff *is* the visual review of what
-  the change did.
+  the change did. A full re-bless clears each scenario folder before writing,
+  so stale tail frames from an older, longer timeline cannot survive. Targeted
+  `SNAP=...` runs do not clear the folder.
 
 Needs the dev server up (`npx vite --port 5173 --strictPort` from `web/`), and
 the wasm current (`npm run build:wasm` after any `crates/` change — the browser

@@ -17,12 +17,28 @@
 // wall-clock-driven pixels. Baselines are per-platform (font/GPU rasterization
 // differs across OSes); the threshold below absorbs antialiasing wobble only.
 
-import { readFile, writeFile, mkdir } from 'node:fs/promises';
+import { readFile, writeFile, mkdir, rm } from 'node:fs/promises';
 import { PNG } from 'pngjs';
 import pixelmatch from 'pixelmatch';
 
 const BASELINE = new URL('./shots/baseline/', import.meta.url).pathname;
 const DIFF = new URL('./shots/diff/', import.meta.url).pathname;
+
+function safeSnapshotPath(name) {
+  if (name.startsWith('/') || name.split('/').some((part) => part === '..')) {
+    throw new Error(`unsafe snapshot path: ${name}`);
+  }
+}
+
+/** Clear a baseline folder before a full re-bless, so shorter regenerated
+ *  timelines cannot leave stale frames behind. Deliberately disabled with SNAP:
+ *  a targeted one-frame update should not erase the rest of the folder. */
+export async function clearSnapshotFolder(name) {
+  if (!process.env.UPDATE_SHOTS || process.env.SNAP) return;
+  safeSnapshotPath(name);
+  await rm(BASELINE + name, { recursive: true, force: true });
+  await mkdir(BASELINE + name, { recursive: true });
+}
 
 /** Exact by default: rendering here is deterministic (fixed seed, frozen
  *  clocks, same GPU), so ANY differing pixel is a real change. Loosen
@@ -33,6 +49,7 @@ export async function snapCheck(page, name, check, { threshold = 0, maxDiffRatio
   // compare, no diff/actual written. Use it to iterate on one view fast.
   const only = process.env.SNAP;
   if (only && !only.split(',').some((s) => name.includes(s.trim()))) return;
+  safeSnapshotPath(name);
   // `shot` lets callers that already hold a PNG buffer (a composited contact
   // sheet, a reused frame) skip the page.screenshot(); otherwise grab one now.
   if (!shot) shot = await page.screenshot();

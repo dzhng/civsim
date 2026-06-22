@@ -234,6 +234,11 @@ UPDATE_SHOTS=1 VERIFY_URL=http://localhost:5174 node verify-campaign.mjs
 UPDATE_SHOTS=1 VERIFY_URL=http://localhost:5174 node verify-battle.mjs
 ```
 
+Full vibe/turntable re-blesses clear their baseline folder before writing new
+shots, so shorter regenerated timelines cannot leave stale old frames behind.
+This cleanup is intentionally disabled when `SNAP=...` is set; a targeted
+one-frame update must not erase unrelated baselines in the same folder.
+
 4. Suspected nondeterminism → run the harness twice; if the second run isn't
    `0 px differ`, something on screen escaped the freeze path. Track it down
    rather than loosening tolerance — `snapCheck` accepts per-snap

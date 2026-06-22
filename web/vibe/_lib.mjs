@@ -7,7 +7,7 @@
 // when a downstream mechanics change moves the battle. Re-bless intended shifts
 // with UPDATE_SHOTS=1; a scenario exits non-zero when any frame differs.
 import { chromium } from 'playwright';
-import { snapCheck } from '../snapshot.mjs';
+import { clearSnapshotFolder, snapCheck } from '../snapshot.mjs';
 
 export const TPS = 30; // sim ticks per second (the harness's advance(300) == 10 s)
 const TARGET = process.env.VERIFY_URL ?? 'http://localhost:5173';
@@ -90,6 +90,7 @@ export async function vibeCapture(page, name, {
   // contiguous block, not scattered edges — we measured 5–8% for a 3-tick offset).
   threshold = 0.2, maxDiffRatio = 0.02,
 } = {}) {
+  await clearSnapshotFolder(`vibe/${name}`);
   let fails = 0, frames = 0;
   const check = (label2, ok, detail) => {
     if (!ok) fails++;

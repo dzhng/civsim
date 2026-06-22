@@ -12,7 +12,7 @@
 //   UPDATE_SHOTS=1 node vibe/turntable.mjs  # re-bless after a model change
 import { chromium } from 'playwright';
 import { PNG } from 'pngjs';
-import { snapCheck } from '../snapshot.mjs';
+import { clearSnapshotFolder, snapCheck } from '../snapshot.mjs';
 
 const TARGET = process.env.VERIFY_URL ?? 'http://localhost:5173';
 // PITCH=ingame renders at the battle's real max tilt (0.42 rad, near top-down)
@@ -91,6 +91,7 @@ await page.waitForFunction(() => window.__ready === true, undefined, { timeout: 
 await page.waitForTimeout(300);
 
 const classes = only ?? Array.from({ length: 12 }, (_, i) => i);
+if (!only) await clearSnapshotFolder(GROUP);
 
 let fails = 0;
 const check = (label, ok, detail) => {

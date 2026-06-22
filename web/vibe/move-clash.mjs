@@ -23,11 +23,12 @@ await page.evaluate(() => {
   window.__game.setOrder(1, a[32], a[33]);
 });
 
-const { shots, resolved, dir } = await vibeCapture(page, NAME, {
+const { frames, resolved, fails } = await vibeCapture(page, NAME, {
   stepSecs: 20, maxSteps: 18,
   frame: () => fitDuel(page), sample: () => duelSample(page),
   label: duelLabel, done: (s) => s.victor >= 0,
 });
-console.log(`${NAME}: ${resolved ? `resolved in ${shots.length} frames` : 'UNRESOLVED'} -> ${dir}`);
+console.log(`${NAME}: ${resolved ? `resolved in ${frames} frames` : 'UNRESOLVED'}`);
 if (errs.length) console.log('  page errors:', errs.slice(0, 3));
 await browser.close();
+process.exit(fails);

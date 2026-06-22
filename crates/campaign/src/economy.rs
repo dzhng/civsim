@@ -54,6 +54,30 @@ pub(crate) fn territory_of(map: &WorldMap, st: &CampaignState, loc: Loc) -> Opti
     None
 }
 
+/// A faction's gross daily income across the cities it holds (markets included).
+pub fn daily_income(map: &WorldMap, st: &CampaignState, f: FactionId) -> u32 {
+    st.cities
+        .iter()
+        .filter(|(_, c)| c.owner == f)
+        .map(|(&node, c)| {
+            let tier = map.nodes[node as usize].tier.min(3) as usize;
+            tun::CITY_INCOME[tier] * tun::MARKET_MULT_PCT[c.market_lvl.min(2) as usize] / 100
+        })
+        .sum()
+}
+
+/// A faction's daily army upkeep (per-soldier rate + per-unit base overhead).
+pub fn daily_upkeep(st: &CampaignState, f: FactionId) -> u32 {
+    let mut milligold: u64 = 0;
+    for a in st.armies.iter().filter(|a| a.faction == f && a.alive()) {
+        for r in a.roster.iter().filter(|r| r.count > 0) {
+            milligold += r.count as u64 * tun::upkeep_per_soldier_milligold(r.class) as u64;
+            milligold += tun::UPKEEP_UNIT_BASE as u64 * 1000;
+        }
+    }
+    (milligold / 1000) as u32
+}
+
 /// At a friendly city node, halted?
 fn at_friendly_city(st: &CampaignState, a: &Army) -> bool {
     matches!(a.loc, Loc::Node(n)
@@ -74,14 +98,7 @@ pub fn day_tick(map: &WorldMap, st: &mut CampaignState) {
     //    an empty treasury starts desertion and stops replenishment.
     let mut paid = vec![true; nfactions];
     for f in 0..nfactions {
-        let mut milligold: u64 = 0;
-        for a in st.armies.iter().filter(|a| a.faction == f as u32 && a.alive()) {
-            for r in a.roster.iter().filter(|r| r.count > 0) {
-                milligold += r.count as u64 * tun::upkeep_per_soldier_milligold(r.class) as u64;
-                milligold += tun::UPKEEP_UNIT_BASE as u64 * 1000;
-            }
-        }
-        let cost = (milligold / 1000) as u32;
+        let cost = daily_upkeep(st, f as u32);
         let t = &mut st.factions[f].treasury;
         if *t >= cost {
             *t -= cost;
@@ -423,27 +440,37 @@ pub fn split(map: &WorldMap, st: &mut CampaignState, army: ArmyId, entries: &[us
 /// V1 cut: if a friendly field army already stands on the node, it alone
 /// defends — the garrison joins the defense in a later milestone.
 pub fn garrison_sorties(map: &WorldMap, st: &mut CampaignState) {
-    let nodes: Vec<NodeId> = st.cities.keys().copied().collect();
-    for node in nodes {
-        let c = &st.cities[&node];
-        let owner = c.owner;
-        if !c.garrison.iter().any(|r| r.count > 0) {
+    // Which garrisoned cities have a hostile in contact? Scan armies → the nodes
+    // each one stands on or touches (cheap), instead of every city × every army
+    // every tick. `occupied` mirrors the old node-taken test; `threatened` is a
+    // BTreeSet so the sortie loop below runs in node order — same deterministic
+    // army-id assignment as the old city-major scan.
+    let mut occupied: std::collections::BTreeSet<NodeId> = std::collections::BTreeSet::new();
+    let mut threatened: std::collections::BTreeSet<NodeId> = std::collections::BTreeSet::new();
+    for a in &st.armies {
+        if !a.alive() {
             continue;
         }
-        let node_loc = Loc::Node(node);
-        let node_taken = st.armies.iter().any(|a| a.alive() && a.loc == node_loc);
-        if node_taken {
+        if let Loc::Node(n) = a.loc {
+            occupied.insert(n); // any standing army claims its node
+        }
+        if matches!(a.stance, Stance::Routed { .. } | Stance::AtSea) {
+            continue; // routed / embarked armies threaten nothing
+        }
+        for nbr in std::iter::once(a.loc).chain(pathfind::neighbors(map, a.loc)) {
+            let Loc::Node(n) = nbr else { continue };
+            if let Some(c) = st.cities.get(&n) {
+                if st.at_war(c.owner, a.faction) && c.garrison.iter().any(|r| r.count > 0) {
+                    threatened.insert(n);
+                }
+            }
+        }
+    }
+    for node in threatened {
+        if occupied.contains(&node) {
             continue;
         }
-        let threatened = st.armies.iter().any(|a| {
-            a.alive()
-                && a.faction != owner
-                && !matches!(a.stance, Stance::Routed { .. } | Stance::AtSea)
-                && pathfind::in_contact(map, a.loc, node_loc)
-        });
-        if !threatened {
-            continue;
-        }
+        let owner = st.cities[&node].owner;
         let garrison = std::mem::take(&mut st.cities.get_mut(&node).unwrap().garrison);
         let id = st.armies.len() as ArmyId;
         st.armies.push(Army {
@@ -451,7 +478,7 @@ pub fn garrison_sorties(map: &WorldMap, st: &mut CampaignState) {
             faction: owner,
             garrison_of: Some(node),
             roster: garrison,
-            loc: node_loc,
+            loc: Loc::Node(node),
             path: Vec::new(),
             path_idx: 0,
             progress: 0.0,
@@ -473,7 +500,7 @@ pub fn garrison_returns(map: &WorldMap, st: &mut CampaignState) {
         }
         let threatened = st.armies.iter().any(|o| {
             o.alive()
-                && o.faction != a.faction
+                && st.at_war(o.faction, a.faction)
                 && !matches!(o.stance, Stance::Routed { .. } | Stance::AtSea)
                 && pathfind::in_contact(map, o.loc, a.loc)
         });
@@ -506,7 +533,7 @@ pub fn occupations(map: &WorldMap, st: &mut CampaignState) {
             Stance::Occupying { city, ticks_left } => {
                 let hostile_near = st.armies.iter().any(|o| {
                     o.alive()
-                        && o.faction != a.faction
+                        && st.at_war(o.faction, a.faction)
                         && !matches!(o.stance, Stance::Routed { .. } | Stance::AtSea)
                         && pathfind::in_contact(map, o.loc, a.loc)
                 });
@@ -527,7 +554,7 @@ pub fn occupations(map: &WorldMap, st: &mut CampaignState) {
                 }
                 let Some(c) = st.cities.get(&n) else { continue };
                 let garrisoned = c.garrison.iter().any(|r| r.count > 0);
-                if c.owner != a.faction && !garrisoned {
+                if st.at_war(c.owner, a.faction) && !garrisoned {
                     let a = &mut st.armies[i];
                     a.stance = Stance::Occupying { city: n, ticks_left: tun::OCCUPY_TICKS };
                 }

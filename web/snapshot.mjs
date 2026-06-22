@@ -1,12 +1,16 @@
-// Pixel-level screenshot regression for the verify harnesses.
+// Pixel-level screenshot regression — the ONE primitive every visual shot flows
+// through (verify harnesses, vibe timelines, model turntable). A committed
+// baseline is at once the review artifact, the PR image-diff, and the gate.
 //
 // snapCheck(page, name, check) screenshots the page and compares it against
-// the committed baseline in shots/baseline/<name>.png. A missing baseline is
-// created and passes ("baseline created" — commit it). On mismatch the check
-// fails and shots/diff/<name>.png (highlighted diff) + <name>-actual.png are
-// written for inspection. Re-bless intentional UI changes with:
+// the committed baseline in shots/baseline/<name>.png (name may carry a
+// subfolder, e.g. 'vibe/heavy-both/t020s'). A missing baseline is created and
+// passes ("baseline created" — commit it), so a first run never spuriously
+// fails. On mismatch the check fails and shots/diff/<name>.png (highlighted
+// diff) + <name>-actual.png are written for inspection. Re-bless intentional
+// changes (a UI tweak, a deliberate mechanics shift) with:
 //
-//   UPDATE_SHOTS=1 node verify-battle.mjs / verify-campaign.mjs
+//   UPDATE_SHOTS=1 node verify-battle.mjs   # or vibe/all.mjs, vibe/turntable.mjs
 //
 // Snapshots only stay green if the moment is deterministic: fixed viewport,
 // fixed camera, sim paused/frozen (battle: window.__game.freeze()), no
@@ -23,14 +27,17 @@ const DIFF = new URL('./shots/diff/', import.meta.url).pathname;
 /** Exact by default: rendering here is deterministic (fixed seed, frozen
  *  clocks, same GPU), so ANY differing pixel is a real change. Loosen
  *  threshold/maxDiffRatio only for a snap with a proven noise source. */
-export async function snapCheck(page, name, check, { threshold = 0, maxDiffRatio = 0 } = {}) {
+export async function snapCheck(page, name, check, { threshold = 0, maxDiffRatio = 0, shot } = {}) {
   // SNAP=<substr> runs only the snaps whose name contains <substr> (comma-OR).
   // The harness still drives all setup, but unmatched snaps are skipped — no
   // compare, no diff/actual written. Use it to iterate on one view fast.
   const only = process.env.SNAP;
   if (only && !only.split(',').some((s) => name.includes(s.trim()))) return;
-  const shot = await page.screenshot();
-  await mkdir(BASELINE, { recursive: true });
+  // `shot` lets callers that already hold a PNG buffer (a composited contact
+  // sheet, a reused frame) skip the page.screenshot(); otherwise grab one now.
+  if (!shot) shot = await page.screenshot();
+  // name may carry a subfolder (e.g. 'vibe/heavy-both/t000s'); make it.
+  await mkdir(BASELINE + (name.includes('/') ? name.slice(0, name.lastIndexOf('/')) : ''), { recursive: true });
   const basePath = BASELINE + name + '.png';
   let baseline = null;
   try {
@@ -54,7 +61,7 @@ export async function snapCheck(page, name, check, { threshold = 0, maxDiffRatio
   const ratio = differing / (cur.width * cur.height);
   const ok = ratio <= maxDiffRatio;
   if (!ok) {
-    await mkdir(DIFF, { recursive: true });
+    await mkdir(DIFF + (name.includes('/') ? name.slice(0, name.lastIndexOf('/')) : ''), { recursive: true });
     await writeFile(DIFF + name + '.png', PNG.sync.write(diff));
     await writeFile(DIFF + name + '-actual.png', shot);
   }

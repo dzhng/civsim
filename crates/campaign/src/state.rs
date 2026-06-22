@@ -36,8 +36,12 @@ pub enum Stance {
     Hold,
     Camp { build_ticks_left: u16 },
     Ambush { spot: u32, settle_ticks_left: u16 },
-    /// Uncontrollable retreat; regroups at a friendly city or after the tiles run out.
-    Routed { tiles_left: u16, daze_ticks_left: u32 },
+    /// Uncontrollable retreat. Intangible to `by` (the army that beat it) while
+    /// still fleeing — long enough to break away from that one force. Every
+    /// other hostile can already cut it down mid-flight, and once its flee path
+    /// is run a regroup window opens in which anyone in contact runs it down;
+    /// survive the window and it regroups (Hold).
+    Routed { tiles_left: u16, regroup_ticks_left: u32, by: ArmyId },
     Occupying { city: NodeId, ticks_left: u16 },
     /// Embarked on a sea lane.
     AtSea,
@@ -113,6 +117,28 @@ pub struct Encounter {
 pub struct Faction {
     pub treasury: u32,
     pub ai: bool,
+}
+
+/// Diplomatic stance between two factions. War is the implicit default (absent
+/// from the map), so the historical all-hostile world and old saves are
+/// unchanged. Peace stops the fighting; Alliance also marks co-belligerents who
+/// share a common enemy and won't turn on each other while it lives.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub enum Relation {
+    War,
+    Peace,
+    Alliance,
+}
+
+/// The war's verdict. The contest is between the playable powers; independents
+/// are neutral scenery, never a blocker. Decided when at most one playable
+/// power still holds a city.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub enum Outcome {
+    /// One playable power outlasted all the others.
+    Victory(FactionId),
+    /// No playable power holds a city — mutual collapse.
+    Draw,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -193,10 +219,59 @@ pub struct CampaignState {
     /// Watchtowers, one per junction node.
     #[serde(default)]
     pub outposts: BTreeMap<NodeId, Outpost>,
+    /// Set once the war is decided; `None` while it is still being fought.
+    #[serde(default)]
+    pub outcome: Option<Outcome>,
+    /// Pairwise diplomacy, keyed `(lo, hi)`. Absent = War, so the default world
+    /// and old saves stay all-hostile until a treaty is signed.
+    #[serde(default)]
+    pub relations: BTreeMap<(FactionId, FactionId), Relation>,
+    /// Each AI power's current war objective: the rival it is concentrating its
+    /// offensive against (set by the diplomacy pass; read by the commander to
+    /// mass its armies on one front instead of spreading thin).
+    #[serde(default)]
+    pub diplo_target: BTreeMap<FactionId, FactionId>,
 }
 
 impl CampaignState {
     pub fn road_level(&self, edge: EdgeId) -> u8 {
         self.road_levels.get(edge as usize).copied().unwrap_or(1)
     }
+
+    /// Diplomatic stance between two factions (own faction counts as Peace).
+    pub fn relation(&self, a: FactionId, b: FactionId) -> Relation {
+        if a == b {
+            return Relation::Peace;
+        }
+        self.relations
+            .get(&(a.min(b), a.max(b)))
+            .copied()
+            .unwrap_or(Relation::War)
+    }
+
+    /// Are these two factions shooting at each other? (False for self.)
+    pub fn at_war(&self, a: FactionId, b: FactionId) -> bool {
+        a != b && self.relation(a, b) == Relation::War
+    }
+
+    pub fn allied(&self, a: FactionId, b: FactionId) -> bool {
+        self.relation(a, b) == Relation::Alliance
+    }
+
+    /// Set (and normalize) a treaty between two distinct factions.
+    pub fn set_relation(&mut self, a: FactionId, b: FactionId, r: Relation) {
+        if a != b {
+            self.relations.insert((a.min(b), a.max(b)), r);
+        }
+    }
+}
+
+/// War test against the relations map alone — for call sites that already hold a
+/// disjoint mutable borrow of another `CampaignState` field (e.g. `retain`).
+pub fn rel_at_war(
+    relations: &BTreeMap<(FactionId, FactionId), Relation>,
+    a: FactionId,
+    b: FactionId,
+) -> bool {
+    a != b && relations.get(&(a.min(b), a.max(b))).copied().unwrap_or(Relation::War) == Relation::War
 }

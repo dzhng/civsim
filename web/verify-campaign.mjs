@@ -3,12 +3,10 @@
 // Drives: menu -> new campaign -> march on an independent city -> garrison
 // battle modal (auto-pause) -> auto-resolve -> outcome -> save/load.
 import { chromium } from 'playwright';
-import { mkdir, readFile } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
 import { snapCheck } from './snapshot.mjs';
 
 const TARGET = process.env.VERIFY_URL ?? 'http://localhost:5173';
-const SHOTS = new URL('./shots/', import.meta.url).pathname;
-await mkdir(SHOTS, { recursive: true });
 
 const failures = [];
 const check = (name, ok, detail) => {
@@ -38,10 +36,11 @@ check('campaign boots with armies', armies.length >= 10 && mine.length >= 2,
   `${armies.length} visible, ${mine.length} mine`);
 const cities = await page.evaluate(() => window.__campaign.cities());
 check('cities loaded', Object.keys(cities).length > 400, `${Object.keys(cities).length} cities`);
-await page.screenshot({ path: SHOTS + 'campaign-map.png' });
 
-// Pixel regression at deterministic moments: Day 1, paused, fixed camera,
-// water clock frozen, before any ticking (later states depend on the seed).
+// Pixel regression at deterministic moments: Day 1, paused, fixed camera, water
+// clock frozen, before any ticking. Anything AFTER a tick() depends on the
+// campaign's per-boot random seed, so those states stay behavioral-only (no
+// pixel snap) — see the dropped captures below.
 await page.evaluate(() => window.__campaign.freeze());
 await page.evaluate(() => window.__campaign.cam(-100, 250, 0.16));
 await page.waitForTimeout(250);
@@ -86,7 +85,6 @@ await page.waitForSelector('.cmp-box', { timeout: 5000 });
 const modalText = await page.evaluate(() => document.querySelector('.cmp-box').textContent);
 check('initiation modal shows both sides', /Attacker/.test(modalText) && /Defender/.test(modalText));
 check('campaign auto-paused for the battle', await page.evaluate(() => window.__campaign.paused()));
-await page.screenshot({ path: SHOTS + 'campaign-battle-modal.png' });
 
 // Auto-resolve (headless real sim, chunked).
 await page.click('#cmp-auto');
@@ -99,7 +97,6 @@ const after = await page.evaluate(() => ({
 const myArmy = after.armies.find((a) => a.id === 0);
 check('battle consumed (no pending)', after.ready === -1);
 check('player army took casualties or won cleanly', !!myArmy, myArmy ? `${myArmy.soldiers} soldiers left` : 'army wiped');
-await page.screenshot({ path: SHOTS + 'campaign-after-battle.png' });
 
 // Save, exit to menu, load.
 await page.click('#cmp-save');
@@ -124,16 +121,12 @@ let cam = await page.evaluate(() => window.__campaign.camGet());
 let terrA = await page.evaluate(() => window.__campaign.territoryAlpha());
 check('zoomed out: top-down political map with territories', cam.pitchDeg > 85 && terrA > 0.7,
   `pitch ${cam.pitchDeg.toFixed(1)}°, territory alpha ${terrA.toFixed(2)}`);
-await page.waitForTimeout(250);
-await page.screenshot({ path: SHOTS + 'campaign-political.png' });
 
 await page.evaluate(() => window.__campaign.cam(-456, 446, 2.5)); // Roma
 cam = await page.evaluate(() => window.__campaign.camGet());
 terrA = await page.evaluate(() => window.__campaign.territoryAlpha());
 check('zoomed in: camera tilts to 3D, territory fades', cam.pitchDeg < 60 && terrA < 0.3,
   `pitch ${cam.pitchDeg.toFixed(1)}°, territory alpha ${terrA.toFixed(2)}`);
-await page.waitForTimeout(250);
-await page.screenshot({ path: SHOTS + 'campaign-3d.png' });
 
 // Click-selection must survive the 3D projection: center on one of my armies,
 // click its on-screen banner base, expect it selected.
@@ -181,31 +174,16 @@ map.ambush_spots.forEach((sp, i) => {
   }
 });
 const sp = map.ambush_spots[bestSpot];
-await page.evaluate(([id, edge, tile]) => window.__campaign.orderMove(id, 1, edge, tile), [me0.id, sp.edge, sp.tile]);
-let parked = false;
-for (let i = 0; i < 30 && !parked; i++) {
-  const st = await page.evaluate((id) => {
-    window.__campaign.tick(2000);
-    const a = window.__campaign.armies().find((x) => x.id === id);
-    return {
-      parked: a && !a.marching && window.__campaign.battleReady() < 0,
-      ready: window.__campaign.battleReady(),
-    };
-  }, me0.id);
-  if (st.ready >= 0) {
-    // Someone's battle pends (the AI is alive out there): resolve and move on.
-    if (await page.evaluate(() => window.__campaign.paused())) await page.keyboard.press('1');
-    await page.waitForSelector('.cmp-box', { timeout: 10000 });
-    await page.click('#cmp-auto');
-    await page.waitForFunction(() => !document.querySelector('.cmp-box'), undefined, { timeout: 300000 });
-    await page.evaluate(() => {
-      if (!window.__campaign.paused()) document.querySelector('#cmp-pause').click();
-    });
-    await page.evaluate(([id, edge, tile]) => window.__campaign.orderMove(id, 1, edge, tile), [me0.id, sp.edge, sp.tile]);
-    continue;
-  }
-  parked = st.parked;
-}
+// Freeze the world and teleport the army onto the trigger: a deterministic,
+// quiet setup. Marching it there through whatever war the random seed has spun
+// up would let an encounter form on the tile, which legitimately blocks the
+// ambush order — but that tests the seed, not the ambush mechanic.
+const parked = await page.evaluate(([id, edge, tile]) => {
+  window.__campaign.freeze();
+  window.__campaign.place(id, 1, edge, tile);
+  const a = window.__campaign.armies().find((x) => x.id === id);
+  return !!a && !a.marching && window.__campaign.battleReady() < 0;
+}, [me0.id, sp.edge, sp.tile]);
 check('army parks on the nearest ambush trigger', parked, `spot ${bestSpot} at ${Math.round(bestSpotD)}km`);
 const parkedAt = await page.evaluate((id) => {
   const a = window.__campaign.armies().find((x) => x.id === id);
@@ -258,12 +236,33 @@ const mergeRes = await page.evaluate((parent) => {
 check('merge folds the stack back in', mergeRes.ok && mergeRes.after === mergeRes.before - 1,
   `${mergeRes.before} -> ${mergeRes.after} live armies`);
 
-// Split again and leave the detachment home: it becomes the reinforcement.
-await page.evaluate(() => {
-  const c = window.__campaign;
-  const me = c.armies().filter((a) => a.mine)[0];
-  c.orderSplit(me.id, 0b10);
-});
+// Split a detachment, then stage BOTH stacks on the road into the target: the
+// main army one tile out (it will strike the city), the detachment three tiles
+// back, well inside the 12-tile reinforcement radius. Teleporting both makes
+// the join deterministic regardless of where the nearest enemy now sits (each
+// faction owns a contiguous home region, so independents are no longer next door).
+const targetId = map.nodes[target].id;
+const approach = map.edges.findIndex(
+  (e) => e.kind !== 'sea' && (e.a === targetId || e.b === targetId) && e.tiles.length >= 4,
+);
+const e = map.edges[approach];
+const fromA = approach >= 0 && e.a === targetId; // is the target the low-tile end?
+const mainTile = approach < 0 ? 0 : fromA ? 1 : e.tiles.length - 2;
+const detTile = approach < 0 ? 0 : fromA ? 3 : e.tiles.length - 4;
+await page.evaluate(
+  ([ei, mt, dt]) => {
+    const c = window.__campaign;
+    const me = c.armies().filter((a) => a.mine)[0];
+    c.orderSplit(me.id, 0b10);
+    const mine = c.armies().filter((a) => a.mine);
+    const det = mine[mine.length - 1]; // the freshest stack
+    if (ei >= 0) {
+      c.place(me.id, 1, ei, mt);
+      c.place(det.id, 1, ei, dt);
+    }
+  },
+  [approach, mainTile, detTile],
+);
 let ready2 = -1;
 await page.evaluate((t) => {
   const me = window.__campaign.armies().filter((a) => a.mine)[0];
@@ -292,7 +291,6 @@ for (let i = 0; i < 60 && unitsNow <= units0; i++) {
   });
 }
 check('reinforcement column arrives and renders', unitsNow > units0, `${units0} -> ${unitsNow} units`);
-await page.screenshot({ path: SHOTS + 'campaign-reinforcement.png' });
 
 check('no page errors', pageErrors.length === 0, pageErrors.slice(0, 3).join(' | '));
 

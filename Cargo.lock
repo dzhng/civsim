@@ -27,6 +27,7 @@ dependencies = [
  "contract",
  "serde",
  "serde_json",
+ "sim",
 ]
 
 [[package]]

@@ -1,8 +1,8 @@
 // Vibe check: OFFENSE — a WIDE attacking line drives onto a NARROW block. The
 // flanks overlap the block with no enemy in front of them, so on the offensive
 // they should curl IN and the cloth should DRAPE around it (envelop). Eyeball
-// web/vibe/shots/offense/. This mirrors the Rust `mechanics_melee` wrap
-// contracts: classed heavy infantry, mortal combat, wide line vs narrow block.
+// web/shots/baseline/vibe/offense/. Built with the spawn hook so the block is narrow and
+// shallow enough to actually engage (a deep tank just stalls the line).
 import { openBattle, vibeCapture } from './_lib.mjs';
 
 const { browser, page, errs } = await openBattle('battle=duel&a=0&b=0&ai=off');
@@ -44,9 +44,10 @@ const sample = () => page.evaluate((ids) => {
 }, ids);
 const label = (s, m) => `t=${String(s).padStart(3)}s  line ${m.lineAlive}/${m.lineTotal}  block ${m.blockAlive}/${m.blockTotal}`;
 
-const { shots, dir } = await vibeCapture(page, process.env.NAME ?? 'offense', {
+const { frames, fails } = await vibeCapture(page, process.env.NAME ?? 'offense', {
   stepSecs: 12, maxSteps: 16, frame, sample, label, done: () => false,
 });
-console.log(`\n${shots.length} frames -> ${dir}`);
+console.log(`\n${frames} frames`);
 if (errs.length) console.log('page errors:', errs.slice(0, 3));
 await browser.close();
+process.exit(fails);

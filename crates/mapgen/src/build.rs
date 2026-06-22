@@ -193,20 +193,224 @@ pub fn build(input: BuildInput) -> MapJson {
     // Drop sites with no surviving edges (isolated points render as noise).
     let connected: BTreeSet<u32> = edges.iter().flat_map(|e| [e.a, e.b]).collect();
 
-    // City ownership from overrides; everything else independent.
-    let mut owner_of: BTreeMap<String, String> = BTreeMap::new();
     let mut tier_override: BTreeMap<String, u8> = BTreeMap::new();
     for (label, t) in overrides["tier_overrides"].as_object().expect("tier_overrides") {
         tier_override.insert(label.clone(), t.as_u64().unwrap() as u8);
     }
-    for f in overrides["factions"].as_array().expect("factions") {
-        let fid = f["id"].as_str().unwrap().to_string();
+    let base_tier = |s: &OrbisSite| -> u8 {
+        tier_override.get(&s.label).copied().unwrap_or(match s.rank {
+            100 => 3,
+            90 => 2,
+            80 => 1,
+            _ => 0,
+        })
+    };
+
+    // City ownership: instead of a hand-picked scatter of named cities, grow each
+    // faction a CONTIGUOUS home region. The capital, its named cities, and its
+    // army-start cities are forced seeds; a capped multi-source flood over the
+    // road/sea graph then claims the nearest cities to each — a Voronoi split
+    // where the first faction to reach a city by hops takes it, up to a budget.
+    // Cities beyond every faction's budget stay independent (room to conquer).
+    let factions_arr = overrides["factions"].as_array().expect("factions");
+    let label_to_id: BTreeMap<&str, u32> = sites
+        .values()
+        .filter(|s| connected.contains(&s.id))
+        .map(|s| (s.label.as_str(), s.id))
+        .collect();
+    let resolve = |label: &str| -> u32 {
+        *label_to_id
+            .get(label)
+            .unwrap_or_else(|| panic!("override city not found in ORBIS sites: {label}"))
+    };
+    let fac_index: BTreeMap<&str, usize> = factions_arr
+        .iter()
+        .enumerate()
+        .filter_map(|(i, f)| f["id"].as_str().map(|id| (id, i)))
+        .collect();
+
+    // Forced seeds: the capital and the army-start cities — the cities that MUST
+    // belong to the faction for a valid opening. The hand-authored `cities` list
+    // is NOT forced (a distant entry like Carthage's Panormus in Sicily would be
+    // a disconnected exclave); the flood below decides the rest.
+    let mut owner_site: BTreeMap<u32, usize> = BTreeMap::new();
+    let mut seeds_of: Vec<Vec<u32>> = vec![Vec::new(); factions_arr.len()];
+    for (fi, f) in factions_arr.iter().enumerate() {
+        if f["id"].as_str() == Some("independents") {
+            continue;
+        }
         if let Some(cap) = f["capital"].as_str() {
-            owner_of.insert(cap.to_string(), fid.clone());
+            let id = resolve(cap);
+            owner_site.insert(id, fi);
+            seeds_of[fi].push(id);
         }
-        for c in f["cities"].as_array().unwrap() {
-            owner_of.insert(c.as_str().unwrap().to_string(), fid.clone());
+    }
+    for s in overrides["start_armies"].as_array().unwrap() {
+        if let Some(&fi) = s["faction"].as_str().and_then(|id| fac_index.get(id)) {
+            let id = resolve(s["at"].as_str().unwrap());
+            owner_site.insert(id, fi);
+            seeds_of[fi].push(id);
         }
+    }
+
+    // Cities by ORBIS rank, plus every forced seed (a seed is always a city).
+    let mut is_city: BTreeSet<u32> = sites
+        .values()
+        .filter(|s| connected.contains(&s.id) && base_tier(s) > 0)
+        .map(|s| s.id)
+        .collect();
+    is_city.extend(owner_site.keys().copied());
+
+    // LAND adjacency: sea lanes carry armies but don't make a realm look
+    // contiguous, so territory is grown over roads only. Junctions transit.
+    let mut adj: BTreeMap<u32, Vec<u32>> = BTreeMap::new();
+    for e in &edges {
+        if e.kind == "sea" {
+            continue;
+        }
+        adj.entry(e.a).or_default().push(e.b);
+        adj.entry(e.b).or_default().push(e.a);
+    }
+    for v in adj.values_mut() {
+        v.sort_unstable();
+        v.dedup();
+    }
+
+    // Connect each faction's seeds before flooding: claim the cities along the
+    // shortest land path from the capital to each army-start city, so a realm
+    // whose two armies sit far apart (Rome at Roma + Capua) is one bloc, not two.
+    let shortest_path = |from: u32, to: u32| -> Vec<u32> {
+        let mut parent: BTreeMap<u32, u32> = BTreeMap::new();
+        let mut seen: BTreeSet<u32> = BTreeSet::from([from]);
+        let mut q: std::collections::VecDeque<u32> = std::collections::VecDeque::from([from]);
+        while let Some(u) = q.pop_front() {
+            if u == to {
+                let mut path = vec![to];
+                let mut c = to;
+                while let Some(&p) = parent.get(&c) {
+                    path.push(p);
+                    c = p;
+                }
+                return path;
+            }
+            for &nb in adj.get(&u).map(|v| v.as_slice()).unwrap_or(&[]) {
+                if seen.insert(nb) {
+                    parent.insert(nb, u);
+                    q.push_back(nb);
+                }
+            }
+        }
+        Vec::new() // no land route (island start) — leave it as a lone seed
+    };
+    for fi in 0..factions_arr.len() {
+        if seeds_of[fi].len() < 2 {
+            continue;
+        }
+        let cap = seeds_of[fi][0];
+        for &s in &seeds_of[fi][1..] {
+            for site in shortest_path(cap, s) {
+                if is_city.contains(&site) {
+                    owner_site.entry(site).or_insert(fi);
+                }
+            }
+        }
+    }
+
+    let budget = overrides
+        .get("region_cities")
+        .and_then(|v| v.as_u64())
+        .unwrap_or(14) as usize;
+    let mut count = vec![0usize; factions_arr.len()];
+    for &fi in owner_site.values() {
+        count[fi] += 1;
+    }
+
+    // Layered multi-source BFS from the seeds. Sorted each round for determinism.
+    let mut visited: BTreeSet<u32> = owner_site.keys().copied().collect();
+    let mut frontier: Vec<(u32, usize)> = owner_site.iter().map(|(&s, &f)| (s, f)).collect();
+    while !frontier.is_empty() {
+        frontier.sort_unstable();
+        let mut next: Vec<(u32, usize)> = Vec::new();
+        for &(site, fac) in &frontier {
+            if count[fac] >= budget {
+                continue; // this realm is full — let others reach past it
+            }
+            for &nb in adj.get(&site).map(|v| v.as_slice()).unwrap_or(&[]) {
+                if !visited.insert(nb) {
+                    continue;
+                }
+                if is_city.contains(&nb) {
+                    owner_site.insert(nb, fac);
+                    count[fac] += 1;
+                    next.push((nb, fac));
+                } else {
+                    next.push((nb, fac)); // junction: keep flowing through it
+                }
+            }
+        }
+        frontier = next;
+    }
+
+    // Fill notches: a neutral city ringed by a single power (and not outnumbered
+    // there by other neutrals) is absorbed, so a realm reads as one solid block
+    // rather than being pocked by stray neutral Voronoi cells along its coast
+    // (e.g. Lepcis Magna sitting amid Carthage's Tripolitanian shore). A SINGLE
+    // pass — one ring of notches/termini — not a fixpoint, so realms don't
+    // cascade outward and stay near their budget. A city touching two powers, or
+    // out on the open neutral frontier, is left alone.
+    let city_neighbours = |start: u32| -> Vec<u32> {
+        // Cities reachable through junctions only (nearest road neighbours).
+        let mut out = Vec::new();
+        let mut seen: BTreeSet<u32> = BTreeSet::from([start]);
+        let mut q: std::collections::VecDeque<u32> = std::collections::VecDeque::new();
+        for &v in adj.get(&start).map(|v| v.as_slice()).unwrap_or(&[]) {
+            if seen.insert(v) {
+                q.push_back(v);
+            }
+        }
+        while let Some(u) = q.pop_front() {
+            if is_city.contains(&u) {
+                out.push(u);
+                continue; // a city ends this spoke
+            }
+            for &v in adj.get(&u).map(|v| v.as_slice()).unwrap_or(&[]) {
+                if seen.insert(v) {
+                    q.push_back(v);
+                }
+            }
+        }
+        out
+    };
+    let mut additions: Vec<(u32, usize)> = Vec::new();
+    for &cid in &is_city {
+        if owner_site.contains_key(&cid) {
+            continue;
+        }
+        let mut powers: BTreeSet<usize> = BTreeSet::new();
+        let (mut owned, mut neutral) = (0u32, 0u32);
+        for n in city_neighbours(cid) {
+            match owner_site.get(&n) {
+                Some(&f) => {
+                    powers.insert(f);
+                    owned += 1;
+                }
+                None => neutral += 1,
+            }
+        }
+        if powers.len() == 1 && owned >= neutral {
+            additions.push((cid, *powers.iter().next().unwrap()));
+        }
+    }
+    for (cid, f) in additions {
+        owner_site.insert(cid, f);
+    }
+
+    let id_to_label: BTreeMap<u32, &str> =
+        sites.values().map(|s| (s.id, s.label.as_str())).collect();
+    let mut owner_of: BTreeMap<String, String> = BTreeMap::new();
+    for (&site, &fi) in &owner_site {
+        let fid = factions_arr[fi]["id"].as_str().unwrap().to_string();
+        owner_of.insert(id_to_label[&site].to_string(), fid);
     }
 
     let mut nodes: Vec<NodeJson> = Vec::new();

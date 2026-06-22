@@ -1,9 +1,11 @@
-// The sanity sweep: run every vibe scenario, refreshing all of
-// web/vibe/shots/<name>/ in one command. Run from web/ with the dev server up:
-//   node vibe/all.mjs            # all scenarios, 4 at a time
-//   JOBS=2 node vibe/all.mjs     # throttle parallelism
-// Each scenario clears and rewrites its own shots folder; flip through them
-// after. Add a row here when you add a scenario.
+// The sanity sweep: run every vibe scenario, pixel-checking every frame against
+// its committed baseline in web/shots/baseline/vibe/<name>/. Run from web/ with
+// the dev server up:
+//   node vibe/all.mjs              # all scenarios, 4 at a time
+//   JOBS=2 node vibe/all.mjs       # throttle parallelism
+//   UPDATE_SHOTS=1 node vibe/all.mjs  # re-bless after an intended mechanics change
+// A scenario exits non-zero when a frame drifts (diff in shots/diff/vibe/...);
+// flip through the baselines to review. Add a row here when you add a scenario.
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
@@ -41,7 +43,7 @@ function run(s) {
     child.stdout.on('data', (d) => { out += d; });
     child.stderr.on('data', (d) => { out += d; });
     child.on('close', (code) => {
-      const line = out.split('\n').reverse().find((l) => /resolved|frames ->|UNRESOLVED/.test(l));
+      const line = out.split('\n').reverse().find((l) => /resolved|\d+ frames|UNRESOLVED/.test(l));
       console.log(`  ${s.name.padEnd(18)} ${(line ?? `EXIT ${code}`).trim()}`);
       resolve({ name: s.name, code });
     });
@@ -56,6 +58,7 @@ await Promise.all(Array.from({ length: CONCURRENCY }, worker));
 
 const failed = results.filter((r) => r.code !== 0);
 console.log(failed.length
-  ? `\n${failed.length} scenario(s) errored: ${failed.map((r) => r.name).join(', ')}`
-  : `\nall ${results.length} scenarios refreshed -> web/vibe/shots/`);
+  ? `\n${failed.length} scenario(s) drifted or errored: ${failed.map((r) => r.name).join(', ')}`
+    + `\n  review shots/diff/vibe/<name>/, then UPDATE_SHOTS=1 to re-bless intended changes`
+  : `\nall ${results.length} scenarios match their baselines`);
 process.exit(failed.length ? 1 : 0);

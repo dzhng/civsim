@@ -1,6 +1,6 @@
 // Vibe check: missile troops vs an advancing line. The shooter (unit 1) holds
 // and looses on its own (fire-at-will) while the advancer (unit 0) crosses the
-// field at a run. Eyeball web/vibe/shots/missile/ — do arrows actually fly, does
+// field at a run. Eyeball web/shots/baseline/vibe/missile/ — do arrows actually fly, does
 // the charging line thin out crossing the open ground, do the shooters get run
 // down once contact lands (light troops shouldn't win a melee)?
 //   Default: heavy infantry advances on held archers.
@@ -21,11 +21,12 @@ const label = (secs, s) =>
   `t=${String(secs).padStart(3)}s  advancer ${s.aAlive}/${s.aTotal} (coh ${s.aCoh.toFixed(2)})  `
   + `shooter ${s.bAlive}/${s.bTotal} ammo ${s.bAmmo}  fighting ${s.aFight}/${s.bFight}  victor ${s.victor}`;
 
-const { shots, resolved, dir } = await vibeCapture(page, process.env.NAME ?? 'missile', {
+const { frames, resolved, fails } = await vibeCapture(page, process.env.NAME ?? 'missile', {
   frame: () => fitDuel(page), sample: () => duelSample(page),
   label, done: (s) => s.victor >= 0,
 });
 
-console.log(resolved ? `\nresolved in ${shots.length} frames -> ${dir}` : `\nUNRESOLVED -> ${dir}`);
+console.log(resolved ? `\nresolved in ${frames} frames` : `\nUNRESOLVED`);
 if (errs.length) console.log('page errors:', errs.slice(0, 3));
 await browser.close();
+process.exit(fails);

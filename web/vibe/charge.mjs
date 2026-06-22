@@ -63,14 +63,15 @@ const sampleUnits = () => page.evaluate((ids) => {
   };
 }, ids);
 
-const { shots, resolved, dir } = await vibeCapture(page, process.env.NAME ?? 'charge', {
+const { frames, resolved, fails } = await vibeCapture(page, process.env.NAME ?? 'charge', {
   frame: () => (FLANK ? fitUnits() : fitDuel(page)),
   sample: () => (FLANK ? sampleUnits() : duelSample(page)),
   label: duelLabel,
   done: (s) => s.victor >= 0 || (FLANK && s.bAlive <= s.bTotal * 0.35),
 });
 
-console.log(resolved ? `\nresolved in ${shots.length} frames -> ${dir}` : `\nUNRESOLVED -> ${dir}`);
+console.log(resolved ? `\nresolved in ${frames} frames` : `\nUNRESOLVED`);
 console.log(`A = attacker (charging), B = defender (held${FLANK ? ', side-on' : ''})`);
 if (errs.length) console.log('page errors:', errs.slice(0, 3));
 await browser.close();
+process.exit(fails);

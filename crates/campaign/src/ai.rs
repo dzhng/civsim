@@ -9,7 +9,6 @@ use crate::pathfind;
 use crate::state::*;
 use crate::tunables as tun;
 use contract::UnitClassId;
-use std::collections::BTreeSet;
 
 /// Cost-weighted value of a roster (upkeep rate doubles as unit value).
 fn strength(roster: &[RosterEntry]) -> u64 {
@@ -26,32 +25,23 @@ fn free_army(a: &Army) -> bool {
         && !matches!(a.stance, Stance::Routed { .. } | Stance::AtSea | Stance::Occupying { .. })
 }
 
-/// Road distance between two locs, capped (None beyond the cap).
-fn road_dist(map: &WorldMap, from: Loc, to: Loc, cap: u32) -> Option<u32> {
-    if from == to {
-        return Some(0);
-    }
-    let mut seen: BTreeSet<Loc> = BTreeSet::new();
-    seen.insert(from);
-    let mut frontier = vec![from];
-    for depth in 1..=cap {
-        let mut next = Vec::new();
-        for &l in &frontier {
-            for n in pathfind::neighbors(map, l) {
-                if n == to {
-                    return Some(depth);
-                }
-                if seen.insert(n) {
-                    next.push(n);
-                }
-            }
-        }
-        frontier = next;
-    }
-    None
+/// Road distance between two locs, capped (None beyond the cap). Uses the
+/// shared visited-buffer so the AI's many distance probes don't each allocate.
+fn road_dist(
+    map: &WorldMap,
+    bfs: &mut pathfind::Visited,
+    from: Loc,
+    to: Loc,
+    cap: u32,
+) -> Option<u32> {
+    bfs.within(map, from, cap, |l| l == to)
 }
 
 pub fn commanders(map: &WorldMap, st: &mut CampaignState) {
+    if st.tick % tun::DIPLOMACY_EVERY as u64 == 0 {
+        diplomacy(map, st);
+    }
+    let mut bfs = pathfind::Visited::new(map);
     for f in 0..st.factions.len() as u32 {
         if !st.factions[f as usize].ai {
             continue;
@@ -60,11 +50,84 @@ pub fn commanders(map: &WorldMap, st: &mut CampaignState) {
         if map.factions[f as usize].id == "independents" {
             continue;
         }
-        think(map, st, f);
+        think(map, st, f, &mut bfs);
     }
 }
 
-fn think(map: &WorldMap, st: &mut CampaignState, f: FactionId) {
+/// Re-draw the diplomatic map. Each active power focuses war on the weakest
+/// rival it can actually reach, makes peace with the rest to mass its army on
+/// that one front, and allies with anyone who shares its victim. The weakest
+/// powers get ganged up on and eaten, a new weakest emerges, and the six-power
+/// standoff resolves instead of freezing at parity. Independents are left at the
+/// default War — neutral ground everyone is free to conquer.
+pub fn diplomacy(map: &WorldMap, st: &mut CampaignState) {
+    use crate::state::Relation;
+    // The player runs their own foreign policy — the AI never rewrites treaties
+    // that involve the player, only those among the other powers.
+    let player = st.player_faction;
+    let powers: Vec<FactionId> = (0..map.factions.len() as FactionId)
+        .filter(|&f| f != player && map.factions[f as usize].playable)
+        .filter(|&f| st.cities.values().any(|c| c.owner == f))
+        .collect();
+    if powers.len() <= 1 {
+        return;
+    }
+
+    // Rank powers by cost-weighted army plus a per-city weight (a wide realm is
+    // a real power even if thinly garrisoned).
+    let strengths: std::collections::BTreeMap<FactionId, u64> = powers
+        .iter()
+        .map(|&f| {
+            let army: u64 = st
+                .armies
+                .iter()
+                .filter(|a| a.faction == f && a.alive())
+                .map(|a| strength(&a.roster))
+                .sum();
+            let cities = st.cities.values().filter(|c| c.owner == f).count() as u64;
+            (f, army + cities * tun::DIPLO_CITY_WEIGHT)
+        })
+        .collect();
+
+    // Each power hunts the weakest rival — the easiest meal and, when several
+    // pick the same victim, the seed of a coalition. Re-chosen each cycle so the
+    // war follows the shifting balance of power (sticky targeting consolidated
+    // more cleanly but then froze when a victim drifted out of reach). Whether
+    // armies can actually march there is settled by the offensive's own land
+    // flood; gating reachability here only silenced the whole map into peace.
+    let mut target: std::collections::BTreeMap<FactionId, FactionId> = std::collections::BTreeMap::new();
+    for &f in &powers {
+        if let Some(&victim) = powers
+            .iter()
+            .filter(|&&g| g != f)
+            .min_by_key(|&&g| (strengths[&g], g))
+        {
+            target.insert(f, victim);
+        }
+    }
+
+    // Treaties (playable pairs only): war if either is hunting the other; an
+    // alliance if they share a victim; peace otherwise.
+    for i in 0..powers.len() {
+        for j in i + 1..powers.len() {
+            let (a, b) = (powers[i], powers[j]);
+            let (at, bt) = (target.get(&a).copied(), target.get(&b).copied());
+            let rel = if at == Some(b) || bt == Some(a) {
+                Relation::War
+            } else if at.is_some() && at == bt {
+                Relation::Alliance
+            } else {
+                Relation::Peace
+            };
+            st.set_relation(a, b, rel);
+        }
+    }
+
+    // Hand the commander each power's objective so it can mass on one front.
+    st.diplo_target = target;
+}
+
+fn think(map: &WorldMap, st: &mut CampaignState, f: FactionId, bfs: &mut pathfind::Visited) {
     let my_cities: Vec<NodeId> =
         st.cities.iter().filter(|(_, c)| c.owner == f).map(|(&n, _)| n).collect();
     if my_cities.is_empty() {
@@ -74,7 +137,7 @@ fn think(map: &WorldMap, st: &mut CampaignState, f: FactionId) {
     let hostiles: Vec<(ArmyId, Loc, u64)> = st
         .armies
         .iter()
-        .filter(|a| a.alive() && a.faction != f && visible.contains(&a.id))
+        .filter(|a| a.alive() && st.at_war(f, a.faction) && visible.contains(&a.id))
         .map(|a| (a.id, a.loc, strength(&a.roster)))
         .collect();
     let my_free: Vec<(ArmyId, Loc, u64)> = st
@@ -90,7 +153,7 @@ fn think(map: &WorldMap, st: &mut CampaignState, f: FactionId) {
         let cloc = Loc::Node(city);
         let threat: u64 = hostiles
             .iter()
-            .filter(|(_, l, _)| road_dist(map, *l, cloc, 10).is_some())
+            .filter(|(_, l, _)| road_dist(map, bfs, *l, cloc, 10).is_some())
             .map(|(_, _, s)| *s)
             .sum();
         if threat == 0 {
@@ -99,7 +162,7 @@ fn think(map: &WorldMap, st: &mut CampaignState, f: FactionId) {
         let garrison = strength(&st.cities[&city].garrison);
         let defender_near = my_free
             .iter()
-            .any(|(_, l, _)| road_dist(map, *l, cloc, 2).is_some());
+            .any(|(_, l, _)| road_dist(map, bfs, *l, cloc, 2).is_some());
         if garrison >= threat || defender_near {
             continue;
         }
@@ -107,16 +170,28 @@ fn think(map: &WorldMap, st: &mut CampaignState, f: FactionId) {
         if let Some(&(id, ..)) = my_free
             .iter()
             .filter(|(_, _, s)| *s * 4 >= threat)
-            .min_by_key(|(_, l, _)| road_dist(map, *l, cloc, 60).unwrap_or(u32::MAX))
+            .min_by_key(|(_, l, _)| road_dist(map, bfs, *l, cloc, 60).unwrap_or(u32::MAX))
         {
             crate::sim::try_move(map, st, id, cloc, true);
         }
     }
 
-    // 2. Spend: keep a day's reserve, recruit toward a 50/25/25 mix at the
-    //    best owned city.
-    let treasury = st.factions[f as usize].treasury;
-    if treasury > 400 {
+    // 2. Spend, but stay solvent and supplied. Keep a war chest of several
+    //    days' income, and cap the field army at what the territory can supply
+    //    (cities × ceiling) — so force size settles instead of ballooning to
+    //    bankruptcy, and the way to field a bigger army is to conquer cities.
+    let income = economy::daily_income(map, st, f);
+    let reserve = income.saturating_mul(tun::AI_RESERVE_DAYS);
+    let solvent = |st: &CampaignState| st.factions[f as usize].treasury > reserve;
+    let field_soldiers: u32 = st
+        .armies
+        .iter()
+        .filter(|a| a.faction == f && a.alive() && a.garrison_of.is_none())
+        .map(|a| a.soldiers())
+        .sum();
+    let supply_cap = my_cities.len() as u32 * tun::AI_SOLDIERS_PER_CITY;
+
+    if solvent(st) && field_soldiers < supply_cap {
         let depot = *my_cities
             .iter()
             .max_by_key(|&&n| map.nodes[n as usize].tier)
@@ -146,9 +221,21 @@ fn think(map: &WorldMap, st: &mut CampaignState, f: FactionId) {
         economy::recruit(map, st, depot, class, count);
     }
 
-    // 2b. Public works: with a healthy surplus, pave the worst road at the
-    //     capital (busiest-corridor targeting is a stretch goal).
-    if st.factions[f as usize].treasury > 600 {
+    // 2b. A market is an investment in income, so build it before paving roads.
+    if solvent(st) {
+        let richest = my_cities
+            .iter()
+            .copied()
+            .filter(|&n| st.cities[&n].market_lvl < 2 && st.cities[&n].build_job.is_none())
+            .max_by_key(|&n| map.nodes[n as usize].tier);
+        if let Some(n) = richest {
+            economy::build(st, n, BuildKind::Market, f);
+        }
+    }
+
+    // 2c. Public works: with the war chest still intact, pave the worst road at
+    //     the capital (busiest-corridor targeting is a stretch goal).
+    if solvent(st) {
         let capital = *my_cities
             .iter()
             .max_by_key(|&&n| map.nodes[n as usize].tier)
@@ -165,37 +252,67 @@ fn think(map: &WorldMap, st: &mut CampaignState, f: FactionId) {
         }
     }
 
-    // 2c. With a fat treasury, raise a market at the richest city.
-    if st.factions[f as usize].treasury > 800 {
-        let richest = my_cities
-            .iter()
-            .copied()
-            .filter(|&n| st.cities[&n].market_lvl < 2 && st.cities[&n].build_job.is_none())
-            .max_by_key(|&n| map.nodes[n as usize].tier);
-        if let Some(n) = richest {
-            economy::build(st, n, BuildKind::Market, f);
-        }
-    }
-
-    // 3. Attack: when clearly stronger locally, march the strongest free army
-    //    at the weakest reachable enemy city.
+    // 3. Offensive (mass + advance to contact): the strongest few free armies
+    //    each march on the nearest enemy city they can beat — and if none
+    //    nearby is beatable, advance on the nearest one anyway. Committing more
+    //    than one army keeps a front pressed (so a beaten enemy is run down by
+    //    the next army rather than regrouping unmolested) and stops the freeze
+    //    where one lone army won a fight then wandered off while the front held.
     let my_total: u64 = my_free.iter().map(|(_, _, s)| *s).sum();
-    let visible_total: u64 = hostiles.iter().map(|(_, _, s)| *s).sum();
-    if my_total * 10 > visible_total * 13 {
-        if let Some(&(army, aloc, astr)) = my_free.iter().max_by_key(|(_, _, s)| *s) {
-            let target = st
-                .cities
-                .iter()
-                .filter(|(_, c)| c.owner != f)
-                .filter_map(|(&n, c)| {
-                    road_dist(map, aloc, Loc::Node(n), 40).map(|d| (n, strength(&c.garrison), d))
-                })
-                .min_by_key(|&(_, g, d)| g + d as u64 * 100);
-            if let Some((city, gstr, _)) = target {
-                if astr > gstr * 13 / 10 {
-                    crate::sim::try_move(map, st, army, Loc::Node(city), true);
-                }
+    let mut attackers: Vec<(ArmyId, Loc, u64)> = my_free.clone();
+    attackers.sort_by_key(|&(_, _, s)| std::cmp::Reverse(s));
+
+    // Diplomatic focus: if we have a war objective whose cities we can reach,
+    // mass every attacker on its weakest one. Concentrating force on a single
+    // point is what manufactures the local superiority a parity border denies —
+    // it's the move that finally breaks the six-power standoff.
+    let focus_city: Option<NodeId> = st.diplo_target.get(&f).copied().and_then(|tgt| {
+        let from = attackers.first().map(|&(_, l, _)| l)?;
+        let costs = pathfind::costs_from(map, &st.road_levels, from, false);
+        st.cities
+            .iter()
+            .filter(|(_, c)| c.owner == tgt)
+            .filter(|(n, _)| costs.contains_key(n))
+            .min_by_key(|(&n, c)| (strength(&c.garrison), costs[&n] as u64))
+            .map(|(&n, _)| n)
+    });
+
+    for &(army, aloc, astr) in attackers.iter().take(tun::AI_ATTACKERS) {
+        if let Some(fc) = focus_city {
+            crate::sim::try_move(map, st, army, Loc::Node(fc), true);
+            continue;
+        }
+        // Flood out from the army only until the nearest handful of enemy cities
+        // turn up — no radius cap (a target across an independent buffer is still
+        // found), but it stops early instead of mapping the whole graph.
+        let nearest = pathfind::nearest_targets(
+            map,
+            &st.road_levels,
+            aloc,
+            false,
+            |n| st.cities.get(&n).is_some_and(|c| st.at_war(f, c.owner)),
+            tun::AI_TARGET_CANDIDATES,
+        );
+        // Assault the nearest one we clearly outmatch (garrison + visible enemy
+        // field armies near it); else just advance on the nearest enemy city.
+        let mut beatable: Option<NodeId> = None;
+        for &(n, _) in &nearest {
+            let cloc = Loc::Node(n);
+            let defenders: u64 = strength(&st.cities[&n].garrison)
+                + hostiles
+                    .iter()
+                    .filter(|(_, l, _)| {
+                        road_dist(map, bfs, *l, cloc, tun::AI_THREAT_RADIUS).is_some()
+                    })
+                    .map(|(_, _, s)| *s)
+                    .sum::<u64>();
+            if astr > defenders * 13 / 10 {
+                beatable = Some(n);
+                break;
             }
+        }
+        if let Some(city) = beatable.or_else(|| nearest.first().map(|&(n, _)| n)) {
+            crate::sim::try_move(map, st, army, Loc::Node(city), true);
         }
     }
 
@@ -214,7 +331,7 @@ fn think(map: &WorldMap, st: &mut CampaignState, f: FactionId) {
             economy::merge(map, st, id, oid);
         } else if let Some(&home) = my_cities
             .iter()
-            .min_by_key(|&&n| road_dist(map, loc, Loc::Node(n), 60).unwrap_or(u32::MAX))
+            .min_by_key(|&&n| road_dist(map, bfs, loc, Loc::Node(n), 60).unwrap_or(u32::MAX))
         {
             crate::sim::try_move(map, st, id, Loc::Node(home), true);
         }

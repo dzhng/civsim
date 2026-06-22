@@ -15,13 +15,10 @@
 // behavioral stages live behind `npm run verify:full` for release passes.
 const FULL = process.argv.includes('--full');
 import { chromium } from 'playwright';
-import { mkdir } from 'node:fs/promises';
 import { PNG } from 'pngjs';
 import { snapCheck } from './snapshot.mjs';
 
 const TARGET = process.env.VERIFY_URL ?? 'http://localhost:5173';
-const SHOTS = new URL('./shots/', import.meta.url).pathname;
-await mkdir(SHOTS, { recursive: true });
 
 const failures = [];
 const check = (name, ok, detail) => {
@@ -45,7 +42,6 @@ await page.waitForTimeout(800);
 const stats = await page.evaluate(() => window.__game.stats());
 check('full battle spawned', stats.soldiers >= 25000 && stats.units === 40,
   `${stats.soldiers} soldiers, ${stats.units} units`);
-await page.screenshot({ path: SHOTS + 'initial.png' });
 
 // Pixel regression on the deployed battlefield: freezeAtTick pins the shader
 // clock, the HUD perf line, AND the absolute sim tick — idle men carry a fidget
@@ -72,7 +68,11 @@ await page.evaluate(() => {
 await page.evaluate(() => window.__game.freezeAtTick(480));
 await page.waitForTimeout(150);
 await snapCheck(page, 'battle-banner', check, { maxDiffRatio: 0.0008 });
-await page.evaluate(() => window.__game.freeze(false));
+// Stay FROZEN from here through the cluster stage. The main page's sim then
+// advances only by explicit advance() (a frozen rAF loop adds no wall-clock
+// ticks), so every downstream capture lands on an exact, reproducible tick —
+// the same determinism the vibe timelines rely on. Unfrozen before the perf
+// measurement at the end (fps needs real time).
 
 // --- Soldier level-of-detail: a unit must read as its team-coloured block at
 // every zoom — never a black slab (far) nor washed-out specks (mid). The 2D
@@ -184,7 +184,7 @@ await page.click('#btn-menu');
 await page.click('#pause-manual');
 const manualLen = await page.evaluate(() => document.getElementById('manual').innerHTML.length);
 check('the field manual opens in-game', manualLen > 4000, `${manualLen} chars`);
-await page.screenshot({ path: SHOTS + 'manual.png' });
+await snapCheck(page, 'battle-manual', check, { maxDiffRatio: 0.0008 });
 await page.evaluate(() => { document.getElementById('manual').style.display = 'none'; });
 
 // --- Stage 1: straight march (unit 4: center heavy infantry) ----------------
@@ -232,7 +232,9 @@ lsMean /= lsMid.length;
 // (The congestion leash makes threading politer than the original 0.8m bar,
 // and the stamina economy means the cav ends a 90s ride with drained legs.)
 check('cavalry mass displaces infantry', lsMax > 0.4, `max shove ${lsMax.toFixed(2)} m, mean ${lsMean.toFixed(2)} m mid-threading`);
-await page.screenshot({ path: SHOTS + 'cavalry-plow.png' });
+// Dense moving melee: a small SwiftShader rasterization wobble, like the vibe
+// frames; the sim itself is frozen-deterministic here.
+await snapCheck(page, 'battle-cavalry-plow', check, { threshold: 0.2, maxDiffRatio: 0.02 });
 
 // --- Stage 3: order delay pie on a disordered unit ---------------------------
 const lsInfo = await page.evaluate(() => window.__game.unitInfo(9));
@@ -269,7 +271,8 @@ const postPivot = await mech.evaluate(() => window.__game.unitInfo(0));
 const facingErr = Math.abs(postPivot[2] + Math.PI / 2); // facing south
 check('unit completed the 180', postPivot[12] === 0 && postPivot[4] > 0.85 && facingErr < 0.5,
   `facing ${postPivot[2].toFixed(2)} rad, cohesion ${postPivot[4].toFixed(2)}, target ${postPivot[12]}`);
-await mech.screenshot({ path: SHOTS + 'pivot-after.png' });
+// (No pixel snap of the reformed unit: the 180° pivot has its own weave shot,
+// t3-pivot-180; the behavioral assert above is the regression here.)
 
 const la = await mech.evaluate(() => window.__game.unitInfo(0));
 await mech.evaluate(([x, y]) => {
@@ -311,7 +314,8 @@ const peakEngaged = await meleePage.evaluate(() => {
   return peak;
 });
 check('units are engaged mid-fight', peakEngaged > 20, `${peakEngaged} fighting at the peak`);
-await meleePage.screenshot({ path: SHOTS + 'melee.png' });
+// (No pixel snap: the vibe `heavy-both` timeline is this same heavy-v-heavy
+// melee, baselined frame by frame; these are the behavioral asserts.)
 const red = await meleePage.evaluate(() => window.__game.unitInfo(0));
 const blue = await meleePage.evaluate(() => window.__game.unitInfo(1));
 const redLosses = red[7] - red[15];
@@ -329,15 +333,12 @@ await meleePage.close();
 
 } // end FULL stages 4-6
 
-// --- Stage: cluster group-move (before/after for the vibes) ------------------
+// --- Stage: cluster group-move ----------------------------------------------
 // Select two adjacent main-line units AND the detached west cavalry wing,
 // then group-move to open ground: the line pair must keep its relative
-// offset; the far cavalry must end up alongside (compressed star).
-await page.evaluate(() => {
-  window.__cam.x = 30; window.__cam.y = -480; window.__cam.zoom = 1.6;
-});
-await page.waitForTimeout(400);
-await page.screenshot({ path: SHOTS + 'cluster-before.png' });
+// offset; the far cavalry must end up alongside (compressed star). Behavioral
+// only — the pixel snap would be mode-dependent (the FULL cavalry stage above
+// perturbs the shared deployment), and the asserts below are the real test.
 const clusterResult = await page.evaluate(() => {
   const before = [5, 6, 7].map((u) => {
     const i = window.__game.unitInfo(u);
@@ -364,11 +365,10 @@ const clusterResult = await page.evaluate(() => {
   check('far unit combines at the destination', cavAfter < cavBefore * 0.7 && cavAfter < 280,
     `detached-unit gap ${cavBefore.toFixed(0)}m -> ${cavAfter.toFixed(0)}m (compressed star: main radius + unit radius + margin)`);
 }
-await page.evaluate(() => {
-  window.__cam.x = 220; window.__cam.y = -380; window.__cam.zoom = 1.6;
-});
-await page.waitForTimeout(400);
-await page.screenshot({ path: SHOTS + 'cluster-after.png' });
+
+// Done with the deterministic captures: resume real time so the fps/tick EMAs
+// have live frames to measure for the health checks below.
+await page.evaluate(() => window.__game.freeze(false));
 
 // Capture page-1 health BEFORE the AI stage backgrounds it (rAF throttling
 // would misread fps afterward); let the EMA settle after the long advance.
@@ -385,6 +385,9 @@ page2.on('pageerror', (e) => pageErrors.push('ai-page: ' + e.message));
 // coverage.
 await page2.goto(TARGET + '?battle=5v5&ai=on');
 await page2.waitForFunction(() => window.__ready === true, undefined, { timeout: 20000 });
+// Freeze at a fixed tick, then drive the whole AI fight with advance() while
+// frozen — a reproducible trajectory (fixed seed) for a stable `battle-ai` snap.
+await page2.evaluate(() => window.__game.freezeAtTick(30));
 const ammoBefore = await page2.evaluate(() => {
   const rows = [];
   for (let u = 0; u < window.__game.stats().units; u++) rows.push(window.__game.unitInfo(u)[19]);
@@ -407,7 +410,8 @@ const ammoSpent = ammoBefore.reduce((sum, before, u) => sum + Math.max(0, before
 check('the AI advances its army', aiState.blueMoved >= 3, `${aiState.blueMoved} blue units left their line`);
 check('the AI fights', aiState.dead > 300, `${aiState.dead} casualties`);
 check('archers volley the attackers on their own', ammoSpent > 0, `${ammoSpent} shots spent`);
-await page2.screenshot({ path: SHOTS + 'ai-battle.png' });
+await page2.evaluate(() => { const g = document.getElementById('gameover'); if (g) g.style.display = 'none'; });
+await snapCheck(page2, 'battle-ai', check, { threshold: 0.2, maxDiffRatio: 0.02 });
 await page2.close();
 } // end FULL stage 8
 await page.bringToFront(); // background tabs throttle rAF: restore page 1

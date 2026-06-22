@@ -454,6 +454,11 @@ export class BattleRenderer3D {
   private lastPoseT = 0; // wall-clock of the last pose-blend step, for dt
   /** Live view tilt (camera.ts mirrors it for picking). */
   pitch = 0;
+  /** Debug turntable: force a fixed view tilt instead of the zoom-driven one
+   *  (model-review harness, ?test=models). null = normal zoom-coupled pitch. */
+  pitchOverride: number | null = null;
+  /** Debug turntable: drop the scattered rocks/bushes/trees for a clean stage. */
+  enableScatter = true;
   fixedTime: number | null = null;
 
   constructor(private canvas: HTMLCanvasElement) {
@@ -708,7 +713,7 @@ export class BattleRenderer3D {
     this.ensureCapacity(count);
     // LOD: flatten + sprites when zoomed out, tilt + 3D meshes when in.
     const zoom = camera.zoom;
-    this.pitch = MAX_PITCH * smoothstep(ZOOM_FLAT, ZOOM_3D, zoom);
+    this.pitch = this.pitchOverride ?? MAX_PITCH * smoothstep(ZOOM_FLAT, ZOOM_3D, zoom);
     camera.pitch = this.pitch; // keep picking/overlays in sync
     this.syncCamera(camera);
     const use3D = zoom >= ZOOM_SWAP;
@@ -717,7 +722,8 @@ export class BattleRenderer3D {
     if (use3D) {
       this.sprite.isVisible = false;
       this.drawMeshes(positions, facings, frames, alive, count);
-      this.updateScatter(camera);
+      if (this.enableScatter) this.updateScatter(camera);
+      else for (const m of this.scatterMesh) m.isVisible = false;
     } else {
       for (const m of this.classMesh) m.isVisible = false;
       for (const m of this.scatterMesh) m.isVisible = false;

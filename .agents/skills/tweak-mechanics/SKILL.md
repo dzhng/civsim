@@ -443,11 +443,15 @@ t=32s and be a swirling blob by t=48s. (This is why we built the Rust
 layer: eyeballing one shot said "clean"; the centroid test said "crossed at
 t=19.9s". Trust the measurement, then confirm the feel.)
 
-- Regenerate the canonical set: `node vibe/all.mjs` from `web/` with the
-  dev server up (and **`npm run build:wasm` first** if you touched Rust —
-  the harness loads the prebuilt wasm, not your source).
-- Flip through `web/vibe/shots/<scenario>/` t000…t300 for the scenarios
-  your change touches. Read the whole timeline: approach → contact →
+- Re-check the canonical set against its baselines: `node vibe/all.mjs` from
+  `web/` with the dev server up (and **`npm run build:wasm` first** if you
+  touched Rust — the harness loads the prebuilt wasm, not your source). A
+  mechanics change will turn frames red; that's the point. Once you've
+  confirmed the new behaviour is what you want, re-bless with
+  `UPDATE_SHOTS=1 node vibe/all.mjs` and commit the changed baselines — the
+  git image-diff is the record of what your change did.
+- Flip through `web/shots/baseline/vibe/<scenario>/` t000…t300 for the
+  scenarios your change touches. Read the whole timeline: approach → contact →
   grind → break → rout. Look for swirl, pass-through, scatter, a stalled
   attack, a line that dissolves.
 - For a quick numeric read while iterating one matchup, `vibe/measure-duel.mjs`

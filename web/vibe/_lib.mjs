@@ -1,13 +1,15 @@
-// Shared plumbing for the vibe-check harnesses (web/vibe/*.mjs). These are NOT
-// pass/fail gates — they spawn a scenario, screenshot it every N sim-seconds,
-// and dump the frames somewhere you can flip through them. The verify harnesses
-// assert; these just let you *look*. Shots land in web/vibe/shots/<name>/
-// (gitignored — throwaway manual captures, never baselines).
+// Shared plumbing for the vibe-check harnesses (web/vibe/*.mjs). Each spawns a
+// scenario and films it every N sim-seconds — a timeline you flip through to
+// SEE a fight (does a rout flee home as a clump, does anyone launch into orbit).
+// Every frame is also a pixel-regression baseline (via snapCheck): it lands in
+// web/shots/baseline/vibe/<name>/ — committed, so the picture is both the thing
+// you review AND a gate that turns red (with a highlighted diff in shots/diff/)
+// when a downstream mechanics change moves the battle. Re-bless intended shifts
+// with UPDATE_SHOTS=1; a scenario exits non-zero when any frame differs.
 import { chromium } from 'playwright';
-import { mkdir, rm } from 'node:fs/promises';
+import { snapCheck } from '../snapshot.mjs';
 
 export const TPS = 30; // sim ticks per second (the harness's advance(300) == 10 s)
-export const SHOTS_DIR = new URL('./shots/', import.meta.url).pathname;
 const TARGET = process.env.VERIFY_URL ?? 'http://localhost:5173';
 
 /** Boot straight into a battle (e.g. 'battle=duel&a=0&b=0&ai=off') and wait for
@@ -20,7 +22,15 @@ export async function openBattle(query) {
   page.on('console', (m) => { if (m.type() === 'error') errs.push(m.text()); });
   await page.goto(`${TARGET}/?${query}`);
   await page.waitForFunction(() => window.__ready === true, undefined, { timeout: 20000 });
-  await page.waitForTimeout(500);
+  // Pin a deterministic starting tick. Boot accrues a wall-clock-VARIABLE handful
+  // of real-time ticks before the harness takes control; in chaotic combat a few
+  // ticks of offset compound into whole soldiers dying differently (6% of pixels
+  // run-to-run). freezeAtTick freezes, then drives to an EXACT absolute tick — and
+  // the sim is deterministic in total ticks-from-boot regardless of how they were
+  // delivered — so every run reaches the identical seed-determined state. From
+  // here orders are issued and the timeline stepped entirely under freeze().
+  await page.evaluate(() => window.__game.freezeAtTick(90));
+  await page.waitForTimeout(200); // let a frame render (frozen: no ticks accrue)
   return { browser, page, errs };
 }
 
@@ -56,10 +66,14 @@ export const duelLabel = (secs, s) =>
   `t=${String(secs).padStart(3)}s  A ${s.aAlive}/${s.aTotal} (coh ${s.aCoh.toFixed(2)})  `
   + `B ${s.bAlive}/${s.bTotal} (coh ${s.bCoh.toFixed(2)})  fighting ${s.aFight}/${s.bFight}  victor ${s.victor}`;
 
-/** Screenshot `name` every `stepSecs` sim-seconds until `done(sample)` (or
- *  `maxSteps`). Per step: position the camera (`frame`), freeze + hide the
- *  victory panel, snap to shots/<name>/t###s.png, log (`label`), then advance.
- *  `sample` returns a status object passed to `label`/`done`. */
+/** Screenshot+regress `name` every `stepSecs` sim-seconds until `done(sample)`
+ *  (or `maxSteps`). Per step: position the camera (`frame`), freeze + hide the
+ *  victory panel, then snapCheck against the committed baseline
+ *  shots/baseline/vibe/<name>/t###s.png (created on first run, diffed after),
+ *  log (`label`), and advance. The freeze pins the fidget sway + shader clock,
+ *  so a frame is byte-stable on the same code — a real regression target, not
+ *  just an eyeball capture. `sample` returns a status object for `label`/`done`.
+ *  Returns { frames, resolved, fails }; the script exits with `fails`. */
 // Every scenario keeps filming this many frames PAST its verdict, so you always
 // see the aftermath — above all HOW the loser routs (a clump fleeing toward its
 // home edge, not a scatter). The tail is part of the harness, not a per-test
@@ -68,31 +82,40 @@ const TAIL_FRAMES = 3;
 
 export async function vibeCapture(page, name, {
   stepSecs = 30, maxSteps = 20, frame, sample, label, done,
+  // The sim is fully deterministic (freezeAtTick pins the exact tick), so a frame
+  // SHOULD be byte-identical — except headless SwiftShader rasterizes a dense
+  // melee of overlapping alpha-blended soldiers with ~1% run-to-run wobble. A
+  // higher per-pixel threshold ignores the AA edge jitter; the ratio caps the
+  // count well below any real mechanics change (a moved soldier shifts a
+  // contiguous block, not scattered edges — we measured 5–8% for a 3-tick offset).
+  threshold = 0.2, maxDiffRatio = 0.02,
 } = {}) {
-  const dir = `${SHOTS_DIR}${name}/`;
-  await rm(dir, { recursive: true, force: true });
-  await mkdir(dir, { recursive: true });
-  const shots = [];
+  let fails = 0, frames = 0;
+  const check = (label2, ok, detail) => {
+    if (!ok) fails++;
+    console.log(`  ${ok ? 'ok  ' : 'DIFF'} ${label2}${detail ? `  ${detail}` : ''}`);
+  };
+  // The sim is frozen from openBattle and STAYS frozen the whole timeline: a
+  // frozen rAF loop adds zero ticks, so advance() is the only clock and every
+  // frame lands on an exact, reproducible tick. Never freeze(false) here — that
+  // would let wall-clock ticks slip in between steps and reintroduce the drift.
   let post = -1; // -1 until the verdict frame; then counts frames filmed since
   for (let step = 0; ; step++) {
     if (frame) await frame();
-    await page.evaluate(() => window.__game.freeze());
     await page.waitForTimeout(120);
     // Keep the field visible at resolution: hide the VICTORY/DEFEAT panel the
-    // scene pops on a verdict. Do it AFTER the settle, right before the shot, so
-    // it wins the race with the frame loop that re-shows the panel.
+    // scene pops on a verdict. Do it right before the shot, so it wins the race
+    // with the frame loop that re-shows the panel.
     await page.evaluate(() => { const g = document.getElementById('gameover'); if (g) g.style.display = 'none'; });
     const s = sample ? await sample() : {};
     const secs = step * stepSecs;
-    const path = `${dir}t${String(secs).padStart(3, '0')}s.png`;
-    await page.screenshot({ path });
-    shots.push(path);
     if (label) console.log(label(secs, s));
-    await page.evaluate(() => window.__game.freeze(false));
+    await snapCheck(page, `vibe/${name}/t${String(secs).padStart(3, '0')}s`, check, { threshold, maxDiffRatio });
+    frames++;
     if (post >= 0) post++;                       // already past the verdict: film the tail
     else if (done && done(s)) post = 0;          // this frame IS the verdict
-    if (post >= TAIL_FRAMES) return { shots, resolved: true, dir };
-    if (post < 0 && step >= maxSteps) return { shots, resolved: false, dir }; // capped before a verdict
+    if (post >= TAIL_FRAMES) return { frames, resolved: true, fails };
+    if (post < 0 && step >= maxSteps) return { frames, resolved: false, fails }; // capped before a verdict
     await page.evaluate((n) => window.__game.advance(n), stepSecs * TPS);
   }
 }

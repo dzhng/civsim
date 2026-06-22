@@ -12,12 +12,9 @@
 // UPDATE_SHOTS=1 re-blesses). The army teleports via window.__campaign.place
 // (debug hook) so each pose is exact and deterministic.
 import { chromium } from 'playwright';
-import { mkdir } from 'node:fs/promises';
 import { snapCheck } from './snapshot.mjs';
 
 const TARGET = process.env.VERIFY_URL ?? 'http://localhost:5173';
-const SHOTS = new URL('./shots/', import.meta.url).pathname;
-await mkdir(SHOTS, { recursive: true });
 
 const failures = [];
 const check = (name, ok, detail) => {
@@ -41,19 +38,18 @@ const Y = 450; // matches buildTestCampaign
 const army = await page.evaluate(() => window.__campaign.armies().find((a) => a.mine));
 check('test campaign boots with a player army', !!army, army ? `${army.soldiers} soldiers` : 'none');
 
-// A pose: teleport the army, frame it, snapshot + a plain screenshot to view.
+// A pose: teleport the army, frame it, snapshot it (the committed baseline is
+// the picture you review AND the gate).
 const pose = async (name, place, camX) => {
   if (place) await page.evaluate((p) => window.__campaign.place(0, p.kind, p.a, p.b), place);
   await page.evaluate((x) => window.__campaign.cam(x, 450, 20), camX);
   await page.waitForTimeout(300);
-  await page.screenshot({ path: SHOTS + `tiny-${name}.png` });
   await snapCheck(page, `tiny-${name}`, check);
 };
 
 // Wide look at the whole stage (both cities + the road).
 await page.evaluate((y) => window.__campaign.cam(0, y, 16), Y);
 await page.waitForTimeout(300);
-await page.screenshot({ path: SHOTS + 'tiny-overview.png' });
 await snapCheck(page, 'tiny-overview', check);
 
 await pose('army-our-city', { kind: 0, a: 0, b: 0 }, -25); // node 0 = Roma (ours)

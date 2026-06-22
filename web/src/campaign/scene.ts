@@ -72,6 +72,8 @@ export class CampaignScene implements Scene {
   private last = 0;
   private selected = -1;
   private hover = -1;
+  private diploOpen = false;
+  private diploJson = '';
   private armies: ArmyView[] = [];
   private cities = new Map<number, CityView>();
   private roadLevels: Uint8Array = new Uint8Array(0);
@@ -489,6 +491,18 @@ export class CampaignScene implements Scene {
         #campaign-ui .cmp-warn { color:#ff7a6a;font-weight:bold;margin-top:6px; }
         #campaign-ui .cmp-actions { display:flex;gap:12px;justify-content:center;margin-top:10px; }
         #campaign-ui .cmp-actions button { font-size:15px;padding:8px 22px; }
+        #campaign-ui .cmp-diplo-row { display:flex;flex-wrap:wrap;align-items:center;gap:6px;
+          margin:5px 0;padding:6px;border-radius:3px;background:rgba(255,255,255,0.05); }
+        #campaign-ui .cmp-swatch { width:12px;height:12px;border-radius:2px;flex:none;
+          box-shadow:0 0 0 1px rgba(0,0,0,0.4); }
+        #campaign-ui .cmp-rel { font-size:9px;font-weight:bold;text-transform:uppercase;
+          letter-spacing:0.5px;padding:1px 5px;border-radius:2px; }
+        #campaign-ui .cmp-rel.war { background:#5a2330;color:#ff9a8a; }
+        #campaign-ui .cmp-rel.peace { background:#2a3a4a;color:#9ec5e8; }
+        #campaign-ui .cmp-rel.alliance { background:#2a4a32;color:#9ee8a8; }
+        #campaign-ui .cmp-pow { opacity:0.6;font-size:11px; }
+        #campaign-ui .cmp-diplo-acts { display:flex;gap:4px;margin-top:2px;flex-wrap:wrap;flex-basis:100%; }
+        #campaign-ui .cmp-diplo-acts button { font-size:11px;padding:2px 7px; }
       </style>
       <div class="cmp-top">
         <span id="cmp-date">Day 1</span>
@@ -497,12 +511,15 @@ export class CampaignScene implements Scene {
         <button data-speed="0">1×</button>
         <button data-speed="1">3×</button>
         <button data-speed="2">10×</button>
+        <button id="cmp-diplo-btn">⚑ Diplomacy</button>
         <span style="flex:1"></span>
         <button id="cmp-save">Save</button>
         <button id="cmp-exit">Menu</button>
       </div>
       <div class="cmp-panel" id="cmp-army" style="display:none"></div>
-      <div class="cmp-panel" id="cmp-city" style="display:none;top:auto;bottom:10px;"></div>`;
+      <div class="cmp-panel" id="cmp-city" style="display:none;top:auto;bottom:10px;"></div>
+      <div class="cmp-panel" id="cmp-diplomacy"
+        style="display:none;left:10px;right:auto;top:44px;width:300px;max-height:84vh;overflow:auto;"></div>`;
     document.body.appendChild(ui);
     ui.querySelector('#cmp-pause')!.addEventListener('click', () => (this.paused = !this.paused));
     ui.querySelectorAll<HTMLButtonElement>('button[data-speed]').forEach((b) =>
@@ -517,6 +534,71 @@ export class CampaignScene implements Scene {
       }
     });
     ui.querySelector('#cmp-exit')!.addEventListener('click', () => this.cfg.onExit());
+    ui.querySelector('#cmp-diplo-btn')!.addEventListener('click', () => this.toggleDiplomacy());
+  }
+
+  private toggleDiplomacy() {
+    this.diploOpen = !this.diploOpen;
+    const panel = this.ui.querySelector('#cmp-diplomacy') as HTMLDivElement;
+    panel.style.display = this.diploOpen ? 'block' : 'none';
+    this.ui.querySelector('#cmp-diplo-btn')!.classList.toggle('on', this.diploOpen);
+    if (this.diploOpen) this.updateDiplomacyPanel();
+  }
+
+  private updateDiplomacyPanel() {
+    if (!this.diploOpen) return;
+    const json = this.cfg.campaign.diplomacy_json();
+    if (json === this.diploJson) return; // unchanged — keep the live DOM/listeners
+    this.diploJson = json;
+    const panel = this.ui.querySelector('#cmp-diplomacy') as HTMLDivElement;
+    const list = JSON.parse(json) as Array<{
+      id: number;
+      name: string;
+      color: [number, number, number];
+      is_player: boolean;
+      relation: string;
+      cities: number;
+      soldiers: number;
+    }>;
+    const rows = list
+      .map((f) => {
+        const col = `rgb(${f.color[0]},${f.color[1]},${f.color[2]})`;
+        const pow = `<span class="cmp-pow">${f.cities}🏛 ${f.soldiers}⚔</span>`;
+        if (f.is_player) {
+          return `<div class="cmp-diplo-row"><span class="cmp-swatch" style="background:${col}"></span>
+            <b>${f.name}</b> <span class="cmp-pow">(you)</span><span style="flex:1"></span>${pow}</div>`;
+        }
+        const acts: string[] = [];
+        if (f.relation === 'war') acts.push(btn('make_peace', f.id, 'Sue for peace'));
+        if (f.relation === 'peace') {
+          acts.push(btn('declare_war', f.id, 'Declare war'));
+          acts.push(btn('propose_alliance', f.id, 'Propose alliance'));
+        }
+        if (f.relation === 'alliance') acts.push(btn('break_alliance', f.id, 'Break alliance'));
+        acts.push(btn('gift_gold', f.id, 'Gift 200g'));
+        return `<div class="cmp-diplo-row">
+          <span class="cmp-swatch" style="background:${col}"></span>
+          <b>${f.name}</b> <span class="cmp-rel ${f.relation}">${f.relation}</span>
+          <span style="flex:1"></span>${pow}
+          <div class="cmp-diplo-acts">${acts.join('')}</div>
+        </div>`;
+      })
+      .join('');
+    panel.innerHTML = `<b>Diplomacy</b>${rows}`;
+    panel.querySelectorAll<HTMLButtonElement>('button[data-act]').forEach((b) =>
+      b.addEventListener('click', () => {
+        const other = Number(b.dataset.f);
+        const c = this.cfg.campaign as unknown as Record<string, (...a: number[]) => boolean>;
+        if (b.dataset.act === 'gift_gold') c.gift_gold(other, 200);
+        else c[b.dataset.act!](other);
+        this.refreshViews();
+        this.updateDiplomacyPanel();
+      }),
+    );
+
+    function btn(act: string, f: number, label: string) {
+      return `<button data-act="${act}" data-f="${f}">${label}</button>`;
+    }
   }
 
   private updateHud() {
@@ -531,6 +613,7 @@ export class CampaignScene implements Scene {
     this.ui.querySelectorAll<HTMLButtonElement>('button[data-speed]').forEach((b) =>
       b.classList.toggle('on', !this.paused && Number(b.dataset.speed) === this.speed),
     );
+    this.updateDiplomacyPanel(); // cheap no-op unless open and changed
   }
 
   private updateArmyPanel() {

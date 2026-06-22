@@ -17,8 +17,10 @@ pub fn tick(map: &WorldMap, st: &mut CampaignState) {
     st.tick += 1;
     if st.tick % tun::TICKS_PER_DAY as u64 == 0 {
         crate::economy::day_tick(map, st);
+        check_outcome(map, st);
     }
     movement(map, st);
+    run_down_routers(map, st);
     crate::economy::garrison_sorties(map, st);
     ambush_triggers(map, st);
     encounters(map, st);
@@ -50,7 +52,7 @@ fn ambush_triggers(map: &WorldMap, st: &mut CampaignState) {
         let victim = (0..n).find(|&j| {
             let v = &st.armies[j];
             v.alive()
-                && v.faction != st.armies[i].faction
+                && st.at_war(v.faction, st.armies[i].faction)
                 && v.encounter.is_none()
                 && v.loc == trigger
                 // A camped army is halted and watchful — never ambush bait,
@@ -198,9 +200,13 @@ fn movement(map: &WorldMap, st: &mut CampaignState) {
         let next = a.path[a.path_idx];
         let (id, faction) = (a.id, a.faction);
 
-        // A hostile standing on (or marching in) the next tile is a wall —
-        // the encounter machinery decides what happens, not the mover.
-        if positions.iter().any(|&(l, oid, of)| l == next && of != faction && oid != id) {
+        // A war-enemy standing on (or marching in) the next tile is a wall —
+        // the encounter machinery decides what happens, not the mover. Armies
+        // at peace don't bar the road (they only can't be stacked on, below).
+        if positions
+            .iter()
+            .any(|&(l, oid, of)| l == next && oid != id && crate::state::rel_at_war(&st.relations, of, faction))
+        {
             continue; // hold at the boundary, fully wound up
         }
         // May not END a move on any standing army's tile: halt short.
@@ -229,6 +235,53 @@ fn movement(map: &WorldMap, st: &mut CampaignState) {
             a.path.clear();
             a.path_idx = 0;
         }
+    }
+}
+
+/// Run down broken armies. A routed force is intangible to the army that beat
+/// it only while it's still fleeing (breaking away); once it has outrun that
+/// force and entered its regroup window, anyone in contact can cut it down —
+/// and a caught rabble is destroyed outright, not given a fair fight. This is
+/// what lets a won battle clear a front instead of the loser regrouping forever.
+fn run_down_routers(map: &WorldMap, st: &mut CampaignState) {
+    let n = st.armies.len();
+    let mut downed: Vec<usize> = Vec::new();
+    for i in 0..n {
+        let r = &st.armies[i];
+        let Stance::Routed { by, .. } = r.stance else { continue };
+        if !r.alive() {
+            continue;
+        }
+        let fleeing = r.path_idx < r.path.len(); // still outrunning its pursuer
+        let caught = (0..n).any(|j| {
+            if j == i {
+                return false;
+            }
+            let e = &st.armies[j];
+            e.alive()
+                && st.at_war(e.faction, r.faction)
+                // While still breaking away, the one army that beat it can't
+                // catch it; every other hostile can, and so can it once the
+                // flee path is run and the regroup window is open.
+                && !(fleeing && e.id == by)
+                // A pursuer must itself be in fighting order and on land.
+                && !matches!(e.stance, Stance::Routed { .. } | Stance::AtSea)
+                && !is_sea_tile(map, e.loc)
+                && pathfind::in_contact(map, e.loc, r.loc)
+        });
+        if caught {
+            downed.push(i);
+        }
+    }
+    for i in downed {
+        let a = &mut st.armies[i];
+        for r in &mut a.roster {
+            r.count = 0; // cut down in the pursuit
+        }
+        a.stance = Stance::Hold;
+        a.path.clear();
+        a.path_idx = 0;
+        a.progress = 0.0;
     }
 }
 
@@ -328,7 +381,7 @@ fn encounters(map: &WorldMap, st: &mut CampaignState) {
             let (a, b) = (&st.armies[i], &st.armies[j]);
             if !a.alive()
                 || !b.alive()
-                || a.faction == b.faction
+                || !st.at_war(a.faction, b.faction)
                 || a.encounter.is_some()
                 || b.encounter.is_some()
             {
@@ -388,9 +441,14 @@ fn encounters(map: &WorldMap, st: &mut CampaignState) {
 
 /// An enemy army halting on an outpost's node tears it down on the spot.
 fn outpost_razing(st: &mut CampaignState) {
+    let relations = &st.relations;
+    let armies = &st.armies;
     st.outposts.retain(|&node, o| {
-        !st.armies.iter().any(|a| {
-            a.alive() && a.halted() && a.faction != o.owner && a.loc == Loc::Node(node)
+        !armies.iter().any(|a| {
+            a.alive()
+                && a.halted()
+                && crate::state::rel_at_war(relations, a.faction, o.owner)
+                && a.loc == Loc::Node(node)
         })
     });
 }
@@ -412,11 +470,12 @@ fn timers(st: &mut CampaignState) {
         }
         // Routs: once the retreat path is run, the army regroups after a
         // dazed day; annihilation was decided when the path was drawn.
-        if let Stance::Routed { tiles_left, daze_ticks_left } = &mut a.stance {
+        if let Stance::Routed { tiles_left, regroup_ticks_left, .. } = &mut a.stance {
             if a.path_idx < a.path.len() {
                 *tiles_left = (a.path.len() - a.path_idx) as u16;
-            } else if *daze_ticks_left > 0 {
-                *daze_ticks_left -= 1;
+            } else if *regroup_ticks_left > 0 {
+                // It outran its pursuer; the regroup window now ticks down.
+                *regroup_ticks_left -= 1;
             } else {
                 a.stance = Stance::Hold;
             }
@@ -506,7 +565,28 @@ pub fn new_state(map: &WorldMap, seed: u64, player_faction: u32) -> CampaignStat
         road_levels: vec![1; map.edges.len()],
         road_jobs: std::collections::BTreeMap::new(),
         outposts: std::collections::BTreeMap::new(),
+        outcome: None,
+        relations: std::collections::BTreeMap::new(),
+        diplo_target: std::collections::BTreeMap::new(),
     }
+}
+
+/// The war is decided when at most one playable power still holds a city.
+/// Independents are neutral scenery — never counted, never a blocker. Cheap
+/// enough to run on the daily boundary; latched once set.
+fn check_outcome(map: &WorldMap, st: &mut CampaignState) {
+    if st.outcome.is_some() {
+        return;
+    }
+    let holders: Vec<FactionId> = (0..map.factions.len() as FactionId)
+        .filter(|&f| map.factions[f as usize].playable)
+        .filter(|&f| st.cities.values().any(|c| c.owner == f))
+        .collect();
+    st.outcome = match holders.as_slice() {
+        [] => Some(Outcome::Draw),
+        [f] => Some(Outcome::Victory(*f)),
+        _ => None,
+    };
 }
 
 /// Plan and set a path (shared by the player order surface and the AI).

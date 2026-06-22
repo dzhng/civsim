@@ -118,7 +118,7 @@ fn rout_path(map: &WorldMap, st: &CampaignState, army: &Army) -> Option<Vec<Loc>
     let blocked: BTreeSet<Loc> = st
         .armies
         .iter()
-        .filter(|o| o.alive() && o.faction != army.faction && o.id != army.id)
+        .filter(|o| o.alive() && st.at_war(o.faction, army.faction) && o.id != army.id)
         .map(|o| o.loc)
         .collect();
     let friendly_city = |l: Loc| match l {
@@ -270,6 +270,9 @@ pub fn apply_battle_outcome(
         .chain(e.reinforcements.iter().map(|&(id, ..)| id))
         .collect();
     let winner_faction = if result.victor == att_team { att_faction } else { def_faction };
+    // The force a beaten army must break away from: the main army on the
+    // winning side. Every other hostile can still run it down mid-flight.
+    let victor_army = if att_faction == winner_faction { e.attacker } else { e.defender };
 
     for id in involved {
         let a = &mut st.armies[id as usize];
@@ -291,14 +294,33 @@ pub fn apply_battle_outcome(
             }
             continue;
         }
-        // Loser: rout along a hostile-free road, or be annihilated.
+        // A field army beaten while defending one of its own cities is overrun
+        // with the walls — no clean retreat, it's destroyed like a garrison.
+        // This is what makes a massed assault actually take the city instead of
+        // the defender routing off and marching straight back.
+        let a = &st.armies[id as usize];
+        let defending_city = std::iter::once(a.loc)
+            .chain(pathfind::neighbors(map, a.loc))
+            .any(|l| matches!(l, Loc::Node(n) if st.cities.get(&n).is_some_and(|c| c.owner == a.faction)));
+        if defending_city {
+            let a = &mut st.armies[id as usize];
+            for r in &mut a.roster {
+                r.count = 0;
+            }
+            continue;
+        }
+        // Otherwise rout along a hostile-free road, or be annihilated.
         let a = &st.armies[id as usize];
         match rout_path(map, st, a) {
             Some(path) => {
                 let a = &mut st.armies[id as usize];
                 let tiles = path.len() as u16;
                 a.path = path;
-                a.stance = Stance::Routed { tiles_left: tiles, daze_ticks_left: tun::ROUT_DAZE_TICKS };
+                a.stance = Stance::Routed {
+                    tiles_left: tiles,
+                    regroup_ticks_left: tun::ROUT_REGROUP_TICKS,
+                    by: victor_army,
+                };
             }
             None => {
                 // Nowhere to regroup: captured and wiped.

@@ -1,7 +1,7 @@
 // Vibe check: a thin column punches the MIDDLE of a wide HELD line. The
 // defender (unit 1, no order = braced) should fold in on the breach and wrap the
 // column — its flank men turning inward — not stand rigid while the column walks
-// through, and not dissolve into a uniform blob. Watch web/vibe/shots/penetration/.
+// through, and not dissolve into a uniform blob. Watch web/shots/baseline/vibe/penetration/.
 //   Default: a heavy column vs a wide held heavy line.
 //   Override: COL=6 DEF=0 node vibe/penetration.mjs   (cavalry column)
 import { openBattle, vibeCapture, CLS } from './_lib.mjs';
@@ -45,10 +45,11 @@ const sample = () => page.evaluate(() => {
 const label = (s, m) =>
   `t=${String(s).padStart(3)}s  column ${m.aAlive}/${m.aTotal}  defender ${m.bAlive}/${m.bTotal} (coh ${m.bCoh.toFixed(2)})  victor ${m.victor}`;
 
-const { shots, dir } = await vibeCapture(page, process.env.NAME ?? 'penetration', {
+const { frames, fails } = await vibeCapture(page, process.env.NAME ?? 'penetration', {
   stepSecs: 12, maxSteps: 16, frame, sample, label, done: (m) => m.victor >= 0,
 });
 
-console.log(`\n${shots.length} frames -> ${dir}`);
+console.log(`\n${frames} frames`);
 if (errs.length) console.log('page errors:', errs.slice(0, 3));
 await browser.close();
+process.exit(fails);

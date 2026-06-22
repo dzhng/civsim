@@ -46,10 +46,10 @@ const OBSTRUCT_FLOOR: f32 = 0.7;
 /// Out to here a blow comes side-on: evade degrades; behind it, a blow
 /// lands on a man facing the wrong way.
 const SIDE_ARC: f32 = 2.1;
-/// Braced points are harder to shield away than swords, but not magic.
-/// Heavy shields should make a frontal pike fight a grind instead of making
-/// armor meaningless.
-const BRACED_THRUST_BLOCK_MULT: f32 = 0.6;
+/// Heavy shields work against a presented point too. Pikes are still fearsome
+/// because they strike first, from long reach, in a narrow front-facing hedge —
+/// not because a shielded man magically loses his shield block.
+const BRACED_THRUST_BLOCK_MULT: f32 = 1.0;
 
 const MAX_NEARBY_FRIENDS: usize = 24;
 type ScanPriority = (i32, i32, u32); // local forward cell, local lateral cell, local soldier

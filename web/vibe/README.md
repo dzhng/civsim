@@ -65,7 +65,7 @@ table in `all.mjs` when you add a scenario.
 | `phalanx-v-heavy` | `duel-posture.mjs ATK=3 DEF=0 POSTURE=both` | pikes outreach swords |
 | `pike-v-pike` | `duel-posture.mjs ATK=3 DEF=3 POSTURE=both` | two pike walls, both attack — points-out standoff |
 | `cav-v-heavy` | `duel-posture.mjs ATK=6 DEF=0 POSTURE=both` | horse rides over swords |
-| `cav-v-pike` | `charge.mjs ATK=6 DEF=3` | impale/charge gate: does a held pike wall stop horse cleanly? |
+| `cav-v-pike` | `charge.mjs ATK=6 DEF=3` | impale/charge gate: cavalry may wrap a narrower pike front; presented points stop only what hits frontally |
 | `cav-v-pike-flank` | `charge.mjs ATK=6 DEF=3 FLANK=1` | side-on control: pikes face north, so horse crossing the shafts should trample deeper |
 | `cav-v-heavy-held` | `charge.mjs ATK=6 DEF=0` | a braced line beats a charge |
 | `heavy-v-archers` | `missile.mjs` | arrows attrite the advance, then melee |

@@ -47,7 +47,9 @@ fn heavy_shields_make_phalanx_a_grind_not_a_deletion() {
     // Balance contract for the phalanx-v-heavy vibe shots: pikes beat swords
     // frontally, but heavy infantry carry large shields and armor. A phalanx
     // should win the reach contest; it should not erase an equal heavy line
-    // before the player can read a real shielded grind.
+    // before the player can read a real shielded grind. Sample after three
+    // minutes, not just at first contact, so the vibe has time to show the
+    // ongoing shove rather than a quick deletion.
     let mut sim = Sim::new(no_morale(), 4242);
     let ph = sim.spawn_class(
         Vec2::new(0.0, -13.0),
@@ -67,15 +69,15 @@ fn heavy_shields_make_phalanx_a_grind_not_a_deletion() {
     sim.set_pace(hv, Pace::Run);
     sim.set_attack_order(ph, hv);
     sim.set_attack_order(hv, ph);
-    for _ in 0..(120.0 / DT) as usize {
+    for _ in 0..(180.0 / DT) as usize {
         sim.tick();
     }
     let heavy_alive = sim.units[hv].alive_count;
     let phalanx_alive = sim.units[ph].alive_count;
-    eprintln!("PHALANX-GRIND  phalanx {phalanx_alive}/120 heavy {heavy_alive}/120 after 120s");
+    eprintln!("PHALANX-GRIND  phalanx {phalanx_alive}/120 heavy {heavy_alive}/120 after 180s");
     assert!(
-        heavy_alive >= 50,
-        "heavy shields/armor should make this a grind, not a deletion: {heavy_alive}/120 alive after 120s"
+        heavy_alive >= 55,
+        "heavy shields/armor should make this a grind, not a deletion: {heavy_alive}/120 alive after 180s"
     );
     assert!(
         phalanx_alive > heavy_alive,

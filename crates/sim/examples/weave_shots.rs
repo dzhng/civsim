@@ -11,8 +11,8 @@
 
 use sim::{Pace, Sim, Tunables, UnitClassId, Vec2, DT};
 use std::f32::consts::FRAC_PI_2;
-use std::fs::{create_dir_all, File};
-use std::io::BufWriter;
+use std::fs::{create_dir_all, remove_dir_all, File};
+use std::io::{BufWriter, ErrorKind};
 
 const SEED: u64 = 7;
 const W: u32 = 640;
@@ -67,15 +67,15 @@ struct Frame {
     men: Vec<(f32, f32, u32, bool)>,
 }
 
+fn weave_root() -> String {
+    format!("{}/../../web/vibe/shots/weave", env!("CARGO_MANIFEST_DIR"))
+}
+
 /// Tick `sim` for `secs`, snapshotting a frame every `step` seconds, then
 /// render the flip-book with a single FIXED camera (fit to the whole motion)
 /// so the eye reads movement, not a jittering view.
 fn shoot(name: &str, mut sim: Sim, secs: f32, step: f32) {
-    let dir = format!(
-        "{}/../../web/vibe/shots/weave/{}",
-        env!("CARGO_MANIFEST_DIR"),
-        name
-    );
+    let dir = format!("{}/{}", weave_root(), name);
     create_dir_all(&dir).unwrap();
     let mut frames: Vec<Frame> = Vec::new();
     let steps = (secs / step).round() as usize;
@@ -262,6 +262,13 @@ fn kill_to(sim: &mut Sim, u: usize, target: usize) {
 
 fn main() {
     println!("rendering weave vibe shots → web/vibe/shots/weave/");
+    let root = weave_root();
+    if let Err(err) = remove_dir_all(&root) {
+        if err.kind() != ErrorKind::NotFound {
+            panic!("failed to clear old weave shots at {root}: {err}");
+        }
+    }
+    create_dir_all(&root).unwrap();
 
     // HELD line (north, no order) vs a WALKING attacker (south) — does the held
     // front lean in to MEET the press (David's "holders fight back"), and is the

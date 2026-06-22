@@ -229,26 +229,27 @@ pub fn build(input: BuildInput) -> MapJson {
         .filter_map(|(i, f)| f["id"].as_str().map(|id| (id, i)))
         .collect();
 
-    // Forced seeds: capital + named cities + every army-start city.
+    // Forced seeds: the capital and the army-start cities — the cities that MUST
+    // belong to the faction for a valid opening. The hand-authored `cities` list
+    // is NOT forced (a distant entry like Carthage's Panormus in Sicily would be
+    // a disconnected exclave); the flood below decides the rest.
     let mut owner_site: BTreeMap<u32, usize> = BTreeMap::new();
+    let mut seeds_of: Vec<Vec<u32>> = vec![Vec::new(); factions_arr.len()];
     for (fi, f) in factions_arr.iter().enumerate() {
         if f["id"].as_str() == Some("independents") {
             continue;
         }
-        let mut labels: Vec<&str> = Vec::new();
         if let Some(cap) = f["capital"].as_str() {
-            labels.push(cap);
-        }
-        if let Some(cs) = f["cities"].as_array() {
-            labels.extend(cs.iter().filter_map(|c| c.as_str()));
-        }
-        for l in labels {
-            owner_site.insert(resolve(l), fi);
+            let id = resolve(cap);
+            owner_site.insert(id, fi);
+            seeds_of[fi].push(id);
         }
     }
     for s in overrides["start_armies"].as_array().unwrap() {
         if let Some(&fi) = s["faction"].as_str().and_then(|id| fac_index.get(id)) {
-            owner_site.insert(resolve(s["at"].as_str().unwrap()), fi);
+            let id = resolve(s["at"].as_str().unwrap());
+            owner_site.insert(id, fi);
+            seeds_of[fi].push(id);
         }
     }
 
@@ -260,15 +261,59 @@ pub fn build(input: BuildInput) -> MapJson {
         .collect();
     is_city.extend(owner_site.keys().copied());
 
-    // Site adjacency over all surviving edges (junctions are transit, not claims).
+    // LAND adjacency: sea lanes carry armies but don't make a realm look
+    // contiguous, so territory is grown over roads only. Junctions transit.
     let mut adj: BTreeMap<u32, Vec<u32>> = BTreeMap::new();
     for e in &edges {
+        if e.kind == "sea" {
+            continue;
+        }
         adj.entry(e.a).or_default().push(e.b);
         adj.entry(e.b).or_default().push(e.a);
     }
     for v in adj.values_mut() {
         v.sort_unstable();
         v.dedup();
+    }
+
+    // Connect each faction's seeds before flooding: claim the cities along the
+    // shortest land path from the capital to each army-start city, so a realm
+    // whose two armies sit far apart (Rome at Roma + Capua) is one bloc, not two.
+    let shortest_path = |from: u32, to: u32| -> Vec<u32> {
+        let mut parent: BTreeMap<u32, u32> = BTreeMap::new();
+        let mut seen: BTreeSet<u32> = BTreeSet::from([from]);
+        let mut q: std::collections::VecDeque<u32> = std::collections::VecDeque::from([from]);
+        while let Some(u) = q.pop_front() {
+            if u == to {
+                let mut path = vec![to];
+                let mut c = to;
+                while let Some(&p) = parent.get(&c) {
+                    path.push(p);
+                    c = p;
+                }
+                return path;
+            }
+            for &nb in adj.get(&u).map(|v| v.as_slice()).unwrap_or(&[]) {
+                if seen.insert(nb) {
+                    parent.insert(nb, u);
+                    q.push_back(nb);
+                }
+            }
+        }
+        Vec::new() // no land route (island start) — leave it as a lone seed
+    };
+    for fi in 0..factions_arr.len() {
+        if seeds_of[fi].len() < 2 {
+            continue;
+        }
+        let cap = seeds_of[fi][0];
+        for &s in &seeds_of[fi][1..] {
+            for site in shortest_path(cap, s) {
+                if is_city.contains(&site) {
+                    owner_site.entry(site).or_insert(fi);
+                }
+            }
+        }
     }
 
     let budget = overrides

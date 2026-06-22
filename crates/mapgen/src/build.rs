@@ -351,6 +351,60 @@ pub fn build(input: BuildInput) -> MapJson {
         frontier = next;
     }
 
+    // Fill notches: a neutral city ringed by a single power (and not outnumbered
+    // there by other neutrals) is absorbed, so a realm reads as one solid block
+    // rather than being pocked by stray neutral Voronoi cells along its coast
+    // (e.g. Lepcis Magna sitting amid Carthage's Tripolitanian shore). A SINGLE
+    // pass — one ring of notches/termini — not a fixpoint, so realms don't
+    // cascade outward and stay near their budget. A city touching two powers, or
+    // out on the open neutral frontier, is left alone.
+    let city_neighbours = |start: u32| -> Vec<u32> {
+        // Cities reachable through junctions only (nearest road neighbours).
+        let mut out = Vec::new();
+        let mut seen: BTreeSet<u32> = BTreeSet::from([start]);
+        let mut q: std::collections::VecDeque<u32> = std::collections::VecDeque::new();
+        for &v in adj.get(&start).map(|v| v.as_slice()).unwrap_or(&[]) {
+            if seen.insert(v) {
+                q.push_back(v);
+            }
+        }
+        while let Some(u) = q.pop_front() {
+            if is_city.contains(&u) {
+                out.push(u);
+                continue; // a city ends this spoke
+            }
+            for &v in adj.get(&u).map(|v| v.as_slice()).unwrap_or(&[]) {
+                if seen.insert(v) {
+                    q.push_back(v);
+                }
+            }
+        }
+        out
+    };
+    let mut additions: Vec<(u32, usize)> = Vec::new();
+    for &cid in &is_city {
+        if owner_site.contains_key(&cid) {
+            continue;
+        }
+        let mut powers: BTreeSet<usize> = BTreeSet::new();
+        let (mut owned, mut neutral) = (0u32, 0u32);
+        for n in city_neighbours(cid) {
+            match owner_site.get(&n) {
+                Some(&f) => {
+                    powers.insert(f);
+                    owned += 1;
+                }
+                None => neutral += 1,
+            }
+        }
+        if powers.len() == 1 && owned >= neutral {
+            additions.push((cid, *powers.iter().next().unwrap()));
+        }
+    }
+    for (cid, f) in additions {
+        owner_site.insert(cid, f);
+    }
+
     let id_to_label: BTreeMap<u32, &str> =
         sites.values().map(|s| (s.id, s.label.as_str())).collect();
     let mut owner_of: BTreeMap<String, String> = BTreeMap::new();

@@ -181,31 +181,16 @@ map.ambush_spots.forEach((sp, i) => {
   }
 });
 const sp = map.ambush_spots[bestSpot];
-await page.evaluate(([id, edge, tile]) => window.__campaign.orderMove(id, 1, edge, tile), [me0.id, sp.edge, sp.tile]);
-let parked = false;
-for (let i = 0; i < 30 && !parked; i++) {
-  const st = await page.evaluate((id) => {
-    window.__campaign.tick(2000);
-    const a = window.__campaign.armies().find((x) => x.id === id);
-    return {
-      parked: a && !a.marching && window.__campaign.battleReady() < 0,
-      ready: window.__campaign.battleReady(),
-    };
-  }, me0.id);
-  if (st.ready >= 0) {
-    // Someone's battle pends (the AI is alive out there): resolve and move on.
-    if (await page.evaluate(() => window.__campaign.paused())) await page.keyboard.press('1');
-    await page.waitForSelector('.cmp-box', { timeout: 10000 });
-    await page.click('#cmp-auto');
-    await page.waitForFunction(() => !document.querySelector('.cmp-box'), undefined, { timeout: 300000 });
-    await page.evaluate(() => {
-      if (!window.__campaign.paused()) document.querySelector('#cmp-pause').click();
-    });
-    await page.evaluate(([id, edge, tile]) => window.__campaign.orderMove(id, 1, edge, tile), [me0.id, sp.edge, sp.tile]);
-    continue;
-  }
-  parked = st.parked;
-}
+// Freeze the world and teleport the army onto the trigger: a deterministic,
+// quiet setup. Marching it there through whatever war the random seed has spun
+// up would let an encounter form on the tile, which legitimately blocks the
+// ambush order — but that tests the seed, not the ambush mechanic.
+const parked = await page.evaluate(([id, edge, tile]) => {
+  window.__campaign.freeze();
+  window.__campaign.place(id, 1, edge, tile);
+  const a = window.__campaign.armies().find((x) => x.id === id);
+  return !!a && !a.marching && window.__campaign.battleReady() < 0;
+}, [me0.id, sp.edge, sp.tile]);
 check('army parks on the nearest ambush trigger', parked, `spot ${bestSpot} at ${Math.round(bestSpotD)}km`);
 const parkedAt = await page.evaluate((id) => {
   const a = window.__campaign.armies().find((x) => x.id === id);

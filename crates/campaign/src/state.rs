@@ -34,15 +34,27 @@ pub enum Stance {
     March,
     /// Deliberately halted (garrison duty).
     Hold,
-    Camp { build_ticks_left: u16 },
-    Ambush { spot: u32, settle_ticks_left: u16 },
+    Camp {
+        build_ticks_left: u16,
+    },
+    Ambush {
+        spot: u32,
+        settle_ticks_left: u16,
+    },
     /// Uncontrollable retreat. Intangible to `by` (the army that beat it) while
     /// still fleeing — long enough to break away from that one force. Every
     /// other hostile can already cut it down mid-flight, and once its flee path
     /// is run a regroup window opens in which anyone in contact runs it down;
     /// survive the window and it regroups (Hold).
-    Routed { tiles_left: u16, regroup_ticks_left: u32, by: ArmyId },
-    Occupying { city: NodeId, ticks_left: u16 },
+    Routed {
+        tiles_left: u16,
+        regroup_ticks_left: u32,
+        by: ArmyId,
+    },
+    Occupying {
+        city: NodeId,
+        ticks_left: u16,
+    },
     /// Embarked on a sea lane.
     AtSea,
 }
@@ -273,5 +285,10 @@ pub fn rel_at_war(
     a: FactionId,
     b: FactionId,
 ) -> bool {
-    a != b && relations.get(&(a.min(b), a.max(b))).copied().unwrap_or(Relation::War) == Relation::War
+    a != b
+        && relations
+            .get(&(a.min(b), a.max(b)))
+            .copied()
+            .unwrap_or(Relation::War)
+            == Relation::War
 }

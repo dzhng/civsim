@@ -30,7 +30,10 @@ fn loc_decode(kind: u32, a: u32, b: u32) -> Loc {
     if kind == 0 {
         Loc::Node(a)
     } else {
-        Loc::Edge { edge: a, tile: b as u16 }
+        Loc::Edge {
+            edge: a,
+            tile: b as u16,
+        }
     }
 }
 
@@ -39,14 +42,24 @@ impl Campaign {
     #[wasm_bindgen(constructor)]
     pub fn new(map_json: &str, seed: u32, player_faction: u32) -> Campaign {
         let inner = campaign::Campaign::new(map_json, seed as u64, player_faction);
-        let mut c = Campaign { inner, army_info: Vec::new(), city_info: Vec::new(), fighting: None };
+        let mut c = Campaign {
+            inner,
+            army_info: Vec::new(),
+            city_info: Vec::new(),
+            fighting: None,
+        };
         c.refresh();
         c
     }
 
     pub fn load(map_json: &str, save: &str) -> Option<Campaign> {
         let inner = campaign::Campaign::load(map_json, save).ok()?;
-        let mut c = Campaign { inner, army_info: Vec::new(), city_info: Vec::new(), fighting: None };
+        let mut c = Campaign {
+            inner,
+            army_info: Vec::new(),
+            city_info: Vec::new(),
+            fighting: None,
+        };
         c.refresh();
         Some(c)
     }
@@ -148,7 +161,9 @@ impl Campaign {
         if owner != Some(self.inner.state.player_faction) {
             return false;
         }
-        let Some(&class) = contract::ALL_CLASSES.get(class as usize) else { return false };
+        let Some(&class) = contract::ALL_CLASSES.get(class as usize) else {
+            return false;
+        };
         let ok = self.inner.order_recruit(node, class, count);
         self.refresh();
         ok
@@ -178,7 +193,11 @@ impl Campaign {
 
     /// Remaining build ticks for an edge's road job, -1 when idle.
     pub fn road_job_ticks(&self, edge: u32) -> i32 {
-        self.inner.state.road_jobs.get(&edge).map_or(-1, |j| j.ticks_left as i32)
+        self.inner
+            .state
+            .road_jobs
+            .get(&edge)
+            .map_or(-1, |j| j.ticks_left as i32)
     }
 
     /// Zero-copy view: one byte per edge, the current road level.
@@ -209,7 +228,11 @@ impl Campaign {
     /// kind: 0 market, 1 barracks.
     pub fn order_build(&mut self, node: u32, kind: u32) -> bool {
         use campaign::state::BuildKind;
-        let kind = if kind == 0 { BuildKind::Market } else { BuildKind::Barracks };
+        let kind = if kind == 0 {
+            BuildKind::Market
+        } else {
+            BuildKind::Barracks
+        };
         let ok = self.inner.order_build(node, kind);
         self.refresh();
         ok
@@ -294,7 +317,9 @@ impl Campaign {
 
     /// City detail for the panel: building levels and the running site.
     pub fn city_json(&self, node: u32) -> String {
-        let Some(c) = self.inner.state.cities.get(&node) else { return "null".into() };
+        let Some(c) = self.inner.state.cities.get(&node) else {
+            return "null".into();
+        };
         serde_json::json!({
             "market_lvl": c.market_lvl,
             "barracks_lvl": c.barracks_lvl,
@@ -329,7 +354,9 @@ impl Campaign {
 
     /// Split roster entries (bitmask over roster indices) onto an adjacent tile.
     pub fn order_split(&mut self, army: u32, entries_mask: u32) -> bool {
-        let entries: Vec<usize> = (0..32).filter(|i| entries_mask & (1u32 << i) != 0).collect();
+        let entries: Vec<usize> = (0..32)
+            .filter(|i| entries_mask & (1u32 << i) != 0)
+            .collect();
         let ok = self.owns(army) && self.inner.order_split(army, &entries);
         self.refresh();
         ok
@@ -363,7 +390,9 @@ impl Campaign {
 
     /// Roster of one army as JSON (panel data, rare).
     pub fn army_roster_json(&self, army: u32) -> String {
-        let Some(a) = self.inner.state.armies.get(army as usize) else { return "null".into() };
+        let Some(a) = self.inner.state.armies.get(army as usize) else {
+            return "null".into();
+        };
         serde_json::to_string(
             &a.roster
                 .iter()
@@ -378,11 +407,9 @@ impl Campaign {
     }
 
     fn owns(&self, army: u32) -> bool {
-        self.inner
-            .state
-            .armies
-            .get(army as usize)
-            .is_some_and(|a| a.faction == self.inner.state.player_faction && a.garrison_of.is_none())
+        self.inner.state.armies.get(army as usize).is_some_and(|a| {
+            a.faction == self.inner.state.player_faction && a.garrison_of.is_none()
+        })
     }
 
     fn refresh(&mut self) {
@@ -403,7 +430,10 @@ impl Campaign {
                 let p = campaign::sim::loc_pos(map, a.loc);
                 if a.marching() {
                     let q = campaign::sim::loc_pos(map, a.path[a.path_idx]);
-                    [p[0] + (q[0] - p[0]) * a.progress, p[1] + (q[1] - p[1]) * a.progress]
+                    [
+                        p[0] + (q[0] - p[0]) * a.progress,
+                        p[1] + (q[1] - p[1]) * a.progress,
+                    ]
                 } else {
                     p
                 }
@@ -415,27 +445,39 @@ impl Campaign {
                     if build_ticks_left > 0 { 2.0 } else { 0.0 },
                     1.0 - build_ticks_left as f32 / campaign::tunables::CAMP_BUILD_TICKS as f32,
                 ),
-                Stance::Ambush { settle_ticks_left, .. } if settle_ticks_left > 0 => (
+                Stance::Ambush {
+                    settle_ticks_left, ..
+                } if settle_ticks_left > 0 => (
                     2.0,
                     4.0,
                     1.0 - settle_ticks_left as f32 / campaign::tunables::AMBUSH_SETTLE_TICKS as f32,
                 ),
                 Stance::Ambush { .. } => (3.0, 0.0, 0.0),
                 Stance::Routed { .. } => (4.0, 0.0, 0.0),
-                Stance::Occupying { ticks_left, .. } => {
-                    (5.0, 2.0, 1.0 - ticks_left as f32 / campaign::tunables::OCCUPY_TICKS as f32)
-                }
+                Stance::Occupying { ticks_left, .. } => (
+                    5.0,
+                    2.0,
+                    1.0 - ticks_left as f32 / campaign::tunables::OCCUPY_TICKS as f32,
+                ),
                 Stance::AtSea => (6.0, 0.0, 0.0),
             };
             if a.embark_ticks_left > 0 {
                 pie_kind = 3.0;
-                pie_frac = 1.0 - a.embark_ticks_left as f32 / campaign::tunables::EMBARK_TICKS as f32;
+                pie_frac =
+                    1.0 - a.embark_ticks_left as f32 / campaign::tunables::EMBARK_TICKS as f32;
             }
             if let Some(eid) = a.encounter {
                 if let Some(e) = st.encounters.iter().find(|e| e.id == eid) {
                     if e.phase == EncounterPhase::Preparing {
                         let (mine_prep, total) = if e.attacker == a.id {
-                            (e.prep_attacker, if e.ambush { campaign::tunables::PREP_SURPRISED_TICKS } else { campaign::tunables::PREP_TICKS })
+                            (
+                                e.prep_attacker,
+                                if e.ambush {
+                                    campaign::tunables::PREP_SURPRISED_TICKS
+                                } else {
+                                    campaign::tunables::PREP_TICKS
+                                },
+                            )
                         } else {
                             (e.prep_defender, campaign::tunables::PREP_TICKS)
                         };
@@ -520,6 +562,8 @@ pub fn report_battle(c: &mut Campaign, g: &Game) {
 
 impl Game {
     pub(crate) fn battle_result(&self) -> contract::BattleResult {
-        self.battle().result().unwrap_or_else(|| self.battle().forced_result())
+        self.battle()
+            .result()
+            .unwrap_or_else(|| self.battle().forced_result())
     }
 }

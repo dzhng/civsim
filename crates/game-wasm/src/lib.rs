@@ -41,7 +41,10 @@ impl Game {
     }
 
     pub(crate) fn from_battle(battle: Battle) -> Game {
-        let mut g = Game { battle, unit_info: Vec::new() };
+        let mut g = Game {
+            battle,
+            unit_info: Vec::new(),
+        };
         g.refresh_unit_info();
         g
     }
@@ -97,8 +100,7 @@ impl Game {
         class_id: u32,
         team: u32,
     ) -> u32 {
-        let class =
-            contract::ALL_CLASSES[(class_id as usize).min(contract::ALL_CLASSES.len() - 1)];
+        let class = contract::ALL_CLASSES[(class_id as usize).min(contract::ALL_CLASSES.len() - 1)];
         let id = self.battle.sim.spawn_class_with_files(
             Vec2::new(x, y),
             facing,
@@ -112,12 +114,18 @@ impl Game {
     }
 
     pub fn set_move_order(&mut self, unit: u32, x: f32, y: f32) {
-        self.battle.sim.set_move_order(unit as usize, Vec2::new(x, y));
+        self.battle
+            .sim
+            .set_move_order(unit as usize, Vec2::new(x, y));
     }
 
     /// 0 = RiverAndCrags, anything else = WalledPlain.
     pub fn load_map(&mut self, map: u32) {
-        let id = if map == 0 { MapId::RiverAndCrags } else { MapId::WalledPlain };
+        let id = if map == 0 {
+            MapId::RiverAndCrags
+        } else {
+            MapId::WalledPlain
+        };
         self.battle.sim.terrain = build_map(id);
     }
 
@@ -204,14 +212,19 @@ impl Game {
     /// Head-to-head testing bench: any class vs any class, by index into
     /// the contract's ALL_CLASSES order.
     pub fn start_duel(&mut self, a: u32, b: u32) {
-        let pick = |i: u32| contract::ALL_CLASSES[(i as usize).min(contract::ALL_CLASSES.len() - 1)];
+        let pick =
+            |i: u32| contract::ALL_CLASSES[(i as usize).min(contract::ALL_CLASSES.len() - 1)];
         sim::setup_duel(&mut self.battle.sim, pick(a), pick(b));
         self.refresh_unit_info();
     }
 
     /// Build terrain AND deploy both full armies.
     pub fn start_battle(&mut self, map: u32) {
-        let id = if map == 0 { MapId::RiverAndCrags } else { MapId::WalledPlain };
+        let id = if map == 0 {
+            MapId::RiverAndCrags
+        } else {
+            MapId::WalledPlain
+        };
         setup_battle(&mut self.battle.sim, id);
         self.refresh_unit_info();
     }
@@ -260,17 +273,23 @@ impl Game {
     }
 
     pub fn set_attack_order(&mut self, unit: u32, enemy: u32) {
-        self.battle.sim.set_attack_order(unit as usize, enemy as usize);
+        self.battle
+            .sim
+            .set_attack_order(unit as usize, enemy as usize);
         self.refresh_unit_info();
     }
 
     pub fn set_attack_move_order(&mut self, unit: u32, x: f32, y: f32) {
-        self.battle.sim.set_attack_move_order(unit as usize, Vec2::new(x, y));
+        self.battle
+            .sim
+            .set_attack_move_order(unit as usize, Vec2::new(x, y));
         self.refresh_unit_info();
     }
 
     pub fn set_disengage_order(&mut self, unit: u32, x: f32, y: f32) {
-        self.battle.sim.set_disengage_order(unit as usize, Vec2::new(x, y));
+        self.battle
+            .sim
+            .set_disengage_order(unit as usize, Vec2::new(x, y));
         self.refresh_unit_info();
     }
 
@@ -306,7 +325,8 @@ impl Game {
 
     /// Nearest unit to (x, y) within max_dist, or -1.
     pub fn pick_unit(&self, x: f32, y: f32, max_dist: f32) -> i32 {
-        self.battle.sim
+        self.battle
+            .sim
             .pick_unit(Vec2::new(x, y), max_dist)
             .map_or(-1, |u| u as i32)
     }
@@ -334,7 +354,8 @@ impl Game {
     }
 
     pub fn set_move_order_facing(&mut self, unit: u32, x: f32, y: f32, facing: f32) {
-        self.battle.sim
+        self.battle
+            .sim
             .set_move_order_facing(unit as usize, Vec2::new(x, y), facing);
         self.refresh_unit_info();
     }
@@ -359,17 +380,32 @@ impl Game {
                 let e = x as usize;
                 if e < self.battle.sim.units.len() {
                     let anchor = self.battle.sim.units[e].anchor;
-                    self.battle.sim.enqueue_order(unit as usize, OrderMode::Attack(e as u32), anchor, None);
+                    self.battle.sim.enqueue_order(
+                        unit as usize,
+                        OrderMode::Attack(e as u32),
+                        anchor,
+                        None,
+                    );
                 }
             }
-            2 => self.battle.sim.enqueue_order(unit as usize, OrderMode::Disengage, Vec2::new(x, y), None),
-            _ => self.battle.sim.enqueue_order(unit as usize, OrderMode::Move, Vec2::new(x, y), f),
+            2 => self.battle.sim.enqueue_order(
+                unit as usize,
+                OrderMode::Disengage,
+                Vec2::new(x, y),
+                None,
+            ),
+            _ => self
+                .battle
+                .sim
+                .enqueue_order(unit as usize, OrderMode::Move, Vec2::new(x, y), f),
         }
         self.refresh_unit_info();
     }
 
     pub fn set_weapon_pref(&mut self, unit: u32, secondary: u32) {
-        self.battle.sim.set_weapon_pref(unit as usize, secondary != 0);
+        self.battle
+            .sim
+            .set_weapon_pref(unit as usize, secondary != 0);
         self.refresh_unit_info();
     }
 
@@ -450,7 +486,11 @@ impl Game {
                 u.fatigue,
                 // Effective: an attack closes at the double, and the HUD
                 // should say so even if the ordered pace is a walk.
-                if u.effective_pace() == Pace::Walk { 0.0 } else { 1.0 },
+                if u.effective_pace() == Pace::Walk {
+                    0.0
+                } else {
+                    1.0
+                },
                 u.move_target.map_or(0.0, |t| t.x),
                 u.move_target.map_or(0.0, |t| t.y),
                 if u.move_target.is_some() { 1.0 } else { 0.0 },
@@ -485,7 +525,11 @@ impl Game {
                 if u.waiting { 1.0 } else { 0.0 },
                 if u.files_eff < u.files { 1.0 } else { 0.0 },
                 u.weapon_pref as f32,
-                if u.switch_timer > 0.0 { u.switch_timer.min(1.0) } else { 0.0 },
+                if u.switch_timer > 0.0 {
+                    u.switch_timer.min(1.0)
+                } else {
+                    0.0
+                },
                 mean_pressure,
                 // Living-soldier centre of mass — where a unit's banner plants,
                 // unlike the anchor (the front-rank reference) at [0],[1].

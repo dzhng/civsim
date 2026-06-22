@@ -90,8 +90,11 @@ pub fn day_tick(map: &WorldMap, st: &mut CampaignState) {
     // 1. Income.
     for (&node, c) in &st.cities {
         let tier = map.nodes[node as usize].tier.min(3) as usize;
-        let income = tun::CITY_INCOME[tier] * tun::MARKET_MULT_PCT[c.market_lvl.min(2) as usize] / 100;
-        st.factions[c.owner as usize].treasury = st.factions[c.owner as usize].treasury.saturating_add(income);
+        let income =
+            tun::CITY_INCOME[tier] * tun::MARKET_MULT_PCT[c.market_lvl.min(2) as usize] / 100;
+        st.factions[c.owner as usize].treasury = st.factions[c.owner as usize]
+            .treasury
+            .saturating_add(income);
     }
 
     // 2. Upkeep: per-soldier rate x count + per-unit base. Paid or not —
@@ -115,7 +118,11 @@ pub fn day_tick(map: &WorldMap, st: &mut CampaignState) {
             if !a.alive() {
                 continue;
             }
-            (a.faction as usize, at_friendly_city(st, &st.armies[i]), territory_of(map, st, st.armies[i].loc))
+            (
+                a.faction as usize,
+                at_friendly_city(st, &st.armies[i]),
+                territory_of(map, st, st.armies[i].loc),
+            )
         };
         let a = &mut st.armies[i];
         if !paid[faction] {
@@ -131,7 +138,11 @@ pub fn day_tick(map: &WorldMap, st: &mut CampaignState) {
         } else {
             tun::REPLENISH_HOSTILE
         };
-        for r in a.roster.iter_mut().filter(|r| r.count > 0 && r.count < r.max) {
+        for r in a
+            .roster
+            .iter_mut()
+            .filter(|r| r.count > 0 && r.count < r.max)
+        {
             r.count = (r.count + ((r.max - r.count) as f32 * rate).ceil() as u32).min(r.max);
         }
         if halted_city {
@@ -150,13 +161,19 @@ pub fn day_tick(map: &WorldMap, st: &mut CampaignState) {
             let e = match c.garrison.iter_mut().find(|r| r.class == class) {
                 Some(e) => e,
                 None => {
-                    c.garrison.push(RosterEntry { class, count: 0, max: cap, morale_cap: 1.0 });
+                    c.garrison.push(RosterEntry {
+                        class,
+                        count: 0,
+                        max: cap,
+                        morale_cap: 1.0,
+                    });
                     c.garrison.last_mut().unwrap()
                 }
             };
             e.max = cap;
             if e.count < cap {
-                e.count = (e.count + ((cap - e.count) as f32 * tun::GARRISON_REGEN).ceil() as u32).min(cap);
+                e.count = (e.count + ((cap - e.count) as f32 * tun::GARRISON_REGEN).ceil() as u32)
+                    .min(cap);
             }
         }
     }
@@ -178,7 +195,9 @@ pub fn day_tick(map: &WorldMap, st: &mut CampaignState) {
 
     // 6. Construction sites.
     for c in st.cities.values_mut() {
-        let Some(job) = &mut c.build_job else { continue };
+        let Some(job) = &mut c.build_job else {
+            continue;
+        };
         job.ticks_left = job.ticks_left.saturating_sub(tun::TICKS_PER_DAY);
         if job.ticks_left > 0 {
             continue;
@@ -193,23 +212,40 @@ pub fn day_tick(map: &WorldMap, st: &mut CampaignState) {
 
 /// Finished recruits join a halted friendly field army at the node, or found
 /// a new one (or reinforce the garrison if the node is blocked).
-fn deliver_recruits(st: &mut CampaignState, node: NodeId, owner: FactionId, class: UnitClassId, count: u32) {
-    let at_node = st
-        .armies
-        .iter()
-        .position(|a| a.alive() && a.faction == owner && a.halted() && a.loc == Loc::Node(node) && a.garrison_of.is_none());
+fn deliver_recruits(
+    st: &mut CampaignState,
+    node: NodeId,
+    owner: FactionId,
+    class: UnitClassId,
+    count: u32,
+) {
+    let at_node = st.armies.iter().position(|a| {
+        a.alive()
+            && a.faction == owner
+            && a.halted()
+            && a.loc == Loc::Node(node)
+            && a.garrison_of.is_none()
+    });
     if let Some(i) = at_node {
         add_to_roster(&mut st.armies[i].roster, class, count);
         return;
     }
-    let node_free = !st.armies.iter().any(|a| a.alive() && a.halted() && a.loc == Loc::Node(node));
+    let node_free = !st
+        .armies
+        .iter()
+        .any(|a| a.alive() && a.halted() && a.loc == Loc::Node(node));
     if node_free {
         let id = st.armies.len() as ArmyId;
         st.armies.push(Army {
             id,
             faction: owner,
             garrison_of: None,
-            roster: vec![RosterEntry { class, count, max: count, morale_cap: 1.0 }],
+            roster: vec![RosterEntry {
+                class,
+                count,
+                max: count,
+                morale_cap: 1.0,
+            }],
             loc: Loc::Node(node),
             path: Vec::new(),
             path_idx: 0,
@@ -230,7 +266,12 @@ pub fn add_to_roster(roster: &mut Vec<RosterEntry>, class: UnitClassId, count: u
             r.count += count;
             r.max = r.max.max(r.count);
         }
-        None => roster.push(RosterEntry { class, count, max: count, morale_cap: 1.0 }),
+        None => roster.push(RosterEntry {
+            class,
+            count,
+            max: count,
+            morale_cap: 1.0,
+        }),
     }
 }
 
@@ -238,8 +279,16 @@ pub fn add_to_roster(roster: &mut Vec<RosterEntry>, class: UnitClassId, count: u
 
 /// Queue recruitment at an owned city. Cost is paid up front; rejects when
 /// the treasury can't cover it.
-pub fn recruit(map: &WorldMap, st: &mut CampaignState, node: NodeId, class: UnitClassId, count: u32) -> bool {
-    let Some(c) = st.cities.get(&node) else { return false };
+pub fn recruit(
+    map: &WorldMap,
+    st: &mut CampaignState,
+    node: NodeId,
+    class: UnitClassId,
+    count: u32,
+) -> bool {
+    let Some(c) = st.cities.get(&node) else {
+        return false;
+    };
     let owner = c.owner;
     let cost = (count as u64 * tun::recruit_cost_milligold(class) as u64 / 1000) as u32;
     if st.factions[owner as usize].treasury < cost {
@@ -248,7 +297,15 @@ pub fn recruit(map: &WorldMap, st: &mut CampaignState, node: NodeId, class: Unit
     let barracks = c.barracks_lvl.min(2) as u32;
     let ticks = count * tun::recruit_ticks_per_soldier(class) * (100 - 25 * barracks) / 100;
     st.factions[owner as usize].treasury -= cost;
-    st.cities.get_mut(&node).unwrap().recruit_queue.push(RecruitJob { class, count, ticks_left: ticks.max(1) });
+    st.cities
+        .get_mut(&node)
+        .unwrap()
+        .recruit_queue
+        .push(RecruitJob {
+            class,
+            count,
+            ticks_left: ticks.max(1),
+        });
     let _ = map;
     true
 }
@@ -256,15 +313,26 @@ pub fn recruit(map: &WorldMap, st: &mut CampaignState, node: NodeId, class: Unit
 /// Disband a roster entry. At a friendly city, half the men join the
 /// garrison pool; elsewhere they just go home.
 pub fn disband(st: &mut CampaignState, army: ArmyId, entry: usize) -> bool {
-    let Some(a) = st.armies.get(army as usize) else { return false };
+    let Some(a) = st.armies.get(army as usize) else {
+        return false;
+    };
     if !a.alive() || a.encounter.is_some() || entry >= a.roster.len() {
         return false;
     }
-    let (class, count, faction, loc, halted) =
-        (a.roster[entry].class, a.roster[entry].count, a.faction, a.loc, a.halted());
+    let (class, count, faction, loc, halted) = (
+        a.roster[entry].class,
+        a.roster[entry].count,
+        a.faction,
+        a.loc,
+        a.halted(),
+    );
     if let Loc::Node(n) = loc {
         if halted && st.cities.get(&n).is_some_and(|c| c.owner == faction) {
-            add_to_roster(&mut st.cities.get_mut(&n).unwrap().garrison, class, count / 2);
+            add_to_roster(
+                &mut st.cities.get_mut(&n).unwrap().garrison,
+                class,
+                count / 2,
+            );
         }
     }
     let a = &mut st.armies[army as usize];
@@ -302,7 +370,8 @@ pub fn merge(map: &WorldMap, st: &mut CampaignState, src: ArmyId, dst: ArmyId) -
         match d.roster.iter_mut().find(|x| x.class == r.class) {
             Some(x) => {
                 let total = x.count + r.count;
-                x.morale_cap = (x.morale_cap * x.count as f32 + r.morale_cap * r.count as f32) / total.max(1) as f32;
+                x.morale_cap = (x.morale_cap * x.count as f32 + r.morale_cap * r.count as f32)
+                    / total.max(1) as f32;
                 x.count = total;
                 x.max += r.max;
             }
@@ -315,7 +384,9 @@ pub fn merge(map: &WorldMap, st: &mut CampaignState, src: ArmyId, dst: ArmyId) -
 /// Start a road upgrade: one level step, paid up front, paced by length.
 /// Valid when the faction holds territory at either endpoint.
 pub fn upgrade_road(map: &WorldMap, st: &mut CampaignState, edge: u32, f: FactionId) -> bool {
-    let Some(e) = map.edges.get(edge as usize) else { return false };
+    let Some(e) = map.edges.get(edge as usize) else {
+        return false;
+    };
     if e.sea || st.road_jobs.contains_key(&edge) {
         return false;
     }
@@ -338,14 +409,19 @@ pub fn upgrade_road(map: &WorldMap, st: &mut CampaignState, edge: u32, f: Factio
     fac.treasury -= cost;
     st.road_jobs.insert(
         edge,
-        RoadJob { to_level: lvl + 1, ticks_left: tun::ROAD_BUILD_TICKS_PER_TILE * tiles },
+        RoadJob {
+            to_level: lvl + 1,
+            ticks_left: tun::ROAD_BUILD_TICKS_PER_TILE * tiles,
+        },
     );
     true
 }
 
 /// Start a building at an owned city: one site at a time, paid up front.
 pub fn build(st: &mut CampaignState, node: NodeId, kind: BuildKind, f: FactionId) -> bool {
-    let Some(c) = st.cities.get(&node) else { return false };
+    let Some(c) = st.cities.get(&node) else {
+        return false;
+    };
     if c.owner != f || c.build_job.is_some() {
         return false;
     }
@@ -365,14 +441,18 @@ pub fn build(st: &mut CampaignState, node: NodeId, kind: BuildKind, f: FactionId
         return false;
     }
     fac.treasury -= cost;
-    st.cities.get_mut(&node).unwrap().build_job =
-        Some(BuildJob { kind, ticks_left: tun::BUILD_TICKS });
+    st.cities.get_mut(&node).unwrap().build_job = Some(BuildJob {
+        kind,
+        ticks_left: tun::BUILD_TICKS,
+    });
     true
 }
 
 /// Raise a watchtower on a junction in friendly territory. Paid up front.
 pub fn build_outpost(map: &WorldMap, st: &mut CampaignState, node: NodeId, f: FactionId) -> bool {
-    let Some(n) = map.nodes.get(node as usize) else { return false };
+    let Some(n) = map.nodes.get(node as usize) else {
+        return false;
+    };
     if n.kind != NodeKind::Junction || st.outposts.contains_key(&node) {
         return false;
     }
@@ -384,25 +464,40 @@ pub fn build_outpost(map: &WorldMap, st: &mut CampaignState, node: NodeId, f: Fa
         return false;
     }
     fac.treasury -= tun::OUTPOST_COST;
-    st.outposts.insert(node, Outpost { owner: f, build_ticks_left: tun::OUTPOST_BUILD_TICKS });
+    st.outposts.insert(
+        node,
+        Outpost {
+            owner: f,
+            build_ticks_left: tun::OUTPOST_BUILD_TICKS,
+        },
+    );
     true
 }
 
 /// Split entries out of an army onto a free adjacent tile.
 pub fn split(map: &WorldMap, st: &mut CampaignState, army: ArmyId, entries: &[usize]) -> bool {
-    let Some(a) = st.armies.get(army as usize) else { return false };
+    let Some(a) = st.armies.get(army as usize) else {
+        return false;
+    };
     if !a.alive() || !a.halted() || a.encounter.is_some() || a.garrison_of.is_some() {
         return false;
     }
-    if entries.iter().any(|&e| e >= a.roster.len() || a.roster[e].count == 0) {
+    if entries
+        .iter()
+        .any(|&e| e >= a.roster.len() || a.roster[e].count == 0)
+    {
         return false;
     }
     if entries.len() >= a.roster.iter().filter(|r| r.count > 0).count() {
         return false; // would empty the source
     }
     // First free adjacent land tile.
-    let standing: std::collections::BTreeSet<Loc> =
-        st.armies.iter().filter(|o| o.alive() && o.halted()).map(|o| o.loc).collect();
+    let standing: std::collections::BTreeSet<Loc> = st
+        .armies
+        .iter()
+        .filter(|o| o.alive() && o.halted())
+        .map(|o| o.loc)
+        .collect();
     let spot = pathfind::neighbors(map, a.loc).into_iter().find(|&l| {
         !standing.contains(&l)
             && !matches!(l, Loc::Edge { edge, .. } if map.edges[edge as usize].sea)
@@ -544,7 +639,10 @@ pub fn occupations(map: &WorldMap, st: &mut CampaignState) {
                     st.cities.get_mut(&city).unwrap().owner = a.faction;
                     a.stance = Stance::Hold;
                 } else {
-                    a.stance = Stance::Occupying { city, ticks_left: ticks_left - 1 };
+                    a.stance = Stance::Occupying {
+                        city,
+                        ticks_left: ticks_left - 1,
+                    };
                 }
             }
             Stance::Hold | Stance::March => {
@@ -556,7 +654,10 @@ pub fn occupations(map: &WorldMap, st: &mut CampaignState) {
                 let garrisoned = c.garrison.iter().any(|r| r.count > 0);
                 if st.at_war(c.owner, a.faction) && !garrisoned {
                     let a = &mut st.armies[i];
-                    a.stance = Stance::Occupying { city: n, ticks_left: tun::OCCUPY_TICKS };
+                    a.stance = Stance::Occupying {
+                        city: n,
+                        ticks_left: tun::OCCUPY_TICKS,
+                    };
                 }
             }
             _ => {}

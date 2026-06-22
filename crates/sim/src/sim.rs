@@ -1560,6 +1560,41 @@ impl Sim {
                 let local = slot_local(soldier_slot[i] as usize, u.files_eff, u.spacing);
                 let slot = u.anchor + r * local.x + f * (-local.y);
                 let to = slot - p;
+                let mut slot_pull_vec = to;
+                let mut formation_blocks_forward = false;
+                // A footman may not power himself forward through a living,
+                // opposing foot formation's frontage. This is local and geometric:
+                // inside that enemy's lateral corridor, remove the forward slot /
+                // magnet tow and later cap self-drive to a fighting step. Flanks
+                // outside the corridor still curl and wrap; collision can still
+                // shove bodies either way. This closes the infantry "trample"
+                // hole without turning the whole enemy face into a wall.
+                if !u.tramples() {
+                    for v in units.iter() {
+                        if v.team == u.team || v.alive_count == 0 || v.is_mounted() || v.tramples()
+                        {
+                            continue;
+                        }
+                        let vf = dir(v.facing);
+                        if f.dot(vf) > -0.35 {
+                            continue;
+                        }
+                        let vr = Vec2::new(vf.y, -vf.x);
+                        let half_w = 0.5 * v.width() + 0.5 * v.spacing.x;
+                        let p_lat = (p - v.center()).dot(vr);
+                        let slot_lat = (slot - v.center()).dot(vr);
+                        if p_lat.abs().min(slot_lat.abs()) > half_w {
+                            continue;
+                        }
+                        let v_mid = v.center().dot(f);
+                        if p.dot(f) > v_mid && slot.dot(f) > v_mid {
+                            let forward_pull = slot_pull_vec.dot(f).max(0.0);
+                            slot_pull_vec = slot_pull_vec - f * forward_pull;
+                            formation_blocks_forward = true;
+                            break;
+                        }
+                    }
+                }
                 // Weave-derived disorder, set in the block below: how far my
                 // bonds are STRETCHED, and how far they've PIVOTED. A man with no
                 // live neighbours has only his absolute slot to judge by — an
@@ -1841,7 +1876,7 @@ impl Sim {
                     } else {
                         slot_pull_u
                     };
-                steer_to = steer_to + to * slot_pull_i;
+                steer_to = steer_to + slot_pull_vec * slot_pull_i;
                 // ENEMY MAGNET — the SEEK, and nothing else. A pure attract
                 // toward the foe a man is fighting: far off he is pulled in hard
                 // (he RUNS to contact); at reach the force fades to zero (he STOPS
@@ -1869,7 +1904,12 @@ impl Sim {
                         let off = dist - reach_u;
                         let pull = (tun.magnet_strength * (1.0 - (-off / tun.magnet_scale).exp()))
                             .max(0.0);
-                        steer_to = steer_to + d * (pull / dist);
+                        let mut magnet = d * (pull / dist);
+                        if formation_blocks_forward {
+                            let forward = magnet.dot(f).max(0.0);
+                            magnet = magnet - f * forward;
+                        }
+                        steer_to = steer_to + magnet;
                         // An OVERHANGING flank man — his foe is well OFF the unit's
                         // facing axis (to his inner side, not ahead) — must CURL IN
                         // to envelop, not be towed straight ahead by the frame
@@ -1906,6 +1946,15 @@ impl Sim {
                 if vl > max_sp {
                     v = v * (max_sp / vl);
                 }
+                if formation_blocks_forward {
+                    let forward = v.dot(f);
+                    // Slow press is allowed; march/slot/cruise speed through the
+                    // enemy corridor is not.
+                    let cap = tun.base_speed * 0.2;
+                    if forward > cap {
+                        v = v - f * (forward - cap);
+                    }
+                }
                 if vl > 0.2 {
                     effort += 1.0 - ground;
                 }
@@ -1932,7 +1981,12 @@ impl Sim {
                 let backing_off = u
                     .move_target
                     .map_or(false, |mt| (mt - p).dot(dir(u.facing)) < 0.0);
-                if advancing && !engaged_i && !seeking_flank && !backing_off {
+                if advancing
+                    && !engaged_i
+                    && !seeking_flank
+                    && !backing_off
+                    && !formation_blocks_forward
+                {
                     let md = dir(u.facing);
                     let fwd = v.x * md.x + v.y * md.y;
                     let want = u.cruise.min(max_sp);

@@ -80,10 +80,29 @@ pub struct TerrainSpec {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum PaintOp {
-    Rect { min: [f32; 2], max: [f32; 2], speed: f32, rough: f32, tint: u8 },
-    Circle { center: [f32; 2], radius: f32, speed: f32, rough: f32, tint: u8 },
+    Rect {
+        min: [f32; 2],
+        max: [f32; 2],
+        speed: f32,
+        rough: f32,
+        tint: u8,
+    },
+    Circle {
+        center: [f32; 2],
+        radius: f32,
+        speed: f32,
+        rough: f32,
+        tint: u8,
+    },
     /// Thick segment: roads, river reaches, wall runs at any bearing.
-    Capsule { a: [f32; 2], b: [f32; 2], radius: f32, speed: f32, rough: f32, tint: u8 },
+    Capsule {
+        a: [f32; 2],
+        b: [f32; 2],
+        radius: f32,
+        speed: f32,
+        rough: f32,
+        tint: u8,
+    },
 }
 
 /// One campaign unit entering a battle. `id` is campaign-side identity,

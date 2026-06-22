@@ -43,12 +43,21 @@ pub fn tick(map: &WorldMap, st: &mut CampaignState) {
 fn ambush_triggers(map: &WorldMap, st: &mut CampaignState) {
     let n = st.armies.len();
     for i in 0..n {
-        let Stance::Ambush { spot, settle_ticks_left: 0 } = st.armies[i].stance else { continue };
+        let Stance::Ambush {
+            spot,
+            settle_ticks_left: 0,
+        } = st.armies[i].stance
+        else {
+            continue;
+        };
         if st.armies[i].encounter.is_some() || !st.armies[i].alive() {
             continue;
         }
         let sp = &map.ambush_spots[spot as usize];
-        let trigger = Loc::Edge { edge: sp.edge, tile: sp.tile };
+        let trigger = Loc::Edge {
+            edge: sp.edge,
+            tile: sp.tile,
+        };
         let victim = (0..n).find(|&j| {
             let v = &st.armies[j];
             v.alive()
@@ -203,10 +212,9 @@ fn movement(map: &WorldMap, st: &mut CampaignState) {
         // A war-enemy standing on (or marching in) the next tile is a wall —
         // the encounter machinery decides what happens, not the mover. Armies
         // at peace don't bar the road (they only can't be stacked on, below).
-        if positions
-            .iter()
-            .any(|&(l, oid, of)| l == next && oid != id && crate::state::rel_at_war(&st.relations, of, faction))
-        {
+        if positions.iter().any(|&(l, oid, of)| {
+            l == next && oid != id && crate::state::rel_at_war(&st.relations, of, faction)
+        }) {
             continue; // hold at the boundary, fully wound up
         }
         // May not END a move on any standing army's tile: halt short.
@@ -229,7 +237,11 @@ fn movement(map: &WorldMap, st: &mut CampaignState) {
         a.progress = 0.0;
         if was_sea != now_sea {
             a.embark_ticks_left = tun::EMBARK_TICKS;
-            a.stance = if now_sea { Stance::AtSea } else { Stance::March };
+            a.stance = if now_sea {
+                Stance::AtSea
+            } else {
+                Stance::March
+            };
         }
         if a.path_idx == a.path.len() {
             a.path.clear();
@@ -248,7 +260,9 @@ fn run_down_routers(map: &WorldMap, st: &mut CampaignState) {
     let mut downed: Vec<usize> = Vec::new();
     for i in 0..n {
         let r = &st.armies[i];
-        let Stance::Routed { by, .. } = r.stance else { continue };
+        let Stance::Routed { by, .. } = r.stance else {
+            continue;
+        };
         if !r.alive() {
             continue;
         }
@@ -314,10 +328,7 @@ fn encounters(map: &WorldMap, st: &mut CampaignState) {
         }
         // Sustain range is one tile slacker than initiation: discrete steps
         // make an equal-speed chase oscillate between distance 1 and 2.
-        if !pathfind::dist_le(map, la, ld, 2)
-            || is_sea_tile(map, la)
-            || is_sea_tile(map, ld)
-        {
+        if !pathfind::dist_le(map, la, ld, 2) || is_sea_tile(map, la) || is_sea_tile(map, ld) {
             dissolved.push(e.id); // the gap opened: chase failed
             continue;
         }
@@ -348,10 +359,10 @@ fn encounters(map: &WorldMap, st: &mut CampaignState) {
                 army_base_speed(map, road_levels, a),
                 army_base_speed(map, road_levels, d),
             );
-            let def_escapes = moving_away(map, d, a.loc)
-                && (sd > sa * 1.01 || !moving_toward(map, a, d.loc));
-            let att_escapes = moving_away(map, a, d.loc)
-                && (sa > sd * 1.01 || !moving_toward(map, d, a.loc));
+            let def_escapes =
+                moving_away(map, d, a.loc) && (sd > sa * 1.01 || !moving_toward(map, a, d.loc));
+            let att_escapes =
+                moving_away(map, a, d.loc) && (sa > sd * 1.01 || !moving_toward(map, d, a.loc));
             if def_escapes || att_escapes {
                 let key = (e.attacker.min(e.defender), e.attacker.max(e.defender));
                 st_no_rematch.push((key, st_tick + tun::ESCAPE_COOLDOWN_TICKS));
@@ -388,9 +399,13 @@ fn encounters(map: &WorldMap, st: &mut CampaignState) {
                 continue;
             }
             // Routed, embarked, and hidden armies are intangible.
-            if matches!(a.stance, Stance::Routed { .. } | Stance::AtSea | Stance::Ambush { .. })
-                || matches!(b.stance, Stance::Routed { .. } | Stance::AtSea | Stance::Ambush { .. })
-                || is_sea_tile(map, a.loc)
+            if matches!(
+                a.stance,
+                Stance::Routed { .. } | Stance::AtSea | Stance::Ambush { .. }
+            ) || matches!(
+                b.stance,
+                Stance::Routed { .. } | Stance::AtSea | Stance::Ambush { .. }
+            ) || is_sea_tile(map, a.loc)
                 || is_sea_tile(map, b.loc)
             {
                 continue;
@@ -399,14 +414,28 @@ fn encounters(map: &WorldMap, st: &mut CampaignState) {
                 continue;
             }
             let key = (a.id.min(b.id), a.id.max(b.id));
-            if st.no_rematch.get(&key).is_some_and(|&until| st.tick < until) {
+            if st
+                .no_rematch
+                .get(&key)
+                .is_some_and(|&until| st.tick < until)
+            {
                 continue; // it just got away; the gap is becoming real
             }
             // The mover is the attacker; ties go to the lower id. A dug-in
             // camp is always the defender, formed up the moment it's hit —
             // the surprise is on whoever marched into the palisade.
-            let a_dug_in = matches!(a.stance, Stance::Camp { build_ticks_left: 0 });
-            let b_dug_in = matches!(b.stance, Stance::Camp { build_ticks_left: 0 });
+            let a_dug_in = matches!(
+                a.stance,
+                Stance::Camp {
+                    build_ticks_left: 0
+                }
+            );
+            let b_dug_in = matches!(
+                b.stance,
+                Stance::Camp {
+                    build_ticks_left: 0
+                }
+            );
             let attacker_is_a = if a_dug_in != b_dug_in {
                 b_dug_in
             } else {
@@ -458,7 +487,10 @@ fn timers(st: &mut CampaignState) {
         if a.embark_ticks_left > 0 {
             a.embark_ticks_left -= 1;
         }
-        if let Stance::Ambush { settle_ticks_left, .. } = &mut a.stance {
+        if let Stance::Ambush {
+            settle_ticks_left, ..
+        } = &mut a.stance
+        {
             if *settle_ticks_left > 0 {
                 *settle_ticks_left -= 1;
             }
@@ -470,7 +502,12 @@ fn timers(st: &mut CampaignState) {
         }
         // Routs: once the retreat path is run, the army regroups after a
         // dazed day; annihilation was decided when the path was drawn.
-        if let Stance::Routed { tiles_left, regroup_ticks_left, .. } = &mut a.stance {
+        if let Stance::Routed {
+            tiles_left,
+            regroup_ticks_left,
+            ..
+        } = &mut a.stance
+        {
             if a.path_idx < a.path.len() {
                 *tiles_left = (a.path.len() - a.path_idx) as u16;
             } else if *regroup_ticks_left > 0 {
@@ -510,7 +547,10 @@ pub fn new_state(map: &WorldMap, seed: u64, player_faction: u32) -> CampaignStat
         .factions
         .iter()
         .enumerate()
-        .map(|(i, _)| Faction { treasury: 500, ai: i as u32 != player_faction })
+        .map(|(i, _)| Faction {
+            treasury: 500,
+            ai: i as u32 != player_faction,
+        })
         .collect();
     let cities = map
         .nodes
@@ -522,9 +562,21 @@ pub fn new_state(map: &WorldMap, seed: u64, player_faction: u32) -> CampaignStat
             // would be steamrolled by whoever marches first.
             let garrison = crate::economy::garrison_establishment(n.tier, 0)
                 .into_iter()
-                .map(|(class, count)| RosterEntry { class, count, max: count, morale_cap: 1.0 })
+                .map(|(class, count)| RosterEntry {
+                    class,
+                    count,
+                    max: count,
+                    morale_cap: 1.0,
+                })
                 .collect();
-            (i as u32, CityState { owner: n.initial_owner, garrison, ..Default::default() })
+            (
+                i as u32,
+                CityState {
+                    owner: n.initial_owner,
+                    garrison,
+                    ..Default::default()
+                },
+            )
         })
         .collect();
     let armies = map
@@ -538,7 +590,12 @@ pub fn new_state(map: &WorldMap, seed: u64, player_faction: u32) -> CampaignStat
             roster: s
                 .roster
                 .iter()
-                .map(|&(class, count)| RosterEntry { class, count, max: count, morale_cap: 1.0 })
+                .map(|&(class, count)| RosterEntry {
+                    class,
+                    count,
+                    max: count,
+                    morale_cap: 1.0,
+                })
                 .collect(),
             loc: Loc::Node(s.at),
             path: Vec::new(),
@@ -590,8 +647,16 @@ fn check_outcome(map: &WorldMap, st: &mut CampaignState) {
 }
 
 /// Plan and set a path (shared by the player order surface and the AI).
-pub(crate) fn try_move(map: &WorldMap, st: &mut CampaignState, army: ArmyId, dest: Loc, allow_sea: bool) -> bool {
-    let Some(a) = st.armies.get(army as usize) else { return false };
+pub(crate) fn try_move(
+    map: &WorldMap,
+    st: &mut CampaignState,
+    army: ArmyId,
+    dest: Loc,
+    allow_sea: bool,
+) -> bool {
+    let Some(a) = st.armies.get(army as usize) else {
+        return false;
+    };
     if !a.alive()
         || a.garrison_of.is_some()
         || matches!(a.stance, Stance::Routed { .. } | Stance::Occupying { .. })
@@ -599,9 +664,10 @@ pub(crate) fn try_move(map: &WorldMap, st: &mut CampaignState, army: ArmyId, des
         return false;
     }
     if let Some(eid) = a.encounter {
-        let prep = st.encounters.iter().any(|e| {
-            e.id == eid && e.phase == EncounterPhase::Preparing && !e.ambush
-        });
+        let prep = st
+            .encounters
+            .iter()
+            .any(|e| e.id == eid && e.phase == EncounterPhase::Preparing && !e.ambush);
         if !prep {
             return false; // frozen: ambushed, pending, or fighting
         }
@@ -619,7 +685,10 @@ pub(crate) fn try_move(map: &WorldMap, st: &mut CampaignState, army: ArmyId, des
     if !keep_progress {
         a.progress = 0.0;
     }
-    if matches!(a.stance, Stance::Hold | Stance::Ambush { .. } | Stance::Camp { .. }) {
+    if matches!(
+        a.stance,
+        Stance::Hold | Stance::Ambush { .. } | Stance::Camp { .. }
+    ) {
         a.stance = Stance::March;
     }
     true

@@ -26,7 +26,13 @@ fn has_scouts(a: &Army) -> bool {
 }
 
 fn concealed(a: &Army) -> bool {
-    matches!(a.stance, Stance::Ambush { settle_ticks_left: 0, .. })
+    matches!(
+        a.stance,
+        Stance::Ambush {
+            settle_ticks_left: 0,
+            ..
+        }
+    )
 }
 
 pub fn recompute(map: &WorldMap, st: &mut CampaignState) {
@@ -55,7 +61,11 @@ pub fn recompute(map: &WorldMap, st: &mut CampaignState) {
         visible[a.faction as usize].insert(a.id); // own armies, always
 
         let is_concealed = concealed(a);
-        let max_radius = if is_concealed { outpost_reveal } else { VISION_CITY };
+        let max_radius = if is_concealed {
+            outpost_reveal
+        } else {
+            VISION_CITY
+        };
 
         // Flood out to max_radius, recording depth per tile.
         reached.clear();
@@ -91,7 +101,13 @@ pub fn recompute(map: &WorldMap, st: &mut CampaignState) {
                         seen_by[o.faction as usize] = true;
                     }
                 } else if d <= VISION_ARMY
-                    || (d <= camp_radius && matches!(o.stance, Stance::Camp { build_ticks_left: 0 }))
+                    || (d <= camp_radius
+                        && matches!(
+                            o.stance,
+                            Stance::Camp {
+                                build_ticks_left: 0
+                            }
+                        ))
                 {
                     seen_by[o.faction as usize] = true;
                 }
@@ -106,7 +122,11 @@ pub fn recompute(map: &WorldMap, st: &mut CampaignState) {
                 // A finished watchtower reaches OUTPOST_VISION normally, but only
                 // OUTPOST_REVEAL_RADIUS to unmask a concealed ambusher.
                 if let Some(o) = st.outposts.get(&n) {
-                    let r = if is_concealed { outpost_reveal } else { outpost_vision };
+                    let r = if is_concealed {
+                        outpost_reveal
+                    } else {
+                        outpost_vision
+                    };
                     if o.build_ticks_left == 0 && d <= r {
                         seen_by[o.owner as usize] = true;
                     }

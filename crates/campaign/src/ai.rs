@@ -22,7 +22,10 @@ fn free_army(a: &Army) -> bool {
     a.alive()
         && a.encounter.is_none()
         && a.garrison_of.is_none()
-        && !matches!(a.stance, Stance::Routed { .. } | Stance::AtSea | Stance::Occupying { .. })
+        && !matches!(
+            a.stance,
+            Stance::Routed { .. } | Stance::AtSea | Stance::Occupying { .. }
+        )
 }
 
 /// Road distance between two locs, capped (None beyond the cap). Uses the
@@ -95,7 +98,8 @@ pub fn diplomacy(map: &WorldMap, st: &mut CampaignState) {
     // more cleanly but then froze when a victim drifted out of reach). Whether
     // armies can actually march there is settled by the offensive's own land
     // flood; gating reachability here only silenced the whole map into peace.
-    let mut target: std::collections::BTreeMap<FactionId, FactionId> = std::collections::BTreeMap::new();
+    let mut target: std::collections::BTreeMap<FactionId, FactionId> =
+        std::collections::BTreeMap::new();
     for &f in &powers {
         if let Some(&victim) = powers
             .iter()
@@ -128,8 +132,12 @@ pub fn diplomacy(map: &WorldMap, st: &mut CampaignState) {
 }
 
 fn think(map: &WorldMap, st: &mut CampaignState, f: FactionId, bfs: &mut pathfind::Visited) {
-    let my_cities: Vec<NodeId> =
-        st.cities.iter().filter(|(_, c)| c.owner == f).map(|(&n, _)| n).collect();
+    let my_cities: Vec<NodeId> = st
+        .cities
+        .iter()
+        .filter(|(_, c)| c.owner == f)
+        .map(|(&n, _)| n)
+        .collect();
     if my_cities.is_empty() {
         return; // landless: hold what armies remain
     }

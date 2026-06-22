@@ -70,7 +70,12 @@ pub fn load_routes(path: &str, sites: &BTreeMap<u32, OrbisSite>) -> Vec<OrbisRou
         let g = &f["geometry"];
         let coord = |c: &Value| project(c[0].as_f64().unwrap(), c[1].as_f64().unwrap());
         let pts: Vec<[f64; 2]> = match g["type"].as_str().unwrap() {
-            "LineString" => g["coordinates"].as_array().unwrap().iter().map(coord).collect(),
+            "LineString" => g["coordinates"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(coord)
+                .collect(),
             // A few routes ship as ordered MultiLineString parts; concatenate.
             "MultiLineString" => g["coordinates"]
                 .as_array()
@@ -82,7 +87,11 @@ pub fn load_routes(path: &str, sites: &BTreeMap<u32, OrbisSite>) -> Vec<OrbisRou
         };
         out.push(OrbisRoute { a, b, kind, pts });
     }
-    eprintln!("routes: {} loaded, {} dropped (unknown endpoints)", out.len(), dropped);
+    eprintln!(
+        "routes: {} loaded, {} dropped (unknown endpoints)",
+        out.len(),
+        dropped
+    );
     out
 }
 
@@ -115,7 +124,14 @@ pub fn load_polys(path: &str, featurecla: Option<&str>) -> Vec<Poly> {
         let g = &f["geometry"];
         let mut polys: Vec<Vec<Vec<[f64; 2]>>> = Vec::new();
         match g["type"].as_str().unwrap() {
-            "Polygon" => polys.push(g["coordinates"].as_array().unwrap().iter().map(ring_pts).collect()),
+            "Polygon" => polys.push(
+                g["coordinates"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .map(ring_pts)
+                    .collect(),
+            ),
             "MultiPolygon" => {
                 for poly in g["coordinates"].as_array().unwrap() {
                     polys.push(poly.as_array().unwrap().iter().map(ring_pts).collect());

@@ -21,7 +21,10 @@ pub struct Visited {
 
 impl Visited {
     pub fn new(map: &WorldMap) -> Visited {
-        Visited { seen: vec![0; map.loc_count()], epoch: 0 }
+        Visited {
+            seen: vec![0; map.loc_count()],
+            epoch: 0,
+        }
     }
 
     /// Begin a fresh traversal; everything is unvisited again.
@@ -106,7 +109,10 @@ fn edge_tiles_from(map: &WorldMap, e: EdgeId, from: NodeId) -> Vec<Loc> {
     if edge.a == from {
         (0..n).map(|t| Loc::Edge { edge: e, tile: t }).collect()
     } else {
-        (0..n).rev().map(|t| Loc::Edge { edge: e, tile: t }).collect()
+        (0..n)
+            .rev()
+            .map(|t| Loc::Edge { edge: e, tile: t })
+            .collect()
     }
 }
 
@@ -159,7 +165,12 @@ fn dijkstra(
 /// Seed costs for a Dijkstra starting at `start`: a node seeds at cost 0; a
 /// mid-edge start seeds both endpoints by the partial-edge walk. `None` if the
 /// start sits on a sea lane and sea travel is disallowed.
-fn start_seeds(map: &WorldMap, roads: &[u8], start: Loc, allow_sea: bool) -> Option<Vec<(NodeId, f32)>> {
+fn start_seeds(
+    map: &WorldMap,
+    roads: &[u8],
+    start: Loc,
+    allow_sea: bool,
+) -> Option<Vec<(NodeId, f32)>> {
     Some(match start {
         Loc::Node(n) => vec![(n, 0.0)],
         Loc::Edge { edge, tile } => {
@@ -168,9 +179,19 @@ fn start_seeds(map: &WorldMap, roads: &[u8], start: Loc, allow_sea: bool) -> Opt
                 return None;
             }
             let n = e.tiles.len() as u16;
-            let m = if e.sea { 1.0 } else { tunables::road_mult(level_of(roads, edge)) };
-            let to_a: f32 = (0..=tile).map(|t| tile_cost(e.tiles[t as usize])).sum::<f32>() / m;
-            let to_b: f32 = (tile..n).map(|t| tile_cost(e.tiles[t as usize])).sum::<f32>() / m;
+            let m = if e.sea {
+                1.0
+            } else {
+                tunables::road_mult(level_of(roads, edge))
+            };
+            let to_a: f32 = (0..=tile)
+                .map(|t| tile_cost(e.tiles[t as usize]))
+                .sum::<f32>()
+                / m;
+            let to_b: f32 = (tile..n)
+                .map(|t| tile_cost(e.tiles[t as usize]))
+                .sum::<f32>()
+                / m;
             vec![(e.a, to_a), (e.b, to_b)]
         }
     })
@@ -178,7 +199,12 @@ fn start_seeds(map: &WorldMap, roads: &[u8], start: Loc, allow_sea: bool) -> Opt
 
 /// Road cost from `start` to every reachable node — for "march to the nearest
 /// X" queries that don't need a full route planned to each candidate.
-pub fn costs_from(map: &WorldMap, roads: &[u8], start: Loc, allow_sea: bool) -> BTreeMap<NodeId, f32> {
+pub fn costs_from(
+    map: &WorldMap,
+    roads: &[u8],
+    start: Loc,
+    allow_sea: bool,
+) -> BTreeMap<NodeId, f32> {
     match start_seeds(map, roads, start, allow_sea) {
         Some(seeds) => dijkstra(map, roads, &seeds, allow_sea).0,
         None => BTreeMap::new(),
@@ -197,7 +223,9 @@ pub fn nearest_targets(
     is_target: impl Fn(NodeId) -> bool,
     k: usize,
 ) -> Vec<(NodeId, f32)> {
-    let Some(seeds) = start_seeds(map, roads, start, allow_sea) else { return Vec::new() };
+    let Some(seeds) = start_seeds(map, roads, start, allow_sea) else {
+        return Vec::new();
+    };
     let mut cost: BTreeMap<NodeId, f32> = BTreeMap::new();
     let mut heap: BinaryHeap<Reverse<(u64, NodeId)>> = BinaryHeap::new();
     let key = |c: f32| (c * 1024.0) as u64; // matches dijkstra's int key + tie-break
@@ -234,7 +262,13 @@ pub fn nearest_targets(
 }
 
 /// Plan a tile-by-tile route. Returns None if unreachable.
-pub fn plan(map: &WorldMap, roads: &[u8], start: Loc, dest: Loc, allow_sea: bool) -> Option<Vec<Loc>> {
+pub fn plan(
+    map: &WorldMap,
+    roads: &[u8],
+    start: Loc,
+    dest: Loc,
+    allow_sea: bool,
+) -> Option<Vec<Loc>> {
     if start == dest {
         return Some(Vec::new());
     }
@@ -273,9 +307,19 @@ pub fn plan(map: &WorldMap, roads: &[u8], start: Loc, dest: Loc, allow_sea: bool
                 return None;
             }
             let n = e.tiles.len() as u16;
-            let m = if e.sea { 1.0 } else { tunables::road_mult(level_of(roads, edge)) };
-            let from_a: f32 = (0..tile).map(|t| tile_cost(e.tiles[t as usize])).sum::<f32>() / m;
-            let from_b: f32 = (tile + 1..n).map(|t| tile_cost(e.tiles[t as usize])).sum::<f32>() / m;
+            let m = if e.sea {
+                1.0
+            } else {
+                tunables::road_mult(level_of(roads, edge))
+            };
+            let from_a: f32 = (0..tile)
+                .map(|t| tile_cost(e.tiles[t as usize]))
+                .sum::<f32>()
+                / m;
+            let from_b: f32 = (tile + 1..n)
+                .map(|t| tile_cost(e.tiles[t as usize]))
+                .sum::<f32>()
+                / m;
             let ca = cost.get(&e.a).map(|c| c + from_a);
             let cb = cost.get(&e.b).map(|c| c + from_b);
             let via_a = match (ca, cb) {
@@ -288,7 +332,10 @@ pub fn plan(map: &WorldMap, roads: &[u8], start: Loc, dest: Loc, allow_sea: bool
             let mut tail: Vec<Loc> = if via_a {
                 (0..=tile).map(|t| Loc::Edge { edge, tile: t }).collect()
             } else {
-                (tile..n).rev().map(|t| Loc::Edge { edge, tile: t }).collect()
+                (tile..n)
+                    .rev()
+                    .map(|t| Loc::Edge { edge, tile: t })
+                    .collect()
             };
             tail.pop(); // the dest tile itself is appended below
             tail.push(dest);
@@ -346,7 +393,10 @@ pub fn neighbors(map: &WorldMap, loc: Loc) -> Vec<Loc> {
                 if edge.a == n {
                     Loc::Edge { edge: e, tile: 0 }
                 } else {
-                    Loc::Edge { edge: e, tile: last }
+                    Loc::Edge {
+                        edge: e,
+                        tile: last,
+                    }
                 }
             })
             .collect(),
@@ -354,11 +404,21 @@ pub fn neighbors(map: &WorldMap, loc: Loc) -> Vec<Loc> {
             let e = &map.edges[edge as usize];
             let last = e.tiles.len() as u16 - 1;
             let mut out = Vec::with_capacity(2);
-            out.push(if tile == 0 { Loc::Node(e.a) } else { Loc::Edge { edge, tile: tile - 1 } });
+            out.push(if tile == 0 {
+                Loc::Node(e.a)
+            } else {
+                Loc::Edge {
+                    edge,
+                    tile: tile - 1,
+                }
+            });
             out.push(if tile == last {
                 Loc::Node(e.b)
             } else {
-                Loc::Edge { edge, tile: tile + 1 }
+                Loc::Edge {
+                    edge,
+                    tile: tile + 1,
+                }
             });
             out
         }

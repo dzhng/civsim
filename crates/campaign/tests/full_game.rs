@@ -85,7 +85,10 @@ fn fast_resolve(setup: &contract::BattleSetup) -> contract::BattleResult {
         team_str[team as usize] += u.count as u64 * weight(u.class);
     }
     let victor = if team_str[0] >= team_str[1] { 0 } else { 1 };
-    let (ws, ls) = (team_str[victor as usize].max(1), team_str[1 - victor as usize].max(1));
+    let (ws, ls) = (
+        team_str[victor as usize].max(1),
+        team_str[1 - victor as usize].max(1),
+    );
     let ratio = ls as f64 / ws as f64; // 0..1, how close the loser was
     let winner_surv = (1.0 - 0.45 * ratio).clamp(0.5, 1.0);
     let loser_surv = (0.45 * ratio).clamp(0.0, 0.5);
@@ -105,7 +108,10 @@ fn fast_resolve(setup: &contract::BattleSetup) -> contract::BattleResult {
             }
         })
         .collect();
-    contract::BattleResult { victor, units: results }
+    contract::BattleResult {
+        victor,
+        units: results,
+    }
 }
 
 struct Report {
@@ -233,14 +239,23 @@ fn play(
 
 fn print_report(r: &Report) {
     println!("\n========== CAMPAIGN LOOP REPORT ==========");
-    println!("simulated:          {} days ({:.1} years)", r.days, r.days as f64 / 365.0);
+    println!(
+        "simulated:          {} days ({:.1} years)",
+        r.days,
+        r.days as f64 / 365.0
+    );
     println!("battles fought:     {}", r.battles);
     println!(
         "first contact:      {}",
-        r.first_contact_day.map(|d| format!("day {d}")).unwrap_or_else(|| "NEVER".into())
+        r.first_contact_day
+            .map(|d| format!("day {d}"))
+            .unwrap_or_else(|| "NEVER".into())
     );
     println!("city flips:         {}", r.city_flips);
-    println!("longest inert run:  {} days (no battle, no flip)", r.longest_inert_days);
+    println!(
+        "longest inert run:  {} days (no battle, no flip)",
+        r.longest_inert_days
+    );
     println!(
         "outcome:            {}",
         match r.outcome {
@@ -271,7 +286,10 @@ fn print_report(r: &Report) {
     println!("\ncities held over time:");
     print!("  {:>6}", "day");
     for &f in &r.playable {
-        print!("  {:>10}", &r.names[f as usize][..r.names[f as usize].len().min(10)]);
+        print!(
+            "  {:>10}",
+            &r.names[f as usize][..r.names[f as usize].len().min(10)]
+        );
     }
     println!();
     for (day, stats) in &r.samples {
@@ -290,11 +308,17 @@ fn print_report(r: &Report) {
 #[test]
 #[ignore]
 fn grand_map_report() {
-    let path = concat!(env!("CARGO_MANIFEST_DIR"), "/../../web/public/data/campaign-map.json");
+    let path = concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../../web/public/data/campaign-map.json"
+    );
     let map_json = std::fs::read_to_string(path).expect("real campaign map should be present");
 
     // Horizon override for probing: CAMPAIGN_DAYS=365 cargo test ...
-    let days: u64 = std::env::var("CAMPAIGN_DAYS").ok().and_then(|v| v.parse().ok()).unwrap_or(1095);
+    let days: u64 = std::env::var("CAMPAIGN_DAYS")
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(1095);
     let sample_every = (days / 12).max(1);
     // Fast strength-resolver by default (sweeps years); CAMPAIGN_REAL=1 drives
     // the real battle sim instead (accurate, but only a short horizon is sane).
@@ -306,7 +330,10 @@ fn grand_map_report() {
     println!("wall time: {:.1}s", elapsed.as_secs_f64());
 
     // The loop is only worth tuning if it produces conflict at all.
-    assert!(r.battles > 0, "the powers never fought a single battle in 3 years");
+    assert!(
+        r.battles > 0,
+        "the powers never fought a single battle in 3 years"
+    );
 }
 
 /// A 2-city map, red far stronger than blue: red's AI must march on blue's
@@ -339,7 +366,14 @@ fn lopsided_map() -> &'static str {
 
 #[test]
 fn lopsided_war_concludes() {
-    let r = play(lopsided_map(), 7, 200, 50, /* fast */ false, /* verbose */ false);
+    let r = play(
+        lopsided_map(),
+        7,
+        200,
+        50,
+        /* fast */ false,
+        /* verbose */ false,
+    );
     assert!(r.battles > 0, "the strong power never engaged the weak one");
     assert_eq!(
         r.outcome,

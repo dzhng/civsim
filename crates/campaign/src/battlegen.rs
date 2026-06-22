@@ -61,8 +61,14 @@ pub fn generate(map: &WorldMap, site: Loc, seed: u64) -> TerrainSpec {
         }
         // Scree at the foot.
         ops.push(PaintOp::Rect {
-            min: [side.min(0.0) * HALF_W + if side > 0.0 { HALF_W - 95.0 } else { 0.0 }, -HALF_H],
-            max: [side.max(0.0) * HALF_W + if side < 0.0 { -HALF_W + 95.0 } else { 0.0 }, HALF_H],
+            min: [
+                side.min(0.0) * HALF_W + if side > 0.0 { HALF_W - 95.0 } else { 0.0 },
+                -HALF_H,
+            ],
+            max: [
+                side.max(0.0) * HALF_W + if side < 0.0 { -HALF_W + 95.0 } else { 0.0 },
+                HALF_H,
+            ],
             speed: 0.6,
             rough: 0.45,
             tint: 6,
@@ -77,8 +83,22 @@ pub fn generate(map: &WorldMap, site: Loc, seed: u64) -> TerrainSpec {
             let half_river = 55.0;
             // Marshy banks first, water over them, crossing last (paint order
             // is z-order).
-            ops.push(PaintOp::Capsule { a, b, radius: half_river + 45.0, speed: 0.5, rough: 0.35, tint: 5 });
-            ops.push(PaintOp::Capsule { a, b, radius: half_river, speed: 0.0, rough: 0.0, tint: 1 });
+            ops.push(PaintOp::Capsule {
+                a,
+                b,
+                radius: half_river + 45.0,
+                speed: 0.5,
+                rough: 0.35,
+                tint: 5,
+            });
+            ops.push(PaintOp::Capsule {
+                a,
+                b,
+                radius: half_river,
+                speed: 0.0,
+                rough: 0.0,
+                tint: 1,
+            });
             if feature == TileFeature::Bridge {
                 ops.push(PaintOp::Capsule {
                     a: [0.0, -(half_river + 60.0)],
@@ -118,8 +138,20 @@ pub fn generate(map: &WorldMap, site: Loc, seed: u64) -> TerrainSpec {
         }
         TileFeature::Hill => {
             // High ground under the defender: slow, rough approach.
-            ops.push(PaintOp::Circle { center: [0.0, 320.0], radius: 330.0, speed: 0.8, rough: 0.25, tint: 6 });
-            ops.push(PaintOp::Circle { center: [0.0, 390.0], radius: 190.0, speed: 0.7, rough: 0.3, tint: 6 });
+            ops.push(PaintOp::Circle {
+                center: [0.0, 320.0],
+                radius: 330.0,
+                speed: 0.8,
+                rough: 0.25,
+                tint: 6,
+            });
+            ops.push(PaintOp::Circle {
+                center: [0.0, 390.0],
+                radius: 190.0,
+                speed: 0.7,
+                rough: 0.3,
+                tint: 6,
+            });
         }
         TileFeature::Forest => {
             for _ in 0..7 {
@@ -139,11 +171,23 @@ pub fn generate(map: &WorldMap, site: Loc, seed: u64) -> TerrainSpec {
         // City outskirts: the wall runs along the defender's rear. Terrain
         // only — assaults come later.
         let wall_y = HALF_H - 120.0;
-        ops.push(PaintOp::Rect { min: [-HALF_W, wall_y], max: [HALF_W, wall_y + 60.0], speed: 0.0, rough: 0.0, tint: 3 });
+        ops.push(PaintOp::Rect {
+            min: [-HALF_W, wall_y],
+            max: [HALF_W, wall_y + 60.0],
+            speed: 0.0,
+            rough: 0.0,
+            tint: 3,
+        });
         let towers = 4 + tier as i32 * 2;
         for k in 0..towers {
             let x = -HALF_W + (k as f32 + 0.5) * (2.0 * HALF_W / towers as f32);
-            ops.push(PaintOp::Circle { center: [x, wall_y], radius: 16.0, speed: 0.0, rough: 0.0, tint: 3 });
+            ops.push(PaintOp::Circle {
+                center: [x, wall_y],
+                radius: 16.0,
+                speed: 0.0,
+                rough: 0.0,
+                tint: 3,
+            });
         }
     }
 
@@ -158,9 +202,21 @@ pub fn generate(map: &WorldMap, site: Loc, seed: u64) -> TerrainSpec {
         });
     }
     // The road itself, cosmetic.
-    ops.push(PaintOp::Capsule { a: [0.0, -HALF_H], b: [0.0, HALF_H], radius: 9.0, speed: 1.0, rough: 0.0, tint: 6 });
+    ops.push(PaintOp::Capsule {
+        a: [0.0, -HALF_H],
+        b: [0.0, HALF_H],
+        radius: 9.0,
+        speed: 1.0,
+        rough: 0.0,
+        tint: 6,
+    });
 
-    TerrainSpec { half_w: HALF_W, half_h: HALF_H, cell: CELL, ops }
+    TerrainSpec {
+        half_w: HALF_W,
+        half_h: HALF_H,
+        cell: CELL,
+        ops,
+    }
 }
 
 /// Map-edge entry point + facing for a reinforcement arriving from a given

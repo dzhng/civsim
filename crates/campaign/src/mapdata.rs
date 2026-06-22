@@ -157,12 +157,20 @@ impl WorldMap {
     pub fn from_json(json: &str) -> WorldMap {
         let raw: RawMap = serde_json::from_str(json).expect("campaign map json");
 
-        let faction_idx: BTreeMap<&str, u32> =
-            raw.factions.iter().enumerate().map(|(i, f)| (f.id.as_str(), i as u32)).collect();
+        let faction_idx: BTreeMap<&str, u32> = raw
+            .factions
+            .iter()
+            .enumerate()
+            .map(|(i, f)| (f.id.as_str(), i as u32))
+            .collect();
         let independents = faction_idx["independents"];
 
-        let id_to_idx: BTreeMap<u32, NodeId> =
-            raw.nodes.iter().enumerate().map(|(i, n)| (n.id, i as NodeId)).collect();
+        let id_to_idx: BTreeMap<u32, NodeId> = raw
+            .nodes
+            .iter()
+            .enumerate()
+            .map(|(i, n)| (n.id, i as NodeId))
+            .collect();
         let name_to_idx: BTreeMap<&str, NodeId> = raw
             .nodes
             .iter()
@@ -176,7 +184,11 @@ impl WorldMap {
             .map(|n| Node {
                 name: n.name.clone(),
                 pos: [n.pos[0] as f32, n.pos[1] as f32],
-                kind: if n.kind == "city" { NodeKind::City } else { NodeKind::Junction },
+                kind: if n.kind == "city" {
+                    NodeKind::City
+                } else {
+                    NodeKind::Junction
+                },
                 tier: n.tier,
                 port: n.port,
                 initial_owner: if n.owner.is_empty() {
@@ -192,8 +204,7 @@ impl WorldMap {
             .edges
             .iter()
             .map(|e| {
-                let via: Vec<[f32; 2]> =
-                    e.via.iter().map(|p| [p[0] as f32, p[1] as f32]).collect();
+                let via: Vec<[f32; 2]> = e.via.iter().map(|p| [p[0] as f32, p[1] as f32]).collect();
                 let mut cum = Vec::with_capacity(via.len());
                 let mut acc = 0.0f32;
                 cum.push(0.0);
@@ -237,7 +248,11 @@ impl WorldMap {
             ambush_spots: raw
                 .ambush_spots
                 .iter()
-                .map(|a| AmbushSpot { edge: a.edge, tile: a.tile, side: a.side })
+                .map(|a| AmbushSpot {
+                    edge: a.edge,
+                    tile: a.tile,
+                    side: a.side,
+                })
                 .collect(),
             factions: raw
                 .factions
@@ -284,7 +299,11 @@ impl WorldMap {
         let e = &self.edges[edge as usize];
         let total = *e.cum.last().unwrap();
         let d = total * (tile as f32 + 0.5) / e.tiles.len() as f32;
-        let i = e.cum.partition_point(|&c| c < d).max(1).min(e.via.len() - 1);
+        let i = e
+            .cum
+            .partition_point(|&c| c < d)
+            .max(1)
+            .min(e.via.len() - 1);
         let (c0, c1) = (e.cum[i - 1], e.cum[i]);
         let t = if c1 > c0 { (d - c0) / (c1 - c0) } else { 0.0 };
         let (p0, p1) = (e.via[i - 1], e.via[i]);

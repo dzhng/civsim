@@ -66,8 +66,13 @@ pub fn eligible_reinforcements(
     st: &CampaignState,
     eid: EncounterId,
 ) -> Vec<(ArmyId, f32, f32)> {
-    let Some(e) = st.encounters.iter().find(|e| e.id == eid) else { return Vec::new() };
-    let (att, def) = (&st.armies[e.attacker as usize], &st.armies[e.defender as usize]);
+    let Some(e) = st.encounters.iter().find(|e| e.id == eid) else {
+        return Vec::new();
+    };
+    let (att, def) = (
+        &st.armies[e.attacker as usize],
+        &st.armies[e.defender as usize],
+    );
     let factions = [att.faction, def.faction];
     let site = def.loc;
     let att_bearing = world_bearing(map, site, att.loc);
@@ -84,7 +89,9 @@ pub fn eligible_reinforcements(
         {
             continue;
         }
-        let Some(&(_, dist)) = near.iter().find(|(l, _)| *l == a.loc) else { continue };
+        let Some(&(_, dist)) = near.iter().find(|(l, _)| *l == a.loc) else {
+            continue;
+        };
         // March time to the field, compressed into battle seconds.
         let slowest = a
             .roster
@@ -185,7 +192,11 @@ pub fn battle_setup_for(
     player_faction: FactionId,
 ) -> Option<BattleSetup> {
     commit_reinforcements(map, st, eid);
-    let e = st.encounters.iter().find(|e| e.id == eid && e.phase == EncounterPhase::Pending)?.clone();
+    let e = st
+        .encounters
+        .iter()
+        .find(|e| e.id == eid && e.phase == EncounterPhase::Pending)?
+        .clone();
     let att = &st.armies[e.attacker as usize];
     let def = &st.armies[e.defender as usize];
     let att_team = if def.faction == player_faction { 1 } else { 0 };
@@ -219,7 +230,11 @@ pub fn battle_setup_for(
             let a = &st.armies[id as usize];
             let (entry, facing) = battlegen::entry_point(bearing);
             Reinforcement {
-                team: if a.faction == att.faction { att_team } else { def_team },
+                team: if a.faction == att.faction {
+                    att_team
+                } else {
+                    def_team
+                },
                 units: roster_units(a),
                 entry,
                 facing,
@@ -234,7 +249,12 @@ pub fn battle_setup_for(
     em.no_retreat = no_retreat;
     em.phase = EncounterPhase::Fighting;
     st.battle_ready = None;
-    Some(BattleSetup { seed: e.seed, terrain, deployments, reinforcements })
+    Some(BattleSetup {
+        seed: e.seed,
+        terrain,
+        deployments,
+        reinforcements,
+    })
 }
 
 /// Write a battle's outcome back onto the map: casualties per roster entry,
@@ -246,7 +266,9 @@ pub fn apply_battle_outcome(
     result: &BattleResult,
     player_faction: FactionId,
 ) {
-    let Some(e) = st.encounters.iter().find(|e| e.id == eid).cloned() else { return };
+    let Some(e) = st.encounters.iter().find(|e| e.id == eid).cloned() else {
+        return;
+    };
     let att = &st.armies[e.attacker as usize];
     let def = &st.armies[e.defender as usize];
     let att_team: u32 = if def.faction == player_faction { 1 } else { 0 };
@@ -255,7 +277,11 @@ pub fn apply_battle_outcome(
     // Casualties and rally scars.
     for u in &result.units {
         let (army, entry) = ((u.id >> 8) as usize, (u.id & 0xFF) as usize);
-        let Some(r) = st.armies.get_mut(army).and_then(|a| a.roster.get_mut(entry)) else {
+        let Some(r) = st
+            .armies
+            .get_mut(army)
+            .and_then(|a| a.roster.get_mut(entry))
+        else {
             continue;
         };
         if u.deployed {
@@ -269,10 +295,18 @@ pub fn apply_battle_outcome(
         .into_iter()
         .chain(e.reinforcements.iter().map(|&(id, ..)| id))
         .collect();
-    let winner_faction = if result.victor == att_team { att_faction } else { def_faction };
+    let winner_faction = if result.victor == att_team {
+        att_faction
+    } else {
+        def_faction
+    };
     // The force a beaten army must break away from: the main army on the
     // winning side. Every other hostile can still run it down mid-flight.
-    let victor_army = if att_faction == winner_faction { e.attacker } else { e.defender };
+    let victor_army = if att_faction == winner_faction {
+        e.attacker
+    } else {
+        e.defender
+    };
 
     for id in involved {
         let a = &mut st.armies[id as usize];

@@ -98,7 +98,13 @@ pub struct BuildInput {
 }
 
 pub fn build(input: BuildInput) -> MapJson {
-    let BuildInput { sites, routes, mountains, rivers, overrides } = input;
+    let BuildInput {
+        sites,
+        routes,
+        mountains,
+        rivers,
+        overrides,
+    } = input;
 
     // World extent from sites.
     let bb = BBox::of(sites.values().map(|s| s.pos)).pad(150.0);
@@ -123,7 +129,11 @@ pub fn build(input: BuildInput) -> MapJson {
     let mut ports: BTreeSet<u32> = BTreeSet::new();
 
     for r in &routes {
-        let key = (r.a.min(r.b), r.a.max(r.b), matches!(r.kind, RouteKind::Sea) as u8);
+        let key = (
+            r.a.min(r.b),
+            r.a.max(r.b),
+            matches!(r.kind, RouteKind::Sea) as u8,
+        );
         if !seen.insert(key) {
             continue;
         }
@@ -154,9 +164,15 @@ pub fn build(input: BuildInput) -> MapJson {
             let mid = point_along(&via, (k as f64 + 0.5) * step);
             let t = if matches!(r.kind, RouteKind::Sea) {
                 "sea"
-            } else if river_grid.crosses(point_along(&via, k as f64 * step), point_along(&via, (k + 1) as f64 * step)) {
+            } else if river_grid.crosses(
+                point_along(&via, k as f64 * step),
+                point_along(&via, (k + 1) as f64 * step),
+            ) {
                 "bridge"
-            } else if mountains.iter().any(|m| m.bbox.contains(mid) && point_in_poly(mid, &m.rings)) {
+            } else if mountains
+                .iter()
+                .any(|m| m.bbox.contains(mid) && point_in_poly(mid, &m.rings))
+            {
                 if hash(eidx as u64, k as u64) % 3 == 0 {
                     "pass"
                 } else {
@@ -176,7 +192,11 @@ pub fn build(input: BuildInput) -> MapJson {
                 ambush_spots.push(AmbushJson {
                     edge: eidx,
                     tile: k,
-                    side: if hash(eidx as u64, k as u64 + 7) % 2 == 0 { -1 } else { 1 },
+                    side: if hash(eidx as u64, k as u64 + 7) % 2 == 0 {
+                        -1
+                    } else {
+                        1
+                    },
                 });
             }
             tiles.push(t);
@@ -184,7 +204,11 @@ pub fn build(input: BuildInput) -> MapJson {
         edges.push(EdgeJson {
             a: r.a,
             b: r.b,
-            kind: if matches!(r.kind, RouteKind::Sea) { "sea" } else { "road" },
+            kind: if matches!(r.kind, RouteKind::Sea) {
+                "sea"
+            } else {
+                "road"
+            },
             via,
             tiles,
         });
@@ -194,16 +218,22 @@ pub fn build(input: BuildInput) -> MapJson {
     let connected: BTreeSet<u32> = edges.iter().flat_map(|e| [e.a, e.b]).collect();
 
     let mut tier_override: BTreeMap<String, u8> = BTreeMap::new();
-    for (label, t) in overrides["tier_overrides"].as_object().expect("tier_overrides") {
+    for (label, t) in overrides["tier_overrides"]
+        .as_object()
+        .expect("tier_overrides")
+    {
         tier_override.insert(label.clone(), t.as_u64().unwrap() as u8);
     }
     let base_tier = |s: &OrbisSite| -> u8 {
-        tier_override.get(&s.label).copied().unwrap_or(match s.rank {
-            100 => 3,
-            90 => 2,
-            80 => 1,
-            _ => 0,
-        })
+        tier_override
+            .get(&s.label)
+            .copied()
+            .unwrap_or(match s.rank {
+                100 => 3,
+                90 => 2,
+                80 => 1,
+                _ => 0,
+            })
     };
 
     // City ownership: instead of a hand-picked scatter of named cities, grow each
@@ -416,12 +446,15 @@ pub fn build(input: BuildInput) -> MapJson {
     let mut nodes: Vec<NodeJson> = Vec::new();
     let mut resolved: BTreeSet<&str> = BTreeSet::new();
     for s in sites.values().filter(|s| connected.contains(&s.id)) {
-        let mut tier = tier_override.get(&s.label).copied().unwrap_or(match s.rank {
-            100 => 3,
-            90 => 2,
-            80 => 1,
-            _ => 0,
-        });
+        let mut tier = tier_override
+            .get(&s.label)
+            .copied()
+            .unwrap_or(match s.rank {
+                100 => 3,
+                90 => 2,
+                80 => 1,
+                _ => 0,
+            });
         // Faction-assigned sites are always cities, whatever their ORBIS rank.
         if owner_of.contains_key(&s.label) {
             tier = tier.max(1);
@@ -429,7 +462,10 @@ pub fn build(input: BuildInput) -> MapJson {
         }
         let is_city = tier > 0;
         let owner = if is_city {
-            owner_of.get(&s.label).cloned().unwrap_or_else(|| "independents".into())
+            owner_of
+                .get(&s.label)
+                .cloned()
+                .unwrap_or_else(|| "independents".into())
         } else {
             String::new()
         };

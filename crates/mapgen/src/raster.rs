@@ -29,12 +29,21 @@ impl Raster {
             px[i * 4..i * 4 + 3].copy_from_slice(&SEA);
             px[i * 4 + 3] = 255;
         }
-        Raster { w, h, px, bb, scale: px_per_km }
+        Raster {
+            w,
+            h,
+            px,
+            bb,
+            scale: px_per_km,
+        }
     }
 
     /// World km → pixel (y flipped: world +y north, raster row 0 top).
     fn to_px(&self, p: [f64; 2]) -> [f64; 2] {
-        [(p[0] - self.bb.min[0]) * self.scale, (self.bb.max[1] - p[1]) * self.scale]
+        [
+            (p[0] - self.bb.min[0]) * self.scale,
+            (self.bb.max[1] - p[1]) * self.scale,
+        ]
     }
 
     fn put(&mut self, x: i64, y: i64, c: [u8; 3]) {
@@ -46,8 +55,11 @@ impl Raster {
 
     /// Scanline even-odd fill of one polygon (with holes) in pixel space.
     pub fn fill_poly(&mut self, poly: &Poly, c: [u8; 3]) {
-        let rings: Vec<Vec<[f64; 2]>> =
-            poly.rings.iter().map(|r| r.iter().map(|&p| self.to_px(p)).collect()).collect();
+        let rings: Vec<Vec<[f64; 2]>> = poly
+            .rings
+            .iter()
+            .map(|r| r.iter().map(|&p| self.to_px(p)).collect())
+            .collect();
         let bb = BBox::of(rings.iter().flatten().copied());
         let y0 = bb.min[1].floor().max(0.0) as usize;
         let y1 = (bb.max[1].ceil() as usize).min(self.h.saturating_sub(1));
@@ -106,7 +118,10 @@ impl Raster {
         let mut enc = png::Encoder::new(std::io::BufWriter::new(f), self.w as u32, self.h as u32);
         enc.set_color(png::ColorType::Rgba);
         enc.set_depth(png::BitDepth::Eight);
-        enc.write_header().unwrap().write_image_data(&self.px).unwrap();
+        enc.write_header()
+            .unwrap()
+            .write_image_data(&self.px)
+            .unwrap();
     }
 }
 
@@ -119,7 +134,12 @@ pub fn paint(
     rivers: &[Vec<[f64; 2]>],
 ) -> Raster {
     let mut r = Raster::new(bb, px_per_km);
-    let visible = |p: &Poly| p.bbox.max[0] >= bb.min[0] && p.bbox.min[0] <= bb.max[0] && p.bbox.max[1] >= bb.min[1] && p.bbox.min[1] <= bb.max[1];
+    let visible = |p: &Poly| {
+        p.bbox.max[0] >= bb.min[0]
+            && p.bbox.min[0] <= bb.max[0]
+            && p.bbox.max[1] >= bb.min[1]
+            && p.bbox.min[1] <= bb.max[1]
+    };
     for p in land.iter().filter(|p| visible(p)) {
         r.fill_poly(p, LAND);
     }

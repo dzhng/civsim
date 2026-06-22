@@ -12,7 +12,10 @@ pub fn project(lon: f64, lat: f64) -> [f64; 2] {
     let (l, p) = (lon.to_radians(), lat.to_radians());
     let c = 1.0 + p0.sin() * p.sin() + p0.cos() * p.cos() * (l - l0).cos();
     let k = (2.0 / c).sqrt() * EARTH_R_KM;
-    [k * p.cos() * (l - l0).sin(), k * (p0.cos() * p.sin() - p0.sin() * p.cos() * (l - l0).cos())]
+    [
+        k * p.cos() * (l - l0).sin(),
+        k * (p0.cos() * p.sin() - p0.sin() * p.cos() * (l - l0).cos()),
+    ]
 }
 
 pub fn dist(a: [f64; 2], b: [f64; 2]) -> f64 {
@@ -30,7 +33,10 @@ pub fn point_along(pts: &[[f64; 2]], d: f64) -> [f64; 2] {
         let seg = dist(w[0], w[1]);
         if rem <= seg && seg > 0.0 {
             let t = rem / seg;
-            return [w[0][0] + (w[1][0] - w[0][0]) * t, w[0][1] + (w[1][1] - w[0][1]) * t];
+            return [
+                w[0][0] + (w[1][0] - w[0][0]) * t,
+                w[0][1] + (w[1][1] - w[0][1]) * t,
+            ];
         }
         rem -= seg;
     }
@@ -83,7 +89,10 @@ pub struct BBox {
 
 impl BBox {
     pub fn of(pts: impl Iterator<Item = [f64; 2]>) -> BBox {
-        let mut bb = BBox { min: [f64::MAX; 2], max: [f64::MIN; 2] };
+        let mut bb = BBox {
+            min: [f64::MAX; 2],
+            max: [f64::MIN; 2],
+        };
         for p in pts {
             for k in 0..2 {
                 bb.min[k] = bb.min[k].min(p[k]);
@@ -96,7 +105,10 @@ impl BBox {
         p[0] >= self.min[0] && p[0] <= self.max[0] && p[1] >= self.min[1] && p[1] <= self.max[1]
     }
     pub fn pad(&self, m: f64) -> BBox {
-        BBox { min: [self.min[0] - m, self.min[1] - m], max: [self.max[0] + m, self.max[1] + m] }
+        BBox {
+            min: [self.min[0] - m, self.min[1] - m],
+            max: [self.max[0] + m, self.max[1] + m],
+        }
     }
 }
 
@@ -114,13 +126,32 @@ impl SegGrid {
     pub fn new(bb: BBox, cell: f64) -> SegGrid {
         let w = ((bb.max[0] - bb.min[0]) / cell).ceil().max(1.0) as usize;
         let h = ((bb.max[1] - bb.min[1]) / cell).ceil().max(1.0) as usize;
-        SegGrid { cell, origin: bb.min, w, h, bins: vec![Vec::new(); w * h], segs: Vec::new() }
+        SegGrid {
+            cell,
+            origin: bb.min,
+            w,
+            h,
+            bins: vec![Vec::new(); w * h],
+            segs: Vec::new(),
+        }
     }
     fn cells_of(&self, a: [f64; 2], b: [f64; 2]) -> Vec<usize> {
-        let x0 = (((a[0].min(b[0]) - self.origin[0]) / self.cell).floor().max(0.0) as usize).min(self.w - 1);
-        let x1 = (((a[0].max(b[0]) - self.origin[0]) / self.cell).floor().max(0.0) as usize).min(self.w - 1);
-        let y0 = (((a[1].min(b[1]) - self.origin[1]) / self.cell).floor().max(0.0) as usize).min(self.h - 1);
-        let y1 = (((a[1].max(b[1]) - self.origin[1]) / self.cell).floor().max(0.0) as usize).min(self.h - 1);
+        let x0 = (((a[0].min(b[0]) - self.origin[0]) / self.cell)
+            .floor()
+            .max(0.0) as usize)
+            .min(self.w - 1);
+        let x1 = (((a[0].max(b[0]) - self.origin[0]) / self.cell)
+            .floor()
+            .max(0.0) as usize)
+            .min(self.w - 1);
+        let y0 = (((a[1].min(b[1]) - self.origin[1]) / self.cell)
+            .floor()
+            .max(0.0) as usize)
+            .min(self.h - 1);
+        let y1 = (((a[1].max(b[1]) - self.origin[1]) / self.cell)
+            .floor()
+            .max(0.0) as usize)
+            .min(self.h - 1);
         let mut out = Vec::new();
         for y in y0..=y1 {
             for x in x0..=x1 {

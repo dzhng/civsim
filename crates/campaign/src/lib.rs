@@ -10,8 +10,8 @@ pub mod pathfind;
 pub mod resolve;
 pub mod sim;
 pub mod state;
-pub mod visibility;
 pub mod tunables;
+pub mod visibility;
 
 use mapdata::WorldMap;
 use state::*;
@@ -39,7 +39,9 @@ impl Campaign {
     }
 
     pub fn order_halt(&mut self, army: ArmyId) -> bool {
-        let Some(a) = self.state.armies.get_mut(army as usize) else { return false };
+        let Some(a) = self.state.armies.get_mut(army as usize) else {
+            return false;
+        };
         if !a.alive() || matches!(a.stance, Stance::Routed { .. }) {
             return false;
         }
@@ -57,7 +59,11 @@ impl Campaign {
     }
 
     /// Apply a finished battle's result back onto the campaign.
-    pub fn apply_outcome(&mut self, encounter: state::EncounterId, result: &contract::BattleResult) {
+    pub fn apply_outcome(
+        &mut self,
+        encounter: state::EncounterId,
+        result: &contract::BattleResult,
+    ) {
         let pf = self.state.player_faction;
         resolve::apply_battle_outcome(&self.map, &mut self.state, encounter, result, pf);
     }
@@ -65,20 +71,32 @@ impl Campaign {
     /// Slip off the road into a hiding spot. Valid while halted on the
     /// spot's trigger tile; the army settles, then vanishes from enemy view.
     pub fn order_ambush(&mut self, army: ArmyId, spot: u32) -> bool {
-        let Some(sp) = self.map.ambush_spots.get(spot as usize) else { return false };
-        let trigger = state::Loc::Edge { edge: sp.edge, tile: sp.tile };
-        let Some(a) = self.state.armies.get_mut(army as usize) else { return false };
+        let Some(sp) = self.map.ambush_spots.get(spot as usize) else {
+            return false;
+        };
+        let trigger = state::Loc::Edge {
+            edge: sp.edge,
+            tile: sp.tile,
+        };
+        let Some(a) = self.state.armies.get_mut(army as usize) else {
+            return false;
+        };
         if !a.alive() || !a.halted() || a.encounter.is_some() || a.loc != trigger {
             return false;
         }
-        a.stance = state::Stance::Ambush { spot, settle_ticks_left: tunables::AMBUSH_SETTLE_TICKS };
+        a.stance = state::Stance::Ambush {
+            spot,
+            settle_ticks_left: tunables::AMBUSH_SETTLE_TICKS,
+        };
         true
     }
 
     /// Dig in where the army stands: halted, on land, free of entanglements.
     pub fn order_camp(&mut self, army: ArmyId) -> bool {
         use state::{Loc, Stance};
-        let Some(a) = self.state.armies.get(army as usize) else { return false };
+        let Some(a) = self.state.armies.get(army as usize) else {
+            return false;
+        };
         let on_sea = matches!(a.loc, Loc::Edge { edge, .. } if self.map.edges[edge as usize].sea);
         if !a.alive()
             || !a.halted()
@@ -89,8 +107,9 @@ impl Campaign {
         {
             return false;
         }
-        self.state.armies[army as usize].stance =
-            Stance::Camp { build_ticks_left: tunables::CAMP_BUILD_TICKS };
+        self.state.armies[army as usize].stance = Stance::Camp {
+            build_ticks_left: tunables::CAMP_BUILD_TICKS,
+        };
         true
     }
 
@@ -239,7 +258,14 @@ mod tests {
         assert_eq!(c.map.nodes.len(), 3);
         assert_eq!(c.state.armies.len(), 2);
         // A -> C by road: 12 tiles + B + 12 tiles + C = 26 locs.
-        let p = pathfind::plan(&c.map, &c.state.road_levels, Loc::Node(0), Loc::Node(2), false).unwrap();
+        let p = pathfind::plan(
+            &c.map,
+            &c.state.road_levels,
+            Loc::Node(0),
+            Loc::Node(2),
+            false,
+        )
+        .unwrap();
         assert_eq!(p.len(), 26);
         assert_eq!(*p.last().unwrap(), Loc::Node(2));
     }
@@ -249,7 +275,7 @@ mod tests {
         let mut c = Campaign::new(test_map(), 7, 0);
         inert(&mut c);
         assert!(c.order_move(0, Loc::Node(0))); // B -> A
-        // 12 tiles + the node, at ~262 ticks/tile for light infantry.
+                                                // 12 tiles + the node, at ~262 ticks/tile for light infantry.
         for _ in 0..14 * 300 {
             c.tick();
         }
@@ -275,7 +301,11 @@ mod tests {
         assert_eq!(e.phase, EncounterPhase::Pending);
         // Both armies frozen and adjacent.
         let (a, d) = (e.attacker as usize, e.defender as usize);
-        assert!(pathfind::in_contact(&c.map, c.state.armies[a].loc, c.state.armies[d].loc));
+        assert!(pathfind::in_contact(
+            &c.map,
+            c.state.armies[a].loc,
+            c.state.armies[d].loc
+        ));
         // Mover is the attacker.
         assert_eq!(e.attacker, 0);
     }
@@ -310,7 +340,6 @@ mod tests {
         panic!("chase never resolved");
     }
 
-
     #[test]
     fn economy_income_upkeep_replenish() {
         let mut c = Campaign::new(test_map(), 7, 0);
@@ -325,7 +354,10 @@ mod tests {
         }
         // Income (tier 2 = 140) beats light-infantry upkeep (~13).
         assert!(c.state.factions[0].treasury > t0, "treasury should grow");
-        assert!(c.state.armies[0].roster[0].count > 500, "should replenish at a friendly city");
+        assert!(
+            c.state.armies[0].roster[0].count > 500,
+            "should replenish at a friendly city"
+        );
         // Garrisons regenerate toward the establishment.
         let g = &c.state.cities[&0].garrison;
         assert!(g.iter().any(|r| r.count > 0), "garrison should regenerate");
@@ -337,12 +369,19 @@ mod tests {
         inert(&mut c);
         c.state.factions[0].treasury = 0;
         // An upkeep far beyond tier-2 income: 20k shock cavalry.
-        c.state.armies[0].roster[0] =
-            RosterEntry { class: contract::UnitClassId::ShockCavalry, count: 20_000, max: 20_000, morale_cap: 1.0 };
+        c.state.armies[0].roster[0] = RosterEntry {
+            class: contract::UnitClassId::ShockCavalry,
+            count: 20_000,
+            max: 20_000,
+            morale_cap: 1.0,
+        };
         for _ in 0..2 * tunables::TICKS_PER_DAY + 2 {
             c.tick();
         }
-        assert!(c.state.armies[0].roster[0].count < 20_000, "unpaid armies desert");
+        assert!(
+            c.state.armies[0].roster[0].count < 20_000,
+            "unpaid armies desert"
+        );
     }
 
     #[test]
@@ -356,7 +395,10 @@ mod tests {
             c.tick();
         }
         let recruited = c.state.armies.iter().any(|a| {
-            a.faction == 0 && a.roster.iter().any(|r| r.class == contract::UnitClassId::Archers && r.count == 240)
+            a.faction == 0
+                && a.roster
+                    .iter()
+                    .any(|r| r.class == contract::UnitClassId::Archers && r.count == 240)
         });
         assert!(recruited, "archers should muster at A");
     }
@@ -380,9 +422,17 @@ mod tests {
         let mut c = Campaign::new(test_map(), 7, 0);
         inert(&mut c);
         c.state.armies[1].roster[0].count = 0; // no blue field army
-        c.state.cities.get_mut(&2).unwrap().garrison.push(RosterEntry {
-            class: contract::UnitClassId::LightSpear, count: 440, max: 440, morale_cap: 1.0,
-        });
+        c.state
+            .cities
+            .get_mut(&2)
+            .unwrap()
+            .garrison
+            .push(RosterEntry {
+                class: contract::UnitClassId::LightSpear,
+                count: 440,
+                max: 440,
+                morale_cap: 1.0,
+            });
         assert!(c.order_move(0, Loc::Node(2)));
         let mut pended = false;
         for _ in 0..20_000 {
@@ -393,7 +443,12 @@ mod tests {
             }
         }
         assert!(pended, "assault on a garrisoned city must become a battle");
-        let g = c.state.armies.iter().find(|a| a.garrison_of == Some(2)).unwrap();
+        let g = c
+            .state
+            .armies
+            .iter()
+            .find(|a| a.garrison_of == Some(2))
+            .unwrap();
         assert!(g.alive() && g.loc == Loc::Node(2));
     }
 
@@ -429,13 +484,30 @@ mod tests {
         let result = contract::BattleResult {
             victor: 0,
             units: vec![
-                contract::UnitResult { id: red_id, team: 0, survivors: 700, routed: false, morale_cap: 0.9, deployed: true },
-                contract::UnitResult { id: blue_id, team: 1, survivors: 400, routed: true, morale_cap: 0.6, deployed: true },
+                contract::UnitResult {
+                    id: red_id,
+                    team: 0,
+                    survivors: 700,
+                    routed: false,
+                    morale_cap: 0.9,
+                    deployed: true,
+                },
+                contract::UnitResult {
+                    id: blue_id,
+                    team: 1,
+                    survivors: 400,
+                    routed: true,
+                    morale_cap: 0.6,
+                    deployed: true,
+                },
             ],
         };
         c.apply_outcome(eid, &result);
         assert_eq!(c.state.armies[0].roster[0].count, 700);
-        assert_eq!(c.state.armies[1].roster[0].count, 0, "cornered: captured and wiped");
+        assert_eq!(
+            c.state.armies[1].roster[0].count, 0,
+            "cornered: captured and wiped"
+        );
         assert!(c.state.encounters.is_empty());
     }
 
@@ -459,19 +531,39 @@ mod tests {
         let result = contract::BattleResult {
             victor: 0,
             units: vec![
-                contract::UnitResult { id: red_id, team: 0, survivors: 700, routed: false, morale_cap: 0.9, deployed: true },
-                contract::UnitResult { id: blue_id, team: 1, survivors: 400, routed: true, morale_cap: 0.6, deployed: true },
+                contract::UnitResult {
+                    id: red_id,
+                    team: 0,
+                    survivors: 700,
+                    routed: false,
+                    morale_cap: 0.9,
+                    deployed: true,
+                },
+                contract::UnitResult {
+                    id: blue_id,
+                    team: 1,
+                    survivors: 400,
+                    routed: true,
+                    morale_cap: 0.6,
+                    deployed: true,
+                },
             ],
         };
         c.apply_outcome(eid, &result);
-        assert_eq!(c.state.armies[1].roster[0].count, 400, "open road behind: survivors rout");
+        assert_eq!(
+            c.state.armies[1].roster[0].count, 400,
+            "open road behind: survivors rout"
+        );
         assert!(matches!(c.state.armies[1].stance, Stance::Routed { .. }));
         let blue_loc = c.state.armies[1].loc;
         for _ in 0..8_000 {
             c.tick();
         }
         assert_ne!(c.state.armies[1].loc, blue_loc, "routing army runs");
-        assert!(matches!(c.state.armies[1].stance, Stance::Routed { .. } | Stance::Hold));
+        assert!(matches!(
+            c.state.armies[1].stance,
+            Stance::Routed { .. } | Stance::Hold
+        ));
     }
 
     #[test]
@@ -486,8 +578,15 @@ mod tests {
         for _ in 0..30 * tunables::TICKS_PER_DAY {
             c.tick();
             recruited |= !c.state.cities[&2].recruit_queue.is_empty()
-                || c.state.armies.iter().any(|a| a.faction == 1 && a.id > 1 && a.alive());
-            marched |= c.state.armies.iter().any(|a| a.faction == 1 && a.marching());
+                || c.state
+                    .armies
+                    .iter()
+                    .any(|a| a.faction == 1 && a.id > 1 && a.alive());
+            marched |= c
+                .state
+                .armies
+                .iter()
+                .any(|a| a.faction == 1 && a.marching());
             if c.state.cities[&0].owner == 1 || (recruited && marched) {
                 break;
             }
@@ -504,7 +603,10 @@ mod tests {
         // forest in this map; ambush_spots[0] points at edge 0 tile 2 - use
         // whatever the map defines).
         let sp = &c.map.ambush_spots[0];
-        let trigger = Loc::Edge { edge: sp.edge, tile: sp.tile };
+        let trigger = Loc::Edge {
+            edge: sp.edge,
+            tile: sp.tile,
+        };
         c.state.armies[1].loc = trigger;
         assert!(c.order_ambush(1, 0));
         for _ in 0..tunables::AMBUSH_SETTLE_TICKS as u32 + 5 {
@@ -551,8 +653,17 @@ mod tests {
         let mut c = Campaign::new(test_map(), 7, 0);
         inert(&mut c);
         // Force the sea lane: dest is a sea tile midway.
-        let p = pathfind::plan(&c.map, &c.state.road_levels, Loc::Node(0), Loc::Edge { edge: 2, tile: 3 }, true).unwrap();
-        assert!(p.iter().all(|l| matches!(l, Loc::Edge { edge: 2, .. } | Loc::Node(_))));
+        let p = pathfind::plan(
+            &c.map,
+            &c.state.road_levels,
+            Loc::Node(0),
+            Loc::Edge { edge: 2, tile: 3 },
+            true,
+        )
+        .unwrap();
+        assert!(p
+            .iter()
+            .all(|l| matches!(l, Loc::Edge { edge: 2, .. } | Loc::Node(_))));
         assert!(c.order_move(0, Loc::Edge { edge: 2, tile: 3 }));
         let mut embarked = false;
         for _ in 0..5_000 {
@@ -626,7 +737,10 @@ mod tests {
         inert(&mut c);
         // Blue settles into the spot, 2 tiles from J.
         let sp = &c.map.ambush_spots[0];
-        c.state.armies[1].loc = Loc::Edge { edge: sp.edge, tile: sp.tile };
+        c.state.armies[1].loc = Loc::Edge {
+            edge: sp.edge,
+            tile: sp.tile,
+        };
         assert!(c.order_ambush(1, 0));
         for _ in 0..tunables::AMBUSH_SETTLE_TICKS as u32 + 10 {
             c.tick();
@@ -636,11 +750,20 @@ mod tests {
             "concealed ambusher should be invisible without an outpost"
         );
         // A finished red watchtower at J turns the woods transparent.
-        c.state.outposts.insert(1, Outpost { owner: 0, build_ticks_left: 0 });
+        c.state.outposts.insert(
+            1,
+            Outpost {
+                owner: 0,
+                build_ticks_left: 0,
+            },
+        );
         for _ in 0..visibility::VIS_EVERY + 1 {
             c.tick();
         }
-        assert!(c.state.visible[0].contains(&1), "outpost should reveal the ambusher");
+        assert!(
+            c.state.visible[0].contains(&1),
+            "outpost should reveal the ambusher"
+        );
     }
 
     #[test]
@@ -667,7 +790,10 @@ mod tests {
                 break;
             }
         }
-        assert!(c.state.outposts.is_empty(), "enemy halt should raze the outpost");
+        assert!(
+            c.state.outposts.is_empty(),
+            "enemy halt should raze the outpost"
+        );
     }
 
     #[test]
@@ -701,7 +827,14 @@ mod tests {
         // the planner must choose it.
         c.state.road_levels[2] = 3;
         c.state.road_levels[3] = 3;
-        let p = pathfind::plan(&c.map, &c.state.road_levels, Loc::Node(0), Loc::Node(3), false).unwrap();
+        let p = pathfind::plan(
+            &c.map,
+            &c.state.road_levels,
+            Loc::Node(0),
+            Loc::Node(3),
+            false,
+        )
+        .unwrap();
         assert!(
             p.contains(&Loc::Node(2)),
             "route should pass the southern junction S, got {p:?}"
@@ -748,7 +881,10 @@ mod tests {
                 return; // arrived despite hourly re-orders
             }
         }
-        panic!("hourly re-orders stalled the march at {:?}", c.state.armies[0].loc);
+        panic!(
+            "hourly re-orders stalled the march at {:?}",
+            c.state.armies[0].loc
+        );
     }
 
     #[test]
@@ -806,7 +942,10 @@ mod tests {
                 break; // dissolved: the chaser lost the corner
             }
         }
-        assert!(pended, "equal-speed chase should run the defender down past the corner");
+        assert!(
+            pended,
+            "equal-speed chase should run the defender down past the corner"
+        );
     }
 
     #[test]
@@ -826,7 +965,11 @@ mod tests {
             }
             c.state.factions[0].treasury as i64 - t0 as i64
         };
-        assert_eq!(day(&mut c), tunables::CITY_INCOME[2] as i64, "tier-2 base income");
+        assert_eq!(
+            day(&mut c),
+            tunables::CITY_INCOME[2] as i64,
+            "tier-2 base income"
+        );
 
         assert!(c.order_build(0, BuildKind::Market));
         assert!(!c.order_build(0, BuildKind::Barracks), "one site per city");
@@ -862,7 +1005,12 @@ mod tests {
             c.tick();
         }
         assert!(
-            matches!(c.state.armies[1].stance, Stance::Camp { build_ticks_left: 0 }),
+            matches!(
+                c.state.armies[1].stance,
+                Stance::Camp {
+                    build_ticks_left: 0
+                }
+            ),
             "camp never finished digging in"
         );
         assert!(c.order_move(0, Loc::Node(2)));
@@ -900,7 +1048,10 @@ mod tests {
         // Blue hides at the spot; red CAMPS on the trigger tile. Nothing may
         // spring — camped armies are watchful, not bait.
         let sp = &c.map.ambush_spots[0];
-        let trigger = Loc::Edge { edge: sp.edge, tile: sp.tile };
+        let trigger = Loc::Edge {
+            edge: sp.edge,
+            tile: sp.tile,
+        };
         c.state.armies[1].loc = trigger;
         assert!(c.order_ambush(1, 0));
         for _ in 0..tunables::AMBUSH_SETTLE_TICKS as u32 + 5 {

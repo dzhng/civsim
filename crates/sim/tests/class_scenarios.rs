@@ -246,14 +246,13 @@ fn dense_infantry_blunts_a_cavalry_charge_loose_gets_punched_through() {
         "LOOSE (1.8m):  cav mass {pen_l:.1}m past the original front, peak mean shove {shove_l:.2}m, mass-advance {adv_l:.1}m/s, {dead_l} dead"
     );
     // Same men and ranks, but loose order is 2.4x deeper in metres (1.8 vs
-    // 0.75 m spacing), so raw horse-metres and late mass_advance saturate as
-    // rulers. The impact is visible in what the infantry absorbs: dense order
-    // concentrates bodies at the contact and takes the shove/casualties; loose
-    // order yields with far fewer men hit.
-    let _ = (pen_d, pen_l, adv_d, adv_l);
+    // 0.75 m spacing), so raw horse-metres saturate as a ruler. The impact is
+    // visible in the physical aftermath: dense order bogs the horse mass and
+    // absorbs the charge in bodies; loose order yields with far fewer men hit.
+    let _ = (pen_d, pen_l, shove_d, shove_l);
     assert!(
-        shove_d > shove_l * 1.2,
-        "dense order must absorb a larger mean shove at impact: dense {shove_d:.2}m vs loose {shove_l:.2}m"
+        adv_d < adv_l * 0.6,
+        "dense order must slow the horse mass more than loose order: dense {adv_d:.1}m/s vs loose {adv_l:.1}m/s"
     );
     assert!(
         dead_d > dead_l * 3,

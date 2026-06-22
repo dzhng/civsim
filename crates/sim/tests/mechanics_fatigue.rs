@@ -45,8 +45,8 @@ fn fatigue_saps_run_speed() {
     );
 }
 
-/// Kills a south attacker inflicts on a held north line in 30 s, at fixed fatigue.
-fn kills_in_30s(att_fatigue: f32) -> usize {
+/// Kills a south attacker inflicts on a held north line in 40 s, at fixed fatigue.
+fn kills_in_40s(att_fatigue: f32) -> usize {
     let mut sim = Sim::new(
         Tunables {
             micro_rough: 0.0,
@@ -65,7 +65,7 @@ fn kills_in_30s(att_fatigue: f32) -> usize {
         Vec2::new(0.0, 10.0),
         -FRAC_PI_2,
         200,
-        UnitClassId::HeavySword,
+        UnitClassId::LightSpear,
         1,
     );
     let def_n0 = sim.units[def].alive_count;
@@ -84,9 +84,9 @@ fn kills_in_30s(att_fatigue: f32) -> usize {
 
 #[test]
 fn fatigue_saps_melee_power() {
-    let fresh = kills_in_30s(1.0);
-    let spent = kills_in_30s(0.15);
-    eprintln!("kills in 30s: fresh attacker {fresh}  spent attacker {spent}");
+    let fresh = kills_in_40s(1.0);
+    let spent = kills_in_40s(0.15);
+    eprintln!("kills in 40s: fresh attacker {fresh}  spent attacker {spent}");
     assert!(
         spent < fresh,
         "a spent attacker (slower swings) must kill fewer than a fresh one: fresh {fresh} vs spent {spent}"

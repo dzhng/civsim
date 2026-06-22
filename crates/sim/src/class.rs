@@ -251,7 +251,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             spacing: Vec2::new(0.9, 1.1),
             default_depth: 8,
             health: 2.4, // the armor IS the class: a third more body than the levy, plus the shield
-            block: 0.45, // a real shield wall sheds ~half the frontal arrows; the back is bare (back ~1.8x deaths)
+            block: 0.5, // a real shield wall sheds ~half the frontal arrows; the back is bare (back ~1.8x deaths)
             evade: 0.08,
             training: 0.75,
             weapons: one(SWORD),

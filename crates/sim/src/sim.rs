@@ -1437,12 +1437,13 @@ impl Sim {
             // wrap on the advance) instead of every man tugging a rigid grid
             // point on his own. The slot still anchors the sheet so it springs
             // back to shape.
-            let mut soldier_at_slot = vec![usize::MAX; u.count];
+            let slot_capacity = u.count.div_ceil(u.files_eff.max(1)) * u.files_eff.max(1);
+            let mut soldier_at_slot = vec![usize::MAX; slot_capacity];
             for s in 0..u.count {
                 let i = u.start + s;
                 if alive[i] == 1 {
                     let sl = soldier_slot[i] as usize;
-                    if sl < u.count {
+                    if sl < slot_capacity {
                         soldier_at_slot[sl] = i;
                     }
                 }
@@ -1697,7 +1698,7 @@ impl Sim {
                         }
                     }
                     let right_steps = (files - 1 - file)
-                        .min(u.count.saturating_sub(1).saturating_sub(si))
+                        .min(slot_capacity.saturating_sub(1).saturating_sub(si))
                         .min(neighbor_skip);
                     for step in 1..=right_steps {
                         let ns = si + step;
@@ -1715,10 +1716,10 @@ impl Sim {
                             break;
                         }
                     }
-                    let ranks = u.count.div_ceil(files);
+                    let ranks = slot_capacity.div_ceil(files);
                     for step in 1..=((ranks - 1 - rank).min(neighbor_skip)) {
                         let ns = si + files * step;
-                        if ns >= u.count {
+                        if ns >= slot_capacity {
                             break;
                         }
                         let j = soldier_at_slot[ns];
@@ -1949,8 +1950,15 @@ impl Sim {
                 if formation_blocks_forward {
                     let forward = v.dot(f);
                     // Slow press is allowed; march/slot/cruise speed through the
-                    // enemy corridor is not.
-                    let cap = tun.base_speed * 0.2;
+                    // enemy corridor is not. Pure Move gets a little more creep
+                    // to preserve move==attack; combat latches get the tighter
+                    // cap that keeps rear ranks from feeding center trampling.
+                    let cap = tun.base_speed
+                        * if u.move_target.is_some() && matches!(u.mode, OrderMode::Move) {
+                            0.2
+                        } else {
+                            0.15
+                        };
                     if forward > cap {
                         v = v - f * (forward - cap);
                     }

@@ -299,13 +299,15 @@ impl Unit {
 }
 
 /// Give every soldier the nearest slot in the unit's current frame: sort by
-/// depth behind the anchor, chunk into ranks, sort each rank laterally, pack
-/// onto slots `0..alive_count`. This is the formation re-form — it flows the
-/// line with whatever has happened to it: a charge shoves men back and they
-/// relabel to nearer slots (the line absorbs, never an unnaturally rigid wall);
-/// the dead vacate slots and the survivors re-pack to fill them (when a column
-/// breaks through the middle, the men on both sides swamp the breach). Run on
-/// pivot, on casualties, and at a slow drumbeat while engaged. O(n log n).
+/// depth behind the anchor, chunk into ranks, sort each rank laterally, and
+/// assign slots in the current grid. Full ranks fill every file; a partial rank
+/// keeps its nearest lateral files instead of being left-packed, so wrap/flank
+/// casualties do not relabel survivors into artificial streamers. This is the
+/// formation re-form — it flows the line with whatever has happened to it: a
+/// charge shoves men back and they relabel to nearer slots (the line absorbs,
+/// never an unnaturally rigid wall); the dead vacate slots and the survivors
+/// re-pack without erasing the bend of a partially wrapped line. Run on pivot,
+/// on casualties, and at a slow drumbeat while engaged. O(n log n).
 ///
 /// `fidget_offset[i]` (the idle-liveliness sway the steer pass added in place)
 /// is SUBTRACTED before sorting, so the sort sees each man at his true settled
@@ -337,11 +339,21 @@ pub(crate) fn reassign_slots(
         })
         .collect();
     order.sort_by(|a, b| a.0.total_cmp(&b.0));
-    for rank in order.chunks_mut(u.files_eff.max(1)) {
+    let files = u.files_eff.max(1);
+    for (rank_idx, rank) in order.chunks_mut(files).enumerate() {
         rank.sort_by(|a, b| a.1.total_cmp(&b.1));
-    }
-    for (slot, &(_, _, s)) in order.iter().enumerate() {
-        soldier_slot[u.start + s as usize] = slot as u32;
+        let n = rank.len();
+        let first_file = if n < files {
+            let mean_lateral = rank.iter().map(|(_, lat, _)| *lat).sum::<f32>() / n as f32;
+            let centered_file = mean_lateral / u.spacing.x.max(0.2) + (files as f32 - 1.0) * 0.5
+                - (n as f32 - 1.0) * 0.5;
+            (centered_file.round() as isize).clamp(0, (files - n) as isize) as usize
+        } else {
+            0
+        };
+        for (k, &(_, _, s)) in rank.iter().enumerate() {
+            soldier_slot[u.start + s as usize] = (rank_idx * files + first_file + k) as u32;
+        }
     }
 }
 

@@ -794,6 +794,10 @@ fn a_mortal_wrapping_line_backfills_casualty_tears() {
         final_file_gap < 4.0,
         "casualty holes must not leave sustained extreme file-to-file streamer tears: late {max_late_file_gap:.1}m, final {final_file_gap:.1}m",
     );
+    assert!(
+        final_file_span < 9.0,
+        "partial-rank survivors must not be re-slotted into sustained front/back streamers: final file span {final_file_span:.1}m",
+    );
 }
 
 #[test]

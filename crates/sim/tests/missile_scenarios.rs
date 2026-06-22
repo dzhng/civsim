@@ -62,7 +62,7 @@ fn dense_blocks_take_more_arrows_than_loose_order() {
 fn shields_block_frontal_volleys_not_rear_ones() {
     let losses = |facing: f32| -> usize {
         let mut sim = Sim::new(no_morale(), SEED);
-        // Heavy infantry: big shields (block 0.45).
+        // Heavy infantry: big shields (block 0.50).
         let target = sim.spawn_class(
             Vec2::new(0.0, 90.0),
             facing,

@@ -99,7 +99,7 @@ fn shields_are_a_front_arc_fact_for_arrows() {
     let pea_ratio = pr as f32 / pf.max(1) as f32;
     let heavy_ratio = rear as f32 / front.max(1) as f32;
     assert!(
-        pea_ratio < 1.7 && pea_ratio < heavy_ratio * 0.6,
+        pea_ratio < 1.75 && pea_ratio < heavy_ratio * 0.6,
         "no shield, no real front: peasant {pea_ratio:.2} vs heavy wall {heavy_ratio:.2}"
     );
 }

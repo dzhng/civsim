@@ -6,16 +6,35 @@
 //   Default: cavalry charges a held phalanx (POINTS STOP HORSE).
 //   Override: ATK=6 DEF=0 node vibe/charge.mjs  (cav into a held heavy line)
 //   Flank:    FLANK=1 ATK=6 DEF=3 node vibe/charge.mjs  (pikes face north, cav rides east)
+//   Wall:     WALL=1 ATK=6 DEF=3 node vibe/charge.mjs   (wide pike front, no flank wrap)
 import { openBattle, vibeCapture, fitDuel, duelSample, duelLabel, CLS } from './_lib.mjs';
 
 const ATK = Number(process.env.ATK ?? CLS.cavalry);  // unit 0, charges
 const DEF = Number(process.env.DEF ?? CLS.phalanx);   // unit 1, holds (braced)
 const FLANK = process.env.FLANK === '1';
+const WALL = process.env.WALL === '1';
 
-const { browser, page, errs } = await openBattle(FLANK ? 'battle=duel&a=0&b=0&ai=off' : `battle=duel&a=${ATK}&b=${DEF}&ai=off`);
+const customStage = FLANK || WALL;
+const query = customStage
+  ? 'battle=duel&a=0&b=0&ai=off'
+  : `battle=duel&a=${ATK}&b=${DEF}&ai=off`;
+const { browser, page, errs } = await openBattle(query);
 
 let ids = [0, 1];
-if (FLANK) {
+if (WALL) {
+  ids = await page.evaluate(({ atkClass, defClass }) => {
+    const HP = Math.PI / 2;
+    const X = 200; // keep the idle duel pair off-frame
+    // Defender faces south, so its phalanx points cover the cavalry's frontal
+    // approach. The pike line is wider than the horse line: unlike cav-v-pike,
+    // there are no exposed ends for the cavalry to wrap around.
+    const def = window.__game.spawnClass(X, 0, -HP, 360, 45, defClass, 1);
+    const atk = window.__game.spawnClass(X, -80, HP, 96, 24, atkClass, 0);
+    window.__game.setPace(atk, 1);
+    window.__game.attackOrder(atk, def);
+    return [atk, def];
+  }, { atkClass: ATK, defClass: DEF });
+} else if (FLANK) {
   ids = await page.evaluate(({ atkClass, defClass }) => {
     const HP = Math.PI / 2;
     const X = 200; // keep the idle duel pair off-frame
@@ -64,14 +83,19 @@ const sampleUnits = () => page.evaluate((ids) => {
 }, ids);
 
 const { frames, resolved, fails } = await vibeCapture(page, process.env.NAME ?? 'charge', {
-  frame: () => (FLANK ? fitUnits() : fitDuel(page)),
-  sample: () => (FLANK ? sampleUnits() : duelSample(page)),
+  frame: () => (customStage ? fitUnits() : fitDuel(page)),
+  sample: () => (customStage ? sampleUnits() : duelSample(page)),
   label: duelLabel,
-  done: (s) => s.victor >= 0 || (FLANK && s.bAlive <= s.bTotal * 0.35),
+  done: (s) =>
+    s.victor >= 0
+    || (FLANK && s.bAlive <= s.bTotal * 0.35)
+    || (WALL && s.aAlive <= s.aTotal * 0.35),
+  maxSteps: WALL ? 12 : 20,
 });
 
+const defenderNote = FLANK ? ', side-on' : WALL ? ', wide wall' : '';
 console.log(resolved ? `\nresolved in ${frames} frames` : `\nUNRESOLVED`);
-console.log(`A = attacker (charging), B = defender (held${FLANK ? ', side-on' : ''})`);
+console.log(`A = attacker (charging), B = defender (held${defenderNote})`);
 if (errs.length) console.log('page errors:', errs.slice(0, 3));
 await browser.close();
 process.exit(fails);

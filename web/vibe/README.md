@@ -66,6 +66,7 @@ table in `all.mjs` when you add a scenario.
 | `pike-v-pike` | `duel-posture.mjs ATK=3 DEF=3 POSTURE=both` | two pike walls, both attack — points-out standoff |
 | `cav-v-heavy` | `duel-posture.mjs ATK=6 DEF=0 POSTURE=both` | horse rides over swords |
 | `cav-v-pike` | `charge.mjs ATK=6 DEF=3` | impale/charge gate: cavalry may wrap a narrower pike front; presented points stop only what hits frontally |
+| `cav-v-pike-wall` | `charge.mjs ATK=6 DEF=3 WALL=1` | frontal control: wide pike wall leaves no exposed flank, so horse should bog on the points |
 | `cav-v-pike-flank` | `charge.mjs ATK=6 DEF=3 FLANK=1` | side-on control: pikes face north, so horse crossing the shafts should trample deeper |
 | `cav-v-heavy-held` | `charge.mjs ATK=6 DEF=0` | a braced line beats a charge |
 | `heavy-v-archers` | `missile.mjs` | arrows attrite the advance, then melee |
@@ -82,6 +83,7 @@ node vibe/duel-posture.mjs                          # default heavy vs heavy, bo
 ATK=3 DEF=6 POSTURE=both node vibe/duel-posture.mjs # phalanx vs cavalry
 ATK=0 DEF=3 POSTURE=hold node vibe/duel-posture.mjs # heavy attacks a holding phalanx
 ATK=6 DEF=3 node vibe/charge.mjs                    # cav charges a held phalanx
+ATK=6 DEF=3 WALL=1 node vibe/charge.mjs             # cav hits a wide phalanx front
 ATK=6 DEF=3 FLANK=1 node vibe/charge.mjs            # cav hits the same phalanx from the side
 NAME=my-test ATK=2 DEF=0 node vibe/duel-posture.mjs # baselines under shots/baseline/vibe/my-test/
 ```

@@ -24,6 +24,10 @@ use crate::unit::{reassign_slots, slot_local, OrderMode, Unit};
 /// line meets it a hair loose; that is the (small, accepted) cost.
 const IDLE_FIDGET: f32 = 0.12;
 const IDLE_GLANCE: f32 = 0.18;
+/// A formation bond may bridge a small casualty gap to the next live man in the
+/// same rank/file. This keeps a line a connected sheet after a few deaths while
+/// still letting real holes stay open.
+const WEAVE_NEIGHBOR_SKIP: usize = 4;
 
 /// Per-unit aggregates `steer_soldiers` measures over its men in one pass, for
 /// `contact_facing` and `integrate_units` to consume. Centroid is carried as the
@@ -730,20 +734,23 @@ impl Sim {
             }
         }
 
-        // Re-form slots while pivoting, after casualties opened real gaps, and
-        // on a slow drumbeat for DEEP engaged blocks. Do NOT periodically re-sort
-        // a living thin line: a dimpled or wrapped sheet needs neighbour identity
-        // to persist while it is deformed. Re-labeling a still-alive 3-4-rank
+        // Re-form slots while pivoting, after casualties opened real gaps in a
+        // non-contact/thick formation, and on a slow drumbeat for DEEP engaged
+        // blocks. Do NOT re-sort a living thin HELD line while it is dimpled:
+        // the neighbour identities are the sheet. Re-labeling a 3-4-rank held
         // line to its current ragged shape erases that memory and turns a clean
-        // bulge into streamers. Deep blocks are different: they need periodic
-        // vacancy/back-rank flow to keep a grind from pancaking, and their depth
-        // makes the sort stable. Deaths still back-fill promptly through
-        // `deaths_since_reform`: a dead hole is a real vacancy, even in a
-        // low-cohesion wrap, and must not leave a living sheet torn open.
+        // bulge into streamers. Advancing/wrapping sheets still need vacancy
+        // flow, and deep blocks need periodic back-rank flow to keep a grind
+        // from pancaking.
         for ui in 0..self.units.len() {
             let ranks = self.units[ui].alive_count as f32 / self.units[ui].files_eff.max(1) as f32;
+            let advancing = self.units[ui].move_target.is_some()
+                || matches!(self.units[ui].mode, OrderMode::Attack(_));
+            let casualty_reform = self.units[ui].deaths_since_reform * 50
+                > self.units[ui].alive_count.max(1)
+                && (self.units[ui].engaged == 0 || ranks >= 5.0 || advancing);
             let needs = self.units[ui].pivoting
-                || self.units[ui].deaths_since_reform * 50 > self.units[ui].alive_count.max(1)
+                || casualty_reform
                 || (self.units[ui].engaged > 0
                     && ranks >= 5.0
                     && self.tick_count % 60 == (ui as u64) % 60)
@@ -1378,25 +1385,21 @@ impl Sim {
                 tun.slot_pull_hold
             };
             let my_files = u.files_eff.max(1);
-            // How WIDE is the band of my own front under contact? A full press
-            // engages across my whole frontage; a narrow column (even several side
-            // by side) engages only the span it covers. Measured as the lateral
-            // (perp-to-facing) extent of my FIGHTING men over my frontage width —
-            // this reads "broad" no matter how many enemy UNITS deliver the press,
-            // where checking a single foe unit's width cannot. (fighting[] is last
-            // tick's — a contact band doesn't jump rank to rank.)
+            // How much of my front is actually under contact? A full press
+            // engages many files across my frontage; separate narrow columns
+            // only engage their local lanes even if their left/right span is wide.
+            // Count covered FILES, not min/max lateral span, so three distinct
+            // breach patches don't masquerade as one continuous wall of pressure.
+            // (fighting[] is last tick's — a contact band doesn't jump rank to rank.)
             let broad_press = {
-                let (mut lo, mut hi, mut any) = (f32::INFINITY, f32::NEG_INFINITY, false);
+                let mut fighting_files = vec![false; my_files];
                 for s in 0..u.count {
                     let i = u.start + s;
                     if alive[i] == 1 && fighting[i] == 1 {
-                        let lat = positions[2 * i] * r.x + positions[2 * i + 1] * r.y;
-                        lo = lo.min(lat);
-                        hi = hi.max(lat);
-                        any = true;
+                        fighting_files[soldier_slot[i] as usize % my_files] = true;
                     }
                 }
-                any && (hi - lo) > 0.5 * (my_files as f32 * u.spacing.x)
+                fighting_files.iter().filter(|&&covered| covered).count() * 2 > my_files
             };
             let reach_u = u.stats.weapons.iter().fold(0.0f32, |m, w| m.max(w.reach));
             let mut err_sum = 0.0f32;
@@ -1521,6 +1524,8 @@ impl Sim {
                 if engaged_i {
                     engaged += 1;
                 }
+                let order_advancing =
+                    u.move_target.is_some() || matches!(u.mode, OrderMode::Attack(_));
                 // Trample = ride through, no glue, on either of two intents: a
                 // MOVE order (the enemy is terrain to ride past) OR a charge
                 // still carrying speed (the momentum overruns whatever it hits).
@@ -1575,12 +1580,11 @@ impl Sim {
                     let files = u.files_eff.max(1);
                     let (file, rank) = (si % files, si / files);
                     let (sx, sy) = (u.spacing.x, u.spacing.y);
-                    let nbrs = [
-                        (file > 0, si.wrapping_sub(1), r * sx), // left: I sit at his +r
-                        (file + 1 < files, si + 1, r * (-sx)),  // right
-                        (rank > 0, si.wrapping_sub(files), f * (-sy)), // front: I sit behind him
-                        (true, si + files, f * sy),             // back
-                    ];
+                    let neighbor_skip = if order_advancing {
+                        1
+                    } else {
+                        WEAVE_NEIGHBOR_SKIP
+                    };
                     let mut nsum = Vec2::ZERO;
                     let mut nn = 0.0f32;
                     // Weave strain, the raw material of COHESION. A bond's rest
@@ -1592,11 +1596,7 @@ impl Sim {
                     // U-wrapped line racks up pivot while keeping its spacings.
                     let mut bond_stretch = 0.0f32;
                     let mut bond_pivot = 0.0f32;
-                    for (_k, (ok, ns, off)) in nbrs.into_iter().enumerate() {
-                        if !ok || ns >= u.count {
-                            continue;
-                        }
-                        let j = soldier_at_slot[ns];
+                    let mut weave_bond = |j: usize, off: Vec2| {
                         // A bowled neighbour is a GAP: don't weave to a man a charge
                         // just ran through, or the formation follows him into the
                         // lane (and re-closes the hole the charge needs).
@@ -1634,6 +1634,45 @@ impl Sim {
                                 comp_push = comp_push + d * (push / al);
                                 crush_scalar += push;
                             }
+                        }
+                    };
+                    for step in 1..=file.min(neighbor_skip) {
+                        let ns = si - step;
+                        let j = soldier_at_slot[ns];
+                        if j != usize::MAX && trampled[j] <= 0.0 {
+                            weave_bond(j, r * (sx * step as f32));
+                            break;
+                        }
+                    }
+                    let right_steps = (files - 1 - file)
+                        .min(u.count.saturating_sub(1).saturating_sub(si))
+                        .min(neighbor_skip);
+                    for step in 1..=right_steps {
+                        let ns = si + step;
+                        let j = soldier_at_slot[ns];
+                        if j != usize::MAX && trampled[j] <= 0.0 {
+                            weave_bond(j, r * (-sx * step as f32));
+                            break;
+                        }
+                    }
+                    for step in 1..=rank.min(neighbor_skip) {
+                        let ns = si - files * step;
+                        let j = soldier_at_slot[ns];
+                        if j != usize::MAX && trampled[j] <= 0.0 {
+                            weave_bond(j, f * (-sy * step as f32));
+                            break;
+                        }
+                    }
+                    let ranks = u.count.div_ceil(files);
+                    for step in 1..=((ranks - 1 - rank).min(neighbor_skip)) {
+                        let ns = si + files * step;
+                        if ns >= u.count {
+                            break;
+                        }
+                        let j = soldier_at_slot[ns];
+                        if j != usize::MAX && trampled[j] <= 0.0 {
+                            weave_bond(j, f * (sy * step as f32));
+                            break;
                         }
                     }
                     if nn > 0.0 {

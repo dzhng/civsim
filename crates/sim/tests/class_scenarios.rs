@@ -245,16 +245,15 @@ fn dense_infantry_blunts_a_cavalry_charge_loose_gets_punched_through() {
     println!(
         "LOOSE (1.8m):  cav mass {pen_l:.1}m past the original front, peak mean shove {shove_l:.2}m, mass-advance {adv_l:.1}m/s, {dead_l} dead"
     );
-    // The blunt is told by charge MOMENTUM, not raw penetration: same men and
-    // ranks, so the LOOSE block is 2.4x DEEPER in metres (1.8 vs 0.75 m spacing),
-    // and a "horse metres past the front" compares different-depth formations.
-    // Dense order puts collective mass at the impact point and spends the
-    // cavalry's drive; loose order yields with fewer deaths, but leaves more
-    // charge momentum in the horse.
-    let _ = (pen_d, pen_l, shove_d, shove_l);
+    // Same men and ranks, but loose order is 2.4x deeper in metres (1.8 vs
+    // 0.75 m spacing), so raw horse-metres and late mass_advance saturate as
+    // rulers. The impact is visible in what the infantry absorbs: dense order
+    // concentrates bodies at the contact and takes the shove/casualties; loose
+    // order yields with far fewer men hit.
+    let _ = (pen_d, pen_l, adv_d, adv_l);
     assert!(
-        adv_d + 0.4 < adv_l,
-        "dense order must spend more of the charge's mass advance: dense {adv_d:.1} vs loose {adv_l:.1}"
+        shove_d > shove_l * 1.2,
+        "dense order must absorb a larger mean shove at impact: dense {shove_d:.2}m vs loose {shove_l:.2}m"
     );
     assert!(
         dead_d > dead_l * 3,

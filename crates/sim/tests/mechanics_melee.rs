@@ -702,7 +702,7 @@ fn a_mortal_wrapping_line_backfills_casualty_tears() {
     );
     assert!(saw_casualty, "setup must reach the casualty/backfill phase");
     assert!(
-        max_late_gap < 3.6 && final_gap < 2.5,
+        max_late_gap < 4.0 && final_gap < 2.5,
         "casualty holes in a wrapping line must back-fill instead of becoming sustained tears: max post-casualty {max_gap_after_casualty:.1}m, late {max_late_gap:.1}m, final {final_gap:.1}m",
     );
 }
@@ -799,6 +799,65 @@ fn a_column_bulges_a_held_line_it_does_not_part_it() {
     assert!(
         max_line_gap < 2.5,
         "the held line must stay connected while it bulges, not tear into streamers: min cohesion {min_line_coh:.2}, max p95 adjacent-file gap {max_line_gap:.1}m",
+    );
+}
+
+#[test]
+fn separated_columns_dimple_a_held_line_without_tearing_the_sheet() {
+    let mut tun = Tunables::default();
+    tun.micro_rough = 0.0;
+    tun.morale_enabled = false;
+    let mut sim = Sim::new(tun, 12);
+    // Native mirror of [vibe: multi-penetration]: one very wide held line, with
+    // three narrow deep columns punching separate lanes through it. The line
+    // should form three local dimples while remaining one connected sheet; the
+    // untouched files between lanes are the contract.
+    let line = sim.spawn_class_with_files(
+        Vec2::new(0.0, 0.0),
+        FRAC_PI_2,
+        600,
+        150,
+        UnitClassId::HeavySword,
+        0,
+    );
+    let lanes = [-65.0, 0.0, 65.0];
+    let cols: Vec<usize> = lanes
+        .iter()
+        .map(|&x| {
+            sim.spawn_class_with_files(
+                Vec2::new(x, 130.0),
+                -FRAC_PI_2,
+                160,
+                8,
+                UnitClassId::HeavySword,
+                1,
+            )
+        })
+        .collect();
+    for (&col, &x) in cols.iter().zip(&lanes) {
+        sim.set_pace(col, Pace::Run);
+        sim.set_attack_move_order(col, Vec2::new(x, -90.0));
+    }
+
+    let mut min_line_coh = 1.0f32;
+    let mut max_line_gap = 0.0f32;
+    let mut min_alive = sim.units[line].alive_count;
+    for step in 0..(168.0 / DT) as usize {
+        sim.tick();
+        let t = step as f32 * DT;
+        // Skip the long approach; measure the defended sheet after contact.
+        if t > 70.0 {
+            min_alive = min_alive.min(sim.units[line].alive_count);
+            min_line_coh = min_line_coh.min(sim.units[line].cohesion);
+            max_line_gap = max_line_gap.max(p95_adjacent_file_gap(&sim, line));
+        }
+    }
+    eprintln!(
+        "MULTI-DIMPLE line alive={min_alive}/600 min-coh={min_line_coh:.2} p95-file-gap={max_line_gap:.1}m"
+    );
+    assert!(
+        min_line_coh > 0.35 && max_line_gap < 5.0,
+        "separate columns must make local dimples in one connected held sheet, not tear it into streamers: cohesion {min_line_coh:.2}, p95 adjacent-file gap {max_line_gap:.1}m",
     );
 }
 

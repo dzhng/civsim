@@ -6,7 +6,7 @@
 > invulnerable clashes — and does NOT go through this web/Playwright harness.
 > Render them with `cargo run -p sim --example weave_shots`; they land in
 > `web/vibe/shots/weave/<scenario>/`, one folder per weave test. The set covers
-> `held-vs-walk` and `column-vs-held`, the Tier-0 perturbations
+> `held-vs-walk`, the Tier-0 perturbations
 > (`t0-stretch|compress|bend|shear|uwrap|death`; `t0-stretch` doubles as the
 > settle/no-oscillation case), `t1-press` same-team compression, the Tier-2
 > wrap/glue/T-junction checks (`t2-wrap-attack|wrap-hold`, `t2-glue-1v1`,
@@ -14,7 +14,9 @@
 > (`t3-deep-push-thin|wide`, `t3-equal-press`, `t3-cav-v-heavy`, `t3-wide-wrap`,
 > `t3-col-bulge`, `t3-phalanx-heavy`, `t3-braced-walls`, `t3-pivot-180`). Keep
 > them OUT of the combat scenarios below: the whole point of the weave layer is
-> to test it in isolation.
+> to test it in isolation. `t3-col-bulge` is the canonical column-through-held-line
+> picture; the older `column-vs-held` shot used the same geometry with extra
+> mortality/noise and was removed as duplicate review work.
 
 Manual, eyeball-it harnesses — **not** pass/fail gates. Each spawns a scenario,
 screenshots it every N sim-seconds, and dumps the frames to flip through. The

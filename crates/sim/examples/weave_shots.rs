@@ -293,32 +293,6 @@ fn main() {
         shoot("held-vs-walk", sim, 24.0, 1.0);
     }
 
-    // NARROW COLUMN (south, Run, ordered THROUGH and out the back) vs a WIDE HELD
-    // line (north, no order). Does the held line FOLD on the breach, or does the
-    // lean pull its front apart so the column splits it like a curtain?
-    {
-        let mut sim = Sim::new(base_tun(), 11);
-        let _line = sim.spawn_class_with_files(
-            Vec2::new(0.0, 13.0),
-            -FRAC_PI_2,
-            280,
-            70,
-            UnitClassId::HeavySword,
-            1,
-        );
-        let col = sim.spawn_class_with_files(
-            Vec2::new(0.0, -25.0),
-            FRAC_PI_2,
-            128,
-            8,
-            UnitClassId::HeavySword,
-            0,
-        );
-        sim.set_pace(col, Pace::Run);
-        sim.set_attack_move_order(col, Vec2::new(0.0, 60.0));
-        shoot("column-vs-held", sim, 40.0, 0.6);
-    }
-
     // --- Tier 0: one unit, perturb then let the springs restore it ----------
     let perturb_secs = 7.0;
     {

@@ -406,6 +406,26 @@ the bob; keep the **faction mask**, the **neutral standard + flag**, and the
   ~2–3 focused days, STOP and surface it — M0 gates everything, and "we cannot
   verify visually in CI" is a decision the human must make (accept GPU-runner
   cost, or relax pixel-regression for the crowd) before sinking weeks into M1+.
+
+  **MEASURED — the default sandbox cannot do WebGPU at all (this repo's CI/dev
+  container, Playwright Chromium 148 / chromium-1223):** `navigator.gpu` is
+  **absent** (not "adapter null" — the binding itself is missing) under EVERY
+  configuration tried: the bundled `chromium-headless-shell` AND the full
+  Chromium, headless and **headed under xvfb**, with all of
+  `--enable-unsafe-webgpu --enable-unsafe-swiftshader
+  --enable-features=Vulkan[,WebGPU] --use-vulkan=swiftshader
+  --use-angle=swiftshader`, and with `VK_ICD_FILENAMES` pointed at Chromium's
+  own bundled `vk_swiftshader_icd.json` (`libvulkan.so.1` is present; the
+  SwiftShader Vulkan ICD ships inside Chromium — the browser still won't bring
+  WebGPU up). Consequence: **a Babylon `WebGPUEngine` fails at `initAsync()`
+  here, so NOTHING (engine, a shader, a soldier) can be run, screenshotted, or
+  verified in this environment.** M0 therefore has a hard **precondition the
+  environment owner must satisfy first**: a dev/CI environment whose browser
+  exposes a working WebGPU device — a real-GPU runner, or a Chromium/Chrome build
+  with WebGPU enabled, or a software-WebGPU (Dawn) setup that actually initialises
+  a device. Do not begin the engine swap until a probe (`navigator.gpu
+  .requestAdapter()` → `requestDevice()` succeeds, then a trivial clear-colour
+  WebGPU render screenshots non-blank) passes in the target environment.
 - **Rebuild wasm before trusting any screenshot** (`npm run build:wasm` from
   `web/`) — the browser loads the prebuilt `web/src/wasm`, never live Rust.
   (Unchanged here, but still true.) Note `wasm-opt` may fail to download in this

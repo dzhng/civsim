@@ -208,8 +208,12 @@ function rotX(p: V3, ang: number, py: number, pz: number): V3 {
 }
 
 // A coloured box, optionally rotated about an x-axis pivot (for swinging limbs).
+// Per-vertex UVs are a planar projection of the box corner (metres → texels), so
+// the shared grain texture (cloth weave / metal / wood) tiles continuously over
+// the whole figure without a hand-authored atlas.
+const UV_TILE = 1.6; // texels per metre of the grain texture
 function dbox(
-  pos: number[], idx: number[], col: number[],
+  pos: number[], idx: number[], col: number[], uv: number[],
   x0: number, y0: number, z0: number, x1: number, y1: number, z1: number,
   c: V3, rot?: { ang: number; py: number; pz: number },
 ) {
@@ -222,6 +226,7 @@ function dbox(
     const p = rot ? rotX(v, rot.ang, rot.py, rot.pz) : v;
     pos.push(p[0], p[1], p[2]);
     col.push(c[0], c[1], c[2], 1);
+    uv.push((p[0] + p[1]) * UV_TILE, p[2] * UV_TILE);
   }
   for (const [a, bb, cc, d] of [
     [0, 1, 2, 3], [4, 7, 6, 5], [0, 4, 5, 1], [3, 2, 6, 7], [1, 5, 6, 2], [0, 3, 7, 4],
@@ -237,11 +242,11 @@ export function classGeometryDetailed(
 ): VertexData {
   const L = CLASS_LOOK[cls] ?? CLASS_LOOK[0];
   const P: Pose = { ...NEUTRAL_POSE, ...pose };
-  const pos: number[] = [], idx: number[] = [], col: number[] = [];
+  const pos: number[] = [], idx: number[] = [], col: number[] = [], uv: number[] = [];
   const box = (
     x0: number, y0: number, z0: number, x1: number, y1: number, z1: number,
     c: V3, rot?: { ang: number; py: number; pz: number },
-  ) => dbox(pos, idx, col, x0, y0, z0, x1, y1, z1, c, rot);
+  ) => dbox(pos, idx, col, uv, x0, y0, z0, x1, y1, z1, c, rot);
 
   const base = L.mounted ? 0.95 : 0.0; // mounted rider sits a horse-height up
   const lunge = P.attack * 0.14 - P.recoil * 0.10; // body shift along +y
@@ -388,5 +393,6 @@ export function classGeometryDetailed(
   VertexData.ComputeNormals(pos, idx, normals);
   vd.normals = normals;
   vd.colors = col;
+  vd.uvs = uv;
   return vd;
 }

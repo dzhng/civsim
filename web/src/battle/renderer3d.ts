@@ -591,6 +591,35 @@ export class BattleRenderer3D {
     const detailMat = new StandardMaterial('soldierDetail', this.scene);
     detailMat.diffuseColor = new Color3(1, 1, 1);
     detailMat.specularColor = new Color3(0.08, 0.08, 0.08);
+    // A shared procedural GRAIN texture (woven cloth + fine speckle) tiled over
+    // the figures by their planar UVs — it MULTIPLIES the vertex colours, so cloth
+    // reads as cloth and bronze gets a faint hammered grain instead of a flat
+    // fill, without per-class texture atlases. Block mode stays untextured.
+    if (!this.blockMode) {
+      const grain = new DynamicTexture('soldierGrain', { width: 64, height: 64 }, this.scene, false);
+      const gctx = grain.getContext() as unknown as CanvasRenderingContext2D;
+      const img = gctx.createImageData(64, 64);
+      for (let y = 0; y < 64; y++) {
+        for (let x = 0; x < 64; x++) {
+          // A woven over-under (threads brighten where warp crosses weft) plus a
+          // per-texel speckle, centred near white so the multiply keeps the vertex
+          // hue but gives cloth a weave and metal a hammered grain.
+          const warp = Math.sin(x * 1.05) * 0.5 + 0.5;
+          const weft = Math.sin(y * 1.05) * 0.5 + 0.5;
+          const weave = (warp * weft - 0.25) * 0.22;
+          const speck = hgrad(x * 7 + 1, y * 13 + 3) * 0.16; // deterministic, so snapshots are stable
+          const v = Math.max(0, Math.min(1, 0.9 + weave + speck));
+          const o = (y * 64 + x) * 4;
+          img.data[o] = img.data[o + 1] = img.data[o + 2] = (v * 255) | 0;
+          img.data[o + 3] = 255;
+        }
+      }
+      gctx.putImageData(img, 0, 0);
+      grain.update();
+      grain.wrapU = Texture.WRAP_ADDRESSMODE;
+      grain.wrapV = Texture.WRAP_ADDRESSMODE;
+      detailMat.diffuseTexture = grain;
+    }
     const teamMat = TEAM_COLOR.map((c, t) => {
       const m = new StandardMaterial(`soldierTeam${t}`, this.scene);
       m.diffuseColor = new Color3(c[0], c[1], c[2]);

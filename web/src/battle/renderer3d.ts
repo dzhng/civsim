@@ -116,6 +116,7 @@ varying vec3 vNormal;
 uniform sampler2D uTerrain;
 uniform float uTime;
 uniform float uFlatRock; // 1 = paint flat micro-rocks (far view), 0 = the 3D props carry them (near)
+uniform float uElevated; // 1 = hills (shade the slopes), 0 = flat stage (no slope term)
 float hash(vec2 p) {
   vec3 p3 = fract(vec3(p.xyx) * 0.1031);
   p3 += dot(p3, p3.yzx + 33.33);
@@ -200,9 +201,10 @@ void main() {
   }
   col *= 0.90 + 0.10 * t.r;
   // Slope shading: hillsides toward the sun brighten, away darken — what makes
-  // the elevation read as hills and not a flat painted swirl.
+  // the elevation read as hills and not a flat painted swirl. Only on the
+  // elevated battlefield; the flat debug/vibe stage keeps the plain ground tone.
   float sun = clamp(dot(normalize(vNormal), normalize(vec3(0.4, -0.5, 0.78))), 0.0, 1.0);
-  col *= 0.80 + 0.34 * sun;
+  col *= mix(1.0, 0.80 + 0.34 * sun, uElevated);
   float rock = microRock(vWorld);
   if (rock > 0.0 && tint != 1.0 && !outside && uFlatRock > 0.01) {
     vec3 stone = mix(vec3(0.42, 0.40, 0.34), vec3(0.30, 0.28, 0.24), min(rock - 1.0, 1.0));
@@ -532,8 +534,10 @@ export class BattleRenderer3D {
   /** Debug turntable: force a fixed view tilt instead of the zoom-driven one
    *  (model-review harness, ?test=models). null = normal zoom-coupled pitch. */
   pitchOverride: number | null = null;
-  /** Debug turntable: drop the scattered rocks/bushes/trees for a clean stage. */
-  enableScatter = true;
+  /** Scattered grass/trees/boulders. Off on the flat debug/vibe stage
+   *  (?debug=blocks) so the field-wide props don't churn the behaviour
+   *  baselines, and dropped by the turntable for a clean model stage. */
+  enableScatter = new URLSearchParams(location.search).get('debug') !== 'blocks';
   fixedTime: number | null = null;
   /** `?debug=blocks`: render the flat team-coloured BLOCK soldiers (the vibe /
    *  debug model) instead of the detailed faction-accented figures. Vibe shots
@@ -610,7 +614,7 @@ export class BattleRenderer3D {
     this.ground = new Mesh('ground', this.scene);
     this.groundMat = new ShaderMaterial('ground', this.scene, 'battleGround', {
       attributes: ['position', 'normal'],
-      uniforms: ['viewProjection', 'uMapRect', 'uTime', 'uFlatRock'],
+      uniforms: ['viewProjection', 'uMapRect', 'uTime', 'uFlatRock', 'uElevated'],
       samplers: ['uTerrain'],
     });
     this.groundMat.backFaceCulling = false;
@@ -881,6 +885,7 @@ export class BattleRenderer3D {
     );
     this.groundMat.setTexture('uTerrain', this.terrTex);
     this.groundMat.setVector4('uMapRect', new Vector4(ox, oy, w * cell, h * cell));
+    this.groundMat.setFloat('uElevated', this.elevation ? 1 : 0);
   }
 
   private ensureCapacity(count: number) {

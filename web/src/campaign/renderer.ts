@@ -314,15 +314,20 @@ export class CampaignRenderer {
       if (sx < -40 || sy < -40 || sx > W + 40 || sy > H + 40) return;
       if (n.kind === 'city') {
         const c = cities.get(i);
-        // Political zoom: minor cities collapse to flat dots so the
-        // territory mosaic stays readable.
-        if (z < 0.3 && n.tier < 3) {
-          ctx.fillStyle = factionView ? (c ? this.factionColor(c.owner) : '#888') : '#241a10';
-          ctx.globalAlpha = 0.85;
-          ctx.beginPath();
-          ctx.arc(sx, sy, 1.5 + n.tier * 0.6, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.globalAlpha = 1;
+        // Level-of-detail: only the major cities (capitals, tier 3) at the
+        // political/regional zoom; mid then minor towns appear as you zoom in.
+        // A quiet dot stands in for the hidden ones at the far overview so the
+        // map keeps some settlement texture.
+        const minTier = z < 0.6 ? 3 : z < 0.85 ? 2 : 1;
+        if (n.tier < minTier) {
+          if (z < 0.32) {
+            ctx.fillStyle = factionView ? (c ? this.factionColor(c.owner) : '#888') : '#241a10';
+            ctx.globalAlpha = 0.8;
+            ctx.beginPath();
+            ctx.arc(sx, sy, 1.4 + n.tier * 0.5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.globalAlpha = 1;
+          }
           return;
         }
         const s = 4 + n.tier * 2 + z * 1.2;

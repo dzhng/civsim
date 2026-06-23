@@ -96,19 +96,23 @@ const smoothstep = (a: number, b: number, x: number) => {
 ShaderStore.ShadersStore['battleGroundVertexShader'] = `
 precision highp float;
 attribute vec3 position;
+attribute vec3 normal;
 uniform mat4 viewProjection;
 uniform vec4 uMapRect;
 varying vec2 vUV;
 varying vec2 vWorld;
+varying vec3 vNormal;
 void main() {
   gl_Position = viewProjection * vec4(position, 1.0);
   vWorld = position.xy;
+  vNormal = normal;
   vUV = (position.xy - uMapRect.xy) / uMapRect.zw;
 }`;
 ShaderStore.ShadersStore['battleGroundFragmentShader'] = `
 precision highp float;
 varying vec2 vUV;
 varying vec2 vWorld;
+varying vec3 vNormal;
 uniform sampler2D uTerrain;
 uniform float uTime;
 uniform float uFlatRock; // 1 = paint flat micro-rocks (far view), 0 = the 3D props carry them (near)
@@ -195,6 +199,10 @@ void main() {
     col = mix(vec3(0.60, 0.55, 0.38), vec3(0.70, 0.64, 0.44), n2);
   }
   col *= 0.90 + 0.10 * t.r;
+  // Slope shading: hillsides toward the sun brighten, away darken — what makes
+  // the elevation read as hills and not a flat painted swirl.
+  float sun = clamp(dot(normalize(vNormal), normalize(vec3(0.4, -0.5, 0.78))), 0.0, 1.0);
+  col *= 0.80 + 0.34 * sun;
   float rock = microRock(vWorld);
   if (rock > 0.0 && tint != 1.0 && !outside && uFlatRock > 0.01) {
     vec3 stone = mix(vec3(0.42, 0.40, 0.34), vec3(0.30, 0.28, 0.24), min(rock - 1.0, 1.0));
@@ -333,6 +341,34 @@ function microHashJS(x: number, y: number): number {
   return h >>> 0;
 }
 
+// --- Visual terrain elevation -------------------------------------------------
+// The sim is flat (combat is 2D), so elevation is PURELY visual: a smooth
+// heightfield that bows the ground into rolling hills and lifts the soldiers,
+// props and banners that stand on it. Gentle by design (a few metres) so the
+// z=0 picking plane stays close to where a man is drawn. One JS function is the
+// single source of truth — the ground grid, its normals, and every entity's
+// lift all read it, so nothing floats or sinks.
+function hgrad(ix: number, iy: number): number {
+  let h = (Math.imul(ix | 0, 0x27d4eb2f) ^ Math.imul(iy | 0, 0x165667b1)) >>> 0;
+  h ^= h >>> 15; h = Math.imul(h, 0x85ebca6b) >>> 0; h ^= h >>> 13;
+  return (h & 0xffff) / 0xffff * 2 - 1;
+}
+function valueNoise(x: number, y: number): number {
+  const ix = Math.floor(x), iy = Math.floor(y);
+  const fx = x - ix, fy = y - iy;
+  const ux = fx * fx * (3 - 2 * fx), uy = fy * fy * (3 - 2 * fy);
+  const a = hgrad(ix, iy), b = hgrad(ix + 1, iy), c = hgrad(ix, iy + 1), d = hgrad(ix + 1, iy + 1);
+  return (a + (b - a) * ux) * (1 - uy) + (c + (d - c) * ux) * uy;
+}
+// A few octaves: a broad long-wavelength swell (big hills, but GENTLE slopes so
+// the z=0 picking offset stays small) plus finer rolls and bumps.
+export function terrainHeightJS(x: number, y: number): number {
+  return valueNoise(x / 310 + 3, y / 310 + 5) * 13
+    + valueNoise(x / 135, y / 135) * 7
+    + valueNoise(x / 46 + 11, y / 46 + 7) * 2.2
+    + valueNoise(x / 17 + 23, y / 17 + 19) * 0.7;
+}
+
 // One world-space banner above a unit: a camera-facing quad textured with the
 // standard + HP/cohesion bars + status chips, drawn fresh only when the unit's
 // state changes (keyed like the DOM component's chipKey). The plane sits at the
@@ -401,7 +437,7 @@ class UnitBannerLayer {
 
   /** Place + texture every live banner; hide the rest. `zoom` scales the world
    *  size so the banner stays roughly constant on screen at every zoom. */
-  update(slots: (BannerSlot | null)[], zoom: number) {
+  update(slots: (BannerSlot | null)[], zoom: number, gz: (x: number, y: number) => number) {
     this.ensure(slots.length);
     const worldH = BANNER_WORLD_H / zoom;
     for (let u = 0; u < this.meshes.length; u++) {
@@ -412,7 +448,7 @@ class UnitBannerLayer {
       m.scaling.set(worldH, worldH, 1);
       // The texture is bottom-anchored on the pole foot; lift the plane by half
       // its height so the foot sits at the unit's top edge (z just above ground).
-      m.position.set(slot.x, slot.y, worldH * 0.5 + 0.2);
+      m.position.set(slot.x, slot.y, gz(slot.x, slot.y) + worldH * 0.5 + 0.2);
       // Redraw the texture only when the unit's state actually changes (quantise
       // the bars so a sub-pixel cohesion drift doesn't churn the canvas), like
       // the DOM component's chipKey.
@@ -487,6 +523,13 @@ export class BattleRenderer3D {
    *  debug model) instead of the detailed faction-accented figures. Vibe shots
    *  force this so their baselines never churn while the real models evolve. */
   blockMode = new URLSearchParams(location.search).get('debug') === 'blocks';
+  /** Visual hill elevation. On for the real game; OFF for the flat vibe stage
+   *  (?debug=blocks) so behaviour baselines stay stable, and for the turntable. */
+  elevation = new URLSearchParams(location.search).get('debug') !== 'blocks';
+  /** Heightfield sample, gated by `elevation` so the flat stages stay flat. */
+  private gz(x: number, y: number): number {
+    return this.elevation ? terrainHeightJS(x, y) : 0;
+  }
   private nPose = POSES.length; // pose rungs per (class, team); set in the ctor
   // Per-soldier death-collapse blend in [0,1], eased up once a man falls so he
   // crumples and tips over a beat instead of snapping flat.
@@ -528,7 +571,7 @@ export class BattleRenderer3D {
     // Ground.
     this.ground = new Mesh('ground', this.scene);
     this.groundMat = new ShaderMaterial('ground', this.scene, 'battleGround', {
-      attributes: ['position'],
+      attributes: ['position', 'normal'],
       uniforms: ['viewProjection', 'uMapRect', 'uTime', 'uFlatRock'],
       samplers: ['uTerrain'],
     });
@@ -657,7 +700,7 @@ export class BattleRenderer3D {
   /** Place + draw the per-unit standards as world-space billboards. Called by
    *  the scene each frame with one slot per unit (null = hidden/dead). */
   updateBanners(slots: (BannerSlot | null)[], zoom: number) {
-    this.banners.update(slots, zoom);
+    this.banners.update(slots, zoom, (x, y) => this.gz(x, y));
   }
 
   /** Rebuild a dynamic overlay mesh from packed [x,y, r,g,b(,a)] verts. */
@@ -669,7 +712,8 @@ export class BattleRenderer3D {
     const idx = new Array<number>(n);
     for (let i = 0; i < n; i++) {
       const o = i * stride;
-      pos[i * 3] = verts[o]; pos[i * 3 + 1] = verts[o + 1]; pos[i * 3 + 2] = z;
+      pos[i * 3] = verts[o]; pos[i * 3 + 1] = verts[o + 1];
+      pos[i * 3 + 2] = this.gz(verts[o], verts[o + 1]) + z; // ride the hillside
       col[i * 4] = verts[o + 2]; col[i * 4 + 1] = verts[o + 3]; col[i * 4 + 2] = verts[o + 4];
       col[i * 4 + 3] = stride > 5 ? verts[o + 5] : 0.9;
       idx[i] = i;
@@ -720,10 +764,40 @@ export class BattleRenderer3D {
     this.scatterKey = ''; // a new terrain invalidates the cached scatter
     const M = WILDS_MARGIN;
     const x0 = ox - M, y0 = oy - M, x1 = ox + w * cell + M, y1 = oy + h * cell + M;
+    // Subdivided ground grid, each vertex raised to the heightfield so the field
+    // rolls into hills; per-vertex normals (from the height gradient) let the
+    // ground shader shade the slopes. ~8 m cells read smooth without a huge mesh.
+    const STEP = 8;
+    const nx = Math.max(2, Math.ceil((x1 - x0) / STEP) + 1);
+    const ny = Math.max(2, Math.ceil((y1 - y0) / STEP) + 1);
+    const positions = new Float32Array(nx * ny * 3);
+    const normals = new Float32Array(nx * ny * 3);
+    const H = (hx: number, hy: number) => this.gz(hx, hy);
+    for (let j = 0; j < ny; j++) {
+      const wy = y0 + (j / (ny - 1)) * (y1 - y0);
+      for (let i = 0; i < nx; i++) {
+        const wx = x0 + (i / (nx - 1)) * (x1 - x0);
+        const o = (j * nx + i) * 3;
+        positions[o] = wx; positions[o + 1] = wy; positions[o + 2] = H(wx, wy);
+        // Normal from the height gradient (central differences, e=4 m).
+        const e = 4;
+        const dzdx = (H(wx + e, wy) - H(wx - e, wy)) / (2 * e);
+        const dzdy = (H(wx, wy + e) - H(wx, wy - e)) / (2 * e);
+        const nlen = Math.hypot(dzdx, dzdy, 1);
+        normals[o] = -dzdx / nlen; normals[o + 1] = -dzdy / nlen; normals[o + 2] = 1 / nlen;
+      }
+    }
+    const indices = new Uint32Array((nx - 1) * (ny - 1) * 6);
+    let k = 0;
+    for (let j = 0; j < ny - 1; j++) {
+      for (let i = 0; i < nx - 1; i++) {
+        const a = j * nx + i, b = a + 1, c = a + nx, d = c + 1;
+        indices[k++] = a; indices[k++] = b; indices[k++] = d;
+        indices[k++] = a; indices[k++] = d; indices[k++] = c;
+      }
+    }
     const vd = new VertexData();
-    vd.positions = [x0, y0, 0, x1, y0, 0, x1, y1, 0, x0, y1, 0];
-    vd.indices = [0, 1, 2, 0, 2, 3];
-    vd.normals = [0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1];
+    vd.positions = positions; vd.indices = indices; vd.normals = normals;
     vd.applyToMesh(this.ground);
 
     const data = new Uint8Array(w * h * 4);
@@ -825,6 +899,7 @@ export class BattleRenderer3D {
       this.classN[bucket] = n + 1;
       const o = n * 16;
       const x = positions[2 * i], y = positions[2 * i + 1], s = this.scaleOf[i] || 1;
+      const gz = this.gz(x, y); // stand the man on the hillside
       const f = facings[i];
       const a = f - Math.PI / 2;
       const ca = Math.cos(a), sa = Math.sin(a);
@@ -840,7 +915,7 @@ export class BattleRenderer3D {
         buf[o + 4] = -sa * (1 - k) * s; buf[o + 5] = ca * (1 - k) * s; buf[o + 6] = k * s; buf[o + 7] = 0;
         // col2: local +z (up) swings from +z down to near-horizontal along facing.
         buf[o + 8] = sa * 0.25 * k * s; buf[o + 9] = -ca * 0.25 * k * s; buf[o + 10] = ((1 - k) + 0.25 * k) * s; buf[o + 11] = 0;
-        buf[o + 12] = x; buf[o + 13] = y; buf[o + 14] = 0.05; buf[o + 15] = 1;
+        buf[o + 12] = x; buf[o + 13] = y; buf[o + 14] = gz + 0.05; buf[o + 15] = 1;
       } else {
         // A little bob/lurch on top of the limb poses: marching rises, a strike
         // lunges the body forward. The detailed poses carry the limb motion;
@@ -852,7 +927,7 @@ export class BattleRenderer3D {
         buf[o + 4] = -sa * s; buf[o + 5] = ca * s; buf[o + 6] = 0; buf[o + 7] = 0;
         buf[o + 8] = 0; buf[o + 9] = 0; buf[o + 10] = s; buf[o + 11] = 0;
         buf[o + 12] = x + lurch * Math.cos(f); buf[o + 13] = y + lurch * Math.sin(f);
-        buf[o + 14] = bob; buf[o + 15] = 1;
+        buf[o + 14] = gz + bob; buf[o + 15] = 1;
       }
     }
     for (let k = 0; k < this.classMesh.length; k++) {
@@ -901,7 +976,7 @@ export class BattleRenderer3D {
       m[o] = ca * s; m[o + 1] = sa * s; m[o + 2] = 0; m[o + 3] = 0;
       m[o + 4] = -sa * s; m[o + 5] = ca * s; m[o + 6] = 0; m[o + 7] = 0;
       m[o + 8] = 0; m[o + 9] = 0; m[o + 10] = s; m[o + 11] = 0;
-      m[o + 12] = x; m[o + 13] = y; m[o + 14] = alive[i] < 0.5 ? -0.05 : 0; m[o + 15] = 1;
+      m[o + 12] = x; m[o + 13] = y; m[o + 14] = this.gz(x, y) + (alive[i] < 0.5 ? -0.05 : 0); m[o + 15] = 1;
       // The atlas has no at-ease/run/flinch frames (you can't read a raised pike
       // or a stride from afar); fold them onto the cells it does have: rest/stow
       // → stand, run → march, flinch → fighting.
@@ -984,7 +1059,7 @@ export class BattleRenderer3D {
         m[o] = cyaw * sx; m[o + 1] = syaw * sx; m[o + 2] = 0; m[o + 3] = 0;
         m[o + 4] = -syaw * sx; m[o + 5] = cyaw * sx; m[o + 6] = 0; m[o + 7] = 0;
         m[o + 8] = 0; m[o + 9] = 0; m[o + 10] = sz; m[o + 11] = 0;
-        m[o + 12] = wx; m[o + 13] = wy; m[o + 14] = 0; m[o + 15] = 1;
+        m[o + 12] = wx; m[o + 13] = wy; m[o + 14] = this.gz(wx, wy); m[o + 15] = 1;
         counts[type] = n + 1;
         placed++;
       }

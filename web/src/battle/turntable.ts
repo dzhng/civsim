@@ -35,6 +35,7 @@ export function mountTurntable() {
   const renderer = new BattleRenderer3D(canvas);
   renderer.resize();
   renderer.enableScatter = false; // clean stage: just the soldier on grass
+  renderer.elevation = false; // flat ground for model review (no hills)
   const camera = new Camera(canvas);
   camera.bounds = null; // no clamping — we frame the lone figure ourselves
 

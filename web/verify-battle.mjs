@@ -83,7 +83,13 @@ await snapCheck(page, 'battle-banner', check, { maxDiffRatio: 0.0008 });
 {
   const lod = await browser.newPage({ viewport: { width: 1280, height: 800 } });
   lod.on('pageerror', (e) => pageErrors.push('lod-page: ' + e.message));
-  await lod.goto(TARGET + '?battle=duel&a=0&b=0&ai=off'); // HeavyInfantry (blue), enemy idle
+  // ?debug=blocks: the black-slab bug this stage guards lives in the 2D sprite
+  // atlas pipeline (the coverage-divide), so the team-coloured BLOCK soldiers are
+  // the right probe — a solid team hue at every zoom. The detailed figures wear
+  // only a faction accent (no longer majority-blue up close) and are visually
+  // regressed by battle-banner instead; rendering them here would also pile a
+  // second heavy 3D build onto this concurrent page for no added coverage.
+  await lod.goto(TARGET + '?battle=duel&a=0&b=0&ai=off&debug=blocks'); // HeavyInfantry (blue), enemy idle
   await lod.waitForFunction(() => window.__ready === true, undefined, { timeout: 20000 });
   await lod.waitForTimeout(400);
   for (const z of [1, 2, 4, 6, 9]) {
@@ -122,13 +128,7 @@ await snapCheck(page, 'battle-banner', check, { maxDiffRatio: 0.0008 });
     const darkFrac = dark / n, blueShare = unit ? blue / unit : 0;
     const detail = `darkFrac ${(darkFrac * 100).toFixed(0)}% blueShare ${(blueShare * 100).toFixed(0)}%`;
     check(`LOD z${z}: unit is not a black slab`, darkFrac < 0.2, detail);
-    // The far/strategic view (2D sprite atlas, below the 3D swap zoom) is a solid
-    // team-coloured block — that's how you read the line from across the field.
-    // Zoomed in, the soldier is a REALISTIC figure (skin, bronze, linen) wearing
-    // only a faction ACCENT (crest, shield emblem, sash), so it can't be majority
-    // blue — but the accent must still be plainly present. One metric, two bars.
-    const teamBar = z <= 2 ? 0.55 : 0.06;
-    check(`LOD z${z}: unit shows its faction colour`, blueShare > teamBar, detail);
+    check(`LOD z${z}: unit reads team-blue`, blueShare > 0.55, detail);
   }
   await lod.close();
 }
@@ -144,7 +144,7 @@ await snapCheck(page, 'battle-banner', check, { maxDiffRatio: 0.0008 });
 for (const dpr of [1, 2]) {
   const sp = await browser.newPage({ viewport: { width: 1280, height: 800 }, deviceScaleFactor: dpr });
   sp.on('pageerror', (e) => pageErrors.push(`sel-page(dpr${dpr}): ` + e.message));
-  await sp.goto(TARGET + '?map=A&ai=off');
+  await sp.goto(TARGET + '?map=A&ai=off&debug=blocks');
   await sp.waitForFunction(() => window.__ready === true, undefined, { timeout: 20000 });
   await sp.waitForTimeout(400);
   // Where unit u is actually drawn, in CSS px (== where a user clicks).

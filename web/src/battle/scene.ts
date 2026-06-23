@@ -755,9 +755,8 @@ export class BattleScene implements Scene {
       lastFrame = now;
       fpsAvg += (1 / Math.max(frameDt, 1e-4) - fpsAvg) * 0.05;
 
-      camera.x += input.panX * frameDt;
-      camera.y += input.panY * frameDt;
-      camera.clampView();
+      // Pan in the view's rotated frame so W/S/A/D track the screen at any yaw.
+      camera.panWorld(input.panX * frameDt, input.panY * frameDt);
 
       accumulator += paused ? 0 : frameDt * timeScale;
       let ticks = 0;
@@ -820,7 +819,13 @@ export class BattleScene implements Scene {
         for (let i = 0; i < n; i++) {
           aliveF32[i] = a[i];
           const pi = 2 * i;
-          if (a[i] && updateRenderPos) {
+          if (frozen) {
+            // Snapshot mode: draw the TRUE sim positions, no render smoothing —
+            // a frozen frame must be deterministic and agree with picking and the
+            // verify harness (which read the sim positions), not a lagged ease.
+            renderPos[pi] = pos[pi];
+            renderPos[pi + 1] = pos[pi + 1];
+          } else if (a[i] && updateRenderPos) {
             const ex = pos[pi] - renderPos[pi];
             const ey = pos[pi + 1] - renderPos[pi + 1];
             const err2 = ex * ex + ey * ey;

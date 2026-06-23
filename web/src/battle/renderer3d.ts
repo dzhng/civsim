@@ -70,7 +70,8 @@ const P_ATTACK = 9, P_HIT = 10, P_CRUMPLE = 11;
 const ZOOM_FLAT = 2;
 const ZOOM_3D = 7;
 const ZOOM_SWAP = 2.4;
-const MAX_PITCH = 0.42;
+const MAX_PITCH = 0.42; // zoom-driven auto tilt (top-down → this when zoomed in)
+const MAX_PITCH_USER = 1.18; // how far down the user can tilt (Total War low angle)
 // Pose meshes are built per (class, team) at each rung of a ladder and the
 // renderer routes each soldier to the rung his state asks for. Block mode uses
 // a 6-step rest ladder (geometry lerped from fighting to at-ease, for the pike
@@ -540,6 +541,19 @@ export class BattleRenderer3D {
     // hit/death) with per-vertex realistic colours and a per-faction accent;
     // block mode bakes a 6-rung rest ladder of the flat team-coloured boxes.
     this.nPose = this.blockMode ? POSE_STEPS_BLOCK : POSES.length;
+    // Share materials across ALL soldier meshes — every detailed figure carries
+    // its colour in vertex colours, so one white material serves them all; block
+    // mode needs just one per team. (Per-mesh materials — 288 of them — were
+    // enough GPU state to fail boot on concurrent software-GL pages.)
+    const detailMat = new StandardMaterial('soldierDetail', this.scene);
+    detailMat.diffuseColor = new Color3(1, 1, 1);
+    detailMat.specularColor = new Color3(0.08, 0.08, 0.08);
+    const teamMat = TEAM_COLOR.map((c, t) => {
+      const m = new StandardMaterial(`soldierTeam${t}`, this.scene);
+      m.diffuseColor = new Color3(c[0], c[1], c[2]);
+      m.specularColor = new Color3(0.05, 0.05, 0.05);
+      return m;
+    });
     for (let pose = 0; pose < this.nPose; pose++) {
       for (let cls = 0; cls < CLASS_LOOK.length; cls++) {
         // Block geometry is team-independent (the material carries the colour);
@@ -549,18 +563,13 @@ export class BattleRenderer3D {
         for (let t = 0; t < 2; t++) {
           const bucket = pose * POSE_BUCKET + cls * 2 + t;
           const mesh = new Mesh(`soldier_${pose}_${cls}_${t}`, this.scene);
-          const mat = new StandardMaterial(`soldier_${pose}_${cls}_${t}`, this.scene);
           if (this.blockMode) {
             blockGeom!.applyToMesh(mesh);
-            const c = TEAM_COLOR[t];
-            mat.diffuseColor = new Color3(c[0], c[1], c[2]);
-            mat.specularColor = new Color3(0.05, 0.05, 0.05);
+            mesh.material = teamMat[t];
           } else {
             classGeometryDetailed(cls, POSES[pose], FACTION_ACCENT[t]).applyToMesh(mesh);
-            mat.diffuseColor = new Color3(1, 1, 1); // vertex colours carry the figure
-            mat.specularColor = new Color3(0.08, 0.08, 0.08);
+            mesh.material = detailMat;
           }
-          mesh.material = mat;
           mesh.alwaysSelectAsActiveMesh = true;
           mesh.isVisible = false;
           this.classMesh[bucket] = mesh;
@@ -753,7 +762,11 @@ export class BattleRenderer3D {
     this.ensureCapacity(count);
     // LOD: flatten + sprites when zoomed out, tilt + 3D meshes when in.
     const zoom = camera.zoom;
-    this.pitch = this.pitchOverride ?? MAX_PITCH * smoothstep(ZOOM_FLAT, ZOOM_3D, zoom);
+    // Auto pitch from zoom (top-down when far, tilted when near) PLUS the user's
+    // tilt bias (middle-drag vertical), clamped from straight-down to a low
+    // Total War angle that shows the soldiers side-on.
+    const auto = MAX_PITCH * smoothstep(ZOOM_FLAT, ZOOM_3D, zoom);
+    this.pitch = this.pitchOverride ?? Math.min(MAX_PITCH_USER, Math.max(0, auto + camera.pitchBias));
     camera.pitch = this.pitch; // keep picking/overlays in sync
     this.syncCamera(camera);
     const use3D = zoom >= ZOOM_SWAP;
@@ -992,11 +1005,19 @@ export class BattleRenderer3D {
     this.camera.orthoRight = W / (2 * z);
     this.camera.orthoTop = H / (2 * z);
     this.camera.orthoBottom = -H / (2 * z);
-    const p = this.pitch;
+    const p = this.pitch, yaw = c.yaw;
+    const cy = Math.cos(yaw), sy = Math.sin(yaw);
     const dist = 2000;
-    this.camera.position.set(c.x, c.y - dist * Math.sin(p), dist * Math.cos(p));
+    // Orbit the camera about the target by yaw and tilt it by pitch, matching the
+    // affine ground map in camera.ts exactly (screen-right = (cos yaw, sin yaw),
+    // screen-up ground projection = (-sin yaw, cos yaw)) so picking stays exact.
+    this.camera.position.set(
+      c.x + dist * Math.sin(p) * sy,
+      c.y - dist * Math.sin(p) * cy,
+      dist * Math.cos(p),
+    );
     this.camera.setTarget(new Vector3(c.x, c.y, 0));
-    this.camera.upVector.set(0, Math.cos(p), Math.sin(p));
+    this.camera.upVector.set(-Math.cos(p) * sy, Math.cos(p) * cy, Math.sin(p));
   }
 
   // Attack-arc wedges: [x,y, r,g,b,a] triangles.

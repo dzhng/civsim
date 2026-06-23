@@ -341,17 +341,12 @@ export function classGeometryDetailed(
   // strike. Pivot at the shoulder; angle blends walk counter-swing + attack.
   const armA = -P.stride * 0.35 * P.legPhase - P.attack * 1.0 + P.recoil * 0.5 + P.rest * 0.2;
   if (L.weapon !== 'none') {
-    const sx = 0.20, py = lunge, pz = shoulderZ; // shoulder pivot (in upper-body frame, pre-tilt)
-    // Build the arm rotated by armA about the shoulder, THEN tilt with the body.
-    const armBox = (z0: number, z1: number, c: V3) => {
-      // compose: first the arm swing, then the body lean — apply swing here,
-      // lean via the outer tilt rot (both are x-rotations so they compose by add
-      // only about the same axis; the shoulder ≠ hip pivot, so do swing explicitly).
-      const a = armA;
-      box(sx - 0.05, -0.05, z0, sx + 0.055, 0.07, z1, c, { ang: a + tilt.ang, py: pz, pz: pz });
-      void py;
-    };
-    armBox(shoulderZ - 0.34, shoulderZ + 0.02, SKIN);
+    // The swing (armA) and the body lean (tilt.ang) are both x-rotations, so the
+    // angles add; the swing is applied here, about the shoulder, because that
+    // pivot differs from the body's hip pivot used by tilt.
+    const sx = 0.20;
+    box(sx - 0.05, -0.05, shoulderZ - 0.34, sx + 0.055, 0.07, shoulderZ + 0.02, SKIN,
+      { ang: armA + tilt.ang, py: shoulderZ, pz: shoulderZ });
   }
 
   // ---- Shield (left, facing +y): wooden face, iron rim, faction emblem ---

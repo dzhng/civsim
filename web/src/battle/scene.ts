@@ -5,6 +5,7 @@ import { pushGhost, pushPie, pushRing } from '../shared/overlays';
 import { CLASS_NAMES, Renderer, WILDS_MARGIN } from './renderer';
 import { BattleRenderer3D, type BannerSlot } from './renderer3d';
 import { UnitBanner, type BannerChip } from './unitBanner';
+import { UnitCards } from './unitCard';
 import { Input } from './input';
 import { MANUAL_HTML } from './manual';
 import { groupMoveDests, UnitSnap } from './orders';
@@ -604,6 +605,44 @@ export class BattleScene implements Scene {
     let pursueOn = false;
     let fireOn = true;
 
+    // --- Bottom unit-card strip: one card per player unit (Total War style) -------
+    const cardsRoot = document.getElementById('unitcards')!;
+    let cardUnits: number[] = []; // sim unit id per card, in strip order
+    const unitCards = new UnitCards(cardsRoot, (unit, additive) => {
+      input.selected = additive
+        ? Array.from(new Set([...input.selected, unit]))
+        : [unit];
+      // Centre the camera on the picked unit, like clicking its banner.
+      const [cx, cy] = unitCenter(unit);
+      camera.x = cx; camera.y = cy; camera.clampView();
+    });
+    const buildCards = () => {
+      const info = unitInfo();
+      cardUnits = [];
+      const inits = [];
+      for (let u = 0; u < game.unit_count(); u++) {
+        if (info[u * STRIDE + 6] !== 0) continue; // player units only
+        cardUnits.push(u);
+        inits.push({ unit: u, cls: info[u * STRIDE + 13], team: 0 as const, name: CLASS_NAMES[info[u * STRIDE + 13]] ?? '?' });
+      }
+      unitCards.build(inits);
+    };
+    buildCards();
+    this.cleanups.push(() => { cardsRoot.innerHTML = ''; });
+    const updateCards = () => {
+      const info = unitInfo();
+      const sel = new Set(input.selected);
+      unitCards.update(cardUnits.map((u) => {
+        const o = u * STRIDE;
+        const alive = info[o + 15];
+        if (alive === 0) return null;
+        return {
+          alive, total: info[o + 7], cohesion: info[o + 4], morale: info[o + 20],
+          stamina: info[o + 8], routing: info[o + 21] > 0.5, selected: sel.has(u),
+        };
+      }));
+    };
+
     // --- Overlay (paths, pies, projectiles, selection rings) ----------------------
     function overlayVerts(withPaths: boolean): Float32Array {
       const info = unitInfo();
@@ -779,6 +818,7 @@ export class BattleScene implements Scene {
       if (game.unit_count() > knownUnits) {
         knownUnits = game.unit_count();
         applyStatic();
+        buildCards();
         if (!is3D) while (domBanners.length < game.unit_count()) addDomBanner();
       }
 
@@ -947,6 +987,7 @@ export class BattleScene implements Scene {
       }
 
       updateUnitBanners();
+      updateCards();
       hudTimer += frameDt;
       if (hudTimer > 0.2) {
         hudTimer = 0;

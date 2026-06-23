@@ -10,7 +10,8 @@
     "verify": "node verify-battle.mjs",
     "verify:full": "node verify-battle.mjs --full",
     "verify:campaign": "node verify-campaign.mjs",
-    "verify:campaign-visual": "node verify-campaign-visual.mjs"
+    "verify:campaign-visual": "node verify-campaign-visual.mjs",
+    "bake:test": "node bake/vat.test.mjs"
   },
   "devDependencies": {
     "pixelmatch": "^7.2.0",

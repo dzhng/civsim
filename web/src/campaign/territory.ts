@@ -48,6 +48,24 @@ function warp(wx: number, wy: number): [number, number] {
 
 const FILL_A = 150;
 
+/** Chaikin corner-cutting: rounds a polyline's hard corners into a smooth curve
+ *  (endpoints fixed). A couple of passes turn the cell-grid staircase of a
+ *  traced boundary into a flowing line. */
+function chaikin(pts: [number, number][], iters: number): [number, number][] {
+  for (let it = 0; it < iters && pts.length >= 3; it++) {
+    const out: [number, number][] = [pts[0]];
+    for (let i = 0; i < pts.length - 1; i++) {
+      const a = pts[i];
+      const b = pts[i + 1];
+      out.push([a[0] * 0.75 + b[0] * 0.25, a[1] * 0.75 + b[1] * 0.25]);
+      out.push([a[0] * 0.25 + b[0] * 0.75, a[1] * 0.25 + b[1] * 0.75]);
+    }
+    out.push(pts[pts.length - 1]);
+    pts = out;
+  }
+  return pts;
+}
+
 /** Deterministic per-city shade jitter so the region mosaic reads, ±[0,1). */
 function cityJitter(node: number): number {
   let n = (node * 2654435761) | 0;
@@ -71,15 +89,15 @@ export class Territory {
   /** cell -> nearest city node index, -1 = unclaimed (static) */
   private nearest: Int32Array;
   rgba: Uint8Array;
-  /** cell -> owning faction + 1 (0 = unclaimed); the shader edge-detects this
-   *  to draw crisp, zoom-independent borders. */
-  owners: Uint8Array;
+  /** Smooth faction-boundary polylines in world km, each with its bbox for
+   *  cheap viewport culling. Rebuilt with the colours; the overlay strokes them
+   *  as real vectors so borders stay smooth curves at any zoom. */
+  borders: { pts: [number, number][]; bb: [number, number, number, number] }[] = [];
   labels: FactionLabel[] = [];
 
   constructor(private data: CampaignData, private field: TerrainField) {
     const { w, h, cell, minX, maxY, land } = field;
     this.rgba = new Uint8Array(w * h * 4);
-    this.owners = new Uint8Array(w * h * 4);
     this.nearest = new Int32Array(w * h).fill(-1);
 
     // The major powers pull territory a little harder than the minor leagues,
@@ -189,8 +207,6 @@ export class Territory {
     const sumX = factions.map(() => 0);
     const sumY = factions.map(() => 0);
     rgba.fill(0);
-    const owners = this.owners;
-    owners.fill(0);
     for (let gy = 0; gy < h; gy++) {
       for (let gx = 0; gx < w; gx++) {
         const i = gy * w + gx;
@@ -198,8 +214,7 @@ export class Territory {
         if (f < 0) continue;
         const fac = factions[f];
         // Flat per-faction fill (a small per-city jitter for life). Borders are
-        // NOT baked here any more — they're drawn in the terrain shader at a
-        // constant screen-space width so they stay crisp at every zoom.
+        // separate smooth vectors (extractBorders below), not baked here.
         const c = fac?.color ?? [150, 150, 150];
         const j = cityJitter(nearest[i]) * 16;
         const o = i * 4;
@@ -207,12 +222,12 @@ export class Territory {
         rgba[o + 1] = Math.min(255, Math.max(0, c[1] + j));
         rgba[o + 2] = Math.min(255, Math.max(0, c[2] + j * 0.6));
         rgba[o + 3] = FILL_A;
-        owners[o] = f + 1; // R channel: 0 = unclaimed; the shader edge-detects it
         cells[f]++;
         sumX[f] += minX + (gx + 0.5) * cell;
         sumY[f] += maxY - (gy + 0.5) * cell;
       }
     }
+    this.borders = this.extractBorders(owner);
 
     // Cap the label sizing so a sprawling realm's name doesn't dwarf a compact
     // one: the largest reads at most 1.5x the smallest power (Rome by default).
@@ -243,5 +258,77 @@ export class Territory {
         minor: !fac.playable,
       }];
     });
+  }
+
+  /** Trace the faction-vs-faction boundaries of the owner grid into polylines,
+   *  then Chaikin-smooth them — so the overlay can stroke real vector borders
+   *  that stay smooth curves at any zoom (no cell-grid staircase). */
+  private extractBorders(owner: Int16Array) {
+    const { w, h, cell, minX, maxY } = this.field;
+    const VW = w + 1; // vertices per row
+    const M = VW * (h + 1);
+    // Adjacency over grid vertices, linked by boundary segments.
+    const adj = new Map<number, number[]>();
+    const link = (a: number, b: number) => {
+      (adj.get(a) ?? adj.set(a, []).get(a)!).push(b);
+      (adj.get(b) ?? adj.set(b, []).get(b)!).push(a);
+    };
+    for (let gy = 0; gy < h; gy++) {
+      for (let gx = 0; gx < w; gx++) {
+        const o = owner[gy * w + gx];
+        if (o < 0) continue;
+        if (gx + 1 < w) {
+          const or = owner[gy * w + gx + 1];
+          if (or >= 0 && or !== o) { const v = gy * VW + gx + 1; link(v, v + VW); }
+        }
+        if (gy + 1 < h) {
+          const od = owner[(gy + 1) * w + gx];
+          if (od >= 0 && od !== o) { const v = (gy + 1) * VW + gx; link(v, v + 1); }
+        }
+      }
+    }
+    // Walk degree-2 chains into polylines, breaking at junctions/endpoints.
+    const used = new Set<number>();
+    const key = (a: number, b: number) => (a < b ? a * M + b : b * M + a);
+    const walk = (start: number, first: number): number[] => {
+      const path = [start];
+      let prev = start;
+      let cur = first;
+      for (;;) {
+        used.add(key(prev, cur));
+        path.push(cur);
+        const nbrs = adj.get(cur)!;
+        if (nbrs.length !== 2) break;
+        const nxt = nbrs[0] === prev ? nbrs[1] : nbrs[0];
+        if (used.has(key(cur, nxt))) break;
+        prev = cur;
+        cur = nxt;
+      }
+      return path;
+    };
+    const chains: number[][] = [];
+    for (const [v, nbrs] of adj) {
+      if (nbrs.length === 2) continue; // start only from endpoints/junctions
+      for (const nb of nbrs) if (!used.has(key(v, nb))) chains.push(walk(v, nb));
+    }
+    for (const [v, nbrs] of adj) {
+      for (const nb of nbrs) if (!used.has(key(v, nb))) chains.push(walk(v, nb)); // loops
+    }
+    // Vertex id → world km; smooth; record bbox for viewport culling.
+    const out: { pts: [number, number][]; bb: [number, number, number, number] }[] = [];
+    for (const vids of chains) {
+      if (vids.length < 2) continue;
+      const pts = chaikin(vids.map((vid): [number, number] =>
+        [minX + (vid % VW) * cell, maxY - ((vid / VW) | 0) * cell]), 2);
+      let mnx = Infinity, mny = Infinity, mxx = -Infinity, mxy = -Infinity;
+      for (const [x, y] of pts) {
+        if (x < mnx) mnx = x;
+        if (y < mny) mny = y;
+        if (x > mxx) mxx = x;
+        if (y > mxy) mxy = y;
+      }
+      out.push({ pts, bb: [mnx, mny, mxx, mxy] });
+    }
+    return out;
   }
 }

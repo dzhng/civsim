@@ -238,7 +238,7 @@ export class CampaignScene implements Scene {
       const hints: [number, number][] = sel
         ? this.spotPos.filter(([x, y]) => Math.hypot(x - sel.x, y - sel.y) < 12)
         : [];
-      this.renderer.draw(this.cam, this.armies, this.cities, this.selected, null, this.territory!.labels, this.roadLevels, this.outposts, hints, this.factionView, this.fogOfWar);
+      this.renderer.draw(this.cam, this.armies, this.cities, this.selected, null, this.territory!.labels, this.roadLevels, this.outposts, hints, this.factionView, this.fogOfWar, this.territory!.borders);
     }
     this.updateHud();
   }
@@ -284,7 +284,7 @@ export class CampaignScene implements Scene {
     if (hash !== this.ownerHash && this.territory && this.t3d) {
       this.ownerHash = hash;
       this.territory.rebuild(this.cities);
-      this.t3d.updateTerritory(this.territory.rgba, this.territory.owners);
+      this.t3d.updateTerritory(this.territory.rgba);
       this.t3d.setCityOwners(this.cities, this.playerFaction());
     }
   }

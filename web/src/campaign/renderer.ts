@@ -179,6 +179,7 @@ export class CampaignRenderer {
     ambushHints?: [number, number][],
     factionView = true,
     fogOfWar = false,
+    borders?: { pts: [number, number][]; bb: [number, number, number, number] }[],
   ) {
     const { ctx, canvas, data } = this;
     const z = cam.scale;
@@ -253,6 +254,36 @@ export class CampaignRenderer {
         ctx.stroke();
       }
       ctx.setLineDash([]);
+    }
+
+    // Faction borders: smooth vector polylines draped on the terrain, stroked
+    // at a constant screen width so they read as crisp curved lines at every
+    // zoom (no cell-grid staircase). Under the markers; political view only.
+    const borderAlpha = factionView ? 1 - Math.min(1, Math.max(0, (z - 1.2) / 0.6)) : 0;
+    if (borderAlpha > 0.02 && borders && borders.length) {
+      // Visible world AABB (un-project the screen corners) for cheap culling.
+      const cs = [this.toWorld(0, 0), this.toWorld(canvas.width, 0),
+        this.toWorld(0, canvas.height), this.toWorld(canvas.width, canvas.height)];
+      const vmnx = Math.min(cs[0][0], cs[1][0], cs[2][0], cs[3][0]);
+      const vmxx = Math.max(cs[0][0], cs[1][0], cs[2][0], cs[3][0]);
+      const vmny = Math.min(cs[0][1], cs[1][1], cs[2][1], cs[3][1]);
+      const vmxy = Math.max(cs[0][1], cs[1][1], cs[2][1], cs[3][1]);
+      ctx.lineWidth = 2.4;
+      ctx.lineJoin = 'round';
+      ctx.lineCap = 'round';
+      ctx.strokeStyle = `rgba(26,20,14,${0.8 * borderAlpha})`;
+      for (const b of borders) {
+        if (b.bb[2] < vmnx || b.bb[0] > vmxx || b.bb[3] < vmny || b.bb[1] > vmxy) continue;
+        ctx.beginPath();
+        let on = false;
+        for (const [x, y] of b.pts) {
+          const p = pt(x, y);
+          if (!p) { on = false; continue; }
+          on ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]);
+          on = true;
+        }
+        ctx.stroke();
+      }
     }
 
     // Order preview path.
@@ -350,11 +381,12 @@ export class CampaignRenderer {
           const fs = Math.min(15, 9.5 + z) * (n.tier >= 3 ? 1.15 : 1);
           ctx.font = `600 ${fs}px ${MAP_FONT}`;
           ctx.letterSpacing = '0.5px';
-          // Antique-chart caps: cream halo, near-black ink.
-          ctx.lineWidth = 3;
+          // Cities: white caps with a thin dark border — the subtle counterpart
+          // to the faction names' glowing style.
+          ctx.lineWidth = 2.5;
           ctx.lineJoin = 'round';
-          ctx.strokeStyle = 'rgba(244,236,216,0.85)';
-          ctx.fillStyle = 'rgba(34,24,14,0.96)';
+          ctx.strokeStyle = 'rgba(18,14,9,0.9)';
+          ctx.fillStyle = 'rgba(248,244,237,0.97)';
           const nm = n.name.toUpperCase();
           ctx.strokeText(nm, sx + s / 2 + 3, sy + 4);
           ctx.fillText(nm, sx + s / 2 + 3, sy + 4);
@@ -506,9 +538,7 @@ export class CampaignRenderer {
     if (factionView && (powerAlpha > 0.02 || leagueHiFade > 0.02)) {
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.lineJoin = 'round';
-      ctx.strokeStyle = 'rgba(16,12,8,0.85)';
-      ctx.fillStyle = 'rgba(250,248,243,0.97)';
+      ctx.fillStyle = 'rgba(252,250,246,0.98)';
       // Leagues first, then powers on top (biggest last) so a power's name is
       // never buried under a minor league's.
       const ordered = [...factionLabels].sort((a, b) => Number(b.minor) - Number(a.minor) || a.radiusKm - b.radiusKm);
@@ -529,10 +559,15 @@ export class CampaignRenderer {
         ctx.font = `${l.minor ? 600 : 700} ${size}px ${MAP_FONT}`;
         ctx.letterSpacing = `${Math.max(0.5, size * 0.07)}px`;
         ctx.globalAlpha = a;
-        ctx.lineWidth = Math.max(2, size / 6);
         const name = l.name.toUpperCase();
-        ctx.strokeText(name, p[0], p[1]);
+        // White text on a black glow: a soft dark halo (two shadowed passes)
+        // makes the country names read boldly over any territory colour.
+        ctx.shadowColor = 'rgba(0,0,0,0.92)';
+        ctx.shadowBlur = size * 0.5;
         ctx.fillText(name, p[0], p[1]);
+        ctx.fillText(name, p[0], p[1]);
+        ctx.shadowBlur = 0;
+        ctx.shadowColor = 'transparent';
       }
       ctx.globalAlpha = 1;
       ctx.letterSpacing = '0px';

@@ -313,25 +313,41 @@ function finishGeom(pos: number[], idx: number[], col: number[] | null): VertexD
 // A boulder: a squat tapered block. A bush: a clump of leafy boxes. A short
 // tree: brown stem + a green canopy (vertex-coloured). Unit-ish scale (~1m);
 // per-instance matrix sizes them to the micro-pocket radius.
+// A small half-buried stone — a knee-high stumble rock, not a boulder.
 function rockGeom(): VertexData {
   const p: number[] = [], i: number[] = [];
-  pushBox(p, i, null, -0.5, -0.4, 0, 0.4, 0.5, 0.42);
-  pushBox(p, i, null, -0.3, -0.2, 0.38, 0.25, 0.28, 0.6);
+  pushBox(p, i, null, -0.32, -0.26, 0, 0.28, 0.3, 0.2);
+  pushBox(p, i, null, -0.18, -0.14, 0.16, 0.16, 0.16, 0.32);
   return finishGeom(p, i, null);
 }
-function bushGeom(): VertexData {
-  const p: number[] = [], i: number[] = [];
-  pushBox(p, i, null, -0.45, -0.4, 0, 0.4, 0.45, 0.5);
-  pushBox(p, i, null, -0.25, -0.2, 0.4, 0.3, 0.3, 0.72);
-  pushBox(p, i, null, 0.1, -0.35, 0.2, 0.5, 0.1, 0.6);
-  return finishGeom(p, i, null);
+// A low grass/scrub clump — vertex-coloured leafy tufts, greener and shorter
+// than the old "bush" so the common scatter reads as meadow growth, not stones.
+function grassGeom(): VertexData {
+  const p: number[] = [], i: number[] = [], c: number[] = [];
+  const G1: [number, number, number] = [0.32, 0.46, 0.21];
+  const G2: [number, number, number] = [0.40, 0.54, 0.25];
+  pushBox(p, i, c, -0.32, -0.28, 0, 0.18, 0.22, 0.26, G1);
+  pushBox(p, i, c, -0.06, -0.2, 0.0, 0.34, 0.3, 0.4, G2); // a taller tuft
+  pushBox(p, i, c, -0.2, 0.04, 0.0, 0.12, 0.36, 0.3, G1);
+  return finishGeom(p, i, c);
 }
+// A short tree/sapling — brown stem, layered green canopy. Smaller than before.
 function treeGeom(): VertexData {
   const p: number[] = [], i: number[] = [], c: number[] = [];
-  pushBox(p, i, c, -0.08, -0.08, 0, 0.08, 0.08, 0.7, [0.32, 0.22, 0.13]); // stem
-  pushBox(p, i, c, -0.4, -0.4, 0.55, 0.4, 0.4, 1.4, [0.20, 0.34, 0.15]); // canopy
-  pushBox(p, i, c, -0.25, -0.25, 1.3, 0.25, 0.25, 1.7, [0.24, 0.40, 0.18]); // crown
+  pushBox(p, i, c, -0.07, -0.07, 0, 0.07, 0.07, 0.62, [0.32, 0.22, 0.13]); // stem
+  pushBox(p, i, c, -0.34, -0.34, 0.48, 0.34, 0.34, 1.18, [0.20, 0.34, 0.15]); // canopy
+  pushBox(p, i, c, -0.21, -0.21, 1.08, 0.21, 0.21, 1.46, [0.24, 0.40, 0.18]); // crown
   return finishGeom(p, i, c);
+}
+// A big jagged boulder — a pile of tilted blocks for the impassable rock /
+// rocky cliffs, so an "impassable" feature reads as a crag, not a flat disc.
+function boulderGeom(): VertexData {
+  const p: number[] = [], i: number[] = [];
+  pushBox(p, i, null, -0.7, -0.6, 0, 0.6, 0.55, 0.7);
+  pushBox(p, i, null, -0.4, -0.5, 0.5, 0.55, 0.3, 1.15);
+  pushBox(p, i, null, -0.55, 0.0, 0.2, 0.1, 0.6, 0.95);
+  pushBox(p, i, null, 0.1, -0.3, 0.6, 0.65, 0.35, 1.35); // a spur reaching up
+  return finishGeom(p, i, null);
 }
 // The sim/ground-shader micro hash, in JS, so the scattered props land on
 // the SAME 3m discs the sim trips on and the shader speckles.
@@ -490,7 +506,7 @@ export class BattleRenderer3D {
   // Scatter props standing on the micro-pockets: 0 rock, 1 bush, 2 tree.
   // Thin-instanced from whatever 3m discs fall in the visible AABB.
   private scatterMesh: Mesh[] = [];
-  private scatterMats: Float32Array[] = [new Float32Array(0), new Float32Array(0), new Float32Array(0)];
+  private scatterMats: Float32Array[] = Array.from({ length: 4 }, () => new Float32Array(0));
   // The tint grid + dims, kept so updateScatter can read the ground type
   // under each pocket and pick rock vs bush vs tree.
   private tintGrid: Uint8Array = new Uint8Array(0);
@@ -529,6 +545,28 @@ export class BattleRenderer3D {
   /** Heightfield sample, gated by `elevation` so the flat stages stay flat. */
   private gz(x: number, y: number): number {
     return this.elevation ? terrainHeightJS(x, y) : 0;
+  }
+
+  /** Extra elevation over impassable ROCK/WALL cells, so a "rock" feature rises
+   *  into a jagged rocky cliff instead of sitting as a flat grey disc. Reads the
+   *  tint grid: the 3×3 rock fraction makes a smooth mound, a noise jitters its
+   *  crest into crags. Off when `elevation` is off (flat stages). */
+  private tintHeight(x: number, y: number): number {
+    if (!this.elevation || this.terrW === 0) return 0;
+    const gx = Math.floor((x - this.terrOx) / this.terrCell);
+    const gy = Math.floor((y - this.terrOy) / this.terrCell);
+    let rock = 0;
+    for (let dy = -1; dy <= 1; dy++) {
+      for (let dx = -1; dx <= 1; dx++) {
+        const ix = gx + dx, iy = gy + dy;
+        if (ix < 0 || iy < 0 || ix >= this.terrW || iy >= this.terrH) continue;
+        const t = this.tintGrid[iy * this.terrW + ix];
+        if (t === 2 || t === 3) rock++;
+      }
+    }
+    if (rock === 0) return 0;
+    const frac = rock / 9;
+    return frac * 14 * (0.6 + 0.7 * valueNoise(x / 11 + 5, y / 11 + 2) ** 2 + 0.4 * valueNoise(x / 4, y / 4));
   }
   private nPose = POSES.length; // pose rungs per (class, team); set in the ctor
   // Per-soldier death-collapse blend in [0,1], eased up once a man falls so he
@@ -654,13 +692,14 @@ export class BattleRenderer3D {
     // Scatter props for the micro-pockets. Rock & bush carry one flat colour
     // (the material's diffuse); the tree is vertex-coloured (brown stem, green
     // canopy). All three lit by the same sun/sky as the soldiers.
-    const scatterGeom = [rockGeom(), bushGeom(), treeGeom()];
+    const scatterGeom = [rockGeom(), grassGeom(), treeGeom(), boulderGeom()];
     const scatterCol: [number, number, number][] = [
-      [0.45, 0.43, 0.40], // rock grey
-      [0.26, 0.40, 0.20], // bush green
+      [0.5, 0.48, 0.44], // small rock grey
+      [1, 1, 1], // grass clump: vertex colours carry the greens
       [1, 1, 1], // tree: vertex colours carry the real hue
+      [0.46, 0.44, 0.41], // boulder grey-brown
     ];
-    for (let s = 0; s < 3; s++) {
+    for (let s = 0; s < scatterGeom.length; s++) {
       const mesh = new Mesh(`scatter_${s}`, this.scene);
       scatterGeom[s].applyToMesh(mesh);
       const mat = new StandardMaterial(`scatter_${s}`, this.scene);
@@ -801,7 +840,7 @@ export class BattleRenderer3D {
     const ny = Math.max(2, Math.ceil((y1 - y0) / STEP) + 1);
     const positions = new Float32Array(nx * ny * 3);
     const normals = new Float32Array(nx * ny * 3);
-    const H = (hx: number, hy: number) => this.gz(hx, hy);
+    const H = (hx: number, hy: number) => this.gz(hx, hy) + this.tintHeight(hx, hy);
     for (let j = 0; j < ny; j++) {
       const wy = y0 + (j / (ny - 1)) * (y1 - y0);
       for (let i = 0; i < nx; i++) {
@@ -1046,9 +1085,9 @@ export class BattleRenderer3D {
     this.scatterKey = key;
 
     const CAP = 4000;
-    const counts = [0, 0, 0];
+    const counts = [0, 0, 0, 0];
     const mats = this.scatterMats;
-    for (let s = 0; s < 3; s++) if (mats[s].length < CAP * 16) mats[s] = new Float32Array(CAP * 16);
+    for (let s = 0; s < 4; s++) if (mats[s].length < CAP * 16) mats[s] = new Float32Array(CAP * 16);
 
     const cx0 = Math.floor(minX / 3) - 1, cx1 = Math.ceil(maxX / 3) + 1;
     const cy0 = Math.floor(minY / 3) - 1, cy1 = Math.ceil(maxY / 3) + 1;
@@ -1069,31 +1108,35 @@ export class BattleRenderer3D {
         const tint = inMap ? this.tintGrid[gy * this.terrW + gx] : 99;
         if (tint === 1) continue; // no props on water (matches the shader)
 
-        // Choose rock / bush / tree from the tint, with a deterministic
-        // per-disc roll so each ground type gets a believable mix.
-        const roll = (h >> 5) & 7;
+        // Choose rock / grass / tree / boulder from the tint, with a
+        // deterministic per-disc roll so each ground type gets a believable mix.
+        // Types: 0 small rock, 1 grass/scrub clump, 2 short tree, 3 big boulder.
+        const roll = (h >> 5) & 15;
         let type: number;
-        if (tint === 4 || tint === 99) type = roll < 5 ? 2 : 1; // forest/wilds: mostly trees
-        else if (tint === 2 || tint === 6 || tint === 3) type = roll < 6 ? 0 : 1; // crag/scree/wall: rock
-        else if (tint === 5) type = roll < 6 ? 1 : 0; // mud: scrubby bushes
-        else type = roll < 4 ? 0 : roll < 7 ? 1 : 2; // meadow: rock/bush, a rare tree
+        if (tint === 2 || tint === 3) type = roll < 11 ? 3 : 0; // impassable crag/wall: boulders (a few small stones)
+        else if (tint === 6) type = roll < 6 ? 3 : roll < 12 ? 0 : 1; // scree field: boulders + stones + scrub
+        else if (tint === 4 || tint === 99) type = roll < 10 ? 2 : 1; // forest/wilds: mostly trees, some scrub
+        else if (tint === 5) type = roll < 12 ? 1 : 2; // mud: reedy scrub, the odd sapling
+        else type = roll < 9 ? 1 : roll < 13 ? 2 : 0; // meadow: mostly grass tufts, some trees, a rare stone
 
         const n = counts[type];
         const m = mats[type];
         const o = n * 16;
-        // Scale to the pocket radius; bushes/trees a touch taller than wide.
-        const sx = r * 1.6, sz = type === 2 ? r * 1.5 : type === 1 ? r * 1.3 : r * 1.4;
+        // Scale to the pocket radius. Boulders are big (the crag); small stones
+        // stay knee-high; grass/trees a touch taller than wide.
+        const sx = type === 3 ? 1.1 + r * 1.5 : type === 0 ? r * 0.8 : r * 1.25;
+        const sz = type === 3 ? 1.0 + r * 1.6 : type === 0 ? r * 0.7 : type === 2 ? r * 1.5 : r * 1.2;
         const yaw = ((h >> 3) & 255) / 255 * Math.PI * 2;
         const cyaw = Math.cos(yaw), syaw = Math.sin(yaw);
         m[o] = cyaw * sx; m[o + 1] = syaw * sx; m[o + 2] = 0; m[o + 3] = 0;
         m[o + 4] = -syaw * sx; m[o + 5] = cyaw * sx; m[o + 6] = 0; m[o + 7] = 0;
         m[o + 8] = 0; m[o + 9] = 0; m[o + 10] = sz; m[o + 11] = 0;
-        m[o + 12] = wx; m[o + 13] = wy; m[o + 14] = this.gz(wx, wy); m[o + 15] = 1;
+        m[o + 12] = wx; m[o + 13] = wy; m[o + 14] = this.gz(wx, wy) + this.tintHeight(wx, wy); m[o + 15] = 1;
         counts[type] = n + 1;
         placed++;
       }
     }
-    for (let s = 0; s < 3; s++) {
+    for (let s = 0; s < 4; s++) {
       const mesh = this.scatterMesh[s];
       const n = counts[s];
       mesh.isVisible = n > 0;

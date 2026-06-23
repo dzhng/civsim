@@ -27,6 +27,34 @@ the visual target the milestones converge on. Until they exist in-repo, "match
 the reference" is unactionable and no agent (or reviewer) can grade it. **Ask the
 human for the screenshots and commit them first.**
 
+### The visual target, from observation (until the PNGs land)
+
+The three reference shots attached to the original task (transcribed here so the
+spec is not empty-handed; the actual PNGs are still needed for *pixel* grading):
+
+1. **Bronze-age coastal clash.** A shoreline (calm blue-grey sea on the left)
+   meeting a dry **golden-grass** plain under a warm, lightly overcast sky.
+   Loose lines of hoplite/phalanx infantry collide; muted **bronze** armour, warm
+   earthy browns. A low rocky outcrop with dark **cypress trees** sits on a small
+   rise to the right. Tone: warm, hazy, naturalistic — not saturated.
+2. **Epic sunrise battle.** A vast army clash sprawling across a golden plain —
+   thousands of infantry plus cavalry/chariots in depth — with **beached ships**
+   on the left shore and a fortified **citadel/acropolis on a clifftop** upper
+   right, under dramatic clouds and a low warm sun. This is the *scale + lighting*
+   target: huge readable masses, atmospheric depth, warm key light.
+3. **In-game gameplay shot (the UI + camera reference).** A closer ~3/4 camera
+   over a **green meadow** strewn with fallen bodies; on the left a loose melee of
+   hoplites, on the right a fresh **ordered phalanx highlighted in yellow**
+   (selected). The **Total War bottom UI**: a horizontal **row of unit cards with
+   green health bars** and troop counts, a command bar of ability buttons, a
+   battle timer top-centre, and **floating unit banners/standards** above the
+   formations. Our current UI already mirrors this; the soldiers are what must
+   reach this fidelity.
+
+Palette/tone across all three: warm, earthy, slightly desaturated, strong natural
+sun. The colour grade we already apply (warm tilt + gentle saturation) is aimed
+at this; the gap is purely the soldier meshes.
+
 ## The contracts this must establish / must not break
 
 There is no green test that *defines* "AAA" — the ground truth is the

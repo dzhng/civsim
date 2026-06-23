@@ -8,10 +8,39 @@
 
 import type { CampaignData } from './data';
 import type { CityView } from './scene';
-import { TerrainField } from './terrain';
+import { TerrainField, hash2 } from './terrain';
 
-/** Land farther than this from any city is no one's (deep deserts, steppe). */
-const REACH_KM = 280;
+/** Land farther than this from any city is no one's (deep deserts, steppe).
+ *  Generous enough that a faction's coastal cities reach into one contiguous
+ *  hinterland instead of leaving unclaimed sand between adjacent holdings. */
+const REACH_KM = 460;
+
+/** Smooth value noise over a km grid, [0,1) — the domain warp below rides it. */
+function vnoise(x: number, y: number): number {
+  const xi = Math.floor(x);
+  const yi = Math.floor(y);
+  const fx = x - xi;
+  const fy = y - yi;
+  const u = fx * fx * (3 - 2 * fx);
+  const v = fy * fy * (3 - 2 * fy);
+  const a = hash2(xi, yi);
+  const b = hash2(xi + 1, yi);
+  const c = hash2(xi, yi + 1);
+  const d = hash2(xi + 1, yi + 1);
+  return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;
+}
+
+/** Bend a query point along coherent noise so the nearest-city Voronoi seams
+ *  curve organically (hugging the land) instead of cutting straight bisectors. */
+function warp(wx: number, wy: number): [number, number] {
+  const big = 260;
+  const fine = 95;
+  const dx = (vnoise(wx / big + 11.2, wy / big + 5.7) - 0.5) * 180
+    + (vnoise(wx / fine + 3.1, wy / fine + 7.9) - 0.5) * 70;
+  const dy = (vnoise(wx / big + 31.4, wy / big + 19.3) - 0.5) * 180
+    + (vnoise(wx / fine + 23.5, wy / fine + 13.1) - 0.5) * 70;
+  return [wx + dx, wy + dy];
+}
 
 const FILL_A = 130;
 const REGION_A = 170;
@@ -61,31 +90,47 @@ export class Territory {
     });
 
     const reach2 = REACH_KM * REACH_KM;
+    // Nearest city within a 3x3 bucket neighbourhood of (px,py); returns the
+    // winning node and its squared distance (node -1 if none within `cap`).
+    const nearestCity = (px: number, py: number, cap: number): [number, number] => {
+      const bx = Math.floor((px - minX) / REACH_KM) + 1;
+      const byy = Math.floor((maxY - py) / REACH_KM) + 1;
+      let best = -1;
+      let bestD = cap;
+      for (let dy = -1; dy <= 1; dy++) {
+        for (let dx = -1; dx <= 1; dx++) {
+          const b = buckets.get(bx + dx + (byy + dy) * bw);
+          if (!b) continue;
+          for (const ci of b) {
+            const c = cities[ci];
+            const d = (c.x - px) ** 2 + (c.y - py) ** 2;
+            if (d < bestD) {
+              bestD = d;
+              best = c.node;
+            }
+          }
+        }
+      }
+      return [best, bestD];
+    };
     for (let gy = 0; gy < h; gy++) {
       const wy = maxY - (gy + 0.5) * cell;
-      const by = Math.floor((maxY - wy) / REACH_KM) + 1;
       for (let gx = 0; gx < w; gx++) {
         const i = gy * w + gx;
         if (!land[i]) continue;
         const wx = minX + (gx + 0.5) * cell;
-        const bx = Math.floor((wx - minX) / REACH_KM) + 1;
-        let best = -1;
-        let bestD = reach2;
-        for (let dy = -1; dy <= 1; dy++) {
-          for (let dx = -1; dx <= 1; dx++) {
-            const b = buckets.get(bx + dx + (by + dy) * bw);
-            if (!b) continue;
-            for (const ci of b) {
-              const c = cities[ci];
-              const d = (c.x - wx) ** 2 + (c.y - wy) ** 2;
-              if (d < bestD) {
-                bestD = d;
-                best = c.node;
-              }
-            }
-          }
+        // Contiguity gate: a cell is claimed iff a city sits within REACH of its
+        // TRUE position — so the warp below can never punch unclaimed holes.
+        const [trueBest] = nearestCity(wx, wy, reach2);
+        if (trueBest < 0) {
+          this.nearest[i] = -1;
+          continue;
         }
-        this.nearest[i] = best;
+        // Owner is chosen from a noise-warped point, so inter-faction seams
+        // curve with the land instead of following straight Voronoi bisectors.
+        const [qx, qy] = warp(wx, wy);
+        const [warpBest] = nearestCity(qx, qy, reach2);
+        this.nearest[i] = warpBest >= 0 ? warpBest : trueBest;
       }
     }
   }

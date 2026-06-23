@@ -17,6 +17,25 @@ export interface CamView {
 
 const FACTION_FALLBACK: [number, number, number] = [150, 150, 150];
 
+/** Classical engraved-caps serif for every map label (Cinzel, bundled), with a
+ *  serif fallback so a slow font load still reads as an old atlas. */
+const MAP_FONT = `Cinzel, Georgia, 'Times New Roman', serif`;
+/** Flowing serif italic for the open water — the lettering on an antique chart. */
+const SEA_FONT = `italic Georgia, 'Times New Roman', serif`;
+
+/** Curated sea names for the real Mediterranean map (world km coords, +y north).
+ *  Drawn in both views at overview zoom — the open water of an old atlas. */
+const SEAS: { name: string; x: number; y: number; size: number; angle?: number }[] = [
+  { name: 'Mediterranean Sea', x: 340, y: -560, size: 30, angle: -0.05 },
+  { name: 'Tyrrhenian Sea', x: -360, y: 120, size: 20, angle: -0.5 },
+  { name: 'Ionian Sea', x: 30, y: -170, size: 18, angle: -0.9 },
+  { name: 'Adriatic Sea', x: 70, y: 690, size: 18, angle: -0.65 },
+  { name: 'Aegean Sea', x: 600, y: 150, size: 17, angle: -0.7 },
+  { name: 'Black Sea', x: 1080, y: 1180, size: 24, angle: 0 },
+  { name: 'Iberian Sea', x: -1640, y: -40, size: 22, angle: 0 },
+  { name: 'Atlantic Ocean', x: -2120, y: 560, size: 22, angle: -1.2 },
+];
+
 /** Split a world polyline into drawable sub-polylines: trimmed by an arc-length
  *  margin at each end (km, for town walls) and gapped where it passes within
  *  `r` of an army center (so the road doesn't paint over the army model). */
@@ -158,9 +177,14 @@ export class CampaignRenderer {
     roadLevels?: Uint8Array,
     outposts?: { node: number; owner: number; built: boolean }[],
     ambushHints?: [number, number][],
+    factionView = true,
+    fogOfWar = false,
   ) {
     const { ctx, canvas, data } = this;
     const z = cam.scale;
+    // Under fog of war the overlay hides anything the player can't currently
+    // see (their own cities/armies sit inside their own sight, so stay shown).
+    const hidden = (wx: number, wy: number) => fogOfWar && this.t3d.visibleAt(wx, wy) < 0.35;
     // Draw in CSS px on a device-px backing store: constants below are
     // resolution-independent and stay crisp on high-dpi screens.
     const dpr = window.devicePixelRatio || 1;
@@ -249,28 +273,68 @@ export class CampaignRenderer {
       ctx.setLineDash([]);
     }
 
-    // Faction names over their territory at political-map zoom.
+    // Sea names on the open water (both views) — antique-chart italics that
+    // fade as the camera dives toward 3D. Only on the real Mediterranean map.
+    const seaAlpha = 1 - Math.min(1, Math.max(0, (z - 0.26) / 0.16));
+    if (seaAlpha > 0.02 && data.map.nodes.length > 20) {
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.lineJoin = 'round';
+      for (const sea of SEAS) {
+        if (hidden(sea.x, sea.y)) continue;
+        const p = pt(sea.x, sea.y);
+        if (!p) continue;
+        ctx.save();
+        ctx.translate(p[0], p[1]);
+        ctx.rotate(sea.angle ?? 0);
+        ctx.font = `${sea.size}px ${SEA_FONT}`;
+        ctx.letterSpacing = `${sea.size * 0.22}px`;
+        ctx.globalAlpha = seaAlpha * 0.8;
+        ctx.lineWidth = 2.5;
+        ctx.strokeStyle = 'rgba(20,34,52,0.55)';
+        ctx.fillStyle = 'rgba(196,214,232,0.78)';
+        const nm = sea.name.toUpperCase();
+        ctx.strokeText(nm, 0, 0);
+        ctx.fillText(nm, 0, 0);
+        ctx.restore();
+      }
+      ctx.globalAlpha = 1;
+      ctx.letterSpacing = '0px';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'alphabetic';
+    }
+
+    // Faction names over their territory at political-map zoom (faction view).
     const labelAlpha = 1 - Math.min(1, Math.max(0, (z - 0.3) / 0.12));
-    if (labelAlpha > 0.02) {
+    if (factionView && labelAlpha > 0.02) {
       for (const l of factionLabels) {
+        if (hidden(l.x, l.y)) continue;
         const p = pt(l.x, l.y);
         if (!p) continue;
-        const size = Math.min(52, Math.max(17, l.radiusKm * z * 0.6));
-        ctx.font = `600 ${size}px system-ui, sans-serif`;
+        const size = Math.min(54, Math.max(18, l.radiusKm * z * 0.55));
+        ctx.font = `700 ${size}px ${MAP_FONT}`;
         ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.letterSpacing = `${Math.max(1, size * 0.07)}px`;
         ctx.globalAlpha = labelAlpha;
-        ctx.lineWidth = Math.max(2, size / 9);
-        ctx.strokeStyle = 'rgba(10,12,16,0.65)';
-        ctx.fillStyle = `rgb(${Math.min(255, l.color[0] + 90)},${Math.min(255, l.color[1] + 90)},${Math.min(255, l.color[2] + 90)})`;
-        ctx.strokeText(l.name, p[0], p[1]);
-        ctx.fillText(l.name, p[0], p[1]);
+        // Engraved caps: a dark cushion, then a luminous tint of the faction hue.
+        ctx.lineWidth = Math.max(2.5, size / 7);
+        ctx.lineJoin = 'round';
+        ctx.strokeStyle = 'rgba(18,14,10,0.78)';
+        ctx.fillStyle = `rgb(${Math.min(255, l.color[0] + 110)},${Math.min(255, l.color[1] + 110)},${Math.min(255, l.color[2] + 110)})`;
+        const name = l.name.toUpperCase();
+        ctx.strokeText(name, p[0], p[1]);
+        ctx.fillText(name, p[0], p[1]);
         ctx.globalAlpha = 1;
+        ctx.letterSpacing = '0px';
         ctx.textAlign = 'left';
+        ctx.textBaseline = 'alphabetic';
       }
     }
 
     // Cities: squares colored by owner, sized by tier; junction dots at zoom.
     data.map.nodes.forEach((n, i) => {
+      if (hidden(n.pos[0], n.pos[1])) return;
       const p = pt(n.pos[0], n.pos[1]);
       if (!p) return;
       const [sx, sy] = p;
@@ -280,7 +344,7 @@ export class CampaignRenderer {
         // Political zoom: minor cities collapse to flat dots so the
         // territory mosaic stays readable.
         if (z < 0.3 && n.tier < 3) {
-          ctx.fillStyle = c ? this.factionColor(c.owner) : '#888';
+          ctx.fillStyle = factionView ? (c ? this.factionColor(c.owner) : '#888') : '#241a10';
           ctx.globalAlpha = 0.85;
           ctx.beginPath();
           ctx.arc(sx, sy, 1.5 + n.tier * 0.6, 0, Math.PI * 2);
@@ -292,7 +356,7 @@ export class CampaignRenderer {
         // Above the model zoom the 3D settlement carries the city; the flat
         // square would only z-fight with it. Keep the name label either way.
         if (z < CITY_MODEL_MIN_SCALE) {
-          ctx.fillStyle = c ? this.factionColor(c.owner) : '#888';
+          ctx.fillStyle = factionView ? (c ? this.factionColor(c.owner) : '#888') : '#2a2014';
           ctx.strokeStyle = '#1a1208';
           ctx.lineWidth = 1.5;
           ctx.fillRect(sx - s / 2, sy - s / 2, s, s);
@@ -303,12 +367,18 @@ export class CampaignRenderer {
           }
         }
         if (z > 0.45 || n.tier >= 3) {
-          ctx.font = `${Math.min(15, 10 + z)}px system-ui, sans-serif`;
-          ctx.fillStyle = 'rgba(245,238,220,0.92)';
-          ctx.strokeStyle = 'rgba(0,0,0,0.7)';
+          const fs = Math.min(15, 9.5 + z) * (n.tier >= 3 ? 1.15 : 1);
+          ctx.font = `600 ${fs}px ${MAP_FONT}`;
+          ctx.letterSpacing = '0.5px';
+          // Antique-chart caps: cream halo, near-black ink.
           ctx.lineWidth = 3;
-          ctx.strokeText(n.name, sx + s / 2 + 3, sy + 4);
-          ctx.fillText(n.name, sx + s / 2 + 3, sy + 4);
+          ctx.lineJoin = 'round';
+          ctx.strokeStyle = 'rgba(244,236,216,0.85)';
+          ctx.fillStyle = 'rgba(34,24,14,0.96)';
+          const nm = n.name.toUpperCase();
+          ctx.strokeText(nm, sx + s / 2 + 3, sy + 4);
+          ctx.fillText(nm, sx + s / 2 + 3, sy + 4);
+          ctx.letterSpacing = '0px';
         }
       } else if (z > 0.5) {
         ctx.fillStyle = 'rgba(60,45,30,0.7)';
@@ -334,6 +404,7 @@ export class CampaignRenderer {
     // Outposts: a watchtower glyph in the owner's color.
     for (const o of outposts ?? []) {
       const n = data.map.nodes[o.node];
+      if (hidden(n.pos[0], n.pos[1])) continue;
       const p = pt(n.pos[0], n.pos[1]);
       if (!p || p[0] < -20 || p[1] < -20 || p[0] > W + 20 || p[1] > H + 20) continue;
       const [sx, sy] = p;
@@ -355,6 +426,7 @@ export class CampaignRenderer {
 
     // Armies: banners (pennant triangles) colored by faction.
     for (const a of armies) {
+      if (!a.mine && hidden(a.x, a.y)) continue; // enemies vanish into the fog
       const p = pt(a.x, a.y);
       if (!p) continue;
       const [sx, sy] = p;

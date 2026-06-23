@@ -72,6 +72,13 @@ export class CampaignScene implements Scene {
   private last = 0;
   private selected = -1;
   private hover = -1;
+  /** Faction (political) view: territories flooded with owner colours + names.
+   *  Off = the natural map (terrain only, neutral city dots). */
+  private factionView = true;
+  /** Fog of war: the player sees only their own cities/armies and the ground
+   *  around them; everything else is dark under drifting cloud. Defaults off so
+   *  the campaign opens on the full parchment atlas; toggle (F) for gameplay. */
+  private fogOfWar = false;
   private diploOpen = false;
   private diploJson = '';
   private armies: ArmyView[] = [];
@@ -87,6 +94,10 @@ export class CampaignScene implements Scene {
   }
 
   enter() {
+    // Warm the map font (Cinzel) so the canvas labels engrave from the first
+    // frames rather than flashing the serif fallback.
+    void document.fonts.load('700 40px Cinzel');
+    void document.fonts.load('600 14px Cinzel');
     if (!document.getElementById('campaign-canvas')) this.buildDom();
     this.canvas = document.getElementById('campaign-canvas') as HTMLCanvasElement;
     this.glCanvas = document.getElementById('campaign-gl') as HTMLCanvasElement;
@@ -142,6 +153,18 @@ export class CampaignScene implements Scene {
       select: (id: number) => (this.selected = id),
       selected: () => this.selected,
       paused: () => this.paused,
+      /** Test/verify hook: flip the political (faction) overlay on or off. */
+      factionView: (on?: boolean) => {
+        this.factionView = on ?? !this.factionView;
+        this.syncFactionBtn();
+        return this.factionView;
+      },
+      /** Test/verify hook: flip gameplay fog of war on or off (off = reveal). */
+      fogOfWar: (on?: boolean) => {
+        this.fogOfWar = on ?? !this.fogOfWar;
+        this.syncFactionBtn();
+        return this.fogOfWar;
+      },
       /** world km -> CSS px (for synthetic mouse events) */
       project: (wx: number, wy: number) => {
         const p = this.renderer.toScreen(wx, wy);
@@ -153,6 +176,8 @@ export class CampaignScene implements Scene {
       },
       camGet: () => ({ ...this.cam, pitchDeg: (this.t3d!.pitch * 180) / Math.PI }),
       territoryAlpha: () => this.t3d!.territoryAlpha(this.cam.scale),
+      /** Fog-of-war probe: player visibility (0..1) at a world point. */
+      visAt: (x: number, y: number) => this.t3d!.visibleAt(x, y),
       /** Snapshot mode: pin the water clock (campaign is already paused). */
       freeze: (on = true) => {
         this.t3d!.fixedTime = on ? 0 : null;
@@ -196,19 +221,23 @@ export class CampaignScene implements Scene {
       }
     }
 
-    // Auto-resolve hogs the frame budget on purpose: the modal covers the
-    // screen, so don't spend milliseconds drawing the world behind it.
-    if (!this.autoResolving) {
+    // A battle modal (or auto-resolve) covers the screen with a dimmed
+    // backdrop: stop redrawing the world behind it. The 3D map render is the
+    // frame's whole cost, so skipping it keeps the decision UI responsive
+    // instead of grinding a heavy frame the player can't even see.
+    if (!this.autoResolving && !this.modal) {
       this.renderer.resize();
       this.t3d!.resize();
       this.t3d!.clampCam(this.cam); // zoom floor = aspect-fill, pan inside the map
-      this.t3d!.setArmies(this.armies, this.cam.scale, this.selected, this.hover); // 3D models under the floating banners
-      this.t3d!.draw(this.cam);
+      if (this.fogOfWar) this.t3d!.setVision(this.visionSources());
+      // 3D models under the floating banners; fogged enemies are dropped.
+      this.t3d!.setArmies(this.armies, this.cam.scale, this.selected, this.hover, this.fogOfWar);
+      this.t3d!.draw(this.cam, this.factionView, this.fogOfWar);
       const sel = this.armies.find((a) => a.id === this.selected && a.mine);
       const hints: [number, number][] = sel
         ? this.spotPos.filter(([x, y]) => Math.hypot(x - sel.x, y - sel.y) < 12)
         : [];
-      this.renderer.draw(this.cam, this.armies, this.cities, this.selected, null, this.territory!.labels, this.roadLevels, this.outposts, hints);
+      this.renderer.draw(this.cam, this.armies, this.cities, this.selected, null, this.territory!.labels, this.roadLevels, this.outposts, hints, this.factionView, this.fogOfWar);
     }
     this.updateHud();
   }
@@ -324,6 +353,12 @@ export class CampaignScene implements Scene {
       else if (e.key === 'h' && this.selected >= 0) {
         this.cfg.campaign.order_halt(this.selected);
         this.refreshViews();
+      } else if (e.key === 'v') {
+        this.factionView = !this.factionView;
+        this.syncFactionBtn();
+      } else if (e.key === 'f') {
+        this.fogOfWar = !this.fogOfWar;
+        this.syncFactionBtn();
       }
     }, { signal });
   }
@@ -511,6 +546,8 @@ export class CampaignScene implements Scene {
         <button data-speed="0">1×</button>
         <button data-speed="1">3×</button>
         <button data-speed="2">10×</button>
+        <button id="cmp-factions" title="Toggle faction (political) view — V">🗺 Factions</button>
+        <button id="cmp-fog" title="Toggle fog of war — F">🌫 Fog</button>
         <button id="cmp-diplo-btn">⚑ Diplomacy</button>
         <span style="flex:1"></span>
         <button id="cmp-save">Save</button>
@@ -535,6 +572,21 @@ export class CampaignScene implements Scene {
     });
     ui.querySelector('#cmp-exit')!.addEventListener('click', () => this.cfg.onExit());
     ui.querySelector('#cmp-diplo-btn')!.addEventListener('click', () => this.toggleDiplomacy());
+    ui.querySelector('#cmp-factions')!.addEventListener('click', () => {
+      this.factionView = !this.factionView;
+      this.syncFactionBtn();
+    });
+    ui.querySelector('#cmp-fog')!.addEventListener('click', () => {
+      this.fogOfWar = !this.fogOfWar;
+      this.syncFactionBtn();
+    });
+    this.syncFactionBtn();
+  }
+
+  /** Reflect the view-toggle flags on their HUD buttons (lit when active). */
+  private syncFactionBtn() {
+    this.ui?.querySelector('#cmp-factions')?.classList.toggle('on', this.factionView);
+    this.ui?.querySelector('#cmp-fog')?.classList.toggle('on', this.fogOfWar);
   }
 
   private toggleDiplomacy() {
@@ -777,6 +829,27 @@ export class CampaignScene implements Scene {
 
   private playerFaction(): number {
     return this.cfg.campaign.player_faction();
+  }
+
+  /** The player's fog-of-war sight: a disc around each of their cities (wider
+   *  for bigger towns) and each of their armies on the march. */
+  private visionSources(): { x: number; y: number; r: number }[] {
+    const pf = this.playerFaction();
+    const src: { x: number; y: number; r: number }[] = [];
+    for (const [node, cv] of this.cities) {
+      if (cv.owner !== pf) continue;
+      const n = this.cfg.data.map.nodes[node];
+      src.push({ x: n.pos[0], y: n.pos[1], r: 150 + n.tier * 45 });
+    }
+    for (const o of this.outposts) {
+      if (o.owner !== pf || !o.built) continue;
+      const n = this.cfg.data.map.nodes[o.node];
+      src.push({ x: n.pos[0], y: n.pos[1], r: 170 });
+    }
+    for (const a of this.armies) {
+      if (a.mine) src.push({ x: a.x, y: a.y, r: 130 });
+    }
+    return src;
   }
 }
 

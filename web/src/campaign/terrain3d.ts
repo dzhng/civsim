@@ -60,15 +60,24 @@ float vnoise(vec2 p) {
   f = f * f * (3.0 - 2.0 * f);
   return mix(mix(hash(i), hash(i + vec2(1, 0)), f.x),
              mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), f.x), f.y);
+}
+// Billowing fractal noise for drifting cloud banks.
+float fbm(vec2 p) {
+  float v = 0.0, a = 0.5;
+  for (int i = 0; i < 5; i++) { v += a * vnoise(p); p = p * 2.03 + 7.1; a *= 0.5; }
+  return v;
 }`;
 
-// Rome 2-style grade: warm tone tilt, saturation lift, gentle contrast.
+// Antique watercolour-atlas grade: brighten, gently desaturate, lift the
+// shadows, and tint the whole frame a faint sepia paper-warmth.
 const GRADE = `
 vec3 grade(vec3 c) {
-  c = pow(max(c, 0.0), vec3(0.93, 0.97, 1.04));
+  c = pow(max(c, 0.0), vec3(0.92, 0.95, 1.00));
   float l = dot(c, vec3(0.299, 0.587, 0.114));
-  c = mix(vec3(l), c, 1.22);
-  return clamp(c * 1.08 - 0.015, 0.0, 1.0);
+  c = mix(vec3(l), c, 1.06);
+  c = c * 1.05 + 0.02;
+  c *= vec3(1.02, 1.00, 0.95);
+  return clamp(c, 0.0, 1.0);
 }`;
 
 ShaderStore.ShadersStore['campTerrainVertexShader'] = `
@@ -95,11 +104,13 @@ varying vec2 vUV;
 varying float vH;
 varying float vZ;
 varying vec2 vXY;
-uniform sampler2D uTerr, uLight, uBiome; // uLight: baked lambert * 128
+uniform sampler2D uTerr, uLight, uBiome; // uLight: baked lambert*128
+uniform sampler2D uVis; // player sight mask (fog of war)
 uniform vec3 uEyePos, uSun, uFogC;
 uniform vec2 uFx; // territory alpha, fog strength
-uniform float uFogD, uTime;
+uniform float uFogD, uTime, uCloud, uFow; // uFow: fog-of-war strength (0 = reveal-all)
 uniform vec2 uViewport;
+uniform vec4 uBgRect;
 ${NOISE}
 ${GRADE}
 float nz(vec2 p, float freq, float px) {
@@ -118,30 +129,33 @@ void main() {
     float m = b.r;
     float g1 = nz(vXY, 0.9, px);
     float g2 = nz(vXY, 3.1, px);
-    vec3 grass = mix(vec3(0.52, 0.50, 0.27), vec3(0.22, 0.42, 0.15), smoothstep(0.22, 0.55, m));
-    grass *= 0.86 + 0.18 * g1 + 0.10 * g2;
+    // Watercolour atlas greens: pale olive in the dry south, soft sage where wet.
+    vec3 grass = mix(vec3(0.66, 0.64, 0.42), vec3(0.40, 0.56, 0.33), smoothstep(0.22, 0.55, m));
+    grass *= 0.90 + 0.13 * g1 + 0.08 * g2;
     float dune = abs(nz(vXY, 0.16, px) * 2.0 - 1.0);
-    vec3 sand = mix(vec3(0.86, 0.75, 0.52), vec3(0.73, 0.61, 0.40), dune);
-    sand *= 0.93 + 0.10 * nz(vXY, 1.6, px);
+    vec3 sand = mix(vec3(0.90, 0.81, 0.60), vec3(0.80, 0.69, 0.48), dune);
+    sand *= 0.95 + 0.08 * nz(vXY, 1.6, px);
     vec3 ground = mix(sand, grass, smoothstep(0.16, 0.32, m));
     float landShore = (b.a - 0.5) * 24.0; // cells from the waterline
-    ground = mix(vec3(0.80, 0.73, 0.55), ground, smoothstep(0.05, 0.6, landShore));
+    ground = mix(vec3(0.85, 0.78, 0.60), ground, smoothstep(0.05, 0.6, landShore));
     float canopy = smoothstep(0.25, 0.7, b.g * (0.55 + 0.9 * nz(vXY, 0.55, px)));
-    vec3 forestC = mix(vec3(0.13, 0.25, 0.10), vec3(0.20, 0.33, 0.14), nz(vXY, 1.9, px));
+    vec3 forestC = mix(vec3(0.24, 0.36, 0.20), vec3(0.32, 0.46, 0.26), nz(vXY, 1.9, px));
     ground = mix(ground, forestC, canopy);
-    vec3 rockC = mix(vec3(0.44, 0.41, 0.37), vec3(0.61, 0.58, 0.53),
+    vec3 rockC = mix(vec3(0.58, 0.50, 0.42), vec3(0.72, 0.66, 0.58),
                      nz(vec2(vXY.x, vXY.y + vH * 0.9), 0.7, px));
     ground = mix(ground, rockC, smoothstep(0.35, 0.85, b.b) * (0.7 + 0.3 * g1));
-    // snowline climbs toward the south: the Alps whiten, the Atlas stays rock
-    float snowAt = 21.0 + clamp((700.0 - vXY.y) * 0.006, 0.0, 7.0);
-    float snow = smoothstep(snowAt, snowAt + 5.5, vH + (nz(vXY, 0.5, px) - 0.5) * 6.0);
-    ground = mix(ground, vec3(0.92, 0.93, 0.96), snow);
+    // Snow only frosts the very highest northern crests — on a watercolour
+    // atlas the ranges read as tan ridges, not white blobs.
+    float snowAt = 30.0 + clamp((700.0 - vXY.y) * 0.006, 0.0, 7.0);
+    float snow = smoothstep(snowAt, snowAt + 6.0, vH + (nz(vXY, 0.5, px) - 0.5) * 6.0);
+    ground = mix(ground, vec3(0.86, 0.86, 0.83), snow * 0.7);
     // political mode reads better over calmer ground
     float grey = dot(ground, vec3(0.333));
     ground = mix(ground, vec3(grey) * 1.08, uFx.x * 0.45);
-    // contrast-stretch the baked light so ridges carve like they used to
-    float li = pow(texture2D(uLight, vUV).r * 2.0, 1.35);
-    col = ground * li;
+    // Soft relief: ridges still carve, but shadows lift toward a flat
+    // watercolour wash rather than crushing to dark earth.
+    float li = pow(texture2D(uLight, vUV).r * 2.0, 1.12);
+    col = ground * (0.22 + 0.82 * li);
     vec4 t = texture2D(uTerr, vUV);
     col = mix(col, t.rgb, t.a * uFx.x);
   }
@@ -157,12 +171,13 @@ void main() {
     float wy = nz(p1 + vec2(0, e), 0.35, px) * 0.65 + nz(p2 + vec2(0, e), 1.15, px) * 0.35 - w0;
     vec3 wn = normalize(vec3(-wx * 1.6, -wy * 1.6, 1.0));
     float shelf = smoothstep(0.0, 0.28, depth + (nz(vXY, 0.5, px) - 0.5) * 0.1);
-    vec3 wcol = mix(vec3(0.10, 0.40, 0.44), vec3(0.02, 0.15, 0.28), shelf);
-    wcol += 0.06 * (w0 - 0.5);
+    // Antique-chart water: a muted slate blue, shallows toward pale teal.
+    vec3 wcol = mix(vec3(0.40, 0.56, 0.64), vec3(0.16, 0.30, 0.44), shelf);
+    wcol += 0.05 * (w0 - 0.5);
     vec3 V = normalize(uEyePos - vec3(vXY, 0.0));
     wcol += vec3(1.0, 0.95, 0.8) * pow(max(dot(reflect(-uSun, wn), V), 0.0), 70.0)
-            * 0.7 * clamp(1.0 - 0.6 * px, 0.0, 1.0);
-    wcol = mix(wcol, vec3(0.34, 0.48, 0.55), pow(1.0 - max(dot(wn, V), 0.0), 3.0) * 0.3);
+            * 0.6 * clamp(1.0 - 0.6 * px, 0.0, 1.0);
+    wcol = mix(wcol, vec3(0.52, 0.64, 0.72), pow(1.0 - max(dot(wn, V), 0.0), 3.0) * 0.3);
     float foam = smoothstep(0.6, 0.0, (0.5 - b.a) * 24.0)
                * smoothstep(0.4, 0.8, nz(vXY + vec2(uTime * 3.0, -uTime * 2.0), 2.3, px));
     wcol = mix(wcol, vec3(0.88, 0.93, 0.94), foam * 0.7);
@@ -173,9 +188,41 @@ void main() {
     float fog = (1.0 - exp(-pow(vZ * uFogD, 2.0))) * uFx.y;
     col = mix(col, uFogC, clamp(fog, 0.0, 1.0));
   }
-  // Rome 2 frames the world in shadow: a quiet screen-space vignette.
+  // Parchment grain: a faint mottled paper wash so the map reads watercolour.
+  // Two cheap octaves (not fbm) — this runs on every fragment every frame.
+  float grain = vnoise(vXY * 0.05) * 0.6 + vnoise(vXY * 0.27) * 0.4;
+  col *= 0.95 + 0.11 * grain;
+  // Fog-of-war clouds drifting in from the map's rim (overview only).
+  if (uCloud > 0.001) {
+    float edge = min(min(vXY.x - uBgRect.x, uBgRect.z - vXY.x),
+                     min(vXY.y - uBgRect.y, uBgRect.w - vXY.y));
+    float span = min(uBgRect.z - uBgRect.x, uBgRect.w - uBgRect.y);
+    float rim = 1.0 - smoothstep(0.0, span * 0.28, max(edge, 0.0));
+    vec2 cp = vXY * 0.0016 + vec2(uTime * 0.006, uTime * 0.0042);
+    float cl = fbm(cp) * 0.6 + fbm(cp * 2.6 + 3.1) * 0.4;
+    // Billowy cumulus: dense cores read bright, wisps grey — gives the bank depth.
+    float cov = smoothstep(0.46 - rim * 0.42, 0.86 - rim * 0.36, cl);
+    float clouds = pow(rim, 0.65) * cov * uCloud;
+    vec3 cloudC = mix(vec3(0.74, 0.76, 0.80), vec3(0.97, 0.98, 1.0), smoothstep(0.4, 0.82, cl));
+    col = mix(col, cloudC, clamp(clouds, 0.0, 1.0));
+  }
+  // Fog of war: outside the player's sight the world goes dark under a roiling
+  // cloud bank. uVis.r is 1 where seen, 0 where hidden (soft vision edges).
+  if (uFow > 0.001) {
+    float seen = texture2D(uVis, vUV).r;
+    float hidden = (1.0 - seen) * uFow;
+    if (hidden > 0.001) {
+      vec2 fp = vXY * 0.0015 + vec2(uTime * 0.005, uTime * 0.0032);
+      float fc = fbm(fp) * 0.6 + fbm(fp * 2.5 + 1.7) * 0.4;
+      vec3 dark = col * 0.16 + vec3(0.03, 0.04, 0.06); // unlit, ink-dark land/sea
+      vec3 murk = mix(vec3(0.20, 0.22, 0.27), vec3(0.50, 0.53, 0.58), smoothstep(0.38, 0.82, fc));
+      vec3 fogged = mix(dark, murk, smoothstep(0.4, 0.78, fc) * 0.9);
+      col = mix(col, fogged, smoothstep(0.0, 0.65, hidden));
+    }
+  }
+  // A quiet screen-space vignette frames the chart.
   vec2 vp = gl_FragCoord.xy / uViewport * 2.0 - 1.0;
-  col *= 0.84 + 0.16 * smoothstep(1.55, 0.45, length(vp * vec2(1.0, 0.85)));
+  col *= 0.88 + 0.12 * smoothstep(1.55, 0.45, length(vp * vec2(1.0, 0.85)));
   gl_FragColor = vec4(grade(col), 1.0);
 }`;
 
@@ -401,8 +448,20 @@ export class Terrain3D {
   private cityShadow: Mesh | null = null;
   /** city node index per thin instance, for owner-color lookups */
   private cityNodes: number[] = [];
+  /** static city/shadow transforms + world positions, kept so fog of war can
+   *  collapse the settlements the player can't see (zero-scale them). */
+  private cityModelMats = new Float32Array(0);
+  private cityShadowMats = new Float32Array(0);
+  private cityPos: [number, number][] = [];
+  private cityFogged = false;
   private factionColors: number[][];
   private terrTex: RawTexture;
+  // Fog-of-war sight mask: a low-res grid over the bg rect, .r = how visible a
+  // cell is to the player (1 seen, 0 hidden). Rasterized from cities/armies.
+  private visTex!: RawTexture;
+  private visW = 0;
+  private visH = 0;
+  private visBuf = new Uint8Array(0);
   /** Pin the water/foam clock for pixel-deterministic snapshots. */
   fixedTime: number | null = null;
 
@@ -444,15 +503,22 @@ export class Terrain3D {
     const lightTex = dataTex(lightRgba);
     const biomeTex = dataTex(field.biome);
     this.terrTex = dataTex(new Uint8Array(w * h * 4));
+    // Vision mask: ~160 px wide, bg-rect aspect; bilinear so sight edges feather.
+    this.visW = 160;
+    this.visH = Math.max(1, Math.round(160 * (this.bgRect[3] - this.bgRect[1]) / (this.bgRect[2] - this.bgRect[0])));
+    this.visBuf = new Uint8Array(this.visW * this.visH * 4);
+    this.visTex = new RawTexture(this.visBuf, this.visW, this.visH, Constants.TEXTUREFORMAT_RGBA, scene, false, false, Texture.BILINEAR_SAMPLINGMODE);
 
     this.terrainMat = new ShaderMaterial('terrain', scene, 'campTerrain', {
       attributes: ['position'],
-      uniforms: ['viewProjection', 'uBgRect', 'uEyePos', 'uSun', 'uFogC', 'uFx', 'uFogD', 'uTime', 'uViewport'],
-      samplers: ['uTerr', 'uLight', 'uBiome'],
+      uniforms: ['viewProjection', 'uBgRect', 'uEyePos', 'uSun', 'uFogC', 'uFx', 'uFogD', 'uTime', 'uViewport', 'uCloud', 'uFow'],
+      samplers: ['uTerr', 'uLight', 'uBiome', 'uVis'],
     });
     this.terrainMat.setTexture('uTerr', this.terrTex);
     this.terrainMat.setTexture('uLight', lightTex);
     this.terrainMat.setTexture('uBiome', biomeTex);
+    this.terrainMat.setTexture('uVis', this.visTex);
+    this.terrainMat.setFloat('uFow', 0);
     this.terrainMat.setVector3('uSun', new Vector3(...SUN)); // the one campaign sun
     this.terrainMat.setColor3('uFogC', new Color3(0.71, 0.71, 0.68));
     this.terrainMat.setFloat('uTime', 0);
@@ -730,6 +796,9 @@ export class Terrain3D {
       this.shadowMatrix(shadows, o, x, y, z, 4.8 * S); // ~the rampart footprint
       this.cityNodes.push(c.i);
     });
+    this.cityModelMats = mats;
+    this.cityShadowMats = shadows;
+    this.cityPos = cityList.map((c) => [c.n.pos[0], c.n.pos[1]] as [number, number]);
     this.cityShadow = this.shadowQuad('cityShadow');
     this.cityShadow.thinInstanceSetBuffer('matrix', shadows, 16, true);
     merged.thinInstanceSetBuffer('matrix', mats, 16, true);
@@ -762,6 +831,33 @@ export class Terrain3D {
     m.thinInstanceSetBuffer('iColor', cols, 4, false);
   }
 
+  /** Fog of war for the 3D settlements: collapse (zero-scale) any city the
+   *  player can't see, so unseen enemy towns leave nothing on the map. Restores
+   *  the full transforms the moment fog turns off. */
+  private applyCityFog(fogOfWar: boolean) {
+    const m = this.cityMesh;
+    if (!m || this.cityModelMats.length === 0) return;
+    if (!fogOfWar) {
+      if (!this.cityFogged) return; // already showing the full set
+      m.thinInstanceSetBuffer('matrix', this.cityModelMats, 16, true);
+      this.cityShadow?.thinInstanceSetBuffer('matrix', this.cityShadowMats, 16, true);
+      this.cityFogged = false;
+      return;
+    }
+    const mats = this.cityModelMats.slice();
+    const shad = this.cityShadowMats.slice();
+    for (let k = 0; k < this.cityPos.length; k++) {
+      const [x, y] = this.cityPos[k];
+      if (this.visibleAt(x, y) >= 0.35) continue;
+      const o = k * 16;
+      mats[o] = mats[o + 5] = mats[o + 10] = 0; // degenerate → nothing rasterises
+      shad[o] = shad[o + 5] = 0;
+    }
+    m.thinInstanceSetBuffer('matrix', mats, 16, true);
+    this.cityShadow?.thinInstanceSetBuffer('matrix', shad, 16, true);
+    this.cityFogged = true;
+  }
+
   /** Reposition the army models from the live army list (called each frame
    *  before draw). Cheap: a few dozen instances, two small buffers. */
   setArmies(
@@ -769,9 +865,13 @@ export class Terrain3D {
     scale: number,
     selected = -1,
     hover = -1,
+    fogOfWar = false,
   ) {
     const baseM = this.armyBase;
     if (!baseM) return;
+    // Under fog of war an army the player can't see leaves no model on the map
+    // (their own armies light their own sight, so always survive the filter).
+    if (fogOfWar) armies = armies.filter((a) => this.visibleAt(a.x, a.y) >= 0.35);
     const n = armies.length;
     this.armyCount = n;
     if (n === 0) {
@@ -832,6 +932,50 @@ export class Terrain3D {
 
   updateTerritory(rgba: Uint8Array) {
     this.terrTex.update(rgba);
+  }
+
+  /** How visible a world point is to the player (0 hidden … 1 seen), read from
+   *  the current sight mask — lets the overlay drop fogged enemy markers. */
+  visibleAt(wx: number, wy: number): number {
+    if (this.visW === 0) return 1;
+    const [minX, minY, maxX, maxY] = this.bgRect;
+    const gx = Math.floor((wx - minX) / (maxX - minX) * this.visW);
+    const gy = Math.floor((maxY - wy) / (maxY - minY) * this.visH);
+    if (gx < 0 || gy < 0 || gx >= this.visW || gy >= this.visH) return 0;
+    return this.visBuf[(gy * this.visW + gx) * 4] / 255;
+  }
+
+  /** Rebuild the fog-of-war sight mask from the player's vision sources (their
+   *  cities and armies). Each is a soft disc of radius `r` km; the union is the
+   *  seen area. Cheap: a low-res grid, a handful of bounded disc fills. */
+  setVision(sources: { x: number; y: number; r: number }[]) {
+    const buf = this.visBuf;
+    buf.fill(0);
+    const [minX, minY, maxX, maxY] = this.bgRect;
+    const sx = this.visW / (maxX - minX);
+    const sy = this.visH / (maxY - minY);
+    for (const s of sources) {
+      const r = s.r;
+      // grid bbox of the disc (y flips: world +y north = row 0 at top)
+      const gx0 = Math.max(0, Math.floor((s.x - r - minX) * sx));
+      const gx1 = Math.min(this.visW - 1, Math.ceil((s.x + r - minX) * sx));
+      const gy0 = Math.max(0, Math.floor((maxY - (s.y + r)) * sy));
+      const gy1 = Math.min(this.visH - 1, Math.ceil((maxY - (s.y - r)) * sy));
+      for (let gy = gy0; gy <= gy1; gy++) {
+        const wy = maxY - (gy + 0.5) / sy;
+        for (let gx = gx0; gx <= gx1; gx++) {
+          const wx = minX + (gx + 0.5) / sx;
+          const d = Math.hypot(wx - s.x, wy - s.y);
+          if (d >= r) continue;
+          // soft edge over the outer 35% of the radius
+          const v = Math.min(1, (1 - d / r) / 0.35);
+          const o = (gy * this.visW + gx) * 4;
+          const cur = buf[o] / 255;
+          buf[o] = Math.max(buf[o], Math.round(Math.max(cur, v) * 255));
+        }
+      }
+    }
+    this.visTex.update(buf);
   }
 
   resize() {
@@ -910,10 +1054,12 @@ export class Terrain3D {
     this.camera.maxZ = this.dist * 8 + 8000;
   }
 
-  draw(cam: CamView) {
+  draw(cam: CamView, factionView = true, fogOfWar = false) {
     this.updateCamera(cam);
     const tilt = (Math.PI / 2 - this.pitch) / (Math.PI / 2 - MIN_PITCH);
     const time = this.fixedTime ?? performance.now() / 1000;
+    // Political overlay strength: zoom-faded when on, fully off in natural view.
+    const terrAlpha = factionView ? this.territoryAlpha(cam.scale) : 0;
 
     const coarseView = cam.scale < 0.5;
     this.coarse.setEnabled(coarseView);
@@ -923,13 +1069,19 @@ export class Terrain3D {
     this.armyBase?.setEnabled(armiesOn);
     this.armyShadow?.setEnabled(armiesOn);
     for (const m of this.classMeshes) m?.setEnabled(armiesOn);
-    this.cityMesh?.setEnabled(cam.scale >= CITY_MODEL_MIN_SCALE);
-    this.cityShadow?.setEnabled(cam.scale >= CITY_MODEL_MIN_SCALE);
+    const citiesOn = cam.scale >= CITY_MODEL_MIN_SCALE;
+    this.cityMesh?.setEnabled(citiesOn);
+    this.cityShadow?.setEnabled(citiesOn);
+    if (citiesOn) this.applyCityFog(fogOfWar);
 
     this.terrainMat.setVector3('uEyePos', this.camera.position);
-    this.terrainMat.setVector2('uFx', new Vector2(this.territoryAlpha(cam.scale), tilt * 0.85));
+    this.terrainMat.setVector2('uFx', new Vector2(terrAlpha, tilt * 0.85));
     this.terrainMat.setFloat('uFogD', 1 / (this.dist * 4.5));
     this.terrainMat.setFloat('uTime', time);
+    // Decorative rim clouds frame the chart at the overview; suppress them under
+    // gameplay fog of war (the fog's own cloud bank carries the edges instead).
+    this.terrainMat.setFloat('uCloud', fogOfWar ? 0 : Math.min(1, Math.max(0, (0.46 - cam.scale) / 0.3)));
+    this.terrainMat.setFloat('uFow', fogOfWar ? 1 : 0);
     this.terrainMat.setVector2('uViewport', new Vector2(this.canvas.width, this.canvas.height));
     this.treeMat.setVector2('uFx', new Vector2(0, tilt * 0.85));
     this.treeMat.setFloat('uFogD', 1 / (this.dist * 4.5));

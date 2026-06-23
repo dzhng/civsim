@@ -4,6 +4,14 @@
   <meta charset="utf-8" />
   <title>Battle Sim</title>
   <style>
+    /* Cinzel: an engraved Roman-caps serif (OFL) for the campaign map labels —
+       cities, regions, factions. Classical-atlas lettering. */
+    @font-face {
+      font-family: 'Cinzel';
+      src: url('/fonts/Cinzel.ttf') format('truetype');
+      font-weight: 400 900;
+      font-display: swap;
+    }
     html, body { margin: 0; height: 100%; overflow: hidden; background: #14161c; }
     #battlefield { display: block; width: 100vw; height: 100vh; }
     #hud {
@@ -64,7 +72,7 @@
       border-radius: 6px; padding: 5px 10px; cursor: pointer; white-space: nowrap;
     }
     #toolbar button:hover { background: rgba(56,62,78,0.95); }
-    #toolbar button.on { background: #4a6, border-color: #6c8; color: #fff; }
+    #toolbar button.on { background: #4a6; border-color: #6c8; color: #fff; }
     #toolbar button:disabled { opacity: 0.4; cursor: default; }
     #toolbar .sep { width: 1px; height: 18px; background: #3a3f4d; }
     /* Unit banner: one component = standard (SVG flag) + health/cohesion bars + status chips. */

@@ -77,8 +77,31 @@ export function mountTurntable() {
     renderer.drawOverlay(EMPTY, camera);
   };
 
+  // Single-step draw for animation capture: advance the fake clock by `dt` and
+  // draw ONE frame (unlike render(), which settles the ease blends over 16
+  // sub-draws). Lets vibe/anim.mjs film an eased motion — the death crumple, a
+  // pike sweeping up — frame by frame. `reset` zeroes the renderer's per-soldier
+  // blends (death/at-ease) so one animation doesn't bleed into the next.
+  const step = (p: PoseReq, dt: number) => {
+    if (p.cls !== curCls || p.team !== curTeam) {
+      curCls = p.cls; curTeam = p.team;
+      renderer.setStatic(new Uint32Array([0]), [p.team], [p.cls], new Float32Array([0.33]));
+    }
+    camera.x = 0; camera.y = p.camY; camera.zoom = p.zoom;
+    renderer.pitchOverride = p.pitch;
+    clock += dt;
+    renderer.fixedTime = clock;
+    const al = new Float32Array([p.frame === 4 ? 0 : 1]);
+    renderer.draw(new Float32Array([0, 0]), new Float32Array([p.facing]),
+      new Float32Array([p.frame]), al, 1, camera, -1, [], 0);
+    renderer.drawOverlay(EMPTY, camera);
+  };
+  const reset = () => { curCls = -1; curTeam = -1; }; // forces a setStatic (blends → 0)
+
   (window as unknown as { __tt: unknown }).__tt = {
     render,
+    step,
+    reset,
     label: (t: string) => { cap.textContent = t; },
   };
   (window as unknown as { __ready: boolean }).__ready = true;

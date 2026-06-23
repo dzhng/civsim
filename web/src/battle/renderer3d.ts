@@ -816,15 +816,18 @@ export class BattleRenderer3D {
       const a = f - Math.PI / 2;
       const ca = Math.cos(a), sa = Math.sin(a);
       if (alive[i] < 0.5) {
-        // Fallen: the crumple pose folds the man; the matrix then tips him onto
-        // the ground along his facing, eased in by the death blend so the fall
-        // reads as a topple rather than an instant plank.
-        const tip = (this.blockMode ? 1 : smoothstep(0.2, 1, df[i])) * 0.25;
-        const lift = this.blockMode ? 0.05 : 0.05 + (1 - smoothstep(0.2, 1, df[i])) * 0.5 * s;
+        // Fallen: the crumple pose folds the man; the matrix topples him onto
+        // the ground along his facing. We LERP the whole basis from the standing
+        // frame (k=0) to the flat dead frame (k=1) by the eased death blend, so
+        // he tips over a beat — never scaling a single column to zero (which
+        // would collapse the mesh to a degenerate plane mid-fall).
+        const k = this.blockMode ? 1 : smoothstep(0, 1, df[i]);
         buf[o] = ca * s; buf[o + 1] = sa * s; buf[o + 2] = 0; buf[o + 3] = 0;
-        buf[o + 4] = 0; buf[o + 5] = 0; buf[o + 6] = s; buf[o + 7] = 0;
-        buf[o + 8] = sa * tip * s; buf[o + 9] = -ca * tip * s; buf[o + 10] = tip * s; buf[o + 11] = 0;
-        buf[o + 12] = x; buf[o + 13] = y; buf[o + 14] = lift; buf[o + 15] = 1;
+        // col1: local +y (forward) swings from horizontal (standing) up to +z (flat).
+        buf[o + 4] = -sa * (1 - k) * s; buf[o + 5] = ca * (1 - k) * s; buf[o + 6] = k * s; buf[o + 7] = 0;
+        // col2: local +z (up) swings from +z down to near-horizontal along facing.
+        buf[o + 8] = sa * 0.25 * k * s; buf[o + 9] = -ca * 0.25 * k * s; buf[o + 10] = ((1 - k) + 0.25 * k) * s; buf[o + 11] = 0;
+        buf[o + 12] = x; buf[o + 13] = y; buf[o + 14] = 0.05; buf[o + 15] = 1;
       } else {
         // A little bob/lurch on top of the limb poses: marching rises, a strike
         // lunges the body forward. The detailed poses carry the limb motion;

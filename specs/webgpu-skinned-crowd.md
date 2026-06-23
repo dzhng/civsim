@@ -17,6 +17,16 @@ shots instead of stylised blocks.
 > operating point yet, because the system does not exist; the binding facts are
 > about the *current* renderer, which you must not break.
 
+## ⚠️ Missing input you must obtain before "match the reference" means anything
+
+The goal is "make the battle look **exactly like the attached Total War
+screenshots**." **Those reference images are NOT in the repo** (`git ls-files`
+has none) — they were attached to the original task. Before this work can be
+judged "done", commit them to `specs/assets/reference/*.png` and treat them as
+the visual target the milestones converge on. Until they exist in-repo, "match
+the reference" is unactionable and no agent (or reviewer) can grade it. **Ask the
+human for the screenshots and commit them first.**
+
 ## The contracts this must establish / must not break
 
 There is no green test that *defines* "AAA" — the ground truth is the
@@ -273,6 +283,40 @@ GLSL→WGSL (snapshot-checked via `verify-campaign-visual`). Army figures reuse 
 the bob; keep the **faction mask**, the **neutral standard + flag**, and the
 **green selection ring** exactly as they are now.
 
+### Implementation notes (Babylon WebGPU · bake · skeleton · perf metric)
+
+- **Babylon WebGPU specifics.** `import { WebGPUEngine } from
+  '@babylonjs/core/Engines/webgpuEngine'`, `await engine.initAsync()` before any
+  scene. Custom `ShaderMaterial`s must be authored in **WGSL** (pass
+  `shaderLanguage: ShaderLanguage.WGSL` and provide WGSL in `ShaderStore`);
+  Babylon's GLSL path is not a reliable auto-translate for these custom shaders —
+  port `battleGround/Sprite/Overlay/Grade` and `campTerrain/Model/Tree/Shadow`
+  by hand and snapshot each in isolation. Thin-instances still exist, but the
+  crowd should move to **storage buffers** (`r/w` buffers + a compute pass);
+  thin-instance *attributes* (the current `thinInstanceSetBuffer`) become the
+  fallback for the block/debug path. KTX2/Basis textures need
+  `@babylonjs/core/Materials/Textures/Loaders` + the transcoder.
+- **The bake (recommended concrete path).** A Node script using
+  **`@gltf-transform/core`** (or headless Babylon) to: load the rigged glTF,
+  sample each clip at a fixed fps, compute world bone matrices per frame, and
+  write them as **RGBA32F** texels (`4 texels = 1 mat4`) laid out `[bone][frame]`
+  across concatenated clips, plus `kit.json` offsets. Commit the output (or make
+  `npm run bake:anim` byte-reproducible) so snapshots are stable.
+- **Skeleton default (stand-in until real art).** Use a **Mixamo humanoid rig**
+  (~65 bones, well-known names) or a trimmed subset as the `skeleton_human`
+  stand-in for M1; pin the final bone count/order/names in `kit.json` when real
+  art lands. Mixamo also gives free walk/run/attack/hit/death clips to prove the
+  pipeline. (Check licensing before shipping — see provenance note below.)
+- **The perf metric is a REAL GPU number, not headless software GL.** The repo's
+  current `frame rate alive` check is `fps > 4` *because SwiftShader is slow* —
+  that number is meaningless for this work. Capture the **baseline on a real
+  mid-range discrete GPU**: load `?map=A` (30k soldiers) on today's box renderer,
+  read `window.__game.stats().fps`/`tickMs`, record it. The skinned `perf gate`
+  is then "≥ that baseline's headroom at ~2–5k skinned near + the rest as
+  impostors/sprites, ≥60 fps." The headless harness keeps only the *liveness*
+  tripwire; the real budget is measured on hardware (state the GPU in the
+  postmortem).
+
 ## What must NOT change (scope firewalls)
 
 - **The sim.** `crates/sim`, `crates/campaign`, `crates/contract`,
@@ -313,8 +357,27 @@ the bob; keep the **faction mask**, the **neutral standard + flag**, and the
 ## Process requirements / gotchas (this repo's, plus this work's)
 
 - **Milestone 0 first, or nothing is verifiable.** Prove a reproducible
-  **headless WebGPU** render that `snapCheck` can pixel-compare (Dawn software
-  backend, a flag, or a GPU CI runner). Until then you are flying blind.
+  **headless WebGPU** render that `snapCheck` can pixel-compare. Concrete options,
+  try in order:
+  1. **Headless Chromium + SwiftShader-WebGPU** via Playwright launch flags:
+     `--enable-unsafe-webgpu --enable-features=Vulkan
+     --use-webgpu-adapter=swiftshader` (exact flag set drifts by Chromium
+     version; also try `--enable-features=Vulkan,UseSkiaRenderer` and the
+     `--use-angle=swiftshader` family). Verify `navigator.gpu.requestAdapter()`
+     returns an adapter in the harness before trusting any pixels.
+  2. **WebGPU canvas screenshot timing differs from WebGL2.** WebGL2 used
+     `preserveDrawingBuffer:true`; under WebGPU the swapchain texture is
+     transient. Render into an **offscreen/render-target texture you control and
+     read back** (or ensure a committed frame before `page.screenshot()`), or the
+     screenshot may be blank/stale. Bake this into `snapshot.mjs`.
+  3. If software WebGPU is too slow/unstable headless, fall back to a **real-GPU
+     CI runner** (a machine/container with a GPU + the browser), or run the
+     visual gates on a developer GPU machine and keep only behavioural
+     (non-pixel) checks in headless CI.
+  **Escalation trigger:** if none of 1–3 yields a stable headless WebGPU pixel in
+  ~2–3 focused days, STOP and surface it — M0 gates everything, and "we cannot
+  verify visually in CI" is a decision the human must make (accept GPU-runner
+  cost, or relax pixel-regression for the crowd) before sinking weeks into M1+.
 - **Rebuild wasm before trusting any screenshot** (`npm run build:wasm` from
   `web/`) — the browser loads the prebuilt `web/src/wasm`, never live Rust.
   (Unchanged here, but still true.) Note `wasm-opt` may fail to download in this

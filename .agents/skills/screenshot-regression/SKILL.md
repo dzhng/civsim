@@ -26,7 +26,7 @@ comment) that absorbs the wobble and nothing more.
 
 `web/vibe/shots/` is obsolete. Current review artifacts live under `web/shots/`:
 committed baselines in `web/shots/baseline/`, failure diffs in `web/shots/diff/`,
-and generated non-regression weave flipbooks in ignored `web/shots/weave/`.
+and committed weave flipbooks in `web/shots/weave/`.
 
 ## ALWAYS look at the screenshot before you respond
 

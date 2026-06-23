@@ -32,7 +32,7 @@ runs the prebuilt binary, never your live Rust).
 > **Weave shots are separate.** The WEAVE layer (mass-spring lattice, tested in
 > `crates/sim/tests/mechanics_weave.rs`) has its own Rust picture generator —
 > `cargo run -p sim --example weave_shots`, landing in `web/shots/weave/`
-> (gitignored). It reduces variables to the bone (single units, same-team
+> (committed for visual review). It reduces variables to the bone (single units, same-team
 > presses, invulnerable clashes) and deliberately does NOT go through this
 > web/Playwright harness; keep it out of the combat scenarios below.
 > `t3-col-bulge` is the canonical column-through-held-line picture; the older

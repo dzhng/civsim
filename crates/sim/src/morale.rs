@@ -24,6 +24,33 @@ const THREAT_DRAIN: f32 = 0.05;
 const SUPPORT_LIFT: f32 = 0.16;
 /// Rallied units carry scars: ceiling multiplier per rout.
 const RALLY_SCAR: f32 = 0.78;
+/// Morale has a standing EQUILIBRIUM set by the local power balance: the blood
+/// drain is the transient shock, but where morale settles BETWEEN shocks is the
+/// odds. The local fighting-power SHARE (mine + nearby friends vs nearby enemy,
+/// 0.5 = even) maps linearly to a target morale: at an even share the target is
+/// ODDS_EVEN (high — even fights are unchanged and grind down on blood to ~10%
+/// men as before), and below even it falls off at a slope set per-class by NERVE
+/// so the unit's target crosses the break line at the disadvantage it can stand.
+/// The per-man power is weighted by quality (dps × health), so being outnumbered
+/// by frailer troops counts for less than by better ones — and reading a SHARE
+/// (not my own raw count) keeps an even fight from death-spiralling: both lines
+/// shrink together, the share stays ~0.5, only being out-powered sinks the target.
+const ODDS_EVEN: f32 = 0.9;
+/// Slope of target-vs-share per unit of FRAGILITY (= discipline / bravery). A
+/// steadfast heavy (fragility ~0.8) gets slope ~3 and only targets the break
+/// line near a 3:1 power disadvantage (share 0.25); a brittle levy (fragility
+/// ~2.4) gets a slope ~3x steeper and wavers at a slight disadvantage.
+const ODDS_SLOPE_K: f32 = 3.75;
+/// How fast morale relaxes toward the odds target (per second): a loss of heart
+/// from hopeless odds builds over ~10s, not in an instant of bad geometry.
+const ODDS_PULL: f32 = 0.1;
+/// A mount counts toward its rider's morale WEIGHT at this fraction of its combat
+/// HP. A horse's full body pool (~8 HP) is how much killing it takes, not its
+/// presence on the field: a horseman reads as roughly TWICE a footman in the
+/// power balance, not ten times. Tuned so 1 shock-cav ≈ 2 heavy infantry, and an
+/// enemy cav presses a line about twice as hard per man — both sides use this
+/// same weight, so it cuts symmetrically.
+const MOUNT_WEIGHT: f32 = 0.35;
 
 impl Sim {
     pub(crate) fn run_morale(&mut self, dt: f32) {
@@ -127,6 +154,19 @@ impl Sim {
             // fear — it emits relief. This is what breaks the mutual-rout
             // race: the side that holds one beat longer gets paid for it.
             let mut enemy_backs = 0.0f32;
+            // Local fighting power, proximity-weighted, for the odds baseline:
+            // the standing combat WEIGHT of nearby friends (plus my own) versus
+            // nearby enemies, as a SHARE (even fight ~0.5). Per-man weight is
+            // dps × durability — kill-rate times the body that must be dropped to
+            // fell the man, so one armoured heavy is worth ~3 peasants. Durability
+            // for a horseman is rider + MOUNT (a lancer is a ~10-HP target on a
+            // half-tonne animal); counting only the rider would make cavalry read
+            // as fragile foot and rout it against lines it should ride over.
+            let my_durab =
+                self.units[ui].stats.health + MOUNT_WEIGHT * self.units[ui].stats.mount_health;
+            let my_weight = summaries[ui].6 * my_durab; // offense × per-man durability
+            let mut friend_power = my_weight;
+            let mut enemy_power = 0.0f32;
             let my_mass = alive_n * u.stats.mass;
             let my_morale = u.morale;
             let my_pool = summaries[ui].7;
@@ -165,6 +205,20 @@ impl Sim {
                     if d < 80.0 {
                         let aura = self.units[vi].stats.morale_aura;
                         enemy_threat += (alive_v as f32 / 100.0) * aura * (1.0 - d / 80.0);
+                        // Power that bears on ME: proximity, but also whether the
+                        // foe FACES me (a unit fighting the other way, or fleeing,
+                        // presses little) and whether it is actually ENGAGED (a
+                        // line locked in melee is bringing its weight to bear; one
+                        // standing off is a lesser, if looming, presence). A
+                        // back-turned or idle foe keeps a small floor — it is still
+                        // a body on the field — but a facing, fighting mass counts full.
+                        let facing_me = dir(self.units[vi].facing)
+                            .dot((my_center - c) * (1.0 / d_center.max(0.1)));
+                        let oriented = 0.35 + 0.65 * facing_me.max(0.0);
+                        let engaged = if self.units[vi].engaged > 0 { 1.0 } else { 0.6 };
+                        let durab = self.units[vi].stats.health
+                            + MOUNT_WEIGHT * self.units[vi].stats.mount_health;
+                        enemy_power += v_offense * durab * (1.0 - d / 80.0) * oriented * engaged;
                     }
                     if d_center < 70.0 {
                         // Approaching MOMENTUM, relative to the mass it's
@@ -221,6 +275,9 @@ impl Sim {
                         // friends holds far past where it would break alone.
                         let aura = self.units[vi].stats.morale_aura;
                         steady_friends += (alive_v as f32 / 100.0) * aura * (1.0 - d / 80.0);
+                        let durab = self.units[vi].stats.health
+                            + MOUNT_WEIGHT * self.units[vi].stats.mount_health;
+                        friend_power += v_offense * durab * (1.0 - d / 80.0);
                     }
                 }
             }
@@ -256,25 +313,47 @@ impl Sim {
             // line that's being shot but not bled (shields shedding the volley)
             // holds; a line losing men breaks on the men, from any source.
             let missile_drain = 0.012 * missile_rate;
-            // The will-drain is the BLOOD, pressed between two crowds: nearby
-            // standing ENEMIES (size×aura) multiply it — being pressed by a big,
-            // bold mass makes each loss feel like losing — and nearby steady
+            // The transient will-drain is the BLOOD, pressed between two crowds:
+            // nearby standing ENEMIES (size×aura) multiply it — being pressed by a
+            // big, bold mass makes each loss feel like losing — and nearby steady
             // FRIENDS divide it. The baseline (one equal enemy, no friends) is
-            // calibrated so an even fight grinds to ~80% casualties before the
-            // loser breaks. Out-massed (a wider/deeper line, a shock arm) the
-            // enemy press is larger → breaks sooner; well-backed → holds longer.
-            // Neither term reads MY OWN dwindling count, so a losing line does not
-            // death-spiral on its own casualties (the enemy term shrinks only as
-            // the ENEMY dies). Bravery (per class) divides the whole drain; the
-            // ≤9-man guaranteed break below still overrides.
+            // calibrated so an even fight grinds to ~90% casualties before the
+            // loser breaks. This term reads a casualty RATE, not a standing count,
+            // so it is the shock of the moment; where morale rests between shocks
+            // is the ODDS baseline computed just below. Bravery (per class)
+            // divides the whole drain; the ≤9-man guaranteed break still overrides.
             let enemy_press = 1.0 + THREAT_DRAIN * enemy_threat;
             let friend_support = 1.0 + SUPPORT_LIFT * steady_friends;
-            let drain = (CAS_DRAIN * casualty_rate * directions * enemy_press
+            let blood_drain = (CAS_DRAIN * casualty_rate * directions * enemy_press
                 + missile_drain
                 + 0.002 * (losing_push - 1.2).max(0.0)
                 + fear_eff)
                 * amp
                 / (u.stats.bravery * friend_support).max(0.1);
+
+            // The ODDS baseline: where morale settles between blood shocks. The
+            // local power SHARE (mine + friends vs enemy) sets a target morale and
+            // morale is pulled toward it (downward only — winning is a relief the
+            // recover path already pays, not free courage here). With no enemy in
+            // range the share is 1 → target high → no pull. The slope is set by
+            // FRAGILITY (discipline / bravery): a steadfast line only loses heart
+            // near a 3:1 disadvantage, a brittle levy at a slight one — so the
+            // same odds break a mob that a veteran shrugs off. An even fight sits
+            // at the high ODDS_EVEN target and still grinds out on blood alone.
+            let fragility = discipline / u.stats.bravery.max(0.1);
+            let odds = friend_power / (friend_power + enemy_power).max(1e-3);
+            let target = (ODDS_EVEN + ODDS_SLOPE_K * fragility * (odds - 0.5)).clamp(0.0, 1.0);
+            // The odds baseline is the will to hold the melee you are IN — it only
+            // applies once engaged. Before contact the approach belongs to the
+            // charge-fear term, which reads the enemy's NERVE (a wavering mass must
+            // not thunder); the raw power balance, blind to their morale, would
+            // otherwise make even a shaken charge sap a line on numbers alone.
+            let odds_drain = if u.engaged > 0 {
+                ODDS_PULL * (u.morale - target).max(0.0)
+            } else {
+                0.0
+            };
+            let drain = blood_drain + odds_drain;
 
             // Recovery: at ease (no living, non-routing enemy within
             // at_ease_range — the one shared flag that also relaxes rendered

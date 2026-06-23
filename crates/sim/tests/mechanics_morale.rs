@@ -139,8 +139,15 @@ fn a_brave_class_holds_longer_than_a_timid_one() {
         heavy * 100.0,
         timid * 100.0
     );
+    // The invariant is the ORDERING: the timid body breaks meaningfully earlier.
+    // The margin is modest because this fight is steeply lopsided (240 vs 600,
+    // flanked) — there the odds baseline pulls BOTH toward the break line, so the
+    // brave class only buys a few extra points of casualties, not the wide gap a
+    // close fight would show. The gap is the bravery knob doing real work
+    // (here ~2x the timid unit's endurance); a wider margin would just re-encode
+    // the pre-odds-baseline calibration.
     assert!(
-        timid < heavy - 0.10,
+        timid < heavy - 0.04,
         "a timid unit must break earlier than a brave one: timid {:.0}% vs brave {:.0}%",
         timid * 100.0,
         heavy * 100.0

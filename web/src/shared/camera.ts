@@ -16,7 +16,7 @@ export class Camera {
   pitchBias = 0;
   /** View rotation about the vertical, radians (Q/E and middle-drag horizontal). */
   yaw = 0;
-  /** Hard view bounds (the painted world: map + wilds). Set once known. */
+  /** Hard view bounds. When zoomed out past one axis, that axis is centered. */
   bounds: [number, number, number, number] | null = null;
 
   constructor(private canvas: HTMLCanvasElement) {}
@@ -34,19 +34,29 @@ export class Camera {
     return [right * c - up * s, right * s + up * c];
   }
 
-  /** Keep the viewport inside the painted world — no black, ever. Clamp each
-   *  axis by its own half-extent; under yaw the rotated viewport can graze a
-   *  corner of the wilds margin, which the renderer paints anyway, so no black. */
+  /** Keep the camera tied to its bounds.
+   *
+   * The zoom floor is aspect-fit: the user may zoom out until the whole
+   * bounded field is visible, but no farther. When the viewport is larger than
+   * the field on an axis, that axis is pinned to the field centre; when it is
+   * smaller, panning is clamped so no edge scrolls past the playable field.
+   */
   clampView() {
     if (!this.bounds) return;
     const [x0, y0, x1, y1] = this.bounds;
     const cp = this.cosP();
-    const minZoom = Math.max(this.canvas.width / (x1 - x0), (this.canvas.height / cp) / (y1 - y0));
+    const bw = x1 - x0;
+    const bh = y1 - y0;
+    const minZoom = Math.min(this.canvas.width / bw, (this.canvas.height / cp) / bh);
     this.zoom = Math.min(60, Math.max(minZoom, this.zoom));
     const hw = this.canvas.width / (2 * this.zoom);
     const hh = this.canvas.height / (2 * this.zoom * cp);
-    this.x = Math.min(x1 - hw, Math.max(x0 + hw, this.x));
-    this.y = Math.min(y1 - hh, Math.max(y0 + hh, this.y));
+    this.x = hw >= bw / 2
+      ? (x0 + x1) / 2
+      : Math.min(x1 - hw, Math.max(x0 + hw, this.x));
+    this.y = hh >= bh / 2
+      ? (y0 + y1) / 2
+      : Math.min(y1 - hh, Math.max(y0 + hh, this.y));
   }
 
   /** [scaleX, scaleY, centerX, centerY] for the legacy 2D vertex shader (no

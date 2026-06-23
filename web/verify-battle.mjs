@@ -43,6 +43,42 @@ const stats = await page.evaluate(() => window.__game.stats());
 check('full battle spawned', stats.soldiers >= 25000 && stats.units === 40,
   `${stats.soldiers} soldiers, ${stats.units} units`);
 
+const camFit = await page.evaluate(() => {
+  const c = window.__cam;
+  const cv = document.getElementById('battlefield');
+  const old = { x: c.x, y: c.y, zoom: c.zoom, pitch: c.pitch };
+  c.pitch = 0;
+  c.zoom = 0.001;
+  c.x = 999999;
+  c.y = -999999;
+  c.clampView?.();
+  const [x0, y0, x1, y1] = c.bounds;
+  const fieldW = x1 - x0;
+  const fieldH = y1 - y0;
+  const fit = Math.min(cv.width / fieldW, cv.height / fieldH);
+  const out = {
+    zoom: c.zoom,
+    fit,
+    x: c.x,
+    y: c.y,
+    cx: (x0 + x1) / 2,
+    cy: (y0 + y1) / 2,
+    viewW: cv.width / c.zoom,
+    viewH: cv.height / c.zoom,
+    fieldW,
+    fieldH,
+  };
+  Object.assign(c, old);
+  c.clampView?.();
+  return out;
+});
+check('battle camera zoom-out fits the playable field',
+  camFit.zoom >= camFit.fit * 0.999 && camFit.viewW >= camFit.fieldW * 0.999 && camFit.viewH >= camFit.fieldH * 0.999,
+  `zoom ${camFit.zoom.toFixed(3)}, fit ${camFit.fit.toFixed(3)}`);
+check('battle camera cannot pan away when fully zoomed out',
+  Math.abs(camFit.x - camFit.cx) < 0.01 && Math.abs(camFit.y - camFit.cy) < 0.01,
+  `camera (${camFit.x.toFixed(1)},${camFit.y.toFixed(1)}) center (${camFit.cx.toFixed(1)},${camFit.cy.toFixed(1)})`);
+
 // Pixel regression on the deployed battlefield: freezeAtTick pins the shader
 // clock, the HUD perf line, AND the absolute sim tick — idle men carry a fidget
 // sway that re-rolls every few ticks, so a stable snapshot must land on a fixed

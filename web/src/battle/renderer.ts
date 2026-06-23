@@ -2,7 +2,8 @@ import type { Camera } from '../shared/camera';
 import { compileProgram, uploadDataTexture, uploadMipmapTexture } from '../shared/glutil';
 import { buildAtlas, COLS, ROWS } from './atlas';
 
-/** Meters of painted wilds beyond every map edge (camera bounds match). */
+/** Meters of painted wilds beyond every map edge. Camera movement stays inside
+ *  the playable terrain; the wilds exist only as scenery around the border. */
 export const WILDS_MARGIN = 1600;
 
 export const CLASS_NAMES = [

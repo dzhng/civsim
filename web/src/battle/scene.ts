@@ -88,7 +88,7 @@ export class BattleScene implements Scene {
       const mapH = game.terrain_h() * game.terrain_cell();
       const ox = game.terrain_origin_x();
       const oy = game.terrain_origin_y();
-      camera.bounds = [ox - WILDS_MARGIN, oy - WILDS_MARGIN, ox + mapW + WILDS_MARGIN, oy + mapH + WILDS_MARGIN];
+      camera.bounds = [ox, oy, ox + mapW, oy + mapH];
       const info = unitInfo();
       let [x0, y0, x1, y1] = [Infinity, Infinity, -Infinity, -Infinity];
       for (let u = 0; u < game.unit_count(); u++) {

@@ -17,11 +17,9 @@ use crate::unit::{compact_slots_preserving_order, reassign_slots, slot_local, Or
 
 /// Idle-fidget drift amplitude (m, peak ≈ this) and glance drift (rad, peak). A
 /// standing man is never a fence-post: he drifts off his slot and his eye
-/// wanders, off the sim RNG (stagger01) so it's reproducible. Gated only on
-/// being idle — NOT on the enemy's distance — so the line never tightens or
-/// untightens as a foe drifts in and out of range; he simply stops the moment
-/// he moves or fights. The drift is real, so a charge that lands on a still-idle
-/// line meets it a hair loose; that is the (small, accepted) cost.
+/// wanders, off the sim RNG (stagger01) so it's reproducible. Gated on true
+/// ease — no order, no contact, no nearby threat — so alert formations stop
+/// casual sway before it can ring through the lattice.
 const IDLE_FIDGET: f32 = 0.12;
 const IDLE_GLANCE: f32 = 0.18;
 /// A formation bond may bridge a small casualty gap to the next live man in the
@@ -683,6 +681,7 @@ impl Sim {
         self.prev_positions.resize(2 * n, 0.0);
         self.prev_positions.copy_from_slice(&self.positions);
 
+        self.mark_at_ease(); // current centroids; before stance/fidget/slot logic reads it
         self.refresh_contact_engagement();
         self.deliver_orders_and_reflexes(dt);
         self.run_skirmish_evade();
@@ -1402,6 +1401,16 @@ impl Sim {
             } else {
                 tun.slot_pull_hold
             };
+            let mounted_threat_near = !u.at_ease
+                && units.iter().any(|v| {
+                    if v.team == u.team || v.alive_count == 0 || v.routing || !v.is_mounted() {
+                        return false;
+                    }
+                    let gap = (v.center() - u.center()).len()
+                        - 0.5 * v.width().hypot(v.depth())
+                        - 0.5 * u.width().hypot(u.depth());
+                    gap < tun.at_ease_range
+                });
             let my_files = u.files_eff.max(1);
             // How much of my front is actually under contact? A full press
             // engages many files across my frontage; separate narrow columns
@@ -1802,8 +1811,11 @@ impl Sim {
                 let (file_id, rank_id) = (slot_id % files_n, slot_id / files_n);
                 let mkey = rank_id * files_n + file_id.min(files_n - 1 - file_id);
                 max_sp = max_sp.min((0.62 + 0.44 * stagger01(mkey, 0xCAFE)) * sprint_sp);
-                let idle =
-                    u.move_target.is_none() && u.engaged == 0 && hit_ttl[i] <= 0.0 && err < 0.6;
+                let idle = u.at_ease
+                    && u.move_target.is_none()
+                    && u.engaged == 0
+                    && hit_ttl[i] <= 0.0
+                    && err < 0.6;
                 // WEAVE, the sum of real forces — no walls, no clamps:
                 //   net_target  the neighbour SPRINGS pulling toward rest shape
                 //   comp_push   the exponential push-apart that guards spacing
@@ -2044,8 +2056,8 @@ impl Sim {
                         v = v - r * (lat * (1.0 - tun.idle_settle_damp));
                     }
                 }
-                // Idle settle damping: a HALTED formation with no enemy near
-                // (at_ease) has no force left to chase — only its own spring
+                // Idle/hold settle damping: a HALTED formation with no order and
+                // no contact has no force left to chase — only its own spring
                 // residual. A frictionless lattice re-injects that residual every
                 // tick and RINGS in a limit cycle: the edge men step out, the
                 // separation solver shoves them back, repeat — a velocity that
@@ -2054,12 +2066,23 @@ impl Sim {
                 // into a damped oscillator that settles to rest, WITHOUT dragging
                 // a steady motion — so a friendly push compressing this block
                 // (consistent, non-reversing motion) is untouched; only the
-                // oscillation dies. Gated on at_ease (no living enemy within
-                // at_ease_range) so it can NEVER reach a unit fighting or closing
-                // to a fight, and on a halted, unordered frame so it never drags a
-                // march or a re-form surge. (kin_v* hold last tick's steer motion,
-                // captured after the previous steer pass.)
-                if u.at_ease && u.move_target.is_none() && u.engaged == 0 && u.frame_speed < 0.5 {
+                // oscillation dies.
+                //
+                // This remains active after a foot threat makes the line ALERT:
+                // alertness stops casual fidget, but it should not remove the
+                // shock absorber from a braced, unordered formation. Incoming
+                // cavalry is different: a not-yet-contacting line needs normal
+                // pre-impact looseness so the collision/brace physics, not this
+                // settling damper, decide how the charge lands. It still never
+                // reaches a man with an order, a moving frame, or actual contact.
+                // (kin_v* hold last tick's steer motion, captured after the
+                // previous steer pass.)
+                if (u.at_ease || !mounted_threat_near)
+                    && u.move_target.is_none()
+                    && u.engaged == 0
+                    && !engaged_i
+                    && u.frame_speed < 0.5
+                {
                     let last = Vec2::new(kin_vx[i], kin_vy[i]);
                     if v.dot(last) < 0.0 {
                         v = v * tun.idle_settle_damp;

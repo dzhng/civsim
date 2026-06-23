@@ -11,6 +11,6 @@ crates/*/tests/dbg*.rs
 # highlighted pixel diffs from a failed snapCheck (regenerated every run)
 web/shots/diff/
 
-# weave example output (cargo run -p sim --example weave_shots) + ad-hoc throwaway.
-# The web harnesses' shots are committed baselines under web/shots/baseline/.
-web/vibe/shots/
+# weave example output (cargo run -p sim --example weave_shots), generated for
+# visual review but not snapCheck baselines.
+web/shots/weave/

@@ -2,12 +2,12 @@
 //! SEPARATE from the web/melee vibe harness (web/vibe). It reproduces the EXACT
 //! setups from `tests/mechanics_weave.rs` (same-team press, invulnerable
 //! armies, the T-junction, the Tier-0 perturbations) and dumps a flip-book of
-//! PNGs per scenario to `web/vibe/shots/weave/<name>/`. The whole point of the
+//! PNGs per scenario to `web/shots/weave/<name>/`. The whole point of the
 //! weave layer is to reduce variables, so it gets its own pictures — not mixed
 //! in with the full-combat duel shots.
 //!
 //! Run:  cargo run -p sim --example weave_shots
-//! Then flip through web/vibe/shots/weave/<name>/t###.png.
+//! Then flip through web/shots/weave/<name>/t###.png.
 
 use sim::{Pace, Sim, Tunables, UnitClassId, Vec2, DT};
 use std::f32::consts::FRAC_PI_2;
@@ -68,7 +68,7 @@ struct Frame {
 }
 
 fn weave_root() -> String {
-    format!("{}/../../web/vibe/shots/weave", env!("CARGO_MANIFEST_DIR"))
+    format!("{}/../../web/shots/weave", env!("CARGO_MANIFEST_DIR"))
 }
 
 /// Tick `sim` for `secs`, snapshotting a frame every `step` seconds, then
@@ -144,7 +144,7 @@ fn shoot(name: &str, mut sim: Sim, secs: f32, step: f32) {
         cv.write(&format!("{}/t{:03}.png", dir, s));
     }
     println!(
-        "  {} → {} frames  (web/vibe/shots/weave/{}/)",
+        "  {} → {} frames  (web/shots/weave/{}/)",
         name,
         frames.len(),
         name
@@ -261,7 +261,7 @@ fn kill_to(sim: &mut Sim, u: usize, target: usize) {
 }
 
 fn main() {
-    println!("rendering weave vibe shots → web/vibe/shots/weave/");
+    println!("rendering weave vibe shots → web/shots/weave/");
     let root = weave_root();
     if let Err(err) = remove_dir_all(&root) {
         if err.kind() != ErrorKind::NotFound {

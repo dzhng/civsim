@@ -24,6 +24,10 @@ comment) that absorbs the wobble and nothing more.
 `baseline/battle-initial.png` (verify), `baseline/vibe/<scenario>/t###s.png`
 (vibe timelines), `baseline/models/<id>-<class>.png` (turntable).
 
+`web/vibe/shots/` is obsolete. Current review artifacts live under `web/shots/`:
+committed baselines in `web/shots/baseline/`, failure diffs in `web/shots/diff/`,
+and generated non-regression weave flipbooks in ignored `web/shots/weave/`.
+
 ## ALWAYS look at the screenshot before you respond
 
 A green harness run is NOT verification. Pixel regression only proves the

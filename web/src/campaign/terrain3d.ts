@@ -994,10 +994,13 @@ export class Terrain3D {
     return Math.PI / 2 - s * (Math.PI / 2 - MIN_PITCH);
   }
 
-  /** Territory overlay strength: full when zoomed out, a faint tint zoomed in. */
+  /** Territory overlay strength: full and saturated across the political and
+   *  regional zooms, only thinning to a faint tint once you dive into the 3D
+   *  terrain (so the political colours stay rich until you're really close). */
   territoryAlpha(scale: number): number {
-    const t = Math.min(1, Math.max(0, (scale - 0.25) / (0.6 - 0.25)));
-    return 0.92 - t * 0.74;
+    const t = Math.min(1, Math.max(0, (scale - 0.55) / (1.0 - 0.55)));
+    const s = t * t * (3 - 2 * t);
+    return 0.9 - s * 0.74;
   }
 
   /** Keep the whole viewport on the map: zoom floor = aspect-fill (no void

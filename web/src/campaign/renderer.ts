@@ -491,11 +491,12 @@ export class CampaignRenderer {
     // they fade IN only as you zoom into a region (fewer in view => legible),
     // and fade out again once the cities take over.
     const clamp01 = (t: number) => Math.min(1, Math.max(0, t));
-    // Powers persist from the overview through the regional zoom; leagues fade
-    // in only once zoomed into a region and out again at city level.
+    // Powers persist from the overview through the regional zoom; leagues are
+    // level-of-detail gated below, so they appear only when their realm is large
+    // enough on screen — far out you see the powers, zooming in reveals leagues.
     const powerAlpha = 1 - clamp01((z - 0.72) / 0.16);
-    const leagueAlpha = clamp01((z - 0.28) / 0.12) * (1 - clamp01((z - 0.78) / 0.18));
-    if (factionView && (powerAlpha > 0.02 || leagueAlpha > 0.02)) {
+    const leagueHiFade = 1 - clamp01((z - 0.85) / 0.18); // out at city level
+    if (factionView && (powerAlpha > 0.02 || leagueHiFade > 0.02)) {
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.lineJoin = 'round';
@@ -505,16 +506,22 @@ export class CampaignRenderer {
       // never buried under a minor league's.
       const ordered = [...factionLabels].sort((a, b) => Number(b.minor) - Number(a.minor) || a.radiusKm - b.radiusKm);
       for (const l of ordered) {
-        const baseA = l.minor ? leagueAlpha : powerAlpha;
-        if (baseA <= 0.02 || hidden(l.x, l.y)) continue;
+        // screenR = the realm's on-screen radius (px): the LOD currency.
+        const screenR = l.radiusKm * z;
+        const a = l.minor
+          ? clamp01((screenR - 95) / 45) * leagueHiFade * 0.9 // appears once big enough
+          : powerAlpha;
+        if (a <= 0.02 || hidden(l.x, l.y)) continue;
         const p = pt(l.x, l.y);
         if (!p) continue;
+        // Size tracks the realm's screen footprint but is capped so a big power
+        // never balloons when you zoom in.
         const size = l.minor
-          ? Math.min(24, Math.max(8, l.radiusKm * z * 0.4))
-          : Math.min(54, Math.max(18, l.radiusKm * z * 0.55));
+          ? Math.min(22, Math.max(9, screenR * 0.4))
+          : Math.min(34, Math.max(17, screenR * 0.5));
         ctx.font = `${l.minor ? 600 : 700} ${size}px ${MAP_FONT}`;
         ctx.letterSpacing = `${Math.max(0.5, size * 0.07)}px`;
-        ctx.globalAlpha = baseA * (l.minor ? 0.88 : 1);
+        ctx.globalAlpha = a;
         ctx.lineWidth = Math.max(2, size / 6);
         const name = l.name.toUpperCase();
         ctx.strokeText(name, p[0], p[1]);

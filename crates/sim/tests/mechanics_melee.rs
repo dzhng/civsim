@@ -616,6 +616,76 @@ fn phalanx_and_heavy_clash_without_swirling() {
     );
 }
 
+fn rear_lateral_step_p95(sim: &Sim, unit: usize, prev: &[f32]) -> f32 {
+    let u = &sim.units[unit];
+    let f = Vec2::new(u.facing.cos(), u.facing.sin());
+    let r = Vec2::new(f.y, -f.x);
+    let files = u.files_eff.max(1);
+    let mut steps = Vec::new();
+    for i in u.start..u.start + u.count {
+        if sim.alive[i] == 0 {
+            continue;
+        }
+        let slot = sim.soldier_slot[i] as usize;
+        if slot / files < 2 {
+            continue;
+        }
+        let p = sim.soldier_pos(i);
+        let pp = Vec2::new(prev[2 * i], prev[2 * i + 1]);
+        steps.push((p - pp).dot(r).abs());
+    }
+    steps.sort_by(|a, b| a.total_cmp(b));
+    assert!(
+        !steps.is_empty(),
+        "expected living rear-rank soldiers for lateral buzz measurement"
+    );
+    steps[((steps.len() - 1) as f32 * 0.95).round() as usize]
+}
+
+/// A holding phalanx in a frontal press should not have its rear ranks buzzing
+/// sideways in their lanes. The pike wall is taking no casualties here; if the
+/// backline still walks left/right several centimetres every tick, that is a
+/// lattice/contact oscillation, not battle damage.
+#[test]
+fn holding_phalanx_backline_does_not_lateral_buzz() {
+    let mut tun = Tunables::default();
+    tun.micro_rough = 0.0;
+    let mut sim = Sim::new(tun, 4242);
+    let heavy = sim.spawn_class(
+        Vec2::new(0.0, -13.0),
+        FRAC_PI_2,
+        N,
+        UnitClassId::HeavySword,
+        0,
+    );
+    let phalanx = sim.spawn_class(Vec2::new(0.0, 13.0), -FRAC_PI_2, N, UnitClassId::Phalanx, 1);
+    sim.set_pace(heavy, Pace::Run);
+    sim.set_attack_order(heavy, phalanx);
+
+    let mut prev = sim.positions.clone();
+    let mut max_rear_step = 0.0f32;
+    for tick in 0..(120.0 / DT) as usize {
+        sim.tick();
+        if tick as f32 * DT > 70.0 {
+            max_rear_step = max_rear_step.max(rear_lateral_step_p95(&sim, phalanx, &prev));
+        }
+        prev.clone_from(&sim.positions);
+    }
+    eprintln!(
+        "PHALANX-BUZZ rear lateral p95 max step={max_rear_step:.3}m deaths={}",
+        deaths(&sim, phalanx)
+    );
+    assert_eq!(
+        deaths(&sim, phalanx),
+        0,
+        "this pins no-casualty backline motion, not death backfill"
+    );
+    assert!(
+        max_rear_step < 0.08,
+        "holding phalanx rear ranks buzz sideways too much: p95 step {max_rear_step:.3}m/tick"
+    );
+}
+
 /// A WIDE attacking line must WRAP a narrow block, not pour through it: its
 /// overhanging flanks keep advancing and curl inward, so the block ends up with
 /// enemies on its flanks/rear (enveloped), NOT with the line split in two behind

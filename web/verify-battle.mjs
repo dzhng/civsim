@@ -430,10 +430,15 @@ check('no page errors', pageErrors.length === 0, pageErrors.slice(0, 3).join(' |
 // --- Unit-banner component: standalone visual regression (last; navigates away)
 // The banner (standard + HP/cohesion bars + status chips) renders on its own
 // gallery route, no sim or engine — a pure-DOM snapshot, so it can be exact.
-await page.goto(TARGET + '?test=banners');
-await page.waitForSelector('#banner-gallery .ubanner', { timeout: 10000 });
-await page.waitForTimeout(150);
-await snapCheck(page, 'banner-gallery', check);
+// Use a fresh page instead of navigating away from the 30k-soldier battle page:
+// after the perf stage it may still be busy tearing down WebGL/wasm resources,
+// while this standalone component route needs none of that state.
+const bannerPage = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+await bannerPage.goto(TARGET + '?test=banners');
+await bannerPage.waitForSelector('#banner-gallery .ubanner', { timeout: 10000 });
+await bannerPage.waitForTimeout(150);
+await snapCheck(bannerPage, 'banner-gallery', check);
+await bannerPage.close();
 
 await browser.close();
 console.log(failures.length ? `\n${failures.length} FAILURE(S)` : '\nALL CHECKS PASSED');

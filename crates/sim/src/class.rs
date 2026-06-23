@@ -116,6 +116,11 @@ pub struct UnitClass {
     /// (Independent of `mounted`, which is body geometry: two circles and
     /// a rider pool.)
     pub tramples: bool,
+    /// Strict formation: this unit's weapons/body doctrine make lateral lane
+    /// drift costly in contact. A pike block, for example, cannot freely crab
+    /// sideways in a frontal press without tangling shafts; future phalanx-like
+    /// classes opt in here instead of systems special-casing class ids.
+    pub strict_formation: bool,
     /// Knockdown-damage multiplier for what this body DEALS when it fells
     /// a man. Pure per-unit data: foot 0 (men bowling men bruise), heavy
     /// horse 1.0, light horse picks its way through at a fraction; a
@@ -237,6 +242,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
         morale_aura: 1.0,
         charge: true,
         tramples: false,
+        strict_formation: false,
         knockback_mult: 0.35, // a charging mass of men hurts what it fells
         drain_mult: 1.0,
         weapons: one(SWORD),
@@ -297,6 +303,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             evade: 0.08,
             training: 0.8,
             charge: false,
+            strict_formation: true,
             weapons: two(PIKE, SIDE_SWORD),
             ..foot
         },

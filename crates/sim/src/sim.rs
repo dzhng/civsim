@@ -1394,9 +1394,10 @@ impl Sim {
             // the MARCH, where chasing a moving anchor overshoots; an in-place pivot
             // has no anchor drift to overshoot. Gated on NOT engaged so a braced
             // line micro-wheeling in contact keeps its normal contact grip.
+            let strict_formation = u.stats.strict_formation;
             let slot_pull_u = if u.pivoting && u.engaged == 0 {
                 tun.slot_pull_hold.max(tun.slot_pull)
-            } else if advancing {
+            } else if advancing && !strict_formation {
                 tun.slot_pull
             } else {
                 tun.slot_pull_hold
@@ -1633,7 +1634,7 @@ impl Sim {
                     let files = u.files_eff.max(1);
                     let (file, rank) = (si % files, si / files);
                     let (sx, sy) = (u.spacing.x, u.spacing.y);
-                    let neighbor_skip = if order_advancing {
+                    let neighbor_skip = if order_advancing && !strict_formation {
                         1
                     } else {
                         WEAVE_NEIGHBOR_SKIP
@@ -1843,7 +1844,9 @@ impl Sim {
                 // attack, and a defence are all full-stiff; only genuine locomotion
                 // is soft. This is NOT the continuous "soft when moving" gradient
                 // (which wrongly softened a slow press and blobbed it).
-                let running = u.move_target.is_some() && u.mass_advance > tun.charge_spent_speed;
+                let running = !strict_formation
+                    && u.move_target.is_some()
+                    && u.mass_advance > tun.charge_spent_speed;
                 let mut steer_to = if trampling || running {
                     Vec2::ZERO
                 } else {
@@ -1917,7 +1920,7 @@ impl Sim {
                         // feed-forward (which would pour the wing past the foe). The
                         // magnet already pulls him inward; just don't override it.
                         let md = dir(u.facing);
-                        if d.dot(md) / dist < 0.45 {
+                        if !strict_formation && d.dot(md) / dist < 0.45 {
                             seeking_flank = true;
                         }
                     }
@@ -2024,6 +2027,21 @@ impl Sim {
                         if fwd > tun.base_speed {
                             v = v - eh * (fwd - tun.base_speed);
                         }
+                    }
+                }
+                if !order_advancing && u.stats.strict_formation && u.engaged > 0 && !seeking_flank {
+                    // Packed pike contact lateral friction: a leveled sarissa
+                    // block cannot freely crab sideways in the press without
+                    // tangling shafts and neighbours. The spring/collision
+                    // lattice otherwise rings side-to-side and the phalanx
+                    // backline visibly buzzes despite taking no casualties.
+                    // Damp only the lateral component that reverses against last
+                    // tick, so a steady shove is not dragged down and true flank
+                    // wrap stays free.
+                    let lat = v.dot(r);
+                    let last_lat = Vec2::new(kin_vx[i], kin_vy[i]).dot(r);
+                    if lat * last_lat < 0.0 {
+                        v = v - r * (lat * (1.0 - tun.idle_settle_damp));
                     }
                 }
                 // Idle settle damping: a HALTED formation with no enemy near

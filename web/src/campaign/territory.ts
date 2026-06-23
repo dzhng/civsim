@@ -65,6 +65,8 @@ export interface FactionLabel {
   y: number;
   /** approx radius of the faction's territory blob, km */
   radiusKm: number;
+  /** a passive minor league (vs. a playable power) — drawn a touch smaller */
+  minor: boolean;
 }
 
 export class Territory {
@@ -237,10 +239,11 @@ export class Territory {
     })();
     const sizeCapKm = refRadius > 0 ? refRadius * 1.5 : Infinity;
 
-    // Label each power at its territory's area centroid (now that the powers
-    // are contiguous blobs, the centroid sits inside the realm).
+    // Label every faction with territory at its area centroid — the minor
+    // leagues get a name on the map just like the powers (only smaller, since
+    // their realms are smaller). The empty "independents" sentinel has no cells.
     this.labels = factions.flatMap((fac, fi) => {
-      if (!fac.playable || cells[fi] === 0) return [];
+      if (cells[fi] === 0) return [];
       return [{
         faction: fi,
         name: fac.name.toUpperCase(),
@@ -248,6 +251,7 @@ export class Territory {
         x: sumX[fi] / cells[fi],
         y: sumY[fi] / cells[fi],
         radiusKm: Math.min(radiusKm(fi), sizeCapKm),
+        minor: !fac.playable,
       }];
     });
   }

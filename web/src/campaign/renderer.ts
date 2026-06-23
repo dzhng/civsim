@@ -486,33 +486,44 @@ export class CampaignRenderer {
     }
 
     // Faction names: drawn LAST so the engraved country text sits above the
-    // city dots and everything else. Political zoom + faction view only.
-    const labelAlpha = 1 - Math.min(1, Math.max(0, (z - 0.3) / 0.12));
-    if (factionView && labelAlpha > 0.02) {
-      for (const l of factionLabels) {
-        if (hidden(l.x, l.y)) continue;
+    // city dots and everything else (faction view only). The six powers read at
+    // the political overview; the dozens of minor leagues would smother it, so
+    // they fade IN only as you zoom into a region (fewer in view => legible),
+    // and fade out again once the cities take over.
+    const clamp01 = (t: number) => Math.min(1, Math.max(0, t));
+    // Powers persist from the overview through the regional zoom; leagues fade
+    // in only once zoomed into a region and out again at city level.
+    const powerAlpha = 1 - clamp01((z - 0.72) / 0.16);
+    const leagueAlpha = clamp01((z - 0.28) / 0.12) * (1 - clamp01((z - 0.78) / 0.18));
+    if (factionView && (powerAlpha > 0.02 || leagueAlpha > 0.02)) {
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.lineJoin = 'round';
+      ctx.strokeStyle = 'rgba(16,12,8,0.85)';
+      ctx.fillStyle = 'rgba(250,248,243,0.97)';
+      // Leagues first, then powers on top (biggest last) so a power's name is
+      // never buried under a minor league's.
+      const ordered = [...factionLabels].sort((a, b) => Number(b.minor) - Number(a.minor) || a.radiusKm - b.radiusKm);
+      for (const l of ordered) {
+        const baseA = l.minor ? leagueAlpha : powerAlpha;
+        if (baseA <= 0.02 || hidden(l.x, l.y)) continue;
         const p = pt(l.x, l.y);
         if (!p) continue;
-        const size = Math.min(54, Math.max(18, l.radiusKm * z * 0.55));
-        ctx.font = `700 ${size}px ${MAP_FONT}`;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.letterSpacing = `${Math.max(1, size * 0.07)}px`;
-        ctx.globalAlpha = labelAlpha;
-        // Engraved caps: a dark cushion under a clean ivory-white fill — the
-        // territory colour already carries the faction's identity.
-        ctx.lineWidth = Math.max(2.5, size / 6);
-        ctx.lineJoin = 'round';
-        ctx.strokeStyle = 'rgba(16,12,8,0.85)';
-        ctx.fillStyle = 'rgba(250,248,243,0.97)';
+        const size = l.minor
+          ? Math.min(24, Math.max(8, l.radiusKm * z * 0.4))
+          : Math.min(54, Math.max(18, l.radiusKm * z * 0.55));
+        ctx.font = `${l.minor ? 600 : 700} ${size}px ${MAP_FONT}`;
+        ctx.letterSpacing = `${Math.max(0.5, size * 0.07)}px`;
+        ctx.globalAlpha = baseA * (l.minor ? 0.88 : 1);
+        ctx.lineWidth = Math.max(2, size / 6);
         const name = l.name.toUpperCase();
         ctx.strokeText(name, p[0], p[1]);
         ctx.fillText(name, p[0], p[1]);
-        ctx.globalAlpha = 1;
-        ctx.letterSpacing = '0px';
-        ctx.textAlign = 'left';
-        ctx.textBaseline = 'alphabetic';
       }
+      ctx.globalAlpha = 1;
+      ctx.letterSpacing = '0px';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'alphabetic';
     }
   }
 }

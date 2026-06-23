@@ -101,7 +101,9 @@ groups.forEach((g, j) => {
   if (!g.length) return;
   const lead = g.slice().sort((a, b) => (b.n.tier - a.n.tier) || a.n.name.localeCompare(b.n.name))[0];
   const id = `league_${slug(lead.n.name)}`;
-  const name = g.length > 1 ? `${lead.n.name} League` : lead.n.name;
+  // Named after the league's leading city — a minor city-state faction reads
+  // like any other faction ("Tarraco", "Corinthus"), no "League" suffix.
+  const name = lead.n.name;
   const color = leagueColor(leagues.length);
   for (const c of g) c.n.owner = id;
   leagues.push({ id, name, color, playable: false, ai_persona: 'neutral' });

@@ -20,10 +20,11 @@ physically stops horseflesh.</em></p>
 <tr><td>alt + right-click</td><td><b>DISENGAGE</b> move: turn and run at full pace, answering nothing — fast but backs exposed</td></tr>
 <tr><td>R</td><td>walk-run</td></tr>
 <tr><td>G / H / V</td><td>reform / pursue (latch onto contact) / fire-at-will</td></tr>
-<tr><td>X / E</td><td>draw secondary weapons (pikes ground, bows sling — ~1s down the line, ORANGE pie) / kite reflex on-off (skirmish classes)</td></tr>
+<tr><td>X / K</td><td>draw secondary weapons (pikes ground, bows sling — ~1s down the line, ORANGE pie) / kite reflex on-off (skirmish classes)</td></tr>
 <tr><td>P, 1, 3</td><td>pause, 1x, 3x speed</td></tr>
 <tr><td>hold Space</td><td>show anchors, paths, latch targets</td></tr>
-<tr><td>WASD / arrows / screen edge / middle-drag</td><td>pan camera; wheel zooms; right-drag pans when nothing is selected</td></tr>
+<tr><td>WASD / arrows / screen edge</td><td>pan the camera (always relative to the way you're facing); wheel zooms</td></tr>
+<tr><td>Q / E / middle-drag</td><td><b>rotate &amp; tilt</b> the camera (Total War): Q/E spin around the field, middle-drag spins (left/right) and tilts to a low side-on angle (up/down); <b>Backspace</b> re-levels</td></tr>
 <tr><td>hover a unit</td><td>its stat card shows (yours or the enemy's) when nothing is selected; a selection pins its own card</td></tr>
 </table>
 

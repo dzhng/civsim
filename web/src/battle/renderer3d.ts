@@ -12,7 +12,7 @@ import { Scene } from '@babylonjs/core/scene';
 import { FreeCamera } from '@babylonjs/core/Cameras/freeCamera';
 import { Camera as BCamera } from '@babylonjs/core/Cameras/camera';
 import { PostProcess } from '@babylonjs/core/PostProcesses/postProcess';
-import { CLASS_LOOK, classGeometry } from '../shared/soldierModel';
+import { CLASS_LOOK, classGeometry, classGeometryDetailed, type Pose } from '../shared/soldierModel';
 import { HemisphericLight } from '@babylonjs/core/Lights/hemisphericLight';
 import { DirectionalLight } from '@babylonjs/core/Lights/directionalLight';
 import { Vector2, Vector3, Vector4 } from '@babylonjs/core/Maths/math.vector';
@@ -41,6 +41,27 @@ const TEAM_COLOR: [number, number, number][] = [
   [0.22, 0.41, 0.78], // player blue
   [0.78, 0.25, 0.23], // enemy red
 ];
+// Faction accent for the detailed models: realistic soldiers, told apart by a
+// coloured crest/plume, shield emblem and sash (NOT a whole-body tint). Indexed
+// by team for now; a per-unit faction id can route here later.
+const FACTION_ACCENT: [number, number, number][] = [
+  [0.20, 0.42, 0.88], // player — deep blue
+  [0.84, 0.24, 0.20], // enemy — crimson
+];
+// The detailed-model pose ladder. Each entry is baked into one mesh per
+// (class, faction); the renderer routes every soldier to the rung his sim frame
+// asks for. Order matters — the indices below name the rungs.
+const POSES: Partial<Pose>[] = [
+  { rest: 0 },                                  // 0 IDLE / alert guard
+  { rest: 0.25 }, { rest: 0.5 }, { rest: 0.75 }, { rest: 1 }, // 1-4 at-ease ladder (pikes rise)
+  { legPhase: 1, stride: 1 }, { legPhase: -1, stride: 1 },    // 5-6 march beats
+  { legPhase: 1, stride: 1.5, lean: 0.32 }, { legPhase: -1, stride: 1.5, lean: 0.32 }, // 7-8 run beats
+  { attack: 1 },                                // 9 attack strike
+  { recoil: 1 },                                // 10 hit recoil
+  { crumple: 1, recoil: 0.35 },                 // 11 death crumple
+];
+const P_IDLE = 0, P_EASE_TOP = 4, P_MARCH_A = 5, P_RUN_A = 7;
+const P_ATTACK = 9, P_HIT = 10, P_CRUMPLE = 11;
 // Below ZOOM_FLAT: pure top-down 2D sprites. Above ZOOM_3D: full tilt + 3D
 // meshes. Between, the camera tilts and the renderer switches at ZOOM_SWAP.
 // The band sits just above the fully-zoomed-out strategic view (minZoom ≈ 1.5–2
@@ -49,15 +70,17 @@ const TEAM_COLOR: [number, number, number][] = [
 const ZOOM_FLAT = 2;
 const ZOOM_3D = 7;
 const ZOOM_SWAP = 2.4;
-const MAX_PITCH = 0.42;
-// A man stands his pike up (or levels it) over a sweep, not a snap. We build a
-// ladder of POSE_STEPS pose meshes per (class, team) — geometry lerped from the
-// fighting box (step 0) to the at-ease box (last step) — and route each soldier
-// to the nearest step of his live restFrac. Six steps reads smooth at battle
-// distance. Buckets: step*POSE_BUCKET + cls*2 + team.
-const POSE_STEPS = 6;
+const MAX_PITCH = 0.42; // zoom-driven auto tilt (top-down → this when zoomed in)
+const MAX_PITCH_USER = 1.18; // how far down the user can tilt (Total War low angle)
+// Pose meshes are built per (class, team) at each rung of a ladder and the
+// renderer routes each soldier to the rung his state asks for. Block mode uses
+// a 6-step rest ladder (geometry lerped from fighting to at-ease, for the pike
+// raise); detailed mode uses the richer POSES table (rest ladder + march/run/
+// attack/hit/death). Buckets: rung*POSE_BUCKET + cls*2 + team.
+const POSE_STEPS_BLOCK = 6;
 const POSE_BUCKET = CLASS_LOOK.length * 2;
 const REST_FULL_SECS = 0.8; // wall-clock time for a full raise/lower
+const DEATH_SECS = 0.55; // wall-clock time for a fallen man to crumple + topple
 const FRAME_REST = 6; // sim frame value the scene tags an at-ease (standing) man with
 // A pikeman who has drawn his side-arm: pike stowed UPRIGHT, but snapped there at
 // once (not the slow at-ease sweep) — so a flank fighter never shows a half-
@@ -73,22 +96,27 @@ const smoothstep = (a: number, b: number, x: number) => {
 ShaderStore.ShadersStore['battleGroundVertexShader'] = `
 precision highp float;
 attribute vec3 position;
+attribute vec3 normal;
 uniform mat4 viewProjection;
 uniform vec4 uMapRect;
 varying vec2 vUV;
 varying vec2 vWorld;
+varying vec3 vNormal;
 void main() {
   gl_Position = viewProjection * vec4(position, 1.0);
   vWorld = position.xy;
+  vNormal = normal;
   vUV = (position.xy - uMapRect.xy) / uMapRect.zw;
 }`;
 ShaderStore.ShadersStore['battleGroundFragmentShader'] = `
 precision highp float;
 varying vec2 vUV;
 varying vec2 vWorld;
+varying vec3 vNormal;
 uniform sampler2D uTerrain;
 uniform float uTime;
 uniform float uFlatRock; // 1 = paint flat micro-rocks (far view), 0 = the 3D props carry them (near)
+uniform float uElevated; // 1 = hills (shade the slopes), 0 = flat stage (no slope term)
 float hash(vec2 p) {
   vec3 p3 = fract(vec3(p.xyx) * 0.1031);
   p3 += dot(p3, p3.yzx + 33.33);
@@ -172,6 +200,11 @@ void main() {
     col = mix(vec3(0.60, 0.55, 0.38), vec3(0.70, 0.64, 0.44), n2);
   }
   col *= 0.90 + 0.10 * t.r;
+  // Slope shading: hillsides toward the sun brighten, away darken — what makes
+  // the elevation read as hills and not a flat painted swirl. Only on the
+  // elevated battlefield; the flat debug/vibe stage keeps the plain ground tone.
+  float sun = clamp(dot(normalize(vNormal), normalize(vec3(0.4, -0.5, 0.78))), 0.0, 1.0);
+  col *= mix(1.0, 0.80 + 0.34 * sun, uElevated);
   float rock = microRock(vWorld);
   if (rock > 0.0 && tint != 1.0 && !outside && uFlatRock > 0.01) {
     vec3 stone = mix(vec3(0.42, 0.40, 0.34), vec3(0.30, 0.28, 0.24), min(rock - 1.0, 1.0));
@@ -282,25 +315,41 @@ function finishGeom(pos: number[], idx: number[], col: number[] | null): VertexD
 // A boulder: a squat tapered block. A bush: a clump of leafy boxes. A short
 // tree: brown stem + a green canopy (vertex-coloured). Unit-ish scale (~1m);
 // per-instance matrix sizes them to the micro-pocket radius.
+// A small half-buried stone — a knee-high stumble rock, not a boulder.
 function rockGeom(): VertexData {
   const p: number[] = [], i: number[] = [];
-  pushBox(p, i, null, -0.5, -0.4, 0, 0.4, 0.5, 0.42);
-  pushBox(p, i, null, -0.3, -0.2, 0.38, 0.25, 0.28, 0.6);
+  pushBox(p, i, null, -0.32, -0.26, 0, 0.28, 0.3, 0.2);
+  pushBox(p, i, null, -0.18, -0.14, 0.16, 0.16, 0.16, 0.32);
   return finishGeom(p, i, null);
 }
-function bushGeom(): VertexData {
-  const p: number[] = [], i: number[] = [];
-  pushBox(p, i, null, -0.45, -0.4, 0, 0.4, 0.45, 0.5);
-  pushBox(p, i, null, -0.25, -0.2, 0.4, 0.3, 0.3, 0.72);
-  pushBox(p, i, null, 0.1, -0.35, 0.2, 0.5, 0.1, 0.6);
-  return finishGeom(p, i, null);
+// A low grass/scrub clump — vertex-coloured leafy tufts, greener and shorter
+// than the old "bush" so the common scatter reads as meadow growth, not stones.
+function grassGeom(): VertexData {
+  const p: number[] = [], i: number[] = [], c: number[] = [];
+  const G1: [number, number, number] = [0.32, 0.46, 0.21];
+  const G2: [number, number, number] = [0.40, 0.54, 0.25];
+  pushBox(p, i, c, -0.32, -0.28, 0, 0.18, 0.22, 0.26, G1);
+  pushBox(p, i, c, -0.06, -0.2, 0.0, 0.34, 0.3, 0.4, G2); // a taller tuft
+  pushBox(p, i, c, -0.2, 0.04, 0.0, 0.12, 0.36, 0.3, G1);
+  return finishGeom(p, i, c);
 }
+// A short tree/sapling — brown stem, layered green canopy. Smaller than before.
 function treeGeom(): VertexData {
   const p: number[] = [], i: number[] = [], c: number[] = [];
-  pushBox(p, i, c, -0.08, -0.08, 0, 0.08, 0.08, 0.7, [0.32, 0.22, 0.13]); // stem
-  pushBox(p, i, c, -0.4, -0.4, 0.55, 0.4, 0.4, 1.4, [0.20, 0.34, 0.15]); // canopy
-  pushBox(p, i, c, -0.25, -0.25, 1.3, 0.25, 0.25, 1.7, [0.24, 0.40, 0.18]); // crown
+  pushBox(p, i, c, -0.07, -0.07, 0, 0.07, 0.07, 0.62, [0.32, 0.22, 0.13]); // stem
+  pushBox(p, i, c, -0.34, -0.34, 0.48, 0.34, 0.34, 1.18, [0.20, 0.34, 0.15]); // canopy
+  pushBox(p, i, c, -0.21, -0.21, 1.08, 0.21, 0.21, 1.46, [0.24, 0.40, 0.18]); // crown
   return finishGeom(p, i, c);
+}
+// A big jagged boulder — a pile of tilted blocks for the impassable rock /
+// rocky cliffs, so an "impassable" feature reads as a crag, not a flat disc.
+function boulderGeom(): VertexData {
+  const p: number[] = [], i: number[] = [];
+  pushBox(p, i, null, -0.7, -0.6, 0, 0.6, 0.55, 0.7);
+  pushBox(p, i, null, -0.4, -0.5, 0.5, 0.55, 0.3, 1.15);
+  pushBox(p, i, null, -0.55, 0.0, 0.2, 0.1, 0.6, 0.95);
+  pushBox(p, i, null, 0.1, -0.3, 0.6, 0.65, 0.35, 1.35); // a spur reaching up
+  return finishGeom(p, i, null);
 }
 // The sim/ground-shader micro hash, in JS, so the scattered props land on
 // the SAME 3m discs the sim trips on and the shader speckles.
@@ -308,6 +357,34 @@ function microHashJS(x: number, y: number): number {
   let h = (Math.imul(x >>> 0, 0x85ebca6b) ^ Math.imul(y >>> 0, 0xc2b2ae35)) >>> 0;
   h ^= h >>> 13; h = Math.imul(h, 0x27d4eb2f) >>> 0; h ^= h >>> 16;
   return h >>> 0;
+}
+
+// --- Visual terrain elevation -------------------------------------------------
+// The sim is flat (combat is 2D), so elevation is PURELY visual: a smooth
+// heightfield that bows the ground into rolling hills and lifts the soldiers,
+// props and banners that stand on it. Gentle by design (a few metres) so the
+// z=0 picking plane stays close to where a man is drawn. One JS function is the
+// single source of truth — the ground grid, its normals, and every entity's
+// lift all read it, so nothing floats or sinks.
+function hgrad(ix: number, iy: number): number {
+  let h = (Math.imul(ix | 0, 0x27d4eb2f) ^ Math.imul(iy | 0, 0x165667b1)) >>> 0;
+  h ^= h >>> 15; h = Math.imul(h, 0x85ebca6b) >>> 0; h ^= h >>> 13;
+  return (h & 0xffff) / 0xffff * 2 - 1;
+}
+function valueNoise(x: number, y: number): number {
+  const ix = Math.floor(x), iy = Math.floor(y);
+  const fx = x - ix, fy = y - iy;
+  const ux = fx * fx * (3 - 2 * fx), uy = fy * fy * (3 - 2 * fy);
+  const a = hgrad(ix, iy), b = hgrad(ix + 1, iy), c = hgrad(ix, iy + 1), d = hgrad(ix + 1, iy + 1);
+  return (a + (b - a) * ux) * (1 - uy) + (c + (d - c) * ux) * uy;
+}
+// A few octaves: a broad long-wavelength swell (big hills, but GENTLE slopes so
+// the z=0 picking offset stays small) plus finer rolls and bumps.
+export function terrainHeightJS(x: number, y: number): number {
+  return valueNoise(x / 310 + 3, y / 310 + 5) * 13
+    + valueNoise(x / 135, y / 135) * 7
+    + valueNoise(x / 46 + 11, y / 46 + 7) * 2.2
+    + valueNoise(x / 17 + 23, y / 17 + 19) * 0.7;
 }
 
 // One world-space banner above a unit: a camera-facing quad textured with the
@@ -378,7 +455,7 @@ class UnitBannerLayer {
 
   /** Place + texture every live banner; hide the rest. `zoom` scales the world
    *  size so the banner stays roughly constant on screen at every zoom. */
-  update(slots: (BannerSlot | null)[], zoom: number) {
+  update(slots: (BannerSlot | null)[], zoom: number, gz: (x: number, y: number) => number) {
     this.ensure(slots.length);
     const worldH = BANNER_WORLD_H / zoom;
     for (let u = 0; u < this.meshes.length; u++) {
@@ -389,7 +466,7 @@ class UnitBannerLayer {
       m.scaling.set(worldH, worldH, 1);
       // The texture is bottom-anchored on the pole foot; lift the plane by half
       // its height so the foot sits at the unit's top edge (z just above ground).
-      m.position.set(slot.x, slot.y, worldH * 0.5 + 0.2);
+      m.position.set(slot.x, slot.y, gz(slot.x, slot.y) + worldH * 0.5 + 0.2);
       // Redraw the texture only when the unit's state actually changes (quantise
       // the bars so a sub-pixel cohesion drift doesn't churn the canvas), like
       // the DOM component's chipKey.
@@ -431,7 +508,7 @@ export class BattleRenderer3D {
   // Scatter props standing on the micro-pockets: 0 rock, 1 bush, 2 tree.
   // Thin-instanced from whatever 3m discs fall in the visible AABB.
   private scatterMesh: Mesh[] = [];
-  private scatterMats: Float32Array[] = [new Float32Array(0), new Float32Array(0), new Float32Array(0)];
+  private scatterMats: Float32Array[] = Array.from({ length: 4 }, () => new Float32Array(0));
   // The tint grid + dims, kept so updateScatter can read the ground type
   // under each pocket and pick rock vs bush vs tree.
   private tintGrid: Uint8Array = new Uint8Array(0);
@@ -457,9 +534,48 @@ export class BattleRenderer3D {
   /** Debug turntable: force a fixed view tilt instead of the zoom-driven one
    *  (model-review harness, ?test=models). null = normal zoom-coupled pitch. */
   pitchOverride: number | null = null;
-  /** Debug turntable: drop the scattered rocks/bushes/trees for a clean stage. */
-  enableScatter = true;
+  /** Scattered grass/trees/boulders. Off on the flat debug/vibe stage
+   *  (?debug=blocks) so the field-wide props don't churn the behaviour
+   *  baselines, and dropped by the turntable for a clean model stage. */
+  enableScatter = new URLSearchParams(location.search).get('debug') !== 'blocks';
   fixedTime: number | null = null;
+  /** `?debug=blocks`: render the flat team-coloured BLOCK soldiers (the vibe /
+   *  debug model) instead of the detailed faction-accented figures. Vibe shots
+   *  force this so their baselines never churn while the real models evolve. */
+  blockMode = new URLSearchParams(location.search).get('debug') === 'blocks';
+  /** Visual hill elevation. On for the real game; OFF for the flat vibe stage
+   *  (?debug=blocks) so behaviour baselines stay stable, and for the turntable. */
+  elevation = new URLSearchParams(location.search).get('debug') !== 'blocks';
+  /** Heightfield sample, gated by `elevation` so the flat stages stay flat. */
+  private gz(x: number, y: number): number {
+    return this.elevation ? terrainHeightJS(x, y) : 0;
+  }
+
+  /** Extra elevation over impassable ROCK/WALL cells, so a "rock" feature rises
+   *  into a jagged rocky cliff instead of sitting as a flat grey disc. Reads the
+   *  tint grid: the 3×3 rock fraction makes a smooth mound, a noise jitters its
+   *  crest into crags. Off when `elevation` is off (flat stages). */
+  private tintHeight(x: number, y: number): number {
+    if (!this.elevation || this.terrW === 0) return 0;
+    const gx = Math.floor((x - this.terrOx) / this.terrCell);
+    const gy = Math.floor((y - this.terrOy) / this.terrCell);
+    let rock = 0;
+    for (let dy = -1; dy <= 1; dy++) {
+      for (let dx = -1; dx <= 1; dx++) {
+        const ix = gx + dx, iy = gy + dy;
+        if (ix < 0 || iy < 0 || ix >= this.terrW || iy >= this.terrH) continue;
+        const t = this.tintGrid[iy * this.terrW + ix];
+        if (t === 2 || t === 3) rock++;
+      }
+    }
+    if (rock === 0) return 0;
+    const frac = rock / 9;
+    return frac * 14 * (0.6 + 0.7 * valueNoise(x / 11 + 5, y / 11 + 2) ** 2 + 0.4 * valueNoise(x / 4, y / 4));
+  }
+  private nPose = POSES.length; // pose rungs per (class, team); set in the ctor
+  // Per-soldier death-collapse blend in [0,1], eased up once a man falls so he
+  // crumples and tips over a beat instead of snapping flat.
+  private deathFrac = new Float32Array(0);
 
   constructor(private canvas: HTMLCanvasElement) {
     // adaptToDeviceRatio = true: size the backing store to device pixels
@@ -497,31 +613,77 @@ export class BattleRenderer3D {
     // Ground.
     this.ground = new Mesh('ground', this.scene);
     this.groundMat = new ShaderMaterial('ground', this.scene, 'battleGround', {
-      attributes: ['position'],
-      uniforms: ['viewProjection', 'uMapRect', 'uTime', 'uFlatRock'],
+      attributes: ['position', 'normal'],
+      uniforms: ['viewProjection', 'uMapRect', 'uTime', 'uFlatRock', 'uElevated'],
       samplers: ['uTerrain'],
     });
     this.groundMat.backFaceCulling = false;
     this.ground.material = this.groundMat;
     this.ground.freezeWorldMatrix();
 
-    // 3D soldier meshes: one per (class, team) at each rung of the pose ladder,
-    // geometry lerped from the fighting box (step 0) to the at-ease box (last
-    // step), so a resting man can sweep his pike up and level it again to fight.
-    // Geometry per (class, step) is built once and shared by the blue and red mesh.
-    for (let pose = 0; pose < POSE_STEPS; pose++) {
-      const restFrac = pose / (POSE_STEPS - 1);
+    // 3D soldier meshes: one per (class, team) at each rung of the pose ladder.
+    // Detailed mode bakes the full POSES table (rest ladder + march/run/attack/
+    // hit/death) with per-vertex realistic colours and a per-faction accent;
+    // block mode bakes a 6-rung rest ladder of the flat team-coloured boxes.
+    this.nPose = this.blockMode ? POSE_STEPS_BLOCK : POSES.length;
+    // Share materials across ALL soldier meshes — every detailed figure carries
+    // its colour in vertex colours, so one white material serves them all; block
+    // mode needs just one per team. (Per-mesh materials — 288 of them — were
+    // enough GPU state to fail boot on concurrent software-GL pages.)
+    const detailMat = new StandardMaterial('soldierDetail', this.scene);
+    detailMat.diffuseColor = new Color3(1, 1, 1);
+    detailMat.specularColor = new Color3(0.08, 0.08, 0.08);
+    // A shared procedural GRAIN texture (woven cloth + fine speckle) tiled over
+    // the figures by their planar UVs — it MULTIPLIES the vertex colours, so cloth
+    // reads as cloth and bronze gets a faint hammered grain instead of a flat
+    // fill, without per-class texture atlases. Block mode stays untextured.
+    if (!this.blockMode) {
+      const grain = new DynamicTexture('soldierGrain', { width: 64, height: 64 }, this.scene, false);
+      const gctx = grain.getContext() as unknown as CanvasRenderingContext2D;
+      const img = gctx.createImageData(64, 64);
+      for (let y = 0; y < 64; y++) {
+        for (let x = 0; x < 64; x++) {
+          // A woven over-under (threads brighten where warp crosses weft) plus a
+          // per-texel speckle, centred near white so the multiply keeps the vertex
+          // hue but gives cloth a weave and metal a hammered grain.
+          const warp = Math.sin(x * 1.05) * 0.5 + 0.5;
+          const weft = Math.sin(y * 1.05) * 0.5 + 0.5;
+          const weave = (warp * weft - 0.25) * 0.22;
+          const speck = hgrad(x * 7 + 1, y * 13 + 3) * 0.16; // deterministic, so snapshots are stable
+          const v = Math.max(0, Math.min(1, 0.9 + weave + speck));
+          const o = (y * 64 + x) * 4;
+          img.data[o] = img.data[o + 1] = img.data[o + 2] = (v * 255) | 0;
+          img.data[o + 3] = 255;
+        }
+      }
+      gctx.putImageData(img, 0, 0);
+      grain.update();
+      grain.wrapU = Texture.WRAP_ADDRESSMODE;
+      grain.wrapV = Texture.WRAP_ADDRESSMODE;
+      detailMat.diffuseTexture = grain;
+    }
+    const teamMat = TEAM_COLOR.map((c, t) => {
+      const m = new StandardMaterial(`soldierTeam${t}`, this.scene);
+      m.diffuseColor = new Color3(c[0], c[1], c[2]);
+      m.specularColor = new Color3(0.05, 0.05, 0.05);
+      return m;
+    });
+    for (let pose = 0; pose < this.nPose; pose++) {
       for (let cls = 0; cls < CLASS_LOOK.length; cls++) {
-        const geom = classGeometry(cls, restFrac);
+        // Block geometry is team-independent (the material carries the colour);
+        // detailed geometry bakes the faction accent into its vertex colours, so
+        // it differs per team and is rebuilt for each.
+        const blockGeom = this.blockMode ? classGeometry(cls, pose / (POSE_STEPS_BLOCK - 1)) : null;
         for (let t = 0; t < 2; t++) {
           const bucket = pose * POSE_BUCKET + cls * 2 + t;
           const mesh = new Mesh(`soldier_${pose}_${cls}_${t}`, this.scene);
-          geom.applyToMesh(mesh);
-          const mat = new StandardMaterial(`soldier_${cls}_${t}`, this.scene);
-          const c = TEAM_COLOR[t];
-          mat.diffuseColor = new Color3(c[0], c[1], c[2]);
-          mat.specularColor = new Color3(0.05, 0.05, 0.05);
-          mesh.material = mat;
+          if (this.blockMode) {
+            blockGeom!.applyToMesh(mesh);
+            mesh.material = teamMat[t];
+          } else {
+            classGeometryDetailed(cls, POSES[pose], FACTION_ACCENT[t]).applyToMesh(mesh);
+            mesh.material = detailMat;
+          }
           mesh.alwaysSelectAsActiveMesh = true;
           mesh.isVisible = false;
           this.classMesh[bucket] = mesh;
@@ -534,13 +696,14 @@ export class BattleRenderer3D {
     // Scatter props for the micro-pockets. Rock & bush carry one flat colour
     // (the material's diffuse); the tree is vertex-coloured (brown stem, green
     // canopy). All three lit by the same sun/sky as the soldiers.
-    const scatterGeom = [rockGeom(), bushGeom(), treeGeom()];
+    const scatterGeom = [rockGeom(), grassGeom(), treeGeom(), boulderGeom()];
     const scatterCol: [number, number, number][] = [
-      [0.45, 0.43, 0.40], // rock grey
-      [0.26, 0.40, 0.20], // bush green
+      [0.5, 0.48, 0.44], // small rock grey
+      [1, 1, 1], // grass clump: vertex colours carry the greens
       [1, 1, 1], // tree: vertex colours carry the real hue
+      [0.46, 0.44, 0.41], // boulder grey-brown
     ];
-    for (let s = 0; s < 3; s++) {
+    for (let s = 0; s < scatterGeom.length; s++) {
       const mesh = new Mesh(`scatter_${s}`, this.scene);
       scatterGeom[s].applyToMesh(mesh);
       const mat = new StandardMaterial(`scatter_${s}`, this.scene);
@@ -609,7 +772,7 @@ export class BattleRenderer3D {
   /** Place + draw the per-unit standards as world-space billboards. Called by
    *  the scene each frame with one slot per unit (null = hidden/dead). */
   updateBanners(slots: (BannerSlot | null)[], zoom: number) {
-    this.banners.update(slots, zoom);
+    this.banners.update(slots, zoom, (x, y) => this.gz(x, y));
   }
 
   /** Rebuild a dynamic overlay mesh from packed [x,y, r,g,b(,a)] verts. */
@@ -621,7 +784,8 @@ export class BattleRenderer3D {
     const idx = new Array<number>(n);
     for (let i = 0; i < n; i++) {
       const o = i * stride;
-      pos[i * 3] = verts[o]; pos[i * 3 + 1] = verts[o + 1]; pos[i * 3 + 2] = z;
+      pos[i * 3] = verts[o]; pos[i * 3 + 1] = verts[o + 1];
+      pos[i * 3 + 2] = this.gz(verts[o], verts[o + 1]) + z; // ride the hillside
       col[i * 4] = verts[o + 2]; col[i * 4 + 1] = verts[o + 3]; col[i * 4 + 2] = verts[o + 4];
       col[i * 4 + 3] = stride > 5 ? verts[o + 5] : 0.9;
       idx[i] = i;
@@ -646,6 +810,7 @@ export class BattleRenderer3D {
     this.rowOf = new Float32Array(n);
     this.sizeOf = new Float32Array(n);
     this.restFrac = new Float32Array(n);
+    this.deathFrac = new Float32Array(n);
     for (let i = 0; i < n; i++) {
       const u = soldierUnit[i];
       const cls = classes[u];
@@ -671,10 +836,40 @@ export class BattleRenderer3D {
     this.scatterKey = ''; // a new terrain invalidates the cached scatter
     const M = WILDS_MARGIN;
     const x0 = ox - M, y0 = oy - M, x1 = ox + w * cell + M, y1 = oy + h * cell + M;
+    // Subdivided ground grid, each vertex raised to the heightfield so the field
+    // rolls into hills; per-vertex normals (from the height gradient) let the
+    // ground shader shade the slopes. ~8 m cells read smooth without a huge mesh.
+    const STEP = 8;
+    const nx = Math.max(2, Math.ceil((x1 - x0) / STEP) + 1);
+    const ny = Math.max(2, Math.ceil((y1 - y0) / STEP) + 1);
+    const positions = new Float32Array(nx * ny * 3);
+    const normals = new Float32Array(nx * ny * 3);
+    const H = (hx: number, hy: number) => this.gz(hx, hy) + this.tintHeight(hx, hy);
+    for (let j = 0; j < ny; j++) {
+      const wy = y0 + (j / (ny - 1)) * (y1 - y0);
+      for (let i = 0; i < nx; i++) {
+        const wx = x0 + (i / (nx - 1)) * (x1 - x0);
+        const o = (j * nx + i) * 3;
+        positions[o] = wx; positions[o + 1] = wy; positions[o + 2] = H(wx, wy);
+        // Normal from the height gradient (central differences, e=4 m).
+        const e = 4;
+        const dzdx = (H(wx + e, wy) - H(wx - e, wy)) / (2 * e);
+        const dzdy = (H(wx, wy + e) - H(wx, wy - e)) / (2 * e);
+        const nlen = Math.hypot(dzdx, dzdy, 1);
+        normals[o] = -dzdx / nlen; normals[o + 1] = -dzdy / nlen; normals[o + 2] = 1 / nlen;
+      }
+    }
+    const indices = new Uint32Array((nx - 1) * (ny - 1) * 6);
+    let k = 0;
+    for (let j = 0; j < ny - 1; j++) {
+      for (let i = 0; i < nx - 1; i++) {
+        const a = j * nx + i, b = a + 1, c = a + nx, d = c + 1;
+        indices[k++] = a; indices[k++] = b; indices[k++] = d;
+        indices[k++] = a; indices[k++] = d; indices[k++] = c;
+      }
+    }
     const vd = new VertexData();
-    vd.positions = [x0, y0, 0, x1, y0, 0, x1, y1, 0, x0, y1, 0];
-    vd.indices = [0, 1, 2, 0, 2, 3];
-    vd.normals = [0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1];
+    vd.positions = positions; vd.indices = indices; vd.normals = normals;
     vd.applyToMesh(this.ground);
 
     const data = new Uint8Array(w * h * 4);
@@ -690,6 +885,7 @@ export class BattleRenderer3D {
     );
     this.groundMat.setTexture('uTerrain', this.terrTex);
     this.groundMat.setVector4('uMapRect', new Vector4(ox, oy, w * cell, h * cell));
+    this.groundMat.setFloat('uElevated', this.elevation ? 1 : 0);
   }
 
   private ensureCapacity(count: number) {
@@ -713,7 +909,11 @@ export class BattleRenderer3D {
     this.ensureCapacity(count);
     // LOD: flatten + sprites when zoomed out, tilt + 3D meshes when in.
     const zoom = camera.zoom;
-    this.pitch = this.pitchOverride ?? MAX_PITCH * smoothstep(ZOOM_FLAT, ZOOM_3D, zoom);
+    // Auto pitch from zoom (top-down when far, tilted when near) PLUS the user's
+    // tilt bias (middle-drag vertical), clamped from straight-down to a low
+    // Total War angle that shows the soldiers side-on.
+    const auto = MAX_PITCH * smoothstep(ZOOM_FLAT, ZOOM_3D, zoom);
+    this.pitch = this.pitchOverride ?? Math.min(MAX_PITCH_USER, Math.max(0, auto + camera.pitchBias));
     camera.pitch = this.pitch; // keep picking/overlays in sync
     this.syncCamera(camera);
     const use3D = zoom >= ZOOM_SWAP;
@@ -741,26 +941,26 @@ export class BattleRenderer3D {
     positions: Float32Array, facings: Float32Array, frames: Float32Array, alive: Float32Array, count: number,
   ) {
     for (let k = 0; k < this.classN.length; k++) this.classN[k] = 0;
-    // Ease every man's at-ease blend toward its target (1 at-ease, else 0) by a
-    // step sized so a full raise/lower takes REST_FULL_SECS of wall-clock, then
-    // route him to the nearest rung of the pose ladder. Frozen frames hold the
-    // clock, so the blend doesn't drift — the deployment snapshot stays stable.
+    // Ease two per-soldier blends toward their targets by a wall-clock step:
+    // the at-ease blend (pike raise/lower over REST_FULL_SECS) and the
+    // death-collapse blend (a fallen man crumples and tips over ~DEATH_SECS).
+    // Frozen frames hold the clock, so neither drifts and snapshots stay stable.
     const nowT = this.fixedTime ?? (performance.now() - this.start) / 1000;
     const dt = Math.min(0.1, Math.max(0, nowT - this.lastPoseT));
     this.lastPoseT = nowT;
-    const step = dt / REST_FULL_SECS;
-    const rf = this.restFrac;
+    const restStep = dt / REST_FULL_SECS;
+    const deathStep = dt / DEATH_SECS;
+    const rf = this.restFrac, df = this.deathFrac;
     for (let i = 0; i < count; i++) {
+      const dead = alive[i] < 0.5;
+      df[i] = dead ? Math.min(1, df[i] + deathStep) : 0;
       if (frames[i] === FRAME_STOW) { rf[i] = 1; continue; } // pike snaps upright, no sweep
       const target = frames[i] === FRAME_REST ? 1 : 0;
       const d = target - rf[i];
-      rf[i] += d > step ? step : d < -step ? -step : d;
+      rf[i] += d > restStep ? restStep : d < -restStep ? -restStep : d;
     }
     for (let i = 0; i < count; i++) {
-      // Each man routes to the pose-ladder rung nearest his eased at-ease blend;
-      // a sweeping pike passes through the intermediate rungs, not a snap.
-      const poseStep = Math.round(rf[i] * (POSE_STEPS - 1));
-      const bucket = poseStep * POSE_BUCKET + this.classOf[i] * 2 + this.teamOf[i];
+      const bucket = this.poseOf(i, frames[i]) * POSE_BUCKET + this.classOf[i] * 2 + this.teamOf[i];
       let buf = this.classMats[bucket];
       const n = this.classN[bucket];
       if ((n + 1) * 16 > buf.length) {
@@ -772,26 +972,35 @@ export class BattleRenderer3D {
       this.classN[bucket] = n + 1;
       const o = n * 16;
       const x = positions[2 * i], y = positions[2 * i + 1], s = this.scaleOf[i] || 1;
+      const gz = this.gz(x, y); // stand the man on the hillside
       const f = facings[i];
       const a = f - Math.PI / 2;
       const ca = Math.cos(a), sa = Math.sin(a);
       if (alive[i] < 0.5) {
-        // Fallen: tipped onto the ground along the facing.
+        // Fallen: the crumple pose folds the man; the matrix topples him onto
+        // the ground along his facing. We LERP the whole basis from the standing
+        // frame (k=0) to the flat dead frame (k=1) by the eased death blend, so
+        // he tips over a beat — never scaling a single column to zero (which
+        // would collapse the mesh to a degenerate plane mid-fall).
+        const k = this.blockMode ? 1 : smoothstep(0, 1, df[i]);
         buf[o] = ca * s; buf[o + 1] = sa * s; buf[o + 2] = 0; buf[o + 3] = 0;
-        buf[o + 4] = 0; buf[o + 5] = 0; buf[o + 6] = s; buf[o + 7] = 0;
-        buf[o + 8] = sa * 0.25 * s; buf[o + 9] = -ca * 0.25 * s; buf[o + 10] = 0.25 * s; buf[o + 11] = 0;
-        buf[o + 12] = x; buf[o + 13] = y; buf[o + 14] = 0.05; buf[o + 15] = 1;
+        // col1: local +y (forward) swings from horizontal (standing) up to +z (flat).
+        buf[o + 4] = -sa * (1 - k) * s; buf[o + 5] = ca * (1 - k) * s; buf[o + 6] = k * s; buf[o + 7] = 0;
+        // col2: local +z (up) swings from +z down to near-horizontal along facing.
+        buf[o + 8] = sa * 0.25 * k * s; buf[o + 9] = -ca * 0.25 * k * s; buf[o + 10] = ((1 - k) + 0.25 * k) * s; buf[o + 11] = 0;
+        buf[o + 12] = x; buf[o + 13] = y; buf[o + 14] = gz + 0.05; buf[o + 15] = 1;
       } else {
-        // Animation from the sim's frame: a marching bob (walk beats 1/2)
-        // and a forward thrust (attack beat 3, alternating with 0).
+        // A little bob/lurch on top of the limb poses: marching rises, a strike
+        // lunges the body forward. The detailed poses carry the limb motion;
+        // this keeps the block model (no limbs) lively too.
         const fr = frames[i];
-        const bob = fr === 1 ? 0.06 : fr === 3 ? 0.04 : 0;
+        const bob = fr === 1 || fr === 8 ? 0.06 : fr === 3 ? 0.04 : 0;
         const lurch = fr === 3 ? 0.16 : 0;
         buf[o] = ca * s; buf[o + 1] = sa * s; buf[o + 2] = 0; buf[o + 3] = 0;
         buf[o + 4] = -sa * s; buf[o + 5] = ca * s; buf[o + 6] = 0; buf[o + 7] = 0;
         buf[o + 8] = 0; buf[o + 9] = 0; buf[o + 10] = s; buf[o + 11] = 0;
         buf[o + 12] = x + lurch * Math.cos(f); buf[o + 13] = y + lurch * Math.sin(f);
-        buf[o + 14] = bob; buf[o + 15] = 1;
+        buf[o + 14] = gz + bob; buf[o + 15] = 1;
       }
     }
     for (let k = 0; k < this.classMesh.length; k++) {
@@ -800,6 +1009,29 @@ export class BattleRenderer3D {
       mesh.isVisible = n > 0;
       if (n > 0) mesh.thinInstanceSetBuffer('matrix', this.classMats[k].subarray(0, n * 16), 16, false);
       mesh.thinInstanceCount = n;
+    }
+  }
+
+  /** Route a soldier to a pose-ladder rung. Block mode keeps the 6-rung rest
+   *  ladder (only the pike posture differs); detailed mode maps the sim frame
+   *  to the matching limb pose, and a fallen man to a hit→crumple sequence. */
+  private poseOf(i: number, frame: number): number {
+    if (this.blockMode) {
+      const stow = frame === FRAME_STOW;
+      return Math.round((stow ? 1 : this.restFrac[i]) * (POSE_STEPS_BLOCK - 1));
+    }
+    if (this.deathFrac[i] > 0) return this.deathFrac[i] < 0.4 ? P_HIT : P_CRUMPLE;
+    switch (frame) {
+      case 1: return P_MARCH_A;      // march beat A
+      case 2: return P_MARCH_A + 1;  // march beat B
+      case 8: return P_RUN_A;        // run beat A
+      case 9: return P_RUN_A + 1;    // run beat B
+      case 3: return P_ATTACK;       // strike
+      case 10: return P_HIT;         // flinch
+      case 5: return P_IDLE;         // weapon fumble
+      case 6: return Math.round(this.restFrac[i] * P_EASE_TOP); // at-ease ladder
+      case 7: return P_EASE_TOP;     // stowed pike: upright
+      default: return P_IDLE;        // 0 alert guard
     }
   }
 
@@ -817,10 +1049,14 @@ export class BattleRenderer3D {
       m[o] = ca * s; m[o + 1] = sa * s; m[o + 2] = 0; m[o + 3] = 0;
       m[o + 4] = -sa * s; m[o + 5] = ca * s; m[o + 6] = 0; m[o + 7] = 0;
       m[o + 8] = 0; m[o + 9] = 0; m[o + 10] = s; m[o + 11] = 0;
-      m[o + 12] = x; m[o + 13] = y; m[o + 14] = alive[i] < 0.5 ? -0.05 : 0; m[o + 15] = 1;
-      // The atlas has no at-ease frame (you can't read a raised pike from afar);
-      // standing is standing in the flat 2D view.
-      cells[2 * i] = frames[i] === FRAME_REST || frames[i] === FRAME_STOW ? 0 : frames[i];
+      m[o + 12] = x; m[o + 13] = y; m[o + 14] = this.gz(x, y) + (alive[i] < 0.5 ? -0.05 : 0); m[o + 15] = 1;
+      // The atlas has no at-ease/run/flinch frames (you can't read a raised pike
+      // or a stride from afar); fold them onto the cells it does have: rest/stow
+      // → stand, run → march, flinch → fighting.
+      const fr = frames[i];
+      cells[2 * i] = fr === FRAME_REST || fr === FRAME_STOW ? 0
+        : fr === 8 || fr === 9 ? 1 + (fr & 1)
+          : fr === 10 ? 3 : fr;
       cells[2 * i + 1] = this.rowOf[i];
     }
     this.sprite.isVisible = count > 0;
@@ -854,9 +1090,9 @@ export class BattleRenderer3D {
     this.scatterKey = key;
 
     const CAP = 4000;
-    const counts = [0, 0, 0];
+    const counts = [0, 0, 0, 0];
     const mats = this.scatterMats;
-    for (let s = 0; s < 3; s++) if (mats[s].length < CAP * 16) mats[s] = new Float32Array(CAP * 16);
+    for (let s = 0; s < 4; s++) if (mats[s].length < CAP * 16) mats[s] = new Float32Array(CAP * 16);
 
     const cx0 = Math.floor(minX / 3) - 1, cx1 = Math.ceil(maxX / 3) + 1;
     const cy0 = Math.floor(minY / 3) - 1, cy1 = Math.ceil(maxY / 3) + 1;
@@ -877,31 +1113,35 @@ export class BattleRenderer3D {
         const tint = inMap ? this.tintGrid[gy * this.terrW + gx] : 99;
         if (tint === 1) continue; // no props on water (matches the shader)
 
-        // Choose rock / bush / tree from the tint, with a deterministic
-        // per-disc roll so each ground type gets a believable mix.
-        const roll = (h >> 5) & 7;
+        // Choose rock / grass / tree / boulder from the tint, with a
+        // deterministic per-disc roll so each ground type gets a believable mix.
+        // Types: 0 small rock, 1 grass/scrub clump, 2 short tree, 3 big boulder.
+        const roll = (h >> 5) & 15;
         let type: number;
-        if (tint === 4 || tint === 99) type = roll < 5 ? 2 : 1; // forest/wilds: mostly trees
-        else if (tint === 2 || tint === 6 || tint === 3) type = roll < 6 ? 0 : 1; // crag/scree/wall: rock
-        else if (tint === 5) type = roll < 6 ? 1 : 0; // mud: scrubby bushes
-        else type = roll < 4 ? 0 : roll < 7 ? 1 : 2; // meadow: rock/bush, a rare tree
+        if (tint === 2 || tint === 3) type = roll < 11 ? 3 : 0; // impassable crag/wall: boulders (a few small stones)
+        else if (tint === 6) type = roll < 6 ? 3 : roll < 12 ? 0 : 1; // scree field: boulders + stones + scrub
+        else if (tint === 4 || tint === 99) type = roll < 10 ? 2 : 1; // forest/wilds: mostly trees, some scrub
+        else if (tint === 5) type = roll < 12 ? 1 : 2; // mud: reedy scrub, the odd sapling
+        else type = roll < 9 ? 1 : roll < 13 ? 2 : 0; // meadow: mostly grass tufts, some trees, a rare stone
 
         const n = counts[type];
         const m = mats[type];
         const o = n * 16;
-        // Scale to the pocket radius; bushes/trees a touch taller than wide.
-        const sx = r * 1.6, sz = type === 2 ? r * 1.5 : type === 1 ? r * 1.3 : r * 1.4;
+        // Scale to the pocket radius. Boulders are big (the crag); small stones
+        // stay knee-high; grass/trees a touch taller than wide.
+        const sx = type === 3 ? 1.1 + r * 1.5 : type === 0 ? r * 0.8 : r * 1.25;
+        const sz = type === 3 ? 1.0 + r * 1.6 : type === 0 ? r * 0.7 : type === 2 ? r * 1.5 : r * 1.2;
         const yaw = ((h >> 3) & 255) / 255 * Math.PI * 2;
         const cyaw = Math.cos(yaw), syaw = Math.sin(yaw);
         m[o] = cyaw * sx; m[o + 1] = syaw * sx; m[o + 2] = 0; m[o + 3] = 0;
         m[o + 4] = -syaw * sx; m[o + 5] = cyaw * sx; m[o + 6] = 0; m[o + 7] = 0;
         m[o + 8] = 0; m[o + 9] = 0; m[o + 10] = sz; m[o + 11] = 0;
-        m[o + 12] = wx; m[o + 13] = wy; m[o + 14] = 0; m[o + 15] = 1;
+        m[o + 12] = wx; m[o + 13] = wy; m[o + 14] = this.gz(wx, wy) + this.tintHeight(wx, wy); m[o + 15] = 1;
         counts[type] = n + 1;
         placed++;
       }
     }
-    for (let s = 0; s < 3; s++) {
+    for (let s = 0; s < 4; s++) {
       const mesh = this.scatterMesh[s];
       const n = counts[s];
       mesh.isVisible = n > 0;
@@ -917,11 +1157,19 @@ export class BattleRenderer3D {
     this.camera.orthoRight = W / (2 * z);
     this.camera.orthoTop = H / (2 * z);
     this.camera.orthoBottom = -H / (2 * z);
-    const p = this.pitch;
+    const p = this.pitch, yaw = c.yaw;
+    const cy = Math.cos(yaw), sy = Math.sin(yaw);
     const dist = 2000;
-    this.camera.position.set(c.x, c.y - dist * Math.sin(p), dist * Math.cos(p));
+    // Orbit the camera about the target by yaw and tilt it by pitch, matching the
+    // affine ground map in camera.ts exactly (screen-right = (cos yaw, sin yaw),
+    // screen-up ground projection = (-sin yaw, cos yaw)) so picking stays exact.
+    this.camera.position.set(
+      c.x + dist * Math.sin(p) * sy,
+      c.y - dist * Math.sin(p) * cy,
+      dist * Math.cos(p),
+    );
     this.camera.setTarget(new Vector3(c.x, c.y, 0));
-    this.camera.upVector.set(0, Math.cos(p), Math.sin(p));
+    this.camera.upVector.set(-Math.cos(p) * sy, Math.cos(p) * cy, Math.sin(p));
   }
 
   // Attack-arc wedges: [x,y, r,g,b,a] triangles.

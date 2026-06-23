@@ -66,6 +66,38 @@
       border-radius: 10px; padding: 7px 10px;
       box-shadow: 0 4px 18px rgba(0,0,0,0.5);
     }
+    /* Bottom unit-card strip: one card per player unit (Total War style). */
+    #unitcards {
+      position: fixed; bottom: 56px; left: 50%; transform: translateX(-50%);
+      display: flex; gap: 5px; align-items: flex-end; z-index: 5;
+      max-width: 86vw; overflow-x: auto; overflow-y: hidden; padding: 4px 6px;
+      background: linear-gradient(rgba(10,12,16,0), rgba(10,12,16,0.78));
+      border-radius: 8px; scrollbar-width: thin;
+    }
+    #unitcards::-webkit-scrollbar { height: 6px; }
+    #unitcards::-webkit-scrollbar-thumb { background: #3a3f4d; border-radius: 3px; }
+    .ucard {
+      flex: 0 0 auto; width: 62px; display: flex; flex-direction: column; align-items: center;
+      background: rgba(24,27,34,0.92); border: 1px solid #3a3f4d;
+      border-top: 3px solid var(--fac); border-radius: 5px; padding: 2px 2px 3px;
+      cursor: pointer; position: relative; transition: transform 0.08s, border-color 0.1s;
+    }
+    .ucard:hover { background: rgba(40,46,58,0.95); }
+    .ucard.sel { border-color: #f0e3b0; box-shadow: 0 0 0 1px #f0e3b0, 0 -2px 10px rgba(240,227,176,0.25); transform: translateY(-3px); }
+    .ucard.rout { filter: grayscale(0.5) brightness(0.8); }
+    .ucard.rout::after {
+      content: 'ROUT'; position: absolute; top: 20px; left: 0; right: 0; text-align: center;
+      font: 700 9px ui-monospace, monospace; color: #ff7a6b; text-shadow: 0 1px 2px #000;
+    }
+    .ucard-port { display: block; image-rendering: auto; background: radial-gradient(ellipse at 50% 70%, rgba(120,130,110,0.35), rgba(20,24,20,0.1)); border-radius: 3px; }
+    .ucard-name { font: 600 8px ui-monospace, Menlo, monospace; color: #cfd6e4; margin-top: 1px; white-space: nowrap; max-width: 60px; overflow: hidden; text-overflow: ellipsis; }
+    .ucard-count { position: absolute; top: 3px; right: 4px; font: 700 9px ui-monospace, monospace; color: #fff; text-shadow: 0 1px 2px #000, 0 0 3px #000; }
+    .ucard-bars { width: 54px; margin-top: 2px; }
+    .ucard-bar { height: 3px; background: rgba(8,9,11,0.7); border-radius: 2px; overflow: hidden; margin-bottom: 1px; }
+    .ucard-bar > div { height: 100%; width: 100%; }
+    .ucard-bar.hp > div { background: #5cba46; }
+    .ucard-bar.coh > div { background: #d9c75a; }
+    .ucard-bar.mor > div { background: #c2554e; }
     #toolbar button {
       font: 12px ui-monospace, Menlo, monospace; color: #c8cdd8;
       background: rgba(34,38,48,0.9); border: 1px solid #444a5a;
@@ -273,13 +305,14 @@
   <div id="selbox"></div>
   <canvas id="minimap" width="240" height="160"></canvas>
   <div id="unitlabels"></div>
+  <div id="unitcards"></div>
   <div id="toolbar">
     <button data-cmd="pace" title="Hotkey: R&#10;Toggle walk/run. Running is ~2x speed but burns stamina in ~90s and the formation frays the longer it runs — walk to arrive in order.">Run</button>
     <button data-cmd="reform" title="Hotkey: G&#10;Halt and re-dress the ranks at double recovery speed (the sergeants shout). Use after a scramble, a defile, or a melee.">Reform</button>
     <button data-cmd="pursue" title="Hotkey: H&#10;ON: an advance auto-attacks any enemy within a 5s run and chases routers — the chase gives up once it is measurably losing ground. OFF: fight whatever is in reach but keep marching to your destination.">Pursue</button>
     <button data-cmd="fire" title="Hotkey: V&#10;Missile troops loose on judgment (captains still hold fire into melees involving OTHER friendly units). OFF: hold every shot. Missile units only.">Fire</button>
     <button data-cmd="weapon" title="Hotkey: X&#10;Draw secondaries unit-wide: ~1s for the order to travel (orange pie), then each man swaps with a ~1s fumble. Phalanx grounds pikes for side swords; archers sling bows (no shooting). Units with a sidearm or bow only.">2nd Weapon</button>
-    <button data-cmd="kite" title="Hotkey: E&#10;Skirmish reflex: automatically hop away from approaching enemies and keep shooting — the fighting retreat. Skirmishers and horse archers only.">Kite</button>
+    <button data-cmd="kite" title="Hotkey: K&#10;Skirmish reflex: automatically hop away from approaching enemies and keep shooting — the fighting retreat. Skirmishers and horse archers only.">Kite</button>
     <span class="sep"></span>
     <button data-cmd="pause" title="Pause (P)">⏸</button>
     <button data-cmd="x1" title="Normal speed (1)">1×</button>

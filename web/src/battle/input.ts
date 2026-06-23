@@ -71,7 +71,10 @@ export class Input {
       mouseY = e.clientY;
       this.mouseCss = [e.clientX, e.clientY];
       if (mDown) {
-        camera.panPixels((e.clientX - mDown[0]) * dpr(), (e.clientY - mDown[1]) * dpr());
+        // Total War middle-drag: horizontal rotates the view (yaw), vertical
+        // tilts it (pitch). Drag down → a lower, more side-on angle.
+        camera.yaw += (e.clientX - mDown[0]) * 0.006;
+        camera.pitchBias = Math.max(-0.45, Math.min(1.0, camera.pitchBias + (e.clientY - mDown[1]) * 0.004));
         mDown = [e.clientX, e.clientY];
       }
       if (rDown && this.selected.length === 0) {
@@ -160,6 +163,8 @@ export class Input {
         this.selected = sink.allUnits();
         return;
       }
+      // Camera reset (Total War: Backspace re-levels and faces north).
+      if (e.key === 'Backspace') { camera.yaw = 0; camera.pitchBias = 0; e.preventDefault(); return; }
       const sel = this.selected;
       if (sel.length === 0) return;
       if (e.key === 'r') sink.togglePace(sel);
@@ -167,7 +172,7 @@ export class Input {
       if (e.key === 'h') sink.togglePursue(sel);
       if (e.key === 'v') sink.toggleFire(sel);
       if (e.key === 'x') sink.toggleWeapon(sel);
-      if (e.key === 'e') sink.toggleKite(sel);
+      if (e.key === 'k') sink.toggleKite(sel); // (moved off E, now a camera-rotate key)
     }, { signal });
     window.addEventListener('keyup', (e) => held.delete(e.key.toLowerCase()), { signal });
 
@@ -185,6 +190,9 @@ export class Input {
       }
       this.panX = px;
       this.panY = py;
+      // Q/E rotate the camera (Total War), continuous while held.
+      if (held.has('q')) camera.yaw -= 0.035;
+      if (held.has('e')) camera.yaw += 0.035;
     }, 50);
     signal.addEventListener('abort', () => clearInterval(panTimer));
 

@@ -83,7 +83,13 @@ await snapCheck(page, 'battle-banner', check, { maxDiffRatio: 0.0008 });
 {
   const lod = await browser.newPage({ viewport: { width: 1280, height: 800 } });
   lod.on('pageerror', (e) => pageErrors.push('lod-page: ' + e.message));
-  await lod.goto(TARGET + '?battle=duel&a=0&b=0&ai=off'); // HeavyInfantry (blue), enemy idle
+  // ?debug=blocks: the black-slab bug this stage guards lives in the 2D sprite
+  // atlas pipeline (the coverage-divide), so the team-coloured BLOCK soldiers are
+  // the right probe — a solid team hue at every zoom. The detailed figures wear
+  // only a faction accent (no longer majority-blue up close) and are visually
+  // regressed by battle-banner instead; rendering them here would also pile a
+  // second heavy 3D build onto this concurrent page for no added coverage.
+  await lod.goto(TARGET + '?battle=duel&a=0&b=0&ai=off&debug=blocks'); // HeavyInfantry (blue), enemy idle
   await lod.waitForFunction(() => window.__ready === true, undefined, { timeout: 20000 });
   await lod.waitForTimeout(400);
   for (const z of [1, 2, 4, 6, 9]) {
@@ -138,7 +144,7 @@ await snapCheck(page, 'battle-banner', check, { maxDiffRatio: 0.0008 });
 for (const dpr of [1, 2]) {
   const sp = await browser.newPage({ viewport: { width: 1280, height: 800 }, deviceScaleFactor: dpr });
   sp.on('pageerror', (e) => pageErrors.push(`sel-page(dpr${dpr}): ` + e.message));
-  await sp.goto(TARGET + '?map=A&ai=off');
+  await sp.goto(TARGET + '?map=A&ai=off&debug=blocks');
   await sp.waitForFunction(() => window.__ready === true, undefined, { timeout: 20000 });
   await sp.waitForTimeout(400);
   // Where unit u is actually drawn, in CSS px (== where a user clicks).
@@ -430,10 +436,15 @@ check('no page errors', pageErrors.length === 0, pageErrors.slice(0, 3).join(' |
 // --- Unit-banner component: standalone visual regression (last; navigates away)
 // The banner (standard + HP/cohesion bars + status chips) renders on its own
 // gallery route, no sim or engine — a pure-DOM snapshot, so it can be exact.
-await page.goto(TARGET + '?test=banners');
-await page.waitForSelector('#banner-gallery .ubanner', { timeout: 10000 });
-await page.waitForTimeout(150);
-await snapCheck(page, 'banner-gallery', check);
+// Use a fresh page instead of navigating away from the 30k-soldier battle page:
+// after the perf stage it may still be busy tearing down WebGL/wasm resources,
+// while this standalone component route needs none of that state.
+const bannerPage = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+await bannerPage.goto(TARGET + '?test=banners');
+await bannerPage.waitForSelector('#banner-gallery .ubanner', { timeout: 10000 });
+await bannerPage.waitForTimeout(150);
+await snapCheck(bannerPage, 'banner-gallery', check);
+await bannerPage.close();
 
 await browser.close();
 console.log(failures.length ? `\n${failures.length} FAILURE(S)` : '\nALL CHECKS PASSED');

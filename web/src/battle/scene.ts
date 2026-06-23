@@ -5,6 +5,7 @@ import { pushGhost, pushPie, pushRing } from '../shared/overlays';
 import { CLASS_NAMES, Renderer, WILDS_MARGIN } from './renderer';
 import { BattleRenderer3D, type BannerSlot } from './renderer3d';
 import { UnitBanner, type BannerChip } from './unitBanner';
+import { UnitCards } from './unitCard';
 import { Input } from './input';
 import { MANUAL_HTML } from './manual';
 import { groupMoveDests, UnitSnap } from './orders';
@@ -604,6 +605,44 @@ export class BattleScene implements Scene {
     let pursueOn = false;
     let fireOn = true;
 
+    // --- Bottom unit-card strip: one card per player unit (Total War style) -------
+    const cardsRoot = document.getElementById('unitcards')!;
+    let cardUnits: number[] = []; // sim unit id per card, in strip order
+    const unitCards = new UnitCards(cardsRoot, (unit, additive) => {
+      input.selected = additive
+        ? Array.from(new Set([...input.selected, unit]))
+        : [unit];
+      // Centre the camera on the picked unit, like clicking its banner.
+      const [cx, cy] = unitCenter(unit);
+      camera.x = cx; camera.y = cy; camera.clampView();
+    });
+    const buildCards = () => {
+      const info = unitInfo();
+      cardUnits = [];
+      const inits = [];
+      for (let u = 0; u < game.unit_count(); u++) {
+        if (info[u * STRIDE + 6] !== 0) continue; // player units only
+        cardUnits.push(u);
+        inits.push({ unit: u, cls: info[u * STRIDE + 13], team: 0 as const, name: CLASS_NAMES[info[u * STRIDE + 13]] ?? '?' });
+      }
+      unitCards.build(inits);
+    };
+    buildCards();
+    this.cleanups.push(() => { cardsRoot.innerHTML = ''; });
+    const updateCards = () => {
+      const info = unitInfo();
+      const sel = new Set(input.selected);
+      unitCards.update(cardUnits.map((u) => {
+        const o = u * STRIDE;
+        const alive = info[o + 15];
+        if (alive === 0) return null;
+        return {
+          alive, total: info[o + 7], cohesion: info[o + 4], morale: info[o + 20],
+          stamina: info[o + 8], routing: info[o + 21] > 0.5, selected: sel.has(u),
+        };
+      }));
+    };
+
     // --- Overlay (paths, pies, projectiles, selection rings) ----------------------
     function overlayVerts(withPaths: boolean): Float32Array {
       const info = unitInfo();
@@ -741,7 +780,9 @@ export class BattleScene implements Scene {
     let aliveF32 = new Float32Array(0);
     let frames = new Float32Array(0);
     let renderFacings = new Float32Array(0); // per-soldier facing for the MESH (pikes ride the frontage)
-    let prevPos = new Float32Array(0);
+    let renderPos = new Float32Array(0);
+    let prevRenderPos = new Float32Array(0);
+    let renderPosTick = -1;
     let accumulator = 0;
     let lastFrame = performance.now();
     let tickMsAvg = 0;
@@ -753,9 +794,8 @@ export class BattleScene implements Scene {
       lastFrame = now;
       fpsAvg += (1 / Math.max(frameDt, 1e-4) - fpsAvg) * 0.05;
 
-      camera.x += input.panX * frameDt;
-      camera.y += input.panY * frameDt;
-      camera.clampView();
+      // Pan in the view's rotated frame so W/S/A/D track the screen at any yaw.
+      camera.panWorld(input.panX * frameDt, input.panY * frameDt);
 
       accumulator += paused ? 0 : frameDt * timeScale;
       let ticks = 0;
@@ -778,6 +818,7 @@ export class BattleScene implements Scene {
       if (game.unit_count() > knownUnits) {
         knownUnits = game.unit_count();
         applyStatic();
+        buildCards();
         if (!is3D) while (domBanners.length < game.unit_count()) addDomBanner();
       }
 
@@ -789,29 +830,61 @@ export class BattleScene implements Scene {
         const sUnit = new Uint32Array(wasm.memory.buffer, game.soldier_unit_ptr(), n);
         const curWeapon = new Uint8Array(wasm.memory.buffer, game.cur_weapon_ptr(), n);
         const pos = positions();
-        if (aliveF32.length !== n) {
+        if (aliveF32.length !== n || simTick < renderPosTick) {
           aliveF32 = new Float32Array(n);
           frames = new Float32Array(n);
           renderFacings = new Float32Array(n);
-          prevPos = new Float32Array(pos);
+          renderPos = new Float32Array(pos);
+          prevRenderPos = new Float32Array(pos);
+          renderPosTick = simTick;
         }
+        const renderTickDelta = Math.max(0, simTick - renderPosTick);
+        const updateRenderPos = renderTickDelta > 0;
+        if (updateRenderPos) prevRenderPos.set(renderPos);
         const rawFace = facings();
         // Which units are at ease: read directly from the sim so rendered pike
         // posture agrees with morale recovery and idle fidget.
         const info = unitInfo();
         const uc = game.unit_count();
         const atEase = new Uint8Array(uc);
+        const running = new Uint8Array(uc);
         for (let u = 0; u < uc; u++) {
           const o = u * STRIDE;
           atEase[u] = info[o + 17] > 0.5 ? 1 : 0;
+          running[u] = info[o + 9] > 0.5 ? 1 : 0;
         }
         if (unitTopY.length < uc) unitTopY = new Float32Array(uc);
         unitTopY.fill(-Infinity, 0, uc);
         const t = now / 1000;
         for (let i = 0; i < n; i++) {
           aliveF32[i] = a[i];
+          const pi = 2 * i;
+          if (frozen) {
+            // Snapshot mode: draw the TRUE sim positions, no render smoothing —
+            // a frozen frame must be deterministic and agree with picking and the
+            // verify harness (which read the sim positions), not a lagged ease.
+            renderPos[pi] = pos[pi];
+            renderPos[pi + 1] = pos[pi + 1];
+          } else if (a[i] && updateRenderPos) {
+            const ex = pos[pi] - renderPos[pi];
+            const ey = pos[pi + 1] - renderPos[pi + 1];
+            const err2 = ex * ex + ey * ey;
+            // Render-only smoothing: packed melee constraints can alternate a
+            // soldier's solved centre by a few centimetres every tick. Combat
+            // still reads the real positions; the mesh centre advances in sim
+            // time, not rAF time, so display refresh and screenshot waits do
+            // not change the picture. Large scripted advances catch up in one
+            // frame because they are review jumps, not animation frames.
+            const baseAlpha = err2 > 0.25 ? 0.75 : 0.28;
+            const alpha = renderTickDelta > 12 ? 1 : 1 - Math.pow(1 - baseAlpha, renderTickDelta);
+            renderPos[pi] += ex * alpha;
+            renderPos[pi + 1] += ey * alpha;
+          } else if (!a[i]) {
+            renderPos[pi] = pos[pi];
+            renderPos[pi + 1] = pos[pi + 1];
+          }
           if (a[i]) {
-            const wy = pos[2 * i + 1]; // top-on-screen is northmost (max world-y)
+            const wy = renderPos[pi + 1]; // top-on-screen is northmost (max world-y)
             if (wy > unitTopY[sUnit[i]]) unitTopY[sUnit[i]] = wy;
           }
           if (!a[i]) {
@@ -819,12 +892,17 @@ export class BattleScene implements Scene {
           } else if (switchCd[i] > 0) {
             frames[i] = 5; // fumbling the weapon swap
           } else if (fighting[i]) {
-            frames[i] = ((t * 2.5 + i * 0.7) | 0) % 2 ? 3 : 0; // trading blows
+            // Trading blows: a thrust beat alternating with a guard, and ~1/3 of
+            // the men on the off-beat flinching (a hit reaction) so a melee
+            // reads as give-and-take, not synchronized stabbing.
+            frames[i] = ((t * 2.5 + i * 0.7) | 0) % 2 ? 3 : i % 3 === 0 ? 10 : 0;
           } else {
-            const dx = pos[2 * i] - prevPos[2 * i];
-            const dy = pos[2 * i + 1] - prevPos[2 * i + 1];
-            if (dx * dx + dy * dy > 0.0004) frames[i] = 1 + (((t * 4 + i) | 0) % 2); // marching
-            else frames[i] = atEase[sUnit[i]] ? 6 : 0; // at ease (pikes up) or alert stand
+            const dx = updateRenderPos ? renderPos[pi] - prevRenderPos[pi] : 0;
+            const dy = updateRenderPos ? renderPos[pi + 1] - prevRenderPos[pi + 1] : 0;
+            if (dx * dx + dy * dy > 0.0004) {
+              const beat = ((t * 4 + i) | 0) % 2;
+              frames[i] = running[sUnit[i]] ? 8 + beat : 1 + beat; // run vs march beats
+            } else frames[i] = atEase[sUnit[i]] ? 6 : 0; // at ease (pikes up) or alert stand
           }
           // Render the weapon in hand, aimed EXACTLY as physics aims it (so the
           // picture never lies about who can hit whom). A braced pike is leveled
@@ -842,12 +920,12 @@ export class BattleScene implements Scene {
             }
           }
         }
-        prevPos.set(pos);
+        if (updateRenderPos) renderPosTick = simTick;
       }
       const primary = input.selected.length > 0 ? input.selected[0] : -1;
       // Unit standards + state are a DOM component now (see UnitBanner), so the
       // renderers draw no banners — the empty list keeps the shared draw() shape.
-      renderer.draw(positions(), renderFacings, frames, aliveF32, game.soldier_count(), camera, primary, [], 0);
+      renderer.draw(renderPos, renderFacings, frames, aliveF32, game.soldier_count(), camera, primary, [], 0);
       // Attack arcs: every soldier mid-swing flashes his weapon's true envelope
       // (reach x arc) — readable combat, straight from the class table. The arc
       // tracks the weapon ACTUALLY in hand (pike vs side-sword) and, for a braced
@@ -909,6 +987,7 @@ export class BattleScene implements Scene {
       }
 
       updateUnitBanners();
+      updateCards();
       hudTimer += frameDt;
       if (hudTimer > 0.2) {
         hudTimer = 0;

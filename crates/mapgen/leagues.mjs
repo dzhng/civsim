@@ -12,7 +12,7 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 
 const PATH = 'web/public/data/campaign-map.json';
-const K = 14; // number of regional leagues
+const K = Number(process.env.LEAGUES ?? 56); // number of regional leagues
 const map = JSON.parse(readFileSync(PATH, 'utf8'));
 
 const cities = map.nodes.map((n, i) => ({ n, i })).filter((c) => c.n.kind === 'city');
@@ -68,11 +68,12 @@ function kmeans(k) {
 }
 
 // Muted HSL→RGB so the leagues read as quiet neutral regions and never compete
-// with the six vivid powers.
-function leagueColor(j, total) {
-  const h = ((j * 360) / total + 23) % 360;
-  const s = 0.30;
-  const l = 0.56;
+// with the six vivid powers. Golden-angle hue + alternating lightness keeps
+// even many adjacent leagues distinguishable without turning vivid.
+function leagueColor(j) {
+  const h = (j * 137.508 + 23) % 360;
+  const s = 0.26 + (j % 3) * 0.05;
+  const l = 0.50 + (j % 2) * 0.12;
   const c = (1 - Math.abs(2 * l - 1)) * s;
   const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
   const mAdd = l - c / 2;
@@ -101,7 +102,7 @@ groups.forEach((g, j) => {
   const lead = g.slice().sort((a, b) => (b.n.tier - a.n.tier) || a.n.name.localeCompare(b.n.name))[0];
   const id = `league_${slug(lead.n.name)}`;
   const name = g.length > 1 ? `${lead.n.name} League` : lead.n.name;
-  const color = leagueColor(leagues.length, K);
+  const color = leagueColor(leagues.length);
   for (const c of g) c.n.owner = id;
   leagues.push({ id, name, color, playable: false, ai_persona: 'neutral' });
 });

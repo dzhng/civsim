@@ -78,11 +78,23 @@ export class Territory {
     this.rgba = new Uint8Array(w * h * 4);
     this.nearest = new Int32Array(w * h).fill(-1);
 
+    // The major powers pull territory a little harder than the minor leagues,
+    // so a power's heartland stays one contiguous blob instead of being pinched
+    // apart by a neighbouring league whose city happens to sit between two of
+    // its own. POWER_W < 1 shrinks a power city's effective (squared) distance,
+    // letting it win cells up to ~1/sqrt(POWER_W) farther than a league city.
+    const POWER_W = 0.5;
+    const powerIds = new Set(
+      data.map.factions.filter((f) => f.playable).map((f) => f.id),
+    );
+
     // Bucket cities so each cell only checks its 3x3 neighborhood of buckets
     // (bucket = REACH_KM, so that covers everything within reach).
-    const cities: { node: number; x: number; y: number }[] = [];
+    const cities: { node: number; x: number; y: number; wt: number }[] = [];
     data.map.nodes.forEach((n, i) => {
-      if (n.kind === 'city') cities.push({ node: i, x: n.pos[0], y: n.pos[1] });
+      if (n.kind === 'city') {
+        cities.push({ node: i, x: n.pos[0], y: n.pos[1], wt: powerIds.has(n.owner) ? POWER_W : 1 });
+      }
     });
     const bw = Math.ceil((w * cell) / REACH_KM) + 2;
     const buckets = new Map<number, number[]>();
@@ -95,8 +107,10 @@ export class Territory {
 
     const reach2 = REACH_KM * REACH_KM;
     // Nearest city within a 3x3 bucket neighbourhood of (px,py); returns the
-    // winning node and its squared distance (node -1 if none within `cap`).
-    const nearestCity = (px: number, py: number, cap: number): [number, number] => {
+    // winning node and its (weighted) squared distance, -1 if none within `cap`.
+    // `weighted` applies the per-city power pull (owner choice); the coverage
+    // gate runs unweighted so the claimed footprint is unchanged.
+    const nearestCity = (px: number, py: number, cap: number, weighted: boolean): [number, number] => {
       const bx = Math.floor((px - minX) / REACH_KM) + 1;
       const byy = Math.floor((maxY - py) / REACH_KM) + 1;
       let best = -1;
@@ -107,7 +121,8 @@ export class Territory {
           if (!b) continue;
           for (const ci of b) {
             const c = cities[ci];
-            const d = (c.x - px) ** 2 + (c.y - py) ** 2;
+            let d = (c.x - px) ** 2 + (c.y - py) ** 2;
+            if (weighted) d *= c.wt;
             if (d < bestD) {
               bestD = d;
               best = c.node;
@@ -123,18 +138,19 @@ export class Territory {
         const i = gy * w + gx;
         if (!land[i]) continue;
         const wx = minX + (gx + 0.5) * cell;
-        // Contiguity gate: a cell is claimed iff a city sits within REACH of its
-        // TRUE position — so the warp below can never punch unclaimed holes.
-        const [trueBest] = nearestCity(wx, wy, reach2);
-        if (trueBest < 0) {
+        // Contiguity gate (unweighted): a cell is claimed iff some city sits
+        // within REACH of its TRUE position — the warp can't punch holes.
+        const [gateBest] = nearestCity(wx, wy, reach2, false);
+        if (gateBest < 0) {
           this.nearest[i] = -1;
           continue;
         }
-        // Owner is chosen from a noise-warped point, so inter-faction seams
-        // curve with the land instead of following straight Voronoi bisectors.
+        // Owner is the nearest city by WEIGHTED distance from a noise-warped
+        // point: powers pull harder (contiguous heartlands) and seams curve
+        // with the land instead of following straight Voronoi bisectors.
         const [qx, qy] = warp(wx, wy);
-        const [warpBest] = nearestCity(qx, qy, reach2);
-        this.nearest[i] = warpBest >= 0 ? warpBest : trueBest;
+        const [warpBest] = nearestCity(qx, qy, reach2, true);
+        this.nearest[i] = warpBest >= 0 ? warpBest : gateBest;
       }
     }
   }

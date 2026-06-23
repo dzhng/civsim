@@ -65,21 +65,15 @@ pub fn build(map: MapId) -> Terrain {
                 0.35,
                 5,
             );
-            // Mid-field features: a gentle hill band, mud, two woods —
-            // sparse, leaving most of the plain open.
-            t.paint_rect_tinted(
-                Vec2::new(-80.0, -120.0),
-                Vec2::new(140.0, 120.0),
-                0.75,
-                0.15,
-                6,
-            );
-            t.paint_circle(Vec2::new(-540.0, -320.0), 130.0, 0.55, 0.35);
-            t.paint_circle(Vec2::new(640.0, 280.0), 150.0, 0.7, 0.6);
-            t.paint_circle(Vec2::new(-460.0, 520.0), 110.0, 0.7, 0.6);
-            // A pair of outcrops to anchor a line on.
-            t.paint_circle(Vec2::new(380.0, -180.0), 26.0, 0.0, 0.0);
-            t.paint_circle(Vec2::new(-260.0, 140.0), 30.0, 0.0, 0.0);
+            // Mid-field features: a gentle hill rise, a mud patch, two woods —
+            // sparse organic blobs, leaving most of the plain open.
+            t.paint_blob(Vec2::new(30.0, 0.0), 120.0, 0.75, 0.15, 6, 0x51);
+            t.paint_blob(Vec2::new(-540.0, -320.0), 130.0, 0.55, 0.35, 5, 0xA3);
+            t.paint_blob(Vec2::new(640.0, 280.0), 150.0, 0.7, 0.6, 4, 0xC7);
+            t.paint_blob(Vec2::new(-460.0, 520.0), 110.0, 0.7, 0.6, 4, 0x1D);
+            // A pair of rocky outcrops to anchor a line on.
+            t.paint_blob(Vec2::new(380.0, -180.0), 26.0, 0.0, 0.0, 2, 0x6B);
+            t.paint_blob(Vec2::new(-260.0, 140.0), 30.0, 0.0, 0.0, 2, 0x92);
         }
         MapId::WalledPlain => {
             // West flank: the city wall — a hard line with towers.
@@ -120,9 +114,9 @@ pub fn build(map: MapId) -> Terrain {
                 0.25,
                 5,
             );
-            t.paint_circle(Vec2::new(330.0, 40.0), 110.0, 0.7, 0.6);
-            t.paint_circle(Vec2::new(-560.0, -620.0), 120.0, 0.7, 0.6);
-            t.paint_circle(Vec2::new(160.0, 720.0), 100.0, 0.7, 0.6);
+            t.paint_blob(Vec2::new(330.0, 40.0), 110.0, 0.7, 0.6, 4, 0x33);
+            t.paint_blob(Vec2::new(-560.0, -620.0), 120.0, 0.7, 0.6, 4, 0x88);
+            t.paint_blob(Vec2::new(160.0, 720.0), 100.0, 0.7, 0.6, 4, 0xE1);
         }
     }
     t

@@ -171,6 +171,52 @@ impl Terrain {
         );
     }
 
+    /// An ORGANIC blob — a circle whose radius is modulated around its rim by a
+    /// few seeded harmonics plus a fine wobble, so woods, mud, and rock outcrops
+    /// read as natural lobed patches instead of perfect discs. The area stays
+    /// close to a circle of `radius`; only the boundary lobes in and out. Use for
+    /// cosmetic mid-field features — NOT the flank seals, whose job is to be an
+    /// unbroken wall.
+    pub fn paint_blob(
+        &mut self,
+        center: Vec2,
+        radius: f32,
+        speed: f32,
+        rough: f32,
+        tint: u8,
+        seed: u64,
+    ) {
+        // Three phase offsets from the seed, so each blob lobes differently.
+        let ph = |k: u64| {
+            let mut x = seed.wrapping_mul(0x9E3779B97F4A7C15) ^ k.wrapping_mul(0xD1B54A32D192ED03);
+            x ^= x >> 33;
+            (x >> 40) as f32 / 16_777_216.0 * std::f32::consts::TAU
+        };
+        let (p2, p3, p5) = (ph(1), ph(2), ph(3));
+        self.paint(
+            |p| {
+                let d = p - center;
+                let dist = (d.x * d.x + d.y * d.y).sqrt();
+                if dist < 1e-3 {
+                    return true;
+                }
+                let a = d.y.atan2(d.x);
+                // Lobed rim: low harmonics give big bays/headlands, a fine term
+                // crinkles the edge.
+                let wobble = 0.06 * (a * 11.0 + p2 * 2.0).sin() * (dist * 0.06).cos();
+                let warp = 1.0
+                    + 0.20 * (a * 2.0 + p2).sin()
+                    + 0.13 * (a * 3.0 + p3).sin()
+                    + 0.08 * (a * 5.0 + p5).sin()
+                    + wobble;
+                dist <= radius * warp
+            },
+            speed,
+            rough,
+            tint,
+        );
+    }
+
     /// Thick segment: roads, river reaches, wall runs at any bearing.
     pub fn paint_capsule(
         &mut self,

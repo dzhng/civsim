@@ -15,7 +15,6 @@ import { FreeCamera } from '@babylonjs/core/Cameras/freeCamera';
 import { Vector2, Vector3, Vector4 } from '@babylonjs/core/Maths/math.vector';
 import { Color3, Color4 } from '@babylonjs/core/Maths/math.color';
 import { Mesh } from '@babylonjs/core/Meshes/mesh';
-import { CreateCylinder } from '@babylonjs/core/Meshes/Builders/cylinderBuilder';
 import { CreateBox } from '@babylonjs/core/Meshes/Builders/boxBuilder';
 import { CreateTorus } from '@babylonjs/core/Meshes/Builders/torusBuilder';
 import { VertexBuffer } from '@babylonjs/core/Buffers/buffer';
@@ -33,7 +32,7 @@ import '@babylonjs/core/Meshes/thinInstanceMesh';
 import type { CampaignData } from './data';
 import type { CamView } from './renderer';
 import { TerrainField, SUN, TEMPERATE_Y_KM, hash2 } from './terrain';
-import { classGeometry } from '../shared/soldierModel';
+import { classGeometryDetailed } from '../shared/soldierModel';
 
 const FOV = (45 * Math.PI) / 180;
 /** Tilt: 90° (top-down) until TILT_START, easing to MIN_PITCH by TILT_END. */
@@ -392,7 +391,12 @@ export class Terrain3D {
   private chunks: Mesh[] = [];
   private coarse!: Mesh;
   private treeMeshes: Mesh[] = [];
-  private armyBase: Mesh | null = null; // base disc + standard, one per army
+  private armyBase: Mesh | null = null; // standard pole + flag, one per army
+  private armySelRing: Mesh | null = null; // green ring under the selected army
+  // Per-army march state: last position + an eased bob amplitude, so figures
+  // bounce in step while the army is on the move and stand still when halted
+  // (zero amplitude = no animation = deterministic snapshots).
+  private armyMarch = new Map<number, { px: number; py: number; amp: number }>();
   private classMeshes: (Mesh | null)[] = []; // per-class soldiers, one per figure
   private armyCount = 0;
   private cityMesh: Mesh | null = null;
@@ -631,16 +635,18 @@ export class Terrain3D {
    *  base+standard (one per army) and the battle's per-class soldier meshes
    *  (one instance per figure). Built once here, filled in setArmies. */
   private buildArmyModels() {
-    // Base disc + standard pole, merged, one instance per army.
+    // Standard only — a neutral timber pole with a small faction flag at the
+    // top. No ground disc under the army (the soft contact shadow grounds it);
+    // selection is shown by a green ring instead (below).
     const parts: Mesh[] = [];
-    const base = CreateCylinder('b', { diameterTop: 2.6, diameterBottom: 3.2, height: 0.35, tessellation: 20 }, this.scene);
-    base.rotation.x = Math.PI / 2; // cylinder axis Y -> world up Z
-    base.position.z = 0.18;
-    parts.push(this.paint(base, 0.32, 0.32, 0.34)); // dark muted footprint, faction-tinted
-    const pole = CreateBox('p', { width: 0.13, depth: 0.13, height: 4.0 }, this.scene);
+    const pole = CreateBox('p', { width: 0.12, depth: 0.12, height: 4.0 }, this.scene);
     pole.rotation.x = Math.PI / 2;
-    pole.position.set(0, 0, 0.35 + 2.0);
-    parts.push(this.paint(pole, 0.5, 0.4, 0.3)); // wood, faction-tinted
+    pole.position.set(0, 0, 2.0);
+    parts.push(this.paint(pole, 0.5, 0.4, 0.3, 0)); // neutral timber
+    const flag = CreateBox('pf', { width: 0.12, depth: 1.3, height: 0.8 }, this.scene);
+    flag.rotation.x = Math.PI / 2;
+    flag.position.set(0, 0.72, 3.6);
+    parts.push(this.paint(flag, 1, 1, 1, 1)); // livery: takes the owner colour
     const baseMesh = Mesh.MergeMeshes(parts, true, true);
     if (baseMesh) {
       baseMesh.name = 'armyBase';
@@ -649,13 +655,24 @@ export class Terrain3D {
       baseMesh.setEnabled(false);
       this.armyBase = baseMesh;
     }
-    // One soldier mesh per class (the battle's classGeometry), thin-instanced
-    // across every figure of every army. Vertex colour (1,1,1, faction-flag)
-    // so each instance's iColor paints it the owner's hue.
+    // Green selection ring — a flat torus laid on the ground, shown under the
+    // ONE selected army (positioned in setArmies), hidden otherwise.
+    const sel = CreateTorus('asel', { diameter: 7.5, thickness: 0.5, tessellation: 32 }, this.scene);
+    sel.rotation.x = Math.PI / 2;
+    this.paint(sel, 0.2, 0.95, 0.35, 0); // bright green
+    sel.material = this.modelMat;
+    sel.alwaysSelectAsActiveMesh = true;
+    sel.setEnabled(false);
+    this.armySelRing = sel;
+    // One soldier mesh per class — the battle's DETAILED figure in livery mode,
+    // thin-instanced across every figure of every army. Its vertex colours carry
+    // the realistic materials (skin, bronze, linen) at alpha 0 and the faction
+    // parts (crest, shield blazon, sash) at alpha 1, so the campModel shader
+    // paints a realistic soldier wearing the owner's colours — the same look the
+    // battlefield shows, on the strategic map. No paint() override here.
     for (let c = 0; c < 9; c++) {
       const m = new Mesh(`armyCls${c}`, this.scene);
-      classGeometry(c, true).applyToMesh(m); // at-ease: pole arms stand vertical
-      this.paint(m, 1, 1, 1, 1);
+      classGeometryDetailed(c, { rest: 1 }, [1, 1, 1], { livery: true }).applyToMesh(m); // at-ease
       m.material = this.modelMat;
       m.alwaysSelectAsActiveMesh = true;
       m.setEnabled(false);
@@ -790,12 +807,23 @@ export class Terrain3D {
     // Per-class figure instances, accumulated across all armies.
     const fmats: number[][] = Array.from({ length: 9 }, () => []);
     const fcols: number[][] = Array.from({ length: 9 }, () => []);
+    const clock = performance.now() / 1000;
+    let selPos: [number, number, number] | null = null;
     for (let i = 0; i < n; i++) {
       const a = armies[i];
       const z = Math.max(0, this.field.heightAt(a.x, a.y));
+      if (a.id === selected) selPos = [a.x, a.y, z];
       const c = this.factionColors[a.faction] ?? [0.6, 0.6, 0.6];
       // iColor.a is the highlight flag the shader reads (not opacity).
       const hi = a.id === selected ? 1 : a.id === hover ? 0.5 : 0;
+      // March bob: ease the amplitude toward 1 when the army crept forward this
+      // frame, 0 when it halted. A big jump (a teleport/place) is NOT marching.
+      const m0 = this.armyMarch.get(a.id);
+      const moved = m0 ? Math.hypot(a.x - m0.px, a.y - m0.py) : 0;
+      const marching = moved > 1e-4 && moved < 3 ? 1 : 0;
+      const amp = (m0 ? m0.amp : 0) + (marching - (m0 ? m0.amp : 0)) * 0.18;
+      this.armyMarch.set(a.id, { px: a.x, py: a.y, amp });
+      const bobH = amp * 0.16 * figScale; // metres of bounce at full march
       const o = i * 16;
       baseMats[o] = S; baseMats[o + 5] = S; baseMats[o + 10] = S; baseMats[o + 15] = 1;
       baseMats[o + 12] = a.x; baseMats[o + 13] = a.y; baseMats[o + 14] = z;
@@ -807,9 +835,11 @@ export class Terrain3D {
       for (let cls = 0; cls < 9; cls++) {
         for (let k = 0; k < alloc[cls] && slot < ARMY_SLOTS.length; k++, slot++) {
           const [ox, oy] = ARMY_SLOTS[slot];
+          // Each figure bobs on its own phase so the file ripples, not pumps.
+          const bob = bobH > 0 ? Math.max(0, Math.sin(clock * 9 + slot * 1.6)) * bobH : 0;
           fmats[cls].push(
             figScale, 0, 0, 0, 0, figScale, 0, 0, 0, 0, figScale, 0,
-            a.x + ox * S, a.y + oy * S, z, 1,
+            a.x + ox * S, a.y + oy * S, z + bob, 1,
           );
           fcols[cls].push(c[0], c[1], c[2], hi);
         }
@@ -818,6 +848,21 @@ export class Terrain3D {
     baseM.thinInstanceSetBuffer('matrix', baseMats, 16, false);
     baseM.thinInstanceSetBuffer('iColor', baseCols, 4, false);
     this.armyShadow?.thinInstanceSetBuffer('matrix', shadows, 16, false);
+    // Green selection ring: one instance under the selected army, else hidden.
+    const ring = this.armySelRing;
+    if (ring) {
+      if (selPos) {
+        const rs = 0.62 * S; // torus diameter 7.5 → roughly the army footprint
+        ring.thinInstanceSetBuffer('matrix', new Float32Array([
+          rs, 0, 0, 0, 0, rs, 0, 0, 0, 0, rs, 0, selPos[0], selPos[1], selPos[2] + 0.12, 1,
+        ]), 16, false);
+        ring.thinInstanceSetBuffer('iColor', new Float32Array([0, 0, 0, 0]), 4, false);
+        ring.setEnabled(true);
+      } else {
+        ring.thinInstanceCount = 0;
+        ring.setEnabled(false);
+      }
+    }
     for (let cls = 0; cls < 9; cls++) {
       const m = this.classMeshes[cls];
       if (!m) continue;
@@ -923,6 +968,9 @@ export class Terrain3D {
     this.armyBase?.setEnabled(armiesOn);
     this.armyShadow?.setEnabled(armiesOn);
     for (const m of this.classMeshes) m?.setEnabled(armiesOn);
+    // The selection ring follows the armies-visible gate AND its own selection
+    // state (it has no instance when nothing is picked).
+    if (this.armySelRing) this.armySelRing.setEnabled(armiesOn && this.armySelRing.thinInstanceCount > 0);
     this.cityMesh?.setEnabled(cam.scale >= CITY_MODEL_MIN_SCALE);
     this.cityShadow?.setEnabled(cam.scale >= CITY_MODEL_MIN_SCALE);
 

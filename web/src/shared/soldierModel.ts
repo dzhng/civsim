@@ -215,7 +215,7 @@ const UV_TILE = 1.6; // texels per metre of the grain texture
 function dbox(
   pos: number[], idx: number[], col: number[], uv: number[],
   x0: number, y0: number, z0: number, x1: number, y1: number, z1: number,
-  c: V3, rot?: { ang: number; py: number; pz: number },
+  c: V3, alpha: number, rot?: { ang: number; py: number; pz: number },
 ) {
   const b = pos.length / 3;
   const corners: V3[] = [
@@ -225,7 +225,7 @@ function dbox(
   for (const v of corners) {
     const p = rot ? rotX(v, rot.ang, rot.py, rot.pz) : v;
     pos.push(p[0], p[1], p[2]);
-    col.push(c[0], c[1], c[2], 1);
+    col.push(c[0], c[1], c[2], alpha);
     uv.push((p[0] + p[1]) * UV_TILE, p[2] * UV_TILE);
   }
   for (const [a, bb, cc, d] of [
@@ -239,14 +239,28 @@ function dbox(
  *  (facing rotate + radius scale + ground placement) is unchanged. */
 export function classGeometryDetailed(
   cls: number, pose: Partial<Pose> = {}, faction: V3 = [0.55, 0.55, 0.6],
+  opts: { livery?: boolean } = {},
 ): VertexData {
   const L = CLASS_LOOK[cls] ?? CLASS_LOOK[0];
   const P: Pose = { ...NEUTRAL_POSE, ...pose };
   const pos: number[] = [], idx: number[] = [], col: number[] = [], uv: number[] = [];
+  // Two paint modes. BAKED (battle): faction parts carry the faction colour,
+  // every vertex opaque (the StandardMaterial reads colour, ignores alpha).
+  // LIVERY (campaign): material parts carry their own colour with alpha 0
+  // (neutral), faction parts carry white with alpha 1 — the campaign shader
+  // reads alpha as "take the owner's livery hue", giving the same realistic
+  // figure with a per-faction accent on the strategic map.
+  const livery = opts.livery ?? false;
+  const matAlpha = livery ? 0 : 1;
   const box = (
     x0: number, y0: number, z0: number, x1: number, y1: number, z1: number,
     c: V3, rot?: { ang: number; py: number; pz: number },
-  ) => dbox(pos, idx, col, uv, x0, y0, z0, x1, y1, z1, c, rot);
+  ) => dbox(pos, idx, col, uv, x0, y0, z0, x1, y1, z1, c, matAlpha, rot);
+  // A FACTION-livery part (crest, shield blazon, sash, saddlecloth).
+  const fbox = (
+    x0: number, y0: number, z0: number, x1: number, y1: number, z1: number,
+    rot?: { ang: number; py: number; pz: number },
+  ) => dbox(pos, idx, col, uv, x0, y0, z0, x1, y1, z1, livery ? [1, 1, 1] : faction, 1, rot);
 
   const base = L.mounted ? 0.95 : 0.0; // mounted rider sits a horse-height up
   const lunge = P.attack * 0.14 - P.recoil * 0.10; // body shift along +y
@@ -264,7 +278,7 @@ export function classGeometryDetailed(
     box(-0.06, 0.60, 1.30, 0.06, 0.74, 1.5, HORSE_MANE); // forelock/ears
     box(-0.03, 0.42, 1.20, 0.03, 0.66, 1.46, HORSE_MANE); // mane
     box(-0.04, -0.68, 0.30, 0.04, -0.52, 0.9, HORSE_MANE); // tail
-    box(-0.16, -0.20, 0.74, 0.16, 0.30, 0.86, faction); // caparison/saddlecloth (faction)
+    fbox(-0.16, -0.20, 0.74, 0.16, 0.30, 0.86); // caparison/saddlecloth (faction)
   }
 
   // ---- Legs -------------------------------------------------------------
@@ -305,7 +319,7 @@ export function classGeometryDetailed(
   box(-0.17, -0.11, torsoBot + 0.16, 0.17, 0.13, shZ, BRONZE, tilt); // cuirass chest
   box(-0.18, -0.10, shZ - 0.06, 0.18, 0.12, shZ + 0.04, BRONZE_DK, tilt); // shoulder yoke
   // Faction sash across the chest — a clear team tell at a glance.
-  box(-0.18, 0.12, torsoBot + 0.06, 0.18, 0.15, shZ - 0.04, faction, tilt);
+  fbox(-0.18, 0.12, torsoBot + 0.06, 0.18, 0.15, shZ - 0.04, tilt);
 
   // ---- Head + helmet ----------------------------------------------------
   const headZ = shZ + 0.04;
@@ -315,8 +329,8 @@ export function classGeometryDetailed(
   box(-0.085, 0.04, headZ + 0.02, 0.085, 0.085, headZ + 0.16, BRONZE_DK, tilt); // neck guard
   if (L.crest) {
     // A transverse or fore-aft plume in the faction colour — the loudest tell.
-    box(-0.02, -0.05, headZ + 0.26, 0.02, 0.14, headZ + 0.42, faction, tilt);
-    box(-0.015, 0.10, headZ + 0.24, 0.015, 0.16, headZ + 0.40, faction, tilt);
+    fbox(-0.02, -0.05, headZ + 0.26, 0.02, 0.14, headZ + 0.42, tilt);
+    fbox(-0.015, 0.10, headZ + 0.24, 0.015, 0.16, headZ + 0.40, tilt);
   }
 
   // ---- Arms: a shield arm (left, -x) and a weapon arm (right, +x) -------
@@ -350,8 +364,8 @@ export function classGeometryDetailed(
     box(x0, 0.12, z0, x0 + w, 0.19, z0 + 0.03, IRON, tilt); // bottom rim
     box(x0, 0.12, z0 + h - 0.03, x0 + w, 0.19, z0 + h, IRON, tilt); // top rim
     // Faction blazon: a painted band + central boss in the faction colour.
-    box(x0 + 0.03, 0.19, z0 + h * 0.5 - 0.04, x0 + w - 0.03, 0.205, z0 + h * 0.5 + 0.04, faction, tilt);
-    box(x0 + w * 0.5 - 0.05, 0.19, z0 + h * 0.5 - 0.06, x0 + w * 0.5 + 0.05, 0.215, z0 + h * 0.5 + 0.06, faction, tilt);
+    fbox(x0 + 0.03, 0.19, z0 + h * 0.5 - 0.04, x0 + w - 0.03, 0.205, z0 + h * 0.5 + 0.04, tilt);
+    fbox(x0 + w * 0.5 - 0.05, 0.19, z0 + h * 0.5 - 0.06, x0 + w * 0.5 + 0.05, 0.215, z0 + h * 0.5 + 0.06, tilt);
   }
 
   // ---- Weapon (right, +x) ----------------------------------------------

@@ -140,6 +140,8 @@ export class Territory {
     // its own. POWER_W < 1 shrinks a power city's effective (squared) distance,
     // letting it win cells up to ~1/sqrt(POWER_W) farther than a league city.
     const POWER_W = 0.5;
+    // Every city keeps a guaranteed core of its own land within this radius (km).
+    const CORE2 = 30 * 30;
     const powerIds = new Set(
       data.map.factions.filter((f) => f.playable).map((f) => f.id),
     );
@@ -196,9 +198,17 @@ export class Territory {
         const wx = minX + (gx + 0.5) * cell;
         // Contiguity gate (unweighted): a cell is claimed iff some city sits
         // within REACH of its TRUE position — the warp can't punch holes.
-        const [gateBest] = nearestCity(wx, wy, reach2, false);
+        // gateD is the squared distance to that true-nearest city.
+        const [gateBest, gateD] = nearestCity(wx, wy, reach2, false);
         if (gateBest < 0) {
           this.nearest[i] = -1;
+          continue;
+        }
+        // Core: the ground right around a city always belongs to that city, so
+        // a city is never squeezed onto (or outside) its own border by a power's
+        // stronger pull. Beyond the core, the weighted+warped Voronoi decides.
+        if (gateD < CORE2) {
+          this.nearest[i] = gateBest;
           continue;
         }
         // Owner is the nearest city by WEIGHTED distance from a noise-warped

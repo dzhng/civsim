@@ -157,20 +157,29 @@ void main() {
     // watercolour wash rather than crushing to dark earth.
     float li = pow(texture2D(uLight, vUV).r * 2.0, 1.12);
     col = ground * (0.22 + 0.82 * li);
-    vec4 t = texture2D(uTerr, vUV);
+    // Dissolve the 8 km owner-grid staircase into smooth organic curves: nudge
+    // the territory/owner lookup along a low-frequency noise field a bit larger
+    // than a cell, so faction seams read hand-drawn, not stair-stepped.
+    vec2 wuv = (uBgRect.zw - uBgRect.xy);
+    vec2 twarp = vec2(
+      vnoise(vXY * 0.016 + 4.1) + 0.5 * vnoise(vXY * 0.052 + 9.3) - 0.75,
+      vnoise(vXY * 0.016 + 21.7) + 0.5 * vnoise(vXY * 0.052 + 2.6) - 0.75
+    ) * (13.0 / wuv);
+    vec2 tuv = vUV + twarp;
+    vec4 t = texture2D(uTerr, tuv);
     col = mix(col, t.rgb, t.a * uFx.x);
     // Faction borders, edge-detected from the owner-id field at a constant
-    // ~2.5 screen-px width (offsets scale with fwidth), so the line stays thin
-    // and crisp at every zoom instead of magnifying into a baked blocky band.
-    float own = texture2D(uOwner, vUV).r;
+    // ~4.5 screen-px width (offsets scale with fwidth), so the line stays crisp
+    // at every zoom instead of magnifying into a baked blocky band.
+    float own = texture2D(uOwner, tuv).r;
     if (own > 0.0015 && uFx.x > 0.001) {
       vec2 bd = fwidth(vUV) * 2.3; // ~4.5 screen-px border, constant at any zoom
-      float e = abs(texture2D(uOwner, vUV + vec2(bd.x, 0.0)).r - own)
-              + abs(texture2D(uOwner, vUV - vec2(bd.x, 0.0)).r - own)
-              + abs(texture2D(uOwner, vUV + vec2(0.0, bd.y)).r - own)
-              + abs(texture2D(uOwner, vUV - vec2(0.0, bd.y)).r - own)
-              + abs(texture2D(uOwner, vUV + bd).r - own)
-              + abs(texture2D(uOwner, vUV - bd).r - own);
+      float e = abs(texture2D(uOwner, tuv + vec2(bd.x, 0.0)).r - own)
+              + abs(texture2D(uOwner, tuv - vec2(bd.x, 0.0)).r - own)
+              + abs(texture2D(uOwner, tuv + vec2(0.0, bd.y)).r - own)
+              + abs(texture2D(uOwner, tuv - vec2(0.0, bd.y)).r - own)
+              + abs(texture2D(uOwner, tuv + bd).r - own)
+              + abs(texture2D(uOwner, tuv - bd).r - own);
       float border = clamp(e * 255.0, 0.0, 1.0);
       // Borders keep a strength floor so the political lines stay a firm, dark
       // stroke even once the colour fill thins out into 3D terrain.

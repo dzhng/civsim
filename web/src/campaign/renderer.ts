@@ -232,12 +232,12 @@ export class CampaignRenderer {
           seg.map(([x, y]) => [x, y, this.field.heightAt(x, y)]));
       }
       const lvl = sea ? 1 : (roadLevels?.[ei] ?? 1);
-      ctx.lineWidth = (sea ? 1 : Math.max(1, z * 1.6)) * (0.7 + 0.3 * lvl);
-      // Paved roads read as granite: a cool neutral stone that lightens as the
-      // road is upgraded (a fresh-cut flagstone look), not the old earth brown.
-      ctx.strokeStyle = sea
-        ? 'rgba(140,180,220,0.25)'
-        : `rgba(${120 + lvl * 12},${118 + lvl * 12},${114 + lvl * 11},${0.85 * roadAlpha})`;
+      // Land roads read as a raised granite causeway: a brighter stone surface
+      // over a dark embankment that shows as a shadowed lip on both sides.
+      const roadW = Math.max(1.6, z * 2.4) * (0.8 + 0.2 * lvl);
+      const lip = Math.max(0.9, roadW * 0.55);
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
       ctx.setLineDash(sea ? [6, 6] : []);
       for (const poly of segments) {
         ctx.beginPath();
@@ -251,7 +251,18 @@ export class CampaignRenderer {
           on ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]);
           on = true;
         }
-        ctx.stroke();
+        if (sea) {
+          ctx.lineWidth = 1;
+          ctx.strokeStyle = 'rgba(140,180,220,0.25)';
+          ctx.stroke();
+        } else {
+          ctx.lineWidth = roadW + lip * 2; // dark embankment / side shadows
+          ctx.strokeStyle = `rgba(46,38,30,${0.5 * roadAlpha})`;
+          ctx.stroke();
+          ctx.lineWidth = roadW; // bright granite surface on top
+          ctx.strokeStyle = `rgba(${162 + lvl * 12},${156 + lvl * 11},${148 + lvl * 10},${0.96 * roadAlpha})`;
+          ctx.stroke();
+        }
       }
       ctx.setLineDash([]);
     }
@@ -268,10 +279,10 @@ export class CampaignRenderer {
       const vmxx = Math.max(cs[0][0], cs[1][0], cs[2][0], cs[3][0]);
       const vmny = Math.min(cs[0][1], cs[1][1], cs[2][1], cs[3][1]);
       const vmxy = Math.max(cs[0][1], cs[1][1], cs[2][1], cs[3][1]);
-      ctx.lineWidth = 2.4;
+      ctx.lineWidth = 1.5;
       ctx.lineJoin = 'round';
       ctx.lineCap = 'round';
-      ctx.strokeStyle = `rgba(26,20,14,${0.8 * borderAlpha})`;
+      ctx.strokeStyle = `rgba(34,27,20,${0.5 * borderAlpha})`;
       for (const b of borders) {
         if (b.bb[2] < vmnx || b.bb[0] > vmxx || b.bb[3] < vmny || b.bb[1] > vmxy) continue;
         ctx.beginPath();

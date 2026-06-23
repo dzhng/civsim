@@ -106,6 +106,7 @@ varying float vZ;
 varying vec2 vXY;
 uniform sampler2D uTerr, uLight, uBiome; // uLight: baked lambert*128
 uniform sampler2D uVis; // player sight mask (fog of war)
+uniform sampler2D uOwner; // R = owning faction + 1 (0 = unclaimed), NEAREST
 uniform vec3 uEyePos, uSun, uFogC;
 uniform vec2 uFx; // territory alpha, fog strength
 uniform float uFogD, uTime, uCloud, uFow; // uFow: fog-of-war strength (0 = reveal-all)
@@ -158,6 +159,22 @@ void main() {
     col = ground * (0.22 + 0.82 * li);
     vec4 t = texture2D(uTerr, vUV);
     col = mix(col, t.rgb, t.a * uFx.x);
+    // Faction borders, edge-detected from the owner-id field at a constant
+    // ~2.5 screen-px width (offsets scale with fwidth), so the line stays thin
+    // and crisp at every zoom instead of magnifying into a baked blocky band.
+    float own = texture2D(uOwner, vUV).r;
+    if (own > 0.0015 && uFx.x > 0.001) {
+      vec2 bd = fwidth(vUV) * 1.3;
+      float e = abs(texture2D(uOwner, vUV + vec2(bd.x, 0.0)).r - own)
+              + abs(texture2D(uOwner, vUV - vec2(bd.x, 0.0)).r - own)
+              + abs(texture2D(uOwner, vUV + vec2(0.0, bd.y)).r - own)
+              + abs(texture2D(uOwner, vUV - vec2(0.0, bd.y)).r - own);
+      float border = clamp(e * 255.0, 0.0, 1.0);
+      // Borders keep a strength floor so the political lines stay visible as
+      // thin strokes even once the fill thins out into 3D terrain.
+      float bA = max(uFx.x, 0.42);
+      col = mix(col, vec3(0.10, 0.08, 0.07), border * bA * 0.55);
+    }
   }
 
   if (water > 0.001) {
@@ -456,6 +473,7 @@ export class Terrain3D {
   private cityFogged = false;
   private factionColors: number[][];
   private terrTex: RawTexture;
+  private ownerTex!: RawTexture;
   // Fog-of-war sight mask: a low-res grid over the bg rect, .r = how visible a
   // cell is to the player (1 seen, 0 hidden). Rasterized from cities/armies.
   private visTex!: RawTexture;
@@ -503,6 +521,9 @@ export class Terrain3D {
     const lightTex = dataTex(lightRgba);
     const biomeTex = dataTex(field.biome);
     this.terrTex = dataTex(new Uint8Array(w * h * 4));
+    // Owner-id field (R = faction+1), NEAREST so ids never interpolate — the
+    // shader edge-detects it to stroke crisp, zoom-independent faction borders.
+    this.ownerTex = new RawTexture(new Uint8Array(w * h * 4), w, h, Constants.TEXTUREFORMAT_RGBA, scene, false, false, Texture.NEAREST_SAMPLINGMODE);
     // Vision mask: ~160 px wide, bg-rect aspect; bilinear so sight edges feather.
     this.visW = 160;
     this.visH = Math.max(1, Math.round(160 * (this.bgRect[3] - this.bgRect[1]) / (this.bgRect[2] - this.bgRect[0])));
@@ -512,12 +533,13 @@ export class Terrain3D {
     this.terrainMat = new ShaderMaterial('terrain', scene, 'campTerrain', {
       attributes: ['position'],
       uniforms: ['viewProjection', 'uBgRect', 'uEyePos', 'uSun', 'uFogC', 'uFx', 'uFogD', 'uTime', 'uViewport', 'uCloud', 'uFow'],
-      samplers: ['uTerr', 'uLight', 'uBiome', 'uVis'],
+      samplers: ['uTerr', 'uLight', 'uBiome', 'uVis', 'uOwner'],
     });
     this.terrainMat.setTexture('uTerr', this.terrTex);
     this.terrainMat.setTexture('uLight', lightTex);
     this.terrainMat.setTexture('uBiome', biomeTex);
     this.terrainMat.setTexture('uVis', this.visTex);
+    this.terrainMat.setTexture('uOwner', this.ownerTex);
     this.terrainMat.setFloat('uFow', 0);
     this.terrainMat.setVector3('uSun', new Vector3(...SUN)); // the one campaign sun
     this.terrainMat.setColor3('uFogC', new Color3(0.71, 0.71, 0.68));
@@ -930,8 +952,9 @@ export class Terrain3D {
     }
   }
 
-  updateTerritory(rgba: Uint8Array) {
+  updateTerritory(rgba: Uint8Array, owners: Uint8Array) {
     this.terrTex.update(rgba);
+    this.ownerTex.update(owners);
   }
 
   /** How visible a world point is to the player (0 hidden … 1 seen), read from

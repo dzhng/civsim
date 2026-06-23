@@ -46,9 +46,7 @@ function warp(wx: number, wy: number): [number, number] {
   return [wx + dx, wy + dy];
 }
 
-const FILL_A = 130;
-const REGION_A = 170;
-const BORDER_A = 240;
+const FILL_A = 150;
 
 /** Deterministic per-city shade jitter so the region mosaic reads, ±[0,1). */
 function cityJitter(node: number): number {
@@ -73,11 +71,15 @@ export class Territory {
   /** cell -> nearest city node index, -1 = unclaimed (static) */
   private nearest: Int32Array;
   rgba: Uint8Array;
+  /** cell -> owning faction + 1 (0 = unclaimed); the shader edge-detects this
+   *  to draw crisp, zoom-independent borders. */
+  owners: Uint8Array;
   labels: FactionLabel[] = [];
 
   constructor(private data: CampaignData, private field: TerrainField) {
     const { w, h, cell, minX, maxY, land } = field;
     this.rgba = new Uint8Array(w * h * 4);
+    this.owners = new Uint8Array(w * h * 4);
     this.nearest = new Int32Array(w * h).fill(-1);
 
     // The major powers pull territory a little harder than the minor leagues,
@@ -187,38 +189,25 @@ export class Territory {
     const sumX = factions.map(() => 0);
     const sumY = factions.map(() => 0);
     rgba.fill(0);
+    const owners = this.owners;
+    owners.fill(0);
     for (let gy = 0; gy < h; gy++) {
       for (let gx = 0; gx < w; gx++) {
         const i = gy * w + gx;
         const f = owner[i];
         if (f < 0) continue;
-        const right = gx + 1 < w ? i + 1 : i;
-        const down = gy + 1 < h ? i + w : i;
-        const left = gx > 0 ? i - 1 : i;
-        const up = gy > 0 ? i - w : i;
-        // Faction frontier: dual-colored, each side darkened toward its own hue.
-        const frontier =
-          (owner[right] >= 0 && owner[right] !== f) ||
-          (owner[down] >= 0 && owner[down] !== f) ||
-          (owner[left] >= 0 && owner[left] !== f) ||
-          (owner[up] >= 0 && owner[up] !== f);
-        // Region seam: same owner, different city — a faint interior line.
-        const seam =
-          !frontier &&
-          ((nearest[right] !== nearest[i] && owner[right] === f) ||
-            (nearest[down] !== nearest[i] && owner[down] === f));
         const fac = factions[f];
-        // Every faction (powers and neutral leagues alike) paints in its own
-        // colour now — there is no ownerless grey. Keep the per-city shade
-        // jitter small so a region reads as one solid blob.
+        // Flat per-faction fill (a small per-city jitter for life). Borders are
+        // NOT baked here any more — they're drawn in the terrain shader at a
+        // constant screen-space width so they stay crisp at every zoom.
         const c = fac?.color ?? [150, 150, 150];
         const j = cityJitter(nearest[i]) * 16;
-        const k = frontier ? 0.45 : seam ? 0.8 : 1.0;
         const o = i * 4;
-        rgba[o] = Math.min(255, Math.max(0, (c[0] + j) * k));
-        rgba[o + 1] = Math.min(255, Math.max(0, (c[1] + j) * k));
-        rgba[o + 2] = Math.min(255, Math.max(0, (c[2] + j * 0.6) * k));
-        rgba[o + 3] = frontier ? BORDER_A : seam ? REGION_A : FILL_A;
+        rgba[o] = Math.min(255, Math.max(0, c[0] + j));
+        rgba[o + 1] = Math.min(255, Math.max(0, c[1] + j));
+        rgba[o + 2] = Math.min(255, Math.max(0, c[2] + j * 0.6));
+        rgba[o + 3] = FILL_A;
+        owners[o] = f + 1; // R channel: 0 = unclaimed; the shader edge-detects it
         cells[f]++;
         sumX[f] += minX + (gx + 0.5) * cell;
         sumY[f] += maxY - (gy + 0.5) * cell;

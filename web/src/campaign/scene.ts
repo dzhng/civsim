@@ -284,7 +284,7 @@ export class CampaignScene implements Scene {
     if (hash !== this.ownerHash && this.territory && this.t3d) {
       this.ownerHash = hash;
       this.territory.rebuild(this.cities);
-      this.t3d.updateTerritory(this.territory.rgba);
+      this.t3d.updateTerritory(this.territory.rgba, this.territory.owners);
       this.t3d.setCityOwners(this.cities, this.playerFaction());
     }
   }

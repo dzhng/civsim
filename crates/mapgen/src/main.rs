@@ -97,4 +97,8 @@ fn main() {
     )
     .unwrap();
     eprintln!("wrote {out_dir}/campaign-map.json, campaign-bg.png, campaign-bg.json");
+    // Post-step: group the leftover independent cities into regional neutral
+    // leagues so the political map is all factions, no ownerless grey. Run:
+    //   node crates/mapgen/leagues.mjs
+    eprintln!("next: run `node crates/mapgen/leagues.mjs` to fold independents into leagues");
 }

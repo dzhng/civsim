@@ -25,6 +25,8 @@ export interface MapFaction {
   name: string;
   color: [number, number, number];
   playable: boolean;
+  /** AI persona ("expansionist" power, "neutral" league); drives the sim AI. */
+  ai_persona?: string;
 }
 
 export interface CampaignMap {

@@ -60,13 +60,15 @@ await page.evaluate(() => window.__campaign.cam(-456, 446, 2.5)); // Roma, tilte
 await page.waitForTimeout(250);
 await snapCheck(page, 'campaign-3d', check);
 
-// March the player's first army (at Roma) on the nearest independent city.
+// March the player's first army (at Roma) on the nearest neutral (non-playable
+// faction) city — minor leagues are the early conquests.
+const neutralIds = new Set(map.factions.filter((f) => !f.playable).map((f) => f.id));
 const roma = map.nodes.findIndex((n) => n.name === 'Roma');
 const rpos = map.nodes[roma].pos;
 let target = -1;
 let bestD = 1e9;
 map.nodes.forEach((n, i) => {
-  if (n.kind !== 'city' || n.owner !== 'independents') return;
+  if (n.kind !== 'city' || !neutralIds.has(n.owner)) return;
   const d = Math.hypot(n.pos[0] - rpos[0], n.pos[1] - rpos[1]);
   if (d < bestD) {
     bestD = d;

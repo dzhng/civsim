@@ -1,27 +1,343 @@
 {
   "comment": "Hand-tuned game design merged over the ORBIS-derived graph. Cities are referenced by ORBIS label; unlisted cities go to 'independents'.",
-  "tier_overrides": { "Roma": 3, "Carthago": 3, "Alexandria": 3, "Antiochia": 3, "Lugdunum": 3, "Pella": 3 },
+  "tier_overrides": {
+    "Roma": 3,
+    "Carthago": 3,
+    "Alexandria": 3,
+    "Antiochia": 3,
+    "Lugdunum": 3,
+    "Pella": 3
+  },
   "factions": [
-    { "id": "rome",      "name": "Rome",      "color": [200, 40, 40],   "capital": "Roma",       "cities": ["Capua", "Neapolis", "Ariminum"], "playable": true },
-    { "id": "carthage",  "name": "Carthage",  "color": [90, 60, 160],   "capital": "Carthago",   "cities": ["Hadrumetum", "Hippo Regius", "Panormus"], "playable": true },
-    { "id": "macedon",   "name": "Macedon",   "color": [40, 90, 200],   "capital": "Pella",      "cities": ["Thessalonica", "Dyrrhachium"], "playable": true },
-    { "id": "arverni",   "name": "Arverni",   "color": [60, 150, 60],   "capital": "Lugdunum",   "cities": ["Augustodunum", "Burdigala", "Narbo"], "playable": true },
-    { "id": "egypt",     "name": "Egypt",     "color": [220, 180, 50],  "capital": "Alexandria", "cities": ["Memphis", "Pelusium"], "playable": true },
-    { "id": "seleucid",  "name": "Seleucids", "color": [50, 170, 170],  "capital": "Antiochia",  "cities": ["Apamea", "Damascus"], "playable": true },
-    { "id": "independents", "name": "Independent Cities", "color": [130, 130, 130], "capital": null, "cities": [], "playable": false }
+    {
+      "id": "rome",
+      "name": "Rome",
+      "color": [
+        200,
+        40,
+        40
+      ],
+      "capital": "Roma",
+      "cities": [
+        "Capua",
+        "Neapolis",
+        "Ariminum"
+      ],
+      "playable": true,
+      "ai_persona": "expansionist"
+    },
+    {
+      "id": "carthage",
+      "name": "Carthage",
+      "color": [
+        90,
+        60,
+        160
+      ],
+      "capital": "Carthago",
+      "cities": [
+        "Hadrumetum",
+        "Hippo Regius",
+        "Panormus"
+      ],
+      "playable": true,
+      "ai_persona": "expansionist"
+    },
+    {
+      "id": "macedon",
+      "name": "Macedon",
+      "color": [
+        40,
+        90,
+        200
+      ],
+      "capital": "Pella",
+      "cities": [
+        "Thessalonica",
+        "Dyrrhachium"
+      ],
+      "playable": true,
+      "ai_persona": "expansionist"
+    },
+    {
+      "id": "arverni",
+      "name": "Arverni",
+      "color": [
+        60,
+        150,
+        60
+      ],
+      "capital": "Lugdunum",
+      "cities": [
+        "Augustodunum",
+        "Burdigala",
+        "Narbo"
+      ],
+      "playable": true,
+      "ai_persona": "expansionist"
+    },
+    {
+      "id": "egypt",
+      "name": "Egypt",
+      "color": [
+        220,
+        180,
+        50
+      ],
+      "capital": "Alexandria",
+      "cities": [
+        "Memphis",
+        "Pelusium"
+      ],
+      "playable": true,
+      "ai_persona": "expansionist"
+    },
+    {
+      "id": "seleucid",
+      "name": "Seleucids",
+      "color": [
+        50,
+        170,
+        170
+      ],
+      "capital": "Antiochia",
+      "cities": [
+        "Apamea",
+        "Damascus"
+      ],
+      "playable": true,
+      "ai_persona": "expansionist"
+    },
+    {
+      "id": "independents",
+      "name": "Independent Cities",
+      "color": [
+        130,
+        130,
+        130
+      ],
+      "capital": null,
+      "cities": [],
+      "playable": false,
+      "ai_persona": "neutral"
+    }
   ],
   "start_armies": [
-    { "faction": "rome", "at": "Roma", "roster": [["HeavySword", 1280], ["LightSpear", 880], ["Archers", 480], ["ShockCavalry", 280]] },
-    { "faction": "rome", "at": "Capua", "roster": [["LightSpear", 880], ["Skirmishers", 360]] },
-    { "faction": "carthage", "at": "Carthago", "roster": [["Phalanx", 1280], ["LightSpear", 880], ["Archers", 480], ["ShockCavalry", 280]] },
-    { "faction": "carthage", "at": "Hadrumetum", "roster": [["LightSpear", 880], ["HorseArchers", 240]] },
-    { "faction": "macedon", "at": "Pella", "roster": [["Phalanx", 1280], ["LightSpear", 880], ["Skirmishers", 360], ["ShockCavalry", 280]] },
-    { "faction": "macedon", "at": "Thessalonica", "roster": [["LightSpear", 880], ["Archers", 480]] },
-    { "faction": "arverni", "at": "Lugdunum", "roster": [["LongSwords", 360], ["LightSpear", 880], ["Skirmishers", 360], ["ShockCavalry", 280]] },
-    { "faction": "arverni", "at": "Augustodunum", "roster": [["LightSpear", 880], ["LongSwords", 360]] },
-    { "faction": "egypt", "at": "Alexandria", "roster": [["Phalanx", 1280], ["Archers", 480], ["Skirmishers", 360], ["HorseArchers", 240]] },
-    { "faction": "egypt", "at": "Memphis", "roster": [["LightSpear", 880], ["Archers", 480]] },
-    { "faction": "seleucid", "at": "Antiochia", "roster": [["Phalanx", 1280], ["LightSpear", 880], ["HorseArchers", 240], ["ShockCavalry", 280]] },
-    { "faction": "seleucid", "at": "Damascus", "roster": [["LightSpear", 880], ["Skirmishers", 360]] }
+    {
+      "faction": "rome",
+      "at": "Roma",
+      "roster": [
+        [
+          "HeavySword",
+          1280
+        ],
+        [
+          "LightSpear",
+          880
+        ],
+        [
+          "Archers",
+          480
+        ],
+        [
+          "ShockCavalry",
+          280
+        ]
+      ]
+    },
+    {
+      "faction": "rome",
+      "at": "Capua",
+      "roster": [
+        [
+          "LightSpear",
+          880
+        ],
+        [
+          "Skirmishers",
+          360
+        ]
+      ]
+    },
+    {
+      "faction": "carthage",
+      "at": "Carthago",
+      "roster": [
+        [
+          "Phalanx",
+          1280
+        ],
+        [
+          "LightSpear",
+          880
+        ],
+        [
+          "Archers",
+          480
+        ],
+        [
+          "ShockCavalry",
+          280
+        ]
+      ]
+    },
+    {
+      "faction": "carthage",
+      "at": "Hadrumetum",
+      "roster": [
+        [
+          "LightSpear",
+          880
+        ],
+        [
+          "HorseArchers",
+          240
+        ]
+      ]
+    },
+    {
+      "faction": "macedon",
+      "at": "Pella",
+      "roster": [
+        [
+          "Phalanx",
+          1280
+        ],
+        [
+          "LightSpear",
+          880
+        ],
+        [
+          "Skirmishers",
+          360
+        ],
+        [
+          "ShockCavalry",
+          280
+        ]
+      ]
+    },
+    {
+      "faction": "macedon",
+      "at": "Thessalonica",
+      "roster": [
+        [
+          "LightSpear",
+          880
+        ],
+        [
+          "Archers",
+          480
+        ]
+      ]
+    },
+    {
+      "faction": "arverni",
+      "at": "Lugdunum",
+      "roster": [
+        [
+          "LongSwords",
+          360
+        ],
+        [
+          "LightSpear",
+          880
+        ],
+        [
+          "Skirmishers",
+          360
+        ],
+        [
+          "ShockCavalry",
+          280
+        ]
+      ]
+    },
+    {
+      "faction": "arverni",
+      "at": "Augustodunum",
+      "roster": [
+        [
+          "LightSpear",
+          880
+        ],
+        [
+          "LongSwords",
+          360
+        ]
+      ]
+    },
+    {
+      "faction": "egypt",
+      "at": "Alexandria",
+      "roster": [
+        [
+          "Phalanx",
+          1280
+        ],
+        [
+          "Archers",
+          480
+        ],
+        [
+          "Skirmishers",
+          360
+        ],
+        [
+          "HorseArchers",
+          240
+        ]
+      ]
+    },
+    {
+      "faction": "egypt",
+      "at": "Memphis",
+      "roster": [
+        [
+          "LightSpear",
+          880
+        ],
+        [
+          "Archers",
+          480
+        ]
+      ]
+    },
+    {
+      "faction": "seleucid",
+      "at": "Antiochia",
+      "roster": [
+        [
+          "Phalanx",
+          1280
+        ],
+        [
+          "LightSpear",
+          880
+        ],
+        [
+          "HorseArchers",
+          240
+        ],
+        [
+          "ShockCavalry",
+          280
+        ]
+      ]
+    },
+    {
+      "faction": "seleucid",
+      "at": "Damascus",
+      "roster": [
+        [
+          "LightSpear",
+          880
+        ],
+        [
+          "Skirmishers",
+          360
+        ]
+      ]
+    }
   ]
 }

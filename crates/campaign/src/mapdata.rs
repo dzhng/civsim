@@ -54,11 +54,45 @@ pub struct AmbushSpot {
     pub side: i8,
 }
 
+/// How a faction's AI commander behaves. The dispatch in `ai.rs` is a single
+/// match on this, so adding a persona (e.g. Defensive, Mercantile) is a new
+/// variant plus its branch — nothing else hardcodes a faction by id.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum AiPersona {
+    /// Raises armies and wages war for the map — the playable-style powers.
+    Expansionist,
+    /// Garrisons its cities and otherwise sits still: minor leagues, neutrals.
+    Neutral,
+}
+
+impl AiPersona {
+    /// Parse the optional map field; absent → derived from `playable`
+    /// (a power expands, everyone else stays neutral).
+    pub fn parse(s: Option<&str>, playable: bool) -> AiPersona {
+        match s {
+            Some("expansionist") => AiPersona::Expansionist,
+            Some("neutral") => AiPersona::Neutral,
+            _ => {
+                if playable {
+                    AiPersona::Expansionist
+                } else {
+                    AiPersona::Neutral
+                }
+            }
+        }
+    }
+    /// Whether this persona ever marches out to campaign (vs. only garrisoning).
+    pub fn campaigns(self) -> bool {
+        matches!(self, AiPersona::Expansionist)
+    }
+}
+
 pub struct FactionDef {
     pub id: String,
     pub name: String,
     pub color: [u8; 3],
     pub playable: bool,
+    pub ai_persona: AiPersona,
 }
 
 pub struct StartArmy {
@@ -127,6 +161,8 @@ struct RawFaction {
     name: String,
     color: [u8; 3],
     playable: bool,
+    #[serde(default)]
+    ai_persona: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -163,7 +199,14 @@ impl WorldMap {
             .enumerate()
             .map(|(i, f)| (f.id.as_str(), i as u32))
             .collect();
-        let independents = faction_idx["independents"];
+        // Default owner for ownerless nodes (junctions). Prefer an explicit
+        // "independents" sentinel; otherwise the first non-playable faction.
+        let independents = faction_idx.get("independents").copied().unwrap_or_else(|| {
+            raw.factions
+                .iter()
+                .position(|f| !f.playable)
+                .unwrap_or(0) as u32
+        });
 
         let id_to_idx: BTreeMap<u32, NodeId> = raw
             .nodes
@@ -262,6 +305,7 @@ impl WorldMap {
                     name: f.name.clone(),
                     color: f.color,
                     playable: f.playable,
+                    ai_persona: AiPersona::parse(f.ai_persona.as_deref(), f.playable),
                 })
                 .collect(),
             start_armies: raw

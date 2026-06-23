@@ -49,8 +49,9 @@ pub fn commanders(map: &WorldMap, st: &mut CampaignState) {
         if !st.factions[f as usize].ai {
             continue;
         }
-        // Independents garrison but never campaign.
-        if map.factions[f as usize].id == "independents" {
+        // Neutral personas (minor leagues, independents) garrison but never
+        // march out; only campaigning personas get a commander's turn.
+        if !map.factions[f as usize].ai_persona.campaigns() {
             continue;
         }
         think(map, st, f, &mut bfs);

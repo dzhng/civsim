@@ -31,14 +31,18 @@ function vnoise(x: number, y: number): number {
 }
 
 /** Bend a query point along coherent noise so the nearest-city Voronoi seams
- *  curve organically (hugging the land) instead of cutting straight bisectors. */
+ *  curve organically (hugging the land) instead of cutting straight bisectors.
+ *  Amplitude is deliberately small (≤ ~45 km, well under the ~100 km city
+ *  spacing): it only wiggles the boundary between adjacent regions — never far
+ *  enough to jump the query across an intervening city and stamp a spurious
+ *  enclave of some distant faction into another's heartland. */
 function warp(wx: number, wy: number): [number, number] {
-  const big = 260;
-  const fine = 95;
-  const dx = (vnoise(wx / big + 11.2, wy / big + 5.7) - 0.5) * 180
-    + (vnoise(wx / fine + 3.1, wy / fine + 7.9) - 0.5) * 70;
-  const dy = (vnoise(wx / big + 31.4, wy / big + 19.3) - 0.5) * 180
-    + (vnoise(wx / fine + 23.5, wy / fine + 13.1) - 0.5) * 70;
+  const big = 230;
+  const fine = 90;
+  const dx = (vnoise(wx / big + 11.2, wy / big + 5.7) - 0.5) * 64
+    + (vnoise(wx / fine + 3.1, wy / fine + 7.9) - 0.5) * 26;
+  const dy = (vnoise(wx / big + 31.4, wy / big + 19.3) - 0.5) * 64
+    + (vnoise(wx / fine + 23.5, wy / fine + 13.1) - 0.5) * 26;
   return [wx + dx, wy + dy];
 }
 
@@ -135,6 +139,17 @@ export class Territory {
     }
   }
 
+  /** Debug: classify a world point — land?, claiming city, owner faction. */
+  infoAt(wx: number, wy: number, cities: Map<number, CityView>) {
+    const { w, h, cell, minX, maxY, land } = this.field;
+    const gx = Math.floor((wx - minX) / cell);
+    const gy = Math.floor((maxY - wy) / cell);
+    if (gx < 0 || gy < 0 || gx >= w || gy >= h) return { oob: true };
+    const i = gy * w + gx;
+    const node = this.nearest[i];
+    return { land: land[i], node, owner: node >= 0 ? (cities.get(node)?.owner ?? -1) : -1 };
+  }
+
   /** Recolor the overlay from current city ownership. */
   rebuild(cities: Map<number, CityView>) {
     const { w, h, cell } = this.field;
@@ -170,11 +185,14 @@ export class Territory {
           !frontier &&
           ((nearest[right] !== nearest[i] && owner[right] === f) ||
             (nearest[down] !== nearest[i] && owner[down] === f));
-        const c = factions[f]?.color ?? [150, 150, 150];
-        // Shade each city's region a bit differently (a lot for the
-        // independents — their patchwork IS the political map's texture).
-        const j = cityJitter(nearest[i]) * (factions[f]?.playable ? 24 : 70);
-        const k = frontier ? 0.45 : seam ? 0.78 : 1.0;
+        const fac = factions[f];
+        const playable = !!fac?.playable;
+        // Unaligned cities read as one cool slate neutral (not the warm grey
+        // that, when jittered light, looked like bare desert holes inside a
+        // faction's land). Keep the per-city shade jitter small either way.
+        const c = playable ? (fac?.color ?? [150, 150, 150]) : [104, 114, 134];
+        const j = cityJitter(nearest[i]) * (playable ? 22 : 12);
+        const k = frontier ? 0.45 : seam ? 0.8 : 1.0;
         const o = i * 4;
         rgba[o] = Math.min(255, Math.max(0, (c[0] + j) * k));
         rgba[o + 1] = Math.min(255, Math.max(0, (c[1] + j) * k));

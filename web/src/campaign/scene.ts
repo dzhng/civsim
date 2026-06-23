@@ -178,6 +178,7 @@ export class CampaignScene implements Scene {
       territoryAlpha: () => this.t3d!.territoryAlpha(this.cam.scale),
       /** Fog-of-war probe: player visibility (0..1) at a world point. */
       visAt: (x: number, y: number) => this.t3d!.visibleAt(x, y),
+      cellInfo: (x: number, y: number) => this.territory!.infoAt(x, y, this.cities),
       /** Snapshot mode: pin the water clock (campaign is already paused). */
       freeze: (on = true) => {
         this.t3d!.fixedTime = on ? 0 : null;

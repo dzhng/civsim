@@ -168,7 +168,7 @@ export class Territory {
 
   /** Recolor the overlay from current city ownership. */
   rebuild(cities: Map<number, CityView>) {
-    const { w, h, cell } = this.field;
+    const { w, h, cell, minX, maxY } = this.field;
     const factions = this.data.map.factions;
     const { nearest, rgba } = this;
 
@@ -180,6 +180,10 @@ export class Territory {
     }
 
     const cells = factions.map(() => 0);
+    // Area-centroid accumulators (world km) so a label sits in the middle of
+    // the whole territory, not at the capital.
+    const sumX = factions.map(() => 0);
+    const sumY = factions.map(() => 0);
     rgba.fill(0);
     for (let gy = 0; gy < h; gy++) {
       for (let gx = 0; gx < w; gx++) {
@@ -214,30 +218,36 @@ export class Territory {
         rgba[o + 2] = Math.min(255, Math.max(0, (c[2] + j * 0.6) * k));
         rgba[o + 3] = frontier ? BORDER_A : seam ? REGION_A : FILL_A;
         cells[f]++;
+        sumX[f] += minX + (gx + 0.5) * cell;
+        sumY[f] += maxY - (gy + 0.5) * cell;
       }
     }
 
-    // Anchor each label at the faction's capital (highest-tier owned city):
-    // a territory centroid can land between disconnected patches.
-    const capitals: (number | null)[] = factions.map(() => null);
-    for (const [node, cv] of cities) {
-      const f = cv.owner;
-      if (f < 0 || !factions[f]?.playable) continue;
-      const cur = capitals[f];
-      const nodes = this.data.map.nodes;
-      if (cur === null || nodes[node].tier > nodes[cur].tier) capitals[f] = node;
-    }
+    // Cap the label sizing so a sprawling realm's name doesn't dwarf a compact
+    // one: the largest reads at most 1.5x the smallest power (Rome by default).
+    const radiusKm = (fi: number) => Math.sqrt(cells[fi]) * cell;
+    const playableRadii = factions
+      .map((f, fi) => (f.playable && cells[fi] > 0 ? radiusKm(fi) : Infinity))
+      .filter((r) => isFinite(r));
+    const refRadius = (() => {
+      const rome = factions.findIndex((f) => f.id === 'rome');
+      return rome >= 0 && cells[rome] > 0
+        ? radiusKm(rome)
+        : (playableRadii.length ? Math.min(...playableRadii) : 0);
+    })();
+    const sizeCapKm = refRadius > 0 ? refRadius * 1.5 : Infinity;
+
+    // Label each power at its territory's area centroid (now that the powers
+    // are contiguous blobs, the centroid sits inside the realm).
     this.labels = factions.flatMap((fac, fi) => {
-      const cap = capitals[fi];
-      if (!fac.playable || cap === null || cells[fi] === 0) return [];
-      const pos = this.data.map.nodes[cap].pos;
+      if (!fac.playable || cells[fi] === 0) return [];
       return [{
         faction: fi,
         name: fac.name.toUpperCase(),
         color: fac.color,
-        x: pos[0],
-        y: pos[1] + 30, // float just north of the capital marker
-        radiusKm: Math.sqrt(cells[fi]) * cell,
+        x: sumX[fi] / cells[fi],
+        y: sumY[fi] / cells[fi],
+        radiusKm: Math.min(radiusKm(fi), sizeCapKm),
       }];
     });
   }

@@ -381,11 +381,11 @@ export class CampaignRenderer {
           const fs = Math.min(15, 9.5 + z) * (n.tier >= 3 ? 1.15 : 1);
           ctx.font = `600 ${fs}px ${MAP_FONT}`;
           ctx.letterSpacing = '0.5px';
-          // Cities: white caps with a thin dark border — the subtle counterpart
-          // to the faction names' glowing style.
-          ctx.lineWidth = 2.5;
+          // Cities: same white caps as the faction names but a thinner, softer
+          // black border so towns stay subordinate to the country labels.
+          ctx.lineWidth = 2;
           ctx.lineJoin = 'round';
-          ctx.strokeStyle = 'rgba(18,14,9,0.9)';
+          ctx.strokeStyle = 'rgba(20,15,10,0.6)';
           ctx.fillStyle = 'rgba(248,244,237,0.97)';
           const nm = n.name.toUpperCase();
           ctx.strokeText(nm, sx + s / 2 + 3, sy + 4);
@@ -538,7 +538,9 @@ export class CampaignRenderer {
     if (factionView && (powerAlpha > 0.02 || leagueHiFade > 0.02)) {
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillStyle = 'rgba(252,250,246,0.98)';
+      ctx.lineJoin = 'round';
+      ctx.strokeStyle = 'rgba(10,8,5,0.9)';
+      ctx.fillStyle = 'rgba(250,248,243,0.98)';
       // Leagues first, then powers on top (biggest last) so a power's name is
       // never buried under a minor league's.
       const ordered = [...factionLabels].sort((a, b) => Number(b.minor) - Number(a.minor) || a.radiusKm - b.radiusKm);
@@ -559,15 +561,12 @@ export class CampaignRenderer {
         ctx.font = `${l.minor ? 600 : 700} ${size}px ${MAP_FONT}`;
         ctx.letterSpacing = `${Math.max(0.5, size * 0.07)}px`;
         ctx.globalAlpha = a;
+        ctx.lineWidth = Math.max(2.5, size / 6);
         const name = l.name.toUpperCase();
-        // White text on a black glow: a soft dark halo (two shadowed passes)
-        // makes the country names read boldly over any territory colour.
-        ctx.shadowColor = 'rgba(0,0,0,0.92)';
-        ctx.shadowBlur = size * 0.5;
+        // White caps with a firm black border (same family as the city names,
+        // just bolder) so the country names read clearly over any territory.
+        ctx.strokeText(name, p[0], p[1]);
         ctx.fillText(name, p[0], p[1]);
-        ctx.fillText(name, p[0], p[1]);
-        ctx.shadowBlur = 0;
-        ctx.shadowColor = 'transparent';
       }
       ctx.globalAlpha = 1;
       ctx.letterSpacing = '0px';

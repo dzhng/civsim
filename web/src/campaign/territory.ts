@@ -48,6 +48,40 @@ function warp(wx: number, wy: number): [number, number] {
 
 const FILL_A = 150;
 
+/** Douglas–Peucker simplification: drop points within `tol` km of the chord, so
+ *  a traced boundary's per-cell staircase zigzag collapses to the few points
+ *  that capture its real shape — Chaikin then smooths those into a clean curve
+ *  (smoothing the raw staircase alone only yields a rounded staircase). */
+function simplifyDP(pts: [number, number][], tol: number): [number, number][] {
+  const n = pts.length;
+  if (n < 3) return pts;
+  const keep = new Uint8Array(n);
+  keep[0] = keep[n - 1] = 1;
+  const tol2 = tol * tol;
+  const stack: [number, number][] = [[0, n - 1]];
+  while (stack.length) {
+    const [s, e] = stack.pop()!;
+    const ax = pts[s][0];
+    const ay = pts[s][1];
+    const dx = pts[e][0] - ax;
+    const dy = pts[e][1] - ay;
+    const len2 = dx * dx + dy * dy || 1;
+    let maxD = -1;
+    let idx = -1;
+    for (let i = s + 1; i < e; i++) {
+      const t = Math.max(0, Math.min(1, ((pts[i][0] - ax) * dx + (pts[i][1] - ay) * dy) / len2));
+      const cx = ax + dx * t;
+      const cy = ay + dy * t;
+      const d = (pts[i][0] - cx) ** 2 + (pts[i][1] - cy) ** 2;
+      if (d > maxD) { maxD = d; idx = i; }
+    }
+    if (maxD > tol2 && idx > 0) { keep[idx] = 1; stack.push([s, idx], [idx, e]); }
+  }
+  const out: [number, number][] = [];
+  for (let i = 0; i < n; i++) if (keep[i]) out.push(pts[i]);
+  return out;
+}
+
 /** Chaikin corner-cutting: rounds a polyline's hard corners into a smooth curve
  *  (endpoints fixed). A couple of passes turn the cell-grid staircase of a
  *  traced boundary into a flowing line. */
@@ -318,8 +352,10 @@ export class Territory {
     const out: { pts: [number, number][]; bb: [number, number, number, number] }[] = [];
     for (const vids of chains) {
       if (vids.length < 2) continue;
-      const pts = chaikin(vids.map((vid): [number, number] =>
-        [minX + (vid % VW) * cell, maxY - ((vid / VW) | 0) * cell]), 2);
+      // Trace → world km → drop the per-cell staircase (DP) → smooth (Chaikin).
+      const world = vids.map((vid): [number, number] =>
+        [minX + (vid % VW) * cell, maxY - ((vid / VW) | 0) * cell]);
+      const pts = chaikin(simplifyDP(world, cell * 1.7), 3);
       let mnx = Infinity, mny = Infinity, mxx = -Infinity, mxy = -Infinity;
       for (const [x, y] of pts) {
         if (x < mnx) mnx = x;

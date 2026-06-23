@@ -199,3 +199,49 @@ fn frontal_cavalry_charge_does_not_majority_beat_a_presented_phalanx() {
         "frontal cavalry must not majority-beat a presented phalanx: cav {cav_wins}/{trials}, pike {pike_wins}/{trials}, draws {draws}/{trials}"
     );
 }
+
+#[test]
+fn flanked_phalanx_loses_to_cavalry() {
+    // This is the side-on control for the presented-hedge contract above.
+    // Pikes are a front-facing weapon, not a 360° porcupine: when cavalry
+    // reaches the flank and rides across the shafts, the horse should win.
+    let mut cav_wins = 0usize;
+    let mut pike_wins = 0usize;
+    let mut draws = 0usize;
+
+    for &seed in &SEEDS {
+        let mut sim = Sim::new(Tunables::default(), seed);
+        let _pike =
+            sim.spawn_class_with_files(Vec2::ZERO, PI / 2.0, 160, 8, UnitClassId::Phalanx, 1);
+        let cav = sim.spawn_class(Vec2::new(-70.0, 0.0), 0.0, 96, UnitClassId::ShockCavalry, 0);
+        sim.set_files(cav, 24);
+        sim.set_pace(cav, sim::Pace::Run);
+        sim.set_attack_move_order(cav, Vec2::new(70.0, 0.0));
+
+        let mut victor = None;
+        for _ in 0..(300.0 / DT) as usize {
+            sim.tick();
+            if let Some(v) = sim.victor() {
+                victor = Some(v);
+                break;
+            }
+        }
+        match victor {
+            Some(0) => cav_wins += 1,
+            Some(1) => pike_wins += 1,
+            _ => draws += 1,
+        }
+    }
+
+    println!(
+        "flanked pike vs cav over {} seeds: cav {cav_wins}, pike {pike_wins}, draws {draws}",
+        SEEDS.len()
+    );
+    assert!(
+        cav_wins * 4 >= SEEDS.len() * 3,
+        "cavalry should decisively beat a phalanx it catches side-on: cav {cav_wins}/{}, pike {pike_wins}/{}, draws {draws}/{}",
+        SEEDS.len(),
+        SEEDS.len(),
+        SEEDS.len()
+    );
+}

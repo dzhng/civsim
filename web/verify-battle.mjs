@@ -122,7 +122,13 @@ await snapCheck(page, 'battle-banner', check, { maxDiffRatio: 0.0008 });
     const darkFrac = dark / n, blueShare = unit ? blue / unit : 0;
     const detail = `darkFrac ${(darkFrac * 100).toFixed(0)}% blueShare ${(blueShare * 100).toFixed(0)}%`;
     check(`LOD z${z}: unit is not a black slab`, darkFrac < 0.2, detail);
-    check(`LOD z${z}: unit reads team-blue`, blueShare > 0.55, detail);
+    // The far/strategic view (2D sprite atlas, below the 3D swap zoom) is a solid
+    // team-coloured block — that's how you read the line from across the field.
+    // Zoomed in, the soldier is a REALISTIC figure (skin, bronze, linen) wearing
+    // only a faction ACCENT (crest, shield emblem, sash), so it can't be majority
+    // blue — but the accent must still be plainly present. One metric, two bars.
+    const teamBar = z <= 2 ? 0.55 : 0.06;
+    check(`LOD z${z}: unit shows its faction colour`, blueShare > teamBar, detail);
   }
   await lod.close();
 }

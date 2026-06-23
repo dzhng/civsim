@@ -20,7 +20,11 @@ export async function openBattle(query) {
   const errs = [];
   page.on('pageerror', (e) => errs.push(e.message));
   page.on('console', (m) => { if (m.type() === 'error') errs.push(m.text()); });
-  await page.goto(`${TARGET}/?${query}`);
+  // Vibe timelines pin the SIM's emergent behaviour, not the soldier art, so
+  // they render the flat team-coloured BLOCK model (?debug=blocks). That lets
+  // the detailed battlefield models keep evolving without re-blessing every vibe
+  // frame — exactly the "keep the block models for vibe shots" split we want.
+  await page.goto(`${TARGET}/?${query}&debug=blocks`);
   await page.waitForFunction(() => window.__ready === true, undefined, { timeout: 20000 });
   // Pin a deterministic starting tick. Boot accrues a wall-clock-VARIABLE handful
   // of real-time ticks before the harness takes control; in chaotic combat a few

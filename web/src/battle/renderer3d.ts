@@ -12,7 +12,7 @@ import { Scene } from '@babylonjs/core/scene';
 import { FreeCamera } from '@babylonjs/core/Cameras/freeCamera';
 import { Camera as BCamera } from '@babylonjs/core/Cameras/camera';
 import { PostProcess } from '@babylonjs/core/PostProcesses/postProcess';
-import { CLASS_LOOK, classGeometry } from '../shared/soldierModel';
+import { CLASS_LOOK, classGeometry, classGeometryDetailed, type Pose } from '../shared/soldierModel';
 import { HemisphericLight } from '@babylonjs/core/Lights/hemisphericLight';
 import { DirectionalLight } from '@babylonjs/core/Lights/directionalLight';
 import { Vector2, Vector3, Vector4 } from '@babylonjs/core/Maths/math.vector';
@@ -41,6 +41,27 @@ const TEAM_COLOR: [number, number, number][] = [
   [0.22, 0.41, 0.78], // player blue
   [0.78, 0.25, 0.23], // enemy red
 ];
+// Faction accent for the detailed models: realistic soldiers, told apart by a
+// coloured crest/plume, shield emblem and sash (NOT a whole-body tint). Indexed
+// by team for now; a per-unit faction id can route here later.
+const FACTION_ACCENT: [number, number, number][] = [
+  [0.20, 0.42, 0.88], // player — deep blue
+  [0.84, 0.24, 0.20], // enemy — crimson
+];
+// The detailed-model pose ladder. Each entry is baked into one mesh per
+// (class, faction); the renderer routes every soldier to the rung his sim frame
+// asks for. Order matters — the indices below name the rungs.
+const POSES: Partial<Pose>[] = [
+  { rest: 0 },                                  // 0 IDLE / alert guard
+  { rest: 0.25 }, { rest: 0.5 }, { rest: 0.75 }, { rest: 1 }, // 1-4 at-ease ladder (pikes rise)
+  { legPhase: 1, stride: 1 }, { legPhase: -1, stride: 1 },    // 5-6 march beats
+  { legPhase: 1, stride: 1.5, lean: 0.32 }, { legPhase: -1, stride: 1.5, lean: 0.32 }, // 7-8 run beats
+  { attack: 1 },                                // 9 attack strike
+  { recoil: 1 },                                // 10 hit recoil
+  { crumple: 1, recoil: 0.35 },                 // 11 death crumple
+];
+const P_IDLE = 0, P_EASE_TOP = 4, P_MARCH_A = 5, P_RUN_A = 7;
+const P_ATTACK = 9, P_HIT = 10, P_CRUMPLE = 11;
 // Below ZOOM_FLAT: pure top-down 2D sprites. Above ZOOM_3D: full tilt + 3D
 // meshes. Between, the camera tilts and the renderer switches at ZOOM_SWAP.
 // The band sits just above the fully-zoomed-out strategic view (minZoom ≈ 1.5–2
@@ -50,14 +71,15 @@ const ZOOM_FLAT = 2;
 const ZOOM_3D = 7;
 const ZOOM_SWAP = 2.4;
 const MAX_PITCH = 0.42;
-// A man stands his pike up (or levels it) over a sweep, not a snap. We build a
-// ladder of POSE_STEPS pose meshes per (class, team) — geometry lerped from the
-// fighting box (step 0) to the at-ease box (last step) — and route each soldier
-// to the nearest step of his live restFrac. Six steps reads smooth at battle
-// distance. Buckets: step*POSE_BUCKET + cls*2 + team.
-const POSE_STEPS = 6;
+// Pose meshes are built per (class, team) at each rung of a ladder and the
+// renderer routes each soldier to the rung his state asks for. Block mode uses
+// a 6-step rest ladder (geometry lerped from fighting to at-ease, for the pike
+// raise); detailed mode uses the richer POSES table (rest ladder + march/run/
+// attack/hit/death). Buckets: rung*POSE_BUCKET + cls*2 + team.
+const POSE_STEPS_BLOCK = 6;
 const POSE_BUCKET = CLASS_LOOK.length * 2;
 const REST_FULL_SECS = 0.8; // wall-clock time for a full raise/lower
+const DEATH_SECS = 0.55; // wall-clock time for a fallen man to crumple + topple
 const FRAME_REST = 6; // sim frame value the scene tags an at-ease (standing) man with
 // A pikeman who has drawn his side-arm: pike stowed UPRIGHT, but snapped there at
 // once (not the slow at-ease sweep) — so a flank fighter never shows a half-
@@ -460,6 +482,14 @@ export class BattleRenderer3D {
   /** Debug turntable: drop the scattered rocks/bushes/trees for a clean stage. */
   enableScatter = true;
   fixedTime: number | null = null;
+  /** `?debug=blocks`: render the flat team-coloured BLOCK soldiers (the vibe /
+   *  debug model) instead of the detailed faction-accented figures. Vibe shots
+   *  force this so their baselines never churn while the real models evolve. */
+  blockMode = new URLSearchParams(location.search).get('debug') === 'blocks';
+  private nPose = POSES.length; // pose rungs per (class, team); set in the ctor
+  // Per-soldier death-collapse blend in [0,1], eased up once a man falls so he
+  // crumples and tips over a beat instead of snapping flat.
+  private deathFrac = new Float32Array(0);
 
   constructor(private canvas: HTMLCanvasElement) {
     // adaptToDeviceRatio = true: size the backing store to device pixels
@@ -505,22 +535,31 @@ export class BattleRenderer3D {
     this.ground.material = this.groundMat;
     this.ground.freezeWorldMatrix();
 
-    // 3D soldier meshes: one per (class, team) at each rung of the pose ladder,
-    // geometry lerped from the fighting box (step 0) to the at-ease box (last
-    // step), so a resting man can sweep his pike up and level it again to fight.
-    // Geometry per (class, step) is built once and shared by the blue and red mesh.
-    for (let pose = 0; pose < POSE_STEPS; pose++) {
-      const restFrac = pose / (POSE_STEPS - 1);
+    // 3D soldier meshes: one per (class, team) at each rung of the pose ladder.
+    // Detailed mode bakes the full POSES table (rest ladder + march/run/attack/
+    // hit/death) with per-vertex realistic colours and a per-faction accent;
+    // block mode bakes a 6-rung rest ladder of the flat team-coloured boxes.
+    this.nPose = this.blockMode ? POSE_STEPS_BLOCK : POSES.length;
+    for (let pose = 0; pose < this.nPose; pose++) {
       for (let cls = 0; cls < CLASS_LOOK.length; cls++) {
-        const geom = classGeometry(cls, restFrac);
+        // Block geometry is team-independent (the material carries the colour);
+        // detailed geometry bakes the faction accent into its vertex colours, so
+        // it differs per team and is rebuilt for each.
+        const blockGeom = this.blockMode ? classGeometry(cls, pose / (POSE_STEPS_BLOCK - 1)) : null;
         for (let t = 0; t < 2; t++) {
           const bucket = pose * POSE_BUCKET + cls * 2 + t;
           const mesh = new Mesh(`soldier_${pose}_${cls}_${t}`, this.scene);
-          geom.applyToMesh(mesh);
-          const mat = new StandardMaterial(`soldier_${cls}_${t}`, this.scene);
-          const c = TEAM_COLOR[t];
-          mat.diffuseColor = new Color3(c[0], c[1], c[2]);
-          mat.specularColor = new Color3(0.05, 0.05, 0.05);
+          const mat = new StandardMaterial(`soldier_${pose}_${cls}_${t}`, this.scene);
+          if (this.blockMode) {
+            blockGeom!.applyToMesh(mesh);
+            const c = TEAM_COLOR[t];
+            mat.diffuseColor = new Color3(c[0], c[1], c[2]);
+            mat.specularColor = new Color3(0.05, 0.05, 0.05);
+          } else {
+            classGeometryDetailed(cls, POSES[pose], FACTION_ACCENT[t]).applyToMesh(mesh);
+            mat.diffuseColor = new Color3(1, 1, 1); // vertex colours carry the figure
+            mat.specularColor = new Color3(0.08, 0.08, 0.08);
+          }
           mesh.material = mat;
           mesh.alwaysSelectAsActiveMesh = true;
           mesh.isVisible = false;
@@ -646,6 +685,7 @@ export class BattleRenderer3D {
     this.rowOf = new Float32Array(n);
     this.sizeOf = new Float32Array(n);
     this.restFrac = new Float32Array(n);
+    this.deathFrac = new Float32Array(n);
     for (let i = 0; i < n; i++) {
       const u = soldierUnit[i];
       const cls = classes[u];
@@ -741,26 +781,26 @@ export class BattleRenderer3D {
     positions: Float32Array, facings: Float32Array, frames: Float32Array, alive: Float32Array, count: number,
   ) {
     for (let k = 0; k < this.classN.length; k++) this.classN[k] = 0;
-    // Ease every man's at-ease blend toward its target (1 at-ease, else 0) by a
-    // step sized so a full raise/lower takes REST_FULL_SECS of wall-clock, then
-    // route him to the nearest rung of the pose ladder. Frozen frames hold the
-    // clock, so the blend doesn't drift — the deployment snapshot stays stable.
+    // Ease two per-soldier blends toward their targets by a wall-clock step:
+    // the at-ease blend (pike raise/lower over REST_FULL_SECS) and the
+    // death-collapse blend (a fallen man crumples and tips over ~DEATH_SECS).
+    // Frozen frames hold the clock, so neither drifts and snapshots stay stable.
     const nowT = this.fixedTime ?? (performance.now() - this.start) / 1000;
     const dt = Math.min(0.1, Math.max(0, nowT - this.lastPoseT));
     this.lastPoseT = nowT;
-    const step = dt / REST_FULL_SECS;
-    const rf = this.restFrac;
+    const restStep = dt / REST_FULL_SECS;
+    const deathStep = dt / DEATH_SECS;
+    const rf = this.restFrac, df = this.deathFrac;
     for (let i = 0; i < count; i++) {
+      const dead = alive[i] < 0.5;
+      df[i] = dead ? Math.min(1, df[i] + deathStep) : 0;
       if (frames[i] === FRAME_STOW) { rf[i] = 1; continue; } // pike snaps upright, no sweep
       const target = frames[i] === FRAME_REST ? 1 : 0;
       const d = target - rf[i];
-      rf[i] += d > step ? step : d < -step ? -step : d;
+      rf[i] += d > restStep ? restStep : d < -restStep ? -restStep : d;
     }
     for (let i = 0; i < count; i++) {
-      // Each man routes to the pose-ladder rung nearest his eased at-ease blend;
-      // a sweeping pike passes through the intermediate rungs, not a snap.
-      const poseStep = Math.round(rf[i] * (POSE_STEPS - 1));
-      const bucket = poseStep * POSE_BUCKET + this.classOf[i] * 2 + this.teamOf[i];
+      const bucket = this.poseOf(i, frames[i]) * POSE_BUCKET + this.classOf[i] * 2 + this.teamOf[i];
       let buf = this.classMats[bucket];
       const n = this.classN[bucket];
       if ((n + 1) * 16 > buf.length) {
@@ -776,16 +816,21 @@ export class BattleRenderer3D {
       const a = f - Math.PI / 2;
       const ca = Math.cos(a), sa = Math.sin(a);
       if (alive[i] < 0.5) {
-        // Fallen: tipped onto the ground along the facing.
+        // Fallen: the crumple pose folds the man; the matrix then tips him onto
+        // the ground along his facing, eased in by the death blend so the fall
+        // reads as a topple rather than an instant plank.
+        const tip = (this.blockMode ? 1 : smoothstep(0.2, 1, df[i])) * 0.25;
+        const lift = this.blockMode ? 0.05 : 0.05 + (1 - smoothstep(0.2, 1, df[i])) * 0.5 * s;
         buf[o] = ca * s; buf[o + 1] = sa * s; buf[o + 2] = 0; buf[o + 3] = 0;
         buf[o + 4] = 0; buf[o + 5] = 0; buf[o + 6] = s; buf[o + 7] = 0;
-        buf[o + 8] = sa * 0.25 * s; buf[o + 9] = -ca * 0.25 * s; buf[o + 10] = 0.25 * s; buf[o + 11] = 0;
-        buf[o + 12] = x; buf[o + 13] = y; buf[o + 14] = 0.05; buf[o + 15] = 1;
+        buf[o + 8] = sa * tip * s; buf[o + 9] = -ca * tip * s; buf[o + 10] = tip * s; buf[o + 11] = 0;
+        buf[o + 12] = x; buf[o + 13] = y; buf[o + 14] = lift; buf[o + 15] = 1;
       } else {
-        // Animation from the sim's frame: a marching bob (walk beats 1/2)
-        // and a forward thrust (attack beat 3, alternating with 0).
+        // A little bob/lurch on top of the limb poses: marching rises, a strike
+        // lunges the body forward. The detailed poses carry the limb motion;
+        // this keeps the block model (no limbs) lively too.
         const fr = frames[i];
-        const bob = fr === 1 ? 0.06 : fr === 3 ? 0.04 : 0;
+        const bob = fr === 1 || fr === 8 ? 0.06 : fr === 3 ? 0.04 : 0;
         const lurch = fr === 3 ? 0.16 : 0;
         buf[o] = ca * s; buf[o + 1] = sa * s; buf[o + 2] = 0; buf[o + 3] = 0;
         buf[o + 4] = -sa * s; buf[o + 5] = ca * s; buf[o + 6] = 0; buf[o + 7] = 0;
@@ -800,6 +845,29 @@ export class BattleRenderer3D {
       mesh.isVisible = n > 0;
       if (n > 0) mesh.thinInstanceSetBuffer('matrix', this.classMats[k].subarray(0, n * 16), 16, false);
       mesh.thinInstanceCount = n;
+    }
+  }
+
+  /** Route a soldier to a pose-ladder rung. Block mode keeps the 6-rung rest
+   *  ladder (only the pike posture differs); detailed mode maps the sim frame
+   *  to the matching limb pose, and a fallen man to a hit→crumple sequence. */
+  private poseOf(i: number, frame: number): number {
+    if (this.blockMode) {
+      const stow = frame === FRAME_STOW;
+      return Math.round((stow ? 1 : this.restFrac[i]) * (POSE_STEPS_BLOCK - 1));
+    }
+    if (this.deathFrac[i] > 0) return this.deathFrac[i] < 0.4 ? P_HIT : P_CRUMPLE;
+    switch (frame) {
+      case 1: return P_MARCH_A;      // march beat A
+      case 2: return P_MARCH_A + 1;  // march beat B
+      case 8: return P_RUN_A;        // run beat A
+      case 9: return P_RUN_A + 1;    // run beat B
+      case 3: return P_ATTACK;       // strike
+      case 10: return P_HIT;         // flinch
+      case 5: return P_IDLE;         // weapon fumble
+      case 6: return Math.round(this.restFrac[i] * P_EASE_TOP); // at-ease ladder
+      case 7: return P_EASE_TOP;     // stowed pike: upright
+      default: return P_IDLE;        // 0 alert guard
     }
   }
 
@@ -818,9 +886,13 @@ export class BattleRenderer3D {
       m[o + 4] = -sa * s; m[o + 5] = ca * s; m[o + 6] = 0; m[o + 7] = 0;
       m[o + 8] = 0; m[o + 9] = 0; m[o + 10] = s; m[o + 11] = 0;
       m[o + 12] = x; m[o + 13] = y; m[o + 14] = alive[i] < 0.5 ? -0.05 : 0; m[o + 15] = 1;
-      // The atlas has no at-ease frame (you can't read a raised pike from afar);
-      // standing is standing in the flat 2D view.
-      cells[2 * i] = frames[i] === FRAME_REST || frames[i] === FRAME_STOW ? 0 : frames[i];
+      // The atlas has no at-ease/run/flinch frames (you can't read a raised pike
+      // or a stride from afar); fold them onto the cells it does have: rest/stow
+      // → stand, run → march, flinch → fighting.
+      const fr = frames[i];
+      cells[2 * i] = fr === FRAME_REST || fr === FRAME_STOW ? 0
+        : fr === 8 || fr === 9 ? 1 + (fr & 1)
+          : fr === 10 ? 3 : fr;
       cells[2 * i + 1] = this.rowOf[i];
     }
     this.sprite.isVisible = count > 0;

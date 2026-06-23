@@ -801,9 +801,11 @@ export class BattleScene implements Scene {
         const info = unitInfo();
         const uc = game.unit_count();
         const atEase = new Uint8Array(uc);
+        const running = new Uint8Array(uc);
         for (let u = 0; u < uc; u++) {
           const o = u * STRIDE;
           atEase[u] = info[o + 17] > 0.5 ? 1 : 0;
+          running[u] = info[o + 9] > 0.5 ? 1 : 0;
         }
         if (unitTopY.length < uc) unitTopY = new Float32Array(uc);
         unitTopY.fill(-Infinity, 0, uc);
@@ -819,12 +821,17 @@ export class BattleScene implements Scene {
           } else if (switchCd[i] > 0) {
             frames[i] = 5; // fumbling the weapon swap
           } else if (fighting[i]) {
-            frames[i] = ((t * 2.5 + i * 0.7) | 0) % 2 ? 3 : 0; // trading blows
+            // Trading blows: a thrust beat alternating with a guard, and ~1/3 of
+            // the men on the off-beat flinching (a hit reaction) so a melee
+            // reads as give-and-take, not synchronized stabbing.
+            frames[i] = ((t * 2.5 + i * 0.7) | 0) % 2 ? 3 : i % 3 === 0 ? 10 : 0;
           } else {
             const dx = pos[2 * i] - prevPos[2 * i];
             const dy = pos[2 * i + 1] - prevPos[2 * i + 1];
-            if (dx * dx + dy * dy > 0.0004) frames[i] = 1 + (((t * 4 + i) | 0) % 2); // marching
-            else frames[i] = atEase[sUnit[i]] ? 6 : 0; // at ease (pikes up) or alert stand
+            if (dx * dx + dy * dy > 0.0004) {
+              const beat = ((t * 4 + i) | 0) % 2;
+              frames[i] = running[sUnit[i]] ? 8 + beat : 1 + beat; // run vs march beats
+            } else frames[i] = atEase[sUnit[i]] ? 6 : 0; // at ease (pikes up) or alert stand
           }
           // Render the weapon in hand, aimed EXACTLY as physics aims it (so the
           // picture never lies about who can hit whom). A braced pike is leveled

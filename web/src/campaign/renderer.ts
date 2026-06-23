@@ -304,33 +304,6 @@ export class CampaignRenderer {
       ctx.textBaseline = 'alphabetic';
     }
 
-    // Faction names over their territory at political-map zoom (faction view).
-    const labelAlpha = 1 - Math.min(1, Math.max(0, (z - 0.3) / 0.12));
-    if (factionView && labelAlpha > 0.02) {
-      for (const l of factionLabels) {
-        if (hidden(l.x, l.y)) continue;
-        const p = pt(l.x, l.y);
-        if (!p) continue;
-        const size = Math.min(54, Math.max(18, l.radiusKm * z * 0.55));
-        ctx.font = `700 ${size}px ${MAP_FONT}`;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.letterSpacing = `${Math.max(1, size * 0.07)}px`;
-        ctx.globalAlpha = labelAlpha;
-        // Engraved caps: a dark cushion, then a luminous tint of the faction hue.
-        ctx.lineWidth = Math.max(2.5, size / 7);
-        ctx.lineJoin = 'round';
-        ctx.strokeStyle = 'rgba(18,14,10,0.78)';
-        ctx.fillStyle = `rgb(${Math.min(255, l.color[0] + 110)},${Math.min(255, l.color[1] + 110)},${Math.min(255, l.color[2] + 110)})`;
-        const name = l.name.toUpperCase();
-        ctx.strokeText(name, p[0], p[1]);
-        ctx.fillText(name, p[0], p[1]);
-        ctx.globalAlpha = 1;
-        ctx.letterSpacing = '0px';
-        ctx.textAlign = 'left';
-        ctx.textBaseline = 'alphabetic';
-      }
-    }
 
     // Cities: squares colored by owner, sized by tier; junction dots at zoom.
     data.map.nodes.forEach((n, i) => {
@@ -509,6 +482,36 @@ export class CampaignRenderer {
         const label = `${Math.round(a.soldiers / 100) / 10}k`;
         ctx.strokeText(label, sx + 4, sy + 9);
         ctx.fillText(label, sx + 4, sy + 9);
+      }
+    }
+
+    // Faction names: drawn LAST so the engraved country text sits above the
+    // city dots and everything else. Political zoom + faction view only.
+    const labelAlpha = 1 - Math.min(1, Math.max(0, (z - 0.3) / 0.12));
+    if (factionView && labelAlpha > 0.02) {
+      for (const l of factionLabels) {
+        if (hidden(l.x, l.y)) continue;
+        const p = pt(l.x, l.y);
+        if (!p) continue;
+        const size = Math.min(54, Math.max(18, l.radiusKm * z * 0.55));
+        ctx.font = `700 ${size}px ${MAP_FONT}`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.letterSpacing = `${Math.max(1, size * 0.07)}px`;
+        ctx.globalAlpha = labelAlpha;
+        // Engraved caps: a dark cushion under a clean ivory-white fill — the
+        // territory colour already carries the faction's identity.
+        ctx.lineWidth = Math.max(2.5, size / 6);
+        ctx.lineJoin = 'round';
+        ctx.strokeStyle = 'rgba(16,12,8,0.85)';
+        ctx.fillStyle = 'rgba(250,248,243,0.97)';
+        const name = l.name.toUpperCase();
+        ctx.strokeText(name, p[0], p[1]);
+        ctx.fillText(name, p[0], p[1]);
+        ctx.globalAlpha = 1;
+        ctx.letterSpacing = '0px';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'alphabetic';
       }
     }
   }

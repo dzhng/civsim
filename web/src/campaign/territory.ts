@@ -150,6 +150,58 @@ export class Territory {
     return { land: land[i], node, owner: node >= 0 ? (cities.get(node)?.owner ?? -1) : -1 };
   }
 
+  /** Reassign each small, mostly-enclosed UNALIGNED region to the playable
+   *  power that rings it, so a minor city-state can't split a faction's land
+   *  into discontinuous islands. Components larger than ABSORB_MAX cells (a
+   *  genuine independent region) are left alone. Mutates `owner` in place. */
+  private absorbPockets(owner: Int16Array) {
+    const { w, h } = this.field;
+    const factions = this.data.map.factions;
+    const playable = (f: number) => f >= 0 && !!factions[f]?.playable;
+    const ABSORB_MAX = 900; // cells (8 km each) — below a real neutral region
+    const seen = new Uint8Array(w * h);
+    const comp: number[] = [];
+    const stack: number[] = [];
+    for (let s = 0; s < owner.length; s++) {
+      if (seen[s]) continue;
+      seen[s] = 1;
+      const f0 = owner[s];
+      if (f0 < 0 || playable(f0)) continue; // only flood unaligned land
+      // Flood this unaligned component (4-connected), tallying the playable
+      // factions on its land border.
+      comp.length = 0;
+      stack.length = 0;
+      stack.push(s);
+      const border = new Map<number, number>();
+      while (stack.length) {
+        const i = stack.pop()!;
+        comp.push(i);
+        const gx = i % w;
+        const gy = (i / w) | 0;
+        const nb = [gx > 0 ? i - 1 : -1, gx < w - 1 ? i + 1 : -1, gy > 0 ? i - w : -1, gy < h - 1 ? i + w : -1];
+        for (const j of nb) {
+          if (j < 0) continue;
+          const fj = owner[j];
+          if (fj === f0) {
+            if (!seen[j]) { seen[j] = 1; stack.push(j); }
+          } else if (playable(fj)) {
+            border.set(fj, (border.get(fj) ?? 0) + 1);
+          }
+        }
+      }
+      if (comp.length > ABSORB_MAX) continue; // a real neutral region — keep it
+      // Dominant enclosing power (needs a clear majority of the land border).
+      let domF = -1;
+      let domC = 0;
+      let tot = 0;
+      for (const [f, c] of border) {
+        tot += c;
+        if (c > domC) { domC = c; domF = f; }
+      }
+      if (domF >= 0 && domC >= tot * 0.6) for (const i of comp) owner[i] = domF;
+    }
+  }
+
   /** Recolor the overlay from current city ownership. */
   rebuild(cities: Map<number, CityView>) {
     const { w, h, cell } = this.field;
@@ -162,6 +214,12 @@ export class Territory {
       const n = nearest[i];
       if (n >= 0) owner[i] = cities.get(n)?.owner ?? -1;
     }
+
+    // Fold small unaligned pockets into the power that surrounds them: a lone
+    // neutral city wedged among one faction's holdings reads as a hole/split in
+    // that faction. Large neutral regions (a whole independent coast) exceed the
+    // size cap and stay their own colour.
+    this.absorbPockets(owner);
 
     const cells = factions.map(() => 0);
     rgba.fill(0);

@@ -164,16 +164,18 @@ void main() {
     // and crisp at every zoom instead of magnifying into a baked blocky band.
     float own = texture2D(uOwner, vUV).r;
     if (own > 0.0015 && uFx.x > 0.001) {
-      vec2 bd = fwidth(vUV) * 1.3;
+      vec2 bd = fwidth(vUV) * 2.3; // ~4.5 screen-px border, constant at any zoom
       float e = abs(texture2D(uOwner, vUV + vec2(bd.x, 0.0)).r - own)
               + abs(texture2D(uOwner, vUV - vec2(bd.x, 0.0)).r - own)
               + abs(texture2D(uOwner, vUV + vec2(0.0, bd.y)).r - own)
-              + abs(texture2D(uOwner, vUV - vec2(0.0, bd.y)).r - own);
+              + abs(texture2D(uOwner, vUV - vec2(0.0, bd.y)).r - own)
+              + abs(texture2D(uOwner, vUV + bd).r - own)
+              + abs(texture2D(uOwner, vUV - bd).r - own);
       float border = clamp(e * 255.0, 0.0, 1.0);
-      // Borders keep a strength floor so the political lines stay visible as
-      // thin strokes even once the fill thins out into 3D terrain.
-      float bA = max(uFx.x, 0.42);
-      col = mix(col, vec3(0.10, 0.08, 0.07), border * bA * 0.55);
+      // Borders keep a strength floor so the political lines stay a firm, dark
+      // stroke even once the colour fill thins out into 3D terrain.
+      float bA = max(uFx.x, 0.55);
+      col = mix(col, vec3(0.06, 0.05, 0.045), border * bA * 0.82);
     }
   }
 

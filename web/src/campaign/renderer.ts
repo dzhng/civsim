@@ -232,9 +232,11 @@ export class CampaignRenderer {
       }
       const lvl = sea ? 1 : (roadLevels?.[ei] ?? 1);
       ctx.lineWidth = (sea ? 1 : Math.max(1, z * 1.6)) * (0.7 + 0.3 * lvl);
+      // Paved roads read as granite: a cool neutral stone that lightens as the
+      // road is upgraded (a fresh-cut flagstone look), not the old earth brown.
       ctx.strokeStyle = sea
         ? 'rgba(140,180,220,0.25)'
-        : `rgba(${62 + lvl * 18},${46 + lvl * 14},${32 + lvl * 8},${0.8 * roadAlpha})`;
+        : `rgba(${120 + lvl * 12},${118 + lvl * 12},${114 + lvl * 11},${0.85 * roadAlpha})`;
       ctx.setLineDash(sea ? [6, 6] : []);
       for (const poly of segments) {
         ctx.beginPath();

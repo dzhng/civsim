@@ -105,6 +105,14 @@ function roadPolylines(
     });
 }
 
+/** The road's painted half-width in world km at zoom `z`: a round cap plus its
+ *  shadow lip. Roads are stroked in screen px (zoom-independent), so this grows
+ *  in km as we zoom out — trims add it so the stroke clears a model cleanly. */
+function roadCapKm(z: number): number {
+  const roadW = Math.max(1.6, z * 2.4);
+  return (roadW * 0.5 + Math.max(0.9, roadW * 0.55)) / Math.max(z, 0.001);
+}
+
 export class CampaignRenderer {
   private ctx: CanvasRenderingContext2D;
   /** terrain height at each edge's via points, sampled once (terrain is static) */
@@ -153,7 +161,12 @@ export class CampaignRenderer {
     const n = data.map.nodes[idx];
     if (n.kind !== 'city') return 0;
     const s = n.tier >= 3 ? 1.9 : n.tier === 2 ? 1.35 : 0.95;
-    return 4.3 * s; // ~the rampart ring (diameter 9.5 * s) in world km
+    // Clear the whole rampart footprint (radius ~4.8*s km, the torus of
+    // diameter 9.5*s plus its shadow) AND the road's own painted half-width, so
+    // the causeway meets the wall instead of streaking across the model. The
+    // road is stroked in screen px, so its half-width is more km the further out
+    // we are zoomed — hence the 1/z term (worst at the model-popping zoom).
+    return 4.8 * s + roadCapKm(z);
   }
 
   private viaHeights(ei: number): Float32Array {
@@ -201,7 +214,7 @@ export class CampaignRenderer {
     // The overlay paints over the 3D army/city models, so once they show the
     // road is gapped where it would streak across one: trimmed at town walls
     // and broken around each army's footprint.
-    const armyR = z >= ARMY_MIN_SCALE ? 1.9 * Math.min(13, Math.max(5, 80 / (3.2 * z))) : 0;
+    const armyR = z >= ARMY_MIN_SCALE ? 1.9 * Math.min(13, Math.max(5, 80 / (3.2 * z))) + roadCapKm(z) : 0;
     const armyPts = armyR > 0 ? armies.map((a) => ({ x: a.x, y: a.y, r: armyR })) : [];
 
     // Edges. Roads fade out at political-map zoom; sea lanes faint dashes.

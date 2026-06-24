@@ -484,6 +484,17 @@ export class Terrain3D {
   private shadowMat!: ShaderMaterial;
   private roadMat!: ShaderMaterial;
   private roadMesh: Mesh | null = null;
+  private mountainMesh: Mesh | null = null;
+  private rockMesh: Mesh | null = null;
+  private mtnShadow: Mesh | null = null;
+  private sceneMat!: ShaderMaterial;
+  // Carts crawling the trunk roads: a cart mesh thin-instanced once, its
+  // transforms rewritten each frame from progress along a road centreline.
+  private cartMesh: Mesh | null = null;
+  private cartShadow: Mesh | null = null;
+  private carts: { path: [number, number][]; cum: number[]; len: number; speed: number; phase: number; dir: 1 | -1 }[] = [];
+  /** Resampled trunk-road centrelines, kept so carts can travel them. */
+  private roadPaths: { path: [number, number][]; cum: number[]; len: number }[] = [];
   private armyShadow: Mesh | null = null;
   private cityShadow: Mesh | null = null;
   /** city node index per thin instance, for owner-color lookups */
@@ -584,6 +595,16 @@ export class Terrain3D {
     this.modelMat.setVector3('uSun', new Vector3(...SUN));
     this.modelMat.setColor3('uFogC', new Color3(0.71, 0.71, 0.68));
 
+    // Scenery (mountains, rocks, carts) shares the lit model shader but keeps
+    // both faces — the low-poly peaks are open shells, not closed solids.
+    this.sceneMat = new ShaderMaterial('scene', scene, 'campModel', {
+      attributes: ['position', 'normal', 'color', 'world0', 'world1', 'world2', 'world3', 'iColor'],
+      uniforms: ['viewProjection', 'uSun', 'uFogC', 'uFogD', 'uFogStr'],
+    });
+    this.sceneMat.setVector3('uSun', new Vector3(...SUN));
+    this.sceneMat.setColor3('uFogC', new Color3(0.71, 0.71, 0.68));
+    this.sceneMat.backFaceCulling = false;
+
     this.shadowMat = new ShaderMaterial('shadow', scene, 'campShadow', {
       attributes: ['position', 'world0', 'world1', 'world2', 'world3'],
       uniforms: ['viewProjection', 'uStr'],
@@ -601,10 +622,12 @@ export class Terrain3D {
     this.roadMat.backFaceCulling = false; // opaque: writes depth so models occlude it
 
     this.buildTerrain();
+    this.buildScenery();
     this.buildTrees();
     this.buildArmyModels();
     this.buildCityModel(data);
     this.buildRoads(data);
+    this.buildCarts();
 
     // FXAA + a whisper of bloom and vignette: the part of the Rome 2 look
     // the surface shaders can't do alone.
@@ -677,8 +700,9 @@ export class Terrain3D {
           const size = 2.0 + hash2(gx + t, gy + t) * 1.8;
           const z = this.field.heightAt(x, y) - 0.15;
           const out = hash2(gx * 5 + t, gy * 11) < (y > TEMPERATE_Y_KM ? 0.75 : 0.25) ? conifer : broadleaf;
-          // column-major TRS: scale (w, 1, h), translate (x, y, z)
-          out.push(size * 0.72, 0, 0, 0, 0, 1, 0, 0, 0, 0, size, 0, x, y, z, 1);
+          // column-major TRS: scale (w, w, h), translate (x, y, z). x and y
+          // scale alike so the crossed quads keep a round canopy footprint.
+          out.push(size * 0.72, 0, 0, 0, 0, size * 0.72, 0, 0, 0, 0, size, 0, x, y, z, 1);
         }
       }
     }
@@ -686,10 +710,17 @@ export class Terrain3D {
       if (!mats.length) return;
       const m = new Mesh(name, this.scene);
       const vd = new VertexData();
-      // vertical quad, base at origin, spanning world x and z
-      vd.positions = [-0.5, 0, 0, 0.5, 0, 0, -0.5, 0, 1, 0.5, 0, 1];
-      vd.indices = [0, 1, 2, 2, 1, 3];
-      vd.uvs = [u0, 0, u0 + 0.5, 0, u0, 1, u0 + 0.5, 1];
+      // Two crossed vertical quads (XZ + YZ) so the tree holds volume from any
+      // angle instead of reading as a flat cutout; both sample the same atlas.
+      vd.positions = [
+        -0.5, 0, 0, 0.5, 0, 0, -0.5, 0, 1, 0.5, 0, 1,
+        0, -0.5, 0, 0, 0.5, 0, 0, -0.5, 1, 0, 0.5, 1,
+      ];
+      vd.indices = [0, 1, 2, 2, 1, 3, 4, 5, 6, 6, 5, 7];
+      vd.uvs = [
+        u0, 0, u0 + 0.5, 0, u0, 1, u0 + 0.5, 1,
+        u0, 0, u0 + 0.5, 0, u0, 1, u0 + 0.5, 1,
+      ];
       vd.applyToMesh(m);
       m.material = this.treeMat;
       m.thinInstanceSetBuffer('matrix', new Float32Array(mats), 16, true);
@@ -838,6 +869,7 @@ export class Terrain3D {
       }
     };
 
+    this.roadPaths = [];
     for (let ei = 0; ei < data.map.edges.length; ei++) {
       const e = data.map.edges[ei];
       if (e.kind === 'sea') continue;
@@ -861,6 +893,13 @@ export class Terrain3D {
       // shadowed lip; then the brighter stone surface on top.
       ribbon(center, halfW * 1.5, 0.18, 0.33, 0.28, 0.23);
       ribbon(center, halfW, 0.32, sh, sh * 0.98, sh * 0.93);
+      // Keep the centreline (with cumulative arc length) for cart traffic.
+      const cum = [0];
+      for (let i = 1; i < center.length; i++) {
+        cum.push(cum[i - 1] + Math.hypot(center[i][0] - center[i - 1][0], center[i][1] - center[i - 1][1]));
+      }
+      const len = cum[cum.length - 1];
+      if (len > 24) this.roadPaths.push({ path: center, cum, len });
     }
     if (this.roadMesh) {
       this.roadMesh.dispose();
@@ -877,6 +916,237 @@ export class Terrain3D {
     m.isPickable = false;
     m.freezeWorldMatrix();
     this.roadMesh = m;
+  }
+
+  /** A flat-shaded low-poly peak: an n-sided spire, apex up (+z), base on the
+   *  XY plane, ramparts jittered for a craggy silhouette. Faces are built from
+   *  independent vertices so each reads as its own facet. baseCol shades the
+   *  flanks, topCol the summit (a paler rock/snow highlight). */
+  private peakMesh(name: string, sides: number, baseCol: number[], topCol: number[], seed: number): Mesh {
+    const positions: number[] = [];
+    const colors: number[] = [];
+    const indices: number[] = [];
+    const ax = (hash2(seed, 1) - 0.5) * 0.3;
+    const ay = (hash2(seed, 2) - 0.5) * 0.3; // a slight lean off-axis
+    const ring: [number, number][] = [];
+    for (let i = 0; i < sides; i++) {
+      const a = (i / sides) * Math.PI * 2;
+      const rr = 0.78 + hash2(seed + i, 3) * 0.44;
+      ring.push([Math.cos(a) * rr, Math.sin(a) * rr]);
+    }
+    for (let i = 0; i < sides; i++) {
+      const b0 = ring[i];
+      const b1 = ring[(i + 1) % sides];
+      const base = positions.length / 3;
+      positions.push(ax, ay, 1); colors.push(topCol[0], topCol[1], topCol[2], 0);
+      positions.push(b0[0], b0[1], 0); colors.push(baseCol[0], baseCol[1], baseCol[2], 0);
+      positions.push(b1[0], b1[1], 0); colors.push(baseCol[0], baseCol[1], baseCol[2], 0);
+      indices.push(base, base + 1, base + 2);
+    }
+    const normals: number[] = [];
+    VertexData.ComputeNormals(positions, indices, normals);
+    const mesh = new Mesh(name, this.scene);
+    const vd = new VertexData();
+    vd.positions = positions;
+    vd.indices = indices;
+    vd.normals = normals;
+    vd.colors = colors;
+    vd.applyToMesh(mesh);
+    return mesh;
+  }
+
+  /** A massif: a tall central spire flanked by two lesser peaks, merged and
+   *  normalised to ~unit radius/height so the per-instance scale sets the size. */
+  private buildMountainMesh(): Mesh {
+    const stone = [0.50, 0.46, 0.40];
+    const cap = [0.74, 0.72, 0.68];
+    const main = this.peakMesh('mtnA', 7, stone, cap, 11);
+    const f1 = this.peakMesh('mtnB', 6, stone, cap, 23);
+    f1.scaling.set(0.6, 0.6, 0.62);
+    f1.position.set(0.75, 0.35, 0);
+    const f2 = this.peakMesh('mtnC', 6, stone, cap, 37);
+    f2.scaling.set(0.52, 0.52, 0.5);
+    f2.position.set(-0.65, -0.45, 0);
+    const merged = Mesh.MergeMeshes([main, f1, f2], true, true)!;
+    merged.name = 'mountains';
+    merged.material = this.sceneMat;
+    merged.setEnabled(false);
+    return merged;
+  }
+
+  /** A single squat boulder for rocky-but-low ground. */
+  private buildRockMesh(): Mesh {
+    const m = this.peakMesh('rock', 6, [0.47, 0.44, 0.40], [0.56, 0.53, 0.49], 5);
+    m.material = this.sceneMat;
+    m.setEnabled(false);
+    return m;
+  }
+
+  /** Scatter mountains and rocks across the relief: tall rocky cells get a
+   *  massif, merely-rocky cells get boulder clusters. Static thin instances,
+   *  seeded by cell hash so the placement is deterministic. Mountains drop a
+   *  contact shadow to anchor them to the ground. */
+  private buildScenery() {
+    const f = this.field;
+    const { w, h, cell, minX, maxY } = f;
+    this.mountainMesh = this.buildMountainMesh();
+    this.rockMesh = this.buildRockMesh();
+    const mtn: number[] = [];
+    const rock: number[] = [];
+    const pushM = (arr: number[], sx: number, sy: number, sz: number, yaw: number, x: number, y: number, z: number) => {
+      const c = Math.cos(yaw);
+      const s = Math.sin(yaw);
+      arr.push(c * sx, s * sx, 0, 0, -s * sy, c * sy, 0, 0, 0, 0, sz, 0, x, y, z, 1);
+    };
+    for (let gy = 0; gy < h; gy++) {
+      for (let gx = 0; gx < w; gx++) {
+        const i = gy * w + gx;
+        if (!f.land[i]) continue;
+        const rk = f.biome[i * 4 + 2] / 255;
+        const hh = f.height[i] / (f.maxH || 1);
+        const x0 = minX + (gx + 0.5) * cell;
+        const y0 = maxY - (gy + 0.5) * cell;
+        const score = hh * 0.85 + rk * 0.5;
+        if (score > 0.66 && hash2(gx * 3 + 1, gy * 7 + 2) < 0.42) {
+          const x = x0 + (hash2(gx, gy * 2) - 0.5) * cell * 0.7;
+          const y = y0 + (hash2(gx * 2, gy) - 0.5) * cell * 0.7;
+          const z = Math.max(0, f.heightAt(x, y));
+          const rad = cell * 0.5 * (0.7 + rk * 0.5);
+          const tall = 2.4 + rk * 4.5 + hh * 4.5;
+          pushM(mtn, rad, rad, tall, hash2(gx + 3, gy + 5) * 6.28, x, y, z);
+        } else if (rk > 0.3 && hash2(gx * 5, gy * 9) < rk * 0.6) {
+          const cnt = 1 + Math.floor(hash2(gx, gy) * 2.5);
+          for (let t = 0; t < cnt; t++) {
+            const x = x0 + (hash2(gx * 7 + t, gy * 11) - 0.5) * cell * 1.2;
+            const y = y0 + (hash2(gx * 5 + t, gy * 13) - 0.5) * cell * 1.2;
+            const z = Math.max(0, f.heightAt(x, y));
+            const rad = 0.9 + hash2(gx + t, gy) * 1.7;
+            const tall = 0.7 + hash2(gx, gy + t) * 1.4;
+            pushM(rock, rad, rad, tall, hash2(t + 1, gx) * 6.28, x, y, z);
+          }
+        }
+      }
+    }
+    const [x0, y0, x1, y1] = this.bgRect;
+    const bounds = new BoundingInfo(new Vector3(x0, y0, 0), new Vector3(x1, y1, 60));
+    if (mtn.length) {
+      this.mountainMesh.thinInstanceSetBuffer('matrix', new Float32Array(mtn), 16, true);
+      this.mountainMesh.thinInstanceSetBuffer('iColor', new Float32Array((mtn.length / 16) * 4), 4, true);
+      this.mountainMesh.setBoundingInfo(bounds);
+      this.mountainMesh.isPickable = false;
+      const cnt = mtn.length / 16;
+      const shad = new Float32Array(cnt * 16);
+      for (let k = 0; k < cnt; k++) {
+        const o = k * 16;
+        const rad = Math.hypot(mtn[o], mtn[o + 1]);
+        this.shadowMatrix(shad, o, mtn[o + 12], mtn[o + 13], mtn[o + 14], rad * 0.9);
+      }
+      this.mtnShadow = this.shadowQuad('mtnShadow');
+      this.mtnShadow.thinInstanceSetBuffer('matrix', shad, 16, true);
+      this.mtnShadow.setBoundingInfo(bounds);
+    }
+    if (rock.length) {
+      this.rockMesh.thinInstanceSetBuffer('matrix', new Float32Array(rock), 16, true);
+      this.rockMesh.thinInstanceSetBuffer('iColor', new Float32Array((rock.length / 16) * 4), 4, true);
+      this.rockMesh.setBoundingInfo(bounds);
+      this.rockMesh.isPickable = false;
+    }
+  }
+
+  /** One ox-cart — a timber bed under a canvas tilt — merged and thin-instanced
+   *  per cart, its length along +x so a yaw aligns it with the road. */
+  private buildCartModel() {
+    const parts: Mesh[] = [];
+    const bed = CreateBox('cb', { width: 2.0, depth: 0.95, height: 0.55 }, this.scene);
+    bed.rotation.x = Math.PI / 2;
+    bed.position.set(0, 0, 0.45);
+    parts.push(this.paint(bed, 0.42, 0.30, 0.20, 0)); // timber
+    const tilt = CreateBox('ct', { width: 1.5, depth: 0.85, height: 0.62 }, this.scene);
+    tilt.rotation.x = Math.PI / 2;
+    tilt.position.set(-0.05, 0, 1.0);
+    parts.push(this.paint(tilt, 0.84, 0.79, 0.68, 0)); // canvas tilt
+    const ox = CreateBox('cox', { width: 0.9, depth: 0.6, height: 0.65 }, this.scene);
+    ox.rotation.x = Math.PI / 2;
+    ox.position.set(1.45, 0, 0.4);
+    parts.push(this.paint(ox, 0.34, 0.26, 0.20, 0)); // the beast in harness
+    const merged = Mesh.MergeMeshes(parts, true, true);
+    if (!merged) return;
+    merged.name = 'carts';
+    merged.material = this.sceneMat;
+    merged.alwaysSelectAsActiveMesh = true;
+    merged.isPickable = false;
+    merged.setEnabled(false);
+    this.cartMesh = merged;
+    this.cartShadow = this.shadowQuad('cartShadow');
+  }
+
+  /** Seed carts onto the trunk roads — roughly one per 70km of road, capped —
+   *  each with a deterministic phase, speed and travel direction. */
+  private buildCarts() {
+    this.buildCartModel();
+    this.carts = [];
+    let seed = 0;
+    for (const r of this.roadPaths) {
+      const n = Math.max(1, Math.round(r.len / 70));
+      for (let k = 0; k < n && this.carts.length < 160; k++) {
+        const hp = hash2(seed * 2 + 1, k * 5 + 3);
+        const hs = hash2(seed * 3 + 7, k * 2 + 1);
+        this.carts.push({
+          path: r.path,
+          cum: r.cum,
+          len: r.len,
+          speed: 2.8 + hs * 3.4, // km/s — a steady crawl at gameplay zoom
+          phase: hp * r.len,
+          dir: hash2(seed + k, 9) < 0.5 ? 1 : -1,
+        });
+        seed++;
+      }
+    }
+    if (this.cartMesh && this.carts.length) {
+      this.cartMesh.thinInstanceSetBuffer('matrix', new Float32Array(this.carts.length * 16), 16, false);
+      this.cartMesh.thinInstanceSetBuffer('iColor', new Float32Array(this.carts.length * 4), 4, true);
+      this.cartShadow?.thinInstanceSetBuffer('matrix', new Float32Array(this.carts.length * 16), 16, false);
+    }
+  }
+
+  /** Reposition every cart along its road from the shared clock; called each
+   *  frame before draw. Hidden under fog where the player has no sight. */
+  private updateCarts(time: number, fogOfWar: boolean) {
+    const m = this.cartMesh;
+    if (!m || !this.carts.length) return;
+    const buf = new Float32Array(this.carts.length * 16);
+    const shad = new Float32Array(this.carts.length * 16);
+    for (let ci = 0; ci < this.carts.length; ci++) {
+      const c = this.carts[ci];
+      let d = (c.phase + time * c.speed) % c.len;
+      if (c.dir < 0) d = c.len - d;
+      // locate the segment holding arc-length d
+      let lo = 0;
+      while (lo + 1 < c.cum.length && c.cum[lo + 1] < d) lo++;
+      const segLen = (c.cum[lo + 1] ?? c.cum[lo]) - c.cum[lo] || 1;
+      const t = (d - c.cum[lo]) / segLen;
+      const a = c.path[lo];
+      const b = c.path[Math.min(lo + 1, c.path.length - 1)];
+      const x = a[0] + (b[0] - a[0]) * t;
+      const y = a[1] + (b[1] - a[1]) * t;
+      let tx = (b[0] - a[0]) * c.dir;
+      let ty = (b[1] - a[1]) * c.dir;
+      const tl = Math.hypot(tx, ty) || 1;
+      tx /= tl; ty /= tl;
+      const o = ci * 16;
+      if (fogOfWar && this.visibleAt(x, y) < 0.35) {
+        // degenerate transform → nothing rasterises for unseen carts
+        buf[o + 15] = 1;
+        shad[o + 15] = 1;
+        continue;
+      }
+      const z = Math.max(0, this.field.heightAt(x, y)) + 0.12;
+      buf[o] = tx; buf[o + 1] = ty; buf[o + 4] = -ty; buf[o + 5] = tx; buf[o + 10] = 1;
+      buf[o + 12] = x; buf[o + 13] = y; buf[o + 14] = z; buf[o + 15] = 1;
+      this.shadowMatrix(shad, o, x, y, z, 1.0);
+    }
+    m.thinInstanceSetBuffer('matrix', buf, 16, false);
+    this.cartShadow?.thinInstanceSetBuffer('matrix', shad, 16, false);
   }
 
   /** One settlement — a walled knot of terracotta-roofed buildings under a
@@ -1260,6 +1530,17 @@ export class Terrain3D {
     this.roadMesh?.setEnabled(cam.scale >= 0.4);
     this.roadMat.setFloat('uFogD', 1 / (this.dist * 4.5));
     this.roadMat.setFloat('uFogStr', tilt * 0.85);
+    // Relief props: mountains read from a fair way out; rocks join the trees.
+    this.mountainMesh?.setEnabled(cam.scale >= 0.28);
+    this.mtnShadow?.setEnabled(cam.scale >= 0.28);
+    this.rockMesh?.setEnabled(cam.scale >= TREE_MIN_SCALE);
+    // Cart traffic crawls the roads once the world is tilted into 3D.
+    const cartsOn = cam.scale >= 0.6 && this.carts.length > 0;
+    this.cartMesh?.setEnabled(cartsOn);
+    this.cartShadow?.setEnabled(cartsOn);
+    if (cartsOn) this.updateCarts(time, fogOfWar);
+    this.sceneMat.setFloat('uFogD', 1 / (this.dist * 4.5));
+    this.sceneMat.setFloat('uFogStr', tilt * 0.85);
 
     this.terrainMat.setVector3('uEyePos', this.camera.position);
     this.terrainMat.setVector2('uFx', new Vector2(terrAlpha, tilt * 0.85));

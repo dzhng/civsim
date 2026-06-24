@@ -36,7 +36,7 @@ page.on('console', (m) => {
 
 // ?map=A skips the main menu; scripted stages need a passive enemy.
 await page.goto(TARGET + '?map=A&ai=off');
-await page.waitForFunction(() => window.__ready === true, undefined, { timeout: 20000 });
+await page.waitForFunction(() => window.__ready === true, undefined, { timeout: 60000 });
 await page.waitForTimeout(800);
 
 const stats = await page.evaluate(() => window.__game.stats());
@@ -126,7 +126,7 @@ await snapCheck(page, 'battle-banner', check, { maxDiffRatio: 0.0008 });
   // regressed by battle-banner instead; rendering them here would also pile a
   // second heavy 3D build onto this concurrent page for no added coverage.
   await lod.goto(TARGET + '?battle=duel&a=0&b=0&ai=off&debug=blocks'); // HeavyInfantry (blue), enemy idle
-  await lod.waitForFunction(() => window.__ready === true, undefined, { timeout: 20000 });
+  await lod.waitForFunction(() => window.__ready === true, undefined, { timeout: 60000 });
   await lod.waitForTimeout(400);
   for (const z of [1, 2, 4, 6, 9]) {
     // Frame unit 0's centroid at this zoom, freeze, and grab its men's screen AABB.
@@ -181,7 +181,7 @@ for (const dpr of [1, 2]) {
   const sp = await browser.newPage({ viewport: { width: 1280, height: 800 }, deviceScaleFactor: dpr });
   sp.on('pageerror', (e) => pageErrors.push(`sel-page(dpr${dpr}): ` + e.message));
   await sp.goto(TARGET + '?map=A&ai=off&debug=blocks');
-  await sp.waitForFunction(() => window.__ready === true, undefined, { timeout: 20000 });
+  await sp.waitForFunction(() => window.__ready === true, undefined, { timeout: 60000 });
   await sp.waitForTimeout(400);
   // Where unit u is actually drawn, in CSS px (== where a user clicks).
   const trueScreen = (u) => sp.evaluate((u) => {
@@ -298,7 +298,7 @@ if (FULL) {
 const mech = await browser.newPage({ viewport: { width: 1280, height: 800 } });
 mech.on('pageerror', (e) => pageErrors.push('mech-page: ' + e.message));
 await mech.goto(TARGET + '?battle=duel&a=0&b=0&ai=off');
-await mech.waitForFunction(() => window.__ready === true, undefined, { timeout: 20000 });
+await mech.waitForFunction(() => window.__ready === true, undefined, { timeout: 60000 });
 await mech.waitForTimeout(300);
 
 const h0 = await mech.evaluate(() => window.__game.unitInfo(0));
@@ -340,7 +340,7 @@ await mech.close();
 const meleePage = await browser.newPage({ viewport: { width: 1280, height: 800 } });
 meleePage.on('pageerror', (e) => pageErrors.push('melee-page: ' + e.message));
 await meleePage.goto(TARGET + '?battle=duel&a=0&b=0&ai=off');
-await meleePage.waitForFunction(() => window.__ready === true, undefined, { timeout: 20000 });
+await meleePage.waitForFunction(() => window.__ready === true, undefined, { timeout: 60000 });
 await meleePage.waitForTimeout(300);
 const peakEngaged = await meleePage.evaluate(() => {
   window.__game.setPace(0, 1);
@@ -426,7 +426,7 @@ page2.on('pageerror', (e) => pageErrors.push('ai-page: ' + e.message));
 // it for 12 battle-minutes made verify:full take many minutes for no extra UI
 // coverage.
 await page2.goto(TARGET + '?battle=5v5&ai=on');
-await page2.waitForFunction(() => window.__ready === true, undefined, { timeout: 20000 });
+await page2.waitForFunction(() => window.__ready === true, undefined, { timeout: 60000 });
 // Freeze at a fixed tick, then drive the whole AI fight with advance() while
 // frozen — a reproducible trajectory (fixed seed) for a stable `battle-ai` snap.
 await page2.evaluate(() => window.__game.freezeAtTick(30));

@@ -212,25 +212,35 @@ function rotX(p: V3, ang: number, py: number, pz: number): V3 {
 // the shared grain texture (cloth weave / metal / wood) tiles continuously over
 // the whole figure without a hand-authored atlas.
 const UV_TILE = 1.6; // texels per metre of the grain texture
-function dbox(
+const HEX_FACES = [
+  [0, 1, 2, 3], [4, 7, 6, 5], [0, 4, 5, 1], [3, 2, 6, 7], [1, 5, 6, 2], [0, 3, 7, 4],
+];
+// A general hexahedron from 8 explicit corners (bottom ring 0..3 at z0, top ring
+// 4..7 at z1, matching the box winding). Tapered/skewed corners let the figure
+// round off — a cuirass that narrows to the waist, a domed helmet, a bowed
+// shield — without leaving the safe, culling-correct box topology.
+function dhex(
   pos: number[], idx: number[], col: number[], uv: number[],
-  x0: number, y0: number, z0: number, x1: number, y1: number, z1: number,
-  c: V3, alpha: number, rot?: { ang: number; py: number; pz: number },
+  corners: V3[], c: V3, alpha: number, rot?: { ang: number; py: number; pz: number },
 ) {
   const b = pos.length / 3;
-  const corners: V3[] = [
-    [x0, y0, z0], [x1, y0, z0], [x1, y1, z0], [x0, y1, z0],
-    [x0, y0, z1], [x1, y0, z1], [x1, y1, z1], [x0, y1, z1],
-  ];
   for (const v of corners) {
     const p = rot ? rotX(v, rot.ang, rot.py, rot.pz) : v;
     pos.push(p[0], p[1], p[2]);
     col.push(c[0], c[1], c[2], alpha);
     uv.push((p[0] + p[1]) * UV_TILE, p[2] * UV_TILE);
   }
-  for (const [a, bb, cc, d] of [
-    [0, 1, 2, 3], [4, 7, 6, 5], [0, 4, 5, 1], [3, 2, 6, 7], [1, 5, 6, 2], [0, 3, 7, 4],
-  ]) idx.push(b + a, b + bb, b + cc, b + a, b + cc, b + d);
+  for (const [a, bb, cc, d] of HEX_FACES) idx.push(b + a, b + bb, b + cc, b + a, b + cc, b + d);
+}
+function dbox(
+  pos: number[], idx: number[], col: number[], uv: number[],
+  x0: number, y0: number, z0: number, x1: number, y1: number, z1: number,
+  c: V3, alpha: number, rot?: { ang: number; py: number; pz: number },
+) {
+  dhex(pos, idx, col, uv, [
+    [x0, y0, z0], [x1, y0, z0], [x1, y1, z0], [x0, y1, z0],
+    [x0, y0, z1], [x1, y0, z1], [x1, y1, z1], [x0, y1, z1],
+  ], c, alpha, rot);
 }
 
 /** Articulated, faction-accented figure for class `cls` in the given `pose`,
@@ -256,11 +266,31 @@ export function classGeometryDetailed(
     x0: number, y0: number, z0: number, x1: number, y1: number, z1: number,
     c: V3, rot?: { ang: number; py: number; pz: number },
   ) => dbox(pos, idx, col, uv, x0, y0, z0, x1, y1, z1, c, matAlpha, rot);
+  // A tapered slab: independent x/y half-extents at the bottom (rxb,ryb at z0)
+  // and top (rxt,ryt at z1), centred on (cx,cy). A box is the rxb==rxt case; the
+  // taper is what rounds the cuirass into the waist and the helmet into a dome.
+  const frus = (
+    cx: number, cy: number, z0: number, z1: number,
+    rxb: number, ryb: number, rxt: number, ryt: number, c: V3,
+    rot?: { ang: number; py: number; pz: number },
+  ) => dhex(pos, idx, col, uv, [
+    [cx - rxb, cy - ryb, z0], [cx + rxb, cy - ryb, z0], [cx + rxb, cy + ryb, z0], [cx - rxb, cy + ryb, z0],
+    [cx - rxt, cy - ryt, z1], [cx + rxt, cy - ryt, z1], [cx + rxt, cy + ryt, z1], [cx - rxt, cy + ryt, z1],
+  ], c, matAlpha, rot);
   // A FACTION-livery part (crest, shield blazon, sash, saddlecloth).
   const fbox = (
     x0: number, y0: number, z0: number, x1: number, y1: number, z1: number,
     rot?: { ang: number; py: number; pz: number },
   ) => dbox(pos, idx, col, uv, x0, y0, z0, x1, y1, z1, livery ? [1, 1, 1] : faction, 1, rot);
+  // Faction-livery frustum (a swept crest, a pauldron blazon).
+  const ffrus = (
+    cx: number, cy: number, z0: number, z1: number,
+    rxb: number, ryb: number, rxt: number, ryt: number,
+    rot?: { ang: number; py: number; pz: number },
+  ) => dhex(pos, idx, col, uv, [
+    [cx - rxb, cy - ryb, z0], [cx + rxb, cy - ryb, z0], [cx + rxb, cy + ryb, z0], [cx - rxb, cy + ryb, z0],
+    [cx - rxt, cy - ryt, z1], [cx + rxt, cy - ryt, z1], [cx + rxt, cy + ryt, z1], [cx - rxt, cy + ryt, z1],
+  ], livery ? [1, 1, 1] : faction, 1, rot);
 
   const base = L.mounted ? 0.95 : 0.0; // mounted rider sits a horse-height up
   const lunge = P.attack * 0.14 - P.recoil * 0.10; // body shift along +y
@@ -301,6 +331,8 @@ export function classGeometryDetailed(
       box(sx - 0.052, -0.065, hipZ - 0.40, sx + 0.052, 0.065, hipZ, LINEN, { ang: a, py: 0, pz: hipZ }); // thigh
       box(knee[0] - 0.046, knee[1] - 0.06, knee[2] - 0.42, knee[0] + 0.046, knee[1] + 0.06, knee[2],
         SKIN, { ang: a + kneeBend, py: knee[1], pz: knee[2] }); // shin
+      box(knee[0] - 0.05, knee[1] - 0.075, knee[2] - 0.40, knee[0] + 0.05, knee[1] - 0.035, knee[2] - 0.06,
+        IRON, { ang: a + kneeBend, py: knee[1], pz: knee[2] }); // iron greave on the shin front
       const shin = rotX([sx, knee[1], knee[2] - 0.42], a + kneeBend, knee[1], knee[2]);
       box(shin[0] - 0.052, shin[1] - 0.04, shin[2] - 0.02, shin[0] + 0.052, shin[1] + 0.17, shin[2] + 0.07, LEATHER_DK); // boot
     };
@@ -310,27 +342,45 @@ export function classGeometryDetailed(
 
   // Everything above the hips leans as one rigid upper body (about the hips).
   const lp = base + (L.mounted ? 0.18 : 0.92); // lean pivot z
-  const U = (z: number) => z; // readability marker for "upper-body local z"
   const torsoBot = lp, shZ = lp + (L.mounted ? 0.46 : 0.48);
   const tilt = { ang: -lean, py: lunge, pz: lp };
 
   // ---- Torso: a cuirass over a tunic, shoulders wider than the waist -----
-  box(-0.16, -0.11, torsoBot - 0.14, 0.16, 0.13, torsoBot + 0.22, LINEN, tilt); // tunic skirt over the hips
-  box(-0.17, -0.11, torsoBot + 0.16, 0.17, 0.13, shZ, BRONZE, tilt); // cuirass chest
-  box(-0.18, -0.10, shZ - 0.06, 0.18, 0.12, shZ + 0.04, BRONZE_DK, tilt); // shoulder yoke
+  // The cuirass tapers — narrow at the waist, flaring to the chest, capped by a
+  // rounded shoulder yoke — so the torso reads as a moulded breastplate, not a
+  // slab. Pteruges (leather skirt strips) hang from the waist beneath it.
+  const waistZ = torsoBot + 0.16, chestZ = shZ - 0.04;
+  frus(0, 0.01, waistZ - 0.18, waistZ, 0.135, 0.115, 0.155, 0.12, LINEN, tilt); // tunic over the hips
+  frus(0, 0.01, waistZ, chestZ, 0.155, 0.12, 0.18, 0.125, BRONZE, tilt); // cuirass, flaring to the chest
+  frus(0, 0.01, chestZ, shZ + 0.03, 0.18, 0.125, 0.15, 0.115, BRONZE_DK, tilt); // shoulder yoke, rounding in
+  // Pteruges: a fringe of leather strips around the waist — the loudest "ancient
+  // soldier" silhouette tell, and cheap geometry.
+  for (let i = -2; i <= 2; i++) {
+    const px = i * 0.06;
+    box(px - 0.025, 0.10, waistZ - 0.30, px + 0.025, 0.135, waistZ - 0.16, LEATHER, tilt); // front skirt
+    box(px - 0.025, -0.135, waistZ - 0.28, px + 0.025, -0.10, waistZ - 0.15, LEATHER_DK, tilt); // back skirt
+  }
   // Faction sash across the chest — a clear team tell at a glance.
-  fbox(-0.18, 0.12, torsoBot + 0.06, 0.18, 0.15, shZ - 0.04, tilt);
+  fbox(-0.18, 0.12, waistZ + 0.04, 0.18, 0.15, chestZ - 0.02, tilt);
 
   // ---- Head + helmet ----------------------------------------------------
+  // Skull as a slightly tapered block; helmet as a two-tier dome (a bowl that
+  // rounds to a smaller crown) with a brow band, nasal, cheek guards and a neck
+  // flange — the cube head was the loudest "blocky" tell at any distance.
   const headZ = shZ + 0.04;
-  box(-0.075, -0.085, headZ, 0.075, 0.075, headZ + 0.20, SKIN, tilt); // face/head
-  box(-0.085, -0.095, headZ + 0.10, 0.085, 0.085, headZ + 0.27, BRONZE, tilt); // helmet bowl
-  box(-0.085, -0.10, headZ + 0.07, 0.085, -0.07, headZ + 0.18, BRONZE_DK, tilt); // helmet brow/nasal
-  box(-0.085, 0.04, headZ + 0.02, 0.085, 0.085, headZ + 0.16, BRONZE_DK, tilt); // neck guard
+  frus(0, -0.005, headZ, headZ + 0.20, 0.072, 0.078, 0.066, 0.07, SKIN, tilt); // face/skull
+  frus(0, -0.005, headZ + 0.11, headZ + 0.21, 0.088, 0.092, 0.078, 0.082, BRONZE, tilt); // helmet bowl
+  frus(0, -0.005, headZ + 0.21, headZ + 0.28, 0.078, 0.082, 0.03, 0.032, BRONZE, tilt); // domed crown
+  box(-0.086, -0.10, headZ + 0.085, 0.086, -0.06, headZ + 0.135, BRONZE_DK, tilt); // brow band
+  box(-0.018, -0.105, headZ + 0.02, 0.018, -0.075, headZ + 0.10, BRONZE_DK, tilt); // nasal
+  box(-0.092, -0.085, headZ + 0.02, -0.066, 0.05, headZ + 0.135, BRONZE_DK, tilt); // left cheek guard
+  box(0.066, -0.085, headZ + 0.02, 0.092, 0.05, headZ + 0.135, BRONZE_DK, tilt); // right cheek guard
+  box(-0.082, 0.05, headZ + 0.0, 0.082, 0.088, headZ + 0.14, BRONZE_DK, tilt); // neck flange
   if (L.crest) {
-    // A transverse or fore-aft plume in the faction colour — the loudest tell.
-    fbox(-0.02, -0.05, headZ + 0.26, 0.02, 0.14, headZ + 0.42, tilt);
-    fbox(-0.015, 0.10, headZ + 0.24, 0.015, 0.16, headZ + 0.40, tilt);
+    // Swept fore-aft plume in the faction colour — a stack of frusta arcing back
+    // off the crown, the loudest team tell on the field.
+    ffrus(0, -0.02, headZ + 0.27, headZ + 0.40, 0.022, 0.05, 0.018, 0.09, tilt);
+    ffrus(0, 0.06, headZ + 0.30, headZ + 0.42, 0.018, 0.08, 0.012, 0.10, tilt);
   }
 
   // ---- Arms: a shield arm (left, -x) and a weapon arm (right, +x) -------
@@ -348,6 +398,9 @@ export function classGeometryDetailed(
     box(sx - 0.05, -0.05, shoulderZ - 0.34, sx + 0.055, 0.07, shoulderZ + 0.02, SKIN,
       { ang: armA + tilt.ang, py: shoulderZ, pz: shoulderZ });
   }
+  // Rounded bronze pauldrons capping each shoulder joint (ride the torso lean).
+  frus(-0.195, 0.01, shoulderZ - 0.05, shoulderZ + 0.07, 0.055, 0.075, 0.03, 0.045, BRONZE, tilt);
+  if (L.weapon !== 'none') frus(0.195, 0.01, shoulderZ - 0.05, shoulderZ + 0.07, 0.055, 0.075, 0.03, 0.045, BRONZE, tilt);
 
   // ---- Shield (left, facing +y): wooden face, iron rim, faction emblem ---
   if (L.shield !== 'none') {
@@ -358,9 +411,15 @@ export function classGeometryDetailed(
     box(x0 + w - 0.03, 0.12, z0, x0 + w, 0.19, z0 + h, IRON, tilt); // right rim
     box(x0, 0.12, z0, x0 + w, 0.19, z0 + 0.03, IRON, tilt); // bottom rim
     box(x0, 0.12, z0 + h - 0.03, x0 + w, 0.19, z0 + h, IRON, tilt); // top rim
-    // Faction blazon: a painted band + central boss in the faction colour.
-    fbox(x0 + 0.03, 0.19, z0 + h * 0.5 - 0.04, x0 + w - 0.03, 0.205, z0 + h * 0.5 + 0.04, tilt);
-    fbox(x0 + w * 0.5 - 0.05, 0.19, z0 + h * 0.5 - 0.06, x0 + w * 0.5 + 0.05, 0.215, z0 + h * 0.5 + 0.06, tilt);
+    // Raised iron boss at the centre, with a faction stud and a painted band —
+    // depth and a team tell in one. The boss is a small dome poking forward (+y).
+    const bx = x0 + w * 0.5, bz = z0 + h * 0.5;
+    fbox(x0 + 0.03, 0.19, bz - 0.04, x0 + w - 0.03, 0.205, bz + 0.04, tilt); // painted band
+    // Boss poking FORWARD (+y) off the face: a stepped iron dome with a faction
+    // stud at the tip — depth on an otherwise flat board.
+    box(bx - 0.07, 0.18, bz - 0.07, bx + 0.07, 0.22, bz + 0.07, IRON, tilt); // boss base
+    box(bx - 0.045, 0.22, bz - 0.045, bx + 0.045, 0.255, bz + 0.045, IRON, tilt); // boss step
+    fbox(bx - 0.025, 0.255, bz - 0.025, bx + 0.025, 0.275, bz + 0.025, tilt); // faction stud
   }
 
   // ---- Weapon (right, +x) ----------------------------------------------

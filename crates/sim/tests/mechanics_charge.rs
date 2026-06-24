@@ -52,7 +52,7 @@ fn charge_penetration(depth: usize, brace_mult: f32) -> (f32, f32) {
         arc: 1.4,
         attack_interval: 1.79,
         damage: 0.0,
-        braced: false,
+        kind: sim::WeaponKind::Standard,
     });
     sim.units[block].stats = bh;
     for k in sim.units[block].start..sim.units[block].start + sim.units[block].count {
@@ -74,7 +74,7 @@ fn charge_penetration(depth: usize, brace_mult: f32) -> (f32, f32) {
         arc: 0.6,
         attack_interval: 2.2,
         damage: 0.0,
-        braced: false,
+        kind: sim::WeaponKind::Standard,
     });
     sim.units[cav].stats = ch;
     for k in sim.units[cav].start..sim.units[cav].start + sim.units[cav].count {
@@ -276,8 +276,14 @@ fn phalanx_points_stop_horses_only_to_the_front() {
         front < 12.0,
         "a frontal charge onto presented pikes should be stopped near the hedge: {front:.1}m"
     );
+    // The invariant is that a FLANK charge rides far deeper than a frontal one
+    // (the frontage-locked pikes don't stop horses sideways — no 360° porcupine).
+    // The margin is what matters; the absolute depth is a touch shallower now that
+    // shock cav GRINDS the flank it rides into (its sidearm earns kills in the
+    // press) rather than only plowing clean through, so it engages a stride
+    // sooner. The gap to the frontal stop stays wide.
     assert!(
-        flank > 6.0 && flank > front + 1.0,
+        flank > 5.0 && flank > front + 2.0,
         "pikes aimed frontally must not behave like a 360° porcupine: flank progress {flank:.1}m vs frontal {front:.1}m"
     );
 }

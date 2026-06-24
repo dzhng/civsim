@@ -36,7 +36,7 @@ pub use balance::{
     report, run_once, run_over_seeds, Aggregate, Outcome, ReportRow, Scenario, SEEDS,
 };
 pub use battle::{deploy_roster, setup_battle, setup_duel, setup_sandbox};
-pub use class::{class_stats, BalanceConfig, UnitClass, UnitClassId, Weapon};
+pub use class::{class_stats, BalanceConfig, UnitClass, UnitClassId, Weapon, WeaponKind};
 pub use contract::{unit_cost, ALL_CLASSES};
 pub use grid::SpatialHash;
 pub use maps::{build as build_map, MapId, MAP_HALF_H, MAP_HALF_W};

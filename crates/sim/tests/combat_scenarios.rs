@@ -272,8 +272,15 @@ fn rider_reachability_is_pure_geometry() {
     // geometry regression. The relative claim (pikes find riders far better, below)
     // is the sharper discriminator.
     let (sword_share, _, horse) = agg(UnitClassId::HeavySword, 2.4, -FRAC_PI_2);
+    // Horse still takes the clear majority frontally (the chest/neck shield the
+    // elevated rider). The rider's share is a touch higher than the old ideal
+    // because shock cav now GRINDS at sword range in the press (drawing its
+    // sidearm once a charge is spent) instead of sitting behind a couched lance
+    // that never closed — fighting man-to-horse-to-man exposes the rider's legs
+    // more, which is part of why a bogged charge bleeds. The sharp geometry claim
+    // is the RELATIVE one below (pikes find riders far better than swords).
     assert!(
-        horse > 0.25 && sword_share < 0.30,
+        horse > 0.25 && sword_share < 0.40,
         "frontal swords hack horses: mean horse {horse:.2}, mean rider share {sword_share:.2}"
     );
     // Pikes at reach: front-rank pikes find riders (rear-rank pikes can only

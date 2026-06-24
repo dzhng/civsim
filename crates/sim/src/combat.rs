@@ -305,14 +305,40 @@ impl Sim {
             let front_off = wrap_angle(t_bearing - self.units[ui].facing).abs();
             let desired = if self.units[ui].weapon_pref == 1 && weapons.len() > 1 {
                 Some(weapons.len() - 1)
-            } else if let Some(bi) = weapons.iter().position(|w| w.braced) {
+            } else if let (Some(ci), Some(gi)) = (
+                weapons.iter().position(|w| w.is_charge()),
+                weapons.iter().position(|w| !w.is_charge()),
+            ) {
+                // CHARGE vs GRIND: a horseman's two weapons are for two phases. While
+                // the charge still carries momentum he fights the CHARGE weapon (the
+                // lance) — long, couched, taken at speed as the mass plows through.
+                // The instant the charge is spent and it's a standing melee, he drops
+                // to his GRIND sidearm (the wide-arc sword) — which is where a stalled
+                // charge earns most of its kills. Gating on CHARGE STATE (not aim or
+                // reach) is what lets the lance plow without stopping to fence, and
+                // keeps the sword for the press where the narrow lance is useless.
+                // HYSTERESIS around the spent/charge speeds: the mass speed jitters in
+                // a grind, so latch on what's in hand — keep the lance only while the
+                // charge still carries (> spent), and once on the sword don't redraw
+                // the lance for a stray jostle, only a fresh full-speed charge
+                // (> charge_min). Without this the weapon thrashes every tick and the
+                // rider spends the fight switching instead of swinging.
+                let adv = self.units[ui].mass_advance;
+                let on_charge = self.cur_weapon[i] as usize == ci;
+                let keep_charge = if on_charge {
+                    adv > tun.charge_spent_speed
+                } else {
+                    adv > tun.charge_min_speed
+                };
+                Some(if keep_charge { ci } else { gi })
+            } else if let Some(bi) = weapons.iter().position(|w| w.braced()) {
                 let pike = &weapons[bi];
                 let pike_bears = front_off <= pike.arc * 0.5 + AIM_TOLERANCE
                     && nearest_d >= pike.min_range
                     && nearest_d <= pike.reach;
                 if pike_bears {
                     Some(bi)
-                } else if let Some(si) = weapons.iter().position(|w| !w.braced) {
+                } else if let Some(si) = weapons.iter().position(|w| !w.braced()) {
                     // a foe the pike can't take: sword if it's in reach, else hold
                     // the pike leveled to the front (the default)
                     if nearest_d <= weapons[si].reach {
@@ -352,7 +378,7 @@ impl Sim {
             // can't be turned in the ranks); everything else tracks the man's own
             // facing as he squares up. Used by the aim gate, the obstruction
             // check, and the swing alike.
-            let aim_facing = if weapon.braced {
+            let aim_facing = if weapon.braced() {
                 self.units[ui].facing
             } else {
                 self.facings[i]
@@ -395,7 +421,7 @@ impl Sim {
                 // Mobile long weapons (lances, long swords) are not a fixed
                 // hedge; keep their existing charge-presentation behavior.
                 let hedge_bears = aim <= 1.25;
-                if planted > 0.0 && (!weapon.braced || hedge_bears) {
+                if planted > 0.0 && (!weapon.braced() || hedge_bears) {
                     let v = nearest as usize;
                     let p = self.soldier_pos(i);
                     let tp = self.soldier_pos(v);
@@ -433,7 +459,7 @@ impl Sim {
                             self.mom_x[v] += d.x * toward * grip;
                             self.mom_y[v] += d.y * toward * grip;
                         }
-                        if weapon.braced && self.units[vu].tramples() {
+                        if weapon.braced() && self.units[vu].tramples() {
                             // A horse feeding itself onto a presented point pays
                             // in flesh as well as momentum. This is not a swing
                             // (no cadence, block, or flourish): it is the
@@ -636,7 +662,7 @@ impl Sim {
         // has to interact with heavy shields or phalanx-vs-heavy stops reading
         // as a long shielded grind.
         let shielded = aspect_v < FRONT_ARC;
-        let braced_thrust = if weapon.braced {
+        let braced_thrust = if weapon.braced() {
             BRACED_THRUST_BLOCK_MULT
         } else {
             1.0

@@ -22,12 +22,37 @@ pub struct Weapon {
     pub attack_interval: f32,
     /// Damage per landed hit.
     pub damage: f32,
-    /// Braced to the formation's frontage: a long shaft (the sarissa) you can't
-    /// slew sideways in a packed rank, so it aims along the UNIT's facing, not
-    /// the man's, and bears ONLY on targets in its forward arc. Flanked or from
-    /// the rear it can't engage — the man drops to his side-arm. (This is also
-    /// what keeps a pike hedge's anti-charge stop frontal.)
-    pub braced: bool,
+    /// What kind of weapon this is — drives how it's drawn and how it bears.
+    pub kind: WeaponKind,
+}
+
+/// How a weapon is wielded. Most are STANDARD (a sword: aimed by the man, swung
+/// wherever he faces). The two special cases each have their own selection rule:
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum WeaponKind {
+    /// A sword/spear: aimed by the man, bears wherever he faces.
+    Standard,
+    /// Braced to the formation's frontage (the sarissa): a long shaft you can't
+    /// slew sideways in a packed rank, so it aims along the UNIT's facing and
+    /// bears ONLY on targets in its forward arc. Flanked or from the rear it
+    /// can't engage — the man drops to his side-arm. (Also what keeps a pike
+    /// hedge's anti-charge stop frontal.)
+    Braced,
+    /// The charge weapon of a two-weapon mount (the lance): held while the charge
+    /// still carries momentum and plows through, then dropped for the sidearm
+    /// once the charge is spent and it's a standing grind.
+    Charge,
+}
+
+impl Weapon {
+    /// Braced to the formation frontage (a pike). See `WeaponKind::Braced`.
+    pub fn braced(&self) -> bool {
+        matches!(self.kind, WeaponKind::Braced)
+    }
+    /// The mount's charge weapon (a lance). See `WeaponKind::Charge`.
+    pub fn is_charge(&self) -> bool {
+        matches!(self.kind, WeaponKind::Charge)
+    }
 }
 
 /// A class's weapons, owned inline so a `UnitClass` can be built at runtime (a
@@ -145,7 +170,7 @@ const SPEAR: Weapon = Weapon {
     arc: 0.6,
     attack_interval: 2.2,
     damage: 0.095,
-    braced: false,
+    kind: WeaponKind::Standard,
 };
 
 const SWORD: Weapon = Weapon {
@@ -154,7 +179,7 @@ const SWORD: Weapon = Weapon {
     arc: 1.4,
     attack_interval: 1.79,
     damage: 0.2,
-    braced: false,
+    kind: WeaponKind::Standard,
 };
 
 const LONG_SWORD: Weapon = Weapon {
@@ -167,7 +192,7 @@ const LONG_SWORD: Weapon = Weapon {
     arc: 2.4,
     attack_interval: 2.61,
     damage: 0.3,
-    braced: false,
+    kind: WeaponKind::Standard,
 };
 
 const PIKE: Weapon = Weapon {
@@ -178,7 +203,7 @@ const PIKE: Weapon = Weapon {
     // cadence x hurl; lethality per poke stays modest.
     attack_interval: 1.38,
     damage: 0.16,
-    braced: true, // the sarissa: frontal only, drop to the side-sword off-axis
+    kind: WeaponKind::Braced, // the sarissa: frontal only, drop to the side-sword off-axis
 };
 
 const SIDE_SWORD: Weapon = Weapon {
@@ -187,7 +212,7 @@ const SIDE_SWORD: Weapon = Weapon {
     arc: 1.2,
     attack_interval: 1.79,
     damage: 0.14,
-    braced: false,
+    kind: WeaponKind::Standard,
 };
 
 const DAGGER: Weapon = Weapon {
@@ -196,7 +221,7 @@ const DAGGER: Weapon = Weapon {
     arc: 1.0,
     attack_interval: 1.38,
     damage: 0.11,
-    braced: false,
+    kind: WeaponKind::Standard,
 };
 
 const LANCE: Weapon = Weapon {
@@ -210,16 +235,21 @@ const LANCE: Weapon = Weapon {
     arc: 0.25,
     attack_interval: 3.02,
     damage: 0.32,
-    braced: false,
+    kind: WeaponKind::Charge,
 };
 
 const CAV_SWORD: Weapon = Weapon {
-    reach: 1.3,
+    // Wielded from the saddle: the rider sits at the horse's center, so his blade
+    // must span his own mount (~1m of body) to reach the men crowding its head and
+    // flanks. A foot-sword's 1.1m never clears the horse — the grind weapon needs
+    // the reach of a cavalry sabre swung down from horseback, or the rider flails
+    // over the enemy's heads and the dismounted-length blade lands nothing.
+    reach: 1.5,
     min_range: 0.0,
     arc: 1.4,
     attack_interval: 1.93,
-    damage: 0.2,
-    braced: false,
+    damage: 0.24,
+    kind: WeaponKind::Standard,
 };
 
 pub fn class_stats(id: UnitClassId) -> UnitClass {

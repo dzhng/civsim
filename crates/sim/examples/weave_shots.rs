@@ -590,7 +590,7 @@ fn main() {
             arc: 0.08,
             attack_interval: 1.4,
             damage: 0.0,
-            braced: true,
+            kind: sim::WeaponKind::Braced,
         };
         let south = sim.spawn_unit(
             Vec2::new(0.0, -25.0),

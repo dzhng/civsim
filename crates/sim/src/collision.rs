@@ -426,7 +426,7 @@ impl Sim {
                 // already put it — the repel only makes that push DIRECTIONAL and
                 // uncapped (so it holds the line), it does not move where men
                 // fight, so it doesn't ripple the combat balance.
-                let braced = weapons[held].braced;
+                let braced = weapons[held].braced();
                 let reach = weapons[held].reach;
                 // The weapon points down the UNIT's frontage; its push is frontal,
                 // along that line. Swords cover one file; braced pole points overlap

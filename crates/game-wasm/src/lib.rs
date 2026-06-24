@@ -173,7 +173,7 @@ impl Game {
                             "arc": w.arc,
                             "interval": w.attack_interval,
                             "damage": w.damage,
-                            "braced": w.braced,
+                            "braced": w.braced(),
                         })
                     })
                     .collect();

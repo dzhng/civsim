@@ -259,20 +259,6 @@ impl Sim {
                                     let momentum = m_eff(j) * closing;
                                     push.x += nx * closing * tun.impact_push * DT * share;
                                     push.y += ny * closing * tun.impact_push * DT * share;
-                                    // TRAMPLE BLEED: a trampler spends its CARRIED
-                                    // momentum on every enemy BODY it rides into,
-                                    // proportional to that man's BRACE — a
-                                    // planted, braced line brakes the charge with
-                                    // its mass; a man on the move (brace ~1)
-                                    // barely slows it. So rank by rank the charge
-                                    // bleeds, and a few ranks of BRACED infantry
-                                    // bog it below trample speed (then the body
-                                    // wall pins it), while a MOVING line lets it
-                                    // ride deeper. The grip is the BODY, not the
-                                    // weapon — pikes brake hardest only because
-                                    // they brace hardest (brace_mult). The glide
-                                    // is where the charge lives (a position push
-                                    // saturates against the separation cap).
                                     // TRAMPLE BLEED: the charge spends its carried
                                     // momentum on every enemy body it rides into,
                                     // scaled by that man's BRACE (always some — a

@@ -1543,8 +1543,11 @@ impl Sim {
                     positions[2 * i] = p.x + run.x * sp * dt;
                     positions[2 * i + 1] = p.y + run.y * sp * dt;
                     let desired = run.y.atan2(run.x);
-                    facings[i] =
-                        rotate_toward(facings[i], desired, tun.soldier_turn_rate * u.stats.turn_mult * dt);
+                    facings[i] = rotate_toward(
+                        facings[i],
+                        desired,
+                        tun.soldier_turn_rate * u.stats.turn_mult * dt,
+                    );
                     continue;
                 }
 
@@ -2142,8 +2145,11 @@ impl Sim {
                 } else {
                     u.facing
                 };
-                facings[i] =
-                    rotate_toward(facings[i], desired_face, tun.soldier_turn_rate * u.stats.turn_mult * dt);
+                facings[i] = rotate_toward(
+                    facings[i],
+                    desired_face,
+                    tun.soldier_turn_rate * u.stats.turn_mult * dt,
+                );
             }
             measures.push(UnitMeasure {
                 err_sum,

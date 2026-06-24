@@ -385,16 +385,15 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             knockback_mult: 1.0,
             spacing: Vec2::new(1.8, 2.4),
             default_depth: 5,
-            health: 2.2, // phalangites wore armor too — the wall is bodies AND bronze
-            mount_health: 8.45, // a horse is a LOT of animal: short blades
-            // chip at it while the rider stays safe
+            health: 2.2, // armoured rider: tougher than foot once a blow reaches him
+            mount_health: 8.45, // a horse is a lot of animal; short blades mostly chip at it
             block: 0.4, // an armoured horseman's shield: strong frontal cover. Safe to raise now that
             // the lance has no dead zone — more block monotonically helps (see the test).
             evade: 0.12,
             training: 0.75,
             bravery: 1.3,     // armoured shock riders hold their nerve
             morale_aura: 2.0, // and the sight of friendly heavy horse steadies a line
-            turn_mult: 0.81, // a horse wheels a touch slower than a man pivots on his heel (~78°/s vs ~96°/s): enough damping that it doesn't whip around to face every footman jostling it in a grind, yet fast enough to keep its facing aligned with the charge line and ride deep into an exposed flank (too slow and mass-advance bleeds, the charge spends, and it bogs at the edge instead of plowing through)
+            turn_mult: 0.81,
             weapons: two(LANCE, CAV_SWORD),
             ..foot
         },
@@ -416,7 +415,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             training: 0.65,
             morale_aura: 1.6, // mounted, but lighter — a smaller steadying presence
             charge: false,
-            turn_mult: 0.86, // lighter horse, a touch nimbler than the shock arm, but still short of a man's heel-pivot (~83°/s)
+            turn_mult: 0.86, // lighter horse, a touch nimbler than the shock arm
             weapons: one(CAV_SWORD),
             ..foot
         },

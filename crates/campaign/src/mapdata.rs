@@ -201,12 +201,10 @@ impl WorldMap {
             .collect();
         // Default owner for ownerless nodes (junctions). Prefer an explicit
         // "independents" sentinel; otherwise the first non-playable faction.
-        let independents = faction_idx.get("independents").copied().unwrap_or_else(|| {
-            raw.factions
-                .iter()
-                .position(|f| !f.playable)
-                .unwrap_or(0) as u32
-        });
+        let independents = faction_idx
+            .get("independents")
+            .copied()
+            .unwrap_or_else(|| raw.factions.iter().position(|f| !f.playable).unwrap_or(0) as u32);
 
         let id_to_idx: BTreeMap<u32, NodeId> = raw
             .nodes

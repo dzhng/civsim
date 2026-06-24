@@ -109,8 +109,11 @@ export async function run({ page, check }) {
 
 - `snap(name, opts?)` runs `opts.before()` (pose the world), sets `opts.cam`
   `[x, y, scale]`, waits `opts.settle ?? 250`ms for a frame, then compares the
-  baseline at `shots/baseline/<scenario>/<name>.png`. Pass `opts.maxDiffRatio`
-  / `opts.threshold` ONLY for a noise source you can name in a comment.
+  baseline through `snapCheck`. Current battle scenarios preserve legacy flat
+  baseline names (e.g. `battle-ai`) to avoid a mass re-bless; new scenario
+  families should use namespaced names when their baselines are introduced.
+  Pass `opts.maxDiffRatio` / `opts.threshold` ONLY for a noise source you can
+  name in a comment.
 - `check(name, ok, detail)` is the behavioral reporter; failures set the exit
   code. Assert observable outcomes (positions, casualties, soldier counts,
   rendered frames) — never internal call order.

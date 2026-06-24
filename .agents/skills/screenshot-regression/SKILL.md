@@ -164,17 +164,20 @@ Click-to-select and drag-box are real input paths; drive them with
 
 ## Running just one snapshot
 
-> The flat harnesses are being replaced by addressable **scenarios** (one
-> runner over `web/scenarios/*.mjs`); see `specs/scenarios.md` and the
-> `write-scenario` skill. Until that lands, the harnesses below are the
-> reality and the `SNAP=` filter is the only way to scope a run.
+> Battle verification now uses addressable **scenarios** (one runner over
+> `web/scenarios/*.mjs`); campaign verification is still on the legacy flat
+> harnesses. See `specs/scenarios.md` and the `write-scenario` skill for the
+> target architecture.
 
-Each harness is a flat top-to-bottom script — there is no per-test runner. To
-iterate on a single view, set `SNAP=<substr>`: `snapCheck` compares only snaps
-whose name contains the substring (comma-separated = OR), skipping the rest
-(no compare, no diff written). The harness still drives all setup — e.g.
-`SNAP=battle-initial node verify-battle.mjs` still spawns the battle, it just snaps
-that one frame. For campaign-marker work prefer `verify-campaign-visual.mjs`
+For battle work, run the smallest scenario by name:
+`node scenario.mjs battle-ai --full`, `node scenario.mjs banner-gallery`, or
+`node scenario.mjs battle-cavalry-plow --full`. `web/verify-battle.mjs` remains
+a compatibility wrapper over those scenarios, so old commands still work.
+
+Within a selected scenario, set `SNAP=<substr>` to compare only snaps whose name
+contains the substring (comma-separated = OR), skipping the rest (no compare, no
+diff written). Snapshots behind `--full` still need `--full` or an explicit
+scenario name. For campaign-marker work prefer `verify-campaign-visual.mjs`
 (the fake `?campaign=test` map) — it never spawns a battle, so it won't churn
 the tracked battle scratch shots (`initial.png`, `manual.png`, `cluster-*.png`)
 that the battle harness rewrites every run. Restore those with

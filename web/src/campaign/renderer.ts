@@ -187,75 +187,29 @@ export class CampaignRenderer {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, W, H);
 
-    // The overlay paints over the 3D army/city models, so once they show the
-    // road is gapped where it would streak across one: trimmed at town walls
-    // and broken around each army's footprint.
-    // Roads run all the way into a city (they should look like they spill out
-    // of it), so cities don't trim. They do still part around an army's
-    // footprint, so the marker sits on the road rather than under a stripe.
-    const armyR = z >= ARMY_MIN_SCALE ? 1.1 * Math.min(13, Math.max(5, 80 / (3.2 * z))) : 0;
-    const armyPts = armyR > 0 ? armies.map((a) => ({ x: a.x, y: a.y, r: armyR })) : [];
-
-    // Edges. Roads fade out at political-map zoom; sea lanes faint dashes.
-    const roadAlpha = Math.min(1, Math.max(0, (z - 0.3) / 0.2));
+    // Land roads are 3D ground geometry now (terrain3d), so the city/army models
+    // occlude them via depth instead of the overlay painting over the top. Only
+    // sea lanes stay on the overlay — faint dashes over open water, nothing to
+    // occlude them.
     for (let ei = 0; ei < data.map.edges.length; ei++) {
       const e = data.map.edges[ei];
-      const sea = e.kind === 'sea';
-      if (sea && z < 0.35) continue;
-      if (!sea && roadAlpha <= 0.02) continue;
-      const hs = this.viaHeights(ei);
-      let segments: [number, number, number][][];
-      if (sea) {
-        segments = [e.via.map((v, i) => [v[0], v[1], 0])];
-      } else {
-        // Junctions have no model: only cities trim. Gap around nearby armies
-        // — test against the edge's bbox (a road tile's via endpoints are far
-        // from a mid-road army; roadPolylines does the exact per-segment test).
-        const trimA = 0; // roads reach the city centre — they emanate from it
-        const trimB = 0;
-        let exmin = Infinity, exmax = -Infinity, eymin = Infinity, eymax = -Infinity;
-        for (const v of e.via) {
-          exmin = Math.min(exmin, v[0]); exmax = Math.max(exmax, v[0]);
-          eymin = Math.min(eymin, v[1]); eymax = Math.max(eymax, v[1]);
+      if (e.kind !== 'sea' || z < 0.35) continue;
+      ctx.beginPath();
+      let on = false;
+      for (const v of e.via) {
+        const p = pt(v[0], v[1], 0);
+        if (!p) {
+          on = false;
+          continue;
         }
-        const near = armyPts.filter((g) =>
-          g.x > exmin - armyR && g.x < exmax + armyR && g.y > eymin - armyR && g.y < eymax + armyR);
-        segments = roadPolylines(e.via, trimA, trimB, near).map((seg) =>
-          seg.map(([x, y]) => [x, y, this.field.heightAt(x, y)]));
+        on ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]);
+        on = true;
       }
-      const lvl = sea ? 1 : (roadLevels?.[ei] ?? 1);
-      // Land roads read as a raised granite causeway: a brighter stone surface
-      // over a dark embankment that shows as a shadowed lip on both sides.
-      const roadW = Math.max(1.1, z * 1.7) * (0.8 + 0.2 * lvl);
-      const lip = Math.max(0.7, roadW * 0.5);
       ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-      ctx.setLineDash(sea ? [6, 6] : []);
-      for (const poly of segments) {
-        ctx.beginPath();
-        let on = false;
-        for (const [x, y, h] of poly) {
-          const p = pt(x, y, h);
-          if (!p) {
-            on = false;
-            continue;
-          }
-          on ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]);
-          on = true;
-        }
-        if (sea) {
-          ctx.lineWidth = 1;
-          ctx.strokeStyle = 'rgba(140,180,220,0.25)';
-          ctx.stroke();
-        } else {
-          ctx.lineWidth = roadW + lip * 2; // dark embankment / side shadows
-          ctx.strokeStyle = `rgba(46,38,30,${0.5 * roadAlpha})`;
-          ctx.stroke();
-          ctx.lineWidth = roadW; // bright granite surface on top
-          ctx.strokeStyle = `rgba(${162 + lvl * 12},${156 + lvl * 11},${148 + lvl * 10},${0.96 * roadAlpha})`;
-          ctx.stroke();
-        }
-      }
+      ctx.setLineDash([6, 6]);
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = 'rgba(140,180,220,0.25)';
+      ctx.stroke();
       ctx.setLineDash([]);
     }
 

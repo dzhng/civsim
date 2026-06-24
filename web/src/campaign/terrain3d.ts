@@ -355,6 +355,40 @@ void main() {
   gl_FragColor = vec4(0.0, 0.0, 0.0, a * a * uStr);
 }`;
 
+// Roads: flat granite ribbons draped on the terrain, drawn IN the 3D scene so
+// the depth buffer lets city and army models occlude them — a causeway runs
+// under the town that sits on it, not painted over the top like the old
+// 2D-overlay roads. `color` carries the granite shade (brighter per road level)
+// and an edge-fade alpha used to feather the verge into the ground.
+ShaderStore.ShadersStore['campRoadVertexShader'] = `
+precision highp float;
+attribute vec3 position;
+attribute vec4 color;
+uniform mat4 viewProjection;
+varying vec4 vCol;
+varying float vZ;
+void main() {
+  gl_Position = viewProjection * vec4(position, 1.0);
+  vCol = color;
+  vZ = gl_Position.w;
+}`;
+
+ShaderStore.ShadersStore['campRoadFragmentShader'] = `
+precision highp float;
+varying vec4 vCol;
+varying float vZ;
+uniform vec3 uFogC;
+uniform float uFogD, uFogStr;
+${GRADE}
+void main() {
+  vec3 col = vCol.rgb;
+  if (uFogStr > 0.001) {
+    float fog = (1.0 - exp(-pow(vZ * uFogD, 2.0))) * uFogStr;
+    col = mix(col, uFogC, clamp(fog, 0.0, 1.0));
+  }
+  gl_FragColor = vec4(grade(col), vCol.a);
+}`;
+
 /** Anti-sun ground direction (where shadows fall), from the one campaign sun. */
 const SHADOW_DIR: [number, number] = (() => {
   const l = Math.hypot(SUN[0], SUN[1]) || 1;
@@ -448,6 +482,8 @@ export class Terrain3D {
   private armyCount = 0;
   private cityMesh: Mesh | null = null;
   private shadowMat!: ShaderMaterial;
+  private roadMat!: ShaderMaterial;
+  private roadMesh: Mesh | null = null;
   private armyShadow: Mesh | null = null;
   private cityShadow: Mesh | null = null;
   /** city node index per thin instance, for owner-color lookups */
@@ -557,10 +593,18 @@ export class Terrain3D {
     this.shadowMat.backFaceCulling = false;
     this.shadowMat.disableDepthWrite = true;
 
+    this.roadMat = new ShaderMaterial('road', scene, 'campRoad', {
+      attributes: ['position', 'color'],
+      uniforms: ['viewProjection', 'uFogC', 'uFogD', 'uFogStr'],
+    });
+    this.roadMat.setColor3('uFogC', new Color3(0.71, 0.71, 0.68));
+    this.roadMat.backFaceCulling = false; // opaque: writes depth so models occlude it
+
     this.buildTerrain();
     this.buildTrees();
     this.buildArmyModels();
     this.buildCityModel(data);
+    this.buildRoads(data);
 
     // FXAA + a whisper of bloom and vignette: the part of the Rome 2 look
     // the surface shaders can't do alone.
@@ -745,6 +789,64 @@ export class Terrain3D {
       this.classMeshes[c] = m;
     }
     this.armyShadow = this.shadowQuad('armyShadow');
+  }
+
+  /** All land roads as one flat granite ribbon mesh draped on the terrain, in
+   *  the 3D scene (opaque, depth-tested) so city and army models occlude it —
+   *  a road runs UNDER the town on it, not over the top. Static; rebuild only on
+   *  a road-level change (width/shade scale with level). Sea lanes stay 2D. */
+  buildRoads(data: CampaignData, roadLevels?: Uint8Array) {
+    const positions: number[] = [];
+    const colors: number[] = [];
+    const indices: number[] = [];
+    const EPS = 0.25; // lift just above the ground so it beats z-fighting
+    for (let ei = 0; ei < data.map.edges.length; ei++) {
+      const e = data.map.edges[ei];
+      if (e.kind === 'sea') continue;
+      const via = e.via;
+      if (via.length < 2) continue;
+      const lvl = roadLevels?.[ei] ?? 1;
+      const halfW = 0.6 * (0.85 + 0.18 * lvl); // world km — a thin causeway
+      const sh = 0.6 + 0.045 * lvl; // granite, brighter per level
+      const base = positions.length / 3;
+      for (let i = 0; i < via.length; i++) {
+        const p = via[i];
+        const a = via[Math.max(0, i - 1)];
+        const c = via[Math.min(via.length - 1, i + 1)];
+        let tx = c[0] - a[0];
+        let ty = c[1] - a[1];
+        const tl = Math.hypot(tx, ty) || 1;
+        tx /= tl;
+        ty /= tl;
+        const nx = -ty;
+        const ny = tx; // ground-plane perpendicular
+        for (const s of [-1, 1]) {
+          const x = p[0] + nx * halfW * s;
+          const y = p[1] + ny * halfW * s;
+          positions.push(x, y, this.field.heightAt(x, y) + EPS);
+          colors.push(sh, sh * 0.98, sh * 0.93, 1);
+        }
+      }
+      for (let i = 0; i + 1 < via.length; i++) {
+        const l = base + i * 2;
+        indices.push(l, l + 1, l + 2, l + 1, l + 3, l + 2);
+      }
+    }
+    if (this.roadMesh) {
+      this.roadMesh.dispose();
+      this.roadMesh = null;
+    }
+    if (!positions.length) return;
+    const m = new Mesh('roads', this.scene);
+    const vd = new VertexData();
+    vd.positions = positions;
+    vd.colors = colors;
+    vd.indices = indices;
+    vd.applyToMesh(m);
+    m.material = this.roadMat;
+    m.isPickable = false;
+    m.freezeWorldMatrix();
+    this.roadMesh = m;
   }
 
   /** One settlement — a walled knot of terracotta-roofed buildings under a
@@ -1124,6 +1226,10 @@ export class Terrain3D {
     this.cityMesh?.setEnabled(citiesOn);
     this.cityShadow?.setEnabled(citiesOn);
     if (citiesOn) this.applyCityFog(fogOfWar);
+    // Roads show once off the political overview, fading in as the land does.
+    this.roadMesh?.setEnabled(cam.scale >= 0.4);
+    this.roadMat.setFloat('uFogD', 1 / (this.dist * 4.5));
+    this.roadMat.setFloat('uFogStr', tilt * 0.85);
 
     this.terrainMat.setVector3('uEyePos', this.camera.position);
     this.terrainMat.setVector2('uFx', new Vector2(terrAlpha, tilt * 0.85));

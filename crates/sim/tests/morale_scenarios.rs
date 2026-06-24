@@ -299,7 +299,11 @@ fn enemy_rout_relieves_the_victor_no_mutual_collapse() {
     sim.set_attack_order(b, a);
     let mut first_break: Option<usize> = None;
     let mut morale_at_break = 0.0;
-    for _ in 0..(420.0 / DT) as usize {
+    // Longer window now: steady facings make the grind far less of a bloodbath
+    // (men block what they're squared up to), so a near-even fight drains to a
+    // break over ~6 minutes rather than ~4 — but it STILL resolves, one side
+    // first, the held side relieved.
+    for _ in 0..(600.0 / DT) as usize {
         sim.tick();
         if first_break.is_none() {
             if sim.units[a].routing {

@@ -43,7 +43,7 @@ pub struct Tunables {
     /// Steering gain toward slot (1/s): higher = snappier seating.
     pub soldier_gain: f32,
     /// Soldier facing turn rate (rad/s) — how fast a man pivots his OWN facing to
-    /// meet a threat. ~1.68 rad/s ≈ 96°/s: a brisk but deliberate pivot (just under
+    /// meet a threat. ~1.6 rad/s ≈ 92°/s: a brisk but deliberate pivot (just under
     /// a second to face a flank), NOT the old parade-ground snap, so a flanked
     /// line's edge men wheel to face who's on them without the whole grind twitching
     /// as targets jostle — yet still quick enough that a shielded man keeps his
@@ -251,7 +251,7 @@ impl Default for Tunables {
             base_turn_rate: 1.0,
             base_accel: 1.2,
             soldier_gain: 3.0,
-            soldier_turn_rate: 1.68,
+            soldier_turn_rate: 1.6,
             arrive_radius: 1.5,
             disorder_norm_spacings: 3.0,
             disorder_rise_tau: 0.4,

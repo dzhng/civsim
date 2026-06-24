@@ -413,8 +413,10 @@ fn withdraw_disengages_under_fire() {
     // line — how far it pressed is the attack's business, not this test's.)
     // 60s: the attack embeds deeper now (braced men stay on their feet and
     // a winning roll runs unleashed), so the about-face out of a full
-    // embedment takes most of a minute before the gap opens.
-    run(&mut sim, 60.0);
+    // embedment takes most of a minute before the gap opens — and longer now that
+    // steady facings + a charge-state-vulnerable enemy keep the press tight a beat
+    // more, so the about-face out of a full embedment runs past the minute mark.
+    run(&mut sim, 80.0);
     assert!(
         sim.units[a].engaged < 10, // a trailing straggler or two is contact noise
         "withdrawing unit must break contact, engaged {}",

@@ -252,9 +252,9 @@ const CAV_SWORD: Weapon = Weapon {
     // over the enemy's heads and the dismounted-length blade lands nothing.
     reach: 1.5,
     min_range: 0.0,
-    arc: 1.4,
+    arc: 1.1,
     attack_interval: 1.93,
-    damage: 0.20,
+    damage: 0.10,
     kind: WeaponKind::Standard,
 };
 
@@ -385,8 +385,8 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             knockback_mult: 1.0,
             spacing: Vec2::new(1.8, 2.4),
             default_depth: 5,
-            health: 2.2, // armoured rider: tougher than foot once a blow reaches him
-            mount_health: 8.45, // a horse is a lot of animal; short blades mostly chip at it
+            health: 1.5, // armoured rider: tougher than foot once a blow reaches him
+            mount_health: 5.0, // a horse is a lot of animal; short blades mostly chip at it
             block: 0.4, // an armoured horseman's shield: strong frontal cover. Safe to raise now that
             // the lance has no dead zone — more block monotonically helps (see the test).
             evade: 0.12,
@@ -415,7 +415,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             training: 0.65,
             morale_aura: 1.6, // mounted, but lighter — a smaller steadying presence
             charge: false,
-            turn_mult: 0.86, // lighter horse, a touch nimbler than the shock arm
+            turn_mult: 0.9, // lighter horse, a touch nimbler than the shock arm
             weapons: one(CAV_SWORD),
             ..foot
         },

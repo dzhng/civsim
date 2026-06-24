@@ -116,6 +116,13 @@ impl Sim {
         // his foe and his place in the line, so the front and flank geometry are
         // untouched; the (cap+1)th man just presses, unable to land a blow. Capping
         // the local outnumbering is what stops a thinning line being ground 3:1.
+        //
+        // KEPT DELIBERATELY (David's call): this is a headcount GUARD, not real
+        // geometry — strictly speaking how many blades reach a man should fall out
+        // of reach/arc/obstruction. It earns its place only as a backstop against a
+        // crowd BLOB overrunning a line. Hold it until we're certain the blob is
+        // solved by forces alone (the weave compression + body wall); then this
+        // can go. Do NOT lean new behavior on it.
         for a in self.attacked_by.iter_mut() {
             *a = 0;
         }
@@ -184,6 +191,15 @@ impl Sim {
             let range_cells = ((search / cell).ceil() as i32).clamp(1, 4);
             let mut nearest: i32 = -1;
             let mut nearest_d = f32::MAX;
+            // STICKY TARGET: a man fights the foe he is already squared up to and
+            // only switches when a new one is meaningfully closer. Re-picking the
+            // single nearest body every tick made his facing OSCILLATE — the
+            // nearest flips between near-equidistant foes in a packed grind, so his
+            // body chased a target that reversed several times a second (real
+            // soldiers don't twitch their stance 30x/s). Track the current foe's
+            // live distance so we can keep him unless clearly out-classed.
+            let prev_target = self.target[i];
+            let mut prev_target_d = f32::MAX;
             // (victim, surface distance, bearing)
             let mut candidates: [(u32, f32, f32); 12] = [(0, 0.0, 0.0); 12];
             let mut cand_len = 0usize;
@@ -252,6 +268,9 @@ impl Sim {
                             nearest_d = d_surf;
                             nearest = j as i32;
                         }
+                        if j as i32 == prev_target {
+                            prev_target_d = d_surf;
+                        }
                         if cand_len < candidates.len() && d_surf <= max_reach {
                             // Dedup per owner (two horse circles = one victim).
                             if !candidates[..cand_len].iter().any(|c| c.0 == j as u32) {
@@ -269,7 +288,21 @@ impl Sim {
                 self.fighting[i] = 0;
                 continue;
             }
-            self.target[i] = nearest;
+            // Keep the foe we're already on unless the new nearest is clearly
+            // closer (>15%) — the hysteresis that stops the facing oscillation.
+            // A man PULLING OUT (disengage/rout) doesn't cling to his foe, though:
+            // stickiness would keep a withdrawing unit nailed in contact, so it
+            // yields to the latest nearest and lets the gap open as it backs off.
+            self.target[i] = if !disengaged
+                && prev_target >= 0
+                && self.alive[prev_target as usize] == 1
+                && prev_target_d <= DISENGAGE_DIST
+                && prev_target_d <= nearest_d * 1.15
+            {
+                prev_target
+            } else {
+                nearest
+            };
             // Empty frontage toward the target: the measured anti-blender
             // leash. Blocked = a comrade's body within 1.5m inside +-40deg
             // of the target bearing.
@@ -333,7 +366,15 @@ impl Sim {
                 Some(if keep_charge { ci } else { gi })
             } else if let Some(bi) = weapons.iter().position(|w| w.braced()) {
                 let pike = &weapons[bi];
+                // The pike is leveled down the UNIT's frontage and braced there; a
+                // man can only drive it while he is himself SQUARED UP to that line.
+                // If he has turned his body off the frontage to meet a man on his
+                // flank, the long shaft is useless to him sideways — he drops to his
+                // side-arm. So the pike bears only when (a) the foe is in the
+                // frontage arc AND (b) the soldier still faces along it.
+                let self_off = wrap_angle(self.facings[i] - self.units[ui].facing).abs();
                 let pike_bears = front_off <= pike.arc * 0.5 + AIM_TOLERANCE
+                    && self_off < FRONT_ARC
                     && nearest_d >= pike.min_range
                     && nearest_d <= pike.reach;
                 if pike_bears {
@@ -631,8 +672,29 @@ impl Sim {
         } else {
             0.25
         };
-        let evade =
-            vstats.evade * seen * cohesion * (1.0 - self.pressure[victim] / 4.2).clamp(0.0, 1.0);
+        // CHARGE-STATE DEFENCE (mounted only): a horse's protection is MOVEMENT.
+        // While the charge still carries it, it's a fast, hard-to-hit half-tonne
+        // that rides through; once the charge is SPENT and it's a standing grind,
+        // the foot mob crowds in and hacks at the horse and rider it can no
+        // longer outrun — it can no longer DODGE (a stalled horse can't slip a
+        // blow); its shield still raises, but its evade falls to almost nothing. This is the one
+        // physical fact that lets cavalry WIN the charge (and ride down an exposed
+        // flank) yet LOSE a sustained grind to infantry it cannot break: the edge
+        // is the gallop, not the melee. Scales from full (carrying ≥ charge_min) to
+        // a floor (bogged ≤ charge_spent).
+        let def_scale = if self.mounted[victim] == 1 {
+            let adv = self.units[self.soldier_unit[victim] as usize].mass_advance;
+            let tun = &self.tun;
+            ((adv - tun.charge_spent_speed) / (tun.charge_min_speed - tun.charge_spent_speed))
+                .clamp(0.2, 1.0)
+        } else {
+            1.0
+        };
+        let evade = vstats.evade
+            * seen
+            * cohesion
+            * def_scale
+            * (1.0 - self.pressure[victim] / 4.2).clamp(0.0, 1.0);
         if self.rng.chance(evade) {
             return;
         }

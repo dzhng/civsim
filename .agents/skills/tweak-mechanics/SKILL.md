@@ -33,6 +33,43 @@ already wrong upstream. Question every existing knob too: "is this still
 needed now that X exists?" Then **prove the answer with a test or a shot**,
 not an argument.
 
+### Don't stop at "the test is green" — find the ROOT and GENERALIZE it
+
+A green test is not the goal; correct emergent physics is. Two failure modes to
+catch yourself in:
+
+- **Papering for the score.** If a balance outcome is wrong, do NOT tune a stat
+  to flip it (cav health, weapon damage) — that hides a physics bug behind the
+  economy. Ask why the physics produced it. (Worked case: a cav "won" a head-on
+  vs heavy because it WRAPPED the foe's flank — a facing feedback loop — not
+  because of any stat. Killing the loop fixed it; nudging cav health would have
+  buried it.) Never judge a mechanics change by who won.
+- **Special-casing the symptom.** When you find the cause, fix it at the most
+  GENERAL level the one physical fact supports — don't gate it to the case the
+  failing test happened to exercise. Worked case: soldier facings JITTERED
+  (reversed direction ~25% of ticks, ~77°/s) because each man's desired facing
+  chased the instantaneous position of one foe, and that position churns under
+  separation each tick. The first fix — "if the foe is in the FRONT arc, hold the
+  unit frontage" — drove the *frontal* jitter to ~1% and passed the tests, but it
+  was a special-case: a flanked man still twitched. The physical fact is general:
+  **a man faces the threat MASS deliberately and HOLDS that stance; he never
+  servos his body on positional noise, from ANY quarter.** The right fix de-
+  jitters every soldier (face a STABLE reference — the enemy's mass/centroid
+  direction, or a smoothed bearing — with hysteresis), and "face front by default,
+  deviate only for a real off-front threat" then falls out of it for free instead
+  of being hand-coded. If your fix only covers the quadrant the test probed, you
+  found a symptom, not the rule. Always ask: "can this generalize?"
+- **A correct feature exposing a bug is not a reason to drop the feature.** When
+  adding a sound mechanic (directional brace: a flank is soft, a front is braced)
+  makes other things misbehave, do NOT conclude "the feature doesn't work, revert
+  it." Ask what it EXPOSED. Directional brace flickered only because soldier
+  facings were already jittering ~25×/sec — an unrealistic bug the omni brace had
+  been masking. The fix is to kill the jitter at its root; then the feature works
+  AND the sim is more correct everywhere else too. Reverting would have re-buried
+  the real bug. A new mechanic that surfaces a latent defect has done you a favor —
+  chase the defect, don't shoot the messenger. **No shortcuts to green: green is a
+  side effect of correct physics, never the target.**
+
 ### When rebuilding a foundation, IGNORE the old scenario tests
 
 If you're replacing a core mechanic from first principles, the existing
@@ -81,6 +118,24 @@ that were tuned to the old in-place shove timing. That regression is the fix wor
 not breaking — those pins get re-derived to the corrected physics, not used as a
 reason to revert. (The decision to keep it was David's explicit call: sound sim
 first, brittle tests after.)
+
+**Worked instance — realistic turn rates make formations HOLD, and that's the
+goal.** Soldier facing used to slew at ~460°/s — a near-instant snap. Dampening it
+to a realistic ~90°/s (a man pivots deliberately; a horse wheels slower still, via a
+per-class `turn_mult`) regressed a cluster of balance pins. The tell was in WHY each
+fell: e.g. "cav routs a flanked phalanx" only ever passed because the old snap-turn
+made the flanked pikemen each spin to face the horse individually — the formation
+**flailed apart** and the cav poured into the gaps. With realistic turning the
+phalanx **holds its frontage** when hit on the flank, so 96 horse no longer rout 160
+pikes. That is MORE correct, not a regression: **the system should want units to hold
+formation** — a pin that only passed because men flailed was certifying the bug.
+The re-derivation (David's calls): drop the "cav routs a flanked phalanx" contract
+to "cav takes a good chunk out of it" (phalanx ≈ heavy inf — cav loses to both, but
+bloodies them in charge + grind); keep the real cav contract on what it SHOULD beat
+— light infantry, won via charge AND grind with the kills split ~50/50. Generic
+lesson: when a realism fix regresses a pin, ask whether the OLD pass depended on the
+unrealistic behavior (instant turning, flailing, in-place first-mover). If so the pin
+encoded the artifact — re-derive it; don't dial the physics back to re-green it.
 
 ### Forces, not walls; emergence, not special-cases
 
@@ -481,6 +536,25 @@ you touch them; don't mass-rename mid-change.
   vibe shots last. NEVER use the browser to decide whether the sim physics
   is correct — that's what the Rust layer is for — but DO use the shots to
   decide whether it *feels* right.
+  - `--no-fail-fast` is **non-optional**, not a nicety. Plain `cargo test`
+    is fail-fast *across test binaries*: it stops after the first executable
+    that has a failure, so every later binary is never run and you see a
+    PARTIAL result. Tuning a knife-edge parameter (turn rate, a margin) then
+    reading plain `cargo test` gives a **false green** — you fix the one
+    test it showed, the next run reveals a different binary's failure, and
+    you whack-a-mole forever (this shipped a failing `dense_infantry_blunts`
+    to main once exactly this way).
+  - Trust the **exit code**, never a grep. `grep FAILED` over piped output
+    misses failures when the pipe truncates or the pattern is off; a
+    backgrounded `cargo test | grep` is especially unreliable. Gate on
+    `rc=$?` being 0, or count that `test result: ok` lines == the number of
+    test binaries. If `rc != 0`, the suite is RED no matter what a grep says.
+  - Several balance pins are single/few-seed and **knife-edge** — their
+    pass/fail flips on a sub-percent parameter nudge (e.g. a `turn_mult` of
+    0.829 vs 0.830 flips `pikes_reach_riders`). Threading four of them with
+    one scalar is fitting noise. When a realistic-physics value can't satisfy
+    a fragile pin, the pin is the bug: re-derive it against the new physics
+    (more seeds / a stable metric) WITH David — don't keep dialing the knob.
 - **Rebuild the wasm** (`npm run build:wasm` from `web/`) after any Rust
   change before any vibe run, or you're filming a stale binary.
 - The **golden hash** (`golden.rs`) moves on any sim-value change — re-pin

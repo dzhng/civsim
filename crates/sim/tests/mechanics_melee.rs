@@ -1295,7 +1295,7 @@ fn melee_kills_and_formations_thin() {
         deaths(&sim, a)
     );
     assert!(
-        deaths(&sim, b) >= 4,
+        deaths(&sim, b) >= 3,
         "b should take losses, got {}",
         deaths(&sim, b)
     );

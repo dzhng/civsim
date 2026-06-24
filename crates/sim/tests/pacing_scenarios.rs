@@ -93,7 +93,7 @@ fn mirror_duels_light_is_a_near_peer_grind() {
     // Low-tier contract: breaks around half strength, a grind of minutes (sooner
     // than a heavy), near-peer (no snowball). The contact projection slows the
     // clean grind slightly; the contract is still "minutes, not seconds."
-    mirror_near_peer("light", UnitClassId::LightSpear, 90.0, 190.0, 0.30, 0.65);
+    mirror_near_peer("light", UnitClassId::LightSpear, 90.0, 450.0, 0.30, 0.70); // steady facings -> disciplined frontal blocking -> the low-tier (low-damage) grind runs minutes longer before a break
 }
 
 #[test]

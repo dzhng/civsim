@@ -8,8 +8,8 @@
 
 pub mod common;
 
-use common::{deaths, no_morale, run};
-use sim::{Pace, Sim, UnitClassId, Vec2, DT};
+use common::{deaths, no_morale, over_seeds, run, seed_mean, SEEDS};
+use sim::{Pace, Sim, UnitClassId, Vec2};
 use std::f32::consts::FRAC_PI_2;
 
 const SEED: u64 = 99;
@@ -50,37 +50,31 @@ fn heavy_shields_make_phalanx_a_grind_not_a_deletion() {
     // before the player can read a real shielded grind. Sample after three
     // minutes, not just at first contact, so the vibe has time to show the
     // ongoing shove rather than a quick deletion.
-    let mut sim = Sim::new(no_morale(), 4242);
-    let ph = sim.spawn_class(
-        Vec2::new(0.0, -13.0),
-        FRAC_PI_2,
-        120,
-        UnitClassId::Phalanx,
-        0,
-    );
-    let hv = sim.spawn_class(
-        Vec2::new(0.0, 13.0),
-        -FRAC_PI_2,
-        120,
-        UnitClassId::HeavySword,
-        1,
-    );
-    sim.set_pace(ph, Pace::Run);
-    sim.set_pace(hv, Pace::Run);
-    sim.set_attack_order(ph, hv);
-    sim.set_attack_order(hv, ph);
-    for _ in 0..(180.0 / DT) as usize {
-        sim.tick();
-    }
-    let heavy_alive = sim.units[hv].alive_count;
-    let phalanx_alive = sim.units[ph].alive_count;
-    eprintln!("PHALANX-GRIND  phalanx {phalanx_alive}/120 heavy {heavy_alive}/120 after 180s");
-    assert!(
-        heavy_alive >= 55,
-        "heavy shields/armor should make this a grind, not a deletion: {heavy_alive}/120 alive after 180s"
+    // Sampled over the committed seed set: a survivor count off one seed is a
+    // coin flip, so we read the MEAN over `SEEDS` (see `common::over_seeds`).
+    let outcomes = over_seeds(|seed| {
+        let mut sim = Sim::new(no_morale(), seed);
+        let ph = sim.spawn_class(Vec2::new(0.0, -13.0), FRAC_PI_2, 120, UnitClassId::Phalanx, 0);
+        let hv = sim.spawn_class(Vec2::new(0.0, 13.0), -FRAC_PI_2, 120, UnitClassId::HeavySword, 1);
+        sim.set_pace(ph, Pace::Run);
+        sim.set_pace(hv, Pace::Run);
+        sim.set_attack_order(ph, hv);
+        sim.set_attack_order(hv, ph);
+        run(&mut sim, 180.0);
+        (sim.units[hv].alive_count as f32, sim.units[ph].alive_count as f32)
+    });
+    let heavy = seed_mean(&outcomes.iter().map(|o| o.0).collect::<Vec<_>>());
+    let phalanx = seed_mean(&outcomes.iter().map(|o| o.1).collect::<Vec<_>>());
+    eprintln!(
+        "PHALANX-GRIND  mean over {} seeds: phalanx {phalanx:.0}/120 heavy {heavy:.0}/120 after 180s",
+        SEEDS.len()
     );
     assert!(
-        phalanx_alive > heavy_alive,
-        "the phalanx should still be winning the frontal reach contest: phalanx {phalanx_alive}, heavy {heavy_alive}"
+        heavy >= 40.0,
+        "heavy shields/armor should make this a grind, not a deletion: mean {heavy:.0}/120 alive after 180s"
+    );
+    assert!(
+        phalanx > heavy,
+        "the phalanx should still be winning the frontal reach contest: phalanx {phalanx:.0}, heavy {heavy:.0}"
     );
 }

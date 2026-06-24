@@ -3,7 +3,7 @@
 
 pub mod common;
 
-use common::run;
+use common::{over_seeds, run, seed_mean, SEEDS};
 use sim::{setup_battle, MapId, Sim, Tunables, UnitClassId, Vec2, DT};
 use std::f32::consts::PI;
 
@@ -179,13 +179,16 @@ fn dense_infantry_blunts_a_cavalry_charge_loose_gets_punched_through() {
     // differs. Dense files put more collective mass (and transmitted press)
     // at the impact point: the charge should bog at the front ranks.
     // Loose order leaves every man alone against half a ton of horse.
-    let charge_into = |spacing: f32| -> (f32, f32, f32, usize) {
+    // The aftermath of one charge is RNG-dependent, so we sample each spacing
+    // over the committed seed set and compare the MEANS (see `over_seeds`). The
+    // asserted quantities are the horse's retained speed and the bodies it felled.
+    let charge_into = |spacing: f32, seed: u64| -> (f32, f32) {
         let mut sim = Sim::new(
             Tunables {
                 morale_enabled: false,
                 ..Tunables::default()
             },
-            SEED,
+            seed,
         );
         // Infantry faces south, front line at y = 30, ranks extending north.
         let inf = sim.spawn_unit(
@@ -204,59 +207,38 @@ fn dense_infantry_blunts_a_cavalry_charge_loose_gets_punched_through() {
             UnitClassId::ShockCavalry,
             1,
         );
-        let y0: Vec<f32> = {
-            let u = &sim.units[inf];
-            (u.start..u.start + u.count)
-                .map(|i| sim.soldier_pos(i).y)
-                .collect()
-        };
         sim.set_pace(cav, sim::Pace::Run);
         sim.set_attack_order(cav, inf);
-        // The impact is an EVENT: track its peaks through the whole charge
-        // instead of sampling one instant.
-        let mut peak_pen = f32::MIN;
-        let mut peak_shove = 0.0f32;
-        for _ in 0..(28.0 / DT) as usize {
-            sim.tick();
-            let u = &sim.units[inf];
-            // Centroid penetration: the MASS's depth into the line. (The
-            // deepest single horse is an outlier metric — one breakthrough
-            // animal galloping the open field reads as "penetration".)
-            peak_pen = peak_pen.max(sim.units[cav].centroid.y - 30.0);
-            let mut shove = 0.0f32;
-            let mut n = 0;
-            for (k, i) in (u.start..u.start + u.count).enumerate() {
-                if sim.alive[i] == 1 {
-                    shove += (sim.soldier_pos(i).y - y0[k]).abs();
-                    n += 1;
-                }
-            }
-            peak_shove = peak_shove.max(shove / n.max(1) as f32);
-        }
-        let deaths = sim.units[inf].count - sim.units[inf].alive_count;
-        (peak_pen, peak_shove, sim.units[cav].mass_advance, deaths)
+        run(&mut sim, 28.0);
+        let deaths = (sim.units[inf].count - sim.units[inf].alive_count) as f32;
+        (sim.units[cav].mass_advance, deaths)
     };
 
-    let (pen_d, shove_d, adv_d, dead_d) = charge_into(0.75); // shields touching
-    let (pen_l, shove_l, adv_l, dead_l) = charge_into(1.8); // open order
+    let dense = over_seeds(|s| charge_into(0.75, s)); // shields touching
+    let loose = over_seeds(|s| charge_into(1.8, s)); // open order
+    let adv_d = seed_mean(&dense.iter().map(|x| x.0).collect::<Vec<_>>());
+    let adv_l = seed_mean(&loose.iter().map(|x| x.0).collect::<Vec<_>>());
+    let dead_d = seed_mean(&dense.iter().map(|x| x.1).collect::<Vec<_>>());
+    let dead_l = seed_mean(&loose.iter().map(|x| x.1).collect::<Vec<_>>());
     println!(
-        "DENSE (0.75m): cav mass {pen_d:.1}m past the original front, peak mean shove {shove_d:.2}m, mass-advance {adv_d:.1}m/s, {dead_d} dead"
+        "mean over {} seeds: DENSE (0.75m) mass-advance {adv_d:.1}m/s, {dead_d:.0} dead; \
+         LOOSE (1.8m) mass-advance {adv_l:.1}m/s, {dead_l:.0} dead",
+        SEEDS.len()
     );
-    println!(
-        "LOOSE (1.8m):  cav mass {pen_l:.1}m past the original front, peak mean shove {shove_l:.2}m, mass-advance {adv_l:.1}m/s, {dead_l} dead"
-    );
-    // Same men and ranks, but loose order is 2.4x deeper in metres (1.8 vs
-    // 0.75 m spacing), so raw horse-metres saturate as a ruler. The impact is
-    // visible in the physical aftermath: dense order bogs the horse mass and
-    // absorbs the charge in bodies; loose order yields with far fewer men hit.
-    let _ = (pen_d, pen_l, shove_d, shove_l);
+    // Dense order bogs the horse mass and absorbs the charge in BODIES; loose
+    // order yields with far fewer men hit. The body count is the strong, robust
+    // signal (dense fells several times more men); the horse also keeps less
+    // speed in the packed press, though by a smaller margin than under the old
+    // near-instant turning — with realistic facing both orders bog somewhat, so
+    // we assert the direction, not an aggressive ratio. (Raw horse-metres
+    // saturate as a ruler — loose order is 2.4x deeper in metres.)
     assert!(
-        adv_d < adv_l * 0.6,
+        adv_d < adv_l,
         "dense order must slow the horse mass more than loose order: dense {adv_d:.1}m/s vs loose {adv_l:.1}m/s"
     );
     assert!(
-        dead_d > dead_l * 3,
-        "dense order absorbs the impact in bodies while loose order yields: dense {dead_d} dead vs loose {dead_l}"
+        dead_d > dead_l * 3.0,
+        "dense order absorbs the impact in bodies while loose order yields: dense {dead_d:.0} dead vs loose {dead_l:.0}"
     );
 }
 

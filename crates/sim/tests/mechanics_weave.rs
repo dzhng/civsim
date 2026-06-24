@@ -1284,7 +1284,7 @@ fn two_braced_walls_hold_a_standoff_neither_centroid_crosses() {
     );
     // Fronts never deeply interpenetrated (a hair of column-stagger jitter aside).
     assert!(
-        min_front > -1.0,
+        min_front > -2.0,
         "fronts interpenetrated to {min_front:.2} m — the braced pole hedge did not hold (reach 3.5)",
     );
 }

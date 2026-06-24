@@ -22,6 +22,14 @@ use crate::unit::{compact_slots_preserving_order, reassign_slots, slot_local, Or
 /// casual sway before it can ring through the lattice.
 const IDLE_FIDGET: f32 = 0.12;
 const IDLE_GLANCE: f32 = 0.18;
+/// A soldier re-aims his facing only once the threat is more than this far off it
+/// (rad, ~8°); inside it he holds his stance. Stops his body servoing on the
+/// tick-to-tick separation churn of a packed grind (the facing jitter).
+const FACING_DEADZONE: f32 = 0.14;
+/// A foe within this arc of the unit's commanded frontage (rad) is met by simply
+/// holding the frontage; only a foe beyond it (a flanker) turns the man outward.
+/// Keeps a frontal grind's facings steady instead of chasing each foe's churn.
+const FACING_FRONT_ARC: f32 = 1.0;
 /// A formation bond may bridge a small casualty gap to the next live man in the
 /// same rank/file. This keeps a line a connected sheet after a few deaths while
 /// still letting real holes stay open.
@@ -2132,7 +2140,22 @@ impl Sim {
                         prev_positions[2 * target[i] as usize],
                         prev_positions[2 * target[i] as usize + 1],
                     );
-                    (tp - p).y.atan2((tp - p).x)
+                    let raw = (tp - p).y.atan2((tp - p).x);
+                    // A man faces the threat MASS deliberately and HOLDS it — he
+                    // never servos his stance on the tick-to-tick separation churn of
+                    // one body (that twitch IS the facing jitter). A foe already in
+                    // the unit's FRONT arc is met by holding the commanded frontage;
+                    // a foe OFF the front (a flanker) turns him outward — but toward
+                    // the threatening unit's CENTROID (a stable direction), not the
+                    // single foe's churning position. Both branches track a stable
+                    // reference, so no quarter twitches.
+                    if wrap_angle(raw - u.facing).abs() < FACING_FRONT_ARC {
+                        u.facing
+                    } else {
+                        let foe_unit = soldier_unit[target[i] as usize] as usize;
+                        let c = units[foe_unit].centroid;
+                        (c - p).y.atan2((c - p).x)
+                    }
                 } else if hit_ttl[i] > 0.0 {
                     hit_ttl[i] -= dt;
                     hit_dir[i]
@@ -2145,11 +2168,20 @@ impl Sim {
                 } else {
                     u.facing
                 };
-                facings[i] = rotate_toward(
-                    facings[i],
-                    desired_face,
-                    tun.soldier_turn_rate * u.stats.turn_mult * dt,
-                );
+                // Deadzone: a man holds his stance and only re-aims when the threat
+                // has genuinely shifted off it (> ~8°). Without this his facing
+                // CHASES the tick-to-tick separation churn of a packed grind —
+                // bodies shoved a few cm back and forth move the bearing a hair, and
+                // he was re-aiming (and REVERSING) ~25% of ticks at his full turn
+                // rate. Real stances don't twitch 30x/s; the deadzone makes facing a
+                // deliberate turn, not a servo on positional noise.
+                if wrap_angle(desired_face - facings[i]).abs() > FACING_DEADZONE {
+                    facings[i] = rotate_toward(
+                        facings[i],
+                        desired_face,
+                        tun.soldier_turn_rate * u.stats.turn_mult * dt,
+                    );
+                }
             }
             measures.push(UnitMeasure {
                 err_sum,

@@ -12,7 +12,7 @@ import { Scene } from '@babylonjs/core/scene';
 import { FreeCamera } from '@babylonjs/core/Cameras/freeCamera';
 import { Camera as BCamera } from '@babylonjs/core/Cameras/camera';
 import { PostProcess } from '@babylonjs/core/PostProcesses/postProcess';
-import { CLASS_LOOK, classGeometry, classGeometryDetailed, type Pose } from '../shared/soldierModel';
+import { CLASS_LOOK, SHOCK_CAV_SIDEARM_LOOK, classGeometry, classGeometryDetailed, type Pose } from '../shared/soldierModel';
 import { HemisphericLight } from '@babylonjs/core/Lights/hemisphericLight';
 import { DirectionalLight } from '@babylonjs/core/Lights/directionalLight';
 import { Vector2, Vector3, Vector4 } from '@babylonjs/core/Maths/math.vector';
@@ -525,6 +525,10 @@ export class BattleRenderer3D {
   private scaleOf = new Float32Array(0); // 3D mesh scale
   private rowOf = new Float32Array(0); // atlas row (class+team)
   private sizeOf = new Float32Array(0); // sprite world size
+  // Per-soldier weapon-variant flag (1 = drawn sidearm), set per frame by the
+  // scene from the sim's cur_weapon: a shock lancer grinding with its sabre is
+  // routed to the render-only sidearm pseudo-class so the mesh shows a sword.
+  private sidearmOf: Uint8Array = new Uint8Array(0);
   // Per-soldier at-ease blend in [0,1], eased toward its target (1 when the
   // sim tags the man at-ease, else 0) each frame so the pose sweeps, not snaps.
   private restFrac = new Float32Array(0);
@@ -811,6 +815,7 @@ export class BattleRenderer3D {
     this.sizeOf = new Float32Array(n);
     this.restFrac = new Float32Array(n);
     this.deathFrac = new Float32Array(n);
+    this.sidearmOf = new Uint8Array(n);
     for (let i = 0; i < n; i++) {
       const u = soldierUnit[i];
       const cls = classes[u];
@@ -822,6 +827,13 @@ export class BattleRenderer3D {
       const mounted = cls === 6 || cls === 7;
       this.sizeOf[i] = mounted ? 4.6 : Math.max(2.2, radii[i] * 6.8);
     }
+  }
+
+  /** Per-frame weapon-variant flags from the scene (1 = the soldier has drawn his
+   *  sidearm). Only the shock lancer reads this — a grinding lancer routes to the
+   *  sabre pseudo-class. The buffer is borrowed, not copied; the scene owns it. */
+  setSidearm(flags: Uint8Array) {
+    this.sidearmOf = flags;
   }
 
   setTerrain(
@@ -960,7 +972,10 @@ export class BattleRenderer3D {
       rf[i] += d > restStep ? restStep : d < -restStep ? -restStep : d;
     }
     for (let i = 0; i < count; i++) {
-      const bucket = this.poseOf(i, frames[i]) * POSE_BUCKET + this.classOf[i] * 2 + this.teamOf[i];
+      // A shock lancer grinding with its sabre renders as the sidearm pseudo-class
+      // (same horse+rider, sword in hand) — the visual twin of the pike-stow swap.
+      const cls = this.sidearmOf[i] ? SHOCK_CAV_SIDEARM_LOOK : this.classOf[i];
+      const bucket = this.poseOf(i, frames[i]) * POSE_BUCKET + cls * 2 + this.teamOf[i];
       let buf = this.classMats[bucket];
       const n = this.classN[bucket];
       if ((n + 1) * 16 > buf.length) {

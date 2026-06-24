@@ -759,7 +759,7 @@ export class BattleScene implements Scene {
     }, { signal });
 
     // --- Main loop -----------------------------------------------------------------
-    type WeaponSpec = { name: string; reach: number; minRange: number; arc: number; interval: number; damage: number; braced: boolean };
+    type WeaponSpec = { name: string; reach: number; minRange: number; arc: number; interval: number; damage: number; braced: boolean; charge: boolean };
     type ClassSpec = {
       cost: number;
       mass: number; radius: number; brace: number; block: number; evade: number;
@@ -773,12 +773,17 @@ export class BattleScene implements Scene {
     // it (a flanked phalangite turned to his side-sword would otherwise swing the
     // 3D pike sideways: a porcupine).
     const classBracedIdx: number[] = CLASS_SPECS.map((c) => c.weapons.findIndex((w) => w.braced));
+    // Index of each class's CHARGE weapon (the lance), or -1. A two-weapon lancer
+    // holding anything but its lance has dropped to its sabre for the grind — the
+    // renderer then shows a sword in hand, not the couched lance.
+    const classChargeIdx: number[] = CLASS_SPECS.map((c) => c.weapons.findIndex((w) => w.charge));
     const hud = document.getElementById('hud')!;
     const banner = document.getElementById('banner')!;
     const selbox = document.getElementById('selbox')!;
     banner.style.display = 'none';
     let aliveF32 = new Float32Array(0);
     let frames = new Float32Array(0);
+    let cavSidearm = new Uint8Array(0); // 1 = lancer grinding with its sabre (render-only weapon swap)
     let renderFacings = new Float32Array(0); // per-soldier facing for the MESH (pikes ride the frontage)
     let renderPos = new Float32Array(0);
     let prevRenderPos = new Float32Array(0);
@@ -833,6 +838,7 @@ export class BattleScene implements Scene {
         if (aliveF32.length !== n || simTick < renderPosTick) {
           aliveF32 = new Float32Array(n);
           frames = new Float32Array(n);
+          cavSidearm = new Uint8Array(n);
           renderFacings = new Float32Array(n);
           renderPos = new Float32Array(pos);
           prevRenderPos = new Float32Array(pos);
@@ -912,12 +918,19 @@ export class BattleScene implements Scene {
           // weapon while switch_cd runs) — otherwise a fumbling man would render
           // his old pike leveled along his turned facing: the sideways stragglers.
           renderFacings[i] = rawFace[i];
+          cavSidearm[i] = 0;
           if (a[i]) {
-            const bi = classBracedIdx[info[sUnit[i] * STRIDE + 13]];
+            const cls = info[sUnit[i] * STRIDE + 13];
+            const bi = classBracedIdx[cls];
             if (bi >= 0) {
               if (curWeapon[i] === bi) renderFacings[i] = info[sUnit[i] * STRIDE + 2]; // pike rides the frontage
               else frames[i] = 7; // FRAME_STOW: sword in hand, pike snapped upright
             }
+            // A two-weapon lancer that has dropped its lance for the sabre in the
+            // grind renders the sword (the pseudo-class swap) — the lance only
+            // shows while the charge still carries it.
+            const ci = classChargeIdx[cls];
+            if (ci >= 0 && curWeapon[i] !== ci) cavSidearm[i] = 1;
           }
         }
         if (updateRenderPos) renderPosTick = simTick;
@@ -925,6 +938,7 @@ export class BattleScene implements Scene {
       const primary = input.selected.length > 0 ? input.selected[0] : -1;
       // Unit standards + state are a DOM component now (see UnitBanner), so the
       // renderers draw no banners — the empty list keeps the shared draw() shape.
+      if (renderer instanceof BattleRenderer3D) renderer.setSidearm(cavSidearm);
       renderer.draw(renderPos, renderFacings, frames, aliveF32, game.soldier_count(), camera, primary, [], 0);
       // Attack arcs: every soldier mid-swing flashes his weapon's true envelope
       // (reach x arc) — readable combat, straight from the class table. The arc

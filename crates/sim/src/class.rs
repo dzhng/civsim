@@ -156,6 +156,12 @@ pub struct UnitClass {
     /// (running, fighting, charging, bad ground) is scaled by this — armor
     /// is paid for in wind, so heavies blow out long before a screen does.
     pub drain_mult: f32,
+    /// How fast this body PIVOTS its own facing to meet a threat, as a fraction
+    /// of the base soldier turn rate. A man spins on his heel (1.0); a horse is a
+    /// half-tonne animal that must walk its turn (a fraction), so cavalry don't
+    /// whip around to face every foe that jostles them in a grind. Pure geometry
+    /// of the body, not its will.
+    pub turn_mult: f32,
     pub weapons: WeaponSet,
 }
 
@@ -248,7 +254,7 @@ const CAV_SWORD: Weapon = Weapon {
     min_range: 0.0,
     arc: 1.4,
     attack_interval: 1.93,
-    damage: 0.24,
+    damage: 0.20,
     kind: WeaponKind::Standard,
 };
 
@@ -275,6 +281,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
         strict_formation: false,
         knockback_mult: 0.35, // a charging mass of men hurts what it fells
         drain_mult: 1.0,
+        turn_mult: 1.0,
         weapons: one(SWORD),
     };
     match id {
@@ -387,6 +394,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             training: 0.75,
             bravery: 1.3,     // armoured shock riders hold their nerve
             morale_aura: 2.0, // and the sight of friendly heavy horse steadies a line
+            turn_mult: 0.81, // a horse wheels a touch slower than a man pivots on his heel (~78°/s vs ~96°/s): enough damping that it doesn't whip around to face every footman jostling it in a grind, yet fast enough to keep its facing aligned with the charge line and ride deep into an exposed flank (too slow and mass-advance bleeds, the charge spends, and it bogs at the edge instead of plowing through)
             weapons: two(LANCE, CAV_SWORD),
             ..foot
         },
@@ -408,6 +416,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             training: 0.65,
             morale_aura: 1.6, // mounted, but lighter — a smaller steadying presence
             charge: false,
+            turn_mult: 0.86, // lighter horse, a touch nimbler than the shock arm, but still short of a man's heel-pivot (~83°/s)
             weapons: one(CAV_SWORD),
             ..foot
         },

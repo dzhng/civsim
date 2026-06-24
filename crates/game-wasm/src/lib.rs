@@ -174,6 +174,7 @@ impl Game {
                             "interval": w.attack_interval,
                             "damage": w.damage,
                             "braced": w.braced(),
+                            "charge": w.is_charge(),
                         })
                     })
                     .collect();

@@ -27,7 +27,17 @@ export const CLASS_LOOK: ClassLook[] = [
   { weapon: 'sword', shield: 'none', crest: false, mounted: false }, // 9 peasant (a knife, no shield)
   { weapon: 'sword', shield: 'round', crest: false, mounted: false }, // 10 light sword (sword + light shield)
   { weapon: 'spear', shield: 'tall', crest: true, mounted: false }, // 11 heavy spear (spear + big shield)
+  // 12 RENDER-ONLY pseudo-class: shock cav after it drops the lance for its sabre
+  // in the grind. The sim never spawns class 12 — the renderer routes a shock-cav
+  // soldier here when `cur_weapon` is its sidearm, so the same horse+rider shows a
+  // sword instead of the couched lance (the visual twin of the pike-stow swap).
+  { weapon: 'sword', shield: 'round', crest: true, mounted: true }, // 12 shock cav, sabre drawn
 ];
+
+/** Render-only pseudo-class (see CLASS_LOOK[12]): a shock-cav rider with his
+ *  sidearm drawn instead of the lance. The renderer swaps a grinding lancer to
+ *  this look; nothing in the sim knows about it. */
+export const SHOCK_CAV_SIDEARM_LOOK = 12;
 
 /** Per-class soldier (or rider on a horse) as one box mesh. `rest` is a
  *  continuous 0..1 pose blend: at 1 the pole arms (pike, spear, javelin, lance)

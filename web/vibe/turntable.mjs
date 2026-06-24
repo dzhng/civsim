@@ -32,11 +32,15 @@ const PITCH = INGAME ? 0.42 : 0.95;   // view tilt from straight-down, radians
 const CLASS_NAMES = [
   'heavy-sword', 'light-spear', 'longsword', 'phalanx', 'archers', 'skirmishers',
   'shock-cav', 'horse-archers', 'artillery', 'peasant', 'light-sword', 'heavy-spear',
+  // 12 is a RENDER-ONLY look, not a sim class: a shock lancer with its sabre
+  // drawn (the in-grind weapon swap). Gated here so the sword model can't
+  // silently regress, the same as every real class.
+  'shock-cav-sword',
 ];
 
 // Tallest extent (metres) of each model at ease, so each class is framed to its
 // own height — a phalanx's 3.4 m pike and a peasant's knife both fill the frame.
-const CLASS_H = [1.75, 2.05, 1.85, 3.5, 1.75, 1.6, 3.4, 2.6, 1.55, 1.55, 1.75, 2.05];
+const CLASS_H = [1.75, 2.05, 1.85, 3.5, 1.75, 1.6, 3.4, 2.6, 1.55, 1.55, 1.75, 2.05, 3.4];
 const frameFor = (cls) => {
   const h = CLASS_H[cls] ?? 1.8;
   // Near top-down (in-game), the figure projects through its ground footprint,
@@ -90,7 +94,7 @@ await page.goto(`${TARGET}/?test=models`);
 await page.waitForFunction(() => window.__ready === true, undefined, { timeout: 20000 });
 await page.waitForTimeout(300);
 
-const classes = only ?? Array.from({ length: 12 }, (_, i) => i);
+const classes = only ?? Array.from({ length: CLASS_NAMES.length }, (_, i) => i);
 if (!only) await clearSnapshotFolder(GROUP);
 
 let fails = 0;

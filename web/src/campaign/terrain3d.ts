@@ -799,38 +799,68 @@ export class Terrain3D {
     const positions: number[] = [];
     const colors: number[] = [];
     const indices: number[] = [];
-    const EPS = 0.25; // lift just above the ground so it beats z-fighting
-    for (let ei = 0; ei < data.map.edges.length; ei++) {
-      const e = data.map.edges[ei];
-      if (e.kind === 'sea') continue;
-      const via = e.via;
-      if (via.length < 2) continue;
-      const lvl = roadLevels?.[ei] ?? 1;
-      const halfW = 0.6 * (0.85 + 0.18 * lvl); // world km — a thin causeway
-      const sh = 0.6 + 0.045 * lvl; // granite, brighter per level
+    const STEP = 0.9; // km between samples — fine enough to hug the relief so
+    //                   the ground never bulges up through a long flat segment.
+
+    // Lay one ribbon down a resampled centreline: a vertex pair per sample,
+    // offset ±halfW along the ground-plane normal, draped at terrain height.
+    const ribbon = (
+      center: [number, number][],
+      halfW: number,
+      zOff: number,
+      r: number,
+      g: number,
+      bl: number,
+    ) => {
+      const n = center.length;
       const base = positions.length / 3;
-      for (let i = 0; i < via.length; i++) {
-        const p = via[i];
-        const a = via[Math.max(0, i - 1)];
-        const c = via[Math.min(via.length - 1, i + 1)];
+      for (let i = 0; i < n; i++) {
+        const p = center[i];
+        const a = center[Math.max(0, i - 1)];
+        const c = center[Math.min(n - 1, i + 1)];
         let tx = c[0] - a[0];
         let ty = c[1] - a[1];
         const tl = Math.hypot(tx, ty) || 1;
         tx /= tl;
         ty /= tl;
         const nx = -ty;
-        const ny = tx; // ground-plane perpendicular
+        const ny = tx;
         for (const s of [-1, 1]) {
           const x = p[0] + nx * halfW * s;
           const y = p[1] + ny * halfW * s;
-          positions.push(x, y, this.field.heightAt(x, y) + EPS);
-          colors.push(sh, sh * 0.98, sh * 0.93, 1);
+          positions.push(x, y, this.field.heightAt(x, y) + zOff);
+          colors.push(r, g, bl, 1);
         }
       }
-      for (let i = 0; i + 1 < via.length; i++) {
+      for (let i = 0; i + 1 < n; i++) {
         const l = base + i * 2;
         indices.push(l, l + 1, l + 2, l + 1, l + 3, l + 2);
       }
+    };
+
+    for (let ei = 0; ei < data.map.edges.length; ei++) {
+      const e = data.map.edges[ei];
+      if (e.kind === 'sea') continue;
+      const via = e.via;
+      if (via.length < 2) continue;
+      // Resample the simplified polyline so the ribbon follows the ground.
+      const center: [number, number][] = [[via[0][0], via[0][1]]];
+      for (let i = 1; i < via.length; i++) {
+        const a = via[i - 1];
+        const b = via[i];
+        const segs = Math.max(1, Math.round(Math.hypot(b[0] - a[0], b[1] - a[1]) / STEP));
+        for (let k = 1; k <= segs; k++) {
+          const t = k / segs;
+          center.push([a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]);
+        }
+      }
+      const lvl = roadLevels?.[ei] ?? 1;
+      const halfW = 0.52 * (0.85 + 0.18 * lvl); // world km — a thin causeway
+      const sh = 0.62 + 0.045 * lvl; // granite, brighter per level
+      // Dark embankment first (a touch wider, a touch lower) so it reads as a
+      // shadowed lip; then the brighter stone surface on top.
+      ribbon(center, halfW * 1.5, 0.18, 0.33, 0.28, 0.23);
+      ribbon(center, halfW, 0.32, sh, sh * 0.98, sh * 0.93);
     }
     if (this.roadMesh) {
       this.roadMesh.dispose();

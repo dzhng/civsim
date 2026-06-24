@@ -690,8 +690,8 @@ export class Terrain3D {
       for (let gx = 0; gx < w; gx++) {
         const i = gy * w + gx;
         const forest = this.field.biome[i * 4 + 1] / 255;
-        if (forest < 0.35) continue;
-        const k = Math.round(forest * 3 * (0.5 + hash2(gx, gy) * 0.9));
+        if (forest < 0.28) continue;
+        const k = Math.round(forest * 4.5 * (0.6 + hash2(gx, gy) * 0.9));
         for (let t = 0; t < k; t++) {
           const ox = (hash2(gx * 7 + t, gy * 13 + 1) - 0.5) * cell * 1.4;
           const oy = (hash2(gx * 3 + t, gy * 17 + 5) - 0.5) * cell * 1.4;

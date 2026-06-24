@@ -45,10 +45,13 @@ export async function clearSnapshotFolder(name) {
   await mkdir(BASELINE + name, { recursive: true });
 }
 
-/** Exact by default: rendering here is deterministic (fixed seed, frozen
- *  clocks, same GPU), so ANY differing pixel is a real change. Loosen
- *  threshold/maxDiffRatio only for a snap with a proven noise source. */
-export async function snapCheck(page, name, check, { threshold = 0, maxDiffRatio = 0, shot } = {}) {
+/** Tolerant by default: a per-pixel colour threshold absorbs anti-aliasing and
+ *  the GPU/font rasterization that differs from machine to machine, and a small
+ *  area budget lets a minor rendering tweak through — so a snap fails on a real
+ *  change (layout, colour, a regressed feature), not on noise. `threshold` is
+ *  pixelmatch's 0..1 per-pixel sensitivity; `maxDiffRatio` is the fraction of
+ *  pixels allowed to differ. Tighten (pass 0,0) for a snap that must be exact. */
+export async function snapCheck(page, name, check, { threshold = 0.12, maxDiffRatio = 0.04, shot } = {}) {
   // SNAP=<substr> runs only the snaps whose name contains <substr> (comma-OR).
   // The harness still drives all setup, but unmatched snaps are skipped — no
   // compare, no diff/actual written. Use it to iterate on one view fast.

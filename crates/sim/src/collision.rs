@@ -150,7 +150,29 @@ impl Sim {
         let mut project_unit_active = vec![0u8; units.len()];
         let mut project_any = false;
 
-        let m_eff = |i: usize| mass[i] * brace[soldier_unit[i] as usize];
+        // DIRECTIONAL brace: a man braces his FRONT — planted feet, leveled weapon,
+        // raised shield, set against the enemy he faces. A threat on his flank or
+        // rear meets no set resistance: his effective mass (what a push or a charge
+        // must overcome) is full to the front and falls toward his bare body to the
+        // rear. This is what makes a FLANK charge break into a line a frontal one
+        // bogs on — the soft side is soft in the physics, not by a special case.
+        // `tx,ty` is the direction from soldier i toward the threat.
+        let brace_dir = |i: usize, tx: f32, ty: f32| -> f32 {
+            let b = brace[soldier_unit[i] as usize];
+            if b <= 1.0 {
+                return 1.0; // nothing extra to orient (not set, or no brace mult)
+            }
+            let aspect = crate::math::wrap_angle(ty.atan2(tx) - facings[i]).abs();
+            let dir = if aspect < crate::combat::FRONT_ARC {
+                1.0
+            } else if aspect < crate::combat::SIDE_ARC {
+                0.4
+            } else {
+                0.1
+            };
+            1.0 + (b - 1.0) * dir
+        };
+        let m_eff = |i: usize, tx: f32, ty: f32| mass[i] * brace_dir(i, tx, ty);
         let unit_near_enemy: Vec<bool> = units
             .iter()
             .map(|u| {
@@ -238,8 +260,10 @@ impl Sim {
                             // compression spring shoves the rank ahead, so depth
                             // wins on its own (measured: a 14-deep block walks a
                             // 3-deep one back, equal depths hold).
-                            let w_i = m_eff(i);
-                            let w_j = m_eff(j);
+                            // Each braces toward the other: i's threat is j (dir -n),
+                            // j's threat is i (dir +n). A flanked man is "lighter".
+                            let w_i = m_eff(i, -nx, -ny);
+                            let w_j = m_eff(j, nx, ny);
                             let share = w_j / (w_i + w_j);
                             let overlap = (min_dist - d) * share;
                             push.x += (nx - slide * ny) * overlap;
@@ -276,18 +300,22 @@ impl Sim {
                             if enemies {
                                 // CARRIED closing: the relative carried momentum (each
                                 // unit's measured mass_advance along its facing), NOT the
-                                // post-brake instantaneous velocity. The ram brake bleeds
-                                // the contact velocity to a crawl for a charge and a
-                                // walk-in alike, hiding the gallop; the carried speed
-                                // keeps it. It is still a true CLOSING — two riders
-                                // carrying fast the SAME way close at ~0 and do nothing,
-                                // only a head-on approach scores.
+                                // post-brake instantaneous velocity. The brake bleeds the
+                                // contact velocity to a crawl, hiding the gallop. And a
+                                // body bogging into a line decays its measured speed within
+                                // a tick or two — so a COMMITTED charger keeps the gallop it
+                                // is carrying (floored at the full-impact speed while
+                                // `charging`): it delivers its shock INTO the line as it
+                                // decelerates, not only in the first frame of contact. It is
+                                // still a true CLOSING — two riders carrying fast the SAME
+                                // way close at ~0 and do nothing; only a head-on approach
+                                // scores. A NON-charging body (a walk-in) keeps its real
+                                // crawl, so it delivers no shock.
+                                let carry = |u: usize| units[u].mass_advance;
                                 let cj = crate::math::dir(units[uj].facing);
                                 let ci = crate::math::dir(units[ui].facing);
-                                let maj = units[uj].mass_advance;
-                                let mai = units[ui].mass_advance;
-                                let rel_x = cj.x * maj - ci.x * mai;
-                                let rel_y = cj.y * maj - ci.y * mai;
+                                let rel_x = cj.x * carry(uj) - ci.x * carry(ui);
+                                let rel_y = cj.y * carry(uj) - ci.y * carry(ui);
                                 let closing = (rel_x * nx + rel_y * ny).max(0.0);
                                 if closing > tun.charge_min_speed {
                                     // The impact WOUND scales with the CLOSING speed — the
@@ -332,8 +360,12 @@ impl Sim {
                                         let down = trampled[j] > 0.0 || stun[j] > 0.0;
                                         let toward = -(mom0_x[i] * nx + mom0_y[i] * ny);
                                         if toward > 0.0 && !down {
+                                            // The victim bleeds the charge by the brace
+                                            // he sets toward it — full if it hits his
+                                            // braced FRONT, almost none on his flank/rear
+                                            // (the charger i is at +n from him).
                                             let grip =
-                                                (tun.trample_bleed * share * units[uj].brace())
+                                                (tun.trample_bleed * share * brace_dir(j, nx, ny))
                                                     .min(0.85);
                                             bleed_x[i] += nx * toward * grip;
                                             bleed_y[i] += ny * toward * grip;
@@ -635,7 +667,9 @@ impl Sim {
                     project_unit_active[ui] = 1;
                     project_unit_active[uj] = 1;
                     project_any = true;
-                    let (wj, wi) = (m_eff(j), m_eff(i));
+                    // The foe j is thrust along +aim (the bearer i is at -aim from
+                    // him); i's threat is the foe at +aim. Each braces toward it.
+                    let (wj, wi) = (m_eff(j, -aim.x, -aim.y), m_eff(i, aim.x, aim.y));
                     let inv = 1.0 / (wi + wj);
                     let push = near_pen * tun.weapon_repel * DT;
                     repel[2 * i] += aim.x * push * (wj * inv);
@@ -803,8 +837,8 @@ impl Sim {
                                 } else {
                                     (-1.0, 0.0, 0.0)
                                 };
-                                let w_i = m_eff(i);
-                                let w_j = m_eff(j);
+                                let w_i = m_eff(i, -nx, -ny);
+                                let w_j = m_eff(j, nx, ny);
                                 let inv = 1.0 / (w_i + w_j);
                                 let overlap = min_dist - d;
                                 let si = w_j * inv;

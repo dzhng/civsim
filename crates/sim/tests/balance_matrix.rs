@@ -127,16 +127,12 @@ fn the_counter_web_holds() {
     // and kite-vs-foot verdicts are decoupled into the_counter_web_contested below —
     // they're RED today for known lethality reasons and were holding these working
     // relationships hostage. (attacker, defender, expected winner: 0 = attacker)
+    //
+    // The ROUT-VERDICT relationships: one side breaks and runs within the cap, so
+    // the binary winner() is the right gate.
     let expect = [
         (HeavySword, LightSpear, 0, "armor beats numbers' class"),
         (LightSpear, HeavySword, 1, "...from either bench"),
-        (
-            HeavySword,
-            Phalanx,
-            1,
-            "a sword line cannot out-front a sarissa hedge",
-        ),
-        (Phalanx, HeavySword, 0, "the hedge advances over swords"),
         // ShockCavalry vs HeavySword is omitted here on purpose: David's locked
         // design (2026-06-17) is that a FRONTAL charge LOSES to formed heavy foot
         // (cav ~30-40% of seeds), so the verdict is infantry-favoured and seed-set,
@@ -152,10 +148,9 @@ fn the_counter_web_holds() {
         ),
     ];
     // A small SEED SET (majority verdict), not one seed: several of these are
-    // genuine but CLOSE relationships (HeavySword-vs-Phalanx — the phalanx wins
-    // most seeds, but a single seed can land a draw), so a one-seed gate is a
-    // coin that occasionally lands the wrong way. The majority-of-seeds winner is
-    // the robust directional verdict; the full golden matrix is the exhaustive board.
+    // genuine but CLOSE relationships, so a one-seed gate is a coin that
+    // occasionally lands the wrong way. The majority-of-seeds winner is the robust
+    // directional verdict; the full golden matrix is the exhaustive board.
     let seeds: [u64; 5] = [SEED, SEED ^ 0xA1, SEED ^ 0xB2, SEED ^ 0xC3, SEED ^ 0xD4];
     for (a, d, want, why) in expect {
         let agg = run_over_seeds(&Scenario::duel(a, d), &base, &tun, &seeds);
@@ -166,6 +161,34 @@ fn the_counter_web_holds() {
             agg.win_rate[0] * 100.0,
             agg.win_rate[1] * 100.0,
             agg.draw_rate * 100.0
+        );
+    }
+
+    // The PHALANX-vs-SWORD pair is asserted by SURVIVOR DOMINANCE, not winner().
+    // Re-derived for the combat-pacing overhaul (≈3.5× longer attack intervals,
+    // minute-long fights): the sarissa hedge STILL dominates a sword line head-on
+    // — the structure of the web is intact and if anything stronger — but the
+    // slower grind no longer routs the near-dead sword line inside the 600s duel
+    // cap, so winner() now reads the timeout as a draw. The PHYSICAL verdict is
+    // unchanged: the phalanx ends the field a near-whole majority (~1.00 standing)
+    // while the sword line is ground to a remnant (~0.17–0.25). We pin THAT — the
+    // hedge out-survives the sword by a landslide, from either bench — which is the
+    // counter-web claim "a sword line cannot out-front a sarissa hedge" measured on
+    // the metric the new pacing didn't break.
+    for (a, d, why) in [
+        (HeavySword, Phalanx, "a sword line cannot out-front a sarissa hedge"),
+        (Phalanx, HeavySword, "the hedge holds the front over swords"),
+    ] {
+        let agg = run_over_seeds(&Scenario::duel(a, d), &base, &tun, &seeds);
+        // index of the phalanx side (0 if it's the attacker, else 1)
+        let (pike, sword) = if a == Phalanx { (0, 1) } else { (1, 0) };
+        assert!(
+            agg.surv[pike].mean > agg.surv[sword].mean + 0.5,
+            "{a:?} vs {d:?}: {why} — phalanx must out-survive the sword by a \
+             landslide (pike {:.0}%, sword {:.0}%, draw {:.0}%)",
+            agg.surv[pike].mean * 100.0,
+            agg.surv[sword].mean * 100.0,
+            agg.draw_rate * 100.0,
         );
     }
 }

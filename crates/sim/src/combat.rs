@@ -59,6 +59,19 @@ const OBSTRUCT_FLOOR: f32 = 0.7;
 /// Out to here a blow comes side-on: evade degrades; behind it, a blow
 /// lands on a man facing the wrong way.
 pub(crate) const SIDE_ARC: f32 = 2.1;
+/// A mounted man SWINGING a blade (not couching a lance) can't reach past his
+/// mount's head or croup — he cuts DOWN to either FLANK. So a sabre only reaches
+/// a target whose bearing off his facing is in (FRONT, REAR): the front cone is
+/// the horse's head (blind), the rear is its croup (blind), the two side lobes
+/// are the men he can actually hit — and who can hit his leg back. Front-on, the
+/// horse shields the rider but he cannot fight: cavalry is SHOCK, not a head-on
+/// grinder. (Thin-arc thrusts — the couched LANCE — are exempt: they DO go
+/// forward; this only blinds wide swings.)
+const MOUNTED_SWING_BLIND_FRONT: f32 = 0.7; // ~40°
+const MOUNTED_SWING_BLIND_REAR: f32 = 2.4; // ~137°
+/// A weapon wider than this, swung from horseback, is a flank cut (blinded front
+/// and rear); narrower is a forward thrust/lance (unblinded).
+const MOUNTED_SWING_ARC_MIN: f32 = 0.5;
 /// Heavy shields work against a presented point too. Pikes are still fearsome
 /// because they strike first, from long reach, in a narrow front-facing hedge —
 /// not because a shielded man magically loses his shield block.
@@ -371,13 +384,13 @@ impl Sim {
                 // the lance for a stray jostle, only a fresh full-speed charge
                 // (> charge_min). Without this the weapon thrashes every tick and the
                 // rider spends the fight switching instead of swinging.
-                let adv = self.units[ui].mass_advance;
-                let on_charge = self.cur_weapon[i] as usize == ci;
-                let keep_charge = if on_charge {
-                    adv > tun.charge_spent_speed
-                } else {
-                    adv > tun.charge_min_speed
-                };
+                // The lance is couched ONLY for an actual charge: hold it while the
+                // unit is charging (the `charging` latch carries its own hysteresis,
+                // set on the gallop and dropped when it bogs) and this rider's lance
+                // hasn't yet SNAPPED on a man. A walk-in never charges, so it fights
+                // the sword from the start — no lance kills without a gallop. Once
+                // bogged or spent, the sabre, where a stalled charge earns its grind.
+                let keep_charge = !self.charge_wpn_spent[i] && self.units[ui].charging;
                 Some(if keep_charge { ci } else { gi })
             } else if let Some(bi) = weapons.iter().position(|w| w.braced()) {
                 let pike = &weapons[bi];
@@ -554,8 +567,15 @@ impl Sim {
             let can_wound = gang_rank[i] < tun.gang_cap;
             let target_p = self.soldier_pos(nearest as usize);
             let aim = wrap_angle((target_p - p).y.atan2((target_p - p).x) - aim_facing);
-            if aim.abs() > weapon.arc * 0.5 + AIM_TOLERANCE {
-                continue; // still turning to face (a braced pike never turns)
+            // A mounted man swinging a wide blade reaches only his FLANKS, not over
+            // the horse's head; a thrust/lance (thin arc) is not so limited.
+            let mounted_swing = self.mounted[i] == 1 && weapon.arc > MOUNTED_SWING_ARC_MIN;
+            // Foot holds the swing while still TURNING to face the nearest foe. A
+            // mounted swinger never whiffs here — its nearest foe is usually dead
+            // ahead (blind), but it can still cut a man on its flank, so the resolve
+            // below picks the closest target actually in its (flank) reach.
+            if !mounted_swing && aim.abs() > weapon.arc * 0.5 + AIM_TOLERANCE {
+                continue;
             }
 
             // Obstruction: friendly bodies inside THIS weapon's swing envelope
@@ -587,33 +607,65 @@ impl Sim {
             let obstruct = crowded * (OBSTRUCT_FLOOR + (1.0 - OBSTRUCT_FLOOR) * pinned);
             let arc_eff = weapon.arc / (1.0 + obstruct);
             let capacity = stamina_factor(self.units[ui].stamina);
-            let interval =
-                weapon.attack_interval * (1.0 + 0.35 * obstruct) * (1.0 + 0.8 * (1.0 - capacity));
+            let interval = weapon.attack_interval
+                * (1.0 + 0.35 * obstruct)
+                * (1.0 + 0.8 * (1.0 - capacity));
             self.attack_cd[i] = interval;
 
-            // --- resolve the swing against everyone in the effective arc ----
+            // --- resolve the swing ------------------------------------------------
+            // The arc is the FIELD OF WHO YOU CAN HIT, not a sweep. A normal weapon
+            // strikes the CLOSEST foe in that field — one man per stroke. Only a
+            // CLEAVE weapon (the wide two-hander) hits everyone in the field. The
+            // field is the front arc for foot; for a mounted SABRE it is the two
+            // flank lobes (the horse's head and croup are blind).
             let facing = aim_facing;
             let m_a = self.mass[i] * self.units[ui].brace();
-            let mut struck = 0usize;
-            for k in 0..cand_len {
-                if struck >= MAX_VICTIMS {
-                    break;
+            let in_field = |off: f32| -> bool {
+                if mounted_swing {
+                    off > MOUNTED_SWING_BLIND_FRONT && off < MOUNTED_SWING_BLIND_REAR
+                } else {
+                    off <= arc_eff * 0.5 + AIM_TOLERANCE
                 }
-                let (v, d_surf, bearing) = candidates[k];
-                let v = v as usize;
-                if self.alive[v] == 0 {
-                    continue;
+            };
+            if weapon.cleave {
+                let mut struck = 0usize;
+                for k in 0..cand_len {
+                    if struck >= MAX_VICTIMS {
+                        break;
+                    }
+                    let (v, d_surf, bearing) = candidates[k];
+                    let v = v as usize;
+                    if self.alive[v] != 1 || d_surf < weapon.min_range || d_surf > weapon.reach {
+                        continue;
+                    }
+                    if !in_field(wrap_angle(bearing - facing).abs()) {
+                        continue;
+                    }
+                    struck += 1;
+                    self.strike(i, v, weapon, bearing, m_a, can_wound, &tun);
                 }
-                if d_surf < weapon.min_range || d_surf > weapon.reach {
-                    continue;
+            } else {
+                // closest foe in the field gets the one stroke
+                let mut best: Option<usize> = None;
+                let mut best_d = f32::MAX;
+                for k in 0..cand_len {
+                    let (v, d_surf, bearing) = candidates[k];
+                    if d_surf >= best_d
+                        || self.alive[v as usize] != 1
+                        || d_surf < weapon.min_range
+                        || d_surf > weapon.reach
+                    {
+                        continue;
+                    }
+                    if in_field(wrap_angle(bearing - facing).abs()) {
+                        best_d = d_surf;
+                        best = Some(k);
+                    }
                 }
-                let off = wrap_angle(bearing - facing).abs();
-                let is_primary = v == nearest as usize;
-                if off > arc_eff * 0.5 + if is_primary { AIM_TOLERANCE } else { 0.0 } {
-                    continue;
+                if let Some(k) = best {
+                    let (v, _, bearing) = candidates[k];
+                    self.strike(i, v as usize, weapon, bearing, m_a, can_wound, &tun);
                 }
-                struck += 1;
-                self.strike(i, v, weapon, bearing, m_a, can_wound, &tun);
             }
         }
 
@@ -721,7 +773,15 @@ impl Sim {
             * guard
             * (1.0 - self.pressure[victim] / 4.2).clamp(0.0, 1.0);
         if self.rng.chance(evade) {
-            return;
+            return; // dodged — the couched point passed by, lance NOT spent
+        }
+        // The charge weapon (lance) is one strike: the moment it COMMITS — past the
+        // dodge, so it will either land or be turned on a shield — it SNAPS, and the
+        // rider drops to his sidearm. Only a clean evade spares it (it never made
+        // contact). Generalises to any weapon with the charge flag. (If the rider
+        // slowed below charge before now, he never couched it — it's never reached.)
+        if weapon.is_charge() {
+            self.charge_wpn_spent[attacker] = true;
         }
 
         // A hit does not delete physics: a body moving at speed KEEPS its
@@ -788,16 +848,13 @@ impl Sim {
         let to_center = (victim_p - attacker_p).len() - self.radius[attacker] - 0.35;
 
         let dmg = weapon.damage;
-        // For loss-attribution only: a wound from a mounted attacker still CARRYING
-        // his charge is the lance going in (charge kill); from a stalled horse or
-        // foot it is the standing grind. We weight this wound's charge-share by the
-        // attacker's charge state so the apply pass can label the killing blow.
-        if self.mounted[attacker] == 1 {
-            let adv = self.units[ua].mass_advance;
-            let a_carry = ((adv - tun.charge_spent_speed)
-                / (tun.charge_min_speed - tun.charge_spent_speed))
-                .clamp(0.0, 1.0);
-            self.dmg_from_charge[victim] += dmg * a_carry;
+        // A wound is charge-driven iff it came from the charge weapon (the lance) —
+        // the couched point going in. The sword is the grind, even while the horse
+        // is still rolling forward: a moving sabre is a man fighting his way through
+        // the press, not a charge. Attribute by WEAPON, not by speed. (The lance is
+        // already marked spent above, the instant it committed.)
+        if weapon.is_charge() {
+            self.dmg_from_charge[victim] += dmg;
         }
         // Stage the wound; it is applied (and the kill resolved) after the pass,
         // so a man mortally hit by a low-index foe still lands his simultaneous

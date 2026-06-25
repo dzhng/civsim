@@ -46,14 +46,20 @@ impl Sim {
         self.body_pos.clear();
         self.body_r.clear();
         self.body_owner.clear();
-        self.impact_kill_used.resize(n, false);
+        self.impact_kill_count.resize(n, 0);
+        self.enemy_contact.resize(n, false);
         for i in 0..n {
-            // A charge's one-kill allowance refreshes the moment the horse stops
-            // carrying its charge — each fresh charge earns one kill, a bogged horse
-            // in a grind none (it isn't charging).
-            if self.units[self.soldier_unit[i] as usize].mass_advance <= tun.charge_spent_speed {
-                self.impact_kill_used[i] = false;
+            // A charger's kill quota refreshes only when it breaks CLEAR of the
+            // enemy — rode through, free to wheel and charge afresh — NOT when it
+            // merely bogs in the press. A horse stuck in a grind keeps its spent
+            // quota, so it can't farm the crowd by re-impacting each lurch; a slow
+            // walk-in therefore gets ONE impact event, like a fast charge, and the
+            // charge wins on closing speed (more dv) rather than on dwell time.
+            if !self.enemy_contact[i] {
+                self.impact_kill_count[i] = 0;
+                self.charge_wpn_spent[i] = false; // couch a fresh lance for the next charge
             }
+            self.enemy_contact[i] = false; // recomputed this tick from overlaps
             if self.alive[i] == 0 {
                 continue;
             }
@@ -80,8 +86,6 @@ impl Sim {
 
         let Sim {
             positions,
-            kin_vx,
-            kin_vy,
             grid,
             scratch,
             terrain,
@@ -103,7 +107,8 @@ impl Sim {
             alive,
             cur_weapon,
             rng,
-            impact_kill_used,
+            impact_kill_count,
+            enemy_contact,
             ..
         } = self;
         // Collision damage is applied after the pass (kill() needs &mut self).
@@ -162,11 +167,6 @@ impl Sim {
                 })
             })
             .collect();
-        // The impact stack reads HONEST velocity (legs + carried momentum,
-        // recorded pre-solver) — position deltas in a scrum are dominated
-        // by separation churn that carries no kinetic energy.
-        let vel = |i: usize| -> Vec2 { Vec2::new(kin_vx[i], kin_vy[i]) };
-
         for bi in 0..nb {
             let i = body_owner[bi] as usize;
             let px = body_pos[2 * bi];
@@ -202,6 +202,12 @@ impl Sim {
                         let ui = soldier_unit[i] as usize;
                         let uj = soldier_unit[j] as usize;
                         let enemies = units[ui].team != units[uj].team;
+                        if enemies {
+                            // Both bodies are touching an enemy this tick — keep
+                            // their charge quota spent until they break clear.
+                            enemy_contact[i] = true;
+                            enemy_contact[j] = true;
+                        }
                         if bj > bi
                             && !((units[ui].tramples()
                                 && units[ui].mass_advance > tun.charge_spent_speed)
@@ -254,18 +260,51 @@ impl Sim {
                                 }
                             }
 
-                            // Charge impact: a fast enemy body slamming in
-                            // knocks men down and bowls them back. Felling is
-                            // a contest of masses: the threshold scales with
-                            // the victim's FULL effective mass — brace and
-                            // the press chain behind him both hold him up, so
-                            // the front rank of a braced, backed column keeps
-                            // its feet (and keeps transmitting) where a loose
-                            // man is bowled over.
+                            // Impact: a fast clash knocks men down and bowls them
+                            // back. It scales with the CLOSING speed measured ABOVE
+                            // charge_min — `excess` is (closing - charge_min), so a
+                            // collision AT the threshold does nothing and the blow
+                            // ramps up from there: two men braking to a halt as they
+                            // meet (closing ~3, just over the floor) barely jostle,
+                            // a horse at the gallop (closing ~8+) delivers a lethal
+                            // share. The victim's velocity change is the reduced-mass
+                            // share, w_j/(w_i+w_j)·excess — bounded, never the horse's
+                            // mass times it. No charge "state": walk, run and charge
+                            // differ only by closing speed, through this one equation.
+                            // Brace lives in w_i: a backed man has more effective
+                            // mass, a smaller dv, and keeps his feet.
                             if enemies {
-                                let closing = (vel(j) - vel(i)).dot(Vec2::new(nx, ny)).max(0.0);
+                                // CARRIED closing: the relative carried momentum (each
+                                // unit's measured mass_advance along its facing), NOT the
+                                // post-brake instantaneous velocity. The ram brake bleeds
+                                // the contact velocity to a crawl for a charge and a
+                                // walk-in alike, hiding the gallop; the carried speed
+                                // keeps it. It is still a true CLOSING — two riders
+                                // carrying fast the SAME way close at ~0 and do nothing,
+                                // only a head-on approach scores.
+                                let cj = crate::math::dir(units[uj].facing);
+                                let ci = crate::math::dir(units[ui].facing);
+                                let maj = units[uj].mass_advance;
+                                let mai = units[ui].mass_advance;
+                                let rel_x = cj.x * maj - ci.x * mai;
+                                let rel_y = cj.y * maj - ci.y * mai;
+                                let closing = (rel_x * nx + rel_y * ny).max(0.0);
                                 if closing > tun.charge_min_speed {
-                                    let momentum = m_eff(j) * closing;
+                                    // The impact WOUND scales with the CLOSING speed — the
+                                    // first-principled measure: two riders going the same
+                                    // way barely close however fast they gallop, so a stern
+                                    // chase does nothing; only a real head-on closing does.
+                                    // Normalised ramp from impact_floor (0) to
+                                    // impact_full_speed (1): the floor sits ABOVE a walk-in
+                                    // / jog-in closing, so light running ITSELF onto a horse
+                                    // (or a near-matched chase) deals ZERO, and only a
+                                    // committed charge clears it. Brace lives in w_i (the
+                                    // share): a backed man takes a smaller dv, keeps his feet.
+                                    let span =
+                                        (tun.impact_full_speed - tun.impact_floor).max(0.1);
+                                    let ramp =
+                                        ((closing - tun.impact_floor) / span).clamp(0.0, 1.0);
+                                    let dv = ramp * w_j / (w_i + w_j);
                                     push.x += nx * closing * tun.impact_push * DT * share;
                                     push.y += ny * closing * tun.impact_push * DT * share;
                                     // TRAMPLE BLEED: the charge spends its carried
@@ -309,12 +348,22 @@ impl Sim {
                                     // him he DIES, otherwise he is STUNNED. A
                                     // corpse is never also stunned; a stunned man
                                     // never also dying.
-                                    // The felling threshold scales with the
-                                    // victim's effective mass — w_i already folds
-                                    // in his BRACE (a planted, backed man keeps
-                                    // his feet; a loose man is bowled over), so no
-                                    // extra pole/footing factor is needed.
-                                    if momentum > tun.stun_momentum * w_i && stun[i] <= 0.0 {
+                                    // A man is felled when the normalised impact dv
+                                    // clears impact_fell_min — so a half-speed clash
+                                    // (a walk-in, light running itself on) jostles but
+                                    // does NOT knock down, only a real charge does.
+                                    // Brace already lives in w_i (a backed man takes a
+                                    // smaller dv and keeps his feet).
+                                    if dv > tun.impact_fell_min && stun[i] <= 0.0 {
+                                        // Each body the impactor rides into JARS it —
+                                        // spend the impactor's unit stamina by the shock
+                                        // delivered. Plowing a dense block is a string of
+                                        // these jolts, so a charge blows the horses and
+                                        // can't be spammed (it scales with how much it
+                                        // plows, not a flat cost).
+                                        let shock = (closing / tun.charge_min_speed).min(2.0);
+                                        units[uj].stamina =
+                                            (units[uj].stamina - tun.impact_drain * shock).max(0.0);
                                         let vstats = units[ui].stats;
                                         // Can he see it coming? You dodge a charge you
                                         // face; you're ridden down from behind.
@@ -335,7 +384,6 @@ impl Sim {
                                         if rng.chance(vstats.evade * seen) {
                                             // sidestepped — only the push (already added)
                                         } else {
-                                            let dv = momentum / w_i.max(0.1);
                                             let knockback = units[uj].stats.knockback_mult;
                                             // BLOCK: a raised front shield soaks the shock.
                                             let block_mult = if front && rng.chance(vstats.block) {
@@ -344,24 +392,24 @@ impl Sim {
                                                 1.0
                                             };
                                             let dmg = tun.impact_damage * knockback * dv * block_mult;
-                                            let used = impact_kill_used[j];
+                                            let quota_left = impact_kill_count[j] < tun.impact_kill_cap;
                                             let pool = if mounted[i] == 1 {
                                                 &mut mount_health[i]
                                             } else {
                                                 &mut health[i]
                                             };
-                                            // ONE kill per charger per charge — the shock is
-                                            // spent on the first man ridden down; a horse that
-                                            // already has its kill (or whose blow isn't lethal)
-                                            // only BOWLS the next over. This is what keeps a
-                                            // charge from MOWING a row — impact must not be
-                                            // that lethal. (Verified M-equivariant by the
-                                            // symmetry suite — the per-charger flag does not
-                                            // bias a mirrored clash at the tested scales.)
-                                            if !used && *pool - dmg <= 0.0 {
+                                            // A charger rides at most `impact_kill_cap` men down
+                                            // per charge: the shock is spent on the man it skewers
+                                            // on the way in; the rest it only bowls over. Whether
+                                            // the blow is lethal is decided by dv alone (above) —
+                                            // a slow walk-in simply never reaches a killing dv, so
+                                            // it knocks men down and the fight is a GRIND, with no
+                                            // special charge-state needed. (Per-charger quota —
+                                            // M-equivariant.)
+                                            if quota_left && *pool - dmg <= 0.0 {
                                                 *pool -= dmg;
                                                 impact_kills.push(i);
-                                                impact_kill_used[j] = true;
+                                                impact_kill_count[j] += 1;
                                             } else {
                                                 *pool -= dmg.min((*pool - 0.05).max(0.0));
                                                 stun[i] = tun.stun_time;
@@ -383,7 +431,7 @@ impl Sim {
                                     // erase the trample bleed and the charge would
                                     // never bog (it plowed clean through deep braced
                                     // blocks while this was a `=`).
-                                    let want = momentum * 0.6;
+                                    let want = w_j * closing * 0.6;
                                     if want > set_mag[j] {
                                         set_mag[j] = want;
                                         set_nx[j] = nx;

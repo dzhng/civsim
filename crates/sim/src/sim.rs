@@ -94,6 +94,11 @@ pub struct Sim {
     pub mom_y: Vec<f32>,
     /// Weapon currently in hand (index into the class weapon list).
     pub cur_weapon: Vec<u8>,
+    /// This rider's lance has landed its one couched strike and SNAPPED — he is
+    /// down to his sword until he breaks clear and couches a fresh one (reset with
+    /// the impact quota, on `enemy_contact` clearing). One skewer per charge, like
+    /// the one impact fell — which is what makes a single charge a single shock.
+    pub(crate) charge_wpn_spent: Vec<bool>,
     /// Seconds left in this soldier's weapon swap (no strikes meanwhile).
     pub switch_cd: Vec<f32>,
     pub stun: Vec<f32>,
@@ -116,15 +121,20 @@ pub struct Sim {
     // specs/directional-bias.md). Staged, mutual blows are mutual.
     pub(crate) dmg_acc: Vec<f32>,
     pub(crate) mount_dmg_acc: Vec<f32>,
-    /// Of the melee damage staged on each victim this tick, the part that came
-    /// from a charging mounted attacker (the lance still carrying its charge) or
-    /// a charge-impale. Measurement only: the apply pass reads it to label a
-    /// melee kill as a charge kill vs a grind kill.
+    /// Of the melee damage staged on each victim this tick, the part dealt by the
+    /// CHARGE WEAPON (the lance) or a charge-impale. Measurement only: the apply
+    /// pass reads it to label a melee kill as a charge kill vs a grind kill (the
+    /// sword is always the grind, even while the horse is still rolling).
     pub(crate) dmg_from_charge: Vec<f32>,
-    /// Per-soldier: has this charger already spent its ONE impact kill on the
-    /// current charge? A horse rides ONE man down per charge — its shock is spent
-    /// on him; the next it only bowls over. Reset when the charge bogs.
-    pub(crate) impact_kill_used: Vec<bool>,
+    /// How many men this charger has ridden down THIS charge — capped at
+    /// `impact_kill_cap`; beyond it the horse only bowls the next over. Refreshes
+    /// only when the body breaks CLEAR of the enemy (see `enemy_contact`), not
+    /// when it bogs in place — so a stuck horse can't re-impact the press.
+    pub(crate) impact_kill_count: Vec<u32>,
+    /// Did this body overlap an enemy body last tick? Carries across ticks: an
+    /// impact is one event per sustained contact, re-earned only after breaking
+    /// clear, so a lingering walk-in can't out-impact a fast charge-through.
+    pub(crate) enemy_contact: Vec<bool>,
     /// Hit-shove deltas (2·n), summed over the tick's strikes.
     pub(crate) push_acc: Vec<f32>,
     /// 1 = the engaged enemy is within actual weapon reach. Reflexes (halt,
@@ -215,6 +225,7 @@ impl Sim {
             mom_x: Vec::new(),
             mom_y: Vec::new(),
             cur_weapon: Vec::new(),
+            charge_wpn_spent: Vec::new(),
             switch_cd: Vec::new(),
             stun: Vec::new(),
             trampled: Vec::new(),
@@ -223,7 +234,8 @@ impl Sim {
             dmg_acc: Vec::new(),
             mount_dmg_acc: Vec::new(),
             dmg_from_charge: Vec::new(),
-            impact_kill_used: Vec::new(),
+            impact_kill_count: Vec::new(),
+            enemy_contact: Vec::new(),
             push_acc: Vec::new(),
             fighting: Vec::new(),
             has_fighting: false,
@@ -389,6 +401,7 @@ impl Sim {
             self.mom_x.push(0.0);
             self.mom_y.push(0.0);
             self.cur_weapon.push(0);
+            self.charge_wpn_spent.push(false);
             self.switch_cd.push(0.0);
             self.stun.push(0.0);
             self.trampled.push(0.0);
@@ -451,12 +464,21 @@ impl Sim {
             stats.training,
         );
         let start = self.units[idx].start;
+        // Default weapon is the GRIND sidearm, not the charge lance: a horseman
+        // rides with his sabre and only couches the lance when he actually charges
+        // (see the weapon-selection latch). For non-cav this is just weapon 0.
+        let default_weapon = stats
+            .weapons
+            .iter()
+            .position(|w| !w.is_charge())
+            .unwrap_or(0) as u8;
         for s in 0..count {
             self.health[start + s] = stats.health;
             self.mass[start + s] = stats.mass;
             self.radius[start + s] = stats.soldier_radius;
             self.mounted[start + s] = stats.mounted as u8;
             self.mount_health[start + s] = stats.mount_health;
+            self.cur_weapon[start + s] = default_weapon;
         }
         self.max_radius = self.max_radius.max(stats.soldier_radius);
         let u = &mut self.units[idx];

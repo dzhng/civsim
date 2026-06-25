@@ -52,6 +52,7 @@ fn charge_penetration(depth: usize, brace_mult: f32) -> (f32, f32) {
         arc: 1.4,
         attack_interval: 1.79,
         damage: 0.0,
+        cleave: false,
         kind: sim::WeaponKind::Standard,
     });
     sim.units[block].stats = bh;
@@ -74,6 +75,7 @@ fn charge_penetration(depth: usize, brace_mult: f32) -> (f32, f32) {
         arc: 0.6,
         attack_interval: 2.2,
         damage: 0.0,
+        cleave: false,
         kind: sim::WeaponKind::Standard,
     });
     sim.units[cav].stats = ch;

@@ -1217,6 +1217,7 @@ fn two_braced_walls_hold_a_standoff_neither_centroid_crosses() {
         arc: 0.08,
         attack_interval: 1.4,
         damage: 0.0,
+        cleave: false,
         kind: sim::WeaponKind::Braced,
     };
 

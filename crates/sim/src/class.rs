@@ -18,10 +18,17 @@ pub struct Weapon {
     pub min_range: f32,
     /// Swing width (radians). Pike ≈ a line; great sword sweeps wide.
     pub arc: f32,
-    /// Seconds between swings, fresh and unobstructed.
+    /// Seconds between swings, fresh and unobstructed. Deliberately long (a real
+    /// blow is a wind-up, a committed cut, and a recover — not a flurry): slow
+    /// cadence is what makes engagements last MINUTES while each landed hit stays
+    /// lethal (glass cannons when actually struck), instead of a fast mutual delete.
     pub attack_interval: f32,
     /// Damage per landed hit.
     pub damage: f32,
+    /// CLEAVE: one swing hits every enemy in the arc (up to MAX_VICTIMS). Reserved
+    /// for a wide two-handed sweep (the long sword). Most weapons are OFF — a sword,
+    /// spear, dagger, or cavalry sabre cuts down ONE man per stroke, not a rank.
+    pub cleave: bool,
     /// What kind of weapon this is — drives how it's drawn and how it bears.
     pub kind: WeaponKind,
 }
@@ -174,8 +181,9 @@ const SPEAR: Weapon = Weapon {
     reach: 1.6,
     min_range: 0.0,
     arc: 0.6,
-    attack_interval: 2.2,
-    damage: 0.095,
+    attack_interval: 7.7,
+    damage: 0.2375,
+    cleave: false,
     kind: WeaponKind::Standard,
 };
 
@@ -183,8 +191,9 @@ const SWORD: Weapon = Weapon {
     reach: 1.1,
     min_range: 0.0,
     arc: 1.4,
-    attack_interval: 1.79,
-    damage: 0.2,
+    attack_interval: 6.265,
+    damage: 0.5,
+    cleave: false,
     kind: WeaponKind::Standard,
 };
 
@@ -196,8 +205,9 @@ const LONG_SWORD: Weapon = Weapon {
     // is double jeopardy — the same perverse coupling the lance had (see LANCE).
     min_range: 0.0,
     arc: 2.4,
-    attack_interval: 2.61,
-    damage: 0.3,
+    attack_interval: 9.135,
+    damage: 0.75,
+    cleave: true,
     kind: WeaponKind::Standard,
 };
 
@@ -207,8 +217,9 @@ const PIKE: Weapon = Weapon {
     arc: 0.08,
     // A thrust-and-recover cycle, not a sweep: the wall's stopping power is
     // cadence x hurl; lethality per poke stays modest.
-    attack_interval: 1.38,
-    damage: 0.16,
+    attack_interval: 4.83,
+    damage: 0.4,
+    cleave: false,
     kind: WeaponKind::Braced, // the sarissa: frontal only, drop to the side-sword off-axis
 };
 
@@ -216,8 +227,9 @@ const SIDE_SWORD: Weapon = Weapon {
     reach: 1.2,
     min_range: 0.0,
     arc: 1.2,
-    attack_interval: 1.79,
-    damage: 0.14,
+    attack_interval: 6.265,
+    damage: 0.35,
+    cleave: false,
     kind: WeaponKind::Standard,
 };
 
@@ -228,8 +240,9 @@ const DAGGER: Weapon = Weapon {
     reach: 1.2,
     min_range: 0.0,
     arc: 1.0,
-    attack_interval: 1.38,
-    damage: 0.11,
+    attack_interval: 4.83,
+    damage: 0.275,
+    cleave: false,
     kind: WeaponKind::Standard,
 };
 
@@ -241,9 +254,16 @@ const LANCE: Weapon = Weapon {
     // the rider deeper, dropped him to his sidearm, and made MORE armour LOSE.
     // (See more_block_never_makes_cavalry_worse + debug-battle-behavior.)
     min_range: 0.0,
-    arc: 0.25,
-    attack_interval: 3.02,
-    damage: 0.32,
+    // A touch wider than a pure point so the couched lance skewers the man it
+    // rides onto even slightly off-line (still forward-only — no flank reach).
+    arc: 0.4,
+    attack_interval: 10.57,
+    // The lance lands ONE couched strike — it SNAPS on the man it commits to (see
+    // charge_wpn_spent) and the rider draws his sabre — so that one skewer must
+    // count: lethal to a light man. This is where a charge out-kills a walk-in —
+    // the WEAPON, not the horse's body (impact stays capped at one fell/charger).
+    damage: 1.6,
+    cleave: false,
     kind: WeaponKind::Charge,
 };
 
@@ -256,8 +276,12 @@ const CAV_SWORD: Weapon = Weapon {
     reach: 1.5,
     min_range: 0.0,
     arc: 1.1,
-    attack_interval: 1.93,
-    damage: 0.10,
+    attack_interval: 6.755,
+    // At parity with the infantry sword (0.5): once the charge has put the rider
+    // INTO the line, his sabre cuts as well as a foot blade — cavalry's grind
+    // weakness is the flank-blind arc and the numbers, NOT a feeble blade.
+    damage: 0.5,
+    cleave: false,
     kind: WeaponKind::Standard,
 };
 

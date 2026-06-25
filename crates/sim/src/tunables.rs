@@ -142,10 +142,18 @@ pub struct Tunables {
     pub press_tau: f32,
     /// Closing speed (m/s) above which an enemy contact is a charge impact.
     pub charge_min_speed: f32,
-    /// Impact momentum (m_eff x closing speed) that knocks a body down, PER
-    /// unit of the victim's effective mass (brace and backpressure included):
-    /// felling is a contest of masses, and the press chain holds a man up.
-    pub stun_momentum: f32,
+    /// Closing speed (m/s) below which an impact does NOTHING — set ABOVE a walk-in
+    /// / jog-in closing so light running itself onto a horse, or a near-matched
+    /// same-direction chase, deals zero. Only a head-on charge clears it.
+    pub impact_floor: f32,
+    /// Closing speed (m/s) at which an impact is FULL — the top of the normalised
+    /// ramp that runs from impact_floor (0) to here (1). A committed head-on charge
+    /// sits at the top; the floor/full pair separates a charge's shock from a nudge.
+    pub impact_full_speed: f32,
+    /// Minimum NORMALISED impact dv (ramp·reduced-mass-share, in [0,1]) to knock a
+    /// man down. Brace and backpressure fold into the share, so a backed man takes a
+    /// smaller dv and keeps his feet; a half-speed clash jostles but never fells.
+    pub impact_fell_min: f32,
     pub stun_time: f32,
     /// Weapon REPEL: how hard a man's leveled weapon pushes an enemy back out of
     /// its reach, per metre the foe is inside it. A real two-way force in the
@@ -184,6 +192,16 @@ pub struct Tunables {
     /// fells you — the impulse, once per knockdown. Braced, backed men
     /// who keep their feet keep their bones; men bumping men just fall.
     pub impact_damage: f32,
+    /// How many men one charger may ride down (kill on impact) per charge
+    /// before it merely bowls the rest over. The charge's shock budget — the
+    /// lever between "charge devastates the front ranks" and "charge mows".
+    pub impact_kill_cap: u32,
+    /// Stamina spent by the IMPACTOR for each body it rides down, scaled by the
+    /// shock (closing speed / charge_min). Riding through a dense block is a string
+    /// of bone-jarring collisions — a horse that plows a light line is blown after,
+    /// so a charge is a once-in-a-while card, not a spammable button. (Physical, not
+    /// a flat "charge cost": the more it plows, the more it tires.)
+    pub impact_drain: f32,
     /// A charge taken on a raised front shield does this fraction of its impact
     /// wound — the brace/shield soaks the shock. Evade is separate (a clean dodge
     /// takes no wound); this is for the man who stands and catches it.
@@ -257,7 +275,7 @@ impl Default for Tunables {
             surge_speed: 4.4,
             surge_err_threshold: 6.0,
             run_drain: 1.0 / 90.0,
-            rest_recover: 1.0 / 240.0,
+            rest_recover: 1.0 / 480.0,
             terrain_drain: 1.0 / 70.0,
             base_turn_rate: 1.0,
             base_accel: 1.2,
@@ -292,22 +310,26 @@ impl Default for Tunables {
             press_tau: 0.4,
             charge_min_speed: 2.5,
             charge_speed: 4.6,
-            charge_window: 2.0,
+            charge_window: 5.0,
             latch_slip: 4.0,
             press_brake: 4.0,
             press_brake_floor: 6.0,
             charge_spent_speed: 1.0,
-            charge_drain: 1.0 / 25.0,
+            charge_drain: 1.0 / 20.0,
             morale_enabled: true,
-            stun_momentum: 16.0,
-            stun_time: 1.3,
+            impact_floor: 2.0,
+            impact_full_speed: 8.0,
+            impact_fell_min: 0.5,
+            stun_time: 5.0,
             weapon_repel: 15.0,
             gang_cap: 3,
             brace_ramp_secs: 3.0,
             trample_bleed: 1.5,
             trample_recover: 0.4,
             impact_push: 0.2,
-            impact_damage: 0.120,
+            impact_damage: 2.0,
+            impact_kill_cap: 1,
+            impact_drain: 0.0008,
             impact_block_mult: 0.4,
             micro_rough: 1.0,
             hit_push: 0.3,

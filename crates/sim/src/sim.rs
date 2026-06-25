@@ -155,6 +155,13 @@ pub struct Sim {
     /// (within 1.5m, ±40°). The anti-blender leash: rank-3 men behind
     /// comrades may NOT wade in regardless of seek radius.
     pub front_clear: Vec<u8>,
+    /// SITUATIONAL AWARENESS, 0..1: how well this man sees the foe he'd face. His
+    /// line to the threat is blocked by the comrades stacked between him and it —
+    /// each one halves what he perceives — so a front/edge man (clear line) is fully
+    /// aware and turns to meet a flanker, while a man BURIED in the block can't see
+    /// it coming and holds his frontage. This GATES the re-face (a gradient, not an
+    /// edge/interior flag): it is why a flank charge breaks into the soft middle.
+    pub awareness: Vec<f32>,
     /// Bearing of the last attacker and its time-to-live (reactive facing).
     pub(crate) hit_dir: Vec<f32>,
     pub(crate) hit_ttl: Vec<f32>,
@@ -241,6 +248,7 @@ impl Sim {
             has_fighting: false,
             fight_near: Vec::new(),
             front_clear: Vec::new(),
+            awareness: Vec::new(),
             hit_dir: Vec::new(),
             hit_ttl: Vec::new(),
             kin_vx: Vec::new(),
@@ -408,6 +416,7 @@ impl Sim {
             self.fighting.push(0);
             self.fight_near.push(0);
             self.front_clear.push(1);
+            self.awareness.push(1.0);
             self.hit_dir.push(0.0);
             self.hit_ttl.push(0.0);
             self.kin_vx.push(0.0);
@@ -1366,6 +1375,7 @@ impl Sim {
             press_x,
             press_y,
             front_clear,
+            awareness,
             facings,
             soldier_slot,
             fidget_offset,
@@ -2193,10 +2203,16 @@ impl Sim {
                 // rate. Real stances don't twitch 30x/s; the deadzone makes facing a
                 // deliberate turn, not a servo on positional noise.
                 if wrap_angle(desired_face - facings[i]).abs() > FACING_DEADZONE {
+                    // A man turns to a THREAT only as fast as he SEES it: scale the
+                    // re-face by his awareness, so a buried interior man (low view)
+                    // barely turns and holds his frontage while the exposed edge men
+                    // wheel to meet a flanker. Non-threat re-aims (march heading, the
+                    // last blow that landed) are unscaled — those he feels regardless.
+                    let see = if aware_i { awareness[i] } else { 1.0 };
                     facings[i] = rotate_toward(
                         facings[i],
                         desired_face,
-                        tun.soldier_turn_rate * u.stats.turn_mult * dt,
+                        tun.soldier_turn_rate * u.stats.turn_mult * see * dt,
                     );
                 }
             }

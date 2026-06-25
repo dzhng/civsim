@@ -156,11 +156,14 @@ impl Sim {
         // must overcome) is full to the front and falls toward his bare body to the
         // rear. This is what makes a FLANK charge break into a line a frontal one
         // bogs on — the soft side is soft in the physics, not by a special case.
-        // `tx,ty` is the direction from soldier i toward the threat.
-        let brace_dir = |i: usize, tx: f32, ty: f32| -> f32 {
+        // `tx,ty` is the direction from soldier i toward the threat. The directional
+        // softness applies only to an ENEMY threat — a man braces against the foe he
+        // faces, not against his own jostling neighbours, so a FRIENDLY push reads
+        // his full omni-directional brace (else the weave deforms laterally).
+        let brace_dir = |i: usize, tx: f32, ty: f32, enemy: bool| -> f32 {
             let b = brace[soldier_unit[i] as usize];
-            if b <= 1.0 {
-                return 1.0; // nothing extra to orient (not set, or no brace mult)
+            if b <= 1.0 || !enemy {
+                return b; // not set, no brace mult, or a friendly push: omni-directional
             }
             let aspect = crate::math::wrap_angle(ty.atan2(tx) - facings[i]).abs();
             let dir = if aspect < crate::combat::FRONT_ARC {
@@ -172,7 +175,7 @@ impl Sim {
             };
             1.0 + (b - 1.0) * dir
         };
-        let m_eff = |i: usize, tx: f32, ty: f32| mass[i] * brace_dir(i, tx, ty);
+        let m_eff = |i: usize, tx: f32, ty: f32, enemy: bool| mass[i] * brace_dir(i, tx, ty, enemy);
         let unit_near_enemy: Vec<bool> = units
             .iter()
             .map(|u| {
@@ -262,8 +265,8 @@ impl Sim {
                             // 3-deep one back, equal depths hold).
                             // Each braces toward the other: i's threat is j (dir -n),
                             // j's threat is i (dir +n). A flanked man is "lighter".
-                            let w_i = m_eff(i, -nx, -ny);
-                            let w_j = m_eff(j, nx, ny);
+                            let w_i = m_eff(i, -nx, -ny, enemies);
+                            let w_j = m_eff(j, nx, ny, enemies);
                             let share = w_j / (w_i + w_j);
                             let overlap = (min_dist - d) * share;
                             push.x += (nx - slide * ny) * overlap;
@@ -364,9 +367,10 @@ impl Sim {
                                             // he sets toward it — full if it hits his
                                             // braced FRONT, almost none on his flank/rear
                                             // (the charger i is at +n from him).
-                                            let grip =
-                                                (tun.trample_bleed * share * brace_dir(j, nx, ny))
-                                                    .min(0.85);
+                                            let grip = (tun.trample_bleed
+                                                * share
+                                                * brace_dir(j, nx, ny, true))
+                                            .min(0.85);
                                             bleed_x[i] += nx * toward * grip;
                                             bleed_y[i] += ny * toward * grip;
                                         }
@@ -669,7 +673,7 @@ impl Sim {
                     project_any = true;
                     // The foe j is thrust along +aim (the bearer i is at -aim from
                     // him); i's threat is the foe at +aim. Each braces toward it.
-                    let (wj, wi) = (m_eff(j, -aim.x, -aim.y), m_eff(i, aim.x, aim.y));
+                    let (wj, wi) = (m_eff(j, -aim.x, -aim.y, true), m_eff(i, aim.x, aim.y, true));
                     let inv = 1.0 / (wi + wj);
                     let push = near_pen * tun.weapon_repel * DT;
                     repel[2 * i] += aim.x * push * (wj * inv);
@@ -837,8 +841,9 @@ impl Sim {
                                 } else {
                                     (-1.0, 0.0, 0.0)
                                 };
-                                let w_i = m_eff(i, -nx, -ny);
-                                let w_j = m_eff(j, nx, ny);
+                                let foe = units[ui].team != units[uj].team;
+                                let w_i = m_eff(i, -nx, -ny, foe);
+                                let w_j = m_eff(j, nx, ny, foe);
                                 let inv = 1.0 / (w_i + w_j);
                                 let overlap = min_dist - d;
                                 let si = w_j * inv;

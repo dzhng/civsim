@@ -346,6 +346,16 @@ impl Sim {
                 f.fighting && f.distance < 1.2 && wrap_angle(f.bearing - t_bearing).abs() < 0.45
             });
             self.front_clear[i] = (!blocked) as u8;
+            // Situational awareness (see Sim::awareness): each comrade STACKED in
+            // the cone toward the foe (within ~3.5m, ±34°) halves the man's view of
+            // it. A clear line ⇒ ~1 (turns to meet a flanker); buried behind 2-3
+            // ranks ⇒ ~0.1-0.25 (can't see it, holds frontage). A smooth gradient.
+            let cover = friends[..friends_len]
+                .iter()
+                .flatten()
+                .filter(|f| f.distance < 3.5 && wrap_angle(f.bearing - t_bearing).abs() < 0.6)
+                .count();
+            self.awareness[i] = 0.5f32.powi(cover as i32);
             // Awareness is not combat: the fight starts when weapons can land.
             self.fighting[i] = (nearest_d <= max_reach + 0.3) as u8;
             let u = &mut self.units[ui];

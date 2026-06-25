@@ -236,12 +236,11 @@ export class BattleScene implements Scene {
       if (info[o + 18] === 2) chips.push({ text: 'CHG!', kind: 'hot', title: 'charging' });
       if (info[o + 25] > 0.5) chips.push({ text: 'PUR', title: 'pursue: latch onto contact' });
       if (info[o + 26] > 0.5) chips.push({ text: 'KITE', title: 'kiting reflex on' });
-      if (info[o + 29] > 0.5) chips.push({ text: '2nd', kind: 'hot', title: 'secondary weapon drawn' });
       if (info[o + 3] < 0.3 && info[o + 16] > 0) chips.push({ text: 'BRC', title: 'braced: planted mass' });
       if (info[o + 8] < 0.35) chips.push({ text: 'TIRED', kind: 'bad', title: 'winded' });
       if (info[o + 28] > 0.5) chips.push({ text: 'SQZ', title: 'squeezed into a corridor' });
       if (info[o + 27] > 0.5) chips.push({ text: 'WAIT', title: 'queued behind friends' });
-      if (info[o + 31] > 0.55) chips.push({ text: 'CRUSH', kind: 'bad', title: 'crushed in the press: no room, evade dying' });
+      if (info[o + 29] > 0.55) chips.push({ text: 'CRUSH', kind: 'bad', title: 'crushed in the press: no room, evade dying' });
       if ([4, 5, 7, 8].includes(cls2) && info[o + 19] === 0) chips.push({ text: 'AMMO!', kind: 'bad', title: 'quivers empty' });
       if (info[o + 16] > 0) chips.push({ text: `⚔${info[o + 16]}`, kind: 'hot', title: 'men trading blows' });
       return chips;
@@ -263,8 +262,8 @@ export class BattleScene implements Scene {
           const alive = info[o + 15];
           if (alive === 0) { slots[u] = null; continue; }
           slots[u] = {
-            x: info[o + 32],
-            y: info[o + 33],
+            x: info[o + 30],
+            y: info[o + 31],
             team: info[o + 6] === 0 ? 0 : 1,
             hp: alive / info[o + 7],
             cohesion: info[o + 4],
@@ -285,8 +284,8 @@ export class BattleScene implements Scene {
           b.setVisible(false);
           continue;
         }
-        const topY = unitTopY[u] > -Infinity ? unitTopY[u] : info[o + 33];
-        const [sx, sy] = camera.worldToScreen(info[o + 32], topY);
+        const topY = unitTopY[u] > -Infinity ? unitTopY[u] : info[o + 31];
+        const [sx, sy] = camera.worldToScreen(info[o + 30], topY);
         if (sx < -60 || sy < -40 || sx > window.innerWidth + 60 || sy > window.innerHeight + 40) {
           b.setVisible(false);
           continue;
@@ -309,7 +308,6 @@ export class BattleScene implements Scene {
       toolButtons.set(b.dataset.cmd!, b);
     });
     const KITE_CLASSES = [5, 7];
-    const WEAPON_CLASSES = [3, 4, 5, 6, 7, 8]; // sidearm or slingable missile
     const MISSILE_CLASSES = [4, 5, 7, 8];
     function updateToolbar() {
       const sel = myUnits(input.selected);
@@ -324,7 +322,6 @@ export class BattleScene implements Scene {
         if (!['pause', 'x1', 'x3', 'paths'].includes(cmd)) {
           let applies = sel.length > 0;
           if (cmd === 'kite') applies &&= supports(KITE_CLASSES);
-          if (cmd === 'weapon') applies &&= supports(WEAPON_CLASSES);
           if (cmd === 'fire') applies &&= supports(MISSILE_CLASSES);
           b.disabled = !applies;
         }
@@ -333,7 +330,6 @@ export class BattleScene implements Scene {
       set('reform', false);
       set('pursue', o >= 0 && info[o + 25] > 0.5);
       set('fire', o >= 0 && sel.length > 0 && fireOn);
-      set('weapon', o >= 0 && info[o + 29] > 0.5);
       set('kite', o >= 0 && info[o + 26] > 0.5);
       toolButtons.get('pause')!.classList.toggle('on', paused);
       toolButtons.get('x1')!.classList.toggle('on', !paused && timeScale === 1);
@@ -349,7 +345,6 @@ export class BattleScene implements Scene {
         case 'reform': sink.reform(sel); break;
         case 'pursue': sink.togglePursue(sel); break;
         case 'fire': sink.toggleFire(sel); break;
-        case 'weapon': sink.toggleWeapon(sel); break;
         case 'kite': sink.toggleKite(sel); break;
         case 'pause': paused = !paused; break;
         case 'x1': paused = false; timeScale = 1; break;
@@ -580,12 +575,6 @@ export class BattleScene implements Scene {
         sel.forEach((u) => game.set_pace(u, anyWalk ? 1 : 0));
       },
       reform: (units: number[]) => myUnits(units).forEach((u) => game.set_reform(u)),
-      toggleWeapon: (units: number[]) => {
-        const sel = myUnits(units);
-        const info = unitInfo();
-        const anyPrimary = sel.some((u) => info[u * STRIDE + 29] < 0.5);
-        sel.forEach((u) => game.set_weapon_pref(u, anyPrimary ? 1 : 0));
-      },
       toggleKite: (units: number[]) => {
         const sel = myUnits(units);
         const info = unitInfo();
@@ -676,10 +665,8 @@ export class BattleScene implements Scene {
           pushGhost(verts, info[o + 10], info[o + 11], gf, w, d, r * k, g * k, b * k);
           verts.push(ax, ay, r * 0.8 * k, g * 0.8 * k, b * 0.8 * k, info[o + 10], info[o + 11], r * 0.8 * k, g * 0.8 * k, b * 0.8 * k);
         }
-        // Progress pies, one visual pattern: WHITE = order transmitting,
-        // ORANGE = weapon order traveling down the line.
+        // Progress pie: WHITE = order transmitting down the line.
         if (info[o + 14] > 0) pushPie(verts, ax, ay, info[o + 14], 7, 1, 1, 1);
-        if (info[o + 30] > 0) pushPie(verts, ax, ay, info[o + 30], 9, 1, 0.65, 0.2);
       }
       // Right-drag preview: where everyone will stand, facing the cursor.
       if (input.rightDrag) {

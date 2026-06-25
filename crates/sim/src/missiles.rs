@@ -168,9 +168,6 @@ impl Sim {
             {
                 continue;
             }
-            if u.weapon_pref == 1 {
-                continue; // swords drawn: the bows are slung
-            }
             // Halted to shoot, unless shooting from the saddle.
             if !spec.mobile_fire && u.frame_speed > 0.3 {
                 continue;

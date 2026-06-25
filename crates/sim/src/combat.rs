@@ -364,9 +364,7 @@ impl Sim {
             // one source of truth for what's in hand: the renderer draws it, and
             // the IMPALE below only fires while the pike is up.
             let front_off = wrap_angle(t_bearing - self.units[ui].facing).abs();
-            let desired = if self.units[ui].weapon_pref == 1 && weapons.len() > 1 {
-                Some(weapons.len() - 1)
-            } else if let (Some(ci), Some(gi)) = (
+            let desired = if let (Some(ci), Some(gi)) = (
                 weapons.iter().position(|w| w.is_charge()),
                 weapons.iter().position(|w| !w.is_charge()),
             ) {

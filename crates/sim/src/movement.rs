@@ -427,9 +427,7 @@ mod tests {
             threat_unit: None,
             latch_best: f32::INFINITY,
             latch_cd: 0.0,
-            weapon_pref: 0,
-            switch_timer: 0.0,
-            pending_pref: 0,
+
             order_queue: Vec::new(),
         };
         let mut ordered = Unit {

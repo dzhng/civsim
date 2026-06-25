@@ -14,7 +14,6 @@ export interface OrderSink {
   orderFacing(units: number[], x: number, y: number, facing: number, queued: boolean): void;
   togglePace(units: number[]): void;
   reform(units: number[]): void;
-  toggleWeapon(units: number[]): void;
   toggleKite(units: number[]): void;
   togglePursue(units: number[]): void;
   toggleFire(units: number[]): void;
@@ -171,7 +170,6 @@ export class Input {
       if (e.key === 'g') sink.reform(sel);
       if (e.key === 'h') sink.togglePursue(sel);
       if (e.key === 'v') sink.toggleFire(sel);
-      if (e.key === 'x') sink.toggleWeapon(sel);
       if (e.key === 'k') sink.toggleKite(sel); // (moved off E, now a camera-rotate key)
     }, { signal });
     window.addEventListener('keyup', (e) => held.delete(e.key.toLowerCase()), { signal });

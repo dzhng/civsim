@@ -16,8 +16,8 @@ pub use campaign_bind::*;
 ///  stamina, pace, target_x, target_y, has_target, class, order_delay_frac,
 ///  alive_count, engaged, at_ease, charge (0 off / 1 armed / 2 charging), ammo,
 ///  morale, routing, final_facing, has_final_facing, mode (0 move / 1 attack /
-///  2 disengage), pursue, evade_auto, waiting, compressed, weapon_pref,
-///  switch_frac, mean_pressure, centroid_x, centroid_y]
+///  2 disengage), pursue, evade_auto, waiting, compressed, mean_pressure,
+///  centroid_x, centroid_y]
 pub const UNIT_INFO_STRIDE: usize = 34;
 
 #[wasm_bindgen]
@@ -403,13 +403,6 @@ impl Game {
         self.refresh_unit_info();
     }
 
-    pub fn set_weapon_pref(&mut self, unit: u32, secondary: u32) {
-        self.battle
-            .sim
-            .set_weapon_pref(unit as usize, secondary != 0);
-        self.refresh_unit_info();
-    }
-
     /// Per-soldier weapon-swap countdown (>0 = mid-fumble; drives the anim).
     pub fn switch_cd_ptr(&self) -> *const f32 {
         self.battle.sim.switch_cd.as_ptr()
@@ -525,12 +518,6 @@ impl Game {
                 if u.evade_auto { 1.0 } else { 0.0 },
                 if u.waiting { 1.0 } else { 0.0 },
                 if u.files_eff < u.files { 1.0 } else { 0.0 },
-                u.weapon_pref as f32,
-                if u.switch_timer > 0.0 {
-                    u.switch_timer.min(1.0)
-                } else {
-                    0.0
-                },
                 mean_pressure,
                 // Living-soldier centre of mass — where a unit's banner plants,
                 // unlike the anchor (the front-rank reference) at [0],[1].

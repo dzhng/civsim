@@ -20,7 +20,7 @@ physically stops horseflesh.</em></p>
 <tr><td>alt + right-click</td><td><b>DISENGAGE</b> move: turn and run at full pace, answering nothing — fast but backs exposed</td></tr>
 <tr><td>R</td><td>walk-run</td></tr>
 <tr><td>G / H / V</td><td>reform / pursue (latch onto contact) / fire-at-will</td></tr>
-<tr><td>X / K</td><td>draw secondary weapons (pikes ground, bows sling — ~1s down the line, ORANGE pie) / kite reflex on-off (skirmish classes)</td></tr>
+<tr><td>K</td><td>kite reflex on-off (skirmish classes)</td></tr>
 <tr><td>P, 1, 3</td><td>pause, 1x, 3x speed</td></tr>
 <tr><td>hold Space</td><td>show anchors, paths, latch targets</td></tr>
 <tr><td>WASD / arrows / screen edge</td><td>pan the camera (always relative to the way you're facing); wheel zooms</td></tr>
@@ -77,9 +77,8 @@ swords) <b>switch by judgment automatically</b>: a soldier whose primary
 can't bear (enemy inside a pike's minimum range) draws his secondary — with
 a ~1 second fumble during which he cannot strike (watch the raised-weapon
 animation; this beat of helplessness is the pike line's nightmare when
-closed on). The <b>X</b> order draws secondaries unit-wide: ~1s for the
-order to travel (orange pie), then each man swaps. Archers with swords
-drawn sling their bows — no shooting until ordered back.</p>
+closed on). Archers with swords drawn sling their bows — no shooting until
+the threat clears.</p>
 
 <h2>Pace and the run</h2>
 <p>No two men run alike. Each soldier has a personal top speed; a walking
@@ -100,7 +99,6 @@ they appear:</p>
 <tr><td><b>CHG!</b></td><td>this instant: bursting at charge speed in the final approach</td></tr>
 <tr><td><b>PUR</b></td><td>pursue toggle on: the advance will latch onto whatever strays within reach</td></tr>
 <tr><td><b>KITE</b></td><td>skirmish reflex armed (skirmishers / horse archers)</td></tr>
-<tr><td><b>2nd</b></td><td>secondary weapons drawn unit-wide (pikes grounded, bows slung)</td></tr>
 <tr><td><b>BRC</b></td><td>braced: halted (&lt;0.3 m/s) with men trading blows — planted mass multiplies push resistance</td></tr>
 <tr><td><b>TIRED</b></td><td>stamina below 35%: pace, swings, and recovery all sag</td></tr>
 <tr><td><b>SQZ</b></td><td>the formation FRAME is compressed below its ordered frontage — terrain corridors (gates, defiles). Crowd crush is a different thing:</td></tr>
@@ -109,9 +107,8 @@ they appear:</p>
 <tr><td><b>AMMO!</b></td><td>a missile unit's quivers are empty</td></tr>
 <tr><td><b>⚔n</b></td><td>n men currently within weapon reach of an enemy, trading blows</td></tr>
 </table>
-<p>White pie over a unit = an order transmitting through low cohesion;
-orange pie = a weapon order traveling down the line. The pale border drawn
-around the field is the true battlefield bound.</p>
+<p>White pie over a unit = an order transmitting through low cohesion. The
+pale border drawn around the field is the true battlefield bound.</p>
 
 <h2>Stamina (one shared pool: legs and arms)</h2>
 <p>Walk is free. Run drains in ~90&nbsp;s. The <b>surge</b> — the automatic

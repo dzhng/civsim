@@ -379,9 +379,7 @@ impl Sim {
             threat_unit: None,
             latch_best: f32::INFINITY,
             latch_cd: 0.0,
-            weapon_pref: 0,
-            switch_timer: 0.0,
-            pending_pref: 0,
+
             order_queue: Vec::new(),
         };
         for s in 0..count {
@@ -676,19 +674,6 @@ impl Sim {
             &self.alive,
             &mut self.soldier_slot,
         );
-    }
-
-    /// Order the whole unit onto its secondary weapon (or back to weapons
-    /// by judgment). Takes ~1s to shout down the line, then each soldier
-    /// swaps with his own ~1s fumble.
-    pub fn set_weapon_pref(&mut self, unit: usize, secondary: bool) {
-        if let Some(u) = self.units.get_mut(unit) {
-            let pref = if secondary { 1 } else { 0 };
-            if u.weapon_pref != pref {
-                u.pending_pref = pref;
-                u.switch_timer = 1.0;
-            }
-        }
     }
 
     pub fn set_pursue(&mut self, unit: usize, on: bool) {
@@ -1095,12 +1080,6 @@ impl Sim {
         for u in self.units.iter_mut() {
             if u.latch_cd > 0.0 {
                 u.latch_cd -= dt;
-            }
-            if u.switch_timer > 0.0 {
-                u.switch_timer -= dt;
-                if u.switch_timer <= 0.0 {
-                    u.weapon_pref = u.pending_pref;
-                }
             }
         }
         // Nearest-enemy gap + bearing, off the SAME snapshot/measure as

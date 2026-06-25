@@ -208,14 +208,6 @@ pub struct Unit {
     pub latch_best: f32,
     /// After an expired chase, don't re-latch immediately.
     pub latch_cd: f32,
-    /// 0 = weapons by judgment (distance), 1 = secondary drawn unit-wide
-    /// (pikes grounded / bows slung).
-    pub weapon_pref: u8,
-    /// Countdown while the unit-wide weapon order propagates (~1s; the
-    /// HUD shows it as a pie, same pattern as order delay).
-    pub switch_timer: f32,
-    /// Pending preference applied when switch_timer elapses.
-    pub pending_pref: u8,
     /// Queued follow-up orders (shift-issued): executed in sequence as each
     /// completes. (mode, target, final facing).
     pub order_queue: Vec<(OrderMode, Vec2, Option<f32>)>,

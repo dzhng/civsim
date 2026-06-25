@@ -9,6 +9,11 @@ pub const TICKS_PER_DAY: u32 = 1440;
 /// Maximum roster entries in one field army. The campaign marker scales its
 /// compressed figures against this capacity.
 pub const ARMY_STACK_UNIT_CAP: usize = 20;
+/// Fixed administrative cost for changing one faction-wide class doctrine
+/// (unit type and/or establishment size). Paid once per applied class change.
+pub const CLASS_SWITCH_FEE: u32 = 75;
+/// Cooldown before a faction can change the same class doctrine again.
+pub const CLASS_SWITCH_COOLDOWN_TICKS: u64 = 7 * TICKS_PER_DAY as u64;
 /// One road tile of march, in km (must match mapgen's TILE_KM).
 pub const TILE_KM: f32 = 5.0;
 
@@ -31,6 +36,26 @@ pub fn march_mult(class: UnitClassId) -> f32 {
         Peasant => 1.05,
         LightSword => 1.1,
         HeavySpear => 0.9,
+    }
+}
+
+/// Baseline establishment strength for one army slot of this class. The class
+/// builder's 1x/2x/4x setting multiplies this cap; replenishment fills toward it.
+pub fn unit_establishment(class: UnitClassId) -> u32 {
+    use UnitClassId::*;
+    match class {
+        HeavySword => 1280,
+        LightSpear => 880,
+        LongSwords => 360,
+        Phalanx => 1280,
+        Archers => 480,
+        Skirmishers => 360,
+        ShockCavalry => 280,
+        HorseArchers => 240,
+        ArtilleryCrew => 80,
+        Peasant => 1400,
+        LightSword => 880,
+        HeavySpear => 1280,
     }
 }
 

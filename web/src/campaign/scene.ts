@@ -15,10 +15,12 @@ import { installCampaignDebugApi, markCampaignReady } from './debugApi';
 import {
   armyPanelHtml,
   campaignDomHtml,
+  classBuilderHtml,
   cityPanelHtml,
   diplomacyHtml,
   roadPanelHtml,
   type ArmyRosterRow,
+  type ClassDoctrineRow,
   type CityDetail,
   type DiplomacyAction,
   type DiplomacyRow,
@@ -89,6 +91,9 @@ export class CampaignScene implements Scene {
   private fogOfWar = false;
   private diploOpen = false;
   private diploJson = '';
+  private classBuilderOpen = false;
+  private classBuilderJson = '';
+  private classDraft = new Map<number, { unit: number; size: number }>();
   private armies: ArmyView[] = [];
   private cities = new Map<number, CityView>();
   private roadLevels: Uint8Array = new Uint8Array(0);
@@ -513,6 +518,7 @@ export class CampaignScene implements Scene {
     });
     ui.querySelector('#cmp-exit')!.addEventListener('click', () => this.cfg.onExit());
     ui.querySelector('#cmp-diplo-btn')!.addEventListener('click', () => this.toggleDiplomacy());
+    ui.querySelector('#cmp-classes-btn')!.addEventListener('click', () => this.toggleClassBuilder());
     ui.querySelector('#cmp-factions')!.addEventListener('click', () => {
       this.factionView = !this.factionView;
       this.syncFactionBtn();
@@ -536,6 +542,14 @@ export class CampaignScene implements Scene {
     panel.style.display = this.diploOpen ? 'block' : 'none';
     this.ui.querySelector('#cmp-diplo-btn')!.classList.toggle('on', this.diploOpen);
     if (this.diploOpen) this.updateDiplomacyPanel();
+  }
+
+  private toggleClassBuilder() {
+    this.classBuilderOpen = !this.classBuilderOpen;
+    const panel = this.ui.querySelector('#cmp-classes') as HTMLDivElement;
+    panel.style.display = this.classBuilderOpen ? 'block' : 'none';
+    this.ui.querySelector('#cmp-classes-btn')!.classList.toggle('on', this.classBuilderOpen);
+    if (this.classBuilderOpen) this.updateClassBuilderPanel(true);
   }
 
   private updateDiplomacyPanel() {
@@ -578,6 +592,52 @@ export class CampaignScene implements Scene {
       b.classList.toggle('on', !this.paused && Number(b.dataset.speed) === this.speed),
     );
     this.updateDiplomacyPanel(); // cheap no-op unless open and changed
+    this.updateClassBuilderPanel(); // cheap no-op unless open and changed
+  }
+
+  private updateClassBuilderPanel(force = false) {
+    if (!this.classBuilderOpen) return;
+    const json = this.cfg.campaign.class_doctrine_json();
+    if (!force && json === this.classBuilderJson) return;
+    this.classBuilderJson = json;
+    const rows = (JSON.parse(json) as ClassDoctrineRow[]).map((r) => {
+      const d = this.classDraft.get(r.classIndex);
+      if (!d) return r;
+      return { ...r, selected: d.unit, sizeMult: d.size, dirty: d.unit !== r.selected || d.size !== r.sizeMult };
+    });
+    const panel = this.ui.querySelector('#cmp-classes') as HTMLDivElement;
+    panel.innerHTML = classBuilderHtml(rows);
+    panel.querySelectorAll<HTMLButtonElement>('button[data-unit]').forEach((b) =>
+      b.addEventListener('click', () => {
+        const cls = Number(b.dataset.class);
+        const unit = Number(b.dataset.unit);
+        const row = rows.find((r) => r.classIndex === cls);
+        if (!row) return;
+        this.classDraft.set(cls, { unit, size: row.sizeMult });
+        this.updateClassBuilderPanel(true);
+      }),
+    );
+    panel.querySelectorAll<HTMLButtonElement>('button[data-size]').forEach((b) =>
+      b.addEventListener('click', () => {
+        const cls = Number(b.dataset.class);
+        const size = Number(b.dataset.size);
+        const row = rows.find((r) => r.classIndex === cls);
+        if (!row) return;
+        this.classDraft.set(cls, { unit: row.selected, size });
+        this.updateClassBuilderPanel(true);
+      }),
+    );
+    panel.querySelectorAll<HTMLButtonElement>('button[data-apply]').forEach((b) =>
+      b.addEventListener('click', () => {
+        const cls = Number(b.dataset.apply);
+        const draft = this.classDraft.get(cls);
+        if (draft && this.cfg.campaign.order_set_class_doctrine(cls, draft.unit, draft.size)) {
+          this.classDraft.delete(cls);
+          this.refreshViews();
+          this.updateClassBuilderPanel(true);
+        }
+      }),
+    );
   }
 
   private updateArmyPanel() {
@@ -600,8 +660,15 @@ export class CampaignScene implements Scene {
     const spotIdx = me
       ? this.spotPos.findIndex(([x, y]) => Math.hypot(x - me.x, y - me.y) < 2.6)
       : -1;
-    panel.innerHTML = armyPanelHtml(this.selected, roster, me, buddy, spotIdx);
+    const autoReplenish = this.cfg.campaign.army_auto_replenish(this.selected);
+    panel.innerHTML = armyPanelHtml(this.selected, roster, me, buddy, spotIdx, autoReplenish);
     panel.style.display = 'block';
+    panel.querySelector('#cmp-auto-replenish')?.addEventListener('change', (e) => {
+      const on = (e.currentTarget as HTMLInputElement).checked;
+      this.cfg.campaign.order_auto_replenish(this.selected, on);
+      this.refreshViews();
+      this.updateArmyPanel();
+    });
     panel.querySelector('#cmp-halt')?.addEventListener('click', () => {
       this.cfg.campaign.order_halt(this.selected);
       this.refreshViews();
@@ -637,7 +704,7 @@ export class CampaignScene implements Scene {
   }
 
   private openCityPanel(node: number) {
-    this.selectedCity = node; // the green ring marks the open settlement
+    this.selectedCity = node;
     const panel = this.ui.querySelector('#cmp-city') as HTMLDivElement;
     const c = this.cities.get(node);
     if (!c) return;

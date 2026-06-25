@@ -20,6 +20,29 @@ export interface ArmyRosterRow {
   morale_cap: number;
 }
 
+export interface UnitOptionRow {
+  id: number;
+  name: string;
+  costPerSoldier: number;
+  upkeepPerSoldier: number;
+  recruitTicksPerSoldier: number;
+  option: number;
+  unlocked: boolean;
+  applyCost: number | null;
+}
+
+export interface ClassDoctrineRow {
+  classIndex: number;
+  class: string;
+  selected: number;
+  sizeMult: number;
+  cooldown: number;
+  live: number;
+  max: number;
+  options: UnitOptionRow[];
+  dirty?: boolean;
+}
+
 export function campaignDomHtml(): string {
   return `
     <style>
@@ -28,8 +51,13 @@ export function campaignDomHtml(): string {
       #campaign-ui button { background:#2a3242;color:#e8e0cc;border:1px solid #4a5468;border-radius:3px;
         padding:3px 10px;cursor:pointer;font:12px system-ui; }
       #campaign-ui button.on { background:#5a6a8a; }
-      #campaign-ui .cmp-panel { position:fixed;right:10px;top:44px;width:230px;background:rgba(12,16,22,0.9);
-        color:#e8e0cc;font:12px system-ui;padding:10px;border-radius:4px;z-index:10; }
+      #campaign-ui .cmp-panel { position:fixed;right:10px;top:44px;width:230px;
+        background:linear-gradient(180deg,rgba(31,27,21,0.96),rgba(14,16,18,0.96));
+        color:#eadfca;font:12px system-ui;padding:10px;border:1px solid rgba(151,122,72,0.55);
+        box-shadow:0 10px 28px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,236,186,0.12);
+        border-radius:3px;z-index:10; }
+      #campaign-ui .cmp-panel b { font-family:Cinzel, Georgia, serif;letter-spacing:0.2px;color:#f1dfb1; }
+      #campaign-ui input[type="checkbox"] { accent-color:#b38a43; }
       #campaign-ui .cmp-modal { position:fixed;inset:0;background:rgba(0,0,0,0.55);display:flex;
         align-items:center;justify-content:center;z-index:20; }
       #campaign-ui .cmp-box { background:#161c26;color:#e8e0cc;padding:22px 30px;border-radius:6px;
@@ -50,6 +78,23 @@ export function campaignDomHtml(): string {
       #campaign-ui .cmp-pow { opacity:0.6;font-size:11px; }
       #campaign-ui .cmp-diplo-acts { display:flex;gap:4px;margin-top:2px;flex-wrap:wrap;flex-basis:100%; }
       #campaign-ui .cmp-diplo-acts button { font-size:11px;padding:2px 7px; }
+      #campaign-ui .cmp-class-row { display:grid;grid-template-columns:132px 1fr;gap:10px;
+        padding:9px 0;border-top:1px solid rgba(169,133,76,0.3); }
+      #campaign-ui .cmp-class-name { font-family:Cinzel, Georgia, serif;font-weight:700;color:#f0dcab; }
+      #campaign-ui .cmp-class-meta { color:#b9aa8b;font-size:11px;margin-top:2px;line-height:1.25; }
+      #campaign-ui .cmp-unit-options { display:flex;flex-direction:column;gap:4px; }
+      #campaign-ui .cmp-unit { display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;
+        background:rgba(42,36,28,0.84);padding:6px;border:1px solid rgba(119,94,55,0.35);border-radius:3px; }
+      #campaign-ui .cmp-unit.sel { background:rgba(81,64,37,0.96);border-color:rgba(194,154,82,0.72); }
+      #campaign-ui .cmp-unit small { color:#bfb39a; }
+      #campaign-ui .cmp-unit button, #campaign-ui .cmp-size button, #campaign-ui button[data-apply] {
+        background:#202631;border-color:#6c5b3e;color:#eadfca; }
+      #campaign-ui .cmp-unit button:not(:disabled):hover, #campaign-ui .cmp-size button:not(:disabled):hover {
+        background:#3a3124;border-color:#b38a43; }
+      #campaign-ui .cmp-unit button:disabled { opacity:0.82; }
+      #campaign-ui .cmp-size { display:flex;gap:4px;margin-top:5px; }
+      #campaign-ui .cmp-size button { padding:1px 6px;font-size:11px; }
+      #campaign-ui button[data-apply] { margin-top:6px;width:100%;font-size:11px;padding:3px 6px; }
     </style>
     <div class="cmp-top">
       <span id="cmp-date">Day 1</span>
@@ -61,6 +106,7 @@ export function campaignDomHtml(): string {
       <button id="cmp-factions" title="Toggle faction (political) view — V">🗺 Factions</button>
       <button id="cmp-fog" title="Toggle fog of war — F">🌫 Fog</button>
       <button id="cmp-diplo-btn">⚑ Diplomacy</button>
+      <button id="cmp-classes-btn">Classes</button>
       <span style="flex:1"></span>
       <button id="cmp-save">Save</button>
       <button id="cmp-exit">Menu</button>
@@ -68,7 +114,9 @@ export function campaignDomHtml(): string {
     <div class="cmp-panel" id="cmp-army" style="display:none"></div>
     <div class="cmp-panel" id="cmp-city" style="display:none;top:auto;bottom:10px;"></div>
     <div class="cmp-panel" id="cmp-diplomacy"
-      style="display:none;left:10px;right:auto;top:44px;width:300px;max-height:84vh;overflow:auto;"></div>`;
+      style="display:none;left:10px;right:auto;top:44px;width:300px;max-height:84vh;overflow:auto;"></div>
+    <div class="cmp-panel" id="cmp-classes"
+      style="display:none;left:10px;right:auto;top:44px;width:520px;max-height:84vh;overflow:auto;"></div>`;
 }
 
 export function diplomacyHtml(list: DiplomacyRow[]): string {
@@ -105,20 +153,57 @@ export function armyPanelHtml(
   me: ArmyView | undefined,
   buddy: ArmyView | undefined,
   spotIdx: number,
+  autoReplenish: boolean,
 ): string {
   const rows = roster
     .map((r, i) =>
       r.count > 0
-        ? `<div><label><input type="checkbox" data-entry="${i}"> ${r.class}: ${r.count}/${r.max} (morale ${Math.round(r.morale_cap * 100)}%)</label></div>`
+        ? `<div><label><input type="checkbox" data-entry="${i}"> ${prettyClass(r.class)}: ${r.count}/${r.max} (morale ${Math.round(r.morale_cap * 100)}%)</label></div>`
         : '')
     .join('');
   const ambushLabel = me?.stance === 3 ? 'Hidden' : me?.stance === 2 ? 'Settling…' : 'Ambush';
   return `<b>Army ${selected}</b>${rows}<div style="margin-top:6px">
+    <label><input type="checkbox" id="cmp-auto-replenish" ${autoReplenish ? 'checked' : ''}> Auto replenish</label><br>
     <button id="cmp-halt">Halt</button>
     <button id="cmp-camp">${me?.stance === 1 ? 'Camped' : 'Camp'}</button>
     ${spotIdx >= 0 || (me && me.stance >= 2 && me.stance <= 3) ? `<button id="cmp-ambush" ${me!.stance >= 2 ? 'disabled' : ''}>${ambushLabel}</button>` : ''}
     <button id="cmp-split">Split</button>
     ${buddy ? `<button id="cmp-merge">Merge ${buddy.id}</button>` : ''}</div>`;
+}
+
+export function classBuilderHtml(rows: ClassDoctrineRow[]): string {
+  return `<b>Class Builder</b>${rows.map(classRow).join('')}`;
+}
+
+function classRow(row: ClassDoctrineRow): string {
+  const className = prettyClass(row.class);
+  const currentSize = row.sizeMult;
+  const selectedName = row.options.find((o) => o.id === row.selected)?.name ?? 'Unknown';
+  const sizes = [1, 2, 4]
+    .map((s) =>
+      `<button data-class="${row.classIndex}" data-size="${s}" ${s === currentSize ? 'class="on"' : ''}>${s}x</button>`,
+    )
+    .join('');
+  const options = row.options
+    .map((o) => {
+      const sel = o.id === row.selected;
+      const disabled = !o.unlocked || row.cooldown > 0;
+      const cost = o.applyCost == null ? 'cooldown' : `${o.applyCost}g`;
+      return `<div class="cmp-unit ${sel ? 'sel' : ''}">
+        <div><b>${o.name}</b><br><small>${o.costPerSoldier.toFixed(2)}g recruit · ${o.upkeepPerSoldier.toFixed(3)}g upkeep/day</small></div>
+        <button data-class="${row.classIndex}" data-unit="${o.id}" ${disabled || sel ? 'disabled' : ''}>${sel ? 'Selected' : cost}</button>
+      </div>`;
+    })
+    .join('');
+  return `<div class="cmp-class-row">
+    <div><div class="cmp-class-name">${className}</div><div class="cmp-class-meta">${row.live}/${row.max} · ${selectedName}${row.cooldown > 0 ? ` · ${Math.ceil(row.cooldown / 1440)}d` : ''}</div>
+      <div class="cmp-size">${sizes}</div>${row.dirty ? `<button data-apply="${row.classIndex}">Apply</button>` : ''}</div>
+    <div class="cmp-unit-options">${options}</div>
+  </div>`;
+}
+
+function prettyClass(name: string): string {
+  return name.replace(/([a-z])([A-Z])/g, '$1 $2');
 }
 
 export function cityPanelHtml(

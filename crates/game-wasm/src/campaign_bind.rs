@@ -40,6 +40,47 @@ fn loc_decode(kind: u32, a: u32, b: u32) -> Loc {
     }
 }
 
+fn resolved_unit_stats(r: &contract::RosterUnit) -> sim::UnitClass {
+    let mut s = sim::class_stats(r.class);
+    let option = r.unit_type.map(campaign::units::option_index).unwrap_or(0);
+    match option {
+        // Auxiliary / irregular: cheaper, quicker to move and recover, but
+        // materially less able to stand in a hard front-line press.
+        1 => {
+            s.health *= 0.9;
+            s.mass *= 0.92;
+            s.block *= 0.86;
+            s.evade = (s.evade + 0.05).min(0.7);
+            s.training = (s.training - 0.08).max(0.2);
+            s.bravery *= 0.9;
+            s.morale_aura *= 0.9;
+            s.pace_mult *= 1.06;
+            s.drain_mult *= 0.88;
+        }
+        // Professional / specialist: more staying power and discipline, paid
+        // for in cost and stamina.
+        2 => {
+            s.health *= 1.1;
+            s.mass *= 1.08;
+            s.block = (s.block + 0.06).min(0.75);
+            s.evade *= 0.92;
+            s.training = (s.training + 0.1).min(1.0);
+            s.bravery *= 1.15;
+            s.morale_aura *= 1.08;
+            s.drain_mult *= 1.12;
+        }
+        n if n > 2 => {
+            s.health *= 1.16;
+            s.mass *= 1.12;
+            s.training = (s.training + 0.14).min(1.0);
+            s.bravery *= 1.2;
+            s.drain_mult *= 1.18;
+        }
+        _ => {}
+    }
+    s
+}
+
 #[wasm_bindgen]
 impl Campaign {
     #[wasm_bindgen(constructor)]
@@ -168,6 +209,28 @@ impl Campaign {
             return false;
         };
         let ok = self.inner.order_recruit(node, class, count);
+        self.refresh();
+        ok
+    }
+
+    pub fn order_set_class_doctrine(&mut self, class: u32, unit_type: u32, size_mult: u32) -> bool {
+        let Some(&class) = contract::ALL_CLASSES.get(class as usize) else {
+            return false;
+        };
+        let ok = self.inner.order_set_class_doctrine(
+            class,
+            contract::UnitTypeId(unit_type),
+            size_mult as u8,
+        );
+        self.refresh();
+        ok
+    }
+
+    pub fn order_auto_replenish(&mut self, army: u32, on: bool) -> bool {
+        if !self.owns(army) {
+            return false;
+        }
+        let ok = self.inner.order_auto_replenish(army, on);
         self.refresh();
         ok
     }
@@ -381,6 +444,72 @@ impl Campaign {
         .unwrap()
     }
 
+    pub fn class_doctrine_json(&self) -> String {
+        let st = &self.inner.state;
+        let f = st.player_faction;
+        let rows: Vec<serde_json::Value> = contract::ALL_CLASSES
+            .iter()
+            .enumerate()
+            .map(|(ci, &class)| {
+                let selected = campaign::units::selected_unit_type(st, f, class);
+                let size = campaign::units::size_mult(st, f, class);
+                let cooldown_until = st
+                    .doctrines
+                    .get(f as usize)
+                    .and_then(|d| d.slots.iter().find(|s| s.class == class))
+                    .map(|s| s.cooldown_until)
+                    .unwrap_or(0);
+                let live = campaign::economy::field_living_soldiers(st, f, class);
+                let max: u32 = st
+                    .armies
+                    .iter()
+                    .filter(|a| a.faction == f && a.garrison_of.is_none() && a.alive())
+                    .flat_map(|a| &a.roster)
+                    .filter(|r| r.class == class)
+                    .map(|r| r.max)
+                    .sum();
+                let options: Vec<serde_json::Value> = campaign::units::available_options(
+                    &self.inner.map,
+                    f,
+                    class,
+                )
+                .into_iter()
+                .map(|u| {
+                    let apply_cost = campaign::economy::class_doctrine_cost(
+                        &self.inner.map,
+                        st,
+                        f,
+                        class,
+                        u.id,
+                        size,
+                    );
+                    serde_json::json!({
+                        "id": u.id.0,
+                        "name": u.name,
+                        "costPerSoldier": u.cost_per_soldier_milligold as f32 / 1000.0,
+                        "upkeepPerSoldier": u.upkeep_per_soldier_milligold as f32 / 1000.0,
+                        "recruitTicksPerSoldier": u.recruit_ticks_per_soldier,
+                        "option": u.option,
+                        "unlocked": matches!(u.unlock, campaign::units::UnitUnlock::Default),
+                        "applyCost": apply_cost,
+                    })
+                })
+                .collect();
+                serde_json::json!({
+                    "classIndex": ci,
+                    "class": format!("{class:?}"),
+                    "selected": selected.0,
+                    "sizeMult": size,
+                    "cooldown": cooldown_until.saturating_sub(st.tick),
+                    "live": live,
+                    "max": max,
+                    "options": options,
+                })
+            })
+            .collect();
+        serde_json::to_string(&rows).unwrap()
+    }
+
     pub fn city_count(&self) -> u32 {
         (self.city_info.len() / CITY_INFO_STRIDE) as u32
     }
@@ -405,6 +534,15 @@ impl Campaign {
                 .collect::<Vec<_>>(),
         )
         .unwrap()
+    }
+
+    pub fn army_auto_replenish(&self, army: u32) -> bool {
+        self.inner
+            .state
+            .armies
+            .get(army as usize)
+            .map(|a| a.auto_replenish)
+            .unwrap_or(false)
     }
 
     pub fn treasury(&self) -> u32 {
@@ -590,7 +728,7 @@ mod tests {
 #[wasm_bindgen]
 pub fn start_campaign_battle(c: &mut Campaign, encounter: u32) -> Option<Game> {
     let setup = c.inner.battle_setup(encounter)?;
-    let mut battle = sim::Battle::from_setup(&setup);
+    let mut battle = sim::Battle::from_setup_with_stats(&setup, &resolved_unit_stats);
     // Whoever isn't the player fights themselves; battle_setup_for puts the
     // player on team 0 when involved.
     battle.set_ai(1, true);

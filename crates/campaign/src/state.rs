@@ -28,6 +28,20 @@ pub struct RosterEntry {
     pub morale_cap: f32,
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct DoctrineSlot {
+    pub class: UnitClassId,
+    pub selected: contract::UnitTypeId,
+    /// Establishment multiplier for every roster entry of this class.
+    pub size_mult: u8,
+    pub cooldown_until: u64,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct FactionDoctrine {
+    pub slots: Vec<DoctrineSlot>,
+}
+
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum Stance {
     /// Following a path, or standing where the last one ended.
@@ -75,8 +89,15 @@ pub struct Army {
     pub progress: f32,
     pub stance: Stance,
     pub encounter: Option<EncounterId>,
+    /// Paid automatic replenishment toward establishment strength. Defaults on.
+    #[serde(default = "default_auto_replenish")]
+    pub auto_replenish: bool,
     /// Counts down while embarking/disembarking at a port.
     pub embark_ticks_left: u16,
+}
+
+fn default_auto_replenish() -> bool {
+    true
 }
 
 impl Army {
@@ -200,6 +221,10 @@ pub struct CampaignState {
     pub tick: u64,
     pub rng: Pcg32,
     pub factions: Vec<Faction>,
+    /// Per-faction class builder choices. Normalized at new/load so old saves
+    /// receive defaults and new classes get slots.
+    #[serde(default)]
+    pub doctrines: Vec<FactionDoctrine>,
     /// Index = ArmyId. Dead armies are tombstoned (empty roster), ids stable.
     pub armies: Vec<Army>,
     pub cities: BTreeMap<NodeId, CityState>,

@@ -15,7 +15,7 @@ fn unit_id(army: ArmyId, entry: usize) -> u64 {
     ((army as u64) << 8) | entry as u64
 }
 
-fn roster_units(a: &Army) -> Vec<RosterUnit> {
+fn roster_units(st: &CampaignState, a: &Army) -> Vec<RosterUnit> {
     a.roster
         .iter()
         .enumerate()
@@ -23,6 +23,7 @@ fn roster_units(a: &Army) -> Vec<RosterUnit> {
         .map(|(i, r)| RosterUnit {
             id: unit_id(a.id, i),
             class: r.class,
+            unit_type: Some(crate::units::selected_unit_type(st, a.faction, r.class)),
             count: r.count,
             training: 0.6,
             morale_cap: r.morale_cap,
@@ -210,14 +211,14 @@ pub fn battle_setup_for(
     let deployments = vec![
         Deployment {
             team: att_team,
-            units: roster_units(att),
+            units: roster_units(st, att),
             center: battlegen::attacker_center(),
             facing: std::f32::consts::FRAC_PI_2,
             column: att.marching(),
         },
         Deployment {
             team: def_team,
-            units: roster_units(def),
+            units: roster_units(st, def),
             center: battlegen::defender_center(),
             facing: -std::f32::consts::FRAC_PI_2,
             column: def.marching() && !e.ambush,
@@ -235,7 +236,7 @@ pub fn battle_setup_for(
                 } else {
                     def_team
                 },
-                units: roster_units(a),
+                units: roster_units(st, a),
                 entry,
                 facing,
                 delay_secs: delay,

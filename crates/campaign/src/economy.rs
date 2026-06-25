@@ -6,7 +6,8 @@ use crate::mapdata::{NodeId, NodeKind, WorldMap};
 use crate::pathfind;
 use crate::state::*;
 use crate::tunables as tun;
-use contract::UnitClassId;
+use crate::units;
+use contract::{UnitClassId, UnitTypeId};
 
 /// Garrison establishment by city tier: what the city regenerates toward.
 pub fn garrison_establishment(tier: u8, barracks_lvl: u8) -> Vec<(UnitClassId, u32)> {
@@ -67,15 +68,39 @@ pub fn daily_income(map: &WorldMap, st: &CampaignState, f: FactionId) -> u32 {
 }
 
 /// A faction's daily army upkeep (per-soldier rate + per-unit base overhead).
-pub fn daily_upkeep(st: &CampaignState, f: FactionId) -> u32 {
+pub fn daily_upkeep(map: &WorldMap, st: &CampaignState, f: FactionId) -> u32 {
     let mut milligold: u64 = 0;
     for a in st.armies.iter().filter(|a| a.faction == f && a.alive()) {
         for r in a.roster.iter().filter(|r| r.count > 0) {
-            milligold += r.count as u64 * tun::upkeep_per_soldier_milligold(r.class) as u64;
+            milligold += r.count as u64 * upkeep_per_soldier_milligold(map, st, f, r.class) as u64;
             milligold += tun::UPKEEP_UNIT_BASE as u64 * 1000;
         }
     }
     (milligold / 1000) as u32
+}
+
+pub fn cost_per_soldier_milligold(
+    map: &WorldMap,
+    st: &CampaignState,
+    f: FactionId,
+    class: UnitClassId,
+) -> u32 {
+    let id = units::selected_unit_type(st, f, class);
+    units::unit_type_by_id(map, id)
+        .map(|u| u.cost_per_soldier_milligold)
+        .unwrap_or_else(|| tun::recruit_cost_milligold(class))
+}
+
+pub fn upkeep_per_soldier_milligold(
+    map: &WorldMap,
+    st: &CampaignState,
+    f: FactionId,
+    class: UnitClassId,
+) -> u32 {
+    let id = units::selected_unit_type(st, f, class);
+    units::unit_type_by_id(map, id)
+        .map(|u| u.upkeep_per_soldier_milligold)
+        .unwrap_or_else(|| tun::upkeep_per_soldier_milligold(class))
 }
 
 /// At a friendly city node, halted?
@@ -101,7 +126,7 @@ pub fn day_tick(map: &WorldMap, st: &mut CampaignState) {
     //    an empty treasury starts desertion and stops replenishment.
     let mut paid = vec![true; nfactions];
     for f in 0..nfactions {
-        let cost = daily_upkeep(st, f as u32);
+        let cost = daily_upkeep(map, st, f as u32);
         let t = &mut st.factions[f].treasury;
         if *t >= cost {
             *t -= cost;
@@ -124,6 +149,10 @@ pub fn day_tick(map: &WorldMap, st: &mut CampaignState) {
                 territory_of(map, st, st.armies[i].loc),
             )
         };
+        let unit_costs: Vec<u32> = contract::ALL_CLASSES
+            .iter()
+            .map(|&class| cost_per_soldier_milligold(map, st, faction as u32, class))
+            .collect();
         let a = &mut st.armies[i];
         if !paid[faction] {
             for r in a.roster.iter_mut().filter(|r| r.count > 0) {
@@ -131,19 +160,32 @@ pub fn day_tick(map: &WorldMap, st: &mut CampaignState) {
             }
             continue;
         }
-        let rate = if halted_city {
+        let rate = if !a.auto_replenish {
+            0.0
+        } else if halted_city {
             tun::REPLENISH_CITY
         } else if terr == Some(a.faction) {
             tun::REPLENISH_FRIENDLY
         } else {
-            tun::REPLENISH_HOSTILE
+            0.0
         };
-        for r in a
-            .roster
-            .iter_mut()
-            .filter(|r| r.count > 0 && r.count < r.max)
-        {
-            r.count = (r.count + ((r.max - r.count) as f32 * rate).ceil() as u32).min(r.max);
+        if rate > 0.0 {
+            let treasury = &mut st.factions[faction].treasury;
+            for r in a
+                .roster
+                .iter_mut()
+                .filter(|r| r.count > 0 && r.count < r.max)
+            {
+                let wanted = ((r.max - r.count) as f32 * rate).ceil() as u32;
+                let price = unit_costs[r.class as usize].max(1);
+                let affordable = ((*treasury as u64 * 1000) / price as u64) as u32;
+                let add = wanted.min(affordable).min(r.max - r.count);
+                if add == 0 {
+                    break;
+                }
+                *treasury -= ((add as u64 * price as u64).div_ceil(1000)) as u32;
+                r.count += add;
+            }
         }
         if halted_city {
             for r in a.roster.iter_mut() {
@@ -252,6 +294,7 @@ fn deliver_recruits(
             progress: 0.0,
             stance: Stance::Hold,
             encounter: None,
+            auto_replenish: true,
             embark_ticks_left: 0,
         });
     } else {
@@ -290,12 +333,16 @@ pub fn recruit(
         return false;
     };
     let owner = c.owner;
-    let cost = (count as u64 * tun::recruit_cost_milligold(class) as u64 / 1000) as u32;
+    let unit_type = units::selected_unit_type(st, owner, class);
+    let Some(unit) = units::unit_type_by_id(map, unit_type) else {
+        return false;
+    };
+    let cost = (count as u64 * unit.cost_per_soldier_milligold as u64 / 1000) as u32;
     if st.factions[owner as usize].treasury < cost {
         return false;
     }
     let barracks = c.barracks_lvl.min(2) as u32;
-    let ticks = count * tun::recruit_ticks_per_soldier(class) * (100 - 25 * barracks) / 100;
+    let ticks = count * unit.recruit_ticks_per_soldier * (100 - 25 * barracks) / 100;
     st.factions[owner as usize].treasury -= cost;
     st.cities
         .get_mut(&node)
@@ -306,7 +353,123 @@ pub fn recruit(
             count,
             ticks_left: ticks.max(1),
         });
-    let _ = map;
+    true
+}
+
+pub fn field_living_soldiers(st: &CampaignState, faction: FactionId, class: UnitClassId) -> u32 {
+    st.armies
+        .iter()
+        .filter(|a| a.faction == faction && a.garrison_of.is_none() && a.alive())
+        .flat_map(|a| &a.roster)
+        .filter(|r| r.class == class)
+        .map(|r| r.count)
+        .sum()
+}
+
+fn selected_slot_mut(
+    st: &mut CampaignState,
+    faction: FactionId,
+    class: UnitClassId,
+) -> Option<&mut DoctrineSlot> {
+    st.doctrines
+        .get_mut(faction as usize)?
+        .slots
+        .iter_mut()
+        .find(|s| s.class == class)
+}
+
+pub fn class_doctrine_cost(
+    map: &WorldMap,
+    st: &CampaignState,
+    faction: FactionId,
+    class: UnitClassId,
+    unit_type: UnitTypeId,
+    size_mult: u8,
+) -> Option<u32> {
+    if !matches!(size_mult, 1 | 2 | 4) {
+        return None;
+    }
+    let (uf, uc, _) = units::decode_unit_type(unit_type)?;
+    if uf != faction || uc != class {
+        return None;
+    }
+    let slot = st
+        .doctrines
+        .get(faction as usize)?
+        .slots
+        .iter()
+        .find(|s| s.class == class)?;
+    if slot.cooldown_until > st.tick {
+        return None;
+    }
+    if slot.selected == unit_type && slot.size_mult == size_mult {
+        return Some(0);
+    }
+    let current = units::unit_type_by_id(map, slot.selected)?;
+    let next = units::unit_type_by_id(map, unit_type)?;
+    let living = field_living_soldiers(st, faction, class) as u64;
+    let delta = next
+        .cost_per_soldier_milligold
+        .saturating_sub(current.cost_per_soldier_milligold) as u64;
+    let upgrade = (delta * living + 999) / 1000;
+    Some(tun::CLASS_SWITCH_FEE + upgrade as u32)
+}
+
+pub fn set_class_doctrine(
+    map: &WorldMap,
+    st: &mut CampaignState,
+    faction: FactionId,
+    class: UnitClassId,
+    unit_type: UnitTypeId,
+    size_mult: u8,
+) -> bool {
+    let Some(cost) = class_doctrine_cost(map, st, faction, class, unit_type, size_mult) else {
+        return false;
+    };
+    if cost == 0 {
+        return true;
+    }
+    if st.factions[faction as usize].treasury < cost {
+        return false;
+    }
+    let new_cap = tun::unit_establishment(class) * size_mult as u32;
+    if st
+        .armies
+        .iter()
+        .filter(|a| a.faction == faction && a.garrison_of.is_none())
+        .flat_map(|a| &a.roster)
+        .any(|r| r.class == class && r.count > new_cap)
+    {
+        return false;
+    }
+    st.factions[faction as usize].treasury -= cost;
+    let now = st.tick;
+    let Some(slot) = selected_slot_mut(st, faction, class) else {
+        return false;
+    };
+    slot.selected = unit_type;
+    slot.size_mult = size_mult;
+    slot.cooldown_until = now + tun::CLASS_SWITCH_COOLDOWN_TICKS;
+    for a in st
+        .armies
+        .iter_mut()
+        .filter(|a| a.faction == faction && a.garrison_of.is_none())
+    {
+        for r in a.roster.iter_mut().filter(|r| r.class == class) {
+            r.max = new_cap;
+        }
+    }
+    true
+}
+
+pub fn set_auto_replenish(st: &mut CampaignState, army: ArmyId, on: bool) -> bool {
+    let Some(a) = st.armies.get_mut(army as usize) else {
+        return false;
+    };
+    if !a.alive() || a.garrison_of.is_some() {
+        return false;
+    }
+    a.auto_replenish = on;
     true
 }
 
@@ -498,6 +661,7 @@ pub fn split(map: &WorldMap, st: &mut CampaignState, army: ArmyId, entries: &[us
         progress: 0.0,
         stance: Stance::Hold,
         encounter: None,
+        auto_replenish: true,
         embark_ticks_left: 0,
     });
     true
@@ -552,6 +716,7 @@ pub fn garrison_sorties(map: &WorldMap, st: &mut CampaignState) {
             progress: 0.0,
             stance: Stance::Hold,
             encounter: None,
+            auto_replenish: true,
             embark_ticks_left: 0,
         });
     }

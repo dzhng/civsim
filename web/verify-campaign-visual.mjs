@@ -52,6 +52,21 @@ await page.evaluate((y) => window.__campaign.cam(0, y, 16), Y);
 await page.waitForTimeout(300);
 await snapCheck(page, 'tiny-overview', check);
 
+// Campaign UI surfaces introduced by the class-builder feature. These are
+// deterministic Day-1 panels over the same frozen fake map.
+await page.click('#cmp-classes-btn');
+await page.waitForTimeout(300);
+await snapCheck(page, 'ui-class-builder', check);
+await page.click('#cmp-classes-btn');
+
+const armyClick = await page.evaluate(() => {
+  const a = window.__campaign.armies().find((army) => army.mine);
+  return window.__campaign.project(a.x, a.y);
+});
+await page.mouse.click(armyClick[0], armyClick[1]);
+await page.waitForTimeout(300);
+await snapCheck(page, 'ui-army-replenish-toggle', check);
+
 await pose('army-our-city', { kind: 0, a: 0, b: 0 }, -25); // node 0 = Roma (ours)
 await pose('army-road', { kind: 1, a: 0, b: 4 }, 0); // edge 0, mid tile
 await pose('army-neutral-city', { kind: 0, a: 1, b: 0 }, 25); // node 1 = Neapolis (neutral)

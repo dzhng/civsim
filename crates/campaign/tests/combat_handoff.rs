@@ -1,7 +1,7 @@
 mod common;
 
 use campaign::state::{EncounterPhase, Loc, RosterEntry, Stance};
-use campaign::{pathfind, tunables, Campaign};
+use campaign::{pathfind, tunables, units, Campaign};
 use common::{inert, test_map};
 
 #[test]
@@ -153,6 +153,32 @@ fn handoff_and_outcome_rout_or_annihilation() {
         "cornered: captured and wiped"
     );
     assert!(c.state.encounters.is_empty());
+}
+
+#[test]
+fn battle_handoff_carries_selected_unit_type() {
+    let mut c = Campaign::new(test_map(), 7, 0);
+    inert(&mut c);
+    c.state.factions[0].treasury = 1_000;
+    let class = contract::UnitClassId::LightSpear;
+    let picked = units::unit_type_id(0, class, 2);
+    assert!(c.order_set_class_doctrine(class, picked, 1));
+
+    assert!(c.order_move(0, Loc::Node(2)));
+    for _ in 0..20_000 {
+        c.tick();
+        if c.state.battle_ready.is_some() {
+            break;
+        }
+    }
+    let eid = c.state.battle_ready.expect("battle pending");
+    let setup = c.battle_setup(eid).expect("setup");
+    let red_unit = setup.deployments[0]
+        .units
+        .iter()
+        .find(|u| u.class == class)
+        .expect("red light spear");
+    assert_eq!(red_unit.unit_type, Some(picked));
 }
 
 #[test]

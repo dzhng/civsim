@@ -152,7 +152,7 @@ export class Terrain3D {
   private chunks: Mesh[] = [];
   private coarse!: Mesh;
   private treeMeshes: Mesh[] = [];
-  private armySelRing: Mesh | null = null; // green ring under the selected army
+  private armySelRing: Mesh | null = null;
   // Per-army march state: last position + an eased bob amplitude, so figures
   // bounce in step while the army is on the move and stand still when halted
   // (zero amplitude = no animation = deterministic snapshots).
@@ -459,14 +459,13 @@ export class Terrain3D {
    *  (one instance per figure). Built once here, filled in setArmies. */
   private buildArmyModels() {
     // An army on the tilted map IS its soldier figures (built below) — no
-    // standard or flag. The soft contact shadow grounds them, the green ring
+    // standard or flag. The soft contact shadow grounds them, the selection ring
     // marks selection, and the 2D name label names them. (At the overview zoom,
     // where there are no figures, the overlay's flat pennant marks the army.)
-    // Green selection ring — a flat torus laid on the ground, shown under the
+    // Selection ring — a flat torus laid on the ground, shown under the
     // ONE selected army (positioned in setArmies), hidden otherwise.
     const sel = CreateTorus('asel', { diameter: 7.5, thickness: 0.5, tessellation: 32 }, this.scene);
-    sel.rotation.x = Math.PI / 2;
-    this.paint(sel, 0.2, 0.95, 0.35, 0); // bright green
+    this.paint(sel, 0.2, 0.95, 0.35, 0); // selection green
     sel.material = this.modelMat;
     sel.alwaysSelectAsActiveMesh = true;
     sel.setEnabled(false);
@@ -895,19 +894,16 @@ export class Terrain3D {
       c.n.pos[0], c.n.pos[1], (mats[k * 16 + 14]), c.n.tier,
     ] as [number, number, number, number]]));
 
-    // Green selection ring — a flat torus laid on the ground under the ONE
-    // city whose panel is open (positioned in setSelectedCity), hidden
-    // otherwise. The ONLY ring on the map, and it is always green.
+    // City selection uses the same flat green footprint language as armies.
     const sel = CreateTorus('csel', { diameter: 9.5, thickness: 0.7, tessellation: 36 }, this.scene);
-    sel.rotation.x = Math.PI / 2;
-    this.paint(sel, 0.2, 0.95, 0.35, 0); // bright green
+    this.paint(sel, 0.2, 0.95, 0.35, 0); // selection green
     sel.material = this.modelMat;
     sel.alwaysSelectAsActiveMesh = true;
     sel.setEnabled(false);
     this.citySelRing = sel;
   }
 
-  /** Place the green ring under the selected city (or hide it). Called each
+  /** Place the selection ring under the selected city (or hide it). Called each
    *  frame with the open-panel node index; -1 clears it. */
   setSelectedCity(node: number) {
     const ring = this.citySelRing;
@@ -920,7 +916,10 @@ export class Terrain3D {
     }
     const S = p[3] >= 3 ? 1.9 : p[3] === 2 ? 1.35 : 0.95; // match the town scale
     ring.thinInstanceSetBuffer('matrix', new Float32Array([
-      S, 0, 0, 0, 0, S, 0, 0, 0, 0, S, 0, p[0], p[1], p[2] + 0.12, 1,
+      S, 0, 0, 0,
+      0, 0, S, 0,
+      0, -S, 0, 0,
+      p[0], p[1], p[2] + 0.18, 1,
     ]), 16, false);
     ring.thinInstanceSetBuffer('iColor', new Float32Array([0, 0, 0, 0]), 4, false);
     ring.setEnabled(true);
@@ -1044,13 +1043,16 @@ export class Terrain3D {
       }
     }
     this.armyShadow?.thinInstanceSetBuffer('matrix', shadows, 16, false);
-    // Green selection ring: one instance under the selected army, else hidden.
+    // Selection ring: one green footprint under the selected army.
     const ring = this.armySelRing;
     if (ring) {
       if (selPos) {
-        const rs = 0.62 * S; // torus diameter 7.5 → roughly the army footprint
+        const rs = 0.62 * S; // torus diameter 7.5 -> roughly the army footprint
         ring.thinInstanceSetBuffer('matrix', new Float32Array([
-          rs, 0, 0, 0, 0, rs, 0, 0, 0, 0, rs, 0, selPos[0], selPos[1], selPos[2] + 0.12, 1,
+          rs, 0, 0, 0,
+          0, 0, rs, 0,
+          0, -rs, 0, 0,
+          selPos[0], selPos[1], selPos[2] + 0.18, 1,
         ]), 16, false);
         ring.thinInstanceSetBuffer('iColor', new Float32Array([0, 0, 0, 0]), 4, false);
         ring.setEnabled(true);

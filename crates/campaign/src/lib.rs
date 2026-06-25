@@ -11,6 +11,7 @@ pub mod resolve;
 pub mod sim;
 pub mod state;
 pub mod tunables;
+pub mod units;
 pub mod visibility;
 
 use mapdata::WorldMap;
@@ -24,7 +25,8 @@ pub struct Campaign {
 impl Campaign {
     pub fn new(map_json: &str, seed: u64, player_faction: u32) -> Campaign {
         let map = WorldMap::from_json(map_json);
-        let state = sim::new_state(&map, seed, player_faction);
+        let mut state = sim::new_state(&map, seed, player_faction);
+        normalize_state(&mut state);
         Campaign { map, state }
     }
 
@@ -116,6 +118,20 @@ impl Campaign {
     pub fn order_recruit(&mut self, node: u32, class: contract::UnitClassId, count: u32) -> bool {
         economy::recruit(&self.map, &mut self.state, node, class, count)
     }
+
+    pub fn order_set_class_doctrine(
+        &mut self,
+        class: contract::UnitClassId,
+        unit_type: contract::UnitTypeId,
+        size_mult: u8,
+    ) -> bool {
+        let f = self.state.player_faction;
+        economy::set_class_doctrine(&self.map, &mut self.state, f, class, unit_type, size_mult)
+    }
+
+    pub fn order_auto_replenish(&mut self, army: ArmyId, on: bool) -> bool {
+        economy::set_auto_replenish(&mut self.state, army, on)
+    }
     /// Upgrade a road edge one level (player faction pays).
     pub fn order_upgrade_road(&mut self, edge: u32) -> bool {
         let f = self.state.player_faction;
@@ -203,6 +219,42 @@ impl Campaign {
         if state.road_levels.len() != map.edges.len() {
             state.road_levels = vec![1; map.edges.len()];
         }
+        normalize_state(&mut state);
         Ok(Campaign { map, state })
+    }
+}
+
+fn normalize_state(state: &mut CampaignState) {
+    state
+        .doctrines
+        .resize_with(state.factions.len(), state::FactionDoctrine::default);
+    for f in 0..state.factions.len() as u32 {
+        let d = &mut state.doctrines[f as usize];
+        for &class in &contract::ALL_CLASSES {
+            if let Some(slot) = d.slots.iter_mut().find(|s| s.class == class) {
+                let bad_selected = match units::decode_unit_type(slot.selected) {
+                    Some((sf, sc, option)) => {
+                        sf != f || sc != class || option >= units::DEFAULT_OPTIONS_PER_CLASS
+                    }
+                    None => true,
+                };
+                if bad_selected {
+                    slot.selected = units::unit_type_id(f, class, 0);
+                }
+                if !matches!(slot.size_mult, 1 | 2 | 4) {
+                    slot.size_mult = 1;
+                }
+            } else {
+                d.slots.push(state::DoctrineSlot {
+                    class,
+                    selected: units::unit_type_id(f, class, 0),
+                    size_mult: 1,
+                    cooldown_until: 0,
+                });
+            }
+        }
+        d.slots
+            .retain(|s| contract::ALL_CLASSES.iter().any(|&c| c == s.class));
+        d.slots.sort_by_key(|s| s.class as u32);
     }
 }

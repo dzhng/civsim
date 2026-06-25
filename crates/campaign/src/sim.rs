@@ -584,7 +584,13 @@ pub fn new_state(map: &WorldMap, seed: u64, player_faction: u32) -> CampaignStat
             progress: 0.0,
             stance: Stance::Hold,
             encounter: None,
+            auto_replenish: true,
             embark_ticks_left: 0,
+        })
+        .collect();
+    let doctrines = (0..factions.len() as u32)
+        .map(|f| FactionDoctrine {
+            slots: crate::units::default_slots(f),
         })
         .collect();
     CampaignState {
@@ -593,6 +599,7 @@ pub fn new_state(map: &WorldMap, seed: u64, player_faction: u32) -> CampaignStat
         tick: 0,
         rng: contract::Pcg32::new(seed, 0xCA),
         factions,
+        doctrines,
         armies,
         cities,
         encounters: Vec::new(),

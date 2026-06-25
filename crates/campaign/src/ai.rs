@@ -11,10 +11,12 @@ use crate::tunables as tun;
 use contract::UnitClassId;
 
 /// Cost-weighted value of a roster (upkeep rate doubles as unit value).
-fn strength(roster: &[RosterEntry]) -> u64 {
+fn strength(map: &WorldMap, st: &CampaignState, faction: FactionId, roster: &[RosterEntry]) -> u64 {
     roster
         .iter()
-        .map(|r| r.count as u64 * tun::upkeep_per_soldier_milligold(r.class) as u64)
+        .map(|r| {
+            r.count as u64 * economy::upkeep_per_soldier_milligold(map, st, faction, r.class) as u64
+        })
         .sum()
 }
 
@@ -86,7 +88,7 @@ pub fn diplomacy(map: &WorldMap, st: &mut CampaignState) {
                 .armies
                 .iter()
                 .filter(|a| a.faction == f && a.alive())
-                .map(|a| strength(&a.roster))
+                .map(|a| strength(map, st, f, &a.roster))
                 .sum();
             let cities = st.cities.values().filter(|c| c.owner == f).count() as u64;
             (f, army + cities * tun::DIPLO_CITY_WEIGHT)
@@ -147,13 +149,13 @@ fn think(map: &WorldMap, st: &mut CampaignState, f: FactionId, bfs: &mut pathfin
         .armies
         .iter()
         .filter(|a| a.alive() && st.at_war(f, a.faction) && visible.contains(&a.id))
-        .map(|a| (a.id, a.loc, strength(&a.roster)))
+        .map(|a| (a.id, a.loc, strength(map, st, a.faction, &a.roster)))
         .collect();
     let my_free: Vec<(ArmyId, Loc, u64)> = st
         .armies
         .iter()
         .filter(|a| a.faction == f && free_army(a))
-        .map(|a| (a.id, a.loc, strength(&a.roster)))
+        .map(|a| (a.id, a.loc, strength(map, st, a.faction, &a.roster)))
         .collect();
 
     // 1. Defend: a city with a visible hostile bearing down on it pulls the
@@ -168,7 +170,7 @@ fn think(map: &WorldMap, st: &mut CampaignState, f: FactionId, bfs: &mut pathfin
         if threat == 0 {
             continue;
         }
-        let garrison = strength(&st.cities[&city].garrison);
+        let garrison = strength(map, st, st.cities[&city].owner, &st.cities[&city].garrison);
         let defender_near = my_free
             .iter()
             .any(|(_, l, _)| road_dist(map, bfs, *l, cloc, 2).is_some());
@@ -282,7 +284,7 @@ fn think(map: &WorldMap, st: &mut CampaignState, f: FactionId, bfs: &mut pathfin
             .iter()
             .filter(|(_, c)| c.owner == tgt)
             .filter(|(n, _)| costs.contains_key(n))
-            .min_by_key(|(&n, c)| (strength(&c.garrison), costs[&n] as u64))
+            .min_by_key(|(&n, c)| (strength(map, st, c.owner, &c.garrison), costs[&n] as u64))
             .map(|(&n, _)| n)
     });
 
@@ -307,7 +309,7 @@ fn think(map: &WorldMap, st: &mut CampaignState, f: FactionId, bfs: &mut pathfin
         let mut beatable: Option<NodeId> = None;
         for &(n, _) in &nearest {
             let cloc = Loc::Node(n);
-            let defenders: u64 = strength(&st.cities[&n].garrison)
+            let defenders: u64 = strength(map, st, st.cities[&n].owner, &st.cities[&n].garrison)
                 + hostiles
                     .iter()
                     .filter(|(_, l, _)| {

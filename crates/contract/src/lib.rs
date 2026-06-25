@@ -31,6 +31,12 @@ pub enum UnitClassId {
     HeavySpear,
 }
 
+/// Campaign-side concrete unit choice within a tactical class. The numeric
+/// encoding is owned by the campaign unit catalog; the battle sim treats it as
+/// an opaque key unless the composition root resolves it to stats.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+pub struct UnitTypeId(pub u32);
+
 /// Gold cost of a full unit at duel strength. Anchors per David: light
 /// infantry 300, heavy 1000 (one heavy unit beats two light units head-on
 /// — the premium prices concentration of force). The rest follow the
@@ -111,6 +117,8 @@ pub enum PaintOp {
 pub struct RosterUnit {
     pub id: u64,
     pub class: UnitClassId,
+    #[serde(default)]
+    pub unit_type: Option<UnitTypeId>,
     pub count: u32,
     pub training: f32,
     /// Rally-scar carryover; seeds the battle morale ceiling (1.0 = fresh).

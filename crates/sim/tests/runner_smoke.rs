@@ -52,6 +52,7 @@ fn roster(id_base: u64, n: u32) -> Vec<RosterUnit> {
         RosterUnit {
             id: id_base,
             class: UnitClassId::HeavySword,
+            unit_type: None,
             count: n,
             training: 0.7,
             morale_cap: 1.0,
@@ -59,6 +60,7 @@ fn roster(id_base: u64, n: u32) -> Vec<RosterUnit> {
         RosterUnit {
             id: id_base + 1,
             class: UnitClassId::Archers,
+            unit_type: None,
             count: 240,
             training: 0.6,
             morale_cap: 1.0,
@@ -107,6 +109,7 @@ fn auto_resolve_returns_a_verdict_and_conserves_units() {
                 units: vec![RosterUnit {
                     id: 102,
                     class: UnitClassId::ShockCavalry,
+                    unit_type: None,
                     count: 140,
                     training: 0.7,
                     morale_cap: 1.0,
@@ -120,6 +123,7 @@ fn auto_resolve_returns_a_verdict_and_conserves_units() {
                 units: vec![RosterUnit {
                     id: 202,
                     class: UnitClassId::LongSwords,
+                    unit_type: None,
                     count: 180,
                     training: 0.8,
                     morale_cap: 1.0,

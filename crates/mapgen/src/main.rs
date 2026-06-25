@@ -1,7 +1,12 @@
 //! Offline campaign-map pipeline: ORBIS + Natural Earth + overrides.json →
-//! web/public/data/campaign-map.json + campaign-bg.png. Run from the repo root:
+//! web/public/data/campaign-map.json (+ campaign-bg.png/.json). One command,
+//! run from the repo root:
 //!   cargo run -p mapgen --release
-//! Source data: crates/mapgen/data/fetch.sh
+//! It writes the raw map, then runs the JS post-steps in order — leagues.mjs
+//! (fold leftover independents into neutral leagues) then prune-cities.mjs
+//! (drop towns too close to render cleanly) — so the committed map is always
+//! the finished one and a re-bake can't silently skip a step. Needs `node` on
+//! PATH. Source data: crates/mapgen/data/fetch.sh
 
 mod build;
 mod geo;
@@ -97,8 +102,22 @@ fn main() {
     )
     .unwrap();
     eprintln!("wrote {out_dir}/campaign-map.json, campaign-bg.png, campaign-bg.json");
-    // Post-step: group the leftover independent cities into regional neutral
-    // leagues so the political map is all factions, no ownerless grey. Run:
-    //   node crates/mapgen/leagues.mjs
-    eprintln!("next: run `node crates/mapgen/leagues.mjs` to fold independents into leagues");
+
+    // Finish the map in JS, in order: fold the leftover independent cities into
+    // regional neutral leagues (no ownerless grey on the political map), then
+    // thin out towns that sit too close for their 3D models to read. Run here so
+    // `cargo run -p mapgen` always emits the finished, committed map.
+    post_step("crates/mapgen/leagues.mjs");
+    post_step("crates/mapgen/prune-cities.mjs");
+}
+
+/// Run a Node post-processing step against the just-written map, streaming its
+/// output; abort the bake if it fails so a broken step can't pass unnoticed.
+fn post_step(script: &str) {
+    eprintln!("post-step: node {script}");
+    let status = std::process::Command::new("node")
+        .arg(script)
+        .status()
+        .unwrap_or_else(|e| panic!("could not launch `node {script}` (is node on PATH?): {e}"));
+    assert!(status.success(), "post-step `{script}` failed");
 }

@@ -1,8 +1,8 @@
-// Post-bake pass: thin out cities that sit too close together so the 3D town
-// models stop overlapping on the map. Runs AFTER leagues.mjs, in place on
-// web/public/data/campaign-map.json. Re-run it as the last step of any re-bake
-// (cargo run -p mapgen --release && node crates/mapgen/leagues.mjs &&
-//  node crates/mapgen/prune-cities.mjs).
+// Final mapgen post-step: thin out cities that sit too close together so the 3D
+// town models stop overlapping on the map. Runs AFTER leagues.mjs, in place on
+// web/public/data/campaign-map.json. The mapgen binary runs this for you (see
+// crates/mapgen/src/main.rs); `cargo run -p mapgen --release` does the whole
+// pipeline. Standalone, idempotent-enough to re-run by hand if needed.
 //
 // For each cluster of cities within MIN_DIST_KM, only the most significant
 // survives (highest tier, then best-connected); the rest are removed and every

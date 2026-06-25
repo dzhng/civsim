@@ -474,25 +474,30 @@ export class CampaignRenderer {
       if (sx < -40 || sy < -40 || sx > W + 40 || sy > H + 40) continue;
       const sel = a.id === selected;
       const size = sel ? 13 : 11;
-      // Pole + pennant.
-      ctx.strokeStyle = '#111';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(sx, sy);
-      ctx.lineTo(sx, sy - size * 1.6);
-      ctx.stroke();
-      ctx.fillStyle = this.factionColor(a.faction);
-      ctx.globalAlpha = a.stance === 3 ? 0.55 : 1.0; // hidden ambusher (own)
-      ctx.beginPath();
-      ctx.moveTo(sx, sy - size * 1.6);
-      ctx.lineTo(sx + size, sy - size * 1.15);
-      ctx.lineTo(sx, sy - size * 0.7);
-      ctx.closePath();
-      ctx.fill();
-      ctx.strokeStyle = sel ? '#fff' : '#1a1208';
-      ctx.lineWidth = sel ? 2 : 1;
-      ctx.stroke();
-      ctx.globalAlpha = 1.0;
+      // Pole + pennant — the army marker at the overview zoom only. Once the
+      // world tilts into 3D (z >= ARMY_MIN_SCALE) the soldier figures are the
+      // army, so the flat flag would just clutter them; the name label carries
+      // the army there instead.
+      if (z < ARMY_MIN_SCALE) {
+        ctx.strokeStyle = '#111';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(sx, sy);
+        ctx.lineTo(sx, sy - size * 1.6);
+        ctx.stroke();
+        ctx.fillStyle = this.factionColor(a.faction);
+        ctx.globalAlpha = a.stance === 3 ? 0.55 : 1.0; // hidden ambusher (own)
+        ctx.beginPath();
+        ctx.moveTo(sx, sy - size * 1.6);
+        ctx.lineTo(sx + size, sy - size * 1.15);
+        ctx.lineTo(sx, sy - size * 0.7);
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = sel ? '#fff' : '#1a1208';
+        ctx.lineWidth = sel ? 2 : 1;
+        ctx.stroke();
+        ctx.globalAlpha = 1.0;
+      }
       // Routed marker.
       if (a.stance === 4) {
         ctx.fillStyle = '#fff';

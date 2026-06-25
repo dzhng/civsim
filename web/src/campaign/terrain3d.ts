@@ -132,7 +132,6 @@ export class Terrain3D {
   private chunks: Mesh[] = [];
   private coarse!: Mesh;
   private treeMeshes: Mesh[] = [];
-  private armyBase: Mesh | null = null; // standard pole + flag, one per army
   private armySelRing: Mesh | null = null; // green ring under the selected army
   // Per-army march state: last position + an eased bob amplitude, so figures
   // bounce in step while the army is on the move and stand still when halted
@@ -439,34 +438,10 @@ export class Terrain3D {
    *  base+standard (one per army) and the battle's per-class soldier meshes
    *  (one instance per figure). Built once here, filled in setArmies. */
   private buildArmyModels() {
-    // Standard only — a neutral timber pole with a small faction flag at the
-    // top. No ground disc under the army (the soft contact shadow grounds it);
-    // selection is shown by a green ring instead (below).
-    const parts: Mesh[] = [];
-    const pole = CreateBox('p', { width: 0.12, depth: 0.12, height: 4.2 }, this.scene);
-    pole.rotation.x = Math.PI / 2;
-    pole.position.set(0, 0, 2.1);
-    parts.push(this.paint(pole, 0.5, 0.4, 0.3, 0)); // neutral timber
-    // A triangular PENNANT (not the city's rectangular banner) so an army reads
-    // as an army at a glance; livery (alpha 1) so its allegiance colour shows.
-    // Flat in the XZ plane facing the camera; the shading normal tilts skyward
-    // so it catches the sun, while the face still points south for culling.
-    const pennant = new Mesh('pf', this.scene);
-    const pvd = new VertexData();
-    pvd.positions = [0, 0, 4.1, 0, 0, 3.0, 2.0, 0, 3.55];
-    pvd.indices = [0, 1, 2];
-    pvd.normals = [0, -0.4, 0.92, 0, -0.4, 0.92, 0, -0.4, 0.92];
-    pvd.uvs = [0, 1, 0, 0, 1, 0.5]; // match the boxes' attribute set for merge
-    pvd.applyToMesh(pennant);
-    parts.push(this.paint(pennant, 1, 1, 1, 1)); // livery: takes the allegiance colour
-    const baseMesh = Mesh.MergeMeshes(parts, true, true);
-    if (baseMesh) {
-      baseMesh.name = 'armyBase';
-      baseMesh.material = this.modelMat;
-      baseMesh.alwaysSelectAsActiveMesh = true;
-      baseMesh.setEnabled(false);
-      this.armyBase = baseMesh;
-    }
+    // An army on the tilted map IS its soldier figures (built below) — no
+    // standard or flag. The soft contact shadow grounds them, the green ring
+    // marks selection, and the 2D name label names them. (At the overview zoom,
+    // where there are no figures, the overlay's flat pennant marks the army.)
     // Green selection ring — a flat torus laid on the ground, shown under the
     // ONE selected army (positioned in setArmies), hidden otherwise.
     const sel = CreateTorus('asel', { diameter: 7.5, thickness: 0.5, tessellation: 32 }, this.scene);
@@ -983,15 +958,12 @@ export class Terrain3D {
     hover = -1,
     fogOfWar = false,
   ) {
-    const baseM = this.armyBase;
-    if (!baseM) return;
     // Under fog of war an army the player can't see leaves no model on the map
     // (their own armies light their own sight, so always survive the filter).
     if (fogOfWar) armies = armies.filter((a) => this.visibleAt(a.x, a.y) >= 0.35);
     const n = armies.length;
     this.armyCount = n;
     if (n === 0) {
-      baseM.thinInstanceCount = 0;
       if (this.armyShadow) this.armyShadow.thinInstanceCount = 0;
       for (const m of this.classMeshes) if (m) m.thinInstanceCount = 0;
       return;
@@ -1000,8 +972,6 @@ export class Terrain3D {
     // armies read at play zoom without ballooning up close.
     const S = Math.min(13, Math.max(5, 80 / (3.2 * scale)));
     const figScale = S * 1.25;
-    const baseMats = new Float32Array(n * 16);
-    const baseCols = new Float32Array(n * 4);
     const shadows = new Float32Array(n * 16);
     // Per-class figure instances, accumulated across all armies.
     const fmats: number[][] = Array.from({ length: 9 }, () => []);
@@ -1012,8 +982,8 @@ export class Terrain3D {
       const a = armies[i];
       const z = Math.max(0, this.field.heightAt(a.x, a.y));
       if (a.id === selected) selPos = [a.x, a.y, z];
-      // Soldiers AND the pennant fly the faction's livery; the allegiance read
-      // lives in the 2D army-name icon instead.
+      // The soldier figures wear the faction's livery; the allegiance read
+      // (friend/foe) lives in the 2D army-name icon instead.
       const c = this.factionColors[a.faction] ?? [0.6, 0.6, 0.6];
       // iColor.a is the highlight flag the shader reads (not opacity).
       const hi = a.id === selected ? 1 : a.id === hover ? 0.5 : 0;
@@ -1026,9 +996,6 @@ export class Terrain3D {
       this.armyMarch.set(a.id, { px: a.x, py: a.y, amp });
       const bobH = amp * 0.16 * figScale; // metres of bounce at full march
       const o = i * 16;
-      baseMats[o] = S; baseMats[o + 5] = S; baseMats[o + 10] = S; baseMats[o + 15] = 1;
-      baseMats[o + 12] = a.x; baseMats[o + 13] = a.y; baseMats[o + 14] = z;
-      baseCols[i * 4] = c[0]; baseCols[i * 4 + 1] = c[1]; baseCols[i * 4 + 2] = c[2]; baseCols[i * 4 + 3] = hi;
       this.shadowMatrix(shadows, o, a.x, a.y, z, 1.9 * S);
       // Figures: count by size, classes by composition, placed in the slots.
       const alloc = allocFigures(a.roster, figureCount(a.soldiers));
@@ -1046,8 +1013,6 @@ export class Terrain3D {
         }
       }
     }
-    baseM.thinInstanceSetBuffer('matrix', baseMats, 16, false);
-    baseM.thinInstanceSetBuffer('iColor', baseCols, 4, false);
     this.armyShadow?.thinInstanceSetBuffer('matrix', shadows, 16, false);
     // Green selection ring: one instance under the selected army, else hidden.
     const ring = this.armySelRing;
@@ -1215,7 +1180,6 @@ export class Terrain3D {
     for (const c of this.chunks) c.setEnabled(!coarseView);
     for (const t of this.treeMeshes) t.setEnabled(cam.scale >= TREE_MIN_SCALE);
     const armiesOn = cam.scale >= ARMY_MIN_SCALE && this.armyCount > 0;
-    this.armyBase?.setEnabled(armiesOn);
     this.armyShadow?.setEnabled(armiesOn);
     for (const m of this.classMeshes) m?.setEnabled(armiesOn);
     // The selection ring follows the armies-visible gate AND its own selection

@@ -165,7 +165,7 @@ export function armyPanelHtml(
   return `<b>Army ${selected}</b>${rows}<div style="margin-top:6px">
     <label><input type="checkbox" id="cmp-auto-replenish" ${autoReplenish ? 'checked' : ''}> Auto replenish</label><br>
     <button id="cmp-halt">Halt</button>
-    <button id="cmp-camp">${me?.stance === 1 ? 'Camped' : 'Camp'}</button>
+    <button id="cmp-camp">${me?.stance === 1 ? 'Fortified' : 'Fortify'}</button>
     ${spotIdx >= 0 || (me && me.stance >= 2 && me.stance <= 3) ? `<button id="cmp-ambush" ${me!.stance >= 2 ? 'disabled' : ''}>${ambushLabel}</button>` : ''}
     <button id="cmp-split">Split</button>
     ${buddy ? `<button id="cmp-merge">Merge ${buddy.id}</button>` : ''}</div>`;

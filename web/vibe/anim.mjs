@@ -26,13 +26,14 @@ const FRONT = -Math.PI / 2;
 const facing = process.env.ANGLE === 'front' ? FRONT : FRONT + Math.PI / 5;
 
 // Each animation is a list of {frame, dt} steps (sim-frame value + clock advance
-// in seconds) and a GIF delay. Walk/run/attack/hit toggle discrete poses; die
-// holds the fallen frame and lets the renderer's death blend ease the collapse.
+// in seconds) and a GIF delay. Walk/run/hit toggle discrete poses; attack uses
+// a review-only windup frame (11) before the real strike frame (3); die holds
+// the fallen frame and lets the renderer's death blend ease the collapse.
 const STAND = { frame: 0, dt: 0.04 };
 const ANIMS = {
   walk: { delay: 24, steps: [{ frame: 1, dt: 0.25 }, { frame: 2, dt: 0.25 }] },
   run: { delay: 14, steps: [{ frame: 8, dt: 0.14 }, { frame: 9, dt: 0.14 }] },
-  attack: { delay: 14, steps: [STAND, STAND, { frame: 3, dt: 0.12 }, { frame: 3, dt: 0.12 }, STAND] },
+  attack: { delay: 12, steps: [STAND, { frame: 11, dt: 0.12 }, { frame: 3, dt: 0.10 }, { frame: 3, dt: 0.08 }, STAND] },
   hit: { delay: 16, steps: [STAND, { frame: 10, dt: 0.1 }, { frame: 10, dt: 0.1 }, STAND, STAND] },
   die: {
     delay: 9,
@@ -73,7 +74,7 @@ for (const cls of only) {
         frames.push(pngToRGBA(await page.screenshot()));
       }
     }
-    const gif = encodeGif(frames, TW, TH, anim.delay);
+    const gif = encodeGif(frames, TW, TH, anim.delay, { loop: !anim.once });
     const id = String(cls).padStart(2, '0');
     const file = path.join(OUT, `${id}-${NAMES[cls]}-${name}.gif`);
     fs.writeFileSync(file, gif);

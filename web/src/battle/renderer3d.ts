@@ -56,12 +56,13 @@ const POSES: Partial<Pose>[] = [
   { rest: 0.25 }, { rest: 0.5 }, { rest: 0.75 }, { rest: 1 }, // 1-4 at-ease ladder (pikes rise)
   { legPhase: 1, stride: 1 }, { legPhase: -1, stride: 1 },    // 5-6 march beats
   { legPhase: 1, stride: 1.5, lean: 0.32 }, { legPhase: -1, stride: 1.5, lean: 0.32 }, // 7-8 run beats
-  { attack: 1 },                                // 9 attack strike
-  { recoil: 1 },                                // 10 hit recoil
-  { crumple: 1, recoil: 0.35 },                 // 11 death crumple
+  { windup: 1 },                                // 9 attack windup (review harness)
+  { attack: 1 },                                // 10 attack strike
+  { recoil: 1.2 },                              // 11 hit recoil
+  { crumple: 1, recoil: 0.45 },                 // 12 death crumple
 ];
 const P_IDLE = 0, P_EASE_TOP = 4, P_MARCH_A = 5, P_RUN_A = 7;
-const P_ATTACK = 9, P_HIT = 10, P_CRUMPLE = 11;
+const P_ATTACK_WIND = 9, P_ATTACK = 10, P_HIT = 11, P_CRUMPLE = 12;
 // Below ZOOM_FLAT: pure top-down 2D sprites. Above ZOOM_3D: full tilt + 3D
 // meshes. Between, the camera tilts and the renderer switches at ZOOM_SWAP.
 // The band sits just above the fully-zoomed-out strategic view (minZoom ≈ 1.5–2
@@ -993,17 +994,15 @@ export class BattleRenderer3D {
       const ca = Math.cos(a), sa = Math.sin(a);
       if (alive[i] < 0.5) {
         // Fallen: the crumple pose folds the man; the matrix topples him onto
-        // the ground along his facing. We LERP the whole basis from the standing
-        // frame (k=0) to the flat dead frame (k=1) by the eased death blend, so
-        // he tips over a beat — never scaling a single column to zero (which
-        // would collapse the mesh to a degenerate plane mid-fall).
+        // the ground along his facing. Keep local +y (weapon-forward) horizontal
+        // while flattening local +z, otherwise pikes rotate upright halfway
+        // through the fall and read like planted poles.
         const k = this.blockMode ? 1 : smoothstep(0, 1, df[i]);
         buf[o] = ca * s; buf[o + 1] = sa * s; buf[o + 2] = 0; buf[o + 3] = 0;
-        // col1: local +y (forward) swings from horizontal (standing) up to +z (flat).
-        buf[o + 4] = -sa * (1 - k) * s; buf[o + 5] = ca * (1 - k) * s; buf[o + 6] = k * s; buf[o + 7] = 0;
-        // col2: local +z (up) swings from +z down to near-horizontal along facing.
-        buf[o + 8] = sa * 0.25 * k * s; buf[o + 9] = -ca * 0.25 * k * s; buf[o + 10] = ((1 - k) + 0.25 * k) * s; buf[o + 11] = 0;
-        buf[o + 12] = x; buf[o + 13] = y; buf[o + 14] = gz + 0.05; buf[o + 15] = 1;
+        buf[o + 4] = -sa * s; buf[o + 5] = ca * s; buf[o + 6] = 0; buf[o + 7] = 0;
+        buf[o + 8] = -sa * 0.32 * k * s; buf[o + 9] = ca * 0.32 * k * s;
+        buf[o + 10] = ((1 - k) + 0.18 * k) * s; buf[o + 11] = 0;
+        buf[o + 12] = x; buf[o + 13] = y; buf[o + 14] = gz + 0.03; buf[o + 15] = 1;
       } else {
         // A little bob/lurch on top of the limb poses: marching rises, a strike
         // lunges the body forward. The detailed poses carry the limb motion;
@@ -1042,6 +1041,7 @@ export class BattleRenderer3D {
       case 8: return P_RUN_A;        // run beat A
       case 9: return P_RUN_A + 1;    // run beat B
       case 3: return P_ATTACK;       // strike
+      case 11: return P_ATTACK_WIND; // review-harness windup
       case 10: return P_HIT;         // flinch
       case 5: return P_IDLE;         // weapon fumble
       case 6: return Math.round(this.restFrac[i] * P_EASE_TOP); // at-ease ladder

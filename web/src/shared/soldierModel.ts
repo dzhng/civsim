@@ -199,13 +199,14 @@ export interface Pose {
   legPhase: number; // -1..1 stride sign; + swings the LEFT leg forward
   stride: number;  // 0 stand .. ~1 march .. ~1.6 run (leg-swing amplitude)
   lean: number;    // forward torso lean (radians) — run/charge
+  windup: number;  // 0 .. 1 weapon drawn back before a strike
   attack: number;  // 0 .. 1 weapon-arm strike + body lunge
   recoil: number;  // 0 .. 1 hit reaction (torso & head rock back)
   crumple: number; // 0 .. 1 death collapse (folds down before the matrix tips)
 }
 
 export const NEUTRAL_POSE: Pose = {
-  rest: 0, legPhase: 0, stride: 0, lean: 0, attack: 0, recoil: 0, crumple: 0,
+  rest: 0, legPhase: 0, stride: 0, lean: 0, windup: 0, attack: 0, recoil: 0, crumple: 0,
 };
 
 // Rotate a point about an x-parallel axis through (·,py,pz) — limbs swing
@@ -303,16 +304,19 @@ export function classGeometryDetailed(
   ], livery ? [1, 1, 1] : faction, 1, rot);
 
   const base = L.mounted ? 0.95 : 0.0; // mounted rider sits a horse-height up
-  const lunge = P.attack * 0.14 - P.recoil * 0.10; // body shift along +y
-  const lean = P.lean + P.attack * 0.18 - P.recoil * 0.22 + P.crumple * 0.6;
+  const lunge = P.attack * 0.18 - P.windup * 0.08 - P.recoil * 0.16; // body shift along +y
+  const lean = P.lean + P.attack * 0.28 - P.windup * 0.18 - P.recoil * 0.45 + P.crumple * 0.75;
 
   // ---- Horse (mounted classes) ------------------------------------------
   if (L.mounted) {
     box(-0.18, -0.64, 0.42, 0.18, 0.52, 1.0, HORSE_HIDE); // barrel
-    box(-0.17, 0.30, 0.0, -0.06, 0.46, 0.5, HORSE_HIDE); // front-left leg
-    box(0.06, 0.30, 0.0, 0.17, 0.46, 0.5, HORSE_HIDE); // front-right leg
-    box(-0.17, -0.56, 0.0, -0.06, -0.40, 0.5, HORSE_HIDE); // hind-left leg
-    box(0.06, -0.56, 0.0, 0.17, -0.40, 0.5, HORSE_HIDE); // hind-right leg
+    const gait = P.stride * 0.42 * P.legPhase;
+    const hleg = (x0: number, y0: number, x1: number, y1: number, a: number) =>
+      box(x0, y0, 0.0, x1, y1, 0.5, HORSE_HIDE, { ang: a, py: (y0 + y1) * 0.5, pz: 0.5 });
+    hleg(-0.17, 0.30, -0.06, 0.46, gait); // front-left leg
+    hleg(0.06, 0.30, 0.17, 0.46, -gait); // front-right leg
+    hleg(-0.17, -0.56, -0.06, -0.40, -gait); // hind-left leg
+    hleg(0.06, -0.56, 0.17, -0.40, gait); // hind-right leg
     box(-0.10, 0.42, 0.82, 0.10, 0.66, 1.26, HORSE_HIDE); // neck
     box(-0.09, 0.55, 1.12, 0.09, 0.98, 1.42, HORSE_HIDE); // head
     box(-0.06, 0.60, 1.30, 0.06, 0.74, 1.5, HORSE_MANE); // forelock/ears
@@ -370,8 +374,11 @@ export function classGeometryDetailed(
     box(px - 0.025, 0.10, waistZ - 0.30, px + 0.025, 0.135, waistZ - 0.16, LEATHER, tilt); // front skirt
     box(px - 0.025, -0.135, waistZ - 0.28, px + 0.025, -0.10, waistZ - 0.15, LEATHER_DK, tilt); // back skirt
   }
-  // Faction sash across the chest — a clear team tell at a glance.
-  fbox(-0.18, 0.12, waistZ + 0.04, 0.18, 0.15, chestZ - 0.02, tilt);
+  // Faction sash across the front: enough team colour to read, but not a whole
+  // billboard torso. Broken into short slabs so it suggests a diagonal strap.
+  fbox(-0.17, 0.122, chestZ - 0.08, -0.04, 0.158, chestZ - 0.02, tilt);
+  fbox(-0.06, 0.123, waistZ + 0.09, 0.07, 0.159, waistZ + 0.15, tilt);
+  fbox(0.05, 0.124, waistZ + 0.01, 0.18, 0.160, waistZ + 0.07, tilt);
 
   // ---- Head + helmet ----------------------------------------------------
   // Skull as a slightly tapered block; helmet as a two-tier dome (a bowl that
@@ -399,7 +406,8 @@ export function classGeometryDetailed(
   box(-0.235, -0.05, shoulderZ - 0.30, -0.15, 0.07, shoulderZ + 0.02, SKIN, tilt); // upper+fore shield arm
   // Weapon arm swings to counter the legs at a walk and drives forward on a
   // strike. Pivot at the shoulder; angle blends walk counter-swing + attack.
-  const armA = -P.stride * 0.35 * P.legPhase - P.attack * 1.0 + P.recoil * 0.5 + P.rest * 0.2;
+  const armA = -P.stride * 0.35 * P.legPhase + P.windup * 0.75 - P.attack * 1.2
+    + P.recoil * 0.85 + P.rest * 0.2;
   if (L.weapon !== 'none') {
     // The swing (armA) and the body lean (tilt.ang) are both x-rotations, so the
     // angles add; the swing is applied here, about the shoulder, because that
@@ -437,7 +445,7 @@ export function classGeometryDetailed(
   // shoves the weapon forward along +y. Pole arms ride the weapon hand.
   const wx = 0.21;
   const r = P.rest;
-  const thrust = P.attack * 0.5;
+  const thrust = P.attack * 0.65 - P.windup * 0.15;
   const lx = (a: number, b: number) => a + (b - a) * r;
   const wbox = (
     fy0: number, fz0: number, fy1: number, fz1: number,
@@ -449,11 +457,20 @@ export function classGeometryDetailed(
   const pole = (fy0: number, fz0: number, fy1: number, fz1: number, h: number, c: V3) =>
     wbox(fy0, fz0, fy1, fz1, -0.04, 0, 0.04, h, c);
   switch (L.weapon) {
-    case 'pike': pole(-0.2, 0.7, 3.0, 0.78, 3.4, WOOD); break;
-    case 'lance': pole(-0.1, 0.55, 2.0, 0.62, 2.3, WOOD); break;
+    case 'pike':
+      pole(-0.2, 0.7, 3.0, 0.78, 3.4, WOOD);
+      wbox(3.0, 0.70, 3.18, 0.82, 0.03, 3.30, 0.10, 3.48, IRON);
+      break;
+    case 'lance':
+      pole(-0.1, 0.55, 2.0, 0.62, 2.3, WOOD);
+      wbox(2.0, 0.54, 2.18, 0.66, 0.03, 2.20, 0.10, 2.38, IRON);
+      break;
     case 'spear': pole(-0.2, 0.6, 1.4, 0.66, 1.9, WOOD);
       box(wx - 0.03, lx(1.4, 0.04) + thrust, base + lx(0.62, 1.85), wx + 0.035, lx(1.55, 0.12) + thrust, base + lx(0.7, 1.95), IRON, tilt); break;
-    case 'javelin': pole(-0.1, 0.7, 0.9, 0.74, 1.4, WOOD); break;
+    case 'javelin':
+      pole(-0.1, 0.7, 0.9, 0.74, 1.4, WOOD);
+      wbox(0.9, 0.68, 1.04, 0.78, 0.03, 1.28, 0.10, 1.46, IRON);
+      break;
     case 'sword':
       wbox(0.0, 0.5, 0.06, 1.2, 0.0, 0.1, 0.06, 0.8, IRON);
       wbox(-0.03, lx(0.46, 0.06), 0.09, lx(0.54, 0.14), 0, 0, 0, 0, LEATHER); break; // crossguard-ish hilt

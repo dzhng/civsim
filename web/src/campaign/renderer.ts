@@ -5,6 +5,7 @@
 
 import type { CampaignData } from './data';
 import { ARMY_STRIDE, type ArmyView, type CityView } from './scene';
+import { STATUS_CSS } from './status';
 import type { TerrainField } from './terrain';
 import { type Terrain3D, CITY_MODEL_MIN_SCALE, ARMY_MIN_SCALE } from './terrain3d';
 import type { FactionLabel } from './territory';
@@ -169,8 +170,13 @@ export class CampaignRenderer {
     factionView = true,
     fogOfWar = false,
     borders?: { pts: [number, number][]; bb: [number, number, number, number] }[],
+    factionStatus?: Int8Array,
   ) {
     const { ctx, canvas, data } = this;
+    // Allegiance → label-icon colour. Friend green, neutral amber, foe red;
+    // anyone off the status table (or in natural view) reads neutral.
+    const statusOf = (faction: number): number =>
+      factionStatus && faction >= 0 && faction < factionStatus.length ? factionStatus[faction] : 1;
     const z = cam.scale;
     // Under fog of war the overlay hides anything the player can't currently
     // see (their own cities/armies sit inside their own sight, so stay shown).
@@ -295,6 +301,73 @@ export class CampaignRenderer {
     }
 
 
+    // ---- map labels (cities + armies): allegiance-coded, stacked ----------
+    // Legion numbering, stable within a frame: each faction's armies, sorted by
+    // id, get 1st / 2nd / 3rd …
+    const ordinalOf = new Map<number, number>();
+    {
+      const byFac = new Map<number, number[]>();
+      for (const a of armies) (byFac.get(a.faction) ?? byFac.set(a.faction, []).get(a.faction)!).push(a.id);
+      for (const ids of byFac.values()) {
+        ids.sort((p, q) => p - q);
+        ids.forEach((id, k) => ordinalOf.set(id, k + 1));
+      }
+    }
+    // Cities that have an army sitting on them, so their name can drop below the
+    // army's (army label always above the town's, mirroring the 3D stack).
+    const cityHasArmy = new Set<number>();
+    for (const a of armies) {
+      if (!a.mine && hidden(a.x, a.y)) continue;
+      let best = -1;
+      let bestD = 8; // km — a garrison parks on the node
+      data.map.nodes.forEach((n, i) => {
+        if (n.kind !== 'city') return;
+        const d = Math.hypot(n.pos[0] - a.x, n.pos[1] - a.y);
+        if (d < bestD) { bestD = d; best = i; }
+      });
+      if (best >= 0) cityHasArmy.add(best);
+    }
+    const ordinal = (k: number) => {
+      const v = k % 100;
+      const suf = v >= 11 && v <= 13 ? 'th' : (['th', 'st', 'nd', 'rd'][k % 10] ?? 'th');
+      return `${k}${suf}`;
+    };
+    // A map label: a small allegiance-coloured dot, then engraved caps, the
+    // whole group centred on cx with its baseline at baseY (optional small
+    // subtitle below — used for an army's strength).
+    const drawLabel = (cx: number, baseY: number, text: string, status: number, fontPx: number, sub?: string) => {
+      ctx.font = `600 ${fontPx}px ${MAP_FONT}`;
+      ctx.letterSpacing = '0.5px';
+      ctx.textAlign = 'left';
+      const tw = ctx.measureText(text).width;
+      const ir = fontPx * 0.34;
+      const gap = fontPx * 0.42;
+      const x0 = cx - (ir * 2 + gap + tw) / 2;
+      ctx.beginPath();
+      ctx.arc(x0 + ir, baseY - fontPx * 0.32, ir, 0, Math.PI * 2);
+      ctx.fillStyle = STATUS_CSS[status];
+      ctx.strokeStyle = 'rgba(20,15,10,0.85)';
+      ctx.lineWidth = 1.5;
+      ctx.fill();
+      ctx.stroke();
+      const tx = x0 + ir * 2 + gap;
+      ctx.lineWidth = 2.5;
+      ctx.lineJoin = 'round';
+      ctx.strokeStyle = 'rgba(20,15,10,0.65)';
+      ctx.fillStyle = 'rgba(248,244,237,0.98)';
+      ctx.strokeText(text, tx, baseY);
+      ctx.fillText(text, tx, baseY);
+      if (sub) {
+        ctx.font = `600 ${fontPx * 0.72}px ${MAP_FONT}`;
+        const sw = ctx.measureText(sub).width;
+        ctx.lineWidth = 2;
+        ctx.strokeText(sub, cx - sw / 2, baseY + fontPx * 0.92);
+        ctx.fillStyle = 'rgba(232,224,208,0.92)';
+        ctx.fillText(sub, cx - sw / 2, baseY + fontPx * 0.92);
+      }
+      ctx.letterSpacing = '0px';
+    };
+
     // Cities: squares colored by owner, sized by tier; junction dots at zoom.
     data.map.nodes.forEach((n, i) => {
       if (hidden(n.pos[0], n.pos[1])) return;
@@ -336,18 +409,12 @@ export class CampaignRenderer {
         }
         if (z > 0.45 || n.tier >= 3) {
           const fs = Math.min(15, 9.5 + z) * (n.tier >= 3 ? 1.15 : 1);
-          ctx.font = `600 ${fs}px ${MAP_FONT}`;
-          ctx.letterSpacing = '0.5px';
-          // Cities: same white caps as the faction names but a thinner, softer
-          // black border so towns stay subordinate to the country labels.
-          ctx.lineWidth = 2;
-          ctx.lineJoin = 'round';
-          ctx.strokeStyle = 'rgba(20,15,10,0.6)';
-          ctx.fillStyle = 'rgba(248,244,237,0.97)';
-          const nm = n.name.toUpperCase();
-          ctx.strokeText(nm, sx + s / 2 + 3, sy + 4);
-          ctx.fillText(nm, sx + s / 2 + 3, sy + 4);
-          ctx.letterSpacing = '0px';
+          // Allegiance icon + engraved caps, centred below the town. When an
+          // army garrisons here the city name sits a notch lower so the army's
+          // own label (drawn above its banner) clears it.
+          const status = factionView ? statusOf(c ? c.owner : -1) : 1;
+          const below = cityHasArmy.has(i) ? fs * 1.5 : 0;
+          drawLabel(sx, sy + 14 + below, n.name.toUpperCase(), status, fs);
         }
       } else if (z > 0.5) {
         ctx.fillStyle = 'rgba(60,45,30,0.7)';
@@ -469,15 +536,15 @@ export class CampaignRenderer {
         ctx.lineWidth = 1;
         ctx.stroke();
       }
-      // Strength tag when zoomed.
+      // Name + strength, stacked above the banner (so it clears any town label
+      // below). A legion name in the city font; the allegiance dot tells friend
+      // from foe; the strength rides underneath.
       if (z > 0.35) {
-        ctx.font = '9px system-ui';
-        ctx.fillStyle = 'rgba(255,255,255,0.85)';
-        ctx.strokeStyle = 'rgba(0,0,0,0.7)';
-        ctx.lineWidth = 2;
-        const label = `${Math.round(a.soldiers / 100) / 10}k`;
-        ctx.strokeText(label, sx + 4, sy + 9);
-        ctx.fillText(label, sx + 4, sy + 9);
+        const status = a.mine ? 0 : statusOf(a.faction);
+        const fs = Math.min(14, 9 + z);
+        const name = `${ordinal(ordinalOf.get(a.id) ?? 1)} LEGION`;
+        const strength = `${Math.round(a.soldiers / 100) / 10}k`;
+        drawLabel(sx, sy - size * 1.6 - 12, name, status, fs, strength);
       }
     }
 

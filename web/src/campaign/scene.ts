@@ -10,6 +10,7 @@ import { CampaignRenderer, type CamView } from './renderer';
 import { TerrainField } from './terrain';
 import { Territory } from './territory';
 import { Terrain3D } from './terrain3d';
+import { Allegiance } from './status';
 
 export const ARMY_STRIDE = 21; // 12 base + 9 per-class soldier counts
 const CITY_STRIDE = 4;
@@ -64,6 +65,7 @@ export class CampaignScene implements Scene {
   private territory: Territory | null = null;
   private t3d: Terrain3D | null = null;
   private ownerHash = 0;
+  private statusHash = 0;
   private ac: AbortController | null = null;
   private cam: CamView;
   private speed = 0; // index into SPEEDS, -1 = paused
@@ -72,6 +74,12 @@ export class CampaignScene implements Scene {
   private last = 0;
   private selected = -1;
   private hover = -1;
+  /** Node index of the city whose panel is open — the one settlement that wears
+   *  the green selection ring. -1 when no city is selected. */
+  private selectedCity = -1;
+  /** Allegiance (Friend/Neutral/Foe) per faction id, refreshed when ownership
+   *  or relations change; drives the map flag and label-icon colours. */
+  private factionStatus = new Int8Array(0);
   /** Faction (political) view: territories flooded with owner colours + names.
    *  Off = the natural map (terrain only, neutral city dots). */
   private factionView = true;
@@ -232,13 +240,14 @@ export class CampaignScene implements Scene {
       this.t3d!.clampCam(this.cam); // zoom floor = aspect-fill, pan inside the map
       if (this.fogOfWar) this.t3d!.setVision(this.visionSources());
       // 3D models under the floating banners; fogged enemies are dropped.
-      this.t3d!.setArmies(this.armies, this.cam.scale, this.selected, this.hover, this.fogOfWar);
+      this.t3d!.setArmies(this.armies, this.cam.scale, this.selected, this.hover, this.fogOfWar, this.factionStatus);
+      this.t3d!.setSelectedCity(this.selectedCity);
       this.t3d!.draw(this.cam, this.factionView, this.fogOfWar);
       const sel = this.armies.find((a) => a.id === this.selected && a.mine);
       const hints: [number, number][] = sel
         ? this.spotPos.filter(([x, y]) => Math.hypot(x - sel.x, y - sel.y) < 12)
         : [];
-      this.renderer.draw(this.cam, this.armies, this.cities, this.selected, null, this.territory!.labels, this.roadLevels, this.outposts, hints, this.factionView, this.fogOfWar, this.territory!.borders);
+      this.renderer.draw(this.cam, this.armies, this.cities, this.selected, null, this.territory!.labels, this.roadLevels, this.outposts, hints, this.factionView, this.fogOfWar, this.territory!.borders, this.factionStatus);
     }
     this.updateHud();
   }
@@ -280,12 +289,19 @@ export class CampaignScene implements Scene {
       this.cities.set(cf[o], { owner: cf[o + 1], garrison: cf[o + 2], queue: cf[o + 3] });
       hash = (Math.imul(hash, 31) + cf[o] * 7 + cf[o + 1]) | 0;
     }
-    // Recolor territory only when some city changed hands.
-    if (hash !== this.ownerHash && this.territory && this.t3d) {
-      this.ownerHash = hash;
-      this.territory.rebuild(this.cities);
-      this.t3d.updateTerritory(this.territory.rgba);
-      this.t3d.setCityOwners(this.cities, this.playerFaction());
+    // Refresh allegiance each pass; recolor city flags when ownership OR
+    // relations move, but rebuild the (costlier) territory only on a flip.
+    this.refreshFactionStatus();
+    let shash = 0;
+    for (const v of this.factionStatus) shash = (Math.imul(shash, 31) + v) | 0;
+    if ((hash !== this.ownerHash || shash !== this.statusHash) && this.territory && this.t3d) {
+      if (hash !== this.ownerHash) {
+        this.ownerHash = hash;
+        this.territory.rebuild(this.cities);
+        this.t3d.updateTerritory(this.territory.rgba);
+      }
+      this.statusHash = shash;
+      this.t3d.setCityOwners(this.cities, this.playerFaction(), this.factionStatus);
     }
   }
 
@@ -378,6 +394,7 @@ export class CampaignScene implements Scene {
       }
     }
     this.selected = best;
+    if (best >= 0) this.selectedCity = -1; // an army takes the selection from a city
     const loc = best < 0 ? nearestLoc(this.cfg.data.map, wx, wy, rKm) : null;
     if (loc && loc.kind === 0 && this.cfg.data.map.nodes[loc.a].kind === 'city') {
       this.openCityPanel(loc.a);
@@ -739,6 +756,7 @@ export class CampaignScene implements Scene {
   }
 
   private openCityPanel(node: number) {
+    this.selectedCity = node; // the green ring marks the open settlement
     const panel = this.ui.querySelector('#cmp-city') as HTMLDivElement;
     const n = this.cfg.data.map.nodes[node];
     const c = this.cities.get(node);
@@ -825,11 +843,30 @@ export class CampaignScene implements Scene {
   }
 
   private closeCityPanel() {
+    this.selectedCity = -1;
     (this.ui.querySelector('#cmp-city') as HTMLDivElement).style.display = 'none';
   }
 
   private playerFaction(): number {
     return this.cfg.campaign.player_faction();
+  }
+
+  /** Rebuild factionStatus from the player's diplomatic relations. Only the
+   *  playable powers carry a relation; every neutral league (and anyone at
+   *  peace) reads as Neutral, allies and the player's own faction as Friend,
+   *  belligerents as Foe. Cheap; called when ownership/relations may have moved. */
+  private refreshFactionStatus() {
+    const facs = this.cfg.data.map.factions;
+    if (this.factionStatus.length !== facs.length) this.factionStatus = new Int8Array(facs.length);
+    this.factionStatus.fill(Allegiance.Neutral);
+    const pf = this.playerFaction();
+    if (pf >= 0 && pf < facs.length) this.factionStatus[pf] = Allegiance.Friend;
+    for (const f of JSON.parse(this.cfg.campaign.diplomacy_json()) as { id: number; relation: string }[]) {
+      this.factionStatus[f.id] =
+        f.relation === 'war' ? Allegiance.Foe :
+        f.relation === 'alliance' || f.relation === 'self' ? Allegiance.Friend :
+        Allegiance.Neutral;
+    }
   }
 
   /** The player's fog-of-war sight: a disc around each of their cities (wider

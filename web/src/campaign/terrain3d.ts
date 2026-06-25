@@ -30,6 +30,7 @@ import '@babylonjs/core/Engines/Extensions/engine.rawTexture';
 import '@babylonjs/core/Meshes/thinInstanceMesh';
 
 import type { CampaignData } from './data';
+import { STATUS_RGB } from './status';
 import type { CamView } from './renderer';
 import { TerrainField, SUN, TEMPERATE_Y_KM, hash2 } from './terrain';
 import { classGeometryDetailed } from '../shared/soldierModel';
@@ -481,6 +482,9 @@ export class Terrain3D {
   private classMeshes: (Mesh | null)[] = []; // per-class soldiers, one per figure
   private armyCount = 0;
   private cityMesh: Mesh | null = null;
+  private citySelRing: Mesh | null = null;
+  /** node index -> [x, y, z, tier], so the selection ring can find a city. */
+  private cityPosByNode = new Map<number, [number, number, number, number]>();
   private shadowMat!: ShaderMaterial;
   private roadMat!: ShaderMaterial;
   private roadMesh: Mesh | null = null;
@@ -780,14 +784,22 @@ export class Terrain3D {
     // top. No ground disc under the army (the soft contact shadow grounds it);
     // selection is shown by a green ring instead (below).
     const parts: Mesh[] = [];
-    const pole = CreateBox('p', { width: 0.12, depth: 0.12, height: 4.0 }, this.scene);
+    const pole = CreateBox('p', { width: 0.12, depth: 0.12, height: 4.2 }, this.scene);
     pole.rotation.x = Math.PI / 2;
-    pole.position.set(0, 0, 2.0);
+    pole.position.set(0, 0, 2.1);
     parts.push(this.paint(pole, 0.5, 0.4, 0.3, 0)); // neutral timber
-    const flag = CreateBox('pf', { width: 0.12, depth: 1.3, height: 0.8 }, this.scene);
-    flag.rotation.x = Math.PI / 2;
-    flag.position.set(0, 0.72, 3.6);
-    parts.push(this.paint(flag, 1, 1, 1, 1)); // livery: takes the owner colour
+    // A triangular PENNANT (not the city's rectangular banner) so an army reads
+    // as an army at a glance; livery (alpha 1) so its allegiance colour shows.
+    // Flat in the XZ plane facing the camera; the shading normal tilts skyward
+    // so it catches the sun, while the face still points south for culling.
+    const pennant = new Mesh('pf', this.scene);
+    const pvd = new VertexData();
+    pvd.positions = [0, 0, 4.1, 0, 0, 3.0, 2.0, 0, 3.55];
+    pvd.indices = [0, 1, 2];
+    pvd.normals = [0, -0.4, 0.92, 0, -0.4, 0.92, 0, -0.4, 0.92];
+    pvd.uvs = [0, 1, 0, 0, 1, 0.5]; // match the boxes' attribute set for merge
+    pvd.applyToMesh(pennant);
+    parts.push(this.paint(pennant, 1, 1, 1, 1)); // livery: takes the allegiance colour
     const baseMesh = Mesh.MergeMeshes(parts, true, true);
     if (baseMesh) {
       baseMesh.name = 'armyBase';
@@ -1154,13 +1166,6 @@ export class Terrain3D {
    *  positions, tier-scaled, owner color set by setCityOwners. */
   private buildCityModel(data: CampaignData) {
     const parts: Mesh[] = [];
-    // Rampart ring (a flat torus laid on the ground): this is the OWNERSHIP
-    // marker — livery (alpha 1) so its per-city iColor shows (green = ours,
-    // the owner's faction colour otherwise). The buildings stay neutral.
-    const wall = CreateTorus('cw', { diameter: 9.5, thickness: 1.4, tessellation: 18 }, this.scene);
-    wall.rotation.x = Math.PI / 2; // ring from XZ plane down onto the XY ground
-    wall.position.z = 0.7;
-    parts.push(this.paint(wall, 0.85, 0.85, 0.85, 1));
     // A building: sandstone walls + a wider terracotta roof cap. Boxes only,
     // so orientation stays trivial under the model camera.
     const building = (sx: number, sy: number, w: number, d: number, hgt: number) => {
@@ -1181,15 +1186,18 @@ export class Terrain3D {
       const r = 0.9 + rand() * 3.0;
       building(Math.cos(a) * r, Math.sin(a) * r, 0.8 + rand() * 1.0, 0.8 + rand() * 1.0, 1.1 + rand() * 1.4);
     }
-    // The faction standard, taller than the town so it flies above the roofs.
-    const pole = CreateBox('cp', { width: 0.2, depth: 0.2, height: 7.0 }, this.scene);
+    // The standard: a tall mast flying a big rectangular banner. The banner is
+    // the only livery part (alpha 1), so its per-city iColor — set to the
+    // allegiance colour (friend/neutral/foe) in setCityOwners — is what tells
+    // the player whose town this is at a glance.
+    const pole = CreateBox('cp', { width: 0.22, depth: 0.22, height: 9.5 }, this.scene);
     pole.rotation.x = Math.PI / 2;
-    pole.position.set(0, 0, 3.5);
+    pole.position.set(0, 0, 4.75);
     parts.push(this.paint(pole, 0.45, 0.36, 0.28, 0)); // timber, neutral
-    const flag = CreateBox('cf', { width: 3.4, depth: 0.16, height: 2.0 }, this.scene);
+    const flag = CreateBox('cf', { width: 5.4, depth: 0.18, height: 3.2 }, this.scene);
     flag.rotation.x = Math.PI / 2;
-    flag.position.set(1.7, 0, 5.6);
-    parts.push(this.paint(flag, 1, 1, 1, 1)); // livery: takes the owner color
+    flag.position.set(2.7, 0, 7.7);
+    parts.push(this.paint(flag, 1, 1, 1, 1)); // livery: takes the allegiance colour
 
     const merged = Mesh.MergeMeshes(parts, true, true);
     if (!merged) return;
@@ -1229,22 +1237,55 @@ export class Terrain3D {
     merged.thinInstanceSetBuffer('iColor', cols, 4, false);
     merged.setEnabled(false);
     this.cityMesh = merged;
+    this.cityPosByNode = new Map(cityList.map((c, k) => [c.i, [
+      c.n.pos[0], c.n.pos[1], (mats[k * 16 + 14]), c.n.tier,
+    ] as [number, number, number, number]]));
+
+    // Green selection ring — a flat torus laid on the ground under the ONE
+    // city whose panel is open (positioned in setSelectedCity), hidden
+    // otherwise. The ONLY ring on the map, and it is always green.
+    const sel = CreateTorus('csel', { diameter: 9.5, thickness: 0.7, tessellation: 36 }, this.scene);
+    sel.rotation.x = Math.PI / 2;
+    this.paint(sel, 0.2, 0.95, 0.35, 0); // bright green
+    sel.material = this.modelMat;
+    sel.alwaysSelectAsActiveMesh = true;
+    sel.setEnabled(false);
+    this.citySelRing = sel;
   }
 
-  /** Recolor each settlement's ring + standard to its owner — green for the
-   *  player's own cities, the owner's faction colour otherwise. Called when
-   *  ownership changes (same trigger as the territory recolor). */
-  setCityOwners(cities: Map<number, { owner: number }>, playerFaction: number) {
+  /** Place the green ring under the selected city (or hide it). Called each
+   *  frame with the open-panel node index; -1 clears it. */
+  setSelectedCity(node: number) {
+    const ring = this.citySelRing;
+    if (!ring) return;
+    const p = node >= 0 ? this.cityPosByNode.get(node) : undefined;
+    if (!p) {
+      ring.thinInstanceCount = 0;
+      ring.setEnabled(false);
+      return;
+    }
+    const S = p[3] >= 3 ? 1.9 : p[3] === 2 ? 1.35 : 0.95; // match the town scale
+    ring.thinInstanceSetBuffer('matrix', new Float32Array([
+      S, 0, 0, 0, 0, S, 0, 0, 0, 0, S, 0, p[0], p[1], p[2] + 0.12, 1,
+    ]), 16, false);
+    ring.thinInstanceSetBuffer('iColor', new Float32Array([0, 0, 0, 0]), 4, false);
+    ring.setEnabled(true);
+  }
+
+  /** Recolour each settlement's banner by allegiance to the player — green for
+   *  friends (own/allied), amber for neutrals, red for foes. Called when
+   *  ownership OR relations change. */
+  setCityOwners(cities: Map<number, { owner: number }>, playerFaction: number, factionStatus?: Int8Array) {
     const m = this.cityMesh;
     if (!m) return;
-    const own: [number, number, number] = [0.35, 0.8, 0.35]; // "this is mine"
     const n = this.cityNodes.length;
     const cols = new Float32Array(n * 4);
     for (let k = 0; k < n; k++) {
       const owner = cities.get(this.cityNodes[k])?.owner ?? -1;
-      const c = owner === playerFaction ? own
-        : owner >= 0 ? this.factionColors[owner] ?? [0.55, 0.55, 0.55]
-        : [0.55, 0.55, 0.55];
+      const st = owner === playerFaction ? 0
+        : factionStatus && owner >= 0 && owner < factionStatus.length ? factionStatus[owner]
+        : 1;
+      const c = STATUS_RGB[st];
       cols[k * 4] = c[0]; cols[k * 4 + 1] = c[1]; cols[k * 4 + 2] = c[2]; cols[k * 4 + 3] = 0;
     }
     m.thinInstanceSetBuffer('iColor', cols, 4, false);
@@ -1280,11 +1321,12 @@ export class Terrain3D {
   /** Reposition the army models from the live army list (called each frame
    *  before draw). Cheap: a few dozen instances, two small buffers. */
   setArmies(
-    armies: { id: number; x: number; y: number; faction: number; soldiers: number; roster: number[] }[],
+    armies: { id: number; x: number; y: number; faction: number; soldiers: number; roster: number[]; mine?: boolean }[],
     scale: number,
     selected = -1,
     hover = -1,
     fogOfWar = false,
+    factionStatus?: Int8Array,
   ) {
     const baseM = this.armyBase;
     if (!baseM) return;
@@ -1315,7 +1357,13 @@ export class Terrain3D {
       const a = armies[i];
       const z = Math.max(0, this.field.heightAt(a.x, a.y));
       if (a.id === selected) selPos = [a.x, a.y, z];
-      const c = this.factionColors[a.faction] ?? [0.6, 0.6, 0.6];
+      const c = this.factionColors[a.faction] ?? [0.6, 0.6, 0.6]; // soldiers' livery
+      // The pennant flies the allegiance colour (friend/neutral/foe), not the
+      // faction tint — so friend vs foe reads at a glance, like the city banners.
+      const st = a.mine ? 0
+        : factionStatus && a.faction >= 0 && a.faction < factionStatus.length ? factionStatus[a.faction]
+        : 1;
+      const fc = STATUS_RGB[st];
       // iColor.a is the highlight flag the shader reads (not opacity).
       const hi = a.id === selected ? 1 : a.id === hover ? 0.5 : 0;
       // March bob: ease the amplitude toward 1 when the army crept forward this
@@ -1329,7 +1377,7 @@ export class Terrain3D {
       const o = i * 16;
       baseMats[o] = S; baseMats[o + 5] = S; baseMats[o + 10] = S; baseMats[o + 15] = 1;
       baseMats[o + 12] = a.x; baseMats[o + 13] = a.y; baseMats[o + 14] = z;
-      baseCols[i * 4] = c[0]; baseCols[i * 4 + 1] = c[1]; baseCols[i * 4 + 2] = c[2]; baseCols[i * 4 + 3] = hi;
+      baseCols[i * 4] = fc[0]; baseCols[i * 4 + 1] = fc[1]; baseCols[i * 4 + 2] = fc[2]; baseCols[i * 4 + 3] = hi;
       this.shadowMatrix(shadows, o, a.x, a.y, z, 1.9 * S);
       // Figures: count by size, classes by composition, placed in the slots.
       const alloc = allocFigures(a.roster, figureCount(a.soldiers));
@@ -1525,6 +1573,7 @@ export class Terrain3D {
     const citiesOn = cam.scale >= CITY_MODEL_MIN_SCALE;
     this.cityMesh?.setEnabled(citiesOn);
     this.cityShadow?.setEnabled(citiesOn);
+    if (this.citySelRing) this.citySelRing.setEnabled(citiesOn && this.citySelRing.thinInstanceCount > 0);
     if (citiesOn) this.applyCityFog(fogOfWar);
     // Roads show once off the political overview, fading in as the land does.
     this.roadMesh?.setEnabled(cam.scale >= 0.4);

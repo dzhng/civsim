@@ -27,16 +27,16 @@ export const CLASS_LOOK: ClassLook[] = [
   { weapon: 'sword', shield: 'none', crest: false, mounted: false }, // 9 peasant (a knife, no shield)
   { weapon: 'sword', shield: 'round', crest: false, mounted: false }, // 10 light sword (sword + light shield)
   { weapon: 'spear', shield: 'tall', crest: true, mounted: false }, // 11 heavy spear (spear + big shield)
-  // 12 RENDER-ONLY pseudo-class: shock cav after it drops the lance for its sabre
+  // 12 RENDER-ONLY pseudo-class: shock cav after it switches from lance to sabre
   // in the grind. The sim never spawns class 12 — the renderer routes a shock-cav
-  // soldier here when `cur_weapon` is its sidearm, so the same horse+rider shows a
-  // sword instead of the couched lance (the visual twin of the pike-stow swap).
+  // soldier here when `cur_weapon` is its sidearm, so the same horse+rider keeps
+  // the lance upright in the off hand while fighting with a sword.
   { weapon: 'sword', shield: 'round', crest: true, mounted: true }, // 12 shock cav, sabre drawn
 ];
 
 /** Render-only pseudo-class (see CLASS_LOOK[12]): a shock-cav rider with his
- *  sidearm drawn instead of the lance. The renderer swaps a grinding lancer to
- *  this look; nothing in the sim knows about it. */
+ *  sword drawn and lance carried upright. The renderer swaps a grinding lancer
+ *  to this look; nothing in the sim knows about it. */
 export const SHOCK_CAV_SIDEARM_LOOK = 12;
 
 /** Per-class soldier (or rider on a horse) as one box mesh. `rest` is a
@@ -479,6 +479,16 @@ export function classGeometryDetailed(
       wbox(-0.03, 0.2, 0.03, 1.62, -0.03, 0.05, 0.03, 1.15, WOOD); // stave
       wbox(0.0, 0.92, 0.52, 0.98, -0.04, 0.7, 0.06, 0.76, WOOD); break; // nocked arrow
     case 'none': break;
+  }
+
+  // Shock cavalry with its sabre drawn still carries the lance; it is just
+  // stowed upright in the off hand. The actual lance class above is the only
+  // cavalry look that points the lance down/couched for use.
+  if (cls === SHOCK_CAV_SIDEARM_LOOK) {
+    const sx = -0.24;
+    box(sx - 0.025, -0.03, base + 0.10, sx + 0.03, 0.035, base + 2.55, WOOD);
+    box(sx - 0.035, -0.04, base + 2.50, sx + 0.04, 0.045, base + 2.74, IRON);
+    box(sx - 0.055, -0.06, shoulderZ - 0.20, sx + 0.045, 0.065, shoulderZ - 0.08, SKIN);
   }
 
   const vd = new VertexData();

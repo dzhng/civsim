@@ -320,7 +320,7 @@ impl Default for Tunables {
             impact_floor: 2.0,
             impact_full_speed: 8.0,
             impact_fell_min: 0.5,
-            stun_time: 5.0,
+            stun_time: 3.0,
             weapon_repel: 15.0,
             gang_cap: 3,
             brace_ramp_secs: 3.0,

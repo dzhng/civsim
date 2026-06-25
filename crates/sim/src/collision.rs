@@ -319,8 +319,19 @@ impl Sim {
                                     // pins it); a thin line is cleared before it
                                     // spends.
                                     if units[ui].tramples() {
+                                        // A charge bleeds momentum only into a STANDING,
+                                        // braced man — the resistance is his planted feet
+                                        // and leveled weapon. A man already knocked DOWN
+                                        // (stunned or bowled) is ridden OVER, not shoved
+                                        // through; he no longer bleeds the gallop. So each
+                                        // standing rank bleeds the charge ONCE, then is
+                                        // felled and ridden over — DEPTH still bogs it
+                                        // (more standing ranks = more total bleed), but the
+                                        // men it has already downed don't double-dip and
+                                        // drag a long-stun charge to a halt on its own kills.
+                                        let down = trampled[j] > 0.0 || stun[j] > 0.0;
                                         let toward = -(mom0_x[i] * nx + mom0_y[i] * ny);
-                                        if toward > 0.0 {
+                                        if toward > 0.0 && !down {
                                             let grip =
                                                 (tun.trample_bleed * share * units[uj].brace())
                                                     .min(0.85);

@@ -302,8 +302,10 @@ fn rider_reachability_is_pure_geometry() {
 
 #[test]
 fn charge_impact_knocks_infantry_down() {
+    // The shock of a charge KNOCKS MEN DOWN — the body-impact mostly STUNS (it
+    // rarely kills outright; the kills come from the lance and the grind). So the
+    // signal is a swath of stunned men at contact, not a pile of impact corpses.
     let mut sim = Sim::new(no_morale(), SEED);
-    let start_impact_kills = sim.impact_casualties;
     let inf = sim.spawn_class(
         Vec2::new(0.0, 30.0),
         -FRAC_PI_2,
@@ -319,15 +321,28 @@ fn charge_impact_knocks_infantry_down() {
         1,
     );
     sim.set_pace(cav, sim::Pace::Run);
-    sim.set_attack_move_order(cav, Vec2::new(0.0, 60.0));
+    sim.set_attack_order(cav, inf); // charge home and engage, not ride past
+    sim.set_attack_order(inf, cav); // the infantry advance to meet the charge
+    let ids: Vec<usize> = (0..sim.soldier_count())
+        .filter(|&i| sim.soldier_unit[i] as usize == inf)
+        .collect();
+    let mut ever_stunned = vec![false; ids.len()];
     for _ in 0..(60.0 / DT) as usize {
         sim.tick();
+        for (k, &i) in ids.iter().enumerate() {
+            if sim.stun[i] > 0.0 {
+                ever_stunned[k] = true;
+            }
+        }
     }
-    let impact_kills = sim.impact_casualties - start_impact_kills;
+    let stunned = ever_stunned.iter().filter(|&&b| b).count();
     let dead = sim.units[inf].count - sim.units[inf].alive_count;
+    // The charge disrupts the front — it knocks men down (stun) and the lance +
+    // grind bloody it. (The heavy-knockdown case vs a softer line is pinned tight
+    // in mechanics_impact; here the spearmen bite back so the shock is smaller.)
     assert!(
-        impact_kills >= 4 && dead >= impact_kills as usize,
-        "a cavalry charge should fell men by impact: {impact_kills} impact kills, {dead} total dead"
+        stunned >= 3 && dead >= 15,
+        "a cavalry charge must knock infantry DOWN and bloody them: {stunned} stunned, {dead} dead"
     );
 }
 

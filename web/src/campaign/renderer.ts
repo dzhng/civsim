@@ -5,7 +5,8 @@
 
 import type { CampaignData } from './data';
 import { ARMY_STRIDE, type ArmyView, type CityView } from './scene';
-import { STATUS_CSS } from './status';
+import { Allegiance, STATUS_CSS } from './status';
+import { ICON_CITY, ICON_ARMY } from './icons';
 import type { TerrainField } from './terrain';
 import { type Terrain3D, CITY_MODEL_MIN_SCALE, ARMY_MIN_SCALE } from './terrain3d';
 import type { FactionLabel } from './territory';
@@ -176,7 +177,7 @@ export class CampaignRenderer {
     // Allegiance → label-icon colour. Friend green, neutral amber, foe red;
     // anyone off the status table (or in natural view) reads neutral.
     const statusOf = (faction: number): number =>
-      factionStatus && faction >= 0 && faction < factionStatus.length ? factionStatus[faction] : 1;
+      factionStatus && faction >= 0 && faction < factionStatus.length ? factionStatus[faction] : Allegiance.Neutral;
     const z = cam.scale;
     // Under fog of war the overlay hides anything the player can't currently
     // see (their own cities/armies sit inside their own sight, so stay shown).
@@ -332,25 +333,29 @@ export class CampaignRenderer {
       const suf = v >= 11 && v <= 13 ? 'th' : (['th', 'st', 'nd', 'rd'][k % 10] ?? 'th');
       return `${k}${suf}`;
     };
-    // A map label: a small allegiance-coloured dot, then engraved caps, the
-    // whole group centred on cx with its baseline at baseY (optional small
-    // subtitle below — used for an army's strength).
-    const drawLabel = (cx: number, baseY: number, text: string, status: number, fontPx: number, sub?: string) => {
+    // A map label: an allegiance-coloured Phosphor icon (house for a town,
+    // figures for an army), then engraved caps, the whole group centred on cx
+    // with its baseline at baseY (optional small subtitle below — an army's
+    // strength).
+    const drawLabel = (cx: number, baseY: number, text: string, status: number, fontPx: number, icon: Path2D, sub?: string) => {
       ctx.font = `600 ${fontPx}px ${MAP_FONT}`;
       ctx.letterSpacing = '0.5px';
       ctx.textAlign = 'left';
       const tw = ctx.measureText(text).width;
-      const ir = fontPx * 0.34;
-      const gap = fontPx * 0.42;
-      const x0 = cx - (ir * 2 + gap + tw) / 2;
-      ctx.beginPath();
-      ctx.arc(x0 + ir, baseY - fontPx * 0.32, ir, 0, Math.PI * 2);
+      const isz = fontPx * 1.25;
+      const gap = fontPx * 0.32;
+      const x0 = cx - (isz + gap + tw) / 2;
+      ctx.save();
+      ctx.translate(x0, baseY - fontPx * 0.36 - isz / 2);
+      ctx.scale(isz / 256, isz / 256);
+      ctx.lineJoin = 'round';
+      ctx.lineWidth = 30; // svg units: a dark halo so the icon reads on terrain
+      ctx.strokeStyle = 'rgba(20,15,10,0.8)';
+      ctx.stroke(icon);
       ctx.fillStyle = STATUS_CSS[status];
-      ctx.strokeStyle = 'rgba(20,15,10,0.85)';
-      ctx.lineWidth = 1.5;
-      ctx.fill();
-      ctx.stroke();
-      const tx = x0 + ir * 2 + gap;
+      ctx.fill(icon);
+      ctx.restore();
+      const tx = x0 + isz + gap;
       ctx.lineWidth = 2.5;
       ctx.lineJoin = 'round';
       ctx.strokeStyle = 'rgba(20,15,10,0.65)';
@@ -412,9 +417,9 @@ export class CampaignRenderer {
           // Allegiance icon + engraved caps, centred below the town. When an
           // army garrisons here the city name sits a notch lower so the army's
           // own label (drawn above its banner) clears it.
-          const status = factionView ? statusOf(c ? c.owner : -1) : 1;
+          const status = factionView ? statusOf(c ? c.owner : -1) : Allegiance.Neutral;
           const below = cityHasArmy.has(i) ? fs * 1.5 : 0;
-          drawLabel(sx, sy + 14 + below, n.name.toUpperCase(), status, fs);
+          drawLabel(sx, sy + 14 + below, n.name.toUpperCase(), status, fs, ICON_CITY);
         }
       } else if (z > 0.5) {
         ctx.fillStyle = 'rgba(60,45,30,0.7)';
@@ -544,7 +549,7 @@ export class CampaignRenderer {
         const fs = Math.min(14, 9 + z);
         const name = `${ordinal(ordinalOf.get(a.id) ?? 1)} LEGION`;
         const strength = `${Math.round(a.soldiers / 100) / 10}k`;
-        drawLabel(sx, sy - size * 1.6 - 12, name, status, fs, strength);
+        drawLabel(sx, sy - size * 1.6 - 12, name, status, fs, ICON_ARMY, strength);
       }
     }
 

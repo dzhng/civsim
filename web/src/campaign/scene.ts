@@ -65,7 +65,6 @@ export class CampaignScene implements Scene {
   private territory: Territory | null = null;
   private t3d: Terrain3D | null = null;
   private ownerHash = 0;
-  private statusHash = 0;
   private ac: AbortController | null = null;
   private cam: CamView;
   private speed = 0; // index into SPEEDS, -1 = paused
@@ -240,7 +239,7 @@ export class CampaignScene implements Scene {
       this.t3d!.clampCam(this.cam); // zoom floor = aspect-fill, pan inside the map
       if (this.fogOfWar) this.t3d!.setVision(this.visionSources());
       // 3D models under the floating banners; fogged enemies are dropped.
-      this.t3d!.setArmies(this.armies, this.cam.scale, this.selected, this.hover, this.fogOfWar, this.factionStatus);
+      this.t3d!.setArmies(this.armies, this.cam.scale, this.selected, this.hover, this.fogOfWar);
       this.t3d!.setSelectedCity(this.selectedCity);
       this.t3d!.draw(this.cam, this.factionView, this.fogOfWar);
       const sel = this.armies.find((a) => a.id === this.selected && a.mine);
@@ -289,19 +288,15 @@ export class CampaignScene implements Scene {
       this.cities.set(cf[o], { owner: cf[o + 1], garrison: cf[o + 2], queue: cf[o + 3] });
       hash = (Math.imul(hash, 31) + cf[o] * 7 + cf[o + 1]) | 0;
     }
-    // Refresh allegiance each pass; recolor city flags when ownership OR
-    // relations move, but rebuild the (costlier) territory only on a flip.
+    // Keep allegiance fresh for the 2D label icons (cheap; the renderer reads
+    // it every frame). City/army FLAGS are faction-coloured, so they only need
+    // a recolour when a town actually changes hands.
     this.refreshFactionStatus();
-    let shash = 0;
-    for (const v of this.factionStatus) shash = (Math.imul(shash, 31) + v) | 0;
-    if ((hash !== this.ownerHash || shash !== this.statusHash) && this.territory && this.t3d) {
-      if (hash !== this.ownerHash) {
-        this.ownerHash = hash;
-        this.territory.rebuild(this.cities);
-        this.t3d.updateTerritory(this.territory.rgba);
-      }
-      this.statusHash = shash;
-      this.t3d.setCityOwners(this.cities, this.playerFaction(), this.factionStatus);
+    if (hash !== this.ownerHash && this.territory && this.t3d) {
+      this.ownerHash = hash;
+      this.territory.rebuild(this.cities);
+      this.t3d.updateTerritory(this.territory.rgba);
+      this.t3d.setCityOwners(this.cities, this.playerFaction());
     }
   }
 

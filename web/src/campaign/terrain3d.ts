@@ -30,7 +30,6 @@ import '@babylonjs/core/Engines/Extensions/engine.rawTexture';
 import '@babylonjs/core/Meshes/thinInstanceMesh';
 
 import type { CampaignData } from './data';
-import { STATUS_RGB } from './status';
 import type { CamView } from './renderer';
 import { TerrainField, SUN, TEMPERATE_Y_KM, hash2 } from './terrain';
 import { classGeometryDetailed } from '../shared/soldierModel';
@@ -1272,20 +1271,17 @@ export class Terrain3D {
     ring.setEnabled(true);
   }
 
-  /** Recolour each settlement's banner by allegiance to the player — green for
-   *  friends (own/allied), amber for neutrals, red for foes. Called when
-   *  ownership OR relations change. */
-  setCityOwners(cities: Map<number, { owner: number }>, playerFaction: number, factionStatus?: Int8Array) {
+  /** Recolour each settlement's banner to its OWNER's faction colour — the
+   *  flag flies the realm's livery (the allegiance read lives in the 2D name
+   *  icon instead). Called when ownership changes. */
+  setCityOwners(cities: Map<number, { owner: number }>, _playerFaction: number) {
     const m = this.cityMesh;
     if (!m) return;
     const n = this.cityNodes.length;
     const cols = new Float32Array(n * 4);
     for (let k = 0; k < n; k++) {
       const owner = cities.get(this.cityNodes[k])?.owner ?? -1;
-      const st = owner === playerFaction ? 0
-        : factionStatus && owner >= 0 && owner < factionStatus.length ? factionStatus[owner]
-        : 1;
-      const c = STATUS_RGB[st];
+      const c = owner >= 0 ? this.factionColors[owner] ?? [0.55, 0.55, 0.55] : [0.55, 0.55, 0.55];
       cols[k * 4] = c[0]; cols[k * 4 + 1] = c[1]; cols[k * 4 + 2] = c[2]; cols[k * 4 + 3] = 0;
     }
     m.thinInstanceSetBuffer('iColor', cols, 4, false);
@@ -1326,7 +1322,6 @@ export class Terrain3D {
     selected = -1,
     hover = -1,
     fogOfWar = false,
-    factionStatus?: Int8Array,
   ) {
     const baseM = this.armyBase;
     if (!baseM) return;
@@ -1357,13 +1352,9 @@ export class Terrain3D {
       const a = armies[i];
       const z = Math.max(0, this.field.heightAt(a.x, a.y));
       if (a.id === selected) selPos = [a.x, a.y, z];
-      const c = this.factionColors[a.faction] ?? [0.6, 0.6, 0.6]; // soldiers' livery
-      // The pennant flies the allegiance colour (friend/neutral/foe), not the
-      // faction tint — so friend vs foe reads at a glance, like the city banners.
-      const st = a.mine ? 0
-        : factionStatus && a.faction >= 0 && a.faction < factionStatus.length ? factionStatus[a.faction]
-        : 1;
-      const fc = STATUS_RGB[st];
+      // Soldiers AND the pennant fly the faction's livery; the allegiance read
+      // lives in the 2D army-name icon instead.
+      const c = this.factionColors[a.faction] ?? [0.6, 0.6, 0.6];
       // iColor.a is the highlight flag the shader reads (not opacity).
       const hi = a.id === selected ? 1 : a.id === hover ? 0.5 : 0;
       // March bob: ease the amplitude toward 1 when the army crept forward this
@@ -1377,7 +1368,7 @@ export class Terrain3D {
       const o = i * 16;
       baseMats[o] = S; baseMats[o + 5] = S; baseMats[o + 10] = S; baseMats[o + 15] = 1;
       baseMats[o + 12] = a.x; baseMats[o + 13] = a.y; baseMats[o + 14] = z;
-      baseCols[i * 4] = fc[0]; baseCols[i * 4 + 1] = fc[1]; baseCols[i * 4 + 2] = fc[2]; baseCols[i * 4 + 3] = hi;
+      baseCols[i * 4] = c[0]; baseCols[i * 4 + 1] = c[1]; baseCols[i * 4 + 2] = c[2]; baseCols[i * 4 + 3] = hi;
       this.shadowMatrix(shadows, o, a.x, a.y, z, 1.9 * S);
       // Figures: count by size, classes by composition, placed in the slots.
       const alloc = allocFigures(a.roster, figureCount(a.soldiers));

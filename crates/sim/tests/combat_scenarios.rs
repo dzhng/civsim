@@ -301,6 +301,43 @@ fn rider_reachability_is_pure_geometry() {
 }
 
 #[test]
+fn a_braced_holding_line_absorbs_a_frontal_charge() {
+    // A SET, braced shield wall meets a frontal charge with its planted front and
+    // ABSORBS it: the carried closing collapses as the horses bog on the wall, so
+    // the cav does NOT break through and the line is not slaughtered. Cavalry shock
+    // tells on a line MOVING to meet it (mechanics_impact's 91 knockdowns) or on a
+    // soft flank — NOT on a planted wall taken head-on. (The directional PIKE version
+    // is phalanx_points_stop_horses; a shield wall's brace is omni-directional, so
+    // frontal == flank for it — there is no separate flank-breaks-in case to pin.)
+    let mut sim = Sim::new(no_morale(), SEED);
+    let wall = sim.spawn_class_with_files(Vec2::ZERO, FRAC_PI_2, 200, 20, UnitClassId::HeavySword, 0);
+    for _ in 0..(2.0 / DT) as usize {
+        sim.tick(); // a beat to set the brace before contact
+    }
+    let cav = sim.spawn_class(Vec2::new(0.0, -70.0), FRAC_PI_2, 120, UnitClassId::ShockCavalry, 1);
+    sim.set_pace(cav, sim::Pace::Run);
+    sim.set_attack_move_order(cav, Vec2::new(0.0, 70.0));
+    let mut deepest = f32::MIN;
+    for _ in 0..(25.0 / DT) as usize {
+        sim.tick();
+        deepest = deepest.max(sim.units[cav].centroid.y);
+    }
+    let dead = sim.units[wall].count - sim.units[wall].alive_count;
+    // The wall is centred at y=0, front rank near y≈+5; the cav bogs on it and never
+    // rides out the far side.
+    assert!(
+        deepest < 8.0,
+        "a braced line absorbs the charge — the cav must not break through: cav reached y {deepest:.1}"
+    );
+    assert!(dead < 60, "the braced line holds, not slaughtered: {dead} dead");
+    assert!(
+        sim.units[wall].cohesion > 0.4,
+        "the line keeps its shape (jostled but not dissolved): cohesion {:.2}",
+        sim.units[wall].cohesion
+    );
+}
+
+#[test]
 fn charge_impact_knocks_infantry_down() {
     // The shock of a charge KNOCKS MEN DOWN — the body-impact mostly STUNS (it
     // rarely kills outright; the kills come from the lance and the grind). So the

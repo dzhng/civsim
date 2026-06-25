@@ -72,7 +72,7 @@ pub struct Unit {
     pub pace: Pace,
     /// Shared stamina reservoir, 1 = fresh. Drained by running and by the
     /// fraction of soldiers surging; recovered at rest.
-    pub fatigue: f32,
+    pub stamina: f32,
     /// 0..1, scales how fast the unit re-seats and recovers order.
     pub training: f32,
     pub team: u32,
@@ -121,6 +121,18 @@ pub struct Unit {
     pub quiet_ticks: u32,
     /// Recent casualty count, decaying (morale reads this later).
     pub recent_casualties: f32,
+    /// Cumulative losses split by CAUSE — measurement only, never read by sim
+    /// logic. Lets a test see HOW a unit died instead of one opaque total:
+    /// `lost_impact` (felled by a charge's bodily shock), `lost_charge_melee`
+    /// (cut down by a blade still carrying its charge — the lance going in),
+    /// `lost_grind_melee` (killed in the standing press), `lost_missile` (shot).
+    /// `lost_post_rout` counts those (any cause) that fell AFTER this unit broke
+    /// — the ride-down, which should never be read as decisive killing power.
+    pub lost_impact: u32,
+    pub lost_charge_melee: u32,
+    pub lost_grind_melee: u32,
+    pub lost_missile: u32,
+    pub lost_post_rout: u32,
     /// Remaining missiles for the whole unit.
     pub ammo: u32,
     pub fire_at_will: bool,

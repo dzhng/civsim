@@ -67,11 +67,13 @@ fn light_horse_tramples_at_a_third_the_butchery() {
         "impact dead over {} seeds: heavy {heavy_sum}, light {light_sum} (ratio {ratio:.2})",
         seeds.len()
     );
-    // ~a third, and unambiguously LESS than heavy. Wide band: the claim is
-    // the fraction's magnitude, not a knife-edge number.
+    // Roughly half, and unambiguously LESS than heavy (lighter horse, lower
+    // knockback). Wide band: the claim is the fraction's magnitude — that the
+    // light horse's shock is a clear fraction of the shock arm's — not a knife-edge
+    // number. (Re-derived after the impact cap + charge evade/block: ~0.55.)
     assert!(
-        (0.18..=0.5).contains(&ratio),
-        "light horse tramples at ~a third of heavy's butchery: ratio {ratio:.2}"
+        (0.2..=0.7).contains(&ratio),
+        "light horse tramples at a clear fraction of heavy's butchery: ratio {ratio:.2}"
     );
 }
 

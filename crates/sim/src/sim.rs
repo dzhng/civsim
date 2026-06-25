@@ -116,6 +116,15 @@ pub struct Sim {
     // specs/directional-bias.md). Staged, mutual blows are mutual.
     pub(crate) dmg_acc: Vec<f32>,
     pub(crate) mount_dmg_acc: Vec<f32>,
+    /// Of the melee damage staged on each victim this tick, the part that came
+    /// from a charging mounted attacker (the lance still carrying its charge) or
+    /// a charge-impale. Measurement only: the apply pass reads it to label a
+    /// melee kill as a charge kill vs a grind kill.
+    pub(crate) dmg_from_charge: Vec<f32>,
+    /// Per-soldier: has this charger already spent its ONE impact kill on the
+    /// current charge? A horse rides ONE man down per charge — its shock is spent
+    /// on him; the next it only bowls over. Reset when the charge bogs.
+    pub(crate) impact_kill_used: Vec<bool>,
     /// Hit-shove deltas (2·n), summed over the tick's strikes.
     pub(crate) push_acc: Vec<f32>,
     /// 1 = the engaged enemy is within actual weapon reach. Reflexes (halt,
@@ -213,6 +222,8 @@ impl Sim {
             attacked_by: Vec::new(),
             dmg_acc: Vec::new(),
             mount_dmg_acc: Vec::new(),
+            dmg_from_charge: Vec::new(),
+            impact_kill_used: Vec::new(),
             push_acc: Vec::new(),
             fighting: Vec::new(),
             has_fighting: false,
@@ -308,7 +319,7 @@ impl Sim {
             pending_timer: 0.0,
             pending_total: 0.0,
             pace: Pace::Walk,
-            fatigue: 1.0,
+            stamina: 1.0,
             training: training.clamp(0.0, 1.0),
             team,
             home_dir_y,
@@ -330,6 +341,11 @@ impl Sim {
             contact_unit: 0,
             quiet_ticks: 0,
             recent_casualties: 0.0,
+            lost_impact: 0,
+            lost_charge_melee: 0,
+            lost_grind_melee: 0,
+            lost_missile: 0,
+            lost_post_rout: 0,
             ammo: 0,
             fire_at_will: true,
             evade_auto: false,
@@ -1232,7 +1248,7 @@ impl Sim {
                     if u.charge_enabled {
                         let charge_sp = self.tun.base_speed
                             + (self.tun.charge_speed - self.tun.base_speed)
-                                * crate::movement::fatigue_capacity(u.fatigue)
+                                * crate::movement::stamina_factor(u.stamina)
                                 * u.pace_mult;
                         let dist = (enemy_anchor - u.anchor).len();
                         // The window opens at charge-distance from the enemy
@@ -1249,7 +1265,7 @@ impl Sim {
                         let to_front = dist - standoff - enemy_edge_ext;
                         let start = engaged_frac < 0.05
                             && to_front < charge_sp * self.tun.charge_window
-                            && u.fatigue > 0.3
+                            && u.stamina > 0.3
                             && u.charge_time < self.tun.charge_window;
                         u.charging = sustained || start;
                     }
@@ -1293,7 +1309,7 @@ impl Sim {
                 {
                     if let Some((e, d)) = u.threat_unit {
                         // The latch only reaches what the legs can: enemies
-                        // within a 5s RUN (fatigue-aware, class speed) — and
+                        // within a 5s RUN (stamina-aware, class speed) — and
                         // attacks close at the double (effective_pace), so
                         // anything latched is reachable inside the 6s timer.
                         // An expiry now MEANS the prey is pulling away. (A
@@ -1302,7 +1318,7 @@ impl Sim {
                         // mutual attack-moves never burst.)
                         let run_sp = self.tun.base_speed
                             + (self.tun.run_speed - self.tun.base_speed)
-                                * crate::movement::fatigue_capacity(u.fatigue)
+                                * crate::movement::stamina_factor(u.stamina)
                                 * u.pace_mult;
                         if d < run_sp * 5.0 && !self.units[e as usize].routing {
                             let u = &mut self.units[ui];
@@ -2448,7 +2464,7 @@ impl Sim {
             if u.frame_speed < 0.1 && u.move_target.is_none() && engaged == 0 {
                 drain -= tun.rest_recover;
             }
-            u.fatigue = (u.fatigue - drain * dt).clamp(0.0, 1.0);
+            u.stamina = (u.stamina - drain * dt).clamp(0.0, 1.0);
 
             // Contact memory and casualty rate decay.
             for w in &mut u.contact_hist {

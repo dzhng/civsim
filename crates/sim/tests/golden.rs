@@ -20,7 +20,7 @@ fn state_hash(sim: &Sim) -> u64 {
     }
     for u in &sim.units {
         fnv1a(&mut h, u.cohesion.to_bits());
-        fnv1a(&mut h, u.fatigue.to_bits());
+        fnv1a(&mut h, u.stamina.to_bits());
     }
     h
 }
@@ -53,7 +53,7 @@ fn golden_state_hash_stable() {
         sim.tick();
     }
     let h = state_hash(&sim);
-    const EXPECTED: u64 = 0x17d370aed124dca5;
+    const EXPECTED: u64 = 0xd67abfc3bd582c6c;
     assert_eq!(
         h, EXPECTED,
         "sim behavior changed: golden hash {h:#018x} != pinned {EXPECTED:#018x}. \

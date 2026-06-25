@@ -11,8 +11,8 @@ use crate::unit::Unit;
 
 /// How much of the above-walk speed range remains available: flat while
 /// fresh, falling off once the reserve is below ~70%. Walking always works.
-pub(crate) fn fatigue_capacity(fatigue: f32) -> f32 {
-    (fatigue / 0.7).min(1.0).powf(1.5)
+pub(crate) fn stamina_factor(stamina: f32) -> f32 {
+    (stamina / 0.7).min(1.0).powf(1.5)
 }
 
 /// Off-axis legs: full pace straight ahead, ~0.7 for a sidestep, sliding
@@ -32,7 +32,7 @@ pub(crate) fn drift_factor(desired: f32, facing: f32) -> f32 {
 /// not a formation wheeling.
 const DRIFT_TURN_RATE: f32 = 1.2;
 
-/// The unit's effective pace, degraded by fatigue (a spent unit "runs" at a
+/// The unit's effective pace, degraded by stamina (a spent unit "runs" at a
 /// walk). Attacks close at the double regardless of the ordered pace.
 pub(crate) fn pace_speed(tun: &Tunables, u: &Unit) -> f32 {
     // The charge burst overrides pace, but ONLY in the measured final
@@ -49,7 +49,7 @@ pub(crate) fn pace_speed(tun: &Tunables, u: &Unit) -> f32 {
     // class walks at ~base_speed (a horse walks about like a marching man), but a
     // fast class opens a big gap at the run and a huge one at the charge. (Scaling
     // the whole speed made cavalry "walk" at 4.4 m/s.)
-    let base = tun.base_speed + (top - tun.base_speed) * fatigue_capacity(u.fatigue) * u.pace_mult;
+    let base = tun.base_speed + (top - tun.base_speed) * stamina_factor(u.stamina) * u.pace_mult;
     // RAM DRAG: driving through a resisting crowd is braked by the
     // measured ENEMY counter-press, scaled by the unit's own measured
     // speed — the force balance that stops a trample. The pairwise
@@ -103,7 +103,7 @@ pub(crate) fn soldier_surge_speed(tun: &Tunables, u: &Unit) -> f32 {
     // pace_mult on the above-walk range only (matches pace_speed) — a slow class
     // still sprints from ~base_speed, a fast one sprints far harder.
     tun.base_speed
-        + (tun.surge_speed - tun.base_speed) * fatigue_capacity(u.fatigue) * drill * u.pace_mult
+        + (tun.surge_speed - tun.base_speed) * stamina_factor(u.stamina) * drill * u.pace_mult
 }
 
 /// Per-man top-speed ceiling DURING A CHARGE — the all-out final-approach burst,
@@ -114,7 +114,7 @@ pub(crate) fn soldier_surge_speed(tun: &Tunables, u: &Unit) -> f32 {
 pub(crate) fn soldier_charge_speed(tun: &Tunables, u: &Unit) -> f32 {
     let drill = 0.85 + 0.3 * u.training;
     tun.base_speed
-        + (tun.charge_speed - tun.base_speed) * fatigue_capacity(u.fatigue) * drill * u.pace_mult
+        + (tun.charge_speed - tun.base_speed) * stamina_factor(u.stamina) * drill * u.pace_mult
 }
 
 pub(crate) fn update_unit_motion(tun: &Tunables, u: &mut Unit, dt: f32, ground: f32) {
@@ -379,7 +379,7 @@ mod tests {
             pending_timer: 0.0,
             pending_total: 0.0,
             pace: Pace::Walk,
-            fatigue: 1.0,
+            stamina: 1.0,
             training: 0.5,
             team: 0,
             home_dir_y: -1.0,
@@ -401,6 +401,11 @@ mod tests {
             contact_unit: 0,
             quiet_ticks: 0,
             recent_casualties: 0.0,
+            lost_impact: 0,
+            lost_charge_melee: 0,
+            lost_grind_melee: 0,
+            lost_missile: 0,
+            lost_post_rout: 0,
             ammo: 0,
             fire_at_will: true,
             evade_auto: false,

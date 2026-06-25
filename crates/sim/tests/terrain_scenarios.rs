@@ -7,13 +7,13 @@ const SEED: u64 = 7;
 
 fn run_collect(sim: &mut Sim, seconds: f32, unit: usize) -> (f32, f32) {
     let mut min_cohesion = 1.0f32;
-    let mut min_fatigue = 1.0f32;
+    let mut min_stamina = 1.0f32;
     for _ in 0..(seconds / DT) as usize {
         sim.tick();
         min_cohesion = min_cohesion.min(sim.units[unit].cohesion);
-        min_fatigue = min_fatigue.min(sim.units[unit].fatigue);
+        min_stamina = min_stamina.min(sim.units[unit].stamina);
     }
-    (min_cohesion, min_fatigue)
+    (min_cohesion, min_stamina)
 }
 
 fn march_unit_over(seed: u64, terrain: Option<Terrain>) -> (f32, f32, Vec2) {

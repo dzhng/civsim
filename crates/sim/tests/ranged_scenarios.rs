@@ -192,7 +192,7 @@ fn archer_mirrors_grind_and_neither_side_routs_free() {
 #[test]
 fn the_line_pays_dearly_but_breaks_the_archers() {
     // The full arc of a frontal, unsupported assault on massed archery:
-    // the line crosses under fire and arrives BLOWN (fatigue ~0), bleeds
+    // the line crosses under fire and arrives BLOWN (stamina ~0), bleeds
     // to the fresh swords for a minute — and then weight tells, and the
     // archers are destroyed. Expensive, decisive, historical. (Sampling
     // only the first 30s after contact shows the blown-arrival slice and

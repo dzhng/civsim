@@ -464,12 +464,12 @@ impl Sim {
             // The arrow finds the horse, not the man.
             self.mount_health[victim] -= damage;
             if self.mount_health[victim] <= 0.0 {
-                self.kill(victim);
+                self.kill_with(victim, crate::combat::KillCause::Missile);
             }
         } else {
             self.health[victim] -= damage;
             if self.health[victim] <= 0.0 {
-                self.kill(victim);
+                self.kill_with(victim, crate::combat::KillCause::Missile);
             }
         }
     }
@@ -528,7 +528,7 @@ impl Sim {
                 // burst left in the legs, holding javelin range on a runner
                 // is suicide, so the standoff grows as the reserve drains.
                 let sp = v.frame_speed;
-                let tired = 12.0 * (1.0 - crate::movement::fatigue_capacity(u.fatigue));
+                let tired = 12.0 * (1.0 - crate::movement::stamina_factor(u.stamina));
                 // Break EARLY even from a slow walker: a screen that waits until
                 // the foe is at 24m loses its rear tail before it is at full
                 // flight (a hop-stop saw-tooth averages under the closing pace).

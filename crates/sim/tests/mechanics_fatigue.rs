@@ -1,6 +1,6 @@
-//! MECHANICAL invariants: fatigue saps a unit's RUN/CHARGE speed and its melee
+//! MECHANICAL invariants: stamina saps a unit's RUN/CHARGE speed and its melee
 //! COMBAT POWER (swing cadence). The drain itself — `combat_drain` while engaged,
-//! `run_drain` while running — is the existing fatigue ledger (fighting and
+//! `run_drain` while running — is the existing stamina ledger (fighting and
 //! sprinting both tire a unit); these pin that a SPENT unit measurably moves and
 //! fights weaker than a fresh one, so an over-committed attacker fades in a grind.
 //! Fatigue is held fixed each tick to isolate the coupling from the drain.
@@ -8,8 +8,8 @@
 use sim::{Pace, Sim, Tunables, UnitClassId, Vec2, DT};
 use std::f32::consts::FRAC_PI_2;
 
-/// Metres a Running unit covers in 8 s, held at a fixed fatigue.
-fn run_distance(fatigue: f32) -> f32 {
+/// Metres a Running unit covers in 8 s, held at a fixed stamina.
+fn run_distance(stamina: f32) -> f32 {
     let mut sim = Sim::new(
         Tunables {
             micro_rough: 0.0,
@@ -28,7 +28,7 @@ fn run_distance(fatigue: f32) -> f32 {
     sim.set_pace(u, Pace::Run);
     sim.set_move_order(u, Vec2::new(0.0, 200.0));
     for _ in 0..(8.0 / DT) as usize {
-        sim.units[u].fatigue = fatigue; // pin: isolate the speed coupling from drain
+        sim.units[u].stamina = stamina; // pin: isolate the speed coupling from drain
         sim.tick();
     }
     sim.units[u].centroid.y - y0
@@ -45,7 +45,7 @@ fn fatigue_saps_run_speed() {
     );
 }
 
-/// Kills a south attacker inflicts on a held north line in 40 s, at fixed fatigue.
+/// Kills a south attacker inflicts on a held north line in 40 s, at fixed stamina.
 fn kills_in_40s(att_fatigue: f32) -> usize {
     let mut sim = Sim::new(
         Tunables {
@@ -72,11 +72,11 @@ fn kills_in_40s(att_fatigue: f32) -> usize {
     // Press IN (Run): a fresh line drives to solid reach and trades; a spent one
     // both closes slower AND swings slower, so it lands fewer killing blows. (A
     // Walk approach barely reaches past the standoff and trades almost nothing —
-    // too gentle to read the fatigue effect; Run gives a real fight to measure.)
+    // too gentle to read the stamina effect; Run gives a real fight to measure.)
     sim.set_pace(att, Pace::Run);
     sim.set_attack_order(att, def);
     for _ in 0..(40.0 / DT) as usize {
-        sim.units[att].fatigue = att_fatigue; // pin the attacker's wind
+        sim.units[att].stamina = att_fatigue; // pin the attacker's wind
         sim.tick();
     }
     def_n0 - sim.units[def].alive_count

@@ -11,6 +11,11 @@ use crate::unit::OrderMode;
 
 /// Morale below this breaks the unit.
 const BREAK_AT: f32 = 0.18;
+/// Panic saturates: the casualty-rate that feeds the blood drain is capped here,
+/// so a burst (a charge dropping a swath in seconds) reels a unit instead of
+/// instantly shattering it. A steady grind sits well under this; only a shock hits
+/// it. Tuned so a charged line HOLDS through the impact into a grind.
+const MAX_CASUALTY_RATE: f32 = 0.35;
 /// Blood is the primary breaker. Coefficient on the casualty-rate drain. With
 /// the enemy-press / friend-support factors at their even-fight baseline, tuned
 /// so two equal lines grind to ~80% casualties before the loser's will breaks.
@@ -117,7 +122,13 @@ impl Sim {
             let alive_n = u.alive_count.max(1) as f32;
 
             // --- physical inputs ------------------------------------------
-            let casualty_rate = u.recent_casualties / alive_n; // per ~8s window
+            // Panic saturates: a unit can only break so fast. A charge that drops
+            // 50 men in two seconds spikes this rate enormously and would shatter
+            // the unit before it ever fights back — but real troops reel from a
+            // shock, they don't evaporate. Capping the rate lets a charged line
+            // HOLD through the impact into a grind (where it can answer), while a
+            // steady grind (rate well under the cap) is untouched.
+            let casualty_rate = (u.recent_casualties / alive_n).min(MAX_CASUALTY_RATE); // per ~8s window
             let missile_rate = u.recent_missiles / alive_n;
             let losing_push = u.losing_push;
 
@@ -288,7 +299,7 @@ impl Sim {
             // casualties that send a levy running (the tier knob).
             let discipline = 1.85 - 1.4 * u.training;
             let amp = (1.0 + (1.0 - u.cohesion))
-                * (1.0 + 0.5 * (1.0 - u.fatigue))
+                * (1.0 + 0.5 * (1.0 - u.stamina))
                 * if surrounded { 1.6 } else { 1.0 }
                 * discipline;
 

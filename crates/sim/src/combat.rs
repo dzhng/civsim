@@ -17,10 +17,23 @@
 
 use crate::class::{UnitClassId, Weapon};
 use crate::math::{dir, wrap_angle, Vec2};
-use crate::movement::fatigue_capacity;
+use crate::movement::stamina_factor;
 use crate::sim::Sim;
 use crate::tunables::DT;
 use crate::unit::OrderMode;
+
+/// Why a soldier died. Measurement only — lets tests split a unit's losses into
+/// the charge's bodily shock, the lance going in, the standing grind, and arrows,
+/// instead of one opaque kill total. `Scripted` is a hand-kill (tests/sandbox)
+/// and is tallied to no combat bucket.
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub enum KillCause {
+    Impact,
+    ChargeMelee,
+    GrindMelee,
+    Missile,
+    Scripted,
+}
 
 /// Alignment slack on top of arc/2 for striking the primary target.
 const AIM_TOLERANCE: f32 = 0.35;
@@ -45,7 +58,7 @@ const VICE_PIN: f32 = 1.0;
 const OBSTRUCT_FLOOR: f32 = 0.7;
 /// Out to here a blow comes side-on: evade degrades; behind it, a blow
 /// lands on a man facing the wrong way.
-const SIDE_ARC: f32 = 2.1;
+pub(crate) const SIDE_ARC: f32 = 2.1;
 /// Heavy shields work against a presented point too. Pikes are still fearsome
 /// because they strike first, from long reach, in a narrow front-facing hedge —
 /// not because a shielded man magically loses his shield block.
@@ -133,6 +146,8 @@ impl Sim {
         self.dmg_acc.resize(n, 0.0);
         self.mount_dmg_acc.clear();
         self.mount_dmg_acc.resize(n, 0.0);
+        self.dmg_from_charge.clear();
+        self.dmg_from_charge.resize(n, 0.0);
         self.push_acc.clear();
         self.push_acc.resize(2 * n, 0.0);
         let mut gang_rank = vec![0u16; n];
@@ -514,6 +529,9 @@ impl Sim {
                                 * hedge
                                 * DT
                                 * 6.0;
+                            // Charge-impale: a body run onto a braced point — its
+                            // whole wound is charge-driven (closing-speed scaled).
+                            self.dmg_from_charge[v] += dmg;
                             if to_center > weapon.reach {
                                 self.mount_dmg_acc[v] += dmg;
                             } else {
@@ -568,7 +586,7 @@ impl Sim {
             let pinned = (vice / VICE_PIN).clamp(0.0, 1.0);
             let obstruct = crowded * (OBSTRUCT_FLOOR + (1.0 - OBSTRUCT_FLOOR) * pinned);
             let arc_eff = weapon.arc / (1.0 + obstruct);
-            let capacity = fatigue_capacity(self.units[ui].fatigue);
+            let capacity = stamina_factor(self.units[ui].stamina);
             let interval =
                 weapon.attack_interval * (1.0 + 0.35 * obstruct) * (1.0 + 0.8 * (1.0 - capacity));
             self.attack_cd[i] = interval;
@@ -617,17 +635,28 @@ impl Sim {
                     self.positions[2 * v + 1] = np.y;
                 }
             }
+            // Label a melee kill charge vs grind by where the wound came from:
+            // if at least half the staged damage was charge-driven (lance still
+            // carrying, or a charge-impale) it is a charge kill, else the grind.
+            let melee_cause = {
+                let total = self.mount_dmg_acc[v] + self.dmg_acc[v];
+                if total > 0.0 && self.dmg_from_charge[v] * 2.0 >= total {
+                    KillCause::ChargeMelee
+                } else {
+                    KillCause::GrindMelee
+                }
+            };
             if self.mount_dmg_acc[v] > 0.0 {
                 self.mount_health[v] -= self.mount_dmg_acc[v];
                 if self.mount_health[v] <= 0.0 {
-                    self.kill(v);
+                    self.kill_with(v, melee_cause);
                     continue;
                 }
             }
             if self.dmg_acc[v] > 0.0 {
                 self.health[v] -= self.dmg_acc[v];
                 if self.health[v] <= 0.0 {
-                    self.kill(v);
+                    self.kill_with(v, melee_cause);
                 }
             }
         }
@@ -672,28 +701,24 @@ impl Sim {
         } else {
             0.25
         };
-        // CHARGE-STATE DEFENCE (mounted only): a horse's protection is MOVEMENT.
-        // While the charge still carries it, it's a fast, hard-to-hit half-tonne
-        // that rides through; once the charge is SPENT and it's a standing grind,
-        // the foot mob crowds in and hacks at the horse and rider it can no
-        // longer outrun — it can no longer DODGE (a stalled horse can't slip a
-        // blow); its shield still raises, but its evade falls to almost nothing. This is the one
-        // physical fact that lets cavalry WIN the charge (and ride down an exposed
-        // flank) yet LOSE a sustained grind to infantry it cannot break: the edge
-        // is the gallop, not the melee. Scales from full (carrying ≥ charge_min) to
-        // a floor (bogged ≤ charge_spent).
-        let def_scale = if self.mounted[victim] == 1 {
-            let adv = self.units[self.soldier_unit[victim] as usize].mass_advance;
-            let tun = &self.tun;
-            ((adv - tun.charge_spent_speed) / (tun.charge_min_speed - tun.charge_spent_speed))
-                .clamp(0.2, 1.0)
-        } else {
-            1.0
-        };
+        // (A horse's "charge protection" needs no special term: a moving horse is
+        // hard to hit because it isn't yet mobbed — low crush pressure → the
+        // pressure factor below keeps its evade high; a stalled horse is a mobbed
+        // horse — high pressure → evade already gone. The same physics that makes
+        // cavalry win the charge and lose the grind, measured ONCE, as pressure.)
+        // GUARD FATIGUE: a tiring man cannot keep his guard up. As the unit's
+        // stamina drains in a sustained grind both his shield (block, below) and
+        // his footwork (evade) lose effectiveness, falling toward guard_fatigue_floor
+        // when spent. This is what RESOLVES a long stalemate — fresh shielded lines
+        // block nearly everything, but a grind drains both sides until guards erode,
+        // blows land, and one breaks. Full early (stamina starts at 1.0), so short
+        // decisive fights are untouched; only the drawn-out grind opens up.
+        let guard = tun.guard_fatigue_floor
+            + (1.0 - tun.guard_fatigue_floor) * stamina_factor(self.units[uv].stamina);
         let evade = vstats.evade
             * seen
             * cohesion
-            * def_scale
+            * guard
             * (1.0 - self.pressure[victim] / 4.2).clamp(0.0, 1.0);
         if self.rng.chance(evade) {
             return;
@@ -732,7 +757,7 @@ impl Sim {
         let blocked = shielded
             && self
                 .rng
-                .chance(vstats.block * (0.5 + 0.5 * cohesion) * braced_thrust);
+                .chance(vstats.block * (0.5 + 0.5 * cohesion) * braced_thrust * guard);
 
         // Push: momentum through the weapon — a braced thruster hurls an
         // unbraced man back bodily; equal masses just rock each other.
@@ -752,34 +777,70 @@ impl Sim {
             return;
         }
 
-        // Damage: the rider only if the weapon's reach spans to him — he sits
-        // at the horse's center, a large target (~0.35m exposure) up top.
+        // Damage: the rider is PREFERRED — a foot soldier goes for the man, not the
+        // animal — but he lands on the rider only if his weapon physically reaches
+        // that high (the rider sits at the horse's center, ~0.35m exposed up top);
+        // else the blow falls on the horse. Pure reach geometry, no charge-state
+        // fudge: if a short blade can't reach a bogged rider, the answer is the foot
+        // closing the distance (separation physics), not a magic exposure bonus.
         let attacker_p = self.soldier_pos(attacker);
         let victim_p = self.soldier_pos(victim);
         let to_center = (victim_p - attacker_p).len() - self.radius[attacker] - 0.35;
+
+        let dmg = weapon.damage;
+        // For loss-attribution only: a wound from a mounted attacker still CARRYING
+        // his charge is the lance going in (charge kill); from a stalled horse or
+        // foot it is the standing grind. We weight this wound's charge-share by the
+        // attacker's charge state so the apply pass can label the killing blow.
+        if self.mounted[attacker] == 1 {
+            let adv = self.units[ua].mass_advance;
+            let a_carry = ((adv - tun.charge_spent_speed)
+                / (tun.charge_min_speed - tun.charge_spent_speed))
+                .clamp(0.0, 1.0);
+            self.dmg_from_charge[victim] += dmg * a_carry;
+        }
         // Stage the wound; it is applied (and the kill resolved) after the pass,
         // so a man mortally hit by a low-index foe still lands his simultaneous
         // strike this tick.
         if self.mounted[victim] == 1 && to_center > weapon.reach {
-            self.mount_dmg_acc[victim] += weapon.damage;
+            self.mount_dmg_acc[victim] += dmg;
         } else {
-            self.dmg_acc[victim] += weapon.damage;
+            self.dmg_acc[victim] += dmg;
         }
     }
 
     /// Public for scenario tests and sandbox tooling: drop a soldier dead
-    /// where he stands (bookkeeping included).
+    /// where he stands (bookkeeping included). A hand-kill is `Scripted` — it
+    /// counts in the casualty totals but in no combat-cause bucket.
     pub fn kill(&mut self, i: usize) {
+        self.kill_with(i, KillCause::Scripted);
+    }
+
+    /// Drop a soldier dead, recording WHY (for the per-unit loss-by-cause tally).
+    pub(crate) fn kill_with(&mut self, i: usize, cause: KillCause) {
         if self.alive[i] == 0 {
             return;
         }
         self.alive[i] = 0;
         self.stun[i] = 0.0; // a corpse is not also stunned (one state, not flags)
         self.target[i] = -1;
+        let routing = self.units[self.soldier_unit[i] as usize].routing;
         let u = &mut self.units[self.soldier_unit[i] as usize];
         u.alive_count = u.alive_count.saturating_sub(1);
         u.deaths_since_reform += 1;
         u.recent_casualties += 1.0;
+        match cause {
+            KillCause::Impact => u.lost_impact += 1,
+            KillCause::ChargeMelee => u.lost_charge_melee += 1,
+            KillCause::GrindMelee => u.lost_grind_melee += 1,
+            KillCause::Missile => u.lost_missile += 1,
+            KillCause::Scripted => {}
+        }
+        // A real (non-scripted) death after the unit has already broken is a
+        // ride-down, not decisive killing — tracked apart so tests can exclude it.
+        if routing && cause != KillCause::Scripted {
+            u.lost_post_rout += 1;
+        }
     }
 }
 

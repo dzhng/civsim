@@ -213,7 +213,7 @@ const PIKE: Weapon = Weapon {
 };
 
 const SIDE_SWORD: Weapon = Weapon {
-    reach: 1.0,
+    reach: 1.2,
     min_range: 0.0,
     arc: 1.2,
     attack_interval: 1.79,
@@ -221,8 +221,11 @@ const SIDE_SWORD: Weapon = Weapon {
     kind: WeaponKind::Standard,
 };
 
+// Reach floored at 1.2 (≈ the sword line): a short blade is still SHORT, but every
+// foot soldier can at least reach UP to a rider on the horse pressed against him —
+// without a reach this long the daggermen chip only the animal and never the man.
 const DAGGER: Weapon = Weapon {
-    reach: 0.8,
+    reach: 1.2,
     min_range: 0.0,
     arc: 1.0,
     attack_interval: 1.38,
@@ -386,7 +389,12 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             spacing: Vec2::new(1.8, 2.4),
             default_depth: 5,
             health: 1.5, // armoured rider: tougher than foot once a blow reaches him
-            mount_health: 5.0, // a horse is a lot of animal; short blades mostly chip at it
+            // The horse soaks ARROWS (most missiles hit the big animal, not the man);
+            // in MELEE it no longer makes cav tanky, because every foot weapon now
+            // reaches up to the 1.5-HP rider (the reach floor), so a bogged cav dies
+            // by its rider like anything else. Cavalry is S-tier through shock, speed
+            // and morale, not durability.
+            mount_health: 5.0,
             block: 0.4, // an armoured horseman's shield: strong frontal cover. Safe to raise now that
             // the lance has no dead zone — more block monotonically helps (see the test).
             evade: 0.12,

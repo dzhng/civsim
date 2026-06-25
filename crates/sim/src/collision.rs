@@ -46,7 +46,14 @@ impl Sim {
         self.body_pos.clear();
         self.body_r.clear();
         self.body_owner.clear();
+        self.impact_kill_used.resize(n, false);
         for i in 0..n {
+            // A charge's one-kill allowance refreshes the moment the horse stops
+            // carrying its charge — each fresh charge earns one kill, a bogged horse
+            // in a grind none (it isn't charging).
+            if self.units[self.soldier_unit[i] as usize].mass_advance <= tun.charge_spent_speed {
+                self.impact_kill_used[i] = false;
+            }
             if self.alive[i] == 0 {
                 continue;
             }
@@ -95,6 +102,8 @@ impl Sim {
             radius,
             alive,
             cur_weapon,
+            rng,
+            impact_kill_used,
             ..
         } = self;
         // Collision damage is applied after the pass (kill() needs &mut self).
@@ -306,18 +315,57 @@ impl Sim {
                                     // his feet; a loose man is bowled over), so no
                                     // extra pole/footing factor is needed.
                                     if momentum > tun.stun_momentum * w_i && stun[i] <= 0.0 {
-                                        let dv = momentum / w_i.max(0.1);
-                                        let knockback = units[uj].stats.knockback_mult;
-                                        let pool = if mounted[i] == 1 {
-                                            &mut mount_health[i]
+                                        let vstats = units[ui].stats;
+                                        // Can he see it coming? You dodge a charge you
+                                        // face; you're ridden down from behind.
+                                        let incoming = (-ny).atan2(-nx);
+                                        let aspect =
+                                            crate::math::wrap_angle(incoming - facings[i]).abs();
+                                        let (front, seen) = if aspect < crate::combat::FRONT_ARC {
+                                            (true, 1.0)
+                                        } else if aspect < crate::combat::SIDE_ARC {
+                                            (false, 0.6)
                                         } else {
-                                            &mut health[i]
+                                            (false, 0.25)
                                         };
-                                        *pool -= tun.impact_damage * knockback * dv;
-                                        if *pool <= 0.0 {
-                                            impact_kills.push(i); // killed — not stunned
+                                        // EVADE the charge: a nimble man throws himself
+                                        // clear — light high-evade troops slip a charge a
+                                        // pinned heavy block cannot. A clean dodge takes no
+                                        // wound and no fell.
+                                        if rng.chance(vstats.evade * seen) {
+                                            // sidestepped — only the push (already added)
                                         } else {
-                                            stun[i] = tun.stun_time; // survived — knocked down
+                                            let dv = momentum / w_i.max(0.1);
+                                            let knockback = units[uj].stats.knockback_mult;
+                                            // BLOCK: a raised front shield soaks the shock.
+                                            let block_mult = if front && rng.chance(vstats.block) {
+                                                tun.impact_block_mult
+                                            } else {
+                                                1.0
+                                            };
+                                            let dmg = tun.impact_damage * knockback * dv * block_mult;
+                                            let used = impact_kill_used[j];
+                                            let pool = if mounted[i] == 1 {
+                                                &mut mount_health[i]
+                                            } else {
+                                                &mut health[i]
+                                            };
+                                            // ONE kill per charger per charge — the shock is
+                                            // spent on the first man ridden down; a horse that
+                                            // already has its kill (or whose blow isn't lethal)
+                                            // only BOWLS the next over. This is what keeps a
+                                            // charge from MOWING a row — impact must not be
+                                            // that lethal. (Verified M-equivariant by the
+                                            // symmetry suite — the per-charger flag does not
+                                            // bias a mirrored clash at the tested scales.)
+                                            if !used && *pool - dmg <= 0.0 {
+                                                *pool -= dmg;
+                                                impact_kills.push(i);
+                                                impact_kill_used[j] = true;
+                                            } else {
+                                                *pool -= dmg.min((*pool - 0.05).max(0.0));
+                                                stun[i] = tun.stun_time;
+                                            }
                                         }
                                     }
                                     // The impactor RETAINS 0.6 of its closing
@@ -731,7 +779,7 @@ impl Sim {
         // The throws that broke bodies: bookkeeping after the borrow ends.
         self.impact_casualties += impact_kills.len() as u64;
         for &i in &impact_kills {
-            self.kill(i);
+            self.kill_with(i, crate::combat::KillCause::Impact);
         }
     }
 }

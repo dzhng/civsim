@@ -171,9 +171,9 @@ fn running_drains_fatigue_and_tired_units_slow_down() {
     run(&mut sim, 70.0);
     let tired = &sim.units[u];
     assert!(
-        tired.fatigue < 0.4,
+        tired.stamina < 0.4,
         "90s of running should drain heavily, got {}",
-        tired.fatigue
+        tired.stamina
     );
     assert!(
         tired.frame_speed < fresh_speed * 0.8,
@@ -198,7 +198,7 @@ fn re_forming_is_free_running_drains_and_rest_recovers() {
         }
     }
     run(&mut sim, 6.0); // the catch-up sprint fires and re-seats
-    let after_reform = sim.units[u].fatigue;
+    let after_reform = sim.units[u].stamina;
     assert!(
         after_reform > 0.99,
         "re-forming is stamina-free (the surge is a correction): {after_reform}"
@@ -206,14 +206,14 @@ fn re_forming_is_free_running_drains_and_rest_recovers() {
     sim.set_pace(u, sim::Pace::Run);
     sim.set_move_order(u, Vec2::new(0.0, 120.0));
     run(&mut sim, 30.0);
-    let ran = sim.units[u].fatigue;
+    let ran = sim.units[u].stamina;
     assert!(ran < 0.8, "a chosen run drains: {ran}");
     sim.units[u].move_target = None;
     run(&mut sim, 120.0);
-    let rested = sim.units[u].fatigue;
+    let rested = sim.units[u].stamina;
     assert!(
         rested > (ran + 0.2).min(0.995),
-        "rest should recover fatigue: {rested} after {ran}"
+        "rest should recover stamina: {rested} after {ran}"
     );
 }
 
@@ -255,7 +255,7 @@ fn running_disorganizes_walking_does_not() {
         sim.set_move_order(u, Vec2::new(420.0, 0.0));
         // Measure mid-march at the same DISTANCE covered, not the same time.
         while sim.units[u].anchor.x < 170.0 {
-            // mid-run, before fatigue ends it
+            // mid-run, before stamina ends it
             sim.tick();
         }
         sim.units[u].cohesion

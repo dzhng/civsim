@@ -39,19 +39,14 @@ pub struct Scenario {
 /// committed clash, so these are tuned to a fair single-unit meeting.
 pub fn duel_strength(c: UnitClassId) -> usize {
     use UnitClassId::*;
+    // Standardized: ONE infantry size, ONE cavalry size (= half infantry). Battle
+    // and campaign use the same ratio at 2.5x (see battle::unit_size). Artillery is
+    // a siege CREW, not a line unit — its own small number. (More size variations
+    // can come later; for now two sizes keeps the whole economy legible.)
     match c {
-        HeavySword => 240,
-        LightSpear => 220,
-        LongSwords => 190,
-        Phalanx => 240,
-        Archers => 140,
-        Skirmishers => 140,
-        ShockCavalry => 120,
-        HorseArchers => 100,
+        ShockCavalry | HorseArchers => 120,
         ArtilleryCrew => 40,
-        Peasant => 300,
-        LightSword => 220,
-        HeavySpear => 240,
+        _ => 240,
     }
 }
 

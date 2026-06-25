@@ -13,7 +13,7 @@ pub use campaign_bind::*;
 
 /// Floats per unit in the unit_info array:
 /// [anchor_x, anchor_y, facing, speed, cohesion, disorder, team, count,
-///  fatigue, pace, target_x, target_y, has_target, class, order_delay_frac,
+///  stamina, pace, target_x, target_y, has_target, class, order_delay_frac,
 ///  alive_count, engaged, at_ease, charge (0 off / 1 armed / 2 charging), ammo,
 ///  morale, routing, final_facing, has_final_facing, mode (0 move / 1 attack /
 ///  2 disengage), pursue, evade_auto, waiting, compressed, weapon_pref,
@@ -484,7 +484,7 @@ impl Game {
                 u.disorder,
                 u.team as f32,
                 u.count as f32,
-                u.fatigue,
+                u.stamina,
                 // Effective: an attack closes at the double, and the HUD
                 // should say so even if the ordered pace is a walk.
                 if u.effective_pace() == Pace::Walk {

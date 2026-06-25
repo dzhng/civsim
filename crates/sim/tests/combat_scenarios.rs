@@ -599,9 +599,9 @@ fn combat_drains_stamina() {
     sim.set_attack_move_order(a, Vec2::new(0.0, 12.0));
     run(&mut sim, 60.0);
     assert!(
-        sim.units[b].fatigue < 0.9,
-        "even the defender's arms tire: fatigue {}",
-        sim.units[b].fatigue
+        sim.units[b].stamina < 0.9,
+        "even the defender's arms tire: stamina {}",
+        sim.units[b].stamina
     );
     let _ = a;
 }

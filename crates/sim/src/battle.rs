@@ -9,20 +9,15 @@ use crate::sim::Sim;
 use UnitClassId::*;
 
 /// Soldiers per unit by class (data, freely tunable).
+/// Battle/campaign soldier counts. INDEPENDENT of the test bench
+/// (`balance::duel_strength`) ON PURPOSE: the real game can retune these later
+/// (e.g. inf 800 / cav 200) WITHOUT moving any balance test, which hardcodes a
+/// stable 2:1 inf:cav bench. Two separate configs, never derived from each other.
 pub fn unit_size(class: UnitClassId) -> usize {
     match class {
-        HeavySword => 1280,
-        LightSpear => 880,
-        LongSwords => 360,
-        Phalanx => 1280,
-        Archers => 480,
-        Skirmishers => 360,
-        ShockCavalry => 280,
-        HorseArchers => 240,
-        ArtilleryCrew => 80,
-        Peasant => 1400, // cheap: they come in droves
-        LightSword => 880,
-        HeavySpear => 1280,
+        ShockCavalry | HorseArchers => 300,
+        ArtilleryCrew => 100,
+        _ => 600,
     }
 }
 
@@ -266,23 +261,8 @@ pub fn setup_duel(sim: &mut Sim, a: UnitClassId, b: UnitClassId) {
     // The same compact open field as the sandboxes — without this the duel
     // runs on the default terrain and the camera frames an ocean of grass.
     sim.terrain = Terrain::flat(200, 150, 4.0, Vec2::new(-400.0, -300.0));
-    let duel_count = |c: UnitClassId| -> usize {
-        use UnitClassId::*;
-        match c {
-            HeavySword => 240,
-            LightSpear => 220,
-            LongSwords => 190, // a full line unit, not a small elite (see balance::duel_strength)
-            Phalanx => 240,
-            Archers => 140,
-            Skirmishers => 140,
-            ShockCavalry => 120,
-            HorseArchers => 100,
-            ArtilleryCrew => 40,
-            Peasant => 300,
-            LightSword => 220,
-            HeavySpear => 240,
-        }
-    };
+    // One canonical duel bench — the same numbers the balance matrix uses.
+    let duel_count = crate::balance::duel_strength;
     let ua = sim.spawn_class(Vec2::new(0.0, -90.0), FRAC_PI_2, duel_count(a), a, 0);
     let ub = sim.spawn_class(Vec2::new(0.0, 90.0), -FRAC_PI_2, duel_count(b), b, 1);
     // A duel is a COMMITTED clash: both advance at the run (the matrix

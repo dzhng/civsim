@@ -26,14 +26,14 @@ pub struct Tunables {
     /// while running or wheeling — the surge is a last-ditch correction,
     /// not a constant tidying force.
     pub surge_err_threshold: f32,
-    /// Unit fatigue drained per second while running (~90 s to empty).
+    /// Unit stamina drained per second while running (~90 s to empty).
     /// (Surging itself is drain-free: it is a CORRECTION the controller
     /// orders, not a pace anyone chose — taxing it punished units for
     /// being jostled, and churny motion like kiting paid double.)
     pub run_drain: f32,
-    /// Fatigue recovered per second at rest (~4 min for a full bar).
+    /// Stamina recovered per second at rest (~4 min for a full bar).
     pub rest_recover: f32,
-    /// Fatigue drained per second of fighting fully resistive ground
+    /// Stamina drained per second of fighting fully resistive ground
     /// (scaled by mean (1 - ground speed) over moving soldiers).
     pub terrain_drain: f32,
     /// Formation turn rate at full cohesion (rad/s).
@@ -184,14 +184,25 @@ pub struct Tunables {
     /// fells you — the impulse, once per knockdown. Braced, backed men
     /// who keep their feet keep their bones; men bumping men just fall.
     pub impact_damage: f32,
+    /// A charge taken on a raised front shield does this fraction of its impact
+    /// wound — the brace/shield soaks the shock. Evade is separate (a clean dodge
+    /// takes no wound); this is for the man who stands and catches it.
+    pub impact_block_mult: f32,
     /// Micro-terrain strength: 1 = full stumble (speed x0.6 inside a
     /// disturbance), 0 = parade ground (tests that need a smooth field).
     pub micro_rough: f32,
     /// Displacement imparted by a landed or blocked strike, scaled by the
     /// attacker/defender effective-mass ratio.
     pub hit_push: f32,
-    /// Unit fatigue per second when fully engaged in melee.
+    /// Unit stamina per second when fully engaged in melee.
     pub combat_drain: f32,
+    /// How far a SPENT man's guard (block + evade) falls as he tires: at full
+    /// stamina his guard is unscaled, at empty it is multiplied by this floor.
+    /// This is what RESOLVES a long grind — fresh shielded lines block nearly
+    /// everything, but a sustained stalemate drains both sides until guards erode,
+    /// blows land, and one breaks. Short, decisive fights are untouched (stamina
+    /// is still full in the first ~15s). Below 1.0 = tiring opens the guard.
+    pub guard_fatigue_floor: f32,
     /// "At ease" range (m): a unit with no living, non-routing enemy nearer
     /// than this is at ease — it recovers morale (see morale.rs), and the
     /// renderer reads the same range to relax weapon posture (pikes up). Inside
@@ -232,7 +243,7 @@ pub struct Tunables {
     /// (hysteresis): a plow grinding through a thin line keeps its burst,
     /// a mutual impact that stops dead loses it within a stride.
     pub charge_spent_speed: f32,
-    /// Fatigue per second while charging.
+    /// Stamina per second while charging.
     pub charge_drain: f32,
     /// Master switch (tests isolating combat mechanics turn it off).
     pub morale_enabled: bool,
@@ -297,9 +308,11 @@ impl Default for Tunables {
             trample_recover: 0.4,
             impact_push: 0.2,
             impact_damage: 0.120,
+            impact_block_mult: 0.4,
             micro_rough: 1.0,
             hit_push: 0.3,
             combat_drain: 1.0 / 50.0,
+            guard_fatigue_floor: 0.4,
             at_ease_range: 60.0,
             idle_settle_damp: 0.5,
         }

@@ -235,9 +235,12 @@ fn a_frontal_charge_bloodies_the_infantry_even_when_repulsed() {
         "heavy survivors vs a frontal charge: {:.2}",
         agg.surv[1].mean
     );
+    // Re-derived after the impact cap + charge evade/block: the charge is a touch
+    // less murderous (it no longer multi-kills), so the bloodying floor relaxes a
+    // hair — but a repulsed charge must still cost the infantry real blood.
     assert!(
-        agg.surv[1].mean <= 0.75,
-        "a repulsed charge must still bloody the infantry: heavy surv {:.0}% (want <=75%)",
+        agg.surv[1].mean <= 0.82,
+        "a repulsed charge must still bloody the infantry: heavy surv {:.0}% (want <=82%)",
         agg.surv[1].mean * 100.0,
     );
 }

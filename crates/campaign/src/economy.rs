@@ -448,32 +448,6 @@ pub fn build(st: &mut CampaignState, node: NodeId, kind: BuildKind, f: FactionId
     true
 }
 
-/// Raise a watchtower on a junction in friendly territory. Paid up front.
-pub fn build_outpost(map: &WorldMap, st: &mut CampaignState, node: NodeId, f: FactionId) -> bool {
-    let Some(n) = map.nodes.get(node as usize) else {
-        return false;
-    };
-    if n.kind != NodeKind::Junction || st.outposts.contains_key(&node) {
-        return false;
-    }
-    if territory_of(map, st, Loc::Node(node)) != Some(f) {
-        return false;
-    }
-    let fac = &mut st.factions[f as usize];
-    if fac.treasury < tun::OUTPOST_COST {
-        return false;
-    }
-    fac.treasury -= tun::OUTPOST_COST;
-    st.outposts.insert(
-        node,
-        Outpost {
-            owner: f,
-            build_ticks_left: tun::OUTPOST_BUILD_TICKS,
-        },
-    );
-    true
-}
-
 /// Split entries out of an army onto a free adjacent tile.
 pub fn split(map: &WorldMap, st: &mut CampaignState, army: ArmyId, entries: &[usize]) -> bool {
     let Some(a) = st.armies.get(army as usize) else {
@@ -531,15 +505,14 @@ pub fn split(map: &WorldMap, st: &mut CampaignState, army: ArmyId, entries: &[us
 
 /// A garrisoned city challenged by a nearby hostile fields its garrison as a
 /// temporary army on the city node (blocking it), so the ordinary encounter
-/// machinery fights the assault. It folds back into the city afterward.
-/// V1 cut: if a friendly field army already stands on the node, it alone
-/// defends — the garrison joins the defense in a later milestone.
+/// machinery fights the assault. It folds back into the city afterward. If a
+/// friendly field army already stands on the node, that field army blocks the
+/// sortie.
 pub fn garrison_sorties(map: &WorldMap, st: &mut CampaignState) {
     // Which garrisoned cities have a hostile in contact? Scan armies → the nodes
     // each one stands on or touches (cheap), instead of every city × every army
-    // every tick. `occupied` mirrors the old node-taken test; `threatened` is a
-    // BTreeSet so the sortie loop below runs in node order — same deterministic
-    // army-id assignment as the old city-major scan.
+    // every tick. `threatened` is a BTreeSet so sortie army ids are assigned in
+    // deterministic node order.
     let mut occupied: std::collections::BTreeSet<NodeId> = std::collections::BTreeSet::new();
     let mut threatened: std::collections::BTreeSet<NodeId> = std::collections::BTreeSet::new();
     for a in &st.armies {

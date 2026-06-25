@@ -11,40 +11,26 @@ import { TerrainField } from './terrain';
 import { Territory } from './territory';
 import { Terrain3D } from './terrain3d';
 import { Allegiance } from './status';
+import { installCampaignDebugApi, markCampaignReady } from './debugApi';
+import {
+  armyPanelHtml,
+  campaignDomHtml,
+  cityPanelHtml,
+  diplomacyHtml,
+  roadPanelHtml,
+  type ArmyRosterRow,
+  type CityDetail,
+  type DiplomacyAction,
+  type DiplomacyRow,
+} from './panels';
+import { readCampaignViews, type ArmyView, type CityView } from './views';
 
-export const ARMY_STRIDE = 21; // 12 base + 9 per-class soldier counts
-const CITY_STRIDE = 4;
 /** Campaign ticks per real second at 1x (one tick = one campaign minute).
- * 60 = one game-hour per real second: at the old 10 an army crawled a few
- * px/minute on screen. Everything is tick-driven (movement, economy, AI), so
- * raising this fast-forwards the whole world in lockstep — balance ratios and
- * the 1x/3x/10x labels stay honest. */
+ * 60 = one game-hour per real second. Everything is tick-driven (movement,
+ * economy, AI), so fast-forward keeps the campaign world in lockstep. */
 const TICKS_PER_SEC = 60;
 const SPEEDS = [1, 3, 10];
 const SAVE_KEY = 'campaign-save';
-
-export interface ArmyView {
-  id: number;
-  x: number;
-  y: number;
-  faction: number;
-  soldiers: number;
-  stance: number;
-  pieKind: number;
-  pieFrac: number;
-  marching: boolean;
-  encounter: number;
-  moraleCap: number;
-  mine: boolean;
-  /** soldiers per class (index = UnitClassId), for the 3D army marker */
-  roster: number[];
-}
-
-export interface CityView {
-  owner: number;
-  garrison: number;
-  queue: number;
-}
 
 export interface CampaignConfig {
   wasm: InitOutput;
@@ -53,6 +39,21 @@ export interface CampaignConfig {
   onExit: () => void;
   /** Hand a battle Game to the battle scene; call done() when it ends. */
   onBattle: (game: Game, done: () => void) => void;
+}
+
+interface EncounterSide {
+  faction: number;
+  soldiers: number;
+  garrison: boolean;
+}
+
+interface EncounterInfo {
+  player_faction: number;
+  attacker: EncounterSide;
+  defender: EncounterSide;
+  no_retreat: [boolean, boolean];
+  reinforcements: number;
+  ambush: boolean;
 }
 
 export class CampaignScene implements Scene {
@@ -91,7 +92,8 @@ export class CampaignScene implements Scene {
   private armies: ArmyView[] = [];
   private cities = new Map<number, CityView>();
   private roadLevels: Uint8Array = new Uint8Array(0);
-  private outposts: { node: number; owner: number; built: boolean }[] = [];
+  private stackUnitCap = 1;
+  private recruitClasses: string[] = [];
   private spotPos: [number, number][] = [];
   private modal: HTMLDivElement | null = null;
   private autoResolving = false;
@@ -127,8 +129,11 @@ export class CampaignScene implements Scene {
     this.wireInput(this.ac.signal);
     this.last = performance.now();
     this.refreshViews();
+    if (this.recruitClasses.length === 0) {
+      this.recruitClasses = JSON.parse(this.cfg.campaign.unit_class_names_json()) as string[];
+    }
     // Debug/verify hook (mirrors the battle scene's window.__game).
-    (window as any).__campaign = {
+    installCampaignDebugApi({
       tick: (n: number) => {
         this.cfg.campaign.tick(n);
         this.refreshViews();
@@ -196,12 +201,11 @@ export class CampaignScene implements Scene {
         for (let i = 3; i < t.rgba.length; i += 4) if (t.rgba[i] > 0) filled++;
         return { filled, total: t.rgba.length / 4, labels: t.labels };
       },
-    };
-    (window as any).__campaignReady = true;
+    });
   }
 
   exit() {
-    (window as any).__campaignReady = false;
+    markCampaignReady(false);
     this.ac?.abort();
     this.ac = null;
     this.canvas.style.display = 'none';
@@ -239,14 +243,14 @@ export class CampaignScene implements Scene {
       this.t3d!.clampCam(this.cam); // zoom floor = aspect-fill, pan inside the map
       if (this.fogOfWar) this.t3d!.setVision(this.visionSources());
       // 3D models under the floating banners; fogged enemies are dropped.
-      this.t3d!.setArmies(this.armies, this.cam.scale, this.selected, this.hover, this.fogOfWar);
+      this.t3d!.setArmies(this.armies, this.cam.scale, this.stackUnitCap, this.selected, this.hover, this.fogOfWar);
       this.t3d!.setSelectedCity(this.selectedCity);
       this.t3d!.draw(this.cam, this.factionView, this.fogOfWar);
       const sel = this.armies.find((a) => a.id === this.selected && a.mine);
       const hints: [number, number][] = sel
         ? this.spotPos.filter(([x, y]) => Math.hypot(x - sel.x, y - sel.y) < 12)
         : [];
-      this.renderer.draw(this.cam, this.armies, this.cities, this.selected, null, this.territory!.labels, this.roadLevels, this.outposts, hints, this.factionView, this.fogOfWar, this.territory!.borders, this.factionStatus);
+      this.renderer.draw(this.cam, this.armies, this.cities, this.selected, null, this.territory!.labels, this.roadLevels, hints, this.factionView, this.fogOfWar, this.territory!.borders, this.factionStatus);
     }
     this.updateHud();
   }
@@ -254,46 +258,17 @@ export class CampaignScene implements Scene {
   // ---- state out of wasm ----------------------------------------------------
 
   private refreshViews() {
-    const c = this.cfg.campaign;
-    const mem = this.cfg.wasm.memory.buffer;
-    const an = c.army_count();
-    const af = new Float32Array(mem, c.army_info_ptr(), an * ARMY_STRIDE);
-    this.armies = [];
-    for (let i = 0; i < an; i++) {
-      const o = i * ARMY_STRIDE;
-      this.armies.push({
-        id: af[o],
-        x: af[o + 1],
-        y: af[o + 2],
-        faction: af[o + 3],
-        soldiers: af[o + 4],
-        stance: af[o + 5],
-        pieKind: af[o + 6],
-        pieFrac: af[o + 7],
-        marching: af[o + 8] > 0,
-        encounter: af[o + 9],
-        moraleCap: af[o + 10],
-        mine: af[o + 11] > 0,
-        roster: Array.from(af.subarray(o + 12, o + 21)),
-      });
-    }
-    this.roadLevels = new Uint8Array(mem, c.road_levels_ptr(), this.cfg.data.map.edges.length);
-    this.outposts = JSON.parse(c.outposts_json());
-    const cn = c.city_count();
-    const cf = new Float32Array(mem, c.city_info_ptr(), cn * CITY_STRIDE);
-    this.cities.clear();
-    let hash = 0;
-    for (let i = 0; i < cn; i++) {
-      const o = i * CITY_STRIDE;
-      this.cities.set(cf[o], { owner: cf[o + 1], garrison: cf[o + 2], queue: cf[o + 3] });
-      hash = (Math.imul(hash, 31) + cf[o] * 7 + cf[o + 1]) | 0;
-    }
+    const views = readCampaignViews(this.cfg.campaign, this.cfg.wasm, this.cfg.data.map.edges.length);
+    this.armies = views.armies;
+    this.cities = views.cities;
+    this.roadLevels = views.roadLevels;
+    this.stackUnitCap = views.stackUnitCap;
     // Keep allegiance fresh for the 2D label icons (cheap; the renderer reads
     // it every frame). City/army FLAGS are faction-coloured, so they only need
     // a recolour when a town actually changes hands.
     this.refreshFactionStatus();
-    if (hash !== this.ownerHash && this.territory && this.t3d) {
-      this.ownerHash = hash;
+    if (views.ownerHash !== this.ownerHash && this.territory && this.t3d) {
+      this.ownerHash = views.ownerHash;
       this.territory.rebuild(this.cities);
       this.t3d.updateTerritory(this.territory.rgba);
       this.t3d.setCityOwners(this.cities);
@@ -421,11 +396,11 @@ export class CampaignScene implements Scene {
 
   private showBattleModal(eid: number) {
     const c = this.cfg.campaign;
-    const info = JSON.parse(c.encounter_json(eid));
+    const info = JSON.parse(c.encounter_json(eid)) as EncounterInfo | null;
     if (!info) return;
     const my = info.player_faction;
     const facName = (f: number) => this.cfg.data.map.factions[f]?.name ?? `faction ${f}`;
-    const side = (s: any, label: string, noRetreat: boolean) => `
+    const side = (s: EncounterSide, label: string, noRetreat: boolean) => `
       <div class="cmp-side">
         <h3>${label}${s.garrison ? ' (garrison)' : ''}</h3>
         <div>${facName(s.faction)}</div>
@@ -522,54 +497,7 @@ export class CampaignScene implements Scene {
     const ui = document.createElement('div');
     ui.id = 'campaign-ui';
     ui.style.display = 'none';
-    ui.innerHTML = `
-      <style>
-        #campaign-ui .cmp-top { position:fixed;top:0;left:0;right:0;display:flex;gap:14px;align-items:center;
-          padding:6px 12px;background:rgba(12,16,22,0.85);color:#e8e0cc;font:13px system-ui;z-index:10; }
-        #campaign-ui button { background:#2a3242;color:#e8e0cc;border:1px solid #4a5468;border-radius:3px;
-          padding:3px 10px;cursor:pointer;font:12px system-ui; }
-        #campaign-ui button.on { background:#5a6a8a; }
-        #campaign-ui .cmp-panel { position:fixed;right:10px;top:44px;width:230px;background:rgba(12,16,22,0.9);
-          color:#e8e0cc;font:12px system-ui;padding:10px;border-radius:4px;z-index:10; }
-        #campaign-ui .cmp-modal { position:fixed;inset:0;background:rgba(0,0,0,0.55);display:flex;
-          align-items:center;justify-content:center;z-index:20; }
-        #campaign-ui .cmp-box { background:#161c26;color:#e8e0cc;padding:22px 30px;border-radius:6px;
-          font:14px system-ui;text-align:center;min-width:380px; }
-        #campaign-ui .cmp-sides { display:flex;gap:30px;justify-content:center;margin:12px 0; }
-        #campaign-ui .cmp-warn { color:#ff7a6a;font-weight:bold;margin-top:6px; }
-        #campaign-ui .cmp-actions { display:flex;gap:12px;justify-content:center;margin-top:10px; }
-        #campaign-ui .cmp-actions button { font-size:15px;padding:8px 22px; }
-        #campaign-ui .cmp-diplo-row { display:flex;flex-wrap:wrap;align-items:center;gap:6px;
-          margin:5px 0;padding:6px;border-radius:3px;background:rgba(255,255,255,0.05); }
-        #campaign-ui .cmp-swatch { width:12px;height:12px;border-radius:2px;flex:none;
-          box-shadow:0 0 0 1px rgba(0,0,0,0.4); }
-        #campaign-ui .cmp-rel { font-size:9px;font-weight:bold;text-transform:uppercase;
-          letter-spacing:0.5px;padding:1px 5px;border-radius:2px; }
-        #campaign-ui .cmp-rel.war { background:#5a2330;color:#ff9a8a; }
-        #campaign-ui .cmp-rel.peace { background:#2a3a4a;color:#9ec5e8; }
-        #campaign-ui .cmp-rel.alliance { background:#2a4a32;color:#9ee8a8; }
-        #campaign-ui .cmp-pow { opacity:0.6;font-size:11px; }
-        #campaign-ui .cmp-diplo-acts { display:flex;gap:4px;margin-top:2px;flex-wrap:wrap;flex-basis:100%; }
-        #campaign-ui .cmp-diplo-acts button { font-size:11px;padding:2px 7px; }
-      </style>
-      <div class="cmp-top">
-        <span id="cmp-date">Day 1</span>
-        <span id="cmp-gold">0 gold</span>
-        <button id="cmp-pause">⏸</button>
-        <button data-speed="0">1×</button>
-        <button data-speed="1">3×</button>
-        <button data-speed="2">10×</button>
-        <button id="cmp-factions" title="Toggle faction (political) view — V">🗺 Factions</button>
-        <button id="cmp-fog" title="Toggle fog of war — F">🌫 Fog</button>
-        <button id="cmp-diplo-btn">⚑ Diplomacy</button>
-        <span style="flex:1"></span>
-        <button id="cmp-save">Save</button>
-        <button id="cmp-exit">Menu</button>
-      </div>
-      <div class="cmp-panel" id="cmp-army" style="display:none"></div>
-      <div class="cmp-panel" id="cmp-city" style="display:none;top:auto;bottom:10px;"></div>
-      <div class="cmp-panel" id="cmp-diplomacy"
-        style="display:none;left:10px;right:auto;top:44px;width:300px;max-height:84vh;overflow:auto;"></div>`;
+    ui.innerHTML = campaignDomHtml();
     document.body.appendChild(ui);
     ui.querySelector('#cmp-pause')!.addEventListener('click', () => (this.paused = !this.paused));
     ui.querySelectorAll<HTMLButtonElement>('button[data-speed]').forEach((b) =>
@@ -616,54 +544,25 @@ export class CampaignScene implements Scene {
     if (json === this.diploJson) return; // unchanged — keep the live DOM/listeners
     this.diploJson = json;
     const panel = this.ui.querySelector('#cmp-diplomacy') as HTMLDivElement;
-    const list = JSON.parse(json) as Array<{
-      id: number;
-      name: string;
-      color: [number, number, number];
-      is_player: boolean;
-      relation: string;
-      cities: number;
-      soldiers: number;
-    }>;
-    const rows = list
-      .map((f) => {
-        const col = `rgb(${f.color[0]},${f.color[1]},${f.color[2]})`;
-        const pow = `<span class="cmp-pow">${f.cities}🏛 ${f.soldiers}⚔</span>`;
-        if (f.is_player) {
-          return `<div class="cmp-diplo-row"><span class="cmp-swatch" style="background:${col}"></span>
-            <b>${f.name}</b> <span class="cmp-pow">(you)</span><span style="flex:1"></span>${pow}</div>`;
-        }
-        const acts: string[] = [];
-        if (f.relation === 'war') acts.push(btn('make_peace', f.id, 'Sue for peace'));
-        if (f.relation === 'peace') {
-          acts.push(btn('declare_war', f.id, 'Declare war'));
-          acts.push(btn('propose_alliance', f.id, 'Propose alliance'));
-        }
-        if (f.relation === 'alliance') acts.push(btn('break_alliance', f.id, 'Break alliance'));
-        acts.push(btn('gift_gold', f.id, 'Gift 200g'));
-        return `<div class="cmp-diplo-row">
-          <span class="cmp-swatch" style="background:${col}"></span>
-          <b>${f.name}</b> <span class="cmp-rel ${f.relation}">${f.relation}</span>
-          <span style="flex:1"></span>${pow}
-          <div class="cmp-diplo-acts">${acts.join('')}</div>
-        </div>`;
-      })
-      .join('');
-    panel.innerHTML = `<b>Diplomacy</b>${rows}`;
+    const list = JSON.parse(json) as DiplomacyRow[];
+    panel.innerHTML = diplomacyHtml(list);
+    const actions: Record<DiplomacyAction, (other: number) => boolean> = {
+      declare_war: (other) => this.cfg.campaign.declare_war(other),
+      make_peace: (other) => this.cfg.campaign.make_peace(other),
+      propose_alliance: (other) => this.cfg.campaign.propose_alliance(other),
+      break_alliance: (other) => this.cfg.campaign.break_alliance(other),
+      gift_gold: (other) => this.cfg.campaign.gift_gold(other, 200),
+    };
     panel.querySelectorAll<HTMLButtonElement>('button[data-act]').forEach((b) =>
       b.addEventListener('click', () => {
         const other = Number(b.dataset.f);
-        const c = this.cfg.campaign as unknown as Record<string, (...a: number[]) => boolean>;
-        if (b.dataset.act === 'gift_gold') c.gift_gold(other, 200);
-        else c[b.dataset.act!](other);
+        const act = b.dataset.act as DiplomacyAction | undefined;
+        if (act) actions[act](other);
         this.refreshViews();
         this.updateDiplomacyPanel();
       }),
     );
 
-    function btn(act: string, f: number, label: string) {
-      return `<button data-act="${act}" data-f="${f}">${label}</button>`;
-    }
   }
 
   private updateHud() {
@@ -687,18 +586,11 @@ export class CampaignScene implements Scene {
       panel.style.display = 'none';
       return;
     }
-    const roster = JSON.parse(this.cfg.campaign.army_roster_json(this.selected));
+    const roster = JSON.parse(this.cfg.campaign.army_roster_json(this.selected)) as ArmyRosterRow[] | null;
     if (!roster) {
       panel.style.display = 'none';
       return;
     }
-    // checkbox index = roster index (split takes a bitmask over them)
-    const rows = roster
-      .map((r: any, i: number) =>
-        r.count > 0
-          ? `<div><label><input type="checkbox" data-entry="${i}"> ${r.class}: ${r.count}/${r.max} (morale ${Math.round(r.morale_cap * 100)}%)</label></div>`
-          : '')
-      .join('');
     const me = this.armies.find((a) => a.id === this.selected);
     // merge candidate: another of my halted armies on the same/adjacent tile
     const buddy = me
@@ -708,13 +600,7 @@ export class CampaignScene implements Scene {
     const spotIdx = me
       ? this.spotPos.findIndex(([x, y]) => Math.hypot(x - me.x, y - me.y) < 2.6)
       : -1;
-    const ambushLabel = me?.stance === 3 ? 'Hidden' : me?.stance === 2 ? 'Settling…' : 'Ambush';
-    panel.innerHTML = `<b>Army ${this.selected}</b>${rows}<div style="margin-top:6px">
-      <button id="cmp-halt">Halt</button>
-      <button id="cmp-camp">${me?.stance === 1 ? 'Camped' : 'Camp'}</button>
-      ${spotIdx >= 0 || (me && me.stance >= 2 && me.stance <= 3) ? `<button id="cmp-ambush" ${me!.stance >= 2 ? 'disabled' : ''}>${ambushLabel}</button>` : ''}
-      <button id="cmp-split">Split</button>
-      ${buddy ? `<button id="cmp-merge">Merge ${buddy.id}</button>` : ''}</div>`;
+    panel.innerHTML = armyPanelHtml(this.selected, roster, me, buddy, spotIdx);
     panel.style.display = 'block';
     panel.querySelector('#cmp-halt')?.addEventListener('click', () => {
       this.cfg.campaign.order_halt(this.selected);
@@ -753,32 +639,12 @@ export class CampaignScene implements Scene {
   private openCityPanel(node: number) {
     this.selectedCity = node; // the green ring marks the open settlement
     const panel = this.ui.querySelector('#cmp-city') as HTMLDivElement;
-    const n = this.cfg.data.map.nodes[node];
     const c = this.cities.get(node);
     if (!c) return;
     const mineCity = this.cfg.data.map.factions[c.owner]?.playable !== undefined && c.owner === this.playerFaction();
-    const classes = ['HeavySword', 'LightSpear', 'LongSwords', 'Phalanx', 'Archers', 'Skirmishers', 'ShockCavalry', 'HorseArchers', 'ArtilleryCrew', 'Peasant', 'LightSword', 'HeavySpear'];
-    const recruits = mineCity
-      ? `<div style="margin-top:6px">${classes
-          .map((cl, i) => `<button data-recruit="${i}" title="${cl}">${cl.replace(/[a-z]/g, '')}</button>`)
-          .join(' ')}</div>`
-      : '';
-    const detail = JSON.parse(this.cfg.campaign.city_json(node));
-    const buildRow = (kind: number, name: string, lvl: number, costs: number[]) => {
-      if (detail.building) {
-        return detail.building === name.toLowerCase()
-          ? `<div>${name} L${lvl} — building, ${Math.ceil(detail.build_ticks_left / 1440)}d left</div>`
-          : `<div>${name} L${lvl}</div>`;
-      }
-      return lvl < 2 && mineCity
-        ? `<div>${name} L${lvl} <button data-build="${kind}">+ (${costs[lvl]}g)</button></div>`
-        : `<div>${name} L${lvl}</div>`;
-    };
-    const buildings = detail
-      ? buildRow(0, 'Market', detail.market_lvl, [200, 300]) + buildRow(1, 'Barracks', detail.barracks_lvl, [250, 400])
-      : '';
-    panel.innerHTML = `<b>${n.name}</b> (tier ${n.tier}) — ${this.cfg.data.map.factions[c.owner]?.name ?? '?'}
-      <div>garrison ${c.garrison}${c.queue ? ` | recruiting ${c.queue}` : ''}</div>${buildings}${recruits}`;
+    const detail = JSON.parse(this.cfg.campaign.city_json(node)) as CityDetail | null;
+    if (!detail) return;
+    panel.innerHTML = cityPanelHtml(this.cfg.data, node, c, mineCity, detail, this.recruitClasses);
     panel.style.display = 'block';
     panel.querySelectorAll<HTMLButtonElement>('button[data-build]').forEach((b) =>
       b.addEventListener('click', () => {
@@ -800,17 +666,9 @@ export class CampaignScene implements Scene {
   private openRoadPanel(edge: number) {
     const panel = this.ui.querySelector('#cmp-city') as HTMLDivElement;
     const c = this.cfg.campaign;
-    const e = this.cfg.data.map.edges[edge];
     const lvl = c.road_level(edge);
     const job = c.road_job_ticks(edge);
-    const cost = 15 * e.tiles.length;
-    const status =
-      job >= 0
-        ? `paving… ${Math.ceil(job / 60)}h left`
-        : lvl >= 3
-          ? 'fully paved'
-          : `<button id="cmp-road-up">Upgrade (${cost} gold)</button>`;
-    panel.innerHTML = `<b>Road</b> (${e.tiles.length} tiles) — level ${lvl}<div style="margin-top:6px">${status}</div>`;
+    panel.innerHTML = roadPanelHtml(this.cfg.data.map.edges[edge].tiles.length, lvl, job);
     panel.style.display = 'block';
     panel.querySelector('#cmp-road-up')?.addEventListener('click', () => {
       if (c.order_upgrade_road(edge)) {
@@ -822,19 +680,8 @@ export class CampaignScene implements Scene {
 
   private openJunctionPanel(node: number) {
     const panel = this.ui.querySelector('#cmp-city') as HTMLDivElement;
-    const c = this.cfg.campaign;
-    const o = this.outposts.find((x) => x.node === node);
-    const body = o
-      ? `${this.cfg.data.map.factions[o.owner]?.name ?? '?'} outpost ${o.built ? '' : '(building…)'}`
-      : `<button id="cmp-outpost">Build outpost (150 gold)</button>`;
-    panel.innerHTML = `<b>${this.cfg.data.map.nodes[node].name}</b> (junction)<div style="margin-top:6px">${body}</div>`;
+    panel.innerHTML = `<b>${this.cfg.data.map.nodes[node].name}</b> (junction)`;
     panel.style.display = 'block';
-    panel.querySelector('#cmp-outpost')?.addEventListener('click', () => {
-      if (c.order_build_outpost(node)) {
-        this.refreshViews();
-        this.openJunctionPanel(node);
-      }
-    });
   }
 
   private closeCityPanel() {
@@ -873,11 +720,6 @@ export class CampaignScene implements Scene {
       if (cv.owner !== pf) continue;
       const n = this.cfg.data.map.nodes[node];
       src.push({ x: n.pos[0], y: n.pos[1], r: 150 + n.tier * 45 });
-    }
-    for (const o of this.outposts) {
-      if (o.owner !== pf || !o.built) continue;
-      const n = this.cfg.data.map.nodes[o.node];
-      src.push({ x: n.pos[0], y: n.pos[1], r: 170 });
     }
     for (const a of this.armies) {
       if (a.mine) src.push({ x: a.x, y: a.y, r: 130 });

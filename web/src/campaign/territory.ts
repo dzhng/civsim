@@ -7,7 +7,7 @@
 // changes during play, so a rebuild is a cheap recolor pass.
 
 import type { CampaignData } from './data';
-import type { CityView } from './scene';
+import type { CityView } from './views';
 import { TerrainField, hash2 } from './terrain';
 
 /** Land farther than this from any city is no one's (deep deserts, steppe).

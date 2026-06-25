@@ -313,9 +313,9 @@ void main() {
 
 // Roads: flat granite ribbons draped on the terrain, drawn IN the 3D scene so
 // the depth buffer lets city and army models occlude them — a causeway runs
-// under the town that sits on it, not painted over the top like the old
-// 2D-overlay roads. `color` carries the granite shade (brighter per road level)
-// and an edge-fade alpha used to feather the verge into the ground.
+// under the town that sits on it. `color` carries the granite shade (brighter
+// per road level) and an edge-fade alpha used to feather the verge into the
+// ground.
 ShaderStore.ShadersStore['campRoadVertexShader'] = `
 precision highp float;
 attribute vec3 position;

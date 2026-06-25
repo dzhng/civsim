@@ -6,6 +6,9 @@ use contract::UnitClassId;
 
 /// Campaign ticks per day; 1 tick = 1 campaign minute.
 pub const TICKS_PER_DAY: u32 = 1440;
+/// Maximum roster entries in one field army. The campaign marker scales its
+/// compressed figures against this capacity.
+pub const ARMY_STACK_UNIT_CAP: usize = 20;
 /// One road tile of march, in km (must match mapgen's TILE_KM).
 pub const TILE_KM: f32 = 5.0;
 
@@ -70,15 +73,6 @@ pub const ROAD_BUILD_TICKS_PER_TILE: u32 = 120;
 pub fn road_mult(level: u8) -> f32 {
     ROAD_SPEED_MULT[level.min(ROAD_MAX_LEVEL) as usize]
 }
-
-/// Outposts: junction watchtowers. Counter-play to ambush stance. An enemy
-/// army halting on the node razes the tower instantly (no siege timer —
-/// it's a wooden platform, not a fort).
-pub const OUTPOST_COST: u32 = 150;
-pub const OUTPOST_BUILD_TICKS: u32 = 720;
-pub const OUTPOST_VISION: u32 = 6;
-/// Concealed ambushers within this radius of an enemy outpost are exposed.
-pub const OUTPOST_REVEAL_RADIUS: u32 = 2;
 
 /// City buildings: cost of the NEXT level (index = current level), 2 days
 /// to raise either. Market multiplies income, barracks speeds recruiting and
@@ -168,16 +162,12 @@ pub const MORALE_CAP_REGEN: f32 = 0.05;
 pub const GARRISON_REGEN: f32 = 0.04;
 
 // ---- AI fiscal discipline --------------------------------------------------
-// Without these the AI recruited whenever it had >400 gold, ballooning armies
-// to 3x in two months while treasuries hit zero. Now it keeps a war chest and
-// only grows the army while upkeep stays under a slice of income — so force
-// size equilibrates to what the realm can sustain, and the way to field a
-// bigger army is to conquer more cities.
+// The AI keeps a war chest and caps its field army by territory, so force size
+// equilibrates to what the realm can sustain.
 /// Days of income the AI keeps in reserve before spending on troops/works.
 pub const AI_RESERVE_DAYS: u32 = 6;
 /// Field-army ceiling per owned city. A realm only raises as many troops as
-/// its territory can supply, so the road to a bigger army is conquest. (Upkeep
-/// gold can't cap army size here — it's ~1% of income, so it never bites.)
+/// its territory can supply, so the road to a bigger army is conquest.
 pub const AI_SOLDIERS_PER_CITY: u32 = 2000;
 /// How many of the nearest enemy cities the AI weighs (with a defender probe)
 /// before falling back to simply advancing on the nearest one.

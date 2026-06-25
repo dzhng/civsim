@@ -34,10 +34,12 @@ export const CLASS_LOOK: ClassLook[] = [
   { weapon: 'sword', shield: 'round', crest: true, mounted: true }, // 12 shock cav, sabre drawn
 ];
 
+export const UNIT_CLASS_LOOK_COUNT = CLASS_LOOK.length - 1;
+
 /** Render-only pseudo-class (see CLASS_LOOK[12]): a shock-cav rider with his
  *  sword drawn and lance carried upright. The renderer swaps a grinding lancer
  *  to this look; nothing in the sim knows about it. */
-export const SHOCK_CAV_SIDEARM_LOOK = 12;
+export const SHOCK_CAV_SIDEARM_LOOK = UNIT_CLASS_LOOK_COUNT;
 
 /** Per-class soldier (or rider on a horse) as one box mesh. `rest` is a
  *  continuous 0..1 pose blend: at 1 the pole arms (pike, spear, javelin, lance)

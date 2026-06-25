@@ -27,7 +27,6 @@ pub fn tick(map: &WorldMap, st: &mut CampaignState) {
     crate::economy::garrison_returns(map, st);
     crate::economy::occupations(map, st);
     timers(st);
-    outpost_razing(st);
     if st.tick % crate::visibility::VIS_EVERY == 0 {
         crate::visibility::recompute(map, st);
     }
@@ -468,20 +467,6 @@ fn encounters(map: &WorldMap, st: &mut CampaignState) {
     }
 }
 
-/// An enemy army halting on an outpost's node tears it down on the spot.
-fn outpost_razing(st: &mut CampaignState) {
-    let relations = &st.relations;
-    let armies = &st.armies;
-    st.outposts.retain(|&node, o| {
-        !armies.iter().any(|a| {
-            a.alive()
-                && a.halted()
-                && crate::state::rel_at_war(relations, a.faction, o.owner)
-                && a.loc == Loc::Node(node)
-        })
-    });
-}
-
 fn timers(st: &mut CampaignState) {
     for a in &mut st.armies {
         if a.embark_ticks_left > 0 {
@@ -517,10 +502,6 @@ fn timers(st: &mut CampaignState) {
                 a.stance = Stance::Hold;
             }
         }
-    }
-    // Outposts: build countdown.
-    for o in st.outposts.values_mut() {
-        o.build_ticks_left = o.build_ticks_left.saturating_sub(1);
     }
     // Road works: count down, then pave.
     let mut paved: Vec<crate::mapdata::EdgeId> = Vec::new();
@@ -621,7 +602,6 @@ pub fn new_state(map: &WorldMap, seed: u64, player_faction: u32) -> CampaignStat
         visible: Vec::new(),
         road_levels: vec![1; map.edges.len()],
         road_jobs: std::collections::BTreeMap::new(),
-        outposts: std::collections::BTreeMap::new(),
         outcome: None,
         relations: std::collections::BTreeMap::new(),
         diplo_target: std::collections::BTreeMap::new(),

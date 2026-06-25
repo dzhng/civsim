@@ -4,7 +4,7 @@
 // any tilt. World units are km, +y north.
 
 import type { CampaignData } from './data';
-import { ARMY_STRIDE, type ArmyView, type CityView } from './scene';
+import type { ArmyView, CityView } from './views';
 import { Allegiance, STATUS_CSS } from './status';
 import { ICON_CITY, ICON_ARMY } from './icons';
 import type { TerrainField } from './terrain';
@@ -166,7 +166,6 @@ export class CampaignRenderer {
     hoverPath: [number, number][] | null,
     factionLabels: FactionLabel[],
     roadLevels?: Uint8Array,
-    outposts?: { node: number; owner: number; built: boolean }[],
     ambushHints?: [number, number][],
     factionView = true,
     fogOfWar = false,
@@ -442,29 +441,6 @@ export class CampaignRenderer {
       ctx.globalAlpha = 1;
     }
 
-    // Outposts: a watchtower glyph in the owner's color.
-    for (const o of outposts ?? []) {
-      const n = data.map.nodes[o.node];
-      if (hidden(n.pos[0], n.pos[1])) continue;
-      const p = pt(n.pos[0], n.pos[1]);
-      if (!p || p[0] < -20 || p[1] < -20 || p[0] > W + 20 || p[1] > H + 20) continue;
-      const [sx, sy] = p;
-      ctx.globalAlpha = o.built ? 1 : 0.5;
-      ctx.fillStyle = this.factionColor(o.owner);
-      ctx.strokeStyle = '#1a1208';
-      ctx.lineWidth = 1;
-      ctx.fillRect(sx - 2.5, sy - 9, 5, 9); // tower
-      ctx.strokeRect(sx - 2.5, sy - 9, 5, 9);
-      ctx.beginPath(); // roof
-      ctx.moveTo(sx - 4.5, sy - 9);
-      ctx.lineTo(sx + 4.5, sy - 9);
-      ctx.lineTo(sx, sy - 14);
-      ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
-      ctx.globalAlpha = 1;
-    }
-
     // Armies: banners (pennant triangles) colored by faction.
     for (const a of armies) {
       if (!a.mine && hidden(a.x, a.y)) continue; // enemies vanish into the fog
@@ -609,5 +585,3 @@ export class CampaignRenderer {
     }
   }
 }
-
-export { ARMY_STRIDE };

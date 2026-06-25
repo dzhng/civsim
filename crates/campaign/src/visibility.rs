@@ -40,8 +40,6 @@ pub fn recompute(map: &WorldMap, st: &mut CampaignState) {
     let mut visible: Vec<BTreeSet<ArmyId>> = vec![BTreeSet::new(); nfactions];
     let mut bfs = pathfind::Visited::new(map);
     let camp_radius = VISION_ARMY + crate::tunables::CAMP_VISION_BONUS;
-    let outpost_vision = crate::tunables::OUTPOST_VISION;
-    let outpost_reveal = crate::tunables::OUTPOST_REVEAL_RADIUS;
 
     // Who stands where: one pass, so each tile's occupants are an O(1) lookup
     // instead of re-scanning every army inside the BFS.
@@ -62,7 +60,7 @@ pub fn recompute(map: &WorldMap, st: &mut CampaignState) {
 
         let is_concealed = concealed(a);
         let max_radius = if is_concealed {
-            outpost_reveal
+            VISION_SCOUT_AMBUSH
         } else {
             VISION_CITY
         };
@@ -117,18 +115,6 @@ pub fn recompute(map: &WorldMap, st: &mut CampaignState) {
                 if !is_concealed && d <= VISION_CITY {
                     if let Some(c) = st.cities.get(&n) {
                         seen_by[c.owner as usize] = true;
-                    }
-                }
-                // A finished watchtower reaches OUTPOST_VISION normally, but only
-                // OUTPOST_REVEAL_RADIUS to unmask a concealed ambusher.
-                if let Some(o) = st.outposts.get(&n) {
-                    let r = if is_concealed {
-                        outpost_reveal
-                    } else {
-                        outpost_vision
-                    };
-                    if o.build_ticks_left == 0 && d <= r {
-                        seen_by[o.owner as usize] = true;
                     }
                 }
             }

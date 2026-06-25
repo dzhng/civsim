@@ -32,7 +32,7 @@ import '@babylonjs/core/Meshes/thinInstanceMesh';
 import type { CampaignData } from './data';
 import type { CamView } from './renderer';
 import { TerrainField, SUN, TEMPERATE_Y_KM, hash2 } from './terrain';
-import { classGeometryDetailed } from '../shared/soldierModel';
+import { classGeometryDetailed, UNIT_CLASS_LOOK_COUNT } from '../shared/soldierModel';
 
 const FOV = (45 * Math.PI) / 180;
 /** Tilt: 90° (top-down) until TILT_START, easing to MIN_PITCH by TILT_END. */
@@ -47,6 +47,7 @@ export const ARMY_MIN_SCALE = 0.4;
 /** Above this zoom, 3D settlements replace the flat city squares (the overlay
  *  reads the same constant to suppress its squares). */
 export const CITY_MODEL_MIN_SCALE = 0.5;
+const CAMPAIGN_CLASS_COUNT = UNIT_CLASS_LOOK_COUNT;
 
 
 /** Anti-sun ground direction (where shadows fall), from the one campaign sun. */
@@ -55,30 +56,49 @@ const SHADOW_DIR: [number, number] = (() => {
   return [-SUN[0] / l, -SUN[1] / l];
 })();
 
-/** Up to 20 figure slots in a packed disc (golden-angle spiral), so an army's
- *  soldiers stand around its standard. Figure i takes slot i; a small army
- *  fills the inner slots, a large one (capped at 20) fills them all. */
-const ARMY_SLOTS: [number, number][] = Array.from({ length: 20 }, (_, i) => {
+const ARMY_MARKER_MAX_FIGURES = 6;
+/** Up to six figure slots in a packed disc (golden-angle spiral), so an army's
+ *  representative soldiers stand around its standard. Figure i takes slot i;
+ *  smaller stacks fill the inner slots, full stacks fill them all. */
+const ARMY_SLOTS: [number, number][] = Array.from({ length: ARMY_MARKER_MAX_FIGURES }, (_, i) => {
   const a = i * 2.399963;
   const r = 0.38 * Math.sqrt(i);
   return [Math.cos(a) * r, Math.sin(a) * r];
 });
-/** One figure per ~250 soldiers, clamped to [1, 20]. */
-function figureCount(soldiers: number): number {
-  return Math.max(1, Math.min(ARMY_SLOTS.length, Math.round(soldiers / 250)));
+/** Scale the compressed marker against stack unit capacity, clamped to [1, 6]. */
+function figureCount(units: number, stackUnitCap: number): number {
+  if (units <= 0) return 0;
+  const cap = Math.max(1, stackUnitCap);
+  return Math.max(1, Math.min(ARMY_SLOTS.length, Math.ceil((units / cap) * ARMY_MARKER_MAX_FIGURES)));
 }
-/** Allocate `n` figures across the 9 classes by soldier share (largest
- *  remainder), so the cluster mirrors the army's real composition. */
-function allocFigures(roster: number[], n: number): number[] {
-  const total = roster.reduce((a, b) => a + b, 0);
-  if (total <= 0) return [n, 0, 0, 0, 0, 0, 0, 0, 0];
-  const ideal = roster.map((c) => (n * c) / total);
-  const out = ideal.map(Math.floor);
+/** Allocate figures by unit type, preserving as many represented classes as
+ *  possible before spending the remaining slots proportionally. */
+function allocFigures(unitsByClass: number[], n: number): number[] {
+  const out = Array.from({ length: unitsByClass.length }, () => 0);
+  if (n <= 0) return out;
+  const present = unitsByClass
+    .map((units, cls) => ({ cls, units }))
+    .filter((x) => x.units > 0)
+    .sort((a, b) => b.units - a.units || a.cls - b.cls);
+  if (present.length === 0) {
+    out[0] = n;
+    return out;
+  }
+  for (const { cls } of present.slice(0, n)) out[cls] = 1;
   let rem = n - out.reduce((a, b) => a + b, 0);
-  const order = ideal
-    .map((v, i) => [v - Math.floor(v), i] as [number, number])
-    .sort((a, b) => b[0] - a[0]);
-  for (let k = 0; rem > 0; k++, rem--) out[order[k % 9][1]]++;
+  if (rem <= 0) return out;
+  const represented = present.filter(({ cls }) => out[cls] > 0);
+  const total = represented.reduce((sum, x) => sum + x.units, 0);
+  while (rem > 0) {
+    const pick = represented
+      .map(({ cls, units }) => {
+        const ideal = (n * units) / total;
+        return { cls, need: ideal - out[cls], units };
+      })
+      .sort((a, b) => b.need - a.need || b.units - a.units || a.cls - b.cls)[0];
+    out[pick.cls]++;
+    rem--;
+  }
   return out;
 }
 
@@ -457,7 +477,7 @@ export class Terrain3D {
     // parts (crest, shield blazon, sash) at alpha 1, so the campModel shader
     // paints a realistic soldier wearing the owner's colours — the same look the
     // battlefield shows, on the strategic map. No paint() override here.
-    for (let c = 0; c < 9; c++) {
+    for (let c = 0; c < CAMPAIGN_CLASS_COUNT; c++) {
       const m = new Mesh(`armyCls${c}`, this.scene);
       classGeometryDetailed(c, { rest: 1 }, [1, 1, 1], { livery: true }).applyToMesh(m); // at-ease
       m.material = this.modelMat;
@@ -952,8 +972,17 @@ export class Terrain3D {
   /** Reposition the army models from the live army list (called each frame
    *  before draw). Cheap: a few dozen instances, two small buffers. */
   setArmies(
-    armies: { id: number; x: number; y: number; faction: number; soldiers: number; roster: number[] }[],
+    armies: {
+      id: number;
+      x: number;
+      y: number;
+      faction: number;
+      soldiers: number;
+      unitCount: number;
+      unitsByClass: number[];
+    }[],
     scale: number,
+    stackUnitCap: number,
     selected = -1,
     hover = -1,
     fogOfWar = false,
@@ -974,8 +1003,8 @@ export class Terrain3D {
     const figScale = S * 1.25;
     const shadows = new Float32Array(n * 16);
     // Per-class figure instances, accumulated across all armies.
-    const fmats: number[][] = Array.from({ length: 9 }, () => []);
-    const fcols: number[][] = Array.from({ length: 9 }, () => []);
+    const fmats: number[][] = Array.from({ length: this.classMeshes.length }, () => []);
+    const fcols: number[][] = Array.from({ length: this.classMeshes.length }, () => []);
     const clock = performance.now() / 1000;
     let selPos: [number, number, number] | null = null;
     for (let i = 0; i < n; i++) {
@@ -997,10 +1026,11 @@ export class Terrain3D {
       const bobH = amp * 0.16 * figScale; // metres of bounce at full march
       const o = i * 16;
       this.shadowMatrix(shadows, o, a.x, a.y, z, 1.9 * S);
-      // Figures: count by size, classes by composition, placed in the slots.
-      const alloc = allocFigures(a.roster, figureCount(a.soldiers));
+      // Figures: count by stack fullness, classes by live unit composition,
+      // placed in the representative slots.
+      const alloc = allocFigures(a.unitsByClass, figureCount(a.unitCount, stackUnitCap));
       let slot = 0;
-      for (let cls = 0; cls < 9; cls++) {
+      for (let cls = 0; cls < this.classMeshes.length; cls++) {
         for (let k = 0; k < alloc[cls] && slot < ARMY_SLOTS.length; k++, slot++) {
           const [ox, oy] = ARMY_SLOTS[slot];
           // Each figure bobs on its own phase so the file ripples, not pumps.
@@ -1029,7 +1059,7 @@ export class Terrain3D {
         ring.setEnabled(false);
       }
     }
-    for (let cls = 0; cls < 9; cls++) {
+    for (let cls = 0; cls < this.classMeshes.length; cls++) {
       const m = this.classMeshes[cls];
       if (!m) continue;
       if (fmats[cls].length) {

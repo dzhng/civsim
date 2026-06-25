@@ -6,14 +6,17 @@ use crate::Game;
 use campaign::state::{EncounterPhase, Loc, Stance};
 use wasm_bindgen::prelude::*;
 
-/// Floats per army in the army_info array:
+/// Base floats per army in the army_info array:
 /// [id, x, y, faction, soldiers, stance, pie_kind, pie_frac, marching,
-///  encounter (-1 none), morale_cap_mean, is_player, then 9 per-class
-///  soldier counts (index = UnitClassId)]
+///  encounter (-1 none), morale_cap_mean, is_player, live roster entries],
+///  followed by per-class soldier counts and then per-class live roster-entry
+///  counts per `contract::ALL_CLASSES` entry (index = UnitClassId).
 /// stance: 0 march/hold, 1 camp, 2 ambush-settling, 3 ambush-hidden,
 ///         4 routed, 5 occupying, 6 at sea. pie_kind: 0 none, 1 battle prep,
 ///         2 occupation, 3 embark, 4 ambush settle.
-pub const ARMY_INFO_STRIDE: usize = 21;
+pub const ARMY_INFO_BASE_STRIDE: usize = 13;
+pub const ARMY_CLASS_SLOTS: usize = contract::ALL_CLASSES.len();
+pub const ARMY_INFO_STRIDE: usize = ARMY_INFO_BASE_STRIDE + ARMY_CLASS_SLOTS * 2;
 /// Floats per city: [node, owner, garrison_soldiers, queue_len].
 pub const CITY_INFO_STRIDE: usize = 4;
 
@@ -205,26 +208,6 @@ impl Campaign {
         self.inner.state.road_levels.as_ptr()
     }
 
-    pub fn order_build_outpost(&mut self, node: u32) -> bool {
-        let ok = self.inner.order_build_outpost(node);
-        self.refresh();
-        ok
-    }
-
-    /// All outposts: [{node, owner, built}].
-    pub fn outposts_json(&self) -> String {
-        let list: Vec<_> = self
-            .inner
-            .state
-            .outposts
-            .iter()
-            .map(|(&n, o)| {
-                serde_json::json!({ "node": n, "owner": o.owner, "built": o.build_ticks_left == 0 })
-            })
-            .collect();
-        serde_json::json!(list).to_string()
-    }
-
     /// kind: 0 market, 1 barracks.
     pub fn order_build(&mut self, node: u32, kind: u32) -> bool {
         use campaign::state::BuildKind;
@@ -376,6 +359,28 @@ impl Campaign {
         ARMY_INFO_STRIDE as u32
     }
 
+    pub fn army_info_base_stride(&self) -> u32 {
+        ARMY_INFO_BASE_STRIDE as u32
+    }
+
+    pub fn army_class_slots(&self) -> u32 {
+        ARMY_CLASS_SLOTS as u32
+    }
+
+    pub fn army_stack_unit_cap(&self) -> u32 {
+        campaign::tunables::ARMY_STACK_UNIT_CAP as u32
+    }
+
+    pub fn unit_class_names_json(&self) -> String {
+        serde_json::to_string(
+            &contract::ALL_CLASSES
+                .iter()
+                .map(|class| format!("{class:?}"))
+                .collect::<Vec<_>>(),
+        )
+        .unwrap()
+    }
+
     pub fn city_count(&self) -> u32 {
         (self.city_info.len() / CITY_INFO_STRIDE) as u32
     }
@@ -507,14 +512,22 @@ impl Campaign {
                 a.encounter.map_or(-1.0, |e| e as f32),
                 cap,
                 if mine { 1.0 } else { 0.0 },
+                a.roster.iter().filter(|r| r.count > 0).count() as f32,
             ]);
-            // Per-class soldier counts (index = UnitClassId), so the map can
-            // build each army marker from its real composition.
-            let mut by_class = [0u32; 9];
+            // Per-class soldier and unit counts (index = UnitClassId), so the
+            // map can build each army marker from its real composition.
+            let mut by_class = [0u32; ARMY_CLASS_SLOTS];
+            let mut units_by_class = [0u32; ARMY_CLASS_SLOTS];
             for r in &a.roster {
+                if r.count == 0 {
+                    continue;
+                }
                 by_class[r.class as usize] += r.count;
+                units_by_class[r.class as usize] += 1;
             }
             self.army_info.extend(by_class.iter().map(|&c| c as f32));
+            self.army_info
+                .extend(units_by_class.iter().map(|&c| c as f32));
         }
         self.city_info.clear();
         for (&node, c) in &st.cities {
@@ -525,6 +538,50 @@ impl Campaign {
                 c.recruit_queue.len() as f32,
             ]);
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn map_with_roster(roster: &str) -> String {
+        format!(
+            r#"{{
+              "half_w": 20, "half_h": 20,
+              "nodes": [
+                {{"id": 1, "name": "A", "pos": [0,0], "kind": "city", "tier": 1, "port": false, "owner": "red"}}
+              ],
+              "edges": [],
+              "ambush_spots": [],
+              "factions": [
+                {{"id": "red", "name": "Red", "color": [200,0,0], "playable": true}},
+                {{"id": "independents", "name": "Ind", "color": [90,90,90], "playable": false}}
+              ],
+              "start_armies": [
+                {{"faction": "red", "at": "A", "roster": {roster}}}
+              ]
+            }}"#
+        )
+    }
+
+    #[test]
+    fn army_info_has_one_slot_per_contract_class() {
+        assert_eq!(
+            ARMY_INFO_STRIDE,
+            ARMY_INFO_BASE_STRIDE + contract::ALL_CLASSES.len() * 2
+        );
+    }
+
+    #[test]
+    fn campaign_refresh_exports_late_unit_classes() {
+        let map = map_with_roster(r#"[["Peasant", 77], ["LightSword", 55], ["HeavySpear", 33]]"#);
+        let c = Campaign::new(&map, 7, 0);
+        assert_eq!(c.army_count(), 1);
+        assert_eq!(c.army_info_stride(), ARMY_INFO_STRIDE as u32);
+        assert_eq!(c.army_info_base_stride(), ARMY_INFO_BASE_STRIDE as u32);
+        assert_eq!(c.army_class_slots(), contract::ALL_CLASSES.len() as u32);
+        assert_eq!(c.army_stack_unit_cap(), 20);
     }
 }
 

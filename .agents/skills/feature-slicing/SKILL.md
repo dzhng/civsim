@@ -1,6 +1,6 @@
 ---
 name: feature-slicing
-description: Break large features into independently verifiable, human-reviewable slices under specs/<feature>/. Use for risky or multi-step feature work that needs upfront questioning, API seams, browser-playable checkpoints, HTML visualizations, screenshot gates, or staged implementation plans.
+description: Break large features into independently verifiable, human-reviewable slices under specs/<feature>/. Use for risky or multi-step feature work that needs upfront questioning, API seams, browser-playable checkpoints, HTML visualizations, screenshot gates, or staged implementation plans. Pairs with [write-scenario](../write-scenario/SKILL.md) and [screenshot-regression](../screenshot-regression/SKILL.md) (the browser checkpoints and screenshot gates) and [review](../review/SKILL.md) (audit each slice before it lands).
 ---
 
 # Feature Slicing
@@ -31,13 +31,16 @@ whole feature is done.
    answered quickly. Prefer tiny runnable surfaces, hot-reloadable harnesses,
    sample fixtures, and self-contained workbenches over plans that require the
    whole feature to exist before anyone can learn from it. For asset-heavy
-   work, plan an asset app/workbench where humans and artists can add samples,
-   upload replacements, preview them live, and see validation failures fast.
+   work (models, looks, shaders), the workbench is the turntable / `?fixture=`
+   surface plus a screenshot baseline ([screenshot-regression](../screenshot-regression/SKILL.md)):
+   preview the asset live and let the snapshot catch the regression.
 
-5. **Use the repo's natural shape.** If the repo is a monorepo, plan apps and
-   packages instead of forcing everything into the current app. Give each
-   testable surface a first-class route or command; avoid piling new behavior
-   behind opaque query flags when a small dedicated app would be clearer.
+5. **Use civsim's natural shape.** Keep `crates/sim` pure and natively
+   testable; push wasm/render to `sim-wasm`/`web`, so a slice's logic gets a
+   `mechanics_*`/scenario test before any browser is involved. Civsim's
+   first-class workbench is the `?battle=<name>`/`?fixture=<name>` sandbox plus
+   a scenario ([write-scenario](../write-scenario/SKILL.md)) — pose a slice
+   there, not behind a one-off boot path in `main.ts`.
 
 6. **Do not block on missing inputs.** If art, data, credentials, or external
    assets are missing, plan generated placeholders plus a replacement contract.

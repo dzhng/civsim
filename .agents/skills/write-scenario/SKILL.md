@@ -1,6 +1,6 @@
 ---
 name: write-scenario
-description: How to write a verification scenario — an addressable, individually-runnable case that boots one world (real map or test map) and asserts one or more visual snapshots and/or behavioral checks. Use when adding or restructuring browser verification for the battle or campaign frontend.
+description: How to write a verification scenario — an addressable, individually-runnable case that boots one world (real map or test map) and asserts one or more visual snapshots and/or behavioral checks. Use when adding or restructuring browser verification for the battle or campaign frontend. Pairs with [screenshot-regression](../screenshot-regression/SKILL.md) (the snapshot mechanics every snap obeys) and [write-tests](../write-tests/SKILL.md) (sim correctness lives in cargo, never the browser).
 ---
 
 # Writing a scenario
@@ -62,7 +62,10 @@ Every scenario is exactly one **kind**, and the kind picks the world:
   catalog; composite scenes are authored visual scenarios.
 - **`flow`** — verifies *behavior*. Drives real game systems on the **real
   map** and asserts *outcomes* via `check` (positions, casualties, soldier
-  counts, modal text, save/load). Writes **no** PNG.
+  counts, modal text, save/load). Writes **no** PNG. A `flow` verifies the
+  *frontend/UI* wiring, NOT the sim physics — sim correctness is a cargo test
+  ([write-tests](../write-tests/SKILL.md)); never reach for a browser flow to
+  decide whether the physics is right.
 
 Don't mix them. A heavy behavioral flow that also snaps pixels mid-run is what
 produced the old scratch-shot litter — the frames landed in nondeterministic
@@ -177,8 +180,9 @@ never reach for the real map to snap a model.
 
 ## Determinism is non-negotiable
 
-Every snap must satisfy the full checklist in the `screenshot-regression`
-skill — fixed 1280×800 viewport, explicit camera, frozen clock, snap on Day 1
+Every snap must satisfy the full checklist in the
+[screenshot-regression](../screenshot-regression/SKILL.md) skill — fixed
+1280×800 viewport, explicit camera, frozen clock, snap on Day 1
 *before any `tick()`*, wait after moving the camera. The world helper freezes
 on boot; if your scenario unfreezes (`world.freeze(false)`) to drive time,
 re-freeze before the next snap. A snap with no active freeze goes flaky and
@@ -201,11 +205,11 @@ restore-and-ignore.
 
 ## Before you say a visual scenario is done
 
-Per the `screenshot-regression` skill: **open the actual PNG and look at it.**
-A green run only proves the frame matches the baseline — and if you just
-blessed that baseline, you certified it. Confirm with your own eyes that the
-frame shows what you claim before reporting, and look at any baseline you
-re-blessed.
+Per the [screenshot-regression](../screenshot-regression/SKILL.md) skill:
+**open the actual PNG and look at it.** A green run only proves the frame
+matches the baseline — and if you just blessed that baseline, you certified
+it. Confirm with your own eyes that the frame shows what you claim before
+reporting, and look at any baseline you re-blessed.
 
 ## Checklist for a new scenario
 

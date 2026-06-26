@@ -1,6 +1,6 @@
 ---
 name: screenshot-regression
-description: How to take screenshots of the game and use pixel-exact snapshot regression — across the verify harnesses, the vibe timelines, and the model turntable. Use when verifying UI/rendering changes, adding a new visual feature, re-blessing baselines after an intentional visual or mechanics change, or debugging a snapshot failure.
+description: How to take screenshots of the game and use pixel-exact snapshot regression — across the verify harnesses, the vibe timelines, and the model turntable. Use when verifying UI/rendering changes, adding a new visual feature, re-blessing baselines after an intentional visual or mechanics change, or debugging a snapshot failure. Pairs with [write-scenario](../write-scenario/SKILL.md) (the scenarios whose snaps obey these rules).
 ---
 
 # Screenshots and pixel-level regression testing

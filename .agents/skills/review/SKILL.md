@@ -1,6 +1,6 @@
 ---
 name: review
-description: Review changed code for naming, stale references, unnecessary complexity, and comment quality. Use after completing implementation work, before committing, or when the user asks to review or audit code.
+description: Review changed code for naming, stale references, unnecessary complexity, and comment quality. Use after completing implementation work, before committing, or when the user asks to review or audit code. Enforces at review time the authoring rules of [write-tests](../write-tests/SKILL.md) and [tweak-mechanics](../tweak-mechanics/SKILL.md).
 allowed-tools: Read Grep Glob Bash
 ---
 
@@ -88,7 +88,7 @@ Review the diff or specified files against these principles.
 
 ## 13. Decouple tests from implementation — drive the system end-to-end
 
-The most valuable test suite is the one most decoupled from the implementation it covers. A test that pokes at internals freezes the internals; a test that drives the public surface frees you to refactor everything underneath.
+The most valuable test suite is the one most decoupled from the implementation it covers. A test that pokes at internals freezes the internals; a test that drives the public surface frees you to refactor everything underneath. (This is the review-time check of [write-tests](../write-tests/SKILL.md)'s authoring rules — same principle, applied to a diff.)
 
 - **Prefer the outermost entry point that still gives a fast, deterministic signal.** For sim behavior, that's scenario tests in `crates/sim/tests` that construct a battle, step it, and assert on outcomes. For anything the player sees or does (rendering, input, HUD, performance), that's the Playwright harness `web/verify-battle.mjs` driving the real page.
 - **Test behavior, not structure.** Assert on observable outcomes — final positions, casualties, morale states, rendered frames, screenshots. Do not assert on which internal functions ran, in what order, with which intermediate shapes.
@@ -121,7 +121,8 @@ The most valuable test suite is the one most decoupled from the implementation i
 ## 17. Formulas read the physical world — men, mass, measured motion
 
 Every formula in the sim takes physical inputs: **men, mass, measured
-motion**. Never banners (unit counts), commanded state (orders, frame
+motion** (the creed of [tweak-mechanics](../tweak-mechanics/SKILL.md), enforced
+here at review time). Never banners (unit counts), commanded state (orders, frame
 speed, pace), or classifier outputs (thresholded counts, flags). Each
 historical violation produced an effect wildly out of proportion to the
 field: a contact-direction count flash-routed healthy units 19x; a

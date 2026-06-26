@@ -1,6 +1,6 @@
 ---
 name: balance-unit
-description: Given a price and a plain-language unit description (melee/ranged, shields, light/heavy, mounted, pole-arm, etc.), fill in the full stat block to fit the game's balance and write the matchup tests that pin it. Use when adding or re-pricing a unit class, or when David hands you "a unit that costs X and is roughly Y".
+description: Given a price and a plain-language unit description (melee/ranged, shields, light/heavy, mounted, pole-arm, etc.), fill in the full stat block to fit the game's balance and write the matchup tests that pin it. Use when adding or re-pricing a unit class, or when David hands you "a unit that costs X and is roughly Y". Pairs with [write-tests](../write-tests/SKILL.md) (the seed-set matchup harness) and [debug](../debug/SKILL.md) (the balance-vs-mechanics call when a stat won't behave).
 ---
 
 # Balancing a new (or re-priced) unit
@@ -132,15 +132,11 @@ inverting it — if your shielded spearman suddenly beats heavy infantry
 AND pikes AND cavalry, the stats are too generous; find the one axis its
 sketch doesn't justify and cut it.
 
-## Process (inherited from write-tests, non-negotiable)
+## Process
 
-- Cargo first (`--no-fail-fast`, check `rc`, ~25s); browser verify last.
-- The golden hash moves on any sim-value change — re-pin deliberately,
-  once, in the same commit, from the printed actual.
-- Expect 2–4 chaos-marginal tests to wobble on combat/class edits;
-  re-judge on the final shape only, widen a margin only with a comment
-  declaring it chaos-marginal. NEVER re-pin a contract to current
-  behavior — that is how the suite once certified a 19× bug.
-- Concurrent sessions are real (campaign work runs in parallel): scope
-  commits to the sim files you touched; never `git checkout` over files
-  that may hold someone else's work.
+Follow [write-tests](../write-tests/SKILL.md) for the loop itself — cargo-first
+(`--no-fail-fast`, check `rc`), deliberate golden-hash re-pin, concurrency-safe
+commits. Two of its rules bite hardest on a class edit: expect 2–4
+chaos-marginal tests to wobble (re-judge on the final shape, widen a margin
+only with a `chaos-marginal` comment), and **never re-pin a contract to current
+behavior** — that is how the suite once certified a 19× bug.

@@ -72,7 +72,8 @@ just your hypothesis about it.
   logs are the wrong tool.
 - **ALWAYS screenshot the scenario and eyeball the geometry.** Numbers hide
   setup bugs (a "surrounded" block that's really a thin line flanked at the
-  ends). Open the PNG yourself; keep shots as a `web/shots/` regression pin.
+  ends). Open the PNG yourself ([screenshot-regression](../screenshot-regression/SKILL.md));
+  keep shots as a `web/shots/` regression pin.
 
 ## 5. Fix + regression test
 

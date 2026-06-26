@@ -1,6 +1,6 @@
 ---
 name: tweak-mechanics
-description: How to change the SIM PHYSICS (how soldiers move, collide, press, hold a line, rout) — the first-principles workflow and the kind of tests that pin it. Distinct from balancing units. Use when David says a behavior looks wrong ("heavy v heavy isn't clean", "the latch points the wrong way", "they swirl/pass through each other"), or asks to simplify/question a mechanic. Pairs with [debug](../debug/SKILL.md) (the diagnosis loop for a red or a "feels off") and [write-tests](../write-tests/SKILL.md).
+description: How to change the SIM PHYSICS (how soldiers move, collide, press, hold a line, rout) — the first-principles workflow and the kind of tests that pin it. Distinct from balancing units. Use when David says a behavior looks wrong ("heavy v heavy isn't clean", "the latch points the wrong way", "they swirl/pass through each other"), or asks to simplify/question a mechanic. Pairs with [debug](../debug/SKILL.md) (the diagnosis loop for a red or a "feels off") and [write-tests](../write-tests/SKILL.md); distinct from [balance-unit](../balance-unit/SKILL.md) (the stat-table counterpart — never fix balance by changing physics).
 ---
 
 # Tweaking a mechanic (the physics, not the balance)
@@ -258,7 +258,8 @@ until green. Rules:
 5. **Smallest scale that shows it** — two units for a clash; armies only for
    integration.
 
-**Layer 2 — vibe shots are the real verdict.** Green Rust does not mean done; the
+**Layer 2 — vibe shots are the real verdict** (the snapshot mechanics are
+[screenshot-regression](../screenshot-regression/SKILL.md)). Green Rust does not mean done; the
 mechanic must *feel* right across the WHOLE timeline (a clash can look clean at
 t=32s and be a swirling blob by t=48s — eyeballing one frame said "clean", the
 centroid test said "crossed at t=19.9s"). Rebuild wasm first (`npm run build:wasm`

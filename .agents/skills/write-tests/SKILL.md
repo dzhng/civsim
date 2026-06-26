@@ -1,6 +1,6 @@
 ---
 name: write-tests
-description: How to write and iterate on tests in this repo — one test at a time (tracer bullets), fast cargo first, scale 1v1 before armies, control variables, measure mechanisms not noise. Use when adding sim behavior, fixing a red test, or verifying changes. Pairs with [debug](../debug/SKILL.md) and [tweak-mechanics](../tweak-mechanics/SKILL.md).
+description: How to write and iterate on tests in this repo — one test at a time (tracer bullets), fast cargo first, scale 1v1 before armies, control variables, measure mechanisms not noise. Use when adding sim behavior, fixing a red test, or verifying changes. Pairs with [debug](../debug/SKILL.md), [tweak-mechanics](../tweak-mechanics/SKILL.md), and [balance-unit](../balance-unit/SKILL.md) (the seed-set balance harness).
 ---
 
 # Writing and iterating on tests in this repo

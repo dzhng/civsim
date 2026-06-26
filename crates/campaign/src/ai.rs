@@ -13,6 +13,7 @@ use contract::UnitClassId;
 pub mod eval;
 pub mod persona;
 pub mod plan;
+pub mod rival;
 pub mod select;
 
 /// Cost-weighted value of a roster (upkeep rate doubles as unit value).
@@ -187,6 +188,11 @@ pub fn diplomacy(map: &WorldMap, st: &mut CampaignState) {
 }
 
 fn think(map: &WorldMap, st: &mut CampaignState, f: FactionId, bfs: &mut pathfind::Visited) {
+    // Refresh the grudge before planning: adopt an attacker, escalate to a
+    // worthier nemesis, or let a lopsided rivalry dissolve. The offensive search
+    // below then weighs a march on the rival among its candidates.
+    rival::update(map, st, f);
+
     let my_cities: Vec<NodeId> = st
         .cities
         .iter()

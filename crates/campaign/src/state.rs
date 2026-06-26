@@ -158,6 +158,12 @@ pub struct Faction {
     /// saves load level-headed.
     #[serde(default = "default_bravado")]
     pub bravado: f32,
+    /// The faction's nemesis — a persistent grudge that biases it toward
+    /// fighting this rival above colder targets. Seeded from the map (historic
+    /// rivalries) or formed in play when attacked; dissolves once the two are
+    /// too far apart in power. `None` = no current rival.
+    #[serde(default)]
+    pub rival: Option<FactionId>,
 }
 
 fn default_bravado() -> f32 {

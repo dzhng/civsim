@@ -109,6 +109,9 @@ pub struct FactionDef {
     pub color: [u8; 3],
     pub playable: bool,
     pub ai_persona: AiPersona,
+    /// Seeded historic rival, resolved to a faction index at load. `None` = no
+    /// pre-set nemesis (one may still form in play).
+    pub seed_rival: Option<u32>,
 }
 
 pub struct StartArmy {
@@ -179,6 +182,10 @@ struct RawFaction {
     playable: bool,
     #[serde(default)]
     ai_persona: Option<String>,
+    /// Historic nemesis (another faction's id), e.g. Rome ↔ Carthage. Optional;
+    /// rivalries also form in play when a faction is attacked.
+    #[serde(default)]
+    rival: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -320,6 +327,10 @@ impl WorldMap {
                     color: f.color,
                     playable: f.playable,
                     ai_persona: AiPersona::parse(f.ai_persona.as_deref(), f.playable),
+                    seed_rival: f
+                        .rival
+                        .as_deref()
+                        .and_then(|r| faction_idx.get(r).copied()),
                 })
                 .collect(),
             start_armies: raw

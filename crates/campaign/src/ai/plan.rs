@@ -67,6 +67,17 @@ pub fn candidates(
         push_unique(&mut plans, Plan { orders, label: "focus" });
     }
 
+    // "rival": a grudge candidate — mass on the nemesis's weakest reachable
+    // city. Only a bias: the rollout still has to find it worthwhile, so a much
+    // stronger rival's wall loses out to an easier conquest elsewhere.
+    if let Some(rc) = st.factions[f as usize]
+        .rival
+        .and_then(|r| weakest_reachable_city(map, st, r, &attackers))
+    {
+        let orders = attackers.iter().map(|&(a, ..)| (a, Loc::Node(rc))).collect();
+        push_unique(&mut plans, Plan { orders, label: "rival" });
+    }
+
     // Per-attacker nearest target, split into "any" and "beatable" variants.
     let mut any: Vec<(ArmyId, Loc)> = Vec::new();
     let mut beatable: Vec<(ArmyId, Loc)> = Vec::new();
@@ -142,11 +153,23 @@ fn focus_city(
     attackers: &[(ArmyId, Loc, u64)],
 ) -> Option<NodeId> {
     let tgt = st.diplo_target.get(&f).copied()?;
+    weakest_reachable_city(map, st, tgt, attackers)
+}
+
+/// `owner`'s weakest (lightest-garrisoned, then nearest) city reachable by road
+/// from the lead attacker. The soft point to mass on, for a diplo focus or a
+/// grudge alike.
+fn weakest_reachable_city(
+    map: &WorldMap,
+    st: &CampaignState,
+    owner: FactionId,
+    attackers: &[(ArmyId, Loc, u64)],
+) -> Option<NodeId> {
     let from = attackers.first().map(|&(_, l, _)| l)?;
     let costs = pathfind::costs_from(map, &st.road_levels, from, false);
     st.cities
         .iter()
-        .filter(|(_, c)| c.owner == tgt)
+        .filter(|(_, c)| c.owner == owner)
         .filter(|(n, _)| costs.contains_key(n))
         .min_by_key(|(&n, c)| (strength(map, st, c.owner, &c.garrison), costs[&n] as u64))
         .map(|(&n, _)| n)

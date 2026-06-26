@@ -261,6 +261,17 @@ pub const AI_SELECT_SCALE: f64 = 15_000.0;
 /// a re-think storm in a single tick.
 pub const AI_RETHINK_DEBOUNCE: u64 = 30;
 
+// ---- AI rivalry ------------------------------------------------------------
+// A nemesis a faction fixates on, beyond cold strategy. Seeded historically or
+// formed when attacked, escalating toward the strongest aggressor and
+// dissolving once the gap in power grows too wide.
+/// A rival must out-power the current one by this percent before the grudge
+/// switches to it — hysteresis, so a rivalry doesn't flip every skirmish.
+pub const AI_RIVAL_SWITCH_MARGIN: u64 = 130;
+/// Dissolve the rivalry once the stronger side is at least this many times the
+/// weaker: a giant stops fixating on a crushed minnow, and vice-versa.
+pub const AI_RIVAL_DISSOLVE_RATIO: u64 = 3;
+
 // ---- diplomacy -------------------------------------------------------------
 // Diplomacy is what breaks the six-power peer standoff: instead of every power
 // fighting every neighbour at parity, each focuses war on its weakest reachable

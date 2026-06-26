@@ -39,6 +39,12 @@ Current checkpoint:
   debug lines. Churned terrain patches use ragged oval alpha instead of hard
   rectangular quads, removing the square-artifact read while keeping trampled
   ground detail.
+- Production WebGPU battle terrain now reads the real wasm `terrain_tint`
+  grid used by the minimap instead of an unrelated decorative fixture. Forest,
+  mud, and rough-ground cells are translated into faint masks plus deterministic
+  tree, shrub, pothole, churn, and rock quads from the same data source so the
+  main battlefield and minimap agree without exposing a raw raster overlay as
+  final art.
 
 ## Verification
 
@@ -66,3 +72,12 @@ Current checkpoint:
 
 This is the first taste checkpoint for whether the WebGPU battle feels like the
 same warm Aegean world rather than a technical test grid.
+
+Fresh unprimed critique on the 2026-06-27 DPR2 battle selection capture still
+flags broader battle-readability work outside this terrain-source slice: the
+playfield edge reads as a rectangular tile, the top-left HUD can cover active
+formations, selected world units need a clearer ground-space marker, flags/bars
+dominate tiny soldiers at this zoom, labels are fragile over busy terrain, and
+terrain features must keep moving away from low-res stain/blob reads toward
+grounded props and authored detail. These remain acceptance blockers for the
+later battle UI/compositor, crowd parity, and default cutover slices.

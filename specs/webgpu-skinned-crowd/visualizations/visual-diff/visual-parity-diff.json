@@ -1,6 +1,6 @@
 {
   "kind": "screenshot-parity-diff",
-  "generatedAt": "2026-06-26T21:32:34.568Z",
+  "generatedAt": "2026-06-26T22:13:32.216Z",
   "note": "Lower parityDistance means the candidate is closer to archived current-renderer parity. This is a parity metric, not an aesthetics acceptance gate.",
   "results": [
     {
@@ -48,24 +48,24 @@
         "width": 2560,
         "height": 1600
       },
-      "parityDistance": 0.18225,
+      "parityDistance": 0.17527,
       "grayscale": {
-        "mae": 10.43308,
-        "rmse": 20.39233,
-        "diffRatio16": 0.14404,
-        "diffRatio32": 0.07216,
-        "diffRatio64": 0.03206,
-        "pixelmatchRatio": 0.10038
+        "mae": 9.73034,
+        "rmse": 18.552,
+        "diffRatio16": 0.13784,
+        "diffRatio32": 0.066,
+        "diffRatio64": 0.02557,
+        "pixelmatchRatio": 0.09405
       },
       "contentProxies": {
         "blackRatioCurrent": 0.00083,
-        "blackRatioCandidate": 0.00122,
+        "blackRatioCandidate": 0.00125,
         "terrainLikeRatioCurrent": 0.79296,
-        "terrainLikeRatioCandidate": 0.79604,
+        "terrainLikeRatioCandidate": 0.79596,
         "edgeEnergyCurrent": 0.12744,
-        "edgeEnergyCandidate": 0.0821,
-        "edgeEnergyRatio": 0.64424,
-        "edgeDiffRatio32": 0.14698
+        "edgeEnergyCandidate": 0.0835,
+        "edgeEnergyRatio": 0.6552,
+        "edgeDiffRatio32": 0.14866
       },
       "artifacts": {
         "currentGray": "visual-diff/battle-selection-hud-dpr2-current-gray.png",

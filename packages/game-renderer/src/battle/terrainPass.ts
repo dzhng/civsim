@@ -1,6 +1,6 @@
 import type { RawFrameShell } from '../../../webgpu-core/src/frameShell';
 
-export type BattleTerrainFixture = 'coast' | 'melee' | 'dry-melee' | 'prop-field';
+export type BattleTerrainFixture = 'coast' | 'melee' | 'dry-melee' | 'prop-field' | 'sim-tint';
 
 export interface BattleTerrainPassStats {
   fixture: BattleTerrainFixture;
@@ -159,6 +159,31 @@ fn fs(in: VsOut) -> @location(0) vec4f {
     return vec4f(mix(vec3f(0.31, 0.23, 0.14), cypress, max(crown, side)), a);
   }
 
+  if (in.kind < 10.5) {
+    let shore = smoothstep(-1.0, 1.0, in.local.y);
+    let water = mix(vec3f(0.42, 0.67, 0.72), vec3f(0.10, 0.25, 0.40), shore);
+    let ripple = smoothstep(0.78, 0.98, sin(in.world.x * 0.55 + in.world.y * 0.18 + fbm(in.world * 0.05) * 4.0) * 0.5 + 0.5);
+    return vec4f(water + vec3f(0.08, 0.09, 0.06) * ripple, in.alpha);
+  }
+
+  if (in.kind < 11.5) {
+    let rockRidge = ridge(vec2f(in.world.x * 0.36 + in.world.y * 0.08, in.world.y * 0.42));
+    let stone = mix(vec3f(0.36, 0.34, 0.30), vec3f(0.63, 0.56, 0.43), max(n, rockRidge * 0.34));
+    return vec4f(stone, in.alpha);
+  }
+
+  if (in.kind < 12.5) {
+    let canopy = mix(vec3f(0.17, 0.29, 0.13), vec3f(0.34, 0.45, 0.20), fbm(in.world * 0.18 + vec2f(3.0, 7.0)));
+    let trunkFleck = smoothstep(0.82, 0.97, fbm(in.world * 1.2 + vec2f(8.0, 2.0)));
+    return vec4f(mix(canopy, vec3f(0.12, 0.10, 0.07), trunkFleck * 0.26), in.alpha);
+  }
+
+  if (in.kind < 13.5) {
+    let cracked = ridge(vec2f(in.world.x * 0.31 + in.world.y * 0.07, in.world.y * 0.38));
+    let mud = mix(vec3f(0.34, 0.25, 0.15), vec3f(0.58, 0.46, 0.28), n + cracked * 0.18);
+    return vec4f(mud, in.alpha);
+  }
+
   let wave = smoothstep(0.10, 0.0, abs(sin(in.world.x * 0.24 + in.world.y * 0.46 + fbm(in.world * 0.06) * 2.0)));
   let fade = oval(in.local, 1.0, 0.34) * in.alpha;
   return vec4f(vec3f(0.92, 0.88, 0.72), fade * wave * edgeFeather(in.local) * 0.52);
@@ -237,15 +262,17 @@ export class BattleTerrainPass {
     this.rebuild();
   }
 
+  setTintGrid(opts: { w: number; h: number; cell: number; ox: number; oy: number; tint: Uint8Array }) {
+    this.fixture = 'sim-tint';
+    this.fieldRect = [opts.ox, opts.oy, opts.w * opts.cell, opts.h * opts.cell];
+    this.quads = terrainQuadsFromTint(opts);
+    this.statsValue = terrainStats(this.fixture, this.quads);
+    this.upload();
+  }
+
   private rebuild() {
     this.quads = makeFixture(this.fixture, this.fieldRect);
-    this.statsValue = {
-      fixture: this.fixture,
-      quads: this.quads.length,
-      waterQuads: this.quads.filter((q) => q.kind === 0 || q.kind === 8).length,
-      sceneryQuads: this.quads.filter((q) => q.kind === 3 || q.kind === 4 || q.kind === 6 || q.kind === 7).length,
-      selectionQuads: this.quads.filter((q) => q.kind === 5).length,
-    };
+    this.statsValue = terrainStats(this.fixture, this.quads);
     this.upload();
   }
 
@@ -287,7 +314,172 @@ export class BattleTerrainPass {
   }
 }
 
+function terrainStats(fixture: BattleTerrainFixture, quads: TerrainQuad[]): BattleTerrainPassStats {
+  return {
+    fixture,
+    quads: quads.length,
+    waterQuads: quads.filter((q) => q.kind === 0 || q.kind === 8 || q.kind === 10).length,
+    sceneryQuads: quads.filter((q) => q.kind === 3 || q.kind === 4 || q.kind === 6 || q.kind === 7 || q.kind === 11 || q.kind === 12).length,
+    selectionQuads: quads.filter((q) => q.kind === 5).length,
+  };
+}
+
+function terrainQuadsFromTint(opts: { w: number; h: number; cell: number; ox: number; oy: number; tint: Uint8Array }): TerrainQuad[] {
+  const used = new Uint8Array(opts.w * opts.h);
+  const quads: TerrainQuad[] = [];
+  for (let y = 0; y < opts.h; y++) {
+    for (let x = 0; x < opts.w; x++) {
+      const i = y * opts.w + x;
+      const tint = opts.tint[i] ?? 0;
+      if (used[i] || tint === 0) continue;
+      let runW = 1;
+      while (x + runW < opts.w && !used[i + runW] && opts.tint[i + runW] === tint) runW++;
+      let runH = 1;
+      scanRows:
+      while (y + runH < opts.h) {
+        const row = (y + runH) * opts.w + x;
+        for (let k = 0; k < runW; k++) {
+          if (used[row + k] || opts.tint[row + k] !== tint) break scanRows;
+        }
+        runH++;
+      }
+      for (let yy = 0; yy < runH; yy++) {
+        used.fill(1, (y + yy) * opts.w + x, (y + yy) * opts.w + x + runW);
+      }
+      const style = styleForTerrainTint(tint);
+      quads.push({
+        x: opts.ox + x * opts.cell,
+        y: opts.oy + y * opts.cell,
+        w: runW * opts.cell,
+        h: runH * opts.cell,
+        kind: style.kind,
+        alpha: style.alpha,
+      });
+    }
+  }
+  appendTerrainProps(quads, opts);
+  return quads;
+}
+
+function styleForTerrainTint(tint: number): { kind: number; alpha: number } {
+  switch (tint) {
+    case 1: return { kind: 10, alpha: 0.96 }; // water
+    case 2: return { kind: 11, alpha: 0.88 }; // rock
+    case 3: return { kind: 11, alpha: 0.94 }; // wall/stone
+    case 4: return { kind: 12, alpha: 0.18 }; // forest
+    case 5: return { kind: 13, alpha: 0.08 }; // mud
+    case 6: return { kind: 13, alpha: 0.08 }; // scree/field
+    default: return { kind: 13, alpha: 0.42 };
+  }
+}
+
+function appendTerrainProps(quads: TerrainQuad[], opts: { w: number; h: number; cell: number; ox: number; oy: number; tint: Uint8Array }) {
+  let treeCount = 0;
+  let shrubCount = 0;
+  let churnCount = 0;
+  let rockCount = 0;
+  let potholeCount = 0;
+  const maxTrees = 900;
+  const maxShrubs = 720;
+  const maxChurn = 160;
+  const maxRocks = 520;
+  const maxPotholes = 820;
+  for (let y = 0; y < opts.h; y++) {
+    for (let x = 0; x < opts.w; x++) {
+      const tint = opts.tint[y * opts.w + x] ?? 0;
+      if (tint === 4 && (treeCount < maxTrees || shrubCount < maxShrubs)) {
+        if (hashCell(x, y, 17) < 0.18 && treeCount < maxTrees) {
+          const center = jitteredCellCenter(opts, x, y, 31, 0.42);
+          const size = opts.cell * (2.7 + hashCell(x, y, 43) * 2.1);
+          quads.push({
+            x: center.x - size * 0.34,
+            y: center.y - size * 0.62,
+            w: size * 0.68,
+            h: size * 1.24,
+            kind: 7,
+            alpha: 0.84 + hashCell(x, y, 59) * 0.12,
+          });
+          treeCount++;
+        }
+        if (hashCell(x, y, 181) < 0.16 && shrubCount < maxShrubs) {
+          const center = jitteredCellCenter(opts, x, y, 191, 0.48);
+          const size = opts.cell * (2.3 + hashCell(x, y, 199) * 2.4);
+          quads.push({
+            x: center.x - size * 0.58,
+            y: center.y - size * 0.32,
+            w: size * 1.16,
+            h: size * 0.64,
+            kind: 4,
+            alpha: 0.46 + hashCell(x, y, 211) * 0.22,
+          });
+          shrubCount++;
+        }
+      } else if ((tint === 5 || tint === 6) && (churnCount < maxChurn || rockCount < maxRocks || potholeCount < maxPotholes)) {
+        const churnRoll = hashCell(x, y, 61);
+        if (churnRoll < (tint === 5 ? 0.03 : 0.02) && churnCount < maxChurn) {
+          const center = jitteredCellCenter(opts, x, y, 67, 0.48);
+          const size = opts.cell * (3.4 + hashCell(x, y, 73) * 3.8);
+          quads.push({
+            x: center.x - size * 0.52,
+            y: center.y - size * 0.32,
+            w: size * 1.04,
+            h: size * 0.64,
+            kind: 2,
+            alpha: tint === 5 ? 0.12 : 0.08,
+          });
+          churnCount++;
+        }
+        const potholeRoll = hashCell(x, y, 71);
+        if (potholeRoll < (tint === 5 ? 0.23 : 0.12) && potholeCount < maxPotholes) {
+          const center = jitteredCellCenter(opts, x, y, 83, 0.46);
+          const size = opts.cell * (1.7 + hashCell(x, y, 97) * 2.4);
+          quads.push({
+            x: center.x - size * 0.55,
+            y: center.y - size * 0.28,
+            w: size * 1.1,
+            h: size * 0.56,
+            kind: 3,
+            alpha: tint === 5 ? 0.15 : 0.10,
+          });
+          potholeCount++;
+        }
+        const rockRoll = hashCell(x, y, 109);
+        if (rockRoll < (tint === 6 ? 0.09 : 0.055) && rockCount < maxRocks) {
+          const center = jitteredCellCenter(opts, x, y, 127, 0.40);
+          const size = opts.cell * (1.5 + hashCell(x, y, 149) * 1.9);
+          quads.push({
+            x: center.x - size * 0.50,
+            y: center.y - size * 0.35,
+            w: size,
+            h: size * 0.7,
+            kind: 6,
+            alpha: 0.44 + hashCell(x, y, 167) * 0.18,
+          });
+          rockCount++;
+        }
+      }
+    }
+  }
+}
+
+function jitteredCellCenter(opts: { cell: number; ox: number; oy: number }, x: number, y: number, seed: number, amount: number): { x: number; y: number } {
+  const jx = (hashCell(x, y, seed) - 0.5) * amount;
+  const jy = (hashCell(x, y, seed + 1) - 0.5) * amount;
+  return {
+    x: opts.ox + (x + 0.5 + jx) * opts.cell,
+    y: opts.oy + (y + 0.5 + jy) * opts.cell,
+  };
+}
+
+function hashCell(x: number, y: number, seed: number): number {
+  let n = (x * 374761393 + y * 668265263 + seed * 362437) | 0;
+  n = (n ^ (n >>> 13)) | 0;
+  n = Math.imul(n, 1274126177);
+  return ((n ^ (n >>> 16)) >>> 0) / 4294967296;
+}
+
 function makeFixture(fixture: BattleTerrainFixture, fieldRect: [number, number, number, number]): TerrainQuad[] {
+  if (fixture === 'sim-tint') return [];
   const [fx, fy, fw, fh] = fieldRect;
   const cx = fx + fw * 0.5;
   const cy = fy + fh * 0.5;

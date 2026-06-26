@@ -22,6 +22,7 @@ export class BattleRendererWebGPU {
   private unitTeam: number[] = [];
   private unitClass: number[] = [];
   private terrainRect: [number, number, number, number] = [-220, -180, 440, 360];
+  private terrainGrid: { w: number; h: number; cell: number; ox: number; oy: number; tint: Uint8Array } | null = null;
   private instances: CrowdInstance[] = [];
   private markers: MarkerInstance[] = [];
   private triangleVerts = new Float32Array();
@@ -60,9 +61,11 @@ export class BattleRendererWebGPU {
     this.debugBlocks?.upload(this.triangleVerts);
   }
 
-  setTerrain(w: number, h: number, cell: number, ox: number, oy: number) {
+  setTerrain(w: number, h: number, cell: number, ox: number, oy: number, tint?: Uint8Array) {
     this.terrainRect = [ox, oy, w * cell, h * cell];
-    this.terrain?.setFieldRect(this.terrainRect);
+    this.terrainGrid = tint ? { w, h, cell, ox, oy, tint: new Uint8Array(tint) } : null;
+    if (this.terrainGrid) this.terrain?.setTintGrid(this.terrainGrid);
+    else this.terrain?.setFieldRect(this.terrainRect);
   }
 
   draw(
@@ -205,8 +208,11 @@ export class BattleRendererWebGPU {
   private async init() {
     this.shell = await createFrameShell(this.canvas);
     this.terrain = new BattleTerrainPass(this.shell);
-    this.terrain.setFieldRect(this.terrainRect);
-    this.terrain.setFixture('dry-melee');
+    if (this.terrainGrid) this.terrain.setTintGrid(this.terrainGrid);
+    else {
+      this.terrain.setFieldRect(this.terrainRect);
+      this.terrain.setFixture('dry-melee');
+    }
     this.overlay = new BattleOverlayPass(this.shell);
     this.tris = new BattleTrianglePass(this.shell);
     this.debugBlocks = new BattleTrianglePass(this.shell);

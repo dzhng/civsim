@@ -133,8 +133,9 @@ export class BattleScene implements Scene {
     {
       const tw = game.terrain_w();
       const th = game.terrain_h();
+      const tint = new Uint8Array(wasm.memory.buffer, game.terrain_tint_ptr(), tw * th);
       renderer.setTerrain(
-        tw, th, game.terrain_cell(), game.terrain_origin_x(), game.terrain_origin_y(),
+        tw, th, game.terrain_cell(), game.terrain_origin_x(), game.terrain_origin_y(), new Uint8Array(tint),
       );
     }
 

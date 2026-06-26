@@ -34,6 +34,20 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   every pipeline used in that pass, split the pass, or keep depth off. A green
   scenario route is not enough; open the screenshot and reject black frames or
   flattened/incorrect occlusion.
+- Browser scenarios can pass while a WebGPU canvas is visibly black, especially
+  when DOM overlays still render and stats only prove CPU-side plumbing. After
+  WGSL or pass changes, inspect the actual PNG and treat a black/transparent
+  canvas as a failed GPU draw even if there are no page errors.
+- When a new shader branch or pass variant creates a black-canvas failure, back
+  out to the last known-good WGSL path and reintroduce the visual idea through
+  existing proven instance kinds or pipelines first. Once the screenshot is
+  nonblack and the data path is validated, widen the shader surface in a smaller
+  follow-up.
+- When rendering sim terrain from a cell grid, do not expose raw cell/raster
+  edges as final art. Merge or soften feature masks, then add instanced props
+  such as trees, rocks, potholes, or churn details from the same data source.
+  The minimap and battlefield must agree on terrain source, but the battlefield
+  should be authored-looking, not a colored grid.
 - Use instancing, batching, storage buffers, and GPU-side phase passes for scale.
   Avoid CPU readbacks in hot paths; debug readbacks must be bounded and named.
 - For iterative effects or simulations, separate phases such as `state`,

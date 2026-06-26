@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Smarter campaign AI — decision flow & roadmap</title>
+<style>
+  :root{
+    --bg:#1a1410; --panel:#241c15; --ink:#e8dcc8; --dim:#a8987e;
+    --bronze:#c08a4a; --gold:#e0b352; --line:#3a2e22; --good:#7fae6a;
+    --warn:#c97a4a; --accent:#6a93b0;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:15px/1.55 -apple-system,Segoe UI,Roboto,Helvetica,sans-serif;padding:32px}
+  h1{font-size:24px;margin:0 0 4px;color:var(--gold);letter-spacing:.3px}
+  h2{font-size:15px;text-transform:uppercase;letter-spacing:1.5px;color:var(--bronze);
+    margin:34px 0 14px;border-bottom:1px solid var(--line);padding-bottom:6px}
+  .sub{color:var(--dim);margin:0 0 8px;max-width:70ch}
+  code{background:#0e0b08;color:var(--gold);padding:1px 6px;border-radius:4px;
+    font:13px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace}
+  .flow{display:flex;flex-direction:column;gap:10px;max-width:760px}
+  .step{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--bronze);
+    border-radius:8px;padding:12px 16px}
+  .step b{color:var(--gold)}
+  .step .k{color:var(--accent)}
+  .arrow{color:var(--bronze);text-align:center;font-size:18px;margin:-4px 0}
+  .rng{border-left-color:var(--warn)}
+  .rng b{color:var(--warn)}
+  table{border-collapse:collapse;width:100%;max-width:960px;margin-top:8px}
+  th,td{text-align:left;padding:8px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--bronze);font-size:12px;text-transform:uppercase;letter-spacing:1px}
+  td.n{color:var(--gold);font-weight:600;white-space:nowrap}
+  .tag{display:inline-block;font-size:11px;padding:1px 8px;border-radius:10px;
+    border:1px solid var(--line)}
+  .t-sub{color:var(--accent);border-color:var(--accent)}
+  .t-beh{color:var(--good);border-color:var(--good)}
+  .t-opt{color:var(--dim)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:960px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px 18px}
+  .card h3{margin:0 0 8px;color:var(--gold);font-size:14px}
+  ul{margin:6px 0;padding-left:18px} li{margin:3px 0;color:var(--ink)}
+  .muted{color:var(--dim)}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;margin:6px 0 0}
+</style>
+</head>
+<body>
+  <h1>Smarter campaign AI</h1>
+  <p class="sub">Clone the state → imagine a few futures → score them → pick (with
+  human-like randomness). Different factions weight the score differently. This
+  page is the map; the slice files are the territory.</p>
+
+  <h2>The hourly decision, rebuilt</h2>
+  <p class="sub">Runs inside <code>think()</code> (<code>ai.rs:137</code>), once per
+  60 ticks per campaigning faction. Defend / recruit / build / merge stay as
+  today's rules — only the <b>offensive commitment</b> goes through search.</p>
+
+  <div class="flow">
+    <div class="step"><b>1 · Candidates</b> &nbsp;<span class="k">plan::candidates()</span><br>
+      a few labeled plans — <i>focus</i>, <i>nearest-beatable</i>, <i>nearest-any</i>, <i>hold</i>.
+      Reuses today's target-finding; reads only what the faction can see (fog).</div>
+    <div class="arrow">▼ &nbsp;for each candidate</div>
+    <div class="step"><b>2 · Imagine</b> &nbsp;<span class="k">state.clone()</span> → <span class="k">rollout::forward(HORIZON)</span><br>
+      apply the plan's marches, fast-forward ~120 ticks. Battles auto-resolve via
+      <span class="k">resolve::estimate</span> (cheap, O(units)). The clone means the
+      live RNG stream is never touched → determinism holds.</div>
+    <div class="arrow">▼</div>
+    <div class="step"><b>3 · Score</b> &nbsp;<span class="k">eval::score(weights)</span><br>
+      one scalar: territory · army · income − threat. The <i>weights are the
+      faction's personality.</i></div>
+    <div class="arrow">▼</div>
+    <div class="step rng"><b>4 · Choose</b> &nbsp;<span class="k">softmax(scores, temp, st.rng)</span><br>
+      not pure argmax — sampled, so it sometimes takes the second-best line.</div>
+    <div class="arrow">▼</div>
+    <div class="step"><b>5 · Commit</b> &nbsp;<span class="k">sim::try_move(...)</span> — issue the chosen plan's orders for real.</div>
+  </div>
+
+  <h2>Three places randomness enters <span class="muted" style="text-transform:none;letter-spacing:0">(all from <code>st.rng</code> → still deterministic)</span></h2>
+  <div class="grid2">
+    <div class="card"><h3>Perceived strength</h3>
+      <p class="muted">Fuzz own/enemy strength while reasoning. Commits on the
+      fuzzed number; reality resolves on the true one. → "miscalculated my army /
+      felt brave."</p></div>
+    <div class="card"><h3>Bravado / mood</h3>
+      <p class="muted">A slowly-drifting per-faction scalar on the attack
+      threshold. Streaky, not jittery — a faction runs hot or cautious for a
+      while. Lives on the state (saved).</p></div>
+    <div class="card"><h3>Selection temperature</h3>
+      <p class="muted">Softmax over scores. Low = cold optimizer, high = erratic.
+      Doubles as a persona dial.</p></div>
+    <div class="card"><h3>Not random: the estimator</h3>
+      <p class="muted"><code>resolve::estimate</code> stays pure so rollouts are
+      repeatable. Battle uncertainty enters via <i>perception</i>, not the
+      resolver.</p></div>
+  </div>
+
+  <h2>Slice ladder</h2>
+  <div class="legend">
+    <span class="tag t-sub">substrate (no live behavior change)</span>
+    <span class="tag t-beh">behavior change (measurable)</span>
+    <span class="tag t-opt">optional / gated</span>
+  </div>
+  <table>
+    <tr><th>#</th><th>Slice</th><th>Unlocks</th><th>Type</th></tr>
+    <tr><td class="n">1</td><td>Cheap battle estimator</td><td><code>resolve::estimate</code> in prod (promote test <code>fast_resolve</code>)</td><td><span class="tag t-sub">substrate</span></td></tr>
+    <tr><td class="n">2</td><td>Rollout sandbox</td><td><code>rollout::forward</code> — clone &amp; advance, battles auto-resolve</td><td><span class="tag t-sub">substrate</span></td></tr>
+    <tr><td class="n">3</td><td>Eval + candidates</td><td><code>eval::score</code>, <code>plan::candidates</code> + a probe a human reads</td><td><span class="tag t-sub">substrate</span></td></tr>
+    <tr><td class="n">4</td><td>Wire one-ply search</td><td><code>think()</code> picks the offensive by rollout (argmax)</td><td><span class="tag t-beh">behavior</span></td></tr>
+    <tr><td class="n">5</td><td>Randomness</td><td>perceived strength · bravado · softmax</td><td><span class="tag t-beh">behavior</span></td></tr>
+    <tr><td class="n">6</td><td>Personas</td><td><code>AiPersona</code> variants → weight/temp profiles</td><td><span class="tag t-beh">behavior</span></td></tr>
+    <tr><td class="n">7</td><td>Event-triggered re-think</td><td>contact / threat / siege → react off-cadence</td><td><span class="tag t-beh">behavior</span></td></tr>
+    <tr><td class="n">8</td><td>Rivals</td><td>per-faction nemesis — seeded or formed in play, auto-resets on power gap</td><td><span class="tag t-beh">behavior</span></td></tr>
+    <tr><td class="n">9</td><td>MCTS</td><td>multi-ply search — only if one-ply feels shallow</td><td><span class="tag t-opt">optional</span></td></tr>
+  </table>
+  <p class="sub" style="margin-top:10px">1→2→3 land without changing the running
+  game. 4 is the first win. 5/6/7 are independent after 4; 8 (rivals) builds on
+  7's event detection. 9 is gated on a human judgment call.</p>
+
+  <h2>Personas <span class="muted" style="text-transform:none;letter-spacing:0">— one weight/noise preset, not seven code paths</span></h2>
+  <table>
+    <tr><th>Persona</th><th>Optimizes</th><th>Gate</th><th>Temp</th><th>Feel</th></tr>
+    <tr><td class="n">Expansionist</td><td>territory · army</td><td>1.2</td><td>mid</td><td>today's relentless power (= defaults)</td></tr>
+    <tr><td class="n">Defensive</td><td>hold cities, threat-averse</td><td>1.8</td><td>low</td><td>turtle; retakes only what it loses</td></tr>
+    <tr><td class="n">Mercantile</td><td>income first</td><td>1.6</td><td>low</td><td>out-economies, buys a late war</td></tr>
+    <tr><td class="n">Opportunist</td><td>cheap gains</td><td>2.2</td><td>mid</td><td>jackal — preys on the weak, dodges fair fights</td></tr>
+    <tr><td class="n">Calculating</td><td>win probability</td><td>1.5</td><td>very low</td><td>cold chess engine</td></tr>
+    <tr><td class="n">Warmonger</td><td>enemy losses</td><td>1.0</td><td>high</td><td>brave — throws itself at near-parity fights</td></tr>
+  </table>
+  <p class="sub" style="margin-top:10px"><b>Rivalry (slice 8) is not a persona.</b>
+  Any faction — turtle, merchant, warmonger — can carry a nemesis: seeded
+  (Rome ↔ Carthage) or formed when attacked, escalating toward the strongest real
+  threat and auto-dissolving once the power gap grows too wide. It's a thumb on
+  the scale (<i>prefer hurting / defending against the rival</i>), not a separate
+  brain, and it never overrides a clearly better opportunity elsewhere.</p>
+
+  <h2>Lines we don't cross</h2>
+  <ul>
+    <li><b>Determinism</b> — BTree-only, id order, RNG in state; rollouts clone before ticking. Pinned by a test.</li>
+    <li><b>Fog of war</b> — search sees only <code>st.visible</code>, never omniscient.</li>
+    <li><b>The real battle is still the physics sim</b> — <code>estimate</code> is the AI's imagination only.</li>
+    <li><b>No battle-physics changes</b> — nothing under <code>crates/sim</code>.</li>
+    <li><b>Campaign-health harness</b> (<code>full_game.rs</code>, <code>lopsided_war_concludes</code>) stays green.</li>
+  </ul>
+</body>
+</html>

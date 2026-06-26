@@ -117,6 +117,11 @@ the whole point.
   Do not swap fonts, lowercase the caps, or drop the halo. Allegiance icon colors
   (Friend `#4ed163`, Neutral `#edc74d`, Foe `#e0463a` — `status.ts:14`) are fixed
   by the two-color rule below.
+- **Campaign UI icons use Phosphor filled.** For DOM buttons, panels, and compact
+  readouts, use the filled variant from <https://phosphoricons.com/>. Keep icons
+  one-color (`currentColor`) in parchment/brass UI tones, or faction/allegiance
+  color only when the icon is literally identifying ownership/standing. Do not
+  use emoji in campaign UI controls; they break the antique Total War surface.
 - **Faction fills: translucent wash + smooth border (current) vs. hatch (target
   gap).** Territory is a per-faction RGB wash at `FILL_A=150` with a Douglas-Peucker
   + Chaikin-smoothed border (`territory.ts:262-379`, `renderer.ts:234`). The
@@ -149,4 +154,6 @@ that source. Introducing a third color vocabulary is a regression.
 2. Find the knob above (it cites file:line + current value).
 3. Make the change, then **follow `screenshot-regression`**: rebuild wasm if you
    touched `crates/`, capture the shot, and look at it next to the reference before
-   you call it done. Re-bless baselines only once the render actually matches.
+   you call it done. For UI/icon changes, capture every touched panel/control
+   surface and inspect the PNG yourself. Re-bless baselines only once the render
+   actually matches.

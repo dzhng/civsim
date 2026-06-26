@@ -464,7 +464,7 @@ export class Terrain3D {
     // where there are no figures, the overlay's flat pennant marks the army.)
     // Selection ring — a flat torus laid on the ground, shown under the
     // ONE selected army (positioned in setArmies), hidden otherwise.
-    const sel = CreateTorus('asel', { diameter: 7.5, thickness: 0.5, tessellation: 32 }, this.scene);
+    const sel = CreateTorus('asel', { diameter: 9.5, thickness: 0.7, tessellation: 36 }, this.scene);
     this.paint(sel, 0.2, 0.95, 0.35, 0); // selection green
     sel.material = this.modelMat;
     sel.alwaysSelectAsActiveMesh = true;
@@ -1047,7 +1047,7 @@ export class Terrain3D {
     const ring = this.armySelRing;
     if (ring) {
       if (selPos) {
-        const rs = 0.62 * S; // torus diameter 7.5 -> roughly the army footprint
+        const rs = 1.35; // match the standard city selection footprint
         ring.thinInstanceSetBuffer('matrix', new Float32Array([
           rs, 0, 0, 0,
           0, 0, rs, 0,

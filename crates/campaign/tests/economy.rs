@@ -82,30 +82,6 @@ fn undefended_city_is_occupied_and_flips() {
 }
 
 #[test]
-fn road_works_pay_build_and_persist() {
-    let mut c = Campaign::new(test_map(), 7, 0);
-    inert(&mut c);
-    let gold0 = c.state.factions[0].treasury;
-    assert!(c.order_upgrade_road(0)); // edge 0 touches red's A
-    assert!(!c.order_upgrade_road(0), "one job per edge");
-    let cost = tunables::ROAD_COST_PER_TILE * 12;
-    assert_eq!(c.state.factions[0].treasury, gold0 - cost, "paid up front");
-    // Save/load mid-build: the job must survive.
-    let save = c.save();
-    let mut c = Campaign::load(test_map(), &save).unwrap();
-    inert(&mut c);
-    assert_eq!(c.state.road_jobs.len(), 1);
-    for _ in 0..tunables::ROAD_BUILD_TICKS_PER_TILE * 12 + 5 {
-        c.tick();
-    }
-    assert_eq!(c.state.road_level(0), 2, "paving completed");
-    assert!(c.state.road_jobs.is_empty());
-    // And the finished level round-trips too.
-    let c2 = Campaign::load(test_map(), &c.save()).unwrap();
-    assert_eq!(c2.state.road_level(0), 2);
-}
-
-#[test]
 fn city_buildings_raise_income_and_speed_recruits() {
     let mut c = Campaign::new(test_map(), 7, 0);
     inert(&mut c);

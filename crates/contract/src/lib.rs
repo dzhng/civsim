@@ -29,6 +29,12 @@ pub enum UnitClassId {
     /// Heavy armour, spear + big shield — the armoured spear wall (LightSpear
     /// is the light spear). Added last so existing indices hold.
     HeavySpear,
+    /// Workhorse sword infantry: stronger than light swords, below elite heavy
+    /// swords. Added last so existing indices hold.
+    MediumInfantry,
+    /// Workhorse spear infantry: stronger than light spears, below elite heavy
+    /// spears. Added last so existing indices hold.
+    MediumSpear,
 }
 
 /// Campaign-side concrete unit choice within a tactical class. The numeric
@@ -56,10 +62,12 @@ pub fn unit_cost(c: UnitClassId) -> u32 {
         UnitClassId::Peasant => 175, // a sack of grain and a knife — cannon fodder
         UnitClassId::LightSword => 400, // cheap sword line: shield + blade, light armour
         UnitClassId::HeavySpear => 1100, // armoured spear wall: anti-charge line
+        UnitClassId::MediumInfantry => 650, // workhorse sword line between light and elite
+        UnitClassId::MediumSpear => 700, // workhorse spear line with a better brace
     }
 }
 
-pub const ALL_CLASSES: [UnitClassId; 12] = [
+pub const ALL_CLASSES: [UnitClassId; 14] = [
     UnitClassId::HeavySword,
     UnitClassId::LightSpear,
     UnitClassId::LongSwords,
@@ -72,6 +80,8 @@ pub const ALL_CLASSES: [UnitClassId; 12] = [
     UnitClassId::Peasant,
     UnitClassId::LightSword,
     UnitClassId::HeavySpear,
+    UnitClassId::MediumInfantry,
+    UnitClassId::MediumSpear,
 ];
 
 /// A battle map as a data-only paint program over a flat terrain grid.

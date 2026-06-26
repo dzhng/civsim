@@ -503,20 +503,6 @@ fn timers(st: &mut CampaignState) {
             }
         }
     }
-    // Road works: count down, then pave.
-    let mut paved: Vec<crate::mapdata::EdgeId> = Vec::new();
-    for (&e, job) in st.road_jobs.iter_mut() {
-        job.ticks_left = job.ticks_left.saturating_sub(1);
-        if job.ticks_left == 0 {
-            paved.push(e);
-        }
-    }
-    for e in paved {
-        let lvl = st.road_jobs.remove(&e).unwrap().to_level;
-        if let Some(slot) = st.road_levels.get_mut(e as usize) {
-            *slot = lvl;
-        }
-    }
     let now = st.tick;
     st.no_rematch.retain(|_, &mut until| until > now);
 }
@@ -608,7 +594,6 @@ pub fn new_state(map: &WorldMap, seed: u64, player_faction: u32) -> CampaignStat
         no_rematch: std::collections::BTreeMap::new(),
         visible: Vec::new(),
         road_levels: vec![1; map.edges.len()],
-        road_jobs: std::collections::BTreeMap::new(),
         outcome: None,
         relations: std::collections::BTreeMap::new(),
         diplo_target: std::collections::BTreeMap::new(),

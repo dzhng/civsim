@@ -18,7 +18,6 @@ import {
   classBuilderHtml,
   cityPanelHtml,
   diplomacyHtml,
-  roadPanelHtml,
   type ArmyRosterRow,
   type ClassDoctrineRow,
   type CityDetail,
@@ -165,6 +164,7 @@ export class CampaignScene implements Scene {
       encounterJson: (id: number) => this.cfg.campaign.encounter_json(id),
       armies: () => this.armies,
       cities: () => Object.fromEntries(this.cities),
+      openCity: (node: number) => this.openCityPanel(node),
       treasury: () => this.cfg.campaign.treasury(),
       save: () => this.cfg.campaign.save(),
       select: (id: number) => (this.selected = id),
@@ -375,8 +375,6 @@ export class CampaignScene implements Scene {
       this.openCityPanel(loc.a);
     } else if (loc && loc.kind === 0 && this.cfg.data.map.nodes[loc.a].kind === 'junction') {
       this.openJunctionPanel(loc.a);
-    } else if (loc && loc.kind === 1 && this.cfg.data.map.edges[loc.a].kind === 'road') {
-      this.openRoadPanel(loc.a);
     } else {
       this.closeCityPanel();
     }
@@ -730,22 +728,8 @@ export class CampaignScene implements Scene {
     );
   }
 
-  private openRoadPanel(edge: number) {
-    const panel = this.ui.querySelector('#cmp-city') as HTMLDivElement;
-    const c = this.cfg.campaign;
-    const lvl = c.road_level(edge);
-    const job = c.road_job_ticks(edge);
-    panel.innerHTML = roadPanelHtml(this.cfg.data.map.edges[edge].tiles.length, lvl, job);
-    panel.style.display = 'block';
-    panel.querySelector('#cmp-road-up')?.addEventListener('click', () => {
-      if (c.order_upgrade_road(edge)) {
-        this.refreshViews();
-        this.openRoadPanel(edge);
-      }
-    });
-  }
-
   private openJunctionPanel(node: number) {
+    this.selectedCity = -1;
     const panel = this.ui.querySelector('#cmp-city') as HTMLDivElement;
     panel.innerHTML = `<b>${this.cfg.data.map.nodes[node].name}</b> (junction)`;
     panel.style.display = 'block';

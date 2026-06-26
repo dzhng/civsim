@@ -64,7 +64,7 @@ fn sea_route_embarks() {
 }
 
 #[test]
-fn upgraded_road_marches_faster() {
+fn higher_level_road_marches_faster() {
     let ticks_to_arrive = |level: u8| {
         let mut c = Campaign::new(test_map(), 7, 0);
         inert(&mut c);
@@ -87,11 +87,11 @@ fn upgraded_road_marches_faster() {
 }
 
 #[test]
-fn routing_prefers_the_paved_parallel_route() {
+fn routing_prefers_the_faster_parallel_route() {
     let mut c = Campaign::new(diamond_map(), 7, 0);
     inert(&mut c);
-    // Identical routes either way; pave the south leg (edges 2+3) and
-    // the planner must choose it.
+    // Identical routes either way; make the south leg faster (edges 2+3)
+    // and the planner must choose it.
     c.state.road_levels[2] = 3;
     c.state.road_levels[3] = 3;
     let p = pathfind::plan(

@@ -161,9 +161,9 @@ fn roman_names(class: UnitClassId) -> Option<[&'static str; 3]> {
     use UnitClassId::*;
     Some(match class {
         HeavySword => [
-            "Roman Heavy Swordsmen",
-            "Italian Allied Cohorts",
+            "Praetorian Cohorts",
             "Armoured Legionaries",
+            "Eagle Guard Swordsmen",
         ],
         LightSpear => [
             "Italian Spear Levy",
@@ -211,11 +211,13 @@ fn roman_names(class: UnitClassId) -> Option<[&'static str; 3]> {
             "Italian Allied Swordsmen",
             "Gallic Auxilia",
         ],
+        MediumInfantry => ["Principes", "Samnite Line Infantry", "Latin Allied Cohorts"],
         HeavySpear => [
-            "Roman Heavy Spearmen",
-            "Allied Spear Cohorts",
+            "Praetorian Spearmen",
+            "Veteran Allied Spear Guard",
             "Eagle Guard Spearmen",
         ],
+        MediumSpear => ["Triarii", "Allied Spear Cohorts", "Campanian Spearmen"],
     })
 }
 
@@ -265,10 +267,20 @@ fn carthaginian_names(class: UnitClassId) -> Option<[&'static str; 3]> {
         ],
         Peasant => ["Punic Levy", "Libyan Levy", "Mercenary Rabble"],
         LightSword => ["Iberian Scutarii", "Libyan Swordsmen", "Gallic Warband"],
+        MediumInfantry => [
+            "Liby-Phoenician Line Infantry",
+            "Iberian Line Scutarii",
+            "Campanian Contract Infantry",
+        ],
         HeavySpear => [
             "Armoured Libyan Spears",
             "Punic Shield Spears",
             "Libyan Guard Spears",
+        ],
+        MediumSpear => [
+            "Libyan Spear Line",
+            "Punic Citizen Spearmen",
+            "Sicilian Spear Auxilia",
         ],
     })
 }
@@ -311,10 +323,16 @@ fn macedonian_names(class: UnitClassId) -> Option<[&'static str; 3]> {
             "Illyrian Auxilia",
             "Thorakitai Swords",
         ],
+        MediumInfantry => ["Thorakitai", "Macedonian Shield Swords", "Hypaspist Line"],
         HeavySpear => [
             "Shield Bearer Spears",
             "Heavy Thureophoroi",
             "Royal Spear Guard",
+        ],
+        MediumSpear => [
+            "Thureophoroi Spears",
+            "Peltast Spear Line",
+            "Agrianian Spearmen",
         ],
     })
 }
@@ -349,7 +367,17 @@ fn arverni_names(class: UnitClassId) -> Option<[&'static str; 3]> {
         ],
         Peasant => ["Tribal Levy", "Farm Levy", "War Camp Mob"],
         LightSword => ["Young Warriors", "Client Swordsmen", "Gallic Auxilia"],
+        MediumInfantry => [
+            "Gallic Swordsmen",
+            "Client Warband Swords",
+            "Seasoned Clan Warriors",
+        ],
         HeavySpear => ["Oath Spears", "Armoured Spear Retinue", "Noble Spear Guard"],
+        MediumSpear => [
+            "Clan Spearmen",
+            "Client Spear Warband",
+            "Hill Spear Retinue",
+        ],
     })
 }
 
@@ -391,7 +419,17 @@ fn egyptian_names(class: UnitClassId) -> Option<[&'static str; 3]> {
             "Greek Settler Swords",
             "Galatian Auxilia",
         ],
+        MediumInfantry => [
+            "Machimoi Line Infantry",
+            "Greek Cleruch Infantry",
+            "Galatian Line Swords",
+        ],
         HeavySpear => ["Cleruch Spearmen", "Armoured Machimoi", "Royal Spear Guard"],
+        MediumSpear => [
+            "Machimoi Spear Line",
+            "Greek Settler Spears",
+            "Nile Spear Guard",
+        ],
     })
 }
 
@@ -429,10 +467,20 @@ fn seleucid_names(class: UnitClassId) -> Option<[&'static str; 3]> {
             "Anatolian Auxilia",
             "Thorakitai Swords",
         ],
+        MediumInfantry => [
+            "Thorakitai Line Infantry",
+            "Anatolian Shield Infantry",
+            "Silver Shield Swords",
+        ],
         HeavySpear => [
             "Heavy Thureophoroi",
             "Median Spear Guard",
             "Royal Spear Guard",
+        ],
+        MediumSpear => [
+            "Thureophoroi Spear Line",
+            "Syrian Line Spearmen",
+            "Median Spear Auxilia",
         ],
     })
 }

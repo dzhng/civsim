@@ -12,6 +12,7 @@ export interface CampaignDebugApi {
   encounterJson(id: number): string;
   armies(): ArmyView[];
   cities(): Record<string, CityView>;
+  openCity(node: number): void;
   treasury(): number;
   save(): string;
   select(id: number): number;

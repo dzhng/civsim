@@ -36,6 +36,8 @@ pub fn march_mult(class: UnitClassId) -> f32 {
         Peasant => 1.05,
         LightSword => 1.1,
         HeavySpear => 0.9,
+        MediumInfantry => 1.0,
+        MediumSpear => 1.0,
     }
 }
 
@@ -56,6 +58,8 @@ pub fn unit_establishment(class: UnitClassId) -> u32 {
         Peasant => 1400,
         LightSword => 880,
         HeavySpear => 1280,
+        MediumInfantry => 1040,
+        MediumSpear => 1040,
     }
 }
 
@@ -92,9 +96,6 @@ pub const CAMP_VISION_BONUS: u32 = 2;
 /// March/route multiplier by road level (indexed by level; 0 unused).
 pub const ROAD_SPEED_MULT: [f32; 4] = [1.0, 1.0, 1.3, 1.6];
 pub const ROAD_MAX_LEVEL: u8 = 3;
-/// Upgrades price and pace by edge length: one level step per order.
-pub const ROAD_COST_PER_TILE: u32 = 15;
-pub const ROAD_BUILD_TICKS_PER_TILE: u32 = 120;
 pub fn road_mult(level: u8) -> f32 {
     ROAD_SPEED_MULT[level.min(ROAD_MAX_LEVEL) as usize]
 }
@@ -153,6 +154,8 @@ pub fn upkeep_per_soldier_milligold(class: UnitClassId) -> u32 {
         Peasant => 4, // they feed themselves off the land
         LightSword => 12,
         HeavySpear => 20,
+        MediumInfantry => 16,
+        MediumSpear => 16,
     }
 }
 pub const UPKEEP_UNIT_BASE: u32 = 4; // gold/day per roster entry
@@ -166,7 +169,7 @@ pub fn recruit_ticks_per_soldier(class: UnitClassId) -> u32 {
     match class {
         ShockCavalry | HorseArchers => 6,
         ArtilleryCrew => 5,
-        HeavySword | Phalanx | LongSwords => 3,
+        HeavySword | Phalanx | LongSwords | MediumInfantry | MediumSpear => 3,
         _ => 2,
     }
 }

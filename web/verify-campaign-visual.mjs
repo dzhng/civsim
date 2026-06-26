@@ -59,6 +59,17 @@ await page.waitForTimeout(300);
 await snapCheck(page, 'ui-class-builder', check);
 await page.click('#cmp-classes-btn');
 
+await page.click('#cmp-diplo-btn');
+await page.waitForTimeout(300);
+await snapCheck(page, 'ui-diplomacy', check);
+await page.click('#cmp-diplo-btn');
+
+// Panels touched by the icon pass: city build/recruit controls and army commands.
+await page.evaluate(() => window.__campaign.place(0, 1, 0, 4));
+await page.evaluate(() => window.__campaign.openCity(0));
+await page.waitForTimeout(300);
+await snapCheck(page, 'ui-city-panel', check);
+
 const armyClick = await page.evaluate(() => {
   const a = window.__campaign.armies().find((army) => army.mine);
   return window.__campaign.project(a.x, a.y);

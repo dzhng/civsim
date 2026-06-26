@@ -215,7 +215,7 @@ fn think(map: &WorldMap, st: &mut CampaignState, f: FactionId, bfs: &mut pathfin
                 use UnitClassId::*;
                 match r.class {
                     HeavySword | Phalanx | LongSwords | LightSpear | Peasant | LightSword
-                    | HeavySpear => line += r.count as u64,
+                    | HeavySpear | MediumInfantry | MediumSpear => line += r.count as u64,
                     Archers | Skirmishers | ArtilleryCrew => ranged += r.count as u64,
                     ShockCavalry | HorseArchers => cav += r.count as u64,
                 }
@@ -232,7 +232,7 @@ fn think(map: &WorldMap, st: &mut CampaignState, f: FactionId, bfs: &mut pathfin
         economy::recruit(map, st, depot, class, count);
     }
 
-    // 2b. A market is an investment in income, so build it before paving roads.
+    // 2b. A market is an investment in income.
     if solvent(st) {
         let richest = my_cities
             .iter()
@@ -241,25 +241,6 @@ fn think(map: &WorldMap, st: &mut CampaignState, f: FactionId, bfs: &mut pathfin
             .max_by_key(|&n| map.nodes[n as usize].tier);
         if let Some(n) = richest {
             economy::build(st, n, BuildKind::Market, f);
-        }
-    }
-
-    // 2c. Public works: with the war chest still intact, pave the worst road at
-    //     the capital (busiest-corridor targeting is a stretch goal).
-    if solvent(st) {
-        let capital = *my_cities
-            .iter()
-            .max_by_key(|&&n| map.nodes[n as usize].tier)
-            .unwrap();
-        let worst = map.nodes[capital as usize]
-            .edges
-            .iter()
-            .copied()
-            .filter(|&e| !map.edges[e as usize].sea && !st.road_jobs.contains_key(&e))
-            .filter(|&e| st.road_level(e) < tun::ROAD_MAX_LEVEL)
-            .min_by_key(|&e| st.road_level(e));
-        if let Some(e) = worst {
-            economy::upgrade_road(map, st, e, f);
         }
     }
 

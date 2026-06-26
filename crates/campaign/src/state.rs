@@ -181,12 +181,6 @@ pub struct RecruitJob {
     pub ticks_left: u32,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct RoadJob {
-    pub to_level: u8,
-    pub ticks_left: u32,
-}
-
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum BuildKind {
     Market,
@@ -242,9 +236,6 @@ pub struct CampaignState {
     /// Normalized to the map's edge count at load.
     #[serde(default)]
     pub road_levels: Vec<u8>,
-    /// In-flight upgrades, keyed by edge. One job per edge.
-    #[serde(default)]
-    pub road_jobs: BTreeMap<EdgeId, RoadJob>,
     /// Set once the war is decided; `None` while it is still being fought.
     #[serde(default)]
     pub outcome: Option<Outcome>,

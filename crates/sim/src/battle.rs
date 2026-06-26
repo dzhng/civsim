@@ -23,6 +23,8 @@ pub fn unit_size(class: UnitClassId) -> usize {
         Peasant => 1400, // cheap: they come in droves
         LightSword => 880,
         HeavySpear => 1280,
+        MediumInfantry => 1040,
+        MediumSpear => 1040,
     }
 }
 
@@ -55,7 +57,7 @@ impl SpawnPlan {
 fn role(c: UnitClassId) -> usize {
     match c {
         Skirmishers => 0,
-        HeavySword | Phalanx | LongSwords | HeavySpear => 1,
+        HeavySword | Phalanx | LongSwords | HeavySpear | MediumInfantry | MediumSpear => 1,
         LightSpear | Peasant | LightSword => 2,
         Archers => 3,
         ArtilleryCrew => 4,
@@ -313,6 +315,8 @@ pub fn setup_duel(sim: &mut Sim, a: UnitClassId, b: UnitClassId) {
             Peasant => 300,
             LightSword => 220,
             HeavySpear => 240,
+            MediumInfantry => 230,
+            MediumSpear => 230,
         }
     };
     let ua = sim.spawn_class(Vec2::new(0.0, -90.0), FRAC_PI_2, duel_count(a), a, 0);

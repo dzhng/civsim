@@ -27,16 +27,18 @@ export const CLASS_LOOK: ClassLook[] = [
   { weapon: 'sword', shield: 'none', crest: false, mounted: false }, // 9 peasant (a knife, no shield)
   { weapon: 'sword', shield: 'round', crest: false, mounted: false }, // 10 light sword (sword + light shield)
   { weapon: 'spear', shield: 'tall', crest: true, mounted: false }, // 11 heavy spear (spear + big shield)
-  // 12 RENDER-ONLY pseudo-class: shock cav after it switches from lance to sabre
-  // in the grind. The sim never spawns class 12 — the renderer routes a shock-cav
+  { weapon: 'sword', shield: 'round', crest: true, mounted: false }, // 12 medium infantry
+  { weapon: 'spear', shield: 'round', crest: true, mounted: false }, // 13 medium spear
+  // RENDER-ONLY pseudo-class: shock cav after it switches from lance to sabre
+  // in the grind. The sim never spawns this — the renderer routes a shock-cav
   // soldier here when `cur_weapon` is its sidearm, so the same horse+rider keeps
   // the lance upright in the off hand while fighting with a sword.
-  { weapon: 'sword', shield: 'round', crest: true, mounted: true }, // 12 shock cav, sabre drawn
+  { weapon: 'sword', shield: 'round', crest: true, mounted: true }, // shock cav, sabre drawn
 ];
 
 export const UNIT_CLASS_LOOK_COUNT = CLASS_LOOK.length - 1;
 
-/** Render-only pseudo-class (see CLASS_LOOK[12]): a shock-cav rider with his
+/** Render-only pseudo-class (the last CLASS_LOOK entry): a shock-cav rider with his
  *  sword drawn and lance carried upright. The renderer swaps a grinding lancer
  *  to this look; nothing in the sim knows about it. */
 export const SHOCK_CAV_SIDEARM_LOOK = UNIT_CLASS_LOOK_COUNT;

@@ -1,4 +1,5 @@
 import type { CampaignData } from './data';
+import { uiIcon } from './icons';
 import type { ArmyView, CityView } from './views';
 
 export type DiplomacyAction = 'declare_war' | 'make_peace' | 'propose_alliance' | 'break_alliance' | 'gift_gold';
@@ -49,14 +50,20 @@ export function campaignDomHtml(): string {
       #campaign-ui .cmp-top { position:fixed;top:0;left:0;right:0;display:flex;gap:14px;align-items:center;
         padding:6px 12px;background:rgba(12,16,22,0.85);color:#e8e0cc;font:13px system-ui;z-index:10; }
       #campaign-ui button { background:#2a3242;color:#e8e0cc;border:1px solid #4a5468;border-radius:3px;
-        padding:3px 10px;cursor:pointer;font:12px system-ui; }
+        padding:3px 10px;cursor:pointer;font:12px system-ui;display:inline-flex;align-items:center;gap:5px; }
       #campaign-ui button.on { background:#5a6a8a; }
+      #campaign-ui .cmp-ico { width:14px;height:14px;fill:currentColor;flex:none;filter:drop-shadow(0 1px 0 rgba(0,0,0,0.35)); }
+      #campaign-ui .cmp-top button .cmp-ico { width:15px;height:15px;color:#d9c28f; }
+      #campaign-ui #cmp-pause { min-width:30px;justify-content:center;padding:3px 7px; }
+      #campaign-ui #cmp-pause .cmp-ico { margin:0; }
       #campaign-ui .cmp-panel { position:fixed;right:10px;top:44px;width:230px;
         background:linear-gradient(180deg,rgba(31,27,21,0.96),rgba(14,16,18,0.96));
         color:#eadfca;font:12px system-ui;padding:10px;border:1px solid rgba(151,122,72,0.55);
         box-shadow:0 10px 28px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,236,186,0.12);
         border-radius:3px;z-index:10; }
       #campaign-ui .cmp-panel b { font-family:Cinzel, Georgia, serif;letter-spacing:0.2px;color:#f1dfb1; }
+      #campaign-ui .cmp-title { display:flex;align-items:center;gap:6px;margin-bottom:4px; }
+      #campaign-ui .cmp-title .cmp-ico { width:16px;height:16px;color:#caa45c; }
       #campaign-ui input[type="checkbox"] { accent-color:#b38a43; }
       #campaign-ui .cmp-modal { position:fixed;inset:0;background:rgba(0,0,0,0.55);display:flex;
         align-items:center;justify-content:center;z-index:20; }
@@ -76,6 +83,7 @@ export function campaignDomHtml(): string {
       #campaign-ui .cmp-rel.peace { background:#2a3a4a;color:#9ec5e8; }
       #campaign-ui .cmp-rel.alliance { background:#2a4a32;color:#9ee8a8; }
       #campaign-ui .cmp-pow { opacity:0.6;font-size:11px; }
+      #campaign-ui .cmp-pow .cmp-ico { width:11px;height:11px;margin:0 2px 0 5px;color:#c6ad76;vertical-align:-2px; }
       #campaign-ui .cmp-diplo-acts { display:flex;gap:4px;margin-top:2px;flex-wrap:wrap;flex-basis:100%; }
       #campaign-ui .cmp-diplo-acts button { font-size:11px;padding:2px 7px; }
       #campaign-ui .cmp-class-row { display:grid;grid-template-columns:132px 1fr;gap:10px;
@@ -95,21 +103,25 @@ export function campaignDomHtml(): string {
       #campaign-ui .cmp-size { display:flex;gap:4px;margin-top:5px; }
       #campaign-ui .cmp-size button { padding:1px 6px;font-size:11px; }
       #campaign-ui button[data-apply] { margin-top:6px;width:100%;font-size:11px;padding:3px 6px; }
+      #campaign-ui .cmp-build-row { display:flex;align-items:center;gap:6px;margin-top:4px; }
+      #campaign-ui .cmp-build-row > span { flex:1; }
+      #campaign-ui .cmp-city-meta { color:#b9aa8b;margin-top:3px;line-height:1.25; }
+      #campaign-ui .cmp-recruits { display:flex;gap:4px;flex-wrap:wrap;margin-top:6px; }
     </style>
     <div class="cmp-top">
       <span id="cmp-date">Day 1</span>
       <span id="cmp-gold">0 gold</span>
-      <button id="cmp-pause">⏸</button>
+      <button id="cmp-pause" title="Pause">${uiIcon('pause')}</button>
       <button data-speed="0">1×</button>
       <button data-speed="1">3×</button>
       <button data-speed="2">10×</button>
-      <button id="cmp-factions" title="Toggle faction (political) view — V">🗺 Factions</button>
-      <button id="cmp-fog" title="Toggle fog of war — F">🌫 Fog</button>
-      <button id="cmp-diplo-btn">⚑ Diplomacy</button>
-      <button id="cmp-classes-btn">Classes</button>
+      <button id="cmp-factions" title="Toggle faction (political) view — V">${uiIcon('map')} Factions</button>
+      <button id="cmp-fog" title="Toggle fog of war — F">${uiIcon('cloudFog')} Fog</button>
+      <button id="cmp-diplo-btn">${uiIcon('flag')} Diplomacy</button>
+      <button id="cmp-classes-btn">${uiIcon('shield')} Classes</button>
       <span style="flex:1"></span>
-      <button id="cmp-save">Save</button>
-      <button id="cmp-exit">Menu</button>
+      <button id="cmp-save">${uiIcon('save')} Save</button>
+      <button id="cmp-exit">${uiIcon('door')} Menu</button>
     </div>
     <div class="cmp-panel" id="cmp-army" style="display:none"></div>
     <div class="cmp-panel" id="cmp-city" style="display:none;top:auto;bottom:10px;"></div>
@@ -123,7 +135,7 @@ export function diplomacyHtml(list: DiplomacyRow[]): string {
   const rows = list
     .map((f) => {
       const col = `rgb(${f.color[0]},${f.color[1]},${f.color[2]})`;
-      const pow = `<span class="cmp-pow">${f.cities}🏛 ${f.soldiers}⚔</span>`;
+      const pow = `<span class="cmp-pow">${uiIcon('city')}${f.cities} ${uiIcon('sword')}${f.soldiers}</span>`;
       if (f.is_player) {
         return `<div class="cmp-diplo-row"><span class="cmp-swatch" style="background:${col}"></span>
           <b>${f.name}</b> <span class="cmp-pow">(you)</span><span style="flex:1"></span>${pow}</div>`;
@@ -144,7 +156,7 @@ export function diplomacyHtml(list: DiplomacyRow[]): string {
       </div>`;
     })
     .join('');
-  return `<b>Diplomacy</b>${rows}`;
+  return `<div class="cmp-title">${uiIcon('flag')}<b>Diplomacy</b></div>${rows}`;
 }
 
 export function armyPanelHtml(
@@ -162,17 +174,18 @@ export function armyPanelHtml(
         : '')
     .join('');
   const ambushLabel = me?.stance === 3 ? 'Hidden' : me?.stance === 2 ? 'Settling…' : 'Ambush';
-  return `<b>Army ${selected}</b>${rows}<div style="margin-top:6px">
-    <label><input type="checkbox" id="cmp-auto-replenish" ${autoReplenish ? 'checked' : ''}> Auto replenish</label><br>
-    <button id="cmp-halt">Halt</button>
-    <button id="cmp-camp">${me?.stance === 1 ? 'Fortified' : 'Fortify'}</button>
+  return `<div class="cmp-title">${uiIcon('flag')}<b>Army ${selected}</b></div>${rows}<div style="margin-top:6px">
+    <label><input type="checkbox" id="cmp-auto-replenish" ${autoReplenish ? 'checked' : ''}> ${uiIcon('replenish')} Auto replenish</label><br>
+    <button id="cmp-halt">${uiIcon('stop')} Halt</button>
+    <button id="cmp-camp">${uiIcon('shield')} ${me?.stance === 1 ? 'Fortified' : 'Fortify'}</button>
     ${spotIdx >= 0 || (me && me.stance >= 2 && me.stance <= 3) ? `<button id="cmp-ambush" ${me!.stance >= 2 ? 'disabled' : ''}>${ambushLabel}</button>` : ''}
-    <button id="cmp-split">Split</button>
-    ${buddy ? `<button id="cmp-merge">Merge ${buddy.id}</button>` : ''}</div>`;
+    <button id="cmp-split">${uiIcon('split')} Split</button>
+    ${buddy ? `<button id="cmp-merge">${uiIcon('split')} Merge ${buddy.id}</button>` : ''}</div>`;
 }
 
 export function classBuilderHtml(rows: ClassDoctrineRow[]): string {
-  return `<b>Class Builder</b>${rows.map(classRow).join('')}`;
+  const sorted = [...rows].sort((a, b) => classSort(a.class) - classSort(b.class));
+  return `<div class="cmp-title">${uiIcon('shield')}<b>Class Builder</b></div>${sorted.map(classRow).join('')}`;
 }
 
 function classRow(row: ClassDoctrineRow): string {
@@ -191,19 +204,39 @@ function classRow(row: ClassDoctrineRow): string {
       const cost = o.applyCost == null ? 'cooldown' : `${o.applyCost}g`;
       return `<div class="cmp-unit ${sel ? 'sel' : ''}">
         <div><b>${o.name}</b><br><small>${o.costPerSoldier.toFixed(2)}g recruit · ${o.upkeepPerSoldier.toFixed(3)}g upkeep/day</small></div>
-        <button data-class="${row.classIndex}" data-unit="${o.id}" ${disabled || sel ? 'disabled' : ''}>${sel ? 'Selected' : cost}</button>
+        <button data-class="${row.classIndex}" data-unit="${o.id}" ${disabled || sel ? 'disabled' : ''}>${sel ? uiIcon('check') + ' Selected' : cost}</button>
       </div>`;
     })
     .join('');
   return `<div class="cmp-class-row">
     <div><div class="cmp-class-name">${className}</div><div class="cmp-class-meta">${row.live}/${row.max} · ${selectedName}${row.cooldown > 0 ? ` · ${Math.ceil(row.cooldown / 1440)}d` : ''}</div>
-      <div class="cmp-size">${sizes}</div>${row.dirty ? `<button data-apply="${row.classIndex}">Apply</button>` : ''}</div>
+      <div class="cmp-size">${sizes}</div>${row.dirty ? `<button data-apply="${row.classIndex}">${uiIcon('check')} Apply</button>` : ''}</div>
     <div class="cmp-unit-options">${options}</div>
   </div>`;
 }
 
 function prettyClass(name: string): string {
   return name.replace(/([a-z])([A-Z])/g, '$1 $2');
+}
+
+function classSort(name: string): number {
+  const order: Record<string, number> = {
+    Peasant: 0,
+    LightSword: 10,
+    LightSpear: 11,
+    MediumInfantry: 20,
+    MediumSpear: 21,
+    HeavySword: 30,
+    HeavySpear: 31,
+    LongSwords: 40,
+    Phalanx: 41,
+    Archers: 50,
+    Skirmishers: 51,
+    ShockCavalry: 60,
+    HorseArchers: 61,
+    ArtilleryCrew: 70,
+  };
+  return order[name] ?? 999;
 }
 
 export function cityPanelHtml(
@@ -216,27 +249,17 @@ export function cityPanelHtml(
 ): string {
   const n = data.map.nodes[node];
   const recruits = mineCity
-    ? `<div style="margin-top:6px">${recruitClasses
-        .map((cl, i) => `<button data-recruit="${i}" title="${cl}">${cl.replace(/[a-z]/g, '')}</button>`)
-        .join(' ')}</div>`
+    ? `<div class="cmp-recruits">${recruitClasses
+        .map((cl, i) => `<button data-recruit="${i}" title="${cl}">${uiIcon('add')} ${cl.replace(/[a-z]/g, '')}</button>`)
+        .join('')}</div>`
     : '';
   const buildings = detail
     ? buildRow(detail, mineCity, 0, 'Market', detail.market_lvl, [200, 300])
       + buildRow(detail, mineCity, 1, 'Barracks', detail.barracks_lvl, [250, 400])
     : '';
-  return `<b>${n.name}</b> (tier ${n.tier}) — ${data.map.factions[city.owner]?.name ?? '?'}
-    <div>garrison ${city.garrison}${city.queue ? ` | recruiting ${city.queue}` : ''}</div>${buildings}${recruits}`;
-}
-
-export function roadPanelHtml(edgeTiles: number, lvl: number, job: number): string {
-  const cost = 15 * edgeTiles;
-  const status =
-    job >= 0
-      ? `paving… ${Math.ceil(job / 60)}h left`
-      : lvl >= 3
-        ? 'fully paved'
-        : `<button id="cmp-road-up">Upgrade (${cost} gold)</button>`;
-  return `<b>Road</b> (${edgeTiles} tiles) — level ${lvl}<div style="margin-top:6px">${status}</div>`;
+  return `<div class="cmp-title">${uiIcon('city')}<b>${n.name}</b></div>
+    <div class="cmp-city-meta">tier ${n.tier} — ${data.map.factions[city.owner]?.name ?? '?'}</div>
+    <div class="cmp-city-meta">garrison ${city.garrison}${city.queue ? ` | recruiting ${city.queue}` : ''}</div>${buildings}${recruits}`;
 }
 
 export interface CityDetail {
@@ -253,10 +276,10 @@ function actionButton(act: DiplomacyAction, f: number, label: string): string {
 function buildRow(detail: CityDetail, mineCity: boolean, kind: number, name: string, lvl: number, costs: number[]): string {
   if (detail.building) {
     return detail.building === name.toLowerCase()
-      ? `<div>${name} L${lvl} — building, ${Math.ceil(detail.build_ticks_left / 1440)}d left</div>`
-      : `<div>${name} L${lvl}</div>`;
+      ? `<div class="cmp-build-row"><span>${name} L${lvl} — building, ${Math.ceil(detail.build_ticks_left / 1440)}d left</span></div>`
+      : `<div class="cmp-build-row"><span>${name} L${lvl}</span></div>`;
   }
   return lvl < 2 && mineCity
-    ? `<div>${name} L${lvl} <button data-build="${kind}">+ (${costs[lvl]}g)</button></div>`
-    : `<div>${name} L${lvl}</div>`;
+    ? `<div class="cmp-build-row"><span>${name} L${lvl}</span><button data-build="${kind}">${uiIcon('hammer')} ${costs[lvl]}g</button></div>`
+    : `<div class="cmp-build-row"><span>${name} L${lvl}</span></div>`;
 }

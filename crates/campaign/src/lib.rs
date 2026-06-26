@@ -132,11 +132,6 @@ impl Campaign {
     pub fn order_auto_replenish(&mut self, army: ArmyId, on: bool) -> bool {
         economy::set_auto_replenish(&mut self.state, army, on)
     }
-    /// Upgrade a road edge one level (player faction pays).
-    pub fn order_upgrade_road(&mut self, edge: u32) -> bool {
-        let f = self.state.player_faction;
-        economy::upgrade_road(&self.map, &mut self.state, edge, f)
-    }
     /// Start a market or barracks at an owned city (player faction pays).
     pub fn order_build(&mut self, node: u32, kind: state::BuildKind) -> bool {
         let f = self.state.player_faction;
@@ -215,7 +210,7 @@ impl Campaign {
     pub fn load(map_json: &str, save: &str) -> Result<Campaign, String> {
         let map = WorldMap::from_json(map_json);
         let mut state: CampaignState = serde_json::from_str(save).map_err(|e| e.to_string())?;
-        // Saves predating road upgrades carry an empty vec.
+        // Saves predating static road levels carry an empty vec.
         if state.road_levels.len() != map.edges.len() {
             state.road_levels = vec![1; map.edges.len()];
         }

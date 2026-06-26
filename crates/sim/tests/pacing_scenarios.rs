@@ -30,7 +30,11 @@ fn mirror(class: UnitClassId, seed: u64) -> (f32, f32, f32) {
     sim.set_charge_enabled(b, false);
     sim.set_attack_order(a, b);
     sim.set_attack_order(b, a);
-    for step in 0..(600.0 / DT) as usize {
+    // Cap kept generous at 1600s. The combat overhaul (3.8-5.0s attacks, fatigue =
+    // -25% damage/hit + collapsing guard) makes fights resolve FAST and decisively:
+    // first rout now ~248s (light) / ~476s (heavy), far inside the cap, so no seed
+    // hits the (1600,1,1) fallback and pollutes the median.
+    for step in 0..(1600.0 / DT) as usize {
         sim.tick();
         for &(lu, wu) in &[(a, b), (b, a)] {
             if sim.units[lu].routing {
@@ -40,7 +44,7 @@ fn mirror(class: UnitClassId, seed: u64) -> (f32, f32, f32) {
             }
         }
     }
-    (600.0, 1.0, 1.0)
+    (1600.0, 1.0, 1.0)
 }
 
 fn median(mut v: Vec<f32>) -> f32 {
@@ -90,14 +94,18 @@ fn mirror_near_peer(
 
 #[test]
 fn mirror_duels_light_is_a_near_peer_grind() {
-    // Low-tier contract: breaks around half strength, a grind of minutes (sooner
-    // than a heavy), near-peer (no snowball). The contact projection slows the
-    // clean grind slightly; the contract is still "minutes, not seconds."
-    mirror_near_peer("light", UnitClassId::LightSpear, 90.0, 450.0, 0.30, 0.70); // steady facings -> disciplined frontal blocking -> the low-tier (low-damage) grind runs minutes longer before a break
+    // Low-tier contract: a grind decided by attrition (sooner than a heavy),
+    // near-peer (no snowball). Post-overhaul combat (3.8-5.0s attack intervals,
+    // fatigue = -25% damage/hit + collapsing guard) resolves FAST: the median
+    // first rout now lands ~248s with the loser ~64% dead.
+    mirror_near_peer("light", UnitClassId::LightSpear, 180.0, 340.0, 0.50, 0.78);
 }
 
 #[test]
 fn mirror_duels_heavy_should_be_a_near_peer_grind() {
-    // High-tier contract: fights to deep casualties over 3+ minutes, near-peer.
-    mirror_near_peer("heavy", UnitClassId::HeavySword, 165.0, 560.0, 0.55, 1.0);
+    // High-tier contract: fights to deep casualties, near-peer. Disciplined
+    // heavies hold longer than lights, but the faster post-overhaul combat
+    // (3.8-5.0s attacks, fatigue = -25% damage/hit + collapsing guard) still
+    // resolves decisively: the median first rout lands ~476s, loser ~84% dead.
+    mirror_near_peer("heavy", UnitClassId::HeavySword, 350.0, 620.0, 0.72, 0.94);
 }

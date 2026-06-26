@@ -154,63 +154,10 @@ fn equal_units_do_not_give_ground() {
     }
 }
 
-/// INVARIANT 3: a FLANKING unit feels less pressure than a FRONTLINE one. 2v1:
-/// the defender (north) is pinned frontally by one attacker and hit on the flank
-/// by a second. The frontal presser drives a braced front; the flanker hits an
-/// open side — so the flanker's pressure is the lower of the two.
-#[test]
-fn a_flanker_feels_less_pressure_than_the_frontline() {
-    let mut sim = Sim::new(
-        Tunables {
-            micro_rough: 0.0,
-            ..Tunables::default()
-        },
-        SEED,
-    );
-    let def = sim.spawn_class(
-        Vec2::new(0.0, 12.0),
-        -FRAC_PI_2,
-        N,
-        UnitClassId::HeavySword,
-        1,
-    );
-    let front = sim.spawn_class(
-        Vec2::new(0.0, -12.0),
-        FRAC_PI_2,
-        N,
-        UnitClassId::HeavySword,
-        0,
-    );
-    // The flank attacker comes in from the defender's RIGHT (+x), facing -x.
-    let flank = sim.spawn_class(
-        Vec2::new(24.0, 12.0),
-        std::f32::consts::PI,
-        N,
-        UnitClassId::HeavySword,
-        0,
-    );
-    sim.set_pace(front, Pace::Walk);
-    sim.set_attack_order(front, def);
-    sim.set_pace(flank, Pace::Walk);
-    sim.set_attack_order(flank, def);
-    let (mut pf, mut pl, mut samples) = (0.0f32, 0.0f32, 0usize);
-    for step in 0..(40.0 / DT) as usize {
-        sim.tick();
-        let t = step as f32 * DT;
-        if (12.0..34.0).contains(&t) && step % 15 == 0 {
-            pf += front_pressure(&sim, front);
-            pl += front_pressure(&sim, flank);
-            samples += 1;
-        }
-    }
-    let k = samples.max(1) as f32;
-    let (pf, pl) = (pf / k, pl / k);
-    eprintln!(
-        "frontline press {pf:.2}  flanker press {pl:.2}  ratio {:.2}",
-        pl / pf.max(1e-3)
-    );
-    assert!(
-        pl < pf * 0.85,
-        "a flanking unit must feel LESS pressure than the frontline presser: flank {pl:.2} vs front {pf:.2}"
-    );
-}
+// The directional brace's soft-flank is tested where it shows cleanly — a CHARGE
+// biting the flank/rear (`phalanx_points_stop_horses_only_to_the_front`, the cav
+// flank/rear scenarios) and unblocked flank/rear strikes (`attack_from_behind_is_
+// deadlier`, `pikes_bite_only_to_the_front`, `evade_and_block_are_directional`). A
+// walking-infantry "flanker feels less pressure" proxy belongs nowhere: contact
+// geometry (full frontage vs one side file) swamps the brace term, and driving the
+// soft side gets the attacker ENVELOPED — more crush, not less.

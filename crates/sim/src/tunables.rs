@@ -216,11 +216,19 @@ pub struct Tunables {
     pub combat_drain: f32,
     /// How far a SPENT man's guard (block + evade) falls as he tires: at full
     /// stamina his guard is unscaled, at empty it is multiplied by this floor.
-    /// This is what RESOLVES a long grind — fresh shielded lines block nearly
-    /// everything, but a sustained stalemate drains both sides until guards erode,
-    /// blows land, and one breaks. Short, decisive fights are untouched (stamina
-    /// is still full in the first ~15s). Below 1.0 = tiring opens the guard.
-    pub guard_fatigue_floor: f32,
+    /// This is the PRIMARY thing that resolves a long grind — fresh shielded lines
+    /// block nearly everything, but a sustained stalemate drains both sides until
+    /// guards COLLAPSE, blows land freely, and one breaks fast. Short, decisive
+    /// fights are untouched (stamina is still full in the first ~15s). Set low so
+    /// a fully-blown man barely defends — a tiring mirror kills itself FASTER.
+    pub stamina_guard_floor: f32,
+    /// How hard a SPENT attacker's blow lands, as a fraction of fresh: at full
+    /// stamina damage is unscaled, at empty it is multiplied by this floor. The
+    /// OFFENCE half of fatigue (the guard floor is the defence half). A tiring
+    /// man swings just as often (cadence is stamina-independent) but each blow is
+    /// weaker — capped at a gentle 25% reduction so the collapsing guard, not the
+    /// softer blow, is what ends the fight.
+    pub stamina_damage_floor: f32,
     /// "At ease" range (m): a unit with no living, non-routing enemy nearer
     /// than this is at ease — it recovers morale (see morale.rs), and the
     /// renderer reads the same range to relax weapon posture (pikes up). Inside
@@ -334,7 +342,8 @@ impl Default for Tunables {
             micro_rough: 1.0,
             hit_push: 0.3,
             combat_drain: 1.0 / 50.0,
-            guard_fatigue_floor: 0.4,
+            stamina_guard_floor: 0.15,
+            stamina_damage_floor: 0.75,
             at_ease_range: 60.0,
             idle_settle_damp: 0.5,
         }

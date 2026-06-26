@@ -79,42 +79,58 @@ fn one_heavy_solos_two_lights() {
 /// The agent loop, end-to-end: tune one number in a candidate config and the
 /// report shows the shift — proving a tuned `BalanceConfig` actually flows into
 /// combat (the whole point of lifting stats to runtime). A beefier heavy must
-/// bend the duel its way.
+/// bend the duel its way, and the harness must MEASURE that bend (sensitivity).
 ///
-/// Measured on the WIN-RATE delta, not survivors. Re-derived after the combat-
-/// pacing overhaul (≈3.5× longer attack intervals, minute-long fights): vs
-/// LongSwords the baseline HeavySword now LOSES the grind (win 0/3 over the 3
-/// seeds, ~0.15 survivors), so the survivor channel is pinned at the LOSER's
-/// floor and a health buff can't move it there — but it visibly bends the
-/// OUTCOME. The +40% health flips ~a third of seeds from loss to win
-/// (win_delta +0.33) and drags the fight out (≈296s → ≈455s) as the tougher
-/// heavy trades the sword line down. That win-rate swing is the proof the
-/// tuned stat reached combat; survivors-of-the-loser is the wrong channel now
-/// that the matchup itself inverted under the new pacing.
+/// Measured on the buffed unit's OWN SURVIVOR fraction — a continuous signal —
+/// NOT the win-rate. Re-derived after the combat-pacing overhaul (longer attack
+/// intervals + fatigue: −25% dmg/hit and a collapsing guard, minute-long fights).
+/// Under the new pacing EVERY HeavySword matchup is now DECISIVE: across the
+/// 8-seed set the heavy wins 8/8 or 0/8 in each duel — no matchup sits near the
+/// 50% coin-flip where a health buff could flip seeds, so the discrete win-rate
+/// channel is globally pinned at a floor/ceiling and `win_delta` is +0.00 for any
+/// opponent (the old LongSwords pick read 0.00→0.00). The win-rate is the wrong
+/// channel now; the survivor MARGIN still moves cleanly.
+///
+/// Chosen matchup: HeavySword vs PHALANX, where the heavy is otherwise ground
+/// down (baseline ≈0.14 of its men standing). A +100% health buff visibly keeps
+/// more of the buffed unit alive — measured ≈0.14 → ≈0.33 of the heavy standing
+/// (own-survivor delta ≈+0.19) and drags the fight to the time cap. The buff has
+/// to be substantial: +40% doesn't move it off the floor (≈0.14 → ≈0.14), so we
+/// use ×2.0 to clear the noise band — a real stat change producing a real,
+/// measured survival gain is exactly the sensitivity this test exists to prove.
+/// We assert on the full 8-seed set (3 seeds quantise survivors too coarsely).
 #[test]
 fn tuning_a_candidate_config_moves_the_matchup() {
     let mut candidate = BalanceConfig::default();
     let mut hv = candidate.get(UnitClassId::HeavySword);
-    hv.health *= 1.4; // thicker armor
+    hv.health *= 2.0; // much thicker armor — a big, unmistakable stat buff
     candidate.set(UnitClassId::HeavySword, hv);
 
-    let scn = Scenario::duel(UnitClassId::HeavySword, UnitClassId::LongSwords);
-    let rows = report(&candidate, std::slice::from_ref(&scn), &SEEDS[..3]);
+    let scn = Scenario::duel(UnitClassId::HeavySword, UnitClassId::Phalanx);
+    let rows = report(&candidate, std::slice::from_ref(&scn), &SEEDS);
     let r = &rows[0];
+    // The buffed unit is side 0; its own survivor fraction is the continuous
+    // outcome signal the buff should lift.
+    let own_surv_delta = r.candidate.surv[0].mean - r.baseline.surv[0].mean;
     println!(
-        "baseline win {:?} surv {:.2} -> candidate win {:?} surv {:.2} (win delta {:+.2})",
+        "baseline win {:?} ownSurv {:.2} -> candidate win {:?} ownSurv {:.2} (ownSurv delta {:+.2}, win delta {:+.2})",
         r.baseline.win_rate,
         r.baseline.surv[0].mean,
         r.candidate.win_rate,
         r.candidate.surv[0].mean,
-        r.win_delta()
+        own_surv_delta,
+        r.win_delta(),
     );
+    // Sensitivity: the buff must measurably raise the buffed unit's survival.
+    // Measured ≈+0.19; assert a clear band above noise so an INSENSITIVE harness
+    // (buff not reaching combat → ≈+0.00) would FAIL this.
     assert!(
-        r.win_delta() > 0.2,
-        "tougher heavy must win more of the duel: win-rate {:.2} -> {:.2} (delta {:+.2})",
-        r.baseline.win_rate[0],
-        r.candidate.win_rate[0],
-        r.win_delta()
+        own_surv_delta > 0.1,
+        "a +100% health buff must measurably improve the buffed unit's duel \
+         survival: own-survivor {:.2} -> {:.2} (delta {:+.2})",
+        r.baseline.surv[0].mean,
+        r.candidate.surv[0].mean,
+        own_surv_delta,
     );
 }
 

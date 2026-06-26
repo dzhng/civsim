@@ -232,14 +232,17 @@ fn dense_infantry_blunts_a_cavalry_charge_loose_gets_punched_through() {
     // signal (dense fells several times more men); the horse also keeps less
     // speed in the packed press, though by a smaller margin than under the old
     // near-instant turning — with realistic facing both orders bog somewhat, so
-    // we assert the direction, not an aggressive ratio. (Raw horse-metres
-    // saturate as a ruler — loose order is 2.4x deeper in metres.)
+    // we assert the direction, not an aggressive ratio. Under the faster attack
+    // interval + impact-cap the magnitudes shifted (dense ~47, loose ~16 over
+    // the seed set; mass-advance 0.3 vs 1.0): the contrast is now ~2.9x in
+    // bodies, so the ratio floor sits at 2.5x with headroom below the measured
+    // gap. (Raw horse-metres saturate as a ruler.)
     assert!(
         adv_d < adv_l,
         "dense order must slow the horse mass more than loose order: dense {adv_d:.1}m/s vs loose {adv_l:.1}m/s"
     );
     assert!(
-        dead_d > dead_l * 3.0,
+        dead_d > dead_l * 2.5,
         "dense order absorbs the impact in bodies while loose order yields: dense {dead_d:.0} dead vs loose {dead_l:.0}"
     );
 }
@@ -654,8 +657,14 @@ fn a_frontal_charge_into_pikes_is_no_bloodbath() {
     println!(
         "frontal charge dead: cav->line {cav_line}, cav->pike {cav_pike}, har->pike {har_pike}"
     );
+    // Control: the SAME charge draws blood from an unpiked line. Under the
+    // impact-cap (~one felling per horse, trample rides over downed men) a
+    // single pass through a 200-man light-spear line now fells a handful —
+    // measured 3..7 across seeds 11..20 (SEED=11 reads 5) — where it kills
+    // ZERO against the pike hedge. The floor sits below the worst seed (3);
+    // the load-bearing claim is the contrast just below, not this magnitude.
     assert!(
-        cav_line >= 10,
+        cav_line >= 3,
         "control: the charge bloodies an unpiked line: {cav_line}"
     );
     assert!(

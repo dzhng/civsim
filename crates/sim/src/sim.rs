@@ -459,8 +459,12 @@ impl Sim {
         team: u32,
     ) -> usize {
         let stats = self.balance.get(class);
+        // Respect the caller's chosen width down to a single rank — a wide, shallow
+        // line (a 2-deep pike screen, a skirmish line) is a valid deployment. Only
+        // guard the degenerate too-NARROW case (a 1-file column); depth coherence as
+        // the unit bleeds is the reform's job, not a spawn-time floor.
         let lower = 4.min(count.max(1));
-        let files = files.clamp(lower, (count / 3).max(lower));
+        let files = files.clamp(lower, count.max(lower));
         let idx = self.spawn_unit(
             anchor,
             facing,
@@ -985,7 +989,7 @@ impl Sim {
     /// Measure lateral clearance at (and just ahead of) the anchor; compress
     /// the formation frame to fit, centered in the gap; relax on open ground.
     fn update_corridor(&mut self, ui: usize) {
-        let (anchor, facing, files, files_eff, spacing_x, depth, alive) = {
+        let (anchor, facing, files, files_eff, spacing_x, depth, alive, count) = {
             let u = &self.units[ui];
             (
                 u.anchor,
@@ -995,6 +999,7 @@ impl Sim {
                 u.spacing.x,
                 u.depth(),
                 u.alive_count,
+                u.count,
             )
         };
         let f = dir(facing);
@@ -1021,13 +1026,17 @@ impl Sim {
             }
         }
         let floor = 4.min(files.max(1));
-        // Casualties reshape the block: it sheds DEPTH at full width until it
-        // would fall below 3 ranks, then it closes up and sheds WIDTH instead,
-        // never thinner than 3 ranks. The line stays a coherent cloth as it
-        // bleeds, rather than fraying into a one-deep skirmish string. (The
-        // casualty cap overrides the corridor floor — a dying unit narrows past
-        // it.)
-        let casualty_cap = (alive / 3).max(1);
+        // Casualties reshape the block: it sheds DEPTH at full width, and only
+        // once it would fray below its anti-fray rank floor does it close up and
+        // shed WIDTH instead — staying a coherent cloth as it bleeds rather than
+        // fraying into a one-deep skirmish string. The floor is the unit's DEPLOYED
+        // depth, capped at 3: a deep block sheds down to 3 ranks then narrows, but
+        // a line deliberately deployed SHALLOW (2-deep pike screen, a wide skirmish
+        // line) keeps that depth and is never force-thickened to 3. (The cap
+        // overrides the corridor floor — a dying unit narrows past it.)
+        let deployed_ranks = count.div_ceil(files.max(1)).max(1);
+        let min_ranks = 3.min(deployed_ranks);
+        let casualty_cap = (alive / min_ranks).max(1);
         let target = ((corridor / spacing_x.max(0.2)) as usize)
             .clamp(floor, files.max(1))
             .min(casualty_cap);

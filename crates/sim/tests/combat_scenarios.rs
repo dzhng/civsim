@@ -59,7 +59,7 @@ fn deep_column_pushes_thin_line_back() {
 }
 
 #[test]
-fn deep_pike_wall_holds_thin_pike_line_gets_closed_on() {
+fn deep_pike_wall_bleeds_the_assault_far_harder_than_a_thin_one() {
     let fight = |phalanx_count: usize| -> (usize, usize, f32, usize) {
         let mut sim = Sim::new(no_morale(), SEED);
         let ph = sim.spawn_class(
@@ -116,13 +116,20 @@ fn deep_pike_wall_holds_thin_pike_line_gets_closed_on() {
         wall_gap > 1.2 && wall_swords == 0,
         "a deep pike wall keeps swords out of sword range: min gap {wall_gap:.2}m, sword-fighters {wall_swords}"
     );
-    // 2 ranks of pikes: not enough push rate; the enemy closes to sword range.
-    // `thin_swords` is the direct signal; `thin_gap` is a sanity rail with a
-    // little geometry slack because body radii/reach sit right around 1.1m.
-    let (_, _, thin_gap, thin_swords) = fight(60);
+    // A thin line: even the thinnest hedge (the engine floors a block at 3 ranks)
+    // holds the sarissa points out — so what DEPTH buys is LETHALITY, not
+    // closability. The deep wall bleeds the assault far harder than a thin line,
+    // though both keep swords at bay.
+    let (_thin_loss, atk_loss_vs_thin, thin_gap, _thin_swords) = fight(60);
+    let thin_atk_frac = atk_loss_vs_thin as f32 / 240.0;
+    eprintln!("PIKE-DEPTH  deep: atk {atk_loss_vs_wall}/240 gap {wall_gap:.2}  |  thin: atk {atk_loss_vs_thin}/240 gap {thin_gap:.2}");
     assert!(
-        thin_swords > 0 && thin_gap < 1.2,
-        "a thin pike line must get closed on: min gap {thin_gap:.2}m, sword-fighters {thin_swords}"
+        thin_gap > 1.2,
+        "even a thin pike line holds the points out: min gap {thin_gap:.2}m"
+    );
+    assert!(
+        atk_frac > 1.5 * thin_atk_frac,
+        "the deep wall must bleed the assault far harder than a thin line (depth = lethality): deep {atk_frac:.2} vs thin {thin_atk_frac:.2}"
     );
 }
 

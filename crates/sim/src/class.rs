@@ -181,7 +181,7 @@ const SPEAR: Weapon = Weapon {
     reach: 1.6,
     min_range: 0.0,
     arc: 0.6,
-    attack_interval: 7.7,
+    attack_interval: 4.4,
     damage: 0.2375,
     cleave: false,
     kind: WeaponKind::Standard,
@@ -191,7 +191,7 @@ const SWORD: Weapon = Weapon {
     reach: 1.1,
     min_range: 0.0,
     arc: 1.4,
-    attack_interval: 6.265,
+    attack_interval: 4.1,
     damage: 0.5,
     cleave: false,
     kind: WeaponKind::Standard,
@@ -205,7 +205,7 @@ const LONG_SWORD: Weapon = Weapon {
     // is double jeopardy — the same perverse coupling the lance had (see LANCE).
     min_range: 0.0,
     arc: 2.4,
-    attack_interval: 9.135,
+    attack_interval: 4.7,
     damage: 0.75,
     cleave: true,
     kind: WeaponKind::Standard,
@@ -217,7 +217,7 @@ const PIKE: Weapon = Weapon {
     arc: 0.08,
     // A thrust-and-recover cycle, not a sweep: the wall's stopping power is
     // cadence x hurl; lethality per poke stays modest.
-    attack_interval: 4.83,
+    attack_interval: 3.8,
     damage: 0.4,
     cleave: false,
     kind: WeaponKind::Braced, // the sarissa: frontal only, drop to the side-sword off-axis
@@ -227,7 +227,7 @@ const SIDE_SWORD: Weapon = Weapon {
     reach: 1.2,
     min_range: 0.0,
     arc: 1.2,
-    attack_interval: 6.265,
+    attack_interval: 4.1,
     damage: 0.35,
     cleave: false,
     kind: WeaponKind::Standard,
@@ -240,7 +240,7 @@ const DAGGER: Weapon = Weapon {
     reach: 1.2,
     min_range: 0.0,
     arc: 1.0,
-    attack_interval: 4.83,
+    attack_interval: 3.8,
     damage: 0.275,
     cleave: false,
     kind: WeaponKind::Standard,
@@ -257,11 +257,11 @@ const LANCE: Weapon = Weapon {
     // A touch wider than a pure point so the couched lance skewers the man it
     // rides onto even slightly off-line (still forward-only — no flank reach).
     arc: 0.4,
-    attack_interval: 10.57,
+    attack_interval: 5.0,
     // The lance lands ONE couched strike — it SNAPS on the man it commits to (see
-    // charge_wpn_spent) and the rider draws his sabre — so that one skewer must
-    // count: lethal to a light man. This is where a charge out-kills a walk-in —
-    // the WEAPON, not the horse's body (impact stays capped at one fell/charger).
+    // charge_wpn_spent) and the rider draws his sabre — so that one skewer must hit
+    // hard: lethal to a light man. It is the charge's signature blow, though the
+    // long sabre grind that follows now does the bulk of the killing.
     damage: 1.6,
     cleave: false,
     kind: WeaponKind::Charge,
@@ -276,7 +276,7 @@ const CAV_SWORD: Weapon = Weapon {
     reach: 1.5,
     min_range: 0.0,
     arc: 1.1,
-    attack_interval: 6.755,
+    attack_interval: 4.2,
     // At parity with the infantry sword (0.5): once the charge has put the rider
     // INTO the line, his sabre cuts as well as a foot blade — cavalry's grind
     // weakness is the flank-blind arc and the numbers, NOT a feeble blade.

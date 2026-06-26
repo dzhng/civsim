@@ -614,10 +614,13 @@ impl Sim {
             let pinned = (vice / VICE_PIN).clamp(0.0, 1.0);
             let obstruct = crowded * (OBSTRUCT_FLOOR + (1.0 - OBSTRUCT_FLOOR) * pinned);
             let arc_eff = weapon.arc / (1.0 + obstruct);
-            let capacity = stamina_factor(self.units[ui].stamina);
-            let interval = weapon.attack_interval
-                * (1.0 + 0.35 * obstruct)
-                * (1.0 + 0.8 * (1.0 - capacity));
+            // Swing cadence does NOT slow with fatigue — a tired man swings as
+            // often, but each blow lands SOFTER (see stamina_damage_floor in
+            // strike). Coupling fatigue to cadence instead made grinds CRAWL: a
+            // spent line both swung slow AND still kept its guard up, so almost
+            // nothing landed and an even fight never resolved. The fatigue lever
+            // is power-per-blow + a collapsing guard, not swing rate.
+            let interval = weapon.attack_interval * (1.0 + 0.35 * obstruct);
             self.attack_cd[i] = interval;
 
             // --- resolve the swing ------------------------------------------------
@@ -768,13 +771,13 @@ impl Sim {
         // cavalry win the charge and lose the grind, measured ONCE, as pressure.)
         // GUARD FATIGUE: a tiring man cannot keep his guard up. As the unit's
         // stamina drains in a sustained grind both his shield (block, below) and
-        // his footwork (evade) lose effectiveness, falling toward guard_fatigue_floor
+        // his footwork (evade) lose effectiveness, falling toward stamina_guard_floor
         // when spent. This is what RESOLVES a long stalemate — fresh shielded lines
         // block nearly everything, but a grind drains both sides until guards erode,
         // blows land, and one breaks. Full early (stamina starts at 1.0), so short
         // decisive fights are untouched; only the drawn-out grind opens up.
-        let guard = tun.guard_fatigue_floor
-            + (1.0 - tun.guard_fatigue_floor) * stamina_factor(self.units[uv].stamina);
+        let guard = tun.stamina_guard_floor
+            + (1.0 - tun.stamina_guard_floor) * stamina_factor(self.units[uv].stamina);
         let evade = vstats.evade
             * seen
             * cohesion
@@ -855,7 +858,12 @@ impl Sim {
         let victim_p = self.soldier_pos(victim);
         let to_center = (victim_p - attacker_p).len() - self.radius[attacker] - 0.35;
 
-        let dmg = weapon.damage;
+        // A tiring attacker hits SOFTER: damage falls toward stamina_damage_floor
+        // of its fresh value as he spends (a 25% floor when fully blown). This is
+        // the offence half of fatigue; the cadence is unchanged.
+        let dmg = weapon.damage
+            * (tun.stamina_damage_floor
+                + (1.0 - tun.stamina_damage_floor) * stamina_factor(self.units[ua].stamina));
         // A wound is charge-driven iff it came from the charge weapon (the lance) —
         // the couched point going in. The sword is the grind, even while the horse
         // is still rolling forward: a moving sabre is a man fighting his way through

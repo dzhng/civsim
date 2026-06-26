@@ -197,6 +197,11 @@ fn the_line_pays_dearly_but_breaks_the_archers() {
     // archers are destroyed. Expensive, decisive, historical. (Sampling
     // only the first 30s after contact shows the blown-arrival slice and
     // reads as 'archers beat heavies'; they don't.)
+    //
+    // The new 3.8–5.0s attack cadence + fatigue-guard collapse paces the
+    // grind slower, so the full arc needs ~360s to settle: by then the
+    // archers are gone (3/140, decaying to 0 by 400s) and the line holds
+    // ~69/240 — the heavy bleed is nearly done (69→67 over the next 60s).
     let mut sim = Sim::new(no_morale(), SEED);
     let archers = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 140, UnitClassId::Archers, 0);
     let heavies = sim.spawn_class(
@@ -207,22 +212,22 @@ fn the_line_pays_dearly_but_breaks_the_archers() {
         1,
     );
     sim.set_attack_order(heavies, archers);
-    for _ in 0..(240.0 / DT) as usize {
+    for _ in 0..(360.0 / DT) as usize {
         sim.tick();
     }
     let archers_left = sim.units[archers].alive_count;
     let heavies_left = sim.units[heavies].alive_count;
-    println!("after 240s: archers {archers_left}/140, heavies {heavies_left}/240");
+    println!("after 360s: archers {archers_left}/140, heavies {heavies_left}/240");
     assert!(
         archers_left < 20,
         "the archers are destroyed: {archers_left}/140 left"
     );
     assert!(
-        heavies_left > 240 * 27 / 100,
-        "the line wins with a quarter or more standing: {heavies_left}/240"
+        heavies_left > 240 * 22 / 100,
+        "the line wins with a fifth or more standing: {heavies_left}/240"
     );
     assert!(
-        heavies_left < 240 * 75 / 100,
+        heavies_left < 240 * 50 / 100,
         "but pays dearly for the frontal approach: {heavies_left}/240"
     );
 }

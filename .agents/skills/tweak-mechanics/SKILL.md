@@ -5,564 +5,299 @@ description: How to change the SIM PHYSICS (how soldiers move, collide, press, h
 
 # Tweaking a mechanic (the physics, not the balance)
 
-A **mechanics** change alters *how the world works* — how bodies move,
-collide, press, hold formation, face, rout. A **balance** change alters
-*how a unit is priced* (its stat block) so it slots into the economy; that
-is the `balance-unit` skill. They use different tests and a different
-mindset. Never judge a mechanics change by who won — balance can flip the
-winner tomorrow and the physics must still be right.
+A **mechanics** change alters *how the world works* — how bodies move, collide,
+press, hold formation, face, rout. A **balance** change alters *how a unit is
+priced* (its stat block); that is the `balance-unit` skill. Never judge a
+mechanics change by who won — balance can flip the winner tomorrow and the
+physics must still be right.
 
-## First principles, always
+## First principles: forces and bodies, never walls
 
-Nature gets complex emergent behavior from simple rules. So should we.
-Before adding anything, ask **"what is the ONE physical fact here, and does
-the behavior already fall out of it?"**
+Nature gets complex emergent behavior from simple rules. Before adding anything,
+ask **"what is the ONE physical fact here, and does the behavior already fall out
+of it?"** A soldier can't walk through an enemy body → he stops at contact. The
+anchor is leashed to the men → two lines halt at contact *for free*, no "braking"
+rule needed. (We tried one; it was a band-aid that stalled the attack.)
 
-- A soldier **can't walk through an enemy body** → he stops at contact.
-- The anchor is **leashed to the men** → if the men stop, the frame can't
-  run ahead. Two lines therefore halt at contact *for free* — you do not
-  need a "braking" rule. (We tried one. It was a band-aid and it stalled
-  the attack. The leash + collision already give the same effect.)
-- Two locked units enforcing the same anti-parallel heading **can't swirl**
-  — a swirl is a feedback loop (each pivots toward the other's moving
-  centroid); kill the loop, don't damp it.
+- **A soldier moves by real forces and stops at real bodies** — never by a
+  positional clamp that enforces a *rule* ("may not stand past this line", "hold
+  at exactly weapon reach"). Those imaginary walls each fix one thing and quietly
+  break an emergent behavior elsewhere. The rule you want is almost always a
+  *force* that produces it as a side effect. The **weave** is the model: contact,
+  depth, and the line all emerge from springs and bodies, no "hold here" walls.
+- **Don't special-case a role** (the "front rank", the "flank file") with a flag.
+  If the rule is right, the geometry already singles those soldiers out — the man
+  nearest the enemy feels the strongest pull; the man boxed on three sides can't
+  lunge. Collective effects (a deep mass shoving a thin one) must come from
+  **measured physics that scales with mass**, never a proxy like counting ranks.
+- **A rule for a degraded state must CHECK that the state is degraded**, not fire
+  unconditionally. Worked case: the formation's anti-fray cap (`width ≤ alive/3`,
+  "never thinner than 3 ranks") existed to stop a *dying* unit fraying into a
+  1-deep string — but it was applied at spawn too, so you could never *deploy* a
+  shallow line. Fix: gate it on the unit's deployed depth, so a deep block still
+  sheds to 3 then narrows, but a deliberately-shallow line is respected. An
+  "anti-X" that fires when X isn't happening is the same smell as a wall.
 
-Prefer deleting a special-case to adding one. If a tweak needs a new flag,
-a clamp, a magic threshold — suspect it's papering over a rule that's
-already wrong upstream. Question every existing knob too: "is this still
-needed now that X exists?" Then **prove the answer with a test or a shot**,
-not an argument.
+Prefer **deleting** a special-case to adding one. If a tweak needs a new flag, a
+clamp, a magic threshold — suspect it's papering a rule that's already wrong
+upstream. Question every existing knob: "is this still needed now that X exists?"
+Net code should go DOWN when a real foundation lands (it absorbs special-cases);
+if a rebuild is adding complexity, you're not at the foundation yet.
 
-### Don't stop at "the test is green" — find the ROOT and GENERALIZE it
+## A true root fix is CONTAINED — that is how you know it's right
 
-A green test is not the goal; correct emergent physics is. Two failure modes to
-catch yourself in:
+The clearest signal of a first-principles fix: it is **remarkably contained**. It
+moves *few* tests, and the ones it moves were the **bad** tests — the pins that
+were asserting the bug. The golden hash and everything orthogonal stay put.
 
-- **Papering for the score.** If a balance outcome is wrong, do NOT tune a stat
-  to flip it (cav health, weapon damage) — that hides a physics bug behind the
-  economy. Ask why the physics produced it. (Worked case: a cav "won" a head-on
-  vs heavy because it WRAPPED the foe's flank — a facing feedback loop — not
-  because of any stat. Killing the loop fixed it; nudging cav health would have
-  buried it.) Never judge a mechanics change by who won.
-- **Special-casing the symptom.** When you find the cause, fix it at the most
-  GENERAL level the one physical fact supports — don't gate it to the case the
-  failing test happened to exercise. Worked case: soldier facings JITTERED
-  (reversed direction ~25% of ticks, ~77°/s) because each man's desired facing
-  chased the instantaneous position of one foe, and that position churns under
-  separation each tick. The first fix — "if the foe is in the FRONT arc, hold the
-  unit frontage" — drove the *frontal* jitter to ~1% and passed the tests, but it
-  was a special-case: a flanked man still twitched. The physical fact is general:
-  **a man faces the threat MASS deliberately and HOLDS that stance; he never
-  servos his body on positional noise, from ANY quarter.** The right fix de-
-  jitters every soldier (face a STABLE reference — the enemy's mass/centroid
-  direction, or a smoothed bearing — with hysteresis), and "face front by default,
-  deviate only for a real off-front threat" then falls out of it for free instead
-  of being hand-coded. If your fix only covers the quadrant the test probed, you
-  found a symptom, not the rule. Always ask: "can this generalize?"
-- **A correct feature exposing a bug is not a reason to drop the feature.** When
-  adding a sound mechanic (directional brace: a flank is soft, a front is braced)
-  makes other things misbehave, do NOT conclude "the feature doesn't work, revert
-  it." Ask what it EXPOSED. Directional brace flickered only because soldier
-  facings were already jittering ~25×/sec — an unrealistic bug the omni brace had
-  been masking. The fix is to kill the jitter at its root; then the feature works
-  AND the sim is more correct everywhere else too. Reverting would have re-buried
-  the real bug. A new mechanic that surfaces a latent defect has done you a favor —
-  chase the defect, don't shoot the messenger. **No shortcuts to green: green is a
-  side effect of correct physics, never the target.**
+- Worked: the **formation-depth** fix and the **morale lance-dps** fix (below)
+  each moved exactly the 1–2 tests that encoded the wrong behavior; golden was
+  untouched (both only affect cavalry and shallow deployments). That containment
+  *is* the proof the fix was real.
+- **Churn is a smell.** If a change forces you to re-derive a dozen pins, it is
+  probably balance tuning or papering, NOT a physics root fix — or it is a genuine
+  foundation rebuild (see below), which is a different, deliberate thing. A clean
+  root fix and a sweeping foundation rebuild are the two honest shapes; a "fix"
+  that quietly nudges many outcomes to green is neither.
+- A real fix also **fails the wrong tests on purpose** — a pin that goes red
+  because it was certifying a bug is the fix doing its job, not collateral.
 
-### When rebuilding a foundation, IGNORE the old scenario tests
+## Reading a red: invariant vs outcome
 
-If you're replacing a core mechanic from first principles, the existing
-scenario/balance/combat tests encode the OLD behaviour — they are a map of the
-local maximum you're trying to escape. Chasing them green during the rebuild
-steers you straight back into it (this is how a string of "fixes" each broke
-something else: every one was optimising for the old tests). Instead: write
-the FEW new tests that capture the foundation's true behaviour in isolation,
-make THOSE perfect, and only then go fix the downstream scenarios — expecting
-that a lot of the old supporting logic will get changed or deleted to fit the
-better foundation. A correct foundation makes the rest fall out; a foundation
-bent to satisfy old tests makes nothing fall out. Net code should go DOWN when
-a unifying mechanic lands (a real foundation absorbs special-cases), so if a
-rebuild is adding complexity, you're probably not at the foundation yet.
+Every red is one of two kinds, and they have opposite defaults:
 
-### A HIGHER failing-test count can be progress — judge the foundation, not the scoreboard
+- **Invariant** — a physics truth that always holds: centroids never cross, no
+  blob, no pass-through, a charge can't plow through an immortal deep block, a
+  head-on clash keeps both fronts pointed ±y. **Keep these STRICT.** A red here
+  means you broke physics — STOP, don't relax the threshold. Relaxing a
+  centroid-swap tolerance once hid a 90° swirl the shots plainly showed. If you
+  truly believe the check is too strict, prove it with a shot and rewrite the
+  threshold around the *physically correct* behavior, not the current broken
+  number.
+- **Outcome** — tuning-dependent: a win-rate, a survivor spread, "X usually beats
+  Y". **Allowed to move.** A red here often means the OLD pass depended on a bug.
 
-Do not optimize for the green number. When a change makes the engine more
-**architecturally sound** — more correct from first principles — it is FINE, and
-often expected, for the failing-test count to go *up* in the same step. Many of
-this suite's balance/scenario pins were calibrated to the old (subtly wrong)
-behavior; a foundation fix moves the physics out from under them, and they go red
-because they were encoding the bug, not because the fix is wrong. Build
-**foundation-up**: get the mechanic right, accept the brittle pins fall, then
-re-derive those pins (with David) against the corrected physics. Reverting a sound
-foundation to keep brittle tests green is backwards — it re-installs the bug.
+**Never paper, never revert on the red-count.** It is a deterministic sim —
+diagnose EACH red. It is one of:
 
-The discriminator is the SAME as everywhere else in this skill: separate the
-**invariant** from the **outcome**. A foundation fix may freely break outcome pins
-(win-rates, survivor spreads, "X usually beats Y"); it must NOT break a physics
-**invariant** (centroids don't cross, no blob, charge can't plow an immortal deep
-block). So when the count jumps, read WHICH tests fell: a pile of outcome/balance
-reds + the mechanical invariants still green = progress; a mechanical invariant red
-= stop, you broke physics. Always commit the foundation with a note saying which
-pins it deliberately regresses and why, so the red is legible as intent, not drift.
+1. **Tunable** — the mechanic is right, a coefficient is too strong. *Sweep it*
+   before concluding "net zero": a sword-standoff force broke two pins at softness
+   0.35 and kept everything green at 0.20.
+2. **Marginal test** — it passed by a hair and the sound change nudged it over.
+   Widen it (comment: chaos-marginal) — but only after instrumenting that the
+   *mechanism* is still correct.
+3. **Exposed coupling** — the fix surfaced a *second* real bug. Fix THAT, don't
+   revert. (A standoff force broke `attack_latch` by exposing a pre-existing
+   move-vs-attack drive asymmetry.)
+4. **Cheese test** — the pin only ever passed because of the bug you just fixed.
+   Fix or delete it and say why; never leave two tests asserting opposite things.
+   (`cavalry_usually_rides_over_heavy_swords` pinned shock-cheese: instrumenting
+   showed 71% of infantry deaths were charge-impact knockdowns; disabling impact
+   flipped cav to 0%. A 120-horse line should NOT bulldoze 8 braced ranks.)
 
-**Worked instance — M-equivariant contact passes (the directional bias).** A
-head-on clash of identical units is symmetric under the 180° mirror, yet the engine
-resolved each tick's contact in soldier-INDEX order, in place — so the lower-indexed
-team killed/stunned/shoved its foe before that foe acted the same tick, a systematic
-first-mover bias (see `specs/directional-bias.md`). The fix (stage strikes and apply
-them together — "Jacobi"; read `prev_positions` snapshots, not live in-place
-positions) is unambiguously more correct, and it made an even clash fair at small
-scale. It also **deliberately regressed ~9 charge/bracing/standoff balance pins**
-that were tuned to the old in-place shove timing. That regression is the fix working,
-not breaking — those pins get re-derived to the corrected physics, not used as a
-reason to revert. (The decision to keep it was David's explicit call: sound sim
-first, brittle tests after.)
+**Foundation rebuilds invert the scoreboard.** When you replace a core mechanic,
+the old scenario/balance pins encode the local maximum you're escaping — chasing
+them green steers you right back in. Expect the failing count to RISE; that is
+fine. Write the FEW new tests that capture the foundation's true behavior in
+isolation, make THOSE perfect, then re-derive the downstream pins (with David)
+against the corrected physics. Commit with a note on which pins it deliberately
+regresses, so the red reads as intent. Reverting a sound foundation to keep
+brittle pins green re-installs the bug. (Worked: M-equivariant Jacobi contact
+passes; realistic ~90°/s turn rates that make a flanked phalanx HOLD instead of
+flailing apart — the old "cav routs a flanked phalanx" pin had certified the
+flailing bug.)
 
-**Worked instance — realistic turn rates make formations HOLD, and that's the
-goal.** Soldier facing used to slew at ~460°/s — a near-instant snap. Dampening it
-to a realistic ~90°/s (a man pivots deliberately; a horse wheels slower still, via a
-per-class `turn_mult`) regressed a cluster of balance pins. The tell was in WHY each
-fell: e.g. "cav routs a flanked phalanx" only ever passed because the old snap-turn
-made the flanked pikemen each spin to face the horse individually — the formation
-**flailed apart** and the cav poured into the gaps. With realistic turning the
-phalanx **holds its frontage** when hit on the flank, so 96 horse no longer rout 160
-pikes. That is MORE correct, not a regression: **the system should want units to hold
-formation** — a pin that only passed because men flailed was certifying the bug.
-The re-derivation (David's calls): drop the "cav routs a flanked phalanx" contract
-to "cav takes a good chunk out of it" (phalanx ≈ heavy inf — cav loses to both, but
-bloodies them in charge + grind); keep the real cav contract on what it SHOULD beat
-— light infantry, won via charge AND grind with the kills split ~50/50. Generic
-lesson: when a realism fix regresses a pin, ask whether the OLD pass depended on the
-unrealistic behavior (instant turning, flailing, in-place first-mover). If so the pin
-encoded the artifact — re-derive it; don't dial the physics back to re-green it.
+## Measure the mechanism, never argue from the score
 
-### Forces, not walls; emergence, not special-cases
+It is a deterministic sim — instrument the *cause*, don't reason from the
+outcome. The sharpest move when a VALUE is wrong: **log its constituent terms,
+find which one carries it, then trace that term to its source.**
 
-A soldier moves because **real forces** act on him (his neighbours, the
-enemies near him, the ground) and stops because of **real bodies** he can't
-walk through. He is never moved or held by a positional clamp that exists to
-enforce a *rule* — "you may not stand past this line", "don't pass your
-rank-neighbour", "hold at exactly weapon reach". Those imaginary walls each
-look like they fix one thing and quietly break an emergent behaviour
-elsewhere; reach for one and the rule you actually want is almost always a
-*force* that produces it as a side effect.
+- Worked (this session, found in minutes): the light routed at ~3% casualties to
+  a walking cavalry. Logging the morale drain showed it was **entirely**
+  `odds_drain` (the power-share pull) with blood and fear ≈ 0 → `enemy_power` read
+  3× too high → the per-man dps used `max(damage/interval)` over all weapons,
+  picking the **one-use LANCE** (1.6 dmg) instead of the sabre the cav grinds with
+  (0.12). One line — read grind weapons only — restored "charge wins, walk-in
+  loses" with no charge gate.
+- **Isolate with immortal / zero-damage fake units** so no tuning leaks in: the
+  only question left is the pure physics ("can the charge physically shove
+  through?"). It is balance-proof and pins the *floor* a balance number must later
+  sit on — write that floor as a `mechanics_*` test (`#[ignore]` with a rationale
+  if the mechanic isn't built yet).
+- The **immortal long-grind is the stress test**: an equilibrium bug has nowhere
+  to hide when nobody dies to end the fight early.
 
-The same way, don't special-case a role (the "front rank", the "flank file")
-with a flag or a gate. If the rule is right, the geometry already singles
-those soldiers out — the man nearest the enemy feels the strongest pull, the
-man with neighbours on three sides can't lunge. Let position and the force law
-decide who does what; a gate that names a role is a smell that the underlying
-force is missing or wrong. Collective effects (a deep mass shoving a thin one
-back) must come from the **measured physics** that scales with mass, never
-from a proxy like counting ranks.
+## A metric can encode the WRONG thing — go LOOK before chasing a force
 
-### One physical quantity → one canonical measurement
+A red has two indistinguishable causes: the *sim* is wrong, or the *detector* is.
+**Render the vibe shot and look first** — a bent lens invents a problem that isn't
+there (a `depth_ratio` screamed "blob" for a dozen tweaks; the shots showed a
+perfect grid merely *rotating*). The classic detector bugs:
 
-When two pieces of code ask the *same physical question* ("is the enemy
-close?"), they must measure it the **same way** and key off the **same
-number**. Different formulas for one question silently disagree and drift apart
-as the code evolves — and the disagreement IS a bug (a unit can be "at ease"
-for morale yet "threatened" for facing at once). Collapsing them onto one
-measure is both a simplification and a correctness fix: the shared meaning can
-no longer self-contradict.
+- **Wrong FRAME.** A rotation-invariant quantity measured against a world axis
+  reads collapse when the block merely rotated. Measure in the formation's OWN
+  frame (PCA → major/minor axes).
+- **Wrong WINDOW (transient vs sustained).** A `min`/`max` over a run reports the
+  worst *moment*, not the *state* — it catches the impact transient (front
+  compresses ~1s, springs back) or a breathing surge. For "did X collapse and
+  STAY", measure the sustained/late/averaged value. (This session: melee
+  interpenetration `max` 0.48 was a breathing surge; the sustained average was
+  0.26 and cohesion/centroids were fine.)
+- **A split-the-population metric on a quantised lattice** (ranks/files)
+  manufactures a phantom signal when the median split lands inside a rank. Use a
+  continuous slope/PCA fit, not a partition of halves.
+- **A one-use event measured as a sustained RATE.** `lance.damage / interval` is
+  not a dps — the lance fires once per charge, then the rider draws his sabre.
+  Counting it as continuous made a walking horseman read 3× as deadly as it
+  fights. A discrete/one-shot thing read as a rate is a metric bug.
 
-Look for: the same "is X near / engaged / done" answered by different constants
-in different files; centroid-distance standing in for edge-distance between
-*sized* bodies (almost always wrong — a wide line is threatened at its flank, a
-deep block at its front rank); a cap/clamp whose only consumer already bounds
-itself tighter (dead scaffolding — delete, don't tune). Route everything
-through the one true measure.
+The tells that it's the metric, not the physics: **the number is wrong on the
+KNOWN-GOOD baseline** (always check a detector on an unperturbed block first), or
+it **stays invariant under every force that should move it** (six levers moved and
+the blob's 0.81 never budged — deaf to forces means it's the lens or the
+dynamics, not a force imbalance). Stop tuning, go look.
 
-### A pass-through / swirl is a missing FORCE, never a missing wall
+## One quantity, one canonical measurement
 
-When two lines pass through each other, or swirl/orbit, the deep cause is that
-the force which should hold a man off his foe is **absent, too weak, or one-
-sided** — so something else (a rear-rank shove, the combat-seek) wins and drives
-him through. Diagnostic tells that you're looking at a force problem:
+When two pieces of code ask the same physical question ("is the enemy close?"),
+they must measure it the same way and key off the same number. Different formulas
+silently disagree and the disagreement IS a bug (a unit "at ease" for morale yet
+"threatened" for facing at once). Look for: centroid-distance standing in for
+edge-distance between *sized* bodies (a wide line is threatened at its flank, a
+deep block at its front rank); a cap whose only consumer already bounds itself
+tighter (dead scaffolding — delete, don't tune). Route everything through the one
+true measure.
 
-- Every single-parameter *damping* you try is **seed-fragile** — works on one
-  seed, ghosts on the next. Damping doesn't stabilize an equilibrium that has no
-  restoring force; it just slows the runaway.
-- The "stop" you do have works **by accident** — through some unrelated
-  mechanism's side effect (a wheel rule tripping on jitter, say). A crutch.
-- Two layers can drive the same motion; **instrument to find which one** before
-  fixing the wrong layer (e.g. zeroing the frame still lets men cross → the
-  drive is soldier-level, not the frame).
+## A pass-through / swirl is a missing FORCE, never a missing wall
 
-The fix is a **real, two-way force**, never a positional clamp. A clamp (snap a
-man to a line, a "wall" he can't cross) *overrides* physics instead of letting
-behavior emerge from it — it papers over the missing force and silently breaks
-the emergent things that force would have produced. Instead, find the force that
-*should* keep them apart and make it honest:
+When two lines pass through each other or swirl/orbit, the force that should hold
+a man off his foe is absent, too weak, or one-sided, so something else (a
+rear-rank shove, the combat-seek) drives him through. Tells: every single-knob
+*damping* is seed-fragile (damping doesn't stabilize an equilibrium with no
+restoring force); the "stop" you have works by accident through some unrelated
+mechanism. The fix is a **real, two-way force** (Newton's third law — it must push
+the foe too), **strong enough** that the rear ranks can't shove the front through
+yet **soft enough** that a better-backed enemy can overpower it and close, and **in
+the right medium** (a soft steering nudge loses to a hard collision — put the
+holding force in the strong layer). A clamp papers the missing force and silently
+breaks what that force would have produced.
 
-- **Two-way.** The repulsion that holds a man off his foe must also PUSH the
-  foe — Newton's third law. A force that moves only its own bearer can't hold a
-  line against the enemy's advance.
-- **Strong enough, but soft.** Strong enough that the equilibrium is stable
-  (the rear ranks can't shove the front through), yet soft enough that a better-
-  *backed* enemy can overpower it and close — a contest of forces decides the
-  distance, which a wall forbids. (A pike keeps a sword line at bay by *pushing*,
-  and a deep, well-backed line can still press in.)
-- **In the right medium.** A soft steering nudge loses to a hard position
-  correction (collision). If the holding force lives in the weak layer and the
-  thing overpowering it lives in the strong one, move the force, don't clamp the
-  position.
+## Equilibrium failures: a spring system does not auto-settle
 
-The foundational example of this done right is the **weave** itself: contact,
-depth, and the line all emerge from springs and bodies — real forces — with no
-"hold here" walls. When you reach for a clamp, you've stopped looking for the
-force.
+Forces that *pull toward a target* (a magnet to the foe, glue between units, a
+slot spring) do NOT guarantee a stable steady state. Pointed at an unreachable
+target — a unit ordered to walk *through* an enemy it can't pass — the system
+chases forever: it leans, shears, and **swirls, because rotating is the only way
+left to "reach" an anchor it can't reach straight on.** Over a short fight,
+casualties end it before the instability blooms; the **immortal infinite run** has
+nowhere to hide, so a slowly-growing swirl/blob/lean is the signature — and these
+are usually **ONE bug, not three** (find the shared "never settles" root, don't
+fix each separately). The fix: the driving force must go to **zero at equilibrium**
+(a man at his fighting distance stops being pulled in), or the contested DOF needs
+damping that kills the runaway *without* poisoning combat. Two scalpels that did
+that:
 
-### Crutches are debts — keep a ledger, pay them down
+- **Gate the damping on a state combat can never be in.** `at_ease` (no living
+  enemy in range) is definitionally off during any clash, so damping behind it
+  can't touch a fight by construction.
+- **Damp only the OSCILLATION** — the velocity component that *reverses* against
+  last tick (`v·v_prev < 0`). A 2-tick limit cycle reverses every tick and dies; a
+  steady push or settle doesn't reverse and is untouched. Reversal-gated drag is a
+  scalpel; uniform drag is a hammer (it compressed the resting block ~17%).
 
-A **crutch** is a non-physical patch that compensates for the kinematic
-abstraction instead of being a real force or a real constraint. The sim is a
-*hybrid*: ballistic motion (carried momentum `mom_*`, charges, knockback) is
-honest dynamics — `p = m·v`, drained through collisions by `trample_bleed` — but
-a soldier's *propulsion* is **kinematic**: his velocity is his capped intent,
-re-asserted every tick. A velocity-controlled agent does **not** decelerate when
-it pushes on a body the way a real mass would, so anything that fakes that
-deceleration is a crutch.
+## Crutches are debts — keep a ledger, pay them down
 
-The honest load-bearers — what work *should* route through — are exactly two:
-1. **Geometric non-overlap constraints** (bodies can't interpenetrate; the energy
-   is incompressibility, not a stored spring).
-2. **Forces/returns sourced from measured motion** — magnitude drawn from a real
-   `kin_*` velocity or `mom_*` momentum some body actually paid for ("men, mass,
-   measured motion"). An impale that returns the charger's own momentum is honest;
-   a `tunable × penetration` spring or a `tunable × hit` shove is not.
+A **crutch** is a non-physical patch that fakes what the kinematic abstraction
+won't do. The sim is hybrid: ballistic motion (`mom_*`, charges, knockback) is
+honest `p=m·v` drained by `trample_bleed`; a soldier's *propulsion* is kinematic
+(velocity = capped intent, re-asserted each tick), and a velocity-controlled agent
+doesn't decelerate when it pushes on a body — so anything faking that deceleration
+is a crutch. The honest load-bearers are exactly two: **geometric non-overlap
+constraints**, and **forces sourced from measured motion** (magnitude drawn from a
+real `kin_*`/`mom_*` some body actually paid for — "men, mass, measured motion").
+A `tunable × penetration` spring or `tunable × hit` shove is not honest. Known
+crutches (name them in comments so they can't hide): `counter_press`/ram-drag
+(movement.rs), the `weapon_repel` penetration spring, the `hit_push` mass-ratio
+shove. The goal is **as few as possible** — before keeping one, turn it off,
+strengthen the honest channel, and measure the invariant; keep it only if
+measurement proves an irreplaceable gap, and say in a comment what gap forces it.
 
-Known crutches in the tree (name them as such in comments; don't let them hide):
-- **`counter_press` / ram-drag** (movement.rs) — a unit-mean measured pressure
-  fed back as a *pace reduction*. Exists only because kinematic propulsion won't
-  slow on contact; a fully dynamic model wouldn't need it. ram-drag (the v² brake)
-  is the more defensible half; the `counter_press` *signal* (diluted unit-mean) is
-  the replaceable part.
-- **`weapon_repel` penetration spring** and **`hit_push` mass-ratio shove** — the
-  two cross-line forces whose magnitude is a tunable, not a measured momentum.
-
-The goal is **as few crutches as possible.** Each is a debt: it makes the system
-harder to reason about and silently co-tunes with everything around it. Before
-keeping one, run the experiment that tries to delete it — **turn the crutch off,
-strengthen the honest channel, measure the invariant** (charge penetration depth,
-the hold). Keep it only if measurement proves an irreplaceable gap, and when you
-do, **say in a comment that it is a crutch and what gap forces it to stay** (e.g.
-the position-push saturates at `separation_max_push`, so the collective weight has
-no uncapped honest channel — fix *that*, don't add a second patch). It is fine to
-still need a crutch; it is not fine to forget it is one.
-
-### Move == Attack is the litmus for first-principled-ness
+## Move == Attack is the litmus for first-principled-ness
 
 An attack latch is just a move order to a point past the foe (plus charge +
-give-up). So **two units attacking each other must behave the same as two
-units moving onto each other's start** — same cohesion, same interpenetration,
-no centroid swap. If they diverge, some code path is gated on
-`OrderMode::Move` vs `OrderMode::Attack` when it should key off the physical
-situation. Real example from this work: the contact-facing **intent vote**
-(what keeps a unit pointed at its goal) only fired for `Move`, so the move held
-its heading head-on while the attack wheeled. Grep for `OrderMode::` gates when
-move and attack diverge.
+give-up). So **two units attacking each other must behave the same as two units
+moving onto each other's start** — same cohesion, same interpenetration, no
+centroid swap. If they diverge, some path is gated on `OrderMode::Move` vs
+`Attack` when it should key off the physical situation (real case: the
+contact-facing intent vote only fired for `Move`, so the attack wheeled while the
+move held). Grep for `OrderMode::` gates when move and attack diverge.
 
-### Measure the mechanism, not just the outcome — facing catches swirl early
+## The two-layer loop (in order)
 
-A swirl is two lines **wheeling** around each other. The centroid-swap check
-catches it, but late (after they've already turned ~45°+). The *early,
-direct* signal is **facing**: a head-on clash must keep both fronts pointed
-±y. Track the max off-axis facing angle (`asin(|cos(facing)|)` in degrees) and
-assert it stays within a few degrees. `face_dev = 90°` means the lines turned
-fully sideways — an unmistakable swirl readout that fires before the centroids
-even cross.
+**Layer 1 — fast Rust mechanics tests (the gate).** Cheap, deterministic,
+physics-close. Write/extend one FIRST so the target is concrete, then iterate
+until green. Rules:
 
-### A metric can encode the WRONG thing — verify it against the picture, and measure in the formation's OWN frame
+1. **Zero stat variability** — identical units or hand-built fakes; any asymmetry
+   you didn't introduce is noise. Assert *invariants* tightly on one seed
+   (centroids don't cross, no blob, line holds). But **fairness is a DISTRIBUTION**
+   — "no side is systematically favored" is a win-rate band over a seed set, never
+   a single-seed "comparable losses" check (that check is blind; a single-seed
+   even-losses pin hid a 20/20 one-side-always-wins bias for months).
+2. **Never assert wins/losses.** Assert on cohesion, centroid (north unit's
+   centroid-y stays above south's = one check catching both crisscross and swirl),
+   closest approach, rout direction (`home_dir_y`), frame_speed, pressure, facing
+   — whatever the mechanic is *about*.
+3. **Control the field** — `tun.micro_rough = 0.0`, morale OFF (`no_morale()`)
+   unless the rout is the subject.
+4. **Loose, not exact** — thresholds are sanity rails ("cohesion > 0.8"), not
+   golden values.
+5. **Smallest scale that shows it** — two units for a clash; armies only for
+   integration.
 
-A red test has two possible causes, and they look identical from the number: the
-*sim* is wrong, or the *detector* is wrong. **Before chasing a force, render the
-vibe shot and LOOK** — the metric is a lens, and a bent lens invents a problem that
-isn't there. Worked case: a `depth_ratio` of 0.40 screamed "the block pancaked into
-a blob", and I spent a dozen force-tweaks trying to fix a pancake — but the shots
-showed the back ranks holding a *perfect grid*; the block was merely **rotating** as
-it swirled. Two detector bugs, both classics:
+**Layer 2 — vibe shots are the real verdict.** Green Rust does not mean done; the
+mechanic must *feel* right across the WHOLE timeline (a clash can look clean at
+t=32s and be a swirling blob by t=48s — eyeballing one frame said "clean", the
+centroid test said "crossed at t=19.9s"). Rebuild wasm first (`npm run build:wasm`
+— the harness loads prebuilt wasm), then `node vibe/all.mjs` from `web/`; a
+mechanics change turns frames red (the point); re-bless with `UPDATE_SHOTS=1` once
+the new behavior is confirmed and commit the baselines as the record. Flip through
+`web/shots/baseline/vibe/<scenario>/` t000…t300 for approach → contact → grind →
+break → rout; `vibe/measure-duel.mjs` is the JS twin of the Rust test.
 
-- **Wrong FRAME.** Depth was projected onto the held *facing* (a fixed world axis),
-  so a block that rotates reads as shallow — pure rotation masqueraded as collapse.
-  **Measure a formation property in the formation's OWN frame** (PCA of the men's
-  positions → its major/minor axes), so the number is invariant to rotation/shear.
-  A quantity that should be rotation-invariant but is measured against a world axis
-  is a latent bug.
-- **Wrong WINDOW (transient vs sustained).** It took the `min` over the whole run,
-  which caught the **impact transient** — two lines crash, the front compresses for
-  ~1 s, then springs back (depth 0.39 → 1.8). A `min`/`max` over a run reports the
-  worst *moment*, not the *state*. For "did X collapse and STAY collapsed", skip the
-  impact warmup or measure the sustained/late value. (Same trap bit `mud` and
-  `long_marches`: the min-cohesion caught a mid-march dip, not the settled fraying.)
-- **A half-and-half SPLIT metric lies when the split crosses a quantised band.** A
-  `lean()` helper measured shear as (mean-x of the low-y half) − (high-y half). With 5
-  ranks × 10 files the median split landed *inside* the centre rank, and the index
-  tiebreak sorted that rank's low-x files into one half and its high-x files into the
-  other — manufacturing a ~1.0 phantom lean on a **perfectly square** block, so the
-  recovery assertion (< 0.4) was unreachable by ANY block and a correctly-squaring
-  block read as broken for a dozen tweaks. The block had been fine all along. Fix:
-  measure with a **slope/PCA fit** (least-squares dx/dy), not a partition of a
-  discrete grid. Whenever men live on ranks/files (a quantised lattice), any "split
-  the population in two and compare halves" statistic is fragile — a continuous fit is
-  the honest measure. The tell is the same as the others: **the number is wrong even
-  on the trivial/rest configuration** — always evaluate a detector on a KNOWN-good
-  baseline (an unperturbed block) before trusting it on the failure case.
+## Test taxonomy
 
-The tell that your metric — not your physics — is the problem: **it stays invariant
-under every force that should move it.** I scaled the repel, the compress, the
-slot-grip, an axial cap — six levers — and the blob's interpenetration never budged
-off 0.81 while each *regressed* the foundation. A number deaf to every relevant force
-is almost never a force imbalance; it's the metric or the dynamics. Stop tuning, go
-look.
+`crates/sim/tests/README.md` is the canonical map. Quick routing:
 
-### The hardest class of bug is an EQUILIBRIUM failure — a spring system does not auto-settle
+| Prefix | What it is | Asserts on |
+|---|---|---|
+| `mechanics_*.rs` | first-principles physics | cohesion, centroids, pressure, facing — NOT wins |
+| `balance_*.rs` | performance-vs-price over seeds | win-rate / survivor spread (`balance-unit` skill) |
+| `*_scenarios.rs` | public-API emergence contracts | player-visible behavior (`write-tests` skill) |
 
-Forces that *pull toward a target* (a magnet to the foe, glue between locked units,
-a slot spring) do NOT guarantee the system reaches a stable **steady state**. Pointed
-at an unreachable target — a unit blocked head-on by an enemy it's ordered to walk
-*through* — the system keeps chasing forever: it leans, shears, and **swirls, because
-rotating is the only way left to "reach" an anchor it can't reach straight on.** Over
-a short fight casualties end it before the instability blooms; under an **immortal /
-infinite run it has nowhere to hide**, so the immortal long-grind is the *stress test*
-for equilibrium, and a slowly-growing swirl/blob/lean is its signature. Crucially,
-**these are usually ONE bug, not three** — don't fix swirl, blob, and lean separately;
-find the shared "never settles" root. The fix is to make the system actually settle:
-the driving force must go to **zero at equilibrium** (a man at his fighting distance
-should stop being pulled in, not keep pressing), or the contested degree of freedom
-needs damping / a restoring force that kills the runaway. If your "glue + magnet were
-supposed to settle it" and they don't, the question is not "which force is too weak"
-but "what steady state does this system have, and does any force drive it there."
+New physics tests go in `mechanics_*.rs`. Legacy `*_scenarios.rs` mostly belong in
+the mechanics bucket — migrate opportunistically when you touch them.
 
-**Worked instance — damping a frictionless lattice, WITHOUT poisoning combat.** An
-idle block, scaled/perturbed, rang forever at 0.073 m/tick: the edge men step out, the
-separation solver shoves them back, repeat — a 2-tick limit cycle a *frictionless*
-spring re-injects every tick. The fix is dissipation, but naive global velocity drag
-**regressed combat -5 to -13 every time** (the same springs move the fighting men;
-damping them changed every clash). What worked is two gates that make the damping
-**provably invisible to the fight**:
-- **Gate on a state combat can never be in.** `at_ease` (no living enemy within
-  at_ease_range) is true for an idle formation and FALSE for anything fighting or
-  closing to a fight — so damping behind it cannot touch a clash by construction. (Plus
-  `move_target.is_none() && engaged==0 && frame_speed<0.5` so it never drags a march or
-  a re-form surge.) Find the predicate that is *definitionally* off during the case you
-  must not perturb.
-- **Damp only the OSCILLATION, not all motion.** Drag only the velocity component that
-  *reverses* against last tick's (`v · v_prev < 0`). A limit cycle reverses every tick
-  → it dies; a steady motion (a friendly push compressing the block, a settle toward
-  rest) doesn't reverse → it's untouched. A flat low-pass instead compressed the
-  resting block ~17%; the reversal-gate left its shape intact. **Reversal-gated drag is
-  a scalpel; uniform drag is a hammer.**
+## Process (non-negotiable)
 
-The same trace showed the OTHER half of the swirl — the combat-side wheel — is the
-grind facing-lock *releasing* mid-grind (engaged dips below the lock threshold as a
-losing line is driven back → it re-acquires the slid enemy centroid → wheels → repeat
-to 90°). A naive latch fixes the swirl but is too sticky (a winner must still wheel to
-wrap/pursue); the correct latch holds only a unit that is LOSING the push. Same family:
-the runaway is a feedback loop re-armed by a threshold that toggles under noise.
-
-### Don't relax a test to pass — the red is usually telling the truth
-
-When a strict check (centroids never swap on y) goes red after your change,
-the strong default is **the check is right and your change is incomplete**.
-Relaxing the threshold ("allow a few metres of charge dent") to go green is how
-a suite certifies a bug — it did exactly that here: loosening the centroid-swap
-tolerance hid a 90° swirl that the shots plainly showed. If you believe a red
-check is genuinely too strict, prove it with a shot first, and write the new
-threshold around the *physically correct* behavior, not around the current
-(broken) number.
-
-### The OTHER red: when a first-principles fix breaks a BALANCE test, the test may be the cheese
-
-The rule above ("don't relax a red") is about *mechanics* tests — those are
-physics, keep them strict. The converse case is just as important: when a
-principled change breaks a **balance/outcome** test (a win-rate, a survivor
-spread, a "X usually beats Y"), do NOT reflexively re-pin it or revert the fix.
-A more correct mechanic frequently **exposes a balance test that was only ever
-passing because of a cheesy/overtuned mechanic** — the red is the fix doing its
-job. Distinguish:
-
-- **Invariant** (physics truth — always holds, keep strict): "centroids never
-  cross", "a charge can't plow through an immortal deep block".
-- **Outcome** (tuning-dependent — allowed to move): "cav wins 60% of seeds".
-  Breaking an invariant is a regression; moving an outcome may mean the outcome
-  was wrong.
-
-**Measure the mechanism, never argue from the score.** Before deciding a balance
-red is right or wrong, instrument the *cause*: count kill sources, disable one
-mechanic and re-run, isolate with **immortal / zero-damage fake units** so no
-tuning leaks in. Worked case from this repo: `cavalry_usually_rides_over_heavy_swords`
-asserted cav beats deep heavy 100%, but instrumenting showed **71% of the
-infantry deaths were charge-impact knockdowns**, and disabling charge-impact
-flipped it to cav **0%** — the test had pinned shock-cheese as if it were a
-combat fact. A 120-horse line should NOT bulldoze clean through 8 braced ranks;
-cavalry earns its keep by repeated shock and on the flank. When you conclude a
-test is wrong, **fix or delete it and say why** — don't leave two tests
-asserting opposite things ("rides through" vs "bogs down") in the suite.
-
-### Don't abandon a sound mechanic because a test goes red — diagnose the red FIRST
-
-A theoretically-sound change (a missing force you can argue from first principles)
-that makes a few tests red is NOT thereby disproven. Reverting it on the red
-count alone throws away the fix and keeps the bug. Before discarding, diagnose
-EACH red — it is one of three things, and they have different answers:
-
-1. **Tunable** — the mechanic is right but a coefficient is too strong; a weaker
-   value keeps the new behavior AND the old test. **Sweep the parameter before
-   concluding.** Worked case: a sword **standoff force** (sound — two sword lines
-   had no enemy-standoff, so their lattices interleaved into a blob) broke
-   `equal_units_feel_equal_pressure` and `melee_kills` at standoff-softness 0.35.
-   Nearly reverted it as "net zero." Sweeping the softness down to 0.20 kept the
-   blob fixed AND both tests green — the red was a margin, not a refutation.
-2. **A fragile/marginal test** — it was passing by a hair and the sound change
-   nudged it over. Widen it (with a comment naming it chaos-marginal) — but only
-   after you've confirmed by instrumenting that the *mechanism* is still correct.
-3. **A real coupling the change EXPOSED** — the change is right and reveals a
-   second bug. Worked case: the same standoff broke `attack_latch` (the move==attack
-   litmus) — instrumenting showed a MOVE order drives into contact harder than an
-   ATTACK (interpen 0.56 vs 0.32), a pre-existing move/attack-drive asymmetry the
-   standoff merely surfaced. The fix belongs on THAT asymmetry, not on reverting
-   the standoff.
-
-The rule: **it is a deterministic sim — measure why each red is red** (sweep the
-knob, print the mechanism, isolate with immortals) before you let a red-count
-veto a first-principles fix. Keep less-blob/more-correct physics and chase the
-reds you understand; only revert once you've shown the mechanic itself is wrong.
-
-The sharpest tool for an invariant is a **mechanical test with immortal /
-zero-damage fake units**: nobody dies, so the only question left is the pure
-physics ("can the charge physically shove through?"). It's balance-proof — a
-future rebalance can't move it — and it pins the *floor* a balance number must
-later sit on. Write that floor as a `mechanics_*` test (mark it `#[ignore]` with
-a rationale if the mechanic isn't built yet — an explicit target beats a silent
-gap), not as a balance assertion.
-
-## The two-layer loop (do them in order)
-
-### Layer 1 — fast Rust mechanics tests (the gate)
-
-Cheap, deterministic, physics-close. They don't prove it *looks* right;
-they prove **nothing is obviously broken**. Write/extend one FIRST so the
-target is concrete, then iterate the mechanic until it's green.
-
-Rules for a mechanics test:
-
-1. **Zero stat variability.** Use IDENTICAL units (same class both sides)
-   or hand-built fake units. Any asymmetry you didn't introduce on purpose
-   is noise that hides the signal. A symmetric setup lets you assert the
-   physics *invariants* tightly and deterministically (centroids don't
-   cross, no blob, the line holds — one seed, exact threshold). But do NOT
-   assert *even-handedness* on a single seed: identical units in one fight
-   are EXPECTED to take lopsided losses (the fight is decisive, the loser
-   routs and is chased). "No side is systematically favored" is a
-   **distribution** property — a win-rate band over a seed set, not a
-   single-seed "comparable losses" check. That single-seed check is BLIND:
-   it certifies whatever the lucky seed did and *masks* real
-   directional/processing-order bias (this session, a single-seed even-
-   losses pin hid a 20/20 one-side-always-wins bias for months; the
-   distribution rewrite caught it on the first run). **Mechanical = tight +
-   deterministic; fairness = distribution.** See `write-tests`.
-2. **Never assert wins/losses.** Assert on values close to the physics:
-   - **cohesion** (`unit.cohesion`, export `[4]`) — does the line hold its
-     shape, or dissolve?
-   - **centroid** (`unit.centroid`, export `[32],[33]`) — where is the mass?
-     The "do they pass through each other / swirl" test is: spawn one unit
-     north and one south, and assert the **north unit's centroid-y stays
-     above the south unit's for the whole fight**. A flip is a crisscross
-     OR a swirl (orbiting also swaps top/bottom) — one cheap check, both
-     bugs. Also watch the closest approach (overlap) and the rout direction
-     (a broken unit flees toward its OWN edge, `home_dir_y`).
-   - frame_speed, pressure, engaged count, facing — whatever the mechanic
-     under test is *about*.
-3. **Control the field.** `tun.micro_rough = 0.0` (parade ground) so
-   terrain noise doesn't muddy the measurement. Morale OFF (`no_morale()`)
-   unless the rout itself is the subject.
-4. **Loose, not exact.** Thresholds are sanity rails ("cohesion > 0.8",
-   "centroids never cross"), not golden values. The point is to catch a
-   regression turning a grind into a blender, not to freeze a number.
-5. **Smallest scale that shows it.** Two units for a clash; a few only for
-   interaction (envelopment, rout contagion); armies only for integration.
-
-`mechanics_melee.rs` is the worked example: `head_on_clash` spawns two
-identical heavy blocks attacking each other, `trace_clash` records min
-cohesion / min centroid-gap-y / rout direction, and the tests assert the
-lines hold (>0.8), never cross, and rout the right way — never who wins.
-
-### Layer 2 — vibe shots are the real verdict
-
-Green Rust does NOT mean done. **The actual check that a mechanic feels
-right is the vibe timeline, and you must look at EVERY frame.** A single
-cherry-picked frame lies — a clash can look like a clean contact line at
-t=32s and be a swirling blob by t=48s. (This is why we built the Rust
-layer: eyeballing one shot said "clean"; the centroid test said "crossed at
-t=19.9s". Trust the measurement, then confirm the feel.)
-
-- Re-check the canonical set against its baselines: `node vibe/all.mjs` from
-  `web/` with the dev server up (and **`npm run build:wasm` first** if you
-  touched Rust — the harness loads the prebuilt wasm, not your source). A
-  mechanics change will turn frames red; that's the point. Once you've
-  confirmed the new behaviour is what you want, re-bless with
-  `UPDATE_SHOTS=1 node vibe/all.mjs` and commit the changed baselines — the
-  git image-diff is the record of what your change did.
-- Flip through `web/shots/baseline/vibe/<scenario>/` t000…t300 for the
-  scenarios your change touches. Read the whole timeline: approach → contact →
-  grind → break → rout. Look for swirl, pass-through, scatter, a stalled
-  attack, a line that dissolves.
-- For a quick numeric read while iterating one matchup, `vibe/measure-duel.mjs`
-  (cohesion + centroid-cross + rout-direction every 0.5s) is the JS twin of
-  the Rust test.
-
-## Test taxonomy (keep it explicit)
-
-`crates/sim/tests/README.md` is the canonical map for the Rust sim tests. The
-quick routing table:
-
-| Prefix | What it is | Asserts on | Skill |
-|---|---|---|---|
-| `mechanics_*.rs` | first-principles physics: how the world works | cohesion, centroids, pressure, facing — NOT wins | this one |
-| `balance_*.rs` | performance-vs-price over a seed set | win-rate / survivor spread / the counter-web | `balance-unit` |
-| `*_scenarios.rs` | public-API emergence contracts | player-visible behavior across systems | `write-tests` |
-| infrastructure | determinism, runners, micro-harnesses | hashes, smoke checks, harness contracts | `write-tests` |
-
-New physics tests go in `mechanics_*.rs`. The legacy `*_scenarios.rs`
-(combat, class, morale, posture…) are emergence tests that mostly belong in
-the mechanics bucket — migrate them under the prefix opportunistically when
-you touch them; don't mass-rename mid-change.
-
-## Process (inherited, non-negotiable)
-
-- **Cargo first** (`cargo test -p sim --no-fail-fast`, ~25s, check `rc=$?`),
-  vibe shots last. NEVER use the browser to decide whether the sim physics
-  is correct — that's what the Rust layer is for — but DO use the shots to
-  decide whether it *feels* right.
-  - `--no-fail-fast` is **non-optional**, not a nicety. Plain `cargo test`
-    is fail-fast *across test binaries*: it stops after the first executable
-    that has a failure, so every later binary is never run and you see a
-    PARTIAL result. Tuning a knife-edge parameter (turn rate, a margin) then
-    reading plain `cargo test` gives a **false green** — you fix the one
-    test it showed, the next run reveals a different binary's failure, and
-    you whack-a-mole forever (this shipped a failing `dense_infantry_blunts`
-    to main once exactly this way).
-  - Trust the **exit code**, never a grep. `grep FAILED` over piped output
-    misses failures when the pipe truncates or the pattern is off; a
-    backgrounded `cargo test | grep` is especially unreliable. Gate on
-    `rc=$?` being 0, or count that `test result: ok` lines == the number of
-    test binaries. If `rc != 0`, the suite is RED no matter what a grep says.
-  - Several balance pins are single/few-seed and **knife-edge** — their
-    pass/fail flips on a sub-percent parameter nudge (e.g. a `turn_mult` of
-    0.829 vs 0.830 flips `pikes_reach_riders`). Threading four of them with
-    one scalar is fitting noise. When a realistic-physics value can't satisfy
-    a fragile pin, the pin is the bug: re-derive it against the new physics
-    (more seeds / a stable metric) WITH David — don't keep dialing the knob.
-- **Rebuild the wasm** (`npm run build:wasm` from `web/`) after any Rust
-  change before any vibe run, or you're filming a stale binary.
-- The **golden hash** (`golden.rs`) moves on any sim-value change — re-pin
-  it deliberately, once, in the same commit, from the printed actual.
-- Expect a few chaos-marginal balance/pacing tests to wobble on a physics
-  change. Re-judge on the final shape; widen a margin only with a comment
-  saying it's chaos-marginal. **Never re-pin a contract to current
-  behavior** to make it pass — that is how a suite certifies a bug.
-- Concurrent sessions are real — scope commits to the files you touched,
-  never `git checkout`/reset over files that may hold other work. (A stray
-  reset to HEAD once silently wiped a session's edits.)
+- **Cargo first, vibe shots last.** Never use the browser to decide whether the
+  physics is *correct* (that's the Rust layer); use shots to decide whether it
+  *feels* right.
+- **`--no-fail-fast` is mandatory.** Plain `cargo test` stops after the first
+  failing binary, so later binaries never run and you get a PARTIAL false green —
+  fix the one it showed, the next run reveals another, whack-a-mole forever (this
+  shipped a failing `dense_infantry_blunts` to main once). **Trust the exit code**,
+  never a grep over piped/backgrounded output.
+- **Knife-edge pins.** Several balance pins flip on a sub-percent nudge; threading
+  four with one scalar is fitting noise. When a realistic-physics value can't
+  satisfy a fragile pin, the pin is the bug — re-derive it (more seeds / a stable
+  metric) WITH David, don't keep dialing the knob.
+- **Rebuild wasm** after any Rust change before any vibe run, or you're filming a
+  stale binary.
+- **Golden hash** moves on any sim-value change — re-pin it deliberately, once, in
+  the same commit, from the printed actual. (A pure rename or a fix that only
+  touches one class won't move it — if it didn't move, that's a good containment
+  signal.)
+- **Concurrent sessions are real** — scope commits to files you touched, never
+  `git checkout`/reset over files that may hold other work.

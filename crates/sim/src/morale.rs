@@ -87,9 +87,19 @@ impl Sim {
             .iter()
             .map(|u| {
                 let stats = u.stats;
+                // SUSTAINED dps for the standing power-share. A CHARGE weapon (the
+                // lance) fires ONCE per charge, then the rider draws his sabre — so
+                // `lance.damage / interval` is NOT a sustained rate; counting it
+                // makes a walking horseman read as 3x as deadly as the sabre he
+                // actually grinds with, and panics a line he would lose to. The
+                // charge's real threat is its MOMENTUM, read by the intimidation
+                // term below; the power-share reads the GRIND weapons only. (A
+                // charge-only body would read 0 here — correct: with the lance spent
+                // it has no sustained attack, only the one-off shock.)
                 let dps = stats
                     .weapons
                     .iter()
+                    .filter(|w| !w.is_charge())
                     .map(|w| w.damage / w.attack_interval)
                     .fold(0.0f32, f32::max);
                 let n = u.alive_count as f32;

@@ -30,16 +30,21 @@ Let `f = stamina_factor(s)`. Unless noted, the effect reads `f` (the curve), not
    a charge will not ignite unless **`s > 0.3`** (and the recovery clock is ≥ half
    drained). Below 30% stamina there is no charge at all.
 
-3. **Swing speed** — `combat.rs`. `attack_interval ×= (1 + 0.8·(1 − f))`.
-   - f=1: ×1.00 (full swing rate).  f=0.5: ×1.40.  f=0: **×1.80** → a spent man
-     swings at **1/1.8 ≈ 56%** of his fresh rate.
+3. **Swing POWER (damage per hit)** — `combat.rs`. `dmg ×= stamina_damage_floor +
+   (1 − floor)·f`, with `stamina_damage_floor = 0.75`. Swing CADENCE is **stamina-
+   independent** — a tired man swings as often, but each blow lands softer.
+   - f=1: ×1.00 (full power).  f=0.5: ×0.90.  f=0: **×0.75** (a spent man hits at 75%).
+   - Why power, not cadence: coupling cadence to stamina made even fights never
+     resolve (a spent line swung slow AND kept its guard up, so nothing landed). The
+     offence lever is power-per-blow; the collapsing guard (4) does the rest.
 
-4. **Guard (block + evade)** — `combat.rs`. `guard = guard_fatigue_floor + (1 − floor)·f`,
-   with `guard_fatigue_floor = 0.4`. Multiplies BOTH the block chance and the evade
+4. **Guard (block + evade)** — `combat.rs`. `guard = stamina_guard_floor + (1 − floor)·f`,
+   with `stamina_guard_floor = 0.15`. Multiplies BOTH the block chance and the evade
    chance.
-   - f=1: ×1.00.  f=0.5: ×0.76.  f=0: **×0.40** (a spent man keeps only 40% of his
-     guard). This is what resolves a long grind: fresh lines block nearly everything,
-     a drawn-out grind drains both guards until blows land.
+   - f=1: ×1.00.  f=0.5: ×0.66.  f=0: **×0.15** (a spent man keeps only 15% of his
+     guard). This is the PRIMARY thing that resolves a long grind: fresh lines block
+     nearly everything, a drawn-out grind COLLAPSES both guards until blows land freely
+     and one side breaks fast.
 
 5. **Morale drain amplifier** — `morale.rs`. The ONLY reader that uses **raw `s`**
    (linear), inside the drain amplifier: `amp ×= (1 + 0.5·(1 − s))`.

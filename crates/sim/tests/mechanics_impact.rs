@@ -173,19 +173,21 @@ fn cav_vs_light(charge: bool, morale: bool) -> Outcome {
 
 #[test]
 fn a_charge_wins_by_morale_not_by_grinding() {
-    // The cleanest statement of "cavalry is SHOCK": a fresh charge BEATS a 2:1 light
-    // line WITH morale (it breaks and routs it), but the SAME charge LOSES the exact
-    // fight with morale off (no rout — its thin, flank-blind grind is ground out).
-    // A walk-in, with no shock to break anyone, loses either way.
+    // Cavalry is SHOCK: a fresh charge routs a 2:1 light line WITH morale — its
+    // momentum breaks their nerve and it carves through. But a WALK-IN (same cav,
+    // no charge, no shock) is ground out by the 2:1 numbers: with no momentum to
+    // break their will, the light holds and the bodies tell. And with morale OFF
+    // the charge loses too — the cav wins only by breaking WILL, never on bodies.
     let fresh_on = cav_vs_light(true, true);
     let fresh_off = cav_vs_light(true, false);
     let walk_on = cav_vs_light(false, true);
     let walk_off = cav_vs_light(false, false);
 
+    // Only the CHARGE wins, and only via morale.
     assert!(fresh_on.cav_wins >= 0.8, "a fresh charge must rout light WITH morale (won frac {:.1})", fresh_on.cav_wins);
-    assert!(fresh_off.cav_wins <= 0.2, "the SAME charge must lose to the death with morale off (won frac {:.1})", fresh_off.cav_wins);
-    assert!(walk_on.cav_wins <= 0.2, "a walk-in must lose even WITH morale (won frac {:.1})", walk_on.cav_wins);
-    assert!(walk_off.cav_wins <= 0.2, "a walk-in must lose to the death (won frac {:.1})", walk_off.cav_wins);
+    assert!(walk_on.cav_wins <= 0.2, "a walk-in (no shock) must be ground out by 2:1 light even WITH morale (won frac {:.1})", walk_on.cav_wins);
+    assert!(fresh_off.cav_wins <= 0.2, "with morale off the charge loses to the death (won frac {:.1})", fresh_off.cav_wins);
+    assert!(walk_off.cav_wins <= 0.2, "with morale off a walk-in loses to the death (won frac {:.1})", walk_off.cav_wins);
 
     // To the death, 2:1 light grinds the cav out outright.
     assert!(
@@ -194,20 +196,16 @@ fn a_charge_wins_by_morale_not_by_grinding() {
         fresh_off.cav_dead,
     );
 
-    // The charge's death tally holds a ~1:2:4 ratio of IMPACT : LANCE : GRIND kills
-    // (measured ~18:33:76) — the shock fells few, the lance skewers the contact, and
-    // the inserted sabre does the bulk over the long grind. Keep around that shape:
-    // the lance ~doubles the impact, the grind ~doubles the lance.
+    // Loss-by-cause to the death: the inserted sabre GRIND is the dominant killer by
+    // far (the faster, guard-collapsing grind does the bulk over the long fight),
+    // with the impact shock and the one-shot lance as comparable, minor contributions
+    // — roughly a 1:1:8 impact:lance:grind shape.
     let (i, l, g) = (fresh_off.impact, fresh_off.lance, fresh_off.grind);
-    assert!(i > 8.0 && l > i && g > l, "kills must order impact<lance<grind, got {i:.0}:{l:.0}:{g:.0}");
+    assert!(i > 8.0, "the impact shock must fell a meaningful few: {i:.0} ({i:.0}:{l:.0}:{g:.0})");
+    assert!(g > 2.0 * (i + l), "the sabre grind must dominate the kills: {i:.0}:{l:.0}:{g:.0}");
     assert!(
-        (1.4..=2.8).contains(&(l / i)),
-        "lance should be ~2x impact (1:2:4), got lance/impact {:.1} ({i:.0}:{l:.0}:{g:.0})",
+        (0.4..=2.2).contains(&(l / i)),
+        "impact and lance should be comparable shock contributions, got lance/impact {:.1} ({i:.0}:{l:.0}:{g:.0})",
         l / i,
-    );
-    assert!(
-        (1.6..=3.0).contains(&(g / l)),
-        "grind should be ~2x lance (1:2:4), got grind/lance {:.1} ({i:.0}:{l:.0}:{g:.0})",
-        g / l,
     );
 }

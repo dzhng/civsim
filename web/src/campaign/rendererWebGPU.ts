@@ -289,7 +289,8 @@ function buildEntityFrame(data: CampaignData, opts: DrawOptions) {
     });
     armyEntities++;
     if (army.id === opts.selected) {
-      selections.push({ x: army.x, y: army.y, radius: 8.2 * fixtureScale, color: [0.31, 0.82, 0.39], kind: 'army' });
+      const selectionRadius = isControlledStage(data) ? 5.4 * fixtureScale : 8.2 * fixtureScale;
+      selections.push({ x: army.x, y: army.y, radius: selectionRadius, color: [0.31, 0.82, 0.39], kind: 'army' });
     }
   }
   return { entities, selections, cityEntities, armyEntities };

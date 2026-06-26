@@ -76,6 +76,11 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   constants. After the frame matches, harden WebGPU glyph-atlas labels toward
   the archived white text with black outline; weak translucent halos read as
   missing text even when the font and icon are technically present.
+- If a parity report is meant to judge selected campaign markers, make the
+  scenario select the posed entity instead of assuming selection state leaks
+  in. Then inspect a central crop as well as the full-frame score: full-frame
+  metrics can reward a ring that is present while missing whether it is too
+  huge, too subtle, or not reading as a ground-plane perspective overlay.
 - Use instancing, batching, storage buffers, and GPU-side phase passes for scale.
   Avoid CPU readbacks in hot paths; debug readbacks must be bounded and named.
 - For iterative effects or simulations, separate phases such as `state`,

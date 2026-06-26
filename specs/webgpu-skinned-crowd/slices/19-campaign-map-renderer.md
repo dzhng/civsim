@@ -106,6 +106,15 @@ campaign-label-zoom gate.
   stronger subtext. Together these moved Campaign Label Zoom parity distance
   from `0.23538` to `0.20930`, with black/terrain coverage closer to the
   reference and `edgeEnergyRatio 0.98570`.
+- The same close-label visual report now explicitly selects the posed army
+  before capture, so the report exercises the selected marker state instead of
+  only the idle city/army stack. The campaign selection pass draws a stronger
+  ground-plane ring and the controlled close fixture uses a smaller selected
+  army radius than the real campaign map. This moved Campaign Label Zoom parity
+  distance from `0.20930` to `0.20759`, kept edge energy close to parity
+  (`edgeEnergyRatio 0.99377`), and preserved Battle Selection DPR2 at `0.15910`.
+  The remaining close-view debt is still central-stack composition, label
+  separation, richer object depth, and reducing the floating-board/void read.
 
 ## Must Stay Green
 

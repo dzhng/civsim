@@ -42,14 +42,14 @@ fn vs(@location(0) quad: vec2f, @location(1) inst0: vec4f, @location(2) inst1: v
 @fragment
 fn fs(in: VsOut) -> @location(0) vec4f {
   let d = length(in.local);
-  if (d > 1.0 || d < 0.955) { discard; }
-  let outer = smoothstep(1.0, 0.992, d);
-  let inner = smoothstep(0.955, 0.966, d);
+  if (d > 1.0 || d < 0.928) { discard; }
+  let outer = smoothstep(1.0, 0.988, d);
+  let inner = smoothstep(0.928, 0.942, d);
   let ring = outer * inner;
-  let fill = smoothstep(0.992, 0.972, d) * smoothstep(0.948, 0.958, d) * 0.012;
+  let fill = smoothstep(0.990, 0.968, d) * smoothstep(0.918, 0.934, d) * 0.018;
   let groundTint = mix(in.color, vec3f(0.74, 0.66, 0.36), select(0.52, 0.34, in.kind > 0.5));
   let armyBoost = select(0.0, 0.08, in.kind > 0.5);
-  let ringAlpha = select(0.44, 0.52, in.kind > 0.5);
+  let ringAlpha = select(0.58, 0.68, in.kind > 0.5);
   return vec4f(groundTint * (0.84 + armyBoost), max(ring * ringAlpha, fill));
 }`;
 

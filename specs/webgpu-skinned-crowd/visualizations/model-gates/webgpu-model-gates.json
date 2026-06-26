@@ -1,0 +1,223 @@
+{
+  "kind": "webgpu-model-gate-report",
+  "generatedAt": "scenario-generated",
+  "note": "These are addressable model-level review captures, not final parity acceptance. Whole-scene parity still requires model gates plus current-renderer comparison.",
+  "captures": [
+    {
+      "id": "city",
+      "label": "City Cluster",
+      "criteria": "Large settlement has clustered sandstone buildings, terracotta roofs, ownership flag, shadow, label icon, and selected footprint.",
+      "image": "city.png",
+      "stats": {
+        "route": "campaign-model-gates",
+        "gate": "city",
+        "camera": {
+          "x": 0,
+          "y": 0.3,
+          "zoom": 28,
+          "pitch": 0.56,
+          "yaw": 0
+        },
+        "entities": 1,
+        "scenery": 0,
+        "roadSegments": 0,
+        "selections": 1,
+        "labels": 1,
+        "visibleLabels": 1,
+        "labelLayer": "raw-webgpu-glyph-atlas",
+        "entityLayer": "raw-webgpu-legacy-model-meshes",
+        "postCutoverScreenshots": "webgpu-only"
+      },
+      "status": "webgpu-evidence"
+    },
+    {
+      "id": "town",
+      "label": "Town Scale",
+      "criteria": "Smaller settlement keeps the same model language at a distinct readable scale.",
+      "image": "town.png",
+      "stats": {
+        "route": "campaign-model-gates",
+        "gate": "town",
+        "camera": {
+          "x": 0,
+          "y": 0.3,
+          "zoom": 28,
+          "pitch": 0.56,
+          "yaw": 0
+        },
+        "entities": 1,
+        "scenery": 0,
+        "roadSegments": 0,
+        "selections": 1,
+        "labels": 1,
+        "visibleLabels": 1,
+        "labelLayer": "raw-webgpu-glyph-atlas",
+        "entityLayer": "raw-webgpu-legacy-model-meshes",
+        "postCutoverScreenshots": "webgpu-only"
+      },
+      "status": "webgpu-evidence"
+    },
+    {
+      "id": "army",
+      "label": "Army Marker",
+      "criteria": "Army flag is attached to the marker with representative figures, faction livery, label icon, shadow, and selected footprint.",
+      "image": "army.png",
+      "stats": {
+        "route": "campaign-model-gates",
+        "gate": "army",
+        "camera": {
+          "x": 0,
+          "y": 0.3,
+          "zoom": 28,
+          "pitch": 0.56,
+          "yaw": 0
+        },
+        "entities": 1,
+        "scenery": 0,
+        "roadSegments": 0,
+        "selections": 1,
+        "labels": 1,
+        "visibleLabels": 1,
+        "labelLayer": "raw-webgpu-glyph-atlas",
+        "entityLayer": "raw-webgpu-legacy-model-meshes",
+        "postCutoverScreenshots": "webgpu-only"
+      },
+      "status": "webgpu-evidence"
+    },
+    {
+      "id": "road",
+      "label": "Road Segment",
+      "criteria": "Road segment is visible as a stone route between settlement endpoints.",
+      "image": "road.png",
+      "stats": {
+        "route": "campaign-model-gates",
+        "gate": "road",
+        "camera": {
+          "x": 0,
+          "y": -1.3,
+          "zoom": 30,
+          "pitch": 0.54,
+          "yaw": 0
+        },
+        "entities": 2,
+        "scenery": 0,
+        "roadSegments": 15,
+        "selections": 0,
+        "labels": 2,
+        "visibleLabels": 2,
+        "labelLayer": "raw-webgpu-glyph-atlas",
+        "entityLayer": "raw-webgpu-legacy-model-meshes",
+        "postCutoverScreenshots": "webgpu-only"
+      },
+      "status": "webgpu-evidence"
+    },
+    {
+      "id": "trees",
+      "label": "Tree Props",
+      "criteria": "Tree prop family is visible as individual campaign scenery models, pending broadleaf/conifer split.",
+      "image": "trees.png",
+      "stats": {
+        "route": "campaign-model-gates",
+        "gate": "trees",
+        "camera": {
+          "x": 0,
+          "y": -0.3,
+          "zoom": 34,
+          "pitch": 0.56,
+          "yaw": 0
+        },
+        "entities": 0,
+        "scenery": 4,
+        "roadSegments": 0,
+        "selections": 0,
+        "labels": 0,
+        "visibleLabels": 0,
+        "labelLayer": "raw-webgpu-glyph-atlas",
+        "entityLayer": "raw-webgpu-legacy-model-meshes",
+        "postCutoverScreenshots": "webgpu-only"
+      },
+      "status": "webgpu-evidence"
+    },
+    {
+      "id": "mountain",
+      "label": "Mountain Props",
+      "criteria": "Mountain massif prop family is visible and anchored to terrain with campaign lighting.",
+      "image": "mountain.png",
+      "stats": {
+        "route": "campaign-model-gates",
+        "gate": "mountain",
+        "camera": {
+          "x": 0,
+          "y": -0.4,
+          "zoom": 32,
+          "pitch": 0.56,
+          "yaw": 0
+        },
+        "entities": 0,
+        "scenery": 2,
+        "roadSegments": 0,
+        "selections": 0,
+        "labels": 0,
+        "visibleLabels": 0,
+        "labelLayer": "raw-webgpu-glyph-atlas",
+        "entityLayer": "raw-webgpu-legacy-model-meshes",
+        "postCutoverScreenshots": "webgpu-only"
+      },
+      "status": "webgpu-evidence"
+    },
+    {
+      "id": "rocks",
+      "label": "Rock Props",
+      "criteria": "Rock/boulder prop family is visible and distinct from mountains.",
+      "image": "rocks.png",
+      "stats": {
+        "route": "campaign-model-gates",
+        "gate": "rocks",
+        "camera": {
+          "x": 0,
+          "y": -0.4,
+          "zoom": 32,
+          "pitch": 0.56,
+          "yaw": 0
+        },
+        "entities": 0,
+        "scenery": 3,
+        "roadSegments": 0,
+        "selections": 0,
+        "labels": 0,
+        "visibleLabels": 0,
+        "labelLayer": "raw-webgpu-glyph-atlas",
+        "entityLayer": "raw-webgpu-legacy-model-meshes",
+        "postCutoverScreenshots": "webgpu-only"
+      },
+      "status": "webgpu-evidence"
+    },
+    {
+      "id": "labels",
+      "label": "Campaign Labels",
+      "criteria": "City, army, faction, and sea label typography/icon samples render through the WebGPU glyph atlas.",
+      "image": "labels.png",
+      "stats": {
+        "route": "campaign-model-gates",
+        "gate": "labels",
+        "camera": {
+          "x": 0,
+          "y": 0.3,
+          "zoom": 28,
+          "pitch": 0.56,
+          "yaw": 0
+        },
+        "entities": 2,
+        "scenery": 0,
+        "roadSegments": 0,
+        "selections": 0,
+        "labels": 4,
+        "visibleLabels": 4,
+        "labelLayer": "raw-webgpu-glyph-atlas",
+        "entityLayer": "raw-webgpu-legacy-model-meshes",
+        "postCutoverScreenshots": "webgpu-only"
+      },
+      "status": "webgpu-evidence"
+    }
+  ]
+}

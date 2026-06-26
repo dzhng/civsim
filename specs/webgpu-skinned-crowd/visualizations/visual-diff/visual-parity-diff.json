@@ -1,6 +1,6 @@
 {
   "kind": "screenshot-parity-diff",
-  "generatedAt": "2026-06-26T18:29:49.527Z",
+  "generatedAt": "2026-06-26T18:49:50.561Z",
   "note": "Lower parityDistance means the candidate is closer to archived current-renderer parity. This is a parity metric, not an aesthetics acceptance gate.",
   "results": [
     {

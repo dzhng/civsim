@@ -151,8 +151,8 @@ export class CampaignRendererWebGPU {
         if (!isControlledStage(this.data)) this.borders!.draw(pass);
         this.lines!.draw(pass);
         this.scenery!.draw(pass);
-        this.entities!.draw(pass);
         this.selection!.draw(pass);
+        this.entities!.draw(pass);
         this.clouds!.draw(pass);
         this.labels!.draw(pass);
       },

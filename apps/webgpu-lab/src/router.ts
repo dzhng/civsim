@@ -14,6 +14,7 @@ import { CLASS_DEPTH, CLASS_SPACING, UNIT_INFO } from '../../../packages/game-re
 import { campaignWaterFeatures, CampaignCloudPass, CampaignWaterPass } from '../../../packages/game-renderer/src/campaign/atmospherePass';
 import { CampaignEntityPass, type CampaignEntityInstance } from '../../../packages/game-renderer/src/campaign/entityPass';
 import { buildCampaignMapDrawData, CampaignLabelPass, CampaignLinePass, CampaignMapPass, CampaignMarkerPass, type CampaignLabel } from '../../../packages/game-renderer/src/campaign/mapPass';
+import { CampaignSceneryPass, type CampaignSceneryInstance } from '../../../packages/game-renderer/src/campaign/sceneryPass';
 import { CampaignSelectionPass, type CampaignSelectionInstance } from '../../../packages/game-renderer/src/campaign/selectionPass';
 import { campaignBorderVertices, CampaignTerritoryPass } from '../../../packages/game-renderer/src/campaign/territoryPass';
 import { formatPerfSummary, makeFullGamePerfReport } from '../../../packages/game-renderer/src/perfReport';
@@ -54,6 +55,7 @@ const routes: Record<string, LabRoute> = {
   '/webgpu/campaign': routeCampaign,
   '/webgpu/campaign-map': routeCampaignMap,
   '/webgpu/campaign-ui': routeCampaignUi,
+  '/webgpu/campaign-model-gates': routeCampaignModelGates,
   '/webgpu/render-graph': routeRenderGraph,
   '/webgpu/battle-terrain': routeBattleTerrain,
   '/webgpu/battle-ui': routeBattleUi,
@@ -536,8 +538,8 @@ async function routeCampaignUi(ctx: LabContext) {
       terrainRect: campaignBgTerrainRect(data.bgRect),
       extra: (pass) => {
         lines.draw(pass);
-        entities.draw(pass);
         selection.draw(pass);
+        entities.draw(pass);
         labelPass.draw(pass);
       },
     });
@@ -612,6 +614,169 @@ async function routeCampaignUi(ctx: LabContext) {
   });
 
   draw();
+}
+
+async function routeCampaignModelGates(ctx: LabContext) {
+  const gate = campaignModelGate(ctx.params.get('gate'));
+  const camera = campaignModelGateCamera(gate);
+  const shell = await createConfiguredShell(ctx.canvas, camera);
+  const entities = new CampaignEntityPass(shell);
+  const scenery = new CampaignSceneryPass(shell);
+  const lines = new CampaignLinePass(shell);
+  const selection = new CampaignSelectionPass(shell);
+  const labelPass = new CampaignLabelPass(shell);
+  const frame = campaignModelGateFrame(gate);
+  entities.upload(frame.entities);
+  scenery.upload(frame.scenery);
+  lines.upload(frame.roads);
+  selection.upload(frame.selections);
+  const labelLayer = labelPass.upload(frame.labels, camera);
+  shell.drawFrame({
+    clear: { r: 0.09, g: 0.10, b: 0.10, a: 1 },
+    terrainRect: [-18, -12, 36, 24],
+    extra: (pass) => {
+      lines.draw(pass);
+      scenery.draw(pass);
+      selection.draw(pass);
+      entities.draw(pass);
+      labelPass.draw(pass);
+    },
+  });
+  ctx.status.innerHTML = reportTable({
+    route: 'campaign-model-gates',
+    gate,
+    purpose: 'isolated campaign model screenshot gate',
+    entities: frame.entities.length,
+    scenery: frame.scenery.length,
+    roadSegments: lines.stats().segments,
+    labels: `${labelLayer.visibleLabels}/${labelLayer.labels}`,
+    renderer: 'raw WebGPU campaign model passes',
+  });
+  publish('campaign-model-gates', true, {
+    route: 'campaign-model-gates',
+    gate,
+    camera,
+    entities: frame.entities.length,
+    scenery: frame.scenery.length,
+    roadSegments: lines.stats().segments,
+    selections: frame.selections.length,
+    labels: labelLayer.labels,
+    visibleLabels: labelLayer.visibleLabels,
+    labelLayer: labelLayer.layer,
+    entityLayer: entities.stats().layer,
+    postCutoverScreenshots: 'webgpu-only',
+  });
+}
+
+type CampaignModelGate =
+  | 'overview'
+  | 'city'
+  | 'town'
+  | 'army'
+  | 'road'
+  | 'trees'
+  | 'mountain'
+  | 'rocks'
+  | 'labels';
+
+const CAMPAIGN_MODEL_GATES: CampaignModelGate[] = ['city', 'town', 'army', 'road', 'trees', 'mountain', 'rocks', 'labels'];
+
+function campaignModelGate(value: string | null): CampaignModelGate {
+  return CAMPAIGN_MODEL_GATES.includes(value as CampaignModelGate) ? value as CampaignModelGate : 'city';
+}
+
+function campaignModelGateCamera(gate: CampaignModelGate) {
+  const close = { x: 0, y: 0.3, zoom: 28, pitch: 0.56, yaw: 0 };
+  if (gate === 'overview') return { x: 0, y: -0.6, zoom: 28, pitch: 0.54, yaw: 0 };
+  if (gate === 'road') return { x: 0, y: -1.3, zoom: 30, pitch: 0.54, yaw: 0 };
+  if (gate === 'trees') return { x: 0, y: -0.3, zoom: 34, pitch: 0.56, yaw: 0 };
+  if (gate === 'mountain' || gate === 'rocks') return { x: 0, y: -0.4, zoom: 32, pitch: 0.56, yaw: 0 };
+  return close;
+}
+
+function campaignModelGateFrame(gate: CampaignModelGate) {
+  const red: [number, number, number] = [0.70, 0.18, 0.16];
+  const amber: [number, number, number] = [0.58, 0.52, 0.42];
+  const green: [number, number, number] = [0.31, 0.82, 0.39];
+  const neutral: [number, number, number] = [0.93, 0.78, 0.30];
+  const entities: CampaignEntityInstance[] = [];
+  const scenery: CampaignSceneryInstance[] = [];
+  const selections: CampaignSelectionInstance[] = [];
+  const labels: CampaignLabel[] = [];
+  let roads = new Float32Array();
+  const addCity = (x: number, y: number, radius: number, text: string, faction = red, allegiance = green, selected = false) => {
+    entities.push({ x, y, radius, faction, allegiance, kind: 'city', strength: 1 });
+    labels.push({ text, x, y: y - 4.7, kind: 'city', size: 14, priority: 5, icon: 'city', iconColor: allegiance });
+    if (selected) selections.push({ x, y, radius: radius * 0.72, color: green, kind: 'city' });
+  };
+  const addArmy = (x: number, y: number, selected = false) => {
+    entities.push({ x, y, radius: 5.5, faction: red, allegiance: green, kind: 'army', strength: 0.86 });
+    labels.push({ text: '1ST LEGION', x, y: y + 4.8, kind: 'army', size: 13, priority: 5, icon: 'army', iconColor: green });
+    if (selected) selections.push({ x, y, radius: 4.7, color: green, kind: 'army' });
+  };
+
+  if (gate === 'overview') addCity(-6.0, -2.0, 7.0, 'ROMA', red, green, false);
+  if (gate === 'city') addCity(0.0, -1.8, 6.6, 'ROMA', red, green, true);
+  if (gate === 'overview') addCity(6.0, -2.0, 5.2, 'NEAPOLIS', amber, neutral, false);
+  if (gate === 'town') addCity(0.0, -1.8, 5.0, 'NEAPOLIS', amber, neutral, true);
+  if (gate === 'overview' || gate === 'army') addArmy(0.0, -2.2, gate === 'army');
+  if (gate === 'overview' || gate === 'road') {
+    roads = roadGateVertices([[-8.7, -2.0], [-2.5, -2.4], [2.5, -2.4], [8.7, -2.0]]);
+    if (gate === 'road') {
+      addCity(-8.4, -2.0, 5.5, 'ROMA');
+      addCity(8.4, -2.0, 5.0, 'NEAPOLIS', amber, neutral);
+    }
+  }
+  if (gate === 'overview' || gate === 'trees') {
+    scenery.push(
+      { x: -3.8, y: gate === 'trees' ? -0.6 : 2.2, size: 3.7, kind: 'tree' },
+      { x: -1.5, y: gate === 'trees' ? -0.8 : 2.0, size: 3.2, kind: 'tree' },
+      { x: 1.2, y: gate === 'trees' ? -0.5 : 2.3, size: 4.0, kind: 'tree' },
+      { x: 3.6, y: gate === 'trees' ? -0.9 : 1.8, size: 3.0, kind: 'tree' },
+    );
+  }
+  if (gate === 'overview' || gate === 'mountain') {
+    scenery.push(
+      { x: -2.4, y: gate === 'mountain' ? -0.6 : 4.2, size: gate === 'mountain' ? 4.6 : 6.6, kind: 'mountain' },
+      { x: 2.7, y: gate === 'mountain' ? -0.9 : 3.8, size: gate === 'mountain' ? 3.9 : 5.4, kind: 'mountain' },
+    );
+  }
+  if (gate === 'overview' || gate === 'rocks') {
+    scenery.push(
+      { x: -3.2, y: gate === 'rocks' ? -1.0 : -6.2, size: 4.0, kind: 'rock' },
+      { x: 0.2, y: gate === 'rocks' ? -1.2 : -6.4, size: 4.8, kind: 'rock' },
+      { x: 3.3, y: gate === 'rocks' ? -0.8 : -5.8, size: 3.5, kind: 'rock' },
+    );
+  }
+  if (gate === 'labels') {
+    addCity(-3.8, -2.0, 4.6, 'ROMA');
+    addArmy(2.0, -2.2);
+    labels.push({ text: 'LATIUM', x: -1.5, y: 4.0, kind: 'faction', size: 18, priority: 4, angle: -0.06 });
+    labels.push({ text: 'Tyrrhenian Sea', x: 0.0, y: -7.0, kind: 'sea', size: 17, priority: 3, angle: -0.12 });
+  }
+  return { entities, scenery, selections, labels, roads };
+}
+
+function roadGateVertices(points: [number, number][]) {
+  const verts: number[] = [];
+  const pushLine = (a: [number, number], b: [number, number], color: [number, number, number, number], offset: number) => {
+    const dx = b[0] - a[0];
+    const dy = b[1] - a[1];
+    const len = Math.hypot(dx, dy) || 1;
+    const ox = (-dy / len) * offset;
+    const oy = (dx / len) * offset;
+    verts.push(a[0] + ox, a[1] + oy, ...color, b[0] + ox, b[1] + oy, ...color);
+  };
+  for (let i = 1; i < points.length; i++) {
+    const a = points[i - 1];
+    const b = points[i];
+    pushLine(a, b, [0.23, 0.18, 0.12, 0.82], -0.22);
+    pushLine(a, b, [0.23, 0.18, 0.12, 0.82], 0.22);
+    pushLine(a, b, [0.72, 0.68, 0.56, 0.95], -0.10);
+    pushLine(a, b, [0.72, 0.68, 0.56, 0.95], 0.10);
+    pushLine(a, b, [0.87, 0.82, 0.66, 0.95], 0);
+  }
+  return new Float32Array(verts);
 }
 
 function campaignBgTerrainRect(rect: { min: [number, number]; max: [number, number] }): [number, number, number, number] {

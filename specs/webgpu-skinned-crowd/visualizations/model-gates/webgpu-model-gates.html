@@ -1,0 +1,166 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>WebGPU Model Gates</title>
+  <style>
+    body { margin: 0; background: #181815; color: #eadfca; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif; }
+    header { padding: 22px 28px; border-bottom: 1px solid #4e412d; background: #252118; }
+    h1 { margin: 0 0 8px; font: 700 26px Georgia, serif; color: #f1dfb1; }
+    header p { margin: 0; max-width: 980px; color: #cbbd9e; line-height: 1.45; }
+    main { display: grid; gap: 18px; padding: 22px; }
+    article { display: grid; grid-template-columns: minmax(320px, 1.4fr) minmax(260px, 0.6fr); gap: 18px; padding: 14px; background: #211f19; border: 1px solid #4b3e2a; }
+    figure { margin: 0; }
+    img { display: block; width: 100%; height: auto; border: 1px solid #665237; background: #111; }
+    h2 { margin: 0 0 10px; color: #f3ddb0; font-size: 18px; }
+    p { line-height: 1.45; }
+    dl { display: grid; grid-template-columns: 88px 1fr; gap: 7px 12px; font-size: 13px; }
+    dt { color: #bca56f; font-weight: 700; }
+    dd { margin: 0; color: #e2d5bd; }
+    code { color: #f3ddb0; }
+    @media (max-width: 900px) { article { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>WebGPU Model Gates</h1>
+    <p>Generated scenario-generated. These are addressable model-level review captures, not final parity acceptance. Whole-scene parity still requires model gates plus current-renderer comparison.</p>
+  </header>
+  <main>
+    <article>
+      <figure>
+        <img src="city.png" alt="City Cluster">
+      </figure>
+      <div>
+        <h2>City Cluster</h2>
+        <p>Large settlement has clustered sandstone buildings, terracotta roofs, ownership flag, shadow, label icon, and selected footprint.</p>
+        <dl>
+          <dt>Status</dt><dd>webgpu-evidence</dd>
+          <dt>Gate</dt><dd><code>city</code></dd>
+          <dt>Renderer</dt><dd>raw-webgpu-legacy-model-meshes</dd>
+          <dt>Counts</dt><dd>entities 1, scenery 0, roads 0, labels 1/1</dd>
+        </dl>
+      </div>
+    </article>
+  
+
+    <article>
+      <figure>
+        <img src="town.png" alt="Town Scale">
+      </figure>
+      <div>
+        <h2>Town Scale</h2>
+        <p>Smaller settlement keeps the same model language at a distinct readable scale.</p>
+        <dl>
+          <dt>Status</dt><dd>webgpu-evidence</dd>
+          <dt>Gate</dt><dd><code>town</code></dd>
+          <dt>Renderer</dt><dd>raw-webgpu-legacy-model-meshes</dd>
+          <dt>Counts</dt><dd>entities 1, scenery 0, roads 0, labels 1/1</dd>
+        </dl>
+      </div>
+    </article>
+  
+
+    <article>
+      <figure>
+        <img src="army.png" alt="Army Marker">
+      </figure>
+      <div>
+        <h2>Army Marker</h2>
+        <p>Army flag is attached to the marker with representative figures, faction livery, label icon, shadow, and selected footprint.</p>
+        <dl>
+          <dt>Status</dt><dd>webgpu-evidence</dd>
+          <dt>Gate</dt><dd><code>army</code></dd>
+          <dt>Renderer</dt><dd>raw-webgpu-legacy-model-meshes</dd>
+          <dt>Counts</dt><dd>entities 1, scenery 0, roads 0, labels 1/1</dd>
+        </dl>
+      </div>
+    </article>
+  
+
+    <article>
+      <figure>
+        <img src="road.png" alt="Road Segment">
+      </figure>
+      <div>
+        <h2>Road Segment</h2>
+        <p>Road segment is visible as a stone route between settlement endpoints.</p>
+        <dl>
+          <dt>Status</dt><dd>webgpu-evidence</dd>
+          <dt>Gate</dt><dd><code>road</code></dd>
+          <dt>Renderer</dt><dd>raw-webgpu-legacy-model-meshes</dd>
+          <dt>Counts</dt><dd>entities 2, scenery 0, roads 15, labels 2/2</dd>
+        </dl>
+      </div>
+    </article>
+  
+
+    <article>
+      <figure>
+        <img src="trees.png" alt="Tree Props">
+      </figure>
+      <div>
+        <h2>Tree Props</h2>
+        <p>Tree prop family is visible as individual campaign scenery models, pending broadleaf/conifer split.</p>
+        <dl>
+          <dt>Status</dt><dd>webgpu-evidence</dd>
+          <dt>Gate</dt><dd><code>trees</code></dd>
+          <dt>Renderer</dt><dd>raw-webgpu-legacy-model-meshes</dd>
+          <dt>Counts</dt><dd>entities 0, scenery 4, roads 0, labels 0/0</dd>
+        </dl>
+      </div>
+    </article>
+  
+
+    <article>
+      <figure>
+        <img src="mountain.png" alt="Mountain Props">
+      </figure>
+      <div>
+        <h2>Mountain Props</h2>
+        <p>Mountain massif prop family is visible and anchored to terrain with campaign lighting.</p>
+        <dl>
+          <dt>Status</dt><dd>webgpu-evidence</dd>
+          <dt>Gate</dt><dd><code>mountain</code></dd>
+          <dt>Renderer</dt><dd>raw-webgpu-legacy-model-meshes</dd>
+          <dt>Counts</dt><dd>entities 0, scenery 2, roads 0, labels 0/0</dd>
+        </dl>
+      </div>
+    </article>
+  
+
+    <article>
+      <figure>
+        <img src="rocks.png" alt="Rock Props">
+      </figure>
+      <div>
+        <h2>Rock Props</h2>
+        <p>Rock/boulder prop family is visible and distinct from mountains.</p>
+        <dl>
+          <dt>Status</dt><dd>webgpu-evidence</dd>
+          <dt>Gate</dt><dd><code>rocks</code></dd>
+          <dt>Renderer</dt><dd>raw-webgpu-legacy-model-meshes</dd>
+          <dt>Counts</dt><dd>entities 0, scenery 3, roads 0, labels 0/0</dd>
+        </dl>
+      </div>
+    </article>
+  
+
+    <article>
+      <figure>
+        <img src="labels.png" alt="Campaign Labels">
+      </figure>
+      <div>
+        <h2>Campaign Labels</h2>
+        <p>City, army, faction, and sea label typography/icon samples render through the WebGPU glyph atlas.</p>
+        <dl>
+          <dt>Status</dt><dd>webgpu-evidence</dd>
+          <dt>Gate</dt><dd><code>labels</code></dd>
+          <dt>Renderer</dt><dd>raw-webgpu-legacy-model-meshes</dd>
+          <dt>Counts</dt><dd>entities 2, scenery 0, roads 0, labels 4/4</dd>
+        </dl>
+      </div>
+    </article>
+  </main>
+</body>
+</html>

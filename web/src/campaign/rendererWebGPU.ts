@@ -365,7 +365,7 @@ function campaignArmyLabels(opts: DrawOptions): CampaignLabel[] {
       priority: 4,
       icon: 'army',
       iconColor: allegianceColor(allegiance),
-      screenOffsetY: 18,
+      screenOffsetY: markerSize + 24,
     };
   });
 }

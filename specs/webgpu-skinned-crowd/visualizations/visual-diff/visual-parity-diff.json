@@ -1,6 +1,6 @@
 {
   "kind": "screenshot-parity-diff",
-  "generatedAt": "2026-06-26T21:14:31.381Z",
+  "generatedAt": "2026-06-26T21:25:40.164Z",
   "note": "Lower parityDistance means the candidate is closer to archived current-renderer parity. This is a parity metric, not an aesthetics acceptance gate.",
   "results": [
     {
@@ -11,24 +11,24 @@
         "width": 1280,
         "height": 800
       },
-      "parityDistance": 0.3759,
+      "parityDistance": 0.37363,
       "grayscale": {
-        "mae": 65.92106,
-        "rmse": 94.57953,
-        "diffRatio16": 0.5838,
-        "diffRatio32": 0.48924,
-        "diffRatio64": 0.41374,
-        "pixelmatchRatio": 0.55018
+        "mae": 65.9407,
+        "rmse": 94.58971,
+        "diffRatio16": 0.58424,
+        "diffRatio32": 0.48969,
+        "diffRatio64": 0.41381,
+        "pixelmatchRatio": 0.55078
       },
       "contentProxies": {
         "blackRatioCurrent": 0.48049,
         "blackRatioCandidate": 0.48416,
         "terrainLikeRatioCurrent": 0.4811,
-        "terrainLikeRatioCandidate": 0.49179,
+        "terrainLikeRatioCandidate": 0.49184,
         "edgeEnergyCurrent": 0.05082,
-        "edgeEnergyCandidate": 0.04131,
-        "edgeEnergyRatio": 0.81285,
-        "edgeDiffRatio32": 0.0891
+        "edgeEnergyCandidate": 0.04183,
+        "edgeEnergyRatio": 0.82327,
+        "edgeDiffRatio32": 0.08985
       },
       "artifacts": {
         "currentGray": "visual-diff/campaign-label-zoom-current-gray.png",
@@ -50,8 +50,8 @@
       },
       "parityDistance": 0.22002,
       "grayscale": {
-        "mae": 16.08157,
-        "rmse": 34.08003,
+        "mae": 16.08102,
+        "rmse": 34.07847,
         "diffRatio16": 0.18303,
         "diffRatio32": 0.12222,
         "diffRatio64": 0.08264,
@@ -64,7 +64,7 @@
         "terrainLikeRatioCandidate": 0.83027,
         "edgeEnergyCurrent": 0.12744,
         "edgeEnergyCandidate": 0.07864,
-        "edgeEnergyRatio": 0.61703,
+        "edgeEnergyRatio": 0.61704,
         "edgeDiffRatio32": 0.14389
       },
       "artifacts": {

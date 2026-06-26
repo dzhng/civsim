@@ -5,7 +5,7 @@
   "legacyComparisonRequirement": "Attach archived current-renderer captures and accepted comparison statuses for the same scenes before marking visual-improvement complete.",
   "comparisonInputs": {
     "currentRendererDir": null,
-    "comparisonJson": "../specs/webgpu-skinned-crowd/visualizations/current-renderer/visual-comparison.manifest.pending.json"
+    "comparisonJson": null
   },
   "postCutoverScreenshots": "webgpu-only",
   "captures": [
@@ -18,9 +18,9 @@
       "evidence": "adapter google / swiftshader; webgpu-only",
       "image": "visual-report/menu-ready.png",
       "currentRendererComparison": {
-        "status": "equal-or-better",
-        "image": "current-renderer/menu-ready.png",
-        "note": "WebGPU menu preserves the current shell readability while adding explicit WebGPU-ready capability status."
+        "status": "missing-archived-capture",
+        "image": null,
+        "note": "Archived current-renderer capture is not attached."
       }
     },
     {
@@ -32,9 +32,9 @@
       "evidence": "WebGPU unavailable: WebGPU support was disabled for this verification run. The WebGPU build requires a browser and GPU adapter that expose WebGPU.",
       "image": "visual-report/menu-unsupported.png",
       "currentRendererComparison": {
-        "status": "accepted-exception",
-        "image": "current-renderer/menu-unsupported.png",
-        "note": "The current renderer had no unsupported-WebGPU state; WebGPU is better because it blocks launch with a clear capability failure instead of entering an unusable renderer."
+        "status": "missing-archived-capture",
+        "image": null,
+        "note": "Archived current-renderer capture is not attached."
       }
     },
     {
@@ -46,9 +46,9 @@
       "evidence": "30000 soldiers; renderer webgpu; drawCalls 1; aegean-sky-haze; field-aware coast; warm/cool skinned material grade",
       "image": "visual-report/battle-default.png",
       "currentRendererComparison": {
-        "status": "equal-or-better",
-        "image": "current-renderer/battle-default.png",
-        "note": "WebGPU renders 30k soldiers versus the archived current renderer's 21.2k, keeps terrain/water/HUD readable, and uses far-view impostors for hardware performance headroom."
+        "status": "missing-archived-capture",
+        "image": null,
+        "note": "Archived current-renderer capture is not attached."
       }
     },
     {
@@ -60,9 +60,9 @@
       "evidence": "dpr2 selection; 2840 soldiers; renderer webgpu; aegean-sky-haze; feathered shore; lit skinned silhouettes",
       "image": "visual-report/battle-selection-hud-dpr2.png",
       "currentRendererComparison": {
-        "status": "pending-review",
-        "image": "current-renderer/battle-selection-hud-dpr2.png",
-        "note": "Reopened after visual review. The archived current renderer fails to show all units, while WebGPU does render more units. The random frozen-overlay straight-line artifacts and hard square terrain artifacts have been addressed, but this capture remains pending until selected-unit readability, terrain feature fidelity, and old-renderer caveats are reviewed side by side."
+        "status": "missing-archived-capture",
+        "image": null,
+        "note": "Archived current-renderer capture is not attached."
       }
     },
     {
@@ -74,9 +74,9 @@
       "evidence": "412 cities; 30/494 labels; raw-webgpu-glyph-atlas",
       "image": "visual-report/campaign-whole-map.png",
       "currentRendererComparison": {
-        "status": "webgpu-better",
-        "image": "current-renderer/campaign-whole-map.png",
-        "note": "WebGPU campaign overview is visibly better: parchment/painted-chart treatment, stronger sea lanes, clearer faction washes, and large engraved labels."
+        "status": "missing-archived-capture",
+        "image": null,
+        "note": "Archived current-renderer capture is not attached."
       }
     },
     {
@@ -88,9 +88,9 @@
       "evidence": "3/5 labels; atlas 1024x64; raw-webgpu-glyph-atlas",
       "image": "visual-report/campaign-label-zoom.png",
       "currentRendererComparison": {
-        "status": "pending-review",
-        "image": "current-renderer/campaign-label-zoom.png",
-        "note": "Reopened after visual review: the WebGPU close zoom is not equal-or-better yet. The latest metric improved after fixing the black terrain and restoring label icons, but it still needs the previous 3D city/town, army, road, tree, terrain, font, icon, and marker language ported before release acceptance."
+        "status": "missing-archived-capture",
+        "image": null,
+        "note": "Archived current-renderer capture is not attached."
       }
     },
     {
@@ -102,9 +102,9 @@
       "evidence": "840 campaign battle soldiers; renderer webgpu; aegean-sky-haze; WebGPU terrain",
       "image": "visual-report/campaign-handoff-battle.png",
       "currentRendererComparison": {
-        "status": "equal-or-better",
-        "image": "current-renderer/campaign-handoff-battle.png",
-        "note": "WebGPU handoff battle preserves the campaign return surface and improves performance with the same battle UI/readability contract."
+        "status": "missing-archived-capture",
+        "image": null,
+        "note": "Archived current-renderer capture is not attached."
       }
     }
   ]

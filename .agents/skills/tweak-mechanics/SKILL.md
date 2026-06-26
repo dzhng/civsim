@@ -1,6 +1,6 @@
 ---
 name: tweak-mechanics
-description: How to change the SIM PHYSICS (how soldiers move, collide, press, hold a line, rout) — the first-principles workflow and the kind of tests that pin it. Distinct from balancing units. Use when David says a behavior looks wrong ("heavy v heavy isn't clean", "the latch points the wrong way", "they swirl/pass through each other"), or asks to simplify/question a mechanic.
+description: How to change the SIM PHYSICS (how soldiers move, collide, press, hold a line, rout) — the first-principles workflow and the kind of tests that pin it. Distinct from balancing units. Use when David says a behavior looks wrong ("heavy v heavy isn't clean", "the latch points the wrong way", "they swirl/pass through each other"), or asks to simplify/question a mechanic. Pairs with [debug](../debug/SKILL.md) (the diagnosis loop for a red or a "feels off") and [write-tests](../write-tests/SKILL.md).
 ---
 
 # Tweaking a mechanic (the physics, not the balance)
@@ -78,7 +78,9 @@ Every red is one of two kinds, and they have opposite defaults:
   Y". **Allowed to move.** A red here often means the OLD pass depended on a bug.
 
 **Never paper, never revert on the red-count.** It is a deterministic sim —
-diagnose EACH red. It is one of:
+diagnose EACH red ([debug](../debug/SKILL.md) is the full loop: build a red
+signal, classify regression-vs-fragility, instrument the trajectory). It is
+one of:
 
 1. **Tunable** — the mechanic is right, a coefficient is too strong. *Sweep it*
    before concluding "net zero": a sword-standoff force broke two pins at softness

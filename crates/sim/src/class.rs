@@ -252,7 +252,7 @@ const LANCE: Weapon = Weapon {
     // who crowds inside it doesn't disarm him. A min_range here was a perverse
     // stat coupling — surviving the contact better (more block/armour) pinned
     // the rider deeper, dropped him to his sidearm, and made MORE armour LOSE.
-    // (See more_block_never_makes_cavalry_worse + debug-battle-behavior.)
+    // (See more_block_never_makes_cavalry_worse + the debug skill.)
     min_range: 0.0,
     // A touch wider than a pure point so the couched lance skewers the man it
     // rides onto even slightly off-line (still forward-only — no flank reach).

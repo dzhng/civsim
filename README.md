@@ -113,7 +113,7 @@ revealed trample tests that were only ever passing by seed-luck (their true valu
 chaotic across seeds), and deep blocks that *should* bog cavalry down rather than
 let it ride through. The judge is always the same question — *is this the more
 realistic result?* — not the test's colour. See
-`.agents/skills/debug-battle-behavior`.
+`.agents/skills/debug`.
 
 ## The simulation model — measured quantities and the laws that read them
 

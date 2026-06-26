@@ -1,6 +1,6 @@
 ---
 name: write-tests
-description: How to write and iterate on tests in this repo — fast cargo first, scale 1v1 before armies, control variables, measure mechanisms not noise. Use when adding sim behavior, fixing a red test, or verifying changes.
+description: How to write and iterate on tests in this repo — one test at a time (tracer bullets), fast cargo first, scale 1v1 before armies, control variables, measure mechanisms not noise. Use when adding sim behavior, fixing a red test, or verifying changes. Pairs with [debug](../debug/SKILL.md) and [tweak-mechanics](../tweak-mechanics/SKILL.md).
 ---
 
 # Writing and iterating on tests in this repo
@@ -28,6 +28,30 @@ description: How to write and iterate on tests in this repo — fast cargo first
 4. **Check the exit code, not just the output.** A python heredoc that
    prints "ok" then a cargo grep that prints nothing looks like success and
    is a compile error. `echo rc=$?` after every suite run.
+
+## One test at a time (tracer bullets, not a batch)
+
+Write ONE test, drive it red→green, learn from it, then write the next — never
+a batch of tests up front. In this sim you do not yet KNOW what the physics
+does until you instrument it (see "Validate, don't assume" below), so a batch
+written against *imagined* behavior pins what you GUESSED, not what emerges —
+those tests pass when the mechanism breaks and fail when it's fine. Each green
+cycle tells you what the next test should actually assert.
+
+- **Write the assert FIRST so the target is concrete**, watch it go red on the
+  un-fixed sim, then make the physics earn green — a test you never saw fail is
+  decoration (see "Prove a regression test is really red"). For a physics
+  change, tweak-mechanics says the same: extend the `mechanics_*` test first.
+- **Assert observable physical behavior through the public API** (`spawn_class`,
+  public state polls, measured quantities like cohesion/centroid/pressure),
+  never an internal field or the shape of a formula. A test that asserts "the
+  line holds" survives a rewrite of HOW the holding force is computed; one that
+  reaches into the force term breaks on every refactor and pins implementation,
+  not behavior. This is also why browser tests never decide sim correctness —
+  the Rust layer reads the behavior directly.
+- **Don't anticipate future mechanics.** Minimal scenario for THIS claim; the
+  next cycle gets its own. Speculative tests for behavior you haven't built yet
+  go `#[ignore]` with a rationale, not green-by-accident.
 
 ## Scale: 1v1 before armies
 
@@ -218,7 +242,8 @@ regression test, it's decoration.
 
 ## When a test goes red after a sim change
 
-In order of likelihood:
+([debug](../debug/SKILL.md) is the full loop — classify regression-vs-fragility,
+instrument the cause. The short triage, in order of likelihood:)
 1. The test encodes DELETED semantics (e.g. arrive-braking made walk-ins
    slow; halt-and-stash made attacks stop). Re-spec the test to the
    contract's real claim, not the old implementation's accident.

@@ -44,9 +44,9 @@ fn every_persona_parses_and_only_neutral_sits_still() {
     assert_eq!(persona::profile(AiPersona::Expansionist).gate, 130);
 }
 
-/// Red (one unit) outmatches the near city only slightly (1.2×) but crushes the
-/// far one. A low gate calls the near city beatable; a high gate holds out for
-/// the soft far one. Node ids reindex 0-based: Red=0, Near=1, Far=2.
+/// Red (one unit) outmatches the near city only slightly (≈1.25×) but crushes
+/// the far one. A low gate calls the near city beatable; a high gate holds out
+/// for the soft far one. Node ids reindex 0-based: Red=0, Near=1, Far=2.
 fn two_target_map() -> &'static str {
     r#"{
       "half_w": 100, "half_h": 100,
@@ -74,9 +74,9 @@ fn two_target_map() -> &'static str {
 #[test]
 fn gate_decides_which_city_is_worth_taking() {
     let mut c = Campaign::new(two_target_map(), 7, 0);
-    // Near is a near-even match (red 600 vs 500 of the same unit = 1.2×); Far is
-    // a pushover. Same-class garrisons so strength is a clean count comparison.
-    c.state.cities.get_mut(&1).unwrap().garrison = garrison(UnitClassId::HeavySword, 500);
+    // Near is a marginal win (red's unit vs 400 of the same class ≈ 1.25×); Far
+    // is a pushover. Same-class garrisons so strength is a clean count comparison.
+    c.state.cities.get_mut(&1).unwrap().garrison = garrison(UnitClassId::HeavySword, 400);
     c.state.cities.get_mut(&2).unwrap().garrison = garrison(UnitClassId::HeavySword, 60);
     let mut bfs = pathfind::Visited::new(&c.map);
 

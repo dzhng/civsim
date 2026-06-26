@@ -144,7 +144,8 @@ export class BattleRendererWebGPU {
     this.framePerf.uploadMs += performance.now() - uploadStart;
     const drawStart = performance.now();
     this.shell.drawFrame({
-      clear: { r: 0.78, g: 0.82, b: 0.80, a: 1 },
+      clear: { r: 0.16, g: 0.24, b: 0.15, a: 1 },
+      terrainBackdropRect: expandedTerrainRect(this.terrainRect),
       terrainRect: this.terrainRect,
       markers: this.markers,
       extra: (pass) => {
@@ -260,6 +261,11 @@ function frozenFrameKey(camera: Camera, count: number, staticSoldiers: number) {
 
 function roundKey(value: number) {
   return Number.isFinite(value) ? value.toFixed(4) : 'nan';
+}
+
+function expandedTerrainRect([x, y, w, h]: [number, number, number, number]): [number, number, number, number] {
+  const margin = Math.max(120, Math.max(w, h) * 0.22);
+  return [x - margin, y - margin, w + margin * 2, h + margin * 2];
 }
 
 function buildDebugBlockTriangles(

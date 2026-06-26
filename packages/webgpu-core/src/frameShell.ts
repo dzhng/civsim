@@ -26,6 +26,7 @@ export interface RawFrameShell {
 export interface FrameCommands {
   markers?: MarkerInstance[];
   terrainRect?: [number, number, number, number];
+  terrainBackdropRect?: [number, number, number, number];
   clear?: GPUColor;
   extra?: (pass: GPURenderPassEncoder, shell: RawFrameShellImpl) => void;
 }
@@ -112,6 +113,48 @@ fn fs(in: VsOut) -> @location(0) vec4f {
   return vec4f(mix(sunBleached, haze, aerial * 0.22), 1.0);
 }`;
 
+const TERRAIN_BACKDROP_WGSL = `
+struct Camera { x:f32, y:f32, zoom:f32, cosP:f32, width:f32, height:f32, cosYaw:f32, sinYaw:f32, perspective:f32, pad0:f32, pad1:f32, pad2:f32 };
+@group(0) @binding(0) var<uniform> cam: Camera;
+struct VsOut { @builtin(position) pos: vec4f, @location(0) world: vec2f };
+@vertex
+fn vs(@location(0) world: vec2f) -> VsOut {
+  let dx = world.x - cam.x;
+  let dy = world.y - cam.y;
+  let rx = dx * cam.cosYaw + dy * cam.sinYaw;
+  let ry = -dx * cam.sinYaw + dy * cam.cosYaw;
+  var out: VsOut;
+  let depth = max(0.32, 1.0 + ry * cam.perspective);
+  out.pos = vec4f((rx * cam.zoom) / (cam.width * 0.5), (ry * cam.zoom * cam.cosP) / (cam.height * 0.5), 0.9 * depth, depth);
+  out.world = world;
+  return out;
+}
+fn hash(p: vec2f) -> f32 {
+  let p3 = fract(vec3f(p.xyx) * 0.1031);
+  let q = p3 + dot(p3, p3.yzx + vec3f(33.33));
+  return fract((q.x + q.y) * q.z);
+}
+fn vnoise(p: vec2f) -> f32 {
+  let i = floor(p);
+  let f = fract(p);
+  let u = f * f * (3.0 - 2.0 * f);
+  return mix(
+    mix(hash(i), hash(i + vec2f(1.0, 0.0)), u.x),
+    mix(hash(i + vec2f(0.0, 1.0)), hash(i + vec2f(1.0, 1.0)), u.x),
+    u.y,
+  );
+}
+@fragment
+fn fs(in: VsOut) -> @location(0) vec4f {
+  let broad = vnoise(in.world * 0.055 + vec2f(4.7, 8.1));
+  let mid = vnoise(in.world * 0.42 + vec2f(11.3, 1.9));
+  let speck = smoothstep(0.78, 0.98, vnoise(in.world * 2.8));
+  var grass = mix(vec3f(0.16, 0.25, 0.12), vec3f(0.30, 0.42, 0.20), broad);
+  grass = mix(grass, vec3f(0.11, 0.18, 0.10), smoothstep(0.62, 0.94, mid) * 0.38);
+  grass += vec3f(0.10, 0.12, 0.04) * speck;
+  return vec4f(grass, 1.0);
+}`;
+
 const MARKER_WGSL = `
 struct Camera { x:f32, y:f32, zoom:f32, cosP:f32, width:f32, height:f32, cosYaw:f32, sinYaw:f32, perspective:f32, pad0:f32, pad1:f32, pad2:f32 };
 @group(0) @binding(0) var<uniform> cam: Camera;
@@ -163,8 +206,10 @@ export class RawFrameShellImpl implements RawFrameShell {
 
   private context: GPUCanvasContext;
   private terrainPipeline: GPURenderPipeline;
+  private terrainBackdropPipeline: GPURenderPipeline;
   private markerPipeline: GPURenderPipeline;
   private cameraBuffer: GPUBuffer;
+  private terrainBackdropVertexBuffer: GPUBuffer;
   private terrainVertexBuffer: GPUBuffer;
   private markerQuadBuffer: GPUBuffer;
   private markerInstanceBuffer: GPUBuffer;
@@ -194,7 +239,13 @@ export class RawFrameShellImpl implements RawFrameShell {
       entries: [{ binding: 0, resource: { buffer: this.cameraBuffer } }],
     });
     this.terrainPipeline = this.makeTerrainPipeline();
+    this.terrainBackdropPipeline = this.makeTerrainBackdropPipeline();
     this.markerPipeline = this.makeMarkerPipeline();
+    this.terrainBackdropVertexBuffer = this.device.createBuffer({
+      label: 'terrain-backdrop-quad',
+      size: 8 * 4,
+      usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
+    });
     this.terrainVertexBuffer = this.device.createBuffer({
       label: 'terrain-quad',
       size: 8 * 4,
@@ -233,7 +284,10 @@ export class RawFrameShellImpl implements RawFrameShell {
 
   drawFrame(commands: FrameCommands = {}) {
     this.frame++;
-    this.uploadTerrain(commands.terrainRect ?? [-42, -28, 84, 56]);
+    const terrainRect = commands.terrainRect ?? [-42, -28, 84, 56];
+    const terrainBackdropRect = commands.terrainBackdropRect;
+    if (terrainBackdropRect) this.uploadTerrain(this.terrainBackdropVertexBuffer, terrainBackdropRect);
+    this.uploadTerrain(this.terrainVertexBuffer, terrainRect);
     this.uploadMarkers(commands.markers ?? []);
     const encoder = this.device.createCommandEncoder({ label: 'raw-frame-encoder' });
     const pass = encoder.beginRenderPass({
@@ -245,6 +299,11 @@ export class RawFrameShellImpl implements RawFrameShell {
       }],
     });
     pass.setBindGroup(0, this.cameraBindGroup);
+    if (terrainBackdropRect) {
+      pass.setPipeline(this.terrainBackdropPipeline);
+      pass.setVertexBuffer(0, this.terrainBackdropVertexBuffer);
+      pass.draw(4);
+    }
     pass.setPipeline(this.terrainPipeline);
     pass.setVertexBuffer(0, this.terrainVertexBuffer);
     pass.draw(4);
@@ -278,8 +337,8 @@ export class RawFrameShellImpl implements RawFrameShell {
     this.device.queue.writeBuffer(this.cameraBuffer, 0, cameraUniformData({ ...this.camera, width: this.width, height: this.height }));
   }
 
-  private uploadTerrain([x, y, w, h]: [number, number, number, number]) {
-    this.device.queue.writeBuffer(this.terrainVertexBuffer, 0, new Float32Array([x, y, x + w, y, x, y + h, x + w, y + h]));
+  private uploadTerrain(buffer: GPUBuffer, [x, y, w, h]: [number, number, number, number]) {
+    this.device.queue.writeBuffer(buffer, 0, new Float32Array([x, y, x + w, y, x, y + h, x + w, y + h]));
   }
 
   private uploadMarkers(markers: MarkerInstance[]) {
@@ -311,6 +370,17 @@ export class RawFrameShellImpl implements RawFrameShell {
     const module = this.device.createShaderModule({ label: 'terrain-wgsl', code: TERRAIN_WGSL });
     return this.device.createRenderPipeline({
       label: 'terrain-pipeline',
+      layout: this.device.createPipelineLayout({ bindGroupLayouts: [this.cameraBindGroupLayout] }),
+      vertex: { module, entryPoint: 'vs', buffers: [{ arrayStride: 8, attributes: [{ shaderLocation: 0, offset: 0, format: 'float32x2' }] }] },
+      fragment: { module, entryPoint: 'fs', targets: [{ format: this.info.format }] },
+      primitive: { topology: 'triangle-strip' },
+    });
+  }
+
+  private makeTerrainBackdropPipeline() {
+    const module = this.device.createShaderModule({ label: 'terrain-backdrop-wgsl', code: TERRAIN_BACKDROP_WGSL });
+    return this.device.createRenderPipeline({
+      label: 'terrain-backdrop-pipeline',
       layout: this.device.createPipelineLayout({ bindGroupLayouts: [this.cameraBindGroupLayout] }),
       vertex: { module, entryPoint: 'vs', buffers: [{ arrayStride: 8, attributes: [{ shaderLocation: 0, offset: 0, format: 'float32x2' }] }] },
       fragment: { module, entryPoint: 'fs', targets: [{ format: this.info.format }] },

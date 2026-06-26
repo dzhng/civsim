@@ -101,7 +101,10 @@ pub fn eligible_reinforcements(
             .map(|r| tun::march_mult(r.class))
             .fold(f32::INFINITY, f32::min);
         let ticks_per_tile = 1.0 / (tun::BASE_TILES_PER_TICK * slowest);
-        let hours = dist as f32 * ticks_per_tile / 60.0;
+        // ticks → game-hours uses the current tick scale (ticks per game-hour),
+        // not a hardcoded 60, so reinforcement timing holds under a time rescale.
+        let ticks_per_hour = tun::TICKS_PER_DAY as f32 / 24.0;
+        let hours = dist as f32 * ticks_per_tile / ticks_per_hour;
         let delay = (hours * tun::REINFORCE_SECS_PER_HOUR).min(tun::REINFORCE_MAX_DELAY_SECS);
         // Approach bearing in battle space: the attacker's direction is south.
         let bearing = world_bearing(map, site, a.loc) - att_bearing - std::f32::consts::FRAC_PI_2;

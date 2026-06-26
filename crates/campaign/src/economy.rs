@@ -342,7 +342,12 @@ pub fn recruit(
         return false;
     }
     let barracks = c.barracks_lvl.min(2) as u32;
-    let ticks = count * unit.recruit_ticks_per_soldier * (100 - 25 * barracks) / 100;
+    // recruit_ticks_per_soldier is calibrated in game-minutes; convert to the
+    // current tick scale so a recruit keeps its length in game-days (and, like
+    // construction, plays out faster as the time rescale rises) rather than
+    // ballooning when a tick covers more minutes.
+    let minutes = count * unit.recruit_ticks_per_soldier * (100 - 25 * barracks) / 100;
+    let ticks = (minutes / tun::MINUTES_PER_TICK).max(1);
     st.factions[owner as usize].treasury -= cost;
     st.cities
         .get_mut(&node)

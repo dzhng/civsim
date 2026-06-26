@@ -4,8 +4,26 @@
 
 use contract::UnitClassId;
 
-/// Campaign ticks per day; 1 tick = 1 campaign minute.
-pub const TICKS_PER_DAY: u32 = 1440;
+/// Game-minutes one tick represents. The render/AI budget is fixed at the
+/// frontend's ticks-per-second, so raising this advances the whole campaign
+/// world faster per real second — units cross more ground, days pass sooner —
+/// for the same compute. Game-world durations below scale with it (so they keep
+/// their in-world length while playing out faster); real-time-anchored windows
+/// (battle prep) and the AI's real-time cadence stay in raw ticks. 10 = the old
+/// max speed becomes the new base. Tune against in-game feel.
+pub const MINUTES_PER_TICK: u32 = 10;
+/// Campaign ticks per day (24h × 60min ÷ minutes-per-tick).
+pub const TICKS_PER_DAY: u32 = 24 * 60 / MINUTES_PER_TICK;
+/// A game-world duration in ticks from its length in game-minutes — scales with
+/// the time rescale so it keeps its in-world meaning. At least one tick.
+pub const fn ticks_from_minutes(minutes: u32) -> u32 {
+    let t = minutes / MINUTES_PER_TICK;
+    if t == 0 {
+        1
+    } else {
+        t
+    }
+}
 /// Maximum roster entries in one field army. The campaign marker scales its
 /// compressed figures against this capacity.
 pub const ARMY_STACK_UNIT_CAP: usize = 20;
@@ -65,8 +83,8 @@ pub fn unit_establishment(class: UnitClassId) -> u32 {
 
 /// Sea lanes: fixed fleet speed regardless of composition (km/day / tile).
 pub const SEA_TILES_PER_TICK: f32 = (120.0 / TILE_KM) / TICKS_PER_DAY as f32;
-/// Embark/disembark at a port (ticks).
-pub const EMBARK_TICKS: u16 = 120;
+/// Embark/disembark at a port — 2 game-hours.
+pub const EMBARK_TICKS: u16 = ticks_from_minutes(120) as u16;
 
 /// Tile-feature march multipliers (roads through passes/fords are slow).
 pub fn feature_mult(feature: crate::mapdata::TileFeature) -> f32 {
@@ -89,7 +107,7 @@ pub const PREP_SURPRISED_TICKS: u16 = 40;
 pub const PREP_SPEED_MULT: f32 = 0.5;
 /// Digging a camp in takes an hour; the payoff is instant readiness when
 /// attacked (defender prep 0, attacker surprised) and extra vision.
-pub const CAMP_BUILD_TICKS: u16 = 60;
+pub const CAMP_BUILD_TICKS: u16 = ticks_from_minutes(60) as u16; // 1 game-hour
 /// A dug-in camp sees further (palisade towers).
 pub const CAMP_VISION_BONUS: u32 = 2;
 
@@ -114,7 +132,7 @@ pub const ROUT_TILES: u16 = 16;
 /// stays a vulnerable, run-downable rabble before regrouping. Short: a beaten
 /// army that isn't pursued is back in play soon, but a pursuer who catches it
 /// in this window destroys it — so a won battle can actually clear a front.
-pub const ROUT_REGROUP_TICKS: u32 = 120;
+pub const ROUT_REGROUP_TICKS: u32 = ticks_from_minutes(120); // 2 game-hours
 pub const ROUT_SPEED_MULT: f32 = 1.15;
 
 /// Reinforcements: armies within this road distance (tiles) join a battle.
@@ -125,13 +143,13 @@ pub const REINFORCE_MAX_DELAY_SECS: f32 = 900.0;
 
 /// After a successful escape, the same pair can't re-engage for this long —
 /// the time it takes the gap to become physically real (~2.5 tiles of march).
-pub const ESCAPE_COOLDOWN_TICKS: u64 = 720;
+pub const ESCAPE_COOLDOWN_TICKS: u64 = ticks_from_minutes(720) as u64; // 12 game-hours
 
-/// Ambush stance: ticks to settle into concealment beside the road.
-pub const AMBUSH_SETTLE_TICKS: u16 = 15;
+/// Ambush stance: settle into concealment beside the road (~quarter game-hour).
+pub const AMBUSH_SETTLE_TICKS: u16 = ticks_from_minutes(15) as u16;
 
-/// Unopposed occupation of an undefended city (ticks).
-pub const OCCUPY_TICKS: u16 = 240;
+/// Unopposed occupation of an undefended city — 4 game-hours.
+pub const OCCUPY_TICKS: u16 = ticks_from_minutes(240) as u16;
 
 /// Gold per day by city tier (index 0 unused).
 pub const CITY_INCOME: [u32; 4] = [0, 80, 140, 220];
@@ -214,14 +232,14 @@ pub const AI_THREAT_RADIUS: u32 = 6;
 /// Minimum rollout before a candidate is scored — even "hold" rolls this far,
 /// so a plan is judged against at least a day of the enemy's moves. Above this
 /// floor the rollout runs adaptively (see `AI_ROLLOUT_CAP`).
-pub const AI_ROLLOUT_HORIZON: u32 = 1440;
+pub const AI_ROLLOUT_HORIZON: u32 = TICKS_PER_DAY; // one game-day floor
 /// Hard ceiling on an adaptive rollout. A committed plan rolls forward only
 /// until its armies settle (reach their target, fight, occupy) — a nearby
 /// conquest stops in a day or two — but a march toward a distant objective is
 /// cut off here. Set above a cross-map foot march so the lookahead can still
 /// see the payoff of a long offensive (movement is slow: ~hundreds of ticks per
 /// 5 km tile), while bounding the cost of a hopeless or far-off pursuit.
-pub const AI_ROLLOUT_CAP: u32 = 6_000;
+pub const AI_ROLLOUT_CAP: u32 = ticks_from_minutes(6_000); // ~4 game-days
 /// How often (ticks) a faction re-runs the expensive offensive lookahead. The
 /// hourly commander still defends, recruits, and consolidates every pass; only
 /// the search — clone-and-roll-forward over several candidates — is throttled to

@@ -11,6 +11,32 @@ pub type ArmyId = u32;
 pub type FactionId = u32;
 pub type EncounterId = u32;
 
+/// Serde for a `BTreeMap` with a `(u32, u32)` key: JSON objects can't have tuple
+/// keys, so store it as an array of `[a, b, value]` entries. Without this,
+/// `save()` throws the moment a map like `relations` is non-empty.
+mod pair_key_map {
+    use serde::{Deserialize, Deserializer, Serialize, Serializer};
+    use std::collections::BTreeMap;
+
+    pub fn serialize<S, V>(m: &BTreeMap<(u32, u32), V>, s: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+        V: Serialize,
+    {
+        let entries: Vec<(u32, u32, &V)> = m.iter().map(|(&(a, b), v)| (a, b, v)).collect();
+        entries.serialize(s)
+    }
+
+    pub fn deserialize<'de, D, V>(d: D) -> Result<BTreeMap<(u32, u32), V>, D::Error>
+    where
+        D: Deserializer<'de>,
+        V: Deserialize<'de>,
+    {
+        let entries: Vec<(u32, u32, V)> = Vec::deserialize(d)?;
+        Ok(entries.into_iter().map(|(a, b, v)| ((a, b), v)).collect())
+    }
+}
+
 /// A position on the road network. Nodes are tiles of their own.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub enum Loc {
@@ -253,6 +279,7 @@ pub struct CampaignState {
     pub battle_ready: Option<EncounterId>,
     /// Pairs that just resolved an escape: no re-engagement until the tick
     /// expires (key is (lower id, higher id)).
+    #[serde(default, with = "pair_key_map")]
     pub no_rematch: BTreeMap<(ArmyId, ArmyId), u64>,
     /// Per-faction sets of armies it can currently see (fog of war).
     #[serde(default)]
@@ -266,7 +293,7 @@ pub struct CampaignState {
     pub outcome: Option<Outcome>,
     /// Pairwise diplomacy, keyed `(lo, hi)`. Absent = War until a treaty is
     /// signed.
-    #[serde(default)]
+    #[serde(default, with = "pair_key_map")]
     pub relations: BTreeMap<(FactionId, FactionId), Relation>,
     /// Each AI power's current war objective: the rival it is concentrating its
     /// offensive against (set by the diplomacy pass; read by the commander to

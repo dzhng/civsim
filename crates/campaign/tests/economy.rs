@@ -122,10 +122,12 @@ fn city_buildings_raise_income_and_speed_recruits() {
         c.tick();
     }
     assert_eq!(c.state.cities[&0].barracks_lvl, 1);
-    // Barracks cuts recruit time by a quarter per level.
+    // Barracks cuts recruit time by a quarter per level. Recruit minutes
+    // (count × per-soldier × barracks discount) convert to the current tick
+    // scale, so the queue length tracks MINUTES_PER_TICK.
     assert!(c.order_recruit(0, contract::UnitClassId::LightSpear, 400));
     let ticks = c.state.cities[&0].recruit_queue[0].ticks_left;
-    assert_eq!(ticks, 400 * 2 * 75 / 100);
+    assert_eq!(ticks, (400 * 2 * 75 / 100 / tunables::MINUTES_PER_TICK).max(1));
 }
 
 #[test]

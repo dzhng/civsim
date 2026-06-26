@@ -26,11 +26,13 @@ import {
 } from './panels';
 import { readCampaignViews, type ArmyView, type CityView } from './views';
 
-/** Campaign ticks per real second at 1x (one tick = one campaign minute).
- * 60 = one game-hour per real second. Everything is tick-driven (movement,
- * economy, AI), so fast-forward keeps the campaign world in lockstep. */
+/** Campaign ticks per real second at base speed. A tick covers
+ * MINUTES_PER_TICK game-minutes (campaign tunables), so at 10 min/tick the base
+ * already runs ~10 game-hours per real second — the old top speed. The world is
+ * tick-driven (movement, economy, AI), so fast-forward stays in lockstep while
+ * the AI cost per real-second tracks the multiplier, not the tick scale. */
 const TICKS_PER_SEC = 60;
-const SPEEDS = [1, 3, 10];
+const SPEEDS = [1, 2, 4];
 const SAVE_KEY = 'campaign-save';
 /** Ticks between a snapshot and applying the decisions it yields — must match
  *  campaign tunables AI_LATENCY. */

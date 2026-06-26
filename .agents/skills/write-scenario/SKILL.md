@@ -118,6 +118,31 @@ export async function run({ page, check }) {
   code. Assert observable outcomes (positions, casualties, soldier counts,
   rendered frames) — never internal call order.
 
+## One world, many measurements — never split a scenario per assertion
+
+A scenario is *one declared world + as many checks/snaps as that world supports*.
+If two scenarios (or two test setups) boot the **same** world and differ only in
+*what they measure*, they are **one** scenario — fold the extra assertions in.
+Standing the same world up twice pays the (slow) boot twice, lets the two copies
+drift the moment someone edits the setup in one place and not the other, and
+hides that both are claims about the *same* run.
+
+The tell: two `run()` bodies — or two Rust test fns / setup helpers — whose
+world-building is copy-paste identical and only the asserts differ. Collapse
+them: **one boot, multiple `snap`/`check` calls**, or one shared rig that returns
+*every* measurement and each test asserts its facet off the shared result.
+
+Keep them separate ONLY when the **world itself** differs — a different map,
+class, spacing, target hardness, or seed set is a different *scenario*, not a
+different *measurement* of the same one. That line is the whole discipline: same
+world → one scenario; different world → don't force-merge.
+
+> Worked: `cav_into_line` and `cav_vs_light` each stood up the *identical*
+> cav-vs-light charge to read impact-kills vs win/rout — merged into one rig, the
+> facets asserted separately. But the cavalry *knockdown* test stayed its own
+> scenario: it charges a **heavy** line (a light line gets one-shot by the lance,
+> so the stun signal vanishes) — a different world, so a different scenario.
+
 ## Worlds: real maps and fixtures
 
 `scenarios/worlds.mjs` owns boot + readiness + freeze for each world; a
@@ -188,6 +213,10 @@ re-blessed.
       edit + new baselines), NOT a new scenario file. Only composites and flows
       are scenario files.
 - [ ] One file `scenarios/<name>.mjs`, exporting `meta` + `run`.
+- [ ] Does another scenario already boot this *same* world? If it differs only in
+      what it measures, add your `snap`/`check` THERE — don't author a second
+      scenario (or a second copy-paste setup) for the same world. A new scenario
+      is justified only by a genuinely different world.
 - [ ] Exactly one `kind`: `visual` → a fixture world + at least one `snap`;
       `flow` → a real-map world + zero PNGs.
 - [ ] `meta.world` is the smallest world that exercises the change; if you

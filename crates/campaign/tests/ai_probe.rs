@@ -8,9 +8,9 @@
 //! It also pins the mechanism: the search picks the argmax, and on this fixture
 //! that means preferring the winnable conquest over the suicidal assault.
 
-use campaign::ai::{eval, plan};
+use campaign::ai::{eval, orders, plan, Order};
 use campaign::pathfind;
-use campaign::state::RosterEntry;
+use campaign::state::{Loc, RosterEntry};
 use campaign::tunables as tun;
 use campaign::Campaign;
 use contract::UnitClassId;
@@ -142,6 +142,34 @@ fn think_marches_on_the_winnable_city() {
         dest,
         Some(campaign::state::Loc::Node(2)),
         "red should march on the soft city (Node 2), not the wall (Node 1); got {dest:?}",
+    );
+}
+
+#[test]
+fn commander_orders_capture_the_decision_and_replay() {
+    // The order-API seam: the commander emits its decision as a list of player-
+    // legal Orders (no reaching into state), and replaying them reproduces it.
+    let mut c = Campaign::new(fork_map(), 7, 0);
+    c.state.factions[0].ai = true;
+    c.state.cities.get_mut(&1).unwrap().garrison = garrison(UnitClassId::LightSpear, 5000);
+    c.state.cities.get_mut(&2).unwrap().garrison = garrison(UnitClassId::LightSpear, 50);
+
+    let plan = campaign::ai::commander_orders(&c.map, &c.state, 0);
+    assert!(
+        plan.iter()
+            .any(|o| matches!(o, Order::Move { dest: Loc::Node(2), .. })),
+        "the commander should emit a march on the soft city as an Order: {plan:?}",
+    );
+
+    // Applying the emitted orders to the live state reproduces the march — the
+    // worker path (compute on a snapshot, apply the orders here) is faithful.
+    for o in &plan {
+        orders::apply(&c.map, &mut c.state, 0, o);
+    }
+    assert_eq!(
+        c.state.armies[0].path.last(),
+        Some(&Loc::Node(2)),
+        "replaying the commander's orders should send red at the soft city",
     );
 }
 

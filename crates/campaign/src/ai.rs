@@ -11,10 +11,35 @@ use crate::tunables as tun;
 use contract::UnitClassId;
 
 pub mod eval;
+pub mod orders;
 pub mod persona;
 pub mod plan;
 pub mod rival;
 pub mod select;
+
+pub use orders::Order;
+
+/// Apply an order on behalf of `f`, recording it in `log` only if it took
+/// effect — so the log is exactly the orders that mattered, replayable on the
+/// live state. The single chokepoint every commander mutation goes through.
+fn issue(map: &WorldMap, st: &mut CampaignState, f: FactionId, log: &mut Vec<Order>, o: Order) {
+    if orders::apply(map, st, f, &o) {
+        log.push(o);
+    }
+}
+
+/// Run one faction's commander against a snapshot and return the orders it would
+/// issue, without touching the live game. This is the off-thread / strategy-swap
+/// entry point: a worker calls it on a posted snapshot and ships the orders back
+/// to be applied via `orders::apply`. (AI bookkeeping like bravado/rival mutates
+/// the clone here; the live game keeps its own via the synchronous pass.)
+pub fn commander_orders(map: &WorldMap, st: &CampaignState, f: FactionId) -> Vec<Order> {
+    let mut clone = st.clone();
+    let mut bfs = pathfind::Visited::new(map);
+    let mut log = Vec::new();
+    think(map, &mut clone, f, &mut bfs, &mut log);
+    log
+}
 
 /// Cost-weighted value of a roster (upkeep rate doubles as unit value).
 fn strength(map: &WorldMap, st: &CampaignState, faction: FactionId, roster: &[RosterEntry]) -> u64 {
@@ -72,7 +97,7 @@ pub fn commanders(map: &WorldMap, st: &mut CampaignState) {
         // Skip the hourly think if an event already re-thought this faction this
         // very tick (debounce) — but the mood still drifts above.
         if st.last_think.get(&f) != Some(&st.tick) {
-            think(map, st, f, &mut bfs);
+            think(map, st, f, &mut bfs, &mut Vec::new());
             st.last_think.insert(f, st.tick);
         }
     }
@@ -107,7 +132,7 @@ pub fn event_rethink(map: &WorldMap, st: &mut CampaignState, enc_since: Encounte
             .get(&f)
             .is_some_and(|&t| st.tick - t < tun::AI_RETHINK_DEBOUNCE);
         if !recent {
-            think(map, st, f, &mut bfs);
+            think(map, st, f, &mut bfs, &mut Vec::new());
             st.last_think.insert(f, st.tick);
         }
     }
@@ -187,7 +212,13 @@ pub fn diplomacy(map: &WorldMap, st: &mut CampaignState) {
     st.diplo_target = target;
 }
 
-fn think(map: &WorldMap, st: &mut CampaignState, f: FactionId, bfs: &mut pathfind::Visited) {
+fn think(
+    map: &WorldMap,
+    st: &mut CampaignState,
+    f: FactionId,
+    bfs: &mut pathfind::Visited,
+    log: &mut Vec<Order>,
+) {
     // Refresh the grudge before planning: adopt an attacker, escalate to a
     // worthier nemesis, or let a lopsided rivalry dissolve. The offensive search
     // below then weighs a march on the rival among its candidates.
@@ -241,7 +272,7 @@ fn think(map: &WorldMap, st: &mut CampaignState, f: FactionId, bfs: &mut pathfin
             .filter(|(_, _, s)| *s * 4 >= threat)
             .min_by_key(|(_, l, _)| road_dist(map, bfs, *l, cloc, 60).unwrap_or(u32::MAX))
         {
-            crate::sim::try_move(map, st, id, cloc, true);
+            issue(map, st, f, log, Order::Move { army: id, dest: cloc });
         }
     }
 
@@ -287,7 +318,7 @@ fn think(map: &WorldMap, st: &mut CampaignState, f: FactionId, bfs: &mut pathfin
         } else {
             (UnitClassId::ShockCavalry, 140)
         };
-        economy::recruit(map, st, depot, class, count);
+        issue(map, st, f, log, Order::Recruit { node: depot, class, count });
     }
 
     // 2b. A market is an investment in income.
@@ -298,7 +329,7 @@ fn think(map: &WorldMap, st: &mut CampaignState, f: FactionId, bfs: &mut pathfin
             .filter(|&n| st.cities[&n].market_lvl < 2 && st.cities[&n].build_job.is_none())
             .max_by_key(|&n| map.nodes[n as usize].tier);
         if let Some(n) = richest {
-            economy::build(st, n, BuildKind::Market, f);
+            issue(map, st, f, log, Order::Build { node: n, kind: BuildKind::Market });
         }
     }
 
@@ -350,7 +381,9 @@ fn think(map: &WorldMap, st: &mut CampaignState, f: FactionId, bfs: &mut pathfin
         // Sample rather than argmax: among comparable plans the AI won't always
         // take the textbook-best one, which is what stops it reading as a solver.
         let pick = select::pick_softmax(&scores, profile.select_scale, &mut st.rng);
-        plan::apply(map, st, &plans[pick]);
+        for &(army, dest) in &plans[pick].orders {
+            issue(map, st, f, log, Order::Move { army, dest });
+        }
     }
 
     // 4. Consolidate: idle small armies drift home and merge up.
@@ -365,12 +398,12 @@ fn think(map: &WorldMap, st: &mut CampaignState, f: FactionId, bfs: &mut pathfin
             .iter()
             .find(|&&(oid, oloc, os)| oid != id && os > s && pathfind::in_contact(map, loc, oloc));
         if let Some(&(oid, ..)) = buddy {
-            economy::merge(map, st, id, oid);
+            issue(map, st, f, log, Order::Merge { src: id, dst: oid });
         } else if let Some(&home) = my_cities
             .iter()
             .min_by_key(|&&n| road_dist(map, bfs, loc, Loc::Node(n), 60).unwrap_or(u32::MAX))
         {
-            crate::sim::try_move(map, st, id, Loc::Node(home), true);
+            issue(map, st, f, log, Order::Move { army: id, dest: Loc::Node(home) });
         }
     }
 }

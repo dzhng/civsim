@@ -135,15 +135,6 @@ pub fn candidates(
     plans
 }
 
-/// Issue a plan's marches for real — the only mutation in this module. Used by
-/// the search to apply a candidate to a sandbox before rolling it forward, and
-/// by `think` to commit the plan it finally chooses.
-pub fn apply(map: &WorldMap, st: &mut CampaignState, plan: &Plan) {
-    for &(army, loc) in &plan.orders {
-        crate::sim::try_move(map, st, army, loc, true);
-    }
-}
-
 /// The diplo-target's weakest city reachable from the lead attacker, if any —
 /// the point where massing manufactures local superiority (mirrors `think`).
 fn focus_city(

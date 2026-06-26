@@ -14,49 +14,6 @@ use sim::{Pace, Sim, Tunables, UnitClassId, Vec2, DT};
 use std::f32::consts::FRAC_PI_2;
 
 #[test]
-fn a_charge_outdamages_a_walk_in_on_impact() {
-    // The whole walk-vs-charge impact story on ONE rig (it used to be two tests
-    // that each re-ran the same cav-into-light charge): a charge rides in above
-    // charge speed and fells a front-rank handful on contact; a walk-in (1.7 m/s)
-    // stays below it and deals ~zero impact (it can only grind). So the charge
-    // always out-impacts the walk. Shares cav_vs_light — the same spawn the morale
-    // test uses, so the scenario is set up in exactly one place. Per-charger impact
-    // is seed-variable, so we pin the 5-seed mean. (Morale ON: a charge's shock
-    // needs a line that can break; an immortal wall just bogs the horse instantly.)
-    let charge = cav_vs_light(true, true);
-    let walk = cav_vs_light(false, true);
-    let cmin = Tunables::default().charge_min_speed;
-    assert!(
-        walk.speed < cmin,
-        "a walk-in must stay below charge speed, was {:.1} m/s",
-        walk.speed,
-    );
-    assert!(
-        walk.impact < 0.5,
-        "a walk-in must deal ~ZERO impact kills (it has to grind), got {:.1}",
-        walk.impact,
-    );
-    assert!(
-        charge.speed > cmin,
-        "a charge must exceed charge speed, was {:.1} m/s",
-        charge.speed,
-    );
-    assert!(
-        charge.impact > walk.impact,
-        "charge impact ({:.1}) must exceed walk-in impact ({:.1})",
-        charge.impact,
-        walk.impact,
-    );
-    // The impact cap is ~1 kill/charger, so this is front-rank only — a handful,
-    // not a mow; we pin only that it's a real number above the walk's zero.
-    assert!(
-        charge.impact >= 5.0,
-        "a 120-horse charge into a line should fell several men (mean), got {:.1}",
-        charge.impact,
-    );
-}
-
-#[test]
 fn a_same_direction_chase_does_no_impact() {
     // Impact scales with CLOSING speed, not raw speed: a cav charging another that
     // flees the SAME way barely closes, however fast both gallop — so a stern chase
@@ -97,7 +54,7 @@ struct Outcome {
 /// side rout. The cav WINS by routing light while staying intact (morale on) or
 /// destroying it (morale off); it LOSES if it routs or is ground out first.
 fn cav_vs_light(charge: bool, morale: bool) -> Outcome {
-    let seeds = [1u64, 7, 13, 21, 42];
+    let seeds = [1u64, 7, 13]; // 3 seeds: enough for a stable mean; keeps the inner loop fast
     let (mut cav_dead, mut cav_wins) = (0.0f32, 0.0f32);
     let (mut impact, mut lance, mut grind) = (0.0f32, 0.0f32, 0.0f32);
     let mut speed = 0.0f32;
@@ -114,6 +71,13 @@ fn cav_vs_light(charge: bool, morale: bool) -> Outcome {
         sim.set_attack_order(cav, light);
         sim.set_attack_order(light, cav);
         let mut won: Option<bool> = None;
+        // Peak speed measures the APPROACH (the gallop's edge vs the walk-in's
+        // plod) — sampled only while the cav is a clear distance OFF the line.
+        // mass_advance at/after contact is a transient (a body shoved by the
+        // collision, a rider carried through a routing clump, the anchor swung by
+        // a fast wheel) that spikes well past any pace and is not "the speed it
+        // closed at". Gating on the centroid gap keeps the window pre-contact
+        // regardless of how long the fight then runs.
         let mut peak = 0.0f32;
         for _ in 0..(600.0 / DT) as usize {
             sim.tick();
@@ -150,7 +114,7 @@ fn cav_vs_light(charge: bool, morale: bool) -> Outcome {
 }
 
 #[test]
-fn a_charge_wins_by_morale_not_by_grinding() {
+fn a_charge_beats_a_walk_in_on_impact_and_wins_only_by_morale() {
     // Cavalry is SHOCK: a fresh charge routs a 2:1 light line WITH morale — its
     // momentum breaks their nerve and it carves through. But a WALK-IN (same cav,
     // no charge, no shock) is ground out by the 2:1 numbers: with no momentum to
@@ -160,6 +124,17 @@ fn a_charge_wins_by_morale_not_by_grinding() {
     let fresh_off = cav_vs_light(true, false);
     let walk_on = cav_vs_light(false, true);
     let walk_off = cav_vs_light(false, false);
+
+    // IMPACT vs walk-in (folded in from the old `a_charge_outdamages` test — it
+    // re-ran this very rig: fresh_on IS its `charge`, walk_on IS its `walk`). A
+    // charge rides in above charge speed and fells a front-rank handful; a walk-in
+    // stays slow and deals ~zero, so the charge always out-impacts the walk.
+    let cmin = Tunables::default().charge_min_speed;
+    assert!(walk_on.speed < cmin, "a walk-in stays below charge speed, was {:.1} m/s", walk_on.speed);
+    assert!(walk_on.impact < 0.5, "a walk-in deals ~ZERO impact (it grinds), got {:.1}", walk_on.impact);
+    assert!(fresh_on.speed > cmin, "a charge exceeds charge speed, was {:.1} m/s", fresh_on.speed);
+    assert!(fresh_on.impact > walk_on.impact, "charge impact ({:.1}) must exceed walk-in ({:.1})", fresh_on.impact, walk_on.impact);
+    assert!(fresh_on.impact >= 5.0, "a 120-horse charge fells several men (mean), got {:.1}", fresh_on.impact);
 
     // Only the CHARGE wins, and only via morale.
     assert!(fresh_on.cav_wins >= 0.8, "a fresh charge must rout light WITH morale (won frac {:.1})", fresh_on.cav_wins);

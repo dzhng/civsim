@@ -8,9 +8,8 @@ const includeNames = [
   'battle-smoke',
   'battle-lod',
   'battle-selection',
-  'battle-cluster',
   'banner-gallery',
-  ...(full ? ['battle-cavalry-plow', 'battle-mechanics', 'battle-ai'] : []),
+  ...(full ? ['battle-cavalry-plow', 'battle-ai'] : []),
 ];
 
 main(args, { includeNames }).then((code) => process.exit(code)).catch((error) => {

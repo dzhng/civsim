@@ -20,6 +20,11 @@ use crate::unit::{compact_slots_preserving_order, reassign_slots, slot_local, Or
 /// wanders, off the sim RNG (stagger01) so it's reproducible. Gated on true
 /// ease — no order, no contact, no nearby threat — so alert formations stop
 /// casual sway before it can ring through the lattice.
+// A trampler is barely tied to its formation slot: it rides in as a loose blob
+// and each rider's real pull is the enemy SEEK, so the lattice can't reel a
+// diving rider back. The whole point of a trample is to scatter INTO the enemy
+// and break their cohesion, not hold its own line.
+const TRAMPLE_SLOT_GRIP: f32 = 0.3;
 const IDLE_FIDGET: f32 = 0.12;
 const IDLE_GLANCE: f32 = 0.18;
 /// A soldier re-aims his facing only once the threat is more than this far off it
@@ -2012,12 +2017,24 @@ impl Sim {
                 // with the front and blob). Against a CHARGE (mounted) the braced
                 // front PLANTS, it doesn't step onto the hooves, so the anti-charge
                 // stop is untouched.
-                let slot_pull_i =
-                    if !advancing && engaged_i && !foe_mounted && (foe_broad || broad_press) {
-                        0.65
-                    } else {
-                        slot_pull_u
-                    };
+                // A trampler DIVING hunts as a swarm: weak slot here, per-rider
+                // enemy seek below. The dive engages only once the charge has BOGGED
+                // into the grind (`!running`) — while the gallop still carries
+                // (running), the mass stays TIGHT so its impact lands concentrated
+                // (the knock-down), and it disperses to hunt only after it stalls.
+                // A MOVE order is never a dive (it rides through in normal order to
+                // its destination — move==attack ride-through for the move case).
+                let trample_dive =
+                    u.tramples() && matches!(u.mode, OrderMode::Attack(_)) && !running;
+                let slot_pull_i = if trample_dive {
+                    // Weak slot: the rider hunts, it doesn't hold a line (see
+                    // TRAMPLE_SLOT_GRIP). The enemy seek below is its real pull.
+                    slot_pull_u * TRAMPLE_SLOT_GRIP
+                } else if !advancing && engaged_i && !foe_mounted && (foe_broad || broad_press) {
+                    0.65
+                } else {
+                    slot_pull_u
+                };
                 steer_to = steer_to + slot_pull_vec * slot_pull_i;
                 // ENEMY MAGNET — the SEEK, and nothing else. A pure attract
                 // toward the foe a man is fighting: far off he is pulled in hard
@@ -2028,10 +2045,17 @@ impl Sim {
                 // uncapped one at the contact line. Because the bond is to the foe
                 // he is FIGHTING, not the nearest body, he does not chase: he
                 // advances a step only when that foe falls and he re-targets.
-                // Gated on FRONT_CLEAR so only the front (and an overhang man with
-                // an open shot — the wrap) seeks. A plowing mass does not seek.
+                // Gated on FRONT_CLEAR so for FORMED troops only the front (and an
+                // overhang man with an open shot — the wrap) seeks. A TRAMPLER is
+                // the exception: under an ATTACK order EVERY rider seeks its own
+                // nearest foe, buried or not, so the unit pours INTO the enemy as a
+                // swarm of individual hunters and breaks their cohesion — that
+                // disruption is the whole point of a trample, and with the weak
+                // slot above nothing reels the divers back into a line. A MOVE
+                // order is NOT a dive: the trample rides through to its destination
+                // (move==attack ride-through), so the swarm-seek is attack-only.
                 let mut seeking_flank = false;
-                if aware_i && front_clear[i] == 1 && !trampling {
+                if aware_i && (trample_dive || (front_clear[i] == 1 && !u.tramples())) {
                     let te = target[i] as usize;
                     // Tick-start snapshot, NOT live positions: the steer loop writes
                     // positions[i] in place, so a live read gives an already-moved foe
@@ -2043,6 +2067,11 @@ impl Sim {
                     let d = ep - p;
                     let dist = d.len();
                     if dist > 1e-3 {
+                        // Pull FADES to zero at reach (a man eases in, doesn't ram
+                        // his foe). For a trampler that fade is what lets MOMENTUM,
+                        // not the magnet, carry the mass through: the seek only AIMS
+                        // each rider at its nearest foe (the disruption), it does not
+                        // clamp him onto it — so the carried charge rides on out.
                         let off = dist - reach_u;
                         let pull = (tun.magnet_strength * (1.0 - (-off / tun.magnet_scale).exp()))
                             .max(0.0);
@@ -2050,6 +2079,16 @@ impl Sim {
                         if formation_blocks_forward {
                             let forward = magnet.dot(f).max(0.0);
                             magnet = magnet - f * forward;
+                        }
+                        if trample_dive {
+                            // The seek AIMS the disruption, it never BRAKES the ride:
+                            // drop any pull that opposes the unit's facing (a foe
+                            // already passed, now behind), so the carried momentum
+                            // takes the mass THROUGH and out the far side. The leash
+                            // (anchor chases the enemy) wheels it around for another
+                            // pass — the back-and-forth, with no rule coding it.
+                            let back = magnet.dot(f).min(0.0);
+                            magnet = magnet - f * back;
                         }
                         steer_to = steer_to + magnet;
                         // An OVERHANGING flank man — his foe is well OFF the unit's

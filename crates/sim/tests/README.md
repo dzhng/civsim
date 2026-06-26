@@ -20,6 +20,32 @@ engine code stayed the same, should the test still pass?
 - It is mostly about the public API or a player-visible behavior across several
   systems: put it in a descriptive `*_scenarios` file.
 
+## Running — use the focused scripts, NOT the whole suite
+
+The full suite is 10+ minutes; `cargo test` runs binaries in parallel, so a
+bucket's wall-clock is just its slowest binary. Run the narrowest bucket for what
+you touched (and a single binary is faster still — `cargo test -p sim --test
+mechanics_trample`):
+
+| script | covers | speed |
+| --- | --- | --- |
+| `scripts/test-mechanics` | `mechanics_*` — the physics inner loop | ~tens of sec |
+| `scripts/test-scenarios` | `*scenarios` — behavioral contracts | ~tens of sec |
+| `scripts/test-infra` | golden / runner / terrain | fast |
+| `scripts/test-balance` | `balance_*` — economy matchups | **minutes** |
+| `scripts/test-army` | `army.rs` — full-deployment AI battles, swept across sizes | slow, on-demand |
+| `scripts/danger-run-all-tests-super-slow` | everything | **10+ min** |
+
+`army.rs` is its own bucket on purpose: full multi-class AI battles fought to a
+verdict are end-to-end integration, not focused scenarios, and they're the
+heaviest tests — keep them out of the `*scenarios` inner loop.
+
+Changing sim physics? Loop on `scripts/test-mechanics` (or the one binary you're
+editing). Only reach for `test-balance` when re-deriving the economy, and the
+`danger-run-all` script only before a push that could move everything. The scripts
+glob the test files by prefix, so a new `mechanics_foo.rs` is picked up
+automatically.
+
 ## Naming and migration
 
 - Prefer adding new mechanical invariants to the existing focused file:

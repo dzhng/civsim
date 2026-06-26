@@ -1,92 +1,11 @@
 //! Commander + control-order tests: the AI fights with the same verbs as the
 //! player, and the discipline orders behave per the contract.
 
-use sim::{ai_commander, setup_battle, MapId, Sim, Tunables, UnitClassId, Vec2, DT};
+use sim::{Sim, Tunables, UnitClassId, Vec2, DT};
 use std::f32::consts::FRAC_PI_2;
 
 const SEED: u64 = 4242;
 
-#[test]
-fn ai_brings_a_battle_to_a_verdict() {
-    // Compact battle (the full 30k field is exercised in browser verify).
-    let mut sim = Sim::new(Tunables::default(), SEED);
-    let lay = |sim: &mut Sim, team: u32, y: f32, facing: f32| {
-        sim.spawn_class(
-            Vec2::new(-60.0, y),
-            facing,
-            300,
-            UnitClassId::HeavySword,
-            team,
-        );
-        sim.spawn_class(Vec2::new(0.0, y), facing, 320, UnitClassId::Phalanx, team);
-        sim.spawn_class(
-            Vec2::new(60.0, y),
-            facing,
-            300,
-            UnitClassId::LightSpear,
-            team,
-        );
-        sim.spawn_class(
-            Vec2::new(0.0, y - facing.sin() * 30.0),
-            facing,
-            160,
-            UnitClassId::Archers,
-            team,
-        );
-        sim.spawn_class(
-            Vec2::new(120.0, y),
-            facing,
-            100,
-            UnitClassId::ShockCavalry,
-            team,
-        );
-    };
-    lay(&mut sim, 0, -80.0, FRAC_PI_2);
-    lay(&mut sim, 1, 80.0, -FRAC_PI_2);
-    // Slight asymmetry so somebody wins.
-    sim.spawn_class(
-        Vec2::new(-120.0, -80.0),
-        FRAC_PI_2,
-        200,
-        UnitClassId::HeavySword,
-        0,
-    );
-    let mut victor = None;
-    for _ in 0..(900.0 / DT) as usize {
-        sim.tick();
-        ai_commander(&mut sim, 0);
-        ai_commander(&mut sim, 1);
-        victor = sim.victor();
-        if victor.is_some() {
-            break;
-        }
-    }
-    let _ = MapId::WalledPlain;
-    let _: fn(&mut Sim, MapId) = setup_battle;
-    let total: usize = sim.units.iter().map(|u| u.count).sum();
-    let dead: usize = sim.units.iter().map(|u| u.count - u.alive_count).sum();
-    let alive = |team: u32| -> usize {
-        sim.units
-            .iter()
-            .filter(|u| u.team == team)
-            .map(|u| u.alive_count)
-            .sum()
-    };
-    assert!(
-        victor.is_some(),
-        "two AI armies must produce a verdict; alive team0={} team1={} dead={dead}/{total}",
-        alive(0),
-        alive(1)
-    );
-    // Morale decides battles well before heavy attrition — that's the
-    // design. The floor guards against a bloodless stall, nothing more.
-    // Boundary note: 2560 total men; morale verdicts land at ~120-150 dead.
-    assert!(dead > total / 50, "a real battle was fought: {dead} dead");
-    assert!(
-        dead < total * 9 / 10,
-        "morale ends battles before extermination: {dead} dead of {total}"
-    );
-}
 
 #[test]
 fn reform_recovers_order_faster() {

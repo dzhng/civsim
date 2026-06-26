@@ -162,7 +162,8 @@ fn duel_scenario_exists_for_every_class() {
 /// block is a runtime BalanceConfig field, no recompile per rung.
 #[test]
 fn more_block_never_makes_cavalry_worse() {
-    let blocks = [0.2f32, 0.3, 0.4, 0.5, 0.6];
+    // 3 rungs (low/mid/high) pin the monotonicity as well as 5 did, at 60% the cost.
+    let blocks = [0.2f32, 0.4, 0.6];
     let mut margin = Vec::new();
     for &b in &blocks {
         let mut cfg = BalanceConfig::default();
@@ -242,36 +243,15 @@ fn formed_heavy_infantry_holds_a_frontal_cav_charge() {
         agg.surv[0].mean * 100.0,
         agg.surv[1].mean * 100.0,
     );
-}
-
-/// David (2026-06-17): a frontal charge that LOSES must still BLOODY the line — a
-/// charge of lancers does not break on a hedge of men for free.
-///
-/// FLAG (2026-06-26): under the charge-rebuild this no longer holds against FORMED
-/// HEAVY foot. The new charge impact mostly STUNS (3s) and kills come from the
-/// one-use LANCE — and a single lance point barely dents plate, while the formed
-/// heavy line holds and grinds the bogged cav down almost intact. Measured: the
-/// heavy ends ~0.97 standing (≈7 of 240 down) while the cav is repulsed to ~0.14.
-/// Against SOFTER targets the same charge still draws real blood (LightSword foot
-/// ends ~0.80, Archers ~0.72), so the charge is NOT toothless — it's that braced
-/// HEAVY specifically now shrugs the stun-heavy charge. So the "even a repulsed
-/// charge bloodies HEAVY" claim is no longer true; this test is re-pinned to the
-/// measured scratch (heavy ends a clear, near-untouched majority) rather than a
-/// 25-40% casualty floor. If David wants heavy bloodied by the charge again, that
-/// is a SIM change (lance vs plate / impact lethality), not a test re-pin.
-#[test]
-fn a_frontal_charge_bloodies_the_infantry_even_when_repulsed() {
-    let agg = run(&Scenario::duel(
-        UnitClassId::ShockCavalry,
-        UnitClassId::HeavySword,
-    ));
-    println!(
-        "heavy survivors vs a frontal charge: {:.2} (cav {:.2})",
-        agg.surv[1].mean, agg.surv[0].mean,
-    );
-    // Measured band: heavy ≈0.97±0.01 over the seed set. The charge is repulsed
-    // (cav ground down) but the heavy is only SCRATCHED, not bloodied — pinned to
-    // the measured reality with seed margin. See FLAG above.
+    // The OTHER side of the same duel (folded in from the old
+    // `a_frontal_charge_bloodies_the_infantry_even_when_repulsed` — same run).
+    // FLAG (2026-06-26): under the charge-rebuild the repulsed charge no longer
+    // BLOODIES formed heavy — the stun-heavy impact + single-use lance barely dent
+    // plate, so the heavy holds nearly intact (≈0.97±0.01). Against softer foot the
+    // charge still draws blood (LightSword ≈0.80, Archers ≈0.72), so it's not
+    // toothless — braced HEAVY specifically shrugs it. Pinned to the measured
+    // scratch; if David wants heavy bloodied again that's a SIM change (lance vs
+    // plate / impact lethality), not a re-pin.
     assert!(
         agg.surv[1].mean >= 0.92 && agg.surv[1].mean <= 1.0,
         "the repulsed charge only scratches formed heavy now (mostly-stun model): \

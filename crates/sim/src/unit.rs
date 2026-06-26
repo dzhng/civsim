@@ -289,14 +289,19 @@ impl Unit {
         self.stats.tramples
     }
 
-    /// Cohesion as it feeds COMBAT/MORALE debuffs (melee evade & block, missile
-    /// evade, morale-drain amplification). A trampler fights from a loose,
-    /// constantly-reriding blob by design, so disorder must NOT erode its
-    /// fighting or break its nerve — it reads full cohesion here. The kinematic
-    /// "lag" (turn/accel throttle) and the command-order delay still key off the
-    /// real `cohesion`, so a messy mob is still physically sluggish to reform and
-    /// slow to take orders — just not a worse killer for being a mob.
-    pub fn combat_cohesion(&self) -> f32 {
+    /// Cohesion as every disorder penalty reads it EXCEPT the two kept as a
+    /// trampler's "lag": melee evade & block, missile evade, morale-drain
+    /// amplification, and the rotation throttle (the WHEEL). A trampler fights and
+    /// rides as a loose, constantly-reriding blob by design, so disorder must not
+    /// erode its fighting, break its nerve, or — crucially — stop it WHEELING:
+    /// after it rides through and overshoots, it has to come about to charge back,
+    /// and a cohesion-throttled wheel pinned a blobbed horse facing the wrong way
+    /// for ~10s, killing the emergent back-and-forth. So it reads full here. Only
+    /// the ACCELERATION throttle and the command-order delay still key off real
+    /// `cohesion` — a messy mob stays sluggish to build speed and slow to take new
+    /// orders (its "older lag"); it just isn't a worse killer, and it can turn to
+    /// ride back.
+    pub fn effective_cohesion(&self) -> f32 {
         if self.tramples() {
             1.0
         } else {

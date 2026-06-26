@@ -5,27 +5,37 @@ description: How to write and iterate on tests in this repo — one test at a ti
 
 # Writing and iterating on tests in this repo
 
-## The loop: cargo first, browser last
+## The loop: bottom-up buckets, cargo first, browser last
 
-1. **Iterate on `cargo test -p sim` until satisfied.** The native suite is
-   ~25s wall-clock (`[profile.test] opt-level = 2` — keep it). Run with
-   `--no-fail-fast` and read EVERY failure before fixing any one of them:
-   failures often share a single root cause, and the cheapest diagnosis is
-   the union of their messages.
-2. **Target single tests while diagnosing**: `cargo test -p sim --test
-   mechanics_melee <name> -- --nocapture`. Print diagnostics with the
-   assert (`"got {x:.1}m"`) so a red test IS the trace.
-3. **Only when cargo is green**, run `npm run verify` from `web/` (~75s).
-   It covers web-only glue: wasm boundary, zero-copy views, UI plumbing,
-   render health. `npm run verify:full` adds the slow behavioral stages —
-   release passes only. NEVER use the browser to verify sim behavior; if a
-   behavior matters, it gets a Rust test.
+Go BOTTOM-UP, and NEVER reach for the whole suite while iterating — it is 10+
+minutes (`scripts/danger-run-all-tests-super-slow`, named to scare you off it;
+run it only as a final last check before a push that could move everything).
+Each layer must be green before the next is worth running. The focused runners in
+`scripts/` glob the test files, so new ones are picked up automatically:
+
+1. **Mechanics first — the inner loop.** `scripts/test-mechanics` (the
+   `mechanics_*` physics invariants, ~tens of sec), or ONE binary while
+   diagnosing: `cargo test -p sim --test mechanics_melee <name> -- --nocapture`.
+   Print diagnostics in the assert (`"got {x:.1}m"`) so a red test IS the trace.
+   Use `--no-fail-fast` and read EVERY failure before fixing one — they often
+   share a single root cause.
+2. **Then scenarios**, once mechanics is green: `scripts/test-scenarios` (the
+   `*scenarios` behavioral contracts).
+3. **Then army, once everything under it is good**: `scripts/test-army` — the
+   heavy full-deployment AI battles (scale-swept). The capstone, not a loop.
+4. **Balance is its own on-demand bucket**: `scripts/test-balance` (minutes).
+   Run when re-deriving the economy or before a balance-touching push, never in
+   the iteration loop.
+5. **Browser LAST, only when cargo is green**: `node scenario.mjs` from `web/`
+   (or `npm run verify`). It covers web-only glue: the wasm boundary, zero-copy
+   views, UI plumbing, render health, and the shot baselines — NOT sim behavior.
+   If a behavior matters it gets a Rust test, never a browser check.
    - **REBUILD THE WASM FIRST if you touched any Rust** (`npm run build:wasm`
      from `web/`). The verify harness loads the prebuilt wasm, NOT your live
      source — skip the rebuild and you're testing a stale binary. This once let
      a boot-crashing regression (a new class panicking `class_specs`) pass a
      green `verify` and ship: the sim source had the class, the wasm didn't.
-4. **Check the exit code, not just the output.** A python heredoc that
+6. **Check the exit code, not just the output.** A python heredoc that
    prints "ok" then a cargo grep that prints nothing looks like success and
    is a compile error. `echo rc=$?` after every suite run.
 

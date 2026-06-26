@@ -303,7 +303,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
         mounted: false,
         spacing: Vec2::new(1.0, 1.2),
         default_depth: 6,
-        health: 1.3,
+        health: 1.21,
         mount_health: 0.0,
         block: 0.15,
         evade: 0.2,
@@ -327,7 +327,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             brace_mult: 2.0,
             spacing: Vec2::new(0.9, 1.1),
             default_depth: 8,
-            health: 2.4, // the armor IS the class: a third more body than the levy, plus the shield
+            health: 2.0, // top of the [1,2] band (range rescaled from [1,2.4]); still the most body on the field
             block: 0.5, // a real shield wall sheds ~half the frontal arrows; the back is bare (back ~1.8x deaths)
             evade: 0.08,
             training: 0.75,
@@ -341,7 +341,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             mass: 0.95,
             spacing: Vec2::new(1.0, 1.2),
             default_depth: 6,
-            health: 1.55, // unarmored: the levy lives by numbers, not body
+            health: 1.39, // unarmored: the levy lives by numbers, not body
             block: 0.35,  // a light shield: real frontal cover, ~1.5x deaths from behind
             evade: 0.15,  // a shield, not a skirmisher's legs: modest dodge on top of the block
             training: 0.55,
@@ -354,7 +354,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             mass: 1.1,
             spacing: Vec2::new(1.5, 1.4),
             default_depth: 4,
-            health: 1.49,
+            health: 1.35,
             block: 0.1, // no shield, but a drilled two-hander parries some frontal blows
             // with the blade — a thin front-arc edge, far below any shield wall
             evade: 0.35,
@@ -369,8 +369,10 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             brace_mult: 4.0,
             spacing: Vec2::new(0.8, 1.0),
             default_depth: 10,
-            health: 2.2, // phalangites wore armor too — the wall is bodies AND bronze
-            block: 0.55, // the great shield: the firmest front-arc wall, ~2.2x deaths from behind
+            health: 1.86, // rescaled into the [1,2] band (was 2.2); the wall is bodies AND bronze
+            block: 0.45, // a big shield, but NOT more than the heavy sword (0.5 is the cap): the
+            // phalanx's frontal edge is its PIKE WALL, not the firmest shield (design rule: the
+            // heavy infantry holds the highest block).
             evade: 0.08,
             training: 0.8,
             charge: false,
@@ -386,7 +388,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             mass: 0.9,
             spacing: Vec2::new(1.2, 1.3),
             default_depth: 4,
-            health: 1.17,
+            health: 1.12,
             block: 0.0, // no shield: a dodge, not a wall — same from any face
             evade: 0.28,
             charge: false,
@@ -401,7 +403,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             mass: 0.85,
             spacing: Vec2::new(1.6, 1.6),
             default_depth: 4,
-            health: 1.17,
+            health: 1.12,
             block: 0.0,  // no shield: pure dodge, same from any face
             evade: 0.42, // the nimblest foot — slips both blows and arrows, any quarter
             training: 0.5,
@@ -425,7 +427,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             knockback_mult: 1.0,
             spacing: Vec2::new(1.8, 2.4),
             default_depth: 5,
-            health: 1.5, // armoured rider: tougher than foot once a blow reaches him
+            health: 1.36, // armoured rider: tougher than foot once a blow reaches him
             // The horse soaks ARROWS (most missiles hit the big animal, not the man);
             // in MELEE it no longer makes cav tanky, because every foot weapon now
             // reaches up to the 1.5-HP rider (the reach floor), so a bogged cav dies
@@ -458,7 +460,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             knockback_mult: 0.5,
             spacing: Vec2::new(2.2, 2.6),
             default_depth: 5,
-            health: 1.3,
+            health: 1.21,
             mount_health: 6.5,
             block: 0.0, // no shield: speed and a dodge, same from any face
             evade: 0.32,
@@ -476,7 +478,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             mass: 0.9,
             spacing: Vec2::new(2.0, 2.0),
             default_depth: 4,
-            health: 1.17,
+            health: 1.12,
             block: 0.0, // no shield wall; same from any face
             evade: 0.18,
             charge: false,
@@ -510,7 +512,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             mass: 0.95,
             spacing: Vec2::new(1.0, 1.2),
             default_depth: 6,
-            health: 1.5,
+            health: 1.36,
             block: 0.3, // a light shield, a hair less than the spear line's
             evade: 0.18,
             training: 0.55,
@@ -525,7 +527,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             brace_mult: 1.6,
             spacing: Vec2::new(0.95, 1.15),
             default_depth: 7,
-            health: 1.95,
+            health: 1.68,
             block: 0.4,
             evade: 0.13,
             training: 0.65,
@@ -543,7 +545,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             brace_mult: 2.5, // a set spear line braces harder than a sword wall
             spacing: Vec2::new(0.9, 1.1),
             default_depth: 8,
-            health: 2.4,
+            health: 2.0, // HeavySpear: top of the [1,2] band (range rescaled from [1,2.4])
             block: 0.45,
             evade: 0.08,
             training: 0.75,
@@ -558,7 +560,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             brace_mult: 2.0,
             spacing: Vec2::new(0.95, 1.15),
             default_depth: 7,
-            health: 1.95,
+            health: 1.68,
             block: 0.4,
             evade: 0.12,
             training: 0.65,

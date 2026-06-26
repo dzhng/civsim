@@ -308,7 +308,7 @@ impl Sim {
             // Discipline is the endurance of the will: a drilled line eats
             // casualties that send a levy running (the tier knob).
             let discipline = 1.85 - 1.4 * u.training;
-            let amp = (1.0 + (1.0 - u.combat_cohesion()))
+            let amp = (1.0 + (1.0 - u.effective_cohesion()))
                 * (1.0 + 0.5 * (1.0 - u.stamina))
                 * if surrounded { 1.6 } else { 1.0 }
                 * discipline;

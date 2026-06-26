@@ -76,6 +76,15 @@ const MOUNTED_SWING_ARC_MIN: f32 = 0.5;
 /// because they strike first, from long reach, in a narrow front-facing hedge —
 /// not because a shielded man magically loses his shield block.
 const BRACED_THRUST_BLOCK_MULT: f32 = 1.0;
+// A MOVING target is hard to hit: every blow at a man (or horse) crossing in
+// front of the striker has to lead a moving mark, and many miss. This is general
+// — it applies to anyone in motion — but it is what lets a trampler carrying
+// CLEAN through loose order come out light (it's galloping, almost nobody lands a
+// blow), while one BOGGED in dense order (~stopped) is hit normally. Below the
+// floor speed (a walk) there's no bump; it ramps with speed to a hard cap.
+const MOVING_EVADE_FLOOR: f32 = 2.0; // m/s — below this, no bump (a walk doesn't dodge)
+const MOVING_EVADE_GAIN: f32 = 0.06; // added evade per m/s above the floor
+const MOVING_EVADE_CAP: f32 = 0.5; // a full gallop dodges at most half the blows
 
 const MAX_NEARBY_FRIENDS: usize = 24;
 type ScanPriority = (i32, i32, u32); // local forward cell, local lateral cell, local soldier
@@ -760,9 +769,9 @@ impl Sim {
     ) {
         let uv = self.soldier_unit[victim] as usize;
         let vstats = self.units[uv].stats;
-        // Combat cohesion: a trampler reads full (its blob doesn't fight worse);
-        // every other class pays disorder in evade and block.
-        let cohesion = self.units[uv].combat_cohesion();
+        // Effective cohesion: a trampler reads full (its blob doesn't fight
+        // worse); every other class pays disorder in evade and block.
+        let cohesion = self.units[uv].effective_cohesion();
 
         // Reactive facing memory + unit contact bookkeeping.
         let incoming = wrap_angle(bearing + std::f32::consts::PI);
@@ -801,11 +810,30 @@ impl Sim {
         // decisive fights are untouched; only the drawn-out grind opens up.
         let guard = tun.stamina_guard_floor
             + (1.0 - tun.stamina_guard_floor) * stamina_factor(self.units[uv].stamina);
-        let evade = vstats.evade
+        // A mark CROSSING the striker's front is hard to hit — a flat dodge ON
+        // TOP of the stat evade, scaling with the victim's LATERAL speed (the part
+        // of its motion perpendicular to the strike line). Only sideways motion
+        // counts: a foe running straight AT you or away closes/opens the range but
+        // is no harder to land on than a standing one — same as stationary. This
+        // is general (anyone crossing), but biggest for a trampler riding PAST the
+        // ranks; it's independent of the stat evade/cohesion (even a no-evade heavy
+        // is hard to strike as it flashes by).
+        let vmx = (self.positions[2 * victim] - self.prev_positions[2 * victim]) / DT;
+        let vmy = (self.positions[2 * victim + 1] - self.prev_positions[2 * victim + 1]) / DT;
+        let rdx = self.positions[2 * victim] - self.positions[2 * attacker];
+        let rdy = self.positions[2 * victim + 1] - self.positions[2 * attacker + 1];
+        let rl = (rdx * rdx + rdy * rdy).sqrt().max(1e-3);
+        let radial = (vmx * rdx + vmy * rdy) / rl; // speed toward/away — does NOT count
+        let lateral = (vmx * vmx + vmy * vmy - radial * radial).max(0.0).sqrt();
+        let moving_evade =
+            ((lateral - MOVING_EVADE_FLOOR).max(0.0) * MOVING_EVADE_GAIN).min(MOVING_EVADE_CAP);
+        let evade = (vstats.evade
             * seen
             * cohesion
             * guard
-            * (1.0 - self.pressure[victim] / 4.2).clamp(0.0, 1.0);
+            * (1.0 - self.pressure[victim] / 4.2).clamp(0.0, 1.0)
+            + moving_evade)
+            .min(0.95);
         if self.rng.chance(evade) {
             return; // dodged — the couched point passed by, lance NOT spent
         }

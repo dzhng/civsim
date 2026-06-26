@@ -60,6 +60,11 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   swatch can classify correctly and keep snapshots green while the archived
   parity score exposes a dead flat world; use deterministic noise/scenery that
   remains inside the intended terrain class, then re-run the parity report.
+- When battle feature overlays already line up with the minimap but the visual
+  parity score still reads too smooth, inspect the base terrain pass before
+  adding more feature props. Deterministic high-frequency grass, stubble, and
+  pebble detail in the shader can raise edge energy without reintroducing
+  debug-line or square-overlay artifacts.
 - Use instancing, batching, storage buffers, and GPU-side phase passes for scale.
   Avoid CPU readbacks in hot paths; debug readbacks must be bounded and named.
 - For iterative effects or simulations, separate phases such as `state`,

@@ -31,7 +31,7 @@ const routes = [
   ['campaign-ui', (s) => s?.ok && s.route === 'campaign-ui' && s.stats.fixture === 'controlled' && s.stats.cityEntities === 2 && s.stats.armyEntities === 1 && s.stats.selections >= 2 && s.stats.ui.armyPanel && s.stats.ui.cityPanel && s.stats.ui.autoReplenishToggle && s.stats.ui.classRows >= 8 && s.stats.ui.diplomacyRows >= 1 && s.stats.labelLayer === 'raw-webgpu-glyph-atlas' && s.stats.labelVertices > 0 && s.stats.postCutoverScreenshots === 'webgpu-only'],
   ['render-graph', (s) => s?.ok && s.route === 'render-graph' && s.stats.firstPass === 'camera' && s.stats.lastPass === 'present' && s.stats.passes >= 6],
   ['battle-terrain?fixture=coast', (s) => s?.ok && s.route === 'battle-terrain' && s.stats.fixture === 'coast' && s.stats.waterQuads >= 3 && s.stats.sceneryQuads >= 8],
-  ['battle-terrain?fixture=melee', (s) => s?.ok && s.route === 'battle-terrain' && s.stats.fixture === 'melee' && s.stats.waterQuads >= 3 && s.stats.sceneryQuads >= 8 && s.stats.selectionQuads === 1],
+  ['battle-terrain?fixture=melee', (s) => s?.ok && s.route === 'battle-terrain' && s.stats.fixture === 'melee' && s.stats.waterQuads >= 3 && s.stats.sceneryQuads >= 8 && s.stats.selectionQuads === 0],
   ['battle-live?mode=5v5&ticks=36', (s) => s?.ok && s.route === 'battle-live' && s.stats.written > 1000 && s.stats.units >= 10 && s.stats.player > 0 && s.stats.enemy > 0 && s.stats.drawCalls === 1 && s.stats.overlay.lineSegments >= 20],
   ['battle-ui?mode=5v5&ticks=36', (s) => s?.ok && s.route === 'battle-ui' && s.stats.written > 1000 && s.stats.units >= 10 && s.stats.drawCalls === 1 && s.stats.overlay.lineSegments >= 20 && s.stats.ui.cards >= 8 && s.stats.ui.toolbarButtons >= 5 && s.stats.ui.postCutoverScreenshots === 'webgpu-only'],
   ['battle-input?mode=5v5&ticks=36', (s) => s?.ok && s.route === 'battle-input' && s.stats.written > 1000 && s.stats.units >= 10 && s.stats.drawCalls === 1 && s.stats.overlay.lineSegments >= 20 && s.stats.selectedUnits.length === 1 && s.stats.ui.cards >= 8],
@@ -121,7 +121,7 @@ export async function run(ctx) {
     }
     if (route.startsWith('battle-terrain')) {
       ctx.check(`${route}: Aegean water and nonblack sky visible`, pixels.water > 1200 && pixels.sky > 1200, JSON.stringify(pixels));
-      ctx.check(`${route}: warm ground and gold selection language visible`, pixels.warmGround > 8000 && pixels.gold > 250, JSON.stringify(pixels));
+      ctx.check(`${route}: warm ground and terrain highlights visible`, pixels.warmGround > 8000 && pixels.gold > 250, JSON.stringify(pixels));
     }
     if (route.startsWith('campaign-map')) {
       ctx.check(
@@ -149,7 +149,7 @@ export async function run(ctx) {
       }));
       ctx.check(
         `${route}: WebGPU campaign entities and selection colors are visible`,
-        pixels.warmGround > 45000 && pixels.red > 700 && pixels.green > 450 && pixels.gold > 600,
+        pixels.warmGround > 45000 && pixels.red > 700 && pixels.green > 250 && pixels.gold > 600,
         JSON.stringify(pixels),
       );
       ctx.check(

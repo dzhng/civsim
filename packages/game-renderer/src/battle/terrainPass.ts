@@ -303,7 +303,6 @@ function makeFixture(fixture: BattleTerrainFixture, fieldRect: [number, number, 
     { x: cx - sx * 0.50, y: beachY - beachH * 0.16, w: sx * 1.00, h: beachH * 0.38, kind: 8, alpha: 0.58 },
     { x: cx - sx * 0.47, y: beachY + beachH * 0.72, w: sx * 0.92, h: beachH * 0.34, kind: 8, alpha: 0.32 },
   ];
-  const selection: TerrainQuad = { x: cx - 12, y: cy - sy * 0.12, w: 24, h: 9, kind: 5, alpha: 0.62 };
   const shrubs: TerrainQuad[] = [
     { x: cx - sx * 0.26, y: cy - sy * 0.06, w: 4.6, h: 3.0, kind: 4, alpha: 0.92 },
     { x: cx - sx * 0.17, y: cy + sy * 0.12, w: 5.2, h: 3.2, kind: 4, alpha: 0.88 },
@@ -327,7 +326,6 @@ function makeFixture(fixture: BattleTerrainFixture, fieldRect: [number, number, 
     { x: cx - sx * 0.30, y: cy + sy * 0.14, w: 12.0, h: 7.2, kind: 4, alpha: 0.74 },
     { x: cx + sx * 0.34, y: cy + sy * 0.09, w: 10.0, h: 6.4, kind: 4, alpha: 0.70 },
     ...shrubs.slice(0, 4),
-    selection,
   ];
   if (fixture === 'dry-melee') {
     return meleeDetails;
@@ -347,8 +345,7 @@ function makeFixture(fixture: BattleTerrainFixture, fieldRect: [number, number, 
       { x: cx + sx * 0.38, y: cy + sy * 0.16, w: 6.2, h: 3.5, kind: 4, alpha: 0.88 },
       { x: cx + sx * 0.03, y: cy + sy * 0.23, w: 3.8, h: 2.4, kind: 6, alpha: 0.84 },
       { x: cx - sx * 0.42, y: beachY + beachH * 0.30, w: 2.7, h: 9.8, kind: 7, alpha: 0.88 },
-      selection,
     ];
   }
-  return [...coastalBase, ...shadows, ...shrubs, selection];
+  return [...coastalBase, ...shadows, ...shrubs];
 }

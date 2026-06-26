@@ -856,11 +856,11 @@ async function routeBattleTerrain(ctx: LabContext) {
   ctx.status.innerHTML = reportTable({
     route: 'battle-terrain',
     fixture,
-    terrain: 'warm grass, beach shelf, water, haze clear, scenery, selection glow',
+    terrain: 'warm grass, beach shelf, water, haze clear, scenery; selection is owned by battle overlay',
     quads: stats.quads,
     water: stats.waterQuads,
     scenery: stats.sceneryQuads,
-    selectionGlow: stats.selectionQuads,
+    fixtureSelectionQuads: stats.selectionQuads,
   });
   publish('battle-terrain', true, stats);
 }

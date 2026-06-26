@@ -81,7 +81,7 @@ export class CampaignScene implements Scene {
   private paused = true;
   private acc = 0;
   private last = 0;
-  /** The off-thread AI worker, when `?aiworker=1` is set. */
+  /** The off-thread AI worker — the sole driver of the campaign AI. */
   private aiWorker: Worker | null = null;
   private selected = -1;
   private hover = -1;

@@ -1,12 +1,12 @@
 //! The campaign tick pipeline, in fixed phase order (mirrors the battle sim):
-//!   1. economy (day boundary)        [M4]
-//!   2. faction AI (hourly)           [M5]
-//!   3. movement: progress, tile steps, occupancy, pass-through, embark
-//!   4. encounters: contact detection, range-gated prep, Pending transitions
-//!   5. routs & timers                [M3+]
-//!   6. recovery                      [M4]
-//!   7. visibility                    [M5]
-//! One tick = one campaign minute.
+//!   1. economy (day boundary)
+//!   2. pursuit re-aim, movement: progress, tile steps, occupancy, embark
+//!   3. encounters: contact detection, range-gated prep, Pending transitions
+//!   4. routs, occupations & timers
+//!   5. diplomacy (weekly) & visibility
+//! The commander AI is *not* a tick phase — the host drives it off the loop
+//! (see `Campaign::advance_external`); only global diplomacy runs here.
+//! One tick = `tunables::MINUTES_PER_TICK` campaign minutes.
 
 use crate::mapdata::{NodeKind, WorldMap};
 use crate::pathfind;
@@ -748,8 +748,8 @@ pub(crate) fn try_move(
     };
     let a = &mut st.armies[army as usize];
     // Re-ordering toward the same next tile keeps the step's progress — the
-    // AI re-issues its intent hourly, and zeroing progress each time froze
-    // every march longer than one order interval.
+    // AI re-issues its intent each dispatch, and zeroing progress every time
+    // froze any march longer than one order interval.
     let keep_progress = a.marching() && path.first() == Some(&a.path[a.path_idx]);
     a.path = path;
     a.path_idx = 0;

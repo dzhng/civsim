@@ -301,9 +301,9 @@ pub struct CampaignState {
     #[serde(default)]
     pub diplo_target: BTreeMap<FactionId, FactionId>,
     /// True only while this state is a search sandbox being rolled forward by
-    /// `rollout::forward`. Suppresses the hourly AI pass (so a commander's
-    /// lookahead can't recurse into itself) and is never serialized — a real
-    /// save or a fresh clone is always a live game (`false`).
+    /// `rollout::forward`. Skips the per-tick work a lookahead doesn't need —
+    /// fog recompute (the cost bottleneck) and the diplomacy pass — and is never
+    /// serialized, so a real save or a fresh clone is always a live game.
     #[serde(skip)]
     pub in_rollout: bool,
 }

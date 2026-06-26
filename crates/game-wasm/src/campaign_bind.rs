@@ -132,24 +132,10 @@ impl Campaign {
 
     // ---- off-thread AI bridge ---------------------------------------------
 
-    /// Current campaign tick — what the host schedules dispatch/apply on.
-    pub fn tick_count(&self) -> f64 {
-        self.inner.tick_count() as f64
-    }
-
     /// Run inside the worker: compute every campaigning faction's decision for
     /// the loaded snapshot and return them as JSON to post back to the host.
     pub fn commander_decisions_json(&self) -> String {
         serde_json::to_string(&self.inner.commander_decisions()).unwrap()
-    }
-
-    /// Run on the host: apply decisions a worker computed earlier (JSON from
-    /// `commander_decisions_json`). Silently ignores malformed input.
-    pub fn apply_decisions_json(&mut self, json: &str) {
-        if let Ok(decisions) = serde_json::from_str::<Vec<campaign::ai::Decision>>(json) {
-            self.inner.apply_decisions(&decisions);
-            self.refresh();
-        }
     }
 
     /// Advance under host-driven AI, stopping at the boundaries the host must

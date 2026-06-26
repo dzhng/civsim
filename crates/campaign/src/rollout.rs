@@ -7,9 +7,9 @@
 //! Two invariants make it safe to imagine the future:
 //!   - The caller clones first; `forward` mutates only the sandbox, never the
 //!     live game (and a clone never advances the live RNG stream).
-//!   - The sandbox's `in_rollout` flag suppresses the hourly AI pass, so a
-//!     commander's lookahead can't recurse into itself. The other factions
-//!     keep marching on the orders they already hold; they just don't re-think.
+//!   - The sandbox's `in_rollout` flag skips fog recompute and diplomacy, so the
+//!     rollout is cheap. The other factions keep marching on the orders they
+//!     already hold; nothing re-plans inside a sandbox.
 
 use crate::mapdata::WorldMap;
 use crate::resolve;

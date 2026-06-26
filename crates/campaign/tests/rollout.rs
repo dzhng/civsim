@@ -1,7 +1,6 @@
-//! Slice 2 — the rollout sandbox (`rollout::forward`). Pins the three things
-//! the commander's lookahead relies on: rolling a clone forward is
-//! deterministic, battles that come due auto-resolve (no hang waiting on a
-//! player), and the hourly AI pass is suppressed so a rollout can't recurse.
+//! The rollout sandbox (`rollout::forward`). Pins what the commander's lookahead
+//! relies on: rolling a clone forward is deterministic, and battles that come
+//! due auto-resolve via the cheap estimate instead of hanging for a player.
 
 use campaign::state::Loc;
 use campaign::Campaign;

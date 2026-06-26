@@ -41,9 +41,6 @@ pub struct Decision {
     pub rival: Option<FactionId>,
 }
 
-/// One faction's commander turn: drift its mood on the search cadence, then
-/// think — recording orders into `log` and applying them to `st`. Shared by the
-/// inline pass and the snapshot-based decision so the two can't drift apart.
 /// A fresh RNG stream for one faction's turn, seeded from the snapshot's RNG
 /// mixed with the tick and faction. The commander runs on a clone, so drawing
 /// from the clone's own RNG wouldn't persist — and would repeat whenever the
@@ -55,29 +52,20 @@ fn turn_rng(st: &mut CampaignState, f: FactionId) -> contract::Pcg32 {
     contract::Pcg32::new(seed, f as u64 + 1)
 }
 
-fn commander_turn(
-    map: &WorldMap,
-    st: &mut CampaignState,
-    f: FactionId,
-    bfs: &mut pathfind::Visited,
-    log: &mut Vec<Order>,
-) {
-    let mut rng = turn_rng(st, f);
-    if st.tick % tun::AI_SEARCH_EVERY == 0 {
-        let step = rng.range_f32(-tun::AI_BRAVADO_DRIFT, tun::AI_BRAVADO_DRIFT);
-        let b = &mut st.factions[f as usize].bravado;
-        *b = (*b + step).clamp(tun::AI_BRAVADO_MIN, tun::AI_BRAVADO_MAX);
-    }
-    think(map, st, f, bfs, log, &mut rng);
-}
-
-/// Compute one faction's `Decision` against `st` without touching it — runs the
-/// commander turn on a clone and reads back the orders and updated AI state.
+/// Compute one faction's `Decision` against `st` without touching it: run its
+/// turn on a clone — drift the mood on the search cadence, then think — and read
+/// back the orders and updated AI state.
 pub fn commander_decision(map: &WorldMap, st: &CampaignState, f: FactionId) -> Decision {
     let mut clone = st.clone();
     let mut bfs = pathfind::Visited::new(map);
     let mut orders = Vec::new();
-    commander_turn(map, &mut clone, f, &mut bfs, &mut orders);
+    let mut rng = turn_rng(&mut clone, f);
+    if clone.tick % tun::AI_SEARCH_EVERY == 0 {
+        let step = rng.range_f32(-tun::AI_BRAVADO_DRIFT, tun::AI_BRAVADO_DRIFT);
+        let b = &mut clone.factions[f as usize].bravado;
+        *b = (*b + step).clamp(tun::AI_BRAVADO_MIN, tun::AI_BRAVADO_MAX);
+    }
+    think(map, &mut clone, f, &mut bfs, &mut orders, &mut rng);
     Decision {
         faction: f,
         orders,

@@ -27,6 +27,23 @@ whole feature is done.
    probe, or HTML visualization the human can run, inspect, screenshot, and
    critique. Tests prove contracts; demos expose taste and intent.
 
+4. **Optimize feedback loops.** Slice so the next useful question can be
+   answered quickly. Prefer tiny runnable surfaces, hot-reloadable harnesses,
+   sample fixtures, and self-contained workbenches over plans that require the
+   whole feature to exist before anyone can learn from it. For asset-heavy
+   work, plan an asset app/workbench where humans and artists can add samples,
+   upload replacements, preview them live, and see validation failures fast.
+
+5. **Use the repo's natural shape.** If the repo is a monorepo, plan apps and
+   packages instead of forcing everything into the current app. Give each
+   testable surface a first-class route or command; avoid piling new behavior
+   behind opaque query flags when a small dedicated app would be clearer.
+
+6. **Do not block on missing inputs.** If art, data, credentials, or external
+   assets are missing, plan generated placeholders plus a replacement contract.
+   The feature should advance with placeholders, while a separate handoff path
+   explains exactly what the human or external partner must provide later.
+
 ## Workflow
 
 1. **Interview:** keep asking until you can name the slices without
@@ -35,12 +52,14 @@ whole feature is done.
 2. **Recon:** read the relevant code and existing tests. Record measured
    facts, failed approaches, and scope firewalls with greppable file/test
    names.
-3. **Map:** define the slice graph: dependencies, API seams, playable
-   deliverables, verification gates, and human review checkpoints.
+3. **Map:** define the slice graph, package/app boundaries, dependencies, API
+   seams, playable deliverables, verification gates, and human review
+   checkpoints.
 4. **Materialize:** create `specs/<feature>/` when the feature has more than
    one slice or needs assets/visualizations.
 5. **Build slice by slice:** leave each slice with a runnable artifact and
-   verification before depending on it.
+   verification before depending on it. Keep each artifact small enough to
+   iterate on quickly.
 
 ## Plan Folder
 

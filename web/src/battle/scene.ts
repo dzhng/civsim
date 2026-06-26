@@ -664,6 +664,26 @@ export class BattleScene implements Scene {
           if (info[o + 12] > 0.5) {
             verts.push(ax, ay, r, g, b, info[o + 10], info[o + 11], r, g, b);
           }
+          // The SHIFT-queued chain BEHIND the active order: active dest -> q0 ->
+          // q1 -> ... drawn dimmer than the live leg, a small diamond at each
+          // waypoint. Only the player's units ever carry a queue, so this is a
+          // no-op (empty array) for everyone else.
+          const q = game.queued_orders(u);
+          if (q.length >= 3) {
+            let px = info[o + 12] > 0.5 ? info[o + 10] : ax;
+            let py = info[o + 12] > 0.5 ? info[o + 11] : ay;
+            const qr = r * 0.55, qg = g * 0.55, qb = b * 0.55;
+            for (let j = 0; j + 2 < q.length; j += 3) {
+              const qx = q[j], qy = q[j + 1];
+              verts.push(px, py, qr, qg, qb, qx, qy, qr, qg, qb);
+              const s = 2.5; // diamond waypoint marker
+              verts.push(qx - s, qy, qr, qg, qb, qx, qy + s, qr, qg, qb);
+              verts.push(qx, qy + s, qr, qg, qb, qx + s, qy, qr, qg, qb);
+              verts.push(qx + s, qy, qr, qg, qb, qx, qy - s, qr, qg, qb);
+              verts.push(qx, qy - s, qr, qg, qb, qx - s, qy, qr, qg, qb);
+              px = qx; py = qy;
+            }
+          }
         }
         // Destination ghost: the formation frame at the end of the path
         // (flashes on every order; hold Space to keep them all visible).
@@ -1131,6 +1151,11 @@ export class BattleScene implements Scene {
       attackOrder: (u: number, enemy: number) => game.set_attack_order(u, enemy),
       attackMove: (u: number, x: number, y: number) => game.set_attack_move_order(u, x, y),
       disengage: (u: number, x: number, y: number) => game.set_disengage_order(u, x, y),
+      // SHIFT-queue a follow-up order and read the queue back — lets the verify
+      // harness exercise the queued-path (hold-Space) overlay end to end.
+      enqueue: (u: number, mode: number, x: number, y: number, facing: number, hasFacing: number) =>
+        game.enqueue(u, mode, x, y, facing, hasFacing),
+      queuedOrders: (u: number) => Array.from(game.queued_orders(u)),
       advance: (n: number) => {
         game.advance_ticks(n);
         simTick += n;

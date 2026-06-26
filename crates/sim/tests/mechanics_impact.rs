@@ -13,74 +13,46 @@
 use sim::{Pace, Sim, Tunables, UnitClassId, Vec2, DT};
 use std::f32::consts::FRAC_PI_2;
 
-/// Shock cav (120) into an engaged light line (240), `charge` = gallop vs walk-in.
-/// Returns the MEAN impact kills and mean cav peak forward speed over several
-/// seeds — the per-charger impact is seed-variable, so we pin the average, not a
-/// single run. The line fights back: a real charge's closing is against an
-/// engaged line, not a passive one.
-fn cav_into_line(charge: bool) -> (f32, f32) {
-    let seeds = [1u64, 7, 13, 21, 42];
-    let (mut impact, mut speed) = (0.0f32, 0.0f32);
-    for &s in &seeds {
-        // Morale ON: a charge's shock works on a line that can break — a solid
-        // immortal wall just bogs the horse instantly and no impact develops.
-        let mut sim = Sim::new(Tunables::default(), s);
-        let cav = sim.spawn_class(Vec2::new(0.0, -42.0), FRAC_PI_2, 120, UnitClassId::ShockCavalry, 0);
-        let line = sim.spawn_class(Vec2::new(0.0, 42.0), -FRAC_PI_2, 240, UnitClassId::LightSword, 1);
-        if !charge {
-            // walk-in: deny the charge and pace down to a walk. (A charging cav
-            // uses its defaults — it ignites the gallop on its own approach.)
-            sim.set_charge_enabled(cav, false);
-            sim.set_pace(cav, Pace::Walk);
-        }
-        sim.set_attack_order(cav, line);
-        sim.set_attack_order(line, cav);
-        let mut peak = 0.0f32;
-        for _ in 0..(60.0 / DT) as usize {
-            sim.tick();
-            peak = peak.max(sim.units[cav].mass_advance);
-        }
-        impact += sim.units[line].lost_impact as f32;
-        speed += peak;
-    }
-    let n = seeds.len() as f32;
-    (impact / n, speed / n)
-}
-
 #[test]
-fn a_walk_in_does_no_collision_damage() {
-    // A horse at a walk (1.7 m/s) is below charge_min_speed: it cannot impact,
-    // only grind. Men do NOT die from a slow horse leaning into them.
-    let (walk_impact, walk_speed) = cav_into_line(false);
+fn a_charge_outdamages_a_walk_in_on_impact() {
+    // The whole walk-vs-charge impact story on ONE rig (it used to be two tests
+    // that each re-ran the same cav-into-light charge): a charge rides in above
+    // charge speed and fells a front-rank handful on contact; a walk-in (1.7 m/s)
+    // stays below it and deals ~zero impact (it can only grind). So the charge
+    // always out-impacts the walk. Shares cav_vs_light — the same spawn the morale
+    // test uses, so the scenario is set up in exactly one place. Per-charger impact
+    // is seed-variable, so we pin the 5-seed mean. (Morale ON: a charge's shock
+    // needs a line that can break; an immortal wall just bogs the horse instantly.)
+    let charge = cav_vs_light(true, true);
+    let walk = cav_vs_light(false, true);
+    let cmin = Tunables::default().charge_min_speed;
     assert!(
-        walk_speed < Tunables::default().charge_min_speed,
-        "a walk-in must stay below charge speed, was {walk_speed:.1} m/s",
+        walk.speed < cmin,
+        "a walk-in must stay below charge speed, was {:.1} m/s",
+        walk.speed,
     );
     assert!(
-        walk_impact < 0.5,
-        "a walk-in must deal ~ZERO impact kills (it has to grind), got {walk_impact}",
-    );
-}
-
-#[test]
-fn a_charge_always_outdamages_a_walk_in_on_impact() {
-    // The charge's whole edge is SPEED: riding in fast, it fells men on contact;
-    // a walk-in cannot. So the charge must always do strictly more impact damage.
-    let (charge_impact, charge_speed) = cav_into_line(true);
-    let (walk_impact, _) = cav_into_line(false);
-    assert!(
-        charge_speed > Tunables::default().charge_min_speed,
-        "a charge must exceed charge speed, was {charge_speed:.1} m/s",
+        walk.impact < 0.5,
+        "a walk-in must deal ~ZERO impact kills (it has to grind), got {:.1}",
+        walk.impact,
     );
     assert!(
-        charge_impact > walk_impact,
-        "charge impact ({charge_impact}) must exceed walk-in impact ({walk_impact})",
+        charge.speed > cmin,
+        "a charge must exceed charge speed, was {:.1} m/s",
+        charge.speed,
     );
-    // Cap is 1 kill/charger so the impact is front-rank only — a handful, not a
-    // mow. We pin only that it's a real, non-trivial number above the walk's zero.
     assert!(
-        charge_impact >= 5.0,
-        "a 120-horse charge into a line should fell several men (mean), got {charge_impact}",
+        charge.impact > walk.impact,
+        "charge impact ({:.1}) must exceed walk-in impact ({:.1})",
+        charge.impact,
+        walk.impact,
+    );
+    // The impact cap is ~1 kill/charger, so this is front-rank only — a handful,
+    // not a mow; we pin only that it's a real number above the walk's zero.
+    assert!(
+        charge.impact >= 5.0,
+        "a 120-horse charge into a line should fell several men (mean), got {:.1}",
+        charge.impact,
     );
 }
 
@@ -118,6 +90,7 @@ struct Outcome {
     impact: f32,   // light deaths by cause (means)
     lance: f32,
     grind: f32,
+    speed: f32,    // peak mass-advance the cav reached (m/s, mean) — the gallop's edge
 }
 
 /// Cav 120 vs light 240. `charge` = gallop vs walk-in; `morale` on lets either
@@ -127,6 +100,7 @@ fn cav_vs_light(charge: bool, morale: bool) -> Outcome {
     let seeds = [1u64, 7, 13, 21, 42];
     let (mut cav_dead, mut cav_wins) = (0.0f32, 0.0f32);
     let (mut impact, mut lance, mut grind) = (0.0f32, 0.0f32, 0.0f32);
+    let mut speed = 0.0f32;
     for &s in &seeds {
         let mut tun = Tunables::default();
         tun.morale_enabled = morale;
@@ -140,8 +114,10 @@ fn cav_vs_light(charge: bool, morale: bool) -> Outcome {
         sim.set_attack_order(cav, light);
         sim.set_attack_order(light, cav);
         let mut won: Option<bool> = None;
+        let mut peak = 0.0f32;
         for _ in 0..(600.0 / DT) as usize {
             sim.tick();
+            peak = peak.max(sim.units[cav].mass_advance);
             let (c, l) = (&sim.units[cav], &sim.units[light]);
             if won.is_none() {
                 // First decisive event: a side routs or is destroyed.
@@ -160,6 +136,7 @@ fn cav_vs_light(charge: bool, morale: bool) -> Outcome {
         impact += sim.units[light].lost_impact as f32;
         lance += sim.units[light].lost_charge_melee as f32;
         grind += sim.units[light].lost_grind_melee as f32;
+        speed += peak;
     }
     let n = seeds.len() as f32;
     Outcome {
@@ -168,6 +145,7 @@ fn cav_vs_light(charge: bool, morale: bool) -> Outcome {
         impact: impact / n,
         lance: lance / n,
         grind: grind / n,
+        speed: speed / n,
     }
 }
 

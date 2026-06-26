@@ -445,7 +445,7 @@ impl Sim {
         // nimble skirmisher (high evade, no block) eats arrows about equally
         // from either face while a shield wall is a fortress only to its front.
         // Cohesion-scaled like its melee twin; stones can't be dodged.
-        if !heavy && self.rng.chance(vstats.evade * self.units[uv].cohesion) {
+        if !heavy && self.rng.chance(vstats.evade * self.units[uv].combat_cohesion()) {
             return;
         }
 

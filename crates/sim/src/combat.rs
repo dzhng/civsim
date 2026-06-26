@@ -195,6 +195,27 @@ impl Sim {
                 continue;
             }
             let ui = self.soldier_unit[i] as usize;
+            // Couching the lance is part of beginning the GALLOP, not a
+            // melee-range weapon pick. The grind weapon-swap below only runs once
+            // a foe is within DISENGAGE_DIST (6m) — so without this a charging
+            // lancer kept his sidearm in hand for the whole approach and only
+            // drew the lance AT contact (visibly wrong, and the couched point
+            // never carried). Decide the charge weapon here, above the proximity
+            // gates, keyed purely on charge state: the instant the burst opens
+            // (~50m out) every rider levels his lance, and holds it until it
+            // SNAPS on a man (charge_wpn_spent) or the charge bogs (charging
+            // drops). No fumble cooldown — the lance comes down with the gallop.
+            if self.units[ui].charging && !self.charge_wpn_spent[i] {
+                if let Some(ci) = self.units[ui]
+                    .stats
+                    .weapons
+                    .iter()
+                    .position(|w| w.is_charge())
+                {
+                    self.cur_weapon[i] = ci as u8;
+                    self.switch_cd[i] = 0.0;
+                }
+            }
             if !near_enemy[ui] {
                 self.target[i] = -1;
                 self.fighting[i] = 0;
@@ -739,7 +760,9 @@ impl Sim {
     ) {
         let uv = self.soldier_unit[victim] as usize;
         let vstats = self.units[uv].stats;
-        let cohesion = self.units[uv].cohesion;
+        // Combat cohesion: a trampler reads full (its blob doesn't fight worse);
+        // every other class pays disorder in evade and block.
+        let cohesion = self.units[uv].combat_cohesion();
 
         // Reactive facing memory + unit contact bookkeeping.
         let incoming = wrap_angle(bearing + std::f32::consts::PI);

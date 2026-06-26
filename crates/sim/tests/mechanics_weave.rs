@@ -205,7 +205,9 @@ fn run_speed_per_class_is_tracked() {
 // here: confirm it's wanted, then re-baseline.
 const LIGHT_RUN: f32 = 3.43;
 const HEAVY_RUN: f32 = 3.11;
-const CAV_RUN: f32 = 6.06;
+// cav re-baselined 2026-06-26: ShockCavalry pace_mult 2.6 -> 3.6 (the +30%
+// run/charge request). run = 1.7 + (3.4-1.7)*3.6 ≈ 7.82 cap, reached at ~7.76.
+const CAV_RUN: f32 = 7.76;
 
 /// EXACT-VALUE tracker for the CHARGE peak (companion to run_speed_per_class_is_
 /// tracked). Pins the precise charge m/s per class so any side effect on the burst
@@ -229,7 +231,10 @@ fn charge_speed_per_class_is_tracked() {
 // heavy 3.37->3.44, cav 7.49->7.99. A wanted movement side effect, not drift.
 const LIGHT_CHARGE: f32 = 4.06;
 const HEAVY_CHARGE: f32 = 3.44;
-const CAV_CHARGE: f32 = 7.99;
+// cav re-baselined 2026-06-26 with pace_mult 2.6 -> 3.6: the per-man charge
+// ceiling rose to ~12.1 m/s, but this short rig is acceleration-limited so the
+// MEASURED peak lands at 9.54 (the longer the runway, the closer to the cap).
+const CAV_CHARGE: f32 = 9.54;
 
 /// A clean rectangular block, facing north, on a parade ground.
 fn block(files: usize, ranks: usize, spacing: f32) -> (Sim, usize) {

@@ -403,7 +403,9 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             ..foot
         },
         ShockCavalry => UnitClass {
-            pace_mult: 2.6,
+            // ~+30% on the run/charge gaits (pace_mult scales the above-walk
+            // range): run 6.1->7.6 m/s, charge 9.2->12.1 m/s at full stamina.
+            pace_mult: 3.6,
             soldier_radius: 0.55,
             mass: 4.5,
             brace_mult: 1.0,
@@ -431,7 +433,9 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
         },
         HorseArchers => UnitClass {
             drain_mult: 0.8,
-            pace_mult: 2.8,
+            // ~+30% on the run gait to match the shock arm: 6.5->8.3 m/s at full
+            // stamina (no charge — light horse skirmishes and kites).
+            pace_mult: 3.9,
             soldier_radius: 0.55,
             mass: 3.8,
             brace_mult: 1.0,

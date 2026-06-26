@@ -286,6 +286,21 @@ impl Unit {
         self.stats.tramples
     }
 
+    /// Cohesion as it feeds COMBAT/MORALE debuffs (melee evade & block, missile
+    /// evade, morale-drain amplification). A trampler fights from a loose,
+    /// constantly-reriding blob by design, so disorder must NOT erode its
+    /// fighting or break its nerve — it reads full cohesion here. The kinematic
+    /// "lag" (turn/accel throttle) and the command-order delay still key off the
+    /// real `cohesion`, so a messy mob is still physically sluggish to reform and
+    /// slow to take orders — just not a worse killer for being a mob.
+    pub fn combat_cohesion(&self) -> f32 {
+        if self.tramples() {
+            1.0
+        } else {
+            self.cohesion
+        }
+    }
+
     /// The pace the legs actually use: an attack closes at the double
     /// regardless of the ordered pace — movement intent, not a combat
     /// bonus. (The charge burst overrides higher still, in pace_speed.

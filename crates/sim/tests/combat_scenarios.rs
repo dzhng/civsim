@@ -358,12 +358,16 @@ fn charge_impact_knocks_infantry_down() {
     // The shock of a charge KNOCKS MEN DOWN — the body-impact mostly STUNS (it
     // rarely kills outright; the kills come from the lance and the grind). So the
     // signal is a swath of stunned men at contact, not a pile of impact corpses.
+    // The line must be HEAVY infantry: once the lance reliably couches for the
+    // whole charge, it one-shots light spearmen (they DIE instead of being
+    // knocked down — the stun signal vanishes into a pile of corpses). Heavy men
+    // survive the lance to be bowled over, so the knockdown is what we measure.
     let mut sim = Sim::new(no_morale(), SEED);
     let inf = sim.spawn_class(
         Vec2::new(0.0, 30.0),
         -FRAC_PI_2,
         200,
-        UnitClassId::LightSpear,
+        UnitClassId::HeavySword,
         0,
     );
     let cav = sim.spawn_class(
@@ -391,11 +395,15 @@ fn charge_impact_knocks_infantry_down() {
     let stunned = ever_stunned.iter().filter(|&&b| b).count();
     let dead = sim.units[inf].count - sim.units[inf].alive_count;
     // The charge disrupts the front — it knocks men down (stun) and the lance +
-    // grind bloody it. (The heavy-knockdown case vs a softer line is pinned tight
-    // in mechanics_impact; here the spearmen bite back so the shock is smaller.)
+    // grind bloody it. Against HEAVY infantry the body-impact still bowls men over
+    // (the knockdown — this test's namesake), but the armoured line barely bleeds
+    // to one charge: a handful of lance kills, not a heap. So the STUN is the
+    // strong signal here; the dead floor is low by design (a soft line is the
+    // bloodbath case, pinned in the dense/loose scenario). The heavy-knockdown
+    // magnitude vs a softer line is pinned tight in mechanics_impact.
     assert!(
-        stunned >= 3 && dead >= 15,
-        "a cavalry charge must knock infantry DOWN and bloody them: {stunned} stunned, {dead} dead"
+        stunned >= 3 && dead >= 2,
+        "a cavalry charge must knock infantry DOWN and draw blood: {stunned} stunned, {dead} dead"
     );
 }
 

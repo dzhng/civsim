@@ -227,23 +227,24 @@ fn dense_infantry_blunts_a_cavalry_charge_loose_gets_punched_through() {
          LOOSE (1.8m) mass-advance {adv_l:.1}m/s, {dead_l:.0} dead",
         SEEDS.len()
     );
-    // Dense order bogs the horse mass and absorbs the charge in BODIES; loose
-    // order yields with far fewer men hit. The body count is the strong, robust
-    // signal (dense fells several times more men); the horse also keeps less
-    // speed in the packed press, though by a smaller margin than under the old
-    // near-instant turning — with realistic facing both orders bog somewhat, so
-    // we assert the direction, not an aggressive ratio. Under the faster attack
-    // interval + impact-cap the magnitudes shifted (dense ~47, loose ~16 over
-    // the seed set; mass-advance 0.3 vs 1.0): the contrast is now ~2.9x in
-    // bodies, so the ratio floor sits at 2.5x with headroom below the measured
-    // gap. (Raw horse-metres saturate as a ruler.)
+    // Spacing is the lever, and it cuts two ways — the test's NAME says both:
+    // dense order BLUNTS the charge (bogs the horse), and LOOSE order GETS PUNCHED
+    // THROUGH (more men felled). Now that the lance couches for the whole charge,
+    // the kill mechanism is the ride-through: against open order the horse rides
+    // clean through and the couched lances skewer men the whole way (loose bleeds
+    // more); against packed order the mass bogs at the face, so fewer men are
+    // reached AND the horse keeps less speed. Both signals point the same way and
+    // tell the intuitive lesson — close order is how you survive cavalry. (8-seed
+    // means: dense 0.6 m/s & 11 dead, loose 1.5 m/s & 18 dead → ~1.6x in bodies,
+    // floor at 1.3x with headroom. The OLD "dense dies more" was an artifact of
+    // the toothless-lance grind and contradicted this test's own name.)
     assert!(
         adv_d < adv_l,
         "dense order must slow the horse mass more than loose order: dense {adv_d:.1}m/s vs loose {adv_l:.1}m/s"
     );
     assert!(
-        dead_d > dead_l * 2.5,
-        "dense order absorbs the impact in bodies while loose order yields: dense {dead_d:.0} dead vs loose {dead_l:.0}"
+        dead_l > dead_d * 1.3,
+        "loose order gets punched through while dense order blunts the charge: loose {dead_l:.0} dead vs dense {dead_d:.0}"
     );
 }
 
@@ -358,18 +359,18 @@ fn charge_opens_at_the_edge_from_face_and_flank_alike() {
     println!("burst opens {face:.1}m from the face, {flank:.1}m from the flank");
     // MECHANISM: the burst opens at charge_sp * charge_window from the enemy
     // front. The rebuilt charge gallops far faster (cav charge_sp ≈ 1.7 +
-    // (4.6-1.7)*2.6 ≈ 9.2 m/s at the 2.6 pace_mult) so the 5s window reaches
-    // ~46m of edge-distance, not the ~25m of the slower old burst. The
+    // (4.6-1.7)*3.6 ≈ 12.1 m/s at the 3.6 pace_mult, the +30% speed bump) so the
+    // 5s window reaches ~60m of edge-distance, not the ~46m of the 2.6 burst. The
     // INVARIANT under test is unchanged — the window is measured to the EDGE
     // the rider meets (not the centroid, which would fire 40m inside a flank),
     // and aspect must not change the trigger. Only the OUTCOME distance moved
     // (faster gallop → longer wind-up), so the upper bound is re-derived to it.
     assert!(
-        face > 2.0 && face < 55.0,
+        face > 2.0 && face < 66.0,
         "frontal burst at a sane edge distance: {face:.1}m"
     );
     assert!(
-        flank > 2.0 && flank < 55.0,
+        flank > 2.0 && flank < 66.0,
         "flank burst at a sane edge distance: {flank:.1}m"
     );
     assert!(

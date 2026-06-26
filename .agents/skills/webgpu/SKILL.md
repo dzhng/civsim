@@ -65,6 +65,11 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   adding more feature props. Deterministic high-frequency grass, stubble, and
   pebble detail in the shader can raise edge energy without reintroducing
   debug-line or square-overlay artifacts.
+- For campaign close-view parity, road line styling can dominate the score and
+  the human read. Tune road mesh widths, alpha, and grey-stone/shadow colors in
+  the line pass before changing camera or labels; then rerun the parity helper.
+  Plausible palette changes can worsen the fixed pair, so keep rejected color
+  experiments out of the committed artifact set.
 - Use instancing, batching, storage buffers, and GPU-side phase passes for scale.
   Avoid CPU readbacks in hot paths; debug readbacks must be bounded and named.
 - For iterative effects or simulations, separate phases such as `state`,

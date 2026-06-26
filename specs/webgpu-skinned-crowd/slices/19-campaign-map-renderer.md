@@ -93,6 +93,12 @@ campaign-label-zoom gate.
   energy more closely (`edgeEnergyRatio 1.06531`). Remaining gaps include exact
   prop placement, richer terrain relief, and grounded perspective/depth ordering
   for flags, selection, and label quads.
+- The road line pass now draws a narrower grey-stone road with softer side
+  shadows instead of the previous stark white multi-band treatment. This moved
+  Campaign Label Zoom parity distance from `0.24434` to `0.23538` and brought
+  edge energy closer to the archived renderer (`edgeEnergyRatio 1.03316`).
+  A tested higher-saturation terrain grade looked plausible but worsened the
+  same metric, so it was rejected rather than committed.
 
 ## Must Stay Green
 

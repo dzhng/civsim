@@ -1,6 +1,6 @@
 {
   "kind": "screenshot-parity-diff",
-  "generatedAt": "2026-06-26T23:13:36.963Z",
+  "generatedAt": "2026-06-26T23:27:09.027Z",
   "note": "Lower parityDistance means the candidate is closer to archived current-renderer parity. This is a parity metric, not an aesthetics acceptance gate.",
   "results": [
     {
@@ -11,24 +11,24 @@
         "width": 1280,
         "height": 800
       },
-      "parityDistance": 0.24434,
+      "parityDistance": 0.23538,
       "grayscale": {
-        "mae": 40.62921,
-        "rmse": 68.63842,
-        "diffRatio16": 0.43774,
-        "diffRatio32": 0.31332,
-        "diffRatio64": 0.24965,
-        "pixelmatchRatio": 0.38504
+        "mae": 40.39329,
+        "rmse": 68.46847,
+        "diffRatio16": 0.43476,
+        "diffRatio32": 0.30951,
+        "diffRatio64": 0.24787,
+        "pixelmatchRatio": 0.38104
       },
       "contentProxies": {
         "blackRatioCurrent": 0.48049,
         "blackRatioCandidate": 0.39449,
         "terrainLikeRatioCurrent": 0.4811,
-        "terrainLikeRatioCandidate": 0.56961,
+        "terrainLikeRatioCandidate": 0.57006,
         "edgeEnergyCurrent": 0.05082,
-        "edgeEnergyCandidate": 0.05413,
-        "edgeEnergyRatio": 1.06531,
-        "edgeDiffRatio32": 0.09892
+        "edgeEnergyCandidate": 0.0525,
+        "edgeEnergyRatio": 1.03316,
+        "edgeDiffRatio32": 0.09893
       },
       "artifacts": {
         "currentGray": "visual-diff/campaign-label-zoom-current-gray.png",
@@ -48,24 +48,24 @@
         "width": 2560,
         "height": 1600
       },
-      "parityDistance": 0.1591,
+      "parityDistance": 0.15937,
       "grayscale": {
-        "mae": 9.82301,
-        "rmse": 18.57223,
-        "diffRatio16": 0.1426,
-        "diffRatio32": 0.0655,
-        "diffRatio64": 0.02538,
-        "pixelmatchRatio": 0.09577
+        "mae": 9.93859,
+        "rmse": 18.92573,
+        "diffRatio16": 0.14382,
+        "diffRatio32": 0.06665,
+        "diffRatio64": 0.02623,
+        "pixelmatchRatio": 0.09697
       },
       "contentProxies": {
         "blackRatioCurrent": 0.00083,
         "blackRatioCandidate": 0.00125,
         "terrainLikeRatioCurrent": 0.79296,
-        "terrainLikeRatioCandidate": 0.79595,
+        "terrainLikeRatioCandidate": 0.79582,
         "edgeEnergyCurrent": 0.12744,
-        "edgeEnergyCandidate": 0.09002,
-        "edgeEnergyRatio": 0.70633,
-        "edgeDiffRatio32": 0.14797
+        "edgeEnergyCandidate": 0.09035,
+        "edgeEnergyRatio": 0.70894,
+        "edgeDiffRatio32": 0.14946
       },
       "artifacts": {
         "currentGray": "visual-diff/battle-selection-hud-dpr2-current-gray.png",

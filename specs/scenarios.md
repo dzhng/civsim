@@ -157,10 +157,10 @@ with a gate that fails when the projection has a hole. Two tiers:
 - **Atomic visual states** — the cartesian product of the renderer's
   registries, each a single primitive shown in isolation. These are 100%
   enumerable and 100% gated. *(measured fact — the registries:)*
-  - 9 unit classes (`web/src/shared/soldierModel.ts` `CLASS_LOOK`) × 2 teams
-    (`TEAM_COLOR`, renderer3d.ts) × pose. Poses: the 6 atlas frames
-    (idle / walk-a / walk-b / attack / dead / weapon-swap) and the
-    `classGeometry(cls, rest)` forward-vs-at-ease variant for pole arms.
+  - unit classes (`web/src/battle/classData.ts` and
+    `web/src/shared/soldierModel.ts` look data) × 2 teams × WebGPU crowd pose.
+    The old Babylon battle turntable is retired; generated visual coverage
+    should come from the raw-WebGPU lab/asset workbench lane.
   - highlight state: none / hover / selected.
   - ~18 status chips (`unitBanner.ts`: OTH ATK FEN CHG! ⚔N ROUT TIRED KITE
     AMMO! 2nd CRUSH BRC PUR SQZ WAIT …) × chip kind (plain/hot/bad); HP and

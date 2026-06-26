@@ -6,8 +6,8 @@
 
 import { lookForModel, modelLookForClass } from '../shared/soldierModel';
 
-// Faction accents — kept in step with renderer3d's FACTION_ACCENT so a unit's
-// card, its banner and the colour on its soldiers all read as the same side.
+// Faction accents keep cards, banners, and WebGPU soldier colours reading as
+// the same side.
 const FACTION_CSS = ['#3a6cf0', '#e03e34']; // player blue, enemy crimson
 
 export interface UnitCardInit {

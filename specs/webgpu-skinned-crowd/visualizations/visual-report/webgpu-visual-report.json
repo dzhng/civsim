@@ -1,0 +1,111 @@
+{
+  "kind": "webgpu-visual-cutover-report",
+  "generatedAt": "scenario-generated",
+  "releaseVisualImprovement": "pending-archived-current-renderer-comparisons",
+  "legacyComparisonRequirement": "Attach archived current-renderer captures and accepted comparison statuses for the same scenes before marking visual-improvement complete.",
+  "comparisonInputs": {
+    "currentRendererDir": null,
+    "comparisonJson": "../specs/webgpu-skinned-crowd/visualizations/current-renderer/visual-comparison.manifest.pending.json"
+  },
+  "postCutoverScreenshots": "webgpu-only",
+  "captures": [
+    {
+      "id": "menu-ready",
+      "label": "Menu Ready",
+      "category": "menu/app shell",
+      "criteria": "WebGPU-ready menu, dense controls, readable modal surface.",
+      "status": "webgpu-evidence",
+      "evidence": "adapter google / swiftshader; webgpu-only",
+      "image": "visual-report/menu-ready.png",
+      "currentRendererComparison": {
+        "status": "equal-or-better",
+        "image": "current-renderer/menu-ready.png",
+        "note": "WebGPU menu preserves the current shell readability while adding explicit WebGPU-ready capability status."
+      }
+    },
+    {
+      "id": "menu-unsupported",
+      "label": "Unsupported WebGPU",
+      "category": "fallback UX",
+      "criteria": "Unsupported browsers block renderer launch with useful text.",
+      "status": "webgpu-evidence",
+      "evidence": "WebGPU unavailable: WebGPU support was disabled for this verification run. The WebGPU build requires a browser and GPU adapter that expose WebGPU.",
+      "image": "visual-report/menu-unsupported.png",
+      "currentRendererComparison": {
+        "status": "accepted-exception",
+        "image": "current-renderer/menu-unsupported.png",
+        "note": "The current renderer had no unsupported-WebGPU state; WebGPU is better because it blocks launch with a clear capability failure instead of entering an unusable renderer."
+      }
+    },
+    {
+      "id": "battle-default",
+      "label": "Battle Max Crowd",
+      "category": "battle",
+      "criteria": "30k raw-WebGPU crowd, Aegean haze, field-aware coast, warm terrain, skinned soldier material lighting, team colors, HUD composition.",
+      "status": "webgpu-evidence",
+      "evidence": "30000 soldiers; renderer webgpu; drawCalls 1; aegean-sky-haze; field-aware coast; warm/cool skinned material grade",
+      "image": "visual-report/battle-default.png",
+      "currentRendererComparison": {
+        "status": "equal-or-better",
+        "image": "current-renderer/battle-default.png",
+        "note": "WebGPU renders 30k soldiers versus the archived current renderer's 21.2k, keeps terrain/water/HUD readable, and uses far-view impostors for hardware performance headroom."
+      }
+    },
+    {
+      "id": "battle-selection-hud-dpr2",
+      "label": "Battle Selection DPR2",
+      "category": "battle input/HUD",
+      "criteria": "Retina/DPR2 selection, order feedback, feathered shore, lit skinned silhouettes, minimap, unit cards.",
+      "status": "webgpu-evidence",
+      "evidence": "dpr2 selection; 2840 soldiers; renderer webgpu; aegean-sky-haze; feathered shore; lit skinned silhouettes",
+      "image": "visual-report/battle-selection-hud-dpr2.png",
+      "currentRendererComparison": {
+        "status": "equal-or-better",
+        "image": "current-renderer/battle-selection-hud-dpr2.png",
+        "note": "WebGPU preserves DPR2 selection, order lines, minimap, unit cards, and clearer team-color blocks; terrain is warmer and less noisy than the archived current renderer."
+      }
+    },
+    {
+      "id": "campaign-whole-map",
+      "label": "Campaign Whole Map",
+      "category": "campaign",
+      "criteria": "Parchment map, territory, roads, water, clouds, WebGPU glyph labels.",
+      "status": "webgpu-evidence",
+      "evidence": "412 cities; 40/492 labels; raw-webgpu-glyph-atlas",
+      "image": "visual-report/campaign-whole-map.png",
+      "currentRendererComparison": {
+        "status": "webgpu-better",
+        "image": "current-renderer/campaign-whole-map.png",
+        "note": "WebGPU campaign overview is visibly better: parchment/painted-chart treatment, stronger sea lanes, clearer faction washes, and large engraved labels."
+      }
+    },
+    {
+      "id": "campaign-label-zoom",
+      "label": "Campaign Label Zoom",
+      "category": "campaign",
+      "criteria": "City/army/road/label readability at gameplay zoom.",
+      "status": "webgpu-evidence",
+      "evidence": "5/11 labels; atlas 1024x64; raw-webgpu-glyph-atlas",
+      "image": "visual-report/campaign-label-zoom.png",
+      "currentRendererComparison": {
+        "status": "pending-review",
+        "image": "current-renderer/campaign-label-zoom.png",
+        "note": "Reopened after visual review: the WebGPU close zoom is not equal-or-better yet. It needs richer 3D-style city, army, terrain, and marker composition before release acceptance."
+      }
+    },
+    {
+      "id": "campaign-handoff-battle",
+      "label": "Campaign Battle Handoff",
+      "category": "full-game flow",
+      "criteria": "Campaign encounter launches a WebGPU battle with campaign return UI.",
+      "status": "webgpu-evidence",
+      "evidence": "840 campaign battle soldiers; renderer webgpu; aegean-sky-haze; WebGPU terrain",
+      "image": "visual-report/campaign-handoff-battle.png",
+      "currentRendererComparison": {
+        "status": "equal-or-better",
+        "image": "current-renderer/campaign-handoff-battle.png",
+        "note": "WebGPU handoff battle preserves the campaign return surface and improves performance with the same battle UI/readability contract."
+      }
+    }
+  ]
+}

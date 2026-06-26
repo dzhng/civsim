@@ -8,6 +8,7 @@ export interface CampaignDebugApi {
   orderSplit(army: number, mask: number): boolean;
   orderMerge(src: number, dst: number): boolean;
   battleReady(): number;
+  fightReady(): boolean;
   currentTick(): number;
   encounterJson(id: number): string;
   armies(): ArmyView[];
@@ -39,7 +40,6 @@ declare global {
 
 export function installCampaignDebugApi(api: CampaignDebugApi) {
   window.__campaign = api;
-  window.__campaignReady = true;
 }
 
 export function markCampaignReady(ready: boolean) {

@@ -1,13 +1,22 @@
-import init, { Campaign, Game } from './wasm/game_wasm.js';
+import init, { Campaign, Game, type InitOutput } from './wasm/game_wasm.js';
 import { currentScene, switchScene } from './scene';
 import { MenuScene } from './menu/scene';
 import { BattleScene, type BattleKind } from './battle/scene';
 import { CampaignScene, loadCampaignData } from './campaign/scene';
 import type { CampaignData } from './campaign/data';
-
-const wasm = await init();
+import { checkWebGpuSupport, type WebGpuSupportState } from '../../packages/game-renderer/src/appShell';
 
 const params = new URLSearchParams(location.search);
+let wasm: InitOutput;
+let webGpuStatus: WebGpuSupportState | null = null;
+
+if (location.pathname.startsWith('/webgpu')) {
+  const { mountWebgpuLab } = await import('../../apps/webgpu-lab/src/router');
+  await mountWebgpuLab(location.pathname);
+} else {
+  webGpuStatus = await checkWebGpuSupport({ forceUnsupported: params.get('webgpu') === 'off' });
+  publishAppShellStats();
+  wasm = await init();
 
 // Standalone component harness: render the unit-banner gallery and stop, so the
 // component can be eyeballed and pixel-snapshotted without the sim or engine.
@@ -17,13 +26,9 @@ if (params.get('test') === 'banners') {
   document.body.appendChild(root);
   mountBannerGallery(root);
   (window as unknown as { __ready: boolean }).__ready = true;
-} else if (params.get('test') === 'models') {
-  // Turntable: stand one soldier per class on a flat field and orbit the camera
-  // for 360° model review (vibe/turntable.mjs). No sim, no menu.
-  const { mountTurntable } = await import('./battle/turntable');
-  mountTurntable();
 } else {
   await main();
+}
 }
 
 async function main() {
@@ -93,13 +98,51 @@ async function buildTestCampaign(): Promise<{ data: CampaignData; mapJson: strin
     ],
   } as unknown as CampaignData['map'];
   const bgRect = { min: [-45, Y - 28] as [number, number], max: [45, Y + 28] as [number, number] };
-  const cv = new OffscreenCanvas(180, 112);
-  const g = cv.getContext('2d')!;
-  g.fillStyle = 'rgb(196,178,138)'; // the mapgen LAND colour → classifies to grass
-  g.fillRect(0, 0, cv.width, cv.height);
-  const bg = await createImageBitmap(cv);
+  const bg = await solidCampaignBitmap(180, 112, [196, 178, 138]);
   const nodeIndex = new Map(map.nodes.map((n, i) => [n.id, i]));
   return { data: { map, bg, bgRect, nodeIndex }, mapJson: JSON.stringify(map) };
+}
+
+async function buildHandoffCampaign(): Promise<{ data: CampaignData; mapJson: string }> {
+  const Y = 450;
+  const map = {
+    half_w: 70,
+    half_h: 500,
+    attribution: 'handoff-test',
+    nodes: [
+      { id: 1, name: 'Roma', pos: [-30, Y], kind: 'city', tier: 2, port: false, owner: 'rome' },
+      { id: 2, name: 'Capua', pos: [30, Y], kind: 'city', tier: 2, port: false, owner: 'samnium' },
+    ],
+    edges: [
+      { a: 1, b: 2, kind: 'road', via: [[-30, Y], [30, Y]], tiles: Array(8).fill('open') },
+    ],
+    ambush_spots: [],
+    factions: [
+      { id: 'rome', name: 'Rome', color: [200, 40, 40], playable: true },
+      { id: 'samnium', name: 'Samnium', color: [40, 80, 190], playable: true, ai_persona: 'neutral' },
+      { id: 'independents', name: 'Independent', color: [130, 130, 130], playable: false },
+    ],
+    start_armies: [
+      { faction: 'rome', at: 'Roma', roster: [['LightSpear', 420]] },
+      { faction: 'samnium', at: 'Capua', roster: [['LightSpear', 420]] },
+    ],
+  } as unknown as CampaignData['map'];
+  const bgRect = { min: [-54, Y - 32] as [number, number], max: [54, Y + 32] as [number, number] };
+  const bg = await solidCampaignBitmap(216, 128, [196, 178, 138]);
+  const nodeIndex = new Map(map.nodes.map((n, i) => [n.id, i]));
+  return { data: { map, bg, bgRect, nodeIndex }, mapJson: JSON.stringify(map) };
+}
+
+async function solidCampaignBitmap(width: number, height: number, rgb: [number, number, number]) {
+  const pixels = new Uint8ClampedArray(width * height * 4);
+  for (let i = 0; i < width * height; i++) {
+    const o = i * 4;
+    pixels[o] = rgb[0];
+    pixels[o + 1] = rgb[1];
+    pixels[o + 2] = rgb[2];
+    pixels[o + 3] = 255;
+  }
+  return createImageBitmap(new ImageData(pixels, width, height));
 }
 
 async function launchCampaign(fromSave: boolean, testData?: { data: CampaignData; mapJson: string }) {
@@ -140,12 +183,23 @@ const menu = new MenuScene({
   onNewCampaign: () => void launchCampaign(false),
   onLoadCampaign: () => void launchCampaign(true),
   hasSave: () => localStorage.getItem(SAVE_KEY) !== null,
+  webGpuStatus: webGpuStatus!,
 });
 
 // ?battle=duel&a=0&b=6&ai=on, ?battle=5v5, ?map=A|B boot straight into the
 // battle (deep links and the verify harness); a bare URL opens the menu.
 const sandbox = params.get('battle');
-if (params.get('campaign') === 'test') void launchCampaign(false, await buildTestCampaign());
+const wantsCampaign = params.has('campaign');
+const wantsBattle = sandbox === 'duel'
+  || sandbox === '5v5'
+  || sandbox === 'surround'
+  || sandbox === 'flank'
+  || params.has('map')
+  || params.has('battle');
+if (!webGpuStatus!.ok && (wantsCampaign || wantsBattle)) switchScene(menu);
+else if (params.get('campaign') === 'test') void launchCampaign(false, await buildTestCampaign());
+else if (params.get('campaign') === 'handoff') void launchCampaign(false, await buildHandoffCampaign());
+else if (wantsCampaign) void launchCampaign(false);
 else if (sandbox === 'duel' || sandbox === '5v5' || sandbox === 'surround' || sandbox === 'flank') launchBattle(sandbox);
 else if (params.has('map') || params.has('battle')) launchBattle(params.get('map') === 'B' ? 'mapB' : 'mapA');
 else switchScene(menu);
@@ -155,4 +209,11 @@ function frame(now: number) {
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
+}
+
+function publishAppShellStats() {
+  (window as unknown as { __appShellStats?: unknown }).__appShellStats = {
+    webgpu: webGpuStatus,
+    postCutoverScreenshots: 'webgpu-only',
+  };
 }

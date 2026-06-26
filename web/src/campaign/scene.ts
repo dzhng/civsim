@@ -6,10 +6,10 @@
 import { Campaign, Game, start_campaign_battle, report_battle, type InitOutput } from '../wasm/game_wasm.js';
 import type { Scene } from '../scene';
 import { loadCampaignData, nearestLoc, tilePos, type CampaignData } from './data';
-import { CampaignRenderer, type CamView } from './renderer';
+import type { CamView } from './camera';
+import { CampaignRendererWebGPU } from './rendererWebGPU';
 import { TerrainField } from './terrain';
 import { Territory } from './territory';
-import { Terrain3D } from './terrain3d';
 import { Allegiance } from './status';
 import { installCampaignDebugApi, markCampaignReady } from './debugApi';
 import {
@@ -59,13 +59,11 @@ interface EncounterInfo {
 
 export class CampaignScene implements Scene {
   private canvas!: HTMLCanvasElement;
-  private glCanvas!: HTMLCanvasElement;
   private ui!: HTMLDivElement;
-  private renderer!: CampaignRenderer;
+  private renderer!: CampaignRendererWebGPU;
   // Terrain/territory live across battle round-trips (enter/exit cycles).
   private field: TerrainField | null = null;
   private territory: Territory | null = null;
-  private t3d: Terrain3D | null = null;
   private ownerHash = 0;
   private ac: AbortController | null = null;
   private cam: CamView;
@@ -101,6 +99,7 @@ export class CampaignScene implements Scene {
   private spotPos: [number, number][] = [];
   private modal: HTMLDivElement | null = null;
   private autoResolving = false;
+  private terrainReady = false;
 
   constructor(private cfg: CampaignConfig) {
     this.cam = { x: 0, y: 0, scale: 0.18 };
@@ -113,10 +112,8 @@ export class CampaignScene implements Scene {
     void document.fonts.load('600 14px Cinzel');
     if (!document.getElementById('campaign-canvas')) this.buildDom();
     this.canvas = document.getElementById('campaign-canvas') as HTMLCanvasElement;
-    this.glCanvas = document.getElementById('campaign-gl') as HTMLCanvasElement;
     this.ui = document.getElementById('campaign-ui') as HTMLDivElement;
     this.canvas.style.display = 'block';
-    this.glCanvas.style.display = 'block';
     this.ui.style.display = 'block';
     if (this.spotPos.length === 0) {
       this.spotPos = this.cfg.data.map.ambush_spots.map((sp) =>
@@ -125,9 +122,13 @@ export class CampaignScene implements Scene {
     if (!this.field) {
       this.field = new TerrainField(this.cfg.data);
       this.territory = new Territory(this.cfg.data, this.field);
-      this.t3d = new Terrain3D(this.glCanvas, this.field, this.cfg.data);
     }
-    this.renderer = new CampaignRenderer(this.canvas, this.cfg.data, this.t3d!, this.field);
+    this.terrainReady = false;
+    this.renderer = new CampaignRendererWebGPU(this.canvas, this.cfg.data, this.field!, this.territory!);
+    void this.renderer.ready.then(() => {
+      this.terrainReady = true;
+      markCampaignReady(true);
+    });
     this.ownerHash = 0; // force a territory recolor on (re)entry
     this.ac = new AbortController();
     this.wireInput(this.ac.signal);
@@ -160,6 +161,12 @@ export class CampaignScene implements Scene {
         return ok;
       },
       battleReady: () => this.cfg.campaign.battle_ready(),
+      fightReady: () => {
+        const eid = this.cfg.campaign.battle_ready();
+        if (eid < 0) return false;
+        this.fight(eid);
+        return true;
+      },
       currentTick: () => this.cfg.campaign.current_tick(),
       encounterJson: (id: number) => this.cfg.campaign.encounter_json(id),
       armies: () => this.armies,
@@ -189,16 +196,16 @@ export class CampaignScene implements Scene {
       },
       cam: (x: number, y: number, scale: number) => {
         this.cam = { x, y, scale };
-        this.t3d!.clampCam(this.cam);
+        this.clampCam();
       },
-      camGet: () => ({ ...this.cam, pitchDeg: (this.t3d!.pitch * 180) / Math.PI }),
-      territoryAlpha: () => this.t3d!.territoryAlpha(this.cam.scale),
+      camGet: () => ({ ...this.cam, pitchDeg: (this.renderer.pitch * 180) / Math.PI }),
+      territoryAlpha: () => this.renderer.territoryAlpha(this.cam.scale),
       /** Fog-of-war probe: player visibility (0..1) at a world point. */
-      visAt: (x: number, y: number) => this.t3d!.visibleAt(x, y),
+      visAt: (x: number, y: number) => this.renderer.visibleAt(x, y),
       cellInfo: (x: number, y: number) => this.territory!.infoAt(x, y, this.cities),
       /** Snapshot mode: pin the water clock (campaign is already paused). */
       freeze: (on = true) => {
-        this.t3d!.fixedTime = on ? 0 : null;
+        this.renderer.fixedTime = on ? 0 : null;
       },
       terrStats: () => {
         const t = this.territory!;
@@ -207,14 +214,15 @@ export class CampaignScene implements Scene {
         return { filled, total: t.rgba.length / 4, labels: t.labels };
       },
     });
+    markCampaignReady(false);
   }
 
   exit() {
     markCampaignReady(false);
     this.ac?.abort();
     this.ac = null;
+    this.renderer?.destroy();
     this.canvas.style.display = 'none';
-    this.glCanvas.style.display = 'none';
     this.ui.style.display = 'none';
     this.closeModal();
   }
@@ -239,25 +247,32 @@ export class CampaignScene implements Scene {
     }
 
     // A battle modal (or auto-resolve) covers the screen with a dimmed
-    // backdrop: stop redrawing the world behind it. The 3D map render is the
-    // frame's whole cost, so skipping it keeps the decision UI responsive
-    // instead of grinding a heavy frame the player can't even see.
+    // backdrop: stop redrawing the world behind it. The map render is the
+    // frame's whole cost, so skipping it keeps the decision UI responsive.
+    if (!this.terrainReady) {
+      this.updateHud();
+      return;
+    }
     if (!this.autoResolving && !this.modal) {
       this.renderer.resize();
-      this.t3d!.resize();
-      this.t3d!.clampCam(this.cam); // zoom floor = aspect-fill, pan inside the map
-      if (this.fogOfWar) this.t3d!.setVision(this.visionSources());
-      // 3D models under the floating banners; fogged enemies are dropped.
-      this.t3d!.setArmies(this.armies, this.cam.scale, this.stackUnitCap, this.selected, this.hover, this.fogOfWar);
-      this.t3d!.setSelectedCity(this.selectedCity);
-      this.t3d!.draw(this.cam, this.factionView, this.fogOfWar);
-      const sel = this.armies.find((a) => a.id === this.selected && a.mine);
-      const hints: [number, number][] = sel
-        ? this.spotPos.filter(([x, y]) => Math.hypot(x - sel.x, y - sel.y) < 12)
-        : [];
-      this.renderer.draw(this.cam, this.armies, this.cities, this.selected, null, this.territory!.labels, this.roadLevels, hints, this.factionView, this.fogOfWar, this.territory!.borders, this.factionStatus);
+      this.clampCam(); // zoom floor = aspect-fill, pan inside the map
+      this.renderer.draw({
+        cam: this.cam,
+        armies: this.armies,
+        cities: this.cities,
+        selected: this.selected,
+        selectedCity: this.selectedCity,
+        factionLabels: this.territory!.labels,
+        factionStatus: this.factionStatus,
+        playerFaction: this.playerFaction(),
+        fogOfWar: this.fogOfWar,
+      });
     }
     this.updateHud();
+  }
+
+  private clampCam() {
+    this.renderer.clampCam(this.cam);
   }
 
   // ---- state out of wasm ----------------------------------------------------
@@ -268,15 +283,14 @@ export class CampaignScene implements Scene {
     this.cities = views.cities;
     this.roadLevels = views.roadLevels;
     this.stackUnitCap = views.stackUnitCap;
-    // Keep allegiance fresh for the 2D label icons (cheap; the renderer reads
-    // it every frame). City/army FLAGS are faction-coloured, so they only need
-    // a recolour when a town actually changes hands.
+    // Keep allegiance fresh for label icons (cheap; the renderer reads it every
+    // frame). City/army flags are faction-coloured, so they only need a
+    // recolour when a town changes hands.
     this.refreshFactionStatus();
-    if (views.ownerHash !== this.ownerHash && this.territory && this.t3d) {
+    if (views.ownerHash !== this.ownerHash && this.territory) {
       this.ownerHash = views.ownerHash;
       this.territory.rebuild(this.cities);
-      this.t3d.updateTerritory(this.territory.rgba);
-      this.t3d.setCityOwners(this.cities);
+      this.renderer?.updateTerritory(this.territory);
     }
   }
 
@@ -324,11 +338,11 @@ export class CampaignScene implements Scene {
       const f = Math.exp(-e.deltaY * 0.0015);
       const [wx, wy] = this.renderer.toWorld(e.offsetX * devicePixelRatio, e.offsetY * devicePixelRatio);
       this.cam.scale = Math.min(8, this.cam.scale * f);
-      this.t3d!.clampCam(this.cam); // zoom floor + new basis for zoom-to-cursor
+      this.clampCam(); // zoom floor + new basis for zoom-to-cursor
       const [nx, ny] = this.renderer.toWorld(e.offsetX * devicePixelRatio, e.offsetY * devicePixelRatio);
       this.cam.x += wx - nx;
       this.cam.y += wy - ny;
-      this.t3d!.clampCam(this.cam);
+      this.clampCam();
     }, { signal, passive: false });
     cv.addEventListener('contextmenu', (e) => {
       e.preventDefault();
@@ -370,15 +384,36 @@ export class CampaignScene implements Scene {
     }
     this.selected = best;
     if (best >= 0) this.selectedCity = -1; // an army takes the selection from a city
-    const loc = best < 0 ? nearestLoc(this.cfg.data.map, wx, wy, rKm) : null;
+    const loc = best < 0 ? nearestLoc(this.cfg.data.map, wx, wy, Math.max(8, 18 / this.cam.scale)) : null;
     if (loc && loc.kind === 0 && this.cfg.data.map.nodes[loc.a].kind === 'city') {
       this.openCityPanel(loc.a);
     } else if (loc && loc.kind === 0 && this.cfg.data.map.nodes[loc.a].kind === 'junction') {
       this.openJunctionPanel(loc.a);
+    } else if (best < 0) {
+      const city = this.nearestRenderedCity(px, py);
+      if (city >= 0) this.openCityPanel(city);
+      else this.closeCityPanel();
     } else {
       this.closeCityPanel();
     }
     this.updateArmyPanel();
+  }
+
+  private nearestRenderedCity(px: number, py: number): number {
+    const maxPx = 28 * (window.devicePixelRatio || 1);
+    let best = -1;
+    let bestD = maxPx;
+    for (let i = 0; i < this.cfg.data.map.nodes.length; i++) {
+      const node = this.cfg.data.map.nodes[i];
+      if (node.kind !== 'city') continue;
+      const [sx, sy] = this.renderer.toScreen(node.pos[0], node.pos[1]);
+      const d = Math.hypot(sx - px, sy - py);
+      if (d < bestD) {
+        bestD = d;
+        best = i;
+      }
+    }
+    return best;
   }
 
   private rightClick(px: number, py: number) {
@@ -446,7 +481,6 @@ export class CampaignScene implements Scene {
     if (!game) return;
     this.cfg.onBattle(game, () => {
       report_battle(c, game);
-      game.free();
       this.refreshViews();
       this.paused = true;
     });
@@ -488,11 +522,6 @@ export class CampaignScene implements Scene {
   // ---- DOM --------------------------------------------------------------------
 
   private buildDom() {
-    // WebGL terrain underneath, transparent marker canvas on top.
-    const gl = document.createElement('canvas');
-    gl.id = 'campaign-gl';
-    gl.style.cssText = 'position:fixed;inset:0;width:100vw;height:100vh;display:none;';
-    document.body.appendChild(gl);
     const cv = document.createElement('canvas');
     cv.id = 'campaign-canvas';
     cv.style.cssText = 'position:fixed;inset:0;width:100vw;height:100vh;display:none;';

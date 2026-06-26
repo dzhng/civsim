@@ -1,0 +1,352 @@
+import type { RawFrameShell } from '../../../webgpu-core/src/frameShell';
+
+export type BattleTerrainFixture = 'coast' | 'melee' | 'dry-melee' | 'prop-field';
+
+export interface BattleTerrainPassStats {
+  fixture: BattleTerrainFixture;
+  quads: number;
+  waterQuads: number;
+  sceneryQuads: number;
+  selectionQuads: number;
+}
+
+interface TerrainQuad {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  kind: number;
+  alpha: number;
+}
+
+const BATTLE_TERRAIN_WGSL = `
+struct Camera { x:f32, y:f32, zoom:f32, cosP:f32, width:f32, height:f32, cosYaw:f32, sinYaw:f32 };
+@group(0) @binding(0) var<uniform> cam: Camera;
+
+struct VsOut {
+  @builtin(position) pos: vec4f,
+  @location(0) local: vec2f,
+  @location(1) world: vec2f,
+  @location(2) kind: f32,
+  @location(3) alpha: f32,
+};
+
+@vertex
+fn vs(@location(0) quad: vec2f, @location(1) inst0: vec4f, @location(2) inst1: vec4f) -> VsOut {
+  let local01 = quad * 0.5 + vec2f(0.5);
+  let world = vec2f(inst0.x + local01.x * inst0.z, inst0.y + local01.y * inst0.w);
+  let dx = world.x - cam.x;
+  let dy = world.y - cam.y;
+  let rx = dx * cam.cosYaw + dy * cam.sinYaw;
+  let ry = -dx * cam.sinYaw + dy * cam.cosYaw;
+  var out: VsOut;
+  out.pos = vec4f((rx * cam.zoom) / (cam.width * 0.5), (ry * cam.zoom * cam.cosP) / (cam.height * 0.5), 0.1, 1.0);
+  out.local = quad;
+  out.world = world;
+  out.kind = inst1.x;
+  out.alpha = inst1.y;
+  return out;
+}
+
+fn hash(p: vec2f) -> f32 {
+  let p3 = fract(vec3f(p.xyx) * 0.1031);
+  let q = p3 + dot(p3, p3.yzx + vec3f(33.33));
+  return fract((q.x + q.y) * q.z);
+}
+
+fn vnoise(p: vec2f) -> f32 {
+  let i = floor(p);
+  let f = fract(p);
+  let u = f * f * (3.0 - 2.0 * f);
+  return mix(
+    mix(hash(i), hash(i + vec2f(1.0, 0.0)), u.x),
+    mix(hash(i + vec2f(0.0, 1.0)), hash(i + vec2f(1.0, 1.0)), u.x),
+    u.y,
+  );
+}
+
+fn fbm(p: vec2f) -> f32 {
+  return vnoise(p) * 0.52 + vnoise(p * 2.11 + vec2f(4.3, 1.7)) * 0.31 + vnoise(p * 4.07 + vec2f(9.1, 6.4)) * 0.17;
+}
+
+fn ridge(p: vec2f) -> f32 {
+  let r = 1.0 - abs(vnoise(p) * 2.0 - 1.0);
+  return r * r;
+}
+
+fn oval(local: vec2f, sx: f32, sy: f32) -> f32 {
+  return 1.0 - smoothstep(0.72, 1.0, length(vec2f(local.x / sx, local.y / sy)));
+}
+
+fn edgeFeather(local: vec2f) -> f32 {
+  let x = smoothstep(-1.0, -0.82, local.x) * (1.0 - smoothstep(0.82, 1.0, local.x));
+  return x;
+}
+
+@fragment
+fn fs(in: VsOut) -> @location(0) vec4f {
+  let n = fbm(in.world * 0.72) * 0.20 + fbm(in.world * 0.11) * 0.18;
+
+  if (in.kind < 0.5) {
+    let shore = smoothstep(-1.0, 1.0, in.local.y);
+    let shallow = vec3f(0.46, 0.72, 0.76);
+    let deep = vec3f(0.11, 0.28, 0.45);
+    let longWave = sin((in.world.x * 0.18 - in.world.y * 0.34) + sin(in.world.x * 0.035) * 1.8) * 0.5 + 0.5;
+    let crossWave = sin(in.world.x * 0.52 + in.world.y * 0.17 + fbm(in.world * 0.032) * 4.0) * 0.5 + 0.5;
+    let crest = smoothstep(0.72, 0.96, longWave) * smoothstep(0.48, 0.90, crossWave);
+    let streak = smoothstep(0.86, 0.995, sin(in.world.x * 0.95 - in.world.y * 0.11 + fbm(in.world * 0.055) * 5.0) * 0.5 + 0.5);
+    let shoreFoamBand = smoothstep(0.18, -0.12, abs(in.local.y + 0.58));
+    let farBreak = smoothstep(0.48, 0.86, shore) * crest * 0.26;
+    let foam = (shoreFoamBand * (0.52 + crest * 0.48) + farBreak) * (0.74 + fbm(in.world * 0.95) * 0.26);
+    let sunTrack = smoothstep(0.18, 0.0, abs(in.local.x + in.local.y * 0.24)) * smoothstep(-0.92, 0.28, in.local.y);
+    let glint = (streak * 0.12 + crest * 0.08 + sunTrack * 0.16) * (1.0 - shore * 0.28);
+    let water = mix(shallow, deep, shore) + vec3f(0.09, 0.11, 0.08) * glint;
+    return vec4f(mix(water, vec3f(0.90, 0.91, 0.84), clamp(foam * 0.48, 0.0, 0.78)), in.alpha * edgeFeather(in.local));
+  }
+
+  if (in.kind < 1.5) {
+    let beach = mix(vec3f(0.78, 0.66, 0.42), vec3f(0.88, 0.77, 0.54), n);
+    let swash = smoothstep(0.78, 0.98, in.local.y) * smoothstep(0.22, -0.06, abs(sin(in.world.x * 0.19 + fbm(in.world * 0.038) * 3.0)));
+    let dune = smoothstep(0.58, -0.16, abs(sin(in.world.x * 0.22 + in.world.y * 0.08 + fbm(in.world * 0.05) * 2.2)));
+    return vec4f(mix(mix(beach, vec3f(0.95, 0.84, 0.60), dune * 0.18), vec3f(0.82, 0.78, 0.62), swash * 0.20), in.alpha * edgeFeather(in.local));
+  }
+
+  if (in.kind < 2.5) {
+    let mud = mix(vec3f(0.30, 0.22, 0.13), vec3f(0.52, 0.39, 0.22), n);
+    let footprint = smoothstep(0.86, 0.18, abs(sin(in.world.x * 2.3 + fbm(in.world * 0.16)) * cos(in.world.y * 2.0)));
+    let cracked = ridge(vec2f(in.world.x * 0.36 + in.world.y * 0.08, in.world.y * 0.42)) * ridge(in.world * 0.18 + vec2f(3.0, 4.0));
+    var churn = mix(mud, vec3f(0.62, 0.50, 0.31), footprint * 0.14 + cracked * 0.18);
+    churn *= 0.78 + smoothstep(0.18, 0.92, ridge(in.world * 0.24)) * 0.22;
+    return vec4f(churn, in.alpha);
+  }
+
+  if (in.kind < 3.5) {
+    let a = oval(in.local, 1.0, 0.52) * in.alpha;
+    let shade = mix(vec3f(0.20, 0.16, 0.10), vec3f(0.36, 0.29, 0.16), n);
+    return vec4f(shade, a);
+  }
+
+  if (in.kind < 4.5) {
+    let core = oval(in.local, 0.74, 0.50);
+    let clump = max(core, oval(in.local - vec2f(0.24, -0.10), 0.48, 0.36) * 0.82);
+    let a = clump * in.alpha;
+    let leaf = mix(vec3f(0.32, 0.41, 0.19), vec3f(0.64, 0.62, 0.32), n);
+    return vec4f(leaf, a);
+  }
+
+  if (in.kind < 5.5) {
+    let a = oval(in.local, 0.95, 0.42) * in.alpha;
+    let glow = vec3f(1.00, 0.78, 0.25) * (0.55 + 0.45 * smoothstep(0.9, -0.1, length(in.local)));
+    return vec4f(glow, a);
+  }
+
+  if (in.kind < 6.5) {
+    let a = oval(in.local, 0.80, 0.55) * in.alpha;
+    let ridge = smoothstep(0.92, 0.2, abs(in.local.x + in.local.y * 0.35));
+    let stone = mix(vec3f(0.43, 0.39, 0.32), vec3f(0.70, 0.61, 0.45), max(n, ridge * 0.24));
+    return vec4f(stone, a);
+  }
+
+  if (in.kind < 7.5) {
+    let taper = smoothstep(-1.0, -0.55, in.local.y) * (1.0 - smoothstep(0.62, 1.0, in.local.y));
+    let crown = 1.0 - smoothstep(0.30, 0.78, length(vec2f(in.local.x / 0.34, in.local.y)));
+    let side = 1.0 - smoothstep(0.22, 0.62, length(vec2f((in.local.x - 0.20) / 0.30, (in.local.y + 0.16) / 0.78)));
+    let trunk = smoothstep(0.08, 0.02, abs(in.local.x)) * smoothstep(-0.94, -0.54, in.local.y);
+    let a = max(max(crown * taper, side * 0.55), trunk * 0.72) * in.alpha;
+    let cypress = mix(vec3f(0.12, 0.24, 0.12), vec3f(0.29, 0.39, 0.18), n);
+    return vec4f(mix(vec3f(0.31, 0.23, 0.14), cypress, max(crown, side)), a);
+  }
+
+  let wave = smoothstep(0.10, 0.0, abs(sin(in.world.x * 0.24 + in.world.y * 0.46 + fbm(in.world * 0.06) * 2.0)));
+  let fade = oval(in.local, 1.0, 0.34) * in.alpha;
+  return vec4f(vec3f(0.92, 0.88, 0.72), fade * wave * edgeFeather(in.local) * 0.52);
+}`;
+
+export class BattleTerrainPass {
+  private pipeline: GPURenderPipeline;
+  private quadBuffer: GPUBuffer;
+  private instanceBuffer: GPUBuffer;
+  private capacity = 0;
+  private quads: TerrainQuad[] = [];
+  private fixture: BattleTerrainFixture = 'dry-melee';
+  private fieldRect: [number, number, number, number] = [-58, -12, 116, 46];
+  private statsValue: BattleTerrainPassStats = {
+    fixture: 'dry-melee',
+    quads: 0,
+    waterQuads: 0,
+    sceneryQuads: 0,
+    selectionQuads: 0,
+  };
+
+  constructor(private shell: RawFrameShell) {
+    const device = shell.device;
+    const module = device.createShaderModule({ label: 'battle-terrain-wgsl', code: BATTLE_TERRAIN_WGSL });
+    this.pipeline = device.createRenderPipeline({
+      label: 'battle-terrain-fixture-pipeline',
+      layout: device.createPipelineLayout({ bindGroupLayouts: [shell.cameraBindGroupLayout] }),
+      vertex: {
+        module,
+        entryPoint: 'vs',
+        buffers: [
+          { arrayStride: 8, attributes: [{ shaderLocation: 0, offset: 0, format: 'float32x2' }] },
+          {
+            arrayStride: 32,
+            stepMode: 'instance',
+            attributes: [
+              { shaderLocation: 1, offset: 0, format: 'float32x4' },
+              { shaderLocation: 2, offset: 16, format: 'float32x4' },
+            ],
+          },
+        ],
+      },
+      fragment: {
+        module,
+        entryPoint: 'fs',
+        targets: [{
+          format: shell.info.format,
+          blend: {
+            color: { srcFactor: 'src-alpha', dstFactor: 'one-minus-src-alpha' },
+            alpha: { srcFactor: 'one', dstFactor: 'one-minus-src-alpha' },
+          },
+        }],
+      },
+      primitive: { topology: 'triangle-strip' },
+    });
+    this.quadBuffer = device.createBuffer({
+      label: 'battle-terrain-quad',
+      size: 8 * 4,
+      usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
+    });
+    device.queue.writeBuffer(this.quadBuffer, 0, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]));
+    this.instanceBuffer = device.createBuffer({
+      label: 'battle-terrain-empty-instances',
+      size: 8 * 4,
+      usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
+    });
+  }
+
+  setFixture(fixture: BattleTerrainFixture) {
+    this.fixture = fixture;
+    this.rebuild();
+  }
+
+  setFieldRect(rect: [number, number, number, number]) {
+    this.fieldRect = rect;
+    this.rebuild();
+  }
+
+  private rebuild() {
+    this.quads = makeFixture(this.fixture, this.fieldRect);
+    this.statsValue = {
+      fixture: this.fixture,
+      quads: this.quads.length,
+      waterQuads: this.quads.filter((q) => q.kind === 0 || q.kind === 8).length,
+      sceneryQuads: this.quads.filter((q) => q.kind === 3 || q.kind === 4 || q.kind === 6 || q.kind === 7).length,
+      selectionQuads: this.quads.filter((q) => q.kind === 5).length,
+    };
+    this.upload();
+  }
+
+  draw(pass: GPURenderPassEncoder) {
+    if (this.quads.length === 0) return;
+    pass.setPipeline(this.pipeline);
+    pass.setBindGroup(0, this.shell.cameraBindGroup);
+    pass.setVertexBuffer(0, this.quadBuffer);
+    pass.setVertexBuffer(1, this.instanceBuffer);
+    pass.draw(4, this.quads.length);
+  }
+
+  stats(): BattleTerrainPassStats {
+    return { ...this.statsValue };
+  }
+
+  private upload() {
+    const stride = 8;
+    if (this.quads.length > this.capacity) {
+      this.capacity = Math.max(this.quads.length, this.capacity * 2, 32);
+      this.instanceBuffer = this.shell.device.createBuffer({
+        label: 'battle-terrain-instances',
+        size: this.capacity * stride * 4,
+        usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
+      });
+    }
+    const data = new Float32Array(this.quads.length * stride);
+    for (let i = 0; i < this.quads.length; i++) {
+      const q = this.quads[i];
+      const o = i * stride;
+      data[o] = q.x;
+      data[o + 1] = q.y;
+      data[o + 2] = q.w;
+      data[o + 3] = q.h;
+      data[o + 4] = q.kind;
+      data[o + 5] = q.alpha;
+    }
+    this.shell.device.queue.writeBuffer(this.instanceBuffer, 0, data);
+  }
+}
+
+function makeFixture(fixture: BattleTerrainFixture, fieldRect: [number, number, number, number]): TerrainQuad[] {
+  const [fx, fy, fw, fh] = fieldRect;
+  const cx = fx + fw * 0.5;
+  const cy = fy + fh * 0.5;
+  const sx = Math.max(140, Math.min(520, fw * 0.92));
+  const sy = Math.max(46, Math.min(108, fh * 0.38));
+  const waterY = cy - sy * 0.78;
+  const waterH = sy * 0.34;
+  const beachY = waterY + waterH * 0.72;
+  const beachH = sy * 0.16;
+  const coastalBase: TerrainQuad[] = [
+    { x: cx - sx * 0.53, y: waterY, w: sx * 1.06, h: waterH, kind: 0, alpha: 0.98 },
+    { x: cx - sx * 0.54, y: beachY, w: sx * 1.08, h: beachH, kind: 1, alpha: 0.92 },
+    { x: cx - sx * 0.50, y: beachY - beachH * 0.16, w: sx * 1.00, h: beachH * 0.38, kind: 8, alpha: 0.58 },
+    { x: cx - sx * 0.47, y: beachY + beachH * 0.72, w: sx * 0.92, h: beachH * 0.34, kind: 8, alpha: 0.32 },
+  ];
+  const selection: TerrainQuad = { x: cx - 12, y: cy - sy * 0.12, w: 24, h: 9, kind: 5, alpha: 0.62 };
+  const shrubs: TerrainQuad[] = [
+    { x: cx - sx * 0.26, y: cy - sy * 0.06, w: 4.6, h: 3.0, kind: 4, alpha: 0.92 },
+    { x: cx - sx * 0.17, y: cy + sy * 0.12, w: 5.2, h: 3.2, kind: 4, alpha: 0.88 },
+    { x: cx + sx * 0.17, y: cy + sy * 0.08, w: 4.8, h: 3.0, kind: 4, alpha: 0.90 },
+    { x: cx + sx * 0.30, y: cy - sy * 0.16, w: 3.4, h: 2.1, kind: 6, alpha: 0.82 },
+    { x: cx + sx * 0.33, y: beachY + beachH * 0.55, w: 3.0, h: 10.5, kind: 7, alpha: 0.94 },
+    { x: cx + sx * 0.37, y: beachY + beachH * 0.34, w: 2.5, h: 9.2, kind: 7, alpha: 0.88 },
+    { x: cx + sx * 0.41, y: beachY + beachH * 0.46, w: 2.8, h: 10.0, kind: 7, alpha: 0.90 },
+  ];
+  const shadows: TerrainQuad[] = [
+    { x: cx - sx * 0.22, y: cy - sy * 0.18, w: 20, h: 5.8, kind: 3, alpha: 0.20 },
+    { x: cx + sx * 0.16, y: cy + sy * 0.02, w: 21, h: 6.0, kind: 3, alpha: 0.18 },
+  ];
+  const meleeDetails: TerrainQuad[] = [
+    { x: cx - sx * 0.40, y: cy + sy * 0.04, w: sx * 0.18, h: sy * 0.34, kind: 2, alpha: 0.48 },
+    { x: cx + sx * 0.22, y: cy + sy * 0.16, w: sx * 0.13, h: sy * 0.22, kind: 2, alpha: 0.34 },
+    { x: cx - 27, y: cy - sy * 0.28, w: 54, h: 27, kind: 2, alpha: 0.70 },
+    ...shadows,
+    { x: cx - sx * 0.34, y: cy + sy * 0.28, w: 11.5, h: 7.0, kind: 6, alpha: 0.82 },
+    { x: cx + sx * 0.27, y: cy + sy * 0.33, w: 9.2, h: 5.8, kind: 6, alpha: 0.76 },
+    { x: cx - sx * 0.30, y: cy + sy * 0.14, w: 12.0, h: 7.2, kind: 4, alpha: 0.74 },
+    { x: cx + sx * 0.34, y: cy + sy * 0.09, w: 10.0, h: 6.4, kind: 4, alpha: 0.70 },
+    ...shrubs.slice(0, 4),
+    selection,
+  ];
+  if (fixture === 'dry-melee') {
+    return meleeDetails;
+  }
+  if (fixture === 'melee') {
+    return [
+      ...coastalBase,
+      ...meleeDetails,
+      ...shrubs.slice(4, 6),
+    ];
+  }
+  if (fixture === 'prop-field') {
+    return [
+      ...shadows,
+      ...shrubs,
+      { x: cx - sx * 0.36, y: cy + sy * 0.18, w: 5.8, h: 3.3, kind: 4, alpha: 0.90 },
+      { x: cx + sx * 0.38, y: cy + sy * 0.16, w: 6.2, h: 3.5, kind: 4, alpha: 0.88 },
+      { x: cx + sx * 0.03, y: cy + sy * 0.23, w: 3.8, h: 2.4, kind: 6, alpha: 0.84 },
+      { x: cx - sx * 0.42, y: beachY + beachH * 0.30, w: 2.7, h: 9.8, kind: 7, alpha: 0.88 },
+      selection,
+    ];
+  }
+  return [...coastalBase, ...shadows, ...shrubs, selection];
+}

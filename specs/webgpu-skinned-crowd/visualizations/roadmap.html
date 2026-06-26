@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WebGPU Game Port Roadmap</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #1f2528;
+      --muted: #64706f;
+      --line: #cfd8d2;
+      --paper: #f7f4ec;
+      --panel: #ffffff;
+      --raw: #245c64;
+      --asset: #7a5632;
+      --battle: #5a3f77;
+      --campaign: #386270;
+      --verify: #476b36;
+      --cutover: #8a3e32;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font: 15px/1.45 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background: var(--paper);
+    }
+    header {
+      padding: 32px clamp(20px, 5vw, 64px) 20px;
+      border-bottom: 1px solid var(--line);
+      background: #fffaf0;
+    }
+    h1 { margin: 0 0 8px; font-size: clamp(28px, 5vw, 48px); letter-spacing: 0; }
+    p { margin: 0; max-width: 880px; color: var(--muted); }
+    main { padding: 24px clamp(16px, 4vw, 48px) 48px; }
+    .legend, .checkpoints {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 0 0 22px;
+    }
+    .pill {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 6px 10px;
+      background: var(--panel);
+      color: var(--ink);
+      white-space: nowrap;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 14px;
+      align-items: stretch;
+    }
+    article {
+      border: 1px solid var(--line);
+      border-left: 6px solid var(--raw);
+      border-radius: 8px;
+      background: var(--panel);
+      padding: 14px;
+      min-height: 178px;
+      box-shadow: 0 1px 0 rgba(0,0,0,.04);
+    }
+    article.asset { border-left-color: var(--asset); }
+    article.battle { border-left-color: var(--battle); }
+    article.campaign { border-left-color: var(--campaign); }
+    article.verify { border-left-color: var(--verify); }
+    article.cutover { border-left-color: var(--cutover); }
+    h2 { margin: 0 0 6px; font-size: 18px; letter-spacing: 0; }
+    h3 { margin: 28px 0 12px; font-size: 20px; letter-spacing: 0; }
+    article p { color: var(--ink); }
+    dl { margin: 10px 0 0; display: grid; gap: 6px; }
+    dt { font-weight: 700; color: var(--muted); }
+    dd { margin: 0; }
+    .flow {
+      margin: 26px 0;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      overflow-x: auto;
+    }
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(140px, 1fr));
+      gap: 10px;
+      min-width: 820px;
+    }
+    .step {
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid var(--line);
+      background: #fbfbf8;
+      text-align: center;
+      font-weight: 700;
+    }
+    .note {
+      margin-top: 22px;
+      padding: 14px;
+      border: 1px solid #d6c59e;
+      border-radius: 8px;
+      background: #fff7df;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>WebGPU Game Port Roadmap</h1>
+    <p>Raw WebGPU runtime for the whole browser game: crowd renderer first, then
+      battle terrain and UI, campaign map and panels, menu shell, verification,
+      performance, and production cutover. Current-game parity is the floor; the
+      release target is better graphics and better performance.</p>
+  </header>
+  <main>
+    <div class="legend">
+      <span class="pill">Raw WebGPU</span>
+      <span class="pill">Placeholder assets</span>
+      <span class="pill">Playable route per slice</span>
+      <span class="pill">Screenshots + tests</span>
+      <span class="pill">Current-game parity floor</span>
+      <span class="pill">Better graphics + perf</span>
+      <span class="pill">Art workbench early</span>
+      <span class="pill">Full-game cutover</span>
+    </div>
+
+    <section class="flow" aria-label="Feedback loop">
+      <div class="steps">
+        <div class="step">Ask one question</div>
+        <div class="step">Build tiny seam</div>
+        <div class="step">Open in browser</div>
+        <div class="step">Screenshot/test</div>
+        <div class="step">Human feedback</div>
+        <div class="step">Lock contract</div>
+      </div>
+    </section>
+
+    <h3>Slices</h3>
+    <section class="grid">
+      <article class="verify">
+        <h2>00 WebGPU Lab + Device</h2>
+        <p>Create clean lab routes; prove adapter, device, pass, and pixels.</p>
+        <dl><dt>Run</dt><dd><code>/webgpu/device</code></dd></dl>
+      </article>
+      <article>
+        <h2>01 Raw Frame Shell</h2>
+        <p>Own canvas setup, resize, camera uniforms, terrain, and markers.</p>
+        <dl><dt>Run</dt><dd><code>/webgpu/frame-shell</code></dd></dl>
+      </article>
+      <article class="asset">
+        <h2>02 Asset Workbench</h2>
+        <p>Placeholder kit, upload/import, validation report, live 3D preview.</p>
+        <dl><dt>Run</dt><dd><code>/webgpu/assets</code></dd></dl>
+      </article>
+      <article>
+        <h2>03 Crowd Data</h2>
+        <p>Pack sim views into deterministic GPU-ready instance buffers.</p>
+        <dl><dt>Run</dt><dd><code>/webgpu/crowd-data</code></dd></dl>
+      </article>
+      <article>
+        <h2>04 Animation State</h2>
+        <p>Map existing frame values to deterministic clip and phase state.</p>
+        <dl><dt>Run</dt><dd><code>/webgpu/animation-state</code></dd></dl>
+      </article>
+      <article class="asset">
+        <h2>05 Placeholder VAT</h2>
+        <p>Generate and bake skeletons, clips, masks, meshes, and LOD fixtures.</p>
+        <dl><dt>Run</dt><dd><code>npm run bake:test</code></dd></dl>
+      </article>
+      <article>
+        <h2>06 Single Soldier</h2>
+        <p>Skin one placeholder soldier in raw WebGPU with phase control.</p>
+        <dl><dt>Run</dt><dd><code>/webgpu/skinned-soldier</code></dd></dl>
+      </article>
+      <article>
+        <h2>07 Skinned Crowd</h2>
+        <p>Scale placeholder VAT soldiers to thousands with batched draws.</p>
+        <dl><dt>Run</dt><dd><code>/webgpu/skinned-crowd</code></dd></dl>
+      </article>
+      <article>
+        <h2>08 LOD + Impostors</h2>
+        <p>Near mesh, mid mesh, impostors, and strategic sprite fallback.</p>
+        <dl><dt>Run</dt><dd><code>/webgpu/lod</code></dd></dl>
+      </article>
+      <article class="battle">
+        <h2>09 Battle Integration</h2>
+        <p>Plug raw WebGPU into live battle while preserving UI and picking.</p>
+        <dl><dt>Run</dt><dd><code>/webgpu/battle</code></dd></dl>
+      </article>
+      <article class="verify">
+        <h2>10 Performance</h2>
+        <p>Measure real hardware frame budget with named GPU/browser context.</p>
+        <dl><dt>Run</dt><dd><code>/webgpu/perf</code></dd></dl>
+      </article>
+      <article class="battle">
+        <h2>11 Campaign Reuse</h2>
+        <p>Reuse low-LOD crowd assets for campaign army figures.</p>
+        <dl><dt>Run</dt><dd><code>/webgpu/campaign</code></dd></dl>
+      </article>
+      <article class="asset">
+        <h2>12 Art Contract</h2>
+        <p>Turn placeholders into the real artist handoff and validation lane.</p>
+        <dl><dt>Read</dt><dd><code>assets/ART_CONTRACT.md</code></dd></dl>
+      </article>
+      <article>
+        <h2>13 Render Graph</h2>
+        <p>Shared full-game pass ordering, resource lifetime, resize, timing.</p>
+        <dl><dt>Run</dt><dd><code>/webgpu/render-graph</code></dd></dl>
+      </article>
+      <article class="battle">
+        <h2>14 Battle Terrain</h2>
+        <p>Raw-WebGPU terrain, water, sky, haze, shadows, and scenery.</p>
+        <dl><dt>Run</dt><dd><code>/webgpu/battle-terrain</code></dd></dl>
+      </article>
+      <article class="battle">
+        <h2>15 Battle Crowd Parity</h2>
+        <p>Live battle soldiers render through the production skinned crowd.</p>
+        <dl><dt>Run</dt><dd><code>/webgpu/battle-live</code></dd></dl>
+      </article>
+      <article class="battle">
+        <h2>16 Battle UI</h2>
+        <p>Banners, selection, paths, minimap, HUD, unit cards, modals.</p>
+        <dl><dt>Run</dt><dd><code>/webgpu/battle-ui</code></dd></dl>
+      </article>
+      <article class="battle">
+        <h2>17 Battle Input</h2>
+        <p>DPR-safe picking, drag selection, camera, orders, freeze semantics.</p>
+        <dl><dt>Run</dt><dd><code>/webgpu/battle-input</code></dd></dl>
+      </article>
+      <article class="cutover">
+        <h2>18 Battle Cutover</h2>
+        <p>Make WebGPU the default battle renderer and quarantine legacy paths.</p>
+        <dl><dt>Run</dt><dd><code>/webgpu/cutover-battle</code></dd></dl>
+      </article>
+      <article class="campaign">
+        <h2>19 Campaign Map</h2>
+        <p>Raw-WebGPU parchment terrain, sea, roads, borders, labels, clouds.</p>
+        <dl><dt>Run</dt><dd><code>/webgpu/campaign-map</code></dd></dl>
+      </article>
+      <article class="campaign">
+        <h2>20 Campaign UI</h2>
+        <p>Cities, armies, selection, panels, diplomacy, class builder.</p>
+        <dl><dt>Run</dt><dd><code>/webgpu/campaign-ui</code></dd></dl>
+      </article>
+      <article class="campaign">
+        <h2>21 Handoff</h2>
+        <p>Campaign launches WebGPU battle, resolves, and returns cleanly.</p>
+        <dl><dt>Run</dt><dd><code>/webgpu/full-game?flow=campaign-battle</code></dd></dl>
+      </article>
+      <article>
+        <h2>22 Menu Shell</h2>
+        <p>Menu, loading, modals, manual, save/load, route transitions.</p>
+        <dl><dt>Run</dt><dd><code>/webgpu/menu</code></dd></dl>
+      </article>
+      <article class="verify">
+        <h2>23 Snapshot Migration</h2>
+        <p>Battle, campaign, and vibe baselines target WebGPU defaults.</p>
+        <dl><dt>Run</dt><dd><code>npm run verify</code></dd></dl>
+      </article>
+      <article class="verify">
+        <h2>24 Perf + Fallbacks</h2>
+        <p>Beat current renderer on real hardware or record an owned exception.</p>
+        <dl><dt>Run</dt><dd><code>/webgpu/perf</code></dd></dl>
+      </article>
+      <article class="cutover">
+        <h2>25 Production Cutover</h2>
+        <p><code>/</code> is WebGPU after parity, visual, and perf gates pass.</p>
+        <dl><dt>Run</dt><dd><code>/webgpu/cutover</code></dd></dl>
+      </article>
+    </section>
+
+    <section class="note">
+      <strong>Rule:</strong> no slice waits for real art. If a required asset is
+      missing, generate a placeholder, validate the contract, and make the
+      workbench explain what a real replacement must provide. A lab route is a
+      checkpoint, not the finish line; the finish line is the default game route
+      outperforming and looking better than the current renderer.
+    </section>
+  </main>
+</body>
+</html>

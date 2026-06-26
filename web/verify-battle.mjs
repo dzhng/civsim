@@ -2,15 +2,17 @@
 // for new work; this keeps the historical npm scripts and SNAP filters alive.
 import { main } from './scenario.mjs';
 
+process.env.VERIFY_WEBGPU ??= '1';
+
 const args = process.argv.slice(2);
 const full = args.includes('--full');
 const includeNames = [
+  'battle-webgpu-default',
   'battle-smoke',
   'battle-lod',
   'battle-selection',
-  'battle-cluster',
   'banner-gallery',
-  ...(full ? ['battle-cavalry-plow', 'battle-mechanics', 'battle-ai'] : []),
+  ...(full ? ['battle-cluster', 'battle-cavalry-plow', 'battle-mechanics', 'battle-ai'] : []),
 ];
 
 main(args, { includeNames }).then((code) => process.exit(code)).catch((error) => {

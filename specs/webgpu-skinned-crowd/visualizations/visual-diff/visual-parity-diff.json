@@ -1,0 +1,44 @@
+{
+  "kind": "screenshot-parity-diff",
+  "generatedAt": "2026-06-26T18:10:22.412Z",
+  "note": "Lower parityDistance means the candidate is closer to archived current-renderer parity. This is a parity metric, not an aesthetics acceptance gate.",
+  "results": [
+    {
+      "id": "campaign-label-zoom",
+      "current": "specs/webgpu-skinned-crowd/visualizations/current-renderer/campaign-label-zoom.png",
+      "candidate": "specs/webgpu-skinned-crowd/visualizations/visual-report/campaign-label-zoom.png",
+      "dimensions": {
+        "width": 1280,
+        "height": 800
+      },
+      "parityDistance": 0.44392,
+      "grayscale": {
+        "mae": 79.1508,
+        "rmse": 106.22061,
+        "diffRatio16": 0.69478,
+        "diffRatio32": 0.55639,
+        "diffRatio64": 0.48345,
+        "pixelmatchRatio": 0.64535
+      },
+      "contentProxies": {
+        "blackRatioCurrent": 0.48049,
+        "blackRatioCandidate": 0.19489,
+        "terrainLikeRatioCurrent": 0.4811,
+        "terrainLikeRatioCandidate": 0.77834,
+        "edgeEnergyCurrent": 0.05082,
+        "edgeEnergyCandidate": 0.03714,
+        "edgeEnergyRatio": 0.7309,
+        "edgeDiffRatio32": 0.08002
+      },
+      "artifacts": {
+        "currentGray": "visual-diff/campaign-label-zoom-current-gray.png",
+        "candidateGray": "visual-diff/campaign-label-zoom-candidate-gray.png",
+        "absDiff": "visual-diff/campaign-label-zoom-absdiff.png",
+        "pixelmatch": "visual-diff/campaign-label-zoom-pixelmatch.png",
+        "currentEdges": "visual-diff/campaign-label-zoom-current-edges.png",
+        "candidateEdges": "visual-diff/campaign-label-zoom-candidate-edges.png",
+        "edgeDiff": "visual-diff/campaign-label-zoom-edge-diff.png"
+      }
+    }
+  ]
+}

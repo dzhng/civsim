@@ -1,11 +1,13 @@
-import { readdir } from 'node:fs/promises';
+import { mkdir, readdir, writeFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 import { chromium } from 'playwright';
 import { snapCheck } from './snapshot.mjs';
+import { WEBGPU_HARDWARE_FLAGS, WEBGPU_SWIFTSHADER_FLAGS } from './webgpu-probe-lib.mjs';
 
 const TARGET = process.env.VERIFY_URL ?? 'http://localhost:5173';
 const HERE = new URL('.', import.meta.url);
 const SCENARIOS_DIR = new URL('./scenarios/', import.meta.url);
+const ROOT = new URL('../', import.meta.url);
 
 function parseArgs(argv) {
   const names = [];
@@ -81,11 +83,14 @@ function selectScenarios(all, { full, names, includeNames }) {
 function createReporter() {
   const failures = [];
   const pageErrors = [];
+  const checks = [];
   return {
     failures,
     pageErrors,
+    checks,
     check(scenario, name, ok, detail) {
       console.log(`${ok ? 'PASS' : 'FAIL'}  ${scenario}: ${name}${detail ? `  (${detail})` : ''}`);
+      checks.push({ scenario, name, ok: Boolean(ok), detail: detail ?? '' });
       if (!ok) failures.push(`${scenario}: ${name}`);
     },
     wirePage(page, prefix = '') {
@@ -98,7 +103,26 @@ function createReporter() {
 }
 
 async function runSelected(selected) {
-  const browser = await chromium.launch();
+  const webgpuArgs = process.env.VERIFY_WEBGPU === '1'
+    ? (process.env.VERIFY_WEBGPU_ADAPTER === 'hardware' ? WEBGPU_HARDWARE_FLAGS : WEBGPU_SWIFTSHADER_FLAGS)
+    : [];
+  const launchOptions = {
+    args: webgpuArgs,
+  };
+  if (process.env.VERIFY_HEADFUL === '1') {
+    launchOptions.headless = false;
+  }
+  if (process.env.VERIFY_BROWSER_CHANNEL) {
+    launchOptions.channel = process.env.VERIFY_BROWSER_CHANNEL;
+  }
+  if (process.env.VERIFY_SLOW_MO) {
+    const slowMo = Number(process.env.VERIFY_SLOW_MO);
+    if (!Number.isFinite(slowMo) || slowMo < 0) {
+      throw new Error(`VERIFY_SLOW_MO must be a non-negative number, got ${process.env.VERIFY_SLOW_MO}`);
+    }
+    launchOptions.slowMo = slowMo;
+  }
+  const browser = await chromium.launch(launchOptions);
   const reporter = createReporter();
   try {
     for (const scenario of selected) {
@@ -118,14 +142,57 @@ async function runSelected(selected) {
           await snapCheck(page, opts.baseline ?? name, local.check, opts);
         },
       };
-      await scenario.run(local);
+      try {
+        await scenario.run(local);
+      } catch (error) {
+        reporter.check(
+          scenario.meta.name,
+          'scenario completed without throwing',
+          false,
+          error instanceof Error ? error.stack ?? error.message : String(error),
+        );
+      }
     }
     reporter.check('runner', 'no page errors', reporter.pageErrors.length === 0, reporter.pageErrors.slice(0, 3).join(' | '));
   } finally {
     await browser.close();
   }
   console.log(reporter.failures.length ? `\n${reporter.failures.length} FAILURE(S)` : '\nALL CHECKS PASSED');
-  return reporter.failures.length ? 1 : 0;
+  const code = reporter.failures.length ? 1 : 0;
+  await writeScenarioReport(selected, reporter, code);
+  return code;
+}
+
+async function writeScenarioReport(selected, reporter, exitCode) {
+  if (!process.env.SCENARIO_REPORT_JSON) return;
+  const url = new URL(process.env.SCENARIO_REPORT_JSON, HERE);
+  const report = {
+    kind: 'scenario-run-report',
+    generatedAt: process.env.SCENARIO_REPORT_GENERATED_AT ?? new Date().toISOString(),
+    target: TARGET,
+    webgpu: process.env.VERIFY_WEBGPU === '1',
+    headful: process.env.VERIFY_HEADFUL === '1',
+    browserChannel: process.env.VERIFY_BROWSER_CHANNEL ?? null,
+    webgpuAdapter: process.env.VERIFY_WEBGPU_ADAPTER ?? (process.env.VERIFY_WEBGPU === '1' ? 'swiftshader' : null),
+    exitCode,
+    status: exitCode === 0 ? 'pass' : 'fail',
+    scenarios: selected.map((scenario) => ({
+      name: scenario.meta.name,
+      file: scenario.file,
+      kind: scenario.meta.kind ?? null,
+      tier: scenario.meta.tier ?? null,
+    })),
+    checks: reporter.checks,
+    failures: reporter.failures,
+    pageErrors: reporter.pageErrors,
+  };
+  await mkdir(new URL('.', url), { recursive: true });
+  await writeFile(url, JSON.stringify(report, null, 2));
+  console.log(`scenarioReport=${relativePath(url)}`);
+}
+
+function relativePath(url) {
+  return decodeURIComponent(url.pathname).replace(decodeURIComponent(ROOT.pathname), '');
 }
 
 export async function main(argv = process.argv.slice(2), options = {}) {

@@ -16,11 +16,10 @@ const PALETTE: { c: [number, number, number]; land: boolean; h: number }[] = [
   { c: [60, 96, 124], land: true, h: 1.0 }, // river (still territory-worthy land)
 ];
 
-/** The one campaign sun (normalized): the bake below and Terrain3D's
- * specular uniform must agree, or water glints contradict the relief. */
+/** The one campaign sun (normalized): the terrain bake and WebGPU atmosphere
+ * passes share this direction so water glints agree with the relief. */
 /** North of this y (km) the climate turns boreal: snowline, conifers,
- * moisture curve. The terrain3d fragment shader carries the literal 700.0
- * twice (GLSL can't import) — change one, change all three. */
+ * moisture curve. */
 export const TEMPERATE_Y_KM = 700;
 
 export const SUN: [number, number, number] = (() => {

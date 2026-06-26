@@ -1,0 +1,955 @@
+{
+  "kind": "current-renderer-full-game-perf",
+  "generatedAt": "2026-06-26T16:51:10.345Z",
+  "source": "http://127.0.0.1:5176",
+  "environment": {
+    "browser": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
+    "gpu": "legacy-current-renderer",
+    "viewport": "1280x800",
+    "dpr": 1
+  },
+  "scenes": [
+    {
+      "id": "menu",
+      "label": "Menu shell",
+      "route": "/",
+      "renderer": "current-menu",
+      "frame": {
+        "samples": 45,
+        "avgMs": 8.331444444444442,
+        "medianMs": 8.329999999999984,
+        "p95Ms": 9.179999999999978,
+        "minMs": 7.000000000000028,
+        "maxMs": 9.740000000000009
+      },
+      "startupMs": 90.018,
+      "memory": {
+        "usedJSHeapSize": 11891969,
+        "totalJSHeapSize": 16586413,
+        "jsHeapSizeLimit": 4395630592,
+        "usedMB": 11.34,
+        "totalMB": 15.82
+      },
+      "performance": null,
+      "stats": null
+    },
+    {
+      "id": "battle-max-crowd",
+      "label": "Battle max crowd",
+      "route": "/?map=A&ai=off",
+      "renderer": "current-battle",
+      "frame": {
+        "samples": 60,
+        "avgMs": 8.332333333333327,
+        "medianMs": 8.335000000000036,
+        "p95Ms": 9.324999999999818,
+        "minMs": 7.260000000000218,
+        "maxMs": 10.335000000000036
+      },
+      "startupMs": 459.104,
+      "memory": {
+        "usedJSHeapSize": 90011378,
+        "totalJSHeapSize": 149334586,
+        "jsHeapSizeLimit": 4395630592,
+        "usedMB": 85.84,
+        "totalMB": 142.42
+      },
+      "performance": {
+        "buildMs": 0,
+        "uploadMs": 0,
+        "drawMs": 0,
+        "frameCpuMs": 0.005000002682209015
+      },
+      "stats": {
+        "soldiers": 21200,
+        "units": 40,
+        "tickMs": 10.043059999749065,
+        "fps": 124.56086881816502,
+        "victor": -1
+      }
+    },
+    {
+      "id": "campaign-whole-map",
+      "label": "Campaign whole map",
+      "route": "/ -> New Campaign",
+      "renderer": "current-campaign",
+      "frame": {
+        "samples": 60,
+        "avgMs": 8.332916666666666,
+        "medianMs": 8.329999999999927,
+        "p95Ms": 9.350000000000136,
+        "minMs": 6.910000000000082,
+        "maxMs": 9.875
+      },
+      "startupMs": 901.184,
+      "memory": {
+        "usedJSHeapSize": 155036974,
+        "totalJSHeapSize": 192532522,
+        "jsHeapSizeLimit": 4395630592,
+        "usedMB": 147.85,
+        "totalMB": 183.61
+      },
+      "performance": {
+        "buildMs": 0,
+        "uploadMs": 0,
+        "drawMs": 0,
+        "frameCpuMs": 0.010000001639127731
+      },
+      "stats": {
+        "armies": 12,
+        "cities": 412,
+        "terr": {
+          "filled": 136961,
+          "total": 286254,
+          "labels": [
+            {
+              "faction": 0,
+              "name": "ROME",
+              "color": [
+                200,
+                40,
+                40
+              ],
+              "x": -431.2275867435447,
+              "y": 491.95112533755844,
+              "radiusKm": 196.28550634216475,
+              "minor": false
+            },
+            {
+              "faction": 1,
+              "name": "CARTHAGE",
+              "color": [
+                90,
+                60,
+                160
+              ],
+              "x": -679.5192351960084,
+              "y": -653.8114724724551,
+              "radiusKm": 294.4282595132471,
+              "minor": false
+            },
+            {
+              "faction": 2,
+              "name": "MACEDON",
+              "color": [
+                40,
+                90,
+                200
+              ],
+              "x": 410.18062127149227,
+              "y": 347.5033497421013,
+              "radiusKm": 294.4282595132471,
+              "minor": false
+            },
+            {
+              "faction": 3,
+              "name": "ARVERNI",
+              "color": [
+                60,
+                150,
+                60
+              ],
+              "x": -963.1885983486269,
+              "y": 1290.2181794599783,
+              "radiusKm": 294.4282595132471,
+              "minor": false
+            },
+            {
+              "faction": 4,
+              "name": "EGYPT",
+              "color": [
+                220,
+                180,
+                50
+              ],
+              "x": 845.8569730169155,
+              "y": -970.0339167519078,
+              "radiusKm": 294.4282595132471,
+              "minor": false
+            },
+            {
+              "faction": 5,
+              "name": "SELEUCIDS",
+              "color": [
+                50,
+                170,
+                170
+              ],
+              "x": 1876.393082149201,
+              "y": -397.1165838409689,
+              "radiusKm": 294.4282595132471,
+              "minor": false
+            },
+            {
+              "faction": 6,
+              "name": "CYZICUS",
+              "color": [
+                161,
+                120,
+                94
+              ],
+              "x": 790.7665581858989,
+              "y": 255.33048785852813,
+              "radiusKm": 196.93653800145873,
+              "minor": true
+            },
+            {
+              "faction": 7,
+              "name": "PAX IULIA",
+              "color": [
+                128,
+                188,
+                169
+              ],
+              "x": -2219.8187336046185,
+              "y": 420.42562717807573,
+              "radiusKm": 243.44198487524702,
+              "minor": true
+            },
+            {
+              "faction": 8,
+              "name": "BERENICE",
+              "color": [
+                170,
+                82,
+                173
+              ],
+              "x": 1772.1566268977515,
+              "y": -1442.497310659122,
+              "radiusKm": 294.4282595132471,
+              "minor": true
+            },
+            {
+              "faction": 9,
+              "name": "AUGUSTA TREVERORUM",
+              "color": [
+                170,
+                183,
+                133
+              ],
+              "x": -730.4630861395917,
+              "y": 1453.0058327086347,
+              "radiusKm": 294.4282595132471,
+              "minor": true
+            },
+            {
+              "faction": 10,
+              "name": "CIRTA",
+              "color": [
+                88,
+                124,
+                167
+              ],
+              "x": -966.8060585043415,
+              "y": -159.74021464029371,
+              "radiusKm": 183.3030277982336,
+              "minor": true
+            },
+            {
+              "faction": 11,
+              "name": "CIRCESIUM",
+              "color": [
+                193,
+                123,
+                134
+              ],
+              "x": 2108.6117223957285,
+              "y": 59.645692766349065,
+              "radiusKm": 294.4282595132471,
+              "minor": true
+            },
+            {
+              "faction": 12,
+              "name": "TANAIS",
+              "color": [
+                94,
+                161,
+                103
+              ],
+              "x": 1638.6790132550027,
+              "y": 1362.1555007861662,
+              "radiusKm": 294.4282595132471,
+              "minor": true
+            },
+            {
+              "faction": 13,
+              "name": "CYRENE",
+              "color": [
+                154,
+                128,
+                188
+              ],
+              "x": 190.68653965773026,
+              "y": -831.0696047823219,
+              "radiusKm": 294.4282595132471,
+              "minor": true
+            },
+            {
+              "faction": 14,
+              "name": "AQUINCUM",
+              "color": [
+                173,
+                147,
+                82
+              ],
+              "x": 30.8111677420779,
+              "y": 1273.2720614864847,
+              "radiusKm": 294.4282595132471,
+              "minor": true
+            },
+            {
+              "faction": 15,
+              "name": "BARCINO",
+              "color": [
+                133,
+                183,
+                183
+              ],
+              "x": -1314.4729086981135,
+              "y": 683.5541076012321,
+              "radiusKm": 261.56452358834906,
+              "minor": true
+            },
+            {
+              "faction": 16,
+              "name": "IERUSALEM",
+              "color": [
+                167,
+                88,
+                143
+              ],
+              "x": 1747.710258955872,
+              "y": -817.3554527355739,
+              "radiusKm": 294.4282595132471,
+              "minor": true
+            },
+            {
+              "faction": 17,
+              "name": "BENEVENTUM",
+              "color": [
+                152,
+                193,
+                123
+              ],
+              "x": -190.68525140184104,
+              "y": 325.5064681684235,
+              "radiusKm": 212.86615513040113,
+              "minor": true
+            },
+            {
+              "faction": 18,
+              "name": "RUSADDIR",
+              "color": [
+                94,
+                102,
+                161
+              ],
+              "x": -1734.5112354057812,
+              "y": -327.13052720730127,
+              "radiusKm": 294.4282595132471,
+              "minor": true
+            },
+            {
+              "faction": 19,
+              "name": "MEDIOLANUM",
+              "color": [
+                188,
+                139,
+                128
+              ],
+              "x": -596.0164050808414,
+              "y": 824.2748431224226,
+              "radiusKm": 294.4282595132471,
+              "minor": true
+            },
+            {
+              "faction": 20,
+              "name": "EBURACUM",
+              "color": [
+                82,
+                173,
+                125
+              ],
+              "x": -1487.7786962421044,
+              "y": 2003.0605784686709,
+              "radiusKm": 294.4282595132471,
+              "minor": true
+            },
+            {
+              "faction": 21,
+              "name": "SEBASTEIA",
+              "color": [
+                171,
+                133,
+                183
+              ],
+              "x": 1480.421936656772,
+              "y": 409.932245493876,
+              "radiusKm": 288.3331406550416,
+              "minor": true
+            },
+            {
+              "faction": 22,
+              "name": "OLBIA (BORYSTHENES)",
+              "color": [
+                163,
+                167,
+                88
+              ],
+              "x": 992.0734325965788,
+              "y": 1222.5962668285604,
+              "radiusKm": 294.4282595132471,
+              "minor": true
+            },
+            {
+              "faction": 23,
+              "name": "HIBIS",
+              "color": [
+                123,
+                169,
+                193
+              ],
+              "x": 1073.4226986601639,
+              "y": -1462.8748432892037,
+              "radiusKm": 294.4282595132471,
+              "minor": true
+            },
+            {
+              "faction": 24,
+              "name": "ASTURICA",
+              "color": [
+                161,
+                94,
+                119
+              ],
+              "x": -1910.1397117214447,
+              "y": 701.3204033167862,
+              "radiusKm": 294.4282595132471,
+              "minor": true
+            },
+            {
+              "faction": 25,
+              "name": "CHERSONASOS",
+              "color": [
+                132,
+                188,
+                128
+              ],
+              "x": 483.96454895271546,
+              "y": -174.7382093337726,
+              "radiusKm": 147.7294825009551,
+              "minor": true
+            },
+            {
+              "faction": 26,
+              "name": "SYRACUSAE",
+              "color": [
+                102,
+                82,
+                173
+              ],
+              "x": -288.7350678891214,
+              "y": -90.06085419538698,
+              "radiusKm": 93.637599285757,
+              "minor": true
+            },
+            {
+              "faction": 27,
+              "name": "PHILIPPOPOLIS",
+              "color": [
+                183,
+                159,
+                133
+              ],
+              "x": 553.8446621024856,
+              "y": 620.271449919336,
+              "radiusKm": 268.92378102354576,
+              "minor": true
+            },
+            {
+              "faction": 28,
+              "name": "DIOSCURIAS",
+              "color": [
+                88,
+                167,
+                151
+              ],
+              "x": 2029.9229276149974,
+              "y": 841.6924173879571,
+              "radiusKm": 294.4282595132471,
+              "minor": true
+            },
+            {
+              "faction": 29,
+              "name": "TINGI",
+              "color": [
+                193,
+                123,
+                186
+              ],
+              "x": -2173.596032444172,
+              "y": -350.733590617571,
+              "radiusKm": 294.4282595132471,
+              "minor": true
+            },
+            {
+              "faction": 30,
+              "name": "APAMEA (PISIDIA)",
+              "color": [
+                135,
+                161,
+                94
+              ],
+              "x": 1163.4324249079814,
+              "y": 46.02881266731234,
+              "radiusKm": 294.4282595132471,
+              "minor": true
+            },
+            {
+              "faction": 31,
+              "name": "AUGUSTA VINDELICUM",
+              "color": [
+                128,
+                147,
+                188
+              ],
+              "x": -431.51964785405966,
+              "y": 1259.0715006694084,
+              "radiusKm": 294.4282595132471,
+              "minor": true
+            },
+            {
+              "faction": 32,
+              "name": "CARTHAGO NOVA",
+              "color": [
+                173,
+                82,
+                84
+              ],
+              "x": -1601.3679154765207,
+              "y": 273.10017450461214,
+              "radiusKm": 231.44761826383092,
+              "minor": true
+            },
+            {
+              "faction": 33,
+              "name": "BURRIO",
+              "color": [
+                133,
+                183,
+                146
+              ],
+              "x": -1513.4662053889654,
+              "y": 1720.0572172478244,
+              "radiusKm": 277.8200856669654,
+              "minor": true
+            },
+            {
+              "faction": 34,
+              "name": "ALERIA",
+              "color": [
+                132,
+                88,
+                167
+              ],
+              "x": -753.5383283171141,
+              "y": 333.78451135782603,
+              "radiusKm": 188.80677953929515,
+              "minor": true
+            },
+            {
+              "faction": 35,
+              "name": "SALONA",
+              "color": [
+                193,
+                182,
+                123
+              ],
+              "x": -132.86766190645426,
+              "y": 768.1362341442923,
+              "radiusKm": 240.93152554200955,
+              "minor": true
+            },
+            {
+              "faction": 36,
+              "name": "MENINGE",
+              "color": [
+                94,
+                152,
+                161
+              ],
+              "x": -677.7850209943678,
+              "y": -397.12573206514065,
+              "radiusKm": 107.03270528207722,
+              "minor": true
+            },
+            {
+              "faction": 37,
+              "name": "CORDUBA",
+              "color": [
+                188,
+                128,
+                162
+              ],
+              "x": -1932.5899528875516,
+              "y": 306.8526691591359,
+              "radiusKm": 294.4282595132471,
+              "minor": true
+            },
+            {
+              "faction": 38,
+              "name": "CHERSONESOS",
+              "color": [
+                107,
+                173,
+                82
+              ],
+              "x": 1445.66381318086,
+              "y": 985.3696570449079,
+              "radiusKm": 253.2350686615106,
+              "minor": true
+            },
+            {
+              "faction": 39,
+              "name": "COPTOS",
+              "color": [
+                134,
+                133,
+                183
+              ],
+              "x": 1500.7635062677655,
+              "y": -1189.2606379207673,
+              "radiusKm": 294.4282595132471,
+              "minor": true
+            },
+            {
+              "faction": 40,
+              "name": "CONSTANTINOPOLIS",
+              "color": [
+                167,
+                112,
+                88
+              ],
+              "x": 1150.9561475469757,
+              "y": 332.5701236719755,
+              "radiusKm": 294.4282595132471,
+              "minor": true
+            },
+            {
+              "faction": 41,
+              "name": "IOL CAESAREA",
+              "color": [
+                123,
+                193,
+                165
+              ],
+              "x": -1309.8162529043145,
+              "y": -244.0404964309121,
+              "radiusKm": 294.4282595132471,
+              "minor": true
+            },
+            {
+              "faction": 42,
+              "name": "ARGENTORATE",
+              "color": [
+                153,
+                94,
+                161
+              ],
+              "x": -746.8543559603103,
+              "y": 1165.2670130178933,
+              "radiusKm": 193.32873557751316,
+              "minor": true
+            },
+            {
+              "faction": 43,
+              "name": "EDESSA",
+              "color": [
+                177,
+                188,
+                128
+              ],
+              "x": 1825.85311200255,
+              "y": 165.09842610003133,
+              "radiusKm": 285.2086955196142,
+              "minor": true
+            },
+            {
+              "faction": 44,
+              "name": "TARRACO",
+              "color": [
+                82,
+                130,
+                173
+              ],
+              "x": -1567.2638836643164,
+              "y": 584.6011641798902,
+              "radiusKm": 294.4282595132471,
+              "minor": true
+            },
+            {
+              "faction": 45,
+              "name": "LONDINIUM",
+              "color": [
+                183,
+                133,
+                145
+              ],
+              "x": -1222.9402709585536,
+              "y": 1699.3399318798272,
+              "radiusKm": 223.42784070030305,
+              "minor": true
+            },
+            {
+              "faction": 46,
+              "name": "CORINTHUS",
+              "color": [
+                88,
+                167,
+                92
+              ],
+              "x": 350.3096691325061,
+              "y": 72.4030519373658,
+              "radiusKm": 185.04053609952604,
+              "minor": true
+            },
+            {
+              "faction": 47,
+              "name": "ARELATE",
+              "color": [
+                147,
+                123,
+                193
+              ],
+              "x": -918.7616887564421,
+              "y": 740.9010178527041,
+              "radiusKm": 208.61447696648477,
+              "minor": true
+            },
+            {
+              "faction": 48,
+              "name": "NAISSUS",
+              "color": [
+                161,
+                137,
+                94
+              ],
+              "x": 169.88681029752306,
+              "y": 752.5812923436367,
+              "radiusKm": 294.4282595132471,
+              "minor": true
+            },
+            {
+              "faction": 49,
+              "name": "APULUM",
+              "color": [
+                128,
+                188,
+                184
+              ],
+              "x": 455.6607323859283,
+              "y": 1135.0386776991547,
+              "radiusKm": 294.4282595132471,
+              "minor": true
+            },
+            {
+              "faction": 50,
+              "name": "EPHESUS",
+              "color": [
+                173,
+                82,
+                153
+              ],
+              "x": 883.0598001959279,
+              "y": 44.02365529221895,
+              "radiusKm": 254.11808278829744,
+              "minor": true
+            },
+            {
+              "faction": 51,
+              "name": "AQUILEIA",
+              "color": [
+                157,
+                183,
+                133
+              ],
+              "x": -277.062427649063,
+              "y": 1044.122480924007,
+              "radiusKm": 294.4282595132471,
+              "minor": true
+            },
+            {
+              "faction": 52,
+              "name": "MARCIANOPOLIS",
+              "color": [
+                88,
+                103,
+                167
+              ],
+              "x": 749.1957551312648,
+              "y": 790.7483512317621,
+              "radiusKm": 294.4282595132471,
+              "minor": true
+            },
+            {
+              "faction": 53,
+              "name": "ANCONA",
+              "color": [
+                193,
+                130,
+                123
+              ],
+              "x": -397.7960179455331,
+              "y": 572.7447365389166,
+              "radiusKm": 142.43595051811886,
+              "minor": true
+            },
+            {
+              "faction": 54,
+              "name": "CAESAREA (CAPPADOCIA)",
+              "color": [
+                94,
+                161,
+                120
+              ],
+              "x": 1493.3577318761327,
+              "y": 159.683341234318,
+              "radiusKm": 276.4344406907359,
+              "minor": true
+            },
+            {
+              "faction": 55,
+              "name": "BERYTUS",
+              "color": [
+                169,
+                128,
+                188
+              ],
+              "x": 1448.7084993187875,
+              "y": -238.03463640900122,
+              "radiusKm": 137.17142559585798,
+              "minor": true
+            },
+            {
+              "faction": 56,
+              "name": "NICOPOLIS (PONTUS)",
+              "color": [
+                173,
+                171,
+                82
+              ],
+              "x": 1868.159113083797,
+              "y": 449.7066701694967,
+              "radiusKm": 294.4282595132471,
+              "minor": true
+            },
+            {
+              "faction": 57,
+              "name": "BURDIGALA",
+              "color": [
+                133,
+                170,
+                183
+              ],
+              "x": -1414.2979096756778,
+              "y": 895.4100778110925,
+              "radiusKm": 199.51942261343882,
+              "minor": true
+            },
+            {
+              "faction": 58,
+              "name": "MESSANA",
+              "color": [
+                167,
+                88,
+                123
+              ],
+              "x": -173.11462993291738,
+              "y": 83.02454726446828,
+              "radiusKm": 143.10835055998655,
+              "minor": true
+            },
+            {
+              "faction": 59,
+              "name": "BRUNDISIUM",
+              "color": [
+                134,
+                193,
+                123
+              ],
+              "x": 98.33184526290576,
+              "y": 512.76005640285,
+              "radiusKm": 221.41364004956876,
+              "minor": true
+            },
+            {
+              "faction": 60,
+              "name": "PANORMUS",
+              "color": [
+                104,
+                94,
+                161
+              ],
+              "x": -395.88386070214716,
+              "y": -25.59581472648319,
+              "radiusKm": 118.92854997854805,
+              "minor": true
+            },
+            {
+              "faction": 61,
+              "name": "BRACARA AUGUSTA",
+              "color": [
+                188,
+                154,
+                128
+              ],
+              "x": -2111.6146299329125,
+              "y": 751.1002229401445,
+              "radiusKm": 194.64840096954302,
+              "minor": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "campaign-battle-handoff",
+      "label": "Campaign to battle handoff",
+      "route": "/ -> campaign encounter -> fight",
+      "renderer": "current-campaign-to-battle",
+      "frame": {
+        "samples": 45,
+        "avgMs": 8.31566666666667,
+        "medianMs": 8.325000000000045,
+        "p95Ms": 9.529999999999973,
+        "minMs": 6.790000000000191,
+        "maxMs": 10.224999999999909
+      },
+      "startupMs": 1374.629,
+      "memory": {
+        "usedJSHeapSize": 155853018,
+        "totalJSHeapSize": 213025082,
+        "jsHeapSizeLimit": 4395630592,
+        "usedMB": 148.63,
+        "totalMB": 203.16
+      },
+      "performance": {
+        "buildMs": 0,
+        "uploadMs": 0,
+        "drawMs": 0,
+        "frameCpuMs": 0.02499999850988388
+      },
+      "stats": {
+        "soldiers": 3600,
+        "units": 8,
+        "tickMs": 0,
+        "fps": 131.6407698090887,
+        "victor": -1
+      }
+    }
+  ],
+  "notes": [
+    "Generated from the archived current-renderer URL with a browser-side WebGL CPU instrumentation shim for upload/draw timing.",
+    "Use this file as PERF_CURRENT_RENDERER_JSON only with matching real-hardware WebGPU evidence from the same browser, GPU, viewport, and DPR."
+  ]
+}

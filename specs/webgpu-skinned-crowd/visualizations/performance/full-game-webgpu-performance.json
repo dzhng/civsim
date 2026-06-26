@@ -1,0 +1,343 @@
+{
+  "kind": "webgpu-full-game-perf",
+  "mode": "hardware-report",
+  "generatedAt": "scenario-generated",
+  "environment": {
+    "browser": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
+    "gpu": "apple / metal-3",
+    "viewport": "1280x800",
+    "dpr": 1
+  },
+  "scenes": [
+    {
+      "id": "menu",
+      "label": "Menu shell",
+      "route": "/",
+      "renderer": "webgpu-app-shell",
+      "frame": {
+        "samples": 45,
+        "avgMs": 8.332888888888892,
+        "medianMs": 8.33499999999998,
+        "p95Ms": 8.439999999999998,
+        "minMs": 6.845000000000027,
+        "maxMs": 10.154999999999973
+      },
+      "startupMs": 64.613,
+      "memory": {
+        "usedJSHeapSize": 4472245,
+        "totalJSHeapSize": 5455113,
+        "jsHeapSizeLimit": 4395630592,
+        "usedMB": 4.27,
+        "totalMB": 5.2
+      },
+      "performance": null,
+      "stats": {
+        "webgpu": {
+          "checked": true,
+          "ok": true,
+          "adapter": "apple / metal-3",
+          "reason": "",
+          "message": "WebGPU ready: apple / metal-3"
+        },
+        "postCutoverScreenshots": "webgpu-only"
+      }
+    },
+    {
+      "id": "battle-max-crowd",
+      "label": "Battle max crowd",
+      "route": "/?map=A&ai=off",
+      "renderer": "raw-webgpu-battle",
+      "frame": {
+        "samples": 60,
+        "avgMs": 8.317250000000012,
+        "medianMs": 8.329999999999927,
+        "p95Ms": 9.425000000001091,
+        "minMs": 6.864999999999782,
+        "maxMs": 10.045000000000073
+      },
+      "startupMs": 133.762,
+      "memory": {
+        "usedJSHeapSize": 12744196,
+        "totalJSHeapSize": 27850924,
+        "jsHeapSizeLimit": 4395630592,
+        "usedMB": 12.15,
+        "totalMB": 26.56
+      },
+      "performance": {
+        "buildMs": 0,
+        "uploadMs": 0,
+        "drawMs": 0,
+        "frameCpuMs": 0
+      },
+      "stats": {
+        "soldiers": 30000,
+        "units": 40,
+        "tickMs": 0,
+        "fps": 125.23695648222909,
+        "victor": -1,
+        "renderer": "webgpu",
+        "renderStats": {
+          "renderer": "webgpu",
+          "ready": true,
+          "width": 1280,
+          "height": 800,
+          "soldiers": 30000,
+          "expectedSoldiers": 30000,
+          "drawCalls": 1,
+          "lod": {
+            "skinned": 0,
+            "impostors": 30000
+          },
+          "device": "apple / metal-3",
+          "atmosphere": "aegean-sky-haze",
+          "performance": {
+            "buildMs": 0,
+            "uploadMs": 0,
+            "drawMs": 0,
+            "frameCpuMs": 0
+          }
+        }
+      }
+    },
+    {
+      "id": "campaign-whole-map",
+      "label": "Campaign whole map",
+      "route": "/ -> New Campaign",
+      "renderer": "raw-webgpu-campaign",
+      "frame": {
+        "samples": 60,
+        "avgMs": 8.33325,
+        "medianMs": 8.325000000000045,
+        "p95Ms": 9.61999999999989,
+        "minMs": 7.019999999999982,
+        "maxMs": 10.169999999999959
+      },
+      "startupMs": 525.413,
+      "memory": {
+        "usedJSHeapSize": 12747507,
+        "totalJSHeapSize": 23097127,
+        "jsHeapSizeLimit": 4395630592,
+        "usedMB": 12.16,
+        "totalMB": 22.03
+      },
+      "performance": {
+        "buildMs": 0.08,
+        "uploadMs": 0.14,
+        "drawMs": 0.155,
+        "frameCpuMs": 0.385
+      },
+      "stats": {
+        "renderer": "webgpu-campaign",
+        "ready": true,
+        "width": 1280,
+        "height": 800,
+        "device": "apple / metal-3",
+        "cityEntities": 412,
+        "armyEntities": 12,
+        "labels": 492,
+        "visibleLabels": 40,
+        "labelLayer": "raw-webgpu-glyph-atlas",
+        "labelAtlas": "1024x256",
+        "labelVertices": 240,
+        "waterFeatures": 6,
+        "cloudQuads": 1,
+        "territoryPixels": 286254,
+        "borderSegments": 3248,
+        "lineSegments": 8431,
+        "postCutoverScreenshots": "webgpu-only",
+        "performance": {
+          "buildMs": 0.08,
+          "uploadMs": 0.14,
+          "drawMs": 0.155,
+          "frameCpuMs": 0.385
+        }
+      }
+    },
+    {
+      "id": "campaign-battle-handoff",
+      "label": "Campaign to battle handoff",
+      "route": "/?campaign=handoff",
+      "renderer": "raw-webgpu-campaign-to-battle",
+      "frame": {
+        "samples": 45,
+        "avgMs": 8.333333333333334,
+        "medianMs": 8.329999999999984,
+        "p95Ms": 9.91500000000002,
+        "minMs": 6.800000000000068,
+        "maxMs": 10.209999999999923
+      },
+      "startupMs": 38.01,
+      "memory": {
+        "usedJSHeapSize": 6221208,
+        "totalJSHeapSize": 8215380,
+        "jsHeapSizeLimit": 4395630592,
+        "usedMB": 5.93,
+        "totalMB": 7.83
+      },
+      "performance": {
+        "buildMs": 0,
+        "uploadMs": 0,
+        "drawMs": 0,
+        "frameCpuMs": 0
+      },
+      "stats": {
+        "handoffMs": 38.00999999791384,
+        "soldiers": 840,
+        "units": 2,
+        "tickMs": 0,
+        "fps": 129.27809078292697,
+        "victor": -1,
+        "renderer": "webgpu",
+        "renderStats": {
+          "renderer": "webgpu",
+          "ready": true,
+          "width": 1280,
+          "height": 800,
+          "soldiers": 840,
+          "expectedSoldiers": 840,
+          "drawCalls": 1,
+          "lod": {
+            "skinned": 0,
+            "impostors": 840
+          },
+          "device": "apple / metal-3",
+          "atmosphere": "aegean-sky-haze",
+          "performance": {
+            "buildMs": 0,
+            "uploadMs": 0,
+            "drawMs": 0,
+            "frameCpuMs": 0
+          }
+        }
+      }
+    }
+  ],
+  "releaseBudget": "pass",
+  "hardwareReleaseStatus": "pass",
+  "currentRendererComparison": {
+    "status": "webgpu-equal-or-better",
+    "currentRendererSource": "../specs/webgpu-skinned-crowd/visualizations/performance/current-renderer-baseline.generated.json",
+    "scenes": [
+      {
+        "id": "menu",
+        "webgpuMedianMs": 8.335,
+        "webgpuP95Ms": 8.44,
+        "webgpuStartupMs": 64.613,
+        "webgpuUsedHeapMB": 4.27,
+        "currentMedianMs": 8.33,
+        "currentP95Ms": 9.18,
+        "currentStartupMs": 90.018,
+        "currentUsedHeapMB": 11.34,
+        "medianRatio": 1.001,
+        "p95Ratio": 0.919,
+        "startupRatio": 0.718,
+        "heapRatio": 0.377,
+        "webgpuUploadMs": null,
+        "webgpuDrawMs": null,
+        "currentUploadMs": null,
+        "currentDrawMs": null,
+        "uploadRatio": null,
+        "drawRatio": null,
+        "measurementFloorMs": {
+          "median": 0.25,
+          "p95": 1.5,
+          "cpu": 0.25,
+          "startup": 50
+        },
+        "result": "pass"
+      },
+      {
+        "id": "battle-max-crowd",
+        "webgpuMedianMs": 8.33,
+        "webgpuP95Ms": 9.425,
+        "webgpuStartupMs": 133.762,
+        "webgpuUsedHeapMB": 12.15,
+        "currentMedianMs": 8.335,
+        "currentP95Ms": 9.325,
+        "currentStartupMs": 459.104,
+        "currentUsedHeapMB": 85.84,
+        "medianRatio": 0.999,
+        "p95Ratio": 1.011,
+        "startupRatio": 0.291,
+        "heapRatio": 0.142,
+        "webgpuUploadMs": 0,
+        "webgpuDrawMs": 0,
+        "currentUploadMs": 0,
+        "currentDrawMs": 0,
+        "uploadRatio": 0,
+        "drawRatio": 0,
+        "measurementFloorMs": {
+          "median": 0.25,
+          "p95": 1.5,
+          "cpu": 0.25,
+          "startup": 50
+        },
+        "result": "pass"
+      },
+      {
+        "id": "campaign-whole-map",
+        "webgpuMedianMs": 8.325,
+        "webgpuP95Ms": 9.62,
+        "webgpuStartupMs": 525.413,
+        "webgpuUsedHeapMB": 12.16,
+        "currentMedianMs": 8.33,
+        "currentP95Ms": 9.35,
+        "currentStartupMs": 901.184,
+        "currentUsedHeapMB": 147.85,
+        "medianRatio": 0.999,
+        "p95Ratio": 1.029,
+        "startupRatio": 0.583,
+        "heapRatio": 0.082,
+        "webgpuUploadMs": 0.14,
+        "webgpuDrawMs": 0.155,
+        "currentUploadMs": 0,
+        "currentDrawMs": 0,
+        "uploadRatio": 140,
+        "drawRatio": 155,
+        "measurementFloorMs": {
+          "median": 0.25,
+          "p95": 1.5,
+          "cpu": 0.25,
+          "startup": 50
+        },
+        "result": "pass"
+      },
+      {
+        "id": "campaign-battle-handoff",
+        "webgpuMedianMs": 8.33,
+        "webgpuP95Ms": 9.915,
+        "webgpuStartupMs": 38.01,
+        "webgpuUsedHeapMB": 5.93,
+        "currentMedianMs": 8.325,
+        "currentP95Ms": 9.53,
+        "currentStartupMs": 1374.629,
+        "currentUsedHeapMB": 148.63,
+        "medianRatio": 1.001,
+        "p95Ratio": 1.04,
+        "startupRatio": 0.028,
+        "heapRatio": 0.04,
+        "webgpuUploadMs": 0,
+        "webgpuDrawMs": 0,
+        "currentUploadMs": 0,
+        "currentDrawMs": 0,
+        "uploadRatio": 0,
+        "drawRatio": 0,
+        "measurementFloorMs": {
+          "median": 0.25,
+          "p95": 1.5,
+          "cpu": 0.25,
+          "startup": 50
+        },
+        "result": "pass"
+      }
+    ]
+  },
+  "reportFiles": {
+    "json": "specs/webgpu-skinned-crowd/visualizations/performance/full-game-webgpu-performance.json",
+    "html": "specs/webgpu-skinned-crowd/visualizations/webgpu-performance-report.html"
+  },
+  "notes": [
+    "Compared against archived current-renderer perf report current-renderer-baseline.generated.json.",
+    "Release budgets require named real hardware and archived current-renderer comparison captures."
+  ]
+}

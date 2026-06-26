@@ -3,8 +3,8 @@ import type { Scene } from '../scene';
 import { Camera } from '../shared/camera';
 import { pushGhost, pushPie, pushRing } from '../shared/overlays';
 import { modelLookForUnit } from '../shared/soldierModel';
-import { CLASS_NAMES, Renderer, WILDS_MARGIN } from './renderer';
-import { BattleRenderer3D, type BannerSlot } from './renderer3d';
+import { BattleRendererWebGPU } from './rendererWebGPU';
+import { CLASS_NAMES } from './classData';
 import { UnitBanner, type BannerChip } from './unitBanner';
 import { UnitCards } from './unitCard';
 import { Input } from './input';
@@ -38,12 +38,9 @@ export interface BattleConfig {
   inCampaign?: boolean;
 }
 
-// One renderer for the page: engine/atlas state is battle-independent;
-// per-battle data arrives through setStatic/setTerrain. The battlefield
-// runs on Babylon; `?gfx=2d` falls back to the legacy GL sprite renderer.
-type BattleGfx = Renderer | BattleRenderer3D;
-let sharedRenderer: BattleGfx | null = null;
-const USE_3D = new URLSearchParams(location.search).get('gfx') !== '2d';
+// One renderer for the page: GPU/device/atlas state is battle-independent;
+// per-battle data arrives through setStatic/setTerrain.
+let sharedRenderer: BattleRendererWebGPU | null = null;
 
 export class BattleScene implements Scene {
   private cleanups: (() => void)[] = [];
@@ -80,8 +77,8 @@ export class BattleScene implements Scene {
 
     const canvas = document.getElementById('battlefield') as HTMLCanvasElement;
     const camera = new Camera(canvas);
-    const renderer = (sharedRenderer ??= USE_3D ? new BattleRenderer3D(canvas) : new Renderer(canvas));
-    if (renderer instanceof BattleRenderer3D) camera.pitch = renderer.pitch;
+    const renderer = (sharedRenderer ??= new BattleRendererWebGPU(canvas));
+    camera.pitch = renderer.pitch;
     renderer.resize(); // the canvas may have been display:none through a window resize
     const STRIDE = game.unit_info_stride();
 
@@ -130,12 +127,7 @@ export class BattleScene implements Scene {
       const info = unitInfo();
       const teams = Array.from({ length: game.unit_count() }, (_, u) => info[u * STRIDE + 6]);
       const classes = Array.from({ length: game.unit_count() }, (_, u) => info[u * STRIDE + 13]);
-      const renderLooks = Array.from(
-        { length: game.unit_count() },
-        (_, u) => info[u * STRIDE + UNIT_INFO_RENDER_LOOK] ?? modelLookForUnit(classes[u]),
-      );
-      const radii = new Float32Array(wasm.memory.buffer, game.radius_ptr(), game.soldier_count());
-      renderer.setStatic(soldierUnit, teams, classes, renderLooks, radii);
+      renderer.setStatic(soldierUnit, teams, classes);
     };
     applyStatic();
     {
@@ -143,9 +135,6 @@ export class BattleScene implements Scene {
       const th = game.terrain_h();
       renderer.setTerrain(
         tw, th, game.terrain_cell(), game.terrain_origin_x(), game.terrain_origin_y(),
-        new Float32Array(wasm.memory.buffer, game.terrain_speed_ptr(), tw * th),
-        new Float32Array(wasm.memory.buffer, game.terrain_rough_ptr(), tw * th),
-        new Uint8Array(wasm.memory.buffer, game.terrain_tint_ptr(), tw * th),
       );
     }
 
@@ -210,26 +199,24 @@ export class BattleScene implements Scene {
     }
 
     // --- Per-unit banners: standard + HP/cohesion bars + status chips ------------
-    // In-game banners are world-space BILLBOARDS in the Babylon scene (see
-    // renderer3d.ts UnitBannerLayer): a quad above each unit, always facing the
-    // camera, so the standard tracks the block in 3D and depth-sorts instead of
-    // being projected onto the screen. The legacy `?gfx=2d` GL renderer has no
-    // billboard layer, so it falls back to the DOM component placed by an exact
-    // (pitch-free) screen projection.
-    const is3D = renderer instanceof BattleRenderer3D;
+    // Banners stay DOM-composited while the raw WebGPU path owns battlefield
+    // pixels. The battle UI/compositor slice owns any future canvas standard.
     const labelsRoot = document.getElementById('unitlabels')!;
     const domBanners: UnitBanner[] = [];
-    // Northmost (top-on-screen) world-y per unit, refreshed each frame from the
-    // soldiers — where the standard plants so it rises clear above the block,
-    // not buried in a deep formation. Centred on the centroid in x.
+    // Per-unit banner anchors are refreshed from the rendered soldiers each
+    // frame. Unit-info center fields can lag during packed fights, so banners
+    // follow the visible block instead of collapsing to the map center.
+    let unitBannerX = new Float32Array(0);
     let unitTopY = new Float32Array(0);
+    let unitMinX = new Float32Array(0);
+    let unitMaxX = new Float32Array(0);
     const addDomBanner = () => {
       const b = new UnitBanner();
       b.setVisible(false);
       labelsRoot.appendChild(b.el);
       domBanners.push(b);
     };
-    if (!is3D) for (let u = 0; u < game.unit_count(); u++) addDomBanner();
+    for (let u = 0; u < game.unit_count(); u++) addDomBanner();
     let knownUnits = game.unit_count(); // last-seen count (campaign reinforcements grow it)
     this.cleanups.push(() => { labelsRoot.innerHTML = ''; });
 
@@ -259,31 +246,7 @@ export class BattleScene implements Scene {
       const info = unitInfo();
       const sel = input.selected.length > 0 ? input.selected[0] : -1;
       const n = game.unit_count();
-      if (is3D) {
-        // World-space billboards: hand the renderer one slot per unit at the
-        // unit's CENTROID and let it place + face the quads. The pole foot is
-        // bottom-anchored there, so the standard reads as planted in the middle
-        // of the block and rising from it. The layer owns the show-when-zoomed
-        // gate and the per-unit redraw cache.
-        const slots: (BannerSlot | null)[] = new Array(n);
-        for (let u = 0; u < n; u++) {
-          const o = u * STRIDE;
-          const alive = info[o + 15];
-          if (alive === 0) { slots[u] = null; continue; }
-          slots[u] = {
-            x: info[o + 30],
-            y: info[o + 31],
-            team: info[o + 6] === 0 ? 0 : 1,
-            hp: alive / info[o + 7],
-            cohesion: info[o + 4],
-            chips: unitChips(info, o),
-            selected: u === sel,
-          };
-        }
-        (renderer as BattleRenderer3D).updateBanners(slots, camera.zoom);
-        return;
-      }
-      // Legacy 2D GL renderer: DOM banners on an exact (pitch-free) projection.
+      // DOM banners on an exact (pitch-free) projection.
       const showAll = camera.zoom > 1.1;
       for (let u = 0; u < n; u++) {
         const b = domBanners[u];
@@ -293,8 +256,9 @@ export class BattleScene implements Scene {
           b.setVisible(false);
           continue;
         }
-        const topY = unitTopY[u] > -Infinity ? unitTopY[u] : info[o + 31];
-        const [sx, sy] = camera.worldToScreen(info[o + 30], topY);
+        const anchorX = unitBannerX[u] > -Infinity ? unitBannerX[u] : info[o];
+        const anchorY = unitTopY[u] > -Infinity ? unitTopY[u] : info[o + 1];
+        const [sx, sy] = camera.worldToScreen(anchorX, anchorY);
         if (sx < -60 || sy < -40 || sx > window.innerWidth + 60 || sy > window.innerHeight + 40) {
           b.setVisible(false);
           continue;
@@ -775,17 +739,12 @@ export class BattleScene implements Scene {
     // it (a flanked phalangite turned to his side-sword would otherwise swing the
     // 3D pike sideways: a porcupine).
     const classBracedIdx: number[] = CLASS_SPECS.map((c) => c.weapons.findIndex((w) => w.braced));
-    // Index of each class's CHARGE weapon (the lance), or -1. A two-weapon lancer
-    // holding anything but its lance has dropped to its sabre for the grind — the
-    // renderer then shows a sword in hand, not the couched lance.
-    const classChargeIdx: number[] = CLASS_SPECS.map((c) => c.weapons.findIndex((w) => w.charge));
     const hud = document.getElementById('hud')!;
     const banner = document.getElementById('banner')!;
     const selbox = document.getElementById('selbox')!;
     banner.style.display = 'none';
     let aliveF32 = new Float32Array(0);
     let frames = new Float32Array(0);
-    let cavSidearm = new Uint8Array(0); // 1 = lancer grinding with its sabre (render-only weapon swap)
     let renderFacings = new Float32Array(0); // per-soldier facing for the MESH (pikes ride the frontage)
     let renderPos = new Float32Array(0);
     let prevRenderPos = new Float32Array(0);
@@ -819,14 +778,12 @@ export class BattleScene implements Scene {
       }
       if (ticks === maxTicks) accumulator = 0;
 
-      // Reinforcements: campaign battles grow units mid-fight. The 3D billboard
-      // layer grows itself from the slot count; only the DOM fallback needs
-      // banners minted here.
+      // Reinforcements: campaign battles grow units mid-fight.
       if (game.unit_count() > knownUnits) {
         knownUnits = game.unit_count();
         applyStatic();
         buildCards();
-        if (!is3D) while (domBanners.length < game.unit_count()) addDomBanner();
+        while (domBanners.length < game.unit_count()) addDomBanner();
       }
 
       {
@@ -840,7 +797,6 @@ export class BattleScene implements Scene {
         if (aliveF32.length !== n || simTick < renderPosTick) {
           aliveF32 = new Float32Array(n);
           frames = new Float32Array(n);
-          cavSidearm = new Uint8Array(n);
           renderFacings = new Float32Array(n);
           renderPos = new Float32Array(pos);
           prevRenderPos = new Float32Array(pos);
@@ -861,8 +817,16 @@ export class BattleScene implements Scene {
           atEase[u] = info[o + 17] > 0.5 ? 1 : 0;
           running[u] = info[o + 9] > 0.5 ? 1 : 0;
         }
-        if (unitTopY.length < uc) unitTopY = new Float32Array(uc);
+        if (unitTopY.length < uc) {
+          unitBannerX = new Float32Array(uc);
+          unitTopY = new Float32Array(uc);
+          unitMinX = new Float32Array(uc);
+          unitMaxX = new Float32Array(uc);
+        }
+        unitBannerX.fill(-Infinity, 0, uc);
         unitTopY.fill(-Infinity, 0, uc);
+        unitMinX.fill(Infinity, 0, uc);
+        unitMaxX.fill(-Infinity, 0, uc);
         const t = now / 1000;
         for (let i = 0; i < n; i++) {
           aliveF32[i] = a[i];
@@ -892,8 +856,14 @@ export class BattleScene implements Scene {
             renderPos[pi + 1] = pos[pi + 1];
           }
           if (a[i]) {
-            const wy = renderPos[pi + 1]; // top-on-screen is northmost (max world-y)
-            if (wy > unitTopY[sUnit[i]]) unitTopY[sUnit[i]] = wy;
+            const u = sUnit[i];
+            if (u < uc) {
+              const wx = renderPos[pi];
+              const wy = renderPos[pi + 1]; // top-on-screen is northmost (max world-y)
+              if (wy > unitTopY[u]) unitTopY[u] = wy;
+              if (wx < unitMinX[u]) unitMinX[u] = wx;
+              if (wx > unitMaxX[u]) unitMaxX[u] = wx;
+            }
           }
           if (!a[i]) {
             frames[i] = 4; // fallen
@@ -920,7 +890,6 @@ export class BattleScene implements Scene {
           // weapon while switch_cd runs) — otherwise a fumbling man would render
           // his old pike leveled along his turned facing: the sideways stragglers.
           renderFacings[i] = rawFace[i];
-          cavSidearm[i] = 0;
           if (a[i]) {
             const cls = info[sUnit[i] * STRIDE + 13];
             const bi = classBracedIdx[cls];
@@ -928,20 +897,16 @@ export class BattleScene implements Scene {
               if (curWeapon[i] === bi) renderFacings[i] = info[sUnit[i] * STRIDE + 2]; // pike rides the frontage
               else frames[i] = 7; // FRAME_STOW: sword in hand, pike snapped upright
             }
-            // A two-weapon lancer that has dropped its lance for the sabre in the
-            // grind renders the sword (the pseudo-class swap) — the lance only
-            // shows while the charge still carries it.
-            const ci = classChargeIdx[cls];
-            if (ci >= 0 && curWeapon[i] !== ci) cavSidearm[i] = 1;
           }
+        }
+        for (let u = 0; u < uc; u++) {
+          if (unitMinX[u] < Infinity) unitBannerX[u] = (unitMinX[u] + unitMaxX[u]) * 0.5;
         }
         if (updateRenderPos) renderPosTick = simTick;
       }
       const primary = input.selected.length > 0 ? input.selected[0] : -1;
-      // Unit standards + state are a DOM component now (see UnitBanner), so the
-      // renderers draw no banners — the empty list keeps the shared draw() shape.
-      if (renderer instanceof BattleRenderer3D) renderer.setSidearm(cavSidearm);
-      renderer.draw(renderPos, renderFacings, frames, aliveF32, game.soldier_count(), camera, primary, [], 0);
+      // Unit standards + state are a DOM component now (see UnitBanner).
+      renderer.draw(renderPos, renderFacings, frames, aliveF32, game.soldier_count(), camera);
       // Attack arcs: every soldier mid-swing flashes his weapon's true envelope
       // (reach x arc) — readable combat, straight from the class table. The arc
       // tracks the weapon ACTUALLY in hand (pike vs side-sword) and, for a braced
@@ -1118,6 +1083,8 @@ export class BattleScene implements Scene {
         tickMs: tickMsAvg,
         fps: fpsAvg,
         victor: game.victor(),
+        renderer: 'webgpu',
+        renderStats: renderer.stats(),
       }),
       setOrder: (u: number, x: number, y: number) => game.set_move_order(u, x, y),
       select: (u: number) => {
@@ -1150,6 +1117,7 @@ export class BattleScene implements Scene {
           simTick += n;
         }
         tickGroupAttacks();
+        return renderer.settlePresentedFrame();
       },
       freeze: (on = true) => doFreeze(on),
       groupMove: (units: number[], x: number, y: number) => groupMove(units, x, y, 'move'),
@@ -1179,7 +1147,9 @@ export class BattleScene implements Scene {
       },
     };
     window.__cam = camera;
-    window.__ready = true;
+    void renderer.ready.then(() => {
+      window.__ready = true;
+    });
   }
 }
 

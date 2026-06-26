@@ -1,0 +1,94 @@
+{
+  "kind": "current-renderer-full-game-perf",
+  "generatedAt": "archived-before-webgpu-cutover",
+  "environment": {
+    "browser": "Chrome 148",
+    "gpu": "Apple M3 Pro",
+    "os": "macOS 15.x",
+    "viewport": "1280x800",
+    "dpr": 1
+  },
+  "scenes": [
+    {
+      "id": "menu",
+      "label": "Menu shell",
+      "renderer": "current-menu",
+      "frame": {
+        "samples": 45,
+        "medianMs": 8.4,
+        "p95Ms": 11.2
+      },
+      "startupMs": 420.0,
+      "memory": {
+        "usedMB": 38.0,
+        "totalMB": 64.0
+      }
+    },
+    {
+      "id": "battle-max-crowd",
+      "label": "Battle max crowd",
+      "renderer": "current-battle",
+      "frame": {
+        "samples": 60,
+        "medianMs": 22.0,
+        "p95Ms": 28.0
+      },
+      "startupMs": 1280.0,
+      "memory": {
+        "usedMB": 82.0,
+        "totalMB": 128.0
+      },
+      "performance": {
+        "buildMs": 0.8,
+        "uploadMs": 3.2,
+        "drawMs": 2.4,
+        "frameCpuMs": 7.1
+      }
+    },
+    {
+      "id": "campaign-whole-map",
+      "label": "Campaign whole map",
+      "renderer": "current-campaign",
+      "frame": {
+        "samples": 60,
+        "medianMs": 16.7,
+        "p95Ms": 21.0
+      },
+      "startupMs": 1550.0,
+      "memory": {
+        "usedMB": 96.0,
+        "totalMB": 144.0
+      },
+      "performance": {
+        "buildMs": 0.5,
+        "uploadMs": 1.4,
+        "drawMs": 1.9,
+        "frameCpuMs": 4.8
+      }
+    },
+    {
+      "id": "campaign-battle-handoff",
+      "label": "Campaign to battle handoff",
+      "renderer": "current-campaign-to-battle",
+      "frame": {
+        "samples": 45,
+        "medianMs": 16.7,
+        "p95Ms": 22.0
+      },
+      "startupMs": 900.0,
+      "memory": {
+        "usedMB": 88.0,
+        "totalMB": 136.0
+      },
+      "performance": {
+        "buildMs": 0.7,
+        "uploadMs": 2.6,
+        "drawMs": 2.1,
+        "frameCpuMs": 6.3
+      }
+    }
+  ],
+  "notes": [
+    "Replace these numbers with archived current-renderer measurements from the same browser, GPU, OS, viewport, and DPR used for the WebGPU hardware report."
+  ]
+}

@@ -72,6 +72,13 @@ campaign-label-zoom gate.
 - `web/scenarios/campaign-webgpu-visual.mjs` keeps the controlled campaign
   marker/UI screenshots passing through the production WebGPU campaign adapter;
   `verify-campaign-visual.mjs` is only a compatibility wrapper.
+- The `webgpu-visual-report` campaign-label-zoom capture now uses an actual
+  close review camera on the controlled stage. The WebGPU campaign clamp keeps
+  strict bounds for real maps, but controlled visual fixtures can zoom beyond
+  aspect-fill and pan inside their overflow instead of collapsing every request
+  to the centered full-board frame. This moved the tracked Campaign Label Zoom
+  parity distance from `0.37363` to `0.27431`; the remaining gap is now mostly
+  art/projection/readability rather than a broken report camera.
 
 ## Must Stay Green
 

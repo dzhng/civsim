@@ -79,13 +79,20 @@ export class CampaignRendererWebGPU {
     const cssW = this.canvas.clientWidth || window.innerWidth || 1;
     const cssH = this.canvas.clientHeight || window.innerHeight || 1;
     const fillZoom = Math.max(cssW / (rect.max[0] - rect.min[0]), cssH / (rect.max[1] - rect.min[1])) * (window.devicePixelRatio || 1);
-    const minZoom = isControlledStage(this.data) ? fillZoom * 0.78 : fillZoom;
-    cam.scale = Math.max(minZoom, Math.min(8, cam.scale));
+    const controlled = isControlledStage(this.data);
+    const minZoom = controlled ? fillZoom * 0.78 : fillZoom;
+    const maxZoom = controlled ? Math.max(8, minZoom * 2.2) : 8;
+    cam.scale = Math.max(minZoom, Math.min(maxZoom, cam.scale));
     const cosP = Math.max(0.2, Math.cos(this.pitch));
     const halfW = (this.canvas.width || cssW) / (2 * cam.scale);
     const halfH = (this.canvas.height || cssH) / (2 * cam.scale * cosP);
-    cam.x = clamp(cam.x, rect.min[0] + halfW, rect.max[0] - halfW);
-    cam.y = clamp(cam.y, rect.min[1] + halfH, rect.max[1] - halfH);
+    if (controlled) {
+      cam.x = clampControlledAxis(cam.x, rect.min[0], rect.max[0], halfW);
+      cam.y = clampControlledAxis(cam.y, rect.min[1], rect.max[1], halfH);
+    } else {
+      cam.x = clamp(cam.x, rect.min[0] + halfW, rect.max[0] - halfW);
+      cam.y = clamp(cam.y, rect.min[1] + halfH, rect.max[1] - halfH);
+    }
   }
 
   toScreen(wx: number, wy: number): [number, number] {
@@ -465,6 +472,16 @@ function hash2(x: number, y: number): number {
 function clamp(value: number, min: number, max: number) {
   if (max < min) return (min + max) * 0.5;
   return Math.max(min, Math.min(max, value));
+}
+
+function clampControlledAxis(value: number, min: number, max: number, halfVisible: number) {
+  const center = (min + max) * 0.5;
+  const halfSpan = (max - min) * 0.5;
+  if (halfVisible > halfSpan) {
+    const overscan = (halfVisible - halfSpan) * 1.6;
+    return clamp(value, center - overscan, center + overscan);
+  }
+  return clamp(value, min + halfVisible, max - halfVisible);
 }
 
 function publishStats(stats: ReturnType<CampaignRendererWebGPU['stats']>) {

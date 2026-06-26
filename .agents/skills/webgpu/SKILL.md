@@ -48,6 +48,10 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   such as trees, rocks, potholes, or churn details from the same data source.
   The minimap and battlefield must agree on terrain source, but the battlefield
   should be authored-looking, not a colored grid.
+- For screenshot-driven camera fixes, verify the effective camera after renderer
+  clamping, not just the requested debug hook values. A visual report can look
+  stable while every close-camera request is silently collapsed to the same
+  aspect-fill frame; expose or read a `camGet`/stats hook and inspect the PNG.
 - Use instancing, batching, storage buffers, and GPU-side phase passes for scale.
   Avoid CPU readbacks in hot paths; debug readbacks must be bounded and named.
 - For iterative effects or simulations, separate phases such as `state`,

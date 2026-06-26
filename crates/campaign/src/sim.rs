@@ -566,14 +566,20 @@ pub fn new_state(map: &WorldMap, seed: u64, player_faction: u32) -> CampaignStat
             id: i as ArmyId,
             faction: s.faction,
             garrison_of: None,
+            // A start-army roster entry is `(class, units)` — the soldier count
+            // is derived from `unit_size`, never restated, so it can't drift when
+            // unit sizes change. One unit = one full-strength roster slot.
             roster: s
                 .roster
                 .iter()
-                .map(|&(class, count)| RosterEntry {
-                    class,
-                    count,
-                    max: count,
-                    morale_cap: 1.0,
+                .flat_map(|&(class, units)| {
+                    let size = contract::unit_size(class);
+                    (0..units).map(move |_| RosterEntry {
+                        class,
+                        count: size,
+                        max: size,
+                        morale_cap: 1.0,
+                    })
                 })
                 .collect(),
             loc: Loc::Node(s.at),

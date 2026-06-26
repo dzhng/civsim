@@ -28,8 +28,8 @@ fn lopsided_map() -> &'static str {
         {"id": "independents", "name": "Ind", "color": [99,99,99], "playable": false}
       ],
       "start_armies": [
-        {"faction": "red",  "at": "Red",  "roster": [["HeavySword", 1280], ["Archers", 480], ["ShockCavalry", 280]]},
-        {"faction": "blue", "at": "Blue", "roster": [["LightSpear", 200]]}
+        {"faction": "red",  "at": "Red",  "roster": [["HeavySword", 3], ["Archers", 1], ["ShockCavalry", 1]]},
+        {"faction": "blue", "at": "Blue", "roster": [["LightSpear", 1]]}
       ]
     }"#
 }

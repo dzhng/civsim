@@ -352,8 +352,8 @@ fn equal_speed_chaser_follows_around_the_corner() {
             {"id": "independents", "name": "Ind", "color": [99,99,99], "playable": false}
           ],
           "start_armies": [
-            {"faction": "red",  "at": "A", "roster": [["LightSpear", 500]]},
-            {"faction": "blue", "at": "C", "roster": [["LightSpear", 500]]}
+            {"faction": "red",  "at": "A", "roster": [["LightSpear", 1]]},
+            {"faction": "blue", "at": "C", "roster": [["LightSpear", 1]]}
           ]
         }"#;
     let mut c = Campaign::new(map, 7, 0);

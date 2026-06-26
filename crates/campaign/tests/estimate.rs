@@ -26,8 +26,8 @@ fn tiny_map() -> &'static str {
         {"id": "blue", "name": "Blue", "color": [0,0,200], "playable": true}
       ],
       "start_armies": [
-        {"faction": "red",  "at": "A", "roster": [["HeavySword", 10]]},
-        {"faction": "blue", "at": "B", "roster": [["LightSpear", 10]]}
+        {"faction": "red",  "at": "A", "roster": [["HeavySword", 1]]},
+        {"faction": "blue", "at": "B", "roster": [["LightSpear", 1]]}
       ]
     }"#
 }

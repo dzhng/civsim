@@ -29,8 +29,8 @@ fn line_map() -> &'static str {
         {"id": "blue", "name": "Blue", "color": [0,0,200], "playable": true}
       ],
       "start_armies": [
-        {"faction": "red",  "at": "Red", "roster": [["ShockCavalry", 200]]},
-        {"faction": "blue", "at": "Mid", "roster": [["HeavySword", 100]]}
+        {"faction": "red",  "at": "Red", "roster": [["ShockCavalry", 1]]},
+        {"faction": "blue", "at": "Mid", "roster": [["HeavySword", 1]]}
       ]
     }"#
 }

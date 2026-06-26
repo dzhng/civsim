@@ -39,7 +39,7 @@ fn fork_map() -> &'static str {
         {"id": "independents", "name": "Ind", "color": [99,99,99], "playable": false}
       ],
       "start_armies": [
-        {"faction": "red", "at": "Red", "roster": [["HeavySword", 1000]]}
+        {"faction": "red", "at": "Red", "roster": [["HeavySword", 1]]}
       ]
     }"#
 }

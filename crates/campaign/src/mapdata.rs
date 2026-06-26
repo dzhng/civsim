@@ -117,6 +117,9 @@ pub struct FactionDef {
 pub struct StartArmy {
     pub faction: u32,
     pub at: NodeId,
+    /// `(class, units)` — a count of full-strength units, not soldiers. The
+    /// soldier count is derived from `unit_size` at load (see `sim::new_state`),
+    /// so it can never drift when unit sizes change.
     pub roster: Vec<(contract::UnitClassId, u32)>,
 }
 

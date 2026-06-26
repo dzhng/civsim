@@ -31,9 +31,9 @@ fn triangle_map() -> &'static str {
         {"id": "green", "name": "Green", "color": [0,200,0], "playable": true}
       ],
       "start_armies": [
-        {"faction": "red",   "at": "R", "roster": [["HeavySword", 200]]},
-        {"faction": "blue",  "at": "B", "roster": [["HeavySword", 100]]},
-        {"faction": "green", "at": "G", "roster": [["HeavySword", 100]]}
+        {"faction": "red",   "at": "R", "roster": [["HeavySword", 1]]},
+        {"faction": "blue",  "at": "B", "roster": [["HeavySword", 1]]},
+        {"faction": "green", "at": "G", "roster": [["HeavySword", 1]]}
       ]
     }"#
 }
@@ -77,8 +77,8 @@ fn seeded_rivalry_loads_and_survives_a_save() {
         {"id": "carthage", "name": "Carthage", "color": [0,0,200], "playable": true, "rival": "rome"}
       ],
       "start_armies": [
-        {"faction": "rome",     "at": "Rome",     "roster": [["HeavySword", 100]]},
-        {"faction": "carthage", "at": "Carthage", "roster": [["HeavySword", 100]]}
+        {"faction": "rome",     "at": "Rome",     "roster": [["HeavySword", 1]]},
+        {"faction": "carthage", "at": "Carthage", "roster": [["HeavySword", 1]]}
       ]
     }"#;
     let c = Campaign::new(map, 7, 0);
@@ -117,6 +117,7 @@ fn escalates_to_the_stronger_mutual_rival() {
 fn hysteresis_holds_against_a_marginal_challenger() {
     let mut c = staged();
     c.state.factions[0].rival = Some(1); // red already rivals blue
+    c.state.armies[0].roster[0].count = 100; // red comparable to blue — no auto-dissolve
     besiege(&mut c, 1, 0, 100); // blue still attacking, strength 100
     besiege(&mut c, 2, 0, 120); // green attacking, only 1.2× blue
 

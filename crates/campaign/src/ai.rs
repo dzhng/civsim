@@ -12,6 +12,7 @@ use contract::UnitClassId;
 
 pub mod eval;
 pub mod plan;
+pub mod select;
 
 /// Cost-weighted value of a roster (upkeep rate doubles as unit value).
 fn strength(map: &WorldMap, st: &CampaignState, faction: FactionId, roster: &[RosterEntry]) -> u64 {
@@ -58,6 +59,13 @@ pub fn commanders(map: &WorldMap, st: &mut CampaignState) {
         // march out; only campaigning personas get a commander's turn.
         if !map.factions[f as usize].ai_persona.campaigns() {
             continue;
+        }
+        // Nudge the combat mood on the search cadence: a small sticky walk, so a
+        // faction stays brave or cautious for a stretch instead of re-rolling.
+        if st.tick % tun::AI_SEARCH_EVERY == 0 {
+            let step = st.rng.range_f32(-tun::AI_BRAVADO_DRIFT, tun::AI_BRAVADO_DRIFT);
+            let b = &mut st.factions[f as usize].bravado;
+            *b = (*b + step).clamp(tun::AI_BRAVADO_MIN, tun::AI_BRAVADO_MAX);
         }
         think(map, st, f, &mut bfs);
     }
@@ -269,24 +277,31 @@ fn think(map: &WorldMap, st: &mut CampaignState, f: FactionId, bfs: &mut pathfin
     if have_idle && st.tick % tun::AI_SEARCH_EVERY == 0 {
         let plans = plan::candidates(map, st, f, bfs);
         let weights = eval::Weights::default();
-        let mut best_i = 0usize;
-        let mut best_score = f64::NEG_INFINITY;
-        for (i, p) in plans.iter().enumerate() {
-            let mut sandbox = st.clone();
-            crate::rollout::forward_plan(
-                map,
-                &mut sandbox,
-                &p.orders,
-                tun::AI_ROLLOUT_HORIZON,
-                tun::AI_ROLLOUT_CAP,
-            );
-            let s = eval::score(map, &sandbox, f, &weights);
-            if s > best_score {
-                best_score = s;
-                best_i = i;
-            }
-        }
-        plan::apply(map, st, &plans[best_i]);
+        // Bravado biases the cold score: a brave faction adds value to any plan
+        // that commits to a fight (an offensive march), a cautious one docks it,
+        // so the mood — not just the math — colours the choice. "Hold" (no
+        // orders) is never an offensive, so it carries no bias.
+        let bravado = st.factions[f as usize].bravado as f64;
+        let scores: Vec<f64> = plans
+            .iter()
+            .map(|p| {
+                let mut sandbox = st.clone();
+                crate::rollout::forward_plan(
+                    map,
+                    &mut sandbox,
+                    &p.orders,
+                    tun::AI_ROLLOUT_HORIZON,
+                    tun::AI_ROLLOUT_CAP,
+                );
+                let s = eval::score(map, &sandbox, f, &weights);
+                let aggro = if p.orders.is_empty() { 0.0 } else { 1.0 };
+                s + (bravado - 1.0) * tun::AI_BRAVADO_AGGRO * aggro
+            })
+            .collect();
+        // Sample rather than argmax: among comparable plans the AI won't always
+        // take the textbook-best one, which is what stops it reading as a solver.
+        let pick = select::pick_softmax(&scores, tun::AI_SELECT_SCALE, &mut st.rng);
+        plan::apply(map, st, &plans[pick]);
     }
 
     // 4. Consolidate: idle small armies drift home and merge up.

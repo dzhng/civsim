@@ -150,6 +150,18 @@ pub struct Encounter {
 pub struct Faction {
     pub treasury: u32,
     pub ai: bool,
+    /// Combat mood: a slowly-drifting scalar around 1.0 (level-headed), rising
+    /// above 1 when the faction feels brave and dipping below when it turns
+    /// cautious. Biases the commander toward or away from committing to a fight,
+    /// so a faction runs hot or cold in streaks rather than re-rolling its nerve
+    /// every decision. Persisted so the mood survives a save; defaulted so old
+    /// saves load level-headed.
+    #[serde(default = "default_bravado")]
+    pub bravado: f32,
+}
+
+fn default_bravado() -> f32 {
+    1.0
 }
 
 /// Diplomatic stance between two factions. War is the implicit default when a

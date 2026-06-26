@@ -525,6 +525,7 @@ pub fn new_state(map: &WorldMap, seed: u64, player_faction: u32) -> CampaignStat
         .map(|(i, _)| Faction {
             treasury: 500,
             ai: i as u32 != player_faction,
+            bravado: 1.0,
         })
         .collect();
     let cities = map

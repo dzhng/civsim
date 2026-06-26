@@ -233,6 +233,27 @@ pub const AI_ROLLOUT_CAP: u32 = 6_000;
 /// search re-commits it — so this stays tight enough to keep an offensive alive.
 pub const AI_SEARCH_EVERY: u64 = 360;
 
+// ---- AI nerve: randomness so the commander doesn't play like a solver -------
+// Two knobs turn a cold argmax into something that reads human: a drifting mood
+// (bravado) that makes a faction run hot or cold in streaks, and a softmax over
+// candidate scores so it doesn't always take the textbook-best plan.
+/// Floor/ceiling on a faction's drifting combat mood (1.0 = level-headed).
+pub const AI_BRAVADO_MIN: f32 = 0.7;
+pub const AI_BRAVADO_MAX: f32 = 1.3;
+/// Random-walk step applied to bravado each search cadence. Small, so the mood
+/// is sticky (a brave streak persists) rather than fresh noise every decision.
+pub const AI_BRAVADO_DRIFT: f32 = 0.08;
+/// Score bonus an offensive plan gets per unit of bravado above 1.0 (and the
+/// penalty below). In score units — enough to tip a close call toward or away
+/// from a fight, so a brave faction commits to gambles the cold math would pass
+/// on, but not enough to throw a clearly-won city away. "Hold" gets none.
+pub const AI_BRAVADO_AGGRO: f64 = 40_000.0;
+/// Softmax temperature (score units) for picking among scored plans: larger =
+/// more exploratory, near-zero = argmax. Sized so plans within a fraction of a
+/// city's worth get genuinely sampled, while a plan a whole city better almost
+/// always wins.
+pub const AI_SELECT_SCALE: f64 = 15_000.0;
+
 // ---- diplomacy -------------------------------------------------------------
 // Diplomacy is what breaks the six-power peer standoff: instead of every power
 // fighting every neighbour at parity, each focuses war on its weakest reachable

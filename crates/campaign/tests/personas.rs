@@ -3,6 +3,8 @@
 //! commander deems worth taking, and over a campaign a Warmonger throws itself
 //! at fights a Defensive turtle declines.
 
+mod common;
+
 use campaign::ai::{persona, plan};
 use campaign::mapdata::AiPersona;
 use campaign::pathfind;
@@ -138,24 +140,7 @@ fn battles_started(p: AiPersona, ticks: u32, seed: u64) -> u32 {
     for n in [1u32, 2, 3] {
         c.state.cities.get_mut(&n).unwrap().garrison = garrison(UnitClassId::HeavySword, 900);
     }
-    let mut battles = 0;
-    for _ in 0..ticks {
-        c.tick();
-        if c.state.tick % 60 == 0 {
-            c.drive_ai();
-        }
-        if let Some(eid) = c.state.battle_ready {
-            match c.battle_setup(eid) {
-                Some(setup) => {
-                    let r = campaign::resolve::estimate(&c.map, &setup);
-                    c.apply_outcome(eid, &r);
-                    battles += 1;
-                }
-                None => c.state.battle_ready = None,
-            }
-        }
-    }
-    battles
+    common::run_ai(&mut c, ticks)
 }
 
 #[test]

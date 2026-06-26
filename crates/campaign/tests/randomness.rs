@@ -5,6 +5,8 @@
 //! because every random draw comes from the in-state RNG. Plus: the mood is
 //! sticky, not white noise.
 
+mod common;
+
 use campaign::tunables as tun;
 use campaign::Campaign;
 
@@ -16,28 +18,13 @@ fn real_map() -> String {
     std::fs::read_to_string(path).expect("real campaign map should be present")
 }
 
-/// Drive the whole map AI-vs-AI, resolving battles with the cheap estimate so
-/// the run is fast and self-contained (no player to click through fights).
+/// Drive the whole map AI-vs-AI to a finished state.
 fn run(map_json: &str, seed: u64, ticks: u32) -> Campaign {
     let mut c = Campaign::new(map_json, seed, 0);
     for fac in &mut c.state.factions {
         fac.ai = true;
     }
-    for _ in 0..ticks {
-        c.tick();
-        if c.state.tick % 60 == 0 {
-            c.drive_ai();
-        }
-        if let Some(eid) = c.state.battle_ready {
-            match c.battle_setup(eid) {
-                Some(setup) => {
-                    let r = campaign::resolve::estimate(&c.map, &setup);
-                    c.apply_outcome(eid, &r);
-                }
-                None => c.state.battle_ready = None,
-            }
-        }
-    }
+    common::run_ai(&mut c, ticks);
     c
 }
 
@@ -75,23 +62,8 @@ fn bravado_is_sticky_and_bounded() {
 
     // Sample one campaigning faction's mood once per drift cadence.
     let mut samples = Vec::new();
-    let steps = 30u32;
-    for _ in 0..steps {
-        for _ in 0..tun::AI_SEARCH_EVERY {
-            c.tick();
-            if c.state.tick % 60 == 0 {
-                c.drive_ai();
-            }
-            if let Some(eid) = c.state.battle_ready {
-                match c.battle_setup(eid) {
-                    Some(setup) => {
-                        let r = campaign::resolve::estimate(&c.map, &setup);
-                        c.apply_outcome(eid, &r);
-                    }
-                    None => c.state.battle_ready = None,
-                }
-            }
-        }
+    for _ in 0..30 {
+        common::run_ai(&mut c, tun::AI_SEARCH_EVERY as u32);
         samples.push(c.state.factions[0].bravado);
     }
 

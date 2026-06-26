@@ -245,7 +245,8 @@ function buildCityMesh(): MeshData {
   const sandstone: Rgb = [0.82, 0.74, 0.56];
   const roof: Rgb = [0.66, 0.40, 0.30];
   const timber: Rgb = [0.45, 0.36, 0.28];
-  builder.shadow(4.8);
+  builder.shadow(3.65, 1.95, 0.14, [0.28, -0.54]);
+  builder.box([0.10, -0.02, 3.65], [0.16, 0.16, 7.3], timber, 1);
   const building = (x: number, y: number, w: number, d: number, h: number) => {
     builder.box([x, y, h * 0.5], [w, d, h], sandstone, 1);
     builder.box([x, y, h + h * 0.19], [w * 1.18, d * 1.18, h * 0.38], roof, 1);
@@ -258,9 +259,8 @@ function buildCityMesh(): MeshData {
     const r = 0.9 + rand() * 3.0;
     building(Math.cos(a) * r, Math.sin(a) * r, 0.8 + rand() * 1.0, 0.8 + rand() * 1.0, 1.1 + rand() * 1.4);
   }
-  builder.box([0, 0, 3.95], [0.22, 0.22, 7.9], timber, 1);
-  builder.box([1.45, -0.06, 6.3], [2.9, 0.16, 1.24], [1, 1, 1], 1);
-  builder.box([2.84, -0.06, 5.88], [0.46, 0.16, 0.40], [1, 1, 1], 1);
+  builder.box([0.98, -0.12, 6.20], [1.78, 0.24, 1.02], [1, 1, 1], 1);
+  builder.box([1.80, -0.12, 5.86], [0.34, 0.24, 0.34], [1, 1, 1], 1);
   return builder.finish();
 }
 
@@ -268,7 +268,7 @@ function buildArmyMesh(): MeshData {
   const builder = new MeshBuilder();
   const timber: Rgb = [0.43, 0.30, 0.17];
   const linen: Rgb = [0.76, 0.64, 0.42];
-  builder.shadow(1.9);
+  builder.shadow(1.65, 0.92, 0.15, [0.10, -0.25]);
   builder.box([0, 0, 2.15], [0.14, 0.14, 4.3], timber, 1);
   builder.box([0.82, 0, 3.72], [1.64, 0.12, 0.92], [1, 1, 1], 1);
   builder.box([0.60, 0, 2.92], [1.18, 0.12, 0.62], [1, 1, 1], 1);
@@ -324,21 +324,21 @@ class MeshBuilder {
     }
   }
 
-  shadow(radius: number) {
+  shadow(radiusX: number, radiusY = radiusX * 0.62, alpha = 0.14, offset: [number, number] = [0.10, -0.04]) {
     const color: Rgb = [0.06, 0.05, 0.035];
-    const center: [number, number, number] = [0.10, -0.04, 0.025];
+    const center: [number, number, number] = [offset[0], offset[1], 0.025];
     const normal: [number, number, number] = [0, 0, 1];
     const ring: [number, number, number][] = [];
     for (let i = 0; i < 18; i++) {
       const a = (i / 18) * Math.PI * 2;
-      ring.push([center[0] + Math.cos(a) * radius, center[1] + Math.sin(a) * radius * 0.62, center[2]]);
+      ring.push([center[0] + Math.cos(a) * radiusX, center[1] + Math.sin(a) * radiusY, center[2]]);
     }
     for (let i = 0; i < ring.length; i++) {
       const base = this.vertices.length / 10;
       this.vertices.push(
-        ...center, ...normal, ...color, 0.20,
-        ...ring[i], ...normal, ...color, 0.14,
-        ...ring[(i + 1) % ring.length], ...normal, ...color, 0.14,
+        ...center, ...normal, ...color, alpha + 0.05,
+        ...ring[i], ...normal, ...color, alpha,
+        ...ring[(i + 1) % ring.length], ...normal, ...color, alpha,
       );
       this.indices.push(base, base + 1, base + 2);
     }

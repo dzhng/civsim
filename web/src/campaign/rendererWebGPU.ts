@@ -264,7 +264,7 @@ function buildEntityFrame(data: CampaignData, opts: DrawOptions) {
     });
     cityEntities++;
     if (node === opts.selectedCity) {
-      selections.push({ x: mapNode.pos[0], y: mapNode.pos[1], radius: (mapNode.tier >= 3 ? 8.9 : 7.6) * fixtureScale, color: [0.31, 0.82, 0.39], kind: 'city' });
+      selections.push({ x: mapNode.pos[0], y: mapNode.pos[1], radius: (mapNode.tier >= 3 ? 10.8 : 9.4) * fixtureScale, color: [0.31, 0.82, 0.39], kind: 'city' });
     }
   }
   for (const army of opts.armies) {

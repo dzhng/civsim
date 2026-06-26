@@ -84,22 +84,33 @@ release decision only after the relevant model-level gates exist.
 The 2026-06-27 unprimed screenshot critique of the city, town, road, and
 Campaign Label Zoom captures identified these open blockers:
 
-- City and town selection footprints are in perspective now, but they still read
-  oversized and detached from the actual settlement/shadow footprint.
-- City and town flags/poles still read too flat and pasted-on; poles must attach
-  through the settlement center without banner slab artifacts.
-- Road color has moved toward pale stone with dark side shadows, but the road
-  still reads as layered bands and must become an integrated raised terrain
-  feature with believable city connections.
+- City and town selection footprints are projected with the world camera and sit
+  outside the shadow footprint, but they still read too thick, too flat, and too
+  visually dominant in close model gates.
+- City and town flags/poles are centered on the settlement and no longer collapse
+  to the wrong origin, but the poles are too thin and the cloth still reads like a
+  flat marker unless a real depth/occlusion pass proves it is integrated.
+- Road color has moved toward pale stone with dark side shadows, but road/city
+  transitions still look layered and clipped; roads need a real raised-terrain or
+  depth-integrated connection into settlements.
 - Campaign Label Zoom is missing or underscaling environmental models versus
   the archived renderer; trees, rocks, mountains, and relief density are still
   below parity.
 - Labels preserve the font/icon language, but current placement collides with
   army/city geometry and can duplicate nearby city names.
-- Contact shadows and selection disks are broad and low-contrast; they must read
-  as grounded model shadows and intentional selection affordances, not stains.
+- Contact shadows are below the city models now, but they still read as muddy
+  blobs instead of coherent directional contact shadows.
 - Whole-world lighting remains washed out and low contrast versus the archived
   renderer; model scale relationships also need tightening.
+- The map plane edge is too exposed as a rectangular slab in black void; this is
+  acceptable for model gates but not for final campaign framing.
+- Model gates and the campaign surface have inconsistent depth language: labels
+  are screen-facing, roads are flat strips, buildings are isometric blocks, and
+  rings are translucent overlays. The next renderer slice needs a real depth
+  buffer or an equivalent ordered pass plan before accepting these surfaces.
+- The 2026-06-27 campaign geometry checkpoint improved the Campaign Label Zoom
+  parity distance from `0.37215` to `0.37081`; the rejected faction-label hiding
+  experiment scored `0.37748` and must not be revived as a parity shortcut.
 
 ## Acceptance Rule
 

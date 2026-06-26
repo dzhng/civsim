@@ -42,13 +42,14 @@ fn vs(@location(0) quad: vec2f, @location(1) inst0: vec4f, @location(2) inst1: v
 @fragment
 fn fs(in: VsOut) -> @location(0) vec4f {
   let d = length(in.local);
-  if (d > 1.0 || d < 0.82) { discard; }
-  let outer = smoothstep(1.0, 0.965, d);
-  let inner = smoothstep(0.82, 0.855, d);
+  if (d > 1.0 || d < 0.88) { discard; }
+  let outer = smoothstep(1.0, 0.975, d);
+  let inner = smoothstep(0.88, 0.905, d);
   let ring = outer * inner;
-  let fill = smoothstep(0.97, 0.89, d) * smoothstep(0.80, 0.86, d) * 0.18;
-  let armyBoost = select(0.0, 0.10, in.kind > 0.5);
-  return vec4f(in.color * (0.94 + armyBoost), max(ring * 0.88, fill));
+  let fill = smoothstep(0.98, 0.93, d) * smoothstep(0.86, 0.91, d) * 0.10;
+  let groundTint = mix(in.color, vec3f(0.74, 0.66, 0.36), select(0.44, 0.28, in.kind > 0.5));
+  let armyBoost = select(0.0, 0.08, in.kind > 0.5);
+  return vec4f(groundTint * (0.90 + armyBoost), max(ring * 0.74, fill));
 }`;
 
 export class CampaignSelectionPass {

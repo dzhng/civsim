@@ -712,7 +712,7 @@ function campaignModelGateFrame(gate: CampaignModelGate) {
   const addCity = (x: number, y: number, radius: number, text: string, faction = red, allegiance = green, selected = false) => {
     entities.push({ x, y, radius, faction, allegiance, kind: 'city', strength: 1 });
     labels.push({ text, x, y: y - 4.7, kind: 'city', size: 14, priority: 5, icon: 'city', iconColor: allegiance });
-    if (selected) selections.push({ x, y, radius: radius * 1.16, color: green, kind: 'city' });
+    if (selected) selections.push({ x, y, radius: radius * 1.34, color: green, kind: 'city' });
   };
   const addArmy = (x: number, y: number, selected = false) => {
     entities.push({ x, y, radius: 5.5, faction: red, allegiance: green, kind: 'army', strength: 0.86 });
@@ -771,20 +771,21 @@ function roadGateVertices(points: [number, number][]) {
     b: [number, number],
     color: [number, number, number, number],
     halfWidth: number,
+    offset = 0,
   ) => {
     const dx = b[0] - a[0];
     const dy = b[1] - a[1];
     const len = Math.hypot(dx, dy) || 1;
     const nx = -dy / len;
     const ny = dx / len;
-    const ax0 = a[0] - nx * halfWidth;
-    const ay0 = a[1] - ny * halfWidth;
-    const ax1 = a[0] + nx * halfWidth;
-    const ay1 = a[1] + ny * halfWidth;
-    const bx0 = b[0] - nx * halfWidth;
-    const by0 = b[1] - ny * halfWidth;
-    const bx1 = b[0] + nx * halfWidth;
-    const by1 = b[1] + ny * halfWidth;
+    const ax0 = a[0] + nx * (offset - halfWidth);
+    const ay0 = a[1] + ny * (offset - halfWidth);
+    const ax1 = a[0] + nx * (offset + halfWidth);
+    const ay1 = a[1] + ny * (offset + halfWidth);
+    const bx0 = b[0] + nx * (offset - halfWidth);
+    const by0 = b[1] + ny * (offset - halfWidth);
+    const bx1 = b[0] + nx * (offset + halfWidth);
+    const by1 = b[1] + ny * (offset + halfWidth);
     verts.push(
       ax0, ay0, ...color,
       bx0, by0, ...color,
@@ -797,10 +798,11 @@ function roadGateVertices(points: [number, number][]) {
   for (let i = 1; i < points.length; i++) {
     const a = points[i - 1];
     const b = points[i];
-    pushBand(a, b, [0.08, 0.075, 0.065, 0.48], 0.33);
-    pushBand(a, b, [0.34, 0.32, 0.28, 0.74], 0.24);
-    pushBand(a, b, [0.80, 0.79, 0.72, 0.96], 0.17);
-    pushBand(a, b, [0.93, 0.92, 0.86, 0.98], 0.07);
+    pushBand(a, b, [0.075, 0.067, 0.055, 0.58], 0.045, -0.23);
+    pushBand(a, b, [0.075, 0.067, 0.055, 0.58], 0.045, 0.23);
+    pushBand(a, b, [0.60, 0.58, 0.51, 0.72], 0.22);
+    pushBand(a, b, [0.82, 0.81, 0.74, 0.97], 0.17);
+    pushBand(a, b, [0.94, 0.93, 0.86, 0.98], 0.055);
   }
   return new Float32Array(verts);
 }

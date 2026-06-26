@@ -157,7 +157,7 @@
           "rockModelVertices": 126,
           "layer": "raw-webgpu-legacy-scenery-meshes"
         },
-        "roadSegments": 12,
+        "roadSegments": 15,
         "selections": 0,
         "labels": 2,
         "visibleLabels": 2,

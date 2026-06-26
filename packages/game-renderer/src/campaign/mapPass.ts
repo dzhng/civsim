@@ -731,10 +731,11 @@ function pushEdgeLines(out: number[], edge: CampaignMapEdgeData) {
       pushBand(a, b, [0.56, 0.72, 0.86, 0.26], 0.85);
       continue;
     }
-    pushBand(a, b, [0.08, 0.075, 0.065, 0.48], 2.10);
-    pushBand(a, b, [0.34, 0.32, 0.28, 0.74], 1.58);
-    pushBand(a, b, [0.80, 0.79, 0.72, 0.96], 1.18);
-    pushBand(a, b, [0.93, 0.92, 0.86, 0.98], 0.48);
+    pushBand(a, b, [0.075, 0.067, 0.055, 0.58], 0.30, -1.44);
+    pushBand(a, b, [0.075, 0.067, 0.055, 0.58], 0.30, 1.44);
+    pushBand(a, b, [0.60, 0.58, 0.51, 0.72], 1.32);
+    pushBand(a, b, [0.82, 0.81, 0.74, 0.97], 1.02);
+    pushBand(a, b, [0.94, 0.93, 0.86, 0.98], 0.32);
   }
 }
 

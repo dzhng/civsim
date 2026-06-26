@@ -1,6 +1,6 @@
 ---
 name: tweak-mechanics
-description: How to change the SIM PHYSICS (how soldiers move, collide, press, hold a line, rout) — the first-principles workflow and the kind of tests that pin it. Distinct from balancing units. Use when David says a behavior looks wrong ("heavy v heavy isn't clean", "the latch points the wrong way", "they swirl/pass through each other"), or asks to simplify/question a mechanic. Pairs with [debug](../debug/SKILL.md) (the diagnosis loop for a red or a "feels off") and [write-tests](../write-tests/SKILL.md); distinct from [balance-unit](../balance-unit/SKILL.md) (the stat-table counterpart — never fix balance by changing physics).
+description: How to change the SIM PHYSICS (how soldiers move, collide, press, hold a line, rout) — the first-principles workflow and the kind of tests that pin it. Distinct from balancing units. Use when David says a behavior looks wrong ("heavy v heavy isn't clean", "the latch points the wrong way", "they swirl/pass through each other"), or asks to simplify/question a mechanic. Pairs with [debug](../debug/SKILL.md) (the diagnosis loop for a red or a "feels off") and [write-tests](../write-tests/SKILL.md); distinct from [balance-unit](../balance-unit/SKILL.md) (the stat-table counterpart — never fix balance by changing physics) and [tweak-campaign](../tweak-campaign/SKILL.md) (the strategic layer the battles sit in — movement on the road graph, economy, the commander AI).
 ---
 
 # Tweaking a mechanic (the physics, not the balance)

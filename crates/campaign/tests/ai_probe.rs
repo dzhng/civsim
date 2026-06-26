@@ -62,7 +62,7 @@ fn probe_scores_candidate_futures() {
 
     let w = eval::Weights::default();
     let mut bfs = pathfind::Visited::new(&c.map);
-    let candidates = plan::candidates(&c.map, &c.state, 0, &mut bfs);
+    let candidates = plan::candidates(&c.map, &c.state, 0, 130, &mut bfs);
 
     let base = eval::score(&c.map, &c.state, 0, &w);
     println!("\n  red — persona: default   base score {base:.0}");

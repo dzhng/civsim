@@ -26,11 +26,14 @@ pub struct Plan {
 ///   - "nearest-beatable": each attacker → the nearest city it outmatches
 ///   - "nearest-any": each attacker → the nearest enemy city, beatable or not
 ///
-/// Identical order sets are de-duplicated, keeping the higher-priority label.
+/// `gate` is the persona's attack threshold as a percent of defender strength
+/// (130 = a 1.3× edge): it decides which city counts as "beatable". Identical
+/// order sets are de-duplicated, keeping the higher-priority label.
 pub fn candidates(
     map: &WorldMap,
     st: &CampaignState,
     f: FactionId,
+    gate: u64,
     bfs: &mut pathfind::Visited,
 ) -> Vec<Plan> {
     let mut plans = vec![Plan {
@@ -92,7 +95,7 @@ pub fn candidates(
                     .filter(|(l, _)| road_dist(map, bfs, *l, cloc, tun::AI_THREAT_RADIUS).is_some())
                     .map(|(_, s)| *s)
                     .sum::<u64>();
-            if astr > defenders * 13 / 10 {
+            if astr * 100 > defenders * gate {
                 pick = n;
                 break;
             }

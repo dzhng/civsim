@@ -11,6 +11,7 @@ use crate::tunables as tun;
 use contract::UnitClassId;
 
 pub mod eval;
+pub mod persona;
 pub mod plan;
 pub mod select;
 
@@ -275,8 +276,10 @@ fn think(map: &WorldMap, st: &mut CampaignState, f: FactionId, bfs: &mut pathfin
         .iter()
         .any(|&(id, ..)| st.armies[id as usize].halted());
     if have_idle && st.tick % tun::AI_SEARCH_EVERY == 0 {
-        let plans = plan::candidates(map, st, f, bfs);
-        let weights = eval::Weights::default();
+        // The persona sets the dials: what to value, how clear an edge to demand
+        // before attacking, and how cold or erratic to choose.
+        let profile = persona::profile(map.factions[f as usize].ai_persona);
+        let plans = plan::candidates(map, st, f, profile.gate, bfs);
         // Bravado biases the cold score: a brave faction adds value to any plan
         // that commits to a fight (an offensive march), a cautious one docks it,
         // so the mood — not just the math — colours the choice. "Hold" (no
@@ -293,14 +296,14 @@ fn think(map: &WorldMap, st: &mut CampaignState, f: FactionId, bfs: &mut pathfin
                     tun::AI_ROLLOUT_HORIZON,
                     tun::AI_ROLLOUT_CAP,
                 );
-                let s = eval::score(map, &sandbox, f, &weights);
+                let s = eval::score(map, &sandbox, f, &profile.weights);
                 let aggro = if p.orders.is_empty() { 0.0 } else { 1.0 };
-                s + (bravado - 1.0) * tun::AI_BRAVADO_AGGRO * aggro
+                s + (bravado - 1.0) * profile.bravado_aggro * aggro
             })
             .collect();
         // Sample rather than argmax: among comparable plans the AI won't always
         // take the textbook-best one, which is what stops it reading as a solver.
-        let pick = select::pick_softmax(&scores, tun::AI_SELECT_SCALE, &mut st.rng);
+        let pick = select::pick_softmax(&scores, profile.select_scale, &mut st.rng);
         plan::apply(map, st, &plans[pick]);
     }
 

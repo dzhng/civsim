@@ -59,10 +59,20 @@ pub struct AmbushSpot {
 /// variant plus its branch — nothing else hardcodes a faction by id.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum AiPersona {
-    /// Raises armies and wages war for the map — the playable-style powers.
+    /// Raises armies and wages war for the map — the relentless baseline power.
     Expansionist,
     /// Garrisons its cities and otherwise sits still: minor leagues, neutrals.
     Neutral,
+    /// Holds what it has: fortifies, retakes lost cities, rarely marches out.
+    Defensive,
+    /// Economy first — out-earns its rivals, then buys a war late.
+    Mercantile,
+    /// Preys on the weak and wounded, dodges fair fights (a jackal).
+    Opportunist,
+    /// A cold optimizer: attacks only with a clear edge, little randomness.
+    Calculating,
+    /// Brave to a fault — throws itself at near-parity fights.
+    Warmonger,
 }
 
 impl AiPersona {
@@ -72,6 +82,11 @@ impl AiPersona {
         match s {
             Some("expansionist") => AiPersona::Expansionist,
             Some("neutral") => AiPersona::Neutral,
+            Some("defensive") => AiPersona::Defensive,
+            Some("mercantile") => AiPersona::Mercantile,
+            Some("opportunist") => AiPersona::Opportunist,
+            Some("calculating") => AiPersona::Calculating,
+            Some("warmonger") => AiPersona::Warmonger,
             _ => {
                 if playable {
                     AiPersona::Expansionist
@@ -82,8 +97,9 @@ impl AiPersona {
         }
     }
     /// Whether this persona ever marches out to campaign (vs. only garrisoning).
+    /// Only `Neutral` sits still; every characterful persona wages war.
     pub fn campaigns(self) -> bool {
-        matches!(self, AiPersona::Expansionist)
+        !matches!(self, AiPersona::Neutral)
     }
 }
 

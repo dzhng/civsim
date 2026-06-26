@@ -42,6 +42,7 @@ fn unit_width_with_stats(class: UnitClassId, stats: UnitClass) -> f32 {
 struct SpawnPlan {
     id: u64,
     class: UnitClassId,
+    render_look: u32,
     stats: UnitClass,
     count: usize,
     training: f32,
@@ -74,8 +75,15 @@ fn spawn_plan(
     out: &mut Vec<(u64, usize)>,
 ) {
     let files = plan.count.div_ceil(plan.stats.default_depth.max(1));
-    let idx = sim.spawn_class_stats_with_files(
-        anchor, face, plan.count, files, plan.class, plan.stats, dep_team,
+    let idx = sim.spawn_class_stats_look_with_files(
+        anchor,
+        face,
+        plan.count,
+        files,
+        plan.class,
+        plan.stats,
+        plan.render_look,
+        dep_team,
     );
     let u = &mut sim.units[idx];
     u.training = plan.training.clamp(0.05, 1.0);
@@ -180,6 +188,19 @@ pub fn deploy_roster_with_stats<F>(
 where
     F: Fn(&contract::RosterUnit) -> UnitClass,
 {
+    deploy_roster_with_stats_and_looks(sim, dep, stats_for, &|r| r.class as u32)
+}
+
+pub fn deploy_roster_with_stats_and_looks<F, G>(
+    sim: &mut Sim,
+    dep: &contract::Deployment,
+    stats_for: &F,
+    render_look_for: &G,
+) -> Vec<(u64, usize)>
+where
+    F: Fn(&contract::RosterUnit) -> UnitClass,
+    G: Fn(&contract::RosterUnit) -> u32,
+{
     let center = Vec2::new(dep.center[0], dep.center[1]);
     let facing = dep.facing;
     let mut out: Vec<(u64, usize)> = Vec::new();
@@ -206,6 +227,7 @@ where
             units.push(SpawnPlan {
                 id: r.id,
                 class: r.class,
+                render_look: render_look_for(r),
                 stats,
                 count: n,
                 training: r.training,

@@ -54,7 +54,7 @@ export function mountTurntable() {
   const render = (p: PoseReq) => {
     if (p.cls !== curCls || p.team !== curTeam) {
       curCls = p.cls; curTeam = p.team;
-      renderer.setStatic(new Uint32Array([0]), [p.team], [p.cls], new Float32Array([0.33]));
+      renderer.setStatic(new Uint32Array([0]), [p.team], [p.cls], [p.cls], new Float32Array([0.33]));
     }
     camera.x = 0;
     camera.y = p.camY;
@@ -86,7 +86,7 @@ export function mountTurntable() {
   const step = (p: PoseReq, dt: number) => {
     if (p.cls !== curCls || p.team !== curTeam) {
       curCls = p.cls; curTeam = p.team;
-      renderer.setStatic(new Uint32Array([0]), [p.team], [p.cls], new Float32Array([0.33]));
+      renderer.setStatic(new Uint32Array([0]), [p.team], [p.cls], [p.cls], new Float32Array([0.33]));
     }
     camera.x = 0; camera.y = p.camY; camera.zoom = p.zoom;
     renderer.pitchOverride = p.pitch;

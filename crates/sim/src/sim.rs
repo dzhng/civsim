@@ -279,6 +279,7 @@ impl Sim {
         let home_dir_y = if anchor.y >= map_mid_y { 1.0 } else { -1.0 };
         let unit = Unit {
             class: UnitClassId::LightSpear,
+            render_look: UnitClassId::LightSpear as u32,
             stats: class_stats(UnitClassId::LightSpear),
             pace_mult: 1.0,
             start: self.soldier_count(),
@@ -437,6 +438,7 @@ impl Sim {
         self.max_radius = self.max_radius.max(stats.soldier_radius);
         let u = &mut self.units[idx];
         u.class = class;
+        u.render_look = class as u32;
         u.stats = stats;
         u.pace_mult = stats.pace_mult;
         u.charge_enabled = stats.charge;
@@ -461,6 +463,32 @@ impl Sim {
         stats: UnitClass,
         team: u32,
     ) -> usize {
+        self.spawn_class_stats_look_with_files(
+            anchor,
+            facing,
+            count,
+            files,
+            class,
+            stats,
+            class as u32,
+            team,
+        )
+    }
+
+    /// Spawn a class unit with resolved stats and an explicit render look. The
+    /// extra look id is visual-only: campaign unit variants can dress the same
+    /// tactical class differently while combat keeps reading `class`/`stats`.
+    pub fn spawn_class_stats_look_with_files(
+        &mut self,
+        anchor: Vec2,
+        facing: f32,
+        count: usize,
+        files: usize,
+        class: UnitClassId,
+        stats: UnitClass,
+        render_look: u32,
+        team: u32,
+    ) -> usize {
         let lower = 4.min(count.max(1));
         let files = files.clamp(lower, (count / 3).max(lower));
         let idx = self.spawn_unit(
@@ -483,6 +511,7 @@ impl Sim {
         self.max_radius = self.max_radius.max(stats.soldier_radius);
         let u = &mut self.units[idx];
         u.class = class;
+        u.render_look = render_look;
         u.stats = stats;
         u.pace_mult = stats.pace_mult;
         u.charge_enabled = stats.charge;

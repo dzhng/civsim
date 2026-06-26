@@ -81,6 +81,13 @@ fn resolved_unit_stats(r: &contract::RosterUnit) -> sim::UnitClass {
     s
 }
 
+fn resolved_unit_render_look(r: &contract::RosterUnit) -> u32 {
+    // The tactical class is the default model id today. Keeping this beside
+    // `resolved_unit_stats` gives campaign unit types a single future hook for
+    // visual variants without mixing art choices into combat stats.
+    r.class as u32
+}
+
 #[wasm_bindgen]
 impl Campaign {
     #[wasm_bindgen(constructor)]
@@ -713,7 +720,11 @@ mod tests {
 #[wasm_bindgen]
 pub fn start_campaign_battle(c: &mut Campaign, encounter: u32) -> Option<Game> {
     let setup = c.inner.battle_setup(encounter)?;
-    let mut battle = sim::Battle::from_setup_with_stats(&setup, &resolved_unit_stats);
+    let mut battle = sim::Battle::from_setup_with_stats_and_looks(
+        &setup,
+        &resolved_unit_stats,
+        &resolved_unit_render_look,
+    );
     // Whoever isn't the player fights themselves; battle_setup_for puts the
     // player on team 0 when involved.
     battle.set_ai(1, true);

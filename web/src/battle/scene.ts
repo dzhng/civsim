@@ -2,6 +2,7 @@ import { Game, type InitOutput } from '../wasm/game_wasm.js';
 import type { Scene } from '../scene';
 import { Camera } from '../shared/camera';
 import { pushGhost, pushPie, pushRing } from '../shared/overlays';
+import { modelLookForUnit } from '../shared/soldierModel';
 import { CLASS_NAMES, Renderer, WILDS_MARGIN } from './renderer';
 import { BattleRenderer3D, type BannerSlot } from './renderer3d';
 import { UnitBanner, type BannerChip } from './unitBanner';
@@ -12,6 +13,7 @@ import { groupMoveDests, UnitSnap } from './orders';
 
 const TICK_DT = 1 / 30;
 const MAX_TICKS_PER_FRAME = 4;
+const UNIT_INFO_RENDER_LOOK = 34;
 
 // Class table mirrors — must match class.rs. Indices: 0 heavy, 1 light, 2 long
 // sword, 3 phalanx, 4 archers, 5 skirmishers, 6 shock cav, 7 horse archers,
@@ -126,8 +128,12 @@ export class BattleScene implements Scene {
       const info = unitInfo();
       const teams = Array.from({ length: game.unit_count() }, (_, u) => info[u * STRIDE + 6]);
       const classes = Array.from({ length: game.unit_count() }, (_, u) => info[u * STRIDE + 13]);
+      const renderLooks = Array.from(
+        { length: game.unit_count() },
+        (_, u) => info[u * STRIDE + UNIT_INFO_RENDER_LOOK] ?? modelLookForUnit(classes[u]),
+      );
       const radii = new Float32Array(wasm.memory.buffer, game.radius_ptr(), game.soldier_count());
-      renderer.setStatic(soldierUnit, teams, classes, radii);
+      renderer.setStatic(soldierUnit, teams, classes, renderLooks, radii);
     };
     applyStatic();
     {
@@ -624,7 +630,13 @@ export class BattleScene implements Scene {
       for (let u = 0; u < game.unit_count(); u++) {
         if (info[u * STRIDE + 6] !== 0) continue; // player units only
         cardUnits.push(u);
-        inits.push({ unit: u, cls: info[u * STRIDE + 13], team: 0 as const, name: CLASS_NAMES[info[u * STRIDE + 13]] ?? '?' });
+        inits.push({
+          unit: u,
+          cls: info[u * STRIDE + 13],
+          look: info[u * STRIDE + UNIT_INFO_RENDER_LOOK] ?? modelLookForUnit(info[u * STRIDE + 13]),
+          team: 0 as const,
+          name: CLASS_NAMES[info[u * STRIDE + 13]] ?? '?',
+        });
       }
       unitCards.build(inits);
     };

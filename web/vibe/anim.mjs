@@ -20,8 +20,9 @@ const OUT = path.join(here, '..', 'shots', 'anim');
 fs.mkdirSync(OUT, { recursive: true });
 
 const NAMES = ['heavy-sword', 'light-spear', 'longsword', 'phalanx', 'archers', 'skirmishers',
-  'shock-cav', 'horse-archers', 'artillery', 'peasant', 'light-sword', 'heavy-spear'];
-const CLASS_H = [1.75, 2.05, 1.85, 3.5, 1.75, 1.6, 3.4, 2.6, 1.55, 1.55, 1.75, 2.05];
+  'shock-cav', 'horse-archers', 'artillery', 'peasant', 'light-sword', 'heavy-spear',
+  'medium-infantry', 'medium-spear', 'shock-cav-sword'];
+const CLASS_H = [1.75, 2.05, 1.85, 3.5, 1.75, 1.6, 3.4, 2.6, 1.55, 1.55, 1.75, 2.05, 1.9, 2.05, 3.6];
 const FRONT = -Math.PI / 2;
 const facing = process.env.ANGLE === 'front' ? FRONT : FRONT + Math.PI / 5;
 

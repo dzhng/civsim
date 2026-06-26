@@ -12,7 +12,14 @@ import { Scene } from '@babylonjs/core/scene';
 import { FreeCamera } from '@babylonjs/core/Cameras/freeCamera';
 import { Camera as BCamera } from '@babylonjs/core/Cameras/camera';
 import { PostProcess } from '@babylonjs/core/PostProcesses/postProcess';
-import { CLASS_LOOK, SHOCK_CAV_SIDEARM_LOOK, classGeometry, classGeometryDetailed, type Pose } from '../shared/soldierModel';
+import {
+  MODEL_LOOK_COUNT,
+  SHOCK_CAV_SIDEARM_LOOK,
+  classGeometry,
+  classGeometryDetailed,
+  modelLookForClass,
+  type Pose,
+} from '../shared/soldierModel';
 import { HemisphericLight } from '@babylonjs/core/Lights/hemisphericLight';
 import { DirectionalLight } from '@babylonjs/core/Lights/directionalLight';
 import { Vector2, Vector3, Vector4 } from '@babylonjs/core/Maths/math.vector';
@@ -77,9 +84,9 @@ const MAX_PITCH_USER = 1.18; // how far down the user can tilt (Total War low an
 // renderer routes each soldier to the rung his state asks for. Block mode uses
 // a 6-step rest ladder (geometry lerped from fighting to at-ease, for the pike
 // raise); detailed mode uses the richer POSES table (rest ladder + march/run/
-// attack/hit/death). Buckets: rung*POSE_BUCKET + cls*2 + team.
+// attack/hit/death). Buckets: rung*POSE_BUCKET + look*2 + team.
 const POSE_STEPS_BLOCK = 6;
-const POSE_BUCKET = CLASS_LOOK.length * 2;
+const POSE_BUCKET = MODEL_LOOK_COUNT * 2;
 const REST_FULL_SECS = 0.8; // wall-clock time for a full raise/lower
 const DEATH_SECS = 0.55; // wall-clock time for a fallen man to crumple + topple
 const FRAME_REST = 6; // sim frame value the scene tags an at-ease (standing) man with
@@ -491,8 +498,8 @@ export class BattleRenderer3D {
   private engine: Engine;
   private scene: Scene;
   private camera: FreeCamera;
-  // 3D path: one mesh per (class, team) so each carries its own model and
-  // team colour; soldiers route to bucket cls*2+team. 2D path: one
+  // 3D path: one mesh per (model look, team) so campaign unit variants can
+  // share a tactical class while wearing different models. 2D path: one
   // atlas-textured sprite mesh.
   private classMesh: Mesh[] = [];
   private classMats: Float32Array[] = [];
@@ -522,7 +529,7 @@ export class BattleRenderer3D {
   private cap = 0;
   // Per-soldier static data (indexed by soldier id).
   private teamOf: Uint8Array = new Uint8Array(0);
-  private classOf: Uint8Array = new Uint8Array(0);
+  private lookOf: Uint8Array = new Uint8Array(0);
   private scaleOf = new Float32Array(0); // 3D mesh scale
   private rowOf = new Float32Array(0); // atlas row (class+team)
   private sizeOf = new Float32Array(0); // sprite world size
@@ -674,19 +681,19 @@ export class BattleRenderer3D {
       return m;
     });
     for (let pose = 0; pose < this.nPose; pose++) {
-      for (let cls = 0; cls < CLASS_LOOK.length; cls++) {
+      for (let look = 0; look < MODEL_LOOK_COUNT; look++) {
         // Block geometry is team-independent (the material carries the colour);
         // detailed geometry bakes the faction accent into its vertex colours, so
         // it differs per team and is rebuilt for each.
-        const blockGeom = this.blockMode ? classGeometry(cls, pose / (POSE_STEPS_BLOCK - 1)) : null;
+        const blockGeom = this.blockMode ? classGeometry(look, pose / (POSE_STEPS_BLOCK - 1)) : null;
         for (let t = 0; t < 2; t++) {
-          const bucket = pose * POSE_BUCKET + cls * 2 + t;
-          const mesh = new Mesh(`soldier_${pose}_${cls}_${t}`, this.scene);
+          const bucket = pose * POSE_BUCKET + look * 2 + t;
+          const mesh = new Mesh(`soldier_${pose}_${look}_${t}`, this.scene);
           if (this.blockMode) {
             blockGeom!.applyToMesh(mesh);
             mesh.material = teamMat[t];
           } else {
-            classGeometryDetailed(cls, POSES[pose], FACTION_ACCENT[t]).applyToMesh(mesh);
+            classGeometryDetailed(look, POSES[pose], FACTION_ACCENT[t]).applyToMesh(mesh);
             mesh.material = detailMat;
           }
           mesh.alwaysSelectAsActiveMesh = true;
@@ -807,10 +814,16 @@ export class BattleRenderer3D {
     this.engine.resize();
   }
 
-  setStatic(soldierUnit: Uint32Array, teams: number[], classes: number[], radii: Float32Array) {
+  setStatic(
+    soldierUnit: Uint32Array,
+    teams: number[],
+    classes: number[],
+    renderLooks: number[],
+    radii: Float32Array,
+  ) {
     const n = soldierUnit.length;
     this.teamOf = new Uint8Array(n);
-    this.classOf = new Uint8Array(n);
+    this.lookOf = new Uint8Array(n);
     this.scaleOf = new Float32Array(n);
     this.rowOf = new Float32Array(n);
     this.sizeOf = new Float32Array(n);
@@ -820,9 +833,10 @@ export class BattleRenderer3D {
     for (let i = 0; i < n; i++) {
       const u = soldierUnit[i];
       const cls = classes[u];
+      const look = renderLooks[u] ?? modelLookForClass(cls);
       const team = teams[u];
       this.teamOf[i] = team === 1 ? 1 : 0;
-      this.classOf[i] = Math.min(cls, CLASS_LOOK.length - 1);
+      this.lookOf[i] = Math.min(look, MODEL_LOOK_COUNT - 1);
       this.scaleOf[i] = Math.max(0.6, radii[i] / 0.33);
       this.rowOf[i] = this.soldierRowOf(cls, team);
       const mounted = cls === 6 || cls === 7;
@@ -975,8 +989,8 @@ export class BattleRenderer3D {
     for (let i = 0; i < count; i++) {
       // A shock lancer grinding with its sabre renders as the sidearm pseudo-class
       // (same horse+rider, sword in hand) — the visual twin of the pike-stow swap.
-      const cls = this.sidearmOf[i] ? SHOCK_CAV_SIDEARM_LOOK : this.classOf[i];
-      const bucket = this.poseOf(i, frames[i]) * POSE_BUCKET + cls * 2 + this.teamOf[i];
+      const look = this.sidearmOf[i] ? SHOCK_CAV_SIDEARM_LOOK : this.lookOf[i];
+      const bucket = this.poseOf(i, frames[i]) * POSE_BUCKET + look * 2 + this.teamOf[i];
       let buf = this.classMats[bucket];
       const n = this.classN[bucket];
       if ((n + 1) * 16 > buf.length) {

@@ -358,6 +358,7 @@ mod tests {
         let tun = Tunables::default();
         let mut disordered = Unit {
             class: crate::class::UnitClassId::LightSpear,
+            render_look: crate::class::UnitClassId::LightSpear as u32,
             stats: crate::class::class_stats(crate::class::UnitClassId::LightSpear),
             pace_mult: 1.0,
             start: 0,

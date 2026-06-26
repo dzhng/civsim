@@ -89,7 +89,9 @@ NAME=my-test ATK=2 DEF=0 node vibe/duel-posture.mjs # baselines under shots/base
 ```
 
 Class ids: 0 heavy · 1 light · 2 longsword · 3 phalanx · 4 archers ·
-5 skirmishers · 6 cavalry · 7 horse archers · 8 artillery · 9 peasant.
+5 skirmishers · 6 cavalry · 7 horse archers · 8 artillery · 9 peasant ·
+10 light sword · 11 heavy spear · 12 medium infantry · 13 medium spear ·
+14 shock-cav sidearm look.
 
 ## The model turntable (`turntable.mjs`)
 
@@ -101,7 +103,7 @@ sheet is what you review AND a gate — an unintended geometry/renderer change
 turns a class red.
 
 ```sh
-node vibe/turntable.mjs                 # all 12 classes, hero 3/4 angle
+node vibe/turntable.mjs                 # all class looks, hero 3/4 angle
 ONLY=0,3,6 node vibe/turntable.mjs      # just these class ids
 PITCH=ingame node vibe/turntable.mjs    # the battle's real top-down tilt (review only)
 UPDATE_SHOTS=1 node vibe/turntable.mjs  # re-bless after a model change

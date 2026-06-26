@@ -10,33 +10,50 @@ import { VertexData } from '@babylonjs/core/Meshes/mesh.vertexData';
 export interface ClassLook {
   weapon: 'sword' | 'spear' | 'greatsword' | 'pike' | 'bow' | 'javelin' | 'lance' | 'none';
   shield: 'tall' | 'round' | 'small' | 'none';
+  armor: 'heavy' | 'medium' | 'light' | 'cloth' | 'rag';
+  helmet: 'crested' | 'bronze' | 'cap' | 'hood' | 'bare';
   crest: boolean;
   mounted: boolean;
 }
 
 export const CLASS_LOOK: ClassLook[] = [
-  { weapon: 'sword', shield: 'tall', crest: true, mounted: false }, // 0 heavy sword
-  { weapon: 'spear', shield: 'round', crest: false, mounted: false }, // 1 light spear
-  { weapon: 'greatsword', shield: 'none', crest: false, mounted: false }, // 2 longswords
-  { weapon: 'pike', shield: 'small', crest: true, mounted: false }, // 3 phalanx
-  { weapon: 'bow', shield: 'none', crest: false, mounted: false }, // 4 archers
-  { weapon: 'javelin', shield: 'small', crest: false, mounted: false }, // 5 skirmishers
-  { weapon: 'lance', shield: 'round', crest: true, mounted: true }, // 6 shock cav
-  { weapon: 'bow', shield: 'none', crest: false, mounted: true }, // 7 horse archers
-  { weapon: 'none', shield: 'none', crest: false, mounted: false }, // 8 artillery crew
-  { weapon: 'sword', shield: 'none', crest: false, mounted: false }, // 9 peasant (a knife, no shield)
-  { weapon: 'sword', shield: 'round', crest: false, mounted: false }, // 10 light sword (sword + light shield)
-  { weapon: 'spear', shield: 'tall', crest: true, mounted: false }, // 11 heavy spear (spear + big shield)
-  { weapon: 'sword', shield: 'round', crest: true, mounted: false }, // 12 medium infantry
-  { weapon: 'spear', shield: 'round', crest: true, mounted: false }, // 13 medium spear
+  { weapon: 'sword', shield: 'tall', armor: 'heavy', helmet: 'crested', crest: true, mounted: false }, // 0 heavy sword
+  { weapon: 'spear', shield: 'round', armor: 'light', helmet: 'cap', crest: false, mounted: false }, // 1 light spear
+  { weapon: 'greatsword', shield: 'none', armor: 'medium', helmet: 'bronze', crest: false, mounted: false }, // 2 longswords
+  { weapon: 'pike', shield: 'small', armor: 'heavy', helmet: 'crested', crest: true, mounted: false }, // 3 phalanx
+  { weapon: 'bow', shield: 'none', armor: 'cloth', helmet: 'hood', crest: false, mounted: false }, // 4 archers
+  { weapon: 'javelin', shield: 'small', armor: 'light', helmet: 'bare', crest: false, mounted: false }, // 5 skirmishers
+  { weapon: 'lance', shield: 'round', armor: 'heavy', helmet: 'crested', crest: true, mounted: true }, // 6 shock cav
+  { weapon: 'bow', shield: 'none', armor: 'light', helmet: 'cap', crest: false, mounted: true }, // 7 horse archers
+  { weapon: 'none', shield: 'none', armor: 'cloth', helmet: 'cap', crest: false, mounted: false }, // 8 artillery crew
+  { weapon: 'sword', shield: 'none', armor: 'rag', helmet: 'bare', crest: false, mounted: false }, // 9 peasant (a knife, no shield)
+  { weapon: 'sword', shield: 'round', armor: 'light', helmet: 'cap', crest: false, mounted: false }, // 10 light sword
+  { weapon: 'spear', shield: 'tall', armor: 'heavy', helmet: 'crested', crest: true, mounted: false }, // 11 heavy spear
+  { weapon: 'sword', shield: 'round', armor: 'medium', helmet: 'bronze', crest: true, mounted: false }, // 12 medium infantry
+  { weapon: 'spear', shield: 'round', armor: 'medium', helmet: 'bronze', crest: true, mounted: false }, // 13 medium spear
   // RENDER-ONLY pseudo-class: shock cav after it switches from lance to sabre
   // in the grind. The sim never spawns this — the renderer routes a shock-cav
   // soldier here when `cur_weapon` is its sidearm, so the same horse+rider keeps
   // the lance upright in the off hand while fighting with a sword.
-  { weapon: 'sword', shield: 'round', crest: true, mounted: true }, // shock cav, sabre drawn
+  { weapon: 'sword', shield: 'round', armor: 'heavy', helmet: 'crested', crest: true, mounted: true }, // shock cav, sabre drawn
 ];
 
-export const UNIT_CLASS_LOOK_COUNT = CLASS_LOOK.length - 1;
+export const CLASS_MODEL_LOOK: number[] = CLASS_LOOK.slice(0, -1).map((_, i) => i);
+export const UNIT_CLASS_LOOK_COUNT = CLASS_MODEL_LOOK.length;
+export const MODEL_LOOK_COUNT = CLASS_LOOK.length;
+
+export function modelLookForClass(cls: number): number {
+  return CLASS_MODEL_LOOK[cls] ?? CLASS_MODEL_LOOK[0];
+}
+
+export function modelLookForUnit(cls: number, unitTypeId?: number): number {
+  void unitTypeId;
+  return modelLookForClass(cls);
+}
+
+export function lookForModel(model: number): ClassLook {
+  return CLASS_LOOK[model] ?? CLASS_LOOK[modelLookForClass(0)];
+}
 
 /** Render-only pseudo-class (the last CLASS_LOOK entry): a shock-cav rider with his
  *  sword drawn and lance carried upright. The renderer swaps a grinding lancer
@@ -349,8 +366,10 @@ export function classGeometryDetailed(
       box(sx - 0.052, -0.065, hipZ - 0.40, sx + 0.052, 0.065, hipZ, LINEN, { ang: a, py: 0, pz: hipZ }); // thigh
       box(knee[0] - 0.046, knee[1] - 0.06, knee[2] - 0.42, knee[0] + 0.046, knee[1] + 0.06, knee[2],
         SKIN, { ang: a + kneeBend, py: knee[1], pz: knee[2] }); // shin
-      box(knee[0] - 0.05, knee[1] - 0.075, knee[2] - 0.40, knee[0] + 0.05, knee[1] - 0.035, knee[2] - 0.06,
-        IRON, { ang: a + kneeBend, py: knee[1], pz: knee[2] }); // iron greave on the shin front
+      if (L.armor === 'heavy' || L.armor === 'medium') {
+        box(knee[0] - 0.05, knee[1] - 0.075, knee[2] - 0.40, knee[0] + 0.05, knee[1] - 0.035, knee[2] - 0.06,
+          L.armor === 'heavy' ? IRON : LEATHER, { ang: a + kneeBend, py: knee[1], pz: knee[2] });
+      }
       const shin = rotX([sx, knee[1], knee[2] - 0.42], a + kneeBend, knee[1], knee[2]);
       box(shin[0] - 0.052, shin[1] - 0.04, shin[2] - 0.02, shin[0] + 0.052, shin[1] + 0.17, shin[2] + 0.07, LEATHER_DK); // boot
     };
@@ -363,20 +382,26 @@ export function classGeometryDetailed(
   const torsoBot = lp, shZ = lp + (L.mounted ? 0.46 : 0.48);
   const tilt = { ang: -lean, py: lunge, pz: lp };
 
-  // ---- Torso: a cuirass over a tunic, shoulders wider than the waist -----
-  // The cuirass tapers — narrow at the waist, flaring to the chest, capped by a
-  // rounded shoulder yoke — so the torso reads as a moulded breastplate, not a
-  // slab. Pteruges (leather skirt strips) hang from the waist beneath it.
+  // ---- Torso: class armour changes the silhouette, not just the colour -----
+  // Heavy troops get a broad bronze cuirass and long pteruges; medium infantry
+  // wears a leather/bronze thorax; light and missile troops keep softer linen.
   const waistZ = torsoBot + 0.16, chestZ = shZ - 0.04;
-  frus(0, 0.01, waistZ - 0.18, waistZ, 0.135, 0.115, 0.155, 0.12, LINEN, tilt); // tunic over the hips
-  frus(0, 0.01, waistZ, chestZ, 0.155, 0.12, 0.18, 0.125, BRONZE, tilt); // cuirass, flaring to the chest
-  frus(0, 0.01, chestZ, shZ + 0.03, 0.18, 0.125, 0.15, 0.115, BRONZE_DK, tilt); // shoulder yoke, rounding in
-  // Pteruges: a fringe of leather strips around the waist — the loudest "ancient
-  // soldier" silhouette tell, and cheap geometry.
-  for (let i = -2; i <= 2; i++) {
-    const px = i * 0.06;
-    box(px - 0.025, 0.10, waistZ - 0.30, px + 0.025, 0.135, waistZ - 0.16, LEATHER, tilt); // front skirt
-    box(px - 0.025, -0.135, waistZ - 0.28, px + 0.025, -0.10, waistZ - 0.15, LEATHER_DK, tilt); // back skirt
+  const armor = {
+    heavy: { body: BRONZE, yoke: BRONZE_DK, skirt: LEATHER, waist: 0.16, chest: 0.19, skirtN: 5, skirtLen: 0.30 },
+    medium: { body: LEATHER, yoke: BRONZE, skirt: LEATHER_DK, waist: 0.15, chest: 0.175, skirtN: 4, skirtLen: 0.23 },
+    light: { body: LINEN, yoke: LEATHER, skirt: LINEN, waist: 0.135, chest: 0.16, skirtN: 3, skirtLen: 0.18 },
+    cloth: { body: LINEN, yoke: LINEN, skirt: LINEN, waist: 0.125, chest: 0.145, skirtN: 2, skirtLen: 0.12 },
+    rag: { body: LEATHER_DK, yoke: LEATHER, skirt: LEATHER_DK, waist: 0.12, chest: 0.135, skirtN: 1, skirtLen: 0.10 },
+  }[L.armor];
+  frus(0, 0.01, waistZ - 0.18, waistZ, armor.waist * 0.9, 0.11, armor.waist, 0.115, LINEN, tilt);
+  frus(0, 0.01, waistZ, chestZ, armor.waist, 0.118, armor.chest, 0.125, armor.body, tilt);
+  frus(0, 0.01, chestZ, shZ + 0.03, armor.chest, 0.125, armor.chest * 0.82, 0.112, armor.yoke, tilt);
+  for (let i = -armor.skirtN; i <= armor.skirtN; i++) {
+    const px = i * 0.045;
+    box(px - 0.02, 0.10, waistZ - armor.skirtLen, px + 0.02, 0.135, waistZ - 0.12, armor.skirt, tilt);
+    if (L.armor !== 'rag') {
+      box(px - 0.02, -0.135, waistZ - armor.skirtLen * 0.9, px + 0.02, -0.10, waistZ - 0.12, armor.skirt, tilt);
+    }
   }
   // Faction sash across the front: enough team colour to read, but not a whole
   // billboard torso. Broken into short slabs so it suggests a diagonal strap.
@@ -390,13 +415,23 @@ export function classGeometryDetailed(
   // flange — the cube head was the loudest "blocky" tell at any distance.
   const headZ = shZ + 0.04;
   frus(0, -0.005, headZ, headZ + 0.20, 0.072, 0.078, 0.066, 0.07, SKIN, tilt); // face/skull
-  frus(0, -0.005, headZ + 0.11, headZ + 0.21, 0.088, 0.092, 0.078, 0.082, BRONZE, tilt); // helmet bowl
-  frus(0, -0.005, headZ + 0.21, headZ + 0.28, 0.078, 0.082, 0.03, 0.032, BRONZE, tilt); // domed crown
-  box(-0.086, -0.10, headZ + 0.085, 0.086, -0.06, headZ + 0.135, BRONZE_DK, tilt); // brow band
-  box(-0.018, -0.105, headZ + 0.02, 0.018, -0.075, headZ + 0.10, BRONZE_DK, tilt); // nasal
-  box(-0.092, -0.085, headZ + 0.02, -0.066, 0.05, headZ + 0.135, BRONZE_DK, tilt); // left cheek guard
-  box(0.066, -0.085, headZ + 0.02, 0.092, 0.05, headZ + 0.135, BRONZE_DK, tilt); // right cheek guard
-  box(-0.082, 0.05, headZ + 0.0, 0.082, 0.088, headZ + 0.14, BRONZE_DK, tilt); // neck flange
+  if (L.helmet === 'hood') {
+    frus(0, -0.005, headZ + 0.08, headZ + 0.27, 0.09, 0.096, 0.052, 0.058, LINEN, tilt);
+    box(-0.075, 0.045, headZ - 0.01, 0.075, 0.095, headZ + 0.14, LINEN, tilt);
+  } else if (L.helmet === 'cap') {
+    frus(0, -0.005, headZ + 0.12, headZ + 0.24, 0.082, 0.086, 0.052, 0.054, LEATHER, tilt);
+    box(-0.078, -0.09, headZ + 0.09, 0.078, -0.055, headZ + 0.13, LEATHER_DK, tilt);
+  } else if (L.helmet !== 'bare') {
+    frus(0, -0.005, headZ + 0.11, headZ + 0.21, 0.088, 0.092, 0.078, 0.082, BRONZE, tilt);
+    frus(0, -0.005, headZ + 0.21, headZ + 0.28, 0.078, 0.082, 0.03, 0.032, BRONZE, tilt);
+    box(-0.086, -0.10, headZ + 0.085, 0.086, -0.06, headZ + 0.135, BRONZE_DK, tilt);
+    box(-0.018, -0.105, headZ + 0.02, 0.018, -0.075, headZ + 0.10, BRONZE_DK, tilt);
+    if (L.helmet === 'crested') {
+      box(-0.092, -0.085, headZ + 0.02, -0.066, 0.05, headZ + 0.135, BRONZE_DK, tilt);
+      box(0.066, -0.085, headZ + 0.02, 0.092, 0.05, headZ + 0.135, BRONZE_DK, tilt);
+      box(-0.082, 0.05, headZ + 0.0, 0.082, 0.088, headZ + 0.14, BRONZE_DK, tilt);
+    }
+  }
   if (L.crest) {
     // Swept fore-aft plume in the faction colour — a stack of frusta arcing back
     // off the crown, the loudest team tell on the field.

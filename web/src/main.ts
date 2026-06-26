@@ -111,6 +111,7 @@ async function launchCampaign(fromSave: boolean, testData?: { data: CampaignData
     wasm,
     campaign,
     data,
+    mapJson,
     onExit: () => switchScene(menu),
     onBattle: (game, done) => {
       switchScene(new BattleScene({

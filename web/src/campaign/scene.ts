@@ -32,11 +32,21 @@ import { readCampaignViews, type ArmyView, type CityView } from './views';
 const TICKS_PER_SEC = 60;
 const SPEEDS = [1, 3, 10];
 const SAVE_KEY = 'campaign-save';
+/** Ticks between a snapshot and applying the decisions it yields — must match
+ *  campaign tunables AI_LATENCY. */
+const AI_LATENCY = 60;
+/** Opt-in: `?aiworker=1` runs the campaign AI off the render thread in a
+ *  worker, applying its decisions on a fixed delay (deterministic). Default off
+ *  keeps the proven inline path. */
+const AI_WORKER = new URLSearchParams(location.search).has('aiworker');
 
 export interface CampaignConfig {
   wasm: InitOutput;
   campaign: Campaign;
   data: CampaignData;
+  /** The map JSON the campaign was built from — handed to the AI worker so it
+   *  can load posted state snapshots. */
+  mapJson: string;
   onExit: () => void;
   /** Hand a battle Game to the battle scene; call done() when it ends. */
   onBattle: (game: Game, done: () => void) => void;
@@ -73,6 +83,8 @@ export class CampaignScene implements Scene {
   private paused = true;
   private acc = 0;
   private last = 0;
+  /** The off-thread AI worker, when `?aiworker=1` is set. */
+  private aiWorker: Worker | null = null;
   private selected = -1;
   private hover = -1;
   /** Node index of the city whose panel is open — the one settlement that wears
@@ -131,6 +143,7 @@ export class CampaignScene implements Scene {
     this.ownerHash = 0; // force a territory recolor on (re)entry
     this.ac = new AbortController();
     this.wireInput(this.ac.signal);
+    if (AI_WORKER && !this.aiWorker) this.startAiWorker();
     this.last = performance.now();
     this.refreshViews();
     if (this.recruitClasses.length === 0) {
@@ -209,14 +222,51 @@ export class CampaignScene implements Scene {
     });
   }
 
+  /** Spin up the off-thread AI: hand scheduling to the host and start a worker
+   *  that computes decisions on posted snapshots, applied on a fixed delay. */
+  private startAiWorker() {
+    this.cfg.campaign.set_external_ai(true);
+    const worker = new Worker(new URL('./ai-worker.ts', import.meta.url), { type: 'module' });
+    worker.onmessage = (e: MessageEvent<{ applyAt: number; json: string }>) => {
+      this.cfg.campaign.submit_decisions_json(e.data.applyAt, e.data.json);
+    };
+    worker.postMessage({ type: 'init', mapJson: this.cfg.mapJson });
+    this.aiWorker = worker;
+  }
+
   exit() {
     markCampaignReady(false);
+    this.aiWorker?.terminate();
+    this.aiWorker = null;
     this.ac?.abort();
     this.ac = null;
     this.canvas.style.display = 'none';
     this.glCanvas.style.display = 'none';
     this.ui.style.display = 'none';
     this.closeModal();
+  }
+
+  /** Advance the campaign `n` ticks. Inline by default; under the worker, drive
+   *  the host protocol: run to each boundary, snapshot on a dispatch tick and
+   *  hand it to the worker, stop on a stall until its decisions arrive. The
+   *  fixed apply-delay makes this independent of how `n` is chunked per frame. */
+  private advance(n: number) {
+    const c = this.cfg.campaign;
+    if (!this.aiWorker) {
+      c.tick(n);
+      return;
+    }
+    let remaining = n;
+    while (remaining > 0) {
+      const step = c.advance_external(remaining);
+      remaining -= step.advanced;
+      if (step.reason === 1) {
+        this.aiWorker.postMessage({ type: 'snapshot', applyAt: step.tick + AI_LATENCY, snap: c.save() });
+        c.ack_dispatch();
+        continue;
+      }
+      break; // reason 0 (budget spent / battle) or 2 (stall — wait for the worker)
+    }
   }
 
   frame(now: number) {
@@ -229,7 +279,7 @@ export class CampaignScene implements Scene {
       const n = Math.floor(this.acc);
       if (n > 0) {
         this.acc -= n;
-        c.tick(n);
+        this.advance(n);
         this.refreshViews();
         if (c.battle_ready() >= 0 && !this.modal) {
           this.paused = true; // auto-pause: a battle wants a decision

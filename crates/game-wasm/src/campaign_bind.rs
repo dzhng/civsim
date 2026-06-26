@@ -29,6 +29,17 @@ pub struct Campaign {
     fighting: Option<u32>,
 }
 
+/// The result of one `advance_external` step. `reason`: 0 = budget spent or a
+/// battle came due; 1 = stopped on a dispatch tick (host must snapshot); 2 =
+/// stalled waiting on the decision due at `tick`.
+#[wasm_bindgen]
+#[derive(Clone, Copy)]
+pub struct ExternalStep {
+    pub advanced: u32,
+    pub reason: u8,
+    pub tick: f64,
+}
+
 fn loc_decode(kind: u32, a: u32, b: u32) -> Loc {
     if kind == 0 {
         Loc::Node(a)
@@ -144,6 +155,40 @@ impl Campaign {
         if let Ok(decisions) = serde_json::from_str::<Vec<campaign::ai::Decision>>(json) {
             self.inner.apply_decisions(&decisions);
             self.refresh();
+        }
+    }
+
+    /// Advance under host-driven AI, stopping at the boundaries the host must
+    /// service (see `Campaign::advance_external`). On `reason == 1` snapshot with
+    /// `save`, post it to the worker (apply at `tick + AI_LATENCY`), then
+    /// `ack_dispatch`. On `reason == 2` wait for the worker. The result carries
+    /// `advanced`, `reason`, and `tick`.
+    pub fn advance_external(&mut self, max_n: u32) -> ExternalStep {
+        if self.fighting.is_some() {
+            return ExternalStep {
+                advanced: 0,
+                reason: 0,
+                tick: self.inner.tick_count() as f64,
+            };
+        }
+        let (advanced, reason, tick) = self.inner.advance_external(max_n);
+        self.refresh();
+        ExternalStep {
+            advanced,
+            reason,
+            tick: tick as f64,
+        }
+    }
+
+    /// Acknowledge the snapshot just taken at the pending dispatch tick.
+    pub fn ack_dispatch(&mut self) {
+        self.inner.ack_dispatch();
+    }
+
+    /// Submit a worker's decisions (JSON) to apply on their scheduled tick.
+    pub fn submit_decisions_json(&mut self, apply_at: f64, json: &str) {
+        if let Ok(decisions) = serde_json::from_str::<Vec<campaign::ai::Decision>>(json) {
+            self.inner.submit_decisions(apply_at as u64, decisions);
         }
     }
 

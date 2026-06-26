@@ -17,10 +17,29 @@ pub mod visibility;
 
 use mapdata::WorldMap;
 use state::*;
+use std::collections::{BTreeMap, BTreeSet};
 
 pub struct Campaign {
     pub map: WorldMap,
     pub state: CampaignState,
+    /// External-AI scheduling — the host-driven deferred-command queue. Not part
+    /// of the saved state: a snapshot the worker reads is a plain paused game.
+    sched: ExternalAi,
+}
+
+/// The lockstep-with-input-delay bookkeeping for off-thread AI (see
+/// `advance_external`). All in real-time-bound ticks, so it's independent of how
+/// long the worker takes — late decisions force a wait, never a different game.
+#[derive(Default)]
+struct ExternalAi {
+    /// Decisions the host has submitted, keyed by the tick they apply on.
+    queue: BTreeMap<u64, Vec<ai::Decision>>,
+    /// Apply-ticks we've dispatched and are still waiting on (the stall set).
+    awaiting: BTreeSet<u64>,
+    /// The last dispatch tick the host acknowledged (so we don't re-stop on it).
+    last_dispatch: Option<u64>,
+    /// A dispatch tick `advance_external` stopped on, pending the host's snapshot.
+    dispatch_pending: Option<u64>,
 }
 
 impl Campaign {
@@ -28,7 +47,11 @@ impl Campaign {
         let map = WorldMap::from_json(map_json);
         let mut state = sim::new_state(&map, seed, player_faction);
         normalize_state(&mut state);
-        Campaign { map, state }
+        Campaign {
+            map,
+            state,
+            sched: ExternalAi::default(),
+        }
     }
 
     pub fn tick(&mut self) {
@@ -245,6 +268,62 @@ impl Campaign {
         self.state.tick
     }
 
+    /// Advance up to `max_n` ticks under host-driven AI, stopping at the
+    /// boundaries the host must service. Returns `(advanced, reason, tick)`:
+    ///   - reason 0 = ran the budget out (or hit a battle): nothing to do.
+    ///   - reason 1 = stopped *on* a dispatch tick: the host must snapshot now
+    ///     (`save`), send it to the worker to apply at tick + AI_LATENCY, then
+    ///     call `ack_dispatch` and resume.
+    ///   - reason 2 = stalled: the decision due at `tick` hasn't been submitted
+    ///     yet; the host must wait for the worker, then resume.
+    /// Because apply ticks are fixed, the worker's latency only ever causes a
+    /// stall (a pause) — never a different outcome.
+    pub fn advance_external(&mut self, max_n: u32) -> (u32, u8, u64) {
+        let mut advanced = 0;
+        while advanced < max_n {
+            let t = self.state.tick;
+            // Stop on an un-serviced dispatch boundary so the host snapshots.
+            if t % tunables::AI_DISPATCH_EVERY == 0 && self.sched.last_dispatch != Some(t) {
+                self.sched.dispatch_pending = Some(t);
+                return (advanced, 1, t);
+            }
+            // Stall before a tick whose decision is due but not yet here.
+            let next = t + 1;
+            if self.sched.awaiting.contains(&next) && !self.sched.queue.contains_key(&next) {
+                return (advanced, 2, next);
+            }
+            sim::tick(&self.map, &mut self.state);
+            advanced += 1;
+            // Apply anything scheduled for the tick we just reached.
+            if let Some(ds) = self.sched.queue.remove(&self.state.tick) {
+                for d in &ds {
+                    ai::apply_decision(&self.map, &mut self.state, d);
+                }
+            }
+            self.sched.awaiting.remove(&self.state.tick);
+            if self.state.battle_ready.is_some() {
+                return (advanced, 0, self.state.tick); // auto-pause for the battle
+            }
+        }
+        (advanced, 0, self.state.tick)
+    }
+
+    /// Acknowledge the snapshot the host just took at the pending dispatch tick:
+    /// records it (so `advance_external` won't re-stop there) and registers the
+    /// apply tick it's now waiting on.
+    pub fn ack_dispatch(&mut self) {
+        if let Some(t) = self.sched.dispatch_pending.take() {
+            self.sched.last_dispatch = Some(t);
+            self.sched.awaiting.insert(t + tunables::AI_LATENCY);
+        }
+    }
+
+    /// Submit decisions a worker computed for an earlier snapshot, to apply on
+    /// their scheduled tick.
+    pub fn submit_decisions(&mut self, apply_at: u64, decisions: Vec<ai::Decision>) {
+        self.sched.queue.entry(apply_at).or_default().extend(decisions);
+    }
+
     pub fn load(map_json: &str, save: &str) -> Result<Campaign, String> {
         let map = WorldMap::from_json(map_json);
         let mut state: CampaignState = serde_json::from_str(save).map_err(|e| e.to_string())?;
@@ -253,7 +332,11 @@ impl Campaign {
             state.road_levels = vec![1; map.edges.len()];
         }
         normalize_state(&mut state);
-        Ok(Campaign { map, state })
+        Ok(Campaign {
+            map,
+            state,
+            sched: ExternalAi::default(),
+        })
     }
 }
 

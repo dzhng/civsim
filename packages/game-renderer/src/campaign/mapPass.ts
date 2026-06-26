@@ -59,7 +59,14 @@ export interface CampaignLabel {
   size: number;
   priority: number;
   angle?: number;
+  icon?: 'city' | 'army';
+  iconColor?: [number, number, number];
 }
+
+const ICON_PATHS = {
+  city: 'M240,208H224V136l2.34,2.34A8,8,0,0,0,237.66,127L139.31,28.68a16,16,0,0,0-22.62,0L18.34,127a8,8,0,0,0,11.32,11.31L32,136v72H16a8,8,0,0,0,0,16H240a8,8,0,0,0,0-16Zm-88,0H104V160a4,4,0,0,1,4-4h40a4,4,0,0,1,4,4Z',
+  army: 'M230.4,219.19A8,8,0,0,1,224,232H32a8,8,0,0,1-6.4-12.8A67.88,67.88,0,0,1,53,197.51a40,40,0,1,1,53.93,0,67.42,67.42,0,0,1,21,14.29,67.42,67.42,0,0,1,21-14.29,40,40,0,1,1,53.93,0A67.85,67.85,0,0,1,230.4,219.19ZM27.2,126.4a8,8,0,0,0,11.2-1.6,52,52,0,0,1,83.2,0,8,8,0,0,0,12.8,0,52,52,0,0,1,83.2,0,8,8,0,0,0,12.8-9.61A67.85,67.85,0,0,0,203,93.51a40,40,0,1,0-53.93,0,67.42,67.42,0,0,0-21,14.29,67.42,67.42,0,0,0-21-14.29,40,40,0,1,0-53.93,0A67.88,67.88,0,0,0,25.6,115.2,8,8,0,0,0,27.2,126.4Z',
+} as const;
 
 const MAP_WGSL = `
 struct Camera { x:f32, y:f32, zoom:f32, cosP:f32, width:f32, height:f32, cosYaw:f32, sinYaw:f32 };
@@ -630,6 +637,8 @@ export function buildCampaignMapDrawData(data: CampaignMapInputData): CampaignMa
       kind: 'city' as const,
       size: node.tier >= 3 ? 15 : 12,
       priority: node.tier,
+      icon: 'city' as const,
+      iconColor: (node.owner === 'rome' ? [0.31, 0.82, 0.39] : [0.93, 0.78, 0.30]) as [number, number, number],
     })),
     ...seaLabels(),
   ];
@@ -720,6 +729,8 @@ function labelAtlasKey(labels: VisibleCampaignLabel[], dpr: number, totalLabels:
       label.size.toFixed(2),
       label.priority,
       (label.angle ?? 0).toFixed(3),
+      label.icon ?? 'none',
+      label.iconColor?.map((v) => v.toFixed(3)).join(',') ?? '',
     ].join(':')),
   ].join('|');
 }
@@ -730,11 +741,12 @@ function buildLabelAtlas(labels: VisibleCampaignLabel[], dpr: number) {
     const style = labelStyle(entry.label, dpr);
     measure.font = style.font;
     const text = labelText(entry.label);
+    const iconWidth = entry.label.icon ? style.iconSize + style.iconGap : 0;
     return {
       ...entry,
       text,
       style,
-      width: Math.max(1, Math.ceil(measure.measureText(text).width + style.padding * 2)),
+      width: Math.max(1, Math.ceil(measure.measureText(text).width + iconWidth + style.padding * 2)),
       height: Math.max(1, Math.ceil(style.size * 1.55 + style.padding * 2)),
     };
   });
@@ -766,8 +778,10 @@ function buildLabelAtlas(labels: VisibleCampaignLabel[], dpr: number) {
     ctx.textAlign = 'left';
     ctx.textBaseline = 'alphabetic';
     ctx.lineJoin = 'round';
-    const tx = entry.x + entry.style.padding;
+    const iconWidth = entry.label.icon ? entry.style.iconSize + entry.style.iconGap : 0;
+    const tx = entry.x + entry.style.padding + iconWidth;
     const ty = entry.y + entry.style.padding + entry.style.size;
+    if (entry.label.icon) drawLabelIcon(ctx, entry.label, entry.x + entry.style.padding, ty - entry.style.iconSize * 0.84, entry.style);
     ctx.lineWidth = entry.style.haloWidth;
     ctx.strokeStyle = entry.style.halo;
     ctx.strokeText(entry.text, tx, ty);
@@ -840,17 +854,21 @@ function labelStyle(label: CampaignLabel, dpr: number) {
       halo: 'rgba(238, 239, 222, 0.68)',
       warmEdge: 'rgba(20, 36, 48, 0.42)',
       haloWidth: Math.max(2, size * 0.16),
+      iconSize: 0,
+      iconGap: 0,
     };
   }
   if (label.kind === 'army') {
     return {
-      font: `700 ${size}px ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif`,
+      font: `700 ${size}px Cinzel, Georgia, serif`,
       size,
       padding: Math.ceil(size * 0.42),
       fill: 'rgba(255, 238, 185, 1)',
       halo: 'rgba(12, 8, 5, 0.92)',
       warmEdge: 'rgba(72, 45, 18, 0.82)',
       haloWidth: Math.max(3, size * 0.24),
+      iconSize: size * 1.05,
+      iconGap: size * 0.22,
     };
   }
   if (label.kind === 'faction') {
@@ -862,6 +880,8 @@ function labelStyle(label: CampaignLabel, dpr: number) {
       halo: 'rgba(240, 220, 176, 0.58)',
       warmEdge: 'rgba(74, 48, 27, 0.42)',
       haloWidth: Math.max(3, size * 0.18),
+      iconSize: 0,
+      iconGap: 0,
     };
   }
   return {
@@ -872,7 +892,31 @@ function labelStyle(label: CampaignLabel, dpr: number) {
     halo: 'rgba(242, 226, 184, 0.90)',
     warmEdge: 'rgba(86, 58, 28, 0.48)',
     haloWidth: Math.max(2, size * 0.16),
+    iconSize: size * 1.0,
+    iconGap: size * 0.18,
   };
+}
+
+function drawLabelIcon(
+  ctx: CanvasRenderingContext2D,
+  label: CampaignLabel,
+  x: number,
+  y: number,
+  style: ReturnType<typeof labelStyle>,
+) {
+  if (!label.icon) return;
+  const path = new Path2D(ICON_PATHS[label.icon]);
+  const s = style.iconSize / 256;
+  const color = label.iconColor ?? (label.kind === 'army' ? [0.31, 0.82, 0.39] : [0.93, 0.78, 0.30]);
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(s, s);
+  ctx.lineWidth = Math.max(10, style.haloWidth / s);
+  ctx.strokeStyle = style.halo;
+  ctx.stroke(path);
+  ctx.fillStyle = `rgb(${Math.round(color[0] * 255)}, ${Math.round(color[1] * 255)}, ${Math.round(color[2] * 255)})`;
+  ctx.fill(path);
+  ctx.restore();
 }
 
 function nextPowerOfTwo(value: number) {

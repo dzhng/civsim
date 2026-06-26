@@ -308,6 +308,8 @@ function campaignArmyLabels(armies: ArmyView[]): CampaignLabel[] {
     kind: 'army',
     size: 13,
     priority: 4,
+    icon: 'army',
+    iconColor: army.mine ? [0.31, 0.82, 0.39] : [0.93, 0.78, 0.30],
   }));
 }
 

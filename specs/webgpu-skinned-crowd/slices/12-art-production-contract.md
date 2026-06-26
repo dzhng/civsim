@@ -28,6 +28,10 @@ changes.
 - A sample “bad artist pack” fails with useful messages.
 - A sample placeholder-derived “good pack” passes.
 - Screenshots cover body, equipment, mask, animation, LODs, and mounted units.
+- Legacy model baselines under `web/shots/baseline/models*` and animation GIFs
+  under `web/shots/anim/` are reference evidence. Placeholder art is not final
+  visual parity until these old silhouettes and animation beats are ported or
+  intentionally improved.
 
 ## Must Stay Green
 

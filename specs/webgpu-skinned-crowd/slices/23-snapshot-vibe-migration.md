@@ -53,6 +53,10 @@ Current checkpoint:
   renderer by rerunning the scenario with `VISUAL_CURRENT_RENDERER_DIR` and
   `VISUAL_COMPARISON_JSON`. The manifest shape is documented in
   `specs/webgpu-skinned-crowd/visualizations/visual-comparison.manifest.example.json`.
+- Model and label reference gates are required before final visual acceptance:
+  soldier turntables/animations, campaign city/town models, army flags, roads,
+  trees, terrain, and campaign label font/icon samples. Whole-scene screenshots
+  are not enough to prove those assets survived the port.
 
 ## Verification
 

@@ -21,9 +21,9 @@
       "note": "WebGPU renders 30k soldiers versus the archived current renderer's 21.2k, keeps terrain/water/HUD readable, and uses far-view impostors for hardware performance headroom."
     },
     "battle-selection-hud-dpr2": {
-      "status": "equal-or-better",
+      "status": "pending-review",
       "image": "current-renderer/battle-selection-hud-dpr2.png",
-      "note": "WebGPU preserves DPR2 selection, order lines, minimap, unit cards, and clearer team-color blocks; terrain is warmer and less noisy than the archived current renderer."
+      "note": "Reopened after visual review. The archived current renderer fails to show all units, while WebGPU does render more units, but WebGPU is not accepted yet because this capture shows missing terrain features plus random square artifacts and colored/debug straight-line artifacts that must be fixed or explicitly explained."
     },
     "campaign-whole-map": {
       "status": "webgpu-better",
@@ -33,7 +33,7 @@
     "campaign-label-zoom": {
       "status": "pending-review",
       "image": "current-renderer/campaign-label-zoom.png",
-      "note": "Reopened after visual review: the WebGPU close zoom is not equal-or-better yet. It needs richer 3D-style city, army, terrain, and marker composition before release acceptance."
+      "note": "Reopened after visual review: the WebGPU close zoom is not equal-or-better yet. The latest metric improved after fixing the black terrain and restoring label icons, but it still needs the previous 3D city/town, army, road, tree, terrain, font, icon, and marker language ported before release acceptance."
     },
     "campaign-handoff-battle": {
       "status": "equal-or-better",

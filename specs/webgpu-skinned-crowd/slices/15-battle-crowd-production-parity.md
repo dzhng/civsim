@@ -6,6 +6,11 @@ The live battle path renders all living/dead soldiers through the raw WebGPU
 skinned crowd pipeline at production scale, using current wasm zero-copy views
 and deterministic animation state.
 
+The old detailed soldier model language is the parity floor: class silhouettes,
+equipment, faction accents, mounted/unmounted distinction, and animation pose
+beats should match the tracked model screenshots and GIF references before the
+WebGPU battle renderer is visually complete.
+
 ## API Seam
 
 - `packages/game-renderer/src/battle/crowdPass.ts`
@@ -32,6 +37,9 @@ and deterministic animation state.
 - Scale fixtures render 1k, 5k, 10k, and current max battle counts.
 - `webgpu-visual-report` captures the battle default and DPR2 selection/HUD
   scenes with skinned soldier material-lighting evidence.
+- Dedicated model/contact-sheet screenshots compare WebGPU soldiers against
+  `web/shots/baseline/models*` and representative `web/shots/anim/*.gif`
+  frames, so dense battle shots cannot hide a missing model/animation port.
 - Golden wasm/sim tests are unaffected.
 
 ## Must Stay Green

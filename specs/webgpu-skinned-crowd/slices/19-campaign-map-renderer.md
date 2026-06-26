@@ -6,6 +6,11 @@ The campaign map world surface is raw WebGPU: parchment terrain, sea, water
 glint, foam, roads, borders, territory washes, clouds, fog, labels, and camera
 zoom/tilt behavior render without the current campaign renderer.
 
+Campaign map parity includes the previous 3D renderer's board framing, terrain
+relief, water/grass readability, tree/rock density, road treatment, and
+map-label typography/icons. A flat parchment-only approximation is a temporary
+scaffold, not final parity.
+
 ## API Seam
 
 - `packages/game-renderer/src/campaign/mapPass.ts`
@@ -45,6 +50,9 @@ zoom/tilt behavior render without the current campaign renderer.
 
 - Final campaign visual screenshots cover terrain, water, clouds, roads,
   territory, borders, and labels.
+- Dedicated model/reference screenshots cover road segments, tree clusters,
+  rocks/mountains, terrain relief/water/fog samples, and label typography/icon
+  samples for city, army, faction, and sea labels.
 - `web/scenarios/webgpu-lab-routes.mjs` opens `/webgpu/campaign-map?preset=whole`
   and checks the current checkpoint: textured parchment map, WebGPU territory
   texture, border segments, WebGPU atmosphere layer, sea, road/sea-lane pixels,
@@ -64,6 +72,8 @@ zoom/tilt behavior render without the current campaign renderer.
 - Campaign data loading and simulation state are read-only.
 - Faction colors and allegiance colors keep the two-color rule.
 - City/army label text remains legible at current review zooms.
+- City/army labels preserve the old icon+text map language: Cinzel/Georgia
+  typography, halos, and allegiance-colored city/army icons.
 - Labels use the WebGPU glyph atlas rather than DOM nodes; dense campaign panels
   are the remaining intentional DOM layer.
 

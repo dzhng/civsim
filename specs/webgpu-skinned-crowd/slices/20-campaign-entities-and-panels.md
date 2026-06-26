@@ -6,11 +6,17 @@ Campaign cities, armies, flags, selection rings, movement previews, diplomacy
 readouts, city panels, class builder, recruitment/replenish controls, and
 neutral/foe/friend semantics compose correctly over the WebGPU campaign map.
 
+The old 3D campaign city/town clusters, army standard/representative-figure
+marker, shadows, flags, and label icons are the migration target. Procedural
+flat seals or billboards are acceptable only while the raw-WebGPU pass is being
+built; they do not satisfy final visual parity.
+
 ## API Seam
 
 - `packages/game-renderer/src/campaign/entityPass.ts`
-  - current checkpoint: WebGPU city seals and army pennants, colored by faction
-    livery with a separate allegiance accent.
+  - current checkpoint: WebGPU city/army markers, colored by faction livery
+    with a separate allegiance accent. Next checkpoint: port the old 3D
+    settlement clusters and army-standard/figure markers into raw WebGPU.
 - `packages/game-renderer/src/campaign/selectionPass.ts`
   - current checkpoint: WebGPU city/army selection footprints in the campaign
     selection language.
@@ -44,6 +50,9 @@ neutral/foe/friend semantics compose correctly over the WebGPU campaign map.
 - `web/scenarios/campaign-webgpu-visual.mjs` owns the controlled production
   WebGPU screenshots for our city, neutral city, road army, diplomacy, class
   builder, city panel, and replenish toggle.
+- Additional model-level screenshots must isolate city/town markers, army flags
+  attached to units, selection rings, label icons, and representative figures
+  before the whole-scene visual report can accept this slice.
 
 ## Must Stay Green
 

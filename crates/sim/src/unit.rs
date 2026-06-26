@@ -21,6 +21,10 @@ pub enum OrderMode {
 
 pub struct Unit {
     pub class: UnitClassId,
+    /// Visual model id exposed to the renderer. Tactical class remains the
+    /// physics/balance role; this lets campaign unit types later choose a
+    /// distinct look inside the same class without touching combat.
+    pub render_look: u32,
     /// This unit's resolved class stats under the battle's `BalanceConfig`,
     /// captured at spawn. Read instead of the `class_stats` consts so a tuned
     /// config flows into combat. (Fixed for the battle; the config can't change

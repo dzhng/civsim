@@ -4,7 +4,9 @@
 // any tilt. World units are km, +y north.
 
 import type { CampaignData } from './data';
-import { ARMY_STRIDE, type ArmyView, type CityView } from './scene';
+import type { ArmyView, CityView } from './views';
+import { Allegiance, STATUS_CSS } from './status';
+import { ICON_CITY, ICON_ARMY } from './icons';
 import type { TerrainField } from './terrain';
 import { type Terrain3D, CITY_MODEL_MIN_SCALE, ARMY_MIN_SCALE } from './terrain3d';
 import type { FactionLabel } from './territory';
@@ -144,17 +146,6 @@ export class CampaignRenderer {
     return `rgb(${c[0]},${c[1]},${c[2]})`;
   }
 
-  /** Road trim radius (km) at a node: a city's wall footprint once its model
-   *  shows, else 0. Matches the tier scales in terrain3d's buildCityModel. */
-  private cityTrim(data: CampaignData, nodeId: number, z: number): number {
-    if (z < CITY_MODEL_MIN_SCALE) return 0;
-    const idx = data.nodeIndex.get(nodeId); // edges carry node ids, not indices
-    if (idx === undefined) return 0;
-    const n = data.map.nodes[idx];
-    if (n.kind !== 'city') return 0;
-    const s = n.tier >= 3 ? 1.9 : n.tier === 2 ? 1.35 : 0.95;
-    return 4.3 * s; // ~the rampart ring (diameter 9.5 * s) in world km
-  }
 
   private viaHeights(ei: number): Float32Array {
     let hs = this.edgeHeights[ei];
@@ -175,13 +166,17 @@ export class CampaignRenderer {
     hoverPath: [number, number][] | null,
     factionLabels: FactionLabel[],
     roadLevels?: Uint8Array,
-    outposts?: { node: number; owner: number; built: boolean }[],
     ambushHints?: [number, number][],
     factionView = true,
     fogOfWar = false,
     borders?: { pts: [number, number][]; bb: [number, number, number, number] }[],
+    factionStatus?: Int8Array,
   ) {
     const { ctx, canvas, data } = this;
+    // Allegiance → label-icon colour. Friend green, neutral amber, foe red;
+    // anyone off the status table (or in natural view) reads neutral.
+    const statusOf = (faction: number): number =>
+      factionStatus && faction >= 0 && faction < factionStatus.length ? factionStatus[faction] : Allegiance.Neutral;
     const z = cam.scale;
     // Under fog of war the overlay hides anything the player can't currently
     // see (their own cities/armies sit inside their own sight, so stay shown).
@@ -198,72 +193,29 @@ export class CampaignRenderer {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, W, H);
 
-    // The overlay paints over the 3D army/city models, so once they show the
-    // road is gapped where it would streak across one: trimmed at town walls
-    // and broken around each army's footprint.
-    const armyR = z >= ARMY_MIN_SCALE ? 1.9 * Math.min(13, Math.max(5, 80 / (3.2 * z))) : 0;
-    const armyPts = armyR > 0 ? armies.map((a) => ({ x: a.x, y: a.y, r: armyR })) : [];
-
-    // Edges. Roads fade out at political-map zoom; sea lanes faint dashes.
-    const roadAlpha = Math.min(1, Math.max(0, (z - 0.3) / 0.2));
+    // Land roads are 3D ground geometry now (terrain3d), so the city/army models
+    // occlude them via depth instead of the overlay painting over the top. Only
+    // sea lanes stay on the overlay — faint dashes over open water, nothing to
+    // occlude them.
     for (let ei = 0; ei < data.map.edges.length; ei++) {
       const e = data.map.edges[ei];
-      const sea = e.kind === 'sea';
-      if (sea && z < 0.35) continue;
-      if (!sea && roadAlpha <= 0.02) continue;
-      const hs = this.viaHeights(ei);
-      let segments: [number, number, number][][];
-      if (sea) {
-        segments = [e.via.map((v, i) => [v[0], v[1], 0])];
-      } else {
-        // Junctions have no model: only cities trim. Gap around nearby armies
-        // — test against the edge's bbox (a road tile's via endpoints are far
-        // from a mid-road army; roadPolylines does the exact per-segment test).
-        const trimA = this.cityTrim(data, e.a, z);
-        const trimB = this.cityTrim(data, e.b, z);
-        let exmin = Infinity, exmax = -Infinity, eymin = Infinity, eymax = -Infinity;
-        for (const v of e.via) {
-          exmin = Math.min(exmin, v[0]); exmax = Math.max(exmax, v[0]);
-          eymin = Math.min(eymin, v[1]); eymax = Math.max(eymax, v[1]);
+      if (e.kind !== 'sea' || z < 0.35) continue;
+      ctx.beginPath();
+      let on = false;
+      for (const v of e.via) {
+        const p = pt(v[0], v[1], 0);
+        if (!p) {
+          on = false;
+          continue;
         }
-        const near = armyPts.filter((g) =>
-          g.x > exmin - armyR && g.x < exmax + armyR && g.y > eymin - armyR && g.y < eymax + armyR);
-        segments = roadPolylines(e.via, trimA, trimB, near).map((seg) =>
-          seg.map(([x, y]) => [x, y, this.field.heightAt(x, y)]));
+        on ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]);
+        on = true;
       }
-      const lvl = sea ? 1 : (roadLevels?.[ei] ?? 1);
-      // Land roads read as a raised granite causeway: a brighter stone surface
-      // over a dark embankment that shows as a shadowed lip on both sides.
-      const roadW = Math.max(1.6, z * 2.4) * (0.8 + 0.2 * lvl);
-      const lip = Math.max(0.9, roadW * 0.55);
       ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-      ctx.setLineDash(sea ? [6, 6] : []);
-      for (const poly of segments) {
-        ctx.beginPath();
-        let on = false;
-        for (const [x, y, h] of poly) {
-          const p = pt(x, y, h);
-          if (!p) {
-            on = false;
-            continue;
-          }
-          on ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]);
-          on = true;
-        }
-        if (sea) {
-          ctx.lineWidth = 1;
-          ctx.strokeStyle = 'rgba(140,180,220,0.25)';
-          ctx.stroke();
-        } else {
-          ctx.lineWidth = roadW + lip * 2; // dark embankment / side shadows
-          ctx.strokeStyle = `rgba(46,38,30,${0.5 * roadAlpha})`;
-          ctx.stroke();
-          ctx.lineWidth = roadW; // bright granite surface on top
-          ctx.strokeStyle = `rgba(${162 + lvl * 12},${156 + lvl * 11},${148 + lvl * 10},${0.96 * roadAlpha})`;
-          ctx.stroke();
-        }
-      }
+      ctx.setLineDash([6, 6]);
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = 'rgba(140,180,220,0.25)';
+      ctx.stroke();
       ctx.setLineDash([]);
     }
 
@@ -349,6 +301,77 @@ export class CampaignRenderer {
     }
 
 
+    // ---- map labels (cities + armies): allegiance-coded, stacked ----------
+    // Legion numbering, stable within a frame: each faction's armies, sorted by
+    // id, get 1st / 2nd / 3rd …
+    const ordinalOf = new Map<number, number>();
+    {
+      const byFac = new Map<number, number[]>();
+      for (const a of armies) (byFac.get(a.faction) ?? byFac.set(a.faction, []).get(a.faction)!).push(a.id);
+      for (const ids of byFac.values()) {
+        ids.sort((p, q) => p - q);
+        ids.forEach((id, k) => ordinalOf.set(id, k + 1));
+      }
+    }
+    // Cities that have an army sitting on them, so their name can drop below the
+    // army's (army label always above the town's, mirroring the 3D stack).
+    const cityHasArmy = new Set<number>();
+    for (const a of armies) {
+      if (!a.mine && hidden(a.x, a.y)) continue;
+      let best = -1;
+      let bestD = 8; // km — a garrison parks on the node
+      data.map.nodes.forEach((n, i) => {
+        if (n.kind !== 'city') return;
+        const d = Math.hypot(n.pos[0] - a.x, n.pos[1] - a.y);
+        if (d < bestD) { bestD = d; best = i; }
+      });
+      if (best >= 0) cityHasArmy.add(best);
+    }
+    const ordinal = (k: number) => {
+      const v = k % 100;
+      const suf = v >= 11 && v <= 13 ? 'th' : (['th', 'st', 'nd', 'rd'][k % 10] ?? 'th');
+      return `${k}${suf}`;
+    };
+    // A map label: an allegiance-coloured Phosphor icon (house for a town,
+    // figures for an army), then engraved caps, the whole group centred on cx
+    // with its baseline at baseY (optional small subtitle below — an army's
+    // strength).
+    const drawLabel = (cx: number, baseY: number, text: string, status: number, fontPx: number, icon: Path2D, sub?: string) => {
+      ctx.font = `600 ${fontPx}px ${MAP_FONT}`;
+      ctx.letterSpacing = '0.5px';
+      ctx.textAlign = 'left';
+      const tw = ctx.measureText(text).width;
+      const isz = fontPx * 1.25;
+      const gap = fontPx * 0.32;
+      const x0 = cx - (isz + gap + tw) / 2;
+      ctx.save();
+      ctx.translate(x0, baseY - fontPx * 0.36 - isz / 2);
+      ctx.scale(isz / 256, isz / 256);
+      ctx.lineJoin = 'round';
+      ctx.lineWidth = 30; // svg units: a dark halo so the icon reads on terrain
+      ctx.strokeStyle = 'rgba(20,15,10,0.8)';
+      ctx.stroke(icon);
+      ctx.fillStyle = STATUS_CSS[status];
+      ctx.fill(icon);
+      ctx.restore();
+      const tx = x0 + isz + gap;
+      ctx.lineWidth = 2.5;
+      ctx.lineJoin = 'round';
+      ctx.strokeStyle = 'rgba(20,15,10,0.65)';
+      ctx.fillStyle = 'rgba(248,244,237,0.98)';
+      ctx.strokeText(text, tx, baseY);
+      ctx.fillText(text, tx, baseY);
+      if (sub) {
+        ctx.font = `600 ${fontPx * 0.72}px ${MAP_FONT}`;
+        const sw = ctx.measureText(sub).width;
+        ctx.lineWidth = 2;
+        ctx.strokeText(sub, cx - sw / 2, baseY + fontPx * 0.92);
+        ctx.fillStyle = 'rgba(232,224,208,0.92)';
+        ctx.fillText(sub, cx - sw / 2, baseY + fontPx * 0.92);
+      }
+      ctx.letterSpacing = '0px';
+    };
+
     // Cities: squares colored by owner, sized by tier; junction dots at zoom.
     data.map.nodes.forEach((n, i) => {
       if (hidden(n.pos[0], n.pos[1])) return;
@@ -390,18 +413,12 @@ export class CampaignRenderer {
         }
         if (z > 0.45 || n.tier >= 3) {
           const fs = Math.min(15, 9.5 + z) * (n.tier >= 3 ? 1.15 : 1);
-          ctx.font = `600 ${fs}px ${MAP_FONT}`;
-          ctx.letterSpacing = '0.5px';
-          // Cities: same white caps as the faction names but a thinner, softer
-          // black border so towns stay subordinate to the country labels.
-          ctx.lineWidth = 2;
-          ctx.lineJoin = 'round';
-          ctx.strokeStyle = 'rgba(20,15,10,0.6)';
-          ctx.fillStyle = 'rgba(248,244,237,0.97)';
-          const nm = n.name.toUpperCase();
-          ctx.strokeText(nm, sx + s / 2 + 3, sy + 4);
-          ctx.fillText(nm, sx + s / 2 + 3, sy + 4);
-          ctx.letterSpacing = '0px';
+          // Allegiance icon + engraved caps, centred below the town. When an
+          // army garrisons here the city name sits a notch lower so the army's
+          // own label (drawn above its banner) clears it.
+          const status = factionView ? statusOf(c ? c.owner : -1) : Allegiance.Neutral;
+          const below = cityHasArmy.has(i) ? fs * 1.5 : 0;
+          drawLabel(sx, sy + 14 + below, n.name.toUpperCase(), status, fs, ICON_CITY);
         }
       } else if (z > 0.5) {
         ctx.fillStyle = 'rgba(60,45,30,0.7)';
@@ -424,29 +441,6 @@ export class CampaignRenderer {
       ctx.globalAlpha = 1;
     }
 
-    // Outposts: a watchtower glyph in the owner's color.
-    for (const o of outposts ?? []) {
-      const n = data.map.nodes[o.node];
-      if (hidden(n.pos[0], n.pos[1])) continue;
-      const p = pt(n.pos[0], n.pos[1]);
-      if (!p || p[0] < -20 || p[1] < -20 || p[0] > W + 20 || p[1] > H + 20) continue;
-      const [sx, sy] = p;
-      ctx.globalAlpha = o.built ? 1 : 0.5;
-      ctx.fillStyle = this.factionColor(o.owner);
-      ctx.strokeStyle = '#1a1208';
-      ctx.lineWidth = 1;
-      ctx.fillRect(sx - 2.5, sy - 9, 5, 9); // tower
-      ctx.strokeRect(sx - 2.5, sy - 9, 5, 9);
-      ctx.beginPath(); // roof
-      ctx.moveTo(sx - 4.5, sy - 9);
-      ctx.lineTo(sx + 4.5, sy - 9);
-      ctx.lineTo(sx, sy - 14);
-      ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
-      ctx.globalAlpha = 1;
-    }
-
     // Armies: banners (pennant triangles) colored by faction.
     for (const a of armies) {
       if (!a.mine && hidden(a.x, a.y)) continue; // enemies vanish into the fog
@@ -456,25 +450,30 @@ export class CampaignRenderer {
       if (sx < -40 || sy < -40 || sx > W + 40 || sy > H + 40) continue;
       const sel = a.id === selected;
       const size = sel ? 13 : 11;
-      // Pole + pennant.
-      ctx.strokeStyle = '#111';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(sx, sy);
-      ctx.lineTo(sx, sy - size * 1.6);
-      ctx.stroke();
-      ctx.fillStyle = this.factionColor(a.faction);
-      ctx.globalAlpha = a.stance === 3 ? 0.55 : 1.0; // hidden ambusher (own)
-      ctx.beginPath();
-      ctx.moveTo(sx, sy - size * 1.6);
-      ctx.lineTo(sx + size, sy - size * 1.15);
-      ctx.lineTo(sx, sy - size * 0.7);
-      ctx.closePath();
-      ctx.fill();
-      ctx.strokeStyle = sel ? '#fff' : '#1a1208';
-      ctx.lineWidth = sel ? 2 : 1;
-      ctx.stroke();
-      ctx.globalAlpha = 1.0;
+      // Pole + pennant — the army marker at the overview zoom only. Once the
+      // world tilts into 3D (z >= ARMY_MIN_SCALE) the soldier figures are the
+      // army, so the flat flag would just clutter them; the name label carries
+      // the army there instead.
+      if (z < ARMY_MIN_SCALE) {
+        ctx.strokeStyle = '#111';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(sx, sy);
+        ctx.lineTo(sx, sy - size * 1.6);
+        ctx.stroke();
+        ctx.fillStyle = this.factionColor(a.faction);
+        ctx.globalAlpha = a.stance === 3 ? 0.55 : 1.0; // hidden ambusher (own)
+        ctx.beginPath();
+        ctx.moveTo(sx, sy - size * 1.6);
+        ctx.lineTo(sx + size, sy - size * 1.15);
+        ctx.lineTo(sx, sy - size * 0.7);
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = sel ? '#fff' : '#1a1208';
+        ctx.lineWidth = sel ? 2 : 1;
+        ctx.stroke();
+        ctx.globalAlpha = 1.0;
+      }
       // Routed marker.
       if (a.stance === 4) {
         ctx.fillStyle = '#fff';
@@ -523,15 +522,15 @@ export class CampaignRenderer {
         ctx.lineWidth = 1;
         ctx.stroke();
       }
-      // Strength tag when zoomed.
+      // Name + strength, stacked above the banner (so it clears any town label
+      // below). A legion name in the city font; the allegiance dot tells friend
+      // from foe; the strength rides underneath.
       if (z > 0.35) {
-        ctx.font = '9px system-ui';
-        ctx.fillStyle = 'rgba(255,255,255,0.85)';
-        ctx.strokeStyle = 'rgba(0,0,0,0.7)';
-        ctx.lineWidth = 2;
-        const label = `${Math.round(a.soldiers / 100) / 10}k`;
-        ctx.strokeText(label, sx + 4, sy + 9);
-        ctx.fillText(label, sx + 4, sy + 9);
+        const status = a.mine ? 0 : statusOf(a.faction);
+        const fs = Math.min(14, 9 + z);
+        const name = `${ordinal(ordinalOf.get(a.id) ?? 1)} LEGION`;
+        const strength = `${Math.round(a.soldiers / 100) / 10}k`;
+        drawLabel(sx, sy - size * 1.6 - 12, name, status, fs, ICON_ARMY, strength);
       }
     }
 
@@ -586,5 +585,3 @@ export class CampaignRenderer {
     }
   }
 }
-
-export { ARMY_STRIDE };

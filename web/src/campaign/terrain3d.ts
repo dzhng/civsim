@@ -24,7 +24,7 @@ import { ShaderMaterial } from '@babylonjs/core/Materials/shaderMaterial';
 import { RawTexture } from '@babylonjs/core/Materials/Textures/rawTexture';
 import { Texture } from '@babylonjs/core/Materials/Textures/texture';
 import { DynamicTexture } from '@babylonjs/core/Materials/Textures/dynamicTexture';
-import { ShaderStore } from '@babylonjs/core/Engines/shaderStore';
+import './shaders'; // registers the campaign GLSL into Babylon's ShaderStore
 import { Constants } from '@babylonjs/core/Engines/constants';
 import '@babylonjs/core/Engines/Extensions/engine.rawTexture';
 import '@babylonjs/core/Meshes/thinInstanceMesh';
@@ -32,7 +32,7 @@ import '@babylonjs/core/Meshes/thinInstanceMesh';
 import type { CampaignData } from './data';
 import type { CamView } from './renderer';
 import { TerrainField, SUN, TEMPERATE_Y_KM, hash2 } from './terrain';
-import { classGeometryDetailed } from '../shared/soldierModel';
+import { classGeometryDetailed, UNIT_CLASS_LOOK_COUNT } from '../shared/soldierModel';
 
 const FOV = (45 * Math.PI) / 180;
 /** Tilt: 90° (top-down) until TILT_START, easing to MIN_PITCH by TILT_END. */
@@ -47,313 +47,8 @@ export const ARMY_MIN_SCALE = 0.4;
 /** Above this zoom, 3D settlements replace the flat city squares (the overlay
  *  reads the same constant to suppress its squares). */
 export const CITY_MODEL_MIN_SCALE = 0.5;
+const CAMPAIGN_CLASS_COUNT = UNIT_CLASS_LOOK_COUNT;
 
-const NOISE = `
-float hash(vec2 p) {
-  p = fract(p * vec2(123.34, 456.21));
-  p += dot(p, p + 45.32);
-  return fract(p.x * p.y);
-}
-float vnoise(vec2 p) {
-  vec2 i = floor(p), f = fract(p);
-  f = f * f * (3.0 - 2.0 * f);
-  return mix(mix(hash(i), hash(i + vec2(1, 0)), f.x),
-             mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), f.x), f.y);
-}
-// Billowing fractal noise for drifting cloud banks.
-float fbm(vec2 p) {
-  float v = 0.0, a = 0.5;
-  for (int i = 0; i < 5; i++) { v += a * vnoise(p); p = p * 2.03 + 7.1; a *= 0.5; }
-  return v;
-}`;
-
-// Antique watercolour-atlas grade: brighten, gently desaturate, lift the
-// shadows, and tint the whole frame a faint sepia paper-warmth.
-const GRADE = `
-vec3 grade(vec3 c) {
-  c = pow(max(c, 0.0), vec3(0.92, 0.95, 1.00));
-  float l = dot(c, vec3(0.299, 0.587, 0.114));
-  c = mix(vec3(l), c, 1.06);
-  c = c * 1.05 + 0.02;
-  c *= vec3(1.02, 1.00, 0.95);
-  return clamp(c, 0.0, 1.0);
-}`;
-
-ShaderStore.ShadersStore['campTerrainVertexShader'] = `
-precision highp float;
-attribute vec3 position;
-uniform mat4 viewProjection;
-uniform vec4 uBgRect; // minX, minY, maxX, maxY
-varying vec2 vUV;
-varying float vH;
-varying float vZ;
-varying vec2 vXY;
-void main() {
-  gl_Position = viewProjection * vec4(position, 1.0);
-  vUV = vec2((position.x - uBgRect.x) / (uBgRect.z - uBgRect.x),
-             (uBgRect.w - position.y) / (uBgRect.w - uBgRect.y));
-  vH = position.z;
-  vZ = gl_Position.w;
-  vXY = position.xy;
-}`;
-
-ShaderStore.ShadersStore['campTerrainFragmentShader'] = `
-precision highp float;
-varying vec2 vUV;
-varying float vH;
-varying float vZ;
-varying vec2 vXY;
-uniform sampler2D uTerr, uLight, uBiome; // uLight: baked lambert*128
-uniform sampler2D uVis; // player sight mask (fog of war)
-uniform vec3 uEyePos, uSun, uFogC;
-uniform vec2 uFx; // territory alpha, fog strength
-uniform float uFogD, uTime, uCloud, uFow; // uFow: fog-of-war strength (0 = reveal-all)
-uniform vec2 uViewport;
-uniform vec4 uBgRect;
-${NOISE}
-${GRADE}
-float nz(vec2 p, float freq, float px) {
-  float fade = clamp(1.0 - freq * px * 2.2, 0.0, 1.0);
-  if (fade <= 0.0) return 0.5; // sub-pixel octave: skip the hashes entirely
-  return mix(0.5, vnoise(p * freq), fade);
-}
-void main() {
-  vec4 b = texture2D(uBiome, vUV); // moisture, forest, rock, signed shore dist
-  float water = 1.0 - smoothstep(0.497, 0.503, b.a);
-  float px = max(fwidth(vXY.x), fwidth(vXY.y));
-  vec3 col = vec3(0.0);
-
-  if (water < 0.999) {
-    // ---- land: moisture-graded grass, dune sand, canopy, rock, snow ----
-    float m = b.r;
-    float g1 = nz(vXY, 0.9, px);
-    float g2 = nz(vXY, 3.1, px);
-    // Watercolour atlas greens: pale olive in the dry south, soft sage where wet.
-    vec3 grass = mix(vec3(0.66, 0.64, 0.42), vec3(0.40, 0.56, 0.33), smoothstep(0.22, 0.55, m));
-    grass *= 0.90 + 0.13 * g1 + 0.08 * g2;
-    float dune = abs(nz(vXY, 0.16, px) * 2.0 - 1.0);
-    vec3 sand = mix(vec3(0.90, 0.81, 0.60), vec3(0.80, 0.69, 0.48), dune);
-    sand *= 0.95 + 0.08 * nz(vXY, 1.6, px);
-    vec3 ground = mix(sand, grass, smoothstep(0.16, 0.32, m));
-    float landShore = (b.a - 0.5) * 24.0; // cells from the waterline
-    ground = mix(vec3(0.85, 0.78, 0.60), ground, smoothstep(0.05, 0.6, landShore));
-    float canopy = smoothstep(0.25, 0.7, b.g * (0.55 + 0.9 * nz(vXY, 0.55, px)));
-    vec3 forestC = mix(vec3(0.24, 0.36, 0.20), vec3(0.32, 0.46, 0.26), nz(vXY, 1.9, px));
-    ground = mix(ground, forestC, canopy);
-    vec3 rockC = mix(vec3(0.58, 0.50, 0.42), vec3(0.72, 0.66, 0.58),
-                     nz(vec2(vXY.x, vXY.y + vH * 0.9), 0.7, px));
-    ground = mix(ground, rockC, smoothstep(0.35, 0.85, b.b) * (0.7 + 0.3 * g1));
-    // Snow only frosts the very highest northern crests — on a watercolour
-    // atlas the ranges read as tan ridges, not white blobs.
-    float snowAt = 30.0 + clamp((700.0 - vXY.y) * 0.006, 0.0, 7.0);
-    float snow = smoothstep(snowAt, snowAt + 6.0, vH + (nz(vXY, 0.5, px) - 0.5) * 6.0);
-    ground = mix(ground, vec3(0.86, 0.86, 0.83), snow * 0.7);
-    // political mode reads better over calmer ground
-    float grey = dot(ground, vec3(0.333));
-    ground = mix(ground, vec3(grey) * 1.08, uFx.x * 0.45);
-    // Soft relief: ridges still carve, but shadows lift toward a flat
-    // watercolour wash rather than crushing to dark earth.
-    float li = pow(texture2D(uLight, vUV).r * 2.0, 1.12);
-    col = ground * (0.22 + 0.82 * li);
-    vec4 t = texture2D(uTerr, vUV);
-    col = mix(col, t.rgb, t.a * uFx.x);
-  }
-
-  if (water > 0.001) {
-    // ---- water: depth gradient, rolling wave normals, sun glint, foam ----
-    float depth = clamp((0.5 - b.a) * 2.0, 0.0, 1.0);
-    vec2 p1 = vXY + vec2(uTime * 4.6, uTime * 3.1);
-    vec2 p2 = vXY + vec2(-uTime * 1.9, uTime * 1.6);
-    float e = 0.55;
-    float w0 = nz(p1, 0.35, px) * 0.65 + nz(p2, 1.15, px) * 0.35;
-    float wx = nz(p1 + vec2(e, 0), 0.35, px) * 0.65 + nz(p2 + vec2(e, 0), 1.15, px) * 0.35 - w0;
-    float wy = nz(p1 + vec2(0, e), 0.35, px) * 0.65 + nz(p2 + vec2(0, e), 1.15, px) * 0.35 - w0;
-    vec3 wn = normalize(vec3(-wx * 1.6, -wy * 1.6, 1.0));
-    float shelf = smoothstep(0.0, 0.28, depth + (nz(vXY, 0.5, px) - 0.5) * 0.1);
-    // Antique-chart water: a muted slate blue, shallows toward pale teal.
-    vec3 wcol = mix(vec3(0.40, 0.56, 0.64), vec3(0.16, 0.30, 0.44), shelf);
-    wcol += 0.05 * (w0 - 0.5);
-    vec3 V = normalize(uEyePos - vec3(vXY, 0.0));
-    wcol += vec3(1.0, 0.95, 0.8) * pow(max(dot(reflect(-uSun, wn), V), 0.0), 70.0)
-            * 0.6 * clamp(1.0 - 0.6 * px, 0.0, 1.0);
-    wcol = mix(wcol, vec3(0.52, 0.64, 0.72), pow(1.0 - max(dot(wn, V), 0.0), 3.0) * 0.3);
-    float foam = smoothstep(0.6, 0.0, (0.5 - b.a) * 24.0)
-               * smoothstep(0.4, 0.8, nz(vXY + vec2(uTime * 3.0, -uTime * 2.0), 2.3, px));
-    wcol = mix(wcol, vec3(0.88, 0.93, 0.94), foam * 0.7);
-    col = mix(col, wcol, water);
-  }
-
-  if (uFx.y > 0.001) {
-    float fog = (1.0 - exp(-pow(vZ * uFogD, 2.0))) * uFx.y;
-    col = mix(col, uFogC, clamp(fog, 0.0, 1.0));
-  }
-  // Parchment grain: a faint mottled paper wash so the map reads watercolour.
-  // Two cheap octaves (not fbm) — this runs on every fragment every frame.
-  float grain = vnoise(vXY * 0.05) * 0.6 + vnoise(vXY * 0.27) * 0.4;
-  col *= 0.95 + 0.11 * grain;
-  // Fog-of-war clouds drifting in from the map's rim (overview only).
-  if (uCloud > 0.001) {
-    float edge = min(min(vXY.x - uBgRect.x, uBgRect.z - vXY.x),
-                     min(vXY.y - uBgRect.y, uBgRect.w - vXY.y));
-    float span = min(uBgRect.z - uBgRect.x, uBgRect.w - uBgRect.y);
-    float rim = 1.0 - smoothstep(0.0, span * 0.28, max(edge, 0.0));
-    vec2 cp = vXY * 0.0016 + vec2(uTime * 0.006, uTime * 0.0042);
-    float cl = fbm(cp) * 0.6 + fbm(cp * 2.6 + 3.1) * 0.4;
-    // Billowy cumulus: dense cores read bright, wisps grey — gives the bank depth.
-    float cov = smoothstep(0.46 - rim * 0.42, 0.86 - rim * 0.36, cl);
-    float clouds = pow(rim, 0.65) * cov * uCloud;
-    vec3 cloudC = mix(vec3(0.74, 0.76, 0.80), vec3(0.97, 0.98, 1.0), smoothstep(0.4, 0.82, cl));
-    col = mix(col, cloudC, clamp(clouds, 0.0, 1.0));
-  }
-  // Fog of war: outside the player's sight the world goes dark under a roiling
-  // cloud bank. uVis.r is 1 where seen, 0 where hidden (soft vision edges).
-  if (uFow > 0.001) {
-    float seen = texture2D(uVis, vUV).r;
-    float hidden = (1.0 - seen) * uFow;
-    if (hidden > 0.001) {
-      vec2 fp = vXY * 0.0015 + vec2(uTime * 0.005, uTime * 0.0032);
-      float fc = fbm(fp) * 0.6 + fbm(fp * 2.5 + 1.7) * 0.4;
-      vec3 dark = col * 0.16 + vec3(0.03, 0.04, 0.06); // unlit, ink-dark land/sea
-      vec3 murk = mix(vec3(0.20, 0.22, 0.27), vec3(0.50, 0.53, 0.58), smoothstep(0.38, 0.82, fc));
-      vec3 fogged = mix(dark, murk, smoothstep(0.4, 0.78, fc) * 0.9);
-      col = mix(col, fogged, smoothstep(0.0, 0.65, hidden));
-    }
-  }
-  // A quiet screen-space vignette frames the chart.
-  vec2 vp = gl_FragCoord.xy / uViewport * 2.0 - 1.0;
-  col *= 0.88 + 0.12 * smoothstep(1.55, 0.45, length(vp * vec2(1.0, 0.85)));
-  gl_FragColor = vec4(grade(col), 1.0);
-}`;
-
-ShaderStore.ShadersStore['campTreeVertexShader'] = `
-precision highp float;
-attribute vec3 position;
-attribute vec2 uv;
-attribute vec4 world0;
-attribute vec4 world1;
-attribute vec4 world2;
-attribute vec4 world3;
-uniform mat4 viewProjection;
-uniform vec4 uBgRect;
-varying vec2 vUV;
-varying vec2 vLightUV;
-varying float vZ;
-void main() {
-  mat4 world = mat4(world0, world1, world2, world3);
-  vec4 wp = world * vec4(position, 1.0);
-  gl_Position = viewProjection * wp;
-  vUV = uv;
-  vLightUV = vec2((world[3].x - uBgRect.x) / (uBgRect.z - uBgRect.x),
-                  (uBgRect.w - world[3].y) / (uBgRect.w - uBgRect.y));
-  vZ = gl_Position.w;
-}`;
-
-ShaderStore.ShadersStore['campTreeFragmentShader'] = `
-precision highp float;
-varying vec2 vUV;
-varying vec2 vLightUV;
-varying float vZ;
-uniform sampler2D uAtlas, uLight;
-uniform vec3 uFogC;
-uniform vec2 uFx;
-uniform float uFogD;
-${GRADE}
-void main() {
-  vec4 c = texture2D(uAtlas, vUV);
-  if (c.a < 0.5) discard;
-  vec3 col = c.rgb * (texture2D(uLight, vLightUV).r * 2.0);
-  if (uFx.y > 0.001) {
-    float fog = (1.0 - exp(-pow(vZ * uFogD, 2.0))) * uFx.y;
-    col = mix(col, uFogC, clamp(fog, 0.0, 1.0));
-  }
-  gl_FragColor = vec4(grade(col), c.a);
-}`;
-
-// Instanced 3D map models (armies, settlements): low-poly meshes thin-instanced
-// per object. world0..3 carry the transform, iColor the owner's faction tint.
-// The baked vertex color is the part's own material; its ALPHA flags whether
-// the faction tint applies (1 = banner/livery, 0 = neutral stone/timber), so
-// one mesh can mix faction-colored standards with neutral architecture.
-ShaderStore.ShadersStore['campModelVertexShader'] = `
-precision highp float;
-attribute vec3 position;
-attribute vec3 normal;
-attribute vec4 world0;
-attribute vec4 world1;
-attribute vec4 world2;
-attribute vec4 world3;
-attribute vec4 iColor;
-attribute vec4 color;
-uniform mat4 viewProjection;
-varying vec3 vN;
-varying vec3 vFaction;
-varying vec3 vTint;
-varying float vFac;
-varying float vHi;
-varying float vZ;
-void main() {
-  mat4 world = mat4(world0, world1, world2, world3);
-  vec4 wp = world * vec4(position, 1.0);
-  gl_Position = viewProjection * wp;
-  vN = normalize((world * vec4(normal, 0.0)).xyz);
-  vFaction = iColor.rgb;
-  vTint = color.rgb;
-  vFac = color.a;
-  vHi = iColor.a; // per-instance highlight: 0 none, ~0.5 hover, 1 selected
-  vZ = gl_Position.w;
-}`;
-
-ShaderStore.ShadersStore['campModelFragmentShader'] = `
-precision highp float;
-varying vec3 vN;
-varying vec3 vFaction;
-varying vec3 vTint;
-varying float vFac;
-varying float vHi;
-varying float vZ;
-uniform vec3 uSun, uFogC;
-uniform float uFogD, uFogStr;
-${GRADE}
-void main() {
-  float li = 0.45 + 0.7 * max(dot(normalize(vN), uSun), 0.0);
-  // neutral parts keep their material; livery parts take the faction hue
-  vec3 col = vTint * mix(vec3(1.0), vFaction, vFac) * li;
-  // selection/hover: lift toward a warm glow so the picked army reads
-  col = mix(col, col * 1.5 + vec3(0.28, 0.22, 0.08), vHi);
-  if (uFogStr > 0.001) {
-    float fog = (1.0 - exp(-pow(vZ * uFogD, 2.0))) * uFogStr;
-    col = mix(col, uFogC, clamp(fog, 0.0, 1.0));
-  }
-  gl_FragColor = vec4(grade(col), 1.0);
-}`;
-
-// Contact shadows: soft dark discs the army/city models drop on the ground,
-// nudged toward the anti-sun direction so they read as cast shadows. Cheap
-// and deterministic — true CSM would need shadow-map plumbing through every
-// custom material.
-ShaderStore.ShadersStore['campShadowVertexShader'] = `
-precision highp float;
-attribute vec3 position;       // unit quad, XY in [-0.5, 0.5]
-attribute vec4 world0;
-attribute vec4 world1;
-attribute vec4 world2;
-attribute vec4 world3;
-uniform mat4 viewProjection;
-varying vec2 vL;
-void main() {
-  mat4 world = mat4(world0, world1, world2, world3);
-  gl_Position = viewProjection * world * vec4(position, 1.0);
-  vL = position.xy;
-}`;
-
-ShaderStore.ShadersStore['campShadowFragmentShader'] = `
-precision highp float;
-varying vec2 vL;
-uniform float uStr;
-void main() {
-  float a = clamp(1.0 - length(vL) * 2.0, 0.0, 1.0);
-  gl_FragColor = vec4(0.0, 0.0, 0.0, a * a * uStr);
-}`;
 
 /** Anti-sun ground direction (where shadows fall), from the one campaign sun. */
 const SHADOW_DIR: [number, number] = (() => {
@@ -361,30 +56,49 @@ const SHADOW_DIR: [number, number] = (() => {
   return [-SUN[0] / l, -SUN[1] / l];
 })();
 
-/** Up to 20 figure slots in a packed disc (golden-angle spiral), so an army's
- *  soldiers stand around its standard. Figure i takes slot i; a small army
- *  fills the inner slots, a large one (capped at 20) fills them all. */
-const ARMY_SLOTS: [number, number][] = Array.from({ length: 20 }, (_, i) => {
+const ARMY_MARKER_MAX_FIGURES = 6;
+/** Up to six figure slots in a packed disc (golden-angle spiral), so an army's
+ *  representative soldiers stand around its standard. Figure i takes slot i;
+ *  smaller stacks fill the inner slots, full stacks fill them all. */
+const ARMY_SLOTS: [number, number][] = Array.from({ length: ARMY_MARKER_MAX_FIGURES }, (_, i) => {
   const a = i * 2.399963;
   const r = 0.38 * Math.sqrt(i);
   return [Math.cos(a) * r, Math.sin(a) * r];
 });
-/** One figure per ~250 soldiers, clamped to [1, 20]. */
-function figureCount(soldiers: number): number {
-  return Math.max(1, Math.min(ARMY_SLOTS.length, Math.round(soldiers / 250)));
+/** Scale the compressed marker against stack unit capacity, clamped to [1, 6]. */
+function figureCount(units: number, stackUnitCap: number): number {
+  if (units <= 0) return 0;
+  const cap = Math.max(1, stackUnitCap);
+  return Math.max(1, Math.min(ARMY_SLOTS.length, Math.ceil((units / cap) * ARMY_MARKER_MAX_FIGURES)));
 }
-/** Allocate `n` figures across the 9 classes by soldier share (largest
- *  remainder), so the cluster mirrors the army's real composition. */
-function allocFigures(roster: number[], n: number): number[] {
-  const total = roster.reduce((a, b) => a + b, 0);
-  if (total <= 0) return [n, 0, 0, 0, 0, 0, 0, 0, 0];
-  const ideal = roster.map((c) => (n * c) / total);
-  const out = ideal.map(Math.floor);
+/** Allocate figures by unit type, preserving as many represented classes as
+ *  possible before spending the remaining slots proportionally. */
+function allocFigures(unitsByClass: number[], n: number): number[] {
+  const out = Array.from({ length: unitsByClass.length }, () => 0);
+  if (n <= 0) return out;
+  const present = unitsByClass
+    .map((units, cls) => ({ cls, units }))
+    .filter((x) => x.units > 0)
+    .sort((a, b) => b.units - a.units || a.cls - b.cls);
+  if (present.length === 0) {
+    out[0] = n;
+    return out;
+  }
+  for (const { cls } of present.slice(0, n)) out[cls] = 1;
   let rem = n - out.reduce((a, b) => a + b, 0);
-  const order = ideal
-    .map((v, i) => [v - Math.floor(v), i] as [number, number])
-    .sort((a, b) => b[0] - a[0]);
-  for (let k = 0; rem > 0; k++, rem--) out[order[k % 9][1]]++;
+  if (rem <= 0) return out;
+  const represented = present.filter(({ cls }) => out[cls] > 0);
+  const total = represented.reduce((sum, x) => sum + x.units, 0);
+  while (rem > 0) {
+    const pick = represented
+      .map(({ cls, units }) => {
+        const ideal = (n * units) / total;
+        return { cls, need: ideal - out[cls], units };
+      })
+      .sort((a, b) => b.need - a.need || b.units - a.units || a.cls - b.cls)[0];
+    out[pick.cls]++;
+    rem--;
+  }
   return out;
 }
 
@@ -438,8 +152,7 @@ export class Terrain3D {
   private chunks: Mesh[] = [];
   private coarse!: Mesh;
   private treeMeshes: Mesh[] = [];
-  private armyBase: Mesh | null = null; // standard pole + flag, one per army
-  private armySelRing: Mesh | null = null; // green ring under the selected army
+  private armySelRing: Mesh | null = null;
   // Per-army march state: last position + an eased bob amplitude, so figures
   // bounce in step while the army is on the move and stand still when halted
   // (zero amplitude = no animation = deterministic snapshots).
@@ -447,7 +160,23 @@ export class Terrain3D {
   private classMeshes: (Mesh | null)[] = []; // per-class soldiers, one per figure
   private armyCount = 0;
   private cityMesh: Mesh | null = null;
+  private citySelRing: Mesh | null = null;
+  /** node index -> [x, y, z, tier], so the selection ring can find a city. */
+  private cityPosByNode = new Map<number, [number, number, number, number]>();
   private shadowMat!: ShaderMaterial;
+  private roadMat!: ShaderMaterial;
+  private roadMesh: Mesh | null = null;
+  private mountainMesh: Mesh | null = null;
+  private rockMesh: Mesh | null = null;
+  private mtnShadow: Mesh | null = null;
+  private sceneMat!: ShaderMaterial;
+  // Carts crawling the trunk roads: a cart mesh thin-instanced once, its
+  // transforms rewritten each frame from progress along a road centreline.
+  private cartMesh: Mesh | null = null;
+  private cartShadow: Mesh | null = null;
+  private carts: { path: [number, number][]; cum: number[]; len: number; speed: number; phase: number; dir: 1 | -1 }[] = [];
+  /** Resampled trunk-road centrelines, kept so carts can travel them. */
+  private roadPaths: { path: [number, number][]; cum: number[]; len: number }[] = [];
   private armyShadow: Mesh | null = null;
   private cityShadow: Mesh | null = null;
   /** city node index per thin instance, for owner-color lookups */
@@ -548,6 +277,16 @@ export class Terrain3D {
     this.modelMat.setVector3('uSun', new Vector3(...SUN));
     this.modelMat.setColor3('uFogC', new Color3(0.71, 0.71, 0.68));
 
+    // Scenery (mountains, rocks, carts) shares the lit model shader but keeps
+    // both faces — the low-poly peaks are open shells, not closed solids.
+    this.sceneMat = new ShaderMaterial('scene', scene, 'campModel', {
+      attributes: ['position', 'normal', 'color', 'world0', 'world1', 'world2', 'world3', 'iColor'],
+      uniforms: ['viewProjection', 'uSun', 'uFogC', 'uFogD', 'uFogStr'],
+    });
+    this.sceneMat.setVector3('uSun', new Vector3(...SUN));
+    this.sceneMat.setColor3('uFogC', new Color3(0.71, 0.71, 0.68));
+    this.sceneMat.backFaceCulling = false;
+
     this.shadowMat = new ShaderMaterial('shadow', scene, 'campShadow', {
       attributes: ['position', 'world0', 'world1', 'world2', 'world3'],
       uniforms: ['viewProjection', 'uStr'],
@@ -557,10 +296,20 @@ export class Terrain3D {
     this.shadowMat.backFaceCulling = false;
     this.shadowMat.disableDepthWrite = true;
 
+    this.roadMat = new ShaderMaterial('road', scene, 'campRoad', {
+      attributes: ['position', 'color'],
+      uniforms: ['viewProjection', 'uFogC', 'uFogD', 'uFogStr'],
+    });
+    this.roadMat.setColor3('uFogC', new Color3(0.71, 0.71, 0.68));
+    this.roadMat.backFaceCulling = false; // opaque: writes depth so models occlude it
+
     this.buildTerrain();
+    this.buildScenery();
     this.buildTrees();
     this.buildArmyModels();
     this.buildCityModel(data);
+    this.buildRoads(data);
+    this.buildCarts();
 
     // FXAA + a whisper of bloom and vignette: the part of the Rome 2 look
     // the surface shaders can't do alone.
@@ -623,8 +372,8 @@ export class Terrain3D {
       for (let gx = 0; gx < w; gx++) {
         const i = gy * w + gx;
         const forest = this.field.biome[i * 4 + 1] / 255;
-        if (forest < 0.35) continue;
-        const k = Math.round(forest * 3 * (0.5 + hash2(gx, gy) * 0.9));
+        if (forest < 0.28) continue;
+        const k = Math.round(forest * 4.5 * (0.6 + hash2(gx, gy) * 0.9));
         for (let t = 0; t < k; t++) {
           const ox = (hash2(gx * 7 + t, gy * 13 + 1) - 0.5) * cell * 1.4;
           const oy = (hash2(gx * 3 + t, gy * 17 + 5) - 0.5) * cell * 1.4;
@@ -633,8 +382,9 @@ export class Terrain3D {
           const size = 2.0 + hash2(gx + t, gy + t) * 1.8;
           const z = this.field.heightAt(x, y) - 0.15;
           const out = hash2(gx * 5 + t, gy * 11) < (y > TEMPERATE_Y_KM ? 0.75 : 0.25) ? conifer : broadleaf;
-          // column-major TRS: scale (w, 1, h), translate (x, y, z)
-          out.push(size * 0.72, 0, 0, 0, 0, 1, 0, 0, 0, 0, size, 0, x, y, z, 1);
+          // column-major TRS: scale (w, w, h), translate (x, y, z). x and y
+          // scale alike so the crossed quads keep a round canopy footprint.
+          out.push(size * 0.72, 0, 0, 0, 0, size * 0.72, 0, 0, 0, 0, size, 0, x, y, z, 1);
         }
       }
     }
@@ -642,10 +392,17 @@ export class Terrain3D {
       if (!mats.length) return;
       const m = new Mesh(name, this.scene);
       const vd = new VertexData();
-      // vertical quad, base at origin, spanning world x and z
-      vd.positions = [-0.5, 0, 0, 0.5, 0, 0, -0.5, 0, 1, 0.5, 0, 1];
-      vd.indices = [0, 1, 2, 2, 1, 3];
-      vd.uvs = [u0, 0, u0 + 0.5, 0, u0, 1, u0 + 0.5, 1];
+      // Two crossed vertical quads (XZ + YZ) so the tree holds volume from any
+      // angle instead of reading as a flat cutout; both sample the same atlas.
+      vd.positions = [
+        -0.5, 0, 0, 0.5, 0, 0, -0.5, 0, 1, 0.5, 0, 1,
+        0, -0.5, 0, 0, 0.5, 0, 0, -0.5, 1, 0, 0.5, 1,
+      ];
+      vd.indices = [0, 1, 2, 2, 1, 3, 4, 5, 6, 6, 5, 7];
+      vd.uvs = [
+        u0, 0, u0 + 0.5, 0, u0, 1, u0 + 0.5, 1,
+        u0, 0, u0 + 0.5, 0, u0, 1, u0 + 0.5, 1,
+      ];
       vd.applyToMesh(m);
       m.material = this.treeMat;
       m.thinInstanceSetBuffer('matrix', new Float32Array(mats), 16, true);
@@ -701,31 +458,14 @@ export class Terrain3D {
    *  base+standard (one per army) and the battle's per-class soldier meshes
    *  (one instance per figure). Built once here, filled in setArmies. */
   private buildArmyModels() {
-    // Standard only — a neutral timber pole with a small faction flag at the
-    // top. No ground disc under the army (the soft contact shadow grounds it);
-    // selection is shown by a green ring instead (below).
-    const parts: Mesh[] = [];
-    const pole = CreateBox('p', { width: 0.12, depth: 0.12, height: 4.0 }, this.scene);
-    pole.rotation.x = Math.PI / 2;
-    pole.position.set(0, 0, 2.0);
-    parts.push(this.paint(pole, 0.5, 0.4, 0.3, 0)); // neutral timber
-    const flag = CreateBox('pf', { width: 0.12, depth: 1.3, height: 0.8 }, this.scene);
-    flag.rotation.x = Math.PI / 2;
-    flag.position.set(0, 0.72, 3.6);
-    parts.push(this.paint(flag, 1, 1, 1, 1)); // livery: takes the owner colour
-    const baseMesh = Mesh.MergeMeshes(parts, true, true);
-    if (baseMesh) {
-      baseMesh.name = 'armyBase';
-      baseMesh.material = this.modelMat;
-      baseMesh.alwaysSelectAsActiveMesh = true;
-      baseMesh.setEnabled(false);
-      this.armyBase = baseMesh;
-    }
-    // Green selection ring — a flat torus laid on the ground, shown under the
+    // An army on the tilted map IS its soldier figures (built below) — no
+    // standard or flag. The soft contact shadow grounds them, the selection ring
+    // marks selection, and the 2D name label names them. (At the overview zoom,
+    // where there are no figures, the overlay's flat pennant marks the army.)
+    // Selection ring — a flat torus laid on the ground, shown under the
     // ONE selected army (positioned in setArmies), hidden otherwise.
-    const sel = CreateTorus('asel', { diameter: 7.5, thickness: 0.5, tessellation: 32 }, this.scene);
-    sel.rotation.x = Math.PI / 2;
-    this.paint(sel, 0.2, 0.95, 0.35, 0); // bright green
+    const sel = CreateTorus('asel', { diameter: 9.5, thickness: 0.7, tessellation: 36 }, this.scene);
+    this.paint(sel, 0.2, 0.95, 0.35, 0); // selection green
     sel.material = this.modelMat;
     sel.alwaysSelectAsActiveMesh = true;
     sel.setEnabled(false);
@@ -736,7 +476,7 @@ export class Terrain3D {
     // parts (crest, shield blazon, sash) at alpha 1, so the campModel shader
     // paints a realistic soldier wearing the owner's colours — the same look the
     // battlefield shows, on the strategic map. No paint() override here.
-    for (let c = 0; c < 9; c++) {
+    for (let c = 0; c < CAMPAIGN_CLASS_COUNT; c++) {
       const m = new Mesh(`armyCls${c}`, this.scene);
       classGeometryDetailed(c, { rest: 1 }, [1, 1, 1], { livery: true }).applyToMesh(m); // at-ease
       m.material = this.modelMat;
@@ -747,18 +487,338 @@ export class Terrain3D {
     this.armyShadow = this.shadowQuad('armyShadow');
   }
 
+  /** All land roads as one flat granite ribbon mesh draped on the terrain, in
+   *  the 3D scene (opaque, depth-tested) so city and army models occlude it —
+   *  a road runs UNDER the town on it, not over the top. Static; rebuild only on
+   *  a road-level change (width/shade scale with level). Sea lanes stay 2D. */
+  buildRoads(data: CampaignData, roadLevels?: Uint8Array) {
+    const positions: number[] = [];
+    const colors: number[] = [];
+    const indices: number[] = [];
+    const STEP = 0.9; // km between samples — fine enough to hug the relief so
+    //                   the ground never bulges up through a long flat segment.
+
+    // Lay one ribbon down a resampled centreline: a vertex pair per sample,
+    // offset ±halfW along the ground-plane normal, draped at terrain height.
+    const ribbon = (
+      center: [number, number][],
+      halfW: number,
+      zOff: number,
+      r: number,
+      g: number,
+      bl: number,
+    ) => {
+      const n = center.length;
+      const base = positions.length / 3;
+      for (let i = 0; i < n; i++) {
+        const p = center[i];
+        const a = center[Math.max(0, i - 1)];
+        const c = center[Math.min(n - 1, i + 1)];
+        let tx = c[0] - a[0];
+        let ty = c[1] - a[1];
+        const tl = Math.hypot(tx, ty) || 1;
+        tx /= tl;
+        ty /= tl;
+        const nx = -ty;
+        const ny = tx;
+        for (const s of [-1, 1]) {
+          const x = p[0] + nx * halfW * s;
+          const y = p[1] + ny * halfW * s;
+          positions.push(x, y, this.field.heightAt(x, y) + zOff);
+          colors.push(r, g, bl, 1);
+        }
+      }
+      for (let i = 0; i + 1 < n; i++) {
+        const l = base + i * 2;
+        indices.push(l, l + 1, l + 2, l + 1, l + 3, l + 2);
+      }
+    };
+
+    this.roadPaths = [];
+    for (let ei = 0; ei < data.map.edges.length; ei++) {
+      const e = data.map.edges[ei];
+      if (e.kind === 'sea') continue;
+      const via = e.via;
+      if (via.length < 2) continue;
+      // Resample the simplified polyline so the ribbon follows the ground.
+      const center: [number, number][] = [[via[0][0], via[0][1]]];
+      for (let i = 1; i < via.length; i++) {
+        const a = via[i - 1];
+        const b = via[i];
+        const segs = Math.max(1, Math.round(Math.hypot(b[0] - a[0], b[1] - a[1]) / STEP));
+        for (let k = 1; k <= segs; k++) {
+          const t = k / segs;
+          center.push([a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]);
+        }
+      }
+      const lvl = roadLevels?.[ei] ?? 1;
+      const halfW = 0.52 * (0.85 + 0.18 * lvl); // world km — a thin causeway
+      const sh = 0.62 + 0.045 * lvl; // granite, brighter per level
+      // Dark embankment first (a touch wider, a touch lower) so it reads as a
+      // shadowed lip; then the brighter stone surface on top.
+      ribbon(center, halfW * 1.5, 0.18, 0.33, 0.28, 0.23);
+      ribbon(center, halfW, 0.32, sh, sh * 0.98, sh * 0.93);
+      // Keep the centreline (with cumulative arc length) for cart traffic.
+      const cum = [0];
+      for (let i = 1; i < center.length; i++) {
+        cum.push(cum[i - 1] + Math.hypot(center[i][0] - center[i - 1][0], center[i][1] - center[i - 1][1]));
+      }
+      const len = cum[cum.length - 1];
+      if (len > 24) this.roadPaths.push({ path: center, cum, len });
+    }
+    if (this.roadMesh) {
+      this.roadMesh.dispose();
+      this.roadMesh = null;
+    }
+    if (!positions.length) return;
+    const m = new Mesh('roads', this.scene);
+    const vd = new VertexData();
+    vd.positions = positions;
+    vd.colors = colors;
+    vd.indices = indices;
+    vd.applyToMesh(m);
+    m.material = this.roadMat;
+    m.isPickable = false;
+    m.freezeWorldMatrix();
+    this.roadMesh = m;
+  }
+
+  /** A flat-shaded low-poly peak: an n-sided spire, apex up (+z), base on the
+   *  XY plane, ramparts jittered for a craggy silhouette. Faces are built from
+   *  independent vertices so each reads as its own facet. baseCol shades the
+   *  flanks, topCol the summit (a paler rock/snow highlight). */
+  private peakMesh(name: string, sides: number, baseCol: number[], topCol: number[], seed: number): Mesh {
+    const positions: number[] = [];
+    const colors: number[] = [];
+    const indices: number[] = [];
+    const ax = (hash2(seed, 1) - 0.5) * 0.3;
+    const ay = (hash2(seed, 2) - 0.5) * 0.3; // a slight lean off-axis
+    const ring: [number, number][] = [];
+    for (let i = 0; i < sides; i++) {
+      const a = (i / sides) * Math.PI * 2;
+      const rr = 0.78 + hash2(seed + i, 3) * 0.44;
+      ring.push([Math.cos(a) * rr, Math.sin(a) * rr]);
+    }
+    for (let i = 0; i < sides; i++) {
+      const b0 = ring[i];
+      const b1 = ring[(i + 1) % sides];
+      const base = positions.length / 3;
+      positions.push(ax, ay, 1); colors.push(topCol[0], topCol[1], topCol[2], 0);
+      positions.push(b0[0], b0[1], 0); colors.push(baseCol[0], baseCol[1], baseCol[2], 0);
+      positions.push(b1[0], b1[1], 0); colors.push(baseCol[0], baseCol[1], baseCol[2], 0);
+      indices.push(base, base + 1, base + 2);
+    }
+    const normals: number[] = [];
+    VertexData.ComputeNormals(positions, indices, normals);
+    const mesh = new Mesh(name, this.scene);
+    const vd = new VertexData();
+    vd.positions = positions;
+    vd.indices = indices;
+    vd.normals = normals;
+    vd.colors = colors;
+    vd.applyToMesh(mesh);
+    return mesh;
+  }
+
+  /** A massif: a tall central spire flanked by two lesser peaks, merged and
+   *  normalised to ~unit radius/height so the per-instance scale sets the size. */
+  private buildMountainMesh(): Mesh {
+    const stone = [0.50, 0.46, 0.40];
+    const cap = [0.74, 0.72, 0.68];
+    const main = this.peakMesh('mtnA', 7, stone, cap, 11);
+    const f1 = this.peakMesh('mtnB', 6, stone, cap, 23);
+    f1.scaling.set(0.6, 0.6, 0.62);
+    f1.position.set(0.75, 0.35, 0);
+    const f2 = this.peakMesh('mtnC', 6, stone, cap, 37);
+    f2.scaling.set(0.52, 0.52, 0.5);
+    f2.position.set(-0.65, -0.45, 0);
+    const merged = Mesh.MergeMeshes([main, f1, f2], true, true)!;
+    merged.name = 'mountains';
+    merged.material = this.sceneMat;
+    merged.setEnabled(false);
+    return merged;
+  }
+
+  /** A single squat boulder for rocky-but-low ground. */
+  private buildRockMesh(): Mesh {
+    const m = this.peakMesh('rock', 6, [0.47, 0.44, 0.40], [0.56, 0.53, 0.49], 5);
+    m.material = this.sceneMat;
+    m.setEnabled(false);
+    return m;
+  }
+
+  /** Scatter mountains and rocks across the relief: tall rocky cells get a
+   *  massif, merely-rocky cells get boulder clusters. Static thin instances,
+   *  seeded by cell hash so the placement is deterministic. Mountains drop a
+   *  contact shadow to anchor them to the ground. */
+  private buildScenery() {
+    const f = this.field;
+    const { w, h, cell, minX, maxY } = f;
+    this.mountainMesh = this.buildMountainMesh();
+    this.rockMesh = this.buildRockMesh();
+    const mtn: number[] = [];
+    const rock: number[] = [];
+    const pushM = (arr: number[], sx: number, sy: number, sz: number, yaw: number, x: number, y: number, z: number) => {
+      const c = Math.cos(yaw);
+      const s = Math.sin(yaw);
+      arr.push(c * sx, s * sx, 0, 0, -s * sy, c * sy, 0, 0, 0, 0, sz, 0, x, y, z, 1);
+    };
+    for (let gy = 0; gy < h; gy++) {
+      for (let gx = 0; gx < w; gx++) {
+        const i = gy * w + gx;
+        if (!f.land[i]) continue;
+        const rk = f.biome[i * 4 + 2] / 255;
+        const hh = f.height[i] / (f.maxH || 1);
+        const x0 = minX + (gx + 0.5) * cell;
+        const y0 = maxY - (gy + 0.5) * cell;
+        const score = hh * 0.85 + rk * 0.5;
+        if (score > 0.66 && hash2(gx * 3 + 1, gy * 7 + 2) < 0.42) {
+          const x = x0 + (hash2(gx, gy * 2) - 0.5) * cell * 0.7;
+          const y = y0 + (hash2(gx * 2, gy) - 0.5) * cell * 0.7;
+          const z = Math.max(0, f.heightAt(x, y));
+          const rad = cell * 0.5 * (0.7 + rk * 0.5);
+          const tall = 2.4 + rk * 4.5 + hh * 4.5;
+          pushM(mtn, rad, rad, tall, hash2(gx + 3, gy + 5) * 6.28, x, y, z);
+        } else if (rk > 0.3 && hash2(gx * 5, gy * 9) < rk * 0.6) {
+          const cnt = 1 + Math.floor(hash2(gx, gy) * 2.5);
+          for (let t = 0; t < cnt; t++) {
+            const x = x0 + (hash2(gx * 7 + t, gy * 11) - 0.5) * cell * 1.2;
+            const y = y0 + (hash2(gx * 5 + t, gy * 13) - 0.5) * cell * 1.2;
+            const z = Math.max(0, f.heightAt(x, y));
+            const rad = 0.9 + hash2(gx + t, gy) * 1.7;
+            const tall = 0.7 + hash2(gx, gy + t) * 1.4;
+            pushM(rock, rad, rad, tall, hash2(t + 1, gx) * 6.28, x, y, z);
+          }
+        }
+      }
+    }
+    const [x0, y0, x1, y1] = this.bgRect;
+    const bounds = new BoundingInfo(new Vector3(x0, y0, 0), new Vector3(x1, y1, 60));
+    if (mtn.length) {
+      this.mountainMesh.thinInstanceSetBuffer('matrix', new Float32Array(mtn), 16, true);
+      this.mountainMesh.thinInstanceSetBuffer('iColor', new Float32Array((mtn.length / 16) * 4), 4, true);
+      this.mountainMesh.setBoundingInfo(bounds);
+      this.mountainMesh.isPickable = false;
+      const cnt = mtn.length / 16;
+      const shad = new Float32Array(cnt * 16);
+      for (let k = 0; k < cnt; k++) {
+        const o = k * 16;
+        const rad = Math.hypot(mtn[o], mtn[o + 1]);
+        this.shadowMatrix(shad, o, mtn[o + 12], mtn[o + 13], mtn[o + 14], rad * 0.9);
+      }
+      this.mtnShadow = this.shadowQuad('mtnShadow');
+      this.mtnShadow.thinInstanceSetBuffer('matrix', shad, 16, true);
+      this.mtnShadow.setBoundingInfo(bounds);
+    }
+    if (rock.length) {
+      this.rockMesh.thinInstanceSetBuffer('matrix', new Float32Array(rock), 16, true);
+      this.rockMesh.thinInstanceSetBuffer('iColor', new Float32Array((rock.length / 16) * 4), 4, true);
+      this.rockMesh.setBoundingInfo(bounds);
+      this.rockMesh.isPickable = false;
+    }
+  }
+
+  /** One ox-cart — a timber bed under a canvas tilt — merged and thin-instanced
+   *  per cart, its length along +x so a yaw aligns it with the road. */
+  private buildCartModel() {
+    const parts: Mesh[] = [];
+    const bed = CreateBox('cb', { width: 2.0, depth: 0.95, height: 0.55 }, this.scene);
+    bed.rotation.x = Math.PI / 2;
+    bed.position.set(0, 0, 0.45);
+    parts.push(this.paint(bed, 0.42, 0.30, 0.20, 0)); // timber
+    const tilt = CreateBox('ct', { width: 1.5, depth: 0.85, height: 0.62 }, this.scene);
+    tilt.rotation.x = Math.PI / 2;
+    tilt.position.set(-0.05, 0, 1.0);
+    parts.push(this.paint(tilt, 0.84, 0.79, 0.68, 0)); // canvas tilt
+    const ox = CreateBox('cox', { width: 0.9, depth: 0.6, height: 0.65 }, this.scene);
+    ox.rotation.x = Math.PI / 2;
+    ox.position.set(1.45, 0, 0.4);
+    parts.push(this.paint(ox, 0.34, 0.26, 0.20, 0)); // the beast in harness
+    const merged = Mesh.MergeMeshes(parts, true, true);
+    if (!merged) return;
+    merged.name = 'carts';
+    merged.material = this.sceneMat;
+    merged.alwaysSelectAsActiveMesh = true;
+    merged.isPickable = false;
+    merged.setEnabled(false);
+    this.cartMesh = merged;
+    this.cartShadow = this.shadowQuad('cartShadow');
+  }
+
+  /** Seed carts onto the trunk roads — roughly one per 70km of road, capped —
+   *  each with a deterministic phase, speed and travel direction. */
+  private buildCarts() {
+    this.buildCartModel();
+    this.carts = [];
+    let seed = 0;
+    for (const r of this.roadPaths) {
+      const n = Math.max(1, Math.round(r.len / 70));
+      for (let k = 0; k < n && this.carts.length < 160; k++) {
+        const hp = hash2(seed * 2 + 1, k * 5 + 3);
+        const hs = hash2(seed * 3 + 7, k * 2 + 1);
+        this.carts.push({
+          path: r.path,
+          cum: r.cum,
+          len: r.len,
+          speed: 2.8 + hs * 3.4, // km/s — a steady crawl at gameplay zoom
+          phase: hp * r.len,
+          dir: hash2(seed + k, 9) < 0.5 ? 1 : -1,
+        });
+        seed++;
+      }
+    }
+    if (this.cartMesh && this.carts.length) {
+      this.cartMesh.thinInstanceSetBuffer('matrix', new Float32Array(this.carts.length * 16), 16, false);
+      this.cartMesh.thinInstanceSetBuffer('iColor', new Float32Array(this.carts.length * 4), 4, true);
+      this.cartShadow?.thinInstanceSetBuffer('matrix', new Float32Array(this.carts.length * 16), 16, false);
+    }
+  }
+
+  /** Reposition every cart along its road from the shared clock; called each
+   *  frame before draw. Hidden under fog where the player has no sight. */
+  private updateCarts(time: number, fogOfWar: boolean) {
+    const m = this.cartMesh;
+    if (!m || !this.carts.length) return;
+    const buf = new Float32Array(this.carts.length * 16);
+    const shad = new Float32Array(this.carts.length * 16);
+    for (let ci = 0; ci < this.carts.length; ci++) {
+      const c = this.carts[ci];
+      let d = (c.phase + time * c.speed) % c.len;
+      if (c.dir < 0) d = c.len - d;
+      // locate the segment holding arc-length d
+      let lo = 0;
+      while (lo + 1 < c.cum.length && c.cum[lo + 1] < d) lo++;
+      const segLen = (c.cum[lo + 1] ?? c.cum[lo]) - c.cum[lo] || 1;
+      const t = (d - c.cum[lo]) / segLen;
+      const a = c.path[lo];
+      const b = c.path[Math.min(lo + 1, c.path.length - 1)];
+      const x = a[0] + (b[0] - a[0]) * t;
+      const y = a[1] + (b[1] - a[1]) * t;
+      let tx = (b[0] - a[0]) * c.dir;
+      let ty = (b[1] - a[1]) * c.dir;
+      const tl = Math.hypot(tx, ty) || 1;
+      tx /= tl; ty /= tl;
+      const o = ci * 16;
+      if (fogOfWar && this.visibleAt(x, y) < 0.35) {
+        // degenerate transform → nothing rasterises for unseen carts
+        buf[o + 15] = 1;
+        shad[o + 15] = 1;
+        continue;
+      }
+      const z = Math.max(0, this.field.heightAt(x, y)) + 0.12;
+      buf[o] = tx; buf[o + 1] = ty; buf[o + 4] = -ty; buf[o + 5] = tx; buf[o + 10] = 1;
+      buf[o + 12] = x; buf[o + 13] = y; buf[o + 14] = z; buf[o + 15] = 1;
+      this.shadowMatrix(shad, o, x, y, z, 1.0);
+    }
+    m.thinInstanceSetBuffer('matrix', buf, 16, false);
+    this.cartShadow?.thinInstanceSetBuffer('matrix', shad, 16, false);
+  }
+
   /** One settlement — a walled knot of terracotta-roofed buildings under a
    *  faction standard — merged once and thin-instanced per city: static
    *  positions, tier-scaled, owner color set by setCityOwners. */
   private buildCityModel(data: CampaignData) {
     const parts: Mesh[] = [];
-    // Rampart ring (a flat torus laid on the ground): this is the OWNERSHIP
-    // marker — livery (alpha 1) so its per-city iColor shows (green = ours,
-    // the owner's faction colour otherwise). The buildings stay neutral.
-    const wall = CreateTorus('cw', { diameter: 9.5, thickness: 1.4, tessellation: 18 }, this.scene);
-    wall.rotation.x = Math.PI / 2; // ring from XZ plane down onto the XY ground
-    wall.position.z = 0.7;
-    parts.push(this.paint(wall, 0.85, 0.85, 0.85, 1));
     // A building: sandstone walls + a wider terracotta roof cap. Boxes only,
     // so orientation stays trivial under the model camera.
     const building = (sx: number, sy: number, w: number, d: number, hgt: number) => {
@@ -779,15 +839,18 @@ export class Terrain3D {
       const r = 0.9 + rand() * 3.0;
       building(Math.cos(a) * r, Math.sin(a) * r, 0.8 + rand() * 1.0, 0.8 + rand() * 1.0, 1.1 + rand() * 1.4);
     }
-    // The faction standard, taller than the town so it flies above the roofs.
-    const pole = CreateBox('cp', { width: 0.2, depth: 0.2, height: 7.0 }, this.scene);
+    // The standard: a tall mast flying a big rectangular banner. The banner is
+    // the only livery part (alpha 1), so its per-city iColor — set to the
+    // allegiance colour (friend/neutral/foe) in setCityOwners — is what tells
+    // the player whose town this is at a glance.
+    const pole = CreateBox('cp', { width: 0.22, depth: 0.22, height: 9.5 }, this.scene);
     pole.rotation.x = Math.PI / 2;
-    pole.position.set(0, 0, 3.5);
+    pole.position.set(0, 0, 4.75);
     parts.push(this.paint(pole, 0.45, 0.36, 0.28, 0)); // timber, neutral
-    const flag = CreateBox('cf', { width: 3.4, depth: 0.16, height: 2.0 }, this.scene);
+    const flag = CreateBox('cf', { width: 5.4, depth: 0.18, height: 3.2 }, this.scene);
     flag.rotation.x = Math.PI / 2;
-    flag.position.set(1.7, 0, 5.6);
-    parts.push(this.paint(flag, 1, 1, 1, 1)); // livery: takes the owner color
+    flag.position.set(2.7, 0, 7.7);
+    parts.push(this.paint(flag, 1, 1, 1, 1)); // livery: takes the allegiance colour
 
     const merged = Mesh.MergeMeshes(parts, true, true);
     if (!merged) return;
@@ -827,22 +890,52 @@ export class Terrain3D {
     merged.thinInstanceSetBuffer('iColor', cols, 4, false);
     merged.setEnabled(false);
     this.cityMesh = merged;
+    this.cityPosByNode = new Map(cityList.map((c, k) => [c.i, [
+      c.n.pos[0], c.n.pos[1], (mats[k * 16 + 14]), c.n.tier,
+    ] as [number, number, number, number]]));
+
+    // City selection uses the same flat green footprint language as armies.
+    const sel = CreateTorus('csel', { diameter: 9.5, thickness: 0.7, tessellation: 36 }, this.scene);
+    this.paint(sel, 0.2, 0.95, 0.35, 0); // selection green
+    sel.material = this.modelMat;
+    sel.alwaysSelectAsActiveMesh = true;
+    sel.setEnabled(false);
+    this.citySelRing = sel;
   }
 
-  /** Recolor each settlement's ring + standard to its owner — green for the
-   *  player's own cities, the owner's faction colour otherwise. Called when
-   *  ownership changes (same trigger as the territory recolor). */
-  setCityOwners(cities: Map<number, { owner: number }>, playerFaction: number) {
+  /** Place the selection ring under the selected city (or hide it). Called each
+   *  frame with the open-panel node index; -1 clears it. */
+  setSelectedCity(node: number) {
+    const ring = this.citySelRing;
+    if (!ring) return;
+    const p = node >= 0 ? this.cityPosByNode.get(node) : undefined;
+    if (!p) {
+      ring.thinInstanceCount = 0;
+      ring.setEnabled(false);
+      return;
+    }
+    const S = p[3] >= 3 ? 1.9 : p[3] === 2 ? 1.35 : 0.95; // match the town scale
+    ring.thinInstanceSetBuffer('matrix', new Float32Array([
+      S, 0, 0, 0,
+      0, 0, S, 0,
+      0, -S, 0, 0,
+      p[0], p[1], p[2] + 0.18, 1,
+    ]), 16, false);
+    ring.thinInstanceSetBuffer('iColor', new Float32Array([0, 0, 0, 0]), 4, false);
+    ring.setEnabled(true);
+  }
+
+  /** Recolour each settlement's banner to its OWNER's faction colour — the
+   *  flag flies the realm's livery (the allegiance read lives in the 2D name
+   *  icon instead). Called when ownership changes. */
+  setCityOwners(cities: Map<number, { owner: number }>) {
     const m = this.cityMesh;
     if (!m) return;
-    const own: [number, number, number] = [0.35, 0.8, 0.35]; // "this is mine"
     const n = this.cityNodes.length;
     const cols = new Float32Array(n * 4);
     for (let k = 0; k < n; k++) {
       const owner = cities.get(this.cityNodes[k])?.owner ?? -1;
-      const c = owner === playerFaction ? own
-        : owner >= 0 ? this.factionColors[owner] ?? [0.55, 0.55, 0.55]
-        : [0.55, 0.55, 0.55];
+      const c = owner >= 0 ? this.factionColors[owner] ?? [0.55, 0.55, 0.55] : [0.55, 0.55, 0.55];
       cols[k * 4] = c[0]; cols[k * 4 + 1] = c[1]; cols[k * 4 + 2] = c[2]; cols[k * 4 + 3] = 0;
     }
     m.thinInstanceSetBuffer('iColor', cols, 4, false);
@@ -878,21 +971,27 @@ export class Terrain3D {
   /** Reposition the army models from the live army list (called each frame
    *  before draw). Cheap: a few dozen instances, two small buffers. */
   setArmies(
-    armies: { id: number; x: number; y: number; faction: number; soldiers: number; roster: number[] }[],
+    armies: {
+      id: number;
+      x: number;
+      y: number;
+      faction: number;
+      soldiers: number;
+      unitCount: number;
+      unitsByClass: number[];
+    }[],
     scale: number,
+    stackUnitCap: number,
     selected = -1,
     hover = -1,
     fogOfWar = false,
   ) {
-    const baseM = this.armyBase;
-    if (!baseM) return;
     // Under fog of war an army the player can't see leaves no model on the map
     // (their own armies light their own sight, so always survive the filter).
     if (fogOfWar) armies = armies.filter((a) => this.visibleAt(a.x, a.y) >= 0.35);
     const n = armies.length;
     this.armyCount = n;
     if (n === 0) {
-      baseM.thinInstanceCount = 0;
       if (this.armyShadow) this.armyShadow.thinInstanceCount = 0;
       for (const m of this.classMeshes) if (m) m.thinInstanceCount = 0;
       return;
@@ -901,18 +1000,18 @@ export class Terrain3D {
     // armies read at play zoom without ballooning up close.
     const S = Math.min(13, Math.max(5, 80 / (3.2 * scale)));
     const figScale = S * 1.25;
-    const baseMats = new Float32Array(n * 16);
-    const baseCols = new Float32Array(n * 4);
     const shadows = new Float32Array(n * 16);
     // Per-class figure instances, accumulated across all armies.
-    const fmats: number[][] = Array.from({ length: 9 }, () => []);
-    const fcols: number[][] = Array.from({ length: 9 }, () => []);
+    const fmats: number[][] = Array.from({ length: this.classMeshes.length }, () => []);
+    const fcols: number[][] = Array.from({ length: this.classMeshes.length }, () => []);
     const clock = performance.now() / 1000;
     let selPos: [number, number, number] | null = null;
     for (let i = 0; i < n; i++) {
       const a = armies[i];
       const z = Math.max(0, this.field.heightAt(a.x, a.y));
       if (a.id === selected) selPos = [a.x, a.y, z];
+      // The soldier figures wear the faction's livery; the allegiance read
+      // (friend/foe) lives in the 2D army-name icon instead.
       const c = this.factionColors[a.faction] ?? [0.6, 0.6, 0.6];
       // iColor.a is the highlight flag the shader reads (not opacity).
       const hi = a.id === selected ? 1 : a.id === hover ? 0.5 : 0;
@@ -925,14 +1024,12 @@ export class Terrain3D {
       this.armyMarch.set(a.id, { px: a.x, py: a.y, amp });
       const bobH = amp * 0.16 * figScale; // metres of bounce at full march
       const o = i * 16;
-      baseMats[o] = S; baseMats[o + 5] = S; baseMats[o + 10] = S; baseMats[o + 15] = 1;
-      baseMats[o + 12] = a.x; baseMats[o + 13] = a.y; baseMats[o + 14] = z;
-      baseCols[i * 4] = c[0]; baseCols[i * 4 + 1] = c[1]; baseCols[i * 4 + 2] = c[2]; baseCols[i * 4 + 3] = hi;
       this.shadowMatrix(shadows, o, a.x, a.y, z, 1.9 * S);
-      // Figures: count by size, classes by composition, placed in the slots.
-      const alloc = allocFigures(a.roster, figureCount(a.soldiers));
+      // Figures: count by stack fullness, classes by live unit composition,
+      // placed in the representative slots.
+      const alloc = allocFigures(a.unitsByClass, figureCount(a.unitCount, stackUnitCap));
       let slot = 0;
-      for (let cls = 0; cls < 9; cls++) {
+      for (let cls = 0; cls < this.classMeshes.length; cls++) {
         for (let k = 0; k < alloc[cls] && slot < ARMY_SLOTS.length; k++, slot++) {
           const [ox, oy] = ARMY_SLOTS[slot];
           // Each figure bobs on its own phase so the file ripples, not pumps.
@@ -945,16 +1042,17 @@ export class Terrain3D {
         }
       }
     }
-    baseM.thinInstanceSetBuffer('matrix', baseMats, 16, false);
-    baseM.thinInstanceSetBuffer('iColor', baseCols, 4, false);
     this.armyShadow?.thinInstanceSetBuffer('matrix', shadows, 16, false);
-    // Green selection ring: one instance under the selected army, else hidden.
+    // Selection ring: one green footprint under the selected army.
     const ring = this.armySelRing;
     if (ring) {
       if (selPos) {
-        const rs = 0.62 * S; // torus diameter 7.5 → roughly the army footprint
+        const rs = 1.35; // match the standard city selection footprint
         ring.thinInstanceSetBuffer('matrix', new Float32Array([
-          rs, 0, 0, 0, 0, rs, 0, 0, 0, 0, rs, 0, selPos[0], selPos[1], selPos[2] + 0.12, 1,
+          rs, 0, 0, 0,
+          0, 0, rs, 0,
+          0, -rs, 0, 0,
+          selPos[0], selPos[1], selPos[2] + 0.18, 1,
         ]), 16, false);
         ring.thinInstanceSetBuffer('iColor', new Float32Array([0, 0, 0, 0]), 4, false);
         ring.setEnabled(true);
@@ -963,7 +1061,7 @@ export class Terrain3D {
         ring.setEnabled(false);
       }
     }
-    for (let cls = 0; cls < 9; cls++) {
+    for (let cls = 0; cls < this.classMeshes.length; cls++) {
       const m = this.classMeshes[cls];
       if (!m) continue;
       if (fmats[cls].length) {
@@ -1114,7 +1212,6 @@ export class Terrain3D {
     for (const c of this.chunks) c.setEnabled(!coarseView);
     for (const t of this.treeMeshes) t.setEnabled(cam.scale >= TREE_MIN_SCALE);
     const armiesOn = cam.scale >= ARMY_MIN_SCALE && this.armyCount > 0;
-    this.armyBase?.setEnabled(armiesOn);
     this.armyShadow?.setEnabled(armiesOn);
     for (const m of this.classMeshes) m?.setEnabled(armiesOn);
     // The selection ring follows the armies-visible gate AND its own selection
@@ -1123,7 +1220,23 @@ export class Terrain3D {
     const citiesOn = cam.scale >= CITY_MODEL_MIN_SCALE;
     this.cityMesh?.setEnabled(citiesOn);
     this.cityShadow?.setEnabled(citiesOn);
+    if (this.citySelRing) this.citySelRing.setEnabled(citiesOn && this.citySelRing.thinInstanceCount > 0);
     if (citiesOn) this.applyCityFog(fogOfWar);
+    // Roads show once off the political overview, fading in as the land does.
+    this.roadMesh?.setEnabled(cam.scale >= 0.4);
+    this.roadMat.setFloat('uFogD', 1 / (this.dist * 4.5));
+    this.roadMat.setFloat('uFogStr', tilt * 0.85);
+    // Relief props: mountains read from a fair way out; rocks join the trees.
+    this.mountainMesh?.setEnabled(cam.scale >= 0.28);
+    this.mtnShadow?.setEnabled(cam.scale >= 0.28);
+    this.rockMesh?.setEnabled(cam.scale >= TREE_MIN_SCALE);
+    // Cart traffic crawls the roads once the world is tilted into 3D.
+    const cartsOn = cam.scale >= 0.6 && this.carts.length > 0;
+    this.cartMesh?.setEnabled(cartsOn);
+    this.cartShadow?.setEnabled(cartsOn);
+    if (cartsOn) this.updateCarts(time, fogOfWar);
+    this.sceneMat.setFloat('uFogD', 1 / (this.dist * 4.5));
+    this.sceneMat.setFloat('uFogStr', tilt * 0.85);
 
     this.terrainMat.setVector3('uEyePos', this.camera.position);
     this.terrainMat.setVector2('uFx', new Vector2(terrAlpha, tilt * 0.85));

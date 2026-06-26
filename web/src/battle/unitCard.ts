@@ -4,7 +4,7 @@
 // Pure DOM/Canvas: portraits are drawn once from the class look; the bars and
 // the selected/rout state refresh each frame from the sim.
 
-import { CLASS_LOOK } from '../shared/soldierModel';
+import { lookForModel, modelLookForClass } from '../shared/soldierModel';
 
 // Faction accents — kept in step with renderer3d's FACTION_ACCENT so a unit's
 // card, its banner and the colour on its soldiers all read as the same side.
@@ -13,6 +13,7 @@ const FACTION_CSS = ['#3a6cf0', '#e03e34']; // player blue, enemy crimson
 export interface UnitCardInit {
   unit: number; // sim unit id (for selection)
   cls: number;
+  look?: number;
   team: 0 | 1;
   name: string;
 }
@@ -32,8 +33,8 @@ const W = 58, H = 62; // portrait canvas size (CSS px; drawn at 2x for crispness
 // A compact side-view soldier (or rider) for class `cls`, facing right, tinted
 // with the faction accent on shield/crest/sash — the same silhouette language
 // as the 3D model, just flat. Drawn on a 2x backing for sharpness.
-function drawPortrait(canvas: HTMLCanvasElement, cls: number, team: 0 | 1) {
-  const L = CLASS_LOOK[cls] ?? CLASS_LOOK[0];
+function drawPortrait(canvas: HTMLCanvasElement, cls: number, look: number | undefined, team: 0 | 1) {
+  const L = lookForModel(look ?? modelLookForClass(cls));
   const dpr = 2;
   canvas.width = W * dpr; canvas.height = H * dpr;
   const g = canvas.getContext('2d')!;
@@ -105,7 +106,7 @@ export class UnitCards {
       const port = document.createElement('canvas');
       port.className = 'ucard-port';
       port.style.width = W + 'px'; port.style.height = H + 'px';
-      drawPortrait(port, u.cls, u.team);
+      drawPortrait(port, u.cls, u.look, u.team);
       const name = document.createElement('div');
       name.className = 'ucard-name';
       name.textContent = u.name;

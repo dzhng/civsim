@@ -6,14 +6,17 @@ use crate::Game;
 use campaign::state::{EncounterPhase, Loc, Stance};
 use wasm_bindgen::prelude::*;
 
-/// Floats per army in the army_info array:
+/// Base floats per army in the army_info array:
 /// [id, x, y, faction, soldiers, stance, pie_kind, pie_frac, marching,
-///  encounter (-1 none), morale_cap_mean, is_player, then 9 per-class
-///  soldier counts (index = UnitClassId)]
+///  encounter (-1 none), morale_cap_mean, is_player, live roster entries],
+///  followed by per-class soldier counts and then per-class live roster-entry
+///  counts per `contract::ALL_CLASSES` entry (index = UnitClassId).
 /// stance: 0 march/hold, 1 camp, 2 ambush-settling, 3 ambush-hidden,
 ///         4 routed, 5 occupying, 6 at sea. pie_kind: 0 none, 1 battle prep,
 ///         2 occupation, 3 embark, 4 ambush settle.
-pub const ARMY_INFO_STRIDE: usize = 21;
+pub const ARMY_INFO_BASE_STRIDE: usize = 13;
+pub const ARMY_CLASS_SLOTS: usize = contract::ALL_CLASSES.len();
+pub const ARMY_INFO_STRIDE: usize = ARMY_INFO_BASE_STRIDE + ARMY_CLASS_SLOTS * 2;
 /// Floats per city: [node, owner, garrison_soldiers, queue_len].
 pub const CITY_INFO_STRIDE: usize = 4;
 
@@ -35,6 +38,54 @@ fn loc_decode(kind: u32, a: u32, b: u32) -> Loc {
             tile: b as u16,
         }
     }
+}
+
+fn resolved_unit_stats(r: &contract::RosterUnit) -> sim::UnitClass {
+    let mut s = sim::class_stats(r.class);
+    let option = r.unit_type.map(campaign::units::option_index).unwrap_or(0);
+    match option {
+        // Auxiliary / irregular: cheaper, quicker to move and recover, but
+        // materially less able to stand in a hard front-line press.
+        1 => {
+            s.health *= 0.9;
+            s.mass *= 0.92;
+            s.block *= 0.86;
+            s.evade = (s.evade + 0.05).min(0.7);
+            s.training = (s.training - 0.08).max(0.2);
+            s.bravery *= 0.9;
+            s.morale_aura *= 0.9;
+            s.pace_mult *= 1.06;
+            s.drain_mult *= 0.88;
+        }
+        // Professional / specialist: more staying power and discipline, paid
+        // for in cost and stamina.
+        2 => {
+            s.health *= 1.1;
+            s.mass *= 1.08;
+            s.block = (s.block + 0.06).min(0.75);
+            s.evade *= 0.92;
+            s.training = (s.training + 0.1).min(1.0);
+            s.bravery *= 1.15;
+            s.morale_aura *= 1.08;
+            s.drain_mult *= 1.12;
+        }
+        n if n > 2 => {
+            s.health *= 1.16;
+            s.mass *= 1.12;
+            s.training = (s.training + 0.14).min(1.0);
+            s.bravery *= 1.2;
+            s.drain_mult *= 1.18;
+        }
+        _ => {}
+    }
+    s
+}
+
+fn resolved_unit_render_look(r: &contract::RosterUnit) -> u32 {
+    // The tactical class is the default model id today. Keeping this beside
+    // `resolved_unit_stats` gives campaign unit types a single future hook for
+    // visual variants without mixing art choices into combat stats.
+    r.class as u32
 }
 
 #[wasm_bindgen]
@@ -169,6 +220,28 @@ impl Campaign {
         ok
     }
 
+    pub fn order_set_class_doctrine(&mut self, class: u32, unit_type: u32, size_mult: u32) -> bool {
+        let Some(&class) = contract::ALL_CLASSES.get(class as usize) else {
+            return false;
+        };
+        let ok = self.inner.order_set_class_doctrine(
+            class,
+            contract::UnitTypeId(unit_type),
+            size_mult as u8,
+        );
+        self.refresh();
+        ok
+    }
+
+    pub fn order_auto_replenish(&mut self, army: u32, on: bool) -> bool {
+        if !self.owns(army) {
+            return false;
+        }
+        let ok = self.inner.order_auto_replenish(army, on);
+        self.refresh();
+        ok
+    }
+
     pub fn order_disband(&mut self, army: u32, entry: u32) -> bool {
         let ok = self.owns(army) && self.inner.order_disband(army, entry as usize);
         self.refresh();
@@ -181,48 +254,13 @@ impl Campaign {
         ok
     }
 
-    pub fn order_upgrade_road(&mut self, edge: u32) -> bool {
-        let ok = self.inner.order_upgrade_road(edge);
-        self.refresh();
-        ok
-    }
-
     pub fn road_level(&self, edge: u32) -> u32 {
         self.inner.state.road_level(edge) as u32
-    }
-
-    /// Remaining build ticks for an edge's road job, -1 when idle.
-    pub fn road_job_ticks(&self, edge: u32) -> i32 {
-        self.inner
-            .state
-            .road_jobs
-            .get(&edge)
-            .map_or(-1, |j| j.ticks_left as i32)
     }
 
     /// Zero-copy view: one byte per edge, the current road level.
     pub fn road_levels_ptr(&self) -> *const u8 {
         self.inner.state.road_levels.as_ptr()
-    }
-
-    pub fn order_build_outpost(&mut self, node: u32) -> bool {
-        let ok = self.inner.order_build_outpost(node);
-        self.refresh();
-        ok
-    }
-
-    /// All outposts: [{node, owner, built}].
-    pub fn outposts_json(&self) -> String {
-        let list: Vec<_> = self
-            .inner
-            .state
-            .outposts
-            .iter()
-            .map(|(&n, o)| {
-                serde_json::json!({ "node": n, "owner": o.owner, "built": o.build_ticks_left == 0 })
-            })
-            .collect();
-        serde_json::json!(list).to_string()
     }
 
     /// kind: 0 market, 1 barracks.
@@ -376,6 +414,94 @@ impl Campaign {
         ARMY_INFO_STRIDE as u32
     }
 
+    pub fn army_info_base_stride(&self) -> u32 {
+        ARMY_INFO_BASE_STRIDE as u32
+    }
+
+    pub fn army_class_slots(&self) -> u32 {
+        ARMY_CLASS_SLOTS as u32
+    }
+
+    pub fn army_stack_unit_cap(&self) -> u32 {
+        campaign::tunables::ARMY_STACK_UNIT_CAP as u32
+    }
+
+    pub fn unit_class_names_json(&self) -> String {
+        serde_json::to_string(
+            &contract::ALL_CLASSES
+                .iter()
+                .map(|class| format!("{class:?}"))
+                .collect::<Vec<_>>(),
+        )
+        .unwrap()
+    }
+
+    pub fn class_doctrine_json(&self) -> String {
+        let st = &self.inner.state;
+        let f = st.player_faction;
+        let rows: Vec<serde_json::Value> = contract::ALL_CLASSES
+            .iter()
+            .enumerate()
+            .map(|(ci, &class)| {
+                let selected = campaign::units::selected_unit_type(st, f, class);
+                let size = campaign::units::size_mult(st, f, class);
+                let cooldown_until = st
+                    .doctrines
+                    .get(f as usize)
+                    .and_then(|d| d.slots.iter().find(|s| s.class == class))
+                    .map(|s| s.cooldown_until)
+                    .unwrap_or(0);
+                let live = campaign::economy::field_living_soldiers(st, f, class);
+                let max: u32 = st
+                    .armies
+                    .iter()
+                    .filter(|a| a.faction == f && a.garrison_of.is_none() && a.alive())
+                    .flat_map(|a| &a.roster)
+                    .filter(|r| r.class == class)
+                    .map(|r| r.max)
+                    .sum();
+                let options: Vec<serde_json::Value> = campaign::units::available_options(
+                    &self.inner.map,
+                    f,
+                    class,
+                )
+                .into_iter()
+                .map(|u| {
+                    let apply_cost = campaign::economy::class_doctrine_cost(
+                        &self.inner.map,
+                        st,
+                        f,
+                        class,
+                        u.id,
+                        size,
+                    );
+                    serde_json::json!({
+                        "id": u.id.0,
+                        "name": u.name,
+                        "costPerSoldier": u.cost_per_soldier_milligold as f32 / 1000.0,
+                        "upkeepPerSoldier": u.upkeep_per_soldier_milligold as f32 / 1000.0,
+                        "recruitTicksPerSoldier": u.recruit_ticks_per_soldier,
+                        "option": u.option,
+                        "unlocked": matches!(u.unlock, campaign::units::UnitUnlock::Default),
+                        "applyCost": apply_cost,
+                    })
+                })
+                .collect();
+                serde_json::json!({
+                    "classIndex": ci,
+                    "class": format!("{class:?}"),
+                    "selected": selected.0,
+                    "sizeMult": size,
+                    "cooldown": cooldown_until.saturating_sub(st.tick),
+                    "live": live,
+                    "max": max,
+                    "options": options,
+                })
+            })
+            .collect();
+        serde_json::to_string(&rows).unwrap()
+    }
+
     pub fn city_count(&self) -> u32 {
         (self.city_info.len() / CITY_INFO_STRIDE) as u32
     }
@@ -400,6 +526,15 @@ impl Campaign {
                 .collect::<Vec<_>>(),
         )
         .unwrap()
+    }
+
+    pub fn army_auto_replenish(&self, army: u32) -> bool {
+        self.inner
+            .state
+            .armies
+            .get(army as usize)
+            .map(|a| a.auto_replenish)
+            .unwrap_or(false)
     }
 
     pub fn treasury(&self) -> u32 {
@@ -507,14 +642,22 @@ impl Campaign {
                 a.encounter.map_or(-1.0, |e| e as f32),
                 cap,
                 if mine { 1.0 } else { 0.0 },
+                a.roster.iter().filter(|r| r.count > 0).count() as f32,
             ]);
-            // Per-class soldier counts (index = UnitClassId), so the map can
-            // build each army marker from its real composition.
-            let mut by_class = [0u32; 9];
+            // Per-class soldier and unit counts (index = UnitClassId), so the
+            // map can build each army marker from its real composition.
+            let mut by_class = [0u32; ARMY_CLASS_SLOTS];
+            let mut units_by_class = [0u32; ARMY_CLASS_SLOTS];
             for r in &a.roster {
+                if r.count == 0 {
+                    continue;
+                }
                 by_class[r.class as usize] += r.count;
+                units_by_class[r.class as usize] += 1;
             }
             self.army_info.extend(by_class.iter().map(|&c| c as f32));
+            self.army_info
+                .extend(units_by_class.iter().map(|&c| c as f32));
         }
         self.city_info.clear();
         for (&node, c) in &st.cities {
@@ -528,12 +671,60 @@ impl Campaign {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn map_with_roster(roster: &str) -> String {
+        format!(
+            r#"{{
+              "half_w": 20, "half_h": 20,
+              "nodes": [
+                {{"id": 1, "name": "A", "pos": [0,0], "kind": "city", "tier": 1, "port": false, "owner": "red"}}
+              ],
+              "edges": [],
+              "ambush_spots": [],
+              "factions": [
+                {{"id": "red", "name": "Red", "color": [200,0,0], "playable": true}},
+                {{"id": "independents", "name": "Ind", "color": [90,90,90], "playable": false}}
+              ],
+              "start_armies": [
+                {{"faction": "red", "at": "A", "roster": {roster}}}
+              ]
+            }}"#
+        )
+    }
+
+    #[test]
+    fn army_info_has_one_slot_per_contract_class() {
+        assert_eq!(
+            ARMY_INFO_STRIDE,
+            ARMY_INFO_BASE_STRIDE + contract::ALL_CLASSES.len() * 2
+        );
+    }
+
+    #[test]
+    fn campaign_refresh_exports_late_unit_classes() {
+        let map = map_with_roster(r#"[["Peasant", 77], ["LightSword", 55], ["HeavySpear", 33]]"#);
+        let c = Campaign::new(&map, 7, 0);
+        assert_eq!(c.army_count(), 1);
+        assert_eq!(c.army_info_stride(), ARMY_INFO_STRIDE as u32);
+        assert_eq!(c.army_info_base_stride(), ARMY_INFO_BASE_STRIDE as u32);
+        assert_eq!(c.army_class_slots(), contract::ALL_CLASSES.len() as u32);
+        assert_eq!(c.army_stack_unit_cap(), 20);
+    }
+}
+
 /// Hand a Pending encounter to the battle layer. The campaign freezes until
 /// `report_battle`. Returns null if the encounter isn't pending.
 #[wasm_bindgen]
 pub fn start_campaign_battle(c: &mut Campaign, encounter: u32) -> Option<Game> {
     let setup = c.inner.battle_setup(encounter)?;
-    let mut battle = sim::Battle::from_setup(&setup);
+    let mut battle = sim::Battle::from_setup_with_stats_and_looks(
+        &setup,
+        &resolved_unit_stats,
+        &resolved_unit_render_look,
+    );
     // Whoever isn't the player fights themselves; battle_setup_for puts the
     // player on team 0 when involved.
     battle.set_ai(1, true);

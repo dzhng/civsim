@@ -1,7 +1,7 @@
 //! Predefined battle setup: terrain + both armies deployed. ~15,000 soldiers
 //! in 20 units per side, mixed classes, mirrored rosters.
 
-use crate::class::{class_stats, UnitClassId};
+use crate::class::{class_stats, UnitClass, UnitClassId};
 use crate::maps::{build, MapId};
 use crate::math::{dir, Vec2};
 use crate::sim::Sim;
@@ -23,8 +23,71 @@ pub fn unit_size(class: UnitClassId) -> usize {
 
 fn unit_width(class: UnitClassId) -> f32 {
     let s = class_stats(class);
-    let files = unit_size(class).div_ceil(s.default_depth.max(1));
-    files as f32 * s.spacing.x
+    unit_width_with_stats(class, s)
+}
+
+fn unit_width_with_stats(class: UnitClassId, stats: UnitClass) -> f32 {
+    let files = unit_size(class).div_ceil(stats.default_depth.max(1));
+    files as f32 * stats.spacing.x
+}
+
+#[derive(Clone, Copy)]
+struct SpawnPlan {
+    id: u64,
+    class: UnitClassId,
+    render_look: u32,
+    stats: UnitClass,
+    count: usize,
+    training: f32,
+    morale_cap: f32,
+}
+
+impl SpawnPlan {
+    fn width(self) -> f32 {
+        unit_width_with_stats(self.class, self.stats)
+    }
+}
+
+fn role(c: UnitClassId) -> usize {
+    match c {
+        Skirmishers => 0,
+        HeavySword | Phalanx | LongSwords | HeavySpear | MediumInfantry | MediumSpear => 1,
+        LightSpear | Peasant | LightSword => 2,
+        Archers => 3,
+        ArtilleryCrew => 4,
+        ShockCavalry | HorseArchers => 5,
+    }
+}
+
+fn spawn_plan(
+    sim: &mut Sim,
+    dep_team: u32,
+    plan: SpawnPlan,
+    anchor: Vec2,
+    face: f32,
+    out: &mut Vec<(u64, usize)>,
+) {
+    let files = plan.count.div_ceil(plan.stats.default_depth.max(1));
+    let idx = sim.spawn_class_stats_look_with_files(
+        anchor,
+        face,
+        plan.count,
+        files,
+        plan.class,
+        plan.stats,
+        plan.render_look,
+        dep_team,
+    );
+    let u = &mut sim.units[idx];
+    u.training = plan.training.clamp(0.05, 1.0);
+    u.morale_ceiling = plan.morale_cap.clamp(0.2, 1.0);
+    u.morale = u.morale.min(u.morale_ceiling);
+    out.push((plan.id, idx));
+}
+
+fn unit_depth(plan: SpawnPlan) -> f32 {
+    let files = unit_size(plan.class).div_ceil(plan.stats.default_depth.max(1));
+    (plan.count.div_ceil(files.max(1))) as f32 * plan.stats.spacing.y
 }
 
 /// Lay one row of units centered on `center`, fronts on the row line,
@@ -106,13 +169,39 @@ fn deploy_army(sim: &mut Sim, base: Vec2, facing: f32, team: u32) {
 /// march axis instead — marching order, the corridor machinery's natural
 /// prey. Returns (campaign unit id, sim unit index) for result mapping.
 pub fn deploy_roster(sim: &mut Sim, dep: &contract::Deployment) -> Vec<(u64, usize)> {
+    let balance = sim.balance.clone();
+    deploy_roster_with_stats(sim, dep, &|r| balance.get(r.class))
+}
+
+pub fn deploy_roster_with_stats<F>(
+    sim: &mut Sim,
+    dep: &contract::Deployment,
+    stats_for: &F,
+) -> Vec<(u64, usize)>
+where
+    F: Fn(&contract::RosterUnit) -> UnitClass,
+{
+    deploy_roster_with_stats_and_looks(sim, dep, stats_for, &|r| r.class as u32)
+}
+
+pub fn deploy_roster_with_stats_and_looks<F, G>(
+    sim: &mut Sim,
+    dep: &contract::Deployment,
+    stats_for: &F,
+    render_look_for: &G,
+) -> Vec<(u64, usize)>
+where
+    F: Fn(&contract::RosterUnit) -> UnitClass,
+    G: Fn(&contract::RosterUnit) -> u32,
+{
     let center = Vec2::new(dep.center[0], dep.center[1]);
     let facing = dep.facing;
     let mut out: Vec<(u64, usize)> = Vec::new();
 
     // Split aggregates into spawnable units, keeping campaign identity.
-    let mut units: Vec<(u64, UnitClassId, usize, f32, f32)> = Vec::new(); // (id, class, count, training, morale_cap)
+    let mut units: Vec<SpawnPlan> = Vec::new();
     for r in &dep.units {
+        let stats = stats_for(r);
         let mut left = r.count as usize;
         let full = unit_size(r.class);
         while left > 0 {
@@ -122,50 +211,35 @@ pub fn deploy_roster(sim: &mut Sim, dep: &contract::Deployment) -> Vec<(u64, usi
                 if let Some(prev) = units
                     .iter_mut()
                     .rev()
-                    .find(|u| u.0 == r.id && u.1 == r.class)
+                    .find(|u| u.id == r.id && u.class == r.class)
                 {
-                    prev.2 += n;
+                    prev.count += n;
                     break;
                 }
             }
-            units.push((r.id, r.class, n, r.training, r.morale_cap));
+            units.push(SpawnPlan {
+                id: r.id,
+                class: r.class,
+                render_look: render_look_for(r),
+                stats,
+                count: n,
+                training: r.training,
+                morale_cap: r.morale_cap,
+            });
             left -= n;
         }
     }
-
-    let spawn = |sim: &mut Sim,
-                 id: u64,
-                 class: UnitClassId,
-                 count: usize,
-                 training: f32,
-                 cap: f32,
-                 anchor: Vec2,
-                 face: f32,
-                 out: &mut Vec<(u64, usize)>| {
-        let idx = sim.spawn_class(anchor, face, count, class, dep.team);
-        let u = &mut sim.units[idx];
-        u.training = training.clamp(0.05, 1.0);
-        u.morale_ceiling = cap.clamp(0.2, 1.0);
-        u.morale = u.morale.min(u.morale_ceiling);
-        out.push((id, idx));
-    };
 
     if dep.column {
         // Marching order: a single file of units down the road behind center.
         let f = dir(facing);
         let mut fwd = 0.0;
-        for &(id, class, count, training, cap) in &units {
-            let s = class_stats(class);
-            let depth = (count.div_ceil(unit_size(class).div_ceil(s.default_depth.max(1)).max(1)))
-                as f32
-                * s.spacing.y;
-            spawn(
+        for &plan in &units {
+            let depth = unit_depth(plan);
+            spawn_plan(
                 sim,
-                id,
-                class,
-                count,
-                training,
-                cap,
+                dep.team,
+                plan,
                 center - f * (fwd + 0.5 * depth),
                 facing,
                 &mut out,
@@ -176,30 +250,21 @@ pub fn deploy_roster(sim: &mut Sim, dep: &contract::Deployment) -> Vec<(u64, usi
     }
 
     // Formed: group by role, lay rows like deploy_army does.
-    let role = |c: UnitClassId| match c {
-        Skirmishers => 0,                                    // screen
-        HeavySword | Phalanx | LongSwords | HeavySpear => 1, // main line
-        LightSpear | Peasant | LightSword => 2,              // second line / levy
-        Archers => 3,                                        // ranged
-        ArtilleryCrew => 4,
-        ShockCavalry | HorseArchers => 5, // wings
-    };
     let f = dir(facing);
     let right = Vec2::new(f.y, -f.x);
     const MAX_ROW_W: f32 = 1500.0;
     const GAP: f32 = 14.0;
     let row_fwd = [45.0, 0.0, -55.0, -110.0, -150.0];
     for r in 0..5 {
-        let members: Vec<&(u64, UnitClassId, usize, f32, f32)> =
-            units.iter().filter(|u| role(u.1) == r).collect();
+        let members: Vec<&SpawnPlan> = units.iter().filter(|u| role(u.class) == r).collect();
         if members.is_empty() {
             continue;
         }
         // Chunk into rows that fit the open corridor.
-        let mut rows: Vec<Vec<&(u64, UnitClassId, usize, f32, f32)>> = vec![Vec::new()];
+        let mut rows: Vec<Vec<&SpawnPlan>> = vec![Vec::new()];
         let mut w_acc = 0.0;
         for m in members {
-            let w = unit_width(m.1) + GAP;
+            let w = m.width() + GAP;
             if w_acc + w > MAX_ROW_W && !rows.last().unwrap().is_empty() {
                 rows.push(Vec::new());
                 w_acc = 0.0;
@@ -209,21 +274,14 @@ pub fn deploy_roster(sim: &mut Sim, dep: &contract::Deployment) -> Vec<(u64, usi
         }
         for (k, row_members) in rows.iter().enumerate() {
             let fwd = row_fwd[r] - k as f32 * 45.0;
-            let total: f32 = row_members
-                .iter()
-                .map(|m| unit_width(m.1) + GAP)
-                .sum::<f32>()
-                - GAP;
+            let total: f32 = row_members.iter().map(|m| m.width() + GAP).sum::<f32>() - GAP;
             let mut x = -0.5 * total;
-            for &&(id, class, count, training, cap) in row_members {
-                let w = unit_width(class);
-                spawn(
+            for &&plan in row_members {
+                let w = plan.width();
+                spawn_plan(
                     sim,
-                    id,
-                    class,
-                    count,
-                    training,
-                    cap,
+                    dep.team,
+                    plan,
                     center + f * fwd + right * (x + 0.5 * w),
                     facing,
                     &mut out,
@@ -233,18 +291,14 @@ pub fn deploy_roster(sim: &mut Sim, dep: &contract::Deployment) -> Vec<(u64, usi
         }
     }
     // Cavalry wings, alternating sides.
-    let wings: Vec<&(u64, UnitClassId, usize, f32, f32)> =
-        units.iter().filter(|u| role(u.1) == 5).collect();
-    for (k, &&(id, class, count, training, cap)) in wings.iter().enumerate() {
+    let wings: Vec<&SpawnPlan> = units.iter().filter(|u| role(u.class) == 5).collect();
+    for (k, &&plan) in wings.iter().enumerate() {
         let side = if k % 2 == 0 { 1.0 } else { -1.0 };
         let lane = 300.0 + (k / 2) as f32 * 60.0;
-        spawn(
+        spawn_plan(
             sim,
-            id,
-            class,
-            count,
-            training,
-            cap,
+            dep.team,
+            plan,
             center + f * -20.0 + right * (side * lane),
             facing,
             &mut out,

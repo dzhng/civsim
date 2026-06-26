@@ -499,6 +499,21 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             weapons: one(SWORD),
             ..foot
         },
+        MediumInfantry => UnitClass {
+            drain_mult: 1.1,
+            pace_mult: 1.0,
+            soldier_radius: 0.33,
+            mass: 1.12,
+            brace_mult: 1.6,
+            spacing: Vec2::new(0.95, 1.15),
+            default_depth: 7,
+            health: 1.95,
+            block: 0.4,
+            evade: 0.13,
+            training: 0.65,
+            weapons: one(SWORD),
+            ..foot
+        },
         // The armoured spear wall: heavy infantry's body and shield, a spear
         // instead of a sword — braces hard, holds a line, anti-charge.
         // LightSpear is the light spear.
@@ -514,6 +529,21 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             block: 0.45,
             evade: 0.08,
             training: 0.75,
+            weapons: one(SPEAR),
+            ..foot
+        },
+        MediumSpear => UnitClass {
+            drain_mult: 1.1,
+            pace_mult: 1.0,
+            soldier_radius: 0.33,
+            mass: 1.12,
+            brace_mult: 2.0,
+            spacing: Vec2::new(0.95, 1.15),
+            default_depth: 7,
+            health: 1.95,
+            block: 0.4,
+            evade: 0.12,
+            training: 0.65,
             weapons: one(SPEAR),
             ..foot
         },

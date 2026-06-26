@@ -17,8 +17,8 @@ pub use campaign_bind::*;
 ///  alive_count, engaged, at_ease, charge (0 off / 1 armed / 2 charging), ammo,
 ///  morale, routing, final_facing, has_final_facing, mode (0 move / 1 attack /
 ///  2 disengage), pursue, evade_auto, waiting, compressed, mean_pressure,
-///  centroid_x, centroid_y]
-pub const UNIT_INFO_STRIDE: usize = 34;
+///  centroid_x, centroid_y, render_look]
+pub const UNIT_INFO_STRIDE: usize = 33;
 
 #[wasm_bindgen]
 pub struct Game {
@@ -141,7 +141,7 @@ impl Game {
     pub fn class_specs(&self) -> String {
         let weapon_names: [&[&str]; contract::ALL_CLASSES.len()] = [
             &["sword"],
-            &["sword"],
+            &["spear"],
             &["great sword"],
             &["pike", "side sword"],
             &["sword"],
@@ -152,9 +152,11 @@ impl Game {
             &["dagger"], // peasant
             &["sword"],  // light sword
             &["spear"],  // heavy spear
+            &["sword"],  // medium infantry
+            &["spear"],  // medium spear
         ];
         let missile_names: [&str; contract::ALL_CLASSES.len()] = [
-            "", "", "", "", "bow", "javelin", "", "bow", "ballista", "", "", "",
+            "", "", "", "", "bow", "javelin", "", "bow", "ballista", "", "", "", "", "",
         ];
         let specs: Vec<serde_json::Value> = contract::ALL_CLASSES
             .iter()
@@ -523,6 +525,7 @@ impl Game {
                 // unlike the anchor (the front-rank reference) at [0],[1].
                 u.centroid.x,
                 u.centroid.y,
+                u.render_look as f32,
             ]);
         }
     }

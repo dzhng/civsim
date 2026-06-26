@@ -9,7 +9,7 @@ export const WILDS_MARGIN = 1600;
 export const CLASS_NAMES = [
   'Heavy Sword', 'Light Spear', 'Long Swords', 'Phalanx', 'Archers',
   'Skirmishers', 'Shock Cavalry', 'Horse Archers', 'Artillery Crew',
-  'Peasants', 'Light Sword', 'Heavy Spear',
+  'Peasants', 'Light Sword', 'Heavy Spear', 'Medium Infantry', 'Medium Spear',
 ];
 
 // ---------------------------------------------------------------- shaders --
@@ -358,7 +358,13 @@ export class Renderer {
     gl.bindVertexArray(null);
   }
 
-  setStatic(soldierUnit: Uint32Array, teams: number[], classes: number[], radii: Float32Array) {
+  setStatic(
+    soldierUnit: Uint32Array,
+    teams: number[],
+    classes: number[],
+    _renderLooks: number[],
+    radii: Float32Array,
+  ) {
     const gl = this.gl;
     this.n = soldierUnit.length;
     const rows = new Float32Array(this.n);

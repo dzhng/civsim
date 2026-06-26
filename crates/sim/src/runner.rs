@@ -4,7 +4,8 @@
 //! live here.
 
 use crate::ai::ai_commander;
-use crate::battle::deploy_roster;
+use crate::battle::deploy_roster_with_stats_and_looks;
+use crate::class::UnitClass;
 use crate::sim::Sim;
 use crate::terrain::Terrain;
 use crate::tunables::Tunables;
@@ -13,10 +14,17 @@ use contract::{BattleResult, BattleSetup, Deployment, Reinforcement, UnitResult}
 pub struct Battle {
     pub sim: Sim,
     /// (due tick, reinforcement) — spawned at the map edge when due.
-    scheduled: Vec<(u64, Reinforcement)>,
+    scheduled: Vec<ScheduledReinforcement>,
     /// (campaign unit id, team, sim unit index).
     unit_map: Vec<(u64, u32, usize)>,
     ai_teams: [bool; 2],
+}
+
+struct ScheduledReinforcement {
+    due: u64,
+    reinforcement: Reinforcement,
+    stats: Vec<UnitClass>,
+    render_looks: Vec<u32>,
 }
 
 impl Battle {
@@ -43,25 +51,50 @@ impl Battle {
     }
 
     pub fn from_setup(setup: &BattleSetup) -> Battle {
+        Self::from_setup_with_stats(setup, &|r| crate::class::class_stats(r.class))
+    }
+
+    pub fn from_setup_with_stats<F>(setup: &BattleSetup, stats_for: &F) -> Battle
+    where
+        F: Fn(&contract::RosterUnit) -> UnitClass,
+    {
+        Self::from_setup_with_stats_and_looks(setup, stats_for, &|r| r.class as u32)
+    }
+
+    pub fn from_setup_with_stats_and_looks<F, G>(
+        setup: &BattleSetup,
+        stats_for: &F,
+        render_look_for: &G,
+    ) -> Battle
+    where
+        F: Fn(&contract::RosterUnit) -> UnitClass,
+        G: Fn(&contract::RosterUnit) -> u32,
+    {
         let mut sim = Sim::new(Tunables::default(), setup.seed);
         sim.terrain = Terrain::from_spec(&setup.terrain);
         let mut unit_map = Vec::new();
         for dep in &setup.deployments {
-            for (id, idx) in deploy_roster(&mut sim, dep) {
+            for (id, idx) in
+                deploy_roster_with_stats_and_looks(&mut sim, dep, stats_for, render_look_for)
+            {
                 unit_map.push((id, dep.team, idx));
             }
         }
-        let mut scheduled: Vec<(u64, Reinforcement)> = setup
+        let mut scheduled: Vec<ScheduledReinforcement> = setup
             .reinforcements
             .iter()
             .map(|r| {
-                (
-                    ((r.delay_secs / crate::tunables::DT) as u64).max(1),
-                    r.clone(),
-                )
+                let stats = r.units.iter().map(stats_for).collect();
+                let render_looks = r.units.iter().map(render_look_for).collect();
+                ScheduledReinforcement {
+                    due: ((r.delay_secs / crate::tunables::DT) as u64).max(1),
+                    reinforcement: r.clone(),
+                    stats,
+                    render_looks,
+                }
             })
             .collect();
-        scheduled.sort_by_key(|(due, _)| *due);
+        scheduled.sort_by_key(|s| s.due);
         Battle {
             sim,
             scheduled,
@@ -77,11 +110,14 @@ impl Battle {
     pub fn tick(&mut self) {
         // Spawn due reinforcements at their road's map-edge entry, in column —
         // they arrive marching, not formed.
-        while let Some((due, _)) = self.scheduled.first() {
-            if *due > self.sim.tick_count {
+        while let Some(first) = self.scheduled.first() {
+            if first.due > self.sim.tick_count {
                 break;
             }
-            let (_, r) = self.scheduled.remove(0);
+            let scheduled = self.scheduled.remove(0);
+            let r = scheduled.reinforcement;
+            let stats = scheduled.stats;
+            let render_looks = scheduled.render_looks;
             let dep = Deployment {
                 team: r.team,
                 units: r.units.clone(),
@@ -89,7 +125,25 @@ impl Battle {
                 facing: r.facing,
                 column: true,
             };
-            for (id, idx) in deploy_roster(&mut self.sim, &dep) {
+            let roster_index = |ru: &contract::RosterUnit| {
+                r.units
+                    .iter()
+                    .position(|x| x.id == ru.id && x.class == ru.class)
+            };
+            for (id, idx) in deploy_roster_with_stats_and_looks(
+                &mut self.sim,
+                &dep,
+                &|ru| {
+                    roster_index(ru)
+                        .and_then(|i| stats.get(i).copied())
+                        .unwrap_or_else(|| crate::class::class_stats(ru.class))
+                },
+                &|ru| {
+                    roster_index(ru)
+                        .and_then(|i| render_looks.get(i).copied())
+                        .unwrap_or(ru.class as u32)
+                },
+            ) {
                 self.unit_map.push((id, r.team, idx));
             }
         }
@@ -130,7 +184,8 @@ impl Battle {
             }
         }
         // Reinforcements that never arrived: untouched, full strength.
-        for (_, r) in &self.scheduled {
+        for s in &self.scheduled {
+            let r = &s.reinforcement;
             for ru in &r.units {
                 units.push(UnitResult {
                     id: ru.id,

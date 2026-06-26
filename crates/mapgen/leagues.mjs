@@ -5,10 +5,9 @@
 //
 // Runs on the mapgen artifact (web/public/data/campaign-map.json) and rewrites
 // it in place. Deterministic (k-means with farthest-point init), so the
-// committed map is reproducible. Run from the repo root:
-//   node crates/mapgen/leagues.mjs
-//
-// TODO: fold this into crates/mapgen/build.rs once the pipeline is rerun here.
+// committed map is reproducible. The mapgen binary runs this for you (see
+// crates/mapgen/src/main.rs); `cargo run -p mapgen --release` does the whole
+// pipeline, raw map -> leagues -> prune.
 import { readFileSync, writeFileSync } from 'node:fs';
 
 const PATH = 'web/public/data/campaign-map.json';

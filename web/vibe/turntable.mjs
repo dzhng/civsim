@@ -6,7 +6,7 @@
 // turns a class red with a highlighted diff in shots/diff/. Re-bless intended
 // model changes with UPDATE_SHOTS=1.
 //
-//   node vibe/turntable.mjs                 # all 12 classes, hero 3/4 angle
+//   node vibe/turntable.mjs                 # all class looks, hero 3/4 angle
 //   ONLY=0,3,6 node vibe/turntable.mjs      # just these class ids
 //   PITCH=ingame node vibe/turntable.mjs    # the battle's real top-down tilt
 //   UPDATE_SHOTS=1 node vibe/turntable.mjs  # re-bless after a model change
@@ -32,7 +32,8 @@ const PITCH = INGAME ? 0.42 : 0.95;   // view tilt from straight-down, radians
 const CLASS_NAMES = [
   'heavy-sword', 'light-spear', 'longsword', 'phalanx', 'archers', 'skirmishers',
   'shock-cav', 'horse-archers', 'artillery', 'peasant', 'light-sword', 'heavy-spear',
-  // 12 is a RENDER-ONLY look, not a sim class: a shock lancer with its sabre
+  'medium-infantry', 'medium-spear',
+  // 14 is a RENDER-ONLY look, not a sim class: a shock lancer with its sabre
   // drawn (the in-grind weapon swap). Gated here so the sword model can't
   // silently regress, the same as every real class.
   'shock-cav-sword',
@@ -40,7 +41,7 @@ const CLASS_NAMES = [
 
 // Tallest extent (metres) of each model at ease, so each class is framed to its
 // own height — a phalanx's 3.4 m pike and a peasant's knife both fill the frame.
-const CLASS_H = [1.75, 2.05, 1.85, 3.5, 1.75, 1.6, 3.4, 2.6, 1.55, 1.55, 1.75, 2.05, 3.4];
+const CLASS_H = [1.75, 2.05, 1.85, 3.5, 1.75, 1.6, 3.4, 2.6, 1.55, 1.55, 1.75, 2.05, 1.9, 2.05, 3.6];
 const frameFor = (cls) => {
   const h = CLASS_H[cls] ?? 1.8;
   // Near top-down (in-game), the figure projects through its ground footprint,

@@ -4,8 +4,9 @@
 
 export const SPRITE = 128; // px per cell (art authored at 64, scaled 2x)
 export const COLS = 8;
-// 18 soldier rows (9 classes x 2 teams) + 1 decal row.
-export const ROWS = 19;
+const SOLDIER_CLASS_ROWS = 14;
+// One soldier row per tactical class/team, plus one decal row.
+export const ROWS = SOLDIER_CLASS_ROWS * 2 + 1;
 export const FRAMES = 6; // stand, walk-a, walk-b, attack, dead, swap
 
 const TREE_COL = 0;
@@ -28,8 +29,8 @@ interface Look {
 }
 
 const LOOKS: Look[] = [
-  { armor: '#8d8f96', helmet: 'crest', shield: 'tall', weapon: 'sword' }, // heavy
-  { armor: '#9a8a6a', helmet: 'cap', shield: 'round', weapon: 'spear' }, // light
+  { armor: '#8d8f96', helmet: 'crest', shield: 'tall', weapon: 'sword' }, // heavy sword
+  { armor: '#9a8a6a', helmet: 'cap', shield: 'round', weapon: 'spear' }, // light spear
   { armor: '#6f7480', helmet: 'open', shield: 'none', weapon: 'greatsword' }, // long swords
   { armor: '#b0a386', helmet: 'wide', shield: 'round', weapon: 'pike' }, // phalanx
   { armor: '#7a6f55', helmet: 'hood', shield: 'none', weapon: 'bow' }, // archers
@@ -37,6 +38,11 @@ const LOOKS: Look[] = [
   { armor: '#8d8f96', helmet: 'crest', shield: 'small', weapon: 'lance', mounted: true }, // shock cav
   { armor: '#9a8a6a', helmet: 'cap', shield: 'none', weapon: 'bow', mounted: true }, // horse archers
   { armor: '#7a6f55', helmet: 'cap', shield: 'none', weapon: 'sling' }, // artillery crew
+  { armor: '#6f5940', helmet: 'none', shield: 'none', weapon: 'sword' }, // peasant
+  { armor: '#c5b98f', helmet: 'cap', shield: 'round', weapon: 'sword' }, // light sword
+  { armor: '#9b8f72', helmet: 'crest', shield: 'tall', weapon: 'spear' }, // heavy spear
+  { armor: '#8a6644', helmet: 'crest', shield: 'round', weapon: 'sword' }, // medium infantry
+  { armor: '#8a6644', helmet: 'crest', shield: 'round', weapon: 'spear' }, // medium spear
 ];
 
 export function buildAtlas(): { canvas: HTMLCanvasElement; soldierRow: (cls: number, team: number) => number; decalRow: number } {
@@ -46,7 +52,7 @@ export function buildAtlas(): { canvas: HTMLCanvasElement; soldierRow: (cls: num
   const g = canvas.getContext('2d')!;
   g.clearRect(0, 0, canvas.width, canvas.height);
 
-  for (let cls = 0; cls < 9; cls++) {
+  for (let cls = 0; cls < SOLDIER_CLASS_ROWS; cls++) {
     for (let team = 0; team < 2; team++) {
       const row = cls * 2 + team;
       for (let f = 0; f < FRAMES; f++) {
@@ -54,14 +60,14 @@ export function buildAtlas(): { canvas: HTMLCanvasElement; soldierRow: (cls: num
       }
     }
   }
-  const decalRow = 18;
+  const decalRow = SOLDIER_CLASS_ROWS * 2;
   // Trees (3 variants), rock, banners (2 teams).
   for (let v = 0; v < TREE_VARIANTS; v++) drawTree(g, (TREE_COL + v) * SPRITE, decalRow * SPRITE, v);
   drawRock(g, ROCK_COL * SPRITE, decalRow * SPRITE);
   drawBanner(g, BANNER_COL * SPRITE, decalRow * SPRITE, TEAM[0][0]);
   drawBanner(g, (BANNER_COL + 1) * SPRITE, decalRow * SPRITE, TEAM[1][0]);
 
-  return { canvas, soldierRow: (cls, team) => cls * 2 + team, decalRow };
+  return { canvas, soldierRow: (cls, team) => Math.min(cls, SOLDIER_CLASS_ROWS - 1) * 2 + team, decalRow };
 }
 
 // All soldiers are drawn FACING +X (right); the shader rotates them.

@@ -84,9 +84,9 @@ function lzw(indices, minCode) {
   return out;
 }
 
-/** Encode frames ({data: RGBA Buffer}[]) at `width`x`height` into a looping GIF.
+/** Encode frames ({data: RGBA Buffer}[]) at `width`x`height` into a GIF.
  *  `delayCs` is the per-frame delay in centiseconds. Returns a Buffer. */
-export function encodeGif(frames, width, height, delayCs = 8) {
+export function encodeGif(frames, width, height, delayCs = 8, opts = {}) {
   const { palette, indexed } = quantize(frames);
   const bytes = [];
   const u16 = (v) => { bytes.push(v & 0xff, (v >> 8) & 0xff); };
@@ -95,10 +95,12 @@ export function encodeGif(frames, width, height, delayCs = 8) {
   u16(width); u16(height);
   bytes.push(0xf7, 0, 0); // global table, 8-bit, 256 colours; bg 0; aspect 0
   for (let i = 0; i < 256 * 3; i++) bytes.push(palette[i] || 0);
-  // NETSCAPE loop-forever extension.
-  bytes.push(0x21, 0xff, 11);
-  str('NETSCAPE2.0');
-  bytes.push(3, 1, 0, 0, 0);
+  if (opts.loop !== false) {
+    // NETSCAPE loop-forever extension.
+    bytes.push(0x21, 0xff, 11);
+    str('NETSCAPE2.0');
+    bytes.push(3, 1, 0, 0, 0);
+  }
   const minCode = 8;
   for (const idx of indexed) {
     bytes.push(0x21, 0xf9, 4, 0); // graphic control: no disposal, no transparency

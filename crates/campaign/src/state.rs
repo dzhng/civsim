@@ -28,6 +28,20 @@ pub struct RosterEntry {
     pub morale_cap: f32,
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct DoctrineSlot {
+    pub class: UnitClassId,
+    pub selected: contract::UnitTypeId,
+    /// Establishment multiplier for every roster entry of this class.
+    pub size_mult: u8,
+    pub cooldown_until: u64,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct FactionDoctrine {
+    pub slots: Vec<DoctrineSlot>,
+}
+
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum Stance {
     /// Following a path, or standing where the last one ended.
@@ -75,8 +89,15 @@ pub struct Army {
     pub progress: f32,
     pub stance: Stance,
     pub encounter: Option<EncounterId>,
+    /// Paid automatic replenishment toward establishment strength. Defaults on.
+    #[serde(default = "default_auto_replenish")]
+    pub auto_replenish: bool,
     /// Counts down while embarking/disembarking at a port.
     pub embark_ticks_left: u16,
+}
+
+fn default_auto_replenish() -> bool {
+    true
 }
 
 impl Army {
@@ -131,10 +152,10 @@ pub struct Faction {
     pub ai: bool,
 }
 
-/// Diplomatic stance between two factions. War is the implicit default (absent
-/// from the map), so the historical all-hostile world and old saves are
-/// unchanged. Peace stops the fighting; Alliance also marks co-belligerents who
-/// share a common enemy and won't turn on each other while it lives.
+/// Diplomatic stance between two factions. War is the implicit default when a
+/// pair is absent from the relation map. Peace stops the fighting; Alliance
+/// marks co-belligerents who share a common enemy and won't turn on each other
+/// while it lives.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Relation {
     War,
@@ -158,20 +179,6 @@ pub struct RecruitJob {
     pub class: UnitClassId,
     pub count: u32,
     pub ticks_left: u32,
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct RoadJob {
-    pub to_level: u8,
-    pub ticks_left: u32,
-}
-
-/// A watchtower on a junction: extends vision and unmasks nearby ambushers
-/// once built. Razed the moment an enemy army halts on its node.
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct Outpost {
-    pub owner: FactionId,
-    pub build_ticks_left: u32,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -208,6 +215,10 @@ pub struct CampaignState {
     pub tick: u64,
     pub rng: Pcg32,
     pub factions: Vec<Faction>,
+    /// Per-faction class builder choices. Normalized at new/load so old saves
+    /// receive defaults and new classes get slots.
+    #[serde(default)]
+    pub doctrines: Vec<FactionDoctrine>,
     /// Index = ArmyId. Dead armies are tombstoned (empty roster), ids stable.
     pub armies: Vec<Army>,
     pub cities: BTreeMap<NodeId, CityState>,
@@ -222,20 +233,14 @@ pub struct CampaignState {
     #[serde(default)]
     pub visible: Vec<std::collections::BTreeSet<ArmyId>>,
     /// Per-edge road level (1..=3); speed/routing multipliers in tunables.
-    /// Sized to the map at load — an old save's empty vec is re-initialized.
+    /// Normalized to the map's edge count at load.
     #[serde(default)]
     pub road_levels: Vec<u8>,
-    /// In-flight upgrades, keyed by edge. One job per edge.
-    #[serde(default)]
-    pub road_jobs: BTreeMap<EdgeId, RoadJob>,
-    /// Watchtowers, one per junction node.
-    #[serde(default)]
-    pub outposts: BTreeMap<NodeId, Outpost>,
     /// Set once the war is decided; `None` while it is still being fought.
     #[serde(default)]
     pub outcome: Option<Outcome>,
-    /// Pairwise diplomacy, keyed `(lo, hi)`. Absent = War, so the default world
-    /// and old saves stay all-hostile until a treaty is signed.
+    /// Pairwise diplomacy, keyed `(lo, hi)`. Absent = War until a treaty is
+    /// signed.
     #[serde(default)]
     pub relations: BTreeMap<(FactionId, FactionId), Relation>,
     /// Each AI power's current war objective: the rival it is concentrating its

@@ -6,6 +6,14 @@ use contract::UnitClassId;
 
 /// Campaign ticks per day; 1 tick = 1 campaign minute.
 pub const TICKS_PER_DAY: u32 = 1440;
+/// Maximum roster entries in one field army. The campaign marker scales its
+/// compressed figures against this capacity.
+pub const ARMY_STACK_UNIT_CAP: usize = 20;
+/// Fixed administrative cost for changing one faction-wide class doctrine
+/// (unit type and/or establishment size). Paid once per applied class change.
+pub const CLASS_SWITCH_FEE: u32 = 75;
+/// Cooldown before a faction can change the same class doctrine again.
+pub const CLASS_SWITCH_COOLDOWN_TICKS: u64 = 7 * TICKS_PER_DAY as u64;
 /// One road tile of march, in km (must match mapgen's TILE_KM).
 pub const TILE_KM: f32 = 5.0;
 
@@ -28,6 +36,30 @@ pub fn march_mult(class: UnitClassId) -> f32 {
         Peasant => 1.05,
         LightSword => 1.1,
         HeavySpear => 0.9,
+        MediumInfantry => 1.0,
+        MediumSpear => 1.0,
+    }
+}
+
+/// Baseline establishment strength for one army slot of this class. The class
+/// builder's 1x/2x/4x setting multiplies this cap; replenishment fills toward it.
+pub fn unit_establishment(class: UnitClassId) -> u32 {
+    use UnitClassId::*;
+    match class {
+        HeavySword => 1280,
+        LightSpear => 880,
+        LongSwords => 360,
+        Phalanx => 1280,
+        Archers => 480,
+        Skirmishers => 360,
+        ShockCavalry => 280,
+        HorseArchers => 240,
+        ArtilleryCrew => 80,
+        Peasant => 1400,
+        LightSword => 880,
+        HeavySpear => 1280,
+        MediumInfantry => 1040,
+        MediumSpear => 1040,
     }
 }
 
@@ -64,21 +96,9 @@ pub const CAMP_VISION_BONUS: u32 = 2;
 /// March/route multiplier by road level (indexed by level; 0 unused).
 pub const ROAD_SPEED_MULT: [f32; 4] = [1.0, 1.0, 1.3, 1.6];
 pub const ROAD_MAX_LEVEL: u8 = 3;
-/// Upgrades price and pace by edge length: one level step per order.
-pub const ROAD_COST_PER_TILE: u32 = 15;
-pub const ROAD_BUILD_TICKS_PER_TILE: u32 = 120;
 pub fn road_mult(level: u8) -> f32 {
     ROAD_SPEED_MULT[level.min(ROAD_MAX_LEVEL) as usize]
 }
-
-/// Outposts: junction watchtowers. Counter-play to ambush stance. An enemy
-/// army halting on the node razes the tower instantly (no siege timer —
-/// it's a wooden platform, not a fort).
-pub const OUTPOST_COST: u32 = 150;
-pub const OUTPOST_BUILD_TICKS: u32 = 720;
-pub const OUTPOST_VISION: u32 = 6;
-/// Concealed ambushers within this radius of an enemy outpost are exposed.
-pub const OUTPOST_REVEAL_RADIUS: u32 = 2;
 
 /// City buildings: cost of the NEXT level (index = current level), 2 days
 /// to raise either. Market multiplies income, barracks speeds recruiting and
@@ -134,6 +154,8 @@ pub fn upkeep_per_soldier_milligold(class: UnitClassId) -> u32 {
         Peasant => 4, // they feed themselves off the land
         LightSword => 12,
         HeavySpear => 20,
+        MediumInfantry => 16,
+        MediumSpear => 16,
     }
 }
 pub const UPKEEP_UNIT_BASE: u32 = 4; // gold/day per roster entry
@@ -147,7 +169,7 @@ pub fn recruit_ticks_per_soldier(class: UnitClassId) -> u32 {
     match class {
         ShockCavalry | HorseArchers => 6,
         ArtilleryCrew => 5,
-        HeavySword | Phalanx | LongSwords => 3,
+        HeavySword | Phalanx | LongSwords | MediumInfantry | MediumSpear => 3,
         _ => 2,
     }
 }
@@ -168,16 +190,12 @@ pub const MORALE_CAP_REGEN: f32 = 0.05;
 pub const GARRISON_REGEN: f32 = 0.04;
 
 // ---- AI fiscal discipline --------------------------------------------------
-// Without these the AI recruited whenever it had >400 gold, ballooning armies
-// to 3x in two months while treasuries hit zero. Now it keeps a war chest and
-// only grows the army while upkeep stays under a slice of income — so force
-// size equilibrates to what the realm can sustain, and the way to field a
-// bigger army is to conquer more cities.
+// The AI keeps a war chest and caps its field army by territory, so force size
+// equilibrates to what the realm can sustain.
 /// Days of income the AI keeps in reserve before spending on troops/works.
 pub const AI_RESERVE_DAYS: u32 = 6;
 /// Field-army ceiling per owned city. A realm only raises as many troops as
-/// its territory can supply, so the road to a bigger army is conquest. (Upkeep
-/// gold can't cap army size here — it's ~1% of income, so it never bites.)
+/// its territory can supply, so the road to a bigger army is conquest.
 pub const AI_SOLDIERS_PER_CITY: u32 = 2000;
 /// How many of the nearest enemy cities the AI weighs (with a defender probe)
 /// before falling back to simply advancing on the nearest one.

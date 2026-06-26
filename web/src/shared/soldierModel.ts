@@ -10,34 +10,55 @@ import { VertexData } from '@babylonjs/core/Meshes/mesh.vertexData';
 export interface ClassLook {
   weapon: 'sword' | 'spear' | 'greatsword' | 'pike' | 'bow' | 'javelin' | 'lance' | 'none';
   shield: 'tall' | 'round' | 'small' | 'none';
+  armor: 'heavy' | 'medium' | 'light' | 'cloth' | 'rag';
+  helmet: 'crested' | 'bronze' | 'cap' | 'hood' | 'bare';
   crest: boolean;
   mounted: boolean;
 }
 
 export const CLASS_LOOK: ClassLook[] = [
-  { weapon: 'sword', shield: 'tall', crest: true, mounted: false }, // 0 heavy sword
-  { weapon: 'spear', shield: 'round', crest: false, mounted: false }, // 1 light spear
-  { weapon: 'greatsword', shield: 'none', crest: false, mounted: false }, // 2 longswords
-  { weapon: 'pike', shield: 'small', crest: true, mounted: false }, // 3 phalanx
-  { weapon: 'bow', shield: 'none', crest: false, mounted: false }, // 4 archers
-  { weapon: 'javelin', shield: 'small', crest: false, mounted: false }, // 5 skirmishers
-  { weapon: 'lance', shield: 'round', crest: true, mounted: true }, // 6 shock cav
-  { weapon: 'bow', shield: 'none', crest: false, mounted: true }, // 7 horse archers
-  { weapon: 'none', shield: 'none', crest: false, mounted: false }, // 8 artillery crew
-  { weapon: 'sword', shield: 'none', crest: false, mounted: false }, // 9 peasant (a knife, no shield)
-  { weapon: 'sword', shield: 'round', crest: false, mounted: false }, // 10 light sword (sword + light shield)
-  { weapon: 'spear', shield: 'tall', crest: true, mounted: false }, // 11 heavy spear (spear + big shield)
-  // 12 RENDER-ONLY pseudo-class: shock cav after it drops the lance for its sabre
-  // in the grind. The sim never spawns class 12 — the renderer routes a shock-cav
-  // soldier here when `cur_weapon` is its sidearm, so the same horse+rider shows a
-  // sword instead of the couched lance (the visual twin of the pike-stow swap).
-  { weapon: 'sword', shield: 'round', crest: true, mounted: true }, // 12 shock cav, sabre drawn
+  { weapon: 'sword', shield: 'tall', armor: 'heavy', helmet: 'crested', crest: true, mounted: false }, // 0 heavy sword
+  { weapon: 'spear', shield: 'round', armor: 'light', helmet: 'cap', crest: false, mounted: false }, // 1 light spear
+  { weapon: 'greatsword', shield: 'none', armor: 'medium', helmet: 'bronze', crest: false, mounted: false }, // 2 longswords
+  { weapon: 'pike', shield: 'small', armor: 'heavy', helmet: 'crested', crest: true, mounted: false }, // 3 phalanx
+  { weapon: 'bow', shield: 'none', armor: 'cloth', helmet: 'hood', crest: false, mounted: false }, // 4 archers
+  { weapon: 'javelin', shield: 'small', armor: 'light', helmet: 'bare', crest: false, mounted: false }, // 5 skirmishers
+  { weapon: 'lance', shield: 'round', armor: 'heavy', helmet: 'crested', crest: true, mounted: true }, // 6 shock cav
+  { weapon: 'bow', shield: 'none', armor: 'light', helmet: 'cap', crest: false, mounted: true }, // 7 horse archers
+  { weapon: 'none', shield: 'none', armor: 'cloth', helmet: 'cap', crest: false, mounted: false }, // 8 artillery crew
+  { weapon: 'sword', shield: 'none', armor: 'rag', helmet: 'bare', crest: false, mounted: false }, // 9 peasant (a knife, no shield)
+  { weapon: 'sword', shield: 'round', armor: 'light', helmet: 'cap', crest: false, mounted: false }, // 10 light sword
+  { weapon: 'spear', shield: 'tall', armor: 'heavy', helmet: 'crested', crest: true, mounted: false }, // 11 heavy spear
+  { weapon: 'sword', shield: 'round', armor: 'medium', helmet: 'bronze', crest: true, mounted: false }, // 12 medium infantry
+  { weapon: 'spear', shield: 'round', armor: 'medium', helmet: 'bronze', crest: true, mounted: false }, // 13 medium spear
+  // RENDER-ONLY pseudo-class: shock cav after it switches from lance to sabre
+  // in the grind. The sim never spawns this — the renderer routes a shock-cav
+  // soldier here when `cur_weapon` is its sidearm, so the same horse+rider keeps
+  // the lance upright in the off hand while fighting with a sword.
+  { weapon: 'sword', shield: 'round', armor: 'heavy', helmet: 'crested', crest: true, mounted: true }, // shock cav, sabre drawn
 ];
 
-/** Render-only pseudo-class (see CLASS_LOOK[12]): a shock-cav rider with his
- *  sidearm drawn instead of the lance. The renderer swaps a grinding lancer to
- *  this look; nothing in the sim knows about it. */
-export const SHOCK_CAV_SIDEARM_LOOK = 12;
+export const CLASS_MODEL_LOOK: number[] = CLASS_LOOK.slice(0, -1).map((_, i) => i);
+export const UNIT_CLASS_LOOK_COUNT = CLASS_MODEL_LOOK.length;
+export const MODEL_LOOK_COUNT = CLASS_LOOK.length;
+
+export function modelLookForClass(cls: number): number {
+  return CLASS_MODEL_LOOK[cls] ?? CLASS_MODEL_LOOK[0];
+}
+
+export function modelLookForUnit(cls: number, unitTypeId?: number): number {
+  void unitTypeId;
+  return modelLookForClass(cls);
+}
+
+export function lookForModel(model: number): ClassLook {
+  return CLASS_LOOK[model] ?? CLASS_LOOK[modelLookForClass(0)];
+}
+
+/** Render-only pseudo-class (the last CLASS_LOOK entry): a shock-cav rider with his
+ *  sword drawn and lance carried upright. The renderer swaps a grinding lancer
+ *  to this look; nothing in the sim knows about it. */
+export const SHOCK_CAV_SIDEARM_LOOK = UNIT_CLASS_LOOK_COUNT;
 
 /** Per-class soldier (or rider on a horse) as one box mesh. `rest` is a
  *  continuous 0..1 pose blend: at 1 the pole arms (pike, spear, javelin, lance)
@@ -199,13 +220,14 @@ export interface Pose {
   legPhase: number; // -1..1 stride sign; + swings the LEFT leg forward
   stride: number;  // 0 stand .. ~1 march .. ~1.6 run (leg-swing amplitude)
   lean: number;    // forward torso lean (radians) — run/charge
+  windup: number;  // 0 .. 1 weapon drawn back before a strike
   attack: number;  // 0 .. 1 weapon-arm strike + body lunge
   recoil: number;  // 0 .. 1 hit reaction (torso & head rock back)
   crumple: number; // 0 .. 1 death collapse (folds down before the matrix tips)
 }
 
 export const NEUTRAL_POSE: Pose = {
-  rest: 0, legPhase: 0, stride: 0, lean: 0, attack: 0, recoil: 0, crumple: 0,
+  rest: 0, legPhase: 0, stride: 0, lean: 0, windup: 0, attack: 0, recoil: 0, crumple: 0,
 };
 
 // Rotate a point about an x-parallel axis through (·,py,pz) — limbs swing
@@ -303,16 +325,19 @@ export function classGeometryDetailed(
   ], livery ? [1, 1, 1] : faction, 1, rot);
 
   const base = L.mounted ? 0.95 : 0.0; // mounted rider sits a horse-height up
-  const lunge = P.attack * 0.14 - P.recoil * 0.10; // body shift along +y
-  const lean = P.lean + P.attack * 0.18 - P.recoil * 0.22 + P.crumple * 0.6;
+  const lunge = P.attack * 0.18 - P.windup * 0.08 - P.recoil * 0.16; // body shift along +y
+  const lean = P.lean + P.attack * 0.28 - P.windup * 0.18 - P.recoil * 0.45 + P.crumple * 0.75;
 
   // ---- Horse (mounted classes) ------------------------------------------
   if (L.mounted) {
     box(-0.18, -0.64, 0.42, 0.18, 0.52, 1.0, HORSE_HIDE); // barrel
-    box(-0.17, 0.30, 0.0, -0.06, 0.46, 0.5, HORSE_HIDE); // front-left leg
-    box(0.06, 0.30, 0.0, 0.17, 0.46, 0.5, HORSE_HIDE); // front-right leg
-    box(-0.17, -0.56, 0.0, -0.06, -0.40, 0.5, HORSE_HIDE); // hind-left leg
-    box(0.06, -0.56, 0.0, 0.17, -0.40, 0.5, HORSE_HIDE); // hind-right leg
+    const gait = P.stride * 0.42 * P.legPhase;
+    const hleg = (x0: number, y0: number, x1: number, y1: number, a: number) =>
+      box(x0, y0, 0.0, x1, y1, 0.5, HORSE_HIDE, { ang: a, py: (y0 + y1) * 0.5, pz: 0.5 });
+    hleg(-0.17, 0.30, -0.06, 0.46, gait); // front-left leg
+    hleg(0.06, 0.30, 0.17, 0.46, -gait); // front-right leg
+    hleg(-0.17, -0.56, -0.06, -0.40, -gait); // hind-left leg
+    hleg(0.06, -0.56, 0.17, -0.40, gait); // hind-right leg
     box(-0.10, 0.42, 0.82, 0.10, 0.66, 1.26, HORSE_HIDE); // neck
     box(-0.09, 0.55, 1.12, 0.09, 0.98, 1.42, HORSE_HIDE); // head
     box(-0.06, 0.60, 1.30, 0.06, 0.74, 1.5, HORSE_MANE); // forelock/ears
@@ -341,8 +366,10 @@ export function classGeometryDetailed(
       box(sx - 0.052, -0.065, hipZ - 0.40, sx + 0.052, 0.065, hipZ, LINEN, { ang: a, py: 0, pz: hipZ }); // thigh
       box(knee[0] - 0.046, knee[1] - 0.06, knee[2] - 0.42, knee[0] + 0.046, knee[1] + 0.06, knee[2],
         SKIN, { ang: a + kneeBend, py: knee[1], pz: knee[2] }); // shin
-      box(knee[0] - 0.05, knee[1] - 0.075, knee[2] - 0.40, knee[0] + 0.05, knee[1] - 0.035, knee[2] - 0.06,
-        IRON, { ang: a + kneeBend, py: knee[1], pz: knee[2] }); // iron greave on the shin front
+      if (L.armor === 'heavy' || L.armor === 'medium') {
+        box(knee[0] - 0.05, knee[1] - 0.075, knee[2] - 0.40, knee[0] + 0.05, knee[1] - 0.035, knee[2] - 0.06,
+          L.armor === 'heavy' ? IRON : LEATHER, { ang: a + kneeBend, py: knee[1], pz: knee[2] });
+      }
       const shin = rotX([sx, knee[1], knee[2] - 0.42], a + kneeBend, knee[1], knee[2]);
       box(shin[0] - 0.052, shin[1] - 0.04, shin[2] - 0.02, shin[0] + 0.052, shin[1] + 0.17, shin[2] + 0.07, LEATHER_DK); // boot
     };
@@ -355,23 +382,32 @@ export function classGeometryDetailed(
   const torsoBot = lp, shZ = lp + (L.mounted ? 0.46 : 0.48);
   const tilt = { ang: -lean, py: lunge, pz: lp };
 
-  // ---- Torso: a cuirass over a tunic, shoulders wider than the waist -----
-  // The cuirass tapers — narrow at the waist, flaring to the chest, capped by a
-  // rounded shoulder yoke — so the torso reads as a moulded breastplate, not a
-  // slab. Pteruges (leather skirt strips) hang from the waist beneath it.
+  // ---- Torso: class armour changes the silhouette, not just the colour -----
+  // Heavy troops get a broad bronze cuirass and long pteruges; medium infantry
+  // wears a leather/bronze thorax; light and missile troops keep softer linen.
   const waistZ = torsoBot + 0.16, chestZ = shZ - 0.04;
-  frus(0, 0.01, waistZ - 0.18, waistZ, 0.135, 0.115, 0.155, 0.12, LINEN, tilt); // tunic over the hips
-  frus(0, 0.01, waistZ, chestZ, 0.155, 0.12, 0.18, 0.125, BRONZE, tilt); // cuirass, flaring to the chest
-  frus(0, 0.01, chestZ, shZ + 0.03, 0.18, 0.125, 0.15, 0.115, BRONZE_DK, tilt); // shoulder yoke, rounding in
-  // Pteruges: a fringe of leather strips around the waist — the loudest "ancient
-  // soldier" silhouette tell, and cheap geometry.
-  for (let i = -2; i <= 2; i++) {
-    const px = i * 0.06;
-    box(px - 0.025, 0.10, waistZ - 0.30, px + 0.025, 0.135, waistZ - 0.16, LEATHER, tilt); // front skirt
-    box(px - 0.025, -0.135, waistZ - 0.28, px + 0.025, -0.10, waistZ - 0.15, LEATHER_DK, tilt); // back skirt
+  const armor = {
+    heavy: { body: BRONZE, yoke: BRONZE_DK, skirt: LEATHER, waist: 0.16, chest: 0.19, skirtN: 5, skirtLen: 0.30 },
+    medium: { body: LEATHER, yoke: BRONZE, skirt: LEATHER_DK, waist: 0.15, chest: 0.175, skirtN: 4, skirtLen: 0.23 },
+    light: { body: LINEN, yoke: LEATHER, skirt: LINEN, waist: 0.135, chest: 0.16, skirtN: 3, skirtLen: 0.18 },
+    cloth: { body: LINEN, yoke: LINEN, skirt: LINEN, waist: 0.125, chest: 0.145, skirtN: 2, skirtLen: 0.12 },
+    rag: { body: LEATHER_DK, yoke: LEATHER, skirt: LEATHER_DK, waist: 0.12, chest: 0.135, skirtN: 1, skirtLen: 0.10 },
+  }[L.armor];
+  frus(0, 0.01, waistZ - 0.18, waistZ, armor.waist * 0.9, 0.11, armor.waist, 0.115, LINEN, tilt);
+  frus(0, 0.01, waistZ, chestZ, armor.waist, 0.118, armor.chest, 0.125, armor.body, tilt);
+  frus(0, 0.01, chestZ, shZ + 0.03, armor.chest, 0.125, armor.chest * 0.82, 0.112, armor.yoke, tilt);
+  for (let i = -armor.skirtN; i <= armor.skirtN; i++) {
+    const px = i * 0.045;
+    box(px - 0.02, 0.10, waistZ - armor.skirtLen, px + 0.02, 0.135, waistZ - 0.12, armor.skirt, tilt);
+    if (L.armor !== 'rag') {
+      box(px - 0.02, -0.135, waistZ - armor.skirtLen * 0.9, px + 0.02, -0.10, waistZ - 0.12, armor.skirt, tilt);
+    }
   }
-  // Faction sash across the chest — a clear team tell at a glance.
-  fbox(-0.18, 0.12, waistZ + 0.04, 0.18, 0.15, chestZ - 0.02, tilt);
+  // Faction sash across the front: enough team colour to read, but not a whole
+  // billboard torso. Broken into short slabs so it suggests a diagonal strap.
+  fbox(-0.17, 0.122, chestZ - 0.08, -0.04, 0.158, chestZ - 0.02, tilt);
+  fbox(-0.06, 0.123, waistZ + 0.09, 0.07, 0.159, waistZ + 0.15, tilt);
+  fbox(0.05, 0.124, waistZ + 0.01, 0.18, 0.160, waistZ + 0.07, tilt);
 
   // ---- Head + helmet ----------------------------------------------------
   // Skull as a slightly tapered block; helmet as a two-tier dome (a bowl that
@@ -379,13 +415,23 @@ export function classGeometryDetailed(
   // flange — the cube head was the loudest "blocky" tell at any distance.
   const headZ = shZ + 0.04;
   frus(0, -0.005, headZ, headZ + 0.20, 0.072, 0.078, 0.066, 0.07, SKIN, tilt); // face/skull
-  frus(0, -0.005, headZ + 0.11, headZ + 0.21, 0.088, 0.092, 0.078, 0.082, BRONZE, tilt); // helmet bowl
-  frus(0, -0.005, headZ + 0.21, headZ + 0.28, 0.078, 0.082, 0.03, 0.032, BRONZE, tilt); // domed crown
-  box(-0.086, -0.10, headZ + 0.085, 0.086, -0.06, headZ + 0.135, BRONZE_DK, tilt); // brow band
-  box(-0.018, -0.105, headZ + 0.02, 0.018, -0.075, headZ + 0.10, BRONZE_DK, tilt); // nasal
-  box(-0.092, -0.085, headZ + 0.02, -0.066, 0.05, headZ + 0.135, BRONZE_DK, tilt); // left cheek guard
-  box(0.066, -0.085, headZ + 0.02, 0.092, 0.05, headZ + 0.135, BRONZE_DK, tilt); // right cheek guard
-  box(-0.082, 0.05, headZ + 0.0, 0.082, 0.088, headZ + 0.14, BRONZE_DK, tilt); // neck flange
+  if (L.helmet === 'hood') {
+    frus(0, -0.005, headZ + 0.08, headZ + 0.27, 0.09, 0.096, 0.052, 0.058, LINEN, tilt);
+    box(-0.075, 0.045, headZ - 0.01, 0.075, 0.095, headZ + 0.14, LINEN, tilt);
+  } else if (L.helmet === 'cap') {
+    frus(0, -0.005, headZ + 0.12, headZ + 0.24, 0.082, 0.086, 0.052, 0.054, LEATHER, tilt);
+    box(-0.078, -0.09, headZ + 0.09, 0.078, -0.055, headZ + 0.13, LEATHER_DK, tilt);
+  } else if (L.helmet !== 'bare') {
+    frus(0, -0.005, headZ + 0.11, headZ + 0.21, 0.088, 0.092, 0.078, 0.082, BRONZE, tilt);
+    frus(0, -0.005, headZ + 0.21, headZ + 0.28, 0.078, 0.082, 0.03, 0.032, BRONZE, tilt);
+    box(-0.086, -0.10, headZ + 0.085, 0.086, -0.06, headZ + 0.135, BRONZE_DK, tilt);
+    box(-0.018, -0.105, headZ + 0.02, 0.018, -0.075, headZ + 0.10, BRONZE_DK, tilt);
+    if (L.helmet === 'crested') {
+      box(-0.092, -0.085, headZ + 0.02, -0.066, 0.05, headZ + 0.135, BRONZE_DK, tilt);
+      box(0.066, -0.085, headZ + 0.02, 0.092, 0.05, headZ + 0.135, BRONZE_DK, tilt);
+      box(-0.082, 0.05, headZ + 0.0, 0.082, 0.088, headZ + 0.14, BRONZE_DK, tilt);
+    }
+  }
   if (L.crest) {
     // Swept fore-aft plume in the faction colour — a stack of frusta arcing back
     // off the crown, the loudest team tell on the field.
@@ -399,7 +445,8 @@ export function classGeometryDetailed(
   box(-0.235, -0.05, shoulderZ - 0.30, -0.15, 0.07, shoulderZ + 0.02, SKIN, tilt); // upper+fore shield arm
   // Weapon arm swings to counter the legs at a walk and drives forward on a
   // strike. Pivot at the shoulder; angle blends walk counter-swing + attack.
-  const armA = -P.stride * 0.35 * P.legPhase - P.attack * 1.0 + P.recoil * 0.5 + P.rest * 0.2;
+  const armA = -P.stride * 0.35 * P.legPhase + P.windup * 0.75 - P.attack * 1.2
+    + P.recoil * 0.85 + P.rest * 0.2;
   if (L.weapon !== 'none') {
     // The swing (armA) and the body lean (tilt.ang) are both x-rotations, so the
     // angles add; the swing is applied here, about the shoulder, because that
@@ -437,7 +484,7 @@ export function classGeometryDetailed(
   // shoves the weapon forward along +y. Pole arms ride the weapon hand.
   const wx = 0.21;
   const r = P.rest;
-  const thrust = P.attack * 0.5;
+  const thrust = P.attack * 0.65 - P.windup * 0.15;
   const lx = (a: number, b: number) => a + (b - a) * r;
   const wbox = (
     fy0: number, fz0: number, fy1: number, fz1: number,
@@ -449,11 +496,20 @@ export function classGeometryDetailed(
   const pole = (fy0: number, fz0: number, fy1: number, fz1: number, h: number, c: V3) =>
     wbox(fy0, fz0, fy1, fz1, -0.04, 0, 0.04, h, c);
   switch (L.weapon) {
-    case 'pike': pole(-0.2, 0.7, 3.0, 0.78, 3.4, WOOD); break;
-    case 'lance': pole(-0.1, 0.55, 2.0, 0.62, 2.3, WOOD); break;
+    case 'pike':
+      pole(-0.2, 0.7, 3.0, 0.78, 3.4, WOOD);
+      wbox(3.0, 0.70, 3.18, 0.82, 0.03, 3.30, 0.10, 3.48, IRON);
+      break;
+    case 'lance':
+      pole(-0.1, 0.55, 2.0, 0.62, 2.3, WOOD);
+      wbox(2.0, 0.54, 2.18, 0.66, 0.03, 2.20, 0.10, 2.38, IRON);
+      break;
     case 'spear': pole(-0.2, 0.6, 1.4, 0.66, 1.9, WOOD);
       box(wx - 0.03, lx(1.4, 0.04) + thrust, base + lx(0.62, 1.85), wx + 0.035, lx(1.55, 0.12) + thrust, base + lx(0.7, 1.95), IRON, tilt); break;
-    case 'javelin': pole(-0.1, 0.7, 0.9, 0.74, 1.4, WOOD); break;
+    case 'javelin':
+      pole(-0.1, 0.7, 0.9, 0.74, 1.4, WOOD);
+      wbox(0.9, 0.68, 1.04, 0.78, 0.03, 1.28, 0.10, 1.46, IRON);
+      break;
     case 'sword':
       wbox(0.0, 0.5, 0.06, 1.2, 0.0, 0.1, 0.06, 0.8, IRON);
       wbox(-0.03, lx(0.46, 0.06), 0.09, lx(0.54, 0.14), 0, 0, 0, 0, LEATHER); break; // crossguard-ish hilt
@@ -462,6 +518,16 @@ export function classGeometryDetailed(
       wbox(-0.03, 0.2, 0.03, 1.62, -0.03, 0.05, 0.03, 1.15, WOOD); // stave
       wbox(0.0, 0.92, 0.52, 0.98, -0.04, 0.7, 0.06, 0.76, WOOD); break; // nocked arrow
     case 'none': break;
+  }
+
+  // Shock cavalry with its sabre drawn still carries the lance; it is just
+  // stowed upright in the off hand. The actual lance class above is the only
+  // cavalry look that points the lance down/couched for use.
+  if (cls === SHOCK_CAV_SIDEARM_LOOK) {
+    const sx = -0.24;
+    box(sx - 0.025, -0.03, base + 0.10, sx + 0.03, 0.035, base + 2.55, WOOD);
+    box(sx - 0.035, -0.04, base + 2.50, sx + 0.04, 0.045, base + 2.74, IRON);
+    box(sx - 0.055, -0.06, shoulderZ - 0.20, sx + 0.045, 0.065, shoulderZ - 0.08, SKIN);
   }
 
   const vd = new VertexData();

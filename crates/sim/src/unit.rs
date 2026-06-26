@@ -34,6 +34,9 @@ pub struct Unit {
     /// every class walks at ~base_speed, but a fast class (cavalry ≫ infantry)
     /// opens a wide gap at the run and a wider one at the charge.
     pub pace_mult: f32,
+    /// Per-unit acceleration/braking scale (× base_accel), copied from the
+    /// class. Mounted classes wind up harder than foot — see UnitClass.accel_mult.
+    pub accel_mult: f32,
     /// Index of this unit's first soldier in the soldier arrays.
     pub start: usize,
     pub count: usize,

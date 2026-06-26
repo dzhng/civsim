@@ -321,6 +321,7 @@ impl Sim {
             render_look: UnitClassId::LightSpear as u32,
             stats: class_stats(UnitClassId::LightSpear),
             pace_mult: 1.0,
+            accel_mult: 1.0,
             start: self.soldier_count(),
             count,
             files: files.max(1),
@@ -498,6 +499,7 @@ impl Sim {
         u.render_look = class as u32;
         u.stats = stats;
         u.pace_mult = stats.pace_mult;
+        u.accel_mult = stats.accel_mult;
         u.charge_enabled = stats.charge;
         u.drain_mult = stats.drain_mult;
         if let Some(spec) = crate::missiles::missile_spec(class) {
@@ -571,6 +573,7 @@ impl Sim {
         u.render_look = render_look;
         u.stats = stats;
         u.pace_mult = stats.pace_mult;
+        u.accel_mult = stats.accel_mult;
         u.charge_enabled = stats.charge;
         u.drain_mult = stats.drain_mult;
         if let Some(spec) = crate::missiles::missile_spec(class) {

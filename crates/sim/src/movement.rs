@@ -124,7 +124,7 @@ pub(crate) fn update_unit_motion(tun: &Tunables, u: &mut Unit, dt: f32, ground: 
     // catch up — for any unit size. min() alone is blind for wide units,
     // whose geometric cap sits far below the cohesion-throttled base rate.
     let turn_throttle = lerp(tun.min_turn_frac, 1.0, u.cohesion);
-    let accel = tun.base_accel * lerp(tun.min_accel_frac, 1.0, u.cohesion);
+    let accel = tun.base_accel * u.accel_mult * lerp(tun.min_accel_frac, 1.0, u.cohesion);
     // Wheeling asks the outer soldiers to surge, so the rotation budget is
     // the surge speed — tired units visibly pivot slower. Bad ground slows
     // legs and therefore everything derived from them.
@@ -361,6 +361,7 @@ mod tests {
             render_look: crate::class::UnitClassId::LightSpear as u32,
             stats: crate::class::class_stats(crate::class::UnitClassId::LightSpear),
             pace_mult: 1.0,
+            accel_mult: 1.0,
             start: 0,
             count: 0,
             files: 1,

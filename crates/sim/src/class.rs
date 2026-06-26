@@ -99,6 +99,12 @@ pub struct UnitClass {
     pub id: UnitClassId,
     /// Scales the above-walk speed range (run/surge/charge), not the walk floor.
     pub pace_mult: f32,
+    /// Scales the per-tick acceleration/braking ramp (base_accel). Foot is 1.0;
+    /// mounted classes wind up harder so a gallop doesn't need a 60 m runway.
+    /// A horse out-accelerates a man, but a FORMED charge still builds over
+    /// ground to stay dressed — this is the knob for that wind-up, tuned per
+    /// class, not derived from top speed ÷ a single constant.
+    pub accel_mult: f32,
     pub soldier_radius: f32,
     /// Collision/push mass. Bracing multiplies effective mass on top.
     pub mass: f32,
@@ -290,6 +296,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
     let foot = UnitClass {
         id,
         pace_mult: 1.0,
+        accel_mult: 1.0,
         soldier_radius: 0.33,
         mass: 1.0,
         brace_mult: 1.3,
@@ -406,6 +413,10 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             // ~+30% on the run/charge gaits (pace_mult scales the above-walk
             // range): run 6.1->7.6 m/s, charge 9.2->12.1 m/s at full stamina.
             pace_mult: 3.6,
+            // Heavy horse winds up at ~2x foot: a 12 m/s charge now reaches full
+            // gallop in ~30 m / ~5 s (was ~60 m / ~10 s on the shared foot accel),
+            // a controlled-but-real charge build instead of a freight-train ramp.
+            accel_mult: 2.0,
             soldier_radius: 0.55,
             mass: 4.5,
             brace_mult: 1.0,
@@ -436,6 +447,9 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             // ~+30% on the run gait to match the shock arm: 6.5->8.3 m/s at full
             // stamina (no charge — light horse skirmishes and kites).
             pace_mult: 3.9,
+            // Lighter horse winds up a touch harder than the shock arm (mirrors
+            // its nimbler turn_mult) — quick to reach speed for a kiting dash.
+            accel_mult: 2.2,
             soldier_radius: 0.55,
             mass: 3.8,
             brace_mult: 1.0,

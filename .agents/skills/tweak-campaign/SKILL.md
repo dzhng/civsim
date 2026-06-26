@@ -35,13 +35,37 @@ can read.
 2. **Make it a tunable, not a literal.** New durations/rates go in
    `tunables.rs`. Game-world durations go through `ticks_from_minutes` (see
    Time below); the dial belongs to data, not code.
-3. **Drive it end-to-end in cargo** ([write-tests](../write-tests/SKILL.md)):
-   `Campaign::new` → tick loop → resolve `battle_ready` via `resolve::estimate`
-   → `c.drive_ai()` at the commander cadence (`tick % 60 == 0`). Real map for
-   integration, tiny inline JSON maps for one mechanism.
-4. **Keep the gate green.** `full_game::lopsided_war_concludes` is the
-   always-on proof the loop concludes end-to-end; `grand_map_report` is the
-   heavy `#[ignore]`d trajectory harness (`CAMPAIGN_DAYS=N`).
+3. **Verify by the layered tests (below).** Pin the mechanism on a controlled
+   fixture first, then the behaviour, and keep the gate green.
+
+## Tests — layer them, and know which reds may move
+
+General discipline is [write-tests](../write-tests/SKILL.md); the layering and
+the **invariant-vs-outcome** read are the campaign echo of
+[tweak-mechanics](../tweak-mechanics/SKILL.md). Three layers, smallest first:
+
+1. **Mechanism test** — a tiny inline-JSON map, one behaviour, *variables
+   controlled* so only the thing under test moves: clear city garrisons to pin a
+   faction's strength to its field army, set exact unit counts, use
+   `unit_type: None` to hit the class-rate path. Assert the **invariant** — the
+   army marches on the soft city, pursuit runs down a router, a rival escalates
+   to the stronger mutual aggressor, `estimate`'s casualty band. An invariant
+   pins a *truth*: keep it strict; a red means you broke it.
+2. **Behaviour test** — the real map (or a controlled fixture), driven N ticks
+   with `Campaign::drive_ai` at the commander cadence (`tick % 60 == 0`),
+   resolving `battle_ready` via `resolve::estimate`. Asserts an **outcome** (a
+   warmonger out-attacks a turtle, different seeds diverge). Outcomes are noisy —
+   any rng-timing change flips one seed — so **a comparison is a distribution:
+   sum or average over a seed set, never assert a single seed**. (Determinism is
+   the lone exception — same-seed replay is an invariant, not an outcome.)
+3. **The gate** — `full_game::lopsided_war_concludes` proves the loop concludes
+   end-to-end (always on); `grand_map_report` is the heavy `#[ignore]`d
+   trajectory harness (`CAMPAIGN_DAYS=N`). A real root fix is **contained** — it
+   moves the few tests that pinned the old behaviour and leaves the gate green.
+
+Run with **`cargo test -p campaign --no-fail-fast`**: campaign is many test
+binaries, and plain `cargo test` stops at the first failing one — a partial
+false green that hides the rest. Trust the exit code, not a grep over output.
 
 ## Rules — the constraints that actually bite
 
@@ -86,11 +110,6 @@ can read.
   diplomacy, because rollout cost grows super-linearly with army count and fog
   recompute is the per-tick bottleneck. Gate expensive search (idle army +
   cadence).
-
-- **Balance/behavior numbers are noisy.** A persona or matchup comparison on
-  one seed flips under any rng-timing change. Sum across seeds, assert the
-  aggregate. (Battle balance itself is [balance-unit](../balance-unit/SKILL.md);
-  movement/collision physics is [tweak-mechanics](../tweak-mechanics/SKILL.md).)
 
 - **The wasm/frontend boundary is thin.** Add a `Campaign` method in `lib.rs`,
   wrap it in `campaign_bind.rs`, then rebuild (`npm run build:wasm`) before the

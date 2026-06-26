@@ -68,7 +68,47 @@ pub fn commanders(map: &WorldMap, st: &mut CampaignState) {
             let b = &mut st.factions[f as usize].bravado;
             *b = (*b + step).clamp(tun::AI_BRAVADO_MIN, tun::AI_BRAVADO_MAX);
         }
-        think(map, st, f, &mut bfs);
+        // Skip the hourly think if an event already re-thought this faction this
+        // very tick (debounce) — but the mood still drifts above.
+        if st.last_think.get(&f) != Some(&st.tick) {
+            think(map, st, f, &mut bfs);
+            st.last_think.insert(f, st.tick);
+        }
+    }
+}
+
+/// React to things that just happened *to* a faction — a fresh contact or siege
+/// — by running its commander at once instead of making it wait for its hourly
+/// turn. `enc_since` is the encounter-id watermark from the start of the tick:
+/// any encounter at or above it formed this tick, so its two sides were just
+/// drawn into a fight. Debounced (and id-ordered) so a multi-army collision
+/// can't fire a re-think storm. The offensive search stays gated to its own
+/// cadence, so an event re-think does the cheap reactive work (pull a defender
+/// home, raise troops) — exactly what a sudden threat calls for.
+pub fn event_rethink(map: &WorldMap, st: &mut CampaignState, enc_since: EncounterId) {
+    let mut dirty: std::collections::BTreeSet<FactionId> = std::collections::BTreeSet::new();
+    for e in &st.encounters {
+        if e.id >= enc_since {
+            dirty.insert(st.armies[e.attacker as usize].faction);
+            dirty.insert(st.armies[e.defender as usize].faction);
+        }
+    }
+    if dirty.is_empty() {
+        return;
+    }
+    let mut bfs = pathfind::Visited::new(map);
+    for f in dirty {
+        if !st.factions[f as usize].ai || !map.factions[f as usize].ai_persona.campaigns() {
+            continue;
+        }
+        let recent = st
+            .last_think
+            .get(&f)
+            .is_some_and(|&t| st.tick - t < tun::AI_RETHINK_DEBOUNCE);
+        if !recent {
+            think(map, st, f, &mut bfs);
+            st.last_think.insert(f, st.tick);
+        }
     }
 }
 

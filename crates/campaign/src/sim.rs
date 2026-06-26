@@ -15,6 +15,9 @@ use crate::tunables as tun;
 
 pub fn tick(map: &WorldMap, st: &mut CampaignState) {
     st.tick += 1;
+    // Encounters formed this tick get ids at or above this watermark — that's
+    // how the event re-think below spots a fresh contact.
+    let enc_before = st.next_encounter_id;
     if st.tick % tun::TICKS_PER_DAY as u64 == 0 {
         crate::economy::day_tick(map, st);
         check_outcome(map, st);
@@ -27,6 +30,12 @@ pub fn tick(map: &WorldMap, st: &mut CampaignState) {
     crate::economy::garrison_returns(map, st);
     crate::economy::occupations(map, st);
     timers(st);
+    // A faction drawn into a fresh fight re-thinks at once (a sandbox doesn't:
+    // its AI is suppressed). Runs before the hourly pass so the two share the
+    // per-faction debounce instead of double-thinking on a 60-tick boundary.
+    if !st.in_rollout {
+        crate::ai::event_rethink(map, st, enc_before);
+    }
     // Fog recompute is the per-tick cost bottleneck, so a search sandbox skips
     // it: the lookahead rolls a clone forward thousands of ticks per candidate
     // and only the eval's threat term reads fog — a frozen snapshot from clone
@@ -607,6 +616,7 @@ pub fn new_state(map: &WorldMap, seed: u64, player_faction: u32) -> CampaignStat
         relations: std::collections::BTreeMap::new(),
         diplo_target: std::collections::BTreeMap::new(),
         in_rollout: false,
+        last_think: std::collections::BTreeMap::new(),
     }
 }
 

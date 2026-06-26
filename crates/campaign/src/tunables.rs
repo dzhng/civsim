@@ -254,6 +254,13 @@ pub const AI_BRAVADO_AGGRO: f64 = 40_000.0;
 /// always wins.
 pub const AI_SELECT_SCALE: f64 = 15_000.0;
 
+// ---- AI event reactions ----------------------------------------------------
+/// Minimum gap (ticks) between a faction's commander runs. A fresh contact or
+/// siege re-thinks the affected faction immediately instead of waiting for its
+/// hourly turn, but this debounce stops a messy multi-army collision from firing
+/// a re-think storm in a single tick.
+pub const AI_RETHINK_DEBOUNCE: u64 = 30;
+
 // ---- diplomacy -------------------------------------------------------------
 // Diplomacy is what breaks the six-power peer standoff: instead of every power
 // fighting every neighbour at parity, each focuses war on its weakest reachable

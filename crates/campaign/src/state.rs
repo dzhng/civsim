@@ -266,6 +266,11 @@ pub struct CampaignState {
     /// save or a fresh clone is always a live game (`false`).
     #[serde(skip)]
     pub in_rollout: bool,
+    /// Last tick each faction's commander ran, hourly or event-triggered — the
+    /// debounce that stops a messy multi-army contact from firing a re-think
+    /// storm in one tick. Transient scheduling state, never serialized.
+    #[serde(skip)]
+    pub last_think: BTreeMap<FactionId, u64>,
 }
 
 impl CampaignState {

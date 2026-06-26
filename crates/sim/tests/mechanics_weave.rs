@@ -234,7 +234,11 @@ const HEAVY_CHARGE: f32 = 3.44;
 // cav re-baselined 2026-06-26 with pace_mult 2.6 -> 3.6: the per-man charge
 // ceiling rose to ~12.1 m/s, but this short rig is acceleration-limited so the
 // MEASURED peak lands at 9.54 (the longer the runway, the closer to the cap).
-const CAV_CHARGE: f32 = 9.54;
+// Re-baselined 2026-06-26 to 10.53 after the cost-based targeting spine (slice
+// 01): an arc-aware rider no longer wheels toward a foe sitting in its blind
+// front, so it drives forward more cleanly and the accel-limited runway reaches
+// a higher peak (closer to the ~12.1 cap). A wanted side effect of the spine.
+const CAV_CHARGE: f32 = 10.53;
 
 /// A clean rectangular block, facing north, on a parade ground.
 fn block(files: usize, ranks: usize, spacing: f32) -> (Sim, usize) {
@@ -1219,7 +1223,7 @@ fn two_braced_walls_hold_a_standoff_neither_centroid_crosses() {
     let pike = sim::Weapon {
         reach: 3.5,
         min_range: 1.1,
-        arc: 0.08,
+        zones: sim::strike::front(0.04),
         attack_interval: 1.4,
         damage: 0.0,
         cleave: false,

@@ -142,6 +142,10 @@ pub struct Unit {
     pub lost_post_rout: u32,
     /// Remaining missiles for the whole unit.
     pub ammo: u32,
+    /// Test-owned missile armament: when set, OVERRIDES the per-class
+    /// `missile_spec` (so a scenario can pin a FAKE archer's range/ammo/damage
+    /// and stay balance-independent). None = use the class table.
+    pub missile_override: Option<crate::missiles::MissileSpec>,
     pub fire_at_will: bool,
     /// Skirmish reflex: automatically keep distance from approaching enemies.
     pub evade_auto: bool,

@@ -49,7 +49,7 @@ fn charge_penetration(depth: usize, brace_mult: f32) -> (f32, f32) {
     bh.weapons = sim::class::one(Weapon {
         reach: 1.1,
         min_range: 0.0,
-        arc: 1.4,
+        zones: sim::strike::front(0.7),
         attack_interval: 1.79,
         damage: 0.0,
         cleave: false,
@@ -72,7 +72,7 @@ fn charge_penetration(depth: usize, brace_mult: f32) -> (f32, f32) {
     ch.weapons = sim::class::one(Weapon {
         reach: 2.4,
         min_range: 0.0,
-        arc: 0.6,
+        zones: sim::strike::front(0.3),
         attack_interval: 2.2,
         damage: 0.0,
         cleave: false,

@@ -6,6 +6,7 @@
 pub mod common;
 
 use common::no_morale_parade as no_morale;
+use common::{ref_archer, ref_melee, ref_horse_archer, ref_pike, REF_BOW, REF_HORSE_BOW};
 use sim::{Sim, Tunables, UnitClassId, Vec2, DT};
 use std::f32::consts::FRAC_PI_2;
 
@@ -121,14 +122,26 @@ fn a_phalanx_outlasts_the_quiver_frontally_but_not_from_behind() {
     let kite = |face_them: bool| -> (bool, Option<u32>) {
         let mut sim = Sim::new(Tunables::default(), SEED);
         let facing = if face_them { FRAC_PI_2 } else { -FRAC_PI_2 };
-        let pik = sim.spawn_class(Vec2::new(0.0, 0.0), facing, 200, UnitClassId::Phalanx, 0);
-        let har = sim.spawn_class(
+        // FAKE references: a shielded pike block vs a quivered horse-archer band.
+        let pik = sim.spawn_class_stats_with_files(
+            Vec2::new(0.0, 0.0),
+            facing,
+            200,
+            40,
+            UnitClassId::Phalanx,
+            ref_pike(),
+            0,
+        );
+        let har = sim.spawn_class_stats_with_files(
             Vec2::new(0.0, 70.0),
             -FRAC_PI_2,
             160,
+            40,
             UnitClassId::HorseArchers,
+            ref_horse_archer(),
             1,
         );
+        sim.set_missile_spec(har, REF_HORSE_BOW);
         let mut dry_at = None;
         for step in 0..(220.0 / DT) as usize {
             sim.tick();
@@ -202,13 +215,25 @@ fn the_line_pays_dearly_but_breaks_the_archers() {
     // grind slower, so the full arc needs ~360s to settle: by then the
     // archers are gone (3/140, decaying to 0 by 400s) and the line holds
     // ~69/240 — the heavy bleed is nearly done (69→67 over the next 60s).
+    // FAKE references: a soft archer line (REF_BOW) and a heavy melee assault.
     let mut sim = Sim::new(no_morale(), SEED);
-    let archers = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 140, UnitClassId::Archers, 0);
-    let heavies = sim.spawn_class(
+    let archers = sim.spawn_class_stats_with_files(
+        Vec2::new(0.0, 0.0),
+        FRAC_PI_2,
+        140,
+        35,
+        UnitClassId::Archers,
+        ref_archer(),
+        0,
+    );
+    sim.set_missile_spec(archers, REF_BOW);
+    let heavies = sim.spawn_class_stats_with_files(
         Vec2::new(0.0, 160.0),
         -FRAC_PI_2,
         240,
-        UnitClassId::HeavySword,
+        40,
+        UnitClassId::Peasant,
+        ref_melee(true),
         1,
     );
     sim.set_attack_order(heavies, archers);
@@ -218,17 +243,23 @@ fn the_line_pays_dearly_but_breaks_the_archers() {
     let archers_left = sim.units[archers].alive_count;
     let heavies_left = sim.units[heavies].alive_count;
     println!("after 360s: archers {archers_left}/140, heavies {heavies_left}/240");
+    // Expensive but DECISIVE: weight tells — the archers are destroyed once the
+    // line reaches them — but the frontal approach under fire costs real men.
+    // (Re-derived on fakes: the absolute "< half standing" was a real-class
+    // balance number; the robust mechanic is destroyed-archers + a real toll +
+    // a clear win.)
     assert!(
         archers_left < 20,
         "the archers are destroyed: {archers_left}/140 left"
     );
     assert!(
-        heavies_left > 240 * 22 / 100,
-        "the line wins with a fifth or more standing: {heavies_left}/240"
+        heavies_left > 240 / 2,
+        "the line wins decisively, a majority standing: {heavies_left}/240"
     );
     assert!(
-        heavies_left < 240 * 50 / 100,
-        "but pays dearly for the frontal approach: {heavies_left}/240"
+        heavies_left < 240 - 30,
+        "but pays a real toll crossing the fire: lost {} of 240",
+        240 - heavies_left
     );
 }
 

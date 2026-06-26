@@ -25,6 +25,13 @@ use crate::unit::{compact_slots_preserving_order, reassign_slots, slot_local, Or
 // diving rider back. The whole point of a trample is to scatter INTO the enemy
 // and break their cohesion, not hold its own line.
 const TRAMPLE_SLOT_GRIP: f32 = 0.3;
+/// Below this cohesion a moving unit is BLOBBED, not merely stretched into its
+/// stride — so it keeps its weave (the stiff lattice) to RE-FORM as it rides,
+/// instead of softening it for locomotion. Above it a formed line softens (the
+/// run doesn't fight the lattice). This is what pulls a diving trampler back into
+/// a column when a Move order rides it off the enemy — the lattice re-forms it,
+/// no "re-form" rule. Set above the 0.4 "out of the blob" bar so it clears it.
+const REFORM_COH: f32 = 0.55;
 const IDLE_FIDGET: f32 = 0.12;
 const IDLE_GLANCE: f32 = 0.18;
 /// A soldier re-aims his facing only once the threat is more than this far off it
@@ -374,6 +381,7 @@ impl Sim {
             lost_missile: 0,
             lost_post_rout: 0,
             ammo: 0,
+            missile_override: None,
             fire_at_will: true,
             evade_auto: false,
             morale: 0.7 + 0.3 * training.clamp(0.0, 1.0),
@@ -760,7 +768,18 @@ impl Sim {
         u.path.clear();
         u.mode = OrderMode::Move;
         u.final_facing = None;
-        u.reform_timer = 8.0;
+        self.reseat(unit, 8.0);
+    }
+
+    /// Gather the unit: re-seat the formation frame on the men's current center
+    /// of mass, reassign slots to the clean grid, and accelerate cohesion
+    /// recovery (`reform_timer`). The pull-yourself-together a unit does on an
+    /// explicit Reform — and implicitly when a BLOBBED unit accepts a relocate
+    /// order, so a diving trampler told to ride off re-forms around a clean grid
+    /// instead of chasing the stale, scattered slots the dive left it.
+    fn reseat(&mut self, unit: usize, gather_secs: f32) {
+        let u = &mut self.units[unit];
+        u.reform_timer = gather_secs;
         // Re-seat the frame on the men's actual center of mass.
         u.anchor = u.centroid + dir(u.facing) * (0.5 * u.depth());
         reassign_slots(
@@ -770,6 +789,16 @@ impl Sim {
             &self.alive,
             &mut self.soldier_slot,
         );
+    }
+
+    /// Give a unit a TEST-OWNED missile armament, overriding its per-class
+    /// `missile_spec` — for scenario tests built on FAKE reference units, so a
+    /// real archer's balance can't leak in. Resets ammo to the new spec.
+    pub fn set_missile_spec(&mut self, unit: usize, spec: crate::missiles::MissileSpec) {
+        if let Some(u) = self.units.get_mut(unit) {
+            u.ammo = spec.ammo * u.count as u32;
+            u.missile_override = Some(spec);
+        }
     }
 
     pub fn set_pursue(&mut self, unit: usize, on: bool) {
@@ -1223,18 +1252,32 @@ impl Sim {
             }
             // Queued order transmission.
             let u = &mut self.units[ui];
+            // A BLOBBED unit accepting a RELOCATE order gathers itself around its
+            // center of mass (the "re-form" of "return to Move, re-form, ride
+            // off") — without it a diving trampler chases the stale dive-scattered
+            // slots and never tightens. A formed unit / an Attack keeps its grid.
+            let mut reseat_now = false;
             if let Some(t) = u.pending_target {
                 u.pending_timer -= dt;
                 if u.pending_timer <= 0.0 {
-                    u.mode = u.pending_mode;
+                    let mode = u.pending_mode;
+                    u.mode = mode;
                     u.move_target = Some(t);
                     u.resume_target = None;
                     u.pending_target = None;
+                    reseat_now = !matches!(mode, OrderMode::Attack(_)) && u.cohesion < REFORM_COH;
                 }
             }
 
             let engaged_frac = u.engaged as f32 / u.alive_count.max(1) as f32;
             let mode = u.mode;
+            if reseat_now {
+                // A long clean-grid window: the gather releases as soon as the
+                // unit is formed (cohesion bar), so the window only needs to be
+                // long enough to never expire mid-gather. It walks itself together
+                // then rides off.
+                self.reseat(ui, 25.0);
+            }
 
             // Attack latch: chase the enemy anchor while unengaged, and burst
             // into the charge in the measured final approach.
@@ -1923,6 +1966,22 @@ impl Sim {
                 } else {
                     keep_up_sp
                 };
+                // GATHERING: a unit that just RE-SEATED onto a clean grid (its
+                // `reform_timer` running) under a relocate order and is still
+                // BLOBBED. It rides at a GATHER pace (a walk) with its weave kept
+                // ON (below), so the lattice tightens it back into a COLUMN before
+                // it opens up — you cannot re-form at a gallop: release a still-
+                // blobbed unit to a sprint and it frays right back apart. Only once
+                // formed (cohesion past the bar) does it release to full pace and
+                // ride off. The "re-form, ride off" of a trampler pulled out of a
+                // dive, emergent: a mob can't sprint until it sorts itself out.
+                // Tying it to the RESEAT (not raw cohesion) keeps the weave pulling
+                // toward a CLEAN grid; a stale-slot blob would only knot tighter,
+                // and a unit that never re-seated (a Move ride-through) softens
+                // normally. A DIVE (Attack) never gathers — its blob is the point.
+                let gathering = u.reform_timer > 0.0
+                    && u.cohesion < REFORM_COH
+                    && !matches!(u.mode, OrderMode::Attack(_));
                 // No two men run alike: each soldier has a personal TOP
                 // speed (a fixed fraction of the sprint ceiling). A walking
                 // pace is below everyone's ceiling — the line stays dressed;
@@ -1990,7 +2049,17 @@ impl Sim {
                 let running = !strict_formation
                     && u.move_target.is_some()
                     && u.mass_advance > tun.charge_spent_speed;
-                let mut steer_to = if trampling || running {
+                // Locomotion softens the weave so a moving line stretches into its
+                // stride instead of the stiff lattice reeling it back. The
+                // exception is a unit still GATHERING: blobbed (cohesion below the
+                // re-form bar) under a relocate order, having re-seated onto a
+                // clean grid when it took the order. It keeps its weave ON so the
+                // lattice tightens it back into a column while the accel-throttle
+                // holds the blob to a gather pace — then, formed, it softens and
+                // rides off. No "re-form" rule; the gather IS the re-form. A DIVE
+                // (Attack) never gathers: its blob is the disruption. (`gathering`
+                // computed above, where it also caps the gather pace.)
+                let mut steer_to = if (trampling || running) && !gathering {
                     Vec2::ZERO
                 } else {
                     let s = match net_target {
@@ -2174,7 +2243,12 @@ impl Sim {
                     && !seeking_flank
                     && !backing_off
                     && !formation_blocks_forward
+                    && !gathering
                 {
+                    // (A GATHERING unit gets no cruise drive: it re-forms IN PLACE
+                    // around its re-seated grid — you cannot tighten a blob while
+                    // marching it forward, the slots race the laggards — then,
+                    // formed, gathering ends and the cruise rides it off.)
                     let md = dir(u.facing);
                     let fwd = v.x * md.x + v.y * md.y;
                     let want = u.cruise.min(max_sp);
@@ -2294,15 +2368,45 @@ impl Sim {
                         prev_positions[2 * target[i] as usize + 1],
                     );
                     let raw = (tp - p).y.atan2((tp - p).x);
-                    // A man faces the threat MASS deliberately and HOLDS it — he
-                    // never servos his stance on the tick-to-tick separation churn of
-                    // one body (that twitch IS the facing jitter). A foe already in
-                    // the unit's FRONT arc is met by holding the commanded frontage;
-                    // a foe OFF the front (a flanker) turns him outward — but toward
-                    // the threatening unit's CENTROID (a stable direction), not the
-                    // single foe's churning position. Both branches track a stable
-                    // reference, so no quarter twitches.
-                    if wrap_angle(raw - u.facing).abs() < FACING_FRONT_ARC {
+                    // A MOUNTED rider faces so its WIELDED weapon bears (slice 04),
+                    // not so it stares at the foe — a wide sabre is blind over the
+                    // horse's head, so facing the foe puts it where the rider can't
+                    // cut. RIDING (a charge / a pass at speed), it faces its TRAVEL
+                    // direction: the lance bears forward, and a foe it rides PAST
+                    // falls into its flank lobe — "cut who you pass." Bogged into a
+                    // GRIND, it turns BROADSIDE so the standing foe sits in that
+                    // flank lobe. Foot is unchanged (a front-lobe blade bears where
+                    // the man already faces).
+                    // A BOGGED mounted grinder (charge spent, the mass no longer
+                    // driving through) turns BROADSIDE so a standing foe sits in its
+                    // sabre's flank lobe and the blade bears — instead of staring
+                    // the foe into the blind front where it cannot cut (slice 04).
+                    // A RIDING mount (still driving through at speed) keeps the
+                    // foe-facing drive: that forward bore is what shatters the line,
+                    // and turning it broadside trades the disruption for nothing
+                    // (measured). So the arc-facing is the STANDING cavalry's, not
+                    // the charge's. Foot is unchanged.
+                    if mounted[i] == 1 && u.mass_advance <= tun.charge_spent_speed {
+                        // Face so the GRIND blade's zones bear (the sabre's flank
+                        // lobes) — read from the weapon itself, not a global blind
+                        // constant.
+                        let grind_zones = u
+                            .stats
+                            .weapons
+                            .iter()
+                            .filter(|w| !w.is_charge())
+                            .max_by(|a, b| a.zones.swing_arc().total_cmp(&b.zones.swing_arc()))
+                            .map(|w| w.zones)
+                            .unwrap_or(u.stats.weapons[0].zones);
+                        crate::strike::face_foe_into_flank(raw, u.facing, grind_zones)
+                    } else if wrap_angle(raw - u.facing).abs() < FACING_FRONT_ARC {
+                        // A man faces the threat MASS deliberately and HOLDS it — he
+                        // never servos his stance on the tick-to-tick separation
+                        // churn of one body (that twitch IS the facing jitter). A foe
+                        // already in the unit's FRONT arc is met by holding the
+                        // commanded frontage; a foe OFF the front (a flanker) turns
+                        // him outward — but toward the threatening unit's CENTROID (a
+                        // stable direction), not the single foe's churning position.
                         u.facing
                     } else {
                         let foe_unit = soldier_unit[target[i] as usize] as usize;

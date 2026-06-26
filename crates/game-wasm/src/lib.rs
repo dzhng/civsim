@@ -172,7 +172,7 @@ impl Game {
                             "name": weapon_names[ci].get(wi).copied().unwrap_or("weapon"),
                             "reach": w.reach,
                             "minRange": w.min_range,
-                            "arc": w.arc,
+                            "arc": w.zones.swing_arc(),
                             "interval": w.attack_interval,
                             "damage": w.damage,
                             "braced": w.braced(),

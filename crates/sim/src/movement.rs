@@ -409,6 +409,7 @@ mod tests {
             lost_missile: 0,
             lost_post_rout: 0,
             ammo: 0,
+            missile_override: None,
             fire_at_will: true,
             evade_auto: false,
             morale: 1.0,

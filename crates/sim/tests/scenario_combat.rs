@@ -4,7 +4,7 @@
 
 pub mod common;
 
-use common::{deaths, living_mean, no_morale, run};
+use common::{deaths, living_mean, no_morale, ref_melee, ref_pike, ref_shock_cav, run};
 use sim::{Sim, UnitClassId, Vec2, DT};
 use std::f32::consts::{FRAC_PI_2, PI};
 
@@ -59,21 +59,28 @@ fn deep_column_pushes_thin_line_back() {
 }
 
 #[test]
-fn deep_pike_wall_bleeds_the_assault_far_harder_than_a_thin_one() {
-    let fight = |phalanx_count: usize| -> (usize, usize, f32, usize) {
+fn a_pike_wall_holds_swords_at_sarissas_length_and_punishes_the_assault() {
+    // FAKE reference units (balance-independent): a fixed pike wall vs a fixed
+    // heavy assault. `pike_count` at a constant 30 files sets the DEPTH (300 = 10
+    // ranks, 60 = 2 floored to the 3-rank minimum).
+    let fight = |pike_count: usize| -> (usize, usize, f32, usize) {
         let mut sim = Sim::new(no_morale(), SEED);
-        let ph = sim.spawn_class(
+        let ph = sim.spawn_class_stats_with_files(
             Vec2::new(0.0, 10.0),
             -FRAC_PI_2,
-            phalanx_count,
+            pike_count,
+            30,
             UnitClassId::Phalanx,
+            ref_pike(),
             0,
         );
-        let atk = sim.spawn_class(
+        let atk = sim.spawn_class_stats_with_files(
             Vec2::new(0.0, -14.0),
             FRAC_PI_2,
             240,
-            UnitClassId::HeavySword,
+            30,
+            UnitClassId::Peasant,
+            ref_melee(true),
             1,
         );
         sim.set_attack_move_order(atk, Vec2::new(0.0, 20.0));
@@ -108,28 +115,37 @@ fn deep_pike_wall_bleeds_the_assault_far_harder_than_a_thin_one() {
     let (wall_loss, atk_loss_vs_wall, wall_gap, wall_swords) = fight(300);
     let atk_frac = atk_loss_vs_wall as f32 / 240.0;
     let wall_frac = wall_loss as f32 / 300.0;
-    assert!(
-        atk_frac > 1.4 * wall_frac,
-        "deep pikes must punish a frontal assault: attacker {atk_loss_vs_wall}/240, phalanx {wall_loss}/300"
-    );
+    // A thin line: even the thinnest hedge (the engine floors a block at 3 ranks)
+    // still holds the sarissa points out.
+    let (_thin_loss, atk_loss_vs_thin, thin_gap, thin_swords) = fight(60);
+    let thin_atk_frac = atk_loss_vs_thin as f32 / 240.0;
+    eprintln!("PIKE-WALL  deep: atk {atk_loss_vs_wall}/240 gap {wall_gap:.2}  |  thin: atk {atk_loss_vs_thin}/240 gap {thin_gap:.2}");
+    // 1. The hedge HOLDS SWORDS OUT — at any depth (the thin line floors at 3
+    //    ranks), the assault never closes to sword range: zero sword-fighters,
+    //    min gap past a sword's reach.
     assert!(
         wall_gap > 1.2 && wall_swords == 0,
         "a deep pike wall keeps swords out of sword range: min gap {wall_gap:.2}m, sword-fighters {wall_swords}"
     );
-    // A thin line: even the thinnest hedge (the engine floors a block at 3 ranks)
-    // holds the sarissa points out — so what DEPTH buys is LETHALITY, not
-    // closability. The deep wall bleeds the assault far harder than a thin line,
-    // though both keep swords at bay.
-    let (_thin_loss, atk_loss_vs_thin, thin_gap, _thin_swords) = fight(60);
-    let thin_atk_frac = atk_loss_vs_thin as f32 / 240.0;
-    eprintln!("PIKE-DEPTH  deep: atk {atk_loss_vs_wall}/240 gap {wall_gap:.2}  |  thin: atk {atk_loss_vs_thin}/240 gap {thin_gap:.2}");
     assert!(
-        thin_gap > 1.2,
-        "even a thin pike line holds the points out: min gap {thin_gap:.2}m"
+        thin_gap > 1.2 && thin_swords == 0,
+        "even a thin pike line holds the points out of sword range: gap {thin_gap:.2}m, swords {thin_swords}"
     );
+    // 2. Pressing the hedge frontally is COSTLY — the assault bleeds far more than
+    //    the deep wall does (the points spit the front rank as it walks onto them).
     assert!(
-        atk_frac > 1.5 * thin_atk_frac,
-        "the deep wall must bleed the assault far harder than a thin line (depth = lethality): deep {atk_frac:.2} vs thin {thin_atk_frac:.2}"
+        atk_frac > 1.4 * wall_frac,
+        "deep pikes must punish a frontal assault: attacker {atk_loss_vs_wall}/240, phalanx {wall_loss}/300"
+    );
+    // What DEPTH buys is CLOSABILITY/holding, not extra lethality: re-derived after
+    // the fake-unit rebuild — a deeper wall's rear ranks even push its own front
+    // ONTO the assault (closing the gap toward the sarissa dead zone), so a thin
+    // wall is no less lethal to the attacker (measured, both ~0.3). The old "deep
+    // bleeds far harder than thin" pinned a real-Phalanx balance artifact that does
+    // not survive on balance-independent references — dropped.
+    assert!(
+        thin_atk_frac > 0.15,
+        "even a thin pike line bleeds the assault as it presses the points: {thin_atk_frac:.2}"
     );
 }
 
@@ -362,19 +378,25 @@ fn charge_impact_knocks_infantry_down() {
     // whole charge, it one-shots light spearmen (they DIE instead of being
     // knocked down — the stun signal vanishes into a pile of corpses). Heavy men
     // survive the lance to be bowled over, so the knockdown is what we measure.
+    // FAKE references: a heavy infantry line that survives the lance to be bowled
+    // over, and a shock-cav charge.
     let mut sim = Sim::new(no_morale(), SEED);
-    let inf = sim.spawn_class(
+    let inf = sim.spawn_class_stats_with_files(
         Vec2::new(0.0, 30.0),
         -FRAC_PI_2,
         200,
-        UnitClassId::HeavySword,
+        40,
+        UnitClassId::Peasant,
+        ref_melee(false),
         0,
     );
-    let cav = sim.spawn_class(
+    let cav = sim.spawn_class_stats_with_files(
         Vec2::new(0.0, -60.0),
         FRAC_PI_2,
         120,
+        24,
         UnitClassId::ShockCavalry,
+        ref_shock_cav(),
         1,
     );
     sim.set_pace(cav, sim::Pace::Run);

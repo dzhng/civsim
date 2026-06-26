@@ -39,7 +39,7 @@ const REF_DEPTH: usize = 4; // references fight as a WIDE, shallow LINE, not a d
 const REF_BLADE: Weapon = Weapon {
     reach: 1.1,
     min_range: 0.0,
-    arc: 1.4,
+    zones: sim::strike::front(0.7),
     attack_interval: 4.1,
     // 0.32 lands an equal wide-LINE grind at ~3.5 min (the anchor). The stock game
     // sword is 0.5 — that grinds the same reference line in ~2.2 min, i.e. real

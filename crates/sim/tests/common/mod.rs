@@ -3,6 +3,10 @@
 //! Keep this module small and behavior-neutral. If a helper starts encoding a
 //! scenario's policy, leave it local to that scenario file so the assertion
 //! remains readable at the call site.
+//!
+//! (Each test binary compiles this module and uses only a subset, so some
+//! helpers read as dead in any single binary — expected for a shared module.)
+#![allow(dead_code)]
 
 use sim::{Sim, Tunables, Vec2, DT};
 
@@ -84,6 +88,153 @@ pub fn run(sim: &mut Sim, seconds: f32) {
 
 pub fn deaths(sim: &Sim, unit: usize) -> usize {
     sim.units[unit].count - sim.units[unit].alive_count
+}
+
+// ───────────────────────── FAKE REFERENCE UNITS ─────────────────────────
+// Scenario tests build on these, NOT real classes, so a balance retune of a
+// real unit can never break a scenario — and the fixed stats here double as
+// reference points when balancing (see tests/README.md). Base classes supply
+// only STRUCTURE (foot/phalanx/mounted body, doctrine); every balance-relevant
+// number — HP, block, evade, weapons, and the missile spec — is test-owned.
+
+use sim::{class, class_stats, MissileKind, MissileSpec, UnitClass, UnitClassId, Weapon, WeaponKind};
+
+/// Reference one-handed sword: a standard front-cone blade.
+pub const REF_SWORD: Weapon = Weapon {
+    reach: 1.1,
+    min_range: 0.0,
+    zones: sim::strike::front(0.7),
+    attack_interval: 4.1,
+    damage: 0.5,
+    cleave: false,
+    kind: WeaponKind::Standard,
+};
+/// Reference sarissa: a long braced points-wall with a dead zone up close.
+pub const REF_PIKE: Weapon = Weapon {
+    reach: 3.2,
+    min_range: 1.1,
+    zones: sim::strike::front(0.04),
+    attack_interval: 3.8,
+    damage: 0.4,
+    cleave: false,
+    kind: WeaponKind::Braced,
+};
+/// Reference foot bow (apply with `sim.set_missile_spec`).
+pub const REF_BOW: MissileSpec = MissileSpec {
+    kind: MissileKind::Arrow,
+    range: 150.0,
+    launch_speed: 42.0,
+    interval: 6.0,
+    ammo: 30,
+    damage: 0.62,
+    scatter_at_max: 6.0,
+    mobile_fire: false,
+};
+/// Reference horse bow: shorter, smaller quiver, fires on the move.
+pub const REF_HORSE_BOW: MissileSpec = MissileSpec {
+    kind: MissileKind::Arrow,
+    range: 110.0,
+    launch_speed: 38.0,
+    interval: 7.0,
+    ammo: 24,
+    damage: 0.5,
+    scatter_at_max: 7.0,
+    mobile_fire: true,
+};
+
+/// A fake heavy melee line: 2 HP, a 0.5 shield, REF_SWORD. `charge` drives it in.
+pub fn ref_melee(charge: bool) -> UnitClass {
+    let mut s = class_stats(UnitClassId::Peasant);
+    s.health = 2.0;
+    s.block = 0.5;
+    s.evade = 0.1;
+    s.weapons = class::one(REF_SWORD);
+    s.brace_mult = 1.5;
+    s.mass = 1.5;
+    s.soldier_radius = 0.34;
+    s.spacing = Vec2::new(1.0, 1.0);
+    s.training = 0.75;
+    s.charge = charge;
+    s
+}
+
+/// A fake pike wall: REF_PIKE + REF_SWORD sidearm, strict-file phalanx body, a
+/// frontal shield. The braced hedge holds swords at sarissa's length.
+pub fn ref_pike() -> UnitClass {
+    let mut s = class_stats(UnitClassId::Phalanx);
+    s.health = 1.8;
+    s.block = 0.45;
+    s.evade = 0.1;
+    s.weapons = class::two(REF_PIKE, REF_SWORD);
+    s.brace_mult = 2.0;
+    s.mass = 1.5;
+    s.soldier_radius = 0.34;
+    s.spacing = Vec2::new(0.9, 0.9);
+    s.training = 0.8;
+    s
+}
+
+/// A fake foot archer: no shield, a weak sword in melee, REF_BOW. Soft once the
+/// line reaches it.
+pub fn ref_archer() -> UnitClass {
+    let mut s = class_stats(UnitClassId::Archers);
+    s.health = 1.1;
+    s.block = 0.0;
+    s.evade = 0.25;
+    s.weapons = class::one(Weapon { damage: 0.3, ..REF_SWORD });
+    s.training = 0.6;
+    s
+}
+
+/// Reference couched lance: one lethal forward skewer on the charge.
+pub const REF_LANCE: Weapon = Weapon {
+    reach: 2.4,
+    min_range: 0.0,
+    zones: sim::strike::front(0.2),
+    attack_interval: 5.0,
+    damage: 1.6,
+    cleave: false,
+    kind: WeaponKind::Charge,
+};
+/// Reference cavalry sabre: a flank-lobe blade for the grind.
+pub const REF_SABRE: Weapon = Weapon {
+    reach: 1.5,
+    min_range: 0.0,
+    zones: sim::strike::flanks(1.55, 0.85),
+    attack_interval: 4.2,
+    damage: 0.5,
+    cleave: false,
+    kind: WeaponKind::Standard,
+};
+
+/// A fake shock cavalry: mounted, a couched lance + a flank sabre, charges,
+/// frontal shield, a horse to soak. The reference for charge/walk-in mechanics.
+pub fn ref_shock_cav() -> UnitClass {
+    let mut s = class_stats(UnitClassId::ShockCavalry);
+    s.health = 1.4;
+    s.mount_health = 5.0;
+    s.block = 0.4;
+    s.evade = 0.12;
+    s.weapons = class::two(REF_LANCE, REF_SABRE);
+    s.charge = true;
+    s.training = 0.75;
+    s.bravery = 1.3;
+    s
+}
+
+/// A fake horse archer: mounted, no shield, a flank sabre, REF_HORSE_BOW.
+pub fn ref_horse_archer() -> UnitClass {
+    let mut s = class_stats(UnitClassId::HorseArchers);
+    s.health = 1.2;
+    s.block = 0.0;
+    s.evade = 0.3;
+    s.weapons = class::one(Weapon {
+        reach: 1.5,
+        zones: sim::strike::flanks(1.55, 0.85),
+        ..REF_SWORD
+    });
+    s.training = 0.65;
+    s
 }
 
 /// Mean position of a unit's living soldiers.

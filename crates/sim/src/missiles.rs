@@ -28,6 +28,7 @@ pub enum MissileKind {
 const RIDER_HIT_SHARE: f32 = 0.2;
 
 /// Per-class missile armament (None = melee only). Data, not code.
+#[derive(Clone, Copy)]
 pub struct MissileSpec {
     pub kind: MissileKind,
     pub range: f32,
@@ -151,7 +152,11 @@ impl Sim {
     fn launch_missiles(&mut self) {
         let phase = (self.tick_count % 3) as usize;
         for ui in 0..self.units.len() {
-            let Some(spec) = missile_spec(self.units[ui].class) else {
+            // A test-owned override (fake reference archers) wins over the class table.
+            let Some(spec) = self.units[ui]
+                .missile_override
+                .or_else(|| missile_spec(self.units[ui].class))
+            else {
                 continue;
             };
             let u = &self.units[ui];

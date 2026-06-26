@@ -20,7 +20,7 @@ Each layer must be green before the next is worth running. The focused runners i
    Use `--no-fail-fast` and read EVERY failure before fixing one — they often
    share a single root cause.
 2. **Then scenarios**, once mechanics is green: `scripts/test-scenarios` (the
-   `*scenarios` behavioral contracts).
+   `scenario_*` behavioral contracts).
 3. **Then army, once everything under it is good**: `scripts/test-army` — the
    heavy full-deployment AI battles (scale-swept). The capstone, not a loop.
 4. **Balance is its own on-demand bucket**: `scripts/test-balance` (minutes).
@@ -127,11 +127,17 @@ physical signature instead:
 `crates/sim/tests/README.md` is the current test map. Use it before adding a
 new file or moving a test; the short version is:
 
-| Bucket | Question answered by a failure |
-|---|---|
-| `mechanics_*` | "Did the physics/invariant break?" |
-| `balance_*` | "Did the stat-vs-price outcome move?" |
-| `*_scenarios` | "Did a public-API behavior stop emerging?" |
+| Bucket | Units it may use | Question answered by a failure |
+|---|---|---|
+| `mechanics_*` | IMMORTAL fakes | "Did the physics/invariant break?" |
+| `scenario_*` | FAKE REFERENCE units | "Did a public-API behavior stop emerging?" |
+| `balance_*` | REAL class stats | "Did the stat-vs-price outcome move?" |
+
+Each layer may depend only on the one below it: mechanics on immortal fakes,
+scenarios on fixed fake REFERENCE units (so a real-class retune can't break them,
+and the stats double as balancing reference points), balance alone on real stats.
+A win-rate or who-breaks-whom pinned on a REAL class outside `balance_*` is a bug —
+rebuild it on fakes.
 
 Use `crates/sim/tests/common/` only for neutral mechanics like ticking, no-morale
 tunables, death counts, and simple living-unit geometry. Scenario-specific
@@ -192,7 +198,7 @@ ask "does performance match price?" and live on the harness in
   runtime now (`Sim::with_balance`); you do not recompile to sweep.
 - A balance test that is really about slot/price (one heavy solos two lights
   — fair because the heavy costs more gold but fewer army slots) belongs
-  here, not in `*_scenarios.rs`. See `tests/balance_harness.rs`.
+  here, not in `scenario_*.rs`. See `tests/balance_harness.rs`.
 
 ## Watch the saturation window
 

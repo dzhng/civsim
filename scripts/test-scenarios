@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
-# Behavioral-contract tests (*scenarios): public-API emergence end to end.
-# Slower than mechanics (some boot full battles) — run when you change a
-# player-visible behavior. To run ONE bucket, call cargo directly, e.g.:
-#   cargo test -p sim --test combat_scenarios
+# Behavioral-contract tests (scenario_*): public-API emergence end to end, on
+# FAKE REFERENCE units (balance-independent). Slower than mechanics (some boot
+# full battles) — run when you change a player-visible behavior. To run ONE
+# bucket, call cargo directly, e.g.:
+#   cargo test -p sim --test scenario_combat
 set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
 flags=()
-for f in crates/sim/tests/*scenarios.rs; do
+for f in crates/sim/tests/scenario_*.rs; do
   flags+=(--test "$(basename "$f" .rs)")
 done
 echo "→ cargo test -p sim ${flags[*]}"

@@ -59,19 +59,9 @@ const OBSTRUCT_FLOOR: f32 = 0.7;
 /// Out to here a blow comes side-on: evade degrades; behind it, a blow
 /// lands on a man facing the wrong way.
 pub(crate) const SIDE_ARC: f32 = 2.1;
-/// A mounted man SWINGING a blade (not couching a lance) can't reach past his
-/// mount's head or croup — he cuts DOWN to either FLANK. So a sabre only reaches
-/// a target whose bearing off his facing is in (FRONT, REAR): the front cone is
-/// the horse's head (blind), the rear is its croup (blind), the two side lobes
-/// are the men he can actually hit — and who can hit his leg back. Front-on, the
-/// horse shields the rider but he cannot fight: cavalry is SHOCK, not a head-on
-/// grinder. (Thin-arc thrusts — the couched LANCE — are exempt: they DO go
-/// forward; this only blinds wide swings.)
-const MOUNTED_SWING_BLIND_FRONT: f32 = 0.7; // ~40°
-const MOUNTED_SWING_BLIND_REAR: f32 = 2.4; // ~137°
-/// A weapon wider than this, swung from horseback, is a flank cut (blinded front
-/// and rear); narrower is a forward thrust/lance (unblinded).
-const MOUNTED_SWING_ARC_MIN: f32 = 0.5;
+// Where a weapon can land is the weapon's own `zones` data (a sword = one front
+// lobe, a mounted sabre = two flank lobes, blind over the horse's head and
+// croup): see `crate::strike`.
 /// Heavy shields work against a presented point too. Pikes are still fearsome
 /// because they strike first, from long reach, in a narrow front-facing hedge —
 /// not because a shielded man magically loses his shield block.
@@ -241,6 +231,33 @@ impl Sim {
             let p = self.soldier_pos(i);
             let local_f = dir(self.facings[i]);
             let local_r = Vec2::new(local_f.y, -local_f.x);
+            // Targeting strike field (slice 01): a man targets the foe he can bring
+            // his blade to bear on SOONEST (cost = turn-to-edge + travel), not the
+            // nearest body. The field is the GRIND weapon's zones (the widest-arc
+            // melee blade, never the one-phase lance): for a mounted sabre that is
+            // the flank lobes, so the seek DISPERSES riders across the front (the
+            // wide knockdown swath of a charge) and onto flank foes it can cut, not
+            // bunched on one foe dead-ahead. The lance spits forward independently
+            // (its strike reads its own front lobe, below). Foot ignores this field:
+            // its turn cost is gated off, so its cost is pure distance ≈ nearest.
+            let grind = weapons
+                .iter()
+                .filter(|w| !w.is_charge())
+                .max_by(|a, b| a.zones.swing_arc().total_cmp(&b.zones.swing_arc()))
+                .copied()
+                .unwrap_or(weapons[0]);
+            let tgt_field = crate::strike::field(
+                grind.zones,
+                grind.min_range,
+                grind.reach,
+                1.0,
+                AIM_TOLERANCE,
+            );
+            // Cost in seconds: turn time (rad / turn-rate) + travel time
+            // (gap-beyond-reach / closing gait). Both honest seconds, so they
+            // weight themselves; slice 05 refines travel with the accel ramp.
+            let turn_rate = (tun.soldier_turn_rate * stats.turn_mult).max(0.1);
+            let approach_speed = (tun.run_speed * stats.pace_mult).max(0.5);
 
             // --- find nearest enemy + count envelope obstruction ------------
             // The scan covers awareness range: targeting, obstruction, AND
@@ -258,6 +275,10 @@ impl Sim {
             // live distance so we can keep him unless clearly out-classed.
             let prev_target = self.target[i];
             let mut prev_target_d = f32::MAX;
+            // Cost-based selection (slice 01): nearest_d stays the CHOSEN foe's
+            // real distance (downstream reach/fight checks need a distance), but
+            // the CHOICE is argmin engage-cost.
+            let mut nearest_cost = f32::MAX;
             // (victim, surface distance, bearing)
             let mut candidates: [(u32, f32, f32); 12] = [(0, 0.0, 0.0); 12];
             let mut cand_len = 0usize;
@@ -322,7 +343,25 @@ impl Sim {
                             }
                             continue;
                         }
-                        if d_surf < nearest_d {
+                        // Engage cost, in METRES (a wheel converted to the distance
+                        // it would cover): `travel + turn_time*closing_speed`. The
+                        // turn term is MOUNTED-only — a man on foot pivots freely
+                        // (turn ~instant), so his cost is EXACTLY `d_surf` and his
+                        // targeting is byte-for-byte nearest (he still turns to
+                        // meet a flanker; the raw distance compare also avoids the
+                        // float-tie churn a `/speed` would add). A HORSE can't pivot
+                        // at speed and a wide sabre is blind over its head, so a
+                        // rider genuinely must wheel to bring the blade to bear: a
+                        // foe in the flank lobe is cheap, one dead-ahead in the
+                        // blind front is dear. That wheel cost is the measured bug.
+                        let off = wrap_angle(bearing - self.facings[i]).abs();
+                        let cost = if self.mounted[i] == 1 {
+                            d_surf + tgt_field.turn_to_edge(off) / turn_rate * approach_speed
+                        } else {
+                            d_surf
+                        };
+                        if cost < nearest_cost {
+                            nearest_cost = cost;
                             nearest_d = d_surf;
                             nearest = j as i32;
                         }
@@ -351,6 +390,11 @@ impl Sim {
             // A man PULLING OUT (disengage/rout) doesn't cling to his foe, though:
             // stickiness would keep a withdrawing unit nailed in contact, so it
             // yields to the latest nearest and lets the gap open as it backs off.
+            // Selection is argmin engage-cost (arc-aware); the sticky hysteresis
+            // stays on DISTANCE — its job is anti-oscillation, and keying it off
+            // cost made a line man DROP a foe that merely drifted to his flank
+            // (its turn penalty spiked), churning targets mid-grind. Keep the foe
+            // I'm squared up to unless a new one is meaningfully closer.
             self.target[i] = if !disengaged
                 && prev_target >= 0
                 && self.alive[prev_target as usize] == 1
@@ -439,7 +483,7 @@ impl Sim {
                 // side-arm. So the pike bears only when (a) the foe is in the
                 // frontage arc AND (b) the soldier still faces along it.
                 let self_off = wrap_angle(self.facings[i] - self.units[ui].facing).abs();
-                let pike_bears = front_off <= pike.arc * 0.5 + AIM_TOLERANCE
+                let pike_bears = front_off <= pike.zones.primary_half() + AIM_TOLERANCE
                     && self_off < FRONT_ARC
                     && nearest_d >= pike.min_range
                     && nearest_d <= pike.reach;
@@ -603,31 +647,50 @@ impl Sim {
             // push that holds the contact line apart), so the front neither blobs
             // nor loses the standoff; only the gang's DAMAGE is capped.
             let can_wound = gang_rank[i] < tun.gang_cap;
-            let target_p = self.soldier_pos(nearest as usize);
-            let aim = wrap_angle((target_p - p).y.atan2((target_p - p).x) - aim_facing);
-            // A mounted man swinging a wide blade reaches only his FLANKS, not over
-            // the horse's head; a thrust/lance (thin arc) is not so limited.
-            let mounted_swing = self.mounted[i] == 1 && weapon.arc > MOUNTED_SWING_ARC_MIN;
-            // Foot holds the swing while still TURNING to face the nearest foe. A
-            // mounted swinger never whiffs here — its nearest foe is usually dead
-            // ahead (blind), but it can still cut a man on its flank, so the resolve
-            // below picks the closest target actually in its (flank) reach.
-            if !mounted_swing && aim.abs() > weapon.arc * 0.5 + AIM_TOLERANCE {
-                continue;
+            let facing = aim_facing;
+            // The aim gate: a man holds his swing until his weapon bears. A foot
+            // blade gates on the seek TARGET (he is facing it); a flank SABRE never
+            // gates here (the resolve picks whoever is in its side lobes). A couched
+            // LANCE is the exception: it spits whatever is dead-ahead REGARDLESS of
+            // where the rider's dispersed seek points (the seek scatters riders for
+            // the wide knockdown swath), so it gates on the closest foe in its OWN
+            // front lobe — else it whiffs every time the unit hunts a flank foe.
+            if weapon.is_charge() {
+                let lance = crate::strike::field(
+                    weapon.zones,
+                    weapon.min_range,
+                    weapon.reach,
+                    1.0,
+                    AIM_TOLERANCE,
+                );
+                let bears = (0..cand_len).any(|k| {
+                    let (v, d, b) = candidates[k];
+                    self.alive[v as usize] == 1 && lance.contains(wrap_angle(b - facing).abs(), d)
+                });
+                if !bears {
+                    continue;
+                }
+            } else if !weapon.zones.is_flank() {
+                let target_p = self.soldier_pos(nearest as usize);
+                let aim = wrap_angle((target_p - p).y.atan2((target_p - p).x) - aim_facing);
+                if aim.abs() > weapon.zones.primary_half() + AIM_TOLERANCE {
+                    continue;
+                }
             }
 
             // Obstruction: friendly bodies inside THIS weapon's swing envelope
             // (their subtended angle widens up close). Thrusts (tiny arc)
             // thread past comrades' shoulders — that's why pikes work in
             // ranks; sweeps need clearance, so wide arcs choke in a press.
-            let arc_weight = weapon.arc / (weapon.arc + 0.5);
+            let swing = weapon.zones.swing_arc();
+            let arc_weight = swing / (swing + 0.5);
             let crowded = friends[..friends_len]
                 .iter()
                 .flatten()
                 .filter(|f| {
                     let off = wrap_angle(f.bearing - aim_facing).abs();
                     f.distance < weapon.reach * 0.9
-                        && off < weapon.arc * 0.5 + (0.7 / (f.distance + 0.5)).atan()
+                        && off < weapon.zones.primary_half() + (0.7 / (f.distance + 0.5)).atan()
                 })
                 .count() as f32
                 * arc_weight;
@@ -643,7 +706,6 @@ impl Sim {
             let vice = (self.pressure[i] - net).max(0.0);
             let pinned = (vice / VICE_PIN).clamp(0.0, 1.0);
             let obstruct = crowded * (OBSTRUCT_FLOOR + (1.0 - OBSTRUCT_FLOOR) * pinned);
-            let arc_eff = weapon.arc / (1.0 + obstruct);
             // Swing cadence does NOT slow with fatigue — a tired man swings as
             // often, but each blow lands SOFTER (see stamina_damage_floor in
             // strike). Coupling fatigue to cadence instead made grinds CRAWL: a
@@ -659,15 +721,18 @@ impl Sim {
             // CLEAVE weapon (the wide two-hander) hits everyone in the field. The
             // field is the front arc for foot; for a mounted SABRE it is the two
             // flank lobes (the horse's head and croup are blind).
-            let facing = aim_facing;
             let m_a = self.mass[i] * self.units[ui].brace();
-            let in_field = |off: f32| -> bool {
-                if mounted_swing {
-                    off > MOUNTED_SWING_BLIND_FRONT && off < MOUNTED_SWING_BLIND_REAR
-                } else {
-                    off <= arc_eff * 0.5 + AIM_TOLERANCE
-                }
-            };
+            // The strike FIELD: the weapon's zones, with the FRONT lobe crowd-
+            // narrowed by `1 + obstruct` so a choked sweep shrinks its cone (a
+            // flank sabre's lobes are fixed). Reach and the front/flank geometry
+            // fold in, so the resolve below is one `contains`.
+            let field = crate::strike::field(
+                weapon.zones,
+                weapon.min_range,
+                weapon.reach,
+                1.0 + obstruct,
+                AIM_TOLERANCE,
+            );
             if weapon.cleave {
                 let mut struck = 0usize;
                 for k in 0..cand_len {
@@ -676,10 +741,10 @@ impl Sim {
                     }
                     let (v, d_surf, bearing) = candidates[k];
                     let v = v as usize;
-                    if self.alive[v] != 1 || d_surf < weapon.min_range || d_surf > weapon.reach {
+                    if self.alive[v] != 1 {
                         continue;
                     }
-                    if !in_field(wrap_angle(bearing - facing).abs()) {
+                    if !field.contains(wrap_angle(bearing - facing).abs(), d_surf) {
                         continue;
                     }
                     struck += 1;
@@ -691,14 +756,10 @@ impl Sim {
                 let mut best_d = f32::MAX;
                 for k in 0..cand_len {
                     let (v, d_surf, bearing) = candidates[k];
-                    if d_surf >= best_d
-                        || self.alive[v as usize] != 1
-                        || d_surf < weapon.min_range
-                        || d_surf > weapon.reach
-                    {
+                    if d_surf >= best_d || self.alive[v as usize] != 1 {
                         continue;
                     }
-                    if in_field(wrap_angle(bearing - facing).abs()) {
+                    if field.contains(wrap_angle(bearing - facing).abs(), d_surf) {
                         best_d = d_surf;
                         best = Some(k);
                     }

@@ -16,8 +16,11 @@ pub struct Weapon {
     pub reach: f32,
     /// Inside this distance the weapon is useless (m).
     pub min_range: f32,
-    /// Swing width (radians). Pike ≈ a line; great sword sweeps wide.
-    pub arc: f32,
+    /// Where the weapon can land, as DATA: its strike zones (angular lobes in the
+    /// wielder's frame). A sword/spear/pike/lance is one front lobe; a mounted
+    /// sabre is two flank lobes. Replaces the old single `arc` width + the
+    /// mounted-flank heuristic — target/face/strike all read these.
+    pub zones: crate::strike::Zones,
     /// Seconds between swings, fresh and unobstructed. Deliberately long (a real
     /// blow is a wind-up, a committed cut, and a recover — not a flurry): slow
     /// cadence is what makes engagements last MINUTES while each landed hit stays
@@ -198,7 +201,7 @@ pub const HORSE_BODY_R: f32 = 0.5;
 // that matter and inherits the rest via struct-update, so the call sites read as
 // NAMED FIELDS instead of a row of bare numbers:
 //
-//     weapons: one(Weapon { reach: 1.1, arc: 1.4, attack_interval: 4.1, damage: 0.5, ..MELEE }),
+//     weapons: one(Weapon { reach: 1.1, zones: crate::strike::front(0.7), attack_interval: 4.1, damage: 0.5, ..MELEE }),
 //
 // Two classes that both carry "a sword" can diverge freely — there is no shared
 // global weapon assigned to many units.
@@ -207,7 +210,7 @@ pub const HORSE_BODY_R: f32 = 0.5;
 const MELEE: Weapon = Weapon {
     reach: 0.0,
     min_range: 0.0,
-    arc: 0.0,
+    zones: crate::strike::front(0.0),
     attack_interval: 0.0,
     damage: 0.0,
     cleave: false,
@@ -253,7 +256,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
         drain_mult: 1.0,
         turn_mult: 1.0,
         // Generic one-handed sword; every class below defines its own array.
-        weapons: one(Weapon { reach: 1.1, arc: 1.4, attack_interval: 4.1, damage: 0.5, ..MELEE }),
+        weapons: one(Weapon { reach: 1.1, zones: crate::strike::front(0.7), attack_interval: 4.1, damage: 0.5, ..MELEE }),
     };
     match id {
         HeavySword => UnitClass {
@@ -272,7 +275,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             // an elite that is tanky AND a little more lethal — enough to take the
             // edge off the heavy-vs-heavy slog, but a heavy mirror is STILL the
             // longest grind of the roster. Per-class weapon; no other sword affected.
-            weapons: one(Weapon { reach: 1.1, arc: 1.4, attack_interval: 4.1, damage: 0.6, ..MELEE }),
+            weapons: one(Weapon { reach: 1.1, zones: crate::strike::front(0.7), attack_interval: 4.1, damage: 0.6, ..MELEE }),
             ..foot
         },
         LightSpear => UnitClass {
@@ -286,7 +289,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             block: 0.35,  // a light shield: real frontal cover, ~1.5x deaths from behind
             evade: 0.15,  // a shield, not a skirmisher's legs: modest dodge on top of the block
             training: 0.55,
-            weapons: one(Weapon { reach: 1.6, arc: 0.6, attack_interval: 4.4, damage: 0.2375, ..MELEE }),
+            weapons: one(Weapon { reach: 1.6, zones: crate::strike::front(0.3), attack_interval: 4.4, damage: 0.2375, ..MELEE }),
             ..foot
         },
         LongSwords => UnitClass {
@@ -301,7 +304,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             evade: 0.35,
             training: 0.8,
             // A two-hander: long reach, wide cleaving arc, no dead zone (half-swords in close).
-            weapons: one(Weapon { reach: 1.8, arc: 2.4, attack_interval: 4.7, damage: 0.75, cleave: true, ..MELEE }),
+            weapons: one(Weapon { reach: 1.8, zones: crate::strike::front(1.2), attack_interval: 4.7, damage: 0.75, cleave: true, ..MELEE }),
             ..foot
         },
         Phalanx => UnitClass {
@@ -322,8 +325,8 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             // The sarissa wall (frontal-only, dead zone inside the shafts; cadence×hurl
             // stops a charge, modest per-poke), with a side-sword for off-axis foes.
             weapons: two(
-                Weapon { reach: 3.2, min_range: 1.1, arc: 0.08, attack_interval: 3.8, damage: 0.4, ..BRACED },
-                Weapon { reach: 1.2, arc: 1.2, attack_interval: 4.1, damage: 0.35, ..MELEE },
+                Weapon { reach: 3.2, min_range: 1.1, zones: crate::strike::front(0.04), attack_interval: 3.8, damage: 0.4, ..BRACED },
+                Weapon { reach: 1.2, zones: crate::strike::front(0.6), attack_interval: 4.1, damage: 0.35, ..MELEE },
             ),
             ..foot
         },
@@ -339,7 +342,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             block: 0.0, // no shield: a dodge, not a wall — same from any face
             evade: 0.28,
             charge: false,
-            weapons: one(Weapon { reach: 1.1, arc: 1.4, attack_interval: 4.1, damage: 0.5, ..MELEE }),
+            weapons: one(Weapon { reach: 1.1, zones: crate::strike::front(0.7), attack_interval: 4.1, damage: 0.5, ..MELEE }),
             ..foot
         },
         Skirmishers => UnitClass {
@@ -357,7 +360,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             charge: false,
             // A short blade — reach floored at 1.2 so foot can still reach UP to a
             // pressed-in rider, not just chip the horse.
-            weapons: one(Weapon { reach: 1.2, arc: 1.0, attack_interval: 3.8, damage: 0.275, ..MELEE }),
+            weapons: one(Weapon { reach: 1.2, zones: crate::strike::front(0.5), attack_interval: 3.8, damage: 0.275, ..MELEE }),
             ..foot
         },
         ShockCavalry => UnitClass {
@@ -394,8 +397,8 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             // cavalry sabre — long enough (1.5) to reach over the horse into the press,
             // at parity damage with a foot sword once the rider is in.
             weapons: two(
-                Weapon { reach: 2.4, arc: 0.4, attack_interval: 5.0, damage: 1.6, ..CHARGE },
-                Weapon { reach: 1.5, arc: 1.1, attack_interval: 4.2, damage: 0.5, ..MELEE },
+                Weapon { reach: 2.4, zones: crate::strike::front(0.2), attack_interval: 5.0, damage: 1.6, ..CHARGE },
+                Weapon { reach: 1.5, zones: crate::strike::flanks(1.55, 0.85), attack_interval: 4.2, damage: 0.5, ..MELEE },
             ),
             ..foot
         },
@@ -424,7 +427,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             charge: false,
             turn_mult: 0.9, // lighter horse, a touch nimbler than the shock arm
             // The cavalry sabre (reach 1.5 to clear the horse); no lance — light horse kites.
-            weapons: one(Weapon { reach: 1.5, arc: 1.1, attack_interval: 4.2, damage: 0.5, ..MELEE }),
+            weapons: one(Weapon { reach: 1.5, zones: crate::strike::flanks(1.55, 0.85), attack_interval: 4.2, damage: 0.5, ..MELEE }),
             ..foot
         },
         ArtilleryCrew => UnitClass {
@@ -438,7 +441,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             block: 0.0, // no shield wall; same from any face
             evade: 0.18,
             charge: false,
-            weapons: one(Weapon { reach: 1.2, arc: 1.0, attack_interval: 3.8, damage: 0.275, ..MELEE }),
+            weapons: one(Weapon { reach: 1.2, zones: crate::strike::front(0.5), attack_interval: 3.8, damage: 0.275, ..MELEE }),
             ..foot
         },
         Peasant => UnitClass {
@@ -455,7 +458,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             training: 0.3,
             bravery: 0.6,     // a levy's nerve is thin — breaks early
             morale_aura: 0.7, // a wavering mob steadies no one
-            weapons: one(Weapon { reach: 1.2, arc: 1.0, attack_interval: 3.8, damage: 0.275, ..MELEE }),
+            weapons: one(Weapon { reach: 1.2, zones: crate::strike::front(0.5), attack_interval: 3.8, damage: 0.275, ..MELEE }),
             ..foot
         },
         // The cheap sword line: light infantry's body, a sword instead of a
@@ -472,7 +475,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             block: 0.3, // a light shield, a hair less than the spear line's
             evade: 0.18,
             training: 0.55,
-            weapons: one(Weapon { reach: 1.1, arc: 1.4, attack_interval: 4.1, damage: 0.5, ..MELEE }),
+            weapons: one(Weapon { reach: 1.1, zones: crate::strike::front(0.7), attack_interval: 4.1, damage: 0.5, ..MELEE }),
             ..foot
         },
         MediumInfantry => UnitClass {
@@ -487,7 +490,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             block: 0.4,
             evade: 0.13,
             training: 0.65,
-            weapons: one(Weapon { reach: 1.1, arc: 1.4, attack_interval: 4.1, damage: 0.5, ..MELEE }),
+            weapons: one(Weapon { reach: 1.1, zones: crate::strike::front(0.7), attack_interval: 4.1, damage: 0.5, ..MELEE }),
             ..foot
         },
         // The armoured spear wall: heavy infantry's body and shield, a spear
@@ -505,7 +508,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             block: 0.45,
             evade: 0.08,
             training: 0.75,
-            weapons: one(Weapon { reach: 1.6, arc: 0.6, attack_interval: 4.4, damage: 0.2375, ..MELEE }),
+            weapons: one(Weapon { reach: 1.6, zones: crate::strike::front(0.3), attack_interval: 4.4, damage: 0.2375, ..MELEE }),
             ..foot
         },
         MediumSpear => UnitClass {
@@ -520,7 +523,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             block: 0.4,
             evade: 0.12,
             training: 0.65,
-            weapons: one(Weapon { reach: 1.6, arc: 0.6, attack_interval: 4.4, damage: 0.2375, ..MELEE }),
+            weapons: one(Weapon { reach: 1.6, zones: crate::strike::front(0.3), attack_interval: 4.4, damage: 0.2375, ..MELEE }),
             ..foot
         },
     }

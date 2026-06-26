@@ -107,7 +107,19 @@ regresses, so the red reads as intent. Reverting a sound foundation to keep
 brittle pins green re-installs the bug. (Worked: M-equivariant Jacobi contact
 passes; realistic ~90°/s turn rates that make a flanked phalanx HOLD instead of
 flailing apart — the old "cav routs a flanked phalanx" pin had certified the
-flailing bug.)
+flailing bug.) When a rebuild reddens a WHOLE WALL at once, two moves keep it
+honest. **Contain** — gate the new behavior on the role that needs it (the
+arc-cost on `mounted`, not foot) and prove the untouched role is byte-neutral
+(golden does NOT move — it held `0xbc67…` through the whole arc rebuild because
+foot stayed identical), so the red set is only what genuinely changed; if golden
+moves and you expected containment, you are not contained — find the leak.
+**Settle each red's PROVENANCE before its mechanics-cause**: was it already red
+at HEAD (`git stash -u`, run the one test — carried-in, not yours, re-derive
+once), did your own edit break a green test (toggle `if false && <your-cond>` and
+re-run — your regression, fix the mechanism it exposed, e.g. a lance whiff), or
+did a sound change move a value pin (re-pin to the printed actual with a one-line
+cause, only after the qualitative contract still holds). When you finish, hand
+David the [change-report](../change-report/SKILL.md) ledger of every moved test.
 
 ## Measure the mechanism, never argue from the score
 
@@ -269,18 +281,34 @@ the new behavior is confirmed and commit the baselines as the record. Flip throu
 `web/shots/baseline/vibe/<scenario>/` t000…t300 for approach → contact → grind →
 break → rout; `vibe/measure-duel.mjs` is the JS twin of the Rust test.
 
-## Test taxonomy
+## Test taxonomy — by what each layer is ALLOWED to depend on
 
-`crates/sim/tests/README.md` is the canonical map. Quick routing:
+`crates/sim/tests/README.md` is the canonical map. The layers are defined by
+their *units*, which is what keeps each one answering a single question:
 
-| Prefix | What it is | Asserts on |
+| Prefix | Units | Asserts on |
 |---|---|---|
-| `mechanics_*.rs` | first-principles physics | cohesion, centroids, pressure, facing — NOT wins |
-| `balance_*.rs` | performance-vs-price over seeds | win-rate / survivor spread (`balance-unit` skill) |
-| `*_scenarios.rs` | public-API emergence contracts | player-visible behavior (`write-tests` skill) |
+| `mechanics_*.rs` | **IMMORTAL fakes** (zero-damage / 1e9 HP, morale off) | cohesion, centroids, pressure, facing, knockdown stun, charge speed — NOT wins |
+| `scenario_*.rs` | **FAKE REFERENCE units** (fixed test-owned stats) | player-visible OUTCOMES (who breaks whom, survivors) — balance-independent |
+| `balance_*.rs` | **REAL class stats** | win-rate / survivor spread vs price (`balance-unit` skill) |
 
-New physics tests go in `mechanics_*.rs`. Legacy `*_scenarios.rs` mostly belong in
-the mechanics bucket — migrate opportunistically when you touch them.
+The rule (David): **a test may only depend on the layer below it.** Mechanics use
+immortal fakes so no balance can leak into a physics check. Scenarios use FAKE
+REFERENCE units (the `mechanics_survivability.rs` `ref_stats`/`REF_BLADE` pattern)
+with fixed stats — so a balance retune of a real class can never break a scenario,
+AND those fake stats double as **reference points** for balancing later ("a charge
+unit with lance dmg X + grind sabre Y gives this charge-vs-walk-in shape"). Only
+`balance_*` touches real class stats — it is the one layer that *should* move when
+you tune unit-vs-price.
+
+The smell this prevents: a sound physics fix that makes a real class better (e.g. a
+mounted sabre that can finally cut its target) "breaks" a mechanics/scenario test
+pinned on that real class, with no clean signal of whether physics or balance moved.
+If you're re-deriving a real-unit win-rate inside `mechanics_*`/`scenario_*`, STOP —
+rebuild it on fakes; the win-rate belongs in `balance_*`.
+
+New physics tests go in `mechanics_*.rs` on immortal fakes. A real-class outcome
+pinned in a scenario is a bug to migrate onto reference units when you touch it.
 
 ## Process (non-negotiable)
 

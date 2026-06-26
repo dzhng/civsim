@@ -587,7 +587,7 @@ fn main() {
         let pike = sim::Weapon {
             reach: 3.5,
             min_range: 1.1,
-            arc: 0.08,
+            zones: sim::strike::front(0.04),
             attack_interval: 1.4,
             damage: 0.0,
             cleave: false,

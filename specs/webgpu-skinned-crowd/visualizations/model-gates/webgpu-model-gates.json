@@ -406,7 +406,7 @@
         "roadSegments": 0,
         "selections": 0,
         "labels": 4,
-        "visibleLabels": 4,
+        "visibleLabels": 2,
         "labelLayer": "raw-webgpu-glyph-atlas",
         "entityLayer": "raw-webgpu-legacy-model-meshes",
         "postCutoverScreenshots": "webgpu-only"

@@ -1,6 +1,6 @@
 {
   "kind": "screenshot-parity-diff",
-  "generatedAt": "2026-06-26T20:27:31.897Z",
+  "generatedAt": "2026-06-26T21:03:54.128Z",
   "note": "Lower parityDistance means the candidate is closer to archived current-renderer parity. This is a parity metric, not an aesthetics acceptance gate.",
   "results": [
     {
@@ -11,24 +11,24 @@
         "width": 1280,
         "height": 800
       },
-      "parityDistance": 0.37081,
+      "parityDistance": 0.3759,
       "grayscale": {
-        "mae": 65.87483,
-        "rmse": 94.55084,
-        "diffRatio16": 0.58347,
-        "diffRatio32": 0.48892,
-        "diffRatio64": 0.41299,
-        "pixelmatchRatio": 0.54976
+        "mae": 65.92106,
+        "rmse": 94.57953,
+        "diffRatio16": 0.5838,
+        "diffRatio32": 0.48924,
+        "diffRatio64": 0.41374,
+        "pixelmatchRatio": 0.55018
       },
       "contentProxies": {
         "blackRatioCurrent": 0.48049,
-        "blackRatioCandidate": 0.48428,
+        "blackRatioCandidate": 0.48416,
         "terrainLikeRatioCurrent": 0.4811,
-        "terrainLikeRatioCandidate": 0.4917,
+        "terrainLikeRatioCandidate": 0.49179,
         "edgeEnergyCurrent": 0.05082,
-        "edgeEnergyCandidate": 0.04225,
-        "edgeEnergyRatio": 0.83147,
-        "edgeDiffRatio32": 0.08925
+        "edgeEnergyCandidate": 0.04131,
+        "edgeEnergyRatio": 0.81285,
+        "edgeDiffRatio32": 0.0891
       },
       "artifacts": {
         "currentGray": "visual-diff/campaign-label-zoom-current-gray.png",

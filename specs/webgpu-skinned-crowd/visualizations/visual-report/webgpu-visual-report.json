@@ -71,7 +71,7 @@
       "category": "campaign",
       "criteria": "Parchment map, territory, roads, water, clouds, WebGPU glyph labels.",
       "status": "webgpu-evidence",
-      "evidence": "412 cities; 40/492 labels; raw-webgpu-glyph-atlas",
+      "evidence": "412 cities; 30/494 labels; raw-webgpu-glyph-atlas",
       "image": "visual-report/campaign-whole-map.png",
       "currentRendererComparison": {
         "status": "webgpu-better",
@@ -85,7 +85,7 @@
       "category": "campaign",
       "criteria": "City/army/road/label readability at gameplay zoom.",
       "status": "webgpu-evidence",
-      "evidence": "5/11 labels; atlas 1024x64; raw-webgpu-glyph-atlas",
+      "evidence": "3/5 labels; atlas 1024x64; raw-webgpu-glyph-atlas",
       "image": "visual-report/campaign-label-zoom.png",
       "currentRendererComparison": {
         "status": "pending-review",

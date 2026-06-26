@@ -61,6 +61,11 @@ export interface CampaignLabel {
   angle?: number;
   icon?: 'city' | 'army';
   iconColor?: [number, number, number];
+  subText?: string;
+  screenOffsetX?: number;
+  screenOffsetY?: number;
+  factionRadiusKm?: number;
+  factionMinor?: boolean;
 }
 
 const ICON_PATHS = {
@@ -579,7 +584,7 @@ export class CampaignLabelPass {
     const stats = this.shell.stats();
     const dpr = Math.max(1, stats.dpr || window.devicePixelRatio || 1);
     const snapshot: CameraSnapshot = { ...camera, width: stats.width, height: stats.height };
-    const visible = visibleLabels(labels, snapshot);
+    const visible = visibleLabels(labels, snapshot, dpr);
     if (visible.length === 0) {
       this.vertexCount = 0;
       this.atlasKey = `empty:${labels.length}:${dpr}`;
@@ -667,19 +672,7 @@ export function buildCampaignMapDrawData(data: CampaignMapInputData): CampaignMa
   for (const edge of data.map.edges) pushEdgeLines(vertices, edge);
   const cityNodes = data.map.nodes.filter((node) => node.kind === 'city');
   const cityMarkers = cityNodes.map((node) => markerForNode(data, node));
-  const labels = [
-    ...cityNodes.map((node) => ({
-      text: node.name,
-      x: node.pos[0],
-      y: node.pos[1] + 18,
-      kind: 'city' as const,
-      size: node.tier >= 3 ? 15 : 12,
-      priority: node.tier,
-      icon: 'city' as const,
-      iconColor: (node.owner === 'rome' ? [0.31, 0.82, 0.39] : [0.93, 0.78, 0.30]) as [number, number, number],
-    })),
-    ...seaLabels(),
-  ];
+  const labels = data.map.nodes.length > 20 ? seaLabels() : [];
   return {
     roadVertices: new Float32Array(vertices),
     cityMarkers,
@@ -759,6 +752,8 @@ function seaLabels(): CampaignLabel[] {
     { text: 'Adriatic Sea', x: 70, y: 690, size: 18, kind: 'sea', priority: 4, angle: -0.65 },
     { text: 'Aegean Sea', x: 600, y: 150, size: 17, kind: 'sea', priority: 4, angle: -0.7 },
     { text: 'Black Sea', x: 1080, y: 1180, size: 24, kind: 'sea', priority: 4 },
+    { text: 'Iberian Sea', x: -1640, y: -40, size: 22, kind: 'sea', priority: 4 },
+    { text: 'Atlantic Ocean', x: -2120, y: 560, size: 22, kind: 'sea', priority: 4, angle: -1.2 },
   ];
 }
 
@@ -766,6 +761,9 @@ interface VisibleCampaignLabel {
   label: CampaignLabel;
   screenX: number;
   screenY: number;
+  offsetX: number;
+  offsetY: number;
+  opacity: number;
 }
 
 interface AtlasEntry extends VisibleCampaignLabel {
@@ -777,14 +775,47 @@ interface AtlasEntry extends VisibleCampaignLabel {
   v1: number;
 }
 
-function visibleLabels(labels: CampaignLabel[], camera: CameraSnapshot): VisibleCampaignLabel[] {
-  const minPriority = camera.zoom < 0.35 ? 3 : camera.zoom < 1.1 ? 2 : 1;
+function visibleLabels(labels: CampaignLabel[], camera: CameraSnapshot, dpr: number): VisibleCampaignLabel[] {
   const visible: VisibleCampaignLabel[] = [];
   for (const label of labels) {
-    if ((label.kind === 'city' || label.kind === 'faction') && label.priority < minPriority) continue;
+    let opacity = 1;
+    let resolved = label;
+    if (label.kind === 'city') {
+      const minTier = camera.zoom < 0.6 ? 3 : camera.zoom < 0.85 ? 2 : 1;
+      if (label.priority < minTier) continue;
+      const size = Math.min(15, 9.5 + camera.zoom) * (label.priority >= 3 ? 1.15 : 1);
+      resolved = { ...label, size };
+    } else if (label.kind === 'army') {
+      if (camera.zoom <= 0.35) continue;
+      const size = Math.min(14, 9 + camera.zoom);
+      resolved = { ...label, size };
+    } else if (label.kind === 'sea') {
+      opacity = (1 - clamp01((camera.zoom - 0.26) / 0.16)) * 0.8;
+      if (opacity <= 0.02) continue;
+    } else if (label.kind === 'faction') {
+      const radius = label.factionRadiusKm ?? 0;
+      const screenR = radius * camera.zoom;
+      const powerAlpha = 1 - clamp01((camera.zoom - 0.72) / 0.16);
+      const leagueHiFade = 1 - clamp01((camera.zoom - 0.85) / 0.18);
+      opacity = label.factionMinor
+        ? clamp01((screenR - 95) / 45) * leagueHiFade * 0.9
+        : powerAlpha;
+      if (opacity <= 0.02) continue;
+      const size = label.factionMinor
+        ? Math.min(22, Math.max(9, screenR * 0.4))
+        : Math.min(34, Math.max(17, screenR * 0.5));
+      resolved = { ...label, size };
+    }
     const [screenX, screenY] = worldToScreen(camera, label.x, label.y);
     if (screenX < -180 || screenY < -80 || screenX > camera.width + 180 || screenY > camera.height + 80) continue;
-    visible.push({ label, screenX, screenY });
+    visible.push({
+      label: resolved,
+      screenX,
+      screenY,
+      offsetX: (label.screenOffsetX ?? 0) * dpr,
+      offsetY: (label.screenOffsetY ?? 0) * dpr,
+      opacity,
+    });
   }
   return visible;
 }
@@ -793,17 +824,24 @@ function labelAtlasKey(labels: VisibleCampaignLabel[], dpr: number, totalLabels:
   return [
     totalLabels,
     dpr.toFixed(2),
-    ...labels.map(({ label }) => [
-      label.kind,
-      labelText(label),
-      label.x.toFixed(2),
-      label.y.toFixed(2),
-      label.size.toFixed(2),
-      label.priority,
-      (label.angle ?? 0).toFixed(3),
-      label.icon ?? 'none',
-      label.iconColor?.map((v) => v.toFixed(3)).join(',') ?? '',
-    ].join(':')),
+    ...labels.map((entry) => {
+      const { label } = entry;
+      return [
+        label.kind,
+        labelText(label),
+        label.x.toFixed(2),
+        label.y.toFixed(2),
+        label.size.toFixed(2),
+        label.priority,
+        (label.angle ?? 0).toFixed(3),
+        label.icon ?? 'none',
+        label.iconColor?.map((v) => v.toFixed(3)).join(',') ?? '',
+        label.subText ?? '',
+        entry.offsetX.toFixed(2),
+        entry.offsetY.toFixed(2),
+        entry.opacity.toFixed(3),
+      ].join(':');
+    }),
   ].join('|');
 }
 
@@ -812,14 +850,18 @@ function buildLabelAtlas(labels: VisibleCampaignLabel[], dpr: number) {
   const measured = labels.map((entry) => {
     const style = labelStyle(entry.label, dpr);
     measure.font = style.font;
+    measure.letterSpacing = style.letterSpacing;
     const text = labelText(entry.label);
+    const subText = entry.label.subText ?? '';
     const iconWidth = entry.label.icon ? style.iconSize + style.iconGap : 0;
+    const subWidth = subText ? measureTextWithFont(measure, style.subFont, style.letterSpacing, subText) : 0;
     return {
       ...entry,
       text,
+      subText,
       style,
-      width: Math.max(1, Math.ceil(measure.measureText(text).width + iconWidth + style.padding * 2)),
-      height: Math.max(1, Math.ceil(style.size * 1.55 + style.padding * 2)),
+      width: Math.max(1, Math.ceil(Math.max(measure.measureText(text).width + iconWidth, subWidth) + style.padding * 2)),
+      height: Math.max(1, Math.ceil(style.size * (subText ? 2.2 : 1.55) + style.padding * 2)),
     };
   });
   const atlasWidth = measured.some((entry) => entry.width > 1024) ? 2048 : 1024;
@@ -847,26 +889,39 @@ function buildLabelAtlas(labels: VisibleCampaignLabel[], dpr: number) {
   for (const entry of placements) {
     ctx.save();
     ctx.font = entry.style.font;
+    ctx.letterSpacing = entry.style.letterSpacing;
     ctx.textAlign = 'left';
     ctx.textBaseline = 'alphabetic';
     ctx.lineJoin = 'round';
     const iconWidth = entry.label.icon ? entry.style.iconSize + entry.style.iconGap : 0;
     const tx = entry.x + entry.style.padding + iconWidth;
     const ty = entry.y + entry.style.padding + entry.style.size;
+    ctx.globalAlpha = entry.opacity;
     if (entry.label.icon) drawLabelIcon(ctx, entry.label, entry.x + entry.style.padding, ty - entry.style.iconSize * 0.84, entry.style);
     ctx.lineWidth = entry.style.haloWidth;
     ctx.strokeStyle = entry.style.halo;
     ctx.strokeText(entry.text, tx, ty);
-    ctx.lineWidth = Math.max(1, entry.style.haloWidth * 0.45);
-    ctx.strokeStyle = entry.style.warmEdge;
-    ctx.strokeText(entry.text, tx, ty);
     ctx.fillStyle = entry.style.fill;
     ctx.fillText(entry.text, tx, ty);
+    if (entry.subText) {
+      ctx.font = entry.style.subFont;
+      const subWidth = ctx.measureText(entry.subText).width;
+      const sx = entry.x + entry.width * 0.5 - subWidth * 0.5;
+      const sy = ty + entry.style.size * 0.92;
+      ctx.lineWidth = entry.style.subHaloWidth;
+      ctx.strokeStyle = entry.style.halo;
+      ctx.strokeText(entry.subText, sx, sy);
+      ctx.fillStyle = entry.style.subFill;
+      ctx.fillText(entry.subText, sx, sy);
+    }
     ctx.restore();
     entries.push({
       label: entry.label,
       screenX: entry.screenX,
       screenY: entry.screenY,
+      offsetX: entry.offsetX,
+      offsetY: entry.offsetY,
+      opacity: entry.opacity,
       width: entry.width,
       height: entry.height,
       u0: entry.x / atlasWidth,
@@ -902,8 +957,8 @@ function buildLabelVertices(entries: AtlasEntry[]) {
       const oy = x * s + y * c;
       vertices[o++] = label.x;
       vertices[o++] = label.y;
-      vertices[o++] = ox;
-      vertices[o++] = oy;
+      vertices[o++] = ox + entry.offsetX;
+      vertices[o++] = oy + entry.offsetY;
       vertices[o++] = u;
       vertices[o++] = v;
     }
@@ -920,52 +975,68 @@ function labelStyle(label: CampaignLabel, dpr: number) {
   if (label.kind === 'sea') {
     return {
       font: `italic 400 ${size}px Georgia, 'Times New Roman', serif`,
+      letterSpacing: '0px',
       size,
       padding: Math.ceil(size * 0.34),
       fill: 'rgba(29, 52, 66, 0.96)',
       halo: 'rgba(238, 239, 222, 0.68)',
-      warmEdge: 'rgba(20, 36, 48, 0.42)',
       haloWidth: Math.max(2, size * 0.16),
       iconSize: 0,
       iconGap: 0,
+      iconHaloWidth: 0,
+      subFont: `600 ${size * 0.72}px Cinzel, Georgia, 'Times New Roman', serif`,
+      subFill: 'rgba(232,224,208,0.92)',
+      subHaloWidth: 2 * dpr,
     };
   }
   if (label.kind === 'army') {
     return {
-      font: `700 ${size}px Cinzel, Georgia, serif`,
+      font: `600 ${size}px Cinzel, Georgia, 'Times New Roman', serif`,
+      letterSpacing: `${0.5 * dpr}px`,
       size,
       padding: Math.ceil(size * 0.42),
-      fill: 'rgba(255, 238, 185, 1)',
-      halo: 'rgba(12, 8, 5, 0.92)',
-      warmEdge: 'rgba(72, 45, 18, 0.82)',
-      haloWidth: Math.max(3, size * 0.24),
-      iconSize: size * 1.05,
-      iconGap: size * 0.22,
+      fill: 'rgba(248,244,237,0.98)',
+      halo: 'rgba(20,15,10,0.65)',
+      haloWidth: 2.5 * dpr,
+      iconSize: size * 1.25,
+      iconGap: size * 0.32,
+      iconHaloWidth: 30,
+      subFont: `600 ${size * 0.72}px Cinzel, Georgia, 'Times New Roman', serif`,
+      subFill: 'rgba(232,224,208,0.92)',
+      subHaloWidth: 2 * dpr,
     };
   }
   if (label.kind === 'faction') {
     return {
-      font: `800 ${size}px Cinzel, Georgia, serif`,
+      font: `700 ${size}px Cinzel, Georgia, 'Times New Roman', serif`,
+      letterSpacing: `${Math.max(0.5 * dpr, size * 0.07)}px`,
       size,
       padding: Math.ceil(size * 0.44),
-      fill: 'rgba(42, 27, 16, 0.88)',
-      halo: 'rgba(240, 220, 176, 0.58)',
-      warmEdge: 'rgba(74, 48, 27, 0.42)',
-      haloWidth: Math.max(3, size * 0.18),
+      fill: 'rgba(250,248,243,0.98)',
+      halo: 'rgba(10,8,5,0.9)',
+      haloWidth: Math.max(2.5 * dpr, size / 6),
       iconSize: 0,
       iconGap: 0,
+      iconHaloWidth: 0,
+      subFont: `600 ${size * 0.72}px Cinzel, Georgia, 'Times New Roman', serif`,
+      subFill: 'rgba(232,224,208,0.92)',
+      subHaloWidth: 2 * dpr,
     };
   }
   return {
-    font: `700 ${size}px Cinzel, Georgia, serif`,
+    font: `600 ${size}px Cinzel, Georgia, 'Times New Roman', serif`,
+    letterSpacing: `${0.5 * dpr}px`,
     size,
-    padding: Math.ceil(size * 0.38),
-    fill: 'rgba(20, 14, 10, 1)',
-    halo: 'rgba(242, 226, 184, 0.90)',
-    warmEdge: 'rgba(86, 58, 28, 0.48)',
-    haloWidth: Math.max(2, size * 0.16),
-    iconSize: size * 1.0,
-    iconGap: size * 0.18,
+    padding: Math.ceil(size * 0.42),
+    fill: 'rgba(248,244,237,0.98)',
+    halo: 'rgba(20,15,10,0.65)',
+    haloWidth: 2.5 * dpr,
+    iconSize: size * 1.25,
+    iconGap: size * 0.32,
+    iconHaloWidth: 30,
+    subFont: `600 ${size * 0.72}px Cinzel, Georgia, 'Times New Roman', serif`,
+    subFill: 'rgba(232,224,208,0.92)',
+    subHaloWidth: 2 * dpr,
   };
 }
 
@@ -983,7 +1054,7 @@ function drawLabelIcon(
   ctx.save();
   ctx.translate(x, y);
   ctx.scale(s, s);
-  ctx.lineWidth = Math.max(10, style.haloWidth / s);
+  ctx.lineWidth = style.iconHaloWidth;
   ctx.strokeStyle = style.halo;
   ctx.stroke(path);
   ctx.fillStyle = `rgb(${Math.round(color[0] * 255)}, ${Math.round(color[1] * 255)}, ${Math.round(color[2] * 255)})`;
@@ -995,4 +1066,19 @@ function nextPowerOfTwo(value: number) {
   let power = 1;
   while (power < value) power *= 2;
   return power;
+}
+
+function clamp01(value: number) {
+  return Math.min(1, Math.max(0, value));
+}
+
+function measureTextWithFont(ctx: CanvasRenderingContext2D, font: string, letterSpacing: string, text: string) {
+  const prevFont = ctx.font;
+  const prevLetterSpacing = ctx.letterSpacing;
+  ctx.font = font;
+  ctx.letterSpacing = letterSpacing;
+  const width = ctx.measureText(text).width;
+  ctx.font = prevFont;
+  ctx.letterSpacing = prevLetterSpacing;
+  return width;
 }

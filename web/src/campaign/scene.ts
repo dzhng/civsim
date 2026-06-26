@@ -266,6 +266,7 @@ export class CampaignScene implements Scene {
         factionStatus: this.factionStatus,
         playerFaction: this.playerFaction(),
         fogOfWar: this.fogOfWar,
+        factionView: this.factionView,
       });
     }
     this.updateHud();

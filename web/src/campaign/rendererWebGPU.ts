@@ -23,6 +23,7 @@ interface DrawOptions {
   factionStatus: Int8Array;
   playerFaction: number;
   fogOfWar: boolean;
+  factionView: boolean;
 }
 
 export class CampaignRendererWebGPU {
@@ -134,7 +135,7 @@ export class CampaignRendererWebGPU {
     this.entities.upload(frame.entities);
     this.selection.upload(frame.selections);
     this.labelStats = this.labels.upload(
-      this.staticLabels.concat(campaignArmyLabels(opts.armies), campaignFactionLabels(opts.factionLabels)),
+      this.staticLabels.concat(campaignCityLabels(this.data, opts), campaignArmyLabels(opts), campaignFactionLabels(opts)),
       this.currentCamera,
     );
     const uploadEnd = performance.now();
@@ -302,28 +303,95 @@ function allegianceColor(allegiance: Allegiance): [number, number, number] {
   return [0.93, 0.78, 0.30];
 }
 
-function campaignArmyLabels(armies: ArmyView[]): CampaignLabel[] {
-  return armies.map((army) => ({
-    text: army.mine ? (army.id === 0 ? '1ST LEGION' : `LEGION ${army.id + 1}`) : `Host ${army.id}`,
-    x: army.x,
-    y: army.y + 13,
-    kind: 'army',
-    size: 13,
-    priority: 4,
-    icon: 'army',
-    iconColor: army.mine ? [0.31, 0.82, 0.39] : [0.93, 0.78, 0.30],
-  }));
+function campaignCityLabels(data: CampaignData, opts: DrawOptions): CampaignLabel[] {
+  const cityHasArmy = new Set<number>();
+  for (const army of visibleCampaignArmies(opts)) {
+    let best = -1;
+    let bestD = 8;
+    data.map.nodes.forEach((node, index) => {
+      if (node.kind !== 'city') return;
+      const d = Math.hypot(node.pos[0] - army.x, node.pos[1] - army.y);
+      if (d < bestD) {
+        bestD = d;
+        best = index;
+      }
+    });
+    if (best >= 0) cityHasArmy.add(best);
+  }
+  const labels: CampaignLabel[] = [];
+  data.map.nodes.forEach((node, index) => {
+    if (node.kind !== 'city') return;
+    const city = opts.cities.get(index);
+    const owner = city?.owner ?? Math.max(0, data.map.factions.findIndex((faction) => faction.id === node.owner));
+    const allegiance = opts.factionView ? statusOf(opts.factionStatus, owner) : Allegiance.Neutral;
+    const baseSize = Math.min(15, 9.5 + opts.cam.scale) * (node.tier >= 3 ? 1.15 : 1);
+    labels.push({
+      text: node.name.toUpperCase(),
+      x: node.pos[0],
+      y: node.pos[1],
+      kind: 'city',
+      size: baseSize,
+      priority: node.tier,
+      icon: 'city',
+      iconColor: allegianceColor(allegiance),
+      screenOffsetY: 14 + (cityHasArmy.has(index) ? baseSize * 1.5 : 0),
+    });
+  });
+  return labels;
 }
 
-function campaignFactionLabels(labels: FactionLabel[]): CampaignLabel[] {
-  return labels.map((label) => ({
+function campaignArmyLabels(opts: DrawOptions): CampaignLabel[] {
+  const ordinalOf = new Map<number, number>();
+  const byFaction = new Map<number, number[]>();
+  for (const army of visibleCampaignArmies(opts)) {
+    const ids = byFaction.get(army.faction) ?? [];
+    ids.push(army.id);
+    byFaction.set(army.faction, ids);
+  }
+  for (const ids of byFaction.values()) {
+    ids.sort((a, b) => a - b);
+    ids.forEach((id, index) => ordinalOf.set(id, index + 1));
+  }
+  return visibleCampaignArmies(opts).map((army): CampaignLabel => {
+    const allegiance = army.mine || army.faction === opts.playerFaction ? Allegiance.Friend : statusOf(opts.factionStatus, army.faction);
+    const markerSize = army.id === opts.selected ? 13 : 11;
+    return {
+      text: `${ordinal(ordinalOf.get(army.id) ?? 1)} LEGION`,
+      subText: `${Math.round(army.soldiers / 100) / 10}k`,
+      x: army.x,
+      y: army.y,
+      kind: 'army',
+      size: Math.min(14, 9 + opts.cam.scale),
+      priority: 4,
+      icon: 'army',
+      iconColor: allegianceColor(allegiance),
+      screenOffsetY: 18,
+    };
+  });
+}
+
+function visibleCampaignArmies(opts: DrawOptions) {
+  return opts.armies.filter((army) => !(opts.fogOfWar && !army.mine && statusOf(opts.factionStatus, army.faction) !== Allegiance.Foe));
+}
+
+function ordinal(k: number) {
+  const value = k % 100;
+  const suffix = value >= 11 && value <= 13 ? 'th' : (['th', 'st', 'nd', 'rd'][k % 10] ?? 'th');
+  return `${k}${suffix}`;
+}
+
+function campaignFactionLabels(opts: DrawOptions): CampaignLabel[] {
+  if (!opts.factionView) return [];
+  return opts.factionLabels.map((label): CampaignLabel => ({
     text: label.name,
     x: label.x,
     y: label.y,
     kind: 'faction',
-    size: Math.max(13, Math.min(label.minor ? 16 : 22, label.radiusKm / (label.minor ? 12 : 20))),
-    priority: label.minor ? 2 : 4,
+    size: label.minor ? 9 : 17,
+    priority: 4,
     angle: -0.06,
+    factionRadiusKm: label.radiusKm,
+    factionMinor: label.minor,
   }));
 }
 

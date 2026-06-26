@@ -99,6 +99,13 @@ campaign-label-zoom gate.
   edge energy closer to the archived renderer (`edgeEnergyRatio 1.03316`).
   A tested higher-saturation terrain grade looked plausible but worsened the
   same metric, so it was rejected rather than committed.
+- The `webgpu-visual-report` close camera now uses `cam(0, 433, 13)` for the
+  controlled stage so the board trapezoid and foreground void line up with the
+  archived close capture instead of overexposing the lower board. The glyph
+  atlas also uses a darker, wider black halo for city and army labels plus
+  stronger subtext. Together these moved Campaign Label Zoom parity distance
+  from `0.23538` to `0.20930`, with black/terrain coverage closer to the
+  reference and `edgeEnergyRatio 0.98570`.
 
 ## Must Stay Green
 
@@ -116,8 +123,8 @@ Campaign readability matters more than battle fidelity here: ownership,
 standing, roads, and labels must scan quickly.
 
 Fresh screenshot critique is part of acceptance for close campaign work. The
-current WebGPU campaign captures still have open blockers: flags and selection
-footprints are not convincingly grounded, pale roads read as visible bands
-rather than raised stone roads, labels collide with geometry, environmental
-models are missing/too small in the label-zoom comparison, and the world is too
-washed out compared with the archived renderer.
+latest unprimed critique after the camera/label pass still flags open blockers:
+the map reads as a floating board against black void, labels remain crowded over
+busy cities and the central army, selection rings are too subtle, the central
+army/banner/road/label stack is visually tangled, object scale and shadows are
+not fully unified, and some rocks still read as clipped gray patches.

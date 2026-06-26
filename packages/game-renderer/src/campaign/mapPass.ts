@@ -996,14 +996,14 @@ function labelStyle(label: CampaignLabel, dpr: number) {
       size,
       padding: Math.ceil(size * 0.42),
       fill: 'rgba(248,244,237,0.98)',
-      halo: 'rgba(20,15,10,0.65)',
-      haloWidth: 2.5 * dpr,
+      halo: 'rgba(14,10,7,0.88)',
+      haloWidth: 3.1 * dpr,
       iconSize: size * 1.25,
       iconGap: size * 0.32,
       iconHaloWidth: 30,
       subFont: `600 ${size * 0.72}px Cinzel, Georgia, 'Times New Roman', serif`,
-      subFill: 'rgba(232,224,208,0.92)',
-      subHaloWidth: 2 * dpr,
+      subFill: 'rgba(248,244,237,0.96)',
+      subHaloWidth: 2.7 * dpr,
     };
   }
   if (label.kind === 'faction') {
@@ -1029,14 +1029,14 @@ function labelStyle(label: CampaignLabel, dpr: number) {
     size,
     padding: Math.ceil(size * 0.42),
     fill: 'rgba(248,244,237,0.98)',
-    halo: 'rgba(20,15,10,0.65)',
-    haloWidth: 2.5 * dpr,
+    halo: 'rgba(14,10,7,0.88)',
+    haloWidth: 3.1 * dpr,
     iconSize: size * 1.25,
     iconGap: size * 0.32,
     iconHaloWidth: 30,
     subFont: `600 ${size * 0.72}px Cinzel, Georgia, 'Times New Roman', serif`,
-    subFill: 'rgba(232,224,208,0.92)',
-    subHaloWidth: 2 * dpr,
+    subFill: 'rgba(248,244,237,0.96)',
+    subHaloWidth: 2.7 * dpr,
   };
 }
 

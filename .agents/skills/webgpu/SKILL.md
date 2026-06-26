@@ -70,6 +70,12 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   the line pass before changing camera or labels; then rerun the parity helper.
   Plausible palette changes can worsen the fixed pair, so keep rejected color
   experiments out of the committed artifact set.
+- For campaign label-zoom parity, validate the review camera itself before
+  changing art. A small controlled-stage center shift can move the board
+  trapezoid, black/terrain ratios, and edge-energy ratio much more than model
+  constants. After the frame matches, harden WebGPU glyph-atlas labels toward
+  the archived white text with black outline; weak translucent halos read as
+  missing text even when the font and icon are technically present.
 - Use instancing, batching, storage buffers, and GPU-side phase passes for scale.
   Avoid CPU readbacks in hot paths; debug readbacks must be bounded and named.
 - For iterative effects or simulations, separate phases such as `state`,

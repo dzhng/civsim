@@ -270,7 +270,7 @@ async function captureCampaignLabelZoom(ctx) {
   await page.evaluate(() => {
     window.__campaign.freeze(true);
     window.__campaign.place(0, 1, 0, 4);
-    window.__campaign.cam(0, 440, 13);
+    window.__campaign.cam(0, 433, 13);
   });
   await page.waitForTimeout(260);
   const stats = await page.evaluate(() => window.__campaignWebGPUStats);

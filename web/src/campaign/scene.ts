@@ -384,6 +384,24 @@ export class CampaignScene implements Scene {
   private rightClick(px: number, py: number) {
     if (this.selected < 0) return;
     const [wx, wy] = this.renderer.toWorld(px, py);
+    // Right-clicking an enemy army latches onto it — chase it across the map.
+    const rKm = 14 / this.cam.scale;
+    let foe = -1;
+    let foeD = rKm;
+    for (const a of this.armies) {
+      if (a.mine) continue;
+      const d = Math.hypot(a.x - wx, a.y - wy);
+      if (d < foeD) {
+        foeD = d;
+        foe = a.id;
+      }
+    }
+    if (foe >= 0) {
+      this.cfg.campaign.order_pursue(this.selected, foe);
+      this.refreshViews();
+      return;
+    }
+    // Otherwise, march to the clicked location.
     const loc = nearestLoc(this.cfg.data.map, wx, wy, 60 / this.cam.scale);
     if (!loc) return;
     this.cfg.campaign.order_move(this.selected, loc.kind, loc.a, loc.b);

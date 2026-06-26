@@ -198,6 +198,16 @@ impl Campaign {
         ok
     }
 
+    /// Chase a moving enemy army indefinitely (right-click an enemy army).
+    pub fn order_pursue(&mut self, army: u32, target: u32) -> bool {
+        if !self.owns(army) {
+            return false;
+        }
+        let ok = self.inner.order_pursue(army, target);
+        self.refresh();
+        ok
+    }
+
     pub fn order_ambush(&mut self, army: u32, spot: u32) -> bool {
         if !self.owns(army) {
             return false;
@@ -574,7 +584,9 @@ impl Campaign {
                 }
             };
             let (stance, mut pie_kind, mut pie_frac) = match a.stance {
-                Stance::March | Stance::Hold => (0.0, 0.0, 0.0),
+                // Pursuing renders like an ordinary march — it *is* a march, just
+                // one re-aimed at a moving target each tick.
+                Stance::March | Stance::Hold | Stance::Pursuing { .. } => (0.0, 0.0, 0.0),
                 Stance::Camp { build_ticks_left } => (
                     1.0,
                     if build_ticks_left > 0 { 2.0 } else { 0.0 },

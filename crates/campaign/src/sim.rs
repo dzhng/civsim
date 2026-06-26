@@ -22,6 +22,7 @@ pub fn tick(map: &WorldMap, st: &mut CampaignState) {
         crate::economy::day_tick(map, st);
         check_outcome(map, st);
     }
+    pursue(map, st);
     movement(map, st);
     run_down_routers(map, st);
     crate::economy::garrison_sorties(map, st);
@@ -637,6 +638,92 @@ fn check_outcome(map: &WorldMap, st: &mut CampaignState) {
         [f] => Some(Outcome::Victory(*f)),
         _ => None,
     };
+}
+
+/// Keep every pursuing army aimed at its quarry: re-point its path at the
+/// target's current tile, indefinitely, so it hounds the target across the map
+/// and stays on it even after it routs. Armies frozen in an encounter are left
+/// to the in-fight chase; the pursuit resumes if the quarry slips away. The
+/// chase ends only when the quarry is wiped out (stand down to Hold) or a new
+/// order replaces the stance.
+fn pursue(map: &WorldMap, st: &mut CampaignState) {
+    for i in 0..st.armies.len() {
+        let Stance::Pursuing { target } = st.armies[i].stance else {
+            continue;
+        };
+        let a = &st.armies[i];
+        if !a.alive() || a.encounter.is_some() || a.garrison_of.is_some() {
+            continue;
+        }
+        // Quarry gone: stand down where we are.
+        if !st.armies.get(target as usize).is_some_and(|t| t.alive()) {
+            let a = &mut st.armies[i];
+            a.stance = Stance::Hold;
+            a.path.clear();
+            a.path_idx = 0;
+            a.progress = 0.0;
+            continue;
+        }
+        let tloc = st.armies[target as usize].loc;
+        let la = st.armies[i].loc;
+        // Already on it (contact will form), or the route already ends on it —
+        // re-aim only when the tail has drifted off, so a half-step keeps its
+        // momentum (mirrors the in-encounter chase).
+        if la == tloc || st.armies[i].path.last() == Some(&tloc) {
+            continue;
+        }
+        if let Some(path) = crate::pathfind::plan(map, &st.road_levels, la, tloc, true) {
+            let a = &mut st.armies[i];
+            let keep = a.marching() && path.first() == Some(&a.path[a.path_idx]);
+            a.path = path;
+            a.path_idx = 0;
+            if !keep {
+                a.progress = 0.0;
+            }
+        }
+    }
+}
+
+/// Order an army to chase a moving target army indefinitely (`Stance::Pursuing`).
+/// Rejected if the chaser can't take orders, the target is the same army or not
+/// a live army, or there's no route to it right now.
+pub(crate) fn order_pursue(
+    map: &WorldMap,
+    st: &mut CampaignState,
+    army: ArmyId,
+    target: ArmyId,
+) -> bool {
+    if army == target || !st.armies.get(target as usize).is_some_and(|t| t.alive()) {
+        return false;
+    }
+    let Some(a) = st.armies.get(army as usize) else {
+        return false;
+    };
+    if !a.alive()
+        || a.garrison_of.is_some()
+        || matches!(a.stance, Stance::Routed { .. } | Stance::Occupying { .. })
+    {
+        return false;
+    }
+    if let Some(eid) = a.encounter {
+        let prep = st
+            .encounters
+            .iter()
+            .any(|e| e.id == eid && e.phase == EncounterPhase::Preparing && !e.ambush);
+        if !prep {
+            return false; // frozen: ambushed, pending, or fighting
+        }
+    }
+    let (la, tloc) = (st.armies[army as usize].loc, st.armies[target as usize].loc);
+    let Some(path) = crate::pathfind::plan(map, &st.road_levels, la, tloc, true) else {
+        return false;
+    };
+    let a = &mut st.armies[army as usize];
+    a.path = path;
+    a.path_idx = 0;
+    a.progress = 0.0;
+    a.stance = Stance::Pursuing { target };
+    true
 }
 
 /// Plan and set a path (shared by the player order surface and the AI).

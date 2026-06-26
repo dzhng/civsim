@@ -71,6 +71,13 @@ pub enum Stance {
     },
     /// Embarked on a sea lane.
     AtSea,
+    /// Chasing a moving enemy army: the path is re-pointed at the target's
+    /// current tile every tick, indefinitely, so the army hounds it across the
+    /// map — and keeps after it even once it routs. Ends when the target dies or
+    /// a new order is given.
+    Pursuing {
+        target: ArmyId,
+    },
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

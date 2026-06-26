@@ -41,6 +41,14 @@ impl Campaign {
         sim::try_move(&self.map, &mut self.state, army, dest, true)
     }
 
+    /// Latch an army onto a moving enemy army and chase it indefinitely — the
+    /// path re-aims at the target every tick, and the chase carries on even
+    /// after the target routs. Rejected if the chaser can't take orders or the
+    /// target isn't a reachable, live army.
+    pub fn order_pursue(&mut self, army: ArmyId, target: ArmyId) -> bool {
+        sim::order_pursue(&self.map, &mut self.state, army, target)
+    }
+
     pub fn order_halt(&mut self, army: ArmyId) -> bool {
         let Some(a) = self.state.armies.get_mut(army as usize) else {
             return false;

@@ -119,6 +119,34 @@ impl Campaign {
         self.inner.save()
     }
 
+    // ---- external (off-thread) AI bridge ----------------------------------
+
+    /// Hand AI scheduling to the host (worker) so the tick loop stops running
+    /// the commander inline.
+    pub fn set_external_ai(&mut self, on: bool) {
+        self.inner.set_external_ai(on);
+    }
+
+    /// Current campaign tick — what the host schedules dispatch/apply on.
+    pub fn tick_count(&self) -> f64 {
+        self.inner.tick_count() as f64
+    }
+
+    /// Run inside the worker: compute every campaigning faction's decision for
+    /// the loaded snapshot and return them as JSON to post back to the host.
+    pub fn commander_decisions_json(&self) -> String {
+        serde_json::to_string(&self.inner.commander_decisions()).unwrap()
+    }
+
+    /// Run on the host: apply decisions a worker computed earlier (JSON from
+    /// `commander_decisions_json`). Silently ignores malformed input.
+    pub fn apply_decisions_json(&mut self, json: &str) {
+        if let Ok(decisions) = serde_json::from_str::<Vec<campaign::ai::Decision>>(json) {
+            self.inner.apply_decisions(&decisions);
+            self.refresh();
+        }
+    }
+
     /// Saving is refused while a battle is pending or underway.
     pub fn can_save(&self) -> bool {
         self.fighting.is_none() && self.inner.state.battle_ready.is_none()

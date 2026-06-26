@@ -216,6 +216,35 @@ impl Campaign {
         serde_json::to_string(&self.state).unwrap()
     }
 
+    // ---- external (off-thread) AI -----------------------------------------
+    // When the host drives the AI itself, it: flips `set_external_ai(true)` so
+    // the tick loop stops running the commander inline; snapshots state, has a
+    // worker compute `commander_decisions`, and applies them on a fixed delay
+    // (see `crates/campaign/src/ai.rs` and tunables AI_DISPATCH_EVERY/AI_LATENCY).
+
+    /// Hand AI scheduling to the host (the worker path) or take it back (inline).
+    pub fn set_external_ai(&mut self, on: bool) {
+        self.state.external_ai = on;
+    }
+
+    /// Compute every campaigning faction's decision against the current state,
+    /// without touching it — what a worker runs on a posted snapshot.
+    pub fn commander_decisions(&self) -> Vec<ai::Decision> {
+        ai::commander_decisions(&self.map, &self.state)
+    }
+
+    /// Apply decisions the host computed earlier (replays orders + AI state).
+    pub fn apply_decisions(&mut self, decisions: &[ai::Decision]) {
+        for d in decisions {
+            ai::apply_decision(&self.map, &mut self.state, d);
+        }
+    }
+
+    /// Current campaign tick — the clock the host schedules dispatch/apply on.
+    pub fn tick_count(&self) -> u64 {
+        self.state.tick
+    }
+
     pub fn load(map_json: &str, save: &str) -> Result<Campaign, String> {
         let map = WorldMap::from_json(map_json);
         let mut state: CampaignState = serde_json::from_str(save).map_err(|e| e.to_string())?;

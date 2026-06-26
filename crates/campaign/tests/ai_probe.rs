@@ -154,16 +154,19 @@ fn commander_orders_capture_the_decision_and_replay() {
     c.state.cities.get_mut(&1).unwrap().garrison = garrison(UnitClassId::LightSpear, 5000);
     c.state.cities.get_mut(&2).unwrap().garrison = garrison(UnitClassId::LightSpear, 50);
 
-    let plan = campaign::ai::commander_orders(&c.map, &c.state, 0);
+    let decision = campaign::ai::commander_decision(&c.map, &c.state, 0);
     assert!(
-        plan.iter()
+        decision
+            .orders
+            .iter()
             .any(|o| matches!(o, Order::Move { dest: Loc::Node(2), .. })),
-        "the commander should emit a march on the soft city as an Order: {plan:?}",
+        "the commander should emit a march on the soft city as an Order: {:?}",
+        decision.orders,
     );
 
     // Applying the emitted orders to the live state reproduces the march — the
     // worker path (compute on a snapshot, apply the orders here) is faithful.
-    for o in &plan {
+    for o in &decision.orders {
         orders::apply(&c.map, &mut c.state, 0, o);
     }
     assert_eq!(

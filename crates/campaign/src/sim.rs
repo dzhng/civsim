@@ -31,10 +31,17 @@ pub fn tick(map: &WorldMap, st: &mut CampaignState) {
     crate::economy::garrison_returns(map, st);
     crate::economy::occupations(map, st);
     timers(st);
+    // Diplomacy is global, cheap, and shared by both AI paths (inline and
+    // external), so it runs here rather than inside the commander pass — just
+    // never inside a search sandbox.
+    if !st.in_rollout && st.tick % tun::DIPLOMACY_EVERY as u64 == 0 {
+        crate::ai::diplomacy(map, st);
+    }
     // A faction drawn into a fresh fight re-thinks at once (a sandbox doesn't:
     // its AI is suppressed). Runs before the hourly pass so the two share the
     // per-faction debounce instead of double-thinking on a 60-tick boundary.
-    if !st.in_rollout {
+    // Skipped when the host drives the AI externally.
+    if !st.in_rollout && !st.external_ai {
         crate::ai::event_rethink(map, st, enc_before);
     }
     // Fog recompute is the per-tick cost bottleneck, so a search sandbox skips
@@ -47,8 +54,9 @@ pub fn tick(map: &WorldMap, st: &mut CampaignState) {
         crate::visibility::recompute(map, st);
     }
     // The hourly commander pass is likewise suppressed inside a sandbox: letting
-    // the clone run its own AI would recurse into the search.
-    if st.tick % 60 == 0 && !st.in_rollout {
+    // the clone run its own AI would recurse into the search. It's also off when
+    // the host drives the AI externally (worker), which applies decisions itself.
+    if st.tick % 60 == 0 && !st.in_rollout && !st.external_ai {
         crate::ai::commanders(map, st);
     }
 }
@@ -619,6 +627,7 @@ pub fn new_state(map: &WorldMap, seed: u64, player_faction: u32) -> CampaignStat
         diplo_target: std::collections::BTreeMap::new(),
         in_rollout: false,
         last_think: std::collections::BTreeMap::new(),
+        external_ai: false,
     }
 }
 

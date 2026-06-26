@@ -254,6 +254,20 @@ pub const AI_BRAVADO_AGGRO: f64 = 40_000.0;
 /// always wins.
 pub const AI_SELECT_SCALE: f64 = 15_000.0;
 
+// ---- AI off-thread dispatch ------------------------------------------------
+// When the host drives the AI externally (a worker), it computes decisions for
+// the snapshot at a dispatch tick and applies them a fixed delay later, so the
+// outcome is independent of how long the worker took — only ever forcing a wait,
+// never a different result. Both are real-time-bound (ticks at a fixed rate), so
+// AI cost per real-second is independent of game speed.
+/// How often (ticks) the host dispatches a fresh AI snapshot. 60 = once a real
+/// second at base speed, the same rhythm as the inline commander pass.
+pub const AI_DISPATCH_EVERY: u64 = 60;
+/// Ticks between dispatching a snapshot and applying the decision it yields —
+/// the worker's compute budget. The orders are a touch stale on arrival, which
+/// is harmless because armies move only a fraction of a tile in this window.
+pub const AI_LATENCY: u64 = 60;
+
 // ---- AI event reactions ----------------------------------------------------
 /// Minimum gap (ticks) between a faction's commander runs. A fresh contact or
 /// siege re-thinks the affected faction immediately instead of waiting for its

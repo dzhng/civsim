@@ -7,9 +7,11 @@
 use crate::mapdata::{NodeId, WorldMap};
 use crate::state::*;
 use contract::UnitClassId;
+use serde::{Deserialize, Serialize};
 
 /// One thing a commander decided to do this turn. Mirrors the player order API.
-#[derive(Clone, Debug, PartialEq)]
+/// Serializable so a worker can ship its decisions back across the thread.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum Order {
     /// March (or pursue-by-tile) an army to a destination.
     Move { army: ArmyId, dest: Loc },

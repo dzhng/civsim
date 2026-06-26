@@ -284,6 +284,12 @@ pub struct CampaignState {
     /// storm in one tick. Transient scheduling state, never serialized.
     #[serde(skip)]
     pub last_think: BTreeMap<FactionId, u64>,
+    /// When set, the host drives the AI itself — computing decisions off the
+    /// tick loop (e.g. in a worker) and applying them on a fixed delay — so
+    /// `tick` does not run the commander inline. The synchronous, deterministic
+    /// path (the default, `false`) is unchanged. Transient; never serialized.
+    #[serde(skip)]
+    pub external_ai: bool,
 }
 
 impl CampaignState {

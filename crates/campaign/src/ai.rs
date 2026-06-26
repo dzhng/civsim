@@ -28,17 +28,73 @@ fn issue(map: &WorldMap, st: &mut CampaignState, f: FactionId, log: &mut Vec<Ord
     }
 }
 
-/// Run one faction's commander against a snapshot and return the orders it would
-/// issue, without touching the live game. This is the off-thread / strategy-swap
-/// entry point: a worker calls it on a posted snapshot and ships the orders back
-/// to be applied via `orders::apply`. (AI bookkeeping like bravado/rival mutates
-/// the clone here; the live game keeps its own via the synchronous pass.)
-pub fn commander_orders(map: &WorldMap, st: &CampaignState, f: FactionId) -> Vec<Order> {
+/// A commander's whole turn computed against a snapshot, ready to apply on a
+/// fixed delay: the orders it issues plus the AI bookkeeping it updated (its
+/// mood and its rival). This is the off-thread / strategy-swap unit — a worker
+/// computes it on a posted snapshot and ships it back; the host applies it with
+/// `apply_decision` at a deterministic later tick.
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
+pub struct Decision {
+    pub faction: FactionId,
+    pub orders: Vec<Order>,
+    pub bravado: f32,
+    pub rival: Option<FactionId>,
+}
+
+/// One faction's commander turn: drift its mood on the search cadence, then
+/// think — recording orders into `log` and applying them to `st`. Shared by the
+/// inline pass and the snapshot-based decision so the two can't drift apart.
+fn commander_turn(
+    map: &WorldMap,
+    st: &mut CampaignState,
+    f: FactionId,
+    bfs: &mut pathfind::Visited,
+    log: &mut Vec<Order>,
+) {
+    if st.tick % tun::AI_SEARCH_EVERY == 0 {
+        let step = st.rng.range_f32(-tun::AI_BRAVADO_DRIFT, tun::AI_BRAVADO_DRIFT);
+        let b = &mut st.factions[f as usize].bravado;
+        *b = (*b + step).clamp(tun::AI_BRAVADO_MIN, tun::AI_BRAVADO_MAX);
+    }
+    think(map, st, f, bfs, log);
+}
+
+/// Compute one faction's `Decision` against `st` without touching it — runs the
+/// commander turn on a clone and reads back the orders and updated AI state.
+pub fn commander_decision(map: &WorldMap, st: &CampaignState, f: FactionId) -> Decision {
     let mut clone = st.clone();
     let mut bfs = pathfind::Visited::new(map);
-    let mut log = Vec::new();
-    think(map, &mut clone, f, &mut bfs, &mut log);
-    log
+    let mut orders = Vec::new();
+    commander_turn(map, &mut clone, f, &mut bfs, &mut orders);
+    Decision {
+        faction: f,
+        orders,
+        bravado: clone.factions[f as usize].bravado,
+        rival: clone.factions[f as usize].rival,
+    }
+}
+
+/// Decisions for every campaigning AI faction against the current snapshot —
+/// what the host computes (off-thread) at a dispatch tick to apply on a delay.
+pub fn commander_decisions(map: &WorldMap, st: &CampaignState) -> Vec<Decision> {
+    (0..st.factions.len() as FactionId)
+        .filter(|&f| st.factions[f as usize].ai && map.factions[f as usize].ai_persona.campaigns())
+        .map(|f| commander_decision(map, st, f))
+        .collect()
+}
+
+/// Apply a decision the host computed earlier: replay its orders through the
+/// command surface, then commit the AI bookkeeping (mood, rival) and stamp the
+/// debounce. Applied to the *current* live state at the scheduled tick — the
+/// few ticks of staleness are harmless because armies crawl.
+pub fn apply_decision(map: &WorldMap, st: &mut CampaignState, d: &Decision) {
+    for o in &d.orders {
+        orders::apply(map, st, d.faction, o);
+    }
+    let fac = &mut st.factions[d.faction as usize];
+    fac.bravado = d.bravado;
+    fac.rival = d.rival;
+    st.last_think.insert(d.faction, st.tick);
 }
 
 /// Cost-weighted value of a roster (upkeep rate doubles as unit value).
@@ -73,10 +129,11 @@ fn road_dist(
     bfs.within(map, from, cap, |l| l == to)
 }
 
+/// The inline (synchronous, deterministic) commander pass: every campaigning AI
+/// faction takes its turn against the live state. The off-thread path computes
+/// the same turns as `Decision`s instead (see `commander_decisions`). Diplomacy
+/// is global and runs in `sim::tick` so both paths share it.
 pub fn commanders(map: &WorldMap, st: &mut CampaignState) {
-    if st.tick % tun::DIPLOMACY_EVERY as u64 == 0 {
-        diplomacy(map, st);
-    }
     let mut bfs = pathfind::Visited::new(map);
     for f in 0..st.factions.len() as u32 {
         if !st.factions[f as usize].ai {
@@ -87,17 +144,10 @@ pub fn commanders(map: &WorldMap, st: &mut CampaignState) {
         if !map.factions[f as usize].ai_persona.campaigns() {
             continue;
         }
-        // Nudge the combat mood on the search cadence: a small sticky walk, so a
-        // faction stays brave or cautious for a stretch instead of re-rolling.
-        if st.tick % tun::AI_SEARCH_EVERY == 0 {
-            let step = st.rng.range_f32(-tun::AI_BRAVADO_DRIFT, tun::AI_BRAVADO_DRIFT);
-            let b = &mut st.factions[f as usize].bravado;
-            *b = (*b + step).clamp(tun::AI_BRAVADO_MIN, tun::AI_BRAVADO_MAX);
-        }
         // Skip the hourly think if an event already re-thought this faction this
-        // very tick (debounce) — but the mood still drifts above.
+        // very tick (debounce).
         if st.last_think.get(&f) != Some(&st.tick) {
-            think(map, st, f, &mut bfs, &mut Vec::new());
+            commander_turn(map, st, f, &mut bfs, &mut Vec::new());
             st.last_think.insert(f, st.tick);
         }
     }

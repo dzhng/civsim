@@ -35,29 +35,34 @@ Booleans/specials: `mounted` (two-circle body + rider pool — set
 DEALS: foot 0.35 when charging, light horse 0.5, heavy horse 1.0; a pure
 ram like a chariot would be high here with near-zero weapon dps).
 
-## Step 2 — pick the weapon (a weapon is FIVE numbers, never six)
+## Step 2 — pick the weapon (a few fields, built off a base)
 
-`reach, min_range, arc, attack_interval, damage`. Reuse a template if it
-fits (`SWORD`, `SPEAR`, `LONG_SWORD`, `PIKE`, `LANCE`, …); only add a new
-`const` for a genuinely new profile. The physics that matter:
+A weapon is `reach, min_range, zones, attack_interval, damage` — build it
+INLINE off a base const with struct-update: `..MELEE` (a normal blade),
+`..BRACED` (a grounded pike), `..CHARGE` (a couched lance). No per-weapon
+named consts any more; each class declares its own weapons. The physics
+that matter:
 
 - **reach is the anti-cavalry axis** — the impale term stops a charge at
   reach, scaling with `((reach − 1.0)/2.2)²`. Sword 1.1 ≈ no stop; spear
   1.6 ≈ a little; pike 3.2 ≈ a wall. A "spearman who can blunt horse"
   needs reach ≥ ~1.6; a "pikeman who stops it" needs ~3.0+.
-- **arc** is the sweep: wide (1.4 sword, 2.4 long-sword) hits multiple
-  loose foes and cleaves; narrow (0.08 pike, 0.22 lance) is a single
-  point. Wide arcs reward fighting loose enemies, choke in a packed press.
+- **zones** is WHERE it lands, as data (`crate::strike`): a sword/spear is
+  one front lobe `front(half)` (half = the old arc/2: sword `front(0.7)`,
+  great-sword `front(1.2)` + `cleave`), a pike a narrow front lobe
+  `front(0.04)`, a lance `front(0.2)`. A mounted sabre is TWO flank lobes
+  `flanks(1.55, 0.85)` — blind over the horse's head, it cuts to the sides.
+  A wide front lobe hits multiple loose foes and chokes in a packed press;
+  a narrow one threads it.
 - **damage / attack_interval = work rate.** This is the main melee
-  balance dial. Gladius is 0.2/1.79; a slower heavier weapon trades rate
-  for reach or a stop.
+  balance dial. A slower heavier weapon trades rate for reach or a stop.
 - **min_range** > 0 makes a weapon useless once a body is inside it (pike
   1.1) — the historical "get inside the sarissas" weakness.
 
 Ranged: add a `MissileSpec` (`crates/sim/src/missiles.rs`) —
 `range, launch_speed, interval, ammo, damage, scatter_at_max,
 mobile_fire`. Ranged balance is governed by the ranged contracts (see
-`ranged_scenarios.rs`): archery SOFTENS, never gates. A frontal advance
+`scenario_ranged.rs`): archery SOFTENS, never gates. A frontal advance
 should pay a survivable toll (heavy 8–22%, light 2–11%, cav ≤8%), shields
 are a front-arc fact (rear ≥2.5× front kills), and a unit that lets the
 line reach it dies by the sword. Keep arrow `damage` in the ~0.5–0.9 band

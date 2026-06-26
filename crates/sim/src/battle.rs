@@ -196,8 +196,8 @@ where
 
     // One roster slot is one battle unit — no split. A campaign unit and a battle
     // unit are the same thing; the slot's strength is already capped at the unit
-    // establishment (= `unit_size` × the 1x/2x/4x builder), so a 1x slot is one
-    // full-size unit and a 2x/4x slot is one bigger unit.
+    // establishment (= `unit_size` × the 1x/2x/3x builder), so a 1x slot is one
+    // full-size unit and a 2x/3x slot is one bigger unit.
     let units: Vec<SpawnPlan> = dep
         .units
         .iter()

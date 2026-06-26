@@ -60,8 +60,9 @@ pub fn march_mult(class: UnitClassId) -> f32 {
 }
 
 /// Baseline establishment strength for one army slot. ONE army slot IS exactly one
-/// battle unit, so this is simply the shared unit size (`contract::unit_size`): 600
-/// foot / 300 horse / 100 crew. The class builder's 1x/2x/4x multiplies it, and
+/// battle unit, so this is simply the shared unit size (`contract::unit_size`):
+/// 500 close-order foot / 350 loose foot / 200 horse / 80 crew. The class builder's
+/// 1x/2x/3x multiplies it, and
 /// replenishment fills toward it. (There is no separate "pool that splits into
 /// battle units" any more — a campaign unit and a battle unit are the same thing.)
 pub fn unit_establishment(class: UnitClassId) -> u32 {

@@ -391,7 +391,7 @@ pub fn class_doctrine_cost(
     unit_type: UnitTypeId,
     size_mult: u8,
 ) -> Option<u32> {
-    if !matches!(size_mult, 1 | 2 | 4) {
+    if !matches!(size_mult, 1 | 2 | 3) {
         return None;
     }
     let (uf, uc, _) = units::decode_unit_type(unit_type)?;

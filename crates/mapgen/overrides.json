@@ -129,27 +129,27 @@
       "roster": [
         [
           "HeavySword",
-          600
+          500
         ],
         [
           "HeavySword",
-          600
+          500
         ],
         [
           "LightSpear",
-          600
+          500
         ],
         [
           "LightSpear",
-          600
+          500
         ],
         [
           "Archers",
-          600
+          350
         ],
         [
           "ShockCavalry",
-          300
+          200
         ]
       ]
     },
@@ -159,27 +159,27 @@
       "roster": [
         [
           "HeavySword",
-          600
+          500
         ],
         [
           "LightSpear",
-          600
+          500
         ],
         [
           "LightSpear",
-          600
+          500
         ],
         [
           "Skirmishers",
-          600
+          350
         ],
         [
           "Archers",
-          600
+          350
         ],
         [
           "ShockCavalry",
-          300
+          200
         ]
       ]
     },
@@ -189,27 +189,27 @@
       "roster": [
         [
           "Phalanx",
-          600
+          500
         ],
         [
           "Phalanx",
-          600
+          500
         ],
         [
           "LightSpear",
-          600
+          500
         ],
         [
           "Archers",
-          600
+          350
         ],
         [
           "ShockCavalry",
-          300
+          200
         ],
         [
           "HorseArchers",
-          300
+          200
         ]
       ]
     },
@@ -219,27 +219,27 @@
       "roster": [
         [
           "Phalanx",
-          600
+          500
         ],
         [
           "LightSpear",
-          600
+          500
         ],
         [
           "LightSpear",
-          600
+          500
         ],
         [
           "Archers",
-          600
+          350
         ],
         [
           "HorseArchers",
-          300
+          200
         ],
         [
           "ShockCavalry",
-          300
+          200
         ]
       ]
     },
@@ -249,27 +249,27 @@
       "roster": [
         [
           "Phalanx",
-          600
+          500
         ],
         [
           "Phalanx",
-          600
+          500
         ],
         [
           "LightSpear",
-          600
+          500
         ],
         [
           "Skirmishers",
-          600
+          350
         ],
         [
           "ShockCavalry",
-          300
+          200
         ],
         [
           "ShockCavalry",
-          300
+          200
         ]
       ]
     },
@@ -279,27 +279,27 @@
       "roster": [
         [
           "Phalanx",
-          600
+          500
         ],
         [
           "LightSpear",
-          600
+          500
         ],
         [
           "LightSpear",
-          600
+          500
         ],
         [
           "Archers",
-          600
+          350
         ],
         [
           "Skirmishers",
-          600
+          350
         ],
         [
           "ShockCavalry",
-          300
+          200
         ]
       ]
     },
@@ -309,27 +309,27 @@
       "roster": [
         [
           "LongSwords",
-          600
+          350
         ],
         [
           "LongSwords",
-          600
+          350
         ],
         [
           "LightSpear",
-          600
+          500
         ],
         [
           "Skirmishers",
-          600
+          350
         ],
         [
           "ShockCavalry",
-          300
+          200
         ],
         [
           "ShockCavalry",
-          300
+          200
         ]
       ]
     },
@@ -339,27 +339,27 @@
       "roster": [
         [
           "LongSwords",
-          600
+          350
         ],
         [
           "LongSwords",
-          600
+          350
         ],
         [
           "LightSpear",
-          600
+          500
         ],
         [
           "LightSpear",
-          600
+          500
         ],
         [
           "Skirmishers",
-          600
+          350
         ],
         [
           "ShockCavalry",
-          300
+          200
         ]
       ]
     },
@@ -369,27 +369,27 @@
       "roster": [
         [
           "Phalanx",
-          600
+          500
         ],
         [
           "Phalanx",
-          600
+          500
         ],
         [
           "Archers",
-          600
+          350
         ],
         [
           "Skirmishers",
-          600
+          350
         ],
         [
           "HorseArchers",
-          300
+          200
         ],
         [
           "HorseArchers",
-          300
+          200
         ]
       ]
     },
@@ -399,27 +399,27 @@
       "roster": [
         [
           "Phalanx",
-          600
+          500
         ],
         [
           "LightSpear",
-          600
+          500
         ],
         [
           "Archers",
-          600
+          350
         ],
         [
           "Archers",
-          600
+          350
         ],
         [
           "Skirmishers",
-          600
+          350
         ],
         [
           "HorseArchers",
-          300
+          200
         ]
       ]
     },
@@ -429,27 +429,27 @@
       "roster": [
         [
           "Phalanx",
-          600
+          500
         ],
         [
           "Phalanx",
-          600
+          500
         ],
         [
           "LightSpear",
-          600
+          500
         ],
         [
           "HorseArchers",
-          300
+          200
         ],
         [
           "ShockCavalry",
-          300
+          200
         ],
         [
           "ShockCavalry",
-          300
+          200
         ]
       ]
     },
@@ -459,27 +459,27 @@
       "roster": [
         [
           "Phalanx",
-          600
+          500
         ],
         [
           "LightSpear",
-          600
+          500
         ],
         [
           "LightSpear",
-          600
+          500
         ],
         [
           "Skirmishers",
-          600
+          350
         ],
         [
           "HorseArchers",
-          300
+          200
         ],
         [
           "ShockCavalry",
-          300
+          200
         ]
       ]
     }

@@ -69,13 +69,16 @@ pub fn unit_cost(c: UnitClassId) -> u32 {
 
 /// Soldiers in ONE unit at 1x establishment — the SINGLE source of truth shared by
 /// the battle layer (how big a deployed unit is) and the campaign (how big one army
-/// slot is). A campaign unit and a battle unit are the same thing; the 1x/2x/4x
-/// class builder multiplies this. Foot 600, horse 300 (half), gun crew 100.
+/// slot is). A campaign unit and a battle unit are the same thing; the 1x/2x/3x
+/// class builder multiplies this. Close-order foot 500, LOOSE-order foot
+/// (archers/skirmishers/longswords) 350, horse 200, gun crew 80.
 pub fn unit_size(c: UnitClassId) -> u32 {
     match c {
-        UnitClassId::ShockCavalry | UnitClassId::HorseArchers => 300,
-        UnitClassId::ArtilleryCrew => 100,
-        _ => 600,
+        UnitClassId::ShockCavalry | UnitClassId::HorseArchers => 200,
+        UnitClassId::ArtilleryCrew => 80,
+        // Loose/open-order infantry — a thinner, more dispersed body.
+        UnitClassId::Archers | UnitClassId::Skirmishers | UnitClassId::LongSwords => 350,
+        _ => 500,
     }
 }
 

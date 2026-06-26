@@ -192,7 +192,7 @@ function classRow(row: ClassDoctrineRow): string {
   const className = prettyClass(row.class);
   const currentSize = row.sizeMult;
   const selectedName = row.options.find((o) => o.id === row.selected)?.name ?? 'Unknown';
-  const sizes = [1, 2, 4]
+  const sizes = [1, 2, 3]
     .map((s) =>
       `<button data-class="${row.classIndex}" data-size="${s}" ${s === currentSize ? 'class="on"' : ''}>${s}x</button>`,
     )

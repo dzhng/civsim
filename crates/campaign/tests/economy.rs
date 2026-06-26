@@ -11,7 +11,11 @@ fn economy_income_upkeep_replenish() {
     // Wound red's roster; it should refill at its friendly city... red
     // starts at B (junction) — move it home to A first via teleport.
     c.state.armies[0].loc = Loc::Node(0);
-    c.state.armies[0].roster[0].count = 500; // max 880
+    // Test-owned sizing (a fake reference unit): replenishment caps at the roster
+    // entry's own `max`, so set the establishment and wound below it HERE — the
+    // test stays put when `contract::unit_size` or class balance changes.
+    c.state.armies[0].roster[0].max = 500;
+    c.state.armies[0].roster[0].count = 400;
     let t0 = c.state.factions[0].treasury;
     for _ in 0..tunables::TICKS_PER_DAY + 2 {
         c.tick();
@@ -19,8 +23,8 @@ fn economy_income_upkeep_replenish() {
     // Income (tier 2 = 140) beats light-infantry upkeep (~13).
     assert!(c.state.factions[0].treasury > t0, "treasury should grow");
     assert!(
-        c.state.armies[0].roster[0].count > 500,
-        "should replenish at a friendly city"
+        c.state.armies[0].roster[0].count > 400,
+        "should replenish toward its establishment at a friendly city"
     );
     // Garrisons regenerate toward the establishment.
     let g = &c.state.cities[&0].garrison;
@@ -143,7 +147,7 @@ fn class_doctrine_upgrade_charges_living_delta_once_and_cools_down() {
 
     let base = units::unit_type(&c.map, 0, class, 0).cost_per_soldier_milligold;
     let new = units::unit_type(&c.map, 0, class, 2).cost_per_soldier_milligold;
-    let expected_upgrade = ((new - base) as u64 * 600 + 999) / 1000;
+    let expected_upgrade = ((new - base) as u64 * 500 + 999) / 1000;
     assert_eq!(
         c.state.factions[0].treasury,
         old_gold - tunables::CLASS_SWITCH_FEE - expected_upgrade as u32
@@ -165,7 +169,7 @@ fn class_size_change_raises_establishment_without_free_soldiers() {
     assert!(c.order_set_class_doctrine(class, units::unit_type_id(0, class, 0), 2));
 
     let r = &c.state.armies[0].roster[0];
-    assert_eq!(r.count, 600, "size change should not mint soldiers");
+    assert_eq!(r.count, 500, "size change should not mint soldiers");
     assert_eq!(r.max, tunables::unit_establishment(class) * 2);
     assert_eq!(
         c.state.factions[0].treasury,

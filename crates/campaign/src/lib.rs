@@ -361,7 +361,7 @@ fn normalize_state(state: &mut CampaignState) {
                 if bad_selected {
                     slot.selected = units::unit_type_id(f, class, 0);
                 }
-                if !matches!(slot.size_mult, 1 | 2 | 4) {
+                if !matches!(slot.size_mult, 1 | 2 | 3) {
                     slot.size_mult = 1;
                 }
             } else {

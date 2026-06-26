@@ -27,12 +27,17 @@ pub fn tick(map: &WorldMap, st: &mut CampaignState) {
     crate::economy::garrison_returns(map, st);
     crate::economy::occupations(map, st);
     timers(st);
-    if st.tick % crate::visibility::VIS_EVERY == 0 {
+    // Fog recompute is the per-tick cost bottleneck, so a search sandbox skips
+    // it: the lookahead rolls a clone forward thousands of ticks per candidate
+    // and only the eval's threat term reads fog — a frozen snapshot from clone
+    // time is a fine approximation, and dropping the recompute is what makes the
+    // search affordable. Contact and encounters are physical, not fog-gated, so
+    // battles still form and resolve correctly in a rollout.
+    if !st.in_rollout && st.tick % crate::visibility::VIS_EVERY == 0 {
         crate::visibility::recompute(map, st);
     }
-    // The hourly commander pass is suppressed inside a search sandbox: a
-    // commander's lookahead rolls a clone forward, and letting that clone run
-    // its own AI would recurse into the search.
+    // The hourly commander pass is likewise suppressed inside a sandbox: letting
+    // the clone run its own AI would recurse into the search.
     if st.tick % 60 == 0 && !st.in_rollout {
         crate::ai::commanders(map, st);
     }

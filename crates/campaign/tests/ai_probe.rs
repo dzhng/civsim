@@ -72,7 +72,13 @@ fn probe_scores_candidate_futures() {
         .iter()
         .map(|p| {
             let mut sb = c.state.clone();
-            campaign::rollout::forward_committed(&c.map, &mut sb, tun::AI_ROLLOUT_HORIZON, &p.orders);
+            campaign::rollout::forward_plan(
+                &c.map,
+                &mut sb,
+                &p.orders,
+                tun::AI_ROLLOUT_HORIZON,
+                tun::AI_ROLLOUT_CAP,
+            );
             let s = eval::score(&c.map, &sb, 0, &w);
             let red_cities = sb.cities.values().filter(|c| c.owner == 0).count();
             let dests: Vec<String> = p.orders.iter().map(|(a, l)| format!("army{a}->{l:?}")).collect();
@@ -114,6 +120,29 @@ fn probe_scores_candidate_futures() {
         );
     }
     assert_eq!(pick.label, "nearest-beatable", "search should pick the conquest");
+}
+
+#[test]
+fn think_marches_on_the_winnable_city() {
+    // The whole point of slice 4: the live commander, not just the probe, now
+    // chooses by lookahead. Red between a wall (Strong) and a soft city (Weak)
+    // must send its army at Weak — the rule-based AI marched on the *nearest*
+    // enemy city, which here is the wall it cannot take.
+    let mut c = Campaign::new(fork_map(), 7, 0);
+    for f in &mut c.state.factions {
+        f.ai = true;
+    }
+    c.state.cities.get_mut(&1).unwrap().garrison = garrison(UnitClassId::LightSpear, 5000);
+    c.state.cities.get_mut(&2).unwrap().garrison = garrison(UnitClassId::LightSpear, 50);
+
+    campaign::ai::commanders(&c.map, &mut c.state);
+
+    let dest = c.state.armies[0].path.last().copied();
+    assert_eq!(
+        dest,
+        Some(campaign::state::Loc::Node(2)),
+        "red should march on the soft city (Node 2), not the wall (Node 1); got {dest:?}",
+    );
 }
 
 #[test]

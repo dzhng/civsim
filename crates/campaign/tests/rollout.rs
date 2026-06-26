@@ -106,14 +106,16 @@ fn forward_does_not_touch_the_live_state() {
 
 #[test]
 fn forward_suppresses_the_hourly_ai() {
-    // With the AI live, red's commander gives it a march order within a few
-    // hours. Inside a rollout the same hours pass with the hourly pass
-    // suppressed, so red is never handed a path — proof it can't recurse.
-    const HOURS: u32 = 240; // crosses the 60-tick commander cadence 4×
+    // With the AI live, red's commander gives it a march order once it runs the
+    // throttled offensive search. Inside a rollout the same span passes with the
+    // whole AI pass suppressed, so red is never handed a path — proof the
+    // lookahead can't recurse. Roll just past the first search so the cadence
+    // value can change without breaking this test.
+    let hours = campaign::tunables::AI_SEARCH_EVERY as u32 + 120;
 
     let mut live = Campaign::new(lopsided_map(), 7, 0);
     all_ai(&mut live);
-    for _ in 0..HOURS {
+    for _ in 0..hours {
         live.tick();
     }
     assert!(
@@ -124,7 +126,7 @@ fn forward_suppresses_the_hourly_ai() {
     let mut c = Campaign::new(lopsided_map(), 7, 0);
     all_ai(&mut c);
     let mut sb = c.state.clone();
-    campaign::rollout::forward(&c.map, &mut sb, HOURS);
+    campaign::rollout::forward(&c.map, &mut sb, hours);
     assert!(
         !sb.armies[0].marching(),
         "rolled-forward red got AI march orders it should not have",

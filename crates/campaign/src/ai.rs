@@ -247,68 +247,46 @@ fn think(map: &WorldMap, st: &mut CampaignState, f: FactionId, bfs: &mut pathfin
         }
     }
 
-    // 3. Offensive (mass + advance to contact): the strongest few free armies
-    //    each march on the nearest enemy city they can beat — and if none
-    //    nearby is beatable, advance on the nearest one anyway. Committing more
-    //    than one army keeps a front pressed (so a beaten enemy is run down by
-    //    the next army rather than regrouping unmolested) and stops the freeze
-    //    where one lone army won a fight then wandered off while the front held.
+    // 3. Offensive — chosen by lookahead. Enumerate a few candidate
+    //    commitments (mass on the diplo-target, hit the nearest beatable city,
+    //    advance on the nearest enemy, or hold), roll each forward with the
+    //    cheap battle estimate, and march on the one that leaves the strongest
+    //    position. The "hold" candidate is the floor: if nothing pays off, make
+    //    no offensive move rather than wandering into a fight. Argmax for now —
+    //    randomness and personas weight the choice in later slices.
     let my_total: u64 = my_free.iter().map(|(_, _, s)| *s).sum();
-    let mut attackers: Vec<(ArmyId, Loc, u64)> = my_free.clone();
-    attackers.sort_by_key(|&(_, _, s)| std::cmp::Reverse(s));
 
-    // Diplomatic focus: if we have a war objective whose cities we can reach,
-    // mass every attacker on its weakest one. Concentrating force on a single
-    // point is what manufactures the local superiority a parity border denies —
-    // it's the move that finally breaks the six-power standoff.
-    let focus_city: Option<NodeId> = st.diplo_target.get(&f).copied().and_then(|tgt| {
-        let from = attackers.first().map(|&(_, l, _)| l)?;
-        let costs = pathfind::costs_from(map, &st.road_levels, from, false);
-        st.cities
-            .iter()
-            .filter(|(_, c)| c.owner == tgt)
-            .filter(|(n, _)| costs.contains_key(n))
-            .min_by_key(|(&n, c)| (strength(map, st, c.owner, &c.garrison), costs[&n] as u64))
-            .map(|(&n, _)| n)
-    });
-
-    for &(army, aloc, astr) in attackers.iter().take(tun::AI_ATTACKERS) {
-        if let Some(fc) = focus_city {
-            crate::sim::try_move(map, st, army, Loc::Node(fc), true);
-            continue;
-        }
-        // Flood out from the army only until the nearest handful of enemy cities
-        // turn up — no radius cap (a target across an independent buffer is still
-        // found), but it stops early instead of mapping the whole graph.
-        let nearest = pathfind::nearest_targets(
-            map,
-            &st.road_levels,
-            aloc,
-            false,
-            |n| st.cities.get(&n).is_some_and(|c| st.at_war(f, c.owner)),
-            tun::AI_TARGET_CANDIDATES,
-        );
-        // Assault the nearest one we clearly outmatch (garrison + visible enemy
-        // field armies near it); else just advance on the nearest enemy city.
-        let mut beatable: Option<NodeId> = None;
-        for &(n, _) in &nearest {
-            let cloc = Loc::Node(n);
-            let defenders: u64 = strength(map, st, st.cities[&n].owner, &st.cities[&n].garrison)
-                + hostiles
-                    .iter()
-                    .filter(|(_, l, _)| {
-                        road_dist(map, bfs, *l, cloc, tun::AI_THREAT_RADIUS).is_some()
-                    })
-                    .map(|(_, _, s)| *s)
-                    .sum::<u64>();
-            if astr > defenders * 13 / 10 {
-                beatable = Some(n);
-                break;
+    // Only deliberate when there's an uncommitted army to direct. An army
+    // already marching on its objective doesn't need a fresh search every hour —
+    // and the search (cloning the world and rolling each candidate forward) is
+    // the expensive part, so gating it to once per offensive leg is what keeps
+    // the lookahead affordable. Once the force arrives or falls idle, the next
+    // pass re-plans; urgent mid-march redirects come from the event-triggered
+    // re-think, not from re-searching every tick.
+    let have_idle = my_free
+        .iter()
+        .any(|&(id, ..)| st.armies[id as usize].halted());
+    if have_idle && st.tick % tun::AI_SEARCH_EVERY == 0 {
+        let plans = plan::candidates(map, st, f, bfs);
+        let weights = eval::Weights::default();
+        let mut best_i = 0usize;
+        let mut best_score = f64::NEG_INFINITY;
+        for (i, p) in plans.iter().enumerate() {
+            let mut sandbox = st.clone();
+            crate::rollout::forward_plan(
+                map,
+                &mut sandbox,
+                &p.orders,
+                tun::AI_ROLLOUT_HORIZON,
+                tun::AI_ROLLOUT_CAP,
+            );
+            let s = eval::score(map, &sandbox, f, &weights);
+            if s > best_score {
+                best_score = s;
+                best_i = i;
             }
         }
-        if let Some(city) = beatable.or_else(|| nearest.first().map(|&(n, _)| n)) {
-            crate::sim::try_move(map, st, army, Loc::Node(city), true);
-        }
+        plan::apply(map, st, &plans[best_i]);
     }
 
     // 4. Consolidate: idle small armies drift home and merge up.

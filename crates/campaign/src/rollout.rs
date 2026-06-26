@@ -13,37 +13,72 @@
 
 use crate::mapdata::WorldMap;
 use crate::resolve;
-use crate::state::{ArmyId, CampaignState, Loc};
+use crate::state::{ArmyId, CampaignState, Loc, Stance};
 
 /// Tick `st` forward `ticks` campaign minutes, auto-resolving any battle that
-/// comes due via `resolve::estimate`. `st` must already be a clone of the live
-/// state — `forward` is destructive. On return the rollout flag is cleared so
-/// the sandbox can be inspected as an ordinary (paused) state.
+/// comes due via `resolve::estimate`. Whatever orders armies already hold carry
+/// on, but nothing is re-issued (use `forward_plan` to keep a plan committed).
+/// `st` must already be a clone of the live state — `forward` is destructive.
+/// On return the rollout flag is cleared so the sandbox reads as a paused state.
 pub fn forward(map: &WorldMap, st: &mut CampaignState, ticks: u32) {
-    forward_committed(map, st, ticks, &[]);
-}
-
-/// Like `forward`, but the faction stays *committed* to a set of march orders
-/// for the whole horizon: any ordered army that falls idle short of its target
-/// is sent on again. This models "if I commit to this plan, what unfolds?" —
-/// winning a field battle clears an army's path (`apply_battle_outcome`), and
-/// without the hourly AI (suppressed in a rollout) to re-order it, it would
-/// otherwise stop one step short of occupying the city it just won. Re-issuing
-/// keeps the offensive moving exactly as a committed commander would.
-pub fn forward_committed(
-    map: &WorldMap,
-    st: &mut CampaignState,
-    ticks: u32,
-    orders: &[(ArmyId, Loc)],
-) {
     let was = st.in_rollout;
     st.in_rollout = true;
     for _ in 0..ticks {
-        reissue(map, st, orders);
         crate::sim::tick(map, st);
         resolve_pending(map, st);
     }
     st.in_rollout = was;
+}
+
+/// Roll a committed plan forward only until its consequences are clear: stop as
+/// soon as every ordered army has *settled* (reached its target and is neither
+/// marching, occupying, nor fighting), but never before `min_ticks` (so even
+/// "hold" sees a stretch of the enemy's moves) and never past `cap`. The
+/// horizon thus scales to what the plan attempts — a neighbouring conquest
+/// resolves in a day or two, a march across the map runs to the cap — which is
+/// what lets the lookahead see value in a long offensive a fixed short window
+/// would miss. Returns the number of ticks actually rolled.
+pub fn forward_plan(
+    map: &WorldMap,
+    st: &mut CampaignState,
+    orders: &[(ArmyId, Loc)],
+    min_ticks: u32,
+    cap: u32,
+) -> u32 {
+    let was = st.in_rollout;
+    st.in_rollout = true;
+    let mut t = 0;
+    while t < cap {
+        reissue(map, st, orders);
+        crate::sim::tick(map, st);
+        resolve_pending(map, st);
+        t += 1;
+        if t >= min_ticks && settled(st, orders) {
+            break;
+        }
+    }
+    st.in_rollout = was;
+    t
+}
+
+/// Has every ordered army finished what it was told to do — reached its target
+/// node and gone quiet (not marching, occupying, routing, or fighting), or
+/// died trying? A dead/blocked army still counts as settled so the cap, not a
+/// doomed pursuit, bounds the rollout.
+fn settled(st: &CampaignState, orders: &[(ArmyId, Loc)]) -> bool {
+    if st.battle_ready.is_some() {
+        return false;
+    }
+    orders.iter().all(|&(army, dest)| match st.armies.get(army as usize) {
+        None => true,
+        Some(a) => {
+            !a.alive()
+                || (a.loc == dest
+                    && a.halted()
+                    && a.encounter.is_none()
+                    && !matches!(a.stance, Stance::Occupying { .. } | Stance::Routed { .. }))
+        }
+    })
 }
 
 /// Send any committed army that's idle, alive, free, and not yet at its target

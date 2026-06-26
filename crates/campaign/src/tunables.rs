@@ -211,13 +211,27 @@ pub const AI_THREAT_RADIUS: u32 = 6;
 // ---- AI lookahead ----------------------------------------------------------
 // The commander imagines a few candidate commitments, rolls each forward this
 // many campaign minutes with the cheap battle estimate, and scores the result.
-/// How far (campaign minutes) a candidate plan is rolled forward before its
-/// position is scored. Movement is slow — one 5 km tile is ~240 ticks of foot
-/// march — so the horizon is measured in days, not hours: a committed march
-/// must have time to cross the few tiles to contact and let the estimate
-/// resolve the fight, or every plan scores the same. One day (1440) lets foot
-/// cross ~6 tiles; tuned against cost + in-app feel in slice 4.
+/// Minimum rollout before a candidate is scored — even "hold" rolls this far,
+/// so a plan is judged against at least a day of the enemy's moves. Above this
+/// floor the rollout runs adaptively (see `AI_ROLLOUT_CAP`).
 pub const AI_ROLLOUT_HORIZON: u32 = 1440;
+/// Hard ceiling on an adaptive rollout. A committed plan rolls forward only
+/// until its armies settle (reach their target, fight, occupy) — a nearby
+/// conquest stops in a day or two — but a march toward a distant objective is
+/// cut off here. Set above a cross-map foot march so the lookahead can still
+/// see the payoff of a long offensive (movement is slow: ~hundreds of ticks per
+/// 5 km tile), while bounding the cost of a hopeless or far-off pursuit.
+pub const AI_ROLLOUT_CAP: u32 = 6_000;
+/// How often (ticks) a faction re-runs the expensive offensive lookahead. The
+/// hourly commander still defends, recruits, and consolidates every pass; only
+/// the search — clone-and-roll-forward over several candidates — is throttled to
+/// this cadence. Armies take days to cross the map, so re-deciding the offensive
+/// once a day loses nothing while keeping the search (the dominant AI cost) rare;
+/// urgent mid-march reactions come from the event-triggered re-think, not here.
+/// A multiple of the 60-tick commander cadence. Note: too infrequent and a
+/// just-won army is pulled home by the hourly consolidate step before the next
+/// search re-commits it — so this stays tight enough to keep an offensive alive.
+pub const AI_SEARCH_EVERY: u64 = 360;
 
 // ---- diplomacy -------------------------------------------------------------
 // Diplomacy is what breaks the six-power peer standoff: instead of every power

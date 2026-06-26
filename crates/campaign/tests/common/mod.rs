@@ -56,8 +56,8 @@ pub fn test_map() -> &'static str {
             {"id": "independents", "name": "Ind", "color": [99,99,99], "playable": false}
           ],
           "start_armies": [
-            {"faction": "red",  "at": "B", "roster": [["LightSpear", 880]]},
-            {"faction": "blue", "at": "C", "roster": [["Phalanx", 1280]]}
+            {"faction": "red",  "at": "B", "roster": [["LightSpear", 600]]},
+            {"faction": "blue", "at": "C", "roster": [["Phalanx", 600]]}
           ]
         }"#
 }
@@ -83,7 +83,7 @@ pub fn diamond_map() -> &'static str {
             {"id": "independents", "name": "Ind", "color": [99,99,99], "playable": false}
           ],
           "start_armies": [
-            {"faction": "red", "at": "A", "roster": [["LightSpear", 880]]}
+            {"faction": "red", "at": "A", "roster": [["LightSpear", 600]]}
           ]
         }"#
 }

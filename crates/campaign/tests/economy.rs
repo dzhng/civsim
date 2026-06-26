@@ -143,7 +143,7 @@ fn class_doctrine_upgrade_charges_living_delta_once_and_cools_down() {
 
     let base = units::unit_type(&c.map, 0, class, 0).cost_per_soldier_milligold;
     let new = units::unit_type(&c.map, 0, class, 2).cost_per_soldier_milligold;
-    let expected_upgrade = ((new - base) as u64 * 880 + 999) / 1000;
+    let expected_upgrade = ((new - base) as u64 * 600 + 999) / 1000;
     assert_eq!(
         c.state.factions[0].treasury,
         old_gold - tunables::CLASS_SWITCH_FEE - expected_upgrade as u32
@@ -165,7 +165,7 @@ fn class_size_change_raises_establishment_without_free_soldiers() {
     assert!(c.order_set_class_doctrine(class, units::unit_type_id(0, class, 0), 2));
 
     let r = &c.state.armies[0].roster[0];
-    assert_eq!(r.count, 880, "size change should not mint soldiers");
+    assert_eq!(r.count, 600, "size change should not mint soldiers");
     assert_eq!(r.max, tunables::unit_establishment(class) * 2);
     assert_eq!(
         c.state.factions[0].treasury,

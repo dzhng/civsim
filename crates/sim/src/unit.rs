@@ -284,9 +284,15 @@ impl Unit {
     }
 
     /// Keeps driving through contact while charging (no plant at weapon's
-    /// length) — the trample is the charge. See `UnitClass::tramples`.
+    /// length) — the trample is the charge. See `Doctrine::Trample`.
     pub fn tramples(&self) -> bool {
-        self.stats.tramples
+        self.stats.doctrine == crate::class::Doctrine::Trample
+    }
+
+    /// Strict-file doctrine (the phalanx): won't freely crab sideways in a press.
+    /// See `Doctrine::Strict`.
+    pub fn strict_formation(&self) -> bool {
+        self.stats.doctrine == crate::class::Doctrine::Strict
     }
 
     /// Cohesion as every disorder penalty reads it EXCEPT the two kept as a

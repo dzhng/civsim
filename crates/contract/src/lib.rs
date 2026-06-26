@@ -67,6 +67,18 @@ pub fn unit_cost(c: UnitClassId) -> u32 {
     }
 }
 
+/// Soldiers in ONE unit at 1x establishment — the SINGLE source of truth shared by
+/// the battle layer (how big a deployed unit is) and the campaign (how big one army
+/// slot is). A campaign unit and a battle unit are the same thing; the 1x/2x/4x
+/// class builder multiplies this. Foot 600, horse 300 (half), gun crew 100.
+pub fn unit_size(c: UnitClassId) -> u32 {
+    match c {
+        UnitClassId::ShockCavalry | UnitClassId::HorseArchers => 300,
+        UnitClassId::ArtilleryCrew => 100,
+        _ => 600,
+    }
+}
+
 pub const ALL_CLASSES: [UnitClassId; 14] = [
     UnitClassId::HeavySword,
     UnitClassId::LightSpear,

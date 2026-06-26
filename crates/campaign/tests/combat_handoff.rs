@@ -131,7 +131,7 @@ fn handoff_and_outcome_rout_or_annihilation() {
             contract::UnitResult {
                 id: red_id,
                 team: 0,
-                survivors: 700,
+                survivors: 500,
                 routed: false,
                 morale_cap: 0.9,
                 deployed: true,
@@ -147,7 +147,7 @@ fn handoff_and_outcome_rout_or_annihilation() {
         ],
     };
     c.apply_outcome(eid, &result);
-    assert_eq!(c.state.armies[0].roster[0].count, 700);
+    assert_eq!(c.state.armies[0].roster[0].count, 500);
     assert_eq!(
         c.state.armies[1].roster[0].count, 0,
         "cornered: captured and wiped"
@@ -204,7 +204,7 @@ fn loser_with_a_road_out_routs_along_it() {
             contract::UnitResult {
                 id: red_id,
                 team: 0,
-                survivors: 700,
+                survivors: 500,
                 routed: false,
                 morale_cap: 0.9,
                 deployed: true,
@@ -352,8 +352,8 @@ fn equal_speed_chaser_follows_around_the_corner() {
             {"id": "independents", "name": "Ind", "color": [99,99,99], "playable": false}
           ],
           "start_armies": [
-            {"faction": "red",  "at": "A", "roster": [["LightSpear", 880]]},
-            {"faction": "blue", "at": "C", "roster": [["LightSpear", 880]]}
+            {"faction": "red",  "at": "A", "roster": [["LightSpear", 600]]},
+            {"faction": "blue", "at": "C", "roster": [["LightSpear", 600]]}
           ]
         }"#;
     let mut c = Campaign::new(map, 7, 0);

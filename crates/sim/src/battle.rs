@@ -9,16 +9,12 @@ use crate::sim::Sim;
 use UnitClassId::*;
 
 /// Soldiers per unit by class (data, freely tunable).
-/// Battle/campaign soldier counts. INDEPENDENT of the test bench
-/// (`balance::duel_strength`) ON PURPOSE: the real game can retune these later
-/// (e.g. inf 800 / cav 200) WITHOUT moving any balance test, which hardcodes a
-/// stable 2:1 inf:cav bench. Two separate configs, never derived from each other.
+/// Soldiers in one deployed unit — the shared `contract::unit_size` (one campaign
+/// slot = one battle unit). INDEPENDENT of the balance test bench
+/// (`balance::duel_strength`, a stable 2:1 inf:cav bench) ON PURPOSE: the game can
+/// retune unit sizes without moving any balance test.
 pub fn unit_size(class: UnitClassId) -> usize {
-    match class {
-        ShockCavalry | HorseArchers => 300,
-        ArtilleryCrew => 100,
-        _ => 600,
-    }
+    contract::unit_size(class) as usize
 }
 
 fn unit_width(class: UnitClassId) -> f32 {
@@ -198,37 +194,23 @@ where
     let facing = dep.facing;
     let mut out: Vec<(u64, usize)> = Vec::new();
 
-    // Split aggregates into spawnable units, keeping campaign identity.
-    let mut units: Vec<SpawnPlan> = Vec::new();
-    for r in &dep.units {
-        let stats = stats_for(r);
-        let mut left = r.count as usize;
-        let full = unit_size(r.class);
-        while left > 0 {
-            let n = left.min(full);
-            // Avoid splinter units: fold a small remainder into the previous.
-            if left == n && n < full / 4 {
-                if let Some(prev) = units
-                    .iter_mut()
-                    .rev()
-                    .find(|u| u.id == r.id && u.class == r.class)
-                {
-                    prev.count += n;
-                    break;
-                }
-            }
-            units.push(SpawnPlan {
-                id: r.id,
-                class: r.class,
-                render_look: render_look_for(r),
-                stats,
-                count: n,
-                training: r.training,
-                morale_cap: r.morale_cap,
-            });
-            left -= n;
-        }
-    }
+    // One roster slot is one battle unit — no split. A campaign unit and a battle
+    // unit are the same thing; the slot's strength is already capped at the unit
+    // establishment (= `unit_size` × the 1x/2x/4x builder), so a 1x slot is one
+    // full-size unit and a 2x/4x slot is one bigger unit.
+    let units: Vec<SpawnPlan> = dep
+        .units
+        .iter()
+        .map(|r| SpawnPlan {
+            id: r.id,
+            class: r.class,
+            render_look: render_look_for(r),
+            stats: stats_for(r),
+            count: r.count as usize,
+            training: r.training,
+            morale_cap: r.morale_cap,
+        })
+        .collect();
 
     if dep.column {
         // Marching order: a single file of units down the road behind center.

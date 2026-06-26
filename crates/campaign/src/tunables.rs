@@ -59,26 +59,13 @@ pub fn march_mult(class: UnitClassId) -> f32 {
     }
 }
 
-/// Baseline establishment strength for one army slot of this class. The class
-/// builder's 1x/2x/4x setting multiplies this cap; replenishment fills toward it.
+/// Baseline establishment strength for one army slot. ONE army slot IS exactly one
+/// battle unit, so this is simply the shared unit size (`contract::unit_size`): 600
+/// foot / 300 horse / 100 crew. The class builder's 1x/2x/4x multiplies it, and
+/// replenishment fills toward it. (There is no separate "pool that splits into
+/// battle units" any more — a campaign unit and a battle unit are the same thing.)
 pub fn unit_establishment(class: UnitClassId) -> u32 {
-    use UnitClassId::*;
-    match class {
-        HeavySword => 1280,
-        LightSpear => 880,
-        LongSwords => 360,
-        Phalanx => 1280,
-        Archers => 480,
-        Skirmishers => 360,
-        ShockCavalry => 280,
-        HorseArchers => 240,
-        ArtilleryCrew => 80,
-        Peasant => 1400,
-        LightSword => 880,
-        HeavySpear => 1280,
-        MediumInfantry => 1040,
-        MediumSpear => 1040,
-    }
+    contract::unit_size(class)
 }
 
 /// Sea lanes: fixed fleet speed regardless of composition (km/day / tile).

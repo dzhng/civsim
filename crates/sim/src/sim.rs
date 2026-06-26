@@ -1520,7 +1520,7 @@ impl Sim {
             // the MARCH, where chasing a moving anchor overshoots; an in-place pivot
             // has no anchor drift to overshoot. Gated on NOT engaged so a braced
             // line micro-wheeling in contact keeps its normal contact grip.
-            let strict_formation = u.stats.strict_formation;
+            let strict_formation = u.strict_formation();
             let slot_pull_u = if u.pivoting && u.engaged == 0 {
                 tun.slot_pull_hold.max(tun.slot_pull)
             } else if advancing && !strict_formation {
@@ -2206,7 +2206,7 @@ impl Sim {
                         }
                     }
                 }
-                if !order_advancing && u.stats.strict_formation && u.engaged > 0 && !seeking_flank {
+                if !order_advancing && u.strict_formation() && u.engaged > 0 && !seeking_flank {
                     // Packed pike contact lateral friction: a leveled sarissa
                     // block cannot freely crab sideways in the press without
                     // tangling shafts and neighbours. The spring/collision

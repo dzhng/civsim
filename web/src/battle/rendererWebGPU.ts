@@ -139,7 +139,7 @@ export class BattleRendererWebGPU {
     this.shell.setCamera(cameraSnapshot(camera));
     if (this.frameStart === 0) this.frameStart = performance.now();
     const uploadStart = performance.now();
-    this.overlay.upload(verts);
+    this.overlay.upload(this.fixedTime !== null ? frozenSelectionOverlay(verts) : verts);
     if (this.triangleVerts.length === 0) this.tris.upload(this.triangleVerts);
     this.framePerf.uploadMs += performance.now() - uploadStart;
     const drawStart = performance.now();
@@ -215,6 +215,21 @@ export class BattleRendererWebGPU {
       await loadPlaceholderVat(),
     );
   }
+}
+
+function frozenSelectionOverlay(verts: Float32Array) {
+  const stride = 6;
+  const maxSegmentLength = 12;
+  const out: number[] = [];
+  for (let i = 0; i + stride * 2 <= verts.length; i += stride * 2) {
+    const x0 = verts[i];
+    const y0 = verts[i + 1];
+    const x1 = verts[i + stride];
+    const y1 = verts[i + stride + 1];
+    if (Math.hypot(x1 - x0, y1 - y0) > maxSegmentLength) continue;
+    for (let k = 0; k < stride * 2; k++) out.push(verts[i + k]);
+  }
+  return new Float32Array(out);
 }
 
 function roundMs(value: number) {

@@ -14,6 +14,11 @@ const pairs = [
     current: 'specs/webgpu-skinned-crowd/visualizations/current-renderer/campaign-label-zoom.png',
     candidate: 'specs/webgpu-skinned-crowd/visualizations/visual-report/campaign-label-zoom.png',
   },
+  {
+    id: 'battle-selection-hud-dpr2',
+    current: 'specs/webgpu-skinned-crowd/visualizations/current-renderer/battle-selection-hud-dpr2.png',
+    candidate: 'specs/webgpu-skinned-crowd/visualizations/visual-report/battle-selection-hud-dpr2.png',
+  },
 ];
 
 const outDir = resolve(repoRoot, 'specs/webgpu-skinned-crowd/visualizations/visual-diff');

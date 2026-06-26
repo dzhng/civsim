@@ -34,6 +34,11 @@ Current checkpoint:
 - `webgpu-visual-report` records that atmosphere evidence for battle default,
   DPR2 battle selection/HUD, and campaign-to-battle handoff captures, with the
   battle rows explicitly naming the field-aware coast and feathered shore.
+- The DPR2 visual report frame now filters frozen-review overlay segments so
+  transient paths/projectiles/attack arcs do not appear as unexplained colored
+  debug lines. Churned terrain patches use ragged oval alpha instead of hard
+  rectangular quads, removing the square-artifact read while keeping trampled
+  ground detail.
 
 ## Verification
 
@@ -46,7 +51,8 @@ Current checkpoint:
   frozen-pixel determinism.
 - `VERIFY_WEBGPU=1 node scenario.mjs webgpu-visual-report` regenerates the
   cutover contact sheet; the current inspected battle captures show a wider
-  feathered water/shore band while retaining team-color and HUD readability.
+  feathered water/shore band, no random frozen-overlay streaks, softened
+  trampled-ground patches, and retained team-color/HUD readability.
 - A visual review screenshot is compared against the Aegean aesthetic references
   before blessing.
 

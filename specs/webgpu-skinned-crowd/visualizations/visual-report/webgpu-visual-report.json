@@ -62,7 +62,7 @@
       "currentRendererComparison": {
         "status": "pending-review",
         "image": "current-renderer/battle-selection-hud-dpr2.png",
-        "note": "Reopened after visual review. The archived current renderer fails to show all units, while WebGPU does render more units, but WebGPU is not accepted yet because this capture shows missing terrain features plus random square artifacts and colored/debug straight-line artifacts that must be fixed or explicitly explained."
+        "note": "Reopened after visual review. The archived current renderer fails to show all units, while WebGPU does render more units. The random frozen-overlay straight-line artifacts and hard square terrain artifacts have been addressed, but this capture remains pending until selected-unit readability, terrain feature fidelity, and old-renderer caveats are reviewed side by side."
       }
     },
     {

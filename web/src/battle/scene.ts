@@ -616,6 +616,7 @@ export class BattleScene implements Scene {
       const info = unitInfo();
       const n = game.unit_count();
       const verts: number[] = [];
+      const showTransient = !frozen || withPaths;
       for (let u = 0; u < n; u++) {
         const o = u * STRIDE;
         const [ax, ay, facing, team] = [info[o], info[o + 1], info[o + 2], info[o + 6]];
@@ -632,7 +633,7 @@ export class BattleScene implements Scene {
         // Destination ghost: the formation frame at the end of the path
         // (flashes on every order; hold Space to keep them all visible).
         const age = performance.now() - (orderFlash.get(u) ?? -1e9);
-        if (info[o + 12] > 0.5 && (withPaths || age < 2500)) {
+        if (info[o + 12] > 0.5 && (withPaths || (showTransient && age < 2500))) {
           // Recent orders fade out; Space shows them at full strength.
           const k = withPaths ? 1 : Math.max(0, 1 - age / 2500);
           const cls = info[o + 13];
@@ -645,7 +646,7 @@ export class BattleScene implements Scene {
           verts.push(ax, ay, r * 0.8 * k, g * 0.8 * k, b * 0.8 * k, info[o + 10], info[o + 11], r * 0.8 * k, g * 0.8 * k, b * 0.8 * k);
         }
         // Progress pie: WHITE = order transmitting down the line.
-        if (info[o + 14] > 0) pushPie(verts, ax, ay, info[o + 14], 7, 1, 1, 1);
+        if (showTransient && info[o + 14] > 0) pushPie(verts, ax, ay, info[o + 14], 7, 1, 1, 1);
       }
       // Right-drag preview: where everyone will stand, facing the cursor.
       if (input.rightDrag) {
@@ -683,7 +684,7 @@ export class BattleScene implements Scene {
         pushRing(verts, cx, cy, 6, 12, 1, 1, 1);
       }
       // Projectiles.
-      const pCount = game.projectile_count();
+      const pCount = showTransient ? game.projectile_count() : 0;
       if (pCount > 0) {
         const px = new Float32Array(wasm.memory.buffer, game.projectile_x_ptr(), pCount);
         const py = new Float32Array(wasm.memory.buffer, game.projectile_y_ptr(), pCount);
@@ -912,7 +913,7 @@ export class BattleScene implements Scene {
       // tracks the weapon ACTUALLY in hand (pike vs side-sword) and, for a braced
       // pike, the UNIT's frontage — never the man's own facing — so a flanked
       // phalanx shows side-swords, not a porcupine of sideways pikes.
-      if (camera.zoom > 2.5) {
+      if (!frozen && camera.zoom > 2.5) {
         const tris: number[] = [];
         const pos = positions();
         const face = facings();

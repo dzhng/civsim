@@ -117,7 +117,9 @@ fn fs(in: VsOut) -> @location(0) vec4f {
     let cracked = ridge(vec2f(in.world.x * 0.36 + in.world.y * 0.08, in.world.y * 0.42)) * ridge(in.world * 0.18 + vec2f(3.0, 4.0));
     var churn = mix(mud, vec3f(0.62, 0.50, 0.31), footprint * 0.14 + cracked * 0.18);
     churn *= 0.78 + smoothstep(0.18, 0.92, ridge(in.world * 0.24)) * 0.22;
-    return vec4f(churn, in.alpha);
+    let ragged = smoothstep(0.18, 0.86, fbm(in.world * 0.31 + vec2f(2.1, 7.4)));
+    let a = oval(in.local, 1.0, 0.58) * mix(0.58, 1.0, ragged) * in.alpha;
+    return vec4f(churn, a);
   }
 
   if (in.kind < 3.5) {

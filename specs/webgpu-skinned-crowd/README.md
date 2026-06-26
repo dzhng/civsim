@@ -53,6 +53,16 @@ more expressive skinned soldiers, sharper selection/order feedback, and a
 campaign map whose labels, faction colors, roads, water, and markers remain
 more legible at every review zoom.
 
+Campaign parity includes the old renderer's camera perspective. Close campaign
+views must not render as a flat orthographic rectangle: the terrain footprint
+should project as a trapezoid, distant models should appear smaller, and roads,
+labels, shadows, cities, armies, trees, rocks, and mountains must share the same
+perspective projection. Selection rings are not screen-space UI circles; they
+are ground-plane markers and must foreshorten with the terrain as if painted on
+the world surface. The current WebGPU close-up remains blocked until this
+projection gap is fixed and verified against the archived campaign-label-zoom
+reference.
+
 Performance improvement means the same gameplay scenes run with lower median
 and p95 frame time, lower CPU upload cost, stable memory, and more crowd/detail
 headroom than the current renderer. Slice 24 records the baseline first, then
@@ -334,10 +344,16 @@ are what make it a full game port instead of a crowd-rendering prototype.
   better in the agreed graphics categories; once accepted, those legacy
   comparison captures become archived evidence rather than test inputs. This
   checkpoint also requires dedicated model/reference screenshots for soldiers,
-  animation poses, cities/towns, roads, trees, terrain, and campaign props, so
-  whole-scene contact sheets cannot hide a missing model port. It also requires
-  label typography/icon screenshots that prove the WebGPU glyph atlas preserves
-  the old map-label font and icon language. The
+  animation poses, cities/towns, roads, every individual tree/rock/scenery
+  model, terrain, and campaign props, so whole-scene contact sheets cannot hide
+  a missing model port. Animated assets need both deterministic still-frame
+  baselines and regenerated WebGPU GIFs for human review. It also requires label
+  typography/icon screenshots that prove the WebGPU glyph atlas preserves the
+  old map-label font and icon language. Close campaign-map acceptance also
+  requires the legacy perspective/trapezoid terrain projection, including
+  selection rings projected as ground-plane world geometry rather than perfect
+  screen circles. A rectangular orthographic WebGPU map is not parity even if the
+  individual models render. The
   current checkpoint generates
   `specs/webgpu-skinned-crowd/visualizations/webgpu-visual-report.html`
   with WebGPU captures for the required surfaces, including battle crowd

@@ -262,7 +262,7 @@ function buildEntityFrame(data: CampaignData, opts: DrawOptions) {
     });
     cityEntities++;
     if (node === opts.selectedCity) {
-      selections.push({ x: mapNode.pos[0], y: mapNode.pos[1], radius: (mapNode.tier >= 3 ? 7.8 : 6.6) * fixtureScale, color: [0.31, 0.82, 0.39], kind: 'city' });
+      selections.push({ x: mapNode.pos[0], y: mapNode.pos[1], radius: (mapNode.tier >= 3 ? 8.9 : 7.6) * fixtureScale, color: [0.31, 0.82, 0.39], kind: 'city' });
     }
   }
   for (const army of opts.armies) {
@@ -341,7 +341,7 @@ function campaignScenery(data: CampaignData, field: TerrainField): CampaignScene
       if (height > 0.32 && hash2(gx * 3, gy * 5) < height * 0.72) {
         out.push({ x, y, size: 6.0 + height * 10.0, kind: 'mountain' });
       } else if (forest > 0.24 && hash2(gx * 5, gy * 9) < forest * 0.8) {
-        out.push({ x, y, size: 2.8 + forest * 4.2, kind: 'tree' });
+        out.push({ x, y, size: 2.8 + forest * 4.2, kind: hash2(gx + 19, gy + 23) > 0.42 ? 'broadleaf' : 'conifer' });
       } else if (rock > 0.26 && hash2(gx * 11, gy * 3) < rock * 0.65) {
         out.push({ x, y, size: 2.4 + rock * 4.0, kind: 'rock' });
       }
@@ -369,15 +369,15 @@ function testStageScenery(data: CampaignData): CampaignSceneryInstance[] {
     { x: cx - 4, y: cy - 18, size: 5.8, kind: 'rock' },
     { x: cx + 18, y: cy - 16, size: 5.2, kind: 'rock' },
     { x: cx + 32, y: cy - 10, size: 6.0, kind: 'rock' },
-    { x: cx - 18, y: cy + 2, size: 5.4, kind: 'tree' },
-    { x: cx + 24, y: cy + 2, size: 5.1, kind: 'tree' },
-    { x: cx + 12, y: cy - 6, size: 4.6, kind: 'tree' },
+    { x: cx - 18, y: cy + 2, size: 5.4, kind: 'conifer' },
+    { x: cx + 24, y: cy + 2, size: 5.1, kind: 'broadleaf' },
+    { x: cx + 12, y: cy - 6, size: 4.6, kind: 'broadleaf' },
   ];
   for (let i = 0; i < 22; i++) {
     const x = x0 + 6 + hash2(i * 13, 4) * (x1 - x0 - 12);
     const y = y0 + 5 + hash2(5, i * 17) * (y1 - y0 - 10);
     if (Math.abs(y - cy) < 5 && Math.abs(x - cx) < 34) continue;
-    items.push({ x, y, size: 2.5 + hash2(i, i + 9) * 2.2, kind: 'tree' });
+    items.push({ x, y, size: 2.5 + hash2(i, i + 9) * 2.2, kind: hash2(i, i + 31) > 0.45 ? 'broadleaf' : 'conifer' });
   }
   return items;
 }

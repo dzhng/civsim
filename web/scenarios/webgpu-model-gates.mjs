@@ -38,7 +38,17 @@ const gates = [
   {
     id: 'trees',
     label: 'Tree Props',
-    criteria: 'Tree prop family is visible as individual campaign scenery models, pending broadleaf/conifer split.',
+    criteria: 'Tree prop family is visible with separate conifer and broadleaf silhouettes in one comparison capture.',
+  },
+  {
+    id: 'conifer',
+    label: 'Conifer Tree',
+    criteria: 'Individual conifer model has trunk, tiered crown, non-square contact shadow, and campaign lighting.',
+  },
+  {
+    id: 'broadleaf',
+    label: 'Broadleaf Tree',
+    criteria: 'Individual broadleaf model has trunk, rounded low-poly canopy, non-square contact shadow, and campaign lighting.',
   },
   {
     id: 'mountain',
@@ -116,7 +126,7 @@ function renderHtml(report) {
         <dl>
           <dt>Status</dt><dd>${escapeHtml(capture.status)}</dd>
           <dt>Gate</dt><dd><code>${escapeHtml(capture.id)}</code></dd>
-          <dt>Renderer</dt><dd>${escapeHtml(capture.stats?.entityLayer ?? capture.stats?.labelLayer ?? 'raw-webgpu')}</dd>
+          <dt>Renderer</dt><dd>${escapeHtml(rendererSummary(capture.stats))}</dd>
           <dt>Counts</dt><dd>${escapeHtml(countSummary(capture.stats))}</dd>
         </dl>
       </div>
@@ -158,6 +168,14 @@ function renderHtml(report) {
 function countSummary(stats) {
   if (!stats) return 'missing stats';
   return `entities ${stats.entities ?? 0}, scenery ${stats.scenery ?? 0}, roads ${stats.roadSegments ?? 0}, labels ${stats.visibleLabels ?? 0}/${stats.labels ?? 0}`;
+}
+
+function rendererSummary(stats) {
+  if (!stats) return 'raw-webgpu';
+  if ((stats.scenery ?? 0) > 0) return stats.sceneryStats?.layer ?? 'raw-webgpu-scenery';
+  if ((stats.entities ?? 0) > 0) return stats.entityLayer ?? 'raw-webgpu-entities';
+  if ((stats.labels ?? 0) > 0) return stats.labelLayer ?? 'raw-webgpu-labels';
+  return stats.entityLayer ?? stats.labelLayer ?? 'raw-webgpu';
 }
 
 function basename(url) {

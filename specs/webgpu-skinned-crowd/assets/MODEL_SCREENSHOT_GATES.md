@@ -86,8 +86,9 @@ full campaign scene:
   shadow, selection footprint
 - road-only segment
 - road segment connecting city endpoints
-- broadleaf tree
-- conifer/tree variant
+- broadleaf tree as its own `broadleaf.png` capture
+- conifer tree as its own `conifer.png` capture
+- mixed tree-family comparison as `trees.png`
 - mountain massif
 - rock/boulder cluster
 - terrain grass/scrub sample
@@ -110,7 +111,16 @@ VERIFY_WEBGPU=1 node scenario.mjs webgpu-model-gates
 
 It writes `specs/webgpu-skinned-crowd/visualizations/model-gates/` with
 addressable PNGs and a contact sheet for the campaign model/prop families.
+The route must keep adding gates until every individual campaign model and prop
+has its own PNG, not just a family contact-sheet slot.
 These images are review evidence, not final parity acceptance.
+
+Soldier and animation evidence is the next executable gap: the same report
+family needs WebGPU turntable PNGs for every `models/` class, in-game
+readability PNGs for every `models-ingame/` class, deterministic still-frame
+samples for every `web/shots/anim/*.gif`, and regenerated WebGPU GIFs for human
+review. The still frames are the regression baselines; GIFs are the readable
+animation review artifacts.
 
 ## Rule
 

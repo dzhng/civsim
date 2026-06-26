@@ -658,6 +658,7 @@ async function routeCampaignModelGates(ctx: LabContext) {
     camera,
     entities: frame.entities.length,
     scenery: frame.scenery.length,
+    sceneryStats: scenery.stats(),
     roadSegments: lines.stats().segments,
     selections: frame.selections.length,
     labels: labelLayer.labels,
@@ -675,11 +676,13 @@ type CampaignModelGate =
   | 'army'
   | 'road'
   | 'trees'
+  | 'conifer'
+  | 'broadleaf'
   | 'mountain'
   | 'rocks'
   | 'labels';
 
-const CAMPAIGN_MODEL_GATES: CampaignModelGate[] = ['city', 'town', 'army', 'road', 'trees', 'mountain', 'rocks', 'labels'];
+const CAMPAIGN_MODEL_GATES: CampaignModelGate[] = ['city', 'town', 'army', 'road', 'trees', 'conifer', 'broadleaf', 'mountain', 'rocks', 'labels'];
 
 function campaignModelGate(value: string | null): CampaignModelGate {
   return CAMPAIGN_MODEL_GATES.includes(value as CampaignModelGate) ? value as CampaignModelGate : 'city';
@@ -689,8 +692,9 @@ function campaignModelGateCamera(gate: CampaignModelGate) {
   const close = { x: 0, y: 0.3, zoom: 28, pitch: 0.56, yaw: 0 };
   if (gate === 'overview') return { x: 0, y: -0.6, zoom: 28, pitch: 0.54, yaw: 0 };
   if (gate === 'road') return { x: 0, y: -1.3, zoom: 30, pitch: 0.54, yaw: 0 };
-  if (gate === 'trees') return { x: 0, y: -0.3, zoom: 34, pitch: 0.56, yaw: 0 };
-  if (gate === 'mountain' || gate === 'rocks') return { x: 0, y: -0.4, zoom: 32, pitch: 0.56, yaw: 0 };
+  if (gate === 'trees') return { x: 0, y: -0.3, zoom: 40, pitch: 0.56, yaw: 0 };
+  if (gate === 'conifer' || gate === 'broadleaf') return { x: 0, y: -0.36, zoom: 54, pitch: 0.56, yaw: 0 };
+  if (gate === 'mountain' || gate === 'rocks') return { x: 0, y: -0.4, zoom: 40, pitch: 0.56, yaw: 0 };
   return close;
 }
 
@@ -707,7 +711,7 @@ function campaignModelGateFrame(gate: CampaignModelGate) {
   const addCity = (x: number, y: number, radius: number, text: string, faction = red, allegiance = green, selected = false) => {
     entities.push({ x, y, radius, faction, allegiance, kind: 'city', strength: 1 });
     labels.push({ text, x, y: y - 4.7, kind: 'city', size: 14, priority: 5, icon: 'city', iconColor: allegiance });
-    if (selected) selections.push({ x, y, radius: radius * 0.72, color: green, kind: 'city' });
+    if (selected) selections.push({ x, y, radius: radius * 1.16, color: green, kind: 'city' });
   };
   const addArmy = (x: number, y: number, selected = false) => {
     entities.push({ x, y, radius: 5.5, faction: red, allegiance: green, kind: 'army', strength: 0.86 });
@@ -729,12 +733,14 @@ function campaignModelGateFrame(gate: CampaignModelGate) {
   }
   if (gate === 'overview' || gate === 'trees') {
     scenery.push(
-      { x: -3.8, y: gate === 'trees' ? -0.6 : 2.2, size: 3.7, kind: 'tree' },
-      { x: -1.5, y: gate === 'trees' ? -0.8 : 2.0, size: 3.2, kind: 'tree' },
-      { x: 1.2, y: gate === 'trees' ? -0.5 : 2.3, size: 4.0, kind: 'tree' },
-      { x: 3.6, y: gate === 'trees' ? -0.9 : 1.8, size: 3.0, kind: 'tree' },
+      { x: -3.8, y: gate === 'trees' ? -0.6 : 2.2, size: 3.7, kind: 'conifer' },
+      { x: -1.5, y: gate === 'trees' ? -0.8 : 2.0, size: 3.2, kind: 'broadleaf' },
+      { x: 1.2, y: gate === 'trees' ? -0.5 : 2.3, size: 4.0, kind: 'broadleaf' },
+      { x: 3.6, y: gate === 'trees' ? -0.9 : 1.8, size: 3.0, kind: 'conifer' },
     );
   }
+  if (gate === 'conifer') scenery.push({ x: 0.0, y: -0.55, size: 4.1, kind: 'conifer', shade: 0.62 });
+  if (gate === 'broadleaf') scenery.push({ x: 0.0, y: -0.55, size: 4.1, kind: 'broadleaf', shade: 0.66 });
   if (gate === 'overview' || gate === 'mountain') {
     scenery.push(
       { x: -2.4, y: gate === 'mountain' ? -0.6 : 4.2, size: gate === 'mountain' ? 4.6 : 6.6, kind: 'mountain' },
@@ -1473,7 +1479,7 @@ function buildCampaignEntityFrame(
     });
     cityEntities++;
     if (node === selectedCity) {
-      selections.push({ x: mapNode.pos[0], y: mapNode.pos[1], radius: mapNode.tier >= 3 ? 10.8 : 9.2, color: [0.31, 0.82, 0.39], kind: 'city' });
+      selections.push({ x: mapNode.pos[0], y: mapNode.pos[1], radius: mapNode.tier >= 3 ? 12.4 : 10.6, color: [0.31, 0.82, 0.39], kind: 'city' });
     }
   }
   for (const army of views.armies) {

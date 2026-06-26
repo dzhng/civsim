@@ -11,6 +11,12 @@ relief, water/grass readability, tree/rock density, road treatment, and
 map-label typography/icons. A flat parchment-only approximation is a temporary
 scaffold, not final parity.
 
+Close campaign views must use the same perspective language as the archived
+renderer: the board/terrain footprint projects as a trapezoid, distant models
+and roads foreshorten, and ground-plane overlays such as selection rings share
+that projection. A flat orthographic rectangle is not accepted for the
+campaign-label-zoom gate.
+
 ## API Seam
 
 - `packages/game-renderer/src/campaign/mapPass.ts`

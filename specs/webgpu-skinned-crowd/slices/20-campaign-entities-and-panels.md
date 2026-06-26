@@ -20,6 +20,9 @@ built; they do not satisfy final visual parity.
 - `packages/game-renderer/src/campaign/selectionPass.ts`
   - current checkpoint: WebGPU city/army selection footprints in the campaign
     selection language.
+  - final parity checkpoint: selection rings are ground-plane world geometry
+    that foreshorten with the campaign perspective camera. A perfect screen
+    circle or flat orthographic oval is a regression at close campaign zoom.
 - `web/src/campaign/webgpuUiLayer.ts`
   - deliberately retains dense campaign panels in DOM for this slice while
     reporting the WebGPU-vs-DOM ownership split for screenshot/cutover audit.
@@ -53,6 +56,8 @@ built; they do not satisfy final visual parity.
 - Additional model-level screenshots must isolate city/town markers, army flags
   attached to units, selection rings, label icons, and representative figures
   before the whole-scene visual report can accept this slice.
+- Selection-ring screenshots must show the ring sitting outside the city/army
+  shadow footprint and projected with the same perspective as the terrain.
 
 ## Must Stay Green
 

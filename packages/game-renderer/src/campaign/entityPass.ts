@@ -224,8 +224,10 @@ function makeVertexBuffer(device: GPUDevice, label: string, data: Float32Array) 
 }
 
 function makeIndexBuffer(device: GPUDevice, label: string, data: Uint16Array) {
-  const buffer = device.createBuffer({ label, size: data.byteLength, usage: GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST });
-  device.queue.writeBuffer(buffer, 0, data);
+  const upload = data.byteLength % 4 === 0 ? data : new Uint16Array(data.length + 1);
+  if (upload !== data) upload.set(data);
+  const buffer = device.createBuffer({ label, size: upload.byteLength, usage: GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST });
+  device.queue.writeBuffer(buffer, 0, upload);
   return buffer;
 }
 
@@ -238,6 +240,7 @@ function buildCityMesh(): MeshData {
   const sandstone: Rgb = [0.82, 0.74, 0.56];
   const roof: Rgb = [0.66, 0.40, 0.30];
   const timber: Rgb = [0.45, 0.36, 0.28];
+  builder.shadow(4.8);
   const building = (x: number, y: number, w: number, d: number, h: number) => {
     builder.box([x, y, h * 0.5], [w, d, h], sandstone, 1);
     builder.box([x, y, h + h * 0.19], [w * 1.18, d * 1.18, h * 0.38], roof, 1);
@@ -252,7 +255,6 @@ function buildCityMesh(): MeshData {
   }
   builder.box([0, 0, 4.75], [0.22, 0.22, 9.5], timber, 1);
   builder.box([2.7, 0, 7.7], [5.4, 0.18, 3.2], [1, 1, 1], 1);
-  builder.shadow(4.8);
   return builder.finish();
 }
 
@@ -318,7 +320,22 @@ class MeshBuilder {
 
   shadow(radius: number) {
     const color: Rgb = [0.06, 0.05, 0.035];
-    this.box([0, 0, 0.03], [radius * 2.0, radius * 1.25, 0.06], color, 0.24);
+    const center: [number, number, number] = [0.10, -0.04, 0.025];
+    const normal: [number, number, number] = [0, 0, 1];
+    const ring: [number, number, number][] = [];
+    for (let i = 0; i < 18; i++) {
+      const a = (i / 18) * Math.PI * 2;
+      ring.push([center[0] + Math.cos(a) * radius, center[1] + Math.sin(a) * radius * 0.62, center[2]]);
+    }
+    for (let i = 0; i < ring.length; i++) {
+      const base = this.vertices.length / 10;
+      this.vertices.push(
+        ...center, ...normal, ...color, 0.20,
+        ...ring[i], ...normal, ...color, 0.14,
+        ...ring[(i + 1) % ring.length], ...normal, ...color, 0.14,
+      );
+      this.indices.push(base, base + 1, base + 2);
+    }
   }
 
   finish(): MeshData {

@@ -55,9 +55,11 @@ Current checkpoint:
   `specs/webgpu-skinned-crowd/visualizations/visual-comparison.manifest.example.json`.
 - Model and label reference gates are required before final visual acceptance:
   every individual soldier model, every animation/GIF beat, campaign city/town
-  models, attached army flags with representative figures, roads, every tree
-  and rock/prop family, terrain/water/fog samples, and campaign label font/icon
-  samples. Whole-scene screenshots are not enough to prove those assets
+  models, attached army flags with representative figures, roads, every
+  individual tree, rock, mountain, and scenery prop model, terrain/water/fog
+  samples, and campaign label font/icon samples. Animation gates must keep
+  deterministic WebGPU still frames for diffing and WebGPU GIFs for readable
+  human review. Whole-scene screenshots are not enough to prove those assets
   survived the port.
 
 ## Verification

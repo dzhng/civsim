@@ -52,6 +52,10 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   clamping, not just the requested debug hook values. A visual report can look
   stable while every close-camera request is silently collapsed to the same
   aspect-fill frame; expose or read a `camGet`/stats hook and inspect the PNG.
+- Match the verification route to the visual question. Regression snapshots
+  such as `campaign-webgpu-visual` can stay pixel-green while the archived
+  parity gate in `webgpu-visual-report` changes; for parity work, rerun the
+  report route, inspect its PNG, and then run `compare-screenshots`.
 - Use instancing, batching, storage buffers, and GPU-side phase passes for scale.
   Avoid CPU readbacks in hot paths; debug readbacks must be bounded and named.
 - For iterative effects or simulations, separate phases such as `state`,

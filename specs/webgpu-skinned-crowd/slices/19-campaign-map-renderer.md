@@ -79,6 +79,12 @@ campaign-label-zoom gate.
   to the centered full-board frame. This moved the tracked Campaign Label Zoom
   parity distance from `0.37363` to `0.27431`; the remaining gap is now mostly
   art/projection/readability rather than a broken report camera.
+- The controlled test/handoff campaign fixtures use a muted olive field
+  swatch instead of the earlier parchment beige scaffold so the close-label
+  WebGPU comparison starts from the archived renderer's greener ground color.
+  This moved Campaign Label Zoom parity distance from `0.27431` to `0.25048`.
+  Remaining visible gaps are terrain texture, foreground scenery scale, and
+  grounded perspective for selection rings, shadows, flags, and labels.
 
 ## Must Stay Green
 

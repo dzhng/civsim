@@ -98,7 +98,7 @@ async function buildTestCampaign(): Promise<{ data: CampaignData; mapJson: strin
     ],
   } as unknown as CampaignData['map'];
   const bgRect = { min: [-45, Y - 28] as [number, number], max: [45, Y + 28] as [number, number] };
-  const bg = await solidCampaignBitmap(180, 112, [196, 178, 138]);
+  const bg = await solidCampaignBitmap(180, 112, [168, 176, 116]);
   const nodeIndex = new Map(map.nodes.map((n, i) => [n.id, i]));
   return { data: { map, bg, bgRect, nodeIndex }, mapJson: JSON.stringify(map) };
 }
@@ -128,7 +128,7 @@ async function buildHandoffCampaign(): Promise<{ data: CampaignData; mapJson: st
     ],
   } as unknown as CampaignData['map'];
   const bgRect = { min: [-54, Y - 32] as [number, number], max: [54, Y + 32] as [number, number] };
-  const bg = await solidCampaignBitmap(216, 128, [196, 178, 138]);
+  const bg = await solidCampaignBitmap(216, 128, [168, 176, 116]);
   const nodeIndex = new Map(map.nodes.map((n, i) => [n.id, i]));
   return { data: { map, bg, bgRect, nodeIndex }, mapJson: JSON.stringify(map) };
 }

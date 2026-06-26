@@ -10,132 +10,116 @@ export interface CampaignEntityInstance {
   strength?: number;
 }
 
+interface MeshData {
+  vertices: Float32Array;
+  indices: Uint16Array;
+  indexCount: number;
+}
+
+type Rgb = [number, number, number];
+
 const ENTITY_WGSL = `
 struct Camera { x:f32, y:f32, zoom:f32, cosP:f32, width:f32, height:f32, cosYaw:f32, sinYaw:f32 };
 @group(0) @binding(0) var<uniform> cam: Camera;
 
 struct VsOut {
   @builtin(position) pos: vec4f,
-  @location(0) local: vec2f,
-  @location(1) faction: vec3f,
-  @location(2) allegiance: vec3f,
-  @location(3) entityInfo: vec2f,
+  @location(0) color: vec3f,
+  @location(1) light: f32,
+  @location(2) livery: f32,
+  @location(3) faction: vec3f,
+  @location(4) allegiance: vec3f,
+  @location(5) shade: f32,
+  @location(6) alpha: f32,
 };
 
 @vertex
-fn vs(@location(0) quad: vec2f, @location(1) inst0: vec4f, @location(2) inst1: vec4f, @location(3) inst2: vec4f) -> VsOut {
-  let radius = inst0.z;
-  let dx = inst0.x - cam.x;
-  let dy = inst0.y - cam.y;
+fn vs(
+  @location(0) local: vec3f,
+  @location(1) normal: vec3f,
+  @location(2) colorAndAlpha: vec4f,
+  @location(3) inst0: vec4f,
+  @location(4) inst1: vec4f,
+  @location(5) inst2: vec4f,
+) -> VsOut {
+  let scale = inst0.z;
+  let world = vec3f(inst0.x + local.x * scale, inst0.y + local.y * scale, local.z * scale);
+  let dx = world.x - cam.x;
+  let dy = world.y - cam.y;
   let rx = dx * cam.cosYaw + dy * cam.sinYaw;
   let ry = -dx * cam.sinYaw + dy * cam.cosYaw;
-  let vertical = (quad.y + 1.0) * 0.5 * radius * cam.zoom * select(1.06, 1.62, inst0.w > 0.5);
-  let screenX = rx * cam.zoom + quad.x * radius * cam.zoom;
-  let screenY = ry * cam.zoom * cam.cosP + vertical - radius * cam.zoom * 0.16;
   var out: VsOut;
-  out.pos = vec4f(screenX / (cam.width * 0.5), screenY / (cam.height * 0.5), 0.02, 1.0);
-  out.local = quad;
+  out.pos = vec4f(
+    (rx * cam.zoom) / (cam.width * 0.5),
+    (ry * cam.zoom * cam.cosP + world.z * cam.zoom) / (cam.height * 0.5),
+    0.02,
+    1.0
+  );
+  out.color = colorAndAlpha.rgb;
+  out.livery = smoothstep(0.94, 0.99, min(colorAndAlpha.r, min(colorAndAlpha.g, colorAndAlpha.b)));
+  out.alpha = colorAndAlpha.a;
   out.faction = inst1.rgb;
   out.allegiance = vec3f(inst1.a, inst2.r, inst2.g);
-  out.entityInfo = vec2f(inst0.w, inst2.b);
+  let sun = normalize(vec3f(-0.42, -0.34, 0.84));
+  let n = normalize(normal);
+  out.light = clamp(dot(n, sun) * 0.38 + 0.76, 0.42, 1.12);
+  out.shade = clamp(world.z / max(scale * 8.5, 0.001), 0.0, 1.0);
   return out;
-}
-
-fn rect(p: vec2f, c: vec2f, h: vec2f) -> f32 {
-  let q = abs(p - c) - h;
-  let outside = length(max(q, vec2f(0.0)));
-  return 1.0 - smoothstep(0.0, 0.035, outside);
-}
-
-fn ellipse(p: vec2f, c: vec2f, r: vec2f) -> f32 {
-  let d = length((p - c) / r);
-  return 1.0 - smoothstep(0.74, 1.0, d);
-}
-
-fn triRoof(p: vec2f, c: vec2f, size: vec2f) -> f32 {
-  let q = (p - c) / size;
-  let inside = step(abs(q.x), 1.0 - max(q.y, 0.0)) * step(-1.0, q.y) * step(q.y, 1.0);
-  return inside;
-}
-
-fn cityShape(p: vec2f) -> vec4f {
-  let shadow = ellipse(p, vec2f(0.10, -0.82), vec2f(0.88, 0.20)) * 0.38;
-  let keep = max(max(rect(p, vec2f(-0.34, -0.48), vec2f(0.25, 0.28)), rect(p, vec2f(0.05, -0.42), vec2f(0.29, 0.34))), rect(p, vec2f(0.44, -0.50), vec2f(0.19, 0.24)));
-  let towers = max(rect(p, vec2f(-0.43, -0.15), vec2f(0.12, 0.28)), rect(p, vec2f(0.28, -0.10), vec2f(0.13, 0.32)));
-  let roofs = max(max(triRoof(p, vec2f(-0.34, 0.06), vec2f(0.34, 0.22)), triRoof(p, vec2f(0.07, 0.16), vec2f(0.38, 0.24))), triRoof(p, vec2f(0.44, 0.00), vec2f(0.24, 0.18)));
-  let flagPole = rect(p, vec2f(-0.56, 0.20), vec2f(0.025, 0.56));
-  let flag = rect(p, vec2f(-0.22, 0.48), vec2f(0.34, 0.17));
-  let wall = max(keep, towers);
-  let body = max(max(wall, roofs), max(flagPole, flag));
-  return vec4f(shadow, wall + flagPole, roofs + flag, body);
-}
-
-fn armyShape(p: vec2f) -> vec4f {
-  let shadow = ellipse(p, vec2f(0.10, -0.84), vec2f(0.78, 0.19)) * 0.42;
-  let pole = rect(p, vec2f(-0.22, 0.12), vec2f(0.035, 0.86));
-  let clothA = rect(p, vec2f(0.18, 0.58), vec2f(0.40, 0.18));
-  let clothB = rect(p, vec2f(0.08, 0.34), vec2f(0.30, 0.16));
-  let notch = triRoof(vec2f(p.x, -p.y), vec2f(0.43, -0.37), vec2f(0.18, 0.14));
-  let base = max(rect(p, vec2f(-0.18, -0.70), vec2f(0.28, 0.10)), rect(p, vec2f(0.10, -0.82), vec2f(0.35, 0.07)));
-  let soldiers = max(max(ellipse(p, vec2f(-0.34, -0.42), vec2f(0.12, 0.22)), ellipse(p, vec2f(0.02, -0.42), vec2f(0.12, 0.22))), ellipse(p, vec2f(0.36, -0.42), vec2f(0.12, 0.22)));
-  let cloth = max(clothA, clothB) * (1.0 - notch * 0.82);
-  let body = max(max(max(pole, cloth), base), soldiers);
-  return vec4f(shadow, max(pole, soldiers), cloth, body);
 }
 
 @fragment
 fn fs(in: VsOut) -> @location(0) vec4f {
-  let kind = in.entityInfo.x;
-  let strength = clamp(in.entityInfo.y, 0.22, 1.0);
-  let ink = vec3f(0.13, 0.09, 0.05);
-  let shade = vec3f(0.19, 0.14, 0.08);
-  let bronze = vec3f(0.84, 0.66, 0.33);
-  let limestone = vec3f(0.72, 0.58, 0.38);
-  let roof = mix(in.faction, vec3f(0.78, 0.38, 0.24), 0.34);
-  let cityTint = mix(mix(limestone, in.faction, 0.28), bronze, 0.18);
-  let armyTint = mix(in.faction, vec3f(0.76, 0.62, 0.38), 0.18) * (0.70 + strength * 0.34);
-  if (kind < 0.5) {
-    let s = cityShape(in.local);
-    if (s.w <= 0.01 && s.x <= 0.01) { discard; }
-    let wall = mix(shade, cityTint, 0.84);
-    let color = select(vec3f(0.06, 0.045, 0.030), mix(wall, roof, s.z * 0.82), s.w > 0.01);
-    let outline = smoothstep(0.20, 0.95, s.w) * (1.0 - smoothstep(0.72, 1.0, s.y + s.z));
-    return vec4f(mix(color, ink, outline * 0.22), max(s.w, s.x * 0.58));
-  }
-  let s = armyShape(in.local);
-  if (s.w <= 0.01 && s.x <= 0.01) { discard; }
-  let stripe = smoothstep(0.06, 0.0, abs(in.local.y - 0.08)) * step(-0.32, in.local.x) * step(in.local.x, 0.58);
-  let cloth = mix(armyTint, in.allegiance, stripe * 0.45);
-  let pole = mix(vec3f(0.42, 0.29, 0.16), bronze, 0.42);
-  let color = select(vec3f(0.06, 0.045, 0.030), mix(mix(pole, cloth, s.z), ink, 0.10), s.w > 0.01);
-  return vec4f(color, max(s.w, s.x * 0.58));
+  let ownership = mix(in.color, in.faction, in.livery);
+  let bronze = vec3f(0.84, 0.66, 0.34);
+  let warmKey = vec3f(1.10, 1.00, 0.80);
+  let coolFill = vec3f(0.70, 0.76, 0.86);
+  let grade = mix(coolFill, warmKey, clamp((in.light - 0.42) / 0.70, 0.0, 1.0));
+  var shaded = ownership * in.light * grade;
+  shaded += bronze * smoothstep(0.64, 0.82, ownership.r) * smoothstep(0.42, 0.62, ownership.g) * 0.05;
+  shaded = mix(shaded, vec3f(0.92, 0.82, 0.58), (1.0 - in.shade) * 0.025);
+  return vec4f(clamp(shaded, vec3f(0.0), vec3f(1.0)), in.alpha);
 }`;
 
 export class CampaignEntityPass {
   private pipeline: GPURenderPipeline;
-  private quadBuffer: GPUBuffer;
-  private instanceBuffer: GPUBuffer;
-  private capacity = 0;
-  private count = 0;
+  private cityVertexBuffer: GPUBuffer;
+  private cityIndexBuffer: GPUBuffer;
+  private armyVertexBuffer: GPUBuffer;
+  private armyIndexBuffer: GPUBuffer;
+  private cityInstanceBuffer: GPUBuffer;
+  private armyInstanceBuffer: GPUBuffer;
+  private cityCapacity = 0;
+  private armyCapacity = 0;
+  private cityCount = 0;
+  private armyCount = 0;
+  private cityMesh = buildCityMesh();
+  private armyMesh = buildArmyMesh();
 
   constructor(private shell: RawFrameShell) {
     const device = shell.device;
-    const module = device.createShaderModule({ label: 'campaign-entity-wgsl', code: ENTITY_WGSL });
+    const module = device.createShaderModule({ label: 'campaign-entity-mesh-wgsl', code: ENTITY_WGSL });
     this.pipeline = device.createRenderPipeline({
-      label: 'campaign-entity-pipeline',
+      label: 'campaign-entity-mesh-pipeline',
       layout: device.createPipelineLayout({ bindGroupLayouts: [shell.cameraBindGroupLayout] }),
       vertex: {
         module,
         entryPoint: 'vs',
         buffers: [
-          { arrayStride: 8, attributes: [{ shaderLocation: 0, offset: 0, format: 'float32x2' }] },
+          {
+            arrayStride: 40,
+            attributes: [
+              { shaderLocation: 0, offset: 0, format: 'float32x3' },
+              { shaderLocation: 1, offset: 12, format: 'float32x3' },
+              { shaderLocation: 2, offset: 24, format: 'float32x4' },
+            ],
+          },
           {
             arrayStride: 48,
             stepMode: 'instance',
             attributes: [
-              { shaderLocation: 1, offset: 0, format: 'float32x4' },
-              { shaderLocation: 2, offset: 16, format: 'float32x4' },
-              { shaderLocation: 3, offset: 32, format: 'float32x4' },
+              { shaderLocation: 3, offset: 0, format: 'float32x4' },
+              { shaderLocation: 4, offset: 16, format: 'float32x4' },
+              { shaderLocation: 5, offset: 32, format: 'float32x4' },
             ],
           },
         ],
@@ -151,59 +135,198 @@ export class CampaignEntityPass {
           },
         }],
       },
-      primitive: { topology: 'triangle-strip' },
+      primitive: { topology: 'triangle-list', cullMode: 'none' },
     });
-    this.quadBuffer = device.createBuffer({
-      label: 'campaign-entity-quad',
-      size: 8 * 4,
-      usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
-    });
-    device.queue.writeBuffer(this.quadBuffer, 0, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]));
-    this.instanceBuffer = device.createBuffer({
-      label: 'campaign-entity-empty',
-      size: 12 * 4,
-      usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
-    });
+    this.cityVertexBuffer = makeVertexBuffer(device, 'campaign-city-model-vertices', this.cityMesh.vertices);
+    this.cityIndexBuffer = makeIndexBuffer(device, 'campaign-city-model-indices', this.cityMesh.indices);
+    this.armyVertexBuffer = makeVertexBuffer(device, 'campaign-army-model-vertices', this.armyMesh.vertices);
+    this.armyIndexBuffer = makeIndexBuffer(device, 'campaign-army-model-indices', this.armyMesh.indices);
+    this.cityInstanceBuffer = makeEmptyInstanceBuffer(device, 'campaign-city-empty-instances');
+    this.armyInstanceBuffer = makeEmptyInstanceBuffer(device, 'campaign-army-empty-instances');
   }
 
   upload(instances: CampaignEntityInstance[]) {
-    this.count = instances.length;
-    if (instances.length > this.capacity) {
-      this.capacity = Math.max(instances.length, this.capacity * 2, 64);
-      this.instanceBuffer = this.shell.device.createBuffer({
-        label: 'campaign-entity-instances',
-        size: this.capacity * 12 * 4,
-        usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
-      });
-    }
-    if (instances.length === 0) return;
-    const data = new Float32Array(instances.length * 12);
-    for (let i = 0; i < instances.length; i++) {
-      const inst = instances[i];
-      const o = i * 12;
-      data[o] = inst.x;
-      data[o + 1] = inst.y;
-      data[o + 2] = inst.radius;
-      data[o + 3] = inst.kind === 'army' ? 1 : 0;
-      data.set(inst.faction, o + 4);
-      data[o + 7] = inst.allegiance[0];
-      data[o + 8] = inst.allegiance[1];
-      data[o + 9] = inst.allegiance[2];
-      data[o + 10] = inst.strength ?? 1;
-    }
-    this.shell.device.queue.writeBuffer(this.instanceBuffer, 0, data);
+    const cities = instances.filter((inst) => inst.kind === 'city');
+    const armies = instances.filter((inst) => inst.kind === 'army');
+    this.cityCount = cities.length;
+    this.armyCount = armies.length;
+    this.cityInstanceBuffer = this.ensureInstanceBuffer(this.cityInstanceBuffer, 'campaign-city-instances', cities.length, 'city');
+    this.armyInstanceBuffer = this.ensureInstanceBuffer(this.armyInstanceBuffer, 'campaign-army-instances', armies.length, 'army');
+    if (cities.length > 0) this.shell.device.queue.writeBuffer(this.cityInstanceBuffer, 0, packInstances(cities, 5.0));
+    if (armies.length > 0) this.shell.device.queue.writeBuffer(this.armyInstanceBuffer, 0, packInstances(armies, 4.4));
   }
 
   draw(pass: GPURenderPassEncoder) {
-    if (this.count === 0) return;
+    if (this.cityCount === 0 && this.armyCount === 0) return;
     pass.setPipeline(this.pipeline);
     pass.setBindGroup(0, this.shell.cameraBindGroup);
-    pass.setVertexBuffer(0, this.quadBuffer);
-    pass.setVertexBuffer(1, this.instanceBuffer);
-    pass.draw(4, this.count);
+    if (this.cityCount > 0) {
+      pass.setVertexBuffer(0, this.cityVertexBuffer);
+      pass.setVertexBuffer(1, this.cityInstanceBuffer);
+      pass.setIndexBuffer(this.cityIndexBuffer, 'uint16');
+      pass.drawIndexed(this.cityMesh.indexCount, this.cityCount);
+    }
+    if (this.armyCount > 0) {
+      pass.setVertexBuffer(0, this.armyVertexBuffer);
+      pass.setVertexBuffer(1, this.armyInstanceBuffer);
+      pass.setIndexBuffer(this.armyIndexBuffer, 'uint16');
+      pass.drawIndexed(this.armyMesh.indexCount, this.armyCount);
+    }
   }
 
   stats() {
-    return { entities: this.count };
+    return {
+      entities: this.cityCount + this.armyCount,
+      cityMeshes: this.cityCount,
+      armyMeshes: this.armyCount,
+      cityModelVertices: this.cityMesh.vertices.length / 10,
+      armyModelVertices: this.armyMesh.vertices.length / 10,
+      layer: 'raw-webgpu-legacy-model-meshes',
+    };
+  }
+
+  private ensureInstanceBuffer(buffer: GPUBuffer, label: string, count: number, bucket: 'city' | 'army') {
+    const current = bucket === 'city' ? this.cityCapacity : this.armyCapacity;
+    if (count <= current) return buffer;
+    const next = Math.max(count, current * 2, 64);
+    if (bucket === 'city') this.cityCapacity = next;
+    else this.armyCapacity = next;
+    return this.shell.device.createBuffer({
+      label,
+      size: next * 12 * 4,
+      usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
+    });
+  }
+}
+
+function packInstances(instances: CampaignEntityInstance[], radiusToScale: number) {
+  const data = new Float32Array(instances.length * 12);
+  for (let i = 0; i < instances.length; i++) {
+    const inst = instances[i];
+    const o = i * 12;
+    data[o] = inst.x;
+    data[o + 1] = inst.y;
+    data[o + 2] = inst.radius / radiusToScale;
+    data[o + 3] = inst.strength ?? 1;
+    data.set(inst.faction, o + 4);
+    data[o + 7] = inst.allegiance[0];
+    data[o + 8] = inst.allegiance[1];
+    data[o + 9] = inst.allegiance[2];
+    data[o + 10] = inst.strength ?? 1;
+  }
+  return data;
+}
+
+function makeVertexBuffer(device: GPUDevice, label: string, data: Float32Array) {
+  const buffer = device.createBuffer({ label, size: data.byteLength, usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST });
+  device.queue.writeBuffer(buffer, 0, data);
+  return buffer;
+}
+
+function makeIndexBuffer(device: GPUDevice, label: string, data: Uint16Array) {
+  const buffer = device.createBuffer({ label, size: data.byteLength, usage: GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST });
+  device.queue.writeBuffer(buffer, 0, data);
+  return buffer;
+}
+
+function makeEmptyInstanceBuffer(device: GPUDevice, label: string) {
+  return device.createBuffer({ label, size: 12 * 4, usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST });
+}
+
+function buildCityMesh(): MeshData {
+  const builder = new MeshBuilder();
+  const sandstone: Rgb = [0.82, 0.74, 0.56];
+  const roof: Rgb = [0.66, 0.40, 0.30];
+  const timber: Rgb = [0.45, 0.36, 0.28];
+  const building = (x: number, y: number, w: number, d: number, h: number) => {
+    builder.box([x, y, h * 0.5], [w, d, h], sandstone, 1);
+    builder.box([x, y, h + h * 0.19], [w * 1.18, d * 1.18, h * 0.38], roof, 1);
+  };
+  building(0, 0, 2.4, 2.4, 3.0);
+  let seed = 2654435761 | 0;
+  const rand = () => (seed = (Math.imul(seed, 1103515245) + 12345) & 0x7fffffff) / 0x80000000;
+  for (let i = 0; i < 18; i++) {
+    const a = rand() * Math.PI * 2;
+    const r = 0.9 + rand() * 3.0;
+    building(Math.cos(a) * r, Math.sin(a) * r, 0.8 + rand() * 1.0, 0.8 + rand() * 1.0, 1.1 + rand() * 1.4);
+  }
+  builder.box([0, 0, 4.75], [0.22, 0.22, 9.5], timber, 1);
+  builder.box([2.7, 0, 7.7], [5.4, 0.18, 3.2], [1, 1, 1], 1);
+  builder.shadow(4.8);
+  return builder.finish();
+}
+
+function buildArmyMesh(): MeshData {
+  const builder = new MeshBuilder();
+  const timber: Rgb = [0.43, 0.30, 0.17];
+  const linen: Rgb = [0.76, 0.64, 0.42];
+  builder.shadow(1.9);
+  builder.box([0, 0, 2.15], [0.14, 0.14, 4.3], timber, 1);
+  builder.box([0.82, 0, 3.72], [1.64, 0.12, 0.92], [1, 1, 1], 1);
+  builder.box([0.60, 0, 2.92], [1.18, 0.12, 0.62], [1, 1, 1], 1);
+  const slots: [number, number][] = Array.from({ length: 6 }, (_, i) => {
+    const a = i * 2.399963;
+    const r = 0.38 * Math.sqrt(i);
+    return [Math.cos(a) * r, Math.sin(a) * r];
+  });
+  for (let i = 0; i < slots.length; i++) {
+    const [x, y] = slots[i];
+    soldier(builder, x * 1.65 - 0.10, y * 1.65 - 0.30, i % 3 === 0, linen);
+  }
+  return builder.finish();
+}
+
+function soldier(builder: MeshBuilder, x: number, y: number, shield: boolean, tunic: Rgb) {
+  const skin: Rgb = [0.79, 0.60, 0.47];
+  const bronze: Rgb = [0.72, 0.57, 0.28];
+  const leather: Rgb = [0.34, 0.23, 0.14];
+  const wood: Rgb = [0.47, 0.33, 0.19];
+  builder.box([x - 0.11, y, 0.32], [0.11, 0.13, 0.64], leather, 1);
+  builder.box([x + 0.11, y, 0.32], [0.11, 0.13, 0.64], leather, 1);
+  builder.box([x, y + 0.01, 0.92], [0.34, 0.24, 0.58], tunic, 1);
+  builder.box([x, y + 0.02, 1.30], [0.22, 0.20, 0.22], skin, 1);
+  builder.box([x, y + 0.03, 1.49], [0.24, 0.22, 0.16], bronze, 1);
+  builder.box([x + 0.24, y + 0.06, 0.94], [0.05, 0.06, 1.30], wood, 1);
+  if (shield) builder.box([x - 0.28, y + 0.10, 0.84], [0.25, 0.08, 0.56], [1, 1, 1], 1);
+}
+
+class MeshBuilder {
+  private vertices: number[] = [];
+  private indices: number[] = [];
+
+  box(center: [number, number, number], size: [number, number, number], color: Rgb, alpha: number) {
+    const [cx, cy, cz] = center;
+    const [sx, sy, sz] = [size[0] * 0.5, size[1] * 0.5, size[2] * 0.5];
+    const corners: [number, number, number][] = [
+      [cx - sx, cy - sy, cz - sz], [cx + sx, cy - sy, cz - sz], [cx + sx, cy + sy, cz - sz], [cx - sx, cy + sy, cz - sz],
+      [cx - sx, cy - sy, cz + sz], [cx + sx, cy - sy, cz + sz], [cx + sx, cy + sy, cz + sz], [cx - sx, cy + sy, cz + sz],
+    ];
+    const faces: [number[], [number, number, number]][] = [
+      [[0, 1, 2, 3], [0, 0, -1]],
+      [[4, 7, 6, 5], [0, 0, 1]],
+      [[0, 4, 5, 1], [0, -1, 0]],
+      [[1, 5, 6, 2], [1, 0, 0]],
+      [[2, 6, 7, 3], [0, 1, 0]],
+      [[3, 7, 4, 0], [-1, 0, 0]],
+    ];
+    for (const [face, normal] of faces) {
+      const base = this.vertices.length / 10;
+      for (const idx of face) this.vertices.push(...corners[idx], ...normal, ...color, alpha);
+      this.indices.push(base, base + 1, base + 2, base, base + 2, base + 3);
+    }
+  }
+
+  shadow(radius: number) {
+    const color: Rgb = [0.06, 0.05, 0.035];
+    this.box([0, 0, 0.03], [radius * 2.0, radius * 1.25, 0.06], color, 0.24);
+  }
+
+  finish(): MeshData {
+    if (this.indices.length > 65535) throw new Error('campaign mesh exceeds uint16 index range');
+    return {
+      vertices: new Float32Array(this.vertices),
+      indices: new Uint16Array(this.indices),
+      indexCount: this.indices.length,
+    };
   }
 }

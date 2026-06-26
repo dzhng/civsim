@@ -95,8 +95,8 @@
         <p><b>battle input/HUD</b> - Retina/DPR2 selection, order feedback, feathered shore, lit skinned silhouettes, minimap, unit cards.</p>
         <dl>
           <dt>WebGPU evidence</dt><dd>dpr2 selection; 2840 soldiers; renderer webgpu; aegean-sky-haze; feathered shore; lit skinned silhouettes</dd>
-          <dt>Comparison status</dt><dd>equal-or-better</dd>
-          <dt>Comparison note</dt><dd>WebGPU preserves DPR2 selection, order lines, minimap, unit cards, and clearer team-color blocks; terrain is warmer and less noisy than the archived current renderer.</dd>
+          <dt>Comparison status</dt><dd>pending-review</dd>
+          <dt>Comparison note</dt><dd>Reopened after visual review. The archived current renderer fails to show all units, while WebGPU does render more units, but WebGPU is not accepted yet because this capture shows missing terrain features plus random square artifacts and colored/debug straight-line artifacts that must be fixed or explicitly explained.</dd>
         </dl>
       </div>
     </article>
@@ -132,7 +132,7 @@
         <dl>
           <dt>WebGPU evidence</dt><dd>5/11 labels; atlas 1024x64; raw-webgpu-glyph-atlas</dd>
           <dt>Comparison status</dt><dd>pending-review</dd>
-          <dt>Comparison note</dt><dd>Reopened after visual review: the WebGPU close zoom is not equal-or-better yet. It needs richer 3D-style city, army, terrain, and marker composition before release acceptance.</dd>
+          <dt>Comparison note</dt><dd>Reopened after visual review: the WebGPU close zoom is not equal-or-better yet. The latest metric improved after fixing the black terrain and restoring label icons, but it still needs the previous 3D city/town, army, road, tree, terrain, font, icon, and marker language ported before release acceptance.</dd>
         </dl>
       </div>
     </article>

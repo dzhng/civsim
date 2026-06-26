@@ -99,14 +99,31 @@ fn hash(p: vec2f) -> f32 {
   return fract((q.x + q.y) * q.z);
 }
 
+fn vnoise(p: vec2f) -> f32 {
+  let i = floor(p);
+  let f = fract(p);
+  let u = f * f * (3.0 - 2.0 * f);
+  return mix(
+    mix(hash(i), hash(i + vec2f(1.0, 0.0)), u.x),
+    mix(hash(i + vec2f(0.0, 1.0)), hash(i + vec2f(1.0, 1.0)), u.x),
+    u.y,
+  );
+}
+
+fn ridged(p: vec2f) -> f32 {
+  let r = 1.0 - abs(vnoise(p) * 2.0 - 1.0);
+  return r * r;
+}
+
 @fragment
 fn fs(in: VsOut) -> @location(0) vec4f {
   var col = textureSample(mapTex, mapSampler, in.uv).rgb;
   let grey = dot(col, vec3f(0.333));
   col = mix(vec3f(grey), col, 0.88);
   col *= vec3f(1.04, 1.00, 0.94);
-  let grain = hash(floor(in.world * 0.18)) * 0.06 + hash(floor(in.world * 0.045)) * 0.05;
-  col *= 0.96 + grain;
+  let grain = vnoise(in.world * 0.18) * 0.052 + vnoise(in.world * 0.055 + vec2f(7.1, 2.4)) * 0.038;
+  let striation = ridged(vec2f(in.world.x * 0.115 + in.world.y * 0.025, in.world.y * 0.085)) * 0.028;
+  col *= 0.95 + grain + striation;
   let vignette = smoothstep(1.28, 0.32, length((in.uv * 2.0 - vec2f(1.0)) * vec2f(1.0, 0.78)));
   col *= 0.90 + 0.10 * vignette;
   return vec4f(col, 1.0);

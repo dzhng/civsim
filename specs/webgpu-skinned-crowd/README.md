@@ -26,7 +26,8 @@ the old towns/cities, trees, rocks, roads, terrain relief, army standards, and
 detailed soldier model/animation silhouettes before pursuing alternate art
 direction. Existing model screenshots, in-game model baselines, turntable
 captures, and animation GIFs are migration references and must be used as
-acceptance evidence.
+acceptance evidence. The concrete per-model and per-animation inventory is
+tracked in `assets/MODEL_SCREENSHOT_GATES.md`.
 
 Typography and map iconography are also part of the visual contract. The
 previous campaign labels used deliberate Cinzel/Georgia styling plus small

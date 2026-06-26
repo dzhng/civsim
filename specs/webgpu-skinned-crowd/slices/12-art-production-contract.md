@@ -27,7 +27,13 @@ changes.
 
 - A sample “bad artist pack” fails with useful messages.
 - A sample placeholder-derived “good pack” passes.
-- Screenshots cover body, equipment, mask, animation, LODs, and mounted units.
+- Screenshots cover every individual body/model class, equipment silhouette,
+  faction mask, LOD, mounted variant, and in-game readability view. A combined
+  contact sheet is useful, but each model also needs an addressable screenshot
+  entry so regressions name the exact missing class.
+- Animation verification includes still frames and GIF-derived reference frames
+  for every existing beat: idle/at-ease, walk, run, attack windup, attack
+  strike, hit/recoil, death/crumple, mounted movement, and ranged firing.
 - Legacy model baselines under `web/shots/baseline/models*` and animation GIFs
   under `web/shots/anim/` are reference evidence. Placeholder art is not final
   visual parity until these old silhouettes and animation beats are ported or

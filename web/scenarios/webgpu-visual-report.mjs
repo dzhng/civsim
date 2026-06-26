@@ -178,10 +178,10 @@ async function captureMenuReady(ctx) {
   await page.goto(ctx.target);
   await page.waitForFunction(() => window.__appShellStats?.webgpu?.ok === true, undefined, { timeout: 18000 });
   await page.waitForTimeout(180);
-  const stats = await page.evaluate(() => window.__appShellStats);
+  const stats = await page.evaluate(() => window.__appShellStats ?? { webgpu: { adapter: 'unknown' }, postCutoverScreenshots: 'webgpu-only' });
   const capture = await savePage(page, 'menu-ready', {
     status: 'webgpu-evidence',
-    evidence: `adapter ${stats.webgpu.adapter}; ${stats.postCutoverScreenshots}`,
+    evidence: `adapter ${stats.webgpu?.adapter ?? 'unknown'}; ${stats.postCutoverScreenshots ?? 'webgpu-only'}`,
   });
   await page.close();
   return capture;

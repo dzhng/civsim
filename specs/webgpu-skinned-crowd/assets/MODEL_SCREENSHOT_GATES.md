@@ -1,0 +1,109 @@
+# Model Screenshot Gates
+
+## Purpose
+
+Whole-scene screenshots are not enough for the WebGPU cutover. Each model,
+prop, and animation family needs an addressable screenshot or frame sample so a
+regression can name the exact missing asset instead of hiding inside a crowded
+battle or campaign capture.
+
+## Soldier Turntable Gates
+
+Each old `web/shots/baseline/models/*.png` reference needs a matching WebGPU
+turntable/contact-sheet capture:
+
+- `00-heavy-sword`
+- `01-light-spear`
+- `02-longsword`
+- `03-phalanx`
+- `04-archers`
+- `05-skirmishers`
+- `06-shock-cav`
+- `07-horse-archers`
+- `08-artillery`
+- `09-peasant`
+- `10-light-sword`
+- `11-heavy-spear`
+- `12-medium-infantry`
+- `13-medium-spear`
+- `14-shock-cav-sword`
+
+## Soldier In-Game Readability Gates
+
+Each old `web/shots/baseline/models-ingame/*.png` reference needs a matching
+WebGPU in-game readability capture:
+
+- `00-heavy-sword`
+- `01-light-spear`
+- `02-longsword`
+- `03-phalanx`
+- `04-archers`
+- `05-skirmishers`
+- `06-shock-cav`
+- `07-horse-archers`
+- `08-artillery`
+- `09-peasant`
+- `10-light-sword`
+- `11-heavy-spear`
+- `12-shock-cav-sword`
+
+## Animation And GIF Gates
+
+Each old `web/shots/anim/*.gif` reference needs deterministic WebGPU still
+frames sampled from the equivalent clip. When a new WebGPU GIF is generated,
+the still frames remain the regression baseline because they are easier to diff:
+
+- `00-heavy-sword-attack`
+- `00-heavy-sword-die`
+- `00-heavy-sword-hit`
+- `00-heavy-sword-run`
+- `00-heavy-sword-walk`
+- `03-phalanx-attack`
+- `03-phalanx-die`
+- `03-phalanx-hit`
+- `03-phalanx-run`
+- `03-phalanx-walk`
+- `04-archers-attack`
+- `04-archers-die`
+- `04-archers-hit`
+- `04-archers-run`
+- `04-archers-walk`
+- `06-shock-cav-attack`
+- `06-shock-cav-die`
+- `06-shock-cav-hit`
+- `06-shock-cav-run`
+- `06-shock-cav-walk`
+
+## Campaign Model And Prop Gates
+
+Each campaign model/prop family needs a close-up screenshot in addition to the
+full campaign scene:
+
+- city cluster with terracotta roofs, towers, ownership flag, shadow, label
+- town/smaller settlement scale variant
+- selected city footprint
+- army marker with attached flag, representative figures, faction livery,
+  shadow, selection footprint
+- road-only segment
+- road segment connecting city endpoints
+- broadleaf tree
+- conifer/tree variant
+- mountain massif
+- rock/boulder cluster
+- terrain grass/scrub sample
+- terrain stone/relief sample
+- shoreline/water sample
+- fogged terrain sample
+- cloud/fog layer sample
+- cart/road traffic, when present in the WebGPU port
+- city label icon+text sample
+- army label icon+text sample
+- faction label sample
+- sea label sample
+
+## Rule
+
+The WebGPU port can claim whole-scene visual parity only after the relevant
+model-level gate exists and has been inspected. A lower full-scene pixel diff is
+useful evidence, but it does not excuse a missing model, missing animation beat,
+detached flag, random debug line, square terrain artifact, or missing font/icon.

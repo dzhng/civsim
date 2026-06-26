@@ -49,18 +49,30 @@ measurably equal-or-better and intentionally accepted.
 
 ## Required Screenshot Gates
 
+Use `MODEL_SCREENSHOT_GATES.md` as the concrete inventory. At a minimum, the
+gate set must include all of the following families.
+
 Add WebGPU screenshot gates for:
 
-- soldier model turntable/contact sheets versus `web/shots/baseline/models/`
-- in-game soldier readability versus `web/shots/baseline/models-ingame/`
-- animation pose/GIF reference frames versus `web/shots/anim/`
-- campaign city/town model close-up
-- campaign army marker with attached flag and representative figures
-- road segment with city endpoints
-- tree and rock clusters
-- terrain relief/water/fog samples
+- every individual soldier class/model as a named turntable/contact-sheet frame
+  versus `web/shots/baseline/models/`
+- every in-game soldier class/model readability frame versus
+  `web/shots/baseline/models-ingame/`
+- every existing animation beat by reference frame and GIF-derived frame sample
+  versus `web/shots/anim/`: idle/at-ease, walk, run, attack windup, attack
+  strike, hit/recoil, death/crumple, mounted movement, and ranged firing
+- campaign city and town model close-ups, including roof masses, towers, flags,
+  selection footprint, and shadows
+- campaign army marker close-up with attached flag, representative figures,
+  faction livery, selection footprint, and no detached center-origin banners
+- road segment with city endpoints and a road-only close-up
+- every campaign prop family as its own image: broadleaf tree, conifer/tree
+  variant, mountain massif, rock/boulder cluster, cart/traffic if present,
+  shoreline/water, fog/cloud layer, and terrain relief sample
+- terrain material samples for grass, scrub, stone, coast/water, fogged terrain,
+  and zoomed label-terrain context
 - campaign label typography and icon samples for city, army, faction, and sea
-  labels
+  labels, including icon color, halo, text font, and icon/text spacing
 - full `Campaign Label Zoom` and `Battle Selection DPR2` parity comparisons
 
 For disputed comparisons, run the `compare-screenshots` metric helper and a

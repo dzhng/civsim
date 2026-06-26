@@ -1,30 +1,85 @@
 //! Ranged combat contracts, 1v1: archery softens and harasses — it does
-//! not annihilate formed troops by itself. Kill ratios by target class,
-//! by aspect (shields are a FRONT-arc fact), and the melee fate of
-//! archers who let the line reach them.
+//! not annihilate formed troops by itself. The frontal toll is pinned as a
+//! BAND (5%–20%) marked by two fake reference lines that bracket the legal
+//! stat range, not as a per-class number; plus the aspect law (shields are a
+//! FRONT-arc fact) and the melee fate of archers who let the line reach them.
 
 pub mod common;
 
 use common::no_morale_parade as no_morale;
 use common::{ref_archer, ref_melee, ref_horse_archer, ref_pike, REF_BOW, REF_HORSE_BOW};
-use sim::{Sim, Tunables, UnitClassId, Vec2, DT};
+use sim::{Pace, Sim, Tunables, UnitClass, UnitClassId, Vec2, DT};
 use std::f32::consts::FRAC_PI_2;
 
 const SEED: u64 = 1453;
 
-/// Advancing target: kills the archers score BEFORE first contact.
+// Calibration instrument (run on demand): print the arrow toll for a grid of
+// (health, block) so the floor/ceiling reference stat blocks below can be
+// re-read off the live numbers after any missile or armor change.
+//   cargo test -p sim --test scenario_ranged sweep_arrow_toll -- --ignored --nocapture
+#[test]
+#[ignore]
+fn sweep_arrow_toll() {
+    for &health in &[1.0f32, 1.5, 2.0, 2.5, 3.0] {
+        for &block in &[0.0f32, 0.25, 0.35, 0.45, 0.55] {
+            let n = 240;
+            let t = arrow_toll(arrow_ref(health, block), n);
+            println!(
+                "health {health:>3} block {block:>4}: {t:>3}/{n}  ({:.1}%)",
+                100.0 * t as f32 / n as f32
+            );
+        }
+    }
+}
+
+/// A fake advancing line whose ONLY arrow-relevant axes are set explicitly:
+/// body armor (`health`) and a front shield (`block`). Everything else is held
+/// to a neutral foot reference so the toll reads as a pure function of these two.
+fn arrow_ref(health: f32, block: f32) -> UnitClass {
+    let mut s = ref_melee(true);
+    s.health = health;
+    s.block = block;
+    s
+}
+
+/// Arrows-landed toll on an advancing fake line, measured BEFORE first contact:
+/// 140 fake archers (REF_BOW) vs `n` of `target` crossing the kill zone at a run.
+fn arrow_toll(target: UnitClass, n: usize) -> usize {
+    let mut sim = Sim::new(no_morale(), SEED);
+    let archers = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 140, UnitClassId::Archers, 0);
+    sim.set_missile_spec(archers, REF_BOW);
+    let adv = sim.spawn_class_stats_with_files(
+        Vec2::new(0.0, 160.0),
+        -FRAC_PI_2,
+        n,
+        n.div_ceil(6),
+        UnitClassId::HeavySword,
+        target,
+        1,
+    );
+    sim.set_pace(adv, Pace::Run); // you cross a kill zone at the run
+    sim.set_attack_order(adv, archers);
+    for _ in 0..(120.0 / DT) as usize {
+        sim.tick();
+        if sim.units[archers].engaged > 5 {
+            break; // first contact — stop counting, the sword takes over
+        }
+    }
+    n - sim.units[adv].alive_count
+}
+
+/// Real-class advance, for `measure_the_board` only: read where a shipped unit
+/// actually lands relative to the fake floor/ceiling references above.
 fn kills_before_contact(target: UnitClassId, n: usize) -> (usize, f32) {
     let mut sim = Sim::new(no_morale(), SEED);
     let archers = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 140, UnitClassId::Archers, 0);
     let adv = sim.spawn_class(Vec2::new(0.0, 160.0), -FRAC_PI_2, n, target, 1);
-    sim.set_pace(adv, sim::Pace::Run); // you cross a kill zone at the run
+    sim.set_pace(adv, Pace::Run);
     sim.set_attack_order(adv, archers);
-    let _ = archers;
     for step in 0..(120.0 / DT) as usize {
         sim.tick();
         if sim.units[archers].engaged > 5 {
-            let dead = n - sim.units[adv].alive_count;
-            return (dead, step as f32 * DT);
+            return (n - sim.units[adv].alive_count, step as f32 * DT);
         }
     }
     (n - sim.units[adv].alive_count, 120.0)
@@ -44,25 +99,44 @@ fn kills_by_aspect(target: UnitClassId, n: usize, from: Vec2) -> usize {
 }
 
 #[test]
-fn archery_softens_advances_but_gates_nobody() {
-    // The board, contracted (see measure_the_board for the live numbers):
-    // an advancing line pays a TOLL in arrows — it is never stopped by
-    // them. Armored shields make the crossing cheaper per second but the
-    // slow line is exposed longer; horse crosses nearly free.
-    let (heavy, _) = kills_before_contact(UnitClassId::HeavySword, 240);
-    let (light, _) = kills_before_contact(UnitClassId::LightSpear, 220);
-    let (cav, _) = kills_before_contact(UnitClassId::ShockCavalry, 120);
-    println!("tolls: heavy {heavy}/240, light {light}/220, cav {cav}/120");
-    assert!(
-        (4..=40).contains(&heavy),
-        "a heavy advance pays a real but small toll — the shield wall sheds \
-         most of the frontal arrows: {heavy}/240"
+fn arrows_dent_every_advance_but_gate_none() {
+    // The legal toll envelope, marked by two FAKE reference lines that differ
+    // in ONE axis — a shield. Same body armor (health 2.0), same kill-zone
+    // crossing at a run; the only difference is whether they carry a shield.
+    // Their tolls BRACKET the band every real unit must live inside, and —
+    // because they are reference stats, not a real class — they tell the
+    // balancer WHICH stat block sits at each edge, not just a magic percent:
+    //
+    //   • CEILING — no shield (block 0.0): ~19%. The softest legal line.
+    //     Arrows dent it HARD but never gate it: <=20% lost means it still
+    //     arrives a whole fighting force. Past 20% archery would gate.
+    //   • FLOOR — a light shield (block 0.35): ~6%. The protected end. Arrows
+    //     still BITE it: >=5%. Below that, arrows are too weak to matter.
+    //
+    // A real unit's toll is a function of its (health, block) and crossing
+    // speed; it must land between these two. The grid in `sweep_arrow_toll`
+    // is how these two stat blocks were read off — re-run it to recalibrate.
+    let ceiling = arrow_toll(arrow_ref(2.0, 0.0), 240);
+    let floor = arrow_toll(arrow_ref(2.0, 0.35), 240);
+    let ceil_frac = ceiling as f32 / 240.0;
+    let floor_frac = floor as f32 / 240.0;
+    println!(
+        "envelope: floor(shielded) {floor}/240 ({:.1}%), ceiling(bare) {ceiling}/240 ({:.1}%)",
+        100.0 * floor_frac,
+        100.0 * ceil_frac
     );
     assert!(
-        (4..=34).contains(&light), // lights lost their over-armored hp in the class rebalance: arrows bite them honestly now
-        "a loose fast line pays in skin, not armor (2-15%): {light}/220"
+        (0.14..=0.20).contains(&ceil_frac),
+        "the bare reference marks the 20% CEILING — a hard dent that still never gates: {ceiling}/240"
     );
-    assert!(cav <= 9, "horse crosses nearly free (<=8%): {cav}/120");
+    assert!(
+        (0.05..=0.10).contains(&floor_frac),
+        "the shielded reference marks the 5% FLOOR — arrows still bite the protected end: {floor}/240"
+    );
+    assert!(
+        floor < ceiling,
+        "a shield must shed arrows: floor {floor} < ceiling {ceiling}"
+    );
 }
 
 #[test]
@@ -128,7 +202,7 @@ fn a_phalanx_outlasts_the_quiver_frontally_but_not_from_behind() {
             facing,
             200,
             40,
-            UnitClassId::Phalanx,
+            UnitClassId::HeavyPhalanx,
             ref_pike(),
             0,
         );

@@ -139,6 +139,21 @@ and the stats double as balancing reference points), balance alone on real stats
 A win-rate or who-breaks-whom pinned on a REAL class outside `balance_*` is a bug —
 rebuild it on fakes.
 
+**Fake references exist to pin the BOUNDS, not a number.** The reason a scenario
+uses fake stats rather than a real class is that you can dial a fake unit to sit
+*exactly on an edge of the legal envelope* — something a real class's fixed,
+shifting stats can never do. So prefer scenarios that bracket a behavior with two
+references: a FLOOR stat block (the weakest legal version of the effect) and a
+CEILING stat block (the strongest), and assert each lands on its edge. That turns
+the test into a calibration the balancer can read — "this stat block = the floor,
+this one = the ceiling" — so a new real unit is judged against the bounds instead
+of a magic percentage. Worked example: the arrow-toll envelope in
+`scenario_ranged.rs` (`arrows_dent_every_advance_but_gate_none`) marks the 5%
+floor and 20% ceiling with two fake lines that differ only by a shield; a
+`#[ignore]`d `sweep_*` test is kept beside it as the instrument that re-reads
+those edge stat blocks after any change. Print real classes as DIAGNOSTICS only
+(`measure_the_board`).
+
 Use `crates/sim/tests/common/` only for neutral mechanics like ticking, no-morale
 tunables, death counts, and simple living-unit geometry. Scenario-specific
 measurements stay local so the assertion remains readable.

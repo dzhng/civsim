@@ -62,11 +62,22 @@ that matter:
 Ranged: add a `MissileSpec` (`crates/sim/src/missiles.rs`) —
 `range, launch_speed, interval, ammo, damage, scatter_at_max,
 mobile_fire`. Ranged balance is governed by the ranged contracts (see
-`scenario_ranged.rs`): archery SOFTENS, never gates. A frontal advance
-should pay a survivable toll (heavy 8–22%, light 2–11%, cav ≤8%), shields
-are a front-arc fact (rear ≥2.5× front kills), and a unit that lets the
-line reach it dies by the sword. Keep arrow `damage` in the ~0.5–0.9 band
-and let ammo/interval set sustained output.
+`scenario_ranged.rs`): archery SOFTENS, never gates. The contract is that
+arrows **dent** a frontal advance but never kill or rout a unit before it
+makes contact. The toll is one band — **5% floor, 20% ceiling — for every
+unit including cav** (don't split it by weight; armor and speed cancel —
+the shield wall sheds more per second, but the slow line is exposed
+longer). The band is pinned by `arrows_dent_every_advance_but_gate_none`
+as TWO fake reference lines that differ only by a shield: a bare body
+marks the 20% ceiling (a hard dent that still never gates), a shielded one
+marks the 5% floor (arrows still bite the protected end; below 5% arrows
+are too weak to matter). A new unit's (`health`, `block`) and crossing
+speed must land it inside that envelope — read it against the references,
+not a magic percent; the `#[ignore]`d `sweep_arrow_toll` grid is how the
+edge stat blocks are re-derived after a missile/armor change. Shields are
+a front-arc fact (rear ≥2.5× front kills), and a unit that lets the line
+reach it dies by the sword. Keep arrow `damage` in the ~0.5–0.9 band and
+let ammo/interval set sustained output.
 
 ## Step 3 — set the price, or honor the given one
 
@@ -125,6 +136,27 @@ stat card — no other wiring needed.
    `a_pike_hedge_breaks_the_charge`; a shield unit → an aspect test like
    `shields_are_a_front_arc_fact`). Anchor it to the design contract, not
    the current number.
+
+## The 1:4 power envelope (hard cap)
+
+No unit may be more than **4× the worst unit** on any single performance
+axis — survivability, damage output, or all-in combat value. Concretely
+the whole roster lives inside a 1:4 band: the best unit is at most 4× the
+weakest, which means **heavy is at most ~2× a light/medium** (lights and
+mediums already sit above the floor, so the head-of-roster heavy/elite
+can't run away from them by more than a factor of two). This is a design
+ceiling, not a target — most units cluster far tighter. It keeps the game
+about combined arms and positioning rather than a single auto-win class:
+even the cheapest escort-needing unit stays relevant in the right matchup.
+
+If a candidate's stats would put it past 2× a comparable light/medium on
+survivability (effective hp ≈ `health`/(1−`block`-ish) ride-through) or on
+damage (`damage`/`attack_interval` work rate), cut the offending axis —
+that is exactly the "find the one axis its sketch doesn't justify and cut
+it" move below. Cost can still scale wider than 4× (PEA 175 → CAV 1400 is
+~8×), because price buys *concentration of force and counter-matchups*,
+not raw per-unit power — but the underlying physical performance stays in
+the 1:4 band.
 
 ## Reference: the matchup web these must respect
 

@@ -57,62 +57,9 @@ fn sample_stats(st: &CampaignState, playable: &[u32]) -> Vec<FactionStat> {
     playable.iter().map(|&f| faction_stat(st, f)).collect()
 }
 
-/// Cost-weighted value of a soldier, the same yardstick the campaign AI uses
-/// to size up armies.
-fn weight(class: contract::UnitClassId) -> u64 {
-    campaign::tunables::upkeep_per_soldier_milligold(class) as u64
-}
-
-/// A cheap stand-in for a full battle: the heavier side wins, both bleed in
-/// proportion to the strength gap. Battle-accuracy isn't the point here — the
-/// loop's health is — and the real sim is exercised by `lopsided_war_concludes`.
-/// Lets the harness sweep multi-year trajectories the real sim is too slow for.
-fn fast_resolve(setup: &contract::BattleSetup) -> contract::BattleResult {
-    let units: Vec<(u32, &contract::RosterUnit)> = setup
-        .deployments
-        .iter()
-        .flat_map(|d| d.units.iter().map(move |u| (d.team, u)))
-        .chain(
-            setup
-                .reinforcements
-                .iter()
-                .flat_map(|r| r.units.iter().map(move |u| (r.team, u))),
-        )
-        .collect();
-
-    let mut team_str = [0u64, 0u64];
-    for &(team, u) in &units {
-        team_str[team as usize] += u.count as u64 * weight(u.class);
-    }
-    let victor = if team_str[0] >= team_str[1] { 0 } else { 1 };
-    let (ws, ls) = (
-        team_str[victor as usize].max(1),
-        team_str[1 - victor as usize].max(1),
-    );
-    let ratio = ls as f64 / ws as f64; // 0..1, how close the loser was
-    let winner_surv = (1.0 - 0.45 * ratio).clamp(0.5, 1.0);
-    let loser_surv = (0.45 * ratio).clamp(0.0, 0.5);
-
-    let results = units
-        .iter()
-        .map(|&(team, u)| {
-            let won = team == victor;
-            let frac = if won { winner_surv } else { loser_surv };
-            contract::UnitResult {
-                id: u.id,
-                team,
-                survivors: (u.count as f64 * frac) as u32,
-                routed: !won,
-                morale_cap: if won { 0.9 } else { 0.6 },
-                deployed: true,
-            }
-        })
-        .collect();
-    contract::BattleResult {
-        victor,
-        units: results,
-    }
-}
+// The cheap stand-in for a full battle is now `campaign::resolve::estimate`
+// (promoted to production for the AI's lookahead). The harness uses it for fast
+// multi-year sweeps; the real sim is exercised by `lopsided_war_concludes`.
 
 struct Report {
     days: u64,
@@ -167,7 +114,7 @@ fn play(
             match c.battle_setup(eid) {
                 Some(setup) => {
                     let result = if fast {
-                        fast_resolve(&setup)
+                        campaign::resolve::estimate(&c.map, &setup)
                     } else {
                         Battle::auto_resolve(&setup, BATTLE_CAP)
                     };

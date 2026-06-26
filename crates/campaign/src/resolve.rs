@@ -6,7 +6,7 @@ use crate::mapdata::{NodeKind, WorldMap};
 use crate::pathfind;
 use crate::state::*;
 use crate::tunables as tun;
-use contract::{BattleResult, BattleSetup, Deployment, Reinforcement, RosterUnit};
+use contract::{BattleResult, BattleSetup, Deployment, Reinforcement, RosterUnit, UnitResult};
 use std::collections::BTreeSet;
 
 /// Campaign roster entry identity inside a battle: army id in the high bits,
@@ -371,4 +371,66 @@ pub fn apply_battle_outcome(
     if st.battle_ready == Some(eid) {
         st.battle_ready = None;
     }
+}
+
+/// Cost-weighted strength model of a battle's outcome: the heavier side wins,
+/// both bleed in proportion to the strength gap. Deterministic, O(units) — no
+/// dice. This is the AI's *imagination only* (the `rollout` sandbox and the
+/// commander's lookahead): the live, player-facing battle still runs the full
+/// physics sim. Never resolve a real encounter through this.
+///
+/// Strength uses the same yardstick as `economy::upkeep_per_soldier_milligold`
+/// and the AI's `ai::strength` — the faction-specific upkeep the unit's
+/// `unit_type` encodes, falling back to the static class rate — so the
+/// estimate agrees with how the AI sizes up armies.
+pub fn estimate(map: &WorldMap, setup: &BattleSetup) -> BattleResult {
+    let weight = |u: &RosterUnit| -> u64 {
+        u.unit_type
+            .and_then(|id| crate::units::unit_type_by_id(map, id))
+            .map(|t| t.upkeep_per_soldier_milligold)
+            .unwrap_or_else(|| tun::upkeep_per_soldier_milligold(u.class)) as u64
+    };
+
+    // Both sides' rosters tagged with their team, deployments + reinforcements.
+    let units: Vec<(u32, &RosterUnit)> = setup
+        .deployments
+        .iter()
+        .flat_map(|d| d.units.iter().map(move |u| (d.team, u)))
+        .chain(
+            setup
+                .reinforcements
+                .iter()
+                .flat_map(|r| r.units.iter().map(move |u| (r.team, u))),
+        )
+        .collect();
+
+    let mut team_str = [0u64, 0u64];
+    for &(team, u) in &units {
+        team_str[team as usize] += u.count as u64 * weight(u);
+    }
+    let victor = if team_str[0] >= team_str[1] { 0 } else { 1 };
+    let (ws, ls) = (
+        team_str[victor as usize].max(1),
+        team_str[1 - victor as usize].max(1),
+    );
+    let ratio = ls as f64 / ws as f64; // 0..1, how close the loser was
+    let winner_surv = (1.0 - 0.45 * ratio).clamp(0.5, 1.0);
+    let loser_surv = (0.45 * ratio).clamp(0.0, 0.5);
+
+    let units = units
+        .iter()
+        .map(|&(team, u)| {
+            let won = team == victor;
+            let frac = if won { winner_surv } else { loser_surv };
+            UnitResult {
+                id: u.id,
+                team,
+                survivors: (u.count as f64 * frac) as u32,
+                routed: !won,
+                morale_cap: if won { 0.9 } else { 0.6 },
+                deployed: true,
+            }
+        })
+        .collect();
+    BattleResult { victor, units }
 }

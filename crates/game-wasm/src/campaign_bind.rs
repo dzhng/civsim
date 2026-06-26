@@ -130,13 +130,7 @@ impl Campaign {
         self.inner.save()
     }
 
-    // ---- external (off-thread) AI bridge ----------------------------------
-
-    /// Hand AI scheduling to the host (worker) so the tick loop stops running
-    /// the commander inline.
-    pub fn set_external_ai(&mut self, on: bool) {
-        self.inner.set_external_ai(on);
-    }
+    // ---- off-thread AI bridge ---------------------------------------------
 
     /// Current campaign tick — what the host schedules dispatch/apply on.
     pub fn tick_count(&self) -> f64 {

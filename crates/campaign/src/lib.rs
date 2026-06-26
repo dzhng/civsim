@@ -239,15 +239,19 @@ impl Campaign {
         serde_json::to_string(&self.state).unwrap()
     }
 
-    // ---- external (off-thread) AI -----------------------------------------
-    // When the host drives the AI itself, it: flips `set_external_ai(true)` so
-    // the tick loop stops running the commander inline; snapshots state, has a
-    // worker compute `commander_decisions`, and applies them on a fixed delay
-    // (see `crates/campaign/src/ai.rs` and tunables AI_DISPATCH_EVERY/AI_LATENCY).
+    // ---- AI scheduling ----------------------------------------------------
+    // The AI never runs inside `tick`; the host drives it. In the app a worker
+    // computes `commander_decisions` against a posted snapshot and applies them
+    // on a fixed delay (see `advance_external`, tunables AI_DISPATCH_EVERY /
+    // AI_LATENCY). Tests drive the same path synchronously via `drive_ai`.
 
-    /// Hand AI scheduling to the host (the worker path) or take it back (inline).
-    pub fn set_external_ai(&mut self, on: bool) {
-        self.state.external_ai = on;
+    /// Run the commander AI synchronously: compute every campaigning faction's
+    /// decision against the current state and apply it immediately. The same
+    /// decisions the worker computes, just applied here-and-now (zero delay) —
+    /// deterministic, and a convenience for tests and headless play.
+    pub fn drive_ai(&mut self) {
+        let decisions = ai::commander_decisions(&self.map, &self.state);
+        self.apply_decisions(&decisions);
     }
 
     /// Compute every campaigning faction's decision against the current state,

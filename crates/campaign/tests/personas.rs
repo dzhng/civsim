@@ -130,8 +130,8 @@ fn siege_ring_map() -> &'static str {
     }"#
 }
 
-fn battles_started(p: AiPersona, ticks: u32) -> u32 {
-    let mut c = Campaign::new(siege_ring_map(), 7, 0);
+fn battles_started(p: AiPersona, ticks: u32, seed: u64) -> u32 {
+    let mut c = Campaign::new(siege_ring_map(), seed, 0);
     c.state.factions[0].ai = true;
     c.map.factions[0].ai_persona = p;
     // Each ringing city out-garrisons red's army — these are losing assaults.
@@ -141,6 +141,9 @@ fn battles_started(p: AiPersona, ticks: u32) -> u32 {
     let mut battles = 0;
     for _ in 0..ticks {
         c.tick();
+        if c.state.tick % 60 == 0 {
+            c.drive_ai();
+        }
         if let Some(eid) = c.state.battle_ready {
             match c.battle_setup(eid) {
                 Some(setup) => {
@@ -157,8 +160,10 @@ fn battles_started(p: AiPersona, ticks: u32) -> u32 {
 
 #[test]
 fn warmonger_throws_itself_at_fights_a_turtle_declines() {
-    let warmonger = battles_started(AiPersona::Warmonger, 12_000);
-    let defensive = battles_started(AiPersona::Defensive, 12_000);
+    // Sum across seeds — a single campaign's mood swings are noisy, but the brave
+    // persona out-attacks the cautious one in aggregate.
+    let warmonger: u32 = (0..6).map(|s| battles_started(AiPersona::Warmonger, 8_000, s)).sum();
+    let defensive: u32 = (0..6).map(|s| battles_started(AiPersona::Defensive, 8_000, s)).sum();
     assert!(
         warmonger > defensive,
         "warmonger ({warmonger}) should start more losing fights than defensive ({defensive})",

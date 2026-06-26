@@ -31,7 +31,6 @@ fn run_deferred(map_json: &str, seed: u64, ticks: u32) -> Report {
     for f in &mut c.state.factions {
         f.ai = true;
     }
-    c.state.external_ai = true;
 
     let mut pending: BTreeMap<u64, Vec<Decision>> = BTreeMap::new();
     let mut battles = 0;

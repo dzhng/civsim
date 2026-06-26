@@ -15,9 +15,6 @@ use crate::tunables as tun;
 
 pub fn tick(map: &WorldMap, st: &mut CampaignState) {
     st.tick += 1;
-    // Encounters formed this tick get ids at or above this watermark — that's
-    // how the event re-think below spots a fresh contact.
-    let enc_before = st.next_encounter_id;
     if st.tick % tun::TICKS_PER_DAY as u64 == 0 {
         crate::economy::day_tick(map, st);
         check_outcome(map, st);
@@ -31,33 +28,20 @@ pub fn tick(map: &WorldMap, st: &mut CampaignState) {
     crate::economy::garrison_returns(map, st);
     crate::economy::occupations(map, st);
     timers(st);
-    // Diplomacy is global, cheap, and shared by both AI paths (inline and
-    // external), so it runs here rather than inside the commander pass — just
-    // never inside a search sandbox.
+    // The commander AI is driven by the host, not the tick loop: it computes
+    // each faction's decision against a snapshot and applies it on a fixed delay
+    // (see `Campaign::advance_external`). Only global diplomacy runs here, since
+    // it's cheap and shared — and a search sandbox suppresses it.
     if !st.in_rollout && st.tick % tun::DIPLOMACY_EVERY as u64 == 0 {
         crate::ai::diplomacy(map, st);
-    }
-    // A faction drawn into a fresh fight re-thinks at once (a sandbox doesn't:
-    // its AI is suppressed). Runs before the hourly pass so the two share the
-    // per-faction debounce instead of double-thinking on a 60-tick boundary.
-    // Skipped when the host drives the AI externally.
-    if !st.in_rollout && !st.external_ai {
-        crate::ai::event_rethink(map, st, enc_before);
     }
     // Fog recompute is the per-tick cost bottleneck, so a search sandbox skips
     // it: the lookahead rolls a clone forward thousands of ticks per candidate
     // and only the eval's threat term reads fog — a frozen snapshot from clone
-    // time is a fine approximation, and dropping the recompute is what makes the
-    // search affordable. Contact and encounters are physical, not fog-gated, so
-    // battles still form and resolve correctly in a rollout.
+    // time is a fine approximation. Contact and encounters are physical, not
+    // fog-gated, so battles still form and resolve correctly in a rollout.
     if !st.in_rollout && st.tick % crate::visibility::VIS_EVERY == 0 {
         crate::visibility::recompute(map, st);
-    }
-    // The hourly commander pass is likewise suppressed inside a sandbox: letting
-    // the clone run its own AI would recurse into the search. It's also off when
-    // the host drives the AI externally (worker), which applies decisions itself.
-    if st.tick % 60 == 0 && !st.in_rollout && !st.external_ai {
-        crate::ai::commanders(map, st);
     }
 }
 
@@ -626,8 +610,6 @@ pub fn new_state(map: &WorldMap, seed: u64, player_faction: u32) -> CampaignStat
         relations: std::collections::BTreeMap::new(),
         diplo_target: std::collections::BTreeMap::new(),
         in_rollout: false,
-        last_think: std::collections::BTreeMap::new(),
-        external_ai: false,
     }
 }
 

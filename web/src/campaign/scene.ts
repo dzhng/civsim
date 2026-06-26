@@ -37,10 +37,6 @@ const SAVE_KEY = 'campaign-save';
 /** Ticks between a snapshot and applying the decisions it yields — must match
  *  campaign tunables AI_LATENCY. */
 const AI_LATENCY = 60;
-/** Opt-in: `?aiworker=1` runs the campaign AI off the render thread in a
- *  worker, applying its decisions on a fixed delay (deterministic). Default off
- *  keeps the proven inline path. */
-const AI_WORKER = new URLSearchParams(location.search).has('aiworker');
 
 export interface CampaignConfig {
   wasm: InitOutput;
@@ -145,7 +141,7 @@ export class CampaignScene implements Scene {
     this.ownerHash = 0; // force a territory recolor on (re)entry
     this.ac = new AbortController();
     this.wireInput(this.ac.signal);
-    if (AI_WORKER && !this.aiWorker) this.startAiWorker();
+    if (!this.aiWorker) this.startAiWorker();
     this.last = performance.now();
     this.refreshViews();
     if (this.recruitClasses.length === 0) {
@@ -224,10 +220,10 @@ export class CampaignScene implements Scene {
     });
   }
 
-  /** Spin up the off-thread AI: hand scheduling to the host and start a worker
-   *  that computes decisions on posted snapshots, applied on a fixed delay. */
+  /** Spin up the off-thread AI: a worker computes commander decisions on posted
+   *  snapshots, which the host applies on a fixed delay. The AI never runs in
+   *  the tick loop, so this is the sole driver. */
   private startAiWorker() {
-    this.cfg.campaign.set_external_ai(true);
     const worker = new Worker(new URL('./ai-worker.ts', import.meta.url), { type: 'module' });
     worker.onmessage = (e: MessageEvent<{ applyAt: number; json: string }>) => {
       this.cfg.campaign.submit_decisions_json(e.data.applyAt, e.data.json);
@@ -248,22 +244,18 @@ export class CampaignScene implements Scene {
     this.closeModal();
   }
 
-  /** Advance the campaign `n` ticks. Inline by default; under the worker, drive
-   *  the host protocol: run to each boundary, snapshot on a dispatch tick and
-   *  hand it to the worker, stop on a stall until its decisions arrive. The
-   *  fixed apply-delay makes this independent of how `n` is chunked per frame. */
+  /** Advance the campaign `n` ticks under the host AI protocol: run to each
+   *  boundary, snapshot on a dispatch tick and hand it to the worker, stop on a
+   *  stall until its decisions arrive. The fixed apply-delay makes this
+   *  independent of how `n` is chunked per frame. */
   private advance(n: number) {
     const c = this.cfg.campaign;
-    if (!this.aiWorker) {
-      c.tick(n);
-      return;
-    }
     let remaining = n;
     while (remaining > 0) {
       const step = c.advance_external(remaining);
       remaining -= step.advanced;
       if (step.reason === 1) {
-        this.aiWorker.postMessage({ type: 'snapshot', applyAt: step.tick + AI_LATENCY, snap: c.save() });
+        this.aiWorker?.postMessage({ type: 'snapshot', applyAt: step.tick + AI_LATENCY, snap: c.save() });
         c.ack_dispatch();
         continue;
       }

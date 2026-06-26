@@ -30,7 +30,6 @@ fn run(map_json: &str, seed: u64, total: u32, batch: u32) -> Out {
     for f in &mut c.state.factions {
         f.ai = true;
     }
-    c.set_external_ai(true);
 
     let mut battles = 0;
     let mut produced = 0u32;

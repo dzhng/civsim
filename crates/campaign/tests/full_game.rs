@@ -109,6 +109,9 @@ fn play(
     let mut day = 0u64;
     for tick in 1..=max_ticks {
         c.tick();
+        if c.state.tick % 60 == 0 {
+            c.drive_ai();
+        }
 
         if let Some(eid) = c.state.battle_ready {
             match c.battle_setup(eid) {

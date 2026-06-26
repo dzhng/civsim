@@ -135,7 +135,7 @@ fn think_marches_on_the_winnable_city() {
     c.state.cities.get_mut(&1).unwrap().garrison = garrison(UnitClassId::LightSpear, 5000);
     c.state.cities.get_mut(&2).unwrap().garrison = garrison(UnitClassId::LightSpear, 50);
 
-    campaign::ai::commanders(&c.map, &mut c.state);
+    c.drive_ai();
 
     let dest = c.state.armies[0].path.last().copied();
     assert_eq!(

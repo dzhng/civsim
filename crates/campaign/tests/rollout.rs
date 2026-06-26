@@ -103,32 +103,3 @@ fn forward_does_not_touch_the_live_state() {
 
     assert_eq!(before, after, "rolling a clone forward must not mutate the live game");
 }
-
-#[test]
-fn forward_suppresses_the_hourly_ai() {
-    // With the AI live, red's commander gives it a march order once it runs the
-    // throttled offensive search. Inside a rollout the same span passes with the
-    // whole AI pass suppressed, so red is never handed a path — proof the
-    // lookahead can't recurse. Roll just past the first search so the cadence
-    // value can change without breaking this test.
-    let hours = campaign::tunables::AI_SEARCH_EVERY as u32 + 120;
-
-    let mut live = Campaign::new(lopsided_map(), 7, 0);
-    all_ai(&mut live);
-    for _ in 0..hours {
-        live.tick();
-    }
-    assert!(
-        live.state.armies[0].marching(),
-        "live AI should have ordered red to march by now",
-    );
-
-    let mut c = Campaign::new(lopsided_map(), 7, 0);
-    all_ai(&mut c);
-    let mut sb = c.state.clone();
-    campaign::rollout::forward(&c.map, &mut sb, hours);
-    assert!(
-        !sb.armies[0].marching(),
-        "rolled-forward red got AI march orders it should not have",
-    );
-}

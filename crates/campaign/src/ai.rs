@@ -44,6 +44,17 @@ pub struct Decision {
 /// One faction's commander turn: drift its mood on the search cadence, then
 /// think — recording orders into `log` and applying them to `st`. Shared by the
 /// inline pass and the snapshot-based decision so the two can't drift apart.
+/// A fresh RNG stream for one faction's turn, seeded from the snapshot's RNG
+/// mixed with the tick and faction. The commander runs on a clone, so drawing
+/// from the clone's own RNG wouldn't persist — and would repeat whenever the
+/// world's RNG hadn't advanced between turns, freezing the AI's dice. This keeps
+/// the turn's randomness deterministic from the snapshot yet varied each turn.
+fn turn_rng(st: &mut CampaignState, f: FactionId) -> contract::Pcg32 {
+    let base = st.rng.next_u32() as u64;
+    let seed = base ^ st.tick.wrapping_mul(0x9E37_79B9_7F4A_7C15);
+    contract::Pcg32::new(seed, f as u64 + 1)
+}
+
 fn commander_turn(
     map: &WorldMap,
     st: &mut CampaignState,
@@ -51,12 +62,13 @@ fn commander_turn(
     bfs: &mut pathfind::Visited,
     log: &mut Vec<Order>,
 ) {
+    let mut rng = turn_rng(st, f);
     if st.tick % tun::AI_SEARCH_EVERY == 0 {
-        let step = st.rng.range_f32(-tun::AI_BRAVADO_DRIFT, tun::AI_BRAVADO_DRIFT);
+        let step = rng.range_f32(-tun::AI_BRAVADO_DRIFT, tun::AI_BRAVADO_DRIFT);
         let b = &mut st.factions[f as usize].bravado;
         *b = (*b + step).clamp(tun::AI_BRAVADO_MIN, tun::AI_BRAVADO_MAX);
     }
-    think(map, st, f, bfs, log);
+    think(map, st, f, bfs, log, &mut rng);
 }
 
 /// Compute one faction's `Decision` against `st` without touching it — runs the
@@ -84,9 +96,9 @@ pub fn commander_decisions(map: &WorldMap, st: &CampaignState) -> Vec<Decision> 
 }
 
 /// Apply a decision the host computed earlier: replay its orders through the
-/// command surface, then commit the AI bookkeeping (mood, rival) and stamp the
-/// debounce. Applied to the *current* live state at the scheduled tick — the
-/// few ticks of staleness are harmless because armies crawl.
+/// command surface, then commit the AI bookkeeping (mood, rival). Applied to the
+/// *current* live state at the scheduled tick — the few ticks of staleness are
+/// harmless because armies crawl.
 pub fn apply_decision(map: &WorldMap, st: &mut CampaignState, d: &Decision) {
     for o in &d.orders {
         orders::apply(map, st, d.faction, o);
@@ -94,7 +106,6 @@ pub fn apply_decision(map: &WorldMap, st: &mut CampaignState, d: &Decision) {
     let fac = &mut st.factions[d.faction as usize];
     fac.bravado = d.bravado;
     fac.rival = d.rival;
-    st.last_think.insert(d.faction, st.tick);
 }
 
 /// Cost-weighted value of a roster (upkeep rate doubles as unit value).
@@ -127,65 +138,6 @@ fn road_dist(
     cap: u32,
 ) -> Option<u32> {
     bfs.within(map, from, cap, |l| l == to)
-}
-
-/// The inline (synchronous, deterministic) commander pass: every campaigning AI
-/// faction takes its turn against the live state. The off-thread path computes
-/// the same turns as `Decision`s instead (see `commander_decisions`). Diplomacy
-/// is global and runs in `sim::tick` so both paths share it.
-pub fn commanders(map: &WorldMap, st: &mut CampaignState) {
-    let mut bfs = pathfind::Visited::new(map);
-    for f in 0..st.factions.len() as u32 {
-        if !st.factions[f as usize].ai {
-            continue;
-        }
-        // Neutral personas (minor leagues, independents) garrison but never
-        // march out; only campaigning personas get a commander's turn.
-        if !map.factions[f as usize].ai_persona.campaigns() {
-            continue;
-        }
-        // Skip the hourly think if an event already re-thought this faction this
-        // very tick (debounce).
-        if st.last_think.get(&f) != Some(&st.tick) {
-            commander_turn(map, st, f, &mut bfs, &mut Vec::new());
-            st.last_think.insert(f, st.tick);
-        }
-    }
-}
-
-/// React to things that just happened *to* a faction — a fresh contact or siege
-/// — by running its commander at once instead of making it wait for its hourly
-/// turn. `enc_since` is the encounter-id watermark from the start of the tick:
-/// any encounter at or above it formed this tick, so its two sides were just
-/// drawn into a fight. Debounced (and id-ordered) so a multi-army collision
-/// can't fire a re-think storm. The offensive search stays gated to its own
-/// cadence, so an event re-think does the cheap reactive work (pull a defender
-/// home, raise troops) — exactly what a sudden threat calls for.
-pub fn event_rethink(map: &WorldMap, st: &mut CampaignState, enc_since: EncounterId) {
-    let mut dirty: std::collections::BTreeSet<FactionId> = std::collections::BTreeSet::new();
-    for e in &st.encounters {
-        if e.id >= enc_since {
-            dirty.insert(st.armies[e.attacker as usize].faction);
-            dirty.insert(st.armies[e.defender as usize].faction);
-        }
-    }
-    if dirty.is_empty() {
-        return;
-    }
-    let mut bfs = pathfind::Visited::new(map);
-    for f in dirty {
-        if !st.factions[f as usize].ai || !map.factions[f as usize].ai_persona.campaigns() {
-            continue;
-        }
-        let recent = st
-            .last_think
-            .get(&f)
-            .is_some_and(|&t| st.tick - t < tun::AI_RETHINK_DEBOUNCE);
-        if !recent {
-            think(map, st, f, &mut bfs, &mut Vec::new());
-            st.last_think.insert(f, st.tick);
-        }
-    }
 }
 
 /// Re-draw the diplomatic map. Each active power focuses war on the weakest
@@ -268,6 +220,7 @@ fn think(
     f: FactionId,
     bfs: &mut pathfind::Visited,
     log: &mut Vec<Order>,
+    rng: &mut contract::Pcg32,
 ) {
     // Refresh the grudge before planning: adopt an attacker, escalate to a
     // worthier nemesis, or let a lopsided rivalry dissolve. The offensive search
@@ -430,7 +383,7 @@ fn think(
             .collect();
         // Sample rather than argmax: among comparable plans the AI won't always
         // take the textbook-best one, which is what stops it reading as a solver.
-        let pick = select::pick_softmax(&scores, profile.select_scale, &mut st.rng);
+        let pick = select::pick_softmax(&scores, profile.select_scale, rng);
         for &(army, dest) in &plans[pick].orders {
             issue(map, st, f, log, Order::Move { army, dest });
         }

@@ -25,6 +25,9 @@ fn run(map_json: &str, seed: u64, ticks: u32) -> Campaign {
     }
     for _ in 0..ticks {
         c.tick();
+        if c.state.tick % 60 == 0 {
+            c.drive_ai();
+        }
         if let Some(eid) = c.state.battle_ready {
             match c.battle_setup(eid) {
                 Some(setup) => {
@@ -76,6 +79,9 @@ fn bravado_is_sticky_and_bounded() {
     for _ in 0..steps {
         for _ in 0..tun::AI_SEARCH_EVERY {
             c.tick();
+            if c.state.tick % 60 == 0 {
+                c.drive_ai();
+            }
             if let Some(eid) = c.state.battle_ready {
                 match c.battle_setup(eid) {
                     Some(setup) => {

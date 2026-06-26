@@ -286,13 +286,6 @@ pub const AI_DISPATCH_EVERY: u64 = 60;
 /// is harmless because armies move only a fraction of a tile in this window.
 pub const AI_LATENCY: u64 = 60;
 
-// ---- AI event reactions ----------------------------------------------------
-/// Minimum gap (ticks) between a faction's commander runs. A fresh contact or
-/// siege re-thinks the affected faction immediately instead of waiting for its
-/// hourly turn, but this debounce stops a messy multi-army collision from firing
-/// a re-think storm in a single tick.
-pub const AI_RETHINK_DEBOUNCE: u64 = 30;
-
 // ---- AI rivalry ------------------------------------------------------------
 // A nemesis a faction fixates on, beyond cold strategy. Seeded historically or
 // formed when attacked, escalating toward the strongest aggressor and

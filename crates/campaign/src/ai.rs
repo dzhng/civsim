@@ -10,6 +10,9 @@ use crate::state::*;
 use crate::tunables as tun;
 use contract::UnitClassId;
 
+pub mod eval;
+pub mod plan;
+
 /// Cost-weighted value of a roster (upkeep rate doubles as unit value).
 fn strength(map: &WorldMap, st: &CampaignState, faction: FactionId, roster: &[RosterEntry]) -> u64 {
     roster

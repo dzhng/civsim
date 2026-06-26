@@ -208,6 +208,17 @@ pub const AI_ATTACKERS: usize = 3;
 /// count among its defenders when the AI weighs an assault.
 pub const AI_THREAT_RADIUS: u32 = 6;
 
+// ---- AI lookahead ----------------------------------------------------------
+// The commander imagines a few candidate commitments, rolls each forward this
+// many campaign minutes with the cheap battle estimate, and scores the result.
+/// How far (campaign minutes) a candidate plan is rolled forward before its
+/// position is scored. Movement is slow — one 5 km tile is ~240 ticks of foot
+/// march — so the horizon is measured in days, not hours: a committed march
+/// must have time to cross the few tiles to contact and let the estimate
+/// resolve the fight, or every plan scores the same. One day (1440) lets foot
+/// cross ~6 tiles; tuned against cost + in-app feel in slice 4.
+pub const AI_ROLLOUT_HORIZON: u32 = 1440;
+
 // ---- diplomacy -------------------------------------------------------------
 // Diplomacy is what breaks the six-power peer standoff: instead of every power
 // fighting every neighbour at parity, each focuses war on its weakest reachable

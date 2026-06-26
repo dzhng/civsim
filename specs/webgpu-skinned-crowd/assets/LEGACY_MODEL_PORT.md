@@ -79,6 +79,28 @@ For disputed comparisons, run the `compare-screenshots` metric helper and a
 fresh unbiased visual subagent review. A whole-scene screenshot can support a
 release decision only after the relevant model-level gates exist.
 
+## Current WebGPU Visual Blockers
+
+The 2026-06-27 unprimed screenshot critique of the city, town, road, and
+Campaign Label Zoom captures identified these open blockers:
+
+- City and town selection footprints are in perspective now, but they still read
+  oversized and detached from the actual settlement/shadow footprint.
+- City and town flags/poles still read too flat and pasted-on; poles must attach
+  through the settlement center without banner slab artifacts.
+- Road color has moved toward pale stone with dark side shadows, but the road
+  still reads as layered bands and must become an integrated raised terrain
+  feature with believable city connections.
+- Campaign Label Zoom is missing or underscaling environmental models versus
+  the archived renderer; trees, rocks, mountains, and relief density are still
+  below parity.
+- Labels preserve the font/icon language, but current placement collides with
+  army/city geometry and can duplicate nearby city names.
+- Contact shadows and selection disks are broad and low-contrast; they must read
+  as grounded model shadows and intentional selection affordances, not stains.
+- Whole-world lighting remains washed out and low contrast versus the archived
+  renderer; model scale relationships also need tightening.
+
 ## Acceptance Rule
 
 Temporary placeholders are allowed only to unblock renderer architecture. They

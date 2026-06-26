@@ -87,3 +87,10 @@ campaign-label-zoom gate.
 
 Campaign readability matters more than battle fidelity here: ownership,
 standing, roads, and labels must scan quickly.
+
+Fresh screenshot critique is part of acceptance for close campaign work. The
+current WebGPU campaign captures still have open blockers: flags and selection
+footprints are not convincingly grounded, pale roads read as visible bands
+rather than raised stone roads, labels collide with geometry, environmental
+models are missing/too small in the label-zoom comparison, and the world is too
+washed out compared with the archived renderer.

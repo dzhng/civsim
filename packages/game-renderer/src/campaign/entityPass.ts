@@ -19,7 +19,7 @@ interface MeshData {
 type Rgb = [number, number, number];
 
 const ENTITY_WGSL = `
-struct Camera { x:f32, y:f32, zoom:f32, cosP:f32, width:f32, height:f32, cosYaw:f32, sinYaw:f32 };
+struct Camera { x:f32, y:f32, zoom:f32, cosP:f32, width:f32, height:f32, cosYaw:f32, sinYaw:f32, perspective:f32, pad0:f32, pad1:f32, pad2:f32 };
 @group(0) @binding(0) var<uniform> cam: Camera;
 
 struct VsOut {
@@ -33,6 +33,20 @@ struct VsOut {
   @location(6) alpha: f32,
 };
 
+fn projectWorld(world: vec3f, z: f32) -> vec4f {
+  let dx = world.x - cam.x;
+  let dy = world.y - cam.y;
+  let rx = dx * cam.cosYaw + dy * cam.sinYaw;
+  let ry = -dx * cam.sinYaw + dy * cam.cosYaw;
+  let depth = max(0.32, 1.0 + ry * cam.perspective);
+  return vec4f(
+    (rx * cam.zoom) / (cam.width * 0.5),
+    (ry * cam.zoom * cam.cosP + world.z * cam.zoom) / (cam.height * 0.5),
+    z * depth,
+    depth
+  );
+}
+
 @vertex
 fn vs(
   @location(0) local: vec3f,
@@ -44,17 +58,8 @@ fn vs(
 ) -> VsOut {
   let scale = inst0.z;
   let world = vec3f(inst0.x + local.x * scale, inst0.y + local.y * scale, local.z * scale);
-  let dx = world.x - cam.x;
-  let dy = world.y - cam.y;
-  let rx = dx * cam.cosYaw + dy * cam.sinYaw;
-  let ry = -dx * cam.sinYaw + dy * cam.cosYaw;
   var out: VsOut;
-  out.pos = vec4f(
-    (rx * cam.zoom) / (cam.width * 0.5),
-    (ry * cam.zoom * cam.cosP + world.z * cam.zoom) / (cam.height * 0.5),
-    0.02,
-    1.0
-  );
+  out.pos = projectWorld(world, 0.02);
   out.color = colorAndAlpha.rgb;
   out.livery = smoothstep(0.94, 0.99, min(colorAndAlpha.r, min(colorAndAlpha.g, colorAndAlpha.b)));
   out.alpha = colorAndAlpha.a;
@@ -253,8 +258,9 @@ function buildCityMesh(): MeshData {
     const r = 0.9 + rand() * 3.0;
     building(Math.cos(a) * r, Math.sin(a) * r, 0.8 + rand() * 1.0, 0.8 + rand() * 1.0, 1.1 + rand() * 1.4);
   }
-  builder.box([0, 0, 4.75], [0.22, 0.22, 9.5], timber, 1);
-  builder.box([2.7, 0, 7.7], [5.4, 0.18, 3.2], [1, 1, 1], 1);
+  builder.box([0, 0, 3.95], [0.22, 0.22, 7.9], timber, 1);
+  builder.box([1.45, -0.06, 6.3], [2.9, 0.16, 1.24], [1, 1, 1], 1);
+  builder.box([2.84, -0.06, 5.88], [0.46, 0.16, 0.40], [1, 1, 1], 1);
   return builder.finish();
 }
 

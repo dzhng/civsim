@@ -12,7 +12,7 @@ export interface CampaignBorderPolyline {
 }
 
 const TERRITORY_WGSL = `
-struct Camera { x:f32, y:f32, zoom:f32, cosP:f32, width:f32, height:f32, cosYaw:f32, sinYaw:f32 };
+struct Camera { x:f32, y:f32, zoom:f32, cosP:f32, width:f32, height:f32, cosYaw:f32, sinYaw:f32, perspective:f32, pad0:f32, pad1:f32, pad2:f32 };
 @group(0) @binding(0) var<uniform> cam: Camera;
 @group(1) @binding(0) var terrTex: texture_2d<f32>;
 @group(1) @binding(1) var terrSampler: sampler;
@@ -22,14 +22,19 @@ struct VsOut {
   @location(0) uv: vec2f,
 };
 
-@vertex
-fn vs(@location(0) world: vec2f, @location(1) uv: vec2f) -> VsOut {
+fn projectWorld(world: vec2f, z: f32) -> vec4f {
   let dx = world.x - cam.x;
   let dy = world.y - cam.y;
   let rx = dx * cam.cosYaw + dy * cam.sinYaw;
   let ry = -dx * cam.sinYaw + dy * cam.cosYaw;
+  let depth = max(0.32, 1.0 + ry * cam.perspective);
+  return vec4f((rx * cam.zoom) / (cam.width * 0.5), (ry * cam.zoom * cam.cosP) / (cam.height * 0.5), z * depth, depth);
+}
+
+@vertex
+fn vs(@location(0) world: vec2f, @location(1) uv: vec2f) -> VsOut {
   var out: VsOut;
-  out.pos = vec4f((rx * cam.zoom) / (cam.width * 0.5), (ry * cam.zoom * cam.cosP) / (cam.height * 0.5), 0.42, 1.0);
+  out.pos = projectWorld(world, 0.42);
   out.uv = uv;
   return out;
 }

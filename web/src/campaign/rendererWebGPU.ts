@@ -5,7 +5,7 @@ import { CampaignSceneryPass, type CampaignSceneryInstance } from '../../../pack
 import { CampaignSelectionPass, type CampaignSelectionInstance } from '../../../packages/game-renderer/src/campaign/selectionPass';
 import { campaignBorderVertices, CampaignTerritoryPass } from '../../../packages/game-renderer/src/campaign/territoryPass';
 import { createFrameShell, type RawFrameShell } from '../../../packages/webgpu-core/src/frameShell';
-import { worldToScreen } from '../../../packages/webgpu-core/src/cameraUniform';
+import { screenToWorld, worldToScreen } from '../../../packages/webgpu-core/src/cameraUniform';
 import type { CampaignData } from './data';
 import type { CamView } from './camera';
 import { Allegiance } from './status';
@@ -95,20 +95,18 @@ export class CampaignRendererWebGPU {
       zoom: this.currentCamera.zoom,
       pitch: this.currentCamera.pitch,
       yaw: 0,
+      perspective: this.currentCamera.perspective,
       width: stats?.width ?? this.canvas.width,
       height: stats?.height ?? this.canvas.height,
     }, wx, wy);
   }
 
   toWorld(sx: number, sy: number): [number, number] {
-    const zoom = Math.max(0.0001, this.currentCamera.zoom);
-    const cosP = Math.max(0.2, Math.cos(this.currentCamera.pitch));
-    const width = this.canvas.width || 1;
-    const height = this.canvas.height || 1;
-    return [
-      this.currentCamera.x + (sx - width * 0.5) / zoom,
-      this.currentCamera.y - (sy - height * 0.5) / (zoom * cosP),
-    ];
+    return screenToWorld({
+      ...this.currentCamera,
+      width: this.canvas.width || 1,
+      height: this.canvas.height || 1,
+    }, sx, sy);
   }
 
   updateTerritory(territory: Territory) {
@@ -125,7 +123,7 @@ export class CampaignRendererWebGPU {
   draw(opts: DrawOptions) {
     if (!this.shell || !this.map || !this.water || !this.clouds || !this.territoryPass || !this.lines || !this.borders || !this.scenery || !this.entities || !this.selection || !this.labels) return;
     const frameStart = performance.now();
-    this.currentCamera = { x: opts.cam.x, y: opts.cam.y, zoom: opts.cam.scale, pitch: this.pitch, yaw: 0 };
+    this.currentCamera = { x: opts.cam.x, y: opts.cam.y, zoom: opts.cam.scale, pitch: this.pitch, yaw: 0, perspective: campaignPerspective(opts.cam.scale) };
     this.shell.setCamera(this.currentCamera);
     const buildStart = performance.now();
     const frame = buildEntityFrame(this.data, opts);
@@ -207,7 +205,7 @@ export class CampaignRendererWebGPU {
     };
   }
 
-  private currentCamera = { x: 0, y: 0, zoom: 0.18, pitch: this.pitch, yaw: 0 };
+  private currentCamera = { x: 0, y: 0, zoom: 0.18, pitch: this.pitch, yaw: 0, perspective: 0 };
 
   private async init(territory: Territory) {
     this.shell = await createFrameShell(this.canvas);
@@ -221,7 +219,7 @@ export class CampaignRendererWebGPU {
       rgba: territory.rgba,
       rect: this.data.bgRect,
     });
-    this.lines = new CampaignLinePass(this.shell);
+    this.lines = new CampaignLinePass(this.shell, 'triangle-list');
     this.borders = new CampaignLinePass(this.shell);
     this.scenery = new CampaignSceneryPass(this.shell);
     this.entities = new CampaignEntityPass(this.shell);
@@ -237,6 +235,10 @@ export class CampaignRendererWebGPU {
 
 function roundMs(value: number) {
   return Number.isFinite(value) ? Number(value.toFixed(3)) : 0;
+}
+
+function campaignPerspective(zoom: number) {
+  return Math.min(0.0048, Math.max(0, (zoom - 1.0) * 0.0032));
 }
 
 function buildEntityFrame(data: CampaignData, opts: DrawOptions) {

@@ -1,4 +1,5 @@
 import { createFrameShell, type MarkerInstance, type RawFrameShell } from '../../../packages/webgpu-core/src/frameShell';
+import { screenToWorld, worldToScreen } from '../../../packages/webgpu-core/src/cameraUniform';
 import { requestWebGpuDevice, webGpuFailureMessage } from '../../../packages/webgpu-core/src/device';
 import { SkinnedCrowdPipeline } from '../../../packages/webgpu-core/src/skinnedPipeline';
 import { animationForFrame } from '../../../packages/crowd-runtime/src/animationState';
@@ -433,7 +434,7 @@ async function routeCampaignMap(ctx: LabContext) {
     rgba: territoryData.rgba,
     rect: data.bgRect,
   });
-  const lines = new CampaignLinePass(shell);
+  const lines = new CampaignLinePass(shell, 'triangle-list');
   const borders = new CampaignLinePass(shell);
   const markers = new CampaignMarkerPass(shell);
   const labelPass = new CampaignLabelPass(shell);
@@ -505,7 +506,7 @@ async function routeCampaignUi(ctx: LabContext) {
   const preset = ctx.params.get('preset') ?? 'fixture';
   const camera = campaignPresetCamera(preset);
   const shell = await createConfiguredShell(ctx.canvas, camera);
-  const lines = new CampaignLinePass(shell);
+  const lines = new CampaignLinePass(shell, 'triangle-list');
   const entities = new CampaignEntityPass(shell);
   const selection = new CampaignSelectionPass(shell);
   const labelPass = new CampaignLabelPass(shell);
@@ -622,7 +623,7 @@ async function routeCampaignModelGates(ctx: LabContext) {
   const shell = await createConfiguredShell(ctx.canvas, camera);
   const entities = new CampaignEntityPass(shell);
   const scenery = new CampaignSceneryPass(shell);
-  const lines = new CampaignLinePass(shell);
+  const lines = new CampaignLinePass(shell, 'triangle-list');
   const selection = new CampaignSelectionPass(shell);
   const labelPass = new CampaignLabelPass(shell);
   const frame = campaignModelGateFrame(gate);
@@ -689,12 +690,12 @@ function campaignModelGate(value: string | null): CampaignModelGate {
 }
 
 function campaignModelGateCamera(gate: CampaignModelGate) {
-  const close = { x: 0, y: 0.3, zoom: 28, pitch: 0.56, yaw: 0 };
-  if (gate === 'overview') return { x: 0, y: -0.6, zoom: 28, pitch: 0.54, yaw: 0 };
-  if (gate === 'road') return { x: 0, y: -1.3, zoom: 30, pitch: 0.54, yaw: 0 };
-  if (gate === 'trees') return { x: 0, y: -0.3, zoom: 40, pitch: 0.56, yaw: 0 };
-  if (gate === 'conifer' || gate === 'broadleaf') return { x: 0, y: -0.36, zoom: 54, pitch: 0.56, yaw: 0 };
-  if (gate === 'mountain' || gate === 'rocks') return { x: 0, y: -0.4, zoom: 40, pitch: 0.56, yaw: 0 };
+  const close = { x: 0, y: 0.3, zoom: 28, pitch: 0.56, yaw: 0, perspective: 0.018 };
+  if (gate === 'overview') return { x: 0, y: -0.6, zoom: 28, pitch: 0.54, yaw: 0, perspective: 0.012 };
+  if (gate === 'road') return { x: 0, y: -1.3, zoom: 30, pitch: 0.54, yaw: 0, perspective: 0.012 };
+  if (gate === 'trees') return { x: 0, y: -0.3, zoom: 40, pitch: 0.56, yaw: 0, perspective: 0.016 };
+  if (gate === 'conifer' || gate === 'broadleaf') return { x: 0, y: -0.36, zoom: 54, pitch: 0.56, yaw: 0, perspective: 0.018 };
+  if (gate === 'mountain' || gate === 'rocks') return { x: 0, y: -0.4, zoom: 40, pitch: 0.56, yaw: 0, perspective: 0.014 };
   return close;
 }
 
@@ -765,22 +766,41 @@ function campaignModelGateFrame(gate: CampaignModelGate) {
 
 function roadGateVertices(points: [number, number][]) {
   const verts: number[] = [];
-  const pushLine = (a: [number, number], b: [number, number], color: [number, number, number, number], offset: number) => {
+  const pushBand = (
+    a: [number, number],
+    b: [number, number],
+    color: [number, number, number, number],
+    halfWidth: number,
+  ) => {
     const dx = b[0] - a[0];
     const dy = b[1] - a[1];
     const len = Math.hypot(dx, dy) || 1;
-    const ox = (-dy / len) * offset;
-    const oy = (dx / len) * offset;
-    verts.push(a[0] + ox, a[1] + oy, ...color, b[0] + ox, b[1] + oy, ...color);
+    const nx = -dy / len;
+    const ny = dx / len;
+    const ax0 = a[0] - nx * halfWidth;
+    const ay0 = a[1] - ny * halfWidth;
+    const ax1 = a[0] + nx * halfWidth;
+    const ay1 = a[1] + ny * halfWidth;
+    const bx0 = b[0] - nx * halfWidth;
+    const by0 = b[1] - ny * halfWidth;
+    const bx1 = b[0] + nx * halfWidth;
+    const by1 = b[1] + ny * halfWidth;
+    verts.push(
+      ax0, ay0, ...color,
+      bx0, by0, ...color,
+      bx1, by1, ...color,
+      ax0, ay0, ...color,
+      bx1, by1, ...color,
+      ax1, ay1, ...color,
+    );
   };
   for (let i = 1; i < points.length; i++) {
     const a = points[i - 1];
     const b = points[i];
-    pushLine(a, b, [0.23, 0.18, 0.12, 0.82], -0.22);
-    pushLine(a, b, [0.23, 0.18, 0.12, 0.82], 0.22);
-    pushLine(a, b, [0.72, 0.68, 0.56, 0.95], -0.10);
-    pushLine(a, b, [0.72, 0.68, 0.56, 0.95], 0.10);
-    pushLine(a, b, [0.87, 0.82, 0.66, 0.95], 0);
+    pushBand(a, b, [0.08, 0.075, 0.065, 0.48], 0.33);
+    pushBand(a, b, [0.34, 0.32, 0.28, 0.74], 0.24);
+    pushBand(a, b, [0.80, 0.79, 0.72, 0.96], 0.17);
+    pushBand(a, b, [0.93, 0.92, 0.86, 0.98], 0.07);
   }
   return new Float32Array(verts);
 }
@@ -1227,7 +1247,7 @@ async function routeBattleInput(ctx: LabContext) {
   draw();
 }
 
-async function createConfiguredShell(canvas: HTMLCanvasElement, camera: { x: number; y: number; zoom: number; pitch?: number; yaw?: number }) {
+async function createConfiguredShell(canvas: HTMLCanvasElement, camera: { x: number; y: number; zoom: number; pitch?: number; yaw?: number; perspective?: number }) {
   const shell = await createFrameShell(canvas);
   shell.setCamera(camera);
   return shell;
@@ -1405,13 +1425,13 @@ function battleCamera(bounds: { cx: number; cy: number; w: number; h: number }, 
 }
 
 function campaignPresetCamera(preset: string) {
-  const presets: Record<string, { x: number; y: number; zoom: number; pitch: number; yaw: number }> = {
+  const presets: Record<string, { x: number; y: number; zoom: number; pitch: number; yaw: number; perspective?: number }> = {
     fixture: { x: 0, y: 450, zoom: 6.0, pitch: 0, yaw: 0 },
     whole: { x: -100, y: 250, zoom: 0.16, pitch: 0, yaw: 0 },
-    roma: { x: -456, y: 446, zoom: 2.5, pitch: 0, yaw: 0 },
-    gaul: { x: -1020, y: 938, zoom: 2.2, pitch: 0, yaw: 0 },
-    nile: { x: 1131, y: -686, zoom: 2.2, pitch: 0, yaw: 0 },
-    alps: { x: -450, y: 1080, zoom: 1.8, pitch: 0, yaw: 0 },
+    roma: { x: -456, y: 446, zoom: 2.5, pitch: 0, yaw: 0, perspective: 0.0048 },
+    gaul: { x: -1020, y: 938, zoom: 2.2, pitch: 0, yaw: 0, perspective: 0.0038 },
+    nile: { x: 1131, y: -686, zoom: 2.2, pitch: 0, yaw: 0, perspective: 0.0038 },
+    alps: { x: -450, y: 1080, zoom: 1.8, pitch: 0, yaw: 0, perspective: 0.0026 },
     political: { x: 180, y: 520, zoom: 0.58, pitch: 0, yaw: 0 },
   };
   return presets[preset] ?? presets.whole;
@@ -1539,7 +1559,7 @@ function campaignPick(
   clientX: number,
   clientY: number,
   canvas: HTMLCanvasElement,
-  camera: { x: number; y: number; zoom: number; pitch?: number; yaw?: number },
+  camera: { x: number; y: number; zoom: number; pitch?: number; yaw?: number; perspective?: number },
   stats: { width: number; height: number },
   data: CampaignData,
   views: CampaignViews,
@@ -1567,25 +1587,19 @@ function campaignCssToWorld(
   clientX: number,
   clientY: number,
   canvas: HTMLCanvasElement,
-  camera: { x: number; y: number; zoom: number; pitch?: number; yaw?: number },
+  camera: { x: number; y: number; zoom: number; pitch?: number; yaw?: number; perspective?: number },
   stats: { width: number; height: number },
 ) {
   const rect = canvas.getBoundingClientRect();
   const px = (clientX - rect.left) * (canvas.width / Math.max(1, canvas.clientWidth));
   const py = (clientY - rect.top) * (canvas.height / Math.max(1, canvas.clientHeight));
-  const rx = (px - stats.width * 0.5) / Math.max(0.0001, camera.zoom);
-  const ry = -(py - stats.height * 0.5) / Math.max(0.0001, camera.zoom * Math.max(0.2, Math.cos(camera.pitch ?? 0)));
-  const c = Math.cos(camera.yaw ?? 0);
-  const s = Math.sin(camera.yaw ?? 0);
-  return {
-    x: camera.x + rx * c - ry * s,
-    y: camera.y + rx * s + ry * c,
-  };
+  const [x, y] = screenToWorld({ ...camera, width: stats.width, height: stats.height }, px, py);
+  return { x, y };
 }
 
 function publishCampaignUiDebug(
   canvas: HTMLCanvasElement,
-  camera: { x: number; y: number; zoom: number; pitch?: number; yaw?: number },
+  camera: { x: number; y: number; zoom: number; pitch?: number; yaw?: number; perspective?: number },
   views: CampaignViews,
   selectedArmy: number,
   selectedCity: number,
@@ -1617,18 +1631,11 @@ function campaignWorldToCss(
   x: number,
   y: number,
   canvas: HTMLCanvasElement,
-  camera: { x: number; y: number; zoom: number; pitch?: number; yaw?: number },
+  camera: { x: number; y: number; zoom: number; pitch?: number; yaw?: number; perspective?: number },
   stats: { width: number; height: number },
 ) {
   const rect = canvas.getBoundingClientRect();
-  const c = Math.cos(camera.yaw ?? 0);
-  const s = Math.sin(camera.yaw ?? 0);
-  const dx = x - camera.x;
-  const dy = y - camera.y;
-  const rx = dx * c + dy * s;
-  const ry = -dx * s + dy * c;
-  const px = rx * camera.zoom + stats.width * 0.5;
-  const py = -ry * camera.zoom * Math.max(0.2, Math.cos(camera.pitch ?? 0)) + stats.height * 0.5;
+  const [px, py] = worldToScreen({ ...camera, width: stats.width, height: stats.height }, x, y);
   return {
     x: rect.left + px * (canvas.clientWidth / Math.max(1, canvas.width)),
     y: rect.top + py * (canvas.clientHeight / Math.max(1, canvas.height)),

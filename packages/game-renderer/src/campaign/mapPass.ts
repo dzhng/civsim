@@ -69,7 +69,7 @@ const ICON_PATHS = {
 } as const;
 
 const MAP_WGSL = `
-struct Camera { x:f32, y:f32, zoom:f32, cosP:f32, width:f32, height:f32, cosYaw:f32, sinYaw:f32 };
+struct Camera { x:f32, y:f32, zoom:f32, cosP:f32, width:f32, height:f32, cosYaw:f32, sinYaw:f32, perspective:f32, pad0:f32, pad1:f32, pad2:f32 };
 @group(0) @binding(0) var<uniform> cam: Camera;
 @group(1) @binding(0) var mapTex: texture_2d<f32>;
 @group(1) @binding(1) var mapSampler: sampler;
@@ -80,14 +80,19 @@ struct VsOut {
   @location(1) world: vec2f,
 };
 
-@vertex
-fn vs(@location(0) world: vec2f, @location(1) uv: vec2f) -> VsOut {
+fn projectWorld(world: vec2f, z: f32) -> vec4f {
   let dx = world.x - cam.x;
   let dy = world.y - cam.y;
   let rx = dx * cam.cosYaw + dy * cam.sinYaw;
   let ry = -dx * cam.sinYaw + dy * cam.cosYaw;
+  let depth = max(0.32, 1.0 + ry * cam.perspective);
+  return vec4f((rx * cam.zoom) / (cam.width * 0.5), (ry * cam.zoom * cam.cosP) / (cam.height * 0.5), z * depth, depth);
+}
+
+@vertex
+fn vs(@location(0) world: vec2f, @location(1) uv: vec2f) -> VsOut {
   var out: VsOut;
-  out.pos = vec4f((rx * cam.zoom) / (cam.width * 0.5), (ry * cam.zoom * cam.cosP) / (cam.height * 0.5), 0.65, 1.0);
+  out.pos = projectWorld(world, 0.65);
   out.uv = uv;
   out.world = world;
   return out;
@@ -130,19 +135,24 @@ fn fs(in: VsOut) -> @location(0) vec4f {
 }`;
 
 const LINE_WGSL = `
-struct Camera { x:f32, y:f32, zoom:f32, cosP:f32, width:f32, height:f32, cosYaw:f32, sinYaw:f32 };
+struct Camera { x:f32, y:f32, zoom:f32, cosP:f32, width:f32, height:f32, cosYaw:f32, sinYaw:f32, perspective:f32, pad0:f32, pad1:f32, pad2:f32 };
 @group(0) @binding(0) var<uniform> cam: Camera;
 
 struct VsOut { @builtin(position) pos: vec4f, @location(0) color: vec4f };
 
-@vertex
-fn vs(@location(0) world: vec2f, @location(1) color: vec4f) -> VsOut {
+fn projectWorld(world: vec2f, z: f32) -> vec4f {
   let dx = world.x - cam.x;
   let dy = world.y - cam.y;
   let rx = dx * cam.cosYaw + dy * cam.sinYaw;
   let ry = -dx * cam.sinYaw + dy * cam.cosYaw;
+  let depth = max(0.32, 1.0 + ry * cam.perspective);
+  return vec4f((rx * cam.zoom) / (cam.width * 0.5), (ry * cam.zoom * cam.cosP) / (cam.height * 0.5), z * depth, depth);
+}
+
+@vertex
+fn vs(@location(0) world: vec2f, @location(1) color: vec4f) -> VsOut {
   var out: VsOut;
-  out.pos = vec4f((rx * cam.zoom) / (cam.width * 0.5), (ry * cam.zoom * cam.cosP) / (cam.height * 0.5), 0.0, 1.0);
+  out.pos = projectWorld(world, 0.0);
   out.color = color;
   return out;
 }
@@ -153,7 +163,7 @@ fn fs(in: VsOut) -> @location(0) vec4f {
 }`;
 
 const MARKER_WGSL = `
-struct Camera { x:f32, y:f32, zoom:f32, cosP:f32, width:f32, height:f32, cosYaw:f32, sinYaw:f32 };
+struct Camera { x:f32, y:f32, zoom:f32, cosP:f32, width:f32, height:f32, cosYaw:f32, sinYaw:f32, perspective:f32, pad0:f32, pad1:f32, pad2:f32 };
 @group(0) @binding(0) var<uniform> cam: Camera;
 
 struct VsOut {
@@ -163,15 +173,20 @@ struct VsOut {
   @location(2) allegiance: vec3f,
 };
 
-@vertex
-fn vs(@location(0) quad: vec2f, @location(1) inst0: vec4f, @location(2) inst1: vec4f, @location(3) inst2: vec4f) -> VsOut {
-  let world = inst0.xy + quad * inst0.z;
+fn projectWorld(world: vec2f, z: f32) -> vec4f {
   let dx = world.x - cam.x;
   let dy = world.y - cam.y;
   let rx = dx * cam.cosYaw + dy * cam.sinYaw;
   let ry = -dx * cam.sinYaw + dy * cam.cosYaw;
+  let depth = max(0.32, 1.0 + ry * cam.perspective);
+  return vec4f((rx * cam.zoom) / (cam.width * 0.5), (ry * cam.zoom * cam.cosP) / (cam.height * 0.5), z * depth, depth);
+}
+
+@vertex
+fn vs(@location(0) quad: vec2f, @location(1) inst0: vec4f, @location(2) inst1: vec4f, @location(3) inst2: vec4f) -> VsOut {
+  let world = inst0.xy + quad * inst0.z;
   var out: VsOut;
-  out.pos = vec4f((rx * cam.zoom) / (cam.width * 0.5), (ry * cam.zoom * cam.cosP) / (cam.height * 0.5), 0.08, 1.0);
+  out.pos = projectWorld(world, 0.08);
   out.local = quad;
   out.faction = inst1.rgb;
   out.allegiance = vec3f(inst1.a, inst2.r, inst2.g);
@@ -192,7 +207,7 @@ fn fs(in: VsOut) -> @location(0) vec4f {
 }`;
 
 const LABEL_WGSL = `
-struct Camera { x:f32, y:f32, zoom:f32, cosP:f32, width:f32, height:f32, cosYaw:f32, sinYaw:f32 };
+struct Camera { x:f32, y:f32, zoom:f32, cosP:f32, width:f32, height:f32, cosYaw:f32, sinYaw:f32, perspective:f32, pad0:f32, pad1:f32, pad2:f32 };
 @group(0) @binding(0) var<uniform> cam: Camera;
 @group(1) @binding(0) var labelTex: texture_2d<f32>;
 @group(1) @binding(1) var labelSampler: sampler;
@@ -202,16 +217,21 @@ struct VsOut {
   @location(0) uv: vec2f,
 };
 
-@vertex
-fn vs(@location(0) world: vec2f, @location(1) offset: vec2f, @location(2) uv: vec2f) -> VsOut {
+fn projectScreen(world: vec2f) -> vec2f {
   let dx = world.x - cam.x;
   let dy = world.y - cam.y;
   let rx = dx * cam.cosYaw + dy * cam.sinYaw;
   let ry = -dx * cam.sinYaw + dy * cam.cosYaw;
-  let screen = vec2f(
-    rx * cam.zoom + cam.width * 0.5,
-    -ry * cam.zoom * cam.cosP + cam.height * 0.5
-  ) + offset;
+  let depth = max(0.32, 1.0 + ry * cam.perspective);
+  return vec2f(
+    (rx * cam.zoom) / depth + cam.width * 0.5,
+    (-ry * cam.zoom * cam.cosP) / depth + cam.height * 0.5
+  );
+}
+
+@vertex
+fn vs(@location(0) world: vec2f, @location(1) offset: vec2f, @location(2) uv: vec2f) -> VsOut {
+  let screen = projectScreen(world) + offset;
   var out: VsOut;
   out.pos = vec4f(
     (screen.x / (cam.width * 0.5)) - 1.0,
@@ -322,7 +342,7 @@ export class CampaignLinePass {
   private capacity = 0;
   private vertexCount = 0;
 
-  constructor(private shell: RawFrameShell) {
+  constructor(private shell: RawFrameShell, private topology: GPUPrimitiveTopology = 'line-list') {
     const device = shell.device;
     const module = device.createShaderModule({ label: 'campaign-line-wgsl', code: LINE_WGSL });
     this.pipeline = device.createRenderPipeline({
@@ -350,7 +370,7 @@ export class CampaignLinePass {
           },
         }],
       },
-      primitive: { topology: 'line-list' },
+      primitive: { topology },
     });
     this.vertexBuffer = device.createBuffer({
       label: 'campaign-line-empty',
@@ -381,7 +401,8 @@ export class CampaignLinePass {
   }
 
   stats() {
-    return { vertices: this.vertexCount, segments: Math.floor(this.vertexCount / 2) };
+    const segmentDivisor = this.topology === 'line-list' ? 2 : 6;
+    return { vertices: this.vertexCount, segments: Math.floor(this.vertexCount / segmentDivisor) };
   }
 }
 
@@ -674,13 +695,46 @@ export function buildCampaignMapDrawData(data: CampaignMapInputData): CampaignMa
 }
 
 function pushEdgeLines(out: number[], edge: CampaignMapEdgeData) {
-  const color: [number, number, number, number] = edge.kind === 'sea'
-    ? [0.56, 0.72, 0.86, 0.32]
-    : [0.34, 0.24, 0.13, 0.62];
+  const pushBand = (
+    a: [number, number],
+    b: [number, number],
+    color: [number, number, number, number],
+    halfWidth: number,
+    offset = 0,
+  ) => {
+    const dx = b[0] - a[0];
+    const dy = b[1] - a[1];
+    const len = Math.hypot(dx, dy) || 1;
+    const nx = -dy / len;
+    const ny = dx / len;
+    const ax0 = a[0] + nx * (offset - halfWidth);
+    const ay0 = a[1] + ny * (offset - halfWidth);
+    const ax1 = a[0] + nx * (offset + halfWidth);
+    const ay1 = a[1] + ny * (offset + halfWidth);
+    const bx0 = b[0] + nx * (offset - halfWidth);
+    const by0 = b[1] + ny * (offset - halfWidth);
+    const bx1 = b[0] + nx * (offset + halfWidth);
+    const by1 = b[1] + ny * (offset + halfWidth);
+    out.push(
+      ax0, ay0, ...color,
+      bx0, by0, ...color,
+      bx1, by1, ...color,
+      ax0, ay0, ...color,
+      bx1, by1, ...color,
+      ax1, ay1, ...color,
+    );
+  };
   for (let i = 1; i < edge.via.length; i++) {
     const a = edge.via[i - 1];
     const b = edge.via[i];
-    out.push(a[0], a[1], ...color, b[0], b[1], ...color);
+    if (edge.kind === 'sea') {
+      pushBand(a, b, [0.56, 0.72, 0.86, 0.26], 0.85);
+      continue;
+    }
+    pushBand(a, b, [0.08, 0.075, 0.065, 0.48], 2.10);
+    pushBand(a, b, [0.34, 0.32, 0.28, 0.74], 1.58);
+    pushBand(a, b, [0.80, 0.79, 0.72, 0.96], 1.18);
+    pushBand(a, b, [0.93, 0.92, 0.86, 0.98], 0.48);
   }
 }
 

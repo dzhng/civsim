@@ -19,7 +19,7 @@ interface MeshData {
 type Rgb = [number, number, number];
 
 const SCENERY_WGSL = `
-struct Camera { x:f32, y:f32, zoom:f32, cosP:f32, width:f32, height:f32, cosYaw:f32, sinYaw:f32 };
+struct Camera { x:f32, y:f32, zoom:f32, cosP:f32, width:f32, height:f32, cosYaw:f32, sinYaw:f32, perspective:f32, pad0:f32, pad1:f32, pad2:f32 };
 @group(0) @binding(0) var<uniform> cam: Camera;
 
 struct VsOut {
@@ -30,6 +30,20 @@ struct VsOut {
   @location(3) shade: f32,
 };
 
+fn projectWorld(world: vec3f, z: f32) -> vec4f {
+  let dx = world.x - cam.x;
+  let dy = world.y - cam.y;
+  let rx = dx * cam.cosYaw + dy * cam.sinYaw;
+  let ry = -dx * cam.sinYaw + dy * cam.cosYaw;
+  let depth = max(0.32, 1.0 + ry * cam.perspective);
+  return vec4f(
+    (rx * cam.zoom) / (cam.width * 0.5),
+    (ry * cam.zoom * cam.cosP + world.z * cam.zoom) / (cam.height * 0.5),
+    z * depth,
+    depth
+  );
+}
+
 @vertex
 fn vs(
   @location(0) local: vec3f,
@@ -39,17 +53,8 @@ fn vs(
 ) -> VsOut {
   let scale = inst.z;
   let world = vec3f(inst.x + local.x * scale, inst.y + local.y * scale, local.z * scale);
-  let dx = world.x - cam.x;
-  let dy = world.y - cam.y;
-  let rx = dx * cam.cosYaw + dy * cam.sinYaw;
-  let ry = -dx * cam.sinYaw + dy * cam.cosYaw;
   var out: VsOut;
-  out.pos = vec4f(
-    (rx * cam.zoom) / (cam.width * 0.5),
-    (ry * cam.zoom * cam.cosP + world.z * cam.zoom) / (cam.height * 0.5),
-    0.04,
-    1.0
-  );
+  out.pos = projectWorld(world, 0.04);
   let sun = normalize(vec3f(-0.42, -0.34, 0.84));
   out.color = colorAndAlpha.rgb;
   out.alpha = colorAndAlpha.a;

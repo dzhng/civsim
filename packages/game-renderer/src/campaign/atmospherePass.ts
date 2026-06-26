@@ -15,7 +15,7 @@ export interface CampaignWaterFeature {
 }
 
 const CLOUD_WGSL = `
-struct Camera { x:f32, y:f32, zoom:f32, cosP:f32, width:f32, height:f32, cosYaw:f32, sinYaw:f32 };
+struct Camera { x:f32, y:f32, zoom:f32, cosP:f32, width:f32, height:f32, cosYaw:f32, sinYaw:f32, perspective:f32, pad0:f32, pad1:f32, pad2:f32 };
 @group(0) @binding(0) var<uniform> cam: Camera;
 
 struct VsOut {
@@ -24,14 +24,19 @@ struct VsOut {
   @location(1) world: vec2f,
 };
 
-@vertex
-fn vs(@location(0) world: vec2f, @location(1) uv: vec2f) -> VsOut {
+fn projectWorld(world: vec2f, z: f32) -> vec4f {
   let dx = world.x - cam.x;
   let dy = world.y - cam.y;
   let rx = dx * cam.cosYaw + dy * cam.sinYaw;
   let ry = -dx * cam.sinYaw + dy * cam.cosYaw;
+  let depth = max(0.32, 1.0 + ry * cam.perspective);
+  return vec4f((rx * cam.zoom) / (cam.width * 0.5), (ry * cam.zoom * cam.cosP) / (cam.height * 0.5), z * depth, depth);
+}
+
+@vertex
+fn vs(@location(0) world: vec2f, @location(1) uv: vec2f) -> VsOut {
   var out: VsOut;
-  out.pos = vec4f((rx * cam.zoom) / (cam.width * 0.5), (ry * cam.zoom * cam.cosP) / (cam.height * 0.5), 0.12, 1.0);
+  out.pos = projectWorld(world, 0.12);
   out.uv = uv;
   out.world = world;
   return out;
@@ -75,7 +80,7 @@ fn fs(in: VsOut) -> @location(0) vec4f {
 }`;
 
 const WATER_WGSL = `
-struct Camera { x:f32, y:f32, zoom:f32, cosP:f32, width:f32, height:f32, cosYaw:f32, sinYaw:f32 };
+struct Camera { x:f32, y:f32, zoom:f32, cosP:f32, width:f32, height:f32, cosYaw:f32, sinYaw:f32, perspective:f32, pad0:f32, pad1:f32, pad2:f32 };
 @group(0) @binding(0) var<uniform> cam: Camera;
 
 struct VsOut {
@@ -85,18 +90,23 @@ struct VsOut {
   @location(2) world: vec2f,
 };
 
+fn projectWorld(world: vec2f, z: f32) -> vec4f {
+  let dx = world.x - cam.x;
+  let dy = world.y - cam.y;
+  let rx = dx * cam.cosYaw + dy * cam.sinYaw;
+  let ry = -dx * cam.sinYaw + dy * cam.cosYaw;
+  let depth = max(0.32, 1.0 + ry * cam.perspective);
+  return vec4f((rx * cam.zoom) / (cam.width * 0.5), (ry * cam.zoom * cam.cosP) / (cam.height * 0.5), z * depth, depth);
+}
+
 @vertex
 fn vs(@location(0) quad: vec2f, @location(1) inst0: vec4f, @location(2) inst1: vec4f) -> VsOut {
   let c = cos(inst0.w);
   let s = sin(inst0.w);
   let localWorld = vec2f(quad.x * inst0.z, quad.y * inst1.x);
   let world = inst0.xy + vec2f(localWorld.x * c - localWorld.y * s, localWorld.x * s + localWorld.y * c);
-  let dx = world.x - cam.x;
-  let dy = world.y - cam.y;
-  let rx = dx * cam.cosYaw + dy * cam.sinYaw;
-  let ry = -dx * cam.sinYaw + dy * cam.cosYaw;
   var out: VsOut;
-  out.pos = vec4f((rx * cam.zoom) / (cam.width * 0.5), (ry * cam.zoom * cam.cosP) / (cam.height * 0.5), 0.10, 1.0);
+  out.pos = projectWorld(world, 0.10);
   out.local = quad;
   out.alpha = inst1.y;
   out.world = world;

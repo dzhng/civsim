@@ -56,6 +56,10 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   such as `campaign-webgpu-visual` can stay pixel-green while the archived
   parity gate in `webgpu-visual-report` changes; for parity work, rerun the
   report route, inspect its PNG, and then run `compare-screenshots`.
+- Controlled visual fixtures still need authored texture/detail. A solid test
+  swatch can classify correctly and keep snapshots green while the archived
+  parity score exposes a dead flat world; use deterministic noise/scenery that
+  remains inside the intended terrain class, then re-run the parity report.
 - Use instancing, batching, storage buffers, and GPU-side phase passes for scale.
   Avoid CPU readbacks in hot paths; debug readbacks must be bounded and named.
 - For iterative effects or simulations, separate phases such as `state`,

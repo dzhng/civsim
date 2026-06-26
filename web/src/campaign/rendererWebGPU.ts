@@ -142,7 +142,7 @@ export class CampaignRendererWebGPU {
     this.entities.upload(frame.entities);
     this.selection.upload(frame.selections);
     this.labelStats = this.labels.upload(
-      this.staticLabels.concat(campaignCityLabels(this.data, opts), campaignArmyLabels(opts), campaignFactionLabels(opts)),
+      this.staticLabels.concat(campaignCityLabels(this.data, opts), campaignArmyLabels(this.data, opts), campaignFactionLabels(opts)),
       this.currentCamera,
     );
     const uploadEnd = performance.now();
@@ -347,7 +347,7 @@ function campaignCityLabels(data: CampaignData, opts: DrawOptions): CampaignLabe
   return labels;
 }
 
-function campaignArmyLabels(opts: DrawOptions): CampaignLabel[] {
+function campaignArmyLabels(data: CampaignData, opts: DrawOptions): CampaignLabel[] {
   const ordinalOf = new Map<number, number>();
   const byFaction = new Map<number, number[]>();
   for (const army of visibleCampaignArmies(opts)) {
@@ -362,6 +362,7 @@ function campaignArmyLabels(opts: DrawOptions): CampaignLabel[] {
   return visibleCampaignArmies(opts).map((army): CampaignLabel => {
     const allegiance = army.mine || army.faction === opts.playerFaction ? Allegiance.Friend : statusOf(opts.factionStatus, army.faction);
     const markerSize = army.id === opts.selected ? 13 : 11;
+    const cityOverlap = data.map.nodes.some((node) => node.kind === 'city' && Math.hypot(node.pos[0] - army.x, node.pos[1] - army.y) < 8);
     return {
       text: `${ordinal(ordinalOf.get(army.id) ?? 1)} LEGION`,
       subText: `${Math.round(army.soldiers / 100) / 10}k`,
@@ -372,7 +373,7 @@ function campaignArmyLabels(opts: DrawOptions): CampaignLabel[] {
       priority: 4,
       icon: 'army',
       iconColor: allegianceColor(allegiance),
-      screenOffsetY: markerSize + 24,
+      screenOffsetY: markerSize + (cityOverlap ? 48 : 24),
     };
   });
 }
@@ -434,27 +435,38 @@ function testStageScenery(data: CampaignData): CampaignSceneryInstance[] {
   const cx = (x0 + x1) * 0.5;
   const cy = (y0 + y1) * 0.5;
   const items: CampaignSceneryInstance[] = [
-    { x: cx - 31, y: cy + 20, size: 8.4, kind: 'mountain' },
-    { x: cx - 23, y: cy + 22, size: 7.8, kind: 'mountain' },
-    { x: cx - 14, y: cy + 18, size: 7.2, kind: 'mountain' },
-    { x: cx - 4, y: cy + 20, size: 8.1, kind: 'mountain' },
-    { x: cx + 20, y: cy + 18, size: 7.7, kind: 'mountain' },
-    { x: cx + 31, y: cy + 17, size: 8.2, kind: 'mountain' },
-    { x: cx - 8, y: cy + 6, size: 6.6, kind: 'mountain' },
-    { x: cx + 10, y: cy + 6, size: 6.3, kind: 'mountain' },
-    { x: cx - 17, y: cy - 15, size: 5.4, kind: 'rock' },
-    { x: cx - 4, y: cy - 18, size: 5.8, kind: 'rock' },
-    { x: cx + 18, y: cy - 16, size: 5.2, kind: 'rock' },
-    { x: cx + 32, y: cy - 10, size: 6.0, kind: 'rock' },
-    { x: cx - 18, y: cy + 2, size: 5.4, kind: 'conifer' },
-    { x: cx + 24, y: cy + 2, size: 5.1, kind: 'broadleaf' },
-    { x: cx + 12, y: cy - 6, size: 4.6, kind: 'broadleaf' },
+    { x: cx - 34, y: y1 - 5, size: 13.2, kind: 'mountain' },
+    { x: cx - 26, y: y1 - 2, size: 11.6, kind: 'mountain' },
+    { x: cx - 16, y: y1 - 6, size: 12.4, kind: 'mountain' },
+    { x: cx - 5, y: y1 - 3, size: 13.8, kind: 'mountain' },
+    { x: cx + 18, y: y1 - 7, size: 11.8, kind: 'mountain' },
+    { x: cx + 32, y: y1 - 5, size: 12.8, kind: 'mountain' },
+    { x: cx - 10, y: cy + 7, size: 9.8, kind: 'mountain' },
+    { x: cx + 10, y: cy + 7, size: 9.1, kind: 'mountain' },
+    { x: cx - 5, y: cy - 1, size: 10.6, kind: 'mountain' },
+    { x: cx + 21, y: cy - 1, size: 9.2, kind: 'mountain' },
+    { x: cx + 33, y: cy - 4, size: 9.8, kind: 'mountain' },
+    { x: x0 + 31, y: y0 + 9, size: 9.8, kind: 'rock' },
+    { x: x0 + 43, y: y0 + 7, size: 10.8, kind: 'rock' },
+    { x: x1 - 30, y: y0 + 8, size: 10.2, kind: 'rock' },
+    { x: x1 - 15, y: y0 + 13, size: 8.6, kind: 'rock' },
+    { x: x1 - 5, y: y0 + 6, size: 12.2, kind: 'rock' },
+    { x: cx - 17, y: cy - 15, size: 7.4, kind: 'rock' },
+    { x: cx - 4, y: cy - 18, size: 7.9, kind: 'rock' },
+    { x: cx + 18, y: cy - 16, size: 7.1, kind: 'rock' },
+    { x: cx + 32, y: cy - 10, size: 8.1, kind: 'rock' },
+    { x: cx - 18, y: cy + 2, size: 6.6, kind: 'conifer' },
+    { x: cx + 24, y: cy + 2, size: 6.2, kind: 'broadleaf' },
+    { x: cx + 12, y: cy - 6, size: 5.8, kind: 'broadleaf' },
+    { x: cx + 28, y: cy - 7, size: 5.4, kind: 'conifer' },
+    { x: cx - 30, y: cy - 9, size: 5.8, kind: 'conifer' },
   ];
-  for (let i = 0; i < 22; i++) {
+  for (let i = 0; i < 32; i++) {
     const x = x0 + 6 + hash2(i * 13, 4) * (x1 - x0 - 12);
     const y = y0 + 5 + hash2(5, i * 17) * (y1 - y0 - 10);
     if (Math.abs(y - cy) < 5 && Math.abs(x - cx) < 34) continue;
-    items.push({ x, y, size: 2.5 + hash2(i, i + 9) * 2.2, kind: hash2(i, i + 31) > 0.45 ? 'broadleaf' : 'conifer' });
+    const near = y < cy - 8 ? 1.18 : 1.0;
+    items.push({ x, y, size: (3.2 + hash2(i, i + 9) * 2.8) * near, kind: hash2(i, i + 31) > 0.45 ? 'broadleaf' : 'conifer' });
   }
   return items;
 }

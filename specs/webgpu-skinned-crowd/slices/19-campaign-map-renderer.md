@@ -85,6 +85,14 @@ campaign-label-zoom gate.
   This moved Campaign Label Zoom parity distance from `0.27431` to `0.25048`.
   Remaining visible gaps are terrain texture, foreground scenery scale, and
   grounded perspective for selection rings, shadows, flags, and labels.
+- The same controlled fixtures now use deterministic muted-grass texture and a
+  denser 48-instance close scenery set with larger foreground/background rocks,
+  trees, and mountains. Army labels also offset farther below settlement labels
+  when an army is colocated with a city. This moved Campaign Label Zoom parity
+  distance from `0.25048` to `0.24434` and matched the archived reference's edge
+  energy more closely (`edgeEnergyRatio 1.06531`). Remaining gaps include exact
+  prop placement, richer terrain relief, and grounded perspective/depth ordering
+  for flags, selection, and label quads.
 
 ## Must Stay Green
 

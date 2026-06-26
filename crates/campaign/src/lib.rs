@@ -8,6 +8,7 @@ pub mod economy;
 pub mod mapdata;
 pub mod pathfind;
 pub mod resolve;
+pub mod rollout;
 pub mod sim;
 pub mod state;
 pub mod tunables;

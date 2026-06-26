@@ -30,7 +30,10 @@ pub fn tick(map: &WorldMap, st: &mut CampaignState) {
     if st.tick % crate::visibility::VIS_EVERY == 0 {
         crate::visibility::recompute(map, st);
     }
-    if st.tick % 60 == 0 {
+    // The hourly commander pass is suppressed inside a search sandbox: a
+    // commander's lookahead rolls a clone forward, and letting that clone run
+    // its own AI would recurse into the search.
+    if st.tick % 60 == 0 && !st.in_rollout {
         crate::ai::commanders(map, st);
     }
 }
@@ -597,6 +600,7 @@ pub fn new_state(map: &WorldMap, seed: u64, player_faction: u32) -> CampaignStat
         outcome: None,
         relations: std::collections::BTreeMap::new(),
         diplo_target: std::collections::BTreeMap::new(),
+        in_rollout: false,
     }
 }
 

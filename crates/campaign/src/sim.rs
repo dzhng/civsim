@@ -566,9 +566,8 @@ pub fn new_state(map: &WorldMap, seed: u64, player_faction: u32) -> CampaignStat
             id: i as ArmyId,
             faction: s.faction,
             garrison_of: None,
-            // A start-army roster entry is `(class, units)` — the soldier count
-            // is derived from `unit_size`, never restated, so it can't drift when
-            // unit sizes change. One unit = one full-strength roster slot.
+            // Expand each `(class, units)` entry into `units` full-strength
+            // slots of `unit_size` soldiers (see `StartArmy::roster`).
             roster: s
                 .roster
                 .iter()

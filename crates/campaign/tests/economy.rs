@@ -32,6 +32,35 @@ fn economy_income_upkeep_replenish() {
 }
 
 #[test]
+fn garrison_regens_only_when_territory_is_clear() {
+    // A garrison rebuilds in peace, not under invasion: regen is suppressed
+    // while ANY enemy is within GARRISON_SAFE_TILES of the city — not only when
+    // the gate is directly besieged. The besieged case is what makes a siege
+    // winnable (otherwise the walls regrow mid-assault and the city can never be
+    // taken); the territory case is the same rule, one radius wider.
+    let mut c = Campaign::new(test_map(), 7, 0);
+    inert(&mut c);
+    let garr = |c: &Campaign| -> u32 { c.state.cities[&0].garrison.iter().map(|r| r.count).sum() };
+
+    // Enemy a few tiles into red's territory near A — not at the gate, but
+    // inside the safe radius. The walls do not regrow.
+    c.state.cities.get_mut(&0).unwrap().garrison.clear();
+    c.state.armies[1].loc = Loc::Edge { edge: 0, tile: 4 };
+    for _ in 0..tunables::TICKS_PER_DAY + 2 {
+        c.tick();
+    }
+    assert_eq!(garr(&c), 0, "an enemy in the city's territory pins its garrison");
+
+    // Pull the enemy out to its own city (well beyond the radius); the walls
+    // regenerate again.
+    c.state.armies[1].loc = Loc::Node(2);
+    for _ in 0..tunables::TICKS_PER_DAY + 2 {
+        c.tick();
+    }
+    assert!(garr(&c) > 0, "a city with no enemy near regenerates its garrison");
+}
+
+#[test]
 fn broke_faction_bleeds_soldiers() {
     let mut c = Campaign::new(test_map(), 7, 0);
     inert(&mut c);

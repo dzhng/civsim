@@ -194,9 +194,32 @@ pub fn day_tick(map: &WorldMap, st: &mut CampaignState) {
         }
     }
 
-    // 4. Garrison regeneration toward the establishment.
+    // 4. Garrison regeneration toward the establishment — but only while the
+    //    city's territory is clear: no enemy army within GARRISON_SAFE_TILES. A
+    //    realm rebuilds its walls in peace, not under invasion. The besieged
+    //    case is the one that bites hardest: without it a siege lets the
+    //    garrison regrow mid-assault — the besieger wins the fight, a
+    //    freshly-regrown garrison immediately sorties into a new siege, and the
+    //    city can never actually be taken (the attacker just bleeds out).
+    let threatened: std::collections::BTreeSet<NodeId> = st
+        .cities
+        .keys()
+        .copied()
+        .filter(|&node| {
+            let owner = st.cities[&node].owner;
+            st.armies.iter().any(|a| {
+                a.alive()
+                    && st.at_war(a.faction, owner)
+                    && !matches!(a.stance, Stance::Routed { .. } | Stance::AtSea)
+                    && pathfind::dist_le(map, a.loc, Loc::Node(node), tun::GARRISON_SAFE_TILES)
+            })
+        })
+        .collect();
     let nodes: Vec<NodeId> = st.cities.keys().copied().collect();
     for node in nodes {
+        if threatened.contains(&node) {
+            continue;
+        }
         let tier = map.nodes[node as usize].tier;
         let c = st.cities.get_mut(&node).unwrap();
         for (class, cap) in garrison_establishment(tier, c.barracks_lvl) {

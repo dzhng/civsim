@@ -67,6 +67,20 @@ Run with **`cargo test -p campaign --no-fail-fast`**: campaign is many test
 binaries, and plain `cargo test` stops at the first failing one — a partial
 false green that hides the rest. Trust the exit code, not a grep over output.
 
+**A gate that breaks out of all proportion is a finding, not a chore.** When a
+small, reasonable-sounding addition makes the gate hang or stop concluding —
+wildly more than the change should warrant — that disproportion *is* the signal:
+the feature has collided with a latent mechanical assumption, and the gate is
+the only thing loud enough to surface it. Do NOT tune the new knob until it
+passes (shrink the window, gate it to the player, special-case the AI) — that
+buries the bug and ships a worse game. Build the red loop and **instrument the
+trajectory**: a 5-second siege made the loop never conclude; the tell was
+`flips=0` across 800 battles — cities had become un-takeable — and the root was a
+besieged city *regrowing its garrison mid-assault*, so the attacker won every
+fight yet never captured. Once that was fixed the knob worked at any value. The
+lesson generalises: a green gate you reached by weakening the feature optimised
+the test, not the game; the red gate was the discovery.
+
 ## Rules — the constraints that actually bite
 
 - **Determinism is sacred.** BTree collections only, armies iterated in id

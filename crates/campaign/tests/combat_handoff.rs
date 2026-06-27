@@ -97,11 +97,10 @@ fn garrison_sorties_and_blocks_assault() {
 }
 
 #[test]
-fn player_city_assault_stands_a_siege() {
+fn defended_city_assault_stands_a_siege() {
     // Player is red (faction 0); A (node 0) is the player's city. An enemy
-    // assault on a defended PLAYER city opens a long siege the world runs
-    // through — the real-time window for the human to march relief — instead of
-    // committing to battle at the usual brief-prep pace.
+    // assault on a defended city opens a siege the world runs through — the
+    // real-time window to march relief — instead of committing instantly.
     let mut c = Campaign::new(test_map(), 7, 0);
     inert(&mut c);
     c.state.armies[0].roster[0].count = 0; // no red field army to intercept
@@ -134,14 +133,14 @@ fn player_city_assault_stands_a_siege() {
             assert_eq!(
                 e.prep_attacker,
                 tunables::SIEGE_TICKS,
-                "a defended player city stands a long siege"
+                "a defended city stands a siege"
             );
             assert_eq!(e.prep_defender, tunables::SIEGE_TICKS);
             sieged = true;
             break;
         }
     }
-    assert!(sieged, "an assault on the player's defended city must open a siege");
+    assert!(sieged, "an assault on a defended city must open a siege");
     // The siege does NOT commit instantly — the campaign is free to keep running.
     assert!(
         c.state.battle_ready.is_none(),
@@ -150,10 +149,10 @@ fn player_city_assault_stands_a_siege() {
 }
 
 #[test]
-fn ai_city_assault_commits_at_normal_pace() {
-    // Player is a third, idle faction, so red→blue is an AI-vs-AI assault: the
-    // garrison stands no siege (the long window is the human's alone, and a
-    // 12.5-day siege on every AI assault would clog the campaign loop).
+fn ai_city_assault_stands_the_same_siege() {
+    // The siege is faction-blind: an AI-vs-AI assault gets the same window as a
+    // player one (here red→blue, with the player a third idle faction). Pins
+    // "all factions, same logic" — not a player-only courtesy.
     let mut c = Campaign::new(test_map(), 7, 2);
     inert(&mut c);
     c.state.armies[1].roster[0].count = 0; // no blue field army
@@ -180,14 +179,59 @@ fn ai_city_assault_commits_at_normal_pace() {
         {
             assert_eq!(
                 e.prep_attacker,
-                tunables::PREP_TICKS,
-                "an AI-vs-AI assault commits at the usual brief-prep pace"
+                tunables::SIEGE_TICKS,
+                "an AI-vs-AI assault stands the same siege as a player one"
             );
             formed = true;
             break;
         }
     }
     assert!(formed, "the garrison encounter should form");
+}
+
+#[test]
+fn a_siege_converts_to_a_capture() {
+    // The end-to-end property a siege must preserve: a determined assault on a
+    // defended city, with NO relief possible, eventually takes the city. (The
+    // regression this guards: if a besieged city replenishes its garrison, the
+    // attacker wins fight after fight but the walls keep regrowing and the city
+    // never flips.) Player is a third faction — pure AI-vs-AI.
+    let mut c = Campaign::new(test_map(), 7, 2);
+    for f in &mut c.state.factions {
+        f.ai = true;
+    }
+    c.state.armies[1].roster[0].count = 0; // delete blue's field army — no relief
+    c.state.armies[0].loc = Loc::Node(1); // strong red army adjacent to C
+    c.state.armies[0].roster[0].count = 600;
+    c.state.armies[0].roster[0].max = 600;
+    c.state.cities.get_mut(&2).unwrap().garrison.push(RosterEntry {
+        class: contract::UnitClassId::LightSpear,
+        count: 120,
+        max: 120,
+        morale_cap: 1.0,
+    });
+    let owner0 = c.state.cities[&2].owner;
+    let mut captured = false;
+    for _ in 0..40_000 {
+        c.tick();
+        if c.state.tick % 60 == 0 {
+            c.drive_ai();
+        }
+        if let Some(eid) = c.state.battle_ready {
+            match c.battle_setup(eid) {
+                Some(s) => {
+                    let r = campaign::resolve::estimate(&c.map, &s);
+                    c.apply_outcome(eid, &r);
+                }
+                None => c.state.battle_ready = None,
+            }
+        }
+        if c.state.cities[&2].owner != owner0 {
+            captured = true;
+            break;
+        }
+    }
+    assert!(captured, "a defended city with no relief must eventually fall");
 }
 
 #[test]

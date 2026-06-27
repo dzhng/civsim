@@ -95,12 +95,18 @@ pub const PREP_TICKS: u16 = 20;
 /// Ambush victim / surprised attacker prep.
 pub const PREP_SURPRISED_TICKS: u16 = 40;
 /// A city assault does NOT commit instantly. When a field army contacts a
-/// defended city the garrison sorties and the two enter a *siege* — a long prep
-/// the campaign keeps running through, giving the defender a real-time window to
-/// march relief before the garrison battle begins. Real-time-anchored like
-/// PREP_TICKS: 1800 ticks ≈ 30 s at base speed (≈ 12.5 game-days). An undefended
-/// city (no garrison) has nothing to besiege and still falls via `occupations`.
-pub const SIEGE_TICKS: u16 = 1800;
+/// defended city the garrison sorties and the two enter a *siege* — a prep the
+/// campaign keeps running through, giving the defender a real-time window to
+/// march relief before the garrison battle begins. Applies to every faction's
+/// cities (one logic for AI and human); real-time-anchored like PREP_TICKS: at
+/// base speed (~60 ticks/s) 300 ticks ≈ 5 s (≈ 2 game-days). For this to be
+/// takeable a besieged city must NOT replenish its garrison (see economy
+/// `day_tick`) — otherwise the walls regrow mid-siege and no assault can ever
+/// convert. Longer windows still cost the autonomous loop more (besiegers stay
+/// locked, the AI's lookahead rolls each siege to its end), so keep it short. An
+/// undefended city (no garrison) has nothing to besiege and falls via
+/// `occupations`.
+pub const SIEGE_TICKS: u16 = 300;
 /// Armies preparing for battle move at half pace.
 pub const PREP_SPEED_MULT: f32 = 0.5;
 /// Digging a camp in takes an hour; the payoff is instant readiness when
@@ -205,6 +211,13 @@ pub const MORALE_CAP_REGEN: f32 = 0.05;
 /// (0.02 left sacked cities open for fifty days — a razed garrison now
 /// stands again in under a month.)
 pub const GARRISON_REGEN: f32 = 0.04;
+/// A garrison only regenerates while its city's territory is clear — no enemy
+/// army within this many road tiles. A besieged city (enemy at the gate) is the
+/// extreme case: its walls can't regrow mid-assault, or the besieger wins every
+/// fight yet a freshly-regrown garrison keeps the city un-takeable. But an enemy
+/// column merely roaming the near approaches also pins the garrison — a realm
+/// rebuilds its walls in peace, not under invasion. ~6 tiles ≈ a day's march.
+pub const GARRISON_SAFE_TILES: u32 = 6;
 
 // ---- AI fiscal discipline --------------------------------------------------
 // The AI keeps a war chest and caps its field army by territory, so force size

@@ -395,7 +395,6 @@ fn encounters(map: &WorldMap, st: &mut CampaignState) {
     }
 
     // New contacts: hostile pairs in range, both free. Deterministic id order.
-    let player_faction = st.player_faction;
     let n = st.armies.len();
     for i in 0..n {
         for j in i + 1..n {
@@ -432,14 +431,11 @@ fn encounters(map: &WorldMap, st: &mut CampaignState) {
                 continue; // it just got away; the gap is becoming real
             }
             // The mover is the attacker; ties go to the lower id. A city
-            // garrison always defends. A defended *player* city additionally
-            // stands a siege before the assault commits — a long prep the world
-            // runs through, the real-time window the human needs to march
-            // relief; AI-vs-AI assaults commit at the usual pace (a 12.5-day
-            // siege on every assault would clog the autonomous campaign loop,
-            // and only the human gets the besieged-city notification). A dug-in
-            // camp also always defends, formed up the moment it's hit: the
-            // surprise is on whoever marched into the palisade.
+            // garrison always defends, and a defended city stands a siege
+            // before the assault commits — a short prep the world runs through,
+            // the real-time window for relief to reach the walls. A dug-in camp
+            // also always defends, formed up the moment it's hit: the surprise
+            // is on whoever marched into the palisade.
             let a_dug_in = matches!(
                 a.stance,
                 Stance::Camp {
@@ -452,20 +448,10 @@ fn encounters(map: &WorldMap, st: &mut CampaignState) {
                     build_ticks_left: 0
                 }
             );
-            let garrison_faction = if a.garrison_of.is_some() {
-                Some(a.faction)
-            } else if b.garrison_of.is_some() {
-                Some(b.faction)
-            } else {
-                None
-            };
-            let (attacker_is_a, prep_att, prep_def) = if let Some(gf) = garrison_faction {
-                let prep = if gf == player_faction {
-                    tun::SIEGE_TICKS
-                } else {
-                    tun::PREP_TICKS
-                };
-                (b.garrison_of.is_some(), prep, prep)
+            let (a_garrison, b_garrison) =
+                (a.garrison_of.is_some(), b.garrison_of.is_some());
+            let (attacker_is_a, prep_att, prep_def) = if a_garrison || b_garrison {
+                (b_garrison, tun::SIEGE_TICKS, tun::SIEGE_TICKS)
             } else if a_dug_in != b_dug_in {
                 (b_dug_in, tun::PREP_SURPRISED_TICKS, 0)
             } else {

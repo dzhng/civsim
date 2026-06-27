@@ -44,9 +44,9 @@ export function hasBattleWorldDepthContract(renderStats) {
     && hasFramePass(renderStats?.phases, 'battle-terrain-underpaint', 'background')
     && hasFrameDepthPass(renderStats?.phases, 'battle-terrain-props', 'read-write')
     && hasFrameDepthPass(renderStats?.phases, 'battle-skinned-crowd', 'read-write')
+    && hasFrameDepthPass(renderStats?.phases, 'battle-ground-cues', 'read')
     && hasFramePass(renderStats?.phases, 'battle-debug-blocks', 'overlay')
-    && hasFramePass(renderStats?.phases, 'battle-debug-triangles', 'overlay')
-    && hasFramePass(renderStats?.phases, 'battle-selection-overlay', 'overlay');
+    && hasFramePass(renderStats?.phases, 'battle-debug-triangles', 'overlay');
 }
 
 export function hasCampaignWorldDepthContract(stats) {

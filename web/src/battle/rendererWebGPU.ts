@@ -1,6 +1,6 @@
 import type { Camera } from '../shared/camera';
 import { buildCrowdInstances, type CrowdInstance } from '../../../packages/crowd-runtime/src/instanceData';
-import { BattleOverlayPass } from '../../../packages/game-renderer/src/battle/overlayPass';
+import { BattleGroundCuePass } from '../../../packages/game-renderer/src/battle/groundCuePass';
 import { BattleTerrainPass } from '../../../packages/game-renderer/src/battle/terrainPass';
 import { createFrameShell, type MarkerInstance, type OverlayRenderPass, type RawFrameShell } from '../../../packages/webgpu-core/src/frameShell';
 import { WORLD_CAMERA_WGSL } from '../../../packages/webgpu-core/src/cameraWgsl';
@@ -16,7 +16,7 @@ export class BattleRendererWebGPU {
   private shell: RawFrameShell | null = null;
   private terrain: BattleTerrainPass | null = null;
   private crowd: SkinnedCrowdPipeline | null = null;
-  private overlay: BattleOverlayPass | null = null;
+  private groundCues: BattleGroundCuePass | null = null;
   private tris: BattleTrianglePass | null = null;
   private debugBlocks: BattleTrianglePass | null = null;
   private soldierUnit = new Uint32Array(0);
@@ -138,12 +138,12 @@ export class BattleRendererWebGPU {
   }
 
   drawOverlay(verts: Float32Array, camera: Camera) {
-    if (!this.shell || !this.terrain || !this.crowd || !this.overlay || !this.tris || !this.debugBlocks) return;
+    if (!this.shell || !this.terrain || !this.crowd || !this.groundCues || !this.tris || !this.debugBlocks) return;
     if (this.skipFrozenFrame) return;
     this.shell.setCamera(cameraSnapshot(camera));
     if (this.frameStart === 0) this.frameStart = performance.now();
     const uploadStart = performance.now();
-    this.overlay.upload(this.fixedTime !== null ? frozenSelectionOverlay(verts) : verts);
+    this.groundCues.upload(this.fixedTime !== null ? frozenSelectionGroundCues(verts) : verts);
     if (this.triangleVerts.length === 0) this.tris.upload(this.triangleVerts);
     this.framePerf.uploadMs += performance.now() - uploadStart;
     const drawStart = performance.now();
@@ -157,9 +157,9 @@ export class BattleRendererWebGPU {
         { id: 'battle-terrain-underpaint', phase: 'background', draw: (pass) => this.terrain!.draw(pass) },
         { id: 'battle-terrain-props', phase: 'world-depth', depth: 'read-write', draw: (pass) => this.terrain!.drawProps(pass) },
         { id: 'battle-skinned-crowd', phase: 'world-depth', depth: 'read-write', draw: (pass) => this.crowd!.draw(pass) },
+        { id: 'battle-ground-cues', phase: 'world-depth', depth: 'read', draw: (pass) => this.groundCues!.draw(pass) },
         { id: 'battle-debug-blocks', phase: 'overlay', draw: (pass) => this.debugBlocks!.draw(pass) },
         { id: 'battle-debug-triangles', phase: 'overlay', draw: (pass) => this.tris!.draw(pass) },
-        { id: 'battle-selection-overlay', phase: 'overlay', draw: (pass) => this.overlay!.draw(pass) },
       ],
     });
     const done = performance.now();
@@ -221,7 +221,7 @@ export class BattleRendererWebGPU {
       this.terrain.setFieldRect(this.terrainRect);
       this.terrain.setFixture('dry-melee');
     }
-    this.overlay = new BattleOverlayPass(this.shell);
+    this.groundCues = new BattleGroundCuePass(this.shell);
     this.tris = new BattleTrianglePass(this.shell);
     this.debugBlocks = new BattleTrianglePass(this.shell);
     this.crowd = new SkinnedCrowdPipeline(
@@ -232,7 +232,7 @@ export class BattleRendererWebGPU {
   }
 }
 
-function frozenSelectionOverlay(verts: Float32Array) {
+function frozenSelectionGroundCues(verts: Float32Array) {
   const stride = 5;
   const maxSegmentLength = 12;
   const out: number[] = [];

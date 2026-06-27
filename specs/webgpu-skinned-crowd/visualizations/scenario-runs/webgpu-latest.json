@@ -733,7 +733,7 @@
     },
     {
       "scenario": "webgpu-lab-routes",
-      "name": "battle-live?mode=5v5&ticks=36: WebGPU selection overlay visible",
+      "name": "battle-live?mode=5v5&ticks=36: WebGPU ground cue visible",
       "ok": true,
       "detail": "{\"warmGround\":319680,\"blue\":8113,\"red\":1973,\"water\":7008,\"sky\":1666,\"gold\":485,\"green\":7,\"cloud\":731,\"minimapDark\":203414,\"minimapBlue\":57,\"minimapRed\":75,\"minimapGold\":4,\"nonBlank\":558000}"
     },
@@ -747,7 +747,7 @@
       "scenario": "webgpu-lab-routes",
       "name": "battle-ui?mode=5v5&ticks=36: route stats satisfy contract",
       "ok": true,
-      "detail": "{\"ok\":true,\"route\":\"battle-ui\",\"stats\":{\"input\":2840,\"written\":2840,\"alive\":2840,\"player\":1420,\"enemy\":1420,\"units\":18,\"fighting\":0,\"fallen\":0,\"switching\":0,\"running\":0,\"atEase\":2840,\"mode\":\"5v5\",\"ticks\":36,\"bounds\":{\"x0\":-218.90049743652344,\"y0\":-201.00643920898438,\"x1\":218.9011993408203,\"y1\":201.01089477539062,\"w\":437.80169677734375,\"h\":402.017333984375,\"cx\":0.0003509521484375,\"cy\":0.002227783203125},\"zoom\":2.2,\"selectedUnit\":0,\"overlay\":{\"vertices\":58,\"lineSegments\":29},\"minimap\":{\"rects\":25,\"units\":18,\"selectedUnits\":1},\"ui\":{\"cards\":9,\"visibleCards\":9,\"toolbarButtons\":5,\"selectedUnit\":0,\"webgpuSurfaces\":5,\"domSurfaces\":5,\"postCutoverScreenshots\":\"webgpu-only\"},\"drawCalls\":1,\"clips\":[\"idle\",\"march\",\"run\",\"attack_a\",\"hit_a\",\"death_a\",\"at_ease\"]}}"
+      "detail": "{\"ok\":true,\"route\":\"battle-ui\",\"stats\":{\"input\":2840,\"written\":2840,\"alive\":2840,\"player\":1420,\"enemy\":1420,\"units\":18,\"fighting\":0,\"fallen\":0,\"switching\":0,\"running\":0,\"atEase\":2840,\"mode\":\"5v5\",\"ticks\":36,\"bounds\":{\"x0\":-218.90049743652344,\"y0\":-201.00643920898438,\"x1\":218.9011993408203,\"y1\":201.01089477539062,\"w\":437.80169677734375,\"h\":402.017333984375,\"cx\":0.0003509521484375,\"cy\":0.002227783203125},\"zoom\":2.2,\"selectedUnit\":0,\"groundCues\":{\"vertices\":58,\"lineSegments\":29,\"cameraContract\":\"shared-world-camera-wgsl\"},\"minimap\":{\"rects\":25,\"units\":18,\"selectedUnits\":1},\"ui\":{\"cards\":9,\"visibleCards\":9,\"toolbarButtons\":5,\"selectedUnit\":0,\"webgpuSurfaces\":5,\"domSurfaces\":5,\"postCutoverScreenshots\":\"webgpu-only\"},\"drawCalls\":1,\"clips\":[\"idle\",\"march\",\"run\",\"attack_a\",\"hit_a\",\"death_a\",\"at_ease\"]}}"
     },
     {
       "scenario": "webgpu-lab-routes",
@@ -763,7 +763,7 @@
     },
     {
       "scenario": "webgpu-lab-routes",
-      "name": "battle-ui?mode=5v5&ticks=36: WebGPU selection overlay visible",
+      "name": "battle-ui?mode=5v5&ticks=36: WebGPU ground cue visible",
       "ok": true,
       "detail": "{\"warmGround\":246111,\"blue\":8559,\"red\":3605,\"water\":7398,\"sky\":4572,\"gold\":1688,\"green\":2005,\"cloud\":3596,\"minimapDark\":223110,\"minimapBlue\":105,\"minimapRed\":115,\"minimapGold\":4,\"nonBlank\":557802}"
     },
@@ -783,7 +783,7 @@
       "scenario": "webgpu-lab-routes",
       "name": "battle-input?mode=5v5&ticks=36: route stats satisfy contract",
       "ok": true,
-      "detail": "{\"ok\":true,\"route\":\"battle-input\",\"stats\":{\"input\":2840,\"written\":2840,\"alive\":2840,\"player\":1420,\"enemy\":1420,\"units\":18,\"fighting\":0,\"fallen\":0,\"switching\":0,\"running\":0,\"atEase\":2840,\"mode\":\"5v5\",\"ticks\":36,\"bounds\":{\"x0\":-218.90049743652344,\"y0\":-201.00643920898438,\"x1\":218.9011993408203,\"y1\":201.01089477539062,\"w\":437.80169677734375,\"h\":402.017333984375,\"cx\":0.0003509521484375,\"cy\":0.002227783203125},\"zoom\":2.2,\"camera\":{\"x\":0.0003509521484375,\"y\":-5.997772216796875,\"zoom\":2.2,\"pitch\":0.32,\"yaw\":-0.08,\"width\":590,\"height\":578},\"frozen\":true,\"dpr\":1,\"selectedUnits\":[0],\"selectedUnit\":0,\"lastPick\":{\"kind\":\"initial\",\"unit\":0,\"worldX\":0,\"worldY\":0,\"distance\":0,\"boxUnits\":0},\"lastOrder\":{\"kind\":\"none\",\"unit\":-1,\"worldX\":0,\"worldY\":0,\"facing\":0,\"hasTarget\":false},\"selectedOrder\":{\"unit\":0,\"x\":29.999998092651367,\"y\":-115,\"targetX\":0,\"targetY\":0,\"hasTarget\":false,\"mode\":0,\"goalFacing\":0,\"hasGoalFacing\":false},\"overlay\":{\"vertices\":58,\"lineSegments\":29},\"minimap\":{\"rects\":25,\"units\":18,\"selectedUnits\":1},\"ui\":{\"cards\":9,\"visibleCards\":9,\"toolbarButtons\":5,\"selectedUnit\":0,\"webgpuSurfaces\":5,\"domSurfaces\":5,\"postCutoverScreenshots\":\"webgpu-only\"},\"drawCalls\":1,\"clips\":[\"idle\",\"march\",\"run\",\"attack_a\",\"hit_a\",\"death_a\",\"at_ease\"]}}"
+      "detail": "{\"ok\":true,\"route\":\"battle-input\",\"stats\":{\"input\":2840,\"written\":2840,\"alive\":2840,\"player\":1420,\"enemy\":1420,\"units\":18,\"fighting\":0,\"fallen\":0,\"switching\":0,\"running\":0,\"atEase\":2840,\"mode\":\"5v5\",\"ticks\":36,\"bounds\":{\"x0\":-218.90049743652344,\"y0\":-201.00643920898438,\"x1\":218.9011993408203,\"y1\":201.01089477539062,\"w\":437.80169677734375,\"h\":402.017333984375,\"cx\":0.0003509521484375,\"cy\":0.002227783203125},\"zoom\":2.2,\"camera\":{\"x\":0.0003509521484375,\"y\":-5.997772216796875,\"zoom\":2.2,\"pitch\":0.32,\"yaw\":-0.08,\"width\":590,\"height\":578},\"frozen\":true,\"dpr\":1,\"selectedUnits\":[0],\"selectedUnit\":0,\"lastPick\":{\"kind\":\"initial\",\"unit\":0,\"worldX\":0,\"worldY\":0,\"distance\":0,\"boxUnits\":0},\"lastOrder\":{\"kind\":\"none\",\"unit\":-1,\"worldX\":0,\"worldY\":0,\"facing\":0,\"hasTarget\":false},\"selectedOrder\":{\"unit\":0,\"x\":29.999998092651367,\"y\":-115,\"targetX\":0,\"targetY\":0,\"hasTarget\":false,\"mode\":0,\"goalFacing\":0,\"hasGoalFacing\":false},\"groundCues\":{\"vertices\":58,\"lineSegments\":29,\"cameraContract\":\"shared-world-camera-wgsl\"},\"minimap\":{\"rects\":25,\"units\":18,\"selectedUnits\":1},\"ui\":{\"cards\":9,\"visibleCards\":9,\"toolbarButtons\":5,\"selectedUnit\":0,\"webgpuSurfaces\":5,\"domSurfaces\":5,\"postCutoverScreenshots\":\"webgpu-only\"},\"drawCalls\":1,\"clips\":[\"idle\",\"march\",\"run\",\"attack_a\",\"hit_a\",\"death_a\",\"at_ease\"]}}"
     },
     {
       "scenario": "webgpu-lab-routes",
@@ -799,7 +799,7 @@
     },
     {
       "scenario": "webgpu-lab-routes",
-      "name": "battle-input?mode=5v5&ticks=36: WebGPU selection overlay visible",
+      "name": "battle-input?mode=5v5&ticks=36: WebGPU ground cue visible",
       "ok": true,
       "detail": "{\"warmGround\":248479,\"blue\":8559,\"red\":3587,\"water\":7396,\"sky\":4428,\"gold\":1688,\"green\":2005,\"cloud\":3465,\"minimapDark\":222323,\"minimapBlue\":105,\"minimapRed\":115,\"minimapGold\":4,\"nonBlank\":557802}"
     },

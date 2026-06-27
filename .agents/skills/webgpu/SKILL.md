@@ -329,11 +329,11 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   zoom-aware scaling around that anchor. A fixed-size DOM standard can look like
   it floats above or dominates the WebGPU formation even when the underlying
   pick/projection math is correct.
-- Keep battle overlay vertex contracts single-sourced. `web/src/shared/overlays.ts`
-  emits `x, y, r, g, b` per vertex; `BattleOverlayPass` and any frozen-report
-  overlay filtering must use the same five-float stride. A stale six-float RGBA
-  assumption can scramble line segments, hide selection rings, and present as
-  random colored/debug streaks in WebGPU battle screenshots.
+- Keep battle ground-cue vertex contracts single-sourced. `web/src/shared/overlays.ts`
+  emits `x, y, r, g, b` per vertex; `BattleGroundCuePass` and any frozen-report
+  ground-cue filtering must use the same five-float stride. A stale six-float
+  RGBA assumption can scramble line segments, hide selection rings, and present
+  as random colored/debug streaks in WebGPU battle screenshots.
 - For sim-sourced battle terrain, broad tint masks should be treated as
   underpainting only. A density-only pass can improve parity metrics while still
   reading as smudged decals under unprimed critique. Keep forest/mud mask alpha
@@ -351,6 +351,10 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   prop pass out of background while leaving `projectGround(world, 0.1)` or any
   other fixed normalized depth makes every prop closer than soldiers, recreating
   the "far tree over near flag" failure inside the depth buffer.
+- Battle selection rings, reform ghosts, and other battlefield ground cues are
+  world-space decals, not HUD overlays. Submit them through `world-depth` with
+  depth mode `read` and a depth-read/no-write material so soldiers and terrain
+  props can occlude them while the cue never reserves pixels above real geometry.
 - For Battle Selection DPR2 terrain cleanup, do not keep pushing per-cell
   pothole/rock density once the scene already reads as stamped blobs. A
   dedicated irregular pothole shader plus increased potholes worsened parity
@@ -519,10 +523,12 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   `campaign-scenery: read-write`, instead of a local phase-order-only helper.
 - Production depth-contract helpers should also assert overlay separation. A
   route that proves world-depth geometry but stops publishing `campaign-labels`,
-  `campaign-markers`, `campaign-clouds`, or battle debug/selection overlays in
+  `campaign-markers`, `campaign-clouds`, or battle debug/minimap overlays in
   the overlay phase can regress UI readability while still passing nested-depth
-  samples. Keep non-world phases depthless and verify concrete background,
-  world-depth, and overlay pass ids from the same shared scenario helper.
+  samples. Battle selection/reform ground cues are the exception: they should
+  publish as `world-depth`/`read` passes. Keep non-world phases depthless and
+  verify concrete background, world-depth, and overlay pass ids from the same
+  shared scenario helper.
 - Once a campaign model/decal/line pass is promoted to the depth world phase,
   remove its no-depth twin API instead of keeping `draw`/`drawDepth` side by
   side. Use separate phase-specific classes when the same primitive family is

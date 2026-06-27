@@ -1,13 +1,14 @@
-import type { OverlayRenderPass, RawFrameShell } from '../../../webgpu-core/src/frameShell';
+import type { RawFrameShell, WorldRenderPass } from '../../../webgpu-core/src/frameShell';
 import { WORLD_CAMERA_WGSL } from '../../../webgpu-core/src/cameraWgsl';
+import { webGpuAlphaBlendColorTarget, webGpuWorldDepthStencil } from '../../../webgpu-core/src/pipelineContracts';
 
-export interface BattleOverlayStats {
+export interface BattleGroundCueStats {
   vertices: number;
   lineSegments: number;
   cameraContract: 'shared-world-camera-wgsl';
 }
 
-const OVERLAY_WGSL = `
+const GROUND_CUE_WGSL = `
 ${WORLD_CAMERA_WGSL}
 struct VsOut {
   @builtin(position) pos: vec4f,
@@ -17,7 +18,7 @@ struct VsOut {
 @vertex
 fn vs(@location(0) world: vec2f, @location(1) color: vec3f) -> VsOut {
   var out: VsOut;
-  out.pos = projectGround(world, 0.0);
+  out.pos = projectGround(world, civsimBattleWorldDepth3d(vec3f(world, 0.02)));
   out.color = color;
   return out;
 }
@@ -27,7 +28,7 @@ fn fs(in: VsOut) -> @location(0) vec4f {
   return vec4f(in.color, 0.88);
 }`;
 
-export class BattleOverlayPass {
+export class BattleGroundCuePass {
   private pipeline: GPURenderPipeline;
   private vertexBuffer: GPUBuffer;
   private capacity = 0;
@@ -35,9 +36,9 @@ export class BattleOverlayPass {
 
   constructor(private shell: RawFrameShell) {
     const device = shell.device;
-    const module = device.createShaderModule({ label: 'battle-overlay-wgsl', code: OVERLAY_WGSL });
+    const module = device.createShaderModule({ label: 'battle-ground-cue-wgsl', code: GROUND_CUE_WGSL });
     this.pipeline = device.createRenderPipeline({
-      label: 'battle-overlay-line-pipeline',
+      label: 'battle-ground-cue-line-pipeline',
       layout: device.createPipelineLayout({ bindGroupLayouts: [shell.cameraBindGroupLayout] }),
       vertex: {
         module,
@@ -53,18 +54,13 @@ export class BattleOverlayPass {
       fragment: {
         module,
         entryPoint: 'fs',
-        targets: [{
-          format: shell.info.format,
-          blend: {
-            color: { srcFactor: 'src-alpha', dstFactor: 'one-minus-src-alpha' },
-            alpha: { srcFactor: 'one', dstFactor: 'one-minus-src-alpha' },
-          },
-        }],
+        targets: [webGpuAlphaBlendColorTarget(shell.info.format)],
       },
       primitive: { topology: 'line-list' },
+      depthStencil: webGpuWorldDepthStencil(false),
     });
     this.vertexBuffer = device.createBuffer({
-      label: 'battle-overlay-empty',
+      label: 'battle-ground-cue-empty',
       size: 5 * 2 * 4,
       usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
     });
@@ -75,7 +71,7 @@ export class BattleOverlayPass {
     if (this.vertexCount > this.capacity) {
       this.capacity = Math.max(this.vertexCount, this.capacity * 2, 128);
       this.vertexBuffer = this.shell.device.createBuffer({
-        label: 'battle-overlay-vertices',
+        label: 'battle-ground-cue-vertices',
         size: this.capacity * 5 * 4,
         usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
       });
@@ -83,7 +79,7 @@ export class BattleOverlayPass {
     if (vertices.length > 0) this.shell.device.queue.writeBuffer(this.vertexBuffer, 0, vertices);
   }
 
-  draw(pass: OverlayRenderPass) {
+  draw(pass: WorldRenderPass) {
     if (this.vertexCount === 0) return;
     pass.setPipeline(this.pipeline);
     pass.setBindGroup(0, this.shell.cameraBindGroup);
@@ -91,12 +87,12 @@ export class BattleOverlayPass {
     pass.draw(this.vertexCount);
   }
 
-  stats(): BattleOverlayStats {
+  stats(): BattleGroundCueStats {
     return { vertices: this.vertexCount, lineSegments: Math.floor(this.vertexCount / 2), cameraContract: 'shared-world-camera-wgsl' };
   }
 }
 
-export function selectedUnitOverlayVertices(opts: {
+export function selectedUnitGroundCueVertices(opts: {
   x: number;
   y: number;
   facing: number;

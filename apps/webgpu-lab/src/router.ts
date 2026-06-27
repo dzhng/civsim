@@ -9,7 +9,7 @@ import { assignCrowdLods, countLods } from '../../../packages/crowd-runtime/src/
 import { createPerfAverager } from '../../../packages/crowd-runtime/src/perfStats';
 import { buildLiveBattleCrowdFrame } from '../../../packages/game-renderer/src/battle/crowdPass';
 import { BattleMinimapPass } from '../../../packages/game-renderer/src/battle/minimapPass';
-import { BattleOverlayPass, selectedUnitOverlayVertices } from '../../../packages/game-renderer/src/battle/overlayPass';
+import { BattleGroundCuePass, selectedUnitGroundCueVertices } from '../../../packages/game-renderer/src/battle/groundCuePass';
 import { battleUnitsInRect, cssToBattleWorld, liveBattlePickUnits, pickBattleUnit, type BattlePickUnit, type WebGpuBattlePickCamera } from '../../../packages/game-renderer/src/battle/pickingDebug';
 import { BattleTerrainPass, type BattleTerrainFixture } from '../../../packages/game-renderer/src/battle/terrainPass';
 import { CLASS_DEPTH, CLASS_SPACING, UNIT_INFO } from '../../../packages/game-renderer/src/battle/unitInfoLayout';
@@ -1239,7 +1239,7 @@ async function routeBattleTerrain(ctx: LabContext) {
   ctx.status.innerHTML = reportTable({
     route: 'battle-terrain',
     fixture,
-    terrain: 'warm grass, beach shelf, water, haze clear, scenery; selection is owned by battle overlay',
+    terrain: 'warm grass, beach shelf, water, haze clear, scenery; selection is owned by battle ground cues',
     quads: stats.quads,
     underpaintQuads: stats.backgroundQuads,
     worldPropQuads: stats.worldPropQuads,
@@ -1277,11 +1277,11 @@ async function routeBattleLive(ctx: LabContext) {
   const terrain = new BattleTerrainPass(shell);
   terrain.setFixture('dry-melee');
   const pipeline = await createSkinnedPipeline(shell, [0.20, 0.42, 0.88], vat);
-  const overlay = new BattleOverlayPass(shell);
+  const groundCues = new BattleGroundCuePass(shell);
   const minimap = new BattleMinimapPass(shell);
   const selectedUnit = firstPlayerUnit(game, wasm.memory);
   const selectedVisual = unitVisual(game, wasm.memory, selectedUnit);
-  overlay.upload(selectedVisual ? selectedUnitOverlayVertices(selectedVisual) : new Float32Array());
+  groundCues.upload(selectedVisual ? selectedUnitGroundCueVertices(selectedVisual) : new Float32Array());
   minimap.upload({
     world: bounds,
     camera: cameraWorldBounds(bounds, viewW, viewH, zoom),
@@ -1295,11 +1295,11 @@ async function routeBattleLive(ctx: LabContext) {
       { id: 'battle-live-terrain-underpaint', phase: 'background', draw: (pass) => terrain.draw(pass) },
       { id: 'battle-live-terrain-props', phase: 'world-depth', depth: 'read-write', draw: (pass) => terrain.drawProps(pass) },
       { id: 'battle-live-crowd', phase: 'world-depth', depth: 'read-write', draw: (pass) => pipeline.draw(pass) },
-      { id: 'battle-live-selection-overlay', phase: 'overlay', draw: (pass) => overlay.draw(pass) },
+      { id: 'battle-live-ground-cues', phase: 'world-depth', depth: 'read', draw: (pass) => groundCues.draw(pass) },
       { id: 'battle-live-minimap', phase: 'overlay', draw: (pass) => minimap.draw(pass) },
     ],
   });
-  const overlayStats = overlay.stats();
+  const groundCueStats = groundCues.stats();
   const minimapStats = minimap.stats();
   ctx.status.innerHTML = reportTable({
     route: 'battle-live',
@@ -1314,7 +1314,7 @@ async function routeBattleLive(ctx: LabContext) {
     fallen: live.stats.fallen,
     zoom: zoom.toFixed(2),
     selectedUnit,
-    overlayLines: overlayStats.lineSegments,
+    groundCueLines: groundCueStats.lineSegments,
     minimapUnits: minimapStats.units,
     drawCalls: pipeline.stats().drawCalls,
   });
@@ -1325,7 +1325,7 @@ async function routeBattleLive(ctx: LabContext) {
     bounds,
     zoom,
     selectedUnit,
-    overlay: overlayStats,
+    groundCues: groundCueStats,
     minimap: minimapStats,
     cameraContract: pipeline.stats().cameraContract,
     drawCalls: pipeline.stats().drawCalls,
@@ -1360,7 +1360,7 @@ async function routeBattleUi(ctx: LabContext) {
   const terrain = new BattleTerrainPass(shell);
   terrain.setFixture('dry-melee');
   const pipeline = await createSkinnedPipeline(shell, [0.20, 0.42, 0.88], vat);
-  const overlay = new BattleOverlayPass(shell);
+  const groundCues = new BattleGroundCuePass(shell);
   const minimap = new BattleMinimapPass(shell);
   const host = ctx.canvas.parentElement ?? ctx.root;
   let selectedUnit = firstPlayerUnit(game, wasm.memory);
@@ -1372,7 +1372,7 @@ async function routeBattleUi(ctx: LabContext) {
   pipeline.upload(live.instances, { phaseOffset: 0 });
   const draw = () => {
     const selectedVisual = unitVisual(game, wasm.memory, selectedUnit);
-    overlay.upload(selectedVisual ? selectedUnitOverlayVertices(selectedVisual) : new Float32Array());
+    groundCues.upload(selectedVisual ? selectedUnitGroundCueVertices(selectedVisual) : new Float32Array());
     minimap.upload({
       world: bounds,
       camera: cameraWorldBounds(bounds, viewW, viewH, zoom),
@@ -1385,7 +1385,7 @@ async function routeBattleUi(ctx: LabContext) {
         { id: 'battle-ui-terrain-underpaint', phase: 'background', draw: (pass) => terrain.draw(pass) },
         { id: 'battle-ui-terrain-props', phase: 'world-depth', depth: 'read-write', draw: (pass) => terrain.drawProps(pass) },
         { id: 'battle-ui-crowd', phase: 'world-depth', depth: 'read-write', draw: (pass) => pipeline.draw(pass) },
-        { id: 'battle-ui-selection-overlay', phase: 'overlay', draw: (pass) => overlay.draw(pass) },
+        { id: 'battle-ui-ground-cues', phase: 'world-depth', depth: 'read', draw: (pass) => groundCues.draw(pass) },
         { id: 'battle-ui-minimap', phase: 'overlay', draw: (pass) => minimap.draw(pass) },
       ],
     });
@@ -1400,7 +1400,7 @@ async function routeBattleUi(ctx: LabContext) {
   };
   draw();
 
-  const overlayStats = overlay.stats();
+  const groundCueStats = groundCues.stats();
   const minimapStats = minimap.stats();
   const uiStats = ui.stats();
   ctx.status.innerHTML = reportTable({
@@ -1410,7 +1410,7 @@ async function routeBattleUi(ctx: LabContext) {
     soldiers: live.stats.written,
     units: live.stats.units,
     selectedUnit,
-    overlayLines: overlayStats.lineSegments,
+    groundCueLines: groundCueStats.lineSegments,
     minimapUnits: minimapStats.units,
     unitCards: uiStats.cards,
     toolbarButtons: uiStats.toolbarButtons,
@@ -1423,7 +1423,7 @@ async function routeBattleUi(ctx: LabContext) {
     bounds,
     zoom,
     selectedUnit,
-    overlay: overlayStats,
+    groundCues: groundCueStats,
     minimap: minimapStats,
     ui: uiStats,
     cameraContract: pipeline.stats().cameraContract,
@@ -1466,7 +1466,7 @@ async function routeBattleInput(ctx: LabContext) {
   const terrain = new BattleTerrainPass(shell);
   terrain.setFixture('dry-melee');
   const pipeline = await createSkinnedPipeline(shell, [0.20, 0.42, 0.88], vat);
-  const overlay = new BattleOverlayPass(shell);
+  const groundCues = new BattleGroundCuePass(shell);
   const minimap = new BattleMinimapPass(shell);
   const host = ctx.canvas.parentElement ?? ctx.root;
   let selectedUnits = [firstPlayerUnit(game, wasm.memory)].filter((unit) => unit >= 0);
@@ -1492,7 +1492,7 @@ async function routeBattleInput(ctx: LabContext) {
   const draw = () => {
     const selectedUnit = selectedUnits[0] ?? -1;
     const selectedVisual = unitVisual(game, wasm.memory, selectedUnit);
-    overlay.upload(selectedVisual ? selectedUnitOverlayVertices(selectedVisual) : new Float32Array());
+    groundCues.upload(selectedVisual ? selectedUnitGroundCueVertices(selectedVisual) : new Float32Array());
     minimap.upload({
       world: bounds,
       camera: cameraWorldBounds(bounds, viewW, viewH, camera.zoom),
@@ -1505,7 +1505,7 @@ async function routeBattleInput(ctx: LabContext) {
         { id: 'battle-input-terrain-underpaint', phase: 'background', draw: (pass) => terrain.draw(pass) },
         { id: 'battle-input-terrain-props', phase: 'world-depth', depth: 'read-write', draw: (pass) => terrain.drawProps(pass) },
         { id: 'battle-input-crowd', phase: 'world-depth', depth: 'read-write', draw: (pass) => pipeline.draw(pass) },
-        { id: 'battle-input-selection-overlay', phase: 'overlay', draw: (pass) => overlay.draw(pass) },
+        { id: 'battle-input-ground-cues', phase: 'world-depth', depth: 'read', draw: (pass) => groundCues.draw(pass) },
         { id: 'battle-input-minimap', phase: 'overlay', draw: (pass) => minimap.draw(pass) },
       ],
     });
@@ -1531,7 +1531,7 @@ async function routeBattleInput(ctx: LabContext) {
       lastPick,
       lastOrder,
       selectedOrder: selectedUnit >= 0 ? unitOrderState(game, wasm.memory, selectedUnit) : null,
-      overlay: overlay.stats(),
+      groundCues: groundCues.stats(),
       minimap: minimap.stats(),
       ui: ui.stats(),
       cameraContract: pipeline.stats().cameraContract,
@@ -1550,7 +1550,7 @@ async function routeBattleInput(ctx: LabContext) {
       lastOrder: `${lastOrder.kind}:${lastOrder.unit}`,
       zoom: camera.zoom.toFixed(2),
       frozen,
-      overlayLines: stats.overlay.lineSegments,
+      groundCueLines: stats.groundCues.lineSegments,
       minimapUnits: stats.minimap.units,
     });
     exposeBattleInputDebug(ctx.canvas, cameraForPick(), pickUnits(), selectedUnits, lastPick, lastOrder, {

@@ -19,6 +19,13 @@ const CURRENT_RENDERER_DIR = process.env.VISUAL_CURRENT_RENDERER_DIR;
 const COMPARISON_JSON = process.env.VISUAL_COMPARISON_JSON;
 const ACCEPTED_VISUAL_STATUSES = new Set(['webgpu-better', 'equal-or-better', 'accepted-exception', 'pass', 'accepted']);
 
+function hasDepthPass(phases, id, mode) {
+  return Array.isArray(phases) && phases.some((phase) =>
+    Array.isArray(phase?.depthPasses)
+      && phase.depthPasses.some((pass) => pass?.id === id && pass?.mode === mode),
+  );
+}
+
 const reviewRows = [
   {
     id: 'menu-ready',
@@ -218,9 +225,10 @@ async function captureBattleDefault(ctx) {
   await page.waitForTimeout(220);
   const stats = await page.evaluate(() => window.__game.stats());
   const terrain = stats.renderStats?.terrain;
+  const groundCueEvidence = hasDepthPass(stats.renderStats?.phases, 'battle-ground-cues', 'read') ? 'ground cues depth-read' : 'ground cues n/a';
   const capture = await savePage(page, 'battle-default', {
     status: 'webgpu-evidence',
-    evidence: `${stats.soldiers} soldiers; renderer ${stats.renderer}; drawCalls ${stats.renderStats?.drawCalls}; ${stats.renderStats?.atmosphere}; terrain quads ${terrain?.quads ?? 'n/a'} / scenery ${terrain?.sceneryQuads ?? 'n/a'} / world props ${terrain?.worldPropQuads ?? 'n/a'}; warm/cool skinned material grade`,
+    evidence: `${stats.soldiers} soldiers; renderer ${stats.renderer}; drawCalls ${stats.renderStats?.drawCalls}; ${stats.renderStats?.atmosphere}; terrain quads ${terrain?.quads ?? 'n/a'} / scenery ${terrain?.sceneryQuads ?? 'n/a'} / world props ${terrain?.worldPropQuads ?? 'n/a'}; ${groundCueEvidence}; warm/cool skinned material grade`,
   });
   await page.close();
   return capture;
@@ -247,9 +255,10 @@ async function captureBattleSelectionHud(ctx) {
   await page.waitForTimeout(240);
   const stats = await page.evaluate(() => window.__game.stats());
   const terrain = stats.renderStats?.terrain;
+  const groundCueEvidence = hasDepthPass(stats.renderStats?.phases, 'battle-ground-cues', 'read') ? 'ground cues depth-read' : 'ground cues n/a';
   const capture = await savePage(page, 'battle-selection-hud-dpr2', {
     status: 'webgpu-evidence',
-    evidence: `dpr2 selection; ${stats.soldiers} soldiers; renderer ${stats.renderer}; ${stats.renderStats?.atmosphere}; terrain quads ${terrain?.quads ?? 'n/a'} / scenery ${terrain?.sceneryQuads ?? 'n/a'} / world props ${terrain?.worldPropQuads ?? 'n/a'}; lit skinned silhouettes`,
+    evidence: `dpr2 selection; ${stats.soldiers} soldiers; renderer ${stats.renderer}; ${stats.renderStats?.atmosphere}; terrain quads ${terrain?.quads ?? 'n/a'} / scenery ${terrain?.sceneryQuads ?? 'n/a'} / world props ${terrain?.worldPropQuads ?? 'n/a'}; ${groundCueEvidence}; lit skinned silhouettes`,
   });
   await page.close();
   return capture;

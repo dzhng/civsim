@@ -2,17 +2,19 @@
 
 ## Contract
 
-Battle UI and tactical overlays compose correctly over the WebGPU world:
+Battle UI and tactical ground cues compose correctly with the WebGPU world:
 selection glow, destination ghosts, path previews, attack arcs, banners,
 minimap, HUD, unit cards, toolbar, pause/game-over modals, and manual links.
-The ownership split is explicit: world-anchored game surfaces are WebGPU-owned;
-dense controls may remain DOM only when the contract documents layering,
-input, focus, and screenshot behavior. After WebGPU battle cutover, current
-renderer screenshots stop being a routine parallel suite.
+The ownership split is explicit: world-anchored game surfaces are WebGPU-owned
+and depth-aware; dense controls may remain DOM only when the contract documents
+layering, input, focus, and screenshot behavior. After WebGPU battle cutover,
+current renderer screenshots stop being a routine parallel suite.
 
 ## API Seam
 
-- `packages/game-renderer/src/battle/overlayPass.ts`
+- `packages/game-renderer/src/battle/groundCuePass.ts`
+  - owns depth-read battlefield ground cues such as selection rings and reform
+    ghosts.
 - `packages/game-renderer/src/battle/minimapPass.ts`
 - `web/src/battle/webgpuUiLayer.ts`
   - explicitly owns which surfaces are WebGPU and which remain DOM.
@@ -32,23 +34,30 @@ renderer screenshots stop being a routine parallel suite.
   slightly emphasized. Battle Selection DPR2 parity distance moved from
   `0.15681` to `0.15644`; the visual report still renders all units that the
   archived current-renderer shot dropped.
-- Current checkpoint: WebGPU battle overlays now share the live
+- Current checkpoint: WebGPU battle ground cues now share the live
   `x, y, r, g, b` vertex contract from `web/src/shared/overlays.ts`. The
-  `BattleOverlayPass` vertex layout and frozen-report overlay filter both use
-  the five-float stride, fixing the stale RGBA assumption that could scramble
-  overlay lines and make selection rings disappear. Selected units now draw a
-  two-stroke warm gold ground ring. Battle Selection DPR2 sits at `0.10928`
-  full-frame parity distance and `0.13474` world-crop parity distance, meeting
-  the current `0.14` target for this capture/crop; an unprimed critique accepted
-  this narrow overlay checkpoint while still asking for a thicker/clearer ring,
-  better tiny text/tray readability, a cleaner transparent stats panel, a
-  clearer minimap, and less repetitive terrain.
+- `BattleGroundCuePass` vertex layout and frozen-report ground-cue filter both
+  use the five-float stride, fixing the stale RGBA assumption that could
+  scramble lines and make selection rings disappear.
+- Current checkpoint: battlefield selection rings and reform ghosts now render
+  as depth-read world cues (`battle-ground-cues`) instead of overlay UI. They
+  use the shared battle depth helper and depth writes stay off, so soldiers and
+  terrain props can occlude the cue while the cue never reserves pixels above
+  real geometry.
+- Fresh unprimed critique of the updated Battle Selection DPR2 screenshot
+  accepted the depth behavior but flagged visual follow-ups: the selected-unit
+  ring is now too weak/low-contrast when correctly occluded by the formation,
+  soldiers still read as tiny barcode strips at gameplay scale, the large terrain
+  feature patch reads as flat stamped blobs, several unit-card labels truncate
+  awkwardly, and card silhouettes are not distinctive enough. Treat these as
+  visual tuning blockers for later acceptance, not reasons to move ground cues
+  back to overlay.
 
 ## Verification
 
 - Screenshot cases cover each overlay state.
-- `/webgpu/battle-ui` scenario asserts WebGPU-owned overlay/minimap pixels and
-  DOM-retained HUD/cards/toolbars in the same frame.
+- `/webgpu/battle-ui` scenario asserts WebGPU-owned ground-cue/minimap pixels
+  and DOM-retained HUD/cards/toolbars in the same frame.
 - DPR 1 and DPR 2 checks verify no text/control overlap and no canvas/DOM
   coordinate drift.
 - `webgpu-visual-report` plus `compare-screenshots` tracks the Battle Selection

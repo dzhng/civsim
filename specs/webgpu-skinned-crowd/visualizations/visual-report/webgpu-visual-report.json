@@ -43,7 +43,7 @@
       "category": "battle",
       "criteria": "30k raw-WebGPU crowd, Aegean haze, field-aware coast, warm terrain, skinned soldier material lighting, team colors, HUD composition.",
       "status": "webgpu-evidence",
-      "evidence": "30000 soldiers; renderer webgpu; drawCalls 1; aegean-sky-haze; terrain quads 18279 / scenery 17379 / world props 9800; warm/cool skinned material grade",
+      "evidence": "30000 soldiers; renderer webgpu; drawCalls 1; aegean-sky-haze; terrain quads 18279 / scenery 17379 / world props 9800; ground cues depth-read; warm/cool skinned material grade",
       "image": "visual-report/battle-default.png",
       "currentRendererComparison": {
         "status": "missing-archived-capture",
@@ -57,7 +57,7 @@
       "category": "battle input/HUD",
       "criteria": "Retina/DPR2 selection, order feedback, feathered shore, lit skinned silhouettes, minimap, unit cards.",
       "status": "webgpu-evidence",
-      "evidence": "dpr2 selection; 2840 soldiers; renderer webgpu; aegean-sky-haze; terrain quads 2028 / scenery 1892 / world props 1002; lit skinned silhouettes",
+      "evidence": "dpr2 selection; 2840 soldiers; renderer webgpu; aegean-sky-haze; terrain quads 2028 / scenery 1892 / world props 1002; ground cues depth-read; lit skinned silhouettes",
       "image": "visual-report/battle-selection-hud-dpr2.png",
       "currentRendererComparison": {
         "status": "missing-archived-capture",

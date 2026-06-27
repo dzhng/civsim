@@ -98,17 +98,17 @@ shadows that sit on the ground instead of floating as screen overlays.
 - `/webgpu/world-camera` renders the nested-object fixture through the shared
   helper path and publishes CPU-vs-GPU ground-anchor agreement stats so picking,
   labels, and shader projection can be checked together.
-- Battle skinned soldiers, battle terrain/scenery quads, battle overlays, and
-  the production debug triangle pass now consume the same shared WGSL camera
-  helpers while preserving their existing depth/pass ordering.
+- Battle skinned soldiers, battle terrain/scenery quads, battle ground cues,
+  and the production debug triangle pass now consume the same shared WGSL
+  camera helpers while preserving their intended depth/pass ordering.
 - Battle skinned soldiers now render through a depth-compatible pipeline using
   the shared battle world-depth helper, and production/lab battle routes submit
   them through the depth world pass instead of the background pass. Battle
   terrain is split by depth semantics: broad masks, water, stains, and shadows
   remain background underpaint, while discrete tree/shrub/rock props render as
   cutout `world-depth` geometry using the same battle depth helper as soldiers.
-  Tactical
-  selection/path/minimap/debug lines are deliberate overlays.
+  Tactical selection/reform ground cues render as depth-read world passes, while
+  minimap/debug lines remain deliberate overlays.
 - Campaign entities, scenery, road meshes, and selection decals no longer own
   separate depth formulas. True 3D campaign meshes use the shared campaign
   world-depth helper; ground decals and roads render in the depth world pass
@@ -145,7 +145,7 @@ shadows that sit on the ground instead of floating as screen overlays.
 - Background and overlay draw entry points are branded as well: battle terrain
   underpaint and campaign map/territory/water/flat lines require
   `BackgroundRenderPass`, battle terrain props require `WorldRenderPass`, while
-  battle overlays/minimap/debug triangles and campaign clouds/markers/labels
+  battle minimap/debug triangles and campaign clouds/markers/labels
   require `OverlayRenderPass`. The lab route source guard now checks the full
   phase-brand contract, not only depth-sensitive world draws.
 - Renderer draw helpers are phase-branded too. Shared helpers such as campaign
@@ -171,7 +171,9 @@ shadows that sit on the ground instead of floating as screen overlays.
   nested-world depth. The shared `_webgpu-contract.mjs` helper requires concrete
   background, `world-depth`, and overlay pass ids for battle and campaign, and
   rejects depth metadata on background/overlay phases so labels, markers,
-  clouds, debug paths, and selection overlays stay out of true 3D occlusion.
+  clouds, and debug paths stay out of true 3D occlusion. Battle selection and
+  reform ground cues are now verified as `world-depth`/`read` passes instead of
+  overlay UI.
 - `FrameGraphDepthMode`, the production `worldDepth` attachment name, and the
   `depth24plus` format now flow from `packages/webgpu-core/src/depthContract.ts`.
   Render graph and pipeline code import the contract rather than redeclaring the

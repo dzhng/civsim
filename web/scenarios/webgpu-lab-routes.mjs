@@ -100,9 +100,9 @@ const routes = [
     && s.stats.nested3d?.fixtures?.includes('rank-overlap')],
   ['battle-terrain?fixture=coast', (s) => s?.ok && s.route === 'battle-terrain' && s.stats.fixture === 'coast' && s.stats.waterQuads >= 3 && s.stats.sceneryQuads >= 8 && s.stats.worldPropQuads >= 4 && s.stats.cameraContract === 'shared-world-camera-wgsl'],
   ['battle-terrain?fixture=melee', (s) => s?.ok && s.route === 'battle-terrain' && s.stats.fixture === 'melee' && s.stats.waterQuads >= 3 && s.stats.sceneryQuads >= 8 && s.stats.worldPropQuads >= 4 && s.stats.selectionQuads === 0 && s.stats.cameraContract === 'shared-world-camera-wgsl'],
-  ['battle-live?mode=5v5&ticks=36', (s) => s?.ok && s.route === 'battle-live' && s.stats.written > 1000 && s.stats.units >= 10 && s.stats.player > 0 && s.stats.enemy > 0 && s.stats.drawCalls >= 1 && s.stats.drawCalls <= 15 && s.stats.overlay.lineSegments >= 20 && s.stats.cameraContract === 'shared-world-camera-wgsl' && s.stats.overlay.cameraContract === 'shared-world-camera-wgsl'],
-  ['battle-ui?mode=5v5&ticks=36', (s) => s?.ok && s.route === 'battle-ui' && s.stats.written > 1000 && s.stats.units >= 10 && s.stats.drawCalls >= 1 && s.stats.drawCalls <= 15 && s.stats.overlay.lineSegments >= 20 && s.stats.ui.cards >= 8 && s.stats.ui.toolbarButtons >= 5 && s.stats.ui.postCutoverScreenshots === 'webgpu-only' && s.stats.cameraContract === 'shared-world-camera-wgsl' && s.stats.overlay.cameraContract === 'shared-world-camera-wgsl'],
-  ['battle-input?mode=5v5&ticks=36', (s) => s?.ok && s.route === 'battle-input' && s.stats.written > 1000 && s.stats.units >= 10 && s.stats.drawCalls >= 1 && s.stats.drawCalls <= 15 && s.stats.overlay.lineSegments >= 20 && s.stats.selectedUnits.length === 1 && s.stats.ui.cards >= 8 && s.stats.cameraContract === 'shared-world-camera-wgsl' && s.stats.overlay.cameraContract === 'shared-world-camera-wgsl'],
+  ['battle-live?mode=5v5&ticks=36', (s) => s?.ok && s.route === 'battle-live' && s.stats.written > 1000 && s.stats.units >= 10 && s.stats.player > 0 && s.stats.enemy > 0 && s.stats.drawCalls >= 1 && s.stats.drawCalls <= 15 && s.stats.groundCues.lineSegments >= 20 && s.stats.cameraContract === 'shared-world-camera-wgsl' && s.stats.groundCues.cameraContract === 'shared-world-camera-wgsl'],
+  ['battle-ui?mode=5v5&ticks=36', (s) => s?.ok && s.route === 'battle-ui' && s.stats.written > 1000 && s.stats.units >= 10 && s.stats.drawCalls >= 1 && s.stats.drawCalls <= 15 && s.stats.groundCues.lineSegments >= 20 && s.stats.ui.cards >= 8 && s.stats.ui.toolbarButtons >= 5 && s.stats.ui.postCutoverScreenshots === 'webgpu-only' && s.stats.cameraContract === 'shared-world-camera-wgsl' && s.stats.groundCues.cameraContract === 'shared-world-camera-wgsl'],
+  ['battle-input?mode=5v5&ticks=36', (s) => s?.ok && s.route === 'battle-input' && s.stats.written > 1000 && s.stats.units >= 10 && s.stats.drawCalls >= 1 && s.stats.drawCalls <= 15 && s.stats.groundCues.lineSegments >= 20 && s.stats.selectedUnits.length === 1 && s.stats.ui.cards >= 8 && s.stats.cameraContract === 'shared-world-camera-wgsl' && s.stats.groundCues.cameraContract === 'shared-world-camera-wgsl'],
   ['cutover', (s) => s?.ok
     && s.route === 'cutover'
     && s.stats.kind === 'webgpu-cutover-report'
@@ -247,8 +247,13 @@ async function findPhaseBrandFootguns() {
       ],
     },
     {
-      file: new URL('../../packages/game-renderer/src/battle/overlayPass.ts', import.meta.url),
-      checks: [['battle overlay draw requires overlay pass', /\bdraw\s*\(\s*pass:\s*OverlayRenderPass\s*\)/]],
+      file: new URL('../../packages/game-renderer/src/battle/groundCuePass.ts', import.meta.url),
+      checks: [
+        ['battle ground cue draw requires world pass', /\bdraw\s*\(\s*pass:\s*WorldRenderPass\s*\)/],
+        ['battle ground cue uses shared battle world depth helper', /civsimBattleWorldDepth3d\s*\(/],
+        ['battle ground cue uses depth-read material contract', /webGpuWorldDepthStencil\s*\(\s*false\s*\)/],
+        ['selected unit cue helper uses ground-cue naming', /selectedUnitGroundCueVertices/],
+      ],
     },
     {
       file: new URL('../../packages/game-renderer/src/battle/minimapPass.ts', import.meta.url),
@@ -736,7 +741,7 @@ export async function run(ctx) {
       );
     }
     if (route.startsWith('battle-live') || route.startsWith('battle-ui') || route.startsWith('battle-input')) {
-      ctx.check(`${route}: WebGPU selection overlay visible`, pixels.gold > 250, JSON.stringify(pixels));
+      ctx.check(`${route}: WebGPU ground cue visible`, pixels.gold > 250, JSON.stringify(pixels));
       ctx.check(
         `${route}: WebGPU minimap compositor visible`,
         stats.stats.minimap.units >= 10

@@ -146,6 +146,12 @@ campaign-label-zoom gate.
   near parity (`edgeEnergyRatio 1.00746`). Opposite-direction camera, army-label
   offset, and army-ring alpha trials all worsened the same score and were
   rejected.
+- The campaign model-gate report now adds individual reference captures for
+  selected-city footprint, road-only treatment, terrain grass/scrub, terrain
+  stone/relief, shoreline-water, and cloud/fog, expanding the report from 10 to
+  16 addressable campaign PNGs. The new gates run through the real raw-WebGPU
+  entity, scenery, selection, line, water, cloud, and glyph-atlas passes and
+  record per-pass counts in `webgpu-model-gates.json`.
 
 ## Must Stay Green
 

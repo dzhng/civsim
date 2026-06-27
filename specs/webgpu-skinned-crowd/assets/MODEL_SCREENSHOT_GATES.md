@@ -115,6 +115,12 @@ The route must keep adding gates until every individual campaign model and prop
 has its own PNG, not just a family contact-sheet slot.
 These images are review evidence, not final parity acceptance.
 
+Current executable campaign gates cover city, town, army, road-with-cities,
+road-only, selected-city footprint, mixed trees, individual conifer, individual
+broadleaf, mountain, rocks, terrain grass/scrub, terrain stone/relief,
+shoreline-water, cloud/fog, and label typography/icon samples. Each gate records
+the raw WebGPU pass counts it exercised in `webgpu-model-gates.json`.
+
 Soldier and animation evidence is the next executable gap: the same report
 family needs WebGPU turntable PNGs for every `models/` class, in-game
 readability PNGs for every `models-ingame/` class, deterministic still-frame

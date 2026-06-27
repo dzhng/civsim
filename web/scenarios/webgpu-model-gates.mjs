@@ -32,8 +32,18 @@ const gates = [
   },
   {
     id: 'road',
-    label: 'Road Segment',
+    label: 'Road With Cities',
     criteria: 'Road segment is visible as a stone route between settlement endpoints.',
+  },
+  {
+    id: 'road-only',
+    label: 'Road Only',
+    criteria: 'Raised pale-stone road treatment is visible without city models hiding edge and shadow behavior.',
+  },
+  {
+    id: 'selected-city',
+    label: 'Selected City Footprint',
+    criteria: 'Selected city footprint sits outside the city shadow and projects with the ground plane.',
   },
   {
     id: 'trees',
@@ -65,6 +75,26 @@ const gates = [
     label: 'Campaign Labels',
     criteria: 'City, army, faction, and sea label typography/icon samples render through the WebGPU glyph atlas.',
   },
+  {
+    id: 'terrain-grass-scrub',
+    label: 'Terrain Grass And Scrub',
+    criteria: 'Grass/scrub material sample shows warm parchment terrain with sparse Mediterranean vegetation.',
+  },
+  {
+    id: 'terrain-stone-relief',
+    label: 'Terrain Stone Relief',
+    criteria: 'Stone/relief material sample shows rocks and mountains anchored to campaign terrain.',
+  },
+  {
+    id: 'shoreline-water',
+    label: 'Shoreline Water',
+    criteria: 'Campaign water/glint pass is visible as a real WebGPU atmospheric layer over the terrain.',
+  },
+  {
+    id: 'cloud-fog',
+    label: 'Cloud And Fog Layer',
+    criteria: 'Campaign cloud/fog pass is visible as a real WebGPU atmospheric layer over the terrain.',
+  },
 ];
 
 export async function run(ctx) {
@@ -85,7 +115,7 @@ export async function run(ctx) {
     captures,
   };
   await writeFile(REPORT_JSON, JSON.stringify(report, null, 2));
-  await writeFile(REPORT_HTML, renderHtml(report));
+  await writeFile(REPORT_HTML, renderHtml(report).replace(/[ \t]+$/gm, ''));
   ctx.check(
     'WebGPU model gate report generated',
     captures.every((capture) => capture.image && capture.stats?.route === 'campaign-model-gates'),
@@ -167,7 +197,7 @@ function renderHtml(report) {
 
 function countSummary(stats) {
   if (!stats) return 'missing stats';
-  return `entities ${stats.entities ?? 0}, scenery ${stats.scenery ?? 0}, roads ${stats.roadSegments ?? 0}, labels ${stats.visibleLabels ?? 0}/${stats.labels ?? 0}`;
+  return `entities ${stats.entities ?? 0}, scenery ${stats.scenery ?? 0}, roads ${stats.roadSegments ?? 0}, water ${stats.waterFeatures ?? 0}, clouds ${stats.cloudQuads ?? 0}, labels ${stats.visibleLabels ?? 0}/${stats.labels ?? 0}`;
 }
 
 function rendererSummary(stats) {

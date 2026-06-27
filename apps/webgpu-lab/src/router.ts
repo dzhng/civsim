@@ -627,19 +627,24 @@ async function routeCampaignModelGates(ctx: LabContext) {
   const selection = new CampaignSelectionPass(shell);
   const labelPass = new CampaignLabelPass(shell);
   const frame = campaignModelGateFrame(gate);
+  const water = frame.water.length > 0 ? new CampaignWaterPass(shell) : null;
+  const clouds = frame.cloudRect ? new CampaignCloudPass(shell, frame.cloudRect) : null;
   entities.upload(frame.entities);
   scenery.upload(frame.scenery);
   lines.upload(frame.roads);
   selection.upload(frame.selections);
+  water?.upload(frame.water);
   const labelLayer = labelPass.upload(frame.labels, camera);
   shell.drawFrame({
     clear: { r: 0.09, g: 0.10, b: 0.10, a: 1 },
-    terrainRect: [-18, -12, 36, 24],
+    terrainRect: frame.terrainRect,
     extra: (pass) => {
+      water?.draw(pass);
       lines.draw(pass);
       scenery.draw(pass);
       selection.draw(pass);
       entities.draw(pass);
+      clouds?.draw(pass);
       labelPass.draw(pass);
     },
   });
@@ -650,6 +655,8 @@ async function routeCampaignModelGates(ctx: LabContext) {
     entities: frame.entities.length,
     scenery: frame.scenery.length,
     roadSegments: lines.stats().segments,
+    waterFeatures: water?.stats().waterFeatures ?? 0,
+    cloudQuads: clouds?.stats().cloudQuads ?? 0,
     labels: `${labelLayer.visibleLabels}/${labelLayer.labels}`,
     renderer: 'raw WebGPU campaign model passes',
   });
@@ -661,6 +668,8 @@ async function routeCampaignModelGates(ctx: LabContext) {
     scenery: frame.scenery.length,
     sceneryStats: scenery.stats(),
     roadSegments: lines.stats().segments,
+    waterFeatures: water?.stats().waterFeatures ?? 0,
+    cloudQuads: clouds?.stats().cloudQuads ?? 0,
     selections: frame.selections.length,
     labels: labelLayer.labels,
     visibleLabels: labelLayer.visibleLabels,
@@ -676,14 +685,37 @@ type CampaignModelGate =
   | 'town'
   | 'army'
   | 'road'
+  | 'road-only'
+  | 'selected-city'
   | 'trees'
   | 'conifer'
   | 'broadleaf'
   | 'mountain'
   | 'rocks'
-  | 'labels';
+  | 'labels'
+  | 'terrain-grass-scrub'
+  | 'terrain-stone-relief'
+  | 'shoreline-water'
+  | 'cloud-fog';
 
-const CAMPAIGN_MODEL_GATES: CampaignModelGate[] = ['city', 'town', 'army', 'road', 'trees', 'conifer', 'broadleaf', 'mountain', 'rocks', 'labels'];
+const CAMPAIGN_MODEL_GATES: CampaignModelGate[] = [
+  'city',
+  'town',
+  'army',
+  'road',
+  'road-only',
+  'selected-city',
+  'trees',
+  'conifer',
+  'broadleaf',
+  'mountain',
+  'rocks',
+  'labels',
+  'terrain-grass-scrub',
+  'terrain-stone-relief',
+  'shoreline-water',
+  'cloud-fog',
+];
 
 function campaignModelGate(value: string | null): CampaignModelGate {
   return CAMPAIGN_MODEL_GATES.includes(value as CampaignModelGate) ? value as CampaignModelGate : 'city';
@@ -692,10 +724,12 @@ function campaignModelGate(value: string | null): CampaignModelGate {
 function campaignModelGateCamera(gate: CampaignModelGate) {
   const close = { x: 0, y: 0.3, zoom: 28, pitch: 0.56, yaw: 0, perspective: 0.018 };
   if (gate === 'overview') return { x: 0, y: -0.6, zoom: 28, pitch: 0.54, yaw: 0, perspective: 0.012 };
-  if (gate === 'road') return { x: 0, y: -1.3, zoom: 30, pitch: 0.54, yaw: 0, perspective: 0.012 };
-  if (gate === 'trees') return { x: 0, y: -0.3, zoom: 40, pitch: 0.56, yaw: 0, perspective: 0.016 };
+  if (gate === 'road' || gate === 'road-only') return { x: 0, y: -1.3, zoom: 30, pitch: 0.54, yaw: 0, perspective: 0.012 };
+  if (gate === 'trees' || gate === 'terrain-grass-scrub') return { x: 0, y: -0.3, zoom: 40, pitch: 0.56, yaw: 0, perspective: 0.016 };
   if (gate === 'conifer' || gate === 'broadleaf') return { x: 0, y: -0.36, zoom: 54, pitch: 0.56, yaw: 0, perspective: 0.018 };
-  if (gate === 'mountain' || gate === 'rocks') return { x: 0, y: -0.4, zoom: 40, pitch: 0.56, yaw: 0, perspective: 0.014 };
+  if (gate === 'mountain' || gate === 'rocks' || gate === 'terrain-stone-relief') return { x: 0, y: -0.4, zoom: 40, pitch: 0.56, yaw: 0, perspective: 0.014 };
+  if (gate === 'shoreline-water') return { x: 0, y: -0.8, zoom: 34, pitch: 0.54, yaw: 0, perspective: 0.014 };
+  if (gate === 'cloud-fog') return { x: 0, y: 0, zoom: 26, pitch: 0.50, yaw: 0, perspective: 0.010 };
   return close;
 }
 
@@ -709,6 +743,9 @@ function campaignModelGateFrame(gate: CampaignModelGate) {
   const selections: CampaignSelectionInstance[] = [];
   const labels: CampaignLabel[] = [];
   let roads = new Float32Array();
+  let terrainRect: [number, number, number, number] = [-18, -12, 36, 24];
+  let water: ReturnType<typeof campaignWaterFeatures> = [];
+  let cloudRect: { min: [number, number]; max: [number, number] } | null = null;
   const addCity = (x: number, y: number, radius: number, text: string, faction = red, allegiance = green, selected = false) => {
     entities.push({ x, y, radius, faction, allegiance, kind: 'city', strength: 1 });
     labels.push({ text, x, y: y - 4.7, kind: 'city', size: 14, priority: 5, icon: 'city', iconColor: allegiance });
@@ -722,38 +759,65 @@ function campaignModelGateFrame(gate: CampaignModelGate) {
 
   if (gate === 'overview') addCity(-6.0, -2.0, 7.0, 'ROMA', red, green, false);
   if (gate === 'city') addCity(0.0, -1.8, 6.6, 'ROMA', red, green, true);
+  if (gate === 'selected-city') addCity(0.0, -1.8, 6.6, 'ROMA', red, green, true);
   if (gate === 'overview') addCity(6.0, -2.0, 5.2, 'NEAPOLIS', amber, neutral, false);
   if (gate === 'town') addCity(0.0, -1.8, 5.0, 'NEAPOLIS', amber, neutral, true);
   if (gate === 'overview' || gate === 'army') addArmy(0.0, -2.2, gate === 'army');
-  if (gate === 'overview' || gate === 'road') {
+  if (gate === 'overview' || gate === 'road' || gate === 'road-only') {
     roads = roadGateVertices([[-8.7, -2.0], [-2.5, -2.4], [2.5, -2.4], [8.7, -2.0]]);
     if (gate === 'road') {
       addCity(-8.4, -2.0, 5.5, 'ROMA');
       addCity(8.4, -2.0, 5.0, 'NEAPOLIS', amber, neutral);
     }
   }
-  if (gate === 'overview' || gate === 'trees') {
+  if (gate === 'overview' || gate === 'trees' || gate === 'terrain-grass-scrub') {
     scenery.push(
       { x: -3.8, y: gate === 'trees' ? -0.6 : 2.2, size: 3.7, kind: 'conifer' },
       { x: -1.5, y: gate === 'trees' ? -0.8 : 2.0, size: 3.2, kind: 'broadleaf' },
       { x: 1.2, y: gate === 'trees' ? -0.5 : 2.3, size: 4.0, kind: 'broadleaf' },
       { x: 3.6, y: gate === 'trees' ? -0.9 : 1.8, size: 3.0, kind: 'conifer' },
     );
+    if (gate === 'terrain-grass-scrub') {
+      scenery.push(
+        { x: -5.2, y: 1.6, size: 2.7, kind: 'conifer', shade: 0.5 },
+        { x: 5.0, y: 1.3, size: 2.4, kind: 'broadleaf', shade: 0.55 },
+      );
+    }
   }
   if (gate === 'conifer') scenery.push({ x: 0.0, y: -0.55, size: 4.1, kind: 'conifer', shade: 0.62 });
   if (gate === 'broadleaf') scenery.push({ x: 0.0, y: -0.55, size: 4.1, kind: 'broadleaf', shade: 0.66 });
-  if (gate === 'overview' || gate === 'mountain') {
+  if (gate === 'overview' || gate === 'mountain' || gate === 'terrain-stone-relief') {
     scenery.push(
       { x: -2.4, y: gate === 'mountain' ? -0.6 : 4.2, size: gate === 'mountain' ? 4.6 : 6.6, kind: 'mountain' },
       { x: 2.7, y: gate === 'mountain' ? -0.9 : 3.8, size: gate === 'mountain' ? 3.9 : 5.4, kind: 'mountain' },
     );
   }
-  if (gate === 'overview' || gate === 'rocks') {
+  if (gate === 'overview' || gate === 'rocks' || gate === 'terrain-stone-relief') {
     scenery.push(
       { x: -3.2, y: gate === 'rocks' ? -1.0 : -6.2, size: 4.0, kind: 'rock' },
       { x: 0.2, y: gate === 'rocks' ? -1.2 : -6.4, size: 4.8, kind: 'rock' },
       { x: 3.3, y: gate === 'rocks' ? -0.8 : -5.8, size: 3.5, kind: 'rock' },
     );
+  }
+  if (gate === 'terrain-stone-relief') {
+    scenery.push(
+      { x: -5.4, y: 1.1, size: 2.9, kind: 'rock', shade: 0.62 },
+      { x: 5.3, y: 0.7, size: 2.6, kind: 'rock', shade: 0.58 },
+    );
+  }
+  if (gate === 'shoreline-water') {
+    terrainRect = [-18, -8, 36, 20];
+    water = [
+      { x: -5.8, y: 3.0, rx: 8.5, ry: 2.0, angle: -0.06, alpha: 0.84 },
+      { x: 4.8, y: 3.5, rx: 7.0, ry: 1.6, angle: 0.08, alpha: 0.64 },
+      { x: 0.0, y: 1.4, rx: 13.5, ry: 0.9, angle: 0.0, alpha: 0.36 },
+    ];
+    scenery.push({ x: -7.2, y: -1.6, size: 3.4, kind: 'rock', shade: 0.54 });
+  }
+  if (gate === 'cloud-fog') {
+    terrainRect = [-22, -14, 44, 28];
+    cloudRect = { min: [-22, -14], max: [22, 14] };
+    water = [{ x: -1.5, y: 4.2, rx: 13.0, ry: 2.6, angle: -0.16, alpha: 0.42 }];
   }
   if (gate === 'labels') {
     addCity(-3.8, -2.0, 4.6, 'ROMA');
@@ -761,7 +825,7 @@ function campaignModelGateFrame(gate: CampaignModelGate) {
     labels.push({ text: 'LATIUM', x: -1.5, y: 4.0, kind: 'faction', size: 18, priority: 4, angle: -0.06 });
     labels.push({ text: 'Tyrrhenian Sea', x: 0.0, y: -7.0, kind: 'sea', size: 17, priority: 3, angle: -0.12 });
   }
-  return { entities, scenery, selections, labels, roads };
+  return { entities, scenery, selections, labels, roads, terrainRect, water, cloudRect };
 }
 
 function roadGateVertices(points: [number, number][]) {

@@ -125,6 +125,13 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   screen overlays; thin vertical panels read more like real flags than chunky
   cuboids. After a whole-scene parity win, open the isolated model gate too so
   an oversized, flat, or detached flag does not hide inside a small metric move.
+- Campaign model-gate screenshots are most useful when they exercise the real
+  WebGPU passes, not mocked DOM or separate drawing code. Add addressable gates
+  for each asset family, render them through `CampaignEntityPass`,
+  `CampaignSceneryPass`, `CampaignSelectionPass`, `CampaignLinePass`, and the
+  atmosphere passes as applicable, and publish pass counts such as selections,
+  road segments, water features, clouds, scenery, and visible labels in the
+  report JSON.
 - DOM-composited tactical overlays still need WebGPU-era camera/LOD discipline.
   For unit banners or labels, preserve the world anchor first, then apply
   zoom-aware scaling around that anchor. A fixed-size DOM standard can look like

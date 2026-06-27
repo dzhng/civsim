@@ -61,6 +61,12 @@ Current checkpoint:
   deterministic WebGPU still frames for diffing and WebGPU GIFs for readable
   human review. Whole-scene screenshots are not enough to prove those assets
   survived the port.
+- `webgpu-model-gates` now emits addressable campaign reference PNGs for city,
+  town, army, road-with-cities, road-only, selected-city footprint, mixed trees,
+  individual conifer, individual broadleaf, mountain, rocks, terrain grass/scrub,
+  terrain stone/relief, shoreline-water, cloud/fog, and campaign label samples.
+  The generated JSON records real raw-WebGPU pass counts for entity, scenery,
+  selection, line, water, cloud, and glyph-atlas layers.
 
 ## Verification
 

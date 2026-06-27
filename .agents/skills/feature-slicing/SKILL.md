@@ -91,3 +91,7 @@ Each slice file answers:
 The feature plan is done when a fresh agent can start at slice 1 without the
 conversation, and the human can review the roadmap without reverse-engineering
 a wall of text.
+
+Once the slices have all shipped, [close-spec](../close-spec/SKILL.md) archives
+the plan to `specs/done/` and rewrites it from a build ladder into a durable
+rationale record.

@@ -153,17 +153,13 @@ export class BattleRendererWebGPU {
       terrainRect: this.terrainRect,
       terrainStyle: camera.zoom < 1.2 ? 'wide-detail' : 'default',
       markers: this.markers,
-      background: (pass) => {
-        this.terrain!.draw(pass);
-      },
-      world: (pass) => {
-        this.crowd!.draw(pass);
-      },
-      overlay: (pass) => {
-        this.debugBlocks!.draw(pass);
-        this.tris!.draw(pass);
-        this.overlay!.draw(pass);
-      },
+      passes: [
+        { id: 'battle-terrain-features', phase: 'background', draw: (pass) => this.terrain!.draw(pass) },
+        { id: 'battle-skinned-crowd', phase: 'world-depth', draw: (pass) => this.crowd!.draw(pass) },
+        { id: 'battle-debug-blocks', phase: 'overlay', draw: (pass) => this.debugBlocks!.draw(pass) },
+        { id: 'battle-debug-triangles', phase: 'overlay', draw: (pass) => this.tris!.draw(pass) },
+        { id: 'battle-selection-overlay', phase: 'overlay', draw: (pass) => this.overlay!.draw(pass) },
+      ],
     });
     const done = performance.now();
     this.framePerf.drawMs = done - drawStart;

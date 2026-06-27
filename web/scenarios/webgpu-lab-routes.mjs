@@ -70,6 +70,7 @@ const routes = [
     && s.stats.depth?.allocated === true
     && s.stats.depth?.format === 'depth24plus'
     && hasFramePhaseOrder(s.stats.framePhases)
+    && hasFramePass(s.stats.framePhases, 'render-graph-nested-3d')
     && s.stats.nested3d?.fixtures?.includes('flag-in-city')
     && s.stats.nested3d?.fixtures?.includes('garrison-in-city-stub')
     && s.stats.nested3d?.fixtures?.includes('rank-overlap')],
@@ -79,6 +80,7 @@ const routes = [
     && s.stats.depth?.allocated === true
     && s.stats.depth?.format === 'depth24plus'
     && hasFramePhaseOrder(s.stats.framePhases)
+    && hasFramePass(s.stats.framePhases, 'world-camera-nested-3d')
     && s.stats.anchorAgreement?.maxDelta < 0.001
     && s.stats.nested3d?.fixtures?.includes('flag-in-city')
     && s.stats.nested3d?.fixtures?.includes('garrison-in-city-stub')
@@ -109,6 +111,10 @@ function hasFramePhaseOrder(phases) {
   const world = kinds.indexOf('world-depth');
   const overlay = kinds.includes('overlay') ? kinds.indexOf('overlay') : kinds.length;
   return background === 0 && world > background && overlay > world;
+}
+
+function hasFramePass(phases, id) {
+  return Array.isArray(phases) && phases.some((phase) => Array.isArray(phase?.passIds) && phase.passIds.includes(id));
 }
 
 function graphFramePhaseOrder(phases) {
@@ -179,9 +185,9 @@ async function findPhaseBrandFootguns() {
     {
       file: new URL('../../packages/webgpu-core/src/frameShell.ts', import.meta.url),
       checks: [
-        ['background callback is phase-branded', /background\?:\s*\(pass:\s*BackgroundRenderPass/],
-        ['world callback is phase-branded', /world\?:\s*\(pass:\s*WorldRenderPass/],
-        ['overlay callback is phase-branded', /overlay\?:\s*\(pass:\s*OverlayRenderPass/],
+        ['frame graph command list is phase-branded', /export type FrameGraphPass[\s\S]*?phase:\s*'background'[\s\S]*?BackgroundRenderPass[\s\S]*?phase:\s*'world-depth'[\s\S]*?WorldRenderPass[\s\S]*?phase:\s*'overlay'[\s\S]*?OverlayRenderPass/],
+        ['frame commands accept graph passes', /passes\?:\s*FrameGraphPass\[\]/],
+        ['phase stats publish graph pass ids', /passIds:\s*string\[\]/],
       ],
     },
     {
@@ -249,6 +255,25 @@ async function findPhaseBrandFootguns() {
     for (const [label, pattern] of checks) {
       if (!pattern.test(source)) matches.push(`${file.pathname.replace(root, '')}: missing ${label}`);
     }
+  }
+  return matches.sort();
+}
+
+async function findAdHocFrameCallbackFootguns() {
+  const root = new URL('../../', import.meta.url).pathname;
+  const files = [
+    new URL('../../packages/webgpu-core/src/frameShell.ts', import.meta.url),
+    new URL('../../apps/webgpu-lab/src/router.ts', import.meta.url),
+    new URL('../../web/src/battle/rendererWebGPU.ts', import.meta.url),
+    new URL('../../web/src/campaign/rendererWebGPU.ts', import.meta.url),
+  ];
+  const matches = [];
+  const callbackPattern = /\b(?:background|world|overlay)\s*:\s*\(\s*pass\b/;
+  const legacyFrameCommandPattern = /\b(?:background|world|overlay)\?:\s*\(pass:/;
+  for (const file of files) {
+    const source = await readFile(file, 'utf8');
+    if (callbackPattern.test(source)) matches.push(`${file.pathname.replace(root, '')}: callback-shaped drawFrame pass`);
+    if (legacyFrameCommandPattern.test(source)) matches.push(`${file.pathname.replace(root, '')}: legacy FrameCommands callback field`);
   }
   return matches.sort();
 }
@@ -339,6 +364,12 @@ export async function run(ctx) {
     'source: renderer draw methods require branded frame phases',
     phaseBrandFootguns.length === 0,
     JSON.stringify({ phaseBrandFootguns }),
+  );
+  const adHocFrameCallbackFootguns = await findAdHocFrameCallbackFootguns();
+  ctx.check(
+    'source: live frame submission uses graph pass lists',
+    adHocFrameCallbackFootguns.length === 0,
+    JSON.stringify({ adHocFrameCallbackFootguns }),
   );
 
   for (const [route, predicate] of routes) {

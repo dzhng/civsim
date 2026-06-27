@@ -525,6 +525,12 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   clouds, and debug overlays should require `OverlayRenderPass`. This keeps the
   frame phase contract complete and makes accidental cross-phase calls a compile
   error instead of a visual regression hunt.
+- The live frame shell should submit graph-shaped pass lists, not ad-hoc
+  `background`/`world`/`overlay` callback fields. Use named pass ids plus a
+  `phase` string (`background`, `world-depth`, `overlay`) and publish those ids
+  in frame stats. This makes the running frame inspectable like the declarative
+  render graph and gives scenarios a concrete way to prove production routes are
+  using the intended phase ordering.
 - Keep render-graph domain and frame phase separate. A pass can belong to the
   `battle` or `campaign` domain while still running in the `background`,
   `world-depth`, or `overlay` frame phase. Only the frame phase should decide

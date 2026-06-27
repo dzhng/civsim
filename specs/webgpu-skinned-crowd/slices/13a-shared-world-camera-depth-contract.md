@@ -135,6 +135,11 @@ shadows that sit on the ground instead of floating as screen overlays.
   battle overlays/minimap/debug triangles and campaign clouds/markers/labels
   require `OverlayRenderPass`. The lab route source guard now checks the full
   phase-brand contract, not only depth-sensitive world draws.
+- Live frame submission now uses graph-shaped pass lists instead of
+  callback-shaped `background`/`world`/`overlay` fields. Each submitted pass has
+  a stable id and a frame phase, and `RawFrameShell.stats().phases` publishes
+  the executed pass ids so scenarios can verify the real frame shape, not only
+  the declarative render-graph skeleton.
 - The declarative full-game render graph now tracks content domain and runtime
   frame phase separately. Battle/campaign classify ownership, while
   `background -> world-depth -> overlay` classifies attachment semantics. The

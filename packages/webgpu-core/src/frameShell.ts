@@ -19,7 +19,7 @@ export interface RawFrameShell {
   cameraBindGroup: GPUBindGroup;
   resize(size?: { width: number; height: number; dpr?: number }): void;
   setCamera(camera: Omit<CameraSnapshot, 'width' | 'height'>): void;
-  drawFrame(commands?: FrameCommands): void;
+  drawFrame(commands?: FrameGraphCommands): void;
   destroy(): void;
   stats(): FrameShellStats;
 }
@@ -38,15 +38,33 @@ export type OverlayRenderPass = GPURenderPassEncoder & {
   readonly [framePassPhase]: 'overlay';
 };
 
-export interface FrameCommands {
+export type FrameGraphPass =
+  | {
+    id: string;
+    label?: string;
+    phase: 'background';
+    draw: (pass: BackgroundRenderPass, shell: RawFrameShell) => void;
+  }
+  | {
+    id: string;
+    label?: string;
+    phase: 'world-depth';
+    draw: (pass: WorldRenderPass, shell: RawFrameShell) => void;
+  }
+  | {
+    id: string;
+    label?: string;
+    phase: 'overlay';
+    draw: (pass: OverlayRenderPass, shell: RawFrameShell) => void;
+  };
+
+export interface FrameGraphCommands {
   markers?: MarkerInstance[];
   terrainRect?: [number, number, number, number];
   terrainBackdropRect?: [number, number, number, number];
   terrainStyle?: 'default' | 'wide-detail';
   clear?: GPUColor;
-  background?: (pass: BackgroundRenderPass, shell: RawFrameShellImpl) => void;
-  world?: (pass: WorldRenderPass, shell: RawFrameShellImpl) => void;
-  overlay?: (pass: OverlayRenderPass, shell: RawFrameShellImpl) => void;
+  passes?: FrameGraphPass[];
 }
 
 export type FramePhaseKind = 'background' | 'world-depth' | 'overlay';
@@ -54,6 +72,7 @@ export type FramePhaseKind = 'background' | 'world-depth' | 'overlay';
 export interface FramePhaseStats {
   kind: FramePhaseKind;
   label: string;
+  passIds: string[];
   depth: 'none' | 'depth24plus-clear';
   loadOp: 'clear' | 'load';
 }
@@ -387,9 +406,14 @@ export class RawFrameShellImpl implements RawFrameShell {
     this.writeCamera();
   }
 
-  drawFrame(commands: FrameCommands = {}) {
+  drawFrame(commands: FrameGraphCommands = {}) {
     this.frame++;
     this.lastPhases = [];
+    const graphPasses = commands.passes ?? [];
+    this.assertUniquePassIds(graphPasses);
+    const backgroundPasses = graphPasses.filter((pass) => pass.phase === 'background');
+    const worldPasses = graphPasses.filter((pass) => pass.phase === 'world-depth');
+    const overlayPasses = graphPasses.filter((pass) => pass.phase === 'overlay');
     const terrainRect = commands.terrainRect ?? [-42, -28, 84, 56];
     const terrainBackdropRect = commands.terrainBackdropRect;
     if (terrainBackdropRect) this.uploadTerrain(this.terrainBackdropVertexBuffer, terrainBackdropRect);
@@ -422,15 +446,16 @@ export class RawFrameShellImpl implements RawFrameShell {
       pass.setVertexBuffer(1, this.markerInstanceBuffer);
       pass.draw(4, this.markerCount);
     }
-    commands.background?.(pass as BackgroundRenderPass, this);
+    for (const graphPass of backgroundPasses) graphPass.draw(pass as BackgroundRenderPass, this);
     pass.end();
     this.recordPhase({
       kind: 'background',
       label: 'terrain, backdrop, impostor markers, and background surfaces',
+      passIds: ['builtin-background', ...backgroundPasses.map((pass) => pass.id)],
       depth: 'none',
       loadOp: 'clear',
     });
-    if (commands.world) {
+    if (worldPasses.length > 0) {
       const depthPass = encoder.beginRenderPass({
         label: 'raw-frame-depth-world-pass',
         colorAttachments: [{
@@ -441,16 +466,17 @@ export class RawFrameShellImpl implements RawFrameShell {
         depthStencilAttachment: this.depthAttachment(),
       });
       depthPass.setBindGroup(0, this.cameraBindGroup);
-      commands.world(depthPass as WorldRenderPass, this);
+      for (const graphPass of worldPasses) graphPass.draw(depthPass as WorldRenderPass, this);
       depthPass.end();
       this.recordPhase({
         kind: 'world-depth',
         label: 'depth-tested world geometry and ground decals',
+        passIds: worldPasses.map((pass) => pass.id),
         depth: 'depth24plus-clear',
         loadOp: 'load',
       });
     }
-    if (commands.overlay) {
+    if (overlayPasses.length > 0) {
       const overlayPass = encoder.beginRenderPass({
         label: 'raw-frame-overlay-pass',
         colorAttachments: [{
@@ -460,11 +486,12 @@ export class RawFrameShellImpl implements RawFrameShell {
         }],
       });
       overlayPass.setBindGroup(0, this.cameraBindGroup);
-      commands.overlay(overlayPass as OverlayRenderPass, this);
+      for (const graphPass of overlayPasses) graphPass.draw(overlayPass as OverlayRenderPass, this);
       overlayPass.end();
       this.recordPhase({
         kind: 'overlay',
         label: 'labels, HUD, minimap, atmosphere, and debug overlays',
+        passIds: overlayPasses.map((pass) => pass.id),
         depth: 'none',
         loadOp: 'load',
       });
@@ -503,6 +530,14 @@ export class RawFrameShellImpl implements RawFrameShell {
 
   private recordPhase(phase: FramePhaseStats) {
     this.lastPhases.push(phase);
+  }
+
+  private assertUniquePassIds(passes: FrameGraphPass[]) {
+    const seen = new Set<string>();
+    for (const pass of passes) {
+      if (seen.has(pass.id)) throw new Error(`duplicate frame graph pass id "${pass.id}"`);
+      seen.add(pass.id);
+    }
   }
 
   private uploadTerrain(buffer: GPUBuffer, [x, y, w, h]: [number, number, number, number]) {

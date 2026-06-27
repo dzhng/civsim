@@ -1,4 +1,4 @@
-import { createFrameShell, type MarkerInstance, type RawFrameShell } from '../../../packages/webgpu-core/src/frameShell';
+import { createFrameShell, type BackgroundRenderPass, type FrameGraphCommands, type FrameGraphPass, type MarkerInstance, type OverlayRenderPass, type RawFrameShell } from '../../../packages/webgpu-core/src/frameShell';
 import { screenToWorld, world3dToScreen, worldToScreen } from '../../../packages/webgpu-core/src/cameraUniform';
 import { requestWebGpuDevice, webGpuFailureMessage } from '../../../packages/webgpu-core/src/device';
 import { SkinnedCrowdPipeline } from '../../../packages/webgpu-core/src/skinnedPipeline';
@@ -332,7 +332,7 @@ async function routeSkinnedDepth(ctx: LabContext) {
   shell.drawFrame({
     clear: { r: 0.70, g: 0.78, b: 0.62, a: 1 },
     terrainRect: [-4, -3, 8, 6],
-    world: (pass) => pipeline.draw(pass),
+    passes: [{ id: 'skinned-depth-crowd', phase: 'world-depth', draw: (pass) => pipeline.draw(pass) }],
   });
   const shellStats = shell.stats();
   const sampleCamera = { ...camera, width: shellStats.width, height: shellStats.height };
@@ -540,21 +540,17 @@ async function routeCampaignMap(ctx: LabContext) {
   shell.drawFrame({
     clear: { r: 0.68, g: 0.72, b: 0.69, a: 1 },
     terrainRect: [0, 0, 0, 0],
-    background: (pass) => {
-      map.draw(pass);
-      territory.draw(pass);
-      water.draw(pass);
-      borders.draw(pass);
-    },
-    world: (pass) => {
-      roads.draw(pass);
-      lines.drawDepth(pass);
-    },
-    overlay: (pass) => {
-      markers.draw(pass);
-      clouds.draw(pass);
-      labelPass.draw(pass);
-    },
+    passes: [
+      { id: 'campaign-map-underpaint', phase: 'background', draw: (pass) => map.draw(pass) },
+      { id: 'campaign-territory-wash', phase: 'background', draw: (pass) => territory.draw(pass) },
+      { id: 'campaign-water', phase: 'background', draw: (pass) => water.draw(pass) },
+      { id: 'campaign-borders', phase: 'background', draw: (pass) => borders.draw(pass) },
+      { id: 'campaign-roads', phase: 'world-depth', draw: (pass) => roads.draw(pass) },
+      { id: 'campaign-sea-lanes-depth', phase: 'world-depth', draw: (pass) => lines.drawDepth(pass) },
+      { id: 'campaign-city-markers', phase: 'overlay', draw: (pass) => markers.draw(pass) },
+      { id: 'campaign-clouds', phase: 'overlay', draw: (pass) => clouds.draw(pass) },
+      { id: 'campaign-labels', phase: 'overlay', draw: (pass) => labelPass.draw(pass) },
+    ],
   });
   ctx.status.innerHTML = reportTable({
     route: 'campaign-map',
@@ -639,15 +635,13 @@ async function routeCampaignUi(ctx: LabContext) {
     shell.drawFrame({
       clear: { r: 0.68, g: 0.72, b: 0.69, a: 1 },
       terrainRect: campaignBgTerrainRect(data.bgRect),
-      world: (pass) => {
-        selection.draw(pass);
-        roads.draw(pass);
-        lines.drawDepth(pass);
-        entities.draw(pass);
-      },
-      overlay: (pass) => {
-        labelPass.draw(pass);
-      },
+      passes: [
+        { id: 'campaign-ui-selection', phase: 'world-depth', draw: (pass) => selection.draw(pass) },
+        { id: 'campaign-ui-roads', phase: 'world-depth', draw: (pass) => roads.draw(pass) },
+        { id: 'campaign-ui-sea-lanes-depth', phase: 'world-depth', draw: (pass) => lines.drawDepth(pass) },
+        { id: 'campaign-ui-entities', phase: 'world-depth', draw: (pass) => entities.draw(pass) },
+        { id: 'campaign-ui-labels', phase: 'overlay', draw: (pass) => labelPass.draw(pass) },
+      ],
     });
     ui.render({
       campaign,
@@ -745,22 +739,19 @@ async function routeCampaignModelGates(ctx: LabContext) {
   selection.upload(frame.selections);
   water?.upload(frame.water);
   const labelLayer = labelPass.upload(frame.labels, camera);
+  const passes: FrameGraphPass[] = [
+    ...(water ? [{ id: 'model-gate-water', phase: 'background' as const, draw: (pass: BackgroundRenderPass) => water.draw(pass) }] : []),
+    { id: 'model-gate-selection', phase: 'world-depth', draw: (pass) => selection.draw(pass) },
+    { id: 'model-gate-roads', phase: 'world-depth', draw: (pass) => roads.draw(pass) },
+    { id: 'model-gate-scenery', phase: 'world-depth', draw: (pass) => scenery.draw(pass) },
+    { id: 'model-gate-entities', phase: 'world-depth', draw: (pass) => entities.draw(pass) },
+    ...(clouds ? [{ id: 'model-gate-clouds', phase: 'overlay' as const, draw: (pass: OverlayRenderPass) => clouds.draw(pass) }] : []),
+    { id: 'model-gate-labels', phase: 'overlay', draw: (pass) => labelPass.draw(pass) },
+  ];
   shell.drawFrame({
     clear: { r: 0.09, g: 0.10, b: 0.10, a: 1 },
     terrainRect: frame.terrainRect,
-    background: (pass) => {
-      water?.draw(pass);
-    },
-    world: (pass) => {
-      selection.draw(pass);
-      roads.draw(pass);
-      scenery.draw(pass);
-      entities.draw(pass);
-    },
-    overlay: (pass) => {
-      clouds?.draw(pass);
-      labelPass.draw(pass);
-    },
+    passes,
   });
   ctx.status.innerHTML = reportTable({
     route: 'campaign-model-gates',
@@ -1041,7 +1032,7 @@ async function routeRenderGraph(ctx: LabContext) {
   shell.drawFrame({
     markers,
     terrainRect: [-14, -7, 28, 15],
-    world: (pass) => nested.draw(pass),
+    passes: [{ id: 'render-graph-nested-3d', phase: 'world-depth', draw: (pass) => nested.draw(pass) }],
   });
   const shellStats = shell.stats();
   const nestedStats = nested.stats();
@@ -1108,7 +1099,7 @@ async function routeWorldCamera(ctx: LabContext) {
   const nested = new Nested3dFixturePass(shell);
   shell.drawFrame({
     terrainRect: [-14, -7, 28, 15],
-    world: (pass) => nested.draw(pass),
+    passes: [{ id: 'world-camera-nested-3d', phase: 'world-depth', draw: (pass) => nested.draw(pass) }],
   });
   const shellStats = shell.stats();
   const anchorAgreement = worldCameraAnchorAgreement(ctx.canvas, camera, [
@@ -1153,7 +1144,7 @@ async function routeBattleTerrain(ctx: LabContext) {
     clear: { r: 0.74, g: 0.83, b: 0.90, a: 1 },
     terrainRect: [-58, -12, 116, 46],
     markers: generatedMarkers(54, -14, 2, 0).concat(generatedMarkers(54, 15, 8, 1)),
-    background: (pass) => terrain.draw(pass),
+    passes: [{ id: 'battle-terrain-fixture', phase: 'background', draw: (pass) => terrain.draw(pass) }],
   });
   const stats = terrain.stats();
   ctx.status.innerHTML = reportTable({
@@ -1209,16 +1200,12 @@ async function routeBattleLive(ctx: LabContext) {
   shell.drawFrame({
     clear: { r: 0.74, g: 0.83, b: 0.90, a: 1 },
     terrainRect: [bounds.cx - Math.max(68, bounds.w * 0.65), bounds.cy - Math.max(36, bounds.h * 0.65), Math.max(136, bounds.w * 1.3), Math.max(72, bounds.h * 1.3)],
-    background: (pass) => {
-      terrain.draw(pass);
-    },
-    world: (pass) => {
-      pipeline.draw(pass);
-    },
-    overlay: (pass) => {
-      overlay.draw(pass);
-      minimap.draw(pass);
-    },
+    passes: [
+      { id: 'battle-live-terrain', phase: 'background', draw: (pass) => terrain.draw(pass) },
+      { id: 'battle-live-crowd', phase: 'world-depth', draw: (pass) => pipeline.draw(pass) },
+      { id: 'battle-live-selection-overlay', phase: 'overlay', draw: (pass) => overlay.draw(pass) },
+      { id: 'battle-live-minimap', phase: 'overlay', draw: (pass) => minimap.draw(pass) },
+    ],
   });
   const overlayStats = overlay.stats();
   const minimapStats = minimap.stats();
@@ -1302,16 +1289,12 @@ async function routeBattleUi(ctx: LabContext) {
     shell.drawFrame({
       clear: { r: 0.74, g: 0.83, b: 0.90, a: 1 },
       terrainRect: [bounds.cx - Math.max(68, bounds.w * 0.65), bounds.cy - Math.max(36, bounds.h * 0.65), Math.max(136, bounds.w * 1.3), Math.max(72, bounds.h * 1.3)],
-      background: (pass) => {
-        terrain.draw(pass);
-      },
-      world: (pass) => {
-        pipeline.draw(pass);
-      },
-      overlay: (pass) => {
-        overlay.draw(pass);
-        minimap.draw(pass);
-      },
+      passes: [
+        { id: 'battle-ui-terrain', phase: 'background', draw: (pass) => terrain.draw(pass) },
+        { id: 'battle-ui-crowd', phase: 'world-depth', draw: (pass) => pipeline.draw(pass) },
+        { id: 'battle-ui-selection-overlay', phase: 'overlay', draw: (pass) => overlay.draw(pass) },
+        { id: 'battle-ui-minimap', phase: 'overlay', draw: (pass) => minimap.draw(pass) },
+      ],
     });
     ui.render(buildWebGpuBattleUiModel(game, wasm.memory, {
       selectedUnits: selectedUnit >= 0 ? [selectedUnit] : [],
@@ -1425,16 +1408,12 @@ async function routeBattleInput(ctx: LabContext) {
     shell.drawFrame({
       clear: { r: 0.74, g: 0.83, b: 0.90, a: 1 },
       terrainRect: [bounds.cx - Math.max(68, bounds.w * 0.65), bounds.cy - Math.max(36, bounds.h * 0.65), Math.max(136, bounds.w * 1.3), Math.max(72, bounds.h * 1.3)],
-      background: (pass) => {
-        terrain.draw(pass);
-      },
-      world: (pass) => {
-        pipeline.draw(pass);
-      },
-      overlay: (pass) => {
-        overlay.draw(pass);
-        minimap.draw(pass);
-      },
+      passes: [
+        { id: 'battle-input-terrain', phase: 'background', draw: (pass) => terrain.draw(pass) },
+        { id: 'battle-input-crowd', phase: 'world-depth', draw: (pass) => pipeline.draw(pass) },
+        { id: 'battle-input-selection-overlay', phase: 'overlay', draw: (pass) => overlay.draw(pass) },
+        { id: 'battle-input-minimap', phase: 'overlay', draw: (pass) => minimap.draw(pass) },
+      ],
     });
     ui.render(buildWebGpuBattleUiModel(game, wasm.memory, {
       selectedUnits,
@@ -1589,7 +1568,7 @@ function integerParam(params: URLSearchParams, key: string, fallback: number, mi
   return Math.max(min, Math.min(max, value));
 }
 
-function animateShell(shell: RawFrameShell, status: HTMLElement, frame: () => { markers?: MarkerInstance[]; terrainRect?: [number, number, number, number] }) {
+function animateShell(shell: RawFrameShell, status: HTMLElement, frame: () => FrameGraphCommands) {
   const tick = () => {
     shell.drawFrame(frame());
     if (!status.innerHTML) status.innerHTML = reportTable({ route: 'frame', ...shell.stats() });
@@ -1608,7 +1587,10 @@ function animateSkinned(
   const tick = () => {
     const phaseOffset = (opts.phaseOffset ?? 0) + ((performance.now() - start) / 1000) * (opts.phaseSpeed ?? 0);
     pipeline.upload(getInstances(), { forcedClip: opts.forcedClip, phaseOffset, size: opts.size });
-    shell.drawFrame({ markers: [], world: (pass) => pipeline.draw(pass) });
+    shell.drawFrame({
+      markers: [],
+      passes: [{ id: 'animated-skinned-crowd', phase: 'world-depth', draw: (pass) => pipeline.draw(pass) }],
+    });
     opts.afterFrame?.();
     requestAnimationFrame(tick);
   };

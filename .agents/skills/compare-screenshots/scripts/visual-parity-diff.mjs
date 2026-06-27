@@ -21,6 +21,14 @@ const reportOrder = [
   'campaign-handoff-battle',
 ];
 
+const worldCrops = {
+  'battle-default': (w, h) => ({ x: 0, y: Math.round(h * 0.13), width: w, height: Math.round(h * 0.60), label: 'world-without-top-hud-or-bottom-cards' }),
+  'battle-selection-hud-dpr2': (w, h) => ({ x: 0, y: Math.round(h * 0.29), width: w, height: Math.round(h * 0.47), label: 'world-without-top-hud-or-bottom-cards' }),
+  'campaign-handoff-battle': (w, h) => ({ x: 0, y: Math.round(h * 0.16), width: w, height: Math.round(h * 0.62), label: 'world-without-top-hud-or-bottom-cards' }),
+  'campaign-whole-map': (w, h) => ({ x: 0, y: Math.round(h * 0.04), width: w, height: Math.round(h * 0.96), label: 'world-below-toolbar' }),
+  'campaign-label-zoom': (w, h) => ({ x: 0, y: Math.round(h * 0.04), width: w, height: Math.round(h * 0.74), label: 'close-world-below-toolbar' }),
+};
+
 const outDir = resolve(repoRoot, 'specs/webgpu-skinned-crowd/visualizations/visual-diff');
 await mkdir(outDir, { recursive: true });
 
@@ -114,8 +122,12 @@ for (const pair of pairs) {
     + 0.25 * pixelmatchRatio
     + 0.25 * edgeDiffRatio32
     + 0.15 * Math.min(1, Math.abs(Math.log2(edgeEnergyRatio)));
+  const crop = worldCrops[pair.id]?.(width, height);
+  const worldCrop = crop
+    ? await analyzeWorldCrop(pair.id, crop, current, candidate, currentGray, candidateGray, width, height)
+    : undefined;
 
-  results.push({
+  const result = {
     id: pair.id,
     current: relative(repoRoot, currentPath),
     candidate: relative(repoRoot, candidatePath),
@@ -149,7 +161,9 @@ for (const pair of pairs) {
       candidateEdges: `visual-diff/${pair.id}-candidate-edges.png`,
       edgeDiff: `visual-diff/${pair.id}-edge-diff.png`,
     },
-  });
+  };
+  if (worldCrop) result.worldCrop = worldCrop;
+  results.push(result);
 }
 
 results.sort((a, b) => b.parityDistance - a.parityDistance);
@@ -266,6 +280,138 @@ function sobel(gray, width, height, x, y) {
   const gx = -a - 2 * d - g + c + 2 * f + i;
   const gy = -a - 2 * b - c + g + 2 * h + i;
   return Math.min(255, Math.sqrt(gx * gx + gy * gy));
+}
+
+async function analyzeWorldCrop(id, crop, current, candidate, currentGray, candidateGray, width, height) {
+  const bounds = clampCrop(crop, width, height);
+  const total = bounds.width * bounds.height;
+  const grayCurrent = new PNG({ width: bounds.width, height: bounds.height });
+  const grayCandidate = new PNG({ width: bounds.width, height: bounds.height });
+  const absDiff = new PNG({ width: bounds.width, height: bounds.height });
+  const sideBySide = new PNG({ width: bounds.width * 2, height: bounds.height });
+  const edgeCurrent = new PNG({ width: bounds.width, height: bounds.height });
+  const edgeCandidate = new PNG({ width: bounds.width, height: bounds.height });
+  const edgeDiff = new PNG({ width: bounds.width, height: bounds.height });
+  const cropCurrentGray = new Float32Array(total);
+  const cropCandidateGray = new Float32Array(total);
+  let sumAbs = 0;
+  let sumSq = 0;
+  let over16 = 0;
+  let over32 = 0;
+  let over64 = 0;
+  let blackCurrent = 0;
+  let blackCandidate = 0;
+  let terrainCurrent = 0;
+  let terrainCandidate = 0;
+
+  for (let y = 0; y < bounds.height; y++) {
+    for (let x = 0; x < bounds.width; x++) {
+      const sourceIndex = (bounds.y + y) * width + (bounds.x + x);
+      const cropIndex = y * bounds.width + x;
+      const sourceOffset = sourceIndex * 4;
+      const cropOffset = cropIndex * 4;
+      const cg = currentGray[sourceIndex];
+      const wg = candidateGray[sourceIndex];
+      cropCurrentGray[cropIndex] = cg;
+      cropCandidateGray[cropIndex] = wg;
+      const d = Math.abs(cg - wg);
+      sumAbs += d;
+      sumSq += d * d;
+      if (d > 16) over16++;
+      if (d > 32) over32++;
+      if (d > 64) over64++;
+      if (cg < 24) blackCurrent++;
+      if (wg < 24) blackCandidate++;
+      if (isTerrainLike(current.data[sourceOffset], current.data[sourceOffset + 1], current.data[sourceOffset + 2])) terrainCurrent++;
+      if (isTerrainLike(candidate.data[sourceOffset], candidate.data[sourceOffset + 1], candidate.data[sourceOffset + 2])) terrainCandidate++;
+      copyPixel(current, sideBySide, sourceIndex, x, y);
+      copyPixel(candidate, sideBySide, sourceIndex, x + bounds.width, y);
+      writeGray(grayCurrent, cropOffset, cg);
+      writeGray(grayCandidate, cropOffset, wg);
+      const heat = Math.min(255, d * 4);
+      absDiff.data[cropOffset] = heat;
+      absDiff.data[cropOffset + 1] = Math.max(0, 160 - heat);
+      absDiff.data[cropOffset + 2] = Math.max(0, 255 - heat);
+      absDiff.data[cropOffset + 3] = 255;
+    }
+  }
+
+  const edgeStats = writeEdges(cropCurrentGray, cropCandidateGray, edgeCurrent, edgeCandidate, edgeDiff, bounds.width, bounds.height);
+  const pixelmatchDiff = new PNG({ width: bounds.width, height: bounds.height });
+  const mismatched = pixelmatch(
+    grayCurrent.data,
+    grayCandidate.data,
+    pixelmatchDiff.data,
+    bounds.width,
+    bounds.height,
+    { threshold: 0.08, includeAA: true },
+  );
+
+  const prefix = `${id}-world-crop`;
+  await writePng(resolve(outDir, `${prefix}-side-by-side.png`), sideBySide);
+  await writePng(resolve(outDir, `${prefix}-current-gray.png`), grayCurrent);
+  await writePng(resolve(outDir, `${prefix}-candidate-gray.png`), grayCandidate);
+  await writePng(resolve(outDir, `${prefix}-absdiff.png`), absDiff);
+  await writePng(resolve(outDir, `${prefix}-pixelmatch.png`), pixelmatchDiff);
+  await writePng(resolve(outDir, `${prefix}-current-edges.png`), edgeCurrent);
+  await writePng(resolve(outDir, `${prefix}-candidate-edges.png`), edgeCandidate);
+  await writePng(resolve(outDir, `${prefix}-edge-diff.png`), edgeDiff);
+
+  const diffRatio32 = over32 / total;
+  const pixelmatchRatio = mismatched / total;
+  const edgeDiffRatio32 = edgeStats.diffOver32 / total;
+  const edgeEnergyRatio = edgeStats.candidateEnergy / Math.max(0.0001, edgeStats.currentEnergy);
+  const parityDistance =
+    0.35 * diffRatio32
+    + 0.25 * pixelmatchRatio
+    + 0.25 * edgeDiffRatio32
+    + 0.15 * Math.min(1, Math.abs(Math.log2(edgeEnergyRatio)));
+
+  return {
+    label: bounds.label,
+    bounds: { x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.height },
+    parityDistance: round(parityDistance),
+    grayscale: {
+      mae: round(sumAbs / total),
+      rmse: round(Math.sqrt(sumSq / total)),
+      diffRatio16: round(over16 / total),
+      diffRatio32: round(diffRatio32),
+      diffRatio64: round(over64 / total),
+      pixelmatchRatio: round(pixelmatchRatio),
+    },
+    contentProxies: {
+      blackRatioCurrent: round(blackCurrent / total),
+      blackRatioCandidate: round(blackCandidate / total),
+      terrainLikeRatioCurrent: round(terrainCurrent / total),
+      terrainLikeRatioCandidate: round(terrainCandidate / total),
+      edgeEnergyCurrent: round(edgeStats.currentEnergy),
+      edgeEnergyCandidate: round(edgeStats.candidateEnergy),
+      edgeEnergyRatio: round(edgeEnergyRatio),
+      edgeDiffRatio32: round(edgeDiffRatio32),
+    },
+    artifacts: {
+      sideBySide: `visual-diff/${prefix}-side-by-side.png`,
+      currentGray: `visual-diff/${prefix}-current-gray.png`,
+      candidateGray: `visual-diff/${prefix}-candidate-gray.png`,
+      absDiff: `visual-diff/${prefix}-absdiff.png`,
+      pixelmatch: `visual-diff/${prefix}-pixelmatch.png`,
+      currentEdges: `visual-diff/${prefix}-current-edges.png`,
+      candidateEdges: `visual-diff/${prefix}-candidate-edges.png`,
+      edgeDiff: `visual-diff/${prefix}-edge-diff.png`,
+    },
+  };
+}
+
+function clampCrop(crop, width, height) {
+  const x = Math.max(0, Math.min(width - 1, crop.x));
+  const y = Math.max(0, Math.min(height - 1, crop.y));
+  return {
+    label: crop.label,
+    x,
+    y,
+    width: Math.max(1, Math.min(width - x, crop.width)),
+    height: Math.max(1, Math.min(height - y, crop.height)),
+  };
 }
 
 async function writePng(path, png) {

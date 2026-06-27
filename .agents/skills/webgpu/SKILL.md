@@ -105,6 +105,13 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   made the scene busier but worsened Campaign Label Zoom from `0.18317` to
   `0.20434`; fix camera/depth/label composition instead of brute-forcing
   density.
+- Use the compare-screenshots `worldCrop` score when a full-frame parity score
+  is diluted by toolbar/HUD/void area. The crop can reveal the true renderer
+  gap: Campaign Label Zoom held a full-frame `0.18317` while its close-world
+  crop scored `0.24726`. In that state, greener controlled-fixture palette
+  trials, a `cam(0, 438, 13)` center shift, and tighter label offsets all
+  worsened parity; keep those rejected changes out and target actual world
+  composition/depth instead.
 - For campaign close-view parity, road line styling can dominate the score and
   the human read. Tune road mesh widths, alpha, and grey-stone/shadow colors in
   the line pass before changing camera or labels; then rerun the parity helper.

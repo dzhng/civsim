@@ -86,8 +86,12 @@ covers the needed pair. It auto-discovers matching PNG names under
 `specs/webgpu-skinned-crowd/visualizations/current-renderer/` and
 `visual-report/`, writes side-by-side, grayscale, pixelmatch, absolute diff, and
 edge artifacts under `visual-diff/`, and sorts the JSON by worst
-`parityDistance`. If a needed pair is not covered, extend the skill helper
-rather than adding app/product scripts or hand-calculating ad hoc metrics.
+`parityDistance`. For known game-view rows where HUD/chrome dominates the full
+frame, it also writes `*-world-crop-*` artifacts and a `worldCrop` score in the
+JSON; use that crop to optimize renderer parity while keeping the full-frame
+score visible for UI/camera mistakes. If a needed pair is not covered, extend
+the skill helper rather than adding app/product scripts or hand-calculating ad
+hoc metrics.
 
 ## References
 

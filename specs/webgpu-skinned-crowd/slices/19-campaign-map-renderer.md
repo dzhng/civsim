@@ -152,6 +152,14 @@ campaign-label-zoom gate.
   16 addressable campaign PNGs. The new gates run through the real raw-WebGPU
   entity, scenery, selection, line, water, cloud, and glyph-atlas passes and
   record per-pass counts in `webgpu-model-gates.json`.
+- The compare-screenshots helper now records `worldCrop` metrics and artifacts
+  for the WebGPU parity rows where UI or void can dilute the full-frame score.
+  On the current accepted captures, Campaign Label Zoom remains `0.18317`
+  full-frame but scores `0.24726` in the close-world crop, making the remaining
+  campaign debt more explicit. Palette/noise changes to the controlled fixture
+  (`[146,176,98]` plus stronger texture), a `cam(0, 438, 13)` center shift, and
+  tighter city/army label offsets were all tested and rejected because they
+  worsened the same fixed pair.
 
 ## Must Stay Green
 

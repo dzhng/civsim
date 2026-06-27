@@ -6,6 +6,7 @@ export interface CampaignSelectionInstance {
   radius: number;
   color: [number, number, number];
   kind: 'city' | 'army';
+  emphasis?: number;
 }
 
 const SELECTION_WGSL = `
@@ -17,6 +18,7 @@ struct VsOut {
   @location(0) local: vec2f,
   @location(1) color: vec3f,
   @location(2) kind: f32,
+  @location(3) emphasis: f32,
 };
 
 fn projectWorld(world: vec2f, z: f32) -> vec4f {
@@ -37,20 +39,25 @@ fn vs(@location(0) quad: vec2f, @location(1) inst0: vec4f, @location(2) inst1: v
   out.local = quad;
   out.color = inst1.rgb;
   out.kind = inst0.w;
+  out.emphasis = inst1.a;
   return out;
 }
 
 @fragment
 fn fs(in: VsOut) -> @location(0) vec4f {
   let d = length(in.local);
-  if (d > 1.0 || d < 0.928) { discard; }
+  let strongArmy = in.kind > 0.5 && in.emphasis > 0.5;
+  let innerCut = select(0.928, 0.900, strongArmy);
+  let innerFade = select(0.942, 0.916, strongArmy);
+  if (d > 1.0 || d < innerCut) { discard; }
   let outer = smoothstep(1.0, 0.988, d);
-  let inner = smoothstep(0.928, 0.942, d);
+  let inner = smoothstep(innerCut, innerFade, d);
   let ring = outer * inner;
-  let fill = smoothstep(0.990, 0.968, d) * smoothstep(0.918, 0.934, d) * 0.018;
-  let groundTint = mix(in.color, vec3f(0.74, 0.66, 0.36), select(0.52, 0.34, in.kind > 0.5));
-  let armyBoost = select(0.0, 0.08, in.kind > 0.5);
-  let ringAlpha = select(0.58, 0.42, in.kind > 0.5);
+  let fill = smoothstep(0.990, 0.968, d) * smoothstep(innerCut - 0.010, innerCut + 0.006, d) * 0.018;
+  let armyMix = select(0.20, 0.08, strongArmy);
+  let groundTint = mix(in.color, vec3f(0.74, 0.66, 0.36), select(0.52, armyMix, in.kind > 0.5));
+  let armyBoost = select(0.0, select(0.12, 0.16, strongArmy), in.kind > 0.5);
+  let ringAlpha = select(0.58, select(0.68, 0.82, strongArmy), in.kind > 0.5);
   return vec4f(groundTint * (0.84 + armyBoost), max(ring * ringAlpha, fill));
 }`;
 
@@ -128,7 +135,7 @@ export class CampaignSelectionPass {
       data[o + 2] = inst.radius;
       data[o + 3] = inst.kind === 'army' ? 1 : 0;
       data.set(inst.color, o + 4);
-      data[o + 7] = 1;
+      data[o + 7] = inst.emphasis ?? 0;
     }
     this.shell.device.queue.writeBuffer(this.instanceBuffer, 0, data);
   }

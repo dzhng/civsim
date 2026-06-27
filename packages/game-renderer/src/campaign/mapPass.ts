@@ -40,6 +40,10 @@ export interface CampaignMapStyle {
   seaTintMix?: number;
 }
 
+export interface CampaignMapDrawStyle {
+  roadScale?: number;
+}
+
 export interface CampaignMapDrawData {
   roadVertices: Float32Array;
   cityMarkers: CampaignMarker[];
@@ -710,11 +714,11 @@ export class CampaignLabelPass {
   }
 }
 
-export function buildCampaignMapDrawData(data: CampaignMapInputData): CampaignMapDrawData {
+export function buildCampaignMapDrawData(data: CampaignMapInputData, style: CampaignMapDrawStyle = {}): CampaignMapDrawData {
   const roads = data.map.edges.filter((edge) => edge.kind === 'road');
   const seaLanes = data.map.edges.filter((edge) => edge.kind === 'sea');
   const vertices: number[] = [];
-  for (const edge of data.map.edges) pushEdgeLines(vertices, edge);
+  for (const edge of data.map.edges) pushEdgeLines(vertices, edge, style);
   const cityNodes = data.map.nodes.filter((node) => node.kind === 'city');
   const cityMarkers = cityNodes.map((node) => markerForNode(data, node));
   const labels = data.map.nodes.length > 20 ? seaLabels() : [];
@@ -732,7 +736,8 @@ export function buildCampaignMapDrawData(data: CampaignMapInputData): CampaignMa
   };
 }
 
-function pushEdgeLines(out: number[], edge: CampaignMapEdgeData) {
+function pushEdgeLines(out: number[], edge: CampaignMapEdgeData, style: CampaignMapDrawStyle) {
+  const roadScale = style.roadScale ?? 1;
   const pushBand = (
     a: [number, number],
     b: [number, number],
@@ -769,11 +774,11 @@ function pushEdgeLines(out: number[], edge: CampaignMapEdgeData) {
       pushBand(a, b, [0.58, 0.72, 0.82, 0.075], 0.46);
       continue;
     }
-    pushBand(a, b, [0.08, 0.072, 0.058, 0.42], 0.20, -1.14);
-    pushBand(a, b, [0.08, 0.072, 0.058, 0.42], 0.20, 1.14);
-    pushBand(a, b, [0.38, 0.37, 0.33, 0.66], 1.02);
-    pushBand(a, b, [0.64, 0.63, 0.56, 0.82], 0.76);
-    pushBand(a, b, [0.76, 0.74, 0.66, 0.48], 0.18);
+    pushBand(a, b, [0.08, 0.072, 0.058, 0.42], 0.20 * roadScale, -1.14 * roadScale);
+    pushBand(a, b, [0.08, 0.072, 0.058, 0.42], 0.20 * roadScale, 1.14 * roadScale);
+    pushBand(a, b, [0.38, 0.37, 0.33, 0.66], 1.02 * roadScale);
+    pushBand(a, b, [0.64, 0.63, 0.56, 0.82], 0.76 * roadScale);
+    pushBand(a, b, [0.76, 0.74, 0.66, 0.48], 0.18 * roadScale);
   }
 }
 

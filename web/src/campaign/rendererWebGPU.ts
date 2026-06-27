@@ -246,7 +246,7 @@ export class CampaignRendererWebGPU {
     this.entities = new CampaignEntityPass(this.shell);
     this.selection = new CampaignSelectionPass(this.shell);
     this.labels = new CampaignLabelPass(this.shell);
-    const drawData = buildCampaignMapDrawData(this.data);
+    const drawData = buildCampaignMapDrawData(this.data, controlledStage ? { roadScale: 0.66 } : undefined);
     this.staticLabels = drawData.labels;
     this.lines.upload(drawData.roadVertices);
     this.borders.upload(controlledStage ? new Float32Array() : campaignBorderVertices(territory.borders));
@@ -314,8 +314,9 @@ function buildEntityFrame(data: CampaignData, opts: DrawOptions) {
     });
     armyEntities++;
     if (army.id === opts.selected) {
-      const selectionRadius = isControlledStage(data) ? 5.2 * fixtureScale : 8.2 * fixtureScale;
-      selections.push({ x: army.x, y: army.y, radius: selectionRadius, color: [0.31, 0.82, 0.39], kind: 'army' });
+      const controlledStage = isControlledStage(data);
+      const selectionRadius = controlledStage ? 5.2 * fixtureScale : 8.2 * fixtureScale;
+      selections.push({ x: army.x, y: army.y, radius: selectionRadius, color: [0.31, 0.82, 0.39], kind: 'army', emphasis: controlledStage ? 1 : 0 });
     }
   }
   return { entities, selections, cityEntities, armyEntities };

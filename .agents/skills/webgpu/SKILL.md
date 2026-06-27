@@ -276,11 +276,30 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   `0.22546` full / `0.23390` crop.
 - For campaign close-view selection rings, tune world footprint and alpha
   together. A ground-plane ellipse can be technically correct but still read as
-  an overprominent decal when it spans the road/unit stack. Shrinking the
-  controlled-stage army ring and lowering only army ring alpha slightly improved
-  Campaign Label Zoom full-frame parity (`0.17429` to `0.17419`) while keeping
-  the ring visible; the next blockers remain camera/scale, shadows, flags, and
-  road layering.
+  an overprominent decal when it spans the road/unit stack, or become too faint
+  to serve as a key selected-unit UI marker. Keep production campaign selection
+  conservative, but allow controlled close-review fixtures to pass an explicit
+  selection emphasis bit so the report can exercise readable selected-state UI
+  without repainting every selected campaign army. The next blockers remain
+  camera/scale, shadows, flags, road layering, and true ground-plane depth cues.
+- Campaign road styling should be route/stage-aware. Whole-map roads can stay
+  broad and visible, but the controlled close-view road must be narrower so it
+  does not slice through the selected army/ring stack. Thread road style through
+  `buildCampaignMapDrawData` instead of changing the global line shader; one
+  controlled-stage road scale moved Campaign Label Zoom from `0.17419` /
+  `0.23270` crop to `0.17364` / `0.23442` while leaving Campaign Whole Map
+  unchanged.
+- Do not let selected-unit markers become too faint while chasing close-view
+  campaign parity. A smaller ground footprint helped the central stack, but
+  lowering selected-army alpha made the ring stop reading as a key UI state.
+  Keep the ring projected as a ground-plane ellipse and tune alpha/green
+  contrast back up until the selected state is obvious in the full report and
+  a tight crop, even if the grayscale metric gives back a tiny amount.
+- Campaign entity meshes currently paint without a depth buffer, so internal
+  formation order must be authored back-to-front. If rear soldiers are emitted
+  after front soldiers, they will stack visually over the near rank; sort
+  soldier slots by local depth before appending geometry and inspect a tight
+  crop, not just the full-frame parity score.
 - Do not satisfy old campaign marker parity with generic dot/circle markers.
   A simple overview marker pass can move pixels while still reading as missing
   flags/models to an unprimed reviewer. Port the old icon/flag hierarchy and
@@ -334,6 +353,12 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   terrain style and selecting it only for low-zoom battle cameras improved
   Battle Max Crowd (`0.20990` to `0.20404`, crop `0.23754` to `0.22554`) while
   keeping Battle Selection DPR2 crop steady at `0.13474`.
+- Campaign city standards must be embedded in the city mesh, not layered like
+  loose overlays. Place the pole through the visual city core and emit it before
+  buildings so front roofs/walls occlude the lower pole. For close crops, prefer
+  a thin double-sided panel that slightly overlaps the pole; extruded
+  `verticalPanel` side faces can create a detached bright top strip that reads
+  as a floating flag artifact.
 - Use instancing, batching, storage buffers, and GPU-side phase passes for scale.
   Avoid CPU readbacks in hot paths; debug readbacks must be bounded and named.
 - For iterative effects or simulations, separate phases such as `state`,

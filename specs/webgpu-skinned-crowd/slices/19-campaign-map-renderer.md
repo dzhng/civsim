@@ -419,3 +419,22 @@ uses lower army-ring alpha, so it remains a perspective ground-plane marker
 without dominating the road/unit stack. Campaign Label Zoom moves from
 `0.17429` full / `0.23263` crop to `0.17419` / `0.23270`; the tiny crop tradeoff
 is accepted for the visible ring-readability improvement.
+
+The controlled-stage road mesh now uses a narrower raised-road style while the
+real campaign overview keeps the wider visible roads. This reduces the close
+view road/army/ring conflict without making whole-map roads harder to see.
+Campaign Label Zoom improves from `0.17419` full / `0.23270` crop to `0.17389`
+/ `0.23224`, with Campaign Whole Map unchanged.
+
+The city/town standard is now centered through the city mesh instead of reading
+as a flag under or behind the settlement. The pole is emitted before buildings
+so roofs/walls can occlude its lower section, and the fabric is a thin attached
+panel with a small sleeve at the pole rather than an extruded panel with a
+detached-looking top strip. The final regenerated report stays under the rough
+layout threshold: Campaign Label Zoom is `0.17364` full / `0.23442` crop,
+Campaign Whole Map is `0.22548` / `0.23393`, Campaign Handoff Battle is
+`0.17886` / `0.16292`, and Battle Selection DPR2 is `0.10910` / `0.13474`.
+Focused fresh critique says the flag no longer reads as floating, detached, or
+under the city at normal scale; remaining city debt is crop-level pole join/base
+clarity plus broader city depth clutter, label softness, shadows, roads, and
+terrain-feature readability.

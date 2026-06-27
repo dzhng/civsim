@@ -246,7 +246,7 @@ function buildCityMesh(): MeshData {
   const roof: Rgb = [0.66, 0.40, 0.30];
   const timber: Rgb = [0.45, 0.36, 0.28];
   builder.shadow(3.65, 1.95, 0.14, [0.28, -0.54]);
-  builder.box([0.10, -0.02, 4.05], [0.22, 0.22, 8.1], timber, 1);
+  builder.box([0.46, 0.02, 4.70], [0.20, 0.20, 9.4], timber, 1);
   const building = (x: number, y: number, w: number, d: number, h: number) => {
     builder.box([x, y, h * 0.5], [w, d, h], sandstone, 1);
     builder.box([x, y, h + h * 0.19], [w * 1.18, d * 1.18, h * 0.38], roof, 1);
@@ -259,13 +259,14 @@ function buildCityMesh(): MeshData {
     const r = 0.9 + rand() * 3.0;
     building(Math.cos(a) * r, Math.sin(a) * r, 0.8 + rand() * 1.0, 0.8 + rand() * 1.0, 1.1 + rand() * 1.4);
   }
-  builder.verticalPanel([
-    [0.10, 7.12],
-    [3.30, 7.00],
-    [2.88, 6.30],
-    [3.30, 5.60],
-    [0.10, 5.46],
-  ], -0.16, 0.16, [1, 1, 1], 1);
+  builder.panel3d([
+    [0.36, 0.02, 8.38],
+    [3.05, 0.02, 8.30],
+    [2.70, 0.02, 7.60],
+    [3.05, 0.02, 6.90],
+    [0.36, 0.02, 6.78],
+  ], [1, 1, 1], 1);
+  builder.box([0.46, -0.02, 7.58], [0.12, 0.08, 1.62], timber, 1);
   return builder.finish();
 }
 
@@ -294,9 +295,11 @@ function buildArmyMesh(): MeshData {
     [-0.96, -0.10], [-0.44, -0.16], [0.10, -0.18], [0.62, -0.12],
     [-0.62, 0.36], [-0.08, 0.34], [0.46, 0.30],
   ];
-  for (let i = 0; i < slots.length; i++) {
-    const [x, y] = slots[i];
-    soldier(builder, x, y - 0.12, i % 2 === 0, linen);
+  const orderedSlots = slots
+    .map((slot, index) => ({ slot, index }))
+    .sort((a, b) => b.slot[1] - a.slot[1]);
+  for (const { slot: [x, y], index } of orderedSlots) {
+    soldier(builder, x, y - 0.12, index % 2 === 0, linen);
   }
   return builder.finish();
 }

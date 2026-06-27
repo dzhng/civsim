@@ -505,12 +505,15 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   `framePhases`/`phases` from normal game renderer stats; otherwise a lab gate
   can stay green while the shipped route quietly drifts into a different pass
   shape.
-- Once a campaign model/decal pass is promoted to the depth world phase, remove
-  its no-depth twin API instead of keeping `draw`/`drawDepth` side by side.
-  For `CampaignEntityPass`, `CampaignSceneryPass`, and
-  `CampaignSelectionPass`, plain `draw(pass)` should mean the depth-compatible
-  world path; keep `webgpu-lab-routes` scanning those files for reintroduced
-  `drawDepth`, parallel `depthPipeline`, or no-depth pipeline variants.
+- Once a campaign model/decal/line pass is promoted to the depth world phase,
+  remove its no-depth twin API instead of keeping `draw`/`drawDepth` side by
+  side. Use separate phase-specific classes when the same primitive family is
+  needed in multiple phases, such as background border lines versus world-depth
+  sea lanes. For `CampaignEntityPass`, `CampaignSceneryPass`,
+  `CampaignSelectionPass`, and world-depth line passes, plain `draw(pass)`
+  should mean the depth-compatible world path; keep `webgpu-lab-routes`
+  scanning those files for reintroduced `drawDepth`, parallel `depthPipeline`,
+  or phase-selected line classes.
 - Make phase misuse impossible at the TypeScript boundary where practical.
   `FrameCommands` should expose branded `BackgroundRenderPass`,
   `WorldRenderPass`, and `OverlayRenderPass` callback parameters, and

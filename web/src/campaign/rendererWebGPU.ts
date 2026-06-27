@@ -1,6 +1,6 @@
 import { campaignWaterFeatures, CampaignCloudPass, CampaignWaterPass } from '../../../packages/game-renderer/src/campaign/atmospherePass';
 import { CampaignEntityPass, type CampaignEntityInstance } from '../../../packages/game-renderer/src/campaign/entityPass';
-import { buildCampaignMapDrawData, CampaignLabelPass, type CampaignLabelPassStats, CampaignLinePass, CampaignMapPass, CampaignMarkerPass, CampaignRoadPass, type CampaignLabel, type CampaignMarker } from '../../../packages/game-renderer/src/campaign/mapPass';
+import { buildCampaignMapDrawData, CampaignLabelPass, type CampaignLabelPassStats, CampaignLinePass, CampaignMapPass, CampaignMarkerPass, CampaignRoadPass, CampaignWorldLinePass, type CampaignLabel, type CampaignMarker } from '../../../packages/game-renderer/src/campaign/mapPass';
 import { CampaignSceneryPass, type CampaignSceneryInstance } from '../../../packages/game-renderer/src/campaign/sceneryPass';
 import { CampaignSelectionPass, type CampaignSelectionInstance } from '../../../packages/game-renderer/src/campaign/selectionPass';
 import { campaignBorderVertices, CampaignTerritoryPass } from '../../../packages/game-renderer/src/campaign/territoryPass';
@@ -36,7 +36,7 @@ export class CampaignRendererWebGPU {
   private water: CampaignWaterPass | null = null;
   private clouds: CampaignCloudPass | null = null;
   private territoryPass: CampaignTerritoryPass | null = null;
-  private lines: CampaignLinePass | null = null;
+  private lines: CampaignWorldLinePass | null = null;
   private roads: CampaignRoadPass | null = null;
   private borders: CampaignLinePass | null = null;
   private markers: CampaignMarkerPass | null = null;
@@ -160,7 +160,7 @@ export class CampaignRendererWebGPU {
       ...(!isControlledStage(this.data) ? [{ id: 'campaign-borders', phase: 'background' as const, draw: (pass: BackgroundRenderPass) => this.borders!.draw(pass) }] : []),
       { id: 'campaign-ground-selection', phase: 'world-depth', depth: 'read', draw: (pass) => this.selection!.draw(pass) },
       { id: 'campaign-roads', phase: 'world-depth', depth: 'read', draw: (pass) => this.roads!.draw(pass) },
-      { id: 'campaign-sea-lanes-depth', phase: 'world-depth', depth: 'read', draw: (pass) => this.lines!.drawDepth(pass) },
+      { id: 'campaign-sea-lanes-depth', phase: 'world-depth', depth: 'read', draw: (pass) => this.lines!.draw(pass) },
       { id: 'campaign-scenery', phase: 'world-depth', depth: 'read-write', draw: (pass) => this.scenery!.draw(pass) },
       { id: 'campaign-entities', phase: 'world-depth', depth: 'read-write', draw: (pass) => this.entities!.draw(pass) },
       { id: 'campaign-clouds', phase: 'overlay', draw: (pass) => this.clouds!.draw(pass) },
@@ -246,7 +246,7 @@ export class CampaignRendererWebGPU {
       rgba: territory.rgba,
       rect: this.data.bgRect,
     }, controlledStage ? undefined : { alpha: 0.55, warmMix: 0.015 });
-    this.lines = new CampaignLinePass(this.shell, 'triangle-list');
+    this.lines = new CampaignWorldLinePass(this.shell, 'triangle-list');
     this.roads = new CampaignRoadPass(this.shell);
     this.borders = new CampaignLinePass(this.shell);
     this.markers = new CampaignMarkerPass(this.shell);

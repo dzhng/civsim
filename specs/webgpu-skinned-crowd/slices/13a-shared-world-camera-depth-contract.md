@@ -165,6 +165,11 @@ shadows that sit on the ground instead of floating as screen overlays.
   alpha-blended depth-read decal draws inside the same world pass. The lab
   scenario scans those files so alpha blending cannot quietly return to a
   depth-writing model bucket.
+- Campaign line rendering is phase-specific rather than selected at draw time.
+  Background map borders use `CampaignLinePass`; sea lanes that need world-depth
+  read semantics use `CampaignWorldLinePass`. The lab source guard rejects
+  `drawDepth`, parallel `depthPipeline` fields, and production routes that wire
+  sea lanes through the background line class.
 - `compileRenderGraph` now rejects mismatched depth accesses: read-only passes
   that write depth, write-only passes that read depth, and private depth
   attachments. `/webgpu/render-graph` publishes negative fixtures for those

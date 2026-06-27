@@ -193,12 +193,15 @@ async function findCampaignDepthOnlyFootguns() {
     new URL('../../packages/game-renderer/src/campaign/entityPass.ts', import.meta.url),
     new URL('../../packages/game-renderer/src/campaign/sceneryPass.ts', import.meta.url),
     new URL('../../packages/game-renderer/src/campaign/selectionPass.ts', import.meta.url),
+    new URL('../../packages/game-renderer/src/campaign/mapPass.ts', import.meta.url),
+    new URL('../../web/src/campaign/rendererWebGPU.ts', import.meta.url),
+    new URL('../../apps/webgpu-lab/src/router.ts', import.meta.url),
   ];
   const root = new URL('../../', import.meta.url).pathname;
   const checks = [
     ['drawDepth method', /\bdrawDepth\s*\(/],
     ['parallel depth pipeline field', /\bprivate\s+depthPipeline\b/],
-    ['no-depth pipeline variant', /\bmakePipeline\s*\([^)]*,\s*false\s*\)/],
+    ['phase-selected line class', /\blines\s*=\s*new\s+CampaignLinePass\b/],
   ];
   const matches = [];
   for (const file of files) {
@@ -285,8 +288,8 @@ async function findPhaseBrandFootguns() {
       checks: [
         ['campaign map draw requires background pass', /export class CampaignMapPass[\s\S]*?\bdraw\s*\(\s*pass:\s*BackgroundRenderPass\s*\)/],
         ['campaign flat lines draw requires background pass', /export class CampaignLinePass[\s\S]*?\bdraw\s*\(\s*pass:\s*BackgroundRenderPass\s*\)/],
+        ['campaign world lines draw requires world pass', /export class CampaignWorldLinePass[\s\S]*?\bdraw\s*\(\s*pass:\s*WorldRenderPass\s*\)/],
         ['campaign road draw requires world pass', /export class CampaignRoadPass[\s\S]*?\bdraw\s*\(\s*pass:\s*WorldRenderPass\s*\)/],
-        ['campaign depth lines require world pass', /\bdrawDepth\s*\(\s*pass:\s*WorldRenderPass\s*\)/],
         ['campaign markers draw requires overlay pass', /export class CampaignMarkerPass[\s\S]*?\bdraw\s*\(\s*pass:\s*OverlayRenderPass\s*\)/],
         ['campaign labels draw requires overlay pass', /export class CampaignLabelPass[\s\S]*?\bdraw\s*\(\s*pass:\s*OverlayRenderPass\s*\)/],
       ],
@@ -485,7 +488,7 @@ export async function run(ctx) {
   );
   const campaignDepthOnlyFootguns = await findCampaignDepthOnlyFootguns();
   ctx.check(
-    'source: campaign model/decal passes expose one depth draw path',
+    'source: campaign model/decal/line passes expose one phase-specific draw path',
     campaignDepthOnlyFootguns.length === 0,
     JSON.stringify({ campaignDepthOnlyFootguns }),
   );

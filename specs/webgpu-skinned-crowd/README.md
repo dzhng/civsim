@@ -181,7 +181,9 @@ next useful question, then lock it with tests and screenshots.
   cues, `read-write` for opaque/skinned/nested world geometry, and `write` only
   for a dedicated depth fill. Those modes are exclusive contracts, and the
   full-game graph must reject private depth attachments or read/write
-  mismatches.
+  mismatches. Public draw APIs are phase-specific: if a primitive family is
+  needed in both background and world-depth phases, split the renderer classes
+  instead of keeping a dual `draw`/`drawDepth` object.
 - **One world/camera/depth contract.** Campaign and battle model, terrain,
   decal, shadow, projectile, picking, and label-anchor code must share the same
   packed camera uniform and projection semantics. A pass can opt into a named

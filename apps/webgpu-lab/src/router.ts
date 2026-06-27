@@ -15,7 +15,7 @@ import { BattleTerrainPass, type BattleTerrainFixture } from '../../../packages/
 import { CLASS_DEPTH, CLASS_SPACING, UNIT_INFO } from '../../../packages/game-renderer/src/battle/unitInfoLayout';
 import { campaignWaterFeatures, CampaignCloudPass, CampaignWaterPass } from '../../../packages/game-renderer/src/campaign/atmospherePass';
 import { CampaignEntityPass, type CampaignEntityInstance } from '../../../packages/game-renderer/src/campaign/entityPass';
-import { buildCampaignMapDrawData, CampaignLabelPass, CampaignLinePass, CampaignMapPass, CampaignMarkerPass, CampaignRoadPass, type CampaignLabel } from '../../../packages/game-renderer/src/campaign/mapPass';
+import { buildCampaignMapDrawData, CampaignLabelPass, CampaignLinePass, CampaignMapPass, CampaignMarkerPass, CampaignRoadPass, CampaignWorldLinePass, type CampaignLabel } from '../../../packages/game-renderer/src/campaign/mapPass';
 import { CampaignSceneryPass, type CampaignSceneryInstance } from '../../../packages/game-renderer/src/campaign/sceneryPass';
 import { CampaignSelectionPass, type CampaignSelectionInstance } from '../../../packages/game-renderer/src/campaign/selectionPass';
 import { campaignBorderVertices, CampaignTerritoryPass } from '../../../packages/game-renderer/src/campaign/territoryPass';
@@ -526,7 +526,7 @@ async function routeCampaignMap(ctx: LabContext) {
     rgba: territoryData.rgba,
     rect: data.bgRect,
   });
-  const lines = new CampaignLinePass(shell, 'triangle-list');
+  const lines = new CampaignWorldLinePass(shell, 'triangle-list');
   const roads = new CampaignRoadPass(shell);
   const borders = new CampaignLinePass(shell);
   const markers = new CampaignMarkerPass(shell);
@@ -547,7 +547,7 @@ async function routeCampaignMap(ctx: LabContext) {
       { id: 'campaign-water', phase: 'background', draw: (pass) => water.draw(pass) },
       { id: 'campaign-borders', phase: 'background', draw: (pass) => borders.draw(pass) },
       { id: 'campaign-roads', phase: 'world-depth', depth: 'read', draw: (pass) => roads.draw(pass) },
-      { id: 'campaign-sea-lanes-depth', phase: 'world-depth', depth: 'read', draw: (pass) => lines.drawDepth(pass) },
+      { id: 'campaign-sea-lanes-depth', phase: 'world-depth', depth: 'read', draw: (pass) => lines.draw(pass) },
       { id: 'campaign-city-markers', phase: 'overlay', draw: (pass) => markers.draw(pass) },
       { id: 'campaign-clouds', phase: 'overlay', draw: (pass) => clouds.draw(pass) },
       { id: 'campaign-labels', phase: 'overlay', draw: (pass) => labelPass.draw(pass) },
@@ -603,7 +603,7 @@ async function routeCampaignUi(ctx: LabContext) {
   const preset = ctx.params.get('preset') ?? 'fixture';
   const camera = campaignPresetCamera(preset);
   const shell = await createConfiguredShell(ctx.canvas, camera);
-  const lines = new CampaignLinePass(shell, 'triangle-list');
+  const lines = new CampaignWorldLinePass(shell, 'triangle-list');
   const roads = new CampaignRoadPass(shell);
   const entities = new CampaignEntityPass(shell);
   const selection = new CampaignSelectionPass(shell);
@@ -639,7 +639,7 @@ async function routeCampaignUi(ctx: LabContext) {
       passes: [
         { id: 'campaign-ui-selection', phase: 'world-depth', depth: 'read', draw: (pass) => selection.draw(pass) },
         { id: 'campaign-ui-roads', phase: 'world-depth', depth: 'read', draw: (pass) => roads.draw(pass) },
-        { id: 'campaign-ui-sea-lanes-depth', phase: 'world-depth', depth: 'read', draw: (pass) => lines.drawDepth(pass) },
+        { id: 'campaign-ui-sea-lanes-depth', phase: 'world-depth', depth: 'read', draw: (pass) => lines.draw(pass) },
         { id: 'campaign-ui-entities', phase: 'world-depth', depth: 'read-write', draw: (pass) => entities.draw(pass) },
         { id: 'campaign-ui-labels', phase: 'overlay', draw: (pass) => labelPass.draw(pass) },
       ],

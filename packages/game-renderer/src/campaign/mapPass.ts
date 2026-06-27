@@ -408,27 +408,19 @@ export class CampaignMapPass {
 
 export class CampaignLinePass {
   private pipeline: GPURenderPipeline;
-  private depthPipeline: GPURenderPipeline;
-  private vertexBuffer: GPUBuffer;
-  private capacity = 0;
-  private vertexCount = 0;
+  private geometry: CampaignLineGeometry;
 
   constructor(private shell: RawFrameShell, private topology: GPUPrimitiveTopology = 'line-list') {
     const device = shell.device;
     const module = device.createShaderModule({ label: 'campaign-line-wgsl', code: LINE_WGSL });
-    this.pipeline = this.makePipeline(module, false);
-    this.depthPipeline = this.makePipeline(module, true);
-    this.vertexBuffer = device.createBuffer({
-      label: 'campaign-line-empty',
-      size: 6 * 4,
-      usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
-    });
+    this.pipeline = this.makePipeline(module);
+    this.geometry = new CampaignLineGeometry(shell, topology, 'campaign-line-empty');
   }
 
-  private makePipeline(module: GPUShaderModule, depth: boolean) {
+  private makePipeline(module: GPUShaderModule) {
     const device = this.shell.device;
     return device.createRenderPipeline({
-      label: depth ? 'campaign-line-depth-pipeline' : 'campaign-line-pipeline',
+      label: 'campaign-line-background-pipeline',
       layout: device.createPipelineLayout({ bindGroupLayouts: [this.shell.cameraBindGroupLayout] }),
       vertex: {
         module,
@@ -447,9 +439,82 @@ export class CampaignLinePass {
         targets: [webGpuAlphaBlendColorTarget(this.shell.info.format)],
       },
       primitive: { topology: this.topology },
-      ...(depth ? {
-        depthStencil: webGpuWorldDepthStencil(false),
-      } : {}),
+    });
+  }
+
+  upload(vertices: Float32Array) {
+    this.geometry.upload(vertices);
+  }
+
+  draw(pass: BackgroundRenderPass) {
+    this.geometry.draw(pass, this.pipeline);
+  }
+
+  stats() {
+    return this.geometry.stats();
+  }
+}
+
+export class CampaignWorldLinePass {
+  private pipeline: GPURenderPipeline;
+  private geometry: CampaignLineGeometry;
+
+  constructor(private shell: RawFrameShell, private topology: GPUPrimitiveTopology = 'line-list') {
+    const device = shell.device;
+    const module = device.createShaderModule({ label: 'campaign-world-line-wgsl', code: LINE_WGSL });
+    this.pipeline = this.makePipeline(module);
+    this.geometry = new CampaignLineGeometry(shell, topology, 'campaign-world-line-empty');
+  }
+
+  private makePipeline(module: GPUShaderModule) {
+    const device = this.shell.device;
+    return device.createRenderPipeline({
+      label: 'campaign-line-world-depth-pipeline',
+      layout: device.createPipelineLayout({ bindGroupLayouts: [this.shell.cameraBindGroupLayout] }),
+      vertex: {
+        module,
+        entryPoint: 'vs',
+        buffers: [{
+          arrayStride: 24,
+          attributes: [
+            { shaderLocation: 0, offset: 0, format: 'float32x2' },
+            { shaderLocation: 1, offset: 8, format: 'float32x4' },
+          ],
+        }],
+      },
+      fragment: {
+        module,
+        entryPoint: 'fs',
+        targets: [webGpuAlphaBlendColorTarget(this.shell.info.format)],
+      },
+      primitive: { topology: this.topology },
+      depthStencil: webGpuWorldDepthStencil(false),
+    });
+  }
+
+  upload(vertices: Float32Array) {
+    this.geometry.upload(vertices);
+  }
+
+  draw(pass: WorldRenderPass) {
+    this.geometry.draw(pass, this.pipeline);
+  }
+
+  stats() {
+    return this.geometry.stats();
+  }
+}
+
+class CampaignLineGeometry {
+  private vertexBuffer: GPUBuffer;
+  private capacity = 0;
+  private vertexCount = 0;
+
+  constructor(private shell: RawFrameShell, private topology: GPUPrimitiveTopology, emptyLabel: string) {
+    this.vertexBuffer = shell.device.createBuffer({
+      label: emptyLabel,
+      size: 6 * 4,
+      usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
     });
   }
 
@@ -466,15 +531,7 @@ export class CampaignLinePass {
     if (vertices.length > 0) this.shell.device.queue.writeBuffer(this.vertexBuffer, 0, vertices);
   }
 
-  draw(pass: BackgroundRenderPass) {
-    this.drawWithPipeline(pass, this.pipeline);
-  }
-
-  drawDepth(pass: WorldRenderPass) {
-    this.drawWithPipeline(pass, this.depthPipeline);
-  }
-
-  private drawWithPipeline(pass: GPURenderPassEncoder, pipeline: GPURenderPipeline) {
+  draw(pass: GPURenderPassEncoder, pipeline: GPURenderPipeline) {
     if (this.vertexCount === 0) return;
     pass.setPipeline(pipeline);
     pass.setBindGroup(0, this.shell.cameraBindGroup);

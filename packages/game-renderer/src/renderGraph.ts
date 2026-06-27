@@ -172,6 +172,9 @@ export function compileRenderGraph(passes: readonly RenderGraphPass[]): RenderGr
     }
 
     if (pass.depth) {
+      if (pass.depth.attachment !== 'worldDepth') {
+        diagnostics.push(`pass "${pass.id}" declares unsupported depth attachment "${pass.depth.attachment}"`);
+      }
       const readsDepth = pass.reads?.includes(pass.depth.attachment) ?? false;
       const writesDepth = pass.writes?.includes(pass.depth.attachment) ?? false;
       if ((pass.depth.mode === 'read' || pass.depth.mode === 'read-write') && !readsDepth) {
@@ -179,6 +182,12 @@ export function compileRenderGraph(passes: readonly RenderGraphPass[]): RenderGr
       }
       if ((pass.depth.mode === 'write' || pass.depth.mode === 'read-write') && !writesDepth) {
         diagnostics.push(`pass "${pass.id}" declares depth ${pass.depth.mode} but does not write "${pass.depth.attachment}"`);
+      }
+      if (pass.depth.mode === 'read' && writesDepth) {
+        diagnostics.push(`pass "${pass.id}" declares read-only depth but writes "${pass.depth.attachment}"`);
+      }
+      if (pass.depth.mode === 'write' && readsDepth) {
+        diagnostics.push(`pass "${pass.id}" declares write-only depth but reads "${pass.depth.attachment}"`);
       }
     }
   }

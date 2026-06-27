@@ -20,7 +20,7 @@ import { CampaignSelectionPass, type CampaignSelectionInstance } from '../../../
 import { campaignBorderVertices, CampaignTerritoryPass } from '../../../packages/game-renderer/src/campaign/territoryPass';
 import { Nested3dFixturePass } from '../../../packages/game-renderer/src/fixtures/nested3d';
 import { formatPerfSummary, makeFullGamePerfReport } from '../../../packages/game-renderer/src/perfReport';
-import { fullGameRenderGraphReport } from '../../../packages/game-renderer/src/renderGraph';
+import { compileRenderGraph, fullGameRenderGraphReport, type RenderGraphPass } from '../../../packages/game-renderer/src/renderGraph';
 import { loadPlaceholderKit, loadPlaceholderVat, placeholderClipNames } from '../../../packages/soldier-assets/src/placeholders';
 import { createPlaceholderSoldierMeshes } from '../../../packages/soldier-assets/src/soldierMesh';
 import { badArtistPackFixture, validateSoldierKit, type ValidationReport } from '../../../packages/soldier-assets/src/validate';
@@ -1042,6 +1042,10 @@ async function routeRenderGraph(ctx: LabContext) {
   }, {});
   const graphFramePhases = uniqueGraphFramePhases(report);
   const depthPasses = report.passes.filter((pass) => pass.depth).map((pass) => pass.id);
+  const depthPassModes = report.passes
+    .filter((pass) => pass.depth)
+    .map((pass) => ({ id: pass.id, mode: pass.depth!.mode, attachment: pass.depth!.attachment }));
+  const depthContractFixtures = renderGraphDepthContractFixtures();
   const backgroundDepthPasses = report.passes
     .filter((pass) => pass.framePhase === 'background' && pass.depth)
     .map((pass) => pass.id);
@@ -1056,7 +1060,8 @@ async function routeRenderGraph(ctx: LabContext) {
     phases: Object.entries(phaseCounts).map(([k, v]) => `${k}:${v}`).join(', '),
     graphFramePhases: graphFramePhases.join(' -> '),
     actualFramePhases: shellStats.phases.map((phase) => phase.kind).join(' -> '),
-    depthPasses: depthPasses.join(', '),
+    depthPasses: depthPassModes.map((pass) => `${pass.id}:${pass.mode}`).join(', '),
+    depthContractFixtures: `${depthContractFixtures.filter((fixture) => fixture.rejected).length}/${depthContractFixtures.length} rejected`,
     diagnostics: report.diagnostics.length,
     depth: shellStats.depth.allocated ? `${shellStats.depth.format} ${shellStats.depth.width}x${shellStats.depth.height}` : 'not allocated',
     nestedFixtures: nestedStats.fixtures.join(', '),
@@ -1069,6 +1074,8 @@ async function routeRenderGraph(ctx: LabContext) {
     diagnostics: report.diagnostics,
     graphFramePhases,
     depthPasses,
+    depthPassModes,
+    depthContractFixtures,
     backgroundDepthPasses,
     overlayDepthPasses,
     depth: shellStats.depth,
@@ -1079,6 +1086,70 @@ async function routeRenderGraph(ctx: LabContext) {
       visibleUpperFlag: projectNestedPoint(ctx.canvas, camera, [-1.20, 0.10, 3.70]),
       frontRankOverlap: projectNestedPoint(ctx.canvas, camera, [4.30, -1.20, 1.08]),
     },
+  });
+}
+
+function renderGraphDepthContractFixtures() {
+  const base: RenderGraphPass[] = [
+    { id: 'camera', label: 'Camera', phase: 'frame', writes: ['cameraUniforms'] },
+    {
+      id: 'clear',
+      label: 'Depth clear',
+      phase: 'frame',
+      framePhase: 'world-depth',
+      writes: ['worldDepth'],
+      depth: { attachment: 'worldDepth', mode: 'write', format: 'depth24plus' },
+    },
+  ];
+  const fixtures: Array<{ id: string; pass: RenderGraphPass; expected: string }> = [
+    {
+      id: 'readModeWritesDepth',
+      expected: 'read-only depth',
+      pass: {
+        id: 'badRead',
+        label: 'Bad read mode writes depth',
+        phase: 'campaign',
+        framePhase: 'world-depth',
+        reads: ['cameraUniforms', 'worldDepth'],
+        writes: ['worldColor', 'worldDepth'],
+        depth: { attachment: 'worldDepth', mode: 'read', format: 'depth24plus' },
+      },
+    },
+    {
+      id: 'writeModeReadsDepth',
+      expected: 'write-only depth',
+      pass: {
+        id: 'badWrite',
+        label: 'Bad write mode reads depth',
+        phase: 'battle',
+        framePhase: 'world-depth',
+        reads: ['cameraUniforms', 'worldDepth'],
+        writes: ['worldDepth'],
+        depth: { attachment: 'worldDepth', mode: 'write', format: 'depth24plus' },
+      },
+    },
+    {
+      id: 'unsupportedDepthAttachment',
+      expected: 'unsupported depth attachment',
+      pass: {
+        id: 'badAttachment',
+        label: 'Bad depth attachment',
+        phase: 'campaign',
+        framePhase: 'world-depth',
+        reads: ['cameraUniforms', 'privateDepth'],
+        writes: ['worldColor', 'privateDepth'],
+        depth: { attachment: 'privateDepth', mode: 'read-write', format: 'depth24plus' },
+      },
+    },
+  ];
+  return fixtures.map((fixture) => {
+    const report = compileRenderGraph([...base, fixture.pass]);
+    return {
+      id: fixture.id,
+      expected: fixture.expected,
+      rejected: !report.ok && report.diagnostics.some((diagnostic) => diagnostic.includes(fixture.expected)),
+      diagnostics: report.diagnostics,
+    };
   });
 }
 

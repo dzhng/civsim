@@ -179,7 +179,8 @@ next useful question, then lock it with tests and screenshots.
   deliberate overlays stay in a later non-depth phase. Every `world-depth` pass
   must declare its depth mode: `read` for decals/roads/ground cues, `read-write`
   for opaque/skinned/nested world geometry, and `write` only for a dedicated
-  depth fill.
+  depth fill. Those modes are exclusive contracts, and the full-game graph must
+  reject private depth attachments or read/write mismatches.
 - **One world/camera/depth contract.** Campaign and battle model, terrain,
   decal, shadow, projectile, picking, and label-anchor code must share the same
   packed camera uniform and projection semantics. A pass can opt into a named

@@ -66,6 +66,11 @@ const routes = [
     && s.stats.depthPasses?.includes('battleCrowd')
     && s.stats.depthPasses?.includes('campaignGroundDecals')
     && s.stats.depthPasses?.includes('campaignOpaque3d')
+    && hasGraphDepthPassMode(s.stats.depthPassModes, 'worldDepthClear', 'write')
+    && hasGraphDepthPassMode(s.stats.depthPassModes, 'battleCrowd', 'read-write')
+    && hasGraphDepthPassMode(s.stats.depthPassModes, 'campaignGroundDecals', 'read')
+    && hasGraphDepthPassMode(s.stats.depthPassModes, 'campaignOpaque3d', 'read-write')
+    && depthContractFixturesRejected(s.stats.depthContractFixtures)
     && s.stats.backgroundDepthPasses?.length === 0
     && s.stats.overlayDepthPasses?.length === 0
     && s.stats.depth?.allocated === true
@@ -125,6 +130,22 @@ function hasFrameDepthPass(phases, id, mode) {
     Array.isArray(phase?.depthPasses)
     && phase.depthPasses.some((pass) => pass?.id === id && pass?.mode === mode)
   );
+}
+
+function hasGraphDepthPassMode(passes, id, mode) {
+  return Array.isArray(passes) && passes.some((pass) => pass?.id === id && pass?.mode === mode && pass?.attachment === 'worldDepth');
+}
+
+function depthContractFixturesRejected(fixtures) {
+  const expected = new Set(['readModeWritesDepth', 'writeModeReadsDepth', 'unsupportedDepthAttachment']);
+  return Array.isArray(fixtures)
+    && fixtures.length === 3
+    && fixtures.every((fixture) =>
+      expected.has(fixture?.id)
+      && fixture?.rejected === true
+      && Array.isArray(fixture?.diagnostics)
+      && fixture.diagnostics.length > 0
+    );
 }
 
 function graphFramePhaseOrder(phases) {

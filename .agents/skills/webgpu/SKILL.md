@@ -544,6 +544,11 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   opaque, skinned, nested, or scenery geometry that participates in occlusion;
   reserve `write` for a dedicated depth-fill pass. Publish those modes in
   `FrameShellStats.phases[].depthPasses` and make scenarios assert them.
+- Treat render-graph depth modes as exclusive access contracts. A `read` depth
+  pass must not write the attachment, a `write` pass must not read it, and the
+  full-game graph should reject private depth attachments that bypass the
+  shared `worldDepth`. Keep negative fixtures in the lab route so this remains
+  browser-verified instead of only implied by TypeScript.
 - Shared projection does not require one numeric depth scale for every world.
   Battle and campaign should import the same camera/projection helpers, but
   large battlefields and compact campaign fixtures need named depth helpers

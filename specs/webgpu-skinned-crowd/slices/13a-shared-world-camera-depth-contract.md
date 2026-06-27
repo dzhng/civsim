@@ -79,6 +79,9 @@ shadows that sit on the ground instead of floating as screen overlays.
 - Every live `world-depth` pass publishes its depth mode in frame stats, and
   scenarios assert the modes for nested-object, skinned-depth, and production
   campaign UI gates.
+- Declarative render-graph depth modes are exclusive contracts: `read` must not
+  write the depth attachment, `write` must not read it, and only the shared
+  `worldDepth` attachment is valid for full-game world composition.
 - Campaign UI labels/icons keep the old font/icon style while their anchors
   move onto the shared projection contract.
 - Battle picking, drag selection, minimap viewport, and DOM unit banners remain
@@ -150,6 +153,11 @@ shadows that sit on the ground instead of floating as screen overlays.
   validates phase order, publishes depth pass ids/modes in stats, and the lab
   scenario scans source routes so a future depth pass cannot omit its
   read/write contract.
+- `compileRenderGraph` now rejects mismatched depth accesses: read-only passes
+  that write depth, write-only passes that read depth, and private depth
+  attachments. `/webgpu/render-graph` publishes negative fixtures for those
+  cases so the browser scenario proves the graph contract, not only the happy
+  path.
 - The declarative full-game render graph now tracks content domain and runtime
   frame phase separately. Battle/campaign classify ownership, while
   `background -> world-depth -> overlay` classifies attachment semantics. The

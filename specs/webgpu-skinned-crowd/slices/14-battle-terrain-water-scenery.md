@@ -71,6 +71,12 @@ Current checkpoint:
   edge-energy ratio improved from `0.78536` to `0.85960`. The accepted capture
   was inspected to confirm the added edges read as ground texture rather than
   the earlier random straight-line or square-overlay artifacts.
+- A follow-up bounded shader-only fleck pass raised the deterministic seed
+  frequency and tightened stubble/stone/light/dark fleck thresholds without
+  adding overlay geometry. Battle Selection DPR2 parity distance moved from
+  `0.12433` to `0.11798`, and edge-energy ratio improved from `0.85960` to
+  `0.90481`. The accepted PNG and candidate edge map were inspected to confirm
+  the new breakup still reads as grass/stubble texture and not debug noise.
 
 ## Verification
 

@@ -82,6 +82,12 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   not overlay quads, and accept it only when the composite score improves after
   inspecting that the new edges read as grass/stubble instead of random debug
   noise.
+- A second small pass of battle ground fleck tuning can keep improving parity if
+  it raises edge energy without adding overlay geometry: adjust seed frequency,
+  smoothstep thresholds, and stubble/stone mix strength together, then inspect
+  the candidate edge map. Treat noisy red/blue edge-diff speckle as acceptable
+  only when the actual PNG still reads as grass and the full parity score moves
+  down.
 - For campaign close-view parity, road line styling can dominate the score and
   the human read. Tune road mesh widths, alpha, and grey-stone/shadow colors in
   the line pass before changing camera or labels; then rerun the parity helper.

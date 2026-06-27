@@ -1,4 +1,5 @@
 import type { RawFrameShell } from '../../../webgpu-core/src/frameShell';
+import { WORLD_CAMERA_WGSL } from '../../../webgpu-core/src/cameraWgsl';
 
 export interface CampaignEntityInstance {
   x: number;
@@ -19,9 +20,7 @@ interface MeshData {
 type Rgb = [number, number, number];
 
 const ENTITY_WGSL = `
-struct Camera { x:f32, y:f32, zoom:f32, cosP:f32, width:f32, height:f32, cosYaw:f32, sinYaw:f32, perspective:f32, pad0:f32, pad1:f32, pad2:f32 };
-@group(0) @binding(0) var<uniform> cam: Camera;
-
+${WORLD_CAMERA_WGSL}
 struct VsOut {
   @builtin(position) pos: vec4f,
   @location(0) color: vec3f,
@@ -33,22 +32,10 @@ struct VsOut {
   @location(6) alpha: f32,
 };
 
-fn campaignDepth(world: vec3f, ry: f32) -> f32 {
+fn campaignDepth(world: vec3f) -> f32 {
+  let axes = cameraSpace(world.xy);
+  let ry = axes.y;
   return clamp(0.50 + ry * 0.0012 - world.z * 0.0030, 0.02, 0.98);
-}
-
-fn projectWorld(world: vec3f, z: f32) -> vec4f {
-  let dx = world.x - cam.x;
-  let dy = world.y - cam.y;
-  let rx = dx * cam.cosYaw + dy * cam.sinYaw;
-  let ry = -dx * cam.sinYaw + dy * cam.cosYaw;
-  let depth = max(0.32, 1.0 + ry * cam.perspective);
-  return vec4f(
-    (rx * cam.zoom) / (cam.width * 0.5),
-    (ry * cam.zoom * cam.cosP + world.z * cam.zoom) / (cam.height * 0.5),
-    select(z, campaignDepth(world, ry), z < 0.0) * depth,
-    depth
-  );
 }
 
 @vertex
@@ -63,7 +50,7 @@ fn vs(
   let scale = inst0.z;
   let world = vec3f(inst0.x + local.x * scale, inst0.y + local.y * scale, local.z * scale);
   var out: VsOut;
-  out.pos = projectWorld(world, -1.0);
+  out.pos = projectWorld3d(world, campaignDepth(world));
   out.color = colorAndAlpha.rgb;
   out.livery = smoothstep(0.94, 0.99, min(colorAndAlpha.r, min(colorAndAlpha.g, colorAndAlpha.b)));
   out.alpha = colorAndAlpha.a;

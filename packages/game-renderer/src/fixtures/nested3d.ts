@@ -1,4 +1,5 @@
 import type { RawFrameShell } from '../../../webgpu-core/src/frameShell';
+import { WORLD_CAMERA_WGSL } from '../../../webgpu-core/src/cameraWgsl';
 
 export interface Nested3dFixtureStats {
   layer: 'depth-tested-nested-3d-fixture';
@@ -10,9 +11,7 @@ export interface Nested3dFixtureStats {
 }
 
 const NESTED_3D_WGSL = `
-struct Camera { x:f32, y:f32, zoom:f32, cosP:f32, width:f32, height:f32, cosYaw:f32, sinYaw:f32, perspective:f32, pad0:f32, pad1:f32, pad2:f32 };
-@group(0) @binding(0) var<uniform> cam: Camera;
-
+${WORLD_CAMERA_WGSL}
 struct VsOut {
   @builtin(position) pos: vec4f,
   @location(0) color: vec4f,
@@ -20,18 +19,9 @@ struct VsOut {
 };
 
 fn projectWorld(world: vec3f) -> vec4f {
-  let dx = world.x - cam.x;
-  let dy = world.y - cam.y;
-  let rx = dx * cam.cosYaw + dy * cam.sinYaw;
-  let ry = -dx * cam.sinYaw + dy * cam.cosYaw;
-  let perspectiveDepth = max(0.32, 1.0 + ry * cam.perspective);
-  let depth = clamp(0.48 + ry * 0.028 - world.z * 0.003, 0.02, 0.98);
-  return vec4f(
-    (rx * cam.zoom) / (cam.width * 0.5),
-    (ry * cam.zoom * cam.cosP + world.z * cam.zoom) / (cam.height * 0.5),
-    depth * perspectiveDepth,
-    perspectiveDepth
-  );
+  let axes = cameraSpace(world.xy);
+  let depth = clamp(0.48 + axes.y * 0.028 - world.z * 0.003, 0.02, 0.98);
+  return projectWorld3d(world, depth);
 }
 
 @vertex

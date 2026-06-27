@@ -120,6 +120,7 @@ handed to a human:
 /webgpu/perf
 /webgpu/campaign
 /webgpu/render-graph
+/webgpu/world-camera
 /webgpu/battle-terrain
 /webgpu/battle-ui
 /webgpu/battle-input
@@ -170,6 +171,11 @@ next useful question, then lock it with tests and screenshots.
   campaign/battle model tweaks can be accepted as final. If adding depth would
   require changing every pipeline in a pass, split the pass instead of slipping
   a one-off flag into the current flat frame shell.
+- **One world/camera/depth contract.** Campaign and battle model, terrain,
+  decal, shadow, projectile, picking, and label-anchor code must share the same
+  packed camera uniform and projection semantics. A pass can opt into a named
+  overlay layer, but it cannot keep private projection/depth math as a way to
+  make nested 3D objects appear correct.
 - **Placeholders unblock everything.** Every renderer/art slice must ship with
   generated placeholder assets first: skeletons, meshes, clips, textures,
   faction masks, LODs, impostors, and manifests.

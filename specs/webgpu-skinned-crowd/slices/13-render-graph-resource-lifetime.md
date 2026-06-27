@@ -91,6 +91,11 @@ compatible or splits them into separate passes.
   cloud/marker/label overlays. The campaign stats expose the allocated
   `depth24plus` attachment so scenarios can prove the production path is no
   longer a flat entity overlay.
+- The first shared camera WGSL seam lives in
+  `packages/webgpu-core/src/cameraWgsl.ts`. Campaign entity, scenery,
+  selection, and nested-depth fixture passes now import the same projection
+  helpers instead of copying their own camera structs and `projectWorld`
+  functions. Slice 13a tracks the remaining battle/campaign convergence work.
 
 ## Verification
 

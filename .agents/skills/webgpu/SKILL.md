@@ -389,6 +389,13 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   worsened Campaign Label Zoom metrics because camera/scale/lighting no longer
   matched the old reference. Treat that as the next visual tuning target, not a
   reason to return city/army/scenery meshes to painter-order overlays.
+- Do not let battle and campaign accumulate private copies of the camera WGSL
+  struct and projection helpers. Put the packed camera layout and helpers such
+  as `cameraSpace`, `perspectiveDepth`, `projectGround`, and `projectWorld3d`
+  in `packages/webgpu-core`, then import that source into depth-sensitive
+  passes. This keeps nested flags, garrisons, ground rings, battle ranks,
+  picking, labels, and screenshots converging on one world/camera/depth
+  contract instead of self-consistent but incompatible local projections.
 - Use instancing, batching, storage buffers, and GPU-side phase passes for scale.
   Avoid CPU readbacks in hot paths; debug readbacks must be bounded and named.
 - For iterative effects or simulations, separate phases such as `state`,

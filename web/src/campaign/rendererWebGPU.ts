@@ -163,11 +163,11 @@ export class CampaignRendererWebGPU {
         if (!isControlledStage(this.data)) this.borders!.draw(pass);
       },
       world: (pass) => {
-        this.selection!.drawDepth(pass);
+        this.selection!.draw(pass);
         this.roads!.draw(pass);
         this.lines!.drawDepth(pass);
-        this.scenery!.drawDepth(pass);
-        this.entities!.drawDepth(pass);
+        this.scenery!.draw(pass);
+        this.entities!.draw(pass);
       },
       overlay: (pass) => {
         this.clouds!.draw(pass);

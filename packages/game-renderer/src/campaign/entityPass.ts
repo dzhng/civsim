@@ -72,7 +72,6 @@ fn fs(in: VsOut) -> @location(0) vec4f {
 
 export class CampaignEntityPass {
   private pipeline: GPURenderPipeline;
-  private depthPipeline: GPURenderPipeline;
   private cityVertexBuffer: GPUBuffer;
   private cityIndexBuffer: GPUBuffer;
   private armyVertexBuffer: GPUBuffer;
@@ -89,8 +88,7 @@ export class CampaignEntityPass {
   constructor(private shell: RawFrameShell) {
     const device = shell.device;
     const module = device.createShaderModule({ label: 'campaign-entity-mesh-wgsl', code: ENTITY_WGSL });
-    this.pipeline = this.makePipeline(module, false);
-    this.depthPipeline = this.makePipeline(module, true);
+    this.pipeline = this.makePipeline(module);
     this.cityVertexBuffer = makeVertexBuffer(device, 'campaign-city-model-vertices', this.cityMesh.vertices);
     this.cityIndexBuffer = makeIndexBuffer(device, 'campaign-city-model-indices', this.cityMesh.indices);
     this.armyVertexBuffer = makeVertexBuffer(device, 'campaign-army-model-vertices', this.armyMesh.vertices);
@@ -99,10 +97,10 @@ export class CampaignEntityPass {
     this.armyInstanceBuffer = makeEmptyInstanceBuffer(device, 'campaign-army-empty-instances');
   }
 
-  private makePipeline(module: GPUShaderModule, depth: boolean) {
+  private makePipeline(module: GPUShaderModule) {
     const device = this.shell.device;
     return device.createRenderPipeline({
-      label: depth ? 'campaign-entity-mesh-depth-pipeline' : 'campaign-entity-mesh-pipeline',
+      label: 'campaign-entity-mesh-depth-pipeline',
       layout: device.createPipelineLayout({ bindGroupLayouts: [this.shell.cameraBindGroupLayout] }),
       vertex: {
         module,
@@ -139,13 +137,11 @@ export class CampaignEntityPass {
         }],
       },
       primitive: { topology: 'triangle-list', cullMode: 'none' },
-      ...(depth ? {
-        depthStencil: {
-          format: 'depth24plus',
-          depthWriteEnabled: true,
-          depthCompare: 'less',
-        },
-      } : {}),
+      depthStencil: {
+        format: 'depth24plus',
+        depthWriteEnabled: true,
+        depthCompare: 'less',
+      },
     });
   }
 
@@ -162,10 +158,6 @@ export class CampaignEntityPass {
 
   draw(pass: GPURenderPassEncoder) {
     this.drawWithPipeline(pass, this.pipeline);
-  }
-
-  drawDepth(pass: GPURenderPassEncoder) {
-    this.drawWithPipeline(pass, this.depthPipeline);
   }
 
   private drawWithPipeline(pass: GPURenderPassEncoder, pipeline: GPURenderPipeline) {

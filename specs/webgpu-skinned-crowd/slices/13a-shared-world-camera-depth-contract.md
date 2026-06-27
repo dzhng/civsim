@@ -119,6 +119,10 @@ shadows that sit on the ground instead of floating as screen overlays.
 - Normal production battle and campaign renderer stats now expose the shared
   camera contract, allocated depth attachment, and executed frame phases, and
   production scenarios assert those fields instead of relying only on lab gates.
+- `CampaignEntityPass`, `CampaignSceneryPass`, and `CampaignSelectionPass` now
+  expose only the depth-compatible `draw(pass)` path. Their old no-depth
+  pipeline variants and `drawDepth` twin APIs were removed, and
+  `webgpu-lab-routes` scans those files so the footgun stays gone.
 - Type batching is permitted only as a performance strategy. Batches for trees,
   rocks, cities, armies, and soldier mesh variants must not create their own
   visual ordering rules or private depth scales.

@@ -140,6 +140,28 @@ async function tsFiles(dir) {
   return files;
 }
 
+async function findCampaignDepthOnlyFootguns() {
+  const files = [
+    new URL('../../packages/game-renderer/src/campaign/entityPass.ts', import.meta.url),
+    new URL('../../packages/game-renderer/src/campaign/sceneryPass.ts', import.meta.url),
+    new URL('../../packages/game-renderer/src/campaign/selectionPass.ts', import.meta.url),
+  ];
+  const root = new URL('../../', import.meta.url).pathname;
+  const checks = [
+    ['drawDepth method', /\bdrawDepth\s*\(/],
+    ['parallel depth pipeline field', /\bprivate\s+depthPipeline\b/],
+    ['no-depth pipeline variant', /\bmakePipeline\s*\([^)]*,\s*false\s*\)/],
+  ];
+  const matches = [];
+  for (const file of files) {
+    const source = await readFile(file, 'utf8');
+    for (const [label, pattern] of checks) {
+      if (pattern.test(source)) matches.push(`${file.pathname.replace(root, '')}: ${label}`);
+    }
+  }
+  return matches.sort();
+}
+
 function countPixels(png) {
   let warmGround = 0;
   let blue = 0;
@@ -214,6 +236,12 @@ export async function run(ctx) {
     'source: camera WGSL is single-sourced',
     privateCameraStructs.length === 0,
     JSON.stringify({ privateCameraStructs }),
+  );
+  const campaignDepthOnlyFootguns = await findCampaignDepthOnlyFootguns();
+  ctx.check(
+    'source: campaign model/decal passes expose one depth draw path',
+    campaignDepthOnlyFootguns.length === 0,
+    JSON.stringify({ campaignDepthOnlyFootguns }),
   );
 
   for (const [route, predicate] of routes) {

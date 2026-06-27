@@ -640,10 +640,10 @@ async function routeCampaignUi(ctx: LabContext) {
       clear: { r: 0.68, g: 0.72, b: 0.69, a: 1 },
       terrainRect: campaignBgTerrainRect(data.bgRect),
       world: (pass) => {
-        selection.drawDepth(pass);
+        selection.draw(pass);
         roads.draw(pass);
         lines.drawDepth(pass);
-        entities.drawDepth(pass);
+        entities.draw(pass);
       },
       overlay: (pass) => {
         labelPass.draw(pass);
@@ -752,10 +752,10 @@ async function routeCampaignModelGates(ctx: LabContext) {
       water?.draw(pass);
     },
     world: (pass) => {
-      selection.drawDepth(pass);
+      selection.draw(pass);
       roads.draw(pass);
-      scenery.drawDepth(pass);
-      entities.drawDepth(pass);
+      scenery.draw(pass);
+      entities.draw(pass);
     },
     overlay: (pass) => {
       clouds?.draw(pass);

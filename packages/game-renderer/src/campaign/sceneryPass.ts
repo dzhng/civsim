@@ -60,7 +60,6 @@ fn fs(in: VsOut) -> @location(0) vec4f {
 
 export class CampaignSceneryPass {
   private pipeline: GPURenderPipeline;
-  private depthPipeline: GPURenderPipeline;
   private mountainMesh = buildMountainMesh();
   private coniferMesh = buildConiferTreeMesh();
   private broadleafMesh = buildBroadleafTreeMesh();
@@ -89,8 +88,7 @@ export class CampaignSceneryPass {
   constructor(private shell: RawFrameShell) {
     const device = shell.device;
     const module = device.createShaderModule({ label: 'campaign-scenery-mesh-wgsl', code: SCENERY_WGSL });
-    this.pipeline = this.makePipeline(module, false);
-    this.depthPipeline = this.makePipeline(module, true);
+    this.pipeline = this.makePipeline(module);
     this.mountainVertexBuffer = makeVertexBuffer(device, 'campaign-mountain-vertices', this.mountainMesh.vertices);
     this.mountainIndexBuffer = makeIndexBuffer(device, 'campaign-mountain-indices', this.mountainMesh.indices);
     this.coniferVertexBuffer = makeVertexBuffer(device, 'campaign-conifer-vertices', this.coniferMesh.vertices);
@@ -105,10 +103,10 @@ export class CampaignSceneryPass {
     this.rockInstanceBuffer = makeEmptyInstanceBuffer(device, 'campaign-rock-empty-instances');
   }
 
-  private makePipeline(module: GPUShaderModule, depth: boolean) {
+  private makePipeline(module: GPUShaderModule) {
     const device = this.shell.device;
     return device.createRenderPipeline({
-      label: depth ? 'campaign-scenery-mesh-depth-pipeline' : 'campaign-scenery-mesh-pipeline',
+      label: 'campaign-scenery-mesh-depth-pipeline',
       layout: device.createPipelineLayout({ bindGroupLayouts: [this.shell.cameraBindGroupLayout] }),
       vertex: {
         module,
@@ -141,22 +139,19 @@ export class CampaignSceneryPass {
         }],
       },
       primitive: { topology: 'triangle-list', cullMode: 'none' },
-      ...(depth ? {
-        depthStencil: {
-          format: 'depth24plus',
-          depthWriteEnabled: true,
-          depthCompare: 'less',
-        },
-      } : {}),
+      depthStencil: {
+        format: 'depth24plus',
+        depthWriteEnabled: true,
+        depthCompare: 'less',
+      },
     });
   }
 
   upload(instances: CampaignSceneryInstance[]) {
-    const sorted = [...instances].sort((a, b) => b.y - a.y);
-    const mountains = sorted.filter((inst) => inst.kind === 'mountain');
-    const conifers = sorted.filter((inst) => inst.kind === 'tree' || inst.kind === 'conifer');
-    const broadleafs = sorted.filter((inst) => inst.kind === 'broadleaf');
-    const rocks = sorted.filter((inst) => inst.kind === 'rock');
+    const mountains = instances.filter((inst) => inst.kind === 'mountain');
+    const conifers = instances.filter((inst) => inst.kind === 'tree' || inst.kind === 'conifer');
+    const broadleafs = instances.filter((inst) => inst.kind === 'broadleaf');
+    const rocks = instances.filter((inst) => inst.kind === 'rock');
     this.mountainCount = mountains.length;
     this.coniferCount = conifers.length;
     this.broadleafCount = broadleafs.length;
@@ -173,10 +168,6 @@ export class CampaignSceneryPass {
 
   draw(pass: GPURenderPassEncoder) {
     this.drawWithPipeline(pass, this.pipeline);
-  }
-
-  drawDepth(pass: GPURenderPassEncoder) {
-    this.drawWithPipeline(pass, this.depthPipeline);
   }
 
   private drawWithPipeline(pass: GPURenderPassEncoder, pipeline: GPURenderPipeline) {

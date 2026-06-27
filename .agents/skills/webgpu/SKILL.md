@@ -505,6 +505,12 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   `framePhases`/`phases` from normal game renderer stats; otherwise a lab gate
   can stay green while the shipped route quietly drifts into a different pass
   shape.
+- Once a campaign model/decal pass is promoted to the depth world phase, remove
+  its no-depth twin API instead of keeping `draw`/`drawDepth` side by side.
+  For `CampaignEntityPass`, `CampaignSceneryPass`, and
+  `CampaignSelectionPass`, plain `draw(pass)` should mean the depth-compatible
+  world path; keep `webgpu-lab-routes` scanning those files for reintroduced
+  `drawDepth`, parallel `depthPipeline`, or no-depth pipeline variants.
 - Shared projection does not require one numeric depth scale for every world.
   Battle and campaign should import the same camera/projection helpers, but
   large battlefields and compact campaign fixtures need named depth helpers

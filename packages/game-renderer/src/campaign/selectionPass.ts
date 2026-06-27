@@ -53,7 +53,6 @@ fn fs(in: VsOut) -> @location(0) vec4f {
 
 export class CampaignSelectionPass {
   private pipeline: GPURenderPipeline;
-  private depthPipeline: GPURenderPipeline;
   private quadBuffer: GPUBuffer;
   private instanceBuffer: GPUBuffer;
   private capacity = 0;
@@ -62,8 +61,7 @@ export class CampaignSelectionPass {
   constructor(private shell: RawFrameShell) {
     const device = shell.device;
     const module = device.createShaderModule({ label: 'campaign-selection-wgsl', code: SELECTION_WGSL });
-    this.pipeline = this.makePipeline(module, false);
-    this.depthPipeline = this.makePipeline(module, true);
+    this.pipeline = this.makePipeline(module);
     this.quadBuffer = device.createBuffer({
       label: 'campaign-selection-quad',
       size: 8 * 4,
@@ -77,10 +75,10 @@ export class CampaignSelectionPass {
     });
   }
 
-  private makePipeline(module: GPUShaderModule, depth: boolean) {
+  private makePipeline(module: GPUShaderModule) {
     const device = this.shell.device;
     return device.createRenderPipeline({
-      label: depth ? 'campaign-selection-depth-pipeline' : 'campaign-selection-pipeline',
+      label: 'campaign-selection-depth-pipeline',
       layout: device.createPipelineLayout({ bindGroupLayouts: [this.shell.cameraBindGroupLayout] }),
       vertex: {
         module,
@@ -109,13 +107,11 @@ export class CampaignSelectionPass {
         }],
       },
       primitive: { topology: 'triangle-strip' },
-      ...(depth ? {
-        depthStencil: {
-          format: 'depth24plus',
-          depthWriteEnabled: false,
-          depthCompare: 'less-equal',
-        },
-      } : {}),
+      depthStencil: {
+        format: 'depth24plus',
+        depthWriteEnabled: false,
+        depthCompare: 'less-equal',
+      },
     });
   }
 
@@ -146,10 +142,6 @@ export class CampaignSelectionPass {
 
   draw(pass: GPURenderPassEncoder) {
     this.drawWithPipeline(pass, this.pipeline);
-  }
-
-  drawDepth(pass: GPURenderPassEncoder) {
-    this.drawWithPipeline(pass, this.depthPipeline);
   }
 
   private drawWithPipeline(pass: GPURenderPassEncoder, pipeline: GPURenderPipeline) {

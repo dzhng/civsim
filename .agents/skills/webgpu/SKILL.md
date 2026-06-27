@@ -86,6 +86,11 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   in. Then inspect a central crop as well as the full-frame score: full-frame
   metrics can reward a ring that is present while missing whether it is too
   huge, too subtle, or not reading as a ground-plane perspective overlay.
+- DOM-composited tactical overlays still need WebGPU-era camera/LOD discipline.
+  For unit banners or labels, preserve the world anchor first, then apply
+  zoom-aware scaling around that anchor. A fixed-size DOM standard can look like
+  it floats above or dominates the WebGPU formation even when the underlying
+  pick/projection math is correct.
 - Use instancing, batching, storage buffers, and GPU-side phase passes for scale.
   Avoid CPU readbacks in hot paths; debug readbacks must be bounded and named.
 - For iterative effects or simulations, separate phases such as `state`,

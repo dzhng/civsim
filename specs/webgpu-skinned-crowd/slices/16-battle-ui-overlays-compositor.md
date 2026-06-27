@@ -25,6 +25,13 @@ renderer screenshots stop being a routine parallel suite.
   retained DOM HUD, toolbar, and unit cards.
 - Follow-up fixture gallery for many banners, path orders, attack arcs, minimap
   viewport, routed unit, paused state, and game-over state.
+- Current checkpoint: retained DOM unit banners now use zoom-aware scaling while
+  preserving their bottom-center world anchor over the rendered formation. At
+  the DPR2 visual-report zoom this makes standards/bars read more like compact
+  unit identifiers than full-size floating UI, while selected units remain
+  slightly emphasized. Battle Selection DPR2 parity distance moved from
+  `0.15681` to `0.15644`; the visual report still renders all units that the
+  archived current-renderer shot dropped.
 
 ## Verification
 
@@ -33,6 +40,8 @@ renderer screenshots stop being a routine parallel suite.
   DOM-retained HUD/cards/toolbars in the same frame.
 - DPR 1 and DPR 2 checks verify no text/control overlap and no canvas/DOM
   coordinate drift.
+- `webgpu-visual-report` plus `compare-screenshots` tracks the Battle Selection
+  DPR2 banner/label parity score and regenerated diff artifacts.
 - Existing unit-card and banner gallery checks remain green or are deliberately
   replaced with WebGPU equivalents.
 - Post-cutover screenshot/vibe runs target the WebGPU battle path only; legacy

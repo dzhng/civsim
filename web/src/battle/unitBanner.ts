@@ -116,8 +116,10 @@ export class UnitBanner {
    *  element is bottom-anchored (−100% of its own height) and centred (−50%),
    *  so the flag rises from the unit and the stats stack above it, whatever the
    *  chip count. */
-  place(x: number, y: number) {
-    this.el.style.transform = `translate(${x.toFixed(0)}px, ${y.toFixed(0)}px) translate(-50%, -100%)`;
+  place(x: number, y: number, scale = 1) {
+    this.el.style.left = `${x.toFixed(0)}px`;
+    this.el.style.top = `${y.toFixed(0)}px`;
+    this.el.style.transform = `translate(-50%, -100%) scale(${scale.toFixed(3)})`;
   }
 
   setVisible(v: boolean) {

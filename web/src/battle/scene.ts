@@ -26,6 +26,11 @@ const CLASS_SPACING = [0.9, 1.0, 1.5, 0.8, 1.2, 1.6, 1.8, 2.2, 2.0, 1.1, 1.0, 0.
 // Primary weapon (reach, arc) for the attack-arc display.
 export type BattleKind = 'duel' | '5v5' | 'surround' | 'flank' | 'mapA' | 'mapB';
 
+function bannerScale(zoom: number, selected: boolean): number {
+  const t = Math.max(0, Math.min(1, (zoom - 1.4) / 3.0));
+  return (0.58 + t * 0.34) * (selected ? 1.08 : 1);
+}
+
 export interface BattleConfig {
   wasm: InitOutput;
   game: Game;
@@ -264,14 +269,15 @@ export class BattleScene implements Scene {
           b.setVisible(false);
           continue;
         }
+        const selected = u === sel;
         b.setVisible(true);
-        b.place(sx, sy);
+        b.place(sx, sy, bannerScale(camera.zoom, selected));
         b.update({
           team: info[o + 6] === 0 ? 0 : 1,
           hp: alive / info[o + 7],
           cohesion: info[o + 4],
           chips: unitChips(info, o),
-          selected: u === sel,
+          selected,
         });
       }
     }

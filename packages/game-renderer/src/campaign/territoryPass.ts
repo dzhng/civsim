@@ -11,6 +11,11 @@ export interface CampaignBorderPolyline {
   pts: [number, number][];
 }
 
+export interface CampaignTerritoryStyle {
+  alpha?: number;
+  warmMix?: number;
+}
+
 const TERRITORY_WGSL = `
 struct Camera { x:f32, y:f32, zoom:f32, cosP:f32, width:f32, height:f32, cosYaw:f32, sinYaw:f32, perspective:f32, pad0:f32, pad1:f32, pad2:f32 };
 @group(0) @binding(0) var<uniform> cam: Camera;
@@ -42,8 +47,8 @@ fn vs(@location(0) world: vec2f, @location(1) uv: vec2f) -> VsOut {
 @fragment
 fn fs(in: VsOut) -> @location(0) vec4f {
   let sample = textureSample(terrTex, terrSampler, in.uv);
-  let color = mix(sample.rgb, vec3f(0.92, 0.74, 0.42), 0.04);
-  return vec4f(color, sample.a * 0.24);
+  let color = mix(sample.rgb, vec3f(0.92, 0.74, 0.42), __TERRITORY_WARM_MIX__);
+  return vec4f(color, sample.a * __TERRITORY_ALPHA__);
 }`;
 
 export class CampaignTerritoryPass {
@@ -55,9 +60,14 @@ export class CampaignTerritoryPass {
   private texture: GPUTexture | null = null;
   private textureSize = { width: 0, height: 0 };
 
-  constructor(private shell: RawFrameShell, data: CampaignTerritoryTextureData) {
+  constructor(private shell: RawFrameShell, data: CampaignTerritoryTextureData, style: CampaignTerritoryStyle = {}) {
     const device = shell.device;
-    const module = device.createShaderModule({ label: 'campaign-territory-wgsl', code: TERRITORY_WGSL });
+    const module = device.createShaderModule({
+      label: 'campaign-territory-wgsl',
+      code: TERRITORY_WGSL
+        .replace('__TERRITORY_WARM_MIX__', (style.warmMix ?? 0.04).toFixed(3))
+        .replace('__TERRITORY_ALPHA__', (style.alpha ?? 0.24).toFixed(3)),
+    });
     this.bindGroupLayout = device.createBindGroupLayout({
       label: 'campaign-territory-bgl',
       entries: [

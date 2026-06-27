@@ -224,16 +224,17 @@ export class CampaignRendererWebGPU {
 
   private async init(territory: Territory) {
     this.shell = await createFrameShell(this.canvas);
-    this.map = new CampaignMapPass(this.shell, this.data.bg, this.data.bgRect);
+    const controlledStage = isControlledStage(this.data);
+    this.map = new CampaignMapPass(this.shell, this.data.bg, this.data.bgRect, controlledStage ? undefined : { seaTintMix: 1 });
     this.water = new CampaignWaterPass(this.shell);
     this.water.upload(campaignWaterFeatures());
-    this.clouds = new CampaignCloudPass(this.shell, this.data.bgRect, isControlledStage(this.data) ? 0.75 : 1);
+    this.clouds = new CampaignCloudPass(this.shell, this.data.bgRect, controlledStage ? 0.75 : 1);
     this.territoryPass = new CampaignTerritoryPass(this.shell, {
       width: this.field.w,
       height: this.field.h,
       rgba: territory.rgba,
       rect: this.data.bgRect,
-    });
+    }, controlledStage ? undefined : { alpha: 0.55, warmMix: 0.015 });
     this.lines = new CampaignLinePass(this.shell, 'triangle-list');
     this.borders = new CampaignLinePass(this.shell);
     this.scenery = new CampaignSceneryPass(this.shell);
@@ -243,7 +244,7 @@ export class CampaignRendererWebGPU {
     const drawData = buildCampaignMapDrawData(this.data);
     this.staticLabels = drawData.labels;
     this.lines.upload(drawData.roadVertices);
-    this.borders.upload(isControlledStage(this.data) ? new Float32Array() : campaignBorderVertices(territory.borders));
+    this.borders.upload(controlledStage ? new Float32Array() : campaignBorderVertices(territory.borders));
     publishStats(this.stats());
   }
 }

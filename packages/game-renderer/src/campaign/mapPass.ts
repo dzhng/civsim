@@ -36,6 +36,10 @@ export interface CampaignMapStats {
   labels: number;
 }
 
+export interface CampaignMapStyle {
+  seaTintMix?: number;
+}
+
 export interface CampaignMapDrawData {
   roadVertices: Float32Array;
   cityMarkers: CampaignMarker[];
@@ -127,10 +131,13 @@ fn ridged(p: vec2f) -> f32 {
 
 @fragment
 fn fs(in: VsOut) -> @location(0) vec4f {
-  var col = textureSample(mapTex, mapSampler, in.uv).rgb;
+  let base = textureSample(mapTex, mapSampler, in.uv).rgb;
+  var col = base;
   let grey = dot(col, vec3f(0.333));
   col = mix(vec3f(grey), col, 0.88);
   col *= vec3f(1.04, 1.00, 0.94);
+  let seaMask = smoothstep(0.04, 0.14, base.b - max(base.r, base.g * 0.88));
+  col = mix(col, mix(col, vec3f(0.22, 0.42, 0.56), 0.55), seaMask * __SEA_TINT_MIX__);
   let grain = vnoise(in.world * 0.18) * 0.052 + vnoise(in.world * 0.055 + vec2f(7.1, 2.4)) * 0.038;
   let striation = ridged(vec2f(in.world.x * 0.115 + in.world.y * 0.025, in.world.y * 0.085)) * 0.028;
   col *= 0.95 + grain + striation;
@@ -267,9 +274,12 @@ export class CampaignMapPass {
   private bindGroup: GPUBindGroup;
   private vertexBuffer: GPUBuffer;
 
-  constructor(private shell: RawFrameShell, image: ImageBitmap, rect: { min: [number, number]; max: [number, number] }) {
+  constructor(private shell: RawFrameShell, image: ImageBitmap, rect: { min: [number, number]; max: [number, number] }, style: CampaignMapStyle = {}) {
     const device = shell.device;
-    const module = device.createShaderModule({ label: 'campaign-map-wgsl', code: MAP_WGSL });
+    const module = device.createShaderModule({
+      label: 'campaign-map-wgsl',
+      code: MAP_WGSL.replace('__SEA_TINT_MIX__', (style.seaTintMix ?? 0).toFixed(3)),
+    });
     const texture = device.createTexture({
       label: 'campaign-map-texture',
       size: [image.width, image.height, 1],

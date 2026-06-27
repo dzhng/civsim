@@ -214,6 +214,15 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   it preserves the original layer order, avoids camera-uniform shader branches
   that produced black campaign captures, and reduced Campaign Label Zoom from
   `0.18257` / `0.24647` crop to `0.17429` / `0.23263`.
+- Campaign overview and close fixtures need separate compile-time style
+  constants. Whole-map political wash and sea color improved when
+  `CampaignMapPass`/`CampaignTerritoryPass` accepted constructor styles and
+  the real-map route used stronger territory alpha plus a sea tint, while the
+  controlled close fixture kept the old constants. Do not key this off camera
+  uniforms inside WGSL; prior camera/uniform branches and a multi-placeholder
+  exposure refactor both produced black campaign captures. After every WGSL
+  placeholder change, inspect at least one controlled close capture, not just
+  the scenario pass/fail line.
 - Soldier model gates must exercise the same skinned batching path used by
   production battle rendering. Route each capture through `SkinnedCrowdPipeline`,
   bucket instances by class mesh, freeze clip/phase/facing/camera through query

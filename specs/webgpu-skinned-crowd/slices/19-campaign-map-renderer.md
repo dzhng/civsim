@@ -243,3 +243,20 @@ as pixel-identical despite different hashes and improved compare metrics. Treat
 that critique as weak no-new-defect evidence, not as proof that the change is
 visually complete. Shared blockers remain: selected marker clarity, crowded
 city labels, and some dark rocks near the central army.
+
+The whole-map campaign route now uses explicit WebGPU map/territory style
+constants instead of sharing the close-fixture wash. Stronger real-map
+territory alpha plus a lighter sea tint moved Campaign Whole Map from
+`0.36278` full / `0.37717` world crop to `0.28160` full / `0.29252` world
+crop while leaving Campaign Label Zoom at `0.17429` / `0.23263`. A broader
+exposure/saturation/vignette shader refactor was rejected because it produced a
+black controlled close capture despite the route completing.
+
+Fresh unprimed overview critique still blocks calling the whole map visually
+done. It flags thin dashed/diagonal sea construction lines, missing overview
+army/flag markers, weak coastline glow/depth, a still-muted/muddy palette,
+large-label clipping and collisions, lower-contrast sea labels, translucent
+polygon/fog bands, small city icons, and flatter layer separation. The accepted
+checkpoint is a measured parity improvement only; the next overview pass should
+target coastline/sea-lane artifacts, army marker LOD, and label layout before
+further palette tuning.

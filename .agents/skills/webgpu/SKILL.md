@@ -309,6 +309,12 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   from `0.10869` to `0.11165`, and a fewer-potholes/more-rocks variant worsened
   it to `0.11206`; both still looked patterned. Change the feature
   representation/layout instead of brute-forcing density.
+- Battle terrain shader detail should be camera-style scoped. A global
+  greener/higher-frequency base shader helped Battle Max Crowd but risked
+  destabilizing close DPR2 selection; compiling a separate wide tactical
+  terrain style and selecting it only for low-zoom battle cameras improved
+  Battle Max Crowd (`0.20990` to `0.20404`, crop `0.23754` to `0.22554`) while
+  keeping Battle Selection DPR2 crop steady at `0.13474`.
 - Use instancing, batching, storage buffers, and GPU-side phase passes for scale.
   Avoid CPU readbacks in hot paths; debug readbacks must be bounded and named.
 - For iterative effects or simulations, separate phases such as `state`,

@@ -96,6 +96,12 @@ Current checkpoint:
   important artifact to reduce. Terrain evidence increased from `1641 / 1531`
   quads/scenery to `2028 / 1892` in DPR2, and from `12879 / 12079` to
   `18279 / 17379` in Battle Max Crowd.
+- A wide tactical terrain shader style now applies only to low-zoom battle
+  cameras, leaving close selection views on the calmer default terrain. This
+  scoped pass raised Battle Max Crowd edge energy without destabilizing DPR2:
+  Battle Max Crowd moved from `0.20990` / `0.23754` crop to `0.20404` /
+  `0.22554`, world-crop edge ratio improved from `0.75226` to `0.87749`, and
+  Battle Selection DPR2 stayed at `0.13474` crop.
 
 ## Verification
 
@@ -154,3 +160,10 @@ fewer-potholes/more-rocks variant moved it to `0.11206` / `0.14102`. Both still
 read as patterned/stamped terrain. The next terrain-feature pass should change
 feature representation, boundaries, and object placement rather than adding
 more per-cell detail density.
+
+Fresh unprimed critique on the wide tactical Battle Max Crowd update says the
+candidate is more complete in terrain coverage, crowd count, and environmental
+texture, but not yet more readable overall. Remaining blockers: soldiers still
+read as tiny specks behind dominant cards/bars, the yellow-green haze flattens
+props, the lower HUD covers active battle space, and repeated terrain mottling
+is visible.

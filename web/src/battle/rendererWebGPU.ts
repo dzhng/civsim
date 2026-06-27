@@ -150,6 +150,7 @@ export class BattleRendererWebGPU {
       clear: { r: 0.16, g: 0.24, b: 0.15, a: 1 },
       terrainBackdropRect: expandedTerrainRect(this.terrainRect),
       terrainRect: this.terrainRect,
+      terrainStyle: camera.zoom < 1.2 ? 'wide-detail' : 'default',
       markers: this.markers,
       extra: (pass) => {
         this.terrain!.draw(pass);

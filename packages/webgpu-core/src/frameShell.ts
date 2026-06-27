@@ -27,6 +27,7 @@ export interface FrameCommands {
   markers?: MarkerInstance[];
   terrainRect?: [number, number, number, number];
   terrainBackdropRect?: [number, number, number, number];
+  terrainStyle?: 'default' | 'wide-detail';
   clear?: GPUColor;
   extra?: (pass: GPURenderPassEncoder, shell: RawFrameShellImpl) => void;
 }
@@ -41,7 +42,74 @@ export interface FrameShellStats {
   atmosphere: string;
 }
 
-const TERRAIN_WGSL = `
+interface TerrainShaderStyle {
+  oliveLow: string;
+  oliveHigh: string;
+  dry: string;
+  lightFleckLow: string;
+  lightFleckHigh: string;
+  darkFleckLow: string;
+  darkFleckHigh: string;
+  stoneFleckLow: string;
+  stoneFleckHigh: string;
+  speckleStrength: string;
+  dryMixBase: string;
+  trampleMix: string;
+  stubbleColor: string;
+  stubbleStrength: string;
+  darkFleckColor: string;
+  darkFleckStrength: string;
+  stoneFleckStrength: string;
+  dustStrength: string;
+  aerialStrength: string;
+}
+
+const DEFAULT_TERRAIN_STYLE: TerrainShaderStyle = {
+  oliveLow: 'vec3f(0.43, 0.56, 0.22)',
+  oliveHigh: 'vec3f(0.66, 0.69, 0.33)',
+  dry: 'vec3f(0.76, 0.67, 0.39)',
+  lightFleckLow: '0.884',
+  lightFleckHigh: '0.990',
+  darkFleckLow: '0.820',
+  darkFleckHigh: '0.982',
+  stoneFleckLow: '0.924',
+  stoneFleckHigh: '0.996',
+  speckleStrength: '0.315',
+  dryMixBase: '0.22',
+  trampleMix: '0.15',
+  stubbleColor: 'vec3f(0.53, 0.48, 0.25)',
+  stubbleStrength: '0.055',
+  darkFleckColor: 'vec3f(0.47, 0.43, 0.32)',
+  darkFleckStrength: '0.38',
+  stoneFleckStrength: '0.30',
+  dustStrength: '0.14',
+  aerialStrength: '0.22',
+};
+
+const WIDE_DETAIL_TERRAIN_STYLE: TerrainShaderStyle = {
+  oliveLow: 'vec3f(0.44, 0.58, 0.22)',
+  oliveHigh: 'vec3f(0.68, 0.71, 0.33)',
+  dry: 'vec3f(0.75, 0.67, 0.39)',
+  lightFleckLow: '0.876',
+  lightFleckHigh: '0.988',
+  darkFleckLow: '0.800',
+  darkFleckHigh: '0.976',
+  stoneFleckLow: '0.916',
+  stoneFleckHigh: '0.995',
+  speckleStrength: '0.325',
+  dryMixBase: '0.20',
+  trampleMix: '0.14',
+  stubbleColor: 'vec3f(0.52, 0.47, 0.25)',
+  stubbleStrength: '0.063',
+  darkFleckColor: 'vec3f(0.45, 0.42, 0.31)',
+  darkFleckStrength: '0.42',
+  stoneFleckStrength: '0.32',
+  dustStrength: '0.12',
+  aerialStrength: '0.19',
+};
+
+function terrainWgsl(style: TerrainShaderStyle) {
+  return `
 struct Camera { x:f32, y:f32, zoom:f32, cosP:f32, width:f32, height:f32, cosYaw:f32, sinYaw:f32, perspective:f32, pad0:f32, pad1:f32, pad2:f32 };
 @group(0) @binding(0) var<uniform> cam: Camera;
 struct VsOut { @builtin(position) pos: vec4f, @location(0) world: vec2f, @location(1) dist: f32 };
@@ -95,8 +163,8 @@ fn fs(in: VsOut) -> @location(0) vec4f {
   let normal = normalize(vec3f(-hx * 1.45, -hy * 1.45, 1.0));
   let lambert = clamp(dot(normal, sun), 0.0, 1.0);
   let grazing = smoothstep(0.16, 0.86, ridged(vec2f(in.world.x * 0.12 + in.world.y * 0.03, in.world.y * 0.09)));
-  let olive = mix(vec3f(0.43, 0.56, 0.22), vec3f(0.66, 0.69, 0.33), mid * 0.66 + fine * 0.16 + relief * 0.18);
-  let dry = vec3f(0.76, 0.67, 0.39);
+  let olive = mix(${style.oliveLow}, ${style.oliveHigh}, mid * 0.66 + fine * 0.16 + relief * 0.18);
+  let dry = ${style.dry};
   let scrubPatch = smoothstep(0.50, 0.86, broad) * (1.0 - smoothstep(0.86, 0.98, fine));
   let trample = smoothstep(0.72, 0.98, vnoise((in.world + vec2f(13.0, -7.0)) * 0.18));
   let rakedDust = smoothstep(0.58, 0.92, grazing) * (0.08 + relief * 0.08);
@@ -105,24 +173,28 @@ fn fs(in: VsOut) -> @location(0) vec4f {
   let blade = hash(seed + vec2f(19.0, 41.0));
   let pebble = hash(seed + vec2f(73.0, 11.0));
   let stubble = smoothstep(0.66, 0.95, ridged(vec2f(in.world.x * 1.26 + in.world.y * 0.18, in.world.y * 0.84)));
-  let lightFleck = smoothstep(0.884, 0.990, fleck) * (0.46 + 0.54 * fine);
-  let darkFleck = smoothstep(0.820, 0.982, blade) * (1.0 - smoothstep(0.76, 0.98, broad));
-  let stoneFleck = smoothstep(0.924, 0.996, pebble) * (0.36 + relief * 0.46);
-  let speckle = lightFleck * 0.315;
-  var grass = mix(olive, dry, 0.22 + trample * 0.15);
+  let lightFleck = smoothstep(${style.lightFleckLow}, ${style.lightFleckHigh}, fleck) * (0.46 + 0.54 * fine);
+  let darkFleck = smoothstep(${style.darkFleckLow}, ${style.darkFleckHigh}, blade) * (1.0 - smoothstep(0.76, 0.98, broad));
+  let stoneFleck = smoothstep(${style.stoneFleckLow}, ${style.stoneFleckHigh}, pebble) * (0.36 + relief * 0.46);
+  let speckle = lightFleck * ${style.speckleStrength};
+  var grass = mix(olive, dry, ${style.dryMixBase} + trample * ${style.trampleMix});
   grass = mix(grass, vec3f(0.31, 0.39, 0.18), scrubPatch * 0.34);
   grass = mix(grass, vec3f(0.88, 0.75, 0.47), rakedDust);
   grass *= 0.70 + lambert * 0.34;
   grass += vec3f(0.13, 0.12, 0.055) * speckle;
-  grass = mix(grass, vec3f(0.53, 0.48, 0.25), stubble * 0.055);
-  grass = mix(grass, grass * vec3f(0.47, 0.43, 0.32), darkFleck * 0.38);
-  grass = mix(grass, vec3f(0.46, 0.43, 0.32), stoneFleck * 0.30);
-  let dust = 0.14 * smoothstep(18.0, 96.0, in.dist);
+  grass = mix(grass, ${style.stubbleColor}, stubble * ${style.stubbleStrength});
+  grass = mix(grass, grass * ${style.darkFleckColor}, darkFleck * ${style.darkFleckStrength});
+  grass = mix(grass, vec3f(0.46, 0.43, 0.32), stoneFleck * ${style.stoneFleckStrength});
+  let dust = ${style.dustStrength} * smoothstep(18.0, 96.0, in.dist);
   let aerial = smoothstep(120.0, 420.0, in.dist);
   let sunBleached = mix(grass, vec3f(0.86, 0.72, 0.46), dust);
   let haze = vec3f(0.78, 0.75, 0.64);
-  return vec4f(mix(sunBleached, haze, aerial * 0.22), 1.0);
+  return vec4f(mix(sunBleached, haze, aerial * ${style.aerialStrength}), 1.0);
 }`;
+}
+
+const TERRAIN_WGSL = terrainWgsl(DEFAULT_TERRAIN_STYLE);
+const TERRAIN_WIDE_DETAIL_WGSL = terrainWgsl(WIDE_DETAIL_TERRAIN_STYLE);
 
 const TERRAIN_BACKDROP_WGSL = `
 struct Camera { x:f32, y:f32, zoom:f32, cosP:f32, width:f32, height:f32, cosYaw:f32, sinYaw:f32, perspective:f32, pad0:f32, pad1:f32, pad2:f32 };
@@ -217,6 +289,7 @@ export class RawFrameShellImpl implements RawFrameShell {
 
   private context: GPUCanvasContext;
   private terrainPipeline: GPURenderPipeline;
+  private terrainWideDetailPipeline: GPURenderPipeline;
   private terrainBackdropPipeline: GPURenderPipeline;
   private markerPipeline: GPURenderPipeline;
   private cameraBuffer: GPUBuffer;
@@ -250,6 +323,7 @@ export class RawFrameShellImpl implements RawFrameShell {
       entries: [{ binding: 0, resource: { buffer: this.cameraBuffer } }],
     });
     this.terrainPipeline = this.makeTerrainPipeline();
+    this.terrainWideDetailPipeline = this.makeTerrainPipeline('terrain-wide-detail', TERRAIN_WIDE_DETAIL_WGSL);
     this.terrainBackdropPipeline = this.makeTerrainBackdropPipeline();
     this.markerPipeline = this.makeMarkerPipeline();
     this.terrainBackdropVertexBuffer = this.device.createBuffer({
@@ -315,7 +389,7 @@ export class RawFrameShellImpl implements RawFrameShell {
       pass.setVertexBuffer(0, this.terrainBackdropVertexBuffer);
       pass.draw(4);
     }
-    pass.setPipeline(this.terrainPipeline);
+    pass.setPipeline(commands.terrainStyle === 'wide-detail' ? this.terrainWideDetailPipeline : this.terrainPipeline);
     pass.setVertexBuffer(0, this.terrainVertexBuffer);
     pass.draw(4);
     if (this.markerCount > 0) {
@@ -377,10 +451,10 @@ export class RawFrameShellImpl implements RawFrameShell {
     this.device.queue.writeBuffer(this.markerInstanceBuffer, 0, data);
   }
 
-  private makeTerrainPipeline() {
-    const module = this.device.createShaderModule({ label: 'terrain-wgsl', code: TERRAIN_WGSL });
+  private makeTerrainPipeline(label = 'terrain', code = TERRAIN_WGSL) {
+    const module = this.device.createShaderModule({ label: `${label}-wgsl`, code });
     return this.device.createRenderPipeline({
-      label: 'terrain-pipeline',
+      label: `${label}-pipeline`,
       layout: this.device.createPipelineLayout({ bindGroupLayouts: [this.cameraBindGroupLayout] }),
       vertex: { module, entryPoint: 'vs', buffers: [{ arrayStride: 8, attributes: [{ shaderLocation: 0, offset: 0, format: 'float32x2' }] }] },
       fragment: { module, entryPoint: 'fs', targets: [{ format: this.info.format }] },

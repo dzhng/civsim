@@ -268,6 +268,12 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   luminance gap from about `-1.999` to `-0.945` with only a tiny crop-score
   tradeoff (`0.23266` to `0.23285`) and left controlled close campaign captures
   unchanged.
+- Fit campaign sea labels to the actual visible water lane, not just the map
+  feature name. Curving a long label helps, but a label near a narrow coast can
+  still spill onto land; shrink it and move it into wider water, then inspect
+  the PNG because grayscale parity can miss semantic land/water overlap. The
+  Atlantic label near Spain was fixed this way and moved Campaign Whole Map to
+  `0.22546` full / `0.23390` crop.
 - Do not satisfy old campaign marker parity with generic dot/circle markers.
   A simple overview marker pass can move pixels while still reading as missing
   flags/models to an unprimed reviewer. Port the old icon/flag hierarchy and

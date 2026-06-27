@@ -405,3 +405,9 @@ screen-space plank that spills into land. The human-readability fix trades the
 Campaign Whole Map metric from `0.22443` full / `0.23285` crop to `0.22589` /
 `0.23435`; the luminance delta remains slightly improved at `-0.81106` full /
 `-0.92920` crop.
+
+The Atlantic label is now sized down and shifted into the wider ocean west of
+Iberia instead of hugging the Spanish coast. This keeps the full label over
+water in Campaign Whole Map and slightly improves the parity score to `0.22546`
+full / `0.23390` crop. The remaining issue is the western cloud/fog veil
+competing with the label, not land overlap.

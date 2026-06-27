@@ -798,7 +798,7 @@ function seaLabels(): CampaignLabel[] {
     { text: 'Aegean Sea', x: 600, y: 150, size: 17, kind: 'sea', priority: 4, angle: -0.7, curve: 0.42 },
     { text: 'Black Sea', x: 1080, y: 1180, size: 24, kind: 'sea', priority: 4, curve: 0.5 },
     { text: 'Iberian Sea', x: -1640, y: -40, size: 22, kind: 'sea', priority: 4, curve: -0.45 },
-    { text: 'Atlantic Ocean', x: -2120, y: 560, size: 22, kind: 'sea', priority: 4, angle: -1.2, curve: 0.5 },
+    { text: 'Atlantic Ocean', x: -2200, y: 760, size: 15, kind: 'sea', priority: 4, angle: -1.1, curve: 0.18 },
   ];
 }
 

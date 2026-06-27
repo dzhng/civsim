@@ -731,7 +731,7 @@ function pushEdgeLines(out: number[], edge: CampaignMapEdgeData) {
     const a = edge.via[i - 1];
     const b = edge.via[i];
     if (edge.kind === 'sea') {
-      pushBand(a, b, [0.56, 0.72, 0.86, 0.26], 0.85);
+      pushBand(a, b, [0.58, 0.72, 0.82, 0.075], 0.46);
       continue;
     }
     pushBand(a, b, [0.08, 0.072, 0.058, 0.42], 0.20, -1.14);

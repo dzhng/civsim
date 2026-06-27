@@ -260,3 +260,13 @@ polygon/fog bands, small city icons, and flatter layer separation. The accepted
 checkpoint is a measured parity improvement only; the next overview pass should
 target coastline/sea-lane artifacts, army marker LOD, and label layout before
 further palette tuning.
+
+The sea-lane bands are now thinner and lower alpha so they read as subtle
+routes rather than construction/debug lines over the darker WebGPU water.
+Campaign Whole Map moved from `0.28160` full / `0.29252` world crop to
+`0.27079` full / `0.28114` world crop; Campaign Label Zoom stayed unchanged at
+`0.17429` / `0.23263`. Fresh unprimed critique no longer called out the sea
+construction-line artifact, but it still blocks whole-map acceptance on missing
+overview army/flag markers, flat territory overlays, weak coastlines, low-
+contrast sea labels, faction/city label collisions, muted terrain contrast, and
+top-toolbar clipping.

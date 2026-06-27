@@ -17,6 +17,13 @@ and roads foreshorten, and ground-plane overlays such as selection rings share
 that projection. A flat orthographic rectangle is not accepted for the
 campaign-label-zoom gate.
 
+Campaign close views depend on the shared 3D render graph from slice 13. Roads,
+ground decals, scenery, city meshes, army meshes, shadows, fog, and labels may
+occupy different passes, but every true world object must use the same
+camera/depth contract. The campaign map slice should not fix depth problems by
+nudging individual models or relying on hand-authored draw order; depth
+failures belong to the shared renderer foundation first.
+
 ## API Seam
 
 - `packages/game-renderer/src/campaign/mapPass.ts`
@@ -37,6 +44,9 @@ campaign-label-zoom gate.
     territory, atmosphere, roads, entity, selection, projection, label, freeze,
     and stats surface. The legacy campaign renderer route has been retired;
     legacy captures are migration evidence only.
+  - final adapter checkpoint: composes campaign passes through the shared
+    render graph's depth-tested world layer and explicit overlay layer rather
+    than one flat painter-order render pass.
 - `packages/game-renderer/src/campaign/mapPass.ts`
   - `CampaignLabelPass` generates a canvas glyph atlas and draws visible label
     quads through raw WebGPU with zoom-aware density, Cinzel city/faction labels,
@@ -59,6 +69,10 @@ campaign-label-zoom gate.
 - Dedicated model/reference screenshots cover road segments, tree clusters,
   rocks/mountains, terrain relief/water/fog samples, and label typography/icon
   samples for city, army, faction, and sea labels.
+- Close campaign visual gates include crops proving that world-space depth is
+  active: scenery occludes ground markers, roads/ground decals sit beneath
+  units/cities, and city/army meshes do not depend on manual back-to-front
+  triangle emission.
 - `web/scenarios/webgpu-lab-routes.mjs` opens `/webgpu/campaign-map?preset=whole`
   and checks the current checkpoint: textured parchment map, WebGPU territory
   texture, border segments, WebGPU atmosphere layer, sea, road/sea-lane pixels,

@@ -362,6 +362,14 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   merely raising it: move the mast to the settlement core, lower the cloth into
   the building volume, and draw a central roof/keep after the standard so the
   city visibly swallows the lower mast like a standard inserted into the city.
+- If a nested 3D object still cannot read correctly after reasonable mesh
+  placement, treat it as a render-graph/depth-contract bug, not an aesthetics
+  tweak. Campaign flags inside cities and future garrisoned armies inside
+  cities are basic 3D-engine requirements shared with battle rank/weapon
+  occlusion. Do not keep iterating painter-order hacks; add a depth-tested
+  world pass with compatible pipelines, shared camera-space depth, and explicit
+  overlay passes, then verify it with cropped nested-object fixtures before
+  accepting production model polish.
 - Use instancing, batching, storage buffers, and GPU-side phase passes for scale.
   Avoid CPU readbacks in hot paths; debug readbacks must be bounded and named.
 - For iterative effects or simulations, separate phases such as `state`,

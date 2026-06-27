@@ -8,6 +8,16 @@ renderer; the full goal goes further: battle terrain/effects, campaign map,
 campaign markers, menus, HUD/composition surfaces, verification harnesses,
 performance gates, and production cutover all move onto the new WebGPU path.
 
+This is a proper shared 3D engine port, not a painter-order approximation.
+Battle and campaign both need the same foundational ability to place 3D objects
+inside, behind, in front of, and on top of other 3D objects. A city standard
+must be planted through the settlement volume and occluded by the roofs/walls
+that stand in front of it; a future garrisoned army must be able to sit inside a
+city volume with correct partial or full occlusion; battle soldiers, weapons,
+shields, terrain props, buildings, projectiles, shadows, and selection markers
+must share a real world-space/depth contract instead of relying on hand-authored
+draw order.
+
 The old Babylon/WebGL renderers are being removed as WebGPU reaches production
 coverage. The plan is complete only when the shipped default game route can be
 played without Babylon, Three, or the legacy 2D battle renderer.
@@ -62,6 +72,13 @@ are ground-plane markers and must foreshorten with the terrain as if painted on
 the world surface. The current WebGPU close-up remains blocked until this
 projection gap is fixed and verified against the archived campaign-label-zoom
 reference.
+
+Depth correctness is part of parity, not polish. The renderer must support
+depth-tested 3D passes, stable pass ordering, nested/interpenetrating model
+fixtures, and deliberate overlay layers. Manual back-to-front mesh emission is
+allowed only as a temporary scaffold for flat/impostor passes; it is not an
+accepted solution for cities containing standards, garrisoned armies inside
+cities, battle rank ordering, or any other true 3D composition.
 
 Performance improvement means the same gameplay scenes run with lower median
 and p95 frame time, lower CPU upload cost, stable memory, and more crowd/detail
@@ -147,6 +164,12 @@ next useful question, then lock it with tests and screenshots.
 
 - **Raw WebGPU runtime.** Frameworks are optional tooling, not the renderer
   architecture.
+- **Shared depth-tested 3D foundation.** `packages/webgpu-core` and
+  `packages/game-renderer` must expose a render graph with depth attachments,
+  clear depth/write/compare policy, and pass compatibility checks before
+  campaign/battle model tweaks can be accepted as final. If adding depth would
+  require changing every pipeline in a pass, split the pass instead of slipping
+  a one-off flag into the current flat frame shell.
 - **Placeholders unblock everything.** Every renderer/art slice must ship with
   generated placeholder assets first: skeletons, meshes, clips, textures,
   faction masks, LODs, impostors, and manifests.
@@ -253,7 +276,8 @@ packages, not Babylon/Three renderer forks.
 12. `11-campaign-reuse.md` reuses low-LOD crowd assets in campaign.
 13. `12-art-production-contract.md` finalizes the real-art handoff lane.
 14. `13-render-graph-resource-lifetime.md` turns the raw frame shell into a
-    reusable full-game render graph.
+    reusable full-game render graph with explicit depth-tested 3D passes and
+    nested-object fixtures.
 15. `14-battle-terrain-water-scenery.md` ports battle terrain, water, sky,
     haze, shadows, and scenery to raw WebGPU.
 16. `15-battle-crowd-production-parity.md` replaces the live battle soldier

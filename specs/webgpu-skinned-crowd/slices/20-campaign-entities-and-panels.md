@@ -11,12 +11,23 @@ marker, shadows, flags, and label icons are the migration target. Procedural
 flat seals or billboards are acceptable only while the raw-WebGPU pass is being
 built; they do not satisfy final visual parity.
 
+This slice is blocked from final acceptance until campaign entities are true
+3D objects in the shared depth-tested render graph from slice 13. A city flag is
+not a separate overlay and not a taller billboard: the pole and cloth must be
+physically planted inside the settlement model, with the front roofs/walls
+occluding the lower standard according to camera depth. The same foundation must
+support future garrisons: an army can occupy the city volume and be partially or
+fully hidden by the city without special-case painter-order hacks.
+
 ## API Seam
 
 - `packages/game-renderer/src/campaign/entityPass.ts`
   - current checkpoint: WebGPU city/army markers, colored by faction livery
     with a separate allegiance accent. Next checkpoint: port the old 3D
     settlement clusters and army-standard/figure markers into raw WebGPU.
+  - final checkpoint: depth-tested city/army meshes using the shared 3D camera
+    and graph attachment contract, including nested child/occupant transforms
+    for city standards and garrisoned armies.
 - `packages/game-renderer/src/campaign/selectionPass.ts`
   - current checkpoint: WebGPU city/army selection footprints in the campaign
     selection language.
@@ -56,6 +67,13 @@ built; they do not satisfy final visual parity.
 - Additional model-level screenshots must isolate city/town markers, army flags
   attached to units, selection rings, label icons, and representative figures
   before the whole-scene visual report can accept this slice.
+- Nested-model screenshots must isolate:
+  - city flag planted through the city core, with the city occluding the lower
+    pole/cloth.
+  - army outside city, partially garrisoned in city, and fully hidden inside
+    city using the same model/depth path.
+  - selected city and selected army rings on the ground plane, with city/army
+    geometry occluding the portions underneath their footprints.
 - Selection-ring screenshots must show the ring sitting outside the city/army
   shadow footprint and projected with the same perspective as the terrain.
 
@@ -66,6 +84,8 @@ built; they do not satisfy final visual parity.
 - Battle handoff remains disabled in visual-only fixtures.
 - The retained DOM layer is explicit and transitional; WebGPU owns the map,
   entity glyphs, roads, and selection footprints for this checkpoint.
+- Any city/flag/army overlap fix that works only by changing triangle append
+  order is temporary debt and must not be recorded as final parity.
 
 ## Human Feedback
 

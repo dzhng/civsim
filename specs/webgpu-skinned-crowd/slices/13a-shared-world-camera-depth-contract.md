@@ -158,6 +158,11 @@ shadows that sit on the ground instead of floating as screen overlays.
   validates phase order, publishes depth pass ids/modes in stats, and the lab
   scenario scans source routes so a future depth pass cannot omit its
   read/write contract.
+- `RawFrameShell.drawFrame` also validates loose runtime command objects before
+  encoding GPU work. The lab frame-shell route now publishes negative fixtures
+  proving unsupported phases, missing/unsupported world-depth modes, and depth
+  modes on background passes are rejected even when a caller bypasses TypeScript
+  with JS or casts.
 - `FrameGraphDepthMode`, the production `worldDepth` attachment name, and the
   `depth24plus` format now flow from `packages/webgpu-core/src/depthContract.ts`.
   Render graph and pipeline code import the contract rather than redeclaring the

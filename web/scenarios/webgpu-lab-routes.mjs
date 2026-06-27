@@ -11,7 +11,11 @@ export const meta = {
 };
 
 const routes = [
-  ['frame-shell', (s) => s?.ok && s.route === 'frame-shell' && s.stats.atmosphere === 'aegean-sky-haze' && s.stats.cameraContract === 'shared-world-camera-wgsl'],
+  ['frame-shell', (s) => s?.ok
+    && s.route === 'frame-shell'
+    && s.stats.atmosphere === 'aegean-sky-haze'
+    && s.stats.cameraContract === 'shared-world-camera-wgsl'
+    && frameGraphContractFixturesRejected(s.stats.frameGraphContractFixtures)],
   ['assets', (s) => s?.ok && s.route === 'assets' && s.stats.badErrors > 0 && s.stats.importUi?.paste && s.stats.importUi?.file && s.stats.importUi?.drop],
   ['crowd-data?count=1000', (s) => s?.ok && s.route === 'crowd-data' && s.stats.stats.written === 1000],
   ['animation-state', (s) => s?.ok && s.route === 'animation-state'],
@@ -137,9 +141,21 @@ function hasGraphDepthPassMode(passes, id, mode) {
 }
 
 function depthContractFixturesRejected(fixtures) {
-  const expected = new Set(['readModeWritesDepth', 'writeModeReadsDepth', 'unsupportedDepthAttachment']);
+  const expected = new Set(['readModeWritesDepth', 'writeModeReadsDepth', 'unsupportedDepthAttachment', 'unsupportedDepthMode']);
   return Array.isArray(fixtures)
-    && fixtures.length === 3
+    && fixtures.length === 4
+    && fixtures.every((fixture) =>
+      expected.has(fixture?.id)
+      && fixture?.rejected === true
+      && Array.isArray(fixture?.diagnostics)
+      && fixture.diagnostics.length > 0
+    );
+}
+
+function frameGraphContractFixturesRejected(fixtures) {
+  const expected = new Set(['backgroundDepthMode', 'worldMissingDepthMode', 'worldUnsupportedDepthMode', 'unsupportedPhase']);
+  return Array.isArray(fixtures)
+    && fixtures.length === 4
     && fixtures.every((fixture) =>
       expected.has(fixture?.id)
       && fixture?.rejected === true
@@ -355,6 +371,7 @@ async function findWorldDepthPassMetadataFootguns() {
     const source = await readFile(file, 'utf8');
     const passObjects = source.match(/\{[^{}]*phase:\s*'world-depth'[^{}]*\}/g) ?? [];
     for (const passObject of passObjects) {
+      if (file.pathname.endsWith('/apps/webgpu-lab/src/router.ts') && /\bid:\s*'bad-/.test(passObject)) continue;
       if (!/\bdepth:\s*'(?:read|read-write|write)'/.test(passObject)) {
         const id = passObject.match(/\bid:\s*'([^']+)'/)?.[1] ?? 'unknown pass';
         matches.push(`${file.pathname.replace(root, '')}: ${id} missing world-depth depth mode`);

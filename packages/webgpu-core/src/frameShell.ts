@@ -1,6 +1,6 @@
 import { cameraUniformData, type CameraSnapshot } from './cameraUniform';
 import { WORLD_CAMERA_WGSL } from './cameraWgsl';
-import { WEBGPU_DEPTH_FORMAT, type WebGpuDepthMode } from './depthContract';
+import { WEBGPU_DEPTH_FORMAT, isWebGpuDepthMode, type WebGpuDepthMode } from './depthContract';
 import { requestWebGpuDevice, type WebGpuDeviceInfo } from './device';
 
 export interface MarkerInstance {
@@ -72,6 +72,10 @@ export interface FrameGraphCommands {
 }
 
 export type FramePhaseKind = 'background' | 'world-depth' | 'overlay';
+
+function isFramePhaseKind(value: unknown): value is FramePhaseKind {
+  return value === 'background' || value === 'world-depth' || value === 'overlay';
+}
 
 function frameGraphPhaseOrder(phase: FramePhaseKind): number {
   switch (phase) {
@@ -420,10 +424,10 @@ export class RawFrameShellImpl implements RawFrameShell {
   }
 
   drawFrame(commands: FrameGraphCommands = {}) {
-    this.frame++;
-    this.lastPhases = [];
     const graphPasses = commands.passes ?? [];
     this.assertFrameGraphPasses(graphPasses);
+    this.frame++;
+    this.lastPhases = [];
     const backgroundPasses = graphPasses.filter((pass) => pass.phase === 'background');
     const worldPasses = graphPasses.filter((pass) => pass.phase === 'world-depth');
     const overlayPasses = graphPasses.filter((pass) => pass.phase === 'overlay');
@@ -552,11 +556,27 @@ export class RawFrameShellImpl implements RawFrameShell {
     const seen = new Set<string>();
     let lastPhaseOrder = -1;
     for (const pass of passes) {
-      if (seen.has(pass.id)) throw new Error(`duplicate frame graph pass id "${pass.id}"`);
-      seen.add(pass.id);
-      const order = frameGraphPhaseOrder(pass.phase);
+      const candidate = pass as FrameGraphPass & { depth?: unknown; id?: unknown; phase?: unknown };
+      const id = typeof candidate.id === 'string' && candidate.id.length > 0 ? candidate.id : '<unknown>';
+      if (typeof candidate.id !== 'string' || candidate.id.length === 0) {
+        throw new Error('frame graph pass must declare a non-empty id');
+      }
+      if (!isFramePhaseKind(candidate.phase)) {
+        throw new Error(`frame graph pass "${id}" declares unsupported phase "${String(candidate.phase)}"`);
+      }
+      if (seen.has(id)) throw new Error(`duplicate frame graph pass id "${id}"`);
+      seen.add(id);
+      const hasDepth = Object.prototype.hasOwnProperty.call(candidate, 'depth');
+      if (candidate.phase === 'world-depth') {
+        if (!isWebGpuDepthMode(candidate.depth)) {
+          throw new Error(`world-depth frame graph pass "${id}" must declare depth mode "read", "read-write", or "write"`);
+        }
+      } else if (hasDepth) {
+        throw new Error(`non-world-depth frame graph pass "${id}" must not declare a depth mode`);
+      }
+      const order = frameGraphPhaseOrder(candidate.phase);
       if (order < lastPhaseOrder) {
-        throw new Error(`frame graph pass "${pass.id}" moves phase order backward to "${pass.phase}"`);
+        throw new Error(`frame graph pass "${id}" moves phase order backward to "${candidate.phase}"`);
       }
       lastPhaseOrder = Math.max(lastPhaseOrder, order);
     }

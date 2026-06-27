@@ -556,6 +556,11 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   opaque, skinned, nested, or scenery geometry that participates in occlusion;
   reserve `write` for a dedicated depth-fill pass. Publish those modes in
   `FrameShellStats.phases[].depthPasses` and make scenarios assert them.
+- Treat the live frame shell as a runtime boundary, not only a TypeScript
+  boundary. `RawFrameShell.drawFrame` must reject malformed pass commands:
+  unsupported frame phases, missing or unsupported world-depth modes, and depth
+  modes on background/overlay passes. Keep negative fixtures in the lab route
+  so JS callers and loose future tooling cannot bypass the phase contract.
 - Treat render-graph depth modes as exclusive access contracts. A `read` depth
   pass must not write the attachment, a `write` pass must not read it, and the
   full-game graph should reject private depth attachments that bypass the

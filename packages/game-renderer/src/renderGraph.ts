@@ -1,4 +1,4 @@
-import { WEBGPU_DEPTH_FORMAT, WEBGPU_WORLD_DEPTH_ATTACHMENT, type WebGpuDepthMode } from '../../webgpu-core/src/depthContract';
+import { WEBGPU_DEPTH_FORMAT, WEBGPU_WORLD_DEPTH_ATTACHMENT, isWebGpuDepthMode, type WebGpuDepthMode } from '../../webgpu-core/src/depthContract';
 
 export type RenderGraphPhase = 'frame' | 'battle' | 'campaign' | 'ui' | 'post';
 export type RenderGraphFramePhase = 'background' | 'world-depth' | 'overlay';
@@ -174,6 +174,9 @@ export function compileRenderGraph(passes: readonly RenderGraphPass[]): RenderGr
     }
 
     if (pass.depth) {
+      if (!isWebGpuDepthMode(pass.depth.mode)) {
+        diagnostics.push(`pass "${pass.id}" declares unsupported depth mode "${String(pass.depth.mode)}"`);
+      }
       if (pass.depth.attachment !== WEBGPU_WORLD_DEPTH_ATTACHMENT) {
         diagnostics.push(`pass "${pass.id}" declares unsupported depth attachment "${pass.depth.attachment}"`);
       }

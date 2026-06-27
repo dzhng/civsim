@@ -70,6 +70,12 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   adding more feature props. Deterministic high-frequency grass, stubble, and
   pebble detail in the shader can raise edge energy without reintroducing
   debug-line or square-overlay artifacts.
+- Tune battle base terrain and sim-tint props as one system. If the full-frame
+  edge-energy ratio is low, greener/higher-frequency base grass can move the
+  metric more than simply adding larger feature blobs, while smaller denser
+  prop quads make forest/mud read as authored terrain. Watch the exposed
+  terrain quad/scenery counts after each change so the improvement stays
+  bounded instead of becoming a brute-force overdraw path.
 - For campaign close-view parity, road line styling can dominate the score and
   the human read. Tune road mesh widths, alpha, and grey-stone/shadow colors in
   the line pass before changing camera or labels; then rerun the parity helper.

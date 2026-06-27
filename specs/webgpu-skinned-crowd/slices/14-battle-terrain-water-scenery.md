@@ -58,6 +58,13 @@ Current checkpoint:
   exposes terrain quad/scenery counts, and `webgpu-visual-report` records those
   counts for battle rows. Battle Selection DPR2 parity distance moved from
   `0.15910` to `0.15681`, with edge-energy ratio up from `0.70633` to `0.71841`.
+- The shared base terrain shader now leans greener with denser deterministic
+  grass, stubble, and pebble flecks, while sim-tint terrain lowers the broad
+  forest/mud masks and increases smaller tree, shrub, pothole, churn, and rock
+  detail. Battle Selection DPR2 terrain evidence moved from `970 / 908`
+  quads/scenery to `1394 / 1314`, and parity distance moved from `0.15594` to
+  `0.13756`; edge-energy ratio improved from `0.71041` to `0.78274` without
+  reintroducing the earlier colored-line or square-mask artifacts.
 
 ## Verification
 

@@ -1,4 +1,4 @@
-import type { RawFrameShell } from '../../../webgpu-core/src/frameShell';
+import type { OverlayRenderPass, RawFrameShell } from '../../../webgpu-core/src/frameShell';
 
 export interface MinimapUnit {
   x: number;
@@ -149,7 +149,7 @@ export class BattleMinimapPass {
     if (packed.length > 0) this.shell.device.queue.writeBuffer(this.instanceBuffer, 0, packed);
   }
 
-  draw(pass: GPURenderPassEncoder) {
+  draw(pass: OverlayRenderPass) {
     if (this.rectCount === 0) return;
     pass.setPipeline(this.pipeline);
     pass.setVertexBuffer(0, this.quadBuffer);

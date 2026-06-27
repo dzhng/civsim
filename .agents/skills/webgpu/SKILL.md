@@ -519,6 +519,12 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   depth lines should require `WorldRenderPass`. Keep `webgpu-lab-routes`
   scanning this contract so a later cleanup cannot silently move true 3D
   geometry back into a no-depth phase.
+- Brand the non-world public draw methods too. Background underpaint passes
+  such as battle terrain, campaign map, territory, water, and flat campaign
+  lines should require `BackgroundRenderPass`; labels, markers, minimaps,
+  clouds, and debug overlays should require `OverlayRenderPass`. This keeps the
+  frame phase contract complete and makes accidental cross-phase calls a compile
+  error instead of a visual regression hunt.
 - Keep render-graph domain and frame phase separate. A pass can belong to the
   `battle` or `campaign` domain while still running in the `background`,
   `world-depth`, or `overlay` frame phase. Only the frame phase should decide

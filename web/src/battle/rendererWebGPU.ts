@@ -2,7 +2,7 @@ import type { Camera } from '../shared/camera';
 import { buildCrowdInstances, type CrowdInstance } from '../../../packages/crowd-runtime/src/instanceData';
 import { BattleOverlayPass } from '../../../packages/game-renderer/src/battle/overlayPass';
 import { BattleTerrainPass } from '../../../packages/game-renderer/src/battle/terrainPass';
-import { createFrameShell, type MarkerInstance, type RawFrameShell } from '../../../packages/webgpu-core/src/frameShell';
+import { createFrameShell, type MarkerInstance, type OverlayRenderPass, type RawFrameShell } from '../../../packages/webgpu-core/src/frameShell';
 import { WORLD_CAMERA_WGSL } from '../../../packages/webgpu-core/src/cameraWgsl';
 import { SkinnedCrowdPipeline } from '../../../packages/webgpu-core/src/skinnedPipeline';
 import { loadPlaceholderVat } from '../../../packages/soldier-assets/src/placeholders';
@@ -391,7 +391,7 @@ class BattleTrianglePass {
     if (vertices.length > 0) this.shell.device.queue.writeBuffer(this.vertexBuffer, 0, vertices);
   }
 
-  draw(pass: GPURenderPassEncoder) {
+  draw(pass: OverlayRenderPass) {
     if (this.vertexCount === 0) return;
     pass.setPipeline(this.pipeline);
     pass.setBindGroup(0, this.shell.cameraBindGroup);

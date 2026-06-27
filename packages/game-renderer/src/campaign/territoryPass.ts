@@ -1,4 +1,4 @@
-import type { RawFrameShell } from '../../../webgpu-core/src/frameShell';
+import type { BackgroundRenderPass, RawFrameShell } from '../../../webgpu-core/src/frameShell';
 import { WORLD_CAMERA_WGSL } from '../../../webgpu-core/src/cameraWgsl';
 
 export interface CampaignTerritoryTextureData {
@@ -141,7 +141,7 @@ export class CampaignTerritoryPass {
     ]));
   }
 
-  draw(pass: GPURenderPassEncoder) {
+  draw(pass: BackgroundRenderPass) {
     pass.setPipeline(this.pipeline);
     pass.setBindGroup(0, this.shell.cameraBindGroup);
     pass.setBindGroup(1, this.bindGroup);

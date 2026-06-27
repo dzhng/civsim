@@ -173,7 +173,7 @@ async function findCampaignDepthOnlyFootguns() {
   return matches.sort();
 }
 
-async function findWorldPassBrandFootguns() {
+async function findPhaseBrandFootguns() {
   const root = new URL('../../', import.meta.url).pathname;
   const files = [
     {
@@ -189,8 +189,35 @@ async function findWorldPassBrandFootguns() {
       checks: [['skinned crowd draw requires world pass', /\bdraw\s*\(\s*pass:\s*WorldRenderPass\s*\)/]],
     },
     {
+      file: new URL('../../packages/game-renderer/src/battle/terrainPass.ts', import.meta.url),
+      checks: [['battle terrain draw requires background pass', /\bdraw\s*\(\s*pass:\s*BackgroundRenderPass\s*\)/]],
+    },
+    {
+      file: new URL('../../packages/game-renderer/src/battle/overlayPass.ts', import.meta.url),
+      checks: [['battle overlay draw requires overlay pass', /\bdraw\s*\(\s*pass:\s*OverlayRenderPass\s*\)/]],
+    },
+    {
+      file: new URL('../../packages/game-renderer/src/battle/minimapPass.ts', import.meta.url),
+      checks: [['battle minimap draw requires overlay pass', /\bdraw\s*\(\s*pass:\s*OverlayRenderPass\s*\)/]],
+    },
+    {
+      file: new URL('../../web/src/battle/rendererWebGPU.ts', import.meta.url),
+      checks: [['battle debug triangles draw requires overlay pass', /class BattleTrianglePass[\s\S]*?\bdraw\s*\(\s*pass:\s*OverlayRenderPass\s*\)/]],
+    },
+    {
       file: new URL('../../packages/game-renderer/src/fixtures/nested3d.ts', import.meta.url),
       checks: [['nested fixture draw requires world pass', /\bdraw\s*\(\s*pass:\s*WorldRenderPass\s*\)/]],
+    },
+    {
+      file: new URL('../../packages/game-renderer/src/campaign/territoryPass.ts', import.meta.url),
+      checks: [['campaign territory draw requires background pass', /\bdraw\s*\(\s*pass:\s*BackgroundRenderPass\s*\)/]],
+    },
+    {
+      file: new URL('../../packages/game-renderer/src/campaign/atmospherePass.ts', import.meta.url),
+      checks: [
+        ['campaign clouds draw requires overlay pass', /export class CampaignCloudPass[\s\S]*?\bdraw\s*\(\s*pass:\s*OverlayRenderPass\s*\)/],
+        ['campaign water draw requires background pass', /export class CampaignWaterPass[\s\S]*?\bdraw\s*\(\s*pass:\s*BackgroundRenderPass\s*\)/],
+      ],
     },
     {
       file: new URL('../../packages/game-renderer/src/campaign/entityPass.ts', import.meta.url),
@@ -207,8 +234,12 @@ async function findWorldPassBrandFootguns() {
     {
       file: new URL('../../packages/game-renderer/src/campaign/mapPass.ts', import.meta.url),
       checks: [
+        ['campaign map draw requires background pass', /export class CampaignMapPass[\s\S]*?\bdraw\s*\(\s*pass:\s*BackgroundRenderPass\s*\)/],
+        ['campaign flat lines draw requires background pass', /export class CampaignLinePass[\s\S]*?\bdraw\s*\(\s*pass:\s*BackgroundRenderPass\s*\)/],
         ['campaign road draw requires world pass', /export class CampaignRoadPass[\s\S]*?\bdraw\s*\(\s*pass:\s*WorldRenderPass\s*\)/],
         ['campaign depth lines require world pass', /\bdrawDepth\s*\(\s*pass:\s*WorldRenderPass\s*\)/],
+        ['campaign markers draw requires overlay pass', /export class CampaignMarkerPass[\s\S]*?\bdraw\s*\(\s*pass:\s*OverlayRenderPass\s*\)/],
+        ['campaign labels draw requires overlay pass', /export class CampaignLabelPass[\s\S]*?\bdraw\s*\(\s*pass:\s*OverlayRenderPass\s*\)/],
       ],
     },
   ];
@@ -303,11 +334,11 @@ export async function run(ctx) {
     campaignDepthOnlyFootguns.length === 0,
     JSON.stringify({ campaignDepthOnlyFootguns }),
   );
-  const worldPassBrandFootguns = await findWorldPassBrandFootguns();
+  const phaseBrandFootguns = await findPhaseBrandFootguns();
   ctx.check(
-    'source: depth-sensitive draws require the world-depth pass brand',
-    worldPassBrandFootguns.length === 0,
-    JSON.stringify({ worldPassBrandFootguns }),
+    'source: renderer draw methods require branded frame phases',
+    phaseBrandFootguns.length === 0,
+    JSON.stringify({ phaseBrandFootguns }),
   );
 
   for (const [route, predicate] of routes) {

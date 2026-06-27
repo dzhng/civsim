@@ -1,7 +1,7 @@
 import type { CameraSnapshot } from '../../../webgpu-core/src/cameraUniform';
 import { worldToScreen } from '../../../webgpu-core/src/cameraUniform';
 import { WORLD_CAMERA_WGSL } from '../../../webgpu-core/src/cameraWgsl';
-import type { RawFrameShell, WorldRenderPass } from '../../../webgpu-core/src/frameShell';
+import type { BackgroundRenderPass, OverlayRenderPass, RawFrameShell, WorldRenderPass } from '../../../webgpu-core/src/frameShell';
 
 export interface CampaignMapNodeData {
   name: string;
@@ -396,7 +396,7 @@ export class CampaignMapPass {
     device.queue.writeBuffer(this.vertexBuffer, 0, vertices);
   }
 
-  draw(pass: GPURenderPassEncoder) {
+  draw(pass: BackgroundRenderPass) {
     pass.setPipeline(this.pipeline);
     pass.setBindGroup(0, this.shell.cameraBindGroup);
     pass.setBindGroup(1, this.bindGroup);
@@ -475,7 +475,7 @@ export class CampaignLinePass {
     if (vertices.length > 0) this.shell.device.queue.writeBuffer(this.vertexBuffer, 0, vertices);
   }
 
-  draw(pass: GPURenderPassEncoder) {
+  draw(pass: BackgroundRenderPass) {
     this.drawWithPipeline(pass, this.pipeline);
   }
 
@@ -657,7 +657,7 @@ export class CampaignMarkerPass {
     this.shell.device.queue.writeBuffer(this.instanceBuffer, 0, data);
   }
 
-  draw(pass: GPURenderPassEncoder) {
+  draw(pass: OverlayRenderPass) {
     if (this.markerCount === 0) return;
     pass.setPipeline(this.pipeline);
     pass.setBindGroup(0, this.shell.cameraBindGroup);
@@ -789,7 +789,7 @@ export class CampaignLabelPass {
     return this.statsValue;
   }
 
-  draw(pass: GPURenderPassEncoder) {
+  draw(pass: OverlayRenderPass) {
     if (this.vertexCount === 0) return;
     pass.setPipeline(this.pipeline);
     pass.setBindGroup(0, this.shell.cameraBindGroup);

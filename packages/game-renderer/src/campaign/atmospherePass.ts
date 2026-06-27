@@ -1,4 +1,4 @@
-import type { RawFrameShell } from '../../../webgpu-core/src/frameShell';
+import type { BackgroundRenderPass, OverlayRenderPass, RawFrameShell } from '../../../webgpu-core/src/frameShell';
 import { WORLD_CAMERA_WGSL } from '../../../webgpu-core/src/cameraWgsl';
 
 export interface CampaignAtmosphereRect {
@@ -163,7 +163,7 @@ export class CampaignCloudPass {
     device.queue.writeBuffer(this.vertexBuffer, 0, vertices);
   }
 
-  draw(pass: GPURenderPassEncoder) {
+  draw(pass: OverlayRenderPass) {
     pass.setPipeline(this.pipeline);
     pass.setBindGroup(0, this.shell.cameraBindGroup);
     pass.setVertexBuffer(0, this.vertexBuffer);
@@ -254,7 +254,7 @@ export class CampaignWaterPass {
     this.shell.device.queue.writeBuffer(this.instanceBuffer, 0, data);
   }
 
-  draw(pass: GPURenderPassEncoder) {
+  draw(pass: BackgroundRenderPass) {
     if (this.featureCount === 0) return;
     pass.setPipeline(this.pipeline);
     pass.setBindGroup(0, this.shell.cameraBindGroup);

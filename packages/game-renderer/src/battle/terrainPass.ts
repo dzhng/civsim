@@ -1,4 +1,4 @@
-import type { RawFrameShell } from '../../../webgpu-core/src/frameShell';
+import type { BackgroundRenderPass, RawFrameShell } from '../../../webgpu-core/src/frameShell';
 import { WORLD_CAMERA_WGSL } from '../../../webgpu-core/src/cameraWgsl';
 
 export type BattleTerrainFixture = 'coast' | 'melee' | 'dry-melee' | 'prop-field' | 'sim-tint';
@@ -276,7 +276,7 @@ export class BattleTerrainPass {
     this.upload();
   }
 
-  draw(pass: GPURenderPassEncoder) {
+  draw(pass: BackgroundRenderPass) {
     if (this.quads.length === 0) return;
     pass.setPipeline(this.pipeline);
     pass.setBindGroup(0, this.shell.cameraBindGroup);

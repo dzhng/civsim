@@ -4,6 +4,7 @@ import type { VatBake } from '../../soldier-assets/src/schema';
 import { createVatLayout, resolveVatClip } from './vatLayout';
 import type { RawFrameShell, WorldRenderPass } from './frameShell';
 import { WORLD_CAMERA_WGSL } from './cameraWgsl';
+import { WEBGPU_DEPTH_FORMAT } from './depthContract';
 
 export interface SkinnedCrowdStats {
   instances: number;
@@ -264,7 +265,7 @@ export class SkinnedCrowdPipeline {
       fragment: { module, entryPoint: 'fs', targets: [{ format: this.shell.info.format }] },
       primitive: { topology: 'triangle-list', cullMode: 'none' },
       depthStencil: {
-        format: 'depth24plus',
+        format: WEBGPU_DEPTH_FORMAT,
         depthWriteEnabled: true,
         depthCompare: 'less',
       },

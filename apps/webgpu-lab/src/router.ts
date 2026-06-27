@@ -1,5 +1,6 @@
 import { createFrameShell, type BackgroundRenderPass, type FrameGraphCommands, type FrameGraphPass, type MarkerInstance, type OverlayRenderPass, type RawFrameShell } from '../../../packages/webgpu-core/src/frameShell';
 import { screenToWorld, world3dToScreen, worldToScreen } from '../../../packages/webgpu-core/src/cameraUniform';
+import { WEBGPU_DEPTH_FORMAT, WEBGPU_WORLD_DEPTH_ATTACHMENT } from '../../../packages/webgpu-core/src/depthContract';
 import { requestWebGpuDevice, webGpuFailureMessage } from '../../../packages/webgpu-core/src/device';
 import { SkinnedCrowdPipeline } from '../../../packages/webgpu-core/src/skinnedPipeline';
 import { animationForFrame } from '../../../packages/crowd-runtime/src/animationState';
@@ -1097,8 +1098,8 @@ function renderGraphDepthContractFixtures() {
       label: 'Depth clear',
       phase: 'frame',
       framePhase: 'world-depth',
-      writes: ['worldDepth'],
-      depth: { attachment: 'worldDepth', mode: 'write', format: 'depth24plus' },
+      writes: [WEBGPU_WORLD_DEPTH_ATTACHMENT],
+      depth: { attachment: WEBGPU_WORLD_DEPTH_ATTACHMENT, mode: 'write', format: WEBGPU_DEPTH_FORMAT },
     },
   ];
   const fixtures: Array<{ id: string; pass: RenderGraphPass; expected: string }> = [
@@ -1110,9 +1111,9 @@ function renderGraphDepthContractFixtures() {
         label: 'Bad read mode writes depth',
         phase: 'campaign',
         framePhase: 'world-depth',
-        reads: ['cameraUniforms', 'worldDepth'],
-        writes: ['worldColor', 'worldDepth'],
-        depth: { attachment: 'worldDepth', mode: 'read', format: 'depth24plus' },
+        reads: ['cameraUniforms', WEBGPU_WORLD_DEPTH_ATTACHMENT],
+        writes: ['worldColor', WEBGPU_WORLD_DEPTH_ATTACHMENT],
+        depth: { attachment: WEBGPU_WORLD_DEPTH_ATTACHMENT, mode: 'read', format: WEBGPU_DEPTH_FORMAT },
       },
     },
     {
@@ -1123,9 +1124,9 @@ function renderGraphDepthContractFixtures() {
         label: 'Bad write mode reads depth',
         phase: 'battle',
         framePhase: 'world-depth',
-        reads: ['cameraUniforms', 'worldDepth'],
-        writes: ['worldDepth'],
-        depth: { attachment: 'worldDepth', mode: 'write', format: 'depth24plus' },
+        reads: ['cameraUniforms', WEBGPU_WORLD_DEPTH_ATTACHMENT],
+        writes: [WEBGPU_WORLD_DEPTH_ATTACHMENT],
+        depth: { attachment: WEBGPU_WORLD_DEPTH_ATTACHMENT, mode: 'write', format: WEBGPU_DEPTH_FORMAT },
       },
     },
     {
@@ -1138,7 +1139,7 @@ function renderGraphDepthContractFixtures() {
         framePhase: 'world-depth',
         reads: ['cameraUniforms', 'privateDepth'],
         writes: ['worldColor', 'privateDepth'],
-        depth: { attachment: 'privateDepth', mode: 'read-write', format: 'depth24plus' },
+        depth: { attachment: 'privateDepth', mode: 'read-write', format: WEBGPU_DEPTH_FORMAT },
       },
     },
   ];

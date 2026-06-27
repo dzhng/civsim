@@ -1,6 +1,7 @@
 import type { CameraSnapshot } from '../../../webgpu-core/src/cameraUniform';
 import { worldToScreen } from '../../../webgpu-core/src/cameraUniform';
 import { WORLD_CAMERA_WGSL } from '../../../webgpu-core/src/cameraWgsl';
+import { WEBGPU_DEPTH_FORMAT } from '../../../webgpu-core/src/depthContract';
 import type { BackgroundRenderPass, OverlayRenderPass, RawFrameShell, WorldRenderPass } from '../../../webgpu-core/src/frameShell';
 
 export interface CampaignMapNodeData {
@@ -454,7 +455,7 @@ export class CampaignLinePass {
       primitive: { topology: this.topology },
       ...(depth ? {
         depthStencil: {
-          format: 'depth24plus',
+          format: WEBGPU_DEPTH_FORMAT,
           depthWriteEnabled: false,
           depthCompare: 'less-equal',
         },
@@ -535,7 +536,7 @@ export class CampaignRoadPass {
       },
       primitive: { topology: 'triangle-list', cullMode: 'none' },
       depthStencil: {
-        format: 'depth24plus',
+        format: WEBGPU_DEPTH_FORMAT,
         depthWriteEnabled: false,
         depthCompare: 'less-equal',
       },

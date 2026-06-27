@@ -1,5 +1,6 @@
 import type { RawFrameShell, WorldRenderPass } from '../../../webgpu-core/src/frameShell';
 import { WORLD_CAMERA_WGSL } from '../../../webgpu-core/src/cameraWgsl';
+import { WEBGPU_DEPTH_FORMAT } from '../../../webgpu-core/src/depthContract';
 
 export interface CampaignSelectionInstance {
   x: number;
@@ -108,7 +109,7 @@ export class CampaignSelectionPass {
       },
       primitive: { topology: 'triangle-strip' },
       depthStencil: {
-        format: 'depth24plus',
+        format: WEBGPU_DEPTH_FORMAT,
         depthWriteEnabled: false,
         depthCompare: 'less-equal',
       },

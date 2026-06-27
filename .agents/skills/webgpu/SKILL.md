@@ -549,6 +549,13 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   full-game graph should reject private depth attachments that bypass the
   shared `worldDepth`. Keep negative fixtures in the lab route so this remains
   browser-verified instead of only implied by TypeScript.
+- Single-source the world depth contract. `WebGpuDepthMode`,
+  `WEBGPU_DEPTH_FORMAT`, and `WEBGPU_WORLD_DEPTH_ATTACHMENT` belong in
+  `packages/webgpu-core/src/depthContract.ts`; frame shell, render graph,
+  pipelines, and fixtures should import them. Hard-coded `depth24plus` pipeline
+  descriptors or `attachment: 'worldDepth'` literals in production renderer code
+  are a foundation smell because they let later passes quietly drift away from
+  shared 3D occlusion.
 - Shared projection does not require one numeric depth scale for every world.
   Battle and campaign should import the same camera/projection helpers, but
   large battlefields and compact campaign fixtures need named depth helpers

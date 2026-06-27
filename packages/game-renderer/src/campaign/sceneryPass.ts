@@ -1,5 +1,6 @@
 import type { RawFrameShell, WorldRenderPass } from '../../../webgpu-core/src/frameShell';
 import { WORLD_CAMERA_WGSL } from '../../../webgpu-core/src/cameraWgsl';
+import { WEBGPU_DEPTH_FORMAT } from '../../../webgpu-core/src/depthContract';
 
 export type CampaignSceneryKind = 'mountain' | 'tree' | 'conifer' | 'broadleaf' | 'rock';
 
@@ -140,7 +141,7 @@ export class CampaignSceneryPass {
       },
       primitive: { topology: 'triangle-list', cullMode: 'none' },
       depthStencil: {
-        format: 'depth24plus',
+        format: WEBGPU_DEPTH_FORMAT,
         depthWriteEnabled: true,
         depthCompare: 'less',
       },

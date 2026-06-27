@@ -1,3 +1,5 @@
+import { WEBGPU_DEPTH_FORMAT, WEBGPU_WORLD_DEPTH_ATTACHMENT, type WebGpuDepthMode } from '../../webgpu-core/src/depthContract';
+
 export type RenderGraphPhase = 'frame' | 'battle' | 'campaign' | 'ui' | 'post';
 export type RenderGraphFramePhase = 'background' | 'world-depth' | 'overlay';
 
@@ -10,8 +12,8 @@ export interface RenderGraphPass {
   writes?: string[];
   depth?: {
     attachment: string;
-    mode: 'read' | 'write' | 'read-write';
-    format: 'depth24plus';
+    mode: WebGpuDepthMode;
+    format: typeof WEBGPU_DEPTH_FORMAT;
     compare?: 'less' | 'less-equal' | 'always';
     store?: 'discard' | 'store';
   };
@@ -60,35 +62,35 @@ export const FULL_GAME_GRAPH_SKELETON: RenderGraphPass[] = [
     label: 'World depth attachment clear boundary',
     phase: 'frame',
     framePhase: 'world-depth',
-    writes: ['worldDepth'],
-    depth: { attachment: 'worldDepth', mode: 'write', format: 'depth24plus', compare: 'less', store: 'discard' },
+    writes: [WEBGPU_WORLD_DEPTH_ATTACHMENT],
+    depth: { attachment: WEBGPU_WORLD_DEPTH_ATTACHMENT, mode: 'write', format: WEBGPU_DEPTH_FORMAT, compare: 'less', store: 'discard' },
   },
   {
     id: 'battleCrowd',
     label: 'Skinned battle crowd',
     phase: 'battle',
     framePhase: 'world-depth',
-    reads: ['cameraUniforms', 'worldDepth', 'soldierVat', 'crowdInstances'],
-    writes: ['worldColor', 'worldDepth', 'pickIds'],
-    depth: { attachment: 'worldDepth', mode: 'read-write', format: 'depth24plus', compare: 'less-equal', store: 'store' },
+    reads: ['cameraUniforms', WEBGPU_WORLD_DEPTH_ATTACHMENT, 'soldierVat', 'crowdInstances'],
+    writes: ['worldColor', WEBGPU_WORLD_DEPTH_ATTACHMENT, 'pickIds'],
+    depth: { attachment: WEBGPU_WORLD_DEPTH_ATTACHMENT, mode: 'read-write', format: WEBGPU_DEPTH_FORMAT, compare: 'less-equal', store: 'store' },
   },
   {
     id: 'campaignGroundDecals',
     label: 'Campaign roads and ground selection decals',
     phase: 'campaign',
     framePhase: 'world-depth',
-    reads: ['cameraUniforms', 'campaignState', 'worldDepth'],
+    reads: ['cameraUniforms', 'campaignState', WEBGPU_WORLD_DEPTH_ATTACHMENT],
     writes: ['worldColor'],
-    depth: { attachment: 'worldDepth', mode: 'read', format: 'depth24plus', compare: 'less-equal', store: 'store' },
+    depth: { attachment: WEBGPU_WORLD_DEPTH_ATTACHMENT, mode: 'read', format: WEBGPU_DEPTH_FORMAT, compare: 'less-equal', store: 'store' },
   },
   {
     id: 'campaignOpaque3d',
     label: 'Campaign city, army, scenery, standards, and garrison meshes',
     phase: 'campaign',
     framePhase: 'world-depth',
-    reads: ['cameraUniforms', 'campaignState', 'worldDepth'],
-    writes: ['worldColor', 'worldDepth', 'pickIds'],
-    depth: { attachment: 'worldDepth', mode: 'read-write', format: 'depth24plus', compare: 'less-equal', store: 'store' },
+    reads: ['cameraUniforms', 'campaignState', WEBGPU_WORLD_DEPTH_ATTACHMENT],
+    writes: ['worldColor', WEBGPU_WORLD_DEPTH_ATTACHMENT, 'pickIds'],
+    depth: { attachment: WEBGPU_WORLD_DEPTH_ATTACHMENT, mode: 'read-write', format: WEBGPU_DEPTH_FORMAT, compare: 'less-equal', store: 'store' },
   },
   {
     id: 'labelsAndAtmosphere',
@@ -158,12 +160,12 @@ export function compileRenderGraph(passes: readonly RenderGraphPass[]): RenderGr
       }
       lastFramePhaseOrder = Math.max(lastFramePhaseOrder, order);
 
-      const touchesDepth = (pass.reads?.includes('worldDepth') ?? false) || (pass.writes?.includes('worldDepth') ?? false);
+      const touchesDepth = (pass.reads?.includes(WEBGPU_WORLD_DEPTH_ATTACHMENT) ?? false) || (pass.writes?.includes(WEBGPU_WORLD_DEPTH_ATTACHMENT) ?? false);
       if (pass.framePhase === 'world-depth' && !pass.depth) {
         diagnostics.push(`world-depth pass "${pass.id}" must declare a depth attachment contract`);
       }
       if (pass.framePhase !== 'world-depth' && touchesDepth) {
-        diagnostics.push(`non-world-depth pass "${pass.id}" must not touch worldDepth`);
+        diagnostics.push(`non-world-depth pass "${pass.id}" must not touch ${WEBGPU_WORLD_DEPTH_ATTACHMENT}`);
       }
     }
 
@@ -172,7 +174,7 @@ export function compileRenderGraph(passes: readonly RenderGraphPass[]): RenderGr
     }
 
     if (pass.depth) {
-      if (pass.depth.attachment !== 'worldDepth') {
+      if (pass.depth.attachment !== WEBGPU_WORLD_DEPTH_ATTACHMENT) {
         diagnostics.push(`pass "${pass.id}" declares unsupported depth attachment "${pass.depth.attachment}"`);
       }
       const readsDepth = pass.reads?.includes(pass.depth.attachment) ?? false;

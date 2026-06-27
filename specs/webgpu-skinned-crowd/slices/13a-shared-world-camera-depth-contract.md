@@ -153,6 +153,11 @@ shadows that sit on the ground instead of floating as screen overlays.
   validates phase order, publishes depth pass ids/modes in stats, and the lab
   scenario scans source routes so a future depth pass cannot omit its
   read/write contract.
+- `FrameGraphDepthMode`, the production `worldDepth` attachment name, and the
+  `depth24plus` format now flow from `packages/webgpu-core/src/depthContract.ts`.
+  Render graph and pipeline code import the contract rather than redeclaring the
+  union or hard-coding matching literals; the lab scenario scans production
+  TypeScript for those footguns.
 - `compileRenderGraph` now rejects mismatched depth accesses: read-only passes
   that write depth, write-only passes that read depth, and private depth
   attachments. `/webgpu/render-graph` publishes negative fixtures for those

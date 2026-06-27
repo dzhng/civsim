@@ -175,17 +175,21 @@ next useful question, then lock it with tests and screenshots.
 - **Named live frame phases.** The raw frame shell exposes `background`,
   `world`, and `overlay` phases rather than generic draw callbacks. Depth-
   sensitive scenarios must assert that true 3D routes execute the `world-depth`
-  phase with a `depth24plus` attachment, while labels, minimaps, HUD, and other
-  deliberate overlays stay in a later non-depth phase. Every `world-depth` pass
-  must declare its depth mode: `read` for decals/roads/ground cues, `read-write`
-  for opaque/skinned/nested world geometry, and `write` only for a dedicated
-  depth fill. Those modes are exclusive contracts, and the full-game graph must
-  reject private depth attachments or read/write mismatches.
+  phase with the shared engine depth attachment, while labels, minimaps, HUD,
+  and other deliberate overlays stay in a later non-depth phase. Every
+  `world-depth` pass must declare its depth mode: `read` for decals/roads/ground
+  cues, `read-write` for opaque/skinned/nested world geometry, and `write` only
+  for a dedicated depth fill. Those modes are exclusive contracts, and the
+  full-game graph must reject private depth attachments or read/write
+  mismatches.
 - **One world/camera/depth contract.** Campaign and battle model, terrain,
   decal, shadow, projectile, picking, and label-anchor code must share the same
   packed camera uniform and projection semantics. A pass can opt into a named
   overlay layer, but it cannot keep private projection/depth math as a way to
-  make nested 3D objects appear correct.
+  make nested 3D objects appear correct. Depth mode, depth format, and the
+  world depth attachment name are single-sourced in
+  `packages/webgpu-core/src/depthContract.ts`; render graph and pipeline code
+  import those values instead of hard-coding compatible-looking literals.
 - **Placeholders unblock everything.** Every renderer/art slice must ship with
   generated placeholder assets first: skeletons, meshes, clips, textures,
   faction masks, LODs, impostors, and manifests.

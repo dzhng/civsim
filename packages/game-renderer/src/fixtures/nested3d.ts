@@ -1,11 +1,12 @@
 import type { RawFrameShell, WorldRenderPass } from '../../../webgpu-core/src/frameShell';
 import { WORLD_CAMERA_WGSL } from '../../../webgpu-core/src/cameraWgsl';
+import { WEBGPU_DEPTH_FORMAT } from '../../../webgpu-core/src/depthContract';
 
 export interface Nested3dFixtureStats {
   layer: 'depth-tested-nested-3d-fixture';
   vertices: number;
   drawCalls: number;
-  depthFormat: 'depth24plus';
+  depthFormat: typeof WEBGPU_DEPTH_FORMAT;
   fixtures: string[];
   drawOrder: string;
 }
@@ -74,7 +75,7 @@ export class Nested3dFixturePass {
       },
       primitive: { topology: 'triangle-list', cullMode: 'none' },
       depthStencil: {
-        format: 'depth24plus',
+        format: WEBGPU_DEPTH_FORMAT,
         depthWriteEnabled: true,
         depthCompare: 'less',
       },
@@ -101,7 +102,7 @@ export class Nested3dFixturePass {
       layer: 'depth-tested-nested-3d-fixture',
       vertices: this.vertexCount,
       drawCalls: 1,
-      depthFormat: 'depth24plus',
+      depthFormat: WEBGPU_DEPTH_FORMAT,
       fixtures: ['flag-in-city', 'garrison-in-city-stub', 'rank-overlap', 'ground-ring-occlusion'],
       drawOrder: 'occluders are submitted before late flag/ring geometry; depth test must still hide covered pixels',
     };

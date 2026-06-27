@@ -1,5 +1,6 @@
 import { cameraUniformData, type CameraSnapshot } from './cameraUniform';
 import { WORLD_CAMERA_WGSL } from './cameraWgsl';
+import { WEBGPU_DEPTH_FORMAT, type WebGpuDepthMode } from './depthContract';
 import { requestWebGpuDevice, type WebGpuDeviceInfo } from './device';
 
 export interface MarkerInstance {
@@ -38,7 +39,7 @@ export type OverlayRenderPass = GPURenderPassEncoder & {
   readonly [framePassPhase]: 'overlay';
 };
 
-export type FrameGraphDepthMode = 'read' | 'read-write' | 'write';
+export type FrameGraphDepthMode = WebGpuDepthMode;
 
 export type FrameGraphPass =
   | {
@@ -100,7 +101,7 @@ export interface FrameShellStats {
   cameraContract: 'shared-world-camera-wgsl';
   phases: FramePhaseStats[];
   depth: {
-    format: 'depth24plus';
+    format: typeof WEBGPU_DEPTH_FORMAT;
     width: number;
     height: number;
     allocated: boolean;
@@ -531,7 +532,7 @@ export class RawFrameShellImpl implements RawFrameShell {
       cameraContract: 'shared-world-camera-wgsl',
       phases: this.lastPhases.map((phase) => ({ ...phase })),
       depth: {
-        format: 'depth24plus',
+        format: WEBGPU_DEPTH_FORMAT,
         width: this.depthWidth,
         height: this.depthHeight,
         allocated: this.depthTexture !== null,
@@ -573,7 +574,7 @@ export class RawFrameShellImpl implements RawFrameShell {
       this.depthTexture = this.device.createTexture({
         label: 'raw-frame-depth-world-texture',
         size: { width: this.width, height: this.height },
-        format: 'depth24plus',
+        format: WEBGPU_DEPTH_FORMAT,
         usage: GPUTextureUsage.RENDER_ATTACHMENT,
       });
     }

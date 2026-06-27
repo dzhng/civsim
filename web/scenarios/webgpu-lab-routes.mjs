@@ -216,11 +216,21 @@ async function findPhaseBrandFootguns() {
     {
       file: new URL('../../packages/webgpu-core/src/frameShell.ts', import.meta.url),
       checks: [
+        ['frame shell imports shared depth contract', /import\s*\{[^}]*WEBGPU_DEPTH_FORMAT[^}]*type\s+WebGpuDepthMode[^}]*\}\s*from\s*['"]\.\/depthContract['"]/],
         ['frame graph command list is phase-branded', /export type FrameGraphPass[\s\S]*?phase:\s*'background'[\s\S]*?BackgroundRenderPass[\s\S]*?phase:\s*'world-depth'[\s\S]*?WorldRenderPass[\s\S]*?phase:\s*'overlay'[\s\S]*?OverlayRenderPass/],
         ['frame commands accept graph passes', /passes\?:\s*FrameGraphPass\[\]/],
         ['phase stats publish graph pass ids', /passIds:\s*string\[\]/],
-        ['world-depth graph passes declare depth mode', /export type FrameGraphDepthMode\s*=[\s\S]*?phase:\s*'world-depth';[\s\S]*?depth:\s*FrameGraphDepthMode/],
+        ['world-depth graph passes use shared depth mode', /export type FrameGraphDepthMode\s*=\s*WebGpuDepthMode[\s\S]*?phase:\s*'world-depth';[\s\S]*?depth:\s*FrameGraphDepthMode/],
         ['phase stats publish depth pass modes', /depthPasses:\s*Array<\{\s*id:\s*string;\s*mode:\s*FrameGraphDepthMode\s*\}>/],
+      ],
+    },
+    {
+      file: new URL('../../packages/game-renderer/src/renderGraph.ts', import.meta.url),
+      checks: [
+        ['render graph imports shared depth contract', /import\s*\{[^}]*WEBGPU_DEPTH_FORMAT[^}]*WEBGPU_WORLD_DEPTH_ATTACHMENT[^}]*type\s+WebGpuDepthMode[^}]*\}\s*from\s*['"]\.\.\/\.\.\/webgpu-core\/src\/depthContract['"]/],
+        ['render graph pass depth uses shared mode type', /mode:\s*WebGpuDepthMode/],
+        ['render graph pass depth uses shared format type', /format:\s*typeof\s+WEBGPU_DEPTH_FORMAT/],
+        ['render graph validates shared world depth attachment', /pass\.depth\.attachment\s*!==\s*WEBGPU_WORLD_DEPTH_ATTACHMENT/],
       ],
     },
     {
@@ -332,6 +342,35 @@ async function findWorldDepthPassMetadataFootguns() {
   return matches.sort();
 }
 
+async function findDepthContractFootguns() {
+  const root = new URL('../../', import.meta.url).pathname;
+  const sourceRoots = [
+    new URL('../../packages/webgpu-core/src/', import.meta.url),
+    new URL('../../packages/game-renderer/src/', import.meta.url),
+    new URL('../../apps/webgpu-lab/src/', import.meta.url),
+  ];
+  const allowed = new Set([
+    new URL('../../packages/webgpu-core/src/depthContract.ts', import.meta.url).pathname,
+  ]);
+  const matches = [];
+  for (const sourceRoot of sourceRoots) {
+    for (const file of await tsFiles(sourceRoot)) {
+      if (allowed.has(file.pathname)) continue;
+      const source = await readFile(file, 'utf8');
+      if (/['"]depth24plus['"]/.test(source)) {
+        matches.push(`${file.pathname.replace(root, '')}: hard-coded depth24plus format`);
+      }
+      if (/export\s+type\s+\w*DepthMode\s*=\s*(?=[^;]*'read')(?=[^;]*'read-write')(?=[^;]*'write')[^;]*;/.test(source)) {
+        matches.push(`${file.pathname.replace(root, '')}: redeclared depth mode union`);
+      }
+      if (/['"]worldDepth['"]/.test(source)) {
+        matches.push(`${file.pathname.replace(root, '')}: hard-coded worldDepth attachment`);
+      }
+    }
+  }
+  return matches.sort();
+}
+
 function countPixels(png) {
   let warmGround = 0;
   let blue = 0;
@@ -430,6 +469,12 @@ export async function run(ctx) {
     'source: world-depth frame passes declare depth modes',
     worldDepthPassMetadataFootguns.length === 0,
     JSON.stringify({ worldDepthPassMetadataFootguns }),
+  );
+  const depthContractFootguns = await findDepthContractFootguns();
+  ctx.check(
+    'source: WebGPU depth format and attachment are single-sourced',
+    depthContractFootguns.length === 0,
+    JSON.stringify({ depthContractFootguns }),
   );
 
   for (const [route, predicate] of routes) {

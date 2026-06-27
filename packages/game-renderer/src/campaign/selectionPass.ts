@@ -50,7 +50,7 @@ fn fs(in: VsOut) -> @location(0) vec4f {
   let fill = smoothstep(0.990, 0.968, d) * smoothstep(0.918, 0.934, d) * 0.018;
   let groundTint = mix(in.color, vec3f(0.74, 0.66, 0.36), select(0.52, 0.34, in.kind > 0.5));
   let armyBoost = select(0.0, 0.08, in.kind > 0.5);
-  let ringAlpha = select(0.58, 0.50, in.kind > 0.5);
+  let ringAlpha = select(0.58, 0.42, in.kind > 0.5);
   return vec4f(groundTint * (0.84 + armyBoost), max(ring * ringAlpha, fill));
 }`;
 

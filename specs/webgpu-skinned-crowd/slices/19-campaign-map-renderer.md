@@ -411,3 +411,11 @@ Iberia instead of hugging the Spanish coast. This keeps the full label over
 water in Campaign Whole Map and slightly improves the parity score to `0.22546`
 full / `0.23390` crop. The remaining issue is the western cloud/fog veil
 competing with the label, not land overlap.
+
+Fresh unprimed critique on Campaign Label Zoom still flags camera/scale,
+terrain wash, decal-like shadows, road/ring layering, thin flags, and model
+readability. The selected army ring is now smaller on the controlled stage and
+uses lower army-ring alpha, so it remains a perspective ground-plane marker
+without dominating the road/unit stack. Campaign Label Zoom moves from
+`0.17429` full / `0.23263` crop to `0.17419` / `0.23270`; the tiny crop tradeoff
+is accepted for the visible ring-readability improvement.

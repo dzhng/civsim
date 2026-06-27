@@ -274,6 +274,13 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   the PNG because grayscale parity can miss semantic land/water overlap. The
   Atlantic label near Spain was fixed this way and moved Campaign Whole Map to
   `0.22546` full / `0.23390` crop.
+- For campaign close-view selection rings, tune world footprint and alpha
+  together. A ground-plane ellipse can be technically correct but still read as
+  an overprominent decal when it spans the road/unit stack. Shrinking the
+  controlled-stage army ring and lowering only army ring alpha slightly improved
+  Campaign Label Zoom full-frame parity (`0.17429` to `0.17419`) while keeping
+  the ring visible; the next blockers remain camera/scale, shadows, flags, and
+  road layering.
 - Do not satisfy old campaign marker parity with generic dot/circle markers.
   A simple overview marker pass can move pixels while still reading as missing
   flags/models to an unprimed reviewer. Port the old icon/flag hierarchy and

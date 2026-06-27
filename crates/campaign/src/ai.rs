@@ -96,12 +96,13 @@ pub fn apply_decision(map: &WorldMap, st: &mut CampaignState, d: &Decision) {
     fac.rival = d.rival;
 }
 
-/// Cost-weighted value of a roster (upkeep rate doubles as unit value).
+/// Cost-weighted value of a roster — the AI's stable strength yardstick (see
+/// `economy::value_per_soldier_milligold`, decoupled from the heavy monthly upkeep).
 fn strength(map: &WorldMap, st: &CampaignState, faction: FactionId, roster: &[RosterEntry]) -> u64 {
     roster
         .iter()
         .map(|r| {
-            r.count as u64 * economy::upkeep_per_soldier_milligold(map, st, faction, r.class) as u64
+            r.count as u64 * economy::value_per_soldier_milligold(map, st, faction, r.class) as u64
         })
         .sum()
 }
@@ -267,12 +268,16 @@ fn think(
         }
     }
 
-    // 2. Spend, but stay solvent and supplied. Keep a war chest of several
-    //    days' income, and cap the field army at what the territory can supply
-    //    (cities × ceiling) — so force size settles instead of ballooning to
-    //    bankruptcy, and the way to field a bigger army is to conquer cities.
-    let income = economy::daily_income(map, st, f);
-    let reserve = income.saturating_mul(tun::AI_RESERVE_DAYS);
+    // 2. Spend, but stay solvent and supplied. Keep a war chest of a month's
+    //    income (upkeep is settled monthly and heavy, so this is what it must hold
+    //    to pay next month's army), and cap the field army at what the territory
+    //    can supply — so force size settles instead of ballooning to bankruptcy,
+    //    and the way to field a bigger army is to conquer cities. With upkeep at
+    //    50% of raise cost, the reserve also gates a doomstack: a bigger army is a
+    //    bigger monthly bill the commander must already be able to cover.
+    let income = economy::faction_monthly_income(st, f);
+    let upkeep = economy::faction_monthly_upkeep(map, st, f);
+    let reserve = income.saturating_mul(tun::AI_RESERVE_MONTHS).saturating_add(upkeep);
     let solvent = |st: &CampaignState| st.factions[f as usize].treasury > reserve;
     let field_soldiers: u32 = st
         .armies
@@ -304,25 +309,41 @@ fn think(
             }
         }
         let total = (line + ranged + cav).max(1);
-        let (class, count) = if line * 100 / total < 50 {
+        let (class, want) = if line * 100 / total < 50 {
             (UnitClassId::LightSpear, 440)
         } else if ranged * 100 / total < 25 {
             (UnitClassId::Archers, 240)
         } else {
             (UnitClassId::ShockCavalry, 140)
         };
-        issue(map, st, f, log, Order::Recruit { node: depot, class, count });
+        // Recruits are drawn from the depot's population pool — never order more
+        // than it holds, or the (rejected) order accomplishes nothing.
+        let count = want.min(st.cities[&depot].population);
+        if count > 0 {
+            issue(map, st, f, log, Order::Recruit { node: depot, class, count });
+        }
     }
 
-    // 2b. A market is an investment in income.
-    if solvent(st) {
-        let richest = my_cities
+    // 2b. Steer each city's policy: the frontier (a city neighbouring enemy
+    //     territory) develops Military to stand a deeper garrison; the safe
+    //     interior develops Economy. Cheap to re-issue — set-and-forget dials, so
+    //     a city already on the right policy just no-ops. Smart exploit/grow
+    //     timing is left to slice 08's deeper play.
+    for &n in &my_cities {
+        let frontier = map
+            .city_neighbors(n)
             .iter()
-            .copied()
-            .filter(|&n| st.cities[&n].market_lvl < 2 && st.cities[&n].build_job.is_none())
-            .max_by_key(|&n| map.nodes[n as usize].tier);
-        if let Some(n) = richest {
-            issue(map, st, f, log, Order::Build { node: n, kind: BuildKind::Market });
+            .any(|&nb| st.cities.get(&nb).is_some_and(|c| st.at_war(f, c.owner)));
+        let focus = if frontier { 0.6 } else { -0.6 };
+        let cur = &st.cities[&n];
+        if (cur.focus - focus).abs() > 0.05 {
+            issue(
+                map,
+                st,
+                f,
+                log,
+                Order::SetPolicy { node: n, focus, throttle: cur.throttle },
+            );
         }
     }
 

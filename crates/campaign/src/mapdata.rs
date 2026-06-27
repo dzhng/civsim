@@ -135,6 +135,12 @@ pub struct WorldMap {
     /// `0..nodes.len()`, then edge `e`'s tiles start at `nodes.len() + tile_base[e]`.
     tile_base: Vec<u32>,
     n_locs: usize,
+    /// City-to-city adjacency: the road graph collapsed onto cities. A is a
+    /// neighbour of B if a land road links them through only junction nodes (no
+    /// intervening city). Static — used by the monthly loyalty gradient.
+    city_neighbors: BTreeMap<NodeId, Vec<NodeId>>,
+    /// Index of the independents faction (revolted cities flip here).
+    independents: u32,
 }
 
 // ---- raw JSON shapes -------------------------------------------------------
@@ -307,6 +313,40 @@ impl WorldMap {
         }
         let n_locs = nodes.len() + acc as usize;
 
+        // City-to-city adjacency: from each city, walk land edges through junction
+        // nodes until another city is reached; that city is a neighbour. Cities
+        // stop the walk (they don't relay), so this is the road graph collapsed
+        // onto cities — the substrate the loyalty gradient diffuses over.
+        let is_city = |n: NodeId| nodes[n as usize].kind == NodeKind::City;
+        let mut city_neighbors: BTreeMap<NodeId, Vec<NodeId>> = BTreeMap::new();
+        for c in (0..nodes.len() as NodeId).filter(|&n| is_city(n)) {
+            let mut seen: std::collections::BTreeSet<NodeId> = std::collections::BTreeSet::new();
+            seen.insert(c);
+            let mut frontier = vec![c];
+            let mut out: std::collections::BTreeSet<NodeId> = std::collections::BTreeSet::new();
+            while let Some(n) = frontier.pop() {
+                for &e in &nodes[n as usize].edges {
+                    if edges[e as usize].sea {
+                        continue; // loyalty diffuses over land, not sea lanes
+                    }
+                    let m = if edges[e as usize].a == n {
+                        edges[e as usize].b
+                    } else {
+                        edges[e as usize].a
+                    };
+                    if !seen.insert(m) {
+                        continue;
+                    }
+                    if is_city(m) {
+                        out.insert(m); // a city: a neighbour, and the walk stops here
+                    } else {
+                        frontier.push(m); // a junction: keep relaying
+                    }
+                }
+            }
+            city_neighbors.insert(c, out.into_iter().collect());
+        }
+
         WorldMap {
             half_w: raw.half_w as f32,
             half_h: raw.half_h as f32,
@@ -347,12 +387,25 @@ impl WorldMap {
                 .collect(),
             tile_base,
             n_locs,
+            city_neighbors,
+            independents,
         }
     }
 
     /// Number of distinct `Loc`s — size a BFS visited-buffer to this.
     pub fn loc_count(&self) -> usize {
         self.n_locs
+    }
+
+    /// Cities directly connected to `city` over the collapsed road graph
+    /// (empty slice for a junction or an isolated city).
+    pub fn city_neighbors(&self, city: NodeId) -> &[NodeId] {
+        self.city_neighbors.get(&city).map_or(&[], |v| v.as_slice())
+    }
+
+    /// The independents faction — where revolted cities flip.
+    pub fn independents(&self) -> u32 {
+        self.independents
     }
 
     /// Dense index of a `Loc` in `0..loc_count()`.

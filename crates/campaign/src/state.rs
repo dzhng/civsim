@@ -125,6 +125,11 @@ pub struct Army {
     /// Paid automatic replenishment toward establishment strength. Defaults on.
     #[serde(default = "default_auto_replenish")]
     pub auto_replenish: bool,
+    /// When this army takes a city, sack it (plunder + raze the populace) rather
+    /// than hold it. Off by default — most conquests are meant to be kept; a
+    /// commander flips it on to deny a city it can't hold (slice 06).
+    #[serde(default)]
+    pub sack_intent: bool,
     /// Counts down while embarking/disembarking at a port.
     pub embark_ticks_left: u16,
 }
@@ -232,31 +237,47 @@ pub struct RecruitJob {
     pub ticks_left: u32,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
-pub enum BuildKind {
-    Market,
-    Barracks,
-}
-
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct BuildJob {
-    pub kind: BuildKind,
-    pub ticks_left: u32,
-}
-
-#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct CityState {
     pub owner: FactionId,
     pub garrison: Vec<RosterEntry>,
-    /// 0..2: income x1 / x1.5 / x2.
-    pub market_lvl: u8,
-    /// 0..2: recruit time x1 / x0.75 / x0.5.
-    pub barracks_lvl: u8,
+    /// People. The spine of the economy: source of both gold and the recruitment
+    /// pool. Grows logistically toward its tier cap on the monthly pulse.
+    pub population: u32,
+    /// Policy dial — what the city develops toward. −1 = full Economy,
+    /// +1 = full Military, 0 = Balanced. The player's only steering, alongside
+    /// `throttle`; the city auto-develops from it (no build menu).
+    pub focus: f32,
+    /// Policy dial — Grow (0) ↔ Exploit (1). Grow invests population in more
+    /// population; Exploit extracts immediate yield and can shrink the city.
+    pub throttle: f32,
+    /// Accumulated economic development (0..1), ramps toward the focus target and
+    /// decays off-axis. Lifts income.
+    pub econ_dev: f32,
+    /// Accumulated military development (0..1). Deepens the garrison establishment
+    /// and gates which class options the city can field.
+    pub mil_dev: f32,
+    /// Allegiance (0..1). Drifts monthly by the balance of friendly vs enemy
+    /// connected territory; drags output and growth as it falls; revolts at 0.
+    pub loyalty: f32,
     /// Sequential; head is in production.
     pub recruit_queue: Vec<RecruitJob>,
-    /// One construction site per city.
-    #[serde(default)]
-    pub build_job: Option<BuildJob>,
+}
+
+impl Default for CityState {
+    fn default() -> Self {
+        CityState {
+            owner: 0,
+            garrison: Vec::new(),
+            population: 0,
+            focus: 0.0,
+            throttle: 0.0,
+            econ_dev: 0.0,
+            mil_dev: 0.0,
+            loyalty: 1.0,
+            recruit_queue: Vec::new(),
+        }
+    }
 }
 
 #[derive(Clone, Serialize, Deserialize)]

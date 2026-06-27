@@ -25,6 +25,9 @@ struct FactionStat {
     cities: usize,
     soldiers: u32,
     treasury: u32,
+    population: u32,
+    /// Mean loyalty across held cities (×100), the overextension read.
+    mean_loyalty: u32,
 }
 
 fn faction_stat(st: &CampaignState, f: u32) -> FactionStat {
@@ -41,10 +44,28 @@ fn faction_stat(st: &CampaignState, f: u32) -> FactionStat {
         .filter(|c| c.owner == f)
         .map(|c| c.garrison.iter().map(|r| r.count).sum::<u32>())
         .sum();
+    let population: u32 = st
+        .cities
+        .values()
+        .filter(|c| c.owner == f)
+        .map(|c| c.population)
+        .sum();
+    let loyalty_sum: f32 = st
+        .cities
+        .values()
+        .filter(|c| c.owner == f)
+        .map(|c| c.loyalty)
+        .sum();
     FactionStat {
         cities,
         soldiers: field + garrison,
         treasury: st.factions[f as usize].treasury,
+        population,
+        mean_loyalty: if cities > 0 {
+            (100.0 * loyalty_sum / cities as f32) as u32
+        } else {
+            0
+        },
     }
 }
 
@@ -230,6 +251,28 @@ fn print_report(r: &Report) {
             s0[i].treasury,
             sn[i].treasury,
         );
+    }
+
+    // Population & mean loyalty at the horizon — the overextension read: a leader
+    // that sprawls should show a big, restive (low-loyalty) frontier.
+    println!("\nfaction        population       mean loyalty");
+    for (i, &f) in r.playable.iter().enumerate() {
+        println!(
+            "  {:<12} {:>9}        {:>3}%",
+            r.names[f as usize], sn[i].population, sn[i].mean_loyalty
+        );
+    }
+
+    // Runaway gap: strongest-vs-weakest playable power by cities, over time. The
+    // headline macro-health metric — a healthy loop keeps this from blowing out
+    // early and never recovering (slice 05 is judged against the baseline here).
+    println!("\nrunaway gap (max−min cities held over time):");
+    for (day, s) in &r.samples {
+        let (max, min) = (
+            s.iter().map(|x| x.cities).max().unwrap_or(0),
+            s.iter().map(|x| x.cities).min().unwrap_or(0),
+        );
+        println!("  d{day:>5}: gap {}  (max {max}, min {min})", max - min);
     }
 
     // City-count trajectory over time — the clearest "is anyone winning?" view.

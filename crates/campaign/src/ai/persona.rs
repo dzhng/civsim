@@ -40,20 +40,25 @@ pub fn profile(p: AiPersona) -> Profile {
         Defensive => Profile {
             weights: Weights {
                 territory: 60_000.0,
+                loyalty: 12_000.0, // a turtle prizes a quiet, loyal interior
                 army: 1.0,
-                income: 30.0,
+                income: 1.0,
                 threat: 3.0,
             },
             gate: 180,
-            select_scale: 8_000.0,
+            // Cold and near-argmax: a turtle deliberates rather than gambling, so
+            // it holds an army home instead of throwing it at a wall it can't
+            // crack. (Hot selection made it commit hopeless assaults on a whim.)
+            select_scale: 3_000.0,
             bravado_aggro: 20_000.0,
         },
         // Builder: prizes income above army, holds back from early fights.
         Mercantile => Profile {
             weights: Weights {
                 territory: 50_000.0,
+                loyalty: 8_000.0,
                 army: 0.8,
-                income: 90.0,
+                income: 3.0,
                 threat: 1.5,
             },
             gate: 160,
@@ -65,8 +70,9 @@ pub fn profile(p: AiPersona) -> Profile {
         Opportunist => Profile {
             weights: Weights {
                 territory: 50_000.0,
+                loyalty: 8_000.0,
                 army: 1.2,
-                income: 30.0,
+                income: 1.0,
                 threat: 2.0,
             },
             gate: 220,
@@ -86,8 +92,9 @@ pub fn profile(p: AiPersona) -> Profile {
         Warmonger => Profile {
             weights: Weights {
                 territory: 50_000.0,
+                loyalty: 4_000.0, // grabs land; barely cares if it stays loyal
                 army: 1.5,
-                income: 20.0,
+                income: 0.7,
                 threat: 0.4,
             },
             gate: 100,

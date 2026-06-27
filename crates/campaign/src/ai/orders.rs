@@ -15,14 +15,21 @@ use serde::{Deserialize, Serialize};
 pub enum Order {
     /// March (or pursue-by-tile) an army to a destination.
     Move { army: ArmyId, dest: Loc },
-    /// Raise troops of a class at an owned city.
+    /// Raise troops of a class at an owned city (draws from its population pool).
     Recruit {
         node: NodeId,
         class: UnitClassId,
         count: u32,
     },
-    /// Start a city work (market/barracks).
-    Build { node: NodeId, kind: BuildKind },
+    /// Steer an owned city's development: focus (−1 Economy … +1 Military) and
+    /// throttle (0 Grow … 1 Exploit). The city auto-develops from there.
+    SetPolicy {
+        node: NodeId,
+        focus: f32,
+        throttle: f32,
+    },
+    /// Set whether an army sacks (vs holds) the next city it takes.
+    Sack { army: ArmyId, on: bool },
     /// Fold one army into another.
     Merge { src: ArmyId, dst: ArmyId },
 }
@@ -34,7 +41,22 @@ pub fn apply(map: &WorldMap, st: &mut CampaignState, f: FactionId, order: &Order
     match *order {
         Order::Move { army, dest } => crate::sim::try_move(map, st, army, dest, true),
         Order::Recruit { node, class, count } => crate::economy::recruit(map, st, node, class, count),
-        Order::Build { node, kind } => crate::economy::build(st, node, kind, f),
+        Order::SetPolicy { node, focus, throttle } => {
+            crate::economy::set_city_policy(st, node, f, focus, throttle)
+        }
+        Order::Sack { army, on } => set_sack_intent(st, f, army, on),
         Order::Merge { src, dst } => crate::economy::merge(map, st, src, dst),
     }
+}
+
+/// Flag/clear an army's intent to sack its next conquest (own armies only).
+fn set_sack_intent(st: &mut CampaignState, f: FactionId, army: ArmyId, on: bool) -> bool {
+    let Some(a) = st.armies.get_mut(army as usize) else {
+        return false;
+    };
+    if !a.alive() || a.faction != f || a.garrison_of.is_some() {
+        return false;
+    }
+    a.sack_intent = on;
+    true
 }

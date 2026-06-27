@@ -355,15 +355,18 @@ impl Campaign {
         self.inner.state.road_levels.as_ptr()
     }
 
-    /// kind: 0 market, 1 barracks.
-    pub fn order_build(&mut self, node: u32, kind: u32) -> bool {
-        use campaign::state::BuildKind;
-        let kind = if kind == 0 {
-            BuildKind::Market
-        } else {
-            BuildKind::Barracks
-        };
-        let ok = self.inner.order_build(node, kind);
+    /// Set a city's policy dials: focus (−1 Economy … +1 Military) and throttle
+    /// (0 Grow … 1 Exploit). The player's whole city interaction — the city
+    /// auto-develops from there (no build menu).
+    pub fn order_set_city_policy(&mut self, node: u32, focus: f32, throttle: f32) -> bool {
+        let ok = self.inner.order_set_city_policy(node, focus, throttle);
+        self.refresh();
+        ok
+    }
+
+    /// Flag an army to sack (vs hold) the next city it takes.
+    pub fn order_sack_intent(&mut self, army: u32, on: bool) -> bool {
+        let ok = self.inner.order_sack_intent(army, on);
         self.refresh();
         ok
     }
@@ -445,19 +448,56 @@ impl Campaign {
         ok
     }
 
-    /// City detail for the panel: building levels and the running site.
+    /// City detail for the panel: population, policy dials, development, loyalty,
+    /// and the month's gold the city earns. Replaces the building readout.
     pub fn city_json(&self, node: u32) -> String {
         let Some(c) = self.inner.state.cities.get(&node) else {
             return "null".into();
         };
+        let cap = campaign::tunables::city_pop_cap(self.inner.map.nodes[node as usize].tier);
         serde_json::json!({
-            "market_lvl": c.market_lvl,
-            "barracks_lvl": c.barracks_lvl,
-            "building": c.build_job.as_ref().map(|j| match j.kind {
-                campaign::state::BuildKind::Market => "market",
-                campaign::state::BuildKind::Barracks => "barracks",
-            }),
-            "build_ticks_left": c.build_job.as_ref().map_or(0, |j| j.ticks_left),
+            "population": c.population,
+            "pop_cap": cap,
+            "focus": c.focus,
+            "throttle": c.throttle,
+            "econ_dev": c.econ_dev,
+            "mil_dev": c.mil_dev,
+            "loyalty": c.loyalty,
+            "monthly_income": campaign::economy::city_monthly_income(c),
+        })
+        .to_string()
+    }
+
+    /// The realm's monthly books for the economics panel: per-city income, total
+    /// income, total army upkeep, net, and the ticks until the next settlement.
+    pub fn economy_json(&self) -> String {
+        let st = &self.inner.state;
+        let f = st.player_faction;
+        let cities: Vec<_> = st
+            .cities
+            .iter()
+            .filter(|(_, c)| c.owner == f)
+            .map(|(&node, c)| {
+                serde_json::json!({
+                    "node": node,
+                    "name": self.inner.map.nodes[node as usize].name,
+                    "population": c.population,
+                    "income": campaign::economy::city_monthly_income(c),
+                    "loyalty": c.loyalty,
+                })
+            })
+            .collect();
+        let income = campaign::economy::faction_monthly_income(st, f);
+        let upkeep = campaign::economy::faction_monthly_upkeep(&self.inner.map, st, f);
+        let per_month = campaign::tunables::TICKS_PER_MONTH as u64;
+        let ticks_to_settle = per_month - (st.tick % per_month);
+        serde_json::json!({
+            "treasury": st.factions[f as usize].treasury,
+            "monthly_income": income,
+            "monthly_upkeep": upkeep,
+            "monthly_net": income as i64 - upkeep as i64,
+            "ticks_to_settle": ticks_to_settle,
+            "cities": cities,
         })
         .to_string()
     }

@@ -1,5 +1,5 @@
 //! The campaign tick pipeline, in fixed phase order (mirrors the battle sim):
-//!   1. economy (day boundary)
+//!   1. economy (day boundary, and the monthly settlement on the month boundary)
 //!   2. pursuit re-aim, movement: progress, tile steps, occupancy, embark
 //!   3. encounters: contact detection, range-gated prep, Pending transitions
 //!   4. routs, occupations & timers
@@ -18,6 +18,11 @@ pub fn tick(map: &WorldMap, st: &mut CampaignState) {
     if st.tick % tun::TICKS_PER_DAY as u64 == 0 {
         crate::economy::day_tick(map, st);
         check_outcome(map, st);
+    }
+    // The economy settles on the monthly pulse — income, heavy upkeep, population,
+    // development, loyalty — one legible step a game-month (see `economy::month_tick`).
+    if st.tick % tun::TICKS_PER_MONTH as u64 == 0 {
+        crate::economy::month_tick(map, st);
     }
     pursue(map, st);
     movement(map, st);
@@ -556,7 +561,7 @@ pub fn new_state(map: &WorldMap, seed: u64, player_faction: u32) -> CampaignStat
         .map(|(i, n)| {
             // Garrisons open at establishment strength: an undefended world
             // would be steamrolled by whoever marches first.
-            let garrison = crate::economy::garrison_establishment(n.tier, 0)
+            let garrison = crate::economy::garrison_establishment(n.tier, 0.0)
                 .into_iter()
                 .map(|(class, count)| RosterEntry {
                     class,
@@ -565,11 +570,16 @@ pub fn new_state(map: &WorldMap, seed: u64, player_faction: u32) -> CampaignStat
                     morale_cap: 1.0,
                 })
                 .collect();
+            // Cities open settled (a fraction of their tier cap) and fully loyal —
+            // the realm exists before the player touches it.
+            let population =
+                (tun::city_pop_cap(n.tier) as f32 * tun::POP_START_FRACTION) as u32;
             (
                 i as u32,
                 CityState {
                     owner: n.initial_owner,
                     garrison,
+                    population,
                     ..Default::default()
                 },
             )
@@ -605,6 +615,7 @@ pub fn new_state(map: &WorldMap, seed: u64, player_faction: u32) -> CampaignStat
             stance: Stance::Hold,
             encounter: None,
             auto_replenish: true,
+            sack_intent: false,
             embark_ticks_left: 0,
         })
         .collect();

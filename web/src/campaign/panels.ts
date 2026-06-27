@@ -264,33 +264,52 @@ export function cityPanelHtml(
         .map((cl, i) => `<button data-recruit="${i}" title="${cl}">${uiIcon('add')} ${cl.replace(/[a-z]/g, '')}</button>`)
         .join('')}</div>`
     : '';
-  const buildings = detail
-    ? buildRow(detail, mineCity, 0, 'Market', detail.market_lvl, [200, 300])
-      + buildRow(detail, mineCity, 1, 'Barracks', detail.barracks_lvl, [250, 400])
+  const policy = detail ? policyHtml(detail, mineCity) : '';
+  const pct = detail ? Math.round((100 * detail.population) / Math.max(1, detail.pop_cap)) : 0;
+  const meta = detail
+    ? `<div class="cmp-city-meta">pop ${detail.population.toLocaleString()} (${pct}% of cap) — loyalty ${Math.round(detail.loyalty * 100)}%</div>
+       <div class="cmp-city-meta">income ${detail.monthly_income.toLocaleString()}/mo</div>`
     : '';
   return `<div class="cmp-title">${uiIcon('city')}<b>${n.name}</b></div>
     <div class="cmp-city-meta">tier ${n.tier} — ${data.map.factions[city.owner]?.name ?? '?'}</div>
-    <div class="cmp-city-meta">garrison ${city.garrison}${city.queue ? ` | recruiting ${city.queue}` : ''}</div>${buildings}${recruits}`;
+    <div class="cmp-city-meta">garrison ${city.garrison}${city.queue ? ` | recruiting ${city.queue}` : ''}</div>${meta}${policy}${recruits}`;
 }
 
 export interface CityDetail {
-  market_lvl: number;
-  barracks_lvl: number;
-  building: 'market' | 'barracks' | null;
-  build_ticks_left: number;
+  population: number;
+  pop_cap: number;
+  focus: number; // -1 Economy .. +1 Military
+  throttle: number; // 0 Grow .. 1 Exploit
+  econ_dev: number;
+  mil_dev: number;
+  loyalty: number;
+  monthly_income: number;
+}
+
+/** The two policy dials that replace the build menu. */
+function policyHtml(detail: CityDetail, mineCity: boolean): string {
+  if (!mineCity) {
+    return `<div class="cmp-city-meta">focus ${focusLabel(detail.focus)} — ${throttleLabel(detail.throttle)}</div>`;
+  }
+  return `<div class="cmp-policy">
+    <label>Economy ↔ Military
+      <input type="range" data-policy="focus" min="-1" max="1" step="0.1" value="${detail.focus}">
+    </label>
+    <label>Grow ↔ Exploit
+      <input type="range" data-policy="throttle" min="0" max="1" step="0.1" value="${detail.throttle}">
+    </label>
+  </div>`;
+}
+
+function focusLabel(focus: number): string {
+  if (focus < -0.33) return 'Economy';
+  if (focus > 0.33) return 'Military';
+  return 'Balanced';
+}
+function throttleLabel(throttle: number): string {
+  return throttle > 0.5 ? 'Exploit' : 'Grow';
 }
 
 function actionButton(act: DiplomacyAction, f: number, label: string): string {
   return `<button data-act="${act}" data-f="${f}">${label}</button>`;
-}
-
-function buildRow(detail: CityDetail, mineCity: boolean, kind: number, name: string, lvl: number, costs: number[]): string {
-  if (detail.building) {
-    return detail.building === name.toLowerCase()
-      ? `<div class="cmp-build-row"><span>${name} L${lvl} — building, ${Math.ceil(detail.build_ticks_left / 1440)}d left</span></div>`
-      : `<div class="cmp-build-row"><span>${name} L${lvl}</span></div>`;
-  }
-  return lvl < 2 && mineCity
-    ? `<div class="cmp-build-row"><span>${name} L${lvl}</span><button data-build="${kind}">${uiIcon('hammer')} ${costs[lvl]}g</button></div>`
-    : `<div class="cmp-build-row"><span>${name} L${lvl}</span></div>`;
 }

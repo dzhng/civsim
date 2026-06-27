@@ -14,6 +14,10 @@ use contract::UnitClassId;
 pub const MINUTES_PER_TICK: u32 = 10;
 /// Campaign ticks per day (24h × 60min ÷ minutes-per-tick).
 pub const TICKS_PER_DAY: u32 = 24 * 60 / MINUTES_PER_TICK;
+/// Campaign ticks per game-month (a flat 30-day month). The realm settles its
+/// whole economy once a month in one legible pulse — income, upkeep, population,
+/// development, loyalty — instead of trickling every day. ≈ 72 s real at 1×.
+pub const TICKS_PER_MONTH: u32 = 30 * TICKS_PER_DAY;
 /// A game-world duration in ticks from its length in game-minutes — scales with
 /// the time rescale so it keeps its in-world meaning. At least one tick.
 pub const fn ticks_from_minutes(minutes: u32) -> u32 {
@@ -131,13 +135,6 @@ pub fn road_mult(level: u8) -> f32 {
     ROAD_SPEED_MULT[level.min(ROAD_MAX_LEVEL) as usize]
 }
 
-/// City buildings: cost of the NEXT level (index = current level), 2 days
-/// to raise either. Market multiplies income, barracks speeds recruiting and
-/// deepens the garrison establishment.
-pub const BUILD_MARKET_COST: [u32; 2] = [200, 300];
-pub const BUILD_BARRACKS_COST: [u32; 2] = [250, 400];
-pub const BUILD_TICKS: u32 = 2 * TICKS_PER_DAY;
-
 /// Routed armies: tiles of hostile-free road needed to regroup (or a nearer
 /// friendly city); no such path at battle end = captured and wiped.
 pub const ROUT_TILES: u16 = 16;
@@ -164,13 +161,79 @@ pub const AMBUSH_SETTLE_TICKS: u16 = ticks_from_minutes(15) as u16;
 /// Unopposed occupation of an undefended city — 4 game-hours.
 pub const OCCUPY_TICKS: u16 = ticks_from_minutes(240) as u16;
 
-/// Gold per day by city tier (index 0 unused).
-pub const CITY_INCOME: [u32; 4] = [0, 80, 140, 220];
-/// Market level multiplier x100 (level 0..2).
-pub const MARKET_MULT_PCT: [u32; 3] = [100, 150, 200];
+// ---- population, monthly income, development -------------------------------
+// The economy is population-driven and settles on the monthly pulse. A city's
+// population is the source of both its gold and its recruitment pool; two policy
+// dials (focus, throttle) and the development it accumulates decide the split.
 
-/// Per-soldier upkeep in gold x1000 per day, and per-unit base overhead.
+/// Population ceiling by city tier (index 0 unused). Logistic growth asymptotes
+/// here; a bigger city is a bigger economy and a deeper recruitment pool.
+pub const CITY_POP_CAP: [u32; 4] = [0, 6_000, 12_000, 20_000];
+pub fn city_pop_cap(tier: u8) -> u32 {
+    CITY_POP_CAP[tier.min(3) as usize]
+}
+/// New cities open at this fraction of their cap — a settled world, not an empty
+/// one waiting months to matter.
+pub const POP_START_FRACTION: f32 = 0.6;
+/// Monthly logistic growth rate (fraction of the room left to the cap), at full
+/// Grow throttle and full loyalty. Scaled down by Exploit and by low loyalty.
+pub const POP_GROWTH: f32 = 0.12;
+/// Monthly population a city loses to full Exploit throttle (men sent to the
+/// fields/mines instead of raising families). Exploit can shrink a city.
+pub const POP_EXPLOIT_DRAIN: f32 = 0.04;
+
+/// Monthly gold per unit of population, before development and throttle lift it.
+/// Calibrated so a mid-development tier-2 city earns on the order of the old
+/// daily trickle summed over a month.
+pub const INCOME_PER_POP_MILLIGOLD: u32 = 600;
+/// Monthly income of one city from its population, economic development, throttle
+/// and loyalty. Output = pop × base × (½ + econ_dev) × throttle_yield × loyalty.
+pub fn city_monthly_income(pop: u32, econ_dev: f32, throttle: f32, loyalty: f32) -> u32 {
+    let econ_mult = 0.5 + econ_dev.clamp(0.0, 1.0); // 0.5 (raw) … 1.5 (developed)
+    let throttle_yield = 1.0 + 0.5 * throttle.clamp(0.0, 1.0); // Exploit earns more now
+    let drag = output_loyalty_mult(loyalty); // unrest skims the take
+    let g = pop as f32 * INCOME_PER_POP_MILLIGOLD as f32 / 1000.0 * econ_mult * throttle_yield * drag;
+    g.max(0.0) as u32
+}
+/// Low loyalty drags economic output and population growth — never to zero, so a
+/// restive city still limps along, but a frontier earns a fraction of a heartland.
+pub fn output_loyalty_mult(loyalty: f32) -> f32 {
+    0.3 + 0.7 * loyalty.clamp(0.0, 1.0)
+}
+
+/// How fast development ramps toward (and decays away from) its focus target each
+/// month. A city re-tools over a handful of months — "set a direction and walk
+/// away" — so the cost of indecision is ramp time, not a build menu.
+pub const DEV_RAMP: f32 = 0.18;
+/// Development target an axis ramps toward, from the city's focus dial
+/// (−1 = full Economy, +1 = full Military). econ_target = (1−focus)/2,
+/// mil_target = (1+focus)/2 — Balanced (0) lands both at ½.
+pub fn econ_target(focus: f32) -> f32 {
+    (1.0 - focus.clamp(-1.0, 1.0)) / 2.0
+}
+pub fn mil_target(focus: f32) -> f32 {
+    (1.0 + focus.clamp(-1.0, 1.0)) / 2.0
+}
+
+// ---- upkeep & recruitment --------------------------------------------------
+// Army upkeep is heavy and settles monthly: a unit pays HALF its recruitment
+// cost every month, so a unit costs its raise-price again every two months it
+// stands. This is what makes a doomstack a standing bill, not a one-off buy.
+
+/// Per-class raise cost (gold ×1000 per soldier). The AI's army-value yardstick
+/// derives from this (`economy::value_per_soldier_milligold` ≈ cost / 50), kept
+/// separate from the heavy upkeep so the upkeep cadence can't rescale it.
+pub fn recruit_cost_milligold(class: UnitClassId) -> u32 {
+    base_rate(class) * 50
+}
+/// Monthly upkeep per soldier = half the recruitment cost. The 50%-of-raise rule
+/// the whole economy is pegged to (slice 02); unit-type option multipliers keep
+/// the ratio because both derive from the same cost.
 pub fn upkeep_per_soldier_milligold(class: UnitClassId) -> u32 {
+    recruit_cost_milligold(class) / 2
+}
+/// Per-class cost/value base. Cavalry and crews are dear to raise and to keep.
+fn base_rate(class: UnitClassId) -> u32 {
     use UnitClassId::*;
     match class {
         HeavySword => 20,
@@ -190,12 +253,6 @@ pub fn upkeep_per_soldier_milligold(class: UnitClassId) -> u32 {
         MediumPhalanx => 18, // a pike costs a touch more to keep than a medium line
     }
 }
-pub const UPKEEP_UNIT_BASE: u32 = 4; // gold/day per roster entry
-
-/// Recruit cost (gold per soldier x1000) and time (ticks per soldier).
-pub fn recruit_cost_milligold(class: UnitClassId) -> u32 {
-    upkeep_per_soldier_milligold(class) * 50
-}
 pub fn recruit_ticks_per_soldier(class: UnitClassId) -> u32 {
     use UnitClassId::*;
     match class {
@@ -205,6 +262,43 @@ pub fn recruit_ticks_per_soldier(class: UnitClassId) -> u32 {
         _ => 2,
     }
 }
+
+// ---- loyalty / overextension -----------------------------------------------
+// Loyalty (0..1) drifts each month by the signed balance of friendly vs enemy
+// connected territory. No capital: the frontier is disloyal by default because it
+// borders the enemy, and the interior fills in as the core stabilises. A fresh
+// conquest survives only while a stationed army anchors it.
+
+/// A conquered city flips to its taker with a little loyalty, not zero — enough
+/// that an anchoring army can hold and slowly pacify it, too little to survive
+/// surrounded and abandoned.
+pub const CONQUEST_LOYALTY: f32 = 0.25;
+/// Per-month loyalty change per unit of net (friendly − enemy) connected weight.
+/// Sized so a surrounded, unanchored conquest (net ≈ −2) loses its starting
+/// loyalty inside a single month and revolts.
+pub const LOYALTY_DRIFT: f32 = 0.2;
+/// A city revolts (flips to independents) when loyalty falls to or below this.
+pub const LOYALTY_REVOLT: f32 = 0.0;
+/// An army acts like a city for loyalty once it holds this many units; below it,
+/// its weight scales down (min(units / this, 1)). A real field force anchors a
+/// salient; a handful of stragglers barely registers.
+pub const ANCHOR_MIN_UNITS: u32 = 10;
+/// Loyalty weight of one connected enemy-owned city (full hostile pressure).
+pub const LOYALTY_ENEMY_CITY: f32 = 1.0;
+/// Loyalty weight of a full army anchor (friendly raises, enemy drags). Heavier
+/// than a city so a stationed army can hold a conquest two enemy cities press on.
+pub const LOYALTY_ARMY_WEIGHT: f32 = 3.0;
+/// Extra enemy-side drag from over-exploiting a city (Throttle → Exploit): a
+/// squeezed populace is a restive one.
+pub const LOYALTY_EXPLOIT_DRAG: f32 = 0.5;
+
+// ---- conquest: sack vs hold ------------------------------------------------
+/// Sacking a city converts its population to instant plunder at this rate
+/// (gold ×1000 per head) and razes the populace.
+pub const SACK_GOLD_PER_POP_MILLIGOLD: u32 = 500;
+/// Population left in a sacked city (fraction): a gutted town, not an empty map
+/// tile — it can recover over many months if held.
+pub const SACK_POP_REMAINING: f32 = 0.1;
 
 /// Daily desertion per roster entry while the treasury is empty.
 pub const DESERTION_PER_DAY: f32 = 0.02;
@@ -232,10 +326,14 @@ pub const GARRISON_SAFE_TILES: u32 = 6;
 // ---- AI fiscal discipline --------------------------------------------------
 // The AI keeps a war chest and caps its field army by territory, so force size
 // equilibrates to what the realm can sustain.
-/// Days of income the AI keeps in reserve before spending on troops/works.
-pub const AI_RESERVE_DAYS: u32 = 6;
+/// Months of income the AI keeps in reserve before spending on troops. With
+/// upkeep settled monthly, the commander must hold back enough to pay the next
+/// month's army before raising more — heavy upkeep is what caps a doomstack.
+pub const AI_RESERVE_MONTHS: u32 = 1;
 /// Field-army ceiling per owned city. A realm only raises as many troops as
-/// its territory can supply, so the road to a bigger army is conquest.
+/// its territory can supply, so the road to a bigger army is conquest. (The
+/// population pool is the harder cap; this keeps the AI from over-committing a
+/// single rich city's pool into one doomstack.)
 pub const AI_SOLDIERS_PER_CITY: u32 = 2000;
 /// How many of the nearest enemy cities the AI weighs (with a defender probe)
 /// before falling back to simply advancing on the nearest one.

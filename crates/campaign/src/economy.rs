@@ -1,6 +1,9 @@
-//! The day-boundary economy heartbeat: income, upkeep, desertion,
-//! replenishment, recruiting, garrison regeneration, occupation. Plus the
-//! player/AI economy orders (recruit, disband, merge, split).
+//! The economy. Two cadences: a daily operational heartbeat (`day_tick` —
+//! desertion, replenishment, garrison regen, recruit-queue progress) and a
+//! monthly settlement (`month_tick` — income, heavy upkeep, population growth,
+//! development, the loyalty gradient + revolts). Plus the player/AI economy
+//! orders (recruit from the population pool, set city policy, sack-vs-hold a
+//! capture, disband, merge, split) and the garrison sortie/occupation glue.
 
 use crate::mapdata::{NodeId, NodeKind, WorldMap};
 use crate::pathfind;
@@ -10,7 +13,9 @@ use crate::units;
 use contract::{UnitClassId, UnitTypeId};
 
 /// Garrison establishment by city tier: what the city regenerates toward.
-pub fn garrison_establishment(tier: u8, barracks_lvl: u8) -> Vec<(UnitClassId, u32)> {
+/// Military development deepens it — a fortress-town stands a heavier garrison.
+/// At `mil_dev` 0 this is the raw tier garrison; at 1.0 it is doubled.
+pub fn garrison_establishment(tier: u8, mil_dev: f32) -> Vec<(UnitClassId, u32)> {
     use UnitClassId::*;
     let mut g = vec![(LightSpear, 440)];
     if tier >= 2 {
@@ -19,9 +24,10 @@ pub fn garrison_establishment(tier: u8, barracks_lvl: u8) -> Vec<(UnitClassId, u
     if tier >= 3 {
         g.push((HeavySword, 640));
     }
-    // Barracks deepen the establishment.
-    let mult = 100 + 25 * barracks_lvl as u32;
-    g.into_iter().map(|(c, n)| (c, n * mult / 100)).collect()
+    let mult = 1.0 + mil_dev.clamp(0.0, 1.0);
+    g.into_iter()
+        .map(|(c, n)| (c, (n as f32 * mult) as u32))
+        .collect()
 }
 
 /// Which faction's territory a location lies in: owner of the nearest city
@@ -55,25 +61,28 @@ pub(crate) fn territory_of(map: &WorldMap, st: &CampaignState, loc: Loc) -> Opti
     None
 }
 
-/// A faction's gross daily income across the cities it holds (markets included).
-pub fn daily_income(map: &WorldMap, st: &CampaignState, f: FactionId) -> u32 {
+/// One city's monthly gold: population × economic development × throttle, dragged
+/// by low loyalty. The whole income model in one place (slice 02/03/05).
+pub fn city_monthly_income(c: &CityState) -> u32 {
+    tun::city_monthly_income(c.population, c.econ_dev, c.throttle, c.loyalty)
+}
+
+/// A faction's gross monthly income across the cities it holds.
+pub fn faction_monthly_income(st: &CampaignState, f: FactionId) -> u32 {
     st.cities
-        .iter()
-        .filter(|(_, c)| c.owner == f)
-        .map(|(&node, c)| {
-            let tier = map.nodes[node as usize].tier.min(3) as usize;
-            tun::CITY_INCOME[tier] * tun::MARKET_MULT_PCT[c.market_lvl.min(2) as usize] / 100
-        })
+        .values()
+        .filter(|c| c.owner == f)
+        .map(city_monthly_income)
         .sum()
 }
 
-/// A faction's daily army upkeep (per-soldier rate + per-unit base overhead).
-pub fn daily_upkeep(map: &WorldMap, st: &CampaignState, f: FactionId) -> u32 {
+/// A faction's monthly army upkeep (per-soldier rate × count). Heavy: half a
+/// unit's raise cost every month. Garrisons are the city's own and aren't billed.
+pub fn faction_monthly_upkeep(map: &WorldMap, st: &CampaignState, f: FactionId) -> u32 {
     let mut milligold: u64 = 0;
     for a in st.armies.iter().filter(|a| a.faction == f && a.alive()) {
         for r in a.roster.iter().filter(|r| r.count > 0) {
             milligold += r.count as u64 * upkeep_per_soldier_milligold(map, st, f, r.class) as u64;
-            milligold += tun::UPKEEP_UNIT_BASE as u64 * 1000;
         }
     }
     (milligold / 1000) as u32
@@ -103,38 +112,41 @@ pub fn upkeep_per_soldier_milligold(
         .unwrap_or_else(|| tun::upkeep_per_soldier_milligold(class))
 }
 
+/// The AI's *value* yardstick for a soldier — how much an army is worth when the
+/// commander weighs a fight or sizes up a rival. Deliberately decoupled from the
+/// monthly economic upkeep (which is heavy, half the raise cost): the AI's score
+/// weights, the battle estimate, and diplomacy are all calibrated against this
+/// stable per-soldier scale, so changing the upkeep cadence doesn't silently
+/// rescale how the AI values armies vs. territory. ≈ raise-cost / 50.
+pub fn value_per_soldier_milligold(
+    map: &WorldMap,
+    st: &CampaignState,
+    f: FactionId,
+    class: UnitClassId,
+) -> u32 {
+    let id = units::selected_unit_type(st, f, class);
+    units::unit_type_by_id(map, id)
+        .map(|u| (u.cost_per_soldier_milligold / 50).max(1))
+        .unwrap_or_else(|| (tun::recruit_cost_milligold(class) / 50).max(1))
+}
+
 /// At a friendly city node, halted?
 fn at_friendly_city(st: &CampaignState, a: &Army) -> bool {
     matches!(a.loc, Loc::Node(n)
         if a.halted() && st.cities.get(&n).is_some_and(|c| c.owner == a.faction))
 }
 
+/// The daily operational heartbeat: desertion (when broke), paid replenishment,
+/// rally-scar recovery, garrison regeneration, and recruit-queue progress. The
+/// *economy* — income, heavy upkeep, population, development, loyalty — settles
+/// monthly in `month_tick`; between settlements a broke realm still bleeds daily.
 pub fn day_tick(map: &WorldMap, st: &mut CampaignState) {
     let nfactions = st.factions.len();
 
-    // 1. Income.
-    for (&node, c) in &st.cities {
-        let tier = map.nodes[node as usize].tier.min(3) as usize;
-        let income =
-            tun::CITY_INCOME[tier] * tun::MARKET_MULT_PCT[c.market_lvl.min(2) as usize] / 100;
-        st.factions[c.owner as usize].treasury = st.factions[c.owner as usize]
-            .treasury
-            .saturating_add(income);
-    }
-
-    // 2. Upkeep: per-soldier rate x count + per-unit base. Paid or not —
-    //    an empty treasury starts desertion and stops replenishment.
-    let mut paid = vec![true; nfactions];
-    for f in 0..nfactions {
-        let cost = daily_upkeep(map, st, f as u32);
-        let t = &mut st.factions[f].treasury;
-        if *t >= cost {
-            *t -= cost;
-        } else {
-            *t = 0;
-            paid[f] = false;
-        }
-    }
+    // A faction whose treasury is empty can't pay its troops: desertion starts
+    // and paid replenishment stops. (Upkeep itself is charged at the monthly
+    // settlement; between settlements a broke realm just bleeds.)
+    let paid: Vec<bool> = (0..nfactions).map(|f| st.factions[f].treasury > 0).collect();
 
     // 3. Desertion / replenishment / rally-scar recovery.
     for i in 0..st.armies.len() {
@@ -222,7 +234,7 @@ pub fn day_tick(map: &WorldMap, st: &mut CampaignState) {
         }
         let tier = map.nodes[node as usize].tier;
         let c = st.cities.get_mut(&node).unwrap();
-        for (class, cap) in garrison_establishment(tier, c.barracks_lvl) {
+        for (class, cap) in garrison_establishment(tier, c.mil_dev) {
             let e = match c.garrison.iter_mut().find(|r| r.class == class) {
                 Some(e) => e,
                 None => {
@@ -265,22 +277,51 @@ pub fn day_tick(map: &WorldMap, st: &mut CampaignState) {
         let job = st.cities.get_mut(&node).unwrap().recruit_queue.remove(0);
         deliver_recruits(st, node, owner, job.class, job.count);
     }
+}
 
-    // 6. Construction sites.
-    for c in st.cities.values_mut() {
-        let Some(job) = &mut c.build_job else {
-            continue;
-        };
-        job.ticks_left = job.ticks_left.saturating_sub(tun::TICKS_PER_DAY);
-        if job.ticks_left > 0 {
-            continue;
-        }
-        match job.kind {
-            BuildKind::Market => c.market_lvl += 1,
-            BuildKind::Barracks => c.barracks_lvl += 1,
-        }
-        c.build_job = None;
+/// The monthly economic pulse: the realm settles its whole book once a game-month
+/// in one legible step — income in, heavy upkeep out, population and development
+/// and loyalty advance. Everything here is expressed per month; the daily
+/// `day_tick` only handles the operational trickle (desertion, replenishment,
+/// garrison regen, recruit progress).
+pub fn month_tick(map: &WorldMap, st: &mut CampaignState) {
+    let nfactions = st.factions.len();
+
+    // 1. Settle the books: gross income in, heavy army upkeep out, net to the
+    //    treasury in one step. An unaffordable bill empties the treasury (and the
+    //    daily desertion that follows bleeds the unpaid army until income returns).
+    for f in 0..nfactions {
+        let income = faction_monthly_income(st, f as u32);
+        let upkeep = faction_monthly_upkeep(map, st, f as u32);
+        let t = &mut st.factions[f].treasury;
+        *t = t.saturating_add(income);
+        *t = t.saturating_sub(upkeep);
     }
+
+    // 2. Development ramps toward each city's focus target and decays off-axis —
+    //    "set a direction and walk away" — and population grows logistically,
+    //    invested or extracted by the throttle and dragged by low loyalty.
+    let nodes: Vec<NodeId> = st.cities.keys().copied().collect();
+    for node in nodes {
+        let cap = tun::city_pop_cap(map.nodes[node as usize].tier);
+        let c = st.cities.get_mut(&node).unwrap();
+
+        let econ_t = tun::econ_target(c.focus);
+        let mil_t = tun::mil_target(c.focus);
+        c.econ_dev = (c.econ_dev + (econ_t - c.econ_dev) * tun::DEV_RAMP).clamp(0.0, 1.0);
+        c.mil_dev = (c.mil_dev + (mil_t - c.mil_dev) * tun::DEV_RAMP).clamp(0.0, 1.0);
+
+        let pop = c.population as f32;
+        let room = (1.0 - pop / cap.max(1) as f32).max(0.0);
+        let grow_mult = (1.0 - c.throttle.clamp(0.0, 1.0)) * tun::output_loyalty_mult(c.loyalty);
+        let grow = pop * tun::POP_GROWTH * room * grow_mult;
+        let drain = pop * tun::POP_EXPLOIT_DRAIN * c.throttle.clamp(0.0, 1.0);
+        c.population = (pop + grow - drain).clamp(0.0, cap as f32) as u32;
+    }
+
+    // 3. Loyalty drifts by the balance of friendly vs enemy connected territory,
+    //    then over-low cities revolt. The overextension brake (slice 05).
+    loyalty_month(map, st);
 }
 
 /// Finished recruits join a halted friendly field army at the node, or found
@@ -326,6 +367,7 @@ fn deliver_recruits(
             stance: Stance::Hold,
             encounter: None,
             auto_replenish: true,
+            sack_intent: false,
             embark_ticks_left: 0,
         });
     } else {
@@ -351,8 +393,11 @@ pub fn add_to_roster(roster: &mut Vec<RosterEntry>, class: UnitClassId, count: u
 
 // ---- orders ----------------------------------------------------------------
 
-/// Queue recruitment at an owned city. Cost is paid up front; rejects when
-/// the treasury can't cover it.
+/// Queue recruitment at an owned city. Recruiting invests the city's *people*:
+/// gold is paid up front AND population is spent from the pool (so the recruits
+/// are real inhabitants, and an army lost is population lost). Rejected when the
+/// treasury can't cover it, the pool is too shallow, or the city's military
+/// development hasn't unlocked the chosen unit option.
 pub fn recruit(
     map: &WorldMap,
     st: &mut CampaignState,
@@ -364,31 +409,35 @@ pub fn recruit(
         return false;
     };
     let owner = c.owner;
+    // The pool: recruits are drawn from population and can't exceed it.
+    if count == 0 || count > c.population {
+        return false;
+    }
     let unit_type = units::selected_unit_type(st, owner, class);
     let Some(unit) = units::unit_type_by_id(map, unit_type) else {
         return false;
     };
+    // City-gated unlock: a deeper class option needs a militarised city.
+    if c.mil_dev < units::option_mil_dev_req(unit.option) {
+        return false;
+    }
     let cost = (count as u64 * unit.cost_per_soldier_milligold as u64 / 1000) as u32;
     if st.factions[owner as usize].treasury < cost {
         return false;
     }
-    let barracks = c.barracks_lvl.min(2) as u32;
     // recruit_ticks_per_soldier is calibrated in game-minutes; convert to the
-    // current tick scale so a recruit keeps its length in game-days (and, like
-    // construction, plays out faster as the time rescale rises) rather than
+    // current tick scale so a recruit keeps its length in game-days rather than
     // ballooning when a tick covers more minutes.
-    let minutes = count * unit.recruit_ticks_per_soldier * (100 - 25 * barracks) / 100;
+    let minutes = count * unit.recruit_ticks_per_soldier;
     let ticks = (minutes / tun::MINUTES_PER_TICK).max(1);
     st.factions[owner as usize].treasury -= cost;
-    st.cities
-        .get_mut(&node)
-        .unwrap()
-        .recruit_queue
-        .push(RecruitJob {
-            class,
-            count,
-            ticks_left: ticks.max(1),
-        });
+    let c = st.cities.get_mut(&node).unwrap();
+    c.population -= count;
+    c.recruit_queue.push(RecruitJob {
+        class,
+        count,
+        ticks_left: ticks.max(1),
+    });
     true
 }
 
@@ -580,35 +629,119 @@ pub fn merge(map: &WorldMap, st: &mut CampaignState, src: ArmyId, dst: ArmyId) -
     true
 }
 
-/// Start a building at an owned city: one site at a time, paid up front.
-pub fn build(st: &mut CampaignState, node: NodeId, kind: BuildKind, f: FactionId) -> bool {
-    let Some(c) = st.cities.get(&node) else {
+/// Set an owned city's policy dials. Focus (−1 Economy … +1 Military) and
+/// throttle (0 Grow … 1 Exploit) are the player's whole city interaction — the
+/// city auto-develops from them on the monthly pulse. Replaces the build menu.
+pub fn set_city_policy(
+    st: &mut CampaignState,
+    node: NodeId,
+    f: FactionId,
+    focus: f32,
+    throttle: f32,
+) -> bool {
+    let Some(c) = st.cities.get_mut(&node) else {
         return false;
     };
-    if c.owner != f || c.build_job.is_some() {
+    if c.owner != f {
         return false;
     }
-    let lvl = match kind {
-        BuildKind::Market => c.market_lvl,
-        BuildKind::Barracks => c.barracks_lvl,
-    };
-    if lvl >= 2 {
-        return false;
-    }
-    let cost = match kind {
-        BuildKind::Market => tun::BUILD_MARKET_COST[lvl as usize],
-        BuildKind::Barracks => tun::BUILD_BARRACKS_COST[lvl as usize],
-    };
-    let fac = &mut st.factions[f as usize];
-    if fac.treasury < cost {
-        return false;
-    }
-    fac.treasury -= cost;
-    st.cities.get_mut(&node).unwrap().build_job = Some(BuildJob {
-        kind,
-        ticks_left: tun::BUILD_TICKS,
-    });
+    c.focus = focus.clamp(-1.0, 1.0);
+    c.throttle = throttle.clamp(0.0, 1.0);
     true
+}
+
+/// Resolve a city falling to a new owner — sack or hold. Owned by the capture
+/// itself, not left to later AI timing (the lesson from the siege work).
+/// - **Sack**: convert the populace to instant plunder (gold to the taker),
+///   raze most of the population, and hold the gutted town at low loyalty.
+/// - **Hold**: keep the population, flip at a little starting loyalty, pacify
+///   over months (slice 05). The conquest is a real asset, slow to settle.
+pub fn resolve_capture(st: &mut CampaignState, node: NodeId, new_owner: FactionId, sack: bool) {
+    let Some(c) = st.cities.get_mut(&node) else {
+        return;
+    };
+    c.owner = new_owner;
+    c.loyalty = tun::CONQUEST_LOYALTY;
+    c.recruit_queue.clear();
+    if sack {
+        let plunder =
+            (c.population as u64 * tun::SACK_GOLD_PER_POP_MILLIGOLD as u64 / 1000) as u32;
+        c.population = (c.population as f32 * tun::SACK_POP_REMAINING) as u32;
+        let t = &mut st.factions[new_owner as usize].treasury;
+        *t = t.saturating_add(plunder);
+    }
+}
+
+/// The monthly loyalty gradient + revolts. Each city drifts by the signed balance
+/// of friendly vs enemy *connected territory* — neighbouring cities weighted by
+/// their own loyalty (so allegiance propagates outward from a loyal core), plus
+/// armies, which act like a city when they hold ≥`ANCHOR_MIN_UNITS` and scale
+/// down below. More enemy-connected than own → it falls; a city dragged to zero
+/// throws off its ruler and turns independent. Snapshot-then-apply, cities in id
+/// order — determinism.
+fn loyalty_month(map: &WorldMap, st: &mut CampaignState) {
+    use std::collections::BTreeMap;
+    let owners: BTreeMap<NodeId, FactionId> =
+        st.cities.iter().map(|(&n, c)| (n, c.owner)).collect();
+    let loyalties: BTreeMap<NodeId, f32> =
+        st.cities.iter().map(|(&n, c)| (n, c.loyalty)).collect();
+
+    // Army anchors: (faction, weight∈0..1, loc) for live, in-play armies. An army
+    // is a *source* of presence (it doesn't hold loyalty itself); weight scales
+    // with unit count up to a full anchor at ANCHOR_MIN_UNITS.
+    let anchors: Vec<(FactionId, f32, Loc)> = st
+        .armies
+        .iter()
+        .filter(|a| a.alive() && !matches!(a.stance, Stance::Routed { .. } | Stance::AtSea))
+        .map(|a| {
+            let units = a.roster.iter().filter(|r| r.count > 0).count() as f32;
+            let w = (units / tun::ANCHOR_MIN_UNITS as f32).min(1.0);
+            (a.faction, w, a.loc)
+        })
+        .collect();
+
+    let nodes: Vec<NodeId> = st.cities.keys().copied().collect();
+    let mut drift: BTreeMap<NodeId, f32> = BTreeMap::new();
+    for &node in &nodes {
+        let owner = owners[&node];
+        let mut friendly = 0.0f32;
+        let mut enemy = 0.0f32;
+        for &nb in map.city_neighbors(node) {
+            let Some(&nbo) = owners.get(&nb) else { continue };
+            if nbo == owner {
+                friendly += loyalties[&nb]; // gradient: a barely-loyal neighbour lends little
+            } else if st.at_war(owner, nbo) {
+                enemy += tun::LOYALTY_ENEMY_CITY;
+            }
+        }
+        let cloc = Loc::Node(node);
+        for &(af, w, aloc) in &anchors {
+            if !pathfind::in_contact(map, aloc, cloc) {
+                continue;
+            }
+            if af == owner {
+                friendly += tun::LOYALTY_ARMY_WEIGHT * w;
+            } else if st.at_war(owner, af) {
+                enemy += tun::LOYALTY_ARMY_WEIGHT * w;
+            }
+        }
+        // Over-exploitation makes the populace restive.
+        enemy += tun::LOYALTY_EXPLOIT_DRAG * st.cities[&node].throttle.clamp(0.0, 1.0);
+        drift.insert(node, (friendly - enemy) * tun::LOYALTY_DRIFT);
+    }
+
+    let independents = map.independents();
+    for &node in &nodes {
+        let c = st.cities.get_mut(&node).unwrap();
+        c.loyalty = (c.loyalty + drift[&node]).clamp(0.0, 1.0);
+        if c.loyalty <= tun::LOYALTY_REVOLT && c.owner != independents {
+            // The city revolts — independents man the walls (the garrison stays),
+            // and it holds itself loosely until reconquered. The trailing power's
+            // comeback: a sprawling empire is a frontier it must garrison or lose.
+            c.owner = independents;
+            c.loyalty = tun::CONQUEST_LOYALTY;
+        }
+    }
 }
 
 /// Split entries out of an army onto a free adjacent tile.
@@ -662,6 +795,7 @@ pub fn split(map: &WorldMap, st: &mut CampaignState, army: ArmyId, entries: &[us
         stance: Stance::Hold,
         encounter: None,
         auto_replenish: true,
+        sack_intent: false,
         embark_ticks_left: 0,
     });
     true
@@ -717,6 +851,7 @@ pub fn garrison_sorties(map: &WorldMap, st: &mut CampaignState) {
             stance: Stance::Hold,
             encounter: None,
             auto_replenish: true,
+            sack_intent: false,
             embark_ticks_left: 0,
         });
     }
@@ -770,13 +905,15 @@ pub fn occupations(map: &WorldMap, st: &mut CampaignState) {
                         && !matches!(o.stance, Stance::Routed { .. } | Stance::AtSea)
                         && pathfind::in_contact(map, o.loc, a.loc)
                 });
-                let a = &mut st.armies[i];
                 if hostile_near {
-                    a.stance = Stance::Hold;
+                    st.armies[i].stance = Stance::Hold;
                 } else if ticks_left == 0 {
-                    st.cities.get_mut(&city).unwrap().owner = a.faction;
-                    a.stance = Stance::Hold;
+                    // The city falls: sack or hold, owned by the capture itself.
+                    let (fac, sack) = (st.armies[i].faction, st.armies[i].sack_intent);
+                    resolve_capture(st, city, fac, sack);
+                    st.armies[i].stance = Stance::Hold;
                 } else {
+                    let a = &mut st.armies[i];
                     a.stance = Stance::Occupying {
                         city,
                         ticks_left: ticks_left - 1,

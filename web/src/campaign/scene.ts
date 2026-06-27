@@ -710,7 +710,17 @@ export class CampaignScene implements Scene {
     const mm = String(Math.floor(mins % 60)).padStart(2, '0');
     const date = this.ui.querySelector('#cmp-date')!;
     date.textContent = `Day ${day}, ${hh}:${mm}${this.paused ? '  ⏸ PAUSED' : `  ${SPEEDS[this.speed]}×`}`;
-    this.ui.querySelector('#cmp-gold')!.textContent = `${this.cfg.campaign.treasury()} gold`;
+    // Gold plus the monthly books (income − heavy upkeep = net), the "set policy,
+    // watch the books" payoff. The realm settles once a game-month.
+    const eco = JSON.parse(this.cfg.campaign.economy_json()) as {
+      treasury: number;
+      monthly_income: number;
+      monthly_upkeep: number;
+      monthly_net: number;
+    };
+    const sign = eco.monthly_net >= 0 ? '+' : '';
+    this.ui.querySelector('#cmp-gold')!.textContent =
+      `${eco.treasury} gold  (${sign}${eco.monthly_net}/mo: +${eco.monthly_income} −${eco.monthly_upkeep})`;
     this.ui.querySelectorAll<HTMLButtonElement>('button[data-speed]').forEach((b) =>
       b.classList.toggle('on', !this.paused && Number(b.dataset.speed) === this.speed),
     );
@@ -836,14 +846,16 @@ export class CampaignScene implements Scene {
     if (!detail) return;
     panel.innerHTML = cityPanelHtml(this.cfg.data, node, c, mineCity, detail, this.recruitClasses);
     panel.style.display = 'block';
-    panel.querySelectorAll<HTMLButtonElement>('button[data-build]').forEach((b) =>
-      b.addEventListener('click', () => {
-        if (this.cfg.campaign.order_build(node, Number(b.dataset.build))) {
-          this.refreshViews();
-          this.openCityPanel(node);
-        }
-      }),
-    );
+    // Policy dials: drag a slider to set the city's focus/throttle. Read both so
+    // changing one keeps the other; the city auto-develops from here.
+    const policyInputs = panel.querySelectorAll<HTMLInputElement>('input[data-policy]');
+    const applyPolicy = () => {
+      const get = (k: string) =>
+        Number(panel.querySelector<HTMLInputElement>(`input[data-policy="${k}"]`)?.value ?? 0);
+      this.cfg.campaign.order_set_city_policy(node, get('focus'), get('throttle'));
+      this.refreshViews();
+    };
+    policyInputs.forEach((b) => b.addEventListener('change', applyPolicy));
     panel.querySelectorAll<HTMLButtonElement>('button[data-recruit]').forEach((b) =>
       b.addEventListener('click', () => {
         this.cfg.campaign.order_recruit(node, Number(b.dataset.recruit), 240);

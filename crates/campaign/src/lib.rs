@@ -164,10 +164,17 @@ impl Campaign {
     pub fn order_auto_replenish(&mut self, army: ArmyId, on: bool) -> bool {
         economy::set_auto_replenish(&mut self.state, army, on)
     }
-    /// Start a market or barracks at an owned city (player faction pays).
-    pub fn order_build(&mut self, node: u32, kind: state::BuildKind) -> bool {
+    /// Steer an owned city's development with the two policy dials: focus
+    /// (−1 Economy … +1 Military) and throttle (0 Grow … 1 Exploit). The city
+    /// auto-develops from there — the player's whole city interaction.
+    pub fn order_set_city_policy(&mut self, node: u32, focus: f32, throttle: f32) -> bool {
         let f = self.state.player_faction;
-        economy::build(&mut self.state, node, kind, f)
+        economy::set_city_policy(&mut self.state, node, f, focus, throttle)
+    }
+    /// Flag an owned army to sack (vs hold) the next city it captures.
+    pub fn order_sack_intent(&mut self, army: ArmyId, on: bool) -> bool {
+        let f = self.state.player_faction;
+        ai::orders::apply(&self.map, &mut self.state, f, &ai::Order::Sack { army, on })
     }
     pub fn order_disband(&mut self, army: ArmyId, entry: usize) -> bool {
         economy::disband(&mut self.state, army, entry)

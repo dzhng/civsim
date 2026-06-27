@@ -519,6 +519,13 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   depth lines should require `WorldRenderPass`. Keep `webgpu-lab-routes`
   scanning this contract so a later cleanup cannot silently move true 3D
   geometry back into a no-depth phase.
+- Keep render-graph domain and frame phase separate. A pass can belong to the
+  `battle` or `campaign` domain while still running in the `background`,
+  `world-depth`, or `overlay` frame phase. Only the frame phase should decide
+  depth legality: `worldDepth` reads/writes and depth attachments belong in
+  `world-depth`; background underpaint and overlay UI must not touch them.
+  Have `compileRenderGraph` validate phase order and depth ownership, and make
+  the render-graph lab route expose graph frame phases and depth-pass ids.
 - Shared projection does not require one numeric depth scale for every world.
   Battle and campaign should import the same camera/projection helpers, but
   large battlefields and compact campaign fixtures need named depth helpers

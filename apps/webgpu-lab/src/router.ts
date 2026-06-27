@@ -1049,13 +1049,23 @@ async function routeRenderGraph(ctx: LabContext) {
     counts[pass.phase] = (counts[pass.phase] ?? 0) + 1;
     return counts;
   }, {});
+  const graphFramePhases = uniqueGraphFramePhases(report);
+  const depthPasses = report.passes.filter((pass) => pass.depth).map((pass) => pass.id);
+  const backgroundDepthPasses = report.passes
+    .filter((pass) => pass.framePhase === 'background' && pass.depth)
+    .map((pass) => pass.id);
+  const overlayDepthPasses = report.passes
+    .filter((pass) => pass.framePhase === 'overlay' && pass.depth)
+    .map((pass) => pass.id);
   ctx.status.innerHTML = reportTable({
     route: 'render-graph',
     status: report.ok ? 'graph contract valid' : 'graph diagnostics',
     passes: report.passes.length,
     resources: report.resources.length,
     phases: Object.entries(phaseCounts).map(([k, v]) => `${k}:${v}`).join(', '),
+    graphFramePhases: graphFramePhases.join(' -> '),
     actualFramePhases: shellStats.phases.map((phase) => phase.kind).join(' -> '),
+    depthPasses: depthPasses.join(', '),
     diagnostics: report.diagnostics.length,
     depth: shellStats.depth.allocated ? `${shellStats.depth.format} ${shellStats.depth.width}x${shellStats.depth.height}` : 'not allocated',
     nestedFixtures: nestedStats.fixtures.join(', '),
@@ -1066,6 +1076,10 @@ async function routeRenderGraph(ctx: LabContext) {
     firstPass: report.passes[0]?.id,
     lastPass: report.passes.at(-1)?.id,
     diagnostics: report.diagnostics,
+    graphFramePhases,
+    depthPasses,
+    backgroundDepthPasses,
+    overlayDepthPasses,
     depth: shellStats.depth,
     framePhases: shellStats.phases,
     nested3d: nestedStats,
@@ -1075,6 +1089,14 @@ async function routeRenderGraph(ctx: LabContext) {
       frontRankOverlap: projectNestedPoint(ctx.canvas, camera, [4.30, -1.20, 1.08]),
     },
   });
+}
+
+function uniqueGraphFramePhases(report: ReturnType<typeof fullGameRenderGraphReport>) {
+  const phases: string[] = [];
+  for (const pass of report.passes) {
+    if (pass.framePhase && phases.at(-1) !== pass.framePhase) phases.push(pass.framePhase);
+  }
+  return phases;
 }
 
 async function routeWorldCamera(ctx: LabContext) {

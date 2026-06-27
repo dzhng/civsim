@@ -1,9 +1,11 @@
 export type RenderGraphPhase = 'frame' | 'battle' | 'campaign' | 'ui' | 'post';
+export type RenderGraphFramePhase = 'background' | 'world-depth' | 'overlay';
 
 export interface RenderGraphPass {
   id: string;
   label: string;
   phase: RenderGraphPhase;
+  framePhase?: RenderGraphFramePhase;
   reads?: string[];
   writes?: string[];
   depth?: {
@@ -39,32 +41,51 @@ export const FULL_GAME_GRAPH_SKELETON: RenderGraphPass[] = [
   },
   {
     id: 'battleTerrain',
-    label: 'Battle terrain, water, sky, haze, and shadows',
+    label: 'Battle terrain, water, sky, haze, and underpaint',
     phase: 'battle',
+    framePhase: 'background',
     reads: ['cameraUniforms', 'frameConstants'],
-    writes: ['worldColor', 'worldDepth'],
-    depth: { attachment: 'worldDepth', mode: 'write', format: 'depth24plus', compare: 'less', store: 'store' },
+    writes: ['worldColor'],
+  },
+  {
+    id: 'campaignMapUnderpaint',
+    label: 'Campaign map texture, territory wash, water, borders, and underpaint',
+    phase: 'campaign',
+    framePhase: 'background',
+    reads: ['cameraUniforms', 'frameConstants', 'campaignState'],
+    writes: ['worldColor'],
+  },
+  {
+    id: 'worldDepthClear',
+    label: 'World depth attachment clear boundary',
+    phase: 'frame',
+    framePhase: 'world-depth',
+    writes: ['worldDepth'],
+    depth: { attachment: 'worldDepth', mode: 'write', format: 'depth24plus', compare: 'less', store: 'discard' },
   },
   {
     id: 'battleCrowd',
     label: 'Skinned battle crowd',
     phase: 'battle',
+    framePhase: 'world-depth',
     reads: ['cameraUniforms', 'worldDepth', 'soldierVat', 'crowdInstances'],
     writes: ['worldColor', 'worldDepth', 'pickIds'],
     depth: { attachment: 'worldDepth', mode: 'read-write', format: 'depth24plus', compare: 'less-equal', store: 'store' },
   },
   {
-    id: 'campaignGround',
-    label: 'Campaign terrain, roads, water, borders, and ground decals',
+    id: 'campaignGroundDecals',
+    label: 'Campaign roads and ground selection decals',
     phase: 'campaign',
-    reads: ['cameraUniforms', 'frameConstants', 'campaignState'],
-    writes: ['worldColor', 'worldDepth'],
-    depth: { attachment: 'worldDepth', mode: 'write', format: 'depth24plus', compare: 'less', store: 'store' },
+    framePhase: 'world-depth',
+    reads: ['cameraUniforms', 'campaignState', 'worldDepth'],
+    writes: ['worldColor'],
+    depth: { attachment: 'worldDepth', mode: 'read', format: 'depth24plus', compare: 'less-equal', store: 'store' },
   },
   {
     id: 'campaignOpaque3d',
     label: 'Campaign city, army, scenery, standards, and garrison meshes',
     phase: 'campaign',
+    framePhase: 'world-depth',
     reads: ['cameraUniforms', 'campaignState', 'worldDepth'],
     writes: ['worldColor', 'worldDepth', 'pickIds'],
     depth: { attachment: 'worldDepth', mode: 'read-write', format: 'depth24plus', compare: 'less-equal', store: 'store' },
@@ -73,6 +94,7 @@ export const FULL_GAME_GRAPH_SKELETON: RenderGraphPass[] = [
     id: 'labelsAndAtmosphere',
     label: 'Transparent atmosphere, labels, HUD anchors, and non-depth overlays',
     phase: 'ui',
+    framePhase: 'overlay',
     reads: ['cameraUniforms', 'worldColor', 'pickIds'],
     writes: ['compositedColor'],
     overlay: true,
@@ -81,6 +103,7 @@ export const FULL_GAME_GRAPH_SKELETON: RenderGraphPass[] = [
     id: 'gameUi',
     label: 'Game anchored UI and compositor',
     phase: 'ui',
+    framePhase: 'overlay',
     reads: ['cameraUniforms', 'compositedColor', 'pickIds'],
     writes: ['compositedColor'],
     overlay: true,
@@ -98,6 +121,7 @@ export function compileRenderGraph(passes: readonly RenderGraphPass[]): RenderGr
   const diagnostics: string[] = [];
   const seenPasses = new Set<string>();
   const resources = new Map<string, RenderGraphResource>();
+  let lastFramePhaseOrder = -1;
 
   for (const pass of passes) {
     if (seenPasses.has(pass.id)) {
@@ -123,6 +147,29 @@ export function compileRenderGraph(passes: readonly RenderGraphPass[]): RenderGr
     if (pass.overlay && (pass.depth?.mode === 'write' || pass.depth?.mode === 'read-write')) {
       diagnostics.push(`overlay pass "${pass.id}" must not write depth attachment "${pass.depth.attachment}"`);
     }
+    if (pass.overlay && pass.framePhase !== 'overlay') {
+      diagnostics.push(`overlay pass "${pass.id}" must use the overlay frame phase`);
+    }
+
+    if (pass.framePhase) {
+      const order = framePhaseOrder(pass.framePhase);
+      if (order < lastFramePhaseOrder) {
+        diagnostics.push(`pass "${pass.id}" moves frame phase order backward to "${pass.framePhase}"`);
+      }
+      lastFramePhaseOrder = Math.max(lastFramePhaseOrder, order);
+
+      const touchesDepth = (pass.reads?.includes('worldDepth') ?? false) || (pass.writes?.includes('worldDepth') ?? false);
+      if (pass.framePhase === 'world-depth' && !pass.depth) {
+        diagnostics.push(`world-depth pass "${pass.id}" must declare a depth attachment contract`);
+      }
+      if (pass.framePhase !== 'world-depth' && touchesDepth) {
+        diagnostics.push(`non-world-depth pass "${pass.id}" must not touch worldDepth`);
+      }
+    }
+
+    if (pass.depth && pass.framePhase !== 'world-depth') {
+      diagnostics.push(`pass "${pass.id}" declares depth outside the world-depth frame phase`);
+    }
 
     if (pass.depth) {
       const readsDepth = pass.reads?.includes(pass.depth.attachment) ?? false;
@@ -146,6 +193,14 @@ export function compileRenderGraph(passes: readonly RenderGraphPass[]): RenderGr
     resources: Array.from(resources.values()).sort((a, b) => a.id.localeCompare(b.id)),
     diagnostics,
   };
+}
+
+function framePhaseOrder(phase: RenderGraphFramePhase): number {
+  switch (phase) {
+    case 'background': return 0;
+    case 'world-depth': return 1;
+    case 'overlay': return 2;
+  }
 }
 
 export function fullGameRenderGraphReport(): RenderGraphReport {

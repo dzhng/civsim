@@ -60,6 +60,13 @@ const routes = [
     && s.stats.firstPass === 'camera'
     && s.stats.lastPass === 'present'
     && s.stats.passes >= 7
+    && graphFramePhaseOrder(s.stats.graphFramePhases)
+    && s.stats.depthPasses?.includes('worldDepthClear')
+    && s.stats.depthPasses?.includes('battleCrowd')
+    && s.stats.depthPasses?.includes('campaignGroundDecals')
+    && s.stats.depthPasses?.includes('campaignOpaque3d')
+    && s.stats.backgroundDepthPasses?.length === 0
+    && s.stats.overlayDepthPasses?.length === 0
     && s.stats.depth?.allocated === true
     && s.stats.depth?.format === 'depth24plus'
     && hasFramePhaseOrder(s.stats.framePhases)
@@ -102,6 +109,10 @@ function hasFramePhaseOrder(phases) {
   const world = kinds.indexOf('world-depth');
   const overlay = kinds.includes('overlay') ? kinds.indexOf('overlay') : kinds.length;
   return background === 0 && world > background && overlay > world;
+}
+
+function graphFramePhaseOrder(phases) {
+  return Array.isArray(phases) && phases.join(' -> ') === 'background -> world-depth -> overlay';
 }
 
 async function findPrivateCameraStructs() {

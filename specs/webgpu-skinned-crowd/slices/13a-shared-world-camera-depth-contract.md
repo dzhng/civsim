@@ -130,6 +130,12 @@ shadows that sit on the ground instead of floating as screen overlays.
   `WorldRenderPass` at compile time, and `webgpu-lab-routes` scans for the
   brand so true 3D geometry cannot casually drift back into background or
   overlay callbacks.
+- The declarative full-game render graph now tracks content domain and runtime
+  frame phase separately. Battle/campaign classify ownership, while
+  `background -> world-depth -> overlay` classifies attachment semantics. The
+  graph compiler rejects depth outside `world-depth`, rejects `worldDepth`
+  resources in background/overlay passes, and the render-graph lab route
+  publishes the graph frame phases plus depth-pass ids.
 - Type batching is permitted only as a performance strategy. Batches for trees,
   rocks, cities, armies, and soldier mesh variants must not create their own
   visual ordering rules or private depth scales.

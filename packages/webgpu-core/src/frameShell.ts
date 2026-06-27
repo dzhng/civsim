@@ -1,4 +1,5 @@
 import { cameraUniformData, type CameraSnapshot } from './cameraUniform';
+import { WORLD_CAMERA_WGSL } from './cameraWgsl';
 import { requestWebGpuDevice, type WebGpuDeviceInfo } from './device';
 
 export interface MarkerInstance {
@@ -128,18 +129,12 @@ const WIDE_DETAIL_TERRAIN_STYLE: TerrainShaderStyle = {
 
 function terrainWgsl(style: TerrainShaderStyle) {
   return `
-struct Camera { x:f32, y:f32, zoom:f32, cosP:f32, width:f32, height:f32, cosYaw:f32, sinYaw:f32, perspective:f32, pad0:f32, pad1:f32, pad2:f32 };
-@group(0) @binding(0) var<uniform> cam: Camera;
+${WORLD_CAMERA_WGSL}
 struct VsOut { @builtin(position) pos: vec4f, @location(0) world: vec2f, @location(1) dist: f32 };
 @vertex
 fn vs(@location(0) world: vec2f) -> VsOut {
-  let dx = world.x - cam.x;
-  let dy = world.y - cam.y;
-  let rx = dx * cam.cosYaw + dy * cam.sinYaw;
-  let ry = -dx * cam.sinYaw + dy * cam.cosYaw;
   var out: VsOut;
-  let depth = max(0.32, 1.0 + ry * cam.perspective);
-  out.pos = vec4f((rx * cam.zoom) / (cam.width * 0.5), (ry * cam.zoom * cam.cosP) / (cam.height * 0.5), 0.8 * depth, depth);
+  out.pos = projectGround(world, 0.8);
   out.world = world;
   out.dist = length(world - vec2f(cam.x, cam.y));
   return out;
@@ -215,18 +210,12 @@ const TERRAIN_WGSL = terrainWgsl(DEFAULT_TERRAIN_STYLE);
 const TERRAIN_WIDE_DETAIL_WGSL = terrainWgsl(WIDE_DETAIL_TERRAIN_STYLE);
 
 const TERRAIN_BACKDROP_WGSL = `
-struct Camera { x:f32, y:f32, zoom:f32, cosP:f32, width:f32, height:f32, cosYaw:f32, sinYaw:f32, perspective:f32, pad0:f32, pad1:f32, pad2:f32 };
-@group(0) @binding(0) var<uniform> cam: Camera;
+${WORLD_CAMERA_WGSL}
 struct VsOut { @builtin(position) pos: vec4f, @location(0) world: vec2f };
 @vertex
 fn vs(@location(0) world: vec2f) -> VsOut {
-  let dx = world.x - cam.x;
-  let dy = world.y - cam.y;
-  let rx = dx * cam.cosYaw + dy * cam.sinYaw;
-  let ry = -dx * cam.sinYaw + dy * cam.cosYaw;
   var out: VsOut;
-  let depth = max(0.32, 1.0 + ry * cam.perspective);
-  out.pos = vec4f((rx * cam.zoom) / (cam.width * 0.5), (ry * cam.zoom * cam.cosP) / (cam.height * 0.5), 0.9 * depth, depth);
+  out.pos = projectGround(world, 0.9);
   out.world = world;
   return out;
 }
@@ -257,8 +246,7 @@ fn fs(in: VsOut) -> @location(0) vec4f {
 }`;
 
 const MARKER_WGSL = `
-struct Camera { x:f32, y:f32, zoom:f32, cosP:f32, width:f32, height:f32, cosYaw:f32, sinYaw:f32, perspective:f32, pad0:f32, pad1:f32, pad2:f32 };
-@group(0) @binding(0) var<uniform> cam: Camera;
+${WORLD_CAMERA_WGSL}
 struct Inst { xy:f32, yy:f32, facing:f32, faction:f32, size:f32, lod:f32, pad0:f32, pad1:f32 };
 struct VsOut { @builtin(position) pos: vec4f, @location(0) faction:f32, @location(1) local: vec2f, @location(2) lod:f32 };
 @vertex
@@ -268,13 +256,8 @@ fn vs(@location(0) quad: vec2f, @location(1) inst: vec4f, @location(2) instMeta:
   let s = sin(a);
   let p = vec2f(quad.x * instMeta.x * 0.34, quad.y * instMeta.x * 0.58);
   let world = vec2f(inst.x, inst.y) + vec2f(p.x * c - p.y * s, p.x * s + p.y * c);
-  let dx = world.x - cam.x;
-  let dy = world.y - cam.y;
-  let rx = dx * cam.cosYaw + dy * cam.sinYaw;
-  let ry = -dx * cam.sinYaw + dy * cam.cosYaw;
   var out: VsOut;
-  let depth = max(0.32, 1.0 + ry * cam.perspective);
-  out.pos = vec4f((rx * cam.zoom) / (cam.width * 0.5), (ry * cam.zoom * cam.cosP) / (cam.height * 0.5), 0.2 * depth, depth);
+  out.pos = projectGround(world, 0.2);
   out.faction = inst.w;
   out.local = quad;
   out.lod = instMeta.y;

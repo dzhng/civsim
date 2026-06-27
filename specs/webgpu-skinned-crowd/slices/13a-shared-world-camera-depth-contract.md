@@ -32,6 +32,10 @@ shadows that sit on the ground instead of floating as screen overlays.
 - `packages/game-renderer/src/**`
   - model, terrain, decal, and fixture passes import the shared WGSL helpers
     instead of copying camera structs and projection functions.
+  - background and overlay-adjacent passes still share the same camera helpers:
+    campaign map textures, territory, water/cloud quads, map markers, and label
+    anchors may choose non-depth overlay behavior, but they do not carry private
+    camera uniforms or projection formulas.
 
 ## Playable Deliverable
 
@@ -102,6 +106,10 @@ shadows that sit on the ground instead of floating as screen overlays.
   phase list, and the lab route scenario asserts the depth-critical routes
   execute `background -> world-depth` rather than relying on visual pixels
   alone.
+- `RawFrameShell` built-in terrain/backdrop/marker shaders and campaign
+  map/territory/atmosphere/label-anchor shaders now import
+  `WORLD_CAMERA_WGSL`; label atlas quads keep screen-space offsets only after
+  anchoring through the shared `cameraSpace`/`perspectiveDepth` helpers.
 - Type batching is permitted only as a performance strategy. Batches for trees,
   rocks, cities, armies, and soldier mesh variants must not create their own
   visual ordering rules or private depth scales.

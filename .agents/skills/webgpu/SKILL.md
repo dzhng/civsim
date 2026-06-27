@@ -418,6 +418,13 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   passes. This keeps nested flags, garrisons, ground rings, battle ranks,
   picking, labels, and screenshots converging on one world/camera/depth
   contract instead of self-consistent but incompatible local projections.
+- The shared camera WGSL belongs in background and overlay-adjacent passes too,
+  not only opaque model passes. Shell terrain/backdrop impostors, campaign map
+  textures, territory washes, water/cloud quads, markers, and label anchors
+  should import `WORLD_CAMERA_WGSL`; labels may still convert the shared
+  `cameraSpace`/`perspectiveDepth` anchor into screen pixels for atlas offsets.
+  A private `struct Camera` in a shader string is a drift warning unless it is
+  the shared source itself.
 - When migrating battle shaders to the shared camera helpers, preserve existing
   normalized z values and pass ordering first, then assert the contract through
   route stats before adding battle depth. A pure projection-source refactor

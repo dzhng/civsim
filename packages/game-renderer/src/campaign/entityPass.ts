@@ -1,4 +1,4 @@
-import type { RawFrameShell } from '../../../webgpu-core/src/frameShell';
+import type { RawFrameShell, WorldRenderPass } from '../../../webgpu-core/src/frameShell';
 import { WORLD_CAMERA_WGSL } from '../../../webgpu-core/src/cameraWgsl';
 
 export interface CampaignEntityInstance {
@@ -156,11 +156,11 @@ export class CampaignEntityPass {
     if (armies.length > 0) this.shell.device.queue.writeBuffer(this.armyInstanceBuffer, 0, packInstances(armies, 4.4));
   }
 
-  draw(pass: GPURenderPassEncoder) {
+  draw(pass: WorldRenderPass) {
     this.drawWithPipeline(pass, this.pipeline);
   }
 
-  private drawWithPipeline(pass: GPURenderPassEncoder, pipeline: GPURenderPipeline) {
+  private drawWithPipeline(pass: WorldRenderPass, pipeline: GPURenderPipeline) {
     if (this.cityCount === 0 && this.armyCount === 0) return;
     pass.setPipeline(pipeline);
     pass.setBindGroup(0, this.shell.cameraBindGroup);

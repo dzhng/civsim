@@ -123,6 +123,13 @@ shadows that sit on the ground instead of floating as screen overlays.
   expose only the depth-compatible `draw(pass)` path. Their old no-depth
   pipeline variants and `drawDepth` twin APIs were removed, and
   `webgpu-lab-routes` scans those files so the footgun stays gone.
+- The frame shell now brands render pass callbacks by phase:
+  `BackgroundRenderPass`, `WorldRenderPass`, and `OverlayRenderPass`.
+  Depth-sensitive draws such as `SkinnedCrowdPipeline`, nested 3D fixtures,
+  campaign entities/scenery/selections/roads, and depth campaign lines require
+  `WorldRenderPass` at compile time, and `webgpu-lab-routes` scans for the
+  brand so true 3D geometry cannot casually drift back into background or
+  overlay callbacks.
 - Type batching is permitted only as a performance strategy. Batches for trees,
   rocks, cities, armies, and soldier mesh variants must not create their own
   visual ordering rules or private depth scales.

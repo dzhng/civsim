@@ -1,4 +1,4 @@
-import type { RawFrameShell } from '../../../webgpu-core/src/frameShell';
+import type { RawFrameShell, WorldRenderPass } from '../../../webgpu-core/src/frameShell';
 import { WORLD_CAMERA_WGSL } from '../../../webgpu-core/src/cameraWgsl';
 
 export type CampaignSceneryKind = 'mountain' | 'tree' | 'conifer' | 'broadleaf' | 'rock';
@@ -166,11 +166,11 @@ export class CampaignSceneryPass {
     if (rocks.length > 0) this.shell.device.queue.writeBuffer(this.rockInstanceBuffer, 0, packInstances(rocks, 3.0));
   }
 
-  draw(pass: GPURenderPassEncoder) {
+  draw(pass: WorldRenderPass) {
     this.drawWithPipeline(pass, this.pipeline);
   }
 
-  private drawWithPipeline(pass: GPURenderPassEncoder, pipeline: GPURenderPipeline) {
+  private drawWithPipeline(pass: WorldRenderPass, pipeline: GPURenderPipeline) {
     if (this.mountainCount + this.coniferCount + this.broadleafCount + this.rockCount === 0) return;
     pass.setPipeline(pipeline);
     pass.setBindGroup(0, this.shell.cameraBindGroup);

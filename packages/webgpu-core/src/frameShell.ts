@@ -24,15 +24,29 @@ export interface RawFrameShell {
   stats(): FrameShellStats;
 }
 
+declare const framePassPhase: unique symbol;
+
+export type BackgroundRenderPass = GPURenderPassEncoder & {
+  readonly [framePassPhase]: 'background';
+};
+
+export type WorldRenderPass = GPURenderPassEncoder & {
+  readonly [framePassPhase]: 'world-depth';
+};
+
+export type OverlayRenderPass = GPURenderPassEncoder & {
+  readonly [framePassPhase]: 'overlay';
+};
+
 export interface FrameCommands {
   markers?: MarkerInstance[];
   terrainRect?: [number, number, number, number];
   terrainBackdropRect?: [number, number, number, number];
   terrainStyle?: 'default' | 'wide-detail';
   clear?: GPUColor;
-  background?: (pass: GPURenderPassEncoder, shell: RawFrameShellImpl) => void;
-  world?: (pass: GPURenderPassEncoder, shell: RawFrameShellImpl) => void;
-  overlay?: (pass: GPURenderPassEncoder, shell: RawFrameShellImpl) => void;
+  background?: (pass: BackgroundRenderPass, shell: RawFrameShellImpl) => void;
+  world?: (pass: WorldRenderPass, shell: RawFrameShellImpl) => void;
+  overlay?: (pass: OverlayRenderPass, shell: RawFrameShellImpl) => void;
 }
 
 export type FramePhaseKind = 'background' | 'world-depth' | 'overlay';
@@ -408,7 +422,7 @@ export class RawFrameShellImpl implements RawFrameShell {
       pass.setVertexBuffer(1, this.markerInstanceBuffer);
       pass.draw(4, this.markerCount);
     }
-    commands.background?.(pass, this);
+    commands.background?.(pass as BackgroundRenderPass, this);
     pass.end();
     this.recordPhase({
       kind: 'background',
@@ -427,7 +441,7 @@ export class RawFrameShellImpl implements RawFrameShell {
         depthStencilAttachment: this.depthAttachment(),
       });
       depthPass.setBindGroup(0, this.cameraBindGroup);
-      commands.world(depthPass, this);
+      commands.world(depthPass as WorldRenderPass, this);
       depthPass.end();
       this.recordPhase({
         kind: 'world-depth',
@@ -446,7 +460,7 @@ export class RawFrameShellImpl implements RawFrameShell {
         }],
       });
       overlayPass.setBindGroup(0, this.cameraBindGroup);
-      commands.overlay(overlayPass, this);
+      commands.overlay(overlayPass as OverlayRenderPass, this);
       overlayPass.end();
       this.recordPhase({
         kind: 'overlay',

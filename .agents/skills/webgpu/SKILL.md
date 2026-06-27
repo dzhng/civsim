@@ -511,6 +511,14 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   `CampaignSelectionPass`, plain `draw(pass)` should mean the depth-compatible
   world path; keep `webgpu-lab-routes` scanning those files for reintroduced
   `drawDepth`, parallel `depthPipeline`, or no-depth pipeline variants.
+- Make phase misuse impossible at the TypeScript boundary where practical.
+  `FrameCommands` should expose branded `BackgroundRenderPass`,
+  `WorldRenderPass`, and `OverlayRenderPass` callback parameters, and
+  depth-sensitive world draws such as `SkinnedCrowdPipeline`,
+  `Nested3dFixturePass`, campaign entities, scenery, selections, roads, and
+  depth lines should require `WorldRenderPass`. Keep `webgpu-lab-routes`
+  scanning this contract so a later cleanup cannot silently move true 3D
+  geometry back into a no-depth phase.
 - Shared projection does not require one numeric depth scale for every world.
   Battle and campaign should import the same camera/projection helpers, but
   large battlefields and compact campaign fixtures need named depth helpers

@@ -1,4 +1,4 @@
-import type { RawFrameShell } from '../../../webgpu-core/src/frameShell';
+import type { RawFrameShell, WorldRenderPass } from '../../../webgpu-core/src/frameShell';
 import { WORLD_CAMERA_WGSL } from '../../../webgpu-core/src/cameraWgsl';
 
 export interface Nested3dFixtureStats {
@@ -89,7 +89,7 @@ export class Nested3dFixturePass {
     device.queue.writeBuffer(this.vertexBuffer, 0, vertices);
   }
 
-  draw(pass: GPURenderPassEncoder) {
+  draw(pass: WorldRenderPass) {
     pass.setPipeline(this.pipeline);
     pass.setBindGroup(0, this.shell.cameraBindGroup);
     pass.setVertexBuffer(0, this.vertexBuffer);

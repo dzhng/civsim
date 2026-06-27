@@ -1,7 +1,7 @@
 import type { CameraSnapshot } from '../../../webgpu-core/src/cameraUniform';
 import { worldToScreen } from '../../../webgpu-core/src/cameraUniform';
 import { WORLD_CAMERA_WGSL } from '../../../webgpu-core/src/cameraWgsl';
-import type { RawFrameShell } from '../../../webgpu-core/src/frameShell';
+import type { RawFrameShell, WorldRenderPass } from '../../../webgpu-core/src/frameShell';
 
 export interface CampaignMapNodeData {
   name: string;
@@ -479,7 +479,7 @@ export class CampaignLinePass {
     this.drawWithPipeline(pass, this.pipeline);
   }
 
-  drawDepth(pass: GPURenderPassEncoder) {
+  drawDepth(pass: WorldRenderPass) {
     this.drawWithPipeline(pass, this.depthPipeline);
   }
 
@@ -560,7 +560,7 @@ export class CampaignRoadPass {
     if (vertices.length > 0) this.shell.device.queue.writeBuffer(this.vertexBuffer, 0, vertices);
   }
 
-  draw(pass: GPURenderPassEncoder) {
+  draw(pass: WorldRenderPass) {
     if (this.vertexCount === 0) return;
     pass.setPipeline(this.pipeline);
     pass.setBindGroup(0, this.shell.cameraBindGroup);

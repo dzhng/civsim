@@ -2,7 +2,7 @@ import type { CrowdInstance } from '../../crowd-runtime/src/instanceData';
 import type { SoldierMeshData } from '../../soldier-assets/src/soldierMesh';
 import type { VatBake } from '../../soldier-assets/src/schema';
 import { createVatLayout, resolveVatClip } from './vatLayout';
-import type { RawFrameShell } from './frameShell';
+import type { RawFrameShell, WorldRenderPass } from './frameShell';
 import { WORLD_CAMERA_WGSL } from './cameraWgsl';
 
 export interface SkinnedCrowdStats {
@@ -148,7 +148,7 @@ export class SkinnedCrowdPipeline {
     }
   }
 
-  draw(pass: GPURenderPassEncoder) {
+  draw(pass: WorldRenderPass) {
     pass.setPipeline(this.pipeline);
     pass.setBindGroup(0, this.shell.cameraBindGroup);
     pass.setBindGroup(1, this.vatBindGroup);

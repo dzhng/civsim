@@ -162,6 +162,55 @@ async function findCampaignDepthOnlyFootguns() {
   return matches.sort();
 }
 
+async function findWorldPassBrandFootguns() {
+  const root = new URL('../../', import.meta.url).pathname;
+  const files = [
+    {
+      file: new URL('../../packages/webgpu-core/src/frameShell.ts', import.meta.url),
+      checks: [
+        ['background callback is phase-branded', /background\?:\s*\(pass:\s*BackgroundRenderPass/],
+        ['world callback is phase-branded', /world\?:\s*\(pass:\s*WorldRenderPass/],
+        ['overlay callback is phase-branded', /overlay\?:\s*\(pass:\s*OverlayRenderPass/],
+      ],
+    },
+    {
+      file: new URL('../../packages/webgpu-core/src/skinnedPipeline.ts', import.meta.url),
+      checks: [['skinned crowd draw requires world pass', /\bdraw\s*\(\s*pass:\s*WorldRenderPass\s*\)/]],
+    },
+    {
+      file: new URL('../../packages/game-renderer/src/fixtures/nested3d.ts', import.meta.url),
+      checks: [['nested fixture draw requires world pass', /\bdraw\s*\(\s*pass:\s*WorldRenderPass\s*\)/]],
+    },
+    {
+      file: new URL('../../packages/game-renderer/src/campaign/entityPass.ts', import.meta.url),
+      checks: [['campaign entities draw requires world pass', /\bdraw\s*\(\s*pass:\s*WorldRenderPass\s*\)/]],
+    },
+    {
+      file: new URL('../../packages/game-renderer/src/campaign/sceneryPass.ts', import.meta.url),
+      checks: [['campaign scenery draw requires world pass', /\bdraw\s*\(\s*pass:\s*WorldRenderPass\s*\)/]],
+    },
+    {
+      file: new URL('../../packages/game-renderer/src/campaign/selectionPass.ts', import.meta.url),
+      checks: [['campaign selection draw requires world pass', /\bdraw\s*\(\s*pass:\s*WorldRenderPass\s*\)/]],
+    },
+    {
+      file: new URL('../../packages/game-renderer/src/campaign/mapPass.ts', import.meta.url),
+      checks: [
+        ['campaign road draw requires world pass', /export class CampaignRoadPass[\s\S]*?\bdraw\s*\(\s*pass:\s*WorldRenderPass\s*\)/],
+        ['campaign depth lines require world pass', /\bdrawDepth\s*\(\s*pass:\s*WorldRenderPass\s*\)/],
+      ],
+    },
+  ];
+  const matches = [];
+  for (const { file, checks } of files) {
+    const source = await readFile(file, 'utf8');
+    for (const [label, pattern] of checks) {
+      if (!pattern.test(source)) matches.push(`${file.pathname.replace(root, '')}: missing ${label}`);
+    }
+  }
+  return matches.sort();
+}
+
 function countPixels(png) {
   let warmGround = 0;
   let blue = 0;
@@ -242,6 +291,12 @@ export async function run(ctx) {
     'source: campaign model/decal passes expose one depth draw path',
     campaignDepthOnlyFootguns.length === 0,
     JSON.stringify({ campaignDepthOnlyFootguns }),
+  );
+  const worldPassBrandFootguns = await findWorldPassBrandFootguns();
+  ctx.check(
+    'source: depth-sensitive draws require the world-depth pass brand',
+    worldPassBrandFootguns.length === 0,
+    JSON.stringify({ worldPassBrandFootguns }),
   );
 
   for (const [route, predicate] of routes) {

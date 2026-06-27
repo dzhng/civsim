@@ -254,6 +254,18 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   `0.23976` while leaving Campaign Label Zoom unchanged. Add avg luminance to
   the compare output and treat fresh critique findings as acceptance blockers
   even when global darkness is improved.
+- Keep campaign overview brightness route-specific and verify the human read
+  against the side-by-side. Raising the real-map cloud/parchment scale from
+  `1.75` to `1.9` plus giving sea labels a pale fill/dark halo moved Campaign
+  Whole Map to `0.22694` / `0.23549` crop and reduced the world-crop luminance
+  gap to `-1.99825`, with Campaign Label Zoom unchanged. Fresh critique still
+  blocked acceptance on muddy overlays, tiny city labels, edge fog, and missing
+  old flag/unit markers.
+- Do not satisfy old campaign marker parity with generic dot/circle markers.
+  A simple overview marker pass can move pixels while still reading as missing
+  flags/models to an unprimed reviewer. Port the old icon/flag hierarchy and
+  zoom LOD as an explicit visual feature; prune halfway marker layers unless
+  fresh critique sees them as the intended campaign map language.
 - Soldier model gates must exercise the same skinned batching path used by
   production battle rendering. Route each capture through `SkinnedCrowdPipeline`,
   bucket instances by class mesh, freeze clip/phase/facing/camera through query

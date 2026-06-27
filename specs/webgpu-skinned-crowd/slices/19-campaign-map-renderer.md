@@ -348,3 +348,14 @@ Greece/Aegean labels, `SELEUCIDS` still feels edge-cramped, sea labels are
 decorative but weak, `LONDINIUM` remains close to the toolbar, and the sea is
 dark/saturated against pale land/fog. Next passes should target cloud shape,
 sea-label readability, marker/icon scale, and faction/city label collisions.
+
+The latest overview pass raises the real-map cloud/parchment scale again and
+switches sea labels to a pale fill with a dark halo. Campaign Whole Map moves
+from `0.23102` full / `0.23976` world crop to `0.22694` full / `0.23549` world
+crop, and the world-crop luminance delta improves from `-2.53214` to
+`-1.99825`; Campaign Label Zoom stays unchanged at `0.17429` / `0.23263`. Fresh
+critique still rejects the overview as accepted parity: it flags missing old
+campaign flag/unit markers, city/faction label collisions, tiny city labels,
+smeared edge fog, muddy territory stacking, weak sea-label readability, heavy
+faction shadows, and noisy land texture. A circle-marker experiment was pruned
+instead of committed because it did not read as the old flag/icon map language.

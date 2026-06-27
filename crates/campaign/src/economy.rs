@@ -243,9 +243,17 @@ pub fn day_tick(map: &WorldMap, st: &mut CampaignState) {
         }
     }
 
-    // 5. Recruit queues (time was prepaid; soldiers appear when done).
+    // 5. Recruit queues (time was prepaid; soldiers appear when done). A
+    //    besieged/invaded city can't complete a muster — the job waits out the
+    //    threat. (Without this the besieged faction's recruits fall back into
+    //    the blockaded city's garrison via `deliver_recruits`, re-arming the
+    //    walls mid-siege exactly like regen would — the other half of the
+    //    "a besieged city can't be taken" bug.)
     let nodes: Vec<NodeId> = st.cities.keys().copied().collect();
     for node in nodes {
+        if threatened.contains(&node) {
+            continue;
+        }
         let owner = st.cities[&node].owner;
         let Some(job) = st.cities.get_mut(&node).unwrap().recruit_queue.first_mut() else {
             continue;

@@ -395,6 +395,17 @@ fn encounters(map: &WorldMap, st: &mut CampaignState) {
     }
 
     // New contacts: hostile pairs in range, both free. Deterministic id order.
+    // The siege window is a real-time pacing device for the human; the AI's
+    // lookahead doesn't need to wait it out. Inside a rollout the sandbox
+    // collapses a siege to the ordinary prep, so `forward_plan` settles a
+    // candidate assault in a few ticks instead of rolling through the whole
+    // siege (and SIEGE_TICKS can then exceed the rollout cap freely). The live
+    // timeline still stands the full siege.
+    let siege_prep = if st.in_rollout {
+        tun::PREP_TICKS
+    } else {
+        tun::SIEGE_TICKS
+    };
     let n = st.armies.len();
     for i in 0..n {
         for j in i + 1..n {
@@ -451,7 +462,7 @@ fn encounters(map: &WorldMap, st: &mut CampaignState) {
             let (a_garrison, b_garrison) =
                 (a.garrison_of.is_some(), b.garrison_of.is_some());
             let (attacker_is_a, prep_att, prep_def) = if a_garrison || b_garrison {
-                (b_garrison, tun::SIEGE_TICKS, tun::SIEGE_TICKS)
+                (b_garrison, siege_prep, siege_prep)
             } else if a_dug_in != b_dug_in {
                 (b_dug_in, tun::PREP_SURPRISED_TICKS, 0)
             } else {

@@ -96,17 +96,26 @@ pub const PREP_TICKS: u16 = 20;
 pub const PREP_SURPRISED_TICKS: u16 = 40;
 /// A city assault does NOT commit instantly. When a field army contacts a
 /// defended city the garrison sorties and the two enter a *siege* — a prep the
-/// campaign keeps running through, giving the defender a real-time window to
-/// march relief before the garrison battle begins. Applies to every faction's
-/// cities (one logic for AI and human); real-time-anchored like PREP_TICKS: at
-/// base speed (~60 ticks/s) 300 ticks ≈ 5 s (≈ 2 game-days). For this to be
-/// takeable a besieged city must NOT replenish its garrison (see economy
-/// `day_tick`) — otherwise the walls regrow mid-siege and no assault can ever
-/// convert. Longer windows still cost the autonomous loop more (besiegers stay
-/// locked, the AI's lookahead rolls each siege to its end), so keep it short. An
-/// undefended city (no garrison) has nothing to besiege and falls via
-/// `occupations`.
-pub const SIEGE_TICKS: u16 = 300;
+/// campaign keeps running through, the window in which relief can still reach
+/// the walls. Applies to every faction's cities (one logic for AI and human).
+///
+/// Pegged to fog of war: a besieging army sees only `VISION_ARMY` tiles, so a
+/// relief force hidden beyond that — out in the fog — has to cross the sight
+/// radius to intervene. The siege lasts a foot army's march across the city's
+/// vision radius (`VISION_CITY` tiles) plus a half-margin for reaction, so an
+/// unseen column staged at the edge of the fog can just make it. Besieging is
+/// therefore a bet that no army you can't see is poised to relieve — the same
+/// gamble for the player and the AI. (~288 ticks ≈ 5 s at base speed.)
+///
+/// For the city to be takeable it must not replenish under siege (economy
+/// `day_tick` freezes garrison regen AND muster completion while threatened);
+/// the AI's rollout collapses the siege to ordinary prep so its lookahead stays
+/// cheap (sim `encounters`). An undefended city falls via `occupations`.
+pub const SIEGE_TICKS: u16 = {
+    // foot crosses one tile in 1/BASE_TILES_PER_TICK ticks (24 at base scale).
+    let ticks_per_tile = (1.0 / BASE_TILES_PER_TICK) as u32;
+    (crate::visibility::VISION_CITY * ticks_per_tile * 3 / 2) as u16
+};
 /// Armies preparing for battle move at half pace.
 pub const PREP_SPEED_MULT: f32 = 0.5;
 /// Digging a camp in takes an hour; the payoff is instant readiness when

@@ -1,6 +1,6 @@
 {
   "kind": "screenshot-parity-diff",
-  "generatedAt": "2026-06-27T08:34:17.095Z",
+  "generatedAt": "2026-06-27T09:16:54.054Z",
   "note": "Lower parityDistance means the candidate is closer to archived current-renderer parity. This is a parity metric, not an aesthetics acceptance gate.",
   "pairCount": 7,
   "worstPair": "campaign-whole-map",
@@ -13,24 +13,24 @@
         "width": 1280,
         "height": 800
       },
-      "parityDistance": 0.26943,
+      "parityDistance": 0.23252,
       "grayscale": {
-        "mae": 24.07723,
-        "rmse": 33.95978,
-        "diffRatio16": 0.52762,
-        "diffRatio32": 0.28979,
-        "diffRatio64": 0.04252,
-        "pixelmatchRatio": 0.43832
+        "mae": 22.90497,
+        "rmse": 32.13695,
+        "diffRatio16": 0.51474,
+        "diffRatio32": 0.23705,
+        "diffRatio64": 0.03442,
+        "pixelmatchRatio": 0.39286
       },
       "contentProxies": {
         "blackRatioCurrent": 0.00566,
-        "blackRatioCandidate": 0.00187,
+        "blackRatioCandidate": 0.00165,
         "terrainLikeRatioCurrent": 0.5738,
-        "terrainLikeRatioCandidate": 0.64839,
+        "terrainLikeRatioCandidate": 0.64917,
         "edgeEnergyCurrent": 0.13531,
-        "edgeEnergyCandidate": 0.14244,
-        "edgeEnergyRatio": 1.0527,
-        "edgeDiffRatio32": 0.18926
+        "edgeEnergyCandidate": 0.13818,
+        "edgeEnergyRatio": 1.02121,
+        "edgeDiffRatio32": 0.18718
       },
       "artifacts": {
         "sideBySide": "visual-diff/campaign-whole-map-side-by-side.png",
@@ -50,24 +50,24 @@
           "width": 1280,
           "height": 768
         },
-        "parityDistance": 0.27974,
+        "parityDistance": 0.24128,
         "grayscale": {
-          "mae": 24.94454,
-          "rmse": 34.6298,
-          "diffRatio16": 0.54814,
-          "diffRatio32": 0.30152,
-          "diffRatio64": 0.04415,
-          "pixelmatchRatio": 0.4559
+          "mae": 23.73236,
+          "rmse": 32.76849,
+          "diffRatio16": 0.53476,
+          "diffRatio32": 0.24659,
+          "diffRatio64": 0.03571,
+          "pixelmatchRatio": 0.40856
         },
         "contentProxies": {
           "blackRatioCurrent": 0.00579,
-          "blackRatioCandidate": 0.0019,
+          "blackRatioCandidate": 0.0017,
           "terrainLikeRatioCurrent": 0.59485,
-          "terrainLikeRatioCandidate": 0.67254,
+          "terrainLikeRatioCandidate": 0.67334,
           "edgeEnergyCurrent": 0.13302,
-          "edgeEnergyCandidate": 0.14037,
-          "edgeEnergyRatio": 1.05529,
-          "edgeDiffRatio32": 0.19433
+          "edgeEnergyCandidate": 0.136,
+          "edgeEnergyRatio": 1.02239,
+          "edgeDiffRatio32": 0.19216
         },
         "artifacts": {
           "sideBySide": "visual-diff/campaign-whole-map-world-crop-side-by-side.png",
@@ -158,6 +158,82 @@
       }
     },
     {
+      "id": "campaign-handoff-battle",
+      "current": "specs/webgpu-skinned-crowd/visualizations/current-renderer/campaign-handoff-battle.png",
+      "candidate": "specs/webgpu-skinned-crowd/visualizations/visual-report/campaign-handoff-battle.png",
+      "dimensions": {
+        "width": 1280,
+        "height": 800
+      },
+      "parityDistance": 0.17883,
+      "grayscale": {
+        "mae": 13.11441,
+        "rmse": 25.81359,
+        "diffRatio16": 0.19974,
+        "diffRatio32": 0.08706,
+        "diffRatio64": 0.04039,
+        "pixelmatchRatio": 0.14025
+      },
+      "contentProxies": {
+        "blackRatioCurrent": 0.00019,
+        "blackRatioCandidate": 0.00004,
+        "terrainLikeRatioCurrent": 0.84905,
+        "terrainLikeRatioCandidate": 0.88122,
+        "edgeEnergyCurrent": 0.15311,
+        "edgeEnergyCandidate": 0.12205,
+        "edgeEnergyRatio": 0.79715,
+        "edgeDiffRatio32": 0.25695
+      },
+      "artifacts": {
+        "sideBySide": "visual-diff/campaign-handoff-battle-side-by-side.png",
+        "currentGray": "visual-diff/campaign-handoff-battle-current-gray.png",
+        "candidateGray": "visual-diff/campaign-handoff-battle-candidate-gray.png",
+        "absDiff": "visual-diff/campaign-handoff-battle-absdiff.png",
+        "pixelmatch": "visual-diff/campaign-handoff-battle-pixelmatch.png",
+        "currentEdges": "visual-diff/campaign-handoff-battle-current-edges.png",
+        "candidateEdges": "visual-diff/campaign-handoff-battle-candidate-edges.png",
+        "edgeDiff": "visual-diff/campaign-handoff-battle-edge-diff.png"
+      },
+      "worldCrop": {
+        "label": "world-without-top-hud-or-bottom-cards",
+        "bounds": {
+          "x": 0,
+          "y": 128,
+          "width": 1280,
+          "height": 496
+        },
+        "parityDistance": 0.16293,
+        "grayscale": {
+          "mae": 10.54795,
+          "rmse": 16.79576,
+          "diffRatio16": 0.1835,
+          "diffRatio32": 0.05859,
+          "diffRatio64": 0.01155,
+          "pixelmatchRatio": 0.1167
+        },
+        "contentProxies": {
+          "blackRatioCurrent": 0.00001,
+          "blackRatioCandidate": 0,
+          "terrainLikeRatioCurrent": 0.93218,
+          "terrainLikeRatioCandidate": 0.93784,
+          "edgeEnergyCurrent": 0.14429,
+          "edgeEnergyCandidate": 0.11621,
+          "edgeEnergyRatio": 0.80535,
+          "edgeDiffRatio32": 0.26561
+        },
+        "artifacts": {
+          "sideBySide": "visual-diff/campaign-handoff-battle-world-crop-side-by-side.png",
+          "currentGray": "visual-diff/campaign-handoff-battle-world-crop-current-gray.png",
+          "candidateGray": "visual-diff/campaign-handoff-battle-world-crop-candidate-gray.png",
+          "absDiff": "visual-diff/campaign-handoff-battle-world-crop-absdiff.png",
+          "pixelmatch": "visual-diff/campaign-handoff-battle-world-crop-pixelmatch.png",
+          "currentEdges": "visual-diff/campaign-handoff-battle-world-crop-current-edges.png",
+          "candidateEdges": "visual-diff/campaign-handoff-battle-world-crop-candidate-edges.png",
+          "edgeDiff": "visual-diff/campaign-handoff-battle-world-crop-edge-diff.png"
+        }
+      }
+    },
+    {
       "id": "campaign-label-zoom",
       "current": "specs/webgpu-skinned-crowd/visualizations/current-renderer/campaign-label-zoom.png",
       "candidate": "specs/webgpu-skinned-crowd/visualizations/visual-report/campaign-label-zoom.png",
@@ -230,82 +306,6 @@
           "currentEdges": "visual-diff/campaign-label-zoom-world-crop-current-edges.png",
           "candidateEdges": "visual-diff/campaign-label-zoom-world-crop-candidate-edges.png",
           "edgeDiff": "visual-diff/campaign-label-zoom-world-crop-edge-diff.png"
-        }
-      }
-    },
-    {
-      "id": "campaign-handoff-battle",
-      "current": "specs/webgpu-skinned-crowd/visualizations/current-renderer/campaign-handoff-battle.png",
-      "candidate": "specs/webgpu-skinned-crowd/visualizations/visual-report/campaign-handoff-battle.png",
-      "dimensions": {
-        "width": 1280,
-        "height": 800
-      },
-      "parityDistance": 0.17936,
-      "grayscale": {
-        "mae": 13.11197,
-        "rmse": 25.81449,
-        "diffRatio16": 0.19962,
-        "diffRatio32": 0.08707,
-        "diffRatio64": 0.04042,
-        "pixelmatchRatio": 0.14014
-      },
-      "contentProxies": {
-        "blackRatioCurrent": 0.00019,
-        "blackRatioCandidate": 0.00004,
-        "terrainLikeRatioCurrent": 0.84905,
-        "terrainLikeRatioCandidate": 0.88131,
-        "edgeEnergyCurrent": 0.15311,
-        "edgeEnergyCandidate": 0.12172,
-        "edgeEnergyRatio": 0.79498,
-        "edgeDiffRatio32": 0.25679
-      },
-      "artifacts": {
-        "sideBySide": "visual-diff/campaign-handoff-battle-side-by-side.png",
-        "currentGray": "visual-diff/campaign-handoff-battle-current-gray.png",
-        "candidateGray": "visual-diff/campaign-handoff-battle-candidate-gray.png",
-        "absDiff": "visual-diff/campaign-handoff-battle-absdiff.png",
-        "pixelmatch": "visual-diff/campaign-handoff-battle-pixelmatch.png",
-        "currentEdges": "visual-diff/campaign-handoff-battle-current-edges.png",
-        "candidateEdges": "visual-diff/campaign-handoff-battle-candidate-edges.png",
-        "edgeDiff": "visual-diff/campaign-handoff-battle-edge-diff.png"
-      },
-      "worldCrop": {
-        "label": "world-without-top-hud-or-bottom-cards",
-        "bounds": {
-          "x": 0,
-          "y": 128,
-          "width": 1280,
-          "height": 496
-        },
-        "parityDistance": 0.1638,
-        "grayscale": {
-          "mae": 10.54884,
-          "rmse": 16.80147,
-          "diffRatio16": 0.18346,
-          "diffRatio32": 0.05861,
-          "diffRatio64": 0.01159,
-          "pixelmatchRatio": 0.11669
-        },
-        "contentProxies": {
-          "blackRatioCurrent": 0.00001,
-          "blackRatioCandidate": 0,
-          "terrainLikeRatioCurrent": 0.93218,
-          "terrainLikeRatioCandidate": 0.93771,
-          "edgeEnergyCurrent": 0.14429,
-          "edgeEnergyCandidate": 0.11572,
-          "edgeEnergyRatio": 0.80198,
-          "edgeDiffRatio32": 0.26546
-        },
-        "artifacts": {
-          "sideBySide": "visual-diff/campaign-handoff-battle-world-crop-side-by-side.png",
-          "currentGray": "visual-diff/campaign-handoff-battle-world-crop-current-gray.png",
-          "candidateGray": "visual-diff/campaign-handoff-battle-world-crop-candidate-gray.png",
-          "absDiff": "visual-diff/campaign-handoff-battle-world-crop-absdiff.png",
-          "pixelmatch": "visual-diff/campaign-handoff-battle-world-crop-pixelmatch.png",
-          "currentEdges": "visual-diff/campaign-handoff-battle-world-crop-current-edges.png",
-          "candidateEdges": "visual-diff/campaign-handoff-battle-world-crop-candidate-edges.png",
-          "edgeDiff": "visual-diff/campaign-handoff-battle-world-crop-edge-diff.png"
         }
       }
     },

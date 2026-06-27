@@ -141,7 +141,7 @@ fn fs(in: VsOut) -> @location(0) vec4f {
   col = mix(vec3f(grey), col, 0.88);
   col *= vec3f(1.04, 1.00, 0.94);
   let seaMask = seaAmount(base);
-  col = mix(col, mix(col, vec3f(0.22, 0.42, 0.56), 0.55), seaMask * __SEA_TINT_MIX__);
+  col = mix(col, mix(col, vec3f(0.38, 0.58, 0.68), 0.56), seaMask * __SEA_TINT_MIX__);
   let texel = 1.0 / vec2f(textureDimensions(mapTex));
   let seaN = seaAmount(textureSample(mapTex, mapSampler, in.uv + vec2f(0.0, texel.y)).rgb);
   let seaS = seaAmount(textureSample(mapTex, mapSampler, in.uv - vec2f(0.0, texel.y)).rgb);

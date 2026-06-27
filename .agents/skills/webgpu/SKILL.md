@@ -223,6 +223,14 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   exposure refactor both produced black campaign captures. After every WGSL
   placeholder change, inspect at least one controlled close capture, not just
   the scenario pass/fail line.
+- Campaign whole-map parity can improve numerically while still reading too
+  dark to a human reviewer. If the overview looks dim but close campaign rows
+  are stable, keep the fix route-specific: lighten the real-map sea tint and
+  lift the real-map cloud/parchment veil, leaving controlled close-fixture cloud
+  scale and map constants alone. Track average luminance alongside
+  `parityDistance`; one accepted overview pass cut the whole-map luminance gap
+  from `-12.9` to `-4.5` and improved Campaign Whole Map from `0.26943` /
+  `0.27974` crop to `0.23252` / `0.24128` without moving Campaign Label Zoom.
 - Soldier model gates must exercise the same skinned batching path used by
   production battle rendering. Route each capture through `SkinnedCrowdPipeline`,
   bucket instances by class mesh, freeze clip/phase/facing/camera through query

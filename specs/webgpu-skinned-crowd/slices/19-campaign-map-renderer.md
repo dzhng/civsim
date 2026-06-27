@@ -284,3 +284,22 @@ samples, improving coast/island separation without adding geometry or touching
 the controlled close fixture. Campaign Whole Map moved from `0.27079` full /
 `0.28114` world crop to `0.26943` full / `0.27974` world crop, while Campaign
 Label Zoom stayed unchanged at `0.17429` / `0.23263`.
+
+The whole-map route is no longer allowed to hide a darkness regression behind a
+better pixel score. The real-map sea tint is lighter and the real-map
+cloud/parchment veil is stronger, while the controlled close fixture keeps its
+previous map/cloud constants. This cut the Campaign Whole Map average luminance
+gap against the archived renderer from `-12.9` to `-4.5` and improved parity
+from `0.26943` full / `0.27974` crop to `0.23252` full / `0.24128` crop. Campaign
+Label Zoom stayed unchanged at `0.17429` / `0.23263`; Campaign Handoff Battle
+moved slightly from `0.17936` / `0.16380` to `0.17883` / `0.16293`.
+
+Fresh unprimed critique on this candidate no longer reports the overview as
+globally too dark, but it still blocks visual acceptance. High-confidence
+findings are uneven/patchy haze, fog washing out the Atlantic/Iberia and
+bottom-left Africa edges, top-toolbar clipping over `LONDINIUM`, right-edge
+clipping of `SELEUCIDS`, and harsh large-label halos. Medium findings remain:
+low-readability sea labels, muddy overlapping territory washes, tiny city
+icons/labels, no obvious selected entity, and sparse/no visible 3D campaign
+pieces in the overview. The next overview pass should target cloud distribution
+and label/marker LOD before claiming whole-map parity.

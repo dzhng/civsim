@@ -65,6 +65,12 @@ Current checkpoint:
   quads/scenery to `1394 / 1314`, and parity distance moved from `0.15594` to
   `0.13756`; edge-energy ratio improved from `0.71041` to `0.78274` without
   reintroducing the earlier colored-line or square-mask artifacts.
+- The base terrain shader now adds a denser deterministic grass/stubble/pebble
+  fleck layer without increasing terrain quad or scenery counts. Battle
+  Selection DPR2 parity distance moved from `0.13792` to `0.12433`, and
+  edge-energy ratio improved from `0.78536` to `0.85960`. The accepted capture
+  was inspected to confirm the added edges read as ground texture rather than
+  the earlier random straight-line or square-overlay artifacts.
 
 ## Verification
 

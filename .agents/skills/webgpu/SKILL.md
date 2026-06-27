@@ -76,6 +76,12 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   prop quads make forest/mud read as authored terrain. Watch the exposed
   terrain quad/scenery counts after each change so the improvement stays
   bounded instead of becoming a brute-force overdraw path.
+- For Battle Selection DPR2 parity, dense deterministic shader flecks can be a
+  valid replacement for legacy renderer speckle when the old shot has more
+  high-frequency ground breakup. Keep the change in the base terrain shader,
+  not overlay quads, and accept it only when the composite score improves after
+  inspecting that the new edges read as grass/stubble instead of random debug
+  noise.
 - For campaign close-view parity, road line styling can dominate the score and
   the human read. Tune road mesh widths, alpha, and grey-stone/shadow colors in
   the line pass before changing camera or labels; then rerun the parity helper.

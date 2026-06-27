@@ -475,7 +475,11 @@ async function routeCampaignMap(ctx: LabContext) {
       territory.draw(pass);
       water.draw(pass);
       borders.draw(pass);
-      lines.draw(pass);
+    },
+    depthExtra: (pass) => {
+      lines.drawDepth(pass);
+    },
+    overlayExtra: (pass) => {
       markers.draw(pass);
       clouds.draw(pass);
       labelPass.draw(pass);
@@ -560,11 +564,9 @@ async function routeCampaignUi(ctx: LabContext) {
     shell.drawFrame({
       clear: { r: 0.68, g: 0.72, b: 0.69, a: 1 },
       terrainRect: campaignBgTerrainRect(data.bgRect),
-      extra: (pass) => {
-        selection.draw(pass);
-        lines.draw(pass);
-      },
       depthExtra: (pass) => {
+        selection.drawDepth(pass);
+        lines.drawDepth(pass);
         entities.drawDepth(pass);
       },
       overlayExtra: (pass) => {
@@ -670,10 +672,10 @@ async function routeCampaignModelGates(ctx: LabContext) {
     terrainRect: frame.terrainRect,
     extra: (pass) => {
       water?.draw(pass);
-      selection.draw(pass);
-      lines.draw(pass);
     },
     depthExtra: (pass) => {
+      selection.drawDepth(pass);
+      lines.drawDepth(pass);
       scenery.drawDepth(pass);
       entities.drawDepth(pass);
     },
@@ -936,6 +938,34 @@ function campaignModelGateGarrisonSamples(
 
 function roadGateVertices(points: [number, number][]) {
   const verts: number[] = [];
+  const endpointInset = 3.6;
+  const pushTriangle = (a: [number, number], b: [number, number], c: [number, number], color: [number, number, number, number]) => {
+    verts.push(a[0], a[1], ...color, b[0], b[1], ...color, c[0], c[1], ...color);
+  };
+  const pushDisc = (
+    center: [number, number],
+    color: [number, number, number, number],
+    radiusX: number,
+    radiusY: number,
+    angle = 0,
+    steps = 14,
+  ) => {
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
+    for (let i = 0; i < steps; i++) {
+      const a0 = (i / steps) * Math.PI * 2;
+      const a1 = ((i + 1) / steps) * Math.PI * 2;
+      const p0: [number, number] = [
+        center[0] + Math.cos(a0) * radiusX * cos - Math.sin(a0) * radiusY * sin,
+        center[1] + Math.cos(a0) * radiusX * sin + Math.sin(a0) * radiusY * cos,
+      ];
+      const p1: [number, number] = [
+        center[0] + Math.cos(a1) * radiusX * cos - Math.sin(a1) * radiusY * sin,
+        center[1] + Math.cos(a1) * radiusX * sin + Math.sin(a1) * radiusY * cos,
+      ];
+      pushTriangle(center, p0, p1, color);
+    }
+  };
   const pushBand = (
     a: [number, number],
     b: [number, number],
@@ -968,11 +998,27 @@ function roadGateVertices(points: [number, number][]) {
   for (let i = 1; i < points.length; i++) {
     const a = points[i - 1];
     const b = points[i];
-    pushBand(a, b, [0.075, 0.067, 0.055, 0.58], 0.045, -0.23);
-    pushBand(a, b, [0.075, 0.067, 0.055, 0.58], 0.045, 0.23);
-    pushBand(a, b, [0.60, 0.58, 0.51, 0.72], 0.22);
-    pushBand(a, b, [0.82, 0.81, 0.74, 0.97], 0.17);
-    pushBand(a, b, [0.94, 0.93, 0.86, 0.98], 0.055);
+    const dx = b[0] - a[0];
+    const dy = b[1] - a[1];
+    const len = Math.hypot(dx, dy) || 1;
+    const ux = dx / len;
+    const uy = dy / len;
+    const startInset = i === 1 ? endpointInset : 0;
+    const endInset = i === points.length - 1 ? endpointInset : 0;
+    const usableInset = len > startInset + endInset + 0.4 ? { start: startInset, end: endInset } : { start: 0, end: 0 };
+    const start: [number, number] = [a[0] + ux * usableInset.start, a[1] + uy * usableInset.start];
+    const end: [number, number] = [b[0] - ux * usableInset.end, b[1] - uy * usableInset.end];
+    const angle = Math.atan2(end[1] - start[1], end[0] - start[0]);
+    if (i === 1) {
+      pushDisc(start, [0.48, 0.40, 0.25, 0.16], 0.92, 0.50, angle);
+      pushDisc(start, [0.75, 0.68, 0.50, 0.54], 0.68, 0.37, angle);
+    }
+    pushDisc(end, [0.48, 0.40, 0.25, 0.15], 0.84, 0.46, angle);
+    pushDisc(end, [0.75, 0.68, 0.50, 0.50], 0.64, 0.34, angle);
+    pushBand(start, end, [0.46, 0.38, 0.24, 0.13], 0.66);
+    pushBand(start, end, [0.67, 0.58, 0.40, 0.23], 0.56);
+    pushBand(start, end, [0.80, 0.76, 0.63, 0.76], 0.43);
+    pushBand(start, end, [0.91, 0.86, 0.70, 0.20], 0.20);
   }
   return new Float32Array(verts);
 }

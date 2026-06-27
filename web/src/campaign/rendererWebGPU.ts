@@ -159,11 +159,11 @@ export class CampaignRendererWebGPU {
         this.map!.draw(pass);
         this.territoryPass!.draw(pass);
         this.water!.draw(pass);
-        this.selection!.draw(pass);
         if (!isControlledStage(this.data)) this.borders!.draw(pass);
-        this.lines!.draw(pass);
       },
       depthExtra: (pass) => {
+        this.selection!.drawDepth(pass);
+        this.lines!.drawDepth(pass);
         this.scenery!.drawDepth(pass);
         this.entities!.drawDepth(pass);
       },
@@ -251,7 +251,7 @@ export class CampaignRendererWebGPU {
     this.entities = new CampaignEntityPass(this.shell);
     this.selection = new CampaignSelectionPass(this.shell);
     this.labels = new CampaignLabelPass(this.shell);
-    const drawData = buildCampaignMapDrawData(this.data, controlledStage ? { roadScale: 0.66 } : undefined);
+    const drawData = buildCampaignMapDrawData(this.data, controlledStage ? { roadScale: 0.78, roadEndpointInset: 8.2 } : undefined);
     this.staticLabels = drawData.labels;
     this.lines.upload(drawData.roadVertices);
     this.borders.upload(controlledStage ? new Float32Array() : campaignBorderVertices(territory.borders));
@@ -527,10 +527,10 @@ function campaignScenery(data: CampaignData, field: TerrainField): CampaignScene
       } else if (rock > 0.26 && hash2(gx * 11, gy * 3) < rock * 0.65) {
         out.push({ x, y, size: 2.4 + rock * 4.0, kind: 'rock' });
       }
-      if (out.length > 900) return out;
+      if (out.length > 900) return clearRoadBlockingScenery(data, out);
     }
   }
-  return out;
+  return clearRoadBlockingScenery(data, out);
 }
 
 function testStageScenery(data: CampaignData): CampaignSceneryInstance[] {
@@ -572,7 +572,29 @@ function testStageScenery(data: CampaignData): CampaignSceneryInstance[] {
     const near = y < cy - 8 ? 1.18 : 1.0;
     items.push({ x, y, size: (3.2 + hash2(i, i + 9) * 2.8) * near, kind: hash2(i, i + 31) > 0.45 ? 'broadleaf' : 'conifer' });
   }
-  return items;
+  return clearRoadBlockingScenery(data, items);
+}
+
+function clearRoadBlockingScenery(data: CampaignData, items: CampaignSceneryInstance[]) {
+  const roadSegments = data.map.edges
+    .filter((edge) => edge.kind === 'road')
+    .flatMap((edge) => edge.via.slice(1).map((point, index): [[number, number], [number, number]] => [edge.via[index], point]));
+  if (roadSegments.length === 0) return items;
+  return items.filter((item) => {
+    if (item.kind !== 'mountain' && item.kind !== 'rock') return true;
+    const clearance = Math.max(5.8, item.size * 0.52);
+    return !roadSegments.some(([a, b]) => distanceToSegment(item.x, item.y, a, b) < clearance);
+  });
+}
+
+function distanceToSegment(x: number, y: number, a: [number, number], b: [number, number]) {
+  const dx = b[0] - a[0];
+  const dy = b[1] - a[1];
+  const lenSq = dx * dx + dy * dy || 1;
+  const t = clamp(((x - a[0]) * dx + (y - a[1]) * dy) / lenSq, 0, 1);
+  const px = a[0] + dx * t;
+  const py = a[1] + dy * t;
+  return Math.hypot(x - px, y - py);
 }
 
 function isControlledStage(data: CampaignData) {

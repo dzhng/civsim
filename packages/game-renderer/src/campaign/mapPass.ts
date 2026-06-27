@@ -1,5 +1,6 @@
 import type { CameraSnapshot } from '../../../webgpu-core/src/cameraUniform';
 import { worldToScreen } from '../../../webgpu-core/src/cameraUniform';
+import { WORLD_CAMERA_WGSL } from '../../../webgpu-core/src/cameraWgsl';
 import type { RawFrameShell } from '../../../webgpu-core/src/frameShell';
 
 export interface CampaignMapNodeData {
@@ -42,6 +43,7 @@ export interface CampaignMapStyle {
 
 export interface CampaignMapDrawStyle {
   roadScale?: number;
+  roadEndpointInset?: number;
 }
 
 export interface CampaignMapDrawData {
@@ -166,30 +168,37 @@ fn fs(in: VsOut) -> @location(0) vec4f {
 }`;
 
 const LINE_WGSL = `
-struct Camera { x:f32, y:f32, zoom:f32, cosP:f32, width:f32, height:f32, cosYaw:f32, sinYaw:f32, perspective:f32, pad0:f32, pad1:f32, pad2:f32 };
-@group(0) @binding(0) var<uniform> cam: Camera;
+${WORLD_CAMERA_WGSL}
 
-struct VsOut { @builtin(position) pos: vec4f, @location(0) color: vec4f };
-
-fn projectWorld(world: vec2f, z: f32) -> vec4f {
-  let dx = world.x - cam.x;
-  let dy = world.y - cam.y;
-  let rx = dx * cam.cosYaw + dy * cam.sinYaw;
-  let ry = -dx * cam.sinYaw + dy * cam.cosYaw;
-  let depth = max(0.32, 1.0 + ry * cam.perspective);
-  return vec4f((rx * cam.zoom) / (cam.width * 0.5), (ry * cam.zoom * cam.cosP) / (cam.height * 0.5), z * depth, depth);
-}
+struct VsOut { @builtin(position) pos: vec4f, @location(0) color: vec4f, @location(1) world: vec2f };
 
 @vertex
 fn vs(@location(0) world: vec2f, @location(1) color: vec4f) -> VsOut {
   var out: VsOut;
-  out.pos = projectWorld(world, 0.0);
+  out.pos = projectGround(world, 0.92);
   out.color = color;
+  out.world = world;
   return out;
+}
+
+fn hash(p: vec2f) -> f32 {
+  let p3 = fract(vec3f(p.xyx) * 0.1031);
+  let q = p3 + dot(p3, p3.yzx + vec3f(33.33));
+  return fract((q.x + q.y) * q.z);
 }
 
 @fragment
 fn fs(in: VsOut) -> @location(0) vec4f {
+  let grayRoad = abs(in.color.r - in.color.g) < 0.14 && abs(in.color.g - in.color.b) < 0.22;
+  let roadAlpha = in.color.a > 0.18 && in.color.a < 0.98;
+  let roadTone = in.color.r > 0.22 && in.color.r < 0.98 && in.color.b < 0.86;
+  if (grayRoad && roadAlpha && roadTone) {
+    let paver = hash(floor(in.world * vec2f(2.9, 3.7)));
+    let grit = hash(floor(in.world * vec2f(11.0, 8.0) + vec2f(3.0, 17.0)));
+    let seam = smoothstep(0.045, 0.0, abs(fract(in.world.x * 1.15 + in.world.y * 0.34) - 0.5));
+    let shade = 0.90 + paver * 0.13 + grit * 0.045 - seam * 0.055;
+    return vec4f(clamp(in.color.rgb * shade, vec3f(0.0), vec3f(1.0)), in.color.a);
+  }
   return in.color;
 }`;
 
@@ -390,6 +399,7 @@ export class CampaignMapPass {
 
 export class CampaignLinePass {
   private pipeline: GPURenderPipeline;
+  private depthPipeline: GPURenderPipeline;
   private vertexBuffer: GPUBuffer;
   private capacity = 0;
   private vertexCount = 0;
@@ -397,9 +407,20 @@ export class CampaignLinePass {
   constructor(private shell: RawFrameShell, private topology: GPUPrimitiveTopology = 'line-list') {
     const device = shell.device;
     const module = device.createShaderModule({ label: 'campaign-line-wgsl', code: LINE_WGSL });
-    this.pipeline = device.createRenderPipeline({
-      label: 'campaign-line-pipeline',
-      layout: device.createPipelineLayout({ bindGroupLayouts: [shell.cameraBindGroupLayout] }),
+    this.pipeline = this.makePipeline(module, false);
+    this.depthPipeline = this.makePipeline(module, true);
+    this.vertexBuffer = device.createBuffer({
+      label: 'campaign-line-empty',
+      size: 6 * 4,
+      usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
+    });
+  }
+
+  private makePipeline(module: GPUShaderModule, depth: boolean) {
+    const device = this.shell.device;
+    return device.createRenderPipeline({
+      label: depth ? 'campaign-line-depth-pipeline' : 'campaign-line-pipeline',
+      layout: device.createPipelineLayout({ bindGroupLayouts: [this.shell.cameraBindGroupLayout] }),
       vertex: {
         module,
         entryPoint: 'vs',
@@ -415,19 +436,21 @@ export class CampaignLinePass {
         module,
         entryPoint: 'fs',
         targets: [{
-          format: shell.info.format,
+          format: this.shell.info.format,
           blend: {
             color: { srcFactor: 'src-alpha', dstFactor: 'one-minus-src-alpha' },
             alpha: { srcFactor: 'one', dstFactor: 'one-minus-src-alpha' },
           },
         }],
       },
-      primitive: { topology },
-    });
-    this.vertexBuffer = device.createBuffer({
-      label: 'campaign-line-empty',
-      size: 6 * 4,
-      usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
+      primitive: { topology: this.topology },
+      ...(depth ? {
+        depthStencil: {
+          format: 'depth24plus',
+          depthWriteEnabled: false,
+          depthCompare: 'less-equal',
+        },
+      } : {}),
     });
   }
 
@@ -445,8 +468,16 @@ export class CampaignLinePass {
   }
 
   draw(pass: GPURenderPassEncoder) {
+    this.drawWithPipeline(pass, this.pipeline);
+  }
+
+  drawDepth(pass: GPURenderPassEncoder) {
+    this.drawWithPipeline(pass, this.depthPipeline);
+  }
+
+  private drawWithPipeline(pass: GPURenderPassEncoder, pipeline: GPURenderPipeline) {
     if (this.vertexCount === 0) return;
-    pass.setPipeline(this.pipeline);
+    pass.setPipeline(pipeline);
     pass.setBindGroup(0, this.shell.cameraBindGroup);
     pass.setVertexBuffer(0, this.vertexBuffer);
     pass.draw(this.vertexCount);
@@ -738,6 +769,34 @@ export function buildCampaignMapDrawData(data: CampaignMapInputData, style: Camp
 
 function pushEdgeLines(out: number[], edge: CampaignMapEdgeData, style: CampaignMapDrawStyle) {
   const roadScale = style.roadScale ?? 1;
+  const roadEndpointInset = Math.max(0, style.roadEndpointInset ?? 0);
+  const pushTriangle = (a: [number, number], b: [number, number], c: [number, number], color: [number, number, number, number]) => {
+    out.push(a[0], a[1], ...color, b[0], b[1], ...color, c[0], c[1], ...color);
+  };
+  const pushDisc = (
+    center: [number, number],
+    color: [number, number, number, number],
+    radiusX: number,
+    radiusY: number,
+    angle = 0,
+    steps = 14,
+  ) => {
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
+    for (let i = 0; i < steps; i++) {
+      const a0 = (i / steps) * Math.PI * 2;
+      const a1 = ((i + 1) / steps) * Math.PI * 2;
+      const p0: [number, number] = [
+        center[0] + Math.cos(a0) * radiusX * cos - Math.sin(a0) * radiusY * sin,
+        center[1] + Math.cos(a0) * radiusX * sin + Math.sin(a0) * radiusY * cos,
+      ];
+      const p1: [number, number] = [
+        center[0] + Math.cos(a1) * radiusX * cos - Math.sin(a1) * radiusY * sin,
+        center[1] + Math.cos(a1) * radiusX * sin + Math.sin(a1) * radiusY * cos,
+      ];
+      pushTriangle(center, p0, p1, color);
+    }
+  };
   const pushBand = (
     a: [number, number],
     b: [number, number],
@@ -774,11 +833,27 @@ function pushEdgeLines(out: number[], edge: CampaignMapEdgeData, style: Campaign
       pushBand(a, b, [0.58, 0.72, 0.82, 0.075], 0.46);
       continue;
     }
-    pushBand(a, b, [0.08, 0.072, 0.058, 0.42], 0.20 * roadScale, -1.14 * roadScale);
-    pushBand(a, b, [0.08, 0.072, 0.058, 0.42], 0.20 * roadScale, 1.14 * roadScale);
-    pushBand(a, b, [0.38, 0.37, 0.33, 0.66], 1.02 * roadScale);
-    pushBand(a, b, [0.64, 0.63, 0.56, 0.82], 0.76 * roadScale);
-    pushBand(a, b, [0.76, 0.74, 0.66, 0.48], 0.18 * roadScale);
+    const dx = b[0] - a[0];
+    const dy = b[1] - a[1];
+    const len = Math.hypot(dx, dy) || 1;
+    const ux = dx / len;
+    const uy = dy / len;
+    const startInset = i === 1 ? roadEndpointInset : 0;
+    const endInset = i === edge.via.length - 1 ? roadEndpointInset : 0;
+    const usableInset = len > startInset + endInset + 1 ? { start: startInset, end: endInset } : { start: 0, end: 0 };
+    const start: [number, number] = [a[0] + ux * usableInset.start, a[1] + uy * usableInset.start];
+    const end: [number, number] = [b[0] - ux * usableInset.end, b[1] - uy * usableInset.end];
+    const angle = Math.atan2(end[1] - start[1], end[0] - start[0]);
+    if (i === 1) {
+      pushDisc(start, [0.48, 0.40, 0.25, 0.16], 3.10 * roadScale, 1.72 * roadScale, angle);
+      pushDisc(start, [0.75, 0.68, 0.50, 0.54], 2.34 * roadScale, 1.28 * roadScale, angle);
+    }
+    pushDisc(end, [0.48, 0.40, 0.25, 0.15], 2.86 * roadScale, 1.58 * roadScale, angle);
+    pushDisc(end, [0.75, 0.68, 0.50, 0.50], 2.16 * roadScale, 1.18 * roadScale, angle);
+    pushBand(start, end, [0.46, 0.38, 0.24, 0.13], 2.22 * roadScale);
+    pushBand(start, end, [0.67, 0.58, 0.40, 0.23], 1.90 * roadScale);
+    pushBand(start, end, [0.80, 0.76, 0.63, 0.76], 1.46 * roadScale);
+    pushBand(start, end, [0.91, 0.86, 0.70, 0.20], 0.68 * roadScale);
   }
 }
 

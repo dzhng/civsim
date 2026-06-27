@@ -452,3 +452,19 @@ looked lower but fresh critique still read it as perched/detached; the final
 fresh critique says the flag mostly reads inserted, with remaining debt around
 base/contact shadow clarity, label crowding, road integration, and city depth
 clutter.
+
+Current road checkpoint: campaign roads now render through the depth world pass
+instead of the flat overlay pass, but with depth writes disabled so layered
+stone/shoulder bands can compose and later depth-tested scenery/entities still
+draw over the road. The controlled close fixture also trims road endpoints away
+from settlement centers, adds soft approach pads, and clears large rocks or
+mountains from road corridors. This fixes the worst authored-fixture failure
+where a mountain sat directly on the route and improves Campaign Whole Map to
+`0.22553` full / `0.23392` crop with Battle Selection DPR2 stable at `0.10861`
+/ `0.13474`; Campaign Label Zoom regresses to `0.20335` / `0.27060` because the
+road is now more visible. Fresh unprimed critique still rejects road parity:
+the road reads as a flat pale decal/stripe, the city connections lack gates or
+thresholds, the approach pads read as soft halos, and the selected army still
+lacks road contact/footprint cues. Keep this as architectural groundwork only.
+The next true fix is raised/beveled road geometry with gate/plaza entrances,
+road contact shadows, wheel/path wear, and route-aware city/army grounding.

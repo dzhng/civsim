@@ -294,7 +294,7 @@
           "rockModelVertices": 126,
           "layer": "raw-webgpu-legacy-scenery-meshes"
         },
-        "roadSegments": 15,
+        "roadSegments": 68,
         "waterFeatures": 0,
         "cloudQuads": 0,
         "selections": 0,
@@ -344,7 +344,7 @@
           "rockModelVertices": 126,
           "layer": "raw-webgpu-legacy-scenery-meshes"
         },
-        "roadSegments": 15,
+        "roadSegments": 68,
         "waterFeatures": 0,
         "cloudQuads": 0,
         "selections": 0,

@@ -432,6 +432,16 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   depth-tested entity mesh is preferable to a new screen overlay; in one pass it
   nudged Campaign Label Zoom from `0.19952` / `0.26605` crop to `0.19910` /
   `0.26555` while preserving city-standard and garrison depth samples.
+- Campaign roads must reserve world space, not just draw brighter lines. A
+  road pass can render through the depth world pass with depth testing while
+  keeping depth writes off so layered road bands compose and later
+  depth-tested scenery/entities still draw over the road. If overlapping bands
+  write depth, the first under-band can hide the pale center and make the road
+  look like a dark rail. Also clear large rocks/mountains from road corridors;
+  unprimed critique will correctly read props placed on a route as a road
+  integration bug rather than an art choice. Endpoint pads and softer shoulders
+  are only a checkpoint: final parity still needs actual gate/plaza geometry,
+  contact shadows, and raised/beveled road surfaces.
 - Use instancing, batching, storage buffers, and GPU-side phase passes for scale.
   Avoid CPU readbacks in hot paths; debug readbacks must be bounded and named.
 - For iterative effects or simulations, separate phases such as `state`,

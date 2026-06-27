@@ -34,7 +34,7 @@
           "rockModelVertices": 126,
           "layer": "raw-webgpu-legacy-scenery-meshes"
         },
-        "roadSegments": 0,
+        "roadTriangles": 0,
         "waterFeatures": 0,
         "cloudQuads": 0,
         "selections": 1,
@@ -114,7 +114,7 @@
           "rockModelVertices": 126,
           "layer": "raw-webgpu-legacy-scenery-meshes"
         },
-        "roadSegments": 0,
+        "roadTriangles": 0,
         "waterFeatures": 0,
         "cloudQuads": 0,
         "selections": 1,
@@ -194,7 +194,7 @@
           "rockModelVertices": 126,
           "layer": "raw-webgpu-legacy-scenery-meshes"
         },
-        "roadSegments": 0,
+        "roadTriangles": 0,
         "waterFeatures": 0,
         "cloudQuads": 0,
         "selections": 1,
@@ -244,7 +244,7 @@
           "rockModelVertices": 126,
           "layer": "raw-webgpu-legacy-scenery-meshes"
         },
-        "roadSegments": 0,
+        "roadTriangles": 0,
         "waterFeatures": 0,
         "cloudQuads": 0,
         "selections": 1,
@@ -294,7 +294,7 @@
           "rockModelVertices": 126,
           "layer": "raw-webgpu-legacy-scenery-meshes"
         },
-        "roadSegments": 68,
+        "roadTriangles": 174,
         "waterFeatures": 0,
         "cloudQuads": 0,
         "selections": 0,
@@ -344,7 +344,7 @@
           "rockModelVertices": 126,
           "layer": "raw-webgpu-legacy-scenery-meshes"
         },
-        "roadSegments": 68,
+        "roadTriangles": 174,
         "waterFeatures": 0,
         "cloudQuads": 0,
         "selections": 0,
@@ -394,7 +394,7 @@
           "rockModelVertices": 126,
           "layer": "raw-webgpu-legacy-scenery-meshes"
         },
-        "roadSegments": 0,
+        "roadTriangles": 0,
         "waterFeatures": 0,
         "cloudQuads": 0,
         "selections": 1,
@@ -474,7 +474,7 @@
           "rockModelVertices": 126,
           "layer": "raw-webgpu-legacy-scenery-meshes"
         },
-        "roadSegments": 0,
+        "roadTriangles": 0,
         "waterFeatures": 0,
         "cloudQuads": 0,
         "selections": 0,
@@ -524,7 +524,7 @@
           "rockModelVertices": 126,
           "layer": "raw-webgpu-legacy-scenery-meshes"
         },
-        "roadSegments": 0,
+        "roadTriangles": 0,
         "waterFeatures": 0,
         "cloudQuads": 0,
         "selections": 0,
@@ -574,7 +574,7 @@
           "rockModelVertices": 126,
           "layer": "raw-webgpu-legacy-scenery-meshes"
         },
-        "roadSegments": 0,
+        "roadTriangles": 0,
         "waterFeatures": 0,
         "cloudQuads": 0,
         "selections": 0,
@@ -624,7 +624,7 @@
           "rockModelVertices": 126,
           "layer": "raw-webgpu-legacy-scenery-meshes"
         },
-        "roadSegments": 0,
+        "roadTriangles": 0,
         "waterFeatures": 0,
         "cloudQuads": 0,
         "selections": 0,
@@ -674,7 +674,7 @@
           "rockModelVertices": 126,
           "layer": "raw-webgpu-legacy-scenery-meshes"
         },
-        "roadSegments": 0,
+        "roadTriangles": 0,
         "waterFeatures": 0,
         "cloudQuads": 0,
         "selections": 0,
@@ -724,7 +724,7 @@
           "rockModelVertices": 126,
           "layer": "raw-webgpu-legacy-scenery-meshes"
         },
-        "roadSegments": 0,
+        "roadTriangles": 0,
         "waterFeatures": 0,
         "cloudQuads": 0,
         "selections": 0,
@@ -774,7 +774,7 @@
           "rockModelVertices": 126,
           "layer": "raw-webgpu-legacy-scenery-meshes"
         },
-        "roadSegments": 0,
+        "roadTriangles": 0,
         "waterFeatures": 0,
         "cloudQuads": 0,
         "selections": 0,
@@ -824,7 +824,7 @@
           "rockModelVertices": 126,
           "layer": "raw-webgpu-legacy-scenery-meshes"
         },
-        "roadSegments": 0,
+        "roadTriangles": 0,
         "waterFeatures": 0,
         "cloudQuads": 0,
         "selections": 0,
@@ -874,7 +874,7 @@
           "rockModelVertices": 126,
           "layer": "raw-webgpu-legacy-scenery-meshes"
         },
-        "roadSegments": 0,
+        "roadTriangles": 0,
         "waterFeatures": 3,
         "cloudQuads": 0,
         "selections": 0,
@@ -924,7 +924,7 @@
           "rockModelVertices": 126,
           "layer": "raw-webgpu-legacy-scenery-meshes"
         },
-        "roadSegments": 0,
+        "roadTriangles": 0,
         "waterFeatures": 1,
         "cloudQuads": 1,
         "selections": 0,

@@ -468,3 +468,16 @@ thresholds, the approach pads read as soft halos, and the selected army still
 lacks road contact/footprint cues. Keep this as architectural groundwork only.
 The next true fix is raised/beveled road geometry with gate/plaza entrances,
 road contact shadows, wheel/path wear, and route-aware city/army grounding.
+
+The latest close-view bug pass fixes three concrete composition failures from
+the visual report. Campaign selection rings now draw as perspective ground
+markers without writing depth, so the selected-army ring no longer reserves
+pixels above the soldier formation. Controlled-stage scenery now clears
+tier-aware settlement footprints as well as road corridors, removing trees that
+projected into Roma/Neapolis and read as floating on city roofs. The city/town
+standard cloth was lifted back into a readable range while keeping the lower
+mast inside the central city volume. `webgpu-model-gates` and
+`webgpu-visual-report` pass, and the report artifacts were regenerated. This is
+not accepted campaign parity: `compare-screenshots` now reports Campaign Label
+Zoom at `0.23298` full / `0.30745` world crop, with the raised road and close
+scene composition still the largest gap versus the archived renderer.

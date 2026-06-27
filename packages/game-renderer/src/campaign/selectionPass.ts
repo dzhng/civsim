@@ -117,8 +117,8 @@ export class CampaignSelectionPass {
       ...(depth ? {
         depthStencil: {
           format: 'depth24plus',
-          depthWriteEnabled: true,
-          depthCompare: 'less',
+          depthWriteEnabled: false,
+          depthCompare: 'less-equal',
         },
       } : {}),
     });

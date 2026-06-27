@@ -1,6 +1,6 @@
 import { campaignWaterFeatures, CampaignCloudPass, CampaignWaterPass } from '../../../packages/game-renderer/src/campaign/atmospherePass';
 import { CampaignEntityPass, type CampaignEntityInstance } from '../../../packages/game-renderer/src/campaign/entityPass';
-import { buildCampaignMapDrawData, CampaignLabelPass, type CampaignLabelPassStats, CampaignLinePass, CampaignMapPass, CampaignMarkerPass, type CampaignLabel, type CampaignMarker } from '../../../packages/game-renderer/src/campaign/mapPass';
+import { buildCampaignMapDrawData, CampaignLabelPass, type CampaignLabelPassStats, CampaignLinePass, CampaignMapPass, CampaignMarkerPass, CampaignRoadPass, type CampaignLabel, type CampaignMarker } from '../../../packages/game-renderer/src/campaign/mapPass';
 import { CampaignSceneryPass, type CampaignSceneryInstance } from '../../../packages/game-renderer/src/campaign/sceneryPass';
 import { CampaignSelectionPass, type CampaignSelectionInstance } from '../../../packages/game-renderer/src/campaign/selectionPass';
 import { campaignBorderVertices, CampaignTerritoryPass } from '../../../packages/game-renderer/src/campaign/territoryPass';
@@ -37,6 +37,7 @@ export class CampaignRendererWebGPU {
   private clouds: CampaignCloudPass | null = null;
   private territoryPass: CampaignTerritoryPass | null = null;
   private lines: CampaignLinePass | null = null;
+  private roads: CampaignRoadPass | null = null;
   private borders: CampaignLinePass | null = null;
   private markers: CampaignMarkerPass | null = null;
   private scenery: CampaignSceneryPass | null = null;
@@ -133,7 +134,7 @@ export class CampaignRendererWebGPU {
   }
 
   draw(opts: DrawOptions) {
-    if (!this.shell || !this.map || !this.water || !this.clouds || !this.territoryPass || !this.lines || !this.borders || !this.markers || !this.scenery || !this.entities || !this.selection || !this.labels) return;
+    if (!this.shell || !this.map || !this.water || !this.clouds || !this.territoryPass || !this.lines || !this.roads || !this.borders || !this.markers || !this.scenery || !this.entities || !this.selection || !this.labels) return;
     const frameStart = performance.now();
     this.currentCamera = { x: opts.cam.x, y: opts.cam.y, zoom: opts.cam.scale, pitch: this.pitchForScale(opts.cam.scale), yaw: 0, perspective: campaignPerspective(opts.cam.scale) };
     this.shell.setCamera(this.currentCamera);
@@ -163,6 +164,7 @@ export class CampaignRendererWebGPU {
       },
       depthExtra: (pass) => {
         this.selection!.drawDepth(pass);
+        this.roads!.draw(pass);
         this.lines!.drawDepth(pass);
         this.scenery!.drawDepth(pass);
         this.entities!.drawDepth(pass);
@@ -223,6 +225,7 @@ export class CampaignRendererWebGPU {
       mapMarkers: this.markers?.stats().markers ?? 0,
       scenery: this.scenery?.stats().scenery ?? 0,
       lineSegments: this.lines?.stats().segments ?? 0,
+      roadTriangles: this.roads?.stats().triangles ?? 0,
       depth: shell?.depth ?? null,
       postCutoverScreenshots: 'webgpu-only',
       performance: { ...this.framePerf },
@@ -245,6 +248,7 @@ export class CampaignRendererWebGPU {
       rect: this.data.bgRect,
     }, controlledStage ? undefined : { alpha: 0.55, warmMix: 0.015 });
     this.lines = new CampaignLinePass(this.shell, 'triangle-list');
+    this.roads = new CampaignRoadPass(this.shell);
     this.borders = new CampaignLinePass(this.shell);
     this.markers = new CampaignMarkerPass(this.shell);
     this.scenery = new CampaignSceneryPass(this.shell);
@@ -253,7 +257,8 @@ export class CampaignRendererWebGPU {
     this.labels = new CampaignLabelPass(this.shell);
     const drawData = buildCampaignMapDrawData(this.data, controlledStage ? { roadScale: 0.78, roadEndpointInset: 8.2 } : undefined);
     this.staticLabels = drawData.labels;
-    this.lines.upload(drawData.roadVertices);
+    this.lines.upload(drawData.lineVertices);
+    this.roads.upload(drawData.roadMeshVertices);
     this.borders.upload(controlledStage ? new Float32Array() : campaignBorderVertices(territory.borders));
     publishStats(this.stats());
   }
@@ -527,10 +532,10 @@ function campaignScenery(data: CampaignData, field: TerrainField): CampaignScene
       } else if (rock > 0.26 && hash2(gx * 11, gy * 3) < rock * 0.65) {
         out.push({ x, y, size: 2.4 + rock * 4.0, kind: 'rock' });
       }
-      if (out.length > 900) return clearRoadBlockingScenery(data, out);
+      if (out.length > 900) return clearCampaignBlockingScenery(data, out);
     }
   }
-  return clearRoadBlockingScenery(data, out);
+  return clearCampaignBlockingScenery(data, out);
 }
 
 function testStageScenery(data: CampaignData): CampaignSceneryInstance[] {
@@ -572,19 +577,32 @@ function testStageScenery(data: CampaignData): CampaignSceneryInstance[] {
     const near = y < cy - 8 ? 1.18 : 1.0;
     items.push({ x, y, size: (3.2 + hash2(i, i + 9) * 2.8) * near, kind: hash2(i, i + 31) > 0.45 ? 'broadleaf' : 'conifer' });
   }
-  return clearRoadBlockingScenery(data, items);
+  return clearCampaignBlockingScenery(data, items);
 }
 
-function clearRoadBlockingScenery(data: CampaignData, items: CampaignSceneryInstance[]) {
+function clearCampaignBlockingScenery(data: CampaignData, items: CampaignSceneryInstance[]) {
   const roadSegments = data.map.edges
     .filter((edge) => edge.kind === 'road')
     .flatMap((edge) => edge.via.slice(1).map((point, index): [[number, number], [number, number]] => [edge.via[index], point]));
-  if (roadSegments.length === 0) return items;
+  const cityFootprints = data.map.nodes
+    .filter((node) => node.kind === 'city')
+    .map((node) => ({
+      x: node.pos[0],
+      y: node.pos[1],
+      radius: citySceneryClearance(node.tier ?? 1, isControlledStage(data)),
+    }));
   return items.filter((item) => {
+    const propRadius = item.size * (item.kind === 'mountain' ? 0.38 : item.kind === 'rock' ? 0.32 : 0.24);
+    if (cityFootprints.some((city) => Math.hypot(item.x - city.x, item.y - city.y) < city.radius + propRadius)) return false;
     if (item.kind !== 'mountain' && item.kind !== 'rock') return true;
     const clearance = Math.max(5.8, item.size * 0.52);
     return !roadSegments.some(([a, b]) => distanceToSegment(item.x, item.y, a, b) < clearance);
   });
+}
+
+function citySceneryClearance(tier: number, controlledStage: boolean) {
+  const fixtureScale = controlledStage ? 1.82 : 1;
+  return (tier >= 3 ? 12.0 : 10.5) * fixtureScale;
 }
 
 function distanceToSegment(x: number, y: number, a: [number, number], b: [number, number]) {

@@ -32,7 +32,8 @@ export interface CampaignMapInputData {
 export interface CampaignMapStats {
   roads: number;
   seaLanes: number;
-  roadVertices: number;
+  lineVertices: number;
+  roadMeshVertices: number;
   cityMarkers: number;
   labels: number;
 }
@@ -47,7 +48,8 @@ export interface CampaignMapDrawStyle {
 }
 
 export interface CampaignMapDrawData {
-  roadVertices: Float32Array;
+  lineVertices: Float32Array;
+  roadMeshVertices: Float32Array;
   cityMarkers: CampaignMarker[];
   labels: CampaignLabel[];
   stats: CampaignMapStats;
@@ -170,14 +172,45 @@ fn fs(in: VsOut) -> @location(0) vec4f {
 const LINE_WGSL = `
 ${WORLD_CAMERA_WGSL}
 
-struct VsOut { @builtin(position) pos: vec4f, @location(0) color: vec4f, @location(1) world: vec2f };
+struct VsOut { @builtin(position) pos: vec4f, @location(0) color: vec4f };
 
 @vertex
 fn vs(@location(0) world: vec2f, @location(1) color: vec4f) -> VsOut {
   var out: VsOut;
   out.pos = projectGround(world, 0.92);
   out.color = color;
+  return out;
+}
+
+@fragment
+fn fs(in: VsOut) -> @location(0) vec4f {
+  return in.color;
+}`;
+
+const ROAD_WGSL = `
+${WORLD_CAMERA_WGSL}
+
+struct VsOut {
+  @builtin(position) pos: vec4f,
+  @location(0) color: vec4f,
+  @location(1) world: vec3f,
+  @location(2) uv: vec2f,
+  @location(3) material: f32,
+};
+
+@vertex
+fn vs(
+  @location(0) world: vec3f,
+  @location(1) color: vec4f,
+  @location(2) uv: vec2f,
+  @location(3) material: f32,
+) -> VsOut {
+  var out: VsOut;
+  out.pos = projectWorld3d(world, worldDepth3d(world, 0.92, 0.0012, 0.0018));
+  out.color = color;
   out.world = world;
+  out.uv = uv;
+  out.material = material;
   return out;
 }
 
@@ -189,15 +222,14 @@ fn hash(p: vec2f) -> f32 {
 
 @fragment
 fn fs(in: VsOut) -> @location(0) vec4f {
-  let grayRoad = abs(in.color.r - in.color.g) < 0.14 && abs(in.color.g - in.color.b) < 0.22;
-  let roadAlpha = in.color.a > 0.18 && in.color.a < 0.98;
-  let roadTone = in.color.r > 0.22 && in.color.r < 0.98 && in.color.b < 0.86;
-  if (grayRoad && roadAlpha && roadTone) {
-    let paver = hash(floor(in.world * vec2f(2.9, 3.7)));
-    let grit = hash(floor(in.world * vec2f(11.0, 8.0) + vec2f(3.0, 17.0)));
-    let seam = smoothstep(0.045, 0.0, abs(fract(in.world.x * 1.15 + in.world.y * 0.34) - 0.5));
-    let shade = 0.90 + paver * 0.13 + grit * 0.045 - seam * 0.055;
-    return vec4f(clamp(in.color.rgb * shade, vec3f(0.0), vec3f(1.0)), in.color.a);
+  if (in.material > 0.5) {
+    let paving = hash(floor(in.uv * vec2f(3.8, 2.2)));
+    let grit = hash(floor(in.world.xy * vec2f(13.0, 9.0) + vec2f(2.0, 17.0)));
+    let centerWear = smoothstep(0.98, 0.08, abs(in.uv.y)) * 0.09;
+    let transverseJoint = smoothstep(0.06, 0.0, abs(fract(in.uv.x * 0.78) - 0.5)) * 0.045;
+    let edgeDirt = smoothstep(0.42, 1.0, abs(in.uv.y)) * 0.10;
+    let light = 0.91 + paving * 0.12 + grit * 0.045 + centerWear - transverseJoint - edgeDirt;
+    return vec4f(clamp(in.color.rgb * light, vec3f(0.0), vec3f(1.0)), in.color.a);
   }
   return in.color;
 }`;
@@ -489,6 +521,82 @@ export class CampaignLinePass {
   }
 }
 
+export class CampaignRoadPass {
+  private pipeline: GPURenderPipeline;
+  private vertexBuffer: GPUBuffer;
+  private capacity = 0;
+  private vertexCount = 0;
+
+  constructor(private shell: RawFrameShell) {
+    const device = shell.device;
+    const module = device.createShaderModule({ label: 'campaign-road-wgsl', code: ROAD_WGSL });
+    this.pipeline = device.createRenderPipeline({
+      label: 'campaign-road-depth-pipeline',
+      layout: device.createPipelineLayout({ bindGroupLayouts: [this.shell.cameraBindGroupLayout] }),
+      vertex: {
+        module,
+        entryPoint: 'vs',
+        buffers: [{
+          arrayStride: 40,
+          attributes: [
+            { shaderLocation: 0, offset: 0, format: 'float32x3' },
+            { shaderLocation: 1, offset: 12, format: 'float32x4' },
+            { shaderLocation: 2, offset: 28, format: 'float32x2' },
+            { shaderLocation: 3, offset: 36, format: 'float32' },
+          ],
+        }],
+      },
+      fragment: {
+        module,
+        entryPoint: 'fs',
+        targets: [{
+          format: this.shell.info.format,
+          blend: {
+            color: { srcFactor: 'src-alpha', dstFactor: 'one-minus-src-alpha' },
+            alpha: { srcFactor: 'one', dstFactor: 'one-minus-src-alpha' },
+          },
+        }],
+      },
+      primitive: { topology: 'triangle-list', cullMode: 'none' },
+      depthStencil: {
+        format: 'depth24plus',
+        depthWriteEnabled: false,
+        depthCompare: 'less-equal',
+      },
+    });
+    this.vertexBuffer = device.createBuffer({
+      label: 'campaign-road-empty',
+      size: 10 * 4,
+      usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
+    });
+  }
+
+  upload(vertices: Float32Array) {
+    this.vertexCount = Math.floor(vertices.length / 10);
+    if (this.vertexCount > this.capacity) {
+      this.capacity = Math.max(this.vertexCount, this.capacity * 2, 1024);
+      this.vertexBuffer = this.shell.device.createBuffer({
+        label: 'campaign-road-vertices',
+        size: this.capacity * 10 * 4,
+        usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
+      });
+    }
+    if (vertices.length > 0) this.shell.device.queue.writeBuffer(this.vertexBuffer, 0, vertices);
+  }
+
+  draw(pass: GPURenderPassEncoder) {
+    if (this.vertexCount === 0) return;
+    pass.setPipeline(this.pipeline);
+    pass.setBindGroup(0, this.shell.cameraBindGroup);
+    pass.setVertexBuffer(0, this.vertexBuffer);
+    pass.draw(this.vertexCount);
+  }
+
+  stats() {
+    return { vertices: this.vertexCount, triangles: Math.floor(this.vertexCount / 3) };
+  }
+}
+
 export class CampaignMarkerPass {
   private pipeline: GPURenderPipeline;
   private quadBuffer: GPUBuffer;
@@ -748,55 +856,32 @@ export class CampaignLabelPass {
 export function buildCampaignMapDrawData(data: CampaignMapInputData, style: CampaignMapDrawStyle = {}): CampaignMapDrawData {
   const roads = data.map.edges.filter((edge) => edge.kind === 'road');
   const seaLanes = data.map.edges.filter((edge) => edge.kind === 'sea');
-  const vertices: number[] = [];
-  for (const edge of data.map.edges) pushEdgeLines(vertices, edge, style);
+  const lineVertices: number[] = [];
+  const roadMeshVertices: number[] = [];
+  for (const edge of data.map.edges) {
+    if (edge.kind === 'sea') pushEdgeLines(lineVertices, edge);
+    else pushRaisedRoad(roadMeshVertices, edge, style);
+  }
   const cityNodes = data.map.nodes.filter((node) => node.kind === 'city');
   const cityMarkers = cityNodes.map((node) => markerForNode(data, node));
   const labels = data.map.nodes.length > 20 ? seaLabels() : [];
   return {
-    roadVertices: new Float32Array(vertices),
+    lineVertices: new Float32Array(lineVertices),
+    roadMeshVertices: new Float32Array(roadMeshVertices),
     cityMarkers,
     labels,
     stats: {
       roads: roads.length,
       seaLanes: seaLanes.length,
-      roadVertices: Math.floor(vertices.length / 6),
+      lineVertices: Math.floor(lineVertices.length / 6),
+      roadMeshVertices: Math.floor(roadMeshVertices.length / 10),
       cityMarkers: cityMarkers.length,
       labels: labels.length,
     },
   };
 }
 
-function pushEdgeLines(out: number[], edge: CampaignMapEdgeData, style: CampaignMapDrawStyle) {
-  const roadScale = style.roadScale ?? 1;
-  const roadEndpointInset = Math.max(0, style.roadEndpointInset ?? 0);
-  const pushTriangle = (a: [number, number], b: [number, number], c: [number, number], color: [number, number, number, number]) => {
-    out.push(a[0], a[1], ...color, b[0], b[1], ...color, c[0], c[1], ...color);
-  };
-  const pushDisc = (
-    center: [number, number],
-    color: [number, number, number, number],
-    radiusX: number,
-    radiusY: number,
-    angle = 0,
-    steps = 14,
-  ) => {
-    const cos = Math.cos(angle);
-    const sin = Math.sin(angle);
-    for (let i = 0; i < steps; i++) {
-      const a0 = (i / steps) * Math.PI * 2;
-      const a1 = ((i + 1) / steps) * Math.PI * 2;
-      const p0: [number, number] = [
-        center[0] + Math.cos(a0) * radiusX * cos - Math.sin(a0) * radiusY * sin,
-        center[1] + Math.cos(a0) * radiusX * sin + Math.sin(a0) * radiusY * cos,
-      ];
-      const p1: [number, number] = [
-        center[0] + Math.cos(a1) * radiusX * cos - Math.sin(a1) * radiusY * sin,
-        center[1] + Math.cos(a1) * radiusX * sin + Math.sin(a1) * radiusY * cos,
-      ];
-      pushTriangle(center, p0, p1, color);
-    }
-  };
+function pushEdgeLines(out: number[], edge: CampaignMapEdgeData) {
   const pushBand = (
     a: [number, number],
     b: [number, number],
@@ -829,10 +914,23 @@ function pushEdgeLines(out: number[], edge: CampaignMapEdgeData, style: Campaign
   for (let i = 1; i < edge.via.length; i++) {
     const a = edge.via[i - 1];
     const b = edge.via[i];
-    if (edge.kind === 'sea') {
-      pushBand(a, b, [0.58, 0.72, 0.82, 0.075], 0.46);
-      continue;
-    }
+    pushBand(a, b, [0.58, 0.72, 0.82, 0.075], 0.46);
+  }
+}
+
+function pushRaisedRoad(out: number[], edge: CampaignMapEdgeData, style: CampaignMapDrawStyle) {
+  const roadScale = style.roadScale ?? 1;
+  const roadEndpointInset = Math.max(0, style.roadEndpointInset ?? 0);
+  const topColor: [number, number, number, number] = [0.78, 0.74, 0.62, 0.92];
+  const crownColor: [number, number, number, number] = [0.91, 0.84, 0.66, 0.36];
+  const sideColor: [number, number, number, number] = [0.40, 0.32, 0.20, 0.34];
+  const shoulderColor: [number, number, number, number] = [0.50, 0.40, 0.24, 0.18];
+  const topZ = 0.18 * roadScale;
+  const apronZ = 0.07 * roadScale;
+
+  for (let i = 1; i < edge.via.length; i++) {
+    const a = edge.via[i - 1];
+    const b = edge.via[i];
     const dx = b[0] - a[0];
     const dy = b[1] - a[1];
     const len = Math.hypot(dx, dy) || 1;
@@ -844,16 +942,90 @@ function pushEdgeLines(out: number[], edge: CampaignMapEdgeData, style: Campaign
     const start: [number, number] = [a[0] + ux * usableInset.start, a[1] + uy * usableInset.start];
     const end: [number, number] = [b[0] - ux * usableInset.end, b[1] - uy * usableInset.end];
     const angle = Math.atan2(end[1] - start[1], end[0] - start[0]);
+    const nx = -Math.sin(angle);
+    const ny = Math.cos(angle);
+    const topHalf = 1.30 * roadScale;
+    const crownHalf = 0.62 * roadScale;
+    const shoulderHalf = 2.15 * roadScale;
     if (i === 1) {
-      pushDisc(start, [0.48, 0.40, 0.25, 0.16], 3.10 * roadScale, 1.72 * roadScale, angle);
-      pushDisc(start, [0.75, 0.68, 0.50, 0.54], 2.34 * roadScale, 1.28 * roadScale, angle);
+      pushRoadDisc(out, start, angle, 3.1 * roadScale, 1.5 * roadScale, apronZ, shoulderColor, 0);
+      pushRoadDisc(out, start, angle, 2.15 * roadScale, 1.05 * roadScale, topZ, topColor, 1);
     }
-    pushDisc(end, [0.48, 0.40, 0.25, 0.15], 2.86 * roadScale, 1.58 * roadScale, angle);
-    pushDisc(end, [0.75, 0.68, 0.50, 0.50], 2.16 * roadScale, 1.18 * roadScale, angle);
-    pushBand(start, end, [0.46, 0.38, 0.24, 0.13], 2.22 * roadScale);
-    pushBand(start, end, [0.67, 0.58, 0.40, 0.23], 1.90 * roadScale);
-    pushBand(start, end, [0.80, 0.76, 0.63, 0.76], 1.46 * roadScale);
-    pushBand(start, end, [0.91, 0.86, 0.70, 0.20], 0.68 * roadScale);
+    pushRoadDisc(out, end, angle, 2.85 * roadScale, 1.38 * roadScale, apronZ, shoulderColor, 0);
+    pushRoadDisc(out, end, angle, 1.98 * roadScale, 0.96 * roadScale, topZ, topColor, 1);
+    pushRoadStrip(out, start, end, shoulderHalf, 0.02 * roadScale, shoulderColor, 0);
+    pushRoadStrip(out, start, end, topHalf, topZ, topColor, 1);
+    pushRoadStrip(out, start, end, crownHalf, topZ + 0.025 * roadScale, crownColor, 1);
+    pushRoadSide(out, start, end, nx, ny, topHalf, topZ, sideColor);
+  }
+}
+
+function pushRoadVertex(out: number[], point: [number, number], z: number, color: [number, number, number, number], uv: [number, number], material: number) {
+  out.push(point[0], point[1], z, ...color, uv[0], uv[1], material);
+}
+
+function pushRoadTriangle(
+  out: number[],
+  a: [number, number, number, number],
+  b: [number, number, number, number],
+  c: [number, number, number, number],
+  color: [number, number, number, number],
+  material: number,
+) {
+  pushRoadVertex(out, [a[0], a[1]], a[2], color, [a[3], -1], material);
+  pushRoadVertex(out, [b[0], b[1]], b[2], color, [b[3], 0], material);
+  pushRoadVertex(out, [c[0], c[1]], c[2], color, [c[3], 1], material);
+}
+
+function pushRoadStrip(out: number[], a: [number, number], b: [number, number], halfWidth: number, z: number, color: [number, number, number, number], material: number) {
+  const dx = b[0] - a[0];
+  const dy = b[1] - a[1];
+  const len = Math.hypot(dx, dy) || 1;
+  const nx = -dy / len;
+  const ny = dx / len;
+  const a0: [number, number, number, number] = [a[0] - nx * halfWidth, a[1] - ny * halfWidth, z, 0];
+  const a1: [number, number, number, number] = [a[0] + nx * halfWidth, a[1] + ny * halfWidth, z, 0];
+  const b0: [number, number, number, number] = [b[0] - nx * halfWidth, b[1] - ny * halfWidth, z, len * 0.26];
+  const b1: [number, number, number, number] = [b[0] + nx * halfWidth, b[1] + ny * halfWidth, z, len * 0.26];
+  pushRoadTriangle(out, a0, b0, b1, color, material);
+  pushRoadTriangle(out, a0, b1, a1, color, material);
+}
+
+function pushRoadSide(out: number[], a: [number, number], b: [number, number], nx: number, ny: number, halfWidth: number, z: number, color: [number, number, number, number]) {
+  const len = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1;
+  const side = (sign: -1 | 1) => {
+    const aTop: [number, number, number, number] = [a[0] + nx * halfWidth * sign, a[1] + ny * halfWidth * sign, z, 0];
+    const bTop: [number, number, number, number] = [b[0] + nx * halfWidth * sign, b[1] + ny * halfWidth * sign, z, len * 0.26];
+    const aBase: [number, number, number, number] = [aTop[0] + nx * 0.20 * sign, aTop[1] + ny * 0.20 * sign, 0.01, 0];
+    const bBase: [number, number, number, number] = [bTop[0] + nx * 0.20 * sign, bTop[1] + ny * 0.20 * sign, 0.01, len * 0.26];
+    pushRoadTriangle(out, aBase, bBase, bTop, color, 0);
+    pushRoadTriangle(out, aBase, bTop, aTop, color, 0);
+  };
+  side(-1);
+  side(1);
+}
+
+function pushRoadDisc(out: number[], center: [number, number], angle: number, radiusX: number, radiusY: number, z: number, color: [number, number, number, number], material: number) {
+  const steps = 18;
+  const cos = Math.cos(angle);
+  const sin = Math.sin(angle);
+  for (let i = 0; i < steps; i++) {
+    const a0 = (i / steps) * Math.PI * 2;
+    const a1 = ((i + 1) / steps) * Math.PI * 2;
+    const p0: [number, number, number, number] = [
+      center[0] + Math.cos(a0) * radiusX * cos - Math.sin(a0) * radiusY * sin,
+      center[1] + Math.cos(a0) * radiusX * sin + Math.sin(a0) * radiusY * cos,
+      z,
+      i / 3,
+    ];
+    const p1: [number, number, number, number] = [
+      center[0] + Math.cos(a1) * radiusX * cos - Math.sin(a1) * radiusY * sin,
+      center[1] + Math.cos(a1) * radiusX * sin + Math.sin(a1) * radiusY * cos,
+      z,
+      (i + 1) / 3,
+    ];
+    const c: [number, number, number, number] = [center[0], center[1], z, i / 3];
+    pushRoadTriangle(out, c, p0, p1, color, material);
   }
 }
 

@@ -264,16 +264,16 @@ function buildCityMesh(): MeshData {
   builder.contactShadow([-0.82, mastY], [1.70, 0.18], 0.052, [0.34, -0.34]);
   builder.box([mastX, mastY, 2.68], [0.18, 0.18, 5.36], darkTimber, 1);
   builder.panel3d([
-    [mastX - 0.01, mastY, 5.58],
-    [-1.72, mastY, 5.44],
-    [-1.44, mastY, 4.92],
-    [-1.72, mastY, 4.40],
-    [mastX - 0.01, mastY, 4.26],
+    [mastX - 0.01, mastY, 6.26],
+    [-1.82, mastY, 6.10],
+    [-1.52, mastY, 5.54],
+    [-1.82, mastY, 4.98],
+    [mastX - 0.01, mastY, 4.82],
   ], [1, 1, 1], 1);
-  builder.box([mastX, mastY, 4.82], [0.14, 0.10, 1.40], darkTimber, 1);
-  builder.box([-0.76, mastY, 5.28], [1.58, 0.09, 0.10], darkTimber, 1);
-  builder.box([mastX - 0.08, mastY - 0.05, 4.88], [0.12, 0.12, 1.22], darkTimber, 1);
-  builder.box([-0.78, mastY - 0.05, 4.32], [1.46, 0.08, 0.08], darkTimber, 1);
+  builder.box([mastX, mastY, 5.22], [0.14, 0.10, 1.72], darkTimber, 1);
+  builder.box([-0.80, mastY, 5.92], [1.70, 0.09, 0.10], darkTimber, 1);
+  builder.box([mastX - 0.08, mastY - 0.05, 5.22], [0.12, 0.12, 1.38], darkTimber, 1);
+  builder.box([-0.82, mastY - 0.05, 4.92], [1.52, 0.08, 0.08], darkTimber, 1);
   builder.box([mastX, mastY, 3.62], [0.30, 0.22, 0.24], [0.35, 0.24, 0.18], 1);
   builder.panel3d([
     [mastX - 0.02, mastY, 2.05],

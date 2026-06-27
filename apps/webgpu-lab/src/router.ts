@@ -14,7 +14,7 @@ import { BattleTerrainPass, type BattleTerrainFixture } from '../../../packages/
 import { CLASS_DEPTH, CLASS_SPACING, UNIT_INFO } from '../../../packages/game-renderer/src/battle/unitInfoLayout';
 import { campaignWaterFeatures, CampaignCloudPass, CampaignWaterPass } from '../../../packages/game-renderer/src/campaign/atmospherePass';
 import { CampaignEntityPass, type CampaignEntityInstance } from '../../../packages/game-renderer/src/campaign/entityPass';
-import { buildCampaignMapDrawData, CampaignLabelPass, CampaignLinePass, CampaignMapPass, CampaignMarkerPass, type CampaignLabel } from '../../../packages/game-renderer/src/campaign/mapPass';
+import { buildCampaignMapDrawData, CampaignLabelPass, CampaignLinePass, CampaignMapPass, CampaignMarkerPass, CampaignRoadPass, type CampaignLabel } from '../../../packages/game-renderer/src/campaign/mapPass';
 import { CampaignSceneryPass, type CampaignSceneryInstance } from '../../../packages/game-renderer/src/campaign/sceneryPass';
 import { CampaignSelectionPass, type CampaignSelectionInstance } from '../../../packages/game-renderer/src/campaign/selectionPass';
 import { campaignBorderVertices, CampaignTerritoryPass } from '../../../packages/game-renderer/src/campaign/territoryPass';
@@ -458,11 +458,13 @@ async function routeCampaignMap(ctx: LabContext) {
     rect: data.bgRect,
   });
   const lines = new CampaignLinePass(shell, 'triangle-list');
+  const roads = new CampaignRoadPass(shell);
   const borders = new CampaignLinePass(shell);
   const markers = new CampaignMarkerPass(shell);
   const labelPass = new CampaignLabelPass(shell);
   const drawData = buildCampaignMapDrawData(data);
-  lines.upload(drawData.roadVertices);
+  lines.upload(drawData.lineVertices);
+  roads.upload(drawData.roadMeshVertices);
   borders.upload(campaignBorderVertices(territoryData.borders));
   markers.upload(drawData.cityMarkers);
   const labels = drawData.labels.concat(campaignFactionLabels(territoryData.labels));
@@ -477,6 +479,7 @@ async function routeCampaignMap(ctx: LabContext) {
       borders.draw(pass);
     },
     depthExtra: (pass) => {
+      roads.draw(pass);
       lines.drawDepth(pass);
     },
     overlayExtra: (pass) => {
@@ -514,6 +517,7 @@ async function routeCampaignMap(ctx: LabContext) {
     labelAtlas: `${labelLayer.atlasWidth}x${labelLayer.atlasHeight}`,
     labelVertices: labelLayer.vertices,
     lineSegments: lines.stats().segments,
+    roadTriangles: roads.stats().triangles,
     markerStats: markers.stats(),
     labelLayer: 'raw-webgpu-glyph-atlas',
     territoryLayer: 'raw-webgpu-texture',
@@ -534,11 +538,13 @@ async function routeCampaignUi(ctx: LabContext) {
   const camera = campaignPresetCamera(preset);
   const shell = await createConfiguredShell(ctx.canvas, camera);
   const lines = new CampaignLinePass(shell, 'triangle-list');
+  const roads = new CampaignRoadPass(shell);
   const entities = new CampaignEntityPass(shell);
   const selection = new CampaignSelectionPass(shell);
   const labelPass = new CampaignLabelPass(shell);
   const drawData = buildCampaignMapDrawData(data);
-  lines.upload(drawData.roadVertices);
+  lines.upload(drawData.lineVertices);
+  roads.upload(drawData.roadMeshVertices);
   const host = ctx.canvas.parentElement ?? ctx.root;
   const ui = new WebGpuCampaignUiLayer(host, (army, on) => {
     campaign.order_auto_replenish(army, on);
@@ -566,6 +572,7 @@ async function routeCampaignUi(ctx: LabContext) {
       terrainRect: campaignBgTerrainRect(data.bgRect),
       depthExtra: (pass) => {
         selection.drawDepth(pass);
+        roads.draw(pass);
         lines.drawDepth(pass);
         entities.drawDepth(pass);
       },
@@ -619,6 +626,7 @@ async function routeCampaignUi(ctx: LabContext) {
       lastPick,
       ui: uiStats,
       lineSegments: lines.stats().segments,
+      roadTriangles: roads.stats().triangles,
       labelLayer: labelLayer.layer,
       labelAtlas: `${labelLayer.atlasWidth}x${labelLayer.atlasHeight}`,
       labelVertices: labelLayer.vertices,
@@ -653,7 +661,7 @@ async function routeCampaignModelGates(ctx: LabContext) {
   const shell = await createConfiguredShell(ctx.canvas, camera);
   const entities = new CampaignEntityPass(shell);
   const scenery = new CampaignSceneryPass(shell);
-  const lines = new CampaignLinePass(shell, 'triangle-list');
+  const roads = new CampaignRoadPass(shell);
   const selection = new CampaignSelectionPass(shell);
   const labelPass = new CampaignLabelPass(shell);
   const frame = campaignModelGateFrame(gate);
@@ -663,7 +671,7 @@ async function routeCampaignModelGates(ctx: LabContext) {
   const clouds = frame.cloudRect ? new CampaignCloudPass(shell, frame.cloudRect) : null;
   entities.upload(frame.entities);
   scenery.upload(frame.scenery);
-  lines.upload(frame.roads);
+  roads.upload(frame.roads);
   selection.upload(frame.selections);
   water?.upload(frame.water);
   const labelLayer = labelPass.upload(frame.labels, camera);
@@ -675,7 +683,7 @@ async function routeCampaignModelGates(ctx: LabContext) {
     },
     depthExtra: (pass) => {
       selection.drawDepth(pass);
-      lines.drawDepth(pass);
+      roads.draw(pass);
       scenery.drawDepth(pass);
       entities.drawDepth(pass);
     },
@@ -690,7 +698,7 @@ async function routeCampaignModelGates(ctx: LabContext) {
     purpose: 'isolated campaign model screenshot gate',
     entities: frame.entities.length,
     scenery: frame.scenery.length,
-    roadSegments: lines.stats().segments,
+    roadTriangles: roads.stats().triangles,
     waterFeatures: water?.stats().waterFeatures ?? 0,
     cloudQuads: clouds?.stats().cloudQuads ?? 0,
     labels: `${labelLayer.visibleLabels}/${labelLayer.labels}`,
@@ -709,7 +717,7 @@ async function routeCampaignModelGates(ctx: LabContext) {
     entities: frame.entities.length,
     scenery: frame.scenery.length,
     sceneryStats: scenery.stats(),
-    roadSegments: lines.stats().segments,
+    roadTriangles: roads.stats().triangles,
     waterFeatures: water?.stats().waterFeatures ?? 0,
     cloudQuads: clouds?.stats().cloudQuads ?? 0,
     selections: frame.selections.length,
@@ -793,7 +801,7 @@ function campaignModelGateFrame(gate: CampaignModelGate) {
   const scenery: CampaignSceneryInstance[] = [];
   const selections: CampaignSelectionInstance[] = [];
   const labels: CampaignLabel[] = [];
-  let roads = new Float32Array();
+  let roads: Float32Array<ArrayBufferLike> = new Float32Array();
   let terrainRect: [number, number, number, number] = [-18, -12, 36, 24];
   let water: ReturnType<typeof campaignWaterFeatures> = [];
   let cloudRect: { min: [number, number]; max: [number, number] } | null = null;
@@ -937,90 +945,13 @@ function campaignModelGateGarrisonSamples(
 }
 
 function roadGateVertices(points: [number, number][]) {
-  const verts: number[] = [];
-  const endpointInset = 3.6;
-  const pushTriangle = (a: [number, number], b: [number, number], c: [number, number], color: [number, number, number, number]) => {
-    verts.push(a[0], a[1], ...color, b[0], b[1], ...color, c[0], c[1], ...color);
-  };
-  const pushDisc = (
-    center: [number, number],
-    color: [number, number, number, number],
-    radiusX: number,
-    radiusY: number,
-    angle = 0,
-    steps = 14,
-  ) => {
-    const cos = Math.cos(angle);
-    const sin = Math.sin(angle);
-    for (let i = 0; i < steps; i++) {
-      const a0 = (i / steps) * Math.PI * 2;
-      const a1 = ((i + 1) / steps) * Math.PI * 2;
-      const p0: [number, number] = [
-        center[0] + Math.cos(a0) * radiusX * cos - Math.sin(a0) * radiusY * sin,
-        center[1] + Math.cos(a0) * radiusX * sin + Math.sin(a0) * radiusY * cos,
-      ];
-      const p1: [number, number] = [
-        center[0] + Math.cos(a1) * radiusX * cos - Math.sin(a1) * radiusY * sin,
-        center[1] + Math.cos(a1) * radiusX * sin + Math.sin(a1) * radiusY * cos,
-      ];
-      pushTriangle(center, p0, p1, color);
-    }
-  };
-  const pushBand = (
-    a: [number, number],
-    b: [number, number],
-    color: [number, number, number, number],
-    halfWidth: number,
-    offset = 0,
-  ) => {
-    const dx = b[0] - a[0];
-    const dy = b[1] - a[1];
-    const len = Math.hypot(dx, dy) || 1;
-    const nx = -dy / len;
-    const ny = dx / len;
-    const ax0 = a[0] + nx * (offset - halfWidth);
-    const ay0 = a[1] + ny * (offset - halfWidth);
-    const ax1 = a[0] + nx * (offset + halfWidth);
-    const ay1 = a[1] + ny * (offset + halfWidth);
-    const bx0 = b[0] + nx * (offset - halfWidth);
-    const by0 = b[1] + ny * (offset - halfWidth);
-    const bx1 = b[0] + nx * (offset + halfWidth);
-    const by1 = b[1] + ny * (offset + halfWidth);
-    verts.push(
-      ax0, ay0, ...color,
-      bx0, by0, ...color,
-      bx1, by1, ...color,
-      ax0, ay0, ...color,
-      bx1, by1, ...color,
-      ax1, ay1, ...color,
-    );
-  };
-  for (let i = 1; i < points.length; i++) {
-    const a = points[i - 1];
-    const b = points[i];
-    const dx = b[0] - a[0];
-    const dy = b[1] - a[1];
-    const len = Math.hypot(dx, dy) || 1;
-    const ux = dx / len;
-    const uy = dy / len;
-    const startInset = i === 1 ? endpointInset : 0;
-    const endInset = i === points.length - 1 ? endpointInset : 0;
-    const usableInset = len > startInset + endInset + 0.4 ? { start: startInset, end: endInset } : { start: 0, end: 0 };
-    const start: [number, number] = [a[0] + ux * usableInset.start, a[1] + uy * usableInset.start];
-    const end: [number, number] = [b[0] - ux * usableInset.end, b[1] - uy * usableInset.end];
-    const angle = Math.atan2(end[1] - start[1], end[0] - start[0]);
-    if (i === 1) {
-      pushDisc(start, [0.48, 0.40, 0.25, 0.16], 0.92, 0.50, angle);
-      pushDisc(start, [0.75, 0.68, 0.50, 0.54], 0.68, 0.37, angle);
-    }
-    pushDisc(end, [0.48, 0.40, 0.25, 0.15], 0.84, 0.46, angle);
-    pushDisc(end, [0.75, 0.68, 0.50, 0.50], 0.64, 0.34, angle);
-    pushBand(start, end, [0.46, 0.38, 0.24, 0.13], 0.66);
-    pushBand(start, end, [0.67, 0.58, 0.40, 0.23], 0.56);
-    pushBand(start, end, [0.80, 0.76, 0.63, 0.76], 0.43);
-    pushBand(start, end, [0.91, 0.86, 0.70, 0.20], 0.20);
-  }
-  return new Float32Array(verts);
+  return buildCampaignMapDrawData({
+    map: {
+      nodes: [],
+      edges: [{ kind: 'road', via: points }],
+      factions: [],
+    },
+  }, { roadScale: 0.34, roadEndpointInset: 3.6 }).roadMeshVertices;
 }
 
 function campaignBgTerrainRect(rect: { min: [number, number]; max: [number, number] }): [number, number, number, number] {

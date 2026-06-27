@@ -442,6 +442,18 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   integration bug rather than an art choice. Endpoint pads and softer shoulders
   are only a checkpoint: final parity still needs actual gate/plaza geometry,
   contact shadows, and raised/beveled road surfaces.
+- Campaign ground selections are world-space decals, not occluders. They should
+  project through the shared camera and draw early in the depth world pass, but
+  their depth pipeline must not write depth; otherwise the selected ring can
+  reserve pixels above soldiers/cities and read like a screen overlay slicing
+  through the model. Let roads, scenery, entities, and shadows paint over the
+  marker naturally.
+- Campaign prop placement must reserve settlement footprints, not just road
+  corridors. Deterministic tree/rock/mountain scattering can be technically on
+  the ground and still project into a city volume at close pitch, reading as a
+  floating tree on a roof. Filter scenery against tier-aware city clearance
+  radii before upload, and make controlled visual fixtures use generous
+  clearance because they magnify city composition bugs.
 - Use instancing, batching, storage buffers, and GPU-side phase passes for scale.
   Avoid CPU readbacks in hot paths; debug readbacks must be bounded and named.
 - For iterative effects or simulations, separate phases such as `state`,

@@ -277,6 +277,11 @@ pub fn apply_battle_outcome(
     let def = &st.armies[e.defender as usize];
     let att_team: u32 = if def.faction == player_faction { 1 } else { 0 };
     let (att_faction, def_faction) = (att.faction, def.faction);
+    // A city assault: the defender is the city's garrison. If the attacker wins,
+    // it has breached the walls and must seize the prize, not be left standing
+    // beside an undefended city for the AI to wander off from (the bet was the
+    // siege; the capture is its payoff).
+    let assault_city = def.garrison_of;
 
     // Casualties and rally scars.
     for u in &result.units {
@@ -322,6 +327,21 @@ pub fn apply_battle_outcome(
             continue; // tombstone: wiped out in the fighting
         }
         if a.faction == winner_faction {
+            // A victorious assault marches into the breach and occupies the city
+            // it just took — pinned there (Occupying rejects move orders) until
+            // it flips, so a won siege reliably becomes a capture regardless of
+            // siege length or the commander's next whim. Relief arriving during
+            // the occupation still interrupts it (occupations: hostile in contact).
+            if id == e.attacker {
+                if let Some(node) = assault_city {
+                    a.loc = Loc::Node(node);
+                    a.stance = Stance::Occupying {
+                        city: node,
+                        ticks_left: tun::OCCUPY_TICKS,
+                    };
+                    continue;
+                }
+            }
             a.stance = Stance::Hold;
             continue; // garrison winners fold back via garrison_returns
         }

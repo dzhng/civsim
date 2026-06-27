@@ -190,6 +190,53 @@ fn ai_city_assault_stands_the_same_siege() {
 }
 
 #[test]
+fn won_assault_occupies_the_city() {
+    // Winning a city assault seizes the city then and there: the victor is
+    // placed Occupying the city node, not left idle beside it. AI is OFF, so
+    // this proves the capture is owned by the battle resolution and needs no
+    // commander to walk the army in — the gap the old code left, which only
+    // captured when the occupy-clock happened to beat the next AI order.
+    let mut c = Campaign::new(test_map(), 7, 2);
+    inert(&mut c);
+    c.state.armies[1].roster[0].count = 0; // no blue field army / relief
+    c.state.armies[0].loc = Loc::Node(1); // red adjacent to C
+    c.state.armies[0].roster[0].count = 600;
+    c.state.armies[0].roster[0].max = 600;
+    c.state.cities.get_mut(&2).unwrap().garrison.push(RosterEntry {
+        class: contract::UnitClassId::LightSpear,
+        count: 120,
+        max: 120,
+        morale_cap: 1.0,
+    });
+    assert!(c.order_move(0, Loc::Node(2)));
+    let mut resolved = false;
+    for _ in 0..40_000 {
+        c.tick();
+        if let Some(eid) = c.state.battle_ready {
+            let s = c.battle_setup(eid).expect("setup");
+            let r = campaign::resolve::estimate(&c.map, &s);
+            c.apply_outcome(eid, &r);
+            resolved = true;
+            break;
+        }
+    }
+    assert!(resolved, "the assault never came to battle");
+    let red = &c.state.armies[0];
+    assert!(red.alive(), "red won the assault");
+    assert_eq!(red.loc, Loc::Node(2), "the victor stands in the city it took");
+    assert!(
+        matches!(red.stance, Stance::Occupying { city: 2, .. }),
+        "the victor occupies its prize, got {:?}",
+        red.stance
+    );
+    // No commander to redirect it: the occupation completes and C flips.
+    for _ in 0..tunables::OCCUPY_TICKS as u32 + 5 {
+        c.tick();
+    }
+    assert_eq!(c.state.cities[&2].owner, 0, "C falls to red");
+}
+
+#[test]
 fn a_siege_converts_to_a_capture() {
     // The end-to-end property a siege must preserve: a determined assault on a
     // defended city, with NO relief possible, eventually takes the city. (The

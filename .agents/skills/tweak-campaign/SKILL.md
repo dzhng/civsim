@@ -67,21 +67,26 @@ Run with **`cargo test -p campaign --no-fail-fast`**: campaign is many test
 binaries, and plain `cargo test` stops at the first failing one — a partial
 false green that hides the rest. Trust the exit code, not a grep over output.
 
-**A gate that breaks out of all proportion is a finding, not a chore.** When a
-small, reasonable-sounding addition makes the gate hang or stop concluding —
-wildly more than the change should warrant — that disproportion *is* the signal:
-the feature has collided with a latent mechanical assumption, and the gate is
-the only thing loud enough to surface it. Do NOT tune the new knob until it
-passes (shrink the window, gate it to the player, special-case the AI) — that
-buries the bug and ships a worse game. Build the red loop and **instrument the
-trajectory**: a 5-second siege made the loop never conclude; the tell was
-`flips=0` across 800 battles — cities had become un-takeable — and the root was a
-besieged city *regrowing its garrison mid-assault*, so the attacker won every
-fight yet never captured. Once that was fixed the knob worked at any value. The
-lesson generalises: a green gate you reached by weakening the feature optimised
-the test, not the game; the red gate was the discovery.
+**A change that should be balance-neutral but isn't is the loudest signal you
+get — interrogate it, don't tune it away.** Most of what you touch here is meant
+to be pacing or local behaviour, not strategy; it should barely move the
+end-to-end gate. When such a change instead swings it hard — the loop stops
+concluding, a power that should win can't, the trajectory distorts — the gap
+between *should-be-neutral* and *did-something-big* is the find: the change has
+collided with a latent assumption you didn't know was load-bearing. The reflex to
+reach for the knob and settle it (shrink the window, narrow the scope,
+special-case a path) buries the cause and ships a worse game. Build a red loop
+and read the trajectory until you see what it actually collided with. The smell
+is the disproportion itself.
 
 ## Rules — the constraints that actually bite
+
+- **An outcome that is the point of an action must be guaranteed at that action,
+  not left to emerge from later timing.** When a result you care about — a
+  capture, a city flip, an army's death — only lands if several systems happen to
+  line up afterward, it is fragile: it holds for some parameter values and
+  silently fails for others. *Works at one setting, breaks at another* means the
+  outcome was never owned, only lucky. Wire the consequence at its cause.
 
 - **Determinism is sacred.** BTree collections only, armies iterated in id
   order, and the `Pcg32` lives *in* `CampaignState`. Any new randomness draws

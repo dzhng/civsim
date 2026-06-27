@@ -120,6 +120,11 @@ Diagnose a misbehaving skill against these:
   of truth**.
 - **Sediment** — stale layers that accumulate because adding feels safe.
   Prune deliberately.
+- **War story** — a lesson written as the play-by-play of the change that
+  taught it: function names, tuned values, one bug's trajectory. Those
+  specifics date fast and bury the transferable rule. State the principle and
+  the smell to watch for; let the codebase hold the mechanics. One concrete
+  touchstone grounds it; a paragraph of them drowns it.
 - **Sprawl** — too long even when every line is live. Cure with the ladder:
   disclose reference behind pointers, split by branch or sequence.
 - **No-op** — a line the model already obeys by default. Test each sentence

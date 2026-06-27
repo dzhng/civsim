@@ -95,6 +95,16 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   the candidate edge map. Treat noisy red/blue edge-diff speckle as acceptable
   only when the actual PNG still reads as grass and the full parity score moves
   down.
+- When a battle parity pair is edge-energy low, prefer one bounded terrain
+  shader iteration over adding more sim-tint geometry. Raising base grass fleck
+  frequency and slightly widening light/dark/stone thresholds moved one DPR2
+  selection capture from `0.11580` to `0.10955` while keeping the terrain free of
+  debug-line and square-overlay artifacts.
+- If a campaign close-view pair already has near-parity edge energy, adding
+  more fixture props can be a trap. A trial foreground/road-flank scenery boost
+  made the scene busier but worsened Campaign Label Zoom from `0.18317` to
+  `0.20434`; fix camera/depth/label composition instead of brute-forcing
+  density.
 - For campaign close-view parity, road line styling can dominate the score and
   the human read. Tune road mesh widths, alpha, and grey-stone/shadow colors in
   the line pass before changing camera or labels; then rerun the parity helper.

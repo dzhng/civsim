@@ -77,6 +77,14 @@ Current checkpoint:
   `0.12433` to `0.11798`, and edge-energy ratio improved from `0.85960` to
   `0.90481`. The accepted PNG and candidate edge map were inspected to confirm
   the new breakup still reads as grass/stubble texture and not debug noise.
+- The next base-terrain shader tune widened the light/dark/stone fleck
+  thresholds and raised the seed frequency while keeping terrain quad counts
+  unchanged. Battle Selection DPR2 parity distance moved from `0.11580` to
+  `0.10955`, Battle Max Crowd moved from `0.21370` to `0.21015`, and
+  Campaign Handoff Battle moved from `0.19672` to `0.17713`. The accepted
+  side-by-side was inspected to confirm the extra texture reads as grass and
+  stubble, with no return of random straight-line overlays or square terrain
+  artifacts.
 
 ## Verification
 

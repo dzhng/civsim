@@ -92,6 +92,11 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   in. Then inspect a central crop as well as the full-frame score: full-frame
   metrics can reward a ring that is present while missing whether it is too
   huge, too subtle, or not reading as a ground-plane perspective overlay.
+- For campaign close-view selection parity, tune the selected footprint's world
+  radius and shader alpha separately from production gameplay markers. A
+  selected ring can dominate the central stack even when the entity itself is
+  correct. Keep rejected camera experiments out of the artifact set when they
+  improve one proxy, such as black ratio, but worsen the composite parity score.
 - For campaign model parity, remember that city and army standards are part of
   the instanced entity mesh and use white mesh colors as the faction-livery
   mask. Preserve their attachment by changing mesh geometry, not by layering

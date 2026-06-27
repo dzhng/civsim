@@ -123,6 +123,13 @@ campaign-label-zoom gate.
   The isolated city model gate was regenerated and inspected; the next debt is
   still depth integration, selection-ring thickness, and the crowded central
   army/city/road label stack.
+- The controlled close-view selected army footprint now uses a tighter radius
+  and lower army-ring alpha, reducing the loud central green ring without
+  removing the selected-state evidence. Campaign Label Zoom parity distance
+  moved from `0.20673` to `0.20635`, and edge energy stayed nearly exact
+  (`edgeEnergyRatio 0.99855`). A wider report-camera experiment improved black
+  coverage but worsened parity to `0.21198`, so the close camera remains
+  `cam(0, 433, 13)`.
 
 ## Must Stay Green
 

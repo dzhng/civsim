@@ -157,10 +157,10 @@ export class CampaignRendererWebGPU {
         this.map!.draw(pass);
         this.territoryPass!.draw(pass);
         this.water!.draw(pass);
+        this.selection!.draw(pass);
         if (!isControlledStage(this.data)) this.borders!.draw(pass);
         this.lines!.draw(pass);
         this.scenery!.draw(pass);
-        this.selection!.draw(pass);
         this.entities!.draw(pass);
         this.clouds!.draw(pass);
         this.labels!.draw(pass);
@@ -308,7 +308,7 @@ function buildEntityFrame(data: CampaignData, opts: DrawOptions) {
     });
     armyEntities++;
     if (army.id === opts.selected) {
-      const selectionRadius = isControlledStage(data) ? 4.3 * fixtureScale : 8.2 * fixtureScale;
+      const selectionRadius = isControlledStage(data) ? 6.1 * fixtureScale : 8.2 * fixtureScale;
       selections.push({ x: army.x, y: army.y, radius: selectionRadius, color: [0.31, 0.82, 0.39], kind: 'army' });
     }
   }
@@ -383,6 +383,7 @@ function campaignArmyLabels(data: CampaignData, opts: DrawOptions): CampaignLabe
     const allegiance = army.mine || army.faction === opts.playerFaction ? Allegiance.Friend : statusOf(opts.factionStatus, army.faction);
     const markerSize = army.id === opts.selected ? 13 : 11;
     const cityOverlap = data.map.nodes.some((node) => node.kind === 'city' && Math.hypot(node.pos[0] - army.x, node.pos[1] - army.y) < 8);
+    const selectedOffset = army.id === opts.selected && isControlledStage(data) ? 28 : 0;
     return {
       text: `${ordinal(ordinalOf.get(army.id) ?? 1)} LEGION`,
       subText: `${Math.round(army.soldiers / 100) / 10}k`,
@@ -393,7 +394,7 @@ function campaignArmyLabels(data: CampaignData, opts: DrawOptions): CampaignLabe
       priority: 4,
       icon: 'army',
       iconColor: allegianceColor(allegiance),
-      screenOffsetY: markerSize + (cityOverlap ? 48 : 24),
+      screenOffsetY: markerSize + selectedOffset + (cityOverlap ? 48 : 24),
     };
   });
 }

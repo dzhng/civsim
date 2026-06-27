@@ -166,6 +166,14 @@ campaign-label-zoom gate.
   crop to `0.18299` full / `0.24697` crop. Campaign Whole Map moved slightly
   from `0.36267` to `0.36278`; the tradeoff is accepted because the whole-map
   visual impact is negligible and the named close-view failure improved.
+- The selected-army marker now draws before roads/scenery/entities so it behaves
+  like a ground decal instead of a screen overlay. The controlled-stage selected
+  radius is large enough to sit outside the army footprint, and the selected
+  army label is pushed below the unit stack. Campaign Label Zoom moved from the
+  material checkpoint `0.18299` full / `0.24697` crop to `0.18266` full /
+  `0.24656` crop. A larger-radius trial reached `0.18237` / `0.24620`, but
+  fresh critique flagged it as oversized and detached, so the accepted version
+  keeps the smaller radius and the better label placement.
 
 ## Must Stay Green
 
@@ -198,3 +206,10 @@ shadows; possible city transparency/fogging; top-bar and right-edge label
 clipping in the whole-map shot; oversized faction labels; blurry low-contrast
 sea labels; and heavy western fog that reads like a smear. These are next-order
 parity targets, not aesthetics polish.
+
+After the ground-decal draw-order and selected-label pass, the selection marker
+is no longer buried behind the army and the label is below the unit. Fresh
+critique still flags remaining campaign blockers: city labels are crowded by
+geometry, the selected army model is too thin/post-like, flags feel flat and
+detached, shadows and rock lighting are inconsistent, and the black board edge
+still makes the map feel clipped.

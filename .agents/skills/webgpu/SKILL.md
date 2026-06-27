@@ -179,6 +179,15 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   foreground: selection decals hidden by models, labels colliding with 3D
   assets, detached flags, weak ground-contact shadows, label clipping, and
   blurry/overlarge map text.
+- Campaign selection decals should be drawn as ground features, before roads,
+  scenery, entities, clouds, and labels. Drawing the selected-army ring after
+  props made it read like a translucent screen overlay; moving it earlier in
+  the pass lets the road, rocks, trees, and army occlude it. For the controlled
+  close-view gate, a radius just outside the model footprint plus a lower
+  selected-army label moved Campaign Label Zoom from `0.18299` full / `0.24697`
+  crop to `0.18266` / `0.24656`. A larger ring scored slightly better but
+  unprimed critique called it oversized, so prefer the smaller human-readable
+  ground marker and keep the remaining label/flag/shadow issues tracked.
 - Campaign model-gate screenshots are most useful when they exercise the real
   WebGPU passes, not mocked DOM or separate drawing code. Add addressable gates
   for each asset family, render them through `CampaignEntityPass`,

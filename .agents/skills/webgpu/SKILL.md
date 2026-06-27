@@ -82,6 +82,13 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   not overlay quads, and accept it only when the composite score improves after
   inspecting that the new edges read as grass/stubble instead of random debug
   noise.
+- For sim-tint battlefield features, keep merged cell masks subordinate to
+  authored detail. Large forest/mud regions can merge into hard rectangles, so
+  lower and ragged-feather the base feature alpha, then spend the visual weight
+  on deterministic tree, shrub, rock, churn, and pothole props. Accept the
+  change only after opening the battle capture and confirming the feature reads
+  as terrain objects rather than a square overlay; in one Battle Selection DPR2
+  pass this moved parity distance from `0.11798` to `0.11580`.
 - A second small pass of battle ground fleck tuning can keep improving parity if
   it raises edge energy without adding overlay geometry: adjust seed frequency,
   smoothstep thresholds, and stubble/stone mix strength together, then inspect

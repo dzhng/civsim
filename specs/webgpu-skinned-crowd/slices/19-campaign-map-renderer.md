@@ -426,15 +426,15 @@ view road/army/ring conflict without making whole-map roads harder to see.
 Campaign Label Zoom improves from `0.17419` full / `0.23270` crop to `0.17389`
 / `0.23224`, with Campaign Whole Map unchanged.
 
-The city/town standard is now centered through the city mesh instead of reading
-as a flag under or behind the settlement. The pole is emitted before buildings
-so roofs/walls can occlude its lower section, and the fabric is a thin attached
-panel with a small sleeve at the pole rather than an extruded panel with a
-detached-looking top strip. The final regenerated report stays under the rough
-layout threshold: Campaign Label Zoom is `0.17364` full / `0.23442` crop,
-Campaign Whole Map is `0.22548` / `0.23393`, Campaign Handoff Battle is
-`0.17886` / `0.16292`, and Battle Selection DPR2 is `0.10910` / `0.13474`.
-Focused fresh critique says the flag no longer reads as floating, detached, or
-under the city at normal scale; remaining city debt is crop-level pole join/base
-clarity plus broader city depth clutter, label softness, shadows, roads, and
-terrain-feature readability.
+The city/town standard now uses an embedded city-core mast rather than a higher
+overlay. The pole and lower cloth are emitted before the buildings, a central
+keep/roof is drawn around the mast base afterward, and the flag panel extends
+down into that occluded volume so the city visibly swallows the lower standard.
+This is a human-readability tradeoff over a tiny metric win: Campaign Label Zoom
+is now `0.17470` full / `0.23558` crop, Campaign Whole Map is `0.22549` /
+`0.23393`, Campaign Handoff Battle is `0.17885` / `0.16292`, and Battle
+Selection DPR2 is `0.10861` / `0.13474`. The previous center-only attempt
+looked lower but fresh critique still read it as perched/detached; the final
+fresh critique says the flag mostly reads inserted, with remaining debt around
+base/contact shadow clarity, label crowding, road integration, and city depth
+clutter.

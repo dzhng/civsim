@@ -246,7 +246,15 @@ function buildCityMesh(): MeshData {
   const roof: Rgb = [0.66, 0.40, 0.30];
   const timber: Rgb = [0.45, 0.36, 0.28];
   builder.shadow(3.65, 1.95, 0.14, [0.28, -0.54]);
-  builder.box([0.46, 0.02, 4.70], [0.20, 0.20, 9.4], timber, 1);
+  builder.box([1.02, 0.02, 3.38], [0.20, 0.20, 6.76], timber, 1);
+  builder.panel3d([
+    [0.90, 0.02, 6.08],
+    [3.24, 0.02, 5.96],
+    [2.90, 0.02, 5.22],
+    [3.24, 0.02, 4.48],
+    [0.90, 0.02, 3.72],
+  ], [1, 1, 1], 1);
+  builder.box([1.02, -0.02, 5.16], [0.12, 0.08, 1.56], timber, 1);
   const building = (x: number, y: number, w: number, d: number, h: number) => {
     builder.box([x, y, h * 0.5], [w, d, h], sandstone, 1);
     builder.box([x, y, h + h * 0.19], [w * 1.18, d * 1.18, h * 0.38], roof, 1);
@@ -259,14 +267,8 @@ function buildCityMesh(): MeshData {
     const r = 0.9 + rand() * 3.0;
     building(Math.cos(a) * r, Math.sin(a) * r, 0.8 + rand() * 1.0, 0.8 + rand() * 1.0, 1.1 + rand() * 1.4);
   }
-  builder.panel3d([
-    [0.36, 0.02, 8.38],
-    [3.05, 0.02, 8.30],
-    [2.70, 0.02, 7.60],
-    [3.05, 0.02, 6.90],
-    [0.36, 0.02, 6.78],
-  ], [1, 1, 1], 1);
-  builder.box([0.46, -0.02, 7.58], [0.12, 0.08, 1.62], timber, 1);
+  building(0.92, -0.02, 1.15, 1.05, 2.85);
+  builder.box([1.02, -0.02, 3.96], [0.42, 0.34, 0.12], [0.35, 0.24, 0.18], 1);
   return builder.finish();
 }
 

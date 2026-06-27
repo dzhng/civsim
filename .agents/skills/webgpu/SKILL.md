@@ -358,7 +358,10 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   buildings so front roofs/walls occlude the lower pole. For close crops, prefer
   a thin double-sided panel that slightly overlaps the pole; extruded
   `verticalPanel` side faces can create a detached bright top strip that reads
-  as a floating flag artifact.
+  as a floating flag artifact. If a flag still reads perched, do not solve it by
+  merely raising it: move the mast to the settlement core, lower the cloth into
+  the building volume, and draw a central roof/keep after the standard so the
+  city visibly swallows the lower mast like a standard inserted into the city.
 - Use instancing, batching, storage buffers, and GPU-side phase passes for scale.
   Avoid CPU readbacks in hot paths; debug readbacks must be bounded and named.
 - For iterative effects or simulations, separate phases such as `state`,

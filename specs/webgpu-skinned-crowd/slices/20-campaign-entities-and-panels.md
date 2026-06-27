@@ -28,6 +28,11 @@ fully hidden by the city without special-case painter-order hacks.
   - final checkpoint: depth-tested city/army meshes using the shared 3D camera
     and graph attachment contract, including nested child/occupant transforms
     for city standards and garrisoned armies.
+- `packages/game-renderer/src/campaign/sceneryPass.ts`
+  - true 3D campaign props share the same campaign world-depth helper as
+    cities and armies. Trees, rocks, and mountains may be type-batched for draw
+    efficiency, but they must not define their own depth scale or pass-local
+    ordering truth.
 - `packages/game-renderer/src/campaign/selectionPass.ts`
   - current checkpoint: WebGPU city/army selection footprints in the campaign
     selection language.
@@ -86,6 +91,9 @@ fully hidden by the city without special-case painter-order hacks.
   entity glyphs, roads, and selection footprints for this checkpoint.
 - Any city/flag/army overlap fix that works only by changing triangle append
   order is temporary debt and must not be recorded as final parity.
+- Any prop-over-flag or ring-over-soldier fix that works by tuning per-pass
+  depth constants is temporary debt. The accepted path is shared world-depth
+  helpers plus explicit background/world/decal/overlay pass categories.
 
 ## Human Feedback
 
@@ -117,3 +125,29 @@ not accept the slice: fresh critique continues to flag flag/pole clipping,
 insufficient grounding, ambiguous road depth at the selected army, merged army
 silhouettes, confusing city massing, small army-count text, noisy close terrain,
 and hard board-edge framing.
+
+Architecture checkpoint: campaign true-3D buckets now share one campaign
+world-depth helper from `packages/webgpu-core/src/cameraWgsl.ts`. Entity meshes,
+scenery meshes, roads, and ground selections render in the depth world pass with
+explicit write policy: entities/scenery write depth, while roads/selections are
+ground decals that test depth but do not reserve occlusion. Type buckets remain
+for batching only. They are not allowed to make a tree visually win over a
+nearer flag, or a selection ring float above soldiers, by using a private depth
+formula. The scenery authoring pass also consumes explicit city/army footprint
+reservations from the current entity frame and reserves controlled road
+corridors for all prop kinds, not just rocks/mountains, so deterministic trees
+are not planted into the same readable footprint as standards. Army reservations
+cover the raised standard silhouette, not just the soldiers' ground footprint,
+because tall trees behind the unit can otherwise project into the flag column
+at campaign pitch.
+
+Fresh screenshot critique after this architecture checkpoint confirms the
+tree-over-standard artifact is removed from Campaign Label Zoom, but it does not
+accept the visual. The next blocker list is: road/selection/unit stacking lacks
+a clear over-under read; the selected ring is too neon for the palette; the
+army label and count are cramped; army and city flag joins still read weak or
+blocky; army shadows blend into the road/ring; soldier/pole ordering is still
+stripe-like; city roofs/walls need stronger depth separation; the board edge
+still reads artificial; terrain features are soft; and the raised road texture
+is blurry/repetitive. Treat these as follow-up architecture/art tasks before
+campaign close-view parity can be accepted.

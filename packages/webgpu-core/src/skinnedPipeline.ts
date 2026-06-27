@@ -71,7 +71,7 @@ fn vs(
   let world = vec3f(inst0.x + p.x * c - p.y * s, inst0.y + p.x * s + p.y * c, p.z);
 
   var out: VsOut;
-  out.pos = projectWorld3d(world, 0.08);
+  out.pos = projectWorld3d(world, civsimBattleWorldDepth3d(world));
   out.color = color;
   let sun = normalize(vec3f(-0.35, -0.45, 0.82));
   out.light = clamp(dot(n, sun) * 0.42 + 0.74, 0.34, 1.12);
@@ -263,6 +263,11 @@ export class SkinnedCrowdPipeline {
       },
       fragment: { module, entryPoint: 'fs', targets: [{ format: this.shell.info.format }] },
       primitive: { topology: 'triangle-list', cullMode: 'none' },
+      depthStencil: {
+        format: 'depth24plus',
+        depthWriteEnabled: true,
+        depthCompare: 'less',
+      },
     });
   }
 }

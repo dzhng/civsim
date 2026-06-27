@@ -42,4 +42,16 @@ fn worldDepth3d(world: vec3f, base: f32, groundScale: f32, heightScale: f32) -> 
   let axes = cameraSpace(world.xy);
   return clamp(base + axes.y * groundScale - world.z * heightScale, 0.02, 0.98);
 }
+
+fn civsimCampaignWorldDepth3d(world: vec3f) -> f32 {
+  return worldDepth3d(world, 0.50, 0.0060, 0.0012);
+}
+
+fn civsimCampaignGroundDepth(world: vec2f, lift: f32) -> f32 {
+  return civsimCampaignWorldDepth3d(vec3f(world, lift));
+}
+
+fn civsimBattleWorldDepth3d(world: vec3f) -> f32 {
+  return worldDepth3d(world, 0.50, 0.0012, 0.0030);
+}
 `;

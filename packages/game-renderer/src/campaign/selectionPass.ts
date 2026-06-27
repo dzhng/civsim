@@ -20,17 +20,12 @@ struct VsOut {
   @location(3) emphasis: f32,
 };
 
-fn campaignDepth(ry: f32, z: f32) -> f32 {
-  return clamp(0.50 + ry * 0.0012 - z * 0.0030, 0.02, 0.98);
-}
-
 @vertex
 fn vs(@location(0) quad: vec2f, @location(1) inst0: vec4f, @location(2) inst1: vec4f) -> VsOut {
   let axisScale = select(0.76, 0.64, inst0.w > 0.5);
   let world = inst0.xy + vec2f(quad.x * inst0.z, quad.y * inst0.z * axisScale);
   var out: VsOut;
-  let axes = cameraSpace(world);
-  out.pos = projectGround(world, campaignDepth(axes.y, 0.06));
+  out.pos = projectGround(world, civsimCampaignGroundDepth(world, 0.012));
   out.local = quad;
   out.color = inst1.rgb;
   out.kind = inst0.w;

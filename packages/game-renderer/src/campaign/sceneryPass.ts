@@ -29,12 +29,6 @@ struct VsOut {
   @location(3) shade: f32,
 };
 
-fn campaignDepth(world: vec3f) -> f32 {
-  let axes = cameraSpace(world.xy);
-  let ry = axes.y;
-  return clamp(0.50 + ry * 0.0012 - world.z * 0.0030, 0.02, 0.98);
-}
-
 @vertex
 fn vs(
   @location(0) local: vec3f,
@@ -45,7 +39,7 @@ fn vs(
   let scale = inst.z;
   let world = vec3f(inst.x + local.x * scale, inst.y + local.y * scale, local.z * scale);
   var out: VsOut;
-  out.pos = projectWorld3d(world, campaignDepth(world));
+  out.pos = projectWorld3d(world, civsimCampaignWorldDepth3d(world));
   let sun = normalize(vec3f(-0.42, -0.34, 0.84));
   out.color = colorAndAlpha.rgb;
   out.alpha = colorAndAlpha.a;

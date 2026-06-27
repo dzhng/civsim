@@ -155,8 +155,12 @@ export class BattleRendererWebGPU {
       markers: this.markers,
       extra: (pass) => {
         this.terrain!.draw(pass);
-        this.debugBlocks!.draw(pass);
+      },
+      depthExtra: (pass) => {
         this.crowd!.draw(pass);
+      },
+      overlayExtra: (pass) => {
+        this.debugBlocks!.draw(pass);
         this.tris!.draw(pass);
         this.overlay!.draw(pass);
       },

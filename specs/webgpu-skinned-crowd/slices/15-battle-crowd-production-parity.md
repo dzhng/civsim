@@ -29,11 +29,23 @@ WebGPU battle renderer is visually complete.
   soldier material grade in the skinned shader. Team colors still survive
   tactical minification, but bronze, linen, and leather now contribute visible
   depth instead of collapsing every soldier into a flat faction token.
+- Depth checkpoint: skinned soldiers are now true world-pass geometry. The
+  skinned pipeline declares a `depth24plus` attachment, projects vertices with
+  the shared battle world-depth helper, and all lab/production battle routes
+  submit the crowd through `depthExtra`. Terrain stays behind it, while
+  selection, debug/path triangles, DOM/HUD, and minimap surfaces are explicit
+  overlays. This is the foundation for rank/weapon occlusion; remaining
+  soldier-art work must build on this pass contract instead of restoring
+  painter-order crowd drawing.
 
 ## Verification
 
 - Scenario boots a live 5v5 with WebGPU crowd and asserts player/enemy pixels,
   alive count, dead pose handling, and animation phase diff.
+- Lab-route verification must include at least one live wide battle route and
+  one battle-input route, because a depth-enabled crowd pipeline submitted to a
+  no-depth pass can produce a mostly black frame while isolated skinned routes
+  still pass.
 - Scale fixtures render 1k, 5k, 10k, and current max battle counts.
 - `webgpu-visual-report` captures the battle default and DPR2 selection/HUD
   scenes with skinned soldier material-lighting evidence.

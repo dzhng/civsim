@@ -21,6 +21,9 @@ shadows that sit on the ground instead of floating as screen overlays.
 - `packages/webgpu-core/src/cameraWgsl.ts`
   - owns the shared WGSL camera uniform declaration plus `cameraSpace`,
     `perspectiveDepth`, `projectGround`, and `projectWorld3d`.
+  - owns named game-depth helpers. Battle and campaign share projection
+    semantics, but their world extents use explicit helpers instead of
+    pass-local magic numbers.
 - `packages/webgpu-core/src/frameShell.ts`
   - binds the shared camera uniform to every render pass and exposes the
     depth-capable frame split.
@@ -80,6 +83,18 @@ shadows that sit on the ground instead of floating as screen overlays.
 - Battle skinned soldiers, battle terrain/scenery quads, battle overlays, and
   the production debug triangle pass now consume the same shared WGSL camera
   helpers while preserving their existing depth/pass ordering.
+- Battle skinned soldiers now render through a depth-compatible pipeline using
+  the shared battle world-depth helper, and production/lab battle routes submit
+  them through the depth world pass instead of the background pass. Terrain
+  remains a background surface; tactical selection/path/minimap/debug lines are
+  deliberate overlays.
+- Campaign entities, scenery, road meshes, and selection decals no longer own
+  separate depth formulas. True 3D campaign meshes use the shared campaign
+  world-depth helper; ground decals and roads render in the depth world pass
+  with depth writes off so later world geometry can occlude them naturally.
+- Type batching is permitted only as a performance strategy. Batches for trees,
+  rocks, cities, armies, and soldier mesh variants must not create their own
+  visual ordering rules or private depth scales.
 - `/webgpu/campaign-model-gates?gate=city` now publishes tight production
   city-standard samples. The route asserts that a lower red standard segment
   planted inside the city resolves to city material while the upper cloth

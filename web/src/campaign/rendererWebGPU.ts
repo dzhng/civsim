@@ -143,7 +143,7 @@ export class CampaignRendererWebGPU {
     const buildEnd = performance.now();
     this.lastEntities = { cityEntities: frame.cityEntities, armyEntities: frame.armyEntities };
     const uploadStart = performance.now();
-    this.scenery.upload(campaignScenery(this.data, this.field));
+    this.scenery.upload(campaignScenery(this.data, this.field, campaignSceneryReservations(frame.entities)));
     this.entities.upload(frame.entities);
     this.selection.upload(frame.selections);
     this.markers.upload(campaignMapMarkers(this.data, opts));
@@ -512,8 +512,8 @@ function verticalEdgeOffset(t: number) {
   return 0;
 }
 
-function campaignScenery(data: CampaignData, field: TerrainField): CampaignSceneryInstance[] {
-  if (data.map.attribution === 'test') return testStageScenery(data);
+function campaignScenery(data: CampaignData, field: TerrainField, reservations: CampaignSceneryReservation[] = []): CampaignSceneryInstance[] {
+  if (data.map.attribution === 'test') return testStageScenery(data, reservations);
   const out: CampaignSceneryInstance[] = [];
   const step = 5;
   for (let gy = 0; gy < field.h; gy += step) {
@@ -532,13 +532,13 @@ function campaignScenery(data: CampaignData, field: TerrainField): CampaignScene
       } else if (rock > 0.26 && hash2(gx * 11, gy * 3) < rock * 0.65) {
         out.push({ x, y, size: 2.4 + rock * 4.0, kind: 'rock' });
       }
-      if (out.length > 900) return clearCampaignBlockingScenery(data, out);
+      if (out.length > 900) return clearCampaignBlockingScenery(data, out, reservations);
     }
   }
-  return clearCampaignBlockingScenery(data, out);
+  return clearCampaignBlockingScenery(data, out, reservations);
 }
 
-function testStageScenery(data: CampaignData): CampaignSceneryInstance[] {
+function testStageScenery(data: CampaignData, reservations: CampaignSceneryReservation[]): CampaignSceneryInstance[] {
   const [x0, y0] = data.bgRect.min;
   const [x1, y1] = data.bgRect.max;
   const cx = (x0 + x1) * 0.5;
@@ -577,10 +577,24 @@ function testStageScenery(data: CampaignData): CampaignSceneryInstance[] {
     const near = y < cy - 8 ? 1.18 : 1.0;
     items.push({ x, y, size: (3.2 + hash2(i, i + 9) * 2.8) * near, kind: hash2(i, i + 31) > 0.45 ? 'broadleaf' : 'conifer' });
   }
-  return clearCampaignBlockingScenery(data, items);
+  return clearCampaignBlockingScenery(data, items, reservations);
 }
 
-function clearCampaignBlockingScenery(data: CampaignData, items: CampaignSceneryInstance[]) {
+interface CampaignSceneryReservation {
+  x: number;
+  y: number;
+  radius: number;
+}
+
+function campaignSceneryReservations(entities: CampaignEntityInstance[]): CampaignSceneryReservation[] {
+  return entities.map((entity) => ({
+    x: entity.x,
+    y: entity.y,
+    radius: entity.radius * (entity.kind === 'city' ? 1.15 : 2.45),
+  }));
+}
+
+function clearCampaignBlockingScenery(data: CampaignData, items: CampaignSceneryInstance[], reservations: CampaignSceneryReservation[]) {
   const roadSegments = data.map.edges
     .filter((edge) => edge.kind === 'road')
     .flatMap((edge) => edge.via.slice(1).map((point, index): [[number, number], [number, number]] => [edge.via[index], point]));
@@ -594,8 +608,8 @@ function clearCampaignBlockingScenery(data: CampaignData, items: CampaignScenery
   return items.filter((item) => {
     const propRadius = item.size * (item.kind === 'mountain' ? 0.38 : item.kind === 'rock' ? 0.32 : 0.24);
     if (cityFootprints.some((city) => Math.hypot(item.x - city.x, item.y - city.y) < city.radius + propRadius)) return false;
-    if (item.kind !== 'mountain' && item.kind !== 'rock') return true;
-    const clearance = Math.max(5.8, item.size * 0.52);
+    if (reservations.some((entity) => Math.hypot(item.x - entity.x, item.y - entity.y) < entity.radius + propRadius)) return false;
+    const clearance = roadSceneryClearance(item, isControlledStage(data));
     return !roadSegments.some(([a, b]) => distanceToSegment(item.x, item.y, a, b) < clearance);
   });
 }
@@ -603,6 +617,13 @@ function clearCampaignBlockingScenery(data: CampaignData, items: CampaignScenery
 function citySceneryClearance(tier: number, controlledStage: boolean) {
   const fixtureScale = controlledStage ? 1.82 : 1;
   return (tier >= 3 ? 12.0 : 10.5) * fixtureScale;
+}
+
+function roadSceneryClearance(item: CampaignSceneryInstance, controlledStage: boolean) {
+  const fixtureScale = controlledStage ? 1.36 : 1;
+  const base = item.kind === 'mountain' || item.kind === 'rock' ? 5.8 : 3.4;
+  const sizeScale = item.kind === 'mountain' || item.kind === 'rock' ? 0.52 : 0.38;
+  return Math.max(base, item.size * sizeScale) * fixtureScale;
 }
 
 function distanceToSegment(x: number, y: number, a: [number, number], b: [number, number]) {

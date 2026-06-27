@@ -454,6 +454,37 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   floating tree on a roof. Filter scenery against tier-aware city clearance
   radii before upload, and make controlled visual fixtures use generous
   clearance because they magnify city composition bugs.
+- Reserve road/army corridors for every scenery kind, not just large rocks and
+  mountains. A tree planted beside or inside a road corridor can be perfectly
+  depth-tested and still collide with an army standard in the review camera.
+  Treat this as scene-authoring footprint policy layered on top of correct
+  depth, not as a reason to special-case draw order.
+- Feed scenery generation the live entity footprints when armies/cities are
+  present. Static map-node clearance catches settlements, but selected armies
+  and future garrisons need reservations from the same entity frame that drives
+  the renderer; otherwise deterministic props can be authored into occupied
+  world space and look like depth failures.
+- Tall standards need silhouette clearance, not just base-circle clearance.
+  A tree can be outside an army's ground footprint but still project into the
+  raised flag/pole column at campaign pitch. Grow scenery reservations by the
+  visible standard/roof silhouette when authoring review fixtures.
+- Type buckets are a batching strategy, not an ordering strategy. It is fine to
+  draw all conifers, all rocks, or all soldier mesh variants together, but those
+  buckets must use the same shared world-depth helper as the rest of their
+  domain. If a tree behind a standard appears over the flag, or a battle rank
+  sorts by mesh class, look first for pass-private depth math or a pipeline
+  submitted through the wrong frame category.
+- Once a pipeline declares a depth attachment, every route that draws it must
+  submit it through the depth world pass. A skinned pipeline can look correct in
+  isolated model gates while live battle routes go mostly black if one lab
+  route still calls it from a no-depth/background pass. After changing pipeline
+  attachments, search all `draw(pass)` callsites and run a wide live route, not
+  just the isolated asset gate.
+- Shared projection does not require one numeric depth scale for every world.
+  Battle and campaign should import the same camera/projection helpers, but
+  large battlefields and compact campaign fixtures need named depth helpers
+  such as battle-world and campaign-world. Those helpers belong in the shared
+  WGSL source; one-off constants inside renderer passes are how drift returns.
 - Use instancing, batching, storage buffers, and GPU-side phase passes for scale.
   Avoid CPU readbacks in hot paths; debug readbacks must be bounded and named.
 - For iterative effects or simulations, separate phases such as `state`,

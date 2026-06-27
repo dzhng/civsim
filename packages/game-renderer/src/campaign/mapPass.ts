@@ -206,7 +206,7 @@ fn vs(
   @location(3) material: f32,
 ) -> VsOut {
   var out: VsOut;
-  out.pos = projectWorld3d(world, worldDepth3d(world, 0.92, 0.0012, 0.0018));
+  out.pos = projectWorld3d(world, civsimCampaignWorldDepth3d(world));
   out.color = color;
   out.world = world;
   out.uv = uv;

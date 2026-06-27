@@ -542,7 +542,7 @@ async function routeCampaignUi(ctx: LabContext) {
   const entities = new CampaignEntityPass(shell);
   const selection = new CampaignSelectionPass(shell);
   const labelPass = new CampaignLabelPass(shell);
-  const drawData = buildCampaignMapDrawData(data);
+  const drawData = buildCampaignMapDrawData(data, { roadScale: 0.78, roadEndpointInset: 8.2 });
   lines.upload(drawData.lineVertices);
   roads.upload(drawData.roadMeshVertices);
   const host = ctx.canvas.parentElement ?? ctx.root;
@@ -1115,7 +1115,11 @@ async function routeBattleLive(ctx: LabContext) {
     terrainRect: [bounds.cx - Math.max(68, bounds.w * 0.65), bounds.cy - Math.max(36, bounds.h * 0.65), Math.max(136, bounds.w * 1.3), Math.max(72, bounds.h * 1.3)],
     extra: (pass) => {
       terrain.draw(pass);
+    },
+    depthExtra: (pass) => {
       pipeline.draw(pass);
+    },
+    overlayExtra: (pass) => {
       overlay.draw(pass);
       minimap.draw(pass);
     },
@@ -1204,7 +1208,11 @@ async function routeBattleUi(ctx: LabContext) {
       terrainRect: [bounds.cx - Math.max(68, bounds.w * 0.65), bounds.cy - Math.max(36, bounds.h * 0.65), Math.max(136, bounds.w * 1.3), Math.max(72, bounds.h * 1.3)],
       extra: (pass) => {
         terrain.draw(pass);
+      },
+      depthExtra: (pass) => {
         pipeline.draw(pass);
+      },
+      overlayExtra: (pass) => {
         overlay.draw(pass);
         minimap.draw(pass);
       },
@@ -1323,7 +1331,11 @@ async function routeBattleInput(ctx: LabContext) {
       terrainRect: [bounds.cx - Math.max(68, bounds.w * 0.65), bounds.cy - Math.max(36, bounds.h * 0.65), Math.max(136, bounds.w * 1.3), Math.max(72, bounds.h * 1.3)],
       extra: (pass) => {
         terrain.draw(pass);
+      },
+      depthExtra: (pass) => {
         pipeline.draw(pass);
+      },
+      overlayExtra: (pass) => {
         overlay.draw(pass);
         minimap.draw(pass);
       },
@@ -1500,7 +1512,7 @@ function animateSkinned(
   const tick = () => {
     const phaseOffset = (opts.phaseOffset ?? 0) + ((performance.now() - start) / 1000) * (opts.phaseSpeed ?? 0);
     pipeline.upload(getInstances(), { forcedClip: opts.forcedClip, phaseOffset, size: opts.size });
-    shell.drawFrame({ markers: [], extra: (pass) => pipeline.draw(pass) });
+    shell.drawFrame({ markers: [], depthExtra: (pass) => pipeline.draw(pass) });
     opts.afterFrame?.();
     requestAnimationFrame(tick);
   };

@@ -129,8 +129,8 @@ the whole point.
   (`campaign-map-political-borders.png`). If asked to distinguish belligerents,
   a hatch overlay keyed off diplomacy is the reference-faithful way — not a louder
   fill color.
-- **Scenery colors (on-target).** Mountains stone `[0.50,0.46,0.40]` / cap
-  `[0.74,0.72,0.68]`, rocks `[0.47,0.44,0.40]`, cart timber `[0.42,0.30,0.20]`
+- **Scenery colors (on-target).** Mountains stone `[0.42,0.38,0.31]` / cap
+  `[0.62,0.58,0.50]`, rocks `[0.39,0.36,0.30]`, cart timber `[0.42,0.30,0.20]`
   (`terrain3d.ts:627-747`). Trees broadleaf+conifer. Atmosphere: warm-grey fog
   `[0.71,0.71,0.68]` strengthening with tilt, soft contact shadows toward anti-sun.
   Keep scenery readable but subordinate to the labels and borders.

@@ -1,6 +1,6 @@
 {
   "kind": "screenshot-parity-diff",
-  "generatedAt": "2026-06-27T05:20:06.082Z",
+  "generatedAt": "2026-06-27T05:37:36.488Z",
   "note": "Lower parityDistance means the candidate is closer to archived current-renderer parity. This is a parity metric, not an aesthetics acceptance gate.",
   "pairCount": 7,
   "worstPair": "campaign-whole-map",
@@ -13,14 +13,14 @@
         "width": 1280,
         "height": 800
       },
-      "parityDistance": 0.36267,
+      "parityDistance": 0.36278,
       "grayscale": {
-        "mae": 30.01162,
-        "rmse": 38.80937,
-        "diffRatio16": 0.70961,
+        "mae": 30.01433,
+        "rmse": 38.81767,
+        "diffRatio16": 0.70962,
         "diffRatio32": 0.35308,
         "diffRatio64": 0.06897,
-        "pixelmatchRatio": 0.62321
+        "pixelmatchRatio": 0.62322
       },
       "contentProxies": {
         "blackRatioCurrent": 0.00566,
@@ -28,9 +28,9 @@
         "terrainLikeRatioCurrent": 0.5738,
         "terrainLikeRatioCandidate": 0.65567,
         "edgeEnergyCurrent": 0.13531,
-        "edgeEnergyCandidate": 0.15644,
-        "edgeEnergyRatio": 1.15615,
-        "edgeDiffRatio32": 0.20758
+        "edgeEnergyCandidate": 0.15652,
+        "edgeEnergyRatio": 1.15673,
+        "edgeDiffRatio32": 0.20757
       },
       "artifacts": {
         "sideBySide": "visual-diff/campaign-whole-map-side-by-side.png",
@@ -50,24 +50,24 @@
           "width": 1280,
           "height": 768
         },
-        "parityDistance": 0.37706,
+        "parityDistance": 0.37717,
         "grayscale": {
-          "mae": 31.11293,
-          "rmse": 39.5807,
+          "mae": 31.11576,
+          "rmse": 39.58918,
           "diffRatio16": 0.73778,
           "diffRatio32": 0.36745,
-          "diffRatio64": 0.0717,
-          "pixelmatchRatio": 0.64848
+          "diffRatio64": 0.07171,
+          "pixelmatchRatio": 0.64849
         },
         "contentProxies": {
           "blackRatioCurrent": 0.00579,
-          "blackRatioCandidate": 0.00189,
+          "blackRatioCandidate": 0.0019,
           "terrainLikeRatioCurrent": 0.59485,
-          "terrainLikeRatioCandidate": 0.68013,
+          "terrainLikeRatioCandidate": 0.68012,
           "edgeEnergyCurrent": 0.13302,
-          "edgeEnergyCandidate": 0.15493,
-          "edgeEnergyRatio": 1.16471,
-          "edgeDiffRatio32": 0.21333
+          "edgeEnergyCandidate": 0.15501,
+          "edgeEnergyRatio": 1.16533,
+          "edgeDiffRatio32": 0.21332
         },
         "artifacts": {
           "sideBySide": "visual-diff/campaign-whole-map-world-crop-side-by-side.png",
@@ -165,24 +165,24 @@
         "width": 1280,
         "height": 800
       },
-      "parityDistance": 0.18317,
+      "parityDistance": 0.18299,
       "grayscale": {
-        "mae": 27.35225,
-        "rmse": 48.00661,
-        "diffRatio16": 0.36158,
-        "diffRatio32": 0.23945,
-        "diffRatio64": 0.16611,
-        "pixelmatchRatio": 0.29683
+        "mae": 27.36865,
+        "rmse": 48.07585,
+        "diffRatio16": 0.36086,
+        "diffRatio32": 0.23847,
+        "diffRatio64": 0.16628,
+        "pixelmatchRatio": 0.29621
       },
       "contentProxies": {
         "blackRatioCurrent": 0.48049,
-        "blackRatioCandidate": 0.50197,
+        "blackRatioCandidate": 0.502,
         "terrainLikeRatioCurrent": 0.4811,
-        "terrainLikeRatioCandidate": 0.46486,
+        "terrainLikeRatioCandidate": 0.46382,
         "edgeEnergyCurrent": 0.05082,
-        "edgeEnergyCandidate": 0.05068,
-        "edgeEnergyRatio": 0.9973,
-        "edgeDiffRatio32": 0.09828
+        "edgeEnergyCandidate": 0.05062,
+        "edgeEnergyRatio": 0.99607,
+        "edgeDiffRatio32": 0.09849
       },
       "artifacts": {
         "sideBySide": "visual-diff/campaign-label-zoom-side-by-side.png",
@@ -202,24 +202,24 @@
           "width": 1280,
           "height": 592
         },
-        "parityDistance": 0.24726,
+        "parityDistance": 0.24697,
         "grayscale": {
-          "mae": 35.48787,
-          "rmse": 55.7256,
-          "diffRatio16": 0.4869,
-          "diffRatio32": 0.32258,
-          "diffRatio64": 0.22429,
-          "pixelmatchRatio": 0.40003
+          "mae": 35.51002,
+          "rmse": 55.80621,
+          "diffRatio16": 0.48593,
+          "diffRatio32": 0.32126,
+          "diffRatio64": 0.22452,
+          "pixelmatchRatio": 0.3992
         },
         "contentProxies": {
           "blackRatioCurrent": 0.31888,
-          "blackRatioCandidate": 0.34743,
+          "blackRatioCandidate": 0.34747,
           "terrainLikeRatioCurrent": 0.64649,
-          "terrainLikeRatioCandidate": 0.62452,
+          "terrainLikeRatioCandidate": 0.62312,
           "edgeEnergyCurrent": 0.05756,
-          "edgeEnergyCandidate": 0.05703,
-          "edgeEnergyRatio": 0.99089,
-          "edgeDiffRatio32": 0.12946
+          "edgeEnergyCandidate": 0.05695,
+          "edgeEnergyRatio": 0.98944,
+          "edgeDiffRatio32": 0.12973
         },
         "artifacts": {
           "sideBySide": "visual-diff/campaign-label-zoom-world-crop-side-by-side.png",

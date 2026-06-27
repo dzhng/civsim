@@ -167,6 +167,18 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   screen overlays; thin vertical panels read more like real flags than chunky
   cuboids. After a whole-scene parity win, open the isolated model gate too so
   an oversized, flat, or detached flag does not hide inside a small metric move.
+- For campaign close-view scenery parity, material values can move the crop
+  score without adding more geometry. Darkening/warming the shared mountain and
+  rock mesh colors moved Campaign Label Zoom from `0.18317` full / `0.24726`
+  crop to `0.18299` full / `0.24697` crop. Whole-map moved slightly the wrong
+  way (`0.36267` to `0.36278`), so inspect both rows and keep the change small
+  unless the close-view artifact is visibly improved.
+- Treat a small numeric WebGPU parity win as a checkpoint, not acceptance, until
+  `screenshot-critique` has had an unprimed pass over the exact candidate PNGs.
+  The campaign material win still left visible blockers that metrics did not
+  foreground: selection decals hidden by models, labels colliding with 3D
+  assets, detached flags, weak ground-contact shadows, label clipping, and
+  blurry/overlarge map text.
 - Campaign model-gate screenshots are most useful when they exercise the real
   WebGPU passes, not mocked DOM or separate drawing code. Add addressable gates
   for each asset family, render them through `CampaignEntityPass`,

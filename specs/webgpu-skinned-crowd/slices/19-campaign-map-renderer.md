@@ -160,6 +160,12 @@ campaign-label-zoom gate.
   (`[146,176,98]` plus stronger texture), a `cam(0, 438, 13)` center shift, and
   tighter city/army label offsets were all tested and rejected because they
   worsened the same fixed pair.
+- Campaign mountain/rock materials now use darker, warmer stone values so the
+  close-label scenery reads closer to the archived brown-grey meshes without
+  adding more props. Campaign Label Zoom moved from `0.18317` full / `0.24726`
+  crop to `0.18299` full / `0.24697` crop. Campaign Whole Map moved slightly
+  from `0.36267` to `0.36278`; the tradeoff is accepted because the whole-map
+  visual impact is negligible and the named close-view failure improved.
 
 ## Must Stay Green
 
@@ -182,3 +188,13 @@ the map reads as a floating board against black void, labels remain crowded over
 busy cities and the central army, selection rings are too subtle, the central
 army/banner/road/label stack is visually tangled, object scale and shadows are
 not fully unified, and some rocks still read as clipped gray patches.
+
+The material-color checkpoint improved Campaign Label Zoom metrics, but the
+fresh unprimed critique still blocks accepting the campaign render as visually
+done. It flags the selection ring reading behind the selected army instead of
+as a ground decal; army and city labels colliding with dense 3D models; flags
+that feel detached from poles/settlements; weak building/army ground contact
+shadows; possible city transparency/fogging; top-bar and right-edge label
+clipping in the whole-map shot; oversized faction labels; blurry low-contrast
+sea labels; and heavy western fog that reads like a smear. These are next-order
+parity targets, not aesthetics polish.

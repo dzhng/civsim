@@ -227,3 +227,19 @@ the ring as a circular overlay and the flag as billboarded, so the slightly
 weaker numeric result is the accepted visual trade. A smaller army-scale trial
 was rejected because it worsened the same row to `0.18331` / `0.24728`; full
 model-scale cleanup remains a later parity pass rather than this checkpoint.
+
+The close campaign fixture now scales the WebGPU cloud/fog veil down instead of
+drawing the whole-map atmosphere at full strength over nearby scenery. This
+keeps the soft distant atmosphere while reducing the transparent/washed-out
+read on background mountains and rocks. Campaign Label Zoom moved from
+`0.18257` full / `0.24647` crop to `0.17429` full / `0.23263` crop. Rejected
+trials are documented for the next pass: moving/removing the veil made props
+crisper but harsh and less coherent under fresh critique, while branching the
+cloud shader on `cam.zoom` produced black campaign captures even though the
+scenario route reported green.
+Fresh critique on the accepted alpha-scale candidate did not identify new
+layout/model/label defects, but it incorrectly reported the before/after PNGs
+as pixel-identical despite different hashes and improved compare metrics. Treat
+that critique as weak no-new-defect evidence, not as proof that the change is
+visually complete. Shared blockers remain: selected marker clarity, crowded
+city labels, and some dark rocks near the central army.

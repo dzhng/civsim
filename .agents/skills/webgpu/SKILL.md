@@ -206,6 +206,14 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   atmosphere passes as applicable, and publish pass counts such as selections,
   road segments, water features, clouds, scenery, and visible labels in the
   report JSON.
+- Campaign close-view cloud/fog must soften without making scenery transparent.
+  Drawing the cloud veil full-strength over close-stage mountains, rocks, and
+  cities makes background meshes read like see-through props. Removing or
+  moving the veil entirely makes the scene harsher and fresh critique rejected
+  it. Prefer a controlled-fixture cloud alpha scale in `CampaignCloudPass`:
+  it preserves the original layer order, avoids camera-uniform shader branches
+  that produced black campaign captures, and reduced Campaign Label Zoom from
+  `0.18257` / `0.24647` crop to `0.17429` / `0.23263`.
 - Soldier model gates must exercise the same skinned batching path used by
   production battle rendering. Route each capture through `SkinnedCrowdPipeline`,
   bucket instances by class mesh, freeze clip/phase/facing/camera through query

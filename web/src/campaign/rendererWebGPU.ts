@@ -227,7 +227,7 @@ export class CampaignRendererWebGPU {
     this.map = new CampaignMapPass(this.shell, this.data.bg, this.data.bgRect);
     this.water = new CampaignWaterPass(this.shell);
     this.water.upload(campaignWaterFeatures());
-    this.clouds = new CampaignCloudPass(this.shell, this.data.bgRect);
+    this.clouds = new CampaignCloudPass(this.shell, this.data.bgRect, isControlledStage(this.data) ? 0.75 : 1);
     this.territoryPass = new CampaignTerritoryPass(this.shell, {
       width: this.field.w,
       height: this.field.h,

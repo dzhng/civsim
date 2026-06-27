@@ -76,7 +76,7 @@ fn fs(in: VsOut) -> @location(0) vec4f {
   let veil = smoothstep(0.42 - rim * 0.34, 0.86 - rim * 0.26, n);
   let body = clamp((rim * 0.82 + topBias + bottomBias + cornerBias) * veil, 0.0, 1.0);
   let color = mix(vec3f(0.80, 0.84, 0.83), vec3f(0.97, 0.98, 0.96), smoothstep(0.35, 0.82, n));
-  return vec4f(color, body * 0.40);
+  return vec4f(color, body * 0.40 * __CLOUD_ALPHA_SCALE__);
 }`;
 
 const WATER_WGSL = `
@@ -135,9 +135,10 @@ export class CampaignCloudPass {
   private pipeline: GPURenderPipeline;
   private vertexBuffer: GPUBuffer;
 
-  constructor(private shell: RawFrameShell, rect: CampaignAtmosphereRect) {
+  constructor(private shell: RawFrameShell, rect: CampaignAtmosphereRect, alphaScale = 1) {
     const device = shell.device;
-    const module = device.createShaderModule({ label: 'campaign-cloud-wgsl', code: CLOUD_WGSL });
+    const code = CLOUD_WGSL.replace('__CLOUD_ALPHA_SCALE__', alphaScale.toFixed(3));
+    const module = device.createShaderModule({ label: 'campaign-cloud-wgsl', code });
     this.pipeline = device.createRenderPipeline({
       label: 'campaign-cloud-pipeline',
       layout: device.createPipelineLayout({ bindGroupLayouts: [shell.cameraBindGroupLayout] }),

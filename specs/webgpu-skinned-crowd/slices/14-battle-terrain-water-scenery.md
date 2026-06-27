@@ -51,6 +51,13 @@ Current checkpoint:
   distance moved from `0.17527` to `0.15910`, and the candidate edge-energy
   ratio moved from `0.65520` to `0.70633`, while the visible terrain features
   remain sourced from the same data as the minimap.
+- The sim-tint terrain detail pass now shifts visual weight away from flat
+  translucent feature masks and into deterministic props/details: denser
+  cypress/shrub forest cells with contact shadows, and denser mud/scree cells
+  with potholes, churn marks, and rocks. Production battle `renderStats` now
+  exposes terrain quad/scenery counts, and `webgpu-visual-report` records those
+  counts for battle rows. Battle Selection DPR2 parity distance moved from
+  `0.15910` to `0.15681`, with edge-energy ratio up from `0.70633` to `0.71841`.
 
 ## Verification
 
@@ -64,8 +71,8 @@ Current checkpoint:
 - `VERIFY_WEBGPU=1 node scenario.mjs webgpu-visual-report` regenerates the
   cutover contact sheet; the current inspected battle captures show a wider
   feathered water/shore band, no random frozen-overlay streaks, softened
-  trampled-ground patches, deterministic grass micro-detail, and retained
-  team-color/HUD readability.
+  trampled-ground patches, deterministic grass micro-detail, sim-sourced forest
+  and mud props/details, and retained team-color/HUD readability.
 - `node .agents/skills/compare-screenshots/scripts/visual-parity-diff.mjs`
   records the current Battle Selection DPR2 terrain movement in
   `visualizations/visual-diff/visual-parity-diff.json`.

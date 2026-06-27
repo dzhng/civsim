@@ -209,9 +209,10 @@ async function captureBattleDefault(ctx) {
   await page.evaluate(() => window.__game.freezeAtTick(180));
   await page.waitForTimeout(220);
   const stats = await page.evaluate(() => window.__game.stats());
+  const terrain = stats.renderStats?.terrain;
   const capture = await savePage(page, 'battle-default', {
     status: 'webgpu-evidence',
-    evidence: `${stats.soldiers} soldiers; renderer ${stats.renderer}; drawCalls ${stats.renderStats?.drawCalls}; ${stats.renderStats?.atmosphere}; field-aware coast; warm/cool skinned material grade`,
+    evidence: `${stats.soldiers} soldiers; renderer ${stats.renderer}; drawCalls ${stats.renderStats?.drawCalls}; ${stats.renderStats?.atmosphere}; terrain quads ${terrain?.quads ?? 'n/a'} / scenery ${terrain?.sceneryQuads ?? 'n/a'}; warm/cool skinned material grade`,
   });
   await page.close();
   return capture;
@@ -237,9 +238,10 @@ async function captureBattleSelectionHud(ctx) {
   });
   await page.waitForTimeout(240);
   const stats = await page.evaluate(() => window.__game.stats());
+  const terrain = stats.renderStats?.terrain;
   const capture = await savePage(page, 'battle-selection-hud-dpr2', {
     status: 'webgpu-evidence',
-    evidence: `dpr2 selection; ${stats.soldiers} soldiers; renderer ${stats.renderer}; ${stats.renderStats?.atmosphere}; feathered shore; lit skinned silhouettes`,
+    evidence: `dpr2 selection; ${stats.soldiers} soldiers; renderer ${stats.renderer}; ${stats.renderStats?.atmosphere}; terrain quads ${terrain?.quads ?? 'n/a'} / scenery ${terrain?.sceneryQuads ?? 'n/a'}; lit skinned silhouettes`,
   });
   await page.close();
   return capture;

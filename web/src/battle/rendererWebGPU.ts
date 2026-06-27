@@ -189,6 +189,7 @@ export class BattleRendererWebGPU {
       },
       device: shell?.device ?? 'initializing',
       atmosphere: shell?.atmosphere ?? 'initializing',
+      terrain: this.terrain?.stats() ?? null,
       performance: {
         buildMs: roundMs(this.framePerf.buildMs),
         uploadMs: roundMs(this.framePerf.uploadMs),

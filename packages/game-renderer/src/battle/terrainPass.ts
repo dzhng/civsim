@@ -366,9 +366,9 @@ function styleForTerrainTint(tint: number): { kind: number; alpha: number } {
     case 1: return { kind: 10, alpha: 0.96 }; // water
     case 2: return { kind: 11, alpha: 0.88 }; // rock
     case 3: return { kind: 11, alpha: 0.94 }; // wall/stone
-    case 4: return { kind: 12, alpha: 0.18 }; // forest
-    case 5: return { kind: 13, alpha: 0.08 }; // mud
-    case 6: return { kind: 13, alpha: 0.08 }; // scree/field
+    case 4: return { kind: 12, alpha: 0.16 }; // forest
+    case 5: return { kind: 13, alpha: 0.07 }; // mud
+    case 6: return { kind: 13, alpha: 0.06 }; // scree/field
     default: return { kind: 13, alpha: 0.42 };
   }
 }
@@ -379,81 +379,89 @@ function appendTerrainProps(quads: TerrainQuad[], opts: { w: number; h: number; 
   let churnCount = 0;
   let rockCount = 0;
   let potholeCount = 0;
-  const maxTrees = 900;
-  const maxShrubs = 720;
-  const maxChurn = 160;
-  const maxRocks = 520;
-  const maxPotholes = 820;
+  const maxTrees = 1400;
+  const maxShrubs = 1180;
+  const maxChurn = 280;
+  const maxRocks = 900;
+  const maxPotholes = 1450;
   for (let y = 0; y < opts.h; y++) {
     for (let x = 0; x < opts.w; x++) {
       const tint = opts.tint[y * opts.w + x] ?? 0;
       if (tint === 4 && (treeCount < maxTrees || shrubCount < maxShrubs)) {
-        if (hashCell(x, y, 17) < 0.18 && treeCount < maxTrees) {
+        if (hashCell(x, y, 17) < 0.32 && treeCount < maxTrees) {
           const center = jitteredCellCenter(opts, x, y, 31, 0.42);
-          const size = opts.cell * (2.7 + hashCell(x, y, 43) * 2.1);
+          const size = opts.cell * (2.9 + hashCell(x, y, 43) * 2.7);
+          quads.push({
+            x: center.x - size * 0.46,
+            y: center.y - size * 0.18,
+            w: size * 0.92,
+            h: size * 0.36,
+            kind: 3,
+            alpha: 0.12 + hashCell(x, y, 53) * 0.08,
+          });
           quads.push({
             x: center.x - size * 0.34,
             y: center.y - size * 0.62,
             w: size * 0.68,
             h: size * 1.24,
             kind: 7,
-            alpha: 0.84 + hashCell(x, y, 59) * 0.12,
+            alpha: 0.88 + hashCell(x, y, 59) * 0.10,
           });
           treeCount++;
         }
-        if (hashCell(x, y, 181) < 0.16 && shrubCount < maxShrubs) {
+        if (hashCell(x, y, 181) < 0.24 && shrubCount < maxShrubs) {
           const center = jitteredCellCenter(opts, x, y, 191, 0.48);
-          const size = opts.cell * (2.3 + hashCell(x, y, 199) * 2.4);
+          const size = opts.cell * (2.4 + hashCell(x, y, 199) * 2.8);
           quads.push({
             x: center.x - size * 0.58,
             y: center.y - size * 0.32,
             w: size * 1.16,
             h: size * 0.64,
             kind: 4,
-            alpha: 0.46 + hashCell(x, y, 211) * 0.22,
+            alpha: 0.50 + hashCell(x, y, 211) * 0.24,
           });
           shrubCount++;
         }
       } else if ((tint === 5 || tint === 6) && (churnCount < maxChurn || rockCount < maxRocks || potholeCount < maxPotholes)) {
         const churnRoll = hashCell(x, y, 61);
-        if (churnRoll < (tint === 5 ? 0.03 : 0.02) && churnCount < maxChurn) {
+        if (churnRoll < (tint === 5 ? 0.075 : 0.04) && churnCount < maxChurn) {
           const center = jitteredCellCenter(opts, x, y, 67, 0.48);
-          const size = opts.cell * (3.4 + hashCell(x, y, 73) * 3.8);
+          const size = opts.cell * (3.7 + hashCell(x, y, 73) * 4.5);
           quads.push({
             x: center.x - size * 0.52,
             y: center.y - size * 0.32,
             w: size * 1.04,
             h: size * 0.64,
             kind: 2,
-            alpha: tint === 5 ? 0.12 : 0.08,
+            alpha: tint === 5 ? 0.18 : 0.11,
           });
           churnCount++;
         }
         const potholeRoll = hashCell(x, y, 71);
-        if (potholeRoll < (tint === 5 ? 0.23 : 0.12) && potholeCount < maxPotholes) {
+        if (potholeRoll < (tint === 5 ? 0.34 : 0.18) && potholeCount < maxPotholes) {
           const center = jitteredCellCenter(opts, x, y, 83, 0.46);
-          const size = opts.cell * (1.7 + hashCell(x, y, 97) * 2.4);
+          const size = opts.cell * (1.5 + hashCell(x, y, 97) * 2.8);
           quads.push({
             x: center.x - size * 0.55,
             y: center.y - size * 0.28,
             w: size * 1.1,
             h: size * 0.56,
             kind: 3,
-            alpha: tint === 5 ? 0.15 : 0.10,
+            alpha: tint === 5 ? 0.19 : 0.12,
           });
           potholeCount++;
         }
         const rockRoll = hashCell(x, y, 109);
-        if (rockRoll < (tint === 6 ? 0.09 : 0.055) && rockCount < maxRocks) {
+        if (rockRoll < (tint === 6 ? 0.15 : 0.12) && rockCount < maxRocks) {
           const center = jitteredCellCenter(opts, x, y, 127, 0.40);
-          const size = opts.cell * (1.5 + hashCell(x, y, 149) * 1.9);
+          const size = opts.cell * (1.3 + hashCell(x, y, 149) * 2.2);
           quads.push({
             x: center.x - size * 0.50,
             y: center.y - size * 0.35,
             w: size,
             h: size * 0.7,
             kind: 6,
-            alpha: 0.44 + hashCell(x, y, 167) * 0.18,
+            alpha: 0.52 + hashCell(x, y, 167) * 0.20,
           });
           rockCount++;
         }

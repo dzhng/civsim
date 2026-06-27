@@ -48,6 +48,11 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   such as trees, rocks, potholes, or churn details from the same data source.
   The minimap and battlefield must agree on terrain source, but the battlefield
   should be authored-looking, not a colored grid.
+- For sim-sourced battle features, prefer lowering the translucent base mask and
+  moving the visual weight into deterministic prop/detail quads. Forest should
+  read from trees/shrubs and contact shadows; mud should read from potholes,
+  rocks, and churn. Expose terrain/detail counts in renderer stats so visual
+  reports can prove the content is present instead of relying only on pixels.
 - For screenshot-driven camera fixes, verify the effective camera after renderer
   clamping, not just the requested debug hook values. A visual report can look
   stable while every close-camera request is silently collapsed to the same

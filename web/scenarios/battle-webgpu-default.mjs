@@ -37,6 +37,13 @@ export async function run(ctx) {
     stats.renderStats?.soldiers >= 25000 && stats.renderStats?.drawCalls === 1,
     JSON.stringify(stats.renderStats),
   );
+  ctx.check(
+    'WebGPU battle terrain includes sim-sourced feature detail',
+    stats.renderStats?.terrain?.fixture === 'sim-tint'
+      && stats.renderStats.terrain.quads > 1000
+      && stats.renderStats.terrain.sceneryQuads > 800,
+    JSON.stringify(stats.renderStats?.terrain),
+  );
 
   const shot = await page.screenshot();
   const png = PNG.sync.read(shot);

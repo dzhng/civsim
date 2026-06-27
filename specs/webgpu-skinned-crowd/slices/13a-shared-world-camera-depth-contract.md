@@ -163,6 +163,11 @@ shadows that sit on the ground instead of floating as screen overlays.
   proving unsupported phases, missing/unsupported world-depth modes, and depth
   modes on background passes are rejected even when a caller bypasses TypeScript
   with JS or casts.
+- Production scenario contracts now verify the full phase split, not only
+  nested-world depth. The shared `_webgpu-contract.mjs` helper requires concrete
+  background, `world-depth`, and overlay pass ids for battle and campaign, and
+  rejects depth metadata on background/overlay phases so labels, markers,
+  clouds, debug paths, and selection overlays stay out of true 3D occlusion.
 - `FrameGraphDepthMode`, the production `worldDepth` attachment name, and the
   `depth24plus` format now flow from `packages/webgpu-core/src/depthContract.ts`.
   Render graph and pipeline code import the contract rather than redeclaring the

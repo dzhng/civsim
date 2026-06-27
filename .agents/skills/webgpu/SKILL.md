@@ -507,6 +507,12 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   shape. Use a shared scenario helper that checks concrete pass ids and depth
   modes, such as `battle-skinned-crowd: read-write` or
   `campaign-scenery: read-write`, instead of a local phase-order-only helper.
+- Production depth-contract helpers should also assert overlay separation. A
+  route that proves world-depth geometry but stops publishing `campaign-labels`,
+  `campaign-markers`, `campaign-clouds`, or battle debug/selection overlays in
+  the overlay phase can regress UI readability while still passing nested-depth
+  samples. Keep non-world phases depthless and verify concrete background,
+  world-depth, and overlay pass ids from the same shared scenario helper.
 - Once a campaign model/decal/line pass is promoted to the depth world phase,
   remove its no-depth twin API instead of keeping `draw`/`drawDepth` side by
   side. Use separate phase-specific classes when the same primitive family is

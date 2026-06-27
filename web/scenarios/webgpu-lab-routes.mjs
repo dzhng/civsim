@@ -1,5 +1,6 @@
 import { readdir, readFile } from 'node:fs/promises';
 import { PNG } from 'pngjs';
+import { hasFrameDepthPass, hasFramePass, hasFramePhaseOrder } from './_webgpu-contract.mjs';
 
 export const meta = {
   name: 'webgpu-lab-routes',
@@ -116,25 +117,6 @@ const routes = [
     && s.stats.perfReport?.endsWith('webgpu-performance-report.html')
     && s.stats.blockers.length === 0],
 ];
-
-function hasFramePhaseOrder(phases) {
-  const kinds = Array.isArray(phases) ? phases.map((phase) => phase?.kind) : [];
-  const background = kinds.indexOf('background');
-  const world = kinds.indexOf('world-depth');
-  const overlay = kinds.includes('overlay') ? kinds.indexOf('overlay') : kinds.length;
-  return background === 0 && world > background && overlay > world;
-}
-
-function hasFramePass(phases, id) {
-  return Array.isArray(phases) && phases.some((phase) => Array.isArray(phase?.passIds) && phase.passIds.includes(id));
-}
-
-function hasFrameDepthPass(phases, id, mode) {
-  return Array.isArray(phases) && phases.some((phase) =>
-    Array.isArray(phase?.depthPasses)
-    && phase.depthPasses.some((pass) => pass?.id === id && pass?.mode === mode)
-  );
-}
 
 function hasGraphDepthPassMode(passes, id, mode) {
   return Array.isArray(passes) && passes.some((pass) => pass?.id === id && pass?.mode === mode && pass?.attachment === 'worldDepth');

@@ -156,20 +156,20 @@ export class CampaignRendererWebGPU {
     this.shell.drawFrame({
       clear: { r: 0.06, g: 0.07, b: 0.075, a: 1 },
       terrainRect: [0, 0, 0, 0],
-      extra: (pass) => {
+      background: (pass) => {
         this.map!.draw(pass);
         this.territoryPass!.draw(pass);
         this.water!.draw(pass);
         if (!isControlledStage(this.data)) this.borders!.draw(pass);
       },
-      depthExtra: (pass) => {
+      world: (pass) => {
         this.selection!.drawDepth(pass);
         this.roads!.draw(pass);
         this.lines!.drawDepth(pass);
         this.scenery!.drawDepth(pass);
         this.entities!.drawDepth(pass);
       },
-      overlayExtra: (pass) => {
+      overlay: (pass) => {
         this.clouds!.draw(pass);
         this.markers!.draw(pass);
         this.labels!.draw(pass);
@@ -226,6 +226,7 @@ export class CampaignRendererWebGPU {
       scenery: this.scenery?.stats().scenery ?? 0,
       lineSegments: this.lines?.stats().segments ?? 0,
       roadTriangles: this.roads?.stats().triangles ?? 0,
+      phases: shell?.phases ?? [],
       depth: shell?.depth ?? null,
       postCutoverScreenshots: 'webgpu-only',
       performance: { ...this.framePerf },

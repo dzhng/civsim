@@ -32,7 +32,7 @@ WebGPU battle renderer is visually complete.
 - Depth checkpoint: skinned soldiers are now true world-pass geometry. The
   skinned pipeline declares a `depth24plus` attachment, projects vertices with
   the shared battle world-depth helper, and all lab/production battle routes
-  submit the crowd through `depthExtra`. Terrain stays behind it, while
+  submit the crowd through the named `world` phase. Terrain stays behind it, while
   selection, debug/path triangles, DOM/HUD, and minimap surfaces are explicit
   overlays. This is the foundation for rank/weapon occlusion; remaining
   soldier-art work must build on this pass contract instead of restoring

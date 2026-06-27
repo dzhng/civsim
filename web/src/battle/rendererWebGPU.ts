@@ -153,13 +153,13 @@ export class BattleRendererWebGPU {
       terrainRect: this.terrainRect,
       terrainStyle: camera.zoom < 1.2 ? 'wide-detail' : 'default',
       markers: this.markers,
-      extra: (pass) => {
+      background: (pass) => {
         this.terrain!.draw(pass);
       },
-      depthExtra: (pass) => {
+      world: (pass) => {
         this.crowd!.draw(pass);
       },
-      overlayExtra: (pass) => {
+      overlay: (pass) => {
         this.debugBlocks!.draw(pass);
         this.tris!.draw(pass);
         this.overlay!.draw(pass);
@@ -195,6 +195,8 @@ export class BattleRendererWebGPU {
       },
       device: shell?.device ?? 'initializing',
       atmosphere: shell?.atmosphere ?? 'initializing',
+      phases: shell?.phases ?? [],
+      depth: shell?.depth ?? null,
       terrain: this.terrain?.stats() ?? null,
       performance: {
         buildMs: roundMs(this.framePerf.buildMs),

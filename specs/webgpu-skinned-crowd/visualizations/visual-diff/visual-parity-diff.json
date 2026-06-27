@@ -1,6 +1,6 @@
 {
   "kind": "screenshot-parity-diff",
-  "generatedAt": "2026-06-27T19:04:26.406Z",
+  "generatedAt": "2026-06-27T19:17:46.275Z",
   "note": "Lower parityDistance means the candidate is closer to archived current-renderer parity. This is a parity metric, not an aesthetics acceptance gate.",
   "pairCount": 7,
   "worstPair": "campaign-label-zoom",
@@ -259,27 +259,27 @@
         "width": 1280,
         "height": 800
       },
-      "parityDistance": 0.17939,
+      "parityDistance": 0.17933,
       "grayscale": {
-        "mae": 13.01931,
-        "rmse": 25.60259,
-        "diffRatio16": 0.1993,
+        "mae": 13.01761,
+        "rmse": 25.60168,
+        "diffRatio16": 0.19923,
         "diffRatio32": 0.08583,
         "diffRatio64": 0.03905,
-        "pixelmatchRatio": 0.13968
+        "pixelmatchRatio": 0.13961
       },
       "contentProxies": {
         "blackRatioCurrent": 0.00019,
         "blackRatioCandidate": 0.00004,
         "terrainLikeRatioCurrent": 0.84905,
-        "terrainLikeRatioCandidate": 0.8818,
+        "terrainLikeRatioCandidate": 0.88169,
         "avgLuminanceCurrent": 141.86437,
-        "avgLuminanceCandidate": 142.72394,
-        "avgLuminanceDelta": 0.85957,
+        "avgLuminanceCandidate": 142.721,
+        "avgLuminanceDelta": 0.85663,
         "edgeEnergyCurrent": 0.15311,
-        "edgeEnergyCandidate": 0.12138,
-        "edgeEnergyRatio": 0.79277,
-        "edgeDiffRatio32": 0.25673
+        "edgeEnergyCandidate": 0.12141,
+        "edgeEnergyRatio": 0.79293,
+        "edgeDiffRatio32": 0.25672
       },
       "artifacts": {
         "sideBySide": "visual-diff/campaign-handoff-battle-side-by-side.png",
@@ -299,10 +299,10 @@
           "width": 1280,
           "height": 496
         },
-        "parityDistance": 0.16384,
+        "parityDistance": 0.16383,
         "grayscale": {
-          "mae": 10.39593,
-          "rmse": 16.26722,
+          "mae": 10.39563,
+          "rmse": 16.26713,
           "diffRatio16": 0.1828,
           "diffRatio32": 0.0566,
           "diffRatio64": 0.00939,
@@ -314,12 +314,12 @@
           "terrainLikeRatioCurrent": 0.93218,
           "terrainLikeRatioCandidate": 0.9386,
           "avgLuminanceCurrent": 153.82302,
-          "avgLuminanceCandidate": 151.16787,
-          "avgLuminanceDelta": -2.65515,
+          "avgLuminanceCandidate": 151.16782,
+          "avgLuminanceDelta": -2.6552,
           "edgeEnergyCurrent": 0.14429,
           "edgeEnergyCandidate": 0.11519,
           "edgeEnergyRatio": 0.79831,
-          "edgeDiffRatio32": 0.26533
+          "edgeDiffRatio32": 0.26531
         },
         "artifacts": {
           "sideBySide": "visual-diff/campaign-handoff-battle-world-crop-side-by-side.png",
@@ -341,27 +341,27 @@
         "width": 2560,
         "height": 1600
       },
-      "parityDistance": 0.11008,
+      "parityDistance": 0.11056,
       "grayscale": {
-        "mae": 9.81582,
-        "rmse": 16.80802,
-        "diffRatio16": 0.1748,
-        "diffRatio32": 0.05822,
-        "diffRatio64": 0.0122,
-        "pixelmatchRatio": 0.11101
+        "mae": 9.93188,
+        "rmse": 17.20099,
+        "diffRatio16": 0.17602,
+        "diffRatio32": 0.05937,
+        "diffRatio64": 0.01306,
+        "pixelmatchRatio": 0.11221
       },
       "contentProxies": {
         "blackRatioCurrent": 0.00083,
         "blackRatioCandidate": 0.00139,
         "terrainLikeRatioCurrent": 0.79296,
-        "terrainLikeRatioCandidate": 0.79739,
+        "terrainLikeRatioCandidate": 0.79725,
         "avgLuminanceCurrent": 134.05585,
-        "avgLuminanceCandidate": 132.60373,
-        "avgLuminanceDelta": -1.45213,
+        "avgLuminanceCandidate": 132.5839,
+        "avgLuminanceDelta": -1.47196,
         "edgeEnergyCurrent": 0.12744,
-        "edgeEnergyCandidate": 0.12261,
-        "edgeEnergyRatio": 0.96205,
-        "edgeDiffRatio32": 0.21429
+        "edgeEnergyCandidate": 0.12294,
+        "edgeEnergyRatio": 0.96467,
+        "edgeDiffRatio32": 0.21578
       },
       "artifacts": {
         "sideBySide": "visual-diff/battle-selection-hud-dpr2-side-by-side.png",
@@ -423,26 +423,26 @@
         "width": 1280,
         "height": 800
       },
-      "parityDistance": 0.0522,
+      "parityDistance": 0.0521,
       "grayscale": {
-        "mae": 4.83347,
-        "rmse": 17.69641,
+        "mae": 4.87483,
+        "rmse": 17.70054,
         "diffRatio16": 0.10299,
         "diffRatio32": 0.02689,
         "diffRatio64": 0.01314,
-        "pixelmatchRatio": 0.03357
+        "pixelmatchRatio": 0.03355
       },
       "contentProxies": {
         "blackRatioCurrent": 0.74817,
-        "blackRatioCandidate": 0.74626,
+        "blackRatioCandidate": 0.74299,
         "terrainLikeRatioCurrent": 0.00853,
-        "terrainLikeRatioCandidate": 0.00932,
+        "terrainLikeRatioCandidate": 0.00934,
         "avgLuminanceCurrent": 22.8145,
-        "avgLuminanceCandidate": 22.81083,
-        "avgLuminanceDelta": -0.00367,
+        "avgLuminanceCandidate": 22.85468,
+        "avgLuminanceDelta": 0.04018,
         "edgeEnergyCurrent": 0.0349,
-        "edgeEnergyCandidate": 0.03728,
-        "edgeEnergyRatio": 1.06844,
+        "edgeEnergyCandidate": 0.03727,
+        "edgeEnergyRatio": 1.06795,
         "edgeDiffRatio32": 0.0803
       },
       "artifacts": {
@@ -467,7 +467,7 @@
       "parityDistance": 0.0375,
       "grayscale": {
         "mae": 4.51435,
-        "rmse": 16.38436,
+        "rmse": 16.38437,
         "diffRatio16": 0.08712,
         "diffRatio32": 0.02183,
         "diffRatio64": 0.01239,

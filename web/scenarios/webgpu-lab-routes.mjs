@@ -28,11 +28,12 @@ const routes = [
     && s.stats.scenes[0].frame.samples > 0],
   ['campaign', (s) => s?.ok && s.route === 'campaign' && s.stats.markers > 0],
   ['campaign-map?preset=whole', (s) => s?.ok && s.route === 'campaign-map' && s.stats.roads > 20 && s.stats.seaLanes > 0 && s.stats.cityMarkers > 20 && s.stats.visibleLabels > 5 && s.stats.labelVertices > 20 && s.stats.factions > 5 && s.stats.territoryPixels > 10000 && s.stats.borderSegments > 100 && s.stats.waterFeatures >= 5 && s.stats.cloudQuads === 1 && s.stats.territoryLayer === 'raw-webgpu-texture' && s.stats.atmosphereLayer === 'raw-webgpu-cloud-water' && s.stats.labelLayer === 'raw-webgpu-glyph-atlas'],
-  ['campaign-ui', (s) => s?.ok && s.route === 'campaign-ui' && s.stats.fixture === 'controlled' && s.stats.cityEntities === 2 && s.stats.armyEntities === 1 && s.stats.selections >= 2 && s.stats.depth?.allocated === true && s.stats.depth?.format === 'depth24plus' && s.stats.ui.armyPanel && s.stats.ui.cityPanel && s.stats.ui.autoReplenishToggle && s.stats.ui.classRows >= 8 && s.stats.ui.diplomacyRows >= 1 && s.stats.labelLayer === 'raw-webgpu-glyph-atlas' && s.stats.labelVertices > 0 && s.stats.postCutoverScreenshots === 'webgpu-only'],
+  ['campaign-ui', (s) => s?.ok && s.route === 'campaign-ui' && s.stats.fixture === 'controlled' && s.stats.cityEntities === 2 && s.stats.armyEntities === 1 && s.stats.selections >= 2 && s.stats.depth?.allocated === true && s.stats.depth?.format === 'depth24plus' && hasFramePhaseOrder(s.stats.framePhases ?? s.stats.phases) && s.stats.ui.armyPanel && s.stats.ui.cityPanel && s.stats.ui.autoReplenishToggle && s.stats.ui.classRows >= 8 && s.stats.ui.diplomacyRows >= 1 && s.stats.labelLayer === 'raw-webgpu-glyph-atlas' && s.stats.labelVertices > 0 && s.stats.postCutoverScreenshots === 'webgpu-only'],
   ['campaign-model-gates?gate=city', (s) => s?.ok
     && s.route === 'campaign-model-gates'
     && s.stats.gate === 'city'
     && s.stats.depth?.allocated === true
+    && hasFramePhaseOrder(s.stats.framePhases ?? s.stats.phases)
     && s.stats.entityLayer === 'raw-webgpu-legacy-model-meshes'
     && s.stats.samples?.cityStandard?.hiddenLowerCloth
     && s.stats.samples?.cityStandard?.visibleUpperCloth],
@@ -40,6 +41,7 @@ const routes = [
     && s.route === 'campaign-model-gates'
     && s.stats.gate === 'garrison-city'
     && s.stats.depth?.allocated === true
+    && hasFramePhaseOrder(s.stats.framePhases ?? s.stats.phases)
     && s.stats.entityLayer === 'raw-webgpu-legacy-model-meshes'
     && s.stats.samples?.garrison?.hiddenShieldInsideWall
     && s.stats.samples?.garrison?.visibleStandardAboveRoofs],
@@ -50,6 +52,7 @@ const routes = [
     && s.stats.passes >= 7
     && s.stats.depth?.allocated === true
     && s.stats.depth?.format === 'depth24plus'
+    && hasFramePhaseOrder(s.stats.framePhases)
     && s.stats.nested3d?.fixtures?.includes('flag-in-city')
     && s.stats.nested3d?.fixtures?.includes('garrison-in-city-stub')
     && s.stats.nested3d?.fixtures?.includes('rank-overlap')],
@@ -58,6 +61,7 @@ const routes = [
     && s.stats.cameraContract === 'shared-world-camera-wgsl'
     && s.stats.depth?.allocated === true
     && s.stats.depth?.format === 'depth24plus'
+    && hasFramePhaseOrder(s.stats.framePhases)
     && s.stats.anchorAgreement?.maxDelta < 0.001
     && s.stats.nested3d?.fixtures?.includes('flag-in-city')
     && s.stats.nested3d?.fixtures?.includes('garrison-in-city-stub')
@@ -81,6 +85,14 @@ const routes = [
     && s.stats.perfReport?.endsWith('webgpu-performance-report.html')
     && s.stats.blockers.length === 0],
 ];
+
+function hasFramePhaseOrder(phases) {
+  const kinds = Array.isArray(phases) ? phases.map((phase) => phase?.kind) : [];
+  const background = kinds.indexOf('background');
+  const world = kinds.indexOf('world-depth');
+  const overlay = kinds.includes('overlay') ? kinds.indexOf('overlay') : kinds.length;
+  return background === 0 && world > background && overlay > world;
+}
 
 function countPixels(png) {
   let warmGround = 0;

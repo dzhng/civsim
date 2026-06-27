@@ -66,10 +66,10 @@ compatible or splits them into separate passes.
 
 ## Implementation Checkpoint
 
-- `RawFrameShellImpl` now supports an optional `depthExtra` world pass that
-  loads the existing color target, clears a reusable `depth24plus` attachment,
-  binds the shared camera uniforms, and draws depth-tested geometry after the
-  existing flat frame pass.
+- `RawFrameShellImpl` now supports a named `world` phase that loads the
+  existing color target, clears a reusable `depth24plus` attachment, binds the
+  shared camera uniforms, and draws depth-tested geometry after the background
+  phase.
 - `packages/game-renderer/src/renderGraph.ts` declares the first shared
   full-game graph skeleton with `worldDepth` ownership: terrain/ground write
   depth, opaque 3D battle/campaign passes read-write depth, and labels/UI are

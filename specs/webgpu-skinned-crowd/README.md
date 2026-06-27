@@ -171,6 +171,11 @@ next useful question, then lock it with tests and screenshots.
   campaign/battle model tweaks can be accepted as final. If adding depth would
   require changing every pipeline in a pass, split the pass instead of slipping
   a one-off flag into the current flat frame shell.
+- **Named live frame phases.** The raw frame shell exposes `background`,
+  `world`, and `overlay` phases rather than generic draw callbacks. Depth-
+  sensitive scenarios must assert that true 3D routes execute the `world-depth`
+  phase with a `depth24plus` attachment, while labels, minimaps, HUD, and other
+  deliberate overlays stay in a later non-depth phase.
 - **One world/camera/depth contract.** Campaign and battle model, terrain,
   decal, shadow, projectile, picking, and label-anchor code must share the same
   packed camera uniform and projection semantics. A pass can opt into a named

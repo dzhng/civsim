@@ -472,17 +472,17 @@ async function routeCampaignMap(ctx: LabContext) {
   shell.drawFrame({
     clear: { r: 0.68, g: 0.72, b: 0.69, a: 1 },
     terrainRect: [0, 0, 0, 0],
-    extra: (pass) => {
+    background: (pass) => {
       map.draw(pass);
       territory.draw(pass);
       water.draw(pass);
       borders.draw(pass);
     },
-    depthExtra: (pass) => {
+    world: (pass) => {
       roads.draw(pass);
       lines.drawDepth(pass);
     },
-    overlayExtra: (pass) => {
+    overlay: (pass) => {
       markers.draw(pass);
       clouds.draw(pass);
       labelPass.draw(pass);
@@ -570,13 +570,13 @@ async function routeCampaignUi(ctx: LabContext) {
     shell.drawFrame({
       clear: { r: 0.68, g: 0.72, b: 0.69, a: 1 },
       terrainRect: campaignBgTerrainRect(data.bgRect),
-      depthExtra: (pass) => {
+      world: (pass) => {
         selection.drawDepth(pass);
         roads.draw(pass);
         lines.drawDepth(pass);
         entities.drawDepth(pass);
       },
-      overlayExtra: (pass) => {
+      overlay: (pass) => {
         labelPass.draw(pass);
       },
     });
@@ -631,6 +631,7 @@ async function routeCampaignUi(ctx: LabContext) {
       labelAtlas: `${labelLayer.atlasWidth}x${labelLayer.atlasHeight}`,
       labelVertices: labelLayer.vertices,
       depth: shell.stats().depth,
+      framePhases: shell.stats().phases,
       postCutoverScreenshots: 'webgpu-only',
     });
   };
@@ -678,16 +679,16 @@ async function routeCampaignModelGates(ctx: LabContext) {
   shell.drawFrame({
     clear: { r: 0.09, g: 0.10, b: 0.10, a: 1 },
     terrainRect: frame.terrainRect,
-    extra: (pass) => {
+    background: (pass) => {
       water?.draw(pass);
     },
-    depthExtra: (pass) => {
+    world: (pass) => {
       selection.drawDepth(pass);
       roads.draw(pass);
       scenery.drawDepth(pass);
       entities.drawDepth(pass);
     },
-    overlayExtra: (pass) => {
+    overlay: (pass) => {
       clouds?.draw(pass);
       labelPass.draw(pass);
     },
@@ -726,6 +727,7 @@ async function routeCampaignModelGates(ctx: LabContext) {
     labelLayer: labelLayer.layer,
     entityLayer: entities.stats().layer,
     depth: shell.stats().depth,
+    framePhases: shell.stats().phases,
     samples,
     postCutoverScreenshots: 'webgpu-only',
   });
@@ -970,7 +972,7 @@ async function routeRenderGraph(ctx: LabContext) {
   shell.drawFrame({
     markers,
     terrainRect: [-14, -7, 28, 15],
-    depthExtra: (pass) => nested.draw(pass),
+    world: (pass) => nested.draw(pass),
   });
   const shellStats = shell.stats();
   const nestedStats = nested.stats();
@@ -984,6 +986,7 @@ async function routeRenderGraph(ctx: LabContext) {
     passes: report.passes.length,
     resources: report.resources.length,
     phases: Object.entries(phaseCounts).map(([k, v]) => `${k}:${v}`).join(', '),
+    actualFramePhases: shellStats.phases.map((phase) => phase.kind).join(' -> '),
     diagnostics: report.diagnostics.length,
     depth: shellStats.depth.allocated ? `${shellStats.depth.format} ${shellStats.depth.width}x${shellStats.depth.height}` : 'not allocated',
     nestedFixtures: nestedStats.fixtures.join(', '),
@@ -995,6 +998,7 @@ async function routeRenderGraph(ctx: LabContext) {
     lastPass: report.passes.at(-1)?.id,
     diagnostics: report.diagnostics,
     depth: shellStats.depth,
+    framePhases: shellStats.phases,
     nested3d: nestedStats,
     samples: {
       occludedLowerStandard: projectNestedPoint(ctx.canvas, camera, [-2.62, 0.10, 1.35]),
@@ -1013,7 +1017,7 @@ async function routeWorldCamera(ctx: LabContext) {
   const nested = new Nested3dFixturePass(shell);
   shell.drawFrame({
     terrainRect: [-14, -7, 28, 15],
-    depthExtra: (pass) => nested.draw(pass),
+    world: (pass) => nested.draw(pass),
   });
   const shellStats = shell.stats();
   const anchorAgreement = worldCameraAnchorAgreement(ctx.canvas, camera, [
@@ -1037,6 +1041,7 @@ async function routeWorldCamera(ctx: LabContext) {
     mode,
     camera,
     depth: shellStats.depth,
+    framePhases: shellStats.phases,
     nested3d: nestedStats,
     cameraContract: 'shared-world-camera-wgsl',
     anchorAgreement,
@@ -1057,7 +1062,7 @@ async function routeBattleTerrain(ctx: LabContext) {
     clear: { r: 0.74, g: 0.83, b: 0.90, a: 1 },
     terrainRect: [-58, -12, 116, 46],
     markers: generatedMarkers(54, -14, 2, 0).concat(generatedMarkers(54, 15, 8, 1)),
-    extra: (pass) => terrain.draw(pass),
+    background: (pass) => terrain.draw(pass),
   });
   const stats = terrain.stats();
   ctx.status.innerHTML = reportTable({
@@ -1113,13 +1118,13 @@ async function routeBattleLive(ctx: LabContext) {
   shell.drawFrame({
     clear: { r: 0.74, g: 0.83, b: 0.90, a: 1 },
     terrainRect: [bounds.cx - Math.max(68, bounds.w * 0.65), bounds.cy - Math.max(36, bounds.h * 0.65), Math.max(136, bounds.w * 1.3), Math.max(72, bounds.h * 1.3)],
-    extra: (pass) => {
+    background: (pass) => {
       terrain.draw(pass);
     },
-    depthExtra: (pass) => {
+    world: (pass) => {
       pipeline.draw(pass);
     },
-    overlayExtra: (pass) => {
+    overlay: (pass) => {
       overlay.draw(pass);
       minimap.draw(pass);
     },
@@ -1206,13 +1211,13 @@ async function routeBattleUi(ctx: LabContext) {
     shell.drawFrame({
       clear: { r: 0.74, g: 0.83, b: 0.90, a: 1 },
       terrainRect: [bounds.cx - Math.max(68, bounds.w * 0.65), bounds.cy - Math.max(36, bounds.h * 0.65), Math.max(136, bounds.w * 1.3), Math.max(72, bounds.h * 1.3)],
-      extra: (pass) => {
+      background: (pass) => {
         terrain.draw(pass);
       },
-      depthExtra: (pass) => {
+      world: (pass) => {
         pipeline.draw(pass);
       },
-      overlayExtra: (pass) => {
+      overlay: (pass) => {
         overlay.draw(pass);
         minimap.draw(pass);
       },
@@ -1329,13 +1334,13 @@ async function routeBattleInput(ctx: LabContext) {
     shell.drawFrame({
       clear: { r: 0.74, g: 0.83, b: 0.90, a: 1 },
       terrainRect: [bounds.cx - Math.max(68, bounds.w * 0.65), bounds.cy - Math.max(36, bounds.h * 0.65), Math.max(136, bounds.w * 1.3), Math.max(72, bounds.h * 1.3)],
-      extra: (pass) => {
+      background: (pass) => {
         terrain.draw(pass);
       },
-      depthExtra: (pass) => {
+      world: (pass) => {
         pipeline.draw(pass);
       },
-      overlayExtra: (pass) => {
+      overlay: (pass) => {
         overlay.draw(pass);
         minimap.draw(pass);
       },
@@ -1512,7 +1517,7 @@ function animateSkinned(
   const tick = () => {
     const phaseOffset = (opts.phaseOffset ?? 0) + ((performance.now() - start) / 1000) * (opts.phaseSpeed ?? 0);
     pipeline.upload(getInstances(), { forcedClip: opts.forcedClip, phaseOffset, size: opts.size });
-    shell.drawFrame({ markers: [], depthExtra: (pass) => pipeline.draw(pass) });
+    shell.drawFrame({ markers: [], world: (pass) => pipeline.draw(pass) });
     opts.afterFrame?.();
     requestAnimationFrame(tick);
   };

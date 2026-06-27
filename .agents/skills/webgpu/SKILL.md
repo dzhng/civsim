@@ -372,7 +372,7 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   accepting production model polish.
 - When introducing depth into an existing flat shell, prefer a separate
   depth-tested world pass over adding a depth attachment to a pass with
-  incompatible existing pipelines. A small `depthExtra`-style pass can load the
+  incompatible existing pipelines. A named `world` phase can load the
   already-cleared color target, clear/reuse a `depth24plus` texture, bind the
   same camera uniforms, and prove the contract without forcing every flat
   marker/terrain pipeline to become depth-compatible in one edit.
@@ -403,8 +403,8 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   garrison stub, rear rank, or selection ring later. Accept the route only after
   canvas pixel samples or tight crops prove the late geometry is correctly
   hidden or revealed by depth.
-- When promoting campaign models from flat `extra` drawing into a depth world
-  pass, keep labels, clouds, and screen-style markers in a later overlay pass.
+- When promoting campaign models from background drawing into the depth-tested
+  `world` phase, keep labels, clouds, and screen-style markers in a later overlay pass.
   Otherwise the right depth fix can accidentally bury UI readability. Expect
   archived close-view parity to move: a production campaign depth pass made the
   selected army, road, labels, and ring more readable under fresh critique, but
@@ -480,6 +480,13 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   route still calls it from a no-depth/background pass. After changing pipeline
   attachments, search all `draw(pass)` callsites and run a wide live route, not
   just the isolated asset gate.
+- Keep the frame shell API named after architectural phases, not generic
+  callbacks. `background` is for terrain/backdrops/underpainting,
+  `world` is the depth-tested world pass with `depth24plus`, and `overlay` is
+  for labels/HUD/minimap/debug overlays. Publish the executed phase list in
+  route stats and make depth-critical scenarios assert `background ->
+  world-depth` (and overlay when relevant), so future routes cannot silently
+  paint true 3D geometry through a no-depth side channel.
 - Shared projection does not require one numeric depth scale for every world.
   Battle and campaign should import the same camera/projection helpers, but
   large battlefields and compact campaign fixtures need named depth helpers

@@ -25,8 +25,10 @@ shadows that sit on the ground instead of floating as screen overlays.
     semantics, but their world extents use explicit helpers instead of
     pass-local magic numbers.
 - `packages/webgpu-core/src/frameShell.ts`
-  - binds the shared camera uniform to every render pass and exposes the
-    depth-capable frame split.
+  - binds the shared camera uniform to every render pass and exposes named
+    frame phases: `background`, `world`, and `overlay`.
+  - owns the live `world-depth` pass and publishes the executed phase list in
+    frame stats so scenarios can prove a route used the shared depth contract.
 - `packages/game-renderer/src/**`
   - model, terrain, decal, and fixture passes import the shared WGSL helpers
     instead of copying camera structs and projection functions.
@@ -64,6 +66,9 @@ shadows that sit on the ground instead of floating as screen overlays.
 
 - Existing WebGPU lab routes and production adapters keep rendering through the
   same `RawFrameShell` camera bind group.
+- Depth-sensitive routes expose `background -> world-depth` in frame stats;
+  labels/minimaps/HUD can add a later `overlay` phase but true 3D model passes
+  do not draw through untyped side callbacks.
 - Campaign UI labels/icons keep the old font/icon style while their anchors
   move onto the shared projection contract.
 - Battle picking, drag selection, minimap viewport, and DOM unit banners remain
@@ -92,6 +97,11 @@ shadows that sit on the ground instead of floating as screen overlays.
   separate depth formulas. True 3D campaign meshes use the shared campaign
   world-depth helper; ground decals and roads render in the depth world pass
   with depth writes off so later world geometry can occlude them naturally.
+- `RawFrameShell.drawFrame` now requires named phase callbacks instead of
+  generic side-channel hooks. Production and lab routes publish the actual
+  phase list, and the lab route scenario asserts the depth-critical routes
+  execute `background -> world-depth` rather than relying on visual pixels
+  alone.
 - Type batching is permitted only as a performance strategy. Batches for trees,
   rocks, cities, armies, and soldier mesh variants must not create their own
   visual ordering rules or private depth scales.

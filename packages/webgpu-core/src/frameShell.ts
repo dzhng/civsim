@@ -29,9 +29,18 @@ export interface FrameCommands {
   terrainBackdropRect?: [number, number, number, number];
   terrainStyle?: 'default' | 'wide-detail';
   clear?: GPUColor;
-  extra?: (pass: GPURenderPassEncoder, shell: RawFrameShellImpl) => void;
-  depthExtra?: (pass: GPURenderPassEncoder, shell: RawFrameShellImpl) => void;
-  overlayExtra?: (pass: GPURenderPassEncoder, shell: RawFrameShellImpl) => void;
+  background?: (pass: GPURenderPassEncoder, shell: RawFrameShellImpl) => void;
+  world?: (pass: GPURenderPassEncoder, shell: RawFrameShellImpl) => void;
+  overlay?: (pass: GPURenderPassEncoder, shell: RawFrameShellImpl) => void;
+}
+
+export type FramePhaseKind = 'background' | 'world-depth' | 'overlay';
+
+export interface FramePhaseStats {
+  kind: FramePhaseKind;
+  label: string;
+  depth: 'none' | 'depth24plus-clear';
+  loadOp: 'clear' | 'load';
 }
 
 export interface FrameShellStats {
@@ -42,6 +51,7 @@ export interface FrameShellStats {
   frame: number;
   device: string;
   atmosphere: string;
+  phases: FramePhaseStats[];
   depth: {
     format: 'depth24plus';
     width: number;
@@ -315,6 +325,7 @@ export class RawFrameShellImpl implements RawFrameShell {
   private dpr = 1;
   private markerCount = 0;
   private frame = 0;
+  private lastPhases: FramePhaseStats[] = [];
 
   constructor(readonly canvas: HTMLCanvasElement, readonly info: WebGpuDeviceInfo) {
     this.device = info.device;
@@ -380,6 +391,7 @@ export class RawFrameShellImpl implements RawFrameShell {
 
   drawFrame(commands: FrameCommands = {}) {
     this.frame++;
+    this.lastPhases = [];
     const terrainRect = commands.terrainRect ?? [-42, -28, 84, 56];
     const terrainBackdropRect = commands.terrainBackdropRect;
     if (terrainBackdropRect) this.uploadTerrain(this.terrainBackdropVertexBuffer, terrainBackdropRect);
@@ -388,6 +400,7 @@ export class RawFrameShellImpl implements RawFrameShell {
     const encoder = this.device.createCommandEncoder({ label: 'raw-frame-encoder' });
     const colorView = this.context.getCurrentTexture().createView();
     const pass = encoder.beginRenderPass({
+      label: 'raw-frame-background-pass',
       colorAttachments: [{
         view: colorView,
         loadOp: 'clear',
@@ -411,9 +424,15 @@ export class RawFrameShellImpl implements RawFrameShell {
       pass.setVertexBuffer(1, this.markerInstanceBuffer);
       pass.draw(4, this.markerCount);
     }
-    commands.extra?.(pass, this);
+    commands.background?.(pass, this);
     pass.end();
-    if (commands.depthExtra) {
+    this.recordPhase({
+      kind: 'background',
+      label: 'terrain, backdrop, impostor markers, and background surfaces',
+      depth: 'none',
+      loadOp: 'clear',
+    });
+    if (commands.world) {
       const depthPass = encoder.beginRenderPass({
         label: 'raw-frame-depth-world-pass',
         colorAttachments: [{
@@ -424,10 +443,16 @@ export class RawFrameShellImpl implements RawFrameShell {
         depthStencilAttachment: this.depthAttachment(),
       });
       depthPass.setBindGroup(0, this.cameraBindGroup);
-      commands.depthExtra(depthPass, this);
+      commands.world(depthPass, this);
       depthPass.end();
+      this.recordPhase({
+        kind: 'world-depth',
+        label: 'depth-tested world geometry and ground decals',
+        depth: 'depth24plus-clear',
+        loadOp: 'load',
+      });
     }
-    if (commands.overlayExtra) {
+    if (commands.overlay) {
       const overlayPass = encoder.beginRenderPass({
         label: 'raw-frame-overlay-pass',
         colorAttachments: [{
@@ -437,8 +462,14 @@ export class RawFrameShellImpl implements RawFrameShell {
         }],
       });
       overlayPass.setBindGroup(0, this.cameraBindGroup);
-      commands.overlayExtra(overlayPass, this);
+      commands.overlay(overlayPass, this);
       overlayPass.end();
+      this.recordPhase({
+        kind: 'overlay',
+        label: 'labels, HUD, minimap, atmosphere, and debug overlays',
+        depth: 'none',
+        loadOp: 'load',
+      });
     }
     this.device.queue.submit([encoder.finish()]);
   }
@@ -457,6 +488,7 @@ export class RawFrameShellImpl implements RawFrameShell {
       frame: this.frame,
       device: [this.info.vendor, this.info.architecture, this.info.description].filter(Boolean).join(' / ') || 'unknown',
       atmosphere: 'aegean-sky-haze',
+      phases: this.lastPhases.map((phase) => ({ ...phase })),
       depth: {
         format: 'depth24plus',
         width: this.depthWidth,
@@ -468,6 +500,10 @@ export class RawFrameShellImpl implements RawFrameShell {
 
   private writeCamera() {
     this.device.queue.writeBuffer(this.cameraBuffer, 0, cameraUniformData({ ...this.camera, width: this.width, height: this.height }));
+  }
+
+  private recordPhase(phase: FramePhaseStats) {
+    this.lastPhases.push(phase);
   }
 
   private uploadTerrain(buffer: GPUBuffer, [x, y, w, h]: [number, number, number, number]) {

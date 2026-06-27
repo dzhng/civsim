@@ -1227,7 +1227,7 @@ fn two_braced_walls_hold_a_standoff_neither_centroid_crosses() {
         attack_interval: 1.4,
         damage: 0.0,
         cleave: false,
-        kind: sim::WeaponKind::Braced,
+        impales: true, kind: sim::WeaponKind::Hedge,
     };
 
     // Two deep blocks (10 ranks of rear-rank shove — the exact load that broke

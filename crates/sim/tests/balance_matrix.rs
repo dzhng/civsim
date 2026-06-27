@@ -202,11 +202,17 @@ fn the_counter_web_holds() {
         // like the heavy phalanx, but the longer heavy sarissa wins the pike duel.
         (MediumPhalanx, ShockCavalry, 0, "the medium sarissa stops the horse too"),
         (HeavyPhalanx, MediumPhalanx, 0, "the longer heavy sarissa out-reaches the shorter"),
-        // The anti-cav SPEAR GRADIENT (the spear ladder's whole point): the braced
-        // heavy spear wall stops a charge; the medium spear only dents it and is
-        // ridden down — only enough reach AND brace turns a horse.
+        // The anti-cav SPEAR LADDER. Re-derived 2026-06-28 (directional rider-exposure):
+        // a spear's REACH now grinds the RIDER over the horse's chest, so the whole
+        // braced spear line turns a horse — not just the heaviest. The heavy spear
+        // STOPS the charge outright (brace + reach), the medium spear gets ridden
+        // THROUGH but its reach grinds the rider down in the pass. Both now beat the
+        // cav 1:1; the cav's answer is its charge + maneuver, not a duel into the
+        // points. (This deliberately replaces the old "medium spear is ridden down"
+        // gradient — that was the pre-rider-exposure world where a short point chipped
+        // the tanky mount. The gradient now lives in the CHARGE-STOP, not the grind.)
         (HeavySpear, ShockCavalry, 0, "the braced heavy spear wall stops the charge"),
-        (ShockCavalry, MediumSpear, 0, "the medium spear alone can't stop the horse"),
+        (MediumSpear, ShockCavalry, 0, "the medium spear's reach grinds the rider down"),
         // LongSwords is a budget anti-light cleaver: armour (the heavy sword)
         // beats it head-on, but its wide cleave still shreds loose light infantry
         // — the width, not the punch, is its edge.

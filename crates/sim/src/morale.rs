@@ -27,6 +27,13 @@ const THREAT_DRAIN: f32 = 0.05;
 /// Nearby steady FRIEND strength (size × aura, summed) divides the blood drain —
 /// a well-backed line endures far more before breaking.
 const SUPPORT_LIFT: f32 = 0.16;
+/// Winning the NUMBERS steadies a unit against the blood: a line grinding the
+/// enemy down 2:1 doesn't panic at a loss the way an even fight does. The local
+/// power SHARE above 0.5 divides the blood drain by `1 + K·(share − 0.5)` — only
+/// the winning side; an even fight (0.5) gets nothing, so mirror grinds still
+/// break at the same depth. Without it a 2:1 line bleeds to a break while it is
+/// still winning the field (the side LOSING on bodies outlasts it on bravery).
+const ODDS_STEADY_K: f32 = 2.4;
 /// Rallied units carry scars: ceiling multiplier per rout.
 const RALLY_SCAR: f32 = 0.78;
 /// Morale has a standing EQUILIBRIUM set by the local power balance: the blood
@@ -345,12 +352,17 @@ impl Sim {
             // divides the whole drain; the ≤9-man guaranteed break still overrides.
             let enemy_press = 1.0 + THREAT_DRAIN * enemy_threat;
             let friend_support = 1.0 + SUPPORT_LIFT * steady_friends;
+            // Winning the numbers steadies the line against the blood (see
+            // ODDS_STEADY_K): only the side with the power-share advantage, so an
+            // even fight is unchanged and still grinds out on blood alone.
+            let odds = friend_power / (friend_power + enemy_power).max(1e-3);
+            let odds_steady = 1.0 + ODDS_STEADY_K * (odds - 0.5).max(0.0);
             let blood_drain = (CAS_DRAIN * casualty_rate * directions * enemy_press
                 + missile_drain
                 + 0.002 * (losing_push - 1.2).max(0.0)
                 + fear_eff)
                 * amp
-                / (u.stats.bravery * friend_support).max(0.1);
+                / (u.stats.bravery * friend_support * odds_steady).max(0.1);
 
             // The ODDS baseline: where morale settles between blood shocks. The
             // local power SHARE (mine + friends vs enemy) sets a target morale and
@@ -362,7 +374,6 @@ impl Sim {
             // same odds break a mob that a veteran shrugs off. An even fight sits
             // at the high ODDS_EVEN target and still grinds out on blood alone.
             let fragility = discipline / u.stats.bravery.max(0.1);
-            let odds = friend_power / (friend_power + enemy_power).max(1e-3);
             let target = (ODDS_EVEN + ODDS_SLOPE_K * fragility * (odds - 0.5)).clamp(0.0, 1.0);
             // The odds baseline is the will to hold the melee you are IN — it only
             // applies once engaged. Before contact the approach belongs to the

@@ -176,7 +176,8 @@ impl Game {
                             "arc": w.zones.swing_arc(),
                             "interval": w.attack_interval,
                             "damage": w.damage,
-                            "braced": w.braced(),
+                            "braced": w.hedge(),
+                            "impales": w.impales,
                             "charge": w.is_charge(),
                         })
                     })

@@ -23,7 +23,7 @@ fn fake_weapon(reach: f32) -> Weapon {
         attack_interval: 2.0,
         damage: 0.0,
         cleave: false,
-        kind: sim::WeaponKind::Standard,
+        impales: false, kind: sim::WeaponKind::Standard,
     }
 }
 

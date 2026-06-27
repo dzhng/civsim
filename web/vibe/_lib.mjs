@@ -49,9 +49,13 @@ export const CLS = {
 export const fitDuel = (page) => page.evaluate(() => {
   const a = window.__game.unitInfo(0), b = window.__game.unitInfo(1);
   const cv = document.getElementById('battlefield');
-  const spanX = Math.abs(a[32] - b[32]) + 55, spanY = Math.abs(a[33] - b[33]) + 55;
+  // centroid_x/y are stride indices 30/31 (render_look is the last field, 32) —
+  // see UNIT_INFO layout in game-wasm/src/lib.rs. Reading 32/33 gave render_look
+  // and an out-of-bounds NaN, blanking the camera.
+  const [X, Y] = [30, 31];
+  const spanX = Math.abs(a[X] - b[X]) + 55, spanY = Math.abs(a[Y] - b[Y]) + 55;
   const c = window.__cam;
-  c.x = (a[32] + b[32]) / 2; c.y = (a[33] + b[33]) / 2; c.pitch = 0;
+  c.x = (a[X] + b[X]) / 2; c.y = (a[Y] + b[Y]) / 2; c.pitch = 0;
   c.zoom = Math.max(2.5, Math.min(20, Math.min(cv.width / spanX, cv.height / spanY)));
   c.clampView?.();
 });

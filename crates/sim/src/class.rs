@@ -32,36 +32,41 @@ pub struct Weapon {
     /// for a wide two-handed sweep (the long sword). Most weapons are OFF — a sword,
     /// spear, dagger, or cavalry sabre cuts down ONE man per stroke, not a rank.
     pub cleave: bool,
-    /// What kind of weapon this is — drives how it's drawn and how it bears.
+    /// IMPALES (orthogonal CAPABILITY, not a wielding mode): a charging body that
+    /// feeds onto this presented point takes flesh damage for it (the spear/pike
+    /// thrust the horse runs onto). A Standard spear impales without being a hedge;
+    /// a Hedge pike impales too. Scales with reach via the impale term, so a short
+    /// blade impales nothing.
+    pub impales: bool,
+    /// How the weapon is WIELDED — one mutually-exclusive mode (man-aimed / couched
+    /// lance / braced hedge). Drives how it's drawn, aimed, and bears.
     pub kind: WeaponKind,
 }
 
-/// How a weapon is wielded. Most are STANDARD (a sword: aimed by the man, swung
-/// wherever he faces). The two special cases each have their own selection rule:
+/// How a weapon is wielded — three mutually-exclusive modes.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum WeaponKind {
-    /// A sword/spear: aimed by the man, bears wherever he faces.
+    /// A sword/spear: aimed by the man, bears wherever he faces, drawn all fight.
     Standard,
-    /// Braced to the formation's frontage (the sarissa): a long shaft you can't
-    /// slew sideways in a packed rank, so it aims along the UNIT's facing and
-    /// bears ONLY on targets in its forward arc. Flanked or from the rear it
-    /// can't engage — the man drops to his side-arm. (Also what keeps a pike
-    /// hedge's anti-charge stop frontal.)
-    Braced,
     /// The charge weapon of a two-weapon mount (the lance): held while the charge
     /// still carries momentum and plows through, then dropped for the sidearm
     /// once the charge is spent and it's a standing grind.
     Charge,
+    /// Braced rigidly to the formation's frontage (the sarissa): a long shaft you
+    /// can't slew sideways in a packed rank, so it aims along the UNIT's facing,
+    /// bears ONLY on its forward arc (flanked/rear it can't engage — the man drops
+    /// to his side-arm), and its points overlap files into a continuous wall.
+    Hedge,
 }
 
 impl Weapon {
-    /// Braced to the formation frontage (a pike). See `WeaponKind::Braced`.
-    pub fn braced(&self) -> bool {
-        matches!(self.kind, WeaponKind::Braced)
-    }
     /// The mount's charge weapon (a lance). See `WeaponKind::Charge`.
     pub fn is_charge(&self) -> bool {
         matches!(self.kind, WeaponKind::Charge)
+    }
+    /// Braced to the formation frontage (a pike). See `WeaponKind::Hedge`.
+    pub fn hedge(&self) -> bool {
+        matches!(self.kind, WeaponKind::Hedge)
     }
 }
 
@@ -206,7 +211,8 @@ pub const HORSE_BODY_R: f32 = 0.5;
 // Two classes that both carry "a sword" can diverge freely — there is no shared
 // global weapon assigned to many units.
 
-/// Standard front-cone blade: no dead zone, no cleave (override per weapon).
+/// Standard front-cone blade: no dead zone, no cleave, no impale (override per
+/// weapon).
 const MELEE: Weapon = Weapon {
     reach: 0.0,
     min_range: 0.0,
@@ -214,13 +220,23 @@ const MELEE: Weapon = Weapon {
     attack_interval: 0.0,
     damage: 0.0,
     cleave: false,
+    impales: false,
     kind: WeaponKind::Standard,
 };
 
-/// A braced points-wall (pike/sarissa): frontal-only, with a dead zone — set
-/// `min_range` so a foe crowded inside the shafts is safe.
-const BRACED: Weapon = Weapon {
-    kind: WeaponKind::Braced,
+/// A spear point: IMPALES a charge (the horse runs onto it) but is NOT a hedge —
+/// Standard-wielded, it slews to fight from any angle. Reach sets how hard it
+/// impales and how far it grinds.
+const SPEAR: Weapon = Weapon {
+    impales: true,
+    ..MELEE
+};
+
+/// A braced points-wall (pike/sarissa): impales AND is wielded as a rigid frontal
+/// hedge, with a dead zone — set `min_range` so a foe crowded inside the shafts is safe.
+const HEDGE: Weapon = Weapon {
+    impales: true,
+    kind: WeaponKind::Hedge,
     ..MELEE
 };
 
@@ -289,7 +305,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             block: 0.35,  // a light shield: real frontal cover, ~1.5x deaths from behind
             evade: 0.15,  // a shield, not a skirmisher's legs: modest dodge on top of the block
             training: 0.55,
-            weapons: one(Weapon { reach: 1.6, zones: crate::strike::front(0.3), attack_interval: 4.4, damage: 0.2375, ..MELEE }),
+            weapons: one(Weapon { reach: 1.6, zones: crate::strike::front(0.3), attack_interval: 4.4, damage: 0.2375, ..SPEAR }),
             ..foot
         },
         LongSwords => UnitClass {
@@ -330,7 +346,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             // The sarissa wall (frontal-only, dead zone inside the shafts; cadence×hurl
             // stops a charge, modest per-poke), with a side-sword for off-axis foes.
             weapons: two(
-                Weapon { reach: 3.2, min_range: 1.1, zones: crate::strike::front(0.04), attack_interval: 3.8, damage: 0.4, ..BRACED },
+                Weapon { reach: 3.2, min_range: 1.1, zones: crate::strike::front(0.04), attack_interval: 3.8, damage: 0.4, ..HEDGE },
                 Weapon { reach: 1.2, zones: crate::strike::front(0.6), attack_interval: 4.1, damage: 0.35, ..MELEE },
             ),
             ..foot
@@ -399,8 +415,12 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             morale_aura: 2.0, // and the sight of friendly heavy horse steadies a line
             turn_mult: 0.81,
             // A couched lance (one lethal skewer on the charge, then it snaps) and a
-            // cavalry sabre — long enough (1.5) to reach over the horse into the press,
-            // at parity damage with a foot sword once the rider is in.
+            // cavalry sabre — long enough (1.5) to reach over the horse into the
+            // press, at parity damage with a foot sword (it should pack a punch). A
+            // walked-in cav (no charge) thus sits BETWEEN medium and heavy foot per
+            // soldier: it beats medium head-on (parity sabre + the horse shields the
+            // rider, so foot waste blows on the mount) but loses to heavy. Its real
+            // edge is the CHARGE (lance + impact), not the standing grind.
             weapons: two(
                 Weapon { reach: 2.4, zones: crate::strike::front(0.2), attack_interval: 5.0, damage: 1.6, ..CHARGE },
                 Weapon { reach: 1.5, zones: crate::strike::flanks(1.55, 0.85), attack_interval: 4.2, damage: 0.5, ..MELEE },
@@ -517,7 +537,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             // three (LSP 1.6/0.2375 < MSP 1.7/0.27 < HSP 1.85/0.31), so the heavy
             // spear out-blunts a charge and out-grinds the lighter spears — yet its
             // work rate still sits below any sword (sword beats spear holds).
-            weapons: one(Weapon { reach: 1.85, zones: crate::strike::front(0.3), attack_interval: 4.4, damage: 0.31, ..MELEE }),
+            weapons: one(Weapon { reach: 1.85, zones: crate::strike::front(0.3), attack_interval: 4.4, damage: 0.31, ..SPEAR }),
             ..foot
         },
         MediumSpear => UnitClass {
@@ -538,7 +558,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             // punch are ORDERED by tier (LSP 1.6/0.2375 < MSP 1.7/0.27 < HSP
             // 1.85/0.31) so the hierarchy holds in outcomes, not just on paper —
             // every value stays well below a sword's, so sword still beats spear.
-            weapons: one(Weapon { reach: 1.7, zones: crate::strike::front(0.3), attack_interval: 4.4, damage: 0.27, ..MELEE }),
+            weapons: one(Weapon { reach: 1.7, zones: crate::strike::front(0.3), attack_interval: 4.4, damage: 0.27, ..SPEAR }),
             ..foot
         },
         // The workhorse pike: a shorter sarissa than the elite HeavyPhalanx. It
@@ -566,7 +586,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             // side-sword for off-axis foes — the same two-weapon doctrine as the
             // heavy phalanx, scaled down: less reach (2.6 vs 3.2), less per-poke.
             weapons: two(
-                Weapon { reach: 2.6, min_range: 1.0, zones: crate::strike::front(0.04), attack_interval: 3.9, damage: 0.35, ..BRACED },
+                Weapon { reach: 2.6, min_range: 1.0, zones: crate::strike::front(0.04), attack_interval: 3.9, damage: 0.35, ..HEDGE },
                 Weapon { reach: 1.2, zones: crate::strike::front(0.6), attack_interval: 4.1, damage: 0.3, ..MELEE },
             ),
             ..foot

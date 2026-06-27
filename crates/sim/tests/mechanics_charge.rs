@@ -53,7 +53,7 @@ fn charge_penetration(depth: usize, brace_mult: f32) -> (f32, f32) {
         attack_interval: 1.79,
         damage: 0.0,
         cleave: false,
-        kind: sim::WeaponKind::Standard,
+        impales: false, kind: sim::WeaponKind::Standard,
     });
     sim.units[block].stats = bh;
     for k in sim.units[block].start..sim.units[block].start + sim.units[block].count {
@@ -76,7 +76,7 @@ fn charge_penetration(depth: usize, brace_mult: f32) -> (f32, f32) {
         attack_interval: 2.2,
         damage: 0.0,
         cleave: false,
-        kind: sim::WeaponKind::Standard,
+        impales: false, kind: sim::WeaponKind::Standard,
     });
     sim.units[cav].stats = ch;
     for k in sim.units[cav].start..sim.units[cav].start + sim.units[cav].count {
@@ -304,6 +304,17 @@ fn cav_closest_approach_to_phalanx(flank: bool) -> f32 {
                 min_gap = min_gap.min(g);
             }
         }
+    }
+    if std::env::var("PHX_PROBE").is_ok() {
+        let u = &sim.units[cav];
+        eprintln!(
+            "  {} closest {min_gap:.2}m | cav -{} (impale {} grind {} impact {})",
+            if flank { "FLANK" } else { "FRONT" },
+            96 - u.alive_count,
+            u.lost_charge_melee,
+            u.lost_grind_melee,
+            u.lost_impact,
+        );
     }
     min_gap
 }

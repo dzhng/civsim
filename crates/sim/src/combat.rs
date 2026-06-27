@@ -59,13 +59,45 @@ const OBSTRUCT_FLOOR: f32 = 0.7;
 /// Out to here a blow comes side-on: evade degrades; behind it, a blow
 /// lands on a man facing the wrong way.
 pub(crate) const SIDE_ARC: f32 = 2.1;
+/// Reach at which a FRONTAL blade still only reaches the horse's chest and the
+/// rider's near edge (a hacking sword — the `RIDER_FRONT_FLOOR` base chance).
+/// Above this, the rider's frontal exposure ramps up over the horse's front-half
+/// depth (`HORSE_HALF_LEN`) — a long thrust (spear/pike) goes over the chest to
+/// the man, up to `RIDER_FRONT_CAP`. The grind half of anti-cav.
+const RIDER_HACK_REACH: f32 = 1.1;
+
+/// Most of a flank/rear blow finds the rider — his leg, back, and side hang
+/// over the horse, bare to a blade. But the horse's barrel still shields his
+/// lower body, so even a clean side blow is a CHANCE at the man, never a
+/// certainty: the share is capped below 1. Reach-INDEPENDENT — from the side a
+/// sword reaches the bare man as well as a pike does (sword == pike on flank/back).
+const RIDER_FLANK_EXPOSURE: f32 = 0.8;
+/// Frontal base chance ANY blade has at the rider: a footman jammed against the
+/// horse's chest can still stab up at the man (thigh, under the chin). A short
+/// hack gets only this; reach earns the rest, up to twice this at `RIDER_FRONT_CAP`.
+const RIDER_FRONT_FLOOR: f32 = 0.325;
+/// Frontal ceiling: a long thrust spans over the horse's head and neck to the
+/// rider, but the head is always partly in the way — the frontal share tops out
+/// here, lower than the flank (the horse fronts the man head-on). Set to 2×
+/// `RIDER_FRONT_FLOOR`: a pike grinds the rider HEAD-ON about twice as well as a
+/// sword (David's anti-cav contract), while flank/back they are equal.
+const RIDER_FRONT_CAP: f32 = 0.65;
+
+/// What fraction of a FRONTAL blow on a horseman finds the RIDER vs the horse's
+/// chest — a PROBABILITY, not a switch. A short hack still has a base chance
+/// (`RIDER_FRONT_FLOOR`, stabbing up past the chest); reach earns more, the long
+/// thrust spanning over the chest toward the man up to `RIDER_FRONT_CAP` — about
+/// twice the hack's. The horse's bulk always shields part of the man, so it never
+/// reaches a guaranteed rider hit. The standing grind reads this. From the
+/// flank/rear it is the reach-independent `RIDER_FLANK_EXPOSURE` (at the call
+/// site). The charge-impale also reads this (one rule for the front).
+fn rider_exposure_frontal(reach: f32) -> f32 {
+    let ramp = ((reach - RIDER_HACK_REACH) / crate::class::HORSE_HALF_LEN).clamp(0.0, 1.0);
+    RIDER_FRONT_FLOOR + (RIDER_FRONT_CAP - RIDER_FRONT_FLOOR) * ramp
+}
 // Where a weapon can land is the weapon's own `zones` data (a sword = one front
 // lobe, a mounted sabre = two flank lobes, blind over the horse's head and
 // croup): see `crate::strike`.
-/// Heavy shields work against a presented point too. Pikes are still fearsome
-/// because they strike first, from long reach, in a narrow front-facing hedge —
-/// not because a shielded man magically loses his shield block.
-const BRACED_THRUST_BLOCK_MULT: f32 = 1.0;
 // A MOVING target is hard to hit: every blow at a man (or horse) crossing in
 // front of the striker has to lead a moving mark, and many miss. This is general
 // — it applies to anyone in motion — but it is what lets a trampler carrying
@@ -474,7 +506,7 @@ impl Sim {
                 // bogged or spent, the sabre, where a stalled charge earns its grind.
                 let keep_charge = !self.charge_wpn_spent[i] && self.units[ui].charging;
                 Some(if keep_charge { ci } else { gi })
-            } else if let Some(bi) = weapons.iter().position(|w| w.braced()) {
+            } else if let Some(bi) = weapons.iter().position(|w| w.hedge()) {
                 let pike = &weapons[bi];
                 // The pike is leveled down the UNIT's frontage and braced there; a
                 // man can only drive it while he is himself SQUARED UP to that line.
@@ -489,7 +521,7 @@ impl Sim {
                     && nearest_d <= pike.reach;
                 if pike_bears {
                     Some(bi)
-                } else if let Some(si) = weapons.iter().position(|w| !w.braced()) {
+                } else if let Some(si) = weapons.iter().position(|w| !w.hedge()) {
                     // a foe the pike can't take: sword if it's in reach, else hold
                     // the pike leveled to the front (the default)
                     if nearest_d <= weapons[si].reach {
@@ -529,7 +561,7 @@ impl Sim {
             // can't be turned in the ranks); everything else tracks the man's own
             // facing as he squares up. Used by the aim gate, the obstruction
             // check, and the swing alike.
-            let aim_facing = if weapon.braced() {
+            let aim_facing = if weapon.hedge() {
                 self.units[ui].facing
             } else {
                 self.facings[i]
@@ -572,7 +604,7 @@ impl Sim {
                 // Mobile long weapons (lances, long swords) are not a fixed
                 // hedge; keep their existing charge-presentation behavior.
                 let hedge_bears = aim <= 1.25;
-                if planted > 0.0 && (!weapon.braced() || hedge_bears) {
+                if planted > 0.0 && (!weapon.hedge() || hedge_bears) {
                     let v = nearest as usize;
                     let p = self.soldier_pos(i);
                     let tp = self.soldier_pos(v);
@@ -610,14 +642,13 @@ impl Sim {
                             self.mom_x[v] += d.x * toward * grip;
                             self.mom_y[v] += d.y * toward * grip;
                         }
-                        if weapon.braced() && self.units[vu].tramples() {
+                        if weapon.impales && self.units[vu].tramples() {
                             // A horse feeding itself onto a presented point pays
                             // in flesh as well as momentum. This is not a swing
                             // (no cadence, block, or flourish): it is the
                             // mounted body doing the work by closing onto the
                             // braced shaft. Off-axis/flank charges are already
                             // excluded by `hedge_bears` above.
-                            let to_center = (tp - p).len() - self.radius[i] - 0.35;
                             let dmg = weapon.damage
                                 * (closing / tun.charge_min_speed.max(0.1)).clamp(0.0, 2.0)
                                 * planted
@@ -625,13 +656,19 @@ impl Sim {
                                 * DT
                                 * 6.0;
                             // Charge-impale: a body run onto a braced point — its
-                            // whole wound is charge-driven (closing-speed scaled).
+                            // whole wound is charge-driven (closing-speed scaled). It
+                            // reads the SAME capped rider/chest split as the standing
+                            // grind (one rule for the front): a long pike spans toward
+                            // the rider, a short point bloodies the hide, and the
+                            // horse's bulk always shields part of the man (the 0.65
+                            // cap), so the impale never instantly removes every lead
+                            // horse. The lead horses that DO die open a gap the ranks
+                            // behind charge into — a determined charge breaks through.
+                            // That is the intent: no impenetrable wall, only a toll.
+                            let exp = rider_exposure_frontal(weapon.reach);
                             self.dmg_from_charge[v] += dmg;
-                            if to_center > weapon.reach {
-                                self.mount_dmg_acc[v] += dmg;
-                            } else {
-                                self.dmg_acc[v] += dmg;
-                            }
+                            self.dmg_acc[v] += dmg * exp;
+                            self.mount_dmg_acc[v] += dmg * (1.0 - exp);
                         }
                     }
                 }
@@ -927,20 +964,15 @@ impl Sim {
             }
         }
 
-        // Block: front shield arc only; still takes the push. A BRACED point
-        // (a leveled pike) is harder to parry than a sword's arc, but it still
-        // has to interact with heavy shields or phalanx-vs-heavy stops reading
-        // as a long shielded grind.
+        // Block: front shield arc only; still takes the push. A heavy shield works
+        // against a leveled point as well as a sword's arc — a pike is fearsome for
+        // its reach, first-strike, and file-overlapping hedge, not because it
+        // bypasses shields.
         let shielded = aspect_v < FRONT_ARC;
-        let braced_thrust = if weapon.braced() {
-            BRACED_THRUST_BLOCK_MULT
-        } else {
-            1.0
-        };
         let blocked = shielded
             && self
                 .rng
-                .chance(vstats.block * (0.5 + 0.5 * cohesion) * braced_thrust * guard);
+                .chance(vstats.block * (0.5 + 0.5 * cohesion) * guard);
 
         // Push: momentum through the weapon — a braced thruster hurls an
         // unbraced man back bodily; equal masses just rock each other.
@@ -960,15 +992,21 @@ impl Sim {
             return;
         }
 
-        // Damage: the rider is PREFERRED — a foot soldier goes for the man, not the
-        // animal — but he lands on the rider only if his weapon physically reaches
-        // that high (the rider sits at the horse's center, ~0.35m exposed up top);
-        // else the blow falls on the horse. Pure reach geometry, no charge-state
-        // fudge: if a short blade can't reach a bogged rider, the answer is the foot
-        // closing the distance (separation physics), not a magic exposure bonus.
-        let attacker_p = self.soldier_pos(attacker);
-        let victim_p = self.soldier_pos(victim);
-        let to_center = (victim_p - attacker_p).len() - self.radius[attacker] - 0.35;
+        // Damage: rider vs mount. A foot soldier goes for the MAN, but the horse's
+        // body shields him — and (like his own shield) only from the FRONT:
+        //  - FLANK/REAR: his leg and back are bare → the blow is all RIDER.
+        //  - FRONT: the chest is in the way. A short HACK (sword) reaches only
+        //    horseflesh; a long THRUST (spear/pike) goes OVER the chest to the man.
+        //    So the rider's frontal exposure RAMPS with reach above a hack's, over
+        //    the horse's front-half depth — a clean monotone lever (reach). The wound
+        //    SPLITS by exposure: a spear lands mostly on the rider, a sword mostly on
+        //    the horse. This is the GRIND half of anti-cav (the spearman's role); the
+        //    IMPALE (a charge fed onto the point) is separate.
+        let rider_exposure = if aspect_v < FRONT_ARC {
+            rider_exposure_frontal(weapon.reach)
+        } else {
+            RIDER_FLANK_EXPOSURE // flank/rear: most of the man is bare, never all
+        };
 
         // A tiring attacker hits SOFTER: damage falls toward stamina_damage_floor
         // of its fresh value as he spends (a 25% floor when fully blown). This is
@@ -987,8 +1025,9 @@ impl Sim {
         // Stage the wound; it is applied (and the kill resolved) after the pass,
         // so a man mortally hit by a low-index foe still lands his simultaneous
         // strike this tick.
-        if self.mounted[victim] == 1 && to_center > weapon.reach {
-            self.mount_dmg_acc[victim] += dmg;
+        if self.mounted[victim] == 1 {
+            self.dmg_acc[victim] += dmg * rider_exposure;
+            self.mount_dmg_acc[victim] += dmg * (1.0 - rider_exposure);
         } else {
             self.dmg_acc[victim] += dmg;
         }

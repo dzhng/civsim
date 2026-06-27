@@ -47,7 +47,7 @@ const REF_BLADE: Weapon = Weapon {
     // the old "10 min" figure was a DEEP-block artifact, not a real battle line).
     damage: 0.32,
     cleave: false,
-    kind: WeaponKind::Standard,
+    impales: false, kind: WeaponKind::Standard,
 };
 
 fn mean(v: &[f32]) -> f32 {

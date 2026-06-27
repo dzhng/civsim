@@ -143,6 +143,53 @@ stat card — no other wiring needed.
    `shields_are_a_front_arc_fact`). Anchor it to the design contract, not
    the current number.
 
+## Interrogate the dial before you turn it
+
+A stat you are about to change is a **dial** — and if YOU made the change, the
+dial (and the result that flatters it) is the **prime suspect**, not the thing to
+defend. Confirmation bias is loudest exactly when a measurement looks good for
+your own edit; interrogate hardest there, and phrase findings as "is this real?"
+not "here's why mine works." Before you trust a dial — and the scenario test you
+write to pin it — answer all of these. Each is a real way a balance pass goes
+wrong, and each is caught by a *sweep* or a *cause-split*, not by reasoning:
+
+- **Does it move the outcome at all?** Sweep it across a range; never assume a
+  stat is the lever. A swept dial that doesn't budge the result is a *dead* dial
+  — tuning it is wasted effort and a false sense of control. (A unit's
+  survivability once read deaf to the very stat everyone "knew" governed it.)
+- **What does it DO, and what does it COST?** Find the mechanism and its
+  tradeoff *in the code*, not in your intuition. A lever that adds power with no
+  cost breaks the 1:4 envelope — a costless "buff" is an inversion waiting to
+  happen. (The property that let one weapon counter a whole class also left it
+  blind from the flank; that cost is the only thing keeping it from being
+  strictly better than its peer.)
+- **Isolate ONE dial; match the rest.** A scenario sweep changes a single
+  variable and holds everything else EQUAL, so the result is attributable to the
+  lever and not a confound. Compare two units at the SAME value of the stat you
+  are NOT testing — their shipped values hide which knob does the work.
+- **Split the outcome by CAUSE before crediting the lever.** Matching the other
+  stats is NOT enough when two mechanisms feed the same number. A "cav killed"
+  total that rose with a dial looked like a grind getting stronger — the
+  death-by-cause split showed it was 100% a frontal *impale* and 0% grind, a
+  different mechanism entirely. Read the constituent channels (deaths-by-cause,
+  the damage accumulators); the setup itself (1v1 frontal, no envelopment) can
+  exclude the mechanism you think you're measuring.
+- **Why is the threshold THERE — physics or a FIT?** A "magic" number (a reach, a
+  cap, a radius) is usually a formula's saturation/clamp point — trace it to the
+  line before you move it. Then ask whether the formula is *physical* or *fitted*:
+  a constant the git log shows was TUNED (an "option B", "re-pinned after X
+  tuning") to make one unit land at saturation is circular — "the reach saturates
+  at 3.2 because 3.2 is the unit's reach" is not a derivation. Call a tuned curve
+  a tuned curve; do not dress the circle as first principles.
+- **Find the BOUNDS, not a point.** Sweep min→max so you see where the dial
+  saturates, cliffs, or inverts; one measurement is an anecdote.
+
+**A distinct role is a distinct test.** Two units that counter the same threat by
+DIFFERENT mechanisms (one *stops* it upfront, one *grinds* it down) are two
+contracts — each gets its own one-dial sweep and its own scenario test on fake
+reference units. Don't fold them into one. The sweep you ran to interrogate the
+dial IS the draft of that scenario test.
+
 ## The 1:4 power envelope (hard cap)
 
 No unit may be more than **4× the worst unit** on any single performance

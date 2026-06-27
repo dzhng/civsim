@@ -48,8 +48,27 @@ Memory drops rows. Reconcile against the diff so the count is honest:
 4. For previous values, read HEAD (`git stash`) or your run logs — never
    estimate.
 
+## Also ledger the UNIT STAT changes (the inputs)
+
+The test rows above are OUTCOMES — what the system now does. Stat-table edits are
+the INPUTS that drove them, and they get their own ledger: a balance reviewer
+reads the stat delta to predict the matchup shifts, and an outcome that moved
+with NO stat change means a MECHANIC moved — flag that, don't let the reviewer
+hunt for a stat edit that isn't there.
+
+- Reconcile against `git diff` over the stat tables — `crates/sim/src/class.rs`,
+  the weapon/missile consts, `crates/contract` pricing. One row per changed field.
+- Each row: **unit + field**, **old → new**, **why** (the physical/design reason).
+  `HeavySword.health 2.4 → 2.0 (band rescaled [1,2.4]→[1,2])`;
+  `LightSpear weapon +impales (a spear now stops a charge run onto it)`.
+- A weapon kind/capability change IS a stat change: `pike kind Braced → Hedge`,
+  `spear base MELEE → SPEAR (+impales)`.
+- If a matchup flipped but no stat moved, write the row anyway as a NOTE:
+  "ShockCav vs MediumSpear flipped on the rider-exposure MECHANIC, no stat edit".
+
 ## Done
 
-Every moved/re-pinned/rewritten/flipped test has a row; each row's four fields
-are concrete and measured; each carries a provenance tag; and the row count
-matches the test diff with no silent omissions.
+Every moved/re-pinned/rewritten/flipped test has a row; every changed stat-table
+field has a row; each test row's four fields are concrete and measured; each
+carries a provenance tag; the test rows match the test diff and the stat rows
+match the class/weapon/pricing diff — no silent omissions.

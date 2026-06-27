@@ -37,6 +37,16 @@ will do.
    correctly on a realistic task. After editing, read it as if you had no
    conversation history and remove anything that would not affect action.
 
+6. **Examples document the PROBLEM, not the solution.** An example earns its
+   tokens by teaching the agent to *recognise a recurring problem* — the smell,
+   the symptom, how you knew it was wrong. That is durable. The fix you happened
+   to apply is not: code changes, and a baked-in solution goes stale, or worse
+   prescribes a move that won't fit next time. Write the failure mode and its
+   tell; let the agent derive the fix fresh against the current code. "A
+   directional question gated on a centroid distance read wrong from every
+   bearing" teaches; "so we keyed it on FRONT_ARC" rots. When in doubt, state
+   what was broken and how you spotted it, and stop there.
+
 ## Leading Words
 
 A **leading word** is a compact concept already in the model's pretraining

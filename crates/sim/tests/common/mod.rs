@@ -107,7 +107,7 @@ pub const REF_SWORD: Weapon = Weapon {
     attack_interval: 4.1,
     damage: 0.5,
     cleave: false,
-    kind: WeaponKind::Standard,
+    impales: false, kind: WeaponKind::Standard,
 };
 /// Reference sarissa: a long braced points-wall with a dead zone up close.
 pub const REF_PIKE: Weapon = Weapon {
@@ -117,7 +117,7 @@ pub const REF_PIKE: Weapon = Weapon {
     attack_interval: 3.8,
     damage: 0.4,
     cleave: false,
-    kind: WeaponKind::Braced,
+    impales: true, kind: WeaponKind::Hedge,
 };
 /// Reference foot bow (apply with `sim.set_missile_spec`).
 pub const REF_BOW: MissileSpec = MissileSpec {
@@ -194,9 +194,11 @@ pub const REF_LANCE: Weapon = Weapon {
     attack_interval: 5.0,
     damage: 1.6,
     cleave: false,
-    kind: WeaponKind::Charge,
+    impales: false, kind: WeaponKind::Charge,
 };
-/// Reference cavalry sabre: a flank-lobe blade for the grind.
+/// Reference cavalry sabre: a flank-lobe blade for the grind, at parity damage
+/// with a foot sword. With the horse shielding the rider, this makes a walked-in
+/// cav beat medium foot head-on (foot waste blows on the mount) yet lose to heavy.
 pub const REF_SABRE: Weapon = Weapon {
     reach: 1.5,
     min_range: 0.0,
@@ -204,7 +206,7 @@ pub const REF_SABRE: Weapon = Weapon {
     attack_interval: 4.2,
     damage: 0.5,
     cleave: false,
-    kind: WeaponKind::Standard,
+    impales: false, kind: WeaponKind::Standard,
 };
 
 /// A fake shock cavalry: mounted, a couched lance + a flank sabre, charges,
@@ -249,4 +251,33 @@ pub fn living_mean(sim: &Sim, unit: usize) -> Vec2 {
         }
     }
     sum * (1.0 / n.max(1) as f32)
+}
+
+/// A fake SPEARMAN (not a phalanx): a Standard-doctrine foot with a reach spear
+/// front-lobe + a sword sidearm for when the horse is inside the point. `impales`
+/// gives the spear the pike's charge-impale (the planted-point upfront stop).
+/// Shared by the rider-grind geometry tests (mechanics) and the anti-cav inf-weapon
+/// sweeps (scenario_cavalry).
+pub fn ref_spear(reach: f32, damage: f32, impales: bool) -> UnitClass {
+    let mut s = ref_melee(false);
+    s.brace_mult = 2.0;
+    s.weapons = class::two(
+        Weapon {
+            reach,
+            min_range: 0.0,
+            zones: sim::strike::front(0.3),
+            attack_interval: 4.4,
+            damage,
+            cleave: false,
+            impales,
+            kind: WeaponKind::Standard, // a SPEAR, not a hedge — slews to any angle
+        },
+        REF_SWORD,
+    );
+    s
+}
+
+/// Spawn a FAKE shock-cav unit (test-owned stats — balance-independent), 24 files.
+pub fn spawn_cav(sim: &mut Sim, pos: Vec2, facing: f32, n: usize, team: u32) -> usize {
+    sim.spawn_class_stats_with_files(pos, facing, n, 24, UnitClassId::ShockCavalry, ref_shock_cav(), team)
 }

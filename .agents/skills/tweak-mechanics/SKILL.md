@@ -141,6 +141,26 @@ find which one carries it, then trace that term to its source.**
   if the mechanic isn't built yet).
 - The **immortal long-grind is the stress test**: an equilibrium bug has nowhere
   to hide when nobody dies to end the fight early.
+- **Name the force, then confirm it ACTS on this body — don't infer one from a
+  number.** A value that scales with a knob (`to_center` ∝ reach) tempts a tidy
+  story: I blamed "a standoff that scales with reach" for foot never reaching a
+  horse's rider — but cavalry is EXCLUDED from the weapon-repel (a trampler "rides
+  ONTO the points, not pushed back"), so the force I named never fires. The number
+  was real; the cause was a guess I never checked against the code. Trace the term
+  to the line that produces it before you attribute it, and never pin it on a
+  force you haven't confirmed even applies to the body in question.
+- **A SATURATED extreme is a red flag, not a result — INTERROGATE it.** A side
+  reduced to **0 or 3** survivors, **0–3 kills**, a 100%/0% win-rate, a near-total
+  wipe: these are degenerate outcomes where a mechanism has bottomed out, and the
+  number HIDES the bug behind it. Never report a wipe as a "decisive win" or take
+  it at face value — a 2:1 underdog that is *stronger per-unit* should put up a
+  real fight and rack up kills even while losing; if it kills almost nothing and is
+  annihilated, it is being stun-locked, whiffing (a flank-only weapon blind to the
+  foe it faces), or one-sided-ground, not "correctly losing." Worked: I cheered "2:1
+  foot wins, cav 3/120" as the goal met — David: *whenever you see 0 or 3, it should
+  never be like that, interrogate it.* The cav was killing only ~47 foot while being
+  wiped — under-fighting its own strength. The healthy shape of a lopsided fight is
+  a real exchange (loser down to tens, not zero), not a saturation.
 
 ## A metric can encode the WRONG thing — go LOOK before chasing a force
 
@@ -182,6 +202,15 @@ edge-distance between *sized* bodies (a wide line is threatened at its flank, a
 deep block at its front rank); a cap whose only consumer already bounds itself
 tighter (dead scaffolding — delete, don't tune). Route everything through the one
 true measure.
+
+A **directional** question cannot be answered by a centroid distance. "Can I hit
+the rider / is this face shielded / am I flanked" depends on WHICH side is exposed;
+collapse it to a scalar distance-to-a-point and you bury a bearing-specific
+assumption that holds from one side only. The tell: rider-vs-mount was gated on
+reach-to-the-horse's-CENTER, so a short blade chipped horseflesh from EVERY angle
+— front, flank, and rear alike — and lengthening the blade changed nothing. A
+number that reads the same from every bearing, for a thing that should depend on
+bearing, is the smell — stop and ask what direction the interaction actually has.
 
 ## A pass-through / swirl is a missing FORCE, never a missing wall
 

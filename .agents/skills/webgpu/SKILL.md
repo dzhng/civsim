@@ -381,6 +381,14 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   garrison stub, rear rank, or selection ring later. Accept the route only after
   canvas pixel samples or tight crops prove the late geometry is correctly
   hidden or revealed by depth.
+- When promoting campaign models from flat `extra` drawing into a depth world
+  pass, keep labels, clouds, and screen-style markers in a later overlay pass.
+  Otherwise the right depth fix can accidentally bury UI readability. Expect
+  archived close-view parity to move: a production campaign depth pass made the
+  selected army, road, labels, and ring more readable under fresh critique, but
+  worsened Campaign Label Zoom metrics because camera/scale/lighting no longer
+  matched the old reference. Treat that as the next visual tuning target, not a
+  reason to return city/army/scenery meshes to painter-order overlays.
 - Use instancing, batching, storage buffers, and GPU-side phase passes for scale.
   Avoid CPU readbacks in hot paths; debug readbacks must be bounded and named.
 - For iterative effects or simulations, separate phases such as `state`,

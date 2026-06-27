@@ -42,6 +42,12 @@
         "visibleLabels": 1,
         "labelLayer": "raw-webgpu-glyph-atlas",
         "entityLayer": "raw-webgpu-legacy-model-meshes",
+        "depth": {
+          "format": "depth24plus",
+          "width": 970,
+          "height": 758,
+          "allocated": true
+        },
         "postCutoverScreenshots": "webgpu-only"
       },
       "status": "webgpu-evidence"
@@ -85,6 +91,12 @@
         "visibleLabels": 1,
         "labelLayer": "raw-webgpu-glyph-atlas",
         "entityLayer": "raw-webgpu-legacy-model-meshes",
+        "depth": {
+          "format": "depth24plus",
+          "width": 970,
+          "height": 758,
+          "allocated": true
+        },
         "postCutoverScreenshots": "webgpu-only"
       },
       "status": "webgpu-evidence"
@@ -128,6 +140,12 @@
         "visibleLabels": 1,
         "labelLayer": "raw-webgpu-glyph-atlas",
         "entityLayer": "raw-webgpu-legacy-model-meshes",
+        "depth": {
+          "format": "depth24plus",
+          "width": 970,
+          "height": 758,
+          "allocated": true
+        },
         "postCutoverScreenshots": "webgpu-only"
       },
       "status": "webgpu-evidence"
@@ -171,6 +189,12 @@
         "visibleLabels": 2,
         "labelLayer": "raw-webgpu-glyph-atlas",
         "entityLayer": "raw-webgpu-legacy-model-meshes",
+        "depth": {
+          "format": "depth24plus",
+          "width": 970,
+          "height": 758,
+          "allocated": true
+        },
         "postCutoverScreenshots": "webgpu-only"
       },
       "status": "webgpu-evidence"
@@ -214,6 +238,12 @@
         "visibleLabels": 0,
         "labelLayer": "raw-webgpu-glyph-atlas",
         "entityLayer": "raw-webgpu-legacy-model-meshes",
+        "depth": {
+          "format": "depth24plus",
+          "width": 970,
+          "height": 758,
+          "allocated": true
+        },
         "postCutoverScreenshots": "webgpu-only"
       },
       "status": "webgpu-evidence"
@@ -257,6 +287,12 @@
         "visibleLabels": 1,
         "labelLayer": "raw-webgpu-glyph-atlas",
         "entityLayer": "raw-webgpu-legacy-model-meshes",
+        "depth": {
+          "format": "depth24plus",
+          "width": 970,
+          "height": 758,
+          "allocated": true
+        },
         "postCutoverScreenshots": "webgpu-only"
       },
       "status": "webgpu-evidence"
@@ -300,6 +336,12 @@
         "visibleLabels": 0,
         "labelLayer": "raw-webgpu-glyph-atlas",
         "entityLayer": "raw-webgpu-legacy-model-meshes",
+        "depth": {
+          "format": "depth24plus",
+          "width": 970,
+          "height": 758,
+          "allocated": true
+        },
         "postCutoverScreenshots": "webgpu-only"
       },
       "status": "webgpu-evidence"
@@ -343,6 +385,12 @@
         "visibleLabels": 0,
         "labelLayer": "raw-webgpu-glyph-atlas",
         "entityLayer": "raw-webgpu-legacy-model-meshes",
+        "depth": {
+          "format": "depth24plus",
+          "width": 970,
+          "height": 758,
+          "allocated": true
+        },
         "postCutoverScreenshots": "webgpu-only"
       },
       "status": "webgpu-evidence"
@@ -386,6 +434,12 @@
         "visibleLabels": 0,
         "labelLayer": "raw-webgpu-glyph-atlas",
         "entityLayer": "raw-webgpu-legacy-model-meshes",
+        "depth": {
+          "format": "depth24plus",
+          "width": 970,
+          "height": 758,
+          "allocated": true
+        },
         "postCutoverScreenshots": "webgpu-only"
       },
       "status": "webgpu-evidence"
@@ -429,6 +483,12 @@
         "visibleLabels": 0,
         "labelLayer": "raw-webgpu-glyph-atlas",
         "entityLayer": "raw-webgpu-legacy-model-meshes",
+        "depth": {
+          "format": "depth24plus",
+          "width": 970,
+          "height": 758,
+          "allocated": true
+        },
         "postCutoverScreenshots": "webgpu-only"
       },
       "status": "webgpu-evidence"
@@ -472,6 +532,12 @@
         "visibleLabels": 0,
         "labelLayer": "raw-webgpu-glyph-atlas",
         "entityLayer": "raw-webgpu-legacy-model-meshes",
+        "depth": {
+          "format": "depth24plus",
+          "width": 970,
+          "height": 758,
+          "allocated": true
+        },
         "postCutoverScreenshots": "webgpu-only"
       },
       "status": "webgpu-evidence"
@@ -515,6 +581,12 @@
         "visibleLabels": 2,
         "labelLayer": "raw-webgpu-glyph-atlas",
         "entityLayer": "raw-webgpu-legacy-model-meshes",
+        "depth": {
+          "format": "depth24plus",
+          "width": 970,
+          "height": 758,
+          "allocated": true
+        },
         "postCutoverScreenshots": "webgpu-only"
       },
       "status": "webgpu-evidence"
@@ -558,6 +630,12 @@
         "visibleLabels": 0,
         "labelLayer": "raw-webgpu-glyph-atlas",
         "entityLayer": "raw-webgpu-legacy-model-meshes",
+        "depth": {
+          "format": "depth24plus",
+          "width": 970,
+          "height": 758,
+          "allocated": true
+        },
         "postCutoverScreenshots": "webgpu-only"
       },
       "status": "webgpu-evidence"
@@ -601,6 +679,12 @@
         "visibleLabels": 0,
         "labelLayer": "raw-webgpu-glyph-atlas",
         "entityLayer": "raw-webgpu-legacy-model-meshes",
+        "depth": {
+          "format": "depth24plus",
+          "width": 970,
+          "height": 758,
+          "allocated": true
+        },
         "postCutoverScreenshots": "webgpu-only"
       },
       "status": "webgpu-evidence"
@@ -644,6 +728,12 @@
         "visibleLabels": 0,
         "labelLayer": "raw-webgpu-glyph-atlas",
         "entityLayer": "raw-webgpu-legacy-model-meshes",
+        "depth": {
+          "format": "depth24plus",
+          "width": 970,
+          "height": 758,
+          "allocated": true
+        },
         "postCutoverScreenshots": "webgpu-only"
       },
       "status": "webgpu-evidence"
@@ -687,6 +777,12 @@
         "visibleLabels": 0,
         "labelLayer": "raw-webgpu-glyph-atlas",
         "entityLayer": "raw-webgpu-legacy-model-meshes",
+        "depth": {
+          "format": "depth24plus",
+          "width": 970,
+          "height": 758,
+          "allocated": true
+        },
         "postCutoverScreenshots": "webgpu-only"
       },
       "status": "webgpu-evidence"

@@ -31,6 +31,7 @@ export interface FrameCommands {
   clear?: GPUColor;
   extra?: (pass: GPURenderPassEncoder, shell: RawFrameShellImpl) => void;
   depthExtra?: (pass: GPURenderPassEncoder, shell: RawFrameShellImpl) => void;
+  overlayExtra?: (pass: GPURenderPassEncoder, shell: RawFrameShellImpl) => void;
 }
 
 export interface FrameShellStats {
@@ -425,6 +426,19 @@ export class RawFrameShellImpl implements RawFrameShell {
       depthPass.setBindGroup(0, this.cameraBindGroup);
       commands.depthExtra(depthPass, this);
       depthPass.end();
+    }
+    if (commands.overlayExtra) {
+      const overlayPass = encoder.beginRenderPass({
+        label: 'raw-frame-overlay-pass',
+        colorAttachments: [{
+          view: colorView,
+          loadOp: 'load',
+          storeOp: 'store',
+        }],
+      });
+      overlayPass.setBindGroup(0, this.cameraBindGroup);
+      commands.overlayExtra(overlayPass, this);
+      overlayPass.end();
     }
     this.device.queue.submit([encoder.finish()]);
   }

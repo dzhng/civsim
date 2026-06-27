@@ -162,8 +162,12 @@ export class CampaignRendererWebGPU {
         this.selection!.draw(pass);
         if (!isControlledStage(this.data)) this.borders!.draw(pass);
         this.lines!.draw(pass);
-        this.scenery!.draw(pass);
-        this.entities!.draw(pass);
+      },
+      depthExtra: (pass) => {
+        this.scenery!.drawDepth(pass);
+        this.entities!.drawDepth(pass);
+      },
+      overlayExtra: (pass) => {
         this.clouds!.draw(pass);
         this.markers!.draw(pass);
         this.labels!.draw(pass);
@@ -219,6 +223,7 @@ export class CampaignRendererWebGPU {
       mapMarkers: this.markers?.stats().markers ?? 0,
       scenery: this.scenery?.stats().scenery ?? 0,
       lineSegments: this.lines?.stats().segments ?? 0,
+      depth: shell?.depth ?? null,
       postCutoverScreenshots: 'webgpu-only',
       performance: { ...this.framePerf },
     };

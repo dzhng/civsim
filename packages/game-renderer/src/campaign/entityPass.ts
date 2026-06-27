@@ -33,6 +33,10 @@ struct VsOut {
   @location(6) alpha: f32,
 };
 
+fn campaignDepth(world: vec3f, ry: f32) -> f32 {
+  return clamp(0.50 + ry * 0.0012 - world.z * 0.0030, 0.02, 0.98);
+}
+
 fn projectWorld(world: vec3f, z: f32) -> vec4f {
   let dx = world.x - cam.x;
   let dy = world.y - cam.y;
@@ -42,7 +46,7 @@ fn projectWorld(world: vec3f, z: f32) -> vec4f {
   return vec4f(
     (rx * cam.zoom) / (cam.width * 0.5),
     (ry * cam.zoom * cam.cosP + world.z * cam.zoom) / (cam.height * 0.5),
-    z * depth,
+    select(z, campaignDepth(world, ry), z < 0.0) * depth,
     depth
   );
 }
@@ -59,7 +63,7 @@ fn vs(
   let scale = inst0.z;
   let world = vec3f(inst0.x + local.x * scale, inst0.y + local.y * scale, local.z * scale);
   var out: VsOut;
-  out.pos = projectWorld(world, 0.02);
+  out.pos = projectWorld(world, -1.0);
   out.color = colorAndAlpha.rgb;
   out.livery = smoothstep(0.94, 0.99, min(colorAndAlpha.r, min(colorAndAlpha.g, colorAndAlpha.b)));
   out.alpha = colorAndAlpha.a;
@@ -87,6 +91,7 @@ fn fs(in: VsOut) -> @location(0) vec4f {
 
 export class CampaignEntityPass {
   private pipeline: GPURenderPipeline;
+  private depthPipeline: GPURenderPipeline;
   private cityVertexBuffer: GPUBuffer;
   private cityIndexBuffer: GPUBuffer;
   private armyVertexBuffer: GPUBuffer;
@@ -103,9 +108,21 @@ export class CampaignEntityPass {
   constructor(private shell: RawFrameShell) {
     const device = shell.device;
     const module = device.createShaderModule({ label: 'campaign-entity-mesh-wgsl', code: ENTITY_WGSL });
-    this.pipeline = device.createRenderPipeline({
-      label: 'campaign-entity-mesh-pipeline',
-      layout: device.createPipelineLayout({ bindGroupLayouts: [shell.cameraBindGroupLayout] }),
+    this.pipeline = this.makePipeline(module, false);
+    this.depthPipeline = this.makePipeline(module, true);
+    this.cityVertexBuffer = makeVertexBuffer(device, 'campaign-city-model-vertices', this.cityMesh.vertices);
+    this.cityIndexBuffer = makeIndexBuffer(device, 'campaign-city-model-indices', this.cityMesh.indices);
+    this.armyVertexBuffer = makeVertexBuffer(device, 'campaign-army-model-vertices', this.armyMesh.vertices);
+    this.armyIndexBuffer = makeIndexBuffer(device, 'campaign-army-model-indices', this.armyMesh.indices);
+    this.cityInstanceBuffer = makeEmptyInstanceBuffer(device, 'campaign-city-empty-instances');
+    this.armyInstanceBuffer = makeEmptyInstanceBuffer(device, 'campaign-army-empty-instances');
+  }
+
+  private makePipeline(module: GPUShaderModule, depth: boolean) {
+    const device = this.shell.device;
+    return device.createRenderPipeline({
+      label: depth ? 'campaign-entity-mesh-depth-pipeline' : 'campaign-entity-mesh-pipeline',
+      layout: device.createPipelineLayout({ bindGroupLayouts: [this.shell.cameraBindGroupLayout] }),
       vertex: {
         module,
         entryPoint: 'vs',
@@ -133,7 +150,7 @@ export class CampaignEntityPass {
         module,
         entryPoint: 'fs',
         targets: [{
-          format: shell.info.format,
+          format: this.shell.info.format,
           blend: {
             color: { srcFactor: 'src-alpha', dstFactor: 'one-minus-src-alpha' },
             alpha: { srcFactor: 'one', dstFactor: 'one-minus-src-alpha' },
@@ -141,13 +158,14 @@ export class CampaignEntityPass {
         }],
       },
       primitive: { topology: 'triangle-list', cullMode: 'none' },
+      ...(depth ? {
+        depthStencil: {
+          format: 'depth24plus',
+          depthWriteEnabled: true,
+          depthCompare: 'less',
+        },
+      } : {}),
     });
-    this.cityVertexBuffer = makeVertexBuffer(device, 'campaign-city-model-vertices', this.cityMesh.vertices);
-    this.cityIndexBuffer = makeIndexBuffer(device, 'campaign-city-model-indices', this.cityMesh.indices);
-    this.armyVertexBuffer = makeVertexBuffer(device, 'campaign-army-model-vertices', this.armyMesh.vertices);
-    this.armyIndexBuffer = makeIndexBuffer(device, 'campaign-army-model-indices', this.armyMesh.indices);
-    this.cityInstanceBuffer = makeEmptyInstanceBuffer(device, 'campaign-city-empty-instances');
-    this.armyInstanceBuffer = makeEmptyInstanceBuffer(device, 'campaign-army-empty-instances');
   }
 
   upload(instances: CampaignEntityInstance[]) {
@@ -162,8 +180,16 @@ export class CampaignEntityPass {
   }
 
   draw(pass: GPURenderPassEncoder) {
+    this.drawWithPipeline(pass, this.pipeline);
+  }
+
+  drawDepth(pass: GPURenderPassEncoder) {
+    this.drawWithPipeline(pass, this.depthPipeline);
+  }
+
+  private drawWithPipeline(pass: GPURenderPassEncoder, pipeline: GPURenderPipeline) {
     if (this.cityCount === 0 && this.armyCount === 0) return;
-    pass.setPipeline(this.pipeline);
+    pass.setPipeline(pipeline);
     pass.setBindGroup(0, this.shell.cameraBindGroup);
     if (this.cityCount > 0) {
       pass.setVertexBuffer(0, this.cityVertexBuffer);

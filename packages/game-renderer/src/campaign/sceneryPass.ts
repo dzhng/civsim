@@ -30,6 +30,10 @@ struct VsOut {
   @location(3) shade: f32,
 };
 
+fn campaignDepth(world: vec3f, ry: f32) -> f32 {
+  return clamp(0.50 + ry * 0.0012 - world.z * 0.0030, 0.02, 0.98);
+}
+
 fn projectWorld(world: vec3f, z: f32) -> vec4f {
   let dx = world.x - cam.x;
   let dy = world.y - cam.y;
@@ -39,7 +43,7 @@ fn projectWorld(world: vec3f, z: f32) -> vec4f {
   return vec4f(
     (rx * cam.zoom) / (cam.width * 0.5),
     (ry * cam.zoom * cam.cosP + world.z * cam.zoom) / (cam.height * 0.5),
-    z * depth,
+    select(z, campaignDepth(world, ry), z < 0.0) * depth,
     depth
   );
 }
@@ -54,7 +58,7 @@ fn vs(
   let scale = inst.z;
   let world = vec3f(inst.x + local.x * scale, inst.y + local.y * scale, local.z * scale);
   var out: VsOut;
-  out.pos = projectWorld(world, 0.04);
+  out.pos = projectWorld(world, -1.0);
   let sun = normalize(vec3f(-0.42, -0.34, 0.84));
   out.color = colorAndAlpha.rgb;
   out.alpha = colorAndAlpha.a;
@@ -75,6 +79,7 @@ fn fs(in: VsOut) -> @location(0) vec4f {
 
 export class CampaignSceneryPass {
   private pipeline: GPURenderPipeline;
+  private depthPipeline: GPURenderPipeline;
   private mountainMesh = buildMountainMesh();
   private coniferMesh = buildConiferTreeMesh();
   private broadleafMesh = buildBroadleafTreeMesh();
@@ -103,9 +108,27 @@ export class CampaignSceneryPass {
   constructor(private shell: RawFrameShell) {
     const device = shell.device;
     const module = device.createShaderModule({ label: 'campaign-scenery-mesh-wgsl', code: SCENERY_WGSL });
-    this.pipeline = device.createRenderPipeline({
-      label: 'campaign-scenery-mesh-pipeline',
-      layout: device.createPipelineLayout({ bindGroupLayouts: [shell.cameraBindGroupLayout] }),
+    this.pipeline = this.makePipeline(module, false);
+    this.depthPipeline = this.makePipeline(module, true);
+    this.mountainVertexBuffer = makeVertexBuffer(device, 'campaign-mountain-vertices', this.mountainMesh.vertices);
+    this.mountainIndexBuffer = makeIndexBuffer(device, 'campaign-mountain-indices', this.mountainMesh.indices);
+    this.coniferVertexBuffer = makeVertexBuffer(device, 'campaign-conifer-vertices', this.coniferMesh.vertices);
+    this.coniferIndexBuffer = makeIndexBuffer(device, 'campaign-conifer-indices', this.coniferMesh.indices);
+    this.broadleafVertexBuffer = makeVertexBuffer(device, 'campaign-broadleaf-vertices', this.broadleafMesh.vertices);
+    this.broadleafIndexBuffer = makeIndexBuffer(device, 'campaign-broadleaf-indices', this.broadleafMesh.indices);
+    this.rockVertexBuffer = makeVertexBuffer(device, 'campaign-rock-vertices', this.rockMesh.vertices);
+    this.rockIndexBuffer = makeIndexBuffer(device, 'campaign-rock-indices', this.rockMesh.indices);
+    this.mountainInstanceBuffer = makeEmptyInstanceBuffer(device, 'campaign-mountain-empty-instances');
+    this.coniferInstanceBuffer = makeEmptyInstanceBuffer(device, 'campaign-conifer-empty-instances');
+    this.broadleafInstanceBuffer = makeEmptyInstanceBuffer(device, 'campaign-broadleaf-empty-instances');
+    this.rockInstanceBuffer = makeEmptyInstanceBuffer(device, 'campaign-rock-empty-instances');
+  }
+
+  private makePipeline(module: GPUShaderModule, depth: boolean) {
+    const device = this.shell.device;
+    return device.createRenderPipeline({
+      label: depth ? 'campaign-scenery-mesh-depth-pipeline' : 'campaign-scenery-mesh-pipeline',
+      layout: device.createPipelineLayout({ bindGroupLayouts: [this.shell.cameraBindGroupLayout] }),
       vertex: {
         module,
         entryPoint: 'vs',
@@ -129,7 +152,7 @@ export class CampaignSceneryPass {
         module,
         entryPoint: 'fs',
         targets: [{
-          format: shell.info.format,
+          format: this.shell.info.format,
           blend: {
             color: { srcFactor: 'src-alpha', dstFactor: 'one-minus-src-alpha' },
             alpha: { srcFactor: 'one', dstFactor: 'one-minus-src-alpha' },
@@ -137,19 +160,14 @@ export class CampaignSceneryPass {
         }],
       },
       primitive: { topology: 'triangle-list', cullMode: 'none' },
+      ...(depth ? {
+        depthStencil: {
+          format: 'depth24plus',
+          depthWriteEnabled: true,
+          depthCompare: 'less',
+        },
+      } : {}),
     });
-    this.mountainVertexBuffer = makeVertexBuffer(device, 'campaign-mountain-vertices', this.mountainMesh.vertices);
-    this.mountainIndexBuffer = makeIndexBuffer(device, 'campaign-mountain-indices', this.mountainMesh.indices);
-    this.coniferVertexBuffer = makeVertexBuffer(device, 'campaign-conifer-vertices', this.coniferMesh.vertices);
-    this.coniferIndexBuffer = makeIndexBuffer(device, 'campaign-conifer-indices', this.coniferMesh.indices);
-    this.broadleafVertexBuffer = makeVertexBuffer(device, 'campaign-broadleaf-vertices', this.broadleafMesh.vertices);
-    this.broadleafIndexBuffer = makeIndexBuffer(device, 'campaign-broadleaf-indices', this.broadleafMesh.indices);
-    this.rockVertexBuffer = makeVertexBuffer(device, 'campaign-rock-vertices', this.rockMesh.vertices);
-    this.rockIndexBuffer = makeIndexBuffer(device, 'campaign-rock-indices', this.rockMesh.indices);
-    this.mountainInstanceBuffer = makeEmptyInstanceBuffer(device, 'campaign-mountain-empty-instances');
-    this.coniferInstanceBuffer = makeEmptyInstanceBuffer(device, 'campaign-conifer-empty-instances');
-    this.broadleafInstanceBuffer = makeEmptyInstanceBuffer(device, 'campaign-broadleaf-empty-instances');
-    this.rockInstanceBuffer = makeEmptyInstanceBuffer(device, 'campaign-rock-empty-instances');
   }
 
   upload(instances: CampaignSceneryInstance[]) {
@@ -173,8 +191,16 @@ export class CampaignSceneryPass {
   }
 
   draw(pass: GPURenderPassEncoder) {
+    this.drawWithPipeline(pass, this.pipeline);
+  }
+
+  drawDepth(pass: GPURenderPassEncoder) {
+    this.drawWithPipeline(pass, this.depthPipeline);
+  }
+
+  private drawWithPipeline(pass: GPURenderPassEncoder, pipeline: GPURenderPipeline) {
     if (this.mountainCount + this.coniferCount + this.broadleafCount + this.rockCount === 0) return;
-    pass.setPipeline(this.pipeline);
+    pass.setPipeline(pipeline);
     pass.setBindGroup(0, this.shell.cameraBindGroup);
     if (this.mountainCount > 0) {
       pass.setVertexBuffer(0, this.mountainVertexBuffer);

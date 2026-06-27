@@ -85,6 +85,12 @@ compatible or splits them into separate passes.
 - `webgpu-visual-report` now includes a `Render Graph Nested Depth` row so
   this foundation remains visible before production city, army, and battle mesh
   polish can be accepted.
+- Production campaign and campaign model-gate routes now use the same frame
+  shell split: flat map/territory/water/roads underpaint first, then
+  depth-tested `CampaignSceneryPass` and `CampaignEntityPass`, then
+  cloud/marker/label overlays. The campaign stats expose the allocated
+  `depth24plus` attachment so scenarios can prove the production path is no
+  longer a flat entity overlay.
 
 ## Verification
 
@@ -128,3 +134,13 @@ the fixture as visually crude: weak flag attachment, low-contrast/jagged
 selection ring, exposed board-like terrain horizon, missing shadows, toy-like
 unit forms, and nonspecific terrain detail. Treat those as follow-up art and
 production-pass blockers, not reasons to keep painter-order hacks.
+
+After moving production campaign entities/scenery into the depth world pass,
+`compare-screenshots` improved Campaign Whole Map slightly but worsened the
+archived Campaign Label Zoom score because the close-view camera/model scale no
+longer matches the old reference. A fresh critique called the depth version
+more readable for gameplay, especially army, road, labels, and selection ring,
+while still flagging flatter lighting, camera/parity mismatch, repeated props,
+and slightly ungrounded flags. Keep the depth architecture; tune close-view
+camera, lighting, shadows, and model scale in the next visual slice rather than
+reverting to painter-order production overlays.

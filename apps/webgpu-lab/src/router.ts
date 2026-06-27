@@ -560,9 +560,13 @@ async function routeCampaignUi(ctx: LabContext) {
       clear: { r: 0.68, g: 0.72, b: 0.69, a: 1 },
       terrainRect: campaignBgTerrainRect(data.bgRect),
       extra: (pass) => {
-        lines.draw(pass);
         selection.draw(pass);
-        entities.draw(pass);
+        lines.draw(pass);
+      },
+      depthExtra: (pass) => {
+        entities.drawDepth(pass);
+      },
+      overlayExtra: (pass) => {
         labelPass.draw(pass);
       },
     });
@@ -615,6 +619,7 @@ async function routeCampaignUi(ctx: LabContext) {
       labelLayer: labelLayer.layer,
       labelAtlas: `${labelLayer.atlasWidth}x${labelLayer.atlasHeight}`,
       labelVertices: labelLayer.vertices,
+      depth: shell.stats().depth,
       postCutoverScreenshots: 'webgpu-only',
     });
   };
@@ -664,8 +669,12 @@ async function routeCampaignModelGates(ctx: LabContext) {
       water?.draw(pass);
       selection.draw(pass);
       lines.draw(pass);
-      scenery.draw(pass);
-      entities.draw(pass);
+    },
+    depthExtra: (pass) => {
+      scenery.drawDepth(pass);
+      entities.drawDepth(pass);
+    },
+    overlayExtra: (pass) => {
       clouds?.draw(pass);
       labelPass.draw(pass);
     },
@@ -697,6 +706,7 @@ async function routeCampaignModelGates(ctx: LabContext) {
     visibleLabels: labelLayer.visibleLabels,
     labelLayer: labelLayer.layer,
     entityLayer: entities.stats().layer,
+    depth: shell.stats().depth,
     postCutoverScreenshots: 'webgpu-only',
   });
 }

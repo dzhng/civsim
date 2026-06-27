@@ -21,13 +21,22 @@ struct VsOut {
   @location(3) emphasis: f32,
 };
 
+fn campaignDepth(ry: f32, z: f32) -> f32 {
+  return clamp(0.50 + ry * 0.0012 - z * 0.0030, 0.02, 0.98);
+}
+
 fn projectWorld(world: vec2f, z: f32) -> vec4f {
   let dx = world.x - cam.x;
   let dy = world.y - cam.y;
   let rx = dx * cam.cosYaw + dy * cam.sinYaw;
   let ry = -dx * cam.sinYaw + dy * cam.cosYaw;
   let depth = max(0.32, 1.0 + ry * cam.perspective);
-  return vec4f((rx * cam.zoom) / (cam.width * 0.5), (ry * cam.zoom * cam.cosP) / (cam.height * 0.5), z * depth, depth);
+  return vec4f(
+    (rx * cam.zoom) / (cam.width * 0.5),
+    (ry * cam.zoom * cam.cosP) / (cam.height * 0.5),
+    select(z, campaignDepth(ry, 0.06), z < 0.0) * depth,
+    depth
+  );
 }
 
 @vertex
@@ -35,7 +44,7 @@ fn vs(@location(0) quad: vec2f, @location(1) inst0: vec4f, @location(2) inst1: v
   let axisScale = select(0.76, 0.64, inst0.w > 0.5);
   let world = inst0.xy + vec2f(quad.x * inst0.z, quad.y * inst0.z * axisScale);
   var out: VsOut;
-  out.pos = projectWorld(world, 0.06);
+  out.pos = projectWorld(world, -1.0);
   out.local = quad;
   out.color = inst1.rgb;
   out.kind = inst0.w;
@@ -63,6 +72,7 @@ fn fs(in: VsOut) -> @location(0) vec4f {
 
 export class CampaignSelectionPass {
   private pipeline: GPURenderPipeline;
+  private depthPipeline: GPURenderPipeline;
   private quadBuffer: GPUBuffer;
   private instanceBuffer: GPUBuffer;
   private capacity = 0;
@@ -71,9 +81,26 @@ export class CampaignSelectionPass {
   constructor(private shell: RawFrameShell) {
     const device = shell.device;
     const module = device.createShaderModule({ label: 'campaign-selection-wgsl', code: SELECTION_WGSL });
-    this.pipeline = device.createRenderPipeline({
-      label: 'campaign-selection-pipeline',
-      layout: device.createPipelineLayout({ bindGroupLayouts: [shell.cameraBindGroupLayout] }),
+    this.pipeline = this.makePipeline(module, false);
+    this.depthPipeline = this.makePipeline(module, true);
+    this.quadBuffer = device.createBuffer({
+      label: 'campaign-selection-quad',
+      size: 8 * 4,
+      usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
+    });
+    device.queue.writeBuffer(this.quadBuffer, 0, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]));
+    this.instanceBuffer = device.createBuffer({
+      label: 'campaign-selection-empty',
+      size: 8 * 4,
+      usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
+    });
+  }
+
+  private makePipeline(module: GPUShaderModule, depth: boolean) {
+    const device = this.shell.device;
+    return device.createRenderPipeline({
+      label: depth ? 'campaign-selection-depth-pipeline' : 'campaign-selection-pipeline',
+      layout: device.createPipelineLayout({ bindGroupLayouts: [this.shell.cameraBindGroupLayout] }),
       vertex: {
         module,
         entryPoint: 'vs',
@@ -93,7 +120,7 @@ export class CampaignSelectionPass {
         module,
         entryPoint: 'fs',
         targets: [{
-          format: shell.info.format,
+          format: this.shell.info.format,
           blend: {
             color: { srcFactor: 'src-alpha', dstFactor: 'one-minus-src-alpha' },
             alpha: { srcFactor: 'one', dstFactor: 'one-minus-src-alpha' },
@@ -101,17 +128,13 @@ export class CampaignSelectionPass {
         }],
       },
       primitive: { topology: 'triangle-strip' },
-    });
-    this.quadBuffer = device.createBuffer({
-      label: 'campaign-selection-quad',
-      size: 8 * 4,
-      usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
-    });
-    device.queue.writeBuffer(this.quadBuffer, 0, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]));
-    this.instanceBuffer = device.createBuffer({
-      label: 'campaign-selection-empty',
-      size: 8 * 4,
-      usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
+      ...(depth ? {
+        depthStencil: {
+          format: 'depth24plus',
+          depthWriteEnabled: true,
+          depthCompare: 'less',
+        },
+      } : {}),
     });
   }
 
@@ -141,8 +164,16 @@ export class CampaignSelectionPass {
   }
 
   draw(pass: GPURenderPassEncoder) {
+    this.drawWithPipeline(pass, this.pipeline);
+  }
+
+  drawDepth(pass: GPURenderPassEncoder) {
+    this.drawWithPipeline(pass, this.depthPipeline);
+  }
+
+  private drawWithPipeline(pass: GPURenderPassEncoder, pipeline: GPURenderPipeline) {
     if (this.count === 0) return;
-    pass.setPipeline(this.pipeline);
+    pass.setPipeline(pipeline);
     pass.setBindGroup(0, this.shell.cameraBindGroup);
     pass.setVertexBuffer(0, this.quadBuffer);
     pass.setVertexBuffer(1, this.instanceBuffer);

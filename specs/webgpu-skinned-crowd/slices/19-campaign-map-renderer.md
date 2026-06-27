@@ -314,3 +314,15 @@ but still blocks overview acceptance on top-toolbar clipping over `LONDINIUM`,
 bottom-edge label crowding, city/faction label collisions around Gaul and
 Macedon, heavy halos, low-contrast sea labels, blotchy edge fog, muddy stacked
 territory tints, and tiny pasted-on city markers.
+
+The same deterministic label-edge policy now covers the north/south map edges:
+city and faction labels near the top are nudged below the toolbar, and southern
+labels are nudged upward before they clip at the viewport bottom. Campaign
+Whole Map moves from `0.23458` full / `0.24343` crop to `0.23783` full /
+`0.24685` crop; Campaign Label Zoom stays at `0.17429` / `0.23263`. Fresh
+unprimed critique confirms no major settlement or faction label is clipped by
+the top toolbar, and bottom labels are close but not visibly clipped. Remaining
+high-confidence blockers are now label collisions (`CARTHAGE` over a North
+Africa city label, `MACEDON` over `CONSTANTINOPOLIS`), plus lower-confidence
+sea-label readability, fog softness, territory blob seams, and label-weight
+mismatch.

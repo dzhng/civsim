@@ -1,6 +1,6 @@
 {
   "kind": "screenshot-parity-diff",
-  "generatedAt": "2026-06-27T09:40:10.575Z",
+  "generatedAt": "2026-06-27T09:59:35.483Z",
   "note": "Lower parityDistance means the candidate is closer to archived current-renderer parity. This is a parity metric, not an aesthetics acceptance gate.",
   "pairCount": 7,
   "worstPair": "campaign-whole-map",
@@ -13,24 +13,24 @@
         "width": 1280,
         "height": 800
       },
-      "parityDistance": 0.23458,
+      "parityDistance": 0.23783,
       "grayscale": {
-        "mae": 23.0863,
-        "rmse": 32.54207,
-        "diffRatio16": 0.5151,
-        "diffRatio32": 0.23928,
-        "diffRatio64": 0.03576,
-        "pixelmatchRatio": 0.39429
+        "mae": 23.30097,
+        "rmse": 33.04146,
+        "diffRatio16": 0.5161,
+        "diffRatio32": 0.24054,
+        "diffRatio64": 0.03753,
+        "pixelmatchRatio": 0.39531
       },
       "contentProxies": {
         "blackRatioCurrent": 0.00566,
-        "blackRatioCandidate": 0.00197,
+        "blackRatioCandidate": 0.00188,
         "terrainLikeRatioCurrent": 0.5738,
-        "terrainLikeRatioCandidate": 0.65072,
+        "terrainLikeRatioCandidate": 0.6506,
         "edgeEnergyCurrent": 0.13531,
-        "edgeEnergyCandidate": 0.13823,
-        "edgeEnergyRatio": 1.02154,
-        "edgeDiffRatio32": 0.19059
+        "edgeEnergyCandidate": 0.13915,
+        "edgeEnergyRatio": 1.02835,
+        "edgeDiffRatio32": 0.19505
       },
       "artifacts": {
         "sideBySide": "visual-diff/campaign-whole-map-side-by-side.png",
@@ -50,24 +50,24 @@
           "width": 1280,
           "height": 768
         },
-        "parityDistance": 0.24343,
+        "parityDistance": 0.24685,
         "grayscale": {
-          "mae": 23.92125,
-          "rmse": 33.18235,
-          "diffRatio16": 0.53514,
-          "diffRatio32": 0.24892,
-          "diffRatio64": 0.0371,
-          "pixelmatchRatio": 0.41005
+          "mae": 24.14505,
+          "rmse": 33.69258,
+          "diffRatio16": 0.53619,
+          "diffRatio32": 0.25022,
+          "diffRatio64": 0.03895,
+          "pixelmatchRatio": 0.41112
         },
         "contentProxies": {
           "blackRatioCurrent": 0.00579,
-          "blackRatioCandidate": 0.00204,
+          "blackRatioCandidate": 0.00194,
           "terrainLikeRatioCurrent": 0.59485,
-          "terrainLikeRatioCandidate": 0.67496,
+          "terrainLikeRatioCandidate": 0.67484,
           "edgeEnergyCurrent": 0.13302,
-          "edgeEnergyCandidate": 0.13604,
-          "edgeEnergyRatio": 1.02274,
-          "edgeDiffRatio32": 0.19571
+          "edgeEnergyCandidate": 0.13702,
+          "edgeEnergyRatio": 1.03008,
+          "edgeDiffRatio32": 0.20031
         },
         "artifacts": {
           "sideBySide": "visual-diff/campaign-whole-map-world-crop-side-by-side.png",
@@ -165,24 +165,24 @@
         "width": 1280,
         "height": 800
       },
-      "parityDistance": 0.17881,
+      "parityDistance": 0.17886,
       "grayscale": {
-        "mae": 13.11073,
-        "rmse": 25.81246,
-        "diffRatio16": 0.1996,
+        "mae": 13.11581,
+        "rmse": 25.81459,
+        "diffRatio16": 0.19982,
         "diffRatio32": 0.08706,
-        "diffRatio64": 0.0404,
-        "pixelmatchRatio": 0.1401
+        "diffRatio64": 0.04039,
+        "pixelmatchRatio": 0.14033
       },
       "contentProxies": {
         "blackRatioCurrent": 0.00019,
         "blackRatioCandidate": 0.00004,
         "terrainLikeRatioCurrent": 0.84905,
-        "terrainLikeRatioCandidate": 0.88132,
+        "terrainLikeRatioCandidate": 0.88116,
         "edgeEnergyCurrent": 0.15311,
         "edgeEnergyCandidate": 0.12204,
-        "edgeEnergyRatio": 0.79704,
-        "edgeDiffRatio32": 0.25689
+        "edgeEnergyRatio": 0.79709,
+        "edgeDiffRatio32": 0.25692
       },
       "artifacts": {
         "sideBySide": "visual-diff/campaign-handoff-battle-side-by-side.png",
@@ -202,10 +202,10 @@
           "width": 1280,
           "height": 496
         },
-        "parityDistance": 0.16293,
+        "parityDistance": 0.16292,
         "grayscale": {
-          "mae": 10.54799,
-          "rmse": 16.79577,
+          "mae": 10.54779,
+          "rmse": 16.79571,
           "diffRatio16": 0.1835,
           "diffRatio32": 0.05859,
           "diffRatio64": 0.01155,
@@ -218,7 +218,7 @@
           "terrainLikeRatioCandidate": 0.93784,
           "edgeEnergyCurrent": 0.14429,
           "edgeEnergyCandidate": 0.11621,
-          "edgeEnergyRatio": 0.80536,
+          "edgeEnergyRatio": 0.80537,
           "edgeDiffRatio32": 0.26561
         },
         "artifacts": {

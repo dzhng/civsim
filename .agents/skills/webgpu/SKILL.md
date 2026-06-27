@@ -239,6 +239,13 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   clipping. One `SELEUCIDS` right-edge fix traded Campaign Whole Map from
   `0.23252` / `0.24128` crop to `0.23458` / `0.24343`, kept Campaign Label Zoom
   fixed, and removed the high-confidence right-edge critique finding.
+- Extend campaign overview safe margins symmetrically before treating toolbar
+  occlusion as a camera problem. North/south `screenOffsetY` nudges on city and
+  faction labels fixed `LONDINIUM` toolbar pressure and bottom-edge city label
+  clipping while keeping Campaign Label Zoom unchanged; the accepted tradeoff
+  moved Campaign Whole Map from `0.23458` / `0.24343` crop to `0.23783` /
+  `0.24685`, and fresh critique shifted from edge-clipping findings to genuine
+  label-collision/style blockers.
 - Soldier model gates must exercise the same skinned batching path used by
   production battle rendering. Route each capture through `SkinnedCrowdPipeline`,
   bucket instances by class mesh, freeze clip/phase/facing/camera through query

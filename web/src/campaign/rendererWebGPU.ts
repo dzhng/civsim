@@ -332,6 +332,7 @@ function allegianceColor(allegiance: Allegiance): [number, number, number] {
 }
 
 function campaignCityLabels(data: CampaignData, opts: DrawOptions): CampaignLabel[] {
+  const edge = mapEdgeProjector(data);
   const cityHasArmy = new Set<number>();
   for (const army of visibleCampaignArmies(opts)) {
     let best = -1;
@@ -362,7 +363,7 @@ function campaignCityLabels(data: CampaignData, opts: DrawOptions): CampaignLabe
       priority: node.tier,
       icon: 'city',
       iconColor: allegianceColor(allegiance),
-      screenOffsetY: 14 + (cityHasArmy.has(index) ? baseSize * 1.5 : 0),
+      screenOffsetY: 14 + (cityHasArmy.has(index) ? baseSize * 1.5 : 0) + verticalEdgeOffset(edge.y(node.pos[1])),
     });
   });
   return labels;
@@ -412,9 +413,7 @@ function ordinal(k: number) {
 
 function campaignFactionLabels(data: CampaignData, opts: DrawOptions): CampaignLabel[] {
   if (!opts.factionView) return [];
-  const [minX] = data.bgRect.min;
-  const [maxX] = data.bgRect.max;
-  const width = Math.max(1, maxX - minX);
+  const edge = mapEdgeProjector(data);
   return opts.factionLabels.map((label): CampaignLabel => ({
     text: label.name,
     x: label.x,
@@ -425,18 +424,40 @@ function campaignFactionLabels(data: CampaignData, opts: DrawOptions): CampaignL
     angle: -0.06,
     factionRadiusKm: label.radiusKm,
     factionMinor: label.minor,
-    screenOffsetX: factionEdgeOffset((label.x - minX) / width),
+    screenOffsetX: horizontalEdgeOffset(edge.x(label.x)),
+    screenOffsetY: verticalEdgeOffset(edge.y(label.y)),
   }));
 }
 
-const FACTION_EDGE_INSET_START = 0.22;
-const FACTION_EDGE_INSET_RANGE = 0.18;
-const FACTION_EDGE_LABEL_OFFSET = 110;
+const LABEL_EDGE_INSET_START_X = 0.22;
+const LABEL_EDGE_INSET_RANGE_X = 0.18;
+const LABEL_EDGE_OFFSET_X = 110;
+const LABEL_EDGE_INSET_START_Y = 0.22;
+const LABEL_EDGE_INSET_RANGE_Y = 0.16;
+const LABEL_EDGE_OFFSET_Y = 96;
 
-function factionEdgeOffset(t: number) {
-  const rightStart = 1 - FACTION_EDGE_INSET_START;
-  if (t > rightStart) return -FACTION_EDGE_LABEL_OFFSET * Math.min(1, (t - rightStart) / FACTION_EDGE_INSET_RANGE);
-  if (t < FACTION_EDGE_INSET_START) return FACTION_EDGE_LABEL_OFFSET * Math.min(1, (FACTION_EDGE_INSET_START - t) / FACTION_EDGE_INSET_RANGE);
+function mapEdgeProjector(data: CampaignData) {
+  const [minX, minY] = data.bgRect.min;
+  const [maxX, maxY] = data.bgRect.max;
+  const width = Math.max(1, maxX - minX);
+  const height = Math.max(1, maxY - minY);
+  return {
+    x: (worldX: number) => (worldX - minX) / width,
+    y: (worldY: number) => (worldY - minY) / height,
+  };
+}
+
+function horizontalEdgeOffset(t: number) {
+  const rightStart = 1 - LABEL_EDGE_INSET_START_X;
+  if (t > rightStart) return -LABEL_EDGE_OFFSET_X * Math.min(1, (t - rightStart) / LABEL_EDGE_INSET_RANGE_X);
+  if (t < LABEL_EDGE_INSET_START_X) return LABEL_EDGE_OFFSET_X * Math.min(1, (LABEL_EDGE_INSET_START_X - t) / LABEL_EDGE_INSET_RANGE_X);
+  return 0;
+}
+
+function verticalEdgeOffset(t: number) {
+  const topStart = 1 - LABEL_EDGE_INSET_START_Y;
+  if (t > topStart) return LABEL_EDGE_OFFSET_Y * Math.min(1, (t - topStart) / LABEL_EDGE_INSET_RANGE_Y);
+  if (t < LABEL_EDGE_INSET_START_Y) return -LABEL_EDGE_OFFSET_Y * Math.min(1, (LABEL_EDGE_INSET_START_Y - t) / LABEL_EDGE_INSET_RANGE_Y);
   return 0;
 }
 

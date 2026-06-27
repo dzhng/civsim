@@ -217,6 +217,11 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   zoom-aware scaling around that anchor. A fixed-size DOM standard can look like
   it floats above or dominates the WebGPU formation even when the underlying
   pick/projection math is correct.
+- Keep battle overlay vertex contracts single-sourced. `web/src/shared/overlays.ts`
+  emits `x, y, r, g, b` per vertex; `BattleOverlayPass` and any frozen-report
+  overlay filtering must use the same five-float stride. A stale six-float RGBA
+  assumption can scramble line segments, hide selection rings, and present as
+  random colored/debug streaks in WebGPU battle screenshots.
 - For sim-sourced battle terrain, broad tint masks should be treated as
   underpainting only. A density-only pass can improve parity metrics while still
   reading as smudged decals under unprimed critique. Keep forest/mud mask alpha
@@ -224,6 +229,12 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   record both the `compare-screenshots` movement and the critique findings
   before accepting the visual. If the metric win fights artifact readability,
   prefer the version that removes visible decal artifacts and log the tradeoff.
+- For Battle Selection DPR2 terrain cleanup, do not keep pushing per-cell
+  pothole/rock density once the scene already reads as stamped blobs. A
+  dedicated irregular pothole shader plus increased potholes worsened parity
+  from `0.10869` to `0.11165`, and a fewer-potholes/more-rocks variant worsened
+  it to `0.11206`; both still looked patterned. Change the feature
+  representation/layout instead of brute-forcing density.
 - Use instancing, batching, storage buffers, and GPU-side phase passes for scale.
   Avoid CPU readbacks in hot paths; debug readbacks must be bounded and named.
 - For iterative effects or simulations, separate phases such as `state`,

@@ -688,7 +688,8 @@ export class BattleScene implements Scene {
       // Selection rings.
       for (const u of input.selected) {
         const [cx, cy] = unitCenter(u);
-        pushRing(verts, cx, cy, 6, 12, 1, 1, 1);
+        pushRing(verts, cx, cy, 8.5, 18, 1.0, 0.78, 0.22);
+        pushRing(verts, cx, cy, 5.4, 14, 1.0, 0.92, 0.45);
       }
       // Projectiles.
       const pCount = showTransient ? game.projectile_count() : 0;

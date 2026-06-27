@@ -146,3 +146,11 @@ oval stamps. This slice addressed the terrain-blob portion by reducing broad
 feature masks and increasing deterministic object detail; the other findings are
 queued for the battle UI/compositor, crowd LOD/readability, selection marker,
 camera/world-boundary, label, and road slices.
+
+Two follow-up terrain-density trials were rejected for Battle Selection DPR2:
+a dedicated irregular pothole shader with more potholes moved full/world-crop
+parity from `0.10869` / `0.13494` to `0.11165` / `0.14004`, and a
+fewer-potholes/more-rocks variant moved it to `0.11206` / `0.14102`. Both still
+read as patterned/stamped terrain. The next terrain-feature pass should change
+feature representation, boundaries, and object placement rather than adding
+more per-cell detail density.

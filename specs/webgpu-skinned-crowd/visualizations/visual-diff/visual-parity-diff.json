@@ -1,6 +1,6 @@
 {
   "kind": "screenshot-parity-diff",
-  "generatedAt": "2026-06-27T06:18:59.103Z",
+  "generatedAt": "2026-06-27T06:47:26.028Z",
   "note": "Lower parityDistance means the candidate is closer to archived current-renderer parity. This is a parity metric, not an aesthetics acceptance gate.",
   "pairCount": 7,
   "worstPair": "campaign-whole-map",
@@ -317,24 +317,24 @@
         "width": 2560,
         "height": 1600
       },
-      "parityDistance": 0.10869,
+      "parityDistance": 0.10928,
       "grayscale": {
-        "mae": 9.9072,
-        "rmse": 17.17149,
-        "diffRatio16": 0.17505,
-        "diffRatio32": 0.05886,
-        "diffRatio64": 0.01343,
-        "pixelmatchRatio": 0.11141
+        "mae": 10.06158,
+        "rmse": 17.71163,
+        "diffRatio16": 0.17658,
+        "diffRatio32": 0.06027,
+        "diffRatio64": 0.01457,
+        "pixelmatchRatio": 0.11289
       },
       "contentProxies": {
         "blackRatioCurrent": 0.00083,
         "blackRatioCandidate": 0.0015,
         "terrainLikeRatioCurrent": 0.79296,
-        "terrainLikeRatioCandidate": 0.79649,
+        "terrainLikeRatioCandidate": 0.79641,
         "edgeEnergyCurrent": 0.12744,
-        "edgeEnergyCandidate": 0.12353,
-        "edgeEnergyRatio": 0.96932,
-        "edgeDiffRatio32": 0.214
+        "edgeEnergyCandidate": 0.12395,
+        "edgeEnergyRatio": 0.97257,
+        "edgeDiffRatio32": 0.21576
       },
       "artifacts": {
         "sideBySide": "visual-diff/battle-selection-hud-dpr2-side-by-side.png",
@@ -354,24 +354,24 @@
           "width": 2560,
           "height": 752
         },
-        "parityDistance": 0.13494,
+        "parityDistance": 0.13474,
         "grayscale": {
-          "mae": 12.00206,
-          "rmse": 18.43856,
-          "diffRatio16": 0.2229,
-          "diffRatio32": 0.07555,
-          "diffRatio64": 0.01474,
-          "pixelmatchRatio": 0.14251
+          "mae": 12.00175,
+          "rmse": 18.43083,
+          "diffRatio16": 0.22295,
+          "diffRatio32": 0.07558,
+          "diffRatio64": 0.01471,
+          "pixelmatchRatio": 0.14256
         },
         "contentProxies": {
           "blackRatioCurrent": 0,
           "blackRatioCandidate": 0,
           "terrainLikeRatioCurrent": 0.93742,
-          "terrainLikeRatioCandidate": 0.94681,
+          "terrainLikeRatioCandidate": 0.94686,
           "edgeEnergyCurrent": 0.11614,
-          "edgeEnergyCandidate": 0.1109,
-          "edgeEnergyRatio": 0.9549,
-          "edgeDiffRatio32": 0.25154
+          "edgeEnergyCandidate": 0.11103,
+          "edgeEnergyRatio": 0.95602,
+          "edgeDiffRatio32": 0.25163
         },
         "artifacts": {
           "sideBySide": "visual-diff/battle-selection-hud-dpr2-world-crop-side-by-side.png",

@@ -32,6 +32,17 @@ renderer screenshots stop being a routine parallel suite.
   slightly emphasized. Battle Selection DPR2 parity distance moved from
   `0.15681` to `0.15644`; the visual report still renders all units that the
   archived current-renderer shot dropped.
+- Current checkpoint: WebGPU battle overlays now share the live
+  `x, y, r, g, b` vertex contract from `web/src/shared/overlays.ts`. The
+  `BattleOverlayPass` vertex layout and frozen-report overlay filter both use
+  the five-float stride, fixing the stale RGBA assumption that could scramble
+  overlay lines and make selection rings disappear. Selected units now draw a
+  two-stroke warm gold ground ring. Battle Selection DPR2 sits at `0.10928`
+  full-frame parity distance and `0.13474` world-crop parity distance, meeting
+  the current `0.14` target for this capture/crop; an unprimed critique accepted
+  this narrow overlay checkpoint while still asking for a thicker/clearer ring,
+  better tiny text/tray readability, a cleaner transparent stats panel, a
+  clearer minimap, and less repetitive terrain.
 
 ## Verification
 

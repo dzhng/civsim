@@ -226,7 +226,7 @@ export class BattleRendererWebGPU {
 }
 
 function frozenSelectionOverlay(verts: Float32Array) {
-  const stride = 6;
+  const stride = 5;
   const maxSegmentLength = 12;
   const out: number[] = [];
   for (let i = 0; i + stride * 2 <= verts.length; i += stride * 2) {

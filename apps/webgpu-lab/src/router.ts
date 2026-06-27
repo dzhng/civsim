@@ -59,6 +59,7 @@ const routes: Record<string, LabRoute> = {
   '/webgpu/campaign-ui': routeCampaignUi,
   '/webgpu/campaign-model-gates': routeCampaignModelGates,
   '/webgpu/render-graph': routeRenderGraph,
+  '/webgpu/world-camera': routeWorldCamera,
   '/webgpu/battle-terrain': routeBattleTerrain,
   '/webgpu/battle-ui': routeBattleUi,
   '/webgpu/battle-input': routeBattleInput,
@@ -953,6 +954,50 @@ async function routeRenderGraph(ctx: LabContext) {
   });
 }
 
+async function routeWorldCamera(ctx: LabContext) {
+  const mode = ctx.params.get('mode') === 'battle' ? 'battle' : 'campaign';
+  const camera = mode === 'battle'
+    ? { x: 0, y: -0.6, zoom: 42, pitch: 0.34, yaw: -0.10, perspective: 0 }
+    : { x: 0, y: -0.6, zoom: 38, pitch: 0.66, yaw: -0.04, perspective: 0.008 };
+  const shell = await createConfiguredShell(ctx.canvas, camera);
+  const nested = new Nested3dFixturePass(shell);
+  shell.drawFrame({
+    terrainRect: [-14, -7, 28, 15],
+    depthExtra: (pass) => nested.draw(pass),
+  });
+  const shellStats = shell.stats();
+  const anchorAgreement = worldCameraAnchorAgreement(ctx.canvas, camera, [
+    ['city-ground', [-2.62, 0.10, 0.0]],
+    ['garrison-ground', [-3.10, -0.72, 0.0]],
+    ['rank-ground', [4.30, -1.20, 0.0]],
+    ['ring-ground', [-2.20, -0.55, 0.0]],
+  ]);
+  const nestedStats = nested.stats();
+  ctx.status.innerHTML = reportTable({
+    route: 'world-camera',
+    status: 'shared camera/depth contract',
+    mode,
+    camera: `pitch ${camera.pitch.toFixed(2)}, yaw ${camera.yaw.toFixed(2)}, perspective ${camera.perspective}`,
+    depth: shellStats.depth.allocated ? `${shellStats.depth.format} ${shellStats.depth.width}x${shellStats.depth.height}` : 'not allocated',
+    cameraWgsl: 'packages/webgpu-core/src/cameraWgsl.ts',
+    maxAnchorDeltaPx: anchorAgreement.maxDelta.toFixed(4),
+    nestedFixtures: nestedStats.fixtures.join(', '),
+  }) + `<p class="webgpu-note"><a href="/webgpu/world-camera?mode=campaign">campaign camera</a> · <a href="/webgpu/world-camera?mode=battle">battle camera</a></p>`;
+  publish('world-camera', true, {
+    mode,
+    camera,
+    depth: shellStats.depth,
+    nested3d: nestedStats,
+    cameraContract: 'shared-world-camera-wgsl',
+    anchorAgreement,
+    samples: {
+      occludedLowerStandard: projectNestedPoint(ctx.canvas, camera, [-2.62, 0.10, 1.35]),
+      visibleUpperFlag: projectNestedPoint(ctx.canvas, camera, [-1.20, 0.10, 3.70]),
+      frontRankOverlap: projectNestedPoint(ctx.canvas, camera, [4.30, -1.20, 1.08]),
+    },
+  });
+}
+
 async function routeBattleTerrain(ctx: LabContext) {
   const fixture = parseBattleTerrainFixture(ctx.params.get('fixture'));
   const shell = await createConfiguredShell(ctx.canvas, { x: 0, y: -6, zoom: 7.2, pitch: 0.30, yaw: -0.12 });
@@ -1786,6 +1831,24 @@ function projectNestedPoint(
     x: (rx * camera.zoom) / depth + canvas.width * 0.5,
     y: canvas.height * 0.5 - ((ry * camera.zoom * cosP + point[2] * camera.zoom) / depth),
     world: point,
+  };
+}
+
+function worldCameraAnchorAgreement(
+  canvas: HTMLCanvasElement,
+  camera: { x: number; y: number; zoom: number; pitch?: number; yaw?: number; perspective?: number },
+  anchors: [string, [number, number, number]][],
+) {
+  const snapshot = { ...camera, width: canvas.width, height: canvas.height };
+  const points = anchors.map(([id, point]) => {
+    const cpu = worldToScreen(snapshot, point[0], point[1]);
+    const gpu = projectNestedPoint(canvas, camera, point);
+    const delta = Math.hypot(cpu[0] - gpu.x, cpu[1] - gpu.y);
+    return { id, cpu, gpu: [gpu.x, gpu.y], delta };
+  });
+  return {
+    maxDelta: points.reduce((max, point) => Math.max(max, point.delta), 0),
+    points,
   };
 }
 

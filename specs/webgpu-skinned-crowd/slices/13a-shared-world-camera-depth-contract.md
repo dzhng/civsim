@@ -74,6 +74,9 @@ shadows that sit on the ground instead of floating as screen overlays.
 - `CampaignEntityPass`, `CampaignSceneryPass`, `CampaignSelectionPass`, and
   `Nested3dFixturePass` use that shared WGSL source for projection instead of
   each pass owning a private copy.
+- `/webgpu/world-camera` renders the nested-object fixture through the shared
+  helper path and publishes CPU-vs-GPU ground-anchor agreement stats so picking,
+  labels, and shader projection can be checked together.
 
 ## Human Feedback
 

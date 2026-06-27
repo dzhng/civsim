@@ -39,6 +39,15 @@ const routes = [
     && s.stats.nested3d?.fixtures?.includes('flag-in-city')
     && s.stats.nested3d?.fixtures?.includes('garrison-in-city-stub')
     && s.stats.nested3d?.fixtures?.includes('rank-overlap')],
+  ['world-camera', (s) => s?.ok
+    && s.route === 'world-camera'
+    && s.stats.cameraContract === 'shared-world-camera-wgsl'
+    && s.stats.depth?.allocated === true
+    && s.stats.depth?.format === 'depth24plus'
+    && s.stats.anchorAgreement?.maxDelta < 0.001
+    && s.stats.nested3d?.fixtures?.includes('flag-in-city')
+    && s.stats.nested3d?.fixtures?.includes('garrison-in-city-stub')
+    && s.stats.nested3d?.fixtures?.includes('rank-overlap')],
   ['battle-terrain?fixture=coast', (s) => s?.ok && s.route === 'battle-terrain' && s.stats.fixture === 'coast' && s.stats.waterQuads >= 3 && s.stats.sceneryQuads >= 8],
   ['battle-terrain?fixture=melee', (s) => s?.ok && s.route === 'battle-terrain' && s.stats.fixture === 'melee' && s.stats.waterQuads >= 3 && s.stats.sceneryQuads >= 8 && s.stats.selectionQuads === 0],
   ['battle-live?mode=5v5&ticks=36', (s) => s?.ok && s.route === 'battle-live' && s.stats.written > 1000 && s.stats.units >= 10 && s.stats.player > 0 && s.stats.enemy > 0 && s.stats.drawCalls >= 1 && s.stats.drawCalls <= 15 && s.stats.overlay.lineSegments >= 20],
@@ -137,7 +146,7 @@ export async function run(ctx) {
     ctx.check(`${route}: route stats satisfy contract`, predicate(stats), JSON.stringify(stats));
     const pixels = countPixels(PNG.sync.read(await page.screenshot()));
     ctx.check(`${route}: route rendered nonblank raw-WebGPU frame`, pixels.nonBlank > 200000 && pixels.warmGround > 8000, JSON.stringify(pixels));
-    if (route === 'render-graph') {
+    if (route === 'render-graph' || route === 'world-camera') {
       const canvasPng = PNG.sync.read(await page.locator('#webgpu-canvas').screenshot());
       const samples = stats.stats.samples;
       const lower = patchStats(canvasPng, samples.occludedLowerStandard);

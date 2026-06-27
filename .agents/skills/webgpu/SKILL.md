@@ -538,6 +538,12 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   `world-depth`; background underpaint and overlay UI must not touch them.
   Have `compileRenderGraph` validate phase order and depth ownership, and make
   the render-graph lab route expose graph frame phases and depth-pass ids.
+- Live `world-depth` frame passes need an explicit depth mode, not just a phase
+  name. Use `read` for ground decals, roads, and other world cues that should be
+  occluded by later geometry without reserving pixels; use `read-write` for
+  opaque, skinned, nested, or scenery geometry that participates in occlusion;
+  reserve `write` for a dedicated depth-fill pass. Publish those modes in
+  `FrameShellStats.phases[].depthPasses` and make scenarios assert them.
 - Shared projection does not require one numeric depth scale for every world.
   Battle and campaign should import the same camera/projection helpers, but
   large battlefields and compact campaign fixtures need named depth helpers

@@ -38,6 +38,8 @@ export type OverlayRenderPass = GPURenderPassEncoder & {
   readonly [framePassPhase]: 'overlay';
 };
 
+export type FrameGraphDepthMode = 'read' | 'read-write' | 'write';
+
 export type FrameGraphPass =
   | {
     id: string;
@@ -49,6 +51,7 @@ export type FrameGraphPass =
     id: string;
     label?: string;
     phase: 'world-depth';
+    depth: FrameGraphDepthMode;
     draw: (pass: WorldRenderPass, shell: RawFrameShell) => void;
   }
   | {
@@ -69,10 +72,19 @@ export interface FrameGraphCommands {
 
 export type FramePhaseKind = 'background' | 'world-depth' | 'overlay';
 
+function frameGraphPhaseOrder(phase: FramePhaseKind): number {
+  switch (phase) {
+    case 'background': return 0;
+    case 'world-depth': return 1;
+    case 'overlay': return 2;
+  }
+}
+
 export interface FramePhaseStats {
   kind: FramePhaseKind;
   label: string;
   passIds: string[];
+  depthPasses: Array<{ id: string; mode: FrameGraphDepthMode }>;
   depth: 'none' | 'depth24plus-clear';
   loadOp: 'clear' | 'load';
 }
@@ -410,7 +422,7 @@ export class RawFrameShellImpl implements RawFrameShell {
     this.frame++;
     this.lastPhases = [];
     const graphPasses = commands.passes ?? [];
-    this.assertUniquePassIds(graphPasses);
+    this.assertFrameGraphPasses(graphPasses);
     const backgroundPasses = graphPasses.filter((pass) => pass.phase === 'background');
     const worldPasses = graphPasses.filter((pass) => pass.phase === 'world-depth');
     const overlayPasses = graphPasses.filter((pass) => pass.phase === 'overlay');
@@ -452,6 +464,7 @@ export class RawFrameShellImpl implements RawFrameShell {
       kind: 'background',
       label: 'terrain, backdrop, impostor markers, and background surfaces',
       passIds: ['builtin-background', ...backgroundPasses.map((pass) => pass.id)],
+      depthPasses: [],
       depth: 'none',
       loadOp: 'clear',
     });
@@ -472,6 +485,7 @@ export class RawFrameShellImpl implements RawFrameShell {
         kind: 'world-depth',
         label: 'depth-tested world geometry and ground decals',
         passIds: worldPasses.map((pass) => pass.id),
+        depthPasses: worldPasses.map((pass) => ({ id: pass.id, mode: pass.depth })),
         depth: 'depth24plus-clear',
         loadOp: 'load',
       });
@@ -492,6 +506,7 @@ export class RawFrameShellImpl implements RawFrameShell {
         kind: 'overlay',
         label: 'labels, HUD, minimap, atmosphere, and debug overlays',
         passIds: overlayPasses.map((pass) => pass.id),
+        depthPasses: [],
         depth: 'none',
         loadOp: 'load',
       });
@@ -532,11 +547,17 @@ export class RawFrameShellImpl implements RawFrameShell {
     this.lastPhases.push(phase);
   }
 
-  private assertUniquePassIds(passes: FrameGraphPass[]) {
+  private assertFrameGraphPasses(passes: FrameGraphPass[]) {
     const seen = new Set<string>();
+    let lastPhaseOrder = -1;
     for (const pass of passes) {
       if (seen.has(pass.id)) throw new Error(`duplicate frame graph pass id "${pass.id}"`);
       seen.add(pass.id);
+      const order = frameGraphPhaseOrder(pass.phase);
+      if (order < lastPhaseOrder) {
+        throw new Error(`frame graph pass "${pass.id}" moves phase order backward to "${pass.phase}"`);
+      }
+      lastPhaseOrder = Math.max(lastPhaseOrder, order);
     }
   }
 

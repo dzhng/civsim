@@ -155,7 +155,7 @@ export class BattleRendererWebGPU {
       markers: this.markers,
       passes: [
         { id: 'battle-terrain-features', phase: 'background', draw: (pass) => this.terrain!.draw(pass) },
-        { id: 'battle-skinned-crowd', phase: 'world-depth', draw: (pass) => this.crowd!.draw(pass) },
+        { id: 'battle-skinned-crowd', phase: 'world-depth', depth: 'read-write', draw: (pass) => this.crowd!.draw(pass) },
         { id: 'battle-debug-blocks', phase: 'overlay', draw: (pass) => this.debugBlocks!.draw(pass) },
         { id: 'battle-debug-triangles', phase: 'overlay', draw: (pass) => this.tris!.draw(pass) },
         { id: 'battle-selection-overlay', phase: 'overlay', draw: (pass) => this.overlay!.draw(pass) },

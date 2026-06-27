@@ -176,7 +176,10 @@ next useful question, then lock it with tests and screenshots.
   `world`, and `overlay` phases rather than generic draw callbacks. Depth-
   sensitive scenarios must assert that true 3D routes execute the `world-depth`
   phase with a `depth24plus` attachment, while labels, minimaps, HUD, and other
-  deliberate overlays stay in a later non-depth phase.
+  deliberate overlays stay in a later non-depth phase. Every `world-depth` pass
+  must declare its depth mode: `read` for decals/roads/ground cues, `read-write`
+  for opaque/skinned/nested world geometry, and `write` only for a dedicated
+  depth fill.
 - **One world/camera/depth contract.** Campaign and battle model, terrain,
   decal, shadow, projectile, picking, and label-anchor code must share the same
   packed camera uniform and projection semantics. A pass can opt into a named

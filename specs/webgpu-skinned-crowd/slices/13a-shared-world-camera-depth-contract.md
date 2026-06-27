@@ -29,6 +29,9 @@ shadows that sit on the ground instead of floating as screen overlays.
     frame phases: `background`, `world`, and `overlay`.
   - owns the live `world-depth` pass and publishes the executed phase list in
     frame stats so scenarios can prove a route used the shared depth contract.
+  - requires each `world-depth` graph pass to declare a depth mode: `read` for
+    ground decals/roads/cues, `read-write` for true 3D geometry, and `write`
+    only for explicit depth-fill passes.
 - `packages/game-renderer/src/**`
   - model, terrain, decal, and fixture passes import the shared WGSL helpers
     instead of copying camera structs and projection functions.
@@ -73,6 +76,9 @@ shadows that sit on the ground instead of floating as screen overlays.
 - Depth-sensitive routes expose `background -> world-depth` in frame stats;
   labels/minimaps/HUD can add a later `overlay` phase but true 3D model passes
   do not draw through untyped side callbacks.
+- Every live `world-depth` pass publishes its depth mode in frame stats, and
+  scenarios assert the modes for nested-object, skinned-depth, and production
+  campaign UI gates.
 - Campaign UI labels/icons keep the old font/icon style while their anchors
   move onto the shared projection contract.
 - Battle picking, drag selection, minimap viewport, and DOM unit banners remain
@@ -140,6 +146,10 @@ shadows that sit on the ground instead of floating as screen overlays.
   a stable id and a frame phase, and `RawFrameShell.stats().phases` publishes
   the executed pass ids so scenarios can verify the real frame shape, not only
   the declarative render-graph skeleton.
+- Live `world-depth` passes now declare a `FrameGraphDepthMode`. The frame shell
+  validates phase order, publishes depth pass ids/modes in stats, and the lab
+  scenario scans source routes so a future depth pass cannot omit its
+  read/write contract.
 - The declarative full-game render graph now tracks content domain and runtime
   frame phase separately. Battle/campaign classify ownership, while
   `background -> world-depth -> overlay` classifies attachment semantics. The

@@ -149,3 +149,18 @@ while still flagging flatter lighting, camera/parity mismatch, repeated props,
 and slightly ungrounded flags. Keep the depth architecture; tune close-view
 camera, lighting, shadows, and model scale in the next visual slice rather than
 reverting to painter-order production overlays.
+
+The production city model now has its own nesting gate in addition to the
+abstract fixture. The city standard is planted through the settlement core, a
+buried lower red segment is depth-hidden by city material, and the upper cloth
+stays visible above the core. `webgpu-lab-routes` samples those exact pixels so
+a future change that merely raises or screen-layers the flag fails before the
+visual report can hide it in a broader scene.
+
+Fresh screenshot critique after this gate still flags non-engine visual
+blockers for later slices: labels can overlap city facades, roof/prop
+placement is not always readable, the selected-army ring reads too neon and
+flat, roads still look like thin UI strips, the army/road/shadow stack competes
+visually, and the campaign ground plane still exposes a floating board edge.
+Keep those in the campaign visual-polish backlog; they do not invalidate the
+depth/nesting contract, but they block claiming close-view parity complete.

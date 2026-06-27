@@ -376,6 +376,13 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   already-cleared color target, clear/reuse a `depth24plus` texture, bind the
   same camera uniforms, and prove the contract without forcing every flat
   marker/terrain pipeline to become depth-compatible in one edit.
+- Production model gates need their own nested-object pixel samples. The
+  abstract render-graph fixture can prove depth plumbing while the real city
+  mesh still reads like a pasted or perched flag. Add tight samples for the
+  actual model: a buried standard/cloth point should resolve to city material
+  and an exposed cloth point should resolve to faction color. Keep the visible
+  cloth readable, but place a lower segment inside the settlement volume so the
+  gate proves interpenetration rather than just flag height.
 - Nested-object fixtures should intentionally defeat painter-order shortcuts:
   submit the city/front-rank/ground occluders first, then submit the flag,
   garrison stub, rear rank, or selection ring later. Accept the route only after

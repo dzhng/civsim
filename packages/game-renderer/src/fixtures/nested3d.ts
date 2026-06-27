@@ -19,9 +19,7 @@ struct VsOut {
 };
 
 fn projectWorld(world: vec3f) -> vec4f {
-  let axes = cameraSpace(world.xy);
-  let depth = clamp(0.48 + axes.y * 0.028 - world.z * 0.003, 0.02, 0.98);
-  return projectWorld3d(world, depth);
+  return projectWorld3d(world, worldDepth3d(world, 0.48, 0.028, 0.003));
 }
 
 @vertex

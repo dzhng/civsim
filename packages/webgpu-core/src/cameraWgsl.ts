@@ -37,4 +37,9 @@ fn projectWorld3d(world: vec3f, normalizedDepth: f32) -> vec4f {
     depth
   );
 }
+
+fn worldDepth3d(world: vec3f, base: f32, groundScale: f32, heightScale: f32) -> f32 {
+  let axes = cameraSpace(world.xy);
+  return clamp(base + axes.y * groundScale - world.z * heightScale, 0.02, 0.98);
+}
 `;

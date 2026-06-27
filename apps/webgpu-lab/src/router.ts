@@ -655,6 +655,7 @@ async function routeCampaignModelGates(ctx: LabContext) {
   const selection = new CampaignSelectionPass(shell);
   const labelPass = new CampaignLabelPass(shell);
   const frame = campaignModelGateFrame(gate);
+  const cityStandardSamples = campaignModelGateCityStandardSamples(gate, ctx.canvas, camera);
   const water = frame.water.length > 0 ? new CampaignWaterPass(shell) : null;
   const clouds = frame.cloudRect ? new CampaignCloudPass(shell, frame.cloudRect) : null;
   entities.upload(frame.entities);
@@ -690,6 +691,7 @@ async function routeCampaignModelGates(ctx: LabContext) {
     waterFeatures: water?.stats().waterFeatures ?? 0,
     cloudQuads: clouds?.stats().cloudQuads ?? 0,
     labels: `${labelLayer.visibleLabels}/${labelLayer.labels}`,
+    cityStandard: cityStandardSamples ? 'embedded-depth-sampled' : 'n/a',
     renderer: 'raw WebGPU campaign model passes',
   });
   publish('campaign-model-gates', true, {
@@ -708,6 +710,7 @@ async function routeCampaignModelGates(ctx: LabContext) {
     labelLayer: labelLayer.layer,
     entityLayer: entities.stats().layer,
     depth: shell.stats().depth,
+    samples: cityStandardSamples ? { cityStandard: cityStandardSamples } : {},
     postCutoverScreenshots: 'webgpu-only',
   });
 }
@@ -750,6 +753,9 @@ const CAMPAIGN_MODEL_GATES: CampaignModelGate[] = [
   'cloud-fog',
 ];
 
+const MODEL_GATE_CITY_POSITION: [number, number] = [0.0, -1.8];
+const MODEL_GATE_CITY_RADIUS = 6.6;
+
 function campaignModelGate(value: string | null): CampaignModelGate {
   return CAMPAIGN_MODEL_GATES.includes(value as CampaignModelGate) ? value as CampaignModelGate : 'city';
 }
@@ -791,8 +797,8 @@ function campaignModelGateFrame(gate: CampaignModelGate) {
   };
 
   if (gate === 'overview') addCity(-6.0, -2.0, 7.0, 'ROMA', red, green, false);
-  if (gate === 'city') addCity(0.0, -1.8, 6.6, 'ROMA', red, green, true);
-  if (gate === 'selected-city') addCity(0.0, -1.8, 6.6, 'ROMA', red, green, true);
+  if (gate === 'city') addCity(MODEL_GATE_CITY_POSITION[0], MODEL_GATE_CITY_POSITION[1], MODEL_GATE_CITY_RADIUS, 'ROMA', red, green, true);
+  if (gate === 'selected-city') addCity(MODEL_GATE_CITY_POSITION[0], MODEL_GATE_CITY_POSITION[1], MODEL_GATE_CITY_RADIUS, 'ROMA', red, green, true);
   if (gate === 'overview') addCity(6.0, -2.0, 5.2, 'NEAPOLIS', amber, neutral, false);
   if (gate === 'town') addCity(0.0, -1.8, 5.0, 'NEAPOLIS', amber, neutral, true);
   if (gate === 'overview' || gate === 'army') addArmy(0.0, -2.2, gate === 'army');
@@ -859,6 +865,26 @@ function campaignModelGateFrame(gate: CampaignModelGate) {
     labels.push({ text: 'Tyrrhenian Sea', x: 0.0, y: -7.0, kind: 'sea', size: 17, priority: 3, angle: -0.12 });
   }
   return { entities, scenery, selections, labels, roads, terrainRect, water, cloudRect };
+}
+
+function campaignModelGateCityStandardSamples(
+  gate: CampaignModelGate,
+  canvas: HTMLCanvasElement,
+  camera: { x: number; y: number; zoom: number; pitch?: number; yaw?: number; perspective?: number },
+) {
+  if (gate !== 'city' && gate !== 'selected-city') return null;
+  const scale = MODEL_GATE_CITY_RADIUS / 5.0;
+  const base = MODEL_GATE_CITY_POSITION;
+  const worldPoint = (local: [number, number, number]) => projectNestedPoint(canvas, camera, [
+    base[0] + local[0] * scale,
+    base[1] + local[1] * scale,
+    local[2] * scale,
+  ]);
+  return {
+    hiddenLowerCloth: worldPoint([-0.22, 0.08, 1.45]),
+    visibleUpperCloth: worldPoint([-1.08, -0.54, 5.22]),
+    plantedMastCore: worldPoint([0.05, -0.54, 2.35]),
+  };
 }
 
 function roadGateVertices(points: [number, number][]) {

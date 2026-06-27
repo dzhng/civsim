@@ -29,6 +29,13 @@ const routes = [
   ['campaign', (s) => s?.ok && s.route === 'campaign' && s.stats.markers > 0],
   ['campaign-map?preset=whole', (s) => s?.ok && s.route === 'campaign-map' && s.stats.roads > 20 && s.stats.seaLanes > 0 && s.stats.cityMarkers > 20 && s.stats.visibleLabels > 5 && s.stats.labelVertices > 20 && s.stats.factions > 5 && s.stats.territoryPixels > 10000 && s.stats.borderSegments > 100 && s.stats.waterFeatures >= 5 && s.stats.cloudQuads === 1 && s.stats.territoryLayer === 'raw-webgpu-texture' && s.stats.atmosphereLayer === 'raw-webgpu-cloud-water' && s.stats.labelLayer === 'raw-webgpu-glyph-atlas'],
   ['campaign-ui', (s) => s?.ok && s.route === 'campaign-ui' && s.stats.fixture === 'controlled' && s.stats.cityEntities === 2 && s.stats.armyEntities === 1 && s.stats.selections >= 2 && s.stats.depth?.allocated === true && s.stats.depth?.format === 'depth24plus' && s.stats.ui.armyPanel && s.stats.ui.cityPanel && s.stats.ui.autoReplenishToggle && s.stats.ui.classRows >= 8 && s.stats.ui.diplomacyRows >= 1 && s.stats.labelLayer === 'raw-webgpu-glyph-atlas' && s.stats.labelVertices > 0 && s.stats.postCutoverScreenshots === 'webgpu-only'],
+  ['campaign-model-gates?gate=city', (s) => s?.ok
+    && s.route === 'campaign-model-gates'
+    && s.stats.gate === 'city'
+    && s.stats.depth?.allocated === true
+    && s.stats.entityLayer === 'raw-webgpu-legacy-model-meshes'
+    && s.stats.samples?.cityStandard?.hiddenLowerCloth
+    && s.stats.samples?.cityStandard?.visibleUpperCloth],
   ['render-graph', (s) => s?.ok
     && s.route === 'render-graph'
     && s.stats.firstPass === 'camera'
@@ -166,6 +173,22 @@ export async function run(ctx) {
         `${route}: front battle rank wins overlapping depth`,
         frontRank.blue > 12 && frontRank.red <= 10,
         JSON.stringify({ frontRank, sample: samples.frontRankOverlap }),
+      );
+    }
+    if (route === 'campaign-model-gates?gate=city') {
+      const canvasPng = PNG.sync.read(await page.locator('#webgpu-canvas').screenshot());
+      const samples = stats.stats.samples.cityStandard;
+      const lower = patchStats(canvasPng, samples.hiddenLowerCloth, 5);
+      const upper = patchStats(canvasPng, samples.visibleUpperCloth, 6);
+      ctx.check(
+        `${route}: production city hides the lower embedded flag cloth`,
+        lower.red <= 8 && lower.tan > 8,
+        JSON.stringify({ lower, sample: samples.hiddenLowerCloth }),
+      );
+      ctx.check(
+        `${route}: production city standard remains visible above the core`,
+        upper.red > 12,
+        JSON.stringify({ upper, sample: samples.visibleUpperCloth }),
       );
     }
     if (route === 'assets') {

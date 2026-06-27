@@ -33,9 +33,7 @@ struct VsOut {
 };
 
 fn campaignDepth(world: vec3f) -> f32 {
-  let axes = cameraSpace(world.xy);
-  let ry = axes.y;
-  return clamp(0.50 + ry * 0.0012 - world.z * 0.0030, 0.02, 0.98);
+  return worldDepth3d(world, 0.50, 0.0060, 0.0012);
 }
 
 @vertex
@@ -259,15 +257,24 @@ function buildCityMesh(): MeshData {
   const roof: Rgb = [0.66, 0.40, 0.30];
   const timber: Rgb = [0.45, 0.36, 0.28];
   builder.shadow(3.65, 1.95, 0.14, [0.28, -0.54]);
-  builder.box([1.02, 0.02, 3.38], [0.20, 0.20, 6.76], timber, 1);
+  builder.box([0.05, -0.54, 2.72], [0.18, 0.18, 5.44], timber, 1);
   builder.panel3d([
-    [0.90, 0.02, 6.08],
-    [3.24, 0.02, 5.96],
-    [2.90, 0.02, 5.22],
-    [3.24, 0.02, 4.48],
-    [0.90, 0.02, 3.72],
+    [0.04, -0.54, 5.72],
+    [-2.02, -0.54, 5.54],
+    [-1.66, -0.54, 4.78],
+    [-2.02, -0.54, 4.04],
+    [0.04, -0.54, 3.86],
   ], [1, 1, 1], 1);
-  builder.box([1.02, -0.02, 5.16], [0.12, 0.08, 1.56], timber, 1);
+  builder.box([0.05, -0.66, 4.78], [0.16, 0.10, 2.08], timber, 1);
+  builder.box([-0.86, -0.66, 5.36], [1.88, 0.10, 0.12], timber, 1);
+  builder.box([0.05, -0.66, 3.72], [0.32, 0.22, 0.24], [0.35, 0.24, 0.18], 1);
+  builder.panel3d([
+    [0.04, 0.08, 2.02],
+    [-0.46, 0.08, 1.94],
+    [-0.46, 0.08, 0.82],
+    [0.04, 0.08, 0.90],
+  ], [1, 1, 1], 1);
+  builder.box([0.05, -0.54, 4.90], [0.12, 0.08, 0.50], timber, 1);
   const building = (x: number, y: number, w: number, d: number, h: number) => {
     builder.box([x, y, h * 0.5], [w, d, h], sandstone, 1);
     builder.box([x, y, h + h * 0.19], [w * 1.18, d * 1.18, h * 0.38], roof, 1);

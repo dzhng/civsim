@@ -80,6 +80,12 @@ shadows that sit on the ground instead of floating as screen overlays.
 - Battle skinned soldiers, battle terrain/scenery quads, battle overlays, and
   the production debug triangle pass now consume the same shared WGSL camera
   helpers while preserving their existing depth/pass ordering.
+- `/webgpu/campaign-model-gates?gate=city` now publishes tight production
+  city-standard samples. The route asserts that a lower red standard segment
+  planted inside the city resolves to city material while the upper cloth
+  remains visibly faction-colored, so the real city mesh is checked for
+  interpenetrating-object behavior instead of relying only on the abstract
+  nested fixture.
 
 ## Human Feedback
 

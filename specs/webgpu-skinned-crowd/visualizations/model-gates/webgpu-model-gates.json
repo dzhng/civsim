@@ -48,6 +48,37 @@
           "height": 758,
           "allocated": true
         },
+        "samples": {
+          "cityStandard": {
+            "hiddenLowerCloth": {
+              "x": 476.5660271208156,
+              "y": 372.4876484028894,
+              "world": [
+                -0.2904,
+                -1.6944000000000001,
+                1.9139999999999997
+              ]
+            },
+            "visibleUpperCloth": {
+              "x": 442.9544152245869,
+              "y": 246.0667956244218,
+              "world": [
+                -1.4256,
+                -2.5128,
+                6.890399999999999
+              ]
+            },
+            "plantedMastCore": {
+              "x": 486.94655485071354,
+              "y": 357.7990440553806,
+              "world": [
+                0.06599999999999999,
+                -2.5128,
+                3.102
+              ]
+            }
+          }
+        },
         "postCutoverScreenshots": "webgpu-only"
       },
       "status": "webgpu-evidence"
@@ -97,6 +128,7 @@
           "height": 758,
           "allocated": true
         },
+        "samples": {},
         "postCutoverScreenshots": "webgpu-only"
       },
       "status": "webgpu-evidence"
@@ -146,6 +178,7 @@
           "height": 758,
           "allocated": true
         },
+        "samples": {},
         "postCutoverScreenshots": "webgpu-only"
       },
       "status": "webgpu-evidence"
@@ -195,6 +228,7 @@
           "height": 758,
           "allocated": true
         },
+        "samples": {},
         "postCutoverScreenshots": "webgpu-only"
       },
       "status": "webgpu-evidence"
@@ -244,6 +278,7 @@
           "height": 758,
           "allocated": true
         },
+        "samples": {},
         "postCutoverScreenshots": "webgpu-only"
       },
       "status": "webgpu-evidence"
@@ -292,6 +327,37 @@
           "width": 970,
           "height": 758,
           "allocated": true
+        },
+        "samples": {
+          "cityStandard": {
+            "hiddenLowerCloth": {
+              "x": 476.5660271208156,
+              "y": 372.4876484028894,
+              "world": [
+                -0.2904,
+                -1.6944000000000001,
+                1.9139999999999997
+              ]
+            },
+            "visibleUpperCloth": {
+              "x": 442.9544152245869,
+              "y": 246.0667956244218,
+              "world": [
+                -1.4256,
+                -2.5128,
+                6.890399999999999
+              ]
+            },
+            "plantedMastCore": {
+              "x": 486.94655485071354,
+              "y": 357.7990440553806,
+              "world": [
+                0.06599999999999999,
+                -2.5128,
+                3.102
+              ]
+            }
+          }
         },
         "postCutoverScreenshots": "webgpu-only"
       },
@@ -342,6 +408,7 @@
           "height": 758,
           "allocated": true
         },
+        "samples": {},
         "postCutoverScreenshots": "webgpu-only"
       },
       "status": "webgpu-evidence"
@@ -391,6 +458,7 @@
           "height": 758,
           "allocated": true
         },
+        "samples": {},
         "postCutoverScreenshots": "webgpu-only"
       },
       "status": "webgpu-evidence"
@@ -440,6 +508,7 @@
           "height": 758,
           "allocated": true
         },
+        "samples": {},
         "postCutoverScreenshots": "webgpu-only"
       },
       "status": "webgpu-evidence"
@@ -489,6 +558,7 @@
           "height": 758,
           "allocated": true
         },
+        "samples": {},
         "postCutoverScreenshots": "webgpu-only"
       },
       "status": "webgpu-evidence"
@@ -538,6 +608,7 @@
           "height": 758,
           "allocated": true
         },
+        "samples": {},
         "postCutoverScreenshots": "webgpu-only"
       },
       "status": "webgpu-evidence"
@@ -587,6 +658,7 @@
           "height": 758,
           "allocated": true
         },
+        "samples": {},
         "postCutoverScreenshots": "webgpu-only"
       },
       "status": "webgpu-evidence"
@@ -636,6 +708,7 @@
           "height": 758,
           "allocated": true
         },
+        "samples": {},
         "postCutoverScreenshots": "webgpu-only"
       },
       "status": "webgpu-evidence"
@@ -685,6 +758,7 @@
           "height": 758,
           "allocated": true
         },
+        "samples": {},
         "postCutoverScreenshots": "webgpu-only"
       },
       "status": "webgpu-evidence"
@@ -734,6 +808,7 @@
           "height": 758,
           "allocated": true
         },
+        "samples": {},
         "postCutoverScreenshots": "webgpu-only"
       },
       "status": "webgpu-evidence"
@@ -783,6 +858,7 @@
           "height": 758,
           "allocated": true
         },
+        "samples": {},
         "postCutoverScreenshots": "webgpu-only"
       },
       "status": "webgpu-evidence"

@@ -266,6 +266,13 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   flags/models to an unprimed reviewer. Port the old icon/flag hierarchy and
   zoom LOD as an explicit visual feature; prune halfway marker layers unless
   fresh critique sees them as the intended campaign map language.
+- For campaign overview markers, use constant screen-size quads anchored to
+  world positions for old-overlay concepts such as city squares and army
+  pennants. World-radius markers disappear at political zoom and read as
+  missing content. A screen-space marker pass can be an accepted tradeoff even
+  if `parityDistance` worsens slightly, but only when an unprimed comparison
+  says the candidate is more complete/readable and the style gap is still
+  recorded as open.
 - Soldier model gates must exercise the same skinned batching path used by
   production battle rendering. Route each capture through `SkinnedCrowdPipeline`,
   bucket instances by class mesh, freeze clip/phase/facing/camera through query

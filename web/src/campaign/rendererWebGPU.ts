@@ -1,6 +1,6 @@
 import { campaignWaterFeatures, CampaignCloudPass, CampaignWaterPass } from '../../../packages/game-renderer/src/campaign/atmospherePass';
 import { CampaignEntityPass, type CampaignEntityInstance } from '../../../packages/game-renderer/src/campaign/entityPass';
-import { buildCampaignMapDrawData, CampaignLabelPass, type CampaignLabelPassStats, CampaignLinePass, CampaignMapPass, type CampaignLabel } from '../../../packages/game-renderer/src/campaign/mapPass';
+import { buildCampaignMapDrawData, CampaignLabelPass, type CampaignLabelPassStats, CampaignLinePass, CampaignMapPass, CampaignMarkerPass, type CampaignLabel, type CampaignMarker } from '../../../packages/game-renderer/src/campaign/mapPass';
 import { CampaignSceneryPass, type CampaignSceneryInstance } from '../../../packages/game-renderer/src/campaign/sceneryPass';
 import { CampaignSelectionPass, type CampaignSelectionInstance } from '../../../packages/game-renderer/src/campaign/selectionPass';
 import { campaignBorderVertices, CampaignTerritoryPass } from '../../../packages/game-renderer/src/campaign/territoryPass';
@@ -38,6 +38,7 @@ export class CampaignRendererWebGPU {
   private territoryPass: CampaignTerritoryPass | null = null;
   private lines: CampaignLinePass | null = null;
   private borders: CampaignLinePass | null = null;
+  private markers: CampaignMarkerPass | null = null;
   private scenery: CampaignSceneryPass | null = null;
   private entities: CampaignEntityPass | null = null;
   private selection: CampaignSelectionPass | null = null;
@@ -132,7 +133,7 @@ export class CampaignRendererWebGPU {
   }
 
   draw(opts: DrawOptions) {
-    if (!this.shell || !this.map || !this.water || !this.clouds || !this.territoryPass || !this.lines || !this.borders || !this.scenery || !this.entities || !this.selection || !this.labels) return;
+    if (!this.shell || !this.map || !this.water || !this.clouds || !this.territoryPass || !this.lines || !this.borders || !this.markers || !this.scenery || !this.entities || !this.selection || !this.labels) return;
     const frameStart = performance.now();
     this.currentCamera = { x: opts.cam.x, y: opts.cam.y, zoom: opts.cam.scale, pitch: this.pitchForScale(opts.cam.scale), yaw: 0, perspective: campaignPerspective(opts.cam.scale) };
     this.shell.setCamera(this.currentCamera);
@@ -144,6 +145,7 @@ export class CampaignRendererWebGPU {
     this.scenery.upload(campaignScenery(this.data, this.field));
     this.entities.upload(frame.entities);
     this.selection.upload(frame.selections);
+    this.markers.upload(campaignMapMarkers(this.data, opts));
     this.labelStats = this.labels.upload(
       this.staticLabels.concat(campaignCityLabels(this.data, opts), campaignArmyLabels(this.data, opts), campaignFactionLabels(this.data, opts)),
       this.currentCamera,
@@ -163,6 +165,7 @@ export class CampaignRendererWebGPU {
         this.scenery!.draw(pass);
         this.entities!.draw(pass);
         this.clouds!.draw(pass);
+        this.markers!.draw(pass);
         this.labels!.draw(pass);
       },
     });
@@ -213,6 +216,7 @@ export class CampaignRendererWebGPU {
       cloudQuads: this.clouds?.stats().cloudQuads ?? 0,
       territoryPixels: this.territoryPass?.stats().pixels ?? 0,
       borderSegments: this.borders?.stats().segments ?? 0,
+      mapMarkers: this.markers?.stats().markers ?? 0,
       scenery: this.scenery?.stats().scenery ?? 0,
       lineSegments: this.lines?.stats().segments ?? 0,
       postCutoverScreenshots: 'webgpu-only',
@@ -237,6 +241,7 @@ export class CampaignRendererWebGPU {
     }, controlledStage ? undefined : { alpha: 0.55, warmMix: 0.015 });
     this.lines = new CampaignLinePass(this.shell, 'triangle-list');
     this.borders = new CampaignLinePass(this.shell);
+    this.markers = new CampaignMarkerPass(this.shell);
     this.scenery = new CampaignSceneryPass(this.shell);
     this.entities = new CampaignEntityPass(this.shell);
     this.selection = new CampaignSelectionPass(this.shell);
@@ -314,6 +319,41 @@ function buildEntityFrame(data: CampaignData, opts: DrawOptions) {
     }
   }
   return { entities, selections, cityEntities, armyEntities };
+}
+
+function campaignMapMarkers(data: CampaignData, opts: DrawOptions): CampaignMarker[] {
+  if (isControlledStage(data) || opts.cam.scale >= 0.5) return [];
+  const markers: CampaignMarker[] = [];
+  data.map.nodes.forEach((node, index) => {
+    if (node.kind !== 'city') return;
+    const minTier = opts.cam.scale < 0.6 ? 3 : opts.cam.scale < 0.85 ? 2 : 1;
+    if (node.tier < minTier) return;
+    const city = opts.cities.get(index);
+    const owner = city?.owner ?? Math.max(0, data.map.factions.findIndex((faction) => faction.id === node.owner));
+    const allegiance = opts.factionView ? statusOf(opts.factionStatus, owner) : Allegiance.Neutral;
+    markers.push({
+      x: node.pos[0],
+      y: node.pos[1],
+      radius: 3.8 + node.tier * 0.7,
+      faction: opts.factionView ? factionColor(data, owner) : [0.16, 0.12, 0.08],
+      allegiance: allegianceColor(allegiance),
+      kind: 'city',
+      selected: index === opts.selectedCity,
+    });
+  });
+  for (const army of visibleCampaignArmies(opts)) {
+    const allegiance = army.mine || army.faction === opts.playerFaction ? Allegiance.Friend : statusOf(opts.factionStatus, army.faction);
+    markers.push({
+      x: army.x,
+      y: army.y,
+      radius: army.id === opts.selected ? 10.5 : 9,
+      faction: factionColor(data, army.faction),
+      allegiance: allegianceColor(allegiance),
+      kind: 'army',
+      selected: army.id === opts.selected,
+    });
+  }
+  return markers;
 }
 
 function statusOf(status: Int8Array, faction: number): Allegiance {

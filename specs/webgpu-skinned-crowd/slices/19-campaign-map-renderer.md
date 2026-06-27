@@ -359,3 +359,15 @@ campaign flag/unit markers, city/faction label collisions, tiny city labels,
 smeared edge fog, muddy territory stacking, weak sea-label readability, heavy
 faction shadows, and noisy land texture. A circle-marker experiment was pruned
 instead of committed because it did not read as the old flag/icon map language.
+
+The old overview marker language is now partially restored through the raw
+WebGPU marker pass: tier-gated city squares and army pennants are constant
+screen-size quads anchored to world positions, matching the retired overlay's
+LOD semantics instead of using world-radius circles. This intentionally trades
+the Campaign Whole Map metric from `0.22694` full / `0.23549` crop to `0.22827`
+full / `0.23687` crop, while a fresh unbiased comparison judged the new
+candidate more complete/readable because map markers, roads/rivers, city
+labels, and geographic labels are clearer. The same review says the pair is
+still not close style parity: terrain detail density, sea text treatment,
+overall sharpness, label hierarchy, fog, and faction overlay style remain
+distinct.

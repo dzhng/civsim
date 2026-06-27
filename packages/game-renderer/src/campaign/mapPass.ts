@@ -53,6 +53,8 @@ export interface CampaignMarker {
   radius: number;
   faction: [number, number, number];
   allegiance: [number, number, number];
+  kind?: 'city' | 'army';
+  selected?: boolean;
 }
 
 export interface CampaignLabel {
@@ -195,6 +197,8 @@ struct VsOut {
   @location(0) local: vec2f,
   @location(1) faction: vec3f,
   @location(2) allegiance: vec3f,
+  @location(3) markerKind: f32,
+  @location(4) selected: f32,
 };
 
 fn projectWorld(world: vec2f, z: f32) -> vec4f {
@@ -208,26 +212,42 @@ fn projectWorld(world: vec2f, z: f32) -> vec4f {
 
 @vertex
 fn vs(@location(0) quad: vec2f, @location(1) inst0: vec4f, @location(2) inst1: vec4f, @location(3) inst2: vec4f) -> VsOut {
-  let world = inst0.xy + quad * inst0.z;
+  let markerKind = inst0.w;
+  let anchor = projectWorld(inst0.xy, 0.08);
+  let size = inst0.z;
+  let cityOffset = quad * size;
+  let flagOffset = vec2f(quad.x * size, (quad.y + 1.0) * size);
+  let pixelOffset = mix(cityOffset, flagOffset, markerKind);
+  let clipOffset = vec2f(pixelOffset.x / (cam.width * 0.5), pixelOffset.y / (cam.height * 0.5)) * anchor.w;
   var out: VsOut;
-  out.pos = projectWorld(world, 0.08);
+  out.pos = vec4f(anchor.x + clipOffset.x, anchor.y + clipOffset.y, anchor.z, anchor.w);
   out.local = quad;
   out.faction = inst1.rgb;
   out.allegiance = vec3f(inst1.a, inst2.r, inst2.g);
+  out.markerKind = markerKind;
+  out.selected = inst2.b;
   return out;
 }
 
 @fragment
 fn fs(in: VsOut) -> @location(0) vec4f {
-  let d = length(in.local);
-  if (d > 1.0) { discard; }
-  let ring = smoothstep(0.96, 0.78, d);
-  let core = smoothstep(0.72, 0.20, d);
-  let tint = mix(in.faction, in.allegiance, 0.32);
-  let cityGold = vec3f(0.83, 0.64, 0.28);
-  let body = mix(tint, cityGold, 0.22);
   let edge = vec3f(0.16, 0.12, 0.07);
-  return vec4f(mix(edge, body, core), max(ring, core));
+  if (in.markerKind < 0.5) {
+    let a = max(abs(in.local.x), abs(in.local.y));
+    if (a > 1.0) { discard; }
+    let border = step(0.72, a);
+    let body = mix(in.faction, in.allegiance, 0.18);
+    return vec4f(mix(body, edge, border), 0.92);
+  }
+  let pole = select(0.0, 1.0, abs(in.local.x + 0.55) < 0.08 && in.local.y > -0.96 && in.local.y < 0.94);
+  let flagBand = select(0.0, 1.0, in.local.x > -0.55 && in.local.x < 0.82 && in.local.y > 0.05 && in.local.y < 0.92);
+  let pennant = flagBand * select(1.0, 0.0, in.local.x > 0.38 && abs(in.local.y - 0.48) < (in.local.x - 0.38) * 0.45);
+  let outline = select(0.0, 1.0, in.selected > 0.5 && in.local.x > -0.72 && in.local.x < 0.95 && in.local.y > -0.08 && in.local.y < 1.0);
+  let alpha = max(max(pole, pennant), outline * 0.85);
+  if (alpha <= 0.0) { discard; }
+  let fill = mix(edge, in.faction, pennant);
+  let selectedEdge = vec3f(0.96, 0.93, 0.84);
+  return vec4f(mix(fill, selectedEdge, outline * (1.0 - pennant) * 0.75), alpha);
 }`;
 
 const LABEL_WGSL = `
@@ -500,17 +520,19 @@ export class CampaignMarkerPass {
     }
     if (markers.length === 0) return;
     const data = new Float32Array(markers.length * 12);
+    const dpr = Math.max(1, this.shell.stats().dpr || 1);
     for (let i = 0; i < markers.length; i++) {
       const marker = markers[i];
       const o = i * 12;
       data[o] = marker.x;
       data[o + 1] = marker.y;
-      data[o + 2] = marker.radius;
-      data[o + 3] = 0;
+      data[o + 2] = marker.radius * dpr;
+      data[o + 3] = marker.kind === 'army' ? 1 : 0;
       data.set(marker.faction, o + 4);
       data[o + 7] = marker.allegiance[0];
       data[o + 8] = marker.allegiance[1];
       data[o + 9] = marker.allegiance[2];
+      data[o + 10] = marker.selected ? 1 : 0;
     }
     this.shell.device.queue.writeBuffer(this.instanceBuffer, 0, data);
   }

@@ -184,3 +184,15 @@ flat, roads still look like thin UI strips, the army/road/shadow stack competes
 visually, and the campaign ground plane still exposes a floating board edge.
 Keep those in the campaign visual-polish backlog; they do not invalidate the
 depth/nesting contract, but they block claiming close-view parity complete.
+
+The next contact/selection pass added local contact-shadow quads inside the
+same depth-tested city and army meshes, then tempered the selected-army ring so
+it stays visible without becoming a pure neon overlay. The engine gates still
+prove nested depth (`blue: 0` on the buried garrison body, visible raised
+standard), and Campaign Label Zoom moved from `0.19952` full / `0.26605` crop
+to `0.19910` / `0.26555`. Fresh crop critique still rejects final acceptance:
+flag/pole attachment and clipping, weak grounding, road depth through the army,
+merged soldier silhouettes, city massing, terrain noise, and hard board edges
+remain visible blockers. The next slice should target road/world interaction,
+directional shadow coherence, and model articulation without undoing the
+depth-tested world pass.

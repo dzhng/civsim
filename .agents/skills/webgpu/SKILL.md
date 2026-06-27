@@ -424,6 +424,14 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   should keep DPR1/DPR2 battle input, freeze stability, and visual-report
   parity effectively stable; in one pass Battle Selection DPR2 moved only from
   `0.10928` to `0.10861` while its world crop stayed unchanged.
+- Campaign selection rings and contact shadows must be tuned as world cues, not
+  overlay decals. A stronger selected-army ring can make the state readable and
+  improve close-view parity, but if an unprimed crop critique calls it neon/flat,
+  temper alpha/saturation and record the remaining road-depth/shadow blockers.
+  Adding per-building/per-soldier contact-shadow geometry to the same
+  depth-tested entity mesh is preferable to a new screen overlay; in one pass it
+  nudged Campaign Label Zoom from `0.19952` / `0.26605` crop to `0.19910` /
+  `0.26555` while preserving city-standard and garrison depth samples.
 - Use instancing, batching, storage buffers, and GPU-side phase passes for scale.
   Avoid CPU readbacks in hot paths; debug readbacks must be bounded and named.
 - For iterative effects or simulations, separate phases such as `state`,

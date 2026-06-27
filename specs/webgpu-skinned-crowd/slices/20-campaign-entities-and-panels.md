@@ -106,3 +106,14 @@ close campaign parity metric, but unprimed critique still flags the flags as
 physically wrong, with missing contact/cast shadows and weak selection/label
 readability. The next entity slice should improve sockets, shadows, ring
 contrast, and label spacing before claiming campaign marker parity.
+
+Follow-up checkpoint: campaign entities now emit local contact-shadow footprints
+for city buildings, standards, and individual army soldiers, and the selection
+shader balances a stronger selected-state ring against the unprimed critique's
+"too neon/flat" finding. The visual report and model gates regenerated with
+Campaign Label Zoom at `0.19910` full / `0.26555` crop, slightly better than the
+previous `0.19952` / `0.26605` while keeping the ring readable. This still does
+not accept the slice: fresh critique continues to flag flag/pole clipping,
+insufficient grounding, ambiguous road depth at the selected army, merged army
+silhouettes, confusing city massing, small army-count text, noisy close terrain,
+and hard board-edge framing.

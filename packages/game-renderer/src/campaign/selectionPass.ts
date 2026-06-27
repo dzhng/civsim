@@ -42,18 +42,18 @@ fn vs(@location(0) quad: vec2f, @location(1) inst0: vec4f, @location(2) inst1: v
 fn fs(in: VsOut) -> @location(0) vec4f {
   let d = length(in.local);
   let strongArmy = in.kind > 0.5 && in.emphasis > 0.5;
-  let innerCut = select(0.928, 0.900, strongArmy);
-  let innerFade = select(0.942, 0.916, strongArmy);
+  let innerCut = select(0.918, 0.894, strongArmy);
+  let innerFade = select(0.936, 0.914, strongArmy);
   if (d > 1.0 || d < innerCut) { discard; }
   let outer = smoothstep(1.0, 0.988, d);
   let inner = smoothstep(innerCut, innerFade, d);
   let ring = outer * inner;
-  let fill = smoothstep(0.990, 0.968, d) * smoothstep(innerCut - 0.010, innerCut + 0.006, d) * 0.018;
-  let armyMix = select(0.20, 0.08, strongArmy);
-  let groundTint = mix(in.color, vec3f(0.74, 0.66, 0.36), select(0.52, armyMix, in.kind > 0.5));
-  let armyBoost = select(0.0, select(0.12, 0.16, strongArmy), in.kind > 0.5);
-  let ringAlpha = select(0.58, select(0.68, 0.82, strongArmy), in.kind > 0.5);
-  return vec4f(groundTint * (0.84 + armyBoost), max(ring * ringAlpha, fill));
+  let fill = smoothstep(0.990, 0.966, d) * smoothstep(innerCut - 0.012, innerCut + 0.008, d) * 0.024;
+  let armyMix = select(0.18, 0.10, strongArmy);
+  let groundTint = mix(in.color, vec3f(0.74, 0.66, 0.36), select(0.40, armyMix, in.kind > 0.5));
+  let armyBoost = select(0.0, select(0.08, 0.14, strongArmy), in.kind > 0.5);
+  let ringAlpha = select(0.68, select(0.72, 0.80, strongArmy), in.kind > 0.5);
+  return vec4f(groundTint * (0.86 + armyBoost), max(ring * ringAlpha, fill));
 }`;
 
 export class CampaignSelectionPass {

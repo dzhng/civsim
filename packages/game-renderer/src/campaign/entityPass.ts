@@ -259,7 +259,9 @@ function buildCityMesh(): MeshData {
   const darkTimber: Rgb = [0.28, 0.20, 0.15];
   const mastX = 0.08;
   const mastY = 0.04;
-  builder.shadow(3.65, 1.95, 0.14, [0.28, -0.54]);
+  builder.shadow(3.65, 1.95, 0.11, [0.28, -0.54]);
+  builder.contactShadow([mastX, mastY], [0.42, 0.34], 0.086, [0.28, -0.32]);
+  builder.contactShadow([-0.82, mastY], [1.70, 0.18], 0.052, [0.34, -0.34]);
   builder.box([mastX, mastY, 2.68], [0.18, 0.18, 5.36], darkTimber, 1);
   builder.panel3d([
     [mastX - 0.01, mastY, 5.58],
@@ -280,6 +282,7 @@ function buildCityMesh(): MeshData {
     [mastX - 0.02, mastY, 0.92],
   ], [1, 1, 1], 1);
   const building = (x: number, y: number, w: number, d: number, h: number) => {
+    builder.contactShadow([x, y], [w * 1.12, d * 1.08], Math.min(0.094, 0.042 + h * 0.011), [0.18, -0.22]);
     builder.box([x, y, h * 0.5], [w, d, h], sandstone, 1);
     builder.box([x, y, h + h * 0.19], [w * 1.18, d * 1.18, h * 0.38], roof, 1);
   };
@@ -303,7 +306,9 @@ function buildArmyMesh(): MeshData {
   const builder = new MeshBuilder();
   const timber: Rgb = [0.43, 0.30, 0.17];
   const linen: Rgb = [0.76, 0.64, 0.42];
-  builder.shadow(1.95, 1.08, 0.16, [0.08, -0.24]);
+  builder.shadow(1.95, 1.08, 0.12, [0.08, -0.24]);
+  builder.contactShadow([0.06, -0.02], [0.42, 0.34], 0.088, [0.22, -0.28]);
+  builder.contactShadow([0.90, 0.02], [1.62, 0.18], 0.052, [0.26, -0.30]);
   builder.box([0, 0, 2.38], [0.16, 0.16, 4.76], timber, 1);
   builder.box([0, 0, 4.84], [0.28, 0.28, 0.22], [0.72, 0.57, 0.28], 1);
   builder.box([0.08, -0.11, 3.80], [0.12, 0.12, 1.20], timber, 1);
@@ -341,6 +346,7 @@ function soldier(builder: MeshBuilder, x: number, y: number, shield: boolean, tu
   const bronze: Rgb = [0.72, 0.57, 0.28];
   const leather: Rgb = [0.34, 0.23, 0.14];
   const wood: Rgb = [0.47, 0.33, 0.19];
+  builder.contactShadow([x, y], [0.46, 0.28], 0.064, [0.08, -0.12]);
   builder.box([x - 0.12, y, 0.34], [0.13, 0.14, 0.68], leather, 1);
   builder.box([x + 0.12, y, 0.34], [0.13, 0.14, 0.68], leather, 1);
   builder.box([x, y + 0.01, 0.96], [0.40, 0.30, 0.66], tunic, 1);
@@ -353,6 +359,7 @@ function soldier(builder: MeshBuilder, x: number, y: number, shield: boolean, tu
 class MeshBuilder {
   private vertices: number[] = [];
   private indices: number[] = [];
+  private shadowLayer = 0;
 
   box(center: [number, number, number], size: [number, number, number], color: Rgb, alpha: number) {
     const [cx, cy, cz] = center;
@@ -378,7 +385,7 @@ class MeshBuilder {
 
   shadow(radiusX: number, radiusY = radiusX * 0.62, alpha = 0.14, offset: [number, number] = [0.10, -0.04]) {
     const color: Rgb = [0.06, 0.05, 0.035];
-    const center: [number, number, number] = [offset[0], offset[1], 0.025];
+    const center: [number, number, number] = [offset[0], offset[1], this.nextShadowZ()];
     const normal: [number, number, number] = [0, 0, 1];
     const ring: [number, number, number][] = [];
     for (let i = 0; i < 18; i++) {
@@ -394,6 +401,12 @@ class MeshBuilder {
       );
       this.indices.push(base, base + 1, base + 2);
     }
+  }
+
+  contactShadow(center: [number, number], size: [number, number], alpha = 0.06, offset: [number, number] = [0.14, -0.18]) {
+    const z = this.nextShadowZ();
+    this.shadowQuad(center, size, alpha * 0.34, offset, 1.58, z);
+    this.shadowQuad(center, size, alpha, offset, 1.0, z + 0.0002);
   }
 
   verticalPanel(points: [number, number][], y: number, depth: number, color: Rgb, alpha: number) {
@@ -438,6 +451,27 @@ class MeshBuilder {
       if (reverse) this.indices.push(base, base + i + 1, base + i);
       else this.indices.push(base, base + i, base + i + 1);
     }
+  }
+
+  private nextShadowZ() {
+    return 0.024 + this.shadowLayer++ * 0.00045;
+  }
+
+  private shadowQuad(center: [number, number], size: [number, number], alpha: number, offset: [number, number], spread: number, z: number) {
+    const color: Rgb = [0.055, 0.047, 0.035];
+    const normal: [number, number, number] = [0, 0, 1];
+    const cx = center[0] + offset[0];
+    const cy = center[1] + offset[1];
+    const sx = size[0] * spread * 0.5;
+    const sy = size[1] * spread * 0.5;
+    const base = this.vertices.length / 10;
+    this.vertices.push(
+      cx - sx, cy - sy, z, ...normal, ...color, alpha,
+      cx + sx, cy - sy, z, ...normal, ...color, alpha,
+      cx + sx, cy + sy, z, ...normal, ...color, alpha,
+      cx - sx, cy + sy, z, ...normal, ...color, alpha,
+    );
+    this.indices.push(base, base + 1, base + 2, base, base + 2, base + 3);
   }
 
   finish(): MeshData {

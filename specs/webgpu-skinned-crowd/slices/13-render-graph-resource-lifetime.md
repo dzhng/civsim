@@ -157,6 +157,16 @@ stays visible above the core. `webgpu-lab-routes` samples those exact pixels so
 a future change that merely raises or screen-layers the flag fails before the
 visual report can hide it in a broader scene.
 
+The production garrison model gate now exercises the same real
+`CampaignEntityPass` path with a city submitted before a later army occupant.
+`/webgpu/campaign-model-gates?gate=garrison-city` samples a buried army point
+inside the wall where the patch resolves to city material (`blue: 0`) and a
+raised army standard where the patch resolves to occupant faction color. This
+accepts the engine/depth behavior for an army inside a city, not the final art:
+a fresh critique still flags confused flag/pole attachment, clipping banners,
+low-contrast selection ring, soft ungrounded shadow, noisy terrain, and
+test-tile framing as visual blockers for campaign polish.
+
 Fresh screenshot critique after this gate still flags non-engine visual
 blockers for later slices: labels can overlap city facades, roof/prop
 placement is not always readable, the selected-army ring reads too neon and

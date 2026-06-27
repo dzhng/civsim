@@ -86,6 +86,11 @@ shadows that sit on the ground instead of floating as screen overlays.
   remains visibly faction-colored, so the real city mesh is checked for
   interpenetrating-object behavior instead of relying only on the abstract
   nested fixture.
+- `/webgpu/campaign-model-gates?gate=garrison-city` now publishes production
+  garrison samples using the same city and army entity pass. The route asserts
+  that a later-drawn army occupant can sit inside the settlement volume with its
+  lower body occluded by city material while its raised standard remains
+  readable above the roofs.
 
 ## Human Feedback
 

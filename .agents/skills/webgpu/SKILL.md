@@ -383,6 +383,14 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   and an exposed cloth point should resolve to faction color. Keep the visible
   cloth readable, but place a lower segment inside the settlement volume so the
   gate proves interpenetration rather than just flag height.
+- Production garrison gates should prove both sides of the nested-object
+  contract. A fully hidden token does not prove readable garrison presentation,
+  and random faction-color slivers do not prove a coherent army inside the
+  city. Sample a buried occupant point that resolves to city material and a
+  raised standard point that resolves to the occupant faction color, then inspect
+  tight crops with a fresh critique. If the critique sees confused flag/pole
+  attachment, clipping banners, weak selection rings, or smear shadows, record
+  those as visual blockers even when the depth samples pass.
 - Nested-object fixtures should intentionally defeat painter-order shortcuts:
   submit the city/front-rank/ground occluders first, then submit the flag,
   garrison stub, rear rank, or selection ring later. Accept the route only after

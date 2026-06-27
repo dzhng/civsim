@@ -21,6 +21,11 @@ const gates = [
     criteria: 'Large settlement has clustered sandstone buildings, terracotta roofs, ownership flag, shadow, label icon, and selected footprint.',
   },
   {
+    id: 'garrison-city',
+    label: 'Garrison In City',
+    criteria: 'Army marker can sit inside the city volume with lower soldiers occluded and the raised standard still readable through the production depth pass.',
+  },
+  {
     id: 'town',
     label: 'Town Scale',
     criteria: 'Smaller settlement keeps the same model language at a distinct readable scale.',

@@ -656,6 +656,7 @@ async function routeCampaignModelGates(ctx: LabContext) {
   const labelPass = new CampaignLabelPass(shell);
   const frame = campaignModelGateFrame(gate);
   const cityStandardSamples = campaignModelGateCityStandardSamples(gate, ctx.canvas, camera);
+  const garrisonSamples = campaignModelGateGarrisonSamples(gate, ctx.canvas, camera);
   const water = frame.water.length > 0 ? new CampaignWaterPass(shell) : null;
   const clouds = frame.cloudRect ? new CampaignCloudPass(shell, frame.cloudRect) : null;
   entities.upload(frame.entities);
@@ -692,8 +693,13 @@ async function routeCampaignModelGates(ctx: LabContext) {
     cloudQuads: clouds?.stats().cloudQuads ?? 0,
     labels: `${labelLayer.visibleLabels}/${labelLayer.labels}`,
     cityStandard: cityStandardSamples ? 'embedded-depth-sampled' : 'n/a',
+    garrison: garrisonSamples ? 'army-inside-city-depth-sampled' : 'n/a',
     renderer: 'raw WebGPU campaign model passes',
   });
+  const samples = {
+    ...(cityStandardSamples ? { cityStandard: cityStandardSamples } : {}),
+    ...(garrisonSamples ? { garrison: garrisonSamples } : {}),
+  };
   publish('campaign-model-gates', true, {
     route: 'campaign-model-gates',
     gate,
@@ -710,7 +716,7 @@ async function routeCampaignModelGates(ctx: LabContext) {
     labelLayer: labelLayer.layer,
     entityLayer: entities.stats().layer,
     depth: shell.stats().depth,
-    samples: cityStandardSamples ? { cityStandard: cityStandardSamples } : {},
+    samples,
     postCutoverScreenshots: 'webgpu-only',
   });
 }
@@ -718,6 +724,7 @@ async function routeCampaignModelGates(ctx: LabContext) {
 type CampaignModelGate =
   | 'overview'
   | 'city'
+  | 'garrison-city'
   | 'town'
   | 'army'
   | 'road'
@@ -736,6 +743,7 @@ type CampaignModelGate =
 
 const CAMPAIGN_MODEL_GATES: CampaignModelGate[] = [
   'city',
+  'garrison-city',
   'town',
   'army',
   'road',
@@ -755,6 +763,8 @@ const CAMPAIGN_MODEL_GATES: CampaignModelGate[] = [
 
 const MODEL_GATE_CITY_POSITION: [number, number] = [0.0, -1.8];
 const MODEL_GATE_CITY_RADIUS = 6.6;
+const MODEL_GATE_GARRISON_ARMY_POSITION: [number, number] = [-0.20, -1.65];
+const MODEL_GATE_GARRISON_ARMY_RADIUS = 7.0;
 
 function campaignModelGate(value: string | null): CampaignModelGate {
   return CAMPAIGN_MODEL_GATES.includes(value as CampaignModelGate) ? value as CampaignModelGate : 'city';
@@ -798,6 +808,18 @@ function campaignModelGateFrame(gate: CampaignModelGate) {
 
   if (gate === 'overview') addCity(-6.0, -2.0, 7.0, 'ROMA', red, green, false);
   if (gate === 'city') addCity(MODEL_GATE_CITY_POSITION[0], MODEL_GATE_CITY_POSITION[1], MODEL_GATE_CITY_RADIUS, 'ROMA', red, green, true);
+  if (gate === 'garrison-city') {
+    addCity(MODEL_GATE_CITY_POSITION[0], MODEL_GATE_CITY_POSITION[1], MODEL_GATE_CITY_RADIUS, 'ROMA', red, green, true);
+    entities.push({
+      x: MODEL_GATE_GARRISON_ARMY_POSITION[0],
+      y: MODEL_GATE_GARRISON_ARMY_POSITION[1],
+      radius: MODEL_GATE_GARRISON_ARMY_RADIUS,
+      faction: [0.16, 0.34, 0.78],
+      allegiance: green,
+      kind: 'army',
+      strength: 0.62,
+    });
+  }
   if (gate === 'selected-city') addCity(MODEL_GATE_CITY_POSITION[0], MODEL_GATE_CITY_POSITION[1], MODEL_GATE_CITY_RADIUS, 'ROMA', red, green, true);
   if (gate === 'overview') addCity(6.0, -2.0, 5.2, 'NEAPOLIS', amber, neutral, false);
   if (gate === 'town') addCity(0.0, -1.8, 5.0, 'NEAPOLIS', amber, neutral, true);
@@ -884,6 +906,31 @@ function campaignModelGateCityStandardSamples(
     hiddenLowerCloth: worldPoint([-0.22, 0.08, 1.45]),
     visibleUpperCloth: worldPoint([-1.08, -0.54, 5.22]),
     plantedMastCore: worldPoint([0.05, -0.54, 2.35]),
+  };
+}
+
+function campaignModelGateGarrisonSamples(
+  gate: CampaignModelGate,
+  canvas: HTMLCanvasElement,
+  camera: { x: number; y: number; zoom: number; pitch?: number; yaw?: number; perspective?: number },
+) {
+  if (gate !== 'garrison-city') return null;
+  const cityScale = MODEL_GATE_CITY_RADIUS / 5.0;
+  const armyScale = MODEL_GATE_GARRISON_ARMY_RADIUS / 4.4;
+  const cityPoint = (local: [number, number, number]) => projectNestedPoint(canvas, camera, [
+    MODEL_GATE_CITY_POSITION[0] + local[0] * cityScale,
+    MODEL_GATE_CITY_POSITION[1] + local[1] * cityScale,
+    local[2] * cityScale,
+  ]);
+  const armyPoint = (local: [number, number, number]) => projectNestedPoint(canvas, camera, [
+    MODEL_GATE_GARRISON_ARMY_POSITION[0] + local[0] * armyScale,
+    MODEL_GATE_GARRISON_ARMY_POSITION[1] + local[1] * armyScale,
+    local[2] * armyScale,
+  ]);
+  return {
+    hiddenShieldInsideWall: armyPoint([-0.46, -0.42, 0.98]),
+    visibleStandardAboveRoofs: armyPoint([1.30, 0.12, 4.02]),
+    occludingCityWall: cityPoint([-0.62, 0.08, 1.50]),
   };
 }
 

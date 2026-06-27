@@ -36,6 +36,13 @@ const routes = [
     && s.stats.entityLayer === 'raw-webgpu-legacy-model-meshes'
     && s.stats.samples?.cityStandard?.hiddenLowerCloth
     && s.stats.samples?.cityStandard?.visibleUpperCloth],
+  ['campaign-model-gates?gate=garrison-city', (s) => s?.ok
+    && s.route === 'campaign-model-gates'
+    && s.stats.gate === 'garrison-city'
+    && s.stats.depth?.allocated === true
+    && s.stats.entityLayer === 'raw-webgpu-legacy-model-meshes'
+    && s.stats.samples?.garrison?.hiddenShieldInsideWall
+    && s.stats.samples?.garrison?.visibleStandardAboveRoofs],
   ['render-graph', (s) => s?.ok
     && s.route === 'render-graph'
     && s.stats.firstPass === 'camera'
@@ -189,6 +196,22 @@ export async function run(ctx) {
         `${route}: production city standard remains visible above the core`,
         upper.red > 12,
         JSON.stringify({ upper, sample: samples.visibleUpperCloth }),
+      );
+    }
+    if (route === 'campaign-model-gates?gate=garrison-city') {
+      const canvasPng = PNG.sync.read(await page.locator('#webgpu-canvas').screenshot());
+      const samples = stats.stats.samples.garrison;
+      const hidden = patchStats(canvasPng, samples.hiddenShieldInsideWall, 6);
+      const visible = patchStats(canvasPng, samples.visibleStandardAboveRoofs, 6);
+      ctx.check(
+        `${route}: production city material occludes the garrisoned army body`,
+        hidden.blue <= 8 && (hidden.tan + hidden.red) > 80,
+        JSON.stringify({ hidden, sample: samples.hiddenShieldInsideWall }),
+      );
+      ctx.check(
+        `${route}: garrisoned army standard remains visible above the city`,
+        visible.blue > 12,
+        JSON.stringify({ visible, sample: samples.visibleStandardAboveRoofs }),
       );
     }
     if (route === 'assets') {

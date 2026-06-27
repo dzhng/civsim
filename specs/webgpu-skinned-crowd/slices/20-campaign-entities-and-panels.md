@@ -91,3 +91,10 @@ fully hidden by the city without special-case painter-order hacks.
 
 Review whether campaign markers are clear at strategic zooms; do not optimize
 for hero-detail soldiers at the cost of map readability.
+
+Current production model gates prove the required depth behavior for the city
+standard and for an army occupant inside the city, but the visual acceptance bar
+is still open. Fresh critique of the garrison gate flags the flag/pole mounting,
+roof/banner layering, selection-ring contrast, soft shadows, noisy terrain, and
+test-tile context. Treat those as campaign entity polish blockers before this
+slice can claim parity with the old renderer.

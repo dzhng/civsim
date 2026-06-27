@@ -84,6 +84,86 @@
       "status": "webgpu-evidence"
     },
     {
+      "id": "garrison-city",
+      "label": "Garrison In City",
+      "criteria": "Army marker can sit inside the city volume with lower soldiers occluded and the raised standard still readable through the production depth pass.",
+      "image": "garrison-city.png",
+      "stats": {
+        "route": "campaign-model-gates",
+        "gate": "garrison-city",
+        "camera": {
+          "x": 0,
+          "y": 0.3,
+          "zoom": 28,
+          "pitch": 0.56,
+          "yaw": 0,
+          "perspective": 0.018
+        },
+        "entities": 2,
+        "scenery": 0,
+        "sceneryStats": {
+          "scenery": 0,
+          "mountains": 0,
+          "trees": 0,
+          "conifers": 0,
+          "broadleafs": 0,
+          "rocks": 0,
+          "mountainModelVertices": 138,
+          "coniferModelVertices": 177,
+          "broadleafModelVertices": 258,
+          "rockModelVertices": 126,
+          "layer": "raw-webgpu-legacy-scenery-meshes"
+        },
+        "roadSegments": 0,
+        "waterFeatures": 0,
+        "cloudQuads": 0,
+        "selections": 1,
+        "labels": 1,
+        "visibleLabels": 1,
+        "labelLayer": "raw-webgpu-glyph-atlas",
+        "entityLayer": "raw-webgpu-legacy-model-meshes",
+        "depth": {
+          "format": "depth24plus",
+          "width": 970,
+          "height": 758,
+          "allocated": true
+        },
+        "samples": {
+          "garrison": {
+            "hiddenShieldInsideWall": {
+              "x": 457.61868417035566,
+              "y": 398.3698024653887,
+              "world": [
+                -0.9318181818181819,
+                -2.318181818181818,
+                1.559090909090909
+              ]
+            },
+            "visibleStandardAboveRoofs": {
+              "x": 539.0195461757278,
+              "y": 237.16750557629945,
+              "world": [
+                1.8681818181818184,
+                -1.459090909090909,
+                6.395454545454545
+              ]
+            },
+            "occludingCityWall": {
+              "x": 461.23153097684394,
+              "y": 370.57083638489297,
+              "world": [
+                -0.8183999999999999,
+                -1.6944000000000001,
+                1.9799999999999998
+              ]
+            }
+          }
+        },
+        "postCutoverScreenshots": "webgpu-only"
+      },
+      "status": "webgpu-evidence"
+    },
+    {
       "id": "town",
       "label": "Town Scale",
       "criteria": "Smaller settlement keeps the same model language at a distinct readable scale.",

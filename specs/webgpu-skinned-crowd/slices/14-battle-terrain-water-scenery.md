@@ -85,6 +85,17 @@ Current checkpoint:
   side-by-side was inspected to confirm the extra texture reads as grass and
   stubble, with no return of random straight-line overlays or square terrain
   artifacts.
+- The sim-tint prop pass now weights terrain features toward authored objects
+  instead of broad translucent stains: forest/mud/scree base mask alpha was
+  lowered, forest boundaries get denser cypress/shrub detail, and mud/scree
+  patches add more distinct potholes and rocks while reducing broad churn
+  smears. The accepted report moved Battle Selection DPR2 from `0.10955` to
+  `0.10869`, Battle Max Crowd from `0.21015` to `0.20990`, and Campaign Handoff
+  Battle from `0.17713` to `0.17936`; the small handoff regression is accepted
+  because an unprimed critique flagged broad smudged decals as the more
+  important artifact to reduce. Terrain evidence increased from `1641 / 1531`
+  quads/scenery to `2028 / 1892` in DPR2, and from `12879 / 12079` to
+  `18279 / 17379` in Battle Max Crowd.
 
 ## Verification
 
@@ -125,3 +136,13 @@ dominate tiny soldiers at this zoom, labels are fragile over busy terrain, and
 terrain features must keep moving away from low-res stain/blob reads toward
 grounded props and authored detail. These remain acceptance blockers for the
 later battle UI/compositor, crowd parity, and default cutover slices.
+
+Fresh unprimed critique on the current accepted terrain pass still flags:
+bottom UI/minimap overlap, tiny soldiers dominated by flags/bars, missing
+ground-space selection marker, visible rectangular playfield edges, terrain
+feature blobs needing stronger object/contact structure, fragile `KITE` labels,
+terrain noise competing with unit dots, and the handoff road reading as repeated
+oval stamps. This slice addressed the terrain-blob portion by reducing broad
+feature masks and increasing deterministic object detail; the other findings are
+queued for the battle UI/compositor, crowd LOD/readability, selection marker,
+camera/world-boundary, label, and road slices.

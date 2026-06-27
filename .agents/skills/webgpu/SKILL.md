@@ -178,6 +178,13 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   zoom-aware scaling around that anchor. A fixed-size DOM standard can look like
   it floats above or dominates the WebGPU formation even when the underlying
   pick/projection math is correct.
+- For sim-sourced battle terrain, broad tint masks should be treated as
+  underpainting only. A density-only pass can improve parity metrics while still
+  reading as smudged decals under unprimed critique. Keep forest/mud mask alpha
+  low, bias patch boundaries toward distinct trees/shrubs/rocks/potholes, and
+  record both the `compare-screenshots` movement and the critique findings
+  before accepting the visual. If the metric win fights artifact readability,
+  prefer the version that removes visible decal artifacts and log the tradeoff.
 - Use instancing, batching, storage buffers, and GPU-side phase passes for scale.
   Avoid CPU readbacks in hot paths; debug readbacks must be bounded and named.
 - For iterative effects or simulations, separate phases such as `state`,

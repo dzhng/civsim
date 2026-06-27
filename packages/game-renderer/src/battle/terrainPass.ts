@@ -369,9 +369,9 @@ function styleForTerrainTint(tint: number): { kind: number; alpha: number } {
     case 1: return { kind: 10, alpha: 0.96 }; // water
     case 2: return { kind: 11, alpha: 0.88 }; // rock
     case 3: return { kind: 11, alpha: 0.94 }; // wall/stone
-    case 4: return { kind: 12, alpha: 0.075 }; // forest
-    case 5: return { kind: 13, alpha: 0.032 }; // mud
-    case 6: return { kind: 13, alpha: 0.032 }; // scree/field
+    case 4: return { kind: 12, alpha: 0.038 }; // forest
+    case 5: return { kind: 13, alpha: 0.014 }; // mud
+    case 6: return { kind: 13, alpha: 0.012 }; // scree/field
     default: return { kind: 13, alpha: 0.42 };
   }
 }
@@ -382,25 +382,27 @@ function appendTerrainProps(quads: TerrainQuad[], opts: { w: number; h: number; 
   let churnCount = 0;
   let rockCount = 0;
   let potholeCount = 0;
-  const maxTrees = 2600;
-  const maxShrubs = 2300;
-  const maxChurn = 680;
-  const maxRocks = 1600;
-  const maxPotholes = 2800;
+  const maxTrees = 3200;
+  const maxShrubs = 3400;
+  const maxChurn = 780;
+  const maxRocks = 3200;
+  const maxPotholes = 4200;
   for (let y = 0; y < opts.h; y++) {
     for (let x = 0; x < opts.w; x++) {
       const tint = opts.tint[y * opts.w + x] ?? 0;
+      const edge = isTintBoundary(opts, x, y, tint);
       if (tint === 4 && (treeCount < maxTrees || shrubCount < maxShrubs)) {
-        if (hashCell(x, y, 17) < 0.52 && treeCount < maxTrees) {
+        const treeThreshold = edge ? 0.72 : 0.50;
+        if (hashCell(x, y, 17) < treeThreshold && treeCount < maxTrees) {
           const center = jitteredCellCenter(opts, x, y, 31, 0.42);
-          const size = opts.cell * (2.5 + hashCell(x, y, 43) * 2.5);
+          const size = opts.cell * ((edge ? 2.9 : 2.4) + hashCell(x, y, 43) * 2.7);
           quads.push({
             x: center.x - size * 0.46,
             y: center.y - size * 0.18,
             w: size * 0.92,
             h: size * 0.36,
             kind: 3,
-            alpha: 0.12 + hashCell(x, y, 53) * 0.08,
+            alpha: 0.14 + hashCell(x, y, 53) * 0.09,
           });
           quads.push({
             x: center.x - size * 0.34,
@@ -412,52 +414,53 @@ function appendTerrainProps(quads: TerrainQuad[], opts: { w: number; h: number; 
           });
           treeCount++;
         }
-        if (hashCell(x, y, 181) < 0.42 && shrubCount < maxShrubs) {
-          const center = jitteredCellCenter(opts, x, y, 191, 0.48);
-          const size = opts.cell * (2.1 + hashCell(x, y, 199) * 2.5);
+        const shrubThreshold = edge ? 0.84 : 0.50;
+        if (hashCell(x, y, 181) < shrubThreshold && shrubCount < maxShrubs) {
+          const center = jitteredCellCenter(opts, x, y, 191, edge ? 0.58 : 0.48);
+          const size = opts.cell * ((edge ? 2.5 : 2.0) + hashCell(x, y, 199) * 2.8);
           quads.push({
             x: center.x - size * 0.58,
             y: center.y - size * 0.32,
             w: size * 1.16,
             h: size * 0.64,
             kind: 4,
-            alpha: 0.50 + hashCell(x, y, 211) * 0.24,
+            alpha: 0.54 + hashCell(x, y, 211) * 0.28,
           });
           shrubCount++;
         }
       } else if ((tint === 5 || tint === 6) && (churnCount < maxChurn || rockCount < maxRocks || potholeCount < maxPotholes)) {
         const churnRoll = hashCell(x, y, 61);
-        if (churnRoll < (tint === 5 ? 0.18 : 0.09) && churnCount < maxChurn) {
-          const center = jitteredCellCenter(opts, x, y, 67, 0.48);
-          const size = opts.cell * (3.1 + hashCell(x, y, 73) * 4.1);
+        if (churnRoll < (tint === 5 ? 0.22 : 0.10) && churnCount < maxChurn) {
+          const center = jitteredCellCenter(opts, x, y, 67, edge ? 0.58 : 0.48);
+          const size = opts.cell * ((edge ? 2.4 : 2.9) + hashCell(x, y, 73) * 4.3);
           quads.push({
             x: center.x - size * 0.52,
             y: center.y - size * 0.32,
             w: size * 1.04,
             h: size * 0.64,
             kind: 2,
-            alpha: tint === 5 ? 0.22 : 0.14,
+            alpha: tint === 5 ? 0.18 : 0.12,
           });
           churnCount++;
         }
         const potholeRoll = hashCell(x, y, 71);
-        if (potholeRoll < (tint === 5 ? 0.56 : 0.34) && potholeCount < maxPotholes) {
-          const center = jitteredCellCenter(opts, x, y, 83, 0.46);
-          const size = opts.cell * (1.2 + hashCell(x, y, 97) * 2.4);
+        if (potholeRoll < (tint === 5 ? 0.82 : 0.58) && potholeCount < maxPotholes) {
+          const center = jitteredCellCenter(opts, x, y, 83, edge ? 0.60 : 0.46);
+          const size = opts.cell * (1.0 + hashCell(x, y, 97) * 2.6);
           quads.push({
             x: center.x - size * 0.55,
             y: center.y - size * 0.28,
             w: size * 1.1,
             h: size * 0.56,
             kind: 3,
-            alpha: tint === 5 ? 0.25 : 0.16,
+            alpha: tint === 5 ? 0.26 : 0.18,
           });
           potholeCount++;
         }
         const rockRoll = hashCell(x, y, 109);
-        if (rockRoll < (tint === 6 ? 0.24 : 0.20) && rockCount < maxRocks) {
-          const center = jitteredCellCenter(opts, x, y, 127, 0.40);
-          const size = opts.cell * (1.1 + hashCell(x, y, 149) * 2.0);
+        if (rockRoll < (tint === 6 ? 0.52 : 0.38) && rockCount < maxRocks) {
+          const center = jitteredCellCenter(opts, x, y, 127, edge ? 0.52 : 0.40);
+          const size = opts.cell * (1.1 + hashCell(x, y, 149) * 2.7);
           quads.push({
             x: center.x - size * 0.50,
             y: center.y - size * 0.35,
@@ -471,6 +474,19 @@ function appendTerrainProps(quads: TerrainQuad[], opts: { w: number; h: number; 
       }
     }
   }
+}
+
+function isTintBoundary(opts: { w: number; h: number; tint: Uint8Array }, x: number, y: number, tint: number): boolean {
+  if (tint === 0) return false;
+  return getTint(opts, x - 1, y) !== tint
+    || getTint(opts, x + 1, y) !== tint
+    || getTint(opts, x, y - 1) !== tint
+    || getTint(opts, x, y + 1) !== tint;
+}
+
+function getTint(opts: { w: number; h: number; tint: Uint8Array }, x: number, y: number): number {
+  if (x < 0 || y < 0 || x >= opts.w || y >= opts.h) return 0;
+  return opts.tint[y * opts.w + x] ?? 0;
 }
 
 function jitteredCellCenter(opts: { cell: number; ox: number; oy: number }, x: number, y: number, seed: number, amount: number): { x: number; y: number } {

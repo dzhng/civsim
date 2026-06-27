@@ -361,6 +361,11 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   world-space decals, not HUD overlays. Submit them through `world-depth` with
   depth mode `read` and a depth-read/no-write material so soldiers and terrain
   props can occlude them while the cue never reserves pixels above real geometry.
+- Do not feed old battle "overlay" line soup into one WebGPU pass. Split the
+  source vertices by semantics: ground paths, destination ghosts, drag previews,
+  and selection rings are depth-read ground cues; projectiles, order-progress
+  pies, and other transient effects are overlay/effect lines until they earn a
+  dedicated world-effect or projectile pass.
 - For Battle Selection DPR2 terrain cleanup, do not keep pushing per-cell
   pothole/rock density once the scene already reads as stamped blobs. A
   dedicated irregular pothole shader plus increased potholes worsened parity
@@ -503,6 +508,12 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   domain. If a tree behind a standard appears over the flag, or a battle rank
   sorts by mesh class, look first for pass-private depth math or a pipeline
   submitted through the wrong frame category.
+- Live frame passes need semantic roles in addition to frame phases. A pass id
+  and `world-depth` are not enough: mark underpaint, opaque world geometry,
+  depth-fill, ground decals, UI overlays, effect overlays, and debug overlays
+  explicitly. Reject incompatible role/phase/depth combinations in the shell
+  before GPU encoding, and have scenarios assert the published roles so type
+  buckets remain batching details instead of hidden painter-order policy.
 - Real skinned soldier depth needs its own hostile-order gate. Keep
   `/webgpu/skinned-depth` drawing a nearer soldier before a later rear class
   bucket through `SkinnedCrowdPipeline`, then sample the overlap so class

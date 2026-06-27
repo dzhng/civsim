@@ -154,18 +154,18 @@ export class CampaignRendererWebGPU {
     const uploadEnd = performance.now();
     const drawStart = performance.now();
     const passes: FrameGraphPass[] = [
-      { id: 'campaign-map-underpaint', phase: 'background', draw: (pass) => this.map!.draw(pass) },
-      { id: 'campaign-territory-wash', phase: 'background', draw: (pass) => this.territoryPass!.draw(pass) },
-      { id: 'campaign-water', phase: 'background', draw: (pass) => this.water!.draw(pass) },
-      ...(!isControlledStage(this.data) ? [{ id: 'campaign-borders', phase: 'background' as const, draw: (pass: BackgroundRenderPass) => this.borders!.draw(pass) }] : []),
-      { id: 'campaign-ground-selection', phase: 'world-depth', depth: 'read', draw: (pass) => this.selection!.draw(pass) },
-      { id: 'campaign-roads', phase: 'world-depth', depth: 'read', draw: (pass) => this.roads!.draw(pass) },
-      { id: 'campaign-sea-lanes-depth', phase: 'world-depth', depth: 'read', draw: (pass) => this.lines!.draw(pass) },
-      { id: 'campaign-scenery', phase: 'world-depth', depth: 'read-write', draw: (pass) => this.scenery!.draw(pass) },
-      { id: 'campaign-entities', phase: 'world-depth', depth: 'read-write', draw: (pass) => this.entities!.draw(pass) },
-      { id: 'campaign-clouds', phase: 'overlay', draw: (pass) => this.clouds!.draw(pass) },
-      { id: 'campaign-markers', phase: 'overlay', draw: (pass) => this.markers!.draw(pass) },
-      { id: 'campaign-labels', phase: 'overlay', draw: (pass) => this.labels!.draw(pass) },
+      { id: 'campaign-map-underpaint', role: 'background-underpaint', phase: 'background', draw: (pass) => this.map!.draw(pass) },
+      { id: 'campaign-territory-wash', role: 'background-underpaint', phase: 'background', draw: (pass) => this.territoryPass!.draw(pass) },
+      { id: 'campaign-water', role: 'background-underpaint', phase: 'background', draw: (pass) => this.water!.draw(pass) },
+      ...(!isControlledStage(this.data) ? [{ id: 'campaign-borders', role: 'background-underpaint' as const, phase: 'background' as const, draw: (pass: BackgroundRenderPass) => this.borders!.draw(pass) }] : []),
+      { id: 'campaign-ground-selection', role: 'world-decal', phase: 'world-depth', depth: 'read', draw: (pass) => this.selection!.draw(pass) },
+      { id: 'campaign-roads', role: 'world-decal', phase: 'world-depth', depth: 'read', draw: (pass) => this.roads!.draw(pass) },
+      { id: 'campaign-sea-lanes-depth', role: 'world-decal', phase: 'world-depth', depth: 'read', draw: (pass) => this.lines!.draw(pass) },
+      { id: 'campaign-scenery', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => this.scenery!.draw(pass) },
+      { id: 'campaign-entities', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => this.entities!.draw(pass) },
+      { id: 'campaign-clouds', role: 'overlay-effect', phase: 'overlay', draw: (pass) => this.clouds!.draw(pass) },
+      { id: 'campaign-markers', role: 'overlay-ui', phase: 'overlay', draw: (pass) => this.markers!.draw(pass) },
+      { id: 'campaign-labels', role: 'overlay-ui', phase: 'overlay', draw: (pass) => this.labels!.draw(pass) },
     ];
     this.shell.drawFrame({
       clear: { r: 0.06, g: 0.07, b: 0.075, a: 1 },

@@ -184,6 +184,13 @@ next useful question, then lock it with tests and screenshots.
   mismatches. Public draw APIs are phase-specific: if a primitive family is
   needed in both background and world-depth phases, split the renderer classes
   instead of keeping a dual `draw`/`drawDepth` object.
+- **Semantic pass roles are mandatory.** Every live frame pass declares what it
+  is, not only where it draws: `background-underpaint`, `world-opaque`,
+  `world-decal`, `world-depth-fill`, `overlay-ui`, `overlay-effect`, or
+  `overlay-debug`. The shell rejects incompatible combinations, such as an
+  opaque 3D batch submitted as an overlay or a decal pass that writes depth.
+  Type/model buckets are allowed only underneath those roles as a batching
+  strategy; they never define visibility or draw-order truth.
 - **One world/camera/depth contract.** Campaign and battle model, terrain,
   decal, shadow, projectile, picking, and label-anchor code must share the same
   packed camera uniform and projection semantics. A pass can opt into a named

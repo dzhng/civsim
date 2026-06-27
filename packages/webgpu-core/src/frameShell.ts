@@ -40,17 +40,27 @@ export type OverlayRenderPass = GPURenderPassEncoder & {
 };
 
 export type FrameGraphDepthMode = WebGpuDepthMode;
+export type FrameGraphPassRole =
+  | 'background-underpaint'
+  | 'world-depth-fill'
+  | 'world-opaque'
+  | 'world-decal'
+  | 'overlay-ui'
+  | 'overlay-effect'
+  | 'overlay-debug';
 
 export type FrameGraphPass =
   | {
     id: string;
     label?: string;
+    role: 'background-underpaint';
     phase: 'background';
     draw: (pass: BackgroundRenderPass, shell: RawFrameShell) => void;
   }
   | {
     id: string;
     label?: string;
+    role: 'world-depth-fill' | 'world-opaque' | 'world-decal';
     phase: 'world-depth';
     depth: FrameGraphDepthMode;
     draw: (pass: WorldRenderPass, shell: RawFrameShell) => void;
@@ -58,6 +68,7 @@ export type FrameGraphPass =
   | {
     id: string;
     label?: string;
+    role: 'overlay-ui' | 'overlay-effect' | 'overlay-debug';
     phase: 'overlay';
     draw: (pass: OverlayRenderPass, shell: RawFrameShell) => void;
   };
@@ -85,10 +96,41 @@ function frameGraphPhaseOrder(phase: FramePhaseKind): number {
   }
 }
 
+function isFrameGraphPassRole(value: unknown): value is FrameGraphPassRole {
+  return value === 'background-underpaint'
+    || value === 'world-depth-fill'
+    || value === 'world-opaque'
+    || value === 'world-decal'
+    || value === 'overlay-ui'
+    || value === 'overlay-effect'
+    || value === 'overlay-debug';
+}
+
+function frameGraphRolePhase(role: FrameGraphPassRole): FramePhaseKind {
+  switch (role) {
+    case 'background-underpaint': return 'background';
+    case 'world-depth-fill':
+    case 'world-opaque':
+    case 'world-decal': return 'world-depth';
+    case 'overlay-ui':
+    case 'overlay-effect':
+    case 'overlay-debug': return 'overlay';
+  }
+}
+
+function frameGraphDepthRole(depth: FrameGraphDepthMode): Extract<FrameGraphPassRole, 'world-depth-fill' | 'world-opaque' | 'world-decal'> {
+  switch (depth) {
+    case 'write': return 'world-depth-fill';
+    case 'read-write': return 'world-opaque';
+    case 'read': return 'world-decal';
+  }
+}
+
 export interface FramePhaseStats {
   kind: FramePhaseKind;
   label: string;
   passIds: string[];
+  passRoles: Array<{ id: string; role: FrameGraphPassRole }>;
   depthPasses: Array<{ id: string; mode: FrameGraphDepthMode }>;
   depth: 'none' | 'depth24plus-clear';
   loadOp: 'clear' | 'load';
@@ -469,6 +511,10 @@ export class RawFrameShellImpl implements RawFrameShell {
       kind: 'background',
       label: 'terrain, backdrop, impostor markers, and background surfaces',
       passIds: ['builtin-background', ...backgroundPasses.map((pass) => pass.id)],
+      passRoles: [
+        { id: 'builtin-background', role: 'background-underpaint' },
+        ...backgroundPasses.map((pass) => ({ id: pass.id, role: pass.role })),
+      ],
       depthPasses: [],
       depth: 'none',
       loadOp: 'clear',
@@ -490,6 +536,7 @@ export class RawFrameShellImpl implements RawFrameShell {
         kind: 'world-depth',
         label: 'depth-tested world geometry and ground decals',
         passIds: worldPasses.map((pass) => pass.id),
+        passRoles: worldPasses.map((pass) => ({ id: pass.id, role: pass.role })),
         depthPasses: worldPasses.map((pass) => ({ id: pass.id, mode: pass.depth })),
         depth: 'depth24plus-clear',
         loadOp: 'load',
@@ -511,6 +558,7 @@ export class RawFrameShellImpl implements RawFrameShell {
         kind: 'overlay',
         label: 'labels, HUD, minimap, atmosphere, and debug overlays',
         passIds: overlayPasses.map((pass) => pass.id),
+        passRoles: overlayPasses.map((pass) => ({ id: pass.id, role: pass.role })),
         depthPasses: [],
         depth: 'none',
         loadOp: 'load',
@@ -556,7 +604,7 @@ export class RawFrameShellImpl implements RawFrameShell {
     const seen = new Set<string>();
     let lastPhaseOrder = -1;
     for (const pass of passes) {
-      const candidate = pass as FrameGraphPass & { depth?: unknown; id?: unknown; phase?: unknown };
+      const candidate = pass as FrameGraphPass & { depth?: unknown; id?: unknown; phase?: unknown; role?: unknown };
       const id = typeof candidate.id === 'string' && candidate.id.length > 0 ? candidate.id : '<unknown>';
       if (typeof candidate.id !== 'string' || candidate.id.length === 0) {
         throw new Error('frame graph pass must declare a non-empty id');
@@ -566,6 +614,9 @@ export class RawFrameShellImpl implements RawFrameShell {
       }
       if (seen.has(id)) throw new Error(`duplicate frame graph pass id "${id}"`);
       seen.add(id);
+      if (!isFrameGraphPassRole(candidate.role)) {
+        throw new Error(`frame graph pass "${id}" must declare a semantic role`);
+      }
       const hasDepth = Object.prototype.hasOwnProperty.call(candidate, 'depth');
       if (candidate.phase === 'world-depth') {
         if (!isWebGpuDepthMode(candidate.depth)) {
@@ -577,6 +628,16 @@ export class RawFrameShellImpl implements RawFrameShell {
       const order = frameGraphPhaseOrder(candidate.phase);
       if (order < lastPhaseOrder) {
         throw new Error(`frame graph pass "${id}" moves phase order backward to "${candidate.phase}"`);
+      }
+      const rolePhase = frameGraphRolePhase(candidate.role);
+      if (rolePhase !== candidate.phase) {
+        throw new Error(`frame graph pass "${id}" role "${candidate.role}" is incompatible with phase "${candidate.phase}"`);
+      }
+      if (candidate.phase === 'world-depth') {
+        const depthRole = frameGraphDepthRole(candidate.depth);
+        if (depthRole !== candidate.role) {
+          throw new Error(`world-depth frame graph pass "${id}" depth mode "${candidate.depth}" requires role "${depthRole}", not "${candidate.role}"`);
+        }
       }
       lastPhaseOrder = Math.max(lastPhaseOrder, order);
     }

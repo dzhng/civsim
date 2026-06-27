@@ -1,6 +1,6 @@
 import { readdir, readFile } from 'node:fs/promises';
 import { PNG } from 'pngjs';
-import { hasFrameDepthPass, hasFramePass, hasFramePhaseOrder } from './_webgpu-contract.mjs';
+import { hasFrameDepthPass, hasFramePass, hasFramePassRole, hasFramePhaseOrder } from './_webgpu-contract.mjs';
 
 export const meta = {
   name: 'webgpu-lab-routes',
@@ -30,6 +30,7 @@ const routes = [
     && s.stats.depth?.allocated === true
     && hasFramePhaseOrder(s.stats.framePhases)
     && hasFrameDepthPass(s.stats.framePhases, 'skinned-depth-crowd', 'read-write')
+    && hasFramePassRole(s.stats.framePhases, 'skinned-depth-crowd', 'world-opaque', 'world-depth')
     && s.stats.hostileDrawOrder === 'front-class-0-submitted-before-rear-class-14'
     && s.stats.sample],
   ['lod?zoom=5', (s) => s?.ok && s.route === 'lod' && (s.stats.counts.l1 + s.stats.counts.l2 + s.stats.counts.l3 + s.stats.counts.l0) === 1800],
@@ -44,7 +45,7 @@ const routes = [
     && s.stats.scenes[0].frame.samples > 0],
   ['campaign', (s) => s?.ok && s.route === 'campaign' && s.stats.markers > 0],
   ['campaign-map?preset=whole', (s) => s?.ok && s.route === 'campaign-map' && s.stats.roads > 20 && s.stats.seaLanes > 0 && s.stats.cityMarkers > 20 && s.stats.visibleLabels > 5 && s.stats.labelVertices > 20 && s.stats.factions > 5 && s.stats.territoryPixels > 10000 && s.stats.borderSegments > 100 && s.stats.waterFeatures >= 5 && s.stats.cloudQuads === 1 && s.stats.cameraContract === 'shared-world-camera-wgsl' && s.stats.territoryLayer === 'raw-webgpu-texture' && s.stats.atmosphereLayer === 'raw-webgpu-cloud-water' && s.stats.labelLayer === 'raw-webgpu-glyph-atlas'],
-  ['campaign-ui', (s) => s?.ok && s.route === 'campaign-ui' && s.stats.fixture === 'controlled' && s.stats.cityEntities === 2 && s.stats.armyEntities === 1 && s.stats.selections >= 2 && s.stats.depth?.allocated === true && s.stats.depth?.format === 'depth24plus' && hasFramePhaseOrder(s.stats.framePhases ?? s.stats.phases) && hasFrameDepthPass(s.stats.framePhases ?? s.stats.phases, 'campaign-ui-selection', 'read') && hasFrameDepthPass(s.stats.framePhases ?? s.stats.phases, 'campaign-ui-entities', 'read-write') && s.stats.ui.armyPanel && s.stats.ui.cityPanel && s.stats.ui.autoReplenishToggle && s.stats.ui.classRows >= 8 && s.stats.ui.diplomacyRows >= 1 && s.stats.labelLayer === 'raw-webgpu-glyph-atlas' && s.stats.labelVertices > 0 && s.stats.postCutoverScreenshots === 'webgpu-only'],
+  ['campaign-ui', (s) => s?.ok && s.route === 'campaign-ui' && s.stats.fixture === 'controlled' && s.stats.cityEntities === 2 && s.stats.armyEntities === 1 && s.stats.selections >= 2 && s.stats.depth?.allocated === true && s.stats.depth?.format === 'depth24plus' && hasFramePhaseOrder(s.stats.framePhases ?? s.stats.phases) && hasFrameDepthPass(s.stats.framePhases ?? s.stats.phases, 'campaign-ui-selection', 'read') && hasFramePassRole(s.stats.framePhases ?? s.stats.phases, 'campaign-ui-selection', 'world-decal', 'world-depth') && hasFrameDepthPass(s.stats.framePhases ?? s.stats.phases, 'campaign-ui-entities', 'read-write') && hasFramePassRole(s.stats.framePhases ?? s.stats.phases, 'campaign-ui-entities', 'world-opaque', 'world-depth') && s.stats.ui.armyPanel && s.stats.ui.cityPanel && s.stats.ui.autoReplenishToggle && s.stats.ui.classRows >= 8 && s.stats.ui.diplomacyRows >= 1 && s.stats.labelLayer === 'raw-webgpu-glyph-atlas' && s.stats.labelVertices > 0 && s.stats.postCutoverScreenshots === 'webgpu-only'],
   ['campaign-model-gates?gate=city', (s) => s?.ok
     && s.route === 'campaign-model-gates'
     && s.stats.gate === 'city'
@@ -83,6 +84,7 @@ const routes = [
     && hasFramePhaseOrder(s.stats.framePhases)
     && hasFramePass(s.stats.framePhases, 'render-graph-nested-3d')
     && hasFrameDepthPass(s.stats.framePhases, 'render-graph-nested-3d', 'read-write')
+    && hasFramePassRole(s.stats.framePhases, 'render-graph-nested-3d', 'world-opaque', 'world-depth')
     && s.stats.nested3d?.fixtures?.includes('flag-in-city')
     && s.stats.nested3d?.fixtures?.includes('garrison-in-city-stub')
     && s.stats.nested3d?.fixtures?.includes('rank-overlap')],
@@ -94,15 +96,16 @@ const routes = [
     && hasFramePhaseOrder(s.stats.framePhases)
     && hasFramePass(s.stats.framePhases, 'world-camera-nested-3d')
     && hasFrameDepthPass(s.stats.framePhases, 'world-camera-nested-3d', 'read-write')
+    && hasFramePassRole(s.stats.framePhases, 'world-camera-nested-3d', 'world-opaque', 'world-depth')
     && s.stats.anchorAgreement?.maxDelta < 0.001
     && s.stats.nested3d?.fixtures?.includes('flag-in-city')
     && s.stats.nested3d?.fixtures?.includes('garrison-in-city-stub')
     && s.stats.nested3d?.fixtures?.includes('rank-overlap')],
   ['battle-terrain?fixture=coast', (s) => s?.ok && s.route === 'battle-terrain' && s.stats.fixture === 'coast' && s.stats.waterQuads >= 3 && s.stats.sceneryQuads >= 8 && s.stats.worldPropQuads >= 4 && s.stats.cameraContract === 'shared-world-camera-wgsl'],
   ['battle-terrain?fixture=melee', (s) => s?.ok && s.route === 'battle-terrain' && s.stats.fixture === 'melee' && s.stats.waterQuads >= 3 && s.stats.sceneryQuads >= 8 && s.stats.worldPropQuads >= 4 && s.stats.selectionQuads === 0 && s.stats.cameraContract === 'shared-world-camera-wgsl'],
-  ['battle-live?mode=5v5&ticks=36', (s) => s?.ok && s.route === 'battle-live' && s.stats.written > 1000 && s.stats.units >= 10 && s.stats.player > 0 && s.stats.enemy > 0 && s.stats.drawCalls >= 1 && s.stats.drawCalls <= 15 && s.stats.groundCues.lineSegments >= 20 && s.stats.cameraContract === 'shared-world-camera-wgsl' && s.stats.groundCues.cameraContract === 'shared-world-camera-wgsl'],
-  ['battle-ui?mode=5v5&ticks=36', (s) => s?.ok && s.route === 'battle-ui' && s.stats.written > 1000 && s.stats.units >= 10 && s.stats.drawCalls >= 1 && s.stats.drawCalls <= 15 && s.stats.groundCues.lineSegments >= 20 && s.stats.ui.cards >= 8 && s.stats.ui.toolbarButtons >= 5 && s.stats.ui.postCutoverScreenshots === 'webgpu-only' && s.stats.cameraContract === 'shared-world-camera-wgsl' && s.stats.groundCues.cameraContract === 'shared-world-camera-wgsl'],
-  ['battle-input?mode=5v5&ticks=36', (s) => s?.ok && s.route === 'battle-input' && s.stats.written > 1000 && s.stats.units >= 10 && s.stats.drawCalls >= 1 && s.stats.drawCalls <= 15 && s.stats.groundCues.lineSegments >= 20 && s.stats.selectedUnits.length === 1 && s.stats.ui.cards >= 8 && s.stats.cameraContract === 'shared-world-camera-wgsl' && s.stats.groundCues.cameraContract === 'shared-world-camera-wgsl'],
+  ['battle-live?mode=5v5&ticks=36', (s) => s?.ok && s.route === 'battle-live' && s.stats.written > 1000 && s.stats.units >= 10 && s.stats.player > 0 && s.stats.enemy > 0 && s.stats.drawCalls >= 1 && s.stats.drawCalls <= 15 && s.stats.groundCues.lineSegments >= 20 && hasFramePassRole(s.stats.framePhases ?? s.stats.phases, 'battle-live-crowd', 'world-opaque', 'world-depth') && hasFramePassRole(s.stats.framePhases ?? s.stats.phases, 'battle-live-ground-cues', 'world-decal', 'world-depth') && s.stats.cameraContract === 'shared-world-camera-wgsl' && s.stats.groundCues.cameraContract === 'shared-world-camera-wgsl'],
+  ['battle-ui?mode=5v5&ticks=36', (s) => s?.ok && s.route === 'battle-ui' && s.stats.written > 1000 && s.stats.units >= 10 && s.stats.drawCalls >= 1 && s.stats.drawCalls <= 15 && s.stats.groundCues.lineSegments >= 20 && hasFramePassRole(s.stats.framePhases ?? s.stats.phases, 'battle-ui-crowd', 'world-opaque', 'world-depth') && hasFramePassRole(s.stats.framePhases ?? s.stats.phases, 'battle-ui-ground-cues', 'world-decal', 'world-depth') && s.stats.ui.cards >= 8 && s.stats.ui.toolbarButtons >= 5 && s.stats.ui.postCutoverScreenshots === 'webgpu-only' && s.stats.cameraContract === 'shared-world-camera-wgsl' && s.stats.groundCues.cameraContract === 'shared-world-camera-wgsl'],
+  ['battle-input?mode=5v5&ticks=36', (s) => s?.ok && s.route === 'battle-input' && s.stats.written > 1000 && s.stats.units >= 10 && s.stats.drawCalls >= 1 && s.stats.drawCalls <= 15 && s.stats.groundCues.lineSegments >= 20 && hasFramePassRole(s.stats.framePhases ?? s.stats.phases, 'battle-input-crowd', 'world-opaque', 'world-depth') && hasFramePassRole(s.stats.framePhases ?? s.stats.phases, 'battle-input-ground-cues', 'world-decal', 'world-depth') && s.stats.selectedUnits.length === 1 && s.stats.ui.cards >= 8 && s.stats.cameraContract === 'shared-world-camera-wgsl' && s.stats.groundCues.cameraContract === 'shared-world-camera-wgsl'],
   ['cutover', (s) => s?.ok
     && s.route === 'cutover'
     && s.stats.kind === 'webgpu-cutover-report'
@@ -219,8 +222,10 @@ async function findPhaseBrandFootguns() {
       checks: [
         ['frame shell imports shared depth contract', /import\s*\{[^}]*WEBGPU_DEPTH_FORMAT[^}]*type\s+WebGpuDepthMode[^}]*\}\s*from\s*['"]\.\/depthContract['"]/],
         ['frame graph command list is phase-branded', /export type FrameGraphPass[\s\S]*?phase:\s*'background'[\s\S]*?BackgroundRenderPass[\s\S]*?phase:\s*'world-depth'[\s\S]*?WorldRenderPass[\s\S]*?phase:\s*'overlay'[\s\S]*?OverlayRenderPass/],
+        ['frame graph command list declares semantic roles', /export type FrameGraphPass[\s\S]*?role:\s*'background-underpaint'[\s\S]*?role:\s*'world-depth-fill'\s*\|\s*'world-opaque'\s*\|\s*'world-decal'[\s\S]*?role:\s*'overlay-ui'\s*\|\s*'overlay-effect'\s*\|\s*'overlay-debug'/],
         ['frame commands accept graph passes', /passes\?:\s*FrameGraphPass\[\]/],
         ['phase stats publish graph pass ids', /passIds:\s*string\[\]/],
+        ['phase stats publish semantic roles', /passRoles:\s*Array<\{\s*id:\s*string;\s*role:\s*FrameGraphPassRole\s*\}>/],
         ['world-depth graph passes use shared depth mode', /export type FrameGraphDepthMode\s*=\s*WebGpuDepthMode[\s\S]*?phase:\s*'world-depth';[\s\S]*?depth:\s*FrameGraphDepthMode/],
         ['phase stats publish depth pass modes', /depthPasses:\s*Array<\{\s*id:\s*string;\s*mode:\s*FrameGraphDepthMode\s*\}>/],
       ],
@@ -253,6 +258,13 @@ async function findPhaseBrandFootguns() {
         ['battle ground cue uses shared battle world depth helper', /civsimBattleWorldDepth3d\s*\(/],
         ['battle ground cue uses depth-read material contract', /webGpuWorldDepthStencil\s*\(\s*false\s*\)/],
         ['selected unit cue helper uses ground-cue naming', /selectedUnitGroundCueVertices/],
+      ],
+    },
+    {
+      file: new URL('../../packages/game-renderer/src/battle/effectLinePass.ts', import.meta.url),
+      checks: [
+        ['battle effect line draw requires overlay pass', /\bdraw\s*\(\s*pass:\s*OverlayRenderPass\s*\)/],
+        ['battle effect line does not use world depth stencil', v => !/webGpuWorldDepthStencil|depthStencil/.test(v)],
       ],
     },
     {
@@ -306,7 +318,8 @@ async function findPhaseBrandFootguns() {
   for (const { file, checks } of files) {
     const source = await readFile(file, 'utf8');
     for (const [label, pattern] of checks) {
-      if (!pattern.test(source)) matches.push(`${file.pathname.replace(root, '')}: missing ${label}`);
+      const ok = typeof pattern === 'function' ? pattern(source) : pattern.test(source);
+      if (!ok) matches.push(`${file.pathname.replace(root, '')}: missing ${label}`);
     }
   }
   return matches.sort();
@@ -366,6 +379,30 @@ async function findWorldDepthPassMetadataFootguns() {
       if (!/\bdepth:\s*'(?:read|read-write|write)'/.test(passObject)) {
         const id = passObject.match(/\bid:\s*'([^']+)'/)?.[1] ?? 'unknown pass';
         matches.push(`${file.pathname.replace(root, '')}: ${id} missing world-depth depth mode`);
+      }
+    }
+  }
+  return matches.sort();
+}
+
+async function findFrameGraphRoleFootguns() {
+  const root = new URL('../../', import.meta.url).pathname;
+  const files = [
+    new URL('../../apps/webgpu-lab/src/router.ts', import.meta.url),
+    new URL('../../web/src/battle/rendererWebGPU.ts', import.meta.url),
+    new URL('../../web/src/campaign/rendererWebGPU.ts', import.meta.url),
+  ];
+  const matches = [];
+  for (const file of files) {
+    const source = await readFile(file, 'utf8');
+    const passObjects = source.match(/\{[^{}]*id:\s*'[^']+'[^{}]*phase:\s*'[^']+'[^{}]*\}/g) ?? [];
+    for (const passObject of passObjects) {
+      if (file.pathname.endsWith('/apps/webgpu-lab/src/router.ts') && /\bid:\s*'bad-/.test(passObject)) continue;
+      const phase = passObject.match(/\bphase:\s*'([^']+)'/)?.[1] ?? '';
+      if (phase !== 'background' && phase !== 'world-depth' && phase !== 'overlay') continue;
+      if (!/\brole:\s*'(?:background-underpaint|world-depth-fill|world-opaque|world-decal|overlay-ui|overlay-effect|overlay-debug)'/.test(passObject)) {
+        const id = passObject.match(/\bid:\s*'([^']+)'/)?.[1] ?? 'unknown pass';
+        matches.push(`${file.pathname.replace(root, '')}: ${id} missing semantic frame-graph role`);
       }
     }
   }
@@ -573,6 +610,12 @@ export async function run(ctx) {
     'source: world-depth frame passes declare depth modes',
     worldDepthPassMetadataFootguns.length === 0,
     JSON.stringify({ worldDepthPassMetadataFootguns }),
+  );
+  const frameGraphRoleFootguns = await findFrameGraphRoleFootguns();
+  ctx.check(
+    'source: live frame passes declare semantic roles',
+    frameGraphRoleFootguns.length === 0,
+    JSON.stringify({ frameGraphRoleFootguns }),
   );
   const productionScenarioContractFootguns = await findProductionScenarioContractFootguns();
   ctx.check(

@@ -1,4 +1,4 @@
-// Line-overlay vertex helpers (x, y, r, g, b per vertex; GL_LINES pairs).
+// Tactical line vertex helpers (x, y, r, g, b per vertex; GL_LINES pairs).
 
 /** Formation-frame outline + facing tick at a prospective destination. */
 export function pushGhost(verts: number[], x: number, y: number, facing: number, w: number, d: number, r: number, g: number, b: number) {

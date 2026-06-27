@@ -15,6 +15,9 @@ current renderer screenshots stop being a routine parallel suite.
 - `packages/game-renderer/src/battle/groundCuePass.ts`
   - owns depth-read battlefield ground cues such as selection rings and reform
     ghosts.
+- `packages/game-renderer/src/battle/effectLinePass.ts`
+  - owns transient non-depth tactical/effect lines such as projectiles and
+    order-progress arcs until those families earn dedicated world-effect passes.
 - `packages/game-renderer/src/battle/minimapPass.ts`
 - `web/src/battle/webgpuUiLayer.ts`
   - explicitly owns which surfaces are WebGPU and which remain DOM.
@@ -44,6 +47,12 @@ current renderer screenshots stop being a routine parallel suite.
   use the shared battle depth helper and depth writes stay off, so soldiers and
   terrain props can occlude the cue while the cue never reserves pixels above
   real geometry.
+- Current checkpoint: old battle line-overlay output is split by semantics.
+  Ground paths, destination ghosts, drag previews, and selection rings feed the
+  `battle-ground-cues` depth-read pass; projectiles and progress arcs feed the
+  overlay-only `battle-effect-lines` pass. This prevents projectiles/effect
+  strokes from masquerading as ground decals while preserving the eventual lane
+  for true projectile-world rendering.
 - Fresh unprimed critique of the updated Battle Selection DPR2 screenshot
   accepted the depth behavior but flagged visual follow-ups: the selected-unit
   ring is now too weak/low-contrast when correctly occluded by the formation,

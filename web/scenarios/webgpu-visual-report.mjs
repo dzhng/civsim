@@ -54,6 +54,14 @@ function hasDepthPass(phases, id, mode) {
   );
 }
 
+function hasOverlayPass(phases, id) {
+  return Array.isArray(phases) && phases.some((phase) =>
+    phase?.kind === 'overlay'
+      && Array.isArray(phase?.passIds)
+      && phase.passIds.includes(id),
+  );
+}
+
 const reviewRows = [
   {
     id: 'menu-ready',
@@ -270,9 +278,10 @@ async function captureBattleDefault(ctx) {
   const stats = await page.evaluate(() => window.__game.stats());
   const terrain = stats.renderStats?.terrain;
   const groundCueEvidence = hasDepthPass(stats.renderStats?.phases, 'battle-ground-cues', 'read') ? 'ground cues depth-read' : 'ground cues n/a';
+  const effectLineEvidence = hasOverlayPass(stats.renderStats?.phases, 'battle-effect-lines') ? 'effect lines overlay' : 'effect lines n/a';
   const capture = await savePage(page, 'battle-default', {
     status: 'webgpu-evidence',
-    evidence: `${stats.soldiers} soldiers; renderer ${stats.renderer}; drawCalls ${stats.renderStats?.drawCalls}; ${stats.renderStats?.atmosphere}; terrain quads ${terrain?.quads ?? 'n/a'} / scenery ${terrain?.sceneryQuads ?? 'n/a'} / world props ${terrain?.worldPropQuads ?? 'n/a'}; ${groundCueEvidence}; warm/cool skinned material grade`,
+    evidence: `${stats.soldiers} soldiers; renderer ${stats.renderer}; drawCalls ${stats.renderStats?.drawCalls}; ${stats.renderStats?.atmosphere}; terrain quads ${terrain?.quads ?? 'n/a'} / scenery ${terrain?.sceneryQuads ?? 'n/a'} / world props ${terrain?.worldPropQuads ?? 'n/a'}; ${groundCueEvidence}; ${effectLineEvidence}; warm/cool skinned material grade`,
   });
   await page.close();
   return capture;
@@ -300,9 +309,10 @@ async function captureBattleSelectionHud(ctx) {
   const stats = await page.evaluate(() => window.__game.stats());
   const terrain = stats.renderStats?.terrain;
   const groundCueEvidence = hasDepthPass(stats.renderStats?.phases, 'battle-ground-cues', 'read') ? 'ground cues depth-read' : 'ground cues n/a';
+  const effectLineEvidence = hasOverlayPass(stats.renderStats?.phases, 'battle-effect-lines') ? 'effect lines overlay' : 'effect lines n/a';
   const capture = await savePage(page, 'battle-selection-hud-dpr2', {
     status: 'webgpu-evidence',
-    evidence: `dpr2 selection; ${stats.soldiers} soldiers; renderer ${stats.renderer}; ${stats.renderStats?.atmosphere}; terrain quads ${terrain?.quads ?? 'n/a'} / scenery ${terrain?.sceneryQuads ?? 'n/a'} / world props ${terrain?.worldPropQuads ?? 'n/a'}; ${groundCueEvidence}; lit skinned silhouettes`,
+    evidence: `dpr2 selection; ${stats.soldiers} soldiers; renderer ${stats.renderer}; ${stats.renderStats?.atmosphere}; terrain quads ${terrain?.quads ?? 'n/a'} / scenery ${terrain?.sceneryQuads ?? 'n/a'} / world props ${terrain?.worldPropQuads ?? 'n/a'}; ${groundCueEvidence}; ${effectLineEvidence}; lit skinned silhouettes`,
   });
   await page.close();
   return capture;

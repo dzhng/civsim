@@ -167,6 +167,14 @@ shadows that sit on the ground instead of floating as screen overlays.
   proving unsupported phases, missing/unsupported world-depth modes, and depth
   modes on background passes are rejected even when a caller bypasses TypeScript
   with JS or casts.
+- `RawFrameShell.drawFrame` now requires a semantic role on every live pass and
+  records those roles in `stats().phases[].passRoles`. Roles are phase/depth
+  constrained: background passes must be `background-underpaint`,
+  read-write/write world passes are `world-opaque`/`world-depth-fill`, read-only
+  ground cues are `world-decal`, and overlays must choose `overlay-ui`,
+  `overlay-effect`, or `overlay-debug`. Production scenario helpers assert
+  these roles for battle and campaign so type buckets remain batching
+  implementation details, not visibility rules.
 - Production scenario contracts now verify the full phase split, not only
   nested-world depth. The shared `_webgpu-contract.mjs` helper requires concrete
   background, `world-depth`, and overlay pass ids for battle and campaign, and

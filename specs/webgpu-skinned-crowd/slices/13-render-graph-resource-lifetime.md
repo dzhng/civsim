@@ -70,6 +70,11 @@ compatible or splits them into separate passes.
   existing color target, clears a reusable `depth24plus` attachment, binds the
   shared camera uniforms, and draws depth-tested geometry after the background
   phase.
+- Live frame passes now carry semantic roles in addition to frame phases:
+  `background-underpaint`, `world-opaque`, `world-decal`, `world-depth-fill`,
+  `overlay-ui`, `overlay-effect`, and `overlay-debug`. The frame shell rejects
+  incompatible role/phase/depth combinations before encoding GPU work, so a
+  future type bucket cannot become a hidden painter-order rule.
 - `packages/game-renderer/src/renderGraph.ts` declares the first shared
   full-game graph skeleton with `worldDepth` ownership: terrain/ground write
   depth, opaque 3D battle/campaign passes read-write depth, and labels/UI are

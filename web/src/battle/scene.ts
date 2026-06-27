@@ -3,7 +3,7 @@ import type { Scene } from '../scene';
 import { Camera } from '../shared/camera';
 import { pushGhost, pushPie, pushRing } from '../shared/overlays';
 import { modelLookForUnit } from '../shared/soldierModel';
-import { BattleRendererWebGPU } from './rendererWebGPU';
+import { BattleRendererWebGPU, type BattleTacticalLineFrame } from './rendererWebGPU';
 import { CLASS_NAMES } from './classData';
 import { UnitBanner, type BannerChip } from './unitBanner';
 import { UnitCards } from './unitCard';
@@ -618,11 +618,12 @@ export class BattleScene implements Scene {
       }));
     };
 
-    // --- Overlay (paths, pies, projectiles, selection rings) ----------------------
-    function overlayVerts(withPaths: boolean): Float32Array {
+    // --- Tactical lines: ground decals plus transient effects ---------------------
+    function tacticalLineFrame(withPaths: boolean): BattleTacticalLineFrame {
       const info = unitInfo();
       const n = game.unit_count();
-      const verts: number[] = [];
+      const groundCues: number[] = [];
+      const effects: number[] = [];
       const showTransient = !frozen || withPaths;
       for (let u = 0; u < n; u++) {
         const o = u * STRIDE;
@@ -631,10 +632,10 @@ export class BattleScene implements Scene {
         if (withPaths) {
           const fx = Math.cos(facing);
           const fy = Math.sin(facing);
-          verts.push(ax, ay, r, g, b, ax + fx * 4, ay + fy * 4, r, g, b);
-          verts.push(ax - fy * 2, ay + fx * 2, r, g, b, ax + fy * 2, ay - fx * 2, r, g, b);
+          groundCues.push(ax, ay, r, g, b, ax + fx * 4, ay + fy * 4, r, g, b);
+          groundCues.push(ax - fy * 2, ay + fx * 2, r, g, b, ax + fy * 2, ay - fx * 2, r, g, b);
           if (info[o + 12] > 0.5) {
-            verts.push(ax, ay, r, g, b, info[o + 10], info[o + 11], r, g, b);
+            groundCues.push(ax, ay, r, g, b, info[o + 10], info[o + 11], r, g, b);
           }
         }
         // Destination ghost: the formation frame at the end of the path
@@ -649,11 +650,11 @@ export class BattleScene implements Scene {
           const w = files * CLASS_SPACING[cls];
           const d = CLASS_DEPTH[cls] * 1.1;
           const gf = info[o + 23] > 0.5 ? info[o + 22] : Math.atan2(info[o + 11] - ay, info[o + 10] - ax);
-          pushGhost(verts, info[o + 10], info[o + 11], gf, w, d, r * k, g * k, b * k);
-          verts.push(ax, ay, r * 0.8 * k, g * 0.8 * k, b * 0.8 * k, info[o + 10], info[o + 11], r * 0.8 * k, g * 0.8 * k, b * 0.8 * k);
+          pushGhost(groundCues, info[o + 10], info[o + 11], gf, w, d, r * k, g * k, b * k);
+          groundCues.push(ax, ay, r * 0.8 * k, g * 0.8 * k, b * 0.8 * k, info[o + 10], info[o + 11], r * 0.8 * k, g * 0.8 * k, b * 0.8 * k);
         }
         // Progress pie: WHITE = order transmitting down the line.
-        if (showTransient && info[o + 14] > 0) pushPie(verts, ax, ay, info[o + 14], 7, 1, 1, 1);
+        if (showTransient && info[o + 14] > 0) pushPie(effects, ax, ay, info[o + 14], 7, 1, 1, 1);
       }
       // Right-drag preview: where everyone will stand, facing the cursor.
       if (input.rightDrag) {
@@ -665,11 +666,11 @@ export class BattleScene implements Scene {
             const cls = info[o + 13];
             const alive = info[o + 15];
             const files = Math.max(1, Math.ceil(alive / CLASS_DEPTH[cls]));
-            pushGhost(verts, dst.x, dst.y, input.rightDrag.facing, files * CLASS_SPACING[cls], CLASS_DEPTH[cls] * 1.1, 1, 1, 0.7);
+            pushGhost(groundCues, dst.x, dst.y, input.rightDrag.facing, files * CLASS_SPACING[cls], CLASS_DEPTH[cls] * 1.1, 1, 1, 0.7);
           }
           // The arrow itself.
           const a = input.rightDrag;
-          verts.push(a.x, a.y, 1, 1, 0.7, a.x + Math.cos(a.facing) * 14, a.y + Math.sin(a.facing) * 14, 1, 1, 0.7);
+          groundCues.push(a.x, a.y, 1, 1, 0.7, a.x + Math.cos(a.facing) * 14, a.y + Math.sin(a.facing) * 14, 1, 1, 0.7);
         }
       }
       // Drag-move preview: ghosts of every selected unit at the dragged spot.
@@ -682,14 +683,14 @@ export class BattleScene implements Scene {
           if (alive === 0) continue;
           const files = Math.max(1, Math.ceil(alive / CLASS_DEPTH[cls]));
           const [cx, cy] = unitCenter(u);
-          pushGhost(verts, cx + dx, cy + dy, info[o + 2], files * CLASS_SPACING[cls], CLASS_DEPTH[cls] * 1.1, 1, 1, 1);
+          pushGhost(groundCues, cx + dx, cy + dy, info[o + 2], files * CLASS_SPACING[cls], CLASS_DEPTH[cls] * 1.1, 1, 1, 1);
         }
       }
       // Selection rings.
       for (const u of input.selected) {
         const [cx, cy] = unitCenter(u);
-        pushRing(verts, cx, cy, 8.5, 18, 1.0, 0.78, 0.22);
-        pushRing(verts, cx, cy, 5.4, 14, 1.0, 0.92, 0.45);
+        pushRing(groundCues, cx, cy, 8.5, 18, 1.0, 0.78, 0.22);
+        pushRing(groundCues, cx, cy, 5.4, 14, 1.0, 0.92, 0.45);
       }
       // Projectiles.
       const pCount = showTransient ? game.projectile_count() : 0;
@@ -701,10 +702,10 @@ export class BattleScene implements Scene {
           const stone = pk[i] === 2;
           const len = stone ? 1.4 : 0.7;
           const c = stone ? 0.25 : 0.92;
-          verts.push(px[i] - len, py[i], c, c, c * 0.9, px[i] + len, py[i], c, c, c * 0.9);
+          effects.push(px[i] - len, py[i], c, c, c * 0.9, px[i] + len, py[i], c, c, c * 0.9);
         }
       }
-      return new Float32Array(verts);
+      return { groundCues: new Float32Array(groundCues), effects: new Float32Array(effects) };
     }
 
     // --- The one Menu button: restart or exit --------------------------------------
@@ -963,7 +964,7 @@ export class BattleScene implements Scene {
         }
         if (tris.length) renderer.drawTris(new Float32Array(tris), camera);
       }
-      renderer.drawOverlay(overlayVerts(showPaths), camera);
+      renderer.drawTacticalLines(tacticalLineFrame(showPaths), camera);
 
       // DOM selection rectangle.
       if (input.box) {

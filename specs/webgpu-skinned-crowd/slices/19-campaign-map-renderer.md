@@ -270,3 +270,17 @@ construction-line artifact, but it still blocks whole-map acceptance on missing
 overview army/flag markers, flat territory overlays, weak coastlines, low-
 contrast sea labels, faction/city label collisions, muted terrain contrast, and
 top-toolbar clipping.
+
+An overview marker LOD experiment was rejected. Restoring all 412 city markers
+plus army markers produced black-ring speckle and worsened Campaign Whole Map
+to `0.29188` / `0.30326`; army-only flag markers were less noisy but still did
+not satisfy fresh critique and scored `0.27100` / `0.28136`; tier-2+ city dots
+plus flags still read as stipple/noise and scored `0.27184` / `0.28224`. Keep
+the marker work for a dedicated old-map LOD pass with better icon shapes and
+label rules instead of committing this halfway layer.
+
+The map shader now derives a soft shoreline rim from neighboring sea-mask
+samples, improving coast/island separation without adding geometry or touching
+the controlled close fixture. Campaign Whole Map moved from `0.27079` full /
+`0.28114` world crop to `0.26943` full / `0.27974` world crop, while Campaign
+Label Zoom stayed unchanged at `0.17429` / `0.23263`.

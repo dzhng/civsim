@@ -129,6 +129,10 @@ fn ridged(p: vec2f) -> f32 {
   return r * r;
 }
 
+fn seaAmount(rgb: vec3f) -> f32 {
+  return smoothstep(0.04, 0.14, rgb.b - max(rgb.r, rgb.g * 0.88));
+}
+
 @fragment
 fn fs(in: VsOut) -> @location(0) vec4f {
   let base = textureSample(mapTex, mapSampler, in.uv).rgb;
@@ -136,8 +140,16 @@ fn fs(in: VsOut) -> @location(0) vec4f {
   let grey = dot(col, vec3f(0.333));
   col = mix(vec3f(grey), col, 0.88);
   col *= vec3f(1.04, 1.00, 0.94);
-  let seaMask = smoothstep(0.04, 0.14, base.b - max(base.r, base.g * 0.88));
+  let seaMask = seaAmount(base);
   col = mix(col, mix(col, vec3f(0.22, 0.42, 0.56), 0.55), seaMask * __SEA_TINT_MIX__);
+  let texel = 1.0 / vec2f(textureDimensions(mapTex));
+  let seaN = seaAmount(textureSample(mapTex, mapSampler, in.uv + vec2f(0.0, texel.y)).rgb);
+  let seaS = seaAmount(textureSample(mapTex, mapSampler, in.uv - vec2f(0.0, texel.y)).rgb);
+  let seaE = seaAmount(textureSample(mapTex, mapSampler, in.uv + vec2f(texel.x, 0.0)).rgb);
+  let seaW = seaAmount(textureSample(mapTex, mapSampler, in.uv - vec2f(texel.x, 0.0)).rgb);
+  let coast = clamp(abs(seaMask - seaN) + abs(seaMask - seaS) + abs(seaMask - seaE) + abs(seaMask - seaW), 0.0, 1.0);
+  col = mix(col, vec3f(0.72, 0.76, 0.62), coast * (1.0 - seaMask) * 0.42);
+  col = mix(col, vec3f(0.30, 0.48, 0.58), coast * seaMask * 0.20);
   let grain = vnoise(in.world * 0.18) * 0.052 + vnoise(in.world * 0.055 + vec2f(7.1, 2.4)) * 0.038;
   let striation = ridged(vec2f(in.world.x * 0.115 + in.world.y * 0.025, in.world.y * 0.085)) * 0.028;
   col *= 0.95 + grain + striation;

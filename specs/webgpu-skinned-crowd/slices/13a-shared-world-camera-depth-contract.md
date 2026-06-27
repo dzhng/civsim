@@ -113,6 +113,9 @@ shadows that sit on the ground instead of floating as screen overlays.
 - `webgpu-lab-routes` now scans WebGPU renderer source files and fails if a
   shader string reintroduces a private `struct Camera` outside
   `packages/webgpu-core/src/cameraWgsl.ts`.
+- `/webgpu/skinned-depth` exercises the real `SkinnedCrowdPipeline` with a
+  hostile cross-bucket order: the nearer soldier is submitted before a later
+  rear class bucket, and the scenario samples the overlap to prove depth wins.
 - Type batching is permitted only as a performance strategy. Batches for trees,
   rocks, cities, armies, and soldier mesh variants must not create their own
   visual ordering rules or private depth scales.

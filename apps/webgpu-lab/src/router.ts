@@ -1,5 +1,5 @@
 import { createFrameShell, type MarkerInstance, type RawFrameShell } from '../../../packages/webgpu-core/src/frameShell';
-import { screenToWorld, worldToScreen } from '../../../packages/webgpu-core/src/cameraUniform';
+import { screenToWorld, world3dToScreen, worldToScreen } from '../../../packages/webgpu-core/src/cameraUniform';
 import { requestWebGpuDevice, webGpuFailureMessage } from '../../../packages/webgpu-core/src/device';
 import { SkinnedCrowdPipeline } from '../../../packages/webgpu-core/src/skinnedPipeline';
 import { animationForFrame } from '../../../packages/crowd-runtime/src/animationState';
@@ -51,6 +51,7 @@ const routes: Record<string, LabRoute> = {
   '/webgpu/animation-state': routeAnimationState,
   '/webgpu/skinned-soldier': routeSkinnedSoldier,
   '/webgpu/skinned-crowd': routeSkinnedCrowd,
+  '/webgpu/skinned-depth': routeSkinnedDepth,
   '/webgpu/lod': routeLod,
   '/webgpu/battle': routeBattle,
   '/webgpu/perf': routePerf,
@@ -292,6 +293,73 @@ async function routeSkinnedCrowd(ctx: LabContext) {
   animateSkinned(shell, pipeline, () => instances, { phaseSpeed: 0.45 });
   ctx.status.innerHTML = reportTable({ route: 'skinned-crowd', count: instances.length, drawCalls: pipeline.stats().drawCalls, clips: pipeline.stats().clips.join(', ') });
   publish('skinned-crowd', true, { ...pipeline.stats(), count: instances.length });
+}
+
+async function routeSkinnedDepth(ctx: LabContext) {
+  const vat = await loadPlaceholderVat();
+  const camera = { x: 0, y: 0, zoom: 92, pitch: 0.18, yaw: 0, perspective: 0 };
+  const shell = await createConfiguredShell(ctx.canvas, camera);
+  const pipeline = await createSkinnedPipeline(shell, [0.20, 0.42, 0.88], vat);
+  const frontY = -0.03;
+  const rearY = 0.03;
+  const instances: CrowdInstance[] = [
+    {
+      x: 0,
+      y: frontY,
+      facing: Math.PI / 2,
+      classId: 0,
+      faction: 0,
+      alive: true,
+      frame: 1,
+      clip: 'idle',
+      phase: 0.15,
+      seed: 11,
+    },
+    {
+      x: 0,
+      y: rearY,
+      facing: Math.PI / 2,
+      classId: 14,
+      faction: 1,
+      alive: true,
+      frame: 1,
+      clip: 'idle',
+      phase: 0.15,
+      seed: 22,
+    },
+  ];
+  pipeline.upload(instances, { forcedClip: 'idle', phaseOffset: 0, size: 1.35 });
+  shell.drawFrame({
+    clear: { r: 0.70, g: 0.78, b: 0.62, a: 1 },
+    terrainRect: [-4, -3, 8, 6],
+    world: (pass) => pipeline.draw(pass),
+  });
+  const shellStats = shell.stats();
+  const sampleCamera = { ...camera, width: shellStats.width, height: shellStats.height };
+  const [sampleX, sampleY] = world3dToScreen(
+    sampleCamera,
+    -0.52 * 1.35,
+    frontY,
+    1.36 * 1.35,
+  );
+  const sample = { x: sampleX, y: sampleY, world: [-0.52 * 1.35, frontY, 1.36 * 1.35] };
+  ctx.status.innerHTML = reportTable({
+    route: 'skinned-depth',
+    contract: 'front soldier is drawn before rear bucket',
+    frontClass: instances[0].classId,
+    rearClass: instances[1].classId,
+    drawCalls: pipeline.stats().drawCalls,
+    depth: shellStats.depth.allocated ? shellStats.depth.format : 'none',
+  });
+  publish('skinned-depth', true, {
+    ...pipeline.stats(),
+    frontClass: instances[0].classId,
+    rearClass: instances[1].classId,
+    hostileDrawOrder: 'front-class-0-submitted-before-rear-class-14',
+    sample,
+    depth: shellStats.depth,
+    framePhases: shellStats.phases,
+  });
 }
 
 async function routeLod(ctx: LabContext) {

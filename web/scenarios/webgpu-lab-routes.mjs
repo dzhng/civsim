@@ -17,6 +17,15 @@ const routes = [
   ['animation-state', (s) => s?.ok && s.route === 'animation-state'],
   ['skinned-soldier?phase=0.25', (s) => s?.ok && s.route === 'skinned-soldier' && s.stats.instances === 1 && s.stats.cameraContract === 'shared-world-camera-wgsl'],
   ['skinned-crowd?count=1200', (s) => s?.ok && s.route === 'skinned-crowd' && s.stats.count === 1200 && s.stats.cameraContract === 'shared-world-camera-wgsl'],
+  ['skinned-depth', (s) => s?.ok
+    && s.route === 'skinned-depth'
+    && s.stats.instances === 2
+    && s.stats.drawCalls === 2
+    && s.stats.cameraContract === 'shared-world-camera-wgsl'
+    && s.stats.depth?.allocated === true
+    && hasFramePhaseOrder(s.stats.framePhases)
+    && s.stats.hostileDrawOrder === 'front-class-0-submitted-before-rear-class-14'
+    && s.stats.sample],
   ['lod?zoom=5', (s) => s?.ok && s.route === 'lod' && (s.stats.counts.l1 + s.stats.counts.l2 + s.stats.counts.l3 + s.stats.counts.l0) === 1800],
   ['battle', (s) => s?.ok && s.route === 'battle' && s.stats.soldiers === 2400 && s.stats.cameraContract === 'shared-world-camera-wgsl'],
   ['perf?count=900', (s) => s?.ok
@@ -236,6 +245,15 @@ export async function run(ctx) {
         `${route}: front battle rank wins overlapping depth`,
         frontRank.blue > 12 && frontRank.red <= 10,
         JSON.stringify({ frontRank, sample: samples.frontRankOverlap }),
+      );
+    }
+    if (route === 'skinned-depth') {
+      const canvasPng = PNG.sync.read(await page.locator('#webgpu-canvas').screenshot());
+      const front = patchStats(canvasPng, stats.stats.sample, 7);
+      ctx.check(
+        `${route}: front skinned soldier wins hostile cross-bucket draw order`,
+        front.blue > 12 && front.red <= 10,
+        JSON.stringify({ front, sample: stats.stats.sample, hostileDrawOrder: stats.stats.hostileDrawOrder }),
       );
     }
     if (route === 'campaign-model-gates?gate=city') {

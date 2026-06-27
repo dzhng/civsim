@@ -483,6 +483,10 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   domain. If a tree behind a standard appears over the flag, or a battle rank
   sorts by mesh class, look first for pass-private depth math or a pipeline
   submitted through the wrong frame category.
+- Real skinned soldier depth needs its own hostile-order gate. Keep
+  `/webgpu/skinned-depth` drawing a nearer soldier before a later rear class
+  bucket through `SkinnedCrowdPipeline`, then sample the overlap so class
+  batching cannot become a hidden painter-order dependency.
 - Once a pipeline declares a depth attachment, every route that draws it must
   submit it through the depth world pass. A skinned pipeline can look correct in
   isolated model gates while live battle routes go mostly black if one lab

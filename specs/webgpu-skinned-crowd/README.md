@@ -115,6 +115,7 @@ handed to a human:
 /webgpu/animation-state
 /webgpu/skinned-soldier
 /webgpu/skinned-crowd
+/webgpu/skinned-depth
 /webgpu/lod
 /webgpu/battle
 /webgpu/perf

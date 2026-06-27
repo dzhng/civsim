@@ -44,6 +44,22 @@ export function worldToScreen(camera: CameraSnapshot, wx: number, wy: number): [
   ];
 }
 
+export function world3dToScreen(camera: CameraSnapshot, wx: number, wy: number, wz: number): [number, number] {
+  const c = Math.cos(camera.yaw ?? 0);
+  const s = Math.sin(camera.yaw ?? 0);
+  const dx = wx - camera.x;
+  const dy = wy - camera.y;
+  const rx = dx * c + dy * s;
+  const ry = -dx * s + dy * c;
+  const cosP = Math.max(0.2, Math.cos(camera.pitch ?? 0));
+  const perspective = Math.max(0, camera.perspective ?? 0);
+  const depth = Math.max(0.32, 1 + ry * perspective);
+  return [
+    (rx * camera.zoom) / depth + camera.width / 2,
+    (-(ry * camera.zoom * cosP + wz * camera.zoom) / depth) + camera.height / 2,
+  ];
+}
+
 export function screenToWorld(camera: CameraSnapshot, sx: number, sy: number): [number, number] {
   const zoom = Math.max(0.0001, camera.zoom);
   const cosP = Math.max(0.2, Math.cos(camera.pitch ?? 0));

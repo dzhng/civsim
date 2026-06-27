@@ -198,7 +198,7 @@ export class CampaignScene implements Scene {
         this.cam = { x, y, scale };
         this.clampCam();
       },
-      camGet: () => ({ ...this.cam, pitchDeg: (this.renderer.pitch * 180) / Math.PI }),
+      camGet: () => ({ ...this.cam, pitchDeg: (this.renderer.pitchForScale(this.cam.scale) * 180) / Math.PI }),
       territoryAlpha: () => this.renderer.territoryAlpha(this.cam.scale),
       /** Fog-of-war probe: player visibility (0..1) at a world point. */
       visAt: (x: number, y: number) => this.renderer.visibleAt(x, y),

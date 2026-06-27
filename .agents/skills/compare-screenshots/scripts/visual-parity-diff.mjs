@@ -1,29 +1,30 @@
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
-import { relative, resolve } from 'node:path';
+import { basename, relative, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-const repoRoot = resolve(process.env.REPO_ROOT ?? process.cwd());
+const cwd = resolve(process.cwd());
+const repoRoot = process.env.REPO_ROOT ? resolve(process.env.REPO_ROOT) : basename(cwd) === 'web' ? resolve(cwd, '..') : cwd;
 const require = createRequire(resolve(repoRoot, 'web/package.json'));
 const { PNG } = require('pngjs');
 const pixelmatch = (await import(require.resolve('pixelmatch'))).default;
 
-const pairs = [
-  {
-    id: 'campaign-label-zoom',
-    current: 'specs/webgpu-skinned-crowd/visualizations/current-renderer/campaign-label-zoom.png',
-    candidate: 'specs/webgpu-skinned-crowd/visualizations/visual-report/campaign-label-zoom.png',
-  },
-  {
-    id: 'battle-selection-hud-dpr2',
-    current: 'specs/webgpu-skinned-crowd/visualizations/current-renderer/battle-selection-hud-dpr2.png',
-    candidate: 'specs/webgpu-skinned-crowd/visualizations/visual-report/battle-selection-hud-dpr2.png',
-  },
+const currentDir = resolve(repoRoot, 'specs/webgpu-skinned-crowd/visualizations/current-renderer');
+const candidateDir = resolve(repoRoot, 'specs/webgpu-skinned-crowd/visualizations/visual-report');
+const reportOrder = [
+  'menu-ready',
+  'menu-unsupported',
+  'battle-default',
+  'battle-selection-hud-dpr2',
+  'campaign-whole-map',
+  'campaign-label-zoom',
+  'campaign-handoff-battle',
 ];
 
 const outDir = resolve(repoRoot, 'specs/webgpu-skinned-crowd/visualizations/visual-diff');
 await mkdir(outDir, { recursive: true });
 
+const pairs = await discoverPairs();
 const results = [];
 for (const pair of pairs) {
   const currentPath = resolve(repoRoot, pair.current);
@@ -39,6 +40,7 @@ for (const pair of pairs) {
   const grayCurrent = new PNG({ width, height });
   const grayCandidate = new PNG({ width, height });
   const absDiff = new PNG({ width, height });
+  const sideBySide = new PNG({ width: width * 2, height });
   const edgeCurrent = new PNG({ width, height });
   const edgeCandidate = new PNG({ width, height });
   const edgeDiff = new PNG({ width, height });
@@ -71,6 +73,8 @@ for (const pair of pairs) {
     if (wg < 24) blackCandidate++;
     if (isTerrainLike(current.data[o], current.data[o + 1], current.data[o + 2])) terrainCurrent++;
     if (isTerrainLike(candidate.data[o], candidate.data[o + 1], candidate.data[o + 2])) terrainCandidate++;
+    copyPixel(current, sideBySide, i, xOf(i, width), yOf(i, width));
+    copyPixel(candidate, sideBySide, i, xOf(i, width) + width, yOf(i, width));
     writeGray(grayCurrent, o, cg);
     writeGray(grayCandidate, o, wg);
     const heat = Math.min(255, d * 4);
@@ -91,6 +95,7 @@ for (const pair of pairs) {
     { threshold: 0.08, includeAA: true },
   );
 
+  await writePng(resolve(outDir, `${pair.id}-side-by-side.png`), sideBySide);
   await writePng(resolve(outDir, `${pair.id}-current-gray.png`), grayCurrent);
   await writePng(resolve(outDir, `${pair.id}-candidate-gray.png`), grayCandidate);
   await writePng(resolve(outDir, `${pair.id}-absdiff.png`), absDiff);
@@ -135,6 +140,7 @@ for (const pair of pairs) {
       edgeDiffRatio32: round(edgeDiffRatio32),
     },
     artifacts: {
+      sideBySide: `visual-diff/${pair.id}-side-by-side.png`,
       currentGray: `visual-diff/${pair.id}-current-gray.png`,
       candidateGray: `visual-diff/${pair.id}-candidate-gray.png`,
       absDiff: `visual-diff/${pair.id}-absdiff.png`,
@@ -146,10 +152,13 @@ for (const pair of pairs) {
   });
 }
 
+results.sort((a, b) => b.parityDistance - a.parityDistance);
 const report = {
   kind: 'screenshot-parity-diff',
   generatedAt: new Date().toISOString(),
   note: 'Lower parityDistance means the candidate is closer to archived current-renderer parity. This is a parity metric, not an aesthetics acceptance gate.',
+  pairCount: results.length,
+  worstPair: results[0]?.id ?? null,
   results,
 };
 
@@ -157,6 +166,26 @@ const reportPath = resolve(outDir, 'visual-parity-diff.json');
 await writeFile(reportPath, JSON.stringify(report, null, 2));
 console.log(JSON.stringify(report, null, 2));
 console.log(`wrote ${relative(repoRoot, reportPath)}`);
+
+async function discoverPairs() {
+  const [currentFiles, candidateFiles] = await Promise.all([pngNames(currentDir), pngNames(candidateDir)]);
+  const candidateSet = new Set(candidateFiles);
+  const common = currentFiles.filter((name) => candidateSet.has(name));
+  if (common.length === 0) {
+    throw new Error(`no comparable PNG pairs found in ${relative(repoRoot, currentDir)} and ${relative(repoRoot, candidateDir)}`);
+  }
+  const order = new Map(reportOrder.map((id, index) => [`${id}.png`, index]));
+  common.sort((a, b) => (order.get(a) ?? 999) - (order.get(b) ?? 999) || a.localeCompare(b));
+  return common.map((name) => ({
+    id: basename(name, '.png'),
+    current: relative(repoRoot, resolve(currentDir, name)),
+    candidate: relative(repoRoot, resolve(candidateDir, name)),
+  }));
+}
+
+async function pngNames(dir) {
+  return (await readdir(dir)).filter((name) => name.endsWith('.png'));
+}
 
 function luminance(r, g, b) {
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;
@@ -172,6 +201,23 @@ function writeGray(png, offset, value) {
   png.data[offset + 1] = v;
   png.data[offset + 2] = v;
   png.data[offset + 3] = 255;
+}
+
+function copyPixel(source, target, sourceIndex, targetX, targetY) {
+  const sourceOffset = sourceIndex * 4;
+  const targetOffset = (targetY * target.width + targetX) * 4;
+  target.data[targetOffset] = source.data[sourceOffset];
+  target.data[targetOffset + 1] = source.data[sourceOffset + 1];
+  target.data[targetOffset + 2] = source.data[sourceOffset + 2];
+  target.data[targetOffset + 3] = source.data[sourceOffset + 3];
+}
+
+function xOf(index, width) {
+  return index % width;
+}
+
+function yOf(index, width) {
+  return Math.floor(index / width);
 }
 
 function writeEdges(currentGray, candidateGray, edgeCurrent, edgeCandidate, edgeDiff, width, height) {

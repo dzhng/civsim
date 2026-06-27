@@ -28,7 +28,7 @@ interface DrawOptions {
 
 export class CampaignRendererWebGPU {
   readonly ready: Promise<void>;
-  readonly pitch = 0.82;
+  readonly pitch = CAMPAIGN_CLOSE_PITCH;
   fixedTime: number | null = null;
 
   private shell: RawFrameShell | null = null;
@@ -78,12 +78,15 @@ export class CampaignRendererWebGPU {
     const rect = this.data.bgRect;
     const cssW = this.canvas.clientWidth || window.innerWidth || 1;
     const cssH = this.canvas.clientHeight || window.innerHeight || 1;
-    const fillZoom = Math.max(cssW / (rect.max[0] - rect.min[0]), cssH / (rect.max[1] - rect.min[1])) * (window.devicePixelRatio || 1);
+    const pitch = this.pitchForScale(cam.scale);
+    const cosP = Math.max(0.2, Math.cos(pitch));
     const controlled = isControlledStage(this.data);
+    const fillZoom = controlled
+      ? Math.max(cssW / (rect.max[0] - rect.min[0]), cssH / (rect.max[1] - rect.min[1])) * (window.devicePixelRatio || 1)
+      : Math.max(cssW / (rect.max[0] - rect.min[0]), cssH / ((rect.max[1] - rect.min[1]) * cosP)) * (window.devicePixelRatio || 1);
     const minZoom = controlled ? fillZoom * 0.78 : fillZoom;
     const maxZoom = controlled ? Math.max(8, minZoom * 2.2) : 8;
     cam.scale = Math.max(minZoom, Math.min(maxZoom, cam.scale));
-    const cosP = Math.max(0.2, Math.cos(this.pitch));
     const halfW = (this.canvas.width || cssW) / (2 * cam.scale);
     const halfH = (this.canvas.height || cssH) / (2 * cam.scale * cosP);
     if (controlled) {
@@ -131,7 +134,7 @@ export class CampaignRendererWebGPU {
   draw(opts: DrawOptions) {
     if (!this.shell || !this.map || !this.water || !this.clouds || !this.territoryPass || !this.lines || !this.borders || !this.scenery || !this.entities || !this.selection || !this.labels) return;
     const frameStart = performance.now();
-    this.currentCamera = { x: opts.cam.x, y: opts.cam.y, zoom: opts.cam.scale, pitch: this.pitch, yaw: 0, perspective: campaignPerspective(opts.cam.scale) };
+    this.currentCamera = { x: opts.cam.x, y: opts.cam.y, zoom: opts.cam.scale, pitch: this.pitchForScale(opts.cam.scale), yaw: 0, perspective: campaignPerspective(opts.cam.scale) };
     this.shell.setCamera(this.currentCamera);
     const buildStart = performance.now();
     const frame = buildEntityFrame(this.data, opts);
@@ -179,6 +182,10 @@ export class CampaignRendererWebGPU {
 
   territoryAlpha(_scale: number) {
     return 1;
+  }
+
+  pitchForScale(scale: number) {
+    return campaignPitch(scale);
   }
 
   destroy() {
@@ -243,6 +250,18 @@ export class CampaignRendererWebGPU {
 
 function roundMs(value: number) {
   return Number.isFinite(value) ? Number(value.toFixed(3)) : 0;
+}
+
+const CAMPAIGN_CLOSE_PITCH = 0.82;
+
+function campaignPitch(zoom: number) {
+  const t = smoothstep(0.62, 1.6, zoom);
+  return CAMPAIGN_CLOSE_PITCH * t;
+}
+
+function smoothstep(edge0: number, edge1: number, value: number) {
+  const t = clamp((value - edge0) / (edge1 - edge0), 0, 1);
+  return t * t * (3 - 2 * t);
 }
 
 function campaignPerspective(zoom: number) {

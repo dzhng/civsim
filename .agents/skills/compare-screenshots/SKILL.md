@@ -82,10 +82,12 @@ score so UI/camera mistakes remain visible.
 
 Prefer this skill's bundled helper at
 `.agents/skills/compare-screenshots/scripts/visual-parity-diff.mjs` when it
-covers the needed pair. If it does not, extend the skill helper rather than
-adding app/product scripts or hand-calculating ad hoc metrics. The helper should
-write artifacts under `specs/webgpu-skinned-crowd/visualizations/visual-diff/`
-and print/write JSON that can be pasted into a plan, report, or final answer.
+covers the needed pair. It auto-discovers matching PNG names under
+`specs/webgpu-skinned-crowd/visualizations/current-renderer/` and
+`visual-report/`, writes side-by-side, grayscale, pixelmatch, absolute diff, and
+edge artifacts under `visual-diff/`, and sorts the JSON by worst
+`parityDistance`. If a needed pair is not covered, extend the skill helper
+rather than adding app/product scripts or hand-calculating ad hoc metrics.
 
 ## References
 

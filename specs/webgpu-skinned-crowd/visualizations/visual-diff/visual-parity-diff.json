@@ -1,8 +1,124 @@
 {
   "kind": "screenshot-parity-diff",
-  "generatedAt": "2026-06-27T03:41:05.854Z",
+  "generatedAt": "2026-06-27T04:00:58.985Z",
   "note": "Lower parityDistance means the candidate is closer to archived current-renderer parity. This is a parity metric, not an aesthetics acceptance gate.",
+  "pairCount": 7,
+  "worstPair": "campaign-whole-map",
   "results": [
+    {
+      "id": "campaign-whole-map",
+      "current": "specs/webgpu-skinned-crowd/visualizations/current-renderer/campaign-whole-map.png",
+      "candidate": "specs/webgpu-skinned-crowd/visualizations/visual-report/campaign-whole-map.png",
+      "dimensions": {
+        "width": 1280,
+        "height": 800
+      },
+      "parityDistance": 0.38135,
+      "grayscale": {
+        "mae": 31.28941,
+        "rmse": 39.8569,
+        "diffRatio16": 0.73751,
+        "diffRatio32": 0.37105,
+        "diffRatio64": 0.07778,
+        "pixelmatchRatio": 0.64956
+      },
+      "contentProxies": {
+        "blackRatioCurrent": 0.00566,
+        "blackRatioCandidate": 0.00274,
+        "terrainLikeRatioCurrent": 0.5738,
+        "terrainLikeRatioCandidate": 0.65576,
+        "edgeEnergyCurrent": 0.13531,
+        "edgeEnergyCandidate": 0.1604,
+        "edgeEnergyRatio": 1.18543,
+        "edgeDiffRatio32": 0.20912
+      },
+      "artifacts": {
+        "sideBySide": "visual-diff/campaign-whole-map-side-by-side.png",
+        "currentGray": "visual-diff/campaign-whole-map-current-gray.png",
+        "candidateGray": "visual-diff/campaign-whole-map-candidate-gray.png",
+        "absDiff": "visual-diff/campaign-whole-map-absdiff.png",
+        "pixelmatch": "visual-diff/campaign-whole-map-pixelmatch.png",
+        "currentEdges": "visual-diff/campaign-whole-map-current-edges.png",
+        "candidateEdges": "visual-diff/campaign-whole-map-candidate-edges.png",
+        "edgeDiff": "visual-diff/campaign-whole-map-edge-diff.png"
+      }
+    },
+    {
+      "id": "battle-default",
+      "current": "specs/webgpu-skinned-crowd/visualizations/current-renderer/battle-default.png",
+      "candidate": "specs/webgpu-skinned-crowd/visualizations/visual-report/battle-default.png",
+      "dimensions": {
+        "width": 1280,
+        "height": 800
+      },
+      "parityDistance": 0.2137,
+      "grayscale": {
+        "mae": 12.37165,
+        "rmse": 22.51686,
+        "diffRatio16": 0.193,
+        "diffRatio32": 0.09851,
+        "diffRatio64": 0.03752,
+        "pixelmatchRatio": 0.13578
+      },
+      "contentProxies": {
+        "blackRatioCurrent": 0.0003,
+        "blackRatioCandidate": 0.00056,
+        "terrainLikeRatioCurrent": 0.85412,
+        "terrainLikeRatioCandidate": 0.87268,
+        "edgeEnergyCurrent": 0.20501,
+        "edgeEnergyCandidate": 0.1578,
+        "edgeEnergyRatio": 0.76972,
+        "edgeDiffRatio32": 0.35454
+      },
+      "artifacts": {
+        "sideBySide": "visual-diff/battle-default-side-by-side.png",
+        "currentGray": "visual-diff/battle-default-current-gray.png",
+        "candidateGray": "visual-diff/battle-default-candidate-gray.png",
+        "absDiff": "visual-diff/battle-default-absdiff.png",
+        "pixelmatch": "visual-diff/battle-default-pixelmatch.png",
+        "currentEdges": "visual-diff/battle-default-current-edges.png",
+        "candidateEdges": "visual-diff/battle-default-candidate-edges.png",
+        "edgeDiff": "visual-diff/battle-default-edge-diff.png"
+      }
+    },
+    {
+      "id": "campaign-handoff-battle",
+      "current": "specs/webgpu-skinned-crowd/visualizations/current-renderer/campaign-handoff-battle.png",
+      "candidate": "specs/webgpu-skinned-crowd/visualizations/visual-report/campaign-handoff-battle.png",
+      "dimensions": {
+        "width": 1280,
+        "height": 800
+      },
+      "parityDistance": 0.19672,
+      "grayscale": {
+        "mae": 15.72211,
+        "rmse": 29.60576,
+        "diffRatio16": 0.23833,
+        "diffRatio32": 0.1255,
+        "diffRatio64": 0.0631,
+        "pixelmatchRatio": 0.17873
+      },
+      "contentProxies": {
+        "blackRatioCurrent": 0.00019,
+        "blackRatioCandidate": 0.00054,
+        "terrainLikeRatioCurrent": 0.84905,
+        "terrainLikeRatioCandidate": 0.87246,
+        "edgeEnergyCurrent": 0.15311,
+        "edgeEnergyCandidate": 0.12461,
+        "edgeEnergyRatio": 0.81384,
+        "edgeDiffRatio32": 0.25413
+      },
+      "artifacts": {
+        "sideBySide": "visual-diff/campaign-handoff-battle-side-by-side.png",
+        "currentGray": "visual-diff/campaign-handoff-battle-current-gray.png",
+        "candidateGray": "visual-diff/campaign-handoff-battle-candidate-gray.png",
+        "absDiff": "visual-diff/campaign-handoff-battle-absdiff.png",
+        "pixelmatch": "visual-diff/campaign-handoff-battle-pixelmatch.png",
+        "currentEdges": "visual-diff/campaign-handoff-battle-current-edges.png",
+        "candidateEdges": "visual-diff/campaign-handoff-battle-candidate-edges.png",
+        "edgeDiff": "visual-diff/campaign-handoff-battle-edge-diff.png"
+      }
+    },
     {
       "id": "campaign-label-zoom",
       "current": "specs/webgpu-skinned-crowd/visualizations/current-renderer/campaign-label-zoom.png",
@@ -31,6 +147,7 @@
         "edgeDiffRatio32": 0.09831
       },
       "artifacts": {
+        "sideBySide": "visual-diff/campaign-label-zoom-side-by-side.png",
         "currentGray": "visual-diff/campaign-label-zoom-current-gray.png",
         "candidateGray": "visual-diff/campaign-label-zoom-candidate-gray.png",
         "absDiff": "visual-diff/campaign-label-zoom-absdiff.png",
@@ -68,6 +185,7 @@
         "edgeDiffRatio32": 0.18983
       },
       "artifacts": {
+        "sideBySide": "visual-diff/battle-selection-hud-dpr2-side-by-side.png",
         "currentGray": "visual-diff/battle-selection-hud-dpr2-current-gray.png",
         "candidateGray": "visual-diff/battle-selection-hud-dpr2-candidate-gray.png",
         "absDiff": "visual-diff/battle-selection-hud-dpr2-absdiff.png",
@@ -75,6 +193,82 @@
         "currentEdges": "visual-diff/battle-selection-hud-dpr2-current-edges.png",
         "candidateEdges": "visual-diff/battle-selection-hud-dpr2-candidate-edges.png",
         "edgeDiff": "visual-diff/battle-selection-hud-dpr2-edge-diff.png"
+      }
+    },
+    {
+      "id": "menu-ready",
+      "current": "specs/webgpu-skinned-crowd/visualizations/current-renderer/menu-ready.png",
+      "candidate": "specs/webgpu-skinned-crowd/visualizations/visual-report/menu-ready.png",
+      "dimensions": {
+        "width": 1280,
+        "height": 800
+      },
+      "parityDistance": 0.0523,
+      "grayscale": {
+        "mae": 4.8012,
+        "rmse": 17.70205,
+        "diffRatio16": 0.10299,
+        "diffRatio32": 0.0269,
+        "diffRatio64": 0.01315,
+        "pixelmatchRatio": 0.03357
+      },
+      "contentProxies": {
+        "blackRatioCurrent": 0.74817,
+        "blackRatioCandidate": 0.75166,
+        "terrainLikeRatioCurrent": 0.00853,
+        "terrainLikeRatioCandidate": 0.0093,
+        "edgeEnergyCurrent": 0.0349,
+        "edgeEnergyCandidate": 0.0373,
+        "edgeEnergyRatio": 1.06891,
+        "edgeDiffRatio32": 0.0803
+      },
+      "artifacts": {
+        "sideBySide": "visual-diff/menu-ready-side-by-side.png",
+        "currentGray": "visual-diff/menu-ready-current-gray.png",
+        "candidateGray": "visual-diff/menu-ready-candidate-gray.png",
+        "absDiff": "visual-diff/menu-ready-absdiff.png",
+        "pixelmatch": "visual-diff/menu-ready-pixelmatch.png",
+        "currentEdges": "visual-diff/menu-ready-current-edges.png",
+        "candidateEdges": "visual-diff/menu-ready-candidate-edges.png",
+        "edgeDiff": "visual-diff/menu-ready-edge-diff.png"
+      }
+    },
+    {
+      "id": "menu-unsupported",
+      "current": "specs/webgpu-skinned-crowd/visualizations/current-renderer/menu-unsupported.png",
+      "candidate": "specs/webgpu-skinned-crowd/visualizations/visual-report/menu-unsupported.png",
+      "dimensions": {
+        "width": 1280,
+        "height": 800
+      },
+      "parityDistance": 0.0375,
+      "grayscale": {
+        "mae": 4.51435,
+        "rmse": 16.38437,
+        "diffRatio16": 0.08712,
+        "diffRatio32": 0.02183,
+        "diffRatio64": 0.01239,
+        "pixelmatchRatio": 0.03051
+      },
+      "contentProxies": {
+        "blackRatioCurrent": 0.74817,
+        "blackRatioCandidate": 0.80654,
+        "terrainLikeRatioCurrent": 0.00853,
+        "terrainLikeRatioCandidate": 0.0097,
+        "edgeEnergyCurrent": 0.0349,
+        "edgeEnergyCandidate": 0.03451,
+        "edgeEnergyRatio": 0.98898,
+        "edgeDiffRatio32": 0.07934
+      },
+      "artifacts": {
+        "sideBySide": "visual-diff/menu-unsupported-side-by-side.png",
+        "currentGray": "visual-diff/menu-unsupported-current-gray.png",
+        "candidateGray": "visual-diff/menu-unsupported-candidate-gray.png",
+        "absDiff": "visual-diff/menu-unsupported-absdiff.png",
+        "pixelmatch": "visual-diff/menu-unsupported-pixelmatch.png",
+        "currentEdges": "visual-diff/menu-unsupported-current-edges.png",
+        "candidateEdges": "visual-diff/menu-unsupported-candidate-edges.png",
+        "edgeDiff": "visual-diff/menu-unsupported-edge-diff.png"
       }
     }
   ]

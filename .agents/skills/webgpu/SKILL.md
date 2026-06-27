@@ -121,6 +121,12 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   changes affect board trapezoid, model height, selection ellipse, shadows, and
   label projection together; capture zoom can match black/terrain coverage while
   still worsening the composite parity score.
+- Campaign pitch should be zoom-aware. Whole-map captures need an orthographic
+  pitch so the map fills the frame like the archived renderer, while close
+  city/army views need the full perspective pitch. Keep controlled close-view
+  clamp math separate from real-map aspect-fill math: applying the height/cosP
+  fill correction to the controlled stage fixed whole-map voids but regressed
+  Campaign Label Zoom until the controlled clamp kept its previous envelope.
 - For campaign close-view report cameras, make one-axis center trials small and
   score both directions. Moving the controlled-stage `y` center can improve
   black/terrain coverage and edge parity, but the wrong direction can sharply

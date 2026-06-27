@@ -246,7 +246,7 @@ function buildCityMesh(): MeshData {
   const roof: Rgb = [0.66, 0.40, 0.30];
   const timber: Rgb = [0.45, 0.36, 0.28];
   builder.shadow(3.65, 1.95, 0.14, [0.28, -0.54]);
-  builder.box([0.10, -0.02, 3.65], [0.16, 0.16, 7.3], timber, 1);
+  builder.box([0.10, -0.02, 4.05], [0.22, 0.22, 8.1], timber, 1);
   const building = (x: number, y: number, w: number, d: number, h: number) => {
     builder.box([x, y, h * 0.5], [w, d, h], sandstone, 1);
     builder.box([x, y, h + h * 0.19], [w * 1.18, d * 1.18, h * 0.38], roof, 1);
@@ -259,8 +259,13 @@ function buildCityMesh(): MeshData {
     const r = 0.9 + rand() * 3.0;
     building(Math.cos(a) * r, Math.sin(a) * r, 0.8 + rand() * 1.0, 0.8 + rand() * 1.0, 1.1 + rand() * 1.4);
   }
-  builder.box([0.98, -0.12, 6.20], [1.78, 0.24, 1.02], [1, 1, 1], 1);
-  builder.box([1.80, -0.12, 5.86], [0.34, 0.24, 0.34], [1, 1, 1], 1);
+  builder.verticalPanel([
+    [0.10, 7.12],
+    [3.30, 7.00],
+    [2.88, 6.30],
+    [3.30, 5.60],
+    [0.10, 5.46],
+  ], -0.16, 0.16, [1, 1, 1], 1);
   return builder.finish();
 }
 
@@ -341,6 +346,38 @@ class MeshBuilder {
         ...ring[(i + 1) % ring.length], ...normal, ...color, alpha,
       );
       this.indices.push(base, base + 1, base + 2);
+    }
+  }
+
+  verticalPanel(points: [number, number][], y: number, depth: number, color: Rgb, alpha: number) {
+    if (points.length < 3) return;
+    const halfDepth = depth * 0.5;
+    this.panelFace(points, y - halfDepth, [0, -1, 0], color, alpha, false);
+    this.panelFace(points, y + halfDepth, [0, 1, 0], color, alpha, true);
+    for (let i = 0; i < points.length; i++) {
+      const a = points[i];
+      const b = points[(i + 1) % points.length];
+      const dx = b[0] - a[0];
+      const dz = b[1] - a[1];
+      const len = Math.hypot(dx, dz) || 1;
+      const normal: [number, number, number] = [-dz / len, 0, dx / len];
+      const base = this.vertices.length / 10;
+      this.vertices.push(
+        a[0], y - halfDepth, a[1], ...normal, ...color, alpha,
+        b[0], y - halfDepth, b[1], ...normal, ...color, alpha,
+        b[0], y + halfDepth, b[1], ...normal, ...color, alpha,
+        a[0], y + halfDepth, a[1], ...normal, ...color, alpha,
+      );
+      this.indices.push(base, base + 1, base + 2, base, base + 2, base + 3);
+    }
+  }
+
+  private panelFace(points: [number, number][], y: number, normal: [number, number, number], color: Rgb, alpha: number, reverse: boolean) {
+    const base = this.vertices.length / 10;
+    for (const [x, z] of points) this.vertices.push(x, y, z, ...normal, ...color, alpha);
+    for (let i = 1; i < points.length - 1; i++) {
+      if (reverse) this.indices.push(base, base + i + 1, base + i);
+      else this.indices.push(base, base + i, base + i + 1);
     }
   }
 

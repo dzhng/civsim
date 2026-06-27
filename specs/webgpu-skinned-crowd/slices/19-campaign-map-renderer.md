@@ -115,6 +115,14 @@ campaign-label-zoom gate.
   (`edgeEnergyRatio 0.99377`), and preserved Battle Selection DPR2 at `0.15910`.
   The remaining close-view debt is still central-stack composition, label
   separation, richer object depth, and reducing the floating-board/void read.
+- City standards in the shared campaign entity mesh now use a real thin
+  vertical panel attached to a stronger pole instead of small cuboid flag caps.
+  This makes the city/town ownership flags read closer to the archived close
+  renderer and moved Campaign Label Zoom parity distance from `0.20759` to
+  `0.20673`, with edge energy essentially matched (`edgeEnergyRatio 1.00286`).
+  The isolated city model gate was regenerated and inspected; the next debt is
+  still depth integration, selection-ring thickness, and the crowded central
+  army/city/road label stack.
 
 ## Must Stay Green
 

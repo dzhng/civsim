@@ -86,6 +86,12 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   in. Then inspect a central crop as well as the full-frame score: full-frame
   metrics can reward a ring that is present while missing whether it is too
   huge, too subtle, or not reading as a ground-plane perspective overlay.
+- For campaign model parity, remember that city and army standards are part of
+  the instanced entity mesh and use white mesh colors as the faction-livery
+  mask. Preserve their attachment by changing mesh geometry, not by layering
+  screen overlays; thin vertical panels read more like real flags than chunky
+  cuboids. After a whole-scene parity win, open the isolated model gate too so
+  an oversized, flat, or detached flag does not hide inside a small metric move.
 - DOM-composited tactical overlays still need WebGPU-era camera/LOD discipline.
   For unit banners or labels, preserve the world anchor first, then apply
   zoom-aware scaling around that anchor. A fixed-size DOM standard can look like

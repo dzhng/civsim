@@ -190,6 +190,12 @@ next useful question, then lock it with tests and screenshots.
   world depth attachment name are single-sourced in
   `packages/webgpu-core/src/depthContract.ts`; render graph and pipeline code
   import those values instead of hard-coding compatible-looking literals.
+- **World material classes are explicit.** True 3D geometry that writes world
+  depth uses an opaque/cutout material contract. Ground shadows, roads,
+  selection rings, and other alpha cues are read-only depth decals unless a
+  later sorted transparent-world pass is deliberately introduced. A city, army,
+  soldier, tree, rock, or mountain mesh must not mix alpha-blended shadow
+  triangles into the same depth-writing bucket as its opaque volume.
 - **Placeholders unblock everything.** Every renderer/art slice must ship with
   generated placeholder assets first: skeletons, meshes, clips, textures,
   faction masks, LODs, impostors, and manifests.

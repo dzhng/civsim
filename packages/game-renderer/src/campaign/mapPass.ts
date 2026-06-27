@@ -1,7 +1,7 @@
 import type { CameraSnapshot } from '../../../webgpu-core/src/cameraUniform';
 import { worldToScreen } from '../../../webgpu-core/src/cameraUniform';
 import { WORLD_CAMERA_WGSL } from '../../../webgpu-core/src/cameraWgsl';
-import { WEBGPU_DEPTH_FORMAT } from '../../../webgpu-core/src/depthContract';
+import { webGpuAlphaBlendColorTarget, webGpuWorldDepthStencil } from '../../../webgpu-core/src/pipelineContracts';
 import type { BackgroundRenderPass, OverlayRenderPass, RawFrameShell, WorldRenderPass } from '../../../webgpu-core/src/frameShell';
 
 export interface CampaignMapNodeData {
@@ -444,21 +444,11 @@ export class CampaignLinePass {
       fragment: {
         module,
         entryPoint: 'fs',
-        targets: [{
-          format: this.shell.info.format,
-          blend: {
-            color: { srcFactor: 'src-alpha', dstFactor: 'one-minus-src-alpha' },
-            alpha: { srcFactor: 'one', dstFactor: 'one-minus-src-alpha' },
-          },
-        }],
+        targets: [webGpuAlphaBlendColorTarget(this.shell.info.format)],
       },
       primitive: { topology: this.topology },
       ...(depth ? {
-        depthStencil: {
-          format: WEBGPU_DEPTH_FORMAT,
-          depthWriteEnabled: false,
-          depthCompare: 'less-equal',
-        },
+        depthStencil: webGpuWorldDepthStencil(false),
       } : {}),
     });
   }
@@ -526,20 +516,10 @@ export class CampaignRoadPass {
       fragment: {
         module,
         entryPoint: 'fs',
-        targets: [{
-          format: this.shell.info.format,
-          blend: {
-            color: { srcFactor: 'src-alpha', dstFactor: 'one-minus-src-alpha' },
-            alpha: { srcFactor: 'one', dstFactor: 'one-minus-src-alpha' },
-          },
-        }],
+        targets: [webGpuAlphaBlendColorTarget(this.shell.info.format)],
       },
       primitive: { topology: 'triangle-list', cullMode: 'none' },
-      depthStencil: {
-        format: WEBGPU_DEPTH_FORMAT,
-        depthWriteEnabled: false,
-        depthCompare: 'less-equal',
-      },
+      depthStencil: webGpuWorldDepthStencil(false),
     });
     this.vertexBuffer = device.createBuffer({
       label: 'campaign-road-empty',

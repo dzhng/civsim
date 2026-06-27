@@ -1,6 +1,6 @@
 import type { RawFrameShell, WorldRenderPass } from '../../../webgpu-core/src/frameShell';
 import { WORLD_CAMERA_WGSL } from '../../../webgpu-core/src/cameraWgsl';
-import { WEBGPU_DEPTH_FORMAT } from '../../../webgpu-core/src/depthContract';
+import { webGpuAlphaBlendColorTarget, webGpuOpaqueColorTarget, webGpuWorldDepthStencil } from '../../../webgpu-core/src/pipelineContracts';
 
 export type CampaignSceneryKind = 'mountain' | 'tree' | 'conifer' | 'broadleaf' | 'rock';
 
@@ -13,6 +13,11 @@ export interface CampaignSceneryInstance {
 }
 
 interface MeshData {
+  opaque: IndexedMeshData;
+  shadow: IndexedMeshData;
+}
+
+interface IndexedMeshData {
   vertices: Float32Array;
   indices: Uint16Array;
   indexCount: number;
@@ -60,19 +65,28 @@ fn fs(in: VsOut) -> @location(0) vec4f {
 }`;
 
 export class CampaignSceneryPass {
-  private pipeline: GPURenderPipeline;
+  private opaquePipeline: GPURenderPipeline;
+  private shadowPipeline: GPURenderPipeline;
   private mountainMesh = buildMountainMesh();
   private coniferMesh = buildConiferTreeMesh();
   private broadleafMesh = buildBroadleafTreeMesh();
   private rockMesh = buildRockMesh();
   private mountainVertexBuffer: GPUBuffer;
   private mountainIndexBuffer: GPUBuffer;
+  private mountainShadowVertexBuffer: GPUBuffer;
+  private mountainShadowIndexBuffer: GPUBuffer;
   private coniferVertexBuffer: GPUBuffer;
   private coniferIndexBuffer: GPUBuffer;
+  private coniferShadowVertexBuffer: GPUBuffer;
+  private coniferShadowIndexBuffer: GPUBuffer;
   private broadleafVertexBuffer: GPUBuffer;
   private broadleafIndexBuffer: GPUBuffer;
+  private broadleafShadowVertexBuffer: GPUBuffer;
+  private broadleafShadowIndexBuffer: GPUBuffer;
   private rockVertexBuffer: GPUBuffer;
   private rockIndexBuffer: GPUBuffer;
+  private rockShadowVertexBuffer: GPUBuffer;
+  private rockShadowIndexBuffer: GPUBuffer;
   private mountainInstanceBuffer: GPUBuffer;
   private coniferInstanceBuffer: GPUBuffer;
   private broadleafInstanceBuffer: GPUBuffer;
@@ -89,25 +103,34 @@ export class CampaignSceneryPass {
   constructor(private shell: RawFrameShell) {
     const device = shell.device;
     const module = device.createShaderModule({ label: 'campaign-scenery-mesh-wgsl', code: SCENERY_WGSL });
-    this.pipeline = this.makePipeline(module);
-    this.mountainVertexBuffer = makeVertexBuffer(device, 'campaign-mountain-vertices', this.mountainMesh.vertices);
-    this.mountainIndexBuffer = makeIndexBuffer(device, 'campaign-mountain-indices', this.mountainMesh.indices);
-    this.coniferVertexBuffer = makeVertexBuffer(device, 'campaign-conifer-vertices', this.coniferMesh.vertices);
-    this.coniferIndexBuffer = makeIndexBuffer(device, 'campaign-conifer-indices', this.coniferMesh.indices);
-    this.broadleafVertexBuffer = makeVertexBuffer(device, 'campaign-broadleaf-vertices', this.broadleafMesh.vertices);
-    this.broadleafIndexBuffer = makeIndexBuffer(device, 'campaign-broadleaf-indices', this.broadleafMesh.indices);
-    this.rockVertexBuffer = makeVertexBuffer(device, 'campaign-rock-vertices', this.rockMesh.vertices);
-    this.rockIndexBuffer = makeIndexBuffer(device, 'campaign-rock-indices', this.rockMesh.indices);
+    this.opaquePipeline = this.makePipeline(module, 'opaque');
+    this.shadowPipeline = this.makePipeline(module, 'shadow');
+    this.mountainVertexBuffer = makeVertexBuffer(device, 'campaign-mountain-vertices', this.mountainMesh.opaque.vertices);
+    this.mountainIndexBuffer = makeIndexBuffer(device, 'campaign-mountain-indices', this.mountainMesh.opaque.indices);
+    this.mountainShadowVertexBuffer = makeVertexBuffer(device, 'campaign-mountain-shadow-vertices', this.mountainMesh.shadow.vertices);
+    this.mountainShadowIndexBuffer = makeIndexBuffer(device, 'campaign-mountain-shadow-indices', this.mountainMesh.shadow.indices);
+    this.coniferVertexBuffer = makeVertexBuffer(device, 'campaign-conifer-vertices', this.coniferMesh.opaque.vertices);
+    this.coniferIndexBuffer = makeIndexBuffer(device, 'campaign-conifer-indices', this.coniferMesh.opaque.indices);
+    this.coniferShadowVertexBuffer = makeVertexBuffer(device, 'campaign-conifer-shadow-vertices', this.coniferMesh.shadow.vertices);
+    this.coniferShadowIndexBuffer = makeIndexBuffer(device, 'campaign-conifer-shadow-indices', this.coniferMesh.shadow.indices);
+    this.broadleafVertexBuffer = makeVertexBuffer(device, 'campaign-broadleaf-vertices', this.broadleafMesh.opaque.vertices);
+    this.broadleafIndexBuffer = makeIndexBuffer(device, 'campaign-broadleaf-indices', this.broadleafMesh.opaque.indices);
+    this.broadleafShadowVertexBuffer = makeVertexBuffer(device, 'campaign-broadleaf-shadow-vertices', this.broadleafMesh.shadow.vertices);
+    this.broadleafShadowIndexBuffer = makeIndexBuffer(device, 'campaign-broadleaf-shadow-indices', this.broadleafMesh.shadow.indices);
+    this.rockVertexBuffer = makeVertexBuffer(device, 'campaign-rock-vertices', this.rockMesh.opaque.vertices);
+    this.rockIndexBuffer = makeIndexBuffer(device, 'campaign-rock-indices', this.rockMesh.opaque.indices);
+    this.rockShadowVertexBuffer = makeVertexBuffer(device, 'campaign-rock-shadow-vertices', this.rockMesh.shadow.vertices);
+    this.rockShadowIndexBuffer = makeIndexBuffer(device, 'campaign-rock-shadow-indices', this.rockMesh.shadow.indices);
     this.mountainInstanceBuffer = makeEmptyInstanceBuffer(device, 'campaign-mountain-empty-instances');
     this.coniferInstanceBuffer = makeEmptyInstanceBuffer(device, 'campaign-conifer-empty-instances');
     this.broadleafInstanceBuffer = makeEmptyInstanceBuffer(device, 'campaign-broadleaf-empty-instances');
     this.rockInstanceBuffer = makeEmptyInstanceBuffer(device, 'campaign-rock-empty-instances');
   }
 
-  private makePipeline(module: GPUShaderModule) {
+  private makePipeline(module: GPUShaderModule, material: 'opaque' | 'shadow') {
     const device = this.shell.device;
     return device.createRenderPipeline({
-      label: 'campaign-scenery-mesh-depth-pipeline',
+      label: material === 'opaque' ? 'campaign-scenery-opaque-depth-pipeline' : 'campaign-scenery-shadow-decal-pipeline',
       layout: device.createPipelineLayout({ bindGroupLayouts: [this.shell.cameraBindGroupLayout] }),
       vertex: {
         module,
@@ -131,20 +154,14 @@ export class CampaignSceneryPass {
       fragment: {
         module,
         entryPoint: 'fs',
-        targets: [{
-          format: this.shell.info.format,
-          blend: {
-            color: { srcFactor: 'src-alpha', dstFactor: 'one-minus-src-alpha' },
-            alpha: { srcFactor: 'one', dstFactor: 'one-minus-src-alpha' },
-          },
-        }],
+        targets: [
+          material === 'opaque'
+            ? webGpuOpaqueColorTarget(this.shell.info.format)
+            : webGpuAlphaBlendColorTarget(this.shell.info.format),
+        ],
       },
       primitive: { topology: 'triangle-list', cullMode: 'none' },
-      depthStencil: {
-        format: WEBGPU_DEPTH_FORMAT,
-        depthWriteEnabled: true,
-        depthCompare: 'less',
-      },
+      depthStencil: webGpuWorldDepthStencil(material === 'opaque'),
     });
   }
 
@@ -168,36 +185,67 @@ export class CampaignSceneryPass {
   }
 
   draw(pass: WorldRenderPass) {
-    this.drawWithPipeline(pass, this.pipeline);
+    this.drawShadows(pass);
+    this.drawOpaque(pass);
   }
 
-  private drawWithPipeline(pass: WorldRenderPass, pipeline: GPURenderPipeline) {
+  private drawShadows(pass: WorldRenderPass) {
     if (this.mountainCount + this.coniferCount + this.broadleafCount + this.rockCount === 0) return;
-    pass.setPipeline(pipeline);
+    pass.setPipeline(this.shadowPipeline);
+    pass.setBindGroup(0, this.shell.cameraBindGroup);
+    if (this.mountainCount > 0) {
+      pass.setVertexBuffer(0, this.mountainShadowVertexBuffer);
+      pass.setVertexBuffer(1, this.mountainInstanceBuffer);
+      pass.setIndexBuffer(this.mountainShadowIndexBuffer, 'uint16');
+      pass.drawIndexed(this.mountainMesh.shadow.indexCount, this.mountainCount);
+    }
+    if (this.coniferCount > 0) {
+      pass.setVertexBuffer(0, this.coniferShadowVertexBuffer);
+      pass.setVertexBuffer(1, this.coniferInstanceBuffer);
+      pass.setIndexBuffer(this.coniferShadowIndexBuffer, 'uint16');
+      pass.drawIndexed(this.coniferMesh.shadow.indexCount, this.coniferCount);
+    }
+    if (this.broadleafCount > 0) {
+      pass.setVertexBuffer(0, this.broadleafShadowVertexBuffer);
+      pass.setVertexBuffer(1, this.broadleafInstanceBuffer);
+      pass.setIndexBuffer(this.broadleafShadowIndexBuffer, 'uint16');
+      pass.drawIndexed(this.broadleafMesh.shadow.indexCount, this.broadleafCount);
+    }
+    if (this.rockCount > 0) {
+      pass.setVertexBuffer(0, this.rockShadowVertexBuffer);
+      pass.setVertexBuffer(1, this.rockInstanceBuffer);
+      pass.setIndexBuffer(this.rockShadowIndexBuffer, 'uint16');
+      pass.drawIndexed(this.rockMesh.shadow.indexCount, this.rockCount);
+    }
+  }
+
+  private drawOpaque(pass: WorldRenderPass) {
+    if (this.mountainCount + this.coniferCount + this.broadleafCount + this.rockCount === 0) return;
+    pass.setPipeline(this.opaquePipeline);
     pass.setBindGroup(0, this.shell.cameraBindGroup);
     if (this.mountainCount > 0) {
       pass.setVertexBuffer(0, this.mountainVertexBuffer);
       pass.setVertexBuffer(1, this.mountainInstanceBuffer);
       pass.setIndexBuffer(this.mountainIndexBuffer, 'uint16');
-      pass.drawIndexed(this.mountainMesh.indexCount, this.mountainCount);
+      pass.drawIndexed(this.mountainMesh.opaque.indexCount, this.mountainCount);
     }
     if (this.coniferCount > 0) {
       pass.setVertexBuffer(0, this.coniferVertexBuffer);
       pass.setVertexBuffer(1, this.coniferInstanceBuffer);
       pass.setIndexBuffer(this.coniferIndexBuffer, 'uint16');
-      pass.drawIndexed(this.coniferMesh.indexCount, this.coniferCount);
+      pass.drawIndexed(this.coniferMesh.opaque.indexCount, this.coniferCount);
     }
     if (this.broadleafCount > 0) {
       pass.setVertexBuffer(0, this.broadleafVertexBuffer);
       pass.setVertexBuffer(1, this.broadleafInstanceBuffer);
       pass.setIndexBuffer(this.broadleafIndexBuffer, 'uint16');
-      pass.drawIndexed(this.broadleafMesh.indexCount, this.broadleafCount);
+      pass.drawIndexed(this.broadleafMesh.opaque.indexCount, this.broadleafCount);
     }
     if (this.rockCount > 0) {
       pass.setVertexBuffer(0, this.rockVertexBuffer);
       pass.setVertexBuffer(1, this.rockInstanceBuffer);
       pass.setIndexBuffer(this.rockIndexBuffer, 'uint16');
-      pass.drawIndexed(this.rockMesh.indexCount, this.rockCount);
+      pass.drawIndexed(this.rockMesh.opaque.indexCount, this.rockCount);
     }
   }
 
@@ -209,10 +257,11 @@ export class CampaignSceneryPass {
       conifers: this.coniferCount,
       broadleafs: this.broadleafCount,
       rocks: this.rockCount,
-      mountainModelVertices: this.mountainMesh.vertices.length / 10,
-      coniferModelVertices: this.coniferMesh.vertices.length / 10,
-      broadleafModelVertices: this.broadleafMesh.vertices.length / 10,
-      rockModelVertices: this.rockMesh.vertices.length / 10,
+      mountainModelVertices: (this.mountainMesh.opaque.vertices.length + this.mountainMesh.shadow.vertices.length) / 10,
+      coniferModelVertices: (this.coniferMesh.opaque.vertices.length + this.coniferMesh.shadow.vertices.length) / 10,
+      broadleafModelVertices: (this.broadleafMesh.opaque.vertices.length + this.broadleafMesh.shadow.vertices.length) / 10,
+      rockModelVertices: (this.rockMesh.opaque.vertices.length + this.rockMesh.shadow.vertices.length) / 10,
+      materialClasses: ['opaque-depth-write', 'shadow-depth-read'] as const,
       layer: 'raw-webgpu-legacy-scenery-meshes',
     };
   }
@@ -253,16 +302,16 @@ function packInstances(instances: CampaignSceneryInstance[], sizeDivisor: number
 }
 
 function makeVertexBuffer(device: GPUDevice, label: string, data: Float32Array) {
-  const buffer = device.createBuffer({ label, size: data.byteLength, usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST });
-  device.queue.writeBuffer(buffer, 0, data);
+  const buffer = device.createBuffer({ label, size: Math.max(4, data.byteLength), usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST });
+  if (data.byteLength > 0) device.queue.writeBuffer(buffer, 0, data);
   return buffer;
 }
 
 function makeIndexBuffer(device: GPUDevice, label: string, data: Uint16Array) {
   const upload = data.byteLength % 4 === 0 ? data : new Uint16Array(data.length + 1);
   if (upload !== data) upload.set(data);
-  const buffer = device.createBuffer({ label, size: upload.byteLength, usage: GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST });
-  device.queue.writeBuffer(buffer, 0, upload);
+  const buffer = device.createBuffer({ label, size: Math.max(4, upload.byteLength), usage: GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST });
+  if (upload.byteLength > 0) device.queue.writeBuffer(buffer, 0, upload);
   return buffer;
 }
 
@@ -312,8 +361,10 @@ function buildBroadleafTreeMesh() {
 }
 
 class MeshBuilder {
-  private vertices: number[] = [];
-  private indices: number[] = [];
+  private opaqueVertices: number[] = [];
+  private opaqueIndices: number[] = [];
+  private shadowVertices: number[] = [];
+  private shadowIndices: number[] = [];
 
   box(center: [number, number, number], size: [number, number, number], color: Rgb, alpha: number) {
     const [cx, cy, cz] = center;
@@ -331,9 +382,9 @@ class MeshBuilder {
       [[3, 7, 4, 0], [-1, 0, 0]],
     ];
     for (const [face, normal] of faces) {
-      const base = this.vertices.length / 10;
-      for (const idx of face) this.vertices.push(...corners[idx], ...normal, ...color, alpha);
-      this.indices.push(base, base + 1, base + 2, base, base + 2, base + 3);
+      const base = this.opaqueVertices.length / 10;
+      for (const idx of face) this.opaqueVertices.push(...corners[idx], ...normal, ...color, alpha);
+      this.opaqueIndices.push(base, base + 1, base + 2, base, base + 2, base + 3);
     }
   }
 
@@ -402,24 +453,38 @@ class MeshBuilder {
       ring.push([center[0] + Math.cos(a) * radiusX, center[1] + Math.sin(a) * radiusY, center[2]]);
     }
     for (let i = 0; i < ring.length; i++) {
-      this.triangle(center, ring[i], ring[(i + 1) % ring.length], [0.055, 0.046, 0.032], [0.055, 0.046, 0.032], [0.055, 0.046, 0.032], alpha);
+      this.shadowTriangle(center, ring[i], ring[(i + 1) % ring.length], [0.055, 0.046, 0.032], [0.055, 0.046, 0.032], [0.055, 0.046, 0.032], alpha);
     }
   }
 
   finish(): MeshData {
-    if (this.indices.length > 65535) throw new Error('campaign scenery mesh exceeds uint16 index range');
+    if (this.opaqueIndices.length > 65535 || this.shadowIndices.length > 65535) throw new Error('campaign scenery mesh exceeds uint16 index range');
     return {
-      vertices: new Float32Array(this.vertices),
-      indices: new Uint16Array(this.indices),
-      indexCount: this.indices.length,
+      opaque: {
+        vertices: new Float32Array(this.opaqueVertices),
+        indices: new Uint16Array(this.opaqueIndices),
+        indexCount: this.opaqueIndices.length,
+      },
+      shadow: {
+        vertices: new Float32Array(this.shadowVertices),
+        indices: new Uint16Array(this.shadowIndices),
+        indexCount: this.shadowIndices.length,
+      },
     };
   }
 
   private triangle(a: [number, number, number], b: [number, number, number], c: [number, number, number], ca: Rgb, cb: Rgb, cc: Rgb, alpha: number) {
     const normal = faceNormal(a, b, c);
-    const base = this.vertices.length / 10;
-    this.vertices.push(...a, ...normal, ...ca, alpha, ...b, ...normal, ...cb, alpha, ...c, ...normal, ...cc, alpha);
-    this.indices.push(base, base + 1, base + 2);
+    const base = this.opaqueVertices.length / 10;
+    this.opaqueVertices.push(...a, ...normal, ...ca, alpha, ...b, ...normal, ...cb, alpha, ...c, ...normal, ...cc, alpha);
+    this.opaqueIndices.push(base, base + 1, base + 2);
+  }
+
+  private shadowTriangle(a: [number, number, number], b: [number, number, number], c: [number, number, number], ca: Rgb, cb: Rgb, cc: Rgb, alpha: number) {
+    const normal = faceNormal(a, b, c);
+    const base = this.shadowVertices.length / 10;
+    this.shadowVertices.push(...a, ...normal, ...ca, alpha, ...b, ...normal, ...cb, alpha, ...c, ...normal, ...cc, alpha);
+    this.shadowIndices.push(base, base + 1, base + 2);
   }
 }
 

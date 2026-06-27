@@ -371,6 +371,43 @@ async function findDepthContractFootguns() {
   return matches.sort();
 }
 
+async function findWorldMaterialContractFootguns() {
+  const root = new URL('../../', import.meta.url).pathname;
+  const files = [
+    new URL('../../packages/webgpu-core/src/skinnedPipeline.ts', import.meta.url),
+    new URL('../../packages/game-renderer/src/fixtures/nested3d.ts', import.meta.url),
+    new URL('../../packages/game-renderer/src/campaign/entityPass.ts', import.meta.url),
+    new URL('../../packages/game-renderer/src/campaign/sceneryPass.ts', import.meta.url),
+  ];
+  const matches = [];
+  for (const file of files) {
+    const source = await readFile(file, 'utf8');
+    const label = file.pathname.replace(root, '');
+    if (!/\bwebGpuOpaqueColorTarget\b/.test(source) || !/\bwebGpuWorldDepthStencil\b/.test(source)) {
+      matches.push(`${label}: depth-writing world geometry must use the opaque world material contract`);
+    }
+    if (/\bdepthWriteEnabled:\s*true\b/.test(source)) {
+      matches.push(`${label}: inline depth-write pipeline state bypasses the world material contract`);
+    }
+    if (/\bblend:\s*\{/.test(source)) {
+      matches.push(`${label}: inline alpha blending is not allowed in depth-writing world geometry`);
+    }
+  }
+
+  for (const file of [
+    new URL('../../packages/game-renderer/src/campaign/entityPass.ts', import.meta.url),
+    new URL('../../packages/game-renderer/src/campaign/sceneryPass.ts', import.meta.url),
+  ]) {
+    const source = await readFile(file, 'utf8');
+    const label = file.pathname.replace(root, '');
+    if (!/\bwebGpuAlphaBlendColorTarget\b/.test(source) || !/materialClasses:\s*\['opaque-depth-write',\s*'shadow-depth-read'\]/.test(source)) {
+      matches.push(`${label}: shadows must be a named alpha depth-read material class, not part of opaque depth writes`);
+    }
+  }
+
+  return matches.sort();
+}
+
 function countPixels(png) {
   let warmGround = 0;
   let blue = 0;
@@ -475,6 +512,12 @@ export async function run(ctx) {
     'source: WebGPU depth format and attachment are single-sourced',
     depthContractFootguns.length === 0,
     JSON.stringify({ depthContractFootguns }),
+  );
+  const worldMaterialContractFootguns = await findWorldMaterialContractFootguns();
+  ctx.check(
+    'source: depth-writing world geometry uses opaque material contracts',
+    worldMaterialContractFootguns.length === 0,
+    JSON.stringify({ worldMaterialContractFootguns }),
   );
 
   for (const [route, predicate] of routes) {

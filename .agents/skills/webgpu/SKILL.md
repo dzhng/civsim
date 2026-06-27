@@ -556,6 +556,13 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   descriptors or `attachment: 'worldDepth'` literals in production renderer code
   are a foundation smell because they let later passes quietly drift away from
   shared 3D occlusion.
+- Do not mix alpha blending into depth-writing world geometry. Cities, armies,
+  skinned soldiers, trees, rocks, mountains, and nested depth fixtures should
+  use the opaque/cutout world material contract when they write depth. Shadows,
+  selection rings, roads, and other translucent ground cues should be separate
+  depth-read decals with depth writes off. If real transparent 3D is needed,
+  add a deliberately sorted transparent-world pass instead of hiding it inside a
+  type bucket.
 - Shared projection does not require one numeric depth scale for every world.
   Battle and campaign should import the same camera/projection helpers, but
   large battlefields and compact campaign fixtures need named depth helpers

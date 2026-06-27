@@ -1,6 +1,6 @@
 import type { RawFrameShell, WorldRenderPass } from '../../../webgpu-core/src/frameShell';
 import { WORLD_CAMERA_WGSL } from '../../../webgpu-core/src/cameraWgsl';
-import { WEBGPU_DEPTH_FORMAT } from '../../../webgpu-core/src/depthContract';
+import { webGpuAlphaBlendColorTarget, webGpuOpaqueColorTarget, webGpuWorldDepthStencil } from '../../../webgpu-core/src/pipelineContracts';
 
 export interface CampaignEntityInstance {
   x: number;
@@ -13,6 +13,11 @@ export interface CampaignEntityInstance {
 }
 
 interface MeshData {
+  opaque: IndexedMeshData;
+  shadow: IndexedMeshData;
+}
+
+interface IndexedMeshData {
   vertices: Float32Array;
   indices: Uint16Array;
   indexCount: number;
@@ -72,11 +77,16 @@ fn fs(in: VsOut) -> @location(0) vec4f {
 }`;
 
 export class CampaignEntityPass {
-  private pipeline: GPURenderPipeline;
+  private opaquePipeline: GPURenderPipeline;
+  private shadowPipeline: GPURenderPipeline;
   private cityVertexBuffer: GPUBuffer;
   private cityIndexBuffer: GPUBuffer;
+  private cityShadowVertexBuffer: GPUBuffer;
+  private cityShadowIndexBuffer: GPUBuffer;
   private armyVertexBuffer: GPUBuffer;
   private armyIndexBuffer: GPUBuffer;
+  private armyShadowVertexBuffer: GPUBuffer;
+  private armyShadowIndexBuffer: GPUBuffer;
   private cityInstanceBuffer: GPUBuffer;
   private armyInstanceBuffer: GPUBuffer;
   private cityCapacity = 0;
@@ -89,19 +99,24 @@ export class CampaignEntityPass {
   constructor(private shell: RawFrameShell) {
     const device = shell.device;
     const module = device.createShaderModule({ label: 'campaign-entity-mesh-wgsl', code: ENTITY_WGSL });
-    this.pipeline = this.makePipeline(module);
-    this.cityVertexBuffer = makeVertexBuffer(device, 'campaign-city-model-vertices', this.cityMesh.vertices);
-    this.cityIndexBuffer = makeIndexBuffer(device, 'campaign-city-model-indices', this.cityMesh.indices);
-    this.armyVertexBuffer = makeVertexBuffer(device, 'campaign-army-model-vertices', this.armyMesh.vertices);
-    this.armyIndexBuffer = makeIndexBuffer(device, 'campaign-army-model-indices', this.armyMesh.indices);
+    this.opaquePipeline = this.makePipeline(module, 'opaque');
+    this.shadowPipeline = this.makePipeline(module, 'shadow');
+    this.cityVertexBuffer = makeVertexBuffer(device, 'campaign-city-model-vertices', this.cityMesh.opaque.vertices);
+    this.cityIndexBuffer = makeIndexBuffer(device, 'campaign-city-model-indices', this.cityMesh.opaque.indices);
+    this.cityShadowVertexBuffer = makeVertexBuffer(device, 'campaign-city-shadow-vertices', this.cityMesh.shadow.vertices);
+    this.cityShadowIndexBuffer = makeIndexBuffer(device, 'campaign-city-shadow-indices', this.cityMesh.shadow.indices);
+    this.armyVertexBuffer = makeVertexBuffer(device, 'campaign-army-model-vertices', this.armyMesh.opaque.vertices);
+    this.armyIndexBuffer = makeIndexBuffer(device, 'campaign-army-model-indices', this.armyMesh.opaque.indices);
+    this.armyShadowVertexBuffer = makeVertexBuffer(device, 'campaign-army-shadow-vertices', this.armyMesh.shadow.vertices);
+    this.armyShadowIndexBuffer = makeIndexBuffer(device, 'campaign-army-shadow-indices', this.armyMesh.shadow.indices);
     this.cityInstanceBuffer = makeEmptyInstanceBuffer(device, 'campaign-city-empty-instances');
     this.armyInstanceBuffer = makeEmptyInstanceBuffer(device, 'campaign-army-empty-instances');
   }
 
-  private makePipeline(module: GPUShaderModule) {
+  private makePipeline(module: GPUShaderModule, material: 'opaque' | 'shadow') {
     const device = this.shell.device;
     return device.createRenderPipeline({
-      label: 'campaign-entity-mesh-depth-pipeline',
+      label: material === 'opaque' ? 'campaign-entity-opaque-depth-pipeline' : 'campaign-entity-shadow-decal-pipeline',
       layout: device.createPipelineLayout({ bindGroupLayouts: [this.shell.cameraBindGroupLayout] }),
       vertex: {
         module,
@@ -129,20 +144,14 @@ export class CampaignEntityPass {
       fragment: {
         module,
         entryPoint: 'fs',
-        targets: [{
-          format: this.shell.info.format,
-          blend: {
-            color: { srcFactor: 'src-alpha', dstFactor: 'one-minus-src-alpha' },
-            alpha: { srcFactor: 'one', dstFactor: 'one-minus-src-alpha' },
-          },
-        }],
+        targets: [
+          material === 'opaque'
+            ? webGpuOpaqueColorTarget(this.shell.info.format)
+            : webGpuAlphaBlendColorTarget(this.shell.info.format),
+        ],
       },
       primitive: { topology: 'triangle-list', cullMode: 'none' },
-      depthStencil: {
-        format: WEBGPU_DEPTH_FORMAT,
-        depthWriteEnabled: true,
-        depthCompare: 'less',
-      },
+      depthStencil: webGpuWorldDepthStencil(material === 'opaque'),
     });
   }
 
@@ -158,24 +167,43 @@ export class CampaignEntityPass {
   }
 
   draw(pass: WorldRenderPass) {
-    this.drawWithPipeline(pass, this.pipeline);
+    this.drawShadows(pass);
+    this.drawOpaque(pass);
   }
 
-  private drawWithPipeline(pass: WorldRenderPass, pipeline: GPURenderPipeline) {
+  private drawShadows(pass: WorldRenderPass) {
     if (this.cityCount === 0 && this.armyCount === 0) return;
-    pass.setPipeline(pipeline);
+    pass.setPipeline(this.shadowPipeline);
+    pass.setBindGroup(0, this.shell.cameraBindGroup);
+    if (this.cityCount > 0) {
+      pass.setVertexBuffer(0, this.cityShadowVertexBuffer);
+      pass.setVertexBuffer(1, this.cityInstanceBuffer);
+      pass.setIndexBuffer(this.cityShadowIndexBuffer, 'uint16');
+      pass.drawIndexed(this.cityMesh.shadow.indexCount, this.cityCount);
+    }
+    if (this.armyCount > 0) {
+      pass.setVertexBuffer(0, this.armyShadowVertexBuffer);
+      pass.setVertexBuffer(1, this.armyInstanceBuffer);
+      pass.setIndexBuffer(this.armyShadowIndexBuffer, 'uint16');
+      pass.drawIndexed(this.armyMesh.shadow.indexCount, this.armyCount);
+    }
+  }
+
+  private drawOpaque(pass: WorldRenderPass) {
+    if (this.cityCount === 0 && this.armyCount === 0) return;
+    pass.setPipeline(this.opaquePipeline);
     pass.setBindGroup(0, this.shell.cameraBindGroup);
     if (this.cityCount > 0) {
       pass.setVertexBuffer(0, this.cityVertexBuffer);
       pass.setVertexBuffer(1, this.cityInstanceBuffer);
       pass.setIndexBuffer(this.cityIndexBuffer, 'uint16');
-      pass.drawIndexed(this.cityMesh.indexCount, this.cityCount);
+      pass.drawIndexed(this.cityMesh.opaque.indexCount, this.cityCount);
     }
     if (this.armyCount > 0) {
       pass.setVertexBuffer(0, this.armyVertexBuffer);
       pass.setVertexBuffer(1, this.armyInstanceBuffer);
       pass.setIndexBuffer(this.armyIndexBuffer, 'uint16');
-      pass.drawIndexed(this.armyMesh.indexCount, this.armyCount);
+      pass.drawIndexed(this.armyMesh.opaque.indexCount, this.armyCount);
     }
   }
 
@@ -184,8 +212,9 @@ export class CampaignEntityPass {
       entities: this.cityCount + this.armyCount,
       cityMeshes: this.cityCount,
       armyMeshes: this.armyCount,
-      cityModelVertices: this.cityMesh.vertices.length / 10,
-      armyModelVertices: this.armyMesh.vertices.length / 10,
+      cityModelVertices: (this.cityMesh.opaque.vertices.length + this.cityMesh.shadow.vertices.length) / 10,
+      armyModelVertices: (this.armyMesh.opaque.vertices.length + this.armyMesh.shadow.vertices.length) / 10,
+      materialClasses: ['opaque-depth-write', 'shadow-depth-read'] as const,
       layer: 'raw-webgpu-legacy-model-meshes',
     };
   }
@@ -223,16 +252,16 @@ function packInstances(instances: CampaignEntityInstance[], radiusToScale: numbe
 }
 
 function makeVertexBuffer(device: GPUDevice, label: string, data: Float32Array) {
-  const buffer = device.createBuffer({ label, size: data.byteLength, usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST });
-  device.queue.writeBuffer(buffer, 0, data);
+  const buffer = device.createBuffer({ label, size: Math.max(4, data.byteLength), usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST });
+  if (data.byteLength > 0) device.queue.writeBuffer(buffer, 0, data);
   return buffer;
 }
 
 function makeIndexBuffer(device: GPUDevice, label: string, data: Uint16Array) {
   const upload = data.byteLength % 4 === 0 ? data : new Uint16Array(data.length + 1);
   if (upload !== data) upload.set(data);
-  const buffer = device.createBuffer({ label, size: upload.byteLength, usage: GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST });
-  device.queue.writeBuffer(buffer, 0, upload);
+  const buffer = device.createBuffer({ label, size: Math.max(4, upload.byteLength), usage: GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST });
+  if (upload.byteLength > 0) device.queue.writeBuffer(buffer, 0, upload);
   return buffer;
 }
 
@@ -347,8 +376,10 @@ function soldier(builder: MeshBuilder, x: number, y: number, shield: boolean, sp
 }
 
 class MeshBuilder {
-  private vertices: number[] = [];
-  private indices: number[] = [];
+  private opaqueVertices: number[] = [];
+  private opaqueIndices: number[] = [];
+  private shadowVertices: number[] = [];
+  private shadowIndices: number[] = [];
   private shadowLayer = 0;
 
   box(center: [number, number, number], size: [number, number, number], color: Rgb, alpha: number) {
@@ -367,9 +398,9 @@ class MeshBuilder {
       [[3, 7, 4, 0], [-1, 0, 0]],
     ];
     for (const [face, normal] of faces) {
-      const base = this.vertices.length / 10;
-      for (const idx of face) this.vertices.push(...corners[idx], ...normal, ...color, alpha);
-      this.indices.push(base, base + 1, base + 2, base, base + 2, base + 3);
+      const base = this.opaqueVertices.length / 10;
+      for (const idx of face) this.opaqueVertices.push(...corners[idx], ...normal, ...color, alpha);
+      this.opaqueIndices.push(base, base + 1, base + 2, base, base + 2, base + 3);
     }
   }
 
@@ -383,13 +414,13 @@ class MeshBuilder {
       ring.push([center[0] + Math.cos(a) * radiusX, center[1] + Math.sin(a) * radiusY, center[2]]);
     }
     for (let i = 0; i < ring.length; i++) {
-      const base = this.vertices.length / 10;
-      this.vertices.push(
+      const base = this.shadowVertices.length / 10;
+      this.shadowVertices.push(
         ...center, ...normal, ...color, alpha + 0.05,
         ...ring[i], ...normal, ...color, alpha,
         ...ring[(i + 1) % ring.length], ...normal, ...color, alpha,
       );
-      this.indices.push(base, base + 1, base + 2);
+      this.shadowIndices.push(base, base + 1, base + 2);
     }
   }
 
@@ -411,35 +442,35 @@ class MeshBuilder {
       const dz = b[1] - a[1];
       const len = Math.hypot(dx, dz) || 1;
       const normal: [number, number, number] = [-dz / len, 0, dx / len];
-      const base = this.vertices.length / 10;
-      this.vertices.push(
+      const base = this.opaqueVertices.length / 10;
+      this.opaqueVertices.push(
         a[0], y - halfDepth, a[1], ...normal, ...color, alpha,
         b[0], y - halfDepth, b[1], ...normal, ...color, alpha,
         b[0], y + halfDepth, b[1], ...normal, ...color, alpha,
         a[0], y + halfDepth, a[1], ...normal, ...color, alpha,
       );
-      this.indices.push(base, base + 1, base + 2, base, base + 2, base + 3);
+      this.opaqueIndices.push(base, base + 1, base + 2, base, base + 2, base + 3);
     }
   }
 
   panel3d(points: [number, number, number][], color: Rgb, alpha: number) {
     if (points.length < 3) return;
     const normal = faceNormal(points[0], points[1], points[2]);
-    const base = this.vertices.length / 10;
-    for (const point of points) this.vertices.push(...point, ...normal, ...color, alpha);
-    for (let i = 1; i < points.length - 1; i++) this.indices.push(base, base + i, base + i + 1);
-    const backBase = this.vertices.length / 10;
+    const base = this.opaqueVertices.length / 10;
+    for (const point of points) this.opaqueVertices.push(...point, ...normal, ...color, alpha);
+    for (let i = 1; i < points.length - 1; i++) this.opaqueIndices.push(base, base + i, base + i + 1);
+    const backBase = this.opaqueVertices.length / 10;
     const backNormal: [number, number, number] = [-normal[0], -normal[1], -normal[2]];
-    for (const point of points) this.vertices.push(...point, ...backNormal, ...color, alpha);
-    for (let i = 1; i < points.length - 1; i++) this.indices.push(backBase, backBase + i + 1, backBase + i);
+    for (const point of points) this.opaqueVertices.push(...point, ...backNormal, ...color, alpha);
+    for (let i = 1; i < points.length - 1; i++) this.opaqueIndices.push(backBase, backBase + i + 1, backBase + i);
   }
 
   private panelFace(points: [number, number][], y: number, normal: [number, number, number], color: Rgb, alpha: number, reverse: boolean) {
-    const base = this.vertices.length / 10;
-    for (const [x, z] of points) this.vertices.push(x, y, z, ...normal, ...color, alpha);
+    const base = this.opaqueVertices.length / 10;
+    for (const [x, z] of points) this.opaqueVertices.push(x, y, z, ...normal, ...color, alpha);
     for (let i = 1; i < points.length - 1; i++) {
-      if (reverse) this.indices.push(base, base + i + 1, base + i);
-      else this.indices.push(base, base + i, base + i + 1);
+      if (reverse) this.opaqueIndices.push(base, base + i + 1, base + i);
+      else this.opaqueIndices.push(base, base + i, base + i + 1);
     }
   }
 
@@ -454,22 +485,29 @@ class MeshBuilder {
     const cy = center[1] + offset[1];
     const sx = size[0] * spread * 0.5;
     const sy = size[1] * spread * 0.5;
-    const base = this.vertices.length / 10;
-    this.vertices.push(
+    const base = this.shadowVertices.length / 10;
+    this.shadowVertices.push(
       cx - sx, cy - sy, z, ...normal, ...color, alpha,
       cx + sx, cy - sy, z, ...normal, ...color, alpha,
       cx + sx, cy + sy, z, ...normal, ...color, alpha,
       cx - sx, cy + sy, z, ...normal, ...color, alpha,
     );
-    this.indices.push(base, base + 1, base + 2, base, base + 2, base + 3);
+    this.shadowIndices.push(base, base + 1, base + 2, base, base + 2, base + 3);
   }
 
   finish(): MeshData {
-    if (this.indices.length > 65535) throw new Error('campaign mesh exceeds uint16 index range');
+    if (this.opaqueIndices.length > 65535 || this.shadowIndices.length > 65535) throw new Error('campaign mesh exceeds uint16 index range');
     return {
-      vertices: new Float32Array(this.vertices),
-      indices: new Uint16Array(this.indices),
-      indexCount: this.indices.length,
+      opaque: {
+        vertices: new Float32Array(this.opaqueVertices),
+        indices: new Uint16Array(this.opaqueIndices),
+        indexCount: this.opaqueIndices.length,
+      },
+      shadow: {
+        vertices: new Float32Array(this.shadowVertices),
+        indices: new Uint16Array(this.shadowIndices),
+        indexCount: this.shadowIndices.length,
+      },
     };
   }
 }

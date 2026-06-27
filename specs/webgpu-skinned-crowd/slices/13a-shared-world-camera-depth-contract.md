@@ -158,6 +158,13 @@ shadows that sit on the ground instead of floating as screen overlays.
   Render graph and pipeline code import the contract rather than redeclaring the
   union or hard-coding matching literals; the lab scenario scans production
   TypeScript for those footguns.
+- Depth-writing world geometry now uses named material helpers from
+  `packages/webgpu-core/src/pipelineContracts.ts`. Skinned soldiers, nested
+  fixtures, and opaque campaign entity/scenery volumes use the opaque world
+  target/depth contract; campaign entity/scenery shadows are separate
+  alpha-blended depth-read decal draws inside the same world pass. The lab
+  scenario scans those files so alpha blending cannot quietly return to a
+  depth-writing model bucket.
 - `compileRenderGraph` now rejects mismatched depth accesses: read-only passes
   that write depth, write-only passes that read depth, and private depth
   attachments. `/webgpu/render-graph` publishes negative fixtures for those

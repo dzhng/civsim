@@ -261,6 +261,13 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   gap to `-1.99825`, with Campaign Label Zoom unchanged. Fresh critique still
   blocked acceptance on muddy overlays, tiny city labels, edge fog, and missing
   old flag/unit markers.
+- When the overview still reads darker after label/style work, try the real-map
+  `CampaignCloudPass` alpha scale before repainting the map or territory. A
+  palette/territory lift can make luminance perfect while worsening structural
+  parity; a small atmosphere-scale bump from `1.9` to `2.05` cut the world-crop
+  luminance gap from about `-1.999` to `-0.945` with only a tiny crop-score
+  tradeoff (`0.23266` to `0.23285`) and left controlled close campaign captures
+  unchanged.
 - Do not satisfy old campaign marker parity with generic dot/circle markers.
   A simple overview marker pass can move pixels while still reading as missing
   flags/models to an unprimed reviewer. Port the old icon/flag hierarchy and

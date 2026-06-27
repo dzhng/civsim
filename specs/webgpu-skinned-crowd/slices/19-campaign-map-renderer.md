@@ -381,3 +381,18 @@ because it exposes roads, city labels, markers, and terrain structure more
 clearly. The remaining overview gap is style parity rather than missing content:
 Image B is still more information-dense/sharp than the archived renderer, and
 the review says the pair is not close to full visual parity.
+
+The overview darkness complaint is now handled with the narrowest atmosphere
+knob instead of repainting the map. A trial that lifted map/territory colors
+made the whole-map luminance nearly exact but worsened structural parity, so it
+was rejected. Raising only the real-map cloud/parchment scale from `1.9` to
+`2.05` moves the Campaign Whole Map luminance delta from `-1.84539` full /
+`-1.99877` crop to `-0.82644` full / `-0.94522` crop; the score tradeoff is
+small (`0.22426` / `0.23266` to `0.22443` / `0.23285`) and controlled close
+campaign remains unchanged.
+Fresh unprimed critique on this candidate says Image B no longer reads darker;
+it reads lighter/hazier overall. Acceptance is still blocked by opaque edge
+fog/cloud wash, black land speckle, small busy city labels, noisy internal
+province/river lines, ambiguous tiny markers, flatter coastlines, and label
+collisions. The next overview pass should keep the luminance gain while making
+the cloud/fog distribution less opaque and restoring coast/label readability.

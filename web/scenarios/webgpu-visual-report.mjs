@@ -220,7 +220,7 @@ async function captureBattleDefault(ctx) {
   const terrain = stats.renderStats?.terrain;
   const capture = await savePage(page, 'battle-default', {
     status: 'webgpu-evidence',
-    evidence: `${stats.soldiers} soldiers; renderer ${stats.renderer}; drawCalls ${stats.renderStats?.drawCalls}; ${stats.renderStats?.atmosphere}; terrain quads ${terrain?.quads ?? 'n/a'} / scenery ${terrain?.sceneryQuads ?? 'n/a'}; warm/cool skinned material grade`,
+    evidence: `${stats.soldiers} soldiers; renderer ${stats.renderer}; drawCalls ${stats.renderStats?.drawCalls}; ${stats.renderStats?.atmosphere}; terrain quads ${terrain?.quads ?? 'n/a'} / scenery ${terrain?.sceneryQuads ?? 'n/a'} / world props ${terrain?.worldPropQuads ?? 'n/a'}; warm/cool skinned material grade`,
   });
   await page.close();
   return capture;
@@ -249,7 +249,7 @@ async function captureBattleSelectionHud(ctx) {
   const terrain = stats.renderStats?.terrain;
   const capture = await savePage(page, 'battle-selection-hud-dpr2', {
     status: 'webgpu-evidence',
-    evidence: `dpr2 selection; ${stats.soldiers} soldiers; renderer ${stats.renderer}; ${stats.renderStats?.atmosphere}; terrain quads ${terrain?.quads ?? 'n/a'} / scenery ${terrain?.sceneryQuads ?? 'n/a'}; lit skinned silhouettes`,
+    evidence: `dpr2 selection; ${stats.soldiers} soldiers; renderer ${stats.renderer}; ${stats.renderStats?.atmosphere}; terrain quads ${terrain?.quads ?? 'n/a'} / scenery ${terrain?.sceneryQuads ?? 'n/a'} / world props ${terrain?.worldPropQuads ?? 'n/a'}; lit skinned silhouettes`,
   });
   await page.close();
   return capture;

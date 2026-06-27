@@ -98,8 +98,8 @@ const routes = [
     && s.stats.nested3d?.fixtures?.includes('flag-in-city')
     && s.stats.nested3d?.fixtures?.includes('garrison-in-city-stub')
     && s.stats.nested3d?.fixtures?.includes('rank-overlap')],
-  ['battle-terrain?fixture=coast', (s) => s?.ok && s.route === 'battle-terrain' && s.stats.fixture === 'coast' && s.stats.waterQuads >= 3 && s.stats.sceneryQuads >= 8 && s.stats.cameraContract === 'shared-world-camera-wgsl'],
-  ['battle-terrain?fixture=melee', (s) => s?.ok && s.route === 'battle-terrain' && s.stats.fixture === 'melee' && s.stats.waterQuads >= 3 && s.stats.sceneryQuads >= 8 && s.stats.selectionQuads === 0 && s.stats.cameraContract === 'shared-world-camera-wgsl'],
+  ['battle-terrain?fixture=coast', (s) => s?.ok && s.route === 'battle-terrain' && s.stats.fixture === 'coast' && s.stats.waterQuads >= 3 && s.stats.sceneryQuads >= 8 && s.stats.worldPropQuads >= 4 && s.stats.cameraContract === 'shared-world-camera-wgsl'],
+  ['battle-terrain?fixture=melee', (s) => s?.ok && s.route === 'battle-terrain' && s.stats.fixture === 'melee' && s.stats.waterQuads >= 3 && s.stats.sceneryQuads >= 8 && s.stats.worldPropQuads >= 4 && s.stats.selectionQuads === 0 && s.stats.cameraContract === 'shared-world-camera-wgsl'],
   ['battle-live?mode=5v5&ticks=36', (s) => s?.ok && s.route === 'battle-live' && s.stats.written > 1000 && s.stats.units >= 10 && s.stats.player > 0 && s.stats.enemy > 0 && s.stats.drawCalls >= 1 && s.stats.drawCalls <= 15 && s.stats.overlay.lineSegments >= 20 && s.stats.cameraContract === 'shared-world-camera-wgsl' && s.stats.overlay.cameraContract === 'shared-world-camera-wgsl'],
   ['battle-ui?mode=5v5&ticks=36', (s) => s?.ok && s.route === 'battle-ui' && s.stats.written > 1000 && s.stats.units >= 10 && s.stats.drawCalls >= 1 && s.stats.drawCalls <= 15 && s.stats.overlay.lineSegments >= 20 && s.stats.ui.cards >= 8 && s.stats.ui.toolbarButtons >= 5 && s.stats.ui.postCutoverScreenshots === 'webgpu-only' && s.stats.cameraContract === 'shared-world-camera-wgsl' && s.stats.overlay.cameraContract === 'shared-world-camera-wgsl'],
   ['battle-input?mode=5v5&ticks=36', (s) => s?.ok && s.route === 'battle-input' && s.stats.written > 1000 && s.stats.units >= 10 && s.stats.drawCalls >= 1 && s.stats.drawCalls <= 15 && s.stats.overlay.lineSegments >= 20 && s.stats.selectedUnits.length === 1 && s.stats.ui.cards >= 8 && s.stats.cameraContract === 'shared-world-camera-wgsl' && s.stats.overlay.cameraContract === 'shared-world-camera-wgsl'],
@@ -240,7 +240,11 @@ async function findPhaseBrandFootguns() {
     },
     {
       file: new URL('../../packages/game-renderer/src/battle/terrainPass.ts', import.meta.url),
-      checks: [['battle terrain draw requires background pass', /\bdraw\s*\(\s*pass:\s*BackgroundRenderPass\s*\)/]],
+      checks: [
+        ['battle terrain underpaint draw requires background pass', /\bdraw\s*\(\s*pass:\s*BackgroundRenderPass\s*\)/],
+        ['battle terrain prop draw requires world pass', /\bdrawProps\s*\(\s*pass:\s*WorldRenderPass\s*\)/],
+        ['battle terrain uses shared battle world depth helper', /civsimBattleWorldDepth3d\s*\(/],
+      ],
     },
     {
       file: new URL('../../packages/game-renderer/src/battle/overlayPass.ts', import.meta.url),

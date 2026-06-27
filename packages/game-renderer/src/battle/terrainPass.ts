@@ -1,4 +1,5 @@
-import type { BackgroundRenderPass, RawFrameShell } from '../../../webgpu-core/src/frameShell';
+import { WEBGPU_DEPTH_FORMAT } from '../../../webgpu-core/src/depthContract';
+import type { BackgroundRenderPass, RawFrameShell, WorldRenderPass } from '../../../webgpu-core/src/frameShell';
 import { WORLD_CAMERA_WGSL } from '../../../webgpu-core/src/cameraWgsl';
 
 export type BattleTerrainFixture = 'coast' | 'melee' | 'dry-melee' | 'prop-field' | 'sim-tint';
@@ -6,6 +7,8 @@ export type BattleTerrainFixture = 'coast' | 'melee' | 'dry-melee' | 'prop-field
 export interface BattleTerrainPassStats {
   fixture: BattleTerrainFixture;
   quads: number;
+  backgroundQuads: number;
+  worldPropQuads: number;
   waterQuads: number;
   sceneryQuads: number;
   selectionQuads: number;
@@ -36,7 +39,7 @@ fn vs(@location(0) quad: vec2f, @location(1) inst0: vec4f, @location(2) inst1: v
   let local01 = quad * 0.5 + vec2f(0.5);
   let world = vec2f(inst0.x + local01.x * inst0.z, inst0.y + local01.y * inst0.w);
   var out: VsOut;
-  out.pos = projectGround(world, 0.1);
+  out.pos = projectGround(world, civsimBattleWorldDepth3d(vec3f(world, 0.08)));
   out.local = quad;
   out.world = world;
   out.kind = inst1.x;
@@ -79,8 +82,7 @@ fn edgeFeather(local: vec2f) -> f32 {
   return x;
 }
 
-@fragment
-fn fs(in: VsOut) -> @location(0) vec4f {
+fn terrainColor(in: VsOut) -> vec4f {
   let n = fbm(in.world * 0.72) * 0.20 + fbm(in.world * 0.11) * 0.18;
 
   if (in.kind < 0.5) {
@@ -186,19 +188,40 @@ fn fs(in: VsOut) -> @location(0) vec4f {
   let wave = smoothstep(0.10, 0.0, abs(sin(in.world.x * 0.24 + in.world.y * 0.46 + fbm(in.world * 0.06) * 2.0)));
   let fade = oval(in.local, 1.0, 0.34) * in.alpha;
   return vec4f(vec3f(0.92, 0.88, 0.72), fade * wave * edgeFeather(in.local) * 0.52);
+}
+
+@fragment
+fn fs(in: VsOut) -> @location(0) vec4f {
+  return terrainColor(in);
+}
+
+@fragment
+fn fsCutout(in: VsOut) -> @location(0) vec4f {
+  let c = terrainColor(in);
+  if (c.a < 0.38) {
+    discard;
+  }
+  return vec4f(c.rgb, 1.0);
 }`;
 
 export class BattleTerrainPass {
-  private pipeline: GPURenderPipeline;
+  private backgroundPipeline: GPURenderPipeline;
+  private propPipeline: GPURenderPipeline;
   private quadBuffer: GPUBuffer;
-  private instanceBuffer: GPUBuffer;
-  private capacity = 0;
+  private backgroundInstanceBuffer: GPUBuffer;
+  private propInstanceBuffer: GPUBuffer;
+  private backgroundCapacity = 0;
+  private propCapacity = 0;
   private quads: TerrainQuad[] = [];
+  private backgroundQuads: TerrainQuad[] = [];
+  private worldPropQuads: TerrainQuad[] = [];
   private fixture: BattleTerrainFixture = 'dry-melee';
   private fieldRect: [number, number, number, number] = [-58, -12, 116, 46];
   private statsValue: BattleTerrainPassStats = {
     fixture: 'dry-melee',
     quads: 0,
+    backgroundQuads: 0,
+    worldPropQuads: 0,
     waterQuads: 0,
     sceneryQuads: 0,
     selectionQuads: 0,
@@ -208,24 +231,25 @@ export class BattleTerrainPass {
   constructor(private shell: RawFrameShell) {
     const device = shell.device;
     const module = device.createShaderModule({ label: 'battle-terrain-wgsl', code: BATTLE_TERRAIN_WGSL });
-    this.pipeline = device.createRenderPipeline({
-      label: 'battle-terrain-fixture-pipeline',
+    const vertex = {
+      module,
+      entryPoint: 'vs',
+      buffers: [
+        { arrayStride: 8, attributes: [{ shaderLocation: 0, offset: 0, format: 'float32x2' as const }] },
+        {
+          arrayStride: 32,
+          stepMode: 'instance' as const,
+          attributes: [
+            { shaderLocation: 1, offset: 0, format: 'float32x4' as const },
+            { shaderLocation: 2, offset: 16, format: 'float32x4' as const },
+          ],
+        },
+      ],
+    };
+    this.backgroundPipeline = device.createRenderPipeline({
+      label: 'battle-terrain-underpaint-pipeline',
       layout: device.createPipelineLayout({ bindGroupLayouts: [shell.cameraBindGroupLayout] }),
-      vertex: {
-        module,
-        entryPoint: 'vs',
-        buffers: [
-          { arrayStride: 8, attributes: [{ shaderLocation: 0, offset: 0, format: 'float32x2' }] },
-          {
-            arrayStride: 32,
-            stepMode: 'instance',
-            attributes: [
-              { shaderLocation: 1, offset: 0, format: 'float32x4' },
-              { shaderLocation: 2, offset: 16, format: 'float32x4' },
-            ],
-          },
-        ],
-      },
+      vertex,
       fragment: {
         module,
         entryPoint: 'fs',
@@ -239,14 +263,35 @@ export class BattleTerrainPass {
       },
       primitive: { topology: 'triangle-strip' },
     });
+    this.propPipeline = device.createRenderPipeline({
+      label: 'battle-terrain-world-props-pipeline',
+      layout: device.createPipelineLayout({ bindGroupLayouts: [shell.cameraBindGroupLayout] }),
+      vertex,
+      fragment: {
+        module,
+        entryPoint: 'fsCutout',
+        targets: [{ format: shell.info.format }],
+      },
+      primitive: { topology: 'triangle-strip' },
+      depthStencil: {
+        format: WEBGPU_DEPTH_FORMAT,
+        depthWriteEnabled: true,
+        depthCompare: 'less-equal',
+      },
+    });
     this.quadBuffer = device.createBuffer({
       label: 'battle-terrain-quad',
       size: 8 * 4,
       usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
     });
     device.queue.writeBuffer(this.quadBuffer, 0, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]));
-    this.instanceBuffer = device.createBuffer({
-      label: 'battle-terrain-empty-instances',
+    this.backgroundInstanceBuffer = device.createBuffer({
+      label: 'battle-terrain-empty-underpaint-instances',
+      size: 8 * 4,
+      usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
+    });
+    this.propInstanceBuffer = device.createBuffer({
+      label: 'battle-terrain-empty-world-prop-instances',
       size: 8 * 4,
       usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
     });
@@ -277,12 +322,25 @@ export class BattleTerrainPass {
   }
 
   draw(pass: BackgroundRenderPass) {
-    if (this.quads.length === 0) return;
-    pass.setPipeline(this.pipeline);
+    this.drawQuadBatch(pass, this.backgroundPipeline, this.backgroundInstanceBuffer, this.backgroundQuads.length);
+  }
+
+  drawProps(pass: WorldRenderPass) {
+    this.drawQuadBatch(pass, this.propPipeline, this.propInstanceBuffer, this.worldPropQuads.length);
+  }
+
+  private drawQuadBatch(
+    pass: BackgroundRenderPass | WorldRenderPass,
+    pipeline: GPURenderPipeline,
+    instanceBuffer: GPUBuffer,
+    count: number,
+  ) {
+    if (count === 0) return;
+    pass.setPipeline(pipeline);
     pass.setBindGroup(0, this.shell.cameraBindGroup);
     pass.setVertexBuffer(0, this.quadBuffer);
-    pass.setVertexBuffer(1, this.instanceBuffer);
-    pass.draw(4, this.quads.length);
+    pass.setVertexBuffer(1, instanceBuffer);
+    pass.draw(4, count);
   }
 
   stats(): BattleTerrainPassStats {
@@ -290,18 +348,46 @@ export class BattleTerrainPass {
   }
 
   private upload() {
+    this.backgroundQuads = this.quads.filter((quad) => !isWorldPropQuad(quad));
+    this.worldPropQuads = this.quads.filter(isWorldPropQuad);
+    this.backgroundInstanceBuffer = this.uploadQuadBatch(
+      'battle-terrain-underpaint-instances',
+      this.backgroundQuads,
+      this.backgroundInstanceBuffer,
+      this.backgroundCapacity,
+      (capacity) => { this.backgroundCapacity = capacity; },
+    );
+    this.propInstanceBuffer = this.uploadQuadBatch(
+      'battle-terrain-world-prop-instances',
+      this.worldPropQuads,
+      this.propInstanceBuffer,
+      this.propCapacity,
+      (capacity) => { this.propCapacity = capacity; },
+    );
+  }
+
+  private uploadQuadBatch(
+    label: string,
+    quads: TerrainQuad[],
+    buffer: GPUBuffer,
+    capacity: number,
+    setCapacity: (capacity: number) => void,
+  ) {
     const stride = 8;
-    if (this.quads.length > this.capacity) {
-      this.capacity = Math.max(this.quads.length, this.capacity * 2, 32);
-      this.instanceBuffer = this.shell.device.createBuffer({
-        label: 'battle-terrain-instances',
-        size: this.capacity * stride * 4,
+    let nextBuffer = buffer;
+    if (quads.length > capacity) {
+      const nextCapacity = Math.max(quads.length, capacity * 2, 32);
+      setCapacity(nextCapacity);
+      nextBuffer = this.shell.device.createBuffer({
+        label,
+        size: nextCapacity * stride * 4,
         usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
       });
     }
-    const data = new Float32Array(this.quads.length * stride);
-    for (let i = 0; i < this.quads.length; i++) {
-      const q = this.quads[i];
+    if (quads.length === 0) return nextBuffer;
+    const data = new Float32Array(quads.length * stride);
+    for (let i = 0; i < quads.length; i++) {
+      const q = quads[i];
       const o = i * stride;
       data[o] = q.x;
       data[o + 1] = q.y;
@@ -310,19 +396,27 @@ export class BattleTerrainPass {
       data[o + 4] = q.kind;
       data[o + 5] = q.alpha;
     }
-    this.shell.device.queue.writeBuffer(this.instanceBuffer, 0, data);
+    this.shell.device.queue.writeBuffer(nextBuffer, 0, data);
+    return nextBuffer;
   }
 }
 
 function terrainStats(fixture: BattleTerrainFixture, quads: TerrainQuad[]): BattleTerrainPassStats {
+  const worldPropQuads = quads.filter(isWorldPropQuad).length;
   return {
     fixture,
     quads: quads.length,
+    backgroundQuads: quads.length - worldPropQuads,
+    worldPropQuads,
     waterQuads: quads.filter((q) => q.kind === 0 || q.kind === 8 || q.kind === 10).length,
     sceneryQuads: quads.filter((q) => q.kind === 3 || q.kind === 4 || q.kind === 6 || q.kind === 7 || q.kind === 11 || q.kind === 12).length,
     selectionQuads: quads.filter((q) => q.kind === 5).length,
     cameraContract: 'shared-world-camera-wgsl',
   };
+}
+
+function isWorldPropQuad(quad: TerrainQuad): boolean {
+  return quad.kind === 4 || quad.kind === 6 || quad.kind === 7;
 }
 
 function terrainQuadsFromTint(opts: { w: number; h: number; cell: number; ox: number; oy: number; tint: Uint8Array }): TerrainQuad[] {

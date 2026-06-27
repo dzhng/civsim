@@ -102,6 +102,15 @@ Current checkpoint:
   Battle Max Crowd moved from `0.20990` / `0.23754` crop to `0.20404` /
   `0.22554`, world-crop edge ratio improved from `0.75226` to `0.87749`, and
   Battle Selection DPR2 stayed at `0.13474` crop.
+- Battle terrain now submits authored object detail through the same shared
+  world-depth phase as soldiers. `BattleTerrainPass.draw()` renders only
+  background underpaint (water, beaches, tint masks, churn stains, and shadows),
+  while `BattleTerrainPass.drawProps()` renders discrete trees, shrubs, and
+  rocks through an opaque/cutout `world-depth` pipeline using the shared battle
+  depth helper, not a fixed clip-depth shortcut. Production and lab battle
+  stats expose `backgroundQuads` and `worldPropQuads`, and the scenario contract
+  requires the `battle-terrain-props` pass before accepting the production
+  renderer.
 
 ## Verification
 
@@ -110,8 +119,8 @@ Current checkpoint:
   frozen ground animation.
 - `VERIFY_WEBGPU=1 node scenario.mjs battle-webgpu-default webgpu-lab-routes`
   checks the production battle atmosphere stat, warm terrain, team colors,
-  richer water/foam/scenery terrain fixture counts, sky, minimap, DPR input, and
-  frozen-pixel determinism.
+  richer water/foam/scenery/world-prop terrain fixture counts, sky, minimap,
+  DPR input, and frozen-pixel determinism.
 - `VERIFY_WEBGPU=1 node scenario.mjs webgpu-visual-report` regenerates the
   cutover contact sheet; the current inspected battle captures show a wider
   feathered water/shore band, no random frozen-overlay streaks, softened

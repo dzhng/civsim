@@ -43,7 +43,8 @@ export async function run(ctx) {
     'WebGPU battle terrain includes sim-sourced feature detail',
     stats.renderStats?.terrain?.fixture === 'sim-tint'
       && stats.renderStats.terrain.quads > 1000
-      && stats.renderStats.terrain.sceneryQuads > 800,
+      && stats.renderStats.terrain.sceneryQuads > 800
+      && stats.renderStats.terrain.worldPropQuads > 800,
     JSON.stringify(stats.renderStats?.terrain),
   );
 

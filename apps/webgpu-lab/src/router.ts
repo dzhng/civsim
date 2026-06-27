@@ -1230,7 +1230,10 @@ async function routeBattleTerrain(ctx: LabContext) {
     clear: { r: 0.74, g: 0.83, b: 0.90, a: 1 },
     terrainRect: [-58, -12, 116, 46],
     markers: generatedMarkers(54, -14, 2, 0).concat(generatedMarkers(54, 15, 8, 1)),
-    passes: [{ id: 'battle-terrain-fixture', phase: 'background', draw: (pass) => terrain.draw(pass) }],
+    passes: [
+      { id: 'battle-terrain-fixture-underpaint', phase: 'background', draw: (pass) => terrain.draw(pass) },
+      { id: 'battle-terrain-fixture-props', phase: 'world-depth', depth: 'read-write', draw: (pass) => terrain.drawProps(pass) },
+    ],
   });
   const stats = terrain.stats();
   ctx.status.innerHTML = reportTable({
@@ -1238,6 +1241,8 @@ async function routeBattleTerrain(ctx: LabContext) {
     fixture,
     terrain: 'warm grass, beach shelf, water, haze clear, scenery; selection is owned by battle overlay',
     quads: stats.quads,
+    underpaintQuads: stats.backgroundQuads,
+    worldPropQuads: stats.worldPropQuads,
     water: stats.waterQuads,
     scenery: stats.sceneryQuads,
     fixtureSelectionQuads: stats.selectionQuads,
@@ -1287,7 +1292,8 @@ async function routeBattleLive(ctx: LabContext) {
     clear: { r: 0.74, g: 0.83, b: 0.90, a: 1 },
     terrainRect: [bounds.cx - Math.max(68, bounds.w * 0.65), bounds.cy - Math.max(36, bounds.h * 0.65), Math.max(136, bounds.w * 1.3), Math.max(72, bounds.h * 1.3)],
     passes: [
-      { id: 'battle-live-terrain', phase: 'background', draw: (pass) => terrain.draw(pass) },
+      { id: 'battle-live-terrain-underpaint', phase: 'background', draw: (pass) => terrain.draw(pass) },
+      { id: 'battle-live-terrain-props', phase: 'world-depth', depth: 'read-write', draw: (pass) => terrain.drawProps(pass) },
       { id: 'battle-live-crowd', phase: 'world-depth', depth: 'read-write', draw: (pass) => pipeline.draw(pass) },
       { id: 'battle-live-selection-overlay', phase: 'overlay', draw: (pass) => overlay.draw(pass) },
       { id: 'battle-live-minimap', phase: 'overlay', draw: (pass) => minimap.draw(pass) },
@@ -1376,7 +1382,8 @@ async function routeBattleUi(ctx: LabContext) {
       clear: { r: 0.74, g: 0.83, b: 0.90, a: 1 },
       terrainRect: [bounds.cx - Math.max(68, bounds.w * 0.65), bounds.cy - Math.max(36, bounds.h * 0.65), Math.max(136, bounds.w * 1.3), Math.max(72, bounds.h * 1.3)],
       passes: [
-        { id: 'battle-ui-terrain', phase: 'background', draw: (pass) => terrain.draw(pass) },
+        { id: 'battle-ui-terrain-underpaint', phase: 'background', draw: (pass) => terrain.draw(pass) },
+        { id: 'battle-ui-terrain-props', phase: 'world-depth', depth: 'read-write', draw: (pass) => terrain.drawProps(pass) },
         { id: 'battle-ui-crowd', phase: 'world-depth', depth: 'read-write', draw: (pass) => pipeline.draw(pass) },
         { id: 'battle-ui-selection-overlay', phase: 'overlay', draw: (pass) => overlay.draw(pass) },
         { id: 'battle-ui-minimap', phase: 'overlay', draw: (pass) => minimap.draw(pass) },
@@ -1495,7 +1502,8 @@ async function routeBattleInput(ctx: LabContext) {
       clear: { r: 0.74, g: 0.83, b: 0.90, a: 1 },
       terrainRect: [bounds.cx - Math.max(68, bounds.w * 0.65), bounds.cy - Math.max(36, bounds.h * 0.65), Math.max(136, bounds.w * 1.3), Math.max(72, bounds.h * 1.3)],
       passes: [
-        { id: 'battle-input-terrain', phase: 'background', draw: (pass) => terrain.draw(pass) },
+        { id: 'battle-input-terrain-underpaint', phase: 'background', draw: (pass) => terrain.draw(pass) },
+        { id: 'battle-input-terrain-props', phase: 'world-depth', depth: 'read-write', draw: (pass) => terrain.drawProps(pass) },
         { id: 'battle-input-crowd', phase: 'world-depth', depth: 'read-write', draw: (pass) => pipeline.draw(pass) },
         { id: 'battle-input-selection-overlay', phase: 'overlay', draw: (pass) => overlay.draw(pass) },
         { id: 'battle-input-minimap', phase: 'overlay', draw: (pass) => minimap.draw(pass) },

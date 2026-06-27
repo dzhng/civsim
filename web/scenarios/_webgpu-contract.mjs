@@ -41,7 +41,8 @@ export function hasBattleWorldDepthContract(renderStats) {
     && renderStats?.depth?.format === 'depth24plus'
     && hasFramePhaseOrder(renderStats?.phases, { requireOverlay: true })
     && hasDepthPassPlacement(renderStats?.phases)
-    && hasFramePass(renderStats?.phases, 'battle-terrain-features', 'background')
+    && hasFramePass(renderStats?.phases, 'battle-terrain-underpaint', 'background')
+    && hasFrameDepthPass(renderStats?.phases, 'battle-terrain-props', 'read-write')
     && hasFrameDepthPass(renderStats?.phases, 'battle-skinned-crowd', 'read-write')
     && hasFramePass(renderStats?.phases, 'battle-debug-blocks', 'overlay')
     && hasFramePass(renderStats?.phases, 'battle-debug-triangles', 'overlay')

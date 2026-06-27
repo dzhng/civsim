@@ -103,9 +103,12 @@ shadows that sit on the ground instead of floating as screen overlays.
   helpers while preserving their existing depth/pass ordering.
 - Battle skinned soldiers now render through a depth-compatible pipeline using
   the shared battle world-depth helper, and production/lab battle routes submit
-  them through the depth world pass instead of the background pass. Terrain
-  remains a background surface; tactical selection/path/minimap/debug lines are
-  deliberate overlays.
+  them through the depth world pass instead of the background pass. Battle
+  terrain is split by depth semantics: broad masks, water, stains, and shadows
+  remain background underpaint, while discrete tree/shrub/rock props render as
+  cutout `world-depth` geometry using the same battle depth helper as soldiers.
+  Tactical
+  selection/path/minimap/debug lines are deliberate overlays.
 - Campaign entities, scenery, road meshes, and selection decals no longer own
   separate depth formulas. True 3D campaign meshes use the shared campaign
   world-depth helper; ground decals and roads render in the depth world pass
@@ -139,8 +142,9 @@ shadows that sit on the ground instead of floating as screen overlays.
   `WorldRenderPass` at compile time, and `webgpu-lab-routes` scans for the
   brand so true 3D geometry cannot casually drift back into background or
   overlay callbacks.
-- Background and overlay draw entry points are branded as well: battle terrain,
-  campaign map/territory/water/flat lines require `BackgroundRenderPass`, while
+- Background and overlay draw entry points are branded as well: battle terrain
+  underpaint and campaign map/territory/water/flat lines require
+  `BackgroundRenderPass`, battle terrain props require `WorldRenderPass`, while
   battle overlays/minimap/debug triangles and campaign clouds/markers/labels
   require `OverlayRenderPass`. The lab route source guard now checks the full
   phase-brand contract, not only depth-sensitive world draws.

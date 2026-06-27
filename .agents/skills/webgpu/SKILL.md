@@ -341,6 +341,16 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   record both the `compare-screenshots` movement and the critique findings
   before accepting the visual. If the metric win fights artifact readability,
   prefer the version that removes visible decal artifacts and log the tradeoff.
+- Split battle terrain by depth semantics. Water, beach, mud/forest/scree
+  masks, churn stains, and shadows are background underpaint; discrete trees,
+  shrubs, and rocks are world-depth cutout props that should write shared depth
+  before soldiers draw. Do not keep authored battlefield objects inside one
+  blended background terrain bucket, because that reintroduces painter-order
+  behavior for props that should occlude or be occluded by units.
+- A `world-depth` pass must also use the shared world depth helper. Moving a
+  prop pass out of background while leaving `projectGround(world, 0.1)` or any
+  other fixed normalized depth makes every prop closer than soldiers, recreating
+  the "far tree over near flag" failure inside the depth buffer.
 - For Battle Selection DPR2 terrain cleanup, do not keep pushing per-cell
   pothole/rock density once the scene already reads as stamped blobs. A
   dedicated irregular pothole shader plus increased potholes worsened parity

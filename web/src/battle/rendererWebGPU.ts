@@ -154,7 +154,8 @@ export class BattleRendererWebGPU {
       terrainStyle: camera.zoom < 1.2 ? 'wide-detail' : 'default',
       markers: this.markers,
       passes: [
-        { id: 'battle-terrain-features', phase: 'background', draw: (pass) => this.terrain!.draw(pass) },
+        { id: 'battle-terrain-underpaint', phase: 'background', draw: (pass) => this.terrain!.draw(pass) },
+        { id: 'battle-terrain-props', phase: 'world-depth', depth: 'read-write', draw: (pass) => this.terrain!.drawProps(pass) },
         { id: 'battle-skinned-crowd', phase: 'world-depth', depth: 'read-write', draw: (pass) => this.crowd!.draw(pass) },
         { id: 'battle-debug-blocks', phase: 'overlay', draw: (pass) => this.debugBlocks!.draw(pass) },
         { id: 'battle-debug-triangles', phase: 'overlay', draw: (pass) => this.tris!.draw(pass) },

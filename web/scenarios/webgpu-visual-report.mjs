@@ -14,10 +14,38 @@ export const meta = {
 const OUT_DIR = new URL('../../specs/webgpu-skinned-crowd/visualizations/visual-report/', import.meta.url);
 const REPORT_HTML = new URL('../webgpu-visual-report.html', OUT_DIR);
 const REPORT_JSON = new URL('webgpu-visual-report.json', OUT_DIR);
+const MODEL_GATES_JSON = new URL('../model-gates/webgpu-model-gates.json', OUT_DIR);
+const MODEL_GATES_HTML = new URL('../model-gates/webgpu-model-gates.html', OUT_DIR);
+const SOLDIER_GATES_JSON = new URL('../soldier-gates/webgpu-soldier-gates.json', OUT_DIR);
+const SOLDIER_GATES_HTML = new URL('../soldier-gates/webgpu-soldier-gates.html', OUT_DIR);
 const GENERATED_AT = process.env.VISUAL_REPORT_GENERATED_AT ?? 'scenario-generated';
 const CURRENT_RENDERER_DIR = process.env.VISUAL_CURRENT_RENDERER_DIR;
 const COMPARISON_JSON = process.env.VISUAL_COMPARISON_JSON;
 const ACCEPTED_VISUAL_STATUSES = new Set(['webgpu-better', 'equal-or-better', 'accepted-exception', 'pass', 'accepted']);
+const REQUIRED_MODEL_GATE_IDS = [
+  'city',
+  'garrison-city',
+  'town',
+  'army',
+  'road',
+  'road-only',
+  'selected-city',
+  'trees',
+  'conifer',
+  'broadleaf',
+  'mountain',
+  'rocks',
+  'labels',
+  'terrain-grass-scrub',
+  'terrain-stone-relief',
+  'shoreline-water',
+  'cloud-fog',
+];
+const REQUIRED_SOLDIER_GATE_COUNTS = {
+  turntable: 15,
+  'in-game': 15,
+  'animation-still': 20,
+};
 
 function hasDepthPass(phases, id, mode) {
   return Array.isArray(phases) && phases.some((phase) =>
@@ -63,6 +91,20 @@ const reviewRows = [
     status: 'webgpu-evidence',
   },
   {
+    id: 'campaign-model-gates',
+    label: 'Campaign Model Gates',
+    category: 'model/prop evidence',
+    criteria: 'Addressable WebGPU screenshots for campaign city, garrison, town, army, roads, trees, mountains, rocks, terrain, water, clouds, labels, and selection footprints.',
+    status: 'webgpu-evidence',
+  },
+  {
+    id: 'soldier-animation-gates',
+    label: 'Soldier And Animation Gates',
+    category: 'model/animation evidence',
+    criteria: 'Addressable WebGPU turntables, in-game readability shots, and deterministic animation stills for the legacy soldier inventory.',
+    status: 'webgpu-evidence',
+  },
+  {
     id: 'campaign-whole-map',
     label: 'Campaign Whole Map',
     category: 'campaign',
@@ -100,6 +142,8 @@ export async function run(ctx) {
   captures.push(await captureBattleDefault(ctx));
   captures.push(await captureBattleSelectionHud(ctx));
   captures.push(await captureRenderGraphNestedDepth(ctx));
+  captures.push(await captureCampaignModelGateSummary());
+  captures.push(await captureSoldierGateSummary());
   captures.push(await captureCampaignWholeMap(ctx));
   captures.push(await captureCampaignLabelZoom(ctx));
   captures.push(await captureCampaignHandoffBattle(ctx));
@@ -278,6 +322,74 @@ async function captureRenderGraphNestedDepth(ctx) {
   return capture;
 }
 
+async function captureCampaignModelGateSummary() {
+  const row = reviewRows.find((candidate) => candidate.id === 'campaign-model-gates');
+  const report = await readJsonIfExists(MODEL_GATES_JSON);
+  const captures = Array.isArray(report?.captures) ? report.captures : [];
+  const ids = new Set(captures.map((capture) => capture.id));
+  const missing = REQUIRED_MODEL_GATE_IDS.filter((id) => !ids.has(id));
+  const incomplete = captures.filter((capture) => capture.status !== 'webgpu-evidence' || !capture.image);
+  const garrison = captures.find((capture) => capture.id === 'garrison-city');
+  const representative = garrison?.image
+    ? new URL(`../model-gates/${garrison.image}`, OUT_DIR)
+    : null;
+  const hasRepresentative = representative ? await exists(representative) : false;
+  const hasReportJson = await exists(MODEL_GATES_JSON);
+  const hasReportHtml = await exists(MODEL_GATES_HTML);
+  const complete = missing.length === 0 && incomplete.length === 0 && hasRepresentative && hasReportJson && hasReportHtml;
+  return {
+    ...row,
+    status: complete ? 'webgpu-evidence' : 'missing-gate-evidence',
+    evidence: `${captures.length}/${REQUIRED_MODEL_GATE_IDS.length} campaign gates; required nested garrison gate ${ids.has('garrison-city') ? 'present' : 'missing'}; missing ${missing.length ? missing.join(', ') : 'none'}; incomplete ${incomplete.length}`,
+    image: hasRepresentative ? relativeVisualPath(representative) : null,
+    linkedReport: hasReportHtml ? relativeVisualPath(MODEL_GATES_HTML) : null,
+    gateSummary: {
+      report: hasReportJson ? relativeVisualPath(MODEL_GATES_JSON) : null,
+      captures: captures.length,
+      required: REQUIRED_MODEL_GATE_IDS.length,
+      missing,
+      incomplete: incomplete.map((capture) => capture.id),
+    },
+  };
+}
+
+async function captureSoldierGateSummary() {
+  const row = reviewRows.find((candidate) => candidate.id === 'soldier-animation-gates');
+  const report = await readJsonIfExists(SOLDIER_GATES_JSON);
+  const captures = Array.isArray(report?.captures) ? report.captures : [];
+  const groupCounts = captures.reduce((counts, capture) => {
+    counts[capture.group] = (counts[capture.group] ?? 0) + 1;
+    return counts;
+  }, {});
+  const missingGroups = Object.entries(REQUIRED_SOLDIER_GATE_COUNTS)
+    .filter(([group, required]) => (groupCounts[group] ?? 0) < required)
+    .map(([group]) => group);
+  const incomplete = captures.filter((capture) => capture.status !== 'webgpu-evidence' || !capture.image);
+  const representativeCapture = captures.find((capture) => capture.id === 'turntable-00-heavy-sword');
+  const representative = representativeCapture?.image
+    ? new URL(`../soldier-gates/${representativeCapture.image}`, OUT_DIR)
+    : null;
+  const hasRepresentative = representative ? await exists(representative) : false;
+  const hasReportJson = await exists(SOLDIER_GATES_JSON);
+  const hasReportHtml = await exists(SOLDIER_GATES_HTML);
+  const complete = missingGroups.length === 0 && incomplete.length === 0 && hasRepresentative && hasReportJson && hasReportHtml;
+  return {
+    ...row,
+    status: complete ? 'webgpu-evidence' : 'missing-gate-evidence',
+    evidence: `${captures.length} soldier gates; turntables ${groupCounts.turntable ?? 0}/15; in-game ${groupCounts['in-game'] ?? 0}/15; animation stills ${groupCounts['animation-still'] ?? 0}/20; missing groups ${missingGroups.length ? missingGroups.join(', ') : 'none'}; incomplete ${incomplete.length}`,
+    image: hasRepresentative ? relativeVisualPath(representative) : null,
+    linkedReport: hasReportHtml ? relativeVisualPath(SOLDIER_GATES_HTML) : null,
+    gateSummary: {
+      report: hasReportJson ? relativeVisualPath(SOLDIER_GATES_JSON) : null,
+      captures: captures.length,
+      requiredGroups: REQUIRED_SOLDIER_GATE_COUNTS,
+      groupCounts,
+      missingGroups,
+      incomplete: incomplete.map((capture) => capture.id),
+    },
+  };
+}
+
 async function captureCampaignWholeMap(ctx) {
   const page = await ctx.newPage({ viewport: { width: 1280, height: 800 }, errorPrefix: 'visual-campaign-whole-map' });
   await page.goto(`${ctx.target}/?campaign=1`);
@@ -367,16 +479,14 @@ async function savePage(page, id, extra) {
 function renderHtml(report) {
   const cards = report.captures.map((capture) => `
     <article>
-      <figure>
-        <figcaption>WebGPU</figcaption>
-        <img src="${escapeHtml(capture.image)}" alt="${escapeHtml(capture.label)} WebGPU capture">
-      </figure>
+      ${webGpuFigure(capture)}
       ${comparisonFigure(capture)}
       <div>
         <h2>${escapeHtml(capture.label)}</h2>
         <p><b>${escapeHtml(capture.category)}</b> - ${escapeHtml(capture.criteria)}</p>
         <dl>
           <dt>WebGPU evidence</dt><dd>${escapeHtml(capture.evidence)}</dd>
+          ${capture.linkedReport ? `<dt>Gate report</dt><dd><a href="${escapeHtml(capture.linkedReport)}">${escapeHtml(capture.linkedReport)}</a></dd>` : ''}
           <dt>Comparison status</dt><dd>${escapeHtml(comparisonStatus(capture.currentRendererComparison))}</dd>
           <dt>Comparison note</dt><dd>${escapeHtml(comparisonNote(capture.currentRendererComparison))}</dd>
         </dl>
@@ -409,6 +519,7 @@ function renderHtml(report) {
     dt { color: #bca56f; font-weight: 700; }
     dd { margin: 0; color: #e2d5bd; }
     code { color: #f3ddb0; }
+    a { color: #f3ddb0; }
     @media (max-width: 900px) { article { grid-template-columns: 1fr; } }
   </style>
 </head>
@@ -425,6 +536,13 @@ function renderHtml(report) {
 `;
 }
 
+function webGpuFigure(capture) {
+  if (capture.image) {
+    return `<figure><figcaption>WebGPU</figcaption><img src="${escapeHtml(capture.image)}" alt="${escapeHtml(capture.label)} WebGPU capture"></figure>`;
+  }
+  return `<figure><figcaption>WebGPU</figcaption><div class="missing-shot">missing WebGPU capture</div></figure>`;
+}
+
 function comparisonFigure(capture) {
   const comparison = capture.currentRendererComparison;
   if (comparison?.image) {
@@ -439,6 +557,11 @@ function comparisonStatus(comparison) {
 
 function comparisonNote(comparison) {
   return typeof comparison === 'string' ? '' : comparison?.note ?? '';
+}
+
+async function readJsonIfExists(url) {
+  if (!(await exists(url))) return null;
+  return JSON.parse(await readFile(url, 'utf8'));
 }
 
 function relativeVisualPath(url) {

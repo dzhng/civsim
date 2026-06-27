@@ -80,6 +80,59 @@
       }
     },
     {
+      "id": "campaign-model-gates",
+      "label": "Campaign Model Gates",
+      "category": "model/prop evidence",
+      "criteria": "Addressable WebGPU screenshots for campaign city, garrison, town, army, roads, trees, mountains, rocks, terrain, water, clouds, labels, and selection footprints.",
+      "status": "webgpu-evidence",
+      "evidence": "17/17 campaign gates; required nested garrison gate present; missing none; incomplete 0",
+      "image": "model-gates/garrison-city.png",
+      "linkedReport": "model-gates/webgpu-model-gates.html",
+      "gateSummary": {
+        "report": "model-gates/webgpu-model-gates.json",
+        "captures": 17,
+        "required": 17,
+        "missing": [],
+        "incomplete": []
+      },
+      "currentRendererComparison": {
+        "status": "missing-archived-capture",
+        "image": null,
+        "note": "Archived current-renderer capture is not attached."
+      }
+    },
+    {
+      "id": "soldier-animation-gates",
+      "label": "Soldier And Animation Gates",
+      "category": "model/animation evidence",
+      "criteria": "Addressable WebGPU turntables, in-game readability shots, and deterministic animation stills for the legacy soldier inventory.",
+      "status": "webgpu-evidence",
+      "evidence": "50 soldier gates; turntables 15/15; in-game 15/15; animation stills 20/20; missing groups none; incomplete 0",
+      "image": "soldier-gates/turntable-00-heavy-sword.png",
+      "linkedReport": "soldier-gates/webgpu-soldier-gates.html",
+      "gateSummary": {
+        "report": "soldier-gates/webgpu-soldier-gates.json",
+        "captures": 50,
+        "requiredGroups": {
+          "turntable": 15,
+          "in-game": 15,
+          "animation-still": 20
+        },
+        "groupCounts": {
+          "turntable": 15,
+          "in-game": 15,
+          "animation-still": 20
+        },
+        "missingGroups": [],
+        "incomplete": []
+      },
+      "currentRendererComparison": {
+        "status": "missing-archived-capture",
+        "image": null,
+        "note": "Archived current-renderer capture is not attached."
+      }
+    },
+    {
       "id": "campaign-whole-map",
       "label": "Campaign Whole Map",
       "category": "campaign",

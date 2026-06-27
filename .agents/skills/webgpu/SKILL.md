@@ -206,6 +206,12 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   atmosphere passes as applicable, and publish pass counts such as selections,
   road segments, water features, clouds, scenery, and visible labels in the
   report JSON.
+- The cutover visual report should surface model-gate evidence, not only
+  whole-scene screenshots. Include summary rows for campaign model gates and
+  soldier/animation gates, link to their full contact sheets, and fail the row
+  when the required inventory is missing or incomplete so a whole-scene metric
+  cannot hide an absent model, animation beat, nested garrison gate, or label
+  sample.
 - Campaign close-view cloud/fog must soften without making scenery transparent.
   Drawing the cloud veil full-strength over close-stage mountains, rocks, and
   cities makes background meshes read like see-through props. Removing or

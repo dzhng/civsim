@@ -140,6 +140,12 @@ including the shock-cav sidearm model. The still frames are now the regression
 baselines for animation beats. Regenerated WebGPU GIFs remain required as human
 review artifacts before final model/animation parity is accepted.
 
+The main `webgpu-visual-report` now includes summary rows for both gate reports.
+Those rows surface the representative garrison-city and heavy-sword captures,
+link to the full gate contact sheets, and fail the visual report if the required
+campaign model inventory or soldier turntable/in-game/animation inventory is
+missing or incomplete.
+
 ## Rule
 
 The WebGPU port can claim whole-scene visual parity only after the relevant

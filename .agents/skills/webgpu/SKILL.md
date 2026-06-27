@@ -246,6 +246,14 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   moved Campaign Whole Map from `0.23458` / `0.24343` crop to `0.23783` /
   `0.24685`, and fresh critique shifted from edge-clipping findings to genuine
   label-collision/style blockers.
+- For campaign overview brightness complaints, tune the real-map
+  cloud/parchment veil before changing map or territory colors. A sea/territory
+  color trial reduced the luminance gap but worsened Campaign Whole Map from
+  `0.23783` / `0.24685` crop to `0.25649` / `0.26631`; lifting only the real-map
+  `CampaignCloudPass` alpha scale to `1.75` improved it to `0.23102` /
+  `0.23976` while leaving Campaign Label Zoom unchanged. Add avg luminance to
+  the compare output and treat fresh critique findings as acceptance blockers
+  even when global darkness is improved.
 - Soldier model gates must exercise the same skinned batching path used by
   production battle rendering. Route each capture through `SkinnedCrowdPipeline`,
   bucket instances by class mesh, freeze clip/phase/facing/camera through query

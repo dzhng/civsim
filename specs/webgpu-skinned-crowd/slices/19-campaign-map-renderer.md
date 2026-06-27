@@ -326,3 +326,25 @@ high-confidence blockers are now label collisions (`CARTHAGE` over a North
 Africa city label, `MACEDON` over `CONSTANTINOPOLIS`), plus lower-confidence
 sea-label readability, fog softness, territory blob seams, and label-weight
 mismatch.
+
+The overview darkness complaint is now tracked directly in the comparison
+helper via `avgLuminanceCurrent`, `avgLuminanceCandidate`, and
+`avgLuminanceDelta` for both full-frame and world-crop rows. A sea/territory
+palette trial reduced the visible luminance gap but was rejected because it
+worsened Campaign Whole Map to `0.25649` full / `0.26631` crop. The accepted
+route-specific fix raises only the real-map `CampaignCloudPass` parchment/cloud
+alpha scale from `1.45` to `1.75`, moving Campaign Whole Map from `0.23783` full
+/ `0.24685` crop to `0.23102` full / `0.23976` crop while leaving Campaign
+Label Zoom unchanged at `0.17429` / `0.23263`. The world crop luminance delta
+is now `-2.53214` in the JSON metric, and a near-black-excluded manual check
+put the crop at about `150.0` versus archived `153.1`, down from a roughly
+`-5.2` gap before this pass.
+
+Fresh unprimed critique on the accepted brightness candidate no longer frames
+the right-hand WebGPU overview as globally too dark, but still blocks visual
+acceptance. High-confidence findings remain: right-side cloud blur patches wash
+out lower corners, small city labels/icons are hard to read, `MACEDON` crowds
+Greece/Aegean labels, `SELEUCIDS` still feels edge-cramped, sea labels are
+decorative but weak, `LONDINIUM` remains close to the toolbar, and the sea is
+dark/saturated against pale land/fog. Next passes should target cloud shape,
+sea-label readability, marker/icon scale, and faction/city label collisions.

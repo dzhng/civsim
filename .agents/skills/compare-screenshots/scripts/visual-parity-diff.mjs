@@ -64,11 +64,15 @@ for (const pair of pairs) {
   let blackCandidate = 0;
   let terrainCurrent = 0;
   let terrainCandidate = 0;
+  let luminanceCurrent = 0;
+  let luminanceCandidate = 0;
 
   for (let i = 0; i < width * height; i++) {
     const o = i * 4;
     const cg = luminance(current.data[o], current.data[o + 1], current.data[o + 2]);
     const wg = luminance(candidate.data[o], candidate.data[o + 1], candidate.data[o + 2]);
+    luminanceCurrent += cg;
+    luminanceCandidate += wg;
     currentGray[i] = cg;
     candidateGray[i] = wg;
     const d = Math.abs(cg - wg);
@@ -146,6 +150,9 @@ for (const pair of pairs) {
       blackRatioCandidate: round(blackCandidate / total),
       terrainLikeRatioCurrent: round(terrainCurrent / total),
       terrainLikeRatioCandidate: round(terrainCandidate / total),
+      avgLuminanceCurrent: round(luminanceCurrent / total),
+      avgLuminanceCandidate: round(luminanceCandidate / total),
+      avgLuminanceDelta: round((luminanceCandidate - luminanceCurrent) / total),
       edgeEnergyCurrent: round(edgeStats.currentEnergy),
       edgeEnergyCandidate: round(edgeStats.candidateEnergy),
       edgeEnergyRatio: round(edgeEnergyRatio),
@@ -303,6 +310,8 @@ async function analyzeWorldCrop(id, crop, current, candidate, currentGray, candi
   let blackCandidate = 0;
   let terrainCurrent = 0;
   let terrainCandidate = 0;
+  let luminanceCurrent = 0;
+  let luminanceCandidate = 0;
 
   for (let y = 0; y < bounds.height; y++) {
     for (let x = 0; x < bounds.width; x++) {
@@ -312,6 +321,8 @@ async function analyzeWorldCrop(id, crop, current, candidate, currentGray, candi
       const cropOffset = cropIndex * 4;
       const cg = currentGray[sourceIndex];
       const wg = candidateGray[sourceIndex];
+      luminanceCurrent += cg;
+      luminanceCandidate += wg;
       cropCurrentGray[cropIndex] = cg;
       cropCandidateGray[cropIndex] = wg;
       const d = Math.abs(cg - wg);
@@ -384,6 +395,9 @@ async function analyzeWorldCrop(id, crop, current, candidate, currentGray, candi
       blackRatioCandidate: round(blackCandidate / total),
       terrainLikeRatioCurrent: round(terrainCurrent / total),
       terrainLikeRatioCandidate: round(terrainCandidate / total),
+      avgLuminanceCurrent: round(luminanceCurrent / total),
+      avgLuminanceCandidate: round(luminanceCandidate / total),
+      avgLuminanceDelta: round((luminanceCandidate - luminanceCurrent) / total),
       edgeEnergyCurrent: round(edgeStats.currentEnergy),
       edgeEnergyCandidate: round(edgeStats.candidateEnergy),
       edgeEnergyRatio: round(edgeEnergyRatio),

@@ -46,6 +46,9 @@ For each pair, report:
   geometry, props, labels, or terrain detail; values far above 1 usually mean
   noisy/incorrect detail.
 - `edgeDiffRatio32`: fraction of pixels whose Sobel edge differs materially.
+- `avgLuminanceCurrent`, `avgLuminanceCandidate`, and `avgLuminanceDelta`:
+  average grayscale brightness and candidate-current delta. Use this when a
+  render is visibly too dark/light even if a broader parity score improves.
 - Content proxies relevant to the scene, such as black/void ratio, terrain-like
   ratio, water-like ratio, team-color ratio, or label/text mask ratio.
 

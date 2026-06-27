@@ -424,7 +424,9 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   should import `WORLD_CAMERA_WGSL`; labels may still convert the shared
   `cameraSpace`/`perspectiveDepth` anchor into screen pixels for atlas offsets.
   A private `struct Camera` in a shader string is a drift warning unless it is
-  the shared source itself.
+  the shared source itself. Keep `webgpu-lab-routes` scanning renderer sources
+  for private `struct Camera` declarations so this remains a testable invariant
+  instead of a manual grep habit.
 - When migrating battle shaders to the shared camera helpers, preserve existing
   normalized z values and pass ordering first, then assert the contract through
   route stats before adding battle depth. A pure projection-source refactor

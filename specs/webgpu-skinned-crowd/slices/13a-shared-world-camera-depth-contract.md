@@ -110,6 +110,9 @@ shadows that sit on the ground instead of floating as screen overlays.
   map/territory/atmosphere/label-anchor shaders now import
   `WORLD_CAMERA_WGSL`; label atlas quads keep screen-space offsets only after
   anchoring through the shared `cameraSpace`/`perspectiveDepth` helpers.
+- `webgpu-lab-routes` now scans WebGPU renderer source files and fails if a
+  shader string reintroduces a private `struct Camera` outside
+  `packages/webgpu-core/src/cameraWgsl.ts`.
 - Type batching is permitted only as a performance strategy. Batches for trees,
   rocks, cities, armies, and soldier mesh variants must not create their own
   visual ordering rules or private depth scales.

@@ -52,6 +52,7 @@ export interface FrameShellStats {
   frame: number;
   device: string;
   atmosphere: string;
+  cameraContract: 'shared-world-camera-wgsl';
   phases: FramePhaseStats[];
   depth: {
     format: 'depth24plus';
@@ -471,6 +472,7 @@ export class RawFrameShellImpl implements RawFrameShell {
       frame: this.frame,
       device: [this.info.vendor, this.info.architecture, this.info.description].filter(Boolean).join(' / ') || 'unknown',
       atmosphere: 'aegean-sky-haze',
+      cameraContract: 'shared-world-camera-wgsl',
       phases: this.lastPhases.map((phase) => ({ ...phase })),
       depth: {
         format: 'depth24plus',

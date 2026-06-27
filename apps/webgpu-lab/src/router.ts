@@ -507,6 +507,7 @@ async function routeCampaignMap(ctx: LabContext) {
     ...drawData.stats,
     preset,
     camera,
+    cameraContract: shell.stats().cameraContract,
     labels: labelLayer.labels,
     visibleLabels: labelLayer.visibleLabels,
     factions: territoryData.labels.length,

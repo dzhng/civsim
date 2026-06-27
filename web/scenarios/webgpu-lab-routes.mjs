@@ -1,3 +1,4 @@
+import { readdir, readFile } from 'node:fs/promises';
 import { PNG } from 'pngjs';
 
 export const meta = {
@@ -10,7 +11,7 @@ export const meta = {
 };
 
 const routes = [
-  ['frame-shell', (s) => s?.ok && s.route === 'frame-shell' && s.stats.atmosphere === 'aegean-sky-haze'],
+  ['frame-shell', (s) => s?.ok && s.route === 'frame-shell' && s.stats.atmosphere === 'aegean-sky-haze' && s.stats.cameraContract === 'shared-world-camera-wgsl'],
   ['assets', (s) => s?.ok && s.route === 'assets' && s.stats.badErrors > 0 && s.stats.importUi?.paste && s.stats.importUi?.file && s.stats.importUi?.drop],
   ['crowd-data?count=1000', (s) => s?.ok && s.route === 'crowd-data' && s.stats.stats.written === 1000],
   ['animation-state', (s) => s?.ok && s.route === 'animation-state'],
@@ -27,7 +28,7 @@ const routes = [
     && s.stats.scenes[0].stats.count === 900
     && s.stats.scenes[0].frame.samples > 0],
   ['campaign', (s) => s?.ok && s.route === 'campaign' && s.stats.markers > 0],
-  ['campaign-map?preset=whole', (s) => s?.ok && s.route === 'campaign-map' && s.stats.roads > 20 && s.stats.seaLanes > 0 && s.stats.cityMarkers > 20 && s.stats.visibleLabels > 5 && s.stats.labelVertices > 20 && s.stats.factions > 5 && s.stats.territoryPixels > 10000 && s.stats.borderSegments > 100 && s.stats.waterFeatures >= 5 && s.stats.cloudQuads === 1 && s.stats.territoryLayer === 'raw-webgpu-texture' && s.stats.atmosphereLayer === 'raw-webgpu-cloud-water' && s.stats.labelLayer === 'raw-webgpu-glyph-atlas'],
+  ['campaign-map?preset=whole', (s) => s?.ok && s.route === 'campaign-map' && s.stats.roads > 20 && s.stats.seaLanes > 0 && s.stats.cityMarkers > 20 && s.stats.visibleLabels > 5 && s.stats.labelVertices > 20 && s.stats.factions > 5 && s.stats.territoryPixels > 10000 && s.stats.borderSegments > 100 && s.stats.waterFeatures >= 5 && s.stats.cloudQuads === 1 && s.stats.cameraContract === 'shared-world-camera-wgsl' && s.stats.territoryLayer === 'raw-webgpu-texture' && s.stats.atmosphereLayer === 'raw-webgpu-cloud-water' && s.stats.labelLayer === 'raw-webgpu-glyph-atlas'],
   ['campaign-ui', (s) => s?.ok && s.route === 'campaign-ui' && s.stats.fixture === 'controlled' && s.stats.cityEntities === 2 && s.stats.armyEntities === 1 && s.stats.selections >= 2 && s.stats.depth?.allocated === true && s.stats.depth?.format === 'depth24plus' && hasFramePhaseOrder(s.stats.framePhases ?? s.stats.phases) && s.stats.ui.armyPanel && s.stats.ui.cityPanel && s.stats.ui.autoReplenishToggle && s.stats.ui.classRows >= 8 && s.stats.ui.diplomacyRows >= 1 && s.stats.labelLayer === 'raw-webgpu-glyph-atlas' && s.stats.labelVertices > 0 && s.stats.postCutoverScreenshots === 'webgpu-only'],
   ['campaign-model-gates?gate=city', (s) => s?.ok
     && s.route === 'campaign-model-gates'
@@ -92,6 +93,42 @@ function hasFramePhaseOrder(phases) {
   const world = kinds.indexOf('world-depth');
   const overlay = kinds.includes('overlay') ? kinds.indexOf('overlay') : kinds.length;
   return background === 0 && world > background && overlay > world;
+}
+
+async function findPrivateCameraStructs() {
+  const roots = [
+    new URL('../../packages/webgpu-core/src/', import.meta.url),
+    new URL('../../packages/game-renderer/src/', import.meta.url),
+    new URL('../src/', import.meta.url),
+  ];
+  const allowed = new Set([
+    new URL('../../packages/webgpu-core/src/cameraWgsl.ts', import.meta.url).pathname,
+  ]);
+  const matches = [];
+  for (const root of roots) {
+    for (const file of await tsFiles(root)) {
+      if (allowed.has(file.pathname)) continue;
+      const source = await readFile(file, 'utf8');
+      if (/\bstruct\s+Camera\s*\{/.test(source)) {
+        matches.push(file.pathname.replace(new URL('../../', import.meta.url).pathname, ''));
+      }
+    }
+  }
+  return matches.sort();
+}
+
+async function tsFiles(dir) {
+  const entries = await readdir(dir, { withFileTypes: true });
+  const files = [];
+  for (const entry of entries) {
+    const child = new URL(entry.name, dir);
+    if (entry.isDirectory()) {
+      files.push(...await tsFiles(new URL(`${entry.name}/`, dir)));
+    } else if (entry.isFile() && /\.(?:ts|tsx|mts)$/.test(entry.name)) {
+      files.push(child);
+    }
+  }
+  return files;
 }
 
 function countPixels(png) {
@@ -163,6 +200,13 @@ function patchStats(png, sample, radius = 4) {
 }
 
 export async function run(ctx) {
+  const privateCameraStructs = await findPrivateCameraStructs();
+  ctx.check(
+    'source: camera WGSL is single-sourced',
+    privateCameraStructs.length === 0,
+    JSON.stringify({ privateCameraStructs }),
+  );
+
   for (const [route, predicate] of routes) {
     const page = await ctx.newPage({ viewport: { width: 900, height: 620 }, errorPrefix: `webgpu-${route}` });
     await page.goto(`${ctx.target}/webgpu/${route}`);

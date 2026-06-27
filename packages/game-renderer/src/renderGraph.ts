@@ -6,6 +6,14 @@ export interface RenderGraphPass {
   phase: RenderGraphPhase;
   reads?: string[];
   writes?: string[];
+  depth?: {
+    attachment: string;
+    mode: 'read' | 'write' | 'read-write';
+    format: 'depth24plus';
+    compare?: 'less' | 'less-equal' | 'always';
+    store?: 'discard' | 'store';
+  };
+  overlay?: boolean;
 }
 
 export interface RenderGraphResource {
@@ -35,27 +43,47 @@ export const FULL_GAME_GRAPH_SKELETON: RenderGraphPass[] = [
     phase: 'battle',
     reads: ['cameraUniforms', 'frameConstants'],
     writes: ['worldColor', 'worldDepth'],
+    depth: { attachment: 'worldDepth', mode: 'write', format: 'depth24plus', compare: 'less', store: 'store' },
   },
   {
     id: 'battleCrowd',
     label: 'Skinned battle crowd',
     phase: 'battle',
     reads: ['cameraUniforms', 'worldDepth', 'soldierVat', 'crowdInstances'],
-    writes: ['worldColor', 'pickIds'],
+    writes: ['worldColor', 'worldDepth', 'pickIds'],
+    depth: { attachment: 'worldDepth', mode: 'read-write', format: 'depth24plus', compare: 'less-equal', store: 'store' },
   },
   {
-    id: 'campaignMap',
-    label: 'Campaign terrain, roads, water, borders, and labels',
+    id: 'campaignGround',
+    label: 'Campaign terrain, roads, water, borders, and ground decals',
     phase: 'campaign',
     reads: ['cameraUniforms', 'frameConstants', 'campaignState'],
-    writes: ['worldColor', 'pickIds'],
+    writes: ['worldColor', 'worldDepth'],
+    depth: { attachment: 'worldDepth', mode: 'write', format: 'depth24plus', compare: 'less', store: 'store' },
+  },
+  {
+    id: 'campaignOpaque3d',
+    label: 'Campaign city, army, scenery, standards, and garrison meshes',
+    phase: 'campaign',
+    reads: ['cameraUniforms', 'campaignState', 'worldDepth'],
+    writes: ['worldColor', 'worldDepth', 'pickIds'],
+    depth: { attachment: 'worldDepth', mode: 'read-write', format: 'depth24plus', compare: 'less-equal', store: 'store' },
+  },
+  {
+    id: 'labelsAndAtmosphere',
+    label: 'Transparent atmosphere, labels, HUD anchors, and non-depth overlays',
+    phase: 'ui',
+    reads: ['cameraUniforms', 'worldColor', 'pickIds'],
+    writes: ['compositedColor'],
+    overlay: true,
   },
   {
     id: 'gameUi',
     label: 'Game anchored UI and compositor',
     phase: 'ui',
-    reads: ['cameraUniforms', 'worldColor', 'pickIds'],
+    reads: ['cameraUniforms', 'compositedColor', 'pickIds'],
     writes: ['compositedColor'],
+    overlay: true,
   },
   {
     id: 'present',
@@ -90,6 +118,21 @@ export function compileRenderGraph(passes: readonly RenderGraphPass[]): RenderGr
       const resource = ensureResource(resources, write);
       if (!resource.firstWriter) resource.firstWriter = pass.id;
       resource.lastUsePass = pass.id;
+    }
+
+    if (pass.overlay && (pass.depth?.mode === 'write' || pass.depth?.mode === 'read-write')) {
+      diagnostics.push(`overlay pass "${pass.id}" must not write depth attachment "${pass.depth.attachment}"`);
+    }
+
+    if (pass.depth) {
+      const readsDepth = pass.reads?.includes(pass.depth.attachment) ?? false;
+      const writesDepth = pass.writes?.includes(pass.depth.attachment) ?? false;
+      if ((pass.depth.mode === 'read' || pass.depth.mode === 'read-write') && !readsDepth) {
+        diagnostics.push(`pass "${pass.id}" declares depth ${pass.depth.mode} but does not read "${pass.depth.attachment}"`);
+      }
+      if ((pass.depth.mode === 'write' || pass.depth.mode === 'read-write') && !writesDepth) {
+        diagnostics.push(`pass "${pass.id}" declares depth ${pass.depth.mode} but does not write "${pass.depth.attachment}"`);
+      }
     }
   }
 

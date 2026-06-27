@@ -64,6 +64,28 @@ compatible or splits them into separate passes.
   policy, resource counts, frame number, resize state, device identity, and
   whether any pipeline was rejected for incompatible attachments.
 
+## Implementation Checkpoint
+
+- `RawFrameShellImpl` now supports an optional `depthExtra` world pass that
+  loads the existing color target, clears a reusable `depth24plus` attachment,
+  binds the shared camera uniforms, and draws depth-tested geometry after the
+  existing flat frame pass.
+- `packages/game-renderer/src/renderGraph.ts` declares the first shared
+  full-game graph skeleton with `worldDepth` ownership: terrain/ground write
+  depth, opaque 3D battle/campaign passes read-write depth, and labels/UI are
+  explicit overlay passes that cannot write depth.
+- `/webgpu/render-graph` includes `Nested3dFixturePass`, a deterministic
+  depth-only proof surface for flag-in-city, garrison-in-city-stub,
+  rank-overlap, and ground-ring-occlusion. The fixture deliberately submits
+  occluding city/front-rank geometry before later flag/ring/rear-rank geometry
+  so a passing image proves depth, not painter order.
+- `web/scenarios/webgpu-lab-routes.mjs` now samples pixels from the
+  render-graph canvas to prove the city occludes the lower planted standard,
+  the upper flag remains visible, and the front battle rank wins the overlap.
+- `webgpu-visual-report` now includes a `Render Graph Nested Depth` row so
+  this foundation remains visible before production city, army, and battle mesh
+  polish can be accepted.
+
 ## Verification
 
 - Unit tests prove pass order, resize reconfiguration, and destroy idempotence.
@@ -98,3 +120,11 @@ Review whether the nested-object fixtures behave like real 3D, not layered
 stickers. If the flag-in-city or garrison-in-city fixture fails visually, do not
 try to fix the production city mesh first; fix the shared render graph/camera
 depth contract.
+
+Current unprimed screenshot critique supports the intended depth evidence:
+flag/standard lower parts are occluded by the city volume, the ground ring is
+partly hidden by the city, and the front rank wins the overlap. It also flags
+the fixture as visually crude: weak flag attachment, low-contrast/jagged
+selection ring, exposed board-like terrain horizon, missing shadows, toy-like
+unit forms, and nonspecific terrain detail. Treat those as follow-up art and
+production-pass blockers, not reasons to keep painter-order hacks.

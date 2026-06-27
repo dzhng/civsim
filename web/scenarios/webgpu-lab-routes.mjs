@@ -29,7 +29,16 @@ const routes = [
   ['campaign', (s) => s?.ok && s.route === 'campaign' && s.stats.markers > 0],
   ['campaign-map?preset=whole', (s) => s?.ok && s.route === 'campaign-map' && s.stats.roads > 20 && s.stats.seaLanes > 0 && s.stats.cityMarkers > 20 && s.stats.visibleLabels > 5 && s.stats.labelVertices > 20 && s.stats.factions > 5 && s.stats.territoryPixels > 10000 && s.stats.borderSegments > 100 && s.stats.waterFeatures >= 5 && s.stats.cloudQuads === 1 && s.stats.territoryLayer === 'raw-webgpu-texture' && s.stats.atmosphereLayer === 'raw-webgpu-cloud-water' && s.stats.labelLayer === 'raw-webgpu-glyph-atlas'],
   ['campaign-ui', (s) => s?.ok && s.route === 'campaign-ui' && s.stats.fixture === 'controlled' && s.stats.cityEntities === 2 && s.stats.armyEntities === 1 && s.stats.selections >= 2 && s.stats.ui.armyPanel && s.stats.ui.cityPanel && s.stats.ui.autoReplenishToggle && s.stats.ui.classRows >= 8 && s.stats.ui.diplomacyRows >= 1 && s.stats.labelLayer === 'raw-webgpu-glyph-atlas' && s.stats.labelVertices > 0 && s.stats.postCutoverScreenshots === 'webgpu-only'],
-  ['render-graph', (s) => s?.ok && s.route === 'render-graph' && s.stats.firstPass === 'camera' && s.stats.lastPass === 'present' && s.stats.passes >= 6],
+  ['render-graph', (s) => s?.ok
+    && s.route === 'render-graph'
+    && s.stats.firstPass === 'camera'
+    && s.stats.lastPass === 'present'
+    && s.stats.passes >= 7
+    && s.stats.depth?.allocated === true
+    && s.stats.depth?.format === 'depth24plus'
+    && s.stats.nested3d?.fixtures?.includes('flag-in-city')
+    && s.stats.nested3d?.fixtures?.includes('garrison-in-city-stub')
+    && s.stats.nested3d?.fixtures?.includes('rank-overlap')],
   ['battle-terrain?fixture=coast', (s) => s?.ok && s.route === 'battle-terrain' && s.stats.fixture === 'coast' && s.stats.waterQuads >= 3 && s.stats.sceneryQuads >= 8],
   ['battle-terrain?fixture=melee', (s) => s?.ok && s.route === 'battle-terrain' && s.stats.fixture === 'melee' && s.stats.waterQuads >= 3 && s.stats.sceneryQuads >= 8 && s.stats.selectionQuads === 0],
   ['battle-live?mode=5v5&ticks=36', (s) => s?.ok && s.route === 'battle-live' && s.stats.written > 1000 && s.stats.units >= 10 && s.stats.player > 0 && s.stats.enemy > 0 && s.stats.drawCalls >= 1 && s.stats.drawCalls <= 15 && s.stats.overlay.lineSegments >= 20],
@@ -96,6 +105,28 @@ function pixelByteDiff(a, b) {
   return diff;
 }
 
+function patchStats(png, sample, radius = 4) {
+  const cx = Math.max(0, Math.min(png.width - 1, Math.round(sample.x)));
+  const cy = Math.max(0, Math.min(png.height - 1, Math.round(sample.y)));
+  let red = 0;
+  let blue = 0;
+  let tan = 0;
+  let green = 0;
+  let count = 0;
+  for (let y = Math.max(0, cy - radius); y <= Math.min(png.height - 1, cy + radius); y++) {
+    for (let x = Math.max(0, cx - radius); x <= Math.min(png.width - 1, cx + radius); x++) {
+      const o = (y * png.width + x) * 4;
+      const r = png.data[o], g = png.data[o + 1], b = png.data[o + 2];
+      if (r > 135 && g < 95 && b < 95) red++;
+      if (b > 120 && r < 110 && g < 140) blue++;
+      if (r > 120 && g > 95 && g < 175 && b < 125) tan++;
+      if (g > 135 && r < 120 && b < 120) green++;
+      count++;
+    }
+  }
+  return { x: cx, y: cy, count, red, blue, tan, green };
+}
+
 export async function run(ctx) {
   for (const [route, predicate] of routes) {
     const page = await ctx.newPage({ viewport: { width: 900, height: 620 }, errorPrefix: `webgpu-${route}` });
@@ -106,6 +137,28 @@ export async function run(ctx) {
     ctx.check(`${route}: route stats satisfy contract`, predicate(stats), JSON.stringify(stats));
     const pixels = countPixels(PNG.sync.read(await page.screenshot()));
     ctx.check(`${route}: route rendered nonblank raw-WebGPU frame`, pixels.nonBlank > 200000 && pixels.warmGround > 8000, JSON.stringify(pixels));
+    if (route === 'render-graph') {
+      const canvasPng = PNG.sync.read(await page.locator('#webgpu-canvas').screenshot());
+      const samples = stats.stats.samples;
+      const lower = patchStats(canvasPng, samples.occludedLowerStandard);
+      const upper = patchStats(canvasPng, samples.visibleUpperFlag);
+      const frontRank = patchStats(canvasPng, samples.frontRankOverlap);
+      ctx.check(
+        `${route}: city volume occludes the lower planted standard`,
+        lower.red <= 8 && lower.tan > 8,
+        JSON.stringify({ lower, sample: samples.occludedLowerStandard }),
+      );
+      ctx.check(
+        `${route}: inserted standard remains visible above the city`,
+        upper.red > 12,
+        JSON.stringify({ upper, sample: samples.visibleUpperFlag }),
+      );
+      ctx.check(
+        `${route}: front battle rank wins overlapping depth`,
+        frontRank.blue > 12 && frontRank.red <= 10,
+        JSON.stringify({ frontRank, sample: samples.frontRankOverlap }),
+      );
+    }
     if (route === 'assets') {
       await page.click('#asset-validate-json');
       await page.waitForFunction(() => window.__webgpuLabStats?.stats?.imported !== null, undefined, { timeout: 5000 });

@@ -370,6 +370,17 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   world pass with compatible pipelines, shared camera-space depth, and explicit
   overlay passes, then verify it with cropped nested-object fixtures before
   accepting production model polish.
+- When introducing depth into an existing flat shell, prefer a separate
+  depth-tested world pass over adding a depth attachment to a pass with
+  incompatible existing pipelines. A small `depthExtra`-style pass can load the
+  already-cleared color target, clear/reuse a `depth24plus` texture, bind the
+  same camera uniforms, and prove the contract without forcing every flat
+  marker/terrain pipeline to become depth-compatible in one edit.
+- Nested-object fixtures should intentionally defeat painter-order shortcuts:
+  submit the city/front-rank/ground occluders first, then submit the flag,
+  garrison stub, rear rank, or selection ring later. Accept the route only after
+  canvas pixel samples or tight crops prove the late geometry is correctly
+  hidden or revealed by depth.
 - Use instancing, batching, storage buffers, and GPU-side phase passes for scale.
   Avoid CPU readbacks in hot paths; debug readbacks must be bounded and named.
 - For iterative effects or simulations, separate phases such as `state`,

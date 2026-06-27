@@ -18,6 +18,7 @@ import { buildCampaignMapDrawData, CampaignLabelPass, CampaignLinePass, Campaign
 import { CampaignSceneryPass, type CampaignSceneryInstance } from '../../../packages/game-renderer/src/campaign/sceneryPass';
 import { CampaignSelectionPass, type CampaignSelectionInstance } from '../../../packages/game-renderer/src/campaign/selectionPass';
 import { campaignBorderVertices, CampaignTerritoryPass } from '../../../packages/game-renderer/src/campaign/territoryPass';
+import { Nested3dFixturePass } from '../../../packages/game-renderer/src/fixtures/nested3d';
 import { formatPerfSummary, makeFullGamePerfReport } from '../../../packages/game-renderer/src/perfReport';
 import { fullGameRenderGraphReport } from '../../../packages/game-renderer/src/renderGraph';
 import { loadPlaceholderKit, loadPlaceholderVat, placeholderClipNames } from '../../../packages/soldier-assets/src/placeholders';
@@ -898,13 +899,20 @@ function campaignBgTerrainRect(rect: { min: [number, number]; max: [number, numb
 
 async function routeRenderGraph(ctx: LabContext) {
   const report = fullGameRenderGraphReport();
-  const shell = await createConfiguredShell(ctx.canvas, { x: 0, y: -1, zoom: 8.5, pitch: 0.26, yaw: -0.12 });
+  const camera = { x: 0, y: -0.6, zoom: 38, pitch: 0.66, yaw: -0.04, perspective: 0.008 };
+  const shell = await createConfiguredShell(ctx.canvas, camera);
+  const nested = new Nested3dFixturePass(shell);
   const markers = [
-    ...generatedMarkers(36, -8, -4, 0),
-    ...generatedMarkers(36, 8, 3, 1),
-    ...generatedMarkers(12, 0, 0, 2),
+    ...generatedMarkers(16, -9, -5, 0),
+    ...generatedMarkers(16, 9, 4, 1),
   ];
-  shell.drawFrame({ markers, terrainRect: [-36, -24, 72, 48] });
+  shell.drawFrame({
+    markers,
+    terrainRect: [-14, -7, 28, 15],
+    depthExtra: (pass) => nested.draw(pass),
+  });
+  const shellStats = shell.stats();
+  const nestedStats = nested.stats();
   const phaseCounts = report.passes.reduce<Record<string, number>>((counts, pass) => {
     counts[pass.phase] = (counts[pass.phase] ?? 0) + 1;
     return counts;
@@ -916,6 +924,8 @@ async function routeRenderGraph(ctx: LabContext) {
     resources: report.resources.length,
     phases: Object.entries(phaseCounts).map(([k, v]) => `${k}:${v}`).join(', '),
     diagnostics: report.diagnostics.length,
+    depth: shellStats.depth.allocated ? `${shellStats.depth.format} ${shellStats.depth.width}x${shellStats.depth.height}` : 'not allocated',
+    nestedFixtures: nestedStats.fixtures.join(', '),
   }) + graphList(report);
   publish('render-graph', report.ok, {
     passes: report.passes.length,
@@ -923,6 +933,13 @@ async function routeRenderGraph(ctx: LabContext) {
     firstPass: report.passes[0]?.id,
     lastPass: report.passes.at(-1)?.id,
     diagnostics: report.diagnostics,
+    depth: shellStats.depth,
+    nested3d: nestedStats,
+    samples: {
+      occludedLowerStandard: projectNestedPoint(ctx.canvas, camera, [-2.62, 0.10, 1.35]),
+      visibleUpperFlag: projectNestedPoint(ctx.canvas, camera, [-1.20, 0.10, 3.70]),
+      frontRankOverlap: projectNestedPoint(ctx.canvas, camera, [4.30, -1.20, 1.08]),
+    },
   });
 }
 
@@ -1738,6 +1755,27 @@ function campaignWorldToCss(
   return {
     x: rect.left + px * (canvas.clientWidth / Math.max(1, canvas.width)),
     y: rect.top + py * (canvas.clientHeight / Math.max(1, canvas.height)),
+  };
+}
+
+function projectNestedPoint(
+  canvas: HTMLCanvasElement,
+  camera: { x: number; y: number; zoom: number; pitch?: number; yaw?: number; perspective?: number },
+  point: [number, number, number],
+) {
+  const c = Math.cos(camera.yaw ?? 0);
+  const s = Math.sin(camera.yaw ?? 0);
+  const dx = point[0] - camera.x;
+  const dy = point[1] - camera.y;
+  const rx = dx * c + dy * s;
+  const ry = -dx * s + dy * c;
+  const cosP = Math.max(0.2, Math.cos(camera.pitch ?? 0));
+  const perspective = Math.max(0, camera.perspective ?? 0);
+  const depth = Math.max(0.32, 1 + ry * perspective);
+  return {
+    x: (rx * camera.zoom) / depth + canvas.width * 0.5,
+    y: canvas.height * 0.5 - ((ry * camera.zoom * cosP + point[2] * camera.zoom) / depth),
+    world: point,
   };
 }
 

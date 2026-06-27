@@ -66,6 +66,20 @@
       }
     },
     {
+      "id": "render-graph-nested-depth",
+      "label": "Render Graph Nested Depth",
+      "category": "shared 3D engine",
+      "criteria": "Depth-tested world pass proves flag-in-city, future garrison occlusion, rank overlap, and ground-marker occlusion before production mesh tuning.",
+      "status": "webgpu-evidence",
+      "evidence": "flag-in-city, garrison-in-city-stub, rank-overlap, ground-ring-occlusion; depth depth24plus 970x758; occluders are submitted before late flag/ring geometry; depth test must still hide covered pixels",
+      "image": "visual-report/render-graph-nested-depth.png",
+      "currentRendererComparison": {
+        "status": "missing-archived-capture",
+        "image": null,
+        "note": "Archived current-renderer capture is not attached."
+      }
+    },
+    {
       "id": "campaign-whole-map",
       "label": "Campaign Whole Map",
       "category": "campaign",

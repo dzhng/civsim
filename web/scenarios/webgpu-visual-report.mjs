@@ -49,6 +49,13 @@ const reviewRows = [
     status: 'webgpu-evidence',
   },
   {
+    id: 'render-graph-nested-depth',
+    label: 'Render Graph Nested Depth',
+    category: 'shared 3D engine',
+    criteria: 'Depth-tested world pass proves flag-in-city, future garrison occlusion, rank overlap, and ground-marker occlusion before production mesh tuning.',
+    status: 'webgpu-evidence',
+  },
+  {
     id: 'campaign-whole-map',
     label: 'Campaign Whole Map',
     category: 'campaign',
@@ -85,6 +92,7 @@ export async function run(ctx) {
   captures.push(await captureMenuUnsupported(ctx));
   captures.push(await captureBattleDefault(ctx));
   captures.push(await captureBattleSelectionHud(ctx));
+  captures.push(await captureRenderGraphNestedDepth(ctx));
   captures.push(await captureCampaignWholeMap(ctx));
   captures.push(await captureCampaignLabelZoom(ctx));
   captures.push(await captureCampaignHandoffBattle(ctx));
@@ -242,6 +250,20 @@ async function captureBattleSelectionHud(ctx) {
   const capture = await savePage(page, 'battle-selection-hud-dpr2', {
     status: 'webgpu-evidence',
     evidence: `dpr2 selection; ${stats.soldiers} soldiers; renderer ${stats.renderer}; ${stats.renderStats?.atmosphere}; terrain quads ${terrain?.quads ?? 'n/a'} / scenery ${terrain?.sceneryQuads ?? 'n/a'}; lit skinned silhouettes`,
+  });
+  await page.close();
+  return capture;
+}
+
+async function captureRenderGraphNestedDepth(ctx) {
+  const page = await ctx.newPage({ viewport: { width: 1280, height: 800 }, errorPrefix: 'visual-render-graph-nested-depth' });
+  await page.goto(`${ctx.target}/webgpu/render-graph`);
+  await page.waitForFunction(() => window.__webgpuLabReady === true && window.__webgpuLabStats?.stats?.nested3d, undefined, { timeout: 18000 });
+  await page.waitForTimeout(260);
+  const stats = await page.evaluate(() => window.__webgpuLabStats.stats);
+  const capture = await savePage(page, 'render-graph-nested-depth', {
+    status: 'webgpu-evidence',
+    evidence: `${stats.nested3d.fixtures.join(', ')}; depth ${stats.depth.format} ${stats.depth.width}x${stats.depth.height}; ${stats.nested3d.drawOrder}`,
   });
   await page.close();
   return capture;

@@ -30,6 +30,7 @@ export interface FrameCommands {
   terrainStyle?: 'default' | 'wide-detail';
   clear?: GPUColor;
   extra?: (pass: GPURenderPassEncoder, shell: RawFrameShellImpl) => void;
+  depthExtra?: (pass: GPURenderPassEncoder, shell: RawFrameShellImpl) => void;
 }
 
 export interface FrameShellStats {
@@ -40,6 +41,12 @@ export interface FrameShellStats {
   frame: number;
   device: string;
   atmosphere: string;
+  depth: {
+    format: 'depth24plus';
+    width: number;
+    height: number;
+    allocated: boolean;
+  };
 }
 
 interface TerrainShaderStyle {
@@ -297,6 +304,9 @@ export class RawFrameShellImpl implements RawFrameShell {
   private terrainVertexBuffer: GPUBuffer;
   private markerQuadBuffer: GPUBuffer;
   private markerInstanceBuffer: GPUBuffer;
+  private depthTexture: GPUTexture | null = null;
+  private depthWidth = 0;
+  private depthHeight = 0;
   private markerCapacity = 0;
   private camera: Omit<CameraSnapshot, 'width' | 'height'> = { x: 0, y: 0, zoom: 12, pitch: 0.35, yaw: 0 };
   private width = 1;
@@ -375,9 +385,10 @@ export class RawFrameShellImpl implements RawFrameShell {
     this.uploadTerrain(this.terrainVertexBuffer, terrainRect);
     this.uploadMarkers(commands.markers ?? []);
     const encoder = this.device.createCommandEncoder({ label: 'raw-frame-encoder' });
+    const colorView = this.context.getCurrentTexture().createView();
     const pass = encoder.beginRenderPass({
       colorAttachments: [{
-        view: this.context.getCurrentTexture().createView(),
+        view: colorView,
         loadOp: 'clear',
         clearValue: commands.clear ?? { r: 0.78, g: 0.82, b: 0.80, a: 1 },
         storeOp: 'store',
@@ -401,10 +412,27 @@ export class RawFrameShellImpl implements RawFrameShell {
     }
     commands.extra?.(pass, this);
     pass.end();
+    if (commands.depthExtra) {
+      const depthPass = encoder.beginRenderPass({
+        label: 'raw-frame-depth-world-pass',
+        colorAttachments: [{
+          view: colorView,
+          loadOp: 'load',
+          storeOp: 'store',
+        }],
+        depthStencilAttachment: this.depthAttachment(),
+      });
+      depthPass.setBindGroup(0, this.cameraBindGroup);
+      commands.depthExtra(depthPass, this);
+      depthPass.end();
+    }
     this.device.queue.submit([encoder.finish()]);
   }
 
-  destroy() {}
+  destroy() {
+    this.depthTexture?.destroy();
+    this.depthTexture = null;
+  }
 
   stats(): FrameShellStats {
     return {
@@ -415,6 +443,12 @@ export class RawFrameShellImpl implements RawFrameShell {
       frame: this.frame,
       device: [this.info.vendor, this.info.architecture, this.info.description].filter(Boolean).join(' / ') || 'unknown',
       atmosphere: 'aegean-sky-haze',
+      depth: {
+        format: 'depth24plus',
+        width: this.depthWidth,
+        height: this.depthHeight,
+        allocated: this.depthTexture !== null,
+      },
     };
   }
 
@@ -424,6 +458,26 @@ export class RawFrameShellImpl implements RawFrameShell {
 
   private uploadTerrain(buffer: GPUBuffer, [x, y, w, h]: [number, number, number, number]) {
     this.device.queue.writeBuffer(buffer, 0, new Float32Array([x, y, x + w, y, x, y + h, x + w, y + h]));
+  }
+
+  private depthAttachment(): GPURenderPassDepthStencilAttachment {
+    if (!this.depthTexture || this.depthWidth !== this.width || this.depthHeight !== this.height) {
+      this.depthTexture?.destroy();
+      this.depthWidth = this.width;
+      this.depthHeight = this.height;
+      this.depthTexture = this.device.createTexture({
+        label: 'raw-frame-depth-world-texture',
+        size: { width: this.width, height: this.height },
+        format: 'depth24plus',
+        usage: GPUTextureUsage.RENDER_ATTACHMENT,
+      });
+    }
+    return {
+      view: this.depthTexture.createView(),
+      depthClearValue: 1,
+      depthLoadOp: 'clear',
+      depthStoreOp: 'discard',
+    };
   }
 
   private uploadMarkers(markers: MarkerInstance[]) {

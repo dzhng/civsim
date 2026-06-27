@@ -63,7 +63,7 @@ screenshot/turntable harness plus the perf gate. The work is gated by:
 - **Stays green (re-blessed once each, on WebGPU):** `web/verify-battle.mjs`
   (boot, LOD reads team colour far / faction accent near, dpr selection,
   perf), `web/verify-campaign-visual.mjs`, every `web/vibe/*.mjs` timeline,
-  the `vibe/turntable.mjs` model review, `web/shots/baseline/**`. These run
+  the `vibe/turntable.mjs` model review, `web/shots/**`. These run
   through `web/snapshot.mjs::snapCheck`. They must all run **headless on
   WebGPU** (Milestone 0) and be re-blessed deliberately, once, per visual
   milestone.
@@ -370,7 +370,7 @@ the bob; keep the **faction mask**, the **neutral standard + flag**, and the
 **Must STAY green (re-blessed once on WebGPU, per milestone):**
 `web/verify-battle.mjs` · `web/verify-campaign-visual.mjs` ·
 `web/vibe/*.mjs` (all 17 scenarios, on `?debug=blocks`) ·
-`web/vibe/turntable.mjs` · `web/shots/baseline/**` · `cargo test -p sim` and
+`web/vibe/turntable.mjs` · `web/shots/**` · `cargo test -p sim` and
 `-p campaign` (untouched, must be unaffected).
 
 **Must BECOME green (write these):**

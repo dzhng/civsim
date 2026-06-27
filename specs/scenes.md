@@ -45,7 +45,8 @@ the contracts table.
 *(measured fact)* A run writes two kinds of PNG today, and only one is a test:
 
 1. **Blessed baselines** — `snapCheck(page, name, check)` (`web/snapshot.mjs`)
-   writes `web/shots/baseline/<name>.png`, then every later run compares the
+   writes `web/shots/<name>.png` (the harness picks the folder via `baseDir` or
+   a folder-prefixed `name`), then every later run compares the
    live frame against it at **zero tolerance** and writes
    `web/shots/diff/<name>.png` (+`-actual.png`) only on failure. `shots/diff/`
    is the one gitignored path (`.gitignore:7`). There are 8 baselines:
@@ -65,9 +66,9 @@ are neither ground truth (no test reads them) nor transient output (they are
 committed). The instinct to `.gitignore web/shots/*.png` is the wrong fix:
 **a generated screenshot is only worth keeping if a test asserts on it.** The
 right shape is — every screenshot a run writes is a `snapCheck` baseline; the
-only PNG locations are `shots/baseline/` and `shots/scenes/` (committed truth)
-and `shots/diff/` (gitignored transient). The top-level `shots/*.png` scratch
-dump ceases to exist. That makes the user's principle literally true: every shot under
+only PNG locations are the per-harness committed folders under `shots/`
+(`scenes/`, `campaign/`, `vibe/`, `models/`, …) and `shots/diff/` (gitignored
+transient). The top-level `shots/*.png` scratch dump ceases to exist. That makes the user's principle literally true: every shot under
 version control is useful regression data.
 
 Greppable anchors the implementer will need:
@@ -195,7 +196,7 @@ canonical Rust `ALL_CLASSES` — a gate keeps them honest (below).
 **The coverage gate** *(binding)* is a runner self-check:
 1. every `ATOMIC` entry has a baseline at its deterministic path — else FAIL,
    naming the missing states;
-2. every baseline under `shots/baseline/` maps to a live catalog entry or a
+2. every baseline under `shots/scenes/` maps to a live catalog entry or a
    listed composite — else FAIL (orphan: a primitive was removed, delete its
    shot);
 3. the mirror gate: `CLASS_LOOK.length` and the chip list match what the wasm
@@ -329,7 +330,7 @@ failing on.
   `opts.maxDiffRatio`/`opts.threshold` pass through for a *named* noise source.
   There is no `ctx.screenshot`-to-disk; bare `page.screenshot({path})` to a
   tracked location is forbidden (a lint/grep check in the runner can enforce
-  it: fail if `shots/` gains a file outside `baseline/`, `scenes/` and `diff/`). A `flow`
+  it: fail if `shots/` gains a loose `*.png` outside a harness folder). A `flow`
   scene writes no PNG at all — outcomes are asserted via `check`.
 - `world` — the resolved world descriptor (handy for `world.freeze(false)`).
 
@@ -349,16 +350,15 @@ failing on.
 
 ### Baseline namespacing
 
-Scene baselines live in their own top-level `shots/scenes/<name>.png` folder,
-flat by `meta.name`, kept apart from the verify/vibe/model snaps under
-`shots/baseline/` (the runner points `snapCheck`'s `baseDir` at `shots/scenes/`).
-Earlier drafts proposed per-scene subfolders (e.g. `battle-deploy/initial.png`,
-`campaign-markers/overview.png`); that nesting was dropped — one flat folder is
-enough. Keeping scenes out of `shots/baseline/` makes "which
-scene owns this shot, and therefore asserts on it" visible from the path —
-directly serving the every-shot-is-a-test principle. Do this rename in a single
-commit with `UPDATE_SHOTS=1`, and delete the old flat baseline files in the same
-commit so no orphans linger.
+There is no `shots/baseline/` wrapper: each harness owns a flat top-level folder
+under `shots/` — `scenes/` (the scene runner, `meta.name`-keyed), `campaign/`
+(the verify-campaign harnesses), `vibe/`, `models/`, `models-ingame/`, `weave/`.
+The scene/campaign harnesses select their folder with `snapCheck`'s `baseDir`;
+vibe/turntable carry the folder in the snap `name`. Earlier drafts proposed
+per-scene subfolders (e.g. `battle-deploy/initial.png`); that nesting was
+dropped — one flat folder per harness is enough. The folder makes "which harness
+owns this shot, and therefore asserts on it" visible from the path — directly
+serving the every-shot-is-a-test principle.
 
 ### Which scratch shots become snaps
 
@@ -367,7 +367,7 @@ two tiers: a primitive in isolation (a class, a chip, a terrain tint) becomes a
 **catalog** entry snapped by `atomic.mjs`; an emergent layout (deployment,
 melee crowd, cluster, political map, modal) becomes a **composite** scene
 scene; anything that is neither becomes nothing. The expected outcome is zero
-loose shots: `web/shots/` contains only `baseline/` and `diff/`. The atomic gate
+loose shots: `web/shots/` contains only per-harness folders and `diff/`. The atomic gate
 then *expands* coverage far past what the scratch shots ever had — the loose
 `combat-*`/`sandbox-*` shots were a sparse, unasserted sample of a space the
 catalog now covers exhaustively.
@@ -425,7 +425,7 @@ Must BECOME true (the acceptance, write these as runner self-checks):
   list) match the canonical wasm/contract counts; drift fails the run.
 - `git status --porcelain` is empty after `node scene.mjs --full` — no
   loose shots written. If it fails, the smell is back.
-- `web/shots/` contains only `baseline/` and `diff/` (no top-level `*.png`).
+- `web/shots/` contains only per-harness folders and `diff/` (no top-level `*.png`).
 - `node scene.mjs campaign-markers` boots exactly one world and runs only
   that scene's snaps (assert by run time and by the printed check set).
 - Visual parity: the re-blessed namespaced baselines are byte-identical to the
@@ -472,8 +472,8 @@ Must BECOME true (the acceptance, write these as runner self-checks):
       migrated out of `main.ts`.
 - [ ] Every old check ported and green (quick + `--full`), per the table above.
 - [ ] No bare `page.screenshot({path})` to a tracked location remains; `git
-      status` clean after `--full`; `web/shots/` holds only
-      `baseline/`+`scenes/`+`diff/`.
+      status` clean after `--full`; `web/shots/` holds only per-harness
+      folders + `diff/`.
 - [ ] Scene baselines re-blessed once under `shots/scenes/`, old flat
       baselines deleted, byte-identity verified before deletion.
 - [ ] Skills + README updated; this spec deleted.

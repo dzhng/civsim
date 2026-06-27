@@ -1,7 +1,7 @@
 // Vibe check: DEFENSE against MULTIPLE columns. A wide HELD line takes three
 // narrow columns punching through it at once — the breach logic has to
 // generalize (each column dimples the cloth locally, the line stays connected
-// between them). Eyeball web/shots/baseline/vibe/multi-penetration/.
+// between them). Eyeball web/shots/vibe/multi-penetration/.
 //
 // Built with the raw spawn hook (light-infantry stats), spawned clear of the
 // duel's two idle units up north so they sit off-frame.

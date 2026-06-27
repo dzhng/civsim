@@ -8,7 +8,7 @@ description: How to take screenshots of the game and use pixel-exact snapshot re
 **One primitive, every shot.** `snapCheck` (`web/snapshot.mjs`) is the single
 path every visual artifact flows through — the verify harnesses, the vibe battle
 timelines (`vibe/*.mjs`), and the model turntable (`vibe/turntable.mjs`). A
-committed baseline under `web/shots/baseline/<name>.png` is at once the picture
+committed baseline under `web/shots/<name>.png` is at once the picture
 you review, the image a PR diff shows, and the gate. There is no "review-only"
 tier: every shot is a regression target, so a downstream mechanics change is
 visible as a red frame with a highlighted diff, not just a number that moved.
@@ -20,13 +20,15 @@ on headless SwiftShader, which wobbles a handful of sub-pixel AA edges run to
 run even when frozen; those callers pass a small `maxDiffRatio` (named in a
 comment) that absorbs the wobble and nothing more.
 
-`snapCheck`'s `name` may carry a subfolder, so the baselines organize by source:
-`baseline/battle-initial.png` (verify), `baseline/vibe/<scenario>/t###s.png`
-(vibe timelines), `baseline/models/<id>-<class>.png` (turntable).
+Each harness owns a folder under `shots/` (the scene/campaign harnesses pass an
+explicit `baseDir`; vibe/turntable carry the folder in the snap `name`):
+`scenes/battle-initial.png` (scene runner), `campaign/campaign-political.png`
+(verify-campaign), `vibe/<scenario>/t###s.png` (vibe timelines),
+`models/<id>-<class>.png` (turntable).
 
 `web/vibe/shots/` is obsolete. Current review artifacts live under `web/shots/`:
-committed baselines in `web/shots/baseline/`, failure diffs in `web/shots/diff/`,
-and committed weave flipbooks in `web/shots/weave/`.
+committed baselines in per-harness folders (`scenes/`, `campaign/`, `vibe/`,
+`models/`, `models-ingame/`, `weave/`), and failure diffs in `web/shots/diff/`.
 
 ## ALWAYS look at the screenshot before you respond
 
@@ -194,7 +196,7 @@ await snapCheck(page, 'vibe/my-scenario/t020s', check, { threshold: 0.1, maxDiff
 await snapCheck(null, 'models/12-foo', check, { shot: pngBuffer });  // compare a buffer you already hold
 ```
 
-First run creates `web/shots/baseline/<name>.png` and passes ("baseline
+First run creates `web/shots/<name>.png` and passes ("baseline
 created") — so a first run never spuriously fails; **commit the baseline**.
 Every later run compares and writes `web/shots/diff/<name>.png` (highlighted)
 plus `<name>-actual.png` on failure (`shots/diff/` is gitignored). Pass an

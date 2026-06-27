@@ -7,7 +7,7 @@ const TARGET = process.env.VERIFY_URL ?? 'http://localhost:5173';
 const HERE = new URL('.', import.meta.url);
 const SCENES_DIR = new URL('./scenes/', import.meta.url);
 // Scene baselines live in their own shots/scenes/ folder, separate from the
-// verify/vibe/model snaps under shots/baseline/.
+// vibe/model/campaign snaps in their sibling folders under shots/.
 const SCENES_SHOTS = new URL('./shots/scenes/', import.meta.url).pathname;
 
 function parseArgs(argv) {

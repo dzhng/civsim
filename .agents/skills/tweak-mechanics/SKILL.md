@@ -278,7 +278,7 @@ centroid test said "crossed at t=19.9s"). Rebuild wasm first (`npm run build:was
 — the harness loads prebuilt wasm), then `node vibe/all.mjs` from `web/`; a
 mechanics change turns frames red (the point); re-bless with `UPDATE_SHOTS=1` once
 the new behavior is confirmed and commit the baselines as the record. Flip through
-`web/shots/baseline/vibe/<scenario>/` t000…t300 for approach → contact → grind →
+`web/shots/vibe/<scenario>/` t000…t300 for approach → contact → grind →
 break → rout; `vibe/measure-duel.mjs` is the JS twin of the Rust test.
 
 ## Test taxonomy — by what each layer is ALLOWED to depend on

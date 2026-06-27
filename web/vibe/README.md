@@ -13,7 +13,7 @@ mechanics change moves the battle. They run through the same `snapCheck`
 primitive (`../snapshot.mjs`) the verify harnesses use, so the discipline is
 identical — see the **screenshot-regression** skill.
 
-- **Where the shots live:** `web/shots/baseline/vibe/<scenario>/t###s.png` —
+- **Where the shots live:** `web/shots/vibe/<scenario>/t###s.png` —
   committed. (Highlighted diffs from a failed frame land in
   `web/shots/diff/vibe/...`, gitignored.)
 - **First run** of a new scenario creates its baselines and passes
@@ -50,7 +50,7 @@ UPDATE_SHOTS=1 node vibe/all.mjs  # re-bless after an intended mechanics change
 
 A scenario that drifts exits non-zero; the sweep lists which, and the
 highlighted diffs are under `web/shots/diff/vibe/<name>/`. Review the baselines
-in `web/shots/baseline/vibe/<name>/` — one folder per scenario, one PNG every
+in `web/shots/vibe/<name>/` — one folder per scenario, one PNG every
 ~20–30 sim-seconds (`t000s.png`, `t020s.png`, …). Add a row to the `SCENARIOS`
 table in `all.mjs` when you add a scenario.
 
@@ -85,7 +85,7 @@ ATK=0 DEF=3 POSTURE=hold node vibe/duel-posture.mjs # heavy attacks a holding ph
 ATK=6 DEF=3 node vibe/charge.mjs                    # cav charges a held phalanx
 ATK=6 DEF=3 WALL=1 node vibe/charge.mjs             # cav hits a wide phalanx front
 ATK=6 DEF=3 FLANK=1 node vibe/charge.mjs            # cav hits the same phalanx from the side
-NAME=my-test ATK=2 DEF=0 node vibe/duel-posture.mjs # baselines under shots/baseline/vibe/my-test/
+NAME=my-test ATK=2 DEF=0 node vibe/duel-posture.mjs # baselines under shots/vibe/my-test/
 ```
 
 Class ids: 0 heavy · 1 light · 2 longsword · 3 phalanx · 4 archers ·
@@ -98,7 +98,7 @@ Class ids: 0 heavy · 1 light · 2 longsword · 3 phalanx · 4 archers ·
 Not a battle — a 360° review of the 3D soldier models. Boots `?test=models` (one
 soldier per class on a flat field, no sim), orbits each class through 8 facings
 × 4 stances (ease / ready / attack / march), and snap-checks one contact sheet
-per class against `web/shots/baseline/models/<id>-<class>.png`. Same deal: the
+per class against `web/shots/models/<id>-<class>.png`. Same deal: the
 sheet is what you review AND a gate — an unintended geometry/renderer change
 turns a class red.
 

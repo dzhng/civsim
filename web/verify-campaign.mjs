@@ -7,6 +7,8 @@ import { readFile } from 'node:fs/promises';
 import { snapCheck } from './snapshot.mjs';
 
 const TARGET = process.env.VERIFY_URL ?? 'http://localhost:5173';
+// Campaign baselines live in their own shots/campaign/ folder.
+const CAMPAIGN_SHOTS = new URL('./shots/campaign/', import.meta.url).pathname;
 
 const failures = [];
 const check = (name, ok, detail) => {
@@ -44,21 +46,21 @@ check('cities loaded', Object.keys(cities).length > 400, `${Object.keys(cities).
 await page.evaluate(() => window.__campaign.freeze());
 await page.evaluate(() => window.__campaign.cam(-100, 250, 0.16));
 await page.waitForTimeout(250);
-await snapCheck(page, 'campaign-political', check);
+await snapCheck(page, 'campaign-political', check, { baseDir: CAMPAIGN_SHOTS });
 // Faction view OFF: the natural parchment map (no territory flood, no names).
 await page.evaluate(() => window.__campaign.factionView(false));
 await page.waitForTimeout(250);
-await snapCheck(page, 'campaign-natural', check);
+await snapCheck(page, 'campaign-natural', check, { baseDir: CAMPAIGN_SHOTS });
 await page.evaluate(() => window.__campaign.factionView(true));
 // Fog of war ON: only the player's own cities/armies and their surrounds are
 // lit; the rest of the world falls dark under cloud.
 await page.evaluate(() => window.__campaign.fogOfWar(true));
 await page.waitForTimeout(250);
-await snapCheck(page, 'campaign-fog', check);
+await snapCheck(page, 'campaign-fog', check, { baseDir: CAMPAIGN_SHOTS });
 await page.evaluate(() => window.__campaign.fogOfWar(false));
 await page.evaluate(() => window.__campaign.cam(-456, 446, 2.5)); // Roma, tilted
 await page.waitForTimeout(250);
-await snapCheck(page, 'campaign-3d', check);
+await snapCheck(page, 'campaign-3d', check, { baseDir: CAMPAIGN_SHOTS });
 
 // March the player's first army (at Roma) on the nearest neutral (non-playable
 // faction) city — minor leagues are the early conquests.

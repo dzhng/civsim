@@ -15,6 +15,8 @@ import { chromium } from 'playwright';
 import { snapCheck } from './snapshot.mjs';
 
 const TARGET = process.env.VERIFY_URL ?? 'http://localhost:5173';
+// Campaign baselines live in their own shots/campaign/ folder.
+const CAMPAIGN_SHOTS = new URL('./shots/campaign/', import.meta.url).pathname;
 
 const failures = [];
 const check = (name, ok, detail) => {
@@ -44,31 +46,31 @@ const pose = async (name, place, camX) => {
   if (place) await page.evaluate((p) => window.__campaign.place(0, p.kind, p.a, p.b), place);
   await page.evaluate((x) => window.__campaign.cam(x, 450, 20), camX);
   await page.waitForTimeout(300);
-  await snapCheck(page, `tiny-${name}`, check);
+  await snapCheck(page, `tiny-${name}`, check, { baseDir: CAMPAIGN_SHOTS });
 };
 
 // Wide look at the whole stage (both cities + the road).
 await page.evaluate((y) => window.__campaign.cam(0, y, 16), Y);
 await page.waitForTimeout(300);
-await snapCheck(page, 'tiny-overview', check);
+await snapCheck(page, 'tiny-overview', check, { baseDir: CAMPAIGN_SHOTS });
 
 // Campaign UI surfaces introduced by the class-builder feature. These are
 // deterministic Day-1 panels over the same frozen fake map.
 await page.click('#cmp-classes-btn');
 await page.waitForTimeout(300);
-await snapCheck(page, 'ui-class-builder', check);
+await snapCheck(page, 'ui-class-builder', check, { baseDir: CAMPAIGN_SHOTS });
 await page.click('#cmp-classes-btn');
 
 await page.click('#cmp-diplo-btn');
 await page.waitForTimeout(300);
-await snapCheck(page, 'ui-diplomacy', check);
+await snapCheck(page, 'ui-diplomacy', check, { baseDir: CAMPAIGN_SHOTS });
 await page.click('#cmp-diplo-btn');
 
 // Panels touched by the icon pass: city build/recruit controls and army commands.
 await page.evaluate(() => window.__campaign.place(0, 1, 0, 4));
 await page.evaluate(() => window.__campaign.openCity(0));
 await page.waitForTimeout(300);
-await snapCheck(page, 'ui-city-panel', check);
+await snapCheck(page, 'ui-city-panel', check, { baseDir: CAMPAIGN_SHOTS });
 
 const armyClick = await page.evaluate(() => {
   const a = window.__campaign.armies().find((army) => army.mine);
@@ -76,7 +78,7 @@ const armyClick = await page.evaluate(() => {
 });
 await page.mouse.click(armyClick[0], armyClick[1]);
 await page.waitForTimeout(300);
-await snapCheck(page, 'ui-army-replenish-toggle', check);
+await snapCheck(page, 'ui-army-replenish-toggle', check, { baseDir: CAMPAIGN_SHOTS });
 
 await pose('army-our-city', { kind: 0, a: 0, b: 0 }, -25); // node 0 = Roma (ours)
 await pose('army-road', { kind: 1, a: 0, b: 4 }, 0); // edge 0, mid tile

@@ -2,7 +2,7 @@
 // scenario and films it every N sim-seconds — a timeline you flip through to
 // SEE a fight (does a rout flee home as a clump, does anyone launch into orbit).
 // Every frame is also a pixel-regression baseline (via snapCheck): it lands in
-// web/shots/baseline/vibe/<name>/ — committed, so the picture is both the thing
+// web/shots/vibe/<name>/ — committed, so the picture is both the thing
 // you review AND a gate that turns red (with a highlighted diff in shots/diff/)
 // when a downstream mechanics change moves the battle. Re-bless intended shifts
 // with UPDATE_SHOTS=1; a scenario exits non-zero when any frame differs.
@@ -73,7 +73,7 @@ export const duelLabel = (secs, s) =>
 /** Screenshot+regress `name` every `stepSecs` sim-seconds until `done(sample)`
  *  (or `maxSteps`). Per step: position the camera (`frame`), freeze + hide the
  *  victory panel, then snapCheck against the committed baseline
- *  shots/baseline/vibe/<name>/t###s.png (created on first run, diffed after),
+ *  shots/vibe/<name>/t###s.png (created on first run, diffed after),
  *  log (`label`), and advance. The freeze pins the fidget sway + shader clock,
  *  so a frame is byte-stable on the same code — a real regression target, not
  *  just an eyeball capture. `sample` returns a status object for `label`/`done`.

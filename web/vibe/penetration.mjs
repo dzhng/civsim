@@ -1,7 +1,7 @@
 // Vibe check: a thin column punches the MIDDLE of a wide HELD line. The
 // defender (unit 1, no order = braced) should fold in on the breach and wrap the
 // column — its flank men turning inward — not stand rigid while the column walks
-// through, and not dissolve into a uniform blob. Watch web/shots/baseline/vibe/penetration/.
+// through, and not dissolve into a uniform blob. Watch web/shots/vibe/penetration/.
 //   Default: a heavy column vs a wide held heavy line.
 //   Override: COL=6 DEF=0 node vibe/penetration.mjs   (cavalry column)
 import { openBattle, vibeCapture, CLS } from './_lib.mjs';

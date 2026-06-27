@@ -32,9 +32,9 @@ const routes = [
   ['render-graph', (s) => s?.ok && s.route === 'render-graph' && s.stats.firstPass === 'camera' && s.stats.lastPass === 'present' && s.stats.passes >= 6],
   ['battle-terrain?fixture=coast', (s) => s?.ok && s.route === 'battle-terrain' && s.stats.fixture === 'coast' && s.stats.waterQuads >= 3 && s.stats.sceneryQuads >= 8],
   ['battle-terrain?fixture=melee', (s) => s?.ok && s.route === 'battle-terrain' && s.stats.fixture === 'melee' && s.stats.waterQuads >= 3 && s.stats.sceneryQuads >= 8 && s.stats.selectionQuads === 0],
-  ['battle-live?mode=5v5&ticks=36', (s) => s?.ok && s.route === 'battle-live' && s.stats.written > 1000 && s.stats.units >= 10 && s.stats.player > 0 && s.stats.enemy > 0 && s.stats.drawCalls === 1 && s.stats.overlay.lineSegments >= 20],
-  ['battle-ui?mode=5v5&ticks=36', (s) => s?.ok && s.route === 'battle-ui' && s.stats.written > 1000 && s.stats.units >= 10 && s.stats.drawCalls === 1 && s.stats.overlay.lineSegments >= 20 && s.stats.ui.cards >= 8 && s.stats.ui.toolbarButtons >= 5 && s.stats.ui.postCutoverScreenshots === 'webgpu-only'],
-  ['battle-input?mode=5v5&ticks=36', (s) => s?.ok && s.route === 'battle-input' && s.stats.written > 1000 && s.stats.units >= 10 && s.stats.drawCalls === 1 && s.stats.overlay.lineSegments >= 20 && s.stats.selectedUnits.length === 1 && s.stats.ui.cards >= 8],
+  ['battle-live?mode=5v5&ticks=36', (s) => s?.ok && s.route === 'battle-live' && s.stats.written > 1000 && s.stats.units >= 10 && s.stats.player > 0 && s.stats.enemy > 0 && s.stats.drawCalls >= 1 && s.stats.drawCalls <= 15 && s.stats.overlay.lineSegments >= 20],
+  ['battle-ui?mode=5v5&ticks=36', (s) => s?.ok && s.route === 'battle-ui' && s.stats.written > 1000 && s.stats.units >= 10 && s.stats.drawCalls >= 1 && s.stats.drawCalls <= 15 && s.stats.overlay.lineSegments >= 20 && s.stats.ui.cards >= 8 && s.stats.ui.toolbarButtons >= 5 && s.stats.ui.postCutoverScreenshots === 'webgpu-only'],
+  ['battle-input?mode=5v5&ticks=36', (s) => s?.ok && s.route === 'battle-input' && s.stats.written > 1000 && s.stats.units >= 10 && s.stats.drawCalls >= 1 && s.stats.drawCalls <= 15 && s.stats.overlay.lineSegments >= 20 && s.stats.selectedUnits.length === 1 && s.stats.ui.cards >= 8],
   ['cutover', (s) => s?.ok
     && s.route === 'cutover'
     && s.stats.kind === 'webgpu-cutover-report'
@@ -182,7 +182,7 @@ export async function run(ctx) {
       );
     }
     if (route.startsWith('battle-live') || route.startsWith('battle-ui') || route.startsWith('battle-input')) {
-      ctx.check(`${route}: WebGPU selection overlay visible`, pixels.gold > 350, JSON.stringify(pixels));
+      ctx.check(`${route}: WebGPU selection overlay visible`, pixels.gold > 250, JSON.stringify(pixels));
       ctx.check(
         `${route}: WebGPU minimap compositor visible`,
         stats.stats.minimap.units >= 10

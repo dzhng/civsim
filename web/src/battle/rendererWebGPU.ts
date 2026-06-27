@@ -5,7 +5,7 @@ import { BattleTerrainPass } from '../../../packages/game-renderer/src/battle/te
 import { createFrameShell, type MarkerInstance, type RawFrameShell } from '../../../packages/webgpu-core/src/frameShell';
 import { SkinnedCrowdPipeline } from '../../../packages/webgpu-core/src/skinnedPipeline';
 import { loadPlaceholderVat } from '../../../packages/soldier-assets/src/placeholders';
-import { createPlaceholderSoldierMesh } from '../../../packages/soldier-assets/src/soldierMesh';
+import { createPlaceholderSoldierMeshes } from '../../../packages/soldier-assets/src/soldierMesh';
 
 export class BattleRendererWebGPU {
   readonly ready: Promise<void>;
@@ -219,7 +219,7 @@ export class BattleRendererWebGPU {
     this.debugBlocks = new BattleTrianglePass(this.shell);
     this.crowd = new SkinnedCrowdPipeline(
       this.shell,
-      createPlaceholderSoldierMesh([0.20, 0.42, 0.88]),
+      createPlaceholderSoldierMeshes([0.20, 0.42, 0.88]),
       await loadPlaceholderVat(),
     );
   }

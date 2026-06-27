@@ -132,6 +132,12 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   atmosphere passes as applicable, and publish pass counts such as selections,
   road segments, water features, clouds, scenery, and visible labels in the
   report JSON.
+- Soldier model gates must exercise the same skinned batching path used by
+  production battle rendering. Route each capture through `SkinnedCrowdPipeline`,
+  bucket instances by class mesh, freeze clip/phase/facing/camera through query
+  params, and publish `meshVariants`, class id, clip, and phase in stats. A
+  screenshot of one generic placeholder does not prove the old class models,
+  animation beats, or mounted/weapon silhouettes survived the WebGPU port.
 - DOM-composited tactical overlays still need WebGPU-era camera/LOD discipline.
   For unit banners or labels, preserve the world anchor first, then apply
   zoom-aware scaling around that anchor. A fixed-size DOM standard can look like

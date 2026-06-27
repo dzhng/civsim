@@ -21,7 +21,7 @@ import { campaignBorderVertices, CampaignTerritoryPass } from '../../../packages
 import { formatPerfSummary, makeFullGamePerfReport } from '../../../packages/game-renderer/src/perfReport';
 import { fullGameRenderGraphReport } from '../../../packages/game-renderer/src/renderGraph';
 import { loadPlaceholderKit, loadPlaceholderVat, placeholderClipNames } from '../../../packages/soldier-assets/src/placeholders';
-import { createPlaceholderSoldierMesh } from '../../../packages/soldier-assets/src/soldierMesh';
+import { createPlaceholderSoldierMeshes } from '../../../packages/soldier-assets/src/soldierMesh';
 import { badArtistPackFixture, validateSoldierKit, type ValidationReport } from '../../../packages/soldier-assets/src/validate';
 import { buildWebGpuBattleUiModel, WebGpuBattleUiLayer } from '../../../web/src/battle/webgpuUiLayer';
 import { loadCampaignData, nearestLoc, type CampaignData } from '../../../web/src/campaign/data';
@@ -250,13 +250,34 @@ async function routeAnimationState(ctx: LabContext) {
 
 async function routeSkinnedSoldier(ctx: LabContext) {
   const vat = await loadPlaceholderVat();
-  const phase = Number(ctx.params.get('phase') ?? 0);
-  const shell = await createConfiguredShell(ctx.canvas, { x: 0, y: 0, zoom: 86, pitch: 0.10, yaw: 0 });
+  const phase = numberParam(ctx.params, 'phase', 0);
+  const classId = integerParam(ctx.params, 'class', 0, 0, 14);
+  const frame = integerParam(ctx.params, 'frame', 1, 0, 11);
+  const faction = integerParam(ctx.params, 'team', 0, 0, 1) as 0 | 1;
+  const facing = numberParam(ctx.params, 'facing', Math.PI / 2);
+  const clip = ctx.params.get('clip') ?? 'march';
+  const shell = await createConfiguredShell(ctx.canvas, {
+    x: numberParam(ctx.params, 'x', 0),
+    y: numberParam(ctx.params, 'y', 0),
+    zoom: numberParam(ctx.params, 'zoom', 86),
+    pitch: numberParam(ctx.params, 'pitch', 0.10),
+    yaw: numberParam(ctx.params, 'yaw', 0),
+  });
   const pipeline = await createSkinnedPipeline(shell, [0.20, 0.42, 0.88], vat);
-  const soldier = generatedFormation(1, { frame: 1, spacing: 1, faction: 0 });
-  animateSkinned(shell, pipeline, () => soldier, { phaseOffset: phase, forcedClip: ctx.params.get('clip') ?? 'march', phaseSpeed: 0 });
-  ctx.status.innerHTML = reportTable({ route: 'skinned-soldier', clip: ctx.params.get('clip') ?? 'march', phase, vertices: pipeline.stats().vertices, vat: `${vat.width}x${vat.height}` });
-  publish('skinned-soldier', true, pipeline.stats());
+  const soldier = generatedFormation(1, { frame, spacing: 1, faction, classId }).map((inst) => ({ ...inst, facing }));
+  animateSkinned(shell, pipeline, () => soldier, { phaseOffset: phase, forcedClip: clip, phaseSpeed: 0, size: numberParam(ctx.params, 'size', 1) });
+  ctx.status.innerHTML = reportTable({
+    route: 'skinned-soldier',
+    classId,
+    frame,
+    clip,
+    phase,
+    facing: facing.toFixed(2),
+    vertices: pipeline.stats().vertices,
+    variants: pipeline.stats().meshVariants,
+    vat: `${vat.width}x${vat.height}`,
+  });
+  publish('skinned-soldier', true, { ...pipeline.stats(), classId, frame, clip, phase, facing });
 }
 
 async function routeSkinnedCrowd(ctx: LabContext) {
@@ -1320,7 +1341,19 @@ async function createConfiguredShell(canvas: HTMLCanvasElement, camera: { x: num
 }
 
 async function createSkinnedPipeline(shell: RawFrameShell, accent: [number, number, number], vat?: Awaited<ReturnType<typeof loadPlaceholderVat>>) {
-  return new SkinnedCrowdPipeline(shell, createPlaceholderSoldierMesh(accent), vat ?? await loadPlaceholderVat());
+  return new SkinnedCrowdPipeline(shell, createPlaceholderSoldierMeshes(accent), vat ?? await loadPlaceholderVat());
+}
+
+function numberParam(params: URLSearchParams, key: string, fallback: number) {
+  const raw = params.get(key);
+  if (raw === null || raw.trim() === '') return fallback;
+  const value = Number(raw);
+  return Number.isFinite(value) ? value : fallback;
+}
+
+function integerParam(params: URLSearchParams, key: string, fallback: number, min: number, max: number) {
+  const value = Math.floor(numberParam(params, key, fallback));
+  return Math.max(min, Math.min(max, value));
 }
 
 function animateShell(shell: RawFrameShell, status: HTMLElement, frame: () => { markers?: MarkerInstance[]; terrainRect?: [number, number, number, number] }) {
@@ -1336,12 +1369,12 @@ function animateSkinned(
   shell: RawFrameShell,
   pipeline: SkinnedCrowdPipeline,
   getInstances: () => CrowdInstance[],
-  opts: { forcedClip?: string | null; phaseOffset?: number; phaseSpeed?: number; afterFrame?: () => void } = {},
+  opts: { forcedClip?: string | null; phaseOffset?: number; phaseSpeed?: number; size?: number; afterFrame?: () => void } = {},
 ) {
   const start = performance.now();
   const tick = () => {
     const phaseOffset = (opts.phaseOffset ?? 0) + ((performance.now() - start) / 1000) * (opts.phaseSpeed ?? 0);
-    pipeline.upload(getInstances(), { forcedClip: opts.forcedClip, phaseOffset });
+    pipeline.upload(getInstances(), { forcedClip: opts.forcedClip, phaseOffset, size: opts.size });
     shell.drawFrame({ markers: [], extra: (pass) => pipeline.draw(pass) });
     opts.afterFrame?.();
     requestAnimationFrame(tick);

@@ -67,6 +67,12 @@ Current checkpoint:
   terrain stone/relief, shoreline-water, cloud/fog, and campaign label samples.
   The generated JSON records real raw-WebGPU pass counts for entity, scenery,
   selection, line, water, cloud, and glyph-atlas layers.
+- `webgpu-soldier-gates` now emits addressable soldier turntable, in-game
+  readability, and deterministic animation-still PNGs. It routes through the
+  production `SkinnedCrowdPipeline` class-mesh batching path and records class,
+  clip, phase, and mesh-variant coverage in `webgpu-soldier-gates.json`.
+  Regenerated WebGPU GIFs are still required for human animation review before
+  final model/animation parity acceptance.
 
 ## Verification
 

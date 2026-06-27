@@ -396,3 +396,12 @@ fog/cloud wash, black land speckle, small busy city labels, noisy internal
 province/river lines, ambiguous tiny markers, flatter coastlines, and label
 collisions. The next overview pass should keep the luminance gain while making
 the cloud/fog distribution less opaque and restoring coast/label readability.
+
+Sea labels now draw each glyph along a shallow arc inside the raw-WebGPU glyph
+atlas, then reuse the normal projected label quad. This keeps the previous
+italic Georgia uppercase style and dark halo, but lets long names such as
+`MEDITERRANEAN SEA` follow the water lane instead of reading as a straight
+screen-space plank that spills into land. The human-readability fix trades the
+Campaign Whole Map metric from `0.22443` full / `0.23285` crop to `0.22589` /
+`0.23435`; the luminance delta remains slightly improved at `-0.81106` full /
+`-0.92920` crop.

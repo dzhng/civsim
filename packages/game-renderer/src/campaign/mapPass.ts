@@ -65,6 +65,7 @@ export interface CampaignLabel {
   size: number;
   priority: number;
   angle?: number;
+  curve?: number;
   icon?: 'city' | 'army';
   iconColor?: [number, number, number];
   subText?: string;
@@ -790,14 +791,14 @@ function markerForNode(data: CampaignMapInputData, node: CampaignMapNodeData): C
 
 function seaLabels(): CampaignLabel[] {
   return [
-    { text: 'Mediterranean Sea', x: 340, y: -560, size: 30, kind: 'sea', priority: 4, angle: -0.05 },
-    { text: 'Tyrrhenian Sea', x: -360, y: 120, size: 20, kind: 'sea', priority: 4, angle: -0.5 },
-    { text: 'Ionian Sea', x: 30, y: -170, size: 18, kind: 'sea', priority: 4, angle: -0.9 },
-    { text: 'Adriatic Sea', x: 70, y: 690, size: 18, kind: 'sea', priority: 4, angle: -0.65 },
-    { text: 'Aegean Sea', x: 600, y: 150, size: 17, kind: 'sea', priority: 4, angle: -0.7 },
-    { text: 'Black Sea', x: 1080, y: 1180, size: 24, kind: 'sea', priority: 4 },
-    { text: 'Iberian Sea', x: -1640, y: -40, size: 22, kind: 'sea', priority: 4 },
-    { text: 'Atlantic Ocean', x: -2120, y: 560, size: 22, kind: 'sea', priority: 4, angle: -1.2 },
+    { text: 'Mediterranean Sea', x: 320, y: -585, size: 28, kind: 'sea', priority: 4, angle: -0.03, curve: -0.85 },
+    { text: 'Tyrrhenian Sea', x: -360, y: 120, size: 20, kind: 'sea', priority: 4, angle: -0.5, curve: 0.55 },
+    { text: 'Ionian Sea', x: 30, y: -170, size: 18, kind: 'sea', priority: 4, angle: -0.9, curve: 0.45 },
+    { text: 'Adriatic Sea', x: 70, y: 690, size: 18, kind: 'sea', priority: 4, angle: -0.65, curve: -0.4 },
+    { text: 'Aegean Sea', x: 600, y: 150, size: 17, kind: 'sea', priority: 4, angle: -0.7, curve: 0.42 },
+    { text: 'Black Sea', x: 1080, y: 1180, size: 24, kind: 'sea', priority: 4, curve: 0.5 },
+    { text: 'Iberian Sea', x: -1640, y: -40, size: 22, kind: 'sea', priority: 4, curve: -0.45 },
+    { text: 'Atlantic Ocean', x: -2120, y: 560, size: 22, kind: 'sea', priority: 4, angle: -1.2, curve: 0.5 },
   ];
 }
 
@@ -878,6 +879,7 @@ function labelAtlasKey(labels: VisibleCampaignLabel[], dpr: number, totalLabels:
         label.size.toFixed(2),
         label.priority,
         (label.angle ?? 0).toFixed(3),
+        (label.curve ?? 0).toFixed(3),
         label.icon ?? 'none',
         label.iconColor?.map((v) => v.toFixed(3)).join(',') ?? '',
         label.subText ?? '',
@@ -899,13 +901,15 @@ function buildLabelAtlas(labels: VisibleCampaignLabel[], dpr: number) {
     const subText = entry.label.subText ?? '';
     const iconWidth = entry.label.icon ? style.iconSize + style.iconGap : 0;
     const subWidth = subText ? measureTextWithFont(measure, style.subFont, style.letterSpacing, subText) : 0;
+    const seaPath = entry.label.kind === 'sea' ? measureSeaLabel(measure, style, entry.label, text) : null;
     return {
       ...entry,
       text,
       subText,
       style,
-      width: Math.max(1, Math.ceil(Math.max(measure.measureText(text).width + iconWidth, subWidth) + style.padding * 2)),
-      height: Math.max(1, Math.ceil(style.size * (subText ? 2.2 : 1.55) + style.padding * 2)),
+      seaPath,
+      width: Math.max(1, Math.ceil(Math.max(seaPath?.width ?? measure.measureText(text).width + iconWidth, subWidth) + style.padding * 2)),
+      height: Math.max(1, Math.ceil((seaPath?.height ?? style.size * (subText ? 2.2 : 1.55)) + style.padding * 2)),
     };
   });
   const atlasWidth = measured.some((entry) => entry.width > 1024) ? 2048 : 1024;
@@ -941,12 +945,16 @@ function buildLabelAtlas(labels: VisibleCampaignLabel[], dpr: number) {
     const tx = entry.x + entry.style.padding + iconWidth;
     const ty = entry.y + entry.style.padding + entry.style.size;
     ctx.globalAlpha = entry.opacity;
-    if (entry.label.icon) drawLabelIcon(ctx, entry.label, entry.x + entry.style.padding, ty - entry.style.iconSize * 0.84, entry.style);
-    ctx.lineWidth = entry.style.haloWidth;
-    ctx.strokeStyle = entry.style.halo;
-    ctx.strokeText(entry.text, tx, ty);
-    ctx.fillStyle = entry.style.fill;
-    ctx.fillText(entry.text, tx, ty);
+    if (entry.label.kind === 'sea' && entry.seaPath) {
+      drawSeaLabelText(ctx, entry, entry.seaPath);
+    } else {
+      if (entry.label.icon) drawLabelIcon(ctx, entry.label, entry.x + entry.style.padding, ty - entry.style.iconSize * 0.84, entry.style);
+      ctx.lineWidth = entry.style.haloWidth;
+      ctx.strokeStyle = entry.style.halo;
+      ctx.strokeText(entry.text, tx, ty);
+      ctx.fillStyle = entry.style.fill;
+      ctx.fillText(entry.text, tx, ty);
+    }
     if (entry.subText) {
       ctx.font = entry.style.subFont;
       const subWidth = ctx.measureText(entry.subText).width;
@@ -1082,6 +1090,86 @@ function labelStyle(label: CampaignLabel, dpr: number) {
     subFill: 'rgba(248,244,237,0.96)',
     subHaloWidth: 2.7 * dpr,
   };
+}
+
+interface SeaLabelGlyph {
+  char: string;
+  width: number;
+  center: number;
+}
+
+interface SeaLabelPath {
+  glyphs: SeaLabelGlyph[];
+  width: number;
+  height: number;
+  depth: number;
+}
+
+function measureSeaLabel(
+  ctx: CanvasRenderingContext2D,
+  style: ReturnType<typeof labelStyle>,
+  label: CampaignLabel,
+  text: string,
+): SeaLabelPath {
+  const previousLetterSpacing = ctx.letterSpacing;
+  ctx.letterSpacing = '0px';
+  const letterSpacing = Number.parseFloat(style.letterSpacing) || 0;
+  const chars = Array.from(text);
+  const widths = chars.map((char) => ctx.measureText(char).width);
+  const width = Math.max(1, widths.reduce((sum, value) => sum + value, 0) + Math.max(0, chars.length - 1) * letterSpacing);
+  const bend = label.curve ?? defaultSeaLabelCurve(label);
+  const depth = bend * Math.min(style.size * 1.35, Math.max(style.size * 0.42, width * 0.075));
+  let advance = 0;
+  const glyphs = chars.map((char, index) => {
+    const glyphWidth = widths[index];
+    const center = advance + glyphWidth * 0.5;
+    advance += glyphWidth + letterSpacing;
+    return { char, width: glyphWidth, center };
+  });
+  ctx.letterSpacing = previousLetterSpacing;
+  return {
+    glyphs,
+    width,
+    height: style.size * 1.5 + Math.abs(depth) * 1.35,
+    depth,
+  };
+}
+
+function drawSeaLabelText(
+  ctx: CanvasRenderingContext2D,
+  entry: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    label: CampaignLabel;
+    style: ReturnType<typeof labelStyle>;
+  },
+  path: SeaLabelPath,
+) {
+  ctx.letterSpacing = '0px';
+  ctx.lineWidth = entry.style.haloWidth;
+  ctx.strokeStyle = entry.style.halo;
+  ctx.fillStyle = entry.style.fill;
+  const centerX = entry.x + entry.width * 0.5;
+  const baselineY = entry.y + entry.height * 0.5 + entry.style.size * 0.31;
+  const startX = centerX - path.width * 0.5;
+  const halfWidth = Math.max(1, path.width * 0.5);
+  for (const glyph of path.glyphs) {
+    const t = (glyph.center - halfWidth) / halfWidth;
+    const y = path.depth * (1 - t * t);
+    const tangent = Math.atan((-2 * path.depth * t) / halfWidth);
+    ctx.save();
+    ctx.translate(startX + glyph.center, baselineY + y);
+    ctx.rotate(tangent);
+    ctx.strokeText(glyph.char, -glyph.width * 0.5, 0);
+    ctx.fillText(glyph.char, -glyph.width * 0.5, 0);
+    ctx.restore();
+  }
+}
+
+function defaultSeaLabelCurve(label: CampaignLabel) {
+  return label.text.length > 14 ? -0.55 : 0.4;
 }
 
 function drawLabelIcon(

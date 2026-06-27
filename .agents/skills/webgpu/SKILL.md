@@ -280,6 +280,12 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   if `parityDistance` worsens slightly, but only when an unprimed comparison
   says the candidate is more complete/readable and the style gap is still
   recorded as open.
+- For campaign overview sea names, preserve the antique-chart typography but do
+  not render long sea labels as rigid straight quads. Draw sea-label glyphs
+  along a shallow arc inside the WebGPU label atlas, then project the curved
+  atlas quad through the existing label pass. This can slightly worsen
+  archived straight-text pixel parity while fixing the human issue: long names
+  should bend to the water lane instead of spilling visually into land.
 - Soldier model gates must exercise the same skinned batching path used by
   production battle rendering. Route each capture through `SkinnedCrowdPipeline`,
   bucket instances by class mesh, freeze clip/phase/facing/camera through query

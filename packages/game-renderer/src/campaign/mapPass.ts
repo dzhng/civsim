@@ -1011,7 +1011,7 @@ function buildLabelVertices(entries: AtlasEntry[]) {
 }
 
 function labelText(label: CampaignLabel) {
-  return label.kind === 'faction' ? label.text.toUpperCase() : label.text;
+  return label.kind === 'faction' || label.kind === 'sea' ? label.text.toUpperCase() : label.text;
 }
 
 function labelStyle(label: CampaignLabel, dpr: number) {
@@ -1019,12 +1019,12 @@ function labelStyle(label: CampaignLabel, dpr: number) {
   if (label.kind === 'sea') {
     return {
       font: `italic 400 ${size}px Georgia, 'Times New Roman', serif`,
-      letterSpacing: '0px',
+      letterSpacing: `${size * 0.22}px`,
       size,
       padding: Math.ceil(size * 0.34),
-      fill: 'rgba(218, 224, 213, 0.84)',
-      halo: 'rgba(25, 38, 48, 0.78)',
-      haloWidth: Math.max(2, size * 0.16),
+      fill: 'rgba(196, 214, 232, 0.78)',
+      halo: 'rgba(20, 34, 52, 0.55)',
+      haloWidth: 2.5 * dpr,
       iconSize: 0,
       iconGap: 0,
       iconHaloWidth: 0,

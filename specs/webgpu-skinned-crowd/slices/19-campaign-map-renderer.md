@@ -371,3 +371,13 @@ labels, and geographic labels are clearer. The same review says the pair is
 still not close style parity: terrain detail density, sea text treatment,
 overall sharpness, label hierarchy, fog, and faction overlay style remain
 distinct.
+
+Sea labels now use the retired overlay's uppercase antique-chart treatment:
+spaced italic Georgia text with the old blue fill and dark halo. Campaign Whole
+Map improves from `0.22827` full / `0.23687` crop to `0.22426` full / `0.23266`
+crop, and the full-frame luminance gap improves from `-1.97970` to `-1.84539`.
+Fresh unbiased review again judged the WebGPU candidate more complete/readable
+because it exposes roads, city labels, markers, and terrain structure more
+clearly. The remaining overview gap is style parity rather than missing content:
+Image B is still more information-dense/sharp than the archived renderer, and
+the review says the pair is not close to full visual parity.

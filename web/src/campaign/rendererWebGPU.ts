@@ -145,7 +145,7 @@ export class CampaignRendererWebGPU {
     this.entities.upload(frame.entities);
     this.selection.upload(frame.selections);
     this.labelStats = this.labels.upload(
-      this.staticLabels.concat(campaignCityLabels(this.data, opts), campaignArmyLabels(this.data, opts), campaignFactionLabels(opts)),
+      this.staticLabels.concat(campaignCityLabels(this.data, opts), campaignArmyLabels(this.data, opts), campaignFactionLabels(this.data, opts)),
       this.currentCamera,
     );
     const uploadEnd = performance.now();
@@ -410,8 +410,11 @@ function ordinal(k: number) {
   return `${k}${suffix}`;
 }
 
-function campaignFactionLabels(opts: DrawOptions): CampaignLabel[] {
+function campaignFactionLabels(data: CampaignData, opts: DrawOptions): CampaignLabel[] {
   if (!opts.factionView) return [];
+  const [minX] = data.bgRect.min;
+  const [maxX] = data.bgRect.max;
+  const width = Math.max(1, maxX - minX);
   return opts.factionLabels.map((label): CampaignLabel => ({
     text: label.name,
     x: label.x,
@@ -422,7 +425,19 @@ function campaignFactionLabels(opts: DrawOptions): CampaignLabel[] {
     angle: -0.06,
     factionRadiusKm: label.radiusKm,
     factionMinor: label.minor,
+    screenOffsetX: factionEdgeOffset((label.x - minX) / width),
   }));
+}
+
+const FACTION_EDGE_INSET_START = 0.22;
+const FACTION_EDGE_INSET_RANGE = 0.18;
+const FACTION_EDGE_LABEL_OFFSET = 110;
+
+function factionEdgeOffset(t: number) {
+  const rightStart = 1 - FACTION_EDGE_INSET_START;
+  if (t > rightStart) return -FACTION_EDGE_LABEL_OFFSET * Math.min(1, (t - rightStart) / FACTION_EDGE_INSET_RANGE);
+  if (t < FACTION_EDGE_INSET_START) return FACTION_EDGE_LABEL_OFFSET * Math.min(1, (FACTION_EDGE_INSET_START - t) / FACTION_EDGE_INSET_RANGE);
+  return 0;
 }
 
 function campaignScenery(data: CampaignData, field: TerrainField): CampaignSceneryInstance[] {

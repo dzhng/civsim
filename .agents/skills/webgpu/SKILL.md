@@ -231,6 +231,14 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   `parityDistance`; one accepted overview pass cut the whole-map luminance gap
   from `-12.9` to `-4.5` and improved Campaign Whole Map from `0.26943` /
   `0.27974` crop to `0.23252` / `0.24128` without moving Campaign Label Zoom.
+- For campaign overview label clipping, prefer deterministic label-layout
+  offsets over camera movement. The whole-map camera can be numerically close
+  while large faction labels hang off a viewport edge; use existing
+  `screenOffsetX/Y` label fields or measured atlas bounds to nudge edge labels
+  inward, then accept the change only if a fresh critique stops flagging the
+  clipping. One `SELEUCIDS` right-edge fix traded Campaign Whole Map from
+  `0.23252` / `0.24128` crop to `0.23458` / `0.24343`, kept Campaign Label Zoom
+  fixed, and removed the high-confidence right-edge critique finding.
 - Soldier model gates must exercise the same skinned batching path used by
   production battle rendering. Route each capture through `SkinnedCrowdPipeline`,
   bucket instances by class mesh, freeze clip/phase/facing/camera through query

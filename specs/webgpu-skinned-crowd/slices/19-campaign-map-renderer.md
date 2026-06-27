@@ -303,3 +303,14 @@ low-readability sea labels, muddy overlapping territory washes, tiny city
 icons/labels, no obvious selected entity, and sparse/no visible 3D campaign
 pieces in the overview. The next overview pass should target cloud distribution
 and label/marker LOD before claiming whole-map parity.
+
+Whole-map faction labels now get a deterministic inward screen offset near the
+map's east/west edges, fixing the visible `SELEUCIDS` right-edge clipping
+without changing Campaign Label Zoom. Campaign Whole Map moves from `0.23252`
+full / `0.24128` crop to `0.23458` full / `0.24343` crop, a small metric
+tradeoff for the visible label fix; Campaign Label Zoom stays at `0.17429` /
+`0.23263`. Fresh unprimed critique no longer flags right-edge label clipping,
+but still blocks overview acceptance on top-toolbar clipping over `LONDINIUM`,
+bottom-edge label crowding, city/faction label collisions around Gaul and
+Macedon, heavy halos, low-contrast sea labels, blotchy edge fog, muddy stacked
+territory tints, and tiny pasted-on city markers.

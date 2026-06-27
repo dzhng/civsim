@@ -1098,6 +1098,7 @@ async function routeBattleLive(ctx: LabContext) {
     selectedUnit,
     overlay: overlayStats,
     minimap: minimapStats,
+    cameraContract: pipeline.stats().cameraContract,
     drawCalls: pipeline.stats().drawCalls,
     clips: pipeline.stats().clips,
   });
@@ -1195,6 +1196,7 @@ async function routeBattleUi(ctx: LabContext) {
     overlay: overlayStats,
     minimap: minimapStats,
     ui: uiStats,
+    cameraContract: pipeline.stats().cameraContract,
     drawCalls: pipeline.stats().drawCalls,
     clips: pipeline.stats().clips,
   });
@@ -1301,6 +1303,7 @@ async function routeBattleInput(ctx: LabContext) {
       overlay: overlay.stats(),
       minimap: minimap.stats(),
       ui: ui.stats(),
+      cameraContract: pipeline.stats().cameraContract,
       drawCalls: pipeline.stats().drawCalls,
       clips: pipeline.stats().clips,
     };

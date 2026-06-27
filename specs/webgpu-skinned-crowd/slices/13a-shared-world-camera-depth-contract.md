@@ -77,6 +77,9 @@ shadows that sit on the ground instead of floating as screen overlays.
 - `/webgpu/world-camera` renders the nested-object fixture through the shared
   helper path and publishes CPU-vs-GPU ground-anchor agreement stats so picking,
   labels, and shader projection can be checked together.
+- Battle skinned soldiers, battle terrain/scenery quads, battle overlays, and
+  the production debug triangle pass now consume the same shared WGSL camera
+  helpers while preserving their existing depth/pass ordering.
 
 ## Human Feedback
 

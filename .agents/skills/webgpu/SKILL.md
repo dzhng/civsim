@@ -396,6 +396,12 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   passes. This keeps nested flags, garrisons, ground rings, battle ranks,
   picking, labels, and screenshots converging on one world/camera/depth
   contract instead of self-consistent but incompatible local projections.
+- When migrating battle shaders to the shared camera helpers, preserve existing
+  normalized z values and pass ordering first, then assert the contract through
+  route stats before adding battle depth. A pure projection-source refactor
+  should keep DPR1/DPR2 battle input, freeze stability, and visual-report
+  parity effectively stable; in one pass Battle Selection DPR2 moved only from
+  `0.10928` to `0.10861` while its world crop stayed unchanged.
 - Use instancing, batching, storage buffers, and GPU-side phase passes for scale.
   Avoid CPU readbacks in hot paths; debug readbacks must be bounded and named.
 - For iterative effects or simulations, separate phases such as `state`,

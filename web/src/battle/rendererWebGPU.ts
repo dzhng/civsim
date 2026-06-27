@@ -3,6 +3,7 @@ import { buildCrowdInstances, type CrowdInstance } from '../../../packages/crowd
 import { BattleOverlayPass } from '../../../packages/game-renderer/src/battle/overlayPass';
 import { BattleTerrainPass } from '../../../packages/game-renderer/src/battle/terrainPass';
 import { createFrameShell, type MarkerInstance, type RawFrameShell } from '../../../packages/webgpu-core/src/frameShell';
+import { WORLD_CAMERA_WGSL } from '../../../packages/webgpu-core/src/cameraWgsl';
 import { SkinnedCrowdPipeline } from '../../../packages/webgpu-core/src/skinnedPipeline';
 import { loadPlaceholderVat } from '../../../packages/soldier-assets/src/placeholders';
 import { createPlaceholderSoldierMeshes } from '../../../packages/soldier-assets/src/soldierMesh';
@@ -392,9 +393,7 @@ class BattleTrianglePass {
 }
 
 const TRIANGLE_WGSL = `
-struct Camera { x:f32, y:f32, zoom:f32, cosP:f32, width:f32, height:f32, cosYaw:f32, sinYaw:f32 };
-@group(0) @binding(0) var<uniform> cam: Camera;
-
+${WORLD_CAMERA_WGSL}
 struct VsOut {
   @builtin(position) pos: vec4f,
   @location(0) color: vec4f,
@@ -402,12 +401,8 @@ struct VsOut {
 
 @vertex
 fn vs(@location(0) world: vec2f, @location(1) color: vec4f) -> VsOut {
-  let dx = world.x - cam.x;
-  let dy = world.y - cam.y;
-  let rx = dx * cam.cosYaw + dy * cam.sinYaw;
-  let ry = -dx * cam.sinYaw + dy * cam.cosYaw;
   var out: VsOut;
-  out.pos = vec4f((rx * cam.zoom) / (cam.width * 0.5), (ry * cam.zoom * cam.cosP) / (cam.height * 0.5), 0.0, 1.0);
+  out.pos = projectGround(world, 0.0);
   out.color = color;
   return out;
 }

@@ -1,14 +1,14 @@
 import type { RawFrameShell } from '../../../webgpu-core/src/frameShell';
+import { WORLD_CAMERA_WGSL } from '../../../webgpu-core/src/cameraWgsl';
 
 export interface BattleOverlayStats {
   vertices: number;
   lineSegments: number;
+  cameraContract: 'shared-world-camera-wgsl';
 }
 
 const OVERLAY_WGSL = `
-struct Camera { x:f32, y:f32, zoom:f32, cosP:f32, width:f32, height:f32, cosYaw:f32, sinYaw:f32 };
-@group(0) @binding(0) var<uniform> cam: Camera;
-
+${WORLD_CAMERA_WGSL}
 struct VsOut {
   @builtin(position) pos: vec4f,
   @location(0) color: vec3f,
@@ -16,12 +16,8 @@ struct VsOut {
 
 @vertex
 fn vs(@location(0) world: vec2f, @location(1) color: vec3f) -> VsOut {
-  let dx = world.x - cam.x;
-  let dy = world.y - cam.y;
-  let rx = dx * cam.cosYaw + dy * cam.sinYaw;
-  let ry = -dx * cam.sinYaw + dy * cam.cosYaw;
   var out: VsOut;
-  out.pos = vec4f((rx * cam.zoom) / (cam.width * 0.5), (ry * cam.zoom * cam.cosP) / (cam.height * 0.5), 0.0, 1.0);
+  out.pos = projectGround(world, 0.0);
   out.color = color;
   return out;
 }
@@ -96,7 +92,7 @@ export class BattleOverlayPass {
   }
 
   stats(): BattleOverlayStats {
-    return { vertices: this.vertexCount, lineSegments: Math.floor(this.vertexCount / 2) };
+    return { vertices: this.vertexCount, lineSegments: Math.floor(this.vertexCount / 2), cameraContract: 'shared-world-camera-wgsl' };
   }
 }
 

@@ -3,6 +3,7 @@ import type { SoldierMeshData } from '../../soldier-assets/src/soldierMesh';
 import type { VatBake } from '../../soldier-assets/src/schema';
 import { createVatLayout, resolveVatClip } from './vatLayout';
 import type { RawFrameShell } from './frameShell';
+import { WORLD_CAMERA_WGSL } from './cameraWgsl';
 
 export interface SkinnedCrowdStats {
   instances: number;
@@ -10,6 +11,7 @@ export interface SkinnedCrowdStats {
   vertices: number;
   clips: string[];
   meshVariants: number;
+  cameraContract: 'shared-world-camera-wgsl';
 }
 
 interface MeshResource {
@@ -22,8 +24,7 @@ interface MeshResource {
 }
 
 const SKINNED_WGSL = `
-struct Camera { x:f32, y:f32, zoom:f32, cosP:f32, width:f32, height:f32, cosYaw:f32, sinYaw:f32 };
-@group(0) @binding(0) var<uniform> cam: Camera;
+${WORLD_CAMERA_WGSL}
 struct Vat { width:f32, height:f32, bones:f32, pad:f32, data: array<f32> };
 @group(1) @binding(0) var<storage, read> vat: Vat;
 
@@ -68,13 +69,9 @@ fn vs(
   let s = sin(a);
   let p = local.xyz * inst1.x;
   let world = vec3f(inst0.x + p.x * c - p.y * s, inst0.y + p.x * s + p.y * c, p.z);
-  let dx = world.x - cam.x;
-  let dy = world.y - cam.y;
-  let rx = dx * cam.cosYaw + dy * cam.sinYaw;
-  let ry = -dx * cam.sinYaw + dy * cam.cosYaw;
 
   var out: VsOut;
-  out.pos = vec4f((rx * cam.zoom) / (cam.width * 0.5), (ry * cam.zoom * cam.cosP + world.z * cam.zoom) / (cam.height * 0.5), 0.08, 1.0);
+  out.pos = projectWorld3d(world, 0.08);
   out.color = color;
   let sun = normalize(vec3f(-0.35, -0.45, 0.82));
   out.light = clamp(dot(n, sun) * 0.42 + 0.74, 0.34, 1.12);
@@ -172,6 +169,7 @@ export class SkinnedCrowdPipeline {
       vertices: this.resources.reduce((sum, resource) => sum + resource.mesh.positions.length / 3, 0),
       clips: Array.from(this.layout.clips.keys()),
       meshVariants: this.resources.length,
+      cameraContract: 'shared-world-camera-wgsl',
     };
   }
 

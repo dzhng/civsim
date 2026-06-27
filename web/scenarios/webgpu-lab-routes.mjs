@@ -14,10 +14,10 @@ const routes = [
   ['assets', (s) => s?.ok && s.route === 'assets' && s.stats.badErrors > 0 && s.stats.importUi?.paste && s.stats.importUi?.file && s.stats.importUi?.drop],
   ['crowd-data?count=1000', (s) => s?.ok && s.route === 'crowd-data' && s.stats.stats.written === 1000],
   ['animation-state', (s) => s?.ok && s.route === 'animation-state'],
-  ['skinned-soldier?phase=0.25', (s) => s?.ok && s.route === 'skinned-soldier' && s.stats.instances === 1],
-  ['skinned-crowd?count=1200', (s) => s?.ok && s.route === 'skinned-crowd' && s.stats.count === 1200],
+  ['skinned-soldier?phase=0.25', (s) => s?.ok && s.route === 'skinned-soldier' && s.stats.instances === 1 && s.stats.cameraContract === 'shared-world-camera-wgsl'],
+  ['skinned-crowd?count=1200', (s) => s?.ok && s.route === 'skinned-crowd' && s.stats.count === 1200 && s.stats.cameraContract === 'shared-world-camera-wgsl'],
   ['lod?zoom=5', (s) => s?.ok && s.route === 'lod' && (s.stats.counts.l1 + s.stats.counts.l2 + s.stats.counts.l3 + s.stats.counts.l0) === 1800],
-  ['battle', (s) => s?.ok && s.route === 'battle' && s.stats.soldiers === 2400],
+  ['battle', (s) => s?.ok && s.route === 'battle' && s.stats.soldiers === 2400 && s.stats.cameraContract === 'shared-world-camera-wgsl'],
   ['perf?count=900', (s) => s?.ok
     && s.route === 'perf'
     && s.stats.kind === 'webgpu-full-game-perf'
@@ -48,11 +48,11 @@ const routes = [
     && s.stats.nested3d?.fixtures?.includes('flag-in-city')
     && s.stats.nested3d?.fixtures?.includes('garrison-in-city-stub')
     && s.stats.nested3d?.fixtures?.includes('rank-overlap')],
-  ['battle-terrain?fixture=coast', (s) => s?.ok && s.route === 'battle-terrain' && s.stats.fixture === 'coast' && s.stats.waterQuads >= 3 && s.stats.sceneryQuads >= 8],
-  ['battle-terrain?fixture=melee', (s) => s?.ok && s.route === 'battle-terrain' && s.stats.fixture === 'melee' && s.stats.waterQuads >= 3 && s.stats.sceneryQuads >= 8 && s.stats.selectionQuads === 0],
-  ['battle-live?mode=5v5&ticks=36', (s) => s?.ok && s.route === 'battle-live' && s.stats.written > 1000 && s.stats.units >= 10 && s.stats.player > 0 && s.stats.enemy > 0 && s.stats.drawCalls >= 1 && s.stats.drawCalls <= 15 && s.stats.overlay.lineSegments >= 20],
-  ['battle-ui?mode=5v5&ticks=36', (s) => s?.ok && s.route === 'battle-ui' && s.stats.written > 1000 && s.stats.units >= 10 && s.stats.drawCalls >= 1 && s.stats.drawCalls <= 15 && s.stats.overlay.lineSegments >= 20 && s.stats.ui.cards >= 8 && s.stats.ui.toolbarButtons >= 5 && s.stats.ui.postCutoverScreenshots === 'webgpu-only'],
-  ['battle-input?mode=5v5&ticks=36', (s) => s?.ok && s.route === 'battle-input' && s.stats.written > 1000 && s.stats.units >= 10 && s.stats.drawCalls >= 1 && s.stats.drawCalls <= 15 && s.stats.overlay.lineSegments >= 20 && s.stats.selectedUnits.length === 1 && s.stats.ui.cards >= 8],
+  ['battle-terrain?fixture=coast', (s) => s?.ok && s.route === 'battle-terrain' && s.stats.fixture === 'coast' && s.stats.waterQuads >= 3 && s.stats.sceneryQuads >= 8 && s.stats.cameraContract === 'shared-world-camera-wgsl'],
+  ['battle-terrain?fixture=melee', (s) => s?.ok && s.route === 'battle-terrain' && s.stats.fixture === 'melee' && s.stats.waterQuads >= 3 && s.stats.sceneryQuads >= 8 && s.stats.selectionQuads === 0 && s.stats.cameraContract === 'shared-world-camera-wgsl'],
+  ['battle-live?mode=5v5&ticks=36', (s) => s?.ok && s.route === 'battle-live' && s.stats.written > 1000 && s.stats.units >= 10 && s.stats.player > 0 && s.stats.enemy > 0 && s.stats.drawCalls >= 1 && s.stats.drawCalls <= 15 && s.stats.overlay.lineSegments >= 20 && s.stats.cameraContract === 'shared-world-camera-wgsl' && s.stats.overlay.cameraContract === 'shared-world-camera-wgsl'],
+  ['battle-ui?mode=5v5&ticks=36', (s) => s?.ok && s.route === 'battle-ui' && s.stats.written > 1000 && s.stats.units >= 10 && s.stats.drawCalls >= 1 && s.stats.drawCalls <= 15 && s.stats.overlay.lineSegments >= 20 && s.stats.ui.cards >= 8 && s.stats.ui.toolbarButtons >= 5 && s.stats.ui.postCutoverScreenshots === 'webgpu-only' && s.stats.cameraContract === 'shared-world-camera-wgsl' && s.stats.overlay.cameraContract === 'shared-world-camera-wgsl'],
+  ['battle-input?mode=5v5&ticks=36', (s) => s?.ok && s.route === 'battle-input' && s.stats.written > 1000 && s.stats.units >= 10 && s.stats.drawCalls >= 1 && s.stats.drawCalls <= 15 && s.stats.overlay.lineSegments >= 20 && s.stats.selectedUnits.length === 1 && s.stats.ui.cards >= 8 && s.stats.cameraContract === 'shared-world-camera-wgsl' && s.stats.overlay.cameraContract === 'shared-world-camera-wgsl'],
   ['cutover', (s) => s?.ok
     && s.route === 'cutover'
     && s.stats.kind === 'webgpu-cutover-report'

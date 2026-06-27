@@ -1,4 +1,5 @@
 import type { RawFrameShell } from '../../../webgpu-core/src/frameShell';
+import { WORLD_CAMERA_WGSL } from '../../../webgpu-core/src/cameraWgsl';
 
 export type BattleTerrainFixture = 'coast' | 'melee' | 'dry-melee' | 'prop-field' | 'sim-tint';
 
@@ -8,6 +9,7 @@ export interface BattleTerrainPassStats {
   waterQuads: number;
   sceneryQuads: number;
   selectionQuads: number;
+  cameraContract: 'shared-world-camera-wgsl';
 }
 
 interface TerrainQuad {
@@ -20,9 +22,7 @@ interface TerrainQuad {
 }
 
 const BATTLE_TERRAIN_WGSL = `
-struct Camera { x:f32, y:f32, zoom:f32, cosP:f32, width:f32, height:f32, cosYaw:f32, sinYaw:f32 };
-@group(0) @binding(0) var<uniform> cam: Camera;
-
+${WORLD_CAMERA_WGSL}
 struct VsOut {
   @builtin(position) pos: vec4f,
   @location(0) local: vec2f,
@@ -35,12 +35,8 @@ struct VsOut {
 fn vs(@location(0) quad: vec2f, @location(1) inst0: vec4f, @location(2) inst1: vec4f) -> VsOut {
   let local01 = quad * 0.5 + vec2f(0.5);
   let world = vec2f(inst0.x + local01.x * inst0.z, inst0.y + local01.y * inst0.w);
-  let dx = world.x - cam.x;
-  let dy = world.y - cam.y;
-  let rx = dx * cam.cosYaw + dy * cam.sinYaw;
-  let ry = -dx * cam.sinYaw + dy * cam.cosYaw;
   var out: VsOut;
-  out.pos = vec4f((rx * cam.zoom) / (cam.width * 0.5), (ry * cam.zoom * cam.cosP) / (cam.height * 0.5), 0.1, 1.0);
+  out.pos = projectGround(world, 0.1);
   out.local = quad;
   out.world = world;
   out.kind = inst1.x;
@@ -206,6 +202,7 @@ export class BattleTerrainPass {
     waterQuads: 0,
     sceneryQuads: 0,
     selectionQuads: 0,
+    cameraContract: 'shared-world-camera-wgsl',
   };
 
   constructor(private shell: RawFrameShell) {
@@ -324,6 +321,7 @@ function terrainStats(fixture: BattleTerrainFixture, quads: TerrainQuad[]): Batt
     waterQuads: quads.filter((q) => q.kind === 0 || q.kind === 8 || q.kind === 10).length,
     sceneryQuads: quads.filter((q) => q.kind === 3 || q.kind === 4 || q.kind === 6 || q.kind === 7 || q.kind === 11 || q.kind === 12).length,
     selectionQuads: quads.filter((q) => q.kind === 5).length,
+    cameraContract: 'shared-world-camera-wgsl',
   };
 }
 

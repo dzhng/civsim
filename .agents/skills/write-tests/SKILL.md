@@ -26,7 +26,7 @@ Each layer must be green before the next is worth running. The focused runners i
 4. **Balance is its own on-demand bucket**: `scripts/test-balance` (minutes).
    Run when re-deriving the economy or before a balance-touching push, never in
    the iteration loop.
-5. **Browser LAST, only when cargo is green**: `node scenario.mjs` from `web/`
+5. **Browser LAST, only when cargo is green**: `node scene.mjs` from `web/`
    (or `npm run verify`). It covers web-only glue: the wasm boundary, zero-copy
    views, UI plumbing, render health, and the shot baselines — NOT sim behavior.
    If a behavior matters it gets a Rust test, never a browser check.

@@ -1,6 +1,6 @@
 # Spec: Balance harness — runtime-configurable sim, N-seed, generated matrix, agent-tunable
 
-> Sibling spec: `specs/scenarios.md` is the *visual* half (web/pixels). This is
+> Sibling spec: `specs/scenes.md` is the *visual* half (web/pixels). This is
 > the *sim* half. Shared creed for the exhaustive parts: **the exhaustive part
 > of a test suite is a generated projection of the source-of-truth registries,
 > not a hand-maintained list.**

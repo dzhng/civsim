@@ -1,7 +1,7 @@
-# Spec: Scenarios — one runner, 100% catalog-driven visual coverage
+# Spec: Scenes — one runner, 100% catalog-driven visual coverage
 
 > Sibling spec: `specs/balance-harness.md` covers the Rust sim — a runtime-
-> configurable balance surface + N-seed scenario harness feeding a generated
+> configurable balance surface + N-seed scene harness feeding a generated
 > **balance** matrix (stats-vs-price) alongside the authored **behavior/physics**
 > suite. This file is the *visual* half (web/pixels). Shared creed for the
 > exhaustive parts: **tests are a generated projection of the source-of-truth
@@ -10,7 +10,7 @@
 ## Goal, in one sentence
 
 Replace the three bespoke flat verify harnesses with one runner over
-individually-runnable **scenarios** — each either a `flow` case (a real-map
+individually-runnable **scenes** — each either a `flow` case (a real-map
 world asserting behavior) or a `visual` case (a fixture world asserting pixels)
 — and make visual coverage *catalog-driven and gated to 100%*: enumerate every
 renderable primitive from the same registries the renderer is built from, snap
@@ -31,8 +31,8 @@ Today there is no way to run one visual case. Each of `web/verify-battle.mjs`,
 top-to-bottom script; to re-check `battle-initial` you run the entire 30k-
 soldier battle harness (it marches units, fights a melee, runs an AI game).
 The `SNAP=<substr>` env filter (in `web/snapshot.mjs`) is a stopgap — it skips
-the *comparison* but the whole script still *drives*. Scenarios make the setup
-itself addressable: `node scenario.mjs campaign-markers` boots only that world
+the *comparison* but the whole script still *drives*. Scenes make the setup
+itself addressable: `node scene.mjs campaign-markers` boots only that world
 and runs only its snaps.
 
 Acceptance is behavioral parity, not new behavior: after the migration every
@@ -65,9 +65,9 @@ are neither ground truth (no test reads them) nor transient output (they are
 committed). The instinct to `.gitignore web/shots/*.png` is the wrong fix:
 **a generated screenshot is only worth keeping if a test asserts on it.** The
 right shape is — every screenshot a run writes is a `snapCheck` baseline; the
-only PNG locations are `shots/baseline/` (committed truth) and `shots/diff/`
-(gitignored transient). The top-level `shots/*.png` scratch dump ceases to
-exist. That makes the user's principle literally true: every shot under
+only PNG locations are `shots/baseline/` and `shots/scenes/` (committed truth)
+and `shots/diff/` (gitignored transient). The top-level `shots/*.png` scratch
+dump ceases to exist. That makes the user's principle literally true: every shot under
 version control is useful regression data.
 
 Greppable anchors the implementer will need:
@@ -78,7 +78,7 @@ Greppable anchors the implementer will need:
   `__campaign.freeze()`; test campaign `?campaign=test` →`__campaignReady`,
   page opened with `deviceScaleFactor: 2` (markers are snapped at 2× — see
   `verify-campaign-visual.mjs:29`).
-- Debug seams scenarios drive through (do not add more): `window.__game`
+- Debug seams scenes drive through (do not add more): `window.__game`
   (`stats/unitInfo/select/setOrder/advance/groupMove/freeze/...`),
   `window.__campaign` (`armies/cities/cam/freeze/place/orderMove/tick/
   battleReady/project/select/...`), the DOM-only banner gallery at
@@ -86,14 +86,14 @@ Greppable anchors the implementer will need:
 - The determinism discipline lives in `.agents/skills/screenshot-regression/
   SKILL.md` — fixed 1280×800 viewport, explicit camera, freeze the clock,
   snap on Day 1 before any `tick()`, wait ~250ms after a camera move. Every
-  rule there must survive the migration; a scenario that drops a `freeze()`
+  rule there must survive the migration; a scene that drops a `freeze()`
   goes flaky.
 - Per-machine baselines *(measured fact)*: `battle-initial` fails ~0.22% on
   this headless SwiftShader Mac because its baseline was blessed elsewhere;
   the diff is sub-pixel AA wobble on unit silhouettes and the count drifts
   run-to-run (2244↔2268 px). `verify-battle.mjs:57` already carries
-  `{ maxDiffRatio: 0.0008 }` for this. Scenarios do NOT fix cross-machine
-  rasterization — a scenario may carry a named, justified `maxDiffRatio`, but
+  `{ maxDiffRatio: 0.0008 }` for this. Scenes do NOT fix cross-machine
+  rasterization — a scene may carry a named, justified `maxDiffRatio`, but
   re-blessing happens deliberately on the owning machine.
 
 ## Failed / rejected approaches — do not retry naively
@@ -106,9 +106,9 @@ Greppable anchors the implementer will need:
   delete the rest.
 - **`SNAP=<substr>` env filter alone** (shipped, kept). Filters the compare,
   not the drive — `SNAP=battle-initial node verify-battle.mjs` still spawns the
-  whole battle. Useful within a scenario; insufficient as the addressability
-  story. Keep it; it composes with scenarios (filter snaps *inside* the one
-  scenario you selected).
+  whole battle. Useful within a scene; insufficient as the addressability
+  story. Keep it; it composes with scenes (filter snaps *inside* the one
+  scene you selected).
 - **Per-domain entry scripts** (the status quo: three `verify-*.mjs`). Each
   re-implements browser launch, the `check` reporter, error capture, `mkdir
   shots`, and the exit-code dance. Drift is already visible (campaign opens the
@@ -129,7 +129,7 @@ answer different questions, and the real map is actively *hostile* to the
 visual question: red armies on red cities (no contrast), garrison battles fire
 on any move, and the layout is seed-dependent.
 
-So every scenario is one of two **kinds**, and the kind picks the world family:
+So every scene is one of two **kinds**, and the kind picks the world family:
 
 - **`flow`** — verifies behavior. Drives real game systems on a **real-map
   world** and asserts on *outcomes* (positions, casualties, soldier counts,
@@ -140,7 +140,7 @@ So every scenario is one of two **kinds**, and the kind picks the world family:
   deterministic, contrast-clean) and asserts on *pixels* (`snap`). Fast, no
   game logic, no seed dependence. This is where the test maps earn their keep.
 
-A scenario should be one kind. The current battle harness violates this — it
+A scene should be one kind. The current battle harness violates this — it
 takes the `battle-initial` deployment snap, then drives a melee, then snaps
 mid-fight: a `visual` concern wearing a `flow` harness, which is exactly why it
 litters scratch PNGs through nondeterministic mid-battle states. Splitting it
@@ -149,7 +149,7 @@ into a `visual` `battle-deploy` (snap the clean deployment) and a `flow`
 
 ### Visual coverage is catalog-driven and gated to 100%
 
-Hand-listing visual scenarios cannot reach 100% and cannot stay there — someone
+Hand-listing visual scenes cannot reach 100% and cannot stay there — someone
 adds a class and forgets the snap. The renderer draws from enumerable
 registries; the test suite must be a *generated projection* of those registries,
 with a gate that fails when the projection has a hole. Two tiers:
@@ -179,7 +179,7 @@ with a gate that fails when the projection has a hole. Two tiers:
   These are curated (a deliberate, named list), not gated for completeness —
   you cannot enumerate "every battle layout," only "every primitive."
 
-**The catalog** is one data module (`scenarios/catalog.mjs`) that *builds the
+**The catalog** is one data module (`scenes/catalog.mjs`) that *builds the
 atomic list from the registries*, not by hand:
 
 ```js
@@ -216,7 +216,7 @@ a first-class, uniform facility — the same shape for battle and campaign — s
 a hack you reinvent per domain:
 
 ```
-web/scenarios/fixtures/        # the builders, one per fixture
+web/scenes/fixtures/        # the builders, one per fixture
   campaign-test.ts             # migrate buildTestCampaign out of main.ts (composite stage)
   battle-5v5.ts                # a small line clash for composite combat snaps (NEW)
   specimen-soldier.ts          # render ONE soldier: ?fixture=specimen-soldier&class=&team=&pose= (NEW)
@@ -246,8 +246,8 @@ and campaign, that a specimen can render any single catalog entry, and that
 ### Layout
 
 ```
-web/scenario.mjs            # the single runner / CLI entry + coverage gate
-web/scenarios/
+web/scene.mjs            # the single runner / CLI entry + coverage gate
+web/scenes/
   worlds.mjs                # world name -> { url, ready, freeze, dpr }; real + fixture
   catalog.mjs               # ATOMIC[] built from the registries + COMPOSITES[] list
   fixtures/                 # specimen + stage fixture builders (see above)
@@ -271,14 +271,14 @@ web/scenarios/
 generator over `catalog.ATOMIC`, so 100% atomic coverage costs one module that
 never needs editing when a class is added — only the catalog (i.e. the
 registry) and the baselines change. The three `verify-*.mjs` files are deleted;
-their behavioral stages migrate into `flow` scenarios and their incidental snaps
+their behavioral stages migrate into `flow` scenes and their incidental snaps
 either become catalog entries (if atomic) or composite scenes (if emergent).
 `web/snapshot.mjs` stays as-is (it is the safety property — see below).
 
-### A scenario module
+### A scene module
 
 ```js
-// A visual scenario — boots a fixture, asserts pixels.
+// A visual scene — boots a fixture, asserts pixels.
 export const meta = {
   name: 'campaign-markers',
   kind: 'visual',                // 'visual' (fixture, pixels) | 'flow' (real map, outcomes)
@@ -298,7 +298,7 @@ export async function run({ page, check, snap }) {
 ```
 
 ```js
-// A flow scenario — drives the real map, asserts outcomes, writes no PNG.
+// A flow scene — drives the real map, asserts outcomes, writes no PNG.
 export const meta = {
   name: 'campaign-conquest',
   kind: 'flow',
@@ -313,47 +313,49 @@ export async function run({ page, check }) {
 }
 ```
 
-The runner may assert the invariant directly: a `visual` scenario that calls no
-`snap`, or a `flow` scenario whose world is a fixture, is a wiring mistake worth
+The runner may assert the invariant directly: a `visual` scene that calls no
+`snap`, or a `flow` scene whose world is a fixture, is a wiring mistake worth
 failing on.
 
 ### The runner contract (`ctx` passed to `run`)
 
 - `page` — the Playwright page, viewport 1280×800, world booted+frozen.
-- `check(name, ok, detail)` — the existing reporter, namespaced by scenario in
+- `check(name, ok, detail)` — the existing reporter, namespaced by scene in
   the printed line; failures bubble to the process exit code.
 - `snap(name, opts?)` — **the only way a PNG is written.** It optionally runs
   `opts.before()` to pose the world, sets `opts.cam` (`[x, y, scale]` via the
   world's camera hook), waits `opts.settle ?? 250`ms, then calls `snapCheck`
-  under the scenario-namespaced baseline `shots/baseline/<scenario>/<name>.png`.
+  under the scene baseline `shots/scenes/<name>.png` (via `baseDir`).
   `opts.maxDiffRatio`/`opts.threshold` pass through for a *named* noise source.
   There is no `ctx.screenshot`-to-disk; bare `page.screenshot({path})` to a
   tracked location is forbidden (a lint/grep check in the runner can enforce
-  it: fail if `shots/` gains a file outside `baseline/` and `diff/`). A `flow`
-  scenario writes no PNG at all — outcomes are asserted via `check`.
+  it: fail if `shots/` gains a file outside `baseline/`, `scenes/` and `diff/`). A `flow`
+  scene writes no PNG at all — outcomes are asserted via `check`.
 - `world` — the resolved world descriptor (handy for `world.freeze(false)`).
 
 ### The CLI
 
-- `node scenario.mjs` — run all `tier: 'quick'` scenarios.
-- `node scenario.mjs --full` — include `tier: 'full'`.
-- `node scenario.mjs campaign-markers battle-deploy` — run only the named
-  scenarios (substring/exact match on `meta.name`).
-- `SNAP=<substr>` — filter snaps *within* the selected scenarios (unchanged).
+- `node scene.mjs` — run all `tier: 'quick'` scenes.
+- `node scene.mjs --full` — include `tier: 'full'`.
+- `node scene.mjs campaign-markers battle-deploy` — run only the named
+  scenes (substring/exact match on `meta.name`).
+- `SNAP=<substr>` — filter snaps *within* the selected scenes (unchanged).
 - `UPDATE_SHOTS=1` — re-bless (unchanged; passes through to `snapCheck`).
 - `VERIFY_URL` — dev server base (unchanged; default `http://localhost:5173`,
   this machine uses `:5174`).
-- package.json: `"scenarios": "node scenario.mjs"`,
-  `"scenarios:full": "node scenario.mjs --full"`. Decide whether to keep
+- package.json: `"scene": "node scene.mjs"`,
+  `"scene:full": "node scene.mjs --full"`. Decide whether to keep
   `verify`/`verify:*` as thin aliases for one migration cycle or cut them.
 
 ### Baseline namespacing
 
-Baselines move to `shots/baseline/<scenario>/<snap>.png`. This is the migration's
-one deliberate rename: the 8 existing baselines get re-blessed once under their
-scenario folder (e.g. `battle-initial` → `battle-deploy/initial.png`,
-`tiny-overview` → `campaign-markers/overview.png`). Namespacing makes "which
-scenario owns this shot, and therefore asserts on it" visible from the path —
+Scene baselines live in their own top-level `shots/scenes/<name>.png` folder,
+flat by `meta.name`, kept apart from the verify/vibe/model snaps under
+`shots/baseline/` (the runner points `snapCheck`'s `baseDir` at `shots/scenes/`).
+Earlier drafts proposed per-scene subfolders (e.g. `battle-deploy/initial.png`,
+`campaign-markers/overview.png`); that nesting was dropped — one flat folder is
+enough. Keeping scenes out of `shots/baseline/` makes "which
+scene owns this shot, and therefore asserts on it" visible from the path —
 directly serving the every-shot-is-a-test principle. Do this rename in a single
 commit with `UPDATE_SHOTS=1`, and delete the old flat baseline files in the same
 commit so no orphans linger.
@@ -364,7 +366,7 @@ Every loose `page.screenshot({path})` in the old harnesses is triaged into the
 two tiers: a primitive in isolation (a class, a chip, a terrain tint) becomes a
 **catalog** entry snapped by `atomic.mjs`; an emergent layout (deployment,
 melee crowd, cluster, political map, modal) becomes a **composite** scene
-scenario; anything that is neither becomes nothing. The expected outcome is zero
+scene; anything that is neither becomes nothing. The expected outcome is zero
 loose shots: `web/shots/` contains only `baseline/` and `diff/`. The atomic gate
 then *expands* coverage far past what the scratch shots ever had — the loose
 `combat-*`/`sandbox-*` shots were a sparse, unasserted sample of a space the
@@ -380,11 +382,11 @@ catalog now covers exhaustively.
 2. **The determinism discipline** *(locked)*. Every freeze/fixed-camera/Day-1
    rule in `screenshot-regression/SKILL.md` must survive. The migration is a
    refactor of *where* the calls live, never a relaxation of *whether* they
-   run. A snap with no preceding `freeze()` is a bug, not a scenario.
+   run. A snap with no preceding `freeze()` is a bug, not a scene.
 3. **The debug-hook capabilities** (`window.__game`, `window.__campaign`,
-   `__ready`, `__campaignReady`, and the freeze/place/cam seams). Scenarios
+   `__ready`, `__campaignReady`, and the freeze/place/cam seams). Scenes
    drive through these; do not add *new* production-side hooks to make a
-   scenario convenient. The fixture *entry points* may be unified
+   scene convenient. The fixture *entry points* may be unified
    (`?campaign=test`/`?test=banners` → a single `?fixture=<name>` convention) —
    that is in scope; the runtime capabilities they expose are not to grow.
 4. **Sim / renderer / gameplay behavior.** This is a test-harness reorg. The
@@ -421,21 +423,21 @@ Must BECOME true (the acceptance, write these as runner self-checks):
   add a pose to a registry and confirm the gate goes red until snapped.
 - **Mirror gate**: the web registry mirrors (`CLASS_LOOK` length, the chip
   list) match the canonical wasm/contract counts; drift fails the run.
-- `git status --porcelain` is empty after `node scenario.mjs --full` — no
+- `git status --porcelain` is empty after `node scene.mjs --full` — no
   loose shots written. If it fails, the smell is back.
 - `web/shots/` contains only `baseline/` and `diff/` (no top-level `*.png`).
-- `node scenario.mjs campaign-markers` boots exactly one world and runs only
-  that scenario's snaps (assert by run time and by the printed check set).
+- `node scene.mjs campaign-markers` boots exactly one world and runs only
+  that scene's snaps (assert by run time and by the printed check set).
 - Visual parity: the re-blessed namespaced baselines are byte-identical to the
   old flat ones on the blessing machine (bless with `UPDATE_SHOTS=1`, then
   `cmp` old vs new before deleting the old). The golden pixels move paths, not
   content.
-- Kind invariant holds: every `visual` scenario calls `snap` at least once and
-  boots a fixture world; every `flow` scenario writes zero PNGs. The runner
+- Kind invariant holds: every `visual` scene calls `snap` at least once and
+  boots a fixture world; every `flow` scene writes zero PNGs. The runner
   fails the run if either is violated.
 - Fixtures are uniform: `buildTestCampaign` no longer lives in `main.ts` as a
   special case; it and the new battle fixtures are built and addressed by the
-  same mechanism. Adding a fixture touches only `scenarios/fixtures/` + its
+  same mechanism. Adding a fixture touches only `scenes/fixtures/` + its
   registration.
 
 ## Process requirements
@@ -452,28 +454,29 @@ Must BECOME true (the acceptance, write these as runner self-checks):
   needs `git checkout -- 'web/shots/*.png'` first. The whole point of this work
   is to retire that step.
 - Update `.agents/skills/screenshot-regression/SKILL.md` and the
-  `write-scenario` skill to describe the runner as it lands, and update the
-  README commands. The `write-scenario` skill is the durable artifact; this
+  `write-scene` skill to describe the runner as it lands, and update the
+  README commands. The `write-scene` skill is the durable artifact; this
   spec is deleted on completion.
 
 ## Acceptance
 
-- [ ] One runner (`web/scenario.mjs`) + `web/scenarios/*.mjs`; the three
+- [ ] One runner (`web/scene.mjs`) + `web/scenes/*.mjs`; the three
       `verify-*.mjs` deleted; package.json scripts updated.
-- [ ] Each scenario is one `kind`; `visual` scenarios run on fixtures, `flow`
+- [ ] Each scene is one `kind`; `visual` scenes run on fixtures, `flow`
       on real-map worlds. The deployment snap is split out of the melee.
 - [ ] `catalog.mjs` builds `ATOMIC` from the registries; `atomic.mjs` snaps
       every atomic state via specimen fixtures; the coverage gate + mirror gate
       pass and are verified to fail closed.
-- [ ] Fixtures live in `scenarios/fixtures/` behind one `?fixture=` convention;
+- [ ] Fixtures live in `scenes/fixtures/` behind one `?fixture=` convention;
       specimen fixtures render any single catalog entry; `buildTestCampaign`
       migrated out of `main.ts`.
 - [ ] Every old check ported and green (quick + `--full`), per the table above.
 - [ ] No bare `page.screenshot({path})` to a tracked location remains; `git
-      status` clean after `--full`; `web/shots/` holds only `baseline/`+`diff/`.
-- [ ] Baselines re-blessed once under `shots/baseline/<scenario>/`, old flat
+      status` clean after `--full`; `web/shots/` holds only
+      `baseline/`+`scenes/`+`diff/`.
+- [ ] Scene baselines re-blessed once under `shots/scenes/`, old flat
       baselines deleted, byte-identity verified before deletion.
 - [ ] Skills + README updated; this spec deleted.
 - [ ] Postmortem note here before deleting: how many scratch shots were
-      promoted vs dropped, and the final scenario/baseline counts (for the next
+      promoted vs dropped, and the final scene/baseline counts (for the next
       person sizing a similar reorg).

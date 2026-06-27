@@ -54,8 +54,10 @@ export async function clearSnapshotFolder(name) {
  *  noise (unchanged views drift ~1-2% machine-to-machine) and below a real
  *  rendering change (a moved road, a recoloured region run 2.5%+), so noise
  *  passes but an actual change still trips the gate and must be re-blessed.
- *  Tighten (pass 0,0) for a snap that must be exact. */
-export async function snapCheck(page, name, check, { threshold = 0.12, maxDiffRatio = 0.02, shot } = {}) {
+ *  Tighten (pass 0,0) for a snap that must be exact. `baseDir` overrides where
+ *  the committed baseline lives (default shots/baseline/); scene snaps point it
+ *  at shots/scenes/ so they keep their own folder apart from verify/vibe. */
+export async function snapCheck(page, name, check, { threshold = 0.12, maxDiffRatio = 0.02, shot, baseDir = BASELINE } = {}) {
   // SNAP=<substr> runs only the snaps whose name contains <substr> (comma-OR).
   // The harness still drives all setup, but unmatched snaps are skipped — no
   // compare, no diff/actual written. Use it to iterate on one view fast.
@@ -66,8 +68,8 @@ export async function snapCheck(page, name, check, { threshold = 0.12, maxDiffRa
   // sheet, a reused frame) skip the page.screenshot(); otherwise grab one now.
   if (!shot) shot = await page.screenshot();
   // name may carry a subfolder (e.g. 'vibe/heavy-both/t000s'); make it.
-  await mkdir(BASELINE + (name.includes('/') ? name.slice(0, name.lastIndexOf('/')) : ''), { recursive: true });
-  const basePath = BASELINE + name + '.png';
+  await mkdir(baseDir + (name.includes('/') ? name.slice(0, name.lastIndexOf('/')) : ''), { recursive: true });
+  const basePath = baseDir + name + '.png';
   let baseline = null;
   try {
     baseline = PNG.sync.read(await readFile(basePath));

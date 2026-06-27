@@ -1,6 +1,6 @@
 ---
 name: screenshot-regression
-description: How to take screenshots of the game and use pixel-exact snapshot regression — across the verify harnesses, the vibe timelines, and the model turntable. Use when verifying UI/rendering changes, adding a new visual feature, re-blessing baselines after an intentional visual or mechanics change, or debugging a snapshot failure. Pairs with [write-scenario](../write-scenario/SKILL.md) (the scenarios whose snaps obey these rules).
+description: How to take screenshots of the game and use pixel-exact snapshot regression — across the verify harnesses, the vibe timelines, and the model turntable. Use when verifying UI/rendering changes, adding a new visual feature, re-blessing baselines after an intentional visual or mechanics change, or debugging a snapshot failure. Pairs with [write-scene](../write-scene/SKILL.md) (the scenes whose snaps obey these rules).
 ---
 
 # Screenshots and pixel-level regression testing
@@ -164,20 +164,20 @@ Click-to-select and drag-box are real input paths; drive them with
 
 ## Running just one snapshot
 
-> Battle verification now uses addressable **scenarios** (one runner over
-> `web/scenarios/*.mjs`); campaign verification is still on the legacy flat
-> harnesses. See `specs/scenarios.md` and the `write-scenario` skill for the
+> Battle verification now uses addressable **scenes** (one runner over
+> `web/scenes/*.mjs`); campaign verification is still on the legacy flat
+> harnesses. See `specs/scenes.md` and the `write-scene` skill for the
 > target architecture.
 
-For battle work, run the smallest scenario by name:
-`node scenario.mjs battle-ai --full`, `node scenario.mjs banner-gallery`, or
-`node scenario.mjs battle-cavalry-plow --full`. `web/verify-battle.mjs` remains
-a compatibility wrapper over those scenarios, so old commands still work.
+For battle work, run the smallest scene by name:
+`node scene.mjs battle-ai --full`, `node scene.mjs banner-gallery`, or
+`node scene.mjs battle-cavalry-plow --full`. `web/verify-battle.mjs` remains
+a compatibility wrapper over those scenes, so old commands still work.
 
-Within a selected scenario, set `SNAP=<substr>` to compare only snaps whose name
+Within a selected scene, set `SNAP=<substr>` to compare only snaps whose name
 contains the substring (comma-separated = OR), skipping the rest (no compare, no
 diff written). Snapshots behind `--full` still need `--full` or an explicit
-scenario name. For campaign-marker work prefer `verify-campaign-visual.mjs`
+scene name. For campaign-marker work prefer `verify-campaign-visual.mjs`
 (the fake `?campaign=test` map) — it never spawns a battle, so it won't churn
 the tracked battle scratch shots (`initial.png`, `manual.png`, `cluster-*.png`)
 that the battle harness rewrites every run. Restore those with

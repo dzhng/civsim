@@ -220,12 +220,13 @@ pub const MORALE_CAP_REGEN: f32 = 0.05;
 /// (0.02 left sacked cities open for fifty days — a razed garrison now
 /// stands again in under a month.)
 pub const GARRISON_REGEN: f32 = 0.04;
-/// A garrison only regenerates while its city's territory is clear — no enemy
-/// army within this many road tiles. A besieged city (enemy at the gate) is the
-/// extreme case: its walls can't regrow mid-assault, or the besieger wins every
-/// fight yet a freshly-regrown garrison keeps the city un-takeable. But an enemy
-/// column merely roaming the near approaches also pins the garrison — a realm
-/// rebuilds its walls in peace, not under invasion. ~6 tiles ≈ a day's march.
+/// A city replenishes its garrison — by regen AND by completing musters (economy
+/// `day_tick`) — only while its territory is clear of enemies within this many
+/// road tiles. A besieged city (enemy at the gate) is the extreme case: it can't
+/// rebuild mid-assault, or the besieger wins every fight yet a freshly-replenished
+/// garrison keeps the city un-takeable. But an enemy column merely roaming the
+/// near approaches also pins it — a realm rebuilds its walls in peace, not under
+/// invasion. ~6 tiles ≈ a day's foot march.
 pub const GARRISON_SAFE_TILES: u32 = 6;
 
 // ---- AI fiscal discipline --------------------------------------------------

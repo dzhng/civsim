@@ -443,10 +443,10 @@ fn encounters(map: &WorldMap, st: &mut CampaignState) {
             }
             // The mover is the attacker; ties go to the lower id. A city
             // garrison always defends, and a defended city stands a siege
-            // before the assault commits — a short prep the world runs through,
-            // the real-time window for relief to reach the walls. A dug-in camp
-            // also always defends, formed up the moment it's hit: the surprise
-            // is on whoever marched into the palisade.
+            // before the assault commits — the window the world runs through in
+            // which relief can still reach the walls. A dug-in camp also always
+            // defends, formed up the moment it's hit: the surprise is on whoever
+            // marched into the palisade.
             let a_dug_in = matches!(
                 a.stance,
                 Stance::Camp {

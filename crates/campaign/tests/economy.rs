@@ -101,6 +101,40 @@ fn recruiting_delivers_a_new_army() {
 }
 
 #[test]
+fn besieged_city_does_not_complete_a_muster() {
+    // The other half of "no replenishment under invasion": a city with an enemy
+    // in its territory holds its recruit queue. Otherwise a finished muster
+    // falls back into the blockaded garrison (deliver_recruits) and re-arms the
+    // walls mid-siege, just as regen would.
+    let mut c = Campaign::new(test_map(), 7, 0);
+    inert(&mut c);
+    c.state.factions[0].treasury = 10_000;
+    c.state.cities.get_mut(&0).unwrap().garrison.clear(); // no sortie to cloud the test
+    assert!(c.order_recruit(0, contract::UnitClassId::Archers, 240)); // muster at A
+    let mustered = |c: &Campaign| {
+        c.state.armies.iter().any(|a| {
+            a.faction == 0
+                && a.roster.iter().any(|r| r.class == contract::UnitClassId::Archers && r.count > 0)
+        }) || c.state.cities[&0]
+            .garrison
+            .iter()
+            .any(|r| r.class == contract::UnitClassId::Archers && r.count > 0)
+    };
+    // Enemy a few tiles into A's territory the whole time.
+    c.state.armies[1].loc = Loc::Edge { edge: 0, tile: 4 };
+    for _ in 0..4 * tunables::TICKS_PER_DAY + 2 {
+        c.tick();
+    }
+    assert!(!mustered(&c), "a city under threat must not complete its muster");
+    // Pull the enemy out of territory; the muster finishes.
+    c.state.armies[1].loc = Loc::Node(2);
+    for _ in 0..3 * tunables::TICKS_PER_DAY + 2 {
+        c.tick();
+    }
+    assert!(mustered(&c), "once the territory clears the muster completes");
+}
+
+#[test]
 fn undefended_city_is_occupied_and_flips() {
     let mut c = Campaign::new(test_map(), 7, 0);
     inert(&mut c);

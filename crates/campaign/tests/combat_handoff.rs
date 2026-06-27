@@ -97,6 +97,100 @@ fn garrison_sorties_and_blocks_assault() {
 }
 
 #[test]
+fn player_city_assault_stands_a_siege() {
+    // Player is red (faction 0); A (node 0) is the player's city. An enemy
+    // assault on a defended PLAYER city opens a long siege the world runs
+    // through — the real-time window for the human to march relief — instead of
+    // committing to battle at the usual brief-prep pace.
+    let mut c = Campaign::new(test_map(), 7, 0);
+    inert(&mut c);
+    c.state.armies[0].roster[0].count = 0; // no red field army to intercept
+    c.state
+        .cities
+        .get_mut(&0)
+        .unwrap()
+        .garrison
+        .push(RosterEntry {
+            class: contract::UnitClassId::LightSpear,
+            count: 440,
+            max: 440,
+            morale_cap: 1.0,
+        });
+    // Start blue adjacent to A by road (at B): an overland approach so the
+    // garrison sorties as the enemy nears, rather than a sea lane that
+    // disembarks straight onto the port city.
+    c.state.armies[1].loc = Loc::Node(1);
+    assert!(c.order_move(1, Loc::Node(0))); // blue marches on the player's city
+    let mut sieged = false;
+    for _ in 0..20_000 {
+        c.tick();
+        if let Some(e) = c
+            .state
+            .encounters
+            .iter()
+            .find(|e| c.state.armies[e.defender as usize].garrison_of == Some(0))
+        {
+            assert_eq!(e.phase, EncounterPhase::Preparing);
+            assert_eq!(
+                e.prep_attacker,
+                tunables::SIEGE_TICKS,
+                "a defended player city stands a long siege"
+            );
+            assert_eq!(e.prep_defender, tunables::SIEGE_TICKS);
+            sieged = true;
+            break;
+        }
+    }
+    assert!(sieged, "an assault on the player's defended city must open a siege");
+    // The siege does NOT commit instantly — the campaign is free to keep running.
+    assert!(
+        c.state.battle_ready.is_none(),
+        "a siege gives the defender time before the battle commits"
+    );
+}
+
+#[test]
+fn ai_city_assault_commits_at_normal_pace() {
+    // Player is a third, idle faction, so red→blue is an AI-vs-AI assault: the
+    // garrison stands no siege (the long window is the human's alone, and a
+    // 12.5-day siege on every AI assault would clog the campaign loop).
+    let mut c = Campaign::new(test_map(), 7, 2);
+    inert(&mut c);
+    c.state.armies[1].roster[0].count = 0; // no blue field army
+    c.state
+        .cities
+        .get_mut(&2)
+        .unwrap()
+        .garrison
+        .push(RosterEntry {
+            class: contract::UnitClassId::LightSpear,
+            count: 440,
+            max: 440,
+            morale_cap: 1.0,
+        });
+    assert!(c.order_move(0, Loc::Node(2)));
+    let mut formed = false;
+    for _ in 0..20_000 {
+        c.tick();
+        if let Some(e) = c
+            .state
+            .encounters
+            .iter()
+            .find(|e| c.state.armies[e.defender as usize].garrison_of == Some(2))
+        {
+            assert_eq!(
+                e.prep_attacker,
+                tunables::PREP_TICKS,
+                "an AI-vs-AI assault commits at the usual brief-prep pace"
+            );
+            formed = true;
+            break;
+        }
+    }
+    assert!(formed, "the garrison encounter should form");
+}
+
+#[test]
 fn handoff_and_outcome_rout_or_annihilation() {
     let mut c = Campaign::new(test_map(), 7, 0);
     inert(&mut c);

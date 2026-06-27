@@ -107,6 +107,15 @@ export function campaignDomHtml(): string {
       #campaign-ui .cmp-build-row > span { flex:1; }
       #campaign-ui .cmp-city-meta { color:#b9aa8b;margin-top:3px;line-height:1.25; }
       #campaign-ui .cmp-recruits { display:flex;gap:4px;flex-wrap:wrap;margin-top:6px; }
+      #campaign-ui .cmp-sieges { position:fixed;right:10px;top:50%;transform:translateY(-50%);
+        width:230px;display:flex;flex-direction:column;gap:8px;z-index:15;pointer-events:none; }
+      #campaign-ui .cmp-siege { pointer-events:auto;cursor:pointer;color:#f3e3c4;font:12px system-ui;
+        padding:8px 10px;border-radius:3px;border:1px solid rgba(196,108,82,0.7);
+        background:linear-gradient(180deg,rgba(58,28,24,0.96),rgba(26,16,14,0.96));
+        box-shadow:0 8px 22px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,196,150,0.12); }
+      #campaign-ui .cmp-siege:hover { border-color:#e08a5a; }
+      #campaign-ui .cmp-siege b { font-family:Cinzel, Georgia, serif;color:#ffd9a0; }
+      #campaign-ui .cmp-siege-sub { color:#d7b69a;font-size:11px;margin-top:2px; }
     </style>
     <div class="cmp-top">
       <span id="cmp-date">Day 1</span>
@@ -125,6 +134,7 @@ export function campaignDomHtml(): string {
     </div>
     <div class="cmp-panel" id="cmp-army" style="display:none"></div>
     <div class="cmp-panel" id="cmp-city" style="display:none;top:auto;bottom:10px;"></div>
+    <div class="cmp-sieges" id="cmp-sieges"></div>
     <div class="cmp-panel" id="cmp-diplomacy"
       style="display:none;left:10px;right:auto;top:44px;width:300px;max-height:84vh;overflow:auto;"></div>
     <div class="cmp-panel" id="cmp-classes"

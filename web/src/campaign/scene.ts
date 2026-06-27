@@ -51,6 +51,7 @@ export interface CampaignConfig {
 }
 
 interface EncounterSide {
+  id: number;
   faction: number;
   soldiers: number;
   garrison: boolean;
@@ -63,6 +64,14 @@ interface EncounterInfo {
   no_retreat: [boolean, boolean];
   reinforcements: number;
   ambush: boolean;
+}
+
+/** One of the player's cities currently standing a siege (live, not paused). */
+interface SiegeView {
+  node: number;
+  x: number;
+  y: number;
+  attacker: number;
 }
 
 export class CampaignScene implements Scene {
@@ -111,6 +120,9 @@ export class CampaignScene implements Scene {
   private spotPos: [number, number][] = [];
   private modal: HTMLDivElement | null = null;
   private autoResolving = false;
+  /** Signature of the currently-shown siege notifications, to avoid rebuilding
+   *  the DOM (and its click handlers) every tick. */
+  private siegeSig = '';
 
   constructor(private cfg: CampaignConfig) {
     this.cam = { x: 0, y: 0, scale: 0.18 };
@@ -286,22 +298,32 @@ export class CampaignScene implements Scene {
     // backdrop: stop redrawing the world behind it. The 3D map render is the
     // frame's whole cost, so skipping it keeps the decision UI responsive
     // instead of grinding a heavy frame the player can't even see.
-    if (!this.autoResolving && !this.modal) {
-      this.renderer.resize();
-      this.t3d!.resize();
-      this.t3d!.clampCam(this.cam); // zoom floor = aspect-fill, pan inside the map
-      if (this.fogOfWar) this.t3d!.setVision(this.visionSources());
-      // 3D models under the floating banners; fogged enemies are dropped.
-      this.t3d!.setArmies(this.armies, this.cam.scale, this.stackUnitCap, this.selected, this.hover, this.fogOfWar);
-      this.t3d!.setSelectedCity(this.selectedCity);
-      this.t3d!.draw(this.cam, this.factionView, this.fogOfWar);
-      const sel = this.armies.find((a) => a.id === this.selected && a.mine);
-      const hints: [number, number][] = sel
-        ? this.spotPos.filter(([x, y]) => Math.hypot(x - sel.x, y - sel.y) < 12)
-        : [];
-      this.renderer.draw(this.cam, this.armies, this.cities, this.selected, null, this.territory!.labels, this.roadLevels, hints, this.factionView, this.fogOfWar, this.territory!.borders, this.factionStatus);
-    }
+    if (!this.autoResolving && !this.modal) this.drawWorld();
     this.updateHud();
+  }
+
+  /** One full world render at the current camera. The frame's whole cost. */
+  private drawWorld() {
+    this.renderer.resize();
+    this.t3d!.resize();
+    this.t3d!.clampCam(this.cam); // zoom floor = aspect-fill, pan inside the map
+    if (this.fogOfWar) this.t3d!.setVision(this.visionSources());
+    // 3D models under the floating banners; fogged enemies are dropped.
+    this.t3d!.setArmies(this.armies, this.cam.scale, this.stackUnitCap, this.selected, this.hover, this.fogOfWar);
+    this.t3d!.setSelectedCity(this.selectedCity);
+    this.t3d!.draw(this.cam, this.factionView, this.fogOfWar);
+    const sel = this.armies.find((a) => a.id === this.selected && a.mine);
+    const hints: [number, number][] = sel
+      ? this.spotPos.filter(([x, y]) => Math.hypot(x - sel.x, y - sel.y) < 12)
+      : [];
+    this.renderer.draw(this.cam, this.armies, this.cities, this.selected, null, this.territory!.labels, this.roadLevels, hints, this.factionView, this.fogOfWar, this.territory!.borders, this.factionStatus);
+  }
+
+  /** Pan the camera to a world point (clamped inside the map). */
+  private centerCam(x: number, y: number) {
+    this.cam.x = x;
+    this.cam.y = y;
+    this.t3d!.clampCam(this.cam);
   }
 
   // ---- state out of wasm ----------------------------------------------------
@@ -316,11 +338,41 @@ export class CampaignScene implements Scene {
     // it every frame). City/army FLAGS are faction-coloured, so they only need
     // a recolour when a town actually changes hands.
     this.refreshFactionStatus();
+    this.refreshSieges();
     if (views.ownerHash !== this.ownerHash && this.territory && this.t3d) {
       this.ownerHash = views.ownerHash;
       this.territory.rebuild(this.cities);
       this.t3d.updateTerritory(this.territory.rgba);
       this.t3d.setCityOwners(this.cities);
+    }
+  }
+
+  /** Live notifications for the player's besieged cities. The world keeps
+   *  running (no auto-pause); clicking a notice pans the camera to the city so
+   *  the player can rush relief before the garrison battle commits. */
+  private refreshSieges() {
+    const sieges = JSON.parse(this.cfg.campaign.sieges_json()) as SiegeView[];
+    const facName = (f: number) => this.cfg.data.map.factions[f]?.name ?? `faction ${f}`;
+    // Rebuild only when the set of besieged cities changes, not every tick.
+    const sig = sieges.map((s) => s.node).join(',');
+    const box = this.ui.querySelector('#cmp-sieges') as HTMLDivElement | null;
+    if (!box) return;
+    if (sig !== this.siegeSig) {
+      this.siegeSig = sig;
+      box.innerHTML = sieges
+        .map(
+          (s) => `<div class="cmp-siege" data-node="${s.node}" data-x="${s.x}" data-y="${s.y}">
+            <b>⚔ ${this.cfg.data.map.nodes[s.node].name} under siege</b>
+            <div class="cmp-siege-sub">${facName(s.attacker)} at the walls — click to view</div>
+          </div>`,
+        )
+        .join('');
+      box.querySelectorAll<HTMLDivElement>('.cmp-siege').forEach((el) =>
+        el.addEventListener('click', () => {
+          this.centerCam(Number(el.dataset.x), Number(el.dataset.y));
+          this.openCityPanel(Number(el.dataset.node));
+        }),
+      );
     }
   }
 
@@ -473,6 +525,17 @@ export class CampaignScene implements Scene {
         ${noRetreat ? '<div class="cmp-warn">NO RETREAT — destroyed if defeated</div>' : ''}
       </div>`;
     const mineInvolved = info.attacker.faction === my || info.defender.faction === my;
+    // Jump the camera to where the fight is so the player sees the threat
+    // behind the (semi-transparent) modal. Prefer the defender — that is the
+    // place under attack — and fall back to the attacker if it is off-map or
+    // fogged (e.g. a city garrison not drawn as a field army).
+    const at =
+      this.armies.find((a) => a.id === info.defender.id) ??
+      this.armies.find((a) => a.id === info.attacker.id);
+    if (at) {
+      this.centerCam(at.x, at.y);
+      this.drawWorld(); // one render at the new camera before the modal covers it
+    }
     this.modal = document.createElement('div');
     this.modal.className = 'cmp-modal';
     this.modal.innerHTML = `

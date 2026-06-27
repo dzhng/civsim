@@ -231,6 +231,35 @@ impl Campaign {
         .to_string()
     }
 
+    /// Active sieges of the PLAYER's cities — the defended towns currently
+    /// standing an assault, for the on-map "city besieged" notifications. The
+    /// world keeps running through a siege (no auto-pause); clicking a notice
+    /// pans the camera to the city. Each entry carries the city node, its world
+    /// position (to pan to), and the besieging faction.
+    pub fn sieges_json(&self) -> String {
+        let st = &self.inner.state;
+        let map = &self.inner.map;
+        let mut rows: Vec<serde_json::Value> = Vec::new();
+        for e in &st.encounters {
+            if e.phase != EncounterPhase::Preparing {
+                continue;
+            }
+            let def = &st.armies[e.defender as usize];
+            let Some(node) = def.garrison_of else { continue }; // garrison defender = a siege
+            if def.faction != st.player_faction {
+                continue; // only the player's own cities raise a notification
+            }
+            let [x, y] = campaign::sim::loc_pos(map, Loc::Node(node));
+            rows.push(serde_json::json!({
+                "node": node,
+                "x": x,
+                "y": y,
+                "attacker": st.armies[e.attacker as usize].faction,
+            }));
+        }
+        serde_json::json!(rows).to_string()
+    }
+
     // ---- orders (the wasm layer enforces "player commands only own armies")
 
     pub fn order_move(&mut self, army: u32, kind: u32, a: u32, b: u32) -> bool {

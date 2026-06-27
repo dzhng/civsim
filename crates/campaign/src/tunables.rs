@@ -87,10 +87,19 @@ pub fn feature_mult(feature: crate::mapdata::TileFeature) -> f32 {
     }
 }
 
-/// Encounter prep: 20 ticks reads as 2.0 s at 1x speed.
+/// Field-encounter prep — a brief "form up" beat before two field armies
+/// clash. Real-time-anchored (raw ticks, not game-minutes): the frontend runs
+/// ~60 ticks/s at base speed, so 20 ticks ≈ 0.3 s.
 pub const PREP_TICKS: u16 = 20;
 /// Ambush victim / surprised attacker prep.
 pub const PREP_SURPRISED_TICKS: u16 = 40;
+/// A city assault does NOT commit instantly. When a field army contacts a
+/// defended city the garrison sorties and the two enter a *siege* — a long prep
+/// the campaign keeps running through, giving the defender a real-time window to
+/// march relief before the garrison battle begins. Real-time-anchored like
+/// PREP_TICKS: 1800 ticks ≈ 30 s at base speed (≈ 12.5 game-days). An undefended
+/// city (no garrison) has nothing to besiege and still falls via `occupations`.
+pub const SIEGE_TICKS: u16 = 1800;
 /// Armies preparing for battle move at half pace.
 pub const PREP_SPEED_MULT: f32 = 0.5;
 /// Digging a camp in takes an hour; the payoff is instant readiness when

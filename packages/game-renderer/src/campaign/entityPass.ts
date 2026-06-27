@@ -256,30 +256,37 @@ function buildCityMesh(): MeshData {
   const sandstone: Rgb = [0.82, 0.74, 0.56];
   const roof: Rgb = [0.66, 0.40, 0.30];
   const timber: Rgb = [0.45, 0.36, 0.28];
+  const darkTimber: Rgb = [0.28, 0.20, 0.15];
+  const mastX = 0.08;
+  const mastY = 0.04;
   builder.shadow(3.65, 1.95, 0.14, [0.28, -0.54]);
-  builder.box([0.05, -0.54, 2.72], [0.18, 0.18, 5.44], timber, 1);
+  builder.box([mastX, mastY, 2.68], [0.18, 0.18, 5.36], darkTimber, 1);
   builder.panel3d([
-    [0.04, -0.54, 5.72],
-    [-2.02, -0.54, 5.54],
-    [-1.66, -0.54, 4.78],
-    [-2.02, -0.54, 4.04],
-    [0.04, -0.54, 3.86],
+    [mastX - 0.01, mastY, 5.58],
+    [-1.72, mastY, 5.44],
+    [-1.44, mastY, 4.92],
+    [-1.72, mastY, 4.40],
+    [mastX - 0.01, mastY, 4.26],
   ], [1, 1, 1], 1);
-  builder.box([0.05, -0.66, 4.78], [0.16, 0.10, 2.08], timber, 1);
-  builder.box([-0.86, -0.66, 5.36], [1.88, 0.10, 0.12], timber, 1);
-  builder.box([0.05, -0.66, 3.72], [0.32, 0.22, 0.24], [0.35, 0.24, 0.18], 1);
+  builder.box([mastX, mastY, 4.82], [0.14, 0.10, 1.40], darkTimber, 1);
+  builder.box([-0.76, mastY, 5.28], [1.58, 0.09, 0.10], darkTimber, 1);
+  builder.box([mastX - 0.08, mastY - 0.05, 4.88], [0.12, 0.12, 1.22], darkTimber, 1);
+  builder.box([-0.78, mastY - 0.05, 4.32], [1.46, 0.08, 0.08], darkTimber, 1);
+  builder.box([mastX, mastY, 3.62], [0.30, 0.22, 0.24], [0.35, 0.24, 0.18], 1);
   builder.panel3d([
-    [0.04, 0.08, 2.02],
-    [-0.46, 0.08, 1.94],
-    [-0.46, 0.08, 0.82],
-    [0.04, 0.08, 0.90],
+    [mastX - 0.02, mastY, 2.05],
+    [-0.48, mastY, 1.96],
+    [-0.48, mastY, 0.82],
+    [mastX - 0.02, mastY, 0.92],
   ], [1, 1, 1], 1);
-  builder.box([0.05, -0.54, 4.90], [0.12, 0.08, 0.50], timber, 1);
   const building = (x: number, y: number, w: number, d: number, h: number) => {
     builder.box([x, y, h * 0.5], [w, d, h], sandstone, 1);
     builder.box([x, y, h + h * 0.19], [w * 1.18, d * 1.18, h * 0.38], roof, 1);
   };
   building(0, 0, 2.4, 2.4, 3.0);
+  building(0.22, 0.08, 1.28, 1.14, 3.42);
+  builder.box([mastX, mastY, 4.80], [0.54, 0.48, 0.20], sandstone, 1);
+  builder.box([mastX, mastY, 4.94], [0.34, 0.30, 0.16], roof, 1);
   let seed = 2654435761 | 0;
   const rand = () => (seed = (Math.imul(seed, 1103515245) + 12345) & 0x7fffffff) / 0x80000000;
   for (let i = 0; i < 18; i++) {
@@ -299,6 +306,9 @@ function buildArmyMesh(): MeshData {
   builder.shadow(1.95, 1.08, 0.16, [0.08, -0.24]);
   builder.box([0, 0, 2.38], [0.16, 0.16, 4.76], timber, 1);
   builder.box([0, 0, 4.84], [0.28, 0.28, 0.22], [0.72, 0.57, 0.28], 1);
+  builder.box([0.08, -0.11, 3.80], [0.12, 0.12, 1.20], timber, 1);
+  builder.box([0.86, -0.06, 4.26], [1.54, 0.08, 0.08], timber, 1);
+  builder.box([0.86, -0.04, 3.30], [1.54, 0.08, 0.08], timber, 1);
   builder.panel3d([
     [0.08, -0.10, 4.34],
     [1.02, 0.00, 4.27],

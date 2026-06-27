@@ -763,7 +763,7 @@ const CAMPAIGN_MODEL_GATES: CampaignModelGate[] = [
 
 const MODEL_GATE_CITY_POSITION: [number, number] = [0.0, -1.8];
 const MODEL_GATE_CITY_RADIUS = 6.6;
-const MODEL_GATE_GARRISON_ARMY_POSITION: [number, number] = [-0.20, -1.65];
+const MODEL_GATE_GARRISON_ARMY_POSITION: [number, number] = [0.65, -1.65];
 const MODEL_GATE_GARRISON_ARMY_RADIUS = 7.0;
 
 function campaignModelGate(value: string | null): CampaignModelGate {
@@ -904,8 +904,8 @@ function campaignModelGateCityStandardSamples(
   ]);
   return {
     hiddenLowerCloth: worldPoint([-0.22, 0.08, 1.45]),
-    visibleUpperCloth: worldPoint([-1.08, -0.54, 5.22]),
-    plantedMastCore: worldPoint([0.05, -0.54, 2.35]),
+    visibleUpperCloth: worldPoint([-1.04, 0.04, 4.98]),
+    plantedMastCore: worldPoint([0.08, 0.04, 2.35]),
   };
 }
 

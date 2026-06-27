@@ -98,3 +98,11 @@ is still open. Fresh critique of the garrison gate flags the flag/pole mounting,
 roof/banner layering, selection-ring contrast, soft shadows, noisy terrain, and
 test-tile context. Treat those as campaign entity polish blockers before this
 slice can claim parity with the old renderer.
+
+Latest checkpoint: city and army standards now include visible hoist/crossbar
+geometry and the city mast has a small roof collar so the marker is less purely
+cloth-over-roof. This preserved the nested-object pixel gates and improved the
+close campaign parity metric, but unprimed critique still flags the flags as
+physically wrong, with missing contact/cast shadows and weak selection/label
+readability. The next entity slice should improve sockets, shadows, ring
+contrast, and label spacing before claiming campaign marker parity.

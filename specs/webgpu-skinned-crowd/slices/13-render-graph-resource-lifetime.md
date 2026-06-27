@@ -167,6 +167,16 @@ a fresh critique still flags confused flag/pole attachment, clipping banners,
 low-contrast selection ring, soft ungrounded shadow, noisy terrain, and
 test-tile framing as visual blockers for campaign polish.
 
+The first city/army standard art pass moved the city mast into the settlement
+core, added a roof collar plus hoist/crossbar geometry, and shifted the
+garrison pose so the lower army remains hidden while its raised standard is
+readable. The hard samples still pass (`blue: 0` on the buried garrison body,
+faction color on the raised standard), and Campaign Label Zoom improved to
+`0.19952` full / `0.26605` crop. Fresh critique still rejects the flags as
+final because attachment, flag shadows, selection-ring contrast, city contact
+shadows, and label/ring spacing remain weak. Treat this as incremental model
+geometry progress, not campaign close-view acceptance.
+
 Fresh screenshot critique after this gate still flags non-engine visual
 blockers for later slices: labels can overlap city facades, roof/prop
 placement is not always readable, the selected-army ring reads too neon and

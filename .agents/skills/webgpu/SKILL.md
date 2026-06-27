@@ -383,6 +383,13 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   and an exposed cloth point should resolve to faction color. Keep the visible
   cloth readable, but place a lower segment inside the settlement volume so the
   gate proves interpenetration rather than just flag height.
+- When a city/army standard passes nested-depth samples but still reads like a
+  pasted flag, add real attachment geometry before moving poses again. A visible
+  mast socket, hoist strip, and cloth crossbar can improve the model-gate crop
+  and move close campaign parity, but it is not acceptance if fresh critique
+  still sees disconnected blocks, missing flag shadows, or ambiguous roof/cloth
+  depth. Record those as model-art blockers and target contact shadows, stronger
+  socket massing, and face lighting next.
 - Production garrison gates should prove both sides of the nested-object
   contract. A fully hidden token does not prove readable garrison presentation,
   and random faction-color slivers do not prove a coherent army inside the

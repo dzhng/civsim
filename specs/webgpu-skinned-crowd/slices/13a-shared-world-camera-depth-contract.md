@@ -116,6 +116,9 @@ shadows that sit on the ground instead of floating as screen overlays.
 - `/webgpu/skinned-depth` exercises the real `SkinnedCrowdPipeline` with a
   hostile cross-bucket order: the nearer soldier is submitted before a later
   rear class bucket, and the scenario samples the overlap to prove depth wins.
+- Normal production battle and campaign renderer stats now expose the shared
+  camera contract, allocated depth attachment, and executed frame phases, and
+  production scenarios assert those fields instead of relying only on lab gates.
 - Type batching is permitted only as a performance strategy. Batches for trees,
   rocks, cities, armies, and soldier mesh variants must not create their own
   visual ordering rules or private depth scales.

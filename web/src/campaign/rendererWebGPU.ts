@@ -212,6 +212,7 @@ export class CampaignRendererWebGPU {
       width: shell?.width ?? 0,
       height: shell?.height ?? 0,
       device: shell?.device ?? 'initializing',
+      cameraContract: shell?.cameraContract ?? 'initializing',
       ...this.lastEntities,
       labels: this.labelStats.labels,
       visibleLabels: this.labelStats.visibleLabels,

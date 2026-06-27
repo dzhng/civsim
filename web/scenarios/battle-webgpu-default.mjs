@@ -29,7 +29,12 @@ export async function run(ctx) {
     stats.renderer === 'webgpu'
       && stats.renderStats?.ready === true
       && stats.renderStats.soldiers === stats.soldiers
-      && stats.renderStats.atmosphere === 'aegean-sky-haze',
+      && stats.renderStats.atmosphere === 'aegean-sky-haze'
+      && stats.renderStats.cameraContract === 'shared-world-camera-wgsl'
+      && stats.renderStats.skinnedCameraContract === 'shared-world-camera-wgsl'
+      && stats.renderStats.depth?.allocated === true
+      && stats.renderStats.depth?.format === 'depth24plus'
+      && hasFramePhaseOrder(stats.renderStats.phases),
     JSON.stringify(stats),
   );
   ctx.check(
@@ -72,9 +77,22 @@ export async function run(ctx) {
     const retiredStats = await legacyPage.evaluate(() => window.__game.stats());
     ctx.check(
       `retired gfx=${retired} battle route still uses raw WebGPU`,
-      retiredStats.renderer === 'webgpu' && retiredStats.renderStats?.drawCalls === 1,
+      retiredStats.renderer === 'webgpu'
+        && retiredStats.renderStats?.drawCalls === 1
+        && retiredStats.renderStats?.cameraContract === 'shared-world-camera-wgsl'
+        && retiredStats.renderStats?.skinnedCameraContract === 'shared-world-camera-wgsl'
+        && retiredStats.renderStats?.depth?.allocated === true
+        && hasFramePhaseOrder(retiredStats.renderStats?.phases),
       JSON.stringify(retiredStats),
     );
     await legacyPage.close();
   }
+}
+
+function hasFramePhaseOrder(phases) {
+  const kinds = Array.isArray(phases) ? phases.map((phase) => phase?.kind) : [];
+  const background = kinds.indexOf('background');
+  const world = kinds.indexOf('world-depth');
+  const overlay = kinds.includes('overlay') ? kinds.indexOf('overlay') : kinds.length;
+  return background === 0 && world > background && overlay > world;
 }

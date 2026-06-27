@@ -500,6 +500,11 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   route stats and make depth-critical scenarios assert `background ->
   world-depth` (and overlay when relevant), so future routes cannot silently
   paint true 3D geometry through a no-depth side channel.
+- Production battle/campaign scenarios should assert the same contract as the
+  lab routes. Expose `cameraContract`, depth allocation, and executed
+  `framePhases`/`phases` from normal game renderer stats; otherwise a lab gate
+  can stay green while the shipped route quietly drifts into a different pass
+  shape.
 - Shared projection does not require one numeric depth scale for every world.
   Battle and campaign should import the same camera/projection helpers, but
   large battlefields and compact campaign fixtures need named depth helpers

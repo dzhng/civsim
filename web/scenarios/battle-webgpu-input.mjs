@@ -73,7 +73,13 @@ export async function run(ctx) {
     const frozenDiff = pixelByteDiff(frozenA, frozenB);
     ctx.check(
       `dpr${dpr}: freezeAtTick keeps WebGPU canvas pixels stable`,
-      frozenStats.renderer === 'webgpu' && frozenDiff === 0,
+      frozenStats.renderer === 'webgpu'
+        && frozenStats.renderStats?.cameraContract === 'shared-world-camera-wgsl'
+        && frozenStats.renderStats?.skinnedCameraContract === 'shared-world-camera-wgsl'
+        && frozenStats.renderStats?.depth?.allocated === true
+        && frozenStats.renderStats?.depth?.format === 'depth24plus'
+        && hasFramePhaseOrder(frozenStats.renderStats?.phases)
+        && frozenDiff === 0,
       JSON.stringify({ renderer: frozenStats.renderer, diffBytes: frozenDiff, renderStats: frozenStats.renderStats }),
     );
 
@@ -95,7 +101,9 @@ export async function run(ctx) {
       ordered.selected.includes(4)
         && ordered.hasTarget > 0.5
         && Math.hypot(ordered.targetX - orderTarget.worldX, ordered.targetY - orderTarget.worldY) < 2.0
-        && ordered.stats.renderStats?.soldiers === ordered.stats.soldiers,
+        && ordered.stats.renderStats?.soldiers === ordered.stats.soldiers
+        && ordered.stats.renderStats?.cameraContract === 'shared-world-camera-wgsl'
+        && hasFramePhaseOrder(ordered.stats.renderStats?.phases),
       JSON.stringify({ target: orderTarget, ordered }),
     );
 
@@ -106,12 +114,23 @@ export async function run(ctx) {
     const zoomed = await page.evaluate(() => ({ zoom: window.__cam.zoom, stats: window.__game.stats() }));
     ctx.check(
       `dpr${dpr}: wheel zoom updates the production WebGPU battle camera`,
-      zoomed.zoom > zoomBefore && zoomed.stats.renderStats?.soldiers === zoomed.stats.soldiers,
+      zoomed.zoom > zoomBefore
+        && zoomed.stats.renderStats?.soldiers === zoomed.stats.soldiers
+        && zoomed.stats.renderStats?.cameraContract === 'shared-world-camera-wgsl'
+        && hasFramePhaseOrder(zoomed.stats.renderStats?.phases),
       JSON.stringify({ before: zoomBefore, after: zoomed.zoom, renderStats: zoomed.stats.renderStats }),
     );
 
     await page.close();
   }
+}
+
+function hasFramePhaseOrder(phases) {
+  const kinds = Array.isArray(phases) ? phases.map((phase) => phase?.kind) : [];
+  const background = kinds.indexOf('background');
+  const world = kinds.indexOf('world-depth');
+  const overlay = kinds.includes('overlay') ? kinds.indexOf('overlay') : kinds.length;
+  return background === 0 && world > background && overlay > world;
 }
 
 async function frameUnit(page, unit) {

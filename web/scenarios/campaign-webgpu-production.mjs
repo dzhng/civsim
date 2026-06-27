@@ -28,7 +28,11 @@ export async function run(ctx) {
       && stats.waterFeatures >= 5
       && stats.cloudQuads === 1
       && stats.labelLayer === 'raw-webgpu-glyph-atlas'
-      && stats.labelVertices > 0,
+      && stats.labelVertices > 0
+      && stats.cameraContract === 'shared-world-camera-wgsl'
+      && stats.depth?.allocated === true
+      && stats.depth?.format === 'depth24plus'
+      && hasFramePhaseOrder(stats.phases),
     JSON.stringify(stats),
   );
   ctx.check(
@@ -88,7 +92,9 @@ export async function run(ctx) {
     cityOpened.selected === -1
       && cityOpened.cityPanel.includes('Roma')
       && cityOpened.webgpu.visibleLabels >= 2
-      && cityOpened.webgpu.labelLayer === 'raw-webgpu-glyph-atlas',
+      && cityOpened.webgpu.labelLayer === 'raw-webgpu-glyph-atlas'
+      && cityOpened.webgpu.cameraContract === 'shared-world-camera-wgsl'
+      && hasFramePhaseOrder(cityOpened.webgpu.phases),
     JSON.stringify({ cityTarget, cityOpened }),
   );
 
@@ -103,10 +109,21 @@ export async function run(ctx) {
     retiredStats.renderer === 'webgpu-campaign'
       && retiredStats.ready === true
       && retiredStats.labelLayer === 'raw-webgpu-glyph-atlas'
-      && retiredStats.postCutoverScreenshots === 'webgpu-only',
+      && retiredStats.postCutoverScreenshots === 'webgpu-only'
+      && retiredStats.cameraContract === 'shared-world-camera-wgsl'
+      && retiredStats.depth?.allocated === true
+      && hasFramePhaseOrder(retiredStats.phases),
     JSON.stringify(retiredStats),
   );
   await retired.close();
+}
+
+function hasFramePhaseOrder(phases) {
+  const kinds = Array.isArray(phases) ? phases.map((phase) => phase?.kind) : [];
+  const background = kinds.indexOf('background');
+  const world = kinds.indexOf('world-depth');
+  const overlay = kinds.includes('overlay') ? kinds.indexOf('overlay') : kinds.length;
+  return background === 0 && world > background && overlay > world;
 }
 
 function countPixels(png) {

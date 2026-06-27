@@ -195,6 +195,8 @@ export class BattleRendererWebGPU {
       },
       device: shell?.device ?? 'initializing',
       atmosphere: shell?.atmosphere ?? 'initializing',
+      cameraContract: shell?.cameraContract ?? 'initializing',
+      skinnedCameraContract: crowd?.cameraContract ?? 'initializing',
       phases: shell?.phases ?? [],
       depth: shell?.depth ?? null,
       terrain: this.terrain?.stats() ?? null,

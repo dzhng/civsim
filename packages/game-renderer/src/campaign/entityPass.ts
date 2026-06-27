@@ -273,18 +273,30 @@ function buildArmyMesh(): MeshData {
   const builder = new MeshBuilder();
   const timber: Rgb = [0.43, 0.30, 0.17];
   const linen: Rgb = [0.76, 0.64, 0.42];
-  builder.shadow(1.65, 0.92, 0.15, [0.10, -0.25]);
-  builder.box([0, 0, 2.15], [0.14, 0.14, 4.3], timber, 1);
-  builder.box([0.82, 0, 3.72], [1.64, 0.12, 0.92], [1, 1, 1], 1);
-  builder.box([0.60, 0, 2.92], [1.18, 0.12, 0.62], [1, 1, 1], 1);
-  const slots: [number, number][] = Array.from({ length: 6 }, (_, i) => {
-    const a = i * 2.399963;
-    const r = 0.38 * Math.sqrt(i);
-    return [Math.cos(a) * r, Math.sin(a) * r];
-  });
+  builder.shadow(1.95, 1.08, 0.16, [0.08, -0.24]);
+  builder.box([0, 0, 2.38], [0.16, 0.16, 4.76], timber, 1);
+  builder.box([0, 0, 4.84], [0.28, 0.28, 0.22], [0.72, 0.57, 0.28], 1);
+  builder.panel3d([
+    [0.08, -0.10, 4.34],
+    [1.02, 0.00, 4.27],
+    [1.02, 0.00, 3.28],
+    [0.08, -0.10, 3.22],
+  ], [1, 1, 1], 1);
+  builder.panel3d([
+    [1.02, 0.00, 4.27],
+    [1.70, 0.20, 4.20],
+    [1.42, 0.20, 3.78],
+    [1.70, 0.20, 3.36],
+    [1.02, 0.00, 3.28],
+  ], [1, 1, 1], 1);
+  const slots: [number, number][] = [
+    [-0.78, -0.58], [-0.26, -0.64], [0.28, -0.62], [0.82, -0.54],
+    [-0.96, -0.10], [-0.44, -0.16], [0.10, -0.18], [0.62, -0.12],
+    [-0.62, 0.36], [-0.08, 0.34], [0.46, 0.30],
+  ];
   for (let i = 0; i < slots.length; i++) {
     const [x, y] = slots[i];
-    soldier(builder, x * 1.65 - 0.10, y * 1.65 - 0.30, i % 3 === 0, linen);
+    soldier(builder, x, y - 0.12, i % 2 === 0, linen);
   }
   return builder.finish();
 }
@@ -294,13 +306,13 @@ function soldier(builder: MeshBuilder, x: number, y: number, shield: boolean, tu
   const bronze: Rgb = [0.72, 0.57, 0.28];
   const leather: Rgb = [0.34, 0.23, 0.14];
   const wood: Rgb = [0.47, 0.33, 0.19];
-  builder.box([x - 0.11, y, 0.32], [0.11, 0.13, 0.64], leather, 1);
-  builder.box([x + 0.11, y, 0.32], [0.11, 0.13, 0.64], leather, 1);
-  builder.box([x, y + 0.01, 0.92], [0.34, 0.24, 0.58], tunic, 1);
-  builder.box([x, y + 0.02, 1.30], [0.22, 0.20, 0.22], skin, 1);
-  builder.box([x, y + 0.03, 1.49], [0.24, 0.22, 0.16], bronze, 1);
-  builder.box([x + 0.24, y + 0.06, 0.94], [0.05, 0.06, 1.30], wood, 1);
-  if (shield) builder.box([x - 0.28, y + 0.10, 0.84], [0.25, 0.08, 0.56], [1, 1, 1], 1);
+  builder.box([x - 0.12, y, 0.34], [0.13, 0.14, 0.68], leather, 1);
+  builder.box([x + 0.12, y, 0.34], [0.13, 0.14, 0.68], leather, 1);
+  builder.box([x, y + 0.01, 0.96], [0.40, 0.30, 0.66], tunic, 1);
+  builder.box([x, y + 0.02, 1.36], [0.25, 0.22, 0.24], skin, 1);
+  builder.box([x, y + 0.03, 1.57], [0.27, 0.24, 0.17], bronze, 1);
+  builder.box([x + 0.30, y + 0.07, 1.02], [0.06, 0.07, 1.42], wood, 1);
+  if (shield) builder.box([x - 0.31, y + 0.11, 0.88], [0.32, 0.10, 0.66], [1, 1, 1], 1);
 }
 
 class MeshBuilder {
@@ -372,6 +384,18 @@ class MeshBuilder {
     }
   }
 
+  panel3d(points: [number, number, number][], color: Rgb, alpha: number) {
+    if (points.length < 3) return;
+    const normal = faceNormal(points[0], points[1], points[2]);
+    const base = this.vertices.length / 10;
+    for (const point of points) this.vertices.push(...point, ...normal, ...color, alpha);
+    for (let i = 1; i < points.length - 1; i++) this.indices.push(base, base + i, base + i + 1);
+    const backBase = this.vertices.length / 10;
+    const backNormal: [number, number, number] = [-normal[0], -normal[1], -normal[2]];
+    for (const point of points) this.vertices.push(...point, ...backNormal, ...color, alpha);
+    for (let i = 1; i < points.length - 1; i++) this.indices.push(backBase, backBase + i + 1, backBase + i);
+  }
+
   private panelFace(points: [number, number][], y: number, normal: [number, number, number], color: Rgb, alpha: number, reverse: boolean) {
     const base = this.vertices.length / 10;
     for (const [x, z] of points) this.vertices.push(x, y, z, ...normal, ...color, alpha);
@@ -389,4 +413,18 @@ class MeshBuilder {
       indexCount: this.indices.length,
     };
   }
+}
+
+function faceNormal(a: [number, number, number], b: [number, number, number], c: [number, number, number]): [number, number, number] {
+  const ux = b[0] - a[0];
+  const uy = b[1] - a[1];
+  const uz = b[2] - a[2];
+  const vx = c[0] - a[0];
+  const vy = c[1] - a[1];
+  const vz = c[2] - a[2];
+  const nx = uy * vz - uz * vy;
+  const ny = uz * vx - ux * vz;
+  const nz = ux * vy - uy * vx;
+  const len = Math.hypot(nx, ny, nz) || 1;
+  return [nx / len, ny / len, nz / len];
 }

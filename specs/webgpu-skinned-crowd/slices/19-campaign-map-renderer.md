@@ -213,3 +213,17 @@ critique still flags remaining campaign blockers: city labels are crowded by
 geometry, the selected army model is too thin/post-like, flags feel flat and
 detached, shadows and rock lighting are inconsistent, and the black board edge
 still makes the map feel clipped.
+
+The campaign army marker now uses a denser instanced entity mesh with eleven
+soldier silhouettes, a stronger footprint shadow, and a folded attached
+standard instead of blocky detached flag boxes. The isolated model-gate army
+capture was aligned with production draw order and label placement so the
+selected ring is a ground decal and `1ST LEGION` sits below the unit. The
+selection shader now flattens selected markers by kind so they read as ground
+ovals under the oblique campaign camera. Campaign Label Zoom moved from
+`0.18266` full / `0.24656` crop to `0.18257` full / `0.24647` crop. A pure
+model-only version scored `0.18226` / `0.24565` but fresh critique still read
+the ring as a circular overlay and the flag as billboarded, so the slightly
+weaker numeric result is the accepted visual trade. A smaller army-scale trial
+was rejected because it worsened the same row to `0.18331` / `0.24728`; full
+model-scale cleanup remains a later parity pass rather than this checkpoint.

@@ -661,9 +661,9 @@ async function routeCampaignModelGates(ctx: LabContext) {
     terrainRect: frame.terrainRect,
     extra: (pass) => {
       water?.draw(pass);
+      selection.draw(pass);
       lines.draw(pass);
       scenery.draw(pass);
-      selection.draw(pass);
       entities.draw(pass);
       clouds?.draw(pass);
       labelPass.draw(pass);
@@ -774,8 +774,8 @@ function campaignModelGateFrame(gate: CampaignModelGate) {
   };
   const addArmy = (x: number, y: number, selected = false) => {
     entities.push({ x, y, radius: 5.5, faction: red, allegiance: green, kind: 'army', strength: 0.86 });
-    labels.push({ text: '1ST LEGION', x, y: y + 4.8, kind: 'army', size: 13, priority: 5, icon: 'army', iconColor: green });
-    if (selected) selections.push({ x, y, radius: 4.7, color: green, kind: 'army' });
+    labels.push({ text: '1ST LEGION', x, y, kind: 'army', size: 13, priority: 5, icon: 'army', iconColor: green, screenOffsetY: 54 });
+    if (selected) selections.push({ x, y, radius: 6.1, color: green, kind: 'army' });
   };
 
   if (gate === 'overview') addCity(-6.0, -2.0, 7.0, 'ROMA', red, green, false);

@@ -30,7 +30,8 @@ fn projectWorld(world: vec2f, z: f32) -> vec4f {
 
 @vertex
 fn vs(@location(0) quad: vec2f, @location(1) inst0: vec4f, @location(2) inst1: vec4f) -> VsOut {
-  let world = inst0.xy + quad * inst0.z;
+  let axisScale = select(0.76, 0.64, inst0.w > 0.5);
+  let world = inst0.xy + vec2f(quad.x * inst0.z, quad.y * inst0.z * axisScale);
   var out: VsOut;
   out.pos = projectWorld(world, 0.06);
   out.local = quad;

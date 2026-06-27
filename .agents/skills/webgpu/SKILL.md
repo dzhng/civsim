@@ -188,6 +188,17 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   crop to `0.18266` / `0.24656`. A larger ring scored slightly better but
   unprimed critique called it oversized, so prefer the smaller human-readable
   ground marker and keep the remaining label/flag/shadow issues tracked.
+- Campaign army parity improved when the entity mesh became a dense visible
+  formation instead of a few tiny soldiers under chunky cuboid flags. Use a
+  folded attached flag panel, a stronger footprint shadow, and enough soldier
+  silhouettes to read as a unit token in both whole-scene captures and the
+  isolated model gate. Test scale changes separately: shrinking the marker
+  answered a critique complaint but regressed Campaign Label Zoom from
+  `0.18226` full / `0.24565` crop to `0.18331` / `0.24728`. A ground-oval
+  selection marker plus folded flag landed at `0.18257` / `0.24647`, still
+  better than the previous checkpoint while addressing the unprimed
+  screen-circle and billboard-flag critique. Prefer the version that moves
+  metric and critique together when the score tradeoff is this small.
 - Campaign model-gate screenshots are most useful when they exercise the real
   WebGPU passes, not mocked DOM or separate drawing code. Add addressable gates
   for each asset family, render them through `CampaignEntityPass`,

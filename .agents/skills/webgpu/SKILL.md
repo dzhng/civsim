@@ -108,6 +108,11 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   changes affect board trapezoid, model height, selection ellipse, shadows, and
   label projection together; capture zoom can match black/terrain coverage while
   still worsening the composite parity score.
+- For campaign close-view report cameras, make one-axis center trials small and
+  score both directions. Moving the controlled-stage `y` center can improve
+  black/terrain coverage and edge parity, but the wrong direction can sharply
+  increase void coverage. Keep rejected label/selection tweaks out of the
+  artifact set when the camera correction is the actual win.
 - For campaign model parity, remember that city and army standards are part of
   the instanced entity mesh and use white mesh colors as the faction-livery
   mask. Preserve their attachment by changing mesh geometry, not by layering

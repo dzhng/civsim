@@ -138,6 +138,14 @@ campaign-label-zoom gate.
   A higher report-camera zoom matched terrain/black coverage better but
   worsened parity to `0.21065`, so camera zoom stayed fixed and the accepted
   change is the renderer perspective.
+- The close-label visual report camera now uses `cam(0, 436, 13)`, a small
+  controlled-stage center shift that reduces the lower void while keeping the
+  same perspective and zoom. Campaign Label Zoom parity distance moved from
+  `0.19716` to `0.19570`, black coverage moved closer to the archive
+  (`0.52141` to `0.50197` versus archive `0.48049`), and edge energy stayed
+  near parity (`edgeEnergyRatio 1.00746`). Opposite-direction camera, army-label
+  offset, and army-ring alpha trials all worsened the same score and were
+  rejected.
 
 ## Must Stay Green
 

@@ -42,8 +42,8 @@ fn vs(@location(0) world: vec2f, @location(1) uv: vec2f) -> VsOut {
 @fragment
 fn fs(in: VsOut) -> @location(0) vec4f {
   let sample = textureSample(terrTex, terrSampler, in.uv);
-  let color = mix(sample.rgb, vec3f(0.92, 0.74, 0.42), 0.10);
-  return vec4f(color, sample.a * 0.055);
+  let color = mix(sample.rgb, vec3f(0.92, 0.74, 0.42), 0.04);
+  return vec4f(color, sample.a * 0.24);
 }`;
 
 export class CampaignTerritoryPass {

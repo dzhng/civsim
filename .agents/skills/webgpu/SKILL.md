@@ -127,6 +127,11 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   clamp math separate from real-map aspect-fill math: applying the height/cosP
   fill correction to the controlled stage fixed whole-map voids but regressed
   Campaign Label Zoom until the controlled clamp kept its previous envelope.
+- For campaign whole-map parity, territory overlay opacity is a first-order
+  visual signal, not a finishing detail. If the political map reads too
+  parchment-flat, tune `CampaignTerritoryPass` color wash and alpha together,
+  then score both whole-map and close-label captures; a stronger overlay can
+  improve the worst pair while quietly regressing label zoom if pushed too far.
 - For campaign close-view report cameras, make one-axis center trials small and
   score both directions. Moving the controlled-stage `y` center can improve
   black/terrain coverage and edge parity, but the wrong direction can sharply

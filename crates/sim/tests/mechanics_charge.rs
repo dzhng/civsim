@@ -276,7 +276,7 @@ fn cav_closest_approach_to_phalanx(flank: bool) -> f32 {
     );
     // Defender holds facing +y. A phalanx therefore presents points only to the
     // north; a flank charge from the west crosses the shafts, not their tips.
-    let def = sim.spawn_class_with_files(Vec2::ZERO, FRAC_PI_2, 160, 8, UnitClassId::Phalanx, 1);
+    let def = sim.spawn_class_with_files(Vec2::ZERO, FRAC_PI_2, 160, 8, UnitClassId::HeavyPhalanx, 1);
     let (start, facing, goal) = if flank {
         (Vec2::new(-70.0, 0.0), 0.0, Vec2::new(70.0, 0.0))
     } else {
@@ -326,7 +326,7 @@ fn phalanx_points_stop_horses_only_to_the_front() {
 
 #[test]
 fn ordinary_spears_do_not_wall_cavalry_like_a_phalanx() {
-    let pike = class_charge_mass_progress(UnitClassId::Phalanx, false);
+    let pike = class_charge_mass_progress(UnitClassId::HeavyPhalanx, false);
     let spear = class_charge_mass_progress(UnitClassId::LightSpear, false);
     let sword = class_charge_mass_progress(UnitClassId::HeavySword, false);
     eprintln!(

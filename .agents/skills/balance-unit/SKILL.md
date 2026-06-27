@@ -117,6 +117,12 @@ stat card — no other wiring needed.
    directly: `sim::balance::run_over_seeds(&Scenario::duel(a, b),
    &BalanceConfig::default(), &Tunables::default(), &SEEDS)` and read the
    `Aggregate` — win-rate and survivor **stdev** tell you edge vs coin-flip.
+   **To tune ONE class, don't re-bless the 18-min matrix per edit** — use the
+   `probe_class_row` row probe: `PROBE=LSW cargo test -p sim --test
+   balance_matrix probe_class_row -- --ignored --nocapture` prints that class's
+   full row (W/L + survivor% vs every foe, both benches) over `SEEDS` off the
+   LIVE `class.rs` stats in ~1 minute. Edit `class.rs`, re-run, read the row;
+   re-bless the full matrix only once at the end to capture column ripples.
 2. **Calibrate to the archetype's counters**, not to "wins more". Tune the
    handful of stats from Step 1 until the new unit beats what its sketch
    says it should and loses to what should beat it. Re-run the matrix.

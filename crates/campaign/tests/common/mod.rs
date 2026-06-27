@@ -57,7 +57,7 @@ pub fn test_map() -> &'static str {
           ],
           "start_armies": [
             {"faction": "red",  "at": "B", "roster": [["LightSpear", 1]]},
-            {"faction": "blue", "at": "C", "roster": [["Phalanx", 1]]}
+            {"faction": "blue", "at": "C", "roster": [["HeavyPhalanx", 1]]}
           ]
         }"#
 }

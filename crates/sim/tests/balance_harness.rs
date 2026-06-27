@@ -95,7 +95,7 @@ fn one_heavy_solos_two_lights() {
 /// MELEE grind the light side loses (baseline ≈0.42 of its men standing, win 0).
 /// A +100% health buff FLIPS it — the light side now wins with ≈0.96 standing
 /// (own-survivor delta ≈+0.55, win 0→1) — an unmistakable, measured move. (The old
-/// HeavySword-vs-Phalanx pick went insensitive after balance shifts: the pike
+/// HeavySword-vs-HeavyPhalanx pick went insensitive after balance shifts: the pike
 /// STANDOFF kills the heavy before its HP can matter, so even ×2.0 barely moved
 /// it. A grind, where HP reaches combat, is the right sensitivity probe.)
 /// We assert on the full 8-seed set (3 seeds quantise survivors too coarsely).
@@ -145,7 +145,7 @@ fn tuning_a_candidate_config_moves_the_matchup() {
 fn duel_scenario_exists_for_every_class() {
     assert_eq!(
         sim::ALL_CLASSES.len(),
-        14,
+        15,
         "class count changed — regenerate the balance matrix golden, then bump this"
     );
     for &a in &sim::ALL_CLASSES {

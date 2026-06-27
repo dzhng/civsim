@@ -563,7 +563,7 @@ fn main() {
             Vec2::new(0.0, -13.0),
             FRAC_PI_2,
             120,
-            UnitClassId::Phalanx,
+            UnitClassId::HeavyPhalanx,
             0,
         );
         let top = sim.spawn_class(

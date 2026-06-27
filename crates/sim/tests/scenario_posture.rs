@@ -402,7 +402,7 @@ fn kiting_pauses_for_disengage_then_resumes() {
 #[test]
 fn kite_toggle_is_for_skirmish_classes_only() {
     let mut sim = Sim::new(no_morale(), SEED);
-    let ph = sim.spawn_class(Vec2::ZERO, 0.0, 200, UnitClassId::Phalanx, 0);
+    let ph = sim.spawn_class(Vec2::ZERO, 0.0, 200, UnitClassId::HeavyPhalanx, 0);
     let sk = sim.spawn_class(Vec2::new(50.0, 0.0), 0.0, 120, UnitClassId::Skirmishers, 0);
     sim.set_evade_auto(ph, true);
     sim.set_evade_auto(sk, false);

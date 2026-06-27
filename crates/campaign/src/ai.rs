@@ -294,8 +294,10 @@ fn think(
             for r in &a.roster {
                 use UnitClassId::*;
                 match r.class {
-                    HeavySword | Phalanx | LongSwords | LightSpear | Peasant | LightSword
-                    | HeavySpear | MediumInfantry | MediumSpear => line += r.count as u64,
+                    HeavySword | HeavyPhalanx | LongSwords | LightSpear | Peasant | LightSword
+                    | HeavySpear | MediumInfantry | MediumSpear | MediumPhalanx => {
+                        line += r.count as u64
+                    }
                     Archers | Skirmishers | ArtilleryCrew => ranged += r.count as u64,
                     ShockCavalry | HorseArchers => cav += r.count as u64,
                 }

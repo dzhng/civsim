@@ -14,7 +14,7 @@ pub enum UnitClassId {
     HeavySword,
     LightSpear,
     LongSwords,
-    Phalanx,
+    HeavyPhalanx,
     Archers,
     Skirmishers,
     ShockCavalry,
@@ -35,6 +35,10 @@ pub enum UnitClassId {
     /// Workhorse spear infantry: stronger than light spears, below elite heavy
     /// spears. Added last so existing indices hold.
     MediumSpear,
+    /// Workhorse pike block: a shorter sarissa than the heavy phalanx — slightly
+    /// worse body than its medium-sword counterpart, but the reach blunts a
+    /// charge. Added last so existing indices hold.
+    MediumPhalanx,
 }
 
 /// Campaign-side concrete unit choice within a tactical class. The numeric
@@ -53,7 +57,7 @@ pub fn unit_cost(c: UnitClassId) -> u32 {
         UnitClassId::HeavySword => 1000,
         UnitClassId::LightSpear => 300,
         UnitClassId::LongSwords => 450,
-        UnitClassId::Phalanx => 1300,
+        UnitClassId::HeavyPhalanx => 1300,
         UnitClassId::Archers => 500,
         UnitClassId::Skirmishers => 250,
         UnitClassId::ShockCavalry => 1400,
@@ -64,6 +68,7 @@ pub fn unit_cost(c: UnitClassId) -> u32 {
         UnitClassId::HeavySpear => 1100, // armoured spear wall: anti-charge line
         UnitClassId::MediumInfantry => 650, // workhorse sword line between light and elite
         UnitClassId::MediumSpear => 700, // workhorse spear line with a better brace
+        UnitClassId::MediumPhalanx => 800, // workhorse pike: medium body, a charge-blunting reach
     }
 }
 
@@ -82,11 +87,11 @@ pub fn unit_size(c: UnitClassId) -> u32 {
     }
 }
 
-pub const ALL_CLASSES: [UnitClassId; 14] = [
+pub const ALL_CLASSES: [UnitClassId; 15] = [
     UnitClassId::HeavySword,
     UnitClassId::LightSpear,
     UnitClassId::LongSwords,
-    UnitClassId::Phalanx,
+    UnitClassId::HeavyPhalanx,
     UnitClassId::Archers,
     UnitClassId::Skirmishers,
     UnitClassId::ShockCavalry,
@@ -97,6 +102,7 @@ pub const ALL_CLASSES: [UnitClassId; 14] = [
     UnitClassId::HeavySpear,
     UnitClassId::MediumInfantry,
     UnitClassId::MediumSpear,
+    UnitClassId::MediumPhalanx,
 ];
 
 /// A battle map as a data-only paint program over a flat terrain grid.

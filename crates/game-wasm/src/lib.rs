@@ -154,9 +154,10 @@ impl Game {
             &["spear"],  // heavy spear
             &["sword"],  // medium infantry
             &["spear"],  // medium spear
+            &["pike", "side sword"], // medium phalanx
         ];
         let missile_names: [&str; contract::ALL_CLASSES.len()] = [
-            "", "", "", "", "bow", "javelin", "", "bow", "ballista", "", "", "", "", "",
+            "", "", "", "", "bow", "javelin", "", "bow", "ballista", "", "", "", "", "", "",
         ];
         let specs: Vec<serde_json::Value> = contract::ALL_CLASSES
             .iter()

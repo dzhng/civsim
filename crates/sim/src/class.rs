@@ -301,13 +301,18 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             health: 1.35,
             block: 0.1, // no shield, but a drilled two-hander parries some frontal blows
             // with the blade — a thin front-arc edge, far below any shield wall
-            evade: 0.35,
+            evade: 0.2, // nimble for shieldless foot, but no shield means it bleeds in a grind
             training: 0.8,
-            // A two-hander: long reach, wide cleaving arc, no dead zone (half-swords in close).
-            weapons: one(Weapon { reach: 1.8, zones: crate::strike::front(1.2), attack_interval: 4.7, damage: 0.75, cleave: true, ..MELEE }),
+            // A two-hander: reach, a wide cleaving arc, no dead zone (half-swords in
+            // close). CLEAVE (one swing rakes the packed front) is its identity — so
+            // the per-hit damage sits BELOW a normal sword's and the cadence is SLOW;
+            // the WIDTH, not the punch, is what shreds massed light infantry. With no
+            // shield and modest dodge it bleeds against armor (HSD), shock (CAV) and
+            // reach (pikes) — a budget anti-light-infantry blender, not a line-breaker.
+            weapons: one(Weapon { reach: 1.6, zones: crate::strike::front(1.2), attack_interval: 5.1, damage: 0.4, cleave: true, ..MELEE }),
             ..foot
         },
-        Phalanx => UnitClass {
+        HeavyPhalanx => UnitClass {
             drain_mult: 1.3,
             pace_mult: 0.85,
             mass: 1.2,
@@ -508,7 +513,11 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             block: 0.45,
             evade: 0.08,
             training: 0.75,
-            weapons: one(Weapon { reach: 1.6, zones: crate::strike::front(0.3), attack_interval: 4.4, damage: 0.2375, ..MELEE }),
+            // The top of the spear ladder: longest reach and hardest point of the
+            // three (LSP 1.6/0.2375 < MSP 1.7/0.27 < HSP 1.85/0.31), so the heavy
+            // spear out-blunts a charge and out-grinds the lighter spears — yet its
+            // work rate still sits below any sword (sword beats spear holds).
+            weapons: one(Weapon { reach: 1.85, zones: crate::strike::front(0.3), attack_interval: 4.4, damage: 0.31, ..MELEE }),
             ..foot
         },
         MediumSpear => UnitClass {
@@ -523,7 +532,43 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             block: 0.4,
             evade: 0.12,
             training: 0.65,
-            weapons: one(Weapon { reach: 1.6, zones: crate::strike::front(0.3), attack_interval: 4.4, damage: 0.2375, ..MELEE }),
+            // A longer, harder-hitting spear than the light line — enough point to
+            // win the spear mirror (the light spear's 0.2375 stalemates every
+            // armoured foe) and blunt a charge the light line can't. Spear reach and
+            // punch are ORDERED by tier (LSP 1.6/0.2375 < MSP 1.7/0.27 < HSP
+            // 1.85/0.31) so the hierarchy holds in outcomes, not just on paper —
+            // every value stays well below a sword's, so sword still beats spear.
+            weapons: one(Weapon { reach: 1.7, zones: crate::strike::front(0.3), attack_interval: 4.4, damage: 0.27, ..MELEE }),
+            ..foot
+        },
+        // The workhorse pike: a shorter sarissa than the elite HeavyPhalanx. It
+        // sits a notch UNDER its sword counterpart (MediumInfantry) in body and
+        // grind — slightly thinner health, packed strict files that can't dodge —
+        // and earns its keep on REACH: a 2.6 m hedge that blunts a charge the
+        // medium sword line cannot. Braces hard (3.0), but below the elite
+        // sarissa wall (4.0); block 0.4 stays under HeavyPhalanx's 0.45 (the heavy
+        // infantry holds the highest shield).
+        MediumPhalanx => UnitClass {
+            drain_mult: 1.15,
+            pace_mult: 0.9,
+            soldier_radius: 0.33,
+            mass: 1.05,
+            brace_mult: 3.0,
+            spacing: Vec2::new(0.85, 1.05),
+            default_depth: 8,
+            health: 1.56,
+            block: 0.4,
+            evade: 0.1,
+            training: 0.65,
+            charge: false,
+            doctrine: Doctrine::Strict,
+            // A short sarissa (frontal-only, dead zone inside the shafts), with a
+            // side-sword for off-axis foes — the same two-weapon doctrine as the
+            // heavy phalanx, scaled down: less reach (2.6 vs 3.2), less per-poke.
+            weapons: two(
+                Weapon { reach: 2.6, min_range: 1.0, zones: crate::strike::front(0.04), attack_interval: 3.9, damage: 0.35, ..BRACED },
+                Weapon { reach: 1.2, zones: crate::strike::front(0.6), attack_interval: 4.1, damage: 0.3, ..MELEE },
+            ),
             ..foot
         },
     }

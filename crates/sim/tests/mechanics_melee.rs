@@ -595,7 +595,7 @@ fn phalanx_and_heavy_clash_without_swirling() {
     let mut tun = Tunables::default();
     tun.micro_rough = 0.0;
     let mut sim = Sim::new(tun, 4242);
-    let bot = sim.spawn_class(Vec2::new(0.0, -13.0), FRAC_PI_2, N, UnitClassId::Phalanx, 0);
+    let bot = sim.spawn_class(Vec2::new(0.0, -13.0), FRAC_PI_2, N, UnitClassId::HeavyPhalanx, 0);
     let top = sim.spawn_class(
         Vec2::new(0.0, 13.0),
         -FRAC_PI_2,
@@ -716,7 +716,7 @@ fn holding_phalanx_backline_does_not_lateral_buzz() {
         UnitClassId::HeavySword,
         0,
     );
-    let phalanx = sim.spawn_class(Vec2::new(0.0, 13.0), -FRAC_PI_2, N, UnitClassId::Phalanx, 1);
+    let phalanx = sim.spawn_class(Vec2::new(0.0, 13.0), -FRAC_PI_2, N, UnitClassId::HeavyPhalanx, 1);
     sim.set_pace(heavy, Pace::Run);
     sim.set_attack_order(heavy, phalanx);
 

@@ -175,7 +175,7 @@ fn roman_names(class: UnitClassId) -> Option<[&'static str; 3]> {
             "Ligurian Swordsmen",
             "Samnite Heavy Blades",
         ],
-        Phalanx => [
+        HeavyPhalanx => [
             "Greek Allied Hoplites",
             "Campanian Hoplites",
             "Magna Graecia Phalanx",
@@ -206,11 +206,7 @@ fn roman_names(class: UnitClassId) -> Option<[&'static str; 3]> {
             "Siege Engineers",
         ],
         Peasant => ["Citizen Levy", "Accensi", "Pressed Camp Followers"],
-        LightSword => [
-            "Roman Shield Swordsmen",
-            "Italian Allied Swordsmen",
-            "Gallic Auxilia",
-        ],
+        LightSword => ["Hastati", "Italian Allied Swordsmen", "Gallic Auxilia"],
         MediumInfantry => ["Principes", "Samnite Line Infantry", "Latin Allied Cohorts"],
         HeavySpear => [
             "Praetorian Spearmen",
@@ -218,6 +214,7 @@ fn roman_names(class: UnitClassId) -> Option<[&'static str; 3]> {
             "Eagle Guard Spearmen",
         ],
         MediumSpear => ["Triarii", "Allied Spear Cohorts", "Campanian Spearmen"],
+        MediumPhalanx => ["Italiote Hoplites", "Allied Phalangites", "Tarentine Phalanx"],
     })
 }
 
@@ -239,7 +236,7 @@ fn carthaginian_names(class: UnitClassId) -> Option<[&'static str; 3]> {
             "Iberian Falcata Men",
             "Celtiberian Heavy Swords",
         ],
-        Phalanx => [
+        HeavyPhalanx => [
             "Greek Mercenary Hoplites",
             "Libyan Pike Levy",
             "Punic Phalangites",
@@ -282,6 +279,7 @@ fn carthaginian_names(class: UnitClassId) -> Option<[&'static str; 3]> {
             "Punic Citizen Spearmen",
             "Sicilian Spear Auxilia",
         ],
+        MediumPhalanx => ["Libyan Pikemen", "Punic Levy Phalanx", "Sicilian Phalangites"],
     })
 }
 
@@ -295,7 +293,7 @@ fn macedonian_names(class: UnitClassId) -> Option<[&'static str; 3]> {
             "Illyrian Swordsmen",
             "Royal Thracians",
         ],
-        Phalanx => ["Phalangites", "Bronze Shield Phalanx", "Royal Peltasts"],
+        HeavyPhalanx => ["Phalangites", "Bronze Shield Phalanx", "Royal Peltasts"],
         Archers => ["Macedonian Archers", "Cretan Archers", "Rhodian Marksmen"],
         Skirmishers => [
             "Agrianian Javelins",
@@ -334,6 +332,7 @@ fn macedonian_names(class: UnitClassId) -> Option<[&'static str; 3]> {
             "Peltast Spear Line",
             "Agrianian Spearmen",
         ],
+        MediumPhalanx => ["Conscript Phalangites", "Bronze Shield Levy", "Garrison Sarissas"],
     })
 }
 
@@ -343,7 +342,7 @@ fn arverni_names(class: UnitClassId) -> Option<[&'static str; 3]> {
         HeavySword => ["Armoured Nobles", "Sworn Swordsmen", "Oathbound Retinue"],
         LightSpear => ["Tribal Spearmen", "Hill Spear Levy", "Client Spearmen"],
         LongSwords => ["Longsword Warriors", "Naked Fanatics", "Noble Longswords"],
-        Phalanx => [
+        HeavyPhalanx => [
             "Greek Hireling Hoplites",
             "Massed Spear Levy",
             "Mercenary Pike Band",
@@ -378,6 +377,7 @@ fn arverni_names(class: UnitClassId) -> Option<[&'static str; 3]> {
             "Client Spear Warband",
             "Hill Spear Retinue",
         ],
+        MediumPhalanx => ["Mercenary Pikemen", "Massed Spear Phalanx", "Greek Hireling Levy"],
     })
 }
 
@@ -395,7 +395,7 @@ fn egyptian_names(class: UnitClassId) -> Option<[&'static str; 3]> {
             "Thracian Mercenaries",
             "Royal Galatians",
         ],
-        Phalanx => ["Cleruch Phalanx", "Egyptian Phalangites", "Royal Phalanx"],
+        HeavyPhalanx => ["Cleruch Phalanx", "Egyptian Phalangites", "Royal Phalanx"],
         Archers => ["Nile Archers", "Nubian Archers", "Cretan Archers"],
         Skirmishers => ["Nile Javelinmen", "Libyan Skirmishers", "Desert Scouts"],
         ShockCavalry => [
@@ -430,6 +430,7 @@ fn egyptian_names(class: UnitClassId) -> Option<[&'static str; 3]> {
             "Greek Settler Spears",
             "Nile Spear Guard",
         ],
+        MediumPhalanx => ["Machimoi Phalangites", "Native Pike Levy", "Settler Phalanx Line"],
     })
 }
 
@@ -443,7 +444,7 @@ fn seleucid_names(class: UnitClassId) -> Option<[&'static str; 3]> {
             "Pisidian Swordsmen",
             "Elite Galatians",
         ],
-        Phalanx => [
+        HeavyPhalanx => [
             "Settler Phalanx",
             "Silver Shield Phalanx",
             "Royal Phalangites",
@@ -482,5 +483,6 @@ fn seleucid_names(class: UnitClassId) -> Option<[&'static str; 3]> {
             "Syrian Line Spearmen",
             "Median Spear Auxilia",
         ],
+        MediumPhalanx => ["Levy Phalangites", "Satrapal Pikemen", "Settler Pike Line"],
     })
 }

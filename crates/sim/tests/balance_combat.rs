@@ -54,7 +54,7 @@ fn heavy_shields_make_phalanx_a_grind_not_a_deletion() {
     // coin flip, so we read the MEAN over `SEEDS` (see `common::over_seeds`).
     let outcomes = over_seeds(|seed| {
         let mut sim = Sim::new(no_morale(), seed);
-        let ph = sim.spawn_class(Vec2::new(0.0, -13.0), FRAC_PI_2, 120, UnitClassId::Phalanx, 0);
+        let ph = sim.spawn_class(Vec2::new(0.0, -13.0), FRAC_PI_2, 120, UnitClassId::HeavyPhalanx, 0);
         let hv = sim.spawn_class(Vec2::new(0.0, 13.0), -FRAC_PI_2, 120, UnitClassId::HeavySword, 1);
         sim.set_pace(ph, Pace::Run);
         sim.set_pace(hv, Pace::Run);

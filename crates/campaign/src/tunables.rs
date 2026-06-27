@@ -45,7 +45,7 @@ pub fn march_mult(class: UnitClassId) -> f32 {
         HeavySword => 0.9,
         LightSpear => 1.1,
         LongSwords => 1.0,
-        Phalanx => 0.85,
+        HeavyPhalanx => 0.85,
         Archers => 1.0,
         Skirmishers => 1.15,
         ShockCavalry => 2.2,
@@ -56,6 +56,7 @@ pub fn march_mult(class: UnitClassId) -> f32 {
         HeavySpear => 0.9,
         MediumInfantry => 1.0,
         MediumSpear => 1.0,
+        MediumPhalanx => 0.9, // a pike marches slow, but lighter than the elite phalanx
     }
 }
 
@@ -160,7 +161,7 @@ pub fn upkeep_per_soldier_milligold(class: UnitClassId) -> u32 {
         HeavySword => 20,
         LightSpear => 10,
         LongSwords => 25,
-        Phalanx => 20,
+        HeavyPhalanx => 20,
         Archers => 18,
         Skirmishers => 12,
         ShockCavalry => 60,
@@ -171,6 +172,7 @@ pub fn upkeep_per_soldier_milligold(class: UnitClassId) -> u32 {
         HeavySpear => 20,
         MediumInfantry => 16,
         MediumSpear => 16,
+        MediumPhalanx => 18, // a pike costs a touch more to keep than a medium line
     }
 }
 pub const UPKEEP_UNIT_BASE: u32 = 4; // gold/day per roster entry
@@ -184,7 +186,7 @@ pub fn recruit_ticks_per_soldier(class: UnitClassId) -> u32 {
     match class {
         ShockCavalry | HorseArchers => 6,
         ArtilleryCrew => 5,
-        HeavySword | Phalanx | LongSwords | MediumInfantry | MediumSpear => 3,
+        HeavySword | HeavyPhalanx | LongSwords | MediumInfantry | MediumSpear | MediumPhalanx => 3,
         _ => 2,
     }
 }

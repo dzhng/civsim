@@ -16,10 +16,11 @@ fn is_melee_line(c: UnitClassId) -> bool {
         c,
         UnitClassId::HeavySword
             | UnitClassId::LightSpear
-            | UnitClassId::Phalanx
+            | UnitClassId::HeavyPhalanx
             | UnitClassId::LongSwords
             | UnitClassId::MediumInfantry
             | UnitClassId::MediumSpear
+            | UnitClassId::MediumPhalanx
     )
 }
 

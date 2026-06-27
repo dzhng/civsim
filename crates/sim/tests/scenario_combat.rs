@@ -70,7 +70,7 @@ fn a_pike_wall_holds_swords_at_sarissas_length_and_punishes_the_assault() {
             -FRAC_PI_2,
             pike_count,
             30,
-            UnitClassId::Phalanx,
+            UnitClassId::HeavyPhalanx,
             ref_pike(),
             0,
         );
@@ -141,7 +141,7 @@ fn a_pike_wall_holds_swords_at_sarissas_length_and_punishes_the_assault() {
     // the fake-unit rebuild — a deeper wall's rear ranks even push its own front
     // ONTO the assault (closing the gap toward the sarissa dead zone), so a thin
     // wall is no less lethal to the attacker (measured, both ~0.3). The old "deep
-    // bleeds far harder than thin" pinned a real-Phalanx balance artifact that does
+    // bleeds far harder than thin" pinned a real-HeavyPhalanx balance artifact that does
     // not survive on balance-independent references — dropped.
     assert!(
         thin_atk_frac > 0.15,
@@ -159,7 +159,7 @@ fn pikes_bite_only_to_the_front() {
     // the attacker walks in and it's the phalanx that pays. No 360° porcupine.
     let trial = |rear: bool| -> (usize, usize) {
         let mut sim = Sim::new(no_morale(), SEED);
-        let ph = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 300, UnitClassId::Phalanx, 0); // faces +y
+        let ph = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 300, UnitClassId::HeavyPhalanx, 0); // faces +y
         let y = if rear { -16.0 } else { 16.0 };
         let face = if rear { FRAC_PI_2 } else { -FRAC_PI_2 };
         let atk = sim.spawn_class(Vec2::new(0.0, y), face, 240, UnitClassId::HeavySword, 1);
@@ -315,7 +315,7 @@ fn rider_reachability_is_pure_geometry() {
     // Pikes at reach: front-rank pikes find riders (rear-rank pikes can only
     // poke the horses' noses — also correct geometry), so the rider SHARE is
     // what discriminates pikes from swords.
-    let (pike_share, pike_rider, _) = agg(UnitClassId::Phalanx, 3.4, -FRAC_PI_2);
+    let (pike_share, pike_rider, _) = agg(UnitClassId::HeavyPhalanx, 3.4, -FRAC_PI_2);
     assert!(
         pike_rider > 0.12 && pike_share > sword_share + 0.1,
         "frontal pikes find riders far better than swords: mean rider {pike_rider:.2} \

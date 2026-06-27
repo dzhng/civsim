@@ -617,8 +617,8 @@ fn a_frontal_charge_into_pikes_is_no_bloodbath() {
         200 - sim.units[def].alive_count
     };
     let cav_line = cost(UnitClassId::ShockCavalry, UnitClassId::LightSpear);
-    let cav_pike = cost(UnitClassId::ShockCavalry, UnitClassId::Phalanx);
-    let har_pike = cost(UnitClassId::HorseArchers, UnitClassId::Phalanx);
+    let cav_pike = cost(UnitClassId::ShockCavalry, UnitClassId::HeavyPhalanx);
+    let har_pike = cost(UnitClassId::HorseArchers, UnitClassId::HeavyPhalanx);
     println!(
         "frontal charge dead: cav->line {cav_line}, cav->pike {cav_pike}, har->pike {har_pike}"
     );
@@ -711,7 +711,7 @@ fn a_pike_hedge_breaks_the_charge_even_if_horses_ooze_through() {
         Vec2::new(0.0, 40.0),
         -PI / 2.0,
         400,
-        UnitClassId::Phalanx,
+        UnitClassId::HeavyPhalanx,
         0,
     );
     let cav = sim.spawn_class(

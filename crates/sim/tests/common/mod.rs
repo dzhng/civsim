@@ -161,7 +161,7 @@ pub fn ref_melee(charge: bool) -> UnitClass {
 /// A fake pike wall: REF_PIKE + REF_SWORD sidearm, strict-file phalanx body, a
 /// frontal shield. The braced hedge holds swords at sarissa's length.
 pub fn ref_pike() -> UnitClass {
-    let mut s = class_stats(UnitClassId::Phalanx);
+    let mut s = class_stats(UnitClassId::HeavyPhalanx);
     s.health = 1.8;
     s.block = 0.45;
     s.evade = 0.1;

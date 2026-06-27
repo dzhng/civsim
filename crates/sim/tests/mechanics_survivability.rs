@@ -179,7 +179,7 @@ fn survivability_scales_with_the_reference_stats() {
         UnitClassId::MediumSpear,
         UnitClassId::HeavySword,
         UnitClassId::HeavySpear,
-        UnitClassId::Phalanx,
+        UnitClassId::HeavyPhalanx,
     ]
     .iter()
     .map(|&c| {
@@ -190,7 +190,7 @@ fn survivability_scales_with_the_reference_stats() {
             UnitClassId::MediumSpear => "MediumSpear",
             UnitClassId::HeavySword => "HeavySword",
             UnitClassId::HeavySpear => "HeavySpear",
-            UnitClassId::Phalanx => "Phalanx",
+            UnitClassId::HeavyPhalanx => "HeavyPhalanx",
             _ => "?",
         };
         // Same wide-shallow width as the references, so the comparison is

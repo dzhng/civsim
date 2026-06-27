@@ -13,7 +13,7 @@ fn short(c: UnitClassId) -> &'static str {
         UnitClassId::HeavySword => "HSD",
         UnitClassId::LightSpear => "LSP",
         UnitClassId::LongSwords => "LSW",
-        UnitClassId::Phalanx => "PIK",
+        UnitClassId::HeavyPhalanx => "PIK",
         UnitClassId::Archers => "ARC",
         UnitClassId::Skirmishers => "SKR",
         UnitClassId::ShockCavalry => "CAV",
@@ -24,6 +24,7 @@ fn short(c: UnitClassId) -> &'static str {
         UnitClassId::HeavySpear => "HSP",
         UnitClassId::MediumInfantry => "MIN",
         UnitClassId::MediumSpear => "MSP",
+        UnitClassId::MediumPhalanx => "MPK",
     }
 }
 
@@ -116,6 +117,55 @@ fn golden_balance_matrix() {
     }
 }
 
+/// Fast tuning probe: print ONE class's full row (vs every other class, both as
+/// attacker and defender) over the seed set, so a stat edit can be judged in ~1
+/// minute instead of re-blessing the whole 18-minute matrix. Reads the class
+/// short-code from env `PROBE` (e.g. `PROBE=LSW`). Measures the live class.rs
+/// stats — edit class.rs, rerun this, read the row.
+///   PROBE=LSW cargo test -p sim --test balance_matrix probe_class_row -- --ignored --nocapture
+#[test]
+#[ignore = "tuning probe; run on demand with PROBE=<SHORT>"]
+fn probe_class_row() {
+    let want = std::env::var("PROBE").unwrap_or_else(|_| "LSW".into());
+    let target = ALL_CLASSES
+        .iter()
+        .copied()
+        .find(|&c| short(c) == want)
+        .unwrap_or_else(|| panic!("unknown PROBE short-code {want:?}"));
+    let base = sim::BalanceConfig::default();
+    let tun = Tunables::default();
+    println!(
+        "\nPROBE {} ({}g) — survivors over {} seeds. 'as ATK' = {} charges; 'as DEF' = it is charged.",
+        short(target),
+        unit_cost(target),
+        SEEDS.len(),
+        short(target),
+    );
+    println!("{:<5}{:>8}{:>10}{:>10}", "foe", "gold", "as ATK", "as DEF");
+    for &foe in ALL_CLASSES.iter() {
+        if foe == target {
+            continue;
+        }
+        let atk = run_over_seeds(&Scenario::duel(target, foe), &base, &tun, &SEEDS);
+        let def = run_over_seeds(&Scenario::duel(foe, target), &base, &tun, &SEEDS);
+        // verdict from the target's perspective (W/L/draw) + its own survivor mean.
+        let tag = |me: usize, agg: &sim::balance::Aggregate| match agg.winner() {
+            Some(w) if w == me => "W",
+            Some(_) => "L",
+            None => ".",
+        };
+        println!(
+            "{:<5}{:>8}{:>6} {:>3.0}%{:>6} {:>3.0}%",
+            short(foe),
+            unit_cost(foe),
+            tag(0, &atk),
+            atk.surv[0].mean * 100.0,
+            tag(1, &def),
+            def.surv[1].mean * 100.0,
+        );
+    }
+}
+
 /// The counter-web: the matchups history has opinions about, asserted through
 /// the same harness runner as the matrix (single seed for speed — this is the
 /// fast always-on directional gate; the golden matrix is the seed-robust
@@ -148,6 +198,20 @@ fn the_counter_web_holds() {
             1,
             "a crew alone loses to anyone",
         ),
+        // MediumPhalanx — the medium sarissa: its reach breaks a frontal charge
+        // like the heavy phalanx, but the longer heavy sarissa wins the pike duel.
+        (MediumPhalanx, ShockCavalry, 0, "the medium sarissa stops the horse too"),
+        (HeavyPhalanx, MediumPhalanx, 0, "the longer heavy sarissa out-reaches the shorter"),
+        // The anti-cav SPEAR GRADIENT (the spear ladder's whole point): the braced
+        // heavy spear wall stops a charge; the medium spear only dents it and is
+        // ridden down — only enough reach AND brace turns a horse.
+        (HeavySpear, ShockCavalry, 0, "the braced heavy spear wall stops the charge"),
+        (ShockCavalry, MediumSpear, 0, "the medium spear alone can't stop the horse"),
+        // LongSwords is a budget anti-light cleaver: armour (the heavy sword)
+        // beats it head-on, but its wide cleave still shreds loose light infantry
+        // — the width, not the punch, is its edge.
+        (HeavySword, LongSwords, 0, "armour beats the budget cleaver"),
+        (LongSwords, Skirmishers, 0, "the cleaver shreds loose light infantry"),
     ];
     // A small SEED SET (majority verdict), not one seed: several of these are
     // genuine but CLOSE relationships, so a one-seed gate is a coin that
@@ -178,12 +242,12 @@ fn the_counter_web_holds() {
     // counter-web claim "a sword line cannot out-front a sarissa hedge" measured on
     // the metric the new pacing didn't break.
     for (a, d, why) in [
-        (HeavySword, Phalanx, "a sword line cannot out-front a sarissa hedge"),
-        (Phalanx, HeavySword, "the hedge holds the front over swords"),
+        (HeavySword, HeavyPhalanx, "a sword line cannot out-front a sarissa hedge"),
+        (HeavyPhalanx, HeavySword, "the hedge holds the front over swords"),
     ] {
         let agg = run_over_seeds(&Scenario::duel(a, d), &base, &tun, &seeds);
         // index of the phalanx side (0 if it's the attacker, else 1)
-        let (pike, sword) = if a == Phalanx { (0, 1) } else { (1, 0) };
+        let (pike, sword) = if a == HeavyPhalanx { (0, 1) } else { (1, 0) };
         assert!(
             agg.surv[pike].mean > agg.surv[sword].mean + 0.5,
             "{a:?} vs {d:?}: {why} — phalanx must out-survive the sword by a \

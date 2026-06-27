@@ -530,6 +530,13 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   clouds, and debug overlays should require `OverlayRenderPass`. This keeps the
   frame phase contract complete and makes accidental cross-phase calls a compile
   error instead of a visual regression hunt.
+- Do not leave raw `GPURenderPassEncoder` parameters in renderer draw helpers
+  after the public methods are branded. Shared helpers that serve multiple
+  phase-specific classes should accept an explicit branded union such as
+  `BackgroundRenderPass | WorldRenderPass`; otherwise the helper becomes a
+  back door for calling true 3D or world cues from a no-depth pass. Keep the lab
+  source guard scanning production renderer sources for raw render-pass
+  parameters.
 - The live frame shell should submit graph-shaped pass lists, not ad-hoc
   `background`/`world`/`overlay` callback fields. Use named pass ids plus a
   `phase` string (`background`, `world-depth`, `overlay`) and publish those ids

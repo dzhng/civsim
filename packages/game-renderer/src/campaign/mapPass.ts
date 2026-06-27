@@ -4,6 +4,8 @@ import { WORLD_CAMERA_WGSL } from '../../../webgpu-core/src/cameraWgsl';
 import { webGpuAlphaBlendColorTarget, webGpuWorldDepthStencil } from '../../../webgpu-core/src/pipelineContracts';
 import type { BackgroundRenderPass, OverlayRenderPass, RawFrameShell, WorldRenderPass } from '../../../webgpu-core/src/frameShell';
 
+type CampaignLineRenderPass = BackgroundRenderPass | WorldRenderPass;
+
 export interface CampaignMapNodeData {
   name: string;
   pos: [number, number];
@@ -531,7 +533,7 @@ class CampaignLineGeometry {
     if (vertices.length > 0) this.shell.device.queue.writeBuffer(this.vertexBuffer, 0, vertices);
   }
 
-  draw(pass: GPURenderPassEncoder, pipeline: GPURenderPipeline) {
+  draw(pass: CampaignLineRenderPass, pipeline: GPURenderPipeline) {
     if (this.vertexCount === 0) return;
     pass.setPipeline(pipeline);
     pass.setBindGroup(0, this.shell.cameraBindGroup);

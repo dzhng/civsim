@@ -305,6 +305,25 @@ async function findPhaseBrandFootguns() {
   return matches.sort();
 }
 
+async function findRawRenderPassEncoderFootguns() {
+  const root = new URL('../../', import.meta.url).pathname;
+  const sourceRoots = [
+    new URL('../../packages/game-renderer/src/', import.meta.url),
+    new URL('../src/', import.meta.url),
+  ];
+  const matches = [];
+  for (const sourceRoot of sourceRoots) {
+    for (const file of await tsFiles(sourceRoot)) {
+      const source = await readFile(file, 'utf8');
+      const rawPassParams = source.match(/\b\w+\s*\([^)]*:\s*GPURenderPassEncoder\b/g) ?? [];
+      if (rawPassParams.length > 0) {
+        matches.push(`${file.pathname.replace(root, '')}: raw GPURenderPassEncoder parameter bypasses frame phase branding`);
+      }
+    }
+  }
+  return matches.sort();
+}
+
 async function findAdHocFrameCallbackFootguns() {
   const root = new URL('../../', import.meta.url).pathname;
   const files = [
@@ -528,6 +547,12 @@ export async function run(ctx) {
     'source: renderer draw methods require branded frame phases',
     phaseBrandFootguns.length === 0,
     JSON.stringify({ phaseBrandFootguns }),
+  );
+  const rawRenderPassEncoderFootguns = await findRawRenderPassEncoderFootguns();
+  ctx.check(
+    'source: renderer pass helpers avoid raw render-pass parameters',
+    rawRenderPassEncoderFootguns.length === 0,
+    JSON.stringify({ rawRenderPassEncoderFootguns }),
   );
   const adHocFrameCallbackFootguns = await findAdHocFrameCallbackFootguns();
   ctx.check(

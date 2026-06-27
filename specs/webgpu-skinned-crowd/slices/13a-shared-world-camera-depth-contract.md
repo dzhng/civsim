@@ -144,6 +144,11 @@ shadows that sit on the ground instead of floating as screen overlays.
   battle overlays/minimap/debug triangles and campaign clouds/markers/labels
   require `OverlayRenderPass`. The lab route source guard now checks the full
   phase-brand contract, not only depth-sensitive world draws.
+- Renderer draw helpers are phase-branded too. Shared helpers such as campaign
+  line geometry accept explicit branded unions for the phases they are allowed
+  to serve, not raw `GPURenderPassEncoder`; the lab route scans production
+  renderer sources so helper-level back doors cannot bypass frame phase
+  branding.
 - Live frame submission now uses graph-shaped pass lists instead of
   callback-shaped `background`/`world`/`overlay` fields. Each submitted pass has
   a stable id and a frame phase, and `RawFrameShell.stats().phases` publishes

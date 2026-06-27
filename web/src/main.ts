@@ -99,7 +99,7 @@ async function buildTestCampaign(): Promise<{ data: CampaignData; mapJson: strin
     ],
   } as unknown as CampaignData['map'];
   const bgRect = { min: [-45, Y - 28] as [number, number], max: [45, Y + 28] as [number, number] };
-  const bg = await controlledCampaignBitmap(180, 112, [168, 176, 116]);
+  const bg = await controlledCampaignBitmap(180, 112, [154, 170, 104]);
   const nodeIndex = new Map(map.nodes.map((n, i) => [n.id, i]));
   return { data: { map, bg, bgRect, nodeIndex }, mapJson: JSON.stringify(map) };
 }
@@ -129,7 +129,7 @@ async function buildHandoffCampaign(): Promise<{ data: CampaignData; mapJson: st
     ],
   } as unknown as CampaignData['map'];
   const bgRect = { min: [-54, Y - 32] as [number, number], max: [54, Y + 32] as [number, number] };
-  const bg = await controlledCampaignBitmap(216, 128, [168, 176, 116]);
+  const bg = await controlledCampaignBitmap(216, 128, [154, 170, 104]);
   const nodeIndex = new Map(map.nodes.map((n, i) => [n.id, i]));
   return { data: { map, bg, bgRect, nodeIndex }, mapJson: JSON.stringify(map) };
 }
@@ -145,8 +145,8 @@ async function controlledCampaignBitmap(width: number, height: number, rgb: [num
       const fine = smoothNoise(nx * 18.0 + 1.7, ny * 13.0 + 5.3);
       const striation = Math.sin((nx * 5.5 + ny * 1.2) * Math.PI * 2) * 0.5 + 0.5;
       const moisture = smoothNoise(nx * 2.0 + 12.4, ny * 2.2 + 0.8);
-      const shade = (broad - 0.5) * 20 + (fine - 0.5) * 8 + (striation - 0.5) * 6;
-      const green = (moisture - 0.5) * 12;
+      const shade = (broad - 0.5) * 25 + (fine - 0.5) * 11 + (striation - 0.5) * 8;
+      const green = (moisture - 0.5) * 18;
       const o = i * 4;
       pixels[o] = clampByte(rgb[0] + shade - green * 0.25);
       pixels[o + 1] = clampByte(rgb[1] + shade * 0.82 + green);

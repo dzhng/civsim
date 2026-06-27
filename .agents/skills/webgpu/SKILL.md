@@ -126,6 +126,13 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   black/terrain coverage and edge parity, but the wrong direction can sharply
   increase void coverage. Keep rejected label/selection tweaks out of the
   artifact set when the camera correction is the actual win.
+- For controlled campaign close-view palette work, tune the deterministic
+  fixture bitmap before changing the global campaign map shader. The archived
+  close shot is sensitive to green/yellow ground value; darkening and greening
+  the `?campaign=test` bitmap while preserving deterministic noise moved
+  Campaign Label Zoom parity from `0.19570` to `0.18514` without disrupting
+  edge energy. Keep unrelated full-report screenshot drift out of the artifact
+  set before recomputing the diff JSON.
 - For campaign model parity, remember that city and army standards are part of
   the instanced entity mesh and use white mesh colors as the faction-livery
   mask. Preserve their attachment by changing mesh geometry, not by layering

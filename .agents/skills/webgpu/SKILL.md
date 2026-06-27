@@ -97,6 +97,11 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   selected ring can dominate the central stack even when the entity itself is
   correct. Keep rejected camera experiments out of the artifact set when they
   improve one proxy, such as black ratio, but worsen the composite parity score.
+- When a campaign close-view capture reads too orthographic, test the shared
+  WebGPU pitch/perspective constants before moving individual props. Pitch
+  changes affect board trapezoid, model height, selection ellipse, shadows, and
+  label projection together; capture zoom can match black/terrain coverage while
+  still worsening the composite parity score.
 - For campaign model parity, remember that city and army standards are part of
   the instanced entity mesh and use white mesh colors as the faction-livery
   mask. Preserve their attachment by changing mesh geometry, not by layering

@@ -28,7 +28,7 @@ interface DrawOptions {
 
 export class CampaignRendererWebGPU {
   readonly ready: Promise<void>;
-  readonly pitch = 0.66;
+  readonly pitch = 0.82;
   fixedTime: number | null = null;
 
   private shell: RawFrameShell | null = null;

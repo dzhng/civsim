@@ -130,6 +130,14 @@ campaign-label-zoom gate.
   (`edgeEnergyRatio 0.99855`). A wider report-camera experiment improved black
   coverage but worsened parity to `0.21198`, so the close camera remains
   `cam(0, 433, 13)`.
+- The WebGPU campaign pitch now uses a stronger close-view perspective
+  (`0.82` instead of `0.66`), making the board trapezoid, city/army standards,
+  selection ellipse, shadows, and scenery silhouettes read less orthographic.
+  Campaign Label Zoom parity distance moved from `0.20635` to `0.19716`, with
+  edge energy still close to the archived renderer (`edgeEnergyRatio 0.98847`).
+  A higher report-camera zoom matched terrain/black coverage better but
+  worsened parity to `0.21065`, so camera zoom stayed fixed and the accepted
+  change is the renderer perspective.
 
 ## Must Stay Green
 

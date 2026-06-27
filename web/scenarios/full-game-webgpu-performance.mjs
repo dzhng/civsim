@@ -1,6 +1,8 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { basename } from 'node:path';
 
+import { hasBattleWorldDepthContract, hasCampaignWorldDepthContract } from './_webgpu-contract.mjs';
+
 export const meta = {
   name: 'full-game-webgpu-performance',
   kind: 'flow',
@@ -126,6 +128,7 @@ async function measureBattle(ctx) {
       && stats.soldiers >= 25000
       && stats.renderStats?.soldiers === stats.soldiers
       && stats.renderStats?.drawCalls === 1
+      && hasBattleWorldDepthContract(stats.renderStats)
       && perfStatsOk(stats.renderStats?.performance),
     JSON.stringify({ frame, stats }),
   );
@@ -160,7 +163,11 @@ async function measureCampaign(ctx) {
   await page.close();
   ctx.check(
     'perf campaign measures the normal raw-WebGPU campaign route',
-    stats.renderer === 'webgpu-campaign' && stats.cityEntities > 20 && stats.lineSegments > 1000 && perfStatsOk(stats.performance),
+    stats.renderer === 'webgpu-campaign'
+      && stats.cityEntities > 20
+      && stats.lineSegments > 1000
+      && hasCampaignWorldDepthContract(stats)
+      && perfStatsOk(stats.performance),
     JSON.stringify({ frame, stats }),
   );
   return sceneReport({
@@ -215,6 +222,7 @@ async function measureHandoff(ctx) {
       && handoffMs < 22000
       && stats.renderer === 'webgpu'
       && stats.renderStats?.soldiers === stats.soldiers
+      && hasBattleWorldDepthContract(stats.renderStats)
       && perfStatsOk(stats.renderStats?.performance),
     JSON.stringify({ handoffMs, frame, stats }),
   );

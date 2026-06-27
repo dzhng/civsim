@@ -1,3 +1,5 @@
+import { hasBattleWorldDepthContract, hasCampaignWorldDepthContract } from './_webgpu-contract.mjs';
+
 export const meta = {
   name: 'campaign-webgpu-handoff',
   kind: 'flow',
@@ -19,12 +21,16 @@ export async function run(ctx) {
 
   const campaignStart = await page.evaluate(() => ({
     renderer: window.__campaignWebGPUStats?.renderer,
+    webgpu: window.__campaignWebGPUStats,
     armies: window.__campaign.armies().map((army) => ({ id: army.id, faction: army.faction, soldiers: army.soldiers, encounter: army.encounter })),
     battleReady: window.__campaign.battleReady(),
   }));
   ctx.check(
     'handoff fixture opens in the default WebGPU campaign renderer',
-    campaignStart.renderer === 'webgpu-campaign' && campaignStart.armies.length === 2 && campaignStart.battleReady === -1,
+    campaignStart.renderer === 'webgpu-campaign'
+      && hasCampaignWorldDepthContract(campaignStart.webgpu)
+      && campaignStart.armies.length === 2
+      && campaignStart.battleReady === -1,
     JSON.stringify(campaignStart),
   );
 
@@ -70,6 +76,7 @@ export async function run(ctx) {
       && battleStats.game.renderer === 'webgpu'
       && battleStats.game.renderStats?.ready === true
       && battleStats.game.renderStats?.soldiers === battleStats.game.soldiers
+      && hasBattleWorldDepthContract(battleStats.game.renderStats)
       && battleStats.game.soldiers > 0
       && battleStats.continueLabel.includes('Campaign')
       && battleStats.gameoverLabel === 'Continue',
@@ -84,6 +91,7 @@ export async function run(ctx) {
     campaignReady: window.__campaignReady,
     battleReadyFlag: window.__ready,
     renderer: window.__campaignWebGPUStats?.renderer,
+    webgpu: window.__campaignWebGPUStats,
     battleReady: window.__campaign.battleReady(),
     tick: window.__campaign.currentTick(),
     armies: window.__campaign.armies().map((army) => ({ id: army.id, faction: army.faction, soldiers: army.soldiers, encounter: army.encounter })),
@@ -100,6 +108,7 @@ export async function run(ctx) {
     returned.campaignReady === true
       && returned.battleReadyFlag === false
       && returned.renderer === 'webgpu-campaign'
+      && hasCampaignWorldDepthContract(returned.webgpu)
       && returned.battleReady === -1
       && returned.armies.every((army) => army.encounter === -1)
       && returned.canSave === true,

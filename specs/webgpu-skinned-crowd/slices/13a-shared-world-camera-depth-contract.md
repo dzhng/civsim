@@ -170,6 +170,13 @@ shadows that sit on the ground instead of floating as screen overlays.
   read semantics use `CampaignWorldLinePass`. The lab source guard rejects
   `drawDepth`, parallel `depthPipeline` fields, and production routes that wire
   sea lanes through the background line class.
+- Normal production flow scenarios now import `web/scenarios/_webgpu-contract.mjs`
+  and assert concrete pass ids plus depth modes, not only broad renderer
+  readiness or phase order. Battle launch/input/handoff/perf checks require the
+  `battle-skinned-crowd` read-write depth pass; campaign launch/save/load/menu
+  checks require selection, road, sea-lane, scenery, and entity depth modes. The
+  lab route scans those scenario files so weaker local phase-only helpers cannot
+  quietly replace the shared contract.
 - `compileRenderGraph` now rejects mismatched depth accesses: read-only passes
   that write depth, write-only passes that read depth, and private depth
   attachments. `/webgpu/render-graph` publishes negative fixtures for those

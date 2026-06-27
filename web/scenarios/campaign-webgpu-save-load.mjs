@@ -1,3 +1,5 @@
+import { hasCampaignWorldDepthContract } from './_webgpu-contract.mjs';
+
 export const meta = {
   name: 'campaign-webgpu-save-load',
   kind: 'flow',
@@ -34,6 +36,7 @@ export async function run(ctx) {
   await page.waitForFunction(() => window.__campaignReady === true && window.__campaignWebGPUStats?.ready === true, undefined, { timeout: 30000 });
   const initial = await page.evaluate(() => ({
     renderer: window.__campaignWebGPUStats?.renderer,
+    webgpu: window.__campaignWebGPUStats,
     cityEntities: window.__campaignWebGPUStats?.cityEntities,
     armyEntities: window.__campaignWebGPUStats?.armyEntities,
     armies: window.__campaign.armies().length,
@@ -43,6 +46,7 @@ export async function run(ctx) {
   ctx.check(
     'new campaign starts as a normal WebGPU campaign',
     initial.renderer === 'webgpu-campaign'
+      && hasCampaignWorldDepthContract(initial.webgpu)
       && initial.cityEntities > 100
       && initial.armyEntities > 5
       && initial.armies > 5
@@ -71,6 +75,7 @@ export async function run(ctx) {
   await page.waitForFunction(() => window.__campaignReady === true && window.__campaignWebGPUStats?.ready === true, undefined, { timeout: 30000 });
   const loaded = await page.evaluate((savedText) => ({
     renderer: window.__campaignWebGPUStats?.renderer,
+    webgpu: window.__campaignWebGPUStats,
     cityEntities: window.__campaignWebGPUStats?.cityEntities,
     armyEntities: window.__campaignWebGPUStats?.armyEntities,
     armies: window.__campaign.armies().length,
@@ -80,6 +85,7 @@ export async function run(ctx) {
   ctx.check(
     'loaded save returns to a live raw-WebGPU campaign',
     loaded.renderer === 'webgpu-campaign'
+      && hasCampaignWorldDepthContract(loaded.webgpu)
       && loaded.cityEntities > 100
       && loaded.armyEntities > 5
       && loaded.armies === initial.armies

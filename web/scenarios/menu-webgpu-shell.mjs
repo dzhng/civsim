@@ -1,3 +1,5 @@
+import { hasBattleWorldDepthContract, hasCampaignWorldDepthContract } from './_webgpu-contract.mjs';
+
 export const meta = {
   name: 'menu-webgpu-shell',
   kind: 'flow',
@@ -72,7 +74,13 @@ export async function run(ctx) {
   await page.click('#menu-new-campaign');
   await page.waitForFunction(() => window.__campaignReady === true && window.__campaignWebGPUStats?.ready === true, undefined, { timeout: 30000 });
   const campaignStats = await page.evaluate(() => window.__campaignWebGPUStats);
-  ctx.check('menu starts the normal WebGPU campaign route', campaignStats.renderer === 'webgpu-campaign' && campaignStats.cityEntities > 20, JSON.stringify(campaignStats));
+  ctx.check(
+    'menu starts the normal WebGPU campaign route',
+    campaignStats.renderer === 'webgpu-campaign'
+      && campaignStats.cityEntities > 20
+      && hasCampaignWorldDepthContract(campaignStats),
+    JSON.stringify(campaignStats),
+  );
   await page.click('#cmp-exit');
   await page.waitForFunction(() => getComputedStyle(document.getElementById('menu-ui')).display === 'flex', undefined, { timeout: 12000 });
   const returned = await page.evaluate(() => ({
@@ -156,5 +164,6 @@ function battleStatsMatch(stats) {
   return stats.renderer === 'webgpu'
     && stats.renderStats?.ready === true
     && stats.renderStats.soldiers === stats.soldiers
-    && stats.renderStats.expectedSoldiers === stats.soldiers;
+    && stats.renderStats.expectedSoldiers === stats.soldiers
+    && hasBattleWorldDepthContract(stats.renderStats);
 }

@@ -345,6 +345,37 @@ async function findWorldDepthPassMetadataFootguns() {
   return matches.sort();
 }
 
+async function findProductionScenarioContractFootguns() {
+  const root = new URL('../../', import.meta.url).pathname;
+  const files = [
+    { file: new URL('./battle-webgpu-default.mjs', import.meta.url), requires: ['hasBattleWorldDepthContract'] },
+    { file: new URL('./battle-webgpu-input.mjs', import.meta.url), requires: ['hasBattleWorldDepthContract'] },
+    { file: new URL('./campaign-webgpu-production.mjs', import.meta.url), requires: ['hasCampaignWorldDepthContract'] },
+    { file: new URL('./campaign-webgpu-handoff.mjs', import.meta.url), requires: ['hasBattleWorldDepthContract', 'hasCampaignWorldDepthContract'] },
+    { file: new URL('./campaign-webgpu-reinforcements.mjs', import.meta.url), requires: ['hasBattleWorldDepthContract'] },
+    { file: new URL('./campaign-webgpu-save-load.mjs', import.meta.url), requires: ['hasCampaignWorldDepthContract'] },
+    { file: new URL('./campaign-webgpu-conquest.mjs', import.meta.url), requires: ['hasCampaignWorldDepthContract'] },
+    { file: new URL('./menu-webgpu-shell.mjs', import.meta.url), requires: ['hasBattleWorldDepthContract', 'hasCampaignWorldDepthContract'] },
+    { file: new URL('./full-game-webgpu-performance.mjs', import.meta.url), requires: ['hasBattleWorldDepthContract', 'hasCampaignWorldDepthContract'] },
+  ];
+  const matches = [];
+  for (const { file, requires } of files) {
+    const source = await readFile(file, 'utf8');
+    const label = file.pathname.replace(root, '');
+    if (!/from\s+['"]\.\/_webgpu-contract\.mjs['"]/.test(source)) {
+      matches.push(`${label}: production scenario must import the shared WebGPU contract helper`);
+    }
+    for (const name of requires) {
+      const uses = source.match(new RegExp(`\\b${name}\\b`, 'g')) ?? [];
+      if (uses.length < 2) matches.push(`${label}: missing ${name} assertion`);
+    }
+    if (/\bfunction\s+hasFramePhaseOrder\s*\(/.test(source)) {
+      matches.push(`${label}: local phase-order helper is weaker than the shared depth-pass contract`);
+    }
+  }
+  return matches.sort();
+}
+
 async function findDepthContractFootguns() {
   const root = new URL('../../', import.meta.url).pathname;
   const sourceRoots = [
@@ -509,6 +540,12 @@ export async function run(ctx) {
     'source: world-depth frame passes declare depth modes',
     worldDepthPassMetadataFootguns.length === 0,
     JSON.stringify({ worldDepthPassMetadataFootguns }),
+  );
+  const productionScenarioContractFootguns = await findProductionScenarioContractFootguns();
+  ctx.check(
+    'source: production scenarios assert shared WebGPU depth contracts',
+    productionScenarioContractFootguns.length === 0,
+    JSON.stringify({ productionScenarioContractFootguns }),
   );
   const depthContractFootguns = await findDepthContractFootguns();
   ctx.check(

@@ -1,5 +1,6 @@
 import { PNG } from 'pngjs';
 import { battleReal } from './worlds.mjs';
+import { hasBattleWorldDepthContract } from './_webgpu-contract.mjs';
 
 export const meta = {
   name: 'battle-webgpu-default',
@@ -30,11 +31,7 @@ export async function run(ctx) {
       && stats.renderStats?.ready === true
       && stats.renderStats.soldiers === stats.soldiers
       && stats.renderStats.atmosphere === 'aegean-sky-haze'
-      && stats.renderStats.cameraContract === 'shared-world-camera-wgsl'
-      && stats.renderStats.skinnedCameraContract === 'shared-world-camera-wgsl'
-      && stats.renderStats.depth?.allocated === true
-      && stats.renderStats.depth?.format === 'depth24plus'
-      && hasFramePhaseOrder(stats.renderStats.phases),
+      && hasBattleWorldDepthContract(stats.renderStats),
     JSON.stringify(stats),
   );
   ctx.check(
@@ -79,20 +76,9 @@ export async function run(ctx) {
       `retired gfx=${retired} battle route still uses raw WebGPU`,
       retiredStats.renderer === 'webgpu'
         && retiredStats.renderStats?.drawCalls === 1
-        && retiredStats.renderStats?.cameraContract === 'shared-world-camera-wgsl'
-        && retiredStats.renderStats?.skinnedCameraContract === 'shared-world-camera-wgsl'
-        && retiredStats.renderStats?.depth?.allocated === true
-        && hasFramePhaseOrder(retiredStats.renderStats?.phases),
+        && hasBattleWorldDepthContract(retiredStats.renderStats),
       JSON.stringify(retiredStats),
     );
     await legacyPage.close();
   }
-}
-
-function hasFramePhaseOrder(phases) {
-  const kinds = Array.isArray(phases) ? phases.map((phase) => phase?.kind) : [];
-  const background = kinds.indexOf('background');
-  const world = kinds.indexOf('world-depth');
-  const overlay = kinds.includes('overlay') ? kinds.indexOf('overlay') : kinds.length;
-  return background === 0 && world > background && overlay > world;
 }

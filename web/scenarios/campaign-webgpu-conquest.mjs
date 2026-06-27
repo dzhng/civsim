@@ -1,5 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import { nearestIndependentCityFromRoma } from './_campaign-map-helpers.mjs';
+import { hasCampaignWorldDepthContract } from './_webgpu-contract.mjs';
 
 export const meta = {
   name: 'campaign-webgpu-conquest',
@@ -29,6 +30,7 @@ export async function run(ctx) {
 
   const initial = await page.evaluate(() => ({
     renderer: window.__campaignWebGPUStats?.renderer,
+    webgpu: window.__campaignWebGPUStats,
     cityEntities: window.__campaignWebGPUStats?.cityEntities,
     armyEntities: window.__campaignWebGPUStats?.armyEntities,
     armies: window.__campaign.armies(),
@@ -38,6 +40,7 @@ export async function run(ctx) {
   ctx.check(
     'real campaign starts through the raw-WebGPU adapter',
     initial.renderer === 'webgpu-campaign'
+      && hasCampaignWorldDepthContract(initial.webgpu)
       && initial.cityEntities > 100
       && initial.armyEntities > 5
       && initial.armies.length >= 10
@@ -95,8 +98,9 @@ export async function run(ctx) {
     const armies = window.__campaign.armies();
     const player = armies.find((army) => army.id === 0);
     return {
-      renderer: window.__campaignWebGPUStats?.renderer,
-      ready: window.__campaign.battleReady(),
+    renderer: window.__campaignWebGPUStats?.renderer,
+    webgpu: window.__campaignWebGPUStats,
+    ready: window.__campaign.battleReady(),
       currentTick: window.__campaign.currentTick(),
       playerArmy: player ? { id: player.id, soldiers: player.soldiers, encounter: player.encounter, mine: player.mine } : null,
       armyCount: armies.length,
@@ -106,6 +110,7 @@ export async function run(ctx) {
   ctx.check(
     'auto-resolve consumes the pending battle and returns to a savable WebGPU campaign',
     after.renderer === 'webgpu-campaign'
+      && hasCampaignWorldDepthContract(after.webgpu)
       && after.ready === -1
       && after.playerArmy?.mine === true
       && after.playerArmy.encounter === -1

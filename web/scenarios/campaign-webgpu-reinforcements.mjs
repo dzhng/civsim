@@ -1,5 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import { approachTilesForCity, nearestIndependentCityFromRoma } from './_campaign-map-helpers.mjs';
+import { hasBattleWorldDepthContract } from './_webgpu-contract.mjs';
 
 export const meta = {
   name: 'campaign-webgpu-reinforcements',
@@ -125,7 +126,8 @@ export async function run(ctx) {
       && rendered.units > initialBattle.units
       && rendered.soldiers > initialBattle.soldiers
       && rendered.renderStats?.soldiers === rendered.soldiers
-      && rendered.renderStats?.expectedSoldiers === rendered.soldiers,
+      && rendered.renderStats?.expectedSoldiers === rendered.soldiers
+      && hasBattleWorldDepthContract(rendered.renderStats),
     JSON.stringify({
       units: [initialBattle.units, rendered.units],
       soldiers: [initialBattle.soldiers, rendered.soldiers],

@@ -504,7 +504,9 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   lab routes. Expose `cameraContract`, depth allocation, and executed
   `framePhases`/`phases` from normal game renderer stats; otherwise a lab gate
   can stay green while the shipped route quietly drifts into a different pass
-  shape.
+  shape. Use a shared scenario helper that checks concrete pass ids and depth
+  modes, such as `battle-skinned-crowd: read-write` or
+  `campaign-scenery: read-write`, instead of a local phase-order-only helper.
 - Once a campaign model/decal/line pass is promoted to the depth world phase,
   remove its no-depth twin API instead of keeping `draw`/`drawDepth` side by
   side. Use separate phase-specific classes when the same primitive family is

@@ -1,4 +1,5 @@
 import { PNG } from 'pngjs';
+import { hasCampaignWorldDepthContract } from './_webgpu-contract.mjs';
 
 export const meta = {
   name: 'campaign-webgpu-production',
@@ -29,10 +30,7 @@ export async function run(ctx) {
       && stats.cloudQuads === 1
       && stats.labelLayer === 'raw-webgpu-glyph-atlas'
       && stats.labelVertices > 0
-      && stats.cameraContract === 'shared-world-camera-wgsl'
-      && stats.depth?.allocated === true
-      && stats.depth?.format === 'depth24plus'
-      && hasFramePhaseOrder(stats.phases),
+      && hasCampaignWorldDepthContract(stats),
     JSON.stringify(stats),
   );
   ctx.check(
@@ -93,8 +91,7 @@ export async function run(ctx) {
       && cityOpened.cityPanel.includes('Roma')
       && cityOpened.webgpu.visibleLabels >= 2
       && cityOpened.webgpu.labelLayer === 'raw-webgpu-glyph-atlas'
-      && cityOpened.webgpu.cameraContract === 'shared-world-camera-wgsl'
-      && hasFramePhaseOrder(cityOpened.webgpu.phases),
+      && hasCampaignWorldDepthContract(cityOpened.webgpu),
     JSON.stringify({ cityTarget, cityOpened }),
   );
 
@@ -110,20 +107,10 @@ export async function run(ctx) {
       && retiredStats.ready === true
       && retiredStats.labelLayer === 'raw-webgpu-glyph-atlas'
       && retiredStats.postCutoverScreenshots === 'webgpu-only'
-      && retiredStats.cameraContract === 'shared-world-camera-wgsl'
-      && retiredStats.depth?.allocated === true
-      && hasFramePhaseOrder(retiredStats.phases),
+      && hasCampaignWorldDepthContract(retiredStats),
     JSON.stringify(retiredStats),
   );
   await retired.close();
-}
-
-function hasFramePhaseOrder(phases) {
-  const kinds = Array.isArray(phases) ? phases.map((phase) => phase?.kind) : [];
-  const background = kinds.indexOf('background');
-  const world = kinds.indexOf('world-depth');
-  const overlay = kinds.includes('overlay') ? kinds.indexOf('overlay') : kinds.length;
-  return background === 0 && world > background && overlay > world;
 }
 
 function countPixels(png) {

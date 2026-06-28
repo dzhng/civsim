@@ -118,8 +118,21 @@ final cutover (slice 11) is the integration point that depends on the rest.
 
 You are building the WebGPU conversion completion. Last updated: 2026-06-29.
 
-Current status: **Slices 01–06 in progress** (Group A complete; Group B through
-mount data + LOD; slice 06 horse-composition headline deferred to David).
+Current status: **Slices 01–07** (Group A complete; Group B done bar the slice
+06 horse-composition headline deferred to David).
+
+**Slice 07 (LOD mesh tiers) shipped:**
+- `lod.ts`: `instanceScreenSize` (per-instance distance), `lodWithHysteresis`
+  (boundary deadband), `assignCrowdLodsByDistance`. `CrowdInstance.lod`.
+- `createPlaceholderSoldierMeshTiers` — L0/L1/L2 (132/72/48 tris), same bones so
+  one VAT drives every tier.
+- `skinnedPipeline` builds a resource per `(classId, lod)` and groups by both;
+  flat-mesh callers stay L0-only so battle/model baselines are byte-identical.
+- `/webgpu/lod-tiers` route + `webgpu-lod-tiers` scene: triangle reduction,
+  monotonic distance binning, hysteresis. Unprimed critique confirmed silhouette
+  continuity (no jarring pop). Open for David: production still renders L0;
+  wiring per-instance selection into battle is gated on tier-distance tuning.
+
 
 **Slice 06 (mounted units) — production fixes shipped, headline deferred:**
 - `CrowdInstance.mounted` populated from the kit's mounted archetypes
@@ -231,9 +244,9 @@ left untouched per the spec; the `compileShader` source gate is scoped to
 non-campaign roots. Only the campaign `renderer.ready.catch` (scene controller,
 pure robustness) was added.
 
-Next pickup: **Slice 07 (LOD mesh tiers)** — Group B (needs 04, done). L0/L1/L2
-mesh tiers with an `lod` field on `CrowdInstance` and LOD-aware grouping in
-battle. (Slice 06's horse-skeleton composition remains deferred to David.)
+Next pickup: **Slice 08 (battle shadows & terrain elevation)** — Group C. Port
+the campaign `drawShadows` to battle and add a soldier terrain-elevation field so
+soldiers climb relief. (Slice 06's horse-skeleton composition remains deferred.)
 
 Active warnings:
 - Keep the sim and campaign renderer untouched; this is non-campaign renderer
@@ -257,8 +270,8 @@ Global TODO:
 - [~] Slice 06: mount data model + LOD for all mounted classes shipped; real
   horse VAT + rider composition and per-piece equipment deferred to David's
   design call.
-- [ ] Slice 07: L0/L1/L2 mesh tiers with an `lod` field on `CrowdInstance` and
-  LOD-aware grouping in battle.
+- [x] Slice 07: L0/L1/L2 mesh tiers with an `lod` field on `CrowdInstance` and
+  LOD-aware grouping (production wiring gated on David's tier-distance tuning).
 - [ ] Slice 08: battle shadow pass (port campaign `drawShadows`) and soldier
   terrain-elevation field.
 - [ ] Slice 09: battle particles/impacts, 3D projectiles, distinct corpses.

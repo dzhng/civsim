@@ -88,6 +88,7 @@ fn vs(
   @location(3) bone: f32,
   @location(4) inst0: vec4f,
   @location(5) inst1: vec4f,
+  @location(6) inst2: vec4f,
 ) -> VsOut {
   let clipStart = inst1.y;
   let clipFrames = max(inst1.z, 1.0);
@@ -101,7 +102,8 @@ fn vs(
   let c = cos(a);
   let s = sin(a);
   let p = local.xyz * inst1.x;
-  let world = vec3f(inst0.x + p.x * c - p.y * s, inst0.y + p.x * s + p.y * c, p.z);
+  // inst2.x = terrain elevation: soldiers sit on the surface and sort by it.
+  let world = vec3f(inst0.x + p.x * c - p.y * s, inst0.y + p.x * s + p.y * c, p.z + inst2.x);
 
   var out: VsOut;
   out.pos = projectWorld3d(world, civsimBattleWorldDepth3d(world));
@@ -332,7 +334,7 @@ export class SkinnedCrowdPipeline {
     device.queue.writeBuffer(indexBuffer, 0, mesh.indices);
     const instanceBuffer = device.createBuffer({
       label: `skinned-empty-${index}-instances`,
-      size: 8 * 4,
+      size: 12 * 4,
       usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
     });
     return { mesh, vat, index, classId, lod, vertexBuffer, indexBuffer, instanceBuffer, instanceCapacity: 0, instanceCount: 0 };
@@ -352,7 +354,7 @@ export class SkinnedCrowdPipeline {
   }
 
   private uploadGroup(resource: MeshResource, instances: CrowdInstance[], opts: { forcedClip?: string | null; phaseOffset?: number; size?: number }) {
-    const stride = 8;
+    const stride = 12;
     if (instances.length > resource.instanceCapacity) {
       resource.instanceCapacity = Math.max(instances.length, resource.instanceCapacity * 2, 256);
       resource.instanceBuffer = this.shell.device.createBuffer({
@@ -375,6 +377,7 @@ export class SkinnedCrowdPipeline {
       data[o + 5] = clip.start;
       data[o + 6] = clip.frames;
       data[o + 7] = ((inst.phase + (opts.phaseOffset ?? 0)) % 1 + 1) % 1;
+      data[o + 8] = inst.elevation ?? 0; // inst2.x: terrain elevation
     }
     this.shell.device.queue.writeBuffer(resource.instanceBuffer, 0, data);
   }
@@ -399,11 +402,12 @@ export class SkinnedCrowdPipeline {
             ],
           },
           {
-            arrayStride: 32,
+            arrayStride: 48,
             stepMode: 'instance',
             attributes: [
               { shaderLocation: 4, offset: 0, format: 'float32x4' },
               { shaderLocation: 5, offset: 16, format: 'float32x4' },
+              { shaderLocation: 6, offset: 32, format: 'float32x4' },
             ],
           },
         ],

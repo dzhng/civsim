@@ -12,6 +12,9 @@ export interface CrowdBuildInputs {
   count?: number;
   /** Class ids that ride a mount (from archetype.mount). Drives `mounted`. */
   mountedClasses?: Iterable<number>;
+  /** Render-only terrain height sampler at world (x,y) — the same source that
+   *  feeds the battle terrain. Sets each instance's `elevation`. */
+  terrainHeight?: (x: number, y: number) => number;
 }
 
 export interface CrowdInstance {
@@ -29,6 +32,9 @@ export interface CrowdInstance {
   mounted: boolean;
   /** Mesh tier 0=full … 3=impostor, assigned per-instance by camera distance. */
   lod: number;
+  /** Render-only terrain height at (x,y); added to world Z so soldiers sit on
+   *  the surface and sort by it. Sim positions are unaffected. */
+  elevation?: number;
 }
 
 export interface CrowdBuildStats {
@@ -76,6 +82,7 @@ export function buildCrowdInstances(inputs: CrowdBuildInputs): CrowdInstanceBuff
       seed,
       mounted: mountedClasses.has(classId),
       lod: 0,
+      elevation: inputs.terrainHeight ? inputs.terrainHeight(inputs.positions[i * 2], inputs.positions[i * 2 + 1]) : 0,
     };
     instances.push(inst);
     const o = stats.written * 12;
@@ -90,7 +97,7 @@ export function buildCrowdInstances(inputs: CrowdBuildInputs): CrowdInstanceBuff
     packed[o + 8] = seed;
     packed[o + 9] = unit;
     packed[o + 10] = inst.mounted ? 1 : 0;
-    packed[o + 11] = 0;
+    packed[o + 11] = inst.elevation ?? 0;
     stats.written++;
     if (alive) stats.alive++;
     if (faction === 0) stats.player++;

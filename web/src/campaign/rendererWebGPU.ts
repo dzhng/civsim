@@ -163,7 +163,7 @@ export class CampaignRendererWebGPU {
     this.lastFog = { enabled: opts.fogOfWar, sources: opts.visionSources };
     this.fog.upload(opts.visionSources, opts.fogOfWar);
     const staticLabels = opts.fogOfWar ? [] : this.staticLabels;
-    const cityLabels = campaignCityLabels(this.data, opts);
+    const cityLabels = campaignCityLabels(this.data, this.field, opts);
     const armyLabels = campaignArmyLabels(this.data, opts);
     const factionLabels = campaignFactionLabels(this.data, opts);
     this.lastLabelComposition = {
@@ -459,7 +459,7 @@ function allegianceColor(allegiance: Allegiance): [number, number, number] {
   return [0.93, 0.78, 0.30];
 }
 
-function campaignCityLabels(data: CampaignData, opts: DrawOptions): CampaignLabel[] {
+function campaignCityLabels(data: CampaignData, field: TerrainField, opts: DrawOptions): CampaignLabel[] {
   const edge = mapEdgeProjector(data);
   const occupiedCities = occupiedCityLabels(data, opts);
   const labels: CampaignLabel[] = [];
@@ -483,7 +483,7 @@ function campaignCityLabels(data: CampaignData, opts: DrawOptions): CampaignLabe
       iconColor: allegianceColor(allegiance),
       collisionGroup: cityCollisionGroup(index),
       screenOffsetX: cityLabelOffsetX(opts, node.tier) + horizontalEdgeOffset(edge.x(node.pos[0])),
-      screenOffsetY: cityLabelOffset(opts, baseSize, false, node.tier) + verticalEdgeOffset(edge.y(node.pos[1])),
+      screenOffsetY: cityLabelOffset(opts, baseSize, node.tier, cityReliefRisePx(field, opts, node.pos)) + verticalEdgeOffset(edge.y(node.pos[1])),
       screenAnchorX: overviewMarkerLabel ? 'left' : 'center',
       screenAnchorY: overviewMarkerLabel ? 'top' : 'center',
     });
@@ -572,11 +572,31 @@ function visibleCampaignArmies(opts: DrawOptions) {
   });
 }
 
-function cityLabelOffset(opts: DrawOptions, baseSize: number, hasArmy: boolean, tier: number) {
+function cityLabelOffset(opts: DrawOptions, baseSize: number, tier: number, reliefPx: number) {
   if (opts.cam.scale < 0.6) return cityMarkerOuterEdgePlusSidePx(tier);
-  const armyOffset = hasArmy ? baseSize * 1.15 : 0;
-  if (opts.cam.scale < 1.25) return baseSize * 1.30 + armyOffset;
-  return baseSize * 1.45 + armyOffset;
+  // The visible gap below the city model is reliefPx (model rides up over its
+  // raised ground) plus this screen offset (label sits below the flat z=0
+  // anchor). Target ~one label height of gap regardless of elevation, so the
+  // offset goes NEGATIVE for a perched city (label climbs back up to the
+  // model's foot) and stays positive for a coastal-flat one. Old 1.30/1.45 left
+  // two-plus label heights under inland cities.
+  const targetGap = opts.cam.scale < 1.25 ? baseSize * 0.9 : baseSize * 1.1;
+  // Clamp the climb so a freak height never flings the name onto the model top.
+  return Math.max(-baseSize * 2.6, targetGap - reliefPx);
+}
+
+// Screen-space pixels the city model rises above its flat (z=0) label anchor at
+// this camera. From world3dToScreen, a point at height h shifts up by
+// h*zoom/depth (yaw is always 0 on the campaign camera).
+function cityReliefRisePx(field: TerrainField, opts: DrawOptions, pos: readonly [number, number]) {
+  const h = Math.max(0, field.heightAt(pos[0], pos[1]));
+  if (h <= 0) return 0;
+  // Floor depth at 1: the true rise foreshortens near the camera bottom, but
+  // letting depth fall below 1 there inflates the rise for a flat coastal city
+  // (e.g. Ostia) and yanks its name up into the capital's garrison label. A
+  // genuinely raised inland city still has dy>0 (depth>=1) and pulls up.
+  const depth = Math.max(1, 1 + (pos[1] - opts.cam.y) * campaignPerspective(opts.cam.scale));
+  return (h * opts.cam.scale) / depth;
 }
 
 function cityLabelOffsetX(opts: DrawOptions, tier: number) {

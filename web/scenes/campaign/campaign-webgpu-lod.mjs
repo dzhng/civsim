@@ -30,6 +30,7 @@ const CENTRAL_ITALY_ROAD_PAIRS = [
   ['Roma', 'Reate'],
   ['Roma', 'Volsinii'],
   ['Roma', 'Ferentinum'],
+  ['Roma', 'Ostia/Portus'],
   ['Alba Fucens', 'Tibur'],
   ['Narnia', 'Spoletium'],
   ['Clusium', 'Volsinii'],

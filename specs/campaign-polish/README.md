@@ -130,23 +130,29 @@ and use focused fixture worlds before full-map acceptance.
 
 ## Next Agent Prompt
 
-You are picking up campaign polish. Last updated: 2026-06-29 (Slice 1 landed).
+You are picking up campaign polish. Last updated: 2026-06-29 (Slice 2 landed).
 
-Current status: Slice 1 done. Two deterministic fixture workbench scenes exist —
-`campaign-polish-roads` (`?campaign=alignment`, road continuity + Ostia label)
-and `campaign-polish-markers` (`?campaign=test`, label spacing + green swatch) —
-each with focused pixel probes and committed baselines. A feedback→scene
-checklist is in `slices/01`. The starting real-map baselines already read green
-with continuous roads; the live offenders confirmed by inspection are: **city
-labels float too far below their models** (worst at screen edges), **mountains
-are chunky stacked cone props** (the `alignment` fixture is buried in them — see
-`polish-road-continuity.png`), **no visible trees/forests**, and **no carts**.
+Current status: Slices 1–2 done. Workbench scenes `campaign-polish-roads`
+(`?campaign=alignment`) and `campaign-polish-markers` (`?campaign=test`) exist
+with pixel probes. City labels now sit ~one label height under their models via
+relief-aware offset in `cityLabelOffset`/`cityReliefRisePx`
+(`web/src/campaign/rendererWebGPU.ts`); the Roma→Ostia/Portus pair is now in the
+real-map road probe. All labeled baselines re-blessed (20 shots) and critique-
+accepted. Remaining live offenders: **mountains are chunky stacked cone props**
+(the `alignment` fixture is buried in them — see `polish-road-continuity.png`;
+`buildMountainMesh` is three brown cones), **no visible trees/forests** at the
+gameplay camera (generated but LOD-culled — gap review: `rendererWebGPU.ts`
+tree min-scale 0.45 vs zoom 0.18), **no city-aware terrain clearance** (relief
+ignores city positions, `terrain.ts:159-170`), and **no carts** (slice 5; cart
+model would live in `campaignEntityModels.ts`, kind union `sceneryPass.ts:6`).
 
-Next pickup: Slice 2 — pull the city label closer to its icon/model (the
-`cityLabelOffset()` seam in `web/src/campaign/rendererWebGPU.ts`, ~baseSize*1.30
-today) and confirm Ostia/Portus + Rome-south road continuity still hold. Use
-`polish-label-spacing` as the fixture gate and `campaign-lod-rome-close` /
-`campaign-lod-selected-army-city` as the real-map gate.
+Next pickup: Slice 3 — natural terrain green. Gap review: grass defaults tan at
+`mapPass.ts:192`, only greening above moisture 0.55 (`mapPass.ts:184-224`). The
+real baselines already read fairly green; verify with `polish-green-swatch`
+(fixture) + `campaign-lod-regional-italy-natural` / `rome-close` crops, ensure
+faction view doesn't leak into the natural baseline, and improve grass variation
+if the critique flags brown/flatness. Then Slice 4 (the big one: mountains from
+relief, denser forests, clearance) and Slice 5 (carts).
 
 How this pass runs the harness on this machine: dev server on a free port
 (`npx vite --port 5179 --strictPort` from `web/`), then
@@ -164,7 +170,7 @@ pickup point, blockers, and checklist state.
 Global TODO:
 
 - [x] Slice 1: feedback baselines and focused campaign workbench scenes exist.
-- [ ] Slice 2: city label spacing and Rome road continuity pass in fixture and
+- [x] Slice 2: city label spacing and Rome road continuity pass in fixture and
   close Rome campaign scene.
 - [ ] Slice 3: natural terrain color passes fixture and real Central Italy crop.
 - [ ] Slice 4: terrain relief, forests, and clearance pass fixture and real

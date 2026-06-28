@@ -54,6 +54,7 @@ export interface RawFrameShell {
   info: WebGpuDeviceInfo;
   device: GPUDevice;
   canvas: HTMLCanvasElement;
+  sampleCount: number;
   cameraBindGroupLayout: GPUBindGroupLayout;
   cameraBindGroup: GPUBindGroup;
   resize(size?: { width: number; height: number; dpr?: number }): void;
@@ -881,6 +882,7 @@ export class RawFrameShellImpl implements RawFrameShell {
       vertex: { module, entryPoint: 'vs', buffers: [{ arrayStride: 8, attributes: [{ shaderLocation: 0, offset: 0, format: 'float32x2' }] }] },
       fragment: { module, entryPoint: 'fs', targets: [{ format: this.info.format }] },
       primitive: { topology: 'triangle-strip' },
+      multisample: { count: this.sampleCount },
     });
   }
 
@@ -892,6 +894,7 @@ export class RawFrameShellImpl implements RawFrameShell {
       vertex: { module, entryPoint: 'vs', buffers: [{ arrayStride: 8, attributes: [{ shaderLocation: 0, offset: 0, format: 'float32x2' }] }] },
       fragment: { module, entryPoint: 'fs', targets: [{ format: this.info.format }] },
       primitive: { topology: 'triangle-strip' },
+      multisample: { count: this.sampleCount },
     });
   }
 
@@ -917,6 +920,7 @@ export class RawFrameShellImpl implements RawFrameShell {
       },
       fragment: { module, entryPoint: 'fs', targets: [{ format: this.info.format }] },
       primitive: { topology: 'triangle-strip' },
+      multisample: { count: this.sampleCount },
     });
   }
 }

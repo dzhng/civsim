@@ -6,7 +6,7 @@ import { compileShader } from './compileShader';
 import { createVatLayout, resolveVatClip } from './vatLayout';
 import type { RawFrameShell, WorldRenderPass } from './frameShell';
 import { WORLD_CAMERA_WGSL } from './cameraWgsl';
-import { webGpuOpaqueColorTarget, webGpuWorldDepthStencil } from './pipelineContracts';
+import { webGpuMultisample, webGpuOpaqueColorTarget, webGpuWorldDepthStencil } from './pipelineContracts';
 
 export interface SkinnedCrowdStats {
   instances: number;
@@ -268,6 +268,7 @@ export class SkinnedCrowdPipeline {
       fragment: { module, entryPoint: 'fs', targets: [webGpuOpaqueColorTarget(this.shell.info.format)] },
       primitive: { topology: 'triangle-list', cullMode: 'none' },
       depthStencil: webGpuWorldDepthStencil('read-write'),
+      multisample: webGpuMultisample(this.shell.sampleCount),
     });
   }
 }

@@ -18,6 +18,40 @@ function countNonBlank(png) {
   return nonBlank;
 }
 
+// The gray border (blue ~205) meets olive terrain (blue ~90) along the top
+// diagonal edge; antialiased boundary pixels land between. The blue channel
+// isolates that transition cleanly, away from terrain speckle (all low-blue).
+// We scan only the top band the diagonal edge crosses. MSAA spreads the edge
+// across more transition pixels, so a higher count means smoother edges.
+function countEdgeBlend(png) {
+  const band = Math.floor(png.height * 0.18);
+  let blend = 0;
+  for (let y = 0; y < band; y++) {
+    for (let x = 0; x < png.width; x++) {
+      const b = png.data[(y * png.width + x) * 4 + 2];
+      if (b >= 120 && b <= 188) blend++;
+    }
+  }
+  return blend;
+}
+
+async function canvasBlend(ctx, sampleCount) {
+  const page = await ctx.newPage({ viewport: { width: 900, height: 620 }, errorPrefix: `webgpu-capabilities-msaa${sampleCount}` });
+  try {
+    await page.goto(`${ctx.target}/webgpu/capabilities?msaa=${sampleCount}`);
+    await page.waitForFunction(
+      (n) => window.__webgpuLabReady === true && window.__webgpuLabStats?.stats?.sampleCount === n,
+      sampleCount,
+      { timeout: 18000 },
+    );
+    await page.waitForTimeout(250);
+    const png = PNG.sync.read(await page.locator('#webgpu-canvas').screenshot());
+    return { blend: countEdgeBlend(png), sampleCount };
+  } finally {
+    await page.close();
+  }
+}
+
 export async function run(ctx) {
   const page = await ctx.newPage({ viewport: { width: 900, height: 620 }, errorPrefix: 'webgpu-capabilities' });
   try {
@@ -25,6 +59,15 @@ export async function run(ctx) {
   } finally {
     await page.close();
   }
+  // Each probe page runs an unbounded rAF loop that holds a device, so compare
+  // MSAA only after the main page is closed.
+  const off = await canvasBlend(ctx, 1);
+  const on = await canvasBlend(ctx, 4);
+  ctx.check(
+    'capabilities: MSAA 4x renders at sampleCount 4 and reduces edge aliasing',
+    on.sampleCount === 4 && off.sampleCount === 1 && on.blend > off.blend * 1.2,
+    JSON.stringify({ off: off.blend, on: on.blend, ratio: (on.blend / Math.max(1, off.blend)).toFixed(2) }),
+  );
 }
 
 async function runProbe(ctx, page) {

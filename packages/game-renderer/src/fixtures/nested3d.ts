@@ -2,7 +2,7 @@ import type { RawFrameShell, WorldRenderPass } from '../../../webgpu-core/src/fr
 import { WORLD_CAMERA_WGSL } from '../../../webgpu-core/src/cameraWgsl';
 import { compileShader } from '../../../webgpu-core/src/compileShader';
 import { WEBGPU_DEPTH_FORMAT } from '../../../webgpu-core/src/depthContract';
-import { webGpuOpaqueColorTarget, webGpuWorldDepthStencil } from '../../../webgpu-core/src/pipelineContracts';
+import { webGpuMultisample, webGpuOpaqueColorTarget, webGpuWorldDepthStencil } from '../../../webgpu-core/src/pipelineContracts';
 
 export interface Nested3dFixtureStats {
   layer: 'depth-tested-nested-3d-fixture';
@@ -71,6 +71,7 @@ export class Nested3dFixturePass {
       },
       primitive: { topology: 'triangle-list', cullMode: 'none' },
       depthStencil: webGpuWorldDepthStencil('read-write'),
+      multisample: webGpuMultisample(shell.sampleCount),
     });
     const vertices = buildNestedFixtureVertices();
     this.vertexCount = vertices.length / 7;

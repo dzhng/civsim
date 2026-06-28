@@ -5,6 +5,13 @@ const WEBGPU_ALPHA_BLEND: GPUBlendState = {
   alpha: { srcFactor: 'one', dstFactor: 'one-minus-src-alpha' },
 };
 
+// MSAA sample count for a pipeline. Every pipeline rendering into a shell must
+// declare the shell's sampleCount or the render-pass attachment rejects it; 1
+// is the no-MSAA default.
+export function webGpuMultisample(sampleCount: number): GPUMultisampleState {
+  return { count: Math.max(1, Math.floor(sampleCount)) };
+}
+
 export function webGpuOpaqueColorTarget(format: GPUTextureFormat): GPUColorTargetState {
   return { format };
 }

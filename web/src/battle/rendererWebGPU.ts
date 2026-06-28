@@ -5,6 +5,7 @@ import { BattleGroundCuePass } from '../../../packages/game-renderer/src/battle/
 import { BattleTerrainPass } from '../../../packages/game-renderer/src/battle/terrainPass';
 import { createFrameShell, type MarkerInstance, type OverlayRenderPass, type RawFrameShell } from '../../../packages/webgpu-core/src/frameShell';
 import { compileShader } from '../../../packages/webgpu-core/src/compileShader';
+import { webGpuMultisample } from '../../../packages/webgpu-core/src/pipelineContracts';
 import { fatalSurfaceFor, showFatalErrorSurface } from '../shared/fatalError';
 import { WORLD_CAMERA_WGSL } from '../../../packages/webgpu-core/src/cameraWgsl';
 import { SkinnedCrowdPipeline } from '../../../packages/webgpu-core/src/skinnedPipeline';
@@ -394,6 +395,7 @@ class BattleTrianglePass {
         }],
       },
       primitive: { topology: 'triangle-list' },
+      multisample: webGpuMultisample(this.shell.sampleCount),
     });
     this.vertexBuffer = device.createBuffer({
       label: 'battle-triangle-empty',

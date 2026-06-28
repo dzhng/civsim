@@ -9,27 +9,15 @@ const require = createRequire(resolve(repoRoot, 'web/package.json'));
 const { PNG } = require('pngjs');
 const pixelmatch = (await import(require.resolve('pixelmatch'))).default;
 
-const currentDir = resolve(repoRoot, 'specs/done/webgpu-skinned-crowd-foundation/visualizations/current-renderer');
-const candidateDir = resolve(repoRoot, 'specs/done/webgpu-skinned-crowd-foundation/visualizations/visual-report');
-const reportOrder = [
-  'menu-ready',
-  'menu-unsupported',
-  'battle-default',
-  'battle-selection-hud-dpr2',
-  'campaign-whole-map',
-  'campaign-label-zoom',
-  'campaign-handoff-battle',
-];
-
-const worldCrops = {
-  'battle-default': (w, h) => ({ x: 0, y: Math.round(h * 0.13), width: w, height: Math.round(h * 0.60), label: 'world-without-top-hud-or-bottom-cards' }),
-  'battle-selection-hud-dpr2': (w, h) => ({ x: 0, y: Math.round(h * 0.29), width: w, height: Math.round(h * 0.47), label: 'world-without-top-hud-or-bottom-cards' }),
-  'campaign-handoff-battle': (w, h) => ({ x: 0, y: Math.round(h * 0.16), width: w, height: Math.round(h * 0.62), label: 'world-without-top-hud-or-bottom-cards' }),
-  'campaign-whole-map': (w, h) => ({ x: 0, y: Math.round(h * 0.04), width: w, height: Math.round(h * 0.96), label: 'world-below-toolbar' }),
-  'campaign-label-zoom': (w, h) => ({ x: 0, y: Math.round(h * 0.04), width: w, height: Math.round(h * 0.74), label: 'close-world-below-toolbar' }),
-};
-
-const outDir = resolve(repoRoot, 'specs/done/webgpu-skinned-crowd-foundation/visualizations/visual-diff');
+const currentDir = requiredDir('REFERENCE_DIR');
+const candidateDir = requiredDir('CANDIDATE_DIR');
+const reportOrder = (process.env.REPORT_ORDER ?? '')
+  .split(',')
+  .map((name) => name.trim())
+  .filter(Boolean);
+const cropSpecs = process.env.CROPS_JSON ? await readJson(resolvePath(process.env.CROPS_JSON)) : {};
+const outDir = resolvePath(process.env.OUT_DIR ?? 'visual-diff');
+const artifactRoot = basename(outDir);
 await mkdir(outDir, { recursive: true });
 
 const pairs = await discoverPairs();
@@ -126,7 +114,7 @@ for (const pair of pairs) {
     + 0.25 * pixelmatchRatio
     + 0.25 * edgeDiffRatio32
     + 0.15 * Math.min(1, Math.abs(Math.log2(edgeEnergyRatio)));
-  const crop = worldCrops[pair.id]?.(width, height);
+  const crop = cropFor(pair.id, width, height);
   const worldCrop = crop
     ? await analyzeWorldCrop(pair.id, crop, current, candidate, currentGray, candidateGray, width, height)
     : undefined;
@@ -159,14 +147,14 @@ for (const pair of pairs) {
       edgeDiffRatio32: round(edgeDiffRatio32),
     },
     artifacts: {
-      sideBySide: `visual-diff/${pair.id}-side-by-side.png`,
-      currentGray: `visual-diff/${pair.id}-current-gray.png`,
-      candidateGray: `visual-diff/${pair.id}-candidate-gray.png`,
-      absDiff: `visual-diff/${pair.id}-absdiff.png`,
-      pixelmatch: `visual-diff/${pair.id}-pixelmatch.png`,
-      currentEdges: `visual-diff/${pair.id}-current-edges.png`,
-      candidateEdges: `visual-diff/${pair.id}-candidate-edges.png`,
-      edgeDiff: `visual-diff/${pair.id}-edge-diff.png`,
+      sideBySide: `${artifactRoot}/${pair.id}-side-by-side.png`,
+      currentGray: `${artifactRoot}/${pair.id}-current-gray.png`,
+      candidateGray: `${artifactRoot}/${pair.id}-candidate-gray.png`,
+      absDiff: `${artifactRoot}/${pair.id}-absdiff.png`,
+      pixelmatch: `${artifactRoot}/${pair.id}-pixelmatch.png`,
+      currentEdges: `${artifactRoot}/${pair.id}-current-edges.png`,
+      candidateEdges: `${artifactRoot}/${pair.id}-candidate-edges.png`,
+      edgeDiff: `${artifactRoot}/${pair.id}-edge-diff.png`,
     },
   };
   if (worldCrop) result.worldCrop = worldCrop;
@@ -177,7 +165,7 @@ results.sort((a, b) => b.parityDistance - a.parityDistance);
 const report = {
   kind: 'screenshot-parity-diff',
   generatedAt: new Date().toISOString(),
-  note: 'Lower parityDistance means the candidate is closer to archived current-renderer parity. This is a parity metric, not an aesthetics acceptance gate.',
+  note: 'Lower parityDistance means the candidate is closer to the reference for this fixed pair. This is a distance metric, not an acceptance gate.',
   pairCount: results.length,
   worstPair: results[0]?.id ?? null,
   results,
@@ -196,7 +184,7 @@ async function discoverPairs() {
     throw new Error(`no comparable PNG pairs found in ${relative(repoRoot, currentDir)} and ${relative(repoRoot, candidateDir)}`);
   }
   const order = new Map(reportOrder.map((id, index) => [`${id}.png`, index]));
-  common.sort((a, b) => (order.get(a) ?? 999) - (order.get(b) ?? 999) || a.localeCompare(b));
+  common.sort((a, b) => (order.get(a) ?? 999_999) - (order.get(b) ?? 999_999) || a.localeCompare(b));
   return common.map((name) => ({
     id: basename(name, '.png'),
     current: relative(repoRoot, resolve(currentDir, name)),
@@ -404,15 +392,57 @@ async function analyzeWorldCrop(id, crop, current, candidate, currentGray, candi
       edgeDiffRatio32: round(edgeDiffRatio32),
     },
     artifacts: {
-      sideBySide: `visual-diff/${prefix}-side-by-side.png`,
-      currentGray: `visual-diff/${prefix}-current-gray.png`,
-      candidateGray: `visual-diff/${prefix}-candidate-gray.png`,
-      absDiff: `visual-diff/${prefix}-absdiff.png`,
-      pixelmatch: `visual-diff/${prefix}-pixelmatch.png`,
-      currentEdges: `visual-diff/${prefix}-current-edges.png`,
-      candidateEdges: `visual-diff/${prefix}-candidate-edges.png`,
-      edgeDiff: `visual-diff/${prefix}-edge-diff.png`,
+      sideBySide: `${artifactRoot}/${prefix}-side-by-side.png`,
+      currentGray: `${artifactRoot}/${prefix}-current-gray.png`,
+      candidateGray: `${artifactRoot}/${prefix}-candidate-gray.png`,
+      absDiff: `${artifactRoot}/${prefix}-absdiff.png`,
+      pixelmatch: `${artifactRoot}/${prefix}-pixelmatch.png`,
+      currentEdges: `${artifactRoot}/${prefix}-current-edges.png`,
+      candidateEdges: `${artifactRoot}/${prefix}-candidate-edges.png`,
+      edgeDiff: `${artifactRoot}/${prefix}-edge-diff.png`,
     },
+  };
+}
+
+function requiredDir(envName) {
+  const value = process.env[envName];
+  if (!value) {
+    throw new Error(`${envName} is required. Example: ${envName}=path/to/pngs`);
+  }
+  return resolvePath(value);
+}
+
+function resolvePath(value) {
+  return resolve(repoRoot, value);
+}
+
+async function readJson(path) {
+  return JSON.parse(await readFile(path, 'utf8'));
+}
+
+function cropFor(id, width, height) {
+  const spec = cropSpecs[id];
+  if (!spec) return undefined;
+  return scaleCrop(Array.isArray(spec) ? spec[0] : spec, width, height);
+}
+
+function scaleCrop(spec, width, height) {
+  const unit = spec.unit ?? 'px';
+  if (unit === 'ratio') {
+    return {
+      label: spec.label,
+      x: Math.round((spec.x ?? 0) * width),
+      y: Math.round((spec.y ?? 0) * height),
+      width: Math.round((spec.width ?? 1) * width),
+      height: Math.round((spec.height ?? 1) * height),
+    };
+  }
+  return {
+    label: spec.label,
+    x: Math.round(spec.x ?? 0),
+    y: Math.round(spec.y ?? 0),
+    width: Math.round(spec.width ?? width),
+    height: Math.round(spec.height ?? height),
   };
 }
 

@@ -58,7 +58,7 @@ Spawn config:
 ## Rules
 
 - Never tell the sub-agent the defect you expect it to find.
-- Use the current candidate screenshot, not a stale visual-report image.
+- Use the current candidate screenshot, not a stale report or baseline image.
 - Do not rely on full-page report scale for small visual features. Attach
   crops around the exact features a player would read: selected army/city,
   label/icon clusters, flags, shadows, ring edges, road crossings, terrain

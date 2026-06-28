@@ -88,7 +88,7 @@ full-frame score so UI/camera mistakes remain visible.
 
 - Establish the starting score before editing. Every iteration should quote the
   previous and new score for the same pair, then explain whether movement is a
-  regression, an intentional improvement over the old renderer, or diagnostic
+  regression, an intentional improvement over the reference, or diagnostic
   noise.
 - Prefer edge metrics for missing-content bugs. A flat top-down map can have a
   deceptively moderate grayscale diff while edge energy proves the 3D trees,
@@ -108,9 +108,12 @@ Use this skill's bundled scripts as reusable reference tools. Keep comparison
 scripts inside the skill or a temporary workspace, not in product code, unless
 the product genuinely needs screenshot comparison at runtime.
 
-- `.agents/skills/compare-screenshots/scripts/visual-parity-diff.mjs` is one
-  repository-specific adapter. Use it when its directory conventions match the
-  task.
+- `.agents/skills/compare-screenshots/scripts/visual-parity-diff.mjs` is a
+  reusable local helper. Run it with `REFERENCE_DIR=<png-folder>`,
+  `CANDIDATE_DIR=<png-folder>`, and optional `OUT_DIR=<artifact-folder>`.
+  Optional `REPORT_ORDER=a,b,c` pins report ordering, and
+  `CROPS_JSON=<file>` adds labeled crops. Crop JSON is keyed by image id and
+  each crop can use pixel values or `{ "unit": "ratio" }` normalized bounds.
 - For other tasks, adapt the same artifact set: side-by-side, crops, grayscale,
   heatmaps, pixelmatch, edges, JSON metrics, and a short written verdict.
 - If a needed pair is not covered, extend the skill helper or create a

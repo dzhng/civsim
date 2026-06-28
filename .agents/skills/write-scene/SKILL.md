@@ -10,56 +10,51 @@ runnable case = a declared *world* (which game state to boot) + one or more
 *tests* against it (visual snapshots, behavioral checks, or both). Scenes
 live in `web/scenes/<owner>/*.mjs`, one per file, run by `web/scene.mjs`.
 Use `battle/`, `campaign/`, `ui/`, `models/`, or `system/` according to the
-surface the scene owns.
-
-> If `web/scenes/` does not exist yet, the architecture is still specced in
-> `specs/scenes.md` and not built — implement that first. The three legacy
-> harnesses (`verify-battle.mjs`, `verify-campaign.mjs`,
-> `verify-campaign-visual.mjs`) are the pre-scene world; the same rules
-> below still apply to snaps inside them.
+surface the scene owns. `web/scene.mjs` recursively discovers those files and
+uses the owner folder to choose the default shot root.
 
 ## The one rule that defines the architecture
 
 **Every screenshot a run writes is a blessed regression baseline.** Committed
 scene PNGs live under the owner folder: `shots/battle/`, `shots/campaign/`,
-`shots/ui/`, or `shots/models/`. Failure artifacts live only under
-`shots/diff/` and are gitignored. Never write a bare
+`shots/ui/`, or `shots/models/`. Model shots should stay organized by model
+owner under `shots/models/battle/`, `shots/models/campaign/`, or
+`shots/models/shared/`. Failure artifacts live only under gitignored temporary
+or diff folders. Never write a bare
 `page.screenshot({ path: ... })` to a tracked location — a shot nobody asserts
 on is not data, it is detritus. If a frame is worth capturing, capture it with
 `snap()` so a future run guards it. If it is not worth a baseline, do not write
 it.
 
-## Visual coverage is 100% and catalog-driven — don't hand-list it
+## Coverage is intentional, not scratch work
 
-Before you write a *visual* scene, ask whether the thing you're capturing is
-an **atomic** primitive or a **composite** scene:
+Before you write a *visual* scene, ask whether the thing you're capturing is an
+isolated model/primitive or a composed game state.
 
-- **Atomic** — one renderable primitive in isolation: a unit class/team/pose, a
-  status chip, a terrain tint, a marker stance, a city-ownership ring. These are
-  enumerated in `scenes/catalog.mjs`, which builds the list *from the same
-  registries the renderer uses* (`CLASS_LOOK`, the chip list, the tint table).
-  You do **not** write a scene file per primitive — you add the primitive to
-  the registry/catalog and the generator (`atomic.mjs` driving a specimen
-  fixture) snaps it. The **coverage gate** fails the run if any catalog entry
-  lacks a baseline, so adding a class *forces* its new screenshots.
-- **Composite** — an emergent layout that is not a product of primitives: the
-  deployment line, a melee crowd, the political voronoi map, a modal. These
-  *are* authored as `visual` scene files, but they are a curated list, not a
-  completeness claim.
+- **Model/primitive review** — one asset or primitive in isolation: a unit
+  class, a tree, a road piece, a city marker, a flag, a terrain swatch, or an
+  icon. Put model definitions under `web/src/models/<battle|campaign|shared>/`
+  and put generated review shots under
+  `web/shots/models/<battle|campaign|shared>/`. If a model moves, also create
+  an animation/GIF gate with [write-anim](../write-anim/SKILL.md); if it needs
+  static review, use [write-turntable](../write-turntable/SKILL.md).
+- **Composite scene** — an emergent layout: a campaign LoD band, a selected
+  city/army composition, a battle line, a modal, or a UI state. These are
+  authored as `visual` scene files under the owning folder.
 
-So: **adding a new renderable primitive = a catalog/registry edit + new
-baselines, never a new scene file.** If you find yourself copy-pasting a
-visual scene to cover one more class or chip, stop — that belongs in the
-catalog.
+If you find yourself copy-pasting a scene just to cover one more asset variant,
+make a shared helper or model gate instead. If the world/camera/state is the
+thing under review, a scene file is the right unit.
 
 ## Two kinds — what you verify dictates which world
 
 Every scene is exactly one **kind**, and the kind picks the world:
 
-- **`visual`** — verifies *rendering*. Boots a **fixture** (a minimal,
-  deterministic, contrast-clean world) and asserts *pixels* via `snap`. Fast,
-  no game logic, no seed dependence. Atomic coverage is generated from the
-  catalog; composite scenes are authored visual scenes.
+- **`visual`** — verifies *rendering*. Boots the smallest deterministic world
+  that exercises the visual requirement and asserts *pixels* via `snap`. Prefer
+  fixture/test worlds for isolated composition and model work. Use the real
+  campaign map when the visual requirement is geographic accuracy, LoD,
+  coastline/road/city alignment, fog, or whole-map readability.
 - **`flow`** — verifies *behavior*. Drives real game systems on the **real
   map** and asserts *outcomes* via `check` (positions, casualties, soldier
   counts, modal text, save/load). Writes **no** PNG. A `flow` verifies the
@@ -67,33 +62,36 @@ Every scene is exactly one **kind**, and the kind picks the world:
   ([write-tests](../write-tests/SKILL.md)); never reach for a browser flow to
   decide whether the physics is right.
 
-Don't mix them. A heavy behavioral flow that also snaps pixels mid-run is what
+Don't casually mix them. A heavy behavioral flow that also snaps pixels mid-run is what
 produced the old scratch-shot litter — the frames landed in nondeterministic
 mid-battle states no baseline could pin. If you want to *both* drive a flow and
 guard a frame, the frame almost always belongs to a separate `visual` scene
-on a fixture posed to that exact moment. The real map is *hostile* to visual
-tests: no colour contrast (red on red), garrison battles fire on any move, and
-the layout is seed-dependent — fixtures exist precisely to remove all three.
+on a fixture posed to that exact moment. Real-map campaign visual scenes are
+valid when the claim is about the real map itself; freeze time, set explicit
+camera/state, and keep the assertions named.
 
 ## Anatomy of a scene
 
 ```js
 export const meta = {
   name: 'campaign-markers',      // unique, kebab; CLI selects by this
-  kind: 'visual',                // 'visual' (fixture, pixels) | 'flow' (real map, outcomes)
-  world: 'campaign-test',        // key into scenes/worlds.mjs ('none' = no boot)
+  kind: 'visual',                // 'visual' (pixels) | 'flow' (outcomes)
+  world: 'campaign-test',        // descriptive; boot inside run() or helper
+  snapshots: ['campaign-markers-overview'],
   describe: 'Army & city markers over road / our city / neutral city.',
   tier: 'quick',                 // 'quick' = default run; 'full' = release-only
 };
 
-export async function run({ page, snap }) {
-  // The fixture is already booted, frozen, at the 1280x800 viewport.
-  // snap() is the ONLY way a PNG gets written.
-  await snap('overview', { cam: [0, 450, 16] });
-  await snap('army-road', {
-    before: () => page.evaluate(() => window.__campaign.place(0, 1, 0, 4)),
-    cam: [0, 450, 20],
+export async function run(ctx) {
+  const page = await ctx.newPage({ viewport: { width: 1280, height: 800 } });
+  await page.goto(`${ctx.target}/?campaign=test`);
+  await page.waitForFunction(() => window.__campaignReady === true);
+  await page.evaluate(() => {
+    window.__campaign.freeze(true);
+    window.__campaign.cam(0, 450, 16);
   });
+  await ctx.snap(page, 'campaign-markers-overview');
+  await page.close();
 }
 ```
 
@@ -104,21 +102,26 @@ export const meta = {
   describe: 'March on an independent city, fight the garrison, save and reload.',
   tier: 'quick',
 };
-export async function run({ page, check }) {
+export async function run(ctx) {
+  const page = await ctx.newPage();
   // ...orderMove, tick until battleReady, auto-resolve, save/load...
-  check('battle consumed (no pending)', ready === -1);
+  ctx.check('battle consumed (no pending)', ready === -1);
+  await page.close();
 }
 ```
 
-- `snap(name, opts?)` runs `opts.before()` (pose the world), sets `opts.cam`
-  `[x, y, scale]`, waits `opts.settle ?? 250`ms for a frame, then compares the
-  baseline through `snapCheck`. The runner chooses the baseline root from the
-  scene file's owner folder, so `campaign/foo.mjs` writes `shots/campaign/` and
-  `battle/foo.mjs` writes `shots/battle/`. Use `opts.baseline` only when a
-  compatibility name is intentional.
+- `ctx.newPage(opts?)` opens a Playwright page, wires browser errors into the
+  scene report, and defaults to a 1280×800 viewport.
+- `ctx.snap(page, name, opts?)` compares the baseline through `snapCheck`. Pose
+  the world and set camera before calling it. The runner chooses the baseline
+  root from the scene file's owner folder, so `campaign/foo.mjs` writes
+  `shots/campaign/` and `battle/foo.mjs` writes `shots/battle/`. Use
+  `opts.baseDir` only when the shot belongs to a different owner, such as a UI
+  snapshot captured while booting a campaign scene. Use `opts.baseline` only
+  when a compatibility name is intentional.
   Pass `opts.maxDiffRatio` / `opts.threshold` ONLY for a noise source you can
   name in a comment.
-- `check(name, ok, detail)` is the behavioral reporter; failures set the exit
+- `ctx.check(name, ok, detail)` is the behavioral reporter; failures set the exit
   code. Assert observable outcomes (positions, casualties, soldier counts,
   rendered frames) — never internal call order.
 
@@ -149,8 +152,11 @@ world → one scene; different world → don't force-merge.
 
 ## Worlds: real maps and fixtures
 
-`scenes/worlds.mjs` owns boot + readiness + freeze for each world; a
-scene names one in `meta.world`. Worlds come in two families.
+`scenes/worlds.mjs` owns shared boot helpers for common worlds. A scene may use
+one of those helpers or boot directly when the route/state is unique to that
+scene. Keep repeated boot logic in `worlds.mjs`; keep one-off pose logic in the
+scene file. `meta.world` is documentation and report metadata, not a magic
+registry key.
 
 **Real-map worlds** (for `flow` scenes — exercise the actual systems):
 - `battle-real` — `?map=A&ai=off`, ready `window.__ready`, freeze
@@ -159,25 +165,22 @@ scene names one in `meta.world`. Worlds come in two families.
 - `campaign-real` — menu → `#menu-new-campaign`, ready `__campaignReady`,
   freeze `__campaign.freeze()`. The full ~400-city map: garrison battles,
   save/load, territory, AI. Use when the behavior under test *needs* the real
-  world — a fixture can't exercise the AI, voronoi, or pathfinding.
+  world, or when a visual test is specifically about geographic alignment, real
+  LoD, fog, road/city/coastline accuracy, or whole-map readability.
 
-**Fixtures** (for `visual` scenes — minimal, deterministic, contrast-clean).
-A fixture is a first-class facility, built the **same way for battle and
-campaign** under `scenes/fixtures/` and triggered by one `?fixture=<name>`
-convention. Two roles:
-- **Specimen fixtures** render exactly *one* atomic catalog entry, parameterised
-  by URL — `?fixture=specimen-soldier&class=3&team=1&pose=attack`, one marker
-  stance, one terrain tint, one chip. The catalog generator drives these; this
-  is the machinery behind 100% atomic coverage. You rarely write a specimen
-  scene by hand — you extend the catalog and the generator does the snapping.
-- **Stage fixtures** host composite scenes: `campaign-test` (the one-road /
-  two-city map, `deviceScaleFactor: 2`; teleport the army with
-  `window.__campaign.place(0, kind, a, b)`), `battle-5v5` (a small line clash).
+**Test worlds and fixtures** (for `visual` scenes — minimal, deterministic,
+contrast-clean):
+- Campaign test scenes can boot `?campaign=test` and pose via `window.__campaign`
+  (`freeze`, `cam`, `place`, `select`, `factionView`, `fogOfWar`).
+- Battle scenes can use shared helpers in `scenes/worlds.mjs` for small real or
+  synthetic battle states.
+- Model scenes should use the model review routes and write under
+  `shots/models/<battle|campaign|shared>/`.
 
-Need a fixture that doesn't exist? Add a builder under `scenes/fixtures/` and
-register it — do not hand-pose the real map and do not add a one-off boot path
-in `main.ts`. Pick the **smallest world that exercises the thing under test**;
-never reach for the real map to snap a model.
+Need a reusable test world that doesn't exist? Add a helper under
+`web/scenes/` (or the app route it needs) and keep it deterministic. Pick the
+**smallest world that exercises the thing under test**; reach for the real map
+only when the real map is part of the requirement.
 
 ## Determinism is non-negotiable
 
@@ -214,9 +217,9 @@ reporting, and look at any baseline you re-blessed.
 
 ## Checklist for a new scene
 
-- [ ] Is this an atomic primitive? If so it belongs in `catalog.mjs` (a registry
-      edit + new baselines), NOT a new scene file. Only composites and flows
-      are scene files.
+- [ ] Is this an isolated model/primitive? If so put the model/source and review
+      shots under the matching `battle`, `campaign`, or `shared` model folder
+      and use model/turntable/animation gates before composing it into a world.
 - [ ] One file under `scenes/<owner>/<name>.mjs`, exporting `meta` + `run`.
 - [ ] Does another scene already boot this *same* world? If it differs only in
       what it measures, add your `snap`/`check` THERE — don't author a second
@@ -224,10 +227,11 @@ reporting, and look at any baseline you re-blessed.
       is justified only by a genuinely different world.
 - [ ] Exactly one `kind`: `visual` → a fixture world + at least one `snap`;
       `flow` → a real-map world + zero PNGs.
-- [ ] `meta.world` is the smallest world that exercises the change; if you
-      needed a new fixture, it lives in `scenes/fixtures/`, not `main.ts`.
+- [ ] `meta.world` names the smallest world that exercises the change; if you
+      needed a reusable boot path, it lives in a scene helper or dedicated test
+      route instead of ad hoc screenshot code.
 - [ ] Every captured frame is a `snap()`; zero bare `page.screenshot({path})`.
-- [ ] Each snap: freeze active, camera set, settle waited.
+- [ ] Each snap: freeze active, camera/state set, settle waited when necessary.
 - [ ] `tier: 'full'` if it is slow/heavy (AI games, long advances); else quick.
 - [ ] `flow` checks assert observable outcomes, not internals.
 - [ ] Baselines committed under the matching `shots/<owner>/` folder; `git status` clean.

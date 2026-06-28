@@ -52,6 +52,10 @@ pass orchestration, WGSL layout, depth semantics, or browser-verified output.
   submit it through the world camera and let real geometry occlude it; reserve
   screen overlays for labels, HUD, minimaps, debug UI, and deliberately
   non-world effects.
+- Ground decals on raised or tilted terrain need the same surface height as the
+  world objects they mark. A selection ring, shadow, road, or footprint that
+  assumes flat `z=0` can disappear under the terrain or drift away from the
+  model even when its x/y coordinates are correct.
 - Tilted world scenes need one canonical surface. If terrain, water, roads,
   labels, props, or hit tests must stay geographically aligned while the camera
   moves, project and draw them from the same 3D surface/height contract. A flat

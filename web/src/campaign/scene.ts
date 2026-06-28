@@ -419,19 +419,9 @@ export class CampaignScene implements Scene {
         this.cam.y += e.movementY / this.cam.scale;
         return;
       }
-      // Hover: the nearest of my armies under the cursor (mirrors click).
-      const [wx, wy] = this.renderer.toWorld(e.offsetX * devicePixelRatio, e.offsetY * devicePixelRatio);
-      const rKm = 14 / this.cam.scale;
-      let best = -1;
-      let bestD = rKm;
-      for (const a of this.armies) {
-        const d = Math.hypot(a.x - wx, a.y - wy);
-        if (a.mine && d < bestD) {
-          bestD = d;
-          best = a.id;
-        }
-      }
-      this.hover = best;
+      // Hover mirrors click: pick the rendered marker, not a ground-plane
+      // inverse that drifts from raised markers under perspective.
+      this.hover = this.nearestRenderedArmy(e.offsetX * devicePixelRatio, e.offsetY * devicePixelRatio);
     }, { signal });
     cv.addEventListener('wheel', (e) => {
       e.preventDefault();
@@ -472,16 +462,7 @@ export class CampaignScene implements Scene {
   private click(px: number, py: number) {
     // Select the nearest of my armies; second preference: open a city panel.
     const [wx, wy] = this.renderer.toWorld(px, py);
-    const rKm = 14 / this.cam.scale;
-    let best = -1;
-    let bestD = rKm;
-    for (const a of this.armies) {
-      const d = Math.hypot(a.x - wx, a.y - wy);
-      if (a.mine && d < bestD) {
-        bestD = d;
-        best = a.id;
-      }
-    }
+    const best = this.nearestRenderedArmy(px, py);
     this.selected = best;
     if (best >= 0) this.selectedCity = -1; // an army takes the selection from a city
     const loc = best < 0 ? nearestLoc(this.cfg.data.map, wx, wy, Math.max(8, 18 / this.cam.scale)) : null;
@@ -497,6 +478,22 @@ export class CampaignScene implements Scene {
       this.closeCityPanel();
     }
     this.updateArmyPanel();
+  }
+
+  private nearestRenderedArmy(px: number, py: number): number {
+    const maxPx = 28 * (window.devicePixelRatio || 1);
+    let best = -1;
+    let bestD = maxPx;
+    for (const army of this.armies) {
+      if (!army.mine) continue;
+      const [sx, sy] = this.renderer.toScreen(army.x, army.y);
+      const d = Math.hypot(sx - px, sy - py);
+      if (d < bestD) {
+        bestD = d;
+        best = army.id;
+      }
+    }
+    return best;
   }
 
   private nearestRenderedCity(px: number, py: number): number {

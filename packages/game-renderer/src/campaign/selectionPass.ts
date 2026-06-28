@@ -5,10 +5,10 @@ import { webGpuAlphaBlendColorTarget, webGpuWorldDepthStencil } from '../../../w
 export interface CampaignSelectionInstance {
   x: number;
   y: number;
+  z: number;
   radius: number;
   color: [number, number, number];
   kind: 'city' | 'army';
-  emphasis?: number;
 }
 
 const SELECTION_WGSL = `
@@ -18,37 +18,37 @@ struct VsOut {
   @location(0) local: vec2f,
   @location(1) color: vec3f,
   @location(2) kind: f32,
-  @location(3) emphasis: f32,
 };
 
 @vertex
 fn vs(@location(0) quad: vec2f, @location(1) inst0: vec4f, @location(2) inst1: vec4f) -> VsOut {
   let axisScale = select(0.76, 0.64, inst0.w > 0.5);
   let world = inst0.xy + vec2f(quad.x * inst0.z, quad.y * inst0.z * axisScale);
+  // Lift just above the terrain surface; world geometry still occludes via depth.
+  let z = inst1.a + 0.045;
   var out: VsOut;
-  out.pos = projectGround(world, civsimCampaignGroundDepth(world, 0.012));
+  out.pos = projectWorld3d(vec3f(world, z), civsimCampaignWorldDepth3d(vec3f(world, z)));
   out.local = quad;
   out.color = inst1.rgb;
   out.kind = inst0.w;
-  out.emphasis = inst1.a;
   return out;
 }
 
 @fragment
 fn fs(in: VsOut) -> @location(0) vec4f {
   let d = length(in.local);
-  let strongArmy = in.kind > 0.5 && in.emphasis > 0.5;
-  let innerCut = select(0.918, 0.894, strongArmy);
-  let innerFade = select(0.936, 0.914, strongArmy);
+  let strongArmy = in.kind > 0.5;
+  let innerCut = select(0.918, 0.872, strongArmy);
+  let innerFade = select(0.936, 0.900, strongArmy);
   if (d > 1.0 || d < innerCut) { discard; }
   let outer = smoothstep(1.0, 0.988, d);
   let inner = smoothstep(innerCut, innerFade, d);
   let ring = outer * inner;
   let fill = smoothstep(0.990, 0.966, d) * smoothstep(innerCut - 0.012, innerCut + 0.008, d) * 0.024;
-  let armyMix = select(0.18, 0.10, strongArmy);
+  let armyMix = select(0.18, 0.0, strongArmy);
   let groundTint = mix(in.color, vec3f(0.74, 0.66, 0.36), select(0.40, armyMix, in.kind > 0.5));
-  let armyBoost = select(0.0, select(0.08, 0.14, strongArmy), in.kind > 0.5);
-  let ringAlpha = select(0.68, select(0.72, 0.80, strongArmy), in.kind > 0.5);
+  let armyBoost = select(0.0, select(0.08, 0.20, strongArmy), in.kind > 0.5);
+  let ringAlpha = select(0.68, select(0.72, 0.94, strongArmy), in.kind > 0.5);
   return vec4f(groundTint * (0.86 + armyBoost), max(ring * ringAlpha, fill));
 }`;
 
@@ -126,7 +126,7 @@ export class CampaignSelectionPass {
       data[o + 2] = inst.radius;
       data[o + 3] = inst.kind === 'army' ? 1 : 0;
       data.set(inst.color, o + 4);
-      data[o + 7] = inst.emphasis ?? 0;
+      data[o + 7] = inst.z;
     }
     this.shell.device.queue.writeBuffer(this.instanceBuffer, 0, data);
   }

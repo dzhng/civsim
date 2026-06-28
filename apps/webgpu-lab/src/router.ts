@@ -1023,12 +1023,12 @@ function campaignModelGateFrame(gate: CampaignModelGate) {
   const addCity = (x: number, y: number, radius: number, text: string, faction = red, allegiance = green, selected = false) => {
     entities.push({ x, y, radius, faction, allegiance, kind: 'city', strength: 1 });
     labels.push({ text, x, y: y - 4.7, kind: 'city', size: 14, priority: 5, icon: 'city', iconColor: allegiance });
-    if (selected) selections.push({ x, y, radius: radius * 1.34, color: green, kind: 'city' });
+    if (selected) selections.push({ x, y, z: 0, radius: radius * 1.34, color: green, kind: 'city' });
   };
   const addArmy = (x: number, y: number, selected = false) => {
     entities.push({ x, y, radius: 5.5, faction: red, allegiance: green, kind: 'army', strength: 0.86 });
     labels.push({ text: '1ST LEGION', x, y, kind: 'army', size: 13, priority: 5, icon: 'army', iconColor: green, screenOffsetY: 54 });
-    if (selected) selections.push({ x, y, radius: 6.1, color: green, kind: 'army' });
+    if (selected) selections.push({ x, y, z: 0, radius: 6.1, color: green, kind: 'army' });
   };
 
   if (gate === 'overview') addCity(-6.0, -2.0, 7.0, 'ROMA', red, green, false);
@@ -2354,7 +2354,7 @@ function buildCampaignEntityFrame(
     });
     cityEntities++;
     if (node === selectedCity) {
-      selections.push({ x: mapNode.pos[0], y: mapNode.pos[1], radius: mapNode.tier >= 3 ? 12.4 : 10.6, color: [0.31, 0.82, 0.39], kind: 'city' });
+      selections.push({ x: mapNode.pos[0], y: mapNode.pos[1], z: 0, radius: mapNode.tier >= 3 ? 12.4 : 10.6, color: [0.31, 0.82, 0.39], kind: 'city' });
     }
   }
   for (const army of views.armies) {
@@ -2370,7 +2370,7 @@ function buildCampaignEntityFrame(
     });
     armyEntities++;
     if (army.id === selectedArmy) {
-      selections.push({ x: army.x, y: army.y, radius: 12.6, color: [0.31, 0.82, 0.39], kind: 'army' });
+      selections.push({ x: army.x, y: army.y, z: 0, radius: 12.6, color: [0.31, 0.82, 0.39], kind: 'army' });
     }
   }
   return { entities, selections, cityEntities, armyEntities };

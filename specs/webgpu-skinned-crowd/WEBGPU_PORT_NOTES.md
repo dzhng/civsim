@@ -70,9 +70,22 @@ verification lessons.
   collide with geometry. At whole-map zoom, city labels should sit close to the
   city square marker; the visual gap should be about one marker side, not a
   label drifting into nearby sea or land.
+- When an army occupies a city, render one composed label: army icon/name plus
+  army size on the top line, city name underneath. Do not independently stack a
+  city label and army label at the same screen anchor. The WebGPU campaign
+  stats expose `composedArmyCityLabels` so scenes can assert this state.
 - Gameplay fog-of-war hides map flags and labels outside visible territory,
   including friendly army flags. The decorative zoomed-out border haze/cloud
   effect is separate and must not reveal hidden markers.
+- The archived `campaign-3d` current-renderer baseline is a natural/no-faction
+  shot. Use it as the parity floor for coastline, roads, labels, markers, and
+  perspective, but always keep a same-camera WebGPU political/faction-color
+  screenshot beside it. WebGPU acceptance needs to cover both map reading
+  modes, not optimize only toward the old no-faction capture.
+- Campaign selection rings are world-space ground decals, not screen overlays.
+  They must carry the sampled campaign surface height just like cities and
+  armies; flat `z=0` rings can vanish under raised terrain or appear detached
+  as the camera tilts.
 - City standards belong inside the city mesh like a flagpole inserted into the
   settlement core. The pole should pass through the city volume, lower portions
   should be occluded by front roofs/walls, and a small visible pole segment

@@ -59,6 +59,7 @@ export class CampaignRendererWebGPU {
   private lastEntities = { cityEntities: 0, armyEntities: 0 };
   private lastFog = { enabled: false, sources: [] as CampaignFogSource[] };
   private lastFactionView = false;
+  private lastLabelComposition = { composedArmyCityLabels: 0 };
   private framePerf = {
     buildMs: 0,
     uploadMs: 0,
@@ -157,10 +158,13 @@ export class CampaignRendererWebGPU {
     this.lastFog = { enabled: opts.fogOfWar, sources: opts.visionSources };
     this.fog.upload(opts.visionSources, opts.fogOfWar);
     const staticLabels = opts.fogOfWar ? [] : this.staticLabels;
-    this.labelStats = this.labels.upload(
-      staticLabels.concat(campaignCityLabels(this.data, opts), campaignArmyLabels(this.data, opts), campaignFactionLabels(this.data, opts)),
-      this.currentCamera,
-    );
+    const cityLabels = campaignCityLabels(this.data, opts);
+    const armyLabels = campaignArmyLabels(this.data, opts);
+    const factionLabels = campaignFactionLabels(this.data, opts);
+    this.lastLabelComposition = {
+      composedArmyCityLabels: armyLabels.filter((label) => label.subText).length,
+    };
+    this.labelStats = this.labels.upload(staticLabels.concat(cityLabels, armyLabels, factionLabels), this.currentCamera);
     const uploadEnd = performance.now();
     const drawStart = performance.now();
     const passes: FrameGraphPass[] = [
@@ -232,6 +236,7 @@ export class CampaignRendererWebGPU {
       ...this.lastEntities,
       labels: this.labelStats.labels,
       visibleLabels: this.labelStats.visibleLabels,
+      ...this.lastLabelComposition,
       labelLayer: this.labelStats.layer,
       labelAtlas: `${this.labelStats.atlasWidth}x${this.labelStats.atlasHeight}`,
       labelVertices: this.labelStats.vertices,
@@ -335,7 +340,14 @@ function buildEntityFrame(data: CampaignData, field: TerrainField, opts: DrawOpt
     });
     cityEntities++;
     if (node === opts.selectedCity) {
-      selections.push({ x: mapNode.pos[0], y: mapNode.pos[1], radius: (mapNode.tier >= 3 ? 10.8 : 9.4) * fixtureScale, color: [0.31, 0.82, 0.39], kind: 'city' });
+      selections.push({
+        x: mapNode.pos[0],
+        y: mapNode.pos[1],
+        z: field.heightAt(mapNode.pos[0], mapNode.pos[1]),
+        radius: (mapNode.tier >= 3 ? 10.8 : 9.4) * fixtureScale,
+        color: [0.31, 0.82, 0.39],
+        kind: 'city',
+      });
     }
   }
   for (const army of opts.armies) {
@@ -354,8 +366,15 @@ function buildEntityFrame(data: CampaignData, field: TerrainField, opts: DrawOpt
     armyEntities++;
     if (army.id === opts.selected) {
       const controlledStage = isControlledStage(data);
-      const selectionRadius = controlledStage ? 5.2 * fixtureScale : 8.2 * fixtureScale;
-      selections.push({ x: army.x, y: army.y, radius: selectionRadius, color: [0.31, 0.82, 0.39], kind: 'army', emphasis: controlledStage ? 1 : 0 });
+      const selectionRadius = controlledStage ? 8.4 * fixtureScale : 12.6 * fixtureScale;
+      selections.push({
+        x: army.x,
+        y: army.y,
+        z: field.heightAt(army.x, army.y),
+        radius: selectionRadius,
+        color: [0.31, 0.82, 0.39],
+        kind: 'army',
+      });
     }
   }
   return { entities, selections, cityEntities, armyEntities };

@@ -5,6 +5,9 @@ const CAMPAIGN_3D_BASELINE = new URL(
   '../../specs/webgpu-skinned-crowd/visualizations/campaign-baselines/campaign-3d.png',
   import.meta.url,
 );
+const WHOLE_MAP_CAMERA = [-100, 250, 0.16];
+const REGIONAL_ITALY_CAMERA = [-430, 380, 4.0];
+const ROME_CLOSE_CAMERA = [-456, 446, 6.0];
 
 export const meta = {
   name: 'campaign-webgpu-lod',
@@ -58,74 +61,75 @@ export async function run(ctx) {
   ctx.check('real campaign LoD scene found Roma, Ostia, and player army', anchors.roma >= 0 && anchors.ostia >= 0 && anchors.armyId >= 0, JSON.stringify(anchors));
 
   await snapCampaign(page, ctx, 'campaign-lod-whole-political', {
-    before: () => page.evaluate(() => {
+    before: () => page.evaluate((camera) => {
       window.__campaign.freeze(true);
       window.__campaign.factionView(true);
       window.__campaign.fogOfWar(false);
       window.__campaign.select(-1);
-      window.__campaign.cam(-100, 250, 0.16);
-    }),
+      window.__campaign.cam(...camera);
+    }, WHOLE_MAP_CAMERA),
     stats: (stats) => stats.visibleLabels >= 20 && stats.roadTriangles > 0 && stats.cityEntities > 300,
   });
 
   await snapCampaign(page, ctx, 'campaign-lod-whole-natural', {
-    before: () => page.evaluate(() => {
+    before: () => page.evaluate((camera) => {
       window.__campaign.factionView(false);
       window.__campaign.fogOfWar(false);
-      window.__campaign.cam(-100, 250, 0.16);
-    }),
+      window.__campaign.cam(...camera);
+    }, WHOLE_MAP_CAMERA),
     stats: (stats) => stats.visibleLabels >= 16 && stats.roadTriangles > 0,
   });
 
   await snapCampaign(page, ctx, 'campaign-lod-whole-fog', {
-    before: () => page.evaluate(() => {
+    before: () => page.evaluate((camera) => {
       window.__campaign.factionView(true);
       window.__campaign.fogOfWar(true);
-      window.__campaign.cam(-100, 250, 0.16);
-    }),
+      window.__campaign.cam(...camera);
+    }, WHOLE_MAP_CAMERA),
     stats: (stats) => stats.fogEnabled === true && stats.fogSources > 0 && stats.visibleLabels < 20,
   });
 
   await snapCampaign(page, ctx, 'campaign-lod-regional-italy-natural', {
-    before: () => page.evaluate(() => {
+    before: () => page.evaluate((camera) => {
       window.__campaign.fogOfWar(false);
       window.__campaign.factionView(false);
       window.__campaign.select(-1);
-      window.__campaign.cam(-430, 380, 4.0);
-    }),
+      window.__campaign.cam(...camera);
+    }, REGIONAL_ITALY_CAMERA),
     stats: (stats) => stats.visibleLabels >= 8 && stats.cityEntities > 20 && stats.armyEntities >= 1 && stats.roadTriangles > 0 && stats.factionView === false,
     compare3dBaseline: true,
   });
 
   await snapCampaign(page, ctx, 'campaign-lod-regional-italy-political', {
-    before: () => page.evaluate(() => {
+    before: () => page.evaluate((camera) => {
       window.__campaign.fogOfWar(false);
       window.__campaign.factionView(true);
       window.__campaign.select(-1);
-      window.__campaign.cam(-430, 380, 4.0);
-    }),
+      window.__campaign.cam(...camera);
+    }, REGIONAL_ITALY_CAMERA),
     stats: (stats) => stats.visibleLabels >= 8 && stats.cityEntities > 20 && stats.armyEntities >= 1 && stats.roadTriangles > 0 && stats.factionView === true,
   });
 
   await snapCampaign(page, ctx, 'campaign-lod-rome-close', {
-    before: () => page.evaluate(() => window.__campaign.cam(-456, 446, 6.0)),
+    before: () => page.evaluate((camera) => window.__campaign.cam(...camera), ROME_CLOSE_CAMERA),
     stats: (stats) => stats.visibleLabels >= 4 && stats.cityEntities > 20 && stats.armyEntities >= 1 && stats.roadTriangles > 0,
   });
 
   await snapCampaign(page, ctx, 'campaign-lod-selected-army-city', {
-    before: () => page.evaluate((armyId) => {
+    before: () => page.evaluate(({ armyId, roma, camera }) => {
+      window.__campaign.place(armyId, 0, roma, 0);
       window.__campaign.select(armyId);
-      window.__campaign.cam(-456, 446, 6.0);
-    }, anchors.armyId),
-    stats: (stats) => stats.visibleLabels >= 4 && stats.roadTriangles > 0,
+      window.__campaign.cam(...camera);
+    }, { ...anchors, camera: ROME_CLOSE_CAMERA }),
+    stats: (stats) => stats.visibleLabels >= 4 && stats.roadTriangles > 0 && stats.composedArmyCityLabels >= 1,
   });
 
   await snapCampaign(page, ctx, 'campaign-lod-selected-city', {
-    before: () => page.evaluate((roma) => {
+    before: () => page.evaluate(({ roma, camera }) => {
       window.__campaign.select(-1);
       window.__campaign.openCity(roma);
-      window.__campaign.cam(-456, 446, 6.0);
-    }, anchors.roma),
+      window.__campaign.cam(...camera);
+    }, { roma: anchors.roma, camera: ROME_CLOSE_CAMERA }),
     stats: (stats) => stats.visibleLabels >= 4 && stats.roadTriangles > 0,
   });
 

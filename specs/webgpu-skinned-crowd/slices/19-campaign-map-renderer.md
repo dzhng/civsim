@@ -219,6 +219,10 @@ failures belong to the shared renderer foundation first.
   Every scene freezes the simulation, uses the live campaign WebGPU adapter,
   and asserts labels, roads, entities, fog, faction-view state, and clouds
   according to the active LoD band.
+- The selected-army-in-city LoD shot deliberately places the player army on
+  Roma and asserts `composedArmyCityLabels >= 1`. The accepted state is one
+  readable army/city label stack with army size on the army line and the city
+  name below, not two overlapping labels emitted independently.
 - The regional Italy natural shot uses
   `specs/webgpu-skinned-crowd/visualizations/campaign-baselines/campaign-3d.png`
   as an archived current-renderer parity floor. That baseline intentionally has

@@ -33,7 +33,9 @@ semantic is explicitly rendered.
 
 ## Implementation Notes
 
-- 2026-06-28: road strips and sidewalls are tessellated at short world-space
-  intervals and each cross-section samples the canonical campaign terrain
-  height. This prevents a long road triangle from interpolating below a raised
-  terrain ridge and visually cutting off while its endpoints remain correct.
+- 2026-06-28: WebGPU road meshes now follow the previous renderer's topology:
+  each road is resampled into one continuous centerline, then drawn as a dark
+  embankment ribbon under a bright stone ribbon. Every ribbon vertex samples
+  the canonical campaign terrain height. Roads are no longer cut back around
+  cities or junctions; city and army volumes occlude the road through shared
+  world depth instead of relying on artificial endpoint gaps.

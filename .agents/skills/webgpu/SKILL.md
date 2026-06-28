@@ -60,6 +60,10 @@ pass orchestration, WGSL layout, depth semantics, or browser-verified output.
   world objects they mark. A selection ring, shadow, road, or footprint that
   assumes flat `z=0` can disappear under the terrain or drift away from the
   model even when its x/y coordinates are correct.
+- Continuous world paths should be continuous geometry. Do not create road,
+  rail, river, or path continuity by cutting endpoint gaps around occluders;
+  resample the path onto the canonical surface and let depth-tested world
+  objects occlude it.
 - Instanced world props need a base-elevation field when they live on raised
   terrain. An instance layout that carries only x/y/scale can look fine on a
   flat fixture while trees, rocks, crowds, or buildings float, sink, or lose

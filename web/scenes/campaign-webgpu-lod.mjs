@@ -287,7 +287,7 @@ async function checkRealItalyAlignment(page, ctx, name, current, cameraBand) {
     JSON.stringify(pixelMetrics),
   );
   const roadMetrics = renderedRoadMetrics(current, visible.roads);
-  const minRoadHitRatio = cameraBand === 'close' ? 0.86 : 0.90;
+  const minRoadHitRatio = 0.90;
   ctx.check(
     `${name} visible central Italy roads are continuous above terrain`,
     roadMetrics.visibleRoads >= minVisibleRoads

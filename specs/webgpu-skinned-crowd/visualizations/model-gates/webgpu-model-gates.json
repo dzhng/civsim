@@ -1299,7 +1299,7 @@
           ],
           "layer": "raw-webgpu-legacy-scenery-meshes"
         },
-        "roadTriangles": 184,
+        "roadTriangles": 80,
         "waterFeatures": 0,
         "cloudQuads": 0,
         "selections": 0,
@@ -1454,7 +1454,7 @@
           ],
           "layer": "raw-webgpu-legacy-scenery-meshes"
         },
-        "roadTriangles": 184,
+        "roadTriangles": 80,
         "waterFeatures": 0,
         "cloudQuads": 0,
         "selections": 0,

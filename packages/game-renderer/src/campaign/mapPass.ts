@@ -50,9 +50,6 @@ export interface CampaignMapStyle {
 
 export interface CampaignMapDrawStyle {
   roadScale?: number;
-  roadEndpointInset?: number;
-  roadCityEndpointInset?: number;
-  roadJunctionEndpointInset?: number;
   roadSurfaceAt?: (x: number, y: number) => 'land' | 'water';
   heightAt?: (x: number, y: number) => number;
 }
@@ -917,10 +914,9 @@ export function buildCampaignMapDrawData(data: CampaignMapInputData, style: Camp
   const seaLanes = data.map.edges.filter((edge) => edge.kind === 'sea');
   const lineVertices: number[] = [];
   const roadMeshVertices: number[] = [];
-  const nodesById = new Map(data.map.nodes.map((node, index) => [node.id ?? index, node]));
   for (const edge of data.map.edges) {
     if (edge.kind === 'sea') pushEdgeLines(lineVertices, edge);
-    else if (roadEdgeIsLandSafe(edge, style)) pushRaisedRoad(roadMeshVertices, edge, style, roadEndpointInsets(edge, nodesById, style));
+    else if (roadEdgeIsLandSafe(edge, style)) pushRaisedRoad(roadMeshVertices, edge, style);
   }
   const cityNodes = data.map.nodes.filter((node) => node.kind === 'city');
   const cityMarkers = cityNodes.map((node) => markerForNode(data, node));
@@ -989,45 +985,23 @@ function pushEdgeLines(out: number[], edge: CampaignMapEdgeData) {
   }
 }
 
-function pushRaisedRoad(out: number[], edge: CampaignMapEdgeData, style: CampaignMapDrawStyle, endpointInsets: { start: number; end: number }) {
+function pushRaisedRoad(out: number[], edge: CampaignMapEdgeData, style: CampaignMapDrawStyle) {
+  if (edge.via.length < 2) return;
   const roadScale = style.roadScale ?? 1;
-  const topColor: [number, number, number, number] = [0.78, 0.74, 0.62, 0.92];
-  const crownColor: [number, number, number, number] = [0.91, 0.84, 0.66, 0.36];
-  const sideColor: [number, number, number, number] = [0.40, 0.32, 0.20, 0.34];
-  const shoulderColor: [number, number, number, number] = [0.50, 0.40, 0.24, 0.18];
-  const topZ = 0.18 * roadScale;
-  const apronZ = 0.07 * roadScale;
-
+  const center: [number, number][] = [[edge.via[0][0], edge.via[0][1]]];
   for (let i = 1; i < edge.via.length; i++) {
     const a = edge.via[i - 1];
     const b = edge.via[i];
-    const dx = b[0] - a[0];
-    const dy = b[1] - a[1];
-    const len = Math.hypot(dx, dy) || 1;
-    const ux = dx / len;
-    const uy = dy / len;
-    const startInset = i === 1 ? endpointInsets.start : 0;
-    const endInset = i === edge.via.length - 1 ? endpointInsets.end : 0;
-    const usableInset = len > startInset + endInset + 1 ? { start: startInset, end: endInset } : { start: 0, end: 0 };
-    const start: [number, number] = [a[0] + ux * usableInset.start, a[1] + uy * usableInset.start];
-    const end: [number, number] = [b[0] - ux * usableInset.end, b[1] - uy * usableInset.end];
-    const angle = Math.atan2(end[1] - start[1], end[0] - start[0]);
-    const nx = -Math.sin(angle);
-    const ny = Math.cos(angle);
-    const topHalf = 1.30 * roadScale;
-    const crownHalf = 0.62 * roadScale;
-    const shoulderHalf = 2.15 * roadScale;
-    if (i === 1) {
-      pushRoadDisc(out, start, angle, 3.1 * roadScale, 1.5 * roadScale, apronZ, shoulderColor, 0, style.heightAt);
-      pushRoadDisc(out, start, angle, 2.15 * roadScale, 1.05 * roadScale, topZ, topColor, 1, style.heightAt);
+    const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
+    const steps = Math.max(1, Math.round(len / ROAD_SURFACE_SAMPLE_KM));
+    for (let step = 1; step <= steps; step++) {
+      const t = step / steps;
+      center.push([a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]);
     }
-    pushRoadDisc(out, end, angle, 2.85 * roadScale, 1.38 * roadScale, apronZ, shoulderColor, 0, style.heightAt);
-    pushRoadDisc(out, end, angle, 1.98 * roadScale, 0.96 * roadScale, topZ, topColor, 1, style.heightAt);
-    pushRoadStrip(out, start, end, shoulderHalf, 0.02 * roadScale, shoulderColor, 0, style.heightAt);
-    pushRoadStrip(out, start, end, topHalf, topZ, topColor, 1, style.heightAt);
-    pushRoadStrip(out, start, end, crownHalf, topZ + 0.025 * roadScale, crownColor, 1, style.heightAt);
-    pushRoadSide(out, start, end, nx, ny, topHalf, topZ, sideColor, style.heightAt);
   }
+  const halfWidth = 0.55 * roadScale;
+  pushRoadRibbon(out, center, halfWidth * 1.58, 0.18 * roadScale, [0.33, 0.28, 0.23, 0.72], 0, style.heightAt);
+  pushRoadRibbon(out, center, halfWidth, 0.32 * roadScale, [0.67, 0.65, 0.58, 0.96], 1, style.heightAt);
 }
 
 function roadEdgeIsLandSafe(edge: CampaignMapEdgeData, style: CampaignMapDrawStyle) {
@@ -1047,119 +1021,47 @@ function roadEdgeIsLandSafe(edge: CampaignMapEdgeData, style: CampaignMapDrawSty
   return true;
 }
 
-function roadEndpointInsets(edge: CampaignMapEdgeData, nodesById: Map<number, CampaignMapNodeData>, style: CampaignMapDrawStyle) {
-  const fallback = Math.max(0, style.roadEndpointInset ?? 0);
-  const cityInset = Math.max(0, style.roadCityEndpointInset ?? style.roadEndpointInset ?? 9.5);
-  const junctionInset = Math.max(0, style.roadJunctionEndpointInset ?? style.roadEndpointInset ?? 0);
-  const insetFor = (id: number | undefined) => {
-    if (id === undefined) return fallback;
-    return nodesById.get(id)?.kind === 'city' ? cityInset : junctionInset;
-  };
-  return {
-    start: insetFor(edge.a),
-    end: insetFor(edge.b),
-  };
-}
-
 function pushRoadVertex(out: number[], point: [number, number], z: number, color: [number, number, number, number], uv: [number, number], material: number, heightAt?: (x: number, y: number) => number) {
   out.push(point[0], point[1], z + (heightAt?.(point[0], point[1]) ?? 0), ...color, uv[0], uv[1], material);
 }
 
-type RoadVertex = [x: number, y: number, z: number, u: number, v: number];
-
-function pushRoadTriangle(
+function pushRoadRibbon(
   out: number[],
-  a: RoadVertex,
-  b: RoadVertex,
-  c: RoadVertex,
+  center: [number, number][],
+  halfWidth: number,
+  z: number,
   color: [number, number, number, number],
   material: number,
   heightAt?: (x: number, y: number) => number,
 ) {
-  pushRoadVertex(out, [a[0], a[1]], a[2], color, [a[3], a[4]], material, heightAt);
-  pushRoadVertex(out, [b[0], b[1]], b[2], color, [b[3], b[4]], material, heightAt);
-  pushRoadVertex(out, [c[0], c[1]], c[2], color, [c[3], c[4]], material, heightAt);
-}
-
-function pushRoadStrip(out: number[], a: [number, number], b: [number, number], halfWidth: number, z: number, color: [number, number, number, number], material: number, heightAt?: (x: number, y: number) => number) {
-  const dx = b[0] - a[0];
-  const dy = b[1] - a[1];
-  const len = Math.hypot(dx, dy) || 1;
-  const nx = -dy / len;
-  const ny = dx / len;
-  const steps = Math.max(1, Math.ceil(len / ROAD_SURFACE_SAMPLE_KM));
-  for (let step = 0; step < steps; step++) {
-    const t0 = step / steps;
-    const t1 = (step + 1) / steps;
-    const x0 = a[0] + dx * t0;
-    const y0 = a[1] + dy * t0;
-    const x1 = a[0] + dx * t1;
-    const y1 = a[1] + dy * t1;
-    const u0 = len * 0.26 * t0;
-    const u1 = len * 0.26 * t1;
-    const a0: RoadVertex = [x0 - nx * halfWidth, y0 - ny * halfWidth, z, u0, -1];
-    const a1: RoadVertex = [x0 + nx * halfWidth, y0 + ny * halfWidth, z, u0, 1];
-    const b0: RoadVertex = [x1 - nx * halfWidth, y1 - ny * halfWidth, z, u1, -1];
-    const b1: RoadVertex = [x1 + nx * halfWidth, y1 + ny * halfWidth, z, u1, 1];
-    pushRoadTriangle(out, a0, b0, b1, color, material, heightAt);
-    pushRoadTriangle(out, a0, b1, a1, color, material, heightAt);
+  if (center.length < 2) return;
+  const left: [number, number, number][] = [];
+  const right: [number, number, number][] = [];
+  let distance = 0;
+  for (let i = 0; i < center.length; i++) {
+    if (i > 0) distance += Math.hypot(center[i][0] - center[i - 1][0], center[i][1] - center[i - 1][1]);
+    const p = center[i];
+    const a = center[Math.max(0, i - 1)];
+    const b = center[Math.min(center.length - 1, i + 1)];
+    const dx = b[0] - a[0];
+    const dy = b[1] - a[1];
+    const len = Math.hypot(dx, dy) || 1;
+    const nx = -dy / len;
+    const ny = dx / len;
+    left.push([p[0] - nx * halfWidth, p[1] - ny * halfWidth, distance * 0.26]);
+    right.push([p[0] + nx * halfWidth, p[1] + ny * halfWidth, distance * 0.26]);
+  }
+  for (let i = 0; i + 1 < center.length; i++) {
+    pushRoadVertex(out, [left[i][0], left[i][1]], z, color, [left[i][2], -1], material, heightAt);
+    pushRoadVertex(out, [left[i + 1][0], left[i + 1][1]], z, color, [left[i + 1][2], -1], material, heightAt);
+    pushRoadVertex(out, [right[i + 1][0], right[i + 1][1]], z, color, [right[i + 1][2], 1], material, heightAt);
+    pushRoadVertex(out, [left[i][0], left[i][1]], z, color, [left[i][2], -1], material, heightAt);
+    pushRoadVertex(out, [right[i + 1][0], right[i + 1][1]], z, color, [right[i + 1][2], 1], material, heightAt);
+    pushRoadVertex(out, [right[i][0], right[i][1]], z, color, [right[i][2], 1], material, heightAt);
   }
 }
 
-function pushRoadSide(out: number[], a: [number, number], b: [number, number], nx: number, ny: number, halfWidth: number, z: number, color: [number, number, number, number], heightAt?: (x: number, y: number) => number) {
-  const dx = b[0] - a[0];
-  const dy = b[1] - a[1];
-  const len = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1;
-  const side = (sign: -1 | 1) => {
-    const steps = Math.max(1, Math.ceil(len / ROAD_SURFACE_SAMPLE_KM));
-    for (let step = 0; step < steps; step++) {
-      const t0 = step / steps;
-      const t1 = (step + 1) / steps;
-      const x0 = a[0] + dx * t0;
-      const y0 = a[1] + dy * t0;
-      const x1 = a[0] + dx * t1;
-      const y1 = a[1] + dy * t1;
-      const u0 = len * 0.26 * t0;
-      const u1 = len * 0.26 * t1;
-      const aTop: RoadVertex = [x0 + nx * halfWidth * sign, y0 + ny * halfWidth * sign, z, u0, sign];
-      const bTop: RoadVertex = [x1 + nx * halfWidth * sign, y1 + ny * halfWidth * sign, z, u1, sign];
-      const aBase: RoadVertex = [aTop[0] + nx * 0.20 * sign, aTop[1] + ny * 0.20 * sign, 0.01, u0, sign * 1.18];
-      const bBase: RoadVertex = [bTop[0] + nx * 0.20 * sign, bTop[1] + ny * 0.20 * sign, 0.01, u1, sign * 1.18];
-      pushRoadTriangle(out, aBase, bBase, bTop, color, 0, heightAt);
-      pushRoadTriangle(out, aBase, bTop, aTop, color, 0, heightAt);
-    }
-  };
-  side(-1);
-  side(1);
-}
-
-function pushRoadDisc(out: number[], center: [number, number], angle: number, radiusX: number, radiusY: number, z: number, color: [number, number, number, number], material: number, heightAt?: (x: number, y: number) => number) {
-  const steps = 18;
-  const cos = Math.cos(angle);
-  const sin = Math.sin(angle);
-  for (let i = 0; i < steps; i++) {
-    const a0 = (i / steps) * Math.PI * 2;
-    const a1 = ((i + 1) / steps) * Math.PI * 2;
-    const p0: RoadVertex = [
-      center[0] + Math.cos(a0) * radiusX * cos - Math.sin(a0) * radiusY * sin,
-      center[1] + Math.cos(a0) * radiusX * sin + Math.sin(a0) * radiusY * cos,
-      z,
-      i / 3,
-      1,
-    ];
-    const p1: RoadVertex = [
-      center[0] + Math.cos(a1) * radiusX * cos - Math.sin(a1) * radiusY * sin,
-      center[1] + Math.cos(a1) * radiusX * sin + Math.sin(a1) * radiusY * cos,
-      z,
-      (i + 1) / 3,
-      1,
-    ];
-    const c: RoadVertex = [center[0], center[1], z, i / 3, 0];
-    pushRoadTriangle(out, c, p0, p1, color, material, heightAt);
-  }
-}
-
-const ROAD_SURFACE_SAMPLE_KM = 4;
+const ROAD_SURFACE_SAMPLE_KM = 0.9;
 
 function markerForNode(data: CampaignMapInputData, node: CampaignMapNodeData): CampaignMarker {
   const factionIndex = Math.max(0, data.map.factions.findIndex((faction) => faction.id === node.owner));

@@ -286,7 +286,6 @@ export class CampaignRendererWebGPU {
     this.labels = new CampaignLabelPass(this.shell);
     const drawData = buildCampaignMapDrawData(this.data, {
       roadScale: 0.78,
-      ...(controlledStage ? { roadEndpointInset: 8.2 } : {}),
       roadSurfaceAt: (x, y) => this.field.landAt(x, y, controlledStage ? 2.5 : 10.5) ? 'land' : 'water',
       heightAt: (x, y) => this.field.heightAt(x, y),
     });

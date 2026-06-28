@@ -118,8 +118,26 @@ final cutover (slice 11) is the integration point that depends on the rest.
 
 You are building the WebGPU conversion completion. Last updated: 2026-06-29.
 
-Current status: **Slices 01–04 shipped and green** (Group A complete; Group B
-through per-class VATs).
+Current status: **Slices 01–05 shipped and green** (Group A complete; Group B
+through materials/faction-mask).
+
+**Slice 05 (materials, textures & faction mask) shipped:**
+- `skinnedPipeline` has a shared material bind group (group 2): sampler + 4
+  textures (albedo/normal/orm/factionMask) + a `factionMaskStrength` uniform. The
+  fragment shader samples all four channels; placeholder textures are neutral so
+  the default render is byte-identical (verified vs. model-gate + battle
+  baselines). One bind group shared by all classes — no crowd-scale regression.
+- Faction color keys off the mask (color-derived team mask × mask texture).
+  `setFactionMaskStrength(0)` = legacy broad tint (default); `(1)` localizes
+  faction color to accents.
+- `/webgpu/soldier-materials` route + `webgpu-soldier-materials` scene prove
+  localization objectively: body faction difference drops 41 → 5 (ratio 0.12)
+  with the mask on. Unprimed critique confirmed the body de-tints to material
+  colors, only the crest stays faction-colored.
+- Open for David: production runs at strength 0 (look unchanged); enabling
+  localized masking re-blesses soldier baselines and is gated on the "how bold"
+  call. Texture packing (atlas vs array) is the other open decision.
+
 
 **Slice 04 (per-class VATs & clip tables) shipped:**
 - `skinnedPipeline` holds a per-class `VatResource` (buffer + bind group + clip
@@ -199,9 +217,9 @@ left untouched per the spec; the `compileShader` source gate is scoped to
 non-campaign roots. Only the campaign `renderer.ready.catch` (scene controller,
 pure robustness) was added.
 
-Next pickup: **Slice 05 (materials, textures & faction mask)** — Group B (needs
-04, done). Add a sampler/texture bind group (albedo/normal/orm) + per-pixel
-faction-mask accents (crest/shield/sash). Placeholders stay default.
+Next pickup: **Slice 06 (mounted units & equipment composition)** — Group B
+(needs 04, done). Real horse VAT + rider composition; cavalry no longer fused
+boxes. Placeholders stay default.
 
 Active warnings:
 - Keep the sim and campaign renderer untouched; this is non-campaign renderer
@@ -220,7 +238,7 @@ Global TODO:
   real-art replacement contract (placeholders stay default).
 - [x] Slice 04: `classId→VatBake` mapping and per-class clip tables replacing the
   single global VAT/layout.
-- [ ] Slice 05: sampler/texture bind group with albedo/normal/orm + per-pixel
+- [x] Slice 05: sampler/texture bind group with albedo/normal/orm + per-pixel
   faction-mask accents.
 - [ ] Slice 06: real horse VAT + rider composition and per-piece equipment
   composition; cavalry no longer fused boxes.

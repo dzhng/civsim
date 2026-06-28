@@ -1065,18 +1065,20 @@ function pushRoadVertex(out: number[], point: [number, number], z: number, color
   out.push(point[0], point[1], z + (heightAt?.(point[0], point[1]) ?? 0), ...color, uv[0], uv[1], material);
 }
 
+type RoadVertex = [x: number, y: number, z: number, u: number, v: number];
+
 function pushRoadTriangle(
   out: number[],
-  a: [number, number, number, number],
-  b: [number, number, number, number],
-  c: [number, number, number, number],
+  a: RoadVertex,
+  b: RoadVertex,
+  c: RoadVertex,
   color: [number, number, number, number],
   material: number,
   heightAt?: (x: number, y: number) => number,
 ) {
-  pushRoadVertex(out, [a[0], a[1]], a[2], color, [a[3], -1], material, heightAt);
-  pushRoadVertex(out, [b[0], b[1]], b[2], color, [b[3], 0], material, heightAt);
-  pushRoadVertex(out, [c[0], c[1]], c[2], color, [c[3], 1], material, heightAt);
+  pushRoadVertex(out, [a[0], a[1]], a[2], color, [a[3], a[4]], material, heightAt);
+  pushRoadVertex(out, [b[0], b[1]], b[2], color, [b[3], b[4]], material, heightAt);
+  pushRoadVertex(out, [c[0], c[1]], c[2], color, [c[3], c[4]], material, heightAt);
 }
 
 function pushRoadStrip(out: number[], a: [number, number], b: [number, number], halfWidth: number, z: number, color: [number, number, number, number], material: number, heightAt?: (x: number, y: number) => number) {
@@ -1085,23 +1087,47 @@ function pushRoadStrip(out: number[], a: [number, number], b: [number, number], 
   const len = Math.hypot(dx, dy) || 1;
   const nx = -dy / len;
   const ny = dx / len;
-  const a0: [number, number, number, number] = [a[0] - nx * halfWidth, a[1] - ny * halfWidth, z, 0];
-  const a1: [number, number, number, number] = [a[0] + nx * halfWidth, a[1] + ny * halfWidth, z, 0];
-  const b0: [number, number, number, number] = [b[0] - nx * halfWidth, b[1] - ny * halfWidth, z, len * 0.26];
-  const b1: [number, number, number, number] = [b[0] + nx * halfWidth, b[1] + ny * halfWidth, z, len * 0.26];
-  pushRoadTriangle(out, a0, b0, b1, color, material, heightAt);
-  pushRoadTriangle(out, a0, b1, a1, color, material, heightAt);
+  const steps = Math.max(1, Math.ceil(len / ROAD_SURFACE_SAMPLE_KM));
+  for (let step = 0; step < steps; step++) {
+    const t0 = step / steps;
+    const t1 = (step + 1) / steps;
+    const x0 = a[0] + dx * t0;
+    const y0 = a[1] + dy * t0;
+    const x1 = a[0] + dx * t1;
+    const y1 = a[1] + dy * t1;
+    const u0 = len * 0.26 * t0;
+    const u1 = len * 0.26 * t1;
+    const a0: RoadVertex = [x0 - nx * halfWidth, y0 - ny * halfWidth, z, u0, -1];
+    const a1: RoadVertex = [x0 + nx * halfWidth, y0 + ny * halfWidth, z, u0, 1];
+    const b0: RoadVertex = [x1 - nx * halfWidth, y1 - ny * halfWidth, z, u1, -1];
+    const b1: RoadVertex = [x1 + nx * halfWidth, y1 + ny * halfWidth, z, u1, 1];
+    pushRoadTriangle(out, a0, b0, b1, color, material, heightAt);
+    pushRoadTriangle(out, a0, b1, a1, color, material, heightAt);
+  }
 }
 
 function pushRoadSide(out: number[], a: [number, number], b: [number, number], nx: number, ny: number, halfWidth: number, z: number, color: [number, number, number, number], heightAt?: (x: number, y: number) => number) {
+  const dx = b[0] - a[0];
+  const dy = b[1] - a[1];
   const len = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1;
   const side = (sign: -1 | 1) => {
-    const aTop: [number, number, number, number] = [a[0] + nx * halfWidth * sign, a[1] + ny * halfWidth * sign, z, 0];
-    const bTop: [number, number, number, number] = [b[0] + nx * halfWidth * sign, b[1] + ny * halfWidth * sign, z, len * 0.26];
-    const aBase: [number, number, number, number] = [aTop[0] + nx * 0.20 * sign, aTop[1] + ny * 0.20 * sign, 0.01, 0];
-    const bBase: [number, number, number, number] = [bTop[0] + nx * 0.20 * sign, bTop[1] + ny * 0.20 * sign, 0.01, len * 0.26];
-    pushRoadTriangle(out, aBase, bBase, bTop, color, 0, heightAt);
-    pushRoadTriangle(out, aBase, bTop, aTop, color, 0, heightAt);
+    const steps = Math.max(1, Math.ceil(len / ROAD_SURFACE_SAMPLE_KM));
+    for (let step = 0; step < steps; step++) {
+      const t0 = step / steps;
+      const t1 = (step + 1) / steps;
+      const x0 = a[0] + dx * t0;
+      const y0 = a[1] + dy * t0;
+      const x1 = a[0] + dx * t1;
+      const y1 = a[1] + dy * t1;
+      const u0 = len * 0.26 * t0;
+      const u1 = len * 0.26 * t1;
+      const aTop: RoadVertex = [x0 + nx * halfWidth * sign, y0 + ny * halfWidth * sign, z, u0, sign];
+      const bTop: RoadVertex = [x1 + nx * halfWidth * sign, y1 + ny * halfWidth * sign, z, u1, sign];
+      const aBase: RoadVertex = [aTop[0] + nx * 0.20 * sign, aTop[1] + ny * 0.20 * sign, 0.01, u0, sign * 1.18];
+      const bBase: RoadVertex = [bTop[0] + nx * 0.20 * sign, bTop[1] + ny * 0.20 * sign, 0.01, u1, sign * 1.18];
+      pushRoadTriangle(out, aBase, bBase, bTop, color, 0, heightAt);
+      pushRoadTriangle(out, aBase, bTop, aTop, color, 0, heightAt);
+    }
   };
   side(-1);
   side(1);
@@ -1114,22 +1140,26 @@ function pushRoadDisc(out: number[], center: [number, number], angle: number, ra
   for (let i = 0; i < steps; i++) {
     const a0 = (i / steps) * Math.PI * 2;
     const a1 = ((i + 1) / steps) * Math.PI * 2;
-    const p0: [number, number, number, number] = [
+    const p0: RoadVertex = [
       center[0] + Math.cos(a0) * radiusX * cos - Math.sin(a0) * radiusY * sin,
       center[1] + Math.cos(a0) * radiusX * sin + Math.sin(a0) * radiusY * cos,
       z,
       i / 3,
+      1,
     ];
-    const p1: [number, number, number, number] = [
+    const p1: RoadVertex = [
       center[0] + Math.cos(a1) * radiusX * cos - Math.sin(a1) * radiusY * sin,
       center[1] + Math.cos(a1) * radiusX * sin + Math.sin(a1) * radiusY * cos,
       z,
       (i + 1) / 3,
+      1,
     ];
-    const c: [number, number, number, number] = [center[0], center[1], z, i / 3];
+    const c: RoadVertex = [center[0], center[1], z, i / 3, 0];
     pushRoadTriangle(out, c, p0, p1, color, material, heightAt);
   }
 }
+
+const ROAD_SURFACE_SAMPLE_KM = 4;
 
 function markerForNode(data: CampaignMapInputData, node: CampaignMapNodeData): CampaignMarker {
   const factionIndex = Math.max(0, data.map.factions.findIndex((faction) => faction.id === node.owner));

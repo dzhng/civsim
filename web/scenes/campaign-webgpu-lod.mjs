@@ -219,8 +219,8 @@ function roadSamplesForPairs(map, pairs) {
       const end = edge.via[i];
       const len = Math.hypot(end[0] - start[0], end[1] - start[1]);
       const steps = Math.max(1, Math.ceil(len / 16));
-      for (let step = 0; step <= steps; step++) {
-        const t = step / steps;
+      for (let step = 0; step < steps; step++) {
+        const t = (step + 1) / (steps + 1);
         samples.push({
           kind: 'road',
           name: `${a}-${b}`,
@@ -277,6 +277,14 @@ async function checkRealItalyAlignment(page, ctx, name, current, cameraBand) {
       && pixelMetrics.badCities.length === 0
       && pixelMetrics.badRoads.length === 0,
     JSON.stringify(pixelMetrics),
+  );
+  const roadMetrics = renderedRoadMetrics(current, visible.roads);
+  const minRoadHitRatio = cameraBand === 'close' ? 0.86 : 0.90;
+  ctx.check(
+    `${name} visible central Italy roads are continuous above terrain`,
+    roadMetrics.visibleRoads >= minVisibleRoads
+      && roadMetrics.roadHitRatio >= minRoadHitRatio,
+    JSON.stringify(roadMetrics),
   );
 }
 
@@ -396,4 +404,59 @@ function sampleProjectedLand(png, points, maxWaterRatio) {
 
 function isWaterPixel(r, g, b) {
   return b > r + 18 && b > g * 0.82 && b > 70;
+}
+
+function renderedRoadMetrics(png, roads) {
+  let visibleRoads = 0;
+  let roadColorSamples = 0;
+  const missingRoads = [];
+  for (const point of roads) {
+    if (point.sx < 0 || point.sy < 36 || point.sx >= png.width || point.sy >= png.height) continue;
+    visibleRoads++;
+    if (sampleRoadPixel(png, point.sx, point.sy)) {
+      roadColorSamples++;
+    } else {
+      missingRoads.push({
+        name: point.name,
+        sx: Number(point.sx.toFixed(1)),
+        sy: Number(point.sy.toFixed(1)),
+      });
+    }
+  }
+  return {
+    visibleRoads,
+    roadColorSamples,
+    roadHitRatio: Number((roadColorSamples / Math.max(1, visibleRoads)).toFixed(3)),
+    missingRoads: missingRoads.slice(0, 16),
+  };
+}
+
+function sampleRoadPixel(png, sx, sy) {
+  const offsets = [
+    [0, 0],
+    [2, 0],
+    [-2, 0],
+    [0, 2],
+    [0, -2],
+    [4, 0],
+    [-4, 0],
+    [0, 4],
+    [0, -4],
+    [5, 3],
+    [-5, 3],
+    [5, -3],
+    [-5, -3],
+  ];
+  for (const [dx, dy] of offsets) {
+    const x = Math.round(sx + dx);
+    const y = Math.round(sy + dy);
+    if (x < 0 || y < 36 || x >= png.width || y >= png.height) continue;
+    const i = (y * png.width + x) * 4;
+    if (isRoadPixel(png.data[i], png.data[i + 1], png.data[i + 2])) return true;
+  }
+  return false;
+}
+
+function isRoadPixel(r, g, b) {
+  return r > 156 && g > 138 && b > 96 && Math.abs(r - g) < 72 && Math.abs(g - b) < 92;
 }

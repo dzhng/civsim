@@ -220,6 +220,7 @@ export class CampaignScene implements Scene {
       cam: (x: number, y: number, scale: number) => {
         this.cam = { x, y, scale };
         this.clampCam();
+        this.drawWorld();
       },
       camGet: () => ({ ...this.cam, pitchDeg: (this.renderer.pitchForScale(this.cam.scale) * 180) / Math.PI }),
       territoryAlpha: () => this.renderer.territoryAlpha(this.cam.scale),

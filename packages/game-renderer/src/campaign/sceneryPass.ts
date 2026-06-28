@@ -9,6 +9,7 @@ export interface CampaignSceneryInstance {
   y: number;
   z: number;
   size: number;
+  height?: number;
   kind: CampaignSceneryKind;
   shade?: number;
 }
@@ -42,18 +43,19 @@ fn vs(
   @location(1) normal: vec3f,
   @location(2) colorAndAlpha: vec4f,
   @location(3) instPose: vec4f,
-  @location(4) instShade: vec4f,
+  @location(4) instStyle: vec4f,
 ) -> VsOut {
   let scale = instPose.z;
   let baseZ = instPose.w;
-  let world = vec3f(instPose.x + local.x * scale, instPose.y + local.y * scale, baseZ + local.z * scale);
+  let heightScale = instStyle.y;
+  let world = vec3f(instPose.x + local.x * scale, instPose.y + local.y * scale, baseZ + local.z * heightScale);
   var out: VsOut;
   out.pos = projectWorld3d(world, civsimCampaignWorldDepth3d(world));
   let sun = normalize(vec3f(-0.42, -0.34, 0.84));
   out.color = colorAndAlpha.rgb;
   out.alpha = colorAndAlpha.a;
   out.light = clamp(dot(normalize(normal), sun) * 0.34 + 0.78, 0.48, 1.14);
-  out.shade = clamp(instShade.x, 0.0, 1.0);
+  out.shade = clamp(instStyle.x, 0.0, 1.0);
   return out;
 }
 
@@ -184,10 +186,10 @@ export class CampaignSceneryPass {
     this.coniferInstanceBuffer = this.ensureInstanceBuffer(this.coniferInstanceBuffer, 'campaign-conifer-instances', conifers.length, 'conifer');
     this.broadleafInstanceBuffer = this.ensureInstanceBuffer(this.broadleafInstanceBuffer, 'campaign-broadleaf-instances', broadleafs.length, 'broadleaf');
     this.rockInstanceBuffer = this.ensureInstanceBuffer(this.rockInstanceBuffer, 'campaign-rock-instances', rocks.length, 'rock');
-    if (mountains.length > 0) this.shell.device.queue.writeBuffer(this.mountainInstanceBuffer, 0, packInstances(mountains, 3.8));
-    if (conifers.length > 0) this.shell.device.queue.writeBuffer(this.coniferInstanceBuffer, 0, packInstances(conifers, 3.0));
-    if (broadleafs.length > 0) this.shell.device.queue.writeBuffer(this.broadleafInstanceBuffer, 0, packInstances(broadleafs, 3.0));
-    if (rocks.length > 0) this.shell.device.queue.writeBuffer(this.rockInstanceBuffer, 0, packInstances(rocks, 3.0));
+    if (mountains.length > 0) this.shell.device.queue.writeBuffer(this.mountainInstanceBuffer, 0, packInstances(mountains));
+    if (conifers.length > 0) this.shell.device.queue.writeBuffer(this.coniferInstanceBuffer, 0, packInstances(conifers));
+    if (broadleafs.length > 0) this.shell.device.queue.writeBuffer(this.broadleafInstanceBuffer, 0, packInstances(broadleafs));
+    if (rocks.length > 0) this.shell.device.queue.writeBuffer(this.rockInstanceBuffer, 0, packInstances(rocks));
   }
 
   drawShadows(pass: WorldRenderPass) {
@@ -289,16 +291,17 @@ export class CampaignSceneryPass {
   }
 }
 
-function packInstances(instances: CampaignSceneryInstance[], sizeDivisor: number) {
+function packInstances(instances: CampaignSceneryInstance[]) {
   const data = new Float32Array(instances.length * 8);
   for (let i = 0; i < instances.length; i++) {
     const inst = instances[i];
     const o = i * 8;
     data[o] = inst.x;
     data[o + 1] = inst.y;
-    data[o + 2] = inst.size / sizeDivisor;
+    data[o + 2] = inst.size;
     data[o + 3] = inst.z;
     data[o + 4] = inst.shade ?? hash2(inst.x, inst.y);
+    data[o + 5] = inst.height ?? inst.size;
   }
   return data;
 }

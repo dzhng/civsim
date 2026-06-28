@@ -39,3 +39,11 @@ LoD.
   rather than edited or stretched replacement assets.
 - Any behavior copied for alignment or visibility cites the previous
   implementation path or function in the implementation notes.
+
+## Implementation Notes
+
+- 2026-06-28: The campaign debug `cam()` hook now draws the world immediately
+  after clamping the requested camera. Synthetic `project()` calls and mouse
+  clicks therefore use the same camera snapshot, which keeps tilted-camera
+  picking tests tied to the real renderer state instead of a stale previous
+  frame.

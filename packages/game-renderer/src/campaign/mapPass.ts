@@ -46,12 +46,21 @@ export interface CampaignMapStats {
 
 export interface CampaignMapStyle {
   seaTintMix?: number;
+  terrainMix?: number;
+  terrain?: CampaignMapTerrainTextures;
 }
 
 export interface CampaignMapDrawStyle {
   roadScale?: number;
   roadSurfaceAt?: (x: number, y: number) => 'land' | 'water';
   heightAt?: (x: number, y: number) => number;
+}
+
+export interface CampaignMapTerrainTextures {
+  width: number;
+  height: number;
+  biome: Uint8Array;
+  light: Uint8Array;
 }
 
 export interface CampaignMapSurfaceMesh {
@@ -107,11 +116,14 @@ const MAP_WGSL = `
 ${WORLD_CAMERA_WGSL}
 @group(1) @binding(0) var mapTex: texture_2d<f32>;
 @group(1) @binding(1) var mapSampler: sampler;
+@group(1) @binding(2) var biomeTex: texture_2d<f32>;
+@group(1) @binding(3) var lightTex: texture_2d<f32>;
 
 struct VsOut {
   @builtin(position) pos: vec4f,
   @location(0) uv: vec2f,
   @location(1) world: vec2f,
+  @location(2) height: f32,
 };
 
 @vertex
@@ -120,6 +132,7 @@ fn vs(@location(0) world: vec3f, @location(1) uv: vec2f) -> VsOut {
   out.pos = projectWorld3d(world, civsimCampaignWorldDepth3d(world));
   out.uv = uv;
   out.world = world.xy;
+  out.height = world.z;
   return out;
 }
 
@@ -149,6 +162,65 @@ fn seaAmount(rgb: vec3f) -> f32 {
   return smoothstep(0.04, 0.14, rgb.b - max(rgb.r, rgb.g * 0.88));
 }
 
+fn nz(p: vec2f, freq: f32, px: f32) -> f32 {
+  let fade = clamp(1.0 - freq * px * 2.2, 0.0, 1.0);
+  if (fade <= 0.0) {
+    return 0.5;
+  }
+  return mix(0.5, vnoise(p * freq), fade);
+}
+
+fn grade(c0: vec3f) -> vec3f {
+  var c = pow(max(c0, vec3f(0.0)), vec3f(0.92, 0.95, 1.0));
+  let l = dot(c, vec3f(0.299, 0.587, 0.114));
+  c = mix(vec3f(l), c, 1.06);
+  c = c * 1.05 + vec3f(0.02);
+  c *= vec3f(1.02, 1.0, 0.95);
+  return clamp(c, vec3f(0.0), vec3f(1.0));
+}
+
+fn naturalCampaignColor(b: vec4f, light: f32, world: vec2f, h: f32) -> vec3f {
+  let water = 1.0 - smoothstep(0.497, 0.503, b.a);
+  let px = max(fwidth(world.x), fwidth(world.y));
+  var col = vec3f(0.0);
+  if (water < 0.999) {
+    let moisture = b.r;
+    let g1 = nz(world, 0.9, px);
+    let g2 = nz(world, 3.1, px);
+    var grass = mix(vec3f(0.66, 0.64, 0.42), vec3f(0.40, 0.56, 0.33), smoothstep(0.22, 0.55, moisture));
+    grass *= 0.90 + 0.13 * g1 + 0.08 * g2;
+    let dune = abs(nz(world, 0.16, px) * 2.0 - 1.0);
+    var sand = mix(vec3f(0.90, 0.81, 0.60), vec3f(0.80, 0.69, 0.48), dune);
+    sand *= 0.95 + 0.08 * nz(world, 1.6, px);
+    var ground = mix(sand, grass, smoothstep(0.12, 0.28, moisture));
+    let landShore = (b.a - 0.5) * 24.0;
+    ground = mix(vec3f(0.85, 0.78, 0.60), ground, smoothstep(0.05, 0.6, landShore));
+    let canopy = smoothstep(0.25, 0.70, b.g * (0.55 + 0.90 * nz(world, 0.55, px)));
+    let forest = mix(vec3f(0.24, 0.36, 0.20), vec3f(0.32, 0.46, 0.26), nz(world, 1.9, px));
+    ground = mix(ground, forest, canopy);
+    let rockMask = smoothstep(0.35, 0.85, b.b) * (0.7 + 0.3 * g1);
+    let rock = mix(vec3f(0.58, 0.50, 0.42), vec3f(0.72, 0.66, 0.58), nz(vec2f(world.x, world.y + h * 0.9), 0.7, px));
+    ground = mix(ground, rock, rockMask);
+    let snowAt = 30.0 + clamp((700.0 - world.y) * 0.006, 0.0, 7.0);
+    let snow = smoothstep(snowAt, snowAt + 6.0, h + (nz(world, 0.5, px) - 0.5) * 6.0);
+    ground = mix(ground, vec3f(0.86, 0.86, 0.83), snow * 0.7);
+    let lit = pow(light * 2.0, 1.12);
+    col = ground * (0.22 + 0.82 * lit);
+  }
+  if (water > 0.001) {
+    let depth = clamp((0.5 - b.a) * 2.0, 0.0, 1.0);
+    let shelf = smoothstep(0.0, 0.28, depth + (nz(world, 0.5, px) - 0.5) * 0.1);
+    var waterCol = mix(vec3f(0.40, 0.56, 0.64), vec3f(0.16, 0.30, 0.44), shelf);
+    waterCol += vec3f(0.05) * (nz(world, 1.15, px) - 0.5);
+    let foam = smoothstep(0.6, 0.0, (0.5 - b.a) * 24.0) * smoothstep(0.4, 0.8, nz(world, 2.3, px));
+    waterCol = mix(waterCol, vec3f(0.88, 0.93, 0.94), foam * 0.55);
+    col = mix(col, waterCol, water);
+  }
+  let grain = vnoise(world * 0.05) * 0.6 + vnoise(world * 0.27) * 0.4;
+  col *= 0.95 + 0.11 * grain;
+  return grade(col);
+}
+
 @fragment
 fn fs(in: VsOut) -> @location(0) vec4f {
   let base = textureSample(mapTex, mapSampler, in.uv).rgb;
@@ -175,6 +247,9 @@ fn fs(in: VsOut) -> @location(0) vec4f {
   let grain = vnoise(in.world * 0.18) * 0.052 + vnoise(in.world * 0.055 + vec2f(7.1, 2.4)) * 0.038;
   let striation = ridged(vec2f(in.world.x * 0.115 + in.world.y * 0.025, in.world.y * 0.085)) * 0.028;
   col *= 0.95 + grain + striation;
+  let biome = textureSample(biomeTex, mapSampler, in.uv);
+  let bakedLight = textureSample(lightTex, mapSampler, in.uv).r;
+  col = mix(col, naturalCampaignColor(biome, bakedLight, in.world, in.height), __TERRAIN_MIX__);
   let vignette = smoothstep(1.28, 0.32, length((in.uv * 2.0 - vec2f(1.0)) * vec2f(1.0, 0.78)));
   col *= 0.90 + 0.10 * vignette;
   return vec4f(col, 1.0);
@@ -350,12 +425,18 @@ export class CampaignMapPass {
   private vertexBuffer: GPUBuffer;
   private indexBuffer: GPUBuffer;
   private indexCount: number;
+  private terrainMix: number;
+  private terrainTextureSize: [number, number] | null;
 
   constructor(private shell: RawFrameShell, image: ImageBitmap, rect: { min: [number, number]; max: [number, number] }, style: CampaignMapStyle = {}, surface?: CampaignMapSurfaceMesh) {
     const device = shell.device;
+    this.terrainMix = style.terrainMix ?? (style.terrain ? 1 : 0);
+    this.terrainTextureSize = style.terrain ? [style.terrain.width, style.terrain.height] : null;
     const module = device.createShaderModule({
       label: 'campaign-map-wgsl',
-      code: MAP_WGSL.replaceAll('__SEA_TINT_MIX__', (style.seaTintMix ?? 0).toFixed(3)),
+      code: MAP_WGSL
+        .replaceAll('__SEA_TINT_MIX__', (style.seaTintMix ?? 0).toFixed(3))
+        .replaceAll('__TERRAIN_MIX__', this.terrainMix.toFixed(3)),
     });
     const texture = device.createTexture({
       label: 'campaign-map-texture',
@@ -364,6 +445,12 @@ export class CampaignMapPass {
       usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT,
     });
     device.queue.copyExternalImageToTexture({ source: image }, { texture }, [image.width, image.height]);
+    const biomeTexture = style.terrain
+      ? createRgbaTexture(device, 'campaign-map-biome-texture', style.terrain.width, style.terrain.height, style.terrain.biome)
+      : createRgbaTexture(device, 'campaign-map-biome-fallback', 1, 1, new Uint8Array([0, 0, 0, 128]));
+    const lightTexture = style.terrain
+      ? createLightTexture(device, 'campaign-map-light-texture', style.terrain.width, style.terrain.height, style.terrain.light)
+      : createRgbaTexture(device, 'campaign-map-light-fallback', 1, 1, new Uint8Array([128, 128, 128, 255]));
     const sampler = device.createSampler({
       label: 'campaign-map-sampler',
       magFilter: 'linear',
@@ -376,6 +463,8 @@ export class CampaignMapPass {
       entries: [
         { binding: 0, visibility: GPUShaderStage.FRAGMENT, texture: {} },
         { binding: 1, visibility: GPUShaderStage.FRAGMENT, sampler: {} },
+        { binding: 2, visibility: GPUShaderStage.FRAGMENT, texture: {} },
+        { binding: 3, visibility: GPUShaderStage.FRAGMENT, texture: {} },
       ],
     });
     this.bindGroup = device.createBindGroup({
@@ -384,6 +473,8 @@ export class CampaignMapPass {
       entries: [
         { binding: 0, resource: texture.createView() },
         { binding: 1, resource: sampler },
+        { binding: 2, resource: biomeTexture.createView() },
+        { binding: 3, resource: lightTexture.createView() },
       ],
     });
     this.pipeline = device.createRenderPipeline({
@@ -430,7 +521,12 @@ export class CampaignMapPass {
   }
 
   stats() {
-    return { surfaceTriangles: Math.floor(this.indexCount / 3) };
+    return {
+      surfaceTriangles: Math.floor(this.indexCount / 3),
+      terrainMix: this.terrainMix,
+      terrainTextureSize: this.terrainTextureSize,
+      layer: this.terrainMix > 0 ? 'canonical-biome-light-terrain' : 'background-raster-terrain',
+    };
   }
 }
 
@@ -446,6 +542,51 @@ function flatMapSurface(rect: { min: [number, number]; max: [number, number] }):
     ]),
     indices: new Uint32Array([0, 1, 2, 2, 1, 3]),
   };
+}
+
+function createRgbaTexture(device: GPUDevice, label: string, width: number, height: number, rgba: Uint8Array) {
+  const texture = device.createTexture({
+    label,
+    size: [width, height, 1],
+    format: 'rgba8unorm',
+    usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST,
+  });
+  const rowBytes = width * 4;
+  const bytesPerRow = align256(rowBytes);
+  const source = bytesPerRow === rowBytes ? rgba : padRgbaRows(rgba, width, height, bytesPerRow);
+  device.queue.writeTexture(
+    { texture },
+    source,
+    { bytesPerRow, rowsPerImage: height },
+    { width, height },
+  );
+  return texture;
+}
+
+function createLightTexture(device: GPUDevice, label: string, width: number, height: number, light: Uint8Array) {
+  const rgba = new Uint8Array(width * height * 4);
+  for (let i = 0; i < width * height; i++) {
+    const v = light[i] ?? 128;
+    const o = i * 4;
+    rgba[o] = v;
+    rgba[o + 1] = v;
+    rgba[o + 2] = v;
+    rgba[o + 3] = 255;
+  }
+  return createRgbaTexture(device, label, width, height, rgba);
+}
+
+function align256(value: number) {
+  return Math.ceil(value / 256) * 256;
+}
+
+function padRgbaRows(rgba: Uint8Array, width: number, height: number, bytesPerRow: number) {
+  const rowBytes = width * 4;
+  const padded = new Uint8Array(bytesPerRow * height);
+  for (let y = 0; y < height; y++) {
+    padded.set(rgba.subarray(y * rowBytes, (y + 1) * rowBytes), y * bytesPerRow);
+  }
+  return padded;
 }
 
 export class CampaignLinePass {
@@ -1000,8 +1141,8 @@ function pushRaisedRoad(out: number[], edge: CampaignMapEdgeData, style: Campaig
     }
   }
   const halfWidth = 0.55 * roadScale;
-  pushRoadRibbon(out, center, halfWidth * 1.58, 0.18 * roadScale, [0.33, 0.28, 0.23, 0.72], 0, style.heightAt);
-  pushRoadRibbon(out, center, halfWidth, 0.32 * roadScale, [0.67, 0.65, 0.58, 0.96], 1, style.heightAt);
+  pushRoadRibbon(out, center, halfWidth * 1.58, 0.18 * roadScale, [0.30, 0.27, 0.23, 0.78], 0, style.heightAt);
+  pushRoadRibbon(out, center, halfWidth, 0.32 * roadScale, [0.76, 0.74, 0.68, 0.98], 1, style.heightAt);
 }
 
 function roadEdgeIsLandSafe(edge: CampaignMapEdgeData, style: CampaignMapDrawStyle) {

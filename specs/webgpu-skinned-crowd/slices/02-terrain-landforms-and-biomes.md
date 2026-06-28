@@ -40,3 +40,18 @@ one flat color field.
   LoD, and cleared around roads/cities/dynamic entities. Scenery instances carry
   terrain `z` so props are anchored to the same 3D surface as cities, roads,
   selections, and labels.
+- 2026-06-28: The WebGPU map surface now samples the canonical biome and baked
+  light textures directly instead of relying on the flat background raster for
+  natural terrain color. The pass reports `mapSurface.terrainMix`,
+  `terrainTextureSize`, and its terrain layer in route stats so shader mode and
+  resource contract drift are visible during scenario review.
+- 2026-06-28: Campaign scenery instances now separate horizontal footprint
+  (`size`) from vertical scale (`height`). Mountains, rocks, and trees can match
+  the previous renderer's tall/low-poly silhouettes without smuggling height
+  through a uniform scale that makes props squat or oversized.
+- 2026-06-28: Alignment and canonical terrain sampling are back on solid
+  footing, but visible terrain-feature acceptance cannot rely on aggregate
+  scenery counts or broad "model" pixel ratios because city roofs can satisfy
+  those metrics while the Apennine mountain/forest silhouettes remain weak.
+  The next terrain pass should add crop-level probes for named mountain and
+  forest regions, then tune density/scale against those visible pixels.

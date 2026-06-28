@@ -94,6 +94,10 @@ pass orchestration, WGSL layout, depth semantics, or browser-verified output.
   canvas is black. Capture console warnings and fix the root contract, commonly
   vertex stride/attribute offsets, bind-group layout drift, attachment mismatch,
   or a depth mode that no longer matches the pass.
+- Expose pass-level stats for render-affecting modes and resource contracts.
+  If a shader path depends on a texture, mask, depth mode, or feature toggle,
+  the route stats should say which path is active and what resource dimensions
+  it consumed.
 - Keep scenario assertions derived from the same contracts as renderer code.
   Hard-coded verifier copies of depth formats, phase names, role maps, or vertex
   strides drift into false confidence.
@@ -119,6 +123,9 @@ pass orchestration, WGSL layout, depth semantics, or browser-verified output.
 
 - Use the smallest route that exercises the changed visual surface, then open
   the generated PNG yourself.
+- When a snapshot fails, inspect the actual candidate artifact, not the blessed
+  baseline path. Baselines prove what was accepted before; actual captures prove
+  what the current GPU code rendered.
 - When a projection-sensitive scene is disputed, add a tiny synthetic alignment
   fixture with known land/water/prop points and sample both semantic state and
   rendered pixels across multiple cameras before debugging the full production

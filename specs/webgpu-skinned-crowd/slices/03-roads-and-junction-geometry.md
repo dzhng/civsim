@@ -39,3 +39,8 @@ semantic is explicitly rendered.
   the canonical campaign terrain height. Roads are no longer cut back around
   cities or junctions; city and army volumes occlude the road through shared
   world depth instead of relying on artificial endpoint gaps.
+- 2026-06-28: The road surface was rebalanced toward the visual contract:
+  slightly wider, lighter white-grey stone over a darker embankment. The
+  regional verifier keeps a camera-band tolerance because projected semantic
+  centerline samples can land just outside the visible ribbon under perspective;
+  close camera checks remain stricter.

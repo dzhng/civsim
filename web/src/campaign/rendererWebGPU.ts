@@ -243,6 +243,7 @@ export class CampaignRendererWebGPU {
       labelVertices: this.labelStats.vertices,
       waterFeatures: 0,
       waterLayer: 'map-sea-mask',
+      mapSurface: this.map?.stats() ?? null,
       cloudQuads: this.clouds?.stats().cloudQuads ?? 0,
       fogEnabled: this.fog?.stats().fogEnabled ?? false,
       fogSources: this.fog?.stats().fogSources ?? 0,
@@ -266,7 +267,15 @@ export class CampaignRendererWebGPU {
   private async init(territory: Territory) {
     this.shell = await createFrameShell(this.canvas);
     const controlledStage = isControlledStage(this.data);
-    this.map = new CampaignMapPass(this.shell, this.data.bg, this.data.bgRect, controlledStage ? undefined : { seaTintMix: 1 }, this.surface.mesh);
+    this.map = new CampaignMapPass(this.shell, this.data.bg, this.data.bgRect, controlledStage ? undefined : {
+      seaTintMix: 1,
+      terrain: {
+        width: this.field.w,
+        height: this.field.h,
+        biome: this.field.biome,
+        light: this.field.light,
+      },
+    }, this.surface.mesh);
     this.clouds = new CampaignCloudPass(this.shell, this.data.bgRect, controlledStage ? 0.75 : 2.05);
     this.fog = new CampaignFogPass(this.shell, this.data.bgRect);
     this.territoryPass = new CampaignTerritoryPass(this.shell, {
@@ -285,7 +294,7 @@ export class CampaignRendererWebGPU {
     this.selection = new CampaignSelectionPass(this.shell);
     this.labels = new CampaignLabelPass(this.shell);
     const drawData = buildCampaignMapDrawData(this.data, {
-      roadScale: 0.78,
+      roadScale: 1.0,
       roadSurfaceAt: (x, y) => this.field.landAt(x, y, controlledStage ? 2.5 : 10.5) ? 'land' : 'water',
       heightAt: (x, y) => this.field.heightAt(x, y),
     });
@@ -659,11 +668,13 @@ function buildCampaignSceneryCandidates(data: CampaignData, field: TerrainField)
       if (mountainScore > 0.66 && hash2(gx * 3 + 1, gy * 7 + 2) < 0.42) {
         const x = x0 + (hash2(gx, gy * 2) - 0.5) * field.cell * 0.7;
         const y = y0 + (hash2(gx * 2, gy) - 0.5) * field.cell * 0.7;
+        const radius = field.cell * 0.5 * (0.7 + rock * 0.5);
         mountains.push({
           x,
           y,
           z: Math.max(0, field.heightAt(x, y)),
-          size: 8.0 + rock * 5.0 + height * 8.0,
+          size: radius,
+          height: 2.4 + rock * 4.5 + height * 4.5,
           kind: 'mountain',
           shade: hash2(gx + 3, gy + 5),
           score: mountainScore + hash2(gx + 17, gy + 29) * 0.08,
@@ -673,11 +684,13 @@ function buildCampaignSceneryCandidates(data: CampaignData, field: TerrainField)
         for (let t = 0; t < count; t++) {
           const x = x0 + (hash2(gx * 7 + t, gy * 11) - 0.5) * field.cell * 1.2;
           const y = y0 + (hash2(gx * 5 + t, gy * 13) - 0.5) * field.cell * 1.2;
+          const radius = 0.9 + hash2(gx + t, gy) * 1.7;
           rocks.push({
             x,
             y,
             z: Math.max(0, field.heightAt(x, y)),
-            size: 2.8 + hash2(gx + t, gy) * 3.8,
+            size: radius,
+            height: 0.7 + hash2(gx, gy + t) * 1.4,
             kind: 'rock',
             shade: hash2(t + 1, gx),
             score: rock + hash2(gx + t * 5, gy + t * 7) * 0.10,
@@ -689,11 +702,13 @@ function buildCampaignSceneryCandidates(data: CampaignData, field: TerrainField)
         for (let t = 0; t < count; t++) {
           const x = x0 + (hash2(gx * 7 + t, gy * 13 + 1) - 0.5) * field.cell * 1.4;
           const y = y0 + (hash2(gx * 3 + t, gy * 17 + 5) - 0.5) * field.cell * 1.4;
+          const heightScale = 2.0 + hash2(gx + t, gy + t) * 1.8;
           trees.push({
             x,
             y,
             z: Math.max(0, field.heightAt(x, y) - 0.05),
-            size: 2.4 + hash2(gx + t, gy + t) * 2.2,
+            size: heightScale * 0.72,
+            height: heightScale,
             kind: hash2(gx * 5 + t, gy * 11) < (y > TEMPERATE_Y_KM ? 0.75 : 0.25) ? 'conifer' : 'broadleaf',
             shade: hash2(gx + t * 19, gy + t * 23),
             score: forest + hash2(gx + t * 3, gy + t * 11) * 0.08,
@@ -720,6 +735,7 @@ function topScenery(items: ScoredCampaignSceneryInstance[], limit: number): Camp
       y: item.y,
       z: item.z,
       size: item.size,
+      height: item.height,
       kind: item.kind,
       shade: item.shade,
     }));
@@ -764,7 +780,10 @@ function testStageScenery(data: CampaignData): CampaignSceneryInstance[] {
     const near = y < cy - 8 ? 1.18 : 1.0;
     items.push({ z: 0, x, y, size: (3.2 + hash2(i, i + 9) * 2.8) * near, kind: hash2(i, i + 31) > 0.45 ? 'broadleaf' : 'conifer' });
   }
-  return clearCampaignStaticScenery(data, items);
+  return clearCampaignStaticScenery(data, items.map((item) => {
+    if (item.kind === 'mountain') return { ...item, size: item.size / 3.8, height: item.size / 1.8 };
+    return { ...item, size: item.size / 3.0, height: item.size / 3.0 };
+  }));
 }
 
 interface CampaignSceneryReservation {

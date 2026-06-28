@@ -78,10 +78,12 @@ features live in:
 
 For visual work, keep feature-owned visual evidence in the spec folder:
 inspiration images, reference screenshots, archived baselines, comparison
-contact sheets, generated candidate captures, and critique artifacts. Product
-snapshot folders may still hold the active regression baselines their harnesses
-own, but do not rely on those mutable outputs as the only record of what the
-feature was judged against.
+contact sheets, generated candidate captures, and critique artifacts. If those
+files start outside the spec folder, copy them into the spec folder when they
+become part of the feature's review context. Product snapshot folders may still
+hold the active regression baselines their harnesses own, but do not rely on
+those mutable outputs or external paths as the only record of what the feature
+was judged against.
 
 ## Slice File Contract
 

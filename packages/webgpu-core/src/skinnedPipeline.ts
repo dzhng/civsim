@@ -1,9 +1,9 @@
 import type { CrowdInstance } from '../../crowd-runtime/src/instanceData';
 import type { SoldierMeshData } from '../../soldier-assets/src/soldierMesh';
-import type { VatBake } from '../../soldier-assets/src/schema';
+import type { SoldierKitManifest, VatBake } from '../../soldier-assets/src/schema';
 import { assertStorageBufferFits } from './capabilities';
 import { compileShader } from './compileShader';
-import { createVatLayout, resolveVatClip } from './vatLayout';
+import { createVatLayout, resolveVatClip, type VatLayout } from './vatLayout';
 import type { RawFrameShell, WorldRenderPass } from './frameShell';
 import { WORLD_CAMERA_WGSL } from './cameraWgsl';
 import { webGpuMultisample, webGpuOpaqueColorTarget, webGpuWorldDepthStencil } from './pipelineContracts';
@@ -14,17 +14,30 @@ export interface SkinnedCrowdStats {
   vertices: number;
   clips: string[];
   meshVariants: number;
+  vatVariants: number;
   cameraContract: 'shared-world-camera-wgsl';
+}
+
+// One GPU VAT resource (storage buffer + bind group + clip layout). Classes that
+// share the same VatBake share one of these, so the common all-placeholder case
+// allocates exactly one — no per-class memory or draw regression.
+interface VatResource {
+  bindGroup: GPUBindGroup;
+  layout: VatLayout;
 }
 
 interface MeshResource {
   mesh: SoldierMeshData;
+  vat: VatResource;
   vertexBuffer: GPUBuffer;
   indexBuffer: GPUBuffer;
   instanceBuffer: GPUBuffer;
   instanceCapacity: number;
   instanceCount: number;
 }
+
+/** A per-class VAT registry: index by classId. A single VatBake applies to all. */
+export type SkinnedVatInput = VatBake | VatBake[];
 
 const SKINNED_WGSL = `
 ${WORLD_CAMERA_WGSL}
@@ -108,38 +121,56 @@ fn fs(in: VsOut) -> @location(0) vec4f {
 
 export class SkinnedCrowdPipeline {
   private pipeline: GPURenderPipeline;
-  private vatBindGroup: GPUBindGroup;
   private resources: MeshResource[];
-  private layout;
+  private vatVariants: number;
 
-  constructor(private shell: RawFrameShell, meshes: SoldierMeshData | SoldierMeshData[], vat: VatBake) {
+  constructor(private shell: RawFrameShell, meshes: SoldierMeshData | SoldierMeshData[], vats: SkinnedVatInput, kit?: SoldierKitManifest) {
     const device = shell.device;
     const meshList = Array.isArray(meshes) ? meshes : [meshes];
     if (meshList.length === 0) throw new Error('SkinnedCrowdPipeline requires at least one soldier mesh');
-    this.layout = createVatLayout(vat);
+    const vatLayoutGroup = device.createBindGroupLayout({
+      label: 'skinned-vat-bgl',
+      entries: [{ binding: 0, visibility: GPUShaderStage.VERTEX, buffer: { type: 'read-only-storage' } }],
+    });
+    this.pipeline = this.makePipeline(vatLayoutGroup);
+    // Build one VatResource per distinct VatBake and reuse it for every class
+    // that points at it (the all-placeholder case → a single resource).
+    const vatList = Array.isArray(vats) ? vats : [vats];
+    const cache = new Map<VatBake, VatResource>();
+    const resourceFor = (vat: VatBake): VatResource => {
+      const existing = cache.get(vat);
+      if (existing) return existing;
+      const resource = this.createVatResource(vat, vatLayoutGroup, kit, cache.size);
+      cache.set(vat, resource);
+      return resource;
+    };
+    this.resources = meshList.map((mesh, index) => {
+      const vat = vatList[index] ?? vatList[vatList.length - 1] ?? vatList[0];
+      return this.createMeshResource(mesh, index, resourceFor(vat));
+    });
+    this.vatVariants = cache.size;
+  }
+
+  private createVatResource(vat: VatBake, vatLayoutGroup: GPUBindGroupLayout, kit: SoldierKitManifest | undefined, index: number): VatResource {
+    const device = this.shell.device;
     const vatData = new Float32Array(4 + vat.data.length);
     vatData[0] = vat.width;
     vatData[1] = vat.height;
     vatData[2] = vat.bones;
     vatData.set(vat.data, 4);
-    assertStorageBufferFits(vatData.byteLength, shell.info.caps, 'skinned-vat');
+    assertStorageBufferFits(vatData.byteLength, this.shell.info.caps, `skinned-vat-${index}`);
     const vatBuffer = device.createBuffer({
-      label: 'skinned-vat-buffer',
+      label: `skinned-vat-buffer-${index}`,
       size: vatData.byteLength,
       usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
     });
     device.queue.writeBuffer(vatBuffer, 0, vatData);
-    const vatLayout = device.createBindGroupLayout({
-      label: 'skinned-vat-bgl',
-      entries: [{ binding: 0, visibility: GPUShaderStage.VERTEX, buffer: { type: 'read-only-storage' } }],
-    });
-    this.vatBindGroup = device.createBindGroup({
-      label: 'skinned-vat-bg',
-      layout: vatLayout,
+    const bindGroup = device.createBindGroup({
+      label: `skinned-vat-bg-${index}`,
+      layout: vatLayoutGroup,
       entries: [{ binding: 0, resource: { buffer: vatBuffer } }],
     });
-    this.pipeline = this.makePipeline(vatLayout);
-    this.resources = meshList.map((mesh, index) => this.createMeshResource(mesh, index));
+    return { bindGroup, layout: createVatLayout(vat, kit) };
   }
 
   upload(instances: CrowdInstance[], opts: { forcedClip?: string | null; phaseOffset?: number; size?: number } = {}) {
@@ -155,9 +186,9 @@ export class SkinnedCrowdPipeline {
   draw(pass: WorldRenderPass) {
     pass.setPipeline(this.pipeline);
     pass.setBindGroup(0, this.shell.cameraBindGroup);
-    pass.setBindGroup(1, this.vatBindGroup);
     for (const resource of this.resources) {
       if (resource.instanceCount === 0) continue;
+      pass.setBindGroup(1, resource.vat.bindGroup);
       pass.setVertexBuffer(0, resource.vertexBuffer);
       pass.setVertexBuffer(1, resource.instanceBuffer);
       pass.setIndexBuffer(resource.indexBuffer, 'uint16');
@@ -167,17 +198,26 @@ export class SkinnedCrowdPipeline {
 
   stats(): SkinnedCrowdStats {
     const instances = this.resources.reduce((sum, resource) => sum + resource.instanceCount, 0);
+    const clips = new Set<string>();
+    for (const resource of this.resources) for (const name of resource.vat.layout.clips.keys()) clips.add(name);
     return {
       instances,
       drawCalls: this.resources.filter((resource) => resource.instanceCount > 0).length,
       vertices: this.resources.reduce((sum, resource) => sum + resource.mesh.positions.length / 3, 0),
-      clips: Array.from(this.layout.clips.keys()),
+      clips: Array.from(clips),
       meshVariants: this.resources.length,
+      vatVariants: this.vatVariants,
       cameraContract: 'shared-world-camera-wgsl',
     };
   }
 
-  private createMeshResource(mesh: SoldierMeshData, index: number): MeshResource {
+  /** The clip layout VAT resolution uses for a given class (per-class clip table). */
+  classClip(classId: number, name: string) {
+    const resource = this.resources[Math.max(0, Math.min(this.resources.length - 1, Math.floor(classId)))];
+    return resolveVatClip(resource.vat.layout, name);
+  }
+
+  private createMeshResource(mesh: SoldierMeshData, index: number, vat: VatResource): MeshResource {
     const device = this.shell.device;
     const vertexBuffer = device.createBuffer({
       label: `skinned-soldier-${index}-vertices`,
@@ -196,7 +236,7 @@ export class SkinnedCrowdPipeline {
       size: 8 * 4,
       usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
     });
-    return { mesh, vertexBuffer, indexBuffer, instanceBuffer, instanceCapacity: 0, instanceCount: 0 };
+    return { mesh, vat, vertexBuffer, indexBuffer, instanceBuffer, instanceCapacity: 0, instanceCount: 0 };
   }
 
   private groupInstances(instances: CrowdInstance[]) {
@@ -222,7 +262,7 @@ export class SkinnedCrowdPipeline {
     const data = new Float32Array(instances.length * stride);
     for (let i = 0; i < instances.length; i++) {
       const inst = instances[i];
-      const clip = resolveVatClip(this.layout, opts.forcedClip ?? inst.clip);
+      const clip = resolveVatClip(resource.vat.layout, opts.forcedClip ?? inst.clip);
       const o = i * stride;
       data[o] = inst.x;
       data[o + 1] = inst.y;

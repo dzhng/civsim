@@ -28,15 +28,15 @@
           "conifers": 0,
           "broadleafs": 0,
           "rocks": 0,
-          "mountainModelVertices": 138,
-          "coniferModelVertices": 177,
-          "broadleafModelVertices": 258,
-          "rockModelVertices": 126,
+          "mountainModelVertices": 150,
+          "coniferModelVertices": 189,
+          "broadleafModelVertices": 270,
+          "rockModelVertices": 138,
           "materialClasses": [
             "opaque-depth-write",
             "shadow-depth-read"
           ],
-          "layer": "raw-webgpu-legacy-scenery-meshes"
+          "layer": "raw-webgpu-scenery-library-meshes"
         },
         "roadTriangles": 0,
         "waterFeatures": 0,
@@ -45,7 +45,7 @@
         "labels": 1,
         "visibleLabels": 1,
         "labelLayer": "raw-webgpu-glyph-atlas",
-        "entityLayer": "raw-webgpu-legacy-model-meshes",
+        "entityLayer": "raw-webgpu-model-library-meshes",
         "depth": {
           "format": "depth24plus",
           "width": 970,
@@ -248,15 +248,15 @@
           "conifers": 0,
           "broadleafs": 0,
           "rocks": 0,
-          "mountainModelVertices": 138,
-          "coniferModelVertices": 177,
-          "broadleafModelVertices": 258,
-          "rockModelVertices": 126,
+          "mountainModelVertices": 150,
+          "coniferModelVertices": 189,
+          "broadleafModelVertices": 270,
+          "rockModelVertices": 138,
           "materialClasses": [
             "opaque-depth-write",
             "shadow-depth-read"
           ],
-          "layer": "raw-webgpu-legacy-scenery-meshes"
+          "layer": "raw-webgpu-scenery-library-meshes"
         },
         "roadTriangles": 0,
         "waterFeatures": 0,
@@ -265,7 +265,7 @@
         "labels": 1,
         "visibleLabels": 1,
         "labelLayer": "raw-webgpu-glyph-atlas",
-        "entityLayer": "raw-webgpu-legacy-model-meshes",
+        "entityLayer": "raw-webgpu-model-library-meshes",
         "depth": {
           "format": "depth24plus",
           "width": 970,
@@ -442,15 +442,15 @@
           "conifers": 0,
           "broadleafs": 0,
           "rocks": 0,
-          "mountainModelVertices": 138,
-          "coniferModelVertices": 177,
-          "broadleafModelVertices": 258,
-          "rockModelVertices": 126,
+          "mountainModelVertices": 150,
+          "coniferModelVertices": 189,
+          "broadleafModelVertices": 270,
+          "rockModelVertices": 138,
           "materialClasses": [
             "opaque-depth-write",
             "shadow-depth-read"
           ],
-          "layer": "raw-webgpu-legacy-scenery-meshes"
+          "layer": "raw-webgpu-scenery-library-meshes"
         },
         "roadTriangles": 0,
         "waterFeatures": 0,
@@ -459,7 +459,7 @@
         "labels": 1,
         "visibleLabels": 1,
         "labelLayer": "raw-webgpu-glyph-atlas",
-        "entityLayer": "raw-webgpu-legacy-model-meshes",
+        "entityLayer": "raw-webgpu-model-library-meshes",
         "depth": {
           "format": "depth24plus",
           "width": 970,
@@ -636,15 +636,15 @@
           "conifers": 0,
           "broadleafs": 0,
           "rocks": 0,
-          "mountainModelVertices": 138,
-          "coniferModelVertices": 177,
-          "broadleafModelVertices": 258,
-          "rockModelVertices": 126,
+          "mountainModelVertices": 150,
+          "coniferModelVertices": 189,
+          "broadleafModelVertices": 270,
+          "rockModelVertices": 138,
           "materialClasses": [
             "opaque-depth-write",
             "shadow-depth-read"
           ],
-          "layer": "raw-webgpu-legacy-scenery-meshes"
+          "layer": "raw-webgpu-scenery-library-meshes"
         },
         "roadTriangles": 0,
         "waterFeatures": 0,
@@ -653,7 +653,7 @@
         "labels": 1,
         "visibleLabels": 1,
         "labelLayer": "raw-webgpu-glyph-atlas",
-        "entityLayer": "raw-webgpu-legacy-model-meshes",
+        "entityLayer": "raw-webgpu-model-library-meshes",
         "depth": {
           "format": "depth24plus",
           "width": 970,
@@ -830,15 +830,15 @@
           "conifers": 0,
           "broadleafs": 1,
           "rocks": 0,
-          "mountainModelVertices": 138,
-          "coniferModelVertices": 177,
-          "broadleafModelVertices": 258,
-          "rockModelVertices": 126,
+          "mountainModelVertices": 150,
+          "coniferModelVertices": 189,
+          "broadleafModelVertices": 270,
+          "rockModelVertices": 138,
           "materialClasses": [
             "opaque-depth-write",
             "shadow-depth-read"
           ],
-          "layer": "raw-webgpu-legacy-scenery-meshes"
+          "layer": "raw-webgpu-scenery-library-meshes"
         },
         "roadTriangles": 0,
         "waterFeatures": 0,
@@ -847,7 +847,7 @@
         "labels": 1,
         "visibleLabels": 1,
         "labelLayer": "raw-webgpu-glyph-atlas",
-        "entityLayer": "raw-webgpu-legacy-model-meshes",
+        "entityLayer": "raw-webgpu-model-library-meshes",
         "depth": {
           "format": "depth24plus",
           "width": 970,
@@ -973,10 +973,10 @@
       },
       "contentMetrics": {
         "centralPixels": 344932,
-        "stoneRatio": 0.0041,
+        "stoneRatio": 0.0079,
         "foliageRatio": 0.0002,
         "trunkRatio": 0.0428,
-        "darkRatio": 0.1205
+        "darkRatio": 0.1222
       },
       "contentOk": true,
       "status": "webgpu-evidence"
@@ -1006,15 +1006,15 @@
           "conifers": 0,
           "broadleafs": 0,
           "rocks": 0,
-          "mountainModelVertices": 138,
-          "coniferModelVertices": 177,
-          "broadleafModelVertices": 258,
-          "rockModelVertices": 126,
+          "mountainModelVertices": 150,
+          "coniferModelVertices": 189,
+          "broadleafModelVertices": 270,
+          "rockModelVertices": 138,
           "materialClasses": [
             "opaque-depth-write",
             "shadow-depth-read"
           ],
-          "layer": "raw-webgpu-legacy-scenery-meshes"
+          "layer": "raw-webgpu-scenery-library-meshes"
         },
         "roadTriangles": 0,
         "waterFeatures": 0,
@@ -1023,7 +1023,7 @@
         "labels": 1,
         "visibleLabels": 1,
         "labelLayer": "raw-webgpu-glyph-atlas",
-        "entityLayer": "raw-webgpu-legacy-model-meshes",
+        "entityLayer": "raw-webgpu-model-library-meshes",
         "depth": {
           "format": "depth24plus",
           "width": 970,
@@ -1169,15 +1169,15 @@
           "conifers": 0,
           "broadleafs": 0,
           "rocks": 0,
-          "mountainModelVertices": 138,
-          "coniferModelVertices": 177,
-          "broadleafModelVertices": 258,
-          "rockModelVertices": 126,
+          "mountainModelVertices": 150,
+          "coniferModelVertices": 189,
+          "broadleafModelVertices": 270,
+          "rockModelVertices": 138,
           "materialClasses": [
             "opaque-depth-write",
             "shadow-depth-read"
           ],
-          "layer": "raw-webgpu-legacy-scenery-meshes"
+          "layer": "raw-webgpu-scenery-library-meshes"
         },
         "roadTriangles": 0,
         "waterFeatures": 0,
@@ -1186,7 +1186,7 @@
         "labels": 1,
         "visibleLabels": 1,
         "labelLayer": "raw-webgpu-glyph-atlas",
-        "entityLayer": "raw-webgpu-legacy-model-meshes",
+        "entityLayer": "raw-webgpu-model-library-meshes",
         "depth": {
           "format": "depth24plus",
           "width": 970,
@@ -1345,15 +1345,15 @@
           "conifers": 0,
           "broadleafs": 0,
           "rocks": 0,
-          "mountainModelVertices": 138,
-          "coniferModelVertices": 177,
-          "broadleafModelVertices": 258,
-          "rockModelVertices": 126,
+          "mountainModelVertices": 150,
+          "coniferModelVertices": 189,
+          "broadleafModelVertices": 270,
+          "rockModelVertices": 138,
           "materialClasses": [
             "opaque-depth-write",
             "shadow-depth-read"
           ],
-          "layer": "raw-webgpu-legacy-scenery-meshes"
+          "layer": "raw-webgpu-scenery-library-meshes"
         },
         "roadTriangles": 80,
         "waterFeatures": 0,
@@ -1362,7 +1362,7 @@
         "labels": 2,
         "visibleLabels": 2,
         "labelLayer": "raw-webgpu-glyph-atlas",
-        "entityLayer": "raw-webgpu-legacy-model-meshes",
+        "entityLayer": "raw-webgpu-model-library-meshes",
         "depth": {
           "format": "depth24plus",
           "width": 970,
@@ -1508,15 +1508,15 @@
           "conifers": 0,
           "broadleafs": 0,
           "rocks": 0,
-          "mountainModelVertices": 138,
-          "coniferModelVertices": 177,
-          "broadleafModelVertices": 258,
-          "rockModelVertices": 126,
+          "mountainModelVertices": 150,
+          "coniferModelVertices": 189,
+          "broadleafModelVertices": 270,
+          "rockModelVertices": 138,
           "materialClasses": [
             "opaque-depth-write",
             "shadow-depth-read"
           ],
-          "layer": "raw-webgpu-legacy-scenery-meshes"
+          "layer": "raw-webgpu-scenery-library-meshes"
         },
         "roadTriangles": 80,
         "waterFeatures": 0,
@@ -1525,7 +1525,7 @@
         "labels": 0,
         "visibleLabels": 0,
         "labelLayer": "raw-webgpu-glyph-atlas",
-        "entityLayer": "raw-webgpu-legacy-model-meshes",
+        "entityLayer": "raw-webgpu-model-library-meshes",
         "depth": {
           "format": "depth24plus",
           "width": 970,
@@ -1671,15 +1671,15 @@
           "conifers": 0,
           "broadleafs": 0,
           "rocks": 0,
-          "mountainModelVertices": 138,
-          "coniferModelVertices": 177,
-          "broadleafModelVertices": 258,
-          "rockModelVertices": 126,
+          "mountainModelVertices": 150,
+          "coniferModelVertices": 189,
+          "broadleafModelVertices": 270,
+          "rockModelVertices": 138,
           "materialClasses": [
             "opaque-depth-write",
             "shadow-depth-read"
           ],
-          "layer": "raw-webgpu-legacy-scenery-meshes"
+          "layer": "raw-webgpu-scenery-library-meshes"
         },
         "roadTriangles": 0,
         "waterFeatures": 0,
@@ -1688,7 +1688,7 @@
         "labels": 1,
         "visibleLabels": 1,
         "labelLayer": "raw-webgpu-glyph-atlas",
-        "entityLayer": "raw-webgpu-legacy-model-meshes",
+        "entityLayer": "raw-webgpu-model-library-meshes",
         "depth": {
           "format": "depth24plus",
           "width": 970,
@@ -1903,15 +1903,15 @@
           "conifers": 2,
           "broadleafs": 2,
           "rocks": 0,
-          "mountainModelVertices": 138,
-          "coniferModelVertices": 177,
-          "broadleafModelVertices": 258,
-          "rockModelVertices": 126,
+          "mountainModelVertices": 150,
+          "coniferModelVertices": 189,
+          "broadleafModelVertices": 270,
+          "rockModelVertices": 138,
           "materialClasses": [
             "opaque-depth-write",
             "shadow-depth-read"
           ],
-          "layer": "raw-webgpu-legacy-scenery-meshes"
+          "layer": "raw-webgpu-scenery-library-meshes"
         },
         "roadTriangles": 0,
         "waterFeatures": 0,
@@ -1920,7 +1920,7 @@
         "labels": 0,
         "visibleLabels": 0,
         "labelLayer": "raw-webgpu-glyph-atlas",
-        "entityLayer": "raw-webgpu-legacy-model-meshes",
+        "entityLayer": "raw-webgpu-model-library-meshes",
         "depth": {
           "format": "depth24plus",
           "width": 970,
@@ -2033,10 +2033,10 @@
       },
       "contentMetrics": {
         "centralPixels": 344932,
-        "stoneRatio": 0.0012,
+        "stoneRatio": 0.002,
         "foliageRatio": 0.1832,
-        "trunkRatio": 0.02,
-        "darkRatio": 0.2294
+        "trunkRatio": 0.0193,
+        "darkRatio": 0.2302
       },
       "contentOk": true,
       "status": "webgpu-evidence"
@@ -2066,15 +2066,15 @@
           "conifers": 1,
           "broadleafs": 0,
           "rocks": 0,
-          "mountainModelVertices": 138,
-          "coniferModelVertices": 177,
-          "broadleafModelVertices": 258,
-          "rockModelVertices": 126,
+          "mountainModelVertices": 150,
+          "coniferModelVertices": 189,
+          "broadleafModelVertices": 270,
+          "rockModelVertices": 138,
           "materialClasses": [
             "opaque-depth-write",
             "shadow-depth-read"
           ],
-          "layer": "raw-webgpu-legacy-scenery-meshes"
+          "layer": "raw-webgpu-scenery-library-meshes"
         },
         "roadTriangles": 0,
         "waterFeatures": 0,
@@ -2083,7 +2083,7 @@
         "labels": 0,
         "visibleLabels": 0,
         "labelLayer": "raw-webgpu-glyph-atlas",
-        "entityLayer": "raw-webgpu-legacy-model-meshes",
+        "entityLayer": "raw-webgpu-model-library-meshes",
         "depth": {
           "format": "depth24plus",
           "width": 970,
@@ -2198,8 +2198,8 @@
         "centralPixels": 344932,
         "stoneRatio": 0,
         "foliageRatio": 0.0998,
-        "trunkRatio": 0.0025,
-        "darkRatio": 0.147
+        "trunkRatio": 0.0023,
+        "darkRatio": 0.1472
       },
       "contentOk": true,
       "status": "webgpu-evidence"
@@ -2229,15 +2229,15 @@
           "conifers": 0,
           "broadleafs": 1,
           "rocks": 0,
-          "mountainModelVertices": 138,
-          "coniferModelVertices": 177,
-          "broadleafModelVertices": 258,
-          "rockModelVertices": 126,
+          "mountainModelVertices": 150,
+          "coniferModelVertices": 189,
+          "broadleafModelVertices": 270,
+          "rockModelVertices": 138,
           "materialClasses": [
             "opaque-depth-write",
             "shadow-depth-read"
           ],
-          "layer": "raw-webgpu-legacy-scenery-meshes"
+          "layer": "raw-webgpu-scenery-library-meshes"
         },
         "roadTriangles": 0,
         "waterFeatures": 0,
@@ -2246,7 +2246,7 @@
         "labels": 0,
         "visibleLabels": 0,
         "labelLayer": "raw-webgpu-glyph-atlas",
-        "entityLayer": "raw-webgpu-legacy-model-meshes",
+        "entityLayer": "raw-webgpu-model-library-meshes",
         "depth": {
           "format": "depth24plus",
           "width": 970,
@@ -2362,7 +2362,7 @@
         "stoneRatio": 0,
         "foliageRatio": 0.0689,
         "trunkRatio": 0.0213,
-        "darkRatio": 0.0902
+        "darkRatio": 0.0904
       },
       "contentOk": true,
       "status": "webgpu-evidence"
@@ -2392,15 +2392,15 @@
           "conifers": 0,
           "broadleafs": 0,
           "rocks": 0,
-          "mountainModelVertices": 138,
-          "coniferModelVertices": 177,
-          "broadleafModelVertices": 258,
-          "rockModelVertices": 126,
+          "mountainModelVertices": 150,
+          "coniferModelVertices": 189,
+          "broadleafModelVertices": 270,
+          "rockModelVertices": 138,
           "materialClasses": [
             "opaque-depth-write",
             "shadow-depth-read"
           ],
-          "layer": "raw-webgpu-legacy-scenery-meshes"
+          "layer": "raw-webgpu-scenery-library-meshes"
         },
         "roadTriangles": 0,
         "waterFeatures": 0,
@@ -2409,7 +2409,7 @@
         "labels": 0,
         "visibleLabels": 0,
         "labelLayer": "raw-webgpu-glyph-atlas",
-        "entityLayer": "raw-webgpu-legacy-model-meshes",
+        "entityLayer": "raw-webgpu-model-library-meshes",
         "depth": {
           "format": "depth24plus",
           "width": 970,
@@ -2524,8 +2524,8 @@
         "centralPixels": 344932,
         "stoneRatio": 0.3577,
         "foliageRatio": 0,
-        "trunkRatio": 0.014,
-        "darkRatio": 0.0365
+        "trunkRatio": 0.0143,
+        "darkRatio": 0.0367
       },
       "contentOk": true,
       "status": "webgpu-evidence"
@@ -2555,15 +2555,15 @@
           "conifers": 0,
           "broadleafs": 0,
           "rocks": 3,
-          "mountainModelVertices": 138,
-          "coniferModelVertices": 177,
-          "broadleafModelVertices": 258,
-          "rockModelVertices": 126,
+          "mountainModelVertices": 150,
+          "coniferModelVertices": 189,
+          "broadleafModelVertices": 270,
+          "rockModelVertices": 138,
           "materialClasses": [
             "opaque-depth-write",
             "shadow-depth-read"
           ],
-          "layer": "raw-webgpu-legacy-scenery-meshes"
+          "layer": "raw-webgpu-scenery-library-meshes"
         },
         "roadTriangles": 0,
         "waterFeatures": 0,
@@ -2572,7 +2572,7 @@
         "labels": 0,
         "visibleLabels": 0,
         "labelLayer": "raw-webgpu-glyph-atlas",
-        "entityLayer": "raw-webgpu-legacy-model-meshes",
+        "entityLayer": "raw-webgpu-model-library-meshes",
         "depth": {
           "format": "depth24plus",
           "width": 970,
@@ -2687,8 +2687,8 @@
         "centralPixels": 344932,
         "stoneRatio": 0.2006,
         "foliageRatio": 0,
-        "trunkRatio": 0.0449,
-        "darkRatio": 0.0833
+        "trunkRatio": 0.045,
+        "darkRatio": 0.0834
       },
       "contentOk": true,
       "status": "webgpu-evidence"
@@ -2718,15 +2718,15 @@
           "conifers": 0,
           "broadleafs": 0,
           "rocks": 0,
-          "mountainModelVertices": 138,
-          "coniferModelVertices": 177,
-          "broadleafModelVertices": 258,
-          "rockModelVertices": 126,
+          "mountainModelVertices": 150,
+          "coniferModelVertices": 189,
+          "broadleafModelVertices": 270,
+          "rockModelVertices": 138,
           "materialClasses": [
             "opaque-depth-write",
             "shadow-depth-read"
           ],
-          "layer": "raw-webgpu-legacy-scenery-meshes"
+          "layer": "raw-webgpu-scenery-library-meshes"
         },
         "roadTriangles": 0,
         "waterFeatures": 0,
@@ -2735,7 +2735,7 @@
         "labels": 4,
         "visibleLabels": 2,
         "labelLayer": "raw-webgpu-glyph-atlas",
-        "entityLayer": "raw-webgpu-legacy-model-meshes",
+        "entityLayer": "raw-webgpu-model-library-meshes",
         "depth": {
           "format": "depth24plus",
           "width": 970,
@@ -2881,15 +2881,15 @@
           "conifers": 3,
           "broadleafs": 3,
           "rocks": 0,
-          "mountainModelVertices": 138,
-          "coniferModelVertices": 177,
-          "broadleafModelVertices": 258,
-          "rockModelVertices": 126,
+          "mountainModelVertices": 150,
+          "coniferModelVertices": 189,
+          "broadleafModelVertices": 270,
+          "rockModelVertices": 138,
           "materialClasses": [
             "opaque-depth-write",
             "shadow-depth-read"
           ],
-          "layer": "raw-webgpu-legacy-scenery-meshes"
+          "layer": "raw-webgpu-scenery-library-meshes"
         },
         "roadTriangles": 0,
         "waterFeatures": 0,
@@ -2898,7 +2898,7 @@
         "labels": 0,
         "visibleLabels": 0,
         "labelLayer": "raw-webgpu-glyph-atlas",
-        "entityLayer": "raw-webgpu-legacy-model-meshes",
+        "entityLayer": "raw-webgpu-model-library-meshes",
         "depth": {
           "format": "depth24plus",
           "width": 970,
@@ -3011,10 +3011,10 @@
       },
       "contentMetrics": {
         "centralPixels": 344932,
-        "stoneRatio": 0.0053,
+        "stoneRatio": 0.006,
         "foliageRatio": 0.1338,
-        "trunkRatio": 0.0228,
-        "darkRatio": 0.2075
+        "trunkRatio": 0.0224,
+        "darkRatio": 0.2095
       },
       "contentOk": true,
       "status": "webgpu-evidence"
@@ -3044,15 +3044,15 @@
           "conifers": 0,
           "broadleafs": 0,
           "rocks": 5,
-          "mountainModelVertices": 138,
-          "coniferModelVertices": 177,
-          "broadleafModelVertices": 258,
-          "rockModelVertices": 126,
+          "mountainModelVertices": 150,
+          "coniferModelVertices": 189,
+          "broadleafModelVertices": 270,
+          "rockModelVertices": 138,
           "materialClasses": [
             "opaque-depth-write",
             "shadow-depth-read"
           ],
-          "layer": "raw-webgpu-legacy-scenery-meshes"
+          "layer": "raw-webgpu-scenery-library-meshes"
         },
         "roadTriangles": 0,
         "waterFeatures": 0,
@@ -3061,7 +3061,7 @@
         "labels": 0,
         "visibleLabels": 0,
         "labelLayer": "raw-webgpu-glyph-atlas",
-        "entityLayer": "raw-webgpu-legacy-model-meshes",
+        "entityLayer": "raw-webgpu-model-library-meshes",
         "depth": {
           "format": "depth24plus",
           "width": 970,
@@ -3174,10 +3174,10 @@
       },
       "contentMetrics": {
         "centralPixels": 344932,
-        "stoneRatio": 0.6566,
+        "stoneRatio": 0.6565,
         "foliageRatio": 0,
-        "trunkRatio": 0.034,
-        "darkRatio": 0.1002
+        "trunkRatio": 0.035,
+        "darkRatio": 0.1009
       },
       "contentOk": true,
       "status": "webgpu-evidence"
@@ -3207,15 +3207,15 @@
           "conifers": 0,
           "broadleafs": 0,
           "rocks": 1,
-          "mountainModelVertices": 138,
-          "coniferModelVertices": 177,
-          "broadleafModelVertices": 258,
-          "rockModelVertices": 126,
+          "mountainModelVertices": 150,
+          "coniferModelVertices": 189,
+          "broadleafModelVertices": 270,
+          "rockModelVertices": 138,
           "materialClasses": [
             "opaque-depth-write",
             "shadow-depth-read"
           ],
-          "layer": "raw-webgpu-legacy-scenery-meshes"
+          "layer": "raw-webgpu-scenery-library-meshes"
         },
         "roadTriangles": 0,
         "waterFeatures": 3,
@@ -3224,7 +3224,7 @@
         "labels": 0,
         "visibleLabels": 0,
         "labelLayer": "raw-webgpu-glyph-atlas",
-        "entityLayer": "raw-webgpu-legacy-model-meshes",
+        "entityLayer": "raw-webgpu-model-library-meshes",
         "depth": {
           "format": "depth24plus",
           "width": 970,
@@ -3344,8 +3344,8 @@
         "centralPixels": 344932,
         "stoneRatio": 0.0756,
         "foliageRatio": 0,
-        "trunkRatio": 0.008,
-        "darkRatio": 0.0344
+        "trunkRatio": 0.0083,
+        "darkRatio": 0.0345
       },
       "contentOk": true,
       "status": "webgpu-evidence"
@@ -3375,15 +3375,15 @@
           "conifers": 0,
           "broadleafs": 0,
           "rocks": 0,
-          "mountainModelVertices": 138,
-          "coniferModelVertices": 177,
-          "broadleafModelVertices": 258,
-          "rockModelVertices": 126,
+          "mountainModelVertices": 150,
+          "coniferModelVertices": 189,
+          "broadleafModelVertices": 270,
+          "rockModelVertices": 138,
           "materialClasses": [
             "opaque-depth-write",
             "shadow-depth-read"
           ],
-          "layer": "raw-webgpu-legacy-scenery-meshes"
+          "layer": "raw-webgpu-scenery-library-meshes"
         },
         "roadTriangles": 0,
         "waterFeatures": 1,
@@ -3392,7 +3392,7 @@
         "labels": 0,
         "visibleLabels": 0,
         "labelLayer": "raw-webgpu-glyph-atlas",
-        "entityLayer": "raw-webgpu-legacy-model-meshes",
+        "entityLayer": "raw-webgpu-model-library-meshes",
         "depth": {
           "format": "depth24plus",
           "width": 970,

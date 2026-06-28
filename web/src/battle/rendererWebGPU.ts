@@ -9,7 +9,7 @@ import { webGpuMultisample } from '../../../packages/webgpu-core/src/pipelineCon
 import { fatalSurfaceFor, showFatalErrorSurface } from '../shared/fatalError';
 import { WORLD_CAMERA_WGSL } from '../../../packages/webgpu-core/src/cameraWgsl';
 import { SkinnedCrowdPipeline } from '../../../packages/webgpu-core/src/skinnedPipeline';
-import { loadPlaceholderVat } from '../../../packages/soldier-assets/src/placeholders';
+import { loadClassVats, loadPlaceholderKit } from '../../../packages/soldier-assets/src/placeholders';
 import { createPlaceholderSoldierMeshes } from '../../../packages/soldier-assets/src/soldierMesh';
 
 export class BattleRendererWebGPU {
@@ -247,10 +247,12 @@ export class BattleRendererWebGPU {
     this.effectLines = new BattleEffectLinePass(this.shell);
     this.tris = new BattleTrianglePass(this.shell);
     this.debugBlocks = new BattleTrianglePass(this.shell);
+    const kit = await loadPlaceholderKit();
     this.crowd = new SkinnedCrowdPipeline(
       this.shell,
       createPlaceholderSoldierMeshes([0.20, 0.42, 0.88]),
-      await loadPlaceholderVat(),
+      await loadClassVats(kit),
+      kit,
     );
   }
 }

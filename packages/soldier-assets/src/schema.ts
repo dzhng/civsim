@@ -53,6 +53,9 @@ export interface SoldierKitManifest {
     compression: string;
   };
   vat: SoldierVatManifest;
+  /** Optional per-class baked VAT paths (classId → url). Classes absent here
+   *  fall back to the shared `vat` placeholder. */
+  classVats?: Record<string, string>;
 }
 
 export interface VatClip {

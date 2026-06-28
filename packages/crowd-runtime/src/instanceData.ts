@@ -35,6 +35,9 @@ export interface CrowdInstance {
   /** Render-only terrain height at (x,y); added to world Z so soldiers sit on
    *  the surface and sort by it. Sim positions are unaffected. */
   elevation?: number;
+  /** 0..2 corpse variant for fallen soldiers — varies fall roll + reaches the
+   *  GPU so the field of dead reads as varied, not one frozen pose. */
+  deathVariant?: number;
 }
 
 export interface CrowdBuildStats {
@@ -83,6 +86,7 @@ export function buildCrowdInstances(inputs: CrowdBuildInputs): CrowdInstanceBuff
       mounted: mountedClasses.has(classId),
       lod: 0,
       elevation: inputs.terrainHeight ? inputs.terrainHeight(inputs.positions[i * 2], inputs.positions[i * 2 + 1]) : 0,
+      deathVariant: anim.deathVariant,
     };
     instances.push(inst);
     const o = stats.written * 12;

@@ -15,6 +15,7 @@ import { BattleMinimapPass } from '../../../packages/game-renderer/src/battle/mi
 import { BattleGroundCuePass, selectedUnitGroundCueVertices } from '../../../packages/game-renderer/src/battle/groundCuePass';
 import { BattleEffectLinePass } from '../../../packages/game-renderer/src/battle/effectLinePass';
 import { BattleSoldierShadowPass } from '../../../packages/game-renderer/src/battle/soldierShadowPass';
+import { BattleParticlePass, type BattleParticle } from '../../../packages/game-renderer/src/battle/particlePass';
 import { battleUnitsInRect, cssToBattleWorld, liveBattlePickUnits, pickBattleUnit, type BattlePickUnit, type WebGpuBattlePickCamera } from '../../../packages/game-renderer/src/battle/pickingDebug';
 import { BattleTerrainPass, type BattleTerrainFixture } from '../../../packages/game-renderer/src/battle/terrainPass';
 import { CLASS_DEPTH, CLASS_SPACING, UNIT_INFO } from '../../../packages/game-renderer/src/battle/unitInfoLayout';
@@ -61,6 +62,7 @@ const routes: Record<string, LabRoute> = {
   '/webgpu/mounted-units': routeMountedUnits,
   '/webgpu/lod-tiers': routeLodTiers,
   '/webgpu/battle-elevation': routeBattleElevation,
+  '/webgpu/battle-effects': routeBattleEffects,
   '/webgpu/asset-workbench': routeAssetWorkbench,
   '/webgpu/fault-injection': routeFaultInjection,
   '/webgpu/frame-shell': routeFrameShell,
@@ -161,6 +163,75 @@ function stretchVat(vat: VatBake, factor: number): VatBake {
     }
   }
   return { ...vat, width, clips, data };
+}
+
+async function routeBattleEffects(ctx: LabContext) {
+  const vat = await loadPlaceholderVat();
+  const cols = 10;
+  const rows = 5;
+  const n = cols * rows;
+  const positions = new Float32Array(n * 2);
+  const alive = new Float32Array(n);
+  const frames = new Float32Array(n);
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const i = r * cols + c;
+      positions[i * 2] = (c - (cols - 1) / 2) * 2.0;
+      positions[i * 2 + 1] = (r - (rows - 1) / 2) * 2.0;
+      // Front two rows stand; the rest are fallen — a field of corpses.
+      alive[i] = r < 2 ? 1 : 0;
+      frames[i] = r < 2 ? 1 : 4; // FRAME_FALLEN
+    }
+  }
+  const built = buildCrowdInstances({ positions, alive, frames, simTick: 200 });
+  const instances = built.instances.map((inst) => ({ ...inst, facing: Math.PI / 2 }));
+  const corpses = instances.filter((inst) => !inst.alive);
+  const variantSet = new Set(corpses.map((inst) => inst.deathVariant ?? 0));
+
+  // Impact dust + blood at varied ages so the fade is visible.
+  const particles: BattleParticle[] = [];
+  for (let i = 0; i < 40; i++) {
+    const inst = corpses[i % corpses.length];
+    particles.push({ x: inst.x + (i % 3 - 1) * 0.4, y: inst.y, z: (inst.elevation ?? 0) + 0.4, age: (i % 10) / 10, kind: i % 2 === 0 ? 'dust' : 'blood', size: 0.5 });
+  }
+
+  const shell = await createConfiguredShell(ctx.canvas, { x: 0, y: 0, zoom: 24, pitch: 0.28, yaw: 0 });
+  const pipeline = await createSkinnedPipeline(shell, [0.20, 0.42, 0.88], vat);
+  const shadows = new BattleSoldierShadowPass(shell);
+  const fx = new BattleParticlePass(shell);
+  shadows.upload(instances);
+  fx.upload(particles);
+
+  const start = performance.now();
+  const tick = () => {
+    const phaseOffset = ((performance.now() - start) / 1000) * 0.6;
+    pipeline.upload(instances, { phaseOffset, size: 1 });
+    shell.drawFrame({
+      passes: [
+        { id: 'effects-crowd', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => pipeline.draw(pass) },
+        { id: 'effects-shadows', role: 'world-decal', phase: 'world-depth', depth: 'read', draw: (pass) => shadows.draw(pass) },
+        { id: 'effects-particles', role: 'overlay-effect', phase: 'overlay', draw: (pass) => fx.draw(pass) },
+      ],
+    });
+    requestAnimationFrame(tick);
+  };
+  tick();
+  ctx.status.innerHTML = reportTable({
+    route: 'battle-effects',
+    living: instances.length - corpses.length,
+    corpses: corpses.length,
+    'death variants used': [...variantSet].sort().join(','),
+    particles: fx.stats().particles,
+    'particles capped': fx.stats().capped,
+  });
+  publish('battle-effects', true, {
+    route: 'battle-effects',
+    living: instances.length - corpses.length,
+    corpses: corpses.length,
+    deathVariants: [...variantSet].sort(),
+    particles: fx.stats().particles,
+    capped: fx.stats().capped,
+  });
 }
 
 async function routeBattleElevation(ctx: LabContext) {

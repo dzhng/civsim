@@ -68,6 +68,7 @@ struct VsOut {
   @location(2) faction: f32,
   @location(3) rim: f32,
   @location(4) height: f32,
+  @location(5) corpse: f32,
 };
 
 fn vatTexel(frame: f32, row: f32) -> vec4f {
@@ -98,10 +99,18 @@ fn vs(
   let local = joint * vec4f(position, 1.0);
   let n = normalize((joint * vec4f(normal, 0.0)).xyz);
 
+  // Corpses (inst2.z) roll by a per-variant angle (inst2.y) so the fallen field
+  // reads as varied poses, not one frozen death animation.
+  let corpse = inst2.z;
+  let variant = inst2.y;
+  let roll = corpse * ((variant - 1.0) * 0.42 + sin(variant * 2.3) * 0.18);
+  let rc = cos(roll);
+  let rs = sin(roll);
+  let rolled = vec3f(local.x, local.y * rc - local.z * rs, local.y * rs + local.z * rc);
   let a = inst0.z - 1.5707964;
   let c = cos(a);
   let s = sin(a);
-  let p = local.xyz * inst1.x;
+  let p = rolled * inst1.x;
   // inst2.x = terrain elevation: soldiers sit on the surface and sort by it.
   let world = vec3f(inst0.x + p.x * c - p.y * s, inst0.y + p.x * s + p.y * c, p.z + inst2.x);
 
@@ -113,6 +122,7 @@ fn vs(
   out.faction = inst0.w;
   out.rim = smoothstep(0.20, 0.92, 1.0 - abs(n.z));
   out.height = clamp(world.z / 2.1, 0.0, 1.0);
+  out.corpse = corpse;
   return out;
 }
 
@@ -151,6 +161,9 @@ fn fs(in: VsOut) -> @location(0) vec4f {
   let spec = pow(light01, mix(1.0, 6.0, rough)) * (0.10 + metal * 0.25);
   shaded += (spec + 0.02 * nrm.z * light01) * strength;
   shaded *= mix(1.0, orm.r, strength);
+  // Corpses desaturate and darken so the fallen read as dead, not living.
+  let lum = dot(shaded, vec3f(0.30, 0.59, 0.11));
+  shaded = mix(shaded, vec3f(lum) * 0.62 + vec3f(0.06, 0.04, 0.03), in.corpse * 0.7);
   return vec4f(clamp(shaded, vec3f(0.0), vec3f(1.0)), in.color.a);
 }`;
 
@@ -377,7 +390,9 @@ export class SkinnedCrowdPipeline {
       data[o + 5] = clip.start;
       data[o + 6] = clip.frames;
       data[o + 7] = ((inst.phase + (opts.phaseOffset ?? 0)) % 1 + 1) % 1;
-      data[o + 8] = inst.elevation ?? 0; // inst2.x: terrain elevation
+      data[o + 8] = inst.elevation ?? 0;          // inst2.x: terrain elevation
+      data[o + 9] = inst.deathVariant ?? 0;       // inst2.y: corpse variant 0..2
+      data[o + 10] = inst.alive ? 0 : 1;          // inst2.z: corpse flag
     }
     this.shell.device.queue.writeBuffer(resource.instanceBuffer, 0, data);
   }

@@ -1,5 +1,5 @@
 import { UNIT_INFO } from '../../../packages/game-renderer/src/battle/unitInfoLayout';
-import { modelLookForUnit } from '../models/shared/soldierModel';
+import { modelLookForUnit } from '../../../packages/game-renderer/src/models/shared/soldierModel';
 import { CLASS_NAMES } from './classData';
 import { UnitCards, type UnitCardInit, type UnitCardState } from './unitCard';
 

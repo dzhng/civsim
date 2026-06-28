@@ -2,7 +2,7 @@ import { Game, type InitOutput } from '../wasm/game_wasm.js';
 import type { Scene } from '../scene';
 import { Camera } from '../shared/camera';
 import { pushGhost, pushPie, pushRing } from '../shared/overlays';
-import { modelLookForUnit } from '../models/shared/soldierModel';
+import { modelLookForUnit } from '../../../packages/game-renderer/src/models/shared/soldierModel';
 import { BattleRendererWebGPU, type BattleTacticalLineFrame } from './rendererWebGPU';
 import { CLASS_NAMES } from './classData';
 import { UnitBanner, type BannerChip } from './unitBanner';

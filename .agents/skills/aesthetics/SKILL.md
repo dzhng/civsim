@@ -84,7 +84,7 @@ near-black void with cool grass and no sky; Troy is a warm, hazy, high-key
    silhouette, not a generic broadleaf, and props stay sparse — the references are
    mostly open ground, with cypress clusters marking a headland or acropolis.
 
-Soldier material palette (`shared/soldierModel.ts:185-195`) is already on-target —
+Soldier material palette (`packages/game-renderer/src/models/shared/soldierModel.ts`) is already on-target —
 bronze/iron/linen/leather earth tones. Don't cool these down; they're the warm
 anchor of every formation. Team accents: player blue `[0.20,0.42,0.88]`, enemy red
 `[0.84,0.24,0.20]` (`renderer3d.ts:41-49`) must survive minification (see the LOD

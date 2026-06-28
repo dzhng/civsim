@@ -159,7 +159,7 @@ with a gate that fails when the projection has a hole. Two tiers:
   registries, each a single primitive shown in isolation. These are 100%
   enumerable and 100% gated. *(measured fact — the registries:)*
   - unit classes (`web/src/battle/classData.ts` and
-    `web/src/models/shared/soldierModel.ts` look data) × 2 teams × WebGPU crowd pose.
+    `packages/game-renderer/src/models/shared/soldierModel.ts` look data) × 2 teams × WebGPU crowd pose.
     The old Babylon battle turntable is retired; generated visual coverage
     should come from the raw-WebGPU lab/asset workbench lane.
   - highlight state: none / hover / selected.

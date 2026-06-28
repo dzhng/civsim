@@ -4,7 +4,7 @@
 // Pure DOM/Canvas: portraits are drawn once from the class look; the bars and
 // the selected/rout state refresh each frame from the sim.
 
-import { lookForModel, modelLookForClass } from '../models/shared/soldierModel';
+import { lookForModel, modelLookForClass } from '../../../packages/game-renderer/src/models/shared/soldierModel';
 
 // Faction accents keep cards, banners, and WebGPU soldier colours reading as
 // the same side.

@@ -8,7 +8,7 @@ export interface CampaignSelectionInstance {
   z: number;
   radius: number;
   color: [number, number, number];
-  kind: 'city' | 'army';
+  kind: 'city' | 'army' | 'garrisoned-army';
 }
 
 const SELECTION_WGSL = `
@@ -38,8 +38,11 @@ fn vs(@location(0) quad: vec2f, @location(1) inst0: vec4f, @location(2) inst1: v
 fn fs(in: VsOut) -> @location(0) vec4f {
   let d = length(in.local);
   let strongArmy = in.kind > 0.5;
-  let innerCut = select(0.918, 0.872, strongArmy);
-  let innerFade = select(0.936, 0.900, strongArmy);
+  let garrisonedArmy = in.kind > 1.5;
+  var innerCut = select(0.918, 0.872, strongArmy);
+  innerCut = select(innerCut, 0.904, garrisonedArmy);
+  var innerFade = select(0.936, 0.900, strongArmy);
+  innerFade = select(innerFade, 0.928, garrisonedArmy);
   if (d > 1.0 || d < innerCut) { discard; }
   let outer = smoothstep(1.0, 0.988, d);
   let inner = smoothstep(innerCut, innerFade, d);
@@ -48,7 +51,8 @@ fn fs(in: VsOut) -> @location(0) vec4f {
   let armyMix = select(0.18, 0.0, strongArmy);
   let groundTint = mix(in.color, vec3f(0.74, 0.66, 0.36), select(0.40, armyMix, in.kind > 0.5));
   let armyBoost = select(0.0, select(0.08, 0.20, strongArmy), in.kind > 0.5);
-  let ringAlpha = select(0.68, select(0.72, 0.94, strongArmy), in.kind > 0.5);
+  var ringAlpha = select(0.68, select(0.72, 0.94, strongArmy), in.kind > 0.5);
+  ringAlpha = select(ringAlpha, 0.98, garrisonedArmy);
   return vec4f(groundTint * (0.86 + armyBoost), max(ring * ringAlpha, fill));
 }`;
 
@@ -58,6 +62,8 @@ export class CampaignSelectionPass {
   private instanceBuffer: GPUBuffer;
   private capacity = 0;
   private count = 0;
+  private garrisonedArmyCount = 0;
+  private maxRadius = 0;
 
   constructor(private shell: RawFrameShell) {
     const device = shell.device;
@@ -108,6 +114,8 @@ export class CampaignSelectionPass {
 
   upload(instances: CampaignSelectionInstance[]) {
     this.count = instances.length;
+    this.garrisonedArmyCount = instances.filter((inst) => inst.kind === 'garrisoned-army').length;
+    this.maxRadius = instances.reduce((max, inst) => Math.max(max, inst.radius), 0);
     if (instances.length > this.capacity) {
       this.capacity = Math.max(instances.length, this.capacity * 2, 8);
       this.instanceBuffer = this.shell.device.createBuffer({
@@ -124,7 +132,7 @@ export class CampaignSelectionPass {
       data[o] = inst.x;
       data[o + 1] = inst.y;
       data[o + 2] = inst.radius;
-      data[o + 3] = inst.kind === 'army' ? 1 : 0;
+      data[o + 3] = inst.kind === 'city' ? 0 : inst.kind === 'garrisoned-army' ? 2 : 1;
       data.set(inst.color, o + 4);
       data[o + 7] = inst.z;
     }
@@ -145,6 +153,10 @@ export class CampaignSelectionPass {
   }
 
   stats() {
-    return { selections: this.count };
+    return {
+      selections: this.count,
+      garrisonedArmySelections: this.garrisonedArmyCount,
+      maxSelectionRadius: this.maxRadius,
+    };
   }
 }

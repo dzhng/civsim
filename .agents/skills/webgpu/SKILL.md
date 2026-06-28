@@ -94,6 +94,9 @@ pass orchestration, WGSL layout, depth semantics, or browser-verified output.
   canvas is black. Capture console warnings and fix the root contract, commonly
   vertex stride/attribute offsets, bind-group layout drift, attachment mismatch,
   or a depth mode that no longer matches the pass.
+- WGSL `let` bindings are immutable. When staged shader values need overrides,
+  use `var`; reassigned `let` expressions can invalidate the pipeline and leave
+  JavaScript stats healthy while the actual canvas is black.
 - Expose pass-level stats for render-affecting modes and resource contracts.
   If a shader path depends on a texture, mask, depth mode, or feature toggle,
   the route stats should say which path is active and what resource dimensions

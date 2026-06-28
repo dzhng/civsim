@@ -6,7 +6,7 @@ import { CampaignSelectionPass, type CampaignSelectionInstance } from '../../../
 import { campaignBorderVertices, CampaignTerritoryPass } from '../../../packages/game-renderer/src/campaign/territoryPass';
 import { createFrameShell, type FrameGraphPass, type RawFrameShell, type WorldRenderPass } from '../../../packages/webgpu-core/src/frameShell';
 import { screenToWorld, world3dToScreen } from '../../../packages/webgpu-core/src/cameraUniform';
-import type { CampaignData } from './data';
+import type { CampaignData, MapNode } from './data';
 import type { CamView } from './camera';
 import { Allegiance } from './status';
 import { TEMPERATE_Y_KM, type TerrainField } from './terrain';
@@ -255,6 +255,7 @@ export class CampaignRendererWebGPU {
       territoryPixels: this.territoryPass?.stats().pixels ?? 0,
       borderSegments: this.borders?.stats().segments ?? 0,
       mapMarkers: this.markers?.stats().markers ?? 0,
+      ...this.selection?.stats(),
       scenery: this.scenery?.stats().scenery ?? 0,
       sceneryStats: this.scenery?.stats() ?? null,
       lineSegments: this.lines?.stats().segments ?? 0,
@@ -347,7 +348,7 @@ function buildEntityFrame(data: CampaignData, field: TerrainField, opts: DrawOpt
       x: mapNode.pos[0],
       y: mapNode.pos[1],
       z: field.heightAt(mapNode.pos[0], mapNode.pos[1]),
-      radius: (mapNode.tier >= 3 ? 6.2 : 5.2) * fixtureScale,
+      radius: cityModelRadius(mapNode.tier) * fixtureScale,
       faction: factionColor(data, owner),
       allegiance: allegianceColor(allegiance),
       kind: 'city',
@@ -359,7 +360,7 @@ function buildEntityFrame(data: CampaignData, field: TerrainField, opts: DrawOpt
         x: mapNode.pos[0],
         y: mapNode.pos[1],
         z: field.heightAt(mapNode.pos[0], mapNode.pos[1]),
-        radius: (mapNode.tier >= 3 ? 10.8 : 9.4) * fixtureScale,
+        radius: citySelectionRadius(mapNode.tier) * fixtureScale,
         color: [0.31, 0.82, 0.39],
         kind: 'city',
       });
@@ -368,10 +369,12 @@ function buildEntityFrame(data: CampaignData, field: TerrainField, opts: DrawOpt
   for (const army of opts.armies) {
     if (opts.fogOfWar && !army.mine && statusOf(opts.factionStatus, army.faction) !== Allegiance.Foe) continue;
     const allegiance = army.mine || army.faction === opts.playerFaction ? Allegiance.Friend : statusOf(opts.factionStatus, army.faction);
+    const occupiedCity = occupiedCityForArmy(data, army);
+    const display = occupiedCity ? garrisonDisplayAnchor(data.map.nodes[occupiedCity.index]) : { x: army.x, y: army.y };
     entities.push({
-      x: army.x,
-      y: army.y,
-      z: field.heightAt(army.x, army.y),
+      x: display.x,
+      y: display.y,
+      z: field.heightAt(display.x, display.y),
       radius: 6.4 * fixtureScale,
       faction: factionColor(data, army.faction),
       allegiance: allegianceColor(allegiance),
@@ -381,14 +384,16 @@ function buildEntityFrame(data: CampaignData, field: TerrainField, opts: DrawOpt
     armyEntities++;
     if (army.id === opts.selected) {
       const controlledStage = isControlledStage(data);
-      const selectionRadius = controlledStage ? 8.4 * fixtureScale : 12.6 * fixtureScale;
+      const selectionRadius = occupiedCity
+        ? 11.8 * fixtureScale
+        : controlledStage ? 8.4 * fixtureScale : 12.6 * fixtureScale;
       selections.push({
-        x: army.x,
-        y: army.y,
-        z: field.heightAt(army.x, army.y),
+        x: display.x,
+        y: display.y,
+        z: field.heightAt(display.x, display.y),
         radius: selectionRadius,
         color: [0.31, 0.82, 0.39],
-        kind: 'army',
+        kind: occupiedCity ? 'garrisoned-army' : 'army',
       });
     }
   }
@@ -496,6 +501,7 @@ function campaignArmyLabels(data: CampaignData, opts: DrawOptions): CampaignLabe
     const allegiance = army.mine || army.faction === opts.playerFaction ? Allegiance.Friend : statusOf(opts.factionStatus, army.faction);
     const markerSize = army.id === opts.selected ? 13 : 11;
     const occupiedCity = occupiedCityForArmy(data, army);
+    const display = occupiedCity ? garrisonDisplayAnchor(data.map.nodes[occupiedCity.index]) : { x: army.x, y: army.y };
     const cityOverlap = occupiedCity !== null;
     const selectedOffset = army.id === opts.selected && isControlledStage(data) ? 28 : 0;
     const overlapClearance = cityOverlap ? (opts.cam.scale >= 3 ? 44 : 38) : 24;
@@ -503,8 +509,8 @@ function campaignArmyLabels(data: CampaignData, opts: DrawOptions): CampaignLabe
       text: `${ordinal(ordinalOf.get(army.id) ?? 1)} LEGION`,
       sideText: `${Math.round(army.soldiers / 100) / 10}k`,
       subText: occupiedCity?.name.toUpperCase(),
-      x: army.x,
-      y: army.y,
+      x: display.x,
+      y: display.y,
       kind: 'army',
       size: Math.min(14, 9 + opts.cam.scale),
       priority: 4,
@@ -522,6 +528,23 @@ function occupiedCityLabels(data: CampaignData, opts: DrawOptions) {
     if (match) occupied.add(match.index);
   }
   return occupied;
+}
+
+function cityModelRadius(tier: number) {
+  return tier >= 3 ? 6.2 : 5.2;
+}
+
+function citySelectionRadius(tier: number) {
+  return tier >= 3 ? 10.8 : 9.4;
+}
+
+function garrisonDisplayAnchor(city: MapNode) {
+  const cityRadius = cityModelRadius(city.tier);
+  // Keep the garrison inside the city footprint while exposing it at the front gate.
+  return {
+    x: city.pos[0] - cityRadius * 0.28,
+    y: city.pos[1] - cityRadius * 0.36,
+  };
 }
 
 function occupiedCityForArmy(data: CampaignData, army: ArmyView) {

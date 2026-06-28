@@ -164,6 +164,9 @@ export async function run(ctx) {
     stats: (stats) => stats.visibleLabels >= 4
       && stats.roadTriangles > 0
       && stats.composedArmyCityLabels >= 1
+      && stats.garrisonedArmySelections >= 1
+      && stats.maxSelectionRadius >= 11
+      && stats.maxSelectionRadius < 13
       && stats.labelCollisionCulls >= 1
       && stats.labelCollisionCulledLabels?.includes('city:OSTIA/PORTUS'),
   });

@@ -35,6 +35,15 @@ flags. Fog views must not show flags, markers, or labels for hidden content.
   competes with roads, roads converge too tightly under Roma, flags/poles still
   need stronger attachment, and dense top-edge labels can clip under the HUD.
   These remain open campaign-entity acceptance work, not accepted polish.
+- 2026-06-28: Selected armies inside cities now use a distinct
+  `garrisoned-army` ground-selection instance and a shared garrison display
+  anchor inside the occupied city footprint. The army mesh, selection ring, and
+  composed army/city label all use that anchor, so the selected garrison reads
+  as soldiers inside Roma instead of a city-sized halo around the road hub.
+  Updated evidence lives in
+  `visualizations/critique/2026-06-28-garrison-selection/`. Road convergence
+  around Roma still competes with the cue and remains road/junction acceptance
+  work, not selection-code polish.
 
 ## Done
 

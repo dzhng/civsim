@@ -138,6 +138,12 @@ verification lessons.
   for selection/HUD/minimap review. It freezes a 5v5 WebGPU frame, selects and
   orders a unit, and asserts the semantic ground-cue pass rather than assuming
   selection/order cues are terrain mesh quads.
+- `battle-webgpu-effects` now owns the DPR2 projectile/effect-line baseline.
+  It uses a named frozen-with-effects hook for fixed tick 473, keeps ordinary
+  frozen screenshots effect-free by default, and compares hidden-vs-visible
+  same-tick canvas pixels. The renderer frozen-frame cache key includes the
+  transient-effect toggle so a preserved-effects frame cannot reuse a hidden
+  one.
 
 ## Visual Reports And Gates
 

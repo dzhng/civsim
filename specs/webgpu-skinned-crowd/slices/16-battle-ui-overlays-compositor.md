@@ -53,6 +53,12 @@ current renderer screenshots stop being a routine parallel suite.
   overlay-only `battle-effect-lines` pass. This prevents projectiles/effect
   strokes from masquerading as ground decals while preserving the eventual lane
   for true projectile-world rendering.
+- Current checkpoint: `battle-webgpu-effects` captures a deterministic DPR2
+  projectile/effect frame at tick 473 with `battle-effect-lines` preserved in
+  snapshot mode. The normal frozen screenshot path still hides transient effect
+  lines by default; the effects scene explicitly requests them and compares the
+  same tick with effects hidden versus visible so the frozen-frame cache cannot
+  reuse the wrong frame.
 - Fresh unprimed critique of the updated Battle Selection DPR2 screenshot
   accepted the depth behavior but flagged visual follow-ups: the selected-unit
   ring is now too weak/low-contrast when correctly occluded by the formation,
@@ -71,6 +77,9 @@ current renderer screenshots stop being a routine parallel suite.
   coordinate drift.
 - `webgpu-visual-report` plus `compare-screenshots` tracks the Battle Selection
   DPR2 banner/label parity score and regenerated diff artifacts.
+- `VERIFY_WEBGPU=1 node scene.mjs battle-webgpu-effects` asserts the WebGPU
+  effect-line overlay phase, fixed-tick projectile segment count, and real
+  canvas pixel delta between hidden and preserved transient effects.
 - Existing unit-card and banner gallery checks remain green or are deliberately
   replaced with WebGPU equivalents.
 - Post-cutover screenshot/vibe runs target the WebGPU battle path only; legacy

@@ -111,6 +111,10 @@ pass orchestration, WGSL layout, depth semantics, or browser-verified output.
   fixture with known land/water/prop points and sample both semantic state and
   rendered pixels across multiple cameras before debugging the full production
   map or scene.
+- Frozen-frame caches must key every render-affecting snapshot toggle. If a
+  verifier intentionally preserves transient effects while the default freeze
+  hides them, compare same-tick hidden-vs-visible pixels so the cache cannot
+  silently reuse the wrong frame.
 - Crop and upscale suspect regions before diagnosing small geometry, labels,
   sprites, flags, depth overlaps, or LOD artifacts.
 - For GPU-backed screen overlays, expose semantic anchors such as center, edge,

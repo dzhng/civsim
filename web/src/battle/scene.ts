@@ -357,6 +357,7 @@ export class BattleScene implements Scene {
     }, { signal });
     let timeScale = 1;
     let showPaths = false;
+    let frozenEffects = false;
     window.addEventListener('keydown', (e) => {
       if (e.key === 'p') paused = !paused;
       if (e.key === '1') timeScale = 1;
@@ -624,7 +625,7 @@ export class BattleScene implements Scene {
       const n = game.unit_count();
       const groundCues: number[] = [];
       const effects: number[] = [];
-      const showTransient = !frozen || withPaths;
+      const showTransient = !frozen || withPaths || frozenEffects;
       for (let u = 0; u < n; u++) {
         const o = u * STRIDE;
         const [ax, ay, facing, team] = [info[o], info[o + 1], info[o + 2], info[o + 6]];
@@ -1104,7 +1105,20 @@ export class BattleScene implements Scene {
       if (on && !frozen) pausedBeforeFreeze = paused;
       paused = on ? true : pausedBeforeFreeze;
       frozen = on;
+      if (!on) frozenEffects = false;
       renderer.fixedTime = on ? 0 : null;
+      renderer.preserveFrozenEffects = on && frozenEffects;
+    };
+    const freezeAtTick = (target: number, options: { effects?: boolean } = {}) => {
+      frozenEffects = options.effects === true;
+      doFreeze(true);
+      const n = target - simTick;
+      if (n > 0) {
+        game.advance_ticks(n);
+        simTick += n;
+      }
+      tickGroupAttacks();
+      return renderer.settlePresentedFrame();
     };
     window.__game = {
       stats: () => ({
@@ -1144,16 +1158,8 @@ export class BattleScene implements Scene {
       // Freeze, then drive the sim to an exact absolute tick (advancing only
       // forward). Gives a byte-stable deployment snapshot regardless of how many
       // real-time ticks happened to elapse before the call.
-      freezeAtTick: (target: number) => {
-        doFreeze(true);
-        const n = target - simTick;
-        if (n > 0) {
-          game.advance_ticks(n);
-          simTick += n;
-        }
-        tickGroupAttacks();
-        return renderer.settlePresentedFrame();
-      },
+      freezeAtTick,
+      freezeAtTickWithEffects: (target: number) => freezeAtTick(target, { effects: true }),
       freeze: (on = true) => doFreeze(on),
       groupMove: (units: number[], x: number, y: number) => groupMove(units, x, y, 'move'),
       setFiles: (u: number, files: number) => game.set_files(u, files),

@@ -13,6 +13,7 @@ export class BattleRendererWebGPU {
   readonly ready: Promise<void>;
   readonly pitch = 0.32;
   fixedTime: number | null = null;
+  preserveFrozenEffects = false;
 
   private shell: RawFrameShell | null = null;
   private terrain: BattleTerrainPass | null = null;
@@ -81,7 +82,9 @@ export class BattleRendererWebGPU {
     camera: Camera,
   ) {
     if (!this.shell || !this.crowd) return;
-    const frameKey = this.fixedTime !== null ? frozenFrameKey(camera, count, this.soldierUnit.length) : null;
+    const frameKey = this.fixedTime !== null
+      ? `${frozenFrameKey(camera, count, this.soldierUnit.length)}|effects=${this.preserveFrozenEffects ? 1 : 0}`
+      : null;
     if (frameKey && frameKey === this.frozenFrameKey) {
       this.skipFrozenFrame = true;
       this.framePerf = { buildMs: 0, uploadMs: 0, drawMs: 0, frameCpuMs: 0 };
@@ -147,7 +150,7 @@ export class BattleRendererWebGPU {
     if (this.frameStart === 0) this.frameStart = performance.now();
     const uploadStart = performance.now();
     this.groundCues.upload(this.fixedTime !== null ? frozenSelectionGroundCues(lines.groundCues) : lines.groundCues);
-    this.effectLines.upload(this.fixedTime !== null ? new Float32Array() : lines.effects);
+    this.effectLines.upload(this.fixedTime !== null && !this.preserveFrozenEffects ? new Float32Array() : lines.effects);
     if (this.triangleVerts.length === 0) this.tris.upload(this.triangleVerts);
     this.framePerf.uploadMs += performance.now() - uploadStart;
     const drawStart = performance.now();
@@ -173,7 +176,7 @@ export class BattleRendererWebGPU {
     this.framePerf.frameCpuMs = done - this.frameStart;
     this.triangleVerts = new Float32Array();
     if (this.fixedTime !== null) {
-      this.frozenFrameKey = frozenFrameKey(camera, this.staticSoldiers, this.soldierUnit.length);
+      this.frozenFrameKey = `${frozenFrameKey(camera, this.staticSoldiers, this.soldierUnit.length)}|effects=${this.preserveFrozenEffects ? 1 : 0}`;
     } else {
       this.frozenFrameKey = null;
     }

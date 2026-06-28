@@ -26,7 +26,7 @@ export async function run(ctx) {
     stats.renderer === 'webgpu-campaign'
       && stats.cityEntities === 2
       && stats.armyEntities >= 1
-      && stats.waterFeatures >= 5
+      && stats.waterLayer === 'map-sea-mask'
       && stats.cloudQuads === 1
       && stats.labelLayer === 'raw-webgpu-glyph-atlas'
       && stats.labelVertices > 0

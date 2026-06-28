@@ -1,3 +1,11 @@
+import { readFileSync } from 'node:fs';
+import { PNG } from 'pngjs';
+
+const CAMPAIGN_3D_BASELINE = new URL(
+  '../../specs/webgpu-skinned-crowd/visualizations/campaign-baselines/campaign-3d.png',
+  import.meta.url,
+);
+
 export const meta = {
   name: 'campaign-webgpu-lod',
   kind: 'visual',
@@ -7,7 +15,8 @@ export const meta = {
     'campaign-lod-whole-political',
     'campaign-lod-whole-natural',
     'campaign-lod-whole-fog',
-    'campaign-lod-regional-italy',
+    'campaign-lod-regional-italy-natural',
+    'campaign-lod-regional-italy-political',
     'campaign-lod-rome-close',
     'campaign-lod-selected-army-city',
     'campaign-lod-selected-city',
@@ -48,80 +57,6 @@ export async function run(ctx) {
   });
   ctx.check('real campaign LoD scene found Roma, Ostia, and player army', anchors.roma >= 0 && anchors.ostia >= 0 && anchors.armyId >= 0, JSON.stringify(anchors));
 
-  const landMask = await page.evaluate(async () => {
-    const [map, rect] = await Promise.all([
-      fetch('/data/campaign-map.json').then((response) => response.json()),
-      fetch('/data/campaign-bg.json').then((response) => response.json()),
-    ]);
-    const img = new Image();
-    img.src = '/data/campaign-bg.png';
-    await img.decode();
-    const canvas = document.createElement('canvas');
-    canvas.width = img.naturalWidth;
-    canvas.height = img.naturalHeight;
-    const ctx2d = canvas.getContext('2d', { willReadFrequently: true });
-    ctx2d.drawImage(img, 0, 0);
-    const pixels = ctx2d.getImageData(0, 0, canvas.width, canvas.height).data;
-    const byName = new Map(map.nodes.map((node) => [node.name, node]));
-    const isWater = ([x, y]) => {
-      const px = Math.max(0, Math.min(canvas.width - 1, Math.round(((x - rect.min[0]) / (rect.max[0] - rect.min[0])) * (canvas.width - 1))));
-      const py = Math.max(0, Math.min(canvas.height - 1, Math.round(((rect.max[1] - y) / (rect.max[1] - rect.min[1])) * (canvas.height - 1))));
-      const o = (py * canvas.width + px) * 4;
-      const key = `${pixels[o]},${pixels[o + 1]},${pixels[o + 2]}`;
-      return key === '38,60,84' || key === '52,84,110';
-    };
-    const edgeBetween = (a, b) => {
-      const na = byName.get(a);
-      const nb = byName.get(b);
-      return map.edges.find((edge) => edge.kind === 'road'
-        && ((edge.a === na.id && edge.b === nb.id) || (edge.a === nb.id && edge.b === na.id)));
-    };
-    const roads = [
-      ['Roma', 'Ostia/Portus'],
-      ['Roma', 'Tibur'],
-      ['Roma', 'Narnia'],
-      ['Narnia', 'Spoletium'],
-      ['Roma', 'Ferentinum'],
-      ['Roma', 'Reate'],
-      ['Roma', 'Volsinii'],
-      ['Roma', 'Forum Appii'],
-    ];
-    const offsets = [-24, -12, 0, 12, 24];
-    let samples = 0;
-    let water = 0;
-    const offenders = [];
-    for (const [a, b] of roads) {
-      const edge = edgeBetween(a, b);
-      if (!edge) continue;
-      for (let i = 1; i < edge.via.length; i++) {
-        const p0 = edge.via[i - 1];
-        const p1 = edge.via[i];
-        const dx = p1[0] - p0[0];
-        const dy = p1[1] - p0[1];
-        const len = Math.hypot(dx, dy);
-        if (len <= 0) continue;
-        const nx = -dy / len;
-        const ny = dx / len;
-        const steps = Math.max(1, Math.ceil(len / 8));
-        for (let s = 0; s <= steps; s++) {
-          const t = s / steps;
-          const cx = p0[0] + dx * t;
-          const cy = p0[1] + dy * t;
-          for (const offset of offsets) {
-            const point = [cx + nx * offset, cy + ny * offset];
-            samples++;
-            if (isWater(point)) {
-              water++;
-              if (offenders.length < 8) offenders.push(`${a}-${b}@${point[0].toFixed(1)},${point[1].toFixed(1)}`);
-            }
-          }
-        }
-      }
-    }
-    return { samples, water, offenders };
-  });
-  ctx.check('campaign source land/water honors Roman road graph corridors', landMask.samples > 0 && landMask.water === 0, JSON.stringify(landMask));
-
   await snapCampaign(page, ctx, 'campaign-lod-whole-political', {
     before: () => page.evaluate(() => {
       window.__campaign.freeze(true);
@@ -151,13 +86,25 @@ export async function run(ctx) {
     stats: (stats) => stats.fogEnabled === true && stats.fogSources > 0 && stats.visibleLabels < 20,
   });
 
-  await snapCampaign(page, ctx, 'campaign-lod-regional-italy', {
+  await snapCampaign(page, ctx, 'campaign-lod-regional-italy-natural', {
+    before: () => page.evaluate(() => {
+      window.__campaign.fogOfWar(false);
+      window.__campaign.factionView(false);
+      window.__campaign.select(-1);
+      window.__campaign.cam(-430, 380, 4.0);
+    }),
+    stats: (stats) => stats.visibleLabels >= 8 && stats.cityEntities > 20 && stats.armyEntities >= 1 && stats.roadTriangles > 0 && stats.factionView === false,
+    compare3dBaseline: true,
+  });
+
+  await snapCampaign(page, ctx, 'campaign-lod-regional-italy-political', {
     before: () => page.evaluate(() => {
       window.__campaign.fogOfWar(false);
       window.__campaign.factionView(true);
+      window.__campaign.select(-1);
       window.__campaign.cam(-430, 380, 4.0);
     }),
-    stats: (stats) => stats.visibleLabels >= 8 && stats.cityEntities > 20 && stats.armyEntities >= 1 && stats.roadTriangles > 0,
+    stats: (stats) => stats.visibleLabels >= 8 && stats.cityEntities > 20 && stats.armyEntities >= 1 && stats.roadTriangles > 0 && stats.factionView === true,
   });
 
   await snapCampaign(page, ctx, 'campaign-lod-rome-close', {
@@ -194,10 +141,71 @@ export async function run(ctx) {
   await page.close();
 }
 
-async function snapCampaign(page, ctx, name, { before, stats }) {
+async function snapCampaign(page, ctx, name, { before, stats, compare3dBaseline = false }) {
   await before();
   await page.waitForTimeout(300);
   const webgpuStats = await page.evaluate(() => window.__campaignWebGPUStats);
   ctx.check(`${name} stats match LoD contract`, stats(webgpuStats), JSON.stringify(webgpuStats));
-  await ctx.snap(page, name);
+  const shot = await page.screenshot();
+  if (compare3dBaseline) {
+    checkCampaign3dBaseline(ctx, PNG.sync.read(shot));
+  }
+  await ctx.snap(page, name, { shot });
+}
+
+function checkCampaign3dBaseline(ctx, current) {
+  const baseline = PNG.sync.read(readFileSync(CAMPAIGN_3D_BASELINE));
+  const baselineMetrics = campaign3dMetrics(baseline);
+  const currentMetrics = campaign3dMetrics(current);
+  const sameSize = current.width === baseline.width && current.height === baseline.height;
+  const keepsStructure = sameSize
+    && currentMetrics.waterRatio >= baselineMetrics.waterRatio * 0.55
+    && currentMetrics.landRatio >= baselineMetrics.landRatio * 0.55
+    && currentMetrics.roadRatio >= baselineMetrics.roadRatio * 0.40
+    && currentMetrics.labelRatio >= baselineMetrics.labelRatio * 0.35
+    && currentMetrics.modelRatio >= baselineMetrics.modelRatio * 0.35
+    && currentMetrics.politicalWashRatio <= 0.12;
+  ctx.check(
+    'campaign-lod-regional-italy-natural keeps campaign-3d baseline structure',
+    keepsStructure,
+    JSON.stringify({ baseline: baselineMetrics, current: currentMetrics }),
+  );
+}
+
+function campaign3dMetrics(png) {
+  let total = 0;
+  let water = 0;
+  let land = 0;
+  let road = 0;
+  let label = 0;
+  let model = 0;
+  let politicalWash = 0;
+  for (let y = 36; y < png.height; y++) {
+    for (let x = 0; x < png.width; x++) {
+      const i = (y * png.width + x) * 4;
+      const r = png.data[i];
+      const g = png.data[i + 1];
+      const b = png.data[i + 2];
+      const a = png.data[i + 3];
+      if (a < 16) continue;
+      total++;
+      if (b > r + 18 && b > g * 0.82 && b > 70) water++;
+      if (g > b + 12 && r > b + 5 && g > 80 && r > 75) land++;
+      if (r > 168 && g > 155 && b > 120 && Math.abs(r - g) < 55 && Math.abs(g - b) < 75) road++;
+      if (r > 205 && g > 205 && b > 185) label++;
+      if (r > 115 && g > 45 && g < 165 && b < 125 && r > g + 12) model++;
+      if (r > 145 && g > 80 && b > 65 && r > g + 35 && g > b + 8) politicalWash++;
+    }
+  }
+  const ratio = (value) => Number((value / Math.max(1, total)).toFixed(4));
+  return {
+    width: png.width,
+    height: png.height,
+    waterRatio: ratio(water),
+    landRatio: ratio(land),
+    roadRatio: ratio(road),
+    labelRatio: ratio(label),
+    modelRatio: ratio(model),
+    politicalWashRatio: ratio(politicalWash),
+  };
 }

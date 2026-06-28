@@ -134,6 +134,37 @@ async function buildHandoffCampaign(): Promise<{ data: CampaignData; mapJson: st
   return { data: { map, bg, bgRect, nodeIndex }, mapJson: JSON.stringify(map) };
 }
 
+async function buildAlignmentCampaign(): Promise<{ data: CampaignData; mapJson: string }> {
+  const map = {
+    half_w: 120,
+    half_h: 80,
+    attribution: 'alignment-test',
+    nodes: [
+      { id: 1, name: 'Roma', pos: [-62, 18], kind: 'city', tier: 2, port: false, owner: 'rome' },
+      { id: 2, name: 'Tibur', pos: [-28, 22], kind: 'city', tier: 1, port: false, owner: 'rome' },
+      { id: 3, name: 'Narnia', pos: [-42, 46], kind: 'city', tier: 1, port: false, owner: 'rome' },
+      { id: 4, name: 'Ostia/Portus', pos: [-76, -8], kind: 'city', tier: 1, port: true, owner: 'rome' },
+    ],
+    edges: [
+      { a: 1, b: 2, kind: 'road', via: [[-62, 18], [-46, 19], [-28, 22]], tiles: Array(7).fill('open') },
+      { a: 1, b: 3, kind: 'road', via: [[-62, 18], [-55, 34], [-42, 46]], tiles: Array(7).fill('open') },
+      { a: 1, b: 4, kind: 'road', via: [[-62, 18], [-70, 5], [-76, -8]], tiles: Array(7).fill('open') },
+    ],
+    ambush_spots: [],
+    factions: [
+      { id: 'rome', name: 'Rome', color: [200, 40, 40], playable: true },
+      { id: 'independents', name: 'Independent', color: [130, 130, 130], playable: false },
+    ],
+    start_armies: [
+      { faction: 'rome', at: 'Roma', roster: [['MediumInfantry', 1000], ['MediumSpear', 500], ['Archers', 500]] },
+    ],
+  } as unknown as CampaignData['map'];
+  const bgRect = { min: [-100, -60] as [number, number], max: [100, 70] as [number, number] };
+  const bg = await alignmentCampaignBitmap(256, 166);
+  const nodeIndex = new Map(map.nodes.map((n, i) => [n.id, i]));
+  return { data: { map, bg, bgRect, nodeIndex }, mapJson: JSON.stringify(map) };
+}
+
 async function controlledCampaignBitmap(width: number, height: number, rgb: [number, number, number]) {
   const pixels = new Uint8ClampedArray(width * height * 4);
   for (let y = 0; y < height; y++) {
@@ -151,6 +182,29 @@ async function controlledCampaignBitmap(width: number, height: number, rgb: [num
       pixels[o] = clampByte(rgb[0] + shade - green * 0.25);
       pixels[o + 1] = clampByte(rgb[1] + shade * 0.82 + green);
       pixels[o + 2] = clampByte(rgb[2] + shade * 0.55 - green * 0.18);
+      pixels[o + 3] = 255;
+    }
+  }
+  return createImageBitmap(new ImageData(pixels, width, height));
+}
+
+async function alignmentCampaignBitmap(width: number, height: number) {
+  const pixels = new Uint8ClampedArray(width * height * 4);
+  const land: [number, number, number] = [196, 178, 138];
+  const sea: [number, number, number] = [38, 60, 84];
+  const mountain: [number, number, number] = [142, 120, 96];
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const nx = x / Math.max(1, width - 1);
+      const ny = y / Math.max(1, height - 1);
+      const isSea = nx > 0.68;
+      const isMountain = !isSea && nx > 0.20 && nx < 0.36 && ny < 0.30;
+      const rgb = isSea ? sea : isMountain ? mountain : land;
+      const shade = (smoothNoise(nx * 8.1 + 0.7, ny * 6.7 + 3.2) - 0.5) * 10;
+      const o = (y * width + x) * 4;
+      pixels[o] = clampByte(rgb[0] + shade);
+      pixels[o + 1] = clampByte(rgb[1] + shade);
+      pixels[o + 2] = clampByte(rgb[2] + shade);
       pixels[o + 3] = 255;
     }
   }
@@ -236,6 +290,7 @@ const wantsBattle = sandbox === 'duel'
 if (!webGpuStatus!.ok && (wantsCampaign || wantsBattle)) switchScene(menu);
 else if (params.get('campaign') === 'test') void launchCampaign(false, await buildTestCampaign());
 else if (params.get('campaign') === 'handoff') void launchCampaign(false, await buildHandoffCampaign());
+else if (params.get('campaign') === 'alignment') void launchCampaign(false, await buildAlignmentCampaign());
 else if (wantsCampaign) void launchCampaign(false);
 else if (sandbox === 'duel' || sandbox === '5v5' || sandbox === 'surround' || sandbox === 'flank') launchBattle(sandbox);
 else if (params.has('map') || params.has('battle')) launchBattle(params.get('map') === 'B' ? 'mapB' : 'mapA');

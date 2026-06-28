@@ -1,15 +1,16 @@
-import { campaignWaterFeatures, CampaignCloudPass, CampaignFogPass, CampaignWaterPass, type CampaignFogSource } from '../../../packages/game-renderer/src/campaign/atmospherePass';
+import { CampaignCloudPass, CampaignFogPass, type CampaignFogSource } from '../../../packages/game-renderer/src/campaign/atmospherePass';
 import { CampaignEntityPass, type CampaignEntityInstance } from '../../../packages/game-renderer/src/campaign/entityPass';
-import { buildCampaignMapDrawData, CampaignLabelPass, type CampaignLabelPassStats, CampaignLinePass, CampaignMapPass, CampaignMarkerPass, CampaignRoadPass, CampaignWorldLinePass, type CampaignLabel, type CampaignMarker } from '../../../packages/game-renderer/src/campaign/mapPass';
+import { buildCampaignMapDrawData, CampaignLabelPass, type CampaignLabelPassStats, CampaignMapPass, CampaignMarkerPass, CampaignRoadPass, CampaignWorldLinePass, type CampaignLabel, type CampaignMarker } from '../../../packages/game-renderer/src/campaign/mapPass';
 import { CampaignSceneryPass, type CampaignSceneryInstance } from '../../../packages/game-renderer/src/campaign/sceneryPass';
 import { CampaignSelectionPass, type CampaignSelectionInstance } from '../../../packages/game-renderer/src/campaign/selectionPass';
 import { campaignBorderVertices, CampaignTerritoryPass } from '../../../packages/game-renderer/src/campaign/territoryPass';
-import { createFrameShell, type BackgroundRenderPass, type FrameGraphPass, type RawFrameShell } from '../../../packages/webgpu-core/src/frameShell';
-import { screenToWorld, worldToScreen } from '../../../packages/webgpu-core/src/cameraUniform';
+import { createFrameShell, type FrameGraphPass, type RawFrameShell, type WorldRenderPass } from '../../../packages/webgpu-core/src/frameShell';
+import { screenToWorld, world3dToScreen } from '../../../packages/webgpu-core/src/cameraUniform';
 import type { CampaignData } from './data';
 import type { CamView } from './camera';
 import { Allegiance } from './status';
 import type { TerrainField } from './terrain';
+import { campaignSurface, type CampaignSurface } from './surface';
 import { type FactionLabel, type Territory } from './territory';
 import type { ArmyView, CityView } from './views';
 
@@ -34,18 +35,18 @@ export class CampaignRendererWebGPU {
 
   private shell: RawFrameShell | null = null;
   private map: CampaignMapPass | null = null;
-  private water: CampaignWaterPass | null = null;
   private clouds: CampaignCloudPass | null = null;
   private fog: CampaignFogPass | null = null;
   private territoryPass: CampaignTerritoryPass | null = null;
   private lines: CampaignWorldLinePass | null = null;
   private roads: CampaignRoadPass | null = null;
-  private borders: CampaignLinePass | null = null;
+  private borders: CampaignWorldLinePass | null = null;
   private markers: CampaignMarkerPass | null = null;
   private scenery: CampaignSceneryPass | null = null;
   private entities: CampaignEntityPass | null = null;
   private selection: CampaignSelectionPass | null = null;
   private labels: CampaignLabelPass | null = null;
+  private surface: CampaignSurface;
   private staticLabels: CampaignLabel[] = [];
   private labelStats: CampaignLabelPassStats = {
     labels: 0,
@@ -57,6 +58,7 @@ export class CampaignRendererWebGPU {
   };
   private lastEntities = { cityEntities: 0, armyEntities: 0 };
   private lastFog = { enabled: false, sources: [] as CampaignFogSource[] };
+  private lastFactionView = false;
   private framePerf = {
     buildMs: 0,
     uploadMs: 0,
@@ -71,6 +73,7 @@ export class CampaignRendererWebGPU {
     private field: TerrainField,
     territory: Territory,
   ) {
+    this.surface = campaignSurface(field);
     this.ready = this.init(territory);
     window.addEventListener('resize', this.onResize);
   }
@@ -105,7 +108,7 @@ export class CampaignRendererWebGPU {
 
   toScreen(wx: number, wy: number): [number, number] {
     const stats = this.shell?.stats();
-    return worldToScreen({
+    return world3dToScreen({
       x: this.currentCamera.x,
       y: this.currentCamera.y,
       zoom: this.currentCamera.zoom,
@@ -114,7 +117,7 @@ export class CampaignRendererWebGPU {
       perspective: this.currentCamera.perspective,
       width: stats?.width ?? this.canvas.width,
       height: stats?.height ?? this.canvas.height,
-    }, wx, wy);
+    }, wx, wy, this.surface.heightAt(wx, wy));
   }
 
   toWorld(sx: number, sy: number): [number, number] {
@@ -137,12 +140,13 @@ export class CampaignRendererWebGPU {
   }
 
   draw(opts: DrawOptions) {
-    if (!this.shell || !this.map || !this.water || !this.clouds || !this.fog || !this.territoryPass || !this.lines || !this.roads || !this.borders || !this.markers || !this.scenery || !this.entities || !this.selection || !this.labels) return;
+    if (!this.shell || !this.map || !this.clouds || !this.fog || !this.territoryPass || !this.lines || !this.roads || !this.borders || !this.markers || !this.scenery || !this.entities || !this.selection || !this.labels) return;
     const frameStart = performance.now();
+    this.lastFactionView = opts.factionView;
     this.currentCamera = { x: opts.cam.x, y: opts.cam.y, zoom: opts.cam.scale, pitch: this.pitchForScale(opts.cam.scale), yaw: 0, perspective: campaignPerspective(opts.cam.scale) };
     this.shell.setCamera(this.currentCamera);
     const buildStart = performance.now();
-    const frame = buildEntityFrame(this.data, opts);
+    const frame = buildEntityFrame(this.data, this.field, opts);
     const buildEnd = performance.now();
     this.lastEntities = { cityEntities: frame.cityEntities, armyEntities: frame.armyEntities };
     const uploadStart = performance.now();
@@ -160,12 +164,11 @@ export class CampaignRendererWebGPU {
     const uploadEnd = performance.now();
     const drawStart = performance.now();
     const passes: FrameGraphPass[] = [
-      { id: 'campaign-map-underpaint', role: 'background-underpaint', phase: 'background', draw: (pass) => this.map!.draw(pass) },
-      { id: 'campaign-territory-wash', role: 'background-underpaint', phase: 'background', draw: (pass) => this.territoryPass!.draw(pass) },
-      { id: 'campaign-water', role: 'background-underpaint', phase: 'background', draw: (pass) => this.water!.draw(pass) },
-      ...(!isControlledStage(this.data) ? [{ id: 'campaign-borders', role: 'background-underpaint' as const, phase: 'background' as const, draw: (pass: BackgroundRenderPass) => this.borders!.draw(pass) }] : []),
+      { id: 'campaign-map-surface', role: 'world-depth-fill', phase: 'world-depth', depth: 'write', draw: (pass) => this.map!.draw(pass) },
       { id: 'campaign-scenery-opaque', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => this.scenery!.drawOpaque(pass) },
       { id: 'campaign-entities-opaque', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => this.entities!.drawOpaque(pass) },
+      ...(opts.factionView ? [{ id: 'campaign-territory-wash', role: 'world-decal' as const, phase: 'world-depth' as const, depth: 'read' as const, draw: (pass: WorldRenderPass) => this.territoryPass!.draw(pass) }] : []),
+      ...(opts.factionView && !isControlledStage(this.data) ? [{ id: 'campaign-borders', role: 'world-decal' as const, phase: 'world-depth' as const, depth: 'read' as const, draw: (pass: WorldRenderPass) => this.borders!.draw(pass) }] : []),
       { id: 'campaign-scenery-shadows', role: 'world-decal', phase: 'world-depth', depth: 'read', draw: (pass) => this.scenery!.drawShadows(pass) },
       { id: 'campaign-entity-shadows', role: 'world-decal', phase: 'world-depth', depth: 'read', draw: (pass) => this.entities!.drawShadows(pass) },
       { id: 'campaign-roads', role: 'world-decal', phase: 'world-depth', depth: 'read', draw: (pass) => this.roads!.draw(pass) },
@@ -232,10 +235,12 @@ export class CampaignRendererWebGPU {
       labelLayer: this.labelStats.layer,
       labelAtlas: `${this.labelStats.atlasWidth}x${this.labelStats.atlasHeight}`,
       labelVertices: this.labelStats.vertices,
-      waterFeatures: this.water?.stats().waterFeatures ?? 0,
+      waterFeatures: 0,
+      waterLayer: 'map-sea-mask',
       cloudQuads: this.clouds?.stats().cloudQuads ?? 0,
       fogEnabled: this.fog?.stats().fogEnabled ?? false,
       fogSources: this.fog?.stats().fogSources ?? 0,
+      factionView: this.lastFactionView,
       territoryPixels: this.territoryPass?.stats().pixels ?? 0,
       borderSegments: this.borders?.stats().segments ?? 0,
       mapMarkers: this.markers?.stats().markers ?? 0,
@@ -254,9 +259,7 @@ export class CampaignRendererWebGPU {
   private async init(territory: Territory) {
     this.shell = await createFrameShell(this.canvas);
     const controlledStage = isControlledStage(this.data);
-    this.map = new CampaignMapPass(this.shell, this.data.bg, this.data.bgRect, controlledStage ? undefined : { seaTintMix: 1 });
-    this.water = new CampaignWaterPass(this.shell);
-    this.water.upload(campaignWaterFeatures());
+    this.map = new CampaignMapPass(this.shell, this.data.bg, this.data.bgRect, controlledStage ? undefined : { seaTintMix: 1 }, this.surface.mesh);
     this.clouds = new CampaignCloudPass(this.shell, this.data.bgRect, controlledStage ? 0.75 : 2.05);
     this.fog = new CampaignFogPass(this.shell, this.data.bgRect);
     this.territoryPass = new CampaignTerritoryPass(this.shell, {
@@ -264,10 +267,10 @@ export class CampaignRendererWebGPU {
       height: this.field.h,
       rgba: territory.rgba,
       rect: this.data.bgRect,
-    }, controlledStage ? undefined : { alpha: 0.55, warmMix: 0.015 });
+    }, controlledStage ? undefined : { alpha: 0.55, warmMix: 0.015 }, this.surface.mesh);
     this.lines = new CampaignWorldLinePass(this.shell, 'triangle-list');
     this.roads = new CampaignRoadPass(this.shell);
-    this.borders = new CampaignLinePass(this.shell);
+    this.borders = new CampaignWorldLinePass(this.shell);
     this.markers = new CampaignMarkerPass(this.shell);
     this.scenery = new CampaignSceneryPass(this.shell);
     this.entities = new CampaignEntityPass(this.shell);
@@ -277,6 +280,7 @@ export class CampaignRendererWebGPU {
       roadScale: 0.78,
       ...(controlledStage ? { roadEndpointInset: 8.2 } : {}),
       roadSurfaceAt: (x, y) => this.field.landAt(x, y, controlledStage ? 2.5 : 10.5) ? 'land' : 'water',
+      heightAt: (x, y) => this.field.heightAt(x, y),
     });
     this.staticLabels = drawData.labels;
     this.lines.upload(drawData.lineVertices);
@@ -306,7 +310,7 @@ function campaignPerspective(zoom: number) {
   return Math.min(0.0048, Math.max(0, (zoom - 1.0) * 0.0032));
 }
 
-function buildEntityFrame(data: CampaignData, opts: DrawOptions) {
+function buildEntityFrame(data: CampaignData, field: TerrainField, opts: DrawOptions) {
   const entities: CampaignEntityInstance[] = [];
   const selections: CampaignSelectionInstance[] = [];
   let cityEntities = 0;
@@ -322,6 +326,7 @@ function buildEntityFrame(data: CampaignData, opts: DrawOptions) {
     entities.push({
       x: mapNode.pos[0],
       y: mapNode.pos[1],
+      z: field.heightAt(mapNode.pos[0], mapNode.pos[1]),
       radius: (mapNode.tier >= 3 ? 6.2 : 5.2) * fixtureScale,
       faction: factionColor(data, owner),
       allegiance: allegianceColor(allegiance),
@@ -339,6 +344,7 @@ function buildEntityFrame(data: CampaignData, opts: DrawOptions) {
     entities.push({
       x: army.x,
       y: army.y,
+      z: field.heightAt(army.x, army.y),
       radius: 6.4 * fixtureScale,
       faction: factionColor(data, army.faction),
       allegiance: allegianceColor(allegiance),
@@ -727,7 +733,7 @@ function distanceToSegment(x: number, y: number, a: [number, number], b: [number
 }
 
 function isControlledStage(data: CampaignData) {
-  return data.map.attribution === 'test' || data.map.attribution === 'handoff-test';
+  return data.map.attribution === 'test' || data.map.attribution.endsWith('-test');
 }
 
 function hash2(x: number, y: number): number {

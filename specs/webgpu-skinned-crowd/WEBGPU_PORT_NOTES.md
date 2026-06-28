@@ -29,6 +29,12 @@ verification lessons.
 - Production routes and lab routes must assert the same contract: pass ids,
   phases, roles, depth modes, and overlay separation should be visible in route
   stats.
+- Campaign water is a map-surface property, not a freehand atmosphere overlay.
+  Sea tint, glint, and foam must be bound to the same world-space sea mask used
+  by the map texture/terrain field. A separate pass may return later only if it
+  consumes that canonical mask; hard-coded translucent ellipses are forbidden
+  because they can flood mainland while roads/cities remain geographically
+  correct.
 - Renderer draw APIs should make phase misuse difficult. Depth-sensitive world
   geometry should require the world-depth pass type; background and overlay
   helpers should not accept raw `GPURenderPassEncoder` as a back door.
@@ -87,11 +93,16 @@ verification lessons.
 - Scenery generation must reserve city, road, army, and tall-standard
   silhouette footprints. A depth-correct tree can still be scene-authored into
   the wrong place and read as floating on a roof or intersecting a flag.
-- Campaign city and road positions are the coordinate truth. If land/water
-  disagrees with them, fix the source terrain raster or terrain mask; do not
-  move cities, roads, labels, or camera transforms to match flooded terrain.
-  Regression scenes should sample offset road corridors, not only road
-  centerlines, because a narrow strip can hide a bad coastline.
+- Real-map map accuracy is judged by alignment under camera movement: city,
+  road, territory, land/water, terrain, and labels must share one coordinate
+  contract. The fake `campaign-webgpu-map-alignment` scene is the first guard;
+  real Italy scenes remain the proof that the production data is correct.
+- `specs/webgpu-skinned-crowd/visualizations/campaign-baselines/campaign-3d.png`
+  is the archived natural-map 3D parity reference: terrain, coast, roads,
+  city/army markers, labels, mountains, water, and board perspective should
+  remain recognizable without the broad faction-color wash. WebGPU should also
+  capture the same regional Italy camera with faction colors enabled, but that
+  political overlay is an improvement/alternate view, not the baseline mode.
 
 ## Battle Visual Notes
 
@@ -117,6 +128,11 @@ verification lessons.
   contact sheets, soldier/animation gates, nested-object gates, and release
   audit status. A good whole-scene metric must not hide a missing model,
   animation beat, garrison, label, road, terrain feature, or marker.
+- The campaign LoD scene uses the archived natural `campaign-3d.png` capture as
+  a structural regression floor for the WebGPU natural 3D Italy shot. The gate
+  checks content classes such as water, land, roads, labels, and models, plus
+  absence of broad political wash; it is not a mandate to chase pixel
+  similarity once WebGPU becomes better.
 - Campaign model gates should render through the real production passes for
   entities, scenery, selection, roads, water/clouds, and labels where relevant.
 - Nested model gates need pixel samples for buried and exposed regions: for

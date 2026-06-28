@@ -1,5 +1,7 @@
-import type { BackgroundRenderPass, RawFrameShell } from '../../../webgpu-core/src/frameShell';
+import type { RawFrameShell, WorldRenderPass } from '../../../webgpu-core/src/frameShell';
 import { WORLD_CAMERA_WGSL } from '../../../webgpu-core/src/cameraWgsl';
+import { webGpuWorldDepthStencil } from '../../../webgpu-core/src/pipelineContracts';
+import type { CampaignMapSurfaceMesh } from './mapPass';
 
 export interface CampaignTerritoryTextureData {
   width: number;
@@ -28,9 +30,9 @@ struct VsOut {
 };
 
 @vertex
-fn vs(@location(0) world: vec2f, @location(1) uv: vec2f) -> VsOut {
+fn vs(@location(0) world: vec3f, @location(1) uv: vec2f) -> VsOut {
   var out: VsOut;
-  out.pos = projectGround(world, 0.42);
+  out.pos = projectWorld3d(world, civsimCampaignWorldDepth3d(world));
   out.uv = uv;
   return out;
 }
@@ -47,12 +49,18 @@ export class CampaignTerritoryPass {
   private bindGroupLayout: GPUBindGroupLayout;
   private bindGroup!: GPUBindGroup;
   private vertexBuffer: GPUBuffer;
+  private indexBuffer: GPUBuffer;
+  private indexCount: number;
   private sampler: GPUSampler;
   private texture: GPUTexture | null = null;
   private textureSize = { width: 0, height: 0 };
+  private surface: CampaignMapSurfaceMesh | null = null;
 
-  constructor(private shell: RawFrameShell, data: CampaignTerritoryTextureData, style: CampaignTerritoryStyle = {}) {
+  constructor(private shell: RawFrameShell, data: CampaignTerritoryTextureData, style: CampaignTerritoryStyle = {}, surface?: CampaignMapSurfaceMesh) {
     const device = shell.device;
+    this.surface = surface ?? null;
+    const mesh = surface ?? flatTerritorySurface(data.rect);
+    this.indexCount = mesh.indices.length;
     const module = device.createShaderModule({
       label: 'campaign-territory-wgsl',
       code: TERRITORY_WGSL
@@ -73,10 +81,10 @@ export class CampaignTerritoryPass {
         module,
         entryPoint: 'vs',
         buffers: [{
-          arrayStride: 16,
+          arrayStride: 20,
           attributes: [
-            { shaderLocation: 0, offset: 0, format: 'float32x2' },
-            { shaderLocation: 1, offset: 8, format: 'float32x2' },
+            { shaderLocation: 0, offset: 0, format: 'float32x3' },
+            { shaderLocation: 1, offset: 12, format: 'float32x2' },
           ],
         }],
       },
@@ -91,13 +99,21 @@ export class CampaignTerritoryPass {
           },
         }],
       },
-      primitive: { topology: 'triangle-strip' },
+      primitive: { topology: 'triangle-list', cullMode: 'none' },
+      depthStencil: webGpuWorldDepthStencil('read'),
     });
     this.vertexBuffer = device.createBuffer({
-      label: 'campaign-territory-quad',
-      size: 16 * 4,
+      label: 'campaign-territory-surface-vertices',
+      size: mesh.vertices.byteLength,
       usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
     });
+    this.indexBuffer = device.createBuffer({
+      label: 'campaign-territory-surface-indices',
+      size: mesh.indices.byteLength,
+      usage: GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST,
+    });
+    device.queue.writeBuffer(this.vertexBuffer, 0, mesh.vertices);
+    device.queue.writeBuffer(this.indexBuffer, 0, mesh.indices);
     this.sampler = device.createSampler({
       label: 'campaign-territory-sampler',
       magFilter: 'linear',
@@ -131,22 +147,21 @@ export class CampaignTerritoryPass {
       { bytesPerRow, rowsPerImage: data.height },
       { width: data.width, height: data.height },
     );
-    const [x0, y0] = data.rect.min;
-    const [x1, y1] = data.rect.max;
-    device.queue.writeBuffer(this.vertexBuffer, 0, new Float32Array([
-      x0, y0, 0, 1,
-      x1, y0, 1, 1,
-      x0, y1, 0, 0,
-      x1, y1, 1, 0,
-    ]));
+    if (!this.surface) {
+      const mesh = flatTerritorySurface(data.rect);
+      this.indexCount = mesh.indices.length;
+      device.queue.writeBuffer(this.vertexBuffer, 0, mesh.vertices);
+      device.queue.writeBuffer(this.indexBuffer, 0, mesh.indices);
+    }
   }
 
-  draw(pass: BackgroundRenderPass) {
+  draw(pass: WorldRenderPass) {
     pass.setPipeline(this.pipeline);
     pass.setBindGroup(0, this.shell.cameraBindGroup);
     pass.setBindGroup(1, this.bindGroup);
     pass.setVertexBuffer(0, this.vertexBuffer);
-    pass.draw(4);
+    pass.setIndexBuffer(this.indexBuffer, 'uint32');
+    pass.drawIndexed(this.indexCount);
   }
 
   stats() {
@@ -161,6 +176,20 @@ export class CampaignTerritoryPass {
       usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST,
     });
   }
+}
+
+function flatTerritorySurface(rect: { min: [number, number]; max: [number, number] }): CampaignMapSurfaceMesh {
+  const [x0, y0] = rect.min;
+  const [x1, y1] = rect.max;
+  return {
+    vertices: new Float32Array([
+      x0, y0, 0, 0, 1,
+      x1, y0, 0, 1, 1,
+      x0, y1, 0, 0, 0,
+      x1, y1, 0, 1, 0,
+    ]),
+    indices: new Uint32Array([0, 1, 2, 2, 1, 3]),
+  };
 }
 
 export function campaignBorderVertices(

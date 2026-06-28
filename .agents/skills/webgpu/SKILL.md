@@ -52,6 +52,16 @@ pass orchestration, WGSL layout, depth semantics, or browser-verified output.
   submit it through the world camera and let real geometry occlude it; reserve
   screen overlays for labels, HUD, minimaps, debug UI, and deliberately
   non-world effects.
+- Tilted world scenes need one canonical surface. If terrain, water, roads,
+  labels, props, or hit tests must stay geographically aligned while the camera
+  moves, project and draw them from the same 3D surface/height contract. A flat
+  textured underlay plus separate raised world objects will drift under
+  perspective even when the source coordinates are correct.
+- Geographic effects need a canonical mask/projection owner. Water glints,
+  coast foam, fog reveal, biome tints, and terrain overlays must sample or be
+  generated from the same world-space mask that owns the gameplay geography;
+  unmasked decorative quads/ellipses are only valid for non-geographic
+  atmosphere and must not independently decide where land or water exists.
 - Nested objects must be proven with hostile-order fixtures. Submit an occluder
   first, submit the nested/rear object later, then sample or crop pixels that
   prove depth, not painter order, owns visibility.
@@ -59,6 +69,11 @@ pass orchestration, WGSL layout, depth semantics, or browser-verified output.
   PNGs after WGSL, pipeline, camera, pass-order, depth, or blend changes, and
   reject black frames, transparent canvases, flattened occlusion, or UI layered
   over world geometry by accident.
+- Treat WebGPU validation warnings as failed renders. A bad pipeline can leave
+  route stats and app hooks alive while command buffers are invalid and the
+  canvas is black. Capture console warnings and fix the root contract, commonly
+  vertex stride/attribute offsets, bind-group layout drift, attachment mismatch,
+  or a depth mode that no longer matches the pass.
 - Keep scenario assertions derived from the same contracts as renderer code.
   Hard-coded verifier copies of depth formats, phase names, role maps, or vertex
   strides drift into false confidence.
@@ -84,6 +99,10 @@ pass orchestration, WGSL layout, depth semantics, or browser-verified output.
 
 - Use the smallest route that exercises the changed visual surface, then open
   the generated PNG yourself.
+- When a projection-sensitive scene is disputed, add a tiny synthetic alignment
+  fixture with known land/water/prop points and sample both semantic state and
+  rendered pixels across multiple cameras before debugging the full production
+  map or scene.
 - Crop and upscale suspect regions before diagnosing small geometry, labels,
   sprites, flags, depth overlaps, or LOD artifacts.
 - For GPU-backed screen overlays, expose semantic anchors such as center, edge,
@@ -100,6 +119,10 @@ pass orchestration, WGSL layout, depth semantics, or browser-verified output.
 - A pass reports one semantic role while its pipeline uses another depth or
   blend state.
 - A background or overlay pass draws true 3D objects.
+- A flat background/underlay is expected to line up with 3D objects after camera
+  tilt, zoom, or perspective changes.
+- Route stats report healthy passes while console validation warns about an
+  invalid pipeline or command buffer.
 - A private shader camera/projection helper appears beside a shared one.
 - A verifier repeats renderer constants by hand.
 - A green scenario has no screenshot inspection.

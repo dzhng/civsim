@@ -29,6 +29,8 @@ failures belong to the shared renderer foundation first.
 - `packages/game-renderer/src/campaign/mapPass.ts`
   - uploads the existing campaign background image as a raw WebGPU texture and
     draws it through the shared WebGPU camera uniform with parchment grading.
+  - owns sea-mask-bound water tint, glint, and coastline foam so water detail
+    cannot drift away from the map surface.
   - owns WebGPU road/sea-lane line rendering and city marker rendering from
     `campaign-map.json` for the current checkpoint.
 - `packages/game-renderer/src/campaign/territoryPass.ts`
@@ -37,8 +39,8 @@ failures belong to the shared renderer foundation first.
   - exports border vertex packing for the smooth nearest-city frontier curves
     produced from live campaign ownership state.
 - `packages/game-renderer/src/campaign/atmospherePass.ts`
-  - draws deterministic WebGPU open-water glints/foam washes and overview rim
-    cloud banks over the campaign map.
+  - draws overview rim cloud/fog effects. Geographic water expression belongs
+    to the map pass unless a future water pass consumes the canonical sea mask.
 - `web/src/campaign/rendererWebGPU.ts`
   - production campaign scene adapter: owns the normal route's raw-WebGPU map,
     territory, atmosphere, roads, entity, selection, projection, label, freeze,
@@ -47,6 +49,11 @@ failures belong to the shared renderer foundation first.
   - final adapter checkpoint: composes campaign passes through the shared
     render graph's depth-tested world layer and explicit overlay layer rather
     than one flat painter-order render pass.
+- `web/src/campaign/surface.ts`
+  - owns the canonical campaign world surface generated from the terrain field.
+    Map texture, territory wash, roads, city/army bases, debug projection, and
+    alignment fixtures sample this same height/land contract so camera movement
+    cannot separate the water layer from the city/road layer.
 - `packages/game-renderer/src/campaign/mapPass.ts`
   - `CampaignLabelPass` generates a canvas glyph atlas and draws visible label
     quads through raw WebGPU with zoom-aware density, Cinzel city/faction labels,
@@ -75,8 +82,12 @@ failures belong to the shared renderer foundation first.
   triangle emission.
 - `web/scenes/webgpu-lab-routes.mjs` opens `/webgpu/campaign-map?preset=whole`
   and checks the current checkpoint: textured parchment map, WebGPU territory
-  texture, border segments, WebGPU atmosphere layer, sea, road/sea-lane pixels,
-  city marker pixels, and WebGPU glyph-atlas label coverage.
+  texture, border segments, WebGPU atmosphere layer, mask-bound sea, road/sea-
+  lane pixels, city marker pixels, and WebGPU glyph-atlas label coverage.
+- `web/scenes/campaign-webgpu-map-alignment.mjs` boots a synthetic campaign map
+  with known land/city/road points and a known sea strip, then checks semantic
+  terrain samples and rendered pixels at several cameras. This catches
+  projection/mask drift before debugging the full Italy map.
 - Pixel checks preserve faction/road/label readability for the route checkpoint.
 - `web/scenes/campaign-webgpu-production.mjs` opens the normal campaign test
   route, freezes the frame, checks WebGPU stats/pixels, clicks real rendered
@@ -203,10 +214,19 @@ failures belong to the shared renderer foundation first.
   crossings need explicit bridge, ferry, port, or coastal-road classification.
 - Real-map WebGPU LoD coverage now lives in `web/scenes/campaign-webgpu-lod.mjs`.
   It captures whole-map political, whole-map natural, whole-map fog, regional
-  Italy, close Rome, selected army in city, selected city, and regional border
-  fog scenes from the normal campaign route. Every scene freezes the simulation,
-  uses the live campaign WebGPU adapter, and asserts labels, roads, entities,
-  fog, and clouds according to the active LoD band.
+  Italy natural, regional Italy political, close Rome, selected army in city,
+  selected city, and regional border fog scenes from the normal campaign route.
+  Every scene freezes the simulation, uses the live campaign WebGPU adapter,
+  and asserts labels, roads, entities, fog, faction-view state, and clouds
+  according to the active LoD band.
+- The regional Italy natural shot uses
+  `specs/webgpu-skinned-crowd/visualizations/campaign-baselines/campaign-3d.png`
+  as an archived current-renderer parity floor. That baseline intentionally has
+  no broad faction-color wash, so the WebGPU scene also captures a second
+  same-camera political shot with faction colors enabled. The natural baseline
+  comparison is structural telemetry and regression protection for land/water,
+  roads, labels, markers, models, and perspective; it must not become a
+  similarity-score chase once WebGPU has surpassed the old renderer.
 - Fresh unprimed critique after the LoD scene landed still found coastal route
   ambiguity near Rome: several water routes read as pale roads continuing into
   the sea. Sea lanes now render as dashed translucent blue route hints while
@@ -575,19 +595,3 @@ large `ROME` faction label competes with the nearby square city marker at this
 zoom. Crops are archived in
 `visualizations/critique/2026-06-28-roma-label-political-crop.png` and
 `visualizations/critique/2026-06-28-roma-label-fog-crop.png`.
-
-The Rome water/road bug was a source raster problem, not a city/road placement
-problem and not a WebGPU projection problem. The ORBIS city/road graph is the
-gameplay coordinate truth: Roma, Ostia/Portus, Tibur, Narnia, Spoletium, Reate,
-Ferentinum, and the Roman roads are geographically coherent relative to each
-other. The Natural Earth-derived `campaign-bg.png` had a generalized coastline
-that pinched central Italy into thin land strips, so WebGPU faithfully rendered
-sea over the city/road hinterland. Mapgen now promotes water pixels inside
-road-owned corridors, plus tiered city pads only for city points that are still
-flooded, while preserving existing land, mountains, and rivers. The current
-committed raster was repaired with the same rule because the raw source
-downloads are not checked into this workspace.
-`campaign-webgpu-lod` now samples offset points along the Roman road graph
-against the source raster, so a centerline-only lucky pass cannot hide flooded
-roadside terrain again. Do not fix this class of bug by moving city nodes,
-roads, labels, or camera transforms; the raster must conform to the graph.

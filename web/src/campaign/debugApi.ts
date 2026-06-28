@@ -27,6 +27,7 @@ export interface CampaignDebugApi {
   territoryAlpha(): number;
   visAt(x: number, y: number): number;
   cellInfo(x: number, y: number): ReturnType<Territory['infoAt']>;
+  terrainAt(x: number, y: number): { land: boolean; height: number };
   freeze(on?: boolean): void;
   terrStats(): { filled: number; total: number; labels: Territory['labels'] };
 }

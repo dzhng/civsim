@@ -16,7 +16,7 @@ import { BattleTerrainPass, type BattleTerrainFixture } from '../../../packages/
 import { CLASS_DEPTH, CLASS_SPACING, UNIT_INFO } from '../../../packages/game-renderer/src/battle/unitInfoLayout';
 import { campaignWaterFeatures, CampaignCloudPass, CampaignWaterPass } from '../../../packages/game-renderer/src/campaign/atmospherePass';
 import { CampaignEntityPass, type CampaignEntityInstance } from '../../../packages/game-renderer/src/campaign/entityPass';
-import { buildCampaignMapDrawData, CampaignLabelPass, CampaignLinePass, CampaignMapPass, CampaignMarkerPass, CampaignRoadPass, CampaignWorldLinePass, type CampaignLabel } from '../../../packages/game-renderer/src/campaign/mapPass';
+import { buildCampaignMapDrawData, CampaignLabelPass, CampaignMapPass, CampaignMarkerPass, CampaignRoadPass, CampaignWorldLinePass, type CampaignLabel } from '../../../packages/game-renderer/src/campaign/mapPass';
 import { CampaignSceneryPass, type CampaignSceneryInstance } from '../../../packages/game-renderer/src/campaign/sceneryPass';
 import { CampaignSelectionPass, type CampaignSelectionInstance } from '../../../packages/game-renderer/src/campaign/selectionPass';
 import { campaignBorderVertices, CampaignTerritoryPass } from '../../../packages/game-renderer/src/campaign/territoryPass';
@@ -29,6 +29,7 @@ import { badArtistPackFixture, validateSoldierKit, type ValidationReport } from 
 import { buildWebGpuBattleUiModel, WebGpuBattleUiLayer } from '../../../web/src/battle/webgpuUiLayer';
 import { loadCampaignData, nearestLoc, type CampaignData } from '../../../web/src/campaign/data';
 import { Allegiance } from '../../../web/src/campaign/status';
+import { campaignSurface } from '../../../web/src/campaign/surface';
 import { TerrainField } from '../../../web/src/campaign/terrain';
 import { Territory, type FactionLabel } from '../../../web/src/campaign/territory';
 import { readCampaignViews, type ArmyView, type CampaignViews, type CityView } from '../../../web/src/campaign/views';
@@ -639,27 +640,30 @@ async function routeCampaignMap(ctx: LabContext) {
   const campaign = new Campaign(mapJson, 0x5eed_2026, 0);
   const views = readCampaignViews(campaign, wasm, data.map.edges.length);
   const field = new TerrainField(data);
+  const surface = campaignSurface(field);
   const territoryData = new Territory(data, field);
   territoryData.rebuild(views.cities);
   const preset = ctx.params.get('preset') ?? 'whole';
   const camera = campaignPresetCamera(preset);
   const shell = await createConfiguredShell(ctx.canvas, camera);
-  const map = new CampaignMapPass(shell, data.bg, data.bgRect);
-  const water = new CampaignWaterPass(shell);
-  water.upload(campaignWaterFeatures());
+  const map = new CampaignMapPass(shell, data.bg, data.bgRect, { seaTintMix: 1 }, surface.mesh);
   const clouds = new CampaignCloudPass(shell, data.bgRect);
   const territory = new CampaignTerritoryPass(shell, {
     width: field.w,
     height: field.h,
     rgba: territoryData.rgba,
     rect: data.bgRect,
-  });
+  }, undefined, surface.mesh);
   const lines = new CampaignWorldLinePass(shell, 'triangle-list');
   const roads = new CampaignRoadPass(shell);
-  const borders = new CampaignLinePass(shell);
+  const borders = new CampaignWorldLinePass(shell);
   const markers = new CampaignMarkerPass(shell);
   const labelPass = new CampaignLabelPass(shell);
-  const drawData = buildCampaignMapDrawData(data);
+  const drawData = buildCampaignMapDrawData(data, {
+    roadScale: 0.78,
+    roadSurfaceAt: (x, y) => surface.landAt(x, y, 10.5) ? 'land' : 'water',
+    heightAt: surface.heightAt,
+  });
   lines.upload(drawData.lineVertices);
   roads.upload(drawData.roadMeshVertices);
   borders.upload(campaignBorderVertices(territoryData.borders));
@@ -670,10 +674,9 @@ async function routeCampaignMap(ctx: LabContext) {
     clear: { r: 0.68, g: 0.72, b: 0.69, a: 1 },
     terrainRect: [0, 0, 0, 0],
     passes: [
-      { id: 'campaign-map-underpaint', role: 'background-underpaint', phase: 'background', draw: (pass) => map.draw(pass) },
-      { id: 'campaign-territory-wash', role: 'background-underpaint', phase: 'background', draw: (pass) => territory.draw(pass) },
-      { id: 'campaign-water', role: 'background-underpaint', phase: 'background', draw: (pass) => water.draw(pass) },
-      { id: 'campaign-borders', role: 'background-underpaint', phase: 'background', draw: (pass) => borders.draw(pass) },
+      { id: 'campaign-map-surface', role: 'world-depth-fill', phase: 'world-depth', depth: 'write', draw: (pass) => map.draw(pass) },
+      { id: 'campaign-territory-wash', role: 'world-decal', phase: 'world-depth', depth: 'read', draw: (pass) => territory.draw(pass) },
+      { id: 'campaign-borders', role: 'world-decal', phase: 'world-depth', depth: 'read', draw: (pass) => borders.draw(pass) },
       { id: 'campaign-roads', role: 'world-decal', phase: 'world-depth', depth: 'read', draw: (pass) => roads.draw(pass) },
       { id: 'campaign-sea-lanes-depth', role: 'world-decal', phase: 'world-depth', depth: 'read', draw: (pass) => lines.draw(pass) },
       { id: 'campaign-city-markers', role: 'overlay-ui', phase: 'overlay', draw: (pass) => markers.draw(pass) },
@@ -690,7 +693,7 @@ async function routeCampaignMap(ctx: LabContext) {
     labels: `${labelLayer.visibleLabels}/${labelLayer.labels}`,
     factions: territoryData.labels.length,
     borders: borders.stats().segments,
-    water: water.stats().waterFeatures,
+    water: 0,
     clouds: clouds.stats().cloudQuads,
     visibleLabels: labelLayer.visibleLabels,
     labelLayer: 'raw WebGPU glyph atlas',
@@ -706,7 +709,8 @@ async function routeCampaignMap(ctx: LabContext) {
     factions: territoryData.labels.length,
     territoryPixels: territory.stats().pixels,
     borderSegments: borders.stats().segments,
-    waterFeatures: water.stats().waterFeatures,
+    waterFeatures: 0,
+    waterLayer: 'map-sea-mask',
     cloudQuads: clouds.stats().cloudQuads,
     labelAtlas: `${labelLayer.atlasWidth}x${labelLayer.atlasHeight}`,
     labelVertices: labelLayer.vertices,
@@ -715,7 +719,7 @@ async function routeCampaignMap(ctx: LabContext) {
     markerStats: markers.stats(),
     labelLayer: 'raw-webgpu-glyph-atlas',
     territoryLayer: 'raw-webgpu-texture',
-    atmosphereLayer: 'raw-webgpu-cloud-water',
+    atmosphereLayer: 'raw-webgpu-clouds',
     postCutoverScreenshots: 'webgpu-only',
   });
 }

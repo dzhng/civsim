@@ -82,7 +82,7 @@ const routes = [
     && s.stats.scenes[0].stats.count === 900
     && s.stats.scenes[0].frame.samples > 0],
   ['campaign', (s) => s?.ok && s.route === 'campaign' && s.stats.markers > 0],
-  ['campaign-map?preset=whole', (s) => s?.ok && s.route === 'campaign-map' && s.stats.roads > 20 && s.stats.seaLanes > 0 && s.stats.cityMarkers > 20 && s.stats.visibleLabels > 5 && s.stats.labelVertices > 20 && s.stats.factions > 5 && s.stats.territoryPixels > 10000 && s.stats.borderSegments > 100 && s.stats.waterFeatures >= 5 && s.stats.cloudQuads === 1 && s.stats.cameraContract === 'shared-world-camera-wgsl' && s.stats.territoryLayer === 'raw-webgpu-texture' && s.stats.atmosphereLayer === 'raw-webgpu-cloud-water' && s.stats.labelLayer === 'raw-webgpu-glyph-atlas'],
+  ['campaign-map?preset=whole', (s) => s?.ok && s.route === 'campaign-map' && s.stats.roads > 20 && s.stats.seaLanes > 0 && s.stats.cityMarkers > 20 && s.stats.visibleLabels > 5 && s.stats.labelVertices > 20 && s.stats.factions > 5 && s.stats.territoryPixels > 10000 && s.stats.borderSegments > 100 && s.stats.waterLayer === 'map-sea-mask' && s.stats.cloudQuads === 1 && s.stats.cameraContract === 'shared-world-camera-wgsl' && s.stats.territoryLayer === 'raw-webgpu-texture' && s.stats.atmosphereLayer === 'raw-webgpu-clouds' && s.stats.labelLayer === 'raw-webgpu-glyph-atlas'],
   ['campaign-ui', (s) => s?.ok && s.route === 'campaign-ui' && s.stats.fixture === 'controlled' && s.stats.cityEntities === 2 && s.stats.armyEntities === 1 && s.stats.selections >= 2 && s.stats.depth?.allocated === true && s.stats.depth?.format === WEBGPU_DEPTH_FORMAT && hasFramePhaseOrder(s.stats.framePhases ?? s.stats.phases) && hasFrameDepthPass(s.stats.framePhases ?? s.stats.phases, 'campaign-ui-entities-opaque', 'read-write') && hasFramePassRole(s.stats.framePhases ?? s.stats.phases, 'campaign-ui-entities-opaque', 'world-opaque', 'world-depth') && hasFrameDepthPass(s.stats.framePhases ?? s.stats.phases, 'campaign-ui-entity-shadows', 'read') && hasFramePassRole(s.stats.framePhases ?? s.stats.phases, 'campaign-ui-entity-shadows', 'world-decal', 'world-depth') && hasFrameDepthPass(s.stats.framePhases ?? s.stats.phases, 'campaign-ui-selection', 'read') && hasFramePassRole(s.stats.framePhases ?? s.stats.phases, 'campaign-ui-selection', 'world-decal', 'world-depth') && s.stats.ui.armyPanel && s.stats.ui.cityPanel && s.stats.ui.autoReplenishToggle && s.stats.ui.classRows >= 8 && s.stats.ui.diplomacyRows >= 1 && s.stats.labelLayer === 'raw-webgpu-glyph-atlas' && s.stats.labelVertices > 0 && s.stats.postCutoverScreenshots === 'webgpu-only'],
   ['campaign-model-gates?gate=city', (s) => s?.ok
     && s.route === 'campaign-model-gates'
@@ -458,7 +458,7 @@ async function findPhaseBrandFootguns() {
     },
     {
       file: new URL('../../packages/game-renderer/src/campaign/territoryPass.ts', import.meta.url),
-      checks: [['campaign territory draw requires background pass', /\bdraw\s*\(\s*pass:\s*BackgroundRenderPass\s*\)/]],
+      checks: [['campaign territory draw requires world pass', /\bdraw\s*\(\s*pass:\s*WorldRenderPass\s*\)/]],
     },
     {
       file: new URL('../../packages/game-renderer/src/campaign/atmospherePass.ts', import.meta.url),

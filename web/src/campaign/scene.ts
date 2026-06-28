@@ -226,6 +226,7 @@ export class CampaignScene implements Scene {
       /** Fog-of-war probe: player visibility (0..1) at a world point. */
       visAt: (x: number, y: number) => this.renderer.visibleAt(x, y),
       cellInfo: (x: number, y: number) => this.territory!.infoAt(x, y, this.cities),
+      terrainAt: (x: number, y: number) => ({ land: this.field!.landAt(x, y), height: this.field!.heightAt(x, y) }),
       /** Snapshot mode: pin the water clock (campaign is already paused). */
       freeze: (on = true) => {
         this.renderer.fixedTime = on ? 0 : null;

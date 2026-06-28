@@ -54,6 +54,12 @@ export interface CampaignMapDrawStyle {
   roadCityEndpointInset?: number;
   roadJunctionEndpointInset?: number;
   roadSurfaceAt?: (x: number, y: number) => 'land' | 'water';
+  heightAt?: (x: number, y: number) => number;
+}
+
+export interface CampaignMapSurfaceMesh {
+  vertices: Float32Array;
+  indices: Uint32Array;
 }
 
 export interface CampaignMapDrawData {
@@ -112,11 +118,11 @@ struct VsOut {
 };
 
 @vertex
-fn vs(@location(0) world: vec2f, @location(1) uv: vec2f) -> VsOut {
+fn vs(@location(0) world: vec3f, @location(1) uv: vec2f) -> VsOut {
   var out: VsOut;
-  out.pos = projectGround(world, 0.65);
+  out.pos = projectWorld3d(world, civsimCampaignWorldDepth3d(world));
   out.uv = uv;
-  out.world = world;
+  out.world = world.xy;
   return out;
 }
 
@@ -163,6 +169,12 @@ fn fs(in: VsOut) -> @location(0) vec4f {
   let coast = clamp(abs(seaMask - seaN) + abs(seaMask - seaS) + abs(seaMask - seaE) + abs(seaMask - seaW), 0.0, 1.0);
   col = mix(col, vec3f(0.72, 0.76, 0.62), coast * (1.0 - seaMask) * 0.42);
   col = mix(col, vec3f(0.30, 0.48, 0.58), coast * seaMask * 0.20);
+  let wave = sin(in.world.x * 0.045 + in.world.y * 0.018 + vnoise(in.world * 0.022) * 2.2);
+  let cross = sin(in.world.x * -0.021 + in.world.y * 0.052 + vnoise(in.world * 0.011 + vec2f(4.7, 9.2)) * 2.8);
+  let glint = smoothstep(0.58, 0.96, wave * 0.58 + cross * 0.42);
+  let foam = coast * seaMask * smoothstep(0.22, 0.88, vnoise(in.world * 0.055 + vec2f(2.0, 11.0)));
+  col = mix(col, vec3f(0.56, 0.70, 0.74), seaMask * glint * 0.14 * __SEA_TINT_MIX__);
+  col = mix(col, vec3f(0.68, 0.77, 0.75), foam * 0.20 * __SEA_TINT_MIX__);
   let grain = vnoise(in.world * 0.18) * 0.052 + vnoise(in.world * 0.055 + vec2f(7.1, 2.4)) * 0.038;
   let striation = ridged(vec2f(in.world.x * 0.115 + in.world.y * 0.025, in.world.y * 0.085)) * 0.028;
   col *= 0.95 + grain + striation;
@@ -179,7 +191,7 @@ struct VsOut { @builtin(position) pos: vec4f, @location(0) color: vec4f };
 @vertex
 fn vs(@location(0) world: vec2f, @location(1) color: vec4f) -> VsOut {
   var out: VsOut;
-  out.pos = projectGround(world, 0.92);
+  out.pos = projectGround(world, civsimCampaignGroundDepth(world, 0.05));
   out.color = color;
   return out;
 }
@@ -339,12 +351,14 @@ export class CampaignMapPass {
   private pipeline: GPURenderPipeline;
   private bindGroup: GPUBindGroup;
   private vertexBuffer: GPUBuffer;
+  private indexBuffer: GPUBuffer;
+  private indexCount: number;
 
-  constructor(private shell: RawFrameShell, image: ImageBitmap, rect: { min: [number, number]; max: [number, number] }, style: CampaignMapStyle = {}) {
+  constructor(private shell: RawFrameShell, image: ImageBitmap, rect: { min: [number, number]; max: [number, number] }, style: CampaignMapStyle = {}, surface?: CampaignMapSurfaceMesh) {
     const device = shell.device;
     const module = device.createShaderModule({
       label: 'campaign-map-wgsl',
-      code: MAP_WGSL.replace('__SEA_TINT_MIX__', (style.seaTintMix ?? 0).toFixed(3)),
+      code: MAP_WGSL.replaceAll('__SEA_TINT_MIX__', (style.seaTintMix ?? 0).toFixed(3)),
     });
     const texture = device.createTexture({
       label: 'campaign-map-texture',
@@ -382,39 +396,59 @@ export class CampaignMapPass {
         module,
         entryPoint: 'vs',
         buffers: [{
-          arrayStride: 16,
+          arrayStride: 20,
           attributes: [
-            { shaderLocation: 0, offset: 0, format: 'float32x2' },
-            { shaderLocation: 1, offset: 8, format: 'float32x2' },
+            { shaderLocation: 0, offset: 0, format: 'float32x3' },
+            { shaderLocation: 1, offset: 12, format: 'float32x2' },
           ],
         }],
       },
       fragment: { module, entryPoint: 'fs', targets: [{ format: shell.info.format }] },
-      primitive: { topology: 'triangle-strip' },
+      primitive: { topology: 'triangle-list', cullMode: 'none' },
+      depthStencil: webGpuWorldDepthStencil('write'),
     });
-    const [x0, y0] = rect.min;
-    const [x1, y1] = rect.max;
-    const vertices = new Float32Array([
-      x0, y0, 0, 1,
-      x1, y0, 1, 1,
-      x0, y1, 0, 0,
-      x1, y1, 1, 0,
-    ]);
+    const mesh = surface ?? flatMapSurface(rect);
+    this.indexCount = mesh.indices.length;
     this.vertexBuffer = device.createBuffer({
-      label: 'campaign-map-quad',
-      size: vertices.byteLength,
+      label: 'campaign-map-surface-vertices',
+      size: mesh.vertices.byteLength,
       usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
     });
-    device.queue.writeBuffer(this.vertexBuffer, 0, vertices);
+    this.indexBuffer = device.createBuffer({
+      label: 'campaign-map-surface-indices',
+      size: mesh.indices.byteLength,
+      usage: GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST,
+    });
+    device.queue.writeBuffer(this.vertexBuffer, 0, mesh.vertices);
+    device.queue.writeBuffer(this.indexBuffer, 0, mesh.indices);
   }
 
-  draw(pass: BackgroundRenderPass) {
+  draw(pass: WorldRenderPass) {
     pass.setPipeline(this.pipeline);
     pass.setBindGroup(0, this.shell.cameraBindGroup);
     pass.setBindGroup(1, this.bindGroup);
     pass.setVertexBuffer(0, this.vertexBuffer);
-    pass.draw(4);
+    pass.setIndexBuffer(this.indexBuffer, 'uint32');
+    pass.drawIndexed(this.indexCount);
   }
+
+  stats() {
+    return { surfaceTriangles: Math.floor(this.indexCount / 3) };
+  }
+}
+
+function flatMapSurface(rect: { min: [number, number]; max: [number, number] }): CampaignMapSurfaceMesh {
+  const [x0, y0] = rect.min;
+  const [x1, y1] = rect.max;
+  return {
+    vertices: new Float32Array([
+      x0, y0, 0, 0, 1,
+      x1, y0, 0, 1, 1,
+      x0, y1, 0, 0, 0,
+      x1, y1, 0, 1, 0,
+    ]),
+    indices: new Uint32Array([0, 1, 2, 2, 1, 3]),
+  };
 }
 
 export class CampaignLinePass {
@@ -984,15 +1018,15 @@ function pushRaisedRoad(out: number[], edge: CampaignMapEdgeData, style: Campaig
     const crownHalf = 0.62 * roadScale;
     const shoulderHalf = 2.15 * roadScale;
     if (i === 1) {
-      pushRoadDisc(out, start, angle, 3.1 * roadScale, 1.5 * roadScale, apronZ, shoulderColor, 0);
-      pushRoadDisc(out, start, angle, 2.15 * roadScale, 1.05 * roadScale, topZ, topColor, 1);
+      pushRoadDisc(out, start, angle, 3.1 * roadScale, 1.5 * roadScale, apronZ, shoulderColor, 0, style.heightAt);
+      pushRoadDisc(out, start, angle, 2.15 * roadScale, 1.05 * roadScale, topZ, topColor, 1, style.heightAt);
     }
-    pushRoadDisc(out, end, angle, 2.85 * roadScale, 1.38 * roadScale, apronZ, shoulderColor, 0);
-    pushRoadDisc(out, end, angle, 1.98 * roadScale, 0.96 * roadScale, topZ, topColor, 1);
-    pushRoadStrip(out, start, end, shoulderHalf, 0.02 * roadScale, shoulderColor, 0);
-    pushRoadStrip(out, start, end, topHalf, topZ, topColor, 1);
-    pushRoadStrip(out, start, end, crownHalf, topZ + 0.025 * roadScale, crownColor, 1);
-    pushRoadSide(out, start, end, nx, ny, topHalf, topZ, sideColor);
+    pushRoadDisc(out, end, angle, 2.85 * roadScale, 1.38 * roadScale, apronZ, shoulderColor, 0, style.heightAt);
+    pushRoadDisc(out, end, angle, 1.98 * roadScale, 0.96 * roadScale, topZ, topColor, 1, style.heightAt);
+    pushRoadStrip(out, start, end, shoulderHalf, 0.02 * roadScale, shoulderColor, 0, style.heightAt);
+    pushRoadStrip(out, start, end, topHalf, topZ, topColor, 1, style.heightAt);
+    pushRoadStrip(out, start, end, crownHalf, topZ + 0.025 * roadScale, crownColor, 1, style.heightAt);
+    pushRoadSide(out, start, end, nx, ny, topHalf, topZ, sideColor, style.heightAt);
   }
 }
 
@@ -1027,8 +1061,8 @@ function roadEndpointInsets(edge: CampaignMapEdgeData, nodesById: Map<number, Ca
   };
 }
 
-function pushRoadVertex(out: number[], point: [number, number], z: number, color: [number, number, number, number], uv: [number, number], material: number) {
-  out.push(point[0], point[1], z, ...color, uv[0], uv[1], material);
+function pushRoadVertex(out: number[], point: [number, number], z: number, color: [number, number, number, number], uv: [number, number], material: number, heightAt?: (x: number, y: number) => number) {
+  out.push(point[0], point[1], z + (heightAt?.(point[0], point[1]) ?? 0), ...color, uv[0], uv[1], material);
 }
 
 function pushRoadTriangle(
@@ -1038,13 +1072,14 @@ function pushRoadTriangle(
   c: [number, number, number, number],
   color: [number, number, number, number],
   material: number,
+  heightAt?: (x: number, y: number) => number,
 ) {
-  pushRoadVertex(out, [a[0], a[1]], a[2], color, [a[3], -1], material);
-  pushRoadVertex(out, [b[0], b[1]], b[2], color, [b[3], 0], material);
-  pushRoadVertex(out, [c[0], c[1]], c[2], color, [c[3], 1], material);
+  pushRoadVertex(out, [a[0], a[1]], a[2], color, [a[3], -1], material, heightAt);
+  pushRoadVertex(out, [b[0], b[1]], b[2], color, [b[3], 0], material, heightAt);
+  pushRoadVertex(out, [c[0], c[1]], c[2], color, [c[3], 1], material, heightAt);
 }
 
-function pushRoadStrip(out: number[], a: [number, number], b: [number, number], halfWidth: number, z: number, color: [number, number, number, number], material: number) {
+function pushRoadStrip(out: number[], a: [number, number], b: [number, number], halfWidth: number, z: number, color: [number, number, number, number], material: number, heightAt?: (x: number, y: number) => number) {
   const dx = b[0] - a[0];
   const dy = b[1] - a[1];
   const len = Math.hypot(dx, dy) || 1;
@@ -1054,25 +1089,25 @@ function pushRoadStrip(out: number[], a: [number, number], b: [number, number], 
   const a1: [number, number, number, number] = [a[0] + nx * halfWidth, a[1] + ny * halfWidth, z, 0];
   const b0: [number, number, number, number] = [b[0] - nx * halfWidth, b[1] - ny * halfWidth, z, len * 0.26];
   const b1: [number, number, number, number] = [b[0] + nx * halfWidth, b[1] + ny * halfWidth, z, len * 0.26];
-  pushRoadTriangle(out, a0, b0, b1, color, material);
-  pushRoadTriangle(out, a0, b1, a1, color, material);
+  pushRoadTriangle(out, a0, b0, b1, color, material, heightAt);
+  pushRoadTriangle(out, a0, b1, a1, color, material, heightAt);
 }
 
-function pushRoadSide(out: number[], a: [number, number], b: [number, number], nx: number, ny: number, halfWidth: number, z: number, color: [number, number, number, number]) {
+function pushRoadSide(out: number[], a: [number, number], b: [number, number], nx: number, ny: number, halfWidth: number, z: number, color: [number, number, number, number], heightAt?: (x: number, y: number) => number) {
   const len = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1;
   const side = (sign: -1 | 1) => {
     const aTop: [number, number, number, number] = [a[0] + nx * halfWidth * sign, a[1] + ny * halfWidth * sign, z, 0];
     const bTop: [number, number, number, number] = [b[0] + nx * halfWidth * sign, b[1] + ny * halfWidth * sign, z, len * 0.26];
     const aBase: [number, number, number, number] = [aTop[0] + nx * 0.20 * sign, aTop[1] + ny * 0.20 * sign, 0.01, 0];
     const bBase: [number, number, number, number] = [bTop[0] + nx * 0.20 * sign, bTop[1] + ny * 0.20 * sign, 0.01, len * 0.26];
-    pushRoadTriangle(out, aBase, bBase, bTop, color, 0);
-    pushRoadTriangle(out, aBase, bTop, aTop, color, 0);
+    pushRoadTriangle(out, aBase, bBase, bTop, color, 0, heightAt);
+    pushRoadTriangle(out, aBase, bTop, aTop, color, 0, heightAt);
   };
   side(-1);
   side(1);
 }
 
-function pushRoadDisc(out: number[], center: [number, number], angle: number, radiusX: number, radiusY: number, z: number, color: [number, number, number, number], material: number) {
+function pushRoadDisc(out: number[], center: [number, number], angle: number, radiusX: number, radiusY: number, z: number, color: [number, number, number, number], material: number, heightAt?: (x: number, y: number) => number) {
   const steps = 18;
   const cos = Math.cos(angle);
   const sin = Math.sin(angle);
@@ -1092,7 +1127,7 @@ function pushRoadDisc(out: number[], center: [number, number], angle: number, ra
       (i + 1) / 3,
     ];
     const c: [number, number, number, number] = [center[0], center[1], z, i / 3];
-    pushRoadTriangle(out, c, p0, p1, color, material);
+    pushRoadTriangle(out, c, p0, p1, color, material, heightAt);
   }
 }
 

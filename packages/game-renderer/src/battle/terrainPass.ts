@@ -1,5 +1,6 @@
 import type { BackgroundRenderPass, RawFrameShell, WorldRenderPass } from '../../../webgpu-core/src/frameShell';
 import { WORLD_CAMERA_WGSL } from '../../../webgpu-core/src/cameraWgsl';
+import { compileShader } from '../../../webgpu-core/src/compileShader';
 import { webGpuWorldDepthStencil } from '../../../webgpu-core/src/pipelineContracts';
 
 export type BattleTerrainFixture = 'coast' | 'melee' | 'dry-melee' | 'prop-field' | 'sim-tint';
@@ -230,7 +231,7 @@ export class BattleTerrainPass {
 
   constructor(private shell: RawFrameShell) {
     const device = shell.device;
-    const module = device.createShaderModule({ label: 'battle-terrain-wgsl', code: BATTLE_TERRAIN_WGSL });
+    const module = compileShader(device, BATTLE_TERRAIN_WGSL, 'battle-terrain');
     const vertex = {
       module,
       entryPoint: 'vs',

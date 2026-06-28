@@ -2,6 +2,7 @@ import { Game, type InitOutput } from '../wasm/game_wasm.js';
 import type { Scene } from '../scene';
 import { Camera } from '../shared/camera';
 import { pushGhost, pushPie, pushRing } from '../shared/overlays';
+import { fatalSurfaceFor, showFatalErrorSurface } from '../shared/fatalError';
 import { modelLookForUnit } from '../../../packages/game-renderer/src/models/shared/soldierModel';
 import { BattleRendererWebGPU, type BattleTacticalLineFrame } from './rendererWebGPU';
 import { CLASS_NAMES } from './classData';
@@ -1239,6 +1240,9 @@ export class BattleScene implements Scene {
     window.__cam = camera;
     void renderer.ready.then(() => {
       window.__ready = true;
+    }).catch((error: unknown) => {
+      const message = error instanceof Error ? error.message : String(error);
+      showFatalErrorSurface(canvas, fatalSurfaceFor('init', message));
     });
   }
 }

@@ -1,5 +1,6 @@
 import type { RawFrameShell, WorldRenderPass } from '../../../webgpu-core/src/frameShell';
 import { WORLD_CAMERA_WGSL } from '../../../webgpu-core/src/cameraWgsl';
+import { compileShader } from '../../../webgpu-core/src/compileShader';
 import { webGpuAlphaBlendColorTarget, webGpuWorldDepthStencil } from '../../../webgpu-core/src/pipelineContracts';
 
 export interface BattleGroundCueStats {
@@ -36,7 +37,7 @@ export class BattleGroundCuePass {
 
   constructor(private shell: RawFrameShell) {
     const device = shell.device;
-    const module = device.createShaderModule({ label: 'battle-ground-cue-wgsl', code: GROUND_CUE_WGSL });
+    const module = compileShader(device, GROUND_CUE_WGSL, 'battle-ground-cue');
     this.pipeline = device.createRenderPipeline({
       label: 'battle-ground-cue-line-pipeline',
       layout: device.createPipelineLayout({ bindGroupLayouts: [shell.cameraBindGroupLayout] }),

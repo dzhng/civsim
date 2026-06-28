@@ -1,5 +1,6 @@
 import type { OverlayRenderPass, RawFrameShell } from '../../../webgpu-core/src/frameShell';
 import { WORLD_CAMERA_WGSL } from '../../../webgpu-core/src/cameraWgsl';
+import { compileShader } from '../../../webgpu-core/src/compileShader';
 import { webGpuAlphaBlendColorTarget } from '../../../webgpu-core/src/pipelineContracts';
 
 export interface BattleEffectLineStats {
@@ -36,7 +37,7 @@ export class BattleEffectLinePass {
 
   constructor(private shell: RawFrameShell) {
     const device = shell.device;
-    const module = device.createShaderModule({ label: 'battle-effect-line-wgsl', code: EFFECT_LINE_WGSL });
+    const module = compileShader(device, EFFECT_LINE_WGSL, 'battle-effect-line');
     this.pipeline = device.createRenderPipeline({
       label: 'battle-effect-line-pipeline',
       layout: device.createPipelineLayout({ bindGroupLayouts: [shell.cameraBindGroupLayout] }),

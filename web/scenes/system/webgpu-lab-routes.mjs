@@ -352,6 +352,54 @@ async function tsFiles(dir) {
   return files;
 }
 
+// Slice 01 device/error resilience: a raw createShaderModule on a non-campaign
+// renderer surface skips the structured WGSL diagnostic and can blank the
+// screen on a shader typo. compileShader.ts owns the one allowed raw call.
+async function findRawShaderModuleFootguns() {
+  const roots = [
+    new URL('../../../packages/webgpu-core/src/', import.meta.url),
+    new URL('../../../packages/game-renderer/src/battle/', import.meta.url),
+    new URL('../../../packages/game-renderer/src/fixtures/', import.meta.url),
+    new URL('../../src/battle/', import.meta.url),
+    new URL('../../../apps/webgpu-lab/src/', import.meta.url),
+  ];
+  const allowed = new Set([
+    new URL('../../../packages/webgpu-core/src/compileShader.ts', import.meta.url).pathname,
+  ]);
+  const root = new URL('../../../', import.meta.url).pathname;
+  const matches = [];
+  for (const dir of roots) {
+    for (const file of await tsFiles(dir)) {
+      if (allowed.has(file.pathname)) continue;
+      const source = await readFile(file, 'utf8');
+      if (/\.createShaderModule\s*\(/.test(source)) {
+        matches.push(file.pathname.replace(root, ''));
+      }
+    }
+  }
+  return matches.sort();
+}
+
+// A renderer.ready promise without a .catch turns an init failure into an
+// unhandled rejection and a silent blank canvas instead of a fatal-error panel.
+async function findUnguardedRendererReadyFootguns() {
+  const roots = [
+    new URL('../../src/battle/', import.meta.url),
+    new URL('../../src/campaign/', import.meta.url),
+  ];
+  const root = new URL('../../../', import.meta.url).pathname;
+  const matches = [];
+  for (const dir of roots) {
+    for (const file of await tsFiles(dir)) {
+      const source = await readFile(file, 'utf8');
+      if (/\.ready\s*\.then\s*\(/.test(source) && !/\.catch\s*\(/.test(source)) {
+        matches.push(file.pathname.replace(root, ''));
+      }
+    }
+  }
+  return matches.sort();
+}
+
 async function findCampaignDepthOnlyFootguns() {
   const files = [
     new URL('../../../packages/game-renderer/src/campaign/entityPass.ts', import.meta.url),
@@ -874,6 +922,18 @@ export async function run(ctx) {
     'source: depth-writing world geometry uses opaque material contracts',
     worldMaterialContractFootguns.length === 0,
     JSON.stringify({ worldMaterialContractFootguns }),
+  );
+  const rawShaderModuleFootguns = await findRawShaderModuleFootguns();
+  ctx.check(
+    'source: every shader compiles through compileShader (structured WGSL errors)',
+    rawShaderModuleFootguns.length === 0,
+    JSON.stringify({ rawShaderModuleFootguns }),
+  );
+  const unguardedReadyFootguns = await findUnguardedRendererReadyFootguns();
+  ctx.check(
+    'source: every renderer.ready chain has a .catch fatal-error surface',
+    unguardedReadyFootguns.length === 0,
+    JSON.stringify({ unguardedReadyFootguns }),
   );
 
   for (const [route, predicate] of routes) {

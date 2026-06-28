@@ -1,5 +1,6 @@
 import type { RawFrameShell, WorldRenderPass } from '../../../webgpu-core/src/frameShell';
 import { WORLD_CAMERA_WGSL } from '../../../webgpu-core/src/cameraWgsl';
+import { compileShader } from '../../../webgpu-core/src/compileShader';
 import { WEBGPU_DEPTH_FORMAT } from '../../../webgpu-core/src/depthContract';
 import { webGpuOpaqueColorTarget, webGpuWorldDepthStencil } from '../../../webgpu-core/src/pipelineContracts';
 
@@ -48,7 +49,7 @@ export class Nested3dFixturePass {
 
   constructor(private shell: RawFrameShell) {
     const device = shell.device;
-    const module = device.createShaderModule({ label: 'nested-3d-fixture-wgsl', code: NESTED_3D_WGSL });
+    const module = compileShader(device, NESTED_3D_WGSL, 'nested-3d-fixture');
     this.pipeline = device.createRenderPipeline({
       label: 'nested-3d-fixture-depth-pipeline',
       layout: device.createPipelineLayout({ bindGroupLayouts: [shell.cameraBindGroupLayout] }),

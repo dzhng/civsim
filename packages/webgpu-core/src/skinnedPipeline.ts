@@ -1,6 +1,7 @@
 import type { CrowdInstance } from '../../crowd-runtime/src/instanceData';
 import type { SoldierMeshData } from '../../soldier-assets/src/soldierMesh';
 import type { VatBake } from '../../soldier-assets/src/schema';
+import { compileShader } from './compileShader';
 import { createVatLayout, resolveVatClip } from './vatLayout';
 import type { RawFrameShell, WorldRenderPass } from './frameShell';
 import { WORLD_CAMERA_WGSL } from './cameraWgsl';
@@ -235,7 +236,7 @@ export class SkinnedCrowdPipeline {
 
   private makePipeline(vatLayout: GPUBindGroupLayout) {
     const device = this.shell.device;
-    const module = device.createShaderModule({ label: 'skinned-crowd-wgsl', code: SKINNED_WGSL });
+    const module = compileShader(device, SKINNED_WGSL, 'skinned-crowd');
     return device.createRenderPipeline({
       label: 'skinned-crowd-pipeline',
       layout: device.createPipelineLayout({ bindGroupLayouts: [this.shell.cameraBindGroupLayout, vatLayout] }),

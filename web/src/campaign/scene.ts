@@ -12,6 +12,7 @@ import { TerrainField } from './terrain';
 import { Territory } from './territory';
 import { Allegiance } from './status';
 import { installCampaignDebugApi, markCampaignReady } from './debugApi';
+import { fatalSurfaceFor, showFatalErrorSurface } from '../shared/fatalError';
 import {
   armyPanelHtml,
   campaignDomHtml,
@@ -150,6 +151,9 @@ export class CampaignScene implements Scene {
     void this.renderer.ready.then(() => {
       this.terrainReady = true;
       markCampaignReady(true);
+    }).catch((error: unknown) => {
+      const message = error instanceof Error ? error.message : String(error);
+      showFatalErrorSurface(this.canvas, fatalSurfaceFor('init', message));
     });
     this.ownerHash = 0; // force a territory recolor on (re)entry
     this.ac = new AbortController();

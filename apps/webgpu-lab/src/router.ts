@@ -2,6 +2,8 @@ import { createFrameShell, type BackgroundRenderPass, type FrameGraphCommands, t
 import { screenToWorld, world3dToScreen, worldToScreen } from '../../../packages/webgpu-core/src/cameraUniform';
 import { WEBGPU_DEPTH_FORMAT, WEBGPU_WORLD_DEPTH_ATTACHMENT } from '../../../packages/webgpu-core/src/depthContract';
 import { requestWebGpuDevice, webGpuFailureMessage } from '../../../packages/webgpu-core/src/device';
+import { compileShader, setShaderErrorHandler, shaderCompilationMessages, type ShaderCompilationMessage } from '../../../packages/webgpu-core/src/compileShader';
+import { fatalSurfaceFor, showFatalErrorSurface } from '../../../web/src/shared/fatalError';
 import { SkinnedCrowdPipeline } from '../../../packages/webgpu-core/src/skinnedPipeline';
 import { animationForFrame } from '../../../packages/crowd-runtime/src/animationState';
 import { buildCrowdInstances, generatedFormation, type CrowdInstance } from '../../../packages/crowd-runtime/src/instanceData';
@@ -48,6 +50,7 @@ interface LabContext {
 
 const routes: Record<string, LabRoute> = {
   '/webgpu/device': routeDevice,
+  '/webgpu/fault-injection': routeFaultInjection,
   '/webgpu/frame-shell': routeFrameShell,
   '/webgpu/assets': routeAssets,
   '/webgpu/crowd-data': routeCrowdData,
@@ -122,6 +125,155 @@ async function routeDevice(ctx: LabContext) {
     markers: markers.length,
   });
   publish('device', true, { ...shell.stats(), vendor: info.vendor, features: info.features });
+}
+
+const BAD_SHADER_WGSL = `
+@vertex
+fn vs() -> @builtin(position) vec4f {
+  return notAFunction(1.0);  // undeclared identifier — must surface a compile error
+}`;
+
+interface FaultInjectionState {
+  route: 'fault-injection';
+  initialFrameRendered: boolean;
+  badShader: { triggered: boolean; errorCount: number; firstError: ShaderCompilationMessage | null; handlerFired: boolean } | null;
+  rejectedSubmission: { triggered: boolean; captured: boolean; message: string } | null;
+  deviceLoss: { triggered: boolean; reason: string; fatalSurface: boolean } | null;
+  health: { fatal: boolean; deviceLost: boolean };
+}
+
+interface FaultInjectionApi {
+  injectBadShader(): Promise<FaultInjectionState>;
+  rejectSubmission(): Promise<FaultInjectionState>;
+  forceDeviceLoss(): Promise<FaultInjectionState>;
+}
+
+async function routeFaultInjection(ctx: LabContext) {
+  const state: FaultInjectionState = {
+    route: 'fault-injection',
+    initialFrameRendered: false,
+    badShader: null,
+    rejectedSubmission: null,
+    deviceLoss: null,
+    health: { fatal: false, deviceLost: false },
+  };
+  let handlerFired = false;
+  setShaderErrorHandler(() => { handlerFired = true; });
+
+  const shell = await createFrameShell(ctx.canvas, {
+    onFatalError: (report) => showFatalErrorSurface(ctx.canvas, fatalSurfaceFor(
+      report.phase === 'device-lost' ? 'device-lost' : 'submission',
+      report.message,
+    )),
+  });
+  shell.setCamera({ x: 0, y: 0, zoom: 10, pitch: 0.25, yaw: 0 });
+  const markers = generatedMarkers(18, -8, -4, 0).concat(generatedMarkers(18, 8, 2, 1));
+  shell.drawFrame({ markers, markerLayer: 'lab-placeholder' });
+  state.initialFrameRendered = true;
+
+  const sync = () => {
+    state.health = { fatal: shell.health().fatal, deviceLost: shell.health().deviceLost };
+    publish('fault-injection', true, state);
+    renderPanel();
+  };
+
+  const injectBadShader = async () => {
+    handlerFired = false;
+    // Compile on a throwaway device so the bad shader's uncaptured error does
+    // not mark the live shell fatal — each fault here is demonstrated in
+    // isolation. The compile-error surfacing path is identical to production.
+    const scratch = await requestWebGpuDevice();
+    const module = compileShader(scratch.device, BAD_SHADER_WGSL, 'fault-bad-shader');
+    const messages = await shaderCompilationMessages(module, 'fault-bad-shader');
+    const errors = messages.filter((m) => m.type === 'error');
+    state.badShader = {
+      triggered: true,
+      errorCount: errors.length,
+      firstError: errors[0] ?? null,
+      handlerFired,
+    };
+    (scratch.device as unknown as { destroy(): void }).destroy();
+    sync();
+    return state;
+  };
+
+  const rejectSubmission = async () => {
+    let captured = false;
+    let message = '';
+    try {
+      // Submitting a non-command-buffer is a synchronous validation/type error:
+      // the diagnostic must surface, not vanish into a blank frame.
+      (shell.device.queue as unknown as { submit(c: unknown[]): void }).submit([{ invalid: true }]);
+    } catch (error) {
+      captured = true;
+      message = error instanceof Error ? error.message : String(error);
+      console.error(`rejected submission: ${message}`);
+    }
+    state.rejectedSubmission = { triggered: true, captured, message };
+    sync();
+    return state;
+  };
+
+  const forceDeviceLoss = async () => {
+    const lost = new Promise<void>((resolve) => {
+      const prev = shell.health();
+      if (prev.deviceLost) { resolve(); return; }
+      const start = performance.now();
+      const poll = () => {
+        if (shell.health().deviceLost || performance.now() - start > 3000) resolve();
+        else requestAnimationFrame(poll);
+      };
+      poll();
+    });
+    (shell.device as unknown as { destroy(): void }).destroy();
+    await lost;
+    // A defined post-loss state: the renderer shows the reload panel rather than
+    // hanging. (Default policy: surface, do not silently auto-reinit.)
+    shell.drawFrame({ markers, markerLayer: 'lab-placeholder' }); // no-op while fatal
+    state.deviceLoss = {
+      triggered: true,
+      reason: shell.health().lastError?.message ?? '',
+      fatalSurface: Boolean(window.__webgpuFatal),
+    };
+    sync();
+    return state;
+  };
+
+  const api: FaultInjectionApi = { injectBadShader, rejectSubmission, forceDeviceLoss };
+  (window as unknown as { __faultInjection?: FaultInjectionApi }).__faultInjection = api;
+
+  function renderPanel() {
+    ctx.status.innerHTML = '';
+    const intro = el('p', 'fault-intro');
+    intro.textContent = 'Force each GPU fault and confirm a visible, correct outcome — never a silent blank canvas.';
+    ctx.status.appendChild(intro);
+    const controls = el('div', 'fault-controls');
+    controls.append(
+      faultButton('Inject bad shader', () => void injectBadShader()),
+      faultButton('Reject submission', () => void rejectSubmission()),
+      faultButton('Force device loss', () => void forceDeviceLoss()),
+    );
+    ctx.status.appendChild(controls);
+    ctx.status.insertAdjacentHTML('beforeend', reportTable({
+      'initial frame': state.initialFrameRendered,
+      'bad shader errors': state.badShader ? state.badShader.errorCount : '—',
+      'bad shader first': state.badShader?.firstError ? `${state.badShader.firstError.line}:${state.badShader.firstError.column} ${state.badShader.firstError.message}` : '—',
+      'rejected submission': state.rejectedSubmission ? `captured=${state.rejectedSubmission.captured}` : '—',
+      'device loss': state.deviceLoss ? `reason=${state.deviceLoss.reason || 'destroyed'}` : '—',
+      'fatal surface': state.deviceLoss?.fatalSurface ?? false,
+      'shell fatal': state.health.fatal,
+    }));
+  }
+
+  function faultButton(label: string, onClick: () => void) {
+    const button = document.createElement('button');
+    button.className = 'fault-button';
+    button.textContent = label;
+    button.addEventListener('click', onClick);
+    return button;
+  }
+
+  sync();
 }
 
 async function routeFrameShell(ctx: LabContext) {
@@ -2641,6 +2793,10 @@ function installStyles() {
     .webgpu-panel .webgpu-status-list span { display: block; color: #cfc2a8; }
     .webgpu-panel .webgpu-status-list .pending { border-color: #7c6444; background: rgba(164,123,70,0.11); }
     .webgpu-status.bad { color: #ffb2a2; }
+    .fault-intro { margin: 0 0 10px; color: #bdb29b; font-size: 12px; line-height: 1.4; }
+    .fault-controls { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 12px; }
+    .fault-button { border: 1px solid #7c5d3a; border-radius: 5px; background: #2c2418; color: #f2e3bd; padding: 7px 10px; font-size: 12px; cursor: pointer; }
+    .fault-button:hover { background: #41331f; }
     .asset-workbench { margin-top: 12px; padding: 9px; border: 1px solid #4d4432; border-radius: 6px; background: rgba(255,255,255,0.035); }
     .asset-workbench.drag { border-color: #d6bb7a; background: rgba(214,187,122,0.10); }
     .asset-workbench label { display: block; margin-bottom: 6px; color: #e8d7a8; font-size: 12px; font-weight: 700; }

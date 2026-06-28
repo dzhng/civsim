@@ -5,9 +5,32 @@ type GPUBindGroup = unknown;
 type GPUBindGroupLayout = unknown;
 type GPURenderPipeline = unknown;
 type GPUSampler = unknown;
-type GPUShaderModule = unknown;
-type GPUTexture = { createView(): GPUTextureView };
+type GPUCompilationMessageType = 'error' | 'warning' | 'info';
+interface GPUCompilationMessage {
+  readonly message: string;
+  readonly type: GPUCompilationMessageType;
+  readonly lineNum: number;
+  readonly linePos: number;
+  readonly offset: number;
+  readonly length: number;
+}
+interface GPUCompilationInfo {
+  readonly messages: ReadonlyArray<GPUCompilationMessage>;
+}
+interface GPUShaderModule {
+  getCompilationInfo(): Promise<GPUCompilationInfo>;
+}
+type GPUTexture = { createView(): GPUTextureView; destroy(): void };
 type GPUTextureView = unknown;
+
+interface GPUDeviceLostInfo {
+  readonly reason: 'destroyed' | 'unknown';
+  readonly message: string;
+}
+
+interface GPUUncapturedErrorEvent {
+  readonly error: { readonly message: string };
+}
 
 declare const GPUBufferUsage: {
   readonly COPY_DST: number;

@@ -118,13 +118,33 @@ final cutover (slice 11) is the integration point that depends on the rest.
 
 You are building the WebGPU conversion completion. Last updated: 2026-06-29.
 
-Current status: spec authored from the 2026-06-29 gap review. No slices started.
-The renderer architecture is shipped and green; everything here is additive.
+Current status: **Slice 01 (device & error resilience) shipped and green.**
+- `compileShader` helper (`packages/webgpu-core/src/compileShader.ts`) routes
+  every non-campaign shader compile through `getCompilationInfo()` so a WGSL
+  typo surfaces a structured `file:line — message` error instead of a blank
+  canvas. Off the render loop (fire-and-forget, shaders build once).
+- `device.ts` wraps `requestAdapter`/`requestDevice` in try/catch and
+  `attachDeviceErrorHandlers` wires `device.lost` + `onuncapturederror`.
+- `frameShell` guards context acquisition and `encoder.finish()`/`queue.submit()`,
+  goes fatal-on-error (stops submitting), and exposes `health()` +
+  `onDeviceLost`/`onFatalError` callbacks.
+- Shared `web/src/shared/fatalError.ts` renders an actionable "GPU was reset —
+  reload" panel over the canvas (covers the canvas box only, leaves sibling
+  diagnostics readable). Wired into battle renderer faults and both
+  battle/campaign `renderer.ready.catch`.
+- New `/webgpu/fault-injection` lab route (three buttons: bad shader, rejected
+  submit, device loss) + `webgpu-fault-injection` scene gate, plus two source
+  gates in `webgpu-lab-routes` (every shader via `compileShader`; every
+  `renderer.ready` has a `.catch`). Added to `scenario:webgpu`.
 
-Next pickup: start **Slice 01 (device & error resilience)** — it is small,
-unblocks safe production for every route, and needs no art. Build the
-fault-injection lab route first so the recovery behavior is observable, then add
-the handlers behind it.
+Firewall note: campaign renderer passes (`game-renderer/src/campaign/*`) were
+left untouched per the spec; the `compileShader` source gate is scoped to
+non-campaign roots. Only the campaign `renderer.ready.catch` (scene controller,
+pure robustness) was added.
+
+Next pickup: **Slice 02 (capabilities & render quality)** — capability/limit
+validation, depth-format fallback, high-performance power preference, MSAA, GPU
+timestamp queries, behind a capability-probe lab page.
 
 Active warnings:
 - Keep the sim and campaign renderer untouched; this is non-campaign renderer
@@ -135,7 +155,7 @@ Active warnings:
 
 Global TODO:
 
-- [ ] Slice 01: device-loss, init-error, uncaptured-error, submission guards,
+- [x] Slice 01: device-loss, init-error, uncaptured-error, submission guards,
   and shader-compilation reporting, with a fault-injection lab route.
 - [ ] Slice 02: capability/limit validation, depth-format fallback,
   high-performance power preference, MSAA, GPU timestamp queries.

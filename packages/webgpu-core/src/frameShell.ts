@@ -1,7 +1,8 @@
 import { cameraUniformData, type CameraSnapshot } from './cameraUniform';
 import { WORLD_CAMERA_WGSL } from './cameraWgsl';
+import { compileShader } from './compileShader';
 import { WEBGPU_DEPTH_FORMAT, isWebGpuDepthMode, type WebGpuDepthMode } from './depthContract';
-import { requestWebGpuDevice, type WebGpuDeviceInfo } from './device';
+import { requestWebGpuDevice, type DeviceLostReport, type UncapturedErrorReport, type WebGpuDeviceInfo } from './device';
 import {
   frameGraphDepthRole,
   frameGraphPhaseOrder,
@@ -25,6 +26,26 @@ export interface MarkerInstance {
 
 export type MarkerLayerIntent = 'none' | 'lab-placeholder' | 'far-lod-impostor';
 
+export type FrameShellFatalPhase = 'device-lost' | 'submission' | 'context';
+
+export interface FrameShellFatalReport {
+  phase: FrameShellFatalPhase;
+  message: string;
+}
+
+export interface FrameShellHealth {
+  fatal: boolean;
+  deviceLost: boolean;
+  lastError: FrameShellFatalReport | null;
+}
+
+export interface FrameShellOptions {
+  /** Called once when the device is lost; the shell stops submitting frames. */
+  onDeviceLost?: (report: DeviceLostReport) => void;
+  /** Called when any GPU fault makes the shell unrenderable (device loss, bad submit). */
+  onFatalError?: (report: FrameShellFatalReport) => void;
+}
+
 export interface RawFrameShell {
   info: WebGpuDeviceInfo;
   device: GPUDevice;
@@ -36,6 +57,7 @@ export interface RawFrameShell {
   drawFrame(commands?: FrameGraphCommands): void;
   destroy(): void;
   stats(): FrameShellStats;
+  health(): FrameShellHealth;
 }
 
 declare const framePassPhase: unique symbol;
@@ -336,9 +358,16 @@ fn fs(in: VsOut) -> @location(0) vec4f {
   return vec4f(mix(body, accent, max(stripe, 0.58)) * lodDim, 1.0);
 }`;
 
-export async function createFrameShell(canvas: HTMLCanvasElement): Promise<RawFrameShell> {
-  const info = await requestWebGpuDevice();
-  return new RawFrameShellImpl(canvas, info);
+export async function createFrameShell(canvas: HTMLCanvasElement, options: FrameShellOptions = {}): Promise<RawFrameShell> {
+  let shell: RawFrameShellImpl | null = null;
+  const info = await requestWebGpuDevice({
+    callbacks: {
+      onDeviceLost: (report) => shell?.handleDeviceLost(report),
+      onUncapturedError: (report) => shell?.handleUncapturedError(report),
+    },
+  });
+  shell = new RawFrameShellImpl(canvas, info, options);
+  return shell;
 }
 
 export class RawFrameShellImpl implements RawFrameShell {
@@ -368,10 +397,21 @@ export class RawFrameShellImpl implements RawFrameShell {
   private markerCount = 0;
   private frame = 0;
   private lastPhases: FramePhaseStats[] = [];
+  private fatal = false;
+  private deviceLost = false;
+  private lastError: FrameShellFatalReport | null = null;
+  private readonly onDeviceLost?: (report: DeviceLostReport) => void;
+  private readonly onFatalError?: (report: FrameShellFatalReport) => void;
 
-  constructor(readonly canvas: HTMLCanvasElement, readonly info: WebGpuDeviceInfo) {
+  constructor(readonly canvas: HTMLCanvasElement, readonly info: WebGpuDeviceInfo, options: FrameShellOptions = {}) {
     this.device = info.device;
-    this.context = canvas.getContext('webgpu')!;
+    this.onDeviceLost = options.onDeviceLost;
+    this.onFatalError = options.onFatalError;
+    const context = canvas.getContext('webgpu');
+    if (!context) {
+      throw new Error('WebGPU canvas context unavailable: getContext("webgpu") returned null.');
+    }
+    this.context = context;
     this.cameraBindGroupLayout = this.device.createBindGroupLayout({
       label: 'raw-frame-camera-bgl',
       entries: [{ binding: 0, visibility: GPUShaderStage.VERTEX, buffer: { type: 'uniform' } }],
@@ -434,6 +474,7 @@ export class RawFrameShellImpl implements RawFrameShell {
   drawFrame(commands: FrameGraphCommands = {}) {
     const graphPasses = commands.passes ?? [];
     this.assertFrameGraphPasses(graphPasses);
+    if (this.fatal) return;
     this.frame++;
     this.lastPhases = [];
     const backgroundPasses = graphPasses.filter((pass) => pass.phase === 'background');
@@ -535,12 +576,49 @@ export class RawFrameShellImpl implements RawFrameShell {
         loadOp: 'load',
       });
     }
-    this.device.queue.submit([encoder.finish()]);
+    let commandBuffer: unknown;
+    try {
+      commandBuffer = encoder.finish();
+    } catch (error) {
+      this.handleFatal('submission', error);
+      return;
+    }
+    try {
+      this.device.queue.submit([commandBuffer]);
+    } catch (error) {
+      this.handleFatal('submission', error);
+    }
   }
 
   destroy() {
     this.depthTexture?.destroy();
     this.depthTexture = null;
+  }
+
+  health(): FrameShellHealth {
+    return { fatal: this.fatal, deviceLost: this.deviceLost, lastError: this.lastError ? { ...this.lastError } : null };
+  }
+
+  handleDeviceLost(report: DeviceLostReport) {
+    this.deviceLost = true;
+    this.markFatal({ phase: 'device-lost', message: `device lost (${report.reason}): ${report.message}` });
+    this.onDeviceLost?.(report);
+  }
+
+  handleUncapturedError(report: UncapturedErrorReport) {
+    this.markFatal({ phase: 'submission', message: report.message });
+  }
+
+  private handleFatal(phase: FrameShellFatalPhase, error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    this.markFatal({ phase, message });
+  }
+
+  private markFatal(report: FrameShellFatalReport) {
+    this.lastError = report;
+    if (this.fatal) return;
+    this.fatal = true;
+    this.onFatalError?.(report);
   }
 
   stats(): FrameShellStats {
@@ -681,7 +759,7 @@ export class RawFrameShellImpl implements RawFrameShell {
   }
 
   private makeTerrainPipeline(label = 'terrain', code = TERRAIN_WGSL) {
-    const module = this.device.createShaderModule({ label: `${label}-wgsl`, code });
+    const module = compileShader(this.device, code, label);
     return this.device.createRenderPipeline({
       label: `${label}-pipeline`,
       layout: this.device.createPipelineLayout({ bindGroupLayouts: [this.cameraBindGroupLayout] }),
@@ -692,7 +770,7 @@ export class RawFrameShellImpl implements RawFrameShell {
   }
 
   private makeTerrainBackdropPipeline() {
-    const module = this.device.createShaderModule({ label: 'terrain-backdrop-wgsl', code: TERRAIN_BACKDROP_WGSL });
+    const module = compileShader(this.device, TERRAIN_BACKDROP_WGSL, 'terrain-backdrop');
     return this.device.createRenderPipeline({
       label: 'terrain-backdrop-pipeline',
       layout: this.device.createPipelineLayout({ bindGroupLayouts: [this.cameraBindGroupLayout] }),
@@ -703,7 +781,7 @@ export class RawFrameShellImpl implements RawFrameShell {
   }
 
   private makeMarkerPipeline() {
-    const module = this.device.createShaderModule({ label: 'marker-wgsl', code: MARKER_WGSL });
+    const module = compileShader(this.device, MARKER_WGSL, 'marker');
     return this.device.createRenderPipeline({
       label: 'marker-pipeline',
       layout: this.device.createPipelineLayout({ bindGroupLayouts: [this.cameraBindGroupLayout] }),

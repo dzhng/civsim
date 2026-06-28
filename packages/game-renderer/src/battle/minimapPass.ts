@@ -1,4 +1,5 @@
 import type { OverlayRenderPass, RawFrameShell } from '../../../webgpu-core/src/frameShell';
+import { compileShader } from '../../../webgpu-core/src/compileShader';
 
 export interface MinimapUnit {
   x: number;
@@ -71,7 +72,7 @@ export class BattleMinimapPass {
 
   constructor(private shell: RawFrameShell) {
     const device = shell.device;
-    const module = device.createShaderModule({ label: 'battle-minimap-wgsl', code: MINIMAP_WGSL });
+    const module = compileShader(device, MINIMAP_WGSL, 'battle-minimap');
     this.pipeline = device.createRenderPipeline({
       label: 'battle-minimap-pipeline',
       layout: 'auto',

@@ -4,6 +4,8 @@ import { BattleEffectLinePass } from '../../../packages/game-renderer/src/battle
 import { BattleGroundCuePass } from '../../../packages/game-renderer/src/battle/groundCuePass';
 import { BattleTerrainPass } from '../../../packages/game-renderer/src/battle/terrainPass';
 import { createFrameShell, type MarkerInstance, type OverlayRenderPass, type RawFrameShell } from '../../../packages/webgpu-core/src/frameShell';
+import { compileShader } from '../../../packages/webgpu-core/src/compileShader';
+import { fatalSurfaceFor, showFatalErrorSurface } from '../shared/fatalError';
 import { WORLD_CAMERA_WGSL } from '../../../packages/webgpu-core/src/cameraWgsl';
 import { SkinnedCrowdPipeline } from '../../../packages/webgpu-core/src/skinnedPipeline';
 import { loadPlaceholderVat } from '../../../packages/soldier-assets/src/placeholders';
@@ -228,7 +230,12 @@ export class BattleRendererWebGPU {
   }
 
   private async init() {
-    this.shell = await createFrameShell(this.canvas);
+    this.shell = await createFrameShell(this.canvas, {
+      onFatalError: (report) => showFatalErrorSurface(this.canvas, fatalSurfaceFor(
+        report.phase === 'device-lost' ? 'device-lost' : 'submission',
+        report.message,
+      )),
+    });
     this.terrain = new BattleTerrainPass(this.shell);
     if (this.terrainGrid) this.terrain.setTintGrid(this.terrainGrid);
     else {
@@ -360,7 +367,7 @@ class BattleTrianglePass {
 
   constructor(private shell: RawFrameShell) {
     const device = shell.device;
-    const module = device.createShaderModule({ label: 'battle-triangle-wgsl', code: TRIANGLE_WGSL });
+    const module = compileShader(device, TRIANGLE_WGSL, 'battle-triangle');
     this.pipeline = device.createRenderPipeline({
       label: 'battle-triangle-pipeline',
       layout: device.createPipelineLayout({ bindGroupLayouts: [shell.cameraBindGroupLayout] }),

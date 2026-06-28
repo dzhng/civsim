@@ -149,6 +149,15 @@ find which one carries it, then trace that term to its source.**
   was real; the cause was a guess I never checked against the code. Trace the term
   to the line that produces it before you attribute it, and never pin it on a
   force you haven't confirmed even applies to the body in question.
+- **A causal story about why behavior CHANGED is one `git stash` from proof —
+  run the before.** It is a deterministic sim: the prior state is a stash-and-run
+  away, so any "X regressed because Y" is checkable in minutes, not assertable.
+  The tell you skipped it: you stated a confident mechanism out loud ("the old
+  value was calibrated for the shorter grind") that you only *inferred* from the
+  current code. Stash your changes, run the original, and read the actual
+  difference — the tidy explanation is often the wrong one (the real cause was a
+  guaranteed-break floor the change now clears, not the story I told). Verify the
+  before/after delta before you narrate it, especially before you tune to it.
 - **A SATURATED extreme is a red flag, not a result — INTERROGATE it.** A side
   reduced to **0 or 3** survivors, **0–3 kills**, a 100%/0% win-rate, a near-total
   wipe: these are degenerate outcomes where a mechanism has bottomed out, and the
@@ -299,16 +308,13 @@ until green. Rules:
 5. **Smallest scale that shows it** — two units for a clash; armies only for
    integration.
 
-**Layer 2 — vibe shots are the real verdict** (the snapshot mechanics are
-[screenshot-regression](../screenshot-regression/SKILL.md)). Green Rust does not mean done; the
-mechanic must *feel* right across the WHOLE timeline (a clash can look clean at
-t=32s and be a swirling blob by t=48s — eyeballing one frame said "clean", the
-centroid test said "crossed at t=19.9s"). Rebuild wasm first (`npm run build:wasm`
-— the harness loads prebuilt wasm), then `node vibe/all.mjs` from `web/`; a
-mechanics change turns frames red (the point); re-bless with `UPDATE_SHOTS=1` once
-the new behavior is confirmed and commit the baselines as the record. Flip through
-`web/shots/vibe/<scenario>/` t000…t300 for approach → contact → grind →
-break → rout; `vibe/measure-duel.mjs` is the JS twin of the Rust test.
+**Layer 2 — vibe shots are the real verdict.** Green Rust does not mean done;
+the mechanic must *feel* right across the WHOLE timeline (a clash can look clean
+at t=32s and be a swirling blob by t=48s — eyeballing one frame said "clean", the
+centroid test said "crossed at t=19.9s"). Film the matchup and read every frame
+for approach → contact → grind → break → rout per
+[write-vibe](../write-vibe/SKILL.md); a mechanics change turns frames red (the
+point), and you re-bless once the new behavior is confirmed.
 
 ## Test taxonomy — by what each layer is ALLOWED to depend on
 

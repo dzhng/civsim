@@ -7,7 +7,12 @@
 // when a downstream mechanics change moves the battle. Re-bless intended shifts
 // with UPDATE_SHOTS=1; a scenario exits non-zero when any frame differs.
 import { chromium } from 'playwright';
+import fs from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { clearSnapshotFolder, snapCheck } from '../snapshot.mjs';
+import { encodeGif, pngToRGBA, downscaleRGBA } from './_gif.mjs';
+
+const SHOTS = fileURLToPath(new URL('../shots/', import.meta.url));
 
 export const TPS = 30; // sim ticks per second (the harness's advance(300) == 10 s)
 const TARGET = process.env.VERIFY_URL ?? 'http://localhost:5173';
@@ -88,6 +93,21 @@ export const duelLabel = (secs, s) =>
 // option: a fight isn't done at the verdict, it's done when the field clears.
 const TAIL_FRAMES = 3;
 
+// Every timeline also ships a looping GIF (web/shots/vibe/<name>/timeline.gif) so
+// the whole sequence can be WATCHED in one go at ~200 ms/frame, not flipped frame
+// by frame. It's derived from the very screenshots the per-frame PNGs gate on
+// (downscaled to keep the tracked file small), so it never costs a second capture
+// pass. The PNGs stay the full-res regression baselines; the GIF is review-only.
+const GIF_DELAY_CS = 20;   // 200 ms per frame
+const GIF_DOWNSCALE = 2;   // 1280x800 -> 640x400
+function writeTimelineGif(name, shots) {
+  if (shots.length === 0) return;
+  const frames = shots.map((buf) => downscaleRGBA(pngToRGBA(buf), GIF_DOWNSCALE));
+  const gif = encodeGif(frames, frames[0].width, frames[0].height, GIF_DELAY_CS);
+  fs.mkdirSync(`${SHOTS}vibe/${name}`, { recursive: true });
+  fs.writeFileSync(`${SHOTS}vibe/${name}/timeline.gif`, gif);
+}
+
 export async function vibeCapture(page, name, {
   stepSecs = 30, maxSteps = 20, frame, sample, label, done,
   // The sim is fully deterministic (freezeAtTick pins the exact tick), so a frame
@@ -109,6 +129,8 @@ export async function vibeCapture(page, name, {
   // frame lands on an exact, reproducible tick. Never freeze(false) here — that
   // would let wall-clock ticks slip in between steps and reintroduce the drift.
   let post = -1; // -1 until the verdict frame; then counts frames filmed since
+  const gifShots = []; // one screenshot per frame, reused for the timeline GIF
+  let result;
   for (let step = 0; ; step++) {
     if (frame) await frame();
     await page.waitForTimeout(120);
@@ -119,12 +141,19 @@ export async function vibeCapture(page, name, {
     const s = sample ? await sample() : {};
     const secs = step * stepSecs;
     if (label) console.log(label(secs, s));
-    await snapCheck(page, `vibe/${name}/t${String(secs).padStart(3, '0')}s`, check, { threshold, maxDiffRatio });
+    // One screenshot per frame, reused for BOTH the pixel-regression compare and
+    // the watch-the-whole-sequence GIF — so the timeline always ships a GIF with no
+    // second capture pass, even under SNAP= (which filters the compare, not the film).
+    const shot = await page.screenshot();
+    gifShots.push(shot);
+    await snapCheck(page, `vibe/${name}/t${String(secs).padStart(3, '0')}s`, check, { threshold, maxDiffRatio, shot });
     frames++;
     if (post >= 0) post++;                       // already past the verdict: film the tail
     else if (done && done(s)) post = 0;          // this frame IS the verdict
-    if (post >= TAIL_FRAMES) return { frames, resolved: true, fails };
-    if (post < 0 && step >= maxSteps) return { frames, resolved: false, fails }; // capped before a verdict
+    if (post >= TAIL_FRAMES) { result = { frames, resolved: true, fails }; break; }
+    if (post < 0 && step >= maxSteps) { result = { frames, resolved: false, fails }; break; } // capped before a verdict
     await page.evaluate((n) => window.__game.advance(n), stepSecs * TPS);
   }
+  writeTimelineGif(name, gifShots);
+  return result;
 }

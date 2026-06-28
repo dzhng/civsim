@@ -1,6 +1,6 @@
 ---
 name: screenshot-regression
-description: Take, inspect, and maintain deterministic screenshot baselines for visual changes. Use when verifying UI, campaign, battle, model, animation, or rendering changes; adding or re-blessing snapshots; comparing before/after captures; or debugging a visual snapshot failure. Pairs with [write-scene](../write-scene/SKILL.md) for addressable browser scenes.
+description: Take, inspect, and maintain deterministic screenshot baselines for visual changes through the shared snapCheck primitive. Use when verifying UI, campaign, battle, model, animation, or rendering changes; adding or re-blessing snapshots; comparing before/after captures; or debugging a visual snapshot failure. Pairs with [write-scene](../write-scene/SKILL.md), [write-vibe](../write-vibe/SKILL.md), and [write-turntable](../write-turntable/SKILL.md) because all visual gates snap through this primitive.
 ---
 
 # Screenshots and pixel-level regression testing
@@ -40,18 +40,10 @@ green, the model is bigger). If you re-blessed a baseline, look at the new
 baseline too — you are certifying it as ground truth for every future run.
 Never report a visual result you have only inferred from "the script passed."
 
-**For a timeline (vibe checks that snap every N seconds): read EVERY frame, in
-order. Do not sample two or three and infer the story between them.** The whole
-reason the harness shoots `t000s`, `t012s`, `t024s`, … is so you can *watch* the
-behaviour unfold — and the in-between frames routinely tell a different story
-than the endpoints. (Real miss: from a "surrounded square sallies out" test I
-read t48 and t72, saw the block forward and the front enemy dying, and reported
-"it breaks out of the encirclement." Reading every frame showed the square ran
-off after the *front* unit at t12 and the other two attackers never made contact
-at all — there was no encirclement, and the scenario was broken. Two frames + a
-plausible narrative = a confident wrong conclusion.) Open `t000s.png` onward and
-describe what each shows before you draw any conclusion; if a unit "wins," trace
-*how* across the frames, don't assume it from the final count.
+**For a time series — a vibe timeline, or any folder of frames — read EVERY
+frame, in order, and always ship a looping GIF.** Both rules (and how the GIF is
+emitted) live in [write-vibe](../write-vibe/SKILL.md); follow them for anything
+that snaps over time.
 
 **Crop and upscale before you theorise.** A unit is ~16 px in a 1280 px frame —
 you cannot diagnose a soldier-rendering bug by eyeballing the whole shot, and
@@ -224,10 +216,10 @@ already-captured `shot` buffer (a composited contact sheet, a reused frame) to
 skip the internal `page.screenshot()`.
 
 - **Verify harness:** a stage in `verify-battle.mjs` / `verify-campaign*.mjs`.
-- **Vibe timeline:** don't call `snapCheck` directly — `vibeCapture` does it for
-  every frame; just add the scenario (copy `vibe/duel-posture.mjs`).
-- **Model:** the turntable snap-checks one contact sheet per class; extend
-  `CLASS_H`/`STANCES` in `vibe/turntable.mjs` when the roster changes.
+- **Vibe timeline:** don't call `snapCheck` directly — `vibeCapture` does it per
+  frame; see [write-vibe](../write-vibe/SKILL.md).
+- **Model turntable:** snap-checks one composited contact sheet per class; see
+  [write-turntable](../write-turntable/SKILL.md).
 
 ### The determinism checklist — every snapshot must satisfy ALL of these
 
@@ -263,11 +255,9 @@ UPDATE_SHOTS=1 VERIFY_URL=http://localhost:5174 node verify-campaign.mjs
 UPDATE_SHOTS=1 VERIFY_URL=http://localhost:5174 node verify-battle.mjs
 ```
 
-Full vibe/turntable re-blesses clear their baseline folder before writing new
-shots, so shorter regenerated timelines cannot leave stale old frames behind.
-Timeline re-blesses intentionally refuse `UPDATE_SHOTS=1 SNAP=...`: a filtered
-regen would skip frames after clearing the folder, while not clearing the folder
-can leave stale frames behind. Unset `SNAP` and re-bless the whole timeline.
+Vibe and turntable re-blesses clear their baseline folder first (and the vibe
+timeline refuses a `SNAP=`-filtered regen) — those folder-clearing rules live in
+[write-vibe](../write-vibe/SKILL.md) and [write-turntable](../write-turntable/SKILL.md).
 
 4. Suspected nondeterminism → run the harness twice; if the second run isn't
    `0 px differ`, something on screen escaped the freeze path. Track it down

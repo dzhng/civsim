@@ -352,6 +352,14 @@ entities, fog, and clouds. This is the first catalog of campaign LoD gates; it
 does not replace future dedicated scenes for explicit bridges/ferries, city
 garrisons, and every later LoD threshold introduced by gameplay/UI changes.
 
+Real-map alignment checkpoint: the same LoD scene now samples named mainland
+Italy cities plus central-Italy road polylines against `window.__campaign`
+terrain probes and against rendered screenshot pixels. The regional natural and
+close Rome cameras must show those anchors on land, not water-blue pixels. This
+guards both sides of the historical failure: semantic map data can be correct
+while a water texture/projection is shifted, and a screenshot can look plausible
+while the terrain field is wrong.
+
 The whole-map campaign route now uses explicit WebGPU map/territory style
 constants instead of sharing the close-fixture wash. Stronger real-map
 territory alpha plus a lighter sea tint moved Campaign Whole Map from

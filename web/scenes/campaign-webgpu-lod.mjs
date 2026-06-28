@@ -5,9 +5,41 @@ const CAMPAIGN_3D_BASELINE = new URL(
   '../../specs/webgpu-skinned-crowd/visualizations/campaign-baselines/campaign-3d.png',
   import.meta.url,
 );
+const CAMPAIGN_MAP_JSON = new URL('../public/data/campaign-map.json', import.meta.url);
 const WHOLE_MAP_CAMERA = [-100, 250, 0.16];
 const REGIONAL_ITALY_CAMERA = [-430, 380, 4.0];
 const ROME_CLOSE_CAMERA = [-456, 446, 6.0];
+const MAINLAND_ITALY_CITY_NAMES = [
+  'Roma',
+  'Tibur',
+  'Narnia',
+  'Spoletium',
+  'Reate',
+  'Ferentinum',
+  'Alba Fucens',
+  'Clusium',
+  'Volsinii',
+  'Casinum',
+  'Aesernia',
+  'Teanum',
+  'Capua',
+];
+const CENTRAL_ITALY_ROAD_PAIRS = [
+  ['Roma', 'Tibur'],
+  ['Roma', 'Narnia'],
+  ['Roma', 'Reate'],
+  ['Roma', 'Volsinii'],
+  ['Roma', 'Ferentinum'],
+  ['Alba Fucens', 'Tibur'],
+  ['Narnia', 'Spoletium'],
+  ['Clusium', 'Volsinii'],
+  ['Casinum', 'Teanum'],
+  ['Minturnae', 'Teanum'],
+  ['Capua', 'Minturnae'],
+];
+const CAMPAIGN_MAP = JSON.parse(readFileSync(CAMPAIGN_MAP_JSON, 'utf8'));
+const MAINLAND_ITALY_POINTS = pointsForCityNames(CAMPAIGN_MAP, MAINLAND_ITALY_CITY_NAMES);
+const CENTRAL_ITALY_ROAD_POINTS = roadSamplesForPairs(CAMPAIGN_MAP, CENTRAL_ITALY_ROAD_PAIRS);
 
 export const meta = {
   name: 'campaign-webgpu-lod',
@@ -98,6 +130,7 @@ export async function run(ctx) {
     }, REGIONAL_ITALY_CAMERA),
     stats: (stats) => stats.visibleLabels >= 8 && stats.cityEntities > 20 && stats.armyEntities >= 1 && stats.roadTriangles > 0 && stats.factionView === false,
     compare3dBaseline: true,
+    realItalyAlignment: 'regional',
   });
 
   await snapCampaign(page, ctx, 'campaign-lod-regional-italy-political', {
@@ -113,6 +146,7 @@ export async function run(ctx) {
   await snapCampaign(page, ctx, 'campaign-lod-rome-close', {
     before: () => page.evaluate((camera) => window.__campaign.cam(...camera), ROME_CLOSE_CAMERA),
     stats: (stats) => stats.visibleLabels >= 4 && stats.cityEntities > 20 && stats.armyEntities >= 1 && stats.roadTriangles > 0,
+    realItalyAlignment: 'close',
   });
 
   await snapCampaign(page, ctx, 'campaign-lod-selected-army-city', {
@@ -145,16 +179,105 @@ export async function run(ctx) {
   await page.close();
 }
 
-async function snapCampaign(page, ctx, name, { before, stats, compare3dBaseline = false }) {
+async function snapCampaign(page, ctx, name, { before, stats, compare3dBaseline = false, realItalyAlignment = null }) {
   await before();
   await page.waitForTimeout(300);
   const webgpuStats = await page.evaluate(() => window.__campaignWebGPUStats);
   ctx.check(`${name} stats match LoD contract`, stats(webgpuStats), JSON.stringify(webgpuStats));
   const shot = await page.screenshot();
+  if (realItalyAlignment) {
+    await checkRealItalyAlignment(page, ctx, name, PNG.sync.read(shot), realItalyAlignment);
+  }
   if (compare3dBaseline) {
     checkCampaign3dBaseline(ctx, PNG.sync.read(shot));
   }
   await ctx.snap(page, name, { shot });
+}
+
+function pointsForCityNames(map, names) {
+  const byName = new Map(map.nodes.map((node) => [node.name, node]));
+  return names.map((name) => {
+    const node = byName.get(name);
+    if (!node) throw new Error(`campaign map is missing city ${name}`);
+    return { kind: 'city', name, x: node.pos[0], y: node.pos[1] };
+  });
+}
+
+function roadSamplesForPairs(map, pairs) {
+  const byId = new Map(map.nodes.map((node) => [node.id, node]));
+  const samples = [];
+  for (const [a, b] of pairs) {
+    const edge = map.edges.find((candidate) => {
+      if (candidate.kind !== 'road') return false;
+      const an = byId.get(candidate.a)?.name;
+      const bn = byId.get(candidate.b)?.name;
+      return (an === a && bn === b) || (an === b && bn === a);
+    });
+    if (!edge) throw new Error(`campaign map is missing road ${a} -> ${b}`);
+    for (let i = 1; i < edge.via.length; i++) {
+      const start = edge.via[i - 1];
+      const end = edge.via[i];
+      const len = Math.hypot(end[0] - start[0], end[1] - start[1]);
+      const steps = Math.max(1, Math.ceil(len / 16));
+      for (let step = 0; step <= steps; step++) {
+        const t = step / steps;
+        samples.push({
+          kind: 'road',
+          name: `${a}-${b}`,
+          x: start[0] + (end[0] - start[0]) * t,
+          y: start[1] + (end[1] - start[1]) * t,
+        });
+      }
+    }
+  }
+  return samples;
+}
+
+async function checkRealItalyAlignment(page, ctx, name, current, cameraBand) {
+  const semantic = await page.evaluate(({ cities, roads }) => {
+    const terrainSample = (point) => {
+      const sample = window.__campaign.terrainAt(point.x, point.y);
+      return { ...point, land: sample.land, height: sample.height };
+    };
+    return {
+      cities: cities.map(terrainSample),
+      roads: roads.map(terrainSample),
+    };
+  }, { cities: MAINLAND_ITALY_POINTS, roads: CENTRAL_ITALY_ROAD_POINTS });
+  const badSemanticCities = semantic.cities.filter((point) => !point.land);
+  const badSemanticRoads = semantic.roads.filter((point) => !point.land);
+  ctx.check(
+    `${name} semantic mainland Italy cities and roads stay on land`,
+    badSemanticCities.length === 0 && badSemanticRoads.length === 0,
+    JSON.stringify({
+      badSemanticCities,
+      badSemanticRoads: badSemanticRoads.slice(0, 8),
+      checkedCities: semantic.cities.length,
+      checkedRoadSamples: semantic.roads.length,
+    }),
+  );
+
+  const visible = await page.evaluate(({ cities, roads }) => {
+    const project = (point) => {
+      const [sx, sy] = window.__campaign.project(point.x, point.y);
+      return { ...point, sx, sy };
+    };
+    return {
+      cities: cities.map(project),
+      roads: roads.map(project),
+    };
+  }, { cities: MAINLAND_ITALY_POINTS, roads: CENTRAL_ITALY_ROAD_POINTS });
+  const pixelMetrics = renderedLandMetrics(current, visible);
+  const minVisibleCities = cameraBand === 'close' ? 5 : 10;
+  const minVisibleRoads = cameraBand === 'close' ? 8 : 22;
+  ctx.check(
+    `${name} rendered mainland Italy anchors do not sit in visible water`,
+    pixelMetrics.visibleCities >= minVisibleCities
+      && pixelMetrics.visibleRoads >= minVisibleRoads
+      && pixelMetrics.badCities.length === 0
+      && pixelMetrics.badRoads.length === 0,
+    JSON.stringify(pixelMetrics),
+  );
 }
 
 function checkCampaign3dBaseline(ctx, current) {
@@ -212,4 +335,65 @@ function campaign3dMetrics(png) {
     modelRatio: ratio(model),
     politicalWashRatio: ratio(politicalWash),
   };
+}
+
+function renderedLandMetrics(png, projected) {
+  const cities = sampleProjectedLand(png, projected.cities, 0.4);
+  const roads = sampleProjectedLand(png, projected.roads, 0.45);
+  return {
+    width: png.width,
+    height: png.height,
+    visibleCities: cities.visible,
+    visibleRoads: roads.visible,
+    badCities: cities.bad,
+    badRoads: roads.bad.slice(0, 12),
+  };
+}
+
+function sampleProjectedLand(png, points, maxWaterRatio) {
+  const offsets = [
+    [0, 0],
+    [10, 0],
+    [-10, 0],
+    [0, 10],
+    [0, -10],
+    [14, 10],
+    [-14, 10],
+    [14, -10],
+    [-14, -10],
+  ];
+  let visible = 0;
+  const bad = [];
+  for (const point of points) {
+    if (point.sx < 0 || point.sy < 36 || point.sx >= png.width || point.sy >= png.height) continue;
+    let samples = 0;
+    let water = 0;
+    for (const [dx, dy] of offsets) {
+      const x = Math.round(point.sx + dx);
+      const y = Math.round(point.sy + dy);
+      if (x < 0 || y < 36 || x >= png.width || y >= png.height) continue;
+      samples++;
+      const i = (y * png.width + x) * 4;
+      if (isWaterPixel(png.data[i], png.data[i + 1], png.data[i + 2])) water++;
+    }
+    if (samples === 0) continue;
+    visible++;
+    const waterRatio = water / samples;
+    if (waterRatio > maxWaterRatio) {
+      bad.push({
+        kind: point.kind,
+        name: point.name,
+        sx: Number(point.sx.toFixed(1)),
+        sy: Number(point.sy.toFixed(1)),
+        water,
+        samples,
+        waterRatio: Number(waterRatio.toFixed(3)),
+      });
+    }
+  }
+  return { visible, bad };
+}
+
+function isWaterPixel(r, g, b) {
+  return b > r + 18 && b > g * 0.82 && b > 70;
 }

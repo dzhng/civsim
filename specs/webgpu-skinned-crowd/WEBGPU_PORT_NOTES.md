@@ -110,6 +110,12 @@ verification lessons.
   road, territory, land/water, terrain, and labels must share one coordinate
   contract. The fake `campaign-webgpu-map-alignment` scene is the first guard;
   real Italy scenes remain the proof that the production data is correct.
+- `campaign-webgpu-lod` now includes real-map mainland Italy alignment probes:
+  named city anchors and central road samples must be land in the campaign
+  `TerrainField`, and the same projected anchors must not resolve to water-blue
+  pixels in regional and close cameras. This pairs semantic correctness with
+  rendered water-mask correctness so camera movement cannot hide scale/offset
+  drift.
 - `specs/webgpu-skinned-crowd/visualizations/campaign-baselines/campaign-3d.png`
   is the archived natural-map 3D parity reference: terrain, coast, roads,
   city/army markers, labels, mountains, water, and board perspective should

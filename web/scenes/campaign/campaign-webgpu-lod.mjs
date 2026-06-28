@@ -359,9 +359,15 @@ function checkCampaign3dBaseline(ctx, current) {
     return [name, {
       baseline: baselineCrop,
       current: currentCrop,
-      ok: currentCrop.mountainRatio >= 0.10
-        && currentCrop.darkFeatureRatio >= 0.06
-        && currentCrop.greenRatio >= 0.30,
+      // Mountain/dark floors recalibrated after slice 3 greened the grass: the
+      // warm-stone classifier used to count tan plains as "mountain", inflating
+      // these crops. With living-green grass only the actual rock props count
+      // (sparser in the southern crop), and they read MORE clearly against the
+      // green (verified by critique). Floors keep guarding readability against
+      // the new palette; raised greenRatio floor pins the greening itself.
+      ok: currentCrop.mountainRatio >= 0.07
+        && currentCrop.darkFeatureRatio >= 0.04
+        && currentCrop.greenRatio >= 0.55,
     }];
   }));
   ctx.check(

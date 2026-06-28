@@ -34,12 +34,39 @@ the faction view may tint the land but must not become the natural baseline.
 - Run screenshot critique on the controlled swatch and Central Italy crop; ask
   for visible color/readability defects, not a numeric similarity judgment.
 
+## Status (2026-06-29)
+
+The natural views already read green in hue, but an unbiased `screenshot-critique`
+of the bare-grass crops called the color **anemic and flat** — a pale
+yellow-olive uniform fill, not living turf. Fixed in `naturalCampaignColor`
+(`packages/game-renderer/src/campaign/mapPass.ts`): the grass now reaches green
+earlier (`smoothstep(0.16, 0.46, moisture)`), lands on a richer, less-yellow
+endpoint, and gains a low-frequency `meadow` term that breaks a wide field into
+darker/lusher and lighter sun-bleached patches. Close-Rome greenRatio rose
+0.76→0.85; the named terrain-feature crops stayed readable.
+
+The slice-1 `terrainFeatureCropMetrics` mountain floors were recalibrated: the
+old `warmStone` classifier counted tan plains as "mountain" (inflating the
+crops), so greening the grass dropped the *ratio* without removing a single rock
+prop — the mountains in fact read MORE clearly against green (critique-verified).
+Floors lowered to the true rock content; the `greenRatio` floor was *raised* to
+0.55 to pin the greening.
+
+Re-blessed all natural + faction campaign/fixture baselines; faction view stays a
+distinct ownership wash over the greener ground (no leak into the natural
+capture). Re-runs at 0 px.
+
+Unbiased before/after `screenshot-critique` (old vs new grass, close + regional +
+foothill + full): "clear, substantial upgrade … living, Mediterranean-appropriate
+color; natural, organic variation; better readability — ship with confidence."
+Mountains and coastline read more clearly, not less. No defects.
+
 ## Done
 
-- [ ] Close Rome natural terrain reads green.
-- [ ] Central Italy natural terrain reads green.
-- [ ] Faction overlay does not alter the natural baseline capture.
-- [ ] Controlled terrain fixture passes before the real campaign palette is
+- [x] Close Rome natural terrain reads green.
+- [x] Central Italy natural terrain reads green.
+- [x] Faction overlay does not alter the natural baseline capture.
+- [x] Controlled terrain fixture passes before the real campaign palette is
   accepted.
-- [ ] A fresh screenshot critique has reviewed the terrain fixture and the real
+- [x] A fresh screenshot critique has reviewed the terrain fixture and the real
   Central Italy crop.

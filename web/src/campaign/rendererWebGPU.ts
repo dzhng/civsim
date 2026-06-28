@@ -700,11 +700,11 @@ const CAMPAIGN_MOUNTAIN_MIN_SCALE = 0.28;
 const CAMPAIGN_TREE_MIN_SCALE = 0.45;
 const CAMPAIGN_ROCK_MIN_SCALE = 0.45;
 const CAMPAIGN_MAX_MOUNTAINS = 3200;
-const CAMPAIGN_MAX_TREES = 4200;
+const CAMPAIGN_MAX_TREES = 7200;
 const CAMPAIGN_MAX_ROCKS = 1000;
 const CAMPAIGN_MOUNTAIN_VISUAL_SCALE = 2.25;
 const CAMPAIGN_ROCK_VISUAL_SCALE = 1.75;
-const CAMPAIGN_TREE_VISUAL_SCALE = 1.18;
+const CAMPAIGN_TREE_VISUAL_SCALE = 1.72;
 
 function campaignScenery(candidates: CampaignSceneryInstance[], reservations: CampaignSceneryReservation[] = [], scale = 1): CampaignSceneryInstance[] {
   const lodFiltered = candidates.filter((item) => scale >= sceneryMinScale(item));
@@ -726,12 +726,15 @@ function buildCampaignSceneryCandidates(data: CampaignData, field: TerrainField)
       const forest = field.biome[i * 4 + 1] / 255;
       const height = field.height[i] / Math.max(1, field.maxH);
       const mountainScore = height * 0.85 + rock * 0.5;
+      // Thinner than before: a few deliberate massifs let the terrain relief and
+      // rock shading carry the range mass, instead of a wall of cones on every
+      // high cell that buries cities and roads.
       const mountainChance = mountainScore > 0.66
-        ? 0.72
+        ? 0.58
         : height > 0.20
-          ? 0.90
+          ? 0.60
           : rock > 0.18 && height > 0.04
-            ? 0.58
+            ? 0.40
             : 0;
       if (mountainChance > 0 && hash2(gx * 3 + 1, gy * 7 + 2) < mountainChance) {
         const x = x0 + (hash2(gx, gy * 2) - 0.5) * field.cell * 0.7;
@@ -742,9 +745,12 @@ function buildCampaignSceneryCandidates(data: CampaignData, field: TerrainField)
           y,
           z: Math.max(0, field.heightAt(x, y)),
           size: radius * CAMPAIGN_MOUNTAIN_VISUAL_SCALE,
-          height: (2.4 + rock * 4.5 + height * 4.5) * 1.16,
+          // Lower silhouette: broad ridges rather than spires that tower over
+          // labels. Vertical scale trimmed alongside the broader massif mesh.
+          height: (2.1 + rock * 3.1 + height * 3.3) * 1.0,
           kind: 'mountain',
           shade: hash2(gx + 3, gy + 5),
+          yaw: hash2(gx * 9 + 1, gy * 4 + 7) * Math.PI * 2,
           score: mountainScore + hash2(gx + 17, gy + 29) * 0.08,
           gx,
           gy,
@@ -763,14 +769,15 @@ function buildCampaignSceneryCandidates(data: CampaignData, field: TerrainField)
             height: (0.7 + hash2(gx, gy + t) * 1.4) * 1.12,
             kind: 'rock',
             shade: hash2(t + 1, gx),
+            yaw: hash2(gx * 7 + t, gy * 3 + 11) * Math.PI * 2,
             score: rock + hash2(gx + t * 5, gy + t * 7) * 0.10,
             gx,
             gy,
           });
         }
       }
-      if (forest >= 0.28) {
-        const count = Math.round(forest * 4.5 * (0.6 + hash2(gx, gy) * 0.9));
+      if (forest >= 0.16) {
+        const count = Math.max(1, Math.round(forest * 7.0 * (0.6 + hash2(gx, gy) * 0.9)));
         for (let t = 0; t < count; t++) {
           const x = x0 + (hash2(gx * 7 + t, gy * 13 + 1) - 0.5) * field.cell * 1.4;
           const y = y0 + (hash2(gx * 3 + t, gy * 17 + 5) - 0.5) * field.cell * 1.4;
@@ -783,6 +790,7 @@ function buildCampaignSceneryCandidates(data: CampaignData, field: TerrainField)
             height: heightScale * 1.10,
             kind: hash2(gx * 5 + t, gy * 11) < (y > TEMPERATE_Y_KM ? 0.75 : 0.25) ? 'conifer' : 'broadleaf',
             shade: hash2(gx + t * 19, gy + t * 23),
+            yaw: hash2(gx * 13 + t, gy * 7 + t) * Math.PI * 2,
             score: forest + hash2(gx + t * 3, gy + t * 11) * 0.08,
             gx,
             gy,
@@ -870,6 +878,7 @@ function toCampaignSceneryInstance(item: ScoredCampaignSceneryInstance): Campaig
     height: item.height,
     kind: item.kind,
     shade: item.shade,
+    yaw: item.yaw,
   };
 }
 
@@ -979,14 +988,15 @@ function sceneryMinScale(item: CampaignSceneryInstance) {
 function citySceneryClearance(item: CampaignSceneryInstance, tier: number, controlledStage: boolean) {
   const fixtureScale = controlledStage ? 1.82 : 1;
   if (controlledStage) return (tier >= 3 ? 12.0 : 10.5) * fixtureScale;
-  if (item.kind === 'mountain') return tier >= 3 ? 8.4 : 7.0;
+  // Mountains get a wide apron so no city ends up embedded in the massif.
+  if (item.kind === 'mountain') return tier >= 3 ? 11.0 : 9.4;
   if (item.kind === 'rock') return tier >= 3 ? 5.2 : 4.4;
   return tier >= 3 ? 5.4 : 4.4;
 }
 
 function roadSceneryClearance(item: CampaignSceneryInstance, controlledStage: boolean) {
   const fixtureScale = controlledStage ? 1.36 : 1;
-  const base = item.kind === 'mountain' ? 7.2 : item.kind === 'rock' ? 4.4 : 2.4;
+  const base = item.kind === 'mountain' ? 8.6 : item.kind === 'rock' ? 4.4 : 2.4;
   const sizeScale = item.kind === 'mountain' ? 0.44 : item.kind === 'rock' ? 0.34 : 0.22;
   return Math.max(base, item.size * sizeScale) * fixtureScale;
 }

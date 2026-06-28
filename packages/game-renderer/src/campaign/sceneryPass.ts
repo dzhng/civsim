@@ -13,6 +13,8 @@ export interface CampaignSceneryInstance {
   height?: number;
   kind: CampaignSceneryKind;
   shade?: number;
+  /** per-instance yaw (radians) so cloned meshes don't all face the same way */
+  yaw?: number;
 }
 
 const SCENERY_WGSL = `
@@ -36,13 +38,21 @@ fn vs(
   let scale = instPose.z;
   let baseZ = instPose.w;
   let heightScale = instStyle.y;
-  let world = vec3f(instPose.x + local.x * scale, instPose.y + local.y * scale, baseZ + local.z * heightScale);
+  // Per-instance yaw so a few cloned meshes read as a varied range, not a field
+  // of identical props all facing the same way.
+  let yaw = instStyle.z;
+  let cy = cos(yaw);
+  let sy = sin(yaw);
+  let rlx = local.x * cy - local.y * sy;
+  let rly = local.x * sy + local.y * cy;
+  let world = vec3f(instPose.x + rlx * scale, instPose.y + rly * scale, baseZ + local.z * heightScale);
   var out: VsOut;
   out.pos = projectWorld3d(world, civsimCampaignWorldDepth3d(world));
   let sun = normalize(vec3f(-0.42, -0.34, 0.84));
+  let rnormal = vec3f(normal.x * cy - normal.y * sy, normal.x * sy + normal.y * cy, normal.z);
   out.color = colorAndAlpha.rgb;
   out.alpha = colorAndAlpha.a;
-  out.light = clamp(dot(normalize(normal), sun) * 0.34 + 0.78, 0.48, 1.14);
+  out.light = clamp(dot(normalize(rnormal), sun) * 0.34 + 0.78, 0.48, 1.14);
   out.shade = clamp(instStyle.x, 0.0, 1.0);
   return out;
 }
@@ -290,6 +300,7 @@ function packInstances(instances: CampaignSceneryInstance[]) {
     data[o + 3] = inst.z ?? 0;
     data[o + 4] = inst.shade ?? hash2(inst.x, inst.y);
     data[o + 5] = inst.height ?? inst.size;
+    data[o + 6] = inst.yaw ?? 0;
   }
   return data;
 }

@@ -238,10 +238,13 @@ export class TerrainField {
         const moisture = Math.min(1, Math.max(0,
           lat + river * 0.55 + coast * 0.1 + (vnoise2(gx / 22, gy / 22) - 0.5) * 0.3 * (0.35 + lat)));
         const patch = vnoise2(gx / 16 + 31.7, gy / 16 + 11.3) * 0.7 + vnoise2(gx / 5 + 7.1, gy / 5 + 3.9) * 0.3;
-        const forest = smooth01((moisture - 0.5) / 0.25) * smooth01((patch - 0.42) / 0.25);
+        // Forest reaches into temperate (not just lush) latitudes and a wider
+        // band of patch noise so wooded regions actually carry visible stands of
+        // trees; foothill rock only partly suppresses it so slopes keep cover.
+        const forest = smooth01((moisture - 0.40) / 0.26) * smooth01((patch - 0.34) / 0.30);
         const rock = smooth01((this.height[i] - 6) / 16);
         this.biome[i * 4] = moisture * 255;
-        this.biome[i * 4 + 1] = forest * (1 - rock * 0.7) * 255;
+        this.biome[i * 4 + 1] = forest * (1 - rock * 0.55) * 255;
         this.biome[i * 4 + 2] = rock * 255;
       }
     }

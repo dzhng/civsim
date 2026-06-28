@@ -1,11 +1,22 @@
-import { MeshBuilder, type MeshData } from './meshBuilder';
+import { MeshBuilder, type MeshData, type Rgb } from './meshBuilder';
 
+// A broad rocky massif, not a single sharp pyramid: one wide low dome with a
+// cluster of lower, offset shoulder-peaks of varied footprint and height. The
+// overlapping humps break the silhouette so a range reads as ridged stone
+// rather than a field of identical cones, and the low height-to-radius ratios
+// keep it from towering over nearby cities, roads, and labels.
 export function buildMountainMesh(): MeshData {
   const builder = new MeshBuilder();
-  builder.shadow(1.0, 0.62, 0.22);
-  builder.peak([-0.18, -0.02, 0], 0.80, 1.0, 7, [0.42, 0.38, 0.31], [0.62, 0.58, 0.50], 11);
-  builder.peak([0.55, 0.22, 0], 0.48, 0.62, 6, [0.40, 0.36, 0.30], [0.57, 0.53, 0.46], 23);
-  builder.peak([-0.70, -0.28, 0], 0.42, 0.50, 6, [0.36, 0.33, 0.28], [0.52, 0.49, 0.43], 37);
+  builder.shadow(1.18, 0.74, 0.22);
+  const base: Rgb = [0.45, 0.41, 0.35];
+  const top: Rgb = [0.60, 0.57, 0.50];
+  const shade = (s: number): Rgb => [base[0] * s, base[1] * s, base[2] * s];
+  builder.peak([0.0, 0.0, 0], 1.02, 0.60, 9, base, top, 11); // broad main body
+  builder.peak([-0.46, 0.30, 0], 0.56, 0.74, 8, shade(0.93), top, 23); // taller shoulder
+  builder.peak([0.52, -0.16, 0], 0.52, 0.56, 8, shade(0.97), top, 37);
+  builder.peak([0.18, 0.54, 0], 0.42, 0.46, 7, shade(0.90), [0.56, 0.53, 0.46], 41);
+  builder.peak([-0.62, -0.36, 0], 0.44, 0.50, 7, shade(0.92), top, 53);
+  builder.peak([0.64, 0.40, 0], 0.34, 0.38, 7, shade(0.95), [0.56, 0.53, 0.46], 67);
   return builder.finish('mountain mesh');
 }
 

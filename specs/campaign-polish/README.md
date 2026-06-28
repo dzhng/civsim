@@ -130,9 +130,16 @@ and use focused fixture worlds before full-map acceptance.
 
 ## Next Agent Prompt
 
-You are picking up campaign polish. Last updated: 2026-06-29 (Slice 3 landed).
+You are picking up campaign polish. Last updated: 2026-06-29 (Slice 4 landed).
 
-Current status: Slices 1–3 done. Slice 3 enriched the grass in
+Current status: Slices 1–4 done. Slice 4 reworked landforms: the chunky cone
+mountains became broad multi-hump massifs with per-instance yaw rotation
+(`sceneryPass.ts` free instance slot), thinner+lower placement, wide city/road
+clearance (no embedded cities), and forests that actually render in wet regions
+(Cisalpine/Po/Gaul) while Latium stays grassland. Critique: mountains "decisive
+improvement, geological not geometric"; forests "definitely forested." Relief
+was evaluated first (stripping props leaves a flat tan plain — relief is too
+gentle alone, so restyled props over rock-shaded terrain is the answer). Slice 3 enriched the grass in
 `naturalCampaignColor` (`mapPass.ts`) — greens earlier, richer endpoint, a
 low-freq `meadow` patch term — taking the critique from "anemic/flat" to "ship
 with confidence" (close-Rome greenRatio 0.76→0.85). Mountain crop floors in
@@ -151,18 +158,16 @@ tree min-scale 0.45 vs zoom 0.18), **no city-aware terrain clearance** (relief
 ignores city positions, `terrain.ts:159-170`), and **no carts** (slice 5; cart
 model would live in `campaignEntityModels.ts`, kind union `sceneryPass.ts:6`).
 
-Next pickup: Slice 4 (the big one). Mountains are stacked brown cone props
-(`buildMountainMesh` = 3 cones) that read chunky and crowd cities/roads; the
-`alignment` fixture (`polish-road-continuity.png`) is buried in them. The spec
-wants ranges from terrain RELIEF, not prop stacks. Gap-review anchors: mountain
-height grading ignores city positions (`terrain.ts:159-170`), only 3D scenery is
-cleared not the raised terrain (`rendererWebGPU.ts:930-931`), and trees generate
-but are LOD-culled at min-scale 0.45 vs initial zoom 0.18
-(`rendererWebGPU.ts:752-771,953-957`) so forests are invisible. Plan: lean on
-relief + restyle/shrink the mountain prop, add city-aware clearance (no city
-embedded in a mass), and make forests actually render. Build the terrain-relief
-and forest-density fixtures here (deferred from slice 1). Then Slice 5 (carts:
-model in `campaignEntityModels.ts`, kind union `sceneryPass.ts:6`).
+Next pickup: Slice 5 — road life (carts). No cart model exists yet. Author a
+small shared cart (the scenery library is `models/shared/sceneryPropModels.ts`
++ the `CampaignSceneryKind` union in `sceneryPass.ts:6`; gap review also points
+at `campaignEntityModels.ts`), give it a `write-turntable` sheet and — since it
+moves — a `write-anim` review. Place carts deterministically along road splines
+(`edge.via` from `data.map.edges`) with frozen scene time, below label priority,
+fog/LoD-aware, and ON the road (skip the road-clearance cull for carts). Build
+the cart-on-road fixture first (deferred from slice 1), then add to the real map.
+Then Slice 6 (acceptance). The per-instance `yaw` slot added to scenery in slice
+4 is the pattern a cart's travel facing can reuse.
 
 How this pass runs the harness on this machine: dev server on a free port
 (`npx vite --port 5179 --strictPort` from `web/`), then
@@ -183,7 +188,7 @@ Global TODO:
 - [x] Slice 2: city label spacing and Rome road continuity pass in fixture and
   close Rome campaign scene.
 - [x] Slice 3: natural terrain color passes fixture and real Central Italy crop.
-- [ ] Slice 4: terrain relief, forests, and clearance pass fixture and real
+- [x] Slice 4: terrain relief, forests, and clearance pass fixture and real
   campaign crop.
 - [ ] Slice 5: deterministic road-life/cart fixture and campaign crop pass.
 - [ ] Slice 6: final campaign acceptance pass has current screenshots, crops,

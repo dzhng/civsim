@@ -1,13 +1,14 @@
 ---
 name: screenshot-regression
-description: How to take screenshots of the game and use pixel-exact snapshot regression — across the verify harnesses, the vibe timelines, and the model turntable. Use when verifying UI/rendering changes, adding a new visual feature, re-blessing baselines after an intentional visual or mechanics change, or debugging a snapshot failure. Pairs with [write-scene](../write-scene/SKILL.md) (the scenes whose snaps obey these rules).
+description: How to take screenshots of the game and use pixel-exact snapshot regression — the shared snapCheck primitive every visual harness flows through. Use when verifying UI/rendering changes, adding a new visual feature, re-blessing baselines after an intentional visual or mechanics change, or debugging a snapshot failure. Pairs with [write-scene](../write-scene/SKILL.md) (battle scenes), [write-vibe](../write-vibe/SKILL.md) (battle timelines), and [write-turntable](../write-turntable/SKILL.md) (model sheets) — all snap through this primitive.
 ---
 
 # Screenshots and pixel-level regression testing
 
 **One primitive, every shot.** `snapCheck` (`web/snapshot.mjs`) is the single
-path every visual artifact flows through — the verify harnesses, the vibe battle
-timelines (`vibe/*.mjs`), and the model turntable (`vibe/turntable.mjs`). A
+path every visual artifact flows through — the verify harnesses, the battle
+scenes, the vibe battle timelines ([write-vibe](../write-vibe/SKILL.md)), and
+the model turntable ([write-turntable](../write-turntable/SKILL.md)). A
 committed baseline under `web/shots/<name>.png` is at once the picture
 you review, the image a PR diff shows, and the gate. There is no "review-only"
 tier: every shot is a regression target, so a downstream mechanics change is
@@ -42,40 +43,10 @@ green, the model is bigger). If you re-blessed a baseline, look at the new
 baseline too — you are certifying it as ground truth for every future run.
 Never report a visual result you have only inferred from "the script passed."
 
-**For a timeline (vibe checks that snap every N seconds): read EVERY frame, in
-order. Do not sample two or three and infer the story between them.** The whole
-reason the harness shoots `t000s`, `t012s`, `t024s`, … is so you can *watch* the
-behaviour unfold — and the in-between frames routinely tell a different story
-than the endpoints. (Real miss: from a "surrounded square sallies out" test I
-read t48 and t72, saw the block forward and the front enemy dying, and reported
-"it breaks out of the encirclement." Reading every frame showed the square ran
-off after the *front* unit at t12 and the other two attackers never made contact
-at all — there was no encirclement, and the scenario was broken. Two frames + a
-plausible narrative = a confident wrong conclusion.) Open `t000s.png` onward and
-describe what each shows before you draw any conclusion; if a unit "wins," trace
-*how* across the frames, don't assume it from the final count.
-
-## A time series ALWAYS ships a GIF too
-
-Reading frames one by one is how you *diagnose*; a looping GIF is how the user
-*watches* the whole sequence in one glance. So whenever the artifact is a time
-series, emit a GIF alongside the PNGs at **~200 ms/frame** (5 fps) — and surface
-it to the user (e.g. `SendUserFile`), not just the stills. Never hand back a
-stack of `t###s.png` frames with no GIF.
-
-- **Vibe timelines do this automatically.** `vibeCapture` (`vibe/_lib.mjs`) writes
-  `web/shots/vibe/<name>/timeline.gif` every run, derived from the same
-  screenshots the per-frame PNGs gate on (downscaled to 640×400, 200 ms/frame).
-  The PNGs stay the full-res regression baselines; the GIF is review-only and is
-  committed alongside them (like `shots/anim/`). No extra step — just point the
-  user at the `timeline.gif`.
-- **Any other series** (an ad-hoc Playwright sweep, a folder of frames you shot
-  yourself): run `node vibe/gif.mjs <dir> [out] [delayMs=200] [downscale=2]`. It
-  orders frames by filename (`t000s.png`, `t012s.png`, … or `00.png`, …) and
-  writes `<dir>/timeline.gif`. Name frames so they sort.
-- The encoder is `vibe/_gif.mjs` (`encodeGif` / `downscaleRGBA`, dependency-free —
-  no ffmpeg/imagemagick on this box). Call it directly if you're building a
-  bespoke series in a script.
+**For a time series — a vibe timeline, or any folder of frames — read EVERY
+frame, in order, and always ship a looping GIF.** Both rules (and how the GIF is
+emitted) live in [write-vibe](../write-vibe/SKILL.md); follow them for anything
+that snaps over time.
 
 **Crop and upscale before you theorise.** A unit is ~16 px in a 1280 px frame —
 you cannot diagnose a soldier-rendering bug by eyeballing the whole shot, and
@@ -226,12 +197,10 @@ already-captured `shot` buffer (a composited contact sheet, a reused frame) to
 skip the internal `page.screenshot()`.
 
 - **Verify harness:** a stage in `verify-battle.mjs` / `verify-campaign*.mjs`.
-- **Vibe timeline:** don't call `snapCheck` directly — `vibeCapture` does it for
-  every frame; just add the scenario (copy `vibe/duel-posture.mjs`). It also
-  drops a `timeline.gif` in the scenario's shot folder for free (see "A time
-  series ALWAYS ships a GIF too" above).
-- **Model:** the turntable snap-checks one contact sheet per class; extend
-  `CLASS_H`/`STANCES` in `vibe/turntable.mjs` when the roster changes.
+- **Vibe timeline:** don't call `snapCheck` directly — `vibeCapture` does it per
+  frame; see [write-vibe](../write-vibe/SKILL.md).
+- **Model turntable:** snap-checks one composited contact sheet per class; see
+  [write-turntable](../write-turntable/SKILL.md).
 
 ### The determinism checklist — every snapshot must satisfy ALL of these
 
@@ -267,11 +236,9 @@ UPDATE_SHOTS=1 VERIFY_URL=http://localhost:5174 node verify-campaign.mjs
 UPDATE_SHOTS=1 VERIFY_URL=http://localhost:5174 node verify-battle.mjs
 ```
 
-Full vibe/turntable re-blesses clear their baseline folder before writing new
-shots, so shorter regenerated timelines cannot leave stale old frames behind.
-Timeline re-blesses intentionally refuse `UPDATE_SHOTS=1 SNAP=...`: a filtered
-regen would skip frames after clearing the folder, while not clearing the folder
-can leave stale frames behind. Unset `SNAP` and re-bless the whole timeline.
+Vibe and turntable re-blesses clear their baseline folder first (and the vibe
+timeline refuses a `SNAP=`-filtered regen) — those folder-clearing rules live in
+[write-vibe](../write-vibe/SKILL.md) and [write-turntable](../write-turntable/SKILL.md).
 
 4. Suspected nondeterminism → run the harness twice; if the second run isn't
    `0 px differ`, something on screen escaped the freeze path. Track it down

@@ -308,16 +308,13 @@ until green. Rules:
 5. **Smallest scale that shows it** — two units for a clash; armies only for
    integration.
 
-**Layer 2 — vibe shots are the real verdict** (the snapshot mechanics are
-[screenshot-regression](../screenshot-regression/SKILL.md)). Green Rust does not mean done; the
-mechanic must *feel* right across the WHOLE timeline (a clash can look clean at
-t=32s and be a swirling blob by t=48s — eyeballing one frame said "clean", the
-centroid test said "crossed at t=19.9s"). Rebuild wasm first (`npm run build:wasm`
-— the harness loads prebuilt wasm), then `node vibe/all.mjs` from `web/`; a
-mechanics change turns frames red (the point); re-bless with `UPDATE_SHOTS=1` once
-the new behavior is confirmed and commit the baselines as the record. Flip through
-`web/shots/vibe/<scenario>/` t000…t300 for approach → contact → grind →
-break → rout; `vibe/measure-duel.mjs` is the JS twin of the Rust test.
+**Layer 2 — vibe shots are the real verdict.** Green Rust does not mean done;
+the mechanic must *feel* right across the WHOLE timeline (a clash can look clean
+at t=32s and be a swirling blob by t=48s — eyeballing one frame said "clean", the
+centroid test said "crossed at t=19.9s"). Film the matchup and read every frame
+for approach → contact → grind → break → rout per
+[write-vibe](../write-vibe/SKILL.md); a mechanics change turns frames red (the
+point), and you re-bless once the new behavior is confirmed.
 
 ## Test taxonomy — by what each layer is ALLOWED to depend on
 

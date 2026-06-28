@@ -123,3 +123,29 @@ export function pngToRGBA(buf) {
   const img = PNG.sync.read(buf);
   return { data: img.data, width: img.width, height: img.height };
 }
+
+/** Box-average downscale an RGBA frame by an integer factor. Timeline frames are
+ *  1280x800 — a full-res GIF per scenario would bloat the tracked shots/, so the
+ *  watch-the-sequence GIF is shrunk (factor 2 → 640x400) while the per-frame PNGs
+ *  remain the full-res regression baselines. factor<=1 is a no-op passthrough. */
+export function downscaleRGBA(frame, factor) {
+  if (factor <= 1) return frame;
+  const { data, width, height } = frame;
+  const w = Math.floor(width / factor), h = Math.floor(height / factor);
+  const out = Buffer.alloc(w * h * 4);
+  const n = factor * factor;
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      let r = 0, g = 0, b = 0, a = 0;
+      for (let dy = 0; dy < factor; dy++) {
+        for (let dx = 0; dx < factor; dx++) {
+          const si = (((y * factor + dy) * width) + (x * factor + dx)) * 4;
+          r += data[si]; g += data[si + 1]; b += data[si + 2]; a += data[si + 3];
+        }
+      }
+      const di = (y * w + x) * 4;
+      out[di] = r / n; out[di + 1] = g / n; out[di + 2] = b / n; out[di + 3] = a / n;
+    }
+  }
+  return { data: out, width: w, height: h };
+}

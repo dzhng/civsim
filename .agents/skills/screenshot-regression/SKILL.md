@@ -55,6 +55,28 @@ plausible narrative = a confident wrong conclusion.) Open `t000s.png` onward and
 describe what each shows before you draw any conclusion; if a unit "wins," trace
 *how* across the frames, don't assume it from the final count.
 
+## A time series ALWAYS ships a GIF too
+
+Reading frames one by one is how you *diagnose*; a looping GIF is how the user
+*watches* the whole sequence in one glance. So whenever the artifact is a time
+series, emit a GIF alongside the PNGs at **~200 ms/frame** (5 fps) — and surface
+it to the user (e.g. `SendUserFile`), not just the stills. Never hand back a
+stack of `t###s.png` frames with no GIF.
+
+- **Vibe timelines do this automatically.** `vibeCapture` (`vibe/_lib.mjs`) writes
+  `web/shots/vibe/<name>/timeline.gif` every run, derived from the same
+  screenshots the per-frame PNGs gate on (downscaled to 640×400, 200 ms/frame).
+  The PNGs stay the full-res regression baselines; the GIF is review-only and is
+  committed alongside them (like `shots/anim/`). No extra step — just point the
+  user at the `timeline.gif`.
+- **Any other series** (an ad-hoc Playwright sweep, a folder of frames you shot
+  yourself): run `node vibe/gif.mjs <dir> [out] [delayMs=200] [downscale=2]`. It
+  orders frames by filename (`t000s.png`, `t012s.png`, … or `00.png`, …) and
+  writes `<dir>/timeline.gif`. Name frames so they sort.
+- The encoder is `vibe/_gif.mjs` (`encodeGif` / `downscaleRGBA`, dependency-free —
+  no ffmpeg/imagemagick on this box). Call it directly if you're building a
+  bespoke series in a script.
+
 **Crop and upscale before you theorise.** A unit is ~16 px in a 1280 px frame —
 you cannot diagnose a soldier-rendering bug by eyeballing the whole shot, and
 guessing the cause (mipmap? blend? lighting?) from a thumbnail wastes turns.
@@ -205,7 +227,9 @@ skip the internal `page.screenshot()`.
 
 - **Verify harness:** a stage in `verify-battle.mjs` / `verify-campaign*.mjs`.
 - **Vibe timeline:** don't call `snapCheck` directly — `vibeCapture` does it for
-  every frame; just add the scenario (copy `vibe/duel-posture.mjs`).
+  every frame; just add the scenario (copy `vibe/duel-posture.mjs`). It also
+  drops a `timeline.gif` in the scenario's shot folder for free (see "A time
+  series ALWAYS ships a GIF too" above).
 - **Model:** the turntable snap-checks one contact sheet per class; extend
   `CLASS_H`/`STANCES` in `vibe/turntable.mjs` when the roster changes.
 

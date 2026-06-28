@@ -118,8 +118,23 @@ final cutover (slice 11) is the integration point that depends on the rest.
 
 You are building the WebGPU conversion completion. Last updated: 2026-06-29.
 
-Current status: **Slices 01–07** (Group A complete; Group B done bar the slice
-06 horse-composition headline deferred to David).
+Current status: **Slices 01–08** (Groups A, B done bar the slice 06 horse
+headline; Group C started with shadows + elevation).
+
+**Slice 08 (battle shadows & terrain elevation) shipped (seams + demo):**
+- `CrowdInstance.elevation`; `buildCrowdInstances` samples a `terrainHeight`
+  function; `skinnedPipeline` adds it to world Z via a new instance attribute so
+  soldiers sit on relief and sort by it. Elevation 0 keeps the flat path
+  byte-identical.
+- `BattleSoldierShadowPass`: instanced grounding ellipse per soldier (the battle
+  analogue of the campaign shadow decal), read-only depth, rides the elevation.
+- `/webgpu/battle-elevation` route + `webgpu-battle-elevation` scene: soldier Z =
+  sampled height, soldiers climb a ridge, a shadow darkens the ground under each.
+  Unprimed critique confirmed shadows-under-feet + ridge elevation, no defects.
+- Open for David: wiring the shadow pass + a real battle terrain height source
+  into production re-blesses battle baselines — gated on the shadow-style/softness
+  call and whether elevation tilts to the slope or only offsets Z.
+
 
 **Slice 07 (LOD mesh tiers) shipped:**
 - `lod.ts`: `instanceScreenSize` (per-instance distance), `lodWithHysteresis`
@@ -244,9 +259,9 @@ left untouched per the spec; the `compileShader` source gate is scoped to
 non-campaign roots. Only the campaign `renderer.ready.catch` (scene controller,
 pure robustness) was added.
 
-Next pickup: **Slice 08 (battle shadows & terrain elevation)** — Group C. Port
-the campaign `drawShadows` to battle and add a soldier terrain-elevation field so
-soldiers climb relief. (Slice 06's horse-skeleton composition remains deferred.)
+Next pickup: **Slice 09 (battle effects & corpses)** — Group C. Battle
+particles/impacts, 3D projectiles, distinct corpses. (Slice 06's horse-skeleton
+composition remains deferred.)
 
 Active warnings:
 - Keep the sim and campaign renderer untouched; this is non-campaign renderer
@@ -272,8 +287,8 @@ Global TODO:
   design call.
 - [x] Slice 07: L0/L1/L2 mesh tiers with an `lod` field on `CrowdInstance` and
   LOD-aware grouping (production wiring gated on David's tier-distance tuning).
-- [ ] Slice 08: battle shadow pass (port campaign `drawShadows`) and soldier
-  terrain-elevation field.
+- [x] Slice 08: battle shadow pass (port campaign `drawShadows`) and soldier
+  terrain-elevation field (production wiring gated on David's shadow-style call).
 - [ ] Slice 09: battle particles/impacts, 3D projectiles, distinct corpses.
 - [ ] Slice 10: generate scenario-run reports and bless the visual-comparison
   manifest + current-renderer archive; wire soldier/model gates into the report.

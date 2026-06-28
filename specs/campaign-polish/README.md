@@ -130,28 +130,40 @@ and use focused fixture worlds before full-map acceptance.
 
 ## Next Agent Prompt
 
-You are picking up campaign polish. Last updated: 2026-06-29.
+You are picking up campaign polish. Last updated: 2026-06-29 (Slice 1 landed).
 
-Current status: the visual harness/source ownership cleanup is complete.
-Scenes, shots, UI captures, model turntables, model animations, vibe timelines,
-and weave timelines have been regenerated from scratch against the WebGPU
-pipeline.
+Current status: Slice 1 done. Two deterministic fixture workbench scenes exist —
+`campaign-polish-roads` (`?campaign=alignment`, road continuity + Ostia label)
+and `campaign-polish-markers` (`?campaign=test`, label spacing + green swatch) —
+each with focused pixel probes and committed baselines. A feedback→scene
+checklist is in `slices/01`. The starting real-map baselines already read green
+with continuous roads; the live offenders confirmed by inspection are: **city
+labels float too far below their models** (worst at screen edges), **mountains
+are chunky stacked cone props** (the `alignment` fixture is buried in them — see
+`polish-road-continuity.png`), **no visible trees/forests**, and **no carts**.
 
-Next pickup: start Slice 1 by adding the focused campaign workbench scenes with
-the `write-scene` skill, using the existing regenerated WebGPU baselines as the
-review floor.
+Next pickup: Slice 2 — pull the city label closer to its icon/model (the
+`cityLabelOffset()` seam in `web/src/campaign/rendererWebGPU.ts`, ~baseSize*1.30
+today) and confirm Ostia/Portus + Rome-south road continuity still hold. Use
+`polish-label-spacing` as the fixture gate and `campaign-lod-rome-close` /
+`campaign-lod-selected-army-city` as the real-map gate.
 
-Active warning: the harness is green, but the campaign-polish visual issues in
-the user-feedback screenshots are intentionally not solved yet. Do not mark a
-slice done until its focused scene and real campaign crop both pass an unbiased
-`screenshot-critique` review.
+How this pass runs the harness on this machine: dev server on a free port
+(`npx vite --port 5179 --strictPort` from `web/`), then
+`VERIFY_URL=http://localhost:5179 VERIFY_WEBGPU=1 node scene.mjs <scene>`.
+Re-bless intentional changes with `UPDATE_SHOTS=1`. Device is swiftshader
+headless; snaps carry a documented sub-percent raster wobble.
+
+Active warning: the harness is green, but most campaign-polish visual issues are
+not solved yet. Do not mark a slice done until its focused scene and real
+campaign crop both pass an unbiased `screenshot-critique` review.
 
 Before ending any future pass, update this section with the new status, next
 pickup point, blockers, and checklist state.
 
 Global TODO:
 
-- [ ] Slice 1: feedback baselines and focused campaign workbench scenes exist.
+- [x] Slice 1: feedback baselines and focused campaign workbench scenes exist.
 - [ ] Slice 2: city label spacing and Rome road continuity pass in fixture and
   close Rome campaign scene.
 - [ ] Slice 3: natural terrain color passes fixture and real Central Italy crop.

@@ -118,8 +118,24 @@ final cutover (slice 11) is the integration point that depends on the rest.
 
 You are building the WebGPU conversion completion. Last updated: 2026-06-29.
 
-Current status: **Slices 01–03 shipped and green** (Group A complete; Group B
-started with the importer front door).
+Current status: **Slices 01–04 shipped and green** (Group A complete; Group B
+through per-class VATs).
+
+**Slice 04 (per-class VATs & clip tables) shipped:**
+- `skinnedPipeline` holds a per-class `VatResource` (buffer + bind group + clip
+  layout), deduped by `VatBake` identity — the shared-placeholder default
+  allocates exactly one resource and renders byte-identically. Still one
+  pipeline + grouped instanced draws. Accepts `VatBake | VatBake[]`.
+- `loadClassVats(kit)` is the `classId → VatBake` registry (`kit.classVats` names
+  per-class bakes; absent classes fall back to the shared placeholder). Battle
+  renderer loads it instead of one VAT.
+- `/webgpu/per-class-vat` route + `webgpu-per-class-vat` scene prove a class with
+  its own 2x VAT animates on its own clip table (26 vs 13 frames), a class with
+  no bake falls back to the shared placeholder, `vatVariants = 2`.
+- Deferred for David: per-class frame→clip tables in `animationState` stay global
+  (the sim emits one frame-code vocabulary for all classes); real
+  distinct-skeleton bakes are the open art decision.
+
 
 **Slice 03 (glTF importer & bake toolchain) shipped:**
 - `bake/gltf.mjs` — zero-dep GLB/glTF parser → the rig shape `bakeRig()` already
@@ -183,9 +199,9 @@ left untouched per the spec; the `compileShader` source gate is scoped to
 non-campaign roots. Only the campaign `renderer.ready.catch` (scene controller,
 pure robustness) was added.
 
-Next pickup: **Slice 04 (per-class VATs & clip tables)** — Group B (needs 03,
-done). Replace the single global placeholder VAT/layout with a `classId→VatBake`
-mapping and per-class clip tables. Placeholders stay default.
+Next pickup: **Slice 05 (materials, textures & faction mask)** — Group B (needs
+04, done). Add a sampler/texture bind group (albedo/normal/orm) + per-pixel
+faction-mask accents (crest/shield/sash). Placeholders stay default.
 
 Active warnings:
 - Keep the sim and campaign renderer untouched; this is non-campaign renderer
@@ -202,7 +218,7 @@ Global TODO:
   high-performance power preference, MSAA, GPU timestamp queries.
 - [x] Slice 03: glTF→VAT importer, bake toolchain, asset workbench app, and the
   real-art replacement contract (placeholders stay default).
-- [ ] Slice 04: `classId→VatBake` mapping and per-class clip tables replacing the
+- [x] Slice 04: `classId→VatBake` mapping and per-class clip tables replacing the
   single global VAT/layout.
 - [ ] Slice 05: sampler/texture bind group with albedo/normal/orm + per-pixel
   faction-mask accents.

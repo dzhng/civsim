@@ -1,4 +1,11 @@
 import { WEBGPU_DEPTH_FORMAT, WEBGPU_WORLD_DEPTH_ATTACHMENT, isWebGpuDepthMode, type WebGpuDepthMode } from '../../webgpu-core/src/depthContract';
+import {
+  frameGraphDepthRole,
+  frameGraphPhaseOrder,
+  frameGraphRolePhase,
+  isFrameGraphPassRole,
+  type FrameGraphPassRole,
+} from '../../webgpu-core/src/frameGraphContract';
 
 export type RenderGraphPhase = 'frame' | 'battle' | 'campaign' | 'ui' | 'post';
 export type RenderGraphFramePhase = 'background' | 'world-depth' | 'overlay';
@@ -8,6 +15,7 @@ export interface RenderGraphPass {
   label: string;
   phase: RenderGraphPhase;
   framePhase?: RenderGraphFramePhase;
+  role?: FrameGraphPassRole;
   reads?: string[];
   writes?: string[];
   depth?: {
@@ -17,7 +25,6 @@ export interface RenderGraphPass {
     compare?: 'less' | 'less-equal' | 'always';
     store?: 'discard' | 'store';
   };
-  overlay?: boolean;
 }
 
 export interface RenderGraphResource {
@@ -46,6 +53,7 @@ export const FULL_GAME_GRAPH_SKELETON: RenderGraphPass[] = [
     label: 'Battle terrain, water, sky, haze, and underpaint',
     phase: 'battle',
     framePhase: 'background',
+    role: 'background-underpaint',
     reads: ['cameraUniforms', 'frameConstants'],
     writes: ['worldColor'],
   },
@@ -54,6 +62,7 @@ export const FULL_GAME_GRAPH_SKELETON: RenderGraphPass[] = [
     label: 'Campaign map texture, territory wash, water, borders, and underpaint',
     phase: 'campaign',
     framePhase: 'background',
+    role: 'background-underpaint',
     reads: ['cameraUniforms', 'frameConstants', 'campaignState'],
     writes: ['worldColor'],
   },
@@ -62,6 +71,7 @@ export const FULL_GAME_GRAPH_SKELETON: RenderGraphPass[] = [
     label: 'World depth attachment clear boundary',
     phase: 'frame',
     framePhase: 'world-depth',
+    role: 'world-depth-fill',
     writes: [WEBGPU_WORLD_DEPTH_ATTACHMENT],
     depth: { attachment: WEBGPU_WORLD_DEPTH_ATTACHMENT, mode: 'write', format: WEBGPU_DEPTH_FORMAT, compare: 'less', store: 'discard' },
   },
@@ -70,6 +80,7 @@ export const FULL_GAME_GRAPH_SKELETON: RenderGraphPass[] = [
     label: 'Skinned battle crowd',
     phase: 'battle',
     framePhase: 'world-depth',
+    role: 'world-opaque',
     reads: ['cameraUniforms', WEBGPU_WORLD_DEPTH_ATTACHMENT, 'soldierVat', 'crowdInstances'],
     writes: ['worldColor', WEBGPU_WORLD_DEPTH_ATTACHMENT, 'pickIds'],
     depth: { attachment: WEBGPU_WORLD_DEPTH_ATTACHMENT, mode: 'read-write', format: WEBGPU_DEPTH_FORMAT, compare: 'less-equal', store: 'store' },
@@ -79,6 +90,7 @@ export const FULL_GAME_GRAPH_SKELETON: RenderGraphPass[] = [
     label: 'Campaign roads and ground selection decals',
     phase: 'campaign',
     framePhase: 'world-depth',
+    role: 'world-decal',
     reads: ['cameraUniforms', 'campaignState', WEBGPU_WORLD_DEPTH_ATTACHMENT],
     writes: ['worldColor'],
     depth: { attachment: WEBGPU_WORLD_DEPTH_ATTACHMENT, mode: 'read', format: WEBGPU_DEPTH_FORMAT, compare: 'less-equal', store: 'store' },
@@ -88,27 +100,37 @@ export const FULL_GAME_GRAPH_SKELETON: RenderGraphPass[] = [
     label: 'Campaign city, army, scenery, standards, and garrison meshes',
     phase: 'campaign',
     framePhase: 'world-depth',
+    role: 'world-opaque',
     reads: ['cameraUniforms', 'campaignState', WEBGPU_WORLD_DEPTH_ATTACHMENT],
     writes: ['worldColor', WEBGPU_WORLD_DEPTH_ATTACHMENT, 'pickIds'],
     depth: { attachment: WEBGPU_WORLD_DEPTH_ATTACHMENT, mode: 'read-write', format: WEBGPU_DEPTH_FORMAT, compare: 'less-equal', store: 'store' },
   },
   {
-    id: 'labelsAndAtmosphere',
-    label: 'Transparent atmosphere, labels, HUD anchors, and non-depth overlays',
+    id: 'atmosphereOverlays',
+    label: 'Transparent atmosphere and non-depth visual overlays',
     phase: 'ui',
     framePhase: 'overlay',
-    reads: ['cameraUniforms', 'worldColor', 'pickIds'],
+    role: 'overlay-effect',
+    reads: ['cameraUniforms', 'worldColor'],
     writes: ['compositedColor'],
-    overlay: true,
+  },
+  {
+    id: 'labelsAndHudAnchors',
+    label: 'Labels, HUD anchors, and non-depth UI overlays',
+    phase: 'ui',
+    framePhase: 'overlay',
+    role: 'overlay-ui',
+    reads: ['cameraUniforms', 'compositedColor', 'pickIds'],
+    writes: ['compositedColor'],
   },
   {
     id: 'gameUi',
     label: 'Game anchored UI and compositor',
     phase: 'ui',
     framePhase: 'overlay',
+    role: 'overlay-ui',
     reads: ['cameraUniforms', 'compositedColor', 'pickIds'],
     writes: ['compositedColor'],
-    overlay: true,
   },
   {
     id: 'present',
@@ -146,13 +168,6 @@ export function compileRenderGraph(passes: readonly RenderGraphPass[]): RenderGr
       resource.lastUsePass = pass.id;
     }
 
-    if (pass.overlay && (pass.depth?.mode === 'write' || pass.depth?.mode === 'read-write')) {
-      diagnostics.push(`overlay pass "${pass.id}" must not write depth attachment "${pass.depth.attachment}"`);
-    }
-    if (pass.overlay && pass.framePhase !== 'overlay') {
-      diagnostics.push(`overlay pass "${pass.id}" must use the overlay frame phase`);
-    }
-
     if (pass.framePhase) {
       const order = framePhaseOrder(pass.framePhase);
       if (order < lastFramePhaseOrder) {
@@ -167,6 +182,16 @@ export function compileRenderGraph(passes: readonly RenderGraphPass[]): RenderGr
       if (pass.framePhase !== 'world-depth' && touchesDepth) {
         diagnostics.push(`non-world-depth pass "${pass.id}" must not touch ${WEBGPU_WORLD_DEPTH_ATTACHMENT}`);
       }
+      if (!isFrameGraphPassRole(pass.role)) {
+        diagnostics.push(`frame-phase pass "${pass.id}" must declare a semantic role`);
+      } else {
+        const rolePhase = frameGraphRolePhase(pass.role);
+        if (rolePhase !== pass.framePhase) {
+          diagnostics.push(`frame-phase pass "${pass.id}" role "${pass.role}" is incompatible with frame phase "${pass.framePhase}"`);
+        }
+      }
+    } else if (pass.role) {
+      diagnostics.push(`non-frame pass "${pass.id}" must not declare semantic role "${pass.role}"`);
     }
 
     if (pass.depth && pass.framePhase !== 'world-depth') {
@@ -194,6 +219,12 @@ export function compileRenderGraph(passes: readonly RenderGraphPass[]): RenderGr
       if (pass.depth.mode === 'write' && readsDepth) {
         diagnostics.push(`pass "${pass.id}" declares write-only depth but reads "${pass.depth.attachment}"`);
       }
+      if (isWebGpuDepthMode(pass.depth.mode) && isFrameGraphPassRole(pass.role)) {
+        const depthRole = frameGraphDepthRole(pass.depth.mode);
+        if (pass.role !== depthRole) {
+          diagnostics.push(`world-depth pass "${pass.id}" depth mode "${pass.depth.mode}" requires role "${depthRole}", not "${pass.role}"`);
+        }
+      }
     }
   }
 
@@ -210,11 +241,7 @@ export function compileRenderGraph(passes: readonly RenderGraphPass[]): RenderGr
 }
 
 function framePhaseOrder(phase: RenderGraphFramePhase): number {
-  switch (phase) {
-    case 'background': return 0;
-    case 'world-depth': return 1;
-    case 'overlay': return 2;
-  }
+  return frameGraphPhaseOrder(phase);
 }
 
 export function fullGameRenderGraphReport(): RenderGraphReport {

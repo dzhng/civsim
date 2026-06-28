@@ -211,6 +211,12 @@ shadows that sit on the ground instead of floating as screen overlays.
   attachments. `/webgpu/render-graph` publishes negative fixtures for those
   cases so the browser scenario proves the graph contract, not only the happy
   path.
+- `compileRenderGraph` now also requires semantic roles for every frame-phase
+  graph pass and checks role/frame-phase plus role/depth-mode compatibility
+  through the same `packages/webgpu-core/src/frameGraphContract.ts` helpers used
+  by `RawFrameShell.drawFrame`. `/webgpu/render-graph` publishes missing-role
+  and mismatched-role negative fixtures, and the lab scenario asserts concrete
+  graph roles for background, world-depth, and overlay passes.
 - The declarative full-game render graph now tracks content domain and runtime
   frame phase separately. Battle/campaign classify ownership, while
   `background -> world-depth -> overlay` classifies attachment semantics. The

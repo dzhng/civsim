@@ -612,6 +612,13 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   `world-depth`; background underpaint and overlay UI must not touch them.
   Have `compileRenderGraph` validate phase order and depth ownership, and make
   the render-graph lab route expose graph frame phases and depth-pass ids.
+- Semantic roles belong in the declarative render graph too, not only the live
+  frame shell. A graph pass with a runtime `framePhase` must declare a role such
+  as `world-opaque`, `world-decal`, `overlay-ui`, or `overlay-effect`, and
+  `compileRenderGraph` should reject role/phase and role/depth-mode mismatches
+  using the same shared helpers as `RawFrameShell.drawFrame`. Keep negative
+  fixtures for missing and mismatched roles so graph skeletons cannot smuggle
+  type buckets back in as visibility policy.
 - Live `world-depth` frame passes need an explicit depth mode, not just a phase
   name. Use `read` for ground decals, roads, and other world cues that should be
   occluded by later geometry without reserving pixels; use `read-write` for

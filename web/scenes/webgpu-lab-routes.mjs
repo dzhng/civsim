@@ -140,6 +140,15 @@ const routes = [
     && s.stats.depthPasses?.includes('battleCrowd')
     && s.stats.depthPasses?.includes('campaignGroundDecals')
     && s.stats.depthPasses?.includes('campaignOpaque3d')
+    && hasGraphPassRole(s.stats.graphPassRoles, 'battleTerrain', 'background-underpaint', 'background')
+    && hasGraphPassRole(s.stats.graphPassRoles, 'campaignMapUnderpaint', 'background-underpaint', 'background')
+    && hasGraphPassRole(s.stats.graphPassRoles, 'worldDepthClear', 'world-depth-fill', 'world-depth')
+    && hasGraphPassRole(s.stats.graphPassRoles, 'battleCrowd', 'world-opaque', 'world-depth')
+    && hasGraphPassRole(s.stats.graphPassRoles, 'campaignGroundDecals', 'world-decal', 'world-depth')
+    && hasGraphPassRole(s.stats.graphPassRoles, 'campaignOpaque3d', 'world-opaque', 'world-depth')
+    && hasGraphPassRole(s.stats.graphPassRoles, 'atmosphereOverlays', 'overlay-effect', 'overlay')
+    && hasGraphPassRole(s.stats.graphPassRoles, 'labelsAndHudAnchors', 'overlay-ui', 'overlay')
+    && hasGraphPassRole(s.stats.graphPassRoles, 'gameUi', 'overlay-ui', 'overlay')
     && hasGraphDepthPassMode(s.stats.depthPassModes, 'worldDepthClear', 'write')
     && hasGraphDepthPassMode(s.stats.depthPassModes, 'battleCrowd', 'read-write')
     && hasGraphDepthPassMode(s.stats.depthPassModes, 'campaignGroundDecals', 'read')
@@ -193,10 +202,21 @@ function hasGraphDepthPassMode(passes, id, mode) {
   return Array.isArray(passes) && passes.some((pass) => pass?.id === id && pass?.mode === mode && pass?.attachment === WEBGPU_WORLD_DEPTH_ATTACHMENT);
 }
 
+function hasGraphPassRole(passes, id, role, framePhase) {
+  return Array.isArray(passes) && passes.some((pass) => pass?.id === id && pass?.role === role && pass?.framePhase === framePhase);
+}
+
 function depthContractFixturesRejected(fixtures) {
-  const expected = new Set(['readModeWritesDepth', 'writeModeReadsDepth', 'unsupportedDepthAttachment', 'unsupportedDepthMode']);
+  const expected = new Set([
+    'readModeWritesDepth',
+    'writeModeReadsDepth',
+    'unsupportedDepthAttachment',
+    'unsupportedDepthMode',
+    'missingSemanticRole',
+    'mismatchedSemanticRole',
+  ]);
   return Array.isArray(fixtures)
-    && fixtures.length === 4
+    && fixtures.length === expected.size
     && fixtures.every((fixture) =>
       expected.has(fixture?.id)
       && fixture?.rejected === true
@@ -302,6 +322,10 @@ async function findPhaseBrandFootguns() {
       file: new URL('../../packages/game-renderer/src/renderGraph.ts', import.meta.url),
       checks: [
         ['render graph imports shared depth contract', /import\s*\{[^}]*WEBGPU_DEPTH_FORMAT[^}]*WEBGPU_WORLD_DEPTH_ATTACHMENT[^}]*type\s+WebGpuDepthMode[^}]*\}\s*from\s*['"]\.\.\/\.\.\/webgpu-core\/src\/depthContract['"]/],
+        ['render graph imports shared frame role contract', /import\s*\{[\s\S]*?frameGraphDepthRole[\s\S]*?frameGraphRolePhase[\s\S]*?isFrameGraphPassRole[\s\S]*?type\s+FrameGraphPassRole[\s\S]*?\}\s*from\s*['"]\.\.\/\.\.\/webgpu-core\/src\/frameGraphContract['"]/],
+        ['render graph pass declares semantic role', /role\?:\s*FrameGraphPassRole/],
+        ['render graph validates semantic roles', /frame-phase pass "\$\{pass\.id\}" must declare a semantic role[\s\S]*?frameGraphRolePhase\(pass\.role\)/],
+        ['render graph validates role-depth compatibility', /frameGraphDepthRole\(pass\.depth\.mode\)[\s\S]*?requires role/],
         ['render graph pass depth uses shared mode type', /mode:\s*WebGpuDepthMode/],
         ['render graph pass depth uses shared format type', /format:\s*typeof\s+WEBGPU_DEPTH_FORMAT/],
         ['render graph validates shared world depth attachment', /pass\.depth\.attachment\s*!==\s*WEBGPU_WORLD_DEPTH_ATTACHMENT/],
@@ -713,7 +737,12 @@ export async function run(ctx) {
   for (const [route, predicate] of routes) {
     const page = await ctx.newPage({ viewport: { width: 900, height: 620 }, errorPrefix: `webgpu-${route}` });
     await page.goto(`${ctx.target}/webgpu/${route}`);
-    await page.waitForFunction(() => window.__webgpuLabReady === true && window.__webgpuLabStats, undefined, { timeout: 18000 });
+    const expectedRoute = route.split('?')[0];
+    await page.waitForFunction((expected) =>
+      window.__webgpuLabReady === true
+      && window.__webgpuLabStats?.ok === true
+      && window.__webgpuLabStats?.route === expected,
+    expectedRoute, { timeout: 18000 });
     await page.waitForTimeout(280);
     const stats = await page.evaluate(() => window.__webgpuLabStats);
     ctx.check(`${route}: route stats satisfy contract`, predicate(stats), JSON.stringify(stats));

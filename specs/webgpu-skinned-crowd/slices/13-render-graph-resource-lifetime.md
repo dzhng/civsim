@@ -75,10 +75,16 @@ compatible or splits them into separate passes.
   `overlay-ui`, `overlay-effect`, and `overlay-debug`. The frame shell rejects
   incompatible role/phase/depth combinations before encoding GPU work, so a
   future type bucket cannot become a hidden painter-order rule.
+- The semantic phase/role contract is now shared in `packages/webgpu-core` and
+  used by both `RawFrameShell.drawFrame` and the declarative full-game render
+  graph. A graph pass with a `framePhase` must declare a compatible role, and a
+  world-depth graph pass must use the role that matches its exclusive depth
+  access mode.
 - `packages/game-renderer/src/renderGraph.ts` declares the first shared
   full-game graph skeleton with `worldDepth` ownership: terrain/ground write
-  depth, opaque 3D battle/campaign passes read-write depth, and labels/UI are
-  explicit overlay passes that cannot write depth.
+  depth, opaque 3D battle/campaign passes read-write depth, and overlay passes
+  are split by semantics so atmosphere/effects are not hidden inside label/UI
+  buckets.
 - `/webgpu/render-graph` includes `Nested3dFixturePass`, a deterministic
   depth-only proof surface for flag-in-city, garrison-in-city-stub,
   rank-overlap, and ground-ring-occlusion. The fixture deliberately submits

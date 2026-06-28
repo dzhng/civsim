@@ -1218,6 +1218,9 @@ async function routeRenderGraph(ctx: LabContext) {
     return counts;
   }, {});
   const graphFramePhases = uniqueGraphFramePhases(report);
+  const graphPassRoles = report.passes
+    .filter((pass) => pass.framePhase)
+    .map((pass) => ({ id: pass.id, framePhase: pass.framePhase, role: pass.role }));
   const depthPasses = report.passes.filter((pass) => pass.depth).map((pass) => pass.id);
   const depthPassModes = report.passes
     .filter((pass) => pass.depth)
@@ -1236,6 +1239,7 @@ async function routeRenderGraph(ctx: LabContext) {
     resources: report.resources.length,
     phases: Object.entries(phaseCounts).map(([k, v]) => `${k}:${v}`).join(', '),
     graphFramePhases: graphFramePhases.join(' -> '),
+    graphRoles: graphPassRoles.map((pass) => `${pass.id}:${pass.role}`).join(', '),
     actualFramePhases: shellStats.phases.map((phase) => phase.kind).join(' -> '),
     depthPasses: depthPassModes.map((pass) => `${pass.id}:${pass.mode}`).join(', '),
     depthContractFixtures: `${depthContractFixtures.filter((fixture) => fixture.rejected).length}/${depthContractFixtures.length} rejected`,
@@ -1250,6 +1254,7 @@ async function routeRenderGraph(ctx: LabContext) {
     lastPass: report.passes.at(-1)?.id,
     diagnostics: report.diagnostics,
     graphFramePhases,
+    graphPassRoles,
     depthPasses,
     depthPassModes,
     depthContractFixtures,
@@ -1274,6 +1279,7 @@ function renderGraphDepthContractFixtures() {
       label: 'Depth clear',
       phase: 'frame',
       framePhase: 'world-depth',
+      role: 'world-depth-fill',
       writes: [WEBGPU_WORLD_DEPTH_ATTACHMENT],
       depth: { attachment: WEBGPU_WORLD_DEPTH_ATTACHMENT, mode: 'write', format: WEBGPU_DEPTH_FORMAT },
     },
@@ -1287,6 +1293,7 @@ function renderGraphDepthContractFixtures() {
         label: 'Bad read mode writes depth',
         phase: 'campaign',
         framePhase: 'world-depth',
+        role: 'world-decal',
         reads: ['cameraUniforms', WEBGPU_WORLD_DEPTH_ATTACHMENT],
         writes: ['worldColor', WEBGPU_WORLD_DEPTH_ATTACHMENT],
         depth: { attachment: WEBGPU_WORLD_DEPTH_ATTACHMENT, mode: 'read', format: WEBGPU_DEPTH_FORMAT },
@@ -1300,6 +1307,7 @@ function renderGraphDepthContractFixtures() {
         label: 'Bad write mode reads depth',
         phase: 'battle',
         framePhase: 'world-depth',
+        role: 'world-depth-fill',
         reads: ['cameraUniforms', WEBGPU_WORLD_DEPTH_ATTACHMENT],
         writes: [WEBGPU_WORLD_DEPTH_ATTACHMENT],
         depth: { attachment: WEBGPU_WORLD_DEPTH_ATTACHMENT, mode: 'write', format: WEBGPU_DEPTH_FORMAT },
@@ -1313,6 +1321,7 @@ function renderGraphDepthContractFixtures() {
         label: 'Bad depth attachment',
         phase: 'campaign',
         framePhase: 'world-depth',
+        role: 'world-opaque',
         reads: ['cameraUniforms', 'privateDepth'],
         writes: ['worldColor', 'privateDepth'],
         depth: { attachment: 'privateDepth', mode: 'read-write', format: WEBGPU_DEPTH_FORMAT },
@@ -1326,9 +1335,36 @@ function renderGraphDepthContractFixtures() {
         label: 'Bad depth mode',
         phase: 'campaign',
         framePhase: 'world-depth',
+        role: 'world-decal',
         reads: ['cameraUniforms', WEBGPU_WORLD_DEPTH_ATTACHMENT],
         writes: ['worldColor'],
         depth: { attachment: WEBGPU_WORLD_DEPTH_ATTACHMENT, mode: 'sample', format: WEBGPU_DEPTH_FORMAT },
+      },
+    },
+    {
+      id: 'missingSemanticRole',
+      expected: 'must declare a semantic role',
+      pass: {
+        id: 'badMissingRole',
+        label: 'Bad missing role',
+        phase: 'campaign',
+        framePhase: 'world-depth',
+        reads: ['cameraUniforms', WEBGPU_WORLD_DEPTH_ATTACHMENT],
+        writes: ['worldColor', WEBGPU_WORLD_DEPTH_ATTACHMENT],
+        depth: { attachment: WEBGPU_WORLD_DEPTH_ATTACHMENT, mode: 'read-write', format: WEBGPU_DEPTH_FORMAT },
+      },
+    },
+    {
+      id: 'mismatchedSemanticRole',
+      expected: 'is incompatible with frame phase',
+      pass: {
+        id: 'badRolePhase',
+        label: 'Bad role phase',
+        phase: 'ui',
+        framePhase: 'overlay',
+        role: 'world-opaque',
+        reads: ['cameraUniforms'],
+        writes: ['compositedColor'],
       },
     },
   ];

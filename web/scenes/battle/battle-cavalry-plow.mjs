@@ -1,4 +1,4 @@
-import { battleReal } from './worlds.mjs';
+import { battleReal } from '../worlds.mjs';
 
 export const meta = {
   name: 'battle-cavalry-plow',

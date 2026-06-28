@@ -16,10 +16,10 @@ import { clearSnapshotFolder, snapCheck } from '../snapshot.mjs';
 
 const TARGET = process.env.VERIFY_URL ?? 'http://localhost:5173';
 // PITCH=ingame renders at the battle's real max tilt (0.42 rad, near top-down)
-// under shots/models-ingame/ to confirm the models still read as the
+// under shots/models/shared/ingame/ to confirm the models still read as the
 // engine actually shows them; default is the side-on hero angle for geometry.
 const INGAME = process.env.PITCH === 'ingame';
-const GROUP = INGAME ? 'models-ingame' : 'models';
+const GROUP = INGAME ? 'models/shared/ingame' : 'models/shared/turntable';
 
 // Thumbnail = the whole (small) viewport, so the montage just tiles screenshots
 // with no resize. Portrait: a standing figure with his pike raised.

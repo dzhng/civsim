@@ -18,15 +18,14 @@ fails — because each is a *deterministic moment* (the discipline below is what
 keeps it that way). Any nonzero tolerance must name the source it absorbs, such
 as a documented headless raster wobble, and must not hide unknown visual drift.
 
-Each harness owns a folder under `shots/` (the scene/campaign harnesses pass an
-explicit `baseDir`; vibe/turntable carry the folder in the snap `name`):
-`scenes/battle-initial.png` (scene runner), `campaign/campaign-political.png`
-(verify-campaign), `vibe/<scenario>/t###s.png` (vibe timelines),
-`models/<id>-<class>.png` (turntable).
+Each harness owns a folder under `shots/`: `battle/`, `campaign/`, `ui/`,
+`models/{battle,campaign,shared}/`, and `vibe/<scenario>/`. Scene files are
+organized the same way under `web/scenes/<owner>/`; the scene runner writes
+baselines to the matching owner folder.
 
 `web/vibe/shots/` is obsolete. Current review artifacts live under `web/shots/`:
-committed baselines in per-harness folders (`scenes/`, `campaign/`, `vibe/`,
-`models/`, `models-ingame/`, `weave/`), and failure diffs in `web/shots/diff/`.
+committed baselines in per-harness folders (`battle/`, `campaign/`, `ui/`,
+`models/`, `vibe/`, `weave/`), and failure diffs in `web/shots/diff/`.
 
 ## ALWAYS look at the screenshot before you respond
 
@@ -180,7 +179,7 @@ Click-to-select and drag-box are real input paths; drive them with
 ## Running just one snapshot
 
 > Battle, campaign, model, and focused visual workbench verification should use
-> addressable **scenes** (one runner over `web/scenes/*.mjs`). Compatibility
+> addressable **scenes** (one runner over `web/scenes/<owner>/*.mjs`). Compatibility
 > wrappers may remain, but new work should have a named scene. See
 > `specs/scenes.md` and the `write-scene` skill for the target architecture.
 

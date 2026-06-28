@@ -1,4 +1,4 @@
-import { hasBattleWorldDepthContract, hasCampaignWorldDepthContract } from './_webgpu-contract.mjs';
+import { hasBattleWorldDepthContract, hasCampaignWorldDepthContract } from '../_webgpu-contract.mjs';
 
 export const meta = {
   name: 'menu-webgpu-shell',

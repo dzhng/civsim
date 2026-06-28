@@ -63,6 +63,11 @@ Specific blockers:
 
 ## Review Scenes
 
+Use the [write-scene](../../.agents/skills/write-scene/SKILL.md) skill when
+adding or restructuring these harness scenes. New campaign polish scenes should
+live under `web/scenes/campaign/`, write baselines under `web/shots/campaign/`,
+and use focused fixture worlds before full-map acceptance.
+
 - Close Rome with selected army/city: labels, road spokes, Ostia/Portus, Roma,
   selection ring, city/army composition.
 - Road continuity workbench: a fake terrain plane, two city markers, and a road
@@ -80,6 +85,48 @@ Specific blockers:
   spline before it appears in the full campaign map.
 - Road-life crop: deterministic carts or road traffic on real campaign roads.
 - Fog crop: hidden flags/labels/markers absent, border fog preserved.
+
+## Asset Ownership
+
+- Campaign-only 3D model definitions belong under `web/src/models/campaign/`.
+- Battle-only 3D model definitions belong under `web/src/models/battle/`.
+- Reusable assets such as soldiers, trees, rocks, flags, banners, carts, and
+  shared props belong under `web/src/models/shared/`.
+- New model review baselines belong under `web/shots/models/{campaign,battle,shared}/`.
+  Animation GIFs live in the matching model owner's `anim/` folder.
+- When a new 3D model is created, generate its static turntable with the
+  `write-turntable` workflow and add animation review GIFs with `write-anim`
+  when it moves. Future campaign flags, army banners, carts, trees, and soldiers
+  should all have an animation review path.
+
+## Next Agent Prompt
+
+You are picking up campaign polish. Last updated: 2026-06-29.
+
+Current status: the visual harness/source ownership cleanup is in progress
+before campaign polish implementation begins.
+
+Next pickup: finish the `web/shots` and `web/scenes` folder split, regenerate
+WebGPU baselines from scratch, then start Slice 1 by adding focused campaign
+workbench scenes with the `write-scene` skill.
+
+Active blocker: do not accept campaign polish screenshots until the new baseline
+folders are regenerated and reviewed with `screenshot-critique`.
+
+Before ending any future pass, update this section with the new status, next
+pickup point, blockers, and checklist state.
+
+Global TODO:
+
+- [ ] Slice 1: feedback baselines and focused campaign workbench scenes exist.
+- [ ] Slice 2: city label spacing and Rome road continuity pass in fixture and
+  close Rome campaign scene.
+- [ ] Slice 3: natural terrain color passes fixture and real Central Italy crop.
+- [ ] Slice 4: terrain relief, forests, and clearance pass fixture and real
+  campaign crop.
+- [ ] Slice 5: deterministic road-life/cart fixture and campaign crop pass.
+- [ ] Slice 6: final campaign acceptance pass has current screenshots, crops,
+  and unbiased screenshot critique for every slice.
 
 ## Slices
 

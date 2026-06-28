@@ -1,5 +1,5 @@
 import { PNG } from 'pngjs';
-import { hasBattleWorldDepthContract } from './_webgpu-contract.mjs';
+import { hasBattleWorldDepthContract } from '../_webgpu-contract.mjs';
 
 export const meta = {
   name: 'battle-webgpu-effects',

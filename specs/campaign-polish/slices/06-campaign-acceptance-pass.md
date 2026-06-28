@@ -10,7 +10,7 @@ the real campaign.
 
 ## API Seam
 
-- `web/scenes/campaign-webgpu-lod.mjs`
+- `web/scenes/campaign/campaign-webgpu-lod.mjs`
 - screenshot regression harness under `web/`
 - screenshot critique and compare-screenshots skills for visual review
 - slice workbench outputs for roads, labels, terrain color, terrain relief,

@@ -1,5 +1,5 @@
 import { PNG } from 'pngjs';
-import { battleDuel } from './worlds.mjs';
+import { battleDuel } from '../worlds.mjs';
 
 export const meta = {
   name: 'battle-lod',

@@ -159,7 +159,7 @@ with a gate that fails when the projection has a hole. Two tiers:
   registries, each a single primitive shown in isolation. These are 100%
   enumerable and 100% gated. *(measured fact — the registries:)*
   - unit classes (`web/src/battle/classData.ts` and
-    `web/src/shared/soldierModel.ts` look data) × 2 teams × WebGPU crowd pose.
+    `web/src/models/shared/soldierModel.ts` look data) × 2 teams × WebGPU crowd pose.
     The old Babylon battle turntable is retired; generated visual coverage
     should come from the raw-WebGPU lab/asset workbench lane.
   - highlight state: none / hover / selected.
@@ -196,8 +196,8 @@ canonical Rust `ALL_CLASSES` — a gate keeps them honest (below).
 **The coverage gate** *(binding)* is a runner self-check:
 1. every `ATOMIC` entry has a baseline at its deterministic path — else FAIL,
    naming the missing states;
-2. every baseline under `shots/scenes/` maps to a live catalog entry or a
-   listed composite — else FAIL (orphan: a primitive was removed, delete its
+2. every scene baseline under `shots/<owner>/` maps to a live catalog entry or
+   a listed composite — else FAIL (orphan: a primitive was removed, delete its
    shot);
 3. the mirror gate: `CLASS_LOOK.length` and the chip list match what the wasm
    exposes (drive `window.__game`/the contract enum count) — else the catalog
@@ -326,7 +326,8 @@ failing on.
 - `snap(name, opts?)` — **the only way a PNG is written.** It optionally runs
   `opts.before()` to pose the world, sets `opts.cam` (`[x, y, scale]` via the
   world's camera hook), waits `opts.settle ?? 250`ms, then calls `snapCheck`
-  under the scene baseline `shots/scenes/<name>.png` (via `baseDir`).
+  under the owning baseline folder (`shots/battle/`, `shots/campaign/`,
+  `shots/ui/`, or `shots/models/`) via `baseDir`.
   `opts.maxDiffRatio`/`opts.threshold` pass through for a *named* noise source.
   There is no `ctx.screenshot`-to-disk; bare `page.screenshot({path})` to a
   tracked location is forbidden (a lint/grep check in the runner can enforce
@@ -350,15 +351,13 @@ failing on.
 
 ### Baseline namespacing
 
-There is no `shots/baseline/` wrapper: each harness owns a flat top-level folder
-under `shots/` — `scenes/` (the scene runner, `meta.name`-keyed), `campaign/`
-(the verify-campaign harnesses), `vibe/`, `models/`, `models-ingame/`, `weave/`.
-The scene/campaign harnesses select their folder with `snapCheck`'s `baseDir`;
-vibe/turntable carry the folder in the snap `name`. Earlier drafts proposed
-per-scene subfolders (e.g. `battle-deploy/initial.png`); that nesting was
-dropped — one flat folder per harness is enough. The folder makes "which harness
-owns this shot, and therefore asserts on it" visible from the path — directly
-serving the every-shot-is-a-test principle.
+There is no `shots/baseline/` wrapper: each harness owns a top-level or
+owner-keyed folder under `shots/` — `battle/`, `campaign/`, `ui/`,
+`models/{battle,campaign,shared}/`, `vibe/`, and `weave/`. The scene runner
+selects the folder from `web/scenes/<owner>/`; other harnesses select their
+folder with `snapCheck`'s `baseDir` or the snap `name`. The folder makes "which
+harness owns this shot, and therefore asserts on it" visible from the path —
+directly serving the every-shot-is-a-test principle.
 
 ### Which scratch shots become snaps
 
@@ -474,8 +473,8 @@ Must BECOME true (the acceptance, write these as runner self-checks):
 - [ ] No bare `page.screenshot({path})` to a tracked location remains; `git
       status` clean after `--full`; `web/shots/` holds only per-harness
       folders + `diff/`.
-- [ ] Scene baselines re-blessed once under `shots/scenes/`, old flat
-      baselines deleted, byte-identity verified before deletion.
+- [ ] Scene baselines re-blessed once under the owner folders in `shots/`, old
+      flat baselines deleted, byte-identity verified before deletion.
 - [ ] Skills + README updated; this spec deleted.
 - [ ] Postmortem note here before deleting: how many scratch shots were
       promoted vs dropped, and the final scene/baseline counts (for the next

@@ -1,7 +1,7 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { basename } from 'node:path';
 
-import { hasBattleWorldDepthContract, hasCampaignWorldDepthContract } from './_webgpu-contract.mjs';
+import { hasBattleWorldDepthContract, hasCampaignWorldDepthContract } from '../_webgpu-contract.mjs';
 
 export const meta = {
   name: 'full-game-webgpu-performance',
@@ -586,7 +586,7 @@ async function writeReport(report) {
 }
 
 function reportFileUrls() {
-  const dir = new URL('../../specs/done/webgpu-skinned-crowd-foundation/visualizations/performance/', import.meta.url);
+  const dir = new URL('../../../specs/done/webgpu-skinned-crowd-foundation/visualizations/performance/', import.meta.url);
   return {
     dir,
     json: new URL('full-game-webgpu-performance.json', dir),

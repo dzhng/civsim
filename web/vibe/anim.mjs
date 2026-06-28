@@ -2,7 +2,8 @@
 // as a looping GIF so the motion can be eyeballed frame by frame — the manual
 // check the user asked for. Boots the ?test=models turntable (one soldier on a
 // flat field, no sim) and drives it with __tt.step, then encodes the frames with
-// the dependency-free _gif.mjs encoder into web/shots/anim/<id>-<class>-<anim>.gif.
+// the dependency-free _gif.mjs encoder into
+// web/shots/models/shared/anim/<id>-<class>-<anim>.gif.
 //
 //   node vibe/anim.mjs                 # the representative class set, all anims
 //   ONLY=3 node vibe/anim.mjs          # just the phalanx
@@ -16,7 +17,7 @@ import { encodeGif, pngToRGBA } from './_gif.mjs';
 const TARGET = process.env.VERIFY_URL ?? 'http://localhost:5173';
 const TW = 300, TH = 380, PITCH = 0.95;
 const here = path.dirname(fileURLToPath(import.meta.url));
-const OUT = path.join(here, '..', 'shots', 'anim');
+const OUT = path.join(here, '..', 'shots', 'models', 'shared', 'anim');
 fs.mkdirSync(OUT, { recursive: true });
 
 const NAMES = ['heavy-sword', 'light-spear', 'longsword', 'phalanx', 'archers', 'skirmishers',

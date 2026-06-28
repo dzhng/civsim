@@ -9,9 +9,11 @@ visual seams before the real campaign map is changed.
 
 ## API Seam
 
-- `web/scenes/campaign-webgpu-lod.mjs`
+- `web/scenes/campaign/campaign-webgpu-lod.mjs`
 - a new campaign-polish scene/workbench module if the current scene file becomes
   too broad
+- the `write-scene` skill for scene shape, deterministic fixtures, snapshot
+  ownership, and focused visual/flow separation
 - campaign debug hooks exposed through `window.__campaign`
 - screenshot assets under `specs/campaign-polish/assets/user-feedback/`
 

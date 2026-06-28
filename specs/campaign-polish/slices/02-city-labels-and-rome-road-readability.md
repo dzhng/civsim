@@ -15,7 +15,7 @@ their destination cities at the close campaign camera.
 - road geometry generation/projection shared by the WebGPU campaign renderer
 - a road-continuity fake scene: two city markers, a terrain plane, a road spline,
   and selectable draw-order/camera conditions
-- `web/scenes/campaign-webgpu-lod.mjs` visible-label and road probes for the
+- `web/scenes/campaign/campaign-webgpu-lod.mjs` visible-label and road probes for the
   real close Rome camera
 
 ## Human Review

@@ -1,4 +1,4 @@
-import { battle5v5 } from './worlds.mjs';
+import { battle5v5 } from '../worlds.mjs';
 
 export const meta = {
   name: 'battle-ai',

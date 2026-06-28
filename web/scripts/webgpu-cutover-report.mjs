@@ -13,19 +13,19 @@ const WEB_PACKAGE_JSON = new URL('../package.json', import.meta.url);
 const WEB_PACKAGE_LOCK = new URL('../package-lock.json', import.meta.url);
 
 const EXPECTED_SCENARIOS = [
-  { id: 'menu-shell', file: 'menu-webgpu-shell.mjs', script: 'scenario:webgpu', detail: 'menu boot, unsupported WebGPU UX, duel, quick battle, campaign launch, and return-to-menu' },
-  { id: 'menu-visual', file: 'menu-webgpu-shell-visual.mjs', script: 'scenario:webgpu', detail: 'menu ready, unsupported, and duel modal snapshots' },
-  { id: 'battle-default', file: 'battle-webgpu-default.mjs', script: 'scenario:webgpu', detail: 'normal battle route defaults to raw WebGPU and retired gfx switches stay retired' },
-  { id: 'battle-input', file: 'battle-webgpu-input.mjs', script: 'scenario:webgpu', detail: 'click, drag-box, right-click order, wheel zoom, DPR, and freeze semantics' },
-  { id: 'campaign-production', file: 'campaign-webgpu-production.mjs', script: 'scenario:webgpu', detail: 'normal campaign route uses raw-WebGPU map, markers, labels, panels, and selection' },
-  { id: 'campaign-handoff', file: 'campaign-webgpu-handoff.mjs', script: 'scenario:webgpu', detail: 'campaign to battle and back without changing campaign mechanics' },
-  { id: 'campaign-save-load', file: 'campaign-webgpu-save-load.mjs', script: 'scenario:webgpu', detail: 'menu save slot round-trips into a loaded WebGPU campaign' },
-  { id: 'campaign-visual', file: 'campaign-webgpu-visual.mjs', script: 'scenario:webgpu', detail: 'controlled campaign marker and panel snapshots through WebGPU' },
-  { id: 'campaign-conquest', file: 'campaign-webgpu-conquest.mjs', script: 'scenario:webgpu:campaign', detail: 'real-map march to garrison battle, auto-resolve, and continued savable campaign' },
-  { id: 'campaign-reinforcements', file: 'campaign-webgpu-reinforcements.mjs', script: 'scenario:webgpu:campaign', detail: 'nearby split stack joins battle and expanded army renders through WebGPU' },
-  { id: 'visual-report', file: 'webgpu-visual-report.mjs', script: 'scenario:webgpu', detail: 'visual cutover contact sheet for menu, battle, campaign, and handoff surfaces' },
-  { id: 'performance-report', file: 'full-game-webgpu-performance.mjs', script: 'scenario:webgpu', detail: 'full-game liveness performance report for menu, battle, campaign, and handoff' },
-  { id: 'lab-cutover', file: 'webgpu-lab-routes.mjs', script: 'scenario:webgpu', detail: 'lab route contracts and cutover route stats stay covered' },
+  { id: 'menu-shell', file: 'ui/menu-webgpu-shell.mjs', script: 'scenario:webgpu', detail: 'menu boot, unsupported WebGPU UX, duel, quick battle, campaign launch, and return-to-menu' },
+  { id: 'menu-visual', file: 'ui/menu-webgpu-shell-visual.mjs', script: 'scenario:webgpu', detail: 'menu ready, unsupported, and duel modal snapshots' },
+  { id: 'battle-default', file: 'battle/battle-webgpu-default.mjs', script: 'scenario:webgpu', detail: 'normal battle route defaults to raw WebGPU and retired gfx switches stay retired' },
+  { id: 'battle-input', file: 'battle/battle-webgpu-input.mjs', script: 'scenario:webgpu', detail: 'click, drag-box, right-click order, wheel zoom, DPR, and freeze semantics' },
+  { id: 'campaign-production', file: 'campaign/campaign-webgpu-production.mjs', script: 'scenario:webgpu', detail: 'normal campaign route uses raw-WebGPU map, markers, labels, panels, and selection' },
+  { id: 'campaign-handoff', file: 'campaign/campaign-webgpu-handoff.mjs', script: 'scenario:webgpu', detail: 'campaign to battle and back without changing campaign mechanics' },
+  { id: 'campaign-save-load', file: 'campaign/campaign-webgpu-save-load.mjs', script: 'scenario:webgpu', detail: 'menu save slot round-trips into a loaded WebGPU campaign' },
+  { id: 'campaign-visual', file: 'campaign/campaign-webgpu-visual.mjs', script: 'scenario:webgpu', detail: 'controlled campaign marker and panel snapshots through WebGPU' },
+  { id: 'campaign-conquest', file: 'campaign/campaign-webgpu-conquest.mjs', script: 'scenario:webgpu:campaign', detail: 'real-map march to garrison battle, auto-resolve, and continued savable campaign' },
+  { id: 'campaign-reinforcements', file: 'campaign/campaign-webgpu-reinforcements.mjs', script: 'scenario:webgpu:campaign', detail: 'nearby split stack joins battle and expanded army renders through WebGPU' },
+  { id: 'visual-report', file: 'system/webgpu-visual-report.mjs', script: 'scenario:webgpu', detail: 'visual cutover contact sheet for menu, battle, campaign, and handoff surfaces' },
+  { id: 'performance-report', file: 'system/full-game-webgpu-performance.mjs', script: 'scenario:webgpu', detail: 'full-game liveness performance report for menu, battle, campaign, and handoff' },
+  { id: 'lab-cutover', file: 'system/webgpu-lab-routes.mjs', script: 'scenario:webgpu', detail: 'lab route contracts and cutover route stats stay covered' },
 ];
 
 const RETIRED_FILES = [
@@ -105,10 +105,10 @@ async function main() {
 async function scenarioRunChecks() {
   const webgpu = EXPECTED_SCENARIOS
     .filter((scenario) => scenario.script === 'scenario:webgpu')
-    .map((scenario) => scenario.file.replace(/\.mjs$/, ''));
+    .map((scenario) => scenarioName(scenario));
   const campaign = EXPECTED_SCENARIOS
     .filter((scenario) => scenario.script === 'scenario:webgpu:campaign')
-    .map((scenario) => scenario.file.replace(/\.mjs$/, ''));
+    .map((scenario) => scenarioName(scenario));
   return [
     await scenarioRunCheck('scenario-run-webgpu', SCENARIO_JSON, webgpu),
     await scenarioRunCheck('scenario-run-campaign', CAMPAIGN_SCENARIO_JSON, campaign),
@@ -156,7 +156,7 @@ async function scenarioChecks(scripts) {
   for (const scenario of EXPECTED_SCENARIOS) {
     const fileOk = await exists(new URL(`../scenes/${scenario.file}`, import.meta.url));
     const script = scripts[scenario.script] ?? '';
-    const scriptOk = script.includes(scenario.metaName ?? scenario.file.replace(/\.mjs$/, ''));
+    const scriptOk = script.includes(scenario.metaName ?? scenarioName(scenario));
     out.push({
       id: `parity-${scenario.id}`,
       status: fileOk && scriptOk ? 'complete' : 'fail',
@@ -165,6 +165,10 @@ async function scenarioChecks(scripts) {
     });
   }
   return out;
+}
+
+function scenarioName(scenario) {
+  return scenario.file.split('/').at(-1).replace(/\.mjs$/, '');
 }
 
 async function rendererRetirementChecks(pkg) {

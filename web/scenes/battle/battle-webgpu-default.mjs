@@ -1,6 +1,6 @@
 import { PNG } from 'pngjs';
-import { battleReal } from './worlds.mjs';
-import { hasBattleWorldDepthContract } from './_webgpu-contract.mjs';
+import { battleReal } from '../worlds.mjs';
+import { hasBattleWorldDepthContract } from '../_webgpu-contract.mjs';
 
 export const meta = {
   name: 'battle-webgpu-default',

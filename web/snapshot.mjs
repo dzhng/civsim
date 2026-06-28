@@ -4,8 +4,8 @@
 //
 // snapCheck(page, name, check) screenshots the page and compares it against
 // the committed baseline in shots/<name>.png — each harness owns a subfolder
-// (the name carries it, e.g. 'vibe/heavy-both/t020s'; scenes/campaign pass an
-// explicit baseDir). A missing baseline is created and
+// (the name carries it, e.g. 'vibe/heavy-both/t020s'; scene owners pass an
+// explicit baseDir such as shots/battle/ or shots/campaign/). A missing baseline is created and
 // passes ("baseline created" — commit it), so a first run never spuriously
 // fails. On mismatch the check fails and shots/diff/<name>.png (highlighted
 // diff) + <name>-actual.png are written for inspection. Re-bless intentional
@@ -56,8 +56,8 @@ export async function clearSnapshotFolder(name) {
  *  rendering change (a moved road, a recoloured region run 2.5%+), so noise
  *  passes but an actual change still trips the gate and must be re-blessed.
  *  Tighten (pass 0,0) for a snap that must be exact. `baseDir` overrides the
- *  committed-baseline root (default shots/); scenes pass shots/scenes/, the
- *  campaign harnesses shots/campaign/, so each owns its own folder. */
+ *  committed-baseline root (default shots/); scene owners pass shots/battle/,
+ *  shots/campaign/, shots/ui/, or shots/models/ so each surface owns its folder. */
 export async function snapCheck(page, name, check, { threshold = 0.12, maxDiffRatio = 0.02, shot, baseDir = SHOTS } = {}) {
   // SNAP=<substr> runs only the snaps whose name contains <substr> (comma-OR).
   // The harness still drives all setup, but unmatched snaps are skipped — no

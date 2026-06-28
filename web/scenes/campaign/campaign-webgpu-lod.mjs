@@ -2,10 +2,10 @@ import { readFileSync } from 'node:fs';
 import { PNG } from 'pngjs';
 
 const CAMPAIGN_3D_BASELINE = new URL(
-  '../shots/campaign/campaign-3d.png',
+  '../../shots/campaign/campaign-3d.png',
   import.meta.url,
 );
-const CAMPAIGN_MAP_JSON = new URL('../public/data/campaign-map.json', import.meta.url);
+const CAMPAIGN_MAP_JSON = new URL('../../public/data/campaign-map.json', import.meta.url);
 const WHOLE_MAP_CAMERA = [-100, 250, 0.16];
 const REGIONAL_ITALY_CAMERA = [-430, 380, 4.0];
 const ROME_CLOSE_CAMERA = [-456, 446, 6.0];

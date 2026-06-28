@@ -59,7 +59,7 @@ never hand back a stack of `t###s.png` with no GIF.
   `web/shots/vibe/<name>/timeline.gif` every run, downscaled to 640×400 from the
   same screenshots the per-frame PNGs gate on. The PNGs stay the full-res
   regression baselines; the GIF is review-only, committed alongside them (like
-  `shots/anim/`). Just point the user at it.
+  `shots/models/<owner>/anim/`). Just point the user at it.
 - **Any other series** (an ad-hoc Playwright sweep, a folder of frames you shot
   yourself): `node vibe/gif.mjs <dir> [out] [delayMs=200] [downscale=2]`. It
   orders frames by filename and writes `<dir>/timeline.gif`. Name frames so they

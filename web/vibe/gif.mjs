@@ -4,7 +4,7 @@
 // ad-hoc series you shot yourself). Frames are ordered by filename, so name them
 // so they sort (t000s.png, t012s.png, … or 00.png, 01.png, …).
 //
-//   node vibe/gif.mjs shots/scenes/charge          # -> shots/scenes/charge/timeline.gif
+//   node vibe/gif.mjs shots/campaign/charge          # -> shots/campaign/charge/timeline.gif
 //   node vibe/gif.mjs shots/my-series out.gif 200 2 # explicit out, 200 ms/frame, downscale 2
 //
 // Args: <dir> [outPath] [delayMs=200] [downscale=2]. Default delay is ~200 ms/frame

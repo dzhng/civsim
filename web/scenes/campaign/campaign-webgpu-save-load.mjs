@@ -1,4 +1,4 @@
-import { hasCampaignWorldDepthContract } from './_webgpu-contract.mjs';
+import { hasCampaignWorldDepthContract } from '../_webgpu-contract.mjs';
 
 export const meta = {
   name: 'campaign-webgpu-save-load',

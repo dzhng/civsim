@@ -1,6 +1,6 @@
 import { readFile } from 'node:fs/promises';
-import { approachTilesForCity, nearestIndependentCityFromRoma } from './_campaign-map-helpers.mjs';
-import { hasBattleWorldDepthContract } from './_webgpu-contract.mjs';
+import { approachTilesForCity, nearestIndependentCityFromRoma } from '../_campaign-map-helpers.mjs';
+import { hasBattleWorldDepthContract } from '../_webgpu-contract.mjs';
 
 export const meta = {
   name: 'campaign-webgpu-reinforcements',
@@ -17,7 +17,7 @@ export async function run(ctx) {
     return;
   }
 
-  const map = JSON.parse(await readFile(new URL('../public/data/campaign-map.json', import.meta.url)));
+  const map = JSON.parse(await readFile(new URL('../../public/data/campaign-map.json', import.meta.url)));
   const target = nearestIndependentCityFromRoma(map);
   const approach = approachTilesForCity(map, target.index);
   ctx.check(

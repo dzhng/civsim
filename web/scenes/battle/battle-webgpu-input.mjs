@@ -1,6 +1,6 @@
 import { PNG } from 'pngjs';
-import { UNIT_INFO, unitScreen, worldPointNearUnit } from './_battle-unit-info.mjs';
-import { hasBattleWorldDepthContract } from './_webgpu-contract.mjs';
+import { UNIT_INFO, unitScreen, worldPointNearUnit } from '../_battle-unit-info.mjs';
+import { hasBattleWorldDepthContract } from '../_webgpu-contract.mjs';
 
 export const meta = {
   name: 'battle-webgpu-input',

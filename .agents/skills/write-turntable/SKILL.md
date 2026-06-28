@@ -16,8 +16,8 @@ Snapshot mechanics live in [screenshot-regression](../screenshot-regression/SKIL
 ## Where
 
 - Driver: `web/vibe/turntable.mjs` (the page harness is
-  `web/src/battle/turntable.ts`, mounted by `?test=models`). Sheets:
-  `web/shots/models/<id>-<class>.png`.
+  `web/src/battle/turntable.ts`, mounted by `?test=models`). Shared soldier
+  sheets write to `web/shots/models/shared/turntable/<id>-<class>.png`.
 - Each sheet is composited in JS and handed to `snapCheck` as a buffer, so the
   one image is the whole gate:
   `snapCheck(page, '${GROUP}/${id}-${name}', check, { threshold: 0.1, maxDiffRatio: 0.003, shot: montage(rows, TW, TH) })`.
@@ -28,8 +28,8 @@ Snapshot mechanics live in [screenshot-regression](../screenshot-regression/SKIL
    the *prebuilt* wasm, never live Rust.
 2. `node vibe/turntable.mjs` from `web/` renders all classes. `ONLY=0,3,6 …`
    limits to class ids. `PITCH=ingame …` renders at the battle's real top-down
-   tilt (0.42 rad) into `shots/models-ingame/` to confirm the models still read
-   in-game.
+   tilt (0.42 rad) into `shots/models/shared/ingame/` to confirm the models
+   still read in-game.
 3. Re-bless after an intentional model change:
    `UPDATE_SHOTS=1 node vibe/turntable.mjs` (it clears the folder first).
 
@@ -48,3 +48,11 @@ Pairs with [write-anim](../write-anim/SKILL.md) (the motion twin),
 against), [screenshot-regression](../screenshot-regression/SKILL.md) (the snap
 mechanics), and [write-vibe](../write-vibe/SKILL.md) (the battle-timeline sibling
 under `vibe/`).
+
+## Ownership
+
+Model source and review artifacts follow the same owner split:
+`models/battle/`, `models/campaign/`, and `models/shared/`. Put reusable assets
+such as soldiers, trees, rocks, banners, carts, and generic props in `shared/`
+unless they truly belong to only one surface. New model families should add
+their turntable output under the matching `web/shots/models/<owner>/` folder.

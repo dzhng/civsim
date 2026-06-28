@@ -9,7 +9,7 @@ export const meta = {
   describe: 'Captures addressable WebGPU soldier class, in-game readability, and animation still gates.',
 };
 
-const OUT_DIR = new URL('../../specs/done/webgpu-skinned-crowd-foundation/visualizations/soldier-gates/', import.meta.url);
+const OUT_DIR = new URL('../../../specs/done/webgpu-skinned-crowd-foundation/visualizations/soldier-gates/', import.meta.url);
 const REPORT_JSON = new URL('webgpu-soldier-gates.json', OUT_DIR);
 const REPORT_HTML = new URL('webgpu-soldier-gates.html', OUT_DIR);
 const GENERATED_AT = process.env.SOLDIER_GATES_GENERATED_AT ?? 'scenario-generated';

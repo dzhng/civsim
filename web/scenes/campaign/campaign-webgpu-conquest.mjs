@@ -1,6 +1,6 @@
 import { readFile } from 'node:fs/promises';
-import { nearestIndependentCityFromRoma } from './_campaign-map-helpers.mjs';
-import { hasCampaignWorldDepthContract } from './_webgpu-contract.mjs';
+import { nearestIndependentCityFromRoma } from '../_campaign-map-helpers.mjs';
+import { hasCampaignWorldDepthContract } from '../_webgpu-contract.mjs';
 
 export const meta = {
   name: 'campaign-webgpu-conquest',
@@ -17,7 +17,7 @@ export async function run(ctx) {
     return;
   }
 
-  const map = JSON.parse(await readFile(new URL('../public/data/campaign-map.json', import.meta.url)));
+  const map = JSON.parse(await readFile(new URL('../../public/data/campaign-map.json', import.meta.url)));
   const target = nearestIndependentCityFromRoma(map);
   ctx.check('found an independent city near Roma', target.index >= 0, `${target.name} at ${Math.round(target.distanceKm)}km`);
 

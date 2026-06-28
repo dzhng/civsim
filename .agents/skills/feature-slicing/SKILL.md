@@ -59,7 +59,9 @@ whole feature is done.
    one slice or needs assets/visualizations.
 5. **Build slice by slice:** leave each slice with a runnable artifact and
    verification before depending on it. Keep each artifact small enough to
-   iterate on quickly.
+   iterate on quickly. After every pass, update the README's "Next Agent
+   Prompt" so the README itself tells the next agent exactly where to pick back
+   up.
 
 ## Plan Folder
 
@@ -67,7 +69,9 @@ Use `specs/<feature>.md` only for a small, single-slice problem. Large
 features live in:
 
 - `specs/<feature>/README.md` — goal, context, slice graph, review map,
-  contracts, firewalls, and known unknowns.
+  contracts, firewalls, known unknowns, and a "Next Agent Prompt" section with
+  the current status, next pickup point, global TODO checklist, and handoff
+  instructions for the next pass.
 - `specs/<feature>/slices/<NN>-<name>.md` — one independently verifiable
   slice per file.
 - `specs/<feature>/visualizations/*.html` — roadmap diagrams, prototypes,
@@ -95,6 +99,22 @@ Each slice file answers:
 - What tests, scenarios, screenshots, probes, or perf gates verify it?
 - What must stay green?
 - What feedback from the human would change this slice?
+
+## README Handoff Prompt
+
+Every multi-slice spec README needs a "Next Agent Prompt" near the top. Write it
+in second person, as a prompt to the next agent who opens the README. Do not
+write a meta note such as "keep this README updated"; instead, put that
+instruction inside the prompt the next agent will read. It should include:
+
+- Current status and last-updated date.
+- The exact next pickup point.
+- Active blockers or warnings.
+- A global TODO checklist, with each item pointing to the owning slice.
+- A rule to update this section before ending any future pass.
+
+The point is that a fresh agent can open the README and know what to do next
+without reading the chat.
 
 ## Done
 

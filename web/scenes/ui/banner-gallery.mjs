@@ -1,4 +1,4 @@
-import { bannerGallery } from './worlds.mjs';
+import { bannerGallery } from '../worlds.mjs';
 
 export const meta = {
   name: 'banner-gallery',

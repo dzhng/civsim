@@ -11,7 +11,7 @@ import {
   hasFramePass,
   hasFramePassRole,
   hasFramePhaseOrder,
-} from './_webgpu-contract.mjs';
+} from '../_webgpu-contract.mjs';
 
 export const meta = {
   name: 'webgpu-lab-routes',
@@ -318,12 +318,12 @@ function graphFramePhaseOrder(phases) {
 
 async function findPrivateCameraStructs() {
   const roots = [
-    new URL('../../packages/webgpu-core/src/', import.meta.url),
-    new URL('../../packages/game-renderer/src/', import.meta.url),
-    new URL('../src/', import.meta.url),
+    new URL('../../../packages/webgpu-core/src/', import.meta.url),
+    new URL('../../../packages/game-renderer/src/', import.meta.url),
+    new URL('../../src/', import.meta.url),
   ];
   const allowed = new Set([
-    new URL('../../packages/webgpu-core/src/cameraWgsl.ts', import.meta.url).pathname,
+    new URL('../../../packages/webgpu-core/src/cameraWgsl.ts', import.meta.url).pathname,
   ]);
   const matches = [];
   for (const root of roots) {
@@ -331,7 +331,7 @@ async function findPrivateCameraStructs() {
       if (allowed.has(file.pathname)) continue;
       const source = await readFile(file, 'utf8');
       if (/\bstruct\s+Camera\s*\{/.test(source)) {
-        matches.push(file.pathname.replace(new URL('../../', import.meta.url).pathname, ''));
+        matches.push(file.pathname.replace(new URL('../../../', import.meta.url).pathname, ''));
       }
     }
   }
@@ -354,14 +354,14 @@ async function tsFiles(dir) {
 
 async function findCampaignDepthOnlyFootguns() {
   const files = [
-    new URL('../../packages/game-renderer/src/campaign/entityPass.ts', import.meta.url),
-    new URL('../../packages/game-renderer/src/campaign/sceneryPass.ts', import.meta.url),
-    new URL('../../packages/game-renderer/src/campaign/selectionPass.ts', import.meta.url),
-    new URL('../../packages/game-renderer/src/campaign/mapPass.ts', import.meta.url),
-    new URL('../../web/src/campaign/rendererWebGPU.ts', import.meta.url),
-    new URL('../../apps/webgpu-lab/src/router.ts', import.meta.url),
+    new URL('../../../packages/game-renderer/src/campaign/entityPass.ts', import.meta.url),
+    new URL('../../../packages/game-renderer/src/campaign/sceneryPass.ts', import.meta.url),
+    new URL('../../../packages/game-renderer/src/campaign/selectionPass.ts', import.meta.url),
+    new URL('../../../packages/game-renderer/src/campaign/mapPass.ts', import.meta.url),
+    new URL('../../src/campaign/rendererWebGPU.ts', import.meta.url),
+    new URL('../../../apps/webgpu-lab/src/router.ts', import.meta.url),
   ];
-  const root = new URL('../../', import.meta.url).pathname;
+  const root = new URL('../../../', import.meta.url).pathname;
   const checks = [
     ['drawDepth method', /\bdrawDepth\s*\(/],
     ['parallel depth pipeline field', /\bprivate\s+depthPipeline\b/],
@@ -378,10 +378,10 @@ async function findCampaignDepthOnlyFootguns() {
 }
 
 async function findPhaseBrandFootguns() {
-  const root = new URL('../../', import.meta.url).pathname;
+  const root = new URL('../../../', import.meta.url).pathname;
   const files = [
     {
-      file: new URL('../../packages/webgpu-core/src/frameShell.ts', import.meta.url),
+      file: new URL('../../../packages/webgpu-core/src/frameShell.ts', import.meta.url),
       checks: [
         ['frame shell imports shared depth contract', /import\s*\{[^}]*WEBGPU_DEPTH_FORMAT[^}]*type\s+WebGpuDepthMode[^}]*\}\s*from\s*['"]\.\/depthContract['"]/],
         ['frame shell imports shared bucket-pass guard', /import\s*\{[\s\S]*?isTopLevelTypeBucketPass[\s\S]*?\}\s*from\s*['"]\.\/frameGraphContract['"]/],
@@ -398,7 +398,7 @@ async function findPhaseBrandFootguns() {
       ],
     },
     {
-      file: new URL('../../packages/game-renderer/src/renderGraph.ts', import.meta.url),
+      file: new URL('../../../packages/game-renderer/src/renderGraph.ts', import.meta.url),
       checks: [
         ['render graph imports shared depth contract', /import\s*\{[^}]*WEBGPU_DEPTH_FORMAT[^}]*WEBGPU_WORLD_DEPTH_ATTACHMENT[^}]*type\s+WebGpuDepthMode[^}]*\}\s*from\s*['"]\.\.\/\.\.\/webgpu-core\/src\/depthContract['"]/],
         ['render graph imports shared frame role contract', /import\s*\{[\s\S]*?frameGraphDepthRole[\s\S]*?frameGraphRolePhase[\s\S]*?isFrameGraphPassRole[\s\S]*?type\s+FrameGraphPassRole[\s\S]*?\}\s*from\s*['"]\.\.\/\.\.\/webgpu-core\/src\/frameGraphContract['"]/],
@@ -413,11 +413,11 @@ async function findPhaseBrandFootguns() {
       ],
     },
     {
-      file: new URL('../../packages/webgpu-core/src/skinnedPipeline.ts', import.meta.url),
+      file: new URL('../../../packages/webgpu-core/src/skinnedPipeline.ts', import.meta.url),
       checks: [['skinned crowd draw requires world pass', /\bdraw\s*\(\s*pass:\s*WorldRenderPass\s*\)/]],
     },
     {
-      file: new URL('../../packages/game-renderer/src/battle/terrainPass.ts', import.meta.url),
+      file: new URL('../../../packages/game-renderer/src/battle/terrainPass.ts', import.meta.url),
       checks: [
         ['battle terrain underpaint draw requires background pass', /\bdraw\s*\(\s*pass:\s*BackgroundRenderPass\s*\)/],
         ['battle terrain prop draw requires world pass', /\bdrawProps\s*\(\s*pass:\s*WorldRenderPass\s*\)/],
@@ -426,7 +426,7 @@ async function findPhaseBrandFootguns() {
       ],
     },
     {
-      file: new URL('../../packages/game-renderer/src/battle/groundCuePass.ts', import.meta.url),
+      file: new URL('../../../packages/game-renderer/src/battle/groundCuePass.ts', import.meta.url),
       checks: [
         ['battle ground cue draw requires world pass', /\bdraw\s*\(\s*pass:\s*WorldRenderPass\s*\)/],
         ['battle ground cue uses shared battle world depth helper', /civsimBattleWorldDepth3d\s*\(/],
@@ -435,58 +435,58 @@ async function findPhaseBrandFootguns() {
       ],
     },
     {
-      file: new URL('../../packages/game-renderer/src/battle/effectLinePass.ts', import.meta.url),
+      file: new URL('../../../packages/game-renderer/src/battle/effectLinePass.ts', import.meta.url),
       checks: [
         ['battle effect line draw requires overlay pass', /\bdraw\s*\(\s*pass:\s*OverlayRenderPass\s*\)/],
         ['battle effect line does not use world depth stencil', v => !/webGpuWorldDepthStencil|depthStencil/.test(v)],
       ],
     },
     {
-      file: new URL('../../packages/game-renderer/src/battle/minimapPass.ts', import.meta.url),
+      file: new URL('../../../packages/game-renderer/src/battle/minimapPass.ts', import.meta.url),
       checks: [['battle minimap draw requires overlay pass', /\bdraw\s*\(\s*pass:\s*OverlayRenderPass\s*\)/]],
     },
     {
-      file: new URL('../../web/src/battle/rendererWebGPU.ts', import.meta.url),
+      file: new URL('../../src/battle/rendererWebGPU.ts', import.meta.url),
       checks: [
         ['battle debug triangles draw requires overlay pass', /class BattleTrianglePass[\s\S]*?\bdraw\s*\(\s*pass:\s*OverlayRenderPass\s*\)/],
         ['battle far LOD markers declare impostor marker layer', /markerLayer:\s*this\.markers\.length\s*>\s*0\s*\?\s*'far-lod-impostor'\s*:\s*undefined/],
       ],
     },
     {
-      file: new URL('../../packages/game-renderer/src/fixtures/nested3d.ts', import.meta.url),
+      file: new URL('../../../packages/game-renderer/src/fixtures/nested3d.ts', import.meta.url),
       checks: [['nested fixture draw requires world pass', /\bdraw\s*\(\s*pass:\s*WorldRenderPass\s*\)/]],
     },
     {
-      file: new URL('../../packages/game-renderer/src/campaign/territoryPass.ts', import.meta.url),
+      file: new URL('../../../packages/game-renderer/src/campaign/territoryPass.ts', import.meta.url),
       checks: [['campaign territory draw requires world pass', /\bdraw\s*\(\s*pass:\s*WorldRenderPass\s*\)/]],
     },
     {
-      file: new URL('../../packages/game-renderer/src/campaign/atmospherePass.ts', import.meta.url),
+      file: new URL('../../../packages/game-renderer/src/campaign/atmospherePass.ts', import.meta.url),
       checks: [
         ['campaign clouds draw requires overlay pass', /export class CampaignCloudPass[\s\S]*?\bdraw\s*\(\s*pass:\s*OverlayRenderPass\s*\)/],
         ['campaign water draw requires background pass', /export class CampaignWaterPass[\s\S]*?\bdraw\s*\(\s*pass:\s*BackgroundRenderPass\s*\)/],
       ],
     },
     {
-      file: new URL('../../packages/game-renderer/src/campaign/entityPass.ts', import.meta.url),
+      file: new URL('../../../packages/game-renderer/src/campaign/entityPass.ts', import.meta.url),
       checks: [
         ['campaign entities opaque draw requires world pass', /\bdrawOpaque\s*\(\s*pass:\s*WorldRenderPass\s*\)/],
         ['campaign entities shadow draw requires world pass', /\bdrawShadows\s*\(\s*pass:\s*WorldRenderPass\s*\)/],
       ],
     },
     {
-      file: new URL('../../packages/game-renderer/src/campaign/sceneryPass.ts', import.meta.url),
+      file: new URL('../../../packages/game-renderer/src/campaign/sceneryPass.ts', import.meta.url),
       checks: [
         ['campaign scenery opaque draw requires world pass', /\bdrawOpaque\s*\(\s*pass:\s*WorldRenderPass\s*\)/],
         ['campaign scenery shadow draw requires world pass', /\bdrawShadows\s*\(\s*pass:\s*WorldRenderPass\s*\)/],
       ],
     },
     {
-      file: new URL('../../packages/game-renderer/src/campaign/selectionPass.ts', import.meta.url),
+      file: new URL('../../../packages/game-renderer/src/campaign/selectionPass.ts', import.meta.url),
       checks: [['campaign selection draw requires world pass', /\bdraw\s*\(\s*pass:\s*WorldRenderPass\s*\)/]],
     },
     {
-      file: new URL('../../packages/game-renderer/src/campaign/mapPass.ts', import.meta.url),
+      file: new URL('../../../packages/game-renderer/src/campaign/mapPass.ts', import.meta.url),
       checks: [
         ['campaign map draw requires background pass', /export class CampaignMapPass[\s\S]*?\bdraw\s*\(\s*pass:\s*BackgroundRenderPass\s*\)/],
         ['campaign flat lines draw requires background pass', /export class CampaignLinePass[\s\S]*?\bdraw\s*\(\s*pass:\s*BackgroundRenderPass\s*\)/],
@@ -509,10 +509,10 @@ async function findPhaseBrandFootguns() {
 }
 
 async function findRawRenderPassEncoderFootguns() {
-  const root = new URL('../../', import.meta.url).pathname;
+  const root = new URL('../../../', import.meta.url).pathname;
   const sourceRoots = [
-    new URL('../../packages/game-renderer/src/', import.meta.url),
-    new URL('../src/', import.meta.url),
+    new URL('../../../packages/game-renderer/src/', import.meta.url),
+    new URL('../../src/', import.meta.url),
   ];
   const matches = [];
   for (const sourceRoot of sourceRoots) {
@@ -528,12 +528,12 @@ async function findRawRenderPassEncoderFootguns() {
 }
 
 async function findAdHocFrameCallbackFootguns() {
-  const root = new URL('../../', import.meta.url).pathname;
+  const root = new URL('../../../', import.meta.url).pathname;
   const files = [
-    new URL('../../packages/webgpu-core/src/frameShell.ts', import.meta.url),
-    new URL('../../apps/webgpu-lab/src/router.ts', import.meta.url),
-    new URL('../../web/src/battle/rendererWebGPU.ts', import.meta.url),
-    new URL('../../web/src/campaign/rendererWebGPU.ts', import.meta.url),
+    new URL('../../../packages/webgpu-core/src/frameShell.ts', import.meta.url),
+    new URL('../../../apps/webgpu-lab/src/router.ts', import.meta.url),
+    new URL('../../src/battle/rendererWebGPU.ts', import.meta.url),
+    new URL('../../src/campaign/rendererWebGPU.ts', import.meta.url),
   ];
   const matches = [];
   const callbackPattern = /\b(?:background|world|overlay)\s*:\s*\(\s*pass\b/;
@@ -547,11 +547,11 @@ async function findAdHocFrameCallbackFootguns() {
 }
 
 async function findWorldDepthPassMetadataFootguns() {
-  const root = new URL('../../', import.meta.url).pathname;
+  const root = new URL('../../../', import.meta.url).pathname;
   const files = [
-    new URL('../../apps/webgpu-lab/src/router.ts', import.meta.url),
-    new URL('../../web/src/battle/rendererWebGPU.ts', import.meta.url),
-    new URL('../../web/src/campaign/rendererWebGPU.ts', import.meta.url),
+    new URL('../../../apps/webgpu-lab/src/router.ts', import.meta.url),
+    new URL('../../src/battle/rendererWebGPU.ts', import.meta.url),
+    new URL('../../src/campaign/rendererWebGPU.ts', import.meta.url),
   ];
   const matches = [];
   for (const file of files) {
@@ -569,11 +569,11 @@ async function findWorldDepthPassMetadataFootguns() {
 }
 
 async function findFrameGraphRoleFootguns() {
-  const root = new URL('../../', import.meta.url).pathname;
+  const root = new URL('../../../', import.meta.url).pathname;
   const files = [
-    new URL('../../apps/webgpu-lab/src/router.ts', import.meta.url),
-    new URL('../../web/src/battle/rendererWebGPU.ts', import.meta.url),
-    new URL('../../web/src/campaign/rendererWebGPU.ts', import.meta.url),
+    new URL('../../../apps/webgpu-lab/src/router.ts', import.meta.url),
+    new URL('../../src/battle/rendererWebGPU.ts', import.meta.url),
+    new URL('../../src/campaign/rendererWebGPU.ts', import.meta.url),
   ];
   const matches = [];
   for (const file of files) {
@@ -593,23 +593,23 @@ async function findFrameGraphRoleFootguns() {
 }
 
 async function findProductionScenarioContractFootguns() {
-  const root = new URL('../../', import.meta.url).pathname;
+  const root = new URL('../../../', import.meta.url).pathname;
   const files = [
-    { file: new URL('./battle-webgpu-default.mjs', import.meta.url), requires: ['hasBattleWorldDepthContract'] },
-    { file: new URL('./battle-webgpu-input.mjs', import.meta.url), requires: ['hasBattleWorldDepthContract'] },
-    { file: new URL('./campaign-webgpu-production.mjs', import.meta.url), requires: ['hasCampaignWorldDepthContract'] },
-    { file: new URL('./campaign-webgpu-handoff.mjs', import.meta.url), requires: ['hasBattleWorldDepthContract', 'hasCampaignWorldDepthContract'] },
-    { file: new URL('./campaign-webgpu-reinforcements.mjs', import.meta.url), requires: ['hasBattleWorldDepthContract'] },
-    { file: new URL('./campaign-webgpu-save-load.mjs', import.meta.url), requires: ['hasCampaignWorldDepthContract'] },
-    { file: new URL('./campaign-webgpu-conquest.mjs', import.meta.url), requires: ['hasCampaignWorldDepthContract'] },
-    { file: new URL('./menu-webgpu-shell.mjs', import.meta.url), requires: ['hasBattleWorldDepthContract', 'hasCampaignWorldDepthContract'] },
+    { file: new URL('../battle/battle-webgpu-default.mjs', import.meta.url), requires: ['hasBattleWorldDepthContract'] },
+    { file: new URL('../battle/battle-webgpu-input.mjs', import.meta.url), requires: ['hasBattleWorldDepthContract'] },
+    { file: new URL('../campaign/campaign-webgpu-production.mjs', import.meta.url), requires: ['hasCampaignWorldDepthContract'] },
+    { file: new URL('../campaign/campaign-webgpu-handoff.mjs', import.meta.url), requires: ['hasBattleWorldDepthContract', 'hasCampaignWorldDepthContract'] },
+    { file: new URL('../campaign/campaign-webgpu-reinforcements.mjs', import.meta.url), requires: ['hasBattleWorldDepthContract'] },
+    { file: new URL('../campaign/campaign-webgpu-save-load.mjs', import.meta.url), requires: ['hasCampaignWorldDepthContract'] },
+    { file: new URL('../campaign/campaign-webgpu-conquest.mjs', import.meta.url), requires: ['hasCampaignWorldDepthContract'] },
+    { file: new URL('../ui/menu-webgpu-shell.mjs', import.meta.url), requires: ['hasBattleWorldDepthContract', 'hasCampaignWorldDepthContract'] },
     { file: new URL('./full-game-webgpu-performance.mjs', import.meta.url), requires: ['hasBattleWorldDepthContract', 'hasCampaignWorldDepthContract'] },
   ];
   const matches = [];
   for (const { file, requires } of files) {
     const source = await readFile(file, 'utf8');
     const label = file.pathname.replace(root, '');
-    if (!/from\s+['"]\.\/_webgpu-contract\.mjs['"]/.test(source)) {
+    if (!/from\s+['"](?:\.\.\/|\.\/)_webgpu-contract\.mjs['"]/.test(source)) {
       matches.push(`${label}: production scenario must import the shared WebGPU contract helper`);
     }
     for (const name of requires) {
@@ -624,8 +624,8 @@ async function findProductionScenarioContractFootguns() {
 }
 
 async function findFrameGraphVerifierFootguns() {
-  const root = new URL('../../', import.meta.url).pathname;
-  const file = new URL('./_webgpu-contract.mjs', import.meta.url);
+  const root = new URL('../../../', import.meta.url).pathname;
+  const file = new URL('../_webgpu-contract.mjs', import.meta.url);
   const source = await readFile(file, 'utf8');
   const label = file.pathname.replace(root, '');
   const checks = [
@@ -662,14 +662,14 @@ async function findFrameGraphVerifierFootguns() {
 }
 
 async function findDepthContractFootguns() {
-  const root = new URL('../../', import.meta.url).pathname;
+  const root = new URL('../../../', import.meta.url).pathname;
   const sourceRoots = [
-    new URL('../../packages/webgpu-core/src/', import.meta.url),
-    new URL('../../packages/game-renderer/src/', import.meta.url),
-    new URL('../../apps/webgpu-lab/src/', import.meta.url),
+    new URL('../../../packages/webgpu-core/src/', import.meta.url),
+    new URL('../../../packages/game-renderer/src/', import.meta.url),
+    new URL('../../../apps/webgpu-lab/src/', import.meta.url),
   ];
   const allowed = new Set([
-    new URL('../../packages/webgpu-core/src/depthContract.ts', import.meta.url).pathname,
+    new URL('../../../packages/webgpu-core/src/depthContract.ts', import.meta.url).pathname,
   ]);
   const matches = [];
   for (const sourceRoot of sourceRoots) {
@@ -691,12 +691,12 @@ async function findDepthContractFootguns() {
 }
 
 async function findWorldMaterialContractFootguns() {
-  const root = new URL('../../', import.meta.url).pathname;
+  const root = new URL('../../../', import.meta.url).pathname;
   const files = [
-    new URL('../../packages/webgpu-core/src/skinnedPipeline.ts', import.meta.url),
-    new URL('../../packages/game-renderer/src/fixtures/nested3d.ts', import.meta.url),
-    new URL('../../packages/game-renderer/src/campaign/entityPass.ts', import.meta.url),
-    new URL('../../packages/game-renderer/src/campaign/sceneryPass.ts', import.meta.url),
+    new URL('../../../packages/webgpu-core/src/skinnedPipeline.ts', import.meta.url),
+    new URL('../../../packages/game-renderer/src/fixtures/nested3d.ts', import.meta.url),
+    new URL('../../../packages/game-renderer/src/campaign/entityPass.ts', import.meta.url),
+    new URL('../../../packages/game-renderer/src/campaign/sceneryPass.ts', import.meta.url),
   ];
   const matches = [];
   for (const file of files) {
@@ -717,8 +717,8 @@ async function findWorldMaterialContractFootguns() {
   }
 
   for (const file of [
-    new URL('../../packages/game-renderer/src/campaign/entityPass.ts', import.meta.url),
-    new URL('../../packages/game-renderer/src/campaign/sceneryPass.ts', import.meta.url),
+    new URL('../../../packages/game-renderer/src/campaign/entityPass.ts', import.meta.url),
+    new URL('../../../packages/game-renderer/src/campaign/sceneryPass.ts', import.meta.url),
   ]) {
     const source = await readFile(file, 'utf8');
     const label = file.pathname.replace(root, '');

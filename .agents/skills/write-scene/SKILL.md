@@ -8,7 +8,9 @@ description: How to write a verification scene — an addressable, individually-
 A **scene** is the unit of browser verification: one named, individually-
 runnable case = a declared *world* (which game state to boot) + one or more
 *tests* against it (visual snapshots, behavioral checks, or both). Scenes
-live in `web/scenes/*.mjs`, one per file, run by `web/scene.mjs`.
+live in `web/scenes/<owner>/*.mjs`, one per file, run by `web/scene.mjs`.
+Use `battle/`, `campaign/`, `ui/`, `models/`, or `system/` according to the
+surface the scene owns.
 
 > If `web/scenes/` does not exist yet, the architecture is still specced in
 > `specs/scenes.md` and not built — implement that first. The three legacy
@@ -18,16 +20,14 @@ live in `web/scenes/*.mjs`, one per file, run by `web/scene.mjs`.
 
 ## The one rule that defines the architecture
 
-**Every screenshot a run writes is a blessed regression baseline.** The only
-PNGs that exist are `shots/scenes/<name>.png` (committed ground
-truth, compared at zero tolerance) and `shots/diff/<name>.png` (transient,
-gitignored, written only on failure). There is **no** third category. Never
-write a bare `page.screenshot({ path: ... })` to a tracked location — a shot
-nobody asserts on is not data, it is detritus that dirties the tree every run
-and tempts you to gitignore it. If a frame is worth capturing, capture it with
+**Every screenshot a run writes is a blessed regression baseline.** Committed
+scene PNGs live under the owner folder: `shots/battle/`, `shots/campaign/`,
+`shots/ui/`, or `shots/models/`. Failure artifacts live only under
+`shots/diff/` and are gitignored. Never write a bare
+`page.screenshot({ path: ... })` to a tracked location — a shot nobody asserts
+on is not data, it is detritus. If a frame is worth capturing, capture it with
 `snap()` so a future run guards it. If it is not worth a baseline, do not write
-it. (This is why the smell "I want to gitignore `shots/*.png`" means the harness
-is writing shots no test owns — see `specs/scenes.md`.)
+it.
 
 ## Visual coverage is 100% and catalog-driven — don't hand-list it
 
@@ -112,9 +112,10 @@ export async function run({ page, check }) {
 
 - `snap(name, opts?)` runs `opts.before()` (pose the world), sets `opts.cam`
   `[x, y, scale]`, waits `opts.settle ?? 250`ms for a frame, then compares the
-  baseline through `snapCheck`. Current battle scenes preserve legacy flat
-  baseline names (e.g. `battle-ai`) to avoid a mass re-bless; new scene
-  families should use namespaced names when their baselines are introduced.
+  baseline through `snapCheck`. The runner chooses the baseline root from the
+  scene file's owner folder, so `campaign/foo.mjs` writes `shots/campaign/` and
+  `battle/foo.mjs` writes `shots/battle/`. Use `opts.baseline` only when a
+  compatibility name is intentional.
   Pass `opts.maxDiffRatio` / `opts.threshold` ONLY for a noise source you can
   name in a comment.
 - `check(name, ok, detail)` is the behavioral reporter; failures set the exit
@@ -216,7 +217,7 @@ reporting, and look at any baseline you re-blessed.
 - [ ] Is this an atomic primitive? If so it belongs in `catalog.mjs` (a registry
       edit + new baselines), NOT a new scene file. Only composites and flows
       are scene files.
-- [ ] One file `scenes/<name>.mjs`, exporting `meta` + `run`.
+- [ ] One file under `scenes/<owner>/<name>.mjs`, exporting `meta` + `run`.
 - [ ] Does another scene already boot this *same* world? If it differs only in
       what it measures, add your `snap`/`check` THERE — don't author a second
       scene (or a second copy-paste setup) for the same world. A new scene
@@ -229,5 +230,5 @@ reporting, and look at any baseline you re-blessed.
 - [ ] Each snap: freeze active, camera set, settle waited.
 - [ ] `tier: 'full'` if it is slow/heavy (AI games, long advances); else quick.
 - [ ] `flow` checks assert observable outcomes, not internals.
-- [ ] Baselines committed under `shots/scenes/`; `git status` clean.
+- [ ] Baselines committed under the matching `shots/<owner>/` folder; `git status` clean.
 - [ ] You looked at the new baseline PNGs yourself.

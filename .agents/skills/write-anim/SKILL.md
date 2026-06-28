@@ -27,7 +27,8 @@ The GIFs are committed review artifacts (like the vibe timeline GIF).
 2. `node vibe/anim.mjs` from `web/` films the representative class set
    (`[0, 3, 4, 6]`) through every cycle. `ONLY=3 …` picks classes;
    `ANGLE=front …` faces the camera (default is the 3/4 hero view).
-3. GIFs land at `web/shots/anim/<id>-<class>-<anim>.gif`. Looping cycles run
+3. Shared soldier GIFs land at
+   `web/shots/models/shared/anim/<id>-<class>-<anim>.gif`. Looping cycles run
    twice for a natural rhythm; `die` plays once (`once: true`).
 
 ## Authoring a cycle
@@ -49,6 +50,11 @@ Scenery and effect motion — a swaying tree, a banner, fire — is the same sha
 (one asset, no sim, a looping GIF) and belongs here when it is added. The harness
 enumerates the soldier roster today; a new model family needs its own poser wired
 into `anim.mjs`, not a vibe matchup.
+
+Animation artifacts follow model ownership: battle-only motion goes under
+`web/shots/models/battle/anim/`, campaign-only motion under
+`web/shots/models/campaign/anim/`, and reusable motion under
+`web/shots/models/shared/anim/`.
 
 Pairs with [write-turntable](../write-turntable/SKILL.md) (the static twin),
 [write-vibe](../write-vibe/SKILL.md) (sim behaviour, and the shared GIF rules),

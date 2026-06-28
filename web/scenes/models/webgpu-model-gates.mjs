@@ -10,7 +10,7 @@ export const meta = {
   describe: 'Captures addressable WebGPU model-gate screenshots for campaign entities, props, roads, and labels.',
 };
 
-const OUT_DIR = new URL('../../specs/done/webgpu-skinned-crowd-foundation/visualizations/model-gates/', import.meta.url);
+const OUT_DIR = new URL('../../../specs/done/webgpu-skinned-crowd-foundation/visualizations/model-gates/', import.meta.url);
 const REPORT_JSON = new URL('webgpu-model-gates.json', OUT_DIR);
 const REPORT_HTML = new URL('webgpu-model-gates.html', OUT_DIR);
 const GENERATED_AT = process.env.MODEL_GATES_GENERATED_AT ?? 'scenario-generated';

@@ -8,9 +8,7 @@ const TARGET = process.env.VERIFY_URL ?? 'http://localhost:5173';
 const HERE = new URL('.', import.meta.url);
 const ROOT = new URL('../', import.meta.url);
 const SCENES_DIR = new URL('./scenes/', import.meta.url);
-// Scene baselines live in their own shots/scenes/ folder, separate from the
-// vibe/model/campaign snaps in their sibling folders under shots/.
-const SCENES_SHOTS = new URL('./shots/scenes/', import.meta.url).pathname;
+const SHOTS = new URL('./shots/', import.meta.url).pathname;
 
 function parseArgs(argv) {
   const names = [];
@@ -24,10 +22,23 @@ function parseArgs(argv) {
   return { full, list, names };
 }
 
+async function sceneFiles(dir = SCENES_DIR, prefix = '') {
+  const entries = await readdir(dir, { withFileTypes: true });
+  const files = [];
+  for (const entry of entries) {
+    if (entry.name.startsWith('_') || entry.name === 'worlds.mjs') continue;
+    const rel = `${prefix}${entry.name}`;
+    if (entry.isDirectory()) {
+      files.push(...await sceneFiles(new URL(`${entry.name}/`, dir), `${rel}/`));
+    } else if (entry.isFile() && entry.name.endsWith('.mjs')) {
+      files.push(rel);
+    }
+  }
+  return files.sort();
+}
+
 async function loadScenes() {
-  const files = (await readdir(SCENES_DIR))
-    .filter((file) => file.endsWith('.mjs') && !file.startsWith('_') && file !== 'worlds.mjs')
-    .sort();
+  const files = await sceneFiles();
   const scenes = [];
   for (const file of files) {
     const mod = await import(new URL(file, SCENES_DIR));
@@ -37,6 +48,20 @@ async function loadScenes() {
     scenes.push({ ...mod, file });
   }
   return scenes;
+}
+
+function sceneShotBase(scene) {
+  const folder = scene.file.includes('/') ? scene.file.slice(0, scene.file.indexOf('/')) : 'misc';
+  switch (folder) {
+    case 'battle':
+    case 'campaign':
+    case 'ui':
+      return `${SHOTS}${folder}/`;
+    case 'models':
+      return `${SHOTS}models/`;
+    default:
+      return `${SHOTS}misc/`;
+  }
 }
 
 function matchesName(scene, names) {
@@ -142,7 +167,7 @@ async function runSelected(selected) {
           return page;
         },
         snap: async (page, name, opts = {}) => {
-          await snapCheck(page, opts.baseline ?? name, local.check, { ...opts, baseDir: SCENES_SHOTS });
+          await snapCheck(page, opts.baseline ?? name, local.check, { ...opts, baseDir: opts.baseDir ?? sceneShotBase(scene) });
         },
       };
       try {

@@ -98,7 +98,7 @@ Class ids: 0 heavy · 1 light · 2 longsword · 3 phalanx · 4 archers ·
 Not a battle — a 360° review of the 3D soldier models. Boots `?test=models` (one
 soldier per class on a flat field, no sim), orbits each class through 8 facings
 × 4 stances (ease / ready / attack / march), and snap-checks one contact sheet
-per class against `web/shots/models/<id>-<class>.png`. Same deal: the
+per class against `web/shots/models/shared/turntable/<id>-<class>.png`. Same deal: the
 sheet is what you review AND a gate — an unintended geometry/renderer change
 turns a class red.
 

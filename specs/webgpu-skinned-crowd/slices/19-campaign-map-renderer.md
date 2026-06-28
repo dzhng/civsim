@@ -575,3 +575,19 @@ large `ROME` faction label competes with the nearby square city marker at this
 zoom. Crops are archived in
 `visualizations/critique/2026-06-28-roma-label-political-crop.png` and
 `visualizations/critique/2026-06-28-roma-label-fog-crop.png`.
+
+The Rome water/road bug was a source raster problem, not a city/road placement
+problem and not a WebGPU projection problem. The ORBIS city/road graph is the
+gameplay coordinate truth: Roma, Ostia/Portus, Tibur, Narnia, Spoletium, Reate,
+Ferentinum, and the Roman roads are geographically coherent relative to each
+other. The Natural Earth-derived `campaign-bg.png` had a generalized coastline
+that pinched central Italy into thin land strips, so WebGPU faithfully rendered
+sea over the city/road hinterland. Mapgen now promotes water pixels inside
+road-owned corridors, plus tiered city pads only for city points that are still
+flooded, while preserving existing land, mountains, and rivers. The current
+committed raster was repaired with the same rule because the raw source
+downloads are not checked into this workspace.
+`campaign-webgpu-lod` now samples offset points along the Roman road graph
+against the source raster, so a centerline-only lucky pass cannot hide flooded
+roadside terrain again. Do not fix this class of bug by moving city nodes,
+roads, labels, or camera transforms; the raster must conform to the graph.

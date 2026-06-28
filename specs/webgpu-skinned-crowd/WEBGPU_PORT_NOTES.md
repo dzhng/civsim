@@ -87,6 +87,11 @@ verification lessons.
 - Scenery generation must reserve city, road, army, and tall-standard
   silhouette footprints. A depth-correct tree can still be scene-authored into
   the wrong place and read as floating on a roof or intersecting a flag.
+- Campaign city and road positions are the coordinate truth. If land/water
+  disagrees with them, fix the source terrain raster or terrain mask; do not
+  move cities, roads, labels, or camera transforms to match flooded terrain.
+  Regression scenes should sample offset road corridors, not only road
+  centerlines, because a narrow strip can hide a bad coastline.
 
 ## Battle Visual Notes
 

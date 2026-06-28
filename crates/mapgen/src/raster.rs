@@ -53,6 +53,28 @@ impl Raster {
         }
     }
 
+    fn is_water_at(&self, x: i64, y: i64) -> bool {
+        if x < 0 || y < 0 || (x as usize) >= self.w || (y as usize) >= self.h {
+            return false;
+        }
+        let i = (y as usize * self.w + x as usize) * 4;
+        self.px[i..i + 3] == SEA || self.px[i..i + 3] == LAKE
+    }
+
+    pub fn is_water_world(&self, p: [f64; 2]) -> bool {
+        let px = self.to_px(p);
+        self.is_water_at(px[0].round() as i64, px[1].round() as i64)
+    }
+
+    fn put_land_if_water(&mut self, x: i64, y: i64) -> usize {
+        if self.is_water_at(x, y) {
+            self.put(x, y, LAND);
+            1
+        } else {
+            0
+        }
+    }
+
     /// Scanline even-odd fill of one polygon (with holes) in pixel space.
     pub fn fill_poly(&mut self, poly: &Poly, c: [u8; 3]) {
         let rings: Vec<Vec<[f64; 2]>> = poly
@@ -111,6 +133,63 @@ impl Raster {
                 }
             }
         }
+    }
+
+    /// Promote water pixels inside a world-space city/route land pad to land.
+    /// Existing land, mountains, and rivers are preserved. The road graph is the
+    /// gameplay truth here: land roads and inland cities must never be flooded by
+    /// a generalized coastline raster.
+    pub fn stamp_land_disc(&mut self, center: [f64; 2], radius_km: f64) -> usize {
+        let c = self.to_px(center);
+        let r = radius_km * self.scale;
+        let min_x = (c[0] - r).floor().max(0.0) as i64;
+        let max_x = (c[0] + r).ceil().min(self.w.saturating_sub(1) as f64) as i64;
+        let min_y = (c[1] - r).floor().max(0.0) as i64;
+        let max_y = (c[1] + r).ceil().min(self.h.saturating_sub(1) as f64) as i64;
+        let rr = r * r;
+        let mut changed = 0;
+        for y in min_y..=max_y {
+            for x in min_x..=max_x {
+                let dx = x as f64 + 0.5 - c[0];
+                let dy = y as f64 + 0.5 - c[1];
+                if dx * dx + dy * dy <= rr {
+                    changed += self.put_land_if_water(x, y);
+                }
+            }
+        }
+        changed
+    }
+
+    pub fn stamp_land_capsule(&mut self, a: [f64; 2], b: [f64; 2], radius_km: f64) -> usize {
+        let pa = self.to_px(a);
+        let pb = self.to_px(b);
+        let r = radius_km * self.scale;
+        let min_x = (pa[0].min(pb[0]) - r).floor().max(0.0) as i64;
+        let max_x = (pa[0].max(pb[0]) + r)
+            .ceil()
+            .min(self.w.saturating_sub(1) as f64) as i64;
+        let min_y = (pa[1].min(pb[1]) - r).floor().max(0.0) as i64;
+        let max_y = (pa[1].max(pb[1]) + r)
+            .ceil()
+            .min(self.h.saturating_sub(1) as f64) as i64;
+        let vx = pb[0] - pa[0];
+        let vy = pb[1] - pa[1];
+        let len2 = (vx * vx + vy * vy).max(1.0);
+        let rr = r * r;
+        let mut changed = 0;
+        for y in min_y..=max_y {
+            for x in min_x..=max_x {
+                let px = x as f64 + 0.5;
+                let py = y as f64 + 0.5;
+                let t = (((px - pa[0]) * vx + (py - pa[1]) * vy) / len2).clamp(0.0, 1.0);
+                let dx = px - (pa[0] + vx * t);
+                let dy = py - (pa[1] + vy * t);
+                if dx * dx + dy * dy <= rr {
+                    changed += self.put_land_if_water(x, y);
+                }
+            }
+        }
+        changed
     }
 
     pub fn write_png(&self, path: &str) {

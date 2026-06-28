@@ -91,7 +91,28 @@ fn main() {
     )
     .unwrap();
 
-    let r = raster::paint(bb, 0.5, &land, &lakes, &mountains, &rivers);
+    let mut r = raster::paint(bb, 0.5, &land, &lakes, &mountains, &rivers);
+    let mut graph_land_px = 0usize;
+    for e in map.edges.iter().filter(|e| e.kind == "road") {
+        for segment in e.via.windows(2) {
+            graph_land_px += r.stamp_land_capsule(segment[0], segment[1], 32.0);
+        }
+    }
+    let flooded_cities: Vec<([f64; 2], u8)> = map
+        .nodes
+        .iter()
+        .filter(|n| n.kind == "city" && r.is_water_world(n.pos))
+        .map(|n| (n.pos, n.tier))
+        .collect();
+    for (pos, tier) in flooded_cities {
+        let radius = match tier {
+            3..=u8::MAX => 42.0,
+            2 => 34.0,
+            _ => 28.0,
+        };
+        graph_land_px += r.stamp_land_disc(pos, radius);
+    }
+    eprintln!("raster graph-land repair: {graph_land_px} water pixels promoted to land");
     eprintln!("raster: {}x{} px", r.w, r.h);
     r.write_png(&format!("{out_dir}/campaign-bg.png"));
 

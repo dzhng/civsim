@@ -89,7 +89,7 @@ const routes = [
     && s.stats.gate === 'city'
     && s.stats.depth?.allocated === true
     && hasFramePhaseOrder(s.stats.framePhases ?? s.stats.phases)
-    && s.stats.entityLayer === 'raw-webgpu-legacy-model-meshes'
+    && s.stats.entityLayer === 'raw-webgpu-model-library-meshes'
     && s.stats.samples?.cityStandard?.hiddenLowerCloth
     && s.stats.samples?.cityStandard?.visibleUpperCloth],
   ['campaign-model-gates?gate=garrison-outside', (s) => s?.ok
@@ -97,7 +97,7 @@ const routes = [
     && s.stats.gate === 'garrison-outside'
     && s.stats.depth?.allocated === true
     && hasFramePhaseOrder(s.stats.framePhases ?? s.stats.phases)
-    && s.stats.entityLayer === 'raw-webgpu-legacy-model-meshes'
+    && s.stats.entityLayer === 'raw-webgpu-model-library-meshes'
     && s.stats.samples?.garrison?.visibleShieldOutsideCity
     && s.stats.samples?.garrison?.visibleStandardOutsideCity],
   ['campaign-model-gates?gate=garrison-city', (s) => s?.ok
@@ -105,7 +105,7 @@ const routes = [
     && s.stats.gate === 'garrison-city'
     && s.stats.depth?.allocated === true
     && hasFramePhaseOrder(s.stats.framePhases ?? s.stats.phases)
-    && s.stats.entityLayer === 'raw-webgpu-legacy-model-meshes'
+    && s.stats.entityLayer === 'raw-webgpu-model-library-meshes'
     && s.stats.samples?.garrison?.hiddenShieldInsideWall
     && s.stats.samples?.garrison?.visibleStandardAboveRoofs],
   ['campaign-model-gates?gate=garrison-hidden', (s) => s?.ok
@@ -113,7 +113,7 @@ const routes = [
     && s.stats.gate === 'garrison-hidden'
     && s.stats.depth?.allocated === true
     && hasFramePhaseOrder(s.stats.framePhases ?? s.stats.phases)
-    && s.stats.entityLayer === 'raw-webgpu-legacy-model-meshes'
+    && s.stats.entityLayer === 'raw-webgpu-model-library-meshes'
     && s.stats.samples?.garrison?.hiddenBodyInsideCity
     && s.stats.samples?.garrison?.hiddenStandardInsideCity],
   ['campaign-model-gates?gate=selected-city', (s) => s?.ok

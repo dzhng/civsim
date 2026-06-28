@@ -740,7 +740,7 @@ async function routeCampaignUi(ctx: LabContext) {
   const entities = new CampaignEntityPass(shell);
   const selection = new CampaignSelectionPass(shell);
   const labelPass = new CampaignLabelPass(shell);
-  const drawData = buildCampaignMapDrawData(data, { roadScale: 0.78, roadEndpointInset: 8.2 });
+  const drawData = buildCampaignMapDrawData(data, { roadScale: 0.78 });
   lines.upload(drawData.lineVertices);
   roads.upload(drawData.roadMeshVertices);
   const host = ctx.canvas.parentElement ?? ctx.root;
@@ -1251,7 +1251,7 @@ function roadGateVertices(points: [number, number][]) {
       edges: [{ kind: 'road', via: points }],
       factions: [],
     },
-  }, { roadScale: 0.34, roadEndpointInset: 3.6 }).roadMeshVertices;
+  }, { roadScale: 0.34 }).roadMeshVertices;
 }
 
 function campaignBgTerrainRect(rect: { min: [number, number]; max: [number, number] }): [number, number, number, number] {

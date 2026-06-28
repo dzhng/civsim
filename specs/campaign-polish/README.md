@@ -88,10 +88,12 @@ and use focused fixture worlds before full-map acceptance.
 
 ## Asset Ownership
 
-- Campaign-only 3D model definitions belong under `web/src/models/campaign/`.
-- Battle-only 3D model definitions belong under `web/src/models/battle/`.
+- Campaign-only 3D model definitions belong under
+  `packages/game-renderer/src/models/campaign/`.
+- Battle-only 3D model definitions belong under
+  `packages/game-renderer/src/models/battle/`.
 - Reusable assets such as soldiers, trees, rocks, flags, banners, carts, and
-  shared props belong under `web/src/models/shared/`.
+  shared props belong under `packages/game-renderer/src/models/shared/`.
 - New model review baselines belong under `web/shots/models/{campaign,battle,shared}/`.
   Animation GIFs live in the matching model owner's `anim/` folder.
 - When a new 3D model is created, generate its static turntable with the

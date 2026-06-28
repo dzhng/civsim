@@ -33,9 +33,10 @@ isolated model/primitive or a composed game state.
 
 - **Model/primitive review** — one asset or primitive in isolation: a unit
   class, a tree, a road piece, a city marker, a flag, a terrain swatch, or an
-  icon. Put model definitions under `web/src/models/<battle|campaign|shared>/`
-  and put generated review shots under
-  `web/shots/models/<battle|campaign|shared>/`. If a model moves, also create
+  icon. Put model definitions under
+  `packages/game-renderer/src/models/<battle|campaign|shared>/` and put
+  generated review shots under `web/shots/models/<battle|campaign|shared>/`.
+  If a model moves, also create
   an animation/GIF gate with [write-anim](../write-anim/SKILL.md); if it needs
   static review, use [write-turntable](../write-turntable/SKILL.md).
 - **Composite scene** — an emergent layout: a campaign LoD band, a selected

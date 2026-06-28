@@ -11,7 +11,7 @@
     "scene:full": "node scene.mjs --full",
     "scenario": "node scene.mjs",
     "scenario:full": "node scene.mjs --full",
-    "scenario:webgpu": "SCENARIO_REPORT_JSON=../specs/done/webgpu-skinned-crowd-foundation/visualizations/scenario-runs/webgpu-latest.json VERIFY_WEBGPU=1 node scene.mjs webgpu-lab-routes webgpu-fault-injection webgpu-capabilities webgpu-visual-report full-game-webgpu-performance battle-webgpu-default battle-webgpu-input campaign-webgpu-production campaign-webgpu-handoff campaign-webgpu-save-load campaign-webgpu-visual campaign-webgpu-map-alignment campaign-webgpu-lod menu-webgpu-shell menu-webgpu-shell-visual",
+    "scenario:webgpu": "SCENARIO_REPORT_JSON=../specs/done/webgpu-skinned-crowd-foundation/visualizations/scenario-runs/webgpu-latest.json VERIFY_WEBGPU=1 node scene.mjs webgpu-lab-routes webgpu-fault-injection webgpu-capabilities webgpu-asset-workbench webgpu-visual-report full-game-webgpu-performance battle-webgpu-default battle-webgpu-input campaign-webgpu-production campaign-webgpu-handoff campaign-webgpu-save-load campaign-webgpu-visual campaign-webgpu-map-alignment campaign-webgpu-lod menu-webgpu-shell menu-webgpu-shell-visual",
     "scenario:webgpu:campaign": "SCENARIO_REPORT_JSON=../specs/done/webgpu-skinned-crowd-foundation/visualizations/scenario-runs/webgpu-campaign-latest.json VERIFY_WEBGPU=1 node scene.mjs campaign-webgpu-production campaign-webgpu-handoff campaign-webgpu-save-load campaign-webgpu-conquest campaign-webgpu-reinforcements campaign-webgpu-visual campaign-webgpu-map-alignment campaign-webgpu-lod",
     "perf:webgpu": "VERIFY_WEBGPU=1 node scene.mjs full-game-webgpu-performance",
     "perf:webgpu:hardware": "VERIFY_WEBGPU=1 VERIFY_WEBGPU_ADAPTER=hardware VERIFY_HEADFUL=1 VERIFY_BROWSER_CHANNEL=chrome node scene.mjs full-game-webgpu-performance",
@@ -24,7 +24,7 @@
     "verify:campaign-visual": "node verify-campaign-visual.mjs",
     "probe:webgpu": "node probe-webgpu.mjs",
     "bake:anim": "node ../packages/soldier-assets/bake/soldier-placeholders.mjs",
-    "bake:test": "node ../packages/soldier-assets/bake/vat.test.mjs && node ../packages/soldier-assets/bake/soldier-placeholders.mjs --check"
+    "bake:test": "node ../packages/soldier-assets/bake/vat.test.mjs && node ../packages/soldier-assets/bake/gltf.test.mjs && node ../packages/soldier-assets/bake/soldier-placeholders.mjs --check"
   },
   "devDependencies": {
     "pixelmatch": "^7.2.0",

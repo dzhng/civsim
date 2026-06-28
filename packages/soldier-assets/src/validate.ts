@@ -1,4 +1,29 @@
-import { REQUIRED_HUMAN_CLIPS, type SoldierKitManifest } from './schema';
+import { REQUIRED_HUMAN_CLIPS, type ClipId, type SoldierKitManifest } from './schema';
+
+export interface RigBone {
+  name: string;
+  parent: number;
+  bind: { T: number[]; R: number[]; S: number[] };
+  inverseBind: ArrayLike<number>;
+}
+
+export interface RigClip {
+  name: string;
+  duration: number;
+  tracks: Record<number, { T?: unknown; R?: unknown; S?: unknown }>;
+}
+
+export interface ImportedRig {
+  bones: RigBone[];
+  clips: RigClip[];
+}
+
+export interface ValidateRigOptions {
+  /** Clip names the rig must provide. Defaults to the required human clips. */
+  requiredClips?: Array<ClipId | string>;
+  /** Skinning layout ceiling: a rig with more bones cannot bake into the VAT. */
+  maxBones?: number;
+}
 
 export type ValidationLevel = 'error' | 'warning';
 
@@ -78,6 +103,50 @@ export function validateSoldierKit(input: unknown): ValidationReport {
   if (kit.vat?.layout && !kit.vat.layout.includes('joint matrix')) {
     add('warning', 'vat.layout', 'vat.layout', 'VAT layout should describe joint matrix packing');
   }
+
+  return finish(issues);
+}
+
+// Validate a rig parsed from a real .glb (the front door for imported art)
+// against what the VAT bake + skinning layout require: a sane skeleton, present
+// inverse-binds, animated channels, and full required-clip coverage.
+export function validateRig(input: unknown, options: ValidateRigOptions = {}): ValidationReport {
+  const issues: ValidationIssue[] = [];
+  const add = (level: ValidationLevel, code: string, path: string, message: string) => {
+    issues.push(issue(level, code, path, message));
+  };
+  const rig = input as Partial<ImportedRig> | null;
+  if (!rig || typeof rig !== 'object' || !Array.isArray(rig.bones) || !Array.isArray(rig.clips)) {
+    add('error', 'rig.type', 'rig', 'rig must have bones[] and clips[]');
+    return finish(issues);
+  }
+  const maxBones = options.maxBones ?? 256;
+  if (rig.bones.length === 0) add('error', 'rig.bones', 'bones', 'rig has no bones');
+  if (rig.bones.length > maxBones) {
+    add('error', 'rig.boneCount', 'bones', `rig has ${rig.bones.length} bones, exceeds skinning layout max ${maxBones}`);
+  }
+  rig.bones.forEach((bone, i) => {
+    if (bone.parent >= i) add('error', 'rig.boneOrder', `bones.${i}`, `bone "${bone.name}" must come after its parent`);
+    if (!bone.inverseBind || bone.inverseBind.length !== 16) {
+      add('error', 'rig.inverseBind', `bones.${i}.inverseBind`, `bone "${bone.name}" is missing a 16-float inverse-bind matrix`);
+    }
+    if (!bone.bind || !Array.isArray(bone.bind.R) || bone.bind.R.length !== 4) {
+      add('error', 'rig.bind', `bones.${i}.bind`, `bone "${bone.name}" is missing a bind pose (T/R/S)`);
+    }
+  });
+
+  const clipNames = new Set(rig.clips.map((c) => c.name));
+  const required = options.requiredClips ?? REQUIRED_HUMAN_CLIPS;
+  for (const name of required) {
+    if (!clipNames.has(name)) add('error', 'rig.clip.required', `clips.${name}`, `required clip "${name}" is missing`);
+  }
+  rig.clips.forEach((clip, i) => {
+    const path = `clips.${clip.name || i}`;
+    if (!(clip.duration > 0)) add('warning', 'rig.clip.duration', `${path}.duration`, `clip "${clip.name}" has zero duration`);
+    const tracks = clip.tracks && typeof clip.tracks === 'object' ? Object.values(clip.tracks) : [];
+    const animated = tracks.some((t) => t && (t.T || t.R || t.S));
+    if (!animated) add('warning', 'rig.clip.tracks', `${path}.tracks`, `clip "${clip.name}" animates no bone channel`);
+  });
 
   return finish(issues);
 }

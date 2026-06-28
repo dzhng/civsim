@@ -49,6 +49,10 @@ WebGPU battle renderer is visually complete.
 - Scale fixtures render 1k, 5k, 10k, and current max battle counts.
 - `webgpu-visual-report` captures the battle default and DPR2 selection/HUD
   scenes with skinned soldier material-lighting evidence.
+- `web/scenes/battle-webgpu-visual.mjs` captures a deterministic production
+  WebGPU 5v5 selection frame at DPR2. The baseline must show the live HUD,
+  minimap, team silhouettes, sim-sourced terrain features, and selected/ordered
+  ground-cue geometry instead of relying only on render stats.
 - Dedicated model/contact-sheet screenshots compare WebGPU soldiers against
   `web/shots/baseline/models*` and representative `web/shots/anim/*.gif`
   frames, so dense battle shots cannot hide a missing model/animation port.

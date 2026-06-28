@@ -134,6 +134,10 @@ verification lessons.
 - Soldier model gates must exercise the same skinned batching path as
   production battle rendering, including class mesh, clip, phase, facing, and
   camera.
+- `battle-webgpu-visual` now owns the DPR2 production battle visual baseline
+  for selection/HUD/minimap review. It freezes a 5v5 WebGPU frame, selects and
+  orders a unit, and asserts the semantic ground-cue pass rather than assuming
+  selection/order cues are terrain mesh quads.
 
 ## Visual Reports And Gates
 

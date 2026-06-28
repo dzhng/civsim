@@ -39,6 +39,11 @@ freeze semantics across device-pixel ratios and viewport sizes.
 - Freeze tests call `freezeAtTick` twice and require pixel-identical decoded
   screenshots at the same absolute tick; raw PNG byte comparison remains logged
   only as diagnostic data.
+- `battle-webgpu-visual` adds the paired pixel gate for the same production
+  surface: a frozen DPR2 5v5 selection/order frame with HUD cards, minimap,
+  visible terrain features, team silhouettes, and tactical ground cues. The
+  scene asserts the ground-cue pass directly because battle selection/order
+  visuals are world decals/lines, not terrain mesh quads.
 
 ## Must Stay Green
 

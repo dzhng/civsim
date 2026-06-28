@@ -71,9 +71,17 @@ features live in:
 - `specs/<feature>/slices/<NN>-<name>.md` — one independently verifiable
   slice per file.
 - `specs/<feature>/visualizations/*.html` — roadmap diagrams, prototypes,
-  harness mockups, or other human-reviewable artifacts.
+  harness mockups, generated reports, contact sheets, or other
+  human-reviewable artifacts.
 - `specs/<feature>/assets/` — reference images, fixtures, captures, and
   other inputs needed to judge the work.
+
+For visual work, keep feature-owned visual evidence in the spec folder:
+inspiration images, reference screenshots, archived baselines, comparison
+contact sheets, generated candidate captures, and critique artifacts. Product
+snapshot folders may still hold the active regression baselines their harnesses
+own, but do not rely on those mutable outputs as the only record of what the
+feature was judged against.
 
 ## Slice File Contract
 

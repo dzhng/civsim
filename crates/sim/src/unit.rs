@@ -299,18 +299,16 @@ impl Unit {
         self.stats.doctrine == crate::class::Doctrine::Strict
     }
 
-    /// Cohesion as every disorder penalty reads it EXCEPT the two kept as a
-    /// trampler's "lag": melee evade & block, missile evade, morale-drain
-    /// amplification, and the rotation throttle (the WHEEL). A trampler fights and
-    /// rides as a loose, constantly-reriding blob by design, so disorder must not
-    /// erode its fighting, break its nerve, or — crucially — stop it WHEELING:
-    /// after it rides through and overshoots, it has to come about to charge back,
-    /// and a cohesion-throttled wheel pinned a blobbed horse facing the wrong way
-    /// for ~10s, killing the emergent back-and-forth. So it reads full here. Only
-    /// the ACCELERATION throttle and the command-order delay still key off real
-    /// `cohesion` — a messy mob stays sluggish to build speed and slow to take new
-    /// orders (its "older lag"); it just isn't a worse killer, and it can turn to
-    /// ride back.
+    /// Cohesion as the disorder penalties that would otherwise erode a trampler's
+    /// fighting read it: melee evade & block, missile evade, morale-drain
+    /// amplification. A trampler fights and rides as a loose, constantly-reriding
+    /// blob by design, so disorder must not make it a worse killer or break its
+    /// nerve — it reads full here. (Turn rate no longer keys off cohesion at all,
+    /// for any unit — a blobbed horse must be able to come about and charge back,
+    /// and any disordered line must be able to about-face and flee a grind; the
+    /// wheel is bounded only by geometry/ground. The ACCELERATION throttle and the
+    /// command-order delay still key off real `cohesion` — a messy mob stays
+    /// sluggish to build speed and slow to take new orders, its "older lag".)
     pub fn effective_cohesion(&self) -> f32 {
         if self.tramples() {
             1.0

@@ -53,7 +53,10 @@ fn golden_state_hash_stable() {
         sim.tick();
     }
     let h = state_hash(&sim);
-    const EXPECTED: u64 = 0xbc677968a4cf6b04;
+    // Re-pinned: turn rate no longer throttled by cohesion (disordered units can
+    // now wheel/about-face at the full geometric rate), which shifts facings and
+    // positions wherever a disordered unit turns. See mechanics_disengage.rs.
+    const EXPECTED: u64 = 0x92773f1cc268a96f;
     assert_eq!(
         h, EXPECTED,
         "sim behavior changed: golden hash {h:#018x} != pinned {EXPECTED:#018x}. \

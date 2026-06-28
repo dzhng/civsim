@@ -1265,7 +1265,15 @@ impl Sim {
                     u.move_target = Some(t);
                     u.resume_target = None;
                     u.pending_target = None;
-                    reseat_now = !matches!(mode, OrderMode::Attack(_)) && u.cohesion < REFORM_COH;
+                    // A DISENGAGE never gathers: re-forming is the opposite of "turn
+                    // your back and run", and the gather's walk-clamp would pin the
+                    // fleeing unit in the grind it is trying to escape (it can't
+                    // re-form while engaged, so the clamp never lifts). A disengage
+                    // peels off via the wheel-and-run drift instead. A MOVE relocate
+                    // DOES gather — a diving trampler told to ride off re-forms around
+                    // a clean grid instead of chasing its dive-scattered slots.
+                    reseat_now = !matches!(mode, OrderMode::Attack(_) | OrderMode::Disengage)
+                        && u.cohesion < REFORM_COH;
                 }
             }
 
@@ -1991,9 +1999,11 @@ impl Sim {
                 // toward a CLEAN grid; a stale-slot blob would only knot tighter,
                 // and a unit that never re-seated (a Move ride-through) softens
                 // normally. A DIVE (Attack) never gathers — its blob is the point.
+                // A DISENGAGE never gathers (it flees, it doesn't re-form), so the
+                // walk-clamp can't pin a unit peeling out of a grind.
                 let gathering = u.reform_timer > 0.0
                     && u.cohesion < REFORM_COH
-                    && !matches!(u.mode, OrderMode::Attack(_));
+                    && !matches!(u.mode, OrderMode::Attack(_) | OrderMode::Disengage);
                 // No two men run alike: each soldier has a personal TOP
                 // speed (a fixed fraction of the sprint ceiling). A walking
                 // pace is below everyone's ceiling — the line stays dressed;
@@ -2523,10 +2533,12 @@ impl Sim {
                 let diff = wrap_angle(desired - u.facing);
                 if diff.abs() > 0.35 {
                     let top = soldier_surge_speed(&tun, u);
+                    // Geometric corner-speed cap only — cohesion does NOT throttle
+                    // the turn (a disordered unit must still be able to wheel; the
+                    // trample carry-through law holds without it).
                     let geom = tun.wheel_speed_factor * top / u.pivot_radius().max(1.0);
-                    let throttle = crate::math::lerp(tun.min_turn_frac, 1.0, u.cohesion).max(0.6);
                     let center = u.center();
-                    u.facing = rotate_toward(u.facing, desired, geom * throttle * dt);
+                    u.facing = rotate_toward(u.facing, desired, geom * dt);
                     u.anchor = center + dir(u.facing) * (0.5 * u.depth());
                     u.pivoting = true; // slots keep relabeling while we wheel
                 }

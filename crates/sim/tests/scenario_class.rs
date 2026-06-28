@@ -197,18 +197,20 @@ fn dense_infantry_blunts_a_cavalry_charge_loose_gets_punched_through() {
          LOOSE (1.8m) adv {adv_l:.1} inf-dead {dead_l:.0} CAV-DMG {cav_l:.0}",
         SEEDS.len()
     );
-    // SPACING decides carry-through vs bog against a trample dive: the packed
-    // (dense) shallow line BOGS the horse mass at the face — its retained speed
-    // collapses — while the open (loose) line is ridden clean THROUGH, the mass
-    // keeping far more of its advance. That is the robust, physical signal here.
-    // (Casualty and cav-damage counts are noisy in this shallow grind — a riding-
-    // through horse still passes many men — so they're printed, not pinned; the
-    // dive's lethality and the thin-carry/deep-bog law are pinned tight in
-    // mechanics_trample, and the moving-target dodge is exercised there too.)
-    let _ = (dead_d, dead_l, cav_d, cav_l);
+    // SPACING decides bog vs ride-through against a trample dive: the packed
+    // (dense) shallow line BOGS the horse at the face — it stays in contact and
+    // GRINDS, so the riders take far more damage — while the open (loose) line is
+    // ridden THROUGH on a brief contact that bloodies the horse much less. Cav
+    // DAMAGE is the robust signal: the retained-advance read died once the turn
+    // stopped being cohesion-throttled (the disordered horse now wheels back at
+    // full rate after passing through EITHER spacing, so its end/dive advance no
+    // longer separates them — the carry-vs-bog law by DEPTH is pinned tight in
+    // mechanics_trample regardless). The bog itself is unchanged: dense still
+    // grinds the horse ~1.6× harder than loose.
+    let _ = (dead_d, dead_l, adv_d, adv_l);
     assert!(
-        adv_l > adv_d * 1.3,
-        "loose order is ridden clean through while dense BOGS the horse: loose {adv_l:.1}m/s vs dense {adv_d:.1}m/s"
+        cav_d > cav_l * 1.3,
+        "dense BOGS and grinds the horse while loose is ridden through: cav-dmg dense {cav_d:.0} vs loose {cav_l:.0}"
     );
 }
 

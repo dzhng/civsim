@@ -36,7 +36,8 @@ pub struct Tunables {
     /// Stamina drained per second of fighting fully resistive ground
     /// (scaled by mean (1 - ground speed) over moving soldiers).
     pub terrain_drain: f32,
-    /// Formation turn rate at full cohesion (rad/s).
+    /// Formation turn rate (rad/s), capped by the geometric corner-speed limit.
+    /// Not throttled by cohesion — a disordered unit must still be able to wheel.
     pub base_turn_rate: f32,
     /// Formation acceleration at full cohesion (m/s^2).
     pub base_accel: f32,
@@ -98,8 +99,6 @@ pub struct Tunables {
     /// so the front man is drawn in hard and the ranks behind barely feel it —
     /// the front line is geometry, not a flag.
     pub magnet_scale: f32,
-    /// Turn-rate multiplier at zero cohesion.
-    pub min_turn_frac: f32,
     /// Acceleration multiplier at zero cohesion.
     pub min_accel_frac: f32,
     /// Personal-space radius per soldier (m); pairs closer than 2r push apart.
@@ -302,7 +301,6 @@ impl Default for Tunables {
             pivot_stiffness: 4.0,
             magnet_strength: 3.0,
             magnet_scale: 0.7,
-            min_turn_frac: 0.3,
             min_accel_frac: 0.4,
             soldier_radius: 0.33,
             separation_slide: 0.3,

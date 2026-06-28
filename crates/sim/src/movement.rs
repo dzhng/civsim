@@ -118,12 +118,13 @@ pub(crate) fn soldier_charge_speed(tun: &Tunables, u: &Unit) -> f32 {
 }
 
 pub(crate) fn update_unit_motion(tun: &Tunables, u: &mut Unit, dt: f32, ground: f32) {
-    // Cohesion throttles rotation MULTIPLICATIVELY with the geometric cap:
-    // when the measurement says soldiers aren't tracking the rotation (mud
-    // under one wing, exhaustion, crowding), the wheel slows until they
-    // catch up — for any unit size. min() alone is blind for wide units,
-    // whose geometric cap sits far below the cohesion-throttled base rate.
-    let turn_throttle = lerp(tun.min_turn_frac, 1.0, u.cohesion);
+    // Turn rate is NOT throttled by cohesion: a disordered unit must still be
+    // able to WHEEL — above all to about-face and flee a grind it is losing.
+    // Cohesion gating the turn made a routed-but-not-yet-broken unit unable to
+    // turn away (it can never re-form while engaged, so the throttle never
+    // lifts, and it is cut down facing the enemy). The wheel is still bounded by
+    // real physics — the geometric corner-speed cap (which carries stamina via
+    // the surge ceiling) and ground — just not by formation order.
     let accel = tun.base_accel * u.accel_mult * lerp(tun.min_accel_frac, 1.0, u.cohesion);
     // Wheeling asks the outer soldiers to surge, so the rotation budget is
     // the surge speed — tired units visibly pivot slower. Bad ground slows
@@ -182,6 +183,31 @@ pub(crate) fn update_unit_motion(tun: &Tunables, u: &mut Unit, dt: f32, ground: 
                 return;
             }
 
+            // DISENGAGE: peel off and RUN — never halt to about-face. A drilled
+            // halt-then-turn strands a unit that still carries charge speed (it
+            // coasts straight INTO the foe before it can rotate), and a unit that
+            // cannot re-form while engaged can never clear a "halt, re-form, then
+            // turn" gate at all — it dies facing the enemy. Instead the unit
+            // DRIFTS toward the escape point (moving AWAY at once, not along its
+            // foe-ward facing) while WHEELING to face it; as the heading comes
+            // round the back-pedal opens into a full gallop. One law for cavalry
+            // (wheel and break off) and foot (about-face and run); the wheel is
+            // bounded by the geometric corner-speed cap and ground, never by
+            // formation order (cohesion). This is the loose-order drift the
+            // skirmish/kite legs already use, pointed at the disengage target.
+            if matches!(u.mode, crate::unit::OrderMode::Disengage) {
+                u.pivoting = false;
+                let geom = tun.wheel_speed_factor * top / u.pivot_radius().max(1.0);
+                let rate = tun.base_turn_rate.min(geom);
+                u.facing = rotate_toward(u.facing, desired, rate * dt);
+                let target_speed = (pace_speed(tun, u) * ground * drift_factor(desired, u.facing))
+                    .min((2.0 * accel * dist).sqrt());
+                u.frame_speed = move_toward(u.frame_speed, target_speed, accel * dt);
+                u.cruise = move_toward(u.cruise, target_speed, accel * dt);
+                u.anchor = u.anchor + to * (u.frame_speed * dt / dist.max(0.01));
+                return;
+            }
+
             // Locked in melee (a third of the unit fighting): the FACING is
             // owned by the contact pass (face the enemy across the whole
             // front), not by any maneuvering heading here. A grinding line
@@ -229,14 +255,12 @@ pub(crate) fn update_unit_motion(tun: &Tunables, u: &mut Unit, dt: f32, ground: 
 
             // Hysteresis: a big heading change enters the pivot; the unit
             // stays in it until nearly aligned, then marches out. Never while
-            // locked — melee is not the time for a drilled about-face — EXCEPT a
-            // WITHDRAW, which MUST about-face out of contact to flee (a locked
-            // unit otherwise keeps facing the foe and drives its frame straight
-            // back INTO it instead of away).
-            let disengaging = matches!(u.mode, crate::unit::OrderMode::Disengage);
-            if (!locked || disengaging) && err.abs() > tun.pivot_facing_err {
+            // locked — melee is not the time for a drilled about-face (a
+            // disengage, which DOES need to break contact, already peeled off
+            // above via the wheel-and-run drift, so it never reaches here).
+            if !locked && err.abs() > tun.pivot_facing_err {
                 u.pivoting = true;
-            } else if (locked && !disengaging) || err.abs() < tun.pivot_exit_err {
+            } else if locked || err.abs() < tun.pivot_exit_err {
                 u.pivoting = false;
             }
 
@@ -248,7 +272,7 @@ pub(crate) fn update_unit_motion(tun: &Tunables, u: &mut Unit, dt: f32, ground: 
                 u.cruise = move_toward(u.cruise, 0.0, accel * 2.0 * dt);
                 if u.frame_speed < 0.05 {
                     let geom = tun.wheel_speed_factor * top / u.pivot_radius().max(1.0);
-                    let rate = tun.base_turn_rate.min(geom) * turn_throttle;
+                    let rate = tun.base_turn_rate.min(geom);
                     let center = u.center();
                     u.facing = rotate_toward(u.facing, desired, rate * dt);
                     u.anchor = center + dir(u.facing) * (0.5 * u.depth());
@@ -263,7 +287,7 @@ pub(crate) fn update_unit_motion(tun: &Tunables, u: &mut Unit, dt: f32, ground: 
                         .max((0.25 * top).powi(2))
                         .sqrt();
                     let geom = tun.wheel_speed_factor * spare / u.march_turn_radius().max(1.0);
-                    let rate = tun.base_turn_rate.min(geom) * turn_throttle;
+                    let rate = tun.base_turn_rate.min(geom);
                     u.facing = rotate_toward(u.facing, desired, rate * dt);
                 }
                 // A CHARGE does not brake to arrive — the whole point is
@@ -288,10 +312,11 @@ pub(crate) fn update_unit_motion(tun: &Tunables, u: &mut Unit, dt: f32, ground: 
                     pace_speed(tun, u) * ground
                 } else if backing_off {
                     (pace_speed(tun, u) * ground * 0.6).min((2.0 * accel * dist).sqrt())
-                } else if locked && !matches!(u.mode, crate::unit::OrderMode::Disengage) {
-                    // A WITHDRAW still drives its frame AWAY even while the rear is
-                    // in contact — the frame must LEAD the men out, or the leash
-                    // pins the disengaging unit in the grind it is trying to flee.
+                } else if locked {
+                    // A locked ATTACK or a forward MOVE: the frame HOLDS at the men
+                    // (othismos), never driving the anchor toward a goal past the
+                    // foe. (A withdrawal peels off above via the disengage drift, or
+                    // backs off shields-front just above — neither reaches here.)
                     0.0
                 } else {
                     (pace_speed(tun, u) * ground).min((2.0 * accel * dist).sqrt())
@@ -334,7 +359,7 @@ pub(crate) fn update_unit_motion(tun: &Tunables, u: &mut Unit, dt: f32, ground: 
                     } else {
                         u.pivoting = true;
                         let geom = tun.wheel_speed_factor * top / u.pivot_radius().max(1.0);
-                        let rate = tun.base_turn_rate.min(geom) * turn_throttle;
+                        let rate = tun.base_turn_rate.min(geom);
                         let center = u.center();
                         u.facing = rotate_toward(u.facing, ff, rate * dt);
                         u.anchor = center + dir(u.facing) * (0.5 * u.depth());
@@ -344,112 +369,5 @@ pub(crate) fn update_unit_motion(tun: &Tunables, u: &mut Unit, dt: f32, ground: 
                 u.pivoting = false;
             }
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::math::Vec2;
-    use crate::tunables::DT;
-
-    #[test]
-    fn low_cohesion_turns_slower() {
-        let tun = Tunables::default();
-        let mut disordered = Unit {
-            class: crate::class::UnitClassId::LightSpear,
-            render_look: crate::class::UnitClassId::LightSpear as u32,
-            stats: crate::class::class_stats(crate::class::UnitClassId::LightSpear),
-            pace_mult: 1.0,
-            accel_mult: 1.0,
-            start: 0,
-            count: 0,
-            files: 1,
-            files_eff: 1,
-            path: Vec::new(),
-            path_idx: 0,
-            waiting: false,
-            spacing: Vec2::new(1.0, 1.0),
-            anchor: Vec2::ZERO,
-            facing: 0.0,
-            frame_speed: 0.0,
-            cruise: 0.0,
-            brace_ramp: 0.0,
-            move_target: Some(Vec2::new(0.0, 100.0)),
-            pending_target: None,
-            pending_mode: crate::unit::OrderMode::Move,
-            pending_timer: 0.0,
-            pending_total: 0.0,
-            pace: Pace::Walk,
-            stamina: 1.0,
-            training: 0.5,
-            team: 0,
-            home_dir_y: -1.0,
-            disorder: 1.0,
-            cohesion: 0.1,
-            pivoting: false,
-            mode: crate::unit::OrderMode::Move,
-            charge_enabled: false,
-            charging: false,
-            fear_adapt: 0.0,
-            charge_time: 0.0,
-            charge_at_speed: false,
-            drain_mult: 1.0,
-            resume_target: None,
-            alive_count: 0,
-            deaths_since_reform: 0,
-            engaged: 0,
-            contact_hist: [0.0; 12],
-            contact_unit: 0,
-            quiet_ticks: 0,
-            recent_casualties: 0.0,
-            lost_impact: 0,
-            lost_charge_melee: 0,
-            lost_grind_melee: 0,
-            lost_missile: 0,
-            lost_post_rout: 0,
-            ammo: 0,
-            missile_override: None,
-            fire_at_will: true,
-            evade_auto: false,
-            morale: 1.0,
-            morale_ceiling: 1.0,
-            routing: false,
-            recent_missiles: 0.0,
-            losing_push: 0.0,
-            ram_press: 0.0,
-            foe_ranks: 0.0,
-            centroid: Vec2::ZERO,
-            at_ease: false,
-            counter_press: 0.0,
-            mass_advance: 0.0,
-            final_facing: None,
-            reform_timer: 0.0,
-            pursue: false,
-            threat_bearing: None,
-            threat_unit: None,
-            latch_best: f32::INFINITY,
-            latch_cd: 0.0,
-
-            order_queue: Vec::new(),
-        };
-        let mut ordered = Unit {
-            disorder: 0.0,
-            cohesion: 1.0,
-            move_target: Some(Vec2::new(0.0, 100.0)),
-            path: Vec::new(),
-            order_queue: Vec::new(),
-            ..disordered
-        };
-        for _ in 0..15 {
-            update_unit_motion(&tun, &mut disordered, DT, 1.0);
-            update_unit_motion(&tun, &mut ordered, DT, 1.0);
-        }
-        assert!(
-            ordered.facing > disordered.facing * 2.0,
-            "high cohesion should turn much faster: {} vs {}",
-            ordered.facing,
-            disordered.facing
-        );
     }
 }

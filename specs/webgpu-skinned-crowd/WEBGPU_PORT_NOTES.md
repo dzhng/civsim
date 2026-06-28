@@ -1,0 +1,126 @@
+# WebGPU Port Notes
+
+These are task-specific notes for the civsim WebGPU renderer migration. They
+are deliberately outside `.agents/skills/webgpu/SKILL.md`; the skill should stay
+general, while this file tracks the current port's visual, architectural, and
+verification lessons.
+
+## Acceptance Stance
+
+- Do not chase archived-renderer similarity once WebGPU is visibly better.
+  `parityDistance`, edge maps, grayscale diffs, luminance, and world crops are
+  diagnostic telemetry for drift, missing content, darkness, UI overlap, or
+  accidental regressions. As the WebGPU renderer becomes richer, sharper, and
+  more readable than the old renderer, similarity scores may rise.
+- Accept or reject work by named requirements, model gates, focused crops,
+  fresh screenshot critique, and player readability.
+- The old renderer is migration evidence, not the final target. After WebGPU
+  cutover, routine screenshots should target WebGPU only.
+
+## Architecture Direction
+
+- Battle and campaign must share the same camera/depth contract. Put camera
+  packing, projection helpers, depth modes, frame phases, and pass roles in
+  shared WebGPU-core modules and make renderers plus verifiers import them.
+- The frame shell should expose semantic phases: background underpaint,
+  depth-tested world, read-only world decals/cues, effect overlays, and UI
+  overlays. Type buckets such as trees, rocks, soldier classes, city meshes, or
+  flag meshes are batching details inside semantic passes.
+- Production routes and lab routes must assert the same contract: pass ids,
+  phases, roles, depth modes, and overlay separation should be visible in route
+  stats.
+- Renderer draw APIs should make phase misuse difficult. Depth-sensitive world
+  geometry should require the world-depth pass type; background and overlay
+  helpers should not accept raw `GPURenderPassEncoder` as a back door.
+- Once a model/decal/line pass is promoted to the depth world phase, remove
+  no-depth twin APIs instead of keeping parallel draw paths.
+
+## Depth And Layering Blockers
+
+- Campaign city flags, future garrisoned armies, battle ranks, weapons, trees,
+  rocks, roads, and selection rings need true 3D occlusion. If a far tree draws
+  over a near flag, or a flag cannot sit inside a city, treat that as a
+  render-graph/depth-contract bug before treating it as art.
+- Hostile-order gates are required: submit occluders first, submit nested or
+  rear objects later, then sample/crop pixels that prove the depth buffer owns
+  visibility.
+- Selection rings and ground cues are world-space decals. Draw them early with
+  depth reads and no depth writes so roads, soldiers, cities, rocks, and trees
+  can naturally paint over them.
+- Opaque cities, armies, skinned soldiers, trees, rocks, and mountains write
+  shared world depth. Translucent shadows, rings, roads, and UI labels stay
+  separate.
+- Campaign roads need world-space integration, not just brighter lines. The
+  desired look is pale grey stone with raised/beveled edges or shadowed borders,
+  with scenery cleared from corridors and endpoint pads/plazas handled as part
+  of the model language.
+
+## Campaign Visual Notes
+
+- Preserve the old campaign's typography and icon language: white serif/caps
+  text with dark outline/halo, house/army icons next to labels, and zoom-aware
+  label/icon LOD.
+- City and army labels must sit below the model with readable spacing, not
+  collide with geometry.
+- City standards belong inside the city mesh like a flagpole inserted into the
+  settlement core. The pole should pass through the city volume, lower portions
+  should be occluded by front roofs/walls, and a small visible pole segment
+  should remain above the city.
+- Army standards and city standards should share a coherent wind direction and
+  perspective language.
+- Selection circles must be projected ground-plane ellipses, not screen-space
+  perfect circles. They should sit outside shadows/footprints and remain
+  readable as key selected-state UI.
+- Whole-map sea labels should fit the visible water lane. Long labels may need
+  curved glyph placement, repositioning into wider water, or smaller type so
+  they do not spill onto land.
+- The campaign close camera should preserve perspective: distant objects shrink
+  and the board reads as a trapezoid, not a flat rectangle.
+- Scenery generation must reserve city, road, army, and tall-standard
+  silhouette footprints. A depth-correct tree can still be scene-authored into
+  the wrong place and read as floating on a roof or intersecting a flag.
+
+## Battle Visual Notes
+
+- Battlefield terrain features should not read as jagged cell overlays. Merge
+  or soften sim masks, keep broad tints subordinate, and spend visual weight on
+  deterministic props/details: forest uses trees/shrubs/contact shadows; mud
+  uses rocks, potholes, churn, and broken ground.
+- The minimap and battlefield must agree on terrain source. If the minimap
+  shows large features, the battlefield needs visible authored evidence in the
+  corresponding areas.
+- Ground cues, paths, selection rings, reform ghosts, projectiles, and debug
+  lines should not share one ambiguous line bucket. Split by semantics:
+  world-depth read-only ground cues versus overlay/effect lines.
+- Battle ground-cue vertex contracts are fragile; keep the source stride and
+  shader stride single-sourced to avoid random colored streaks or missing cues.
+- Soldier model gates must exercise the same skinned batching path as
+  production battle rendering, including class mesh, clip, phase, facing, and
+  camera.
+
+## Visual Reports And Gates
+
+- The cutover visual report should include whole-scene comparisons, model-gate
+  contact sheets, soldier/animation gates, nested-object gates, and release
+  audit status. A good whole-scene metric must not hide a missing model,
+  animation beat, garrison, label, road, terrain feature, or marker.
+- Campaign model gates should render through the real production passes for
+  entities, scenery, selection, roads, water/clouds, and labels where relevant.
+- Nested model gates need pixel samples for buried and exposed regions: for
+  example, a hidden flag/pole point should resolve to city material while an
+  exposed cloth point resolves to faction color.
+- For visual disputes, crop and upscale the relevant feature before theorizing,
+  then run unprimed screenshot critique on the candidate PNG.
+- Model/art blockers found by critique should be recorded in this spec even if
+  metric telemetry improved.
+
+## Current Open Visual Blockers
+
+- City flag must blow the same direction as army flags, sit slightly higher,
+  and still be embedded in the city volume instead of perched above it.
+- City labels are too high in close crops and need lower placement with clear
+  spacing below the city model.
+- Campaign close-view still needs final tuning for contact shadows, road
+  integration, selection readability, flag attachment, and scenery clearance.
+- Battle terrain feature art should continue moving from tint masks toward
+  authored trees, rocks, potholes, churn, and smoother edges.

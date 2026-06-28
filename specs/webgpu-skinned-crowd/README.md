@@ -7,6 +7,8 @@ leg replaces battle's pose-swapped box soldiers with a GPU-owned skinned crowd
 renderer; the full goal goes further: battle terrain/effects, campaign map,
 campaign markers, menus, HUD/composition surfaces, verification harnesses,
 performance gates, and production cutover all move onto the new WebGPU path.
+Task-specific implementation notes live in `WEBGPU_PORT_NOTES.md`; general
+WebGPU practice belongs in `.agents/skills/webgpu/SKILL.md`.
 
 This is a proper shared 3D engine port, not a painter-order approximation.
 Battle and campaign both need the same foundational ability to place 3D objects

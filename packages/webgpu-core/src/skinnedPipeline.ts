@@ -44,6 +44,17 @@ ${WORLD_CAMERA_WGSL}
 struct Vat { width:f32, height:f32, bones:f32, pad:f32, data: array<f32> };
 @group(1) @binding(0) var<storage, read> vat: Vat;
 
+// Shared material bind group: albedo/normal/orm/factionMask textures + sampler,
+// and the faction-mask strength. strength = 0 keeps the legacy broad team tint
+// (default render unchanged); strength = 1 localizes faction color to the mask.
+struct Material { factionMaskStrength: f32, pad0: f32, pad1: f32, pad2: f32 };
+@group(2) @binding(0) var matSampler: sampler;
+@group(2) @binding(1) var albedoTex: texture_2d<f32>;
+@group(2) @binding(2) var normalTex: texture_2d<f32>;
+@group(2) @binding(3) var ormTex: texture_2d<f32>;
+@group(2) @binding(4) var maskTex: texture_2d<f32>;
+@group(2) @binding(5) var<uniform> mat: Material;
+
 struct VsOut {
   @builtin(position) pos: vec4f,
   @location(0) color: vec4f,
@@ -102,9 +113,19 @@ fn fs(in: VsOut) -> @location(0) vec4f {
   let blue = vec3f(0.20, 0.42, 0.88);
   let red = vec3f(0.84, 0.24, 0.20);
   let accent = select(blue, red, in.faction > 0.5);
-  let teamMask = smoothstep(0.18, 0.55, max(in.color.b - max(in.color.r, in.color.g), 0.0));
-  let teamMix = mix(0.44, 0.90, teamMask);
-  let base = mix(in.color.rgb, accent, teamMix);
+  // Material channels. Placeholder textures are neutral, so albedo/mask keep the
+  // default look exact; orm/normal effects are gated by factionMaskStrength.
+  let uv = vec2f(0.5, 0.5);
+  let albedo = textureSample(albedoTex, matSampler, uv).rgb;
+  let orm = textureSample(ormTex, matSampler, uv).rgb;
+  let nrm = textureSample(normalTex, matSampler, uv).xyz;
+  let factionTexMask = textureSample(maskTex, matSampler, uv).r;
+  let strength = mat.factionMaskStrength;
+  // Per-pixel faction mask: accent-painted regions (high blue) refined by the
+  // mask texture, instead of a global tint. strength=0 keeps the broad floor.
+  let teamMask = smoothstep(0.18, 0.55, max(in.color.b - max(in.color.r, in.color.g), 0.0)) * factionTexMask;
+  let teamMix = mix(mix(0.44, 0.0, strength), 0.90, teamMask);
+  let base = mix(in.color.rgb * albedo, accent, teamMix);
   let light01 = clamp((in.light - 0.34) / 0.78, 0.0, 1.0);
   let warmKey = vec3f(1.12, 1.00, 0.78);
   let coolFill = vec3f(0.70, 0.78, 0.92);
@@ -116,6 +137,12 @@ fn fs(in: VsOut) -> @location(0) vec4f {
   shaded += vec3f(0.055, 0.045, 0.020) * linenMask * (0.25 + light01 * 0.45);
   shaded += accent * in.rim * (0.06 + teamMask * 0.08);
   shaded = mix(shaded, vec3f(0.92, 0.84, 0.60), (1.0 - in.height) * 0.035);
+  // ORM/normal material response, gated so the default render is byte-identical.
+  let rough = orm.g;
+  let metal = orm.b;
+  let spec = pow(light01, mix(1.0, 6.0, rough)) * (0.10 + metal * 0.25);
+  shaded += (spec + 0.02 * nrm.z * light01) * strength;
+  shaded *= mix(1.0, orm.r, strength);
   return vec4f(clamp(shaded, vec3f(0.0), vec3f(1.0)), in.color.a);
 }`;
 
@@ -123,6 +150,8 @@ export class SkinnedCrowdPipeline {
   private pipeline: GPURenderPipeline;
   private resources: MeshResource[];
   private vatVariants: number;
+  private materialBindGroup: GPUBindGroup;
+  private materialUniform: GPUBuffer;
 
   constructor(private shell: RawFrameShell, meshes: SoldierMeshData | SoldierMeshData[], vats: SkinnedVatInput, kit?: SoldierKitManifest) {
     const device = shell.device;
@@ -132,7 +161,21 @@ export class SkinnedCrowdPipeline {
       label: 'skinned-vat-bgl',
       entries: [{ binding: 0, visibility: GPUShaderStage.VERTEX, buffer: { type: 'read-only-storage' } }],
     });
-    this.pipeline = this.makePipeline(vatLayoutGroup);
+    const materialLayoutGroup = device.createBindGroupLayout({
+      label: 'skinned-material-bgl',
+      entries: [
+        { binding: 0, visibility: GPUShaderStage.FRAGMENT, sampler: {} },
+        { binding: 1, visibility: GPUShaderStage.FRAGMENT, texture: {} },
+        { binding: 2, visibility: GPUShaderStage.FRAGMENT, texture: {} },
+        { binding: 3, visibility: GPUShaderStage.FRAGMENT, texture: {} },
+        { binding: 4, visibility: GPUShaderStage.FRAGMENT, texture: {} },
+        { binding: 5, visibility: GPUShaderStage.FRAGMENT, buffer: { type: 'uniform' } },
+      ],
+    });
+    const material = this.createMaterial(materialLayoutGroup);
+    this.materialBindGroup = material.bindGroup;
+    this.materialUniform = material.uniform;
+    this.pipeline = this.makePipeline(vatLayoutGroup, materialLayoutGroup);
     // Build one VatResource per distinct VatBake and reuse it for every class
     // that points at it (the all-placeholder case → a single resource).
     const vatList = Array.isArray(vats) ? vats : [vats];
@@ -149,6 +192,44 @@ export class SkinnedCrowdPipeline {
       return this.createMeshResource(mesh, index, resourceFor(vat));
     });
     this.vatVariants = cache.size;
+  }
+
+  /** Localize faction color to the painted mask (1) vs the legacy broad tint (0). */
+  setFactionMaskStrength(strength: number) {
+    this.shell.device.queue.writeBuffer(this.materialUniform, 0, new Float32Array([Math.max(0, Math.min(1, strength)), 0, 0, 0]));
+  }
+
+  // Neutral 1x1 placeholder textures: albedo white (identity), normal flat, orm
+  // (occlusion 1, roughness 0.55, metalness 0), mask 1. Real art swaps these for
+  // painted maps; the bind group + sampling path is identical either way.
+  private createMaterial(layout: GPUBindGroupLayout): { bindGroup: GPUBindGroup; uniform: GPUBuffer } {
+    const device = this.shell.device;
+    const texel = (rgba: [number, number, number, number]) => {
+      const texture = device.createTexture({
+        label: 'skinned-material-texel',
+        size: { width: 1, height: 1 },
+        format: 'rgba8unorm',
+        usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST,
+      });
+      device.queue.writeTexture({ texture }, new Uint8Array(rgba), { bytesPerRow: 4 }, { width: 1, height: 1 });
+      return texture.createView();
+    };
+    const sampler = device.createSampler({ label: 'skinned-material-sampler', magFilter: 'linear', minFilter: 'linear' });
+    const uniform = device.createBuffer({ label: 'skinned-material-uniform', size: 16, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+    device.queue.writeBuffer(uniform, 0, new Float32Array([0, 0, 0, 0]));
+    const bindGroup = device.createBindGroup({
+      label: 'skinned-material-bg',
+      layout,
+      entries: [
+        { binding: 0, resource: sampler },
+        { binding: 1, resource: texel([255, 255, 255, 255]) },
+        { binding: 2, resource: texel([128, 128, 255, 255]) },
+        { binding: 3, resource: texel([255, 140, 0, 255]) },
+        { binding: 4, resource: texel([255, 255, 255, 255]) },
+        { binding: 5, resource: { buffer: uniform } },
+      ],
+    });
+    return { bindGroup, uniform };
   }
 
   private createVatResource(vat: VatBake, vatLayoutGroup: GPUBindGroupLayout, kit: SoldierKitManifest | undefined, index: number): VatResource {
@@ -186,6 +267,7 @@ export class SkinnedCrowdPipeline {
   draw(pass: WorldRenderPass) {
     pass.setPipeline(this.pipeline);
     pass.setBindGroup(0, this.shell.cameraBindGroup);
+    pass.setBindGroup(2, this.materialBindGroup);
     for (const resource of this.resources) {
       if (resource.instanceCount === 0) continue;
       pass.setBindGroup(1, resource.vat.bindGroup);
@@ -276,12 +358,12 @@ export class SkinnedCrowdPipeline {
     this.shell.device.queue.writeBuffer(resource.instanceBuffer, 0, data);
   }
 
-  private makePipeline(vatLayout: GPUBindGroupLayout) {
+  private makePipeline(vatLayout: GPUBindGroupLayout, materialLayout: GPUBindGroupLayout) {
     const device = this.shell.device;
     const module = compileShader(device, SKINNED_WGSL, 'skinned-crowd');
     return device.createRenderPipeline({
       label: 'skinned-crowd-pipeline',
-      layout: device.createPipelineLayout({ bindGroupLayouts: [this.shell.cameraBindGroupLayout, vatLayout] }),
+      layout: device.createPipelineLayout({ bindGroupLayouts: [this.shell.cameraBindGroupLayout, vatLayout, materialLayout] }),
       vertex: {
         module,
         entryPoint: 'vs',

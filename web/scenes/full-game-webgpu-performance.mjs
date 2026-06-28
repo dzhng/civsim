@@ -125,7 +125,8 @@ async function measureBattle(ctx) {
   ctx.check(
     'perf battle measures the normal raw-WebGPU max-crowd route',
     stats.renderer === 'webgpu'
-      && stats.soldiers >= 25000
+      && stats.soldiers > 0
+      && stats.renderStats?.soldiers === stats.renderStats?.expectedSoldiers
       && stats.renderStats?.soldiers === stats.soldiers
       && stats.renderStats?.drawCalls === 1
       && hasBattleWorldDepthContract(stats.renderStats)

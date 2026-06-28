@@ -1,10 +1,10 @@
 {
   "kind": "webgpu-full-game-perf",
-  "mode": "hardware-report",
+  "mode": "headless-liveness",
   "generatedAt": "scenario-generated",
   "environment": {
-    "browser": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
-    "gpu": "apple / metal-3",
+    "browser": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/148.0.7778.96 Safari/537.36",
+    "gpu": "google / swiftshader",
     "viewport": "1280x800",
     "dpr": 1
   },
@@ -16,28 +16,28 @@
       "renderer": "webgpu-app-shell",
       "frame": {
         "samples": 45,
-        "avgMs": 8.332888888888892,
+        "avgMs": 8.333333333333334,
         "medianMs": 8.33499999999998,
-        "p95Ms": 8.439999999999998,
-        "minMs": 6.845000000000027,
-        "maxMs": 10.154999999999973
+        "p95Ms": 8.985000000000014,
+        "minMs": 7.454999999999984,
+        "maxMs": 9.420000000000016
       },
-      "startupMs": 64.613,
+      "startupMs": 60.849,
       "memory": {
-        "usedJSHeapSize": 4472245,
-        "totalJSHeapSize": 5455113,
-        "jsHeapSizeLimit": 4395630592,
-        "usedMB": 4.27,
-        "totalMB": 5.2
+        "usedJSHeapSize": 10000000,
+        "totalJSHeapSize": 10000000,
+        "jsHeapSizeLimit": 3760000000,
+        "usedMB": 9.54,
+        "totalMB": 9.54
       },
       "performance": null,
       "stats": {
         "webgpu": {
           "checked": true,
           "ok": true,
-          "adapter": "apple / metal-3",
+          "adapter": "google / swiftshader",
           "reason": "",
-          "message": "WebGPU ready: apple / metal-3"
+          "message": "WebGPU ready: google / swiftshader"
         },
         "postCutoverScreenshots": "webgpu-only"
       }
@@ -49,19 +49,19 @@
       "renderer": "raw-webgpu-battle",
       "frame": {
         "samples": 60,
-        "avgMs": 8.317250000000012,
-        "medianMs": 8.329999999999927,
-        "p95Ms": 9.425000000001091,
-        "minMs": 6.864999999999782,
-        "maxMs": 10.045000000000073
+        "avgMs": 8.338166666666666,
+        "medianMs": 8.30999999999949,
+        "p95Ms": 10.145000000000437,
+        "minMs": 6.6899999999996,
+        "maxMs": 10.305000000000291
       },
-      "startupMs": 133.762,
+      "startupMs": 1437.165,
       "memory": {
-        "usedJSHeapSize": 12744196,
-        "totalJSHeapSize": 27850924,
-        "jsHeapSizeLimit": 4395630592,
-        "usedMB": 12.15,
-        "totalMB": 26.56
+        "usedJSHeapSize": 16100000,
+        "totalJSHeapSize": 33100000,
+        "jsHeapSizeLimit": 3760000000,
+        "usedMB": 15.35,
+        "totalMB": 31.57
       },
       "performance": {
         "buildMs": 0,
@@ -70,10 +70,10 @@
         "frameCpuMs": 0
       },
       "stats": {
-        "soldiers": 30000,
+        "soldiers": 15560,
         "units": 40,
-        "tickMs": 0,
-        "fps": 125.23695648222909,
+        "tickMs": 11.677926697113989,
+        "fps": 122.76355280533734,
         "victor": -1,
         "renderer": "webgpu",
         "renderStats": {
@@ -81,15 +81,133 @@
           "ready": true,
           "width": 1280,
           "height": 800,
-          "soldiers": 30000,
-          "expectedSoldiers": 30000,
+          "soldiers": 15560,
+          "expectedSoldiers": 15560,
           "drawCalls": 1,
           "lod": {
             "skinned": 0,
-            "impostors": 30000
+            "impostors": 15560
           },
-          "device": "apple / metal-3",
+          "device": "google / swiftshader",
           "atmosphere": "aegean-sky-haze",
+          "cameraContract": "shared-world-camera-wgsl",
+          "skinnedCameraContract": "shared-world-camera-wgsl",
+          "phases": [
+            {
+              "kind": "background",
+              "label": "terrain, backdrop, impostor markers, and background surfaces",
+              "passIds": [
+                "builtin-background",
+                "battle-terrain-underpaint"
+              ],
+              "passRoles": [
+                {
+                  "id": "builtin-background",
+                  "role": "background-underpaint"
+                },
+                {
+                  "id": "battle-terrain-underpaint",
+                  "role": "background-underpaint"
+                }
+              ],
+              "depthPasses": [],
+              "depth": "none",
+              "loadOp": "clear"
+            },
+            {
+              "kind": "world-depth",
+              "label": "depth-tested world geometry and ground decals",
+              "passIds": [
+                "battle-terrain-props",
+                "battle-skinned-crowd",
+                "battle-ground-cues"
+              ],
+              "passRoles": [
+                {
+                  "id": "battle-terrain-props",
+                  "role": "world-opaque"
+                },
+                {
+                  "id": "battle-skinned-crowd",
+                  "role": "world-opaque"
+                },
+                {
+                  "id": "battle-ground-cues",
+                  "role": "world-decal"
+                }
+              ],
+              "depthPasses": [
+                {
+                  "id": "battle-terrain-props",
+                  "mode": "read-write"
+                },
+                {
+                  "id": "battle-skinned-crowd",
+                  "mode": "read-write"
+                },
+                {
+                  "id": "battle-ground-cues",
+                  "mode": "read"
+                }
+              ],
+              "depth": "depth24plus-clear",
+              "loadOp": "load"
+            },
+            {
+              "kind": "overlay",
+              "label": "labels, HUD, minimap, atmosphere, and debug overlays",
+              "passIds": [
+                "battle-effect-lines",
+                "battle-debug-blocks",
+                "battle-debug-triangles"
+              ],
+              "passRoles": [
+                {
+                  "id": "battle-effect-lines",
+                  "role": "overlay-effect"
+                },
+                {
+                  "id": "battle-debug-blocks",
+                  "role": "overlay-debug"
+                },
+                {
+                  "id": "battle-debug-triangles",
+                  "role": "overlay-debug"
+                }
+              ],
+              "depthPasses": [],
+              "depth": "none",
+              "loadOp": "load"
+            }
+          ],
+          "depth": {
+            "format": "depth24plus",
+            "width": 1280,
+            "height": 800,
+            "allocated": true
+          },
+          "terrain": {
+            "fixture": "sim-tint",
+            "quads": 18279,
+            "backgroundQuads": 8479,
+            "worldPropQuads": 9800,
+            "waterQuads": 1,
+            "sceneryQuads": 17379,
+            "selectionQuads": 0,
+            "cameraContract": "shared-world-camera-wgsl"
+          },
+          "tacticalLines": {
+            "groundCues": {
+              "vertices": 0,
+              "lineSegments": 0,
+              "cameraContract": "shared-world-camera-wgsl"
+            },
+            "effects": {
+              "vertices": 0,
+              "lineSegments": 0,
+              "cameraContract": "shared-world-camera-wgsl"
+            }
+          },
           "performance": {
             "buildMs": 0,
             "uploadMs": 0,
@@ -106,50 +224,181 @@
       "renderer": "raw-webgpu-campaign",
       "frame": {
         "samples": 60,
-        "avgMs": 8.33325,
-        "medianMs": 8.325000000000045,
-        "p95Ms": 9.61999999999989,
-        "minMs": 7.019999999999982,
-        "maxMs": 10.169999999999959
+        "avgMs": 117.77683333333333,
+        "medianMs": 98.36499999999978,
+        "p95Ms": 216.66499999999996,
+        "minMs": 82.47000000000025,
+        "maxMs": 641.7200000000003
       },
-      "startupMs": 525.413,
+      "startupMs": 984.487,
       "memory": {
-        "usedJSHeapSize": 12747507,
-        "totalJSHeapSize": 23097127,
-        "jsHeapSizeLimit": 4395630592,
-        "usedMB": 12.16,
-        "totalMB": 22.03
+        "usedJSHeapSize": 44700000,
+        "totalJSHeapSize": 97400000,
+        "jsHeapSizeLimit": 3760000000,
+        "usedMB": 42.63,
+        "totalMB": 92.89
       },
       "performance": {
-        "buildMs": 0.08,
-        "uploadMs": 0.14,
-        "drawMs": 0.155,
-        "frameCpuMs": 0.385
+        "buildMs": 0.035,
+        "uploadMs": 72.5,
+        "drawMs": 0.125,
+        "frameCpuMs": 72.665
       },
       "stats": {
         "renderer": "webgpu-campaign",
         "ready": true,
         "width": 1280,
         "height": 800,
-        "device": "apple / metal-3",
+        "device": "google / swiftshader",
+        "cameraContract": "shared-world-camera-wgsl",
         "cityEntities": 412,
         "armyEntities": 12,
-        "labels": 492,
-        "visibleLabels": 40,
+        "labels": 494,
+        "visibleLabels": 30,
         "labelLayer": "raw-webgpu-glyph-atlas",
-        "labelAtlas": "1024x256",
-        "labelVertices": 240,
+        "labelAtlas": "1024x512",
+        "labelVertices": 180,
         "waterFeatures": 6,
         "cloudQuads": 1,
         "territoryPixels": 286254,
         "borderSegments": 3248,
-        "lineSegments": 8431,
+        "mapMarkers": 28,
+        "scenery": 843,
+        "lineSegments": 2839,
+        "roadTriangles": 280236,
+        "phases": [
+          {
+            "kind": "background",
+            "label": "terrain, backdrop, impostor markers, and background surfaces",
+            "passIds": [
+              "builtin-background",
+              "campaign-map-underpaint",
+              "campaign-territory-wash",
+              "campaign-water",
+              "campaign-borders"
+            ],
+            "passRoles": [
+              {
+                "id": "builtin-background",
+                "role": "background-underpaint"
+              },
+              {
+                "id": "campaign-map-underpaint",
+                "role": "background-underpaint"
+              },
+              {
+                "id": "campaign-territory-wash",
+                "role": "background-underpaint"
+              },
+              {
+                "id": "campaign-water",
+                "role": "background-underpaint"
+              },
+              {
+                "id": "campaign-borders",
+                "role": "background-underpaint"
+              }
+            ],
+            "depthPasses": [],
+            "depth": "none",
+            "loadOp": "clear"
+          },
+          {
+            "kind": "world-depth",
+            "label": "depth-tested world geometry and ground decals",
+            "passIds": [
+              "campaign-ground-selection",
+              "campaign-roads",
+              "campaign-sea-lanes-depth",
+              "campaign-scenery",
+              "campaign-entities"
+            ],
+            "passRoles": [
+              {
+                "id": "campaign-ground-selection",
+                "role": "world-decal"
+              },
+              {
+                "id": "campaign-roads",
+                "role": "world-decal"
+              },
+              {
+                "id": "campaign-sea-lanes-depth",
+                "role": "world-decal"
+              },
+              {
+                "id": "campaign-scenery",
+                "role": "world-opaque"
+              },
+              {
+                "id": "campaign-entities",
+                "role": "world-opaque"
+              }
+            ],
+            "depthPasses": [
+              {
+                "id": "campaign-ground-selection",
+                "mode": "read"
+              },
+              {
+                "id": "campaign-roads",
+                "mode": "read"
+              },
+              {
+                "id": "campaign-sea-lanes-depth",
+                "mode": "read"
+              },
+              {
+                "id": "campaign-scenery",
+                "mode": "read-write"
+              },
+              {
+                "id": "campaign-entities",
+                "mode": "read-write"
+              }
+            ],
+            "depth": "depth24plus-clear",
+            "loadOp": "load"
+          },
+          {
+            "kind": "overlay",
+            "label": "labels, HUD, minimap, atmosphere, and debug overlays",
+            "passIds": [
+              "campaign-clouds",
+              "campaign-markers",
+              "campaign-labels"
+            ],
+            "passRoles": [
+              {
+                "id": "campaign-clouds",
+                "role": "overlay-effect"
+              },
+              {
+                "id": "campaign-markers",
+                "role": "overlay-ui"
+              },
+              {
+                "id": "campaign-labels",
+                "role": "overlay-ui"
+              }
+            ],
+            "depthPasses": [],
+            "depth": "none",
+            "loadOp": "load"
+          }
+        ],
+        "depth": {
+          "format": "depth24plus",
+          "width": 1280,
+          "height": 800,
+          "allocated": true
+        },
         "postCutoverScreenshots": "webgpu-only",
         "performance": {
-          "buildMs": 0.08,
-          "uploadMs": 0.14,
-          "drawMs": 0.155,
-          "frameCpuMs": 0.385
+          "buildMs": 0.035,
+          "uploadMs": 72.5,
+          "drawMs": 0.125,
+          "frameCpuMs": 72.665
         }
       }
     },
@@ -160,19 +409,19 @@
       "renderer": "raw-webgpu-campaign-to-battle",
       "frame": {
         "samples": 45,
-        "avgMs": 8.333333333333334,
-        "medianMs": 8.329999999999984,
-        "p95Ms": 9.91500000000002,
-        "minMs": 6.800000000000068,
-        "maxMs": 10.209999999999923
+        "avgMs": 8.344555555555548,
+        "medianMs": 8.329999999999927,
+        "p95Ms": 9.7800000000002,
+        "minMs": 6.684999999999945,
+        "maxMs": 9.980000000000018
       },
-      "startupMs": 38.01,
+      "startupMs": 661.98,
       "memory": {
-        "usedJSHeapSize": 6221208,
-        "totalJSHeapSize": 8215380,
-        "jsHeapSizeLimit": 4395630592,
-        "usedMB": 5.93,
-        "totalMB": 7.83
+        "usedJSHeapSize": 23100000,
+        "totalJSHeapSize": 35100000,
+        "jsHeapSizeLimit": 3760000000,
+        "usedMB": 22.03,
+        "totalMB": 33.47
       },
       "performance": {
         "buildMs": 0,
@@ -181,11 +430,11 @@
         "frameCpuMs": 0
       },
       "stats": {
-        "handoffMs": 38.00999999791384,
-        "soldiers": 840,
-        "units": 2,
-        "tickMs": 0,
-        "fps": 129.27809078292697,
+        "handoffMs": 661.9799999892712,
+        "soldiers": 16000,
+        "units": 32,
+        "tickMs": 8.493290235076472,
+        "fps": 126.55102700627359,
         "victor": -1,
         "renderer": "webgpu",
         "renderStats": {
@@ -193,15 +442,133 @@
           "ready": true,
           "width": 1280,
           "height": 800,
-          "soldiers": 840,
-          "expectedSoldiers": 840,
+          "soldiers": 16000,
+          "expectedSoldiers": 16000,
           "drawCalls": 1,
           "lod": {
             "skinned": 0,
-            "impostors": 840
+            "impostors": 16000
           },
-          "device": "apple / metal-3",
+          "device": "google / swiftshader",
           "atmosphere": "aegean-sky-haze",
+          "cameraContract": "shared-world-camera-wgsl",
+          "skinnedCameraContract": "shared-world-camera-wgsl",
+          "phases": [
+            {
+              "kind": "background",
+              "label": "terrain, backdrop, impostor markers, and background surfaces",
+              "passIds": [
+                "builtin-background",
+                "battle-terrain-underpaint"
+              ],
+              "passRoles": [
+                {
+                  "id": "builtin-background",
+                  "role": "background-underpaint"
+                },
+                {
+                  "id": "battle-terrain-underpaint",
+                  "role": "background-underpaint"
+                }
+              ],
+              "depthPasses": [],
+              "depth": "none",
+              "loadOp": "clear"
+            },
+            {
+              "kind": "world-depth",
+              "label": "depth-tested world geometry and ground decals",
+              "passIds": [
+                "battle-terrain-props",
+                "battle-skinned-crowd",
+                "battle-ground-cues"
+              ],
+              "passRoles": [
+                {
+                  "id": "battle-terrain-props",
+                  "role": "world-opaque"
+                },
+                {
+                  "id": "battle-skinned-crowd",
+                  "role": "world-opaque"
+                },
+                {
+                  "id": "battle-ground-cues",
+                  "role": "world-decal"
+                }
+              ],
+              "depthPasses": [
+                {
+                  "id": "battle-terrain-props",
+                  "mode": "read-write"
+                },
+                {
+                  "id": "battle-skinned-crowd",
+                  "mode": "read-write"
+                },
+                {
+                  "id": "battle-ground-cues",
+                  "mode": "read"
+                }
+              ],
+              "depth": "depth24plus-clear",
+              "loadOp": "load"
+            },
+            {
+              "kind": "overlay",
+              "label": "labels, HUD, minimap, atmosphere, and debug overlays",
+              "passIds": [
+                "battle-effect-lines",
+                "battle-debug-blocks",
+                "battle-debug-triangles"
+              ],
+              "passRoles": [
+                {
+                  "id": "battle-effect-lines",
+                  "role": "overlay-effect"
+                },
+                {
+                  "id": "battle-debug-blocks",
+                  "role": "overlay-debug"
+                },
+                {
+                  "id": "battle-debug-triangles",
+                  "role": "overlay-debug"
+                }
+              ],
+              "depthPasses": [],
+              "depth": "none",
+              "loadOp": "load"
+            }
+          ],
+          "depth": {
+            "format": "depth24plus",
+            "width": 1280,
+            "height": 800,
+            "allocated": true
+          },
+          "terrain": {
+            "fixture": "sim-tint",
+            "quads": 13178,
+            "backgroundQuads": 6698,
+            "worldPropQuads": 6480,
+            "waterQuads": 0,
+            "sceneryQuads": 12395,
+            "selectionQuads": 0,
+            "cameraContract": "shared-world-camera-wgsl"
+          },
+          "tacticalLines": {
+            "groundCues": {
+              "vertices": 0,
+              "lineSegments": 0,
+              "cameraContract": "shared-world-camera-wgsl"
+            },
+            "effects": {
+              "vertices": 0,
+              "lineSegments": 0,
+              "cameraContract": "shared-world-camera-wgsl"
+            }
+          },
           "performance": {
             "buildMs": 0,
             "uploadMs": 0,
@@ -212,132 +579,19 @@
       }
     }
   ],
-  "releaseBudget": "pass",
-  "hardwareReleaseStatus": "pass",
+  "releaseBudget": "not-set",
+  "hardwareReleaseStatus": "headless-liveness-only",
   "currentRendererComparison": {
-    "status": "webgpu-equal-or-better",
-    "currentRendererSource": "../specs/webgpu-skinned-crowd/visualizations/performance/current-renderer-baseline.generated.json",
-    "scenes": [
-      {
-        "id": "menu",
-        "webgpuMedianMs": 8.335,
-        "webgpuP95Ms": 8.44,
-        "webgpuStartupMs": 64.613,
-        "webgpuUsedHeapMB": 4.27,
-        "currentMedianMs": 8.33,
-        "currentP95Ms": 9.18,
-        "currentStartupMs": 90.018,
-        "currentUsedHeapMB": 11.34,
-        "medianRatio": 1.001,
-        "p95Ratio": 0.919,
-        "startupRatio": 0.718,
-        "heapRatio": 0.377,
-        "webgpuUploadMs": null,
-        "webgpuDrawMs": null,
-        "currentUploadMs": null,
-        "currentDrawMs": null,
-        "uploadRatio": null,
-        "drawRatio": null,
-        "measurementFloorMs": {
-          "median": 0.25,
-          "p95": 1.5,
-          "cpu": 0.25,
-          "startup": 50
-        },
-        "result": "pass"
-      },
-      {
-        "id": "battle-max-crowd",
-        "webgpuMedianMs": 8.33,
-        "webgpuP95Ms": 9.425,
-        "webgpuStartupMs": 133.762,
-        "webgpuUsedHeapMB": 12.15,
-        "currentMedianMs": 8.335,
-        "currentP95Ms": 9.325,
-        "currentStartupMs": 459.104,
-        "currentUsedHeapMB": 85.84,
-        "medianRatio": 0.999,
-        "p95Ratio": 1.011,
-        "startupRatio": 0.291,
-        "heapRatio": 0.142,
-        "webgpuUploadMs": 0,
-        "webgpuDrawMs": 0,
-        "currentUploadMs": 0,
-        "currentDrawMs": 0,
-        "uploadRatio": 0,
-        "drawRatio": 0,
-        "measurementFloorMs": {
-          "median": 0.25,
-          "p95": 1.5,
-          "cpu": 0.25,
-          "startup": 50
-        },
-        "result": "pass"
-      },
-      {
-        "id": "campaign-whole-map",
-        "webgpuMedianMs": 8.325,
-        "webgpuP95Ms": 9.62,
-        "webgpuStartupMs": 525.413,
-        "webgpuUsedHeapMB": 12.16,
-        "currentMedianMs": 8.33,
-        "currentP95Ms": 9.35,
-        "currentStartupMs": 901.184,
-        "currentUsedHeapMB": 147.85,
-        "medianRatio": 0.999,
-        "p95Ratio": 1.029,
-        "startupRatio": 0.583,
-        "heapRatio": 0.082,
-        "webgpuUploadMs": 0.14,
-        "webgpuDrawMs": 0.155,
-        "currentUploadMs": 0,
-        "currentDrawMs": 0,
-        "uploadRatio": 140,
-        "drawRatio": 155,
-        "measurementFloorMs": {
-          "median": 0.25,
-          "p95": 1.5,
-          "cpu": 0.25,
-          "startup": 50
-        },
-        "result": "pass"
-      },
-      {
-        "id": "campaign-battle-handoff",
-        "webgpuMedianMs": 8.33,
-        "webgpuP95Ms": 9.915,
-        "webgpuStartupMs": 38.01,
-        "webgpuUsedHeapMB": 5.93,
-        "currentMedianMs": 8.325,
-        "currentP95Ms": 9.53,
-        "currentStartupMs": 1374.629,
-        "currentUsedHeapMB": 148.63,
-        "medianRatio": 1.001,
-        "p95Ratio": 1.04,
-        "startupRatio": 0.028,
-        "heapRatio": 0.04,
-        "webgpuUploadMs": 0,
-        "webgpuDrawMs": 0,
-        "currentUploadMs": 0,
-        "currentDrawMs": 0,
-        "uploadRatio": 0,
-        "drawRatio": 0,
-        "measurementFloorMs": {
-          "median": 0.25,
-          "p95": 1.5,
-          "cpu": 0.25,
-          "startup": 50
-        },
-        "result": "pass"
-      }
-    ]
+    "status": "not-applicable-headless",
+    "currentRendererSource": null,
+    "scenes": []
   },
   "reportFiles": {
     "json": "specs/webgpu-skinned-crowd/visualizations/performance/full-game-webgpu-performance.json",
     "html": "specs/webgpu-skinned-crowd/visualizations/webgpu-performance-report.html"
   },
   "notes": [
-    "Compared against archived current-renderer perf report current-renderer-baseline.generated.json.",
+    "google / swiftshader / Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/148.0.7778.96 Safari/537.36 is classified as software-adapter; do not use it as release performance proof.",
     "Release budgets require named real hardware and archived current-renderer comparison captures."
   ]
 }

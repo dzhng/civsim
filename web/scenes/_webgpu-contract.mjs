@@ -1,4 +1,27 @@
-const DEPTH_MODES = new Set(['read', 'read-write', 'write']);
+import { readFileSync } from 'node:fs';
+
+const DEPTH_CONTRACT_SOURCE = readFileSync(
+  new URL('../../packages/webgpu-core/src/depthContract.ts', import.meta.url),
+  'utf8',
+);
+
+export const WEBGPU_DEPTH_FORMAT = readDepthConst('WEBGPU_DEPTH_FORMAT');
+export const WEBGPU_WORLD_DEPTH_ATTACHMENT = readDepthConst('WEBGPU_WORLD_DEPTH_ATTACHMENT');
+export const WEBGPU_DEPTH_MODES = readDepthModes();
+
+const DEPTH_MODES = new Set(WEBGPU_DEPTH_MODES);
+
+function readDepthConst(name) {
+  const match = DEPTH_CONTRACT_SOURCE.match(new RegExp(`export\\s+const\\s+${name}\\s*=\\s*['"]([^'"]+)['"]\\s+as\\s+const`));
+  if (!match) throw new Error(`Unable to read ${name} from shared WebGPU depth contract`);
+  return match[1];
+}
+
+function readDepthModes() {
+  const match = DEPTH_CONTRACT_SOURCE.match(/export\s+const\s+WEBGPU_DEPTH_MODES\s*=\s*\[([^\]]+)\]\s+as\s+const/);
+  if (!match) throw new Error('Unable to read WEBGPU_DEPTH_MODES from shared WebGPU depth contract');
+  return Array.from(match[1].matchAll(/['"]([^'"]+)['"]/g), (mode) => mode[1]);
+}
 
 export function hasFramePhaseOrder(phases, options = {}) {
   const kinds = Array.isArray(phases) ? phases.map((phase) => phase?.kind) : [];
@@ -62,7 +85,7 @@ export function hasBattleWorldDepthContract(renderStats) {
   return renderStats?.cameraContract === 'shared-world-camera-wgsl'
     && renderStats?.skinnedCameraContract === 'shared-world-camera-wgsl'
     && renderStats?.depth?.allocated === true
-    && renderStats?.depth?.format === 'depth24plus'
+    && renderStats?.depth?.format === WEBGPU_DEPTH_FORMAT
     && hasFramePhaseOrder(renderStats?.phases, { requireOverlay: true })
     && hasDepthPassPlacement(renderStats?.phases)
     && hasSemanticPassRoles(renderStats?.phases)
@@ -85,7 +108,7 @@ export function hasBattleWorldDepthContract(renderStats) {
 export function hasCampaignWorldDepthContract(stats) {
   return stats?.cameraContract === 'shared-world-camera-wgsl'
     && stats?.depth?.allocated === true
-    && stats?.depth?.format === 'depth24plus'
+    && stats?.depth?.format === WEBGPU_DEPTH_FORMAT
     && hasFramePhaseOrder(stats?.phases, { requireOverlay: true })
     && hasDepthPassPlacement(stats?.phases)
     && hasSemanticPassRoles(stats?.phases)

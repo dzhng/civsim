@@ -543,7 +543,7 @@ function renderHtml(report) {
   </main>
 </body>
 </html>
-`;
+`.replace(/[ \t]+$/gm, '');
 }
 
 function webGpuFigure(capture) {

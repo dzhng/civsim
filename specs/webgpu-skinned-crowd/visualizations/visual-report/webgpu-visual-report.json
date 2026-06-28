@@ -43,7 +43,7 @@
       "category": "battle",
       "criteria": "30k raw-WebGPU crowd, Aegean haze, field-aware coast, warm terrain, skinned soldier material lighting, team colors, HUD composition.",
       "status": "webgpu-evidence",
-      "evidence": "30000 soldiers; renderer webgpu; drawCalls 1; aegean-sky-haze; terrain quads 18279 / scenery 17379 / world props 9800; ground cues depth-read; effect lines overlay; warm/cool skinned material grade",
+      "evidence": "15560 soldiers; renderer webgpu; drawCalls 1; aegean-sky-haze; terrain quads 18279 / scenery 17379 / world props 9800; ground cues depth-read; effect lines overlay; warm/cool skinned material grade",
       "image": "visual-report/battle-default.png",
       "currentRendererComparison": {
         "status": "missing-archived-capture",
@@ -166,7 +166,7 @@
       "category": "full-game flow",
       "criteria": "Campaign encounter launches a WebGPU battle with campaign return UI.",
       "status": "webgpu-evidence",
-      "evidence": "840 campaign battle soldiers; renderer webgpu; aegean-sky-haze; WebGPU terrain",
+      "evidence": "16000 campaign battle soldiers; renderer webgpu; aegean-sky-haze; WebGPU terrain",
       "image": "visual-report/campaign-handoff-battle.png",
       "currentRendererComparison": {
         "status": "missing-archived-capture",

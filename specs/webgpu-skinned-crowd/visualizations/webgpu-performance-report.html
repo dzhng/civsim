@@ -19,7 +19,7 @@
 <body>
   <header>
     <h1>WebGPU Performance Report</h1>
-    <p>Status <code>pass</code>, budget <code>pass</code>. Generated scenario-generated on apple / metal-3 with Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36.</p>
+    <p>Status <code>headless-liveness-only</code>, budget <code>not-set</code>. Generated scenario-generated on google / swiftshader with Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/148.0.7778.96 Safari/537.36.</p>
   </header>
   <main>
     <h2>WebGPU Scenes</h2>
@@ -30,9 +30,9 @@
       <td>Menu shell</td>
       <td>webgpu-app-shell</td>
       <td>8.335</td>
-      <td>8.44</td>
-      <td>64.613</td>
-      <td>4.27</td>
+      <td>8.985</td>
+      <td>60.849</td>
+      <td>9.54</td>
       <td>missing</td>
       <td>missing</td>
       <td>missing</td>
@@ -43,10 +43,10 @@
     <tr>
       <td>Battle max crowd</td>
       <td>raw-webgpu-battle</td>
-      <td>8.33</td>
-      <td>9.425</td>
-      <td>133.762</td>
-      <td>12.15</td>
+      <td>8.31</td>
+      <td>10.145</td>
+      <td>1437.165</td>
+      <td>15.35</td>
       <td>0</td>
       <td>0</td>
       <td>0</td>
@@ -57,13 +57,13 @@
     <tr>
       <td>Campaign whole map</td>
       <td>raw-webgpu-campaign</td>
-      <td>8.325</td>
-      <td>9.62</td>
-      <td>525.413</td>
-      <td>12.16</td>
-      <td>0.14</td>
-      <td>0.155</td>
-      <td>0.385</td>
+      <td>98.365</td>
+      <td>216.665</td>
+      <td>984.487</td>
+      <td>42.63</td>
+      <td>72.5</td>
+      <td>0.125</td>
+      <td>72.665</td>
       <td>60</td>
     </tr>
   
@@ -72,9 +72,9 @@
       <td>Campaign to battle handoff</td>
       <td>raw-webgpu-campaign-to-battle</td>
       <td>8.33</td>
-      <td>9.915</td>
-      <td>38.01</td>
-      <td>5.93</td>
+      <td>9.78</td>
+      <td>661.98</td>
+      <td>22.03</td>
       <td>0</td>
       <td>0</td>
       <td>0</td>
@@ -85,70 +85,7 @@
     <h2>Current Renderer Comparison</h2>
     <table>
       <tr><th>scene</th><th>webgpu median</th><th>webgpu p95</th><th>webgpu startup</th><th>webgpu heap</th><th>current median</th><th>current p95</th><th>current startup</th><th>current heap</th><th>webgpu upload</th><th>current upload</th><th>result</th></tr>
-      
-    <tr>
-      <td>menu</td>
-      <td>8.335</td>
-      <td>8.44</td>
-      <td>64.613</td>
-      <td>4.27</td>
-      <td>8.33</td>
-      <td>9.18</td>
-      <td>90.018</td>
-      <td>11.34</td>
-      <td>missing</td>
-      <td>missing</td>
-      <td>pass</td>
-    </tr>
-  
-
-    <tr>
-      <td>battle-max-crowd</td>
-      <td>8.33</td>
-      <td>9.425</td>
-      <td>133.762</td>
-      <td>12.15</td>
-      <td>8.335</td>
-      <td>9.325</td>
-      <td>459.104</td>
-      <td>85.84</td>
-      <td>0</td>
-      <td>0</td>
-      <td>pass</td>
-    </tr>
-  
-
-    <tr>
-      <td>campaign-whole-map</td>
-      <td>8.325</td>
-      <td>9.62</td>
-      <td>525.413</td>
-      <td>12.16</td>
-      <td>8.33</td>
-      <td>9.35</td>
-      <td>901.184</td>
-      <td>147.85</td>
-      <td>0.14</td>
-      <td>0</td>
-      <td>pass</td>
-    </tr>
-  
-
-    <tr>
-      <td>campaign-battle-handoff</td>
-      <td>8.33</td>
-      <td>9.915</td>
-      <td>38.01</td>
-      <td>5.93</td>
-      <td>8.325</td>
-      <td>9.53</td>
-      <td>1374.629</td>
-      <td>148.63</td>
-      <td>0</td>
-      <td>0</td>
-      <td>pass</td>
-    </tr>
-  
+      <tr><td colspan="12">No archived current-renderer baseline attached.</td></tr>
     </table>
   </main>
 </body>

@@ -124,8 +124,8 @@ async function buildHandoffCampaign(): Promise<{ data: CampaignData; mapJson: st
       { id: 'independents', name: 'Independent', color: [130, 130, 130], playable: false },
     ],
     start_armies: [
-      { faction: 'rome', at: 'Roma', roster: [['LightSpear', 420]] },
-      { faction: 'samnium', at: 'Capua', roster: [['LightSpear', 420]] },
+      { faction: 'rome', at: 'Roma', roster: [['LightSpear', 16]] },
+      { faction: 'samnium', at: 'Capua', roster: [['LightSpear', 16]] },
     ],
   } as unknown as CampaignData['map'];
   const bgRect = { min: [-54, Y - 32] as [number, number], max: [54, Y + 32] as [number, number] };

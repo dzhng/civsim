@@ -624,6 +624,19 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   large battlefields and compact campaign fixtures need named depth helpers
   such as battle-world and campaign-world. Those helpers belong in the shared
   WGSL source; one-off constants inside renderer passes are how drift returns.
+- Scene/verifier helpers are part of the depth contract too. If a production
+  route assertion repeats `"depth24plus"` or `"worldDepth"` by hand, it can
+  drift from the renderer while still going green. Derive JavaScript scene
+  assertions from `packages/webgpu-core/src/depthContract.ts` (or another
+  canonical exported artifact) so tests, stats, and renderer code agree on the
+  same format, attachment name, and allowed depth modes.
+- Keep WebGPU visual fixtures inside the renderer envelope unless the scene is
+  explicitly a stress benchmark. Campaign `start_armies[].roster` entries are
+  full-strength unit counts, not raw soldier counts, so values like `420`
+  produce 210k-soldier armies and can make a handoff gate look like a renderer
+  boot failure. Size report and handoff fixtures to prove composition, depth,
+  UI return flow, and parity evidence; keep huge armies in named performance
+  scenes.
 - Use instancing, batching, storage buffers, and GPU-side phase passes for scale.
   Avoid CPU readbacks in hot paths; debug readbacks must be bounded and named.
 - For iterative effects or simulations, separate phases such as `state`,
@@ -641,7 +654,7 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
 
 - Static checks: `cd web && ./node_modules/.bin/tsc --noEmit` and
   `cd web && ./node_modules/.bin/vite build`.
-- Browser checks: run the narrowest `VERIFY_WEBGPU=1 node scenario.mjs ...`
+- Browser checks: run the narrowest `VERIFY_WEBGPU=1 node scene.mjs ...`
   route that exercises the changed pass.
 - Visual checks: open the generated PNGs yourself. For parity, run the
   `compare-screenshots` helper and report the score movement.

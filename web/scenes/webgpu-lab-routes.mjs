@@ -1,6 +1,13 @@
 import { readdir, readFile } from 'node:fs/promises';
 import { PNG } from 'pngjs';
-import { hasFrameDepthPass, hasFramePass, hasFramePassRole, hasFramePhaseOrder } from './_webgpu-contract.mjs';
+import {
+  WEBGPU_DEPTH_FORMAT,
+  WEBGPU_WORLD_DEPTH_ATTACHMENT,
+  hasFrameDepthPass,
+  hasFramePass,
+  hasFramePassRole,
+  hasFramePhaseOrder,
+} from './_webgpu-contract.mjs';
 
 export const meta = {
   name: 'webgpu-lab-routes',
@@ -45,7 +52,7 @@ const routes = [
     && s.stats.scenes[0].frame.samples > 0],
   ['campaign', (s) => s?.ok && s.route === 'campaign' && s.stats.markers > 0],
   ['campaign-map?preset=whole', (s) => s?.ok && s.route === 'campaign-map' && s.stats.roads > 20 && s.stats.seaLanes > 0 && s.stats.cityMarkers > 20 && s.stats.visibleLabels > 5 && s.stats.labelVertices > 20 && s.stats.factions > 5 && s.stats.territoryPixels > 10000 && s.stats.borderSegments > 100 && s.stats.waterFeatures >= 5 && s.stats.cloudQuads === 1 && s.stats.cameraContract === 'shared-world-camera-wgsl' && s.stats.territoryLayer === 'raw-webgpu-texture' && s.stats.atmosphereLayer === 'raw-webgpu-cloud-water' && s.stats.labelLayer === 'raw-webgpu-glyph-atlas'],
-  ['campaign-ui', (s) => s?.ok && s.route === 'campaign-ui' && s.stats.fixture === 'controlled' && s.stats.cityEntities === 2 && s.stats.armyEntities === 1 && s.stats.selections >= 2 && s.stats.depth?.allocated === true && s.stats.depth?.format === 'depth24plus' && hasFramePhaseOrder(s.stats.framePhases ?? s.stats.phases) && hasFrameDepthPass(s.stats.framePhases ?? s.stats.phases, 'campaign-ui-selection', 'read') && hasFramePassRole(s.stats.framePhases ?? s.stats.phases, 'campaign-ui-selection', 'world-decal', 'world-depth') && hasFrameDepthPass(s.stats.framePhases ?? s.stats.phases, 'campaign-ui-entities', 'read-write') && hasFramePassRole(s.stats.framePhases ?? s.stats.phases, 'campaign-ui-entities', 'world-opaque', 'world-depth') && s.stats.ui.armyPanel && s.stats.ui.cityPanel && s.stats.ui.autoReplenishToggle && s.stats.ui.classRows >= 8 && s.stats.ui.diplomacyRows >= 1 && s.stats.labelLayer === 'raw-webgpu-glyph-atlas' && s.stats.labelVertices > 0 && s.stats.postCutoverScreenshots === 'webgpu-only'],
+  ['campaign-ui', (s) => s?.ok && s.route === 'campaign-ui' && s.stats.fixture === 'controlled' && s.stats.cityEntities === 2 && s.stats.armyEntities === 1 && s.stats.selections >= 2 && s.stats.depth?.allocated === true && s.stats.depth?.format === WEBGPU_DEPTH_FORMAT && hasFramePhaseOrder(s.stats.framePhases ?? s.stats.phases) && hasFrameDepthPass(s.stats.framePhases ?? s.stats.phases, 'campaign-ui-selection', 'read') && hasFramePassRole(s.stats.framePhases ?? s.stats.phases, 'campaign-ui-selection', 'world-decal', 'world-depth') && hasFrameDepthPass(s.stats.framePhases ?? s.stats.phases, 'campaign-ui-entities', 'read-write') && hasFramePassRole(s.stats.framePhases ?? s.stats.phases, 'campaign-ui-entities', 'world-opaque', 'world-depth') && s.stats.ui.armyPanel && s.stats.ui.cityPanel && s.stats.ui.autoReplenishToggle && s.stats.ui.classRows >= 8 && s.stats.ui.diplomacyRows >= 1 && s.stats.labelLayer === 'raw-webgpu-glyph-atlas' && s.stats.labelVertices > 0 && s.stats.postCutoverScreenshots === 'webgpu-only'],
   ['campaign-model-gates?gate=city', (s) => s?.ok
     && s.route === 'campaign-model-gates'
     && s.stats.gate === 'city'
@@ -80,7 +87,7 @@ const routes = [
     && s.stats.backgroundDepthPasses?.length === 0
     && s.stats.overlayDepthPasses?.length === 0
     && s.stats.depth?.allocated === true
-    && s.stats.depth?.format === 'depth24plus'
+    && s.stats.depth?.format === WEBGPU_DEPTH_FORMAT
     && hasFramePhaseOrder(s.stats.framePhases)
     && hasFramePass(s.stats.framePhases, 'render-graph-nested-3d')
     && hasFrameDepthPass(s.stats.framePhases, 'render-graph-nested-3d', 'read-write')
@@ -92,7 +99,7 @@ const routes = [
     && s.route === 'world-camera'
     && s.stats.cameraContract === 'shared-world-camera-wgsl'
     && s.stats.depth?.allocated === true
-    && s.stats.depth?.format === 'depth24plus'
+    && s.stats.depth?.format === WEBGPU_DEPTH_FORMAT
     && hasFramePhaseOrder(s.stats.framePhases)
     && hasFramePass(s.stats.framePhases, 'world-camera-nested-3d')
     && hasFrameDepthPass(s.stats.framePhases, 'world-camera-nested-3d', 'read-write')
@@ -122,7 +129,7 @@ const routes = [
 ];
 
 function hasGraphDepthPassMode(passes, id, mode) {
-  return Array.isArray(passes) && passes.some((pass) => pass?.id === id && pass?.mode === mode && pass?.attachment === 'worldDepth');
+  return Array.isArray(passes) && passes.some((pass) => pass?.id === id && pass?.mode === mode && pass?.attachment === WEBGPU_WORLD_DEPTH_ATTACHMENT);
 }
 
 function depthContractFixturesRejected(fixtures) {

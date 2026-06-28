@@ -30,7 +30,8 @@ export async function run(ctx) {
     stats.renderer === 'webgpu'
       && stats.renderStats?.ready === true
       && stats.renderStats.soldiers === stats.soldiers
-      && stats.renderStats.markerLayer === 'none'
+      && stats.renderStats.markerLayer === 'far-lod-impostor'
+      && stats.renderStats.lod?.impostors > 0
       && stats.renderStats.atmosphere === 'aegean-sky-haze'
       && hasBattleWorldDepthContract(stats.renderStats),
     JSON.stringify(stats),
@@ -80,6 +81,7 @@ export async function run(ctx) {
       `retired gfx=${retired} battle route still uses raw WebGPU`,
       retiredStats.renderer === 'webgpu'
         && retiredStats.renderStats?.drawCalls === 1
+        && retiredStats.renderStats?.markerLayer === 'none'
         && hasBattleWorldDepthContract(retiredStats.renderStats),
       JSON.stringify(retiredStats),
     );

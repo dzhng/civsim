@@ -1,7 +1,11 @@
 import { readdir, readFile } from 'node:fs/promises';
 import { PNG } from 'pngjs';
 import {
+  FRAME_GRAPH_PASS_ROLES,
+  FRAME_GRAPH_DEPTH_ROLES,
+  FRAME_GRAPH_ROLE_PHASES,
   WEBGPU_DEPTH_FORMAT,
+  WEBGPU_DEPTH_MODES,
   WEBGPU_WORLD_DEPTH_ATTACHMENT,
   hasFrameDepthPass,
   hasFramePass,
@@ -388,6 +392,7 @@ async function findPhaseBrandFootguns() {
         ['battle terrain underpaint draw requires background pass', /\bdraw\s*\(\s*pass:\s*BackgroundRenderPass\s*\)/],
         ['battle terrain prop draw requires world pass', /\bdrawProps\s*\(\s*pass:\s*WorldRenderPass\s*\)/],
         ['battle terrain uses shared battle world depth helper', /civsimBattleWorldDepth3d\s*\(/],
+        ['battle terrain prop uses shared read-write depth material contract', /webGpuWorldDepthStencil\s*\(\s*'read-write'\s*,\s*'less-equal'\s*\)/],
       ],
     },
     {
@@ -395,7 +400,7 @@ async function findPhaseBrandFootguns() {
       checks: [
         ['battle ground cue draw requires world pass', /\bdraw\s*\(\s*pass:\s*WorldRenderPass\s*\)/],
         ['battle ground cue uses shared battle world depth helper', /civsimBattleWorldDepth3d\s*\(/],
-        ['battle ground cue uses depth-read material contract', /webGpuWorldDepthStencil\s*\(\s*false\s*\)/],
+        ['battle ground cue uses depth-read material contract', /webGpuWorldDepthStencil\s*\(\s*'read'\s*\)/],
         ['selected unit cue helper uses ground-cue naming', /selectedUnitGroundCueVertices/],
       ],
     },
@@ -601,6 +606,22 @@ async function findFrameGraphVerifierFootguns() {
   if (/role\s*===\s*['"]world-opaque['"]\s*\|\|/.test(source)) {
     matches.push(`${label}: hard-coded per-phase role union in scenario helper`);
   }
+  if (Object.keys(FRAME_GRAPH_ROLE_PHASES).length === 0) {
+    matches.push(`${label}: parsed shared frame role phase map is empty`);
+  }
+  for (const role of FRAME_GRAPH_PASS_ROLES) {
+    if (!FRAME_GRAPH_ROLE_PHASES[role]) {
+      matches.push(`${label}: parsed shared frame role phase map is missing "${role}"`);
+    }
+  }
+  if (Object.keys(FRAME_GRAPH_DEPTH_ROLES).length === 0) {
+    matches.push(`${label}: parsed shared frame depth-role map is empty`);
+  }
+  for (const mode of WEBGPU_DEPTH_MODES) {
+    if (!FRAME_GRAPH_DEPTH_ROLES[mode]) {
+      matches.push(`${label}: parsed shared frame depth-role map is missing "${mode}"`);
+    }
+  }
   return matches.sort();
 }
 
@@ -650,6 +671,9 @@ async function findWorldMaterialContractFootguns() {
     }
     if (/\bdepthWriteEnabled:\s*true\b/.test(source)) {
       matches.push(`${label}: inline depth-write pipeline state bypasses the world material contract`);
+    }
+    if (/webGpuWorldDepthStencil\s*\(\s*(?:true|false)\s*\)/.test(source)) {
+      matches.push(`${label}: boolean world depth material bypasses explicit depth modes`);
     }
     if (/\bblend:\s*\{/.test(source)) {
       matches.push(`${label}: inline alpha blending is not allowed in depth-writing world geometry`);

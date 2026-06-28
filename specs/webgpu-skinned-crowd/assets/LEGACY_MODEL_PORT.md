@@ -78,6 +78,10 @@ Add WebGPU screenshot gates for:
 For disputed comparisons, run the `compare-screenshots` metric helper and a
 fresh unbiased visual subagent review. A whole-scene screenshot can support a
 release decision only after the relevant model-level gates exist.
+Treat screenshot metrics as diagnostics, not a target score. They should flag
+missing content, camera drift, accidental darkness, or debug artifacts; they do
+not override a fresh review that says WebGPU is more complete/readable than the
+archived renderer.
 
 ## Current WebGPU Visual Blockers
 
@@ -118,7 +122,7 @@ Temporary placeholders are allowed only to unblock renderer architecture. They
 do not satisfy visual parity. A model family is accepted when WebGPU has:
 
 - a dedicated screenshot/reference gate,
-- parity metrics when a comparable reference image exists,
+- diagnostic metrics when a comparable reference image exists,
 - visual inspection that names old-renderer caveats separately from WebGPU
   regressions,
 - no obvious missing content, detached flags, debug lines, random squares, or

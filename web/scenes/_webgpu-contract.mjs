@@ -43,7 +43,7 @@ function readStringObjectConst(source, name) {
   const match = source.match(new RegExp(`export\\s+const\\s+${name}\\s*=\\s*\\{([\\s\\S]*?)\\}\\s+as\\s+const`));
   if (!match) throw new Error(`Unable to read ${name} from shared WebGPU frame graph contract`);
   const out = {};
-  for (const item of match[1].matchAll(/['"]([^'"]+)['"]\\s*:\\s*['"]([^'"]+)['"]/g)) {
+  for (const item of match[1].matchAll(/['"]?([A-Za-z0-9_-]+)['"]?\s*:\s*['"]([^'"]+)['"]/g)) {
     out[item[1]] = item[2];
   }
   return out;

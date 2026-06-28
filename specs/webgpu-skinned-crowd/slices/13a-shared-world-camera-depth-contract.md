@@ -64,8 +64,11 @@ shadows that sit on the ground instead of floating as screen overlays.
 - `webgpu-visual-report` includes cropped world-camera rows for flag-in-city,
   garrison-in-city, selection-ring-grounding, rank-depth, and label-anchor
   agreement.
-- `compare-screenshots` records the metric movement for campaign-label-zoom and
-  battle-selection after each migration to the shared projection helpers.
+- `compare-screenshots` records metric movement for campaign-label-zoom and
+  battle-selection after each migration to the shared projection helpers, but
+  those numbers are diagnostics. The slice should not chase a lower archived
+  similarity score when depth, perspective, readability, or model completeness
+  visibly improves.
 - `screenshot-critique` gets tight crops for the same features before accepting
   the slice.
 
@@ -255,9 +258,10 @@ shadows that sit on the ground instead of floating as screen overlays.
   phase/role/depth mismatch fixtures.
 - `RawFrameShell` now treats built-in background markers as explicit
   non-depth fallbacks: non-empty marker arrays must declare `lab-placeholder` or
-  `far-lod-impostor`, and normal production battle checks assert marker layer
-  `none` at gameplay zoom. This prevents the old marker/impostor path from
-  silently replacing true `world-depth` units.
+  `far-lod-impostor`. Production battle stats expose `markerLayer`; close
+  skinned routes assert `none`, while distant high-count routes may assert the
+  explicit `far-lod-impostor` fallback. This prevents the old marker/impostor
+  path from silently replacing true `world-depth` units.
 - `/webgpu/campaign-model-gates?gate=city` now publishes tight production
   city-standard samples. The route asserts that a lower red standard segment
   planted inside the city resolves to city material while the upper cloth
@@ -269,6 +273,14 @@ shadows that sit on the ground instead of floating as screen overlays.
   that a later-drawn army occupant can sit inside the settlement volume with its
   lower body occluded by city material while its raised standard remains
   readable above the roofs.
+- Depth material state now uses the same named modes as the shared graph
+  contract. World pipelines request `read`, `read-write`, or `write` through
+  the shared helper, rather than passing booleans that can drift from
+  frame-pass metadata.
+- Scenario helpers now validate their derived role/depth maps are populated
+  after parsing the shared TypeScript contract. This keeps production battle and
+  campaign checks honest about `background -> world-depth -> overlay` roles and
+  depth modes instead of failing because the verifier's parser went stale.
 
 ## Human Feedback
 

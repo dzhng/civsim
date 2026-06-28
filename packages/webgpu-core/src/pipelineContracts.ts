@@ -1,4 +1,4 @@
-import { WEBGPU_DEPTH_FORMAT } from './depthContract';
+import { WEBGPU_DEPTH_FORMAT, type WebGpuDepthMode } from './depthContract';
 
 const WEBGPU_ALPHA_BLEND: GPUBlendState = {
   color: { srcFactor: 'src-alpha', dstFactor: 'one-minus-src-alpha' },
@@ -13,10 +13,13 @@ export function webGpuAlphaBlendColorTarget(format: GPUTextureFormat): GPUColorT
   return { format, blend: WEBGPU_ALPHA_BLEND };
 }
 
-export function webGpuWorldDepthStencil(write: boolean, compare: GPUCompareFunction = write ? 'less' : 'less-equal'): GPUDepthStencilState {
+export function webGpuWorldDepthStencil(
+  mode: Extract<WebGpuDepthMode, 'read' | 'read-write' | 'write'>,
+  compare: GPUCompareFunction = mode === 'read' ? 'less-equal' : 'less',
+): GPUDepthStencilState {
   return {
     format: WEBGPU_DEPTH_FORMAT,
-    depthWriteEnabled: write,
+    depthWriteEnabled: mode === 'write' || mode === 'read-write',
     depthCompare: compare,
   };
 }

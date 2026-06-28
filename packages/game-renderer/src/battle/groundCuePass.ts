@@ -57,7 +57,7 @@ export class BattleGroundCuePass {
         targets: [webGpuAlphaBlendColorTarget(shell.info.format)],
       },
       primitive: { topology: 'line-list' },
-      depthStencil: webGpuWorldDepthStencil(false),
+      depthStencil: webGpuWorldDepthStencil('read'),
     });
     this.vertexBuffer = device.createBuffer({
       label: 'battle-ground-cue-empty',

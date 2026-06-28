@@ -1,6 +1,6 @@
-import { WEBGPU_DEPTH_FORMAT } from '../../../webgpu-core/src/depthContract';
 import type { BackgroundRenderPass, RawFrameShell, WorldRenderPass } from '../../../webgpu-core/src/frameShell';
 import { WORLD_CAMERA_WGSL } from '../../../webgpu-core/src/cameraWgsl';
+import { webGpuWorldDepthStencil } from '../../../webgpu-core/src/pipelineContracts';
 
 export type BattleTerrainFixture = 'coast' | 'melee' | 'dry-melee' | 'prop-field' | 'sim-tint';
 
@@ -273,11 +273,7 @@ export class BattleTerrainPass {
         targets: [{ format: shell.info.format }],
       },
       primitive: { topology: 'triangle-strip' },
-      depthStencil: {
-        format: WEBGPU_DEPTH_FORMAT,
-        depthWriteEnabled: true,
-        depthCompare: 'less-equal',
-      },
+      depthStencil: webGpuWorldDepthStencil('read-write', 'less-equal'),
     });
     this.quadBuffer = device.createBuffer({
       label: 'battle-terrain-quad',

@@ -426,6 +426,14 @@ water in Campaign Whole Map and slightly improves the parity score to `0.22546`
 full / `0.23390` crop. The remaining issue is the western cloud/fog veil
 competing with the label, not land overlap.
 
+Current policy update: the archived campaign captures remain migration
+references, but the implementation should no longer chase a lower similarity
+score as the primary objective. The WebGPU campaign map can and should diverge
+when it is more legible, more dimensional, better lit, or richer in terrain and
+model detail. Keep recording full-frame and crop metrics to explain movement
+and catch regressions, but accept or reject changes by human-readable visual
+requirements, focused model gates, and fresh critique.
+
 Fresh unprimed critique on Campaign Label Zoom still flags camera/scale,
 terrain wash, decal-like shadows, road/ring layering, thin flags, and model
 readability. The selected army ring is now smaller on the controlled stage and

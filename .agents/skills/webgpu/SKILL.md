@@ -699,6 +699,23 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   boot failure. Size report and handoff fixtures to prove composition, depth,
   UI return flow, and parity evidence; keep huge armies in named performance
   scenes.
+- Do not chase archived-renderer similarity once WebGPU is visibly better.
+  `parityDistance`, edge maps, grayscale diffs, and world crops are diagnostic
+  telemetry for camera drift, missing content, darkness, UI overlap, or
+  accidental regressions. As WebGPU becomes richer, sharper, more dimensional,
+  and more readable than the old renderer, similarity scores may rise; accept
+  or reject visual work by named requirements, focused model gates, fresh
+  critique, and player readability.
+- Make depth pipeline state speak the same language as frame metadata. World
+  pipelines should call the shared material helper with explicit
+  `read`, `read-write`, or `write` depth modes, not booleans such as
+  `true`/`false`, so a pass cannot claim one access mode in stats while the GPU
+  state silently behaves like another.
+- Scenario contract helpers are part of the renderer architecture. When they
+  parse shared TypeScript constants such as role-phase and depth-role maps,
+  guard that the parsed maps are non-empty and include every mixed quoted and
+  unquoted key form; an empty derived map can make valid production routes fail
+  or invalid routes pass while looking more principled than hard-coded checks.
 - Use instancing, batching, storage buffers, and GPU-side phase passes for scale.
   Avoid CPU readbacks in hot paths; debug readbacks must be bounded and named.
 - For iterative effects or simulations, separate phases such as `state`,

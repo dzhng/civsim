@@ -490,7 +490,7 @@ export class CampaignWorldLinePass {
         targets: [webGpuAlphaBlendColorTarget(this.shell.info.format)],
       },
       primitive: { topology: this.topology },
-      depthStencil: webGpuWorldDepthStencil(false),
+      depthStencil: webGpuWorldDepthStencil('read'),
     });
   }
 
@@ -578,7 +578,7 @@ export class CampaignRoadPass {
         targets: [webGpuAlphaBlendColorTarget(this.shell.info.format)],
       },
       primitive: { topology: 'triangle-list', cullMode: 'none' },
-      depthStencil: webGpuWorldDepthStencil(false),
+      depthStencil: webGpuWorldDepthStencil('read'),
     });
     this.vertexBuffer = device.createBuffer({
       label: 'campaign-road-empty',

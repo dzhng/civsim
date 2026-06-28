@@ -56,6 +56,18 @@ cutover, routine screenshots, vibe timelines, and verification baselines target
 WebGPU alone, and the old captures are archived or deleted with the old renderer
 paths.
 
+Archived screenshot similarity is **not** the optimization target. The old
+renderer is a floor and a migration reference, not the visual ceiling. Pixel,
+grayscale, edge, crop, and `parityDistance` metrics are diagnostic telemetry:
+use them to catch missing content, wrong cameras, accidental darkness, hidden
+debug lines, UI overlap, or unintended regressions. Do not tune WebGPU toward a
+lower similarity score when the candidate is visibly more readable, more
+complete, more dimensional, or more beautiful than the archived renderer. As the
+WebGPU art direction, depth, lighting, terrain, water, labels, and model detail
+surpass the old renderer, similarity scores are allowed and expected to rise;
+acceptance comes from side-by-side inspection, focused model/feature gates,
+fresh screenshot critique, and explicit player-facing quality requirements.
+
 Visual improvement means the battle and campaign should be plainly stronger
 than today's renderer, not merely different: clearer unit silhouettes, richer
 Bronze-Age Aegean lighting, better terrain/water/sky/haze/shadow composition,
@@ -401,7 +413,10 @@ are what make it a full game port instead of a crowd-rendering prototype.
 - **Checkpoint L:** side-by-side battle, campaign, menu, and handoff screenshots
   show the WebGPU path is at least as readable as the current game and visibly
   better in the agreed graphics categories; once accepted, those legacy
-  comparison captures become archived evidence rather than test inputs. This
+  comparison captures become archived evidence rather than test inputs. Similarity
+  metrics attached to those captures are regression/debug signals, not release
+  targets; a higher distance can be acceptable when the review records the
+  concrete WebGPU improvements and no required old visual language is missing. This
   checkpoint also requires dedicated model/reference screenshots for soldiers,
   animation poses, cities/towns, roads, every individual tree/rock/scenery
   model, terrain, and campaign props, so whole-scene contact sheets cannot hide
@@ -429,7 +444,9 @@ are what make it a full game port instead of a crowd-rendering prototype.
   `VISUAL_COMPARISON_JSON` pointing at a review manifest shaped like
   `specs/webgpu-skinned-crowd/visualizations/visual-comparison.manifest.example.json`.
   Accepted statuses require an attached image; a status string without archive
-  pixels is not release evidence.
+  pixels is not release evidence. The manifest's job is to explain whether the
+  WebGPU capture is `webgpu-better`, `equal-or-better`, or an explicit accepted
+  exception, not to require a lower image-distance number.
 - **Checkpoint M:** a named-hardware performance report compares the current
   renderer and WebGPU renderer on identical scenes, proving lower frame time,
   lower upload cost, stable memory, or materially higher detail headroom. The
@@ -499,7 +516,7 @@ are what make it a full game port instead of a crowd-rendering prototype.
   `visualizations/webgpu-visual-report.html` and
   `visualizations/webgpu-performance-report.html`.
 - `npm run release:webgpu` is expected to fail until those artifacts contain
-  accepted archived visual comparisons and a passing named-hardware performance
+  accepted archived visual reviews and a passing named-hardware performance
   comparison. Its output is the release audit, not a routine CI liveness check,
   and it is the final place where current-renderer screenshot evidence belongs.
 - `webgpu-visual-report` accepts archived current-renderer captures by matching
@@ -507,7 +524,9 @@ are what make it a full game port instead of a crowd-rendering prototype.
   explicit `image` and `status` entries from `VISUAL_COMPARISON_JSON`. Accepted
   statuses are `webgpu-better`, `equal-or-better`, `accepted-exception`, `pass`,
   and `accepted`, but release acceptance also requires the manifest entry's
-  archived image to exist.
+  archived image to exist. The report may include distance, edge, luminance, and
+  crop metrics, but those numbers are triage aids; they must not fail a better
+  WebGPU render merely because it diverges from the old image.
 - `full-game-webgpu-performance` accepts the archived current-renderer
   performance baseline through `PERF_CURRENT_RENDERER_JSON`. Release comparison
   only passes on a real named GPU/browser when every shared scene has WebGPU

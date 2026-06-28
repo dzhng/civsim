@@ -152,3 +152,7 @@ The WebGPU port can claim whole-scene visual parity only after the relevant
 model-level gate exists and has been inspected. A lower full-scene pixel diff is
 useful evidence, but it does not excuse a missing model, missing animation beat,
 detached flag, random debug line, square terrain artifact, or missing font/icon.
+A higher diff is also not a failure by itself once WebGPU deliberately improves
+the old renderer; the gate is accepted by visible completeness, grounded 3D
+composition, and fresh critique, with metrics used to explain changes rather
+than to chase similarity.

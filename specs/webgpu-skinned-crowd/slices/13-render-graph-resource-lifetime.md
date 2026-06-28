@@ -226,3 +226,15 @@ merged soldier silhouettes, city massing, terrain noise, and hard board edges
 remain visible blockers. The next slice should target road/world interaction,
 directional shadow coherence, and model articulation without undoing the
 depth-tested world pass.
+
+Depth pipeline state now uses the same named access modes as the graph and live
+frame stats. `webGpuWorldDepthStencil` accepts `read`, `read-write`, or `write`
+instead of a boolean write flag; battle terrain props, skinned crowds, campaign
+entities/scenery, roads, selections, ground cues, and nested fixtures now name
+their intended depth access at pipeline creation.
+
+The verifier contract is also part of this slice. `_webgpu-contract.mjs` now
+parses shared role/depth maps with both quoted and unquoted TypeScript object
+keys, and `webgpu-lab-routes` fails if those derived maps are empty. This
+prevents a stale scenario helper from rejecting production-shaped routes while
+pretending to derive its rules from the renderer contract.

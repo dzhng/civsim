@@ -161,7 +161,7 @@ export class CampaignSceneryPass {
         ],
       },
       primitive: { topology: 'triangle-list', cullMode: 'none' },
-      depthStencil: webGpuWorldDepthStencil(material === 'opaque'),
+      depthStencil: webGpuWorldDepthStencil(material === 'opaque' ? 'read-write' : 'read'),
     });
   }
 

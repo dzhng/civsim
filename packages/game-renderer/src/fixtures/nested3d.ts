@@ -69,7 +69,7 @@ export class Nested3dFixturePass {
         targets: [webGpuOpaqueColorTarget(shell.info.format)],
       },
       primitive: { topology: 'triangle-list', cullMode: 'none' },
-      depthStencil: webGpuWorldDepthStencil(true),
+      depthStencil: webGpuWorldDepthStencil('read-write'),
     });
     const vertices = buildNestedFixtureVertices();
     this.vertexCount = vertices.length / 7;

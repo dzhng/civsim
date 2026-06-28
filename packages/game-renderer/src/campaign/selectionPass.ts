@@ -102,7 +102,7 @@ export class CampaignSelectionPass {
         targets: [webGpuAlphaBlendColorTarget(this.shell.info.format)],
       },
       primitive: { topology: 'triangle-strip' },
-      depthStencil: webGpuWorldDepthStencil(false),
+      depthStencil: webGpuWorldDepthStencil('read'),
     });
   }
 

@@ -1,13 +1,15 @@
 ---
 name: compare-screenshots
-description: Quantify visual parity between two screenshots. Use when comparing WebGPU vs archived current-renderer captures, judging whether a visual change is closer to parity, debugging "these are not even close", or needing grayscale/edge/pixel metrics instead of subjective screenshot review.
+description: Quantify visual differences between two screenshots. Use when comparing WebGPU vs archived current-renderer captures, debugging missing content/camera/brightness regressions, or needing grayscale/edge/pixel telemetry to explain visual movement without treating similarity as the acceptance target.
 ---
 
 # Compare Screenshots
 
-Use this when visual parity is the job. The goal is not to prove a render is
-pretty; it is to measure whether two captures show the same camera, content,
-structure, and readable landmarks.
+Use this when screenshot telemetry helps judge a visual change. The goal is not
+to make WebGPU more similar to an archived renderer at all costs; it is to
+measure camera, content, structure, luminance, edge energy, and readable
+landmarks so humans can tell whether a change removed content, drifted, or
+intentionally improved the old image.
 
 ## Workflow
 
@@ -25,12 +27,14 @@ structure, and readable landmarks.
 3. For disputed or high-stakes visual calls, ask a fresh subagent for an
    unbiased review using `references/subagent-visual-review.md`. Give it only the
    two images and neutral labels like Image A/Image B.
-4. Read the artifacts yourself. Use the metric to guide iteration, but identify
-   what is missing in plain terms: wrong camera, missing terrain, absent trees,
-   bad marker shape, label mismatch, UI overlap, etc.
-5. Iterate only on changes that improve both the metric and the visible parity
-   failure. Do not optimize a score by hiding content, blurring, cropping away
-   differences, or making the capture less truthful.
+4. Read the artifacts yourself. Use the metrics to guide investigation, but
+   identify what is missing in plain terms: wrong camera, missing terrain,
+   absent trees, bad marker shape, label mismatch, UI overlap, etc.
+5. Iterate only on changes that improve the named visual requirement. Do not
+   optimize a score by hiding content, blurring, cropping away differences, or
+   making the capture less truthful. If WebGPU is visibly more complete,
+   dimensional, legible, or beautiful than the archived renderer, the distance
+   score may rise; record why and keep going toward the better image.
 
 ## Required Metrics
 
@@ -52,34 +56,39 @@ For each pair, report:
 - Content proxies relevant to the scene, such as black/void ratio, terrain-like
   ratio, water-like ratio, team-color ratio, or label/text mask ratio.
 
-## Optimization Metric
+## Difference Score
 
 Track one primary score for each fixed pair:
 
 `parityDistance = 0.35 * diffRatio32 + 0.25 * pixelmatchRatio + 0.25 * edgeDiffRatio32 + 0.15 * min(1, abs(log2(edgeEnergyRatio)))`
 
-Lower is closer. This score intentionally weights structural edge mismatch as
-heavily as grayscale mismatch, because parity failures are often missing content
-rather than color drift.
+Lower is more similar to the reference. It is **not** always better. This score
+intentionally weights structural edge mismatch as heavily as grayscale mismatch,
+because missing content often shows up as edge loss, but richer WebGPU terrain,
+clearer models, stronger labels, real depth, or better lighting can legitimately
+increase the score.
 
 Report the full-frame score and, when UI dominates the shot, a labeled world-crop
-score. Optimize the world-crop score for renderer parity, but keep the full-frame
-score so UI/camera mistakes remain visible.
+score. Use the world-crop score to locate renderer movement, and keep the
+full-frame score so UI/camera mistakes remain visible.
 
 ## Score Discipline
 
-- Establish the starting score before editing. Every iteration must quote the
-  previous and new score for the same pair.
+- Establish the starting score before editing. Every iteration should quote the
+  previous and new score for the same pair, then explain whether movement is a
+  regression, an intentional improvement over the old renderer, or diagnostic
+  noise.
 - Prefer edge metrics for missing-content bugs. A flat top-down map can have a
   deceptively moderate grayscale diff while edge energy proves the 3D trees,
   roads, city forms, and army silhouettes are absent.
 - Segment out stable UI when it dominates the image and the visual question is
   the world render. Keep a full-frame score too; label cropped/segmented scores
   clearly.
-- If the camera is wrong, pixel scores are diagnostic only. Fix camera parity
-  first, then judge renderer parity.
-- A lower score is not acceptance. Acceptance requires looking at the artifacts
-  and confirming the named parity requirements are visible.
+- If the camera is wrong, pixel scores are diagnostic only. Fix camera intent
+  first, then judge the renderer.
+- A lower score is not acceptance, and a higher score is not rejection.
+  Acceptance requires looking at the artifacts and confirming the named visual
+  requirements are visible.
 
 ## Repo Tool
 
@@ -91,7 +100,7 @@ covers the needed pair. It auto-discovers matching PNG names under
 edge artifacts under `visual-diff/`, and sorts the JSON by worst
 `parityDistance`. For known game-view rows where HUD/chrome dominates the full
 frame, it also writes `*-world-crop-*` artifacts and a `worldCrop` score in the
-JSON; use that crop to optimize renderer parity while keeping the full-frame
+JSON; use that crop to inspect renderer movement while keeping the full-frame
 score visible for UI/camera mistakes. If a needed pair is not covered, extend
 the skill helper rather than adding app/product scripts or hand-calculating ad
 hoc metrics.

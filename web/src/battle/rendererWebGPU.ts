@@ -200,6 +200,7 @@ export class BattleRendererWebGPU {
       atmosphere: shell?.atmosphere ?? 'initializing',
       cameraContract: shell?.cameraContract ?? 'initializing',
       skinnedCameraContract: crowd?.cameraContract ?? 'initializing',
+      markerLayer: shell?.markerLayer ?? (markerCount > 0 ? 'far-lod-impostor' : 'none'),
       phases: shell?.phases ?? [],
       depth: shell?.depth ?? null,
       terrain: this.terrain?.stats() ?? null,

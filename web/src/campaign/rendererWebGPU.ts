@@ -52,6 +52,8 @@ export class CampaignRendererWebGPU {
   private labelStats: CampaignLabelPassStats = {
     labels: 0,
     visibleLabels: 0,
+    collisionCulls: 0,
+    collisionCulledLabels: [],
     atlasWidth: 0,
     atlasHeight: 0,
     vertices: 0,
@@ -237,6 +239,8 @@ export class CampaignRendererWebGPU {
       ...this.lastEntities,
       labels: this.labelStats.labels,
       visibleLabels: this.labelStats.visibleLabels,
+      labelCollisionCulls: this.labelStats.collisionCulls,
+      labelCollisionCulledLabels: this.labelStats.collisionCulledLabels,
       ...this.lastLabelComposition,
       labelLayer: this.labelStats.layer,
       labelAtlas: `${this.labelStats.atlasWidth}x${this.labelStats.atlasHeight}`,

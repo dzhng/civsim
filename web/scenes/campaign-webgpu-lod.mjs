@@ -161,7 +161,11 @@ export async function run(ctx) {
       window.__campaign.select(armyId);
       window.__campaign.cam(...camera);
     }, { ...anchors, camera: ROME_CLOSE_CAMERA }),
-    stats: (stats) => stats.visibleLabels >= 4 && stats.roadTriangles > 0 && stats.composedArmyCityLabels >= 1,
+    stats: (stats) => stats.visibleLabels >= 4
+      && stats.roadTriangles > 0
+      && stats.composedArmyCityLabels >= 1
+      && stats.labelCollisionCulls >= 1
+      && stats.labelCollisionCulledLabels?.includes('city:OSTIA/PORTUS'),
   });
 
   await snapCampaign(page, ctx, 'campaign-lod-selected-city', {

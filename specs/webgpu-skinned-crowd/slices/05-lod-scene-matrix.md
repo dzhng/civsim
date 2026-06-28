@@ -43,3 +43,9 @@ The map should become more strategic as it zooms out, not less accurate.
   clipping, and low-contrast non-mountain terrain texture. These are not
   alignment blockers for the current terrain checkpoint, but they are parity
   blockers for the campaign spec.
+- 2026-06-28: Composed army-in-city labels now reserve measured overlay space
+  against nearby city labels in the label atlas pass. The close Roma scene
+  asserts that the combined `1ST LEGION`/`ROMA` label culls `OSTIA/PORTUS`
+  instead of drawing both labels through one another. This keeps city/army
+  nesting policy centralized in screen-space label layout rather than tuning
+  per-city offsets.

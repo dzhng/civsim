@@ -413,6 +413,8 @@ fn fs(in: VsOut) -> @location(0) vec4f {
 export interface CampaignLabelPassStats {
   labels: number;
   visibleLabels: number;
+  collisionCulls: number;
+  collisionCulledLabels: string[];
   atlasWidth: number;
   atlasHeight: number;
   vertices: number;
@@ -905,6 +907,8 @@ export class CampaignLabelPass {
   private statsValue: CampaignLabelPassStats = {
     labels: 0,
     visibleLabels: 0,
+    collisionCulls: 0,
+    collisionCulledLabels: [],
     atlasWidth: 1,
     atlasHeight: 1,
     vertices: 0,
@@ -973,7 +977,16 @@ export class CampaignLabelPass {
     if (visible.length === 0) {
       this.vertexCount = 0;
       this.atlasKey = `empty:${labels.length}:${dpr}`;
-      this.statsValue = { labels: labels.length, visibleLabels: 0, atlasWidth: 1, atlasHeight: 1, vertices: 0, layer: 'raw-webgpu-glyph-atlas' };
+      this.statsValue = {
+        labels: labels.length,
+        visibleLabels: 0,
+        collisionCulls: 0,
+        collisionCulledLabels: [],
+        atlasWidth: 1,
+        atlasHeight: 1,
+        vertices: 0,
+        layer: 'raw-webgpu-glyph-atlas',
+      };
       return this.statsValue;
     }
 
@@ -1001,7 +1014,9 @@ export class CampaignLabelPass {
     this.shell.device.queue.writeBuffer(this.vertexBuffer, 0, vertices);
     this.statsValue = {
       labels: labels.length,
-      visibleLabels: visible.length,
+      visibleLabels: atlas.entries.length,
+      collisionCulls: atlas.collisionCulls,
+      collisionCulledLabels: atlas.collisionCulledLabels,
       atlasWidth: atlas.width,
       atlasHeight: atlas.height,
       vertices: this.vertexCount,
@@ -1247,6 +1262,17 @@ interface AtlasEntry extends VisibleCampaignLabel {
   v1: number;
 }
 
+interface MeasuredCampaignLabel extends VisibleCampaignLabel {
+  text: string;
+  sideText: string;
+  subText: string;
+  style: ReturnType<typeof labelStyle>;
+  seaPath: SeaLabelPath | null;
+  mainWidth: number;
+  width: number;
+  height: number;
+}
+
 function visibleLabels(labels: CampaignLabel[], camera: CameraSnapshot, dpr: number): VisibleCampaignLabel[] {
   const visible: VisibleCampaignLabel[] = [];
   for (const label of labels) {
@@ -1316,6 +1342,8 @@ function labelAtlasKey(labels: VisibleCampaignLabel[], dpr: number, totalLabels:
         label.screenAnchorX ?? 'center',
         label.screenAnchorY ?? 'center',
         entry.opacity.toFixed(3),
+        entry.screenX.toFixed(1),
+        entry.screenY.toFixed(1),
       ].join(':');
     }),
   ].join('|');
@@ -1323,7 +1351,7 @@ function labelAtlasKey(labels: VisibleCampaignLabel[], dpr: number, totalLabels:
 
 function buildLabelAtlas(labels: VisibleCampaignLabel[], dpr: number) {
   const measure = document.createElement('canvas').getContext('2d')!;
-  const measured = labels.map((entry) => {
+  const measured = labels.map((entry): MeasuredCampaignLabel => {
     const style = labelStyle(entry.label, dpr);
     measure.font = style.font;
     measure.letterSpacing = style.letterSpacing;
@@ -1344,15 +1372,17 @@ function buildLabelAtlas(labels: VisibleCampaignLabel[], dpr: number) {
       seaPath,
       mainWidth,
       width: Math.max(1, Math.ceil(Math.max(seaPath?.width ?? mainWidth + iconWidth + sideWidth, subWidth) + style.padding * 2)),
-      height: Math.max(1, Math.ceil((seaPath?.height ?? style.size * (subText ? 2.2 : 1.55)) + style.padding * 2)),
+      height: Math.max(1, Math.ceil((seaPath?.height ?? style.size * (subText ? 2.42 : 1.55)) + style.padding * 2)),
     };
   });
+  const collision = cullOverlappingLabels(measured, dpr);
+  const layoutEntries = collision.entries;
   const atlasWidth = measured.some((entry) => entry.width > 1024) ? 2048 : 1024;
   let x = 0;
   let y = 0;
   let rowHeight = 0;
-  const placements: (typeof measured[number] & { x: number; y: number })[] = [];
-  for (const entry of measured) {
+  const placements: (MeasuredCampaignLabel & { x: number; y: number })[] = [];
+  for (const entry of layoutEntries) {
     if (x + entry.width > atlasWidth) {
       x = 0;
       y += rowHeight + 2;
@@ -1404,7 +1434,7 @@ function buildLabelAtlas(labels: VisibleCampaignLabel[], dpr: number) {
       ctx.font = entry.style.subFont;
       const subWidth = ctx.measureText(entry.subText).width;
       const sx = entry.x + entry.width * 0.5 - subWidth * 0.5;
-      const sy = ty + entry.style.size * 0.92;
+      const sy = ty + entry.style.subBaselineOffset;
       ctx.lineWidth = entry.style.subHaloWidth;
       ctx.strokeStyle = entry.style.halo;
       ctx.strokeText(entry.subText, sx, sy);
@@ -1427,7 +1457,70 @@ function buildLabelAtlas(labels: VisibleCampaignLabel[], dpr: number) {
       v1: (entry.y + entry.height) / atlasHeight,
     });
   }
-  return { width: atlasWidth, height: atlasHeight, pixels: ctx.getImageData(0, 0, atlasWidth, atlasHeight).data, entries };
+  return {
+    width: atlasWidth,
+    height: atlasHeight,
+    pixels: ctx.getImageData(0, 0, atlasWidth, atlasHeight).data,
+    entries,
+    collisionCulls: collision.culledLabels.length,
+    collisionCulledLabels: collision.culledLabels.slice(0, 16),
+  };
+}
+
+function cullOverlappingLabels(labels: MeasuredCampaignLabel[], dpr: number) {
+  const composedArmyBounds = labels
+    .filter((entry) => entry.label.kind === 'army' && Boolean(entry.label.subText))
+    .map((entry) => labelBounds(entry, dpr));
+  if (composedArmyBounds.length === 0) return { entries: labels, culledLabels: [] };
+  const entries: MeasuredCampaignLabel[] = [];
+  const culledLabels: string[] = [];
+  for (const entry of labels) {
+    const cullsAgainstArmyCityLabel = entry.label.kind === 'city'
+      && composedArmyBounds.some((bounds) => overlaps(bounds, labelBounds(entry, dpr)));
+    if (cullsAgainstArmyCityLabel) {
+      culledLabels.push(`${entry.label.kind}:${labelText(entry.label)}`);
+      continue;
+    }
+    entries.push(entry);
+  }
+  return { entries, culledLabels };
+}
+
+interface LabelBounds {
+  x0: number;
+  y0: number;
+  x1: number;
+  y1: number;
+}
+
+function labelBounds(entry: MeasuredCampaignLabel, dpr: number): LabelBounds {
+  const width = entry.width;
+  const height = entry.height;
+  const anchorOffsetX =
+    entry.label.screenAnchorX === 'left'
+      ? entry.offsetX + width * 0.5
+      : entry.label.screenAnchorX === 'right'
+        ? entry.offsetX - width * 0.5
+        : entry.offsetX;
+  const anchorOffsetY =
+    entry.label.screenAnchorY === 'top'
+      ? entry.offsetY + height * 0.5
+      : entry.label.screenAnchorY === 'bottom'
+        ? entry.offsetY - height * 0.5
+        : entry.offsetY;
+  const centerX = entry.screenX + anchorOffsetX;
+  const centerY = entry.screenY + anchorOffsetY;
+  const pad = Math.max(4 * dpr, entry.style.size * 0.16);
+  return {
+    x0: centerX - width * 0.5 - pad,
+    y0: centerY - height * 0.5 - pad,
+    x1: centerX + width * 0.5 + pad,
+    y1: centerY + height * 0.5 + pad,
+  };
+}
+
+function overlaps(a: LabelBounds, b: LabelBounds) {
+  return a.x0 < b.x1 && a.x1 > b.x0 && a.y0 < b.y1 && a.y1 > b.y0;
 }
 
 function buildLabelVertices(entries: AtlasEntry[]) {
@@ -1500,6 +1593,7 @@ function labelStyle(label: CampaignLabel, dpr: number) {
       subFont: `600 ${size * 0.72}px Cinzel, Georgia, 'Times New Roman', serif`,
       subFill: 'rgba(232,224,208,0.92)',
       subHaloWidth: 2 * dpr,
+      subBaselineOffset: size * 0.98,
     };
   }
   if (label.kind === 'army') {
@@ -1521,6 +1615,7 @@ function labelStyle(label: CampaignLabel, dpr: number) {
       subFont: `600 ${size * 0.72}px Cinzel, Georgia, 'Times New Roman', serif`,
       subFill: 'rgba(248,244,237,0.96)',
       subHaloWidth: 2.7 * dpr,
+      subBaselineOffset: size * 1.14,
     };
   }
   if (label.kind === 'faction') {
@@ -1542,6 +1637,7 @@ function labelStyle(label: CampaignLabel, dpr: number) {
       subFont: `600 ${size * 0.72}px Cinzel, Georgia, 'Times New Roman', serif`,
       subFill: 'rgba(232,224,208,0.92)',
       subHaloWidth: 2 * dpr,
+      subBaselineOffset: size * 0.98,
     };
   }
   return {
@@ -1562,6 +1658,7 @@ function labelStyle(label: CampaignLabel, dpr: number) {
     subFont: `600 ${size * 0.72}px Cinzel, Georgia, 'Times New Roman', serif`,
     subFill: 'rgba(248,244,237,0.96)',
     subHaloWidth: 2.7 * dpr,
+    subBaselineOffset: size * 0.98,
   };
 }
 

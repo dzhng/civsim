@@ -147,6 +147,10 @@ pass orchestration, WGSL layout, depth semantics, or browser-verified output.
 - For GPU-backed screen overlays, expose semantic anchors such as center, edge,
   or baseline; do not tune visible spacing against the center of an atlas quad
   when the requirement is about an icon edge, marker edge, or text baseline.
+- Screen-space text/icon arbitration belongs where measured overlay bounds
+  exist. If a WebGPU label atlas pass owns text measurement, use that pass for
+  collision/culling policy and expose cull stats; do not scatter per-entity
+  offsets to paper over overlapping labels.
 - Use metrics as telemetry: pixel diffs, grayscale, edge maps, luminance, and
   content counts can explain movement, but acceptance depends on named visual
   requirements and human readability.

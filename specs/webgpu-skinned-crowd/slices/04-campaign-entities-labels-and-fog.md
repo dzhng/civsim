@@ -22,6 +22,20 @@ flags. Fog views must not show flags, markers, or labels for hidden content.
 - Add fog captures proving hidden flags and markers are not rendered.
 - Store captures under `visualizations/campaign-entities/`.
 
+## Implementation Notes
+
+- 2026-06-28: The close Roma garrison label is composed in the WebGPU label
+  atlas as one army label with `ROMA` as subtext, and nearby city labels that
+  collide with that measured group are culled by the label pass. Critique
+  evidence lives under
+  `visualizations/critique/2026-06-28-label-collision/`.
+- 2026-06-28: An unprimed critique confirmed the Ostia collision is fixed, but
+  the close selected-army view still has release blockers: the selected army
+  versus city subject is ambiguous, the selection ring is partly hidden and
+  competes with roads, roads converge too tightly under Roma, flags/poles still
+  need stronger attachment, and dense top-edge labels can clip under the HUD.
+  These remain open campaign-entity acceptance work, not accepted polish.
+
 ## Done
 
 - Labels match the previous text/icon style and zoom density rules.

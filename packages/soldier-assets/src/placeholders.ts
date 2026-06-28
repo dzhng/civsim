@@ -19,6 +19,14 @@ export function placeholderClipNames(kit: SoldierKitManifest): string[] {
   return Object.keys(kit.clips).sort((a, b) => kit.clips[a].start - kit.clips[b].start);
 }
 
+/** Class ids whose archetype names a mount — the source of truth for `mounted`. */
+export function mountedClassesFromKit(kit: SoldierKitManifest): number[] {
+  return Object.entries(kit.archetypes)
+    .filter(([, archetype]) => Boolean(archetype.mount))
+    .map(([id]) => Number(id))
+    .filter(Number.isFinite);
+}
+
 async function fetchVat(url: string): Promise<VatBake> {
   const res = await fetch(url);
   if (!res.ok) throw new Error(`failed to load VAT ${url}: ${res.status}`);

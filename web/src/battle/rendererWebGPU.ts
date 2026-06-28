@@ -9,7 +9,7 @@ import { webGpuMultisample } from '../../../packages/webgpu-core/src/pipelineCon
 import { fatalSurfaceFor, showFatalErrorSurface } from '../shared/fatalError';
 import { WORLD_CAMERA_WGSL } from '../../../packages/webgpu-core/src/cameraWgsl';
 import { SkinnedCrowdPipeline } from '../../../packages/webgpu-core/src/skinnedPipeline';
-import { loadClassVats, loadPlaceholderKit } from '../../../packages/soldier-assets/src/placeholders';
+import { loadClassVats, loadPlaceholderKit, mountedClassesFromKit } from '../../../packages/soldier-assets/src/placeholders';
 import { createPlaceholderSoldierMeshes } from '../../../packages/soldier-assets/src/soldierMesh';
 
 export class BattleRendererWebGPU {
@@ -26,6 +26,7 @@ export class BattleRendererWebGPU {
   private tris: BattleTrianglePass | null = null;
   private debugBlocks: BattleTrianglePass | null = null;
   private soldierUnit = new Uint32Array(0);
+  private mountedClasses: number[] = [];
   private unitTeam: number[] = [];
   private unitClass: number[] = [];
   private terrainRect: [number, number, number, number] = [-220, -180, 440, 360];
@@ -105,6 +106,7 @@ export class BattleRendererWebGPU {
       soldierUnit: this.soldierUnit,
       unitTeam: this.unitTeam,
       unitClass: this.unitClass,
+      mountedClasses: this.mountedClasses,
       simTick: Math.floor((this.fixedTime ?? performance.now() / 1000) * 30),
       count,
     });
@@ -248,6 +250,7 @@ export class BattleRendererWebGPU {
     this.tris = new BattleTrianglePass(this.shell);
     this.debugBlocks = new BattleTrianglePass(this.shell);
     const kit = await loadPlaceholderKit();
+    this.mountedClasses = mountedClassesFromKit(kit);
     this.crowd = new SkinnedCrowdPipeline(
       this.shell,
       createPlaceholderSoldierMeshes([0.20, 0.42, 0.88]),

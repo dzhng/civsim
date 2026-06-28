@@ -57,6 +57,7 @@ const routes: Record<string, LabRoute> = {
   '/webgpu/capabilities': routeCapabilities,
   '/webgpu/per-class-vat': routePerClassVat,
   '/webgpu/soldier-materials': routeSoldierMaterials,
+  '/webgpu/mounted-units': routeMountedUnits,
   '/webgpu/asset-workbench': routeAssetWorkbench,
   '/webgpu/fault-injection': routeFaultInjection,
   '/webgpu/frame-shell': routeFrameShell,
@@ -159,6 +160,46 @@ function stretchVat(vat: VatBake, factor: number): VatBake {
   return { ...vat, width, clips, data };
 }
 
+async function routeMountedUnits(ctx: LabContext) {
+  const vat = await loadPlaceholderVat();
+  const zoom = numberParam(ctx.params, 'zoom', 6);
+  const shell = await createConfiguredShell(ctx.canvas, { x: 0, y: 0, zoom: 30, pitch: 0.16, yaw: 0 });
+  const pipeline = await createSkinnedPipeline(shell, [0.20, 0.42, 0.88], vat);
+  // class 0 = foot; 6, 7, 14 = mounted archetypes. Each renders its own
+  // horse+rider placeholder mesh.
+  const lineup = [
+    crowdInstance(-4.5, 0, 0, 'march', false),
+    crowdInstance(-1.5, 6, 0, 'march', true),
+    crowdInstance(1.5, 7, 1, 'march', true),
+    crowdInstance(4.5, 14, 1, 'march', true),
+  ];
+  const lods = assignCrowdLods(lineup, zoom);
+  const byClass = (id: number) => lods[lineup.findIndex((s) => s.classId === id)].screenSize;
+  const footSize = byClass(0);
+  const mountedSizes = { 6: byClass(6), 7: byClass(7), 14: byClass(14) };
+  const allMountedScaled = Object.values(mountedSizes).every((s) => s > footSize + 0.01);
+  const class14Scaled = mountedSizes[14] > footSize + 0.01;
+  const mountedEqual = mountedSizes[6] === mountedSizes[7] && mountedSizes[7] === mountedSizes[14];
+
+  animateSkinned(shell, pipeline, () => lineup, { forcedClip: 'march', phaseSpeed: 0.6, size: 1 });
+  ctx.status.innerHTML = reportTable({
+    route: 'mounted-units',
+    'foot LOD size': footSize.toFixed(2),
+    'cav 6 / 7 / 14 size': `${mountedSizes[6].toFixed(2)} / ${mountedSizes[7].toFixed(2)} / ${mountedSizes[14].toFixed(2)}`,
+    'all mounted scale': allMountedScaled,
+    'class 14 scaled (was missing)': class14Scaled,
+  });
+  publish('mounted-units', true, {
+    route: 'mounted-units',
+    footSize,
+    mountedSizes,
+    allMountedScaled,
+    class14Scaled,
+    mountedEqual,
+    mountedFlags: lineup.map((s) => ({ classId: s.classId, mounted: s.mounted })),
+  });
+}
+
 async function routeSoldierMaterials(ctx: LabContext) {
   const vat = await loadPlaceholderVat();
   const strength = numberParam(ctx.params, 'strength', 1);
@@ -237,8 +278,8 @@ interface WorkbenchImport {
   error: string | null;
 }
 
-function crowdInstance(x: number, classId: number, faction: 0 | 1 | 2, clip: string): CrowdInstance {
-  return { x, y: 0, facing: Math.PI / 2, classId, faction, alive: true, frame: 0, clip, phase: 0, seed: 1 };
+function crowdInstance(x: number, classId: number, faction: 0 | 1 | 2, clip: string, mounted = false): CrowdInstance {
+  return { x, y: 0, facing: Math.PI / 2, classId, faction, alive: true, frame: 0, clip, phase: 0, seed: 1, mounted };
 }
 
 async function routeAssetWorkbench(ctx: LabContext) {
@@ -779,6 +820,7 @@ async function routeSkinnedDepth(ctx: LabContext) {
       clip: 'idle',
       phase: 0.15,
       seed: 11,
+      mounted: false,
     },
     {
       x: 0,
@@ -791,6 +833,7 @@ async function routeSkinnedDepth(ctx: LabContext) {
       clip: 'idle',
       phase: 0.15,
       seed: 22,
+      mounted: true,
     },
   ];
   pipeline.upload(instances, { forcedClip: 'idle', phaseOffset: 0, size: 1.35 });
@@ -844,6 +887,7 @@ async function routeBattleGroundCueDepth(ctx: LabContext) {
     clip: 'idle',
     phase: 0.15,
     seed: 33,
+    mounted: false,
   }];
   pipeline.upload(instances, { forcedClip: 'idle', phaseOffset: 0, size: 1.35 });
   groundCues.upload(battleGroundCueDepthFixtureVertices());
@@ -907,6 +951,7 @@ async function routeBattleEffectOverlay(ctx: LabContext) {
     clip: 'idle',
     phase: 0.15,
     seed: 44,
+    mounted: false,
   }];
   pipeline.upload(instances, { forcedClip: 'idle', phaseOffset: 0, size: 1.35 });
   effects.upload(battleEffectOverlayFixtureVertices());

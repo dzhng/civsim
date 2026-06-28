@@ -10,6 +10,8 @@ export interface CrowdBuildInputs {
   unitClass?: Uint8Array | number[];
   simTick?: number;
   count?: number;
+  /** Class ids that ride a mount (from archetype.mount). Drives `mounted`. */
+  mountedClasses?: Iterable<number>;
 }
 
 export interface CrowdInstance {
@@ -23,6 +25,8 @@ export interface CrowdInstance {
   clip: string;
   phase: number;
   seed: number;
+  /** This class rides a mount (horse). Drives LOD scale and mount composition. */
+  mounted: boolean;
 }
 
 export interface CrowdBuildStats {
@@ -40,6 +44,7 @@ export interface CrowdInstanceBuffers {
 
 export function buildCrowdInstances(inputs: CrowdBuildInputs): CrowdInstanceBuffers & { stats: CrowdBuildStats } {
   const count = inputs.count ?? Math.floor(inputs.positions.length / 2);
+  const mountedClasses = new Set(inputs.mountedClasses ?? []);
   const packed = new Float32Array(count * 12);
   const instances: CrowdInstance[] = [];
   const stats: CrowdBuildStats = { input: count, written: 0, alive: 0, player: 0, enemy: 0 };
@@ -67,6 +72,7 @@ export function buildCrowdInstances(inputs: CrowdBuildInputs): CrowdInstanceBuff
       clip: anim.clip,
       phase: anim.phase,
       seed,
+      mounted: mountedClasses.has(classId),
     };
     instances.push(inst);
     const o = stats.written * 12;
@@ -80,7 +86,7 @@ export function buildCrowdInstances(inputs: CrowdBuildInputs): CrowdInstanceBuff
     packed[o + 7] = anim.phase;
     packed[o + 8] = seed;
     packed[o + 9] = unit;
-    packed[o + 10] = 0;
+    packed[o + 10] = inst.mounted ? 1 : 0;
     packed[o + 11] = 0;
     stats.written++;
     if (alive) stats.alive++;
@@ -106,6 +112,7 @@ export function generatedFormation(count: number, opts: {
   faction?: 0 | 1;
   classId?: number;
   frame?: number;
+  mounted?: boolean;
 } = {}): CrowdInstance[] {
   const columns = opts.columns ?? Math.max(8, Math.ceil(Math.sqrt(count)));
   const spacing = opts.spacing ?? 1.15;
@@ -128,6 +135,7 @@ export function generatedFormation(count: number, opts: {
       clip: anim.clip,
       phase: anim.phase,
       seed,
+      mounted: opts.mounted ?? false,
     });
   }
   return out;

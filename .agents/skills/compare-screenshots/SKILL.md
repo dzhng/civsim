@@ -1,44 +1,50 @@
 ---
 name: compare-screenshots
-description: Quantify visual differences between two screenshots. Use when comparing WebGPU vs archived current-renderer captures, debugging missing content/camera/brightness regressions, or needing grayscale/edge/pixel telemetry to explain visual movement without treating similarity as the acceptance target.
+description: Compare screenshots for any visual change. Use when a UI, game, document, render, chart, or generated asset needs objective visual telemetry, side-by-side inspection, crop/zoom review, or a fresh second opinion before accepting or rejecting the change.
 ---
 
 # Compare Screenshots
 
-Use this when screenshot telemetry helps judge a visual change. The goal is not
-to make WebGPU more similar to an archived renderer at all costs; it is to
-measure camera, content, structure, luminance, edge energy, and readable
-landmarks so humans can tell whether a change removed content, drifted, or
-intentionally improved the old image.
+Use this when screenshot telemetry helps judge a visual change. The job is not
+to worship a score; it is to make visual review less hand-wavy by combining
+side-by-side inspection, crops, structural metrics, and a plain-language
+judgment against the actual visual requirement.
 
 ## Workflow
 
-1. Confirm the pair is comparable: same viewport, DPR, route, frozen time/tick,
-   camera intent, and UI state. If they are not comparable, fix capture setup
-   before scoring pixels.
-2. Generate comparison artifacts:
+1. Name the visual question first: what should be preserved, improved, removed,
+   or made more readable? The question can be parity, but it can also be
+   "does this look better", "did the label move down", "is the shadow under the
+   object", "did the chart stay legible", or "did the layout stop overlapping".
+2. Confirm the pair is comparable enough for that question: same viewport, DPR,
+   route/page, frozen time/tick, camera intent, UI state, data, and font/assets
+   where those matter. If they are not comparable, fix capture setup or compare
+   only a crop/feature where the mismatch does not matter.
+3. Generate artifacts appropriate to the question:
    - original side-by-side
+   - key-feature crops or zooms
    - grayscale versions
    - absolute grayscale heatmap
    - pixelmatch diff
    - Sobel/edge maps for each image
    - edge-difference heatmap
    - JSON metrics
-3. For disputed or high-stakes visual calls, ask a fresh subagent for an
+4. For disputed or high-stakes visual calls, ask a fresh subagent for an
    unbiased review using `references/subagent-visual-review.md`. Give it only the
    two images and neutral labels like Image A/Image B.
-4. Read the artifacts yourself. Use the metrics to guide investigation, but
-   identify what is missing in plain terms: wrong camera, missing terrain,
-   absent trees, bad marker shape, label mismatch, UI overlap, etc.
-5. Iterate only on changes that improve the named visual requirement. Do not
-   optimize a score by hiding content, blurring, cropping away differences, or
-   making the capture less truthful. If WebGPU is visibly more complete,
-   dimensional, legible, or beautiful than the archived renderer, the distance
-   score may rise; record why and keep going toward the better image.
+5. Read the artifacts yourself. Use the metrics to guide investigation, but
+   identify the visible issue in plain terms: wrong camera, missing content,
+   bad hierarchy, weak contrast, incorrect depth, text overlap, layout shift,
+   clipped edge, unexpected blur, or a style mismatch.
+6. Decide against the named visual requirement, not against the score alone. Do
+   not hide content, blur details, crop away differences, or make the capture
+   less truthful to improve a number. If the candidate is visibly more complete,
+   dimensional, legible, or beautiful, a distance score may rise; record why and
+   keep going toward the better image.
 
-## Required Metrics
+## Useful Metrics
 
-For each pair, report:
+Pick metrics that answer the question. For full visual regressions, report:
 
 - `mae`: mean absolute grayscale difference, 0..255, lower is closer.
 - `rmse`: grayscale root mean square error, lower is closer.
@@ -56,17 +62,23 @@ For each pair, report:
 - Content proxies relevant to the scene, such as black/void ratio, terrain-like
   ratio, water-like ratio, team-color ratio, or label/text mask ratio.
 
+For UI/document/layout reviews, also use crop bounds, text/foreground mask
+coverage, contrast checks, edge clipping, element positions, and before/after
+dimensions when those are more meaningful than global pixel distance.
+
 ## Difference Score
 
-Track one primary score for each fixed pair:
+When a single fixed-pair score is useful, this default score works well for
+structural screenshot changes:
 
 `parityDistance = 0.35 * diffRatio32 + 0.25 * pixelmatchRatio + 0.25 * edgeDiffRatio32 + 0.15 * min(1, abs(log2(edgeEnergyRatio)))`
 
 Lower is more similar to the reference. It is **not** always better. This score
 intentionally weights structural edge mismatch as heavily as grayscale mismatch,
-because missing content often shows up as edge loss, but richer WebGPU terrain,
+because missing content often shows up as edge loss, but richer terrain,
 clearer models, stronger labels, real depth, or better lighting can legitimately
-increase the score.
+increase the score. Rename the field for the task if "parity" is misleading;
+the important part is reporting what the score measures and what it does not.
 
 Report the full-frame score and, when UI dominates the shot, a labeled world-crop
 score. Use the world-crop score to locate renderer movement, and keep the
@@ -90,20 +102,20 @@ full-frame score so UI/camera mistakes remain visible.
   Acceptance requires looking at the artifacts and confirming the named visual
   requirements are visible.
 
-## Repo Tool
+## Tooling
 
-Prefer this skill's bundled helper at
-`.agents/skills/compare-screenshots/scripts/visual-parity-diff.mjs` when it
-covers the needed pair. It auto-discovers matching PNG names under
-`specs/webgpu-skinned-crowd/visualizations/current-renderer/` and
-`visual-report/`, writes side-by-side, grayscale, pixelmatch, absolute diff, and
-edge artifacts under `visual-diff/`, and sorts the JSON by worst
-`parityDistance`. For known game-view rows where HUD/chrome dominates the full
-frame, it also writes `*-world-crop-*` artifacts and a `worldCrop` score in the
-JSON; use that crop to inspect renderer movement while keeping the full-frame
-score visible for UI/camera mistakes. If a needed pair is not covered, extend
-the skill helper rather than adding app/product scripts or hand-calculating ad
-hoc metrics.
+Use this skill's bundled scripts as reusable reference tools. Keep comparison
+scripts inside the skill or a temporary workspace, not in product code, unless
+the product genuinely needs screenshot comparison at runtime.
+
+- `.agents/skills/compare-screenshots/scripts/visual-parity-diff.mjs` is one
+  repository-specific adapter. Use it when its directory conventions match the
+  task.
+- For other tasks, adapt the same artifact set: side-by-side, crops, grayscale,
+  heatmaps, pixelmatch, edges, JSON metrics, and a short written verdict.
+- If a needed pair is not covered, extend the skill helper or create a
+  task-local comparison script under the skill workflow instead of adding
+  one-off scripts to the application.
 
 ## References
 

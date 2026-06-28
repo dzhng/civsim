@@ -4,6 +4,8 @@ import {
   frameGraphPhaseOrder,
   frameGraphRolePhase,
   isFrameGraphPassRole,
+  isTopLevelTypeBucketPass,
+  type FrameGraphBatching,
   type FrameGraphPassRole,
 } from '../../webgpu-core/src/frameGraphContract';
 
@@ -16,10 +18,7 @@ export interface RenderGraphPass {
   phase: RenderGraphPhase;
   framePhase?: RenderGraphFramePhase;
   role?: FrameGraphPassRole;
-  batching?: {
-    strategy: 'domain-pass' | 'mesh-variant' | 'material-class' | 'instance-kind';
-    buckets?: string[];
-  };
+  batching?: FrameGraphBatching;
   reads?: string[];
   writes?: string[];
   depth?: {
@@ -361,8 +360,4 @@ function ensureResource(resources: Map<string, RenderGraphResource>, id: string)
 
 function isExternalResource(id: string): boolean {
   return id === 'soldierVat' || id === 'crowdInstances' || id === 'campaignState' || id === 'battleState';
-}
-
-function isTopLevelTypeBucketPass(id: string): boolean {
-  return /(?:^|[-_])(?:tree|trees|conifer|rock|rocks|mountain|mountains|city|cities|army|armies|soldier|soldiers|class\d+|meshVariant|bucket)(?:$|[-_\dA-Z])/i.test(id);
 }

@@ -16,6 +16,11 @@ export const FRAME_GRAPH_PASS_ROLES = [
 
 export type FrameGraphPassRole = typeof FRAME_GRAPH_PASS_ROLES[number];
 
+export interface FrameGraphBatching {
+  strategy: 'domain-pass' | 'mesh-variant' | 'material-class' | 'instance-kind';
+  buckets?: string[];
+}
+
 export const FRAME_GRAPH_ROLE_PHASES = {
   'background-underpaint': 'background',
   'world-depth-fill': 'world-depth',
@@ -54,4 +59,11 @@ export function frameGraphRolePhase(role: FrameGraphPassRole): FramePhaseKind {
 
 export function frameGraphDepthRole(depth: WebGpuDepthMode): Extract<FrameGraphPassRole, 'world-depth-fill' | 'world-opaque' | 'world-decal'> {
   return FRAME_GRAPH_DEPTH_ROLES[depth];
+}
+
+export function isTopLevelTypeBucketPass(id: string): boolean {
+  if (/(?:^|[-_])class\d+(?:$|[-_])/i.test(id)) return true;
+  if (/(?:tree|trees|conifer|rock|rocks|mountain|mountains|city|cities|army|armies|soldier|soldiers|class\d+).*(?:bucket|mesh|meshes|variant)$/i.test(id)) return true;
+  if (/(?:bucket|mesh|meshes|variant).*(?:tree|trees|conifer|rock|rocks|mountain|mountains|city|cities|army|armies|soldier|soldiers|class\d+)$/i.test(id)) return true;
+  return false;
 }

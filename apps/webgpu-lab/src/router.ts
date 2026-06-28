@@ -1989,6 +1989,19 @@ function liveFrameGraphContractFixtures(shell: RawFrameShell) {
       expected: 'requires role',
       passes: [{ id: 'bad-depth-role', role: 'world-decal', phase: 'world-depth', depth: 'read-write', draw: () => undefined }],
     },
+    {
+      id: 'topLevelTypeBucketPass',
+      expected: 'is a type bucket, not a semantic frame pass',
+      passes: [{
+        id: 'treeBucket',
+        label: 'Tree bucket',
+        role: 'world-opaque',
+        phase: 'world-depth',
+        depth: 'read-write',
+        batching: { strategy: 'instance-kind', buckets: ['conifer'] },
+        draw: () => undefined,
+      }],
+    },
   ];
   return fixtures.map((fixture) => {
     try {

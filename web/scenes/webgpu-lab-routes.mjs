@@ -265,6 +265,7 @@ function frameGraphContractFixturesRejected(fixtures) {
     'missingSemanticRole',
     'mismatchedSemanticRole',
     'mismatchedDepthRole',
+    'topLevelTypeBucketPass',
   ]);
   return Array.isArray(fixtures)
     && fixtures.length === expected.size
@@ -348,6 +349,7 @@ async function findPhaseBrandFootguns() {
       file: new URL('../../packages/webgpu-core/src/frameShell.ts', import.meta.url),
       checks: [
         ['frame shell imports shared depth contract', /import\s*\{[^}]*WEBGPU_DEPTH_FORMAT[^}]*type\s+WebGpuDepthMode[^}]*\}\s*from\s*['"]\.\/depthContract['"]/],
+        ['frame shell imports shared bucket-pass guard', /import\s*\{[\s\S]*?isTopLevelTypeBucketPass[\s\S]*?\}\s*from\s*['"]\.\/frameGraphContract['"]/],
         ['frame graph command list is phase-branded', /export type FrameGraphPass[\s\S]*?phase:\s*'background'[\s\S]*?BackgroundRenderPass[\s\S]*?phase:\s*'world-depth'[\s\S]*?WorldRenderPass[\s\S]*?phase:\s*'overlay'[\s\S]*?OverlayRenderPass/],
         ['frame graph command list declares semantic roles', /export type FrameGraphPass[\s\S]*?role:\s*'background-underpaint'[\s\S]*?role:\s*'world-depth-fill'\s*\|\s*'world-opaque'\s*\|\s*'world-decal'[\s\S]*?role:\s*'overlay-ui'\s*\|\s*'overlay-effect'\s*\|\s*'overlay-debug'/],
         ['frame commands accept graph passes', /passes\?:\s*FrameGraphPass\[\]/],
@@ -355,6 +357,7 @@ async function findPhaseBrandFootguns() {
         ['phase stats publish semantic roles', /passRoles:\s*Array<\{\s*id:\s*string;\s*role:\s*FrameGraphPassRole\s*\}>/],
         ['world-depth graph passes use shared depth mode', /export type FrameGraphDepthMode\s*=\s*WebGpuDepthMode[\s\S]*?phase:\s*'world-depth';[\s\S]*?depth:\s*FrameGraphDepthMode/],
         ['phase stats publish depth pass modes', /depthPasses:\s*Array<\{\s*id:\s*string;\s*mode:\s*FrameGraphDepthMode\s*\}>/],
+        ['live frame shell rejects bucket-shaped pass ids', /isTopLevelTypeBucketPass\(candidate\.id\)[\s\S]*?is a type bucket, not a semantic frame pass/],
       ],
     },
     {
@@ -362,12 +365,14 @@ async function findPhaseBrandFootguns() {
       checks: [
         ['render graph imports shared depth contract', /import\s*\{[^}]*WEBGPU_DEPTH_FORMAT[^}]*WEBGPU_WORLD_DEPTH_ATTACHMENT[^}]*type\s+WebGpuDepthMode[^}]*\}\s*from\s*['"]\.\.\/\.\.\/webgpu-core\/src\/depthContract['"]/],
         ['render graph imports shared frame role contract', /import\s*\{[\s\S]*?frameGraphDepthRole[\s\S]*?frameGraphRolePhase[\s\S]*?isFrameGraphPassRole[\s\S]*?type\s+FrameGraphPassRole[\s\S]*?\}\s*from\s*['"]\.\.\/\.\.\/webgpu-core\/src\/frameGraphContract['"]/],
+        ['render graph imports shared bucket-pass guard', /import\s*\{[\s\S]*?isTopLevelTypeBucketPass[\s\S]*?\}\s*from\s*['"]\.\.\/\.\.\/webgpu-core\/src\/frameGraphContract['"]/],
         ['render graph pass declares semantic role', /role\?:\s*FrameGraphPassRole/],
         ['render graph validates semantic roles', /frame-phase pass "\$\{pass\.id\}" must declare a semantic role[\s\S]*?frameGraphRolePhase\(pass\.role\)/],
         ['render graph validates role-depth compatibility', /frameGraphDepthRole\(pass\.depth\.mode\)[\s\S]*?requires role/],
         ['render graph pass depth uses shared mode type', /mode:\s*WebGpuDepthMode/],
         ['render graph pass depth uses shared format type', /format:\s*typeof\s+WEBGPU_DEPTH_FORMAT/],
         ['render graph validates shared world depth attachment', /pass\.depth\.attachment\s*!==\s*WEBGPU_WORLD_DEPTH_ATTACHMENT/],
+        ['render graph rejects bucket-shaped pass ids', /isTopLevelTypeBucketPass\(pass\.id\)[\s\S]*?is a type bucket, not a semantic render-graph pass/],
       ],
     },
     {

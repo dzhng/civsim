@@ -94,6 +94,10 @@ compatible or splits them into separate passes.
   `/webgpu/render-graph` route publishes a negative bucket fixture plus a
   positive `campaignScenery` batching fixture so the distinction is browser
   verified.
+- The same bucket-pass guard now lives in `packages/webgpu-core` and is enforced
+  by `RawFrameShell.drawFrame` before GPU encoding. The `/webgpu/frame-shell`
+  negative fixtures reject a live `treeBucket` pass, so JavaScript callers and
+  lab routes cannot bypass the declarative graph contract.
 - `/webgpu/render-graph` includes `Nested3dFixturePass`, a deterministic
   depth-only proof surface for flag-in-city, garrison-in-city-stub,
   rank-overlap, and ground-ring-occlusion. The fixture deliberately submits

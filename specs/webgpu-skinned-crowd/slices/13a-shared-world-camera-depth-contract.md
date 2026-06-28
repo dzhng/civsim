@@ -249,6 +249,10 @@ shadows that sit on the ground instead of floating as screen overlays.
   lab route keeps both a rejected bucket fixture and an accepted semantic
   batching fixture, preventing future graph cleanup from smuggling painter
   order back in as pass identity.
+- `RawFrameShell.drawFrame` uses the same shared bucket-pass guard as the
+  declarative compiler. Live frame submissions reject bucket-shaped pass ids
+  before GPU encoding, and the frame-shell fixture covers this path alongside
+  phase/role/depth mismatch fixtures.
 - `/webgpu/campaign-model-gates?gate=city` now publishes tight production
   city-standard samples. The route asserts that a lower red standard segment
   planted inside the city resolves to city material while the upper cloth

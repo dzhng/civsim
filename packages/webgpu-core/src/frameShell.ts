@@ -8,6 +8,8 @@ import {
   frameGraphRolePhase,
   isFrameGraphPassRole,
   isFramePhaseKind,
+  isTopLevelTypeBucketPass,
+  type FrameGraphBatching,
   type FrameGraphPassRole,
   type FramePhaseKind,
 } from './frameGraphContract';
@@ -55,6 +57,7 @@ export type FrameGraphPass =
     label?: string;
     role: 'background-underpaint';
     phase: 'background';
+    batching?: FrameGraphBatching;
     draw: (pass: BackgroundRenderPass, shell: RawFrameShell) => void;
   }
   | {
@@ -63,6 +66,7 @@ export type FrameGraphPass =
     role: 'world-depth-fill' | 'world-opaque' | 'world-decal';
     phase: 'world-depth';
     depth: FrameGraphDepthMode;
+    batching?: FrameGraphBatching;
     draw: (pass: WorldRenderPass, shell: RawFrameShell) => void;
   }
   | {
@@ -70,6 +74,7 @@ export type FrameGraphPass =
     label?: string;
     role: 'overlay-ui' | 'overlay-effect' | 'overlay-debug';
     phase: 'overlay';
+    batching?: FrameGraphBatching;
     draw: (pass: OverlayRenderPass, shell: RawFrameShell) => void;
   };
 
@@ -560,10 +565,16 @@ export class RawFrameShellImpl implements RawFrameShell {
     const seen = new Set<string>();
     let lastPhaseOrder = -1;
     for (const pass of passes) {
-      const candidate = pass as FrameGraphPass & { depth?: unknown; id?: unknown; phase?: unknown; role?: unknown };
+      const candidate = pass as FrameGraphPass & { batching?: FrameGraphBatching; depth?: unknown; id?: unknown; label?: unknown; phase?: unknown; role?: unknown };
       const id = typeof candidate.id === 'string' && candidate.id.length > 0 ? candidate.id : '<unknown>';
       if (typeof candidate.id !== 'string' || candidate.id.length === 0) {
         throw new Error('frame graph pass must declare a non-empty id');
+      }
+      if (isTopLevelTypeBucketPass(candidate.id)) {
+        throw new Error(`frame graph pass "${id}" is a type bucket, not a semantic frame pass`);
+      }
+      if (typeof candidate.label === 'string' && /\bbucket\b/i.test(candidate.label)) {
+        throw new Error(`frame graph pass "${id}" label describes a bucket; use batching metadata under a semantic pass instead`);
       }
       if (!isFramePhaseKind(candidate.phase)) {
         throw new Error(`frame graph pass "${id}" declares unsupported phase "${String(candidate.phase)}"`);
@@ -572,6 +583,11 @@ export class RawFrameShellImpl implements RawFrameShell {
       seen.add(id);
       if (!isFrameGraphPassRole(candidate.role)) {
         throw new Error(`frame graph pass "${id}" must declare a semantic role`);
+      }
+      for (const bucket of candidate.batching?.buckets ?? []) {
+        if (!bucket.trim()) {
+          throw new Error(`frame graph pass "${id}" declares an empty batching bucket`);
+        }
       }
       const hasDepth = Object.prototype.hasOwnProperty.call(candidate, 'depth');
       if (candidate.phase === 'world-depth') {

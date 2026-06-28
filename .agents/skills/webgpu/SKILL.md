@@ -530,13 +530,14 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   domain. If a tree behind a standard appears over the flag, or a battle rank
   sorts by mesh class, look first for pass-private depth math or a pipeline
   submitted through the wrong frame category.
-- Keep the declarative graph semantic at the top level. Type buckets belong in
-  pass-local batching metadata under roles such as `campaignScenery`,
-  `campaignEntities`, `battleTerrainProps`, or `battleCrowd`; a top-level graph
-  pass named for `treeBucket`, `soldierClass14`, `cityMesh`, or similar should
-  be rejected because it makes content type look like visibility truth. Keep a
-  negative graph fixture for bucket-shaped pass ids and a positive fixture that
-  proves semantic passes can still batch internally.
+- Keep graph and live frame pass ids semantic at the top level. Type buckets
+  belong in pass-local batching metadata under roles such as
+  `campaignScenery`, `campaignEntities`, `battleTerrainProps`, or
+  `battleCrowd`; a top-level graph/frame pass named for `treeBucket`,
+  `soldierClass14`, `cityMesh`, or similar should be rejected because it makes
+  content type look like visibility truth. Keep shared guard code, a negative
+  graph fixture, a live frame-shell fixture, and a positive fixture that proves
+  semantic passes can still batch internally.
 - Add hostile-order gates for every type-bucket claim. A normal route that draws
   scenery before entities can hide painter-order regressions because the later
   entity bucket wins even without depth. Keep a model gate that submits campaign

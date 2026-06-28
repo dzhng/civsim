@@ -81,10 +81,12 @@ compatible or splits them into separate passes.
   world-depth graph pass must use the role that matches its exclusive depth
   access mode.
 - `packages/game-renderer/src/renderGraph.ts` declares the first shared
-  full-game graph skeleton with `worldDepth` ownership: terrain/ground write
-  depth, opaque 3D battle/campaign passes read-write depth, and overlay passes
-  are split by semantics so atmosphere/effects are not hidden inside label/UI
-  buckets.
+  full-game graph skeleton with `worldDepth` ownership. The skeleton now names
+  production-shaped battle and campaign passes instead of broad buckets:
+  battle terrain underpaint, battle terrain props, skinned crowd, ground cues,
+  effect/debug overlays, campaign ground selection, roads, sea lanes, scenery,
+  entities, markers, labels, and UI all carry explicit frame phases, roles, and
+  depth modes.
 - `/webgpu/render-graph` includes `Nested3dFixturePass`, a deterministic
   depth-only proof surface for flag-in-city, garrison-in-city-stub,
   rank-overlap, and ground-ring-occlusion. The fixture deliberately submits

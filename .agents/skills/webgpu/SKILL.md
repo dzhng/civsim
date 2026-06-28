@@ -624,6 +624,12 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   using the same shared helpers as `RawFrameShell.drawFrame`. Keep negative
   fixtures for missing and mismatched roles so graph skeletons cannot smuggle
   type buckets back in as visibility policy.
+- Keep the full-game graph skeleton production-shaped. It should name the same
+  important semantic families the live renderers publish in stats: battle
+  terrain underpaint/props, skinned crowd, ground cues, effect/debug overlays,
+  campaign selection, roads, sea lanes, scenery, entities, markers, labels, and
+  UI. Broad graph buckets like "campaign opaque 3D" are useful scaffolding only
+  until the production routes expose the finer pass boundaries.
 - Live `world-depth` frame passes need an explicit depth mode, not just a phase
   name. Use `read` for ground decals, roads, and other world cues that should be
   occluded by later geometry without reserving pixels; use `read-write` for

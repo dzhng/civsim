@@ -233,6 +233,13 @@ shadows that sit on the ground instead of floating as screen overlays.
   graph compiler rejects depth outside `world-depth`, rejects `worldDepth`
   resources in background/overlay passes, and the render-graph lab route
   publishes the graph frame phases plus depth-pass ids.
+- The graph skeleton now mirrors the live production contracts more closely:
+  battle terrain props and ground cues are separate `world-depth` passes,
+  battle transient effects/debug are explicit overlays, and campaign selection,
+  roads, sea lanes, scenery, entities, markers, labels, and UI are separate
+  passes with their own semantic roles. The render-graph route asserts these
+  concrete pass ids so a future graph cannot collapse them back into a generic
+  painter-order bucket.
 - Type batching is permitted only as a performance strategy. Batches for trees,
   rocks, cities, armies, and soldier mesh variants must not create their own
   visual ordering rules or private depth scales.

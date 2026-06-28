@@ -22,9 +22,9 @@ performance complete unless the script-generated audit has the evidence.
 
 ## Done
 
-- Campaign visual acceptance is complete.
-- Real hardware performance is equal or better, or has an explicit release
+- [ ] Campaign visual acceptance is complete.
+- [ ] Real hardware performance is equal or better, or has an explicit release
   exception.
-- `release:webgpu` passes.
-- Old current-renderer screenshot generation is no longer part of routine work;
+- [ ] `release:webgpu` passes.
+- [ ] Old current-renderer screenshot generation is no longer part of routine work;
   archived captures remain only as historical release evidence.

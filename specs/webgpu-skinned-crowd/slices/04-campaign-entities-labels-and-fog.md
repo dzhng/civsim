@@ -56,11 +56,18 @@ flags. Fog views must not show flags, markers, or labels for hidden content.
 
 ## Done
 
-- [x] Labels match the previous text/icon style and zoom density rules.
+- [x] Labels use the previous-style white text, black outline, and icon language.
+- [ ] Label placement and LoD density are accepted at close, regional, and
+  overview zooms. City labels are still too far from city icons/models in some
+  views and must sit about one label/icon height away.
 - [x] Garrisoned armies in cities use one composed army/city label rather than
   stacked labels.
 - [x] Nearby city labels are not culled by unrelated garrison labels.
 - [ ] Fog hides hidden markers, flags, and labels while keeping the zoomed-out
   border-fog effect.
-- [x] Selection rings are perspective ground geometry and remain outside shadows.
-- [x] Nested objects rely on depth, not manual draw-order exceptions.
+- [x] Selection rings are perspective ground geometry.
+- [ ] Selection rings are visually accepted: readable, outside the shadow/model
+  footprint, and not swallowed by roads or shadows.
+- [x] Nested objects rely on depth, not manual type-bucket draw ordering.
+- [ ] Flag and prop attachment is visually accepted: flags emerge from city or
+  army volume, and trees/scenery never appear to float over nearer flags.

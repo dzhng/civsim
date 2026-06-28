@@ -19,24 +19,47 @@ The WebGPU foundation is real: production routes run raw WebGPU, campaign and
 battle share render-graph/depth contracts, model and soldier gates exist, and
 WebGPU report scripts are wired. That is not enough for release.
 
-The live campaign gaps are:
+2026-06-28 review against `main`: the current campaign checkpoint fixes the
+worst architectural alignment failure by using the previous renderer's aligned
+map data and canonical campaign coordinates. The branch also has core LoD
+scenes, real-map alignment probes, green natural close views, visible
+Ostia/Portus label/road evidence, and composed army-in-city labels. Those are
+accepted as progress, not campaign parity.
+
+Finished checkpoints:
+
+- WebGPU is the active campaign renderer for the new scenes and routes.
+- The land/water/faction/city/road projection is back on the previous
+  renderer's aligned data path; cities are no longer repositioned to chase the
+  water mask.
+- `campaign-lod-rome-close` and selected-Roma scenes explicitly disable faction
+  view for natural terrain, so close natural captures no longer inherit the
+  brown political wash.
+- The Roma to Ostia/Portus road and the Ostia/Portus label are visible again in
+  close Rome captures.
+- Garrisoned armies in cities use one composed label with army name/size and
+  city name instead of overlapping independent labels.
+- Real-map probes now check named central-Italy cities, road samples, green
+  terrain floor, road pixels, and visible label names.
+
+Open release blockers:
 
 - `campaign-3d.png` does not yet read like Roman Italy: green terrain is weak or
-  absent, mountain ranges are missing or too sparse, forests/trees are missing,
-  and faction/terrain colors are too flat.
-- Roads can be cut off, submerged, or visually broken. Roads must be continuous
-  raised or ground-conforming world geometry with visible junction treatment,
-  not terrain-underpaint that disappears.
-- The land/water/faction/city/road projection must remain aligned while the
-  camera pans, zooms, and changes LoD. Cities and roads are ground truth; water
-  and terrain must match them.
-- Every LoD threshold that changes visible campaign content needs its own scene,
-  including close Rome, central Italy, whole Italy, and whole map views.
-- Fog must hide city/army flags, labels, and markers when the territory is not
-  visible, while preserving the attractive border-fog effect at zoomed-out
-  levels.
-- City/army colocation needs a single readable stacked label: army name and
-  size on top, city name below, with no label collision.
+  inconsistent at overview scale, forests/trees are missing from acceptance
+  crops, and faction/terrain colors are still too flat.
+- Roads are structurally present, but visual acceptance is still open: the Roma
+  hub is messy, Tibur has jagged/kinked joins, and road-city layering needs to
+  read like raised stone rather than noisy screen-space ribbons.
+- City labels remain too far from their city icons/models in some zoom bands.
+  The target margin is roughly one label/icon height, not the current large gap.
+- Terrain features need a quality pass. Mountains are present, but some are
+  chunky, ugly, collide with labels, or dominate cities and roads; trees and
+  forest density are not yet visible enough.
+- Fog still needs capture-level proof that city/army flags, labels, and markers
+  disappear when territory is hidden while the border-fog aesthetic remains.
+- Every LoD threshold that changes visible campaign content needs explicit
+  acceptance, not just a snapshot. The current matrix exists, but readability
+  issues remain across close, regional, whole-map, and fog views.
 - Campaign close-up composition still needs flag height/direction, label
   margins, selection rings, shadows, tree/city clearance, and nested-object
   depth to stay correct under camera movement.

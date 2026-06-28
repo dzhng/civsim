@@ -15,17 +15,19 @@ The map should become more strategic as it zooms out, not less accurate.
 
 ## Verification
 
-- Add or update scenes for every LoD threshold.
-- Store both natural and faction-color captures where overlays differ.
-- Add a small manifest that names the content expected in each LoD band.
-- Store captures under `visualizations/campaign-lod/`.
+- [x] Add or update scenes for every core campaign LoD threshold.
+- [x] Store both natural and faction-color captures where overlays differ.
+- [ ] Add a small manifest that names the content expected in each LoD band.
+- [ ] Store dedicated captures under `visualizations/campaign-lod/`.
+- [ ] Add missing LoD scenes for synthetic road continuity, camera stability,
+  fog hiding, and ambient life.
 
 ## Done
 
-- Each LoD band has a scene and screenshot.
-- LoD transitions preserve alignment, terrain identity, road continuity, and
+- [x] Core LoD bands have scenes and screenshots.
+- [ ] LoD transitions preserve alignment, terrain identity, road continuity, and
   label readability.
-- The previous renderer baseline is used as a floor, not a score target.
+- [x] The previous renderer baseline is used as a floor, not a score target.
 
 ## Implementation Notes
 
@@ -45,7 +47,11 @@ The map should become more strategic as it zooms out, not less accurate.
   blockers for the campaign spec.
 - 2026-06-28: Composed army-in-city labels now reserve measured overlay space
   against nearby city labels in the label atlas pass. The close Roma scene
-  asserts that the combined `1ST LEGION`/`ROMA` label culls `OSTIA/PORTUS`
-  instead of drawing both labels through one another. This keeps city/army
-  nesting policy centralized in screen-space label layout rather than tuning
-  per-city offsets.
+  asserts that the combined `1ST LEGION`/`ROMA` label does not cull
+  `OSTIA/PORTUS` just because rectangles touch. This keeps city/army nesting
+  policy centralized in screen-space label layout rather than tuning per-city
+  offsets.
+- 2026-06-28: The current LoD matrix is not final acceptance. User review still
+  finds city-label distance, missing trees/carts, green terrain weakness,
+  mountain readability, and road/junction quality blockers across multiple
+  zooms.

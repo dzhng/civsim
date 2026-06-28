@@ -31,7 +31,8 @@ semantic is explicitly rendered.
   campaign LoD scene matrix.
 - [x] Real-map road segments do not disappear midway, show broken gaps, or sink
   below terrain in close Rome and regional Italy.
-- [x] City/junction treatment reads intentional at Roma and Tibur, not clipped.
+- [ ] City/junction treatment reads intentional at Roma and Tibur, not clipped
+  or visually noisy.
 - [x] Real-map road rendering filters unsafe land/water samples so roads do not
   cross water unless the edge is an explicit sea-lane semantic.
 - [ ] Prove the same contract in a synthetic hostile fixture with sloped terrain,
@@ -69,3 +70,7 @@ semantic is explicitly rendered.
   structural fixes above are a stable checkpoint, not final road acceptance; the
   next road pass should replace the low-poly ribbon/junction treatment with
   smoother grounded geometry and clearer road-city layering.
+- 2026-06-28: User review still sees roads as one of the main blockers: the
+  bottom-left Rome coastal city must keep its label and road visible, and road
+  junctions need to read as raised/grounded stone without disappearing under
+  terrain or being swallowed by city aprons.

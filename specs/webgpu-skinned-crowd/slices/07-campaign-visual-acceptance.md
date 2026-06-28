@@ -24,7 +24,15 @@ whole map, fog, and road-continuity work.
 
 ## Done
 
-- Campaign captures are accepted for accuracy, playability, and visual quality.
-- Any remaining divergence from the previous renderer is documented as an
+- [ ] Campaign captures are accepted for accuracy, playability, and visual quality.
+- [ ] Any remaining divergence from the previous renderer is documented as an
   intentional improvement or release exception.
-- The visual report no longer hides campaign blockers behind aggregate scores.
+- [x] The visual report no longer treats aggregate similarity as the acceptance
+  target.
+
+## Implementation Notes
+
+- 2026-06-28: Do not accept the campaign on metrics alone. The latest human
+  review still flags bottom-left Rome city/road visibility, city-label distance,
+  brown terrain, mountain quality/overlap, missing trees, and missing carts as
+  active blockers.

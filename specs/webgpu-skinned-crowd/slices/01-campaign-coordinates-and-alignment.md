@@ -23,21 +23,23 @@ LoD.
 
 ## Verification
 
-- Add a fake-scene alignment harness with known grid, coastline, roads, and
+- [ ] Add a fake-scene alignment harness with known grid, coastline, roads, and
   cities before debugging the real map.
-- Add real-map probes for named city anchors, road samples, coastline samples,
+- [x] Add real-map probes for named city anchors, road samples, coastline samples,
   and river samples.
-- Compare at least two zoom levels. Constant offset means mask shift; scaling
+- [x] Compare at least two zoom levels. Constant offset means mask shift; scaling
   offset means projection mismatch; correct coast with flooding means threshold.
-- Store captures under `visualizations/campaign-alignment/`.
+- [ ] Store dedicated captures under `visualizations/campaign-alignment/`.
 
 ## Done
 
-- No inland city or road sample resolves to water-blue pixels.
-- The same anchor positions remain aligned across camera pan, zoom, and LoD.
-- Water/faction/terrain rendering uses the previous renderer's aligned map data
+- [x] No sampled mainland Italy city or road anchor resolves to water-blue
+  pixels in the current LoD scene matrix.
+- [ ] The same anchor positions remain aligned across a dedicated camera
+  pan/zoom/LoD stability harness.
+- [x] Water/faction/terrain rendering uses the previous renderer's aligned map data
   rather than edited or stretched replacement assets.
-- Any behavior copied for alignment or visibility cites the previous
+- [x] Any behavior copied for alignment or visibility cites the previous
   implementation path or function in the implementation notes.
 
 ## Implementation Notes
@@ -47,3 +49,9 @@ LoD.
   clicks therefore use the same camera snapshot, which keeps tilted-camera
   picking tests tied to the real renderer state instead of a stale previous
   frame.
+- 2026-06-28: Review against `main` confirms the water-mask crisis was an
+  implementation alignment problem, not incorrect city or road geography.
+  Cities and roads remain ground truth. Do not edit `campaign-bg.png` or move
+  cities to make the current render look plausible; keep all campaign layers on
+  the canonical map projection and use `main`/`origin/main` for baseline
+  business logic when behavior is unclear.

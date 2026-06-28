@@ -23,14 +23,18 @@ one flat color field.
 - [ ] Add crops for mountain ranges, forest regions, coastal cities, and river
   crossings.
 - [ ] Use screenshot critique before accepting any terrain-refresh capture.
-- [ ] Store dedicated terrain captures under `visualizations/campaign-terrain/`.
+- [x] Store dedicated terrain captures under `visualizations/campaign-terrain/`.
 
 ## Done
 
-- [x] Green terrain is visible and varied in central Italy and close Rome natural
-  scenes.
-- [x] Mountain ranges are materially present at the same strategic locations as the
-  previous renderer.
+- [x] Close Rome natural scenes have a green-terrain floor and no longer inherit
+  the brown political overlay.
+- [ ] `campaign-3d.png` and regional natural views match or beat the previous
+  renderer's green terrain readability.
+- [x] Mountain ranges are materially present at the same strategic locations as
+  the previous renderer.
+- [ ] Mountain ranges are visually accepted: they must not look chunky, cover
+  city/road readability, or collide with labels in acceptance crops.
 - [ ] Forest regions contain many trees instead of only color stains in the
   close/central Italy acceptance crops.
 - [ ] Terrain feature edges avoid jagged low-resolution masks.
@@ -82,3 +86,7 @@ one flat color field.
   collisions, heavy city shadows, strong/fuzzy coastline glow, water dash
   artifacts, and chunky model scale at regional zoom. The green terrain and
   clearance fixes are accepted as progress, not final terrain acceptance.
+- 2026-06-28: User review after the latest checkpoint still finds the ground too
+  brown compared with the previous renderer, mountains ugly/overpowering around
+  cities and roads, and trees absent from the actual campaign acceptance views.
+  Keep these as terrain blockers even though aggregate scenery counts pass.

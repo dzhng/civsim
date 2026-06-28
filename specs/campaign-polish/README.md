@@ -130,9 +130,24 @@ and use focused fixture worlds before full-map acceptance.
 
 ## Next Agent Prompt
 
-You are picking up campaign polish. Last updated: 2026-06-29 (Slice 5 landed).
+You are picking up campaign polish. Last updated: 2026-06-29 (Slice 6 landed —
+**all six slices done; spec complete**).
 
-Current status: Slices 1–5 done. Slice 5 added road life: a small ox-less trade
+Current status: **All slices (1–6) done.** Slice 6 was the acceptance pass: the
+full campaign WebGPU bundle is green (38 checks, 0 fails), all four feedback
+images have before/after notes with durable crops in
+[`assets/acceptance/`](assets/acceptance/), and a final unbiased critique returned
+GOOD on labels, Ostia/Portus, road continuity, green terrain, forests, carts, and
+fog. One non-blocking flag is recorded in slice 6: at regional zoom the
+Alba Fucens–Corfinium cities read as near the bare Apennine massif — a tight crop
+confirms the icons stay legible at the mountain foot (not the embedded failure
+from feedback 03), so it is logged as optional future polish (widen the green
+apron / break up that bare massif), not a blocker. The faction-overlay tint the
+critic noted is the intended political wash over identical geometry. **If you are
+picking this up, the remaining open item is purely that optional Apennine-massif
+polish; everything in the original feedback set is resolved.**
+
+Slice 5 added road life: a small ox-less trade
 cart (`buildCartMesh`, `models/shared/sceneryPropModels.ts`) rides every real
 campaign road as a deterministic, frozen-time prop. Placement lives in
 `campaignRoadCarts` (`rendererWebGPU.ts`): it smooths each `edge.via` with
@@ -172,17 +187,13 @@ tree min-scale 0.45 vs zoom 0.18), **no city-aware terrain clearance** (relief
 ignores city positions, `terrain.ts:159-170`), and **no carts** (slice 5; cart
 model would live in `campaignEntityModels.ts`, kind union `sceneryPass.ts:6`).
 
-Next pickup: Slice 6 — campaign acceptance pass. This is the closing slice: no
-new features, just proof. For each of the four `assets/user-feedback/` images,
-produce a before/after note showing the offender is resolved (Ostia/Portus label
-+ road kept, no Rome-south road cutoff, label spacing ~one icon height, green not
-brown ground, no chunky/embedding mountains, visible forests, carts present).
-Confirm every slice (1–5) passed an unbiased `screenshot-critique` and that both
-the workbench fixtures (`campaign-polish-roads`, `campaign-polish-markers`) and
-the real-map outputs (`campaign-webgpu-lod` rome-close/regional, `campaign-
-webgpu-visual`, `campaign-webgpu-map-alignment`) pass. Re-run the full campaign
-scene set, capture fresh full screenshots + tight crops, and run a final unbiased
-critique over the acceptance views. Then final README update and commit.
+Next pickup: nothing required — the spec is complete. The only optional follow-up
+is the Apennine-massif polish noted above (slice 6): the large bare landform
+behind Alba Fucens–Corfinium could get a wider green apron or a broken-up
+silhouette so a zero-context viewer doesn't read those hill-towns as "in the
+mountains." If you take it on, do it as a focused slice-4-style clearance/terrain
+tweak with a fresh critique, and re-bless the affected `campaign-webgpu-lod`
+regional baselines.
 
 How this pass runs the harness on this machine: dev server on a free port
 (`npx vite --port 5179 --strictPort` from `web/`), then
@@ -206,7 +217,7 @@ Global TODO:
 - [x] Slice 4: terrain relief, forests, and clearance pass fixture and real
   campaign crop.
 - [x] Slice 5: deterministic road-life/cart fixture and campaign crop pass.
-- [ ] Slice 6: final campaign acceptance pass has current screenshots, crops,
+- [x] Slice 6: final campaign acceptance pass has current screenshots, crops,
   and unbiased screenshot critique for every slice.
 
 ## Slices

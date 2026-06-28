@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# Harness / determinism tests: the golden replay hash, the runner smoke test,
+# terrain micro-sampling. Fast. Run after touching the sim's determinism, the
+# replay contract, or terrain sampling.
+set -euo pipefail
+cd "$(git rev-parse --show-toplevel)"
+exec cargo test -p sim --test golden --test runner_smoke --test terrain_micro "$@"

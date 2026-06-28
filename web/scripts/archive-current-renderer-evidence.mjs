@@ -1,6 +1,6 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { chromium } from 'playwright';
-import { nearestIndependentCityFromRoma } from '../scenarios/_campaign-map-helpers.mjs';
+import { nearestIndependentCityFromRoma } from '../scenes/_campaign-map-helpers.mjs';
 
 const TARGET = process.env.CURRENT_RENDERER_URL ?? 'http://127.0.0.1:5173';
 const GENERATED_AT = process.env.CURRENT_RENDERER_ARCHIVE_GENERATED_AT ?? new Date().toISOString();

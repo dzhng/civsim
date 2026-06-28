@@ -1,5 +1,5 @@
 // The sanity sweep: run every vibe scenario, pixel-checking every frame against
-// its committed baseline in web/shots/baseline/vibe/<name>/. Run from web/ with
+// its committed baseline in web/shots/vibe/<name>/. Run from web/ with
 // the dev server up:
 //   node vibe/all.mjs              # all scenarios, 4 at a time
 //   JOBS=2 node vibe/all.mjs       # throttle parallelism

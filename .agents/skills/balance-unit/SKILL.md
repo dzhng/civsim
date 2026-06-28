@@ -1,6 +1,6 @@
 ---
 name: balance-unit
-description: Given a price and a plain-language unit description (melee/ranged, shields, light/heavy, mounted, pole-arm, etc.), fill in the full stat block to fit the game's balance and write the matchup tests that pin it. Use when adding or re-pricing a unit class, or when David hands you "a unit that costs X and is roughly Y".
+description: Given a price and a plain-language unit description (melee/ranged, shields, light/heavy, mounted, pole-arm, etc.), fill in the full stat block to fit the game's balance and write the matchup tests that pin it. Use when adding or re-pricing a unit class, or when David hands you "a unit that costs X and is roughly Y". Pairs with [write-tests](../write-tests/SKILL.md) (the seed-set matchup harness) and [debug](../debug/SKILL.md) (the balance-vs-mechanics call when a stat won't behave).
 ---
 
 # Balancing a new (or re-priced) unit
@@ -35,33 +35,49 @@ Booleans/specials: `mounted` (two-circle body + rider pool — set
 DEALS: foot 0.35 when charging, light horse 0.5, heavy horse 1.0; a pure
 ram like a chariot would be high here with near-zero weapon dps).
 
-## Step 2 — pick the weapon (a weapon is FIVE numbers, never six)
+## Step 2 — pick the weapon (a few fields, built off a base)
 
-`reach, min_range, arc, attack_interval, damage`. Reuse a template if it
-fits (`SWORD`, `SPEAR`, `LONG_SWORD`, `PIKE`, `LANCE`, …); only add a new
-`const` for a genuinely new profile. The physics that matter:
+A weapon is `reach, min_range, zones, attack_interval, damage` — build it
+INLINE off a base const with struct-update: `..MELEE` (a normal blade),
+`..BRACED` (a grounded pike), `..CHARGE` (a couched lance). No per-weapon
+named consts any more; each class declares its own weapons. The physics
+that matter:
 
 - **reach is the anti-cavalry axis** — the impale term stops a charge at
   reach, scaling with `((reach − 1.0)/2.2)²`. Sword 1.1 ≈ no stop; spear
   1.6 ≈ a little; pike 3.2 ≈ a wall. A "spearman who can blunt horse"
   needs reach ≥ ~1.6; a "pikeman who stops it" needs ~3.0+.
-- **arc** is the sweep: wide (1.4 sword, 2.4 long-sword) hits multiple
-  loose foes and cleaves; narrow (0.08 pike, 0.22 lance) is a single
-  point. Wide arcs reward fighting loose enemies, choke in a packed press.
+- **zones** is WHERE it lands, as data (`crate::strike`): a sword/spear is
+  one front lobe `front(half)` (half = the old arc/2: sword `front(0.7)`,
+  great-sword `front(1.2)` + `cleave`), a pike a narrow front lobe
+  `front(0.04)`, a lance `front(0.2)`. A mounted sabre is TWO flank lobes
+  `flanks(1.55, 0.85)` — blind over the horse's head, it cuts to the sides.
+  A wide front lobe hits multiple loose foes and chokes in a packed press;
+  a narrow one threads it.
 - **damage / attack_interval = work rate.** This is the main melee
-  balance dial. Gladius is 0.2/1.79; a slower heavier weapon trades rate
-  for reach or a stop.
+  balance dial. A slower heavier weapon trades rate for reach or a stop.
 - **min_range** > 0 makes a weapon useless once a body is inside it (pike
   1.1) — the historical "get inside the sarissas" weakness.
 
 Ranged: add a `MissileSpec` (`crates/sim/src/missiles.rs`) —
 `range, launch_speed, interval, ammo, damage, scatter_at_max,
 mobile_fire`. Ranged balance is governed by the ranged contracts (see
-`ranged_scenarios.rs`): archery SOFTENS, never gates. A frontal advance
-should pay a survivable toll (heavy 8–22%, light 2–11%, cav ≤8%), shields
-are a front-arc fact (rear ≥2.5× front kills), and a unit that lets the
-line reach it dies by the sword. Keep arrow `damage` in the ~0.5–0.9 band
-and let ammo/interval set sustained output.
+`scenario_ranged.rs`): archery SOFTENS, never gates. The contract is that
+arrows **dent** a frontal advance but never kill or rout a unit before it
+makes contact. The toll is one band — **5% floor, 20% ceiling — for every
+unit including cav** (don't split it by weight; armor and speed cancel —
+the shield wall sheds more per second, but the slow line is exposed
+longer). The band is pinned by `arrows_dent_every_advance_but_gate_none`
+as TWO fake reference lines that differ only by a shield: a bare body
+marks the 20% ceiling (a hard dent that still never gates), a shielded one
+marks the 5% floor (arrows still bite the protected end; below 5% arrows
+are too weak to matter). A new unit's (`health`, `block`) and crossing
+speed must land it inside that envelope — read it against the references,
+not a magic percent; the `#[ignore]`d `sweep_arrow_toll` grid is how the
+edge stat blocks are re-derived after a missile/armor change. Shields are
+a front-arc fact (rear ≥2.5× front kills), and a unit that lets the line
+reach it dies by the sword. Keep arrow `damage` in the ~0.5–0.9 band and
+let ammo/interval set sustained output.
 
 ## Step 3 — set the price, or honor the given one
 
@@ -101,6 +117,12 @@ stat card — no other wiring needed.
    directly: `sim::balance::run_over_seeds(&Scenario::duel(a, b),
    &BalanceConfig::default(), &Tunables::default(), &SEEDS)` and read the
    `Aggregate` — win-rate and survivor **stdev** tell you edge vs coin-flip.
+   **To tune ONE class, don't re-bless the 18-min matrix per edit** — use the
+   `probe_class_row` row probe: `PROBE=LSW cargo test -p sim --test
+   balance_matrix probe_class_row -- --ignored --nocapture` prints that class's
+   full row (W/L + survivor% vs every foe, both benches) over `SEEDS` off the
+   LIVE `class.rs` stats in ~1 minute. Edit `class.rs`, re-run, read the row;
+   re-bless the full matrix only once at the end to capture column ripples.
 2. **Calibrate to the archetype's counters**, not to "wins more". Tune the
    handful of stats from Step 1 until the new unit beats what its sketch
    says it should and loses to what should beat it. Re-run the matrix.
@@ -121,6 +143,74 @@ stat card — no other wiring needed.
    `shields_are_a_front_arc_fact`). Anchor it to the design contract, not
    the current number.
 
+## Interrogate the dial before you turn it
+
+A stat you are about to change is a **dial** — and if YOU made the change, the
+dial (and the result that flatters it) is the **prime suspect**, not the thing to
+defend. Confirmation bias is loudest exactly when a measurement looks good for
+your own edit; interrogate hardest there, and phrase findings as "is this real?"
+not "here's why mine works." Before you trust a dial — and the scenario test you
+write to pin it — answer all of these. Each is a real way a balance pass goes
+wrong, and each is caught by a *sweep* or a *cause-split*, not by reasoning:
+
+- **Does it move the outcome at all?** Sweep it across a range; never assume a
+  stat is the lever. A swept dial that doesn't budge the result is a *dead* dial
+  — tuning it is wasted effort and a false sense of control. (A unit's
+  survivability once read deaf to the very stat everyone "knew" governed it.)
+- **What does it DO, and what does it COST?** Find the mechanism and its
+  tradeoff *in the code*, not in your intuition. A lever that adds power with no
+  cost breaks the 1:4 envelope — a costless "buff" is an inversion waiting to
+  happen. (The property that let one weapon counter a whole class also left it
+  blind from the flank; that cost is the only thing keeping it from being
+  strictly better than its peer.)
+- **Isolate ONE dial; match the rest.** A scenario sweep changes a single
+  variable and holds everything else EQUAL, so the result is attributable to the
+  lever and not a confound. Compare two units at the SAME value of the stat you
+  are NOT testing — their shipped values hide which knob does the work.
+- **Split the outcome by CAUSE before crediting the lever.** Matching the other
+  stats is NOT enough when two mechanisms feed the same number. A "cav killed"
+  total that rose with a dial looked like a grind getting stronger — the
+  death-by-cause split showed it was 100% a frontal *impale* and 0% grind, a
+  different mechanism entirely. Read the constituent channels (deaths-by-cause,
+  the damage accumulators); the setup itself (1v1 frontal, no envelopment) can
+  exclude the mechanism you think you're measuring.
+- **Why is the threshold THERE — physics or a FIT?** A "magic" number (a reach, a
+  cap, a radius) is usually a formula's saturation/clamp point — trace it to the
+  line before you move it. Then ask whether the formula is *physical* or *fitted*:
+  a constant the git log shows was TUNED (an "option B", "re-pinned after X
+  tuning") to make one unit land at saturation is circular — "the reach saturates
+  at 3.2 because 3.2 is the unit's reach" is not a derivation. Call a tuned curve
+  a tuned curve; do not dress the circle as first principles.
+- **Find the BOUNDS, not a point.** Sweep min→max so you see where the dial
+  saturates, cliffs, or inverts; one measurement is an anecdote.
+
+**A distinct role is a distinct test.** Two units that counter the same threat by
+DIFFERENT mechanisms (one *stops* it upfront, one *grinds* it down) are two
+contracts — each gets its own one-dial sweep and its own scenario test on fake
+reference units. Don't fold them into one. The sweep you ran to interrogate the
+dial IS the draft of that scenario test.
+
+## The 1:4 power envelope (hard cap)
+
+No unit may be more than **4× the worst unit** on any single performance
+axis — survivability, damage output, or all-in combat value. Concretely
+the whole roster lives inside a 1:4 band: the best unit is at most 4× the
+weakest, which means **heavy is at most ~2× a light/medium** (lights and
+mediums already sit above the floor, so the head-of-roster heavy/elite
+can't run away from them by more than a factor of two). This is a design
+ceiling, not a target — most units cluster far tighter. It keeps the game
+about combined arms and positioning rather than a single auto-win class:
+even the cheapest escort-needing unit stays relevant in the right matchup.
+
+If a candidate's stats would put it past 2× a comparable light/medium on
+survivability (effective hp ≈ `health`/(1−`block`-ish) ride-through) or on
+damage (`damage`/`attack_interval` work rate), cut the offending axis —
+that is exactly the "find the one axis its sketch doesn't justify and cut
+it" move below. Cost can still scale wider than 4× (PEA 175 → CAV 1400 is
+~8×), because price buys *concentration of force and counter-matchups*,
+not raw per-unit power — but the underlying physical performance stays in
+the 1:4 band.
+
 ## Reference: the matchup web these must respect
 
 PIK > HSD (heavy sword) > LSP (light spear) (armor beats numbers, reach
@@ -132,15 +222,11 @@ inverting it — if your shielded spearman suddenly beats heavy infantry
 AND pikes AND cavalry, the stats are too generous; find the one axis its
 sketch doesn't justify and cut it.
 
-## Process (inherited from write-tests, non-negotiable)
+## Process
 
-- Cargo first (`--no-fail-fast`, check `rc`, ~25s); browser verify last.
-- The golden hash moves on any sim-value change — re-pin deliberately,
-  once, in the same commit, from the printed actual.
-- Expect 2–4 chaos-marginal tests to wobble on combat/class edits;
-  re-judge on the final shape only, widen a margin only with a comment
-  declaring it chaos-marginal. NEVER re-pin a contract to current
-  behavior — that is how the suite once certified a 19× bug.
-- Concurrent sessions are real (campaign work runs in parallel): scope
-  commits to the sim files you touched; never `git checkout` over files
-  that may hold someone else's work.
+Follow [write-tests](../write-tests/SKILL.md) for the loop itself — cargo-first
+(`--no-fail-fast`, check `rc`), deliberate golden-hash re-pin, concurrency-safe
+commits. Two of its rules bite hardest on a class edit: expect 2–4
+chaos-marginal tests to wobble (re-judge on the final shape, widen a margin
+only with a `chaos-marginal` comment), and **never re-pin a contract to current
+behavior** — that is how the suite once certified a 19× bug.

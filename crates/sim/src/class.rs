@@ -16,8 +16,11 @@ pub struct Weapon {
     pub reach: f32,
     /// Inside this distance the weapon is useless (m).
     pub min_range: f32,
-    /// Swing width (radians). Pike ≈ a line; great sword sweeps wide.
-    pub arc: f32,
+    /// Where the weapon can land, as DATA: its strike zones (angular lobes in the
+    /// wielder's frame). A sword/spear/pike/lance is one front lobe; a mounted
+    /// sabre is two flank lobes. Replaces the old single `arc` width + the
+    /// mounted-flank heuristic — target/face/strike all read these.
+    pub zones: crate::strike::Zones,
     /// Seconds between swings, fresh and unobstructed. Deliberately long (a real
     /// blow is a wind-up, a committed cut, and a recover — not a flurry): slow
     /// cadence is what makes engagements last MINUTES while each landed hit stays
@@ -29,36 +32,41 @@ pub struct Weapon {
     /// for a wide two-handed sweep (the long sword). Most weapons are OFF — a sword,
     /// spear, dagger, or cavalry sabre cuts down ONE man per stroke, not a rank.
     pub cleave: bool,
-    /// What kind of weapon this is — drives how it's drawn and how it bears.
+    /// IMPALES (orthogonal CAPABILITY, not a wielding mode): a charging body that
+    /// feeds onto this presented point takes flesh damage for it (the spear/pike
+    /// thrust the horse runs onto). A Standard spear impales without being a hedge;
+    /// a Hedge pike impales too. Scales with reach via the impale term, so a short
+    /// blade impales nothing.
+    pub impales: bool,
+    /// How the weapon is WIELDED — one mutually-exclusive mode (man-aimed / couched
+    /// lance / braced hedge). Drives how it's drawn, aimed, and bears.
     pub kind: WeaponKind,
 }
 
-/// How a weapon is wielded. Most are STANDARD (a sword: aimed by the man, swung
-/// wherever he faces). The two special cases each have their own selection rule:
+/// How a weapon is wielded — three mutually-exclusive modes.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum WeaponKind {
-    /// A sword/spear: aimed by the man, bears wherever he faces.
+    /// A sword/spear: aimed by the man, bears wherever he faces, drawn all fight.
     Standard,
-    /// Braced to the formation's frontage (the sarissa): a long shaft you can't
-    /// slew sideways in a packed rank, so it aims along the UNIT's facing and
-    /// bears ONLY on targets in its forward arc. Flanked or from the rear it
-    /// can't engage — the man drops to his side-arm. (Also what keeps a pike
-    /// hedge's anti-charge stop frontal.)
-    Braced,
     /// The charge weapon of a two-weapon mount (the lance): held while the charge
     /// still carries momentum and plows through, then dropped for the sidearm
     /// once the charge is spent and it's a standing grind.
     Charge,
+    /// Braced rigidly to the formation's frontage (the sarissa): a long shaft you
+    /// can't slew sideways in a packed rank, so it aims along the UNIT's facing,
+    /// bears ONLY on its forward arc (flanked/rear it can't engage — the man drops
+    /// to his side-arm), and its points overlap files into a continuous wall.
+    Hedge,
 }
 
 impl Weapon {
-    /// Braced to the formation frontage (a pike). See `WeaponKind::Braced`.
-    pub fn braced(&self) -> bool {
-        matches!(self.kind, WeaponKind::Braced)
-    }
     /// The mount's charge weapon (a lance). See `WeaponKind::Charge`.
     pub fn is_charge(&self) -> bool {
         matches!(self.kind, WeaponKind::Charge)
+    }
+    /// Braced to the formation frontage (a pike). See `WeaponKind::Hedge`.
+    pub fn hedge(&self) -> bool {
+        matches!(self.kind, WeaponKind::Hedge)
     }
 }
 
@@ -94,11 +102,33 @@ impl core::ops::Deref for WeaponSet {
     }
 }
 
+/// A unit's operating procedure in contact — its body/weapon doctrine. One axis,
+/// three mutually-exclusive modes; the systems that used to branch on the separate
+/// `tramples` / `strict_formation` flags read this instead.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Doctrine {
+    /// A normal line: closes, holds at weapon's length, fights, may crab sideways
+    /// to dress its lane.
+    Standard,
+    /// A strict-file block (the phalanx): lateral drift in a frontal press tangles
+    /// shafts, so it will not freely crab sideways.
+    Strict,
+    /// Drives THROUGH contact instead of planting at weapon's length — the trample
+    /// is the charge. Horses today; the knob exists for chariots / shock infantry.
+    Trample,
+}
+
 #[derive(Clone, Copy, Debug)]
 pub struct UnitClass {
     pub id: UnitClassId,
     /// Scales the above-walk speed range (run/surge/charge), not the walk floor.
     pub pace_mult: f32,
+    /// Scales the per-tick acceleration/braking ramp (base_accel). Foot is 1.0;
+    /// mounted classes wind up harder so a gallop doesn't need a 60 m runway.
+    /// A horse out-accelerates a man, but a FORMED charge still builds over
+    /// ground to stay dressed — this is the knob for that wind-up, tuned per
+    /// class, not derived from top speed ÷ a single constant.
+    pub accel_mult: f32,
     pub soldier_radius: f32,
     /// Collision/push mass. Bracing multiplies effective mass on top.
     pub mass: f32,
@@ -142,22 +172,17 @@ pub struct UnitClass {
     /// Charge by default: burst to charge speed in the last ~2s of an
     /// explicit attack approach. (Player can toggle; pikes hold formation.)
     pub charge: bool,
-    /// Keeps driving through contact while charging instead of planting at
-    /// weapon's length: the trample is the charge. Horses today; the knob
-    /// exists for chariots — or shock infantry, if the engine goes fancy.
-    /// (Independent of `mounted`, which is body geometry: two circles and
-    /// a rider pool.)
-    pub tramples: bool,
-    /// Strict formation: this unit's weapons/body doctrine make lateral lane
-    /// drift costly in contact. A pike block, for example, cannot freely crab
-    /// sideways in a frontal press without tangling shafts; future phalanx-like
-    /// classes opt in here instead of systems special-casing class ids.
-    pub strict_formation: bool,
+    /// Operating procedure in contact — how this unit's body/weapon doctrine
+    /// behaves when it meets the enemy. One axis, three mutually-exclusive modes
+    /// (see `Doctrine`): a line holds, a phalanx keeps strict files, horse drives
+    /// through. (Independent of `mounted`, which is body geometry, and `charge`,
+    /// which is the approach gait.)
+    pub doctrine: Doctrine,
     /// Knockdown-damage multiplier for what this body DEALS when it fells
     /// a man. Pure per-unit data: foot 0 (men bowling men bruise), heavy
     /// horse 1.0, light horse picks its way through at a fraction; a
     /// chariot would put nearly everything here and nothing in weapon dps.
-    /// (`tramples` above is pure BEHAVIOR: keep riding through contact.)
+    /// (`doctrine` above is pure BEHAVIOR: keep riding through contact.)
     pub knockback_mult: f32,
     /// Stamina drain multiplier: the cost of the kit. Every draining second
     /// (running, fighting, charging, bad ground) is scaled by this — armor
@@ -177,112 +202,49 @@ pub const HORSE_HALF_LEN: f32 = 0.55;
 /// Radius of each mounted body circle (m).
 pub const HORSE_BODY_R: f32 = 0.5;
 
+// Weapon FIELD DEFAULTS, one per family. Each class spells out only the fields
+// that matter and inherits the rest via struct-update, so the call sites read as
+// NAMED FIELDS instead of a row of bare numbers:
+//
+//     weapons: one(Weapon { reach: 1.1, zones: crate::strike::front(0.7), attack_interval: 4.1, damage: 0.5, ..MELEE }),
+//
+// Two classes that both carry "a sword" can diverge freely — there is no shared
+// global weapon assigned to many units.
+
+/// Standard front-cone blade: no dead zone, no cleave, no impale (override per
+/// weapon).
+const MELEE: Weapon = Weapon {
+    reach: 0.0,
+    min_range: 0.0,
+    zones: crate::strike::front(0.0),
+    attack_interval: 0.0,
+    damage: 0.0,
+    cleave: false,
+    impales: false,
+    kind: WeaponKind::Standard,
+};
+
+/// A spear point: IMPALES a charge (the horse runs onto it) but is NOT a hedge —
+/// Standard-wielded, it slews to fight from any angle. Reach sets how hard it
+/// impales and how far it grinds.
 const SPEAR: Weapon = Weapon {
-    reach: 1.6,
-    min_range: 0.0,
-    arc: 0.6,
-    attack_interval: 4.4,
-    damage: 0.2375,
-    cleave: false,
-    kind: WeaponKind::Standard,
+    impales: true,
+    ..MELEE
 };
 
-const SWORD: Weapon = Weapon {
-    reach: 1.1,
-    min_range: 0.0,
-    arc: 1.4,
-    attack_interval: 4.1,
-    damage: 0.5,
-    cleave: false,
-    kind: WeaponKind::Standard,
+/// A braced points-wall (pike/sarissa): impales AND is wielded as a rigid frontal
+/// hedge, with a dead zone — set `min_range` so a foe crowded inside the shafts is safe.
+const HEDGE: Weapon = Weapon {
+    impales: true,
+    kind: WeaponKind::Hedge,
+    ..MELEE
 };
 
-const LONG_SWORD: Weapon = Weapon {
-    reach: 1.8,
-    // No dead zone: a two-hander half-swords and pommels in close, so a foe
-    // crowding inside doesn't disarm him. Being pressed is ALREADY punished by
-    // the swing choke (a wide arc can't sweep in a crush); a min_range on top
-    // is double jeopardy — the same perverse coupling the lance had (see LANCE).
-    min_range: 0.0,
-    arc: 2.4,
-    attack_interval: 4.7,
-    damage: 0.75,
-    cleave: true,
-    kind: WeaponKind::Standard,
-};
-
-const PIKE: Weapon = Weapon {
-    reach: 3.2,
-    min_range: 1.1,
-    arc: 0.08,
-    // A thrust-and-recover cycle, not a sweep: the wall's stopping power is
-    // cadence x hurl; lethality per poke stays modest.
-    attack_interval: 3.8,
-    damage: 0.4,
-    cleave: false,
-    kind: WeaponKind::Braced, // the sarissa: frontal only, drop to the side-sword off-axis
-};
-
-const SIDE_SWORD: Weapon = Weapon {
-    reach: 1.2,
-    min_range: 0.0,
-    arc: 1.2,
-    attack_interval: 4.1,
-    damage: 0.35,
-    cleave: false,
-    kind: WeaponKind::Standard,
-};
-
-// Reach floored at 1.2 (≈ the sword line): a short blade is still SHORT, but every
-// foot soldier can at least reach UP to a rider on the horse pressed against him —
-// without a reach this long the daggermen chip only the animal and never the man.
-const DAGGER: Weapon = Weapon {
-    reach: 1.2,
-    min_range: 0.0,
-    arc: 1.0,
-    attack_interval: 3.8,
-    damage: 0.275,
-    cleave: false,
-    kind: WeaponKind::Standard,
-};
-
-const LANCE: Weapon = Weapon {
-    reach: 2.4,
-    // No dead zone: a horseman fights the lance couched OR shortened, so a foe
-    // who crowds inside it doesn't disarm him. A min_range here was a perverse
-    // stat coupling — surviving the contact better (more block/armour) pinned
-    // the rider deeper, dropped him to his sidearm, and made MORE armour LOSE.
-    // (See more_block_never_makes_cavalry_worse + debug-battle-behavior.)
-    min_range: 0.0,
-    // A touch wider than a pure point so the couched lance skewers the man it
-    // rides onto even slightly off-line (still forward-only — no flank reach).
-    arc: 0.4,
-    attack_interval: 5.0,
-    // The lance lands ONE couched strike — it SNAPS on the man it commits to (see
-    // charge_wpn_spent) and the rider draws his sabre — so that one skewer must hit
-    // hard: lethal to a light man. It is the charge's signature blow, though the
-    // long sabre grind that follows now does the bulk of the killing.
-    damage: 1.6,
-    cleave: false,
+/// A one-shot couched charge weapon (the lance): lands ONE skewer on commit, then
+/// SNAPS and the rider drops to his sidearm. No dead zone — couched OR shortened.
+const CHARGE: Weapon = Weapon {
     kind: WeaponKind::Charge,
-};
-
-const CAV_SWORD: Weapon = Weapon {
-    // Wielded from the saddle: the rider sits at the horse's center, so his blade
-    // must span his own mount (~1m of body) to reach the men crowding its head and
-    // flanks. A foot-sword's 1.1m never clears the horse — the grind weapon needs
-    // the reach of a cavalry sabre swung down from horseback, or the rider flails
-    // over the enemy's heads and the dismounted-length blade lands nothing.
-    reach: 1.5,
-    min_range: 0.0,
-    arc: 1.1,
-    attack_interval: 4.2,
-    // At parity with the infantry sword (0.5): once the charge has put the rider
-    // INTO the line, his sabre cuts as well as a foot blade — cavalry's grind
-    // weakness is the flank-blind arc and the numbers, NOT a feeble blade.
-    damage: 0.5,
-    cleave: false,
-    kind: WeaponKind::Standard,
+    ..MELEE
 };
 
 pub fn class_stats(id: UnitClassId) -> UnitClass {
@@ -290,13 +252,14 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
     let foot = UnitClass {
         id,
         pace_mult: 1.0,
+        accel_mult: 1.0,
         soldier_radius: 0.33,
         mass: 1.0,
         brace_mult: 1.3,
         mounted: false,
         spacing: Vec2::new(1.0, 1.2),
         default_depth: 6,
-        health: 1.3,
+        health: 1.21,
         mount_health: 0.0,
         block: 0.15,
         evade: 0.2,
@@ -304,12 +267,12 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
         bravery: 1.0,
         morale_aura: 1.0,
         charge: true,
-        tramples: false,
-        strict_formation: false,
+        doctrine: Doctrine::Standard,
         knockback_mult: 0.35, // a charging mass of men hurts what it fells
         drain_mult: 1.0,
         turn_mult: 1.0,
-        weapons: one(SWORD),
+        // Generic one-handed sword; every class below defines its own array.
+        weapons: one(Weapon { reach: 1.1, zones: crate::strike::front(0.7), attack_interval: 4.1, damage: 0.5, ..MELEE }),
     };
     match id {
         HeavySword => UnitClass {
@@ -320,11 +283,15 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             brace_mult: 2.0,
             spacing: Vec2::new(0.9, 1.1),
             default_depth: 8,
-            health: 2.4, // the armor IS the class: a third more body than the levy, plus the shield
+            health: 2.0, // top of the [1,2] band (range rescaled from [1,2.4]); still the most body on the field
             block: 0.5, // a real shield wall sheds ~half the frontal arrows; the back is bare (back ~1.8x deaths)
             evade: 0.08,
             training: 0.75,
-            weapons: one(SWORD),
+            // The heavy's blade hits a touch harder than a line sword (0.6 vs 0.5):
+            // an elite that is tanky AND a little more lethal — enough to take the
+            // edge off the heavy-vs-heavy slog, but a heavy mirror is STILL the
+            // longest grind of the roster. Per-class weapon; no other sword affected.
+            weapons: one(Weapon { reach: 1.1, zones: crate::strike::front(0.7), attack_interval: 4.1, damage: 0.6, ..MELEE }),
             ..foot
         },
         LightSpear => UnitClass {
@@ -334,11 +301,11 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             mass: 0.95,
             spacing: Vec2::new(1.0, 1.2),
             default_depth: 6,
-            health: 1.55, // unarmored: the levy lives by numbers, not body
+            health: 1.39, // unarmored: the levy lives by numbers, not body
             block: 0.35,  // a light shield: real frontal cover, ~1.5x deaths from behind
             evade: 0.15,  // a shield, not a skirmisher's legs: modest dodge on top of the block
             training: 0.55,
-            weapons: one(SPEAR),
+            weapons: one(Weapon { reach: 1.6, zones: crate::strike::front(0.3), attack_interval: 4.4, damage: 0.2375, ..SPEAR }),
             ..foot
         },
         LongSwords => UnitClass {
@@ -347,28 +314,41 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             mass: 1.1,
             spacing: Vec2::new(1.5, 1.4),
             default_depth: 4,
-            health: 1.49,
+            health: 1.35,
             block: 0.1, // no shield, but a drilled two-hander parries some frontal blows
             // with the blade — a thin front-arc edge, far below any shield wall
-            evade: 0.35,
+            evade: 0.2, // nimble for shieldless foot, but no shield means it bleeds in a grind
             training: 0.8,
-            weapons: one(LONG_SWORD),
+            // A two-hander: reach, a wide cleaving arc, no dead zone (half-swords in
+            // close). CLEAVE (one swing rakes the packed front) is its identity — so
+            // the per-hit damage sits BELOW a normal sword's and the cadence is SLOW;
+            // the WIDTH, not the punch, is what shreds massed light infantry. With no
+            // shield and modest dodge it bleeds against armor (HSD), shock (CAV) and
+            // reach (pikes) — a budget anti-light-infantry blender, not a line-breaker.
+            weapons: one(Weapon { reach: 1.6, zones: crate::strike::front(1.2), attack_interval: 5.1, damage: 0.4, cleave: true, ..MELEE }),
             ..foot
         },
-        Phalanx => UnitClass {
+        HeavyPhalanx => UnitClass {
             drain_mult: 1.3,
             pace_mult: 0.85,
             mass: 1.2,
             brace_mult: 4.0,
             spacing: Vec2::new(0.8, 1.0),
             default_depth: 10,
-            health: 2.2, // phalangites wore armor too — the wall is bodies AND bronze
-            block: 0.55, // the great shield: the firmest front-arc wall, ~2.2x deaths from behind
+            health: 1.86, // rescaled into the [1,2] band (was 2.2); the wall is bodies AND bronze
+            block: 0.45, // a big shield, but NOT more than the heavy sword (0.5 is the cap): the
+            // phalanx's frontal edge is its PIKE WALL, not the firmest shield (design rule: the
+            // heavy infantry holds the highest block).
             evade: 0.08,
             training: 0.8,
             charge: false,
-            strict_formation: true,
-            weapons: two(PIKE, SIDE_SWORD),
+            doctrine: Doctrine::Strict,
+            // The sarissa wall (frontal-only, dead zone inside the shafts; cadence×hurl
+            // stops a charge, modest per-poke), with a side-sword for off-axis foes.
+            weapons: two(
+                Weapon { reach: 3.2, min_range: 1.1, zones: crate::strike::front(0.04), attack_interval: 3.8, damage: 0.4, ..HEDGE },
+                Weapon { reach: 1.2, zones: crate::strike::front(0.6), attack_interval: 4.1, damage: 0.35, ..MELEE },
+            ),
             ..foot
         },
         Archers => UnitClass {
@@ -379,11 +359,11 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             mass: 0.9,
             spacing: Vec2::new(1.2, 1.3),
             default_depth: 4,
-            health: 1.17,
+            health: 1.12,
             block: 0.0, // no shield: a dodge, not a wall — same from any face
             evade: 0.28,
             charge: false,
-            weapons: one(SWORD),
+            weapons: one(Weapon { reach: 1.1, zones: crate::strike::front(0.7), attack_interval: 4.1, damage: 0.5, ..MELEE }),
             ..foot
         },
         Skirmishers => UnitClass {
@@ -394,25 +374,33 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             mass: 0.85,
             spacing: Vec2::new(1.6, 1.6),
             default_depth: 4,
-            health: 1.17,
+            health: 1.12,
             block: 0.0,  // no shield: pure dodge, same from any face
             evade: 0.42, // the nimblest foot — slips both blows and arrows, any quarter
             training: 0.5,
             charge: false,
-            weapons: one(DAGGER),
+            // A short blade — reach floored at 1.2 so foot can still reach UP to a
+            // pressed-in rider, not just chip the horse.
+            weapons: one(Weapon { reach: 1.2, zones: crate::strike::front(0.5), attack_interval: 3.8, damage: 0.275, ..MELEE }),
             ..foot
         },
         ShockCavalry => UnitClass {
-            pace_mult: 2.6,
+            // ~+30% on the run/charge gaits (pace_mult scales the above-walk
+            // range): run 6.1->7.6 m/s, charge 9.2->12.1 m/s at full stamina.
+            pace_mult: 3.6,
+            // Heavy horse winds up at ~2x foot: a 12 m/s charge now reaches full
+            // gallop in ~30 m / ~5 s (was ~60 m / ~10 s on the shared foot accel),
+            // a controlled-but-real charge build instead of a freight-train ramp.
+            accel_mult: 2.0,
             soldier_radius: 0.55,
             mass: 4.5,
             brace_mult: 1.0,
             mounted: true,
-            tramples: true,
+            doctrine: Doctrine::Trample,
             knockback_mult: 1.0,
             spacing: Vec2::new(1.8, 2.4),
             default_depth: 5,
-            health: 1.5, // armoured rider: tougher than foot once a blow reaches him
+            health: 1.36, // armoured rider: tougher than foot once a blow reaches him
             // The horse soaks ARROWS (most missiles hit the big animal, not the man);
             // in MELEE it no longer makes cav tanky, because every foot weapon now
             // reaches up to the 1.5-HP rider (the reach floor), so a bogged cav dies
@@ -426,21 +414,36 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             bravery: 1.3,     // armoured shock riders hold their nerve
             morale_aura: 2.0, // and the sight of friendly heavy horse steadies a line
             turn_mult: 0.81,
-            weapons: two(LANCE, CAV_SWORD),
+            // A couched lance (one lethal skewer on the charge, then it snaps) and a
+            // cavalry sabre — long enough (1.5) to reach over the horse into the
+            // press, at parity damage with a foot sword (it should pack a punch). A
+            // walked-in cav (no charge) thus sits BETWEEN medium and heavy foot per
+            // soldier: it beats medium head-on (parity sabre + the horse shields the
+            // rider, so foot waste blows on the mount) but loses to heavy. Its real
+            // edge is the CHARGE (lance + impact), not the standing grind.
+            weapons: two(
+                Weapon { reach: 2.4, zones: crate::strike::front(0.2), attack_interval: 5.0, damage: 1.6, ..CHARGE },
+                Weapon { reach: 1.5, zones: crate::strike::flanks(1.55, 0.85), attack_interval: 4.2, damage: 0.5, ..MELEE },
+            ),
             ..foot
         },
         HorseArchers => UnitClass {
             drain_mult: 0.8,
-            pace_mult: 2.8,
+            // ~+30% on the run gait to match the shock arm: 6.5->8.3 m/s at full
+            // stamina (no charge — light horse skirmishes and kites).
+            pace_mult: 3.9,
+            // Lighter horse winds up a touch harder than the shock arm (mirrors
+            // its nimbler turn_mult) — quick to reach speed for a kiting dash.
+            accel_mult: 2.2,
             soldier_radius: 0.55,
             mass: 3.8,
             brace_mult: 1.0,
             mounted: true,
-            tramples: true,
+            doctrine: Doctrine::Trample,
             knockback_mult: 0.5,
             spacing: Vec2::new(2.2, 2.6),
             default_depth: 5,
-            health: 1.3,
+            health: 1.21,
             mount_health: 6.5,
             block: 0.0, // no shield: speed and a dodge, same from any face
             evade: 0.32,
@@ -448,7 +451,8 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             morale_aura: 1.6, // mounted, but lighter — a smaller steadying presence
             charge: false,
             turn_mult: 0.9, // lighter horse, a touch nimbler than the shock arm
-            weapons: one(CAV_SWORD),
+            // The cavalry sabre (reach 1.5 to clear the horse); no lance — light horse kites.
+            weapons: one(Weapon { reach: 1.5, zones: crate::strike::flanks(1.55, 0.85), attack_interval: 4.2, damage: 0.5, ..MELEE }),
             ..foot
         },
         ArtilleryCrew => UnitClass {
@@ -458,11 +462,11 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             mass: 0.9,
             spacing: Vec2::new(2.0, 2.0),
             default_depth: 4,
-            health: 1.17,
+            health: 1.12,
             block: 0.0, // no shield wall; same from any face
             evade: 0.18,
             charge: false,
-            weapons: one(DAGGER),
+            weapons: one(Weapon { reach: 1.2, zones: crate::strike::front(0.5), attack_interval: 3.8, damage: 0.275, ..MELEE }),
             ..foot
         },
         Peasant => UnitClass {
@@ -479,7 +483,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             training: 0.3,
             bravery: 0.6,     // a levy's nerve is thin — breaks early
             morale_aura: 0.7, // a wavering mob steadies no one
-            weapons: one(DAGGER),
+            weapons: one(Weapon { reach: 1.2, zones: crate::strike::front(0.5), attack_interval: 3.8, damage: 0.275, ..MELEE }),
             ..foot
         },
         // The cheap sword line: light infantry's body, a sword instead of a
@@ -492,11 +496,11 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             mass: 0.95,
             spacing: Vec2::new(1.0, 1.2),
             default_depth: 6,
-            health: 1.5,
+            health: 1.36,
             block: 0.3, // a light shield, a hair less than the spear line's
             evade: 0.18,
             training: 0.55,
-            weapons: one(SWORD),
+            weapons: one(Weapon { reach: 1.1, zones: crate::strike::front(0.7), attack_interval: 4.1, damage: 0.5, ..MELEE }),
             ..foot
         },
         MediumInfantry => UnitClass {
@@ -507,11 +511,11 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             brace_mult: 1.6,
             spacing: Vec2::new(0.95, 1.15),
             default_depth: 7,
-            health: 1.95,
+            health: 1.68,
             block: 0.4,
             evade: 0.13,
             training: 0.65,
-            weapons: one(SWORD),
+            weapons: one(Weapon { reach: 1.1, zones: crate::strike::front(0.7), attack_interval: 4.1, damage: 0.5, ..MELEE }),
             ..foot
         },
         // The armoured spear wall: heavy infantry's body and shield, a spear
@@ -525,11 +529,15 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             brace_mult: 2.5, // a set spear line braces harder than a sword wall
             spacing: Vec2::new(0.9, 1.1),
             default_depth: 8,
-            health: 2.4,
+            health: 2.0, // HeavySpear: top of the [1,2] band (range rescaled from [1,2.4])
             block: 0.45,
             evade: 0.08,
             training: 0.75,
-            weapons: one(SPEAR),
+            // The top of the spear ladder: longest reach and hardest point of the
+            // three (LSP 1.6/0.2375 < MSP 1.7/0.27 < HSP 1.85/0.31), so the heavy
+            // spear out-blunts a charge and out-grinds the lighter spears — yet its
+            // work rate still sits below any sword (sword beats spear holds).
+            weapons: one(Weapon { reach: 1.85, zones: crate::strike::front(0.3), attack_interval: 4.4, damage: 0.31, ..SPEAR }),
             ..foot
         },
         MediumSpear => UnitClass {
@@ -540,11 +548,47 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             brace_mult: 2.0,
             spacing: Vec2::new(0.95, 1.15),
             default_depth: 7,
-            health: 1.95,
+            health: 1.68,
             block: 0.4,
             evade: 0.12,
             training: 0.65,
-            weapons: one(SPEAR),
+            // A longer, harder-hitting spear than the light line — enough point to
+            // win the spear mirror (the light spear's 0.2375 stalemates every
+            // armoured foe) and blunt a charge the light line can't. Spear reach and
+            // punch are ORDERED by tier (LSP 1.6/0.2375 < MSP 1.7/0.27 < HSP
+            // 1.85/0.31) so the hierarchy holds in outcomes, not just on paper —
+            // every value stays well below a sword's, so sword still beats spear.
+            weapons: one(Weapon { reach: 1.7, zones: crate::strike::front(0.3), attack_interval: 4.4, damage: 0.27, ..SPEAR }),
+            ..foot
+        },
+        // The workhorse pike: a shorter sarissa than the elite HeavyPhalanx. It
+        // sits a notch UNDER its sword counterpart (MediumInfantry) in body and
+        // grind — slightly thinner health, packed strict files that can't dodge —
+        // and earns its keep on REACH: a 2.6 m hedge that blunts a charge the
+        // medium sword line cannot. Braces hard (3.0), but below the elite
+        // sarissa wall (4.0); block 0.4 stays under HeavyPhalanx's 0.45 (the heavy
+        // infantry holds the highest shield).
+        MediumPhalanx => UnitClass {
+            drain_mult: 1.15,
+            pace_mult: 0.9,
+            soldier_radius: 0.33,
+            mass: 1.05,
+            brace_mult: 3.0,
+            spacing: Vec2::new(0.85, 1.05),
+            default_depth: 8,
+            health: 1.56,
+            block: 0.4,
+            evade: 0.1,
+            training: 0.65,
+            charge: false,
+            doctrine: Doctrine::Strict,
+            // A short sarissa (frontal-only, dead zone inside the shafts), with a
+            // side-sword for off-axis foes — the same two-weapon doctrine as the
+            // heavy phalanx, scaled down: less reach (2.6 vs 3.2), less per-poke.
+            weapons: two(
+                Weapon { reach: 2.6, min_range: 1.0, zones: crate::strike::front(0.04), attack_interval: 3.9, damage: 0.35, ..HEDGE },
+                Weapon { reach: 1.2, zones: crate::strike::front(0.6), attack_interval: 4.1, damage: 0.3, ..MELEE },
+            ),
             ..foot
         },
     }

@@ -14,7 +14,7 @@ behind query-string fallbacks.
   - production adapter that speaks the existing battle scene renderer contract
     while drawing terrain, skinned crowds, overlays, attack triangles, and
     `?debug=blocks` via raw WebGPU passes.
-- `web/scenario.mjs`
+- `web/scene.mjs`
   - named battle scenarios target WebGPU by default.
 - `web/verify-battle.mjs`
   - quick battle verify requests WebGPU browser flags and keeps long full-tier

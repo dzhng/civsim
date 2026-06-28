@@ -58,15 +58,15 @@ fully hidden by the city without special-case painter-order hacks.
 
 ## Verification
 
-- `web/scenarios/webgpu-lab-routes.mjs` opens `/webgpu/campaign-ui` and checks
+- `web/scenes/webgpu-lab-routes.mjs` opens `/webgpu/campaign-ui` and checks
   route stats, WebGPU entity/selection pixels, retained panel DOM, and army/city
   labels.
 - The scenario clicks the projected army marker and city marker through real
   mouse events, then asserts the selected army/city and `lastPick` state.
-- `web/scenarios/campaign-webgpu-production.mjs` repeats the click-selection
+- `web/scenes/campaign-webgpu-production.mjs` repeats the click-selection
   and panel checks through the normal campaign scene rather than the lab-only
   fixture.
-- `web/scenarios/campaign-webgpu-visual.mjs` owns the controlled production
+- `web/scenes/campaign-webgpu-visual.mjs` owns the controlled production
   WebGPU screenshots for our city, neutral city, road army, diplomacy, class
   builder, city panel, and replenish toggle.
 - Additional model-level screenshots must isolate city/town markers, army flags

@@ -14,6 +14,9 @@ fn ai_faction_recruits_and_attacks() {
     let mut marched = false;
     for _ in 0..30 * tunables::TICKS_PER_DAY {
         c.tick();
+        if c.state.tick % 60 == 0 {
+            c.drive_ai();
+        }
         recruited |= !c.state.cities[&2].recruit_queue.is_empty()
             || c.state
                 .armies

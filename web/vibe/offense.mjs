@@ -1,7 +1,7 @@
 // Vibe check: OFFENSE — a WIDE attacking line drives onto a NARROW block. The
 // flanks overlap the block with no enemy in front of them, so on the offensive
 // they should curl IN and the cloth should DRAPE around it (envelop). Eyeball
-// web/shots/baseline/vibe/offense/. Built with the spawn hook so the block is narrow and
+// web/shots/vibe/offense/. Built with the spawn hook so the block is narrow and
 // shallow enough to actually engage (a deep tank just stalls the line).
 import { openBattle, vibeCapture } from './_lib.mjs';
 

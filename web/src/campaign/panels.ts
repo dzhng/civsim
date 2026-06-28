@@ -107,6 +107,15 @@ export function campaignDomHtml(): string {
       #campaign-ui .cmp-build-row > span { flex:1; }
       #campaign-ui .cmp-city-meta { color:#b9aa8b;margin-top:3px;line-height:1.25; }
       #campaign-ui .cmp-recruits { display:flex;gap:4px;flex-wrap:wrap;margin-top:6px; }
+      #campaign-ui .cmp-sieges { position:fixed;right:10px;top:50%;transform:translateY(-50%);
+        width:230px;display:flex;flex-direction:column;gap:8px;z-index:15;pointer-events:none; }
+      #campaign-ui .cmp-siege { pointer-events:auto;cursor:pointer;color:#f3e3c4;font:12px system-ui;
+        padding:8px 10px;border-radius:3px;border:1px solid rgba(196,108,82,0.7);
+        background:linear-gradient(180deg,rgba(58,28,24,0.96),rgba(26,16,14,0.96));
+        box-shadow:0 8px 22px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,196,150,0.12); }
+      #campaign-ui .cmp-siege:hover { border-color:#e08a5a; }
+      #campaign-ui .cmp-siege b { font-family:Cinzel, Georgia, serif;color:#ffd9a0; }
+      #campaign-ui .cmp-siege-sub { color:#d7b69a;font-size:11px;margin-top:2px; }
     </style>
     <div class="cmp-top">
       <span id="cmp-date">Day 1</span>
@@ -125,6 +134,7 @@ export function campaignDomHtml(): string {
     </div>
     <div class="cmp-panel" id="cmp-army" style="display:none"></div>
     <div class="cmp-panel" id="cmp-city" style="display:none;top:auto;bottom:10px;"></div>
+    <div class="cmp-sieges" id="cmp-sieges"></div>
     <div class="cmp-panel" id="cmp-diplomacy"
       style="display:none;left:10px;right:auto;top:44px;width:300px;max-height:84vh;overflow:auto;"></div>
     <div class="cmp-panel" id="cmp-classes"
@@ -192,7 +202,7 @@ function classRow(row: ClassDoctrineRow): string {
   const className = prettyClass(row.class);
   const currentSize = row.sizeMult;
   const selectedName = row.options.find((o) => o.id === row.selected)?.name ?? 'Unknown';
-  const sizes = [1, 2, 4]
+  const sizes = [1, 2, 3]
     .map((s) =>
       `<button data-class="${row.classIndex}" data-size="${s}" ${s === currentSize ? 'class="on"' : ''}>${s}x</button>`,
     )
@@ -226,10 +236,11 @@ function classSort(name: string): number {
     LightSpear: 11,
     MediumInfantry: 20,
     MediumSpear: 21,
+    MediumPhalanx: 22,
     HeavySword: 30,
     HeavySpear: 31,
     LongSwords: 40,
-    Phalanx: 41,
+    HeavyPhalanx: 41,
     Archers: 50,
     Skirmishers: 51,
     ShockCavalry: 60,
@@ -253,33 +264,52 @@ export function cityPanelHtml(
         .map((cl, i) => `<button data-recruit="${i}" title="${cl}">${uiIcon('add')} ${cl.replace(/[a-z]/g, '')}</button>`)
         .join('')}</div>`
     : '';
-  const buildings = detail
-    ? buildRow(detail, mineCity, 0, 'Market', detail.market_lvl, [200, 300])
-      + buildRow(detail, mineCity, 1, 'Barracks', detail.barracks_lvl, [250, 400])
+  const policy = detail ? policyHtml(detail, mineCity) : '';
+  const pct = detail ? Math.round((100 * detail.population) / Math.max(1, detail.pop_cap)) : 0;
+  const meta = detail
+    ? `<div class="cmp-city-meta">pop ${detail.population.toLocaleString()} (${pct}% of cap) — loyalty ${Math.round(detail.loyalty * 100)}%</div>
+       <div class="cmp-city-meta">income ${detail.monthly_income.toLocaleString()}/mo</div>`
     : '';
   return `<div class="cmp-title">${uiIcon('city')}<b>${n.name}</b></div>
     <div class="cmp-city-meta">tier ${n.tier} — ${data.map.factions[city.owner]?.name ?? '?'}</div>
-    <div class="cmp-city-meta">garrison ${city.garrison}${city.queue ? ` | recruiting ${city.queue}` : ''}</div>${buildings}${recruits}`;
+    <div class="cmp-city-meta">garrison ${city.garrison}${city.queue ? ` | recruiting ${city.queue}` : ''}</div>${meta}${policy}${recruits}`;
 }
 
 export interface CityDetail {
-  market_lvl: number;
-  barracks_lvl: number;
-  building: 'market' | 'barracks' | null;
-  build_ticks_left: number;
+  population: number;
+  pop_cap: number;
+  focus: number; // -1 Economy .. +1 Military
+  throttle: number; // 0 Grow .. 1 Exploit
+  econ_dev: number;
+  mil_dev: number;
+  loyalty: number;
+  monthly_income: number;
+}
+
+/** The two policy dials that replace the build menu. */
+function policyHtml(detail: CityDetail, mineCity: boolean): string {
+  if (!mineCity) {
+    return `<div class="cmp-city-meta">focus ${focusLabel(detail.focus)} — ${throttleLabel(detail.throttle)}</div>`;
+  }
+  return `<div class="cmp-policy">
+    <label>Economy ↔ Military
+      <input type="range" data-policy="focus" min="-1" max="1" step="0.1" value="${detail.focus}">
+    </label>
+    <label>Grow ↔ Exploit
+      <input type="range" data-policy="throttle" min="0" max="1" step="0.1" value="${detail.throttle}">
+    </label>
+  </div>`;
+}
+
+function focusLabel(focus: number): string {
+  if (focus < -0.33) return 'Economy';
+  if (focus > 0.33) return 'Military';
+  return 'Balanced';
+}
+function throttleLabel(throttle: number): string {
+  return throttle > 0.5 ? 'Exploit' : 'Grow';
 }
 
 function actionButton(act: DiplomacyAction, f: number, label: string): string {
   return `<button data-act="${act}" data-f="${f}">${label}</button>`;
-}
-
-function buildRow(detail: CityDetail, mineCity: boolean, kind: number, name: string, lvl: number, costs: number[]): string {
-  if (detail.building) {
-    return detail.building === name.toLowerCase()
-      ? `<div class="cmp-build-row"><span>${name} L${lvl} — building, ${Math.ceil(detail.build_ticks_left / 1440)}d left</span></div>`
-      : `<div class="cmp-build-row"><span>${name} L${lvl}</span></div>`;
-  }
-  return lvl < 2 && mineCity
-    ? `<div class="cmp-build-row"><span>${name} L${lvl}</span><button data-build="${kind}">${uiIcon('hammer')} ${costs[lvl]}g</button></div>`
-    : `<div class="cmp-build-row"><span>${name} L${lvl}</span></div>`;
 }

@@ -1,12 +1,12 @@
 //! The campaign tick pipeline, in fixed phase order (mirrors the battle sim):
-//!   1. economy (day boundary)        [M4]
-//!   2. faction AI (hourly)           [M5]
-//!   3. movement: progress, tile steps, occupancy, pass-through, embark
-//!   4. encounters: contact detection, range-gated prep, Pending transitions
-//!   5. routs & timers                [M3+]
-//!   6. recovery                      [M4]
-//!   7. visibility                    [M5]
-//! One tick = one campaign minute.
+//!   1. economy (day boundary, and the monthly settlement on the month boundary)
+//!   2. pursuit re-aim, movement: progress, tile steps, occupancy, embark
+//!   3. encounters: contact detection, range-gated prep, Pending transitions
+//!   4. routs, occupations & timers
+//!   5. diplomacy (weekly) & visibility
+//! The commander AI is *not* a tick phase — the host drives it off the loop
+//! (see `Campaign::advance_external`); only global diplomacy runs here.
+//! One tick = `tunables::MINUTES_PER_TICK` campaign minutes.
 
 use crate::mapdata::{NodeKind, WorldMap};
 use crate::pathfind;
@@ -19,6 +19,12 @@ pub fn tick(map: &WorldMap, st: &mut CampaignState) {
         crate::economy::day_tick(map, st);
         check_outcome(map, st);
     }
+    // The economy settles on the monthly pulse — income, heavy upkeep, population,
+    // development, loyalty — one legible step a game-month (see `economy::month_tick`).
+    if st.tick % tun::TICKS_PER_MONTH as u64 == 0 {
+        crate::economy::month_tick(map, st);
+    }
+    pursue(map, st);
     movement(map, st);
     run_down_routers(map, st);
     crate::economy::garrison_sorties(map, st);
@@ -27,11 +33,20 @@ pub fn tick(map: &WorldMap, st: &mut CampaignState) {
     crate::economy::garrison_returns(map, st);
     crate::economy::occupations(map, st);
     timers(st);
-    if st.tick % crate::visibility::VIS_EVERY == 0 {
-        crate::visibility::recompute(map, st);
+    // The commander AI is driven by the host, not the tick loop: it computes
+    // each faction's decision against a snapshot and applies it on a fixed delay
+    // (see `Campaign::advance_external`). Only global diplomacy runs here, since
+    // it's cheap and shared — and a search sandbox suppresses it.
+    if !st.in_rollout && st.tick % tun::DIPLOMACY_EVERY as u64 == 0 {
+        crate::ai::diplomacy(map, st);
     }
-    if st.tick % 60 == 0 {
-        crate::ai::commanders(map, st);
+    // Fog recompute is the per-tick cost bottleneck, so a search sandbox skips
+    // it: the lookahead rolls a clone forward thousands of ticks per candidate
+    // and only the eval's threat term reads fog — a frozen snapshot from clone
+    // time is a fine approximation. Contact and encounters are physical, not
+    // fog-gated, so battles still form and resolve correctly in a rollout.
+    if !st.in_rollout && st.tick % crate::visibility::VIS_EVERY == 0 {
+        crate::visibility::recompute(map, st);
     }
 }
 
@@ -385,6 +400,17 @@ fn encounters(map: &WorldMap, st: &mut CampaignState) {
     }
 
     // New contacts: hostile pairs in range, both free. Deterministic id order.
+    // The siege window is a real-time pacing device for the human; the AI's
+    // lookahead doesn't need to wait it out. Inside a rollout the sandbox
+    // collapses a siege to the ordinary prep, so `forward_plan` settles a
+    // candidate assault in a few ticks instead of rolling through the whole
+    // siege (and SIEGE_TICKS can then exceed the rollout cap freely). The live
+    // timeline still stands the full siege.
+    let siege_prep = if st.in_rollout {
+        tun::PREP_TICKS
+    } else {
+        tun::SIEGE_TICKS
+    };
     let n = st.armies.len();
     for i in 0..n {
         for j in i + 1..n {
@@ -420,9 +446,12 @@ fn encounters(map: &WorldMap, st: &mut CampaignState) {
             {
                 continue; // it just got away; the gap is becoming real
             }
-            // The mover is the attacker; ties go to the lower id. A dug-in
-            // camp is always the defender, formed up the moment it's hit —
-            // the surprise is on whoever marched into the palisade.
+            // The mover is the attacker; ties go to the lower id. A city
+            // garrison always defends, and a defended city stands a siege
+            // before the assault commits — the window the world runs through in
+            // which relief can still reach the walls. A dug-in camp also always
+            // defends, formed up the moment it's hit: the surprise is on whoever
+            // marched into the palisade.
             let a_dug_in = matches!(
                 a.stance,
                 Stance::Camp {
@@ -435,15 +464,18 @@ fn encounters(map: &WorldMap, st: &mut CampaignState) {
                     build_ticks_left: 0
                 }
             );
-            let attacker_is_a = if a_dug_in != b_dug_in {
-                b_dug_in
+            let (a_garrison, b_garrison) =
+                (a.garrison_of.is_some(), b.garrison_of.is_some());
+            let (attacker_is_a, prep_att, prep_def) = if a_garrison || b_garrison {
+                (b_garrison, siege_prep, siege_prep)
+            } else if a_dug_in != b_dug_in {
+                (b_dug_in, tun::PREP_SURPRISED_TICKS, 0)
             } else {
-                a.marching() || !b.marching()
-            };
-            let (prep_att, prep_def) = if a_dug_in != b_dug_in {
-                (tun::PREP_SURPRISED_TICKS, 0)
-            } else {
-                (tun::PREP_TICKS, tun::PREP_TICKS)
+                (
+                    a.marching() || !b.marching(),
+                    tun::PREP_TICKS,
+                    tun::PREP_TICKS,
+                )
             };
             let id = st.next_encounter_id;
             let seed = ((st.rng.next_u32() as u64) << 32) | st.rng.next_u32() as u64;
@@ -517,6 +549,8 @@ pub fn new_state(map: &WorldMap, seed: u64, player_faction: u32) -> CampaignStat
         .map(|(i, _)| Faction {
             treasury: 500,
             ai: i as u32 != player_faction,
+            bravado: 1.0,
+            rival: map.factions[i].seed_rival,
         })
         .collect();
     let cities = map
@@ -527,7 +561,7 @@ pub fn new_state(map: &WorldMap, seed: u64, player_faction: u32) -> CampaignStat
         .map(|(i, n)| {
             // Garrisons open at establishment strength: an undefended world
             // would be steamrolled by whoever marches first.
-            let garrison = crate::economy::garrison_establishment(n.tier, 0)
+            let garrison = crate::economy::garrison_establishment(n.tier, 0.0)
                 .into_iter()
                 .map(|(class, count)| RosterEntry {
                     class,
@@ -536,11 +570,16 @@ pub fn new_state(map: &WorldMap, seed: u64, player_faction: u32) -> CampaignStat
                     morale_cap: 1.0,
                 })
                 .collect();
+            // Cities open settled (a fraction of their tier cap) and fully loyal —
+            // the realm exists before the player touches it.
+            let population =
+                (tun::city_pop_cap(n.tier) as f32 * tun::POP_START_FRACTION) as u32;
             (
                 i as u32,
                 CityState {
                     owner: n.initial_owner,
                     garrison,
+                    population,
                     ..Default::default()
                 },
             )
@@ -554,14 +593,19 @@ pub fn new_state(map: &WorldMap, seed: u64, player_faction: u32) -> CampaignStat
             id: i as ArmyId,
             faction: s.faction,
             garrison_of: None,
+            // Expand each `(class, units)` entry into `units` full-strength
+            // slots of `unit_size` soldiers (see `StartArmy::roster`).
             roster: s
                 .roster
                 .iter()
-                .map(|&(class, count)| RosterEntry {
-                    class,
-                    count,
-                    max: count,
-                    morale_cap: 1.0,
+                .flat_map(|&(class, units)| {
+                    let size = contract::unit_size(class);
+                    (0..units).map(move |_| RosterEntry {
+                        class,
+                        count: size,
+                        max: size,
+                        morale_cap: 1.0,
+                    })
                 })
                 .collect(),
             loc: Loc::Node(s.at),
@@ -571,6 +615,7 @@ pub fn new_state(map: &WorldMap, seed: u64, player_faction: u32) -> CampaignStat
             stance: Stance::Hold,
             encounter: None,
             auto_replenish: true,
+            sack_intent: false,
             embark_ticks_left: 0,
         })
         .collect();
@@ -597,6 +642,7 @@ pub fn new_state(map: &WorldMap, seed: u64, player_faction: u32) -> CampaignStat
         outcome: None,
         relations: std::collections::BTreeMap::new(),
         diplo_target: std::collections::BTreeMap::new(),
+        in_rollout: false,
     }
 }
 
@@ -616,6 +662,92 @@ fn check_outcome(map: &WorldMap, st: &mut CampaignState) {
         [f] => Some(Outcome::Victory(*f)),
         _ => None,
     };
+}
+
+/// Keep every pursuing army aimed at its quarry: re-point its path at the
+/// target's current tile, indefinitely, so it hounds the target across the map
+/// and stays on it even after it routs. Armies frozen in an encounter are left
+/// to the in-fight chase; the pursuit resumes if the quarry slips away. The
+/// chase ends only when the quarry is wiped out (stand down to Hold) or a new
+/// order replaces the stance.
+fn pursue(map: &WorldMap, st: &mut CampaignState) {
+    for i in 0..st.armies.len() {
+        let Stance::Pursuing { target } = st.armies[i].stance else {
+            continue;
+        };
+        let a = &st.armies[i];
+        if !a.alive() || a.encounter.is_some() || a.garrison_of.is_some() {
+            continue;
+        }
+        // Quarry gone: stand down where we are.
+        if !st.armies.get(target as usize).is_some_and(|t| t.alive()) {
+            let a = &mut st.armies[i];
+            a.stance = Stance::Hold;
+            a.path.clear();
+            a.path_idx = 0;
+            a.progress = 0.0;
+            continue;
+        }
+        let tloc = st.armies[target as usize].loc;
+        let la = st.armies[i].loc;
+        // Already on it (contact will form), or the route already ends on it —
+        // re-aim only when the tail has drifted off, so a half-step keeps its
+        // momentum (mirrors the in-encounter chase).
+        if la == tloc || st.armies[i].path.last() == Some(&tloc) {
+            continue;
+        }
+        if let Some(path) = crate::pathfind::plan(map, &st.road_levels, la, tloc, true) {
+            let a = &mut st.armies[i];
+            let keep = a.marching() && path.first() == Some(&a.path[a.path_idx]);
+            a.path = path;
+            a.path_idx = 0;
+            if !keep {
+                a.progress = 0.0;
+            }
+        }
+    }
+}
+
+/// Order an army to chase a moving target army indefinitely (`Stance::Pursuing`).
+/// Rejected if the chaser can't take orders, the target is the same army or not
+/// a live army, or there's no route to it right now.
+pub(crate) fn order_pursue(
+    map: &WorldMap,
+    st: &mut CampaignState,
+    army: ArmyId,
+    target: ArmyId,
+) -> bool {
+    if army == target || !st.armies.get(target as usize).is_some_and(|t| t.alive()) {
+        return false;
+    }
+    let Some(a) = st.armies.get(army as usize) else {
+        return false;
+    };
+    if !a.alive()
+        || a.garrison_of.is_some()
+        || matches!(a.stance, Stance::Routed { .. } | Stance::Occupying { .. })
+    {
+        return false;
+    }
+    if let Some(eid) = a.encounter {
+        let prep = st
+            .encounters
+            .iter()
+            .any(|e| e.id == eid && e.phase == EncounterPhase::Preparing && !e.ambush);
+        if !prep {
+            return false; // frozen: ambushed, pending, or fighting
+        }
+    }
+    let (la, tloc) = (st.armies[army as usize].loc, st.armies[target as usize].loc);
+    let Some(path) = crate::pathfind::plan(map, &st.road_levels, la, tloc, true) else {
+        return false;
+    };
+    let a = &mut st.armies[army as usize];
+    a.path = path;
+    a.path_idx = 0;
+    a.progress = 0.0;
+    a.stance = Stance::Pursuing { target };
+    true
 }
 
 /// Plan and set a path (shared by the player order surface and the AI).
@@ -649,8 +781,8 @@ pub(crate) fn try_move(
     };
     let a = &mut st.armies[army as usize];
     // Re-ordering toward the same next tile keeps the step's progress — the
-    // AI re-issues its intent hourly, and zeroing progress each time froze
-    // every march longer than one order interval.
+    // AI re-issues its intent each dispatch, and zeroing progress every time
+    // froze any march longer than one order interval.
     let keep_progress = a.marching() && path.first() == Some(&a.path[a.path_idx]);
     a.path = path;
     a.path_idx = 0;

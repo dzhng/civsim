@@ -555,7 +555,7 @@ impl Sim {
                 // already put it — the repel only makes that push DIRECTIONAL and
                 // uncapped (so it holds the line), it does not move where men
                 // fight, so it doesn't ripple the combat balance.
-                let braced = weapons[held].braced();
+                let hedge = weapons[held].hedge();
                 let reach = weapons[held].reach;
                 // The weapon points down the UNIT's frontage; its push is frontal,
                 // along that line. Swords cover one file; braced pole points overlap
@@ -564,7 +564,7 @@ impl Sim {
                 let aim = crate::math::dir(units[uj].facing);
                 let (perp_x, perp_y) = (-aim.y, aim.x);
                 let half_w = units[uj].spacing.x.max(0.5)
-                    * if braced {
+                    * if hedge {
                         BRACED_REPEL_FILE_OVERLAP
                     } else {
                         1.0
@@ -628,7 +628,7 @@ impl Sim {
                             // horse-involved contact keeps body radius — no standoff.
                             let foot = mounted[j] == 0 && mounted[i] == 0;
                             let standoff_dist = if frontal && foot { SWORD_STANDOFF } else { 0.0 };
-                            let rdist = if braced { reach } else { bsum + standoff_dist };
+                            let rdist = if hedge { reach } else { bsum + standoff_dist };
                             // Inside the forward reach band, in this man's column.
                             if fwd <= 0.0 || fwd >= rdist {
                                 continue;
@@ -640,7 +640,7 @@ impl Sim {
                             if fwd < near_fwd {
                                 near_fwd = fwd;
                                 near_i = i;
-                                near_pen = if braced {
+                                near_pen = if hedge {
                                     rdist - fwd
                                 } else {
                                     let overlap = (bsum - fwd).max(0.0);

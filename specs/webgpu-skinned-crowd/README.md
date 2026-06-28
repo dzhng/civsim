@@ -264,9 +264,9 @@ next useful question, then lock it with tests and screenshots.
   `web/src/campaign/terrain3d.ts`.
 - Raw-WebGPU asset/model review surfaces: `apps/webgpu-lab/` and
   `packages/soldier-assets/`
-- Scenario runner: `web/scenario.mjs`
+- Scene runner: `web/scene.mjs`
 - Visual battle wrapper: `web/verify-battle.mjs`
-- Campaign visual scenario: `web/scenarios/campaign-webgpu-visual.mjs`
+- Campaign visual scene: `web/scenes/campaign-webgpu-visual.mjs`
   (`web/verify-campaign-visual.mjs` is a compatibility wrapper)
 - Vibe timelines: `web/vibe/*.mjs`
 

@@ -42,7 +42,7 @@ Current checkpoint:
 
 - Unit tests validate good and bad manifests.
 - Scenario opens the workbench and previews the generated placeholder kit.
-- `VERIFY_WEBGPU=1 node scenario.mjs webgpu-lab-routes` checks the import UI is
+- `VERIFY_WEBGPU=1 node scene.mjs webgpu-lab-routes` checks the import UI is
   present and drives the validation button on a bad manifest.
 - Screenshot captures the 3D preview and validation panel.
 - Bad sample pack produces deterministic error messages.

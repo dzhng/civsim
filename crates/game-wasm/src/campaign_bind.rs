@@ -29,6 +29,17 @@ pub struct Campaign {
     fighting: Option<u32>,
 }
 
+/// The result of one `advance_external` step. `reason`: 0 = budget spent or a
+/// battle came due; 1 = stopped on a dispatch tick (host must snapshot); 2 =
+/// stalled waiting on the decision due at `tick`.
+#[wasm_bindgen]
+#[derive(Clone, Copy)]
+pub struct ExternalStep {
+    pub advanced: u32,
+    pub reason: u8,
+    pub tick: f64,
+}
+
 fn loc_decode(kind: u32, a: u32, b: u32) -> Loc {
     if kind == 0 {
         Loc::Node(a)
@@ -119,6 +130,48 @@ impl Campaign {
         self.inner.save()
     }
 
+    // ---- off-thread AI bridge ---------------------------------------------
+
+    /// Run inside the worker: compute every campaigning faction's decision for
+    /// the loaded snapshot and return them as JSON to post back to the host.
+    pub fn commander_decisions_json(&self) -> String {
+        serde_json::to_string(&self.inner.commander_decisions()).unwrap()
+    }
+
+    /// Advance under host-driven AI, stopping at the boundaries the host must
+    /// service (see `Campaign::advance_external`). On `reason == 1` snapshot with
+    /// `save`, post it to the worker (apply at `tick + AI_LATENCY`), then
+    /// `ack_dispatch`. On `reason == 2` wait for the worker. The result carries
+    /// `advanced`, `reason`, and `tick`.
+    pub fn advance_external(&mut self, max_n: u32) -> ExternalStep {
+        if self.fighting.is_some() {
+            return ExternalStep {
+                advanced: 0,
+                reason: 0,
+                tick: self.inner.tick_count() as f64,
+            };
+        }
+        let (advanced, reason, tick) = self.inner.advance_external(max_n);
+        self.refresh();
+        ExternalStep {
+            advanced,
+            reason,
+            tick: tick as f64,
+        }
+    }
+
+    /// Acknowledge the snapshot just taken at the pending dispatch tick.
+    pub fn ack_dispatch(&mut self) {
+        self.inner.ack_dispatch();
+    }
+
+    /// Submit a worker's decisions (JSON) to apply on their scheduled tick.
+    pub fn submit_decisions_json(&mut self, apply_at: f64, json: &str) {
+        if let Ok(decisions) = serde_json::from_str::<Vec<campaign::ai::Decision>>(json) {
+            self.inner.submit_decisions(apply_at as u64, decisions);
+        }
+    }
+
     /// Saving is refused while a battle is pending or underway.
     pub fn can_save(&self) -> bool {
         self.fighting.is_none() && self.inner.state.battle_ready.is_none()
@@ -178,6 +231,35 @@ impl Campaign {
         .to_string()
     }
 
+    /// Active sieges of the PLAYER's cities — the defended towns currently
+    /// standing an assault, for the on-map "city besieged" notifications. The
+    /// world keeps running through a siege (no auto-pause); clicking a notice
+    /// pans the camera to the city. Each entry carries the city node, its world
+    /// position (to pan to), and the besieging faction.
+    pub fn sieges_json(&self) -> String {
+        let st = &self.inner.state;
+        let map = &self.inner.map;
+        let mut rows: Vec<serde_json::Value> = Vec::new();
+        for e in &st.encounters {
+            if e.phase != EncounterPhase::Preparing {
+                continue;
+            }
+            let def = &st.armies[e.defender as usize];
+            let Some(node) = def.garrison_of else { continue }; // garrison defender = a siege
+            if def.faction != st.player_faction {
+                continue; // only the player's own cities raise a notification
+            }
+            let [x, y] = campaign::sim::loc_pos(map, Loc::Node(node));
+            rows.push(serde_json::json!({
+                "node": node,
+                "x": x,
+                "y": y,
+                "attacker": st.armies[e.attacker as usize].faction,
+            }));
+        }
+        serde_json::json!(rows).to_string()
+    }
+
     // ---- orders (the wasm layer enforces "player commands only own armies")
 
     pub fn order_move(&mut self, army: u32, kind: u32, a: u32, b: u32) -> bool {
@@ -194,6 +276,16 @@ impl Campaign {
             return false;
         }
         let ok = self.inner.order_halt(army);
+        self.refresh();
+        ok
+    }
+
+    /// Chase a moving enemy army indefinitely (right-click an enemy army).
+    pub fn order_pursue(&mut self, army: u32, target: u32) -> bool {
+        if !self.owns(army) {
+            return false;
+        }
+        let ok = self.inner.order_pursue(army, target);
         self.refresh();
         ok
     }
@@ -263,15 +355,18 @@ impl Campaign {
         self.inner.state.road_levels.as_ptr()
     }
 
-    /// kind: 0 market, 1 barracks.
-    pub fn order_build(&mut self, node: u32, kind: u32) -> bool {
-        use campaign::state::BuildKind;
-        let kind = if kind == 0 {
-            BuildKind::Market
-        } else {
-            BuildKind::Barracks
-        };
-        let ok = self.inner.order_build(node, kind);
+    /// Set a city's policy dials: focus (−1 Economy … +1 Military) and throttle
+    /// (0 Grow … 1 Exploit). The player's whole city interaction — the city
+    /// auto-develops from there (no build menu).
+    pub fn order_set_city_policy(&mut self, node: u32, focus: f32, throttle: f32) -> bool {
+        let ok = self.inner.order_set_city_policy(node, focus, throttle);
+        self.refresh();
+        ok
+    }
+
+    /// Flag an army to sack (vs hold) the next city it takes.
+    pub fn order_sack_intent(&mut self, army: u32, on: bool) -> bool {
+        let ok = self.inner.order_sack_intent(army, on);
         self.refresh();
         ok
     }
@@ -353,19 +448,56 @@ impl Campaign {
         ok
     }
 
-    /// City detail for the panel: building levels and the running site.
+    /// City detail for the panel: population, policy dials, development, loyalty,
+    /// and the month's gold the city earns. Replaces the building readout.
     pub fn city_json(&self, node: u32) -> String {
         let Some(c) = self.inner.state.cities.get(&node) else {
             return "null".into();
         };
+        let cap = campaign::tunables::city_pop_cap(self.inner.map.nodes[node as usize].tier);
         serde_json::json!({
-            "market_lvl": c.market_lvl,
-            "barracks_lvl": c.barracks_lvl,
-            "building": c.build_job.as_ref().map(|j| match j.kind {
-                campaign::state::BuildKind::Market => "market",
-                campaign::state::BuildKind::Barracks => "barracks",
-            }),
-            "build_ticks_left": c.build_job.as_ref().map_or(0, |j| j.ticks_left),
+            "population": c.population,
+            "pop_cap": cap,
+            "focus": c.focus,
+            "throttle": c.throttle,
+            "econ_dev": c.econ_dev,
+            "mil_dev": c.mil_dev,
+            "loyalty": c.loyalty,
+            "monthly_income": campaign::economy::city_monthly_income(c),
+        })
+        .to_string()
+    }
+
+    /// The realm's monthly books for the economics panel: per-city income, total
+    /// income, total army upkeep, net, and the ticks until the next settlement.
+    pub fn economy_json(&self) -> String {
+        let st = &self.inner.state;
+        let f = st.player_faction;
+        let cities: Vec<_> = st
+            .cities
+            .iter()
+            .filter(|(_, c)| c.owner == f)
+            .map(|(&node, c)| {
+                serde_json::json!({
+                    "node": node,
+                    "name": self.inner.map.nodes[node as usize].name,
+                    "population": c.population,
+                    "income": campaign::economy::city_monthly_income(c),
+                    "loyalty": c.loyalty,
+                })
+            })
+            .collect();
+        let income = campaign::economy::faction_monthly_income(st, f);
+        let upkeep = campaign::economy::faction_monthly_upkeep(&self.inner.map, st, f);
+        let per_month = campaign::tunables::TICKS_PER_MONTH as u64;
+        let ticks_to_settle = per_month - (st.tick % per_month);
+        serde_json::json!({
+            "treasury": st.factions[f as usize].treasury,
+            "monthly_income": income,
+            "monthly_upkeep": upkeep,
+            "monthly_net": income as i64 - upkeep as i64,
+            "ticks_to_settle": ticks_to_settle,
+            "cities": cities,
         })
         .to_string()
     }
@@ -574,7 +706,9 @@ impl Campaign {
                 }
             };
             let (stance, mut pie_kind, mut pie_frac) = match a.stance {
-                Stance::March | Stance::Hold => (0.0, 0.0, 0.0),
+                // Pursuing renders like an ordinary march — it *is* a march, just
+                // one re-aimed at a moving target each tick.
+                Stance::March | Stance::Hold | Stance::Pursuing { .. } => (0.0, 0.0, 0.0),
                 Stance::Camp { build_ticks_left } => (
                     1.0,
                     if build_ticks_left > 0 { 2.0 } else { 0.0 },

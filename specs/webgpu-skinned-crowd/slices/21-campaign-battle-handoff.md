@@ -22,9 +22,9 @@ state corruption.
 ## Playable Deliverable
 
 - `/?campaign=handoff`
-- `node scenario.mjs campaign-webgpu-handoff`
-- `node scenario.mjs campaign-webgpu-conquest`
-- `node scenario.mjs campaign-webgpu-reinforcements`
+- `node scene.mjs campaign-webgpu-handoff`
+- `node scene.mjs campaign-webgpu-conquest`
+- `node scene.mjs campaign-webgpu-reinforcements`
 - `npm run scenario:webgpu:campaign`
 - Starts controlled campaign, triggers a battle, returns to campaign, and shows
   a handoff report through scenario output.
@@ -37,13 +37,13 @@ state corruption.
 
 ## Verification
 
-- `web/scenarios/campaign-webgpu-handoff.mjs` drives campaign → pending
+- `web/scenes/campaign-webgpu-handoff.mjs` drives campaign → pending
   encounter → WebGPU battle → Continue/Exit to Campaign → WebGPU campaign
   return.
-- `web/scenarios/campaign-webgpu-conquest.mjs` drives menu → normal WebGPU
+- `web/scenes/campaign-webgpu-conquest.mjs` drives menu → normal WebGPU
   campaign → move order to an independent city → garrison battle modal →
   auto-resolve → continued savable WebGPU campaign state.
-- `web/scenarios/campaign-webgpu-reinforcements.mjs` drives menu → normal
+- `web/scenes/campaign-webgpu-reinforcements.mjs` drives menu → normal
   WebGPU campaign → split/stage reinforcement stack → pending battle with
   `reinforcements > 0` → Fight → WebGPU battle unit/soldier count growth.
 - The scenario asserts that battle and campaign renderers are both WebGPU, the

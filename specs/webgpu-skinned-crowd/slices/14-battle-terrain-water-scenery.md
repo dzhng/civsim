@@ -117,11 +117,11 @@ Current checkpoint:
 - Scenario screenshots terrain-only map A/map B/coast fixtures.
 - Pixel checks assert warm grass, readable water, nonblack sky, and deterministic
   frozen ground animation.
-- `VERIFY_WEBGPU=1 node scenario.mjs battle-webgpu-default webgpu-lab-routes`
+- `VERIFY_WEBGPU=1 node scene.mjs battle-webgpu-default webgpu-lab-routes`
   checks the production battle atmosphere stat, warm terrain, team colors,
   richer water/foam/scenery/world-prop terrain fixture counts, sky, minimap,
   DPR input, and frozen-pixel determinism.
-- `VERIFY_WEBGPU=1 node scenario.mjs webgpu-visual-report` regenerates the
+- `VERIFY_WEBGPU=1 node scene.mjs webgpu-visual-report` regenerates the
   cutover contact sheet; the current inspected battle captures show a wider
   feathered water/shore band, no random frozen-overlay streaks, softened
   trampled-ground patches, deterministic grass micro-detail, sim-sourced forest

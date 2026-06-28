@@ -29,7 +29,7 @@ model-gate screenshots exercise the same path.
 ## Verification
 
 - Scenario screenshots phase A and phase B; pixels inside AABB differ.
-- `VERIFY_WEBGPU=1 node scenario.mjs webgpu-soldier-gates` writes individual
+- `VERIFY_WEBGPU=1 node scene.mjs webgpu-soldier-gates` writes individual
   class turntable PNGs, battle-camera readability PNGs, and deterministic
   animation stills under
   `specs/webgpu-skinned-crowd/visualizations/soldier-gates/`.

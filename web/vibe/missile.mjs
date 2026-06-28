@@ -1,6 +1,6 @@
 // Vibe check: missile troops vs an advancing line. The shooter (unit 1) holds
 // and looses on its own (fire-at-will) while the advancer (unit 0) crosses the
-// field at a run. Eyeball web/shots/baseline/vibe/missile/ — do arrows actually fly, does
+// field at a run. Eyeball web/shots/vibe/missile/ — do arrows actually fly, does
 // the charging line thin out crossing the open ground, do the shooters get run
 // down once contact lands (light troops shouldn't win a melee)?
 //   Default: heavy infantry advances on held archers.

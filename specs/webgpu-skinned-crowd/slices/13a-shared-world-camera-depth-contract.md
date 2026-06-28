@@ -199,7 +199,7 @@ shadows that sit on the ground instead of floating as screen overlays.
   read semantics use `CampaignWorldLinePass`. The lab source guard rejects
   `drawDepth`, parallel `depthPipeline` fields, and production routes that wire
   sea lanes through the background line class.
-- Normal production flow scenarios now import `web/scenarios/_webgpu-contract.mjs`
+- Normal production flow scenes now import `web/scenes/_webgpu-contract.mjs`
   and assert concrete pass ids plus depth modes, not only broad renderer
   readiness or phase order. Battle launch/input/handoff/perf checks require the
   `battle-skinned-crowd` read-write depth pass; campaign launch/save/load/menu

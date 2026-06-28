@@ -1,6 +1,6 @@
 ---
 name: feature-slicing
-description: Break large features into independently verifiable, human-reviewable slices under specs/<feature>/. Use for risky or multi-step feature work that needs upfront questioning, API seams, browser-playable checkpoints, HTML visualizations, screenshot gates, or staged implementation plans.
+description: Break large features into independently verifiable, human-reviewable slices under specs/<feature>/. Use for risky or multi-step feature work that needs upfront questioning, API seams, browser-playable checkpoints, HTML visualizations, screenshot gates, or staged implementation plans. Pairs with [write-scene](../write-scene/SKILL.md) and [screenshot-regression](../screenshot-regression/SKILL.md) (the browser checkpoints and screenshot gates) and [review](../review/SKILL.md) (audit each slice before it lands).
 ---
 
 # Feature Slicing
@@ -91,3 +91,7 @@ Each slice file answers:
 The feature plan is done when a fresh agent can start at slice 1 without the
 conversation, and the human can review the roadmap without reverse-engineering
 a wall of text.
+
+Once the slices have all shipped, [close-spec](../close-spec/SKILL.md) archives
+the plan to `specs/done/` and rewrites it from a build ladder into a durable
+rationale record.

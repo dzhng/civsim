@@ -20,7 +20,7 @@ exception with a named owner and follow-up optimization slice.
 - `packages/webgpu-core/src/capabilities.ts`
 - `/webgpu/perf` publishes a `webgpu-full-game-perf` report for the lab
   skinned-crowd benchmark.
-- `web/scenarios/full-game-webgpu-performance.mjs` measures normal shipped
+- `web/scenes/full-game-webgpu-performance.mjs` measures normal shipped
   routes: menu shell, default 30k battle, normal campaign, and campaign battle
   handoff, then writes the canonical performance evidence JSON/HTML report.
 - Transitional legacy/current renderer capture mode for identical baseline
@@ -36,7 +36,7 @@ exception with a named owner and follow-up optimization slice.
 
 Current checkpoint:
 
-- `VERIFY_WEBGPU=1 node scenario.mjs full-game-webgpu-performance` prints a
+- `VERIFY_WEBGPU=1 node scene.mjs full-game-webgpu-performance` prints a
   compact report for menu, battle max crowd, campaign whole map, and handoff.
   It is headless liveness only (`releaseBudget: not-set`).
 - The same scenario writes
@@ -66,7 +66,7 @@ Current checkpoint:
   `0.06ms` instead of the earlier repeated atlas upload spike.
 - The archived current-renderer baseline format is documented by
   `specs/webgpu-skinned-crowd/visualizations/performance/current-renderer-baseline.example.json`.
-- `VERIFY_WEBGPU=1 node scenario.mjs webgpu-lab-routes` checks `/webgpu/perf`
+- `VERIFY_WEBGPU=1 node scene.mjs webgpu-lab-routes` checks `/webgpu/perf`
   publishes the shared report shape.
 
 ## Verification
@@ -96,7 +96,7 @@ Current checkpoint:
 - Report calls out where WebGPU beats the current renderer, where it only
   matches, and where it still regresses.
 - Unsupported WebGPU fixture shows useful failure UI.
-  - Current fixture: `VERIFY_WEBGPU=1 node scenario.mjs menu-webgpu-shell`
+  - Current fixture: `VERIFY_WEBGPU=1 node scene.mjs menu-webgpu-shell`
     opens `/?webgpu=off` and proves the menu blocks renderer launches while
     keeping non-renderer surfaces usable.
 

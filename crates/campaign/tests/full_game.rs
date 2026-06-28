@@ -25,6 +25,9 @@ struct FactionStat {
     cities: usize,
     soldiers: u32,
     treasury: u32,
+    population: u32,
+    /// Mean loyalty across held cities (×100), the overextension read.
+    mean_loyalty: u32,
 }
 
 fn faction_stat(st: &CampaignState, f: u32) -> FactionStat {
@@ -41,10 +44,28 @@ fn faction_stat(st: &CampaignState, f: u32) -> FactionStat {
         .filter(|c| c.owner == f)
         .map(|c| c.garrison.iter().map(|r| r.count).sum::<u32>())
         .sum();
+    let population: u32 = st
+        .cities
+        .values()
+        .filter(|c| c.owner == f)
+        .map(|c| c.population)
+        .sum();
+    let loyalty_sum: f32 = st
+        .cities
+        .values()
+        .filter(|c| c.owner == f)
+        .map(|c| c.loyalty)
+        .sum();
     FactionStat {
         cities,
         soldiers: field + garrison,
         treasury: st.factions[f as usize].treasury,
+        population,
+        mean_loyalty: if cities > 0 {
+            (100.0 * loyalty_sum / cities as f32) as u32
+        } else {
+            0
+        },
     }
 }
 
@@ -57,62 +78,9 @@ fn sample_stats(st: &CampaignState, playable: &[u32]) -> Vec<FactionStat> {
     playable.iter().map(|&f| faction_stat(st, f)).collect()
 }
 
-/// Cost-weighted value of a soldier, the same yardstick the campaign AI uses
-/// to size up armies.
-fn weight(class: contract::UnitClassId) -> u64 {
-    campaign::tunables::upkeep_per_soldier_milligold(class) as u64
-}
-
-/// A cheap stand-in for a full battle: the heavier side wins, both bleed in
-/// proportion to the strength gap. Battle-accuracy isn't the point here — the
-/// loop's health is — and the real sim is exercised by `lopsided_war_concludes`.
-/// Lets the harness sweep multi-year trajectories the real sim is too slow for.
-fn fast_resolve(setup: &contract::BattleSetup) -> contract::BattleResult {
-    let units: Vec<(u32, &contract::RosterUnit)> = setup
-        .deployments
-        .iter()
-        .flat_map(|d| d.units.iter().map(move |u| (d.team, u)))
-        .chain(
-            setup
-                .reinforcements
-                .iter()
-                .flat_map(|r| r.units.iter().map(move |u| (r.team, u))),
-        )
-        .collect();
-
-    let mut team_str = [0u64, 0u64];
-    for &(team, u) in &units {
-        team_str[team as usize] += u.count as u64 * weight(u.class);
-    }
-    let victor = if team_str[0] >= team_str[1] { 0 } else { 1 };
-    let (ws, ls) = (
-        team_str[victor as usize].max(1),
-        team_str[1 - victor as usize].max(1),
-    );
-    let ratio = ls as f64 / ws as f64; // 0..1, how close the loser was
-    let winner_surv = (1.0 - 0.45 * ratio).clamp(0.5, 1.0);
-    let loser_surv = (0.45 * ratio).clamp(0.0, 0.5);
-
-    let results = units
-        .iter()
-        .map(|&(team, u)| {
-            let won = team == victor;
-            let frac = if won { winner_surv } else { loser_surv };
-            contract::UnitResult {
-                id: u.id,
-                team,
-                survivors: (u.count as f64 * frac) as u32,
-                routed: !won,
-                morale_cap: if won { 0.9 } else { 0.6 },
-                deployed: true,
-            }
-        })
-        .collect();
-    contract::BattleResult {
-        victor,
-        units: results,
-    }
-}
+// The cheap stand-in for a full battle is now `campaign::resolve::estimate`
+// (promoted to production for the AI's lookahead). The harness uses it for fast
+// multi-year sweeps; the real sim is exercised by `lopsided_war_concludes`.
 
 struct Report {
     days: u64,
@@ -162,12 +130,15 @@ fn play(
     let mut day = 0u64;
     for tick in 1..=max_ticks {
         c.tick();
+        if c.state.tick % 60 == 0 {
+            c.drive_ai();
+        }
 
         if let Some(eid) = c.state.battle_ready {
             match c.battle_setup(eid) {
                 Some(setup) => {
                     let result = if fast {
-                        fast_resolve(&setup)
+                        campaign::resolve::estimate(&c.map, &setup)
                     } else {
                         Battle::auto_resolve(&setup, BATTLE_CAP)
                     };
@@ -282,6 +253,28 @@ fn print_report(r: &Report) {
         );
     }
 
+    // Population & mean loyalty at the horizon — the overextension read: a leader
+    // that sprawls should show a big, restive (low-loyalty) frontier.
+    println!("\nfaction        population       mean loyalty");
+    for (i, &f) in r.playable.iter().enumerate() {
+        println!(
+            "  {:<12} {:>9}        {:>3}%",
+            r.names[f as usize], sn[i].population, sn[i].mean_loyalty
+        );
+    }
+
+    // Runaway gap: strongest-vs-weakest playable power by cities, over time. The
+    // headline macro-health metric — a healthy loop keeps this from blowing out
+    // early and never recovering (slice 05 is judged against the baseline here).
+    println!("\nrunaway gap (max−min cities held over time):");
+    for (day, s) in &r.samples {
+        let (max, min) = (
+            s.iter().map(|x| x.cities).max().unwrap_or(0),
+            s.iter().map(|x| x.cities).min().unwrap_or(0),
+        );
+        println!("  d{day:>5}: gap {}  (max {max}, min {min})", max - min);
+    }
+
     // City-count trajectory over time — the clearest "is anyone winning?" view.
     println!("\ncities held over time:");
     print!("  {:>6}", "day");
@@ -358,8 +351,8 @@ fn lopsided_map() -> &'static str {
         {"id": "independents", "name": "Ind", "color": [99,99,99], "playable": false}
       ],
       "start_armies": [
-        {"faction": "red",  "at": "Red",  "roster": [["HeavySword", 1280], ["Archers", 480], ["ShockCavalry", 280]]},
-        {"faction": "blue", "at": "Blue", "roster": [["LightSpear", 200]]}
+        {"faction": "red",  "at": "Red",  "roster": [["HeavySword", 3], ["Archers", 1], ["ShockCavalry", 1]]},
+        {"faction": "blue", "at": "Blue", "roster": [["LightSpear", 1]]}
       ]
     }"#
 }

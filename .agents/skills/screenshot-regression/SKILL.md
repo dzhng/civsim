@@ -1,14 +1,15 @@
 ---
 name: screenshot-regression
-description: How to take screenshots of the game and use pixel-exact snapshot regression — across the verify harnesses, the vibe timelines, WebGPU production gates, and the final release audit. Use when verifying UI/rendering changes, adding a new visual feature, re-blessing baselines after an intentional visual or mechanics change, comparing WebGPU against archived current-renderer evidence, or debugging a snapshot failure.
+description: How to take screenshots of the game and use pixel-exact snapshot regression — across the verify harnesses, the vibe timelines, model turntable, WebGPU production gates, and final release audit. Use when verifying UI/rendering changes, adding a new visual feature, re-blessing baselines after an intentional visual or mechanics change, comparing WebGPU against archived current-renderer evidence, or debugging a snapshot failure. Pairs with [write-scene](../write-scene/SKILL.md) (the scenes whose snaps obey these rules).
 ---
 
 # Screenshots and pixel-level regression testing
 
 **One primitive, every shot.** `snapCheck` (`web/snapshot.mjs`) is the single
 path every visual artifact flows through — the verify harnesses, the vibe battle
-timelines (`vibe/*.mjs`), and the WebGPU production visual scenarios. A
-committed baseline under `web/shots/baseline/<name>.png` is at once the picture
+timelines (`vibe/*.mjs`), the model turntable (`vibe/turntable.mjs`), and the
+WebGPU production visual scenes. A committed baseline under `web/shots/<name>.png`
+is at once the picture
 you review, the image a PR diff shows, and the gate. There is no "review-only"
 tier: every shot is a regression target, so a downstream mechanics change is
 visible as a red frame with a highlighted diff, not just a number that moved.
@@ -20,13 +21,15 @@ the freeze hooks. Any nonzero tolerance must name the source it absorbs, such as
 a documented headless SwiftShader raster wobble, and must not hide unknown
 visual drift.
 
-`snapCheck`'s `name` may carry a subfolder, so the baselines organize by source:
-`baseline/battle-initial.png` (verify) and
-`baseline/vibe/<scenario>/t###s.png` (vibe timelines).
+Each harness owns a folder under `shots/` (the scene/campaign harnesses pass an
+explicit `baseDir`; vibe/turntable carry the folder in the snap `name`):
+`scenes/battle-initial.png` (scene runner), `campaign/campaign-political.png`
+(verify-campaign), `vibe/<scenario>/t###s.png` (vibe timelines),
+`models/<id>-<class>.png` (turntable).
 
 `web/vibe/shots/` is obsolete. Current review artifacts live under `web/shots/`:
-committed baselines in `web/shots/baseline/`, failure diffs in `web/shots/diff/`,
-and committed weave flipbooks in `web/shots/weave/`.
+committed baselines in per-harness folders (`scenes/`, `campaign/`, `vibe/`,
+`models/`, `models-ingame/`, `weave/`), and failure diffs in `web/shots/diff/`.
 
 ## ALWAYS look at the screenshot before you respond
 
@@ -101,7 +104,7 @@ Late-port screenshot reports should cover at least:
 - unsupported-WebGPU failure UI
 
 The first production-route campaign WebGPU gate is
-`VERIFY_WEBGPU=1 node scenario.mjs campaign-webgpu-production`. It opens
+`VERIFY_WEBGPU=1 node scene.mjs campaign-webgpu-production`. It opens
 `/?campaign=test`, not a lab route, and proves the normal campaign scene can
 freeze, render, project, select an army by a real click, and open a city panel
 over the raw-WebGPU adapter. Archived current-renderer captures are migration
@@ -181,10 +184,10 @@ controlled stage (`buildTestCampaign` in `main.ts`): our city (Roma) — a road
 synthesized in JS (no fetch). The army teleports with the debug hook
 `window.__campaign.place(army, kind, a, b)` (kind 0 = node index, 1 = edge
 tile), so you can pose it over the road / our city / the neutral city exactly
-and deterministically. `web/scenarios/campaign-webgpu-visual.mjs` snapshots all
+and deterministically. `web/scenes/campaign-webgpu-visual.mjs` snapshots all
 of those through the production raw-WebGPU campaign adapter; extend that
 scenario when you change an army/city model. Re-bless with
-`VERIFY_WEBGPU=1 UPDATE_SHOTS=1 node scenario.mjs campaign-webgpu-visual`.
+`VERIFY_WEBGPU=1 UPDATE_SHOTS=1 node scene.mjs campaign-webgpu-visual`.
 `verify-campaign-visual.mjs` remains as a compatibility wrapper for the same
 scenario.
 
@@ -239,24 +242,26 @@ Click-to-select and drag-box are real input paths; drive them with
 ## Running just one snapshot
 
 > Battle, campaign, and WebGPU production-flow verification use addressable
-> **scenarios** (one runner over `web/scenarios/*.mjs`). `verify-battle.mjs`
+> **scenes** (one runner over `web/scenes/*.mjs`). `verify-battle.mjs`
 > and `verify-campaign-visual.mjs` remain compatibility wrappers over selected
-> scenarios. See `specs/scenarios.md` and the `write-scenario` skill for the
+> scenes. See `specs/scenes.md` and the `write-scene` skill for the
 > target architecture.
 
-For battle work, run the smallest scenario by name:
-`node scenario.mjs battle-ai --full`, `node scenario.mjs banner-gallery`, or
-`node scenario.mjs battle-cavalry-plow --full`. `web/verify-battle.mjs` remains
-a compatibility wrapper over those scenarios, so old commands still work.
+For battle work, run the smallest scene by name:
+`node scene.mjs battle-ai --full`, `node scene.mjs banner-gallery`, or
+`node scene.mjs battle-cavalry-plow --full`. `web/verify-battle.mjs` remains
+a compatibility wrapper over those scenes, so old commands still work.
 
-Within a selected scenario, set `SNAP=<substr>` to compare only snaps whose name
+Within a selected scene, set `SNAP=<substr>` to compare only snaps whose name
 contains the substring (comma-separated = OR), skipping the rest (no compare, no
 diff written). Snapshots behind `--full` still need `--full` or an explicit
-scenario name. For campaign-marker work prefer
-`VERIFY_WEBGPU=1 node scenario.mjs campaign-webgpu-visual` (the fake
-`?campaign=test` map) — it never spawns a battle, so it won't churn the tracked
-battle scratch shots (`initial.png`, `manual.png`, `cluster-*.png`) that the
-battle harness rewrites every run.
+scene name. For campaign-marker work prefer
+`VERIFY_WEBGPU=1 node scene.mjs campaign-webgpu-visual` or the
+`verify-campaign-visual.mjs` wrapper (the fake `?campaign=test` map) — it never
+spawns a battle, so it won't churn the tracked battle scratch shots
+(`initial.png`, `manual.png`, `cluster-*.png`) that the battle harness rewrites
+every run. Restore those with `git checkout -- 'web/shots/*.png'` after a
+battle run.
 
 ## Adding a regression snapshot
 
@@ -269,7 +274,7 @@ await snapCheck(page, 'vibe/my-scenario/t020s', check, { threshold: 0.1, maxDiff
 await snapCheck(null, 'models/12-foo', check, { shot: pngBuffer });  // compare a buffer you already hold
 ```
 
-First run creates `web/shots/baseline/<name>.png` and passes ("baseline
+First run creates `web/shots/<name>.png` and passes ("baseline
 created") — so a first run never spuriously fails; **commit the baseline**.
 Every later run compares and writes `web/shots/diff/<name>.png` (highlighted)
 plus `<name>-actual.png` on failure (`shots/diff/` is gitignored). Pass an

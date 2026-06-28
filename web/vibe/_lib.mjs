@@ -2,7 +2,7 @@
 // scenario and films it every N sim-seconds — a timeline you flip through to
 // SEE a fight (does a rout flee home as a clump, does anyone launch into orbit).
 // Every frame is also a pixel-regression baseline (via snapCheck): it lands in
-// web/shots/baseline/vibe/<name>/ — committed, so the picture is both the thing
+// web/shots/vibe/<name>/ — committed, so the picture is both the thing
 // you review AND a gate that turns red (with a highlighted diff in shots/diff/)
 // when a downstream mechanics change moves the battle. Re-bless intended shifts
 // with UPDATE_SHOTS=1; a scenario exits non-zero when any frame differs.
@@ -49,9 +49,13 @@ export const CLS = {
 export const fitDuel = (page) => page.evaluate(() => {
   const a = window.__game.unitInfo(0), b = window.__game.unitInfo(1);
   const cv = document.getElementById('battlefield');
-  const spanX = Math.abs(a[32] - b[32]) + 55, spanY = Math.abs(a[33] - b[33]) + 55;
+  // centroid_x/y are stride indices 30/31 (render_look is the last field, 32) —
+  // see UNIT_INFO layout in game-wasm/src/lib.rs. Reading 32/33 gave render_look
+  // and an out-of-bounds NaN, blanking the camera.
+  const [X, Y] = [30, 31];
+  const spanX = Math.abs(a[X] - b[X]) + 55, spanY = Math.abs(a[Y] - b[Y]) + 55;
   const c = window.__cam;
-  c.x = (a[32] + b[32]) / 2; c.y = (a[33] + b[33]) / 2; c.pitch = 0;
+  c.x = (a[X] + b[X]) / 2; c.y = (a[Y] + b[Y]) / 2; c.pitch = 0;
   c.zoom = Math.max(2.5, Math.min(20, Math.min(cv.width / spanX, cv.height / spanY)));
   c.clampView?.();
 });
@@ -73,7 +77,7 @@ export const duelLabel = (secs, s) =>
 /** Screenshot+regress `name` every `stepSecs` sim-seconds until `done(sample)`
  *  (or `maxSteps`). Per step: position the camera (`frame`), freeze + hide the
  *  victory panel, then snapCheck against the committed baseline
- *  shots/baseline/vibe/<name>/t###s.png (created on first run, diffed after),
+ *  shots/vibe/<name>/t###s.png (created on first run, diffed after),
  *  log (`label`), and advance. The freeze pins the fidget sway + shader clock,
  *  so a frame is byte-stable on the same code — a real regression target, not
  *  just an eyeball capture. `sample` returns a status object for `label`/`done`.

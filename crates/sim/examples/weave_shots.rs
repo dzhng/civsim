@@ -563,7 +563,7 @@ fn main() {
             Vec2::new(0.0, -13.0),
             FRAC_PI_2,
             120,
-            UnitClassId::Phalanx,
+            UnitClassId::HeavyPhalanx,
             0,
         );
         let top = sim.spawn_class(
@@ -587,11 +587,11 @@ fn main() {
         let pike = sim::Weapon {
             reach: 3.5,
             min_range: 1.1,
-            arc: 0.08,
+            zones: sim::strike::front(0.04),
             attack_interval: 1.4,
             damage: 0.0,
             cleave: false,
-        kind: sim::WeaponKind::Braced,
+        impales: true, kind: sim::WeaponKind::Hedge,
         };
         let south = sim.spawn_unit(
             Vec2::new(0.0, -25.0),

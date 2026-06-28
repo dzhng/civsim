@@ -22,10 +22,10 @@ in TypeScript.
   a painted background raster) from source geodata.
 - `web` — Vite + TypeScript shell. Battle: WebGL2 instanced renderer. Campaign:
   a Babylon.js 3D terrain under a transparent Canvas2D marker layer.
-- `web/scenario.mjs` and `web/scenarios/*.mjs` — Playwright browser scenarios
-  for addressable battle checks and screenshots. `web/verify-battle.mjs` is a
-  compatibility wrapper over those scenarios; campaign still uses the legacy
-  verify harnesses.
+- `web/scene.mjs` and `web/scenes/*.mjs` — Playwright browser scenes
+  for addressable battle checks and screenshots (committed to `web/shots/scenes/`).
+  `web/verify-battle.mjs` is a compatibility wrapper over those scenes; campaign
+  still uses the legacy verify harnesses.
 
 Core design: the player issues *intent*; each unit's formation controller
 realizes it over time, rate-limited by **cohesion**. Cohesion is *measured*
@@ -113,7 +113,7 @@ revealed trample tests that were only ever passing by seed-luck (their true valu
 chaotic across seeds), and deep blocks that *should* bog cavalry down rather than
 let it ride through. The judge is always the same question — *is this the more
 realistic result?* — not the test's colour. See
-`.agents/skills/debug-battle-behavior`.
+`.agents/skills/debug`.
 
 ## The simulation model — measured quantities and the laws that read them
 
@@ -335,8 +335,8 @@ cargo test -p sim --test balance_harness
 cargo test -p sim --test ranged_scenarios
 
 # browser verification (needs the dev server running)
-node web/scenario.mjs                # battle quick scenarios
-node web/scenario.mjs battle-ai --full
+node web/scene.mjs                   # battle quick scenes
+node web/scene.mjs battle-ai --full
 node web/verify-battle.mjs           # compatibility wrapper for battle
 node web/verify-campaign.mjs         # campaign (real map: behavior + screenshots)
 node web/verify-campaign-visual.mjs  # campaign markers (controlled test map)

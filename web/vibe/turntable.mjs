@@ -16,7 +16,7 @@ import { clearSnapshotFolder, snapCheck } from '../snapshot.mjs';
 
 const TARGET = process.env.VERIFY_URL ?? 'http://localhost:5173';
 // PITCH=ingame renders at the battle's real max tilt (0.42 rad, near top-down)
-// under shots/baseline/models-ingame/ to confirm the models still read as the
+// under shots/models-ingame/ to confirm the models still read as the
 // engine actually shows them; default is the side-on hero angle for geometry.
 const INGAME = process.env.PITCH === 'ingame';
 const GROUP = INGAME ? 'models-ingame' : 'models';

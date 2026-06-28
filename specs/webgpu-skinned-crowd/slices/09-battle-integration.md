@@ -39,7 +39,7 @@ impostors, but it is not acceptable for production battle mesh parity.
   ranks/weapons sort by real geometry depth rather than append order.
 - Existing DPR click and drag-box selection checks pass.
 - Frozen battle, two animation phases, pixel diff inside selected unit AABB.
-- `web/verify-battle.mjs` or `web/scenario.mjs` gains named raw-WebGPU cases.
+- `web/verify-battle.mjs` or `web/scene.mjs` gains named raw-WebGPU cases.
 
 ## Must Stay Green
 

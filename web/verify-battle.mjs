@@ -1,6 +1,6 @@
-// Compatibility wrapper for the battle scenarios. Prefer `node scenario.mjs`
+// Compatibility wrapper for the battle scenes. Prefer `node scene.mjs`
 // for new work; this keeps the historical npm scripts and SNAP filters alive.
-import { main } from './scenario.mjs';
+import { main } from './scene.mjs';
 
 process.env.VERIFY_WEBGPU ??= '1';
 
@@ -12,7 +12,7 @@ const includeNames = [
   'battle-lod',
   'battle-selection',
   'banner-gallery',
-  ...(full ? ['battle-cluster', 'battle-cavalry-plow', 'battle-mechanics', 'battle-ai'] : []),
+  ...(full ? ['battle-cavalry-plow', 'battle-ai'] : []),
 ];
 
 main(args, { includeNames }).then((code) => process.exit(code)).catch((error) => {

@@ -6,8 +6,10 @@ description: Create or revise agent skills. Use when adding a new skill file, re
 # Write Skills
 
 A skill is not documentation. It is compressed operational memory for an
-agent that already knows how to code and reason. Put only the context that
-changes what the agent will do.
+agent that already knows how to code and reason. Its job is
+**predictability** — the agent taking the same *process* every run, not
+producing the same output. Put only the context that changes what the agent
+will do.
 
 ## First Principles
 
@@ -25,14 +27,118 @@ changes what the agent will do.
    points, and small examples. A good skill changes behavior in the next
    turn; it does not merely explain the topic.
 
-4. **Use progressive disclosure.** Keep the main skill file short. Put long
-   schemas, examples, provider docs, or variant-specific guidance in directly
-   linked `references/` files. Put repeatable fragile operations in
-   `scripts/`. Put reusable output material in `assets/`.
+4. **Use progressive disclosure.** Keep the main skill file short. Push long
+   schemas, examples, provider docs, or variant-specific guidance out into
+   linked `references/` files, reached by a pointer that fires only when
+   needed. Put repeatable fragile operations in `scripts/`. Put reusable
+   output material in `assets/`.
 
 5. **Validate by use.** A skill is good when a fresh agent applies it
    correctly on a realistic task. After editing, read it as if you had no
    conversation history and remove anything that would not affect action.
+
+6. **Examples document the PROBLEM, not the solution.** An example earns its
+   tokens by teaching the agent to *recognise a recurring problem* — the smell,
+   the symptom, how you knew it was wrong. That is durable. The fix you happened
+   to apply is not: code changes, and a baked-in solution goes stale, or worse
+   prescribes a move that won't fit next time. Write the failure mode and its
+   tell; let the agent derive the fix fresh against the current code. "A
+   directional question gated on a centroid distance read wrong from every
+   bearing" teaches; "so we keyed it on FRONT_ARC" rots. When in doubt, state
+   what was broken and how you spotted it, and stop there.
+
+## Leading Words
+
+A **leading word** is a compact concept already in the model's pretraining
+that the agent thinks with while running the skill (e.g. *fog of war*,
+*tracer bullets*, *red*, *tight*). One word recruits priors the model
+already holds and anchors a whole region of behavior in the fewest tokens.
+
+- It anchors **execution** in the body (same word → same behavior every
+  time) and **invocation** in the description (when that word also lives in
+  the user's prompts, docs, and code, the skill fires more reliably).
+- Hunt for restatements that a leading word retires. "fast, deterministic,
+  low-overhead" → a *tight* loop. "a loop you believe in" → the loop goes
+  *red*. You win twice: fewer tokens and a sharper hook.
+- A weak leading word is a no-op (`be thorough` when the agent already is).
+  The fix is a stronger word (*relentless*), not more sentences.
+
+## Invocation
+
+Choose how the skill is reached; each choice spends a different cost.
+
+- **Model-invoked** (default): keep a `description` so the agent can fire it
+  on its own and other skills can reach it. Costs **context load** — the
+  description sits in the window every turn. Write rich trigger phrasing.
+- **User-invoked**: set `disable-model-invocation: true`. Only the user
+  typing its name can invoke it; zero context load, but the user must
+  remember it exists. The `description` becomes a human-facing one-liner.
+
+Pick model-invocation only when the agent or another skill must reach it
+unprompted. When user-invoked skills pile up past memory, add a **router
+skill** that names the others and when to reach for each.
+
+## Description
+
+The description does two jobs: state what the skill is, and list the
+distinct situations (**branches**) that trigger it.
+
+- Front-load the leading word — invocation work happens here.
+- One trigger per branch. Synonyms that rename one branch are duplication;
+  collapse them and keep only genuinely distinct branches.
+- Cut identity already in the body. Keep triggers plus any "when another
+  skill needs…" reach clause.
+
+## Information Hierarchy
+
+A skill is **steps** and **reference**, mixed freely. Rank each piece by how
+immediately the agent needs it:
+
+1. **In-skill step** — an ordered action in `SKILL.md`. Each ends on a
+   **completion criterion**: make it *checkable* (can the agent tell done
+   from not-done?) and, where it matters, *exhaustive* ("every modified
+   model accounted for", not "produce a change list"). A vague criterion
+   invites premature completion.
+2. **In-skill reference** — a definition or rule consulted on demand. A flat
+   peer-set of rules is fine, not a smell.
+3. **External reference** — pushed out of `SKILL.md` into a linked file,
+   loaded only when its pointer fires.
+
+Keep a concept's definition, rules, and caveats under one heading
+(**co-location**) so reading one part brings its neighbors. Push too little
+down and the top bloats; push too much and you hide what the agent needs.
+
+## When to Split
+
+Each cut spends a cost, so split only when it earns it:
+
+- **By invocation** — split off a model-invoked skill when a distinct
+  leading word should trigger it alone, or another skill must reach it. You
+  pay context load for the new always-loaded description.
+- **By sequence** — split a run of steps when the steps still ahead tempt
+  the agent to rush the one in front of it. Hiding later steps forces more
+  work on the current one.
+
+## Failure Modes
+
+Diagnose a misbehaving skill against these:
+
+- **Premature completion** — ending a step before it's done. Fix the
+  completion criterion first (cheap); only split to hide later steps if the
+  criterion is irreducibly fuzzy *and* you see the rush.
+- **Duplication** — the same meaning in two places. Keep a **single source
+  of truth**.
+- **Sediment** — stale layers that accumulate because adding feels safe.
+  Prune deliberately.
+- **War story** — a lesson written as the play-by-play of the change that
+  taught it: function names, tuned values, one bug's trajectory. Those
+  specifics date fast and bury the transferable rule. State the principle and
+  the smell to watch for; let the codebase hold the mechanics. One concrete
+  touchstone grounds it; a paragraph of them drowns it.
+- **Sprawl** — too long even when every line is live. Cure with the ladder:
+  disclose reference behind pointers, split by branch or sequence.
+- **No-op** — a line the model already obeys by default. Test each sentence
+  in isolation; when it fails, delete the whole sentence, don't trim words.
 
 ## Shape
 
@@ -69,6 +175,7 @@ When creating or revising a skill:
 - Remove any "when to use" section from the body.
 - Remove stale history, attribution, placeholders, and setup notes.
 - Prefer one strong rule over several overlapping bullets.
+- Refactor restatements into a leading word where one fits.
 - Keep examples tiny and realistic.
 - Add no README, changelog, or auxiliary docs unless they are actual
   references the skill tells the agent when to read.

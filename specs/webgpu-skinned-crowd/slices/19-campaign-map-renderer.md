@@ -73,17 +73,17 @@ failures belong to the shared renderer foundation first.
   active: scenery occludes ground markers, roads/ground decals sit beneath
   units/cities, and city/army meshes do not depend on manual back-to-front
   triangle emission.
-- `web/scenarios/webgpu-lab-routes.mjs` opens `/webgpu/campaign-map?preset=whole`
+- `web/scenes/webgpu-lab-routes.mjs` opens `/webgpu/campaign-map?preset=whole`
   and checks the current checkpoint: textured parchment map, WebGPU territory
   texture, border segments, WebGPU atmosphere layer, sea, road/sea-lane pixels,
   city marker pixels, and WebGPU glyph-atlas label coverage.
 - Pixel checks preserve faction/road/label readability for the route checkpoint.
-- `web/scenarios/campaign-webgpu-production.mjs` opens the normal campaign test
+- `web/scenes/campaign-webgpu-production.mjs` opens the normal campaign test
   route, freezes the frame, checks WebGPU stats/pixels, clicks real rendered
   army and city markers through the production scene input path, and verifies
   the normal panels over the same WebGPU scene.
 - Gameplay fog-of-war remains required before this slice is production-complete.
-- `web/scenarios/campaign-webgpu-visual.mjs` keeps the controlled campaign
+- `web/scenes/campaign-webgpu-visual.mjs` keeps the controlled campaign
   marker/UI screenshots passing through the production WebGPU campaign adapter;
   `verify-campaign-visual.mjs` is only a compatibility wrapper.
 - The `webgpu-visual-report` campaign-label-zoom capture now uses an actual

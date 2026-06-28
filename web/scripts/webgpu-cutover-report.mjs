@@ -154,14 +154,14 @@ async function scenarioRunCheck(id, url, requiredNames) {
 async function scenarioChecks(scripts) {
   const out = [];
   for (const scenario of EXPECTED_SCENARIOS) {
-    const fileOk = await exists(new URL(`../scenarios/${scenario.file}`, import.meta.url));
+    const fileOk = await exists(new URL(`../scenes/${scenario.file}`, import.meta.url));
     const script = scripts[scenario.script] ?? '';
     const scriptOk = script.includes(scenario.metaName ?? scenario.file.replace(/\.mjs$/, ''));
     out.push({
       id: `parity-${scenario.id}`,
       status: fileOk && scriptOk ? 'complete' : 'fail',
-      detail: `${scenario.detail}; scenario file ${fileOk ? 'exists' : 'missing'} and ${scenario.script} ${scriptOk ? 'includes it' : 'does not include it'}`,
-      evidence: { file: `web/scenarios/${scenario.file}`, script: scenario.script },
+      detail: `${scenario.detail}; scene file ${fileOk ? 'exists' : 'missing'} and ${scenario.script} ${scriptOk ? 'includes it' : 'does not include it'}`,
+      evidence: { file: `web/scenes/${scenario.file}`, script: scenario.script },
     });
   }
   return out;

@@ -59,23 +59,54 @@ const OBSTRUCT_FLOOR: f32 = 0.7;
 /// Out to here a blow comes side-on: evade degrades; behind it, a blow
 /// lands on a man facing the wrong way.
 pub(crate) const SIDE_ARC: f32 = 2.1;
-/// A mounted man SWINGING a blade (not couching a lance) can't reach past his
-/// mount's head or croup — he cuts DOWN to either FLANK. So a sabre only reaches
-/// a target whose bearing off his facing is in (FRONT, REAR): the front cone is
-/// the horse's head (blind), the rear is its croup (blind), the two side lobes
-/// are the men he can actually hit — and who can hit his leg back. Front-on, the
-/// horse shields the rider but he cannot fight: cavalry is SHOCK, not a head-on
-/// grinder. (Thin-arc thrusts — the couched LANCE — are exempt: they DO go
-/// forward; this only blinds wide swings.)
-const MOUNTED_SWING_BLIND_FRONT: f32 = 0.7; // ~40°
-const MOUNTED_SWING_BLIND_REAR: f32 = 2.4; // ~137°
-/// A weapon wider than this, swung from horseback, is a flank cut (blinded front
-/// and rear); narrower is a forward thrust/lance (unblinded).
-const MOUNTED_SWING_ARC_MIN: f32 = 0.5;
-/// Heavy shields work against a presented point too. Pikes are still fearsome
-/// because they strike first, from long reach, in a narrow front-facing hedge —
-/// not because a shielded man magically loses his shield block.
-const BRACED_THRUST_BLOCK_MULT: f32 = 1.0;
+/// Reach at which a FRONTAL blade still only reaches the horse's chest and the
+/// rider's near edge (a hacking sword — the `RIDER_FRONT_FLOOR` base chance).
+/// Above this, the rider's frontal exposure ramps up over the horse's front-half
+/// depth (`HORSE_HALF_LEN`) — a long thrust (spear/pike) goes over the chest to
+/// the man, up to `RIDER_FRONT_CAP`. The grind half of anti-cav.
+const RIDER_HACK_REACH: f32 = 1.1;
+
+/// Most of a flank/rear blow finds the rider — his leg, back, and side hang
+/// over the horse, bare to a blade. But the horse's barrel still shields his
+/// lower body, so even a clean side blow is a CHANCE at the man, never a
+/// certainty: the share is capped below 1. Reach-INDEPENDENT — from the side a
+/// sword reaches the bare man as well as a pike does (sword == pike on flank/back).
+const RIDER_FLANK_EXPOSURE: f32 = 0.8;
+/// Frontal base chance ANY blade has at the rider: a footman jammed against the
+/// horse's chest can still stab up at the man (thigh, under the chin). A short
+/// hack gets only this; reach earns the rest, up to twice this at `RIDER_FRONT_CAP`.
+const RIDER_FRONT_FLOOR: f32 = 0.325;
+/// Frontal ceiling: a long thrust spans over the horse's head and neck to the
+/// rider, but the head is always partly in the way — the frontal share tops out
+/// here, lower than the flank (the horse fronts the man head-on). Set to 2×
+/// `RIDER_FRONT_FLOOR`: a pike grinds the rider HEAD-ON about twice as well as a
+/// sword (David's anti-cav contract), while flank/back they are equal.
+const RIDER_FRONT_CAP: f32 = 0.65;
+
+/// What fraction of a FRONTAL blow on a horseman finds the RIDER vs the horse's
+/// chest — a PROBABILITY, not a switch. A short hack still has a base chance
+/// (`RIDER_FRONT_FLOOR`, stabbing up past the chest); reach earns more, the long
+/// thrust spanning over the chest toward the man up to `RIDER_FRONT_CAP` — about
+/// twice the hack's. The horse's bulk always shields part of the man, so it never
+/// reaches a guaranteed rider hit. The standing grind reads this. From the
+/// flank/rear it is the reach-independent `RIDER_FLANK_EXPOSURE` (at the call
+/// site). The charge-impale also reads this (one rule for the front).
+fn rider_exposure_frontal(reach: f32) -> f32 {
+    let ramp = ((reach - RIDER_HACK_REACH) / crate::class::HORSE_HALF_LEN).clamp(0.0, 1.0);
+    RIDER_FRONT_FLOOR + (RIDER_FRONT_CAP - RIDER_FRONT_FLOOR) * ramp
+}
+// Where a weapon can land is the weapon's own `zones` data (a sword = one front
+// lobe, a mounted sabre = two flank lobes, blind over the horse's head and
+// croup): see `crate::strike`.
+// A MOVING target is hard to hit: every blow at a man (or horse) crossing in
+// front of the striker has to lead a moving mark, and many miss. This is general
+// — it applies to anyone in motion — but it is what lets a trampler carrying
+// CLEAN through loose order come out light (it's galloping, almost nobody lands a
+// blow), while one BOGGED in dense order (~stopped) is hit normally. Below the
+// floor speed (a walk) there's no bump; it ramps with speed to a hard cap.
+const MOVING_EVADE_FLOOR: f32 = 2.0; // m/s — below this, no bump (a walk doesn't dodge)
+const MOVING_EVADE_GAIN: f32 = 0.06; // added evade per m/s above the floor
+const MOVING_EVADE_CAP: f32 = 0.5; // a full gallop dodges at most half the blows
 
 const MAX_NEARBY_FRIENDS: usize = 24;
 type ScanPriority = (i32, i32, u32); // local forward cell, local lateral cell, local soldier
@@ -195,6 +226,27 @@ impl Sim {
                 continue;
             }
             let ui = self.soldier_unit[i] as usize;
+            // Couching the lance is part of beginning the GALLOP, not a
+            // melee-range weapon pick. The grind weapon-swap below only runs once
+            // a foe is within DISENGAGE_DIST (6m) — so without this a charging
+            // lancer kept his sidearm in hand for the whole approach and only
+            // drew the lance AT contact (visibly wrong, and the couched point
+            // never carried). Decide the charge weapon here, above the proximity
+            // gates, keyed purely on charge state: the instant the burst opens
+            // (~50m out) every rider levels his lance, and holds it until it
+            // SNAPS on a man (charge_wpn_spent) or the charge bogs (charging
+            // drops). No fumble cooldown — the lance comes down with the gallop.
+            if self.units[ui].charging && !self.charge_wpn_spent[i] {
+                if let Some(ci) = self.units[ui]
+                    .stats
+                    .weapons
+                    .iter()
+                    .position(|w| w.is_charge())
+                {
+                    self.cur_weapon[i] = ci as u8;
+                    self.switch_cd[i] = 0.0;
+                }
+            }
             if !near_enemy[ui] {
                 self.target[i] = -1;
                 self.fighting[i] = 0;
@@ -211,6 +263,33 @@ impl Sim {
             let p = self.soldier_pos(i);
             let local_f = dir(self.facings[i]);
             let local_r = Vec2::new(local_f.y, -local_f.x);
+            // Targeting strike field (slice 01): a man targets the foe he can bring
+            // his blade to bear on SOONEST (cost = turn-to-edge + travel), not the
+            // nearest body. The field is the GRIND weapon's zones (the widest-arc
+            // melee blade, never the one-phase lance): for a mounted sabre that is
+            // the flank lobes, so the seek DISPERSES riders across the front (the
+            // wide knockdown swath of a charge) and onto flank foes it can cut, not
+            // bunched on one foe dead-ahead. The lance spits forward independently
+            // (its strike reads its own front lobe, below). Foot ignores this field:
+            // its turn cost is gated off, so its cost is pure distance ≈ nearest.
+            let grind = weapons
+                .iter()
+                .filter(|w| !w.is_charge())
+                .max_by(|a, b| a.zones.swing_arc().total_cmp(&b.zones.swing_arc()))
+                .copied()
+                .unwrap_or(weapons[0]);
+            let tgt_field = crate::strike::field(
+                grind.zones,
+                grind.min_range,
+                grind.reach,
+                1.0,
+                AIM_TOLERANCE,
+            );
+            // Cost in seconds: turn time (rad / turn-rate) + travel time
+            // (gap-beyond-reach / closing gait). Both honest seconds, so they
+            // weight themselves; slice 05 refines travel with the accel ramp.
+            let turn_rate = (tun.soldier_turn_rate * stats.turn_mult).max(0.1);
+            let approach_speed = (tun.run_speed * stats.pace_mult).max(0.5);
 
             // --- find nearest enemy + count envelope obstruction ------------
             // The scan covers awareness range: targeting, obstruction, AND
@@ -228,6 +307,10 @@ impl Sim {
             // live distance so we can keep him unless clearly out-classed.
             let prev_target = self.target[i];
             let mut prev_target_d = f32::MAX;
+            // Cost-based selection (slice 01): nearest_d stays the CHOSEN foe's
+            // real distance (downstream reach/fight checks need a distance), but
+            // the CHOICE is argmin engage-cost.
+            let mut nearest_cost = f32::MAX;
             // (victim, surface distance, bearing)
             let mut candidates: [(u32, f32, f32); 12] = [(0, 0.0, 0.0); 12];
             let mut cand_len = 0usize;
@@ -292,7 +375,25 @@ impl Sim {
                             }
                             continue;
                         }
-                        if d_surf < nearest_d {
+                        // Engage cost, in METRES (a wheel converted to the distance
+                        // it would cover): `travel + turn_time*closing_speed`. The
+                        // turn term is MOUNTED-only — a man on foot pivots freely
+                        // (turn ~instant), so his cost is EXACTLY `d_surf` and his
+                        // targeting is byte-for-byte nearest (he still turns to
+                        // meet a flanker; the raw distance compare also avoids the
+                        // float-tie churn a `/speed` would add). A HORSE can't pivot
+                        // at speed and a wide sabre is blind over its head, so a
+                        // rider genuinely must wheel to bring the blade to bear: a
+                        // foe in the flank lobe is cheap, one dead-ahead in the
+                        // blind front is dear. That wheel cost is the measured bug.
+                        let off = wrap_angle(bearing - self.facings[i]).abs();
+                        let cost = if self.mounted[i] == 1 {
+                            d_surf + tgt_field.turn_to_edge(off) / turn_rate * approach_speed
+                        } else {
+                            d_surf
+                        };
+                        if cost < nearest_cost {
+                            nearest_cost = cost;
                             nearest_d = d_surf;
                             nearest = j as i32;
                         }
@@ -321,6 +422,11 @@ impl Sim {
             // A man PULLING OUT (disengage/rout) doesn't cling to his foe, though:
             // stickiness would keep a withdrawing unit nailed in contact, so it
             // yields to the latest nearest and lets the gap open as it backs off.
+            // Selection is argmin engage-cost (arc-aware); the sticky hysteresis
+            // stays on DISTANCE — its job is anti-oscillation, and keying it off
+            // cost made a line man DROP a foe that merely drifted to his flank
+            // (its turn penalty spiked), churning targets mid-grind. Keep the foe
+            // I'm squared up to unless a new one is meaningfully closer.
             self.target[i] = if !disengaged
                 && prev_target >= 0
                 && self.alive[prev_target as usize] == 1
@@ -400,7 +506,7 @@ impl Sim {
                 // bogged or spent, the sabre, where a stalled charge earns its grind.
                 let keep_charge = !self.charge_wpn_spent[i] && self.units[ui].charging;
                 Some(if keep_charge { ci } else { gi })
-            } else if let Some(bi) = weapons.iter().position(|w| w.braced()) {
+            } else if let Some(bi) = weapons.iter().position(|w| w.hedge()) {
                 let pike = &weapons[bi];
                 // The pike is leveled down the UNIT's frontage and braced there; a
                 // man can only drive it while he is himself SQUARED UP to that line.
@@ -409,13 +515,13 @@ impl Sim {
                 // side-arm. So the pike bears only when (a) the foe is in the
                 // frontage arc AND (b) the soldier still faces along it.
                 let self_off = wrap_angle(self.facings[i] - self.units[ui].facing).abs();
-                let pike_bears = front_off <= pike.arc * 0.5 + AIM_TOLERANCE
+                let pike_bears = front_off <= pike.zones.primary_half() + AIM_TOLERANCE
                     && self_off < FRONT_ARC
                     && nearest_d >= pike.min_range
                     && nearest_d <= pike.reach;
                 if pike_bears {
                     Some(bi)
-                } else if let Some(si) = weapons.iter().position(|w| !w.braced()) {
+                } else if let Some(si) = weapons.iter().position(|w| !w.hedge()) {
                     // a foe the pike can't take: sword if it's in reach, else hold
                     // the pike leveled to the front (the default)
                     if nearest_d <= weapons[si].reach {
@@ -455,7 +561,7 @@ impl Sim {
             // can't be turned in the ranks); everything else tracks the man's own
             // facing as he squares up. Used by the aim gate, the obstruction
             // check, and the swing alike.
-            let aim_facing = if weapon.braced() {
+            let aim_facing = if weapon.hedge() {
                 self.units[ui].facing
             } else {
                 self.facings[i]
@@ -498,7 +604,7 @@ impl Sim {
                 // Mobile long weapons (lances, long swords) are not a fixed
                 // hedge; keep their existing charge-presentation behavior.
                 let hedge_bears = aim <= 1.25;
-                if planted > 0.0 && (!weapon.braced() || hedge_bears) {
+                if planted > 0.0 && (!weapon.hedge() || hedge_bears) {
                     let v = nearest as usize;
                     let p = self.soldier_pos(i);
                     let tp = self.soldier_pos(v);
@@ -536,14 +642,13 @@ impl Sim {
                             self.mom_x[v] += d.x * toward * grip;
                             self.mom_y[v] += d.y * toward * grip;
                         }
-                        if weapon.braced() && self.units[vu].tramples() {
+                        if weapon.impales && self.units[vu].tramples() {
                             // A horse feeding itself onto a presented point pays
                             // in flesh as well as momentum. This is not a swing
                             // (no cadence, block, or flourish): it is the
                             // mounted body doing the work by closing onto the
                             // braced shaft. Off-axis/flank charges are already
                             // excluded by `hedge_bears` above.
-                            let to_center = (tp - p).len() - self.radius[i] - 0.35;
                             let dmg = weapon.damage
                                 * (closing / tun.charge_min_speed.max(0.1)).clamp(0.0, 2.0)
                                 * planted
@@ -551,13 +656,19 @@ impl Sim {
                                 * DT
                                 * 6.0;
                             // Charge-impale: a body run onto a braced point — its
-                            // whole wound is charge-driven (closing-speed scaled).
+                            // whole wound is charge-driven (closing-speed scaled). It
+                            // reads the SAME capped rider/chest split as the standing
+                            // grind (one rule for the front): a long pike spans toward
+                            // the rider, a short point bloodies the hide, and the
+                            // horse's bulk always shields part of the man (the 0.65
+                            // cap), so the impale never instantly removes every lead
+                            // horse. The lead horses that DO die open a gap the ranks
+                            // behind charge into — a determined charge breaks through.
+                            // That is the intent: no impenetrable wall, only a toll.
+                            let exp = rider_exposure_frontal(weapon.reach);
                             self.dmg_from_charge[v] += dmg;
-                            if to_center > weapon.reach {
-                                self.mount_dmg_acc[v] += dmg;
-                            } else {
-                                self.dmg_acc[v] += dmg;
-                            }
+                            self.dmg_acc[v] += dmg * exp;
+                            self.mount_dmg_acc[v] += dmg * (1.0 - exp);
                         }
                     }
                 }
@@ -573,31 +684,50 @@ impl Sim {
             // push that holds the contact line apart), so the front neither blobs
             // nor loses the standoff; only the gang's DAMAGE is capped.
             let can_wound = gang_rank[i] < tun.gang_cap;
-            let target_p = self.soldier_pos(nearest as usize);
-            let aim = wrap_angle((target_p - p).y.atan2((target_p - p).x) - aim_facing);
-            // A mounted man swinging a wide blade reaches only his FLANKS, not over
-            // the horse's head; a thrust/lance (thin arc) is not so limited.
-            let mounted_swing = self.mounted[i] == 1 && weapon.arc > MOUNTED_SWING_ARC_MIN;
-            // Foot holds the swing while still TURNING to face the nearest foe. A
-            // mounted swinger never whiffs here — its nearest foe is usually dead
-            // ahead (blind), but it can still cut a man on its flank, so the resolve
-            // below picks the closest target actually in its (flank) reach.
-            if !mounted_swing && aim.abs() > weapon.arc * 0.5 + AIM_TOLERANCE {
-                continue;
+            let facing = aim_facing;
+            // The aim gate: a man holds his swing until his weapon bears. A foot
+            // blade gates on the seek TARGET (he is facing it); a flank SABRE never
+            // gates here (the resolve picks whoever is in its side lobes). A couched
+            // LANCE is the exception: it spits whatever is dead-ahead REGARDLESS of
+            // where the rider's dispersed seek points (the seek scatters riders for
+            // the wide knockdown swath), so it gates on the closest foe in its OWN
+            // front lobe — else it whiffs every time the unit hunts a flank foe.
+            if weapon.is_charge() {
+                let lance = crate::strike::field(
+                    weapon.zones,
+                    weapon.min_range,
+                    weapon.reach,
+                    1.0,
+                    AIM_TOLERANCE,
+                );
+                let bears = (0..cand_len).any(|k| {
+                    let (v, d, b) = candidates[k];
+                    self.alive[v as usize] == 1 && lance.contains(wrap_angle(b - facing).abs(), d)
+                });
+                if !bears {
+                    continue;
+                }
+            } else if !weapon.zones.is_flank() {
+                let target_p = self.soldier_pos(nearest as usize);
+                let aim = wrap_angle((target_p - p).y.atan2((target_p - p).x) - aim_facing);
+                if aim.abs() > weapon.zones.primary_half() + AIM_TOLERANCE {
+                    continue;
+                }
             }
 
             // Obstruction: friendly bodies inside THIS weapon's swing envelope
             // (their subtended angle widens up close). Thrusts (tiny arc)
             // thread past comrades' shoulders — that's why pikes work in
             // ranks; sweeps need clearance, so wide arcs choke in a press.
-            let arc_weight = weapon.arc / (weapon.arc + 0.5);
+            let swing = weapon.zones.swing_arc();
+            let arc_weight = swing / (swing + 0.5);
             let crowded = friends[..friends_len]
                 .iter()
                 .flatten()
                 .filter(|f| {
                     let off = wrap_angle(f.bearing - aim_facing).abs();
                     f.distance < weapon.reach * 0.9
-                        && off < weapon.arc * 0.5 + (0.7 / (f.distance + 0.5)).atan()
+                        && off < weapon.zones.primary_half() + (0.7 / (f.distance + 0.5)).atan()
                 })
                 .count() as f32
                 * arc_weight;
@@ -613,7 +743,6 @@ impl Sim {
             let vice = (self.pressure[i] - net).max(0.0);
             let pinned = (vice / VICE_PIN).clamp(0.0, 1.0);
             let obstruct = crowded * (OBSTRUCT_FLOOR + (1.0 - OBSTRUCT_FLOOR) * pinned);
-            let arc_eff = weapon.arc / (1.0 + obstruct);
             // Swing cadence does NOT slow with fatigue — a tired man swings as
             // often, but each blow lands SOFTER (see stamina_damage_floor in
             // strike). Coupling fatigue to cadence instead made grinds CRAWL: a
@@ -629,15 +758,18 @@ impl Sim {
             // CLEAVE weapon (the wide two-hander) hits everyone in the field. The
             // field is the front arc for foot; for a mounted SABRE it is the two
             // flank lobes (the horse's head and croup are blind).
-            let facing = aim_facing;
             let m_a = self.mass[i] * self.units[ui].brace();
-            let in_field = |off: f32| -> bool {
-                if mounted_swing {
-                    off > MOUNTED_SWING_BLIND_FRONT && off < MOUNTED_SWING_BLIND_REAR
-                } else {
-                    off <= arc_eff * 0.5 + AIM_TOLERANCE
-                }
-            };
+            // The strike FIELD: the weapon's zones, with the FRONT lobe crowd-
+            // narrowed by `1 + obstruct` so a choked sweep shrinks its cone (a
+            // flank sabre's lobes are fixed). Reach and the front/flank geometry
+            // fold in, so the resolve below is one `contains`.
+            let field = crate::strike::field(
+                weapon.zones,
+                weapon.min_range,
+                weapon.reach,
+                1.0 + obstruct,
+                AIM_TOLERANCE,
+            );
             if weapon.cleave {
                 let mut struck = 0usize;
                 for k in 0..cand_len {
@@ -646,10 +778,10 @@ impl Sim {
                     }
                     let (v, d_surf, bearing) = candidates[k];
                     let v = v as usize;
-                    if self.alive[v] != 1 || d_surf < weapon.min_range || d_surf > weapon.reach {
+                    if self.alive[v] != 1 {
                         continue;
                     }
-                    if !in_field(wrap_angle(bearing - facing).abs()) {
+                    if !field.contains(wrap_angle(bearing - facing).abs(), d_surf) {
                         continue;
                     }
                     struck += 1;
@@ -661,14 +793,10 @@ impl Sim {
                 let mut best_d = f32::MAX;
                 for k in 0..cand_len {
                     let (v, d_surf, bearing) = candidates[k];
-                    if d_surf >= best_d
-                        || self.alive[v as usize] != 1
-                        || d_surf < weapon.min_range
-                        || d_surf > weapon.reach
-                    {
+                    if d_surf >= best_d || self.alive[v as usize] != 1 {
                         continue;
                     }
-                    if in_field(wrap_angle(bearing - facing).abs()) {
+                    if field.contains(wrap_angle(bearing - facing).abs(), d_surf) {
                         best_d = d_surf;
                         best = Some(k);
                     }
@@ -739,7 +867,9 @@ impl Sim {
     ) {
         let uv = self.soldier_unit[victim] as usize;
         let vstats = self.units[uv].stats;
-        let cohesion = self.units[uv].cohesion;
+        // Effective cohesion: a trampler reads full (its blob doesn't fight
+        // worse); every other class pays disorder in evade and block.
+        let cohesion = self.units[uv].effective_cohesion();
 
         // Reactive facing memory + unit contact bookkeeping.
         let incoming = wrap_angle(bearing + std::f32::consts::PI);
@@ -778,11 +908,30 @@ impl Sim {
         // decisive fights are untouched; only the drawn-out grind opens up.
         let guard = tun.stamina_guard_floor
             + (1.0 - tun.stamina_guard_floor) * stamina_factor(self.units[uv].stamina);
-        let evade = vstats.evade
+        // A mark CROSSING the striker's front is hard to hit — a flat dodge ON
+        // TOP of the stat evade, scaling with the victim's LATERAL speed (the part
+        // of its motion perpendicular to the strike line). Only sideways motion
+        // counts: a foe running straight AT you or away closes/opens the range but
+        // is no harder to land on than a standing one — same as stationary. This
+        // is general (anyone crossing), but biggest for a trampler riding PAST the
+        // ranks; it's independent of the stat evade/cohesion (even a no-evade heavy
+        // is hard to strike as it flashes by).
+        let vmx = (self.positions[2 * victim] - self.prev_positions[2 * victim]) / DT;
+        let vmy = (self.positions[2 * victim + 1] - self.prev_positions[2 * victim + 1]) / DT;
+        let rdx = self.positions[2 * victim] - self.positions[2 * attacker];
+        let rdy = self.positions[2 * victim + 1] - self.positions[2 * attacker + 1];
+        let rl = (rdx * rdx + rdy * rdy).sqrt().max(1e-3);
+        let radial = (vmx * rdx + vmy * rdy) / rl; // speed toward/away — does NOT count
+        let lateral = (vmx * vmx + vmy * vmy - radial * radial).max(0.0).sqrt();
+        let moving_evade =
+            ((lateral - MOVING_EVADE_FLOOR).max(0.0) * MOVING_EVADE_GAIN).min(MOVING_EVADE_CAP);
+        let evade = (vstats.evade
             * seen
             * cohesion
             * guard
-            * (1.0 - self.pressure[victim] / 4.2).clamp(0.0, 1.0);
+            * (1.0 - self.pressure[victim] / 4.2).clamp(0.0, 1.0)
+            + moving_evade)
+            .min(0.95);
         if self.rng.chance(evade) {
             return; // dodged — the couched point passed by, lance NOT spent
         }
@@ -815,20 +964,15 @@ impl Sim {
             }
         }
 
-        // Block: front shield arc only; still takes the push. A BRACED point
-        // (a leveled pike) is harder to parry than a sword's arc, but it still
-        // has to interact with heavy shields or phalanx-vs-heavy stops reading
-        // as a long shielded grind.
+        // Block: front shield arc only; still takes the push. A heavy shield works
+        // against a leveled point as well as a sword's arc — a pike is fearsome for
+        // its reach, first-strike, and file-overlapping hedge, not because it
+        // bypasses shields.
         let shielded = aspect_v < FRONT_ARC;
-        let braced_thrust = if weapon.braced() {
-            BRACED_THRUST_BLOCK_MULT
-        } else {
-            1.0
-        };
         let blocked = shielded
             && self
                 .rng
-                .chance(vstats.block * (0.5 + 0.5 * cohesion) * braced_thrust * guard);
+                .chance(vstats.block * (0.5 + 0.5 * cohesion) * guard);
 
         // Push: momentum through the weapon — a braced thruster hurls an
         // unbraced man back bodily; equal masses just rock each other.
@@ -848,15 +992,21 @@ impl Sim {
             return;
         }
 
-        // Damage: the rider is PREFERRED — a foot soldier goes for the man, not the
-        // animal — but he lands on the rider only if his weapon physically reaches
-        // that high (the rider sits at the horse's center, ~0.35m exposed up top);
-        // else the blow falls on the horse. Pure reach geometry, no charge-state
-        // fudge: if a short blade can't reach a bogged rider, the answer is the foot
-        // closing the distance (separation physics), not a magic exposure bonus.
-        let attacker_p = self.soldier_pos(attacker);
-        let victim_p = self.soldier_pos(victim);
-        let to_center = (victim_p - attacker_p).len() - self.radius[attacker] - 0.35;
+        // Damage: rider vs mount. A foot soldier goes for the MAN, but the horse's
+        // body shields him — and (like his own shield) only from the FRONT:
+        //  - FLANK/REAR: his leg and back are bare → the blow is all RIDER.
+        //  - FRONT: the chest is in the way. A short HACK (sword) reaches only
+        //    horseflesh; a long THRUST (spear/pike) goes OVER the chest to the man.
+        //    So the rider's frontal exposure RAMPS with reach above a hack's, over
+        //    the horse's front-half depth — a clean monotone lever (reach). The wound
+        //    SPLITS by exposure: a spear lands mostly on the rider, a sword mostly on
+        //    the horse. This is the GRIND half of anti-cav (the spearman's role); the
+        //    IMPALE (a charge fed onto the point) is separate.
+        let rider_exposure = if aspect_v < FRONT_ARC {
+            rider_exposure_frontal(weapon.reach)
+        } else {
+            RIDER_FLANK_EXPOSURE // flank/rear: most of the man is bare, never all
+        };
 
         // A tiring attacker hits SOFTER: damage falls toward stamina_damage_floor
         // of its fresh value as he spends (a 25% floor when fully blown). This is
@@ -875,8 +1025,9 @@ impl Sim {
         // Stage the wound; it is applied (and the kill resolved) after the pass,
         // so a man mortally hit by a low-index foe still lands his simultaneous
         // strike this tick.
-        if self.mounted[victim] == 1 && to_center > weapon.reach {
-            self.mount_dmg_acc[victim] += dmg;
+        if self.mounted[victim] == 1 {
+            self.dmg_acc[victim] += dmg * rider_exposure;
+            self.mount_dmg_acc[victim] += dmg * (1.0 - rider_exposure);
         } else {
             self.dmg_acc[victim] += dmg;
         }

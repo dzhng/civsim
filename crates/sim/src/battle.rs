@@ -9,16 +9,12 @@ use crate::sim::Sim;
 use UnitClassId::*;
 
 /// Soldiers per unit by class (data, freely tunable).
-/// Battle/campaign soldier counts. INDEPENDENT of the test bench
-/// (`balance::duel_strength`) ON PURPOSE: the real game can retune these later
-/// (e.g. inf 800 / cav 200) WITHOUT moving any balance test, which hardcodes a
-/// stable 2:1 inf:cav bench. Two separate configs, never derived from each other.
+/// Soldiers in one deployed unit — the shared `contract::unit_size` (one campaign
+/// slot = one battle unit). INDEPENDENT of the balance test bench
+/// (`balance::duel_strength`, a stable 2:1 inf:cav bench) ON PURPOSE: the game can
+/// retune unit sizes without moving any balance test.
 pub fn unit_size(class: UnitClassId) -> usize {
-    match class {
-        ShockCavalry | HorseArchers => 300,
-        ArtilleryCrew => 100,
-        _ => 600,
-    }
+    contract::unit_size(class) as usize
 }
 
 fn unit_width(class: UnitClassId) -> f32 {
@@ -51,7 +47,8 @@ impl SpawnPlan {
 fn role(c: UnitClassId) -> usize {
     match c {
         Skirmishers => 0,
-        HeavySword | Phalanx | LongSwords | HeavySpear | MediumInfantry | MediumSpear => 1,
+        HeavySword | HeavyPhalanx | LongSwords | HeavySpear | MediumInfantry | MediumSpear
+        | MediumPhalanx => 1,
         LightSpear | Peasant | LightSword => 2,
         Archers => 3,
         ArtilleryCrew => 4,
@@ -118,7 +115,7 @@ fn deploy_army(sim: &mut Sim, base: Vec2, facing: f32, team: u32) {
     deploy_row(sim, &[Skirmishers, Skirmishers], row(45.0), facing, team);
     deploy_row(
         sim,
-        &[HeavySword, Phalanx, HeavySword, Phalanx, HeavySword],
+        &[HeavySword, HeavyPhalanx, HeavySword, HeavyPhalanx, HeavySword],
         row(0.0),
         facing,
         team,
@@ -198,37 +195,23 @@ where
     let facing = dep.facing;
     let mut out: Vec<(u64, usize)> = Vec::new();
 
-    // Split aggregates into spawnable units, keeping campaign identity.
-    let mut units: Vec<SpawnPlan> = Vec::new();
-    for r in &dep.units {
-        let stats = stats_for(r);
-        let mut left = r.count as usize;
-        let full = unit_size(r.class);
-        while left > 0 {
-            let n = left.min(full);
-            // Avoid splinter units: fold a small remainder into the previous.
-            if left == n && n < full / 4 {
-                if let Some(prev) = units
-                    .iter_mut()
-                    .rev()
-                    .find(|u| u.id == r.id && u.class == r.class)
-                {
-                    prev.count += n;
-                    break;
-                }
-            }
-            units.push(SpawnPlan {
-                id: r.id,
-                class: r.class,
-                render_look: render_look_for(r),
-                stats,
-                count: n,
-                training: r.training,
-                morale_cap: r.morale_cap,
-            });
-            left -= n;
-        }
-    }
+    // One roster slot is one battle unit — no split. A campaign unit and a battle
+    // unit are the same thing; the slot's strength is already capped at the unit
+    // establishment (= `unit_size` × the 1x/2x/3x builder), so a 1x slot is one
+    // full-size unit and a 2x/3x slot is one bigger unit.
+    let units: Vec<SpawnPlan> = dep
+        .units
+        .iter()
+        .map(|r| SpawnPlan {
+            id: r.id,
+            class: r.class,
+            render_look: render_look_for(r),
+            stats: stats_for(r),
+            count: r.count as usize,
+            training: r.training,
+            morale_cap: r.morale_cap,
+        })
+        .collect();
 
     if dep.column {
         // Marching order: a single file of units down the road behind center.
@@ -458,7 +441,7 @@ pub fn setup_sandbox(sim: &mut Sim, kind: u32) {
         let row = |o: f32, lat: f32| Vec2::new(0.0, y) + f * o + right * lat;
         sim.spawn_class(row(25.0, 30.0), facing, 120, UnitClassId::Skirmishers, team);
         sim.spawn_class(row(0.0, -110.0), facing, 280, UnitClassId::HeavySword, team);
-        sim.spawn_class(row(0.0, -25.0), facing, 280, UnitClassId::Phalanx, team);
+        sim.spawn_class(row(0.0, -25.0), facing, 280, UnitClassId::HeavyPhalanx, team);
         sim.spawn_class(row(0.0, 55.0), facing, 140, UnitClassId::LongSwords, team);
         sim.spawn_class(row(0.0, 125.0), facing, 220, UnitClassId::LightSpear, team);
         sim.spawn_class(row(-40.0, -30.0), facing, 140, UnitClassId::Archers, team);

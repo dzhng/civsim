@@ -2,17 +2,28 @@
 //! `UnitTypeId` is the faction's current equipment/cultural choice inside it.
 
 use crate::mapdata::WorldMap;
-use crate::state::{BuildKind, CampaignState, FactionId};
+use crate::state::{CampaignState, FactionId};
 use crate::tunables as tun;
 use contract::{UnitClassId, UnitTypeId};
 use serde::{Deserialize, Serialize};
 
 pub const DEFAULT_OPTIONS_PER_CLASS: u8 = 3;
 
+/// Minimum military development a city must have reached to field a given class
+/// option. The default option is always available; the "auxiliary" and "elite"
+/// options are gated behind a military-focused city — a fortress-town fields what
+/// the heartland can't. Calibrate the thresholds against feel.
+pub fn option_mil_dev_req(option: u8) -> f32 {
+    match option {
+        0 => 0.0,
+        1 => 0.35,
+        _ => 0.7,
+    }
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum UnitUnlock {
     Default,
-    Building(BuildKind),
     Conquest(crate::mapdata::NodeId),
 }
 
@@ -53,32 +64,28 @@ pub fn unit_type(map: &WorldMap, faction: FactionId, class: UnitClassId, option:
         2 => 126,
         _ => 145 + option as u32 * 10,
     };
-    let keep_mult = match option {
-        0 => 100,
-        1 => 88,
-        2 => 122,
-        _ => 130 + option as u32 * 8,
-    };
     let time_mult = match option {
         0 => 100,
         1 => 85,
         2 => 115,
         _ => 125,
     };
+    // Upkeep is exactly half the raise cost (the 50%-of-recruitment rule), so the
+    // ratio holds for every option, not just the base unit.
+    let cost = tun::recruit_cost_milligold(class) * up_mult / 100;
     UnitType {
         id: unit_type_id(faction, class, option),
         faction,
         class,
         option,
         name: unit_name(fkey, class, option),
-        cost_per_soldier_milligold: tun::recruit_cost_milligold(class) * up_mult / 100,
-        upkeep_per_soldier_milligold: tun::upkeep_per_soldier_milligold(class) * keep_mult / 100,
+        cost_per_soldier_milligold: cost,
+        upkeep_per_soldier_milligold: cost / 2,
         recruit_ticks_per_soldier: (tun::recruit_ticks_per_soldier(class) * time_mult / 100).max(1),
-        unlock: if option < DEFAULT_OPTIONS_PER_CLASS {
-            UnitUnlock::Default
-        } else {
-            UnitUnlock::Building(BuildKind::Barracks)
-        },
+        // Every catalog option is faction-selectable in the class builder; the
+        // military-development requirement is a *per-city* gate enforced at
+        // recruitment (`recruit` / `option_mil_dev_req`), not a doctrine lock.
+        unlock: UnitUnlock::Default,
     }
 }
 
@@ -175,7 +182,7 @@ fn roman_names(class: UnitClassId) -> Option<[&'static str; 3]> {
             "Ligurian Swordsmen",
             "Samnite Heavy Blades",
         ],
-        Phalanx => [
+        HeavyPhalanx => [
             "Greek Allied Hoplites",
             "Campanian Hoplites",
             "Magna Graecia Phalanx",
@@ -206,11 +213,7 @@ fn roman_names(class: UnitClassId) -> Option<[&'static str; 3]> {
             "Siege Engineers",
         ],
         Peasant => ["Citizen Levy", "Accensi", "Pressed Camp Followers"],
-        LightSword => [
-            "Roman Shield Swordsmen",
-            "Italian Allied Swordsmen",
-            "Gallic Auxilia",
-        ],
+        LightSword => ["Hastati", "Italian Allied Swordsmen", "Gallic Auxilia"],
         MediumInfantry => ["Principes", "Samnite Line Infantry", "Latin Allied Cohorts"],
         HeavySpear => [
             "Praetorian Spearmen",
@@ -218,6 +221,7 @@ fn roman_names(class: UnitClassId) -> Option<[&'static str; 3]> {
             "Eagle Guard Spearmen",
         ],
         MediumSpear => ["Triarii", "Allied Spear Cohorts", "Campanian Spearmen"],
+        MediumPhalanx => ["Italiote Hoplites", "Allied Phalangites", "Tarentine Phalanx"],
     })
 }
 
@@ -239,7 +243,7 @@ fn carthaginian_names(class: UnitClassId) -> Option<[&'static str; 3]> {
             "Iberian Falcata Men",
             "Celtiberian Heavy Swords",
         ],
-        Phalanx => [
+        HeavyPhalanx => [
             "Greek Mercenary Hoplites",
             "Libyan Pike Levy",
             "Punic Phalangites",
@@ -282,6 +286,7 @@ fn carthaginian_names(class: UnitClassId) -> Option<[&'static str; 3]> {
             "Punic Citizen Spearmen",
             "Sicilian Spear Auxilia",
         ],
+        MediumPhalanx => ["Libyan Pikemen", "Punic Levy Phalanx", "Sicilian Phalangites"],
     })
 }
 
@@ -295,7 +300,7 @@ fn macedonian_names(class: UnitClassId) -> Option<[&'static str; 3]> {
             "Illyrian Swordsmen",
             "Royal Thracians",
         ],
-        Phalanx => ["Phalangites", "Bronze Shield Phalanx", "Royal Peltasts"],
+        HeavyPhalanx => ["Phalangites", "Bronze Shield Phalanx", "Royal Peltasts"],
         Archers => ["Macedonian Archers", "Cretan Archers", "Rhodian Marksmen"],
         Skirmishers => [
             "Agrianian Javelins",
@@ -334,6 +339,7 @@ fn macedonian_names(class: UnitClassId) -> Option<[&'static str; 3]> {
             "Peltast Spear Line",
             "Agrianian Spearmen",
         ],
+        MediumPhalanx => ["Conscript Phalangites", "Bronze Shield Levy", "Garrison Sarissas"],
     })
 }
 
@@ -343,7 +349,7 @@ fn arverni_names(class: UnitClassId) -> Option<[&'static str; 3]> {
         HeavySword => ["Armoured Nobles", "Sworn Swordsmen", "Oathbound Retinue"],
         LightSpear => ["Tribal Spearmen", "Hill Spear Levy", "Client Spearmen"],
         LongSwords => ["Longsword Warriors", "Naked Fanatics", "Noble Longswords"],
-        Phalanx => [
+        HeavyPhalanx => [
             "Greek Hireling Hoplites",
             "Massed Spear Levy",
             "Mercenary Pike Band",
@@ -378,6 +384,7 @@ fn arverni_names(class: UnitClassId) -> Option<[&'static str; 3]> {
             "Client Spear Warband",
             "Hill Spear Retinue",
         ],
+        MediumPhalanx => ["Mercenary Pikemen", "Massed Spear Phalanx", "Greek Hireling Levy"],
     })
 }
 
@@ -395,7 +402,7 @@ fn egyptian_names(class: UnitClassId) -> Option<[&'static str; 3]> {
             "Thracian Mercenaries",
             "Royal Galatians",
         ],
-        Phalanx => ["Cleruch Phalanx", "Egyptian Phalangites", "Royal Phalanx"],
+        HeavyPhalanx => ["Cleruch Phalanx", "Egyptian Phalangites", "Royal Phalanx"],
         Archers => ["Nile Archers", "Nubian Archers", "Cretan Archers"],
         Skirmishers => ["Nile Javelinmen", "Libyan Skirmishers", "Desert Scouts"],
         ShockCavalry => [
@@ -430,6 +437,7 @@ fn egyptian_names(class: UnitClassId) -> Option<[&'static str; 3]> {
             "Greek Settler Spears",
             "Nile Spear Guard",
         ],
+        MediumPhalanx => ["Machimoi Phalangites", "Native Pike Levy", "Settler Phalanx Line"],
     })
 }
 
@@ -443,7 +451,7 @@ fn seleucid_names(class: UnitClassId) -> Option<[&'static str; 3]> {
             "Pisidian Swordsmen",
             "Elite Galatians",
         ],
-        Phalanx => [
+        HeavyPhalanx => [
             "Settler Phalanx",
             "Silver Shield Phalanx",
             "Royal Phalangites",
@@ -482,5 +490,6 @@ fn seleucid_names(class: UnitClassId) -> Option<[&'static str; 3]> {
             "Syrian Line Spearmen",
             "Median Spear Auxilia",
         ],
+        MediumPhalanx => ["Levy Phalangites", "Satrapal Pikemen", "Settler Pike Line"],
     })
 }

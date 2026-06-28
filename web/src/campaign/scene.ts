@@ -26,23 +26,32 @@ import {
 } from './panels';
 import { readCampaignViews, type ArmyView, type CityView } from './views';
 
-/** Campaign ticks per real second at 1x (one tick = one campaign minute).
- * 60 = one game-hour per real second. Everything is tick-driven (movement,
- * economy, AI), so fast-forward keeps the campaign world in lockstep. */
+/** Campaign ticks per real second at base speed. A tick covers
+ * MINUTES_PER_TICK game-minutes (campaign tunables), so at 10 min/tick the base
+ * already runs ~10 game-hours per real second — the old top speed. The world is
+ * tick-driven (movement, economy, AI), so fast-forward stays in lockstep while
+ * the AI cost per real-second tracks the multiplier, not the tick scale. */
 const TICKS_PER_SEC = 60;
-const SPEEDS = [1, 3, 10];
+const SPEEDS = [1, 2, 4];
 const SAVE_KEY = 'campaign-save';
+/** Ticks between a snapshot and applying the decisions it yields — must match
+ *  campaign tunables AI_LATENCY. */
+const AI_LATENCY = 60;
 
 export interface CampaignConfig {
   wasm: InitOutput;
   campaign: Campaign;
   data: CampaignData;
+  /** The map JSON the campaign was built from — handed to the AI worker so it
+   *  can load posted state snapshots. */
+  mapJson: string;
   onExit: () => void;
   /** Hand a battle Game to the battle scene; call done() when it ends. */
   onBattle: (game: Game, done: () => void) => void;
 }
 
 interface EncounterSide {
+  id: number;
   faction: number;
   soldiers: number;
   garrison: boolean;
@@ -55,6 +64,14 @@ interface EncounterInfo {
   no_retreat: [boolean, boolean];
   reinforcements: number;
   ambush: boolean;
+}
+
+/** One of the player's cities currently standing a siege (live, not paused). */
+interface SiegeView {
+  node: number;
+  x: number;
+  y: number;
+  attacker: number;
 }
 
 export class CampaignScene implements Scene {
@@ -71,6 +88,8 @@ export class CampaignScene implements Scene {
   private paused = true;
   private acc = 0;
   private last = 0;
+  /** The off-thread AI worker — the sole driver of the campaign AI. */
+  private aiWorker: Worker | null = null;
   private selected = -1;
   private hover = -1;
   /** Node index of the city whose panel is open — the one settlement that wears
@@ -100,6 +119,9 @@ export class CampaignScene implements Scene {
   private modal: HTMLDivElement | null = null;
   private autoResolving = false;
   private terrainReady = false;
+  /** Signature of the currently-shown siege notifications, to avoid rebuilding
+   *  the DOM (and its click handlers) every tick. */
+  private siegeSig = '';
 
   constructor(private cfg: CampaignConfig) {
     this.cam = { x: 0, y: 0, scale: 0.18 };
@@ -132,6 +154,7 @@ export class CampaignScene implements Scene {
     this.ownerHash = 0; // force a territory recolor on (re)entry
     this.ac = new AbortController();
     this.wireInput(this.ac.signal);
+    if (!this.aiWorker) this.startAiWorker();
     this.last = performance.now();
     this.refreshViews();
     if (this.recruitClasses.length === 0) {
@@ -217,14 +240,47 @@ export class CampaignScene implements Scene {
     markCampaignReady(false);
   }
 
+  /** Spin up the off-thread AI: a worker computes commander decisions on posted
+   *  snapshots, which the host applies on a fixed delay. The AI never runs in
+   *  the tick loop, so this is the sole driver. */
+  private startAiWorker() {
+    const worker = new Worker(new URL('./ai-worker.ts', import.meta.url), { type: 'module' });
+    worker.onmessage = (e: MessageEvent<{ applyAt: number; json: string }>) => {
+      this.cfg.campaign.submit_decisions_json(e.data.applyAt, e.data.json);
+    };
+    worker.postMessage({ type: 'init', mapJson: this.cfg.mapJson });
+    this.aiWorker = worker;
+  }
+
   exit() {
     markCampaignReady(false);
+    this.aiWorker?.terminate();
+    this.aiWorker = null;
     this.ac?.abort();
     this.ac = null;
     this.renderer?.destroy();
     this.canvas.style.display = 'none';
     this.ui.style.display = 'none';
     this.closeModal();
+  }
+
+  /** Advance the campaign `n` ticks under the host AI protocol: run to each
+   *  boundary, snapshot on a dispatch tick and hand it to the worker, stop on a
+   *  stall until its decisions arrive. The fixed apply-delay makes this
+   *  independent of how `n` is chunked per frame. */
+  private advance(n: number) {
+    const c = this.cfg.campaign;
+    let remaining = n;
+    while (remaining > 0) {
+      const step = c.advance_external(remaining);
+      remaining -= step.advanced;
+      if (step.reason === 1) {
+        this.aiWorker?.postMessage({ type: 'snapshot', applyAt: step.tick + AI_LATENCY, snap: c.save() });
+        c.ack_dispatch();
+        continue;
+      }
+      break; // reason 0 (budget spent / battle) or 2 (stall — wait for the worker)
+    }
   }
 
   frame(now: number) {
@@ -237,7 +293,7 @@ export class CampaignScene implements Scene {
       const n = Math.floor(this.acc);
       if (n > 0) {
         this.acc -= n;
-        c.tick(n);
+        this.advance(n);
         this.refreshViews();
         if (c.battle_ready() >= 0 && !this.modal) {
           this.paused = true; // auto-pause: a battle wants a decision
@@ -248,28 +304,39 @@ export class CampaignScene implements Scene {
 
     // A battle modal (or auto-resolve) covers the screen with a dimmed
     // backdrop: stop redrawing the world behind it. The map render is the
-    // frame's whole cost, so skipping it keeps the decision UI responsive.
+    // backdrop: stop redrawing the world behind it. The WebGPU map render is
+    // the frame's whole cost, so skipping it keeps the decision UI responsive.
     if (!this.terrainReady) {
       this.updateHud();
       return;
     }
-    if (!this.autoResolving && !this.modal) {
-      this.renderer.resize();
-      this.clampCam(); // zoom floor = aspect-fill, pan inside the map
-      this.renderer.draw({
-        cam: this.cam,
-        armies: this.armies,
-        cities: this.cities,
-        selected: this.selected,
-        selectedCity: this.selectedCity,
-        factionLabels: this.territory!.labels,
-        factionStatus: this.factionStatus,
-        playerFaction: this.playerFaction(),
-        fogOfWar: this.fogOfWar,
-        factionView: this.factionView,
-      });
-    }
+    if (!this.autoResolving && !this.modal) this.drawWorld();
     this.updateHud();
+  }
+
+  /** One full world render at the current camera. The frame's whole cost. */
+  private drawWorld() {
+    this.renderer.resize();
+    this.clampCam(); // zoom floor = aspect-fill, pan inside the map
+    this.renderer.draw({
+      cam: this.cam,
+      armies: this.armies,
+      cities: this.cities,
+      selected: this.selected,
+      selectedCity: this.selectedCity,
+      factionLabels: this.territory!.labels,
+      factionStatus: this.factionStatus,
+      playerFaction: this.playerFaction(),
+      fogOfWar: this.fogOfWar,
+      factionView: this.factionView,
+    });
+  }
+
+  /** Pan the camera to a world point (clamped inside the map). */
+  private centerCam(x: number, y: number) {
+    this.cam.x = x;
+    this.cam.y = y;
+    this.clampCam();
   }
 
   private clampCam() {
@@ -288,10 +355,40 @@ export class CampaignScene implements Scene {
     // frame). City/army flags are faction-coloured, so they only need a
     // recolour when a town changes hands.
     this.refreshFactionStatus();
+    this.refreshSieges();
     if (views.ownerHash !== this.ownerHash && this.territory) {
       this.ownerHash = views.ownerHash;
       this.territory.rebuild(this.cities);
       this.renderer?.updateTerritory(this.territory);
+    }
+  }
+
+  /** Live notifications for the player's besieged cities. The world keeps
+   *  running (no auto-pause); clicking a notice pans the camera to the city so
+   *  the player can rush relief before the garrison battle commits. */
+  private refreshSieges() {
+    const sieges = JSON.parse(this.cfg.campaign.sieges_json()) as SiegeView[];
+    const facName = (f: number) => this.cfg.data.map.factions[f]?.name ?? `faction ${f}`;
+    // Rebuild only when the set of besieged cities changes, not every tick.
+    const sig = sieges.map((s) => s.node).join(',');
+    const box = this.ui.querySelector('#cmp-sieges') as HTMLDivElement | null;
+    if (!box) return;
+    if (sig !== this.siegeSig) {
+      this.siegeSig = sig;
+      box.innerHTML = sieges
+        .map(
+          (s) => `<div class="cmp-siege" data-node="${s.node}" data-x="${s.x}" data-y="${s.y}">
+            <b>⚔ ${this.cfg.data.map.nodes[s.node].name} under siege</b>
+            <div class="cmp-siege-sub">${facName(s.attacker)} at the walls — click to view</div>
+          </div>`,
+        )
+        .join('');
+      box.querySelectorAll<HTMLDivElement>('.cmp-siege').forEach((el) =>
+        el.addEventListener('click', () => {
+          this.centerCam(Number(el.dataset.x), Number(el.dataset.y));
+          this.openCityPanel(Number(el.dataset.node));
+        }),
+      );
     }
   }
 
@@ -420,6 +517,24 @@ export class CampaignScene implements Scene {
   private rightClick(px: number, py: number) {
     if (this.selected < 0) return;
     const [wx, wy] = this.renderer.toWorld(px, py);
+    // Right-clicking an enemy army latches onto it — chase it across the map.
+    const rKm = 14 / this.cam.scale;
+    let foe = -1;
+    let foeD = rKm;
+    for (const a of this.armies) {
+      if (a.mine) continue;
+      const d = Math.hypot(a.x - wx, a.y - wy);
+      if (d < foeD) {
+        foeD = d;
+        foe = a.id;
+      }
+    }
+    if (foe >= 0) {
+      this.cfg.campaign.order_pursue(this.selected, foe);
+      this.refreshViews();
+      return;
+    }
+    // Otherwise, march to the clicked location.
     const loc = nearestLoc(this.cfg.data.map, wx, wy, 60 / this.cam.scale);
     if (!loc) return;
     this.cfg.campaign.order_move(this.selected, loc.kind, loc.a, loc.b);
@@ -447,6 +562,17 @@ export class CampaignScene implements Scene {
         ${noRetreat ? '<div class="cmp-warn">NO RETREAT — destroyed if defeated</div>' : ''}
       </div>`;
     const mineInvolved = info.attacker.faction === my || info.defender.faction === my;
+    // Jump the camera to where the fight is so the player sees the threat
+    // behind the (semi-transparent) modal. Prefer the defender — that is the
+    // place under attack — and fall back to the attacker if it is off-map or
+    // fogged (e.g. a city garrison not drawn as a field army).
+    const at =
+      this.armies.find((a) => a.id === info.defender.id) ??
+      this.armies.find((a) => a.id === info.attacker.id);
+    if (at) {
+      this.centerCam(at.x, at.y);
+      this.drawWorld(); // one render at the new camera before the modal covers it
+    }
     this.modal = document.createElement('div');
     this.modal.className = 'cmp-modal';
     this.modal.innerHTML = `
@@ -615,7 +741,17 @@ export class CampaignScene implements Scene {
     const mm = String(Math.floor(mins % 60)).padStart(2, '0');
     const date = this.ui.querySelector('#cmp-date')!;
     date.textContent = `Day ${day}, ${hh}:${mm}${this.paused ? '  ⏸ PAUSED' : `  ${SPEEDS[this.speed]}×`}`;
-    this.ui.querySelector('#cmp-gold')!.textContent = `${this.cfg.campaign.treasury()} gold`;
+    // Gold plus the monthly books (income − heavy upkeep = net), the "set policy,
+    // watch the books" payoff. The realm settles once a game-month.
+    const eco = JSON.parse(this.cfg.campaign.economy_json()) as {
+      treasury: number;
+      monthly_income: number;
+      monthly_upkeep: number;
+      monthly_net: number;
+    };
+    const sign = eco.monthly_net >= 0 ? '+' : '';
+    this.ui.querySelector('#cmp-gold')!.textContent =
+      `${eco.treasury} gold  (${sign}${eco.monthly_net}/mo: +${eco.monthly_income} −${eco.monthly_upkeep})`;
     this.ui.querySelectorAll<HTMLButtonElement>('button[data-speed]').forEach((b) =>
       b.classList.toggle('on', !this.paused && Number(b.dataset.speed) === this.speed),
     );
@@ -741,14 +877,16 @@ export class CampaignScene implements Scene {
     if (!detail) return;
     panel.innerHTML = cityPanelHtml(this.cfg.data, node, c, mineCity, detail, this.recruitClasses);
     panel.style.display = 'block';
-    panel.querySelectorAll<HTMLButtonElement>('button[data-build]').forEach((b) =>
-      b.addEventListener('click', () => {
-        if (this.cfg.campaign.order_build(node, Number(b.dataset.build))) {
-          this.refreshViews();
-          this.openCityPanel(node);
-        }
-      }),
-    );
+    // Policy dials: drag a slider to set the city's focus/throttle. Read both so
+    // changing one keeps the other; the city auto-develops from here.
+    const policyInputs = panel.querySelectorAll<HTMLInputElement>('input[data-policy]');
+    const applyPolicy = () => {
+      const get = (k: string) =>
+        Number(panel.querySelector<HTMLInputElement>(`input[data-policy="${k}"]`)?.value ?? 0);
+      this.cfg.campaign.order_set_city_policy(node, get('focus'), get('throttle'));
+      this.refreshViews();
+    };
+    policyInputs.forEach((b) => b.addEventListener('change', applyPolicy));
     panel.querySelectorAll<HTMLButtonElement>('button[data-recruit]').forEach((b) =>
       b.addEventListener('click', () => {
         this.cfg.campaign.order_recruit(node, Number(b.dataset.recruit), 240);

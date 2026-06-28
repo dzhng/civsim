@@ -129,19 +129,19 @@
       "roster": [
         [
           "HeavySword",
-          1280
+          2
         ],
         [
           "LightSpear",
-          880
+          2
         ],
         [
           "Archers",
-          480
+          1
         ],
         [
           "ShockCavalry",
-          280
+          1
         ]
       ]
     },
@@ -150,12 +150,24 @@
       "at": "Capua",
       "roster": [
         [
+          "HeavySword",
+          1
+        ],
+        [
           "LightSpear",
-          880
+          2
         ],
         [
           "Skirmishers",
-          360
+          1
+        ],
+        [
+          "Archers",
+          1
+        ],
+        [
+          "ShockCavalry",
+          1
         ]
       ]
     },
@@ -164,20 +176,24 @@
       "at": "Carthago",
       "roster": [
         [
-          "Phalanx",
-          1280
+          "HeavyPhalanx",
+          2
         ],
         [
           "LightSpear",
-          880
+          1
         ],
         [
           "Archers",
-          480
+          1
         ],
         [
           "ShockCavalry",
-          280
+          1
+        ],
+        [
+          "HorseArchers",
+          1
         ]
       ]
     },
@@ -186,12 +202,24 @@
       "at": "Hadrumetum",
       "roster": [
         [
+          "HeavyPhalanx",
+          1
+        ],
+        [
           "LightSpear",
-          880
+          2
+        ],
+        [
+          "Archers",
+          1
         ],
         [
           "HorseArchers",
-          240
+          1
+        ],
+        [
+          "ShockCavalry",
+          1
         ]
       ]
     },
@@ -200,20 +228,20 @@
       "at": "Pella",
       "roster": [
         [
-          "Phalanx",
-          1280
+          "HeavyPhalanx",
+          2
         ],
         [
           "LightSpear",
-          880
+          1
         ],
         [
           "Skirmishers",
-          360
+          1
         ],
         [
           "ShockCavalry",
-          280
+          2
         ]
       ]
     },
@@ -222,12 +250,24 @@
       "at": "Thessalonica",
       "roster": [
         [
+          "HeavyPhalanx",
+          1
+        ],
+        [
           "LightSpear",
-          880
+          2
         ],
         [
           "Archers",
-          480
+          1
+        ],
+        [
+          "Skirmishers",
+          1
+        ],
+        [
+          "ShockCavalry",
+          1
         ]
       ]
     },
@@ -237,19 +277,19 @@
       "roster": [
         [
           "LongSwords",
-          360
+          2
         ],
         [
           "LightSpear",
-          880
+          1
         ],
         [
           "Skirmishers",
-          360
+          1
         ],
         [
           "ShockCavalry",
-          280
+          2
         ]
       ]
     },
@@ -258,12 +298,20 @@
       "at": "Augustodunum",
       "roster": [
         [
-          "LightSpear",
-          880
+          "LongSwords",
+          2
         ],
         [
-          "LongSwords",
-          360
+          "LightSpear",
+          2
+        ],
+        [
+          "Skirmishers",
+          1
+        ],
+        [
+          "ShockCavalry",
+          1
         ]
       ]
     },
@@ -272,20 +320,20 @@
       "at": "Alexandria",
       "roster": [
         [
-          "Phalanx",
-          1280
+          "HeavyPhalanx",
+          2
         ],
         [
           "Archers",
-          480
+          1
         ],
         [
           "Skirmishers",
-          360
+          1
         ],
         [
           "HorseArchers",
-          240
+          2
         ]
       ]
     },
@@ -294,12 +342,24 @@
       "at": "Memphis",
       "roster": [
         [
+          "HeavyPhalanx",
+          1
+        ],
+        [
           "LightSpear",
-          880
+          1
         ],
         [
           "Archers",
-          480
+          2
+        ],
+        [
+          "Skirmishers",
+          1
+        ],
+        [
+          "HorseArchers",
+          1
         ]
       ]
     },
@@ -308,20 +368,20 @@
       "at": "Antiochia",
       "roster": [
         [
-          "Phalanx",
-          1280
+          "HeavyPhalanx",
+          2
         ],
         [
           "LightSpear",
-          880
+          1
         ],
         [
           "HorseArchers",
-          240
+          1
         ],
         [
           "ShockCavalry",
-          280
+          2
         ]
       ]
     },
@@ -330,12 +390,24 @@
       "at": "Damascus",
       "roster": [
         [
+          "HeavyPhalanx",
+          1
+        ],
+        [
           "LightSpear",
-          880
+          2
         ],
         [
           "Skirmishers",
-          360
+          1
+        ],
+        [
+          "HorseArchers",
+          1
+        ],
+        [
+          "ShockCavalry",
+          1
         ]
       ]
     }

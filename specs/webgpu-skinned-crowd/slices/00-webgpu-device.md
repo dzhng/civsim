@@ -20,7 +20,7 @@ scenario harness can screenshot or read back.
 ## Playable Deliverable
 
 - `/webgpu/device`
-- CLI/scenario: `VERIFY_WEBGPU=1 node scenario.mjs webgpu-device`
+- CLI/scenario: `VERIFY_WEBGPU=1 node scene.mjs webgpu-device`
 
 The page draws a clear color plus a tiny triangle/quad and exposes
 `window.__webgpuDeviceProbe`.

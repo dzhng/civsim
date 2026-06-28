@@ -1,6 +1,6 @@
 ---
 name: tweak-mechanics
-description: How to change the SIM PHYSICS (how soldiers move, collide, press, hold a line, rout) — the first-principles workflow and the kind of tests that pin it. Distinct from balancing units. Use when David says a behavior looks wrong ("heavy v heavy isn't clean", "the latch points the wrong way", "they swirl/pass through each other"), or asks to simplify/question a mechanic.
+description: How to change the SIM PHYSICS (how soldiers move, collide, press, hold a line, rout) — the first-principles workflow and the kind of tests that pin it. Distinct from balancing units. Use when David says a behavior looks wrong ("heavy v heavy isn't clean", "the latch points the wrong way", "they swirl/pass through each other"), or asks to simplify/question a mechanic. Pairs with [debug](../debug/SKILL.md) (the diagnosis loop for a red or a "feels off") and [write-tests](../write-tests/SKILL.md); distinct from [balance-unit](../balance-unit/SKILL.md) (the stat-table counterpart — never fix balance by changing physics) and [tweak-campaign](../tweak-campaign/SKILL.md) (the strategic layer the battles sit in — movement on the road graph, economy, the commander AI).
 ---
 
 # Tweaking a mechanic (the physics, not the balance)
@@ -78,7 +78,9 @@ Every red is one of two kinds, and they have opposite defaults:
   Y". **Allowed to move.** A red here often means the OLD pass depended on a bug.
 
 **Never paper, never revert on the red-count.** It is a deterministic sim —
-diagnose EACH red. It is one of:
+diagnose EACH red ([debug](../debug/SKILL.md) is the full loop: build a red
+signal, classify regression-vs-fragility, instrument the trajectory). It is
+one of:
 
 1. **Tunable** — the mechanic is right, a coefficient is too strong. *Sweep it*
    before concluding "net zero": a sword-standoff force broke two pins at softness
@@ -105,7 +107,19 @@ regresses, so the red reads as intent. Reverting a sound foundation to keep
 brittle pins green re-installs the bug. (Worked: M-equivariant Jacobi contact
 passes; realistic ~90°/s turn rates that make a flanked phalanx HOLD instead of
 flailing apart — the old "cav routs a flanked phalanx" pin had certified the
-flailing bug.)
+flailing bug.) When a rebuild reddens a WHOLE WALL at once, two moves keep it
+honest. **Contain** — gate the new behavior on the role that needs it (the
+arc-cost on `mounted`, not foot) and prove the untouched role is byte-neutral
+(golden does NOT move — it held `0xbc67…` through the whole arc rebuild because
+foot stayed identical), so the red set is only what genuinely changed; if golden
+moves and you expected containment, you are not contained — find the leak.
+**Settle each red's PROVENANCE before its mechanics-cause**: was it already red
+at HEAD (`git stash -u`, run the one test — carried-in, not yours, re-derive
+once), did your own edit break a green test (toggle `if false && <your-cond>` and
+re-run — your regression, fix the mechanism it exposed, e.g. a lance whiff), or
+did a sound change move a value pin (re-pin to the printed actual with a one-line
+cause, only after the qualitative contract still holds). When you finish, hand
+David the [change-report](../change-report/SKILL.md) ledger of every moved test.
 
 ## Measure the mechanism, never argue from the score
 
@@ -127,6 +141,26 @@ find which one carries it, then trace that term to its source.**
   if the mechanic isn't built yet).
 - The **immortal long-grind is the stress test**: an equilibrium bug has nowhere
   to hide when nobody dies to end the fight early.
+- **Name the force, then confirm it ACTS on this body — don't infer one from a
+  number.** A value that scales with a knob (`to_center` ∝ reach) tempts a tidy
+  story: I blamed "a standoff that scales with reach" for foot never reaching a
+  horse's rider — but cavalry is EXCLUDED from the weapon-repel (a trampler "rides
+  ONTO the points, not pushed back"), so the force I named never fires. The number
+  was real; the cause was a guess I never checked against the code. Trace the term
+  to the line that produces it before you attribute it, and never pin it on a
+  force you haven't confirmed even applies to the body in question.
+- **A SATURATED extreme is a red flag, not a result — INTERROGATE it.** A side
+  reduced to **0 or 3** survivors, **0–3 kills**, a 100%/0% win-rate, a near-total
+  wipe: these are degenerate outcomes where a mechanism has bottomed out, and the
+  number HIDES the bug behind it. Never report a wipe as a "decisive win" or take
+  it at face value — a 2:1 underdog that is *stronger per-unit* should put up a
+  real fight and rack up kills even while losing; if it kills almost nothing and is
+  annihilated, it is being stun-locked, whiffing (a flank-only weapon blind to the
+  foe it faces), or one-sided-ground, not "correctly losing." Worked: I cheered "2:1
+  foot wins, cav 3/120" as the goal met — David: *whenever you see 0 or 3, it should
+  never be like that, interrogate it.* The cav was killing only ~47 foot while being
+  wiped — under-fighting its own strength. The healthy shape of a lopsided fight is
+  a real exchange (loser down to tens, not zero), not a saturation.
 
 ## A metric can encode the WRONG thing — go LOOK before chasing a force
 
@@ -168,6 +202,15 @@ edge-distance between *sized* bodies (a wide line is threatened at its flank, a
 deep block at its front rank); a cap whose only consumer already bounds itself
 tighter (dead scaffolding — delete, don't tune). Route everything through the one
 true measure.
+
+A **directional** question cannot be answered by a centroid distance. "Can I hit
+the rider / is this face shielded / am I flanked" depends on WHICH side is exposed;
+collapse it to a scalar distance-to-a-point and you bury a bearing-specific
+assumption that holds from one side only. The tell: rider-vs-mount was gated on
+reach-to-the-horse's-CENTER, so a short blade chipped horseflesh from EVERY angle
+— front, flank, and rear alike — and lengthening the blade changed nothing. A
+number that reads the same from every bearing, for a thing that should depend on
+bearing, is the smell — stop and ask what direction the interaction actually has.
 
 ## A pass-through / swirl is a missing FORCE, never a missing wall
 
@@ -256,28 +299,45 @@ until green. Rules:
 5. **Smallest scale that shows it** — two units for a clash; armies only for
    integration.
 
-**Layer 2 — vibe shots are the real verdict.** Green Rust does not mean done; the
+**Layer 2 — vibe shots are the real verdict** (the snapshot mechanics are
+[screenshot-regression](../screenshot-regression/SKILL.md)). Green Rust does not mean done; the
 mechanic must *feel* right across the WHOLE timeline (a clash can look clean at
 t=32s and be a swirling blob by t=48s — eyeballing one frame said "clean", the
 centroid test said "crossed at t=19.9s"). Rebuild wasm first (`npm run build:wasm`
 — the harness loads prebuilt wasm), then `node vibe/all.mjs` from `web/`; a
 mechanics change turns frames red (the point); re-bless with `UPDATE_SHOTS=1` once
 the new behavior is confirmed and commit the baselines as the record. Flip through
-`web/shots/baseline/vibe/<scenario>/` t000…t300 for approach → contact → grind →
+`web/shots/vibe/<scenario>/` t000…t300 for approach → contact → grind →
 break → rout; `vibe/measure-duel.mjs` is the JS twin of the Rust test.
 
-## Test taxonomy
+## Test taxonomy — by what each layer is ALLOWED to depend on
 
-`crates/sim/tests/README.md` is the canonical map. Quick routing:
+`crates/sim/tests/README.md` is the canonical map. The layers are defined by
+their *units*, which is what keeps each one answering a single question:
 
-| Prefix | What it is | Asserts on |
+| Prefix | Units | Asserts on |
 |---|---|---|
-| `mechanics_*.rs` | first-principles physics | cohesion, centroids, pressure, facing — NOT wins |
-| `balance_*.rs` | performance-vs-price over seeds | win-rate / survivor spread (`balance-unit` skill) |
-| `*_scenarios.rs` | public-API emergence contracts | player-visible behavior (`write-tests` skill) |
+| `mechanics_*.rs` | **IMMORTAL fakes** (zero-damage / 1e9 HP, morale off) | cohesion, centroids, pressure, facing, knockdown stun, charge speed — NOT wins |
+| `scenario_*.rs` | **FAKE REFERENCE units** (fixed test-owned stats) | player-visible OUTCOMES (who breaks whom, survivors) — balance-independent |
+| `balance_*.rs` | **REAL class stats** | win-rate / survivor spread vs price (`balance-unit` skill) |
 
-New physics tests go in `mechanics_*.rs`. Legacy `*_scenarios.rs` mostly belong in
-the mechanics bucket — migrate opportunistically when you touch them.
+The rule (David): **a test may only depend on the layer below it.** Mechanics use
+immortal fakes so no balance can leak into a physics check. Scenarios use FAKE
+REFERENCE units (the `mechanics_survivability.rs` `ref_stats`/`REF_BLADE` pattern)
+with fixed stats — so a balance retune of a real class can never break a scenario,
+AND those fake stats double as **reference points** for balancing later ("a charge
+unit with lance dmg X + grind sabre Y gives this charge-vs-walk-in shape"). Only
+`balance_*` touches real class stats — it is the one layer that *should* move when
+you tune unit-vs-price.
+
+The smell this prevents: a sound physics fix that makes a real class better (e.g. a
+mounted sabre that can finally cut its target) "breaks" a mechanics/scenario test
+pinned on that real class, with no clean signal of whether physics or balance moved.
+If you're re-deriving a real-unit win-rate inside `mechanics_*`/`scenario_*`, STOP —
+rebuild it on fakes; the win-rate belongs in `balance_*`.
+
+New physics tests go in `mechanics_*.rs` on immortal fakes. A real-class outcome
+pinned in a scenario is a bug to migrate onto reference units when you touch it.
 
 ## Process (non-negotiable)
 

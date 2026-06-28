@@ -154,9 +154,10 @@ impl Game {
             &["spear"],  // heavy spear
             &["sword"],  // medium infantry
             &["spear"],  // medium spear
+            &["pike", "side sword"], // medium phalanx
         ];
         let missile_names: [&str; contract::ALL_CLASSES.len()] = [
-            "", "", "", "", "bow", "javelin", "", "bow", "ballista", "", "", "", "", "",
+            "", "", "", "", "bow", "javelin", "", "bow", "ballista", "", "", "", "", "", "",
         ];
         let specs: Vec<serde_json::Value> = contract::ALL_CLASSES
             .iter()
@@ -172,10 +173,11 @@ impl Game {
                             "name": weapon_names[ci].get(wi).copied().unwrap_or("weapon"),
                             "reach": w.reach,
                             "minRange": w.min_range,
-                            "arc": w.arc,
+                            "arc": w.zones.swing_arc(),
                             "interval": w.attack_interval,
                             "damage": w.damage,
-                            "braced": w.braced(),
+                            "braced": w.hedge(),
+                            "impales": w.impales,
                             "charge": w.is_charge(),
                         })
                     })
@@ -403,6 +405,32 @@ impl Game {
                 .enqueue_order(unit as usize, OrderMode::Move, Vec2::new(x, y), f),
         }
         self.refresh_unit_info();
+    }
+
+    /// The unit's SHIFT-queued follow-up orders, flattened for the Space
+    /// overlay: `[x, y, mode]` per queued waypoint, in execution order, where
+    /// mode is 0 = move, 1 = attack, 2 = disengage. The ACTIVE order is already
+    /// in `unit_info` (target_x/target_y) — this is only the chain BEHIND it, so
+    /// the overlay draws `active -> q0 -> q1 -> ...`. Returns an empty array for
+    /// an unknown unit or an empty queue. Copying (called only while Space is
+    /// held, on a handful of selected units) — no pointer to re-fetch.
+    pub fn queued_orders(&self, unit: u32) -> Vec<f32> {
+        use sim::OrderMode;
+        let Some(u) = self.battle.sim.units.get(unit as usize) else {
+            return Vec::new();
+        };
+        let mut out = Vec::with_capacity(u.order_queue.len() * 3);
+        for (mode, target, _facing) in &u.order_queue {
+            let m = match mode {
+                OrderMode::Move => 0.0,
+                OrderMode::Attack(_) => 1.0,
+                OrderMode::Disengage => 2.0,
+            };
+            out.push(target.x);
+            out.push(target.y);
+            out.push(m);
+        }
+        out
     }
 
     /// Per-soldier weapon-swap countdown (>0 = mid-fumble; drives the anim).

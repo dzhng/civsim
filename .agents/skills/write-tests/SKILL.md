@@ -1,33 +1,67 @@
 ---
 name: write-tests
-description: How to write and iterate on tests in this repo — fast cargo first, scale 1v1 before armies, control variables, measure mechanisms not noise. Use when adding sim behavior, fixing a red test, or verifying changes.
+description: How to write and iterate on tests in this repo — one test at a time (tracer bullets), fast cargo first, scale 1v1 before armies, control variables, measure mechanisms not noise. Use when adding sim behavior, fixing a red test, or verifying changes. Pairs with [debug](../debug/SKILL.md), [tweak-mechanics](../tweak-mechanics/SKILL.md), and [balance-unit](../balance-unit/SKILL.md) (the seed-set balance harness).
 ---
 
 # Writing and iterating on tests in this repo
 
-## The loop: cargo first, browser last
+## The loop: bottom-up buckets, cargo first, browser last
 
-1. **Iterate on `cargo test -p sim` until satisfied.** The native suite is
-   ~25s wall-clock (`[profile.test] opt-level = 2` — keep it). Run with
-   `--no-fail-fast` and read EVERY failure before fixing any one of them:
-   failures often share a single root cause, and the cheapest diagnosis is
-   the union of their messages.
-2. **Target single tests while diagnosing**: `cargo test -p sim --test
-   mechanics_melee <name> -- --nocapture`. Print diagnostics with the
-   assert (`"got {x:.1}m"`) so a red test IS the trace.
-3. **Only when cargo is green**, run `npm run verify` from `web/` (~75s).
-   It covers web-only glue: wasm boundary, zero-copy views, UI plumbing,
-   render health. `npm run verify:full` adds the slow behavioral stages —
-   release passes only. NEVER use the browser to verify sim behavior; if a
-   behavior matters, it gets a Rust test.
+Go BOTTOM-UP, and NEVER reach for the whole suite while iterating — it is 10+
+minutes (`scripts/danger-run-all-tests-super-slow`, named to scare you off it;
+run it only as a final last check before a push that could move everything).
+Each layer must be green before the next is worth running. The focused runners in
+`scripts/` glob the test files, so new ones are picked up automatically:
+
+1. **Mechanics first — the inner loop.** `scripts/test-mechanics` (the
+   `mechanics_*` physics invariants, ~tens of sec), or ONE binary while
+   diagnosing: `cargo test -p sim --test mechanics_melee <name> -- --nocapture`.
+   Print diagnostics in the assert (`"got {x:.1}m"`) so a red test IS the trace.
+   Use `--no-fail-fast` and read EVERY failure before fixing one — they often
+   share a single root cause.
+2. **Then scenarios**, once mechanics is green: `scripts/test-scenarios` (the
+   `scenario_*` behavioral contracts).
+3. **Then army, once everything under it is good**: `scripts/test-army` — the
+   heavy full-deployment AI battles (scale-swept). The capstone, not a loop.
+4. **Balance is its own on-demand bucket**: `scripts/test-balance` (minutes).
+   Run when re-deriving the economy or before a balance-touching push, never in
+   the iteration loop.
+5. **Browser LAST, only when cargo is green**: `node scene.mjs` from `web/`
+   (or `npm run verify`). It covers web-only glue: the wasm boundary, zero-copy
+   views, UI plumbing, render health, and the shot baselines — NOT sim behavior.
+   If a behavior matters it gets a Rust test, never a browser check.
    - **REBUILD THE WASM FIRST if you touched any Rust** (`npm run build:wasm`
      from `web/`). The verify harness loads the prebuilt wasm, NOT your live
      source — skip the rebuild and you're testing a stale binary. This once let
      a boot-crashing regression (a new class panicking `class_specs`) pass a
      green `verify` and ship: the sim source had the class, the wasm didn't.
-4. **Check the exit code, not just the output.** A python heredoc that
+6. **Check the exit code, not just the output.** A python heredoc that
    prints "ok" then a cargo grep that prints nothing looks like success and
    is a compile error. `echo rc=$?` after every suite run.
+
+## One test at a time (tracer bullets, not a batch)
+
+Write ONE test, drive it red→green, learn from it, then write the next — never
+a batch of tests up front. In this sim you do not yet KNOW what the physics
+does until you instrument it (see "Validate, don't assume" below), so a batch
+written against *imagined* behavior pins what you GUESSED, not what emerges —
+those tests pass when the mechanism breaks and fail when it's fine. Each green
+cycle tells you what the next test should actually assert.
+
+- **Write the assert FIRST so the target is concrete**, watch it go red on the
+  un-fixed sim, then make the physics earn green — a test you never saw fail is
+  decoration (see "Prove a regression test is really red"). For a physics
+  change, tweak-mechanics says the same: extend the `mechanics_*` test first.
+- **Assert observable physical behavior through the public API** (`spawn_class`,
+  public state polls, measured quantities like cohesion/centroid/pressure),
+  never an internal field or the shape of a formula. A test that asserts "the
+  line holds" survives a rewrite of HOW the holding force is computed; one that
+  reaches into the force term breaks on every refactor and pins implementation,
+  not behavior. This is also why browser tests never decide sim correctness —
+  the Rust layer reads the behavior directly.
+- **Don't anticipate future mechanics.** Minimal scenario for THIS claim; the
+  next cycle gets its own. Speculative tests for behavior you haven't built yet
+  go `#[ignore]` with a rationale, not green-by-accident.
 
 ## Scale: 1v1 before armies
 
@@ -93,11 +127,32 @@ physical signature instead:
 `crates/sim/tests/README.md` is the current test map. Use it before adding a
 new file or moving a test; the short version is:
 
-| Bucket | Question answered by a failure |
-|---|---|
-| `mechanics_*` | "Did the physics/invariant break?" |
-| `balance_*` | "Did the stat-vs-price outcome move?" |
-| `*_scenarios` | "Did a public-API behavior stop emerging?" |
+| Bucket | Units it may use | Question answered by a failure |
+|---|---|---|
+| `mechanics_*` | IMMORTAL fakes | "Did the physics/invariant break?" |
+| `scenario_*` | FAKE REFERENCE units | "Did a public-API behavior stop emerging?" |
+| `balance_*` | REAL class stats | "Did the stat-vs-price outcome move?" |
+
+Each layer may depend only on the one below it: mechanics on immortal fakes,
+scenarios on fixed fake REFERENCE units (so a real-class retune can't break them,
+and the stats double as balancing reference points), balance alone on real stats.
+A win-rate or who-breaks-whom pinned on a REAL class outside `balance_*` is a bug —
+rebuild it on fakes.
+
+**Fake references exist to pin the BOUNDS, not a number.** The reason a scenario
+uses fake stats rather than a real class is that you can dial a fake unit to sit
+*exactly on an edge of the legal envelope* — something a real class's fixed,
+shifting stats can never do. So prefer scenarios that bracket a behavior with two
+references: a FLOOR stat block (the weakest legal version of the effect) and a
+CEILING stat block (the strongest), and assert each lands on its edge. That turns
+the test into a calibration the balancer can read — "this stat block = the floor,
+this one = the ceiling" — so a new real unit is judged against the bounds instead
+of a magic percentage. Worked example: the arrow-toll envelope in
+`scenario_ranged.rs` (`arrows_dent_every_advance_but_gate_none`) marks the 5%
+floor and 20% ceiling with two fake lines that differ only by a shield; a
+`#[ignore]`d `sweep_*` test is kept beside it as the instrument that re-reads
+those edge stat blocks after any change. Print real classes as DIAGNOSTICS only
+(`measure_the_board`).
 
 Use `crates/sim/tests/common/` only for neutral mechanics like ticking, no-morale
 tunables, death counts, and simple living-unit geometry. Scenario-specific
@@ -158,7 +213,7 @@ ask "does performance match price?" and live on the harness in
   runtime now (`Sim::with_balance`); you do not recompile to sweep.
 - A balance test that is really about slot/price (one heavy solos two lights
   — fair because the heavy costs more gold but fewer army slots) belongs
-  here, not in `*_scenarios.rs`. See `tests/balance_harness.rs`.
+  here, not in `scenario_*.rs`. See `tests/balance_harness.rs`.
 
 ## Watch the saturation window
 
@@ -218,7 +273,8 @@ regression test, it's decoration.
 
 ## When a test goes red after a sim change
 
-In order of likelihood:
+([debug](../debug/SKILL.md) is the full loop — classify regression-vs-fragility,
+instrument the cause. The short triage, in order of likelihood:)
 1. The test encodes DELETED semantics (e.g. arrive-braking made walk-ins
    slow; halt-and-stash made attacks stop). Re-spec the test to the
    contract's real claim, not the old implementation's accident.

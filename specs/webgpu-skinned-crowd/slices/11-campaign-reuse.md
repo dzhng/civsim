@@ -19,7 +19,7 @@ without duplicating art or breaking campaign visual semantics.
 
 ## Verification
 
-- `web/scenarios/campaign-webgpu-visual.mjs` passes or gets deliberately
+- `web/scenes/campaign-webgpu-visual.mjs` passes or gets deliberately
   re-blessed after visual review; `verify-campaign-visual.mjs` delegates to the
   same scenario for compatibility.
 - Snapshot cases cover our city, neutral city, road, diplomacy, class builder,

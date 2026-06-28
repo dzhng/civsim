@@ -49,11 +49,11 @@ fn charge_penetration(depth: usize, brace_mult: f32) -> (f32, f32) {
     bh.weapons = sim::class::one(Weapon {
         reach: 1.1,
         min_range: 0.0,
-        arc: 1.4,
+        zones: sim::strike::front(0.7),
         attack_interval: 1.79,
         damage: 0.0,
         cleave: false,
-        kind: sim::WeaponKind::Standard,
+        impales: false, kind: sim::WeaponKind::Standard,
     });
     sim.units[block].stats = bh;
     for k in sim.units[block].start..sim.units[block].start + sim.units[block].count {
@@ -72,11 +72,11 @@ fn charge_penetration(depth: usize, brace_mult: f32) -> (f32, f32) {
     ch.weapons = sim::class::one(Weapon {
         reach: 2.4,
         min_range: 0.0,
-        arc: 0.6,
+        zones: sim::strike::front(0.3),
         attack_interval: 2.2,
         damage: 0.0,
         cleave: false,
-        kind: sim::WeaponKind::Standard,
+        impales: false, kind: sim::WeaponKind::Standard,
     });
     sim.units[cav].stats = ch;
     for k in sim.units[cav].start..sim.units[cav].start + sim.units[cav].count {
@@ -276,7 +276,7 @@ fn cav_closest_approach_to_phalanx(flank: bool) -> f32 {
     );
     // Defender holds facing +y. A phalanx therefore presents points only to the
     // north; a flank charge from the west crosses the shafts, not their tips.
-    let def = sim.spawn_class_with_files(Vec2::ZERO, FRAC_PI_2, 160, 8, UnitClassId::Phalanx, 1);
+    let def = sim.spawn_class_with_files(Vec2::ZERO, FRAC_PI_2, 160, 8, UnitClassId::HeavyPhalanx, 1);
     let (start, facing, goal) = if flank {
         (Vec2::new(-70.0, 0.0), 0.0, Vec2::new(70.0, 0.0))
     } else {
@@ -305,6 +305,17 @@ fn cav_closest_approach_to_phalanx(flank: bool) -> f32 {
             }
         }
     }
+    if std::env::var("PHX_PROBE").is_ok() {
+        let u = &sim.units[cav];
+        eprintln!(
+            "  {} closest {min_gap:.2}m | cav -{} (impale {} grind {} impact {})",
+            if flank { "FLANK" } else { "FRONT" },
+            96 - u.alive_count,
+            u.lost_charge_melee,
+            u.lost_grind_melee,
+            u.lost_impact,
+        );
+    }
     min_gap
 }
 
@@ -326,7 +337,7 @@ fn phalanx_points_stop_horses_only_to_the_front() {
 
 #[test]
 fn ordinary_spears_do_not_wall_cavalry_like_a_phalanx() {
-    let pike = class_charge_mass_progress(UnitClassId::Phalanx, false);
+    let pike = class_charge_mass_progress(UnitClassId::HeavyPhalanx, false);
     let spear = class_charge_mass_progress(UnitClassId::LightSpear, false);
     let sword = class_charge_mass_progress(UnitClassId::HeavySword, false);
     eprintln!(

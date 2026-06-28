@@ -10,10 +10,10 @@ reviewed before claiming parity.
 
 ## API Seam
 
-- `web/scenario.mjs`
+- `web/scene.mjs`
 - `web/verify-battle.mjs`
 - `web/verify-campaign-visual.mjs`
-- `web/scenarios/campaign-webgpu-visual.mjs`
+- `web/scenes/campaign-webgpu-visual.mjs`
 - `web/vibe/*.mjs`
 - `web/snapshot.mjs`
 
@@ -40,7 +40,7 @@ reviewed before claiming parity.
 
 Current checkpoint:
 
-- `VERIFY_WEBGPU=1 node scenario.mjs webgpu-visual-report` captures the WebGPU
+- `VERIFY_WEBGPU=1 node scene.mjs webgpu-visual-report` captures the WebGPU
   menu, unsupported-WebGPU state, battle default, battle selection/HUD at DPR2,
   campaign whole map, campaign label zoom, and campaign-to-battle handoff
   surfaces.
@@ -77,9 +77,9 @@ Current checkpoint:
 ## Verification
 
 - `npm run verify` passes on WebGPU defaults.
-- `VERIFY_WEBGPU=1 node scenario.mjs campaign-webgpu-production` passes on the
+- `VERIFY_WEBGPU=1 node scene.mjs campaign-webgpu-production` passes on the
   normal campaign route.
-- `VERIFY_WEBGPU=1 node scenario.mjs menu-webgpu-shell-visual` passes with zero
+- `VERIFY_WEBGPU=1 node scene.mjs menu-webgpu-shell-visual` passes with zero
   pixel drift after the menu shell baselines are blessed and inspected.
 - `npm run scenario:webgpu` covers the quick production WebGPU route set:
   lab route contracts, visual cutover report generation, default battle, battle

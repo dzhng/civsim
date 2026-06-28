@@ -97,6 +97,191 @@ fn garrison_sorties_and_blocks_assault() {
 }
 
 #[test]
+fn defended_city_assault_stands_a_siege() {
+    // Player is red (faction 0); A (node 0) is the player's city. An enemy
+    // assault on a defended city opens a siege the world runs through — the
+    // real-time window to march relief — instead of committing instantly.
+    let mut c = Campaign::new(test_map(), 7, 0);
+    inert(&mut c);
+    c.state.armies[0].roster[0].count = 0; // no red field army to intercept
+    c.state
+        .cities
+        .get_mut(&0)
+        .unwrap()
+        .garrison
+        .push(RosterEntry {
+            class: contract::UnitClassId::LightSpear,
+            count: 440,
+            max: 440,
+            morale_cap: 1.0,
+        });
+    // Start blue adjacent to A by road (at B): an overland approach so the
+    // garrison sorties as the enemy nears, rather than a sea lane that
+    // disembarks straight onto the port city.
+    c.state.armies[1].loc = Loc::Node(1);
+    assert!(c.order_move(1, Loc::Node(0))); // blue marches on the player's city
+    let mut sieged = false;
+    for _ in 0..20_000 {
+        c.tick();
+        if let Some(e) = c
+            .state
+            .encounters
+            .iter()
+            .find(|e| c.state.armies[e.defender as usize].garrison_of == Some(0))
+        {
+            assert_eq!(e.phase, EncounterPhase::Preparing);
+            assert_eq!(
+                e.prep_attacker,
+                tunables::SIEGE_TICKS,
+                "a defended city stands a siege"
+            );
+            assert_eq!(e.prep_defender, tunables::SIEGE_TICKS);
+            sieged = true;
+            break;
+        }
+    }
+    assert!(sieged, "an assault on a defended city must open a siege");
+    // The siege does NOT commit instantly — the campaign is free to keep running.
+    assert!(
+        c.state.battle_ready.is_none(),
+        "a siege gives the defender time before the battle commits"
+    );
+}
+
+#[test]
+fn ai_city_assault_stands_the_same_siege() {
+    // The siege is faction-blind: an AI-vs-AI assault gets the same window as a
+    // player one (here red→blue, with the player a third idle faction). Pins
+    // "all factions, same logic" — not a player-only courtesy.
+    let mut c = Campaign::new(test_map(), 7, 2);
+    inert(&mut c);
+    c.state.armies[1].roster[0].count = 0; // no blue field army
+    c.state
+        .cities
+        .get_mut(&2)
+        .unwrap()
+        .garrison
+        .push(RosterEntry {
+            class: contract::UnitClassId::LightSpear,
+            count: 440,
+            max: 440,
+            morale_cap: 1.0,
+        });
+    assert!(c.order_move(0, Loc::Node(2)));
+    let mut formed = false;
+    for _ in 0..20_000 {
+        c.tick();
+        if let Some(e) = c
+            .state
+            .encounters
+            .iter()
+            .find(|e| c.state.armies[e.defender as usize].garrison_of == Some(2))
+        {
+            assert_eq!(
+                e.prep_attacker,
+                tunables::SIEGE_TICKS,
+                "an AI-vs-AI assault stands the same siege as a player one"
+            );
+            formed = true;
+            break;
+        }
+    }
+    assert!(formed, "the garrison encounter should form");
+}
+
+#[test]
+fn won_assault_occupies_the_city() {
+    // Winning a city assault seizes the city then and there: the victor is
+    // placed Occupying the city node, not left idle beside it. AI is OFF, so
+    // this proves the capture is owned by the battle resolution and needs no
+    // commander to walk the army in — the gap the old code left, which only
+    // captured when the occupy-clock happened to beat the next AI order.
+    let mut c = Campaign::new(test_map(), 7, 2);
+    inert(&mut c);
+    c.state.armies[1].roster[0].count = 0; // no blue field army / relief
+    c.state.armies[0].loc = Loc::Node(1); // red adjacent to C
+    c.state.armies[0].roster[0].count = 600;
+    c.state.armies[0].roster[0].max = 600;
+    c.state.cities.get_mut(&2).unwrap().garrison.push(RosterEntry {
+        class: contract::UnitClassId::LightSpear,
+        count: 120,
+        max: 120,
+        morale_cap: 1.0,
+    });
+    assert!(c.order_move(0, Loc::Node(2)));
+    let mut resolved = false;
+    for _ in 0..40_000 {
+        c.tick();
+        if let Some(eid) = c.state.battle_ready {
+            let s = c.battle_setup(eid).expect("setup");
+            let r = campaign::resolve::estimate(&c.map, &s);
+            c.apply_outcome(eid, &r);
+            resolved = true;
+            break;
+        }
+    }
+    assert!(resolved, "the assault never came to battle");
+    let red = &c.state.armies[0];
+    assert!(red.alive(), "red won the assault");
+    assert_eq!(red.loc, Loc::Node(2), "the victor stands in the city it took");
+    assert!(
+        matches!(red.stance, Stance::Occupying { city: 2, .. }),
+        "the victor occupies its prize, got {:?}",
+        red.stance
+    );
+    // No commander to redirect it: the occupation completes and C flips.
+    for _ in 0..tunables::OCCUPY_TICKS as u32 + 5 {
+        c.tick();
+    }
+    assert_eq!(c.state.cities[&2].owner, 0, "C falls to red");
+}
+
+#[test]
+fn a_siege_converts_to_a_capture() {
+    // The end-to-end property a siege must preserve: a determined assault on a
+    // defended city, with NO relief possible, eventually takes the city. (The
+    // regression this guards: if a besieged city replenishes its garrison, the
+    // attacker wins fight after fight but the walls keep regrowing and the city
+    // never flips.) Player is a third faction — pure AI-vs-AI.
+    let mut c = Campaign::new(test_map(), 7, 2);
+    for f in &mut c.state.factions {
+        f.ai = true;
+    }
+    c.state.armies[1].roster[0].count = 0; // delete blue's field army — no relief
+    c.state.armies[0].loc = Loc::Node(1); // strong red army adjacent to C
+    c.state.armies[0].roster[0].count = 600;
+    c.state.armies[0].roster[0].max = 600;
+    c.state.cities.get_mut(&2).unwrap().garrison.push(RosterEntry {
+        class: contract::UnitClassId::LightSpear,
+        count: 120,
+        max: 120,
+        morale_cap: 1.0,
+    });
+    let owner0 = c.state.cities[&2].owner;
+    let mut captured = false;
+    for _ in 0..40_000 {
+        c.tick();
+        if c.state.tick % 60 == 0 {
+            c.drive_ai();
+        }
+        if let Some(eid) = c.state.battle_ready {
+            match c.battle_setup(eid) {
+                Some(s) => {
+                    let r = campaign::resolve::estimate(&c.map, &s);
+                    c.apply_outcome(eid, &r);
+                }
+                None => c.state.battle_ready = None,
+            }
+        }
+        if c.state.cities[&2].owner != owner0 {
+            captured = true;
+            break;
+        }
+    }
+    assert!(captured, "a defended city with no relief must eventually fall");
+}
+
+#[test]
 fn handoff_and_outcome_rout_or_annihilation() {
     let mut c = Campaign::new(test_map(), 7, 0);
     inert(&mut c);
@@ -131,7 +316,7 @@ fn handoff_and_outcome_rout_or_annihilation() {
             contract::UnitResult {
                 id: red_id,
                 team: 0,
-                survivors: 700,
+                survivors: 500,
                 routed: false,
                 morale_cap: 0.9,
                 deployed: true,
@@ -147,7 +332,7 @@ fn handoff_and_outcome_rout_or_annihilation() {
         ],
     };
     c.apply_outcome(eid, &result);
-    assert_eq!(c.state.armies[0].roster[0].count, 700);
+    assert_eq!(c.state.armies[0].roster[0].count, 500);
     assert_eq!(
         c.state.armies[1].roster[0].count, 0,
         "cornered: captured and wiped"
@@ -204,7 +389,7 @@ fn loser_with_a_road_out_routs_along_it() {
             contract::UnitResult {
                 id: red_id,
                 team: 0,
-                survivors: 700,
+                survivors: 500,
                 routed: false,
                 morale_cap: 0.9,
                 deployed: true,
@@ -352,8 +537,8 @@ fn equal_speed_chaser_follows_around_the_corner() {
             {"id": "independents", "name": "Ind", "color": [99,99,99], "playable": false}
           ],
           "start_armies": [
-            {"faction": "red",  "at": "A", "roster": [["LightSpear", 880]]},
-            {"faction": "blue", "at": "C", "roster": [["LightSpear", 880]]}
+            {"faction": "red",  "at": "A", "roster": [["LightSpear", 1]]},
+            {"faction": "blue", "at": "C", "roster": [["LightSpear", 1]]}
           ]
         }"#;
     let mut c = Campaign::new(map, 7, 0);

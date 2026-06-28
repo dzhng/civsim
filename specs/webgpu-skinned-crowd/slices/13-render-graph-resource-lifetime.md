@@ -84,7 +84,7 @@ compatible or splits them into separate passes.
   rank-overlap, and ground-ring-occlusion. The fixture deliberately submits
   occluding city/front-rank geometry before later flag/ring/rear-rank geometry
   so a passing image proves depth, not painter order.
-- `web/scenarios/webgpu-lab-routes.mjs` now samples pixels from the
+- `web/scenes/webgpu-lab-routes.mjs` now samples pixels from the
   render-graph canvas to prove the city occludes the lower planted standard,
   the upper flag remains visible, and the front battle rank wins the overlap.
 - `webgpu-visual-report` now includes a `Render Graph Nested Depth` row so

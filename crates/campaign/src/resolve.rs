@@ -6,7 +6,7 @@ use crate::mapdata::{NodeKind, WorldMap};
 use crate::pathfind;
 use crate::state::*;
 use crate::tunables as tun;
-use contract::{BattleResult, BattleSetup, Deployment, Reinforcement, RosterUnit};
+use contract::{BattleResult, BattleSetup, Deployment, Reinforcement, RosterUnit, UnitResult};
 use std::collections::BTreeSet;
 
 /// Campaign roster entry identity inside a battle: army id in the high bits,
@@ -101,7 +101,10 @@ pub fn eligible_reinforcements(
             .map(|r| tun::march_mult(r.class))
             .fold(f32::INFINITY, f32::min);
         let ticks_per_tile = 1.0 / (tun::BASE_TILES_PER_TICK * slowest);
-        let hours = dist as f32 * ticks_per_tile / 60.0;
+        // ticks → game-hours uses the current tick scale (ticks per game-hour),
+        // not a hardcoded 60, so reinforcement timing holds under a time rescale.
+        let ticks_per_hour = tun::TICKS_PER_DAY as f32 / 24.0;
+        let hours = dist as f32 * ticks_per_tile / ticks_per_hour;
         let delay = (hours * tun::REINFORCE_SECS_PER_HOUR).min(tun::REINFORCE_MAX_DELAY_SECS);
         // Approach bearing in battle space: the attacker's direction is south.
         let bearing = world_bearing(map, site, a.loc) - att_bearing - std::f32::consts::FRAC_PI_2;
@@ -274,6 +277,11 @@ pub fn apply_battle_outcome(
     let def = &st.armies[e.defender as usize];
     let att_team: u32 = if def.faction == player_faction { 1 } else { 0 };
     let (att_faction, def_faction) = (att.faction, def.faction);
+    // A city assault: the defender is the city's garrison. If the attacker wins,
+    // it has breached the walls and must seize the prize, not be left standing
+    // beside an undefended city for the AI to wander off from (the bet was the
+    // siege; the capture is its payoff).
+    let assault_city = def.garrison_of;
 
     // Casualties and rally scars.
     for u in &result.units {
@@ -319,6 +327,21 @@ pub fn apply_battle_outcome(
             continue; // tombstone: wiped out in the fighting
         }
         if a.faction == winner_faction {
+            // A victorious assault marches into the breach and occupies the city
+            // it just took — pinned there (Occupying rejects move orders) until
+            // it flips, so a won siege reliably becomes a capture regardless of
+            // siege length or the commander's next whim. Relief arriving during
+            // the occupation still interrupts it (occupations: hostile in contact).
+            if id == e.attacker {
+                if let Some(node) = assault_city {
+                    a.loc = Loc::Node(node);
+                    a.stance = Stance::Occupying {
+                        city: node,
+                        ticks_left: tun::OCCUPY_TICKS,
+                    };
+                    continue;
+                }
+            }
             a.stance = Stance::Hold;
             continue; // garrison winners fold back via garrison_returns
         }
@@ -371,4 +394,65 @@ pub fn apply_battle_outcome(
     if st.battle_ready == Some(eid) {
         st.battle_ready = None;
     }
+}
+
+/// Cost-weighted strength model of a battle's outcome: the heavier side wins,
+/// both bleed in proportion to the strength gap. Deterministic, O(units) — no
+/// dice. This is the AI's *imagination only* (the `rollout` sandbox and the
+/// commander's lookahead): the live, player-facing battle still runs the full
+/// physics sim. Never resolve a real encounter through this.
+///
+/// Strength uses the same yardstick as the AI's `ai::strength` — a stable
+/// per-soldier value derived from the unit's raise cost (`≈ cost / 50`), not the
+/// heavy monthly upkeep — so the estimate agrees with how the AI sizes up armies.
+pub fn estimate(map: &WorldMap, setup: &BattleSetup) -> BattleResult {
+    let weight = |u: &RosterUnit| -> u64 {
+        u.unit_type
+            .and_then(|id| crate::units::unit_type_by_id(map, id))
+            .map(|t| (t.cost_per_soldier_milligold / 50).max(1))
+            .unwrap_or_else(|| (tun::recruit_cost_milligold(u.class) / 50).max(1)) as u64
+    };
+
+    // Both sides' rosters tagged with their team, deployments + reinforcements.
+    let units: Vec<(u32, &RosterUnit)> = setup
+        .deployments
+        .iter()
+        .flat_map(|d| d.units.iter().map(move |u| (d.team, u)))
+        .chain(
+            setup
+                .reinforcements
+                .iter()
+                .flat_map(|r| r.units.iter().map(move |u| (r.team, u))),
+        )
+        .collect();
+
+    let mut team_str = [0u64, 0u64];
+    for &(team, u) in &units {
+        team_str[team as usize] += u.count as u64 * weight(u);
+    }
+    let victor = if team_str[0] >= team_str[1] { 0 } else { 1 };
+    let (ws, ls) = (
+        team_str[victor as usize].max(1),
+        team_str[1 - victor as usize].max(1),
+    );
+    let ratio = ls as f64 / ws as f64; // 0..1, how close the loser was
+    let winner_surv = (1.0 - 0.45 * ratio).clamp(0.5, 1.0);
+    let loser_surv = (0.45 * ratio).clamp(0.0, 0.5);
+
+    let units = units
+        .iter()
+        .map(|&(team, u)| {
+            let won = team == victor;
+            let frac = if won { winner_surv } else { loser_surv };
+            UnitResult {
+                id: u.id,
+                team,
+                survivors: (u.count as f64 * frac) as u32,
+                routed: !won,
+                morale_cap: if won { 0.9 } else { 0.6 },
+                deployed: true,
+            }
+        })
+        .collect();
+    BattleResult { victor, units }
 }

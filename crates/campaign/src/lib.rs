@@ -8,6 +8,7 @@ pub mod economy;
 pub mod mapdata;
 pub mod pathfind;
 pub mod resolve;
+pub mod rollout;
 pub mod sim;
 pub mod state;
 pub mod tunables;
@@ -16,10 +17,29 @@ pub mod visibility;
 
 use mapdata::WorldMap;
 use state::*;
+use std::collections::{BTreeMap, BTreeSet};
 
 pub struct Campaign {
     pub map: WorldMap,
     pub state: CampaignState,
+    /// External-AI scheduling — the host-driven deferred-command queue. Not part
+    /// of the saved state: a snapshot the worker reads is a plain paused game.
+    sched: ExternalAi,
+}
+
+/// The lockstep-with-input-delay bookkeeping for off-thread AI (see
+/// `advance_external`). All in real-time-bound ticks, so it's independent of how
+/// long the worker takes — late decisions force a wait, never a different game.
+#[derive(Default)]
+struct ExternalAi {
+    /// Decisions the host has submitted, keyed by the tick they apply on.
+    queue: BTreeMap<u64, Vec<ai::Decision>>,
+    /// Apply-ticks we've dispatched and are still waiting on (the stall set).
+    awaiting: BTreeSet<u64>,
+    /// The last dispatch tick the host acknowledged (so we don't re-stop on it).
+    last_dispatch: Option<u64>,
+    /// A dispatch tick `advance_external` stopped on, pending the host's snapshot.
+    dispatch_pending: Option<u64>,
 }
 
 impl Campaign {
@@ -27,7 +47,11 @@ impl Campaign {
         let map = WorldMap::from_json(map_json);
         let mut state = sim::new_state(&map, seed, player_faction);
         normalize_state(&mut state);
-        Campaign { map, state }
+        Campaign {
+            map,
+            state,
+            sched: ExternalAi::default(),
+        }
     }
 
     pub fn tick(&mut self) {
@@ -38,6 +62,14 @@ impl Campaign {
     /// or no route exists. Sea legs are allowed; the army embarks at ports.
     pub fn order_move(&mut self, army: ArmyId, dest: Loc) -> bool {
         sim::try_move(&self.map, &mut self.state, army, dest, true)
+    }
+
+    /// Latch an army onto a moving enemy army and chase it indefinitely — the
+    /// path re-aims at the target every tick, and the chase carries on even
+    /// after the target routs. Rejected if the chaser can't take orders or the
+    /// target isn't a reachable, live army.
+    pub fn order_pursue(&mut self, army: ArmyId, target: ArmyId) -> bool {
+        sim::order_pursue(&self.map, &mut self.state, army, target)
     }
 
     pub fn order_halt(&mut self, army: ArmyId) -> bool {
@@ -132,10 +164,17 @@ impl Campaign {
     pub fn order_auto_replenish(&mut self, army: ArmyId, on: bool) -> bool {
         economy::set_auto_replenish(&mut self.state, army, on)
     }
-    /// Start a market or barracks at an owned city (player faction pays).
-    pub fn order_build(&mut self, node: u32, kind: state::BuildKind) -> bool {
+    /// Steer an owned city's development with the two policy dials: focus
+    /// (−1 Economy … +1 Military) and throttle (0 Grow … 1 Exploit). The city
+    /// auto-develops from there — the player's whole city interaction.
+    pub fn order_set_city_policy(&mut self, node: u32, focus: f32, throttle: f32) -> bool {
         let f = self.state.player_faction;
-        economy::build(&mut self.state, node, kind, f)
+        economy::set_city_policy(&mut self.state, node, f, focus, throttle)
+    }
+    /// Flag an owned army to sack (vs hold) the next city it captures.
+    pub fn order_sack_intent(&mut self, army: ArmyId, on: bool) -> bool {
+        let f = self.state.player_faction;
+        ai::orders::apply(&self.map, &mut self.state, f, &ai::Order::Sack { army, on })
     }
     pub fn order_disband(&mut self, army: ArmyId, entry: usize) -> bool {
         economy::disband(&mut self.state, army, entry)
@@ -207,6 +246,95 @@ impl Campaign {
         serde_json::to_string(&self.state).unwrap()
     }
 
+    // ---- AI scheduling ----------------------------------------------------
+    // The AI never runs inside `tick`; the host drives it. In the app a worker
+    // computes `commander_decisions` against a posted snapshot and applies them
+    // on a fixed delay (see `advance_external`, tunables AI_DISPATCH_EVERY /
+    // AI_LATENCY). Tests drive the same path synchronously via `drive_ai`.
+
+    /// Run the commander AI synchronously: compute every campaigning faction's
+    /// decision against the current state and apply it immediately. The same
+    /// decisions the worker computes, just applied here-and-now (zero delay) —
+    /// deterministic, and a convenience for tests and headless play.
+    pub fn drive_ai(&mut self) {
+        let decisions = ai::commander_decisions(&self.map, &self.state);
+        self.apply_decisions(&decisions);
+    }
+
+    /// Compute every campaigning faction's decision against the current state,
+    /// without touching it — what a worker runs on a posted snapshot.
+    pub fn commander_decisions(&self) -> Vec<ai::Decision> {
+        ai::commander_decisions(&self.map, &self.state)
+    }
+
+    /// Apply decisions the host computed earlier (replays orders + AI state).
+    pub fn apply_decisions(&mut self, decisions: &[ai::Decision]) {
+        for d in decisions {
+            ai::apply_decision(&self.map, &mut self.state, d);
+        }
+    }
+
+    /// Current campaign tick — the clock the host schedules dispatch/apply on.
+    pub fn tick_count(&self) -> u64 {
+        self.state.tick
+    }
+
+    /// Advance up to `max_n` ticks under host-driven AI, stopping at the
+    /// boundaries the host must service. Returns `(advanced, reason, tick)`:
+    ///   - reason 0 = ran the budget out (or hit a battle): nothing to do.
+    ///   - reason 1 = stopped *on* a dispatch tick: the host must snapshot now
+    ///     (`save`), send it to the worker to apply at tick + AI_LATENCY, then
+    ///     call `ack_dispatch` and resume.
+    ///   - reason 2 = stalled: the decision due at `tick` hasn't been submitted
+    ///     yet; the host must wait for the worker, then resume.
+    /// Because apply ticks are fixed, the worker's latency only ever causes a
+    /// stall (a pause) — never a different outcome.
+    pub fn advance_external(&mut self, max_n: u32) -> (u32, u8, u64) {
+        let mut advanced = 0;
+        while advanced < max_n {
+            let t = self.state.tick;
+            // Stop on an un-serviced dispatch boundary so the host snapshots.
+            if t % tunables::AI_DISPATCH_EVERY == 0 && self.sched.last_dispatch != Some(t) {
+                self.sched.dispatch_pending = Some(t);
+                return (advanced, 1, t);
+            }
+            // Stall before a tick whose decision is due but not yet here.
+            let next = t + 1;
+            if self.sched.awaiting.contains(&next) && !self.sched.queue.contains_key(&next) {
+                return (advanced, 2, next);
+            }
+            sim::tick(&self.map, &mut self.state);
+            advanced += 1;
+            // Apply anything scheduled for the tick we just reached.
+            if let Some(ds) = self.sched.queue.remove(&self.state.tick) {
+                for d in &ds {
+                    ai::apply_decision(&self.map, &mut self.state, d);
+                }
+            }
+            self.sched.awaiting.remove(&self.state.tick);
+            if self.state.battle_ready.is_some() {
+                return (advanced, 0, self.state.tick); // auto-pause for the battle
+            }
+        }
+        (advanced, 0, self.state.tick)
+    }
+
+    /// Acknowledge the snapshot the host just took at the pending dispatch tick:
+    /// records it (so `advance_external` won't re-stop there) and registers the
+    /// apply tick it's now waiting on.
+    pub fn ack_dispatch(&mut self) {
+        if let Some(t) = self.sched.dispatch_pending.take() {
+            self.sched.last_dispatch = Some(t);
+            self.sched.awaiting.insert(t + tunables::AI_LATENCY);
+        }
+    }
+
+    /// Submit decisions a worker computed for an earlier snapshot, to apply on
+    /// their scheduled tick.
+    pub fn submit_decisions(&mut self, apply_at: u64, decisions: Vec<ai::Decision>) {
+        self.sched.queue.entry(apply_at).or_default().extend(decisions);
+    }
+
     pub fn load(map_json: &str, save: &str) -> Result<Campaign, String> {
         let map = WorldMap::from_json(map_json);
         let mut state: CampaignState = serde_json::from_str(save).map_err(|e| e.to_string())?;
@@ -215,7 +343,11 @@ impl Campaign {
             state.road_levels = vec![1; map.edges.len()];
         }
         normalize_state(&mut state);
-        Ok(Campaign { map, state })
+        Ok(Campaign {
+            map,
+            state,
+            sched: ExternalAi::default(),
+        })
     }
 }
 
@@ -236,7 +368,7 @@ fn normalize_state(state: &mut CampaignState) {
                 if bad_selected {
                     slot.selected = units::unit_type_id(f, class, 0);
                 }
-                if !matches!(slot.size_mult, 1 | 2 | 4) {
+                if !matches!(slot.size_mult, 1 | 2 | 3) {
                     slot.size_mult = 1;
                 }
             } else {

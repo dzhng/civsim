@@ -25,7 +25,7 @@
       "status": "complete",
       "detail": "menu boot, unsupported WebGPU UX, duel, quick battle, campaign launch, and return-to-menu; scenario file exists and scenario:webgpu includes it",
       "evidence": {
-        "file": "web/scenarios/menu-webgpu-shell.mjs",
+        "file": "web/scenes/menu-webgpu-shell.mjs",
         "script": "scenario:webgpu"
       }
     },
@@ -34,7 +34,7 @@
       "status": "complete",
       "detail": "menu ready, unsupported, and duel modal snapshots; scenario file exists and scenario:webgpu includes it",
       "evidence": {
-        "file": "web/scenarios/menu-webgpu-shell-visual.mjs",
+        "file": "web/scenes/menu-webgpu-shell-visual.mjs",
         "script": "scenario:webgpu"
       }
     },
@@ -43,7 +43,7 @@
       "status": "complete",
       "detail": "normal battle route defaults to raw WebGPU and retired gfx switches stay retired; scenario file exists and scenario:webgpu includes it",
       "evidence": {
-        "file": "web/scenarios/battle-webgpu-default.mjs",
+        "file": "web/scenes/battle-webgpu-default.mjs",
         "script": "scenario:webgpu"
       }
     },
@@ -52,7 +52,7 @@
       "status": "complete",
       "detail": "click, drag-box, right-click order, wheel zoom, DPR, and freeze semantics; scenario file exists and scenario:webgpu includes it",
       "evidence": {
-        "file": "web/scenarios/battle-webgpu-input.mjs",
+        "file": "web/scenes/battle-webgpu-input.mjs",
         "script": "scenario:webgpu"
       }
     },
@@ -61,7 +61,7 @@
       "status": "complete",
       "detail": "normal campaign route uses raw-WebGPU map, markers, labels, panels, and selection; scenario file exists and scenario:webgpu includes it",
       "evidence": {
-        "file": "web/scenarios/campaign-webgpu-production.mjs",
+        "file": "web/scenes/campaign-webgpu-production.mjs",
         "script": "scenario:webgpu"
       }
     },
@@ -70,7 +70,7 @@
       "status": "complete",
       "detail": "campaign to battle and back without changing campaign mechanics; scenario file exists and scenario:webgpu includes it",
       "evidence": {
-        "file": "web/scenarios/campaign-webgpu-handoff.mjs",
+        "file": "web/scenes/campaign-webgpu-handoff.mjs",
         "script": "scenario:webgpu"
       }
     },
@@ -79,7 +79,7 @@
       "status": "complete",
       "detail": "menu save slot round-trips into a loaded WebGPU campaign; scenario file exists and scenario:webgpu includes it",
       "evidence": {
-        "file": "web/scenarios/campaign-webgpu-save-load.mjs",
+        "file": "web/scenes/campaign-webgpu-save-load.mjs",
         "script": "scenario:webgpu"
       }
     },
@@ -88,7 +88,7 @@
       "status": "complete",
       "detail": "controlled campaign marker and panel snapshots through WebGPU; scenario file exists and scenario:webgpu includes it",
       "evidence": {
-        "file": "web/scenarios/campaign-webgpu-visual.mjs",
+        "file": "web/scenes/campaign-webgpu-visual.mjs",
         "script": "scenario:webgpu"
       }
     },
@@ -97,7 +97,7 @@
       "status": "complete",
       "detail": "real-map march to garrison battle, auto-resolve, and continued savable campaign; scenario file exists and scenario:webgpu:campaign includes it",
       "evidence": {
-        "file": "web/scenarios/campaign-webgpu-conquest.mjs",
+        "file": "web/scenes/campaign-webgpu-conquest.mjs",
         "script": "scenario:webgpu:campaign"
       }
     },
@@ -106,7 +106,7 @@
       "status": "complete",
       "detail": "nearby split stack joins battle and expanded army renders through WebGPU; scenario file exists and scenario:webgpu:campaign includes it",
       "evidence": {
-        "file": "web/scenarios/campaign-webgpu-reinforcements.mjs",
+        "file": "web/scenes/campaign-webgpu-reinforcements.mjs",
         "script": "scenario:webgpu:campaign"
       }
     },
@@ -115,7 +115,7 @@
       "status": "complete",
       "detail": "visual cutover contact sheet for menu, battle, campaign, and handoff surfaces; scenario file exists and scenario:webgpu includes it",
       "evidence": {
-        "file": "web/scenarios/webgpu-visual-report.mjs",
+        "file": "web/scenes/webgpu-visual-report.mjs",
         "script": "scenario:webgpu"
       }
     },
@@ -124,7 +124,7 @@
       "status": "complete",
       "detail": "full-game liveness performance report for menu, battle, campaign, and handoff; scenario file exists and scenario:webgpu includes it",
       "evidence": {
-        "file": "web/scenarios/full-game-webgpu-performance.mjs",
+        "file": "web/scenes/full-game-webgpu-performance.mjs",
         "script": "scenario:webgpu"
       }
     },
@@ -133,7 +133,7 @@
       "status": "complete",
       "detail": "lab route contracts and cutover route stats stay covered; scenario file exists and scenario:webgpu includes it",
       "evidence": {
-        "file": "web/scenarios/webgpu-lab-routes.mjs",
+        "file": "web/scenes/webgpu-lab-routes.mjs",
         "script": "scenario:webgpu"
       }
     },

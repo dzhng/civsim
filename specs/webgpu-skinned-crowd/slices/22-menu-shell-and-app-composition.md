@@ -25,7 +25,7 @@ check and no unsupported browser silently falls through to a legacy renderer.
 
 ## Verification
 
-- `VERIFY_WEBGPU=1 node scenario.mjs menu-webgpu-shell`
+- `VERIFY_WEBGPU=1 node scene.mjs menu-webgpu-shell`
   - opens menu, launches duel through WebGPU, launches quick battle through
     WebGPU, opens manual, starts the normal WebGPU campaign, and returns.
   - opens `/?webgpu=off`, checks the user-facing message, disabled launch
@@ -33,11 +33,11 @@ check and no unsupported browser silently falls through to a legacy renderer.
   - opens `/?webgpu=off&battle=5v5` and proves unsupported WebGPU blocks
     renderer deep links at the app shell instead of crashing later.
   - checks Escape/manual behavior and duel picker focus.
-- `VERIFY_WEBGPU=1 node scenario.mjs campaign-webgpu-save-load`
+- `VERIFY_WEBGPU=1 node scene.mjs campaign-webgpu-save-load`
   - clears the local campaign slot, proves the menu disables Load, starts a
     normal WebGPU campaign, saves, exits to the menu, loads the save, and
     verifies the reloaded campaign still uses the raw-WebGPU adapter.
-- `VERIFY_WEBGPU=1 node scenario.mjs menu-webgpu-shell-visual`
+- `VERIFY_WEBGPU=1 node scene.mjs menu-webgpu-shell-visual`
   - pins `menu-webgpu-ready`, `menu-webgpu-unsupported`, and
     `menu-webgpu-duel-modal` baselines.
 

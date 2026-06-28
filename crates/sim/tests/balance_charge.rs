@@ -132,7 +132,7 @@ fn pikes_reach_riders_swords_chip_at_horseflesh() {
     let mut sword_rider = 0.0f32;
     let mut sword_mount = 0.0f32;
     for s in seeds {
-        let (r, m) = cav_damage(UnitClassId::Phalanx, s);
+        let (r, m) = cav_damage(UnitClassId::HeavyPhalanx, s);
         pike_rider += r;
         pike_mount += m;
         let (r, m) = cav_damage(UnitClassId::HeavySword, s);
@@ -179,7 +179,7 @@ fn frontal_cavalry_charge_does_not_majority_beat_a_presented_phalanx() {
                 (90.0, -90.0, -PI / 2.0, PI / 2.0)
             };
             let cav = sim.spawn_class(Vec2::new(0.0, cy), cf, 120, UnitClassId::ShockCavalry, 0);
-            let pike = sim.spawn_class(Vec2::new(0.0, py), pf, 240, UnitClassId::Phalanx, 1);
+            let pike = sim.spawn_class(Vec2::new(0.0, py), pf, 240, UnitClassId::HeavyPhalanx, 1);
             sim.set_pace(cav, sim::Pace::Run);
             sim.set_attack_order(cav, pike);
 
@@ -209,7 +209,7 @@ fn frontal_cavalry_charge_does_not_majority_beat_a_presented_phalanx() {
     );
 }
 
-// Phalanx-vs-cavalry is split by FACING, deliberately:
+// HeavyPhalanx-vs-cavalry is split by FACING, deliberately:
 //   - FRONT: the levelled sarissa hedge is a hard counter — pikes bear only down
 //     the unit's frontage (the `pike_bears` gate in combat.rs keys off both the
 //     foe's bearing and the man still facing along the line), so a head-on charge

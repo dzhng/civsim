@@ -34,6 +34,9 @@ pub struct Unit {
     /// every class walks at ~base_speed, but a fast class (cavalry ≫ infantry)
     /// opens a wide gap at the run and a wider one at the charge.
     pub pace_mult: f32,
+    /// Per-unit acceleration/braking scale (× base_accel), copied from the
+    /// class. Mounted classes wind up harder than foot — see UnitClass.accel_mult.
+    pub accel_mult: f32,
     /// Index of this unit's first soldier in the soldier arrays.
     pub start: usize,
     pub count: usize,
@@ -139,6 +142,10 @@ pub struct Unit {
     pub lost_post_rout: u32,
     /// Remaining missiles for the whole unit.
     pub ammo: u32,
+    /// Test-owned missile armament: when set, OVERRIDES the per-class
+    /// `missile_spec` (so a scenario can pin a FAKE archer's range/ammo/damage
+    /// and stay balance-independent). None = use the class table.
+    pub missile_override: Option<crate::missiles::MissileSpec>,
     pub fire_at_will: bool,
     /// Skirmish reflex: automatically keep distance from approaching enemies.
     pub evade_auto: bool,
@@ -281,9 +288,35 @@ impl Unit {
     }
 
     /// Keeps driving through contact while charging (no plant at weapon's
-    /// length) — the trample is the charge. See `UnitClass::tramples`.
+    /// length) — the trample is the charge. See `Doctrine::Trample`.
     pub fn tramples(&self) -> bool {
-        self.stats.tramples
+        self.stats.doctrine == crate::class::Doctrine::Trample
+    }
+
+    /// Strict-file doctrine (the phalanx): won't freely crab sideways in a press.
+    /// See `Doctrine::Strict`.
+    pub fn strict_formation(&self) -> bool {
+        self.stats.doctrine == crate::class::Doctrine::Strict
+    }
+
+    /// Cohesion as every disorder penalty reads it EXCEPT the two kept as a
+    /// trampler's "lag": melee evade & block, missile evade, morale-drain
+    /// amplification, and the rotation throttle (the WHEEL). A trampler fights and
+    /// rides as a loose, constantly-reriding blob by design, so disorder must not
+    /// erode its fighting, break its nerve, or — crucially — stop it WHEELING:
+    /// after it rides through and overshoots, it has to come about to charge back,
+    /// and a cohesion-throttled wheel pinned a blobbed horse facing the wrong way
+    /// for ~10s, killing the emergent back-and-forth. So it reads full here. Only
+    /// the ACCELERATION throttle and the command-order delay still key off real
+    /// `cohesion` — a messy mob stays sluggish to build speed and slow to take new
+    /// orders (its "older lag"); it just isn't a worse killer, and it can turn to
+    /// ride back.
+    pub fn effective_cohesion(&self) -> f32 {
+        if self.tramples() {
+            1.0
+        } else {
+            self.cohesion
+        }
     }
 
     /// The pace the legs actually use: an attack closes at the double

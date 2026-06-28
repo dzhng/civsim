@@ -11,6 +11,32 @@ pub type ArmyId = u32;
 pub type FactionId = u32;
 pub type EncounterId = u32;
 
+/// Serde for a `BTreeMap` with a `(u32, u32)` key: JSON objects can't have tuple
+/// keys, so store it as an array of `[a, b, value]` entries. Without this,
+/// `save()` throws the moment a map like `relations` is non-empty.
+mod pair_key_map {
+    use serde::{Deserialize, Deserializer, Serialize, Serializer};
+    use std::collections::BTreeMap;
+
+    pub fn serialize<S, V>(m: &BTreeMap<(u32, u32), V>, s: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+        V: Serialize,
+    {
+        let entries: Vec<(u32, u32, &V)> = m.iter().map(|(&(a, b), v)| (a, b, v)).collect();
+        entries.serialize(s)
+    }
+
+    pub fn deserialize<'de, D, V>(d: D) -> Result<BTreeMap<(u32, u32), V>, D::Error>
+    where
+        D: Deserializer<'de>,
+        V: Deserialize<'de>,
+    {
+        let entries: Vec<(u32, u32, V)> = Vec::deserialize(d)?;
+        Ok(entries.into_iter().map(|(a, b, v)| ((a, b), v)).collect())
+    }
+}
+
 /// A position on the road network. Nodes are tiles of their own.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub enum Loc {
@@ -71,6 +97,13 @@ pub enum Stance {
     },
     /// Embarked on a sea lane.
     AtSea,
+    /// Chasing a moving enemy army: the path is re-pointed at the target's
+    /// current tile every tick, indefinitely, so the army hounds it across the
+    /// map — and keeps after it even once it routs. Ends when the target dies or
+    /// a new order is given.
+    Pursuing {
+        target: ArmyId,
+    },
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -92,6 +125,11 @@ pub struct Army {
     /// Paid automatic replenishment toward establishment strength. Defaults on.
     #[serde(default = "default_auto_replenish")]
     pub auto_replenish: bool,
+    /// When this army takes a city, sack it (plunder + raze the populace) rather
+    /// than hold it. Off by default — most conquests are meant to be kept; a
+    /// commander flips it on to deny a city it can't hold (slice 06).
+    #[serde(default)]
+    pub sack_intent: bool,
     /// Counts down while embarking/disembarking at a port.
     pub embark_ticks_left: u16,
 }
@@ -150,6 +188,24 @@ pub struct Encounter {
 pub struct Faction {
     pub treasury: u32,
     pub ai: bool,
+    /// Combat mood: a slowly-drifting scalar around 1.0 (level-headed), rising
+    /// above 1 when the faction feels brave and dipping below when it turns
+    /// cautious. Biases the commander toward or away from committing to a fight,
+    /// so a faction runs hot or cold in streaks rather than re-rolling its nerve
+    /// every decision. Persisted so the mood survives a save; defaulted so old
+    /// saves load level-headed.
+    #[serde(default = "default_bravado")]
+    pub bravado: f32,
+    /// The faction's nemesis — a persistent grudge that biases it toward
+    /// fighting this rival above colder targets. Seeded from the map (historic
+    /// rivalries) or formed in play when attacked; dissolves once the two are
+    /// too far apart in power. `None` = no current rival.
+    #[serde(default)]
+    pub rival: Option<FactionId>,
+}
+
+fn default_bravado() -> f32 {
+    1.0
 }
 
 /// Diplomatic stance between two factions. War is the implicit default when a
@@ -181,31 +237,47 @@ pub struct RecruitJob {
     pub ticks_left: u32,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
-pub enum BuildKind {
-    Market,
-    Barracks,
-}
-
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct BuildJob {
-    pub kind: BuildKind,
-    pub ticks_left: u32,
-}
-
-#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct CityState {
     pub owner: FactionId,
     pub garrison: Vec<RosterEntry>,
-    /// 0..2: income x1 / x1.5 / x2.
-    pub market_lvl: u8,
-    /// 0..2: recruit time x1 / x0.75 / x0.5.
-    pub barracks_lvl: u8,
+    /// People. The spine of the economy: source of both gold and the recruitment
+    /// pool. Grows logistically toward its tier cap on the monthly pulse.
+    pub population: u32,
+    /// Policy dial — what the city develops toward. −1 = full Economy,
+    /// +1 = full Military, 0 = Balanced. The player's only steering, alongside
+    /// `throttle`; the city auto-develops from it (no build menu).
+    pub focus: f32,
+    /// Policy dial — Grow (0) ↔ Exploit (1). Grow invests population in more
+    /// population; Exploit extracts immediate yield and can shrink the city.
+    pub throttle: f32,
+    /// Accumulated economic development (0..1), ramps toward the focus target and
+    /// decays off-axis. Lifts income.
+    pub econ_dev: f32,
+    /// Accumulated military development (0..1). Deepens the garrison establishment
+    /// and gates which class options the city can field.
+    pub mil_dev: f32,
+    /// Allegiance (0..1). Drifts monthly by the balance of friendly vs enemy
+    /// connected territory; drags output and growth as it falls; revolts at 0.
+    pub loyalty: f32,
     /// Sequential; head is in production.
     pub recruit_queue: Vec<RecruitJob>,
-    /// One construction site per city.
-    #[serde(default)]
-    pub build_job: Option<BuildJob>,
+}
+
+impl Default for CityState {
+    fn default() -> Self {
+        CityState {
+            owner: 0,
+            garrison: Vec::new(),
+            population: 0,
+            focus: 0.0,
+            throttle: 0.0,
+            econ_dev: 0.0,
+            mil_dev: 0.0,
+            loyalty: 1.0,
+            recruit_queue: Vec::new(),
+        }
+    }
 }
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -228,6 +300,7 @@ pub struct CampaignState {
     pub battle_ready: Option<EncounterId>,
     /// Pairs that just resolved an escape: no re-engagement until the tick
     /// expires (key is (lower id, higher id)).
+    #[serde(default, with = "pair_key_map")]
     pub no_rematch: BTreeMap<(ArmyId, ArmyId), u64>,
     /// Per-faction sets of armies it can currently see (fog of war).
     #[serde(default)]
@@ -241,13 +314,19 @@ pub struct CampaignState {
     pub outcome: Option<Outcome>,
     /// Pairwise diplomacy, keyed `(lo, hi)`. Absent = War until a treaty is
     /// signed.
-    #[serde(default)]
+    #[serde(default, with = "pair_key_map")]
     pub relations: BTreeMap<(FactionId, FactionId), Relation>,
     /// Each AI power's current war objective: the rival it is concentrating its
     /// offensive against (set by the diplomacy pass; read by the commander to
     /// mass its armies on one front instead of spreading thin).
     #[serde(default)]
     pub diplo_target: BTreeMap<FactionId, FactionId>,
+    /// True only while this state is a search sandbox being rolled forward by
+    /// `rollout::forward`. Skips the per-tick work a lookahead doesn't need —
+    /// fog recompute (the cost bottleneck) and the diplomacy pass — and is never
+    /// serialized, so a real save or a fresh clone is always a live game.
+    #[serde(skip)]
+    pub in_rollout: bool,
 }
 
 impl CampaignState {

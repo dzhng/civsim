@@ -230,7 +230,10 @@ failures belong to the shared renderer foundation first.
   same-camera political shot with faction colors enabled. The natural baseline
   comparison is structural telemetry and regression protection for land/water,
   roads, labels, markers, models, and perspective; it must not become a
-  similarity-score chase once WebGPU has surpassed the old renderer.
+  similarity-score chase once WebGPU has surpassed the old renderer. Any
+  campaign baseline refresh for this camera must keep both outputs: natural
+  no-faction mode for parity against the archived baseline, and political
+  faction-color mode for the improved WebGPU read.
 - Fresh unprimed critique after the LoD scene landed still found coastal route
   ambiguity near Rome: several water routes read as pale roads continuing into
   the sea. Sea lanes now render as dashed translucent blue route hints while

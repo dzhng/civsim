@@ -70,6 +70,10 @@ pass orchestration, WGSL layout, depth semantics, or browser-verified output.
   generated from the same world-space mask that owns the gameplay geography;
   unmasked decorative quads/ellipses are only valid for non-geographic
   atmosphere and must not independently decide where land or water exists.
+- Secondary world views need the same contract as the primary view. Minimap,
+  overview, reflection, shadow, and debug views should expose or consume
+  canonical world-space anchors instead of carrying private scale/offset math;
+  verifier tolerances should match the source grid resolution.
 - Nested objects must be proven with hostile-order fixtures. Submit an occluder
   first, submit the nested/rear object later, then sample or crop pixels that
   prove depth, not painter order, owns visibility.

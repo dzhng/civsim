@@ -116,6 +116,9 @@ verification lessons.
   remain recognizable without the broad faction-color wash. WebGPU should also
   capture the same regional Italy camera with faction colors enabled, but that
   political overlay is an improvement/alternate view, not the baseline mode.
+  Screenshot both modes whenever this scene is used for regression; compare
+  natural-to-natural for parity and inspect political/faction-color output as
+  required improved coverage.
 
 ## Battle Visual Notes
 
@@ -126,6 +129,10 @@ verification lessons.
 - The minimap and battlefield must agree on terrain source. If the minimap
   shows large features, the battlefield needs visible authored evidence in the
   corresponding areas.
+- `battle-webgpu-minimap` now guards that contract directly. It clicks sim-tint
+  feature centers through the minimap, checks the WebGPU camera lands within one
+  terrain cell, and captures a DPR2 frame with the same forest/mud features in
+  world view and minimap view.
 - Ground cues, paths, selection rings, reform ghosts, projectiles, and debug
   lines should not share one ambiguous line bucket. Split by semantics:
   world-depth read-only ground cues versus overlay/effect lines.

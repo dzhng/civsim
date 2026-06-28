@@ -126,6 +126,11 @@ Current checkpoint:
   feathered water/shore band, no random frozen-overlay streaks, softened
   trampled-ground patches, deterministic grass micro-detail, sim-sourced forest
   and mud props/details, and retained team-color/HUD readability.
+- `VERIFY_WEBGPU=1 node scene.mjs battle-webgpu-minimap` proves the production
+  minimap and WebGPU battlefield share the same sim-tint terrain grid: feature
+  centers clicked in the minimap move the camera to matching world positions
+  within one terrain cell, and the DPR2 capture must show the corresponding
+  forest/mud evidence in both views.
 - `node .agents/skills/compare-screenshots/scripts/visual-parity-diff.mjs`
   records the current Battle Selection DPR2 terrain movement in
   `visualizations/visual-diff/visual-parity-diff.json`.

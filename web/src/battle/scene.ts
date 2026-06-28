@@ -177,6 +177,54 @@ export class BattleScene implements Scene {
       const h = game.terrain_h() * game.terrain_cell();
       return [((x - ox) / w) * minimap.width, (1 - (y - oy) / h) * minimap.height];
     };
+    const terrainTint = { water: 1, rock: 2, forest: 4, mud: 5, scree: 6 } as const;
+    const terrainDebug = () => {
+      const w = game.terrain_w();
+      const h = game.terrain_h();
+      const cell = game.terrain_cell();
+      const ox = game.terrain_origin_x();
+      const oy = game.terrain_origin_y();
+      const tint = new Uint8Array(wasm.memory.buffer, game.terrain_tint_ptr(), w * h);
+      const counts = Array.from({ length: 7 }, () => 0);
+      const sums = Array.from({ length: 7 }, () => ({ x: 0, y: 0, n: 0 }));
+      for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
+          const kind = tint[y * w + x] ?? 0;
+          counts[kind] = (counts[kind] ?? 0) + 1;
+          const sum = sums[kind];
+          if (sum) {
+            sum.x += x;
+            sum.y += y;
+            sum.n++;
+          }
+        }
+      }
+      const feature = (kind: number) => {
+        const sum = sums[kind];
+        if (!sum || sum.n === 0) return null;
+        const x = ox + (sum.x / sum.n + 0.5) * cell;
+        const y = oy + (sum.y / sum.n + 0.5) * cell;
+        const [miniX, miniY] = worldToMini(x, y);
+        return { kind, cells: sum.n, x, y, miniX, miniY };
+      };
+      return {
+        w,
+        h,
+        cell,
+        ox,
+        oy,
+        worldWidth: w * cell,
+        worldHeight: h * cell,
+        counts,
+        features: {
+          water: feature(terrainTint.water),
+          rock: feature(terrainTint.rock),
+          forest: feature(terrainTint.forest),
+          mud: feature(terrainTint.mud),
+          scree: feature(terrainTint.scree),
+        },
+      };
+    };
     minimap.addEventListener('mousedown', (e) => {
       const r = minimap.getBoundingClientRect();
       const fx = (e.clientX - r.left) / r.width;
@@ -1147,6 +1195,7 @@ export class BattleScene implements Scene {
       enqueue: (u: number, mode: number, x: number, y: number, facing: number, hasFacing: number) =>
         game.enqueue(u, mode, x, y, facing, hasFacing),
       queuedOrders: (u: number) => Array.from(game.queued_orders(u)),
+      terrainDebug,
       advance: (n: number) => {
         game.advance_ticks(n);
         simTick += n;

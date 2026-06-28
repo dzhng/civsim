@@ -63,9 +63,9 @@ export async function run(ctx) {
   await page.evaluate(() => {
     const a = window.__game.unitInfo(0);
     const c = window.__cam;
-    c.x = a[32];
-    c.y = a[33] + 6;
-    c.zoom = 9;
+    c.x = a[30];
+    c.y = a[31] + 2;
+    c.zoom = 13;
     c.clampView?.();
   });
   await page.evaluate(() => window.__game.freezeAtTick(480));

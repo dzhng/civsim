@@ -12,7 +12,7 @@ type Rgba = [number, number, number, number];
 type Armor = 'heavy' | 'medium' | 'light' | 'cloth' | 'rag';
 type Helmet = 'crested' | 'bronze' | 'cap' | 'hood' | 'bare';
 type Shield = 'tall' | 'round' | 'small' | 'none';
-type Weapon = 'sword' | 'spear' | 'greatsword' | 'pike' | 'bow' | 'javelin' | 'lance' | 'none';
+type Weapon = 'sword' | 'spear' | 'greatsword' | 'pike' | 'bow' | 'javelin' | 'lance' | 'artillery' | 'none';
 
 interface PlaceholderLook {
   armor: Armor;
@@ -31,13 +31,13 @@ const PLACEHOLDER_LOOKS: PlaceholderLook[] = [
   { weapon: 'javelin', shield: 'small', armor: 'light', helmet: 'bare', mounted: false },
   { weapon: 'lance', shield: 'round', armor: 'heavy', helmet: 'crested', mounted: true },
   { weapon: 'bow', shield: 'none', armor: 'light', helmet: 'cap', mounted: true },
-  { weapon: 'none', shield: 'none', armor: 'cloth', helmet: 'cap', mounted: false },
+  { weapon: 'artillery', shield: 'none', armor: 'cloth', helmet: 'cap', mounted: false },
   { weapon: 'sword', shield: 'none', armor: 'rag', helmet: 'bare', mounted: false },
   { weapon: 'sword', shield: 'round', armor: 'light', helmet: 'cap', mounted: false },
   { weapon: 'spear', shield: 'tall', armor: 'heavy', helmet: 'crested', mounted: false },
   { weapon: 'sword', shield: 'round', armor: 'medium', helmet: 'bronze', mounted: false },
   { weapon: 'spear', shield: 'round', armor: 'medium', helmet: 'bronze', mounted: false },
-  { weapon: 'sword', shield: 'round', armor: 'heavy', helmet: 'crested', mounted: true },
+  { weapon: 'pike', shield: 'small', armor: 'medium', helmet: 'bronze', mounted: false },
 ];
 
 function addBox(
@@ -91,14 +91,17 @@ export function createPlaceholderSoldierMesh(
   const accent: Rgba = [accentRgb[0], accentRgb[1], accentRgb[2], 1];
   const riderLift = look.mounted ? 0.42 : 0;
   if (look.mounted) {
-    addBox(v, indices, [0, 0, 0.86], [0.52, 1.24, 0.34], 0, horse);
-    addBox(v, indices, [0, 0.68, 0.98], [0.34, 0.34, 0.28], 0, horse);
-    addBox(v, indices, [0, -0.68, 0.95], [0.18, 0.32, 0.12], 0, leather);
-    addBox(v, indices, [-0.23, -0.36, 0.52], [0.14, 0.18, 0.68], 0, horse);
-    addBox(v, indices, [0.23, -0.36, 0.52], [0.14, 0.18, 0.68], 0, horse);
-    addBox(v, indices, [-0.23, 0.38, 0.52], [0.14, 0.18, 0.68], 0, horse);
-    addBox(v, indices, [0.23, 0.38, 0.52], [0.14, 0.18, 0.68], 0, horse);
-    addBox(v, indices, [0, 0.01, 1.16], [0.44, 0.38, 0.12], 0, accent);
+    addBox(v, indices, [0, -0.04, 0.86], [0.54, 1.18, 0.38], 0, horse);
+    addBox(v, indices, [0, 0.62, 1.08], [0.26, 0.42, 0.48], 0, horse);
+    addBox(v, indices, [0, 0.92, 1.22], [0.30, 0.30, 0.28], 0, horse);
+    addBox(v, indices, [-0.08, 1.06, 1.30], [0.08, 0.12, 0.16], 0, leather);
+    addBox(v, indices, [0.08, 1.06, 1.30], [0.08, 0.12, 0.16], 0, leather);
+    addBox(v, indices, [0, -0.74, 0.98], [0.12, 0.42, 0.10], 0, leather);
+    addBox(v, indices, [-0.24, -0.40, 0.48], [0.12, 0.14, 0.72], 0, horse);
+    addBox(v, indices, [0.24, -0.40, 0.48], [0.12, 0.14, 0.72], 0, horse);
+    addBox(v, indices, [-0.24, 0.34, 0.48], [0.12, 0.14, 0.72], 0, horse);
+    addBox(v, indices, [0.24, 0.34, 0.48], [0.12, 0.14, 0.72], 0, horse);
+    addBox(v, indices, [0, -0.02, 1.17], [0.46, 0.34, 0.12], 0, accent);
   }
   addBox(v, indices, [0, 0.02, 1.24 + riderLift], [0.48, 0.28, 0.70], 1, linen);
   addBox(v, indices, [0, 0.02, 1.82 + riderLift], [0.30, 0.24, 0.30], 2, helmetColor(look.helmet, bronze, linen));
@@ -182,6 +185,16 @@ function addWeapon(out: number[], indices: number[], weapon: Weapon, mounted: bo
       addBox(out, indices, [0.46, 0.22, z + 0.18], [0.060, 0.74, 0.050], 4, wood);
       addBox(out, indices, [0.46, 0.22, z - 0.18], [0.052, 0.74, 0.045], 4, wood);
       if (mounted) addBox(out, indices, [0.58, -0.05, z + 0.06], [0.08, 0.36, 0.08], 4, bronze);
+      break;
+    case 'artillery':
+      addBox(out, indices, [0.58, 0.26, 0.50], [0.94, 0.58, 0.14], 0, wood);
+      addBox(out, indices, [0.18, 0.02, 0.40], [0.16, 0.18, 0.48], 0, wood);
+      addBox(out, indices, [0.98, 0.02, 0.40], [0.16, 0.18, 0.48], 0, wood);
+      addBox(out, indices, [0.04, 0.42, 0.38], [0.18, 0.18, 0.42], 0, bronze);
+      addBox(out, indices, [1.12, 0.42, 0.38], [0.18, 0.18, 0.42], 0, bronze);
+      addBox(out, indices, [0.58, 0.82, 0.94], [0.10, 1.10, 0.10], 0, wood);
+      addBox(out, indices, [0.58, 1.40, 1.06], [0.22, 0.22, 0.22], 0, bronze);
+      addBox(out, indices, [0.58, -0.14, 0.74], [0.72, 0.10, 0.10], 0, wood);
       break;
     case 'none':
       break;

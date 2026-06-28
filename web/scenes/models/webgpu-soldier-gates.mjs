@@ -29,7 +29,7 @@ const classNames = [
   'heavy-spear',
   'medium-infantry',
   'medium-spear',
-  'shock-cav-sword',
+  'medium-phalanx',
 ];
 
 const animationRefs = [

@@ -55,7 +55,7 @@ const sample = () => page.evaluate((ids) => {
 const label = (s, m) => `t=${String(s).padStart(3)}s  defender ${m.defAlive}/${m.defTotal} (coh ${m.defCoh.toFixed(2)})`;
 
 const { frames, fails } = await vibeCapture(page, 'multi-penetration', {
-  stepSecs: 12, maxSteps: 14, frame, sample, label, done: () => false,
+  stepSecs: 12, maxSteps: 12, frame, sample, label, done: () => false,
 });
 console.log(`\n${frames} frames`);
 if (errs.length) console.log('page errors:', errs.slice(0, 3));

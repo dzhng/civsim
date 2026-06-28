@@ -26,7 +26,7 @@ turntable/contact-sheet capture:
 - `11-heavy-spear`
 - `12-medium-infantry`
 - `13-medium-spear`
-- `14-shock-cav-sword`
+- `14-medium-phalanx`
 
 ## Soldier In-Game Readability Gates
 
@@ -45,7 +45,9 @@ WebGPU in-game readability capture:
 - `09-peasant`
 - `10-light-sword`
 - `11-heavy-spear`
-- `12-shock-cav-sword`
+- `12-medium-infantry`
+- `13-medium-spear`
+- `14-medium-phalanx`
 
 ## Animation And GIF Gates
 

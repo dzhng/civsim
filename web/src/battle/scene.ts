@@ -20,9 +20,9 @@ const UNIT_INFO_RENDER_LOOK = 32;
 // Class table mirrors — must match class.rs. Indices: 0 heavy, 1 light, 2 long
 // sword, 3 phalanx, 4 archers, 5 skirmishers, 6 shock cav, 7 horse archers,
 // 8 artillery, 9 peasant, 10 light sword, 11 heavy spear, 12 medium infantry,
-// 13 medium spear.
-const CLASS_DEPTH = [8, 6, 4, 10, 4, 4, 5, 5, 4, 6, 6, 8, 7, 7];
-const CLASS_SPACING = [0.9, 1.0, 1.5, 0.8, 1.2, 1.6, 1.8, 2.2, 2.0, 1.1, 1.0, 0.9, 0.95, 0.95];
+// 13 medium spear, 14 medium phalanx.
+const CLASS_DEPTH = [8, 6, 4, 10, 4, 4, 5, 5, 4, 6, 6, 8, 7, 7, 9];
+const CLASS_SPACING = [0.9, 1.0, 1.5, 0.8, 1.2, 1.6, 1.8, 2.2, 2.0, 1.1, 1.0, 0.9, 0.95, 0.95, 0.85];
 // Primary weapon (reach, arc) for the attack-arc display.
 export type BattleKind = 'duel' | '5v5' | 'surround' | 'flank' | 'mapA' | 'mapB';
 
@@ -1234,6 +1234,10 @@ export class BattleScene implements Scene {
       soldierPos: (i: number) => {
         const p = positions();
         return [p[2 * i], p[2 * i + 1]];
+      },
+      soldierAlive: (i: number) => {
+        const a = new Uint8Array(wasm.memory.buffer, game.alive_ptr(), game.soldier_count());
+        return a[i] ?? 0;
       },
     };
     window.__cam = camera;

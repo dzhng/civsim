@@ -8,6 +8,12 @@ labels, fog, minimap, picking, and screenshots. Cities and roads are treated as
 ground truth because their relative positions already match the campaign data
 and the previous renderer.
 
+When alignment, geography, LoD visibility, fog hiding, road behavior, or label
+placement is ambiguous, consult the previous implementation on `origin/main` or
+`main` before inventing new behavior. Baseline captures are visual evidence, but
+the old renderer and campaign code are the reference for the business logic that
+generated those captures.
+
 ## Human Check
 
 Open the central Italy and close Rome scenes. Roma, Ostia/Portus, Tibur,
@@ -31,3 +37,5 @@ LoD.
 - The same anchor positions remain aligned across camera pan, zoom, and LoD.
 - Water/faction/terrain rendering uses the previous renderer's aligned map data
   rather than edited or stretched replacement assets.
+- Any behavior copied for alignment or visibility cites the previous
+  implementation path or function in the implementation notes.

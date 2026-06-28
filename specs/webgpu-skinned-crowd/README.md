@@ -50,6 +50,11 @@ The live campaign gaps are:
 
 - One canonical campaign coordinate system drives terrain, water, factions,
   cities, roads, rivers, forests, mountains, labels, fog, minimap, and picking.
+- When campaign geography, LoD policy, fog visibility, labels, road semantics,
+  or other gameplay-facing logic is unclear, inspect the previous implementation
+  on `origin/main`/`main` as the baseline behavior source. Archived screenshots
+  prove visual outcomes; the old implementation proves the business logic that
+  produced them.
 - The previous campaign renderer's aligned natural-map output is the parity
   floor. WebGPU may improve style and detail, but it must not move cities,
   roads, rivers, or coastlines away from their real campaign positions.

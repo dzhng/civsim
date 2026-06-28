@@ -135,6 +135,13 @@ Diagnose a misbehaving skill against these:
   specifics date fast and bury the transferable rule. State the principle and
   the smell to watch for; let the codebase hold the mechanics. One concrete
   touchstone grounds it; a paragraph of them drowns it.
+- **Implementation index** — a skill that points at today's source files, line
+  numbers, current literals, or exact internal functions when its job is really
+  to teach judgment. Those locators rot and make agents chase old mechanics.
+  Keep durable principles, symptoms, acceptance criteria, and reference assets
+  in the skill; put task-specific implementation notes in the active spec. If
+  code location matters, tell the agent to find the current owner in the
+  codebase.
 - **Sprawl** — too long even when every line is live. Cure with the ladder:
   disclose reference behind pointers, split by branch or sequence.
 - **No-op** — a line the model already obeys by default. Test each sentence
@@ -174,6 +181,9 @@ When creating or revising a skill:
 - Make the description specific enough to trigger without the body.
 - Remove any "when to use" section from the body.
 - Remove stale history, attribution, placeholders, and setup notes.
+- Remove file paths, line numbers, current constants, and implementation knobs
+  unless the skill is explicitly a code-navigation runbook. Prefer durable
+  principles plus a directive to inspect the current code.
 - Prefer one strong rule over several overlapping bullets.
 - Refactor restatements into a leading word where one fits.
 - Keep examples tiny and realistic.

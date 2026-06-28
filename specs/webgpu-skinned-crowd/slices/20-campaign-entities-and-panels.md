@@ -141,6 +141,14 @@ cover the raised standard silhouette, not just the soldiers' ground footprint,
 because tall trees behind the unit can otherwise project into the flag column
 at campaign pitch.
 
+Hostile-order checkpoint: the model-gate inventory now includes
+`hostile-depth-order`, which intentionally submits the city/entity bucket before
+a later scenery bucket. The gate samples a red city flag pixel and a separate
+green tree-control pixel, proving that a later type bucket cannot overpaint a
+nearer standard when both use the shared campaign world-depth helper. This is
+not visual acceptance; it is an architecture guard against returning to
+painter-order truth.
+
 Fresh screenshot critique after this architecture checkpoint confirms the
 tree-over-standard artifact is removed from Campaign Label Zoom, but it does not
 accept the visual. The next blocker list is: road/selection/unit stacking lacks

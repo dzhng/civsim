@@ -508,6 +508,12 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   domain. If a tree behind a standard appears over the flag, or a battle rank
   sorts by mesh class, look first for pass-private depth math or a pipeline
   submitted through the wrong frame category.
+- Add hostile-order gates for every type-bucket claim. A normal route that draws
+  scenery before entities can hide painter-order regressions because the later
+  entity bucket wins even without depth. Keep a model gate that submits campaign
+  entities before a later scenery bucket and samples the city flag plus the
+  visible tree; the flag sample must stay red and the tree control must stay
+  green. This proves the depth buffer, not pass order, owns visibility.
 - Live frame passes need semantic roles in addition to frame phases. A pass id
   and `world-depth` are not enough: mark underpaint, opaque world geometry,
   depth-fill, ground decals, UI overlays, effect overlays, and debug overlays

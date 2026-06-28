@@ -32,6 +32,10 @@
           "coniferModelVertices": 177,
           "broadleafModelVertices": 258,
           "rockModelVertices": 126,
+          "materialClasses": [
+            "opaque-depth-write",
+            "shadow-depth-read"
+          ],
           "layer": "raw-webgpu-legacy-scenery-meshes"
         },
         "roadTriangles": 0,
@@ -48,6 +52,89 @@
           "height": 758,
           "allocated": true
         },
+        "framePhases": [
+          {
+            "kind": "background",
+            "label": "terrain, backdrop, impostor markers, and background surfaces",
+            "passIds": [
+              "builtin-background"
+            ],
+            "passRoles": [
+              {
+                "id": "builtin-background",
+                "role": "background-underpaint"
+              }
+            ],
+            "depthPasses": [],
+            "depth": "none",
+            "loadOp": "clear"
+          },
+          {
+            "kind": "world-depth",
+            "label": "depth-tested world geometry and ground decals",
+            "passIds": [
+              "model-gate-selection",
+              "model-gate-roads",
+              "model-gate-scenery",
+              "model-gate-entities"
+            ],
+            "passRoles": [
+              {
+                "id": "model-gate-selection",
+                "role": "world-decal"
+              },
+              {
+                "id": "model-gate-roads",
+                "role": "world-decal"
+              },
+              {
+                "id": "model-gate-scenery",
+                "role": "world-opaque"
+              },
+              {
+                "id": "model-gate-entities",
+                "role": "world-opaque"
+              }
+            ],
+            "depthPasses": [
+              {
+                "id": "model-gate-selection",
+                "mode": "read"
+              },
+              {
+                "id": "model-gate-roads",
+                "mode": "read"
+              },
+              {
+                "id": "model-gate-scenery",
+                "mode": "read-write"
+              },
+              {
+                "id": "model-gate-entities",
+                "mode": "read-write"
+              }
+            ],
+            "depth": "depth24plus-clear",
+            "loadOp": "load"
+          },
+          {
+            "kind": "overlay",
+            "label": "labels, HUD, minimap, atmosphere, and debug overlays",
+            "passIds": [
+              "model-gate-labels"
+            ],
+            "passRoles": [
+              {
+                "id": "model-gate-labels",
+                "role": "overlay-ui"
+              }
+            ],
+            "depthPasses": [],
+            "depth": "none",
+            "loadOp": "load"
+          }
+        ],
+        "hostileDrawOrder": "normal",
         "samples": {
           "cityStandard": {
             "hiddenLowerCloth": {
@@ -112,6 +199,10 @@
           "coniferModelVertices": 177,
           "broadleafModelVertices": 258,
           "rockModelVertices": 126,
+          "materialClasses": [
+            "opaque-depth-write",
+            "shadow-depth-read"
+          ],
           "layer": "raw-webgpu-legacy-scenery-meshes"
         },
         "roadTriangles": 0,
@@ -128,6 +219,89 @@
           "height": 758,
           "allocated": true
         },
+        "framePhases": [
+          {
+            "kind": "background",
+            "label": "terrain, backdrop, impostor markers, and background surfaces",
+            "passIds": [
+              "builtin-background"
+            ],
+            "passRoles": [
+              {
+                "id": "builtin-background",
+                "role": "background-underpaint"
+              }
+            ],
+            "depthPasses": [],
+            "depth": "none",
+            "loadOp": "clear"
+          },
+          {
+            "kind": "world-depth",
+            "label": "depth-tested world geometry and ground decals",
+            "passIds": [
+              "model-gate-selection",
+              "model-gate-roads",
+              "model-gate-scenery",
+              "model-gate-entities"
+            ],
+            "passRoles": [
+              {
+                "id": "model-gate-selection",
+                "role": "world-decal"
+              },
+              {
+                "id": "model-gate-roads",
+                "role": "world-decal"
+              },
+              {
+                "id": "model-gate-scenery",
+                "role": "world-opaque"
+              },
+              {
+                "id": "model-gate-entities",
+                "role": "world-opaque"
+              }
+            ],
+            "depthPasses": [
+              {
+                "id": "model-gate-selection",
+                "mode": "read"
+              },
+              {
+                "id": "model-gate-roads",
+                "mode": "read"
+              },
+              {
+                "id": "model-gate-scenery",
+                "mode": "read-write"
+              },
+              {
+                "id": "model-gate-entities",
+                "mode": "read-write"
+              }
+            ],
+            "depth": "depth24plus-clear",
+            "loadOp": "load"
+          },
+          {
+            "kind": "overlay",
+            "label": "labels, HUD, minimap, atmosphere, and debug overlays",
+            "passIds": [
+              "model-gate-labels"
+            ],
+            "passRoles": [
+              {
+                "id": "model-gate-labels",
+                "role": "overlay-ui"
+              }
+            ],
+            "depthPasses": [],
+            "depth": "none",
+            "loadOp": "load"
+          }
+        ],
+        "hostileDrawOrder": "normal",
         "samples": {
           "garrison": {
             "hiddenShieldInsideWall": {
@@ -164,6 +338,156 @@
       "status": "webgpu-evidence"
     },
     {
+      "id": "hostile-depth-order",
+      "label": "Hostile Depth Order",
+      "criteria": "A later-submitted scenery bucket behind the city cannot overpaint the nearer city standard; type buckets are batching only.",
+      "image": "hostile-depth-order.png",
+      "stats": {
+        "route": "campaign-model-gates",
+        "gate": "hostile-depth-order",
+        "camera": {
+          "x": 0,
+          "y": 0.3,
+          "zoom": 28,
+          "pitch": 0.56,
+          "yaw": 0,
+          "perspective": 0.018
+        },
+        "entities": 1,
+        "scenery": 1,
+        "sceneryStats": {
+          "scenery": 1,
+          "mountains": 0,
+          "trees": 1,
+          "conifers": 0,
+          "broadleafs": 1,
+          "rocks": 0,
+          "mountainModelVertices": 138,
+          "coniferModelVertices": 177,
+          "broadleafModelVertices": 258,
+          "rockModelVertices": 126,
+          "materialClasses": [
+            "opaque-depth-write",
+            "shadow-depth-read"
+          ],
+          "layer": "raw-webgpu-legacy-scenery-meshes"
+        },
+        "roadTriangles": 0,
+        "waterFeatures": 0,
+        "cloudQuads": 0,
+        "selections": 1,
+        "labels": 1,
+        "visibleLabels": 1,
+        "labelLayer": "raw-webgpu-glyph-atlas",
+        "entityLayer": "raw-webgpu-legacy-model-meshes",
+        "depth": {
+          "format": "depth24plus",
+          "width": 970,
+          "height": 758,
+          "allocated": true
+        },
+        "framePhases": [
+          {
+            "kind": "background",
+            "label": "terrain, backdrop, impostor markers, and background surfaces",
+            "passIds": [
+              "builtin-background"
+            ],
+            "passRoles": [
+              {
+                "id": "builtin-background",
+                "role": "background-underpaint"
+              }
+            ],
+            "depthPasses": [],
+            "depth": "none",
+            "loadOp": "clear"
+          },
+          {
+            "kind": "world-depth",
+            "label": "depth-tested world geometry and ground decals",
+            "passIds": [
+              "model-gate-selection",
+              "model-gate-roads",
+              "model-gate-entities",
+              "model-gate-scenery"
+            ],
+            "passRoles": [
+              {
+                "id": "model-gate-selection",
+                "role": "world-decal"
+              },
+              {
+                "id": "model-gate-roads",
+                "role": "world-decal"
+              },
+              {
+                "id": "model-gate-entities",
+                "role": "world-opaque"
+              },
+              {
+                "id": "model-gate-scenery",
+                "role": "world-opaque"
+              }
+            ],
+            "depthPasses": [
+              {
+                "id": "model-gate-selection",
+                "mode": "read"
+              },
+              {
+                "id": "model-gate-roads",
+                "mode": "read"
+              },
+              {
+                "id": "model-gate-entities",
+                "mode": "read-write"
+              },
+              {
+                "id": "model-gate-scenery",
+                "mode": "read-write"
+              }
+            ],
+            "depth": "depth24plus-clear",
+            "loadOp": "load"
+          },
+          {
+            "kind": "overlay",
+            "label": "labels, HUD, minimap, atmosphere, and debug overlays",
+            "passIds": [
+              "model-gate-labels"
+            ],
+            "passRoles": [
+              {
+                "id": "model-gate-labels",
+                "role": "overlay-ui"
+              }
+            ],
+            "depthPasses": [],
+            "depth": "none",
+            "loadOp": "load"
+          }
+        ],
+        "hostileDrawOrder": "entities-before-late-scenery",
+        "samples": {
+          "hostileDepthOrder": {
+            "flagOverLateTree": {
+              "x": 255,
+              "y": 121,
+              "note": "fixed hostile-gate crop sample on visible city flag in front of late scenery"
+            },
+            "lateTreeControl": {
+              "x": 176,
+              "y": 209,
+              "note": "fixed hostile-gate crop sample proving the late scenery bucket is visible"
+            }
+          }
+        },
+        "postCutoverScreenshots": "webgpu-only"
+      },
+      "status": "webgpu-evidence"
+    },
+    {
       "id": "town",
       "label": "Town Scale",
       "criteria": "Smaller settlement keeps the same model language at a distinct readable scale.",
@@ -192,6 +516,10 @@
           "coniferModelVertices": 177,
           "broadleafModelVertices": 258,
           "rockModelVertices": 126,
+          "materialClasses": [
+            "opaque-depth-write",
+            "shadow-depth-read"
+          ],
           "layer": "raw-webgpu-legacy-scenery-meshes"
         },
         "roadTriangles": 0,
@@ -208,6 +536,89 @@
           "height": 758,
           "allocated": true
         },
+        "framePhases": [
+          {
+            "kind": "background",
+            "label": "terrain, backdrop, impostor markers, and background surfaces",
+            "passIds": [
+              "builtin-background"
+            ],
+            "passRoles": [
+              {
+                "id": "builtin-background",
+                "role": "background-underpaint"
+              }
+            ],
+            "depthPasses": [],
+            "depth": "none",
+            "loadOp": "clear"
+          },
+          {
+            "kind": "world-depth",
+            "label": "depth-tested world geometry and ground decals",
+            "passIds": [
+              "model-gate-selection",
+              "model-gate-roads",
+              "model-gate-scenery",
+              "model-gate-entities"
+            ],
+            "passRoles": [
+              {
+                "id": "model-gate-selection",
+                "role": "world-decal"
+              },
+              {
+                "id": "model-gate-roads",
+                "role": "world-decal"
+              },
+              {
+                "id": "model-gate-scenery",
+                "role": "world-opaque"
+              },
+              {
+                "id": "model-gate-entities",
+                "role": "world-opaque"
+              }
+            ],
+            "depthPasses": [
+              {
+                "id": "model-gate-selection",
+                "mode": "read"
+              },
+              {
+                "id": "model-gate-roads",
+                "mode": "read"
+              },
+              {
+                "id": "model-gate-scenery",
+                "mode": "read-write"
+              },
+              {
+                "id": "model-gate-entities",
+                "mode": "read-write"
+              }
+            ],
+            "depth": "depth24plus-clear",
+            "loadOp": "load"
+          },
+          {
+            "kind": "overlay",
+            "label": "labels, HUD, minimap, atmosphere, and debug overlays",
+            "passIds": [
+              "model-gate-labels"
+            ],
+            "passRoles": [
+              {
+                "id": "model-gate-labels",
+                "role": "overlay-ui"
+              }
+            ],
+            "depthPasses": [],
+            "depth": "none",
+            "loadOp": "load"
+          }
+        ],
+        "hostileDrawOrder": "normal",
         "samples": {},
         "postCutoverScreenshots": "webgpu-only"
       },
@@ -242,6 +653,10 @@
           "coniferModelVertices": 177,
           "broadleafModelVertices": 258,
           "rockModelVertices": 126,
+          "materialClasses": [
+            "opaque-depth-write",
+            "shadow-depth-read"
+          ],
           "layer": "raw-webgpu-legacy-scenery-meshes"
         },
         "roadTriangles": 0,
@@ -258,6 +673,89 @@
           "height": 758,
           "allocated": true
         },
+        "framePhases": [
+          {
+            "kind": "background",
+            "label": "terrain, backdrop, impostor markers, and background surfaces",
+            "passIds": [
+              "builtin-background"
+            ],
+            "passRoles": [
+              {
+                "id": "builtin-background",
+                "role": "background-underpaint"
+              }
+            ],
+            "depthPasses": [],
+            "depth": "none",
+            "loadOp": "clear"
+          },
+          {
+            "kind": "world-depth",
+            "label": "depth-tested world geometry and ground decals",
+            "passIds": [
+              "model-gate-selection",
+              "model-gate-roads",
+              "model-gate-scenery",
+              "model-gate-entities"
+            ],
+            "passRoles": [
+              {
+                "id": "model-gate-selection",
+                "role": "world-decal"
+              },
+              {
+                "id": "model-gate-roads",
+                "role": "world-decal"
+              },
+              {
+                "id": "model-gate-scenery",
+                "role": "world-opaque"
+              },
+              {
+                "id": "model-gate-entities",
+                "role": "world-opaque"
+              }
+            ],
+            "depthPasses": [
+              {
+                "id": "model-gate-selection",
+                "mode": "read"
+              },
+              {
+                "id": "model-gate-roads",
+                "mode": "read"
+              },
+              {
+                "id": "model-gate-scenery",
+                "mode": "read-write"
+              },
+              {
+                "id": "model-gate-entities",
+                "mode": "read-write"
+              }
+            ],
+            "depth": "depth24plus-clear",
+            "loadOp": "load"
+          },
+          {
+            "kind": "overlay",
+            "label": "labels, HUD, minimap, atmosphere, and debug overlays",
+            "passIds": [
+              "model-gate-labels"
+            ],
+            "passRoles": [
+              {
+                "id": "model-gate-labels",
+                "role": "overlay-ui"
+              }
+            ],
+            "depthPasses": [],
+            "depth": "none",
+            "loadOp": "load"
+          }
+        ],
+        "hostileDrawOrder": "normal",
         "samples": {},
         "postCutoverScreenshots": "webgpu-only"
       },
@@ -292,6 +790,10 @@
           "coniferModelVertices": 177,
           "broadleafModelVertices": 258,
           "rockModelVertices": 126,
+          "materialClasses": [
+            "opaque-depth-write",
+            "shadow-depth-read"
+          ],
           "layer": "raw-webgpu-legacy-scenery-meshes"
         },
         "roadTriangles": 174,
@@ -308,6 +810,89 @@
           "height": 758,
           "allocated": true
         },
+        "framePhases": [
+          {
+            "kind": "background",
+            "label": "terrain, backdrop, impostor markers, and background surfaces",
+            "passIds": [
+              "builtin-background"
+            ],
+            "passRoles": [
+              {
+                "id": "builtin-background",
+                "role": "background-underpaint"
+              }
+            ],
+            "depthPasses": [],
+            "depth": "none",
+            "loadOp": "clear"
+          },
+          {
+            "kind": "world-depth",
+            "label": "depth-tested world geometry and ground decals",
+            "passIds": [
+              "model-gate-selection",
+              "model-gate-roads",
+              "model-gate-scenery",
+              "model-gate-entities"
+            ],
+            "passRoles": [
+              {
+                "id": "model-gate-selection",
+                "role": "world-decal"
+              },
+              {
+                "id": "model-gate-roads",
+                "role": "world-decal"
+              },
+              {
+                "id": "model-gate-scenery",
+                "role": "world-opaque"
+              },
+              {
+                "id": "model-gate-entities",
+                "role": "world-opaque"
+              }
+            ],
+            "depthPasses": [
+              {
+                "id": "model-gate-selection",
+                "mode": "read"
+              },
+              {
+                "id": "model-gate-roads",
+                "mode": "read"
+              },
+              {
+                "id": "model-gate-scenery",
+                "mode": "read-write"
+              },
+              {
+                "id": "model-gate-entities",
+                "mode": "read-write"
+              }
+            ],
+            "depth": "depth24plus-clear",
+            "loadOp": "load"
+          },
+          {
+            "kind": "overlay",
+            "label": "labels, HUD, minimap, atmosphere, and debug overlays",
+            "passIds": [
+              "model-gate-labels"
+            ],
+            "passRoles": [
+              {
+                "id": "model-gate-labels",
+                "role": "overlay-ui"
+              }
+            ],
+            "depthPasses": [],
+            "depth": "none",
+            "loadOp": "load"
+          }
+        ],
+        "hostileDrawOrder": "normal",
         "samples": {},
         "postCutoverScreenshots": "webgpu-only"
       },
@@ -342,6 +927,10 @@
           "coniferModelVertices": 177,
           "broadleafModelVertices": 258,
           "rockModelVertices": 126,
+          "materialClasses": [
+            "opaque-depth-write",
+            "shadow-depth-read"
+          ],
           "layer": "raw-webgpu-legacy-scenery-meshes"
         },
         "roadTriangles": 174,
@@ -358,6 +947,89 @@
           "height": 758,
           "allocated": true
         },
+        "framePhases": [
+          {
+            "kind": "background",
+            "label": "terrain, backdrop, impostor markers, and background surfaces",
+            "passIds": [
+              "builtin-background"
+            ],
+            "passRoles": [
+              {
+                "id": "builtin-background",
+                "role": "background-underpaint"
+              }
+            ],
+            "depthPasses": [],
+            "depth": "none",
+            "loadOp": "clear"
+          },
+          {
+            "kind": "world-depth",
+            "label": "depth-tested world geometry and ground decals",
+            "passIds": [
+              "model-gate-selection",
+              "model-gate-roads",
+              "model-gate-scenery",
+              "model-gate-entities"
+            ],
+            "passRoles": [
+              {
+                "id": "model-gate-selection",
+                "role": "world-decal"
+              },
+              {
+                "id": "model-gate-roads",
+                "role": "world-decal"
+              },
+              {
+                "id": "model-gate-scenery",
+                "role": "world-opaque"
+              },
+              {
+                "id": "model-gate-entities",
+                "role": "world-opaque"
+              }
+            ],
+            "depthPasses": [
+              {
+                "id": "model-gate-selection",
+                "mode": "read"
+              },
+              {
+                "id": "model-gate-roads",
+                "mode": "read"
+              },
+              {
+                "id": "model-gate-scenery",
+                "mode": "read-write"
+              },
+              {
+                "id": "model-gate-entities",
+                "mode": "read-write"
+              }
+            ],
+            "depth": "depth24plus-clear",
+            "loadOp": "load"
+          },
+          {
+            "kind": "overlay",
+            "label": "labels, HUD, minimap, atmosphere, and debug overlays",
+            "passIds": [
+              "model-gate-labels"
+            ],
+            "passRoles": [
+              {
+                "id": "model-gate-labels",
+                "role": "overlay-ui"
+              }
+            ],
+            "depthPasses": [],
+            "depth": "none",
+            "loadOp": "load"
+          }
+        ],
+        "hostileDrawOrder": "normal",
         "samples": {},
         "postCutoverScreenshots": "webgpu-only"
       },
@@ -392,6 +1064,10 @@
           "coniferModelVertices": 177,
           "broadleafModelVertices": 258,
           "rockModelVertices": 126,
+          "materialClasses": [
+            "opaque-depth-write",
+            "shadow-depth-read"
+          ],
           "layer": "raw-webgpu-legacy-scenery-meshes"
         },
         "roadTriangles": 0,
@@ -408,6 +1084,89 @@
           "height": 758,
           "allocated": true
         },
+        "framePhases": [
+          {
+            "kind": "background",
+            "label": "terrain, backdrop, impostor markers, and background surfaces",
+            "passIds": [
+              "builtin-background"
+            ],
+            "passRoles": [
+              {
+                "id": "builtin-background",
+                "role": "background-underpaint"
+              }
+            ],
+            "depthPasses": [],
+            "depth": "none",
+            "loadOp": "clear"
+          },
+          {
+            "kind": "world-depth",
+            "label": "depth-tested world geometry and ground decals",
+            "passIds": [
+              "model-gate-selection",
+              "model-gate-roads",
+              "model-gate-scenery",
+              "model-gate-entities"
+            ],
+            "passRoles": [
+              {
+                "id": "model-gate-selection",
+                "role": "world-decal"
+              },
+              {
+                "id": "model-gate-roads",
+                "role": "world-decal"
+              },
+              {
+                "id": "model-gate-scenery",
+                "role": "world-opaque"
+              },
+              {
+                "id": "model-gate-entities",
+                "role": "world-opaque"
+              }
+            ],
+            "depthPasses": [
+              {
+                "id": "model-gate-selection",
+                "mode": "read"
+              },
+              {
+                "id": "model-gate-roads",
+                "mode": "read"
+              },
+              {
+                "id": "model-gate-scenery",
+                "mode": "read-write"
+              },
+              {
+                "id": "model-gate-entities",
+                "mode": "read-write"
+              }
+            ],
+            "depth": "depth24plus-clear",
+            "loadOp": "load"
+          },
+          {
+            "kind": "overlay",
+            "label": "labels, HUD, minimap, atmosphere, and debug overlays",
+            "passIds": [
+              "model-gate-labels"
+            ],
+            "passRoles": [
+              {
+                "id": "model-gate-labels",
+                "role": "overlay-ui"
+              }
+            ],
+            "depthPasses": [],
+            "depth": "none",
+            "loadOp": "load"
+          }
+        ],
+        "hostileDrawOrder": "normal",
         "samples": {
           "cityStandard": {
             "hiddenLowerCloth": {
@@ -472,6 +1231,10 @@
           "coniferModelVertices": 177,
           "broadleafModelVertices": 258,
           "rockModelVertices": 126,
+          "materialClasses": [
+            "opaque-depth-write",
+            "shadow-depth-read"
+          ],
           "layer": "raw-webgpu-legacy-scenery-meshes"
         },
         "roadTriangles": 0,
@@ -488,6 +1251,89 @@
           "height": 758,
           "allocated": true
         },
+        "framePhases": [
+          {
+            "kind": "background",
+            "label": "terrain, backdrop, impostor markers, and background surfaces",
+            "passIds": [
+              "builtin-background"
+            ],
+            "passRoles": [
+              {
+                "id": "builtin-background",
+                "role": "background-underpaint"
+              }
+            ],
+            "depthPasses": [],
+            "depth": "none",
+            "loadOp": "clear"
+          },
+          {
+            "kind": "world-depth",
+            "label": "depth-tested world geometry and ground decals",
+            "passIds": [
+              "model-gate-selection",
+              "model-gate-roads",
+              "model-gate-scenery",
+              "model-gate-entities"
+            ],
+            "passRoles": [
+              {
+                "id": "model-gate-selection",
+                "role": "world-decal"
+              },
+              {
+                "id": "model-gate-roads",
+                "role": "world-decal"
+              },
+              {
+                "id": "model-gate-scenery",
+                "role": "world-opaque"
+              },
+              {
+                "id": "model-gate-entities",
+                "role": "world-opaque"
+              }
+            ],
+            "depthPasses": [
+              {
+                "id": "model-gate-selection",
+                "mode": "read"
+              },
+              {
+                "id": "model-gate-roads",
+                "mode": "read"
+              },
+              {
+                "id": "model-gate-scenery",
+                "mode": "read-write"
+              },
+              {
+                "id": "model-gate-entities",
+                "mode": "read-write"
+              }
+            ],
+            "depth": "depth24plus-clear",
+            "loadOp": "load"
+          },
+          {
+            "kind": "overlay",
+            "label": "labels, HUD, minimap, atmosphere, and debug overlays",
+            "passIds": [
+              "model-gate-labels"
+            ],
+            "passRoles": [
+              {
+                "id": "model-gate-labels",
+                "role": "overlay-ui"
+              }
+            ],
+            "depthPasses": [],
+            "depth": "none",
+            "loadOp": "load"
+          }
+        ],
+        "hostileDrawOrder": "normal",
         "samples": {},
         "postCutoverScreenshots": "webgpu-only"
       },
@@ -522,6 +1368,10 @@
           "coniferModelVertices": 177,
           "broadleafModelVertices": 258,
           "rockModelVertices": 126,
+          "materialClasses": [
+            "opaque-depth-write",
+            "shadow-depth-read"
+          ],
           "layer": "raw-webgpu-legacy-scenery-meshes"
         },
         "roadTriangles": 0,
@@ -538,6 +1388,89 @@
           "height": 758,
           "allocated": true
         },
+        "framePhases": [
+          {
+            "kind": "background",
+            "label": "terrain, backdrop, impostor markers, and background surfaces",
+            "passIds": [
+              "builtin-background"
+            ],
+            "passRoles": [
+              {
+                "id": "builtin-background",
+                "role": "background-underpaint"
+              }
+            ],
+            "depthPasses": [],
+            "depth": "none",
+            "loadOp": "clear"
+          },
+          {
+            "kind": "world-depth",
+            "label": "depth-tested world geometry and ground decals",
+            "passIds": [
+              "model-gate-selection",
+              "model-gate-roads",
+              "model-gate-scenery",
+              "model-gate-entities"
+            ],
+            "passRoles": [
+              {
+                "id": "model-gate-selection",
+                "role": "world-decal"
+              },
+              {
+                "id": "model-gate-roads",
+                "role": "world-decal"
+              },
+              {
+                "id": "model-gate-scenery",
+                "role": "world-opaque"
+              },
+              {
+                "id": "model-gate-entities",
+                "role": "world-opaque"
+              }
+            ],
+            "depthPasses": [
+              {
+                "id": "model-gate-selection",
+                "mode": "read"
+              },
+              {
+                "id": "model-gate-roads",
+                "mode": "read"
+              },
+              {
+                "id": "model-gate-scenery",
+                "mode": "read-write"
+              },
+              {
+                "id": "model-gate-entities",
+                "mode": "read-write"
+              }
+            ],
+            "depth": "depth24plus-clear",
+            "loadOp": "load"
+          },
+          {
+            "kind": "overlay",
+            "label": "labels, HUD, minimap, atmosphere, and debug overlays",
+            "passIds": [
+              "model-gate-labels"
+            ],
+            "passRoles": [
+              {
+                "id": "model-gate-labels",
+                "role": "overlay-ui"
+              }
+            ],
+            "depthPasses": [],
+            "depth": "none",
+            "loadOp": "load"
+          }
+        ],
+        "hostileDrawOrder": "normal",
         "samples": {},
         "postCutoverScreenshots": "webgpu-only"
       },
@@ -572,6 +1505,10 @@
           "coniferModelVertices": 177,
           "broadleafModelVertices": 258,
           "rockModelVertices": 126,
+          "materialClasses": [
+            "opaque-depth-write",
+            "shadow-depth-read"
+          ],
           "layer": "raw-webgpu-legacy-scenery-meshes"
         },
         "roadTriangles": 0,
@@ -588,6 +1525,89 @@
           "height": 758,
           "allocated": true
         },
+        "framePhases": [
+          {
+            "kind": "background",
+            "label": "terrain, backdrop, impostor markers, and background surfaces",
+            "passIds": [
+              "builtin-background"
+            ],
+            "passRoles": [
+              {
+                "id": "builtin-background",
+                "role": "background-underpaint"
+              }
+            ],
+            "depthPasses": [],
+            "depth": "none",
+            "loadOp": "clear"
+          },
+          {
+            "kind": "world-depth",
+            "label": "depth-tested world geometry and ground decals",
+            "passIds": [
+              "model-gate-selection",
+              "model-gate-roads",
+              "model-gate-scenery",
+              "model-gate-entities"
+            ],
+            "passRoles": [
+              {
+                "id": "model-gate-selection",
+                "role": "world-decal"
+              },
+              {
+                "id": "model-gate-roads",
+                "role": "world-decal"
+              },
+              {
+                "id": "model-gate-scenery",
+                "role": "world-opaque"
+              },
+              {
+                "id": "model-gate-entities",
+                "role": "world-opaque"
+              }
+            ],
+            "depthPasses": [
+              {
+                "id": "model-gate-selection",
+                "mode": "read"
+              },
+              {
+                "id": "model-gate-roads",
+                "mode": "read"
+              },
+              {
+                "id": "model-gate-scenery",
+                "mode": "read-write"
+              },
+              {
+                "id": "model-gate-entities",
+                "mode": "read-write"
+              }
+            ],
+            "depth": "depth24plus-clear",
+            "loadOp": "load"
+          },
+          {
+            "kind": "overlay",
+            "label": "labels, HUD, minimap, atmosphere, and debug overlays",
+            "passIds": [
+              "model-gate-labels"
+            ],
+            "passRoles": [
+              {
+                "id": "model-gate-labels",
+                "role": "overlay-ui"
+              }
+            ],
+            "depthPasses": [],
+            "depth": "none",
+            "loadOp": "load"
+          }
+        ],
+        "hostileDrawOrder": "normal",
         "samples": {},
         "postCutoverScreenshots": "webgpu-only"
       },
@@ -622,6 +1642,10 @@
           "coniferModelVertices": 177,
           "broadleafModelVertices": 258,
           "rockModelVertices": 126,
+          "materialClasses": [
+            "opaque-depth-write",
+            "shadow-depth-read"
+          ],
           "layer": "raw-webgpu-legacy-scenery-meshes"
         },
         "roadTriangles": 0,
@@ -638,6 +1662,89 @@
           "height": 758,
           "allocated": true
         },
+        "framePhases": [
+          {
+            "kind": "background",
+            "label": "terrain, backdrop, impostor markers, and background surfaces",
+            "passIds": [
+              "builtin-background"
+            ],
+            "passRoles": [
+              {
+                "id": "builtin-background",
+                "role": "background-underpaint"
+              }
+            ],
+            "depthPasses": [],
+            "depth": "none",
+            "loadOp": "clear"
+          },
+          {
+            "kind": "world-depth",
+            "label": "depth-tested world geometry and ground decals",
+            "passIds": [
+              "model-gate-selection",
+              "model-gate-roads",
+              "model-gate-scenery",
+              "model-gate-entities"
+            ],
+            "passRoles": [
+              {
+                "id": "model-gate-selection",
+                "role": "world-decal"
+              },
+              {
+                "id": "model-gate-roads",
+                "role": "world-decal"
+              },
+              {
+                "id": "model-gate-scenery",
+                "role": "world-opaque"
+              },
+              {
+                "id": "model-gate-entities",
+                "role": "world-opaque"
+              }
+            ],
+            "depthPasses": [
+              {
+                "id": "model-gate-selection",
+                "mode": "read"
+              },
+              {
+                "id": "model-gate-roads",
+                "mode": "read"
+              },
+              {
+                "id": "model-gate-scenery",
+                "mode": "read-write"
+              },
+              {
+                "id": "model-gate-entities",
+                "mode": "read-write"
+              }
+            ],
+            "depth": "depth24plus-clear",
+            "loadOp": "load"
+          },
+          {
+            "kind": "overlay",
+            "label": "labels, HUD, minimap, atmosphere, and debug overlays",
+            "passIds": [
+              "model-gate-labels"
+            ],
+            "passRoles": [
+              {
+                "id": "model-gate-labels",
+                "role": "overlay-ui"
+              }
+            ],
+            "depthPasses": [],
+            "depth": "none",
+            "loadOp": "load"
+          }
+        ],
+        "hostileDrawOrder": "normal",
         "samples": {},
         "postCutoverScreenshots": "webgpu-only"
       },
@@ -672,6 +1779,10 @@
           "coniferModelVertices": 177,
           "broadleafModelVertices": 258,
           "rockModelVertices": 126,
+          "materialClasses": [
+            "opaque-depth-write",
+            "shadow-depth-read"
+          ],
           "layer": "raw-webgpu-legacy-scenery-meshes"
         },
         "roadTriangles": 0,
@@ -688,6 +1799,89 @@
           "height": 758,
           "allocated": true
         },
+        "framePhases": [
+          {
+            "kind": "background",
+            "label": "terrain, backdrop, impostor markers, and background surfaces",
+            "passIds": [
+              "builtin-background"
+            ],
+            "passRoles": [
+              {
+                "id": "builtin-background",
+                "role": "background-underpaint"
+              }
+            ],
+            "depthPasses": [],
+            "depth": "none",
+            "loadOp": "clear"
+          },
+          {
+            "kind": "world-depth",
+            "label": "depth-tested world geometry and ground decals",
+            "passIds": [
+              "model-gate-selection",
+              "model-gate-roads",
+              "model-gate-scenery",
+              "model-gate-entities"
+            ],
+            "passRoles": [
+              {
+                "id": "model-gate-selection",
+                "role": "world-decal"
+              },
+              {
+                "id": "model-gate-roads",
+                "role": "world-decal"
+              },
+              {
+                "id": "model-gate-scenery",
+                "role": "world-opaque"
+              },
+              {
+                "id": "model-gate-entities",
+                "role": "world-opaque"
+              }
+            ],
+            "depthPasses": [
+              {
+                "id": "model-gate-selection",
+                "mode": "read"
+              },
+              {
+                "id": "model-gate-roads",
+                "mode": "read"
+              },
+              {
+                "id": "model-gate-scenery",
+                "mode": "read-write"
+              },
+              {
+                "id": "model-gate-entities",
+                "mode": "read-write"
+              }
+            ],
+            "depth": "depth24plus-clear",
+            "loadOp": "load"
+          },
+          {
+            "kind": "overlay",
+            "label": "labels, HUD, minimap, atmosphere, and debug overlays",
+            "passIds": [
+              "model-gate-labels"
+            ],
+            "passRoles": [
+              {
+                "id": "model-gate-labels",
+                "role": "overlay-ui"
+              }
+            ],
+            "depthPasses": [],
+            "depth": "none",
+            "loadOp": "load"
+          }
+        ],
+        "hostileDrawOrder": "normal",
         "samples": {},
         "postCutoverScreenshots": "webgpu-only"
       },
@@ -722,6 +1916,10 @@
           "coniferModelVertices": 177,
           "broadleafModelVertices": 258,
           "rockModelVertices": 126,
+          "materialClasses": [
+            "opaque-depth-write",
+            "shadow-depth-read"
+          ],
           "layer": "raw-webgpu-legacy-scenery-meshes"
         },
         "roadTriangles": 0,
@@ -738,6 +1936,89 @@
           "height": 758,
           "allocated": true
         },
+        "framePhases": [
+          {
+            "kind": "background",
+            "label": "terrain, backdrop, impostor markers, and background surfaces",
+            "passIds": [
+              "builtin-background"
+            ],
+            "passRoles": [
+              {
+                "id": "builtin-background",
+                "role": "background-underpaint"
+              }
+            ],
+            "depthPasses": [],
+            "depth": "none",
+            "loadOp": "clear"
+          },
+          {
+            "kind": "world-depth",
+            "label": "depth-tested world geometry and ground decals",
+            "passIds": [
+              "model-gate-selection",
+              "model-gate-roads",
+              "model-gate-scenery",
+              "model-gate-entities"
+            ],
+            "passRoles": [
+              {
+                "id": "model-gate-selection",
+                "role": "world-decal"
+              },
+              {
+                "id": "model-gate-roads",
+                "role": "world-decal"
+              },
+              {
+                "id": "model-gate-scenery",
+                "role": "world-opaque"
+              },
+              {
+                "id": "model-gate-entities",
+                "role": "world-opaque"
+              }
+            ],
+            "depthPasses": [
+              {
+                "id": "model-gate-selection",
+                "mode": "read"
+              },
+              {
+                "id": "model-gate-roads",
+                "mode": "read"
+              },
+              {
+                "id": "model-gate-scenery",
+                "mode": "read-write"
+              },
+              {
+                "id": "model-gate-entities",
+                "mode": "read-write"
+              }
+            ],
+            "depth": "depth24plus-clear",
+            "loadOp": "load"
+          },
+          {
+            "kind": "overlay",
+            "label": "labels, HUD, minimap, atmosphere, and debug overlays",
+            "passIds": [
+              "model-gate-labels"
+            ],
+            "passRoles": [
+              {
+                "id": "model-gate-labels",
+                "role": "overlay-ui"
+              }
+            ],
+            "depthPasses": [],
+            "depth": "none",
+            "loadOp": "load"
+          }
+        ],
+        "hostileDrawOrder": "normal",
         "samples": {},
         "postCutoverScreenshots": "webgpu-only"
       },
@@ -772,6 +2053,10 @@
           "coniferModelVertices": 177,
           "broadleafModelVertices": 258,
           "rockModelVertices": 126,
+          "materialClasses": [
+            "opaque-depth-write",
+            "shadow-depth-read"
+          ],
           "layer": "raw-webgpu-legacy-scenery-meshes"
         },
         "roadTriangles": 0,
@@ -788,6 +2073,89 @@
           "height": 758,
           "allocated": true
         },
+        "framePhases": [
+          {
+            "kind": "background",
+            "label": "terrain, backdrop, impostor markers, and background surfaces",
+            "passIds": [
+              "builtin-background"
+            ],
+            "passRoles": [
+              {
+                "id": "builtin-background",
+                "role": "background-underpaint"
+              }
+            ],
+            "depthPasses": [],
+            "depth": "none",
+            "loadOp": "clear"
+          },
+          {
+            "kind": "world-depth",
+            "label": "depth-tested world geometry and ground decals",
+            "passIds": [
+              "model-gate-selection",
+              "model-gate-roads",
+              "model-gate-scenery",
+              "model-gate-entities"
+            ],
+            "passRoles": [
+              {
+                "id": "model-gate-selection",
+                "role": "world-decal"
+              },
+              {
+                "id": "model-gate-roads",
+                "role": "world-decal"
+              },
+              {
+                "id": "model-gate-scenery",
+                "role": "world-opaque"
+              },
+              {
+                "id": "model-gate-entities",
+                "role": "world-opaque"
+              }
+            ],
+            "depthPasses": [
+              {
+                "id": "model-gate-selection",
+                "mode": "read"
+              },
+              {
+                "id": "model-gate-roads",
+                "mode": "read"
+              },
+              {
+                "id": "model-gate-scenery",
+                "mode": "read-write"
+              },
+              {
+                "id": "model-gate-entities",
+                "mode": "read-write"
+              }
+            ],
+            "depth": "depth24plus-clear",
+            "loadOp": "load"
+          },
+          {
+            "kind": "overlay",
+            "label": "labels, HUD, minimap, atmosphere, and debug overlays",
+            "passIds": [
+              "model-gate-labels"
+            ],
+            "passRoles": [
+              {
+                "id": "model-gate-labels",
+                "role": "overlay-ui"
+              }
+            ],
+            "depthPasses": [],
+            "depth": "none",
+            "loadOp": "load"
+          }
+        ],
+        "hostileDrawOrder": "normal",
         "samples": {},
         "postCutoverScreenshots": "webgpu-only"
       },
@@ -822,6 +2190,10 @@
           "coniferModelVertices": 177,
           "broadleafModelVertices": 258,
           "rockModelVertices": 126,
+          "materialClasses": [
+            "opaque-depth-write",
+            "shadow-depth-read"
+          ],
           "layer": "raw-webgpu-legacy-scenery-meshes"
         },
         "roadTriangles": 0,
@@ -838,6 +2210,89 @@
           "height": 758,
           "allocated": true
         },
+        "framePhases": [
+          {
+            "kind": "background",
+            "label": "terrain, backdrop, impostor markers, and background surfaces",
+            "passIds": [
+              "builtin-background"
+            ],
+            "passRoles": [
+              {
+                "id": "builtin-background",
+                "role": "background-underpaint"
+              }
+            ],
+            "depthPasses": [],
+            "depth": "none",
+            "loadOp": "clear"
+          },
+          {
+            "kind": "world-depth",
+            "label": "depth-tested world geometry and ground decals",
+            "passIds": [
+              "model-gate-selection",
+              "model-gate-roads",
+              "model-gate-scenery",
+              "model-gate-entities"
+            ],
+            "passRoles": [
+              {
+                "id": "model-gate-selection",
+                "role": "world-decal"
+              },
+              {
+                "id": "model-gate-roads",
+                "role": "world-decal"
+              },
+              {
+                "id": "model-gate-scenery",
+                "role": "world-opaque"
+              },
+              {
+                "id": "model-gate-entities",
+                "role": "world-opaque"
+              }
+            ],
+            "depthPasses": [
+              {
+                "id": "model-gate-selection",
+                "mode": "read"
+              },
+              {
+                "id": "model-gate-roads",
+                "mode": "read"
+              },
+              {
+                "id": "model-gate-scenery",
+                "mode": "read-write"
+              },
+              {
+                "id": "model-gate-entities",
+                "mode": "read-write"
+              }
+            ],
+            "depth": "depth24plus-clear",
+            "loadOp": "load"
+          },
+          {
+            "kind": "overlay",
+            "label": "labels, HUD, minimap, atmosphere, and debug overlays",
+            "passIds": [
+              "model-gate-labels"
+            ],
+            "passRoles": [
+              {
+                "id": "model-gate-labels",
+                "role": "overlay-ui"
+              }
+            ],
+            "depthPasses": [],
+            "depth": "none",
+            "loadOp": "load"
+          }
+        ],
+        "hostileDrawOrder": "normal",
         "samples": {},
         "postCutoverScreenshots": "webgpu-only"
       },
@@ -872,6 +2327,10 @@
           "coniferModelVertices": 177,
           "broadleafModelVertices": 258,
           "rockModelVertices": 126,
+          "materialClasses": [
+            "opaque-depth-write",
+            "shadow-depth-read"
+          ],
           "layer": "raw-webgpu-legacy-scenery-meshes"
         },
         "roadTriangles": 0,
@@ -888,6 +2347,94 @@
           "height": 758,
           "allocated": true
         },
+        "framePhases": [
+          {
+            "kind": "background",
+            "label": "terrain, backdrop, impostor markers, and background surfaces",
+            "passIds": [
+              "builtin-background",
+              "model-gate-water"
+            ],
+            "passRoles": [
+              {
+                "id": "builtin-background",
+                "role": "background-underpaint"
+              },
+              {
+                "id": "model-gate-water",
+                "role": "background-underpaint"
+              }
+            ],
+            "depthPasses": [],
+            "depth": "none",
+            "loadOp": "clear"
+          },
+          {
+            "kind": "world-depth",
+            "label": "depth-tested world geometry and ground decals",
+            "passIds": [
+              "model-gate-selection",
+              "model-gate-roads",
+              "model-gate-scenery",
+              "model-gate-entities"
+            ],
+            "passRoles": [
+              {
+                "id": "model-gate-selection",
+                "role": "world-decal"
+              },
+              {
+                "id": "model-gate-roads",
+                "role": "world-decal"
+              },
+              {
+                "id": "model-gate-scenery",
+                "role": "world-opaque"
+              },
+              {
+                "id": "model-gate-entities",
+                "role": "world-opaque"
+              }
+            ],
+            "depthPasses": [
+              {
+                "id": "model-gate-selection",
+                "mode": "read"
+              },
+              {
+                "id": "model-gate-roads",
+                "mode": "read"
+              },
+              {
+                "id": "model-gate-scenery",
+                "mode": "read-write"
+              },
+              {
+                "id": "model-gate-entities",
+                "mode": "read-write"
+              }
+            ],
+            "depth": "depth24plus-clear",
+            "loadOp": "load"
+          },
+          {
+            "kind": "overlay",
+            "label": "labels, HUD, minimap, atmosphere, and debug overlays",
+            "passIds": [
+              "model-gate-labels"
+            ],
+            "passRoles": [
+              {
+                "id": "model-gate-labels",
+                "role": "overlay-ui"
+              }
+            ],
+            "depthPasses": [],
+            "depth": "none",
+            "loadOp": "load"
+          }
+        ],
+        "hostileDrawOrder": "normal",
         "samples": {},
         "postCutoverScreenshots": "webgpu-only"
       },
@@ -922,6 +2469,10 @@
           "coniferModelVertices": 177,
           "broadleafModelVertices": 258,
           "rockModelVertices": 126,
+          "materialClasses": [
+            "opaque-depth-write",
+            "shadow-depth-read"
+          ],
           "layer": "raw-webgpu-legacy-scenery-meshes"
         },
         "roadTriangles": 0,
@@ -938,6 +2489,99 @@
           "height": 758,
           "allocated": true
         },
+        "framePhases": [
+          {
+            "kind": "background",
+            "label": "terrain, backdrop, impostor markers, and background surfaces",
+            "passIds": [
+              "builtin-background",
+              "model-gate-water"
+            ],
+            "passRoles": [
+              {
+                "id": "builtin-background",
+                "role": "background-underpaint"
+              },
+              {
+                "id": "model-gate-water",
+                "role": "background-underpaint"
+              }
+            ],
+            "depthPasses": [],
+            "depth": "none",
+            "loadOp": "clear"
+          },
+          {
+            "kind": "world-depth",
+            "label": "depth-tested world geometry and ground decals",
+            "passIds": [
+              "model-gate-selection",
+              "model-gate-roads",
+              "model-gate-scenery",
+              "model-gate-entities"
+            ],
+            "passRoles": [
+              {
+                "id": "model-gate-selection",
+                "role": "world-decal"
+              },
+              {
+                "id": "model-gate-roads",
+                "role": "world-decal"
+              },
+              {
+                "id": "model-gate-scenery",
+                "role": "world-opaque"
+              },
+              {
+                "id": "model-gate-entities",
+                "role": "world-opaque"
+              }
+            ],
+            "depthPasses": [
+              {
+                "id": "model-gate-selection",
+                "mode": "read"
+              },
+              {
+                "id": "model-gate-roads",
+                "mode": "read"
+              },
+              {
+                "id": "model-gate-scenery",
+                "mode": "read-write"
+              },
+              {
+                "id": "model-gate-entities",
+                "mode": "read-write"
+              }
+            ],
+            "depth": "depth24plus-clear",
+            "loadOp": "load"
+          },
+          {
+            "kind": "overlay",
+            "label": "labels, HUD, minimap, atmosphere, and debug overlays",
+            "passIds": [
+              "model-gate-clouds",
+              "model-gate-labels"
+            ],
+            "passRoles": [
+              {
+                "id": "model-gate-clouds",
+                "role": "overlay-effect"
+              },
+              {
+                "id": "model-gate-labels",
+                "role": "overlay-ui"
+              }
+            ],
+            "depthPasses": [],
+            "depth": "none",
+            "loadOp": "load"
+          }
+        ],
+        "hostileDrawOrder": "normal",
         "samples": {},
         "postCutoverScreenshots": "webgpu-only"
       },

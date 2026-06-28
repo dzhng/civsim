@@ -69,6 +69,16 @@ const routes = [
     && s.stats.entityLayer === 'raw-webgpu-legacy-model-meshes'
     && s.stats.samples?.garrison?.hiddenShieldInsideWall
     && s.stats.samples?.garrison?.visibleStandardAboveRoofs],
+  ['campaign-model-gates?gate=hostile-depth-order', (s) => s?.ok
+    && s.route === 'campaign-model-gates'
+    && s.stats.gate === 'hostile-depth-order'
+    && s.stats.hostileDrawOrder === 'entities-before-late-scenery'
+    && s.stats.depth?.allocated === true
+    && s.stats.depth?.format === WEBGPU_DEPTH_FORMAT
+    && hasFrameDepthPass(s.stats.framePhases, 'model-gate-entities', 'read-write')
+    && hasFrameDepthPass(s.stats.framePhases, 'model-gate-scenery', 'read-write')
+    && s.stats.samples?.hostileDepthOrder?.flagOverLateTree
+    && s.stats.samples?.hostileDepthOrder?.lateTreeControl],
   ['render-graph', (s) => s?.ok
     && s.route === 'render-graph'
     && s.stats.firstPass === 'camera'
@@ -713,6 +723,22 @@ export async function run(ctx) {
         `${route}: garrisoned army standard remains visible above the city`,
         visible.blue > 12,
         JSON.stringify({ visible, sample: samples.visibleStandardAboveRoofs }),
+      );
+    }
+    if (route === 'campaign-model-gates?gate=hostile-depth-order') {
+      const canvasPng = PNG.sync.read(await page.locator('#webgpu-canvas').screenshot());
+      const samples = stats.stats.samples.hostileDepthOrder;
+      const flag = patchStats(canvasPng, samples.flagOverLateTree, 6);
+      const tree = patchStats(canvasPng, samples.lateTreeControl, 7);
+      ctx.check(
+        `${route}: nearer city flag survives later-submitted scenery bucket`,
+        flag.red > 12 && flag.green <= 8,
+        JSON.stringify({ flag, sample: samples.flagOverLateTree, hostileDrawOrder: stats.stats.hostileDrawOrder }),
+      );
+      ctx.check(
+        `${route}: late-submitted scenery bucket is visible elsewhere`,
+        tree.green >= 16,
+        JSON.stringify({ tree, sample: samples.lateTreeControl }),
       );
     }
     if (route === 'assets') {

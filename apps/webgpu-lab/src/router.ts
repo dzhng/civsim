@@ -741,12 +741,14 @@ async function routeCampaignModelGates(ctx: LabContext) {
   selection.upload(frame.selections);
   water?.upload(frame.water);
   const labelLayer = labelPass.upload(frame.labels, camera);
+  const hostileDepthOrder = gate === 'hostile-depth-order';
+  const entityPass: FrameGraphPass = { id: 'model-gate-entities', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => entities.draw(pass) };
+  const sceneryPass: FrameGraphPass = { id: 'model-gate-scenery', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => scenery.draw(pass) };
   const passes: FrameGraphPass[] = [
     ...(water ? [{ id: 'model-gate-water', role: 'background-underpaint' as const, phase: 'background' as const, draw: (pass: BackgroundRenderPass) => water.draw(pass) }] : []),
     { id: 'model-gate-selection', role: 'world-decal', phase: 'world-depth', depth: 'read', draw: (pass) => selection.draw(pass) },
     { id: 'model-gate-roads', role: 'world-decal', phase: 'world-depth', depth: 'read', draw: (pass) => roads.draw(pass) },
-    { id: 'model-gate-scenery', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => scenery.draw(pass) },
-    { id: 'model-gate-entities', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => entities.draw(pass) },
+    ...(hostileDepthOrder ? [entityPass, sceneryPass] : [sceneryPass, entityPass]),
     ...(clouds ? [{ id: 'model-gate-clouds', role: 'overlay-effect' as const, phase: 'overlay' as const, draw: (pass: OverlayRenderPass) => clouds.draw(pass) }] : []),
     { id: 'model-gate-labels', role: 'overlay-ui', phase: 'overlay', draw: (pass) => labelPass.draw(pass) },
   ];
@@ -767,11 +769,13 @@ async function routeCampaignModelGates(ctx: LabContext) {
     labels: `${labelLayer.visibleLabels}/${labelLayer.labels}`,
     cityStandard: cityStandardSamples ? 'embedded-depth-sampled' : 'n/a',
     garrison: garrisonSamples ? 'army-inside-city-depth-sampled' : 'n/a',
+    hostileDrawOrder: hostileDepthOrder ? 'entities-before-late-scenery' : 'normal',
     renderer: 'raw WebGPU campaign model passes',
   });
   const samples = {
     ...(cityStandardSamples ? { cityStandard: cityStandardSamples } : {}),
     ...(garrisonSamples ? { garrison: garrisonSamples } : {}),
+    ...(hostileDepthOrder ? { hostileDepthOrder: campaignModelGateHostileDepthSamples(ctx.canvas, camera) } : {}),
   };
   publish('campaign-model-gates', true, {
     route: 'campaign-model-gates',
@@ -790,6 +794,7 @@ async function routeCampaignModelGates(ctx: LabContext) {
     entityLayer: entities.stats().layer,
     depth: shell.stats().depth,
     framePhases: shell.stats().phases,
+    hostileDrawOrder: hostileDepthOrder ? 'entities-before-late-scenery' : 'normal',
     samples,
     postCutoverScreenshots: 'webgpu-only',
   });
@@ -799,6 +804,7 @@ type CampaignModelGate =
   | 'overview'
   | 'city'
   | 'garrison-city'
+  | 'hostile-depth-order'
   | 'town'
   | 'army'
   | 'road'
@@ -818,6 +824,7 @@ type CampaignModelGate =
 const CAMPAIGN_MODEL_GATES: CampaignModelGate[] = [
   'city',
   'garrison-city',
+  'hostile-depth-order',
   'town',
   'army',
   'road',
@@ -882,6 +889,10 @@ function campaignModelGateFrame(gate: CampaignModelGate) {
 
   if (gate === 'overview') addCity(-6.0, -2.0, 7.0, 'ROMA', red, green, false);
   if (gate === 'city') addCity(MODEL_GATE_CITY_POSITION[0], MODEL_GATE_CITY_POSITION[1], MODEL_GATE_CITY_RADIUS, 'ROMA', red, green, true);
+  if (gate === 'hostile-depth-order') {
+    addCity(MODEL_GATE_CITY_POSITION[0], MODEL_GATE_CITY_POSITION[1], MODEL_GATE_CITY_RADIUS, 'ROMA', red, green, true);
+    scenery.push({ x: -1.34, y: -1.08, size: 14.0, kind: 'broadleaf', shade: 0.72 });
+  }
   if (gate === 'garrison-city') {
     addCity(MODEL_GATE_CITY_POSITION[0], MODEL_GATE_CITY_POSITION[1], MODEL_GATE_CITY_RADIUS, 'ROMA', red, green, true);
     entities.push({
@@ -961,6 +972,18 @@ function campaignModelGateFrame(gate: CampaignModelGate) {
     labels.push({ text: 'Tyrrhenian Sea', x: 0.0, y: -7.0, kind: 'sea', size: 17, priority: 3, angle: -0.12 });
   }
   return { entities, scenery, selections, labels, roads, terrainRect, water, cloudRect };
+}
+
+function campaignModelGateHostileDepthSamples(
+  canvas: HTMLCanvasElement,
+  camera: { x: number; y: number; zoom: number; pitch?: number; yaw?: number; perspective?: number },
+) {
+  void canvas;
+  void camera;
+  return {
+    flagOverLateTree: { x: 255, y: 121, note: 'fixed hostile-gate crop sample on visible city flag in front of late scenery' },
+    lateTreeControl: { x: 176, y: 209, note: 'fixed hostile-gate crop sample proving the late scenery bucket is visible' },
+  };
 }
 
 function campaignModelGateCityStandardSamples(

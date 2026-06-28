@@ -25,6 +25,7 @@ const ACCEPTED_VISUAL_STATUSES = new Set(['webgpu-better', 'equal-or-better', 'a
 const REQUIRED_MODEL_GATE_IDS = [
   'city',
   'garrison-city',
+  'hostile-depth-order',
   'town',
   'army',
   'road',

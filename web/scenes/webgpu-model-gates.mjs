@@ -26,6 +26,11 @@ const gates = [
     criteria: 'Army marker can sit inside the city volume with lower soldiers occluded and the raised standard still readable through the production depth pass.',
   },
   {
+    id: 'hostile-depth-order',
+    label: 'Hostile Depth Order',
+    criteria: 'A later-submitted scenery bucket behind the city cannot overpaint the nearer city standard; type buckets are batching only.',
+  },
+  {
     id: 'town',
     label: 'Town Scale',
     criteria: 'Smaller settlement keeps the same model language at a distinct readable scale.',

@@ -361,8 +361,7 @@ fn think(
     // and the search (cloning the world and rolling each candidate forward) is
     // the expensive part, so gating it to once per offensive leg is what keeps
     // the lookahead affordable. Once the force arrives or falls idle, the next
-    // pass re-plans; urgent mid-march redirects come from the event-triggered
-    // re-think, not from re-searching every tick.
+    // pass re-plans.
     let have_idle = my_free
         .iter()
         .any(|&(id, ..)| st.armies[id as usize].halted());

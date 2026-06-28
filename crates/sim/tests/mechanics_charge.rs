@@ -319,6 +319,130 @@ fn cav_closest_approach_to_phalanx(flank: bool) -> f32 {
     min_gap
 }
 
+/// Spawn 96 immortal zero-damage charging horse and an immortal wide heavy
+/// block (line facing +y at origin), order an attack, and return: the alignment
+/// of the cav's facing with the direction to the enemy at the moment its lance
+/// first couches (1 = aimed straight at the foe, ~0 = across his front), whether
+/// any horse reached body contact, and the closest approach over the run.
+/// `wheel`=true spawns the cav AT the west flank facing north — perpendicular to
+/// the east charge-in axis, so it must wheel ~90° to attack; =false is a frontal
+/// charge from due north, already aimed at the foe.
+fn flank_wheel_charge(wheel: bool) -> (f32, bool, f32) {
+    let mut sim = Sim::new(
+        Tunables {
+            micro_rough: 0.0,
+            morale_enabled: false,
+            ..Tunables::default()
+        },
+        SEED,
+    );
+    // Wide immortal heavy line, facing +y (front north, flanks east/west).
+    let block = sim.spawn_class_with_files(Vec2::ZERO, FRAC_PI_2, 160, 20, UnitClassId::HeavySword, 1);
+    let mut bh = class_stats(UnitClassId::HeavySword);
+    bh.weapons = sim::class::one(Weapon {
+        reach: 1.1, min_range: 0.0, zones: sim::strike::front(0.7),
+        attack_interval: 1.79, damage: 0.0, cleave: false, impales: false,
+        kind: sim::WeaponKind::Standard,
+    });
+    sim.units[block].stats = bh;
+    for k in sim.units[block].start..sim.units[block].start + sim.units[block].count {
+        sim.health[k] = 1.0e9;
+        sim.mass[k] = bh.mass;
+        sim.radius[k] = bh.soldier_radius;
+    }
+
+    let (start, facing) = if wheel {
+        (Vec2::new(-38.0, -8.0), FRAC_PI_2) // at the west flank, facing NORTH (perpendicular to the charge-in axis)
+    } else {
+        (Vec2::new(0.0, 45.0), -FRAC_PI_2) // due north, facing the front
+    };
+    let cav = sim.spawn_class(start, facing, 96, UnitClassId::ShockCavalry, 0);
+    sim.set_files(cav, 24); // 4-deep shock front
+    let mut ch = class_stats(UnitClassId::ShockCavalry);
+    ch.weapons = sim::class::one(Weapon {
+        reach: 2.4, min_range: 0.0, zones: sim::strike::front(0.3),
+        attack_interval: 2.2, damage: 0.0, cleave: false, impales: false,
+        kind: sim::WeaponKind::Standard,
+    });
+    sim.units[cav].stats = ch;
+    for k in sim.units[cav].start..sim.units[cav].start + sim.units[cav].count {
+        sim.health[k] = 1.0e9;
+        sim.mount_health[k] = 1.0e9;
+    }
+    sim.set_pace(cav, Pace::Run);
+    // Attack the flank immediately; the wheel case must turn ~90° (it faces
+    // north, the charge-in axis is east) over a short approach so it closes to
+    // contact rather than giving the latch up.
+    sim.set_attack_order(cav, block);
+
+    let bid: Vec<usize> = (sim.units[block].start..sim.units[block].start + sim.units[block].count).collect();
+    let cid: Vec<usize> = (sim.units[cav].start..sim.units[cav].start + sim.units[cav].count).collect();
+    let closest_now = |sim: &Sim| -> f32 {
+        let mut g = f32::INFINITY;
+        for &c in &cid {
+            if sim.alive[c] == 0 { continue; }
+            for &b in &bid {
+                if sim.alive[b] == 0 { continue; }
+                g = g.min((sim.soldier_pos(c) - sim.soldier_pos(b)).len() - sim.radius[c] - sim.radius[b]);
+            }
+        }
+        g
+    };
+
+    // Alignment of the unit's lance line (= facing) with the direction to the
+    // enemy, AT THE MOMENT the lance first couches. A charge is a committed
+    // gallop at the foe; couching while still pointed across his front (dot ~0)
+    // is the bug — the burst is then spent on the turn and gone before contact.
+    let mut align_at_couch = f32::NAN;
+    let mut closest_ever = f32::INFINITY;
+    let mut reached_contact = false;
+    for _ in 0..(22.0 / DT) as usize {
+        sim.tick();
+        let g = closest_now(&sim);
+        closest_ever = closest_ever.min(g);
+        if g < 0.5 {
+            reached_contact = true;
+        }
+        if sim.units[cav].charging && align_at_couch.is_nan() {
+            let cu = &sim.units[cav];
+            let to_enemy = sim.units[block].centroid - cu.centroid;
+            let to_enemy = to_enemy * (1.0 / to_enemy.len().max(0.5));
+            align_at_couch = sim::dir(cu.facing).dot(to_enemy);
+        }
+    }
+    (align_at_couch, reached_contact, closest_ever)
+}
+
+/// THE FLANK-WHEEL CHARGE: a cavalry unit that swings to the enemy flank and
+/// wheels ~90° to charge must still couch its lances — the charge is a property
+/// of horses reaching the enemy, not of the approach being a straight line. The
+/// frontal control proves the rig charges; the wheel case is the bug David hit
+/// (the lance never came down after the turn). Both must charge before contact.
+#[test]
+fn a_wheeling_flank_charge_still_couches_its_lances() {
+    let (front_align, front_contact, front_ever) = flank_wheel_charge(false);
+    let (wheel_align, wheel_contact, wheel_ever) = flank_wheel_charge(true);
+    eprintln!("FRONTAL: align@couch={front_align:.2} reached_contact={front_contact} closest={front_ever:.1}m");
+    eprintln!("WHEEL:   align@couch={wheel_align:.2} reached_contact={wheel_contact} closest={wheel_ever:.1}m");
+    // Sanity on the rig: the frontal charge couches pointed straight at the foe.
+    assert!(
+        front_align > 0.6,
+        "frontal control must couch while aimed at the enemy: align {front_align:.2}"
+    );
+    assert!(front_contact, "frontal control must reach contact");
+    // The fix: a unit that swung to the flank must wait out its ~90° wheel and
+    // couch its lance only once it is HEADED at the foe — not fire the burst
+    // across the turn (align ~0), which spends it before the horses arrive.
+    assert!(
+        !wheel_align.is_nan() && wheel_align > 0.6,
+        "the wheeling charge must couch its lance aimed at the enemy, not across his front: align@couch {wheel_align:.2}"
+    );
+    assert!(
+        wheel_contact,
+        "the wheeling charge must still reach contact (closest {wheel_ever:.1}m)"
+    );
+}
+
 #[test]
 fn phalanx_points_stop_horses_only_to_the_front() {
     let front = cav_closest_approach_to_phalanx(false);

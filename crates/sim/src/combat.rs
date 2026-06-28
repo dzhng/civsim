@@ -285,9 +285,10 @@ impl Sim {
                 1.0,
                 AIM_TOLERANCE,
             );
-            // Cost in seconds: turn time (rad / turn-rate) + travel time
-            // (gap-beyond-reach / closing gait). Both honest seconds, so they
-            // weight themselves; slice 05 refines travel with the accel ramp.
+            // Cost in METRES: the surface gap plus the wheel converted to the
+            // distance it would cover (turn_to_edge/turn_rate * approach_speed,
+            // below). Both are lengths, so they weight themselves; foot pays only
+            // the gap (its turn term is gated off — see the mounted check below).
             let turn_rate = (tun.soldier_turn_rate * stats.turn_mult).max(0.1);
             let approach_speed = (tun.run_speed * stats.pace_mult).max(0.5);
 

@@ -364,8 +364,7 @@ pub const AI_ROLLOUT_CAP: u32 = ticks_from_minutes(6_000); // ~4 game-days
 /// hourly commander still defends, recruits, and consolidates every pass; only
 /// the search — clone-and-roll-forward over several candidates — is throttled to
 /// this cadence. Armies take days to cross the map, so re-deciding the offensive
-/// once a day loses nothing while keeping the search (the dominant AI cost) rare;
-/// urgent mid-march reactions come from the event-triggered re-think, not here.
+/// once a day loses nothing while keeping the search (the dominant AI cost) rare.
 /// A multiple of the 60-tick commander cadence. Note: too infrequent and a
 /// just-won army is pulled home by the hourly consolidate step before the next
 /// search re-commits it — so this stays tight enough to keep an offensive alive.

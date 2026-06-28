@@ -1320,7 +1320,7 @@ impl Sim {
                 // it, never overshoot it, and the leash decides how deep the
                 // frame actually gets.
                 let standoff = enemy_edge_ext + 5.0;
-                let (enemy_dead, enemy_anchor) = {
+                let (enemy_dead, enemy_anchor, approach_dir) = {
                     let ev = &self.units[e];
                     let me = self.units[ui].centroid;
                     let through = ev.centroid - me;
@@ -1332,7 +1332,7 @@ impl Sim {
                     } else {
                         dir(self.units[ui].facing)
                     };
-                    (ev.alive_count == 0, ev.centroid + dir_v * standoff)
+                    (ev.alive_count == 0, ev.centroid + dir_v * standoff, dir_v)
                 };
                 let enemy_routing = self.units[e].routing;
                 // An auto-latch that is measurably LOSING GROUND gives up:
@@ -1408,7 +1408,19 @@ impl Sim {
                         // least half drained (no flickering at the budget's
                         // edge). Sustaining is the latch's job above.
                         let to_front = dist - standoff - enemy_edge_ext;
+                        // A lance-charge is a committed gallop AT the enemy — you
+                        // cannot couch the lance and spur to a charge while still
+                        // pointed across his front. So the burst ignites only once
+                        // the unit is actually HEADED at the foe (its lance line,
+                        // = facing, within ~50° of the approach). A frontal charge
+                        // is aligned from the first stride; a unit that swung to
+                        // the flank waits out its 90° wheel, then ignites fresh and
+                        // carries that single burst into contact — instead of
+                        // firing early across the turn and burning the burst before
+                        // it ever arrives.
+                        let aligned = dir(u.facing).dot(approach_dir) > 0.64;
                         let start = engaged_frac < 0.05
+                            && aligned
                             && to_front < charge_sp * self.tun.charge_window
                             && u.stamina > 0.3
                             && u.charge_time < self.tun.charge_window;

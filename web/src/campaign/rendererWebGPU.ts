@@ -351,6 +351,9 @@ function buildEntityFrame(data: CampaignData, opts: DrawOptions) {
   return { entities, selections, cityEntities, armyEntities };
 }
 
+const CITY_MARKER_BASE_RADIUS_PX = 3.8;
+const CITY_MARKER_TIER_RADIUS_PX = 0.7;
+
 function campaignMapMarkers(data: CampaignData, opts: DrawOptions): CampaignMarker[] {
   if (isControlledStage(data) || opts.cam.scale >= 0.5) return [];
   const markers: CampaignMarker[] = [];
@@ -365,7 +368,7 @@ function campaignMapMarkers(data: CampaignData, opts: DrawOptions): CampaignMark
     markers.push({
       x: node.pos[0],
       y: node.pos[1],
-      radius: 3.8 + node.tier * 0.7,
+      radius: cityMarkerRadiusPx(node.tier),
       faction: opts.factionView ? factionColor(data, owner) : [0.16, 0.12, 0.08],
       allegiance: allegianceColor(allegiance),
       kind: 'city',
@@ -435,6 +438,7 @@ function campaignCityLabels(data: CampaignData, opts: DrawOptions): CampaignLabe
       priority: node.tier,
       icon: 'city',
       iconColor: allegianceColor(allegiance),
+      screenOffsetX: cityLabelOffsetX(opts, node.tier) + horizontalEdgeOffset(edge.x(node.pos[0])),
       screenOffsetY: cityLabelOffset(opts, baseSize, cityHasArmy.has(index)) + verticalEdgeOffset(edge.y(node.pos[1])),
     });
   });
@@ -485,6 +489,19 @@ function cityLabelOffset(opts: DrawOptions, baseSize: number, hasArmy: boolean) 
   if (opts.cam.scale < 0.6) return -6 + armyOffset;
   if (opts.cam.scale < 1.25) return 18 + armyOffset;
   return Math.max(30, baseSize * 1.9) + armyOffset;
+}
+
+function cityLabelOffsetX(opts: DrawOptions, tier: number) {
+  if (opts.cam.scale >= 0.6) return 0;
+  return cityMarkerSidePx(tier);
+}
+
+function cityMarkerRadiusPx(tier: number) {
+  return CITY_MARKER_BASE_RADIUS_PX + tier * CITY_MARKER_TIER_RADIUS_PX;
+}
+
+function cityMarkerSidePx(tier: number) {
+  return cityMarkerRadiusPx(tier) * 2;
 }
 
 function ordinal(k: number) {

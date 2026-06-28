@@ -489,3 +489,12 @@ mast inside the central city volume. `webgpu-model-gates` and
 not accepted campaign parity: `compare-screenshots` now reports Campaign Label
 Zoom at `0.23298` full / `0.30745` world crop, with the raised road and close
 scene composition still the largest gap versus the archived renderer.
+
+Low-zoom city labels now get a horizontal screen-space tuck equal to the
+current square marker side, so the house icon/text block sits close to the city
+marker instead of dangling away from it. This intentionally affects only
+overview-marker LOD (`cam.scale < 0.6`); close 3D city labels keep their existing
+below-model spacing. `webgpu-visual-report`, `verify:campaign`, and
+`verify:campaign-visual` were regenerated/checked, with the tracked campaign
+baselines changing in `campaign-political`, `campaign-natural`, and
+`campaign-fog`.

@@ -82,6 +82,8 @@ export interface CampaignLabel {
   subText?: string;
   screenOffsetX?: number;
   screenOffsetY?: number;
+  screenAnchorX?: 'center' | 'left' | 'right';
+  screenAnchorY?: 'center' | 'top' | 'bottom';
   factionRadiusKm?: number;
   factionMinor?: boolean;
 }
@@ -1153,6 +1155,8 @@ function labelAtlasKey(labels: VisibleCampaignLabel[], dpr: number, totalLabels:
         label.subText ?? '',
         entry.offsetX.toFixed(2),
         entry.offsetY.toFixed(2),
+        label.screenAnchorX ?? 'center',
+        label.screenAnchorY ?? 'center',
         entry.opacity.toFixed(3),
       ].join(':');
     }),
@@ -1263,6 +1267,18 @@ function buildLabelVertices(entries: AtlasEntry[]) {
     const angle = label.angle ?? 0;
     const c = Math.cos(angle);
     const s = Math.sin(angle);
+    const anchorOffsetX =
+      label.screenAnchorX === 'left'
+        ? entry.offsetX + width * 0.5
+        : label.screenAnchorX === 'right'
+          ? entry.offsetX - width * 0.5
+          : entry.offsetX;
+    const anchorOffsetY =
+      label.screenAnchorY === 'top'
+        ? entry.offsetY + height * 0.5
+        : label.screenAnchorY === 'bottom'
+          ? entry.offsetY - height * 0.5
+          : entry.offsetY;
     const corners = [
       [-width * 0.5, -height * 0.5, entry.u0, entry.v0],
       [width * 0.5, -height * 0.5, entry.u1, entry.v0],
@@ -1277,8 +1293,8 @@ function buildLabelVertices(entries: AtlasEntry[]) {
       const oy = x * s + y * c;
       vertices[o++] = label.x;
       vertices[o++] = label.y;
-      vertices[o++] = ox + entry.offsetX;
-      vertices[o++] = oy + entry.offsetY;
+      vertices[o++] = ox + anchorOffsetX;
+      vertices[o++] = oy + anchorOffsetY;
       vertices[o++] = u;
       vertices[o++] = v;
     }

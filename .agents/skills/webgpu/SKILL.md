@@ -86,6 +86,9 @@ pass orchestration, WGSL layout, depth semantics, or browser-verified output.
   the generated PNG yourself.
 - Crop and upscale suspect regions before diagnosing small geometry, labels,
   sprites, flags, depth overlaps, or LOD artifacts.
+- For GPU-backed screen overlays, expose semantic anchors such as center, edge,
+  or baseline; do not tune visible spacing against the center of an atlas quad
+  when the requirement is about an icon edge, marker edge, or text baseline.
 - Use metrics as telemetry: pixel diffs, grayscale, edge maps, luminance, and
   content counts can explain movement, but acceptance depends on named visual
   requirements and human readability.

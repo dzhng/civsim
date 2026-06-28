@@ -490,11 +490,21 @@ not accepted campaign parity: `compare-screenshots` now reports Campaign Label
 Zoom at `0.23298` full / `0.30745` world crop, with the raised road and close
 scene composition still the largest gap versus the archived renderer.
 
-Low-zoom city labels now get a horizontal screen-space tuck equal to the
-current square marker side, so the house icon/text block sits close to the city
-marker instead of dangling away from it. This intentionally affects only
-overview-marker LOD (`cam.scale < 0.6`); close 3D city labels keep their existing
-below-model spacing. `webgpu-visual-report`, `verify:campaign`, and
+Low-zoom city labels are now edge-anchored to the square city marker instead of
+center-anchored. The label block's left and top edges sit one full marker-side
+away from the marker's outer edges, so `ROMA` stays visually attached to its
+square without overlapping it or dangling into the sea; nearby army/garrison
+collision padding is intentionally ignored at this overview LOD. This affects
+only overview-marker LOD (`cam.scale < 0.6`); close 3D city labels keep their
+existing below-model spacing. `webgpu-visual-report`, `verify:campaign`, and
 `verify:campaign-visual` were regenerated/checked, with the tracked campaign
-baselines changing in `campaign-political`, `campaign-natural`, and
-`campaign-fog`.
+baselines changing in `campaign-political`, `campaign-natural`,
+`campaign-fog`, `campaign-3d`, and `campaign-3d-rome`.
+
+The unprimed screenshot critique for this pass found no blocking issue. It
+accepted the tighter Roma label spacing and confirmed no visible flag/marker
+leakage through the fog crop. It did flag a separate minor hierarchy issue: the
+large `ROME` faction label competes with the nearby square city marker at this
+zoom. Crops are archived in
+`visualizations/critique/2026-06-28-roma-label-political-crop.png` and
+`visualizations/critique/2026-06-28-roma-label-fog-crop.png`.

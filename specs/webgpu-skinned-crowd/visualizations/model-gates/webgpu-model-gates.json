@@ -73,14 +73,28 @@
             "kind": "world-depth",
             "label": "depth-tested world geometry and ground decals",
             "passIds": [
-              "model-gate-selection",
+              "model-gate-scenery-opaque",
+              "model-gate-entities-opaque",
+              "model-gate-scenery-shadows",
+              "model-gate-entity-shadows",
               "model-gate-roads",
-              "model-gate-scenery",
-              "model-gate-entities"
+              "model-gate-selection"
             ],
             "passRoles": [
               {
-                "id": "model-gate-selection",
+                "id": "model-gate-scenery-opaque",
+                "role": "world-opaque"
+              },
+              {
+                "id": "model-gate-entities-opaque",
+                "role": "world-opaque"
+              },
+              {
+                "id": "model-gate-scenery-shadows",
+                "role": "world-decal"
+              },
+              {
+                "id": "model-gate-entity-shadows",
                 "role": "world-decal"
               },
               {
@@ -88,17 +102,25 @@
                 "role": "world-decal"
               },
               {
-                "id": "model-gate-scenery",
-                "role": "world-opaque"
-              },
-              {
-                "id": "model-gate-entities",
-                "role": "world-opaque"
+                "id": "model-gate-selection",
+                "role": "world-decal"
               }
             ],
             "depthPasses": [
               {
-                "id": "model-gate-selection",
+                "id": "model-gate-scenery-opaque",
+                "mode": "read-write"
+              },
+              {
+                "id": "model-gate-entities-opaque",
+                "mode": "read-write"
+              },
+              {
+                "id": "model-gate-scenery-shadows",
+                "mode": "read"
+              },
+              {
+                "id": "model-gate-entity-shadows",
                 "mode": "read"
               },
               {
@@ -106,12 +128,8 @@
                 "mode": "read"
               },
               {
-                "id": "model-gate-scenery",
-                "mode": "read-write"
-              },
-              {
-                "id": "model-gate-entities",
-                "mode": "read-write"
+                "id": "model-gate-selection",
+                "mode": "read"
               }
             ],
             "depth": "depth24plus-clear",
@@ -147,12 +165,12 @@
               ]
             },
             "visibleUpperCloth": {
-              "x": 445.09096813955534,
-              "y": 238.32126339922263,
+              "x": 514.1642925134018,
+              "y": 212.99437779547893,
               "world": [
-                -1.3727999999999998,
+                1.0031999999999999,
                 -1.7472,
-                6.5736
+                7.444799999999999
               ]
             },
             "plantedMastCore": {
@@ -162,6 +180,33 @@
                 0.10559999999999999,
                 -1.7472,
                 3.102
+              ]
+            },
+            "rightFlyingCloth": {
+              "x": 521.4553656417523,
+              "y": 202.24963844843614,
+              "world": [
+                1.2539999999999998,
+                -1.7472,
+                7.814399999999999
+              ]
+            },
+            "leftOfMastControl": {
+              "x": 460.0568550872221,
+              "y": 202.24963844843614,
+              "world": [
+                -0.8579999999999999,
+                -1.7472,
+                7.814399999999999
+              ]
+            },
+            "mastAboveCloth": {
+              "x": 488.0699255277265,
+              "y": 170.0154204073078,
+              "world": [
+                0.10559999999999999,
+                -1.7472,
+                8.923199999999998
               ]
             }
           }
@@ -240,14 +285,28 @@
             "kind": "world-depth",
             "label": "depth-tested world geometry and ground decals",
             "passIds": [
-              "model-gate-selection",
+              "model-gate-scenery-opaque",
+              "model-gate-entities-opaque",
+              "model-gate-scenery-shadows",
+              "model-gate-entity-shadows",
               "model-gate-roads",
-              "model-gate-scenery",
-              "model-gate-entities"
+              "model-gate-selection"
             ],
             "passRoles": [
               {
-                "id": "model-gate-selection",
+                "id": "model-gate-scenery-opaque",
+                "role": "world-opaque"
+              },
+              {
+                "id": "model-gate-entities-opaque",
+                "role": "world-opaque"
+              },
+              {
+                "id": "model-gate-scenery-shadows",
+                "role": "world-decal"
+              },
+              {
+                "id": "model-gate-entity-shadows",
                 "role": "world-decal"
               },
               {
@@ -255,17 +314,25 @@
                 "role": "world-decal"
               },
               {
-                "id": "model-gate-scenery",
-                "role": "world-opaque"
-              },
-              {
-                "id": "model-gate-entities",
-                "role": "world-opaque"
+                "id": "model-gate-selection",
+                "role": "world-decal"
               }
             ],
             "depthPasses": [
               {
-                "id": "model-gate-selection",
+                "id": "model-gate-scenery-opaque",
+                "mode": "read-write"
+              },
+              {
+                "id": "model-gate-entities-opaque",
+                "mode": "read-write"
+              },
+              {
+                "id": "model-gate-scenery-shadows",
+                "mode": "read"
+              },
+              {
+                "id": "model-gate-entity-shadows",
                 "mode": "read"
               },
               {
@@ -273,12 +340,8 @@
                 "mode": "read"
               },
               {
-                "id": "model-gate-scenery",
-                "mode": "read-write"
-              },
-              {
-                "id": "model-gate-entities",
-                "mode": "read-write"
+                "id": "model-gate-selection",
+                "mode": "read"
               }
             ],
             "depth": "depth24plus-clear",
@@ -407,14 +470,28 @@
             "kind": "world-depth",
             "label": "depth-tested world geometry and ground decals",
             "passIds": [
-              "model-gate-selection",
+              "model-gate-entities-opaque",
+              "model-gate-scenery-opaque",
+              "model-gate-scenery-shadows",
+              "model-gate-entity-shadows",
               "model-gate-roads",
-              "model-gate-entities",
-              "model-gate-scenery"
+              "model-gate-selection"
             ],
             "passRoles": [
               {
-                "id": "model-gate-selection",
+                "id": "model-gate-entities-opaque",
+                "role": "world-opaque"
+              },
+              {
+                "id": "model-gate-scenery-opaque",
+                "role": "world-opaque"
+              },
+              {
+                "id": "model-gate-scenery-shadows",
+                "role": "world-decal"
+              },
+              {
+                "id": "model-gate-entity-shadows",
                 "role": "world-decal"
               },
               {
@@ -422,17 +499,25 @@
                 "role": "world-decal"
               },
               {
-                "id": "model-gate-entities",
-                "role": "world-opaque"
-              },
-              {
-                "id": "model-gate-scenery",
-                "role": "world-opaque"
+                "id": "model-gate-selection",
+                "role": "world-decal"
               }
             ],
             "depthPasses": [
               {
-                "id": "model-gate-selection",
+                "id": "model-gate-entities-opaque",
+                "mode": "read-write"
+              },
+              {
+                "id": "model-gate-scenery-opaque",
+                "mode": "read-write"
+              },
+              {
+                "id": "model-gate-scenery-shadows",
+                "mode": "read"
+              },
+              {
+                "id": "model-gate-entity-shadows",
                 "mode": "read"
               },
               {
@@ -440,12 +525,8 @@
                 "mode": "read"
               },
               {
-                "id": "model-gate-entities",
-                "mode": "read-write"
-              },
-              {
-                "id": "model-gate-scenery",
-                "mode": "read-write"
+                "id": "model-gate-selection",
+                "mode": "read"
               }
             ],
             "depth": "depth24plus-clear",
@@ -472,14 +553,14 @@
         "samples": {
           "hostileDepthOrder": {
             "flagOverLateTree": {
-              "x": 255,
-              "y": 121,
-              "note": "fixed hostile-gate crop sample on visible city flag in front of late scenery"
+              "x": 302,
+              "y": 148,
+              "note": "visible city flag in front of late scenery"
             },
             "lateTreeControl": {
               "x": 176,
               "y": 209,
-              "note": "fixed hostile-gate crop sample proving the late scenery bucket is visible"
+              "note": "late scenery bucket visible away from the flag"
             }
           }
         },
@@ -557,14 +638,28 @@
             "kind": "world-depth",
             "label": "depth-tested world geometry and ground decals",
             "passIds": [
-              "model-gate-selection",
+              "model-gate-scenery-opaque",
+              "model-gate-entities-opaque",
+              "model-gate-scenery-shadows",
+              "model-gate-entity-shadows",
               "model-gate-roads",
-              "model-gate-scenery",
-              "model-gate-entities"
+              "model-gate-selection"
             ],
             "passRoles": [
               {
-                "id": "model-gate-selection",
+                "id": "model-gate-scenery-opaque",
+                "role": "world-opaque"
+              },
+              {
+                "id": "model-gate-entities-opaque",
+                "role": "world-opaque"
+              },
+              {
+                "id": "model-gate-scenery-shadows",
+                "role": "world-decal"
+              },
+              {
+                "id": "model-gate-entity-shadows",
                 "role": "world-decal"
               },
               {
@@ -572,17 +667,25 @@
                 "role": "world-decal"
               },
               {
-                "id": "model-gate-scenery",
-                "role": "world-opaque"
-              },
-              {
-                "id": "model-gate-entities",
-                "role": "world-opaque"
+                "id": "model-gate-selection",
+                "role": "world-decal"
               }
             ],
             "depthPasses": [
               {
-                "id": "model-gate-selection",
+                "id": "model-gate-scenery-opaque",
+                "mode": "read-write"
+              },
+              {
+                "id": "model-gate-entities-opaque",
+                "mode": "read-write"
+              },
+              {
+                "id": "model-gate-scenery-shadows",
+                "mode": "read"
+              },
+              {
+                "id": "model-gate-entity-shadows",
                 "mode": "read"
               },
               {
@@ -590,12 +693,8 @@
                 "mode": "read"
               },
               {
-                "id": "model-gate-scenery",
-                "mode": "read-write"
-              },
-              {
-                "id": "model-gate-entities",
-                "mode": "read-write"
+                "id": "model-gate-selection",
+                "mode": "read"
               }
             ],
             "depth": "depth24plus-clear",
@@ -694,14 +793,28 @@
             "kind": "world-depth",
             "label": "depth-tested world geometry and ground decals",
             "passIds": [
-              "model-gate-selection",
+              "model-gate-scenery-opaque",
+              "model-gate-entities-opaque",
+              "model-gate-scenery-shadows",
+              "model-gate-entity-shadows",
               "model-gate-roads",
-              "model-gate-scenery",
-              "model-gate-entities"
+              "model-gate-selection"
             ],
             "passRoles": [
               {
-                "id": "model-gate-selection",
+                "id": "model-gate-scenery-opaque",
+                "role": "world-opaque"
+              },
+              {
+                "id": "model-gate-entities-opaque",
+                "role": "world-opaque"
+              },
+              {
+                "id": "model-gate-scenery-shadows",
+                "role": "world-decal"
+              },
+              {
+                "id": "model-gate-entity-shadows",
                 "role": "world-decal"
               },
               {
@@ -709,17 +822,25 @@
                 "role": "world-decal"
               },
               {
-                "id": "model-gate-scenery",
-                "role": "world-opaque"
-              },
-              {
-                "id": "model-gate-entities",
-                "role": "world-opaque"
+                "id": "model-gate-selection",
+                "role": "world-decal"
               }
             ],
             "depthPasses": [
               {
-                "id": "model-gate-selection",
+                "id": "model-gate-scenery-opaque",
+                "mode": "read-write"
+              },
+              {
+                "id": "model-gate-entities-opaque",
+                "mode": "read-write"
+              },
+              {
+                "id": "model-gate-scenery-shadows",
+                "mode": "read"
+              },
+              {
+                "id": "model-gate-entity-shadows",
                 "mode": "read"
               },
               {
@@ -727,12 +848,8 @@
                 "mode": "read"
               },
               {
-                "id": "model-gate-scenery",
-                "mode": "read-write"
-              },
-              {
-                "id": "model-gate-entities",
-                "mode": "read-write"
+                "id": "model-gate-selection",
+                "mode": "read"
               }
             ],
             "depth": "depth24plus-clear",
@@ -844,14 +961,28 @@
             "kind": "world-depth",
             "label": "depth-tested world geometry and ground decals",
             "passIds": [
-              "model-gate-selection",
+              "model-gate-scenery-opaque",
+              "model-gate-entities-opaque",
+              "model-gate-scenery-shadows",
+              "model-gate-entity-shadows",
               "model-gate-roads",
-              "model-gate-scenery",
-              "model-gate-entities"
+              "model-gate-selection"
             ],
             "passRoles": [
               {
-                "id": "model-gate-selection",
+                "id": "model-gate-scenery-opaque",
+                "role": "world-opaque"
+              },
+              {
+                "id": "model-gate-entities-opaque",
+                "role": "world-opaque"
+              },
+              {
+                "id": "model-gate-scenery-shadows",
+                "role": "world-decal"
+              },
+              {
+                "id": "model-gate-entity-shadows",
                 "role": "world-decal"
               },
               {
@@ -859,17 +990,25 @@
                 "role": "world-decal"
               },
               {
-                "id": "model-gate-scenery",
-                "role": "world-opaque"
-              },
-              {
-                "id": "model-gate-entities",
-                "role": "world-opaque"
+                "id": "model-gate-selection",
+                "role": "world-decal"
               }
             ],
             "depthPasses": [
               {
-                "id": "model-gate-selection",
+                "id": "model-gate-scenery-opaque",
+                "mode": "read-write"
+              },
+              {
+                "id": "model-gate-entities-opaque",
+                "mode": "read-write"
+              },
+              {
+                "id": "model-gate-scenery-shadows",
+                "mode": "read"
+              },
+              {
+                "id": "model-gate-entity-shadows",
                 "mode": "read"
               },
               {
@@ -877,12 +1016,8 @@
                 "mode": "read"
               },
               {
-                "id": "model-gate-scenery",
-                "mode": "read-write"
-              },
-              {
-                "id": "model-gate-entities",
-                "mode": "read-write"
+                "id": "model-gate-selection",
+                "mode": "read"
               }
             ],
             "depth": "depth24plus-clear",
@@ -981,14 +1116,28 @@
             "kind": "world-depth",
             "label": "depth-tested world geometry and ground decals",
             "passIds": [
-              "model-gate-selection",
+              "model-gate-scenery-opaque",
+              "model-gate-entities-opaque",
+              "model-gate-scenery-shadows",
+              "model-gate-entity-shadows",
               "model-gate-roads",
-              "model-gate-scenery",
-              "model-gate-entities"
+              "model-gate-selection"
             ],
             "passRoles": [
               {
-                "id": "model-gate-selection",
+                "id": "model-gate-scenery-opaque",
+                "role": "world-opaque"
+              },
+              {
+                "id": "model-gate-entities-opaque",
+                "role": "world-opaque"
+              },
+              {
+                "id": "model-gate-scenery-shadows",
+                "role": "world-decal"
+              },
+              {
+                "id": "model-gate-entity-shadows",
                 "role": "world-decal"
               },
               {
@@ -996,17 +1145,25 @@
                 "role": "world-decal"
               },
               {
-                "id": "model-gate-scenery",
-                "role": "world-opaque"
-              },
-              {
-                "id": "model-gate-entities",
-                "role": "world-opaque"
+                "id": "model-gate-selection",
+                "role": "world-decal"
               }
             ],
             "depthPasses": [
               {
-                "id": "model-gate-selection",
+                "id": "model-gate-scenery-opaque",
+                "mode": "read-write"
+              },
+              {
+                "id": "model-gate-entities-opaque",
+                "mode": "read-write"
+              },
+              {
+                "id": "model-gate-scenery-shadows",
+                "mode": "read"
+              },
+              {
+                "id": "model-gate-entity-shadows",
                 "mode": "read"
               },
               {
@@ -1014,12 +1171,8 @@
                 "mode": "read"
               },
               {
-                "id": "model-gate-scenery",
-                "mode": "read-write"
-              },
-              {
-                "id": "model-gate-entities",
-                "mode": "read-write"
+                "id": "model-gate-selection",
+                "mode": "read"
               }
             ],
             "depth": "depth24plus-clear",
@@ -1118,14 +1271,28 @@
             "kind": "world-depth",
             "label": "depth-tested world geometry and ground decals",
             "passIds": [
-              "model-gate-selection",
+              "model-gate-scenery-opaque",
+              "model-gate-entities-opaque",
+              "model-gate-scenery-shadows",
+              "model-gate-entity-shadows",
               "model-gate-roads",
-              "model-gate-scenery",
-              "model-gate-entities"
+              "model-gate-selection"
             ],
             "passRoles": [
               {
-                "id": "model-gate-selection",
+                "id": "model-gate-scenery-opaque",
+                "role": "world-opaque"
+              },
+              {
+                "id": "model-gate-entities-opaque",
+                "role": "world-opaque"
+              },
+              {
+                "id": "model-gate-scenery-shadows",
+                "role": "world-decal"
+              },
+              {
+                "id": "model-gate-entity-shadows",
                 "role": "world-decal"
               },
               {
@@ -1133,17 +1300,25 @@
                 "role": "world-decal"
               },
               {
-                "id": "model-gate-scenery",
-                "role": "world-opaque"
-              },
-              {
-                "id": "model-gate-entities",
-                "role": "world-opaque"
+                "id": "model-gate-selection",
+                "role": "world-decal"
               }
             ],
             "depthPasses": [
               {
-                "id": "model-gate-selection",
+                "id": "model-gate-scenery-opaque",
+                "mode": "read-write"
+              },
+              {
+                "id": "model-gate-entities-opaque",
+                "mode": "read-write"
+              },
+              {
+                "id": "model-gate-scenery-shadows",
+                "mode": "read"
+              },
+              {
+                "id": "model-gate-entity-shadows",
                 "mode": "read"
               },
               {
@@ -1151,12 +1326,8 @@
                 "mode": "read"
               },
               {
-                "id": "model-gate-scenery",
-                "mode": "read-write"
-              },
-              {
-                "id": "model-gate-entities",
-                "mode": "read-write"
+                "id": "model-gate-selection",
+                "mode": "read"
               }
             ],
             "depth": "depth24plus-clear",
@@ -1192,12 +1363,12 @@
               ]
             },
             "visibleUpperCloth": {
-              "x": 445.09096813955534,
-              "y": 238.32126339922263,
+              "x": 514.1642925134018,
+              "y": 212.99437779547893,
               "world": [
-                -1.3727999999999998,
+                1.0031999999999999,
                 -1.7472,
-                6.5736
+                7.444799999999999
               ]
             },
             "plantedMastCore": {
@@ -1207,6 +1378,33 @@
                 0.10559999999999999,
                 -1.7472,
                 3.102
+              ]
+            },
+            "rightFlyingCloth": {
+              "x": 521.4553656417523,
+              "y": 202.24963844843614,
+              "world": [
+                1.2539999999999998,
+                -1.7472,
+                7.814399999999999
+              ]
+            },
+            "leftOfMastControl": {
+              "x": 460.0568550872221,
+              "y": 202.24963844843614,
+              "world": [
+                -0.8579999999999999,
+                -1.7472,
+                7.814399999999999
+              ]
+            },
+            "mastAboveCloth": {
+              "x": 488.0699255277265,
+              "y": 170.0154204073078,
+              "world": [
+                0.10559999999999999,
+                -1.7472,
+                8.923199999999998
               ]
             }
           },
@@ -1297,14 +1495,28 @@
             "kind": "world-depth",
             "label": "depth-tested world geometry and ground decals",
             "passIds": [
-              "model-gate-selection",
+              "model-gate-scenery-opaque",
+              "model-gate-entities-opaque",
+              "model-gate-scenery-shadows",
+              "model-gate-entity-shadows",
               "model-gate-roads",
-              "model-gate-scenery",
-              "model-gate-entities"
+              "model-gate-selection"
             ],
             "passRoles": [
               {
-                "id": "model-gate-selection",
+                "id": "model-gate-scenery-opaque",
+                "role": "world-opaque"
+              },
+              {
+                "id": "model-gate-entities-opaque",
+                "role": "world-opaque"
+              },
+              {
+                "id": "model-gate-scenery-shadows",
+                "role": "world-decal"
+              },
+              {
+                "id": "model-gate-entity-shadows",
                 "role": "world-decal"
               },
               {
@@ -1312,17 +1524,25 @@
                 "role": "world-decal"
               },
               {
-                "id": "model-gate-scenery",
-                "role": "world-opaque"
-              },
-              {
-                "id": "model-gate-entities",
-                "role": "world-opaque"
+                "id": "model-gate-selection",
+                "role": "world-decal"
               }
             ],
             "depthPasses": [
               {
-                "id": "model-gate-selection",
+                "id": "model-gate-scenery-opaque",
+                "mode": "read-write"
+              },
+              {
+                "id": "model-gate-entities-opaque",
+                "mode": "read-write"
+              },
+              {
+                "id": "model-gate-scenery-shadows",
+                "mode": "read"
+              },
+              {
+                "id": "model-gate-entity-shadows",
                 "mode": "read"
               },
               {
@@ -1330,12 +1550,8 @@
                 "mode": "read"
               },
               {
-                "id": "model-gate-scenery",
-                "mode": "read-write"
-              },
-              {
-                "id": "model-gate-entities",
-                "mode": "read-write"
+                "id": "model-gate-selection",
+                "mode": "read"
               }
             ],
             "depth": "depth24plus-clear",
@@ -1434,14 +1650,28 @@
             "kind": "world-depth",
             "label": "depth-tested world geometry and ground decals",
             "passIds": [
-              "model-gate-selection",
+              "model-gate-scenery-opaque",
+              "model-gate-entities-opaque",
+              "model-gate-scenery-shadows",
+              "model-gate-entity-shadows",
               "model-gate-roads",
-              "model-gate-scenery",
-              "model-gate-entities"
+              "model-gate-selection"
             ],
             "passRoles": [
               {
-                "id": "model-gate-selection",
+                "id": "model-gate-scenery-opaque",
+                "role": "world-opaque"
+              },
+              {
+                "id": "model-gate-entities-opaque",
+                "role": "world-opaque"
+              },
+              {
+                "id": "model-gate-scenery-shadows",
+                "role": "world-decal"
+              },
+              {
+                "id": "model-gate-entity-shadows",
                 "role": "world-decal"
               },
               {
@@ -1449,17 +1679,25 @@
                 "role": "world-decal"
               },
               {
-                "id": "model-gate-scenery",
-                "role": "world-opaque"
-              },
-              {
-                "id": "model-gate-entities",
-                "role": "world-opaque"
+                "id": "model-gate-selection",
+                "role": "world-decal"
               }
             ],
             "depthPasses": [
               {
-                "id": "model-gate-selection",
+                "id": "model-gate-scenery-opaque",
+                "mode": "read-write"
+              },
+              {
+                "id": "model-gate-entities-opaque",
+                "mode": "read-write"
+              },
+              {
+                "id": "model-gate-scenery-shadows",
+                "mode": "read"
+              },
+              {
+                "id": "model-gate-entity-shadows",
                 "mode": "read"
               },
               {
@@ -1467,12 +1705,8 @@
                 "mode": "read"
               },
               {
-                "id": "model-gate-scenery",
-                "mode": "read-write"
-              },
-              {
-                "id": "model-gate-entities",
-                "mode": "read-write"
+                "id": "model-gate-selection",
+                "mode": "read"
               }
             ],
             "depth": "depth24plus-clear",
@@ -1571,14 +1805,28 @@
             "kind": "world-depth",
             "label": "depth-tested world geometry and ground decals",
             "passIds": [
-              "model-gate-selection",
+              "model-gate-scenery-opaque",
+              "model-gate-entities-opaque",
+              "model-gate-scenery-shadows",
+              "model-gate-entity-shadows",
               "model-gate-roads",
-              "model-gate-scenery",
-              "model-gate-entities"
+              "model-gate-selection"
             ],
             "passRoles": [
               {
-                "id": "model-gate-selection",
+                "id": "model-gate-scenery-opaque",
+                "role": "world-opaque"
+              },
+              {
+                "id": "model-gate-entities-opaque",
+                "role": "world-opaque"
+              },
+              {
+                "id": "model-gate-scenery-shadows",
+                "role": "world-decal"
+              },
+              {
+                "id": "model-gate-entity-shadows",
                 "role": "world-decal"
               },
               {
@@ -1586,17 +1834,25 @@
                 "role": "world-decal"
               },
               {
-                "id": "model-gate-scenery",
-                "role": "world-opaque"
-              },
-              {
-                "id": "model-gate-entities",
-                "role": "world-opaque"
+                "id": "model-gate-selection",
+                "role": "world-decal"
               }
             ],
             "depthPasses": [
               {
-                "id": "model-gate-selection",
+                "id": "model-gate-scenery-opaque",
+                "mode": "read-write"
+              },
+              {
+                "id": "model-gate-entities-opaque",
+                "mode": "read-write"
+              },
+              {
+                "id": "model-gate-scenery-shadows",
+                "mode": "read"
+              },
+              {
+                "id": "model-gate-entity-shadows",
                 "mode": "read"
               },
               {
@@ -1604,12 +1860,8 @@
                 "mode": "read"
               },
               {
-                "id": "model-gate-scenery",
-                "mode": "read-write"
-              },
-              {
-                "id": "model-gate-entities",
-                "mode": "read-write"
+                "id": "model-gate-selection",
+                "mode": "read"
               }
             ],
             "depth": "depth24plus-clear",
@@ -1708,14 +1960,28 @@
             "kind": "world-depth",
             "label": "depth-tested world geometry and ground decals",
             "passIds": [
-              "model-gate-selection",
+              "model-gate-scenery-opaque",
+              "model-gate-entities-opaque",
+              "model-gate-scenery-shadows",
+              "model-gate-entity-shadows",
               "model-gate-roads",
-              "model-gate-scenery",
-              "model-gate-entities"
+              "model-gate-selection"
             ],
             "passRoles": [
               {
-                "id": "model-gate-selection",
+                "id": "model-gate-scenery-opaque",
+                "role": "world-opaque"
+              },
+              {
+                "id": "model-gate-entities-opaque",
+                "role": "world-opaque"
+              },
+              {
+                "id": "model-gate-scenery-shadows",
+                "role": "world-decal"
+              },
+              {
+                "id": "model-gate-entity-shadows",
                 "role": "world-decal"
               },
               {
@@ -1723,17 +1989,25 @@
                 "role": "world-decal"
               },
               {
-                "id": "model-gate-scenery",
-                "role": "world-opaque"
-              },
-              {
-                "id": "model-gate-entities",
-                "role": "world-opaque"
+                "id": "model-gate-selection",
+                "role": "world-decal"
               }
             ],
             "depthPasses": [
               {
-                "id": "model-gate-selection",
+                "id": "model-gate-scenery-opaque",
+                "mode": "read-write"
+              },
+              {
+                "id": "model-gate-entities-opaque",
+                "mode": "read-write"
+              },
+              {
+                "id": "model-gate-scenery-shadows",
+                "mode": "read"
+              },
+              {
+                "id": "model-gate-entity-shadows",
                 "mode": "read"
               },
               {
@@ -1741,12 +2015,8 @@
                 "mode": "read"
               },
               {
-                "id": "model-gate-scenery",
-                "mode": "read-write"
-              },
-              {
-                "id": "model-gate-entities",
-                "mode": "read-write"
+                "id": "model-gate-selection",
+                "mode": "read"
               }
             ],
             "depth": "depth24plus-clear",
@@ -1845,14 +2115,28 @@
             "kind": "world-depth",
             "label": "depth-tested world geometry and ground decals",
             "passIds": [
-              "model-gate-selection",
+              "model-gate-scenery-opaque",
+              "model-gate-entities-opaque",
+              "model-gate-scenery-shadows",
+              "model-gate-entity-shadows",
               "model-gate-roads",
-              "model-gate-scenery",
-              "model-gate-entities"
+              "model-gate-selection"
             ],
             "passRoles": [
               {
-                "id": "model-gate-selection",
+                "id": "model-gate-scenery-opaque",
+                "role": "world-opaque"
+              },
+              {
+                "id": "model-gate-entities-opaque",
+                "role": "world-opaque"
+              },
+              {
+                "id": "model-gate-scenery-shadows",
+                "role": "world-decal"
+              },
+              {
+                "id": "model-gate-entity-shadows",
                 "role": "world-decal"
               },
               {
@@ -1860,17 +2144,25 @@
                 "role": "world-decal"
               },
               {
-                "id": "model-gate-scenery",
-                "role": "world-opaque"
-              },
-              {
-                "id": "model-gate-entities",
-                "role": "world-opaque"
+                "id": "model-gate-selection",
+                "role": "world-decal"
               }
             ],
             "depthPasses": [
               {
-                "id": "model-gate-selection",
+                "id": "model-gate-scenery-opaque",
+                "mode": "read-write"
+              },
+              {
+                "id": "model-gate-entities-opaque",
+                "mode": "read-write"
+              },
+              {
+                "id": "model-gate-scenery-shadows",
+                "mode": "read"
+              },
+              {
+                "id": "model-gate-entity-shadows",
                 "mode": "read"
               },
               {
@@ -1878,12 +2170,8 @@
                 "mode": "read"
               },
               {
-                "id": "model-gate-scenery",
-                "mode": "read-write"
-              },
-              {
-                "id": "model-gate-entities",
-                "mode": "read-write"
+                "id": "model-gate-selection",
+                "mode": "read"
               }
             ],
             "depth": "depth24plus-clear",
@@ -1982,14 +2270,28 @@
             "kind": "world-depth",
             "label": "depth-tested world geometry and ground decals",
             "passIds": [
-              "model-gate-selection",
+              "model-gate-scenery-opaque",
+              "model-gate-entities-opaque",
+              "model-gate-scenery-shadows",
+              "model-gate-entity-shadows",
               "model-gate-roads",
-              "model-gate-scenery",
-              "model-gate-entities"
+              "model-gate-selection"
             ],
             "passRoles": [
               {
-                "id": "model-gate-selection",
+                "id": "model-gate-scenery-opaque",
+                "role": "world-opaque"
+              },
+              {
+                "id": "model-gate-entities-opaque",
+                "role": "world-opaque"
+              },
+              {
+                "id": "model-gate-scenery-shadows",
+                "role": "world-decal"
+              },
+              {
+                "id": "model-gate-entity-shadows",
                 "role": "world-decal"
               },
               {
@@ -1997,17 +2299,25 @@
                 "role": "world-decal"
               },
               {
-                "id": "model-gate-scenery",
-                "role": "world-opaque"
-              },
-              {
-                "id": "model-gate-entities",
-                "role": "world-opaque"
+                "id": "model-gate-selection",
+                "role": "world-decal"
               }
             ],
             "depthPasses": [
               {
-                "id": "model-gate-selection",
+                "id": "model-gate-scenery-opaque",
+                "mode": "read-write"
+              },
+              {
+                "id": "model-gate-entities-opaque",
+                "mode": "read-write"
+              },
+              {
+                "id": "model-gate-scenery-shadows",
+                "mode": "read"
+              },
+              {
+                "id": "model-gate-entity-shadows",
                 "mode": "read"
               },
               {
@@ -2015,12 +2325,8 @@
                 "mode": "read"
               },
               {
-                "id": "model-gate-scenery",
-                "mode": "read-write"
-              },
-              {
-                "id": "model-gate-entities",
-                "mode": "read-write"
+                "id": "model-gate-selection",
+                "mode": "read"
               }
             ],
             "depth": "depth24plus-clear",
@@ -2119,14 +2425,28 @@
             "kind": "world-depth",
             "label": "depth-tested world geometry and ground decals",
             "passIds": [
-              "model-gate-selection",
+              "model-gate-scenery-opaque",
+              "model-gate-entities-opaque",
+              "model-gate-scenery-shadows",
+              "model-gate-entity-shadows",
               "model-gate-roads",
-              "model-gate-scenery",
-              "model-gate-entities"
+              "model-gate-selection"
             ],
             "passRoles": [
               {
-                "id": "model-gate-selection",
+                "id": "model-gate-scenery-opaque",
+                "role": "world-opaque"
+              },
+              {
+                "id": "model-gate-entities-opaque",
+                "role": "world-opaque"
+              },
+              {
+                "id": "model-gate-scenery-shadows",
+                "role": "world-decal"
+              },
+              {
+                "id": "model-gate-entity-shadows",
                 "role": "world-decal"
               },
               {
@@ -2134,17 +2454,25 @@
                 "role": "world-decal"
               },
               {
-                "id": "model-gate-scenery",
-                "role": "world-opaque"
-              },
-              {
-                "id": "model-gate-entities",
-                "role": "world-opaque"
+                "id": "model-gate-selection",
+                "role": "world-decal"
               }
             ],
             "depthPasses": [
               {
-                "id": "model-gate-selection",
+                "id": "model-gate-scenery-opaque",
+                "mode": "read-write"
+              },
+              {
+                "id": "model-gate-entities-opaque",
+                "mode": "read-write"
+              },
+              {
+                "id": "model-gate-scenery-shadows",
+                "mode": "read"
+              },
+              {
+                "id": "model-gate-entity-shadows",
                 "mode": "read"
               },
               {
@@ -2152,12 +2480,8 @@
                 "mode": "read"
               },
               {
-                "id": "model-gate-scenery",
-                "mode": "read-write"
-              },
-              {
-                "id": "model-gate-entities",
-                "mode": "read-write"
+                "id": "model-gate-selection",
+                "mode": "read"
               }
             ],
             "depth": "depth24plus-clear",
@@ -2256,14 +2580,28 @@
             "kind": "world-depth",
             "label": "depth-tested world geometry and ground decals",
             "passIds": [
-              "model-gate-selection",
+              "model-gate-scenery-opaque",
+              "model-gate-entities-opaque",
+              "model-gate-scenery-shadows",
+              "model-gate-entity-shadows",
               "model-gate-roads",
-              "model-gate-scenery",
-              "model-gate-entities"
+              "model-gate-selection"
             ],
             "passRoles": [
               {
-                "id": "model-gate-selection",
+                "id": "model-gate-scenery-opaque",
+                "role": "world-opaque"
+              },
+              {
+                "id": "model-gate-entities-opaque",
+                "role": "world-opaque"
+              },
+              {
+                "id": "model-gate-scenery-shadows",
+                "role": "world-decal"
+              },
+              {
+                "id": "model-gate-entity-shadows",
                 "role": "world-decal"
               },
               {
@@ -2271,17 +2609,25 @@
                 "role": "world-decal"
               },
               {
-                "id": "model-gate-scenery",
-                "role": "world-opaque"
-              },
-              {
-                "id": "model-gate-entities",
-                "role": "world-opaque"
+                "id": "model-gate-selection",
+                "role": "world-decal"
               }
             ],
             "depthPasses": [
               {
-                "id": "model-gate-selection",
+                "id": "model-gate-scenery-opaque",
+                "mode": "read-write"
+              },
+              {
+                "id": "model-gate-entities-opaque",
+                "mode": "read-write"
+              },
+              {
+                "id": "model-gate-scenery-shadows",
+                "mode": "read"
+              },
+              {
+                "id": "model-gate-entity-shadows",
                 "mode": "read"
               },
               {
@@ -2289,12 +2635,8 @@
                 "mode": "read"
               },
               {
-                "id": "model-gate-scenery",
-                "mode": "read-write"
-              },
-              {
-                "id": "model-gate-entities",
-                "mode": "read-write"
+                "id": "model-gate-selection",
+                "mode": "read"
               }
             ],
             "depth": "depth24plus-clear",
@@ -2398,14 +2740,28 @@
             "kind": "world-depth",
             "label": "depth-tested world geometry and ground decals",
             "passIds": [
-              "model-gate-selection",
+              "model-gate-scenery-opaque",
+              "model-gate-entities-opaque",
+              "model-gate-scenery-shadows",
+              "model-gate-entity-shadows",
               "model-gate-roads",
-              "model-gate-scenery",
-              "model-gate-entities"
+              "model-gate-selection"
             ],
             "passRoles": [
               {
-                "id": "model-gate-selection",
+                "id": "model-gate-scenery-opaque",
+                "role": "world-opaque"
+              },
+              {
+                "id": "model-gate-entities-opaque",
+                "role": "world-opaque"
+              },
+              {
+                "id": "model-gate-scenery-shadows",
+                "role": "world-decal"
+              },
+              {
+                "id": "model-gate-entity-shadows",
                 "role": "world-decal"
               },
               {
@@ -2413,17 +2769,25 @@
                 "role": "world-decal"
               },
               {
-                "id": "model-gate-scenery",
-                "role": "world-opaque"
-              },
-              {
-                "id": "model-gate-entities",
-                "role": "world-opaque"
+                "id": "model-gate-selection",
+                "role": "world-decal"
               }
             ],
             "depthPasses": [
               {
-                "id": "model-gate-selection",
+                "id": "model-gate-scenery-opaque",
+                "mode": "read-write"
+              },
+              {
+                "id": "model-gate-entities-opaque",
+                "mode": "read-write"
+              },
+              {
+                "id": "model-gate-scenery-shadows",
+                "mode": "read"
+              },
+              {
+                "id": "model-gate-entity-shadows",
                 "mode": "read"
               },
               {
@@ -2431,12 +2795,8 @@
                 "mode": "read"
               },
               {
-                "id": "model-gate-scenery",
-                "mode": "read-write"
-              },
-              {
-                "id": "model-gate-entities",
-                "mode": "read-write"
+                "id": "model-gate-selection",
+                "mode": "read"
               }
             ],
             "depth": "depth24plus-clear",
@@ -2540,14 +2900,28 @@
             "kind": "world-depth",
             "label": "depth-tested world geometry and ground decals",
             "passIds": [
-              "model-gate-selection",
+              "model-gate-scenery-opaque",
+              "model-gate-entities-opaque",
+              "model-gate-scenery-shadows",
+              "model-gate-entity-shadows",
               "model-gate-roads",
-              "model-gate-scenery",
-              "model-gate-entities"
+              "model-gate-selection"
             ],
             "passRoles": [
               {
-                "id": "model-gate-selection",
+                "id": "model-gate-scenery-opaque",
+                "role": "world-opaque"
+              },
+              {
+                "id": "model-gate-entities-opaque",
+                "role": "world-opaque"
+              },
+              {
+                "id": "model-gate-scenery-shadows",
+                "role": "world-decal"
+              },
+              {
+                "id": "model-gate-entity-shadows",
                 "role": "world-decal"
               },
               {
@@ -2555,17 +2929,25 @@
                 "role": "world-decal"
               },
               {
-                "id": "model-gate-scenery",
-                "role": "world-opaque"
-              },
-              {
-                "id": "model-gate-entities",
-                "role": "world-opaque"
+                "id": "model-gate-selection",
+                "role": "world-decal"
               }
             ],
             "depthPasses": [
               {
-                "id": "model-gate-selection",
+                "id": "model-gate-scenery-opaque",
+                "mode": "read-write"
+              },
+              {
+                "id": "model-gate-entities-opaque",
+                "mode": "read-write"
+              },
+              {
+                "id": "model-gate-scenery-shadows",
+                "mode": "read"
+              },
+              {
+                "id": "model-gate-entity-shadows",
                 "mode": "read"
               },
               {
@@ -2573,12 +2955,8 @@
                 "mode": "read"
               },
               {
-                "id": "model-gate-scenery",
-                "mode": "read-write"
-              },
-              {
-                "id": "model-gate-entities",
-                "mode": "read-write"
+                "id": "model-gate-selection",
+                "mode": "read"
               }
             ],
             "depth": "depth24plus-clear",

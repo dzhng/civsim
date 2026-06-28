@@ -764,28 +764,32 @@ function patchStats(png, sample, radius = 4) {
   const cx = Math.max(0, Math.min(png.width - 1, Math.round(sample.x)));
   const cy = Math.max(0, Math.min(png.height - 1, Math.round(sample.y)));
   let red = 0;
+  let flagRed = 0;
   let blue = 0;
   let tan = 0;
   let green = 0;
   let selectionGreen = 0;
   let gold = 0;
   let white = 0;
+  let dark = 0;
   let count = 0;
   for (let y = Math.max(0, cy - radius); y <= Math.min(png.height - 1, cy + radius); y++) {
     for (let x = Math.max(0, cx - radius); x <= Math.min(png.width - 1, cx + radius); x++) {
       const o = (y * png.width + x) * 4;
       const r = png.data[o], g = png.data[o + 1], b = png.data[o + 2];
       if (r > 135 && g < 95 && b < 95) red++;
+      if (r > 70 && g < 82 && b < 78 && r > g + 18 && r > b + 18) flagRed++;
       if (b > 120 && r < 110 && g < 140) blue++;
       if (r > 120 && g > 95 && g < 175 && b < 125) tan++;
       if (g > 135 && r < 120 && b < 120) green++;
       if (g > 135 && g > r + 20 && g > b + 45) selectionGreen++;
       if (r > 160 && g > 120 && b < 90) gold++;
       if (r > 190 && g > 190 && b > 165) white++;
+      if (r < 90 && g < 80 && b < 70) dark++;
       count++;
     }
   }
-  return { x: cx, y: cy, count, red, blue, tan, green, selectionGreen, gold, white };
+  return { x: cx, y: cy, count, red, flagRed, blue, tan, green, selectionGreen, gold, white, dark };
 }
 
 export async function run(ctx) {
@@ -938,6 +942,9 @@ export async function run(ctx) {
       const samples = stats.stats.samples.cityStandard;
       const lower = patchStats(canvasPng, samples.hiddenLowerCloth, 5);
       const upper = patchStats(canvasPng, samples.visibleUpperCloth, 6);
+      const right = patchStats(canvasPng, samples.rightFlyingCloth, 5);
+      const left = patchStats(canvasPng, samples.leftOfMastControl, 5);
+      const mast = patchStats(canvasPng, samples.mastAboveCloth, 5);
       ctx.check(
         `${route}: production city hides the lower embedded flag cloth`,
         lower.red <= 8 && lower.tan > 8,
@@ -945,8 +952,18 @@ export async function run(ctx) {
       );
       ctx.check(
         `${route}: production city standard remains visible above the core`,
-        upper.red > 12,
+        upper.flagRed > 12,
         JSON.stringify({ upper, sample: samples.visibleUpperCloth }),
+      );
+      ctx.check(
+        `${route}: production city standard flies to the same right-hand side as army standards`,
+        right.flagRed > 12 && left.flagRed <= 8,
+        JSON.stringify({ right, left, rightSample: samples.rightFlyingCloth, leftSample: samples.leftOfMastControl }),
+      );
+      ctx.check(
+        `${route}: production city mast remains visible above the cloth`,
+        mast.dark > 10 && mast.flagRed <= 8,
+        JSON.stringify({ mast, sample: samples.mastAboveCloth }),
       );
     }
     if (route === 'campaign-model-gates?gate=garrison-city') {

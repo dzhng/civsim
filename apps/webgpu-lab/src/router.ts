@@ -1129,8 +1129,11 @@ function campaignModelGateCityStandardSamples(
   ]);
   return {
     hiddenLowerCloth: worldPoint([-0.22, 0.08, 1.45]),
-    visibleUpperCloth: worldPoint([0.18, 0.04, 4.98]),
+    visibleUpperCloth: worldPoint([0.76, 0.04, 5.64]),
     plantedMastCore: worldPoint([0.08, 0.04, 2.35]),
+    rightFlyingCloth: worldPoint([0.95, 0.04, 5.92]),
+    leftOfMastControl: worldPoint([-0.65, 0.04, 5.92]),
+    mastAboveCloth: worldPoint([0.08, 0.04, 6.76]),
   };
 }
 

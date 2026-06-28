@@ -429,6 +429,7 @@ function campaignCityLabels(data: CampaignData, opts: DrawOptions): CampaignLabe
     const owner = city?.owner ?? Math.max(0, data.map.factions.findIndex((faction) => faction.id === node.owner));
     const allegiance = opts.factionView ? statusOf(opts.factionStatus, owner) : Allegiance.Neutral;
     const baseSize = Math.min(15, 9.5 + opts.cam.scale) * (node.tier >= 3 ? 1.15 : 1);
+    const overviewMarkerLabel = opts.cam.scale < 0.6;
     labels.push({
       text: node.name.toUpperCase(),
       x: node.pos[0],
@@ -439,7 +440,9 @@ function campaignCityLabels(data: CampaignData, opts: DrawOptions): CampaignLabe
       icon: 'city',
       iconColor: allegianceColor(allegiance),
       screenOffsetX: cityLabelOffsetX(opts, node.tier) + horizontalEdgeOffset(edge.x(node.pos[0])),
-      screenOffsetY: cityLabelOffset(opts, baseSize, cityHasArmy.has(index)) + verticalEdgeOffset(edge.y(node.pos[1])),
+      screenOffsetY: cityLabelOffset(opts, baseSize, cityHasArmy.has(index), node.tier) + verticalEdgeOffset(edge.y(node.pos[1])),
+      screenAnchorX: overviewMarkerLabel ? 'left' : 'center',
+      screenAnchorY: overviewMarkerLabel ? 'top' : 'center',
     });
   });
   return labels;
@@ -484,16 +487,16 @@ function visibleCampaignArmies(opts: DrawOptions) {
   });
 }
 
-function cityLabelOffset(opts: DrawOptions, baseSize: number, hasArmy: boolean) {
+function cityLabelOffset(opts: DrawOptions, baseSize: number, hasArmy: boolean, tier: number) {
+  if (opts.cam.scale < 0.6) return cityMarkerOuterEdgePlusSidePx(tier);
   const armyOffset = hasArmy ? baseSize * 1.5 : 0;
-  if (opts.cam.scale < 0.6) return -6 + armyOffset;
   if (opts.cam.scale < 1.25) return 18 + armyOffset;
   return Math.max(30, baseSize * 1.9) + armyOffset;
 }
 
 function cityLabelOffsetX(opts: DrawOptions, tier: number) {
   if (opts.cam.scale >= 0.6) return 0;
-  return cityMarkerSidePx(tier);
+  return cityMarkerOuterEdgePlusSidePx(tier);
 }
 
 function cityMarkerRadiusPx(tier: number) {
@@ -502,6 +505,11 @@ function cityMarkerRadiusPx(tier: number) {
 
 function cityMarkerSidePx(tier: number) {
   return cityMarkerRadiusPx(tier) * 2;
+}
+
+function cityMarkerOuterEdgePlusSidePx(tier: number) {
+  const radius = cityMarkerRadiusPx(tier);
+  return radius + cityMarkerSidePx(tier);
 }
 
 function ordinal(k: number) {

@@ -10,23 +10,28 @@ foundation is already closed in
 
 ## Starting Feedback
 
-The first review target is the three user-provided screenshots in
+The first review target is the user-provided screenshots in
 [`assets/user-feedback/`](assets/user-feedback/README.md):
 
 - [Rome/Ostia label and road](assets/user-feedback/01-rome-ostia-label-road.png)
 - [Tibur label distance](assets/user-feedback/02-city-label-distance-tibur.png)
 - [Mountains, roads, and missing trees](assets/user-feedback/03-mountains-roads-trees.png)
+- [Rome south road cutoff](assets/user-feedback/04-rome-south-road-cutoff.png)
 
 Specific blockers:
 
 - Double-check the bottom-left coastal city near Rome, Ostia/Portus: its label
   and road must remain visible.
+- The road leaving Rome to the south must remain continuous until it reaches the
+  next city; no segment should disappear under terrain, city footprints, or
+  scene ordering.
 - City labels sit far too far from their city icons/models. The margin should be
   about one label/icon height.
 - Natural ground reads brown instead of green compared with the previous
   campaign renderer.
 - Mountains look chunky, cover or compete with cities and roads, and need better
-  placement/scale/style.
+  placement/scale/style. One feedback crop shows a city visibly embedded in the
+  mountain mass; this should be treated as a clearance failure.
 - Trees/forests are missing from acceptance views.
 - Carts or other small road-life props are missing.
 
@@ -47,16 +52,32 @@ Specific blockers:
 - Keep this spec small. Do not copy generated report folders, visual-diff
   outputs, or broad WebGPU release artifacts into it unless they are directly
   used for campaign polish review.
+- Prefer campaign terrain relief and biome treatment for mountain ranges over
+  scattering battle-style rock/mountain props on top of the map. Individual
+  3D rock/mountain props may still be used as small accents, but the campaign
+  map should get its range shape, road/city clearance, and depth ordering from a
+  single terrain surface.
+- Every slice must finish with an unbiased `screenshot-critique` pass using the
+  current full screenshot plus tight 2x-4x crops for the exact feature under
+  review. Record any actionable critique in the slice before calling it done.
 
 ## Review Scenes
 
 - Close Rome with selected army/city: labels, road spokes, Ostia/Portus, Roma,
   selection ring, city/army composition.
+- Road continuity workbench: a fake terrain plane, two city markers, and a road
+  spline that crosses city/terrain boundaries without getting clipped.
 - Central Italy natural: green terrain, road continuity, cities, forests,
   mountains, labels.
 - Central Italy faction view: same camera, proving overlays do not distort
   terrain/road/city alignment.
+- Terrain relief workbench: one raised mountain ridge, one nearby city, one road
+  crossing foothills, and no prop stack hiding roads or labels.
 - Mountain/forest crop: Apennines with cities and roads nearby.
+- Forest/tree density workbench: one forest biome patch with many campaign-scale
+  trees and a neighboring road/city clearance zone.
+- Road-life workbench: a cart model moving deterministically along a known road
+  spline before it appears in the full campaign map.
 - Road-life crop: deterministic carts or road traffic on real campaign roads.
 - Fog crop: hidden flags/labels/markers absent, border fog preserved.
 

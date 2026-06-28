@@ -1,25 +1,22 @@
 ---
 name: screenshot-regression
-description: How to take screenshots of the game and use pixel-exact snapshot regression — across the verify harnesses, the vibe timelines, model turntable, WebGPU production gates, and final release audit. Use when verifying UI/rendering changes, adding a new visual feature, re-blessing baselines after an intentional visual or mechanics change, comparing WebGPU against archived current-renderer evidence, or debugging a snapshot failure. Pairs with [write-scene](../write-scene/SKILL.md) (the scenes whose snaps obey these rules).
+description: Take, inspect, and maintain deterministic screenshot baselines for visual changes. Use when verifying UI, campaign, battle, model, animation, or rendering changes; adding or re-blessing snapshots; comparing before/after captures; or debugging a visual snapshot failure. Pairs with [write-scene](../write-scene/SKILL.md) for addressable browser scenes.
 ---
 
 # Screenshots and pixel-level regression testing
 
 **One primitive, every shot.** `snapCheck` (`web/snapshot.mjs`) is the single
-path every visual artifact flows through — the verify harnesses, the vibe battle
-timelines (`vibe/*.mjs`), the model turntable (`vibe/turntable.mjs`), and the
-WebGPU production visual scenes. A committed baseline under `web/shots/<name>.png`
-is at once the picture
+path every visual artifact flows through: verify harnesses, scene runners, vibe
+timelines, model turntables, contact sheets, and focused visual workbenches. A
+committed baseline under `web/shots/<name>.png` is at once the picture
 you review, the image a PR diff shows, and the gate. There is no "review-only"
 tier: every shot is a regression target, so a downstream mechanics change is
 visible as a red frame with a highlighted diff, not just a number that moved.
 
 The verify UI snaps compare at **zero tolerance** — a single differing pixel
 fails — because each is a *deterministic moment* (the discipline below is what
-keeps it that way). WebGPU production screenshots should be deterministic under
-the freeze hooks. Any nonzero tolerance must name the source it absorbs, such as
-a documented headless SwiftShader raster wobble, and must not hide unknown
-visual drift.
+keeps it that way). Any nonzero tolerance must name the source it absorbs, such
+as a documented headless raster wobble, and must not hide unknown visual drift.
 
 Each harness owns a folder under `shots/` (the scene/campaign harnesses pass an
 explicit `baseDir`; vibe/turntable carry the folder in the snap `name`):
@@ -65,78 +62,29 @@ a clean black rectangle vs. a dark-blue-with-edges blob tells you in one look
 whether it's coverage/mip darkening or something else. Let the pixels, not a
 hypothesis, name the bug.
 
-## WebGPU game-port visual gates
+## Visual acceptance gates
 
-For the WebGPU migration record under
-`specs/done/webgpu-skinned-crowd-foundation/`, current-game parity is only the
-floor. A
-WebGPU screenshot migration is not done until it proves three things:
+A screenshot change is not accepted just because the harness is green. Prove:
 
-1. **Behavior parity:** the normal current-game flow still works: menu,
-   campaign, save/load, campaign-to-battle handoff, battle controls, selection,
-   overlays, vibe timelines, and verification scenarios.
-2. **Visual floor:** no WebGPU surface is less readable than the current
-   renderer. Unit silhouettes, team colors, labels, roads, borders, banners,
-   selection, order paths, water, terrain, sky, haze, and panels must survive
-   the side-by-side review.
-3. **Visual improvement:** battle and campaign should be plainly better than
-   today's renderer in the categories named in the spec: richer Bronze-Age
-   Aegean lighting, clearer skinned soldiers, stronger terrain/water/sky/haze/
-   shadow composition, sharper tactical feedback, and a more legible campaign
-   map.
+1. **Behavior:** the user flow or fixture still reaches the intended state.
+2. **Readability:** the changed object is clear at the intended camera, zoom,
+   device pixel ratio, and UI state.
+3. **Regression scope:** unrelated scenes did not change, or each change is
+   intentional and recorded.
+4. **Human evidence:** the current PNGs, focused crops, and any before/after
+   contact sheet are small enough for a reviewer to inspect.
 
-Do not claim release visual improvement just because the WebGPU harness is
-green. First attach archived current-renderer evidence and WebGPU captures for
-the same scene, camera, viewport, DPR, frozen tick/time, browser, and hardware.
-Put the comparison in the WebGPU visual report/contact sheet that a human can
-open. When the comparison is disputed, or the screenshots are not plainly close,
-use `compare-screenshots`: generate grayscale, pixelmatch, Sobel/edge, content
-proxy metrics, and diff artifacts before iterating. Only after the comparison
-passes should the WebGPU default be blessed.
+For migrations or renderer swaps, compare old and new captures only when they
+share the same scene, camera, viewport, DPR, frozen tick/time, browser, and
+hardware. Use `compare-screenshots` when a human review needs quantitative
+support, but never optimize only for a similarity score.
 
-Late-port screenshot reports should cover at least:
-
-- battle initial/default review
-- battle max-crowd or dense melee review
-- battle selection/order/HUD review at `deviceScaleFactor: 2`
-- campaign whole-map review
-- campaign city/army/road/label zoom review
-- campaign-to-battle-to-campaign handoff review
-- menu/app shell/loading/modal review
-- unsupported-WebGPU failure UI
-
-The first production-route campaign WebGPU gate is
-`VERIFY_WEBGPU=1 node scene.mjs campaign-webgpu-production`. It opens
-`/?campaign=test`, not a lab route, and proves the normal campaign scene can
-freeze, render, project, select an army by a real click, and open a city panel
-over the raw-WebGPU adapter. Archived current-renderer captures are migration
-evidence only; after cutover, do not keep running current-renderer campaign
-shots as a parallel baseline suite.
-
-Every WebGPU visual surface must use the same determinism discipline as the
-legacy renderer. If the WebGPU path adds GPU-driven animation, simulation
-interpolation, async uploads, temporal effects, random noise, water, haze,
-clouds, impostor phase, or shader time, wire it to the existing freeze hooks or
-to a new documented freeze hook before snapshotting it. "It only jitters a few
-pixels" is a bug until the source is named and intentionally tolerated.
-
-When the WebGPU renderer becomes default, keep the old renderer captures long
-enough to audit the cutover. The final cutover report must identify which
-baselines were matched, improved, retired by decision, or blocked. If a WebGPU
-surface is merely equal rather than better, write down why that is acceptable
-and what future slice owns the next improvement. After that audit passes, stop
-running current-renderer screenshots as a parallel suite. Routine visual
-verification should target WebGPU only, and legacy captures should be archived
-as migration evidence or deleted with the retired renderer path. Post-cutover
-work must not add new current-renderer screenshot scenarios; if a comparison is
-needed later, use the archived cutover evidence or create a new WebGPU-only
-baseline that represents the shipped game.
-
-Run `npm run release:webgpu` from `web/` for the final machine gate. It reads
-the generated visual and performance report JSON, writes
-`specs/done/webgpu-skinned-crowd-foundation/visualizations/webgpu-release-audit.html`, and exits
-nonzero until archived visual comparisons and real-hardware performance evidence
-are accepted.
+Every visual surface must use the same determinism discipline. If a path adds
+GPU-driven animation, simulation interpolation, async uploads, temporal effects,
+random noise, water, haze, clouds, impostor phase, shader time, or any other
+time-dependent effect, wire it to an existing freeze hook or add a documented
+freeze hook before snapshotting it. "It only jitters a few pixels" is a bug
+until the source is named and intentionally tolerated.
 
 ## Rebuild the wasm before you trust ANY screenshot
 
@@ -176,22 +124,18 @@ Gaul `(-1020, 938, 2.5)`, Egypt/Nile `(1131, -686, 2.5)`, Alps `(-450, 1080, 1.8
 Scratch screenshots go in `web/shots/` but DELETE them before committing —
 `shots/` is tracked; only harness-written artifacts belong there.
 
-## The controlled campaign stage (`campaign-webgpu-visual`)
+## Controlled visual stages
 
-For the campaign 3D markers, prefer the **fake map** over the real one. The
-real map is a bad test bed — our red armies sit on red Roman cities (no
-contrast) and any move triggers a garrison battle. `?campaign=test` boots a
-controlled stage (`buildTestCampaign` in `main.ts`): our city (Roma) — a road
-— a neutral city (Neapolis), one mixed-roster player army, a flat green bg
-synthesized in JS (no fetch). The army teleports with the debug hook
-`window.__campaign.place(army, kind, a, b)` (kind 0 = node index, 1 = edge
-tile), so you can pose it over the road / our city / the neutral city exactly
-and deterministically. `web/scenes/campaign-webgpu-visual.mjs` snapshots all
-of those through the production raw-WebGPU campaign adapter; extend that
-scenario when you change an army/city model. Re-bless with
-`VERIFY_WEBGPU=1 UPDATE_SHOTS=1 node scene.mjs campaign-webgpu-visual`.
-`verify-campaign-visual.mjs` remains as a compatibility wrapper for the same
-scenario.
+Prefer a controlled fixture before the full game when the bug is about one
+visual contract: label spacing, prop depth, road continuity, terrain color,
+selection contrast, unit readability, animation pose, or fog visibility. A good
+fixture has one camera, one frozen time/tick, a tiny set of objects, and a
+clear pass/fail crop. After the fixture passes, add the full-scene snapshot that
+proves the same contract survives real data.
+
+For campaign marker work, `?campaign=test` and the `window.__campaign` debug
+hooks provide a deterministic fake map. For battle work, prefer small duel or
+fixture scenes before dense army timelines.
 
 ## Measuring content, not just exact-match (LOD / colour bugs)
 
@@ -243,11 +187,10 @@ Click-to-select and drag-box are real input paths; drive them with
 
 ## Running just one snapshot
 
-> Battle, campaign, and WebGPU production-flow verification use addressable
-> **scenes** (one runner over `web/scenes/*.mjs`). `verify-battle.mjs`
-> and `verify-campaign-visual.mjs` remain compatibility wrappers over selected
-> scenes. See `specs/scenes.md` and the `write-scene` skill for the
-> target architecture.
+> Battle, campaign, model, and focused visual workbench verification should use
+> addressable **scenes** (one runner over `web/scenes/*.mjs`). Compatibility
+> wrappers may remain, but new work should have a named scene. See
+> `specs/scenes.md` and the `write-scene` skill for the target architecture.
 
 For battle work, run the smallest scene by name:
 `node scene.mjs battle-ai --full`, `node scene.mjs banner-gallery`, or
@@ -257,13 +200,10 @@ a compatibility wrapper over those scenes, so old commands still work.
 Within a selected scene, set `SNAP=<substr>` to compare only snaps whose name
 contains the substring (comma-separated = OR), skipping the rest (no compare, no
 diff written). Snapshots behind `--full` still need `--full` or an explicit
-scene name. For campaign-marker work prefer
-`VERIFY_WEBGPU=1 node scene.mjs campaign-webgpu-visual` or the
-`verify-campaign-visual.mjs` wrapper (the fake `?campaign=test` map) — it never
-spawns a battle, so it won't churn the tracked battle scratch shots
-(`initial.png`, `manual.png`, `cluster-*.png`) that the battle harness rewrites
-every run. Restore those with `git checkout -- 'web/shots/*.png'` after a
-battle run.
+scene name. For campaign-marker work, prefer a deterministic fake campaign map
+over the full live campaign when one exists. For battle visuals, prefer a small
+duel/fixture before dense timelines. If a harness rewrites unrelated tracked
+scratch shots, remove or restore those unrelated changes before committing.
 
 ## Adding a regression snapshot
 
@@ -339,10 +279,9 @@ can leave stale frames behind. Unset `SNAP` and re-bless the whole timeline.
      wall-clock). `freeze()` pins the clock but NOT the tick the sim landed on
      when ~1s of real-time elapsed, so consecutive runs catch adjacent sway
      windows and the snapshot *alternates* 0 px / N px. Fix: freeze at a FIXED
-     absolute tick — `window.__game.freezeAtTick(240)` in legacy harnesses, or
-     the route-owned WebGPU freeze hook such as
-     `window.__webgpuBattleInput.freezeAtTick(240)` — so the deployment is
-     byte-identical every run. Don't paper over it with a looser ratio.
+     absolute tick, such as `window.__game.freezeAtTick(240)` or the route-owned
+     equivalent, so the deployment is byte-identical every run. Don't paper over
+     it with a looser ratio.
    - A higher-contrast render can *expose* latent jitter a darker one masked (a
      1-px sway flips far more pixels when soldiers read bright-blue than
      near-black). The jitter was always there; still pin the tick, don't raise

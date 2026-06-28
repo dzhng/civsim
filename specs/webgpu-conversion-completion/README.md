@@ -118,7 +118,32 @@ final cutover (slice 11) is the integration point that depends on the rest.
 
 You are building the WebGPU conversion completion. Last updated: 2026-06-29.
 
-Current status: **Slice 01 (device & error resilience) shipped and green.**
+Current status: **Slices 01–02 shipped and green** (Group A complete).
+
+**Slice 02 (capabilities & render quality) shipped:**
+- `requestAdapter({ powerPreference: 'high-performance' })`; device requests
+  `timestamp-query` + storage/buffer limits up to the adapter ceiling.
+  `resolveDeviceCaps` is the single source of truth for granted limits,
+  MSAA/timestamp support, chosen depth format, and downgrades.
+- `assertStorageBufferFits` guards the VAT storage buffer against
+  `maxStorageBufferBindingSize`. `depthContract.chooseDepthFormat` owns the
+  depth24plus→depth32float fallback decision.
+- `frameShell` measures per-frame GPU time via a 2-entry timestamp QuerySet (read
+  back without stalling) and threads a per-shell `sampleCount` through the
+  color/depth attachments + every battle/core/fixture pipeline; MSAA resolves to
+  the canvas on the last phase.
+- `/webgpu/capabilities` probe route + `webgpu-capabilities` scene: caps,
+  depth-fallback decision, VAT guard, live GPU-time readout, and an MSAA 1x-vs-4x
+  edge-aliasing assertion (276 vs 0 transition pixels). Unprimed
+  screenshot-critique confirmed the 4x edge is smoother.
+- **Open decision for David:** MSAA is fully wired but production runs at
+  `sampleCount 1`. Enabling 4x in the battle renderer (`createFrameShell(...,
+  { sampleCount: 4 })` in `web/src/battle/rendererWebGPU.ts`) is a one-line flip
+  held for your call on sample count (2x vs 4x) and always-on vs quality-tier —
+  it re-blesses battle baselines, so it's gated on your feedback.
+  `GPUSupportedLimits` getters aren't own-enumerable, so limits are read by name.
+
+**Slice 01 (device & error resilience) shipped and green.**
 - `compileShader` helper (`packages/webgpu-core/src/compileShader.ts`) routes
   every non-campaign shader compile through `getCompilationInfo()` so a WGSL
   typo surfaces a structured `file:line — message` error instead of a blank
@@ -142,9 +167,10 @@ left untouched per the spec; the `compileShader` source gate is scoped to
 non-campaign roots. Only the campaign `renderer.ready.catch` (scene controller,
 pure robustness) was added.
 
-Next pickup: **Slice 02 (capabilities & render quality)** — capability/limit
-validation, depth-format fallback, high-performance power preference, MSAA, GPU
-timestamp queries, behind a capability-probe lab page.
+Next pickup: **Slice 03 (glTF importer & bake toolchain)** — Group B. Build the
+glTF→VAT importer + bake toolchain + asset workbench, with procedural
+placeholders staying the shipping default (do not make any slice depend on real
+`.glb` art existing).
 
 Active warnings:
 - Keep the sim and campaign renderer untouched; this is non-campaign renderer
@@ -157,7 +183,7 @@ Global TODO:
 
 - [x] Slice 01: device-loss, init-error, uncaptured-error, submission guards,
   and shader-compilation reporting, with a fault-injection lab route.
-- [ ] Slice 02: capability/limit validation, depth-format fallback,
+- [x] Slice 02: capability/limit validation, depth-format fallback,
   high-performance power preference, MSAA, GPU timestamp queries.
 - [ ] Slice 03: glTF→VAT importer, bake toolchain, asset workbench app, and the
   real-art replacement contract (placeholders stay default).

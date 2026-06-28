@@ -149,6 +149,15 @@ find which one carries it, then trace that term to its source.**
   was real; the cause was a guess I never checked against the code. Trace the term
   to the line that produces it before you attribute it, and never pin it on a
   force you haven't confirmed even applies to the body in question.
+- **A causal story about why behavior CHANGED is one `git stash` from proof —
+  run the before.** It is a deterministic sim: the prior state is a stash-and-run
+  away, so any "X regressed because Y" is checkable in minutes, not assertable.
+  The tell you skipped it: you stated a confident mechanism out loud ("the old
+  value was calibrated for the shorter grind") that you only *inferred* from the
+  current code. Stash your changes, run the original, and read the actual
+  difference — the tidy explanation is often the wrong one (the real cause was a
+  guaranteed-break floor the change now clears, not the story I told). Verify the
+  before/after delta before you narrate it, especially before you tune to it.
 - **A SATURATED extreme is a red flag, not a result — INTERROGATE it.** A side
   reduced to **0 or 3** survivors, **0–3 kills**, a 100%/0% win-rate, a near-total
   wipe: these are degenerate outcomes where a mechanism has bottomed out, and the

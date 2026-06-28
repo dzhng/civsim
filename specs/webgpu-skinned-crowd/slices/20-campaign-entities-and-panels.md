@@ -162,6 +162,13 @@ covered cue point that must resolve to soldier material and a separate exposed
 cue point that must resolve to gold, proving the same depth-read/no-write ground
 decal contract for battle selection rings, reform ghosts, and path hints.
 
+Battle effect-overlay checkpoint: the paired lab route `battle-effect-overlay`
+submits a skinned soldier first and a later overlay-effect line second. It
+samples the effect over the soldier and off the soldier, both of which must
+resolve to the bright effect material. This keeps projectiles/order-progress
+effects semantically separate from depth-read ground cues instead of letting all
+tactical lines drift back into one painter-order bucket.
+
 Fresh screenshot critique after this architecture checkpoint confirms the
 tree-over-standard artifact is removed from Campaign Label Zoom, but it does not
 accept the visual. The next blocker list is: road/selection/unit stacking lacks

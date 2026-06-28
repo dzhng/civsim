@@ -372,6 +372,12 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   and selection rings are depth-read ground cues; projectiles, order-progress
   pies, and other transient effects are overlay/effect lines until they earn a
   dedicated world-effect or projectile pass.
+- Keep a paired effect-overlay fixture next to the ground-cue depth fixture.
+  The ground-cue fixture should prove a later world decal disappears under a
+  skinned soldier; the effect fixture should prove a later overlay-effect line
+  remains visible over the soldier and has no depth pass. Together they prevent
+  future cleanup from collapsing projectiles, order pies, path hints, and
+  selection markers back into one ambiguous line bucket.
 - For Battle Selection DPR2 terrain cleanup, do not keep pushing per-cell
   pothole/rock density once the scene already reads as stamped blobs. A
   dedicated irregular pothole shader plus increased potholes worsened parity

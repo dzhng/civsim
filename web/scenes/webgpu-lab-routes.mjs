@@ -54,6 +54,19 @@ const routes = [
     && s.stats.hostileDrawOrder === 'crowd-before-late-ground-cue'
     && s.stats.samples?.coveredCueUnderSoldier
     && s.stats.samples?.exposedCueControl],
+  ['battle-effect-overlay', (s) => s?.ok
+    && s.route === 'battle-effect-overlay'
+    && s.stats.instances === 1
+    && s.stats.effects?.lineSegments === 5
+    && s.stats.depth?.allocated === true
+    && s.stats.depth?.format === WEBGPU_DEPTH_FORMAT
+    && hasFramePhaseOrder(s.stats.framePhases)
+    && hasFrameDepthPass(s.stats.framePhases, 'battle-effect-overlay-crowd', 'read-write')
+    && hasFramePassRole(s.stats.framePhases, 'battle-effect-overlay-crowd', 'world-opaque', 'world-depth')
+    && hasFramePass(s.stats.framePhases, 'battle-effect-overlay-lines', 'overlay')
+    && hasFramePassRole(s.stats.framePhases, 'battle-effect-overlay-lines', 'overlay-effect', 'overlay')
+    && s.stats.samples?.effectOverSoldier
+    && s.stats.samples?.exposedEffectControl],
   ['lod?zoom=5', (s) => s?.ok && s.route === 'lod' && (s.stats.counts.l1 + s.stats.counts.l2 + s.stats.counts.l3 + s.stats.counts.l0) === 1800],
   ['battle', (s) => s?.ok && s.route === 'battle' && s.stats.soldiers === 2400 && s.stats.cameraContract === 'shared-world-camera-wgsl'],
   ['perf?count=900', (s) => s?.ok
@@ -616,6 +629,7 @@ function patchStats(png, sample, radius = 4) {
   let green = 0;
   let selectionGreen = 0;
   let gold = 0;
+  let white = 0;
   let count = 0;
   for (let y = Math.max(0, cy - radius); y <= Math.min(png.height - 1, cy + radius); y++) {
     for (let x = Math.max(0, cx - radius); x <= Math.min(png.width - 1, cx + radius); x++) {
@@ -627,10 +641,11 @@ function patchStats(png, sample, radius = 4) {
       if (g > 135 && r < 120 && b < 120) green++;
       if (g > 135 && g > r + 20 && g > b + 45) selectionGreen++;
       if (r > 160 && g > 120 && b < 90) gold++;
+      if (r > 190 && g > 190 && b > 165) white++;
       count++;
     }
   }
-  return { x: cx, y: cy, count, red, blue, tan, green, selectionGreen, gold };
+  return { x: cx, y: cy, count, red, blue, tan, green, selectionGreen, gold, white };
 }
 
 export async function run(ctx) {
@@ -749,6 +764,22 @@ export async function run(ctx) {
         `${route}: late-submitted ground cue remains visible off the soldier`,
         exposed.gold > 12,
         JSON.stringify({ exposed, sample: samples.exposedCueControl }),
+      );
+    }
+    if (route === 'battle-effect-overlay') {
+      const canvasPng = PNG.sync.read(await page.locator('#webgpu-canvas').screenshot());
+      const samples = stats.stats.samples;
+      const overSoldier = patchStats(canvasPng, samples.effectOverSoldier, 5);
+      const exposed = patchStats(canvasPng, samples.exposedEffectControl, 5);
+      ctx.check(
+        `${route}: overlay effect line remains visible over skinned soldier`,
+        overSoldier.white > 12,
+        JSON.stringify({ overSoldier, sample: samples.effectOverSoldier }),
+      );
+      ctx.check(
+        `${route}: overlay effect control remains visible off the soldier`,
+        exposed.white > 12,
+        JSON.stringify({ exposed, sample: samples.exposedEffectControl }),
       );
     }
     if (route === 'campaign-model-gates?gate=city') {

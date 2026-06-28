@@ -10,6 +10,7 @@ import { createPerfAverager } from '../../../packages/crowd-runtime/src/perfStat
 import { buildLiveBattleCrowdFrame } from '../../../packages/game-renderer/src/battle/crowdPass';
 import { BattleMinimapPass } from '../../../packages/game-renderer/src/battle/minimapPass';
 import { BattleGroundCuePass, selectedUnitGroundCueVertices } from '../../../packages/game-renderer/src/battle/groundCuePass';
+import { BattleEffectLinePass } from '../../../packages/game-renderer/src/battle/effectLinePass';
 import { battleUnitsInRect, cssToBattleWorld, liveBattlePickUnits, pickBattleUnit, type BattlePickUnit, type WebGpuBattlePickCamera } from '../../../packages/game-renderer/src/battle/pickingDebug';
 import { BattleTerrainPass, type BattleTerrainFixture } from '../../../packages/game-renderer/src/battle/terrainPass';
 import { CLASS_DEPTH, CLASS_SPACING, UNIT_INFO } from '../../../packages/game-renderer/src/battle/unitInfoLayout';
@@ -54,6 +55,7 @@ const routes: Record<string, LabRoute> = {
   '/webgpu/skinned-crowd': routeSkinnedCrowd,
   '/webgpu/skinned-depth': routeSkinnedDepth,
   '/webgpu/battle-ground-cue-depth': routeBattleGroundCueDepth,
+  '/webgpu/battle-effect-overlay': routeBattleEffectOverlay,
   '/webgpu/lod': routeLod,
   '/webgpu/battle': routeBattle,
   '/webgpu/perf': routePerf,
@@ -422,6 +424,67 @@ async function routeBattleGroundCueDepth(ctx: LabContext) {
 function battleGroundCueDepthFixtureVertices() {
   const verts: number[] = [];
   const color: [number, number, number] = [1.0, 0.78, 0.22];
+  for (const y of [-0.08, -0.04, 0.0, 0.04, 0.08]) {
+    verts.push(-2.25, y, ...color, 2.25, y, ...color);
+  }
+  return new Float32Array(verts);
+}
+
+async function routeBattleEffectOverlay(ctx: LabContext) {
+  const vat = await loadPlaceholderVat();
+  const camera = { x: 0, y: 0, zoom: 92, pitch: 0.18, yaw: 0, perspective: 0 };
+  const shell = await createConfiguredShell(ctx.canvas, camera);
+  const pipeline = await createSkinnedPipeline(shell, [0.20, 0.42, 0.88], vat);
+  const effects = new BattleEffectLinePass(shell);
+  const instances: CrowdInstance[] = [{
+    x: 0,
+    y: 0,
+    facing: Math.PI / 2,
+    classId: 0,
+    faction: 0,
+    alive: true,
+    frame: 1,
+    clip: 'idle',
+    phase: 0.15,
+    seed: 44,
+  }];
+  pipeline.upload(instances, { forcedClip: 'idle', phaseOffset: 0, size: 1.35 });
+  effects.upload(battleEffectOverlayFixtureVertices());
+  shell.drawFrame({
+    clear: { r: 0.70, g: 0.78, b: 0.62, a: 1 },
+    terrainRect: [-4, -3, 8, 6],
+    passes: [
+      { id: 'battle-effect-overlay-crowd', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => pipeline.draw(pass) },
+      { id: 'battle-effect-overlay-lines', role: 'overlay-effect', phase: 'overlay', draw: (pass) => effects.draw(pass) },
+    ],
+  });
+  const shellStats = shell.stats();
+  const sampleCamera = { ...camera, width: shellStats.width, height: shellStats.height };
+  const overSoldier = world3dToScreen(sampleCamera, -0.52 * 1.35, 0, 0.02);
+  const exposed = world3dToScreen(sampleCamera, 1.85, 0.08, 0.02);
+  const samples = {
+    effectOverSoldier: { x: overSoldier[0], y: overSoldier[1], world: [-0.52 * 1.35, 0, 0.02] },
+    exposedEffectControl: { x: exposed[0], y: exposed[1], world: [1.85, 0.08, 0.02] },
+  };
+  ctx.status.innerHTML = reportTable({
+    route: 'battle-effect-overlay',
+    contract: 'transient effect lines are overlay-effect, not world-depth decals',
+    effectLines: effects.stats().lineSegments,
+    depth: shellStats.depth.allocated ? shellStats.depth.format : 'none',
+  });
+  publish('battle-effect-overlay', true, {
+    route: 'battle-effect-overlay',
+    ...pipeline.stats(),
+    effects: effects.stats(),
+    samples,
+    depth: shellStats.depth,
+    framePhases: shellStats.phases,
+  });
+}
+
+function battleEffectOverlayFixtureVertices() {
+  const verts: number[] = [];
+  const color: [number, number, number] = [1.0, 1.0, 0.92];
   for (const y of [-0.08, -0.04, 0.0, 0.04, 0.08]) {
     verts.push(-2.25, y, ...color, 2.25, y, ...color);
   }

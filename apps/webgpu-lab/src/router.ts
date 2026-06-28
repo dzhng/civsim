@@ -53,6 +53,7 @@ const routes: Record<string, LabRoute> = {
   '/webgpu/skinned-soldier': routeSkinnedSoldier,
   '/webgpu/skinned-crowd': routeSkinnedCrowd,
   '/webgpu/skinned-depth': routeSkinnedDepth,
+  '/webgpu/battle-ground-cue-depth': routeBattleGroundCueDepth,
   '/webgpu/lod': routeLod,
   '/webgpu/battle': routeBattle,
   '/webgpu/perf': routePerf,
@@ -362,6 +363,69 @@ async function routeSkinnedDepth(ctx: LabContext) {
     depth: shellStats.depth,
     framePhases: shellStats.phases,
   });
+}
+
+async function routeBattleGroundCueDepth(ctx: LabContext) {
+  const vat = await loadPlaceholderVat();
+  const camera = { x: 0, y: 0, zoom: 92, pitch: 0.18, yaw: 0, perspective: 0 };
+  const shell = await createConfiguredShell(ctx.canvas, camera);
+  const pipeline = await createSkinnedPipeline(shell, [0.20, 0.42, 0.88], vat);
+  const groundCues = new BattleGroundCuePass(shell);
+  const instances: CrowdInstance[] = [{
+    x: 0,
+    y: 0,
+    facing: Math.PI / 2,
+    classId: 0,
+    faction: 0,
+    alive: true,
+    frame: 1,
+    clip: 'idle',
+    phase: 0.15,
+    seed: 33,
+  }];
+  pipeline.upload(instances, { forcedClip: 'idle', phaseOffset: 0, size: 1.35 });
+  groundCues.upload(battleGroundCueDepthFixtureVertices());
+  shell.drawFrame({
+    clear: { r: 0.70, g: 0.78, b: 0.62, a: 1 },
+    terrainRect: [-4, -3, 8, 6],
+    passes: [
+      { id: 'battle-ground-cue-depth-crowd', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => pipeline.draw(pass) },
+      { id: 'battle-ground-cue-depth-cues', role: 'world-decal', phase: 'world-depth', depth: 'read', draw: (pass) => groundCues.draw(pass) },
+    ],
+  });
+  const shellStats = shell.stats();
+  const sampleCamera = { ...camera, width: shellStats.width, height: shellStats.height };
+  const covered = world3dToScreen(sampleCamera, -0.52 * 1.35, 0, 1.36 * 1.35);
+  const exposed = world3dToScreen(sampleCamera, 1.85, 0.08, 0.02);
+  const samples = {
+    coveredCueUnderSoldier: { x: covered[0], y: covered[1], world: [-0.52 * 1.35, 0, 1.36 * 1.35] },
+    exposedCueControl: { x: exposed[0], y: exposed[1], world: [1.85, 0.08, 0.02] },
+  };
+  ctx.status.innerHTML = reportTable({
+    route: 'battle-ground-cue-depth',
+    contract: 'late ground cue is depth-read and cannot overpaint a skinned soldier',
+    hostileDrawOrder: 'crowd-before-late-ground-cue',
+    cueLines: groundCues.stats().lineSegments,
+    depth: shellStats.depth.allocated ? shellStats.depth.format : 'none',
+  });
+  publish('battle-ground-cue-depth', true, {
+    route: 'battle-ground-cue-depth',
+    ...pipeline.stats(),
+    groundCues: groundCues.stats(),
+    hostileDrawOrder: 'crowd-before-late-ground-cue',
+    samples,
+    depth: shellStats.depth,
+    framePhases: shellStats.phases,
+  });
+}
+
+function battleGroundCueDepthFixtureVertices() {
+  const verts: number[] = [];
+  const color: [number, number, number] = [1.0, 0.78, 0.22];
+  for (const y of [-0.08, -0.04, 0.0, 0.04, 0.08]) {
+    verts.push(-2.25, y, ...color, 2.25, y, ...color);
+  }
+  return new Float32Array(verts);
 }
 
 async function routeLod(ctx: LabContext) {

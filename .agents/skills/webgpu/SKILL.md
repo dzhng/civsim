@@ -361,6 +361,12 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   world-space decals, not HUD overlays. Submit them through `world-depth` with
   depth mode `read` and a depth-read/no-write material so soldiers and terrain
   props can occlude them while the cue never reserves pixels above real geometry.
+- Battle ground-cue depth needs hostile pixel evidence too. A live battle route
+  that shows some gold cue pixels only proves the cue exists; keep a fixture
+  that submits the skinned crowd first and a later ground cue second, then
+  sample a covered cue point that must resolve to soldier material plus an
+  exposed control point that must resolve to gold. This guards selection rings,
+  reform ghosts, and path hints against drifting back into overlay truth.
 - Do not feed old battle "overlay" line soup into one WebGPU pass. Split the
   source vertices by semantics: ground paths, destination ghosts, drag previews,
   and selection rings are depth-read ground cues; projectiles, order-progress

@@ -40,6 +40,20 @@ const routes = [
     && hasFramePassRole(s.stats.framePhases, 'skinned-depth-crowd', 'world-opaque', 'world-depth')
     && s.stats.hostileDrawOrder === 'front-class-0-submitted-before-rear-class-14'
     && s.stats.sample],
+  ['battle-ground-cue-depth', (s) => s?.ok
+    && s.route === 'battle-ground-cue-depth'
+    && s.stats.instances === 1
+    && s.stats.groundCues?.lineSegments === 5
+    && s.stats.depth?.allocated === true
+    && s.stats.depth?.format === WEBGPU_DEPTH_FORMAT
+    && hasFramePhaseOrder(s.stats.framePhases)
+    && hasFrameDepthPass(s.stats.framePhases, 'battle-ground-cue-depth-crowd', 'read-write')
+    && hasFrameDepthPass(s.stats.framePhases, 'battle-ground-cue-depth-cues', 'read')
+    && hasFramePassRole(s.stats.framePhases, 'battle-ground-cue-depth-crowd', 'world-opaque', 'world-depth')
+    && hasFramePassRole(s.stats.framePhases, 'battle-ground-cue-depth-cues', 'world-decal', 'world-depth')
+    && s.stats.hostileDrawOrder === 'crowd-before-late-ground-cue'
+    && s.stats.samples?.coveredCueUnderSoldier
+    && s.stats.samples?.exposedCueControl],
   ['lod?zoom=5', (s) => s?.ok && s.route === 'lod' && (s.stats.counts.l1 + s.stats.counts.l2 + s.stats.counts.l3 + s.stats.counts.l0) === 1800],
   ['battle', (s) => s?.ok && s.route === 'battle' && s.stats.soldiers === 2400 && s.stats.cameraContract === 'shared-world-camera-wgsl'],
   ['perf?count=900', (s) => s?.ok
@@ -601,6 +615,7 @@ function patchStats(png, sample, radius = 4) {
   let tan = 0;
   let green = 0;
   let selectionGreen = 0;
+  let gold = 0;
   let count = 0;
   for (let y = Math.max(0, cy - radius); y <= Math.min(png.height - 1, cy + radius); y++) {
     for (let x = Math.max(0, cx - radius); x <= Math.min(png.width - 1, cx + radius); x++) {
@@ -611,10 +626,11 @@ function patchStats(png, sample, radius = 4) {
       if (r > 120 && g > 95 && g < 175 && b < 125) tan++;
       if (g > 135 && r < 120 && b < 120) green++;
       if (g > 135 && g > r + 20 && g > b + 45) selectionGreen++;
+      if (r > 160 && g > 120 && b < 90) gold++;
       count++;
     }
   }
-  return { x: cx, y: cy, count, red, blue, tan, green, selectionGreen };
+  return { x: cx, y: cy, count, red, blue, tan, green, selectionGreen, gold };
 }
 
 export async function run(ctx) {
@@ -717,6 +733,22 @@ export async function run(ctx) {
         `${route}: front skinned soldier wins hostile cross-bucket draw order`,
         front.blue > 12 && front.red <= 10,
         JSON.stringify({ front, sample: stats.stats.sample, hostileDrawOrder: stats.stats.hostileDrawOrder }),
+      );
+    }
+    if (route === 'battle-ground-cue-depth') {
+      const canvasPng = PNG.sync.read(await page.locator('#webgpu-canvas').screenshot());
+      const samples = stats.stats.samples;
+      const covered = patchStats(canvasPng, samples.coveredCueUnderSoldier, 6);
+      const exposed = patchStats(canvasPng, samples.exposedCueControl, 5);
+      ctx.check(
+        `${route}: skinned soldier occludes later-submitted ground cue`,
+        covered.blue > 12 && covered.gold <= 8,
+        JSON.stringify({ covered, sample: samples.coveredCueUnderSoldier, hostileDrawOrder: stats.stats.hostileDrawOrder }),
+      );
+      ctx.check(
+        `${route}: late-submitted ground cue remains visible off the soldier`,
+        exposed.gold > 12,
+        JSON.stringify({ exposed, sample: samples.exposedCueControl }),
       );
     }
     if (route === 'campaign-model-gates?gate=city') {

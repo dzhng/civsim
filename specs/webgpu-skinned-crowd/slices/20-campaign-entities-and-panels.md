@@ -156,6 +156,12 @@ ring point that must resolve to selection green. This guards the regression
 where a selection circle floats above soldiers or buildings while still
 appearing somewhere else in the frame.
 
+Battle cue-depth checkpoint: the lab route `battle-ground-cue-depth` now submits
+a skinned soldier first and a later battle ground cue second. It samples a
+covered cue point that must resolve to soldier material and a separate exposed
+cue point that must resolve to gold, proving the same depth-read/no-write ground
+decal contract for battle selection rings, reform ghosts, and path hints.
+
 Fresh screenshot critique after this architecture checkpoint confirms the
 tree-over-standard artifact is removed from Campaign Label Zoom, but it does not
 accept the visual. The next blocker list is: road/selection/unit stacking lacks

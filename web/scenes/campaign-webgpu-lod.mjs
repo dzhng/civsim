@@ -106,7 +106,7 @@ export async function run(ctx) {
       window.__campaign.select(-1);
       window.__campaign.cam(...camera);
     }, WHOLE_MAP_CAMERA),
-    stats: (stats) => stats.visibleLabels >= 20 && stats.roadTriangles > 0 && stats.cityEntities > 300,
+    stats: (stats) => stats.visibleLabels >= 20 && hasRoadJunctionGeometry(stats) && stats.cityEntities > 300,
   });
 
   await snapCampaign(page, ctx, 'campaign-lod-whole-natural', {
@@ -115,7 +115,7 @@ export async function run(ctx) {
       window.__campaign.fogOfWar(false);
       window.__campaign.cam(...camera);
     }, WHOLE_MAP_CAMERA),
-    stats: (stats) => stats.visibleLabels >= 16 && stats.roadTriangles > 0,
+    stats: (stats) => stats.visibleLabels >= 16 && hasRoadJunctionGeometry(stats),
   });
 
   await snapCampaign(page, ctx, 'campaign-lod-whole-fog', {
@@ -134,7 +134,7 @@ export async function run(ctx) {
       window.__campaign.select(-1);
       window.__campaign.cam(...camera);
     }, REGIONAL_ITALY_CAMERA),
-    stats: (stats) => stats.visibleLabels >= 8 && stats.cityEntities > 20 && stats.armyEntities >= 1 && stats.roadTriangles > 0 && stats.factionView === false && hasTerrainFeatureDensity(stats),
+    stats: (stats) => stats.visibleLabels >= 8 && stats.cityEntities > 20 && stats.armyEntities >= 1 && hasRoadJunctionGeometry(stats) && stats.factionView === false && hasTerrainFeatureDensity(stats),
     compare3dBaseline: true,
     realItalyAlignment: 'regional',
   });
@@ -146,38 +146,51 @@ export async function run(ctx) {
       window.__campaign.select(-1);
       window.__campaign.cam(...camera);
     }, REGIONAL_ITALY_CAMERA),
-    stats: (stats) => stats.visibleLabels >= 8 && stats.cityEntities > 20 && stats.armyEntities >= 1 && stats.roadTriangles > 0 && stats.factionView === true && hasTerrainFeatureDensity(stats),
+    stats: (stats) => stats.visibleLabels >= 8 && stats.cityEntities > 20 && stats.armyEntities >= 1 && hasRoadJunctionGeometry(stats) && stats.factionView === true && hasTerrainFeatureDensity(stats),
   });
 
   await snapCampaign(page, ctx, 'campaign-lod-rome-close', {
-    before: () => page.evaluate((camera) => window.__campaign.cam(...camera), ROME_CLOSE_CAMERA),
-    stats: (stats) => stats.visibleLabels >= 4 && stats.cityEntities > 20 && stats.armyEntities >= 1 && stats.roadTriangles > 0 && hasTerrainFeatureDensity(stats),
+    before: () => page.evaluate((camera) => {
+      window.__campaign.factionView(false);
+      window.__campaign.select(-1);
+      window.__campaign.cam(...camera);
+    }, ROME_CLOSE_CAMERA),
+    stats: (stats) => stats.visibleLabels >= 5
+      && stats.visibleLabelNames?.includes('city:OSTIA/PORTUS')
+      && stats.cityEntities > 20
+      && stats.armyEntities >= 1
+      && hasRoadJunctionGeometry(stats)
+      && hasTerrainFeatureDensity(stats),
     realItalyAlignment: 'close',
+    greenTerrainFloor: 0.42,
   });
 
   await snapCampaign(page, ctx, 'campaign-lod-selected-army-city', {
     before: () => page.evaluate(({ armyId, roma, camera }) => {
       window.__campaign.place(armyId, 0, roma, 0);
+      window.__campaign.factionView(false);
       window.__campaign.select(armyId);
       window.__campaign.cam(...camera);
     }, { ...anchors, camera: ROME_CLOSE_CAMERA }),
     stats: (stats) => stats.visibleLabels >= 4
-      && stats.roadTriangles > 0
+      && hasRoadJunctionGeometry(stats)
       && stats.composedArmyCityLabels >= 1
       && stats.garrisonedArmySelections >= 1
       && stats.maxSelectionRadius >= 11
       && stats.maxSelectionRadius < 13
-      && stats.labelCollisionCulls >= 1
-      && stats.labelCollisionCulledLabels?.includes('city:OSTIA/PORTUS'),
+      && stats.visibleLabelNames?.includes('city:OSTIA/PORTUS')
+      && !stats.labelCollisionCulledLabels?.includes('city:OSTIA/PORTUS'),
+    greenTerrainFloor: 0.42,
   });
 
   await snapCampaign(page, ctx, 'campaign-lod-selected-city', {
     before: () => page.evaluate(({ roma, camera }) => {
       window.__campaign.select(-1);
+      window.__campaign.factionView(false);
       window.__campaign.openCity(roma);
       window.__campaign.cam(...camera);
     }, { roma: anchors.roma, camera: ROME_CLOSE_CAMERA }),
-    stats: (stats) => stats.visibleLabels >= 4 && stats.roadTriangles > 0,
+    stats: (stats) => stats.visibleLabels >= 4 && hasRoadJunctionGeometry(stats),
   });
 
   await snapCampaign(page, ctx, 'campaign-lod-border-fog', {
@@ -200,7 +213,11 @@ function hasTerrainFeatureDensity(stats) {
     && scenery?.rocks >= 700;
 }
 
-async function snapCampaign(page, ctx, name, { before, stats, compare3dBaseline = false, realItalyAlignment = null }) {
+function hasRoadJunctionGeometry(stats) {
+  return stats.roadTriangles > 0 && stats.roadJunctionCaps >= 100;
+}
+
+async function snapCampaign(page, ctx, name, { before, stats, compare3dBaseline = false, realItalyAlignment = null, greenTerrainFloor = null }) {
   await before();
   await page.waitForTimeout(300);
   const webgpuStats = await page.evaluate(() => window.__campaignWebGPUStats);
@@ -211,6 +228,14 @@ async function snapCampaign(page, ctx, name, { before, stats, compare3dBaseline 
   }
   if (compare3dBaseline) {
     checkCampaign3dBaseline(ctx, PNG.sync.read(shot));
+  }
+  if (greenTerrainFloor !== null) {
+    const metrics = greenTerrainMetrics(PNG.sync.read(shot));
+    ctx.check(
+      `${name} natural terrain keeps green campaign readability`,
+      metrics.greenRatio >= greenTerrainFloor,
+      JSON.stringify(metrics),
+    );
   }
   await ctx.snap(page, name, { shot });
 }
@@ -381,6 +406,29 @@ function campaign3dMetrics(png) {
     labelRatio: ratio(label),
     modelRatio: ratio(model),
     politicalWashRatio: ratio(politicalWash),
+  };
+}
+
+function greenTerrainMetrics(png) {
+  let total = 0;
+  let green = 0;
+  for (let y = 36; y < png.height; y++) {
+    for (let x = 0; x < png.width; x++) {
+      const i = (y * png.width + x) * 4;
+      const r = png.data[i];
+      const g = png.data[i + 1];
+      const b = png.data[i + 2];
+      const a = png.data[i + 3];
+      if (a < 16 || isWaterPixel(r, g, b) || isRoadPixel(r, g, b) || isLabelPixel(r, g, b)) continue;
+      const cityRoof = r > 135 && r > g + 24 && g > 70 && b < 110;
+      if (cityRoof) continue;
+      total++;
+      if (g > r * 1.03 && g > b * 1.16 && g > 90 && r > 75) green++;
+    }
+  }
+  return {
+    total,
+    greenRatio: Number((green / Math.max(1, total)).toFixed(4)),
   };
 }
 

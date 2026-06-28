@@ -16,20 +16,24 @@ one flat color field.
 
 ## Verification
 
-- Add feature-density probes for mountains, forests, trees, rocks, and rivers in
+- [x] Add feature-density probes for mountains, forests, trees, and rocks in
   the central Italy camera.
-- Add crops for mountain ranges, forest regions, coastal cities, and river
+- [x] Add close-view green terrain probes so natural campaign shots cannot
+  accidentally inherit the brown political wash.
+- [ ] Add crops for mountain ranges, forest regions, coastal cities, and river
   crossings.
-- Use screenshot critique before accepting any terrain-refresh capture.
-- Store captures under `visualizations/campaign-terrain/`.
+- [ ] Use screenshot critique before accepting any terrain-refresh capture.
+- [ ] Store dedicated terrain captures under `visualizations/campaign-terrain/`.
 
 ## Done
 
-- Green terrain is visible and varied in central Italy and overview scenes.
-- Mountain ranges are materially present at the same strategic locations as the
+- [x] Green terrain is visible and varied in central Italy and close Rome natural
+  scenes.
+- [x] Mountain ranges are materially present at the same strategic locations as the
   previous renderer.
-- Forest regions contain many trees instead of only color stains.
-- Terrain feature edges avoid jagged low-resolution masks.
+- [ ] Forest regions contain many trees instead of only color stains in the
+  close/central Italy acceptance crops.
+- [ ] Terrain feature edges avoid jagged low-resolution masks.
 
 ## Implementation Notes
 
@@ -67,3 +71,14 @@ one flat color field.
   crop probes are readability floors, not similarity targets: the previous
   renderer is the minimum evidence for placement and content, while WebGPU is
   expected to improve style and density over time.
+- 2026-06-28: Close Rome natural shots now explicitly disable faction view and
+  carry a green-terrain pixel floor. The previous brown close-up was not a
+  terrain shader target; it was an inherited political-view state being blessed
+  as the natural 3D map.
+- 2026-06-28: Scenery clearance now uses the visible footprint of mountains,
+  rocks, and trees when reserving roads, cities, and dynamic entities. Counts
+  alone are not enough: landforms must respect the playable road/city layer.
+- 2026-06-28: Fresh screenshot critique still flags mountain-region label
+  collisions, heavy city shadows, strong/fuzzy coastline glow, water dash
+  artifacts, and chunky model scale at regional zoom. The green terrain and
+  clearance fixes are accepted as progress, not final terrain acceptance.

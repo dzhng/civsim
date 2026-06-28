@@ -40,6 +40,7 @@ export interface CampaignMapStats {
   seaLanes: number;
   lineVertices: number;
   roadMeshVertices: number;
+  roadJunctionCaps: number;
   cityMarkers: number;
   labels: number;
 }
@@ -99,6 +100,7 @@ export interface CampaignLabel {
   iconColor?: [number, number, number];
   sideText?: string;
   subText?: string;
+  collisionGroup?: string;
   screenOffsetX?: number;
   screenOffsetY?: number;
   screenAnchorX?: 'center' | 'left' | 'right';
@@ -413,6 +415,7 @@ fn fs(in: VsOut) -> @location(0) vec4f {
 export interface CampaignLabelPassStats {
   labels: number;
   visibleLabels: number;
+  visibleLabelNames: string[];
   collisionCulls: number;
   collisionCulledLabels: string[];
   atlasWidth: number;
@@ -907,6 +910,7 @@ export class CampaignLabelPass {
   private statsValue: CampaignLabelPassStats = {
     labels: 0,
     visibleLabels: 0,
+    visibleLabelNames: [],
     collisionCulls: 0,
     collisionCulledLabels: [],
     atlasWidth: 1,
@@ -980,6 +984,7 @@ export class CampaignLabelPass {
       this.statsValue = {
         labels: labels.length,
         visibleLabels: 0,
+        visibleLabelNames: [],
         collisionCulls: 0,
         collisionCulledLabels: [],
         atlasWidth: 1,
@@ -1015,6 +1020,7 @@ export class CampaignLabelPass {
     this.statsValue = {
       labels: labels.length,
       visibleLabels: atlas.entries.length,
+      visibleLabelNames: atlas.entries.slice(0, 128).map((entry) => `${entry.label.kind}:${labelText(entry.label)}`),
       collisionCulls: atlas.collisionCulls,
       collisionCulledLabels: atlas.collisionCulledLabels,
       atlasWidth: atlas.width,
@@ -1070,10 +1076,15 @@ export function buildCampaignMapDrawData(data: CampaignMapInputData, style: Camp
   const seaLanes = data.map.edges.filter((edge) => edge.kind === 'sea');
   const lineVertices: number[] = [];
   const roadMeshVertices: number[] = [];
+  const safeRoads: CampaignMapEdgeData[] = [];
   for (const edge of data.map.edges) {
     if (edge.kind === 'sea') pushEdgeLines(lineVertices, edge);
-    else if (roadEdgeIsLandSafe(edge, style)) pushRaisedRoad(roadMeshVertices, edge, style);
+    else if (roadEdgeIsLandSafe(edge, style)) {
+      safeRoads.push(edge);
+      pushRaisedRoad(roadMeshVertices, edge, style);
+    }
   }
+  const roadJunctionCaps = pushRoadJunctionCaps(roadMeshVertices, data, safeRoads, style);
   const cityNodes = data.map.nodes.filter((node) => node.kind === 'city');
   const cityMarkers = cityNodes.map((node) => markerForNode(data, node));
   const labels = data.map.nodes.length > 20 ? seaLabels() : [];
@@ -1087,6 +1098,7 @@ export function buildCampaignMapDrawData(data: CampaignMapInputData, style: Camp
       seaLanes: seaLanes.length,
       lineVertices: Math.floor(lineVertices.length / 6),
       roadMeshVertices: Math.floor(roadMeshVertices.length / 10),
+      roadJunctionCaps,
       cityMarkers: cityMarkers.length,
       labels: labels.length,
     },
@@ -1144,10 +1156,11 @@ function pushEdgeLines(out: number[], edge: CampaignMapEdgeData) {
 function pushRaisedRoad(out: number[], edge: CampaignMapEdgeData, style: CampaignMapDrawStyle) {
   if (edge.via.length < 2) return;
   const roadScale = style.roadScale ?? 1;
-  const center: [number, number][] = [[edge.via[0][0], edge.via[0][1]]];
-  for (let i = 1; i < edge.via.length; i++) {
-    const a = edge.via[i - 1];
-    const b = edge.via[i];
+  const source = smoothRoadCenterline(edge.via);
+  const center: [number, number][] = [[source[0][0], source[0][1]]];
+  for (let i = 1; i < source.length; i++) {
+    const a = source[i - 1];
+    const b = source[i];
     const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
     const steps = Math.max(1, Math.round(len / ROAD_SURFACE_SAMPLE_KM));
     for (let step = 1; step <= steps; step++) {
@@ -1160,8 +1173,47 @@ function pushRaisedRoad(out: number[], edge: CampaignMapEdgeData, style: Campaig
   pushRoadRibbon(out, center, halfWidth, 0.32 * roadScale, [0.76, 0.74, 0.68, 0.98], 1, style.heightAt);
 }
 
+function pushRoadJunctionCaps(out: number[], data: CampaignMapInputData, roads: CampaignMapEdgeData[], style: CampaignMapDrawStyle) {
+  const byId = new Map<number, CampaignMapNodeData>();
+  data.map.nodes.forEach((node, index) => byId.set(node.id ?? index, node));
+  const degree = new Map<number, number>();
+  for (const edge of roads) {
+    if (edge.a !== undefined) degree.set(edge.a, (degree.get(edge.a) ?? 0) + 1);
+    if (edge.b !== undefined) degree.set(edge.b, (degree.get(edge.b) ?? 0) + 1);
+  }
+  const roadScale = style.roadScale ?? 1;
+  let caps = 0;
+  for (const [id, count] of degree) {
+    const node = byId.get(id);
+    if (!node || count < 3) continue;
+    const cityRadius = node.kind === 'city' ? (node.tier >= 3 ? 4.70 : 3.35) : 1.15;
+    const surfaceRadius = cityRadius * roadScale;
+    pushRoadDisc(out, node.pos, surfaceRadius * 1.42, 0.19 * roadScale, [0.30, 0.27, 0.23, 0.74], 0, style.heightAt);
+    pushRoadDisc(out, node.pos, surfaceRadius, 0.34 * roadScale, [0.77, 0.75, 0.69, 0.98], 1, style.heightAt);
+    caps++;
+  }
+  return caps;
+}
+
+function smoothRoadCenterline(points: [number, number][]) {
+  if (points.length <= 2) return points;
+  const smoothed: [number, number][] = [points[0]];
+  for (let i = 1; i + 1 < points.length; i++) {
+    const prev = points[i - 1];
+    const point = points[i];
+    const next = points[i + 1];
+    smoothed.push(
+      [point[0] * 0.72 + prev[0] * 0.14 + next[0] * 0.14, point[1] * 0.72 + prev[1] * 0.14 + next[1] * 0.14],
+    );
+  }
+  smoothed.push(points[points.length - 1]);
+  return smoothed;
+}
+
 function roadEdgeIsLandSafe(edge: CampaignMapEdgeData, style: CampaignMapDrawStyle) {
   if (!style.roadSurfaceAt) return true;
+  let samples = 0;
+  let landSamples = 0;
   for (let i = 1; i < edge.via.length; i++) {
     const a = edge.via[i - 1];
     const b = edge.via[i];
@@ -1171,14 +1223,36 @@ function roadEdgeIsLandSafe(edge: CampaignMapEdgeData, style: CampaignMapDrawSty
       const t = step / steps;
       const x = a[0] + (b[0] - a[0]) * t;
       const y = a[1] + (b[1] - a[1]) * t;
-      if (style.roadSurfaceAt(x, y) !== 'land') return false;
+      samples++;
+      if (style.roadSurfaceAt(x, y) === 'land') landSamples++;
     }
   }
-  return true;
+  return samples === 0 || landSamples / samples >= 0.68;
 }
 
 function pushRoadVertex(out: number[], point: [number, number], z: number, color: [number, number, number, number], uv: [number, number], material: number, heightAt?: (x: number, y: number) => number) {
   out.push(point[0], point[1], z + (heightAt?.(point[0], point[1]) ?? 0), ...color, uv[0], uv[1], material);
+}
+
+function pushRoadDisc(
+  out: number[],
+  center: [number, number],
+  radius: number,
+  z: number,
+  color: [number, number, number, number],
+  material: number,
+  heightAt?: (x: number, y: number) => number,
+) {
+  const segments = 18;
+  for (let i = 0; i < segments; i++) {
+    const a0 = (i / segments) * Math.PI * 2;
+    const a1 = ((i + 1) / segments) * Math.PI * 2;
+    const p0: [number, number] = [center[0] + Math.cos(a0) * radius, center[1] + Math.sin(a0) * radius];
+    const p1: [number, number] = [center[0] + Math.cos(a1) * radius, center[1] + Math.sin(a1) * radius];
+    pushRoadVertex(out, center, z, color, [0, 0], material, heightAt);
+    pushRoadVertex(out, p0, z, color, [Math.cos(a0), Math.sin(a0)], material, heightAt);
+    pushRoadVertex(out, p1, z, color, [Math.cos(a1), Math.sin(a1)], material, heightAt);
+  }
 }
 
 function pushRoadRibbon(
@@ -1337,6 +1411,7 @@ function labelAtlasKey(labels: VisibleCampaignLabel[], dpr: number, totalLabels:
         label.iconColor?.map((v) => v.toFixed(3)).join(',') ?? '',
         label.sideText ?? '',
         label.subText ?? '',
+        label.collisionGroup ?? '',
         entry.offsetX.toFixed(2),
         entry.offsetY.toFixed(2),
         label.screenAnchorX ?? 'center',
@@ -1470,13 +1545,14 @@ function buildLabelAtlas(labels: VisibleCampaignLabel[], dpr: number) {
 function cullOverlappingLabels(labels: MeasuredCampaignLabel[], dpr: number) {
   const composedArmyBounds = labels
     .filter((entry) => entry.label.kind === 'army' && Boolean(entry.label.subText))
-    .map((entry) => labelBounds(entry, dpr));
+    .map((entry) => ({ group: entry.label.collisionGroup, bounds: labelBounds(entry, dpr) }));
   if (composedArmyBounds.length === 0) return { entries: labels, culledLabels: [] };
   const entries: MeasuredCampaignLabel[] = [];
   const culledLabels: string[] = [];
   for (const entry of labels) {
     const cullsAgainstArmyCityLabel = entry.label.kind === 'city'
-      && composedArmyBounds.some((bounds) => overlaps(bounds, labelBounds(entry, dpr)));
+      && entry.label.collisionGroup !== undefined
+      && composedArmyBounds.some((army) => army.group === entry.label.collisionGroup && overlaps(army.bounds, labelBounds(entry, dpr)));
     if (cullsAgainstArmyCityLabel) {
       culledLabels.push(`${entry.label.kind}:${labelText(entry.label)}`);
       continue;

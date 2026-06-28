@@ -1,6 +1,6 @@
 import { CampaignCloudPass, CampaignFogPass, type CampaignFogSource } from '../../../packages/game-renderer/src/campaign/atmospherePass';
 import { CampaignEntityPass, type CampaignEntityInstance } from '../../../packages/game-renderer/src/campaign/entityPass';
-import { buildCampaignMapDrawData, CampaignLabelPass, type CampaignLabelPassStats, CampaignMapPass, CampaignMarkerPass, CampaignRoadPass, CampaignWorldLinePass, type CampaignLabel, type CampaignMarker } from '../../../packages/game-renderer/src/campaign/mapPass';
+import { buildCampaignMapDrawData, CampaignLabelPass, type CampaignLabelPassStats, CampaignMapPass, CampaignMarkerPass, CampaignRoadPass, CampaignWorldLinePass, type CampaignLabel, type CampaignMapStats, type CampaignMarker } from '../../../packages/game-renderer/src/campaign/mapPass';
 import { CampaignSceneryPass, type CampaignSceneryInstance } from '../../../packages/game-renderer/src/campaign/sceneryPass';
 import { CampaignSelectionPass, type CampaignSelectionInstance } from '../../../packages/game-renderer/src/campaign/selectionPass';
 import { campaignBorderVertices, CampaignTerritoryPass } from '../../../packages/game-renderer/src/campaign/territoryPass';
@@ -52,6 +52,7 @@ export class CampaignRendererWebGPU {
   private labelStats: CampaignLabelPassStats = {
     labels: 0,
     visibleLabels: 0,
+    visibleLabelNames: [],
     collisionCulls: 0,
     collisionCulledLabels: [],
     atlasWidth: 0,
@@ -63,6 +64,7 @@ export class CampaignRendererWebGPU {
   private lastFog = { enabled: false, sources: [] as CampaignFogSource[] };
   private lastFactionView = false;
   private lastLabelComposition = { composedArmyCityLabels: 0 };
+  private mapDrawStats: CampaignMapStats | null = null;
   private framePerf = {
     buildMs: 0,
     uploadMs: 0,
@@ -239,6 +241,7 @@ export class CampaignRendererWebGPU {
       ...this.lastEntities,
       labels: this.labelStats.labels,
       visibleLabels: this.labelStats.visibleLabels,
+      visibleLabelNames: this.labelStats.visibleLabelNames,
       labelCollisionCulls: this.labelStats.collisionCulls,
       labelCollisionCulledLabels: this.labelStats.collisionCulledLabels,
       ...this.lastLabelComposition,
@@ -260,6 +263,7 @@ export class CampaignRendererWebGPU {
       sceneryStats: this.scenery?.stats() ?? null,
       lineSegments: this.lines?.stats().segments ?? 0,
       roadTriangles: this.roads?.stats().triangles ?? 0,
+      roadJunctionCaps: this.mapDrawStats?.roadJunctionCaps ?? 0,
       phases: shell?.phases ?? [],
       depth: shell?.depth ?? null,
       postCutoverScreenshots: 'webgpu-only',
@@ -303,6 +307,7 @@ export class CampaignRendererWebGPU {
       roadSurfaceAt: (x, y) => this.field.landAt(x, y, controlledStage ? 2.5 : 10.5) ? 'land' : 'water',
       heightAt: (x, y) => this.field.heightAt(x, y),
     });
+    this.mapDrawStats = drawData.stats;
     this.staticLabels = drawData.labels;
     this.lines.upload(drawData.lineVertices);
     this.roads.upload(drawData.roadMeshVertices);
@@ -476,6 +481,7 @@ function campaignCityLabels(data: CampaignData, opts: DrawOptions): CampaignLabe
       priority: node.tier,
       icon: 'city',
       iconColor: allegianceColor(allegiance),
+      collisionGroup: cityCollisionGroup(index),
       screenOffsetX: cityLabelOffsetX(opts, node.tier) + horizontalEdgeOffset(edge.x(node.pos[0])),
       screenOffsetY: cityLabelOffset(opts, baseSize, false, node.tier) + verticalEdgeOffset(edge.y(node.pos[1])),
       screenAnchorX: overviewMarkerLabel ? 'left' : 'center',
@@ -516,6 +522,7 @@ function campaignArmyLabels(data: CampaignData, opts: DrawOptions): CampaignLabe
       priority: 4,
       icon: 'army',
       iconColor: allegianceColor(allegiance),
+      collisionGroup: occupiedCity ? cityCollisionGroup(occupiedCity.index) : undefined,
       screenOffsetY: markerSize + selectedOffset + overlapClearance,
     };
   });
@@ -567,9 +574,9 @@ function visibleCampaignArmies(opts: DrawOptions) {
 
 function cityLabelOffset(opts: DrawOptions, baseSize: number, hasArmy: boolean, tier: number) {
   if (opts.cam.scale < 0.6) return cityMarkerOuterEdgePlusSidePx(tier);
-  const armyOffset = hasArmy ? baseSize * 1.5 : 0;
-  if (opts.cam.scale < 1.25) return 18 + armyOffset;
-  return Math.max(30, baseSize * 1.9) + armyOffset;
+  const armyOffset = hasArmy ? baseSize * 1.15 : 0;
+  if (opts.cam.scale < 1.25) return baseSize * 1.30 + armyOffset;
+  return baseSize * 1.45 + armyOffset;
 }
 
 function cityLabelOffsetX(opts: DrawOptions, tier: number) {
@@ -591,6 +598,10 @@ function cityMarkerOuterEdgePlusSidePx(tier: number) {
 }
 
 const OVERVIEW_LABEL_ICON_PADDING_PX = 5;
+
+function cityCollisionGroup(index: number) {
+  return `city:${index}`;
+}
 
 function ordinal(k: number) {
   const value = k % 100;
@@ -927,17 +938,16 @@ function clearCampaignDynamicScenery(items: CampaignSceneryInstance[], reservati
   return items.filter((item) => {
     const propRadius = sceneryReservationRadius(item);
     return !reservations.some((entity) => {
-      const cityScale = item.kind === 'mountain' || item.kind === 'rock' ? 0.65 : 1.0;
-      const radius = entity.kind === 'city' ? entity.radius * cityScale : entity.radius;
+      const radius = entity.kind === 'city' ? entity.radius * 0.92 : entity.radius;
       return Math.hypot(item.x - entity.x, item.y - entity.y) < radius + propRadius;
     });
   });
 }
 
 function sceneryReservationRadius(item: CampaignSceneryInstance) {
-  if (item.kind === 'mountain') return item.size * 0.18;
-  if (item.kind === 'rock') return item.size * 0.18;
-  return item.size * 0.16;
+  if (item.kind === 'mountain') return Math.max(4.8, item.size * 0.42);
+  if (item.kind === 'rock') return Math.max(2.8, item.size * 0.34);
+  return Math.max(1.6, item.size * 0.24);
 }
 
 function sceneryMinScale(item: CampaignSceneryInstance) {
@@ -949,14 +959,15 @@ function sceneryMinScale(item: CampaignSceneryInstance) {
 function citySceneryClearance(item: CampaignSceneryInstance, tier: number, controlledStage: boolean) {
   const fixtureScale = controlledStage ? 1.82 : 1;
   if (controlledStage) return (tier >= 3 ? 12.0 : 10.5) * fixtureScale;
-  if (item.kind === 'mountain' || item.kind === 'rock') return tier >= 3 ? 3.2 : 2.6;
+  if (item.kind === 'mountain') return tier >= 3 ? 8.4 : 7.0;
+  if (item.kind === 'rock') return tier >= 3 ? 5.2 : 4.4;
   return tier >= 3 ? 5.4 : 4.4;
 }
 
 function roadSceneryClearance(item: CampaignSceneryInstance, controlledStage: boolean) {
   const fixtureScale = controlledStage ? 1.36 : 1;
-  const base = item.kind === 'mountain' ? 3.2 : item.kind === 'rock' ? 2.6 : 1.8;
-  const sizeScale = item.kind === 'mountain' ? 0.24 : item.kind === 'rock' ? 0.22 : 0.16;
+  const base = item.kind === 'mountain' ? 7.2 : item.kind === 'rock' ? 4.4 : 2.4;
+  const sizeScale = item.kind === 'mountain' ? 0.44 : item.kind === 'rock' ? 0.34 : 0.22;
   return Math.max(base, item.size * sizeScale) * fixtureScale;
 }
 

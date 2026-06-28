@@ -14,13 +14,19 @@ make roads harder to read.
 
 ## Verification
 
-- Add an ambient-life scene with deterministic animation time.
-- Add path-following probes proving carts stay on road splines.
-- Add fog and LoD checks so hidden or too-distant traffic disappears.
-- Store captures or short clips under `visualizations/campaign-life/`.
+- [ ] Add an ambient-life scene with deterministic animation time.
+- [ ] Add path-following probes proving carts stay on road splines.
+- [ ] Add fog and LoD checks so hidden or too-distant traffic disappears.
+- [ ] Store captures or short clips under `visualizations/campaign-life/`.
 
 ## Done
 
-- At least one ambient road-life prop moves on road geometry.
-- Props stay aligned to roads and terrain while the camera moves.
-- Props obey fog and LoD visibility rules.
+- [ ] At least one ambient road-life prop moves on road geometry.
+- [ ] Props stay aligned to roads and terrain while the camera moves.
+- [ ] Props obey fog and LoD visibility rules.
+
+## Implementation Notes
+
+- 2026-06-28: Not implemented yet. Road geometry and visibility are now stable
+  enough to support carts, but carts/traffic still need a dedicated deterministic
+  WebGPU scene instead of being folded into the static road checkpoint.

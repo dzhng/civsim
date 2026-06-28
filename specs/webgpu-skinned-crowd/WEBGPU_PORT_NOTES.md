@@ -61,7 +61,12 @@ verification lessons.
   text with dark outline/halo, house/army icons next to labels, and zoom-aware
   label/icon LOD.
 - City and army labels must sit below the model with readable spacing, not
-  collide with geometry.
+  collide with geometry. At whole-map zoom, city labels should sit close to the
+  city square marker; the visual gap should be about one marker side, not a
+  label drifting into nearby sea or land.
+- Gameplay fog-of-war hides map flags and labels outside visible territory,
+  including friendly army flags. The decorative zoomed-out border haze/cloud
+  effect is separate and must not reveal hidden markers.
 - City standards belong inside the city mesh like a flagpole inserted into the
   settlement core. The pole should pass through the city volume, lower portions
   should be occluded by front roofs/walls, and a small visible pole segment
@@ -121,8 +126,8 @@ verification lessons.
 
 - City flag must blow the same direction as army flags, sit slightly higher,
   and still be embedded in the city volume instead of perched above it.
-- City labels are too high in close crops and need lower placement with clear
-  spacing below the city model.
+- Continue watching city label spacing at each campaign LOD: labels should stay
+  close to their marker/model without overlapping the city volume.
 - Campaign close-view still needs final tuning for contact shadows, road
   integration, selection readability, flag attachment, and scenery clearance.
 - Battle terrain feature art should continue moving from tint masks toward

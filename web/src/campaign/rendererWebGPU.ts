@@ -164,11 +164,13 @@ export class CampaignRendererWebGPU {
       { id: 'campaign-territory-wash', role: 'background-underpaint', phase: 'background', draw: (pass) => this.territoryPass!.draw(pass) },
       { id: 'campaign-water', role: 'background-underpaint', phase: 'background', draw: (pass) => this.water!.draw(pass) },
       ...(!isControlledStage(this.data) ? [{ id: 'campaign-borders', role: 'background-underpaint' as const, phase: 'background' as const, draw: (pass: BackgroundRenderPass) => this.borders!.draw(pass) }] : []),
-      { id: 'campaign-ground-selection', role: 'world-decal', phase: 'world-depth', depth: 'read', draw: (pass) => this.selection!.draw(pass) },
+      { id: 'campaign-scenery-opaque', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => this.scenery!.drawOpaque(pass) },
+      { id: 'campaign-entities-opaque', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => this.entities!.drawOpaque(pass) },
+      { id: 'campaign-scenery-shadows', role: 'world-decal', phase: 'world-depth', depth: 'read', draw: (pass) => this.scenery!.drawShadows(pass) },
+      { id: 'campaign-entity-shadows', role: 'world-decal', phase: 'world-depth', depth: 'read', draw: (pass) => this.entities!.drawShadows(pass) },
       { id: 'campaign-roads', role: 'world-decal', phase: 'world-depth', depth: 'read', draw: (pass) => this.roads!.draw(pass) },
       { id: 'campaign-sea-lanes-depth', role: 'world-decal', phase: 'world-depth', depth: 'read', draw: (pass) => this.lines!.draw(pass) },
-      { id: 'campaign-scenery', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => this.scenery!.draw(pass) },
-      { id: 'campaign-entities', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => this.entities!.draw(pass) },
+      { id: 'campaign-ground-selection', role: 'world-decal', phase: 'world-depth', depth: 'read', draw: (pass) => this.selection!.draw(pass) },
       { id: 'campaign-clouds', role: 'overlay-effect', phase: 'overlay', draw: (pass) => this.clouds!.draw(pass) },
       { id: 'campaign-fog-of-war', role: 'overlay-effect', phase: 'overlay', draw: (pass) => this.fog!.draw(pass) },
       { id: 'campaign-markers', role: 'overlay-ui', phase: 'overlay', draw: (pass) => this.markers!.draw(pass) },
@@ -474,14 +476,13 @@ function campaignArmyLabels(data: CampaignData, opts: DrawOptions): CampaignLabe
 function visibleCampaignArmies(opts: DrawOptions) {
   return opts.armies.filter((army) => {
     if (!opts.fogOfWar) return true;
-    if (army.mine) return true;
     return fogVisible(opts, army.x, army.y, 0.18);
   });
 }
 
 function cityLabelOffset(opts: DrawOptions, baseSize: number, hasArmy: boolean) {
   const armyOffset = hasArmy ? baseSize * 1.5 : 0;
-  if (opts.cam.scale < 0.6) return 4 + armyOffset;
+  if (opts.cam.scale < 0.6) return -6 + armyOffset;
   if (opts.cam.scale < 1.25) return 18 + armyOffset;
   return Math.max(30, baseSize * 1.9) + armyOffset;
 }

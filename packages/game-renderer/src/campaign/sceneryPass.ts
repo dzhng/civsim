@@ -184,12 +184,7 @@ export class CampaignSceneryPass {
     if (rocks.length > 0) this.shell.device.queue.writeBuffer(this.rockInstanceBuffer, 0, packInstances(rocks, 3.0));
   }
 
-  draw(pass: WorldRenderPass) {
-    this.drawShadows(pass);
-    this.drawOpaque(pass);
-  }
-
-  private drawShadows(pass: WorldRenderPass) {
+  drawShadows(pass: WorldRenderPass) {
     if (this.mountainCount + this.coniferCount + this.broadleafCount + this.rockCount === 0) return;
     pass.setPipeline(this.shadowPipeline);
     pass.setBindGroup(0, this.shell.cameraBindGroup);
@@ -219,7 +214,7 @@ export class CampaignSceneryPass {
     }
   }
 
-  private drawOpaque(pass: WorldRenderPass) {
+  drawOpaque(pass: WorldRenderPass) {
     if (this.mountainCount + this.coniferCount + this.broadleafCount + this.rockCount === 0) return;
     pass.setPipeline(this.opaquePipeline);
     pass.setBindGroup(0, this.shell.cameraBindGroup);

@@ -135,9 +135,11 @@ shadows that sit on the ground instead of floating as screen overlays.
   camera contract, allocated depth attachment, and executed frame phases, and
   production scenarios assert those fields instead of relying only on lab gates.
 - `CampaignEntityPass`, `CampaignSceneryPass`, and `CampaignSelectionPass` now
-  expose only the depth-compatible `draw(pass)` path. Their old no-depth
-  pipeline variants and `drawDepth` twin APIs were removed, and
-  `webgpu-lab-routes` scans those files so the footgun stays gone.
+  expose only world-pass draw entry points. Opaque campaign meshes use explicit
+  `drawOpaque(pass)` depth-write calls, while contact shadows use explicit
+  `drawShadows(pass)` depth-read decal calls; old no-depth pipeline variants
+  and `drawDepth` twin APIs were removed, and `webgpu-lab-routes` scans those
+  files so the footgun stays gone.
 - The frame shell now brands render pass callbacks by phase:
   `BackgroundRenderPass`, `WorldRenderPass`, and `OverlayRenderPass`.
   Depth-sensitive draws such as `SkinnedCrowdPipeline`, nested 3D fixtures,

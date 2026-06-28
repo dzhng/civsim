@@ -103,6 +103,28 @@ export const FULL_GAME_GRAPH_SKELETON: RenderGraphPass[] = [
     depth: { attachment: WEBGPU_WORLD_DEPTH_ATTACHMENT, mode: 'read-write', format: WEBGPU_DEPTH_FORMAT, compare: 'less-equal', store: 'store' },
   },
   {
+    id: 'campaignSceneryOpaque',
+    label: 'Campaign trees, rocks, mountains, and terrain prop opaque meshes',
+    phase: 'campaign',
+    framePhase: 'world-depth',
+    role: 'world-opaque',
+    batching: { strategy: 'instance-kind', buckets: ['trees', 'rocks', 'mountains'] },
+    reads: ['cameraUniforms', 'campaignState', WEBGPU_WORLD_DEPTH_ATTACHMENT],
+    writes: ['worldColor', WEBGPU_WORLD_DEPTH_ATTACHMENT],
+    depth: { attachment: WEBGPU_WORLD_DEPTH_ATTACHMENT, mode: 'read-write', format: WEBGPU_DEPTH_FORMAT, compare: 'less-equal', store: 'store' },
+  },
+  {
+    id: 'campaignEntitiesOpaque',
+    label: 'Campaign city, army, standard, and garrison opaque meshes',
+    phase: 'campaign',
+    framePhase: 'world-depth',
+    role: 'world-opaque',
+    batching: { strategy: 'mesh-variant', buckets: ['cities', 'armies', 'standards', 'garrisons'] },
+    reads: ['cameraUniforms', 'campaignState', WEBGPU_WORLD_DEPTH_ATTACHMENT],
+    writes: ['worldColor', WEBGPU_WORLD_DEPTH_ATTACHMENT, 'pickIds'],
+    depth: { attachment: WEBGPU_WORLD_DEPTH_ATTACHMENT, mode: 'read-write', format: WEBGPU_DEPTH_FORMAT, compare: 'less-equal', store: 'store' },
+  },
+  {
     id: 'battleGroundCues',
     label: 'Battle selection rings, reform paths, and ground cues',
     phase: 'battle',
@@ -113,8 +135,18 @@ export const FULL_GAME_GRAPH_SKELETON: RenderGraphPass[] = [
     depth: { attachment: WEBGPU_WORLD_DEPTH_ATTACHMENT, mode: 'read', format: WEBGPU_DEPTH_FORMAT, compare: 'less-equal', store: 'store' },
   },
   {
-    id: 'campaignGroundSelection',
-    label: 'Campaign selected-city and selected-army ground decals',
+    id: 'campaignSceneryShadows',
+    label: 'Campaign terrain prop contact shadows',
+    phase: 'campaign',
+    framePhase: 'world-depth',
+    role: 'world-decal',
+    reads: ['cameraUniforms', 'campaignState', WEBGPU_WORLD_DEPTH_ATTACHMENT],
+    writes: ['worldColor'],
+    depth: { attachment: WEBGPU_WORLD_DEPTH_ATTACHMENT, mode: 'read', format: WEBGPU_DEPTH_FORMAT, compare: 'less-equal', store: 'store' },
+  },
+  {
+    id: 'campaignEntityShadows',
+    label: 'Campaign city and army contact shadows',
     phase: 'campaign',
     framePhase: 'world-depth',
     role: 'world-decal',
@@ -143,26 +175,14 @@ export const FULL_GAME_GRAPH_SKELETON: RenderGraphPass[] = [
     depth: { attachment: WEBGPU_WORLD_DEPTH_ATTACHMENT, mode: 'read', format: WEBGPU_DEPTH_FORMAT, compare: 'less-equal', store: 'store' },
   },
   {
-    id: 'campaignScenery',
-    label: 'Campaign trees, rocks, mountains, and terrain props',
+    id: 'campaignGroundSelection',
+    label: 'Campaign selected-city and selected-army ground decals',
     phase: 'campaign',
     framePhase: 'world-depth',
-    role: 'world-opaque',
-    batching: { strategy: 'instance-kind', buckets: ['trees', 'rocks', 'mountains'] },
+    role: 'world-decal',
     reads: ['cameraUniforms', 'campaignState', WEBGPU_WORLD_DEPTH_ATTACHMENT],
-    writes: ['worldColor', WEBGPU_WORLD_DEPTH_ATTACHMENT],
-    depth: { attachment: WEBGPU_WORLD_DEPTH_ATTACHMENT, mode: 'read-write', format: WEBGPU_DEPTH_FORMAT, compare: 'less-equal', store: 'store' },
-  },
-  {
-    id: 'campaignEntities',
-    label: 'Campaign cities, armies, standards, and garrison meshes',
-    phase: 'campaign',
-    framePhase: 'world-depth',
-    role: 'world-opaque',
-    batching: { strategy: 'mesh-variant', buckets: ['cities', 'armies', 'standards', 'garrisons'] },
-    reads: ['cameraUniforms', 'campaignState', WEBGPU_WORLD_DEPTH_ATTACHMENT],
-    writes: ['worldColor', WEBGPU_WORLD_DEPTH_ATTACHMENT, 'pickIds'],
-    depth: { attachment: WEBGPU_WORLD_DEPTH_ATTACHMENT, mode: 'read-write', format: WEBGPU_DEPTH_FORMAT, compare: 'less-equal', store: 'store' },
+    writes: ['worldColor'],
+    depth: { attachment: WEBGPU_WORLD_DEPTH_ATTACHMENT, mode: 'read', format: WEBGPU_DEPTH_FORMAT, compare: 'less-equal', store: 'store' },
   },
   {
     id: 'atmosphereOverlays',
@@ -232,6 +252,7 @@ export function compileRenderGraph(passes: readonly RenderGraphPass[]): RenderGr
   const seenPasses = new Set<string>();
   const resources = new Map<string, RenderGraphResource>();
   let lastFramePhaseOrder = -1;
+  let readOnlyWorldDepthStarted = false;
 
   for (const pass of passes) {
     if (seenPasses.has(pass.id)) {
@@ -325,6 +346,12 @@ export function compileRenderGraph(passes: readonly RenderGraphPass[]): RenderGr
         if (pass.role !== depthRole) {
           diagnostics.push(`world-depth pass "${pass.id}" depth mode "${pass.depth.mode}" requires role "${depthRole}", not "${pass.role}"`);
         }
+      }
+      if (pass.framePhase === 'world-depth') {
+        if (readOnlyWorldDepthStarted && pass.depth.mode !== 'read') {
+          diagnostics.push(`world-depth pass "${pass.id}" writes depth after read-only world decals have started`);
+        }
+        if (pass.depth.mode === 'read') readOnlyWorldDepthStarted = true;
       }
     }
   }

@@ -575,6 +575,7 @@ export class RawFrameShellImpl implements RawFrameShell {
   private assertFrameGraphPasses(passes: FrameGraphPass[]) {
     const seen = new Set<string>();
     let lastPhaseOrder = -1;
+    let readOnlyWorldDepthStarted = false;
     for (const pass of passes) {
       const candidate = pass as FrameGraphPass & { batching?: FrameGraphBatching; depth?: unknown; id?: unknown; label?: unknown; phase?: unknown; role?: unknown };
       const id = typeof candidate.id === 'string' && candidate.id.length > 0 ? candidate.id : '<unknown>';
@@ -605,6 +606,10 @@ export class RawFrameShellImpl implements RawFrameShell {
         if (!isWebGpuDepthMode(candidate.depth)) {
           throw new Error(`world-depth frame graph pass "${id}" must declare depth mode "read", "read-write", or "write"`);
         }
+        if (readOnlyWorldDepthStarted && candidate.depth !== 'read') {
+          throw new Error(`world-depth frame graph pass "${id}" writes depth after read-only world decals have started`);
+        }
+        if (candidate.depth === 'read') readOnlyWorldDepthStarted = true;
       } else if (hasDepth) {
         throw new Error(`non-world-depth frame graph pass "${id}" must not declare a depth mode`);
       }

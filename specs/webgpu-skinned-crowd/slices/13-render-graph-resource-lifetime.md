@@ -116,11 +116,12 @@ compatible or splits them into separate passes.
   this foundation remains visible before production city, army, and battle mesh
   polish can be accepted.
 - Production campaign and campaign model-gate routes now use the same frame
-  shell split: flat map/territory/water/roads underpaint first, then
-  depth-tested `CampaignSceneryPass` and `CampaignEntityPass`, then
-  cloud/marker/label overlays. The campaign stats expose the allocated
-  `depth24plus` attachment so scenarios can prove the production path is no
-  longer a flat entity overlay.
+  shell split: flat map/territory/water underpaint first, then depth-writing
+  opaque scenery/entities, then read-only world decals for contact shadows,
+  roads, sea lanes, and selection footprints, then cloud/marker/label overlays.
+  The campaign stats expose the allocated `depth24plus` attachment and each
+  material phase's declared depth mode so scenarios can prove the production
+  path is no longer a flat entity overlay or a hidden painter-order shadow pass.
 - The first shared camera WGSL seam lives in
   `packages/webgpu-core/src/cameraWgsl.ts`. Campaign entity, scenery,
   selection, and nested-depth fixture passes now import the same projection
@@ -232,6 +233,12 @@ frame stats. `webGpuWorldDepthStencil` accepts `read`, `read-write`, or `write`
 instead of a boolean write flag; battle terrain props, skinned crowds, campaign
 entities/scenery, roads, selections, ground cues, and nested fixtures now name
 their intended depth access at pipeline creation.
+
+Read-only world decals are a one-way boundary in both the declarative graph
+compiler and live frame shell: once a `world-depth` pass declares `read`, later
+`world-depth` passes may not write depth. This keeps contact shadows, roads, sea
+lanes, selection rings, and other ground cues behind already-written opaque
+geometry instead of relying on painter-order color overwrites.
 
 The verifier contract is also part of this slice. `_webgpu-contract.mjs` now
 parses shared role/depth maps with both quoted and unquoted TypeScript object

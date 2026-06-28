@@ -166,12 +166,7 @@ export class CampaignEntityPass {
     if (armies.length > 0) this.shell.device.queue.writeBuffer(this.armyInstanceBuffer, 0, packInstances(armies, 4.4));
   }
 
-  draw(pass: WorldRenderPass) {
-    this.drawShadows(pass);
-    this.drawOpaque(pass);
-  }
-
-  private drawShadows(pass: WorldRenderPass) {
+  drawShadows(pass: WorldRenderPass) {
     if (this.cityCount === 0 && this.armyCount === 0) return;
     pass.setPipeline(this.shadowPipeline);
     pass.setBindGroup(0, this.shell.cameraBindGroup);
@@ -189,7 +184,7 @@ export class CampaignEntityPass {
     }
   }
 
-  private drawOpaque(pass: WorldRenderPass) {
+  drawOpaque(pass: WorldRenderPass) {
     if (this.cityCount === 0 && this.armyCount === 0) return;
     pass.setPipeline(this.opaquePipeline);
     pass.setBindGroup(0, this.shell.cameraBindGroup);

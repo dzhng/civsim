@@ -44,6 +44,10 @@ pass orchestration, WGSL layout, depth semantics, or browser-verified output.
 - Do not mix alpha blending into depth-writing opaque geometry. Opaque/cutout
   world objects can write depth; translucent decals, shadows, selection rings,
   roads, and UI overlays need separate read-only depth or overlay phases.
+- Treat read-only world decals as a one-way boundary inside a frame. Once
+  ground cues, shadows, roads, or other `depth=read` world decals begin, no
+  later world pass should write depth; otherwise the frame is relying on
+  painter-order color overwrites instead of the depth buffer.
 - World-space ground cues are not HUD overlays. If a marker belongs on terrain,
   submit it through the world camera and let real geometry occlude it; reserve
   screen overlays for labels, HUD, minimaps, debug UI, and deliberately

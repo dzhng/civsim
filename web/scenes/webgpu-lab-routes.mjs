@@ -83,7 +83,7 @@ const routes = [
     && s.stats.scenes[0].frame.samples > 0],
   ['campaign', (s) => s?.ok && s.route === 'campaign' && s.stats.markers > 0],
   ['campaign-map?preset=whole', (s) => s?.ok && s.route === 'campaign-map' && s.stats.roads > 20 && s.stats.seaLanes > 0 && s.stats.cityMarkers > 20 && s.stats.visibleLabels > 5 && s.stats.labelVertices > 20 && s.stats.factions > 5 && s.stats.territoryPixels > 10000 && s.stats.borderSegments > 100 && s.stats.waterFeatures >= 5 && s.stats.cloudQuads === 1 && s.stats.cameraContract === 'shared-world-camera-wgsl' && s.stats.territoryLayer === 'raw-webgpu-texture' && s.stats.atmosphereLayer === 'raw-webgpu-cloud-water' && s.stats.labelLayer === 'raw-webgpu-glyph-atlas'],
-  ['campaign-ui', (s) => s?.ok && s.route === 'campaign-ui' && s.stats.fixture === 'controlled' && s.stats.cityEntities === 2 && s.stats.armyEntities === 1 && s.stats.selections >= 2 && s.stats.depth?.allocated === true && s.stats.depth?.format === WEBGPU_DEPTH_FORMAT && hasFramePhaseOrder(s.stats.framePhases ?? s.stats.phases) && hasFrameDepthPass(s.stats.framePhases ?? s.stats.phases, 'campaign-ui-selection', 'read') && hasFramePassRole(s.stats.framePhases ?? s.stats.phases, 'campaign-ui-selection', 'world-decal', 'world-depth') && hasFrameDepthPass(s.stats.framePhases ?? s.stats.phases, 'campaign-ui-entities', 'read-write') && hasFramePassRole(s.stats.framePhases ?? s.stats.phases, 'campaign-ui-entities', 'world-opaque', 'world-depth') && s.stats.ui.armyPanel && s.stats.ui.cityPanel && s.stats.ui.autoReplenishToggle && s.stats.ui.classRows >= 8 && s.stats.ui.diplomacyRows >= 1 && s.stats.labelLayer === 'raw-webgpu-glyph-atlas' && s.stats.labelVertices > 0 && s.stats.postCutoverScreenshots === 'webgpu-only'],
+  ['campaign-ui', (s) => s?.ok && s.route === 'campaign-ui' && s.stats.fixture === 'controlled' && s.stats.cityEntities === 2 && s.stats.armyEntities === 1 && s.stats.selections >= 2 && s.stats.depth?.allocated === true && s.stats.depth?.format === WEBGPU_DEPTH_FORMAT && hasFramePhaseOrder(s.stats.framePhases ?? s.stats.phases) && hasFrameDepthPass(s.stats.framePhases ?? s.stats.phases, 'campaign-ui-entities-opaque', 'read-write') && hasFramePassRole(s.stats.framePhases ?? s.stats.phases, 'campaign-ui-entities-opaque', 'world-opaque', 'world-depth') && hasFrameDepthPass(s.stats.framePhases ?? s.stats.phases, 'campaign-ui-entity-shadows', 'read') && hasFramePassRole(s.stats.framePhases ?? s.stats.phases, 'campaign-ui-entity-shadows', 'world-decal', 'world-depth') && hasFrameDepthPass(s.stats.framePhases ?? s.stats.phases, 'campaign-ui-selection', 'read') && hasFramePassRole(s.stats.framePhases ?? s.stats.phases, 'campaign-ui-selection', 'world-decal', 'world-depth') && s.stats.ui.armyPanel && s.stats.ui.cityPanel && s.stats.ui.autoReplenishToggle && s.stats.ui.classRows >= 8 && s.stats.ui.diplomacyRows >= 1 && s.stats.labelLayer === 'raw-webgpu-glyph-atlas' && s.stats.labelVertices > 0 && s.stats.postCutoverScreenshots === 'webgpu-only'],
   ['campaign-model-gates?gate=city', (s) => s?.ok
     && s.route === 'campaign-model-gates'
     && s.stats.gate === 'city'
@@ -107,9 +107,11 @@ const routes = [
     && s.stats.depth?.allocated === true
     && hasFramePhaseOrder(s.stats.framePhases ?? s.stats.phases)
     && hasFrameDepthPass(s.stats.framePhases, 'model-gate-selection', 'read')
-    && hasFrameDepthPass(s.stats.framePhases, 'model-gate-entities', 'read-write')
+    && hasFrameDepthPass(s.stats.framePhases, 'model-gate-entities-opaque', 'read-write')
+    && hasFrameDepthPass(s.stats.framePhases, 'model-gate-entity-shadows', 'read')
     && hasFramePassRole(s.stats.framePhases, 'model-gate-selection', 'world-decal', 'world-depth')
-    && hasFramePassRole(s.stats.framePhases, 'model-gate-entities', 'world-opaque', 'world-depth')
+    && hasFramePassRole(s.stats.framePhases, 'model-gate-entities-opaque', 'world-opaque', 'world-depth')
+    && hasFramePassRole(s.stats.framePhases, 'model-gate-entity-shadows', 'world-decal', 'world-depth')
     && s.stats.samples?.selectionDepth?.occludedByCityCore
     && s.stats.samples?.selectionDepth?.visibleOuterRing],
   ['campaign-model-gates?gate=army', (s) => s?.ok
@@ -119,9 +121,11 @@ const routes = [
     && s.stats.depth?.allocated === true
     && hasFramePhaseOrder(s.stats.framePhases ?? s.stats.phases)
     && hasFrameDepthPass(s.stats.framePhases, 'model-gate-selection', 'read')
-    && hasFrameDepthPass(s.stats.framePhases, 'model-gate-entities', 'read-write')
+    && hasFrameDepthPass(s.stats.framePhases, 'model-gate-entities-opaque', 'read-write')
+    && hasFrameDepthPass(s.stats.framePhases, 'model-gate-entity-shadows', 'read')
     && hasFramePassRole(s.stats.framePhases, 'model-gate-selection', 'world-decal', 'world-depth')
-    && hasFramePassRole(s.stats.framePhases, 'model-gate-entities', 'world-opaque', 'world-depth')
+    && hasFramePassRole(s.stats.framePhases, 'model-gate-entities-opaque', 'world-opaque', 'world-depth')
+    && hasFramePassRole(s.stats.framePhases, 'model-gate-entity-shadows', 'world-decal', 'world-depth')
     && s.stats.samples?.selectionDepth?.occludedByArmyCore
     && s.stats.samples?.selectionDepth?.visibleOuterRing],
   ['campaign-model-gates?gate=hostile-depth-order', (s) => s?.ok
@@ -130,8 +134,10 @@ const routes = [
     && s.stats.hostileDrawOrder === 'entities-before-late-scenery'
     && s.stats.depth?.allocated === true
     && s.stats.depth?.format === WEBGPU_DEPTH_FORMAT
-    && hasFrameDepthPass(s.stats.framePhases, 'model-gate-entities', 'read-write')
-    && hasFrameDepthPass(s.stats.framePhases, 'model-gate-scenery', 'read-write')
+    && hasFrameDepthPass(s.stats.framePhases, 'model-gate-entities-opaque', 'read-write')
+    && hasFrameDepthPass(s.stats.framePhases, 'model-gate-scenery-opaque', 'read-write')
+    && hasFrameDepthPass(s.stats.framePhases, 'model-gate-entity-shadows', 'read')
+    && hasFrameDepthPass(s.stats.framePhases, 'model-gate-scenery-shadows', 'read')
     && s.stats.samples?.hostileDepthOrder?.flagOverLateTree
     && s.stats.samples?.hostileDepthOrder?.lateTreeControl],
   ['render-graph', (s) => s?.ok
@@ -144,22 +150,26 @@ const routes = [
     && s.stats.depthPasses?.includes('battleTerrainProps')
     && s.stats.depthPasses?.includes('battleCrowd')
     && s.stats.depthPasses?.includes('battleGroundCues')
-    && s.stats.depthPasses?.includes('campaignGroundSelection')
+    && s.stats.depthPasses?.includes('campaignSceneryOpaque')
+    && s.stats.depthPasses?.includes('campaignEntitiesOpaque')
+    && s.stats.depthPasses?.includes('campaignSceneryShadows')
+    && s.stats.depthPasses?.includes('campaignEntityShadows')
     && s.stats.depthPasses?.includes('campaignRoads')
     && s.stats.depthPasses?.includes('campaignSeaLanes')
-    && s.stats.depthPasses?.includes('campaignScenery')
-    && s.stats.depthPasses?.includes('campaignEntities')
+    && s.stats.depthPasses?.includes('campaignGroundSelection')
     && hasGraphPassRole(s.stats.graphPassRoles, 'battleTerrain', 'background-underpaint', 'background')
     && hasGraphPassRole(s.stats.graphPassRoles, 'campaignMapUnderpaint', 'background-underpaint', 'background')
     && hasGraphPassRole(s.stats.graphPassRoles, 'worldDepthClear', 'world-depth-fill', 'world-depth')
     && hasGraphPassRole(s.stats.graphPassRoles, 'battleTerrainProps', 'world-opaque', 'world-depth')
     && hasGraphPassRole(s.stats.graphPassRoles, 'battleCrowd', 'world-opaque', 'world-depth')
     && hasGraphPassRole(s.stats.graphPassRoles, 'battleGroundCues', 'world-decal', 'world-depth')
-    && hasGraphPassRole(s.stats.graphPassRoles, 'campaignGroundSelection', 'world-decal', 'world-depth')
+    && hasGraphPassRole(s.stats.graphPassRoles, 'campaignSceneryOpaque', 'world-opaque', 'world-depth')
+    && hasGraphPassRole(s.stats.graphPassRoles, 'campaignEntitiesOpaque', 'world-opaque', 'world-depth')
+    && hasGraphPassRole(s.stats.graphPassRoles, 'campaignSceneryShadows', 'world-decal', 'world-depth')
+    && hasGraphPassRole(s.stats.graphPassRoles, 'campaignEntityShadows', 'world-decal', 'world-depth')
     && hasGraphPassRole(s.stats.graphPassRoles, 'campaignRoads', 'world-decal', 'world-depth')
     && hasGraphPassRole(s.stats.graphPassRoles, 'campaignSeaLanes', 'world-decal', 'world-depth')
-    && hasGraphPassRole(s.stats.graphPassRoles, 'campaignScenery', 'world-opaque', 'world-depth')
-    && hasGraphPassRole(s.stats.graphPassRoles, 'campaignEntities', 'world-opaque', 'world-depth')
+    && hasGraphPassRole(s.stats.graphPassRoles, 'campaignGroundSelection', 'world-decal', 'world-depth')
     && hasGraphPassRole(s.stats.graphPassRoles, 'atmosphereOverlays', 'overlay-effect', 'overlay')
     && hasGraphPassRole(s.stats.graphPassRoles, 'battleEffectLines', 'overlay-effect', 'overlay')
     && hasGraphPassRole(s.stats.graphPassRoles, 'battleDebugOverlays', 'overlay-debug', 'overlay')
@@ -170,11 +180,13 @@ const routes = [
     && hasGraphDepthPassMode(s.stats.depthPassModes, 'battleTerrainProps', 'read-write')
     && hasGraphDepthPassMode(s.stats.depthPassModes, 'battleCrowd', 'read-write')
     && hasGraphDepthPassMode(s.stats.depthPassModes, 'battleGroundCues', 'read')
-    && hasGraphDepthPassMode(s.stats.depthPassModes, 'campaignGroundSelection', 'read')
+    && hasGraphDepthPassMode(s.stats.depthPassModes, 'campaignSceneryOpaque', 'read-write')
+    && hasGraphDepthPassMode(s.stats.depthPassModes, 'campaignEntitiesOpaque', 'read-write')
+    && hasGraphDepthPassMode(s.stats.depthPassModes, 'campaignSceneryShadows', 'read')
+    && hasGraphDepthPassMode(s.stats.depthPassModes, 'campaignEntityShadows', 'read')
     && hasGraphDepthPassMode(s.stats.depthPassModes, 'campaignRoads', 'read')
     && hasGraphDepthPassMode(s.stats.depthPassModes, 'campaignSeaLanes', 'read')
-    && hasGraphDepthPassMode(s.stats.depthPassModes, 'campaignScenery', 'read-write')
-    && hasGraphDepthPassMode(s.stats.depthPassModes, 'campaignEntities', 'read-write')
+    && hasGraphDepthPassMode(s.stats.depthPassModes, 'campaignGroundSelection', 'read')
     && depthContractFixturesRejected(s.stats.depthContractFixtures)
     && bucketContractFixturesSatisfied(s.stats.bucketContractFixtures)
     && s.stats.backgroundDepthPasses?.length === 0
@@ -249,6 +261,7 @@ function depthContractFixturesRejected(fixtures) {
     'unsupportedDepthMode',
     'missingSemanticRole',
     'mismatchedSemanticRole',
+    'readOnlyBeforeWrite',
   ]);
   return Array.isArray(fixtures)
     && fixtures.length === expected.size
@@ -269,6 +282,7 @@ function frameGraphContractFixturesRejected(fixtures) {
     'missingSemanticRole',
     'mismatchedSemanticRole',
     'mismatchedDepthRole',
+    'readOnlyBeforeWrite',
     'topLevelTypeBucketPass',
     'markersMissingLayer',
   ]);
@@ -439,11 +453,17 @@ async function findPhaseBrandFootguns() {
     },
     {
       file: new URL('../../packages/game-renderer/src/campaign/entityPass.ts', import.meta.url),
-      checks: [['campaign entities draw requires world pass', /\bdraw\s*\(\s*pass:\s*WorldRenderPass\s*\)/]],
+      checks: [
+        ['campaign entities opaque draw requires world pass', /\bdrawOpaque\s*\(\s*pass:\s*WorldRenderPass\s*\)/],
+        ['campaign entities shadow draw requires world pass', /\bdrawShadows\s*\(\s*pass:\s*WorldRenderPass\s*\)/],
+      ],
     },
     {
       file: new URL('../../packages/game-renderer/src/campaign/sceneryPass.ts', import.meta.url),
-      checks: [['campaign scenery draw requires world pass', /\bdraw\s*\(\s*pass:\s*WorldRenderPass\s*\)/]],
+      checks: [
+        ['campaign scenery opaque draw requires world pass', /\bdrawOpaque\s*\(\s*pass:\s*WorldRenderPass\s*\)/],
+        ['campaign scenery shadow draw requires world pass', /\bdrawShadows\s*\(\s*pass:\s*WorldRenderPass\s*\)/],
+      ],
     },
     {
       file: new URL('../../packages/game-renderer/src/campaign/selectionPass.ts', import.meta.url),

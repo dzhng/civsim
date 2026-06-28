@@ -765,10 +765,11 @@ async function routeCampaignUi(ctx: LabContext) {
       clear: { r: 0.68, g: 0.72, b: 0.69, a: 1 },
       terrainRect: campaignBgTerrainRect(data.bgRect),
       passes: [
-        { id: 'campaign-ui-selection', role: 'world-decal', phase: 'world-depth', depth: 'read', draw: (pass) => selection.draw(pass) },
+        { id: 'campaign-ui-entities-opaque', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => entities.drawOpaque(pass) },
+        { id: 'campaign-ui-entity-shadows', role: 'world-decal', phase: 'world-depth', depth: 'read', draw: (pass) => entities.drawShadows(pass) },
         { id: 'campaign-ui-roads', role: 'world-decal', phase: 'world-depth', depth: 'read', draw: (pass) => roads.draw(pass) },
         { id: 'campaign-ui-sea-lanes-depth', role: 'world-decal', phase: 'world-depth', depth: 'read', draw: (pass) => lines.draw(pass) },
-        { id: 'campaign-ui-entities', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => entities.draw(pass) },
+        { id: 'campaign-ui-selection', role: 'world-decal', phase: 'world-depth', depth: 'read', draw: (pass) => selection.draw(pass) },
         { id: 'campaign-ui-labels', role: 'overlay-ui', phase: 'overlay', draw: (pass) => labelPass.draw(pass) },
       ],
     });
@@ -870,13 +871,15 @@ async function routeCampaignModelGates(ctx: LabContext) {
   water?.upload(frame.water);
   const labelLayer = labelPass.upload(frame.labels, camera);
   const hostileDepthOrder = gate === 'hostile-depth-order';
-  const entityPass: FrameGraphPass = { id: 'model-gate-entities', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => entities.draw(pass) };
-  const sceneryPass: FrameGraphPass = { id: 'model-gate-scenery', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => scenery.draw(pass) };
+  const entityOpaquePass: FrameGraphPass = { id: 'model-gate-entities-opaque', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => entities.drawOpaque(pass) };
+  const sceneryOpaquePass: FrameGraphPass = { id: 'model-gate-scenery-opaque', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => scenery.drawOpaque(pass) };
   const passes: FrameGraphPass[] = [
     ...(water ? [{ id: 'model-gate-water', role: 'background-underpaint' as const, phase: 'background' as const, draw: (pass: BackgroundRenderPass) => water.draw(pass) }] : []),
-    { id: 'model-gate-selection', role: 'world-decal', phase: 'world-depth', depth: 'read', draw: (pass) => selection.draw(pass) },
+    ...(hostileDepthOrder ? [entityOpaquePass, sceneryOpaquePass] : [sceneryOpaquePass, entityOpaquePass]),
+    { id: 'model-gate-scenery-shadows', role: 'world-decal', phase: 'world-depth', depth: 'read', draw: (pass) => scenery.drawShadows(pass) },
+    { id: 'model-gate-entity-shadows', role: 'world-decal', phase: 'world-depth', depth: 'read', draw: (pass) => entities.drawShadows(pass) },
     { id: 'model-gate-roads', role: 'world-decal', phase: 'world-depth', depth: 'read', draw: (pass) => roads.draw(pass) },
-    ...(hostileDepthOrder ? [entityPass, sceneryPass] : [sceneryPass, entityPass]),
+    { id: 'model-gate-selection', role: 'world-decal', phase: 'world-depth', depth: 'read', draw: (pass) => selection.draw(pass) },
     ...(clouds ? [{ id: 'model-gate-clouds', role: 'overlay-effect' as const, phase: 'overlay' as const, draw: (pass: OverlayRenderPass) => clouds.draw(pass) }] : []),
     { id: 'model-gate-labels', role: 'overlay-ui', phase: 'overlay', draw: (pass) => labelPass.draw(pass) },
   ];
@@ -905,7 +908,7 @@ async function routeCampaignModelGates(ctx: LabContext) {
     ...(cityStandardSamples ? { cityStandard: cityStandardSamples } : {}),
     ...(garrisonSamples ? { garrison: garrisonSamples } : {}),
     ...(selectionSamples ? { selectionDepth: selectionSamples } : {}),
-    ...(hostileDepthOrder ? { hostileDepthOrder: campaignModelGateHostileDepthSamples(ctx.canvas, camera) } : {}),
+    ...(hostileDepthOrder ? { hostileDepthOrder: campaignModelGateHostileDepthSamples() } : {}),
   };
   publish('campaign-model-gates', true, {
     route: 'campaign-model-gates',
@@ -1104,15 +1107,10 @@ function campaignModelGateFrame(gate: CampaignModelGate) {
   return { entities, scenery, selections, labels, roads, terrainRect, water, cloudRect };
 }
 
-function campaignModelGateHostileDepthSamples(
-  canvas: HTMLCanvasElement,
-  camera: { x: number; y: number; zoom: number; pitch?: number; yaw?: number; perspective?: number },
-) {
-  void canvas;
-  void camera;
+function campaignModelGateHostileDepthSamples() {
   return {
-    flagOverLateTree: { x: 255, y: 121, note: 'fixed hostile-gate crop sample on visible city flag in front of late scenery' },
-    lateTreeControl: { x: 176, y: 209, note: 'fixed hostile-gate crop sample proving the late scenery bucket is visible' },
+    flagOverLateTree: { x: 302, y: 148, note: 'visible city flag in front of late scenery' },
+    lateTreeControl: { x: 176, y: 209, note: 'late scenery bucket visible away from the flag' },
   };
 }
 
@@ -1131,7 +1129,7 @@ function campaignModelGateCityStandardSamples(
   ]);
   return {
     hiddenLowerCloth: worldPoint([-0.22, 0.08, 1.45]),
-    visibleUpperCloth: worldPoint([-1.04, 0.04, 4.98]),
+    visibleUpperCloth: worldPoint([0.18, 0.04, 4.98]),
     plantedMastCore: worldPoint([0.08, 0.04, 2.35]),
   };
 }
@@ -1288,7 +1286,7 @@ function renderGraphBucketContractFixtures() {
       depth: { attachment: WEBGPU_WORLD_DEPTH_ATTACHMENT, mode: 'write', format: WEBGPU_DEPTH_FORMAT },
     },
   ];
-  const fixtures: Array<{ id: string; pass: unknown; expected: string }> = [
+  const fixtures: Array<{ id: string; pass?: unknown; passes?: unknown[]; expected: string }> = [
     {
       id: 'topLevelTypeBucketPass',
       expected: 'is a type bucket, not a semantic render-graph pass',
@@ -1347,7 +1345,7 @@ function renderGraphDepthContractFixtures() {
       depth: { attachment: WEBGPU_WORLD_DEPTH_ATTACHMENT, mode: 'write', format: WEBGPU_DEPTH_FORMAT },
     },
   ];
-  const fixtures: Array<{ id: string; pass: unknown; expected: string }> = [
+  const fixtures: Array<{ id: string; pass?: unknown; passes?: unknown[]; expected: string }> = [
     {
       id: 'readModeWritesDepth',
       expected: 'read-only depth',
@@ -1430,9 +1428,35 @@ function renderGraphDepthContractFixtures() {
         writes: ['compositedColor'],
       },
     },
+    {
+      id: 'readOnlyBeforeWrite',
+      expected: 'writes depth after read-only world decals have started',
+      passes: [
+        {
+          id: 'earlyWorldDecal',
+          label: 'Early world decal',
+          phase: 'campaign',
+          framePhase: 'world-depth',
+          role: 'world-decal',
+          reads: ['cameraUniforms', WEBGPU_WORLD_DEPTH_ATTACHMENT],
+          writes: ['worldColor'],
+          depth: { attachment: WEBGPU_WORLD_DEPTH_ATTACHMENT, mode: 'read', format: WEBGPU_DEPTH_FORMAT },
+        },
+        {
+          id: 'lateWorldOpaque',
+          label: 'Late world opaque',
+          phase: 'campaign',
+          framePhase: 'world-depth',
+          role: 'world-opaque',
+          reads: ['cameraUniforms', WEBGPU_WORLD_DEPTH_ATTACHMENT],
+          writes: ['worldColor', WEBGPU_WORLD_DEPTH_ATTACHMENT],
+          depth: { attachment: WEBGPU_WORLD_DEPTH_ATTACHMENT, mode: 'read-write', format: WEBGPU_DEPTH_FORMAT },
+        },
+      ],
+    },
   ];
   return fixtures.map((fixture) => {
-    const report = compileRenderGraph([...base, fixture.pass as RenderGraphPass]);
+    const report = compileRenderGraph([...base, ...((fixture.passes ?? [fixture.pass]) as RenderGraphPass[])]);
     return {
       id: fixture.id,
       expected: fixture.expected,
@@ -1990,6 +2014,14 @@ function liveFrameGraphContractFixtures(shell: RawFrameShell) {
       id: 'mismatchedDepthRole',
       expected: 'requires role',
       passes: [{ id: 'bad-depth-role', role: 'world-decal', phase: 'world-depth', depth: 'read-write', draw: () => undefined }],
+    },
+    {
+      id: 'readOnlyBeforeWrite',
+      expected: 'writes depth after read-only world decals have started',
+      passes: [
+        { id: 'early-world-decal', role: 'world-decal', phase: 'world-depth', depth: 'read', draw: () => undefined },
+        { id: 'late-world-opaque', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: () => undefined },
+      ],
     },
     {
       id: 'topLevelTypeBucketPass',

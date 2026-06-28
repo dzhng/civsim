@@ -538,6 +538,12 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   content type look like visibility truth. Keep shared guard code, a negative
   graph fixture, a live frame-shell fixture, and a positive fixture that proves
   semantic passes can still batch internally.
+- Treat RawFrameShell background `markers` as an explicit non-depth fallback,
+  never as anonymous world rendering. Lab routes must label them
+  `lab-placeholder`; production battle may use `far-lod-impostor` only for the
+  strategic/far LOD path. If true 3D units, cities, trees, rocks, or roads need
+  to draw, add a semantic `world-depth` pass instead of slipping them through
+  background markers.
 - Add hostile-order gates for every type-bucket claim. A normal route that draws
   scenery before entities can hide painter-order regressions because the later
   entity bucket wins even without depth. Keep a model gate that submits campaign

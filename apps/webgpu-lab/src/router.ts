@@ -110,7 +110,7 @@ async function routeDevice(ctx: LabContext) {
   const shell = await createFrameShell(ctx.canvas);
   const markers = generatedMarkers(18, -8, -4, 0).concat(generatedMarkers(18, 8, 2, 1));
   shell.setCamera({ x: 0, y: 0, zoom: 10, pitch: 0.25, yaw: 0 });
-  shell.drawFrame({ markers });
+  shell.drawFrame({ markers, markerLayer: 'lab-placeholder' });
   ctx.status.innerHTML = reportTable({
     route: 'device',
     status: 'WebGPU ready',
@@ -127,7 +127,7 @@ async function routeFrameShell(ctx: LabContext) {
   const shell = await createConfiguredShell(ctx.canvas, { x: 0, y: 0, zoom: 9, pitch: 0.38, yaw: -0.18 });
   const markers = generatedMarkers(80, -10, -9, 0).concat(generatedMarkers(80, 10, 3, 1));
   const frameGraphContractFixtures = liveFrameGraphContractFixtures(shell);
-  animateShell(shell, ctx.status, () => ({ markers }));
+  animateShell(shell, ctx.status, () => ({ markers, markerLayer: 'lab-placeholder' }));
   publish('frame-shell', true, { ...shell.stats(), markers: markers.length, frameGraphContractFixtures });
 }
 
@@ -233,7 +233,7 @@ async function routeCrowdData(ctx: LabContext) {
   const enemy = generatedFormation(count - player.length, { x: 18, y: 5, faction: 1, columns: 34, frame: 1 });
   const instances = player.concat(enemy);
   const shell = await createConfiguredShell(ctx.canvas, { x: 0, y: -1, zoom: 4.8, pitch: 0.24, yaw: 0 });
-  animateShell(shell, ctx.status, () => ({ markers: instances.map(instanceMarker) }));
+  animateShell(shell, ctx.status, () => ({ markers: instances.map(instanceMarker), markerLayer: 'lab-placeholder' }));
   const packed = buildCrowdInstances(toCrowdBuildInputs(instances));
   publish('crowd-data', true, { route: 'crowd-data', stats: packed.stats, packedFloats: packed.packed.length });
 }
@@ -247,7 +247,7 @@ async function routeAnimationState(ctx: LabContext) {
     faction: (i % 2) as 0 | 1,
     size: 1.3,
   }));
-  animateShell(shell, ctx.status, () => ({ markers }));
+  animateShell(shell, ctx.status, () => ({ markers, markerLayer: 'lab-placeholder' }));
   const rows = Array.from({ length: 12 }, (_, frame) => {
     const state = animationForFrame(frame, 240, frame * 19, frame !== 4);
     return `<tr><td>${frame}</td><td>${state.clip}</td><td>${state.phase.toFixed(3)}</td><td>${state.loop}</td></tr>`;
@@ -498,7 +498,7 @@ async function routeLod(ctx: LabContext) {
   const lods = assignCrowdLods(instances, zoom);
   const counts = countLods(lods);
   const shell = await createConfiguredShell(ctx.canvas, { x: 0, y: -1, zoom, pitch: 0.24, yaw: 0 });
-  animateShell(shell, ctx.status, () => ({ markers: instances.map((inst, i) => ({ ...instanceMarker(inst), lod: lods[i].level, size: Math.max(0.5, 1.15 - lods[i].level * 0.14) })) }));
+  animateShell(shell, ctx.status, () => ({ markers: instances.map((inst, i) => ({ ...instanceMarker(inst), lod: lods[i].level, size: Math.max(0.5, 1.15 - lods[i].level * 0.14) })), markerLayer: 'lab-placeholder' }));
   ctx.status.innerHTML = reportTable({ route: 'lod', zoom, L0: counts.l0, L1: counts.l1, L2: counts.l2, L3: counts.l3 });
   publish('lod', true, { counts, zoom });
 }
@@ -564,7 +564,7 @@ async function routeCampaign(ctx: LabContext) {
     ...generatedMarkers(50, -15, -4, 0).map((m) => ({ ...m, size: 0.9 })),
     ...generatedMarkers(36, 11, 4, 2).map((m) => ({ ...m, size: 0.85 })),
   ];
-  animateShell(shell, ctx.status, () => ({ markers, terrainRect: [-48, -28, 96, 56] }));
+  animateShell(shell, ctx.status, () => ({ markers, markerLayer: 'lab-placeholder', terrainRect: [-48, -28, 96, 56] }));
   ctx.status.innerHTML = reportTable({ route: 'campaign', markers: markers.length, semantics: 'faction tint plus neutral standard' });
   publish('campaign', true, { markers: markers.length });
 }
@@ -577,7 +577,7 @@ async function routeCutover(ctx: LabContext) {
     ...generatedMarkers(44, 11, 4, 1).map((m) => ({ ...m, size: 0.95 })),
     ...generatedMarkers(14, 0, 1, 2).map((m) => ({ ...m, size: 0.75 })),
   ];
-  shell.drawFrame({ markers, terrainRect: [-40, -24, 80, 48] });
+  shell.drawFrame({ markers, markerLayer: 'lab-placeholder', terrainRect: [-40, -24, 80, 48] });
   const checks = [
     { id: 'battle-default', status: 'complete', detail: 'normal battle route instantiates BattleRendererWebGPU only' },
     { id: 'campaign-default', status: 'complete', detail: 'normal campaign route instantiates CampaignRendererWebGPU only' },
@@ -1208,6 +1208,7 @@ async function routeRenderGraph(ctx: LabContext) {
   ];
   shell.drawFrame({
     markers,
+    markerLayer: 'lab-placeholder',
     terrainRect: [-14, -7, 28, 15],
     passes: [{ id: 'render-graph-nested-3d', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => nested.draw(pass) }],
   });
@@ -1503,6 +1504,7 @@ async function routeBattleTerrain(ctx: LabContext) {
     clear: { r: 0.74, g: 0.83, b: 0.90, a: 1 },
     terrainRect: [-58, -12, 116, 46],
     markers: generatedMarkers(54, -14, 2, 0).concat(generatedMarkers(54, 15, 8, 1)),
+    markerLayer: 'lab-placeholder',
     passes: [
       { id: 'battle-terrain-fixture-underpaint', role: 'background-underpaint', phase: 'background', draw: (pass) => terrain.draw(pass) },
       { id: 'battle-terrain-fixture-props', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => terrain.drawProps(pass) },
@@ -2002,10 +2004,17 @@ function liveFrameGraphContractFixtures(shell: RawFrameShell) {
         draw: () => undefined,
       }],
     },
+    {
+      id: 'markersMissingLayer',
+      expected: 'background markers must declare markerLayer',
+      commands: {
+        markers: [{ x: 0, y: 0, faction: 0 as const }],
+      },
+    },
   ];
   return fixtures.map((fixture) => {
     try {
-      shell.drawFrame({ passes: fixture.passes as unknown as FrameGraphPass[] });
+      shell.drawFrame('commands' in fixture ? fixture.commands : { passes: fixture.passes as unknown as FrameGraphPass[] });
       return { id: fixture.id, expected: fixture.expected, rejected: false, diagnostics: [] };
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);

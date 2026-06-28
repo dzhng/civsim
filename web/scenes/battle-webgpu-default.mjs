@@ -30,6 +30,7 @@ export async function run(ctx) {
     stats.renderer === 'webgpu'
       && stats.renderStats?.ready === true
       && stats.renderStats.soldiers === stats.soldiers
+      && stats.renderStats.markerLayer === 'none'
       && stats.renderStats.atmosphere === 'aegean-sky-haze'
       && hasBattleWorldDepthContract(stats.renderStats),
     JSON.stringify(stats),

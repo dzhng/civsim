@@ -157,6 +157,7 @@ export class BattleRendererWebGPU {
       terrainRect: this.terrainRect,
       terrainStyle: camera.zoom < 1.2 ? 'wide-detail' : 'default',
       markers: this.markers,
+      markerLayer: this.markers.length > 0 ? 'far-lod-impostor' : undefined,
       passes: [
         { id: 'battle-terrain-underpaint', role: 'background-underpaint', phase: 'background', draw: (pass) => this.terrain!.draw(pass) },
         { id: 'battle-terrain-props', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => this.terrain!.drawProps(pass) },

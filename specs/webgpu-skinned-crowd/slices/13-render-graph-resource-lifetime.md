@@ -98,6 +98,12 @@ compatible or splits them into separate passes.
   by `RawFrameShell.drawFrame` before GPU encoding. The `/webgpu/frame-shell`
   negative fixtures reject a live `treeBucket` pass, so JavaScript callers and
   lab routes cannot bypass the declarative graph contract.
+- Built-in shell `markers` now require an explicit `markerLayer` whenever they
+  are non-empty. Lab placeholders declare `lab-placeholder`; the production
+  battle far-zoom fallback declares `far-lod-impostor`; ordinary production
+  battle assertions require `markerLayer: none`. This keeps the no-depth marker
+  path visible as an L3 fallback instead of an accidental substitute for
+  world-depth unit rendering.
 - `/webgpu/render-graph` includes `Nested3dFixturePass`, a deterministic
   depth-only proof surface for flag-in-city, garrison-in-city-stub,
   rank-overlap, and ground-ring-occlusion. The fixture deliberately submits

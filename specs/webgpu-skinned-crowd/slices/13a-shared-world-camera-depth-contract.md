@@ -253,6 +253,11 @@ shadows that sit on the ground instead of floating as screen overlays.
   declarative compiler. Live frame submissions reject bucket-shaped pass ids
   before GPU encoding, and the frame-shell fixture covers this path alongside
   phase/role/depth mismatch fixtures.
+- `RawFrameShell` now treats built-in background markers as explicit
+  non-depth fallbacks: non-empty marker arrays must declare `lab-placeholder` or
+  `far-lod-impostor`, and normal production battle checks assert marker layer
+  `none` at gameplay zoom. This prevents the old marker/impostor path from
+  silently replacing true `world-depth` units.
 - `/webgpu/campaign-model-gates?gate=city` now publishes tight production
   city-standard samples. The route asserts that a lower red standard segment
   planted inside the city resolves to city material while the upper cloth

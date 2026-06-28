@@ -23,6 +23,8 @@ export interface MarkerInstance {
   lod?: number;
 }
 
+export type MarkerLayerIntent = 'none' | 'lab-placeholder' | 'far-lod-impostor';
+
 export interface RawFrameShell {
   info: WebGpuDeviceInfo;
   device: GPUDevice;
@@ -80,6 +82,7 @@ export type FrameGraphPass =
 
 export interface FrameGraphCommands {
   markers?: MarkerInstance[];
+  markerLayer?: Exclude<MarkerLayerIntent, 'none'>;
   terrainRect?: [number, number, number, number];
   terrainBackdropRect?: [number, number, number, number];
   terrainStyle?: 'default' | 'wide-detail';
@@ -106,6 +109,7 @@ export interface FrameShellStats {
   device: string;
   atmosphere: string;
   cameraContract: 'shared-world-camera-wgsl';
+  markerLayer: MarkerLayerIntent;
   phases: FramePhaseStats[];
   depth: {
     format: typeof WEBGPU_DEPTH_FORMAT;
@@ -356,6 +360,7 @@ export class RawFrameShellImpl implements RawFrameShell {
   private depthWidth = 0;
   private depthHeight = 0;
   private markerCapacity = 0;
+  private markerLayer: MarkerLayerIntent = 'none';
   private camera: Omit<CameraSnapshot, 'width' | 'height'> = { x: 0, y: 0, zoom: 12, pitch: 0.35, yaw: 0 };
   private width = 1;
   private height = 1;
@@ -438,7 +443,12 @@ export class RawFrameShellImpl implements RawFrameShell {
     const terrainBackdropRect = commands.terrainBackdropRect;
     if (terrainBackdropRect) this.uploadTerrain(this.terrainBackdropVertexBuffer, terrainBackdropRect);
     this.uploadTerrain(this.terrainVertexBuffer, terrainRect);
-    this.uploadMarkers(commands.markers ?? []);
+    const markers = commands.markers ?? [];
+    if (markers.length > 0 && !commands.markerLayer) {
+      throw new Error('background markers must declare markerLayer "lab-placeholder" or "far-lod-impostor"');
+    }
+    this.markerLayer = markers.length > 0 ? commands.markerLayer! : 'none';
+    this.uploadMarkers(markers);
     const encoder = this.device.createCommandEncoder({ label: 'raw-frame-encoder' });
     const colorView = this.context.getCurrentTexture().createView();
     const pass = encoder.beginRenderPass({
@@ -543,6 +553,7 @@ export class RawFrameShellImpl implements RawFrameShell {
       device: [this.info.vendor, this.info.architecture, this.info.description].filter(Boolean).join(' / ') || 'unknown',
       atmosphere: 'aegean-sky-haze',
       cameraContract: 'shared-world-camera-wgsl',
+      markerLayer: this.markerLayer,
       phases: this.lastPhases.map((phase) => ({ ...phase })),
       depth: {
         format: WEBGPU_DEPTH_FORMAT,

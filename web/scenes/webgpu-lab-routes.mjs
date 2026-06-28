@@ -266,6 +266,7 @@ function frameGraphContractFixturesRejected(fixtures) {
     'mismatchedSemanticRole',
     'mismatchedDepthRole',
     'topLevelTypeBucketPass',
+    'markersMissingLayer',
   ]);
   return Array.isArray(fixtures)
     && fixtures.length === expected.size
@@ -350,6 +351,8 @@ async function findPhaseBrandFootguns() {
       checks: [
         ['frame shell imports shared depth contract', /import\s*\{[^}]*WEBGPU_DEPTH_FORMAT[^}]*type\s+WebGpuDepthMode[^}]*\}\s*from\s*['"]\.\/depthContract['"]/],
         ['frame shell imports shared bucket-pass guard', /import\s*\{[\s\S]*?isTopLevelTypeBucketPass[\s\S]*?\}\s*from\s*['"]\.\/frameGraphContract['"]/],
+        ['frame commands require explicit marker layer for background markers', /markerLayer\?:\s*Exclude<MarkerLayerIntent,\s*'none'>[\s\S]*?background markers must declare markerLayer/],
+        ['frame stats publish marker layer intent', /markerLayer:\s*MarkerLayerIntent[\s\S]*?markerLayer:\s*this\.markerLayer/],
         ['frame graph command list is phase-branded', /export type FrameGraphPass[\s\S]*?phase:\s*'background'[\s\S]*?BackgroundRenderPass[\s\S]*?phase:\s*'world-depth'[\s\S]*?WorldRenderPass[\s\S]*?phase:\s*'overlay'[\s\S]*?OverlayRenderPass/],
         ['frame graph command list declares semantic roles', /export type FrameGraphPass[\s\S]*?role:\s*'background-underpaint'[\s\S]*?role:\s*'world-depth-fill'\s*\|\s*'world-opaque'\s*\|\s*'world-decal'[\s\S]*?role:\s*'overlay-ui'\s*\|\s*'overlay-effect'\s*\|\s*'overlay-debug'/],
         ['frame commands accept graph passes', /passes\?:\s*FrameGraphPass\[\]/],
@@ -409,7 +412,10 @@ async function findPhaseBrandFootguns() {
     },
     {
       file: new URL('../../web/src/battle/rendererWebGPU.ts', import.meta.url),
-      checks: [['battle debug triangles draw requires overlay pass', /class BattleTrianglePass[\s\S]*?\bdraw\s*\(\s*pass:\s*OverlayRenderPass\s*\)/]],
+      checks: [
+        ['battle debug triangles draw requires overlay pass', /class BattleTrianglePass[\s\S]*?\bdraw\s*\(\s*pass:\s*OverlayRenderPass\s*\)/],
+        ['battle far LOD markers declare impostor marker layer', /markerLayer:\s*this\.markers\.length\s*>\s*0\s*\?\s*'far-lod-impostor'\s*:\s*undefined/],
+      ],
     },
     {
       file: new URL('../../packages/game-renderer/src/fixtures/nested3d.ts', import.meta.url),

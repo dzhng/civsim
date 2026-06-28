@@ -59,9 +59,8 @@ whole feature is done.
    one slice or needs assets/visualizations.
 5. **Build slice by slice:** leave each slice with a runnable artifact and
    verification before depending on it. Keep each artifact small enough to
-   iterate on quickly. After every pass, update the README's "Next Agent
-   Prompt" so the README itself tells the next agent exactly where to pick back
-   up.
+   iterate on quickly. Keep the README's "Next Agent Prompt" written as the
+   handoff text a future agent should read and follow.
 
 ## Plan Folder
 
@@ -103,15 +102,17 @@ Each slice file answers:
 ## README Handoff Prompt
 
 Every multi-slice spec README needs a "Next Agent Prompt" near the top. Write it
-in second person, as a prompt to the next agent who opens the README. Do not
-write a meta note such as "keep this README updated"; instead, put that
-instruction inside the prompt the next agent will read. It should include:
+in second person, as the prompt a future agent should read when they resume the
+feature. The README should not merely describe that it is live handoff state;
+the section itself must directly tell the next agent what to do next. It should
+include:
 
 - Current status and last-updated date.
 - The exact next pickup point.
 - Active blockers or warnings.
 - A global TODO checklist, with each item pointing to the owning slice.
-- A rule to update this section before ending any future pass.
+- A direct instruction to the next agent to update this section before ending
+  their pass.
 
 The point is that a fresh agent can open the README and know what to do next
 without reading the chat.

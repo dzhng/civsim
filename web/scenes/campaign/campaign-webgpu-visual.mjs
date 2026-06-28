@@ -16,6 +16,8 @@ export const meta = {
   describe: 'Controlled campaign marker and UI snapshots on the production raw-WebGPU campaign adapter.',
 };
 
+const UI_SHOTS = new URL('../../shots/ui/', import.meta.url).pathname;
+
 export async function run(ctx) {
   if (process.env.VERIFY_WEBGPU !== '1') {
     ctx.check('campaign WebGPU visual snapshots require VERIFY_WEBGPU=1', true, 'set VERIFY_WEBGPU=1 to exercise the WebGPU campaign adapter');
@@ -55,18 +57,18 @@ export async function run(ctx) {
 
   await page.click('#cmp-classes-btn');
   await page.waitForTimeout(300);
-  await ctx.snap(page, 'ui-class-builder');
+  await ctx.snap(page, 'ui-class-builder', { baseDir: UI_SHOTS });
   await page.click('#cmp-classes-btn');
 
   await page.click('#cmp-diplo-btn');
   await page.waitForTimeout(300);
-  await ctx.snap(page, 'ui-diplomacy');
+  await ctx.snap(page, 'ui-diplomacy', { baseDir: UI_SHOTS });
   await page.click('#cmp-diplo-btn');
 
   await page.evaluate(() => window.__campaign.place(0, 1, 0, 4));
   await page.evaluate(() => window.__campaign.openCity(0));
   await page.waitForTimeout(300);
-  await ctx.snap(page, 'ui-city-panel');
+  await ctx.snap(page, 'ui-city-panel', { baseDir: UI_SHOTS });
 
   const armyClick = await page.evaluate(() => {
     const selectedArmy = window.__campaign.armies().find((candidate) => candidate.mine);
@@ -74,7 +76,7 @@ export async function run(ctx) {
   });
   await page.mouse.click(armyClick[0], armyClick[1]);
   await page.waitForTimeout(300);
-  await ctx.snap(page, 'ui-army-replenish-toggle');
+  await ctx.snap(page, 'ui-army-replenish-toggle', { baseDir: UI_SHOTS });
 
   await pose(page, ctx, 'army-our-city', { kind: 0, a: 0, b: 0 }, -25);
   await pose(page, ctx, 'army-road', { kind: 1, a: 0, b: 4 }, 0);

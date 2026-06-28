@@ -15,9 +15,10 @@ Snapshot mechanics live in [screenshot-regression](../screenshot-regression/SKIL
 
 ## Where
 
-- Driver: `web/vibe/turntable.mjs` (the page harness is
-  `web/src/battle/turntable.ts`, mounted by `?test=models`). Shared soldier
-  sheets write to `web/shots/models/shared/turntable/<id>-<class>.png`.
+- Driver: `web/vibe/turntable.mjs` against the WebGPU model-review route. Shared
+  soldier sheets write to
+  `web/shots/models/shared/turntable/<id>-<class>.png`; in-game pitch sheets
+  write to `web/shots/models/shared/ingame/<id>-<class>.png`.
 - Each sheet is composited in JS and handed to `snapCheck` as a buffer, so the
   one image is the whole gate:
   `snapCheck(page, '${GROUP}/${id}-${name}', check, { threshold: 0.1, maxDiffRatio: 0.003, shot: montage(rows, TW, TH) })`.

@@ -1,5 +1,5 @@
-// 360° model-review turntable. Boots the ?test=models harness (one soldier per
-// class on a flat field, no sim), orbits each model through 8 facings in every
+// 360° model-review turntable. Boots the WebGPU skinned-soldier lab route (one
+// soldier on a flat field, no sim), orbits each model through 8 facings in every
 // stance, and snap-checks one contact sheet per class against its committed
 // baseline. The sheet is both the thing you review (tweak soldierModel.ts, re-
 // run, eyeball the baselines) AND a gate: an unintended geometry/renderer change
@@ -13,6 +13,7 @@
 import { chromium } from 'playwright';
 import { PNG } from 'pngjs';
 import { clearSnapshotFolder, snapCheck } from '../snapshot.mjs';
+import { WEBGPU_HARDWARE_FLAGS, WEBGPU_SWIFTSHADER_FLAGS } from '../webgpu-probe-lib.mjs';
 
 const TARGET = process.env.VERIFY_URL ?? 'http://localhost:5173';
 // PITCH=ingame renders at the battle's real max tilt (0.42 rad, near top-down)
@@ -50,12 +51,12 @@ const frameFor = (cls) => {
   return { zoom: Math.max(105, Math.min(280, (0.82 * TH) / (h * Math.sin(PITCH)))), camY: 0.52 * h };
 };
 
-// Stances = sim frame values the renderer reads (rows of the sheet).
+// Stances = route clip/phase samples (rows of the sheet).
 const STANCES = [
-  { name: 'ease', frame: 6 },    // at ease: poles upright, blades low
-  { name: 'ready', frame: 0 },   // alert: weapon in guard
-  { name: 'attack', frame: 3 },  // trading blows: forward thrust
-  { name: 'march', frame: 1 },   // walking
+  { name: 'ease', clip: 'idle', phase: 0.15, frame: 6 },
+  { name: 'ready', clip: 'idle', phase: 0.0, frame: 0 },
+  { name: 'attack', clip: 'attack_a', phase: 0.52, frame: 3 },
+  { name: 'march', clip: 'march', phase: 0.32, frame: 1 },
 ];
 
 // 8 facings, 45° apart, starting front-on (model faces the camera) then orbiting.
@@ -86,14 +87,14 @@ function montage(rows, tw, th, gap = 2, bg = [18, 20, 26]) {
 
 const only = process.env.ONLY ? process.env.ONLY.split(',').map(Number) : null;
 
-const browser = await chromium.launch();
+const webgpuArgs = process.env.VERIFY_WEBGPU === '1'
+  ? (process.env.VERIFY_WEBGPU_ADAPTER === 'hardware' ? WEBGPU_HARDWARE_FLAGS : WEBGPU_SWIFTSHADER_FLAGS)
+  : [];
+const browser = await chromium.launch({ args: webgpuArgs });
 const page = await browser.newPage({ viewport: { width: TW, height: TH } });
 const errs = [];
 page.on('pageerror', (e) => errs.push(e.message));
 page.on('console', (m) => { if (m.type() === 'error') errs.push(m.text()); });
-await page.goto(`${TARGET}/?test=models`);
-await page.waitForFunction(() => window.__ready === true, undefined, { timeout: 20000 });
-await page.waitForTimeout(300);
 
 const classes = only ?? Array.from({ length: CLASS_NAMES.length }, (_, i) => i);
 if (!only) await clearSnapshotFolder(GROUP);
@@ -106,18 +107,23 @@ const check = (label, ok, detail) => {
 
 for (const cls of classes) {
   const name = CLASS_NAMES[cls];
-  const { zoom, camY } = frameFor(cls);
+  const { zoom } = frameFor(cls);
   const rows = [];
   for (const st of STANCES) {
     const row = [];
     for (const k of ANGLES) {
       const facing = FRONT + k * (Math.PI / 4);
-      await page.evaluate(
-        (p) => { window.__tt.render(p); window.__tt.label(`${p.name} · ${p.st} · ${p.deg}°`); },
-        { cls, team: 0, facing, frame: st.frame, pitch: PITCH, zoom, camY,
-          name, st: st.name, deg: k * 45 },
-      );
-      row.push(await page.screenshot());
+      row.push(await captureSoldier(page, {
+        classId: cls,
+        clip: st.clip,
+        phase: st.phase,
+        frame: st.frame,
+        facing,
+        zoom: INGAME ? 54 : zoom,
+        pitch: INGAME ? 0.32 : 0.15,
+        yaw: INGAME ? -0.08 : -0.18,
+        size: cls === 6 ? 1.05 : 1.15,
+      }));
     }
     rows.push(row);
   }
@@ -131,3 +137,29 @@ for (const cls of classes) {
 if (errs.length) console.log('page errors:', errs.slice(0, 8));
 await browser.close();
 process.exit(fails);
+
+async function captureSoldier(page, opts) {
+  const url = new URL(`${TARGET}/webgpu/skinned-soldier`);
+  url.searchParams.set('class', String(opts.classId));
+  url.searchParams.set('clip', opts.clip);
+  url.searchParams.set('phase', String(opts.phase));
+  url.searchParams.set('frame', String(opts.frame));
+  url.searchParams.set('facing', String(opts.facing));
+  url.searchParams.set('x', '-4.2');
+  url.searchParams.set('y', '0.75');
+  url.searchParams.set('zoom', String(opts.zoom));
+  url.searchParams.set('pitch', String(opts.pitch));
+  url.searchParams.set('yaw', String(opts.yaw));
+  url.searchParams.set('size', String(opts.size));
+  await page.goto(url.href);
+  await page.waitForFunction(
+    ({ classId, clip, phase }) => window.__webgpuLabReady === true
+      && window.__webgpuLabStats?.stats?.classId === classId
+      && window.__webgpuLabStats?.stats?.clip === clip
+      && Math.abs((window.__webgpuLabStats?.stats?.phase ?? -999) - phase) < 0.0001,
+    { classId: opts.classId, clip: opts.clip, phase: opts.phase },
+    { timeout: 18000 },
+  );
+  await page.waitForTimeout(80);
+  return page.locator('#webgpu-canvas').screenshot();
+}

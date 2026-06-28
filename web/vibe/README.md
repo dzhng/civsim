@@ -95,10 +95,10 @@ Class ids: 0 heavy · 1 light · 2 longsword · 3 phalanx · 4 archers ·
 
 ## The model turntable (`turntable.mjs`)
 
-Not a battle — a 360° review of the 3D soldier models. Boots `?test=models` (one
-soldier per class on a flat field, no sim), orbits each class through 8 facings
-× 4 stances (ease / ready / attack / march), and snap-checks one contact sheet
-per class against `web/shots/models/shared/turntable/<id>-<class>.png`. Same deal: the
+Not a battle — a 360° review of the 3D soldier models. Boots the WebGPU
+skinned-soldier lab route, orbits each class through 8 facings × 4 stances
+(ease / ready / attack / march), and snap-checks one contact sheet per class
+against `web/shots/models/shared/turntable/<id>-<class>.png`. Same deal: the
 sheet is what you review AND a gate — an unintended geometry/renderer change
 turns a class red.
 

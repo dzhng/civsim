@@ -17,17 +17,18 @@ export async function run(ctx) {
     const box = await page.evaluate((zoom) => {
       const a = window.__game.unitInfo(0);
       const c = window.__cam;
-      c.x = a[32];
-      c.y = a[33];
+      c.x = a[0];
+      c.y = a[1];
       c.zoom = zoom;
       c.pitch = 0;
       c.clampView?.();
       window.__game.freeze();
       const cnt = a[7];
+      const start = window.__game.soldierStartOf(0);
       let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
       const dpr = window.devicePixelRatio || 1;
       for (let i = 0; i < cnt; i++) {
-        const [wx, wy] = window.__game.soldierPos(i);
+        const [wx, wy] = window.__game.soldierPos(start + i);
         const [sx, sy] = c.worldToScreen(wx, wy).map((v) => v * dpr);
         x0 = Math.min(x0, sx);
         x1 = Math.max(x1, sx);
@@ -56,7 +57,7 @@ export async function run(ctx) {
         }
       }
     }
-    const darkFrac = dark / n;
+    const darkFrac = n > 0 ? dark / n : 1;
     const blueShare = unit ? blue / unit : 0;
     const detail = `darkFrac ${(darkFrac * 100).toFixed(0)}% blueShare ${(blueShare * 100).toFixed(0)}%`;
     ctx.check(`LOD z${z}: unit is not a black slab`, darkFrac < 0.2, detail);

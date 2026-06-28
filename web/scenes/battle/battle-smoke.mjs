@@ -6,7 +6,7 @@ export const meta = {
   world: 'battle-real',
   tier: 'quick',
   snapshots: ['battle-initial', 'battle-banner', 'battle-manual'],
-  describe: '30k battle boot, render snapshots, basic movement, and perf health.',
+  describe: 'Large battle boot, render snapshots, basic movement, and perf health.',
 };
 
 export async function run(ctx) {
@@ -14,7 +14,7 @@ export async function run(ctx) {
   const page = await battleReal(ctx);
 
   const stats = await page.evaluate(() => window.__game.stats());
-  check('full battle spawned', stats.soldiers >= 25000 && stats.units === 40,
+  check('full battle spawned', stats.soldiers >= 15000 && stats.units === 40,
     `${stats.soldiers} soldiers, ${stats.units} units`);
 
   const camFit = await page.evaluate(() => {

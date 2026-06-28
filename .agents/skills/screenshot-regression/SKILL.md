@@ -142,15 +142,11 @@ catches both the far-zoom **black-block** bug and the mid-zoom **faint-soldier**
 bug with one metric, and isn't fooled by legitimate grass between ranks (the
 flaw in any whole-box "mean colour" check).
 
-Root cause that metric guards: the 2D sprite atlas is **straight-alpha with a
-wide transparent margin per cell**, drawn **opaque with an alpha-test** (no
-blend). The mip chain box-filters those `(0,0,0,0)` margin texels into RGB, so a
-minified soldier samples near-black — and the alpha-test writes it, collapsing a
-zoomed-out block of men into a solid black slab. Fix in the sprite fragment
-shader: divide by coverage, `gl_FragColor = vec4(c.rgb / c.a, 1.0)`, to recover
-the figure's true alpha-weighted colour. Keep per-soldier outline/shadow
-*soft*, never pure black — in an opaque renderer a hard-black rim is the bulk of
-what a minified man averages to.
+Root-cause checks should stay renderer-neutral. If a zoomed model turns into a
+dark block, inspect the crop and then check the current renderer's actual
+coverage, mip, alpha, depth, and outline path. Keep the metric tied to visible
+pixels; put renderer-specific discoveries in the feature spec or code comments
+near the shader they affect.
 
 ## Testing input/selection — and the device-pixel-ratio trap
 
@@ -160,13 +156,10 @@ Click-to-select and drag-box are real input paths; drive them with
 
 1. **dpr=1 hides Retina selection bugs.** The headless default is
    `deviceScaleFactor: 1`, where CSS px == device px and every dpr factor
-   cancels. The renderer, `camera.ts`, and `input.ts` must AGREE on whether the
-   canvas backing store is CSS- or device-sized. The 2D renderer sized it device
-   px (`clientWidth * dpr`); the Babylon engine defaulted to CSS px
-   (`adaptToDeviceRatio` **false**) while camera/input still multiply `clientX`
-   by dpr — so on a real Retina screen every click mapped to the wrong world
-   point and selected nothing. Always add a `deviceScaleFactor: 2` page to the
-   input stage; dpr 1 alone is worthless here.
+   cancels. The renderer, camera, and input code must agree on whether the
+   canvas backing store is CSS- or device-sized. Always add a
+   `deviceScaleFactor: 2` page to the input stage; dpr 1 alone is worthless
+   here.
 2. **Click the TRUE rendered pixel, not `worldToScreen`.** To find where to
    click, project from the canvas BACKING store:
    `cssX = ((wx-camx)*zoom + canvas.width/2) * (canvas.clientWidth/canvas.width)`

@@ -103,15 +103,19 @@ and use focused fixture worlds before full-map acceptance.
 
 You are picking up campaign polish. Last updated: 2026-06-29.
 
-Current status: the visual harness/source ownership cleanup is in progress
-before campaign polish implementation begins.
+Current status: the visual harness/source ownership cleanup is complete.
+Scenes, shots, UI captures, model turntables, model animations, vibe timelines,
+and weave timelines have been regenerated from scratch against the WebGPU
+pipeline.
 
-Next pickup: finish the `web/shots` and `web/scenes` folder split, regenerate
-WebGPU baselines from scratch, then start Slice 1 by adding focused campaign
-workbench scenes with the `write-scene` skill.
+Next pickup: start Slice 1 by adding the focused campaign workbench scenes with
+the `write-scene` skill, using the existing regenerated WebGPU baselines as the
+review floor.
 
-Active blocker: do not accept campaign polish screenshots until the new baseline
-folders are regenerated and reviewed with `screenshot-critique`.
+Active warning: the harness is green, but the campaign-polish visual issues in
+the user-feedback screenshots are intentionally not solved yet. Do not mark a
+slice done until its focused scene and real campaign crop both pass an unbiased
+`screenshot-critique` review.
 
 Before ending any future pass, update this section with the new status, next
 pickup point, blockers, and checklist state.

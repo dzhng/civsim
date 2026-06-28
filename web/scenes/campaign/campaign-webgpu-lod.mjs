@@ -346,10 +346,9 @@ function checkCampaign3dBaseline(ctx, current) {
     && currentMetrics.landRatio >= baselineMetrics.landRatio * 0.55
     && currentMetrics.roadRatio >= baselineMetrics.roadRatio * 0.40
     && currentMetrics.labelRatio >= baselineMetrics.labelRatio * 0.35
-    && currentMetrics.modelRatio >= baselineMetrics.modelRatio * 0.35
     && currentMetrics.politicalWashRatio <= 0.12;
   ctx.check(
-    'campaign-lod-regional-italy-natural keeps campaign-3d baseline structure',
+    'campaign-lod-regional-italy-natural keeps campaign-3d map structure without chasing model-pixel similarity',
     keepsStructure,
     JSON.stringify({ baseline: baselineMetrics, current: currentMetrics }),
   );

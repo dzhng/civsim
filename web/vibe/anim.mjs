@@ -1,8 +1,8 @@
 // Animation review: films each soldier animation (walk, run, attack, hit, die)
 // as a looping GIF so the motion can be eyeballed frame by frame — the manual
-// check the user asked for. Boots the ?test=models turntable (one soldier on a
-// flat field, no sim) and drives it with __tt.step, then encodes the frames with
-// the dependency-free _gif.mjs encoder into
+// check the user asked for. Boots the WebGPU skinned-soldier lab route (one
+// soldier on a flat field, no sim) and samples deterministic phases, then
+// encodes the frames with the dependency-free _gif.mjs encoder into
 // web/shots/models/shared/anim/<id>-<class>-<anim>.gif.
 //
 //   node vibe/anim.mjs                 # the representative class set, all anims
@@ -13,6 +13,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { encodeGif, pngToRGBA } from './_gif.mjs';
+import { WEBGPU_HARDWARE_FLAGS, WEBGPU_SWIFTSHADER_FLAGS } from '../webgpu-probe-lib.mjs';
 
 const TARGET = process.env.VERIFY_URL ?? 'http://localhost:5173';
 const TW = 300, TH = 380, PITCH = 0.95;
@@ -46,34 +47,38 @@ const ANIMS = {
 
 const only = process.env.ONLY ? process.env.ONLY.split(',').map(Number) : [0, 3, 4, 6];
 
-const browser = await chromium.launch();
+const webgpuArgs = process.env.VERIFY_WEBGPU === '1'
+  ? (process.env.VERIFY_WEBGPU_ADAPTER === 'hardware' ? WEBGPU_HARDWARE_FLAGS : WEBGPU_SWIFTSHADER_FLAGS)
+  : [];
+const browser = await chromium.launch({ args: webgpuArgs });
 const page = await browser.newPage({ viewport: { width: TW, height: TH } });
 const errs = [];
 page.on('pageerror', (e) => errs.push(e.message));
 page.on('console', (m) => { if (m.type() === 'error') errs.push(m.text()); });
-await page.goto(`${TARGET}/?test=models`);
-await page.waitForFunction(() => window.__ready === true, undefined, { timeout: 20000 });
-await page.waitForTimeout(300);
 
 for (const cls of only) {
   const h = CLASS_H[cls] ?? 1.8;
   const zoom = Math.max(105, Math.min(280, (0.82 * TH) / (h * Math.sin(PITCH))));
   const camY = 0.52 * h;
   for (const [name, anim] of Object.entries(ANIMS)) {
-    await page.evaluate(() => window.__tt.reset());
     const frames = [];
     // Two cycles for the looping anims so the GIF has a natural rhythm.
     const reps = anim.once ? 1 : 2;
+    let phase = 0;
     for (let r = 0; r < reps; r++) {
       for (const s of anim.steps) {
-        await page.evaluate(
-          ({ s, cls, facing, zoom, camY, pitch, label }) => {
-            window.__tt.step({ cls, team: 0, facing, frame: s.frame, pitch, zoom, camY }, s.dt);
-            window.__tt.label(label);
-          },
-          { s, cls, facing, zoom, camY, pitch: PITCH, label: `${NAMES[cls]} · ${name}` },
-        );
-        frames.push(pngToRGBA(await page.screenshot()));
+        phase = (phase + s.dt) % 1;
+        frames.push(pngToRGBA(await captureSoldier(page, {
+          classId: cls,
+          clip: clipForAnimation(name),
+          phase,
+          frame: s.frame,
+          facing,
+          zoom,
+          pitch: PITCH,
+          yaw: -0.18,
+          size: cls === 6 ? 1.05 : 1.15,
+        })));
       }
     }
     const gif = encodeGif(frames, TW, TH, anim.delay, { loop: !anim.once });
@@ -85,3 +90,37 @@ for (const cls of only) {
 }
 if (errs.length) console.log('page errors:', errs.slice(0, 6));
 await browser.close();
+
+function clipForAnimation(name) {
+  if (name === 'attack') return 'attack_a';
+  if (name === 'hit') return 'hit_a';
+  if (name === 'die') return 'death_a';
+  if (name === 'run') return 'run';
+  return 'march';
+}
+
+async function captureSoldier(page, opts) {
+  const url = new URL(`${TARGET}/webgpu/skinned-soldier`);
+  url.searchParams.set('class', String(opts.classId));
+  url.searchParams.set('clip', opts.clip);
+  url.searchParams.set('phase', String(opts.phase));
+  url.searchParams.set('frame', String(opts.frame));
+  url.searchParams.set('facing', String(opts.facing));
+  url.searchParams.set('x', '-4.2');
+  url.searchParams.set('y', '0.75');
+  url.searchParams.set('zoom', String(opts.zoom));
+  url.searchParams.set('pitch', String(opts.pitch));
+  url.searchParams.set('yaw', String(opts.yaw));
+  url.searchParams.set('size', String(opts.size));
+  await page.goto(url.href);
+  await page.waitForFunction(
+    ({ classId, clip, phase }) => window.__webgpuLabReady === true
+      && window.__webgpuLabStats?.stats?.classId === classId
+      && window.__webgpuLabStats?.stats?.clip === clip
+      && Math.abs((window.__webgpuLabStats?.stats?.phase ?? -999) - phase) < 0.0001,
+    { classId: opts.classId, clip: opts.clip, phase: opts.phase },
+    { timeout: 18000 },
+  );
+  await page.waitForTimeout(80);
+  return page.locator('#webgpu-canvas').screenshot();
+}

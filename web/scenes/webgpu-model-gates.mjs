@@ -38,7 +38,7 @@ const gates = [
   {
     id: 'army',
     label: 'Army Marker',
-    criteria: 'Army flag is attached to the marker with representative figures, faction livery, label icon, shadow, and selected footprint.',
+    criteria: 'Army flag is attached to the marker with representative figures, faction livery, label icon, shadow, and a ground selection footprint occluded by the formation.',
   },
   {
     id: 'road',
@@ -53,7 +53,7 @@ const gates = [
   {
     id: 'selected-city',
     label: 'Selected City Footprint',
-    criteria: 'Selected city footprint sits outside the city shadow and projects with the ground plane.',
+    criteria: 'Selected city footprint sits outside the city shadow, projects with the ground plane, and is occluded by city geometry where covered.',
   },
   {
     id: 'trees',

@@ -149,6 +149,13 @@ nearer standard when both use the shared campaign world-depth helper. This is
 not visual acceptance; it is an architecture guard against returning to
 painter-order truth.
 
+Selection-depth checkpoint: the selected-city and selected-army model gates now
+publish tight crop samples for the ground-decal contract. Each gate samples a
+covered core point that must resolve to city/army material, plus a visible outer
+ring point that must resolve to selection green. This guards the regression
+where a selection circle floats above soldiers or buildings while still
+appearing somewhere else in the frame.
+
 Fresh screenshot critique after this architecture checkpoint confirms the
 tree-over-standard artifact is removed from Campaign Label Zoom, but it does not
 accept the visual. The next blocker list is: road/selection/unit stacking lacks

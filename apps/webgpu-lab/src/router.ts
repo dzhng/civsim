@@ -733,6 +733,7 @@ async function routeCampaignModelGates(ctx: LabContext) {
   const frame = campaignModelGateFrame(gate);
   const cityStandardSamples = campaignModelGateCityStandardSamples(gate, ctx.canvas, camera);
   const garrisonSamples = campaignModelGateGarrisonSamples(gate, ctx.canvas, camera);
+  const selectionSamples = campaignModelGateSelectionSamples(gate, ctx.canvas, camera);
   const water = frame.water.length > 0 ? new CampaignWaterPass(shell) : null;
   const clouds = frame.cloudRect ? new CampaignCloudPass(shell, frame.cloudRect) : null;
   entities.upload(frame.entities);
@@ -769,12 +770,14 @@ async function routeCampaignModelGates(ctx: LabContext) {
     labels: `${labelLayer.visibleLabels}/${labelLayer.labels}`,
     cityStandard: cityStandardSamples ? 'embedded-depth-sampled' : 'n/a',
     garrison: garrisonSamples ? 'army-inside-city-depth-sampled' : 'n/a',
+    selectionDepth: selectionSamples ? 'ground-decal-occlusion-sampled' : 'n/a',
     hostileDrawOrder: hostileDepthOrder ? 'entities-before-late-scenery' : 'normal',
     renderer: 'raw WebGPU campaign model passes',
   });
   const samples = {
     ...(cityStandardSamples ? { cityStandard: cityStandardSamples } : {}),
     ...(garrisonSamples ? { garrison: garrisonSamples } : {}),
+    ...(selectionSamples ? { selectionDepth: selectionSamples } : {}),
     ...(hostileDepthOrder ? { hostileDepthOrder: campaignModelGateHostileDepthSamples(ctx.canvas, camera) } : {}),
   };
   publish('campaign-model-gates', true, {
@@ -1029,6 +1032,28 @@ function campaignModelGateGarrisonSamples(
     visibleStandardAboveRoofs: armyPoint([1.30, 0.12, 4.02]),
     occludingCityWall: cityPoint([-0.62, 0.08, 1.50]),
   };
+}
+
+function campaignModelGateSelectionSamples(
+  gate: CampaignModelGate,
+  canvas: HTMLCanvasElement,
+  camera: { x: number; y: number; zoom: number; pitch?: number; yaw?: number; perspective?: number },
+) {
+  void canvas;
+  void camera;
+  if (gate === 'selected-city') {
+    return {
+      occludedByCityCore: { x: 295, y: 290, note: 'fixed selected-city crop sample where city geometry must paint over the ground selection decal' },
+      visibleOuterRing: { x: 460, y: 236, note: 'fixed selected-city crop sample on exposed outer selection arc' },
+    };
+  }
+  if (gate === 'army') {
+    return {
+      occludedByArmyCore: { x: 294, y: 331, note: 'fixed army crop sample where soldiers/shields must paint over the ground selection decal' },
+      visibleOuterRing: { x: 467, y: 343, note: 'fixed army crop sample on exposed outer selection arc' },
+    };
+  }
+  return null;
 }
 
 function roadGateVertices(points: [number, number][]) {

@@ -627,7 +627,7 @@
     {
       "id": "army",
       "label": "Army Marker",
-      "criteria": "Army flag is attached to the marker with representative figures, faction livery, label icon, shadow, and selected footprint.",
+      "criteria": "Army flag is attached to the marker with representative figures, faction livery, label icon, shadow, and a ground selection footprint occluded by the formation.",
       "image": "army.png",
       "stats": {
         "route": "campaign-model-gates",
@@ -756,7 +756,20 @@
           }
         ],
         "hostileDrawOrder": "normal",
-        "samples": {},
+        "samples": {
+          "selectionDepth": {
+            "occludedByArmyCore": {
+              "x": 294,
+              "y": 331,
+              "note": "fixed army crop sample where soldiers/shields must paint over the ground selection decal"
+            },
+            "visibleOuterRing": {
+              "x": 467,
+              "y": 343,
+              "note": "fixed army crop sample on exposed outer selection arc"
+            }
+          }
+        },
         "postCutoverScreenshots": "webgpu-only"
       },
       "status": "webgpu-evidence"
@@ -1038,7 +1051,7 @@
     {
       "id": "selected-city",
       "label": "Selected City Footprint",
-      "criteria": "Selected city footprint sits outside the city shadow and projects with the ground plane.",
+      "criteria": "Selected city footprint sits outside the city shadow, projects with the ground plane, and is occluded by city geometry where covered.",
       "image": "selected-city.png",
       "stats": {
         "route": "campaign-model-gates",
@@ -1195,6 +1208,18 @@
                 -1.7472,
                 3.102
               ]
+            }
+          },
+          "selectionDepth": {
+            "occludedByCityCore": {
+              "x": 295,
+              "y": 290,
+              "note": "fixed selected-city crop sample where city geometry must paint over the ground selection decal"
+            },
+            "visibleOuterRing": {
+              "x": 460,
+              "y": 236,
+              "note": "fixed selected-city crop sample on exposed outer selection arc"
             }
           }
         },

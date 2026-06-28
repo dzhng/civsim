@@ -482,6 +482,11 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   reserve pixels above soldiers/cities and read like a screen overlay slicing
   through the model. Let roads, scenery, entities, and shadows paint over the
   marker naturally.
+- Selection-marker gates must prove both halves of the decal contract. A pass
+  id and a visible ring sample only prove the marker exists; add a covered-core
+  sample that resolves to city/army material plus an outer-ring sample that
+  resolves to selection green, so future changes cannot put the ring back above
+  soldiers or buildings while the screenshot still looks "selected" somewhere.
 - Campaign prop placement must reserve settlement footprints, not just road
   corridors. Deterministic tree/rock/mountain scattering can be technically on
   the ground and still project into a city volume at close pitch, reading as a

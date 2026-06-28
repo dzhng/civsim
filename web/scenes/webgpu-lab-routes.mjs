@@ -69,6 +69,30 @@ const routes = [
     && s.stats.entityLayer === 'raw-webgpu-legacy-model-meshes'
     && s.stats.samples?.garrison?.hiddenShieldInsideWall
     && s.stats.samples?.garrison?.visibleStandardAboveRoofs],
+  ['campaign-model-gates?gate=selected-city', (s) => s?.ok
+    && s.route === 'campaign-model-gates'
+    && s.stats.gate === 'selected-city'
+    && s.stats.selections === 1
+    && s.stats.depth?.allocated === true
+    && hasFramePhaseOrder(s.stats.framePhases ?? s.stats.phases)
+    && hasFrameDepthPass(s.stats.framePhases, 'model-gate-selection', 'read')
+    && hasFrameDepthPass(s.stats.framePhases, 'model-gate-entities', 'read-write')
+    && hasFramePassRole(s.stats.framePhases, 'model-gate-selection', 'world-decal', 'world-depth')
+    && hasFramePassRole(s.stats.framePhases, 'model-gate-entities', 'world-opaque', 'world-depth')
+    && s.stats.samples?.selectionDepth?.occludedByCityCore
+    && s.stats.samples?.selectionDepth?.visibleOuterRing],
+  ['campaign-model-gates?gate=army', (s) => s?.ok
+    && s.route === 'campaign-model-gates'
+    && s.stats.gate === 'army'
+    && s.stats.selections === 1
+    && s.stats.depth?.allocated === true
+    && hasFramePhaseOrder(s.stats.framePhases ?? s.stats.phases)
+    && hasFrameDepthPass(s.stats.framePhases, 'model-gate-selection', 'read')
+    && hasFrameDepthPass(s.stats.framePhases, 'model-gate-entities', 'read-write')
+    && hasFramePassRole(s.stats.framePhases, 'model-gate-selection', 'world-decal', 'world-depth')
+    && hasFramePassRole(s.stats.framePhases, 'model-gate-entities', 'world-opaque', 'world-depth')
+    && s.stats.samples?.selectionDepth?.occludedByArmyCore
+    && s.stats.samples?.selectionDepth?.visibleOuterRing],
   ['campaign-model-gates?gate=hostile-depth-order', (s) => s?.ok
     && s.route === 'campaign-model-gates'
     && s.stats.gate === 'hostile-depth-order'
@@ -576,6 +600,7 @@ function patchStats(png, sample, radius = 4) {
   let blue = 0;
   let tan = 0;
   let green = 0;
+  let selectionGreen = 0;
   let count = 0;
   for (let y = Math.max(0, cy - radius); y <= Math.min(png.height - 1, cy + radius); y++) {
     for (let x = Math.max(0, cx - radius); x <= Math.min(png.width - 1, cx + radius); x++) {
@@ -585,10 +610,11 @@ function patchStats(png, sample, radius = 4) {
       if (b > 120 && r < 110 && g < 140) blue++;
       if (r > 120 && g > 95 && g < 175 && b < 125) tan++;
       if (g > 135 && r < 120 && b < 120) green++;
+      if (g > 135 && g > r + 20 && g > b + 45) selectionGreen++;
       count++;
     }
   }
-  return { x: cx, y: cy, count, red, blue, tan, green };
+  return { x: cx, y: cy, count, red, blue, tan, green, selectionGreen };
 }
 
 export async function run(ctx) {
@@ -723,6 +749,38 @@ export async function run(ctx) {
         `${route}: garrisoned army standard remains visible above the city`,
         visible.blue > 12,
         JSON.stringify({ visible, sample: samples.visibleStandardAboveRoofs }),
+      );
+    }
+    if (route === 'campaign-model-gates?gate=selected-city') {
+      const canvasPng = PNG.sync.read(await page.locator('#webgpu-canvas').screenshot());
+      const samples = stats.stats.samples.selectionDepth;
+      const core = patchStats(canvasPng, samples.occludedByCityCore, 7);
+      const ring = patchStats(canvasPng, samples.visibleOuterRing, 7);
+      ctx.check(
+        `${route}: city geometry occludes the ground selection marker`,
+        core.selectionGreen <= 8 && (core.tan + core.red) > 120,
+        JSON.stringify({ core, sample: samples.occludedByCityCore }),
+      );
+      ctx.check(
+        `${route}: selected city marker remains visible outside the city volume`,
+        ring.selectionGreen > 80,
+        JSON.stringify({ ring, sample: samples.visibleOuterRing }),
+      );
+    }
+    if (route === 'campaign-model-gates?gate=army') {
+      const canvasPng = PNG.sync.read(await page.locator('#webgpu-canvas').screenshot());
+      const samples = stats.stats.samples.selectionDepth;
+      const core = patchStats(canvasPng, samples.occludedByArmyCore, 6);
+      const ring = patchStats(canvasPng, samples.visibleOuterRing, 6);
+      ctx.check(
+        `${route}: army geometry occludes the ground selection marker`,
+        core.selectionGreen <= 8 && (core.red + core.tan + core.blue) > 80,
+        JSON.stringify({ core, sample: samples.occludedByArmyCore }),
+      );
+      ctx.check(
+        `${route}: selected army marker remains visible outside the formation`,
+        ring.selectionGreen > 80,
+        JSON.stringify({ ring, sample: samples.visibleOuterRing }),
       );
     }
     if (route === 'campaign-model-gates?gate=hostile-depth-order') {

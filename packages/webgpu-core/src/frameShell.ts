@@ -44,6 +44,10 @@ export interface FrameShellOptions {
   onDeviceLost?: (report: DeviceLostReport) => void;
   /** Called when any GPU fault makes the shell unrenderable (device loss, bad submit). */
   onFatalError?: (report: FrameShellFatalReport) => void;
+  /** Measure per-frame GPU time via a timestamp QuerySet (when supported). Off by default. */
+  enableGpuTimer?: boolean;
+  /** MSAA sample count (1 = off). Battle edges use 4; campaign stays at 1. */
+  sampleCount?: number;
 }
 
 export interface RawFrameShell {
@@ -133,8 +137,10 @@ export interface FrameShellStats {
   cameraContract: 'shared-world-camera-wgsl';
   markerLayer: MarkerLayerIntent;
   phases: FramePhaseStats[];
+  sampleCount: number;
+  gpuTimeMs: number | null;
   depth: {
-    format: typeof WEBGPU_DEPTH_FORMAT;
+    format: GPUTextureFormat;
     width: number;
     height: number;
     allocated: boolean;
@@ -358,6 +364,60 @@ fn fs(in: VsOut) -> @location(0) vec4f {
   return vec4f(mix(body, accent, max(stripe, 0.58)) * lodDim, 1.0);
 }`;
 
+interface FrameColorAttachment {
+  view: GPUTextureView;
+  resolveTarget?: GPUTextureView;
+  loadOp: 'clear' | 'load';
+  storeOp: 'store' | 'discard';
+  clearValue?: GPUColor;
+}
+
+interface GpuTimestampWrites {
+  querySet: GPUQuerySet;
+  beginningOfPassWriteIndex?: number;
+  endOfPassWriteIndex?: number;
+}
+
+interface GpuFrameTimer {
+  readonly querySet: GPUQuerySet;
+  recordResolve(encoder: GPUCommandEncoder): void;
+  readback(): void;
+  lastMs: number | null;
+}
+
+// Per-frame GPU time from a 2-entry timestamp QuerySet, read back without
+// stalling the frame: at most one mapAsync is in flight, and the result lands a
+// frame or two later. Timestamp values are nanoseconds.
+function createGpuFrameTimer(device: GPUDevice): GpuFrameTimer {
+  const querySet = device.createQuerySet({ type: 'timestamp', count: 2, label: 'frame-gpu-timer' });
+  const resolveBuffer = device.createBuffer({ label: 'frame-gpu-timer-resolve', size: 16, usage: GPUBufferUsage.QUERY_RESOLVE | GPUBufferUsage.COPY_SRC });
+  const readbackBuffer = device.createBuffer({ label: 'frame-gpu-timer-readback', size: 16, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
+  let mapping = false;
+  let resolved = false;
+  const timer: GpuFrameTimer = {
+    querySet,
+    lastMs: null,
+    recordResolve(encoder) {
+      if (mapping) { resolved = false; return; }
+      encoder.resolveQuerySet(querySet, 0, 2, resolveBuffer, 0);
+      encoder.copyBufferToBuffer(resolveBuffer, 0, readbackBuffer, 0, 16);
+      resolved = true;
+    },
+    readback() {
+      if (mapping || !resolved) return;
+      mapping = true;
+      const buffer = readbackBuffer as unknown as GPUMappableBuffer;
+      void buffer.mapAsync(GPUMapMode.READ).then(() => {
+        const stamps = new BigUint64Array(buffer.getMappedRange().slice(0));
+        buffer.unmap();
+        timer.lastMs = Number(stamps[1] - stamps[0]) / 1e6;
+        mapping = false;
+      }).catch(() => { mapping = false; });
+    },
+  };
+  return timer;
+}
+
 export async function createFrameShell(canvas: HTMLCanvasElement, options: FrameShellOptions = {}): Promise<RawFrameShell> {
   let shell: RawFrameShellImpl | null = null;
   const info = await requestWebGpuDevice({
@@ -402,11 +462,23 @@ export class RawFrameShellImpl implements RawFrameShell {
   private lastError: FrameShellFatalReport | null = null;
   private readonly onDeviceLost?: (report: DeviceLostReport) => void;
   private readonly onFatalError?: (report: FrameShellFatalReport) => void;
+  readonly depthFormat: GPUTextureFormat;
+  readonly sampleCount: number;
+  private gpuTimer: GpuFrameTimer | null = null;
+  private gpuTimeMs: number | null = null;
+  private msaaTexture: GPUTexture | null = null;
+  private msaaWidth = 0;
+  private msaaHeight = 0;
 
   constructor(readonly canvas: HTMLCanvasElement, readonly info: WebGpuDeviceInfo, options: FrameShellOptions = {}) {
     this.device = info.device;
     this.onDeviceLost = options.onDeviceLost;
     this.onFatalError = options.onFatalError;
+    this.depthFormat = info.caps.depthFormat ?? WEBGPU_DEPTH_FORMAT;
+    this.sampleCount = Math.max(1, Math.floor(options.sampleCount ?? 1));
+    if (options.enableGpuTimer && info.caps.timestampQuery) {
+      this.gpuTimer = createGpuFrameTimer(this.device);
+    }
     const context = canvas.getContext('webgpu');
     if (!context) {
       throw new Error('WebGPU canvas context unavailable: getContext("webgpu") returned null.');
@@ -490,16 +562,14 @@ export class RawFrameShellImpl implements RawFrameShell {
     }
     this.markerLayer = markers.length > 0 ? commands.markerLayer! : 'none';
     this.uploadMarkers(markers);
+    const lastPhase: FramePhaseKind = overlayPasses.length > 0 ? 'overlay' : worldPasses.length > 0 ? 'world-depth' : 'background';
     const encoder = this.device.createCommandEncoder({ label: 'raw-frame-encoder' });
     const colorView = this.context.getCurrentTexture().createView();
+    const bgTimestamps = this.timestampWrites('background', lastPhase);
     const pass = encoder.beginRenderPass({
       label: 'raw-frame-background-pass',
-      colorAttachments: [{
-        view: colorView,
-        loadOp: 'clear',
-        clearValue: commands.clear ?? { r: 0.78, g: 0.82, b: 0.80, a: 1 },
-        storeOp: 'store',
-      }],
+      colorAttachments: [this.colorAttachment(colorView, 'clear', lastPhase === 'background', commands.clear ?? { r: 0.78, g: 0.82, b: 0.80, a: 1 })],
+      ...(bgTimestamps ? { timestampWrites: bgTimestamps } : {}),
     });
     pass.setBindGroup(0, this.cameraBindGroup);
     if (terrainBackdropRect) {
@@ -532,14 +602,12 @@ export class RawFrameShellImpl implements RawFrameShell {
       loadOp: 'clear',
     });
     if (worldPasses.length > 0) {
+      const worldTimestamps = this.timestampWrites('world-depth', lastPhase);
       const depthPass = encoder.beginRenderPass({
         label: 'raw-frame-depth-world-pass',
-        colorAttachments: [{
-          view: colorView,
-          loadOp: 'load',
-          storeOp: 'store',
-        }],
+        colorAttachments: [this.colorAttachment(colorView, 'load', lastPhase === 'world-depth')],
         depthStencilAttachment: this.depthAttachment(),
+        ...(worldTimestamps ? { timestampWrites: worldTimestamps } : {}),
       });
       depthPass.setBindGroup(0, this.cameraBindGroup);
       for (const graphPass of worldPasses) graphPass.draw(depthPass as WorldRenderPass, this);
@@ -555,13 +623,11 @@ export class RawFrameShellImpl implements RawFrameShell {
       });
     }
     if (overlayPasses.length > 0) {
+      const overlayTimestamps = this.timestampWrites('overlay', lastPhase);
       const overlayPass = encoder.beginRenderPass({
         label: 'raw-frame-overlay-pass',
-        colorAttachments: [{
-          view: colorView,
-          loadOp: 'load',
-          storeOp: 'store',
-        }],
+        colorAttachments: [this.colorAttachment(colorView, 'load', lastPhase === 'overlay')],
+        ...(overlayTimestamps ? { timestampWrites: overlayTimestamps } : {}),
       });
       overlayPass.setBindGroup(0, this.cameraBindGroup);
       for (const graphPass of overlayPasses) graphPass.draw(overlayPass as OverlayRenderPass, this);
@@ -576,6 +642,7 @@ export class RawFrameShellImpl implements RawFrameShell {
         loadOp: 'load',
       });
     }
+    this.gpuTimer?.recordResolve(encoder);
     let commandBuffer: unknown;
     try {
       commandBuffer = encoder.finish();
@@ -587,12 +654,39 @@ export class RawFrameShellImpl implements RawFrameShell {
       this.device.queue.submit([commandBuffer]);
     } catch (error) {
       this.handleFatal('submission', error);
+      return;
     }
+    if (this.gpuTimer) {
+      this.gpuTimer.readback();
+      this.gpuTimeMs = this.gpuTimer.lastMs;
+    }
+  }
+
+  /** Color attachment for one phase; resolves MSAA to the canvas on the last phase. */
+  private colorAttachment(canvasView: GPUTextureView, loadOp: 'clear' | 'load', isLastPhase: boolean, clearValue?: GPUColor): FrameColorAttachment {
+    const attachment: FrameColorAttachment = {
+      view: this.msaaView(canvasView),
+      loadOp,
+      storeOp: 'store',
+    };
+    if (clearValue) attachment.clearValue = clearValue;
+    if (this.sampleCount > 1 && isLastPhase) attachment.resolveTarget = canvasView;
+    return attachment;
+  }
+
+  private timestampWrites(phase: FramePhaseKind, lastPhase: FramePhaseKind): GpuTimestampWrites | undefined {
+    if (!this.gpuTimer) return undefined;
+    const writes: GpuTimestampWrites = { querySet: this.gpuTimer.querySet };
+    if (phase === 'background') writes.beginningOfPassWriteIndex = 0;
+    if (phase === lastPhase) writes.endOfPassWriteIndex = 1;
+    return writes;
   }
 
   destroy() {
     this.depthTexture?.destroy();
     this.depthTexture = null;
+    this.msaaTexture?.destroy();
+    this.msaaTexture = null;
   }
 
   health(): FrameShellHealth {
@@ -633,13 +727,33 @@ export class RawFrameShellImpl implements RawFrameShell {
       cameraContract: 'shared-world-camera-wgsl',
       markerLayer: this.markerLayer,
       phases: this.lastPhases.map((phase) => ({ ...phase })),
+      sampleCount: this.sampleCount,
+      gpuTimeMs: this.gpuTimeMs,
       depth: {
-        format: WEBGPU_DEPTH_FORMAT,
+        format: this.depthFormat,
         width: this.depthWidth,
         height: this.depthHeight,
         allocated: this.depthTexture !== null,
       },
     };
+  }
+
+  /** The render target view for this frame: a fresh MSAA texture when sampling, else the canvas. */
+  private msaaView(canvasView: GPUTextureView): GPUTextureView {
+    if (this.sampleCount <= 1) return canvasView;
+    if (!this.msaaTexture || this.msaaWidth !== this.width || this.msaaHeight !== this.height) {
+      this.msaaTexture?.destroy();
+      this.msaaWidth = this.width;
+      this.msaaHeight = this.height;
+      this.msaaTexture = this.device.createTexture({
+        label: 'raw-frame-msaa-color',
+        size: { width: this.width, height: this.height },
+        format: this.info.format,
+        sampleCount: this.sampleCount,
+        usage: GPUTextureUsage.RENDER_ATTACHMENT,
+      });
+    }
+    return this.msaaTexture.createView();
   }
 
   private writeCamera() {
@@ -721,7 +835,8 @@ export class RawFrameShellImpl implements RawFrameShell {
       this.depthTexture = this.device.createTexture({
         label: 'raw-frame-depth-world-texture',
         size: { width: this.width, height: this.height },
-        format: WEBGPU_DEPTH_FORMAT,
+        format: this.depthFormat,
+        sampleCount: this.sampleCount,
         usage: GPUTextureUsage.RENDER_ATTACHMENT,
       });
     }

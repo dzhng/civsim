@@ -5,6 +5,64 @@ export interface WebGpuCapabilities {
   reason: string;
 }
 
+import { chooseDepthFormat } from './depthContract';
+
+export type WebGpuPowerPreference = 'high-performance' | 'low-power' | 'default';
+
+// The single source of truth for what the granted device can do and every
+// deliberate downgrade we make from it. Computed once at device creation from
+// the adapter limits + granted device features; passes read it, they never
+// re-probe the adapter.
+export interface WebGpuDeviceCaps {
+  maxStorageBufferBindingSize: number;
+  maxBufferSize: number;
+  msaaSampleCount: number;
+  msaaSupported: boolean;
+  timestampQuery: boolean;
+  depthFormat: GPUTextureFormat;
+  depthDowngrade: string | null;
+  powerPreference: WebGpuPowerPreference;
+}
+
+// 4x is the sample count WebGPU core guarantees for every renderable format, so
+// it is the one MSAA tier we rely on without a per-format query.
+export const WEBGPU_MSAA_SAMPLE_COUNT = 4 as const;
+
+export interface ResolveDeviceCapsInput {
+  adapterLimits: Record<string, number>;
+  deviceFeatures: Iterable<string>;
+  powerPreference: WebGpuPowerPreference;
+  /** Test hook: pretend depth24plus is unavailable to exercise the fallback. */
+  forceNoDepth24?: boolean;
+}
+
+export function resolveDeviceCaps(input: ResolveDeviceCapsInput): WebGpuDeviceCaps {
+  const features = new Set(input.deviceFeatures);
+  const depth = chooseDepthFormat(!input.forceNoDepth24);
+  if (depth.downgrade) console.warn(`WebGPU downgrade: ${depth.downgrade}`);
+  return {
+    maxStorageBufferBindingSize: input.adapterLimits.maxStorageBufferBindingSize ?? 0,
+    maxBufferSize: input.adapterLimits.maxBufferSize ?? 0,
+    msaaSampleCount: WEBGPU_MSAA_SAMPLE_COUNT,
+    msaaSupported: true,
+    timestampQuery: features.has('timestamp-query'),
+    depthFormat: depth.format,
+    depthDowngrade: depth.downgrade,
+    powerPreference: input.powerPreference,
+  };
+}
+
+/** Guard a storage-buffer allocation against the granted binding-size limit. */
+export function assertStorageBufferFits(byteLength: number, caps: WebGpuDeviceCaps, label: string): void {
+  if (byteLength > caps.maxStorageBufferBindingSize) {
+    throw new Error(
+      `${label} storage buffer is ${byteLength} bytes but the device grants only `
+      + `${caps.maxStorageBufferBindingSize} (maxStorageBufferBindingSize). `
+      + 'Reduce the bake size or split the buffer.',
+    );
+  }
+}
+
 export interface WebGpuCapabilityOptions {
   forceUnsupported?: boolean;
 }

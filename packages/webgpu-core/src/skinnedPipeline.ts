@@ -1,6 +1,7 @@
 import type { CrowdInstance } from '../../crowd-runtime/src/instanceData';
 import type { SoldierMeshData } from '../../soldier-assets/src/soldierMesh';
 import type { VatBake } from '../../soldier-assets/src/schema';
+import { assertStorageBufferFits } from './capabilities';
 import { compileShader } from './compileShader';
 import { createVatLayout, resolveVatClip } from './vatLayout';
 import type { RawFrameShell, WorldRenderPass } from './frameShell';
@@ -121,6 +122,7 @@ export class SkinnedCrowdPipeline {
     vatData[1] = vat.height;
     vatData[2] = vat.bones;
     vatData.set(vat.data, 4);
+    assertStorageBufferFits(vatData.byteLength, shell.info.caps, 'skinned-vat');
     const vatBuffer = device.createBuffer({
       label: 'skinned-vat-buffer',
       size: vatData.byteLength,

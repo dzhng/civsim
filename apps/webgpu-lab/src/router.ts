@@ -2,6 +2,7 @@ import { createFrameShell, type BackgroundRenderPass, type FrameGraphCommands, t
 import { screenToWorld, world3dToScreen, worldToScreen } from '../../../packages/webgpu-core/src/cameraUniform';
 import { WEBGPU_DEPTH_FORMAT, WEBGPU_WORLD_DEPTH_ATTACHMENT } from '../../../packages/webgpu-core/src/depthContract';
 import { requestWebGpuDevice, webGpuFailureMessage } from '../../../packages/webgpu-core/src/device';
+import { assertStorageBufferFits, resolveDeviceCaps } from '../../../packages/webgpu-core/src/capabilities';
 import { compileShader, setShaderErrorHandler, shaderCompilationMessages, type ShaderCompilationMessage } from '../../../packages/webgpu-core/src/compileShader';
 import { fatalSurfaceFor, showFatalErrorSurface } from '../../../web/src/shared/fatalError';
 import { SkinnedCrowdPipeline } from '../../../packages/webgpu-core/src/skinnedPipeline';
@@ -50,6 +51,7 @@ interface LabContext {
 
 const routes: Record<string, LabRoute> = {
   '/webgpu/device': routeDevice,
+  '/webgpu/capabilities': routeCapabilities,
   '/webgpu/fault-injection': routeFaultInjection,
   '/webgpu/frame-shell': routeFrameShell,
   '/webgpu/assets': routeAssets,
@@ -125,6 +127,79 @@ async function routeDevice(ctx: LabContext) {
     markers: markers.length,
   });
   publish('device', true, { ...shell.stats(), vendor: info.vendor, features: info.features });
+}
+
+async function routeCapabilities(ctx: LabContext) {
+  const sampleParam = integerParam(ctx.params, 'msaa', 1, 1, 4);
+  const shell = await createFrameShell(ctx.canvas, { enableGpuTimer: true, sampleCount: sampleParam });
+  const caps = shell.info.caps;
+
+  // The deliberate depth downgrade: what caps would choose if depth24plus were
+  // unavailable. Decision only — we do not re-render the live shell on it.
+  const downgradeCaps = resolveDeviceCaps({
+    adapterLimits: shell.info.limits,
+    deviceFeatures: shell.info.features,
+    powerPreference: caps.powerPreference,
+    forceNoDepth24: true,
+  });
+
+  // VAT storage-buffer guard: oversize is rejected before allocation; a real
+  // size fits.
+  let oversizeRejected = false;
+  let oversizeMessage = '';
+  try {
+    assertStorageBufferFits(caps.maxStorageBufferBindingSize + 1, caps, 'probe-oversize');
+  } catch (error) {
+    oversizeRejected = true;
+    oversizeMessage = error instanceof Error ? error.message : String(error);
+  }
+  let realSizeFits = true;
+  try {
+    assertStorageBufferFits(1 << 20, caps, 'probe-fits');
+  } catch {
+    realSizeFits = false;
+  }
+
+  shell.setCamera({ x: 0, y: 0, zoom: 9, pitch: 0.34, yaw: -0.12 });
+  const markers = generatedMarkers(80, -10, -9, 0).concat(generatedMarkers(80, 10, 3, 1));
+  const fixture = new Nested3dFixturePass(shell);
+  const draw = (): FrameGraphCommands => ({
+    markers,
+    markerLayer: 'lab-placeholder',
+    passes: [{ id: 'capabilities-nested-3d', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => fixture.draw(pass) }],
+  });
+
+  const tick = () => {
+    shell.drawFrame(draw());
+    const stats = shell.stats();
+    ctx.status.innerHTML = reportTable({
+      route: 'capabilities',
+      'power preference': caps.powerPreference,
+      'preferred format': shell.info.format,
+      'depth format': caps.depthFormat,
+      'depth fallback (forced)': `${downgradeCaps.depthFormat} — ${downgradeCaps.depthDowngrade ?? 'none'}`,
+      'maxStorageBufferBindingSize': caps.maxStorageBufferBindingSize,
+      'maxBufferSize': caps.maxBufferSize,
+      'MSAA supported': caps.msaaSupported,
+      'sample count': stats.sampleCount,
+      'timestamp-query': caps.timestampQuery,
+      'GPU time (ms)': stats.gpuTimeMs === null ? 'pending' : stats.gpuTimeMs.toFixed(3),
+      'VAT oversize rejected': oversizeRejected,
+      'VAT real size fits': realSizeFits,
+    });
+    publish('capabilities', true, {
+      route: 'capabilities',
+      caps,
+      downgrade: { depthFormat: downgradeCaps.depthFormat, reason: downgradeCaps.depthDowngrade },
+      grantedLimits: { maxStorageBufferBindingSize: shell.info.limits.maxStorageBufferBindingSize, maxBufferSize: shell.info.limits.maxBufferSize },
+      sampleCount: stats.sampleCount,
+      gpuTimeMs: stats.gpuTimeMs,
+      vatGuard: { oversizeRejected, oversizeMessage, realSizeFits },
+      features: shell.info.features,
+    });
+    requestAnimationFrame(tick);
+  };
+  tick();
 }
 
 const BAD_SHADER_WGSL = `

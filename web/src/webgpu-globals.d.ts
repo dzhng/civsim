@@ -34,10 +34,18 @@ interface GPUUncapturedErrorEvent {
 
 declare const GPUBufferUsage: {
   readonly COPY_DST: number;
+  readonly COPY_SRC: number;
   readonly INDEX: number;
+  readonly MAP_READ: number;
+  readonly QUERY_RESOLVE: number;
   readonly STORAGE: number;
   readonly UNIFORM: number;
   readonly VERTEX: number;
+};
+
+declare const GPUMapMode: {
+  readonly READ: number;
+  readonly WRITE: number;
 };
 
 declare const GPUShaderStage: {
@@ -57,11 +65,16 @@ interface GPUAdapterInfo {
   readonly description?: string;
 }
 
+interface GPUDeviceDescriptor {
+  requiredFeatures?: string[];
+  requiredLimits?: Record<string, number>;
+}
+
 interface GPUAdapter {
   readonly features: Set<string>;
   readonly limits: Record<string, number>;
   readonly info?: GPUAdapterInfo;
-  requestDevice(): Promise<GPUDevice>;
+  requestDevice(descriptor?: GPUDeviceDescriptor): Promise<GPUDevice>;
 }
 
 interface GPU {
@@ -84,9 +97,16 @@ interface GPUQueue {
   copyExternalImageToTexture(source: unknown, destination: unknown, copySize: unknown): void;
 }
 
+interface GPUQuerySet {
+  destroy(): void;
+}
+
 interface GPUDevice {
   readonly queue: GPUQueue;
+  readonly features: Set<string>;
+  readonly limits: Record<string, number>;
   createBindGroup(descriptor: unknown): GPUBindGroup;
+  createQuerySet(descriptor: { type: 'timestamp' | 'occlusion'; count: number; label?: string }): GPUQuerySet;
   createBindGroupLayout(descriptor: unknown): GPUBindGroupLayout;
   createBuffer(descriptor: { label?: string; size: number; usage: number }): GPUBuffer;
   createCommandEncoder(descriptor?: unknown): GPUCommandEncoder;
@@ -99,7 +119,15 @@ interface GPUDevice {
 
 interface GPUCommandEncoder {
   beginRenderPass(descriptor: unknown): GPURenderPassEncoder;
+  resolveQuerySet(querySet: GPUQuerySet, firstQuery: number, queryCount: number, destination: GPUBuffer, destinationOffset: number): void;
+  copyBufferToBuffer(source: GPUBuffer, sourceOffset: number, destination: GPUBuffer, destinationOffset: number, size: number): void;
   finish(): unknown;
+}
+
+interface GPUMappableBuffer {
+  mapAsync(mode: number): Promise<void>;
+  getMappedRange(): ArrayBuffer;
+  unmap(): void;
 }
 
 interface GPURenderPassEncoder {

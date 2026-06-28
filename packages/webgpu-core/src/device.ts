@@ -1,3 +1,5 @@
+import { resolveDeviceCaps, type WebGpuDeviceCaps, type WebGpuPowerPreference } from './capabilities';
+
 export interface WebGpuDeviceInfo {
   adapter: GPUAdapter;
   device: GPUDevice;
@@ -7,6 +9,7 @@ export interface WebGpuDeviceInfo {
   description: string;
   features: string[];
   limits: Record<string, number>;
+  caps: WebGpuDeviceCaps;
 }
 
 export interface DeviceLostReport {
@@ -25,27 +28,44 @@ export interface WebGpuDeviceCallbacks {
   onUncapturedError?: (report: UncapturedErrorReport) => void;
 }
 
-export interface RequestWebGpuDeviceOptions extends GPURequestAdapterOptions {
+export interface RequestWebGpuDeviceOptions {
   callbacks?: WebGpuDeviceCallbacks;
+  /** Defaults to 'high-performance' — we always want the discrete GPU when present. */
+  powerPreference?: WebGpuPowerPreference;
+  /** Test hook threaded into caps to exercise the depth fallback. */
+  forceNoDepth24?: boolean;
 }
+
+// Bindings the renderer relies on above the spec's conservative device
+// defaults. We request them up to the adapter's ceiling so the granted device
+// has the headroom (e.g. large VAT storage buffers); caps reports what landed.
+const REQUESTED_LIMIT_KEYS = ['maxStorageBufferBindingSize', 'maxBufferSize'] as const;
 
 export async function requestWebGpuDevice(options: RequestWebGpuDeviceOptions = {}): Promise<WebGpuDeviceInfo> {
   if (!navigator.gpu) {
     throw new Error('WebGPU is required: navigator.gpu is not available in this browser.');
   }
-  const { callbacks, ...adapterOptions } = options;
+  const { callbacks } = options;
+  const powerPreference: WebGpuPowerPreference = options.powerPreference ?? 'high-performance';
   let adapter: GPUAdapter | null;
   try {
-    adapter = await navigator.gpu.requestAdapter(adapterOptions);
+    adapter = await navigator.gpu.requestAdapter(powerPreference === 'default' ? {} : { powerPreference });
   } catch (error) {
     throw new Error(`WebGPU adapter request failed: ${messageOf(error)}`);
   }
   if (!adapter) {
     throw new Error('WebGPU is required: requestAdapter returned no adapter.');
   }
+  const requiredFeatures: GPUFeatureName[] = adapter.features.has('timestamp-query') ? ['timestamp-query'] : [];
+  const adapterLimits = numericLimits(adapter.limits);
+  const requiredLimits: Record<string, number> = {};
+  for (const key of REQUESTED_LIMIT_KEYS) {
+    const value = adapterLimits[key];
+    if (typeof value === 'number') requiredLimits[key] = value;
+  }
   let device: GPUDevice;
   try {
-    device = await adapter.requestDevice();
+    device = await adapter.requestDevice({ requiredFeatures, requiredLimits });
   } catch (error) {
     throw new Error(`WebGPU device request failed: ${messageOf(error)}`);
   }
@@ -58,9 +78,42 @@ export async function requestWebGpuDevice(options: RequestWebGpuDeviceOptions = 
     vendor: info.vendor ?? 'unknown',
     architecture: info.architecture ?? 'unknown',
     description: info.description ?? '',
-    features: Array.from(adapter.features).sort(),
-    limits: Object.fromEntries(Object.entries(adapter.limits).filter(([, v]) => typeof v === 'number')) as Record<string, number>,
+    features: Array.from(device.features).sort(),
+    limits: numericLimits(device.limits),
+    caps: resolveDeviceCaps({
+      adapterLimits,
+      deviceFeatures: device.features,
+      powerPreference,
+      forceNoDepth24: options.forceNoDepth24,
+    }),
   };
+}
+
+// GPUSupportedLimits exposes its values as prototype getters, so Object.entries
+// returns nothing — we read the standard limit names by direct property access.
+const GPU_LIMIT_NAMES = [
+  'maxTextureDimension1D', 'maxTextureDimension2D', 'maxTextureDimension3D', 'maxTextureArrayLayers',
+  'maxBindGroups', 'maxBindGroupsPlusVertexBuffers', 'maxBindingsPerBindGroup',
+  'maxDynamicUniformBuffersPerPipelineLayout', 'maxDynamicStorageBuffersPerPipelineLayout',
+  'maxSampledTexturesPerShaderStage', 'maxSamplersPerShaderStage', 'maxStorageBuffersPerShaderStage',
+  'maxStorageTexturesPerShaderStage', 'maxUniformBuffersPerShaderStage',
+  'maxUniformBufferBindingSize', 'maxStorageBufferBindingSize',
+  'minUniformBufferOffsetAlignment', 'minStorageBufferOffsetAlignment',
+  'maxVertexBuffers', 'maxBufferSize', 'maxVertexAttributes', 'maxVertexBufferArrayStride',
+  'maxInterStageShaderVariables', 'maxColorAttachments', 'maxColorAttachmentBytesPerSample',
+  'maxComputeWorkgroupStorageSize', 'maxComputeInvocationsPerWorkgroup',
+  'maxComputeWorkgroupSizeX', 'maxComputeWorkgroupSizeY', 'maxComputeWorkgroupSizeZ',
+  'maxComputeWorkgroupsPerDimension',
+] as const;
+
+function numericLimits(limits: GPUSupportedLimits): Record<string, number> {
+  const indexed = limits as unknown as Record<string, number | undefined>;
+  const out: Record<string, number> = {};
+  for (const name of GPU_LIMIT_NAMES) {
+    const value = indexed[name];
+    if (typeof value === 'number') out[name] = value;
+  }
+  return out;
 }
 
 /** Wire `device.lost` and `onuncapturederror` so no GPU fault is silent. */

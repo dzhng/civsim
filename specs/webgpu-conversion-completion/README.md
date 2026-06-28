@@ -118,8 +118,34 @@ final cutover (slice 11) is the integration point that depends on the rest.
 
 You are building the WebGPU conversion completion. Last updated: 2026-06-29.
 
-Current status: **Slices 01–09** (Groups A, B, C done bar the slice 06 horse
-headline and the look-changes gated on David; Group D next).
+Current status: **Slices 01–09 implemented; Group D (10–11) is the David-gated
+release integration.**
+
+**Slice 10 (scenario & visual acceptance reports) — pipeline proven, scoring
+gated on David:**
+- `scenario:webgpu` runs end to end and persists
+  `scenario-runs/webgpu-latest.json` (the writer works); the visual + perf
+  reports generate; `cutover:webgpu` now runs end to end and *scores* real inputs
+  (e.g. `scenario-run-webgpu` shows `fail`-with-reason, not `pending: missing`).
+- All nine new lab-route gates (fault-injection, capabilities, asset-workbench,
+  per-class-vat, soldier-materials, mounted-units, lod-tiers, battle-elevation,
+  battle-effects) are wired into `scenario:webgpu`.
+- **Cannot reach `releaseReady=true` autonomously.** The per-route cutover gate
+  in `webgpu-lab-routes` requires the full release-ready state, so the suite is
+  red until the cutover is ready (circular); `visual-improvement` needs David's
+  blessing of which current-renderer captures are the floor; `hardware-perf` is
+  slice 11. To complete: David blesses the visual floor captures, then
+  `scenario:webgpu` / `:campaign` persist clean reports.
+
+**Slice 11 (hardware perf & cutover audit) — harness ready, needs David's
+hardware + sign-off:**
+- The perf harness (`full-game-webgpu-performance.mjs`, `perf:webgpu:hardware`)
+  is production-ready, but release evidence **requires a named GPU/browser/
+  resolution run** — not the swiftshader CI environment this was built in.
+- To complete: run `perf:webgpu:hardware` on the named target, then
+  `release:webgpu`; a human signs off that WebGPU is equal-or-better
+  (foundation invariant: a green scoreboard is necessary, not sufficient).
+
 
 **Slice 09 (battle effects & corpses) shipped (polish):**
 - `deathVariant` (was dead code) now flows `CrowdInstance` → instance buffer →
@@ -272,10 +298,18 @@ left untouched per the spec; the `compileShader` source gate is scoped to
 non-campaign roots. Only the campaign `renderer.ready.catch` (scene controller,
 pure robustness) was added.
 
-Next pickup: **Slice 10 (scenario & visual acceptance reports)** — Group D.
-Generate the scenario-run reports and bless the visual-comparison manifest so the
-cutover scoreboard moves from PENDING to scored. (3D arrows + slice 06 horse
-remain deferred to David.)
+Next pickup: **David-gated finishing steps.** The autonomous build is complete
+(slices 01–09 implemented; 10's report pipeline proven). What remains needs
+David's human/hardware input, in priority order:
+1. Decide the look-change production-enables (each is a one-line flip + a
+   baseline re-bless): MSAA 4x in battle, localized faction masking, LOD tiers in
+   battle, grounding shadows + a battle terrain height source, corpse desat/roll
+   + particles in the live event stream.
+2. Bless the current-renderer floor captures, then run `scenario:webgpu` /
+   `scenario:webgpu:campaign` for clean reports (slice 10).
+3. Run `perf:webgpu:hardware` on named hardware + `release:webgpu`; sign off
+   (slice 11).
+4. Design call for slice 06's real horse skeleton + rider composition.
 
 Active warnings:
 - Keep the sim and campaign renderer untouched; this is non-campaign renderer
@@ -305,9 +339,12 @@ Global TODO:
   terrain-elevation field (production wiring gated on David's shadow-style call).
 - [x] Slice 09: battle particles/impacts and distinct corpses (deathVariant to
   GPU); 3D projectiles deferred (optional polish). Production wiring gated.
-- [ ] Slice 10: generate scenario-run reports and bless the visual-comparison
-  manifest + current-renderer archive; wire soldier/model gates into the report.
-- [ ] Slice 11: named-hardware perf report and a green cutover/release audit.
+- [~] Slice 10: report pipeline proven (scenario/visual/perf reports generate;
+  cutover:webgpu scores real inputs); the nine new lab gates are in
+  scenario:webgpu. Clean reports gated on David's visual-floor blessing
+  (the per-route cutover gate is circular until release-ready).
+- [~] Slice 11: perf + audit harness ready; named-hardware run + human sign-off
+  are David's gates (swiftshader CI cannot produce release perf evidence).
 
 Before ending any pass, update this section with new status, next pickup point,
 blockers, and checklist state.

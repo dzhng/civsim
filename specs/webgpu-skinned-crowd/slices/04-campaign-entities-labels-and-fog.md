@@ -53,6 +53,9 @@ flags. Fog views must not show flags, markers, or labels for hidden content.
   Roma/Ostia army-city label cluster is crowded, top-edge regional labels clip
   under the HUD, and some flags/poles still feel weakly attached. These remain
   blockers for final campaign visual acceptance.
+- 2026-06-28: User-feedback evidence for city labels sitting too far from their
+  icons/models is recorded in
+  `visualizations/user-feedback/2026-06-28-campaign-blockers/`.
 
 ## Done
 

@@ -74,3 +74,6 @@ semantic is explicitly rendered.
   bottom-left Rome coastal city must keep its label and road visible, and road
   junctions need to read as raised/grounded stone without disappearing under
   terrain or being swallowed by city aprons.
+- 2026-06-28: User-feedback evidence for the Ostia/Portus road/label blocker
+  and noisy Rome/Tibur road treatment is recorded in
+  `visualizations/user-feedback/2026-06-28-campaign-blockers/`.

@@ -26,6 +26,12 @@ scenes, real-map alignment probes, green natural close views, visible
 Ostia/Portus label/road evidence, and composed army-in-city labels. Those are
 accepted as progress, not campaign parity.
 
+Latest user-feedback evidence:
+[`visualizations/user-feedback/2026-06-28-campaign-blockers/README.md`](visualizations/user-feedback/2026-06-28-campaign-blockers/README.md).
+Whenever user screenshot feedback arrives, copy the image into this spec's
+`visualizations/user-feedback/` tree and link it from the relevant slice before
+acting on it.
+
 Finished checkpoints:
 
 - WebGPU is the active campaign renderer for the new scenes and routes.

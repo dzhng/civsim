@@ -90,3 +90,6 @@ one flat color field.
   brown compared with the previous renderer, mountains ugly/overpowering around
   cities and roads, and trees absent from the actual campaign acceptance views.
   Keep these as terrain blockers even though aggregate scenery counts pass.
+- 2026-06-28: User-feedback evidence for brown terrain, mountain readability,
+  and missing trees is recorded in
+  `visualizations/user-feedback/2026-06-28-campaign-blockers/`.

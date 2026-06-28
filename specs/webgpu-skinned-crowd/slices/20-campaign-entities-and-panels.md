@@ -179,3 +179,29 @@ stripe-like; city roofs/walls need stronger depth separation; the board edge
 still reads artificial; terrain features are soft; and the raised road texture
 is blurry/repetitive. Treat these as follow-up architecture/art tasks before
 campaign close-view parity can be accepted.
+
+Garrison-state gate checkpoint: campaign entity instances now carry an optional
+world `z` offset, so garrisoned occupants can be transformed into the city
+volume rather than every entity being forced onto the terrain plane. The model
+gate inventory now separates `garrison-outside`, `garrison-city` (partial), and
+`garrison-hidden`: outside proves the same army marker is fully visible before
+garrisoning; partial proves the city occludes the lower body while the raised
+standard remains visible; hidden lowers the army inside the settlement so city
+roofs/walls occlude both body and standard through depth, not draw order.
+
+Fresh unprimed critique of the current campaign-3D screenshots now blocks this
+slice on readable entity composition rather than the garrison proof itself. The
+main defects are: the selected army label and green army icon collide with the
+Ostia/Portus label and road hub; the selected marker does not read strongly
+enough as the active army at strategic zoom; and the Rome/Ostia cluster is too
+dense for quick army-vs-city-vs-road scanning. Minor but still tracked defects
+are weak city flag attachment, insufficient contact shadows, crunchy label
+density at close zoom, and flat terrain integration around props.
+
+Implementation checkpoint: army labels now support an inline smaller strength
+string (`1ST LEGION 2.6k`) plus an optional second line. When an army occupies a
+city footprint, the renderer suppresses the city's independent map label and
+composes one occupied-city label with the army on the first line and the city
+name beneath it. This is a gameplay-state label rule, not a collision offset:
+garrison/colocation must read as one stack rather than two unrelated labels
+competing for the same screen pixels.

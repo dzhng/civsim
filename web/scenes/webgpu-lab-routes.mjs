@@ -92,6 +92,14 @@ const routes = [
     && s.stats.entityLayer === 'raw-webgpu-legacy-model-meshes'
     && s.stats.samples?.cityStandard?.hiddenLowerCloth
     && s.stats.samples?.cityStandard?.visibleUpperCloth],
+  ['campaign-model-gates?gate=garrison-outside', (s) => s?.ok
+    && s.route === 'campaign-model-gates'
+    && s.stats.gate === 'garrison-outside'
+    && s.stats.depth?.allocated === true
+    && hasFramePhaseOrder(s.stats.framePhases ?? s.stats.phases)
+    && s.stats.entityLayer === 'raw-webgpu-legacy-model-meshes'
+    && s.stats.samples?.garrison?.visibleShieldOutsideCity
+    && s.stats.samples?.garrison?.visibleStandardOutsideCity],
   ['campaign-model-gates?gate=garrison-city', (s) => s?.ok
     && s.route === 'campaign-model-gates'
     && s.stats.gate === 'garrison-city'
@@ -100,6 +108,14 @@ const routes = [
     && s.stats.entityLayer === 'raw-webgpu-legacy-model-meshes'
     && s.stats.samples?.garrison?.hiddenShieldInsideWall
     && s.stats.samples?.garrison?.visibleStandardAboveRoofs],
+  ['campaign-model-gates?gate=garrison-hidden', (s) => s?.ok
+    && s.route === 'campaign-model-gates'
+    && s.stats.gate === 'garrison-hidden'
+    && s.stats.depth?.allocated === true
+    && hasFramePhaseOrder(s.stats.framePhases ?? s.stats.phases)
+    && s.stats.entityLayer === 'raw-webgpu-legacy-model-meshes'
+    && s.stats.samples?.garrison?.hiddenBodyInsideCity
+    && s.stats.samples?.garrison?.hiddenStandardInsideCity],
   ['campaign-model-gates?gate=selected-city', (s) => s?.ok
     && s.route === 'campaign-model-gates'
     && s.stats.gate === 'selected-city'
@@ -966,6 +982,22 @@ export async function run(ctx) {
         JSON.stringify({ mast, sample: samples.mastAboveCloth }),
       );
     }
+    if (route === 'campaign-model-gates?gate=garrison-outside') {
+      const canvasPng = PNG.sync.read(await page.locator('#webgpu-canvas').screenshot());
+      const samples = stats.stats.samples.garrison;
+      const body = patchStats(canvasPng, samples.visibleShieldOutsideCity, 6);
+      const standard = patchStats(canvasPng, samples.visibleStandardOutsideCity, 6);
+      ctx.check(
+        `${route}: outside-garrison army body is visible before entering the city`,
+        body.blue > 12,
+        JSON.stringify({ body, sample: samples.visibleShieldOutsideCity }),
+      );
+      ctx.check(
+        `${route}: outside-garrison army standard is visible before entering the city`,
+        standard.blue > 12,
+        JSON.stringify({ standard, sample: samples.visibleStandardOutsideCity }),
+      );
+    }
     if (route === 'campaign-model-gates?gate=garrison-city') {
       const canvasPng = PNG.sync.read(await page.locator('#webgpu-canvas').screenshot());
       const samples = stats.stats.samples.garrison;
@@ -980,6 +1012,28 @@ export async function run(ctx) {
         `${route}: garrisoned army standard remains visible above the city`,
         visible.blue > 12,
         JSON.stringify({ visible, sample: samples.visibleStandardAboveRoofs }),
+      );
+    }
+    if (route === 'campaign-model-gates?gate=garrison-hidden') {
+      const canvasPng = PNG.sync.read(await page.locator('#webgpu-canvas').screenshot());
+      const samples = stats.stats.samples.garrison;
+      const body = patchStats(canvasPng, samples.hiddenBodyInsideCity, 6);
+      const standard = patchStats(canvasPng, samples.hiddenStandardInsideCity, 6);
+      const roof = patchStats(canvasPng, samples.occludingCityRoof, 6);
+      ctx.check(
+        `${route}: lowered garrison body is hidden by city material`,
+        body.blue <= 8 && (body.tan + body.red) > 60,
+        JSON.stringify({ body, sample: samples.hiddenBodyInsideCity }),
+      );
+      ctx.check(
+        `${route}: lowered garrison standard is hidden by city material`,
+        standard.blue <= 8 && (standard.tan + standard.red) > 40,
+        JSON.stringify({ standard, sample: samples.hiddenStandardInsideCity }),
+      );
+      ctx.check(
+        `${route}: city roof remains the visible occluder for the hidden garrison`,
+        (roof.tan + roof.red) > 80,
+        JSON.stringify({ roof, sample: samples.occludingCityRoof }),
       );
     }
     if (route === 'campaign-model-gates?gate=selected-city') {

@@ -936,7 +936,9 @@ async function routeCampaignModelGates(ctx: LabContext) {
 type CampaignModelGate =
   | 'overview'
   | 'city'
+  | 'garrison-outside'
   | 'garrison-city'
+  | 'garrison-hidden'
   | 'hostile-depth-order'
   | 'town'
   | 'army'
@@ -956,7 +958,9 @@ type CampaignModelGate =
 
 const CAMPAIGN_MODEL_GATES: CampaignModelGate[] = [
   'city',
+  'garrison-outside',
   'garrison-city',
+  'garrison-hidden',
   'hostile-depth-order',
   'town',
   'army',
@@ -978,7 +982,10 @@ const CAMPAIGN_MODEL_GATES: CampaignModelGate[] = [
 const MODEL_GATE_CITY_POSITION: [number, number] = [0.0, -1.8];
 const MODEL_GATE_CITY_RADIUS = 6.6;
 const MODEL_GATE_GARRISON_ARMY_POSITION: [number, number] = [0.65, -1.65];
+const MODEL_GATE_OUTSIDE_GARRISON_ARMY_POSITION: [number, number] = [-7.10, -1.85];
+const MODEL_GATE_HIDDEN_GARRISON_ARMY_POSITION: [number, number] = [0.0, 3.0];
 const MODEL_GATE_GARRISON_ARMY_RADIUS = 7.0;
+const MODEL_GATE_HIDDEN_GARRISON_Z = -4.4;
 
 function campaignModelGate(value: string | null): CampaignModelGate {
   return CAMPAIGN_MODEL_GATES.includes(value as CampaignModelGate) ? value as CampaignModelGate : 'city';
@@ -1026,11 +1033,36 @@ function campaignModelGateFrame(gate: CampaignModelGate) {
     addCity(MODEL_GATE_CITY_POSITION[0], MODEL_GATE_CITY_POSITION[1], MODEL_GATE_CITY_RADIUS, 'ROMA', red, green, true);
     scenery.push({ x: -1.34, y: -1.08, size: 14.0, kind: 'broadleaf', shade: 0.72 });
   }
+  if (gate === 'garrison-outside') {
+    addCity(MODEL_GATE_CITY_POSITION[0], MODEL_GATE_CITY_POSITION[1], MODEL_GATE_CITY_RADIUS, 'ROMA', red, green, true);
+    entities.push({
+      x: MODEL_GATE_OUTSIDE_GARRISON_ARMY_POSITION[0],
+      y: MODEL_GATE_OUTSIDE_GARRISON_ARMY_POSITION[1],
+      radius: MODEL_GATE_GARRISON_ARMY_RADIUS,
+      faction: [0.16, 0.34, 0.78],
+      allegiance: green,
+      kind: 'army',
+      strength: 0.62,
+    });
+  }
   if (gate === 'garrison-city') {
     addCity(MODEL_GATE_CITY_POSITION[0], MODEL_GATE_CITY_POSITION[1], MODEL_GATE_CITY_RADIUS, 'ROMA', red, green, true);
     entities.push({
       x: MODEL_GATE_GARRISON_ARMY_POSITION[0],
       y: MODEL_GATE_GARRISON_ARMY_POSITION[1],
+      radius: MODEL_GATE_GARRISON_ARMY_RADIUS,
+      faction: [0.16, 0.34, 0.78],
+      allegiance: green,
+      kind: 'army',
+      strength: 0.62,
+    });
+  }
+  if (gate === 'garrison-hidden') {
+    addCity(MODEL_GATE_CITY_POSITION[0], MODEL_GATE_CITY_POSITION[1], MODEL_GATE_CITY_RADIUS, 'ROMA', red, green, true);
+    entities.push({
+      x: MODEL_GATE_HIDDEN_GARRISON_ARMY_POSITION[0],
+      y: MODEL_GATE_HIDDEN_GARRISON_ARMY_POSITION[1],
+      z: MODEL_GATE_HIDDEN_GARRISON_Z,
       radius: MODEL_GATE_GARRISON_ARMY_RADIUS,
       faction: [0.16, 0.34, 0.78],
       allegiance: green,
@@ -1142,20 +1174,44 @@ function campaignModelGateGarrisonSamples(
   canvas: HTMLCanvasElement,
   camera: { x: number; y: number; zoom: number; pitch?: number; yaw?: number; perspective?: number },
 ) {
-  if (gate !== 'garrison-city') return null;
+  if (gate !== 'garrison-outside' && gate !== 'garrison-city' && gate !== 'garrison-hidden') return null;
   const cityScale = MODEL_GATE_CITY_RADIUS / 5.0;
   const armyScale = MODEL_GATE_GARRISON_ARMY_RADIUS / 4.4;
+  const armyBase =
+    gate === 'garrison-outside'
+      ? MODEL_GATE_OUTSIDE_GARRISON_ARMY_POSITION
+      : gate === 'garrison-hidden'
+        ? MODEL_GATE_HIDDEN_GARRISON_ARMY_POSITION
+      : MODEL_GATE_GARRISON_ARMY_POSITION;
+  const armyZ = gate === 'garrison-hidden' ? MODEL_GATE_HIDDEN_GARRISON_Z : 0;
   const cityPoint = (local: [number, number, number]) => projectNestedPoint(canvas, camera, [
     MODEL_GATE_CITY_POSITION[0] + local[0] * cityScale,
     MODEL_GATE_CITY_POSITION[1] + local[1] * cityScale,
     local[2] * cityScale,
   ]);
   const armyPoint = (local: [number, number, number]) => projectNestedPoint(canvas, camera, [
-    MODEL_GATE_GARRISON_ARMY_POSITION[0] + local[0] * armyScale,
-    MODEL_GATE_GARRISON_ARMY_POSITION[1] + local[1] * armyScale,
-    local[2] * armyScale,
+    armyBase[0] + local[0] * armyScale,
+    armyBase[1] + local[1] * armyScale,
+    armyZ + local[2] * armyScale,
   ]);
+  if (gate === 'garrison-outside') {
+    return {
+      state: 'outside-city',
+      visibleShieldOutsideCity: armyPoint([-1.40, -0.72, 0.90]),
+      visibleStandardOutsideCity: armyPoint([1.30, 0.12, 4.02]),
+      cityControl: cityPoint([-0.62, 0.08, 1.50]),
+    };
+  }
+  if (gate === 'garrison-hidden') {
+    return {
+      state: 'hidden-inside-city',
+      hiddenBodyInsideCity: armyPoint([-0.46, -0.42, 0.98]),
+      hiddenStandardInsideCity: armyPoint([1.30, 0.12, 4.02]),
+      occludingCityRoof: cityPoint([0.34, 0.04, 4.94]),
+    };
+  }
   return {
+    state: 'partial-inside-city',
     hiddenShieldInsideWall: armyPoint([-0.46, -0.42, 0.98]),
     visibleStandardAboveRoofs: armyPoint([1.30, 0.12, 4.02]),
     occludingCityWall: cityPoint([-0.62, 0.08, 1.50]),

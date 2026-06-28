@@ -216,8 +216,194 @@
       "status": "webgpu-evidence"
     },
     {
+      "id": "garrison-outside",
+      "label": "Garrison Outside City",
+      "criteria": "Army marker is fully visible outside the city before garrisoning, using the same production city and army depth-tested model path.",
+      "image": "garrison-outside.png",
+      "stats": {
+        "route": "campaign-model-gates",
+        "gate": "garrison-outside",
+        "camera": {
+          "x": 0,
+          "y": 0.3,
+          "zoom": 28,
+          "pitch": 0.56,
+          "yaw": 0,
+          "perspective": 0.018
+        },
+        "entities": 2,
+        "scenery": 0,
+        "sceneryStats": {
+          "scenery": 0,
+          "mountains": 0,
+          "trees": 0,
+          "conifers": 0,
+          "broadleafs": 0,
+          "rocks": 0,
+          "mountainModelVertices": 138,
+          "coniferModelVertices": 177,
+          "broadleafModelVertices": 258,
+          "rockModelVertices": 126,
+          "materialClasses": [
+            "opaque-depth-write",
+            "shadow-depth-read"
+          ],
+          "layer": "raw-webgpu-legacy-scenery-meshes"
+        },
+        "roadTriangles": 0,
+        "waterFeatures": 0,
+        "cloudQuads": 0,
+        "selections": 1,
+        "labels": 1,
+        "visibleLabels": 1,
+        "labelLayer": "raw-webgpu-glyph-atlas",
+        "entityLayer": "raw-webgpu-legacy-model-meshes",
+        "depth": {
+          "format": "depth24plus",
+          "width": 970,
+          "height": 758,
+          "allocated": true
+        },
+        "framePhases": [
+          {
+            "kind": "background",
+            "label": "terrain, backdrop, impostor markers, and background surfaces",
+            "passIds": [
+              "builtin-background"
+            ],
+            "passRoles": [
+              {
+                "id": "builtin-background",
+                "role": "background-underpaint"
+              }
+            ],
+            "depthPasses": [],
+            "depth": "none",
+            "loadOp": "clear"
+          },
+          {
+            "kind": "world-depth",
+            "label": "depth-tested world geometry and ground decals",
+            "passIds": [
+              "model-gate-scenery-opaque",
+              "model-gate-entities-opaque",
+              "model-gate-scenery-shadows",
+              "model-gate-entity-shadows",
+              "model-gate-roads",
+              "model-gate-selection"
+            ],
+            "passRoles": [
+              {
+                "id": "model-gate-scenery-opaque",
+                "role": "world-opaque"
+              },
+              {
+                "id": "model-gate-entities-opaque",
+                "role": "world-opaque"
+              },
+              {
+                "id": "model-gate-scenery-shadows",
+                "role": "world-decal"
+              },
+              {
+                "id": "model-gate-entity-shadows",
+                "role": "world-decal"
+              },
+              {
+                "id": "model-gate-roads",
+                "role": "world-decal"
+              },
+              {
+                "id": "model-gate-selection",
+                "role": "world-decal"
+              }
+            ],
+            "depthPasses": [
+              {
+                "id": "model-gate-scenery-opaque",
+                "mode": "read-write"
+              },
+              {
+                "id": "model-gate-entities-opaque",
+                "mode": "read-write"
+              },
+              {
+                "id": "model-gate-scenery-shadows",
+                "mode": "read"
+              },
+              {
+                "id": "model-gate-entity-shadows",
+                "mode": "read"
+              },
+              {
+                "id": "model-gate-roads",
+                "mode": "read"
+              },
+              {
+                "id": "model-gate-selection",
+                "mode": "read"
+              }
+            ],
+            "depth": "depth24plus-clear",
+            "loadOp": "load"
+          },
+          {
+            "kind": "overlay",
+            "label": "labels, HUD, minimap, atmosphere, and debug overlays",
+            "passIds": [
+              "model-gate-labels"
+            ],
+            "passRoles": [
+              {
+                "id": "model-gate-labels",
+                "role": "overlay-ui"
+              }
+            ],
+            "depthPasses": [],
+            "depth": "none",
+            "loadOp": "load"
+          }
+        ],
+        "hostileDrawOrder": "normal",
+        "samples": {
+          "garrison": {
+            "state": "outside-city",
+            "visibleShieldOutsideCity": {
+              "x": 207.36772167190145,
+              "y": 419.48938755048243,
+              "world": [
+                -9.327272727272726,
+                -2.995454545454545,
+                1.4318181818181819
+              ]
+            },
+            "visibleStandardOutsideCity": {
+              "x": 338.95915982698995,
+              "y": 241.5563021442971,
+              "world": [
+                -5.031818181818181,
+                -1.6590909090909092,
+                6.395454545454545
+              ]
+            },
+            "cityControl": {
+              "x": 461.23153097684394,
+              "y": 370.57083638489297,
+              "world": [
+                -0.8183999999999999,
+                -1.6944000000000001,
+                1.9799999999999998
+              ]
+            }
+          }
+        },
+        "postCutoverScreenshots": "webgpu-only"
+      },
+      "status": "webgpu-evidence"
+    },
+    {
       "id": "garrison-city",
-      "label": "Garrison In City",
+      "label": "Garrison Partly In City",
       "criteria": "Army marker can sit inside the city volume with lower soldiers occluded and the raised standard still readable through the production depth pass.",
       "image": "garrison-city.png",
       "stats": {
@@ -367,6 +553,7 @@
         "hostileDrawOrder": "normal",
         "samples": {
           "garrison": {
+            "state": "partial-inside-city",
             "hiddenShieldInsideWall": {
               "x": 482.59578690276294,
               "y": 398.3698024653887,
@@ -392,6 +579,192 @@
                 -0.8183999999999999,
                 -1.6944000000000001,
                 1.9799999999999998
+              ]
+            }
+          }
+        },
+        "postCutoverScreenshots": "webgpu-only"
+      },
+      "status": "webgpu-evidence"
+    },
+    {
+      "id": "garrison-hidden",
+      "label": "Garrison Hidden In City",
+      "criteria": "Army marker can be lowered into the city volume and fully hidden by city roofs/walls through the production depth pass.",
+      "image": "garrison-hidden.png",
+      "stats": {
+        "route": "campaign-model-gates",
+        "gate": "garrison-hidden",
+        "camera": {
+          "x": 0,
+          "y": 0.3,
+          "zoom": 28,
+          "pitch": 0.56,
+          "yaw": 0,
+          "perspective": 0.018
+        },
+        "entities": 2,
+        "scenery": 0,
+        "sceneryStats": {
+          "scenery": 0,
+          "mountains": 0,
+          "trees": 0,
+          "conifers": 0,
+          "broadleafs": 0,
+          "rocks": 0,
+          "mountainModelVertices": 138,
+          "coniferModelVertices": 177,
+          "broadleafModelVertices": 258,
+          "rockModelVertices": 126,
+          "materialClasses": [
+            "opaque-depth-write",
+            "shadow-depth-read"
+          ],
+          "layer": "raw-webgpu-legacy-scenery-meshes"
+        },
+        "roadTriangles": 0,
+        "waterFeatures": 0,
+        "cloudQuads": 0,
+        "selections": 1,
+        "labels": 1,
+        "visibleLabels": 1,
+        "labelLayer": "raw-webgpu-glyph-atlas",
+        "entityLayer": "raw-webgpu-legacy-model-meshes",
+        "depth": {
+          "format": "depth24plus",
+          "width": 970,
+          "height": 758,
+          "allocated": true
+        },
+        "framePhases": [
+          {
+            "kind": "background",
+            "label": "terrain, backdrop, impostor markers, and background surfaces",
+            "passIds": [
+              "builtin-background"
+            ],
+            "passRoles": [
+              {
+                "id": "builtin-background",
+                "role": "background-underpaint"
+              }
+            ],
+            "depthPasses": [],
+            "depth": "none",
+            "loadOp": "clear"
+          },
+          {
+            "kind": "world-depth",
+            "label": "depth-tested world geometry and ground decals",
+            "passIds": [
+              "model-gate-scenery-opaque",
+              "model-gate-entities-opaque",
+              "model-gate-scenery-shadows",
+              "model-gate-entity-shadows",
+              "model-gate-roads",
+              "model-gate-selection"
+            ],
+            "passRoles": [
+              {
+                "id": "model-gate-scenery-opaque",
+                "role": "world-opaque"
+              },
+              {
+                "id": "model-gate-entities-opaque",
+                "role": "world-opaque"
+              },
+              {
+                "id": "model-gate-scenery-shadows",
+                "role": "world-decal"
+              },
+              {
+                "id": "model-gate-entity-shadows",
+                "role": "world-decal"
+              },
+              {
+                "id": "model-gate-roads",
+                "role": "world-decal"
+              },
+              {
+                "id": "model-gate-selection",
+                "role": "world-decal"
+              }
+            ],
+            "depthPasses": [
+              {
+                "id": "model-gate-scenery-opaque",
+                "mode": "read-write"
+              },
+              {
+                "id": "model-gate-entities-opaque",
+                "mode": "read-write"
+              },
+              {
+                "id": "model-gate-scenery-shadows",
+                "mode": "read"
+              },
+              {
+                "id": "model-gate-entity-shadows",
+                "mode": "read"
+              },
+              {
+                "id": "model-gate-roads",
+                "mode": "read"
+              },
+              {
+                "id": "model-gate-selection",
+                "mode": "read"
+              }
+            ],
+            "depth": "depth24plus-clear",
+            "loadOp": "load"
+          },
+          {
+            "kind": "overlay",
+            "label": "labels, HUD, minimap, atmosphere, and debug overlays",
+            "passIds": [
+              "model-gate-labels"
+            ],
+            "passRoles": [
+              {
+                "id": "model-gate-labels",
+                "role": "overlay-ui"
+              }
+            ],
+            "depthPasses": [],
+            "depth": "none",
+            "loadOp": "load"
+          }
+        ],
+        "hostileDrawOrder": "normal",
+        "samples": {
+          "garrison": {
+            "state": "hidden-inside-city",
+            "hiddenBodyInsideCity": {
+              "x": 465.2320584443489,
+              "y": 409.23843887003534,
+              "world": [
+                -0.7318181818181818,
+                2.331818181818182,
+                -2.8409090909090913
+              ]
+            },
+            "hiddenStandardInsideCity": {
+              "x": 540.0447616743286,
+              "y": 260.7016391719656,
+              "world": [
+                2.0681818181818183,
+                3.190909090909091,
+                1.9954545454545443
+              ]
+            },
+            "occludingCityRoof": {
+              "x": 498.0471834928377,
+              "y": 239.8562261630859,
+              "world": [
+                0.4488,
+                -1.7472,
+                6.5207999999999995
               ]
             }
           }

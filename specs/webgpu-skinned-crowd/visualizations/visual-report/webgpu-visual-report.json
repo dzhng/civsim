@@ -85,13 +85,13 @@
       "category": "model/prop evidence",
       "criteria": "Addressable WebGPU screenshots for campaign city, garrison, town, army, roads, trees, mountains, rocks, terrain, water, clouds, labels, and selection footprints.",
       "status": "webgpu-evidence",
-      "evidence": "18/18 campaign gates; required nested garrison gate present; missing none; incomplete 0",
+      "evidence": "20/20 campaign gates; required garrison states outside/partial/hidden present; missing none; incomplete 0",
       "image": "model-gates/garrison-city.png",
       "linkedReport": "model-gates/webgpu-model-gates.html",
       "gateSummary": {
         "report": "model-gates/webgpu-model-gates.json",
-        "captures": 18,
-        "required": 18,
+        "captures": 20,
+        "required": 20,
         "missing": [],
         "incomplete": []
       },
@@ -138,7 +138,7 @@
       "category": "campaign",
       "criteria": "Parchment map, territory, roads, water, clouds, WebGPU glyph labels.",
       "status": "webgpu-evidence",
-      "evidence": "412 cities; 30/494 labels; raw-webgpu-glyph-atlas",
+      "evidence": "412 cities; 24/482 labels; raw-webgpu-glyph-atlas",
       "image": "visual-report/campaign-whole-map.png",
       "currentRendererComparison": {
         "status": "missing-archived-capture",

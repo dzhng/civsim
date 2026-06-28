@@ -24,7 +24,9 @@ const COMPARISON_JSON = process.env.VISUAL_COMPARISON_JSON;
 const ACCEPTED_VISUAL_STATUSES = new Set(['webgpu-better', 'equal-or-better', 'accepted-exception', 'pass', 'accepted']);
 const REQUIRED_MODEL_GATE_IDS = [
   'city',
+  'garrison-outside',
   'garrison-city',
+  'garrison-hidden',
   'hostile-depth-order',
   'town',
   'army',
@@ -351,7 +353,7 @@ async function captureCampaignModelGateSummary() {
   return {
     ...row,
     status: complete ? 'webgpu-evidence' : 'missing-gate-evidence',
-    evidence: `${captures.length}/${REQUIRED_MODEL_GATE_IDS.length} campaign gates; required nested garrison gate ${ids.has('garrison-city') ? 'present' : 'missing'}; missing ${missing.length ? missing.join(', ') : 'none'}; incomplete ${incomplete.length}`,
+    evidence: `${captures.length}/${REQUIRED_MODEL_GATE_IDS.length} campaign gates; required garrison states outside/partial/hidden ${ids.has('garrison-outside') && ids.has('garrison-city') && ids.has('garrison-hidden') ? 'present' : 'missing'}; missing ${missing.length ? missing.join(', ') : 'none'}; incomplete ${incomplete.length}`,
     image: hasRepresentative ? relativeVisualPath(representative) : null,
     linkedReport: hasReportHtml ? relativeVisualPath(MODEL_GATES_HTML) : null,
     gateSummary: {

@@ -5,6 +5,7 @@ import { webGpuAlphaBlendColorTarget, webGpuOpaqueColorTarget, webGpuWorldDepthS
 export interface CampaignEntityInstance {
   x: number;
   y: number;
+  z?: number;
   radius: number;
   faction: [number, number, number];
   allegiance: [number, number, number];
@@ -48,7 +49,7 @@ fn vs(
   @location(5) inst2: vec4f,
 ) -> VsOut {
   let scale = inst0.z;
-  let world = vec3f(inst0.x + local.x * scale, inst0.y + local.y * scale, local.z * scale);
+  let world = vec3f(inst0.x + local.x * scale, inst0.y + local.y * scale, inst0.w + local.z * scale);
   var out: VsOut;
   out.pos = projectWorld3d(world, civsimCampaignWorldDepth3d(world));
   out.color = colorAndAlpha.rgb;
@@ -236,7 +237,7 @@ function packInstances(instances: CampaignEntityInstance[], radiusToScale: numbe
     data[o] = inst.x;
     data[o + 1] = inst.y;
     data[o + 2] = inst.radius / radiusToScale;
-    data[o + 3] = inst.strength ?? 1;
+    data[o + 3] = inst.z ?? 0;
     data.set(inst.faction, o + 4);
     data[o + 7] = inst.allegiance[0];
     data[o + 8] = inst.allegiance[1];

@@ -188,6 +188,31 @@ failures belong to the shared renderer foundation first.
   `0.24656` crop. A larger-radius trial reached `0.18237` / `0.24620`, but
   fresh critique flagged it as oversized and detached, so the accepted version
   keeps the smaller radius and the better label placement.
+- Production campaign roads now consume the same `TerrainField` land mask as
+  the rendered campaign background. Raised road geometry is emitted only when
+  the full segment footprint samples as land; mixed land/water segments are
+  skipped rather than drawn as broken chunks or allowed to visually run into
+  water. This is a correctness checkpoint, not the final transport model:
+  bridges, ferries, and sea lanes must become explicit road-surface semantics
+  before skipped coastal connectivity can be restored.
+- The production road mesh now uses the same narrower scale as the controlled
+  close fixture, and the real-map land test requires a conservative footprint
+  clearance near water. This reduces the Rome-south coastal causeway read
+  without hiding valid land routes. Remaining ambiguity in the Rome/Forum
+  Appii/Tarracina corridor is data/semantics debt, not a draw-order problem:
+  crossings need explicit bridge, ferry, port, or coastal-road classification.
+- Real-map WebGPU LoD coverage now lives in `web/scenes/campaign-webgpu-lod.mjs`.
+  It captures whole-map political, whole-map natural, whole-map fog, regional
+  Italy, close Rome, selected army in city, selected city, and regional border
+  fog scenes from the normal campaign route. Every scene freezes the simulation,
+  uses the live campaign WebGPU adapter, and asserts labels, roads, entities,
+  fog, and clouds according to the active LoD band.
+- Fresh unprimed critique after the LoD scene landed still found coastal route
+  ambiguity near Rome: several water routes read as pale roads continuing into
+  the sea. Sea lanes now render as dashed translucent blue route hints while
+  land roads remain raised stone geometry. This does not solve transport
+  semantics; it only restores visual truth until bridge/ferry/port crossings
+  become explicit data.
 
 ## Must Stay Green
 
@@ -210,6 +235,14 @@ the map reads as a floating board against black void, labels remain crowded over
 busy cities and the central army, selection rings are too subtle, the central
 army/banner/road/label stack is visually tangled, object scale and shadows are
 not fully unified, and some rocks still read as clipped gray patches.
+
+Fresh critique of the real-map LoD screenshots after road/city label work
+keeps these blockers open: the Rome/Ostia selected army composition is still
+ambiguous at regional zoom; Asculum/Castrum Truentinum and top-edge labels can
+crowd or clip; fog-of-war reads cloud-like and noisy outside the Rome reveal;
+city flags are too small to communicate ownership clearly at the LoD band; and
+coastal routes need explicit bridge/ferry/sea-lane semantics rather than visual
+guesswork.
 
 The material-color checkpoint improved Campaign Label Zoom metrics, but the
 fresh unprimed critique still blocks accepting the campaign render as visually
@@ -257,6 +290,40 @@ as pixel-identical despite different hashes and improved compare metrics. Treat
 that critique as weak no-new-defect evidence, not as proof that the change is
 visually complete. Shared blockers remain: selected marker clarity, crowded
 city labels, and some dark rocks near the central army.
+
+Fresh unprimed critique of `web/shots/campaign/campaign-3d.png` and the Rome
+close-view screenshot flags the Rome/Ostia road-city cluster as not accepted.
+The underlying map coordinates may be geographically plausible, but the
+rendered road/city presentation is wrong when roads run through settlement
+footprints, when raised road ribbons make cities appear misplaced, or when the
+selected army and Ostia/Portus labels collide with the Rome road hub. Next map
+work must add road endpoint clipping or junction treatment around city volumes,
+reduce road scale where it harms position readability, and keep the top HUD
+from clipping map labels before campaign-3D can be accepted.
+
+Implementation checkpoint: road mesh generation now preserves endpoint node
+metadata (`a`/`b`) and insets raised roads at city endpoints while keeping
+junction endpoints connected. This is the first step toward correct road/city
+composition; it does not close the Rome cluster until screenshot critique
+confirms the roads, city model, labels, and selected army scan together.
+
+Architecture checkpoint: production campaign road generation now receives the
+same `TerrainField` land mask that drives terrain relief and scenery. Raised
+road mesh is emitted only for road edges whose full footprint is land-safe; a
+partial land/water edge is skipped rather than rendered as broken stone chunks
+or a road spilling into sea. Bridges/intentional crossings must become explicit
+road-surface semantics later rather than implicit raised road geometry over
+water. This keeps terrain, coastline, road, city, and army placement tied to one
+campaign world contract.
+
+Scene coverage checkpoint: `web/scenes/campaign-webgpu-lod.mjs` now snapshots
+the real campaign map across the campaign LoD bands that currently change
+rendering behavior: whole-map political, whole-map natural, whole-map fog,
+regional Italy, close Rome, selected army in city, selected city, and regional
+border fog. Each shot also asserts WebGPU renderer stats for labels, roads,
+entities, fog, and clouds. This is the first catalog of campaign LoD gates; it
+does not replace future dedicated scenes for explicit bridges/ferries, city
+garrisons, and every later LoD threshold introduced by gameplay/UI changes.
 
 The whole-map campaign route now uses explicit WebGPU map/territory style
 constants instead of sharing the close-fixture wash. Stronger real-map

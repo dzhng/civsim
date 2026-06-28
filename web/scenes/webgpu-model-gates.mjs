@@ -21,9 +21,19 @@ const gates = [
     criteria: 'Large settlement has clustered sandstone buildings, terracotta roofs, ownership flag, shadow, label icon, and selected footprint.',
   },
   {
+    id: 'garrison-outside',
+    label: 'Garrison Outside City',
+    criteria: 'Army marker is fully visible outside the city before garrisoning, using the same production city and army depth-tested model path.',
+  },
+  {
     id: 'garrison-city',
-    label: 'Garrison In City',
+    label: 'Garrison Partly In City',
     criteria: 'Army marker can sit inside the city volume with lower soldiers occluded and the raised standard still readable through the production depth pass.',
+  },
+  {
+    id: 'garrison-hidden',
+    label: 'Garrison Hidden In City',
+    criteria: 'Army marker can be lowered into the city volume and fully hidden by city roofs/walls through the production depth pass.',
   },
   {
     id: 'hostile-depth-order',

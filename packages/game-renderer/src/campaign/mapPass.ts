@@ -7,6 +7,7 @@ import type { BackgroundRenderPass, OverlayRenderPass, RawFrameShell, WorldRende
 type CampaignLineRenderPass = BackgroundRenderPass | WorldRenderPass;
 
 export interface CampaignMapNodeData {
+  id?: number;
   name: string;
   pos: [number, number];
   kind: 'city' | 'junction';
@@ -15,6 +16,8 @@ export interface CampaignMapNodeData {
 }
 
 export interface CampaignMapEdgeData {
+  a?: number;
+  b?: number;
   kind: 'road' | 'sea';
   via: [number, number][];
 }
@@ -48,6 +51,9 @@ export interface CampaignMapStyle {
 export interface CampaignMapDrawStyle {
   roadScale?: number;
   roadEndpointInset?: number;
+  roadCityEndpointInset?: number;
+  roadJunctionEndpointInset?: number;
+  roadSurfaceAt?: (x: number, y: number) => 'land' | 'water';
 }
 
 export interface CampaignMapDrawData {
@@ -79,6 +85,7 @@ export interface CampaignLabel {
   curve?: number;
   icon?: 'city' | 'army';
   iconColor?: [number, number, number];
+  sideText?: string;
   subText?: string;
   screenOffsetX?: number;
   screenOffsetY?: number;
@@ -876,9 +883,10 @@ export function buildCampaignMapDrawData(data: CampaignMapInputData, style: Camp
   const seaLanes = data.map.edges.filter((edge) => edge.kind === 'sea');
   const lineVertices: number[] = [];
   const roadMeshVertices: number[] = [];
+  const nodesById = new Map(data.map.nodes.map((node, index) => [node.id ?? index, node]));
   for (const edge of data.map.edges) {
     if (edge.kind === 'sea') pushEdgeLines(lineVertices, edge);
-    else pushRaisedRoad(roadMeshVertices, edge, style);
+    else if (roadEdgeIsLandSafe(edge, style)) pushRaisedRoad(roadMeshVertices, edge, style, roadEndpointInsets(edge, nodesById, style));
   }
   const cityNodes = data.map.nodes.filter((node) => node.kind === 'city');
   const cityMarkers = cityNodes.map((node) => markerForNode(data, node));
@@ -932,13 +940,23 @@ function pushEdgeLines(out: number[], edge: CampaignMapEdgeData) {
   for (let i = 1; i < edge.via.length; i++) {
     const a = edge.via[i - 1];
     const b = edge.via[i];
-    pushBand(a, b, [0.58, 0.72, 0.82, 0.075], 0.46);
+    const dx = b[0] - a[0];
+    const dy = b[1] - a[1];
+    const len = Math.hypot(dx, dy) || 1;
+    const dash = 12;
+    const gap = 10;
+    for (let d = 0; d < len; d += dash + gap) {
+      const t0 = d / len;
+      const t1 = Math.min(1, (d + dash) / len);
+      const start: [number, number] = [a[0] + dx * t0, a[1] + dy * t0];
+      const end: [number, number] = [a[0] + dx * t1, a[1] + dy * t1];
+      pushBand(start, end, [0.43, 0.72, 0.88, 0.12], 0.30);
+    }
   }
 }
 
-function pushRaisedRoad(out: number[], edge: CampaignMapEdgeData, style: CampaignMapDrawStyle) {
+function pushRaisedRoad(out: number[], edge: CampaignMapEdgeData, style: CampaignMapDrawStyle, endpointInsets: { start: number; end: number }) {
   const roadScale = style.roadScale ?? 1;
-  const roadEndpointInset = Math.max(0, style.roadEndpointInset ?? 0);
   const topColor: [number, number, number, number] = [0.78, 0.74, 0.62, 0.92];
   const crownColor: [number, number, number, number] = [0.91, 0.84, 0.66, 0.36];
   const sideColor: [number, number, number, number] = [0.40, 0.32, 0.20, 0.34];
@@ -954,8 +972,8 @@ function pushRaisedRoad(out: number[], edge: CampaignMapEdgeData, style: Campaig
     const len = Math.hypot(dx, dy) || 1;
     const ux = dx / len;
     const uy = dy / len;
-    const startInset = i === 1 ? roadEndpointInset : 0;
-    const endInset = i === edge.via.length - 1 ? roadEndpointInset : 0;
+    const startInset = i === 1 ? endpointInsets.start : 0;
+    const endInset = i === edge.via.length - 1 ? endpointInsets.end : 0;
     const usableInset = len > startInset + endInset + 1 ? { start: startInset, end: endInset } : { start: 0, end: 0 };
     const start: [number, number] = [a[0] + ux * usableInset.start, a[1] + uy * usableInset.start];
     const end: [number, number] = [b[0] - ux * usableInset.end, b[1] - uy * usableInset.end];
@@ -976,6 +994,37 @@ function pushRaisedRoad(out: number[], edge: CampaignMapEdgeData, style: Campaig
     pushRoadStrip(out, start, end, crownHalf, topZ + 0.025 * roadScale, crownColor, 1);
     pushRoadSide(out, start, end, nx, ny, topHalf, topZ, sideColor);
   }
+}
+
+function roadEdgeIsLandSafe(edge: CampaignMapEdgeData, style: CampaignMapDrawStyle) {
+  if (!style.roadSurfaceAt) return true;
+  for (let i = 1; i < edge.via.length; i++) {
+    const a = edge.via[i - 1];
+    const b = edge.via[i];
+    const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
+    const steps = Math.max(2, Math.ceil(len / 3));
+    for (let step = 0; step <= steps; step++) {
+      const t = step / steps;
+      const x = a[0] + (b[0] - a[0]) * t;
+      const y = a[1] + (b[1] - a[1]) * t;
+      if (style.roadSurfaceAt(x, y) !== 'land') return false;
+    }
+  }
+  return true;
+}
+
+function roadEndpointInsets(edge: CampaignMapEdgeData, nodesById: Map<number, CampaignMapNodeData>, style: CampaignMapDrawStyle) {
+  const fallback = Math.max(0, style.roadEndpointInset ?? 0);
+  const cityInset = Math.max(0, style.roadCityEndpointInset ?? style.roadEndpointInset ?? 9.5);
+  const junctionInset = Math.max(0, style.roadJunctionEndpointInset ?? style.roadEndpointInset ?? 0);
+  const insetFor = (id: number | undefined) => {
+    if (id === undefined) return fallback;
+    return nodesById.get(id)?.kind === 'city' ? cityInset : junctionInset;
+  };
+  return {
+    start: insetFor(edge.a),
+    end: insetFor(edge.b),
+  };
 }
 
 function pushRoadVertex(out: number[], point: [number, number], z: number, color: [number, number, number, number], uv: [number, number], material: number) {
@@ -1152,6 +1201,7 @@ function labelAtlasKey(labels: VisibleCampaignLabel[], dpr: number, totalLabels:
         (label.curve ?? 0).toFixed(3),
         label.icon ?? 'none',
         label.iconColor?.map((v) => v.toFixed(3)).join(',') ?? '',
+        label.sideText ?? '',
         label.subText ?? '',
         entry.offsetX.toFixed(2),
         entry.offsetY.toFixed(2),
@@ -1170,17 +1220,22 @@ function buildLabelAtlas(labels: VisibleCampaignLabel[], dpr: number) {
     measure.font = style.font;
     measure.letterSpacing = style.letterSpacing;
     const text = labelText(entry.label);
+    const sideText = entry.label.sideText ?? '';
     const subText = entry.label.subText ?? '';
     const iconWidth = entry.label.icon ? style.iconSize + style.iconGap : 0;
+    const mainWidth = measure.measureText(text).width;
+    const sideWidth = sideText ? style.sideGap + measureTextWithFont(measure, style.sideFont, style.letterSpacing, sideText) : 0;
     const subWidth = subText ? measureTextWithFont(measure, style.subFont, style.letterSpacing, subText) : 0;
     const seaPath = entry.label.kind === 'sea' ? measureSeaLabel(measure, style, entry.label, text) : null;
     return {
       ...entry,
       text,
+      sideText,
       subText,
       style,
       seaPath,
-      width: Math.max(1, Math.ceil(Math.max(seaPath?.width ?? measure.measureText(text).width + iconWidth, subWidth) + style.padding * 2)),
+      mainWidth,
+      width: Math.max(1, Math.ceil(Math.max(seaPath?.width ?? mainWidth + iconWidth + sideWidth, subWidth) + style.padding * 2)),
       height: Math.max(1, Math.ceil((seaPath?.height ?? style.size * (subText ? 2.2 : 1.55)) + style.padding * 2)),
     };
   });
@@ -1226,6 +1281,16 @@ function buildLabelAtlas(labels: VisibleCampaignLabel[], dpr: number) {
       ctx.strokeText(entry.text, tx, ty);
       ctx.fillStyle = entry.style.fill;
       ctx.fillText(entry.text, tx, ty);
+      if (entry.sideText) {
+        const sx = tx + entry.mainWidth + entry.style.sideGap;
+        ctx.font = entry.style.sideFont;
+        ctx.lineWidth = entry.style.sideHaloWidth;
+        ctx.strokeStyle = entry.style.halo;
+        ctx.strokeText(entry.sideText, sx, ty);
+        ctx.fillStyle = entry.style.sideFill;
+        ctx.fillText(entry.sideText, sx, ty);
+        ctx.font = entry.style.font;
+      }
     }
     if (entry.subText) {
       ctx.font = entry.style.subFont;
@@ -1320,6 +1385,10 @@ function labelStyle(label: CampaignLabel, dpr: number) {
       iconSize: 0,
       iconGap: 0,
       iconHaloWidth: 0,
+      sideFont: `400 ${size * 0.7}px Georgia, 'Times New Roman', serif`,
+      sideFill: 'rgba(196,214,232,0.72)',
+      sideGap: size * 0.25,
+      sideHaloWidth: 1.6 * dpr,
       subFont: `600 ${size * 0.72}px Cinzel, Georgia, 'Times New Roman', serif`,
       subFill: 'rgba(232,224,208,0.92)',
       subHaloWidth: 2 * dpr,
@@ -1337,6 +1406,10 @@ function labelStyle(label: CampaignLabel, dpr: number) {
       iconSize: size * 1.25,
       iconGap: size * 0.32,
       iconHaloWidth: 30,
+      sideFont: `600 ${size * 0.72}px Cinzel, Georgia, 'Times New Roman', serif`,
+      sideFill: 'rgba(238,232,218,0.95)',
+      sideGap: size * 0.42,
+      sideHaloWidth: 2.4 * dpr,
       subFont: `600 ${size * 0.72}px Cinzel, Georgia, 'Times New Roman', serif`,
       subFill: 'rgba(248,244,237,0.96)',
       subHaloWidth: 2.7 * dpr,
@@ -1354,6 +1427,10 @@ function labelStyle(label: CampaignLabel, dpr: number) {
       iconSize: 0,
       iconGap: 0,
       iconHaloWidth: 0,
+      sideFont: `600 ${size * 0.68}px Cinzel, Georgia, 'Times New Roman', serif`,
+      sideFill: 'rgba(232,224,208,0.92)',
+      sideGap: size * 0.35,
+      sideHaloWidth: 2 * dpr,
       subFont: `600 ${size * 0.72}px Cinzel, Georgia, 'Times New Roman', serif`,
       subFill: 'rgba(232,224,208,0.92)',
       subHaloWidth: 2 * dpr,
@@ -1370,6 +1447,10 @@ function labelStyle(label: CampaignLabel, dpr: number) {
     iconSize: size * 1.25,
     iconGap: size * 0.32,
     iconHaloWidth: 30,
+    sideFont: `600 ${size * 0.72}px Cinzel, Georgia, 'Times New Roman', serif`,
+    sideFill: 'rgba(238,232,218,0.95)',
+    sideGap: size * 0.42,
+    sideHaloWidth: 2.4 * dpr,
     subFont: `600 ${size * 0.72}px Cinzel, Georgia, 'Times New Roman', serif`,
     subFill: 'rgba(248,244,237,0.96)',
     subHaloWidth: 2.7 * dpr,

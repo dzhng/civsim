@@ -296,4 +296,21 @@ export class TerrainField {
     const d = this.height[i + this.w + 1];
     return (a * (1 - fx) + b * fx) * (1 - fy) + (c * (1 - fx) + d * fx) * fy;
   }
+
+  landAt(wx: number, wy: number, radiusKm = 0): boolean {
+    if (radiusKm > 0) {
+      const samples: [number, number][] = [
+        [0, 0],
+        [-radiusKm, 0],
+        [radiusKm, 0],
+        [0, -radiusKm],
+        [0, radiusKm],
+      ];
+      return samples.every(([dx, dy]) => this.landAt(wx + dx, wy + dy));
+    }
+    const gx = Math.round((wx - this.minX) / this.cell - 0.5);
+    const gy = Math.round((this.maxY - wy) / this.cell - 0.5);
+    if (gx < 0 || gy < 0 || gx >= this.w || gy >= this.h) return false;
+    return this.land[gy * this.w + gx] === 1;
+  }
 }

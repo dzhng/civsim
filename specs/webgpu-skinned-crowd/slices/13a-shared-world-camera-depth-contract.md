@@ -283,6 +283,12 @@ shadows that sit on the ground instead of floating as screen overlays.
   after parsing the shared TypeScript contract. This keeps production battle and
   campaign checks honest about `background -> world-depth -> overlay` roles and
   depth modes instead of failing because the verifier's parser went stale.
+- Campaign entity instances now include an optional world `z` transform. The
+  production campaign model gates use it to prove the full garrison state
+  sequence: an army outside the city is visible, the partial garrison has its
+  lower body depth-occluded while the standard remains visible, and the hidden
+  garrison is lowered into the city volume so both body and standard are hidden
+  by city roofs/walls through the same depth-tested mesh path.
 
 ## Human Feedback
 

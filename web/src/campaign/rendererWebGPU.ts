@@ -273,7 +273,11 @@ export class CampaignRendererWebGPU {
     this.entities = new CampaignEntityPass(this.shell);
     this.selection = new CampaignSelectionPass(this.shell);
     this.labels = new CampaignLabelPass(this.shell);
-    const drawData = buildCampaignMapDrawData(this.data, controlledStage ? { roadScale: 0.78, roadEndpointInset: 8.2 } : undefined);
+    const drawData = buildCampaignMapDrawData(this.data, {
+      roadScale: 0.78,
+      ...(controlledStage ? { roadEndpointInset: 8.2 } : {}),
+      roadSurfaceAt: (x, y) => this.field.landAt(x, y, controlledStage ? 2.5 : 10.5) ? 'land' : 'water',
+    });
     this.staticLabels = drawData.labels;
     this.lines.upload(drawData.lineVertices);
     this.roads.upload(drawData.roadMeshVertices);
@@ -407,23 +411,11 @@ function allegianceColor(allegiance: Allegiance): [number, number, number] {
 
 function campaignCityLabels(data: CampaignData, opts: DrawOptions): CampaignLabel[] {
   const edge = mapEdgeProjector(data);
-  const cityHasArmy = new Set<number>();
-  for (const army of visibleCampaignArmies(opts)) {
-    let best = -1;
-    let bestD = 8;
-    data.map.nodes.forEach((node, index) => {
-      if (node.kind !== 'city') return;
-      const d = Math.hypot(node.pos[0] - army.x, node.pos[1] - army.y);
-      if (d < bestD) {
-        bestD = d;
-        best = index;
-      }
-    });
-    if (best >= 0) cityHasArmy.add(best);
-  }
+  const occupiedCities = occupiedCityLabels(data, opts);
   const labels: CampaignLabel[] = [];
   data.map.nodes.forEach((node, index) => {
     if (node.kind !== 'city') return;
+    if (occupiedCities.has(index)) return;
     if (!fogVisible(opts, node.pos[0], node.pos[1], 0.18)) return;
     const city = opts.cities.get(index);
     const owner = city?.owner ?? Math.max(0, data.map.factions.findIndex((faction) => faction.id === node.owner));
@@ -440,7 +432,7 @@ function campaignCityLabels(data: CampaignData, opts: DrawOptions): CampaignLabe
       icon: 'city',
       iconColor: allegianceColor(allegiance),
       screenOffsetX: cityLabelOffsetX(opts, node.tier) + horizontalEdgeOffset(edge.x(node.pos[0])),
-      screenOffsetY: cityLabelOffset(opts, baseSize, cityHasArmy.has(index), node.tier) + verticalEdgeOffset(edge.y(node.pos[1])),
+      screenOffsetY: cityLabelOffset(opts, baseSize, false, node.tier) + verticalEdgeOffset(edge.y(node.pos[1])),
       screenAnchorX: overviewMarkerLabel ? 'left' : 'center',
       screenAnchorY: overviewMarkerLabel ? 'top' : 'center',
     });
@@ -463,11 +455,14 @@ function campaignArmyLabels(data: CampaignData, opts: DrawOptions): CampaignLabe
   return visibleCampaignArmies(opts).map((army): CampaignLabel => {
     const allegiance = army.mine || army.faction === opts.playerFaction ? Allegiance.Friend : statusOf(opts.factionStatus, army.faction);
     const markerSize = army.id === opts.selected ? 13 : 11;
-    const cityOverlap = data.map.nodes.some((node) => node.kind === 'city' && Math.hypot(node.pos[0] - army.x, node.pos[1] - army.y) < 8);
+    const occupiedCity = occupiedCityForArmy(data, army);
+    const cityOverlap = occupiedCity !== null;
     const selectedOffset = army.id === opts.selected && isControlledStage(data) ? 28 : 0;
+    const overlapClearance = cityOverlap ? (opts.cam.scale >= 3 ? 44 : 38) : 24;
     return {
       text: `${ordinal(ordinalOf.get(army.id) ?? 1)} LEGION`,
-      subText: `${Math.round(army.soldiers / 100) / 10}k`,
+      sideText: `${Math.round(army.soldiers / 100) / 10}k`,
+      subText: occupiedCity?.name.toUpperCase(),
       x: army.x,
       y: army.y,
       kind: 'army',
@@ -475,9 +470,29 @@ function campaignArmyLabels(data: CampaignData, opts: DrawOptions): CampaignLabe
       priority: 4,
       icon: 'army',
       iconColor: allegianceColor(allegiance),
-      screenOffsetY: markerSize + selectedOffset + (cityOverlap ? 48 : 24),
+      screenOffsetY: markerSize + selectedOffset + overlapClearance,
     };
   });
+}
+
+function occupiedCityLabels(data: CampaignData, opts: DrawOptions) {
+  const occupied = new Set<number>();
+  for (const army of visibleCampaignArmies(opts)) {
+    const match = occupiedCityForArmy(data, army);
+    if (match) occupied.add(match.index);
+  }
+  return occupied;
+}
+
+function occupiedCityForArmy(data: CampaignData, army: ArmyView) {
+  let best: { index: number; name: string; d: number } | null = null;
+  for (let index = 0; index < data.map.nodes.length; index++) {
+    const node = data.map.nodes[index];
+    if (node.kind !== 'city') continue;
+    const d = Math.hypot(node.pos[0] - army.x, node.pos[1] - army.y);
+    if (d < 8 && (!best || d < best.d)) best = { index, name: node.name, d };
+  }
+  return best;
 }
 
 function visibleCampaignArmies(opts: DrawOptions) {
@@ -509,8 +524,10 @@ function cityMarkerSidePx(tier: number) {
 
 function cityMarkerOuterEdgePlusSidePx(tier: number) {
   const radius = cityMarkerRadiusPx(tier);
-  return radius + cityMarkerSidePx(tier);
+  return radius + cityMarkerSidePx(tier) - OVERVIEW_LABEL_ICON_PADDING_PX;
 }
+
+const OVERVIEW_LABEL_ICON_PADDING_PX = 5;
 
 function ordinal(k: number) {
   const value = k % 100;

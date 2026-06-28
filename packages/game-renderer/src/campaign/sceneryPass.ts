@@ -7,6 +7,7 @@ export type CampaignSceneryKind = 'mountain' | 'tree' | 'conifer' | 'broadleaf' 
 export interface CampaignSceneryInstance {
   x: number;
   y: number;
+  z: number;
   size: number;
   kind: CampaignSceneryKind;
   shade?: number;
@@ -40,17 +41,19 @@ fn vs(
   @location(0) local: vec3f,
   @location(1) normal: vec3f,
   @location(2) colorAndAlpha: vec4f,
-  @location(3) inst: vec4f,
+  @location(3) instPose: vec4f,
+  @location(4) instShade: vec4f,
 ) -> VsOut {
-  let scale = inst.z;
-  let world = vec3f(inst.x + local.x * scale, inst.y + local.y * scale, local.z * scale);
+  let scale = instPose.z;
+  let baseZ = instPose.w;
+  let world = vec3f(instPose.x + local.x * scale, instPose.y + local.y * scale, baseZ + local.z * scale);
   var out: VsOut;
   out.pos = projectWorld3d(world, civsimCampaignWorldDepth3d(world));
   let sun = normalize(vec3f(-0.42, -0.34, 0.84));
   out.color = colorAndAlpha.rgb;
   out.alpha = colorAndAlpha.a;
   out.light = clamp(dot(normalize(normal), sun) * 0.34 + 0.78, 0.48, 1.14);
-  out.shade = clamp(inst.w, 0.0, 1.0);
+  out.shade = clamp(instShade.x, 0.0, 1.0);
   return out;
 }
 
@@ -145,9 +148,12 @@ export class CampaignSceneryPass {
             ],
           },
           {
-            arrayStride: 16,
+            arrayStride: 32,
             stepMode: 'instance',
-            attributes: [{ shaderLocation: 3, offset: 0, format: 'float32x4' }],
+            attributes: [
+              { shaderLocation: 3, offset: 0, format: 'float32x4' },
+              { shaderLocation: 4, offset: 16, format: 'float32x4' },
+            ],
           },
         ],
       },
@@ -277,21 +283,22 @@ export class CampaignSceneryPass {
     else this.rockCapacity = next;
     return this.shell.device.createBuffer({
       label,
-      size: next * 4 * 4,
+      size: next * 8 * 4,
       usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
     });
   }
 }
 
 function packInstances(instances: CampaignSceneryInstance[], sizeDivisor: number) {
-  const data = new Float32Array(instances.length * 4);
+  const data = new Float32Array(instances.length * 8);
   for (let i = 0; i < instances.length; i++) {
     const inst = instances[i];
-    const o = i * 4;
+    const o = i * 8;
     data[o] = inst.x;
     data[o + 1] = inst.y;
     data[o + 2] = inst.size / sizeDivisor;
-    data[o + 3] = inst.shade ?? hash2(inst.x, inst.y);
+    data[o + 3] = inst.z;
+    data[o + 4] = inst.shade ?? hash2(inst.x, inst.y);
   }
   return data;
 }
@@ -311,7 +318,7 @@ function makeIndexBuffer(device: GPUDevice, label: string, data: Uint16Array) {
 }
 
 function makeEmptyInstanceBuffer(device: GPUDevice, label: string) {
-  return device.createBuffer({ label, size: 4 * 4, usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST });
+  return device.createBuffer({ label, size: 8 * 4, usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST });
 }
 
 function buildMountainMesh() {

@@ -128,7 +128,7 @@ export async function run(ctx) {
       window.__campaign.select(-1);
       window.__campaign.cam(...camera);
     }, REGIONAL_ITALY_CAMERA),
-    stats: (stats) => stats.visibleLabels >= 8 && stats.cityEntities > 20 && stats.armyEntities >= 1 && stats.roadTriangles > 0 && stats.factionView === false,
+    stats: (stats) => stats.visibleLabels >= 8 && stats.cityEntities > 20 && stats.armyEntities >= 1 && stats.roadTriangles > 0 && stats.factionView === false && hasTerrainFeatureDensity(stats),
     compare3dBaseline: true,
     realItalyAlignment: 'regional',
   });
@@ -140,12 +140,12 @@ export async function run(ctx) {
       window.__campaign.select(-1);
       window.__campaign.cam(...camera);
     }, REGIONAL_ITALY_CAMERA),
-    stats: (stats) => stats.visibleLabels >= 8 && stats.cityEntities > 20 && stats.armyEntities >= 1 && stats.roadTriangles > 0 && stats.factionView === true,
+    stats: (stats) => stats.visibleLabels >= 8 && stats.cityEntities > 20 && stats.armyEntities >= 1 && stats.roadTriangles > 0 && stats.factionView === true && hasTerrainFeatureDensity(stats),
   });
 
   await snapCampaign(page, ctx, 'campaign-lod-rome-close', {
     before: () => page.evaluate((camera) => window.__campaign.cam(...camera), ROME_CLOSE_CAMERA),
-    stats: (stats) => stats.visibleLabels >= 4 && stats.cityEntities > 20 && stats.armyEntities >= 1 && stats.roadTriangles > 0,
+    stats: (stats) => stats.visibleLabels >= 4 && stats.cityEntities > 20 && stats.armyEntities >= 1 && stats.roadTriangles > 0 && hasTerrainFeatureDensity(stats),
     realItalyAlignment: 'close',
   });
 
@@ -173,10 +173,18 @@ export async function run(ctx) {
       window.__campaign.factionView(true);
       window.__campaign.cam(-430, 380, 2.2);
     }),
-    stats: (stats) => stats.fogEnabled === true && stats.fogSources > 0 && stats.cloudQuads === 1,
+    stats: (stats) => stats.fogEnabled === true && stats.fogSources > 0 && stats.cloudQuads === 1 && hasTerrainFeatureDensity(stats),
   });
 
   await page.close();
+}
+
+function hasTerrainFeatureDensity(stats) {
+  const scenery = stats.sceneryStats;
+  return stats.scenery >= 4000
+    && scenery?.mountains >= 1000
+    && scenery?.trees >= 2400
+    && scenery?.rocks >= 700;
 }
 
 async function snapCampaign(page, ctx, name, { before, stats, compare3dBaseline = false, realItalyAlignment = null }) {

@@ -60,6 +60,10 @@ pass orchestration, WGSL layout, depth semantics, or browser-verified output.
   world objects they mark. A selection ring, shadow, road, or footprint that
   assumes flat `z=0` can disappear under the terrain or drift away from the
   model even when its x/y coordinates are correct.
+- Instanced world props need a base-elevation field when they live on raised
+  terrain. An instance layout that carries only x/y/scale can look fine on a
+  flat fixture while trees, rocks, crowds, or buildings float, sink, or lose
+  depth ordering on the real map.
 - Tilted world scenes need one canonical surface. If terrain, water, roads,
   labels, props, or hit tests must stay geographically aligned while the camera
   moves, project and draw them from the same 3D surface/height contract. A flat

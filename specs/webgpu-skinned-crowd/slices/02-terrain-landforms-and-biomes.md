@@ -30,3 +30,13 @@ one flat color field.
   previous renderer.
 - Forest regions contain many trees instead of only color stains.
 - Terrain feature edges avoid jagged low-resolution masks.
+
+## Implementation Notes
+
+- 2026-06-28: WebGPU campaign scenery now follows the previous renderer's
+  terrain-feature policy from `origin/main:web/src/campaign/terrain3d.ts`:
+  deterministic mountains, rocks, and tree families are derived from the
+  canonical height/biome field, cached as static candidates, filtered by camera
+  LoD, and cleared around roads/cities/dynamic entities. Scenery instances carry
+  terrain `z` so props are anchored to the same 3D surface as cities, roads,
+  selections, and labels.

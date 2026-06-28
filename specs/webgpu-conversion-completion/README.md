@@ -118,8 +118,21 @@ final cutover (slice 11) is the integration point that depends on the rest.
 
 You are building the WebGPU conversion completion. Last updated: 2026-06-29.
 
-Current status: **Slices 01–08** (Groups A, B done bar the slice 06 horse
-headline; Group C started with shadows + elevation).
+Current status: **Slices 01–09** (Groups A, B, C done bar the slice 06 horse
+headline and the look-changes gated on David; Group D next).
+
+**Slice 09 (battle effects & corpses) shipped (polish):**
+- `deathVariant` (was dead code) now flows `CrowdInstance` → instance buffer →
+  skinned shader: fallen soldiers roll by a per-variant angle and desaturate, so
+  the field of dead reads as varied poses. corpse=0 keeps living byte-identical.
+- `BattleParticlePass`: instanced dust/blood puffs that rise and fade, capped at
+  4096 (overflow logged).
+- `/webgpu/battle-effects` route + `webgpu-battle-effects` scene: 30 corpses
+  across all 3 death variants, 40 capped particles, distinct blood pixels.
+  Unprimed critique confirmed living-vs-corpse separation + pose variety.
+- Deferred: 3D projectile arrows (slice marks them optional; 2D lines stay).
+  Production wiring re-blesses battle vibe baselines (gated on David's gore call).
+
 
 **Slice 08 (battle shadows & terrain elevation) shipped (seams + demo):**
 - `CrowdInstance.elevation`; `buildCrowdInstances` samples a `terrainHeight`
@@ -259,9 +272,10 @@ left untouched per the spec; the `compileShader` source gate is scoped to
 non-campaign roots. Only the campaign `renderer.ready.catch` (scene controller,
 pure robustness) was added.
 
-Next pickup: **Slice 09 (battle effects & corpses)** — Group C. Battle
-particles/impacts, 3D projectiles, distinct corpses. (Slice 06's horse-skeleton
-composition remains deferred.)
+Next pickup: **Slice 10 (scenario & visual acceptance reports)** — Group D.
+Generate the scenario-run reports and bless the visual-comparison manifest so the
+cutover scoreboard moves from PENDING to scored. (3D arrows + slice 06 horse
+remain deferred to David.)
 
 Active warnings:
 - Keep the sim and campaign renderer untouched; this is non-campaign renderer
@@ -289,7 +303,8 @@ Global TODO:
   LOD-aware grouping (production wiring gated on David's tier-distance tuning).
 - [x] Slice 08: battle shadow pass (port campaign `drawShadows`) and soldier
   terrain-elevation field (production wiring gated on David's shadow-style call).
-- [ ] Slice 09: battle particles/impacts, 3D projectiles, distinct corpses.
+- [x] Slice 09: battle particles/impacts and distinct corpses (deathVariant to
+  GPU); 3D projectiles deferred (optional polish). Production wiring gated.
 - [ ] Slice 10: generate scenario-run reports and bless the visual-comparison
   manifest + current-renderer archive; wire soldier/model gates into the report.
 - [ ] Slice 11: named-hardware perf report and a green cutover/release audit.

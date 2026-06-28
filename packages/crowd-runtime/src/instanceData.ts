@@ -27,6 +27,8 @@ export interface CrowdInstance {
   seed: number;
   /** This class rides a mount (horse). Drives LOD scale and mount composition. */
   mounted: boolean;
+  /** Mesh tier 0=full … 3=impostor, assigned per-instance by camera distance. */
+  lod: number;
 }
 
 export interface CrowdBuildStats {
@@ -73,6 +75,7 @@ export function buildCrowdInstances(inputs: CrowdBuildInputs): CrowdInstanceBuff
       phase: anim.phase,
       seed,
       mounted: mountedClasses.has(classId),
+      lod: 0,
     };
     instances.push(inst);
     const o = stats.written * 12;
@@ -136,6 +139,7 @@ export function generatedFormation(count: number, opts: {
       phase: anim.phase,
       seed,
       mounted: opts.mounted ?? false,
+      lod: 0,
     });
   }
   return out;

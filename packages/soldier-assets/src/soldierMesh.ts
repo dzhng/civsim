@@ -77,9 +77,16 @@ export function createPlaceholderSoldierMeshes(accentRgb: [number, number, numbe
   return PLACEHOLDER_LOOKS.map((_, classId) => createPlaceholderSoldierMesh(accentRgb, classId));
 }
 
+/** L0 full / L1 reduced (drops weapon, helmet crest) / L2 coarse (body+head+legs).
+ *  Tiers skin to the same bones, so one VAT drives every tier. */
+export function createPlaceholderSoldierMeshTiers(accentRgb: [number, number, number] = [0.20, 0.42, 0.88]): SoldierMeshData[][] {
+  return PLACEHOLDER_LOOKS.map((_, classId) => [0, 1, 2].map((lod) => createPlaceholderSoldierMesh(accentRgb, classId, lod)));
+}
+
 export function createPlaceholderSoldierMesh(
   accentRgb: [number, number, number] = [0.20, 0.42, 0.88],
   classId = 0,
+  lod = 0,
 ): SoldierMeshData {
   const v: number[] = [];
   const indices: number[] = [];
@@ -93,22 +100,29 @@ export function createPlaceholderSoldierMesh(
   if (look.mounted) {
     addBox(v, indices, [0, 0, 0.86], [0.52, 1.24, 0.34], 0, horse);
     addBox(v, indices, [0, 0.68, 0.98], [0.34, 0.34, 0.28], 0, horse);
-    addBox(v, indices, [0, -0.68, 0.95], [0.18, 0.32, 0.12], 0, leather);
+    if (lod < 2) addBox(v, indices, [0, -0.68, 0.95], [0.18, 0.32, 0.12], 0, leather);
     addBox(v, indices, [-0.23, -0.36, 0.52], [0.14, 0.18, 0.68], 0, horse);
     addBox(v, indices, [0.23, -0.36, 0.52], [0.14, 0.18, 0.68], 0, horse);
     addBox(v, indices, [-0.23, 0.38, 0.52], [0.14, 0.18, 0.68], 0, horse);
     addBox(v, indices, [0.23, 0.38, 0.52], [0.14, 0.18, 0.68], 0, horse);
-    addBox(v, indices, [0, 0.01, 1.16], [0.44, 0.38, 0.12], 0, accent);
+    if (lod < 1) addBox(v, indices, [0, 0.01, 1.16], [0.44, 0.38, 0.12], 0, accent);
   }
   addBox(v, indices, [0, 0.02, 1.24 + riderLift], [0.48, 0.28, 0.70], 1, linen);
   addBox(v, indices, [0, 0.02, 1.82 + riderLift], [0.30, 0.24, 0.30], 2, helmetColor(look.helmet, bronze, linen));
-  addBox(v, indices, [-0.46, 0.02, 1.38 + riderLift], [0.18, 0.18, 0.72], 3, leather);
-  addBox(v, indices, [0.46, 0.02, 1.38 + riderLift], [0.18, 0.18, 0.72], 4, leather);
+  // L2 keeps only body, head, legs (the readable silhouette); L0/L1 add arms.
+  if (lod < 2) {
+    addBox(v, indices, [-0.46, 0.02, 1.38 + riderLift], [0.18, 0.18, 0.72], 3, leather);
+    addBox(v, indices, [0.46, 0.02, 1.38 + riderLift], [0.18, 0.18, 0.72], 4, leather);
+  }
   addBox(v, indices, [-0.17, 0, 0.58 + riderLift * 0.34], [0.18, 0.18, look.mounted ? 0.50 : 0.78], 5, leather);
   addBox(v, indices, [0.17, 0, 0.58 + riderLift * 0.34], [0.18, 0.18, look.mounted ? 0.50 : 0.78], 6, leather);
-  addHelmet(v, indices, look, accent, bronze, riderLift);
-  addShield(v, indices, look.shield, accent, riderLift);
-  addWeapon(v, indices, look.weapon, look.mounted, leather, bronze, riderLift);
+  // L1+ drop the fine equipment (helmet crest, shield, weapon) that doesn't read
+  // at distance; L0 is the full hero mesh.
+  if (lod < 1) {
+    addHelmet(v, indices, look, accent, bronze, riderLift);
+    addShield(v, indices, look.shield, accent, riderLift);
+    addWeapon(v, indices, look.weapon, look.mounted, leather, bronze, riderLift);
+  }
   return splitInterleaved(new Float32Array(v), new Uint16Array(indices));
 }
 

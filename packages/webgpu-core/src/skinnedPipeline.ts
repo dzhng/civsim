@@ -29,6 +29,9 @@ interface VatResource {
 interface MeshResource {
   mesh: SoldierMeshData;
   vat: VatResource;
+  index: number;
+  classId: number;
+  lod: number;
   vertexBuffer: GPUBuffer;
   indexBuffer: GPUBuffer;
   instanceBuffer: GPUBuffer;
@@ -38,6 +41,9 @@ interface MeshResource {
 
 /** A per-class VAT registry: index by classId. A single VatBake applies to all. */
 export type SkinnedVatInput = VatBake | VatBake[];
+
+/** Meshes: one (L0), per-class (`[classId]`), or per-class-per-lod (`[classId][lod]`). */
+export type SkinnedMeshInput = SoldierMeshData | SoldierMeshData[] | SoldierMeshData[][];
 
 const SKINNED_WGSL = `
 ${WORLD_CAMERA_WGSL}
@@ -149,14 +155,18 @@ fn fs(in: VsOut) -> @location(0) vec4f {
 export class SkinnedCrowdPipeline {
   private pipeline: GPURenderPipeline;
   private resources: MeshResource[];
+  private resourceLookup: MeshResource[][];
   private vatVariants: number;
   private materialBindGroup: GPUBindGroup;
   private materialUniform: GPUBuffer;
 
-  constructor(private shell: RawFrameShell, meshes: SoldierMeshData | SoldierMeshData[], vats: SkinnedVatInput, kit?: SoldierKitManifest) {
+  constructor(private shell: RawFrameShell, meshes: SkinnedMeshInput, vats: SkinnedVatInput, kit?: SoldierKitManifest) {
     const device = shell.device;
-    const meshList = Array.isArray(meshes) ? meshes : [meshes];
-    if (meshList.length === 0) throw new Error('SkinnedCrowdPipeline requires at least one soldier mesh');
+    // Normalize to per-class tiers: classId → lod → mesh. A flat list is L0-only.
+    const meshTiers: SoldierMeshData[][] = Array.isArray(meshes)
+      ? (Array.isArray(meshes[0]) ? meshes as SoldierMeshData[][] : (meshes as SoldierMeshData[]).map((m) => [m]))
+      : [[meshes]];
+    if (meshTiers.length === 0 || meshTiers[0].length === 0) throw new Error('SkinnedCrowdPipeline requires at least one soldier mesh');
     const vatLayoutGroup = device.createBindGroupLayout({
       label: 'skinned-vat-bgl',
       entries: [{ binding: 0, visibility: GPUShaderStage.VERTEX, buffer: { type: 'read-only-storage' } }],
@@ -187,9 +197,16 @@ export class SkinnedCrowdPipeline {
       cache.set(vat, resource);
       return resource;
     };
-    this.resources = meshList.map((mesh, index) => {
-      const vat = vatList[index] ?? vatList[vatList.length - 1] ?? vatList[0];
-      return this.createMeshResource(mesh, index, resourceFor(vat));
+    // One MeshResource per (classId, lod). Lower-detail tiers share the class's
+    // VAT (skeleton is unchanged) and the lookup routes instances to their tier.
+    this.resources = [];
+    this.resourceLookup = meshTiers.map((tiers, classId) => {
+      const vat = resourceFor(vatList[classId] ?? vatList[vatList.length - 1] ?? vatList[0]);
+      return tiers.map((mesh, lod) => {
+        const resource = this.createMeshResource(mesh, this.resources.length, vat, classId, lod);
+        this.resources.push(resource);
+        return resource;
+      });
     });
     this.vatVariants = cache.size;
   }
@@ -299,7 +316,7 @@ export class SkinnedCrowdPipeline {
     return resolveVatClip(resource.vat.layout, name);
   }
 
-  private createMeshResource(mesh: SoldierMeshData, index: number, vat: VatResource): MeshResource {
+  private createMeshResource(mesh: SoldierMeshData, index: number, vat: VatResource, classId: number, lod: number): MeshResource {
     const device = this.shell.device;
     const vertexBuffer = device.createBuffer({
       label: `skinned-soldier-${index}-vertices`,
@@ -318,14 +335,18 @@ export class SkinnedCrowdPipeline {
       size: 8 * 4,
       usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
     });
-    return { mesh, vat, vertexBuffer, indexBuffer, instanceBuffer, instanceCapacity: 0, instanceCount: 0 };
+    return { mesh, vat, index, classId, lod, vertexBuffer, indexBuffer, instanceBuffer, instanceCapacity: 0, instanceCount: 0 };
   }
 
+  // Route each instance to its (classId, lod) resource. A requested lod beyond
+  // the class's available tiers clamps to the coarsest tier it has.
   private groupInstances(instances: CrowdInstance[]) {
-    const groups = Array.from({ length: this.resources.length }, () => [] as CrowdInstance[]);
+    const groups = this.resources.map(() => [] as CrowdInstance[]);
     for (const inst of instances) {
-      const classId = Math.max(0, Math.min(this.resources.length - 1, Math.floor(inst.classId || 0)));
-      groups[classId].push(inst);
+      const classId = Math.max(0, Math.min(this.resourceLookup.length - 1, Math.floor(inst.classId || 0)));
+      const tiers = this.resourceLookup[classId];
+      const lod = Math.max(0, Math.min(tiers.length - 1, Math.floor(inst.lod || 0)));
+      groups[tiers[lod].index].push(inst);
     }
     return groups;
   }

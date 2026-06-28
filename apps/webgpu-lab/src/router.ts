@@ -8,7 +8,7 @@ import { fatalSurfaceFor, showFatalErrorSurface } from '../../../web/src/shared/
 import { SkinnedCrowdPipeline } from '../../../packages/webgpu-core/src/skinnedPipeline';
 import { animationForFrame } from '../../../packages/crowd-runtime/src/animationState';
 import { buildCrowdInstances, generatedFormation, type CrowdInstance } from '../../../packages/crowd-runtime/src/instanceData';
-import { assignCrowdLods, countLods } from '../../../packages/crowd-runtime/src/lod';
+import { assignCrowdLods, assignCrowdLodsByDistance, countLods, lodWithHysteresis } from '../../../packages/crowd-runtime/src/lod';
 import { createPerfAverager } from '../../../packages/crowd-runtime/src/perfStats';
 import { buildLiveBattleCrowdFrame } from '../../../packages/game-renderer/src/battle/crowdPass';
 import { BattleMinimapPass } from '../../../packages/game-renderer/src/battle/minimapPass';
@@ -27,7 +27,7 @@ import { Nested3dFixturePass } from '../../../packages/game-renderer/src/fixture
 import { formatPerfSummary, makeFullGamePerfReport } from '../../../packages/game-renderer/src/perfReport';
 import { compileRenderGraph, fullGameRenderGraphReport, type RenderGraphPass } from '../../../packages/game-renderer/src/renderGraph';
 import { loadPlaceholderKit, loadPlaceholderVat, placeholderClipNames } from '../../../packages/soldier-assets/src/placeholders';
-import { createPlaceholderSoldierMeshes } from '../../../packages/soldier-assets/src/soldierMesh';
+import { createPlaceholderSoldierMeshes, createPlaceholderSoldierMeshTiers } from '../../../packages/soldier-assets/src/soldierMesh';
 import { badArtistPackFixture, validateRig, validateSoldierKit, type ImportedRig, type ValidationReport } from '../../../packages/soldier-assets/src/validate';
 import { bakeGltf } from '../../../packages/soldier-assets/bake/gltf.mjs';
 import type { VatBake, VatClip } from '../../../packages/soldier-assets/src/schema';
@@ -58,6 +58,7 @@ const routes: Record<string, LabRoute> = {
   '/webgpu/per-class-vat': routePerClassVat,
   '/webgpu/soldier-materials': routeSoldierMaterials,
   '/webgpu/mounted-units': routeMountedUnits,
+  '/webgpu/lod-tiers': routeLodTiers,
   '/webgpu/asset-workbench': routeAssetWorkbench,
   '/webgpu/fault-injection': routeFaultInjection,
   '/webgpu/frame-shell': routeFrameShell,
@@ -158,6 +159,51 @@ function stretchVat(vat: VatBake, factor: number): VatBake {
     }
   }
   return { ...vat, width, clips, data };
+}
+
+async function routeLodTiers(ctx: LabContext) {
+  const vat = await loadPlaceholderVat();
+  const tiers = createPlaceholderSoldierMeshTiers([0.20, 0.42, 0.88]);
+  const shell = await createConfiguredShell(ctx.canvas, { x: 0, y: 0, zoom: 40, pitch: 0.18, yaw: 0 });
+  const pipeline = new SkinnedCrowdPipeline(shell, tiers, vat);
+
+  // Three soldiers side by side, explicitly L0/L1/L2, so detail reduction is
+  // directly reviewable.
+  const lineup = [0, 1, 2].map((lod) => ({ ...crowdInstance((lod - 1) * 2.6, 0, 0, 'at_ease'), lod }));
+  const triCounts = [0, 1, 2].map((lod) => tiers[0][lod].indices.length / 3);
+
+  // The distance algorithm: a line of instances receding from the camera focus
+  // must coarsen monotonically (near = L0, far = coarser).
+  const probeCamera = { x: 0, y: 0, zoom: 20 };
+  const probe = Array.from({ length: 16 }, (_, i) => ({ ...crowdInstance(0, 0, 0, 'idle'), y: i * 30 }));
+  const probeLevels = assignCrowdLodsByDistance(probe, probeCamera).map((a) => a.level);
+  const monotonic = probeLevels.every((lvl, i) => i === 0 || lvl >= probeLevels[i - 1]);
+  const tiersReached = new Set(probeLevels).size;
+
+  // Hysteresis: within the deadband around the L0/L1 boundary (size 18), an
+  // instance keeps its previous tier instead of flipping every frame.
+  const heldL0 = lodWithHysteresis(0, 17.5);
+  const heldL1 = lodWithHysteresis(1, 18.5);
+
+  animateSkinned(shell, pipeline, () => lineup, { phaseSpeed: 0.5, size: 1.4 });
+  ctx.status.innerHTML = reportTable({
+    route: 'lod-tiers',
+    'L0 / L1 / L2 triangles': triCounts.join(' / '),
+    'tiers reduce geometry': triCounts[0] > triCounts[1] && triCounts[1] > triCounts[2],
+    'distance bins coarsen': monotonic,
+    'probe levels': probeLevels.join(''),
+    'hysteresis holds at boundary': heldL0 === 0 && heldL1 === 1,
+  });
+  publish('lod-tiers', true, {
+    route: 'lod-tiers',
+    triCounts,
+    reduces: triCounts[0] > triCounts[1] && triCounts[1] > triCounts[2],
+    probeLevels,
+    monotonic,
+    tiersReached,
+    hysteresis: { heldL0, heldL1 },
+    meshVariants: pipeline.stats().meshVariants,
+  });
 }
 
 async function routeMountedUnits(ctx: LabContext) {
@@ -279,7 +325,7 @@ interface WorkbenchImport {
 }
 
 function crowdInstance(x: number, classId: number, faction: 0 | 1 | 2, clip: string, mounted = false): CrowdInstance {
-  return { x, y: 0, facing: Math.PI / 2, classId, faction, alive: true, frame: 0, clip, phase: 0, seed: 1, mounted };
+  return { x, y: 0, facing: Math.PI / 2, classId, faction, alive: true, frame: 0, clip, phase: 0, seed: 1, mounted, lod: 0 };
 }
 
 async function routeAssetWorkbench(ctx: LabContext) {
@@ -821,6 +867,7 @@ async function routeSkinnedDepth(ctx: LabContext) {
       phase: 0.15,
       seed: 11,
       mounted: false,
+      lod: 0,
     },
     {
       x: 0,
@@ -834,6 +881,7 @@ async function routeSkinnedDepth(ctx: LabContext) {
       phase: 0.15,
       seed: 22,
       mounted: true,
+      lod: 0,
     },
   ];
   pipeline.upload(instances, { forcedClip: 'idle', phaseOffset: 0, size: 1.35 });
@@ -888,6 +936,7 @@ async function routeBattleGroundCueDepth(ctx: LabContext) {
     phase: 0.15,
     seed: 33,
     mounted: false,
+    lod: 0,
   }];
   pipeline.upload(instances, { forcedClip: 'idle', phaseOffset: 0, size: 1.35 });
   groundCues.upload(battleGroundCueDepthFixtureVertices());
@@ -952,6 +1001,7 @@ async function routeBattleEffectOverlay(ctx: LabContext) {
     phase: 0.15,
     seed: 44,
     mounted: false,
+    lod: 0,
   }];
   pipeline.upload(instances, { forcedClip: 'idle', phaseOffset: 0, size: 1.35 });
   effects.upload(battleEffectOverlayFixtureVertices());

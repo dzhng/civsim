@@ -18,6 +18,33 @@ The first review target is the user-provided screenshots in
 - [Mountains, roads, and missing trees](assets/user-feedback/03-mountains-roads-trees.png)
 - [Rome south road cutoff](assets/user-feedback/04-rome-south-road-cutoff.png)
 
+## Gap-Review Anchors (2026-06-29)
+
+A multi-agent gap review of the closed WebGPU foundation confirmed every campaign
+blocker maps to an existing slice here, and pinned each to concrete code. The
+underlying systems exist; the work is acceptance plus two genuinely-missing
+features (carts, city-aware clearance). Use these as slice starting pointers:
+
+- **Slice 02 (labels/road):** label offset math lives at
+  `web/src/campaign/rendererWebGPU.ts:575-579` (spacing unverified); the
+  `Roma`–`Ostia/Portus` road probe is absent — `CENTRAL_ITALY_ROAD_PAIRS`
+  (`web/scenes/campaign/campaign-webgpu-lod.mjs:27-39`) omits that pair, and the
+  Rome-south road-continuity workbench scene does not exist yet. Label
+  *visibility* is already safeguarded (`campaign-webgpu-lod.mjs:159,181-182`).
+- **Slice 03 (terrain color):** grass defaults tan at
+  `packages/game-renderer/src/campaign/mapPass.ts:192`, only greening above
+  moisture 0.55 (`mapPass.ts:184-224`).
+- **Slice 04 (clearance/forests):** mountain height grading is range-edge chamfer
+  only with no city-aware clearance — `web/src/campaign/terrain.ts:159-170` gets
+  city positions but never uses them; only 3D scenery models are cleared
+  (`rendererWebGPU.ts:930-931`), leaving raised terrain over cities. Trees
+  generate but are LOD-culled at threshold 0.45 vs initial zoom 0.18
+  (`rendererWebGPU.ts:752-771,953-957`).
+- **Slice 05 (road life):** carts are entirely unimplemented — no model in
+  `packages/game-renderer/src/campaign/campaignEntityModels.ts:3-93`, not in the
+  `CampaignSceneryKind` union (`campaign/sceneryPass.ts:6`), no spawn/path-follow
+  logic (`rendererWebGPU.ts:679-779`).
+
 Specific blockers:
 
 - Double-check the bottom-left coastal city near Rome, Ostia/Portus: its label

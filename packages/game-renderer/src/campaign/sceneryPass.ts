@@ -7,7 +7,7 @@ export type CampaignSceneryKind = 'mountain' | 'tree' | 'conifer' | 'broadleaf' 
 export interface CampaignSceneryInstance {
   x: number;
   y: number;
-  z: number;
+  z?: number;
   size: number;
   height?: number;
   kind: CampaignSceneryKind;
@@ -299,7 +299,7 @@ function packInstances(instances: CampaignSceneryInstance[]) {
     data[o] = inst.x;
     data[o + 1] = inst.y;
     data[o + 2] = inst.size;
-    data[o + 3] = inst.z;
+    data[o + 3] = inst.z ?? 0;
     data[o + 4] = inst.shade ?? hash2(inst.x, inst.y);
     data[o + 5] = inst.height ?? inst.size;
   }

@@ -55,3 +55,15 @@ one flat color field.
   those metrics while the Apennine mountain/forest silhouettes remain weak.
   The next terrain pass should add crop-level probes for named mountain and
   forest regions, then tune density/scale against those visible pixels.
+- 2026-06-28: The terrain pass now reserves scenery selection by map region
+  before filling the remaining budget globally. A global top-N selector erased
+  valid regional landforms when stronger height/rock scores elsewhere consumed
+  the budget, so geography now owns distribution and batching remains an
+  implementation detail. Mountain candidates also read the canonical height
+  field directly; weak rock-channel signal alone cannot be allowed to remove the
+  Apennine spine.
+- 2026-06-28: The campaign LoD verifier checks named northern, central, and
+  southern Apennine crops for visible mountain/dark-feature/green content. These
+  crop probes are readability floors, not similarity targets: the previous
+  renderer is the minimum evidence for placement and content, while WebGPU is
+  expected to improve style and density over time.

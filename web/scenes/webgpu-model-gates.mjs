@@ -1,4 +1,5 @@
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { PNG } from 'pngjs';
 
 export const meta = {
   name: 'webgpu-model-gates',
@@ -13,6 +14,15 @@ const OUT_DIR = new URL('../../specs/webgpu-skinned-crowd/visualizations/model-g
 const REPORT_JSON = new URL('webgpu-model-gates.json', OUT_DIR);
 const REPORT_HTML = new URL('webgpu-model-gates.html', OUT_DIR);
 const GENERATED_AT = process.env.MODEL_GATES_GENERATED_AT ?? 'scenario-generated';
+const CONTENT_REQUIREMENTS = {
+  trees: { foliageRatio: 0.05, trunkRatio: 0.004 },
+  conifer: { foliageRatio: 0.04 },
+  broadleaf: { foliageRatio: 0.03, trunkRatio: 0.004 },
+  mountain: { stoneRatio: 0.08, darkRatio: 0.01 },
+  rocks: { stoneRatio: 0.05, darkRatio: 0.015 },
+  'terrain-grass-scrub': { foliageRatio: 0.03 },
+  'terrain-stone-relief': { stoneRatio: 0.12 },
+};
 
 const gates = [
   {
@@ -138,7 +148,7 @@ export async function run(ctx) {
   await writeFile(REPORT_HTML, renderHtml(report).replace(/[ \t]+$/gm, ''));
   ctx.check(
     'WebGPU model gate report generated',
-    captures.every((capture) => capture.image && capture.stats?.route === 'campaign-model-gates'),
+    captures.every((capture) => capture.image && capture.stats?.route === 'campaign-model-gates' && capture.contentOk !== false),
     JSON.stringify({ html: filePath(REPORT_HTML), json: filePath(REPORT_JSON), captures: captures.length }),
   );
 }
@@ -154,12 +164,16 @@ async function captureGate(ctx, gate) {
     throw new Error(`model gate ${gate.id} did not publish valid stats: ${JSON.stringify(stats)}`);
   }
   const image = new URL(`${gate.id}.png`, OUT_DIR);
-  await page.locator('#webgpu-canvas').screenshot({ path: filePath(image) });
+  const imagePath = filePath(image);
+  await page.locator('#webgpu-canvas').screenshot({ path: imagePath });
+  const content = await gateContentCheck(gate.id, imagePath);
   await page.close();
   return {
     ...gate,
     image: basename(image),
     stats,
+    contentMetrics: content.metrics,
+    contentOk: content.ok,
     status: 'webgpu-evidence',
   };
 }
@@ -218,6 +232,51 @@ function renderHtml(report) {
 function countSummary(stats) {
   if (!stats) return 'missing stats';
   return `entities ${stats.entities ?? 0}, scenery ${stats.scenery ?? 0}, roads ${stats.roadSegments ?? 0}, water ${stats.waterFeatures ?? 0}, clouds ${stats.cloudQuads ?? 0}, labels ${stats.visibleLabels ?? 0}/${stats.labels ?? 0}`;
+}
+
+async function gateContentCheck(gateId, imagePath) {
+  const metrics = contentMetrics(PNG.sync.read(await readFile(imagePath)));
+  const required = CONTENT_REQUIREMENTS[gateId];
+  if (!required) return { ok: true, metrics };
+  const ok = Object.entries(required).every(([key, min]) => (metrics[key] ?? 0) >= min);
+  return { ok, metrics };
+}
+
+function contentMetrics(png) {
+  let total = 0;
+  let stone = 0;
+  let foliage = 0;
+  let trunk = 0;
+  let dark = 0;
+  const x0 = Math.floor(png.width * 0.15);
+  const x1 = Math.floor(png.width * 0.85);
+  const y0 = Math.floor(png.height * 0.15);
+  const y1 = Math.floor(png.height * 0.82);
+  for (let y = y0; y < y1; y++) {
+    for (let x = x0; x < x1; x++) {
+      const i = (y * png.width + x) * 4;
+      const r = png.data[i];
+      const g = png.data[i + 1];
+      const b = png.data[i + 2];
+      const a = png.data[i + 3];
+      if (a < 16) continue;
+      total++;
+      const max = Math.max(r, g, b);
+      const min = Math.min(r, g, b);
+      if (Math.abs(r - g) < 38 && Math.abs(g - b) < 50 && r > 55 && r < 175 && g > 50 && g < 170 && b > 40 && b < 150) stone++;
+      if (g > 45 && g < 125 && r < 90 && b < 85 && g > r * 1.20 && g > b * 1.15) foliage++;
+      if (r > 60 && r < 130 && g > 30 && g < 90 && b < 60 && r > g * 1.10) trunk++;
+      if (max < 100 && min > 8) dark++;
+    }
+  }
+  const ratio = (value) => Number((value / Math.max(1, total)).toFixed(4));
+  return {
+    centralPixels: total,
+    stoneRatio: ratio(stone),
+    foliageRatio: ratio(foliage),
+    trunkRatio: ratio(trunk),
+    darkRatio: ratio(dark),
+  };
 }
 
 function rendererSummary(stats) {

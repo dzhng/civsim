@@ -104,6 +104,14 @@ pass orchestration, WGSL layout, depth semantics, or browser-verified output.
 - Capability handling must match the product. An unsupported-WebGPU path may
   show a clear failure/fallback UI, but it must not silently route production
   visuals through an unrelated renderer to hide missing WebGPU behavior.
+- Spatial budgets must not erase geography. If a map renderer caps mountains,
+  forests, props, particles, or decals, reserve by canonical region/tile or
+  connected feature before global sorting; batching and top-N selection are
+  performance details, not permission to drop whole visible landforms.
+- Stats that count submitted instances are not proof that the GPU rendered
+  content. NaN instance fields, zero coverage, bad projection, or invalid
+  shader state can leave counts healthy while pixels are blank; pair stats with
+  crop/content probes for each visual class.
 
 ## Performance
 

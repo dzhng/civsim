@@ -26,3 +26,20 @@ The map should become more strategic as it zooms out, not less accurate.
 - LoD transitions preserve alignment, terrain identity, road continuity, and
   label readability.
 - The previous renderer baseline is used as a floor, not a score target.
+
+## Implementation Notes
+
+- 2026-06-28: The regional Italy LoD gate samples semantic city/road anchors and
+  rendered road pixels at the same camera, then also inspects named terrain
+  crops. This catches the alignment class of failures directly instead of
+  chasing whole-image similarity against a renderer that WebGPU should surpass.
+- 2026-06-28: Unprimed screenshot critique of the regional Italy candidate
+  found remaining LoD/readability debt that should become follow-up scenes or
+  checks before campaign parity is closed: Roma/Ostia army-city label collision,
+  dense northern label overlap, thick/muddy label outlines at crop scale,
+  roads reading too screen-space at perspective zoom, awkward road/city
+  junctions, labels/icons crossing mountain faces, overly bright coast glow,
+  cyan sea-lane strokes reading as artifacts, weak tiny city flags, top-edge UI
+  clipping, and low-contrast non-mountain terrain texture. These are not
+  alignment blockers for the current terrain checkpoint, but they are parity
+  blockers for the campaign spec.

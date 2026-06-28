@@ -37,6 +37,12 @@ const CENTRAL_ITALY_ROAD_PAIRS = [
   ['Minturnae', 'Teanum'],
   ['Capua', 'Minturnae'],
 ];
+const TERRAIN_FEATURE_CROPS = {
+  'northern-apennines': { x: 560, y: 80, w: 360, h: 340 },
+  'central-apennines': { x: 430, y: 120, w: 500, h: 390 },
+  'southern-apennines': { x: 735, y: 310, w: 380, h: 250 },
+};
+const ROAD_SAMPLE_OFFSETS = roadSampleOffsets();
 const CAMPAIGN_MAP = JSON.parse(readFileSync(CAMPAIGN_MAP_JSON, 'utf8'));
 const MAINLAND_ITALY_POINTS = pointsForCityNames(CAMPAIGN_MAP, MAINLAND_ITALY_CITY_NAMES);
 const CENTRAL_ITALY_ROAD_POINTS = roadSamplesForPairs(CAMPAIGN_MAP, CENTRAL_ITALY_ROAD_PAIRS);
@@ -300,6 +306,8 @@ function checkCampaign3dBaseline(ctx, current) {
   const baseline = PNG.sync.read(readFileSync(CAMPAIGN_3D_BASELINE));
   const baselineMetrics = campaign3dMetrics(baseline);
   const currentMetrics = campaign3dMetrics(current);
+  const baselineFeatures = terrainFeatureCropMetrics(baseline);
+  const currentFeatures = terrainFeatureCropMetrics(current);
   const sameSize = current.width === baseline.width && current.height === baseline.height;
   const keepsStructure = sameSize
     && currentMetrics.waterRatio >= baselineMetrics.waterRatio * 0.55
@@ -312,6 +320,22 @@ function checkCampaign3dBaseline(ctx, current) {
     'campaign-lod-regional-italy-natural keeps campaign-3d baseline structure',
     keepsStructure,
     JSON.stringify({ baseline: baselineMetrics, current: currentMetrics }),
+  );
+  const featureChecks = Object.fromEntries(Object.keys(TERRAIN_FEATURE_CROPS).map((name) => {
+    const baselineCrop = baselineFeatures[name];
+    const currentCrop = currentFeatures[name];
+    return [name, {
+      baseline: baselineCrop,
+      current: currentCrop,
+      ok: currentCrop.mountainRatio >= 0.10
+        && currentCrop.darkFeatureRatio >= 0.06
+        && currentCrop.greenRatio >= 0.30,
+    }];
+  }));
+  ctx.check(
+    'campaign-lod-regional-italy-natural keeps named mountain and forest crops readable',
+    Object.values(featureChecks).every((check) => check.ok),
+    JSON.stringify(featureChecks),
   );
 }
 
@@ -350,6 +374,43 @@ function campaign3dMetrics(png) {
     labelRatio: ratio(label),
     modelRatio: ratio(model),
     politicalWashRatio: ratio(politicalWash),
+  };
+}
+
+function terrainFeatureCropMetrics(png) {
+  return Object.fromEntries(Object.entries(TERRAIN_FEATURE_CROPS).map(([name, crop]) => [name, terrainFeatureMetrics(png, crop)]));
+}
+
+function terrainFeatureMetrics(png, crop) {
+  let total = 0;
+  let mountain = 0;
+  let darkFeature = 0;
+  let green = 0;
+  for (let y = Math.max(36, crop.y); y < Math.min(png.height, crop.y + crop.h); y++) {
+    for (let x = Math.max(0, crop.x); x < Math.min(png.width, crop.x + crop.w); x++) {
+      const i = (y * png.width + x) * 4;
+      const r = png.data[i];
+      const g = png.data[i + 1];
+      const b = png.data[i + 2];
+      const a = png.data[i + 3];
+      if (a < 16 || isWaterPixel(r, g, b) || isRoadPixel(r, g, b) || isLabelPixel(r, g, b)) continue;
+      total++;
+      const max = Math.max(r, g, b);
+      const min = Math.min(r, g, b);
+      const saturation = max - min;
+      const greyStone = max < 150 && min > 25 && saturation < 65 && r >= b - 12 && g >= b - 12;
+      const warmStone = r > 90 && r < 175 && g > 65 && g < 150 && b > 35 && b < 125 && r >= g * 1.04 && g >= b * 1.08;
+      if (greyStone || warmStone) mountain++;
+      if ((max < 105 && min > 20 && saturation < 65) || (warmStone && max < 130)) darkFeature++;
+      if (g > r * 1.03 && g > b * 1.10 && g > 80 && r < 175 && b < 150) green++;
+    }
+  }
+  const ratio = (value) => Number((value / Math.max(1, total)).toFixed(4));
+  return {
+    total,
+    mountainRatio: ratio(mountain),
+    darkFeatureRatio: ratio(darkFeature),
+    greenRatio: ratio(green),
   };
 }
 
@@ -440,22 +501,7 @@ function renderedRoadMetrics(png, roads) {
 }
 
 function sampleRoadPixel(png, sx, sy) {
-  const offsets = [
-    [0, 0],
-    [2, 0],
-    [-2, 0],
-    [0, 2],
-    [0, -2],
-    [4, 0],
-    [-4, 0],
-    [0, 4],
-    [0, -4],
-    [5, 3],
-    [-5, 3],
-    [5, -3],
-    [-5, -3],
-  ];
-  for (const [dx, dy] of offsets) {
+  for (const [dx, dy] of ROAD_SAMPLE_OFFSETS) {
     const x = Math.round(sx + dx);
     const y = Math.round(sy + dy);
     if (x < 0 || y < 36 || x >= png.width || y >= png.height) continue;
@@ -465,6 +511,19 @@ function sampleRoadPixel(png, sx, sy) {
   return false;
 }
 
+function roadSampleOffsets() {
+  const offsets = [[0, 0]];
+  for (let radius = 2; radius <= 12; radius += 2) {
+    offsets.push([radius, 0], [-radius, 0], [0, radius], [0, -radius]);
+    offsets.push([radius, radius], [-radius, radius], [radius, -radius], [-radius, -radius]);
+  }
+  return offsets;
+}
+
 function isRoadPixel(r, g, b) {
   return r > 156 && g > 138 && b > 96 && Math.abs(r - g) < 72 && Math.abs(g - b) < 92;
+}
+
+function isLabelPixel(r, g, b) {
+  return r > 205 && g > 205 && b > 185;
 }

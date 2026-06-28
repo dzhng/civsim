@@ -1,6 +1,6 @@
-// VAT (vertex/bone animation texture) bake core — the make-or-break piece of
-// specs/webgpu-skinned-crowd/slices/05-placeholder-vat-bake.md. Pure math,
-// zero deps, no browser, no WebGPU:
+// VAT (vertex/bone animation texture) bake core, kept from the closed WebGPU
+// renderer foundation documented in specs/done/webgpu-skinned-crowd-foundation.
+// Pure math, zero deps, no browser, no WebGPU:
 // given a skeleton (bones with parent + inverse-bind) and animation clips
 // (per-bone TRS keyframe samplers), it samples every clip at a fixed fps and
 // packs each bone's JOINT matrix (world * inverseBind) per frame into a float

@@ -23,7 +23,7 @@
     {
       "id": "parity-menu-shell",
       "status": "complete",
-      "detail": "menu boot, unsupported WebGPU UX, duel, quick battle, campaign launch, and return-to-menu; scenario file exists and scenario:webgpu includes it",
+      "detail": "menu boot, unsupported WebGPU UX, duel, quick battle, campaign launch, and return-to-menu; scene file exists and scenario:webgpu includes it",
       "evidence": {
         "file": "web/scenes/menu-webgpu-shell.mjs",
         "script": "scenario:webgpu"
@@ -32,7 +32,7 @@
     {
       "id": "parity-menu-visual",
       "status": "complete",
-      "detail": "menu ready, unsupported, and duel modal snapshots; scenario file exists and scenario:webgpu includes it",
+      "detail": "menu ready, unsupported, and duel modal snapshots; scene file exists and scenario:webgpu includes it",
       "evidence": {
         "file": "web/scenes/menu-webgpu-shell-visual.mjs",
         "script": "scenario:webgpu"
@@ -41,7 +41,7 @@
     {
       "id": "parity-battle-default",
       "status": "complete",
-      "detail": "normal battle route defaults to raw WebGPU and retired gfx switches stay retired; scenario file exists and scenario:webgpu includes it",
+      "detail": "normal battle route defaults to raw WebGPU and retired gfx switches stay retired; scene file exists and scenario:webgpu includes it",
       "evidence": {
         "file": "web/scenes/battle-webgpu-default.mjs",
         "script": "scenario:webgpu"
@@ -50,7 +50,7 @@
     {
       "id": "parity-battle-input",
       "status": "complete",
-      "detail": "click, drag-box, right-click order, wheel zoom, DPR, and freeze semantics; scenario file exists and scenario:webgpu includes it",
+      "detail": "click, drag-box, right-click order, wheel zoom, DPR, and freeze semantics; scene file exists and scenario:webgpu includes it",
       "evidence": {
         "file": "web/scenes/battle-webgpu-input.mjs",
         "script": "scenario:webgpu"
@@ -59,7 +59,7 @@
     {
       "id": "parity-campaign-production",
       "status": "complete",
-      "detail": "normal campaign route uses raw-WebGPU map, markers, labels, panels, and selection; scenario file exists and scenario:webgpu includes it",
+      "detail": "normal campaign route uses raw-WebGPU map, markers, labels, panels, and selection; scene file exists and scenario:webgpu includes it",
       "evidence": {
         "file": "web/scenes/campaign-webgpu-production.mjs",
         "script": "scenario:webgpu"
@@ -68,7 +68,7 @@
     {
       "id": "parity-campaign-handoff",
       "status": "complete",
-      "detail": "campaign to battle and back without changing campaign mechanics; scenario file exists and scenario:webgpu includes it",
+      "detail": "campaign to battle and back without changing campaign mechanics; scene file exists and scenario:webgpu includes it",
       "evidence": {
         "file": "web/scenes/campaign-webgpu-handoff.mjs",
         "script": "scenario:webgpu"
@@ -77,7 +77,7 @@
     {
       "id": "parity-campaign-save-load",
       "status": "complete",
-      "detail": "menu save slot round-trips into a loaded WebGPU campaign; scenario file exists and scenario:webgpu includes it",
+      "detail": "menu save slot round-trips into a loaded WebGPU campaign; scene file exists and scenario:webgpu includes it",
       "evidence": {
         "file": "web/scenes/campaign-webgpu-save-load.mjs",
         "script": "scenario:webgpu"
@@ -86,7 +86,7 @@
     {
       "id": "parity-campaign-visual",
       "status": "complete",
-      "detail": "controlled campaign marker and panel snapshots through WebGPU; scenario file exists and scenario:webgpu includes it",
+      "detail": "controlled campaign marker and panel snapshots through WebGPU; scene file exists and scenario:webgpu includes it",
       "evidence": {
         "file": "web/scenes/campaign-webgpu-visual.mjs",
         "script": "scenario:webgpu"
@@ -95,7 +95,7 @@
     {
       "id": "parity-campaign-conquest",
       "status": "complete",
-      "detail": "real-map march to garrison battle, auto-resolve, and continued savable campaign; scenario file exists and scenario:webgpu:campaign includes it",
+      "detail": "real-map march to garrison battle, auto-resolve, and continued savable campaign; scene file exists and scenario:webgpu:campaign includes it",
       "evidence": {
         "file": "web/scenes/campaign-webgpu-conquest.mjs",
         "script": "scenario:webgpu:campaign"
@@ -104,7 +104,7 @@
     {
       "id": "parity-campaign-reinforcements",
       "status": "complete",
-      "detail": "nearby split stack joins battle and expanded army renders through WebGPU; scenario file exists and scenario:webgpu:campaign includes it",
+      "detail": "nearby split stack joins battle and expanded army renders through WebGPU; scene file exists and scenario:webgpu:campaign includes it",
       "evidence": {
         "file": "web/scenes/campaign-webgpu-reinforcements.mjs",
         "script": "scenario:webgpu:campaign"
@@ -113,7 +113,7 @@
     {
       "id": "parity-visual-report",
       "status": "complete",
-      "detail": "visual cutover contact sheet for menu, battle, campaign, and handoff surfaces; scenario file exists and scenario:webgpu includes it",
+      "detail": "visual cutover contact sheet for menu, battle, campaign, and handoff surfaces; scene file exists and scenario:webgpu includes it",
       "evidence": {
         "file": "web/scenes/webgpu-visual-report.mjs",
         "script": "scenario:webgpu"
@@ -122,7 +122,7 @@
     {
       "id": "parity-performance-report",
       "status": "complete",
-      "detail": "full-game liveness performance report for menu, battle, campaign, and handoff; scenario file exists and scenario:webgpu includes it",
+      "detail": "full-game liveness performance report for menu, battle, campaign, and handoff; scene file exists and scenario:webgpu includes it",
       "evidence": {
         "file": "web/scenes/full-game-webgpu-performance.mjs",
         "script": "scenario:webgpu"
@@ -131,7 +131,7 @@
     {
       "id": "parity-lab-cutover",
       "status": "complete",
-      "detail": "lab route contracts and cutover route stats stay covered; scenario file exists and scenario:webgpu includes it",
+      "detail": "lab route contracts and cutover route stats stay covered; scene file exists and scenario:webgpu includes it",
       "evidence": {
         "file": "web/scenes/webgpu-lab-routes.mjs",
         "script": "scenario:webgpu"
@@ -339,52 +339,65 @@
         "captures": [
           {
             "id": "menu-ready",
-            "comparison": "equal-or-better"
+            "comparison": "missing-archived-capture"
           },
           {
             "id": "menu-unsupported",
-            "comparison": "accepted-exception"
+            "comparison": "missing-archived-capture"
           },
           {
             "id": "battle-default",
-            "comparison": "equal-or-better"
+            "comparison": "missing-archived-capture"
           },
           {
             "id": "battle-selection-hud-dpr2",
-            "comparison": "equal-or-better"
+            "comparison": "missing-archived-capture"
+          },
+          {
+            "id": "render-graph-nested-depth",
+            "comparison": "missing-archived-capture"
+          },
+          {
+            "id": "campaign-model-gates",
+            "comparison": "missing-archived-capture"
+          },
+          {
+            "id": "soldier-animation-gates",
+            "comparison": "missing-archived-capture"
           },
           {
             "id": "campaign-whole-map",
-            "comparison": "webgpu-better"
+            "comparison": "missing-archived-capture"
           },
           {
             "id": "campaign-label-zoom",
-            "comparison": "pending-review"
+            "comparison": "missing-archived-capture"
           },
           {
             "id": "campaign-handoff-battle",
-            "comparison": "equal-or-better"
+            "comparison": "missing-archived-capture"
           }
         ]
       }
     },
     {
       "id": "hardware-perf",
-      "status": "complete",
-      "detail": "named real-hardware WebGPU performance is equal or better than the archived current-renderer baseline",
+      "status": "pending",
+      "detail": "waiting for named real-hardware performance comparison",
       "evidence": {
         "report": "specs/webgpu-skinned-crowd/visualizations/performance/full-game-webgpu-performance.json",
-        "mode": "hardware-report",
-        "hardwareReleaseStatus": "pass",
-        "releaseBudget": "pass",
-        "currentRendererComparison": "webgpu-equal-or-better",
-        "gpu": "apple / metal-3",
-        "browser": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36"
+        "mode": "headless-liveness",
+        "hardwareReleaseStatus": "headless-liveness-only",
+        "releaseBudget": "not-set",
+        "currentRendererComparison": "not-applicable-headless",
+        "gpu": "google / swiftshader",
+        "browser": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/148.0.7778.96 Safari/537.36"
       }
     }
   ],
   "blockers": [
-    "visual-improvement"
+    "visual-improvement",
+    "hardware-perf"
   ],
   "localFailures": []
 }

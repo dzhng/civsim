@@ -590,8 +590,8 @@ async function routeCutover(ctx: LabContext) {
     { id: 'label-pipeline', status: 'complete', detail: 'campaign map labels render through a raw-WebGPU glyph atlas pass' },
     { id: 'visual-report', status: 'complete', detail: 'webgpu-visual-report generates the WebGPU visual cutover contact sheet' },
     { id: 'perf-report', status: 'complete', detail: 'full-game-webgpu-performance writes the WebGPU perf evidence report' },
-    { id: 'visual-improvement', status: 'complete', detail: 'visual report is backed by accepted archived current-renderer comparisons' },
-    { id: 'hardware-perf', status: 'complete', detail: 'named real GPU/browser performance report compares WebGPU equal or better than the archive' },
+    { id: 'visual-improvement', status: 'pending', detail: 'campaign visual acceptance and archived current-renderer comparisons are still pending' },
+    { id: 'hardware-perf', status: 'pending', detail: 'named real GPU/browser performance report still needs current-renderer baseline context' },
   ];
   const releaseReady = checks.every((check) => check.status === 'complete');
   const complete = checks.filter((check) => check.status === 'complete').length;

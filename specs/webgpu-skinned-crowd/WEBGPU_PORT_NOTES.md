@@ -74,6 +74,9 @@ verification lessons.
 - Whole-map sea labels should fit the visible water lane. Long labels may need
   curved glyph placement, repositioning into wider water, or smaller type so
   they do not spill onto land.
+- Preserve the campaign overview border haze/cloud vignette from the aesthetics
+  reference. It is an atmospheric chart-frame effect that should appear when the
+  player is zoomed out enough, independent from gameplay fog-of-war.
 - The campaign close camera should preserve perspective: distant objects shrink
   and the board reads as a trapezoid, not a flat rectangle.
 - Scenery generation must reserve city, road, army, and tall-standard

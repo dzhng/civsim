@@ -328,6 +328,7 @@ export class CampaignScene implements Scene {
       factionStatus: this.factionStatus,
       playerFaction: this.playerFaction(),
       fogOfWar: this.fogOfWar,
+      visionSources: this.visionSources().map((source) => ({ x: source.x, y: source.y, radius: source.r })),
       factionView: this.factionView,
     });
   }

@@ -5,6 +5,7 @@
 import { chromium } from 'playwright';
 import { readFile } from 'node:fs/promises';
 import { snapCheck } from './snapshot.mjs';
+import { WEBGPU_HARDWARE_FLAGS, WEBGPU_SWIFTSHADER_FLAGS } from './webgpu-probe-lib.mjs';
 
 const TARGET = process.env.VERIFY_URL ?? 'http://localhost:5173';
 // Campaign baselines live in their own shots/campaign/ folder.
@@ -18,7 +19,10 @@ const check = (name, ok, detail) => {
 
 const map = JSON.parse(await readFile(new URL('./public/data/campaign-map.json', import.meta.url)));
 
-const browser = await chromium.launch();
+const webgpuArgs = process.env.VERIFY_WEBGPU === '1'
+  ? (process.env.VERIFY_WEBGPU_ADAPTER === 'hardware' ? WEBGPU_HARDWARE_FLAGS : WEBGPU_SWIFTSHADER_FLAGS)
+  : [];
+const browser = await chromium.launch({ args: webgpuArgs });
 const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
 const pageErrors = [];
 page.on('pageerror', (e) => pageErrors.push(e.message));
@@ -58,9 +62,12 @@ await page.evaluate(() => window.__campaign.fogOfWar(true));
 await page.waitForTimeout(250);
 await snapCheck(page, 'campaign-fog', check, { baseDir: CAMPAIGN_SHOTS });
 await page.evaluate(() => window.__campaign.fogOfWar(false));
-await page.evaluate(() => window.__campaign.cam(-456, 446, 2.5)); // Roma, tilted
+await page.evaluate(() => window.__campaign.cam(-430, 380, 4.0)); // central Italy / Roma, tilted
 await page.waitForTimeout(250);
 await snapCheck(page, 'campaign-3d', check, { baseDir: CAMPAIGN_SHOTS });
+await page.evaluate(() => window.__campaign.cam(-456, 446, 6.0)); // Rome / central Italy close view
+await page.waitForTimeout(250);
+await snapCheck(page, 'campaign-3d-rome', check, { baseDir: CAMPAIGN_SHOTS });
 
 // March the player's first army (at Roma) on the nearest neutral (non-playable
 // faction) city — minor leagues are the early conquests.
@@ -134,13 +141,13 @@ check('territory voronoi covers the owned world', ts.filled > 50000 && ts.labels
 await page.evaluate(() => window.__campaign.cam(-100, 250, 0.16));
 let cam = await page.evaluate(() => window.__campaign.camGet());
 let terrA = await page.evaluate(() => window.__campaign.territoryAlpha());
-check('zoomed out: top-down political map with territories', cam.pitchDeg > 85 && terrA > 0.7,
+check('zoomed out: WebGPU political map keeps full territory wash', Math.abs(cam.pitchDeg) < 1 && terrA > 0.95,
   `pitch ${cam.pitchDeg.toFixed(1)}°, territory alpha ${terrA.toFixed(2)}`);
 
 await page.evaluate(() => window.__campaign.cam(-456, 446, 2.5)); // Roma
 cam = await page.evaluate(() => window.__campaign.camGet());
 terrA = await page.evaluate(() => window.__campaign.territoryAlpha());
-check('zoomed in: camera tilts to 3D, territory fades', cam.pitchDeg < 60 && terrA < 0.3,
+check('zoomed in: WebGPU camera tilts while territory wash remains available', cam.pitchDeg > 40 && cam.pitchDeg < 60 && terrA > 0.95,
   `pitch ${cam.pitchDeg.toFixed(1)}°, territory alpha ${terrA.toFixed(2)}`);
 
 // Click-selection must survive the 3D projection: center on one of my armies,

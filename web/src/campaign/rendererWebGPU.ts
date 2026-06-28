@@ -1,4 +1,4 @@
-import { campaignWaterFeatures, CampaignCloudPass, CampaignWaterPass } from '../../../packages/game-renderer/src/campaign/atmospherePass';
+import { campaignWaterFeatures, CampaignCloudPass, CampaignFogPass, CampaignWaterPass, type CampaignFogSource } from '../../../packages/game-renderer/src/campaign/atmospherePass';
 import { CampaignEntityPass, type CampaignEntityInstance } from '../../../packages/game-renderer/src/campaign/entityPass';
 import { buildCampaignMapDrawData, CampaignLabelPass, type CampaignLabelPassStats, CampaignLinePass, CampaignMapPass, CampaignMarkerPass, CampaignRoadPass, CampaignWorldLinePass, type CampaignLabel, type CampaignMarker } from '../../../packages/game-renderer/src/campaign/mapPass';
 import { CampaignSceneryPass, type CampaignSceneryInstance } from '../../../packages/game-renderer/src/campaign/sceneryPass';
@@ -23,6 +23,7 @@ interface DrawOptions {
   factionStatus: Int8Array;
   playerFaction: number;
   fogOfWar: boolean;
+  visionSources: CampaignFogSource[];
   factionView: boolean;
 }
 
@@ -35,6 +36,7 @@ export class CampaignRendererWebGPU {
   private map: CampaignMapPass | null = null;
   private water: CampaignWaterPass | null = null;
   private clouds: CampaignCloudPass | null = null;
+  private fog: CampaignFogPass | null = null;
   private territoryPass: CampaignTerritoryPass | null = null;
   private lines: CampaignWorldLinePass | null = null;
   private roads: CampaignRoadPass | null = null;
@@ -54,6 +56,7 @@ export class CampaignRendererWebGPU {
     layer: 'raw-webgpu-glyph-atlas',
   };
   private lastEntities = { cityEntities: 0, armyEntities: 0 };
+  private lastFog = { enabled: false, sources: [] as CampaignFogSource[] };
   private framePerf = {
     buildMs: 0,
     uploadMs: 0,
@@ -134,7 +137,7 @@ export class CampaignRendererWebGPU {
   }
 
   draw(opts: DrawOptions) {
-    if (!this.shell || !this.map || !this.water || !this.clouds || !this.territoryPass || !this.lines || !this.roads || !this.borders || !this.markers || !this.scenery || !this.entities || !this.selection || !this.labels) return;
+    if (!this.shell || !this.map || !this.water || !this.clouds || !this.fog || !this.territoryPass || !this.lines || !this.roads || !this.borders || !this.markers || !this.scenery || !this.entities || !this.selection || !this.labels) return;
     const frameStart = performance.now();
     this.currentCamera = { x: opts.cam.x, y: opts.cam.y, zoom: opts.cam.scale, pitch: this.pitchForScale(opts.cam.scale), yaw: 0, perspective: campaignPerspective(opts.cam.scale) };
     this.shell.setCamera(this.currentCamera);
@@ -147,8 +150,11 @@ export class CampaignRendererWebGPU {
     this.entities.upload(frame.entities);
     this.selection.upload(frame.selections);
     this.markers.upload(campaignMapMarkers(this.data, opts));
+    this.lastFog = { enabled: opts.fogOfWar, sources: opts.visionSources };
+    this.fog.upload(opts.visionSources, opts.fogOfWar);
+    const staticLabels = opts.fogOfWar ? [] : this.staticLabels;
     this.labelStats = this.labels.upload(
-      this.staticLabels.concat(campaignCityLabels(this.data, opts), campaignArmyLabels(this.data, opts), campaignFactionLabels(this.data, opts)),
+      staticLabels.concat(campaignCityLabels(this.data, opts), campaignArmyLabels(this.data, opts), campaignFactionLabels(this.data, opts)),
       this.currentCamera,
     );
     const uploadEnd = performance.now();
@@ -164,6 +170,7 @@ export class CampaignRendererWebGPU {
       { id: 'campaign-scenery', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => this.scenery!.draw(pass) },
       { id: 'campaign-entities', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => this.entities!.draw(pass) },
       { id: 'campaign-clouds', role: 'overlay-effect', phase: 'overlay', draw: (pass) => this.clouds!.draw(pass) },
+      { id: 'campaign-fog-of-war', role: 'overlay-effect', phase: 'overlay', draw: (pass) => this.fog!.draw(pass) },
       { id: 'campaign-markers', role: 'overlay-ui', phase: 'overlay', draw: (pass) => this.markers!.draw(pass) },
       { id: 'campaign-labels', role: 'overlay-ui', phase: 'overlay', draw: (pass) => this.labels!.draw(pass) },
     ];
@@ -182,8 +189,15 @@ export class CampaignRendererWebGPU {
     publishStats(this.stats());
   }
 
-  visibleAt(_x: number, _y: number) {
-    return 1;
+  visibleAt(x: number, y: number) {
+    if (!this.lastFog.enabled) return 1;
+    let visible = 0;
+    for (const source of this.lastFog.sources) {
+      const d = Math.hypot(x - source.x, y - source.y);
+      const sourceVisible = 1 - smoothstep(source.radius * 0.72, source.radius * 1.08, d);
+      visible = Math.max(visible, sourceVisible);
+    }
+    return visible;
   }
 
   territoryAlpha(_scale: number) {
@@ -218,6 +232,8 @@ export class CampaignRendererWebGPU {
       labelVertices: this.labelStats.vertices,
       waterFeatures: this.water?.stats().waterFeatures ?? 0,
       cloudQuads: this.clouds?.stats().cloudQuads ?? 0,
+      fogEnabled: this.fog?.stats().fogEnabled ?? false,
+      fogSources: this.fog?.stats().fogSources ?? 0,
       territoryPixels: this.territoryPass?.stats().pixels ?? 0,
       borderSegments: this.borders?.stats().segments ?? 0,
       mapMarkers: this.markers?.stats().markers ?? 0,
@@ -240,6 +256,7 @@ export class CampaignRendererWebGPU {
     this.water = new CampaignWaterPass(this.shell);
     this.water.upload(campaignWaterFeatures());
     this.clouds = new CampaignCloudPass(this.shell, this.data.bgRect, controlledStage ? 0.75 : 2.05);
+    this.fog = new CampaignFogPass(this.shell, this.data.bgRect);
     this.territoryPass = new CampaignTerritoryPass(this.shell, {
       width: this.field.w,
       height: this.field.h,
@@ -292,6 +309,7 @@ function buildEntityFrame(data: CampaignData, opts: DrawOptions) {
   for (let node = 0; node < data.map.nodes.length; node++) {
     const mapNode = data.map.nodes[node];
     if (mapNode.kind !== 'city') continue;
+    if (!fogVisible(opts, mapNode.pos[0], mapNode.pos[1], 0.18)) continue;
     const city = opts.cities.get(node);
     const owner = city?.owner ?? Math.max(0, data.map.factions.findIndex((faction) => faction.id === mapNode.owner));
     const allegiance = statusOf(opts.factionStatus, owner);
@@ -338,6 +356,7 @@ function campaignMapMarkers(data: CampaignData, opts: DrawOptions): CampaignMark
     if (node.kind !== 'city') return;
     const minTier = opts.cam.scale < 0.6 ? 3 : opts.cam.scale < 0.85 ? 2 : 1;
     if (node.tier < minTier) return;
+    if (!fogVisible(opts, node.pos[0], node.pos[1], 0.18)) return;
     const city = opts.cities.get(index);
     const owner = city?.owner ?? Math.max(0, data.map.factions.findIndex((faction) => faction.id === node.owner));
     const allegiance = opts.factionView ? statusOf(opts.factionStatus, owner) : Allegiance.Neutral;
@@ -400,6 +419,7 @@ function campaignCityLabels(data: CampaignData, opts: DrawOptions): CampaignLabe
   const labels: CampaignLabel[] = [];
   data.map.nodes.forEach((node, index) => {
     if (node.kind !== 'city') return;
+    if (!fogVisible(opts, node.pos[0], node.pos[1], 0.18)) return;
     const city = opts.cities.get(index);
     const owner = city?.owner ?? Math.max(0, data.map.factions.findIndex((faction) => faction.id === node.owner));
     const allegiance = opts.factionView ? statusOf(opts.factionStatus, owner) : Allegiance.Neutral;
@@ -413,7 +433,7 @@ function campaignCityLabels(data: CampaignData, opts: DrawOptions): CampaignLabe
       priority: node.tier,
       icon: 'city',
       iconColor: allegianceColor(allegiance),
-      screenOffsetY: 14 + (cityHasArmy.has(index) ? baseSize * 1.5 : 0) + verticalEdgeOffset(edge.y(node.pos[1])),
+      screenOffsetY: cityLabelOffset(opts, baseSize, cityHasArmy.has(index)) + verticalEdgeOffset(edge.y(node.pos[1])),
     });
   });
   return labels;
@@ -452,7 +472,18 @@ function campaignArmyLabels(data: CampaignData, opts: DrawOptions): CampaignLabe
 }
 
 function visibleCampaignArmies(opts: DrawOptions) {
-  return opts.armies.filter((army) => !(opts.fogOfWar && !army.mine && statusOf(opts.factionStatus, army.faction) !== Allegiance.Foe));
+  return opts.armies.filter((army) => {
+    if (!opts.fogOfWar) return true;
+    if (army.mine) return true;
+    return fogVisible(opts, army.x, army.y, 0.18);
+  });
+}
+
+function cityLabelOffset(opts: DrawOptions, baseSize: number, hasArmy: boolean) {
+  const armyOffset = hasArmy ? baseSize * 1.5 : 0;
+  if (opts.cam.scale < 0.6) return 4 + armyOffset;
+  if (opts.cam.scale < 1.25) return 18 + armyOffset;
+  return Math.max(30, baseSize * 1.9) + armyOffset;
 }
 
 function ordinal(k: number) {
@@ -464,19 +495,36 @@ function ordinal(k: number) {
 function campaignFactionLabels(data: CampaignData, opts: DrawOptions): CampaignLabel[] {
   if (!opts.factionView) return [];
   const edge = mapEdgeProjector(data);
-  return opts.factionLabels.map((label): CampaignLabel => ({
-    text: label.name,
-    x: label.x,
-    y: label.y,
-    kind: 'faction',
-    size: label.minor ? 9 : 17,
-    priority: 4,
-    angle: -0.06,
-    factionRadiusKm: label.radiusKm,
-    factionMinor: label.minor,
-    screenOffsetX: horizontalEdgeOffset(edge.x(label.x)),
-    screenOffsetY: verticalEdgeOffset(edge.y(label.y)),
-  }));
+  return opts.factionLabels
+    .filter((label) => !opts.fogOfWar || fogVisible(opts, label.x, label.y, 0.14))
+    .map((label): CampaignLabel => ({
+      text: label.name,
+      x: label.x,
+      y: label.y,
+      kind: 'faction',
+      size: label.minor ? 9 : 17,
+      priority: 4,
+      angle: -0.06,
+      factionRadiusKm: label.radiusKm,
+      factionMinor: label.minor,
+      screenOffsetX: horizontalEdgeOffset(edge.x(label.x)),
+      screenOffsetY: verticalEdgeOffset(edge.y(label.y)),
+    }));
+}
+
+function fogVisible(opts: DrawOptions, x: number, y: number, threshold: number) {
+  if (!opts.fogOfWar) return true;
+  return fogVisibility(opts.visionSources, x, y) >= threshold;
+}
+
+function fogVisibility(sources: CampaignFogSource[], x: number, y: number) {
+  let visible = 0;
+  for (const source of sources) {
+    const d = Math.hypot(x - source.x, y - source.y);
+    const sourceVisible = 1 - smoothstep(source.radius * 0.72, source.radius * 1.08, d);
+    visible = Math.max(visible, sourceVisible);
+  }
+  return visible;
 }
 
 const LABEL_EDGE_INSET_START_X = 0.22;

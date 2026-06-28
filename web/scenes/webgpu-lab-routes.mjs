@@ -540,6 +540,28 @@ async function findProductionScenarioContractFootguns() {
   return matches.sort();
 }
 
+async function findFrameGraphVerifierFootguns() {
+  const root = new URL('../../', import.meta.url).pathname;
+  const file = new URL('./_webgpu-contract.mjs', import.meta.url);
+  const source = await readFile(file, 'utf8');
+  const label = file.pathname.replace(root, '');
+  const checks = [
+    ['reads shared frame graph contract source', /packages\/webgpu-core\/src\/frameGraphContract\.ts/],
+    ['exports shared frame phase kinds', /export\s+const\s+FRAME_PHASE_KINDS\s*=\s*readStringArrayConst\(FRAME_GRAPH_CONTRACT_SOURCE,\s*'FRAME_PHASE_KINDS'\)/],
+    ['exports shared frame graph roles', /export\s+const\s+FRAME_GRAPH_PASS_ROLES\s*=\s*readStringArrayConst\(FRAME_GRAPH_CONTRACT_SOURCE,\s*'FRAME_GRAPH_PASS_ROLES'\)/],
+    ['exports shared role phase map', /export\s+const\s+FRAME_GRAPH_ROLE_PHASES\s*=\s*readStringObjectConst\(FRAME_GRAPH_CONTRACT_SOURCE,\s*'FRAME_GRAPH_ROLE_PHASES'\)/],
+    ['semantic role helper uses shared role phase map', /FRAME_GRAPH_ROLE_PHASES\[role\]\s*===\s*phase\.kind/],
+  ];
+  const matches = [];
+  for (const [name, pattern] of checks) {
+    if (!pattern.test(source)) matches.push(`${label}: missing ${name}`);
+  }
+  if (/role\s*===\s*['"]world-opaque['"]\s*\|\|/.test(source)) {
+    matches.push(`${label}: hard-coded per-phase role union in scenario helper`);
+  }
+  return matches.sort();
+}
+
 async function findDepthContractFootguns() {
   const root = new URL('../../', import.meta.url).pathname;
   const sourceRoots = [
@@ -728,6 +750,12 @@ export async function run(ctx) {
     'source: production scenarios assert shared WebGPU depth contracts',
     productionScenarioContractFootguns.length === 0,
     JSON.stringify({ productionScenarioContractFootguns }),
+  );
+  const frameGraphVerifierFootguns = await findFrameGraphVerifierFootguns();
+  ctx.check(
+    'source: scenario helpers derive frame roles from the shared contract',
+    frameGraphVerifierFootguns.length === 0,
+    JSON.stringify({ frameGraphVerifierFootguns }),
   );
   const depthContractFootguns = await findDepthContractFootguns();
   ctx.check(

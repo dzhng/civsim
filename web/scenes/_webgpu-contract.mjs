@@ -4,12 +4,22 @@ const DEPTH_CONTRACT_SOURCE = readFileSync(
   new URL('../../packages/webgpu-core/src/depthContract.ts', import.meta.url),
   'utf8',
 );
+const FRAME_GRAPH_CONTRACT_SOURCE = readFileSync(
+  new URL('../../packages/webgpu-core/src/frameGraphContract.ts', import.meta.url),
+  'utf8',
+);
 
 export const WEBGPU_DEPTH_FORMAT = readDepthConst('WEBGPU_DEPTH_FORMAT');
 export const WEBGPU_WORLD_DEPTH_ATTACHMENT = readDepthConst('WEBGPU_WORLD_DEPTH_ATTACHMENT');
 export const WEBGPU_DEPTH_MODES = readDepthModes();
+export const FRAME_PHASE_KINDS = readStringArrayConst(FRAME_GRAPH_CONTRACT_SOURCE, 'FRAME_PHASE_KINDS');
+export const FRAME_GRAPH_PASS_ROLES = readStringArrayConst(FRAME_GRAPH_CONTRACT_SOURCE, 'FRAME_GRAPH_PASS_ROLES');
+export const FRAME_GRAPH_ROLE_PHASES = readStringObjectConst(FRAME_GRAPH_CONTRACT_SOURCE, 'FRAME_GRAPH_ROLE_PHASES');
+export const FRAME_GRAPH_DEPTH_ROLES = readStringObjectConst(FRAME_GRAPH_CONTRACT_SOURCE, 'FRAME_GRAPH_DEPTH_ROLES');
 
 const DEPTH_MODES = new Set(WEBGPU_DEPTH_MODES);
+const FRAME_PHASES = new Set(FRAME_PHASE_KINDS);
+const FRAME_ROLES = new Set(FRAME_GRAPH_PASS_ROLES);
 
 function readDepthConst(name) {
   const match = DEPTH_CONTRACT_SOURCE.match(new RegExp(`export\\s+const\\s+${name}\\s*=\\s*['"]([^'"]+)['"]\\s+as\\s+const`));
@@ -21,6 +31,22 @@ function readDepthModes() {
   const match = DEPTH_CONTRACT_SOURCE.match(/export\s+const\s+WEBGPU_DEPTH_MODES\s*=\s*\[([^\]]+)\]\s+as\s+const/);
   if (!match) throw new Error('Unable to read WEBGPU_DEPTH_MODES from shared WebGPU depth contract');
   return Array.from(match[1].matchAll(/['"]([^'"]+)['"]/g), (mode) => mode[1]);
+}
+
+function readStringArrayConst(source, name) {
+  const match = source.match(new RegExp(`export\\s+const\\s+${name}\\s*=\\s*\\[([\\s\\S]*?)\\]\\s+as\\s+const`));
+  if (!match) throw new Error(`Unable to read ${name} from shared WebGPU frame graph contract`);
+  return Array.from(match[1].matchAll(/['"]([^'"]+)['"]/g), (item) => item[1]);
+}
+
+function readStringObjectConst(source, name) {
+  const match = source.match(new RegExp(`export\\s+const\\s+${name}\\s*=\\s*\\{([\\s\\S]*?)\\}\\s+as\\s+const`));
+  if (!match) throw new Error(`Unable to read ${name} from shared WebGPU frame graph contract`);
+  const out = {};
+  for (const item of match[1].matchAll(/['"]([^'"]+)['"]\\s*:\\s*['"]([^'"]+)['"]/g)) {
+    out[item[1]] = item[2];
+  }
+  return out;
 }
 
 export function hasFramePhaseOrder(phases, options = {}) {
@@ -67,16 +93,13 @@ function hasDepthPassPlacement(phases) {
 
 function hasSemanticPassRoles(phases) {
   return Array.isArray(phases) && phases.every((phase) => {
+    if (!FRAME_PHASES.has(phase?.kind)) return false;
     const passIds = Array.isArray(phase?.passIds) ? phase.passIds : [];
     const passRoles = Array.isArray(phase?.passRoles) ? phase.passRoles : [];
     const roleById = new Map(passRoles.map((pass) => [pass?.id, pass?.role]));
     return passIds.every((id) => {
       const role = roleById.get(id);
-      if (id === 'builtin-background') return role === 'background-underpaint';
-      if (phase?.kind === 'background') return role === 'background-underpaint';
-      if (phase?.kind === 'world-depth') return role === 'world-opaque' || role === 'world-decal' || role === 'world-depth-fill';
-      if (phase?.kind === 'overlay') return role === 'overlay-ui' || role === 'overlay-effect' || role === 'overlay-debug';
-      return false;
+      return FRAME_ROLES.has(role) && FRAME_GRAPH_ROLE_PHASES[role] === phase.kind;
     });
   });
 }

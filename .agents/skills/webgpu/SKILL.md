@@ -667,6 +667,11 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   assertions from `packages/webgpu-core/src/depthContract.ts` (or another
   canonical exported artifact) so tests, stats, and renderer code agree on the
   same format, attachment name, and allowed depth modes.
+- Do the same for frame phases and semantic roles. Scenario helpers should read
+  `FRAME_PHASE_KINDS`, `FRAME_GRAPH_PASS_ROLES`, and role/depth maps from
+  `packages/webgpu-core/src/frameGraphContract.ts`; hard-coded per-phase role
+  unions in `_webgpu-contract.mjs` can let tests drift away from the renderer
+  contract they are supposed to enforce.
 - Keep WebGPU visual fixtures inside the renderer envelope unless the scene is
   explicitly a stress benchmark. Campaign `start_armies[].roster` entries are
   full-strength unit counts, not raw soldier counts, so values like `420`

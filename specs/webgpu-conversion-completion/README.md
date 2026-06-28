@@ -118,8 +118,22 @@ final cutover (slice 11) is the integration point that depends on the rest.
 
 You are building the WebGPU conversion completion. Last updated: 2026-06-29.
 
-Current status: **Slices 01–05 shipped and green** (Group A complete; Group B
-through materials/faction-mask).
+Current status: **Slices 01–06 in progress** (Group A complete; Group B through
+mount data + LOD; slice 06 horse-composition headline deferred to David).
+
+**Slice 06 (mounted units) — production fixes shipped, headline deferred:**
+- `CrowdInstance.mounted` populated from the kit's mounted archetypes
+  (`mountedClassesFromKit`); battle renderer threads the mounted-class set.
+- `lod.ts` keys the mounted LOD scale off `inst.mounted`, not a hardcoded 6/7
+  list — cavalry class 14 now scales (the gap-review bug).
+- `/webgpu/mounted-units` route + `webgpu-mounted-units` scene verify all mounted
+  classes scale (14 included) and cavalry renders as horse + rider.
+- **Deferred for David (slice headline):** a real baked horse skeleton (walk/
+  canter) with a rider composed on a mount-attachment bone, and per-piece
+  equipment draw — a large art subsystem gated on the "combined rig vs two
+  skeletons" and "per-piece vs mask-tint" design decisions. Placeholder cavalry
+  already renders horse+rider with an animated rider; horse legs don't animate.
+
 
 **Slice 05 (materials, textures & faction mask) shipped:**
 - `skinnedPipeline` has a shared material bind group (group 2): sampler + 4
@@ -217,9 +231,9 @@ left untouched per the spec; the `compileShader` source gate is scoped to
 non-campaign roots. Only the campaign `renderer.ready.catch` (scene controller,
 pure robustness) was added.
 
-Next pickup: **Slice 06 (mounted units & equipment composition)** — Group B
-(needs 04, done). Real horse VAT + rider composition; cavalry no longer fused
-boxes. Placeholders stay default.
+Next pickup: **Slice 07 (LOD mesh tiers)** — Group B (needs 04, done). L0/L1/L2
+mesh tiers with an `lod` field on `CrowdInstance` and LOD-aware grouping in
+battle. (Slice 06's horse-skeleton composition remains deferred to David.)
 
 Active warnings:
 - Keep the sim and campaign renderer untouched; this is non-campaign renderer
@@ -240,8 +254,9 @@ Global TODO:
   single global VAT/layout.
 - [x] Slice 05: sampler/texture bind group with albedo/normal/orm + per-pixel
   faction-mask accents.
-- [ ] Slice 06: real horse VAT + rider composition and per-piece equipment
-  composition; cavalry no longer fused boxes.
+- [~] Slice 06: mount data model + LOD for all mounted classes shipped; real
+  horse VAT + rider composition and per-piece equipment deferred to David's
+  design call.
 - [ ] Slice 07: L0/L1/L2 mesh tiers with an `lod` field on `CrowdInstance` and
   LOD-aware grouping in battle.
 - [ ] Slice 08: battle shadow pass (port campaign `drawShadows`) and soldier

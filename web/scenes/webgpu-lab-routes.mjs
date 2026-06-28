@@ -226,9 +226,17 @@ function depthContractFixturesRejected(fixtures) {
 }
 
 function frameGraphContractFixturesRejected(fixtures) {
-  const expected = new Set(['backgroundDepthMode', 'worldMissingDepthMode', 'worldUnsupportedDepthMode', 'unsupportedPhase']);
+  const expected = new Set([
+    'backgroundDepthMode',
+    'worldMissingDepthMode',
+    'worldUnsupportedDepthMode',
+    'unsupportedPhase',
+    'missingSemanticRole',
+    'mismatchedSemanticRole',
+    'mismatchedDepthRole',
+  ]);
   return Array.isArray(fixtures)
-    && fixtures.length === 4
+    && fixtures.length === expected.size
     && fixtures.every((fixture) =>
       expected.has(fixture?.id)
       && fixture?.rejected === true

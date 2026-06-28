@@ -175,6 +175,10 @@ shadows that sit on the ground instead of floating as screen overlays.
   `overlay-effect`, or `overlay-debug`. Production scenario helpers assert
   these roles for battle and campaign so type buckets remain batching
   implementation details, not visibility rules.
+- The frame-shell lab route publishes live negative fixtures for the role
+  contract too: missing semantic role, role/phase mismatch, and depth-mode role
+  mismatch all have to be rejected before GPU encoding. This keeps JavaScript
+  callers and future loose tooling from bypassing the TypeScript union.
 - Production scenario contracts now verify the full phase split, not only
   nested-world depth. The shared `_webgpu-contract.mjs` helper requires concrete
   background, `world-depth`, and overlay pass ids for battle and campaign, and

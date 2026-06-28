@@ -61,6 +61,11 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
   such as `campaign-webgpu-visual` can stay pixel-green while the archived
   parity gate in `webgpu-visual-report` changes; for parity work, rerun the
   report route, inspect its PNG, and then run `compare-screenshots`.
+- If `campaign-handoff-battle` suddenly becomes the worst parity row after a
+  non-visual architecture change, rerun `webgpu-visual-report` and the diff
+  helper once before treating it as a renderer regression. That capture can
+  wobble between runs; use the stable rerun before committing visual artifacts
+  or making art/camera changes.
 - Controlled visual fixtures still need authored texture/detail. A solid test
   swatch can classify correctly and keep snapshots green while the archived
   parity score exposes a dead flat world; use deterministic noise/scenery that
@@ -628,8 +633,10 @@ layout, pass orchestration, WGSL correctness, or visual/performance validation.
 - Treat the live frame shell as a runtime boundary, not only a TypeScript
   boundary. `RawFrameShell.drawFrame` must reject malformed pass commands:
   unsupported frame phases, missing or unsupported world-depth modes, and depth
-  modes on background/overlay passes. Keep negative fixtures in the lab route
-  so JS callers and loose future tooling cannot bypass the phase contract.
+  modes on background/overlay passes. It must also reject missing semantic
+  roles, role/phase mismatches, and depth-mode role mismatches before encoding
+  GPU work. Keep negative fixtures in the lab route so JS callers and loose
+  future tooling cannot bypass the phase contract.
 - Treat render-graph depth modes as exclusive access contracts. A `read` depth
   pass must not write the attachment, a `write` pass must not read it, and the
   full-game graph should reject private depth attachments that bypass the

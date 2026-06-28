@@ -1,6 +1,6 @@
 {
   "kind": "screenshot-parity-diff",
-  "generatedAt": "2026-06-28T01:22:00.728Z",
+  "generatedAt": "2026-06-28T01:32:36.453Z",
   "note": "Lower parityDistance means the candidate is closer to archived current-renderer parity. This is a parity metric, not an aesthetics acceptance gate.",
   "pairCount": 7,
   "worstPair": "campaign-label-zoom",
@@ -259,27 +259,27 @@
         "width": 1280,
         "height": 800
       },
-      "parityDistance": 0.15529,
+      "parityDistance": 0.15526,
       "grayscale": {
-        "mae": 15.59888,
-        "rmse": 31.02922,
-        "diffRatio16": 0.22448,
-        "diffRatio32": 0.10945,
-        "diffRatio64": 0.06351,
-        "pixelmatchRatio": 0.16264
+        "mae": 15.59101,
+        "rmse": 31.02473,
+        "diffRatio16": 0.22419,
+        "diffRatio32": 0.10946,
+        "diffRatio64": 0.06348,
+        "pixelmatchRatio": 0.16239
       },
       "contentProxies": {
         "blackRatioCurrent": 0.00019,
         "blackRatioCandidate": 0.00033,
         "terrainLikeRatioCurrent": 0.84905,
-        "terrainLikeRatioCandidate": 0.79613,
+        "terrainLikeRatioCandidate": 0.79639,
         "avgLuminanceCurrent": 141.86437,
-        "avgLuminanceCandidate": 135.21909,
-        "avgLuminanceDelta": -6.64528,
+        "avgLuminanceCandidate": 135.22728,
+        "avgLuminanceDelta": -6.63709,
         "edgeEnergyCurrent": 0.15311,
-        "edgeEnergyCandidate": 0.14756,
-        "edgeEnergyRatio": 0.96377,
-        "edgeDiffRatio32": 0.27334
+        "edgeEnergyCandidate": 0.14752,
+        "edgeEnergyRatio": 0.96352,
+        "edgeDiffRatio32": 0.27323
       },
       "artifacts": {
         "sideBySide": "visual-diff/campaign-handoff-battle-side-by-side.png",
@@ -299,10 +299,10 @@
           "width": 1280,
           "height": 496
         },
-        "parityDistance": 0.14971,
+        "parityDistance": 0.14972,
         "grayscale": {
-          "mae": 10.01105,
-          "rmse": 15.79208,
+          "mae": 10.01124,
+          "rmse": 15.79214,
           "diffRatio16": 0.17349,
           "diffRatio32": 0.04443,
           "diffRatio64": 0.01175,
@@ -314,12 +314,12 @@
           "terrainLikeRatioCurrent": 0.93218,
           "terrainLikeRatioCandidate": 0.92811,
           "avgLuminanceCurrent": 153.82302,
-          "avgLuminanceCandidate": 151.62343,
-          "avgLuminanceDelta": -2.19959,
+          "avgLuminanceCandidate": 151.62335,
+          "avgLuminanceDelta": -2.19967,
           "edgeEnergyCurrent": 0.14429,
           "edgeEnergyCandidate": 0.11905,
-          "edgeEnergyRatio": 0.82504,
-          "edgeDiffRatio32": 0.26787
+          "edgeEnergyRatio": 0.82502,
+          "edgeDiffRatio32": 0.26786
         },
         "artifacts": {
           "sideBySide": "visual-diff/campaign-handoff-battle-world-crop-side-by-side.png",
@@ -423,10 +423,10 @@
         "width": 1280,
         "height": 800
       },
-      "parityDistance": 0.0523,
+      "parityDistance": 0.05231,
       "grayscale": {
-        "mae": 4.81198,
-        "rmse": 17.6975,
+        "mae": 4.81225,
+        "rmse": 17.69742,
         "diffRatio16": 0.10299,
         "diffRatio32": 0.02689,
         "diffRatio64": 0.01315,
@@ -434,15 +434,15 @@
       },
       "contentProxies": {
         "blackRatioCurrent": 0.74817,
-        "blackRatioCandidate": 0.74983,
+        "blackRatioCandidate": 0.74977,
         "terrainLikeRatioCurrent": 0.00853,
         "terrainLikeRatioCandidate": 0.00931,
         "avgLuminanceCurrent": 22.8145,
-        "avgLuminanceCandidate": 22.78634,
-        "avgLuminanceDelta": -0.02816,
+        "avgLuminanceCandidate": 22.78666,
+        "avgLuminanceDelta": -0.02784,
         "edgeEnergyCurrent": 0.0349,
         "edgeEnergyCandidate": 0.0373,
-        "edgeEnergyRatio": 1.06892,
+        "edgeEnergyRatio": 1.06896,
         "edgeDiffRatio32": 0.0803
       },
       "artifacts": {
@@ -466,8 +466,8 @@
       },
       "parityDistance": 0.0375,
       "grayscale": {
-        "mae": 4.51436,
-        "rmse": 16.38437,
+        "mae": 4.51435,
+        "rmse": 16.38435,
         "diffRatio16": 0.08712,
         "diffRatio32": 0.02183,
         "diffRatio64": 0.01239,
@@ -479,8 +479,8 @@
         "terrainLikeRatioCurrent": 0.00853,
         "terrainLikeRatioCandidate": 0.0097,
         "avgLuminanceCurrent": 22.8145,
-        "avgLuminanceCandidate": 21.51864,
-        "avgLuminanceDelta": -1.29586,
+        "avgLuminanceCandidate": 21.51863,
+        "avgLuminanceDelta": -1.29587,
         "edgeEnergyCurrent": 0.0349,
         "edgeEnergyCandidate": 0.03451,
         "edgeEnergyRatio": 0.98898,

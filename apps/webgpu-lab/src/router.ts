@@ -1912,6 +1912,21 @@ function liveFrameGraphContractFixtures(shell: RawFrameShell) {
       expected: 'unsupported phase',
       passes: [{ id: 'bad-phase', role: 'overlay-effect', phase: 'transparent-world', draw: () => undefined }],
     },
+    {
+      id: 'missingSemanticRole',
+      expected: 'must declare a semantic role',
+      passes: [{ id: 'bad-missing-role', phase: 'world-depth', depth: 'read-write', draw: () => undefined }],
+    },
+    {
+      id: 'mismatchedSemanticRole',
+      expected: 'is incompatible with phase',
+      passes: [{ id: 'bad-role-phase', role: 'world-opaque', phase: 'overlay', draw: () => undefined }],
+    },
+    {
+      id: 'mismatchedDepthRole',
+      expected: 'requires role',
+      passes: [{ id: 'bad-depth-role', role: 'world-decal', phase: 'world-depth', depth: 'read-write', draw: () => undefined }],
+    },
   ];
   return fixtures.map((fixture) => {
     try {

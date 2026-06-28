@@ -156,7 +156,11 @@ export class CampaignRendererWebGPU {
     const buildEnd = performance.now();
     this.lastEntities = { cityEntities: frame.cityEntities, armyEntities: frame.armyEntities };
     const uploadStart = performance.now();
-    this.scenery.upload(campaignScenery(this.sceneryCandidates, campaignSceneryReservations(frame.entities), opts.cam.scale));
+    const sceneryTime = this.fixedTime ?? performance.now() / 1000;
+    this.scenery.upload(
+      campaignScenery(this.sceneryCandidates, campaignSceneryReservations(frame.entities), opts.cam.scale)
+        .concat(campaignRoadCarts(this.data, this.field, sceneryTime, opts)),
+    );
     this.entities.upload(frame.entities);
     this.selection.upload(frame.selections);
     this.markers.upload(campaignMapMarkers(this.data, opts));
@@ -711,6 +715,80 @@ function campaignScenery(candidates: CampaignSceneryInstance[], reservations: Ca
   return clearCampaignDynamicScenery(lodFiltered, reservations);
 }
 
+const CART_MIN_SCALE = 3.2;
+const CART_SPACING_KM = 78;
+
+// Road life: a handful of trade carts riding the road splines. Their position is
+// a function of scene time, so they crawl along when the campaign runs and sit
+// at a deterministic spot when it is frozen for a snapshot. Carts live ON the
+// road, so they bypass the road-clearance cull; they only appear at close zoom
+// and obey fog.
+function campaignRoadCarts(data: CampaignData, field: TerrainField, time: number, opts: DrawOptions): CampaignSceneryInstance[] {
+  if (opts.cam.scale < CART_MIN_SCALE) return [];
+  const carts: CampaignSceneryInstance[] = [];
+  data.map.edges.forEach((edge, e) => {
+    if (edge.kind !== 'road' || !edge.via || edge.via.length < 2) return;
+    // Match the rendered road: the road pass smooths its centerline (0.72/0.14/
+    // 0.14 over neighbours), so sample the same smoothed line or the cart sits
+    // off in the grass beside the visible ribbon.
+    const via = smoothRoadVia(edge.via);
+    const segLen: number[] = [];
+    let total = 0;
+    for (let i = 1; i < via.length; i++) {
+      const d = Math.hypot(via[i][0] - via[i - 1][0], via[i][1] - via[i - 1][1]);
+      segLen.push(d);
+      total += d;
+    }
+    if (total < 28) return; // too short to carry road life
+    const count = Math.max(1, Math.floor(total / CART_SPACING_KM));
+    for (let c = 0; c < count; c++) {
+      const phase = hash2(e * 13 + c * 7 + 1, e * 5 + 3);
+      const dir = hash2(e * 3 + c, 7) < 0.5 ? 1 : -1;
+      const speed = 0.6 + hash2(e + c, e * 2 + 1) * 0.5; // km/s along the spline
+      const dist = (((phase + (time * speed * dir) / total) % 1) + 1) % 1 * total;
+      if (dist < 7 || total - dist < 7) continue; // keep clear of the city footprints
+      let acc = 0;
+      for (let i = 1; i < via.length; i++) {
+        const d = segLen[i - 1];
+        if (acc + d >= dist) {
+          const t = (dist - acc) / Math.max(1e-6, d);
+          const x = via[i - 1][0] + (via[i][0] - via[i - 1][0]) * t;
+          const y = via[i - 1][1] + (via[i][1] - via[i - 1][1]) * t;
+          if (opts.fogOfWar && !fogVisible(opts, x, y, 0.18)) break;
+          const ang = Math.atan2(via[i][1] - via[i - 1][1], via[i][0] - via[i - 1][0]);
+          carts.push({
+            x,
+            y,
+            z: Math.max(0, field.heightAt(x, y)),
+            size: 6.0,
+            height: 4.0,
+            kind: 'cart',
+            shade: 0.55 + phase * 0.35,
+            yaw: dir > 0 ? ang : ang + Math.PI,
+          });
+          break;
+        }
+        acc += d;
+      }
+    }
+  });
+  return carts;
+}
+
+// Mirror of mapPass smoothRoadCenterline so carts ride the rendered road.
+function smoothRoadVia(points: [number, number][]): [number, number][] {
+  if (points.length <= 2) return points;
+  const out: [number, number][] = [points[0]];
+  for (let i = 1; i + 1 < points.length; i++) {
+    const p = points[i];
+    const a = points[i - 1];
+    const b = points[i + 1];
+    out.push([p[0] * 0.72 + a[0] * 0.14 + b[0] * 0.14, p[1] * 0.72 + a[1] * 0.14 + b[1] * 0.14]);
+  }
+  out.push(points[points.length - 1]);
+  return out;
+}
+
 function buildCampaignSceneryCandidates(data: CampaignData, field: TerrainField): CampaignSceneryInstance[] {
   if (data.map.attribution === 'test') return testStageScenery(data);
   const mountains: ScoredCampaignSceneryInstance[] = [];
@@ -982,6 +1060,7 @@ function sceneryReservationRadius(item: CampaignSceneryInstance) {
 function sceneryMinScale(item: CampaignSceneryInstance) {
   if (item.kind === 'mountain') return CAMPAIGN_MOUNTAIN_MIN_SCALE;
   if (item.kind === 'rock') return CAMPAIGN_ROCK_MIN_SCALE;
+  if (item.kind === 'cart') return CART_MIN_SCALE;
   return CAMPAIGN_TREE_MIN_SCALE;
 }
 

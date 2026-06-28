@@ -29,6 +29,29 @@ export function buildRockMesh(): MeshData {
   return builder.finish('rock mesh');
 }
 
+// A small ox-less trade cart, pointing +X (its travel direction): four dark
+// wheels, a plank bed, and a canvas-and-sacks load. Kept low and stubby so it
+// reads as road life at the campaign camera without competing with markers.
+export function buildCartMesh(): MeshData {
+  const builder = new MeshBuilder();
+  builder.shadow(0.72, 0.40, 0.18);
+  const wood: Rgb = [0.40, 0.27, 0.15];
+  const darkWood: Rgb = [0.22, 0.15, 0.10];
+  const canvas: Rgb = [0.66, 0.58, 0.42];
+  // wheels
+  builder.box([-0.34, -0.30, 0.15], [0.22, 0.10, 0.30], darkWood, 1);
+  builder.box([-0.34, 0.30, 0.15], [0.22, 0.10, 0.30], darkWood, 1);
+  builder.box([0.34, -0.30, 0.15], [0.22, 0.10, 0.30], darkWood, 1);
+  builder.box([0.34, 0.30, 0.15], [0.22, 0.10, 0.30], darkWood, 1);
+  // plank bed
+  builder.box([0.0, 0.0, 0.36], [0.86, 0.52, 0.16], wood, 1);
+  // shaft/pole out the front
+  builder.box([0.62, 0.0, 0.30], [0.42, 0.08, 0.08], wood, 1);
+  // canvas load
+  builder.box([-0.04, 0.0, 0.56], [0.60, 0.44, 0.26], canvas, 1);
+  return builder.finish('cart mesh');
+}
+
 export function buildConiferTreeMesh(): MeshData {
   const builder = new MeshBuilder();
   builder.shadow(0.62, 0.44, 0.18);

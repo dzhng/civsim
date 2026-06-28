@@ -1,9 +1,9 @@
 import type { RawFrameShell, WorldRenderPass } from '../../../webgpu-core/src/frameShell';
 import { WORLD_CAMERA_WGSL } from '../../../webgpu-core/src/cameraWgsl';
 import { webGpuAlphaBlendColorTarget, webGpuOpaqueColorTarget, webGpuWorldDepthStencil } from '../../../webgpu-core/src/pipelineContracts';
-import { buildBroadleafTreeMesh, buildConiferTreeMesh, buildMountainMesh, buildRockMesh } from '../models/shared/sceneryPropModels';
+import { buildBroadleafTreeMesh, buildCartMesh, buildConiferTreeMesh, buildMountainMesh, buildRockMesh } from '../models/shared/sceneryPropModels';
 
-export type CampaignSceneryKind = 'mountain' | 'tree' | 'conifer' | 'broadleaf' | 'rock';
+export type CampaignSceneryKind = 'mountain' | 'tree' | 'conifer' | 'broadleaf' | 'rock' | 'cart';
 
 export interface CampaignSceneryInstance {
   x: number;
@@ -74,6 +74,7 @@ export class CampaignSceneryPass {
   private coniferMesh = buildConiferTreeMesh();
   private broadleafMesh = buildBroadleafTreeMesh();
   private rockMesh = buildRockMesh();
+  private cartMesh = buildCartMesh();
   private mountainVertexBuffer: GPUBuffer;
   private mountainIndexBuffer: GPUBuffer;
   private mountainShadowVertexBuffer: GPUBuffer;
@@ -90,18 +91,25 @@ export class CampaignSceneryPass {
   private rockIndexBuffer: GPUBuffer;
   private rockShadowVertexBuffer: GPUBuffer;
   private rockShadowIndexBuffer: GPUBuffer;
+  private cartVertexBuffer: GPUBuffer;
+  private cartIndexBuffer: GPUBuffer;
+  private cartShadowVertexBuffer: GPUBuffer;
+  private cartShadowIndexBuffer: GPUBuffer;
   private mountainInstanceBuffer: GPUBuffer;
   private coniferInstanceBuffer: GPUBuffer;
   private broadleafInstanceBuffer: GPUBuffer;
   private rockInstanceBuffer: GPUBuffer;
+  private cartInstanceBuffer: GPUBuffer;
   private mountainCapacity = 0;
   private coniferCapacity = 0;
   private broadleafCapacity = 0;
   private rockCapacity = 0;
+  private cartCapacity = 0;
   private mountainCount = 0;
   private coniferCount = 0;
   private broadleafCount = 0;
   private rockCount = 0;
+  private cartCount = 0;
 
   constructor(private shell: RawFrameShell) {
     const device = shell.device;
@@ -124,10 +132,15 @@ export class CampaignSceneryPass {
     this.rockIndexBuffer = makeIndexBuffer(device, 'campaign-rock-indices', this.rockMesh.opaque.indices);
     this.rockShadowVertexBuffer = makeVertexBuffer(device, 'campaign-rock-shadow-vertices', this.rockMesh.shadow.vertices);
     this.rockShadowIndexBuffer = makeIndexBuffer(device, 'campaign-rock-shadow-indices', this.rockMesh.shadow.indices);
+    this.cartVertexBuffer = makeVertexBuffer(device, 'campaign-cart-vertices', this.cartMesh.opaque.vertices);
+    this.cartIndexBuffer = makeIndexBuffer(device, 'campaign-cart-indices', this.cartMesh.opaque.indices);
+    this.cartShadowVertexBuffer = makeVertexBuffer(device, 'campaign-cart-shadow-vertices', this.cartMesh.shadow.vertices);
+    this.cartShadowIndexBuffer = makeIndexBuffer(device, 'campaign-cart-shadow-indices', this.cartMesh.shadow.indices);
     this.mountainInstanceBuffer = makeEmptyInstanceBuffer(device, 'campaign-mountain-empty-instances');
     this.coniferInstanceBuffer = makeEmptyInstanceBuffer(device, 'campaign-conifer-empty-instances');
     this.broadleafInstanceBuffer = makeEmptyInstanceBuffer(device, 'campaign-broadleaf-empty-instances');
     this.rockInstanceBuffer = makeEmptyInstanceBuffer(device, 'campaign-rock-empty-instances');
+    this.cartInstanceBuffer = makeEmptyInstanceBuffer(device, 'campaign-cart-empty-instances');
   }
 
   private makePipeline(module: GPUShaderModule, material: 'opaque' | 'shadow') {
@@ -176,22 +189,26 @@ export class CampaignSceneryPass {
     const conifers = instances.filter((inst) => inst.kind === 'tree' || inst.kind === 'conifer');
     const broadleafs = instances.filter((inst) => inst.kind === 'broadleaf');
     const rocks = instances.filter((inst) => inst.kind === 'rock');
+    const carts = instances.filter((inst) => inst.kind === 'cart');
     this.mountainCount = mountains.length;
     this.coniferCount = conifers.length;
     this.broadleafCount = broadleafs.length;
     this.rockCount = rocks.length;
+    this.cartCount = carts.length;
     this.mountainInstanceBuffer = this.ensureInstanceBuffer(this.mountainInstanceBuffer, 'campaign-mountain-instances', mountains.length, 'mountain');
     this.coniferInstanceBuffer = this.ensureInstanceBuffer(this.coniferInstanceBuffer, 'campaign-conifer-instances', conifers.length, 'conifer');
     this.broadleafInstanceBuffer = this.ensureInstanceBuffer(this.broadleafInstanceBuffer, 'campaign-broadleaf-instances', broadleafs.length, 'broadleaf');
     this.rockInstanceBuffer = this.ensureInstanceBuffer(this.rockInstanceBuffer, 'campaign-rock-instances', rocks.length, 'rock');
+    this.cartInstanceBuffer = this.ensureInstanceBuffer(this.cartInstanceBuffer, 'campaign-cart-instances', carts.length, 'cart');
     if (mountains.length > 0) this.shell.device.queue.writeBuffer(this.mountainInstanceBuffer, 0, packInstances(mountains));
     if (conifers.length > 0) this.shell.device.queue.writeBuffer(this.coniferInstanceBuffer, 0, packInstances(conifers));
     if (broadleafs.length > 0) this.shell.device.queue.writeBuffer(this.broadleafInstanceBuffer, 0, packInstances(broadleafs));
     if (rocks.length > 0) this.shell.device.queue.writeBuffer(this.rockInstanceBuffer, 0, packInstances(rocks));
+    if (carts.length > 0) this.shell.device.queue.writeBuffer(this.cartInstanceBuffer, 0, packInstances(carts));
   }
 
   drawShadows(pass: WorldRenderPass) {
-    if (this.mountainCount + this.coniferCount + this.broadleafCount + this.rockCount === 0) return;
+    if (this.mountainCount + this.coniferCount + this.broadleafCount + this.rockCount + this.cartCount === 0) return;
     pass.setPipeline(this.shadowPipeline);
     pass.setBindGroup(0, this.shell.cameraBindGroup);
     if (this.mountainCount > 0) {
@@ -218,10 +235,16 @@ export class CampaignSceneryPass {
       pass.setIndexBuffer(this.rockShadowIndexBuffer, 'uint16');
       pass.drawIndexed(this.rockMesh.shadow.indexCount, this.rockCount);
     }
+    if (this.cartCount > 0) {
+      pass.setVertexBuffer(0, this.cartShadowVertexBuffer);
+      pass.setVertexBuffer(1, this.cartInstanceBuffer);
+      pass.setIndexBuffer(this.cartShadowIndexBuffer, 'uint16');
+      pass.drawIndexed(this.cartMesh.shadow.indexCount, this.cartCount);
+    }
   }
 
   drawOpaque(pass: WorldRenderPass) {
-    if (this.mountainCount + this.coniferCount + this.broadleafCount + this.rockCount === 0) return;
+    if (this.mountainCount + this.coniferCount + this.broadleafCount + this.rockCount + this.cartCount === 0) return;
     pass.setPipeline(this.opaquePipeline);
     pass.setBindGroup(0, this.shell.cameraBindGroup);
     if (this.mountainCount > 0) {
@@ -248,16 +271,23 @@ export class CampaignSceneryPass {
       pass.setIndexBuffer(this.rockIndexBuffer, 'uint16');
       pass.drawIndexed(this.rockMesh.opaque.indexCount, this.rockCount);
     }
+    if (this.cartCount > 0) {
+      pass.setVertexBuffer(0, this.cartVertexBuffer);
+      pass.setVertexBuffer(1, this.cartInstanceBuffer);
+      pass.setIndexBuffer(this.cartIndexBuffer, 'uint16');
+      pass.drawIndexed(this.cartMesh.opaque.indexCount, this.cartCount);
+    }
   }
 
   stats() {
     return {
-      scenery: this.mountainCount + this.coniferCount + this.broadleafCount + this.rockCount,
+      scenery: this.mountainCount + this.coniferCount + this.broadleafCount + this.rockCount + this.cartCount,
       mountains: this.mountainCount,
       trees: this.coniferCount + this.broadleafCount,
       conifers: this.coniferCount,
       broadleafs: this.broadleafCount,
       rocks: this.rockCount,
+      carts: this.cartCount,
       mountainModelVertices: (this.mountainMesh.opaque.vertices.length + this.mountainMesh.shadow.vertices.length) / 10,
       coniferModelVertices: (this.coniferMesh.opaque.vertices.length + this.coniferMesh.shadow.vertices.length) / 10,
       broadleafModelVertices: (this.broadleafMesh.opaque.vertices.length + this.broadleafMesh.shadow.vertices.length) / 10,
@@ -274,12 +304,15 @@ export class CampaignSceneryPass {
         ? this.broadleafCapacity
         : bucket === 'tree' || bucket === 'conifer'
           ? this.coniferCapacity
-          : this.rockCapacity;
+          : bucket === 'cart'
+            ? this.cartCapacity
+            : this.rockCapacity;
     if (count <= current) return buffer;
     const next = Math.max(count, current * 2, 128);
     if (bucket === 'mountain') this.mountainCapacity = next;
     else if (bucket === 'broadleaf') this.broadleafCapacity = next;
     else if (bucket === 'tree' || bucket === 'conifer') this.coniferCapacity = next;
+    else if (bucket === 'cart') this.cartCapacity = next;
     else this.rockCapacity = next;
     return this.shell.device.createBuffer({
       label,

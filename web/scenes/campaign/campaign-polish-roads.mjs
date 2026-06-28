@@ -64,6 +64,13 @@ export async function run(ctx) {
     stats.visibleLabelNames?.includes('city:OSTIA/PORTUS') === true,
     JSON.stringify(stats.visibleLabelNames),
   );
+  // Road life: deterministic carts ride the spokes at this close camera (frozen
+  // scene time pins them to a fixed spot for the snapshot).
+  ctx.check(
+    'road life: at least one cart rides the Roma spokes',
+    (stats.sceneryStats?.carts ?? 0) >= 1,
+    JSON.stringify({ carts: stats.sceneryStats?.carts }),
+  );
 
   // Densely resample each spoke, project to screen, and confirm a road pixel
   // lands near every sample from Roma all the way to the city footprint. A

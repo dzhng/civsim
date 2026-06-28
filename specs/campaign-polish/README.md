@@ -130,9 +130,23 @@ and use focused fixture worlds before full-map acceptance.
 
 ## Next Agent Prompt
 
-You are picking up campaign polish. Last updated: 2026-06-29 (Slice 4 landed).
+You are picking up campaign polish. Last updated: 2026-06-29 (Slice 5 landed).
 
-Current status: Slices 1–4 done. Slice 4 reworked landforms: the chunky cone
+Current status: Slices 1–5 done. Slice 5 added road life: a small ox-less trade
+cart (`buildCartMesh`, `models/shared/sceneryPropModels.ts`) rides every real
+campaign road as a deterministic, frozen-time prop. Placement lives in
+`campaignRoadCarts` (`rendererWebGPU.ts`): it smooths each `edge.via` with
+`smoothRoadVia` (the same 0.72/0.14/0.14 weighting `mapPass` draws with, so carts
+sit on the rendered centerline), drops a cart every `CART_SPACING_KM`, faces it
+down the road via the per-instance `yaw` slot from slice 4, skips the road-
+clearance cull (carts belong on the road) but skips the last ~7 km into each city
+and obeys fog. `'cart'` is fully plumbed through `sceneryPass.ts` (buffers, draw,
+shadows, `sceneryStats.carts`). Determinism is byte-identical on double-run. The
+`campaign-polish-roads` and `campaign-webgpu-lod` rome-close scenes gate on
+`sceneryStats.carts >= 1`; all cart-affected baselines re-blessed. Critique:
+unanimous HIGH-confidence positive ("reads as intended, executes cleanly").
+
+Slice 4 reworked landforms: the chunky cone
 mountains became broad multi-hump massifs with per-instance yaw rotation
 (`sceneryPass.ts` free instance slot), thinner+lower placement, wide city/road
 clearance (no embedded cities), and forests that actually render in wet regions
@@ -158,16 +172,17 @@ tree min-scale 0.45 vs zoom 0.18), **no city-aware terrain clearance** (relief
 ignores city positions, `terrain.ts:159-170`), and **no carts** (slice 5; cart
 model would live in `campaignEntityModels.ts`, kind union `sceneryPass.ts:6`).
 
-Next pickup: Slice 5 — road life (carts). No cart model exists yet. Author a
-small shared cart (the scenery library is `models/shared/sceneryPropModels.ts`
-+ the `CampaignSceneryKind` union in `sceneryPass.ts:6`; gap review also points
-at `campaignEntityModels.ts`), give it a `write-turntable` sheet and — since it
-moves — a `write-anim` review. Place carts deterministically along road splines
-(`edge.via` from `data.map.edges`) with frozen scene time, below label priority,
-fog/LoD-aware, and ON the road (skip the road-clearance cull for carts). Build
-the cart-on-road fixture first (deferred from slice 1), then add to the real map.
-Then Slice 6 (acceptance). The per-instance `yaw` slot added to scenery in slice
-4 is the pattern a cart's travel facing can reuse.
+Next pickup: Slice 6 — campaign acceptance pass. This is the closing slice: no
+new features, just proof. For each of the four `assets/user-feedback/` images,
+produce a before/after note showing the offender is resolved (Ostia/Portus label
++ road kept, no Rome-south road cutoff, label spacing ~one icon height, green not
+brown ground, no chunky/embedding mountains, visible forests, carts present).
+Confirm every slice (1–5) passed an unbiased `screenshot-critique` and that both
+the workbench fixtures (`campaign-polish-roads`, `campaign-polish-markers`) and
+the real-map outputs (`campaign-webgpu-lod` rome-close/regional, `campaign-
+webgpu-visual`, `campaign-webgpu-map-alignment`) pass. Re-run the full campaign
+scene set, capture fresh full screenshots + tight crops, and run a final unbiased
+critique over the acceptance views. Then final README update and commit.
 
 How this pass runs the harness on this machine: dev server on a free port
 (`npx vite --port 5179 --strictPort` from `web/`), then
@@ -190,7 +205,7 @@ Global TODO:
 - [x] Slice 3: natural terrain color passes fixture and real Central Italy crop.
 - [x] Slice 4: terrain relief, forests, and clearance pass fixture and real
   campaign crop.
-- [ ] Slice 5: deterministic road-life/cart fixture and campaign crop pass.
+- [x] Slice 5: deterministic road-life/cart fixture and campaign crop pass.
 - [ ] Slice 6: final campaign acceptance pass has current screenshots, crops,
   and unbiased screenshot critique for every slice.
 

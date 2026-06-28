@@ -15,14 +15,14 @@ measurably equal-or-better and intentionally accepted.
   references.
 - `web/shots/anim/*.gif`: existing pose/animation references for walk, run,
   attack, hit, and death.
-- `web/shots/baseline/campaign-3d.png`, `campaign-natural.png`,
+- `web/shots/campaign/campaign-3d.png`, `campaign-natural.png`,
   `campaign-political.png`, `tiny-army-*.png`, and `ui-city-panel.png`:
   campaign model, road, terrain, city, and army references.
 - `web/src/campaign/icons.ts`, `web/src/campaign/status.ts`, and existing
   campaign label screenshots: label icon silhouettes, allegiance colors,
   Cinzel/Georgia typography, and text/icon composition references.
-- `specs/webgpu-skinned-crowd/visualizations/current-renderer/*.png`:
-  archived full-surface migration captures.
+- `specs/campaign-polish/assets/user-feedback/*.png`: campaign-polish
+  feedback captures that define the next accepted visual targets.
 - Git-history source references:
   - `web/src/battle/renderer3d.ts`
   - `web/src/battle/turntable.ts`

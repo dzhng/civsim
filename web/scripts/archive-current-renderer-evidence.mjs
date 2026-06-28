@@ -4,7 +4,7 @@ import { nearestIndependentCityFromRoma } from '../scenes/_campaign-map-helpers.
 
 const TARGET = process.env.CURRENT_RENDERER_URL ?? 'http://127.0.0.1:5173';
 const GENERATED_AT = process.env.CURRENT_RENDERER_ARCHIVE_GENERATED_AT ?? new Date().toISOString();
-const VIS_ROOT = new URL('../../specs/webgpu-skinned-crowd/visualizations/', import.meta.url);
+const VIS_ROOT = new URL('../../specs/done/webgpu-skinned-crowd-foundation/visualizations/', import.meta.url);
 const OUT_DIR = new URL('current-renderer/', VIS_ROOT);
 const MANIFEST_JSON = new URL('current-renderer/visual-comparison.manifest.pending.json', VIS_ROOT);
 const PERF_JSON = new URL('performance/current-renderer-baseline.generated.json', VIS_ROOT);

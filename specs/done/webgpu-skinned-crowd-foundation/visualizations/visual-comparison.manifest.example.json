@@ -1,0 +1,13 @@
+{
+  "releaseVisualImprovement": "pending",
+  "captures": [
+    {
+      "id": "campaign-whole-map",
+      "currentRendererComparison": {
+        "status": "pending",
+        "image": "current-renderer/campaign-whole-map.png",
+        "notes": "Replace with accepted comparison evidence before release."
+      }
+    }
+  ]
+}

@@ -111,11 +111,10 @@ cd web
 VERIFY_WEBGPU=1 node scene.mjs webgpu-model-gates
 ```
 
-It writes `specs/webgpu-skinned-crowd/visualizations/model-gates/` with
-addressable PNGs and a contact sheet for the campaign model/prop families.
-The route must keep adding gates until every individual campaign model and prop
-has its own PNG, not just a family contact-sheet slot.
-These images are review evidence, not final parity acceptance.
+It writes model-gate screenshots through the normal WebGPU scene/report output
+path. The route must keep adding gates until every individual campaign model and
+prop has its own PNG, not just a family contact-sheet slot. These images are
+review evidence, not final parity acceptance.
 
 Current executable campaign gates cover city, garrison-outside, garrison-city
 (partial), garrison-hidden, town, army, road-with-cities, road-only,
@@ -131,10 +130,9 @@ cd web
 VERIFY_WEBGPU=1 node scene.mjs webgpu-soldier-gates
 ```
 
-It writes `specs/webgpu-skinned-crowd/visualizations/soldier-gates/` with
-individual turntable PNGs for every soldier class, in-game readability PNGs for
-the same classes, and deterministic still-frame samples for every legacy
-`web/shots/anim/*.gif` inventory item. The route goes through the real
+It writes individual turntable PNGs for every soldier class, in-game
+readability PNGs for the same classes, and deterministic still-frame samples
+for every legacy `web/shots/anim/*.gif` inventory item. The route goes through the real
 `SkinnedCrowdPipeline`, publishes `meshVariants`, class id, clip, and phase, and
 uses the WebGPU class-mesh batching path rather than a one-off mock.
 

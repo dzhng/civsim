@@ -586,7 +586,7 @@ async function writeReport(report) {
 }
 
 function reportFileUrls() {
-  const dir = new URL('../../specs/webgpu-skinned-crowd/visualizations/performance/', import.meta.url);
+  const dir = new URL('../../specs/done/webgpu-skinned-crowd-foundation/visualizations/performance/', import.meta.url);
   return {
     dir,
     json: new URL('full-game-webgpu-performance.json', dir),
@@ -596,8 +596,8 @@ function reportFileUrls() {
 
 function reportFiles() {
   return {
-    json: 'specs/webgpu-skinned-crowd/visualizations/performance/full-game-webgpu-performance.json',
-    html: 'specs/webgpu-skinned-crowd/visualizations/webgpu-performance-report.html',
+    json: 'specs/done/webgpu-skinned-crowd-foundation/visualizations/performance/full-game-webgpu-performance.json',
+    html: 'specs/done/webgpu-skinned-crowd-foundation/visualizations/webgpu-performance-report.html',
   };
 }
 

@@ -67,7 +67,9 @@ hypothesis, name the bug.
 
 ## WebGPU game-port visual gates
 
-For `specs/webgpu-skinned-crowd/`, current-game parity is only the floor. A
+For the WebGPU migration record under
+`specs/done/webgpu-skinned-crowd-foundation/`, current-game parity is only the
+floor. A
 WebGPU screenshot migration is not done until it proves three things:
 
 1. **Behavior parity:** the normal current-game flow still works: menu,
@@ -132,7 +134,7 @@ baseline that represents the shipped game.
 
 Run `npm run release:webgpu` from `web/` for the final machine gate. It reads
 the generated visual and performance report JSON, writes
-`specs/webgpu-skinned-crowd/visualizations/webgpu-release-audit.html`, and exits
+`specs/done/webgpu-skinned-crowd-foundation/visualizations/webgpu-release-audit.html`, and exits
 nonzero until archived visual comparisons and real-hardware performance evidence
 are accepted.
 

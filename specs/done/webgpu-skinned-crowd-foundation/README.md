@@ -3,8 +3,13 @@
 This record closes the original WebGPU renderer-foundation plan. It is not the
 final release record. The foundation phase replaced the old renderer direction
 with a raw WebGPU architecture, production routes, scene gates, report plumbing,
-and model/soldier/campaign evidence. The remaining campaign-first playability
-and release work now lives in [../../webgpu-skinned-crowd/README.md](../../webgpu-skinned-crowd/README.md).
+and model/soldier/campaign evidence.
+
+The later `specs/webgpu-skinned-crowd/` campaign plan was folded back into this
+closed record and retired because it had become a noisy mix of temporary
+reports, screenshots, and broad release work. The active campaign planning
+surface is now the smaller campaign-only polish spec:
+[../../campaign-polish/README.md](../../campaign-polish/README.md).
 
 ## What Shipped
 
@@ -50,19 +55,23 @@ and release work now lives in [../../webgpu-skinned-crowd/README.md](../../webgp
 
 ## Evidence Kept
 
-The live report/output path remains
-`specs/webgpu-skinned-crowd/visualizations/` because current scripts and scenes
-read and write there. Historical contracts and reference notes from this phase
-are kept in `assets/` beside this file.
+Historical contracts and reference notes from this phase are kept in `assets/`
+beside this file. Current generated screenshots and reports live in the active
+product snapshot folders and scene harness outputs; feature-owned campaign
+review images for the next pass live under
+`specs/campaign-polish/assets/user-feedback/`.
 
 Useful foundation evidence includes:
 
-- `specs/webgpu-skinned-crowd/visualizations/campaign-baselines/campaign-3d.png`
-- `specs/webgpu-skinned-crowd/visualizations/webgpu-visual-report.html`
-- `specs/webgpu-skinned-crowd/visualizations/webgpu-release-audit.html`
-- `specs/webgpu-skinned-crowd/visualizations/model-gates/`
-- `specs/webgpu-skinned-crowd/visualizations/soldier-gates/`
-- `specs/webgpu-skinned-crowd/visualizations/scenario-runs/`
+- `web/shots/campaign/campaign-3d.png`
+- `web/shots/campaign/campaign-natural.png`
+- `web/shots/campaign/campaign-political.png`
+- `web/shots/baseline/models/`
+- `web/shots/baseline/models-ingame/`
+- `web/shots/anim/`
+- `web/scenes/webgpu-model-gates.mjs`
+- `web/scenes/webgpu-soldier-gates.mjs`
+- `web/scenes/campaign-webgpu-lod.mjs`
 
 ## Dead Ends And Course Corrections
 
@@ -78,6 +87,9 @@ Useful foundation evidence includes:
 - Water-mask edits were the wrong fix for campaign alignment. The previous
   renderer proved the map asset can align; WebGPU must sample and project the
   existing land/water/faction data through one coordinate transform.
+- The retired campaign plan proved that a giant spec with every generated
+  report becomes hard to use. Keep temporary artifacts out of durable plans;
+  copy only the images used for judgment into the active feature spec.
 - Headless SwiftShader performance is liveness evidence only. Release evidence
   requires named hardware, browser, resolution, and current-renderer baseline
   context.
@@ -85,15 +97,10 @@ Useful foundation evidence includes:
 ## Remaining Work
 
 The foundation is closed because the architecture, WebGPU routes, reports, and
-initial evidence exist. The game is not yet release-complete. Remaining work is
-tracked by the live campaign-first spec:
+initial evidence exist. The game is not yet release-complete. Remaining
+campaign work is tracked by the live campaign polish spec:
 
-- campaign `campaign-3d.png` parity and improvement;
-- campaign LoD scenes for every visual threshold;
-- terrain richness, green land, mountains, forests, trees, fog, and ambient
-  road life;
-- accurate map alignment while moving and zooming the camera;
-- final battle coverage;
-- accepted visual evidence;
-- named hardware performance;
-- final renderer retirement audit.
+- city/road/label polish around Rome and central Italy;
+- green natural terrain, mountains, forests, trees, and road life;
+- focused screenshot evidence instead of broad temporary report folders;
+- final campaign acceptance before any release cutover claim.

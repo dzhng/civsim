@@ -9,8 +9,8 @@ const require = createRequire(resolve(repoRoot, 'web/package.json'));
 const { PNG } = require('pngjs');
 const pixelmatch = (await import(require.resolve('pixelmatch'))).default;
 
-const currentDir = resolve(repoRoot, 'specs/webgpu-skinned-crowd/visualizations/current-renderer');
-const candidateDir = resolve(repoRoot, 'specs/webgpu-skinned-crowd/visualizations/visual-report');
+const currentDir = resolve(repoRoot, 'specs/done/webgpu-skinned-crowd-foundation/visualizations/current-renderer');
+const candidateDir = resolve(repoRoot, 'specs/done/webgpu-skinned-crowd-foundation/visualizations/visual-report');
 const reportOrder = [
   'menu-ready',
   'menu-unsupported',
@@ -29,7 +29,7 @@ const worldCrops = {
   'campaign-label-zoom': (w, h) => ({ x: 0, y: Math.round(h * 0.04), width: w, height: Math.round(h * 0.74), label: 'close-world-below-toolbar' }),
 };
 
-const outDir = resolve(repoRoot, 'specs/webgpu-skinned-crowd/visualizations/visual-diff');
+const outDir = resolve(repoRoot, 'specs/done/webgpu-skinned-crowd-foundation/visualizations/visual-diff');
 await mkdir(outDir, { recursive: true });
 
 const pairs = await discoverPairs();

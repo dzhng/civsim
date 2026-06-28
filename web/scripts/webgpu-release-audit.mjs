@@ -1,6 +1,6 @@
 import { access, mkdir, readFile, writeFile } from 'node:fs/promises';
 
-const VIS_ROOT = new URL('../../specs/webgpu-skinned-crowd/visualizations/', import.meta.url);
+const VIS_ROOT = new URL('../../specs/done/webgpu-skinned-crowd-foundation/visualizations/', import.meta.url);
 const CUTOVER_JSON = new URL('cutover/webgpu-cutover-report.json', VIS_ROOT);
 const VISUAL_JSON = new URL('visual-report/webgpu-visual-report.json', VIS_ROOT);
 const PERF_JSON = new URL('performance/full-game-webgpu-performance.json', VIS_ROOT);

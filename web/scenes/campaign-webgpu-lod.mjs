@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { PNG } from 'pngjs';
 
 const CAMPAIGN_3D_BASELINE = new URL(
-  '../../specs/webgpu-skinned-crowd/visualizations/campaign-baselines/campaign-3d.png',
+  '../shots/campaign/campaign-3d.png',
   import.meta.url,
 );
 const CAMPAIGN_MAP_JSON = new URL('../public/data/campaign-map.json', import.meta.url);

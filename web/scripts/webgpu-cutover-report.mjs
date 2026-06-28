@@ -1,7 +1,7 @@
 import { access, mkdir, readFile, writeFile } from 'node:fs/promises';
 
 const ROOT = new URL('../../', import.meta.url);
-const VIS_ROOT = new URL('specs/webgpu-skinned-crowd/visualizations/', ROOT);
+const VIS_ROOT = new URL('specs/done/webgpu-skinned-crowd-foundation/visualizations/', ROOT);
 const OUT_DIR = new URL('cutover/', VIS_ROOT);
 const OUT_JSON = new URL('webgpu-cutover-report.json', OUT_DIR);
 const OUT_HTML = new URL('../webgpu-cutover-report.html', OUT_DIR);
@@ -82,8 +82,8 @@ async function main() {
     removed: ['battle-2d-renderer', 'battle-babylon-renderer', 'campaign-webgl-renderer', '@babylonjs/core'],
     retainedDomDecision: 'dense menu, battle HUD, and campaign panels may remain DOM when layered and tested over WebGPU',
     retiredSwitches: ['?gfx=2d', '?gfx=3d', '?test=models', '?gfx=legacy'],
-    visualReport: 'specs/webgpu-skinned-crowd/visualizations/webgpu-visual-report.html',
-    perfReport: 'specs/webgpu-skinned-crowd/visualizations/webgpu-performance-report.html',
+    visualReport: 'specs/done/webgpu-skinned-crowd-foundation/visualizations/webgpu-visual-report.html',
+    perfReport: 'specs/done/webgpu-skinned-crowd-foundation/visualizations/webgpu-performance-report.html',
     checks,
     blockers: checks.filter((check) => check.status !== 'complete').map((check) => check.id),
     localFailures: checks.filter((check) => check.status === 'fail').map((check) => check.id),
@@ -215,10 +215,10 @@ async function rendererRetirementChecks(pkg) {
 
 async function artifactChecks() {
   const artifacts = [
-    ['visual-report', 'specs/webgpu-skinned-crowd/visualizations/visual-report/webgpu-visual-report.json'],
-    ['performance-report', 'specs/webgpu-skinned-crowd/visualizations/performance/full-game-webgpu-performance.json'],
-    ['visual-manifest-template', 'specs/webgpu-skinned-crowd/visualizations/visual-comparison.manifest.example.json'],
-    ['perf-baseline-template', 'specs/webgpu-skinned-crowd/visualizations/performance/current-renderer-baseline.example.json'],
+    ['visual-report', 'specs/done/webgpu-skinned-crowd-foundation/visualizations/visual-report/webgpu-visual-report.json'],
+    ['performance-report', 'specs/done/webgpu-skinned-crowd-foundation/visualizations/performance/full-game-webgpu-performance.json'],
+    ['visual-manifest-template', 'specs/done/webgpu-skinned-crowd-foundation/visualizations/visual-comparison.manifest.example.json'],
+    ['perf-baseline-template', 'specs/done/webgpu-skinned-crowd-foundation/visualizations/performance/current-renderer-baseline.example.json'],
   ];
   const out = [];
   for (const [id, path] of artifacts) {

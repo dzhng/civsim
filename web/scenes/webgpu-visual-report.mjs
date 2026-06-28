@@ -11,7 +11,7 @@ export const meta = {
   describe: 'Generates the WebGPU cutover visual review contact sheet and status JSON.',
 };
 
-const OUT_DIR = new URL('../../specs/webgpu-skinned-crowd/visualizations/visual-report/', import.meta.url);
+const OUT_DIR = new URL('../../specs/done/webgpu-skinned-crowd-foundation/visualizations/visual-report/', import.meta.url);
 const REPORT_HTML = new URL('../webgpu-visual-report.html', OUT_DIR);
 const REPORT_JSON = new URL('webgpu-visual-report.json', OUT_DIR);
 const MODEL_GATES_JSON = new URL('../model-gates/webgpu-model-gates.json', OUT_DIR);

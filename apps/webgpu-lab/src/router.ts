@@ -1226,6 +1226,7 @@ async function routeRenderGraph(ctx: LabContext) {
     .filter((pass) => pass.depth)
     .map((pass) => ({ id: pass.id, mode: pass.depth!.mode, attachment: pass.depth!.attachment }));
   const depthContractFixtures = renderGraphDepthContractFixtures();
+  const bucketContractFixtures = renderGraphBucketContractFixtures();
   const backgroundDepthPasses = report.passes
     .filter((pass) => pass.framePhase === 'background' && pass.depth)
     .map((pass) => pass.id);
@@ -1243,6 +1244,7 @@ async function routeRenderGraph(ctx: LabContext) {
     actualFramePhases: shellStats.phases.map((phase) => phase.kind).join(' -> '),
     depthPasses: depthPassModes.map((pass) => `${pass.id}:${pass.mode}`).join(', '),
     depthContractFixtures: `${depthContractFixtures.filter((fixture) => fixture.rejected).length}/${depthContractFixtures.length} rejected`,
+    bucketContractFixtures: `${bucketContractFixtures.filter((fixture) => fixture.rejected).length}/${bucketContractFixtures.length} rejected`,
     diagnostics: report.diagnostics.length,
     depth: shellStats.depth.allocated ? `${shellStats.depth.format} ${shellStats.depth.width}x${shellStats.depth.height}` : 'not allocated',
     nestedFixtures: nestedStats.fixtures.join(', '),
@@ -1258,6 +1260,7 @@ async function routeRenderGraph(ctx: LabContext) {
     depthPasses,
     depthPassModes,
     depthContractFixtures,
+    bucketContractFixtures,
     backgroundDepthPasses,
     overlayDepthPasses,
     depth: shellStats.depth,
@@ -1268,6 +1271,65 @@ async function routeRenderGraph(ctx: LabContext) {
       visibleUpperFlag: projectNestedPoint(ctx.canvas, camera, [-1.20, 0.10, 3.70]),
       frontRankOverlap: projectNestedPoint(ctx.canvas, camera, [4.30, -1.20, 1.08]),
     },
+  });
+}
+
+function renderGraphBucketContractFixtures() {
+  const base: RenderGraphPass[] = [
+    { id: 'camera', label: 'Camera', phase: 'frame', writes: ['cameraUniforms'] },
+    {
+      id: 'worldDepthClear',
+      label: 'Depth clear',
+      phase: 'frame',
+      framePhase: 'world-depth',
+      role: 'world-depth-fill',
+      writes: [WEBGPU_WORLD_DEPTH_ATTACHMENT],
+      depth: { attachment: WEBGPU_WORLD_DEPTH_ATTACHMENT, mode: 'write', format: WEBGPU_DEPTH_FORMAT },
+    },
+  ];
+  const fixtures: Array<{ id: string; pass: unknown; expected: string }> = [
+    {
+      id: 'topLevelTypeBucketPass',
+      expected: 'is a type bucket, not a semantic render-graph pass',
+      pass: {
+        id: 'treeBucket',
+        label: 'Tree bucket',
+        phase: 'campaign',
+        framePhase: 'world-depth',
+        role: 'world-opaque',
+        batching: { strategy: 'instance-kind', buckets: ['conifer'] },
+        reads: ['cameraUniforms', WEBGPU_WORLD_DEPTH_ATTACHMENT],
+        writes: ['worldColor', WEBGPU_WORLD_DEPTH_ATTACHMENT],
+        depth: { attachment: WEBGPU_WORLD_DEPTH_ATTACHMENT, mode: 'read-write', format: WEBGPU_DEPTH_FORMAT },
+      },
+    },
+    {
+      id: 'semanticPassWithTypeBatching',
+      expected: '',
+      pass: {
+        id: 'campaignScenery',
+        label: 'Campaign scenery semantic pass',
+        phase: 'campaign',
+        framePhase: 'world-depth',
+        role: 'world-opaque',
+        batching: { strategy: 'instance-kind', buckets: ['trees', 'rocks'] },
+        reads: ['cameraUniforms', WEBGPU_WORLD_DEPTH_ATTACHMENT],
+        writes: ['worldColor', WEBGPU_WORLD_DEPTH_ATTACHMENT],
+        depth: { attachment: WEBGPU_WORLD_DEPTH_ATTACHMENT, mode: 'read-write', format: WEBGPU_DEPTH_FORMAT },
+      },
+    },
+  ];
+  return fixtures.map((fixture) => {
+    const report = compileRenderGraph([...base, fixture.pass as RenderGraphPass]);
+    return {
+      id: fixture.id,
+      expected: fixture.expected || 'accepted semantic batching metadata',
+      rejected: fixture.expected
+        ? !report.ok && report.diagnostics.some((diagnostic) => diagnostic.includes(fixture.expected))
+        : false,
+      accepted: fixture.expected ? false : report.ok,
+      diagnostics: report.diagnostics,
+    };
   });
 }
 

@@ -172,6 +172,7 @@ const routes = [
     && hasGraphDepthPassMode(s.stats.depthPassModes, 'campaignScenery', 'read-write')
     && hasGraphDepthPassMode(s.stats.depthPassModes, 'campaignEntities', 'read-write')
     && depthContractFixturesRejected(s.stats.depthContractFixtures)
+    && bucketContractFixturesSatisfied(s.stats.bucketContractFixtures)
     && s.stats.backgroundDepthPasses?.length === 0
     && s.stats.overlayDepthPasses?.length === 0
     && s.stats.depth?.allocated === true
@@ -222,6 +223,18 @@ function hasGraphDepthPassMode(passes, id, mode) {
 
 function hasGraphPassRole(passes, id, role, framePhase) {
   return Array.isArray(passes) && passes.some((pass) => pass?.id === id && pass?.role === role && pass?.framePhase === framePhase);
+}
+
+function bucketContractFixturesSatisfied(fixtures) {
+  const expected = new Set([
+    'topLevelTypeBucketPass',
+    'semanticPassWithTypeBatching',
+  ]);
+  return Array.isArray(fixtures)
+    && fixtures.length === expected.size
+    && fixtures.every((fixture) => expected.has(fixture?.id) && Array.isArray(fixture?.diagnostics))
+    && fixtures.some((fixture) => fixture?.id === 'topLevelTypeBucketPass' && fixture?.rejected === true)
+    && fixtures.some((fixture) => fixture?.id === 'semanticPassWithTypeBatching' && fixture?.accepted === true);
 }
 
 function depthContractFixturesRejected(fixtures) {

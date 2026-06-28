@@ -243,6 +243,12 @@ shadows that sit on the ground instead of floating as screen overlays.
 - Type batching is permitted only as a performance strategy. Batches for trees,
   rocks, cities, armies, and soldier mesh variants must not create their own
   visual ordering rules or private depth scales.
+- `compileRenderGraph` now enforces that distinction: pass ids that describe a
+  top-level type bucket are rejected, while semantic passes may declare
+  `batching` metadata for their internal mesh/material/instance grouping. The
+  lab route keeps both a rejected bucket fixture and an accepted semantic
+  batching fixture, preventing future graph cleanup from smuggling painter
+  order back in as pass identity.
 - `/webgpu/campaign-model-gates?gate=city` now publishes tight production
   city-standard samples. The route asserts that a lower red standard segment
   planted inside the city resolves to city material while the upper cloth

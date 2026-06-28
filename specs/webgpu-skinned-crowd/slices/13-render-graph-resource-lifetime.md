@@ -87,6 +87,13 @@ compatible or splits them into separate passes.
   effect/debug overlays, campaign ground selection, roads, sea lanes, scenery,
   entities, markers, labels, and UI all carry explicit frame phases, roles, and
   depth modes.
+- Type/model buckets are now represented only as optional batching metadata
+  under those semantic passes. `compileRenderGraph` rejects top-level pass ids
+  such as `treeBucket` or `soldierClass14`, because those names encode a
+  visibility policy by content type instead of a render-graph role. The
+  `/webgpu/render-graph` route publishes a negative bucket fixture plus a
+  positive `campaignScenery` batching fixture so the distinction is browser
+  verified.
 - `/webgpu/render-graph` includes `Nested3dFixturePass`, a deterministic
   depth-only proof surface for flag-in-city, garrison-in-city-stub,
   rank-overlap, and ground-ring-occlusion. The fixture deliberately submits

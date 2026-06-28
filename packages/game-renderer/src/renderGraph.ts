@@ -16,6 +16,10 @@ export interface RenderGraphPass {
   phase: RenderGraphPhase;
   framePhase?: RenderGraphFramePhase;
   role?: FrameGraphPassRole;
+  batching?: {
+    strategy: 'domain-pass' | 'mesh-variant' | 'material-class' | 'instance-kind';
+    buckets?: string[];
+  };
   reads?: string[];
   writes?: string[];
   depth?: {
@@ -54,6 +58,7 @@ export const FULL_GAME_GRAPH_SKELETON: RenderGraphPass[] = [
     phase: 'battle',
     framePhase: 'background',
     role: 'background-underpaint',
+    batching: { strategy: 'domain-pass', buckets: ['terrain', 'water', 'sky', 'haze'] },
     reads: ['cameraUniforms', 'frameConstants'],
     writes: ['worldColor'],
   },
@@ -63,6 +68,7 @@ export const FULL_GAME_GRAPH_SKELETON: RenderGraphPass[] = [
     phase: 'campaign',
     framePhase: 'background',
     role: 'background-underpaint',
+    batching: { strategy: 'domain-pass', buckets: ['map-texture', 'territory', 'water', 'borders'] },
     reads: ['cameraUniforms', 'frameConstants', 'campaignState'],
     writes: ['worldColor'],
   },
@@ -81,6 +87,7 @@ export const FULL_GAME_GRAPH_SKELETON: RenderGraphPass[] = [
     phase: 'battle',
     framePhase: 'world-depth',
     role: 'world-opaque',
+    batching: { strategy: 'instance-kind', buckets: ['trees', 'rocks', 'shrubs'] },
     reads: ['cameraUniforms', 'battleState', WEBGPU_WORLD_DEPTH_ATTACHMENT],
     writes: ['worldColor', WEBGPU_WORLD_DEPTH_ATTACHMENT],
     depth: { attachment: WEBGPU_WORLD_DEPTH_ATTACHMENT, mode: 'read-write', format: WEBGPU_DEPTH_FORMAT, compare: 'less-equal', store: 'store' },
@@ -91,6 +98,7 @@ export const FULL_GAME_GRAPH_SKELETON: RenderGraphPass[] = [
     phase: 'battle',
     framePhase: 'world-depth',
     role: 'world-opaque',
+    batching: { strategy: 'mesh-variant', buckets: ['class-meshes', 'lods'] },
     reads: ['cameraUniforms', WEBGPU_WORLD_DEPTH_ATTACHMENT, 'soldierVat', 'crowdInstances'],
     writes: ['worldColor', WEBGPU_WORLD_DEPTH_ATTACHMENT, 'pickIds'],
     depth: { attachment: WEBGPU_WORLD_DEPTH_ATTACHMENT, mode: 'read-write', format: WEBGPU_DEPTH_FORMAT, compare: 'less-equal', store: 'store' },
@@ -141,6 +149,7 @@ export const FULL_GAME_GRAPH_SKELETON: RenderGraphPass[] = [
     phase: 'campaign',
     framePhase: 'world-depth',
     role: 'world-opaque',
+    batching: { strategy: 'instance-kind', buckets: ['trees', 'rocks', 'mountains'] },
     reads: ['cameraUniforms', 'campaignState', WEBGPU_WORLD_DEPTH_ATTACHMENT],
     writes: ['worldColor', WEBGPU_WORLD_DEPTH_ATTACHMENT],
     depth: { attachment: WEBGPU_WORLD_DEPTH_ATTACHMENT, mode: 'read-write', format: WEBGPU_DEPTH_FORMAT, compare: 'less-equal', store: 'store' },
@@ -151,6 +160,7 @@ export const FULL_GAME_GRAPH_SKELETON: RenderGraphPass[] = [
     phase: 'campaign',
     framePhase: 'world-depth',
     role: 'world-opaque',
+    batching: { strategy: 'mesh-variant', buckets: ['cities', 'armies', 'standards', 'garrisons'] },
     reads: ['cameraUniforms', 'campaignState', WEBGPU_WORLD_DEPTH_ATTACHMENT],
     writes: ['worldColor', WEBGPU_WORLD_DEPTH_ATTACHMENT, 'pickIds'],
     depth: { attachment: WEBGPU_WORLD_DEPTH_ATTACHMENT, mode: 'read-write', format: WEBGPU_DEPTH_FORMAT, compare: 'less-equal', store: 'store' },
@@ -229,6 +239,21 @@ export function compileRenderGraph(passes: readonly RenderGraphPass[]): RenderGr
       diagnostics.push(`duplicate pass id "${pass.id}"`);
     }
     seenPasses.add(pass.id);
+
+    if (isTopLevelTypeBucketPass(pass.id)) {
+      diagnostics.push(`pass "${pass.id}" is a type bucket, not a semantic render-graph pass`);
+    }
+    if (/\bbucket\b/i.test(pass.label)) {
+      diagnostics.push(`pass "${pass.id}" label describes a bucket; use batching metadata under a semantic pass instead`);
+    }
+    if (pass.batching && (!pass.framePhase || !isFrameGraphPassRole(pass.role))) {
+      diagnostics.push(`pass "${pass.id}" batching metadata must live under a semantic frame-phase role`);
+    }
+    for (const bucket of pass.batching?.buckets ?? []) {
+      if (!bucket.trim()) {
+        diagnostics.push(`pass "${pass.id}" declares an empty batching bucket`);
+      }
+    }
 
     for (const read of pass.reads ?? []) {
       const resource = ensureResource(resources, read);
@@ -336,4 +361,8 @@ function ensureResource(resources: Map<string, RenderGraphResource>, id: string)
 
 function isExternalResource(id: string): boolean {
   return id === 'soldierVat' || id === 'crowdInstances' || id === 'campaignState' || id === 'battleState';
+}
+
+function isTopLevelTypeBucketPass(id: string): boolean {
+  return /(?:^|[-_])(?:tree|trees|conifer|rock|rocks|mountain|mountains|city|cities|army|armies|soldier|soldiers|class\d+|meshVariant|bucket)(?:$|[-_\dA-Z])/i.test(id);
 }

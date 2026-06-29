@@ -986,3 +986,74 @@ fn a_hopeless_wall_of_horse_routs_the_token_line_before_contact() {
         "it breaks from the PROJECTION, not the impact: {dead} dead"
     );
 }
+
+/// A HOLDING line of `class` (200 men, braced, no order) meets a frontal shock
+/// cavalry charge (120) at a FAIR projection (not the hopeless 10:1 above).
+/// Returns (routed_before_contact, horses_felled_by_the_time_it_breaks).
+/// This is the tuning bench for "a charge terrifies, but only the BRITTLE
+/// pre-rout to it" — re-run it when touching charge-fear or bravery.
+fn holding_line_meets_a_charge(class: UnitClassId) -> (bool, usize) {
+    let mut sim = Sim::new(Tunables::default(), SEED);
+    let line = sim.spawn_class(Vec2::new(0.0, -40.0), FRAC_PI_2, 200, class, 0);
+    let cav = sim.spawn_class(Vec2::new(0.0, 60.0), -FRAC_PI_2, 120, UnitClassId::ShockCavalry, 1);
+    sim.set_pace(cav, sim::Pace::Run);
+    sim.set_attack_order(cav, line);
+    let cav0 = sim.units[cav].alive_count;
+    // March the horse in; note whether the line breaks BEFORE it ever engages.
+    let mut made_contact = false;
+    for _ in 0..(40.0 / DT) as usize {
+        sim.tick();
+        if sim.units[line].engaged > 0 {
+            made_contact = true;
+            break;
+        }
+        if sim.units[line].routing {
+            break;
+        }
+    }
+    let routed_before_contact = sim.units[line].routing && !made_contact;
+    // Fight on until the line breaks (or a generous cap); count horses felled.
+    for _ in 0..(40.0 / DT) as usize {
+        if sim.units[line].routing {
+            break;
+        }
+        sim.tick();
+    }
+    (routed_before_contact, cav0 - sim.units[cav].alive_count)
+}
+
+#[test]
+fn a_charge_pre_routs_a_levy_not_a_formed_line() {
+    // The complement of the hopeless-wall test above. At a FAIR projection (not
+    // 10:1), pre-routing to a frontal shock charge is the BRITTLE unit's panic: a
+    // peasant mob breaks before the horses arrive and never lands a blow. A drilled
+    // shield wall (HeavySword) holds its nerve to contact and fights — it is the
+    // formed line the charge does NOT shatter on approach. This pins the morale
+    // invariant, independent of who wins the ensuing fight: the thunder of a charge
+    // breaks the BRITTLE early, never the formed. The TUNING bench for charge-fear
+    // / bravery changes (see `holding_line_meets_a_charge`).
+    //
+    // A LEVY SPEAR sits between: it reaches contact (does not pre-rout) but, being
+    // a levy with a short point, then LOSES the melee to top-tier shock cav by
+    // design (see the reach gradient in class.rs / balance_matrix) — so we assert
+    // it doesn't pre-rout, NOT that it wins.
+    let (levy_pre, levy_kills) = holding_line_meets_a_charge(UnitClassId::Peasant);
+    let (wall_pre, wall_kills) = holding_line_meets_a_charge(UnitClassId::HeavySword);
+    let (lsp_pre, lsp_kills) = holding_line_meets_a_charge(UnitClassId::LightSpear);
+    println!(
+        "peasant: pre-rout={levy_pre} kills={levy_kills} | heavy wall: pre-rout={wall_pre} kills={wall_kills} | light spear: pre-rout={lsp_pre} kills={lsp_kills}"
+    );
+    assert!(levy_pre, "a peasant levy must break before a charge lands (it did not)");
+    assert!(
+        !wall_pre,
+        "a drilled shield wall must hold its nerve to contact (it pre-routed)"
+    );
+    assert!(
+        !lsp_pre,
+        "a formed spear line must not pre-rout either — it reaches the fight (then may lose it)"
+    );
+    assert!(
+        wall_kills > levy_kills,
+        "the formed line that holds inflicts more than the levy that flees: wall {wall_kills} vs levy {levy_kills}"
+    );
+}

@@ -45,8 +45,23 @@ that matter:
 
 - **reach is the anti-cavalry axis** — the impale term stops a charge at
   reach, scaling with `((reach − 1.0)/2.2)²`. Sword 1.1 ≈ no stop; spear
-  1.6 ≈ a little; pike 3.2 ≈ a wall. A "spearman who can blunt horse"
+  1.85 ≈ a real bite; pike 3.2 ≈ a wall. A "spearman who can blunt horse"
   needs reach ≥ ~1.6; a "pikeman who stops it" needs ~3.0+.
+- **reach IS a per-tier lever — it sets the anti-cav gradient — but it is
+  CLIFF-PRONE, so sweep it** (David, 2026-06-29; this supersedes an earlier
+  "keep reach uniform across a class's tiers" rule — that direction is retired).
+  Reach does double duty: across CLASSES it says "spear, not sword", and across
+  TIERS of a pole-arm it sets how well each tier turns a horse. The spear ladder
+  is a deliberate reach gradient — **LSP 1.5 < MSP 1.7 < HSP 1.85** — where the
+  light levy (1.5) is run over by a frontal charge one-sided (it only chips from
+  flank/rear) while medium/heavy turn the charge. The catch: the impale term is
+  quadratic (`((reach−1)/2.2)²`) and CLIFF-PRONE — for the light spear, stepping
+  1.6→1.7 flips the frontal cav duel from cav-wins-88% to spear-wins-75% in one
+  move. So **sweep reach vs cav over the seed set before committing a value**;
+  a guess lands on the wrong side of the cliff (1.7 looked like "a bit less
+  anti-cav" and was actually "now beats cav"). Damage/body still carries the
+  REST of the tier ladder (LSP 0.2375 < MSP 0.27 < HSP 0.31) — reach is the
+  anti-cav axis, not the whole hierarchy.
 - **zones** is WHERE it lands, as data (`crate::strike`): a sword/spear is
   one front lobe `front(half)` (half = the old arc/2: sword `front(0.7)`,
   great-sword `front(1.2)` + `cleave`), a pike a narrow front lobe
@@ -214,13 +229,21 @@ the 1:4 band.
 ## Reference: the matchup web these must respect
 
 PIK > HSD (heavy sword) > LSP (light spear) (armor beats numbers, reach
-beats armor). PIK breaks frontal CAV (points stop horse); CAV beats
-everything else incl HAR; HAR kites foot but loses to pike patience (ammo
-runs out); ART dies alone; SKR/ARC soften then lose the melee. A new unit
-must slot into this without
-inverting it — if your shielded spearman suddenly beats heavy infantry
-AND pikes AND cavalry, the stats are too generous; find the one axis its
-sketch doesn't justify and cut it.
+beats armor). PIK *and the MEDIUM/HEAVY spears* break a frontal CAV charge:
+the presented point grinds the rider over the horse's chest (impale scales
+with reach), so a long enough braced spear turns a horse. But this is a
+GRADIENT, not a blanket — it tracks the reach ladder (LSP 1.5 < MSP 1.7 <
+HSP 1.85): the LIGHT levy spear (1.5) is too short and LOSES a frontal
+charge one-sided (chipping only from flank/rear), while medium/heavy turn
+it. CAV beats everything else (swords, archers, skirmishers, HAR) and the
+light spear head-on; its edge over the medium/heavy spears is the CHARGE +
+maneuver (flank/rear), never a duel into their points.
+HAR kites foot but loses to pike patience (ammo runs out); ART dies alone;
+SKR/ARC soften then lose the melee. A new unit must slot into this without
+inverting it — if your shielded spearman suddenly beats heavy infantry AND
+pikes AND cavalry, the stats are too generous; find the one axis its sketch
+doesn't justify and cut it. (A spear beating cav is now EXPECTED, not a red
+flag — the spear-vs-sword and tier orderings are what must hold.)
 
 ## Process
 

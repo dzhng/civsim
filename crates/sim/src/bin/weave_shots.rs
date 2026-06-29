@@ -6,7 +6,7 @@
 //! weave layer is to reduce variables, so it gets its own pictures — not mixed
 //! in with the full-combat duel shots.
 //!
-//! Run:  cargo run -p sim --example weave_shots
+//! Run:  cargo run -p sim --bin weave_shots --features shots
 //! Then flip through web/shots/weave/<name>/t###.png.
 
 use sim::{Pace, Sim, Tunables, UnitClassId, Vec2, DT};

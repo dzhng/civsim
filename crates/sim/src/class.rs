@@ -184,10 +184,17 @@ pub struct UnitClass {
     /// chariot would put nearly everything here and nothing in weapon dps.
     /// (`doctrine` above is pure BEHAVIOR: keep riding through contact.)
     pub knockback_mult: f32,
-    /// Stamina drain multiplier: the cost of the kit. Every draining second
-    /// (running, fighting, charging, bad ground) is scaled by this — armor
-    /// is paid for in wind, so heavies blow out long before a screen does.
-    pub drain_mult: f32,
+    /// Stamina drain multiplier for FIGHTING: the melee combat drain is scaled by
+    /// this — armor is paid for in wind, so heavies blow out long before a screen
+    /// does. Paired with `move_drain_mult` (the two are independent: one scales the
+    /// fight, the other the move). Every foot class sets both equal.
+    pub fight_drain_mult: f32,
+    /// Stamina drain multiplier for MOVEMENT (run / bad-ground / charge gallop),
+    /// independent of `fight_drain_mult`. Foot sets it EQUAL to its fight cost (you
+    /// carry your kit when you move). Cavalry is the MOBILE arm — the horse carries
+    /// the kit, so it sits below 1: a long ride to the charge doesn't arrive blown,
+    /// while the rider still fights as hard as the heavy foot (fight mult unchanged).
+    pub move_drain_mult: f32,
     /// How fast this body PIVOTS its own facing to meet a threat, as a fraction
     /// of the base soldier turn rate. A man spins on his heel (1.0); a horse is a
     /// half-tonne animal that must walk its turn (a fraction), so cavalry don't
@@ -269,14 +276,18 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
         charge: true,
         doctrine: Doctrine::Standard,
         knockback_mult: 0.35, // a charging mass of men hurts what it fells
-        drain_mult: 1.0,
+        fight_drain_mult: 1.0,
+        // Foot moves at the same wind cost it fights (move == fight). Every class
+        // below sets BOTH explicitly; only cavalry splits them (cheap to move).
+        move_drain_mult: 1.0,
         turn_mult: 1.0,
         // Generic one-handed sword; every class below defines its own array.
         weapons: one(Weapon { reach: 1.1, zones: crate::strike::front(0.7), attack_interval: 4.1, damage: 0.5, ..MELEE }),
     };
     match id {
         HeavySword => UnitClass {
-            drain_mult: 1.35,
+            fight_drain_mult: 1.35,
+            move_drain_mult: 1.35,
             pace_mult: 0.9,
             soldier_radius: 0.34,
             mass: 1.3,
@@ -295,7 +306,8 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             ..foot
         },
         LightSpear => UnitClass {
-            drain_mult: 0.85,
+            fight_drain_mult: 0.85,
+            move_drain_mult: 0.85,
             pace_mult: 1.1,
             soldier_radius: 0.32,
             mass: 0.95,
@@ -305,11 +317,22 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             block: 0.35,  // a light shield: real frontal cover, ~1.5x deaths from behind
             evade: 0.15,  // a shield, not a skirmisher's legs: modest dodge on top of the block
             training: 0.55,
-            weapons: one(Weapon { reach: 1.6, zones: crate::strike::front(0.3), attack_interval: 4.4, damage: 0.2375, ..SPEAR }),
+            // A short spear (1.5): the LEVY tier sits at the BOTTOM of the anti-cav
+            // gradient. The impale stop is quadratic in reach, so 1.5 is short enough
+            // that a frontal shock charge runs the light spear over one-sided (cav
+            // wins ~100% at the 2:1 duel, keeping ~60% — see the reach sweep), yet the
+            // point still bites a horse caught in the FLANK/REAR (its 1.5 melee reaches
+            // from any angle). The medium/heavy spears (1.7/1.85) out-reach it and turn
+            // a charge head-on — that anti-cav verdict is the reach gradient's whole job
+            // for the LIGHT tier; everything else in the ladder is damage and body.
+            // (NB: the impale has a CLIFF near 1.65-1.7 — the matchup flips from cav
+            // 88% to spear 75% across that step; keep this value below it.)
+            weapons: one(Weapon { reach: 1.5, zones: crate::strike::front(0.3), attack_interval: 4.4, damage: 0.2375, ..SPEAR }),
             ..foot
         },
         LongSwords => UnitClass {
-            drain_mult: 1.25,
+            fight_drain_mult: 1.25,
+            move_drain_mult: 1.25,
             soldier_radius: 0.33,
             mass: 1.1,
             spacing: Vec2::new(1.5, 1.4),
@@ -329,7 +352,8 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             ..foot
         },
         HeavyPhalanx => UnitClass {
-            drain_mult: 1.3,
+            fight_drain_mult: 1.3,
+            move_drain_mult: 1.3,
             pace_mult: 0.85,
             mass: 1.2,
             brace_mult: 4.0,
@@ -352,7 +376,8 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             ..foot
         },
         Archers => UnitClass {
-            drain_mult: 0.85,
+            fight_drain_mult: 0.85,
+            move_drain_mult: 0.85,
             brace_mult: 1.0, // missile foot don't fight as a planted wall
             pace_mult: 1.05,
             soldier_radius: 0.32,
@@ -367,7 +392,8 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             ..foot
         },
         Skirmishers => UnitClass {
-            drain_mult: 0.65,
+            fight_drain_mult: 0.65,
+            move_drain_mult: 0.65,
             brace_mult: 1.0,
             pace_mult: 1.2,
             soldier_radius: 0.31,
@@ -398,9 +424,19 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             mounted: true,
             doctrine: Doctrine::Trample,
             knockback_mult: 1.0,
+            // FIGHT drain equals the elite heavy foot (1.35): an armoured rider
+            // fights as hard in his kit as a heavy swordsman, so a bogged cav tires
+            // and (with cadence) slows its sabre in a long grind — its edge stays the
+            // fresh CHARGE, not an endurance grind. But MOVEMENT is cheap (the horse
+            // carries the kit): a 0.85 move discount means a long ride to the charge
+            // doesn't arrive blown. Drain split: armour is paid in wind when YOU
+            // fight in it, not when the horse does the work of carrying it.
+            fight_drain_mult: 1.35,
+            move_drain_mult: 0.85,
             spacing: Vec2::new(1.8, 2.4),
             default_depth: 5,
-            health: 1.36, // armoured rider: tougher than foot once a blow reaches him
+            health: 1.8, // elite armoured rider: once a blow reaches him he is a bit tougher than
+            // medium infantry (1.68) but short of the heavy line (2.0) — well-armored, not a tank
             // The horse soaks ARROWS (most missiles hit the big animal, not the man);
             // in MELEE it no longer makes cav tanky, because every foot weapon now
             // reaches up to the 1.5-HP rider (the reach floor), so a bogged cav dies
@@ -428,7 +464,8 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             ..foot
         },
         HorseArchers => UnitClass {
-            drain_mult: 0.8,
+            fight_drain_mult: 0.8,
+            move_drain_mult: 0.8,
             // ~+30% on the run gait to match the shock arm: 6.5->8.3 m/s at full
             // stamina (no charge — light horse skirmishes and kites).
             pace_mult: 3.9,
@@ -443,7 +480,8 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             knockback_mult: 0.5,
             spacing: Vec2::new(2.2, 2.6),
             default_depth: 5,
-            health: 1.21,
+            health: 1.36, // light-cavalry rider ≈ light infantry's body (light sword 1.36) — lightly
+            // armored, no shield; lives by speed and the horse soaking arrows, not the man's body
             mount_health: 6.5,
             block: 0.0, // no shield: speed and a dodge, same from any face
             evade: 0.32,
@@ -470,7 +508,8 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             ..foot
         },
         Peasant => UnitClass {
-            drain_mult: 1.5, // a levy's nerve is thin — first blood and they waver
+            fight_drain_mult: 1.5, // a levy's nerve is thin — first blood and they waver
+            move_drain_mult: 1.5,  // moves at the same wind cost it fights (foot)
             pace_mult: 1.05,
             soldier_radius: 0.32,
             mass: 0.9,
@@ -490,7 +529,8 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
         // spear. More aggressive (sword arc, a touch more dodge) but the same
         // light shield — HeavySword is the armoured sword.
         LightSword => UnitClass {
-            drain_mult: 0.9,
+            fight_drain_mult: 0.9,
+            move_drain_mult: 0.9,
             pace_mult: 1.1,
             soldier_radius: 0.32,
             mass: 0.95,
@@ -504,7 +544,8 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             ..foot
         },
         MediumInfantry => UnitClass {
-            drain_mult: 1.1,
+            fight_drain_mult: 1.1,
+            move_drain_mult: 1.1,
             pace_mult: 1.0,
             soldier_radius: 0.33,
             mass: 1.12,
@@ -522,7 +563,8 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
         // instead of a sword — braces hard, holds a line, anti-charge.
         // LightSpear is the light spear.
         HeavySpear => UnitClass {
-            drain_mult: 1.35,
+            fight_drain_mult: 1.35,
+            move_drain_mult: 1.35,
             pace_mult: 0.9,
             soldier_radius: 0.34,
             mass: 1.3,
@@ -533,15 +575,17 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             block: 0.45,
             evade: 0.08,
             training: 0.75,
-            // The top of the spear ladder: longest reach and hardest point of the
-            // three (LSP 1.6/0.2375 < MSP 1.7/0.27 < HSP 1.85/0.31), so the heavy
-            // spear out-blunts a charge and out-grinds the lighter spears — yet its
-            // work rate still sits below any sword (sword beats spear holds).
+            // The top of the spear ladder: longest point (1.85, top of the reach
+            // gradient LSP 1.5 < MSP 1.7 < HSP 1.85) and hardest punch of the three
+            // (LSP 0.2375 < MSP 0.27 < HSP 0.31) on the heaviest body and brace, so the
+            // heavy spear out-grinds the lighter spears and best blunts a charge. Its
+            // work rate still sits below any sword (sword beats spear).
             weapons: one(Weapon { reach: 1.85, zones: crate::strike::front(0.3), attack_interval: 4.4, damage: 0.31, ..SPEAR }),
             ..foot
         },
         MediumSpear => UnitClass {
-            drain_mult: 1.1,
+            fight_drain_mult: 1.1,
+            move_drain_mult: 1.1,
             pace_mult: 1.0,
             soldier_radius: 0.33,
             mass: 1.12,
@@ -552,12 +596,12 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             block: 0.4,
             evade: 0.12,
             training: 0.65,
-            // A longer, harder-hitting spear than the light line — enough point to
-            // win the spear mirror (the light spear's 0.2375 stalemates every
-            // armoured foe) and blunt a charge the light line can't. Spear reach and
-            // punch are ORDERED by tier (LSP 1.6/0.2375 < MSP 1.7/0.27 < HSP
-            // 1.85/0.31) so the hierarchy holds in outcomes, not just on paper —
-            // every value stays well below a sword's, so sword still beats spear.
+            // Mid of the spear reach gradient (LSP 1.5 < MSP 1.7 < HSP 1.85). The
+            // reach gradient sculpts the LIGHT spear's anti-cav verdict (1.5 loses);
+            // medium's anti-cav dominance does NOT come from reach — it crushes a
+            // frontal charge at any reach 1.6-1.85 (its damage/brace/body do that, not
+            // the point length). Tier order otherwise is the punch (LSP 0.2375 < MSP
+            // 0.27 < HSP 0.31) and body; every value stays below a sword's.
             weapons: one(Weapon { reach: 1.7, zones: crate::strike::front(0.3), attack_interval: 4.4, damage: 0.27, ..SPEAR }),
             ..foot
         },
@@ -569,7 +613,8 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
         // sarissa wall (4.0); block 0.4 stays under HeavyPhalanx's 0.45 (the heavy
         // infantry holds the highest shield).
         MediumPhalanx => UnitClass {
-            drain_mult: 1.15,
+            fight_drain_mult: 1.15,
+            move_drain_mult: 1.15,
             pace_mult: 0.9,
             soldier_radius: 0.33,
             mass: 1.05,

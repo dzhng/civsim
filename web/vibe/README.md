@@ -37,7 +37,7 @@ Static model sheets and single-model animation reviews live under
 `web/shots/models/scripts/`; they are model-shot generators, not vibe matchups.
 
 > **Weave shots are separate.** The WEAVE lattice has its own Rust picture
-> generator (`cargo run -p sim --example weave_shots` → `shots/weave/`),
+> generator (`cargo run -p sim --bin weave_shots --features shots` → `shots/weave/`),
 > deliberately kept out of this browser harness — it strips a clash to the bone
 > (single units, same-team presses, invulnerable clashes) to isolate the
 > lattice. Keep it out of the combat scenarios here; details in

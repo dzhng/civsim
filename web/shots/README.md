@@ -11,7 +11,7 @@ touching before you delete or re-bless.
 | --- | --- | --- |
 | `campaign/` `ui/` `battle/` `models/` | `scene.mjs` (headless Chromium / WebGPU) | `VERIFY_GPU=1 UPDATE_SHOTS=1 node scene.mjs --full` |
 | `vibe/` | `web/vibe/*.mjs` (melee/duel sim flip-books) | `UPDATE_SHOTS=1 node vibe/all.mjs` |
-| `weave/` | `crates/sim/examples/weave_shots.rs` (Rust sim, no browser) | `cargo run -p sim --example weave_shots` (from repo root) |
+| `weave/` | `crates/sim/src/bin/weave_shots.rs` (Rust sim, no browser) | `cargo run -p sim --bin weave_shots --features shots` (from repo root) |
 | `diff/` | transient diff output, **gitignored** | n/a — safe to delete, never committed |
 
 `scene.mjs` routes a scene to a folder by its top-level directory under
@@ -38,7 +38,7 @@ VERIFY_URL=http://localhost:5185 VERIFY_GPU=1 UPDATE_SHOTS=1 node scene.mjs --fu
 VERIFY_URL=http://localhost:5185 UPDATE_SHOTS=1 node vibe/all.mjs
 
 # from repo root — 3. weave (Rust, no server needed; self-wipes shots/weave)
-cargo run -p sim --example weave_shots
+cargo run -p sim --bin weave_shots --features shots
 ```
 
 Then `git status shots/` shows exactly what moved. Any shot that shows up as a

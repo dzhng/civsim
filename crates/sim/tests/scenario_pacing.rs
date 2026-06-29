@@ -98,7 +98,13 @@ fn mirror_duels_light_is_a_near_peer_grind() {
     // near-peer (no snowball). Post-overhaul combat (3.8-5.0s attack intervals,
     // fatigue = -25% damage/hit + collapsing guard) resolves FAST: the median
     // first rout now lands ~248s with the loser ~64% dead.
-    mirror_near_peer("light", UnitClassId::LightSpear, 180.0, 340.0, 0.50, 0.78);
+    // Upper bound widened 340→480: the cadence-fatigue coupling stretches this
+    // already-slow grind (light spear has the lowest damage on the roster, 0.2375,
+    // and the shortest spear reach 1.5) — once both sides tire their swings slow,
+    // so a near-peer light mirror now drags ~418s into deep fatigue before morale
+    // divergence ends it (closer to the heavy mirror than it used to be — cadence
+    // compresses the light/heavy pacing gap, since everyone drags when blown).
+    mirror_near_peer("light", UnitClassId::LightSpear, 180.0, 480.0, 0.50, 0.78);
 }
 
 #[test]

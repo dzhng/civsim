@@ -18,7 +18,7 @@ use std::f32::consts::FRAC_PI_2;
 /// so we read the MAJORITY winner over a seed set at each scale. A real
 /// scale-dependence bug flips the majority; one seed's small-army coin toss does
 /// not — so a lone x1 upset must never gate this test.
-const ARMY_SEEDS: [u64; 5] = [7, 11, 17, 23, 29];
+const ARMY_SEEDS: [u64; 9] = [7, 11, 17, 23, 29, 31, 41, 47, 53];
 
 /// One full 5-class AI battle at `mult` × the base army on `seed`; returns
 /// (victor, dead fraction, total men).

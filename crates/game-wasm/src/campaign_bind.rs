@@ -66,7 +66,8 @@ fn resolved_unit_stats(r: &contract::RosterUnit) -> sim::UnitClass {
             s.bravery *= 0.9;
             s.morale_aura *= 0.9;
             s.pace_mult *= 1.06;
-            s.drain_mult *= 0.88;
+            s.fight_drain_mult *= 0.88;
+            s.move_drain_mult *= 0.88;
         }
         // Professional / specialist: more staying power and discipline, paid
         // for in cost and stamina.
@@ -78,14 +79,16 @@ fn resolved_unit_stats(r: &contract::RosterUnit) -> sim::UnitClass {
             s.training = (s.training + 0.1).min(1.0);
             s.bravery *= 1.15;
             s.morale_aura *= 1.08;
-            s.drain_mult *= 1.12;
+            s.fight_drain_mult *= 1.12;
+            s.move_drain_mult *= 1.12;
         }
         n if n > 2 => {
             s.health *= 1.16;
             s.mass *= 1.12;
             s.training = (s.training + 0.14).min(1.0);
             s.bravery *= 1.2;
-            s.drain_mult *= 1.18;
+            s.fight_drain_mult *= 1.18;
+            s.move_drain_mult *= 1.18;
         }
         _ => {}
     }

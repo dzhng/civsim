@@ -142,8 +142,11 @@ fn attack_lethality_grinds_a_reference_line_in_about_three_to_four_minutes() {
         REF_BLADE.damage
     );
     assert!(
-        (180.0..=240.0).contains(&t),
-        "an equal reference-line grind should last ~3-4 min (180-240s), not {t:.0}s ({:.1} min) — \
+        // Upper bound 240→255: the cadence-fatigue coupling stretches the tail of
+        // an equal grind (both sides tire and swing slower late), so the reference
+        // grind now lands ~242s — a hair past the old 4-min ceiling, same shape.
+        (180.0..=255.0).contains(&t),
+        "an equal reference-line grind should last ~3-4 min (180-255s), not {t:.0}s ({:.1} min) — \
          retune REF_BLADE.damage",
         t / 60.0
     );
@@ -205,10 +208,13 @@ fn survivability_scales_with_the_reference_stats() {
 
     // HP is ~linear in survivability (pure-body references, no block/evade).
     // Mildly super-linear in practice — a tougher front rank holds formation
-    // longer, so its later defence is a touch better; band allows that.
+    // longer, so its later defence is a touch better; band allows that. Upper
+    // bound widened 5.3→5.8 for the cadence-fatigue coupling: a long-lived 4×-HP
+    // line drags its fight into deeper fatigue, where slower tired swings stretch
+    // the tail further than the short 1×-HP fight ever reaches (now 5.63×).
     assert!(
-        (3.5..=5.3).contains(&(hp4 / hp1)),
-        "4x HP should last ~4x as long (3.5-5.3x): got {:.2}x",
+        (3.5..=5.8).contains(&(hp4 / hp1)),
+        "4x HP should last ~4x as long (3.5-5.8x): got {:.2}x",
         hp4 / hp1
     );
     assert!(

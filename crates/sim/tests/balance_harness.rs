@@ -252,17 +252,18 @@ fn formed_heavy_infantry_holds_a_frontal_cav_charge() {
     // FLAG (2026-06-26): under the charge-rebuild the repulsed charge no longer
     // BLOODIES formed heavy — the stun-heavy impact + single-use lance barely dent
     // plate, so the heavy holds nearly intact (≈0.97±0.01).
-    // RE-DERIVED 2026-06-27: the combat-arcs spine is exactly the "SIM change"
-    // the old note anticipated — the couched lance now spits the foe dead-ahead
-    // (it used to whiff while the seek hunted a flank foe) and the sabre cuts the
-    // target it actually faces, so the repulsed charge draws a bit more blood:
-    // heavy holds ≈90% standing (was ≈97%). It still clearly HOLDS (assertion
-    // above: far more standing than the cav); the charge is just no longer
-    // toothless against plate. Floor relaxed 0.92 -> 0.85.
+    // RE-DERIVED 2026-06-29: the elite-cav rebalance (rider health 1.36→1.8, and a
+    // movement-drain discount so the charge arrives FRESH) makes the repulsed charge
+    // draw still more blood — heavy now holds ~77% (was ~90%). It STILL clearly wins
+    // (cav win-rate 0/seeds, cav survives only ~15%): a bloodier-but-losing frontal
+    // charge, which is MORE in line with the locked "cav is a real frontal threat
+    // (wins ~30-40%)" target than the old near-toothless 90%. Floor relaxed 0.85→0.72.
+    // FLAGGED to David: the cav buffs strengthened the frontal charge vs heavy — worth
+    // re-reading the full cav-vs-heavy win-rate against the 30-40% contract.
     assert!(
-        agg.surv[1].mean >= 0.85 && agg.surv[1].mean <= 1.0,
+        agg.surv[1].mean >= 0.72 && agg.surv[1].mean <= 1.0,
         "the repulsed charge only scratches formed heavy (heavy still holds): \
-         heavy surv {:.0}% (≈90% after the arc-combat spine)",
+         heavy surv {:.0}% (~77% after the elite-cav rebalance)",
         agg.surv[1].mean * 100.0,
     );
 }

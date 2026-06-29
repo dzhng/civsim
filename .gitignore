@@ -7,6 +7,11 @@ web/src/wasm/
 
 # throwaway debug/probe tests (write-tests skill) — never commit
 crates/*/tests/dbg*.rs
+# throwaway scratch: one-off probes, data dumps, plots, notes — never commit.
+# (Committed tools live in src/bin or the test buckets, NOT here.) The folder
+# itself is kept (its README), but everything dropped in it is ignored.
+/throwaway/*
+!/throwaway/README.md
 
 # highlighted pixel diffs from a failed snapCheck (regenerated every run)
 web/shots/diff/

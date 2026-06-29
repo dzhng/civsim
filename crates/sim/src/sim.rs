@@ -366,7 +366,8 @@ impl Sim {
             fear_adapt: 0.0,
             charge_time: 0.0,
             charge_at_speed: false,
-            drain_mult: 1.0,
+            fight_drain_mult: 1.0,
+            move_drain_mult: 1.0,
             resume_target: None,
             alive_count: count,
             deaths_since_reform: 0,
@@ -514,7 +515,8 @@ impl Sim {
         u.pace_mult = stats.pace_mult;
         u.accel_mult = stats.accel_mult;
         u.charge_enabled = stats.charge;
-        u.drain_mult = stats.drain_mult;
+        u.fight_drain_mult = stats.fight_drain_mult;
+        u.move_drain_mult = stats.move_drain_mult;
         if let Some(spec) = crate::missiles::missile_spec(class) {
             u.ammo = spec.ammo * count as u32;
         }
@@ -588,7 +590,8 @@ impl Sim {
         u.pace_mult = stats.pace_mult;
         u.accel_mult = stats.accel_mult;
         u.charge_enabled = stats.charge;
-        u.drain_mult = stats.drain_mult;
+        u.fight_drain_mult = stats.fight_drain_mult;
+        u.move_drain_mult = stats.move_drain_mult;
         if let Some(spec) = crate::missiles::missile_spec(class) {
             u.ammo = spec.ammo * count as u32;
         }
@@ -2716,22 +2719,31 @@ impl Sim {
 
             // Surging is drain-free by design: it is a CORRECTION the
             // controller orders, not a pace anyone chose. The chosen
-            // exertions drain, and the kit scales the bill (drain_mult):
+            // exertions drain, and the kit scales the bill (fight_drain_mult):
             // armor is paid for in wind.
-            let mut drain = 0.0f32;
+            // MOVEMENT drain (run / bad ground / charge gallop): scaled by the kit
+            // cost AND the per-class movement factor — cavalry moves cheaply (the
+            // horse carries the kit), foot pays full.
+            let mut move_drain = 0.0f32;
             if u.effective_pace() == Pace::Run && u.frame_speed > tun.base_speed * 1.05 {
-                drain += tun.run_drain;
+                move_drain += tun.run_drain;
             }
-            drain += tun.terrain_drain * (effort / n);
-            drain += tun.combat_drain * engaged_frac;
+            move_drain += tun.terrain_drain * (effort / n);
             // Gated on the MEN's measured motion (not the frame's — the
             // leash pins the frame even while the mass rolls): the burst is
             // paid while the mass actually sprints. A charge pinned dead in
             // a bog drains as a fight, not as a gallop.
             if u.charging && u.mass_advance > tun.base_speed * 1.05 {
-                drain += tun.charge_drain;
+                move_drain += tun.charge_drain;
             }
-            drain *= u.drain_mult;
+            // FIGHT drain (melee): scaled by the kit cost only — everyone fights as
+            // hard as their kit demands, mounted or not. So a class can move cheaply
+            // yet still blow out in a long grind.
+            let fight_drain = tun.combat_drain * engaged_frac;
+            // Two independent muls: movement by move_drain_mult, fighting by
+            // fight_drain_mult. (For foot they are equal, so this is just the kit
+            // cost; cavalry splits them — cheap to move, normal to fight.)
+            let mut drain = move_drain * u.move_drain_mult + fight_drain * u.fight_drain_mult;
             if u.frame_speed < 0.1 && u.move_target.is_none() && engaged == 0 {
                 drain -= tun.rest_recover;
             }

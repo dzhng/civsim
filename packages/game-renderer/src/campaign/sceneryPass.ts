@@ -17,6 +17,15 @@ export interface CampaignSceneryInstance {
   yaw?: number;
 }
 
+// Campaign and battle place the same scenery meshes but sort against different
+// world-depth functions; the pass injects the right one so props depth-test
+// correctly against whichever ground they sit on.
+export type SceneryWorldDepth = 'campaign' | 'battle';
+const sceneryWgsl = (depth: SceneryWorldDepth) => SCENERY_WGSL.replace(
+  'civsimCampaignWorldDepth3d(world)',
+  depth === 'battle' ? 'civsimBattleWorldDepth3d(world)' : 'civsimCampaignWorldDepth3d(world)',
+);
+
 const SCENERY_WGSL = `
 ${WORLD_CAMERA_WGSL}
 struct VsOut {
@@ -111,9 +120,9 @@ export class CampaignSceneryPass {
   private rockCount = 0;
   private cartCount = 0;
 
-  constructor(private shell: RawFrameShell) {
+  constructor(private shell: RawFrameShell, worldDepth: SceneryWorldDepth = 'campaign') {
     const device = shell.device;
-    const module = device.createShaderModule({ label: 'campaign-scenery-mesh-wgsl', code: SCENERY_WGSL });
+    const module = device.createShaderModule({ label: 'scenery-mesh-wgsl', code: sceneryWgsl(worldDepth) });
     this.opaquePipeline = this.makePipeline(module, 'opaque');
     this.shadowPipeline = this.makePipeline(module, 'shadow');
     this.mountainVertexBuffer = makeVertexBuffer(device, 'campaign-mountain-vertices', this.mountainMesh.opaque.vertices);

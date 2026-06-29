@@ -26,7 +26,9 @@ import { CampaignSceneryPass, type CampaignSceneryInstance } from '../../../pack
 import { PROP_REVIEW_GROUPS } from '../../../packages/game-renderer/src/models/shared/sceneryPropRegistry';
 import { BATTLE_MAP_CATALOG, battleMapById, buildBattleTerrainPresentation, presentationEdgeMismatches } from '../../../packages/game-renderer/src/battle/mapCatalog';
 import { heightSpan, terrainHeightAt } from '../../../packages/game-renderer/src/terrain/heightField';
-import type { BattleTerrainFeatureKind, BattleTerrainGrid } from '../../../packages/game-renderer/src/battle/terrainFeatures';
+import type { BattleTerrainFeature, BattleTerrainFeatureKind, BattleTerrainGrid } from '../../../packages/game-renderer/src/battle/terrainFeatures';
+import { BattleGroundPass } from '../../../packages/game-renderer/src/battle/groundPass';
+import { featuresToBattleScenery } from '../../../packages/game-renderer/src/battle/terrainScenery';
 import { CampaignSelectionPass, type CampaignSelectionInstance } from '../../../packages/game-renderer/src/campaign/selectionPass';
 import { campaignBorderVertices, CampaignTerritoryPass } from '../../../packages/game-renderer/src/campaign/territoryPass';
 import { Nested3dFixturePass } from '../../../packages/game-renderer/src/fixtures/nested3d';
@@ -97,6 +99,7 @@ const routes: Record<string, LabRoute> = {
   '/renderer/world-camera': routeWorldCamera,
   '/renderer/battle-terrain': routeBattleTerrain,
   '/renderer/battle-terrain-features': routeBattleTerrainFeatures,
+  '/renderer/battle-terrain-3d': routeBattleTerrain3d,
   '/renderer/battle-ui': routeBattleUi,
   '/renderer/battle-input': routeBattleInput,
   '/renderer/battle-live': routeBattleLive,
@@ -2442,6 +2445,95 @@ async function routeBattleTerrainFeatures(ctx: LabContext) {
     terrainCell: cell,
     grid: { w, h, cell, ox, oy },
     sceneryStats: terrain.stats(),
+    depth: shell.stats().depth,
+    framePhases: shell.stats().phases,
+  });
+}
+
+// The rolling 3D battle terrain: height-displaced ground + shared scenery props
+// seated on the same height, viewed at the gameplay camera. Proves the slice-03
+// foundation — soldiers and props will share this ground.
+async function routeBattleTerrain3d(ctx: LabContext) {
+  const { default: initWasm, Game } = await import('../../../web/src/wasm/game_wasm.js');
+  const wasm = await initWasm();
+  const game = new Game(0x5eed_c0de);
+  const entry = battleMapById(ctx.params.get('gate') ?? '') ?? BATTLE_MAP_CATALOG[0];
+  game.load_map(entry.wasmMapId);
+
+  const w = game.terrain_w();
+  const h = game.terrain_h();
+  const cell = game.terrain_cell();
+  const ox = game.terrain_origin_x();
+  const oy = game.terrain_origin_y();
+  const grid: BattleTerrainGrid = {
+    w,
+    h,
+    cell,
+    ox,
+    oy,
+    tint: new Uint8Array(wasm.memory.buffer, game.terrain_tint_ptr(), w * h).slice(),
+    speed: new Float32Array(wasm.memory.buffer, game.terrain_speed_ptr(), w * h).slice(),
+    height: new Float32Array(wasm.memory.buffer, game.terrain_height_ptr(), w * h).slice(),
+  };
+  const presentation = buildBattleTerrainPresentation(entry, grid, 0x1234);
+  // Exaggerate the gentle metre-scale relief for readability at the gameplay
+  // camera (the sim height stays plausible for later vision/ballistics). One
+  // field drives ground, props, and soldiers so they share the exact surface.
+  const field = presentation.height;
+  field.verticalScale = 2.6;
+  const scenery = featuresToBattleScenery(presentation.features, field, 0x77);
+
+  // Frame this map's biggest mid-field land feature (a wood, else a rock/mud
+  // patch) at a three-quarter gameplay camera so the props stand up and the
+  // relief reads. Edge blockers (water/wall) and the far edges are excluded so
+  // the view stays on the playable field, not the sealed sides.
+  const midField = presentation.features.filter(
+    (f) => Math.abs(f.x) < 800 && Math.abs(f.y) < 550 && (f.kind === 'forest' || f.kind === 'rock' || f.kind === 'mud'),
+  );
+  const woods = midField.filter((f) => f.kind === 'forest');
+  const focus = (woods.length > 0 ? woods : midField).reduce<BattleTerrainFeature | undefined>(
+    (big, f) => (f.radius > (big?.radius ?? 0) ? f : big),
+    undefined,
+  );
+  const cx = Number(ctx.params.get('cx') ?? focus?.x ?? 0);
+  const cy = Number(ctx.params.get('cy') ?? focus?.y ?? 0);
+  const shell = await createConfiguredShell(ctx.canvas, { x: cx, y: cy - 110, zoom: 3.3, pitch: 0.44, yaw: -0.05 });
+  const ground = new BattleGroundPass(shell);
+  ground.setTerrain(grid, field, presentation.groundCover);
+  const props = new CampaignSceneryPass(shell, 'battle');
+  props.upload(scenery);
+  shell.drawFrame({
+    clear: { r: 0.74, g: 0.83, b: 0.90, a: 1 },
+    passes: [
+      { id: 'battle-3d-ground', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => ground.draw(pass) },
+      { id: 'battle-3d-scenery', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => props.drawOpaque(pass) },
+      { id: 'battle-3d-scenery-shadow', role: 'world-decal', phase: 'world-depth', depth: 'read', draw: (pass) => props.drawShadows(pass) },
+    ],
+  });
+
+  const propStats = props.stats();
+  ctx.status.innerHTML = reportTable({
+    route: 'battle-terrain-3d',
+    gate: entry.id,
+    map: entry.label,
+    groundCover: presentation.groundCover,
+    groundTriangles: ground.stats().triangles,
+    props: scenery.length,
+    trees: propStats.trees,
+    rocks: propStats.rocks,
+    heightSpan: heightSpan(presentation.height).toFixed(2),
+  });
+  publish('battle-terrain-3d', true, {
+    route: 'battle-terrain-3d',
+    gate: entry.id,
+    mapId: presentation.mapId,
+    groundCover: presentation.groundCover,
+    groundTriangles: ground.stats().triangles,
+    groundLayer: ground.stats().layer,
+    props: scenery.length,
+    trees: propStats.trees,
+    rocks: propStats.rocks,
+    heightSpan: heightSpan(presentation.height),
     depth: shell.stats().depth,
     framePhases: shell.stats().phases,
   });

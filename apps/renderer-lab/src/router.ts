@@ -23,6 +23,7 @@ import { campaignWaterFeatures, CampaignCloudPass, CampaignWaterPass } from '../
 import { CampaignEntityPass, type CampaignEntityInstance } from '../../../packages/game-renderer/src/campaign/entityPass';
 import { buildCampaignMapDrawData, CampaignLabelPass, CampaignMapPass, CampaignMarkerPass, CampaignRoadPass, CampaignWorldLinePass, type CampaignLabel } from '../../../packages/game-renderer/src/campaign/mapPass';
 import { CampaignSceneryPass, type CampaignSceneryInstance } from '../../../packages/game-renderer/src/campaign/sceneryPass';
+import { PROP_REVIEW_GROUPS } from '../../../packages/game-renderer/src/models/shared/sceneryPropRegistry';
 import { CampaignSelectionPass, type CampaignSelectionInstance } from '../../../packages/game-renderer/src/campaign/selectionPass';
 import { campaignBorderVertices, CampaignTerritoryPass } from '../../../packages/game-renderer/src/campaign/territoryPass';
 import { Nested3dFixturePass } from '../../../packages/game-renderer/src/fixtures/nested3d';
@@ -88,6 +89,7 @@ const routes: Record<string, LabRoute> = {
   '/renderer/campaign-map': routeCampaignMap,
   '/renderer/campaign-ui': routeCampaignUi,
   '/renderer/campaign-models': routeCampaignModelShots,
+  '/renderer/shared-prop-models': routeSharedPropModelShots,
   '/renderer/render-graph': routeRenderGraph,
   '/renderer/world-camera': routeWorldCamera,
   '/renderer/battle-terrain': routeBattleTerrain,
@@ -1648,6 +1650,51 @@ async function routeCampaignModelShots(ctx: LabContext) {
   });
 }
 
+// Reusable scenery props posed for model-sheet review: each family alone on
+// neutral ground, no cities, labels, roads, water, or fog. The compositions are
+// owned by the shared prop registry so battle and campaign review the same poses.
+async function routeSharedPropModelShots(ctx: LabContext) {
+  const requested = ctx.params.get('gate');
+  const group = PROP_REVIEW_GROUPS.find((g) => g.id === requested) ?? PROP_REVIEW_GROUPS[0];
+  const camera = group.camera;
+  const shell = await createConfiguredShell(ctx.canvas, camera);
+  const scenery = new CampaignSceneryPass(shell);
+  const instances: CampaignSceneryInstance[] = group.props.map((prop) => ({
+    x: prop.x,
+    y: prop.y,
+    size: prop.size,
+    kind: prop.kind,
+    shade: prop.shade,
+    yaw: prop.yaw,
+  }));
+  scenery.upload(instances);
+  shell.drawFrame({
+    clear: { r: 0.09, g: 0.10, b: 0.10, a: 1 },
+    terrainRect: [-18, -12, 36, 24],
+    passes: [
+      { id: 'shared-prop-opaque', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => scenery.drawOpaque(pass) },
+      { id: 'shared-prop-shadows', role: 'world-decal', phase: 'world-depth', depth: 'read', draw: (pass) => scenery.drawShadows(pass) },
+    ],
+  });
+  ctx.status.innerHTML = reportTable({
+    route: 'shared-prop-models',
+    gate: group.id,
+    purpose: 'isolated shared scenery prop model sheet',
+    props: instances.length,
+    renderer: 'raw WebGPU shared scenery library meshes',
+  });
+  publish('shared-prop-models', true, {
+    route: 'shared-prop-models',
+    gate: group.id,
+    camera,
+    props: instances.length,
+    sceneryStats: scenery.stats(),
+    depth: shell.stats().depth,
+    framePhases: shell.stats().phases,
+    postCutoverScreenshots: 'renderer-only',
+  });
+}
+
 type CampaignModelShot =
   | 'overview'
   | 'city'
@@ -1660,11 +1707,6 @@ type CampaignModelShot =
   | 'road'
   | 'road-only'
   | 'selected-city'
-  | 'trees'
-  | 'conifer'
-  | 'broadleaf'
-  | 'mountain'
-  | 'rocks'
   | 'labels'
   | 'terrain-grass-scrub'
   | 'terrain-stone-relief'
@@ -1682,11 +1724,6 @@ const CAMPAIGN_MODEL_SHOTS: CampaignModelShot[] = [
   'road',
   'road-only',
   'selected-city',
-  'trees',
-  'conifer',
-  'broadleaf',
-  'mountain',
-  'rocks',
   'labels',
   'terrain-grass-scrub',
   'terrain-stone-relief',
@@ -1710,9 +1747,8 @@ function campaignModelShotCamera(gate: CampaignModelShot) {
   const close = { x: 0, y: 0.3, zoom: 28, pitch: 0.56, yaw: 0, perspective: 0.018 };
   if (gate === 'overview') return { x: 0, y: -0.6, zoom: 28, pitch: 0.54, yaw: 0, perspective: 0.012 };
   if (gate === 'road' || gate === 'road-only') return { x: 0, y: -1.3, zoom: 30, pitch: 0.54, yaw: 0, perspective: 0.012 };
-  if (gate === 'trees' || gate === 'terrain-grass-scrub') return { x: 0, y: -0.3, zoom: 40, pitch: 0.56, yaw: 0, perspective: 0.016 };
-  if (gate === 'conifer' || gate === 'broadleaf') return { x: 0, y: -0.36, zoom: 54, pitch: 0.56, yaw: 0, perspective: 0.018 };
-  if (gate === 'mountain' || gate === 'rocks' || gate === 'terrain-stone-relief') return { x: 0, y: -0.4, zoom: 40, pitch: 0.56, yaw: 0, perspective: 0.014 };
+  if (gate === 'terrain-grass-scrub') return { x: 0, y: -0.3, zoom: 40, pitch: 0.56, yaw: 0, perspective: 0.016 };
+  if (gate === 'terrain-stone-relief') return { x: 0, y: -0.4, zoom: 40, pitch: 0.56, yaw: 0, perspective: 0.014 };
   if (gate === 'shoreline-water') return { x: 0, y: -0.8, zoom: 34, pitch: 0.54, yaw: 0, perspective: 0.014 };
   if (gate === 'cloud-fog') return { x: 0, y: 0, zoom: 26, pitch: 0.50, yaw: 0, perspective: 0.010 };
   return close;
@@ -1796,12 +1832,12 @@ function campaignModelShotFrame(gate: CampaignModelShot) {
       addCity(8.4, -2.0, 5.0, 'NEAPOLIS', amber, neutral);
     }
   }
-  if (gate === 'overview' || gate === 'trees' || gate === 'terrain-grass-scrub') {
+  if (gate === 'overview' || gate === 'terrain-grass-scrub') {
     scenery.push(
-      { x: -3.8, y: gate === 'trees' ? -0.6 : 2.2, size: 3.7, kind: 'conifer' },
-      { x: -1.5, y: gate === 'trees' ? -0.8 : 2.0, size: 3.2, kind: 'broadleaf' },
-      { x: 1.2, y: gate === 'trees' ? -0.5 : 2.3, size: 4.0, kind: 'broadleaf' },
-      { x: 3.6, y: gate === 'trees' ? -0.9 : 1.8, size: 3.0, kind: 'conifer' },
+      { x: -3.8, y: 2.2, size: 3.7, kind: 'conifer' },
+      { x: -1.5, y: 2.0, size: 3.2, kind: 'broadleaf' },
+      { x: 1.2, y: 2.3, size: 4.0, kind: 'broadleaf' },
+      { x: 3.6, y: 1.8, size: 3.0, kind: 'conifer' },
     );
     if (gate === 'terrain-grass-scrub') {
       scenery.push(
@@ -1810,19 +1846,13 @@ function campaignModelShotFrame(gate: CampaignModelShot) {
       );
     }
   }
-  if (gate === 'conifer') scenery.push({ x: 0.0, y: -0.55, size: 4.1, kind: 'conifer', shade: 0.62 });
-  if (gate === 'broadleaf') scenery.push({ x: 0.0, y: -0.55, size: 4.1, kind: 'broadleaf', shade: 0.66 });
-  if (gate === 'overview' || gate === 'mountain' || gate === 'terrain-stone-relief') {
+  if (gate === 'overview' || gate === 'terrain-stone-relief') {
     scenery.push(
-      { x: -2.4, y: gate === 'mountain' ? -0.6 : 4.2, size: gate === 'mountain' ? 4.6 : 6.6, kind: 'mountain' },
-      { x: 2.7, y: gate === 'mountain' ? -0.9 : 3.8, size: gate === 'mountain' ? 3.9 : 5.4, kind: 'mountain' },
-    );
-  }
-  if (gate === 'overview' || gate === 'rocks' || gate === 'terrain-stone-relief') {
-    scenery.push(
-      { x: -3.2, y: gate === 'rocks' ? -1.0 : -6.2, size: 4.0, kind: 'rock' },
-      { x: 0.2, y: gate === 'rocks' ? -1.2 : -6.4, size: 4.8, kind: 'rock' },
-      { x: 3.3, y: gate === 'rocks' ? -0.8 : -5.8, size: 3.5, kind: 'rock' },
+      { x: -2.4, y: 4.2, size: 6.6, kind: 'mountain' },
+      { x: 2.7, y: 3.8, size: 5.4, kind: 'mountain' },
+      { x: -3.2, y: -6.2, size: 4.0, kind: 'rock' },
+      { x: 0.2, y: -6.4, size: 4.8, kind: 'rock' },
+      { x: 3.3, y: -5.8, size: 3.5, kind: 'rock' },
     );
   }
   if (gate === 'terrain-stone-relief') {

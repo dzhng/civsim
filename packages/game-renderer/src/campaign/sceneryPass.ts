@@ -1,7 +1,7 @@
 import type { RawFrameShell, WorldRenderPass } from '../../../renderer-core/src/frameShell';
 import { WORLD_CAMERA_WGSL } from '../../../renderer-core/src/cameraWgsl';
 import { gpuAlphaBlendColorTarget, gpuOpaqueColorTarget, gpuWorldDepthStencil } from '../../../renderer-core/src/pipelineContracts';
-import { buildBroadleafTreeMesh, buildCartMesh, buildConiferTreeMesh, buildMountainMesh, buildRockMesh } from '../models/shared/sceneryPropModels';
+import { SCENERY_PROP_MODELS } from '../models/shared/sceneryPropRegistry';
 
 export type CampaignSceneryKind = 'mountain' | 'tree' | 'conifer' | 'broadleaf' | 'rock' | 'cart';
 
@@ -70,11 +70,11 @@ fn fs(in: VsOut) -> @location(0) vec4f {
 export class CampaignSceneryPass {
   private opaquePipeline: GPURenderPipeline;
   private shadowPipeline: GPURenderPipeline;
-  private mountainMesh = buildMountainMesh();
-  private coniferMesh = buildConiferTreeMesh();
-  private broadleafMesh = buildBroadleafTreeMesh();
-  private rockMesh = buildRockMesh();
-  private cartMesh = buildCartMesh();
+  private mountainMesh = SCENERY_PROP_MODELS.mountain.build();
+  private coniferMesh = SCENERY_PROP_MODELS.conifer.build();
+  private broadleafMesh = SCENERY_PROP_MODELS.broadleaf.build();
+  private rockMesh = SCENERY_PROP_MODELS.rock.build();
+  private cartMesh = SCENERY_PROP_MODELS.cart.build();
   private mountainVertexBuffer: GPUBuffer;
   private mountainIndexBuffer: GPUBuffer;
   private mountainShadowVertexBuffer: GPUBuffer;

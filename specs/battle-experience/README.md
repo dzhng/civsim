@@ -2,24 +2,50 @@
 
 ## Next Agent Prompt
 
-Current status, last updated 2026-06-29: the feature is planned and has had an
-adversarial architecture review folded in, but is not implemented. You are
-picking up a five-slice battle-experience upgrade: shared scenery
-ownership/model sheets, battle terrain-feature data, 3D terrain props on the
-battle map, a configurable quick-battle army builder, and a final docs plus
-height-seating audit pass. David added a reference for edge cliffs, distant fog,
-and full-field grass coverage; use
+Current status, last updated 2026-06-30: Slice 01 is SHIPPED. Reusable scenery
+props now have shared ownership through a registry and a dedicated review scene;
+slices 02-05 remain planned. David added a reference for edge cliffs, distant
+fog, and full-field grass coverage; use
 `specs/battle-experience/assets/edge-cliffs-grass-reference.png` as review
 context alongside the Aegean battle references. The same reference should guide
 gentle terrain depth variation: battlefields should not be 100% flat unless a
 specific map calls for flat ground.
 
-Exact next pickup point: start with
-`specs/battle-experience/slices/01-shared-scenery-model-sheets.md`. Confirm the
-campaign prop model source remains shared in
-`packages/game-renderer/src/models/shared/sceneryPropModels.ts`, then migrate the
-reusable prop shot ownership from `web/shots/models/campaign/props` to
-`web/shots/models/shared/props` with a dedicated shared prop review gate.
+What Slice 01 shipped:
+
+- `packages/game-renderer/src/models/shared/sceneryPropRegistry.ts` is the new
+  shared seam: `SCENERY_PROP_MODELS` (id → builder + label + `defaultScale`
+  hint) and `PROP_REVIEW_GROUPS` (the model-sheet compositions). Geometry still
+  lives in `sceneryPropModels.ts`; the registry names it. `campaign/sceneryPass.ts`
+  now builds its meshes via `SCENERY_PROP_MODELS`, so no surface re-declares the
+  builder list. Slice 03 battle props should consume this registry (including
+  `defaultScale`), not a new table.
+- New scene `web/scenes/models/shared-prop-models.mjs` + route
+  `routeSharedPropModelShots` (`/renderer/shared-prop-models`) capture
+  `web/shots/models/shared/props/{trees,conifer,broadleaf,rocks,mountain,cart}.png`.
+  The cart family is new review evidence. The scene also asserts the
+  shared-ownership invariant by source check.
+- `campaign-models` no longer reviews props: the `campaign/props/*` snapshots,
+  gates, and the campaign prop baselines are gone (terrain-grass-scrub /
+  terrain-stone-relief terrain samples still use scenery and stay).
+- Scripts updated: `scenario:renderer` and `shots:models` run the new scene;
+  cutover/release audits require `models/shared/props/*` instead of
+  `models/campaign/props/*` and expect `parity-shared-prop-models`.
+
+BASELINE PROVENANCE WARNING (read before re-running gates): this Mac has no
+SwiftShader WebGPU adapter (the canonical headless baseline device per
+`web/shots/README.md`), so the committed shared-prop baselines were captured on
+the hardware/Metal adapter (`VERIFY_GPU=1 VERIFY_GPU_ADAPTER=hardware
+VERIFY_HEADFUL=1 VERIFY_BROWSER_CHANNEL=chrome`). They are deterministic there
+(0px on re-run). When the canonical SwiftShader `scenario:renderer` runs in CI,
+the stone-dense `mountain`/`rocks` sheets may exceed the 2% wobble budget and
+need a one-time re-bless under SwiftShader — same situation as the pre-existing
+`campaign/terrain/terrain-stone-relief` baseline, which already fails ~3.96% on
+the hardware adapter (proven identical with pre-slice code, so not introduced
+here). Re-bless prop sheets with `npm --prefix web run shots:models:props`.
+
+Exact next pickup point: start
+`specs/battle-experience/slices/02-battle-terrain-feature-contract.md`.
 
 Active blockers or warnings: do not delete the duel bench unless David asks; it
 is still the fastest matchup/debug surface. The quick-battle budget default in
@@ -29,8 +55,8 @@ implementation default unless David redirects.
 
 Global TODO:
 
-- [ ] Slice 01: move reusable scenery prop review to shared ownership and commit
-  shared prop model sheets.
+- [x] Slice 01: reusable scenery prop review moved to shared ownership
+  (registry + `shared-prop-models` scene); shared prop model sheets committed.
 - [ ] Slice 02: create a battle terrain-feature contract that turns sim terrain
   tints, micro roughness, and height variation into typed render features.
 - [ ] Slice 03: render battle woods, rocks, mud/scree, and micro roughs with

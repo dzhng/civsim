@@ -43,15 +43,27 @@ restates what a function does, cut it and point at the function instead.
      for mechanics; name the entry points so they can find it in one grep.
    - **Dead ends** — approaches tried and rejected, with the reason, so nobody
      re-walks them.
+   - **Visual provenance** — any images that were uploaded as a baseline to
+     match, a comparison target, or inspiration for the look. These *are* the
+     requirement: they say what "done" had to resemble and why the result took
+     the shape it did. Keep them in-tree and reference them from the README,
+     naming where each came from (a real screenshot, a mood board, a reference
+     game) and what it was driving. Without them a reader sees the outcome but
+     not the standard it was held to.
 
    Cut: slice-by-slice build order, "next we will…", scaffolding instructions,
    per-slice verification checklists, and any prose that re-narrates code.
 
-5. **Collapse the slices.** They were the build ladder; once shipped they're
-   sediment. Fold anything durable (a divergence, a dead end, an invariant a
-   slice established) into the README, then delete `slices/`. Keep
-   `visualizations/` or `assets/` only if they still help a reader judge the
-   result.
+5. **Collapse the slices, preserve the imagery.** The slices were the build
+   ladder; once shipped they're sediment. Fold anything durable (a divergence,
+   a dead end, an invariant a slice established) into the README, then delete
+   `slices/`. But **keep the baseline, comparison, and inspiration images** —
+   the references the work was measured against — and the `visualizations/` or
+   `assets/` that still help a reader judge the result. These are provenance,
+   not scaffolding: discard a build instruction, never the picture that
+   defined what the build was aiming at. Wire each one into the README's
+   visual-provenance trail so the story of where the requirement came from
+   survives the close.
 
 6. **Fix references.** Update links that pointed at the old path. If `[[memory]]`
    notes or other skills referenced the spec, repoint them.
@@ -67,6 +79,9 @@ restates what a function does, cut it and point at the function instead.
      asserted? Flag claims the code contradicts or doesn't back.
    - **Overview / reason** — is it consistent with what shipped, present tense,
      no leftover "will"/"next"/slice numbers?
+   - **Visual provenance** — do the referenced baseline/inspiration images
+     still exist in-tree, and does the README say where each came from and what
+     it drove? Flag a result shown with no standard it was held to.
 
    Treat unsupported, contradicted, or stale statements as defects: fix the
    spec (or the pointer) and re-audit the changed claims. The spec is not
@@ -79,11 +94,15 @@ restates what a function does, cut it and point at the function instead.
 - Does it say "will" or "next" or name a slice number? → it's still a plan.
 - Did a real decision diverge from the plan and go unrecorded? → that's the
   one thing worth keeping; add it.
+- Was there a baseline or inspiration image you were matching against? → keep
+  it and say what it drove; the result is meaningless without the standard.
 
 ## Done
 
 The spec lives under `specs/done/`, reads as why-and-what-must-hold rather than
-how, names the code that implements it, and every statement has survived an
-unbiased audit against the code. A fresh reader gets the intent and the
-invariants without the code — and the mechanics by following the pointers
-into it.
+how, names the code that implements it, preserves the baseline and inspiration
+imagery the work was measured against, and every statement has survived an
+unbiased audit against the code. A fresh reader gets the intent, the
+invariants, and the visual standard without the code — the story of why it's
+done and how the decisions were made — and the mechanics by following the
+pointers into it.

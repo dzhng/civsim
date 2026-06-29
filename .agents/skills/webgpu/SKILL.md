@@ -89,6 +89,11 @@ pass orchestration, WGSL layout, depth semantics, or browser-verified output.
   PNGs after WGSL, pipeline, camera, pass-order, depth, or blend changes, and
   reject black frames, transparent canvases, flattened occlusion, or UI layered
   over world geometry by accident.
+- A valid render is not necessarily a useful capture. Screenshot gates must
+  prove the intended subject is framed: derive camera targets from live
+  renderable bounds or explicit semantic anchors, and reject frames that show
+  mostly empty terrain, sky, water, or one flat colour while entity stats look
+  healthy.
 - Treat WebGPU validation warnings as failed renders. A bad pipeline can leave
   route stats and app hooks alive while command buffers are invalid and the
   canvas is black. Capture console warnings and fix the root contract, commonly
@@ -137,6 +142,10 @@ pass orchestration, WGSL layout, depth semantics, or browser-verified output.
 - When a snapshot fails, inspect the actual candidate artifact, not the blessed
   baseline path. Baselines prove what was accepted before; actual captures prove
   what the current GPU code rendered.
+- For contact sheets, turntables, animation GIFs, and timeline strips, inspect
+  every tile or frame class, not just one representative. A grid can pass while
+  repeated crops are consistently off-center, clipped, or aimed between the
+  models.
 - When a projection-sensitive scene is disputed, add a tiny synthetic alignment
   fixture with known land/water/prop points and sample both semantic state and
   rendered pixels across multiple cameras before debugging the full production
@@ -172,6 +181,9 @@ pass orchestration, WGSL layout, depth semantics, or browser-verified output.
 - A private shader camera/projection helper appears beside a shared one.
 - A verifier repeats renderer constants by hand.
 - A green scenario has no screenshot inspection.
+- A screenshot is mostly blank field, water, sky, or a flat colour while stats
+  report submitted entities; suspect camera framing, crop origin, projection,
+  or all-content-hidden CSS before chasing mesh generation.
 - A type bucket appears in top-level frame or graph ordering where a semantic
   phase should be.
 - A visual fix changes camera, lighting, model geometry, and pass order at once,

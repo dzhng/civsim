@@ -28,6 +28,7 @@ import { BATTLE_MAP_CATALOG, battleMapById, buildBattleTerrainPresentation, pres
 import { heightSpan, terrainHeightAt } from '../../../packages/game-renderer/src/terrain/heightField';
 import type { BattleTerrainFeature, BattleTerrainFeatureKind, BattleTerrainGrid } from '../../../packages/game-renderer/src/battle/terrainFeatures';
 import { BattleGroundPass } from '../../../packages/game-renderer/src/battle/groundPass';
+import { BattleHorizonPass } from '../../../packages/game-renderer/src/battle/horizonPass';
 import { featuresToBattleScenery } from '../../../packages/game-renderer/src/battle/terrainScenery';
 import { CampaignSelectionPass, type CampaignSelectionInstance } from '../../../packages/game-renderer/src/campaign/selectionPass';
 import { campaignBorderVertices, CampaignTerritoryPass } from '../../../packages/game-renderer/src/campaign/territoryPass';
@@ -2495,16 +2496,27 @@ async function routeBattleTerrain3d(ctx: LabContext) {
     (big, f) => (f.radius > (big?.radius ?? 0) ? f : big),
     undefined,
   );
-  const cx = Number(ctx.params.get('cx') ?? focus?.x ?? 0);
-  const cy = Number(ctx.params.get('cy') ?? focus?.y ?? 0);
-  const shell = await createConfiguredShell(ctx.canvas, { x: cx, y: cy - 110, zoom: 3.3, pitch: 0.44, yaw: -0.05 });
+  // Camera: 'field' frames a mid-field wood; 'west'/'east' look outward toward
+  // that sealed edge so its blocker fills the distance.
+  const view = ctx.params.get('view') ?? 'field';
+  const halfW = (w * cell) / 2;
+  const midY = oy + (h * cell) / 2;
+  const camera = view === 'west'
+    ? { x: -halfW + 360, y: midY, zoom: 0.95, pitch: 0.26, yaw: -Math.PI / 2 }
+    : view === 'east'
+      ? { x: halfW - 360, y: midY, zoom: 0.95, pitch: 0.26, yaw: Math.PI / 2 }
+      : { x: Number(ctx.params.get('cx') ?? focus?.x ?? 0), y: Number(ctx.params.get('cy') ?? focus?.y ?? 0) - 110, zoom: 3.3, pitch: 0.44, yaw: -0.05 };
+  const shell = await createConfiguredShell(ctx.canvas, camera);
   const ground = new BattleGroundPass(shell);
   ground.setTerrain(grid, field, presentation.groundCover);
   const props = new CampaignSceneryPass(shell, 'battle');
   props.upload(scenery);
+  const horizon = new BattleHorizonPass(shell);
+  horizon.setEdges({ ox, oy, w, h, cell }, presentation.edges, field);
   shell.drawFrame({
     clear: { r: 0.74, g: 0.83, b: 0.90, a: 1 },
     passes: [
+      { id: 'battle-3d-horizon', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => horizon.draw(pass) },
       { id: 'battle-3d-ground', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => ground.draw(pass) },
       { id: 'battle-3d-scenery', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => props.drawOpaque(pass) },
       { id: 'battle-3d-scenery-shadow', role: 'world-decal', phase: 'world-depth', depth: 'read', draw: (pass) => props.drawShadows(pass) },
@@ -2527,6 +2539,9 @@ async function routeBattleTerrain3d(ctx: LabContext) {
     route: 'battle-terrain-3d',
     gate: entry.id,
     mapId: presentation.mapId,
+    view,
+    edges: presentation.edges,
+    sealedEdges: horizon.stats().sealedEdges,
     groundCover: presentation.groundCover,
     groundTriangles: ground.stats().triangles,
     groundLayer: ground.stats().layer,

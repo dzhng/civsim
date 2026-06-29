@@ -249,17 +249,12 @@ fn formed_heavy_infantry_holds_a_frontal_cav_charge() {
     );
     // The OTHER side of the same duel (folded in from the old
     // `a_frontal_charge_bloodies_the_infantry_even_when_repulsed` — same run).
-    // FLAG (2026-06-26): under the charge-rebuild the repulsed charge no longer
-    // BLOODIES formed heavy — the stun-heavy impact + single-use lance barely dent
-    // plate, so the heavy holds nearly intact (≈0.97±0.01).
-    // RE-DERIVED 2026-06-29: the elite-cav rebalance (rider health 1.36→1.8, and a
-    // movement-drain discount so the charge arrives FRESH) makes the repulsed charge
-    // draw still more blood — heavy now holds ~77% (was ~90%). It STILL clearly wins
-    // (cav win-rate 0/seeds, cav survives only ~15%): a bloodier-but-losing frontal
-    // charge, which is MORE in line with the locked "cav is a real frontal threat
-    // (wins ~30-40%)" target than the old near-toothless 90%. Floor relaxed 0.85→0.72.
-    // FLAGGED to David: the cav buffs strengthened the frontal charge vs heavy — worth
-    // re-reading the full cav-vs-heavy win-rate against the 30-40% contract.
+    // The repulsed charge BLOODIES formed heavy (heavy holds ~77%) but still loses
+    // every seed (cav survives only ~15%, win-rate 0) — a bloodier-but-losing
+    // frontal charge, in line with the locked "cav is a real frontal threat
+    // (~30-40%)" target. The elite-cav rebalance (rider health 1.8 + cheap movement
+    // so the charge arrives fresh) is what draws the extra blood; re-read the full
+    // cav-vs-heavy win-rate against that target before retuning the cav stats.
     assert!(
         agg.surv[1].mean >= 0.72 && agg.surv[1].mean <= 1.0,
         "the repulsed charge only scratches formed heavy (heavy still holds): \

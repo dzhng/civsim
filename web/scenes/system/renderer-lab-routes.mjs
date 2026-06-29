@@ -42,7 +42,7 @@ const routes = [
     && hasFramePhaseOrder(s.stats.framePhases)
     && hasFrameDepthPass(s.stats.framePhases, 'skinned-depth-crowd', 'read-write')
     && hasFramePassRole(s.stats.framePhases, 'skinned-depth-crowd', 'world-opaque', 'world-depth')
-    && s.stats.hostileDrawOrder === 'front-class-0-submitted-before-rear-class-14'
+    && s.stats.hostileDrawOrder === `front-class-${s.stats.frontClass}-submitted-before-rear-class-${s.stats.rearClass}`
     && s.stats.sample],
   ['battle-ground-cue-depth', (s) => s?.ok
     && s.route === 'battle-ground-cue-depth'

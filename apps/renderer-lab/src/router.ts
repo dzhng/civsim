@@ -1007,6 +1007,8 @@ async function routeSkinnedDepth(ctx: LabContext) {
   const camera = { x: 0, y: 0, zoom: 92, pitch: 0.18, yaw: 0, perspective: 0 };
   const shell = await createConfiguredShell(ctx.canvas, camera);
   const pipeline = await createSkinnedPipeline(shell, [0.20, 0.42, 0.88], vat);
+  const frontClass = UNIT_CLASS_BY_KEY[UnitClass.HeavySword];
+  const rearClass = SHOCK_CAV_SIDEARM_CLASS;
   const frontY = -0.03;
   const rearY = 0.03;
   const instances: CrowdInstance[] = [
@@ -1014,7 +1016,7 @@ async function routeSkinnedDepth(ctx: LabContext) {
       x: 0,
       y: frontY,
       facing: Math.PI / 2,
-      classId: 0,
+      classId: frontClass,
       faction: 0,
       alive: true,
       frame: 1,
@@ -1028,7 +1030,7 @@ async function routeSkinnedDepth(ctx: LabContext) {
       x: 0,
       y: rearY,
       facing: Math.PI / 2,
-      classId: 14,
+      classId: rearClass,
       faction: 1,
       alive: true,
       frame: 1,
@@ -1057,16 +1059,16 @@ async function routeSkinnedDepth(ctx: LabContext) {
   ctx.status.innerHTML = reportTable({
     route: 'skinned-depth',
     contract: 'front soldier is drawn before rear bucket',
-    frontClass: instances[0].classId,
-    rearClass: instances[1].classId,
+    frontClass,
+    rearClass,
     drawCalls: pipeline.stats().drawCalls,
     depth: shellStats.depth.allocated ? shellStats.depth.format : 'none',
   });
   publish('skinned-depth', true, {
     ...pipeline.stats(),
-    frontClass: instances[0].classId,
-    rearClass: instances[1].classId,
-    hostileDrawOrder: 'front-class-0-submitted-before-rear-class-14',
+    frontClass,
+    rearClass,
+    hostileDrawOrder: `front-class-${frontClass}-submitted-before-rear-class-${rearClass}`,
     sample,
     depth: shellStats.depth,
     framePhases: shellStats.phases,

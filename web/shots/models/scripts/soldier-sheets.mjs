@@ -35,16 +35,21 @@ const CLASS_NAMES = [
   'medium-infantry', 'medium-spear', 'medium-phalanx', 'shock-cav-sidearm',
   'heavy-phalanx-rest', 'medium-phalanx-rest', 'heavy-phalanx-sidearm', 'medium-phalanx-sidearm',
 ];
+const classId = (name) => {
+  const id = CLASS_NAMES.indexOf(name);
+  if (id < 0) throw new Error(`unknown soldier class ${name}`);
+  return id;
+};
 
 // Tallest extent (metres) of each model at ease, so each class is framed to its
 // own height — a phalanx's 3.4 m pike and a peasant's knife both fill the frame.
 const CLASS_H = [1.75, 2.05, 1.85, 3.5, 1.75, 1.6, 3.4, 2.6, 1.7, 1.55, 1.75, 2.05, 1.9, 2.05, 3.1, 3.4, 3.5, 3.1, 3.5, 3.1];
 const REVIEW_H = [...CLASS_H];
-REVIEW_H[3] = 3.2;
-REVIEW_H[6] = 3.05;
-REVIEW_H[7] = 3.0;
-REVIEW_H[8] = 3.2;
-REVIEW_H[14] = 3.0;
+REVIEW_H[classId('phalanx')] = 3.2;
+REVIEW_H[classId('shock-cav')] = 3.05;
+REVIEW_H[classId('horse-archers')] = 3.0;
+REVIEW_H[classId('artillery')] = 3.2;
+REVIEW_H[classId('medium-phalanx')] = 3.0;
 const frameFor = (cls) => {
   const h = REVIEW_H[cls] ?? CLASS_H[cls] ?? 1.8;
   return { zoom: Math.max(72, Math.min(108, (0.48 * TH) / h)), camX: INGAME_CAMERA_X, camY: 0.72 * h };
@@ -141,7 +146,7 @@ for (const cls of classes) {
         yaw: YAW,
         camX,
         camY,
-        size: cls === 6 ? 1.05 : 1.15,
+        size: cls === classId('shock-cav') ? 1.05 : 1.15,
       }));
     }
     rows.push(row);

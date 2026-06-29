@@ -30,11 +30,16 @@ const NAMES = ['heavy-sword', 'light-spear', 'longsword', 'phalanx', 'archers', 
   'shock-cav', 'horse-archers', 'artillery', 'peasant', 'light-sword', 'heavy-spear',
   'medium-infantry', 'medium-spear', 'medium-phalanx', 'shock-cav-sidearm',
   'heavy-phalanx-rest', 'medium-phalanx-rest', 'heavy-phalanx-sidearm', 'medium-phalanx-sidearm'];
+const classId = (name) => {
+  const id = NAMES.indexOf(name);
+  if (id < 0) throw new Error(`unknown soldier class ${name}`);
+  return id;
+};
 const CLASS_H = [1.75, 2.05, 1.85, 3.5, 1.75, 1.6, 3.4, 2.6, 1.7, 1.55, 1.75, 2.05, 1.9, 2.05, 3.1, 3.4, 3.5, 3.1, 3.5, 3.1];
 const REVIEW_H = [...CLASS_H];
-REVIEW_H[3] = 2.55;
-REVIEW_H[6] = 3.15;
-REVIEW_H[7] = 3.0;
+REVIEW_H[classId('phalanx')] = 2.55;
+REVIEW_H[classId('shock-cav')] = 3.15;
+REVIEW_H[classId('horse-archers')] = 3.0;
 const FRONT = -Math.PI / 2;
 const facing = process.env.ANGLE === 'front' ? FRONT : FRONT + Math.PI / 5;
 
@@ -55,7 +60,9 @@ const ANIMS = {
   },
 };
 
-const only = process.env.ONLY ? process.env.ONLY.split(',').map(Number) : [0, 3, 4, 6];
+const only = process.env.ONLY
+  ? process.env.ONLY.split(',').map(Number)
+  : [classId('heavy-sword'), classId('phalanx'), classId('archers'), classId('shock-cav')];
 
 const gpuArgs = process.env.VERIFY_GPU === '1'
   ? (process.env.VERIFY_GPU_ADAPTER === 'hardware' ? GPU_HARDWARE_FLAGS : GPU_SWIFTSHADER_FLAGS)
@@ -69,7 +76,7 @@ page.on('console', (m) => { if (m.type() === 'error') errs.push(m.text()); });
 for (const cls of only) {
   const h = REVIEW_H[cls] ?? CLASS_H[cls] ?? 1.8;
   const zoom = Math.max(64, Math.min(136, (0.68 * TH) / h));
-  const isMountedReview = cls === 6 || cls === 7;
+  const isMountedReview = cls === classId('shock-cav') || cls === classId('horse-archers');
   const camX = isMountedReview ? -1.6 : MODEL_CAMERA_X;
   const camY = isMountedReview ? 3.2 : 1.25 * h;
   for (const [name, anim] of Object.entries(ANIMS)) {
@@ -94,7 +101,7 @@ for (const cls of only) {
           camY: isMountedReview ? Math.min(camY, poseCamY) : poseCamY,
           pitch: PITCH,
           yaw: -0.18,
-          size: cls === 6 ? 1.05 : 1.15,
+          size: cls === classId('shock-cav') ? 1.05 : 1.15,
         })));
       }
     }

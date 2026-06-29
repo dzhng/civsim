@@ -24,6 +24,9 @@ import { CampaignEntityPass, type CampaignEntityInstance } from '../../../packag
 import { buildCampaignMapDrawData, CampaignLabelPass, CampaignMapPass, CampaignMarkerPass, CampaignRoadPass, CampaignWorldLinePass, type CampaignLabel } from '../../../packages/game-renderer/src/campaign/mapPass';
 import { CampaignSceneryPass, type CampaignSceneryInstance } from '../../../packages/game-renderer/src/campaign/sceneryPass';
 import { PROP_REVIEW_GROUPS } from '../../../packages/game-renderer/src/models/shared/sceneryPropRegistry';
+import { BATTLE_MAP_CATALOG, battleMapById, buildBattleTerrainPresentation, presentationEdgeMismatches } from '../../../packages/game-renderer/src/battle/mapCatalog';
+import { heightSpan, terrainHeightAt } from '../../../packages/game-renderer/src/terrain/heightField';
+import type { BattleTerrainFeatureKind, BattleTerrainGrid } from '../../../packages/game-renderer/src/battle/terrainFeatures';
 import { CampaignSelectionPass, type CampaignSelectionInstance } from '../../../packages/game-renderer/src/campaign/selectionPass';
 import { campaignBorderVertices, CampaignTerritoryPass } from '../../../packages/game-renderer/src/campaign/territoryPass';
 import { Nested3dFixturePass } from '../../../packages/game-renderer/src/fixtures/nested3d';
@@ -93,6 +96,7 @@ const routes: Record<string, LabRoute> = {
   '/renderer/render-graph': routeRenderGraph,
   '/renderer/world-camera': routeWorldCamera,
   '/renderer/battle-terrain': routeBattleTerrain,
+  '/renderer/battle-terrain-features': routeBattleTerrainFeatures,
   '/renderer/battle-ui': routeBattleUi,
   '/renderer/battle-input': routeBattleInput,
   '/renderer/battle-live': routeBattleLive,
@@ -2351,6 +2355,92 @@ async function routeBattleTerrain(ctx: LabContext) {
     fixtureSelectionQuads: stats.selectionQuads,
   });
   publish('battle-terrain', true, stats);
+}
+
+// Boots each quick-battle map's real sim terrain and turns it into the typed
+// presentation (height field + extracted features + catalog edge/cover roles),
+// rendering the tint field and publishing the data the battle-terrain-features
+// scene asserts. The canonical terrain stays in the sim; this route only views it.
+async function routeBattleTerrainFeatures(ctx: LabContext) {
+  const { default: initWasm, Game } = await import('../../../web/src/wasm/game_wasm.js');
+  const wasm = await initWasm();
+  const game = new Game(0x5eed_c0de);
+  const entry = battleMapById(ctx.params.get('gate') ?? '') ?? BATTLE_MAP_CATALOG[0];
+  game.load_map(entry.wasmMapId);
+
+  const w = game.terrain_w();
+  const h = game.terrain_h();
+  const cell = game.terrain_cell();
+  const ox = game.terrain_origin_x();
+  const oy = game.terrain_origin_y();
+  // Copy out of wasm memory: the pointers go stale on any reallocation.
+  const tint = new Uint8Array(wasm.memory.buffer, game.terrain_tint_ptr(), w * h).slice();
+  const speed = new Float32Array(wasm.memory.buffer, game.terrain_speed_ptr(), w * h).slice();
+  const height = new Float32Array(wasm.memory.buffer, game.terrain_height_ptr(), w * h).slice();
+  const grid: BattleTerrainGrid = { w, h, cell, ox, oy, tint, speed, height };
+
+  const presentation = buildBattleTerrainPresentation(entry, grid, 0x1234);
+  const mismatches = presentationEdgeMismatches(entry, grid);
+  const featureCounts: Partial<Record<BattleTerrainFeatureKind, number>> = {};
+  let inBounds = true;
+  for (const f of presentation.features) {
+    featureCounts[f.kind] = (featureCounts[f.kind] ?? 0) + 1;
+    if (f.x < ox || f.x > ox + w * cell || f.y < oy || f.y > oy + h * cell) inBounds = false;
+  }
+  // Height smoothness down the open central corridor: the largest jump between
+  // 4 m samples must stay small enough that soldiers ride it without stair-steps.
+  let heightMaxStep = 0;
+  let prev: number | null = null;
+  for (let y = oy + 20; y < oy + h * cell - 20; y += 4) {
+    const z = terrainHeightAt(presentation.height, 0, y);
+    if (prev !== null) heightMaxStep = Math.max(heightMaxStep, Math.abs(z - prev));
+    prev = z;
+  }
+
+  const shell = await createConfiguredShell(ctx.canvas, { x: 0, y: 0, zoom: 0.45, pitch: 0.20, yaw: 0 });
+  const terrain = new BattleTerrainPass(shell);
+  terrain.setTintGrid({ w, h, cell, ox, oy, tint });
+  shell.drawFrame({
+    clear: { r: 0.74, g: 0.83, b: 0.90, a: 1 },
+    terrainRect: [ox, oy, w * cell, h * cell],
+    passes: [
+      { id: 'battle-terrain-features-underpaint', role: 'background-underpaint', phase: 'background', draw: (pass) => terrain.draw(pass) },
+      { id: 'battle-terrain-features-props', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => terrain.drawProps(pass) },
+    ],
+  });
+
+  ctx.status.innerHTML = reportTable({
+    route: 'battle-terrain-features',
+    gate: entry.id,
+    map: entry.label,
+    edges: `W:${entry.edges.west} E:${entry.edges.east} N:${entry.edges.north} S:${entry.edges.south}`,
+    groundCover: entry.groundCover,
+    features: presentation.features.length,
+    featureKinds: Object.entries(featureCounts).map(([k, v]) => `${k}:${v}`).join(' '),
+    edgeMismatches: mismatches.length === 0 ? 'none' : mismatches.join(','),
+    heightSpan: heightSpan(presentation.height).toFixed(2),
+    heightMaxStep: heightMaxStep.toFixed(3),
+  });
+  publish('battle-terrain-features', mismatches.length === 0 && inBounds, {
+    route: 'battle-terrain-features',
+    gate: entry.id,
+    mapId: presentation.mapId,
+    wasmMapId: entry.wasmMapId,
+    edges: presentation.edges,
+    groundCover: presentation.groundCover,
+    intentionallyFlat: entry.intentionallyFlat ?? false,
+    featureTotal: presentation.features.length,
+    featureCounts,
+    inBounds,
+    edgeMismatches: mismatches,
+    heightSpan: heightSpan(presentation.height),
+    heightMaxStep,
+    terrainCell: cell,
+    grid: { w, h, cell, ox, oy },
+    sceneryStats: terrain.stats(),
+    depth: shell.stats().depth,
+    framePhases: shell.stats().phases,
+  });
 }
 
 async function routeBattleLive(ctx: LabContext) {

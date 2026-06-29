@@ -79,6 +79,15 @@ adapter; CI needs a one-time SwiftShader reconciliation):
   `buildRockMesh` (and the mountain) cooler.
 - [ ] Minor (David's call): broadleaf canopy apex is slightly peaked (a touch
   conifer-ish); not pursued.
+- JUSTIFIED, not a bug: a critic reading the `battle-terrain-elevation` shots
+  called the ground "flat." The relief IS gentle by design — the spec wants
+  "subtle height variation, not mountains" (8 m over a 2400 m field, ×2.6 for
+  readability), so it stays subtle at the close gameplay camera. The seating
+  invariant is proven numerically (`elevMatch` = every soldier's elevation
+  equals the sampled height; `elevSpan` 2.6-3.8 m across the block), and the
+  `battle-terrain-3d`/`battle-terrain-blockers` shots carry the visible relief,
+  woods, and sealed edges. The lone stray prop the critic saw is one
+  micro-rough stone — intended sparse ground dressing.
 - Slice 02 battle-terrain-features shots are a flat top-down tint DEBUG view:
   feature layout reads, but the sealed west/east edges do not dramatize. That is
   slice 03's explicit deliverable (cliffs/ocean read at a glance), not 02's.

@@ -152,12 +152,19 @@ Global TODO:
 - [x] Slice 02: battle terrain-feature contract — canonical height + CoastalScrub
   map + wasm export (02a), typed renderer presentation/catalog/scene (02b),
   campaign seating fix (02c).
-- [ ] Slice 03: render battle woods, rocks, mud/scree, and micro roughs with
-  proper 3D/shared model cues, height-aware placement, and terrain baselines.
+- [~] Slice 03: 3D battle terrain. Renderer DONE via lab routes — rolling
+  ground + scenery (03a), sealed-edge cliffs/ocean/wall (03b), soldiers seated
+  on the shared height (03c). REMAINING: the production game-renderer cutover
+  (wire the heightfield + passes into web/src/battle, re-bless battle baselines)
+  — the one high-blast-radius step, scoped above under "03c STILL OPEN".
 - [ ] Slice 04: replace static quick-battle buttons with a map picker, 15,000
-  gold army builders for both sides, and prebuilt 20-slot armies.
-- [ ] Slice 05: audit hard-coded `z: 0` placement shortcuts and write durable
-  docs for the shared terrain/model helpers using the `write-docs` principles.
+  gold army builders for both sides, and prebuilt 20-slot armies. NOT STARTED.
+  Build `web/src/battle/quickBattleCatalog.ts` (gold/cap/templates/validate,
+  consuming `BATTLE_MAP_CATALOG`), the setup-panel UI in index.html/menu, and a
+  wasm custom-battle launch (start_custom_battle, or load_map + spawn_class).
+  Note: army-validation has no TS unit runner in-repo — test via the menu scene.
+- [x] Slice 05: z:0 seating audit (production code clean — the only z:0 left are
+  documented lab-route ground decals) + durable docs at `docs/battle-terrain.md`.
 
 Before ending your pass, update this section with what shipped, what remains,
 and the next exact pickup point.

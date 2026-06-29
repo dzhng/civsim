@@ -1,6 +1,6 @@
 ---
 name: implement-spec
-description: Spec pass for building an existing specs/<feature>/ plan. Use when the user says implement <spec>, continue a spec, read the README and follow the spec, work through slices, /review each pass, or ship a planned feature without preserving development-only compatibility.
+description: Implement an existing spec. Use when the user says implement spec.
 ---
 
 # Implement Spec

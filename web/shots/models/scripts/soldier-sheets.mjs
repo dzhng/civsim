@@ -11,7 +11,7 @@
 //   UPDATE_SHOTS=1 node shots/models/scripts/soldier-sheets.mjs  # re-bless after a model change
 import { chromium } from 'playwright';
 import { PNG } from 'pngjs';
-import { clearSnapshotFolder, snapCheck } from '../../../snapshot.mjs';
+import { beginSnapshotFolderRefresh, finishSnapshotFolder, snapCheck } from '../../../snapshot.mjs';
 import { GPU_HARDWARE_FLAGS, GPU_SWIFTSHADER_FLAGS } from '../../../renderer-probe-lib.mjs';
 
 const TARGET = process.env.VERIFY_URL ?? 'http://localhost:5173';
@@ -119,7 +119,7 @@ page.on('pageerror', (e) => errs.push(e.message));
 page.on('console', (m) => { if (m.type() === 'error') errs.push(m.text()); });
 
 const classes = only ?? Array.from({ length: CLASS_NAMES.length }, (_, i) => i);
-if (!only) await clearSnapshotFolder(GROUP);
+if (!only) await beginSnapshotFolderRefresh(GROUP);
 
 let fails = 0;
 const check = (label, ok, detail) => {
@@ -158,6 +158,7 @@ for (const cls of classes) {
     { threshold: 0.1, maxDiffRatio: 0.003, shot: montage(rows, TW, TH) });
 }
 
+if (!only) await finishSnapshotFolder(GROUP);
 if (errs.length) console.log('page errors:', errs.slice(0, 8));
 await browser.close();
 process.exit(fails);

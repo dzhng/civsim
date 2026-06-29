@@ -15,15 +15,18 @@
 //
 // Snapshots only stay green if the moment is deterministic: fixed viewport,
 // fixed camera, sim paused/frozen (battle: window.__game.freeze()), no
-// wall-clock-driven pixels. Baselines are per-platform (font/GPU rasterization
-// differs across OSes); the threshold below absorbs antialiasing wobble only.
+// wall-clock-driven pixels. UPDATE_SHOTS only rewrites a baseline when decoded
+// pixels changed, so PNG metadata/compression differences do not churn history.
+// Baselines are per-platform (font/GPU rasterization differs across OSes); the
+// threshold below absorbs antialiasing wobble only.
 
-import { readFile, writeFile, mkdir, rm } from 'node:fs/promises';
+import { readFile, writeFile, mkdir, readdir, rm } from 'node:fs/promises';
 import { PNG } from 'pngjs';
 import pixelmatch from 'pixelmatch';
 
 const SHOTS = new URL('./shots/', import.meta.url).pathname;
 const DIFF = new URL('./shots/diff/', import.meta.url).pathname;
+const activeRefreshes = new Map();
 
 function safeSnapshotPath(name) {
   if (name.startsWith('/') || name.split('/').some((part) => part === '..')) {
@@ -31,9 +34,10 @@ function safeSnapshotPath(name) {
   }
 }
 
-/** Clear a baseline folder before a full re-bless, so shorter regenerated
- *  timelines cannot leave stale frames behind. */
-export async function clearSnapshotFolder(name) {
+/** Start a baseline-folder refresh. Existing baselines stay in place during the
+ *  run so UPDATE_SHOTS can skip byte churn when pixels are unchanged; finish
+ *  with finishSnapshotFolder() to prune frames that were not regenerated. */
+export async function beginSnapshotFolderRefresh(name) {
   if (!process.env.UPDATE_SHOTS) return;
   if (process.env.SNAP) {
     throw new Error(
@@ -42,8 +46,56 @@ export async function clearSnapshotFolder(name) {
     );
   }
   safeSnapshotPath(name);
-  await rm(SHOTS + name, { recursive: true, force: true });
-  await mkdir(SHOTS + name, { recursive: true });
+  const dir = SHOTS + name;
+  await mkdir(dir, { recursive: true });
+  activeRefreshes.set(dir.endsWith('/') ? dir : `${dir}/`, new Set());
+}
+
+async function* pngFiles(dir) {
+  let entries = [];
+  try {
+    entries = await readdir(dir, { withFileTypes: true });
+  } catch {
+    return;
+  }
+  for (const entry of entries) {
+    const path = `${dir}/${entry.name}`;
+    if (entry.isDirectory()) {
+      yield* pngFiles(path);
+    } else if (entry.isFile() && entry.name.endsWith('.png')) {
+      yield path;
+    }
+  }
+}
+
+function markRefreshedSnapshot(path) {
+  for (const [dir, touched] of activeRefreshes) {
+    if (path.startsWith(dir)) touched.add(path);
+  }
+}
+
+export async function finishSnapshotFolder(name) {
+  if (!process.env.UPDATE_SHOTS) return { pruned: 0 };
+  safeSnapshotPath(name);
+  const dir = SHOTS + name;
+  const key = dir.endsWith('/') ? dir : `${dir}/`;
+  const touched = activeRefreshes.get(key);
+  if (!touched) return { pruned: 0 };
+  let pruned = 0;
+  for await (const path of pngFiles(dir)) {
+    if (!touched.has(path)) {
+      await rm(path, { force: true });
+      pruned++;
+    }
+  }
+  activeRefreshes.delete(key);
+  return { pruned };
+}
+
+function samePixels(a, b) {
+  return a.width === b.width
+    && a.height === b.height
+    && Buffer.compare(a.data, b.data) === 0;
 }
 
 /** Tolerant by default: a per-pixel colour threshold absorbs anti-aliasing and
@@ -77,16 +129,25 @@ export async function snapCheck(page, name, check, { threshold = 0.12, maxDiffRa
   } catch {}
 
   if (!baseline || process.env.UPDATE_SHOTS) {
+    if (baseline && process.env.UPDATE_SHOTS) {
+      const cur = PNG.sync.read(shot);
+      markRefreshedSnapshot(basePath);
+      if (samePixels(baseline, cur)) {
+        check(`snapshot ${name}`, true, 'baseline unchanged');
+        return { status: 'unchanged' };
+      }
+    }
     await writeFile(basePath, shot);
+    markRefreshedSnapshot(basePath);
     check(`snapshot ${name}`, true, baseline ? 'baseline updated' : 'baseline created');
-    return;
+    return { status: baseline ? 'updated' : 'created' };
   }
 
   const cur = PNG.sync.read(shot);
   if (cur.width !== baseline.width || cur.height !== baseline.height) {
     check(`snapshot ${name}`, false,
       `size ${cur.width}x${cur.height} vs baseline ${baseline.width}x${baseline.height}`);
-    return;
+    return { status: 'failed' };
   }
   const diff = new PNG({ width: cur.width, height: cur.height });
   const differing = pixelmatch(baseline.data, cur.data, diff.data, cur.width, cur.height, { threshold });
@@ -99,4 +160,5 @@ export async function snapCheck(page, name, check, { threshold = 0.12, maxDiffRa
   }
   check(`snapshot ${name}`, ok,
     `${differing} px differ (${(ratio * 100).toFixed(4)}%)${ok ? '' : ` — see shots/diff/${name}.png`}`);
+  return { status: ok ? 'matched' : 'failed' };
 }

@@ -9,7 +9,7 @@
 import { chromium } from 'playwright';
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { clearSnapshotFolder, snapCheck } from '../snapshot.mjs';
+import { beginSnapshotFolderRefresh, finishSnapshotFolder, snapCheck } from '../snapshot.mjs';
 import { encodeGif, pngToRGBA, downscaleRGBA } from '../shots/_gif.mjs';
 import { GPU_HARDWARE_FLAGS, GPU_SWIFTSHADER_FLAGS } from '../renderer-probe-lib.mjs';
 
@@ -142,12 +142,22 @@ const TAIL_FRAMES = Number(process.env.VIBE_TAIL_FRAMES ?? 0);
 // pass. The PNGs stay the full-res regression baselines; the GIF is review-only.
 const GIF_DELAY_CS = 20;   // 200 ms per frame
 const GIF_DOWNSCALE = 2;   // 1280x800 -> 640x400
-function writeTimelineGif(name, shots) {
+function writeIfChanged(path, data) {
+  try {
+    if (Buffer.compare(fs.readFileSync(path), data) === 0) return false;
+  } catch {}
+  fs.writeFileSync(path, data);
+  return true;
+}
+
+function writeTimelineGif(name, shots, { preserveExisting = false } = {}) {
   if (shots.length === 0) return;
+  const path = `${SHOTS}vibe/${name}/timeline.gif`;
+  if (preserveExisting && fs.existsSync(path)) return;
   const frames = shots.map((buf) => downscaleRGBA(pngToRGBA(buf), GIF_DOWNSCALE));
   const gif = encodeGif(frames, frames[0].width, frames[0].height, GIF_DELAY_CS);
   fs.mkdirSync(`${SHOTS}vibe/${name}`, { recursive: true });
-  fs.writeFileSync(`${SHOTS}vibe/${name}/timeline.gif`, gif);
+  writeIfChanged(path, gif);
 }
 
 export async function vibeCapture(page, name, {
@@ -160,7 +170,7 @@ export async function vibeCapture(page, name, {
   // contiguous block, not scattered edges — we measured 5–8% for a 3-tick offset).
   threshold = 0.2, maxDiffRatio = 0.02,
 } = {}) {
-  await clearSnapshotFolder(`vibe/${name}`);
+  await beginSnapshotFolderRefresh(`vibe/${name}`);
   let fails = 0, frames = 0;
   const check = (label2, ok, detail) => {
     if (!ok) fails++;
@@ -173,6 +183,7 @@ export async function vibeCapture(page, name, {
   let post = -1; // -1 until the verdict frame; then counts frames filmed since
   const gifShots = []; // one screenshot per frame, reused for the timeline GIF
   let result;
+  let refreshedFrameChanged = false;
   for (let step = 0; ; step++) {
     if (frame) await frame();
     await page.waitForTimeout(120);
@@ -188,7 +199,8 @@ export async function vibeCapture(page, name, {
     // second capture pass, even under SNAP= (which filters the compare, not the film).
     const shot = await page.screenshot();
     gifShots.push(shot);
-    await snapCheck(page, `vibe/${name}/t${String(secs).padStart(3, '0')}s`, check, { threshold, maxDiffRatio, shot });
+    const snap = await snapCheck(page, `vibe/${name}/t${String(secs).padStart(3, '0')}s`, check, { threshold, maxDiffRatio, shot });
+    if (snap?.status === 'created' || snap?.status === 'updated') refreshedFrameChanged = true;
     frames++;
     if (post >= 0) post++;                       // optional post-verdict tail frame
     else if (done && done(s)) post = 0;          // this frame IS the verdict
@@ -196,6 +208,9 @@ export async function vibeCapture(page, name, {
     if (post < 0 && step >= maxSteps) { result = { frames, resolved: false, fails }; break; } // capped before a verdict
     await page.evaluate((n) => window.__game.advance(n), stepSecs * TPS);
   }
-  writeTimelineGif(name, gifShots);
+  const refresh = await finishSnapshotFolder(`vibe/${name}`);
+  writeTimelineGif(name, gifShots, {
+    preserveExisting: Boolean(process.env.UPDATE_SHOTS && !refreshedFrameChanged && refresh.pruned === 0),
+  });
   return result;
 }

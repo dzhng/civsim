@@ -57,7 +57,8 @@ and should stay deleted.
   `-actual.png` to judge a change, you may be staring at a stale image from an
   earlier failing run — a pass leaves it untouched. To inspect the *current*
   render, re-bless (`UPDATE_SHOTS=1`) and open the baseline, or screenshot the
-  page directly.
+  page directly. Re-blessing preserves the existing baseline file when the
+  decoded pixels are identical, even if the newly captured PNG bytes differ.
 - **Sub-percent raster wobble is expected.** The headless device is swiftshader
   (`google / swiftshader`); snaps carry documented sub-percent diffs that pass
   within tolerance. Re-blessing them just churns the same wobble back — don't.

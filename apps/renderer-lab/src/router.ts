@@ -2501,11 +2501,18 @@ async function routeBattleTerrain3d(ctx: LabContext) {
   const view = ctx.params.get('view') ?? 'field';
   const halfW = (w * cell) / 2;
   const midY = oy + (h * cell) / 2;
+  // For the soldiers view, find the steepest slope on the field so the block
+  // visibly climbs it; other views plant near the focus wood.
+  const slopeSpot = steepestSpot(field, ox, oy, w, h, cell);
+  const standX = Number(ctx.params.get('cx') ?? (view === 'soldiers' ? slopeSpot.x : focus ? focus.x + 220 : 0));
+  const standY = Number(ctx.params.get('cy') ?? (view === 'soldiers' ? slopeSpot.y : focus ? focus.y : 0));
   const camera = view === 'west'
     ? { x: -halfW + 360, y: midY, zoom: 0.95, pitch: 0.26, yaw: -Math.PI / 2 }
     : view === 'east'
       ? { x: halfW - 360, y: midY, zoom: 0.95, pitch: 0.26, yaw: Math.PI / 2 }
-      : { x: Number(ctx.params.get('cx') ?? focus?.x ?? 0), y: Number(ctx.params.get('cy') ?? focus?.y ?? 0) - 110, zoom: 3.3, pitch: 0.44, yaw: -0.05 };
+      : view === 'soldiers'
+        ? { x: standX, y: standY + 4, zoom: 9.0, pitch: 0.40, yaw: -0.04 }
+        : { x: Number(ctx.params.get('cx') ?? focus?.x ?? 0), y: Number(ctx.params.get('cy') ?? focus?.y ?? 0) - 110, zoom: 3.3, pitch: 0.44, yaw: -0.05 };
   const shell = await createConfiguredShell(ctx.canvas, camera);
   const ground = new BattleGroundPass(shell);
   ground.setTerrain(grid, field, presentation.groundCover);
@@ -2513,13 +2520,46 @@ async function routeBattleTerrain3d(ctx: LabContext) {
   props.upload(scenery);
   const horizon = new BattleHorizonPass(shell);
   horizon.setEdges({ ox, oy, w, h, cell }, presentation.edges, field);
+
+  // view=soldiers: plant a block on the rolling ground, seated through the SAME
+  // height field as the terrain mesh and props, so feet and shadows ride the
+  // surface (the slice-03 movement/seating invariant on the real source).
+  const terrainHeight = (x: number, y: number) => terrainHeightAt(field, x, y);
+  let soldiers: { pipeline: Awaited<ReturnType<typeof createSkinnedPipeline>>; shadows: BattleSoldierShadowPass; count: number; elevationMatches: boolean; elevationSpan: number } | null = null;
+  if (view === 'soldiers') {
+    const vat = await loadPlaceholderVat();
+    const cols = 16;
+    const rows = 12;
+    const positions = new Float32Array(cols * rows * 2);
+    const soldierUnit = new Uint32Array(cols * rows);
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const i = r * cols + c;
+        // Deep ranks running across the slope so the block climbs it.
+        positions[i * 2] = standX + (c - (cols - 1) / 2) * 2.0;
+        positions[i * 2 + 1] = standY + (r - (rows - 1) / 2) * 3.0;
+      }
+    }
+    const built = buildCrowdInstances({ positions, soldierUnit, unitClass: [0], terrainHeight, simTick: 90 });
+    const instances = built.instances.map((inst) => ({ ...inst, facing: Math.PI / 2 }));
+    const elevationMatches = instances.every((inst) => Math.abs((inst.elevation ?? 0) - terrainHeight(inst.x, inst.y)) < 1e-4);
+    const elevs = instances.map((i) => i.elevation ?? 0);
+    const pipeline = await createSkinnedPipeline(shell, [0.30, 0.36, 0.74], vat);
+    pipeline.upload(instances, { forcedClip: 'march', phaseOffset: 0, size: 1 });
+    const shadows = new BattleSoldierShadowPass(shell);
+    shadows.upload(instances);
+    soldiers = { pipeline, shadows, count: instances.length, elevationMatches, elevationSpan: Math.max(...elevs) - Math.min(...elevs) };
+  }
+
   shell.drawFrame({
     clear: { r: 0.74, g: 0.83, b: 0.90, a: 1 },
     passes: [
       { id: 'battle-3d-horizon', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => horizon.draw(pass) },
       { id: 'battle-3d-ground', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => ground.draw(pass) },
       { id: 'battle-3d-scenery', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => props.drawOpaque(pass) },
+      ...(soldiers ? [{ id: 'battle-3d-soldiers', role: 'world-opaque' as const, phase: 'world-depth' as const, depth: 'read-write' as const, draw: (pass: WorldRenderPass) => soldiers.pipeline.draw(pass) }] : []),
       { id: 'battle-3d-scenery-shadow', role: 'world-decal', phase: 'world-depth', depth: 'read', draw: (pass) => props.drawShadows(pass) },
+      ...(soldiers ? [{ id: 'battle-3d-soldier-shadow', role: 'world-decal' as const, phase: 'world-depth' as const, depth: 'read' as const, draw: (pass: WorldRenderPass) => soldiers.shadows.draw(pass) }] : []),
     ],
   });
 
@@ -2549,9 +2589,30 @@ async function routeBattleTerrain3d(ctx: LabContext) {
     trees: propStats.trees,
     rocks: propStats.rocks,
     heightSpan: heightSpan(presentation.height),
+    soldiers: soldiers?.count ?? 0,
+    soldierElevationMatches: soldiers?.elevationMatches ?? null,
+    soldierElevationSpan: soldiers?.elevationSpan ?? 0,
     depth: shell.stats().depth,
     framePhases: shell.stats().phases,
   });
+}
+
+// Scan the field for the spot with the steepest local slope, so a soldier block
+// planted there visibly climbs the relief.
+function steepestSpot(field: TerrainHeightField, ox: number, oy: number, w: number, h: number, cell: number) {
+  let best = { x: 0, y: 0, slope: -1 };
+  const x0 = ox + 200;
+  const x1 = ox + w * cell - 200;
+  const y0 = oy + 200;
+  const y1 = oy + h * cell - 200;
+  for (let x = x0; x < x1; x += 70) {
+    for (let y = y0; y < y1; y += 70) {
+      const dz = Math.abs(terrainHeightAt(field, x + 40, y) - terrainHeightAt(field, x - 40, y))
+        + Math.abs(terrainHeightAt(field, x, y + 40) - terrainHeightAt(field, x, y - 40));
+      if (dz > best.slope) best = { x, y, slope: dz };
+    }
+  }
+  return best;
 }
 
 async function routeBattleLive(ctx: LabContext) {

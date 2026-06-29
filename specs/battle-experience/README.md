@@ -110,14 +110,16 @@ Remaining slice 03 (build order):
   `battle-terrain-blockers.mjs` gates that each map's W/E read as the declared
   blocker. Still open: a dedicated north/south-fog scene if the haze read needs
   its own gate.
-- 03c PRODUCTION INTEGRATION (battle-baseline re-bless): `web/src/battle/scene.ts`
-  reads only `terrain_tint_ptr` today — add `terrain_height_ptr`, thread a
+- 03c PARTLY DONE: the elevation-placement proof — the `battle-terrain-3d` route's
+  `view=soldiers` plants a 192-man block on the steepest slope of each map, seated
+  through the SAME height field as the ground and props (`elevMatch` asserts each
+  soldier's elevation equals the sampled height); scene `battle-terrain-elevation.mjs`
+  gates it on all three maps. STILL OPEN — the production game renderer swap:
+  `web/src/battle/scene.ts` reads only `terrain_tint_ptr`; thread a
   `TerrainHeightField` through `renderer.setTerrain`, swap the flat terrain ground
-  for `BattleGroundPass` (reconcile with terrainPass water/scenery), and pass
-  `buildCrowdInstances({ terrainHeight })` so soldiers + shadows seat on it.
-  Generalize `web/scenes/system/battle-elevation.mjs` to the real map height
-  (the must-stay-green real-source gate). Re-bless battle-minimap/battle-selection
-  on hardware.
+  for `BattleGroundPass` + the scenery/horizon passes (reconcile with terrainPass
+  water), and pass `buildCrowdInstances({ terrainHeight })` in the live renderer.
+  Re-bless battle-minimap/battle-selection/battle-renderer-visual on hardware.
 - Remaining scenes: `battle-terrain-ground-cover`, `battle-terrain-rough-and-micro`,
   `battle-terrain-elevation-placement`. Every new/re-blessed shot runs the
   unbiased screenshot-critique (Review Map rule).

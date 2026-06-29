@@ -29,7 +29,13 @@ import { Nested3dFixturePass } from '../../../packages/game-renderer/src/fixture
 import { formatPerfSummary, makeFullGamePerfReport } from '../../../packages/game-renderer/src/perfReport';
 import { compileRenderGraph, fullGameRenderGraphReport, type RenderGraphPass } from '../../../packages/game-renderer/src/renderGraph';
 import { loadPlaceholderKit, loadPlaceholderVat, placeholderClipNames } from '../../../packages/soldier-assets/src/placeholders';
-import { createPlaceholderSoldierMeshes, createPlaceholderSoldierMeshTiers } from '../../../packages/soldier-assets/src/soldierMesh';
+import {
+  REAL_UNIT_CLASS_COUNT,
+  PLACEHOLDER_RENDER_CLASS_COUNT,
+  SHOCK_CAV_SIDEARM_CLASS,
+  createPlaceholderSoldierMeshes,
+  createPlaceholderSoldierMeshTiers,
+} from '../../../packages/soldier-assets/src/soldierMesh';
 import { badArtistPackFixture, validateRig, validateSoldierKit, type ImportedRig, type ValidationReport } from '../../../packages/soldier-assets/src/validate';
 import { bakeGltf } from '../../../packages/soldier-assets/bake/gltf.mjs';
 import type { VatBake, VatClip } from '../../../packages/soldier-assets/src/schema';
@@ -342,36 +348,45 @@ async function routeMountedUnits(ctx: LabContext) {
   const zoom = numberParam(ctx.params, 'zoom', 6);
   const shell = await createConfiguredShell(ctx.canvas, { x: 0, y: 0, zoom: 30, pitch: 0.16, yaw: 0 });
   const pipeline = await createSkinnedPipeline(shell, [0.20, 0.42, 0.88], vat);
-  // class 0 = foot; 6, 7, 14 = mounted archetypes. Each renders its own
-  // horse+rider placeholder mesh.
+  // class 0/14 = foot; 6, 7, and the render-only shock-cav sidearm are mounted
+  // archetypes. Each mounted class renders its own horse+rider placeholder mesh.
   const lineup = [
-    crowdInstance(-4.5, 0, 0, 'march', false),
-    crowdInstance(-1.5, 6, 0, 'march', true),
-    crowdInstance(1.5, 7, 1, 'march', true),
-    crowdInstance(4.5, 14, 1, 'march', true),
+    crowdInstance(-6.0, 0, 0, 'march', false),
+    crowdInstance(-3.0, 14, 0, 'march', false),
+    crowdInstance(0, 6, 0, 'march', true),
+    crowdInstance(3.0, 7, 1, 'march', true),
+    crowdInstance(6.0, SHOCK_CAV_SIDEARM_CLASS, 1, 'march', true),
   ];
   const lods = assignCrowdLods(lineup, zoom);
   const byClass = (id: number) => lods[lineup.findIndex((s) => s.classId === id)].screenSize;
   const footSize = byClass(0);
-  const mountedSizes = { 6: byClass(6), 7: byClass(7), 14: byClass(14) };
+  const phalanxSize = byClass(14);
+  const mountedSizes = { 6: byClass(6), 7: byClass(7), [SHOCK_CAV_SIDEARM_CLASS]: byClass(SHOCK_CAV_SIDEARM_CLASS) };
   const allMountedScaled = Object.values(mountedSizes).every((s) => s > footSize + 0.01);
-  const class14Scaled = mountedSizes[14] > footSize + 0.01;
-  const mountedEqual = mountedSizes[6] === mountedSizes[7] && mountedSizes[7] === mountedSizes[14];
+  const class14Foot = Math.abs(phalanxSize - footSize) < 0.01;
+  const sidearmScaled = mountedSizes[SHOCK_CAV_SIDEARM_CLASS] > footSize + 0.01;
+  const mountedEqual = mountedSizes[6] === mountedSizes[7] && mountedSizes[7] === mountedSizes[SHOCK_CAV_SIDEARM_CLASS];
 
   animateSkinned(shell, pipeline, () => lineup, { forcedClip: 'march', phaseSpeed: 0.6, size: 1 });
   ctx.status.innerHTML = reportTable({
     route: 'mounted-units',
     'foot LOD size': footSize.toFixed(2),
-    'cav 6 / 7 / 14 size': `${mountedSizes[6].toFixed(2)} / ${mountedSizes[7].toFixed(2)} / ${mountedSizes[14].toFixed(2)}`,
+    'foot 0 / phalanx 14 size': `${footSize.toFixed(2)} / ${phalanxSize.toFixed(2)}`,
+    [`cav 6 / 7 / ${SHOCK_CAV_SIDEARM_CLASS} size`]: `${mountedSizes[6].toFixed(2)} / ${mountedSizes[7].toFixed(2)} / ${mountedSizes[SHOCK_CAV_SIDEARM_CLASS].toFixed(2)}`,
     'all mounted scale': allMountedScaled,
-    'class 14 scaled (was missing)': class14Scaled,
+    'class 14 remains foot': class14Foot,
+    [`class ${SHOCK_CAV_SIDEARM_CLASS} scaled`]: sidearmScaled,
   });
   publish('mounted-units', true, {
     route: 'mounted-units',
     footSize,
+    phalanxSize,
     mountedSizes,
     allMountedScaled,
-    class14Scaled,
+    class14Foot,
+    sidearmScaled,
+    sidearmClass: SHOCK_CAV_SIDEARM_CLASS,
+    realUnitClassCount: REAL_UNIT_CLASS_COUNT,
     mountedEqual,
     mountedFlags: lineup.map((s) => ({ classId: s.classId, mounted: s.mounted })),
   });
@@ -381,7 +396,7 @@ async function routeSoldierMaterials(ctx: LabContext) {
   const vat = await loadPlaceholderVat();
   const strength = numberParam(ctx.params, 'strength', 1);
   const faction = integerParam(ctx.params, 'team', 0, 0, 1) as 0 | 1;
-  const classId = integerParam(ctx.params, 'class', 0, 0, 14);
+  const classId = integerParam(ctx.params, 'class', 0, 0, PLACEHOLDER_RENDER_CLASS_COUNT - 1);
   const shell = await createConfiguredShell(ctx.canvas, { x: 0, y: 0, zoom: 86, pitch: 0.10, yaw: 0 });
   const pipeline = await createSkinnedPipeline(shell, [0.20, 0.42, 0.88], vat);
   pipeline.setFactionMaskStrength(strength);
@@ -937,7 +952,7 @@ async function routeAnimationState(ctx: LabContext) {
 async function routeSkinnedSoldier(ctx: LabContext) {
   const vat = await loadPlaceholderVat();
   const phase = numberParam(ctx.params, 'phase', 0);
-  const classId = integerParam(ctx.params, 'class', 0, 0, 14);
+  const classId = integerParam(ctx.params, 'class', 0, 0, PLACEHOLDER_RENDER_CLASS_COUNT - 1);
   const frame = integerParam(ctx.params, 'frame', 1, 0, 11);
   const faction = integerParam(ctx.params, 'team', 0, 0, 1) as 0 | 1;
   const facing = numberParam(ctx.params, 'facing', Math.PI / 2);

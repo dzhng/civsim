@@ -46,7 +46,7 @@ export async function run(ctx) {
     );
     ctx.check(
       'lod-tiers: the pipeline builds a resource per (class, lod) tier',
-      stats.meshVariants === 45,
+      stats.meshVariants === 60,
       JSON.stringify({ meshVariants: stats.meshVariants }),
     );
 

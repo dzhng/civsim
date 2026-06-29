@@ -84,6 +84,8 @@ export class BattleRenderer {
     alive: Float32Array,
     count: number,
     camera: Camera,
+    renderClass?: Uint8Array | number[] | null,
+    simTick?: number,
   ) {
     if (!this.shell || !this.crowd) return;
     const frameKey = this.fixedTime !== null
@@ -106,8 +108,9 @@ export class BattleRenderer {
       soldierUnit: this.soldierUnit,
       unitTeam: this.unitTeam,
       unitClass: this.unitClass,
+      renderClass: renderClass ?? undefined,
       mountedClasses: this.mountedClasses,
-      simTick: Math.floor((this.fixedTime ?? performance.now() / 1000) * 30),
+      simTick: simTick ?? Math.floor((this.fixedTime ?? performance.now() / 1000) * 30),
       count,
     });
     const buildEnd = performance.now();
@@ -118,7 +121,7 @@ export class BattleRenderer {
         y: inst.y,
         facing: inst.facing,
         faction: inst.faction,
-        size: inst.classId === 6 || inst.classId === 7 ? 1.45 : 1.1,
+        size: inst.mounted ? 1.45 : 1.1,
         lod: 3,
       }));
     } else {

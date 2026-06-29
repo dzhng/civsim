@@ -39,21 +39,21 @@ export function animationForFrame(frame: number, tick: number, seed: number, ali
     return { clip: 'death_a', phase: clamp01(deathAge), loop: false, deathVariant: seed % 3 };
   }
   if (frame === FRAME_ATTACK || frame === 11) {
-    return { clip: 'attack_a', phase: fract(beat * 1.35), loop: false, deathVariant: 0 };
+    return { clip: 'attack_a', phase: fract(beat * 0.75), loop: false, deathVariant: 0 };
   }
   if (frame === FRAME_HIT) {
-    return { clip: 'hit_a', phase: fract(beat * 2.1), loop: false, deathVariant: 0 };
+    return { clip: 'hit_a', phase: fract(beat * 1.1), loop: false, deathVariant: 0 };
   }
   if (frame === FRAME_RUN_A || frame === FRAME_RUN_B) {
-    return { clip: 'run', phase: fract(beat * 1.55 + (frame === FRAME_RUN_B ? 0.5 : 0)), loop: true, deathVariant: 0 };
+    return { clip: 'run', phase: fract(beat * 0.85 + (frame === FRAME_RUN_B ? 0.5 : 0)), loop: true, deathVariant: 0 };
   }
   if (frame === 1 || frame === 2) {
-    return { clip: 'march', phase: fract(beat + (frame === 2 ? 0.5 : 0)), loop: true, deathVariant: 0 };
+    return { clip: 'march', phase: fract(beat * 0.62 + (frame === 2 ? 0.5 : 0)), loop: true, deathVariant: 0 };
   }
   if (frame === FRAME_AT_EASE || frame === FRAME_STOW) {
     return { clip: 'at_ease', phase: 0, loop: true, deathVariant: 0 };
   }
-  return { clip: 'idle', phase: fract(beat * 0.2), loop: true, deathVariant: 0 };
+  return { clip: 'idle', phase: fract(beat * 0.08), loop: true, deathVariant: 0 };
 }
 
 export function animationForSoldierFrame(frame: number, opts: {
@@ -71,4 +71,3 @@ export function animationForSoldierFrame(frame: number, opts: {
     opts.deathAge ?? 1,
   );
 }
-

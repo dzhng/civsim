@@ -12,7 +12,19 @@ type Rgba = [number, number, number, number];
 type Armor = 'heavy' | 'medium' | 'light' | 'cloth' | 'rag';
 type Helmet = 'crested' | 'bronze' | 'cap' | 'hood' | 'bare';
 type Shield = 'tall' | 'round' | 'small' | 'none';
-type Weapon = 'sword' | 'spear' | 'greatsword' | 'pike' | 'bow' | 'javelin' | 'lance' | 'artillery' | 'none';
+type Weapon =
+  | 'sword'
+  | 'spear'
+  | 'greatsword'
+  | 'pike'
+  | 'pike_upright'
+  | 'pike_sidearm'
+  | 'bow'
+  | 'javelin'
+  | 'lance'
+  | 'lance_sidearm'
+  | 'artillery'
+  | 'none';
 
 interface PlaceholderLook {
   armor: Armor;
@@ -38,7 +50,20 @@ const PLACEHOLDER_LOOKS: PlaceholderLook[] = [
   { weapon: 'sword', shield: 'round', armor: 'medium', helmet: 'bronze', mounted: false },
   { weapon: 'spear', shield: 'round', armor: 'medium', helmet: 'bronze', mounted: false },
   { weapon: 'pike', shield: 'small', armor: 'medium', helmet: 'bronze', mounted: false },
+  { weapon: 'lance_sidearm', shield: 'round', armor: 'heavy', helmet: 'crested', mounted: true },
+  { weapon: 'pike_upright', shield: 'small', armor: 'heavy', helmet: 'crested', mounted: false },
+  { weapon: 'pike_upright', shield: 'small', armor: 'medium', helmet: 'bronze', mounted: false },
+  { weapon: 'pike_sidearm', shield: 'small', armor: 'heavy', helmet: 'crested', mounted: false },
+  { weapon: 'pike_sidearm', shield: 'small', armor: 'medium', helmet: 'bronze', mounted: false },
 ];
+
+export const REAL_UNIT_CLASS_COUNT = 15;
+export const SHOCK_CAV_SIDEARM_CLASS = REAL_UNIT_CLASS_COUNT;
+export const HEAVY_PHALANX_REST_CLASS = REAL_UNIT_CLASS_COUNT + 1;
+export const MEDIUM_PHALANX_REST_CLASS = REAL_UNIT_CLASS_COUNT + 2;
+export const HEAVY_PHALANX_SIDEARM_CLASS = REAL_UNIT_CLASS_COUNT + 3;
+export const MEDIUM_PHALANX_SIDEARM_CLASS = REAL_UNIT_CLASS_COUNT + 4;
+export const PLACEHOLDER_RENDER_CLASS_COUNT = PLACEHOLDER_LOOKS.length;
 
 function addBox(
   out: number[],
@@ -170,14 +195,33 @@ function addShield(out: number[], indices: number[], shield: Shield, accent: Rgb
 
 function addWeapon(out: number[], indices: number[], weapon: Weapon, mounted: boolean, wood: Rgba, bronze: Rgba, lift: number) {
   const z = 1.36 + lift;
+  const addUprightPole = (x: number, baseZ: number, height: number) => {
+    addBox(out, indices, [x, 0.01, baseZ + height * 0.5], [0.060, 0.060, height], 1, wood);
+    addBox(out, indices, [x, 0.01, baseZ + height + 0.08], [0.090, 0.090, 0.16], 1, bronze);
+  };
+  const addSword = () => {
+    addBox(out, indices, [0.43, 0.28, z], [0.065, 0.62, 0.065], 4, bronze);
+    addBox(out, indices, [0.43, -0.04, z - 0.03], [0.18, 0.050, 0.050], 4, wood);
+  };
   switch (weapon) {
     case 'pike':
       addBox(out, indices, [0.42, 0.78, z + 0.02], [0.055, 1.85, 0.055], 4, wood);
       addBox(out, indices, [0.42, 1.74, z + 0.02], [0.085, 0.15, 0.085], 4, bronze);
       break;
+    case 'pike_upright':
+      addUprightPole(0.36, 0.36 + lift * 0.34, 2.70);
+      break;
+    case 'pike_sidearm':
+      addUprightPole(-0.34, 0.36 + lift * 0.34, 2.70);
+      addSword();
+      break;
     case 'lance':
       addBox(out, indices, [0.43, 0.90, z + 0.02], [0.055, 1.72, 0.055], 4, wood);
       addBox(out, indices, [0.43, 1.78, z + 0.02], [0.085, 0.14, 0.085], 4, bronze);
+      break;
+    case 'lance_sidearm':
+      addUprightPole(-0.34, 0.82, 2.25);
+      addSword();
       break;
     case 'spear':
       addBox(out, indices, [0.43, 0.56, z + 0.02], [0.055, 1.20, 0.055], 4, wood);
@@ -192,8 +236,7 @@ function addWeapon(out: number[], indices: number[], weapon: Weapon, mounted: bo
       addBox(out, indices, [0.43, -0.18, z - 0.03], [0.20, 0.055, 0.055], 4, wood);
       break;
     case 'sword':
-      addBox(out, indices, [0.43, 0.28, z], [0.065, 0.62, 0.065], 4, bronze);
-      addBox(out, indices, [0.43, -0.04, z - 0.03], [0.18, 0.050, 0.050], 4, wood);
+      addSword();
       break;
     case 'bow':
       addBox(out, indices, [0.46, 0.22, z + 0.18], [0.060, 0.74, 0.050], 4, wood);

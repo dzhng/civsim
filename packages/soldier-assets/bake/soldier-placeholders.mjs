@@ -116,7 +116,12 @@ function kitJson(baked) {
       11: archetype('heavy-spear', 'heavy', 'crest', 'tall', 'spear'),
       12: archetype('medium-infantry', 'medium', 'bronze', 'round', 'sword'),
       13: archetype('medium-spear', 'medium', 'bronze', 'round', 'spear'),
-      14: archetype('shock-cav-sidearm', 'heavy', 'crest', 'round', 'sword', true),
+      14: archetype('medium-phalanx', 'medium', 'bronze', 'small', 'pike'),
+      15: archetype('shock-cav-sidearm', 'heavy', 'crest', 'round', 'lance_sidearm', true),
+      16: archetype('heavy-phalanx-rest', 'heavy', 'crest', 'small', 'pike_upright'),
+      17: archetype('medium-phalanx-rest', 'medium', 'bronze', 'small', 'pike_upright'),
+      18: archetype('heavy-phalanx-sidearm', 'heavy', 'crest', 'small', 'pike_sidearm'),
+      19: archetype('medium-phalanx-sidearm', 'medium', 'bronze', 'small', 'pike_sidearm'),
     },
     materials: {
       channels: ['albedo', 'normal', 'orm', 'factionMask'],

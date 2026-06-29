@@ -35,8 +35,8 @@ export function assignLodForScreenSize(screenSize: number, policy = DEFAULT_LOD_
 
 export function assignCrowdLods(instances: CrowdInstance[], zoom: number, policy = DEFAULT_LOD_POLICY): LodAssignment[] {
   return instances.map((inst) => {
-    // Every mounted class is taller on screen — drive the scale off the mount
-    // flag, not a hardcoded class list that missed cavalry class 14.
+    // Every mounted class is taller on screen; drive the scale off the mount
+    // flag, not a hardcoded class list.
     const mountedScale = inst.mounted ? 1.45 : 1;
     const screenSize = zoom * mountedScale * 1.8;
     return { level: assignLodForScreenSize(screenSize, policy), screenSize };
@@ -93,4 +93,3 @@ export function countLods(assignments: LodAssignment[]): LodCounts {
   for (const a of assignments) counts[`l${a.level}` as keyof LodCounts]++;
   return counts;
 }
-

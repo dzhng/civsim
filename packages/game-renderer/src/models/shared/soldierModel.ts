@@ -26,9 +26,12 @@ export const CLASS_LOOK: ClassLook[] = [
   { weapon: 'sword', shield: 'round', armor: 'medium', helmet: 'bronze', crest: true, mounted: false },
   { weapon: 'spear', shield: 'round', armor: 'medium', helmet: 'bronze', crest: true, mounted: false },
   { weapon: 'pike', shield: 'small', armor: 'medium', helmet: 'bronze', crest: true, mounted: false },
+  { weapon: 'sword', shield: 'round', armor: 'heavy', helmet: 'crested', crest: true, mounted: true },
 ];
 
-export const CLASS_MODEL_LOOK: number[] = CLASS_LOOK.map((_, i) => i);
+export const REAL_UNIT_CLASS_COUNT = 15;
+export const SHOCK_CAV_SIDEARM_LOOK = REAL_UNIT_CLASS_COUNT;
+export const CLASS_MODEL_LOOK: number[] = CLASS_LOOK.slice(0, REAL_UNIT_CLASS_COUNT).map((_, i) => i);
 export const UNIT_CLASS_LOOK_COUNT = CLASS_MODEL_LOOK.length;
 export const MODEL_LOOK_COUNT = CLASS_LOOK.length;
 

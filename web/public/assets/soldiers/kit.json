@@ -237,6 +237,17 @@
       "material": "medium"
     },
     "14": {
+      "name": "medium-phalanx",
+      "skeleton": "human-placeholder",
+      "pieces": [
+        "body_medium",
+        "head_bronze",
+        "shield_small",
+        "weapon_pike"
+      ],
+      "material": "medium"
+    },
+    "15": {
       "name": "shock-cav-sidearm",
       "skeleton": "human-placeholder",
       "mount": "horse-placeholder",
@@ -244,9 +255,53 @@
         "body_heavy",
         "head_crest",
         "shield_round",
-        "weapon_sword"
+        "weapon_lance_sidearm"
       ],
       "material": "heavy"
+    },
+    "16": {
+      "name": "heavy-phalanx-rest",
+      "skeleton": "human-placeholder",
+      "pieces": [
+        "body_heavy",
+        "head_crest",
+        "shield_small",
+        "weapon_pike_upright"
+      ],
+      "material": "heavy"
+    },
+    "17": {
+      "name": "medium-phalanx-rest",
+      "skeleton": "human-placeholder",
+      "pieces": [
+        "body_medium",
+        "head_bronze",
+        "shield_small",
+        "weapon_pike_upright"
+      ],
+      "material": "medium"
+    },
+    "18": {
+      "name": "heavy-phalanx-sidearm",
+      "skeleton": "human-placeholder",
+      "pieces": [
+        "body_heavy",
+        "head_crest",
+        "shield_small",
+        "weapon_pike_sidearm"
+      ],
+      "material": "heavy"
+    },
+    "19": {
+      "name": "medium-phalanx-sidearm",
+      "skeleton": "human-placeholder",
+      "pieces": [
+        "body_medium",
+        "head_bronze",
+        "shield_small",
+        "weapon_pike_sidearm"
+      ],
+      "material": "medium"
     }
   },
   "materials": {

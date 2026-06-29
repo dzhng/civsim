@@ -8,6 +8,8 @@ export interface CrowdBuildInputs {
   soldierUnit?: Uint32Array;
   unitTeam?: Uint8Array | number[];
   unitClass?: Uint8Array | number[];
+  /** Optional per-soldier render-only class override for weapon-state variants. */
+  renderClass?: Uint8Array | number[];
   simTick?: number;
   count?: number;
   /** Class ids that ride a mount (from archetype.mount). Drives `mounted`. */
@@ -62,7 +64,7 @@ export function buildCrowdInstances(inputs: CrowdBuildInputs): CrowdInstanceBuff
   for (let i = 0; i < count; i++) {
     const unit = inputs.soldierUnit?.[i] ?? 0;
     const faction = ((inputs.unitTeam?.[unit] ?? 0) === 1 ? 1 : 0) as 0 | 1;
-    const classId = inputs.unitClass?.[unit] ?? 0;
+    const classId = inputs.renderClass?.[i] ?? inputs.unitClass?.[unit] ?? 0;
     const alive = (inputs.alive?.[i] ?? 1) > 0.5;
     const frame = inputs.frames?.[i] ?? 0;
     const anim = animationForSoldierFrame(frame, {
@@ -155,4 +157,3 @@ export function generatedFormation(count: number, opts: {
   }
   return out;
 }
-

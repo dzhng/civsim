@@ -32,12 +32,13 @@ const YAW = -0.08;
 const CLASS_NAMES = [
   'heavy-sword', 'light-spear', 'longsword', 'phalanx', 'archers', 'skirmishers',
   'shock-cav', 'horse-archers', 'artillery', 'peasant', 'light-sword', 'heavy-spear',
-  'medium-infantry', 'medium-spear', 'shock-cav-sidearm',
+  'medium-infantry', 'medium-spear', 'medium-phalanx', 'shock-cav-sidearm',
+  'heavy-phalanx-rest', 'medium-phalanx-rest', 'heavy-phalanx-sidearm', 'medium-phalanx-sidearm',
 ];
 
 // Tallest extent (metres) of each model at ease, so each class is framed to its
 // own height — a phalanx's 3.4 m pike and a peasant's knife both fill the frame.
-const CLASS_H = [1.75, 2.05, 1.85, 3.5, 1.75, 1.6, 3.4, 2.6, 1.7, 1.55, 1.75, 2.05, 1.9, 2.05, 3.1];
+const CLASS_H = [1.75, 2.05, 1.85, 3.5, 1.75, 1.6, 3.4, 2.6, 1.7, 1.55, 1.75, 2.05, 1.9, 2.05, 3.1, 3.4, 3.5, 3.1, 3.5, 3.1];
 const REVIEW_H = [...CLASS_H];
 REVIEW_H[3] = 3.2;
 REVIEW_H[6] = 3.05;

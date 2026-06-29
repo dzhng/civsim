@@ -20,6 +20,16 @@ pub use campaign_bind::*;
 ///  centroid_x, centroid_y, render_look]
 pub const UNIT_INFO_STRIDE: usize = 33;
 
+/// Quick-battle map selector: 0 RiverAndCrags, 1 WalledPlain, 2 CoastalScrub.
+/// Out-of-range falls back to the first map.
+fn map_id_from_index(map: u32) -> MapId {
+    match map {
+        1 => MapId::WalledPlain,
+        2 => MapId::CoastalScrub,
+        _ => MapId::RiverAndCrags,
+    }
+}
+
 #[wasm_bindgen]
 pub struct Game {
     battle: Battle,
@@ -119,14 +129,9 @@ impl Game {
             .set_move_order(unit as usize, Vec2::new(x, y));
     }
 
-    /// 0 = RiverAndCrags, anything else = WalledPlain.
+    /// 0 = RiverAndCrags, 1 = WalledPlain, 2 = CoastalScrub.
     pub fn load_map(&mut self, map: u32) {
-        let id = if map == 0 {
-            MapId::RiverAndCrags
-        } else {
-            MapId::WalledPlain
-        };
-        self.battle.sim.terrain = build_map(id);
+        self.battle.sim.terrain = build_map(map_id_from_index(map));
     }
 
     /// Tiny vibe-check fields: 0 = 1v1 heavies, 1 = 5v5 mixed inf + cav.
@@ -228,12 +233,7 @@ impl Game {
 
     /// Build terrain AND deploy both full armies.
     pub fn start_battle(&mut self, map: u32) {
-        let id = if map == 0 {
-            MapId::RiverAndCrags
-        } else {
-            MapId::WalledPlain
-        };
-        setup_battle(&mut self.battle.sim, id);
+        setup_battle(&mut self.battle.sim, map_id_from_index(map));
         self.refresh_unit_info();
     }
 
@@ -271,6 +271,12 @@ impl Game {
 
     pub fn terrain_tint_ptr(&self) -> *const u8 {
         self.battle.sim.terrain.tint.as_ptr()
+    }
+
+    /// Per-cell ground elevation in meters (presentation/seating only). Same
+    /// width*height layout and origin as the other terrain channels.
+    pub fn terrain_height_ptr(&self) -> *const f32 {
+        self.battle.sim.terrain.height.as_ptr()
     }
 
     /// 0 = walk, anything else = run.

@@ -7,10 +7,15 @@ use crate::terrain::Terrain;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum MapId {
-    /// Mountains seal the north flank, a broad river the south.
+    /// Crag wall seals the west flank, a broad river the east; rolling green
+    /// plain between, open north and south.
     RiverAndCrags,
-    /// A city wall runs the north edge; cliffs and deep forest the south.
+    /// A city wall seals the west edge; cliffs and deep forest the east. Gently
+    /// rolling farmland between, open north and south.
     WalledPlain,
+    /// A dry coast: ocean seals the west, sea-cliffs the east. Sun-bleached
+    /// scrub over low dunes with a mud lowland lane, open north and south.
+    CoastalScrub,
 }
 
 /// World extents: the armies fight along Y (player south, enemy north);
@@ -74,6 +79,12 @@ pub fn build(map: MapId) -> Terrain {
             // A pair of rocky outcrops to anchor a line on.
             t.paint_blob(Vec2::new(380.0, -180.0), 26.0, 0.0, 0.0, 2, 0x6B);
             t.paint_blob(Vec2::new(-260.0, 140.0), 30.0, 0.0, 0.0, 2, 0x92);
+            // Gentle relief: a broad central rise under the hill blob, a low
+            // ridge running the west-of-center, and a shallow fall toward the
+            // river — rolling ground, nothing a line cannot cross.
+            t.add_rise(Vec2::new(30.0, 0.0), 380.0, 5.0);
+            t.add_ridge(Vec2::new(-420.0, -620.0), Vec2::new(-220.0, 420.0), 220.0, 3.5);
+            t.add_rise(Vec2::new(720.0, -120.0), 440.0, -3.0);
         }
         MapId::WalledPlain => {
             // West flank: the city wall — a hard line with towers.
@@ -117,6 +128,49 @@ pub fn build(map: MapId) -> Terrain {
             t.paint_blob(Vec2::new(330.0, 40.0), 110.0, 0.7, 0.6, 4, 0x33);
             t.paint_blob(Vec2::new(-560.0, -620.0), 120.0, 0.7, 0.6, 4, 0x88);
             t.paint_blob(Vec2::new(160.0, 720.0), 100.0, 0.7, 0.6, 4, 0xE1);
+            // Gently rolling farmland: two soft swells and a low bank along the
+            // near orchard, so the plain breathes without breaking the line.
+            t.add_rise(Vec2::new(-220.0, 200.0), 400.0, 4.5);
+            t.add_rise(Vec2::new(320.0, -300.0), 360.0, 3.5);
+            t.add_ridge(Vec2::new(-680.0, -220.0), Vec2::new(-180.0, -220.0), 150.0, 2.5);
+        }
+        MapId::CoastalScrub => {
+            // West flank: the sea — open water with a shelving, rocky shore.
+            t.paint_rect_tinted(
+                Vec2::new(-1260.0, -800.0),
+                Vec2::new(-1120.0, 800.0),
+                0.0,
+                0.0,
+                1,
+            );
+            for k in -54..=54 {
+                let y = k as f32 * 30.0;
+                let r = 22.0 + jitter(k, 17) * 20.0;
+                t.paint_circle_tinted(Vec2::new(-1108.0 + jitter(k, 29) * 22.0, y), r, 0.0, 0.0, 2);
+            }
+            // East flank: sea-cliffs with a scree apron at their foot.
+            for k in -54..=54 {
+                let y = k as f32 * 30.0;
+                let r = 40.0 + jitter(k, 3) * 32.0;
+                t.paint_circle_tinted(Vec2::new(1206.0 - jitter(k, 13) * 22.0, y), r, 0.0, 0.0, 2);
+            }
+            t.paint_rect_tinted(
+                Vec2::new(1090.0, -800.0),
+                Vec2::new(1118.0, 800.0),
+                0.6,
+                0.4,
+                6,
+            );
+            // A mud lowland lane cutting the scrub, and two rocky outcrops to
+            // anchor a line on — the field otherwise stays open dry grass.
+            t.paint_blob(Vec2::new(-120.0, -120.0), 150.0, 0.55, 0.3, 5, 0x4F);
+            t.paint_blob(Vec2::new(540.0, 260.0), 30.0, 0.0, 0.0, 2, 0xB5);
+            t.paint_blob(Vec2::new(-440.0, 420.0), 26.0, 0.0, 0.0, 2, 0x2C);
+            // Low dunes roll across the scrub; the mud lane sits in a shallow
+            // hollow so it reads as drained lowland, not a puddle on a flat.
+            t.add_rise(Vec2::new(260.0, 120.0), 420.0, 4.0);
+            t.add_ridge(Vec2::new(80.0, -780.0), Vec2::new(320.0, 780.0), 240.0, 3.0);
+            t.add_rise(Vec2::new(-120.0, -120.0), 240.0, -2.5);
         }
     }
     t

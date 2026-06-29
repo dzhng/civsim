@@ -180,6 +180,14 @@ pub enum PaintOp {
         rough: f32,
         tint: u8,
     },
+    /// Gentle elevation: a smooth dome (or dip, negative amplitude) of relief in
+    /// meters, easing to zero by `radius`. Additive and height-only — it never
+    /// changes speed/rough/tint, so relief and passability stay independent.
+    Rise {
+        center: [f32; 2],
+        radius: f32,
+        amplitude: f32,
+    },
 }
 
 /// One campaign unit entering a battle. `id` is campaign-side identity,

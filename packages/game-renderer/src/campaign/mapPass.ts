@@ -1202,7 +1202,7 @@ function pushRoadJunctionCaps(out: number[], data: CampaignMapInputData, roads: 
   return caps;
 }
 
-function smoothRoadCenterline(points: [number, number][]) {
+export function smoothRoadCenterline(points: [number, number][]) {
   if (points.length <= 2) return points;
   const smoothed: [number, number][] = [points[0]];
   for (let i = 1; i + 1 < points.length; i++) {

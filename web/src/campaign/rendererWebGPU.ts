@@ -1,6 +1,6 @@
 import { CampaignCloudPass, CampaignFogPass, type CampaignFogSource } from '../../../packages/game-renderer/src/campaign/atmospherePass';
 import { CampaignEntityPass, type CampaignEntityInstance } from '../../../packages/game-renderer/src/campaign/entityPass';
-import { buildCampaignMapDrawData, CampaignLabelPass, type CampaignLabelPassStats, CampaignMapPass, CampaignMarkerPass, CampaignRoadPass, CampaignWorldLinePass, type CampaignLabel, type CampaignMapStats, type CampaignMarker } from '../../../packages/game-renderer/src/campaign/mapPass';
+import { buildCampaignMapDrawData, CampaignLabelPass, type CampaignLabelPassStats, CampaignMapPass, CampaignMarkerPass, CampaignRoadPass, CampaignWorldLinePass, smoothRoadCenterline, type CampaignLabel, type CampaignMapStats, type CampaignMarker } from '../../../packages/game-renderer/src/campaign/mapPass';
 import { CampaignSceneryPass, type CampaignSceneryInstance } from '../../../packages/game-renderer/src/campaign/sceneryPass';
 import { CampaignSelectionPass, type CampaignSelectionInstance } from '../../../packages/game-renderer/src/campaign/selectionPass';
 import { campaignBorderVertices, CampaignTerritoryPass } from '../../../packages/game-renderer/src/campaign/territoryPass';
@@ -717,6 +717,7 @@ function campaignScenery(candidates: CampaignSceneryInstance[], reservations: Ca
 
 const CART_MIN_SCALE = 3.2;
 const CART_SPACING_KM = 78;
+const CART_CITY_CLEARANCE_KM = 7; // keep carts off the city footprints at each spline end
 
 // Road life: a handful of trade carts riding the road splines. Their position is
 // a function of scene time, so they crawl along when the campaign runs and sit
@@ -728,10 +729,9 @@ function campaignRoadCarts(data: CampaignData, field: TerrainField, time: number
   const carts: CampaignSceneryInstance[] = [];
   data.map.edges.forEach((edge, e) => {
     if (edge.kind !== 'road' || !edge.via || edge.via.length < 2) return;
-    // Match the rendered road: the road pass smooths its centerline (0.72/0.14/
-    // 0.14 over neighbours), so sample the same smoothed line or the cart sits
+    // Ride the same smoothed centerline the road pass draws, or the cart sits
     // off in the grass beside the visible ribbon.
-    const via = smoothRoadVia(edge.via);
+    const via = smoothRoadCenterline(edge.via);
     const segLen: number[] = [];
     let total = 0;
     for (let i = 1; i < via.length; i++) {
@@ -746,7 +746,7 @@ function campaignRoadCarts(data: CampaignData, field: TerrainField, time: number
       const dir = hash2(e * 3 + c, 7) < 0.5 ? 1 : -1;
       const speed = 0.6 + hash2(e + c, e * 2 + 1) * 0.5; // km/s along the spline
       const dist = (((phase + (time * speed * dir) / total) % 1) + 1) % 1 * total;
-      if (dist < 7 || total - dist < 7) continue; // keep clear of the city footprints
+      if (dist < CART_CITY_CLEARANCE_KM || total - dist < CART_CITY_CLEARANCE_KM) continue;
       let acc = 0;
       for (let i = 1; i < via.length; i++) {
         const d = segLen[i - 1];
@@ -773,20 +773,6 @@ function campaignRoadCarts(data: CampaignData, field: TerrainField, time: number
     }
   });
   return carts;
-}
-
-// Mirror of mapPass smoothRoadCenterline so carts ride the rendered road.
-function smoothRoadVia(points: [number, number][]): [number, number][] {
-  if (points.length <= 2) return points;
-  const out: [number, number][] = [points[0]];
-  for (let i = 1; i + 1 < points.length; i++) {
-    const p = points[i];
-    const a = points[i - 1];
-    const b = points[i + 1];
-    out.push([p[0] * 0.72 + a[0] * 0.14 + b[0] * 0.14, p[1] * 0.72 + a[1] * 0.14 + b[1] * 0.14]);
-  }
-  out.push(points[points.length - 1]);
-  return out;
 }
 
 function buildCampaignSceneryCandidates(data: CampaignData, field: TerrainField): CampaignSceneryInstance[] {
@@ -1057,10 +1043,12 @@ function sceneryReservationRadius(item: CampaignSceneryInstance) {
   return Math.max(1.6, item.size * 0.24);
 }
 
+// Only the candidate scenery (mountains/trees/rocks) flows through this LoD
+// filter. Carts are gated by their own scale check in campaignRoadCarts and
+// never reach here.
 function sceneryMinScale(item: CampaignSceneryInstance) {
   if (item.kind === 'mountain') return CAMPAIGN_MOUNTAIN_MIN_SCALE;
   if (item.kind === 'rock') return CAMPAIGN_ROCK_MIN_SCALE;
-  if (item.kind === 'cart') return CART_MIN_SCALE;
   return CAMPAIGN_TREE_MIN_SCALE;
 }
 

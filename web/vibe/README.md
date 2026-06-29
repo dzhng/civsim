@@ -1,10 +1,11 @@
 # Vibe checks
 
 Each vibe scenario spawns a battle and **films a timeline** — a frame every N
-sim-seconds, from the approach through contact, the grind, the break, and a few
-frames past the verdict (so you always see *how* the loser routs: a clump
-fleeing home, not a scatter). You flip through the frames to see whether a fight
-looks like a fight.
+sim-seconds, from the approach through contact, the grind, and the break. By
+default the capture stops on the verdict frame so the committed shots stay
+framed around the fight; set `VIBE_TAIL_FRAMES` when you intentionally want
+aftermath frames. You flip through the frames to see whether a fight looks like
+a fight.
 
 Every frame is **also a committed pixel-regression baseline.** There is no
 longer a "review-only" tier: a vibe frame is at once the picture you eyeball,

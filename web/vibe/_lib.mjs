@@ -190,7 +190,7 @@ export async function vibeCapture(page, name, {
     gifShots.push(shot);
     await snapCheck(page, `vibe/${name}/t${String(secs).padStart(3, '0')}s`, check, { threshold, maxDiffRatio, shot });
     frames++;
-    if (post >= 0) post++;                       // already past the verdict: film the tail
+    if (post >= 0) post++;                       // optional post-verdict tail frame
     else if (done && done(s)) post = 0;          // this frame IS the verdict
     if (post >= TAIL_FRAMES) { result = { frames, resolved: true, fails }; break; }
     if (post < 0 && step >= maxSteps) { result = { frames, resolved: false, fails }; break; } // capped before a verdict

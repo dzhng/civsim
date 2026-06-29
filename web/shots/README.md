@@ -62,6 +62,14 @@ and should stay deleted.
 - **Sub-percent raster wobble is expected.** The headless device is swiftshader
   (`google / swiftshader`); snaps carry documented sub-percent diffs that pass
   within tolerance. Re-blessing them just churns the same wobble back — don't.
+- **WebGPU adapter policy.** SwiftShader is the canonical baseline adapter
+  because it gives CI one repeatable rasterizer instead of every developer's GPU
+  driver. WebGPU support can make that software path unavailable on some local
+  Chromium builds; in that case use an explicit hardware/Metal run for local
+  evidence, record the adapter provenance, and prove determinism with a second
+  no-update run. Do not silently mix hardware-blessed baselines with
+  SwiftShader-blessed baselines: dense stone/terrain frames can exceed the 2%
+  budget even when the render is otherwise unchanged.
 - **Free-port hygiene.** Vite servers from other checkouts linger on
   5173/5174/5179; always start your own with `--port <free> --strictPort` and
   point `VERIFY_URL` at it, or you will verify against the wrong build.

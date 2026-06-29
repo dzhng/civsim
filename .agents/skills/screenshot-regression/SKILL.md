@@ -235,6 +235,14 @@ skip the internal `page.screenshot()`.
 5. **Wait ~250 ms after moving the camera** so a frame actually renders; the
    `cam()` hook updates the projection synchronously but the canvas repaints
    on the next rAF.
+6. **Record adapter provenance when SwiftShader is unavailable.** The canonical
+   WebGPU baseline device is SwiftShader. If this Mac cannot obtain a
+   SwiftShader adapter and you must capture with hardware/Metal, prove the shot
+   is deterministic on that adapter with a second run, record the exact adapter
+   env, and warn that stone-dense model or terrain sheets may need a one-time
+   SwiftShader re-bless in CI. Do not treat a hardware-vs-baseline diff over the
+   2% budget as a product regression until you have compared against pre-change
+   code or a canonical SwiftShader capture.
 
 ## When a snapshot fails
 

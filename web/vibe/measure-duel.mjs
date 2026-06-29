@@ -8,7 +8,7 @@
 //      unit's centroid moves further up (+y), the bottom unit further down.
 // Usage (from web/, dev server up):
 //   ATK=0 DEF=0 node vibe/measure-duel.mjs
-import { openBattle } from './_lib.mjs';
+import { openBattle, UNIT_CENTER_Y } from './_lib.mjs';
 
 const ATK = Number(process.env.ATK ?? 0);
 const DEF = Number(process.env.DEF ?? 0);
@@ -23,14 +23,14 @@ await page.evaluate((posture) => {
   if (posture === 'both') window.__game.attackOrder(1, 0);
 }, POSTURE);
 
-const sample = () => page.evaluate(() => {
+const sample = () => page.evaluate((centerY) => {
   const a = window.__game.unitInfo(0), b = window.__game.unitInfo(1);
   return {
     aCoh: a[4], bCoh: b[4], aRout: a[21], bRout: b[21],
-    aAlive: a[15], bAlive: b[15], aY: a[33], bY: b[33],
+    aAlive: a[15], bAlive: b[15], aY: a[centerY], bY: b[centerY],
     victor: window.__game.stats().victor,
   };
-});
+}, UNIT_CENTER_Y);
 
 const s0 = await sample();
 const topIsA = s0.aY > s0.bY;                 // which unit starts on top (higher y)

@@ -2,7 +2,7 @@
 // flow through packages/soldier-assets.
 
 export interface ClassLook {
-  weapon: 'sword' | 'spear' | 'greatsword' | 'pike' | 'bow' | 'javelin' | 'lance' | 'none';
+  weapon: 'sword' | 'spear' | 'greatsword' | 'pike' | 'bow' | 'javelin' | 'lance' | 'artillery' | 'none';
   shield: 'tall' | 'round' | 'small' | 'none';
   armor: 'heavy' | 'medium' | 'light' | 'cloth' | 'rag';
   helmet: 'crested' | 'bronze' | 'cap' | 'hood' | 'bare';
@@ -19,12 +19,13 @@ export const CLASS_LOOK: ClassLook[] = [
   { weapon: 'javelin', shield: 'small', armor: 'light', helmet: 'bare', crest: false, mounted: false },
   { weapon: 'lance', shield: 'round', armor: 'heavy', helmet: 'crested', crest: true, mounted: true },
   { weapon: 'bow', shield: 'none', armor: 'light', helmet: 'cap', crest: false, mounted: true },
-  { weapon: 'none', shield: 'none', armor: 'cloth', helmet: 'cap', crest: false, mounted: false },
+  { weapon: 'artillery', shield: 'none', armor: 'cloth', helmet: 'cap', crest: false, mounted: false },
   { weapon: 'sword', shield: 'none', armor: 'rag', helmet: 'bare', crest: false, mounted: false },
   { weapon: 'sword', shield: 'round', armor: 'light', helmet: 'cap', crest: false, mounted: false },
   { weapon: 'spear', shield: 'tall', armor: 'heavy', helmet: 'crested', crest: true, mounted: false },
   { weapon: 'sword', shield: 'round', armor: 'medium', helmet: 'bronze', crest: true, mounted: false },
   { weapon: 'spear', shield: 'round', armor: 'medium', helmet: 'bronze', crest: true, mounted: false },
+  { weapon: 'pike', shield: 'small', armor: 'medium', helmet: 'bronze', crest: true, mounted: false },
 ];
 
 export const CLASS_MODEL_LOOK: number[] = CLASS_LOOK.map((_, i) => i);

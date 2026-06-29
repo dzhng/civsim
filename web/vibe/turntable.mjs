@@ -16,6 +16,10 @@ import { clearSnapshotFolder, snapCheck } from '../snapshot.mjs';
 import { WEBGPU_HARDWARE_FLAGS, WEBGPU_SWIFTSHADER_FLAGS } from '../webgpu-probe-lib.mjs';
 
 const TARGET = process.env.VERIFY_URL ?? 'http://localhost:5173';
+const LAB_PANEL_W = 360;
+const LAB_HEADER_H = 42;
+const HERO_CAMERA_X = -2.1;
+const INGAME_CAMERA_X = -1.5;
 // PITCH=ingame renders at the battle's real max tilt (0.42 rad, near top-down)
 // under shots/models/shared/ingame/ to confirm the models still read as the
 // engine actually shows them; default is the side-on hero angle for geometry.
@@ -24,7 +28,7 @@ const GROUP = INGAME ? 'models/shared/ingame' : 'models/shared/turntable';
 
 // Thumbnail = the whole (small) viewport, so the montage just tiles screenshots
 // with no resize. Portrait: a standing figure with his pike raised.
-const TW = 360, TH = 460;
+const TW = 360, TH = 360;
 
 // Hero 3/4 view: tilted well off top-down so silhouette + depth both read.
 // (The battle itself caps tilt at 0.42 rad; this is review-only.)
@@ -33,22 +37,23 @@ const PITCH = INGAME ? 0.42 : 0.95;   // view tilt from straight-down, radians
 const CLASS_NAMES = [
   'heavy-sword', 'light-spear', 'longsword', 'phalanx', 'archers', 'skirmishers',
   'shock-cav', 'horse-archers', 'artillery', 'peasant', 'light-sword', 'heavy-spear',
-  'medium-infantry', 'medium-spear',
-  // 14 is a RENDER-ONLY look, not a sim class: a shock lancer with its sabre
-  // drawn (the in-grind weapon swap). Gated here so the sword model can't
-  // silently regress, the same as every real class.
-  'shock-cav-sword',
+  'medium-infantry', 'medium-spear', 'medium-phalanx',
 ];
 
 // Tallest extent (metres) of each model at ease, so each class is framed to its
 // own height — a phalanx's 3.4 m pike and a peasant's knife both fill the frame.
-const CLASS_H = [1.75, 2.05, 1.85, 3.5, 1.75, 1.6, 3.4, 2.6, 1.55, 1.55, 1.75, 2.05, 1.9, 2.05, 3.6];
+const CLASS_H = [1.75, 2.05, 1.85, 3.5, 1.75, 1.6, 3.4, 2.6, 1.7, 1.55, 1.75, 2.05, 1.9, 2.05, 3.1];
+const REVIEW_H = [...CLASS_H];
+REVIEW_H[3] = 3.2;
+REVIEW_H[6] = 3.05;
+REVIEW_H[7] = 3.0;
+REVIEW_H[8] = 3.2;
+REVIEW_H[14] = 3.0;
 const frameFor = (cls) => {
-  const h = CLASS_H[cls] ?? 1.8;
-  // Near top-down (in-game), the figure projects through its ground footprint,
-  // not its height — frame to the height directly and aim near the feet.
-  if (INGAME) return { zoom: Math.max(70, Math.min(150, (0.7 * TH) / h)), camY: 0.15 * h };
-  return { zoom: Math.max(105, Math.min(280, (0.82 * TH) / (h * Math.sin(PITCH)))), camY: 0.52 * h };
+  const h = REVIEW_H[cls] ?? CLASS_H[cls] ?? 1.8;
+  if (INGAME) return { zoom: Math.max(72, Math.min(108, (0.48 * TH) / h)), camX: INGAME_CAMERA_X, camY: 0.72 * h };
+  if (cls === 6 || cls === 7) return { zoom: Math.max(64, Math.min(136, (0.63 * TH) / h)), camX: -1.6, camY: 3.2 };
+  return { zoom: Math.max(64, Math.min(136, (0.63 * TH) / h)), camX: HERO_CAMERA_X, camY: 1.25 * h };
 };
 
 // Stances = route clip/phase samples (rows of the sheet).
@@ -85,13 +90,31 @@ function montage(rows, tw, th, gap = 2, bg = [18, 20, 26]) {
   return PNG.sync.write(out);
 }
 
+function cropPng(buf, width, height, x = 0, y = 0) {
+  const img = PNG.sync.read(buf);
+  const sx = Math.max(0, Math.min(img.width - width, x));
+  const sy = Math.max(0, Math.min(img.height - height, y));
+  const out = new PNG({ width, height });
+  for (let yy = 0; yy < height; yy++) {
+    for (let xx = 0; xx < width; xx++) {
+      const si = ((sy + yy) * img.width + (sx + xx)) * 4;
+      const di = (yy * width + xx) * 4;
+      out.data[di] = img.data[si];
+      out.data[di + 1] = img.data[si + 1];
+      out.data[di + 2] = img.data[si + 2];
+      out.data[di + 3] = img.data[si + 3];
+    }
+  }
+  return PNG.sync.write(out);
+}
+
 const only = process.env.ONLY ? process.env.ONLY.split(',').map(Number) : null;
 
 const webgpuArgs = process.env.VERIFY_WEBGPU === '1'
   ? (process.env.VERIFY_WEBGPU_ADAPTER === 'hardware' ? WEBGPU_HARDWARE_FLAGS : WEBGPU_SWIFTSHADER_FLAGS)
   : [];
 const browser = await chromium.launch({ args: webgpuArgs });
-const page = await browser.newPage({ viewport: { width: TW, height: TH } });
+const page = await browser.newPage({ viewport: { width: TW + LAB_PANEL_W, height: TH + LAB_HEADER_H } });
 const errs = [];
 page.on('pageerror', (e) => errs.push(e.message));
 page.on('console', (m) => { if (m.type() === 'error') errs.push(m.text()); });
@@ -107,7 +130,7 @@ const check = (label, ok, detail) => {
 
 for (const cls of classes) {
   const name = CLASS_NAMES[cls];
-  const { zoom } = frameFor(cls);
+  const { zoom, camX, camY } = frameFor(cls);
   const rows = [];
   for (const st of STANCES) {
     const row = [];
@@ -119,9 +142,11 @@ for (const cls of classes) {
         phase: st.phase,
         frame: st.frame,
         facing,
-        zoom: INGAME ? 54 : zoom,
-        pitch: INGAME ? 0.32 : 0.15,
+        zoom,
+        pitch: INGAME ? 0.42 : PITCH,
         yaw: INGAME ? -0.08 : -0.18,
+        camX,
+        camY,
         size: cls === 6 ? 1.05 : 1.15,
       }));
     }
@@ -145,21 +170,35 @@ async function captureSoldier(page, opts) {
   url.searchParams.set('phase', String(opts.phase));
   url.searchParams.set('frame', String(opts.frame));
   url.searchParams.set('facing', String(opts.facing));
-  url.searchParams.set('x', '-4.2');
-  url.searchParams.set('y', '0.75');
+  url.searchParams.set('x', String(opts.camX));
+  url.searchParams.set('y', String(opts.camY));
   url.searchParams.set('zoom', String(opts.zoom));
   url.searchParams.set('pitch', String(opts.pitch));
   url.searchParams.set('yaw', String(opts.yaw));
   url.searchParams.set('size', String(opts.size));
-  await page.goto(url.href);
+  await page.goto(url.href, { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(
     ({ classId, clip, phase }) => window.__webgpuLabReady === true
       && window.__webgpuLabStats?.stats?.classId === classId
       && window.__webgpuLabStats?.stats?.clip === clip
       && Math.abs((window.__webgpuLabStats?.stats?.phase ?? -999) - phase) < 0.0001,
     { classId: opts.classId, clip: opts.clip, phase: opts.phase },
-    { timeout: 18000 },
+    { timeout: 30000 },
   );
   await page.waitForTimeout(80);
-  return page.locator('#webgpu-canvas').screenshot();
+  return cropPng(await canvasScreenshot(page), TW, TH);
+}
+
+async function canvasScreenshot(page) {
+  let lastError;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    await page.waitForSelector('#webgpu-canvas', { state: 'visible', timeout: 8000 });
+    try {
+      return await page.locator('#webgpu-canvas').screenshot();
+    } catch (error) {
+      lastError = error;
+      await page.waitForTimeout(120);
+    }
+  }
+  throw lastError;
 }

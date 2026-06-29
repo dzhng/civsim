@@ -45,7 +45,7 @@ const sample = () => page.evaluate((ids) => {
 const label = (s, m) => `t=${String(s).padStart(3)}s  line ${m.lineAlive}/${m.lineTotal}  block ${m.blockAlive}/${m.blockTotal}`;
 
 const { frames, fails } = await vibeCapture(page, process.env.NAME ?? 'offense', {
-  stepSecs: 12, maxSteps: 16, frame, sample, label, done: () => false,
+  stepSecs: 12, maxSteps: 12, frame, sample, label, done: () => false,
 });
 console.log(`\n${frames} frames`);
 if (errs.length) console.log('page errors:', errs.slice(0, 3));

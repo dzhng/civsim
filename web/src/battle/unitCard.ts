@@ -28,7 +28,7 @@ export interface UnitCardState {
   selected: boolean;
 }
 
-const W = 58, H = 62; // portrait canvas size (CSS px; drawn at 2x for crispness)
+const W = 38, H = 48; // portrait canvas size (CSS px; drawn at 2x for crispness)
 
 // A compact side-view soldier (or rider) for class `cls`, facing right, tinted
 // with the faction accent on shield/crest/sash — the same silhouette language

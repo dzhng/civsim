@@ -4,20 +4,20 @@
 // through, and not dissolve into a uniform blob. Watch web/shots/vibe/penetration/.
 //   Default: a heavy column vs a wide held heavy line.
 //   Override: COL=6 DEF=0 node vibe/penetration.mjs   (cavalry column)
-import { openBattle, vibeCapture, CLS } from './_lib.mjs';
+import { openBattle, vibeCapture, CLS, UNIT_CENTER_X, UNIT_CENTER_Y } from './_lib.mjs';
 
 const COL = Number(process.env.COL ?? CLS.heavy);  // unit 0, the penetrating column
 const DEF = Number(process.env.DEF ?? CLS.heavy);  // unit 1, the held defender
 
 const { browser, page, errs } = await openBattle(`battle=duel&a=${COL}&b=${DEF}&ai=off`);
-await page.evaluate(() => {
+await page.evaluate(([centerX, centerY]) => {
   window.__game.setFiles(1, 70); // defender: WIDE, thin line
   window.__game.setFiles(0, 8);  // column: NARROW, deep
   window.__game.setPace(0, 1);   // the column charges in at a run
   const d = window.__game.unitInfo(1);
-  window.__game.attackMove(0, d[32], d[33] + 90); // drive THROUGH the centre and out the back
+  window.__game.attackMove(0, d[centerX], d[centerY] + 90); // drive THROUGH the centre and out the back
   // defender (unit 1) gets NO order — it holds and must react to the breach.
-});
+}, [UNIT_CENTER_X, UNIT_CENTER_Y]);
 
 // Fit both units' full footprint (the line is wide), flat top-down.
 const frame = () => page.evaluate(() => {

@@ -3,6 +3,7 @@ import type { Scene } from '../scene';
 import { Camera } from '../shared/camera';
 import { pushGhost, pushPie, pushRing } from '../shared/overlays';
 import { fatalSurfaceFor, showFatalErrorSurface } from '../shared/fatalError';
+import { CLASS_DEPTH, CLASS_SPACING } from '../../../packages/game-renderer/src/battle/unitInfoLayout';
 import { modelLookForUnit } from '../../../packages/game-renderer/src/models/shared/soldierModel';
 import { BattleRendererWebGPU, type BattleTacticalLineFrame } from './rendererWebGPU';
 import { CLASS_NAMES } from './classData';
@@ -18,13 +19,6 @@ const MAX_TICKS_PER_FRAME = 4;
 // render_look sits at offset 32 in the 33-float layout.
 const UNIT_INFO_RENDER_LOOK = 32;
 
-// Class table mirrors — must match class.rs. Indices: 0 heavy, 1 light, 2 long
-// sword, 3 phalanx, 4 archers, 5 skirmishers, 6 shock cav, 7 horse archers,
-// 8 artillery, 9 peasant, 10 light sword, 11 heavy spear, 12 medium infantry,
-// 13 medium spear.
-const CLASS_DEPTH = [8, 6, 4, 10, 4, 4, 5, 5, 4, 6, 6, 8, 7, 7];
-const CLASS_SPACING = [0.9, 1.0, 1.5, 0.8, 1.2, 1.6, 1.8, 2.2, 2.0, 1.1, 1.0, 0.9, 0.95, 0.95];
-// Primary weapon (reach, arc) for the attack-arc display.
 export type BattleKind = 'duel' | '5v5' | 'surround' | 'flank' | 'mapA' | 'mapB';
 
 function bannerScale(zoom: number, selected: boolean): number {
@@ -1235,6 +1229,10 @@ export class BattleScene implements Scene {
       soldierPos: (i: number) => {
         const p = positions();
         return [p[2 * i], p[2 * i + 1]];
+      },
+      soldierAlive: (i: number) => {
+        const a = new Uint8Array(wasm.memory.buffer, game.alive_ptr(), game.soldier_count());
+        return a[i] ?? 0;
       },
     };
     window.__cam = camera;

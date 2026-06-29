@@ -17,6 +17,8 @@ const SHOTS = fileURLToPath(new URL('../shots/', import.meta.url));
 
 export const TPS = 30; // sim ticks per second (the harness's advance(300) == 10 s)
 const TARGET = process.env.VERIFY_URL ?? 'http://localhost:5173';
+export const UNIT_CENTER_X = 30;
+export const UNIT_CENTER_Y = 31;
 
 /** Boot straight into a battle (e.g. 'battle=duel&a=0&b=0&ai=off') and wait for
  *  the debug bridge. Returns { browser, page, errs }. */
@@ -29,12 +31,15 @@ export async function openBattle(query) {
   const errs = [];
   page.on('pageerror', (e) => errs.push(e.message));
   page.on('console', (m) => { if (m.type() === 'error') errs.push(m.text()); });
-  // Vibe timelines pin the SIM's emergent behaviour, not the soldier art, so
-  // they render the flat team-coloured BLOCK model (?debug=blocks). That lets
-  // the detailed battlefield models keep evolving without re-blessing every vibe
-  // frame — exactly the "keep the block models for vibe shots" split we want.
-  await page.goto(`${TARGET}/?${query}&debug=blocks`);
+  await page.goto(`${TARGET}/?${query}`);
   await page.waitForFunction(() => window.__ready === true, undefined, { timeout: 20000 });
+  await page.addStyleTag({
+    content: `
+      #hud, #buttons, #unitcards, #toolbar, #minimap, #manual, #pausemenu, #gameover {
+        display: none !important;
+      }
+    `,
+  });
   // Pin a deterministic starting tick. Boot accrues a wall-clock-VARIABLE handful
   // of real-time ticks before the harness takes control; in chaotic combat a few
   // ticks of offset compound into whole soldiers dying differently (6% of pixels
@@ -55,19 +60,53 @@ export const CLS = {
 
 /** Fit both duel units (centroids + margin) into view — ~2.5 holds both lines
  *  when they spawn ~400 m apart, ~20 reads individual men once they collide. */
-export const fitDuel = (page) => page.evaluate(() => {
-  const a = window.__game.unitInfo(0), b = window.__game.unitInfo(1);
+export const fitDuel = (page, opts = {}) => page.evaluate(([centerX, centerY, margin, minZoom]) => {
+  const infos = [window.__game.unitInfo(0), window.__game.unitInfo(1)];
   const cv = document.getElementById('battlefield');
-  // centroid_x/y are stride indices 30/31 (render_look is the last field, 32) —
-  // see UNIT_INFO layout in game-wasm/src/lib.rs. Reading 32/33 gave render_look
-  // and an out-of-bounds NaN, blanking the camera.
-  const [X, Y] = [30, 31];
-  const spanX = Math.abs(a[X] - b[X]) + 55, spanY = Math.abs(a[Y] - b[Y]) + 55;
+  const bounds = [];
+  for (const u of [0, 1]) {
+    const count = infos[u][7];
+    const start = window.__game.soldierStartOf(u);
+    let minx = 1e9, miny = 1e9, maxx = -1e9, maxy = -1e9, alive = 0;
+    for (let i = start; i < start + count; i++) {
+      if (window.__game.soldierAlive && window.__game.soldierAlive(i) <= 0) continue;
+      alive++;
+      const [x, y] = window.__game.soldierPos(i);
+      if (x < minx) minx = x;
+      if (x > maxx) maxx = x;
+      if (y < miny) miny = y;
+      if (y > maxy) maxy = y;
+    }
+    if (alive === 0) {
+      minx = maxx = infos[u][centerX];
+      miny = maxy = infos[u][centerY];
+    }
+    bounds.push({ unit: u, count, alive, minx, miny, maxx, maxy });
+  }
+  const stats = window.__game.stats?.();
+  let selected = bounds;
+  if (stats && (stats.victor === 0 || stats.victor === 1)) {
+    selected = [bounds[stats.victor]];
+  } else {
+    const sorted = [...bounds].sort((a, b) => b.alive - a.alive);
+    const large = sorted[0], small = sorted[1];
+    if (small && small.alive <= Math.max(12, small.count * 0.18) && large.alive >= Math.max(2 * small.alive, 1)) {
+      selected = [large];
+    }
+  }
+  let minx = Math.min(...selected.map((b) => b.minx));
+  let maxx = Math.max(...selected.map((b) => b.maxx));
+  let miny = Math.min(...selected.map((b) => b.miny));
+  let maxy = Math.max(...selected.map((b) => b.maxy));
+  const spanX = (maxx - minx) + margin;
+  const spanY = (maxy - miny) + margin;
   const c = window.__cam;
-  c.x = (a[X] + b[X]) / 2; c.y = (a[Y] + b[Y]) / 2; c.pitch = 0;
-  c.zoom = Math.max(2.5, Math.min(20, Math.min(cv.width / spanX, cv.height / spanY)));
+  c.x = (minx + maxx) / 2;
+  c.y = (miny + maxy) / 2;
+  c.pitch = 0;
+  c.zoom = Math.max(minZoom, Math.min(20, Math.min(cv.width / spanX, cv.height / spanY)));
   c.clampView?.();
-});
+}, [UNIT_CENTER_X, UNIT_CENTER_Y, opts.margin ?? 90, opts.minZoom ?? 2.5]);
 
 /** Status of the two duel units (a = unit 0, b = unit 1). */
 export const duelSample = (page) => page.evaluate(() => {
@@ -91,11 +130,10 @@ export const duelLabel = (secs, s) =>
  *  so a frame is byte-stable on the same code — a real regression target, not
  *  just an eyeball capture. `sample` returns a status object for `label`/`done`.
  *  Returns { frames, resolved, fails }; the script exits with `fails`. */
-// Every scenario keeps filming this many frames PAST its verdict, so you always
-// see the aftermath — above all HOW the loser routs (a clump fleeing toward its
-// home edge, not a scatter). The tail is part of the harness, not a per-test
-// option: a fight isn't done at the verdict, it's done when the field clears.
-const TAIL_FRAMES = 3;
+// The regression default stops on the verdict frame so every committed tile is
+// framed around the fight, not a late tail where routed survivors have left the
+// camera focus. Set VIBE_TAIL_FRAMES when intentionally filming aftermath.
+const TAIL_FRAMES = Number(process.env.VIBE_TAIL_FRAMES ?? 0);
 
 // Every timeline also ships a looping GIF (web/shots/vibe/<name>/timeline.gif) so
 // the whole sequence can be WATCHED in one go at ~200 ms/frame, not flipped frame
@@ -152,7 +190,7 @@ export async function vibeCapture(page, name, {
     gifShots.push(shot);
     await snapCheck(page, `vibe/${name}/t${String(secs).padStart(3, '0')}s`, check, { threshold, maxDiffRatio, shot });
     frames++;
-    if (post >= 0) post++;                       // already past the verdict: film the tail
+    if (post >= 0) post++;                       // optional post-verdict tail frame
     else if (done && done(s)) post = 0;          // this frame IS the verdict
     if (post >= TAIL_FRAMES) { result = { frames, resolved: true, fails }; break; }
     if (post < 0 && step >= maxSteps) { result = { frames, resolved: false, fails }; break; } // capped before a verdict

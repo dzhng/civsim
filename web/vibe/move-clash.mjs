@@ -6,22 +6,21 @@
 // disagree about "you can't walk through a body" — the bug the Rust test
 // `attack_latch_behaves_like_a_move_order` pins.
 //   ATK=0 DEF=0 node vibe/move-clash.mjs    # heavy v heavy, both move
-import { openBattle, vibeCapture, fitDuel, duelSample, duelLabel } from './_lib.mjs';
+import { openBattle, vibeCapture, fitDuel, duelSample, duelLabel, UNIT_CENTER_X, UNIT_CENTER_Y } from './_lib.mjs';
 
 const ATK = Number(process.env.ATK ?? 0);
 const DEF = Number(process.env.DEF ?? 0);
 const NAME = process.env.NAME ?? `move-clash-${ATK}v${DEF}`;
 
 const { browser, page, errs } = await openBattle(`battle=duel&a=${ATK}&b=${DEF}&ai=off`);
-await page.evaluate(() => {
+await page.evaluate(([centerX, centerY]) => {
   const a = window.__game.unitInfo(0);
   const b = window.__game.unitInfo(1);
   window.__game.setPace(0, 1);
   window.__game.setPace(1, 1);
-  // [32],[33] = living-soldier centroid. Each marches to where the OTHER began.
-  window.__game.setOrder(0, b[32], b[33]);
-  window.__game.setOrder(1, a[32], a[33]);
-});
+  window.__game.setOrder(0, b[centerX], b[centerY]);
+  window.__game.setOrder(1, a[centerX], a[centerY]);
+}, [UNIT_CENTER_X, UNIT_CENTER_Y]);
 
 const { frames, resolved, fails } = await vibeCapture(page, NAME, {
   stepSecs: 20, maxSteps: 18,

@@ -54,7 +54,11 @@ whole feature is done.
    names.
 3. **Map:** define the slice graph, package/app boundaries, dependencies, API
    seams, playable deliverables, verification gates, and human review
-   checkpoints.
+   checkpoints. When the feature has any visual surface, make
+   [screenshot-critique](../screenshot-critique/SKILL.md) a standing verification
+   gate in the README so every visual slice inherits it: the spec must tell the
+   implementing agent to run an unbiased screenshot-critique as the last check on
+   any visual shot before accepting it.
 4. **Materialize:** create `specs/<feature>/` when the feature has more than
    one slice or needs assets/visualizations.
 5. **Build slice by slice:** leave each slice with a runnable artifact and
@@ -96,6 +100,12 @@ Each slice file answers:
 - What is the API seam: module, functions/types, data shape, ownership?
 - What can the human run or see?
 - What tests, scenarios, screenshots, probes, or perf gates verify it?
+- If the slice produces any visual shot (screenshot, GIF, contact sheet, or
+  on-screen render), the slice file must instruct the implementing agent to run
+  [screenshot-critique](../screenshot-critique/SKILL.md) as the last check before
+  the slice is accepted — an unprimed second opinion the regression gates and the
+  implementer's own inspection cannot supply. Write this as an explicit
+  verification step in the slice, not as a passing mention.
 - What must stay green?
 - What feedback from the human would change this slice?
 

@@ -18,7 +18,7 @@ touching before you delete or re-bless.
 `scenes/` (`battle/ campaign/ ui/ models/`); anything else lands in `misc/`.
 `vibe/` and `weave/` are **not** reachable from `scene.mjs` — they are separate
 generators, so a blanket `rm -rf shots` is only fully repopulated by running all
-three.
+three. Model-shot family layout is documented in [`models/README.md`](models/README.md).
 
 This file is the cross-harness mechanics (where shots come from, how to
 regenerate, what bites). For what a *vibe* check is and why it films a timeline,

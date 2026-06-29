@@ -1,6 +1,6 @@
 ---
 name: write-anim
-description: Review a model's MOTION as a looping, review-only GIF — pose one asset through its cycle with no sim and eyeball the rhythm. Covers the unit animation cycles (walk/run/attack/hit/die per class) today, and is the home for any future single-asset motion (scenery sway, banners, fire). Use when adding or changing a model's animation, retiming a cycle, or eyeballing how a motion reads. Distinct from write-vibe (sim behaviour over time) and write-turntable (the static look).
+description: Review a model's MOTION as a looping, review-only GIF — pose one asset through its cycle with no sim and eyeball the rhythm. Covers the unit animation cycles (walk/run/attack/hit/die per class) today, and is the home for any future single-asset motion (scenery sway, banners, fire). Use when adding or changing a model's animation, retiming a cycle, or eyeballing how a motion reads. Distinct from write-vibe (sim behaviour over time) and write-model-sheet (the static look).
 ---
 
 # Animation review
@@ -9,14 +9,14 @@ description: Review a model's MOTION as a looping, review-only GIF — pose one 
 writes a looping GIF you watch frame by frame. It answers "does this model's
 motion read right?", a different question from the sim's emergent behaviour
 ([write-vibe](../write-vibe/SKILL.md)) and the model's static look
-([write-turntable](../write-turntable/SKILL.md)).
+([write-model-sheet](../write-model-sheet/SKILL.md)).
 
 Both vibe and anim emit GIFs, so it is tempting to reuse vibe for an asset's
 motion — **don't.** Vibe boots a matchup and advances *sim-seconds*; a pure
 motion loop has no sim. Pose the asset and advance only its clock, which is
 exactly what this harness does.
 
-**Review-only.** Unlike the turntable, anim writes the GIF directly — no
+**Review-only.** Unlike the static model sheet, anim writes the GIF directly — no
 `snapCheck`, no pixel gate. You re-run and *watch*; there is no baseline to diff.
 The GIFs are committed review artifacts (like the vibe timeline GIF).
 
@@ -28,8 +28,8 @@ The GIFs are committed review artifacts (like the vibe timeline GIF).
    (`[0, 3, 4, 6]`) through every cycle. `ONLY=3 …` picks classes;
    `ANGLE=front …` faces the camera (default is the 3/4 hero view).
 3. Shared soldier GIFs land at
-   `web/shots/models/shared/anim/<id>-<class>-<anim>.gif`. Looping cycles run
-   twice for a natural rhythm; `die` plays once (`once: true`).
+   `web/shots/models/shared/soldiers/anim/<id>-<class>-<anim>.gif`. Looping
+   cycles run twice for a natural rhythm; `die` plays once (`once: true`).
 
 ## Authoring a cycle
 
@@ -41,8 +41,8 @@ surface it to the user) live in [write-vibe](../write-vibe/SKILL.md).
 
 A new class needs a `NAMES` entry in `vibe/anim.mjs` (it labels the GIF), and the
 default run films only the representative set `[0, 3, 4, 6]` — so review a
-specific class with `ONLY=<id>`. It also needs a turntable sheet — see
-[write-turntable](../write-turntable/SKILL.md).
+specific class with `ONLY=<id>`. It also needs a static model sheet — see
+[write-model-sheet](../write-model-sheet/SKILL.md).
 
 ## Beyond units
 
@@ -54,8 +54,9 @@ into `anim.mjs`, not a vibe matchup.
 Animation artifacts follow model ownership: battle-only motion goes under
 `web/shots/models/battle/anim/`, campaign-only motion under
 `web/shots/models/campaign/anim/`, and reusable motion under
-`web/shots/models/shared/anim/`.
+`web/shots/models/shared/<family>/anim/`, such as
+`web/shots/models/shared/soldiers/anim/`.
 
-Pairs with [write-turntable](../write-turntable/SKILL.md) (the static twin),
+Pairs with [write-model-sheet](../write-model-sheet/SKILL.md) (the static twin),
 [write-vibe](../write-vibe/SKILL.md) (sim behaviour, and the shared GIF rules),
 and [aesthetics](../aesthetics/SKILL.md) (the look every model is judged against).

@@ -3,7 +3,7 @@
 // check the user asked for. Boots the WebGPU skinned-soldier lab route (one
 // soldier on a flat field, no sim) and samples deterministic phases, then
 // encodes the frames with the dependency-free _gif.mjs encoder into
-// web/shots/models/shared/anim/<id>-<class>-<anim>.gif.
+// web/shots/models/shared/soldiers/anim/<id>-<class>-<anim>.gif.
 //
 //   node vibe/anim.mjs                 # the representative class set, all anims
 //   ONLY=3 node vibe/anim.mjs          # just the phalanx
@@ -22,7 +22,7 @@ const LAB_HEADER_H = 42;
 const MODEL_CAMERA_X = -2.1;
 const TW = 360, TH = 360, PITCH = 0.95;
 const here = path.dirname(fileURLToPath(import.meta.url));
-const OUT = path.join(here, '..', 'shots', 'models', 'shared', 'anim');
+const OUT = path.join(here, '..', 'shots', 'models', 'shared', 'soldiers', 'anim');
 fs.mkdirSync(OUT, { recursive: true });
 
 const NAMES = ['heavy-sword', 'light-spear', 'longsword', 'phalanx', 'archers', 'skirmishers',

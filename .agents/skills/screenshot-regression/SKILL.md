@@ -1,13 +1,13 @@
 ---
 name: screenshot-regression
-description: Take, inspect, and maintain deterministic screenshot baselines for visual changes through the shared snapCheck primitive. Use when verifying UI, campaign, battle, model, animation, or rendering changes; adding or re-blessing snapshots; comparing before/after captures; or debugging a visual snapshot failure. Pairs with [write-scene](../write-scene/SKILL.md), [write-vibe](../write-vibe/SKILL.md), and [write-turntable](../write-turntable/SKILL.md) because all visual gates snap through this primitive.
+description: Take, inspect, and maintain deterministic screenshot baselines for visual changes through the shared snapCheck primitive. Use when verifying UI, campaign, battle, model, animation, or rendering changes; adding or re-blessing snapshots; comparing before/after captures; or debugging a visual snapshot failure. Pairs with [write-scene](../write-scene/SKILL.md), [write-vibe](../write-vibe/SKILL.md), and [write-model-sheet](../write-model-sheet/SKILL.md) because all visual gates snap through this primitive.
 ---
 
 # Screenshots and pixel-level regression testing
 
 **One primitive, every shot.** `snapCheck` (`web/snapshot.mjs`) is the single
 path every visual artifact flows through: verify harnesses, scene runners, vibe
-timelines, model turntables, contact sheets, and focused visual workbenches. A
+timelines, model sheets, contact sheets, and focused visual workbenches. A
 committed baseline under `web/shots/<name>.png` is at once the picture
 you review, the image a PR diff shows, and the gate. There is no "review-only"
 tier: every shot is a regression target, so a downstream mechanics change is
@@ -191,7 +191,7 @@ scratch shots, remove or restore those unrelated changes before committing.
 
 ## Adding a regression snapshot
 
-One call in a verify harness, a vibe scenario, or the turntable:
+One call in a verify harness, a vibe scenario, or the model sheet:
 
 ```js
 import { snapCheck } from './snapshot.mjs';     // from web/; vibe/ uses '../snapshot.mjs'
@@ -212,8 +212,8 @@ skip the internal `page.screenshot()`.
   wrapper.)
 - **Vibe timeline:** don't call `snapCheck` directly — `vibeCapture` does it per
   frame; see [write-vibe](../write-vibe/SKILL.md).
-- **Model turntable:** snap-checks one composited contact sheet per class; see
-  [write-turntable](../write-turntable/SKILL.md).
+- **Model sheet:** snap-checks one composited contact sheet per class; see
+  [write-model-sheet](../write-model-sheet/SKILL.md).
 
 ### The determinism checklist — every snapshot must satisfy ALL of these
 
@@ -249,9 +249,9 @@ UPDATE_SHOTS=1 VERIFY_WEBGPU=1 VERIFY_URL=http://localhost:5174 node scene.mjs c
 UPDATE_SHOTS=1 VERIFY_URL=http://localhost:5174 node verify-battle.mjs
 ```
 
-Vibe and turntable re-blesses clear their baseline folder first (and the vibe
+Vibe and model-sheet re-blesses clear their baseline folder first (and the vibe
 timeline refuses a `SNAP=`-filtered regen) — those folder-clearing rules live in
-[write-vibe](../write-vibe/SKILL.md) and [write-turntable](../write-turntable/SKILL.md).
+[write-vibe](../write-vibe/SKILL.md) and [write-model-sheet](../write-model-sheet/SKILL.md).
 
 4. Suspected nondeterminism → run the harness twice; if the second run isn't
    `0 px differ`, something on screen escaped the freeze path. Track it down

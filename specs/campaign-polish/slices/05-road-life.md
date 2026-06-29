@@ -54,8 +54,8 @@ Done. Carts ride real campaign roads as deterministic, frozen-time props.
   shadow passes, `sceneryStats.carts`, and `yaw` packed into the free instance
   slot.
 
-Turntable/anim review was scoped to the deterministic fixture frames instead of
-the unit turntable infra (which is battle-unit specific): the cart is reviewed
+Model-sheet/anim review was scoped to the deterministic fixture frames instead of
+the unit model-sheet infra (which is battle-unit specific): the cart is reviewed
 on real road geometry at frozen frames per this slice's own "review the
 cart-on-road fixture at several deterministic frames" instruction. The
 `campaign-polish-roads` (`?campaign=alignment`) and `campaign-webgpu-lod`

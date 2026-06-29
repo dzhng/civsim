@@ -82,7 +82,7 @@ record.
 
 Pairs with [screenshot-regression](../screenshot-regression/SKILL.md) (the snap
 mechanics every frame obeys), [write-scene](../write-scene/SKILL.md) (the
-single-state sibling), [write-turntable](../write-turntable/SKILL.md) (static
+single-state sibling), [write-model-sheet](../write-model-sheet/SKILL.md) (static
 model review) and [write-anim](../write-anim/SKILL.md) (model-motion review) under
 `vibe/`, and [tweak-mechanics](../tweak-mechanics/SKILL.md) (the physics work a
 vibe is the verdict for).

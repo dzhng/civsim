@@ -6,7 +6,7 @@ export const meta = {
   world: 'webgpu-soldier-gates',
   tier: 'full',
   snapshots: [],
-  describe: 'Captures addressable WebGPU soldier class, in-game readability, and animation still gates.',
+  describe: 'Captures addressable WebGPU soldier model-sheet and animation still gates.',
 };
 
 const OUT_DIR = new URL('../../../specs/done/webgpu-skinned-crowd-foundation/visualizations/soldier-gates/', import.meta.url);
@@ -64,10 +64,7 @@ export async function run(ctx) {
   await mkdir(OUT_DIR, { recursive: true });
   const captures = [];
   for (let classId = 0; classId < classNames.length; classId++) {
-    captures.push(await captureSoldier(ctx, turntableGate(classId)));
-  }
-  for (let classId = 0; classId < classNames.length; classId++) {
-    captures.push(await captureSoldier(ctx, inGameGate(classId)));
+    captures.push(await captureSoldier(ctx, modelSheetGate(classId)));
   }
   for (const ref of animationRefs) {
     captures.push(await captureSoldier(ctx, animationGate(...ref)));
@@ -88,26 +85,14 @@ export async function run(ctx) {
   );
 }
 
-function turntableGate(classId) {
+function modelSheetGate(classId) {
   const name = classNames[classId];
   return {
-    id: `turntable-${String(classId).padStart(2, '0')}-${name}`,
+    id: `model-sheet-${String(classId).padStart(2, '0')}-${name}`,
     classId,
-    label: `Turntable ${name}`,
-    group: 'turntable',
-    criteria: 'Hero angle model capture keeps old class silhouette cues: armor, helmet, shield, weapon, mount, faction accent, and deterministic pose.',
-    params: { class: classId, clip: 'march', phase: 0.24, frame: 1, facing: 1.25, x: -4.2, y: 0.75, zoom: 78, pitch: 0.14, yaw: -0.22, size: 1.15 },
-  };
-}
-
-function inGameGate(classId) {
-  const name = classNames[classId];
-  return {
-    id: `ingame-${String(classId).padStart(2, '0')}-${name}`,
-    classId,
-    label: `In-game ${name}`,
-    group: 'in-game',
-    criteria: 'Battle-camera readability capture checks the same model at the production-like pitch and smaller scale.',
+    label: `Model sheet ${name}`,
+    group: 'model-sheet',
+    criteria: 'Battle-camera readability capture checks the model at the production-like pitch and smaller scale.',
     params: { class: classId, clip: 'march', phase: 0.18, frame: 1, facing: 1.57, x: -4.2, y: 0.55, zoom: 54, pitch: 0.32, yaw: -0.08, size: 1.0 },
   };
 }

@@ -1,5 +1,5 @@
 // Pixel-level screenshot regression — the ONE primitive every visual shot flows
-// through (verify harnesses, vibe timelines, model turntable). A committed
+// through (verify harnesses, vibe timelines, model sheets). A committed
 // baseline is at once the review artifact, the PR image-diff, and the gate.
 //
 // snapCheck(page, name, check) screenshots the page and compares it against
@@ -11,7 +11,7 @@
 // diff) + <name>-actual.png are written for inspection. Re-bless intentional
 // changes (a UI tweak, a deliberate mechanics shift) with:
 //
-//   UPDATE_SHOTS=1 node verify-battle.mjs   # or vibe/all.mjs, vibe/turntable.mjs
+//   UPDATE_SHOTS=1 node verify-battle.mjs   # or vibe/all.mjs, vibe/model-sheet.mjs
 //
 // Snapshots only stay green if the moment is deterministic: fixed viewport,
 // fixed camera, sim paused/frozen (battle: window.__game.freeze()), no

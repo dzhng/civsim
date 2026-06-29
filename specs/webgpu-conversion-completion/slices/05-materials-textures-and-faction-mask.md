@@ -35,7 +35,7 @@ Gaps from the gap review:
 
 ## Human Review
 
-Turntable and ingame crops show lit materials with normal/ORM response under the
+Model-sheet crops show lit materials with normal/ORM response under the
 battle sun, and faction color appearing only where the mask paints it (crest,
 shield rim, sash) — not flooding the whole figure. Two factions of the same class
 differ only in the masked accents.

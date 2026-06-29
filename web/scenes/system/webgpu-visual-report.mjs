@@ -45,8 +45,7 @@ const REQUIRED_MODEL_GATE_IDS = [
   'cloud-fog',
 ];
 const REQUIRED_SOLDIER_GATE_COUNTS = {
-  turntable: 15,
-  'in-game': 15,
+  'model-sheet': 15,
   'animation-still': 20,
 };
 
@@ -112,7 +111,7 @@ const reviewRows = [
     id: 'soldier-animation-gates',
     label: 'Soldier And Animation Gates',
     category: 'model/animation evidence',
-    criteria: 'Addressable WebGPU turntables, in-game readability shots, and deterministic animation stills for the legacy soldier inventory.',
+    criteria: 'Addressable WebGPU model sheets and deterministic animation stills for the legacy soldier inventory.',
     status: 'webgpu-evidence',
   },
   {
@@ -378,7 +377,7 @@ async function captureSoldierGateSummary() {
     .filter(([group, required]) => (groupCounts[group] ?? 0) < required)
     .map(([group]) => group);
   const incomplete = captures.filter((capture) => capture.status !== 'webgpu-evidence' || !capture.image);
-  const representativeCapture = captures.find((capture) => capture.id === 'turntable-00-heavy-sword');
+  const representativeCapture = captures.find((capture) => capture.id === 'model-sheet-00-heavy-sword');
   const representative = representativeCapture?.image
     ? new URL(`../soldier-gates/${representativeCapture.image}`, OUT_DIR)
     : null;
@@ -389,7 +388,7 @@ async function captureSoldierGateSummary() {
   return {
     ...row,
     status: complete ? 'webgpu-evidence' : 'missing-gate-evidence',
-    evidence: `${captures.length} soldier gates; turntables ${groupCounts.turntable ?? 0}/15; in-game ${groupCounts['in-game'] ?? 0}/15; animation stills ${groupCounts['animation-still'] ?? 0}/20; missing groups ${missingGroups.length ? missingGroups.join(', ') : 'none'}; incomplete ${incomplete.length}`,
+    evidence: `${captures.length} soldier gates; model sheets ${groupCounts['model-sheet'] ?? 0}/15; animation stills ${groupCounts['animation-still'] ?? 0}/20; missing groups ${missingGroups.length ? missingGroups.join(', ') : 'none'}; incomplete ${incomplete.length}`,
     image: hasRepresentative ? relativeVisualPath(representative) : null,
     linkedReport: hasReportHtml ? relativeVisualPath(SOLDIER_GATES_HTML) : null,
     gateSummary: {

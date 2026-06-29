@@ -42,7 +42,7 @@ like classes 6 and 7.
 
 ## Verification
 
-- Mounted-class gate crops at turntable + ingame angles; re-bless once.
+- Mounted-class model-sheet crops at the in-game angle; re-bless once.
 - LOD scaling test covers every mounted class (6, 7, 14, …), not just 6/7.
 - Composition test: rider transform follows the mount attachment bone across the
   ride cycle.

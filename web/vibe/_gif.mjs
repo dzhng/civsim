@@ -3,8 +3,8 @@
 // shading is flat (a few dozen colours), so a frequency-histogram palette in
 // RGB444 with nearest-colour mapping is indistinguishable from the source — no
 // need for full median-cut. Used by vibe/anim.mjs to dump one GIF per
-// (class, animation) under web/shots/models/shared/anim/ so the soldier animations can be
-// eyeballed frame by frame the way the user asked.
+// (class, animation) under web/shots/models/shared/soldiers/anim/ so the soldier
+// animations can be eyeballed frame by frame the way the user asked.
 import { PNG } from 'pngjs';
 
 // Quantise a set of RGBA frames to one shared ≤256-colour palette.

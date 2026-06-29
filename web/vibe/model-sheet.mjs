@@ -1,15 +1,14 @@
-// 360° model-review turntable. Boots the WebGPU skinned-soldier lab route (one
+// 360° model-review sheet. Boots the WebGPU skinned-soldier lab route (one
 // soldier on a flat field, no sim), orbits each model through 8 facings in every
-// stance, and snap-checks one contact sheet per class against its committed
-// baseline. The sheet is both the thing you review (tweak soldierModel.ts, re-
-// run, eyeball the baselines) AND a gate: an unintended geometry/renderer change
-// turns a class red with a highlighted diff in shots/diff/. Re-bless intended
-// model changes with UPDATE_SHOTS=1.
+// stance at the battle's in-game camera pitch, and snap-checks one contact sheet
+// per class against its committed baseline. The sheet is both the thing you
+// review (tweak soldierModel.ts, re-run, eyeball the baselines) AND a gate: an
+// unintended geometry/renderer change turns a class red with a highlighted diff
+// in shots/diff/. Re-bless intended model changes with UPDATE_SHOTS=1.
 //
-//   node vibe/turntable.mjs                 # all class looks, hero 3/4 angle
-//   ONLY=0,3,6 node vibe/turntable.mjs      # just these class ids
-//   PITCH=ingame node vibe/turntable.mjs    # the battle's real top-down tilt
-//   UPDATE_SHOTS=1 node vibe/turntable.mjs  # re-bless after a model change
+//   node vibe/model-sheet.mjs                 # all class looks, in-game pitch
+//   ONLY=0,3,6 node vibe/model-sheet.mjs      # just these class ids
+//   UPDATE_SHOTS=1 node vibe/model-sheet.mjs  # re-bless after a model change
 import { chromium } from 'playwright';
 import { PNG } from 'pngjs';
 import { clearSnapshotFolder, snapCheck } from '../snapshot.mjs';
@@ -18,21 +17,17 @@ import { WEBGPU_HARDWARE_FLAGS, WEBGPU_SWIFTSHADER_FLAGS } from '../webgpu-probe
 const TARGET = process.env.VERIFY_URL ?? 'http://localhost:5173';
 const LAB_PANEL_W = 360;
 const LAB_HEADER_H = 42;
-const HERO_CAMERA_X = -2.1;
 const INGAME_CAMERA_X = -1.5;
-// PITCH=ingame renders at the battle's real max tilt (0.42 rad, near top-down)
-// under shots/models/shared/ingame/ to confirm the models still read as the
-// engine actually shows them; default is the side-on hero angle for geometry.
-const INGAME = process.env.PITCH === 'ingame';
-const GROUP = INGAME ? 'models/shared/ingame' : 'models/shared/turntable';
+const GROUP = 'models/shared/soldiers/ingame';
 
 // Thumbnail = the whole (small) viewport, so the montage just tiles screenshots
 // with no resize. Portrait: a standing figure with his pike raised.
 const TW = 360, TH = 360;
 
-// Hero 3/4 view: tilted well off top-down so silhouette + depth both read.
-// (The battle itself caps tilt at 0.42 rad; this is review-only.)
-const PITCH = INGAME ? 0.42 : 0.95;   // view tilt from straight-down, radians
+// Battle's real max tilt (near top-down), so the sheet reviews actual in-game
+// readability.
+const PITCH = 0.42; // view tilt from straight-down, radians
+const YAW = -0.08;
 
 const CLASS_NAMES = [
   'heavy-sword', 'light-spear', 'longsword', 'phalanx', 'archers', 'skirmishers',
@@ -51,9 +46,7 @@ REVIEW_H[8] = 3.2;
 REVIEW_H[14] = 3.0;
 const frameFor = (cls) => {
   const h = REVIEW_H[cls] ?? CLASS_H[cls] ?? 1.8;
-  if (INGAME) return { zoom: Math.max(72, Math.min(108, (0.48 * TH) / h)), camX: INGAME_CAMERA_X, camY: 0.72 * h };
-  if (cls === 6 || cls === 7) return { zoom: Math.max(64, Math.min(136, (0.63 * TH) / h)), camX: -1.6, camY: 3.2 };
-  return { zoom: Math.max(64, Math.min(136, (0.63 * TH) / h)), camX: HERO_CAMERA_X, camY: 1.25 * h };
+  return { zoom: Math.max(72, Math.min(108, (0.48 * TH) / h)), camX: INGAME_CAMERA_X, camY: 0.72 * h };
 };
 
 // Stances = route clip/phase samples (rows of the sheet).
@@ -143,8 +136,8 @@ for (const cls of classes) {
         frame: st.frame,
         facing,
         zoom,
-        pitch: INGAME ? 0.42 : PITCH,
-        yaw: INGAME ? -0.08 : -0.18,
+        pitch: PITCH,
+        yaw: YAW,
         camX,
         camY,
         size: cls === 6 ? 1.05 : 1.15,

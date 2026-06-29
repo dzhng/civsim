@@ -89,7 +89,7 @@ final cutover (slice 11) is the integration point that depends on the rest.
 | 02 | Capability probe page: limits/features report, MSAA on/off compare, GPU timestamp readout. |
 | 03 | Asset workbench app: drop a `.glb`, see it bake to VAT and render beside the placeholder; validation failures shown inline. |
 | 04 | Soldier gates per class driven by per-class VATs instead of one global VAT. |
-| 05 | Turntable/ingame crops showing real materials + faction accents (crest/shield/sash masks). |
+| 05 | Model-sheet crops showing real materials + faction accents (crest/shield/sash masks). |
 | 06 | Mounted-unit gate: horse + rider as composed skeletons; cavalry no longer fused boxes. |
 | 07 | Zoom sweep showing L0/L1/L2 mesh swaps; perf probe at crowd scale. |
 | 08 | Battle scene with grounded shadows and soldiers climbing terrain relief. |

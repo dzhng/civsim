@@ -26,8 +26,9 @@ is the workflow.
   reuses: booting a battle to its debug bridge, the screenshot-then-regression
   capture loop, and the common two-unit duel framing. Anything that encodes what
   a *specific* scenario means stays in that scenario's script, never here.
-- **The turntable** (`turntable.mjs`) — not a battle: a 360° review of the 3D
-  soldier models, one gated contact sheet per class.
+- **Model sheets** (`model-sheet.mjs`) — not a battle: a 360° review of the 3D
+  soldier models at the in-game battle camera pitch, one gated contact sheet per
+  class.
 
 Run the whole sweep with `node vibe/all.mjs` (from `web/`, dev server up), or a
 single scenario script on its own to iterate; all honor `UPDATE_SHOTS=1` to

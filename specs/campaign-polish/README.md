@@ -123,8 +123,8 @@ and use focused fixture worlds before full-map acceptance.
   shared props belong under `packages/game-renderer/src/models/shared/`.
 - New model review baselines belong under `web/shots/models/{campaign,battle,shared}/`.
   Animation GIFs live in the matching model owner's `anim/` folder.
-- When a new 3D model is created, generate its static turntable with the
-  `write-turntable` workflow and add animation review GIFs with `write-anim`
+- When a new 3D model is created, generate its static model sheet with the
+  `write-model-sheet` workflow and add animation review GIFs with `write-anim`
   when it moves. Future campaign flags, army banners, carts, trees, and soldiers
   should all have an animation review path.
 

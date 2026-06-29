@@ -38,7 +38,7 @@ isolated model/primitive or a composed game state.
   generated review shots under `web/shots/models/<battle|campaign|shared>/`.
   If a model moves, also create
   an animation/GIF gate with [write-anim](../write-anim/SKILL.md); if it needs
-  static review, use [write-turntable](../write-turntable/SKILL.md).
+  static review, use [write-model-sheet](../write-model-sheet/SKILL.md).
 - **Composite scene** — an emergent layout: a campaign LoD band, a selected
   city/army composition, a battle line, a modal, or a UI state. These are
   authored as `visual` scene files under the owning folder.
@@ -220,7 +220,7 @@ reporting, and look at any baseline you re-blessed.
 
 - [ ] Is this an isolated model/primitive? If so put the model/source and review
       shots under the matching `battle`, `campaign`, or `shared` model folder
-      and use model/turntable/animation gates before composing it into a world.
+      and use model-sheet/animation gates before composing it into a world.
 - [ ] One file under `scenes/<owner>/<name>.mjs`, exporting `meta` + `run`.
 - [ ] Does another scene already boot this *same* world? If it differs only in
       what it measures, add your `snap`/`check` THERE — don't author a second

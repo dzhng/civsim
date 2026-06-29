@@ -142,7 +142,7 @@ pass orchestration, WGSL layout, depth semantics, or browser-verified output.
 - When a snapshot fails, inspect the actual candidate artifact, not the blessed
   baseline path. Baselines prove what was accepted before; actual captures prove
   what the current GPU code rendered.
-- For contact sheets, turntables, animation GIFs, and timeline strips, inspect
+- For model sheets, contact sheets, animation GIFs, and timeline strips, inspect
   every tile or frame class, not just one representative. A grid can pass while
   repeated crops are consistently off-center, clipped, or aimed between the
   models.

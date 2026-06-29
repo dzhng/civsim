@@ -13,10 +13,17 @@ chase his new slot. Stop relabelling laterally while engaged and the crab stops.
 
 ## Next Agent Prompt
 
-**Status:** Spec written 2026-06-29, not started. Decisions locked (see below).
-**Pickup point:** Begin at `slices/01-compact-columns.md` — the pure
-`compact_columns` algorithm + its unit tests. It changes no live behavior, so it
-lands safe and gives slice 2 a tested primitive to wire in.
+**Status:** Slice 1 shipped: `unit::compact_columns` is written, pure, unwired,
+and covered by direct unit tests in `crates/sim/src/unit.rs` for front death,
+mid-column death, wiped-file notch, file preservation, determinism, and
+idempotence. The tests live beside the helper instead of in
+`crates/sim/tests/mechanics_formation.rs` because the helper is `pub(crate)` and
+slice 1 should not add a public test hook just to reach an internal primitive.
+
+**Pickup point:** Begin at `slices/02-wire-and-gate.md` — wire
+`compact_columns` into the drumbeat while engaged/advancing, delete
+`compact_slots_preserving_order`, add the disengage clear-beat re-even, and
+re-pin the golden hash once the behavior is proven.
 
 **Locked decisions (from the grilling):**
 - A wiped column leaves a **persistent frontage notch** mid-fight — do NOT slide
@@ -30,12 +37,15 @@ lands safe and gives slice 2 a tested primitive to wire in.
 - The golden hash (`golden.rs::golden_state_hash_stable`) WILL move in slice 2.
   Re-pin it once, in that commit, after confirming your change is the only mover
   (it may already be red on this branch — diff against a clean baseline first).
+- `cargo build -p sim` warns that `compact_columns` is unused after slice 1.
+  That warning is intentional substrate debt and should disappear when slice 2
+  wires the helper; do not hide it with an allow/expect attribute.
 - Concurrent sessions share the working tree (see `specs/standoff-double-push.md`
   process notes): never `git stash`/`checkout` over the tree; `git add` by path.
 - Rebuild wasm before any browser/renderer-lab check.
 
 **Global TODO** (each item owned by a slice):
-- [ ] `compact_columns` written + unit-tested, pure, unwired — slice 1
+- [x] `compact_columns` written + unit-tested, pure, unwired — slice 1
 - [ ] Drumbeat rewired: column-close while engaged/advancing; remove the engaged
       `reassign_slots` path; delete `compact_slots_preserving_order` — slice 2
 - [ ] Disengage one-shot re-even via `quiet_ticks` clear-beat — slice 2

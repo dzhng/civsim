@@ -415,3 +415,191 @@ pub(crate) fn compact_slots_preserving_order(u: &Unit, alive: &[u8], soldier_slo
         soldier_slot[u.start + s] = slot as u32;
     }
 }
+
+/// Close casualty holes forward within each file while preserving each man's
+/// column identity. A wiped file stays empty; lateral re-evening belongs to
+/// `reassign_slots` on reform/disengage, not to a fighting line.
+pub(crate) fn compact_columns(u: &Unit, alive: &[u8], soldier_slot: &mut [u32]) {
+    let files = u.files_eff.max(1);
+    let mut columns: Vec<Vec<(usize, usize)>> = (0..files).map(|_| Vec::new()).collect();
+    for s in 0..u.count {
+        let i = u.start + s;
+        if alive[i] == 0 {
+            continue;
+        }
+        let slot = soldier_slot[i] as usize;
+        columns[slot % files].push((slot / files, s));
+    }
+    for (file, column) in columns.iter_mut().enumerate() {
+        column.sort_by(|a, b| a.0.cmp(&b.0).then_with(|| a.1.cmp(&b.1)));
+        for (rank, &(_, s)) in column.iter().enumerate() {
+            soldier_slot[u.start + s] = (rank * files + file) as u32;
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::compact_columns;
+    use crate::{Sim, Tunables, Vec2};
+    use std::f32::consts::FRAC_PI_2;
+
+    const SEED: u64 = 7;
+
+    fn block(files: usize, ranks: usize) -> (Sim, usize) {
+        let mut tun = Tunables::default();
+        tun.micro_rough = 0.0;
+        tun.morale_enabled = false;
+        let mut sim = Sim::new(tun, SEED);
+        let unit = sim.spawn_unit(
+            Vec2::ZERO,
+            FRAC_PI_2,
+            files * ranks,
+            files,
+            Vec2::new(1.0, 1.0),
+            0,
+            1.0,
+        );
+        (sim, unit)
+    }
+
+    fn kill_slot(sim: &mut Sim, unit: usize, slot: usize) {
+        let u = &sim.units[unit];
+        let soldier = (u.start..u.start + u.count)
+            .find(|&i| sim.alive[i] == 1 && sim.soldier_slot[i] as usize == slot)
+            .expect("slot should have a living soldier");
+        sim.kill(soldier);
+    }
+
+    fn compact(sim: &mut Sim, unit: usize) {
+        compact_columns(&sim.units[unit], &sim.alive, &mut sim.soldier_slot);
+    }
+
+    fn unit_range(sim: &Sim, unit: usize) -> std::ops::Range<usize> {
+        let u = &sim.units[unit];
+        u.start..u.start + u.count
+    }
+
+    #[test]
+    fn compact_columns_front_death_pulls_only_that_file_forward() {
+        let files = 4;
+        let killed_file = 2;
+        let (mut sim, unit) = block(files, 4);
+        let before = sim.soldier_slot.clone();
+        kill_slot(&mut sim, unit, killed_file);
+
+        compact(&mut sim, unit);
+
+        for i in unit_range(&sim, unit) {
+            if sim.alive[i] == 0 {
+                continue;
+            }
+            let old = before[i] as usize;
+            let new = sim.soldier_slot[i] as usize;
+            if old % files == killed_file {
+                assert_eq!(new % files, killed_file, "soldier {i} changed file");
+                assert_eq!(
+                    new / files,
+                    old / files - 1,
+                    "soldier {i} did not step forward exactly one rank"
+                );
+            } else {
+                assert_eq!(new, old, "other files must not move");
+            }
+        }
+    }
+
+    #[test]
+    fn compact_columns_mid_death_moves_only_men_behind_in_file() {
+        let files = 5;
+        let killed_file = 1;
+        let killed_rank = 2;
+        let (mut sim, unit) = block(files, 5);
+        let before = sim.soldier_slot.clone();
+        kill_slot(&mut sim, unit, killed_rank * files + killed_file);
+
+        compact(&mut sim, unit);
+
+        for i in unit_range(&sim, unit) {
+            if sim.alive[i] == 0 {
+                continue;
+            }
+            let old = before[i] as usize;
+            let new = sim.soldier_slot[i] as usize;
+            if old % files != killed_file || old / files < killed_rank {
+                assert_eq!(new, old, "men ahead of the hole and other files stay put");
+            } else {
+                assert_eq!(new % files, killed_file, "soldier {i} changed file");
+                assert_eq!(
+                    new / files,
+                    old / files - 1,
+                    "soldier {i} did not step forward exactly one rank"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn compact_columns_wiped_file_stays_empty() {
+        let files = 4;
+        let wiped_file = 3;
+        let (mut sim, unit) = block(files, 4);
+        let before = sim.soldier_slot.clone();
+        for rank in 0..4 {
+            kill_slot(&mut sim, unit, rank * files + wiped_file);
+        }
+
+        compact(&mut sim, unit);
+
+        for i in unit_range(&sim, unit) {
+            if sim.alive[i] == 0 {
+                continue;
+            }
+            let new = sim.soldier_slot[i] as usize;
+            assert_ne!(new % files, wiped_file, "wiped file should stay empty");
+            assert_eq!(
+                new, before[i] as usize,
+                "neighbouring files must not close sideways"
+            );
+        }
+    }
+
+    #[test]
+    fn compact_columns_never_changes_file_and_is_deterministic_idempotent() {
+        let files = 5;
+        let (mut first, first_unit) = compacted_after_kills(files);
+        let (second, _) = compacted_after_kills(files);
+        assert_eq!(
+            first.soldier_slot, second.soldier_slot,
+            "same kills must produce the same slot map"
+        );
+
+        let before_second_compact = first.soldier_slot.clone();
+        compact(&mut first, first_unit);
+        assert_eq!(
+            first.soldier_slot, before_second_compact,
+            "a second compact is a no-op"
+        );
+    }
+
+    fn compacted_after_kills(files: usize) -> (Sim, usize) {
+        let (mut sim, unit) = block(files, 5);
+        let before = sim.soldier_slot.clone();
+        for (file, rank) in [(0, 0), (2, 1), (2, 3), (4, 2)] {
+            kill_slot(&mut sim, unit, rank * files + file);
+        }
+
+        compact(&mut sim, unit);
+
+        for i in unit_range(&sim, unit) {
+            if sim.alive[i] == 1 {
+                assert_eq!(
+                    sim.soldier_slot[i] as usize % files,
+                    before[i] as usize % files,
+                    "living soldier {i} changed file"
+                );
+            }
+        }
+        (sim, unit)
+    }
+}

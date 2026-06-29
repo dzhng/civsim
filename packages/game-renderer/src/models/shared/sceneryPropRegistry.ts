@@ -114,9 +114,11 @@ export const PROP_REVIEW_GROUPS: PropReviewGroup[] = [
     id: 'cart',
     label: 'Cart',
     camera: SINGLE_CAMERA,
+    // Two carts facing OUTWARD (shafts point away from centre) so the front
+    // poles never clip the neighbour; spaced enough to read as two separate carts.
     props: [
-      { kind: 'cart', x: -1.6, y: -0.5, size: 3.4, yaw: -0.18 },
-      { kind: 'cart', x: 2.0, y: -0.7, size: 2.9, yaw: 0.22 },
+      { kind: 'cart', x: -1.9, y: -0.4, size: 3.3, yaw: 2.78 },
+      { kind: 'cart', x: 1.9, y: -0.7, size: 2.9, yaw: 0.16 },
     ],
   },
 ];

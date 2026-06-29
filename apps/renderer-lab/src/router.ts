@@ -2397,7 +2397,11 @@ async function routeBattleTerrainFeatures(ctx: LabContext) {
     prev = z;
   }
 
-  const shell = await createConfiguredShell(ctx.canvas, { x: 0, y: 0, zoom: 0.45, pitch: 0.20, yaw: 0 });
+  // Near-top-down and zoomed to fill the frame so the long E–W axis spans the
+  // width: the sealed west/east bands read at the left/right edges and the open
+  // north/south edges run grass to the top/bottom, instead of a thin seal lost
+  // in haze margins.
+  const shell = await createConfiguredShell(ctx.canvas, { x: 0, y: 0, zoom: 0.52, pitch: 0.05, yaw: 0 });
   const terrain = new BattleTerrainPass(shell);
   terrain.setTintGrid({ w, h, cell, ox, oy, tint });
   shell.drawFrame({

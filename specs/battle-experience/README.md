@@ -2,9 +2,12 @@
 
 ## Next Agent Prompt
 
-Current status, last updated 2026-06-30: Slice 01 is SHIPPED. Reusable scenery
-props now have shared ownership through a registry and a dedicated review scene;
-slices 02-05 remain planned. David added a reference for edge cliffs, distant
+Current status, last updated 2026-06-30: Slices 01 and 02 are SHIPPED (02 in
+three commits — 02a canonical terrain height, 02b the typed renderer-side
+presentation/catalog/scene, 02c the campaign seating fix). Slices 03-05 remain
+planned. An unbiased screenshot-critique pass now runs on committed shots (see
+Review Map and "Open visual findings" below). David added a reference for edge
+cliffs, distant
 fog, and full-field grass coverage; use
 `specs/battle-experience/assets/edge-cliffs-grass-reference.png` as review
 context alongside the Aegean battle references. The same reference should guide
@@ -44,8 +47,46 @@ need a one-time re-bless under SwiftShader — same situation as the pre-existin
 the hardware adapter (proven identical with pre-slice code, so not introduced
 here). Re-bless prop sheets with `npm --prefix web run shots:models:props`.
 
+What Slice 02 shipped:
+
+- 02a (Rust): `sim::Terrain` gains a `height: Vec<f32>` channel with a bilinear
+  edge-clamped `height_at`, additive `add_rise`/`add_ridge` painters, and gentle
+  relief on every map. New `MapId::CoastalScrub` (third quick-battle map).
+  `contract::PaintOp::Rise` carries elevation across the terrain contract;
+  `game-wasm` exports `terrain_height_ptr` and routes map index 2.
+  `terrain_height.rs` pins sampling/edge/relief invariants; golden untouched
+  (height is presentation/seating only, no movement reads it).
+- 02b (renderer): `terrain/heightField.ts` (shared `TerrainHeightField` +
+  `terrainHeightAt`, matching `height_at`), `battle/terrainFeatures.ts`
+  (deterministic feature extraction + `edgeSealMismatches`), and
+  `battle/mapCatalog.ts` (`BATTLE_MAP_CATALOG`, the one source of edge roles +
+  ground cover). Route `battle-terrain-features` + the scene gate all three maps.
+- 02c (seating): `testStageScenery` no longer uses per-prop `z: 0`; props seat
+  on one documented flat datum.
+
+Open visual findings (screenshot-critique) — NEED AESTHETIC DIRECTION from David;
+these are pre-existing model-quality issues that slice 01's sheets newly exposed,
+not regressions. Composition/framing findings are already fixed and re-blessed:
+
+- Cart model reads as a table/stool: the box "wheels" sit as four corner legs;
+  it needs side-mounted round/disc wheels to read as a wheeled cart.
+- Rock cluster renders noticeably darker/muddier than the mountain (same stone),
+  an underlit material — confirmed against the mountain sheet.
+- Broadleaf has a long thin trunk under a small canopy (lollipop), and its trunk
+  is a redder/darker brown than the conifer — family inconsistency.
+- Trees sheet: two front trunks read with a gap to their canopy (partly the
+  broadleaf-proportion issue above).
+- Slice 02 battle-terrain-features shots are a flat top-down tint DEBUG view:
+  feature layout reads, but the sealed west/east edges do not dramatize. That is
+  slice 03's explicit deliverable (cliffs/ocean read at a glance), not 02's.
+
 Exact next pickup point: start
-`specs/battle-experience/slices/02-battle-terrain-feature-contract.md`.
+`specs/battle-experience/slices/03-battle-3d-terrain-props.md`. It draws shared
+3D props on the height field (consume `SCENERY_PROP_MODELS`/`defaultScale`),
+seats production battle soldiers/props on `terrain_height_ptr` via
+`TerrainHeightField`, dramatizes the sealed west/east edges, and applies the
+`groundCover` style — and is the natural home for the prop model-quality fixes
+above (re-bless the slice 01 sheets after).
 
 Active blockers or warnings: do not delete the duel bench unless David asks; it
 is still the fastest matchup/debug surface. The quick-battle budget default in
@@ -57,8 +98,9 @@ Global TODO:
 
 - [x] Slice 01: reusable scenery prop review moved to shared ownership
   (registry + `shared-prop-models` scene); shared prop model sheets committed.
-- [ ] Slice 02: create a battle terrain-feature contract that turns sim terrain
-  tints, micro roughness, and height variation into typed render features.
+- [x] Slice 02: battle terrain-feature contract — canonical height + CoastalScrub
+  map + wasm export (02a), typed renderer presentation/catalog/scene (02b),
+  campaign seating fix (02c).
 - [ ] Slice 03: render battle woods, rocks, mud/scree, and micro roughs with
   proper 3D/shared model cues, height-aware placement, and terrain baselines.
 - [ ] Slice 04: replace static quick-battle buttons with a map picker, 15,000
@@ -183,6 +225,17 @@ fields:
 
 ## Review Map
 
+- Unbiased shot verification (every slice that adds or re-blesses a committed
+  shot): before a baseline is accepted, its rendered output must pass an
+  unbiased screenshot-critique pass — a fresh, unprimed sub-agent that is told
+  only the surface under review and the image (never the intended answer), per
+  the [screenshot-critique](../../.claude/skills/screenshot-critique/SKILL.md)
+  skill. The author's own inspection and the pixel-regression gate do not
+  substitute for this second set of eyes. Findings the critic raises are
+  recorded against the slice and resolved (fixed, or justified in writing as
+  intended) before the shot is called done. This applies to the shared prop
+  sheets, the battle terrain-feature shots, the menu flow, and any model/scene
+  baseline the feature introduces.
 - Static prop review:
   `VERIFY_GPU=1 UPDATE_SHOTS=1 node scene.mjs shared-prop-models` from `web/`
   after slice 01 adds the shared prop scene.

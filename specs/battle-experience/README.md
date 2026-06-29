@@ -64,18 +64,21 @@ What Slice 02 shipped:
 - 02c (seating): `testStageScenery` no longer uses per-prop `z: 0`; props seat
   on one documented flat datum.
 
-Open visual findings (screenshot-critique) — NEED AESTHETIC DIRECTION from David;
-these are pre-existing model-quality issues that slice 01's sheets newly exposed,
-not regressions. Composition/framing findings are already fixed and re-blessed:
+Visual findings (screenshot-critique) — RESOLVED unless noted. Baselines for the
+prop sheets and all campaign-models shots are now HARDWARE-adapter provenance
+(David approved migrating them off SwiftShader, since this Mac has no SwiftShader
+adapter; CI needs a one-time SwiftShader reconciliation):
 
-- Cart model reads as a table/stool: the box "wheels" sit as four corner legs;
-  it needs side-mounted round/disc wheels to read as a wheeled cart.
-- Rock cluster renders noticeably darker/muddier than the mountain (same stone),
-  an underlit material — confirmed against the mountain sheet.
-- Broadleaf has a long thin trunk under a small canopy (lollipop), and its trunk
-  is a redder/darker brown than the conifer — family inconsistency.
-- Trees sheet: two front trunks read with a gap to their canopy (partly the
-  broadleaf-proportion issue above).
+- [x] Cart read as a table — now has round disc wheels on an axle (added
+  `MeshBuilder.disc`); a re-critique confirms it reads as a wheeled cart.
+- [x] Broadleaf lollipop — shorter trunk, broader lowered canopy, conifer-matched
+  trunk colour; re-critique reads it as a tree.
+- [x] Rock cluster underlit — brightened to the mountain's warm stone so the two
+  match. NOTE for David's aesthetic call: a fresh critic still reads the warm
+  tone as tan/earth rather than grey; if Aegean stone should read greyer, retint
+  `buildRockMesh` (and the mountain) cooler.
+- [ ] Minor (David's call): broadleaf canopy apex is slightly peaked (a touch
+  conifer-ish); not pursued.
 - Slice 02 battle-terrain-features shots are a flat top-down tint DEBUG view:
   feature layout reads, but the sealed west/east edges do not dramatize. That is
   slice 03's explicit deliverable (cliffs/ocean read at a glance), not 02's.

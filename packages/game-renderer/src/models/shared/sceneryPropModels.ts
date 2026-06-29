@@ -23,32 +23,43 @@ export function buildMountainMesh(): MeshData {
 export function buildRockMesh(): MeshData {
   const builder = new MeshBuilder();
   builder.shadow(0.86, 0.44, 0.18);
-  builder.peak([-0.32, -0.08, 0], 0.58, 0.44, 6, [0.39, 0.36, 0.30], [0.48, 0.44, 0.38], 5);
-  builder.peak([0.24, 0.10, 0], 0.50, 0.34, 6, [0.34, 0.32, 0.27], [0.44, 0.41, 0.35], 17);
-  builder.peak([0.64, -0.20, 0], 0.30, 0.24, 5, [0.30, 0.28, 0.24], [0.40, 0.38, 0.33], 29);
+  // Lit the same warm grey as the mountain massif (which it shares stone with),
+  // not the muddy dark it used to read as next to that sheet.
+  builder.peak([-0.32, -0.08, 0], 0.58, 0.44, 6, [0.46, 0.42, 0.36], [0.60, 0.56, 0.49], 5);
+  builder.peak([0.24, 0.10, 0], 0.50, 0.34, 6, [0.43, 0.40, 0.34], [0.57, 0.53, 0.46], 17);
+  builder.peak([0.64, -0.20, 0], 0.30, 0.24, 5, [0.40, 0.37, 0.32], [0.54, 0.50, 0.44], 29);
   return builder.finish('rock mesh');
 }
 
-// A small ox-less trade cart, pointing +X (its travel direction): four dark
-// wheels, a plank bed, and a canvas-and-sacks load. Kept low and stubby so it
-// reads as road life at the campaign camera without competing with markers.
+// A small ox-less trade cart, pointing +X (its travel direction): two round
+// wheels per side on an axle, a plank bed, and a canvas-and-sacks load. The
+// wheels are discs (not boxes) so the cart reads as wheeled, not as a four-leg
+// table, at the game camera; kept low and stubby so it stays road life rather
+// than competing with markers.
 export function buildCartMesh(): MeshData {
   const builder = new MeshBuilder();
   builder.shadow(0.72, 0.40, 0.18);
   const wood: Rgb = [0.40, 0.27, 0.15];
-  const darkWood: Rgb = [0.22, 0.15, 0.10];
+  const darkWood: Rgb = [0.20, 0.14, 0.09];
+  // Worn-wood wheels: light enough that the round rim catches the key light and
+  // reads as a wheel rather than a near-black shadow lump.
+  const wheelWood: Rgb = [0.33, 0.23, 0.13];
   const canvas: Rgb = [0.66, 0.58, 0.42];
-  // wheels
-  builder.box([-0.34, -0.30, 0.15], [0.22, 0.10, 0.30], darkWood, 1);
-  builder.box([-0.34, 0.30, 0.15], [0.22, 0.10, 0.30], darkWood, 1);
-  builder.box([0.34, -0.30, 0.15], [0.22, 0.10, 0.30], darkWood, 1);
-  builder.box([0.34, 0.30, 0.15], [0.22, 0.10, 0.30], darkWood, 1);
-  // plank bed
-  builder.box([0.0, 0.0, 0.36], [0.86, 0.52, 0.16], wood, 1);
+  // Round wheels (vertical discs facing ±Y), seated just outboard of the bed.
+  const wheelR = 0.21;
+  for (const wx of [-0.30, 0.30]) {
+    for (const wy of [-0.30, 0.30]) {
+      builder.disc([wx, wy, wheelR], wheelR, 'y', wheelWood, 1, 14);
+    }
+    // axle across the wheel pair
+    builder.box([wx, 0.0, wheelR], [0.07, 0.62, 0.07], darkWood, 1);
+  }
+  // plank bed sitting on the axles
+  builder.box([0.0, 0.0, 0.46], [0.86, 0.52, 0.14], wood, 1);
   // shaft/pole out the front
-  builder.box([0.62, 0.0, 0.30], [0.42, 0.08, 0.08], wood, 1);
+  builder.box([0.62, 0.0, 0.40], [0.42, 0.08, 0.08], wood, 1);
   // canvas load
-  builder.box([-0.04, 0.0, 0.56], [0.60, 0.44, 0.26], canvas, 1);
+  builder.box([-0.04, 0.0, 0.64], [0.60, 0.44, 0.26], canvas, 1);
   return builder.finish('cart mesh');
 }
 
@@ -67,10 +78,13 @@ export function buildConiferTreeMesh(): MeshData {
 export function buildBroadleafTreeMesh(): MeshData {
   const builder = new MeshBuilder();
   builder.shadow(0.76, 0.46, 0.17);
-  builder.box([0, 0, 0.34], [0.18, 0.18, 0.68], [0.34, 0.22, 0.12], 1);
-  builder.blob([-0.22, -0.04, 1.06], [0.46, 0.38, 0.34], [0.15, 0.27, 0.13], 101);
-  builder.blob([0.24, 0.02, 1.12], [0.50, 0.40, 0.38], [0.18, 0.31, 0.15], 113);
-  builder.blob([0.02, 0.16, 1.36], [0.42, 0.34, 0.36], [0.21, 0.35, 0.17], 127);
-  builder.blob([0.0, -0.16, 1.24], [0.38, 0.32, 0.30], [0.12, 0.23, 0.11], 139);
+  // Shorter, slightly stouter trunk in the same brown as the conifer (was a
+  // longer, redder pole), and a broader canopy lowered to overlap the trunk top
+  // so the crown reads as a full broadleaf rather than a lollipop on a stick.
+  builder.box([0, 0, 0.28], [0.19, 0.19, 0.56], [0.32, 0.21, 0.12], 1);
+  builder.blob([-0.26, -0.05, 0.84], [0.54, 0.46, 0.40], [0.15, 0.27, 0.13], 101);
+  builder.blob([0.28, 0.03, 0.92], [0.58, 0.48, 0.44], [0.18, 0.31, 0.15], 113);
+  builder.blob([0.03, 0.18, 1.18], [0.50, 0.42, 0.42], [0.21, 0.35, 0.17], 127);
+  builder.blob([0.0, -0.19, 1.02], [0.46, 0.40, 0.36], [0.12, 0.23, 0.11], 139);
   return builder.finish('broadleaf tree mesh');
 }

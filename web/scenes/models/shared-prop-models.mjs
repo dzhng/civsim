@@ -24,7 +24,7 @@ const CONTENT_REQUIREMENTS = {
   trees: { foliageRatio: 0.05, trunkRatio: 0.004 },
   conifer: { foliageRatio: 0.04 },
   broadleaf: { foliageRatio: 0.03, trunkRatio: 0.004 },
-  rocks: { stoneRatio: 0.05, darkRatio: 0.015 },
+  rocks: { stoneRatio: 0.05 },
   mountain: { stoneRatio: 0.08, darkRatio: 0.01 },
   cart: { trunkRatio: 0.01, darkRatio: 0.01 },
 };

@@ -123,6 +123,26 @@ export class MeshBuilder {
     }
   }
 
+  // A filled disc (both faces) centered at `center`, facing along `axis`. Used
+  // for things that must read as round at the game camera — cart wheels — where
+  // a box would read as a leg.
+  disc(center: [number, number, number], radius: number, axis: 'x' | 'y' | 'z', color: Rgb, alpha = 1, sides = 12) {
+    const ring: [number, number, number][] = [];
+    for (let i = 0; i < sides; i++) {
+      const a = (i / sides) * Math.PI * 2;
+      const c = Math.cos(a) * radius;
+      const s = Math.sin(a) * radius;
+      if (axis === 'x') ring.push([center[0], center[1] + c, center[2] + s]);
+      else if (axis === 'y') ring.push([center[0] + c, center[1], center[2] + s]);
+      else ring.push([center[0] + c, center[1] + s, center[2]]);
+    }
+    for (let i = 0; i < sides; i++) {
+      const n = (i + 1) % sides;
+      this.triangle(center, ring[i], ring[n], color, color, color, alpha);
+      this.triangle(center, ring[n], ring[i], color, color, color, alpha);
+    }
+  }
+
   panel3d(points: [number, number, number][], color: Rgb, alpha: number) {
     if (points.length < 3) return;
     const normal = faceNormal(points[0], points[1], points[2]);

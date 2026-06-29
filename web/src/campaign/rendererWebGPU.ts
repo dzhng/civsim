@@ -376,7 +376,10 @@ function buildEntityFrame(data: CampaignData, field: TerrainField, opts: DrawOpt
     }
   }
   for (const army of opts.armies) {
-    if (opts.fogOfWar && !army.mine && statusOf(opts.factionStatus, army.faction) !== Allegiance.Foe) continue;
+    // Cull by fog visibility, matching visibleCampaignArmies (labels/markers) —
+    // not by allegiance. A neutral or allied army standing in the player's
+    // vision must keep its close-zoom model and selection, not just its label.
+    if (opts.fogOfWar && !army.mine && !fogVisible(opts, army.x, army.y, 0.18)) continue;
     const allegiance = army.mine || army.faction === opts.playerFaction ? Allegiance.Friend : statusOf(opts.factionStatus, army.faction);
     const occupiedCity = occupiedCityForArmy(data, army);
     const display = occupiedCity ? garrisonDisplayAnchor(data.map.nodes[occupiedCity.index]) : { x: army.x, y: army.y };

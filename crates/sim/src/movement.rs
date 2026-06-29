@@ -183,19 +183,22 @@ pub(crate) fn update_unit_motion(tun: &Tunables, u: &mut Unit, dt: f32, ground: 
                 return;
             }
 
-            // DISENGAGE: peel off and RUN — never halt to about-face. A drilled
+            // DISENGAGE: foot peels off immediately — never halt to about-face. A drilled
             // halt-then-turn strands a unit that still carries charge speed (it
             // coasts straight INTO the foe before it can rotate), and a unit that
             // cannot re-form while engaged can never clear a "halt, re-form, then
             // turn" gate at all — it dies facing the enemy. Instead the unit
             // DRIFTS toward the escape point (moving AWAY at once, not along its
             // foe-ward facing) while WHEELING to face it; as the heading comes
-            // round the back-pedal opens into a full gallop. One law for cavalry
-            // (wheel and break off) and foot (about-face and run); the wheel is
-            // bounded by the geometric corner-speed cap and ground, never by
-            // formation order (cohesion). This is the loose-order drift the
-            // skirmish/kite legs already use, pointed at the disengage target.
-            if matches!(u.mode, crate::unit::OrderMode::Disengage) {
+            // round the back-pedal opens into a run. Free mounted units are
+            // excluded: a horse is a long body, so it must use the normal car-like
+            // wheel path below instead of translating sideways while still pointed
+            // off the escape line. A mounted unit already pinned in a grind still
+            // gets the peel-off drift; otherwise it can stall in place while trying
+            // to wheel inside the crowd.
+            if matches!(u.mode, crate::unit::OrderMode::Disengage)
+                && (!u.is_mounted() || u.engaged > 0)
+            {
                 u.pivoting = false;
                 let geom = tun.wheel_speed_factor * top / u.pivot_radius().max(1.0);
                 let rate = tun.base_turn_rate.min(geom);

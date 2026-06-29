@@ -14,27 +14,17 @@ const CHUNK_BIN = 0x004e4942; // 'BIN\0'
 const COMPONENT_SIZE = { 5120: 1, 5121: 1, 5122: 2, 5123: 2, 5125: 4, 5126: 4 };
 const TYPE_COMPONENTS = { SCALAR: 1, VEC2: 2, VEC3: 3, VEC4: 4, MAT2: 4, MAT3: 9, MAT4: 16 };
 
+// The bake only reads inverse-bind matrices and animation samplers, all FLOAT;
+// the other component types round out the accessor reader for completeness.
 function componentReader(componentType) {
   switch (componentType) {
-    case 5120: return (dv, o) => Math.max(dv.getInt8(o) / 127, -1);
-    case 5121: return (dv, o) => dv.getUint8(o) / 255;
-    case 5122: return (dv, o) => Math.max(dv.getInt16(o, true) / 32767, -1);
-    case 5123: return (dv, o) => dv.getUint16(o, true) / 65535;
-    case 5125: return (dv, o) => dv.getUint32(o, true);
-    case 5126: return (dv, o) => dv.getFloat32(o, true);
-    default: throw new Error(`unsupported glTF componentType ${componentType}`);
-  }
-}
-
-// Integer indices (joints, parents) must not be normalized; float accessors
-// (times, matrices, TRS) read as-is. We only ever read FLOAT and UINT here.
-function rawReader(componentType) {
-  switch (componentType) {
+    case 5120: return (dv, o) => dv.getInt8(o);
     case 5121: return (dv, o) => dv.getUint8(o);
+    case 5122: return (dv, o) => dv.getInt16(o, true);
     case 5123: return (dv, o) => dv.getUint16(o, true);
     case 5125: return (dv, o) => dv.getUint32(o, true);
     case 5126: return (dv, o) => dv.getFloat32(o, true);
-    default: return componentReader(componentType);
+    default: throw new Error(`unsupported glTF componentType ${componentType}`);
   }
 }
 
@@ -92,7 +82,7 @@ function bufferBytes(gltf, glbBin, bufferIndex) {
   throw new Error(`external glTF buffer "${buffer.uri}" is not supported — embed it or use .glb`);
 }
 
-function readAccessor(gltf, glbBin, accessorIndex, { raw = false } = {}) {
+function readAccessor(gltf, glbBin, accessorIndex) {
   const accessor = gltf.accessors[accessorIndex];
   const view = gltf.bufferViews[accessor.bufferView];
   const bytes = bufferBytes(gltf, glbBin, view.buffer);
@@ -102,7 +92,7 @@ function readAccessor(gltf, glbBin, accessorIndex, { raw = false } = {}) {
   const elementSize = components * componentSize;
   const baseOffset = (view.byteOffset || 0) + (accessor.byteOffset || 0);
   const stride = view.byteStride || elementSize;
-  const read = raw ? rawReader(accessor.componentType) : componentReader(accessor.componentType);
+  const read = componentReader(accessor.componentType);
   const out = [];
   for (let i = 0; i < accessor.count; i++) {
     const element = [];

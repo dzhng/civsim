@@ -193,6 +193,9 @@ impl Game {
                     })
                 });
                 serde_json::json!({
+                    "id": ci,
+                    "key": contract::unit_class_key(id),
+                    "name": contract::unit_class_name(id),
                     "cost": contract::unit_cost(id),
                     "mass": c.mass,
                     "radius": c.soldier_radius,

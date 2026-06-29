@@ -13,7 +13,14 @@ import {
   SHOCK_CAV_SIDEARM_CLASS,
 } from '../../../packages/soldier-assets/src/soldierMesh';
 import { BattleRenderer, type BattleTacticalLineFrame } from './renderer';
-import { CLASS_NAMES } from './classData';
+import {
+  CLASS_NAMES,
+  UNIT_CLASS_BY_KEY,
+  UNIT_CLASS_KEY_BY_ID,
+  UnitClass,
+  validateClassSpecCatalog,
+  type UnitClassKey,
+} from './classData';
 import { UnitBanner, type BannerChip } from './unitBanner';
 import { UnitCards } from './unitCard';
 import { Input } from './input';
@@ -25,6 +32,37 @@ const MAX_TICKS_PER_FRAME = 4;
 // Last field of the unit_info stride (see UNIT_INFO_STRIDE in game-wasm/lib.rs):
 // render_look sits at offset 32 in the 33-float layout.
 const UNIT_INFO_RENDER_LOOK = 32;
+
+const KITE_CLASS_IDS = [
+  UNIT_CLASS_BY_KEY[UnitClass.Skirmishers],
+  UNIT_CLASS_BY_KEY[UnitClass.HorseArchers],
+] as number[];
+
+const MISSILE_CLASS_IDS = [
+  UNIT_CLASS_BY_KEY[UnitClass.Archers],
+  UNIT_CLASS_BY_KEY[UnitClass.Skirmishers],
+  UNIT_CLASS_BY_KEY[UnitClass.HorseArchers],
+  UNIT_CLASS_BY_KEY[UnitClass.ArtilleryCrew],
+] as number[];
+
+const PHALANX_REST_RENDER_CLASS: Partial<Record<UnitClassKey, number>> = {
+  [UnitClass.HeavyPhalanx]: HEAVY_PHALANX_REST_CLASS,
+  [UnitClass.MediumPhalanx]: MEDIUM_PHALANX_REST_CLASS,
+};
+
+const PHALANX_SIDEARM_RENDER_CLASS: Partial<Record<UnitClassKey, number>> = {
+  [UnitClass.HeavyPhalanx]: HEAVY_PHALANX_SIDEARM_CLASS,
+  [UnitClass.MediumPhalanx]: MEDIUM_PHALANX_SIDEARM_CLASS,
+};
+
+function unitClassKey(classId: number): UnitClassKey | undefined {
+  return UNIT_CLASS_KEY_BY_ID[classId | 0];
+}
+
+function renderClassFor(map: Partial<Record<UnitClassKey, number>>, classId: number): number | undefined {
+  const key = unitClassKey(classId);
+  return key === undefined ? undefined : map[key];
+}
 
 export type BattleKind = 'duel' | '5v5' | 'surround' | 'flank' | 'mapA' | 'mapB';
 
@@ -293,7 +331,7 @@ export class BattleScene implements Scene {
       if (info[o + 28] > 0.5) chips.push({ text: 'SQZ', title: 'squeezed into a corridor' });
       if (info[o + 27] > 0.5) chips.push({ text: 'WAIT', title: 'queued behind friends' });
       if (info[o + 29] > 0.55) chips.push({ text: 'CRUSH', kind: 'bad', title: 'crushed in the press: no room, evade dying' });
-      if ([4, 5, 7, 8].includes(cls2) && info[o + 19] === 0) chips.push({ text: 'AMMO!', kind: 'bad', title: 'quivers empty' });
+      if (MISSILE_CLASS_IDS.includes(cls2) && info[o + 19] === 0) chips.push({ text: 'AMMO!', kind: 'bad', title: 'quivers empty' });
       if (info[o + 16] > 0) chips.push({ text: `⚔${info[o + 16]}`, kind: 'hot', title: 'men trading blows' });
       return chips;
     }
@@ -337,8 +375,6 @@ export class BattleScene implements Scene {
     document.querySelectorAll<HTMLButtonElement>('#toolbar button').forEach((b) => {
       toolButtons.set(b.dataset.cmd!, b);
     });
-    const KITE_CLASSES = [5, 7];
-    const MISSILE_CLASSES = [4, 5, 7, 8];
     function updateToolbar() {
       const sel = myUnits(input.selected);
       const info = unitInfo();
@@ -351,8 +387,8 @@ export class BattleScene implements Scene {
         if (label) b.textContent = label;
         if (!['pause', 'x1', 'x3', 'paths'].includes(cmd)) {
           let applies = sel.length > 0;
-          if (cmd === 'kite') applies &&= supports(KITE_CLASSES);
-          if (cmd === 'fire') applies &&= supports(MISSILE_CLASSES);
+          if (cmd === 'kite') applies &&= supports(KITE_CLASS_IDS);
+          if (cmd === 'fire') applies &&= supports(MISSILE_CLASS_IDS);
           b.disabled = !applies;
         }
       };
@@ -808,6 +844,9 @@ export class BattleScene implements Scene {
     // --- Main loop -----------------------------------------------------------------
     type WeaponSpec = { name: string; reach: number; minRange: number; arc: number; interval: number; damage: number; braced: boolean; charge: boolean };
     type ClassSpec = {
+      id: number;
+      key: UnitClassKey;
+      name: string;
       cost: number;
       mass: number; radius: number; brace: number; block: number; evade: number;
       training: number; paceMult: number; drainMult: number; health: number; mountHealth: number;
@@ -815,6 +854,7 @@ export class BattleScene implements Scene {
       missile: { name: string; range: number; interval: number; ammo: number; damage: number; mobileFire: boolean } | null;
     };
     const CLASS_SPECS: ClassSpec[] = JSON.parse(game.class_specs());
+    validateClassSpecCatalog(CLASS_SPECS);
     // Index of each class's braced weapon (the pike), or -1. A man not holding
     // his braced weapon has stowed the pike upright — the renderer must not level
     // it (a flanked phalangite turned to his side-sword would otherwise swing the
@@ -982,14 +1022,16 @@ export class BattleScene implements Scene {
             const cls = info[sUnit[i] * STRIDE + 13];
             const bi = classBracedIdx[cls];
             if (bi >= 0) {
+              const restClass = renderClassFor(PHALANX_REST_RENDER_CLASS, cls);
+              const sidearmClass = renderClassFor(PHALANX_SIDEARM_RENDER_CLASS, cls);
               if (curWeapon[i] === bi) {
                 renderFacings[i] = info[sUnit[i] * STRIDE + 2]; // pike rides the frontage
                 if (frames[i] === 6) {
-                  renderClass[i] = cls === 14 ? MEDIUM_PHALANX_REST_CLASS : HEAVY_PHALANX_REST_CLASS;
+                  renderClass[i] = restClass ?? renderClass[i];
                 }
               } else {
                 frames[i] = 7; // FRAME_STOW: sword in hand, pike snapped upright
-                renderClass[i] = cls === 14 ? MEDIUM_PHALANX_SIDEARM_CLASS : HEAVY_PHALANX_SIDEARM_CLASS;
+                renderClass[i] = sidearmClass ?? renderClass[i];
               }
             }
             const ci = classChargeIdx[cls];

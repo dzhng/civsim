@@ -1,6 +1,6 @@
 import type { Scene } from '../scene';
 import type { BattleKind } from '../battle/scene';
-import { CLASS_NAMES } from '../battle/classData';
+import { CLASS_NAMES, UNIT_CLASS_BY_KEY, UnitClass } from '../battle/classData';
 import { MANUAL_HTML } from '../battle/manual';
 import type { GpuSupportState } from '../../../packages/game-renderer/src/appShell';
 
@@ -38,7 +38,7 @@ export class MenuScene implements Scene {
       for (const sel of [selA, selB]) {
         CLASS_NAMES.forEach((name, i) => sel.add(new Option(name, String(i))));
       }
-      selB.value = String(CLASS_NAMES.length > 6 ? 6 : 0); // cav makes a lively default foe
+      selB.value = String(UNIT_CLASS_BY_KEY[UnitClass.ShockCavalry]); // cav makes a lively default foe
     }
     this.root.querySelector<HTMLButtonElement>('#menu-1v1')!.addEventListener('click', () => {
       if (!this.cfg.gpuStatus.ok) return;

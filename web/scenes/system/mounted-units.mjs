@@ -30,14 +30,14 @@ export async function run(ctx) {
     const stats = await page.evaluate(() => window.__rendererLabStats.stats);
 
     ctx.check(
-      `mounted-units: every mounted class (6, 7, ${stats.sidearmClass}) scales above foot units`,
+      `mounted-units: every mounted class (${stats.shockCavalryClass}, ${stats.horseArchersClass}, ${stats.sidearmClass}) scales above foot units`,
       stats.allMountedScaled === true && stats.mountedEqual === true,
       JSON.stringify({ footSize: stats.footSize, mountedSizes: stats.mountedSizes }),
     );
     ctx.check(
-      'mounted-units: real class 14 medium phalanx remains a foot unit',
-      stats.class14Foot === true,
-      JSON.stringify({ footSize: stats.footSize, class14: stats.phalanxSize }),
+      `mounted-units: real medium phalanx class ${stats.mediumPhalanxClass} remains a foot unit`,
+      stats.phalanxFoot === true,
+      JSON.stringify({ footSize: stats.footSize, mediumPhalanx: stats.phalanxSize }),
     );
     ctx.check(
       `mounted-units: render-only cavalry sidearm class ${stats.sidearmClass} is LOD-scaled`,
@@ -46,9 +46,11 @@ export async function run(ctx) {
     );
     ctx.check(
       'mounted-units: the mount flag tracks the mounted archetypes',
-      stats.mountedFlags.find((f) => f.classId === 0).mounted === false
-        && stats.mountedFlags.find((f) => f.classId === 14).mounted === false
-        && stats.mountedFlags.filter((f) => f.classId !== 0 && f.classId !== 14).every((f) => f.mounted === true),
+      stats.mountedFlags.find((f) => f.classId === stats.heavySwordClass).mounted === false
+        && stats.mountedFlags.find((f) => f.classId === stats.mediumPhalanxClass).mounted === false
+        && stats.mountedFlags
+          .filter((f) => f.classId !== stats.heavySwordClass && f.classId !== stats.mediumPhalanxClass)
+          .every((f) => f.mounted === true),
       JSON.stringify(stats.mountedFlags),
     );
 

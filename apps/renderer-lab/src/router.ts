@@ -41,6 +41,7 @@ import { bakeGltf } from '../../../packages/soldier-assets/bake/gltf.mjs';
 import type { VatBake, VatClip } from '../../../packages/soldier-assets/src/schema';
 import { importedRigMesh } from './importedRigMesh';
 import { buildBattleUiModel, BattleUiLayer } from '../../../web/src/battle/uiLayer';
+import { UNIT_CLASS_BY_KEY, UnitClass } from '../../../web/src/battle/classData';
 import { loadCampaignData, nearestLoc, type CampaignData } from '../../../web/src/campaign/data';
 import { Allegiance } from '../../../web/src/campaign/status';
 import { campaignSurface } from '../../../web/src/campaign/surface';
@@ -348,33 +349,37 @@ async function routeMountedUnits(ctx: LabContext) {
   const zoom = numberParam(ctx.params, 'zoom', 6);
   const shell = await createConfiguredShell(ctx.canvas, { x: 0, y: 0, zoom: 30, pitch: 0.16, yaw: 0 });
   const pipeline = await createSkinnedPipeline(shell, [0.20, 0.42, 0.88], vat);
-  // class 0/14 = foot; 6, 7, and the render-only shock-cav sidearm are mounted
-  // archetypes. Each mounted class renders its own horse+rider placeholder mesh.
+  const heavySword = UNIT_CLASS_BY_KEY[UnitClass.HeavySword];
+  const mediumPhalanx = UNIT_CLASS_BY_KEY[UnitClass.MediumPhalanx];
+  const shockCavalry = UNIT_CLASS_BY_KEY[UnitClass.ShockCavalry];
+  const horseArchers = UNIT_CLASS_BY_KEY[UnitClass.HorseArchers];
+  // Heavy sword and medium phalanx are foot; the cavalry classes and the
+  // render-only shock-cav sidearm are mounted archetypes.
   const lineup = [
-    crowdInstance(-6.0, 0, 0, 'march', false),
-    crowdInstance(-3.0, 14, 0, 'march', false),
-    crowdInstance(0, 6, 0, 'march', true),
-    crowdInstance(3.0, 7, 1, 'march', true),
+    crowdInstance(-6.0, heavySword, 0, 'march', false),
+    crowdInstance(-3.0, mediumPhalanx, 0, 'march', false),
+    crowdInstance(0, shockCavalry, 0, 'march', true),
+    crowdInstance(3.0, horseArchers, 1, 'march', true),
     crowdInstance(6.0, SHOCK_CAV_SIDEARM_CLASS, 1, 'march', true),
   ];
   const lods = assignCrowdLods(lineup, zoom);
   const byClass = (id: number) => lods[lineup.findIndex((s) => s.classId === id)].screenSize;
-  const footSize = byClass(0);
-  const phalanxSize = byClass(14);
-  const mountedSizes = { 6: byClass(6), 7: byClass(7), [SHOCK_CAV_SIDEARM_CLASS]: byClass(SHOCK_CAV_SIDEARM_CLASS) };
+  const footSize = byClass(heavySword);
+  const phalanxSize = byClass(mediumPhalanx);
+  const mountedSizes = { [shockCavalry]: byClass(shockCavalry), [horseArchers]: byClass(horseArchers), [SHOCK_CAV_SIDEARM_CLASS]: byClass(SHOCK_CAV_SIDEARM_CLASS) };
   const allMountedScaled = Object.values(mountedSizes).every((s) => s > footSize + 0.01);
-  const class14Foot = Math.abs(phalanxSize - footSize) < 0.01;
+  const phalanxFoot = Math.abs(phalanxSize - footSize) < 0.01;
   const sidearmScaled = mountedSizes[SHOCK_CAV_SIDEARM_CLASS] > footSize + 0.01;
-  const mountedEqual = mountedSizes[6] === mountedSizes[7] && mountedSizes[7] === mountedSizes[SHOCK_CAV_SIDEARM_CLASS];
+  const mountedEqual = mountedSizes[shockCavalry] === mountedSizes[horseArchers] && mountedSizes[horseArchers] === mountedSizes[SHOCK_CAV_SIDEARM_CLASS];
 
   animateSkinned(shell, pipeline, () => lineup, { forcedClip: 'march', phaseSpeed: 0.6, size: 1 });
   ctx.status.innerHTML = reportTable({
     route: 'mounted-units',
     'foot LOD size': footSize.toFixed(2),
-    'foot 0 / phalanx 14 size': `${footSize.toFixed(2)} / ${phalanxSize.toFixed(2)}`,
-    [`cav 6 / 7 / ${SHOCK_CAV_SIDEARM_CLASS} size`]: `${mountedSizes[6].toFixed(2)} / ${mountedSizes[7].toFixed(2)} / ${mountedSizes[SHOCK_CAV_SIDEARM_CLASS].toFixed(2)}`,
+    'heavy sword / medium phalanx size': `${footSize.toFixed(2)} / ${phalanxSize.toFixed(2)}`,
+    [`shock cav / horse archers / ${SHOCK_CAV_SIDEARM_CLASS} size`]: `${mountedSizes[shockCavalry].toFixed(2)} / ${mountedSizes[horseArchers].toFixed(2)} / ${mountedSizes[SHOCK_CAV_SIDEARM_CLASS].toFixed(2)}`,
     'all mounted scale': allMountedScaled,
-    'class 14 remains foot': class14Foot,
+    'medium phalanx remains foot': phalanxFoot,
     [`class ${SHOCK_CAV_SIDEARM_CLASS} scaled`]: sidearmScaled,
   });
   publish('mounted-units', true, {
@@ -383,10 +388,14 @@ async function routeMountedUnits(ctx: LabContext) {
     phalanxSize,
     mountedSizes,
     allMountedScaled,
-    class14Foot,
+    phalanxFoot,
     sidearmScaled,
     sidearmClass: SHOCK_CAV_SIDEARM_CLASS,
     realUnitClassCount: REAL_UNIT_CLASS_COUNT,
+    heavySwordClass: heavySword,
+    mediumPhalanxClass: mediumPhalanx,
+    shockCavalryClass: shockCavalry,
+    horseArchersClass: horseArchers,
     mountedEqual,
     mountedFlags: lineup.map((s) => ({ classId: s.classId, mounted: s.mounted })),
   });

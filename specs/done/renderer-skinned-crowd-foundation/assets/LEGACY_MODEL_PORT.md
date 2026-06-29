@@ -21,7 +21,7 @@ measurably equal-or-better and intentionally accepted.
 - `web/src/campaign/icons.ts`, `web/src/campaign/status.ts`, and existing
   campaign label screenshots: label icon silhouettes, allegiance colors,
   Cinzel/Georgia typography, and text/icon composition references.
-- `specs/campaign-polish/assets/user-feedback/*.png`: campaign-polish
+- `specs/done/campaign-polish/assets/user-feedback/*.png`: campaign-polish
   feedback captures that define the next accepted visual targets.
 - Git-history source references:
   - `web/src/battle/renderer3d.ts`

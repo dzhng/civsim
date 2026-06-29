@@ -21,7 +21,7 @@ work that turns a sound skeleton into a shippable renderer:
 
 This spec was scoped from a multi-agent gap review of the closed foundation
 (2026-06-29): 46 verified gaps. Campaign gaps were routed to
-[campaign-polish](../campaign-polish/README.md), not here.
+[campaign-polish](../done/campaign-polish/README.md), not here.
 
 ## Non-Goals
 
@@ -31,7 +31,7 @@ This spec was scoped from a multi-agent gap review of the closed foundation
 - **No WebGL fallback renderer.** WebGPU-only is a deliberate choice.
   Unsupported browsers keep the existing clear menu error
   (`web/src/main.ts`, `web/src/menu/scene.ts`), not a fallback renderer.
-- **Campaign visuals live in [campaign-polish](../campaign-polish/README.md).**
+- **Campaign visuals live in [campaign-polish](../done/campaign-polish/README.md).**
   Brown terrain, mountain clearance, trees, road-life carts, label/road
   readability are owned by that spec's slices 02–05. This spec does not touch
   the campaign renderer.

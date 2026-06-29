@@ -9,7 +9,7 @@ The later `specs/renderer-skinned-crowd/` campaign plan was folded back into thi
 closed record and retired because it had become a noisy mix of temporary
 reports, screenshots, and broad release work. The active campaign planning
 surface is now the smaller campaign-only polish spec:
-[../../campaign-polish/README.md](../../campaign-polish/README.md).
+[../campaign-polish/README.md](../campaign-polish/README.md).
 
 ## What Shipped
 
@@ -59,7 +59,7 @@ Historical contracts and reference notes from this phase are kept in `assets/`
 beside this file. Current generated screenshots and reports live in the active
 product snapshot folders and scene harness outputs; feature-owned campaign
 review images for the next pass live under
-`specs/campaign-polish/assets/user-feedback/`.
+`specs/done/campaign-polish/assets/user-feedback/`.
 
 Useful foundation evidence includes:
 

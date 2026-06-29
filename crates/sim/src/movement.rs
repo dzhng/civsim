@@ -183,11 +183,12 @@ pub(crate) fn update_unit_motion(tun: &Tunables, u: &mut Unit, dt: f32, ground: 
                 return;
             }
 
-            // DISENGAGE: foot peels off immediately — never halt to about-face. A drilled
+            // DISENGAGE drift: foot and pinned mounts peel off immediately, never
+            // halting for a drilled about-face. A drilled
             // halt-then-turn strands a unit that still carries charge speed (it
             // coasts straight INTO the foe before it can rotate), and a unit that
             // cannot re-form while engaged can never clear a "halt, re-form, then
-            // turn" gate at all — it dies facing the enemy. Instead the unit
+            // turn" gate at all — it dies facing the enemy. Instead this path
             // DRIFTS toward the escape point (moving AWAY at once, not along its
             // foe-ward facing) while WHEELING to face it; as the heading comes
             // round the back-pedal opens into a run. Free mounted units are

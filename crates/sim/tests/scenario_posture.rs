@@ -207,12 +207,19 @@ fn moving_cavalry_keeps_its_body_on_the_travel_line_before_contact() {
     sim.set_move_order(cav, Vec2::new(0.0, 40.0));
 
     let mut worst_body_off = 0.0f32;
+    let mut worst_travel_slip = 0.0f32;
     let mut sampled = false;
+    let mut prev = sim.units[cav].centroid;
     for _ in 0..(1.4 / DT) as usize {
         sim.tick();
-        if sim.units[cav].engaged == 0 && sim.units[cav].frame_speed > 0.2 {
+        let u = &sim.units[cav];
+        let center = u.centroid;
+        let delta = center - prev;
+        prev = center;
+        if u.engaged == 0 && u.frame_speed > 0.2 && delta.len() > 0.02 {
             sampled = true;
-            let u = &sim.units[cav];
+            let travel = delta.y.atan2(delta.x);
+            worst_travel_slip = worst_travel_slip.max(sim::wrap_angle(travel - u.facing).abs());
             for i in u.start..u.start + u.count {
                 if sim.alive[i] == 1 {
                     worst_body_off =
@@ -222,6 +229,10 @@ fn moving_cavalry_keeps_its_body_on_the_travel_line_before_contact() {
         }
     }
     assert!(sampled, "setup: cav must move before contact");
+    assert!(
+        worst_travel_slip < 0.45,
+        "moving horses should travel along their body before contact: worst slip {worst_travel_slip:.2} rad"
+    );
     assert!(
         worst_body_off < 0.35,
         "moving horses should not crab/broadside before contact: worst body offset {worst_body_off:.2} rad"

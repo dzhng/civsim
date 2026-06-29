@@ -755,7 +755,7 @@ export class CampaignScene implements Scene {
     };
     const sign = eco.monthly_net >= 0 ? '+' : '';
     this.ui.querySelector('#cmp-gold')!.textContent =
-      `${eco.treasury} gold  (${sign}${eco.monthly_net}/mo: +${eco.monthly_income} −${eco.monthly_upkeep})`;
+      `${eco.treasury.toLocaleString()} gold  (${sign}${eco.monthly_net.toLocaleString()}/mo: +${eco.monthly_income.toLocaleString()} −${eco.monthly_upkeep.toLocaleString()})`;
     this.ui.querySelectorAll<HTMLButtonElement>('button[data-speed]').forEach((b) =>
       b.classList.toggle('on', !this.paused && Number(b.dataset.speed) === this.speed),
     );

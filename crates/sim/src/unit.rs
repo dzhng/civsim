@@ -104,9 +104,12 @@ pub struct Unit {
     /// Seconds this burst has been running: a charge is a SPRINT, not a
     /// gait — it ends when the mass lands or the legs give out (~2x window).
     pub charge_time: f32,
-    /// Stamina drain multiplier from the class (the cost of the kit):
-    /// every draining second is scaled by it — armor is paid for in wind.
-    pub drain_mult: f32,
+    /// Stamina drain multiplier from the class (the cost of the kit in a FIGHT):
+    /// the combat drain is scaled by it — armor is paid for in wind.
+    pub fight_drain_mult: f32,
+    /// Extra factor on MOVEMENT drain (run/terrain/charge), on top of `fight_drain_mult`.
+    /// 1.0 for foot; <1 for cavalry (the horse carries the kit, so moving is cheap).
+    pub move_drain_mult: f32,
     /// The burst has reached impact speed (mass_advance ≥ charge_min_speed),
     /// contact or not. Arms the spent check: from here, the mass falling
     /// back below charge_spent_speed means the crowd has bled the momentum

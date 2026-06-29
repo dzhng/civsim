@@ -4,8 +4,7 @@
 //   hold  — it stands and DEFENDS: advancing=false, so its line dimples to stay
 //           whole while the attacker's front frays curling in to envelop
 // Class-vs-class via ATK/DEF ids (see README). A timeline every 20 sim-seconds so
-// the shape develops on screen, not guessed from a frame. (vibeCapture films a
-// few frames past the verdict on its own, so you always catch the rout.)
+// the shape develops on screen, not guessed from a single frame.
 //   ATK=0 DEF=0 POSTURE=both node vibe/duel-posture.mjs   # heavy v heavy, both attack
 //   ATK=0 DEF=3 POSTURE=hold node vibe/duel-posture.mjs   # heavy attacks a holding phalanx
 import { openBattle, vibeCapture, fitDuel, duelSample, duelLabel } from './_lib.mjs';

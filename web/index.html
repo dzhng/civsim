@@ -39,13 +39,17 @@
     }
     #buttons button:hover { background: rgba(40,44,56,0.9); }
     #manual {
-      display: none; position: fixed; top: 56px; right: 12px; z-index: 50;
-      width: min(560px, 90vw); max-height: calc(100vh - 80px);
-      overflow-y: auto; background: rgba(12,14,19,0.96);
+      display: none; position: fixed; top: 48px; right: 270px; bottom: 172px; z-index: 50;
+      width: min(520px, calc(100vw - 310px)); max-height: none;
+      overflow-y: scroll; background: #0c0e13;
       border: 1px solid #3a3f4d; border-radius: 10px;
       color: #cdd2dd; font: 13px/1.6 -apple-system, sans-serif;
-      padding: 12px 22px 22px; z-index: 10;
+      padding: 12px 22px 22px;
+      box-shadow: 0 18px 40px rgba(0,0,0,0.55), inset 0 -18px 18px rgba(0,0,0,0.34);
     }
+    #manual::-webkit-scrollbar { width: 10px; }
+    #manual::-webkit-scrollbar-track { background: #151820; border-radius: 10px; }
+    #manual::-webkit-scrollbar-thumb { background: #4b5263; border-radius: 10px; }
     #manual h1 { font-size: 19px; } #manual h2 { font-size: 15px; margin-top: 18px; color: #e8d9a8; }
     #manual table { border-collapse: collapse; width: 100%; margin: 6px 0; }
     #manual td, #manual th { border: 1px solid #333947; padding: 3px 8px; font-size: 12px; text-align: left; }
@@ -68,16 +72,20 @@
     }
     /* Bottom unit-card strip: one card per player unit (Total War style). */
     #unitcards {
-      position: fixed; bottom: 56px; left: 50%; transform: translateX(-50%);
-      display: flex; gap: 5px; align-items: flex-end; z-index: 5;
-      max-width: 86vw; overflow-x: auto; overflow-y: hidden; padding: 4px 6px;
+      position: fixed; bottom: 56px; left: 12px; right: 12px;
+      display: flex; gap: 3px; align-items: flex-end; z-index: 5;
+      justify-content: flex-start; overflow-x: auto; overflow-y: hidden; padding: 4px 4px;
       background: linear-gradient(rgba(10,12,16,0), rgba(10,12,16,0.78));
       border-radius: 8px; scrollbar-width: thin;
+    }
+    @media (max-width: 760px) {
+      #unitcards { left: 8px; right: 8px; justify-content: flex-start; }
+      #manual { left: 12px; right: 12px; bottom: 172px; width: auto; }
     }
     #unitcards::-webkit-scrollbar { height: 6px; }
     #unitcards::-webkit-scrollbar-thumb { background: #3a3f4d; border-radius: 3px; }
     .ucard {
-      flex: 0 0 auto; width: 62px; display: flex; flex-direction: column; align-items: center;
+      flex: 0 0 auto; width: 44px; display: flex; flex-direction: column; align-items: center;
       background: rgba(24,27,34,0.92); border: 1px solid #3a3f4d;
       border-top: 3px solid var(--fac); border-radius: 5px; padding: 2px 2px 3px;
       cursor: pointer; position: relative; transition: transform 0.08s, border-color 0.1s;
@@ -90,9 +98,9 @@
       font: 700 9px ui-monospace, monospace; color: #ff7a6b; text-shadow: 0 1px 2px #000;
     }
     .ucard-port { display: block; image-rendering: auto; background: radial-gradient(ellipse at 50% 70%, rgba(120,130,110,0.35), rgba(20,24,20,0.1)); border-radius: 3px; }
-    .ucard-name { font: 600 8px ui-monospace, Menlo, monospace; color: #cfd6e4; margin-top: 1px; white-space: nowrap; max-width: 60px; overflow: hidden; text-overflow: ellipsis; }
+    .ucard-name { font: 600 6px ui-monospace, Menlo, monospace; color: #cfd6e4; margin-top: 1px; white-space: nowrap; max-width: 42px; overflow: hidden; text-overflow: ellipsis; }
     .ucard-count { position: absolute; top: 3px; right: 4px; font: 700 9px ui-monospace, monospace; color: #fff; text-shadow: 0 1px 2px #000, 0 0 3px #000; }
-    .ucard-bars { width: 54px; margin-top: 2px; }
+    .ucard-bars { width: 40px; margin-top: 2px; }
     .ucard-bar { height: 3px; background: rgba(8,9,11,0.7); border-radius: 2px; overflow: hidden; margin-bottom: 1px; }
     .ucard-bar > div { height: 100%; width: 100%; }
     .ucard-bar.hp > div { background: #5cba46; }
@@ -138,7 +146,7 @@
     }
     #banner-gallery .ubanner-cap { font: 600 10px ui-monospace, Menlo, monospace; color: #cfe0bf; }
     #minimap {
-      position: fixed; right: 12px; bottom: 30px;
+      position: fixed; right: 12px; bottom: 170px;
       border: 1px solid #3a3f4d; border-radius: 6px;
       background: #11141a; cursor: crosshair;
       box-shadow: 0 4px 18px rgba(0,0,0,0.5);
@@ -164,6 +172,14 @@
       50% { text-shadow: 0 3px 22px rgba(0,0,0,0.9), 0 0 26px rgba(232,217,168,0.28); }
     }
     #menu-ui .tagline { margin: -22px 0 0; color: #6b7280; letter-spacing: 3px; }
+    #menu-ui #menu-renderer-status {
+      width: min(380px, 84vw); box-sizing: border-box;
+      margin-top: -18px; padding: 8px 12px; border-radius: 8px;
+      border: 1px solid #3a3f4d; background: rgba(12,14,19,0.72);
+      color: #aeb6c6; font-size: 11px; line-height: 1.35;
+    }
+    #menu-ui #menu-renderer-status.ok { border-color: #3e6548; color: #9fd4ac; }
+    #menu-ui #menu-renderer-status.bad { border-color: #714447; color: #e2a4a0; }
     #menu-ui .menu-section {
       display: flex; flex-direction: column; gap: 10px; width: min(380px, 84vw);
       background: rgba(12,14,19,0.82); border: 1px solid #3a3f4d; border-radius: 12px;
@@ -247,6 +263,7 @@
   <div id="menu-ui">
     <h1>BATTLE SIM</h1>
     <p class="tagline">mass &middot; momentum &middot; morale</p>
+    <div id="menu-renderer-status" role="status"></div>
     <div class="menu-section feature">
       <h2>Campaign</h2>
       <p class="section-hint">Six powers, real-time. Wage war, forge alliances, gang up on the strong.</p>

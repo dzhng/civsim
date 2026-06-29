@@ -2,9 +2,25 @@ import { Game, type InitOutput } from '../wasm/game_wasm.js';
 import type { Scene } from '../scene';
 import { Camera } from '../shared/camera';
 import { pushGhost, pushPie, pushRing } from '../shared/overlays';
-import { modelLookForUnit } from '../shared/soldierModel';
-import { CLASS_NAMES, Renderer, WILDS_MARGIN } from './renderer';
-import { BattleRenderer3D, type BannerSlot } from './renderer3d';
+import { fatalSurfaceFor, showFatalErrorSurface } from '../shared/fatalError';
+import { CLASS_DEPTH, CLASS_SPACING } from '../../../packages/game-renderer/src/battle/unitInfoLayout';
+import { modelLookForUnit } from '../../../packages/game-renderer/src/models/shared/soldierModel';
+import {
+  HEAVY_PHALANX_REST_CLASS,
+  HEAVY_PHALANX_SIDEARM_CLASS,
+  MEDIUM_PHALANX_REST_CLASS,
+  MEDIUM_PHALANX_SIDEARM_CLASS,
+  SHOCK_CAV_SIDEARM_CLASS,
+} from '../../../packages/soldier-assets/src/soldierMesh';
+import { BattleRenderer, type BattleTacticalLineFrame } from './renderer';
+import {
+  CLASS_NAMES,
+  UNIT_CLASS_BY_KEY,
+  UNIT_CLASS_KEY_BY_ID,
+  UnitClass,
+  validateClassSpecCatalog,
+  type UnitClassKey,
+} from './classData';
 import { UnitBanner, type BannerChip } from './unitBanner';
 import { UnitCards } from './unitCard';
 import { Input } from './input';
@@ -17,14 +33,43 @@ const MAX_TICKS_PER_FRAME = 4;
 // render_look sits at offset 32 in the 33-float layout.
 const UNIT_INFO_RENDER_LOOK = 32;
 
-// Class table mirrors — must match class.rs. Indices: 0 heavy, 1 light, 2 long
-// sword, 3 phalanx, 4 archers, 5 skirmishers, 6 shock cav, 7 horse archers,
-// 8 artillery, 9 peasant, 10 light sword, 11 heavy spear, 12 medium infantry,
-// 13 medium spear.
-const CLASS_DEPTH = [8, 6, 4, 10, 4, 4, 5, 5, 4, 6, 6, 8, 7, 7];
-const CLASS_SPACING = [0.9, 1.0, 1.5, 0.8, 1.2, 1.6, 1.8, 2.2, 2.0, 1.1, 1.0, 0.9, 0.95, 0.95];
-// Primary weapon (reach, arc) for the attack-arc display.
+const KITE_CLASS_IDS = [
+  UNIT_CLASS_BY_KEY[UnitClass.Skirmishers],
+  UNIT_CLASS_BY_KEY[UnitClass.HorseArchers],
+] as number[];
+
+const MISSILE_CLASS_IDS = [
+  UNIT_CLASS_BY_KEY[UnitClass.Archers],
+  UNIT_CLASS_BY_KEY[UnitClass.Skirmishers],
+  UNIT_CLASS_BY_KEY[UnitClass.HorseArchers],
+  UNIT_CLASS_BY_KEY[UnitClass.ArtilleryCrew],
+] as number[];
+
+const PHALANX_REST_RENDER_CLASS: Partial<Record<UnitClassKey, number>> = {
+  [UnitClass.HeavyPhalanx]: HEAVY_PHALANX_REST_CLASS,
+  [UnitClass.MediumPhalanx]: MEDIUM_PHALANX_REST_CLASS,
+};
+
+const PHALANX_SIDEARM_RENDER_CLASS: Partial<Record<UnitClassKey, number>> = {
+  [UnitClass.HeavyPhalanx]: HEAVY_PHALANX_SIDEARM_CLASS,
+  [UnitClass.MediumPhalanx]: MEDIUM_PHALANX_SIDEARM_CLASS,
+};
+
+function unitClassKey(classId: number): UnitClassKey | undefined {
+  return UNIT_CLASS_KEY_BY_ID[classId | 0];
+}
+
+function renderClassFor(map: Partial<Record<UnitClassKey, number>>, classId: number): number | undefined {
+  const key = unitClassKey(classId);
+  return key === undefined ? undefined : map[key];
+}
+
 export type BattleKind = 'duel' | '5v5' | 'surround' | 'flank' | 'mapA' | 'mapB';
+
+function bannerScale(zoom: number, selected: boolean): number {
+  const t = Math.max(0, Math.min(1, (zoom - 1.4) / 3.0));
+  return (0.58 + t * 0.34) * (selected ? 1.08 : 1);
+}
 
 export interface BattleConfig {
   wasm: InitOutput;
@@ -38,12 +83,9 @@ export interface BattleConfig {
   inCampaign?: boolean;
 }
 
-// One renderer for the page: engine/atlas state is battle-independent;
-// per-battle data arrives through setStatic/setTerrain. The battlefield
-// runs on Babylon; `?gfx=2d` falls back to the legacy GL sprite renderer.
-type BattleGfx = Renderer | BattleRenderer3D;
-let sharedRenderer: BattleGfx | null = null;
-const USE_3D = new URLSearchParams(location.search).get('gfx') !== '2d';
+// One renderer for the page: GPU/device/atlas state is battle-independent;
+// per-battle data arrives through setStatic/setTerrain.
+let sharedRenderer: BattleRenderer | null = null;
 
 export class BattleScene implements Scene {
   private cleanups: (() => void)[] = [];
@@ -80,8 +122,8 @@ export class BattleScene implements Scene {
 
     const canvas = document.getElementById('battlefield') as HTMLCanvasElement;
     const camera = new Camera(canvas);
-    const renderer = (sharedRenderer ??= USE_3D ? new BattleRenderer3D(canvas) : new Renderer(canvas));
-    if (renderer instanceof BattleRenderer3D) camera.pitch = renderer.pitch;
+    const renderer = (sharedRenderer ??= new BattleRenderer(canvas));
+    camera.pitch = renderer.pitch;
     renderer.resize(); // the canvas may have been display:none through a window resize
     const STRIDE = game.unit_info_stride();
 
@@ -130,22 +172,15 @@ export class BattleScene implements Scene {
       const info = unitInfo();
       const teams = Array.from({ length: game.unit_count() }, (_, u) => info[u * STRIDE + 6]);
       const classes = Array.from({ length: game.unit_count() }, (_, u) => info[u * STRIDE + 13]);
-      const renderLooks = Array.from(
-        { length: game.unit_count() },
-        (_, u) => info[u * STRIDE + UNIT_INFO_RENDER_LOOK] ?? modelLookForUnit(classes[u]),
-      );
-      const radii = new Float32Array(wasm.memory.buffer, game.radius_ptr(), game.soldier_count());
-      renderer.setStatic(soldierUnit, teams, classes, renderLooks, radii);
+      renderer.setStatic(soldierUnit, teams, classes);
     };
     applyStatic();
     {
       const tw = game.terrain_w();
       const th = game.terrain_h();
+      const tint = new Uint8Array(wasm.memory.buffer, game.terrain_tint_ptr(), tw * th);
       renderer.setTerrain(
-        tw, th, game.terrain_cell(), game.terrain_origin_x(), game.terrain_origin_y(),
-        new Float32Array(wasm.memory.buffer, game.terrain_speed_ptr(), tw * th),
-        new Float32Array(wasm.memory.buffer, game.terrain_rough_ptr(), tw * th),
-        new Uint8Array(wasm.memory.buffer, game.terrain_tint_ptr(), tw * th),
+        tw, th, game.terrain_cell(), game.terrain_origin_x(), game.terrain_origin_y(), new Uint8Array(tint),
       );
     }
 
@@ -182,6 +217,54 @@ export class BattleScene implements Scene {
       const h = game.terrain_h() * game.terrain_cell();
       return [((x - ox) / w) * minimap.width, (1 - (y - oy) / h) * minimap.height];
     };
+    const terrainTint = { water: 1, rock: 2, forest: 4, mud: 5, scree: 6 } as const;
+    const terrainDebug = () => {
+      const w = game.terrain_w();
+      const h = game.terrain_h();
+      const cell = game.terrain_cell();
+      const ox = game.terrain_origin_x();
+      const oy = game.terrain_origin_y();
+      const tint = new Uint8Array(wasm.memory.buffer, game.terrain_tint_ptr(), w * h);
+      const counts = Array.from({ length: 7 }, () => 0);
+      const sums = Array.from({ length: 7 }, () => ({ x: 0, y: 0, n: 0 }));
+      for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
+          const kind = tint[y * w + x] ?? 0;
+          counts[kind] = (counts[kind] ?? 0) + 1;
+          const sum = sums[kind];
+          if (sum) {
+            sum.x += x;
+            sum.y += y;
+            sum.n++;
+          }
+        }
+      }
+      const feature = (kind: number) => {
+        const sum = sums[kind];
+        if (!sum || sum.n === 0) return null;
+        const x = ox + (sum.x / sum.n + 0.5) * cell;
+        const y = oy + (sum.y / sum.n + 0.5) * cell;
+        const [miniX, miniY] = worldToMini(x, y);
+        return { kind, cells: sum.n, x, y, miniX, miniY };
+      };
+      return {
+        w,
+        h,
+        cell,
+        ox,
+        oy,
+        worldWidth: w * cell,
+        worldHeight: h * cell,
+        counts,
+        features: {
+          water: feature(terrainTint.water),
+          rock: feature(terrainTint.rock),
+          forest: feature(terrainTint.forest),
+          mud: feature(terrainTint.mud),
+          scree: feature(terrainTint.scree),
+        },
+      };
+    };
     minimap.addEventListener('mousedown', (e) => {
       const r = minimap.getBoundingClientRect();
       const fx = (e.clientX - r.left) / r.width;
@@ -210,26 +293,24 @@ export class BattleScene implements Scene {
     }
 
     // --- Per-unit banners: standard + HP/cohesion bars + status chips ------------
-    // In-game banners are world-space BILLBOARDS in the Babylon scene (see
-    // renderer3d.ts UnitBannerLayer): a quad above each unit, always facing the
-    // camera, so the standard tracks the block in 3D and depth-sorts instead of
-    // being projected onto the screen. The legacy `?gfx=2d` GL renderer has no
-    // billboard layer, so it falls back to the DOM component placed by an exact
-    // (pitch-free) screen projection.
-    const is3D = renderer instanceof BattleRenderer3D;
+    // Banners stay DOM-composited while the raw WebGPU path owns battlefield
+    // pixels. The battle UI/compositor slice owns any future canvas standard.
     const labelsRoot = document.getElementById('unitlabels')!;
     const domBanners: UnitBanner[] = [];
-    // Northmost (top-on-screen) world-y per unit, refreshed each frame from the
-    // soldiers — where the standard plants so it rises clear above the block,
-    // not buried in a deep formation. Centred on the centroid in x.
+    // Per-unit banner anchors are refreshed from the rendered soldiers each
+    // frame. Unit-info center fields can lag during packed fights, so banners
+    // follow the visible block instead of collapsing to the map center.
+    let unitBannerX = new Float32Array(0);
     let unitTopY = new Float32Array(0);
+    let unitMinX = new Float32Array(0);
+    let unitMaxX = new Float32Array(0);
     const addDomBanner = () => {
       const b = new UnitBanner();
       b.setVisible(false);
       labelsRoot.appendChild(b.el);
       domBanners.push(b);
     };
-    if (!is3D) for (let u = 0; u < game.unit_count(); u++) addDomBanner();
+    for (let u = 0; u < game.unit_count(); u++) addDomBanner();
     let knownUnits = game.unit_count(); // last-seen count (campaign reinforcements grow it)
     this.cleanups.push(() => { labelsRoot.innerHTML = ''; });
 
@@ -250,7 +331,7 @@ export class BattleScene implements Scene {
       if (info[o + 28] > 0.5) chips.push({ text: 'SQZ', title: 'squeezed into a corridor' });
       if (info[o + 27] > 0.5) chips.push({ text: 'WAIT', title: 'queued behind friends' });
       if (info[o + 29] > 0.55) chips.push({ text: 'CRUSH', kind: 'bad', title: 'crushed in the press: no room, evade dying' });
-      if ([4, 5, 7, 8].includes(cls2) && info[o + 19] === 0) chips.push({ text: 'AMMO!', kind: 'bad', title: 'quivers empty' });
+      if (MISSILE_CLASS_IDS.includes(cls2) && info[o + 19] === 0) chips.push({ text: 'AMMO!', kind: 'bad', title: 'quivers empty' });
       if (info[o + 16] > 0) chips.push({ text: `⚔${info[o + 16]}`, kind: 'hot', title: 'men trading blows' });
       return chips;
     }
@@ -259,31 +340,7 @@ export class BattleScene implements Scene {
       const info = unitInfo();
       const sel = input.selected.length > 0 ? input.selected[0] : -1;
       const n = game.unit_count();
-      if (is3D) {
-        // World-space billboards: hand the renderer one slot per unit at the
-        // unit's CENTROID and let it place + face the quads. The pole foot is
-        // bottom-anchored there, so the standard reads as planted in the middle
-        // of the block and rising from it. The layer owns the show-when-zoomed
-        // gate and the per-unit redraw cache.
-        const slots: (BannerSlot | null)[] = new Array(n);
-        for (let u = 0; u < n; u++) {
-          const o = u * STRIDE;
-          const alive = info[o + 15];
-          if (alive === 0) { slots[u] = null; continue; }
-          slots[u] = {
-            x: info[o + 30],
-            y: info[o + 31],
-            team: info[o + 6] === 0 ? 0 : 1,
-            hp: alive / info[o + 7],
-            cohesion: info[o + 4],
-            chips: unitChips(info, o),
-            selected: u === sel,
-          };
-        }
-        (renderer as BattleRenderer3D).updateBanners(slots, camera.zoom);
-        return;
-      }
-      // Legacy 2D GL renderer: DOM banners on an exact (pitch-free) projection.
+      // DOM banners on an exact (pitch-free) projection.
       const showAll = camera.zoom > 1.1;
       for (let u = 0; u < n; u++) {
         const b = domBanners[u];
@@ -293,20 +350,22 @@ export class BattleScene implements Scene {
           b.setVisible(false);
           continue;
         }
-        const topY = unitTopY[u] > -Infinity ? unitTopY[u] : info[o + 31];
-        const [sx, sy] = camera.worldToScreen(info[o + 30], topY);
+        const anchorX = unitBannerX[u] > -Infinity ? unitBannerX[u] : info[o];
+        const anchorY = unitTopY[u] > -Infinity ? unitTopY[u] : info[o + 1];
+        const [sx, sy] = camera.worldToScreen(anchorX, anchorY);
         if (sx < -60 || sy < -40 || sx > window.innerWidth + 60 || sy > window.innerHeight + 40) {
           b.setVisible(false);
           continue;
         }
+        const selected = u === sel;
         b.setVisible(true);
-        b.place(sx, sy);
+        b.place(sx, sy, bannerScale(camera.zoom, selected));
         b.update({
           team: info[o + 6] === 0 ? 0 : 1,
           hp: alive / info[o + 7],
           cohesion: info[o + 4],
           chips: unitChips(info, o),
-          selected: u === sel,
+          selected,
         });
       }
     }
@@ -316,8 +375,6 @@ export class BattleScene implements Scene {
     document.querySelectorAll<HTMLButtonElement>('#toolbar button').forEach((b) => {
       toolButtons.set(b.dataset.cmd!, b);
     });
-    const KITE_CLASSES = [5, 7];
-    const MISSILE_CLASSES = [4, 5, 7, 8];
     function updateToolbar() {
       const sel = myUnits(input.selected);
       const info = unitInfo();
@@ -330,8 +387,8 @@ export class BattleScene implements Scene {
         if (label) b.textContent = label;
         if (!['pause', 'x1', 'x3', 'paths'].includes(cmd)) {
           let applies = sel.length > 0;
-          if (cmd === 'kite') applies &&= supports(KITE_CLASSES);
-          if (cmd === 'fire') applies &&= supports(MISSILE_CLASSES);
+          if (cmd === 'kite') applies &&= supports(KITE_CLASS_IDS);
+          if (cmd === 'fire') applies &&= supports(MISSILE_CLASS_IDS);
           b.disabled = !applies;
         }
       };
@@ -386,6 +443,7 @@ export class BattleScene implements Scene {
     }, { signal });
     let timeScale = 1;
     let showPaths = false;
+    let frozenEffects = false;
     window.addEventListener('keydown', (e) => {
       if (e.key === 'p') paused = !paused;
       if (e.key === '1') timeScale = 1;
@@ -647,11 +705,13 @@ export class BattleScene implements Scene {
       }));
     };
 
-    // --- Overlay (paths, pies, projectiles, selection rings) ----------------------
-    function overlayVerts(withPaths: boolean): Float32Array {
+    // --- Tactical lines: ground decals plus transient effects ---------------------
+    function tacticalLineFrame(withPaths: boolean): BattleTacticalLineFrame {
       const info = unitInfo();
       const n = game.unit_count();
-      const verts: number[] = [];
+      const groundCues: number[] = [];
+      const effects: number[] = [];
+      const showTransient = !frozen || withPaths || frozenEffects;
       for (let u = 0; u < n; u++) {
         const o = u * STRIDE;
         const [ax, ay, facing, team] = [info[o], info[o + 1], info[o + 2], info[o + 6]];
@@ -659,10 +719,10 @@ export class BattleScene implements Scene {
         if (withPaths) {
           const fx = Math.cos(facing);
           const fy = Math.sin(facing);
-          verts.push(ax, ay, r, g, b, ax + fx * 4, ay + fy * 4, r, g, b);
-          verts.push(ax - fy * 2, ay + fx * 2, r, g, b, ax + fy * 2, ay - fx * 2, r, g, b);
+          groundCues.push(ax, ay, r, g, b, ax + fx * 4, ay + fy * 4, r, g, b);
+          groundCues.push(ax - fy * 2, ay + fx * 2, r, g, b, ax + fy * 2, ay - fx * 2, r, g, b);
           if (info[o + 12] > 0.5) {
-            verts.push(ax, ay, r, g, b, info[o + 10], info[o + 11], r, g, b);
+            groundCues.push(ax, ay, r, g, b, info[o + 10], info[o + 11], r, g, b);
           }
           // The SHIFT-queued chain BEHIND the active order: active dest -> q0 ->
           // q1 -> ... drawn dimmer than the live leg, a small diamond at each
@@ -675,12 +735,12 @@ export class BattleScene implements Scene {
             const qr = r * 0.55, qg = g * 0.55, qb = b * 0.55;
             for (let j = 0; j + 2 < q.length; j += 3) {
               const qx = q[j], qy = q[j + 1];
-              verts.push(px, py, qr, qg, qb, qx, qy, qr, qg, qb);
+              groundCues.push(px, py, qr, qg, qb, qx, qy, qr, qg, qb);
               const s = 2.5; // diamond waypoint marker
-              verts.push(qx - s, qy, qr, qg, qb, qx, qy + s, qr, qg, qb);
-              verts.push(qx, qy + s, qr, qg, qb, qx + s, qy, qr, qg, qb);
-              verts.push(qx + s, qy, qr, qg, qb, qx, qy - s, qr, qg, qb);
-              verts.push(qx, qy - s, qr, qg, qb, qx - s, qy, qr, qg, qb);
+              groundCues.push(qx - s, qy, qr, qg, qb, qx, qy + s, qr, qg, qb);
+              groundCues.push(qx, qy + s, qr, qg, qb, qx + s, qy, qr, qg, qb);
+              groundCues.push(qx + s, qy, qr, qg, qb, qx, qy - s, qr, qg, qb);
+              groundCues.push(qx, qy - s, qr, qg, qb, qx - s, qy, qr, qg, qb);
               px = qx; py = qy;
             }
           }
@@ -688,7 +748,7 @@ export class BattleScene implements Scene {
         // Destination ghost: the formation frame at the end of the path
         // (flashes on every order; hold Space to keep them all visible).
         const age = performance.now() - (orderFlash.get(u) ?? -1e9);
-        if (info[o + 12] > 0.5 && (withPaths || age < 2500)) {
+        if (info[o + 12] > 0.5 && (withPaths || (showTransient && age < 2500))) {
           // Recent orders fade out; Space shows them at full strength.
           const k = withPaths ? 1 : Math.max(0, 1 - age / 2500);
           const cls = info[o + 13];
@@ -697,11 +757,11 @@ export class BattleScene implements Scene {
           const w = files * CLASS_SPACING[cls];
           const d = CLASS_DEPTH[cls] * 1.1;
           const gf = info[o + 23] > 0.5 ? info[o + 22] : Math.atan2(info[o + 11] - ay, info[o + 10] - ax);
-          pushGhost(verts, info[o + 10], info[o + 11], gf, w, d, r * k, g * k, b * k);
-          verts.push(ax, ay, r * 0.8 * k, g * 0.8 * k, b * 0.8 * k, info[o + 10], info[o + 11], r * 0.8 * k, g * 0.8 * k, b * 0.8 * k);
+          pushGhost(groundCues, info[o + 10], info[o + 11], gf, w, d, r * k, g * k, b * k);
+          groundCues.push(ax, ay, r * 0.8 * k, g * 0.8 * k, b * 0.8 * k, info[o + 10], info[o + 11], r * 0.8 * k, g * 0.8 * k, b * 0.8 * k);
         }
         // Progress pie: WHITE = order transmitting down the line.
-        if (info[o + 14] > 0) pushPie(verts, ax, ay, info[o + 14], 7, 1, 1, 1);
+        if (showTransient && info[o + 14] > 0) pushPie(effects, ax, ay, info[o + 14], 7, 1, 1, 1);
       }
       // Right-drag preview: where everyone will stand, facing the cursor.
       if (input.rightDrag) {
@@ -713,11 +773,11 @@ export class BattleScene implements Scene {
             const cls = info[o + 13];
             const alive = info[o + 15];
             const files = Math.max(1, Math.ceil(alive / CLASS_DEPTH[cls]));
-            pushGhost(verts, dst.x, dst.y, input.rightDrag.facing, files * CLASS_SPACING[cls], CLASS_DEPTH[cls] * 1.1, 1, 1, 0.7);
+            pushGhost(groundCues, dst.x, dst.y, input.rightDrag.facing, files * CLASS_SPACING[cls], CLASS_DEPTH[cls] * 1.1, 1, 1, 0.7);
           }
           // The arrow itself.
           const a = input.rightDrag;
-          verts.push(a.x, a.y, 1, 1, 0.7, a.x + Math.cos(a.facing) * 14, a.y + Math.sin(a.facing) * 14, 1, 1, 0.7);
+          groundCues.push(a.x, a.y, 1, 1, 0.7, a.x + Math.cos(a.facing) * 14, a.y + Math.sin(a.facing) * 14, 1, 1, 0.7);
         }
       }
       // Drag-move preview: ghosts of every selected unit at the dragged spot.
@@ -730,16 +790,17 @@ export class BattleScene implements Scene {
           if (alive === 0) continue;
           const files = Math.max(1, Math.ceil(alive / CLASS_DEPTH[cls]));
           const [cx, cy] = unitCenter(u);
-          pushGhost(verts, cx + dx, cy + dy, info[o + 2], files * CLASS_SPACING[cls], CLASS_DEPTH[cls] * 1.1, 1, 1, 1);
+          pushGhost(groundCues, cx + dx, cy + dy, info[o + 2], files * CLASS_SPACING[cls], CLASS_DEPTH[cls] * 1.1, 1, 1, 1);
         }
       }
       // Selection rings.
       for (const u of input.selected) {
         const [cx, cy] = unitCenter(u);
-        pushRing(verts, cx, cy, 6, 12, 1, 1, 1);
+        pushRing(groundCues, cx, cy, 8.5, 18, 1.0, 0.78, 0.22);
+        pushRing(groundCues, cx, cy, 5.4, 14, 1.0, 0.92, 0.45);
       }
       // Projectiles.
-      const pCount = game.projectile_count();
+      const pCount = showTransient ? game.projectile_count() : 0;
       if (pCount > 0) {
         const px = new Float32Array(wasm.memory.buffer, game.projectile_x_ptr(), pCount);
         const py = new Float32Array(wasm.memory.buffer, game.projectile_y_ptr(), pCount);
@@ -748,10 +809,10 @@ export class BattleScene implements Scene {
           const stone = pk[i] === 2;
           const len = stone ? 1.4 : 0.7;
           const c = stone ? 0.25 : 0.92;
-          verts.push(px[i] - len, py[i], c, c, c * 0.9, px[i] + len, py[i], c, c, c * 0.9);
+          effects.push(px[i] - len, py[i], c, c, c * 0.9, px[i] + len, py[i], c, c, c * 0.9);
         }
       }
-      return new Float32Array(verts);
+      return { groundCues: new Float32Array(groundCues), effects: new Float32Array(effects) };
     }
 
     // --- The one Menu button: restart or exit --------------------------------------
@@ -783,6 +844,9 @@ export class BattleScene implements Scene {
     // --- Main loop -----------------------------------------------------------------
     type WeaponSpec = { name: string; reach: number; minRange: number; arc: number; interval: number; damage: number; braced: boolean; charge: boolean };
     type ClassSpec = {
+      id: number;
+      key: UnitClassKey;
+      name: string;
       cost: number;
       mass: number; radius: number; brace: number; block: number; evade: number;
       training: number; paceMult: number; drainMult: number; health: number; mountHealth: number;
@@ -790,14 +854,15 @@ export class BattleScene implements Scene {
       missile: { name: string; range: number; interval: number; ammo: number; damage: number; mobileFire: boolean } | null;
     };
     const CLASS_SPECS: ClassSpec[] = JSON.parse(game.class_specs());
+    validateClassSpecCatalog(CLASS_SPECS);
     // Index of each class's braced weapon (the pike), or -1. A man not holding
     // his braced weapon has stowed the pike upright — the renderer must not level
     // it (a flanked phalangite turned to his side-sword would otherwise swing the
     // 3D pike sideways: a porcupine).
     const classBracedIdx: number[] = CLASS_SPECS.map((c) => c.weapons.findIndex((w) => w.braced));
-    // Index of each class's CHARGE weapon (the lance), or -1. A two-weapon lancer
-    // holding anything but its lance has dropped to its sabre for the grind — the
-    // renderer then shows a sword in hand, not the couched lance.
+    // Index of each class's CHARGE weapon (the lance), or -1. A two-weapon
+    // lancer holding anything but its lance has dropped to its sabre for the
+    // grind, so the renderer shows the sidearm pseudo-class.
     const classChargeIdx: number[] = CLASS_SPECS.map((c) => c.weapons.findIndex((w) => w.charge));
     const hud = document.getElementById('hud')!;
     const banner = document.getElementById('banner')!;
@@ -805,7 +870,7 @@ export class BattleScene implements Scene {
     banner.style.display = 'none';
     let aliveF32 = new Float32Array(0);
     let frames = new Float32Array(0);
-    let cavSidearm = new Uint8Array(0); // 1 = lancer grinding with its sabre (render-only weapon swap)
+    let renderClass = new Uint8Array(0);
     let renderFacings = new Float32Array(0); // per-soldier facing for the MESH (pikes ride the frontage)
     let renderPos = new Float32Array(0);
     let prevRenderPos = new Float32Array(0);
@@ -839,14 +904,12 @@ export class BattleScene implements Scene {
       }
       if (ticks === maxTicks) accumulator = 0;
 
-      // Reinforcements: campaign battles grow units mid-fight. The 3D billboard
-      // layer grows itself from the slot count; only the DOM fallback needs
-      // banners minted here.
+      // Reinforcements: campaign battles grow units mid-fight.
       if (game.unit_count() > knownUnits) {
         knownUnits = game.unit_count();
         applyStatic();
         buildCards();
-        if (!is3D) while (domBanners.length < game.unit_count()) addDomBanner();
+        while (domBanners.length < game.unit_count()) addDomBanner();
       }
 
       {
@@ -860,7 +923,7 @@ export class BattleScene implements Scene {
         if (aliveF32.length !== n || simTick < renderPosTick) {
           aliveF32 = new Float32Array(n);
           frames = new Float32Array(n);
-          cavSidearm = new Uint8Array(n);
+          renderClass = new Uint8Array(n);
           renderFacings = new Float32Array(n);
           renderPos = new Float32Array(pos);
           prevRenderPos = new Float32Array(pos);
@@ -881,8 +944,16 @@ export class BattleScene implements Scene {
           atEase[u] = info[o + 17] > 0.5 ? 1 : 0;
           running[u] = info[o + 9] > 0.5 ? 1 : 0;
         }
-        if (unitTopY.length < uc) unitTopY = new Float32Array(uc);
+        if (unitTopY.length < uc) {
+          unitBannerX = new Float32Array(uc);
+          unitTopY = new Float32Array(uc);
+          unitMinX = new Float32Array(uc);
+          unitMaxX = new Float32Array(uc);
+        }
+        unitBannerX.fill(-Infinity, 0, uc);
         unitTopY.fill(-Infinity, 0, uc);
+        unitMinX.fill(Infinity, 0, uc);
+        unitMaxX.fill(-Infinity, 0, uc);
         const t = now / 1000;
         for (let i = 0; i < n; i++) {
           aliveF32[i] = a[i];
@@ -912,8 +983,14 @@ export class BattleScene implements Scene {
             renderPos[pi + 1] = pos[pi + 1];
           }
           if (a[i]) {
-            const wy = renderPos[pi + 1]; // top-on-screen is northmost (max world-y)
-            if (wy > unitTopY[sUnit[i]]) unitTopY[sUnit[i]] = wy;
+            const u = sUnit[i];
+            if (u < uc) {
+              const wx = renderPos[pi];
+              const wy = renderPos[pi + 1]; // top-on-screen is northmost (max world-y)
+              if (wy > unitTopY[u]) unitTopY[u] = wy;
+              if (wx < unitMinX[u]) unitMinX[u] = wx;
+              if (wx > unitMaxX[u]) unitMaxX[u] = wx;
+            }
           }
           if (!a[i]) {
             frames[i] = 4; // fallen
@@ -940,34 +1017,43 @@ export class BattleScene implements Scene {
           // weapon while switch_cd runs) — otherwise a fumbling man would render
           // his old pike leveled along his turned facing: the sideways stragglers.
           renderFacings[i] = rawFace[i];
-          cavSidearm[i] = 0;
+          renderClass[i] = info[sUnit[i] * STRIDE + 13];
           if (a[i]) {
             const cls = info[sUnit[i] * STRIDE + 13];
             const bi = classBracedIdx[cls];
             if (bi >= 0) {
-              if (curWeapon[i] === bi) renderFacings[i] = info[sUnit[i] * STRIDE + 2]; // pike rides the frontage
-              else frames[i] = 7; // FRAME_STOW: sword in hand, pike snapped upright
+              const restClass = renderClassFor(PHALANX_REST_RENDER_CLASS, cls);
+              const sidearmClass = renderClassFor(PHALANX_SIDEARM_RENDER_CLASS, cls);
+              if (curWeapon[i] === bi) {
+                renderFacings[i] = info[sUnit[i] * STRIDE + 2]; // pike rides the frontage
+                if (frames[i] === 6) {
+                  renderClass[i] = restClass ?? renderClass[i];
+                }
+              } else {
+                frames[i] = 7; // FRAME_STOW: sword in hand, pike snapped upright
+                renderClass[i] = sidearmClass ?? renderClass[i];
+              }
             }
-            // A two-weapon lancer that has dropped its lance for the sabre in the
-            // grind renders the sword (the pseudo-class swap) — the lance only
-            // shows while the charge still carries it.
             const ci = classChargeIdx[cls];
-            if (ci >= 0 && curWeapon[i] !== ci) cavSidearm[i] = 1;
+            if (ci >= 0 && curWeapon[i] !== ci) {
+              renderClass[i] = SHOCK_CAV_SIDEARM_CLASS;
+            }
           }
+        }
+        for (let u = 0; u < uc; u++) {
+          if (unitMinX[u] < Infinity) unitBannerX[u] = (unitMinX[u] + unitMaxX[u]) * 0.5;
         }
         if (updateRenderPos) renderPosTick = simTick;
       }
       const primary = input.selected.length > 0 ? input.selected[0] : -1;
-      // Unit standards + state are a DOM component now (see UnitBanner), so the
-      // renderers draw no banners — the empty list keeps the shared draw() shape.
-      if (renderer instanceof BattleRenderer3D) renderer.setSidearm(cavSidearm);
-      renderer.draw(renderPos, renderFacings, frames, aliveF32, game.soldier_count(), camera, primary, [], 0);
+      // Unit standards + state are a DOM component now (see UnitBanner).
+      renderer.draw(renderPos, renderFacings, frames, aliveF32, game.soldier_count(), camera, renderClass, simTick);
       // Attack arcs: every soldier mid-swing flashes his weapon's true envelope
       // (reach x arc) — readable combat, straight from the class table. The arc
       // tracks the weapon ACTUALLY in hand (pike vs side-sword) and, for a braced
       // pike, the UNIT's frontage — never the man's own facing — so a flanked
       // phalanx shows side-swords, not a porcupine of sideways pikes.
-      if (camera.zoom > 2.5) {
+      if (!frozen && camera.zoom > 2.5) {
         const tris: number[] = [];
         const pos = positions();
         const face = facings();
@@ -1009,7 +1095,7 @@ export class BattleScene implements Scene {
         }
         if (tris.length) renderer.drawTris(new Float32Array(tris), camera);
       }
-      renderer.drawOverlay(overlayVerts(showPaths), camera);
+      renderer.drawTacticalLines(tacticalLineFrame(showPaths), camera);
 
       // DOM selection rectangle.
       if (input.box) {
@@ -1129,7 +1215,20 @@ export class BattleScene implements Scene {
       if (on && !frozen) pausedBeforeFreeze = paused;
       paused = on ? true : pausedBeforeFreeze;
       frozen = on;
+      if (!on) frozenEffects = false;
       renderer.fixedTime = on ? 0 : null;
+      renderer.preserveFrozenEffects = on && frozenEffects;
+    };
+    const freezeAtTick = (target: number, options: { effects?: boolean } = {}) => {
+      frozenEffects = options.effects === true;
+      doFreeze(true);
+      const n = target - simTick;
+      if (n > 0) {
+        game.advance_ticks(n);
+        simTick += n;
+      }
+      tickGroupAttacks();
+      return renderer.settlePresentedFrame();
     };
     window.__game = {
       stats: () => ({
@@ -1138,6 +1237,8 @@ export class BattleScene implements Scene {
         tickMs: tickMsAvg,
         fps: fpsAvg,
         victor: game.victor(),
+        renderer: 'gpu',
+        renderStats: renderer.stats(),
       }),
       setOrder: (u: number, x: number, y: number) => game.set_move_order(u, x, y),
       select: (u: number) => {
@@ -1156,6 +1257,7 @@ export class BattleScene implements Scene {
       enqueue: (u: number, mode: number, x: number, y: number, facing: number, hasFacing: number) =>
         game.enqueue(u, mode, x, y, facing, hasFacing),
       queuedOrders: (u: number) => Array.from(game.queued_orders(u)),
+      terrainDebug,
       advance: (n: number) => {
         game.advance_ticks(n);
         simTick += n;
@@ -1167,15 +1269,8 @@ export class BattleScene implements Scene {
       // Freeze, then drive the sim to an exact absolute tick (advancing only
       // forward). Gives a byte-stable deployment snapshot regardless of how many
       // real-time ticks happened to elapse before the call.
-      freezeAtTick: (target: number) => {
-        doFreeze(true);
-        const n = target - simTick;
-        if (n > 0) {
-          game.advance_ticks(n);
-          simTick += n;
-        }
-        tickGroupAttacks();
-      },
+      freezeAtTick,
+      freezeAtTickWithEffects: (target: number) => freezeAtTick(target, { effects: true }),
       freeze: (on = true) => doFreeze(on),
       groupMove: (units: number[], x: number, y: number) => groupMove(units, x, y, 'move'),
       setFiles: (u: number, files: number) => game.set_files(u, files),
@@ -1202,9 +1297,18 @@ export class BattleScene implements Scene {
         const p = positions();
         return [p[2 * i], p[2 * i + 1]];
       },
+      soldierAlive: (i: number) => {
+        const a = new Uint8Array(wasm.memory.buffer, game.alive_ptr(), game.soldier_count());
+        return a[i] ?? 0;
+      },
     };
     window.__cam = camera;
-    window.__ready = true;
+    void renderer.ready.then(() => {
+      window.__ready = true;
+    }).catch((error: unknown) => {
+      const message = error instanceof Error ? error.message : String(error);
+      showFatalErrorSurface(canvas, fatalSurfaceFor('init', message));
+    });
   }
 }
 

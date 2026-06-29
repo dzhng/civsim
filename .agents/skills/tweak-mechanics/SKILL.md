@@ -44,6 +44,12 @@ upstream. Question every existing knob: "is this still needed now that X exists?
 Net code should go DOWN when a real foundation lands (it absorbs special-cases);
 if a rebuild is adding complexity, you're not at the foundation yet.
 
+The standing worklist of known shortcuts (corridor clamp, `gang_cap`, the
+four-way "is it grinding?" predicate, the impale magic coefficients, …) lives in
+[references/first-principles-backlog.md](references/first-principles-backlog.md)
+— check it before a mechanics change so you fix a foundation rather than stack
+another patch on it, and add to it when you spot a new wall.
+
 ## A true root fix is CONTAINED — that is how you know it's right
 
 The clearest signal of a first-principles fix: it is **remarkably contained**. It

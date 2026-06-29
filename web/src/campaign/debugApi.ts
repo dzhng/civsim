@@ -8,6 +8,7 @@ export interface CampaignDebugApi {
   orderSplit(army: number, mask: number): boolean;
   orderMerge(src: number, dst: number): boolean;
   battleReady(): number;
+  fightReady(): boolean;
   currentTick(): number;
   encounterJson(id: number): string;
   armies(): ArmyView[];
@@ -26,6 +27,7 @@ export interface CampaignDebugApi {
   territoryAlpha(): number;
   visAt(x: number, y: number): number;
   cellInfo(x: number, y: number): ReturnType<Territory['infoAt']>;
+  terrainAt(x: number, y: number): { land: boolean; height: number };
   freeze(on?: boolean): void;
   terrStats(): { filled: number; total: number; labels: Territory['labels'] };
 }
@@ -39,7 +41,6 @@ declare global {
 
 export function installCampaignDebugApi(api: CampaignDebugApi) {
   window.__campaign = api;
-  window.__campaignReady = true;
 }
 
 export function markCampaignReady(ready: boolean) {

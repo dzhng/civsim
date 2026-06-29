@@ -1,587 +1,1111 @@
-// Campaign overlay renderer: Canvas2D markers (roads, banners, labels) drawn
-// on a transparent canvas above the WebGL terrain. Everything is positioned
-// through the terrain camera's projection, so banners sit on the 3D ground at
-// any tilt. World units are km, +y north.
-
-import type { CampaignData } from './data';
+import { CampaignCloudPass, CampaignFogPass, type CampaignFogSource } from '../../../packages/game-renderer/src/campaign/atmospherePass';
+import { CampaignEntityPass, type CampaignEntityInstance } from '../../../packages/game-renderer/src/campaign/entityPass';
+import { buildCampaignMapDrawData, CampaignLabelPass, type CampaignLabelPassStats, CampaignMapPass, CampaignMarkerPass, CampaignRoadPass, CampaignWorldLinePass, smoothRoadCenterline, type CampaignLabel, type CampaignMapStats, type CampaignMarker } from '../../../packages/game-renderer/src/campaign/mapPass';
+import { CampaignSceneryPass, type CampaignSceneryInstance } from '../../../packages/game-renderer/src/campaign/sceneryPass';
+import { CampaignSelectionPass, type CampaignSelectionInstance } from '../../../packages/game-renderer/src/campaign/selectionPass';
+import { campaignBorderVertices, CampaignTerritoryPass } from '../../../packages/game-renderer/src/campaign/territoryPass';
+import { createFrameShell, type FrameGraphPass, type RawFrameShell, type WorldRenderPass } from '../../../packages/renderer-core/src/frameShell';
+import { screenToWorld, world3dToScreen } from '../../../packages/renderer-core/src/cameraUniform';
+import type { CampaignData, MapNode } from './data';
+import type { CamView } from './camera';
+import { Allegiance } from './status';
+import { TEMPERATE_Y_KM, type TerrainField } from './terrain';
+import { campaignSurface, type CampaignSurface } from './surface';
+import { type FactionLabel, type Territory } from './territory';
 import type { ArmyView, CityView } from './views';
-import { Allegiance, STATUS_CSS } from './status';
-import { ICON_CITY, ICON_ARMY } from './icons';
-import type { TerrainField } from './terrain';
-import { type Terrain3D, CITY_MODEL_MIN_SCALE, ARMY_MIN_SCALE } from './terrain3d';
-import type { FactionLabel } from './territory';
 
-export interface CamView {
-  x: number;
-  y: number;
-  scale: number; // px per km at the look-at point
-}
-
-const FACTION_FALLBACK: [number, number, number] = [150, 150, 150];
-
-/** Classical engraved-caps serif for every map label (Cinzel, bundled), with a
- *  serif fallback so a slow font load still reads as an old atlas. */
-const MAP_FONT = `Cinzel, Georgia, 'Times New Roman', serif`;
-/** Flowing serif italic for the open water — the lettering on an antique chart. */
-const SEA_FONT = `italic Georgia, 'Times New Roman', serif`;
-
-/** Curated sea names for the real Mediterranean map (world km coords, +y north).
- *  Drawn in both views at overview zoom — the open water of an old atlas. */
-const SEAS: { name: string; x: number; y: number; size: number; angle?: number }[] = [
-  { name: 'Mediterranean Sea', x: 340, y: -560, size: 30, angle: -0.05 },
-  { name: 'Tyrrhenian Sea', x: -360, y: 120, size: 20, angle: -0.5 },
-  { name: 'Ionian Sea', x: 30, y: -170, size: 18, angle: -0.9 },
-  { name: 'Adriatic Sea', x: 70, y: 690, size: 18, angle: -0.65 },
-  { name: 'Aegean Sea', x: 600, y: 150, size: 17, angle: -0.7 },
-  { name: 'Black Sea', x: 1080, y: 1180, size: 24, angle: 0 },
-  { name: 'Iberian Sea', x: -1640, y: -40, size: 22, angle: 0 },
-  { name: 'Atlantic Ocean', x: -2120, y: 560, size: 22, angle: -1.2 },
-];
-
-/** Split a world polyline into drawable sub-polylines: trimmed by an arc-length
- *  margin at each end (km, for town walls) and gapped where it passes within
- *  `r` of an army center (so the road doesn't paint over the army model). */
-function roadPolylines(
-  via: [number, number][],
-  trimA: number,
-  trimB: number,
-  gaps: { x: number; y: number; r: number }[],
-): [number, number][][] {
-  const n = via.length;
-  if (n < 2) return [via];
-  const cum = [0];
-  for (let i = 1; i < n; i++) {
-    cum.push(cum[i - 1] + Math.hypot(via[i][0] - via[i - 1][0], via[i][1] - via[i - 1][1]));
-  }
-  const L = cum[n - 1];
-  const a0 = trimA;
-  const a1 = L - trimB;
-  if (a1 <= a0 + 0.5) return [];
-  const at = (arc: number): [number, number] => {
-    let i = 1;
-    while (i < n - 1 && cum[i] < arc) i++;
-    const seg = cum[i] - cum[i - 1] || 1;
-    const t = (arc - cum[i - 1]) / seg;
-    return [via[i - 1][0] + (via[i][0] - via[i - 1][0]) * t, via[i - 1][1] + (via[i][1] - via[i - 1][1]) * t];
-  };
-  // Arc intervals to remove: where the road passes within r of an army.
-  const cuts: [number, number][] = [];
-  for (const g of gaps) {
-    let best = Infinity;
-    let bestArc = 0;
-    for (let i = 1; i < n; i++) {
-      const ax = via[i - 1][0];
-      const ay = via[i - 1][1];
-      const dx = via[i][0] - ax;
-      const dy = via[i][1] - ay;
-      const len2 = dx * dx + dy * dy || 1;
-      const t = Math.max(0, Math.min(1, ((g.x - ax) * dx + (g.y - ay) * dy) / len2));
-      const d = Math.hypot(ax + dx * t - g.x, ay + dy * t - g.y);
-      if (d < best) {
-        best = d;
-        bestArc = cum[i - 1] + Math.sqrt(len2) * t;
-      }
-    }
-    if (best < g.r) cuts.push([bestArc - g.r, bestArc + g.r]);
-  }
-  // Kept = [a0, a1] minus the union of cuts.
-  cuts.sort((p, q) => p[0] - q[0]);
-  const kept: [number, number][] = [];
-  let cur = a0;
-  for (const [cs, ce] of cuts) {
-    const s = Math.max(cs, a0);
-    const e = Math.min(ce, a1);
-    if (e <= cur) continue;
-    if (s > cur) kept.push([cur, s]);
-    cur = Math.max(cur, e);
-  }
-  if (cur < a1) kept.push([cur, a1]);
-  // Materialize each kept interval into a sub-polyline.
-  return kept
-    .filter(([s, e]) => e - s > 0.5)
-    .map(([s, e]) => {
-      const seg: [number, number][] = [at(s)];
-      for (let i = 0; i < n; i++) if (cum[i] > s && cum[i] < e) seg.push(via[i]);
-      seg.push(at(e));
-      return seg;
-    });
+interface DrawOptions {
+  cam: CamView;
+  armies: ArmyView[];
+  cities: Map<number, CityView>;
+  selected: number;
+  selectedCity: number;
+  factionLabels: FactionLabel[];
+  factionStatus: Int8Array;
+  playerFaction: number;
+  fogOfWar: boolean;
+  visionSources: CampaignFogSource[];
+  factionView: boolean;
 }
 
 export class CampaignRenderer {
-  private ctx: CanvasRenderingContext2D;
-  /** terrain height at each edge's via points, sampled once (terrain is static) */
-  private edgeHeights: (Float32Array | null)[];
+  readonly ready: Promise<void>;
+  readonly pitch = CAMPAIGN_CLOSE_PITCH;
+  fixedTime: number | null = null;
+
+  private shell: RawFrameShell | null = null;
+  private map: CampaignMapPass | null = null;
+  private clouds: CampaignCloudPass | null = null;
+  private fog: CampaignFogPass | null = null;
+  private territoryPass: CampaignTerritoryPass | null = null;
+  private lines: CampaignWorldLinePass | null = null;
+  private roads: CampaignRoadPass | null = null;
+  private borders: CampaignWorldLinePass | null = null;
+  private markers: CampaignMarkerPass | null = null;
+  private scenery: CampaignSceneryPass | null = null;
+  private entities: CampaignEntityPass | null = null;
+  private selection: CampaignSelectionPass | null = null;
+  private labels: CampaignLabelPass | null = null;
+  private surface: CampaignSurface;
+  private staticLabels: CampaignLabel[] = [];
+  private sceneryCandidates: CampaignSceneryInstance[] = [];
+  private labelStats: CampaignLabelPassStats = {
+    labels: 0,
+    visibleLabels: 0,
+    visibleLabelNames: [],
+    collisionCulls: 0,
+    collisionCulledLabels: [],
+    atlasWidth: 0,
+    atlasHeight: 0,
+    vertices: 0,
+    layer: 'raw-gpu-glyph-atlas',
+  };
+  private lastEntities = { cityEntities: 0, armyEntities: 0 };
+  private lastFog = { enabled: false, sources: [] as CampaignFogSource[] };
+  private lastFactionView = false;
+  private lastLabelComposition = { composedArmyCityLabels: 0 };
+  private mapDrawStats: CampaignMapStats | null = null;
+  private framePerf = {
+    buildMs: 0,
+    uploadMs: 0,
+    drawMs: 0,
+    frameCpuMs: 0,
+  };
+  private readonly onResize = () => this.resize();
 
   constructor(
     private canvas: HTMLCanvasElement,
     private data: CampaignData,
-    private t3d: Terrain3D,
     private field: TerrainField,
+    territory: Territory,
   ) {
-    this.ctx = canvas.getContext('2d')!;
-    this.edgeHeights = data.map.edges.map(() => null);
+    this.surface = campaignSurface(field);
+    this.ready = this.init(territory);
+    window.addEventListener('resize', this.onResize);
   }
 
   resize() {
-    const dpr = window.devicePixelRatio || 1;
-    const w = Math.floor(this.canvas.clientWidth * dpr);
-    const h = Math.floor(this.canvas.clientHeight * dpr);
-    if (this.canvas.width !== w || this.canvas.height !== h) {
-      this.canvas.width = w;
-      this.canvas.height = h;
+    this.shell?.resize();
+  }
+
+  clampCam(cam: CamView) {
+    const rect = this.data.bgRect;
+    const cssW = this.canvas.clientWidth || window.innerWidth || 1;
+    const cssH = this.canvas.clientHeight || window.innerHeight || 1;
+    const pitch = this.pitchForScale(cam.scale);
+    const cosP = Math.max(0.2, Math.cos(pitch));
+    const controlled = isControlledStage(this.data);
+    const fillZoom = controlled
+      ? Math.max(cssW / (rect.max[0] - rect.min[0]), cssH / (rect.max[1] - rect.min[1])) * (window.devicePixelRatio || 1)
+      : Math.max(cssW / (rect.max[0] - rect.min[0]), cssH / ((rect.max[1] - rect.min[1]) * cosP)) * (window.devicePixelRatio || 1);
+    const minZoom = controlled ? fillZoom * 0.78 : fillZoom;
+    const maxZoom = controlled ? Math.max(8, minZoom * 2.2) : 8;
+    cam.scale = Math.max(minZoom, Math.min(maxZoom, cam.scale));
+    const halfW = (this.canvas.width || cssW) / (2 * cam.scale);
+    const halfH = (this.canvas.height || cssH) / (2 * cam.scale * cosP);
+    if (controlled) {
+      cam.x = clampControlledAxis(cam.x, rect.min[0], rect.max[0], halfW);
+      cam.y = clampControlledAxis(cam.y, rect.min[1], rect.max[1], halfH);
+    } else {
+      cam.x = clamp(cam.x, rect.min[0] + halfW, rect.max[0] - halfW);
+      cam.y = clamp(cam.y, rect.min[1] + halfH, rect.max[1] - halfH);
     }
   }
 
-  /** World ground point -> canvas px (on the terrain surface). */
   toScreen(wx: number, wy: number): [number, number] {
-    return this.t3d.project(wx, wy, this.field.heightAt(wx, wy)) ?? [-9999, -9999];
+    const stats = this.shell?.stats();
+    return world3dToScreen({
+      x: this.currentCamera.x,
+      y: this.currentCamera.y,
+      zoom: this.currentCamera.zoom,
+      pitch: this.currentCamera.pitch,
+      yaw: 0,
+      perspective: this.currentCamera.perspective,
+      width: stats?.width ?? this.canvas.width,
+      height: stats?.height ?? this.canvas.height,
+    }, wx, wy, this.surface.heightAt(wx, wy));
   }
 
   toWorld(sx: number, sy: number): [number, number] {
-    return this.t3d.unproject(sx, sy);
+    return screenToWorld({
+      ...this.currentCamera,
+      width: this.canvas.width || 1,
+      height: this.canvas.height || 1,
+    }, sx, sy);
   }
 
-  factionColor(idx: number): string {
-    const c = this.data.map.factions[idx]?.color ?? FACTION_FALLBACK;
-    return `rgb(${c[0]},${c[1]},${c[2]})`;
-  }
-
-
-  private viaHeights(ei: number): Float32Array {
-    let hs = this.edgeHeights[ei];
-    if (!hs) {
-      const via = this.data.map.edges[ei].via;
-      hs = new Float32Array(via.length);
-      for (let i = 0; i < via.length; i++) hs[i] = this.field.heightAt(via[i][0], via[i][1]);
-      this.edgeHeights[ei] = hs;
-    }
-    return hs;
-  }
-
-  draw(
-    cam: CamView,
-    armies: ArmyView[],
-    cities: Map<number, CityView>,
-    selected: number,
-    hoverPath: [number, number][] | null,
-    factionLabels: FactionLabel[],
-    roadLevels?: Uint8Array,
-    ambushHints?: [number, number][],
-    factionView = true,
-    fogOfWar = false,
-    borders?: { pts: [number, number][]; bb: [number, number, number, number] }[],
-    factionStatus?: Int8Array,
-  ) {
-    const { ctx, canvas, data } = this;
-    // Allegiance → label-icon colour. Friend green, neutral amber, foe red;
-    // anyone off the status table (or in natural view) reads neutral.
-    const statusOf = (faction: number): number =>
-      factionStatus && faction >= 0 && faction < factionStatus.length ? factionStatus[faction] : Allegiance.Neutral;
-    const z = cam.scale;
-    // Under fog of war the overlay hides anything the player can't currently
-    // see (their own cities/armies sit inside their own sight, so stay shown).
-    const hidden = (wx: number, wy: number) => fogOfWar && this.t3d.visibleAt(wx, wy) < 0.35;
-    // Draw in CSS px on a device-px backing store: constants below are
-    // resolution-independent and stay crisp on high-dpi screens.
-    const dpr = window.devicePixelRatio || 1;
-    const W = canvas.width / dpr;
-    const H = canvas.height / dpr;
-    const pt = (wx: number, wy: number, wh?: number): [number, number] | null => {
-      const p = this.t3d.project(wx, wy, wh ?? this.field.heightAt(wx, wy));
-      return p ? [p[0] / dpr, p[1] / dpr] : null;
-    };
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.clearRect(0, 0, W, H);
-
-    // Land roads are 3D ground geometry now (terrain3d), so the city/army models
-    // occlude them via depth instead of the overlay painting over the top. Only
-    // sea lanes stay on the overlay — faint dashes over open water, nothing to
-    // occlude them.
-    for (let ei = 0; ei < data.map.edges.length; ei++) {
-      const e = data.map.edges[ei];
-      if (e.kind !== 'sea' || z < 0.35) continue;
-      ctx.beginPath();
-      let on = false;
-      for (const v of e.via) {
-        const p = pt(v[0], v[1], 0);
-        if (!p) {
-          on = false;
-          continue;
-        }
-        on ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]);
-        on = true;
-      }
-      ctx.lineCap = 'round';
-      ctx.setLineDash([6, 6]);
-      ctx.lineWidth = 1;
-      ctx.strokeStyle = 'rgba(140,180,220,0.25)';
-      ctx.stroke();
-      ctx.setLineDash([]);
-    }
-
-    // Faction borders: smooth vector polylines draped on the terrain, stroked
-    // at a constant screen width so they read as crisp curved lines at every
-    // zoom (no cell-grid staircase). Under the markers; political view only.
-    const borderAlpha = factionView ? 1 - Math.min(1, Math.max(0, (z - 1.2) / 0.6)) : 0;
-    if (borderAlpha > 0.02 && borders && borders.length) {
-      // Visible world AABB (un-project the screen corners) for cheap culling.
-      const cs = [this.toWorld(0, 0), this.toWorld(canvas.width, 0),
-        this.toWorld(0, canvas.height), this.toWorld(canvas.width, canvas.height)];
-      const vmnx = Math.min(cs[0][0], cs[1][0], cs[2][0], cs[3][0]);
-      const vmxx = Math.max(cs[0][0], cs[1][0], cs[2][0], cs[3][0]);
-      const vmny = Math.min(cs[0][1], cs[1][1], cs[2][1], cs[3][1]);
-      const vmxy = Math.max(cs[0][1], cs[1][1], cs[2][1], cs[3][1]);
-      ctx.lineWidth = 1.5;
-      ctx.lineJoin = 'round';
-      ctx.lineCap = 'round';
-      ctx.strokeStyle = `rgba(34,27,20,${0.5 * borderAlpha})`;
-      for (const b of borders) {
-        if (b.bb[2] < vmnx || b.bb[0] > vmxx || b.bb[3] < vmny || b.bb[1] > vmxy) continue;
-        ctx.beginPath();
-        let on = false;
-        for (const [x, y] of b.pts) {
-          const p = pt(x, y);
-          if (!p) { on = false; continue; }
-          on ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]);
-          on = true;
-        }
-        ctx.stroke();
-      }
-    }
-
-    // Order preview path.
-    if (hoverPath && hoverPath.length > 1) {
-      ctx.beginPath();
-      let on = false;
-      for (let i = 0; i < hoverPath.length; i++) {
-        const p = pt(hoverPath[i][0], hoverPath[i][1]);
-        if (!p) {
-          on = false;
-          continue;
-        }
-        on ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]);
-        on = true;
-      }
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = 'rgba(255,255,255,0.6)';
-      ctx.setLineDash([8, 5]);
-      ctx.stroke();
-      ctx.setLineDash([]);
-    }
-
-    // Sea names on the open water (both views) — antique-chart italics that
-    // fade as the camera dives toward 3D. Only on the real Mediterranean map.
-    const seaAlpha = 1 - Math.min(1, Math.max(0, (z - 0.26) / 0.16));
-    if (seaAlpha > 0.02 && data.map.nodes.length > 20) {
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.lineJoin = 'round';
-      for (const sea of SEAS) {
-        if (hidden(sea.x, sea.y)) continue;
-        const p = pt(sea.x, sea.y);
-        if (!p) continue;
-        ctx.save();
-        ctx.translate(p[0], p[1]);
-        ctx.rotate(sea.angle ?? 0);
-        ctx.font = `${sea.size}px ${SEA_FONT}`;
-        ctx.letterSpacing = `${sea.size * 0.22}px`;
-        ctx.globalAlpha = seaAlpha * 0.8;
-        ctx.lineWidth = 2.5;
-        ctx.strokeStyle = 'rgba(20,34,52,0.55)';
-        ctx.fillStyle = 'rgba(196,214,232,0.78)';
-        const nm = sea.name.toUpperCase();
-        ctx.strokeText(nm, 0, 0);
-        ctx.fillText(nm, 0, 0);
-        ctx.restore();
-      }
-      ctx.globalAlpha = 1;
-      ctx.letterSpacing = '0px';
-      ctx.textAlign = 'left';
-      ctx.textBaseline = 'alphabetic';
-    }
-
-
-    // ---- map labels (cities + armies): allegiance-coded, stacked ----------
-    // Legion numbering, stable within a frame: each faction's armies, sorted by
-    // id, get 1st / 2nd / 3rd …
-    const ordinalOf = new Map<number, number>();
-    {
-      const byFac = new Map<number, number[]>();
-      for (const a of armies) (byFac.get(a.faction) ?? byFac.set(a.faction, []).get(a.faction)!).push(a.id);
-      for (const ids of byFac.values()) {
-        ids.sort((p, q) => p - q);
-        ids.forEach((id, k) => ordinalOf.set(id, k + 1));
-      }
-    }
-    // Cities that have an army sitting on them, so their name can drop below the
-    // army's (army label always above the town's, mirroring the 3D stack).
-    const cityHasArmy = new Set<number>();
-    for (const a of armies) {
-      if (!a.mine && hidden(a.x, a.y)) continue;
-      let best = -1;
-      let bestD = 8; // km — a garrison parks on the node
-      data.map.nodes.forEach((n, i) => {
-        if (n.kind !== 'city') return;
-        const d = Math.hypot(n.pos[0] - a.x, n.pos[1] - a.y);
-        if (d < bestD) { bestD = d; best = i; }
-      });
-      if (best >= 0) cityHasArmy.add(best);
-    }
-    const ordinal = (k: number) => {
-      const v = k % 100;
-      const suf = v >= 11 && v <= 13 ? 'th' : (['th', 'st', 'nd', 'rd'][k % 10] ?? 'th');
-      return `${k}${suf}`;
-    };
-    // A map label: an allegiance-coloured Phosphor icon (house for a town,
-    // figures for an army), then engraved caps, the whole group centred on cx
-    // with its baseline at baseY (optional small subtitle below — an army's
-    // strength).
-    const drawLabel = (cx: number, baseY: number, text: string, status: number, fontPx: number, icon: Path2D, sub?: string) => {
-      ctx.font = `600 ${fontPx}px ${MAP_FONT}`;
-      ctx.letterSpacing = '0.5px';
-      ctx.textAlign = 'left';
-      const tw = ctx.measureText(text).width;
-      const isz = fontPx * 1.25;
-      const gap = fontPx * 0.32;
-      const x0 = cx - (isz + gap + tw) / 2;
-      ctx.save();
-      ctx.translate(x0, baseY - fontPx * 0.36 - isz / 2);
-      ctx.scale(isz / 256, isz / 256);
-      ctx.lineJoin = 'round';
-      ctx.lineWidth = 30; // svg units: a dark halo so the icon reads on terrain
-      ctx.strokeStyle = 'rgba(20,15,10,0.8)';
-      ctx.stroke(icon);
-      ctx.fillStyle = STATUS_CSS[status];
-      ctx.fill(icon);
-      ctx.restore();
-      const tx = x0 + isz + gap;
-      ctx.lineWidth = 2.5;
-      ctx.lineJoin = 'round';
-      ctx.strokeStyle = 'rgba(20,15,10,0.65)';
-      ctx.fillStyle = 'rgba(248,244,237,0.98)';
-      ctx.strokeText(text, tx, baseY);
-      ctx.fillText(text, tx, baseY);
-      if (sub) {
-        ctx.font = `600 ${fontPx * 0.72}px ${MAP_FONT}`;
-        const sw = ctx.measureText(sub).width;
-        ctx.lineWidth = 2;
-        ctx.strokeText(sub, cx - sw / 2, baseY + fontPx * 0.92);
-        ctx.fillStyle = 'rgba(232,224,208,0.92)';
-        ctx.fillText(sub, cx - sw / 2, baseY + fontPx * 0.92);
-      }
-      ctx.letterSpacing = '0px';
-    };
-
-    // Cities: squares colored by owner, sized by tier; junction dots at zoom.
-    data.map.nodes.forEach((n, i) => {
-      if (hidden(n.pos[0], n.pos[1])) return;
-      const p = pt(n.pos[0], n.pos[1]);
-      if (!p) return;
-      const [sx, sy] = p;
-      if (sx < -40 || sy < -40 || sx > W + 40 || sy > H + 40) return;
-      if (n.kind === 'city') {
-        const c = cities.get(i);
-        // Level-of-detail: only the major cities (capitals, tier 3) at the
-        // political/regional zoom; mid then minor towns appear as you zoom in.
-        // A quiet dot stands in for the hidden ones at the far overview so the
-        // map keeps some settlement texture.
-        const minTier = z < 0.6 ? 3 : z < 0.85 ? 2 : 1;
-        if (n.tier < minTier) {
-          if (z < 0.32) {
-            ctx.fillStyle = factionView ? (c ? this.factionColor(c.owner) : '#888') : '#241a10';
-            ctx.globalAlpha = 0.8;
-            ctx.beginPath();
-            ctx.arc(sx, sy, 1.4 + n.tier * 0.5, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.globalAlpha = 1;
-          }
-          return;
-        }
-        const s = 4 + n.tier * 2 + z * 1.2;
-        // Above the model zoom the 3D settlement carries the city; the flat
-        // square would only z-fight with it. Keep the name label either way.
-        if (z < CITY_MODEL_MIN_SCALE) {
-          ctx.fillStyle = factionView ? (c ? this.factionColor(c.owner) : '#888') : '#2a2014';
-          ctx.strokeStyle = '#1a1208';
-          ctx.lineWidth = 1.5;
-          ctx.fillRect(sx - s / 2, sy - s / 2, s, s);
-          ctx.strokeRect(sx - s / 2, sy - s / 2, s, s);
-          if (n.port) {
-            ctx.fillStyle = '#bdf';
-            ctx.fillRect(sx - 2, sy + s / 2, 4, 3);
-          }
-        }
-        if (z > 0.45 || n.tier >= 3) {
-          const fs = Math.min(15, 9.5 + z) * (n.tier >= 3 ? 1.15 : 1);
-          // Allegiance icon + engraved caps, centred below the town. When an
-          // army garrisons here the city name sits a notch lower so the army's
-          // own label (drawn above its banner) clears it.
-          const status = factionView ? statusOf(c ? c.owner : -1) : Allegiance.Neutral;
-          const below = cityHasArmy.has(i) ? fs * 1.5 : 0;
-          drawLabel(sx, sy + 14 + below, n.name.toUpperCase(), status, fs, ICON_CITY);
-        }
-      } else if (z > 0.5) {
-        ctx.fillStyle = 'rgba(60,45,30,0.7)';
-        ctx.beginPath();
-        ctx.arc(sx, sy, 2, 0, Math.PI * 2);
-        ctx.fill();
-      }
+  updateTerritory(territory: Territory) {
+    if (!this.territoryPass || !this.borders) return;
+    this.territoryPass.upload({
+      width: this.field.w,
+      height: this.field.h,
+      rgba: territory.rgba,
+      rect: this.data.bgRect,
     });
+    this.borders.upload(campaignBorderVertices(territory.borders));
+  }
 
-    // Ambush spots near the selected army: a faint thicket to slip into.
-    for (const [hx, hy] of ambushHints ?? []) {
-      const p = pt(hx, hy);
-      if (!p) continue;
-      ctx.globalAlpha = 0.55;
-      ctx.fillStyle = '#1d3a14';
-      ctx.beginPath();
-      ctx.arc(p[0] - 2.5, p[1], 3, 0, Math.PI * 2);
-      ctx.arc(p[0] + 2.5, p[1] - 1, 3.5, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.globalAlpha = 1;
+  draw(opts: DrawOptions) {
+    if (!this.shell || !this.map || !this.clouds || !this.fog || !this.territoryPass || !this.lines || !this.roads || !this.borders || !this.markers || !this.scenery || !this.entities || !this.selection || !this.labels) return;
+    const frameStart = performance.now();
+    this.lastFactionView = opts.factionView;
+    this.currentCamera = { x: opts.cam.x, y: opts.cam.y, zoom: opts.cam.scale, pitch: this.pitchForScale(opts.cam.scale), yaw: 0, perspective: campaignPerspective(opts.cam.scale) };
+    this.shell.setCamera(this.currentCamera);
+    const buildStart = performance.now();
+    const frame = buildEntityFrame(this.data, this.field, opts);
+    const buildEnd = performance.now();
+    this.lastEntities = { cityEntities: frame.cityEntities, armyEntities: frame.armyEntities };
+    const uploadStart = performance.now();
+    const sceneryTime = this.fixedTime ?? performance.now() / 1000;
+    this.scenery.upload(
+      campaignScenery(this.sceneryCandidates, campaignSceneryReservations(frame.entities), opts.cam.scale)
+        .concat(campaignRoadCarts(this.data, this.field, sceneryTime, opts)),
+    );
+    this.entities.upload(frame.entities);
+    this.selection.upload(frame.selections);
+    this.markers.upload(campaignMapMarkers(this.data, opts));
+    this.lastFog = { enabled: opts.fogOfWar, sources: opts.visionSources };
+    this.fog.upload(opts.visionSources, opts.fogOfWar);
+    const staticLabels = opts.fogOfWar ? [] : this.staticLabels;
+    const cityLabels = campaignCityLabels(this.data, this.field, opts);
+    const armyLabels = campaignArmyLabels(this.data, opts);
+    const factionLabels = campaignFactionLabels(this.data, opts);
+    this.lastLabelComposition = {
+      composedArmyCityLabels: armyLabels.filter((label) => label.subText).length,
+    };
+    this.labelStats = this.labels.upload(staticLabels.concat(cityLabels, armyLabels, factionLabels), this.currentCamera);
+    const uploadEnd = performance.now();
+    const drawStart = performance.now();
+    const passes: FrameGraphPass[] = [
+      { id: 'campaign-map-surface', role: 'world-depth-fill', phase: 'world-depth', depth: 'write', draw: (pass) => this.map!.draw(pass) },
+      { id: 'campaign-scenery-opaque', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => this.scenery!.drawOpaque(pass) },
+      { id: 'campaign-entities-opaque', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => this.entities!.drawOpaque(pass) },
+      ...(opts.factionView ? [{ id: 'campaign-territory-wash', role: 'world-decal' as const, phase: 'world-depth' as const, depth: 'read' as const, draw: (pass: WorldRenderPass) => this.territoryPass!.draw(pass) }] : []),
+      ...(opts.factionView && !isControlledStage(this.data) ? [{ id: 'campaign-borders', role: 'world-decal' as const, phase: 'world-depth' as const, depth: 'read' as const, draw: (pass: WorldRenderPass) => this.borders!.draw(pass) }] : []),
+      { id: 'campaign-scenery-shadows', role: 'world-decal', phase: 'world-depth', depth: 'read', draw: (pass) => this.scenery!.drawShadows(pass) },
+      { id: 'campaign-entity-shadows', role: 'world-decal', phase: 'world-depth', depth: 'read', draw: (pass) => this.entities!.drawShadows(pass) },
+      { id: 'campaign-roads', role: 'world-decal', phase: 'world-depth', depth: 'read', draw: (pass) => this.roads!.draw(pass) },
+      { id: 'campaign-sea-lanes-depth', role: 'world-decal', phase: 'world-depth', depth: 'read', draw: (pass) => this.lines!.draw(pass) },
+      { id: 'campaign-ground-selection', role: 'world-decal', phase: 'world-depth', depth: 'read', draw: (pass) => this.selection!.draw(pass) },
+      { id: 'campaign-clouds', role: 'overlay-effect', phase: 'overlay', draw: (pass) => this.clouds!.draw(pass) },
+      { id: 'campaign-fog-of-war', role: 'overlay-effect', phase: 'overlay', draw: (pass) => this.fog!.draw(pass) },
+      { id: 'campaign-markers', role: 'overlay-ui', phase: 'overlay', draw: (pass) => this.markers!.draw(pass) },
+      { id: 'campaign-labels', role: 'overlay-ui', phase: 'overlay', draw: (pass) => this.labels!.draw(pass) },
+    ];
+    this.shell.drawFrame({
+      clear: { r: 0.06, g: 0.07, b: 0.075, a: 1 },
+      terrainRect: [0, 0, 0, 0],
+      passes,
+    });
+    const done = performance.now();
+    this.framePerf = {
+      buildMs: roundMs(buildEnd - buildStart),
+      uploadMs: roundMs(uploadEnd - uploadStart),
+      drawMs: roundMs(done - drawStart),
+      frameCpuMs: roundMs(done - frameStart),
+    };
+    publishStats(this.stats());
+  }
+
+  visibleAt(x: number, y: number) {
+    if (!this.lastFog.enabled) return 1;
+    let visible = 0;
+    for (const source of this.lastFog.sources) {
+      const d = Math.hypot(x - source.x, y - source.y);
+      const sourceVisible = 1 - smoothstep(source.radius * 0.72, source.radius * 1.08, d);
+      visible = Math.max(visible, sourceVisible);
     }
+    return visible;
+  }
 
-    // Armies: banners (pennant triangles) colored by faction.
-    for (const a of armies) {
-      if (!a.mine && hidden(a.x, a.y)) continue; // enemies vanish into the fog
-      const p = pt(a.x, a.y);
-      if (!p) continue;
-      const [sx, sy] = p;
-      if (sx < -40 || sy < -40 || sx > W + 40 || sy > H + 40) continue;
-      const sel = a.id === selected;
-      const size = sel ? 13 : 11;
-      // Pole + pennant — the army marker at the overview zoom only. Once the
-      // world tilts into 3D (z >= ARMY_MIN_SCALE) the soldier figures are the
-      // army, so the flat flag would just clutter them; the name label carries
-      // the army there instead.
-      if (z < ARMY_MIN_SCALE) {
-        ctx.strokeStyle = '#111';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(sx, sy);
-        ctx.lineTo(sx, sy - size * 1.6);
-        ctx.stroke();
-        ctx.fillStyle = this.factionColor(a.faction);
-        ctx.globalAlpha = a.stance === 3 ? 0.55 : 1.0; // hidden ambusher (own)
-        ctx.beginPath();
-        ctx.moveTo(sx, sy - size * 1.6);
-        ctx.lineTo(sx + size, sy - size * 1.15);
-        ctx.lineTo(sx, sy - size * 0.7);
-        ctx.closePath();
-        ctx.fill();
-        ctx.strokeStyle = sel ? '#fff' : '#1a1208';
-        ctx.lineWidth = sel ? 2 : 1;
-        ctx.stroke();
-        ctx.globalAlpha = 1.0;
-      }
-      // Routed marker.
-      if (a.stance === 4) {
-        ctx.fillStyle = '#fff';
-        ctx.font = 'bold 10px system-ui';
-        ctx.fillText('!', sx - 2, sy - size * 1.8);
-      }
-      // At sea: a hull under the banner.
-      if (a.stance === 6) {
-        ctx.fillStyle = '#6b4a2a';
-        ctx.strokeStyle = '#1a1208';
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(sx - 7, sy + 2);
-        ctx.quadraticCurveTo(sx, sy + 8, sx + 7, sy + 2);
-        ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
-      }
-      // Camp: a tent pitched beside the banner.
-      if (a.stance === 1) {
-        ctx.fillStyle = '#e8dcc0';
-        ctx.strokeStyle = '#1a1208';
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(sx - size - 6, sy);
-        ctx.lineTo(sx - size, sy);
-        ctx.lineTo(sx - size - 3, sy - 6);
-        ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
-      }
-      // Progress pie (prep, occupation, embark, ambush settle).
-      if (a.pieKind > 0 && a.pieFrac > 0) {
-        const colors = ['', '#ffffff', '#ffd24a', '#7ec8ff', '#9be37e'];
-        ctx.beginPath();
-        ctx.moveTo(sx, sy - size * 2.6);
-        ctx.arc(sx, sy - size * 2.6, 8, -Math.PI / 2, -Math.PI / 2 + a.pieFrac * Math.PI * 2);
-        ctx.closePath();
-        ctx.fillStyle = colors[a.pieKind] ?? '#fff';
-        ctx.globalAlpha = 0.9;
-        ctx.fill();
-        ctx.globalAlpha = 1.0;
-        ctx.beginPath();
-        ctx.arc(sx, sy - size * 2.6, 8, 0, Math.PI * 2);
-        ctx.strokeStyle = 'rgba(0,0,0,0.6)';
-        ctx.lineWidth = 1;
-        ctx.stroke();
-      }
-      // Name + strength, stacked above the banner (so it clears any town label
-      // below). A legion name in the city font; the allegiance dot tells friend
-      // from foe; the strength rides underneath.
-      if (z > 0.35) {
-        const status = a.mine ? 0 : statusOf(a.faction);
-        const fs = Math.min(14, 9 + z);
-        const name = `${ordinal(ordinalOf.get(a.id) ?? 1)} LEGION`;
-        const strength = `${Math.round(a.soldiers / 100) / 10}k`;
-        drawLabel(sx, sy - size * 1.6 - 12, name, status, fs, ICON_ARMY, strength);
-      }
-    }
+  territoryAlpha(_scale: number) {
+    return 1;
+  }
 
-    // Faction names: drawn LAST so the engraved country text sits above the
-    // city dots and everything else (faction view only). The six powers read at
-    // the political overview; the dozens of minor leagues would smother it, so
-    // they fade IN only as you zoom into a region (fewer in view => legible),
-    // and fade out again once the cities take over.
-    const clamp01 = (t: number) => Math.min(1, Math.max(0, t));
-    // Powers persist from the overview through the regional zoom; leagues are
-    // level-of-detail gated below, so they appear only when their realm is large
-    // enough on screen — far out you see the powers, zooming in reveals leagues.
-    const powerAlpha = 1 - clamp01((z - 0.72) / 0.16);
-    const leagueHiFade = 1 - clamp01((z - 0.85) / 0.18); // out at city level
-    if (factionView && (powerAlpha > 0.02 || leagueHiFade > 0.02)) {
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.lineJoin = 'round';
-      ctx.strokeStyle = 'rgba(10,8,5,0.9)';
-      ctx.fillStyle = 'rgba(250,248,243,0.98)';
-      // Leagues first, then powers on top (biggest last) so a power's name is
-      // never buried under a minor league's.
-      const ordered = [...factionLabels].sort((a, b) => Number(b.minor) - Number(a.minor) || a.radiusKm - b.radiusKm);
-      for (const l of ordered) {
-        // screenR = the realm's on-screen radius (px): the LOD currency.
-        const screenR = l.radiusKm * z;
-        const a = l.minor
-          ? clamp01((screenR - 95) / 45) * leagueHiFade * 0.9 // appears once big enough
-          : powerAlpha;
-        if (a <= 0.02 || hidden(l.x, l.y)) continue;
-        const p = pt(l.x, l.y);
-        if (!p) continue;
-        // Size tracks the realm's screen footprint but is capped so a big power
-        // never balloons when you zoom in.
-        const size = l.minor
-          ? Math.min(22, Math.max(9, screenR * 0.4))
-          : Math.min(34, Math.max(17, screenR * 0.5));
-        ctx.font = `${l.minor ? 600 : 700} ${size}px ${MAP_FONT}`;
-        ctx.letterSpacing = `${Math.max(0.5, size * 0.07)}px`;
-        ctx.globalAlpha = a;
-        ctx.lineWidth = Math.max(2.5, size / 6);
-        const name = l.name.toUpperCase();
-        // White caps with a firm black border (same family as the city names,
-        // just bolder) so the country names read clearly over any territory.
-        ctx.strokeText(name, p[0], p[1]);
-        ctx.fillText(name, p[0], p[1]);
-      }
-      ctx.globalAlpha = 1;
-      ctx.letterSpacing = '0px';
-      ctx.textAlign = 'left';
-      ctx.textBaseline = 'alphabetic';
+  pitchForScale(scale: number) {
+    return campaignPitch(scale);
+  }
+
+  destroy() {
+    window.removeEventListener('resize', this.onResize);
+    this.shell?.destroy();
+    this.shell = null;
+    publishStats(this.stats());
+  }
+
+  stats() {
+    const shell = this.shell?.stats();
+    return {
+      renderer: 'renderer-campaign',
+      ready: this.shell !== null,
+      width: shell?.width ?? 0,
+      height: shell?.height ?? 0,
+      device: shell?.device ?? 'initializing',
+      cameraContract: shell?.cameraContract ?? 'initializing',
+      ...this.lastEntities,
+      labels: this.labelStats.labels,
+      visibleLabels: this.labelStats.visibleLabels,
+      visibleLabelNames: this.labelStats.visibleLabelNames,
+      labelCollisionCulls: this.labelStats.collisionCulls,
+      labelCollisionCulledLabels: this.labelStats.collisionCulledLabels,
+      ...this.lastLabelComposition,
+      labelLayer: this.labelStats.layer,
+      labelAtlas: `${this.labelStats.atlasWidth}x${this.labelStats.atlasHeight}`,
+      labelVertices: this.labelStats.vertices,
+      waterFeatures: 0,
+      waterLayer: 'map-sea-mask',
+      mapSurface: this.map?.stats() ?? null,
+      cloudQuads: this.clouds?.stats().cloudQuads ?? 0,
+      fogEnabled: this.fog?.stats().fogEnabled ?? false,
+      fogSources: this.fog?.stats().fogSources ?? 0,
+      factionView: this.lastFactionView,
+      territoryPixels: this.territoryPass?.stats().pixels ?? 0,
+      borderSegments: this.borders?.stats().segments ?? 0,
+      mapMarkers: this.markers?.stats().markers ?? 0,
+      ...this.selection?.stats(),
+      scenery: this.scenery?.stats().scenery ?? 0,
+      sceneryStats: this.scenery?.stats() ?? null,
+      lineSegments: this.lines?.stats().segments ?? 0,
+      roadTriangles: this.roads?.stats().triangles ?? 0,
+      roadJunctionCaps: this.mapDrawStats?.roadJunctionCaps ?? 0,
+      phases: shell?.phases ?? [],
+      depth: shell?.depth ?? null,
+      postCutoverScreenshots: 'renderer-only',
+      performance: { ...this.framePerf },
+    };
+  }
+
+  private currentCamera = { x: 0, y: 0, zoom: 0.18, pitch: this.pitch, yaw: 0, perspective: 0 };
+
+  private async init(territory: Territory) {
+    this.shell = await createFrameShell(this.canvas);
+    const controlledStage = isControlledStage(this.data);
+    this.map = new CampaignMapPass(this.shell, this.data.bg, this.data.bgRect, controlledStage ? undefined : {
+      seaTintMix: 1,
+      terrain: {
+        width: this.field.w,
+        height: this.field.h,
+        biome: this.field.biome,
+        light: this.field.light,
+      },
+    }, this.surface.mesh);
+    this.clouds = new CampaignCloudPass(this.shell, this.data.bgRect, controlledStage ? 0.75 : 2.05);
+    this.fog = new CampaignFogPass(this.shell, this.data.bgRect);
+    this.territoryPass = new CampaignTerritoryPass(this.shell, {
+      width: this.field.w,
+      height: this.field.h,
+      rgba: territory.rgba,
+      rect: this.data.bgRect,
+    }, controlledStage ? undefined : { alpha: 0.55, warmMix: 0.015 }, this.surface.mesh);
+    this.lines = new CampaignWorldLinePass(this.shell, 'triangle-list');
+    this.roads = new CampaignRoadPass(this.shell);
+    this.borders = new CampaignWorldLinePass(this.shell);
+    this.markers = new CampaignMarkerPass(this.shell);
+    this.scenery = new CampaignSceneryPass(this.shell);
+    this.sceneryCandidates = buildCampaignSceneryCandidates(this.data, this.field);
+    this.entities = new CampaignEntityPass(this.shell);
+    this.selection = new CampaignSelectionPass(this.shell);
+    this.labels = new CampaignLabelPass(this.shell);
+    const drawData = buildCampaignMapDrawData(this.data, {
+      roadScale: 1.0,
+      roadSurfaceAt: (x, y) => this.field.landAt(x, y, controlledStage ? 2.5 : 10.5) ? 'land' : 'water',
+      heightAt: (x, y) => this.field.heightAt(x, y),
+    });
+    this.mapDrawStats = drawData.stats;
+    this.staticLabels = drawData.labels;
+    this.lines.upload(drawData.lineVertices);
+    this.roads.upload(drawData.roadMeshVertices);
+    this.borders.upload(controlledStage ? new Float32Array() : campaignBorderVertices(territory.borders));
+    publishStats(this.stats());
+  }
+}
+
+function roundMs(value: number) {
+  return Number.isFinite(value) ? Number(value.toFixed(3)) : 0;
+}
+
+const CAMPAIGN_CLOSE_PITCH = 0.82;
+
+function campaignPitch(zoom: number) {
+  const t = smoothstep(0.62, 1.6, zoom);
+  return CAMPAIGN_CLOSE_PITCH * t;
+}
+
+function smoothstep(edge0: number, edge1: number, value: number) {
+  const t = clamp((value - edge0) / (edge1 - edge0), 0, 1);
+  return t * t * (3 - 2 * t);
+}
+
+function campaignPerspective(zoom: number) {
+  return Math.min(0.0048, Math.max(0, (zoom - 1.0) * 0.0032));
+}
+
+function buildEntityFrame(data: CampaignData, field: TerrainField, opts: DrawOptions) {
+  const entities: CampaignEntityInstance[] = [];
+  const selections: CampaignSelectionInstance[] = [];
+  let cityEntities = 0;
+  let armyEntities = 0;
+  const fixtureScale = isControlledStage(data) ? 1.82 : 1;
+  for (let node = 0; node < data.map.nodes.length; node++) {
+    const mapNode = data.map.nodes[node];
+    if (mapNode.kind !== 'city') continue;
+    if (!fogVisible(opts, mapNode.pos[0], mapNode.pos[1], 0.18)) continue;
+    const city = opts.cities.get(node);
+    const owner = city?.owner ?? Math.max(0, data.map.factions.findIndex((faction) => faction.id === mapNode.owner));
+    const allegiance = statusOf(opts.factionStatus, owner);
+    entities.push({
+      x: mapNode.pos[0],
+      y: mapNode.pos[1],
+      z: field.heightAt(mapNode.pos[0], mapNode.pos[1]),
+      radius: cityModelRadius(mapNode.tier) * fixtureScale,
+      faction: factionColor(data, owner),
+      allegiance: allegianceColor(allegiance),
+      kind: 'city',
+      strength: Math.min(1, (city?.garrison ?? 600) / 1200),
+    });
+    cityEntities++;
+    if (node === opts.selectedCity) {
+      selections.push({
+        x: mapNode.pos[0],
+        y: mapNode.pos[1],
+        z: field.heightAt(mapNode.pos[0], mapNode.pos[1]),
+        radius: citySelectionRadius(mapNode.tier) * fixtureScale,
+        color: [0.31, 0.82, 0.39],
+        kind: 'city',
+      });
     }
   }
+  for (const army of opts.armies) {
+    // Cull by fog visibility, matching visibleCampaignArmies (labels/markers) —
+    // not by allegiance. A neutral or allied army standing in the player's
+    // vision must keep its close-zoom model and selection, not just its label.
+    if (opts.fogOfWar && !army.mine && !fogVisible(opts, army.x, army.y, 0.18)) continue;
+    const allegiance = army.mine || army.faction === opts.playerFaction ? Allegiance.Friend : statusOf(opts.factionStatus, army.faction);
+    const occupiedCity = occupiedCityForArmy(data, army);
+    const display = occupiedCity ? garrisonDisplayAnchor(data.map.nodes[occupiedCity.index]) : { x: army.x, y: army.y };
+    entities.push({
+      x: display.x,
+      y: display.y,
+      z: field.heightAt(display.x, display.y),
+      radius: 6.4 * fixtureScale,
+      faction: factionColor(data, army.faction),
+      allegiance: allegianceColor(allegiance),
+      kind: 'army',
+      strength: Math.min(1, Math.max(0.25, army.soldiers / 2600)),
+    });
+    armyEntities++;
+    if (army.id === opts.selected) {
+      const controlledStage = isControlledStage(data);
+      const selectionRadius = occupiedCity
+        ? 11.8 * fixtureScale
+        : controlledStage ? 8.4 * fixtureScale : 12.6 * fixtureScale;
+      selections.push({
+        x: display.x,
+        y: display.y,
+        z: field.heightAt(display.x, display.y),
+        radius: selectionRadius,
+        color: [0.31, 0.82, 0.39],
+        kind: occupiedCity ? 'garrisoned-army' : 'army',
+      });
+    }
+  }
+  return { entities, selections, cityEntities, armyEntities };
+}
+
+const CITY_MARKER_BASE_RADIUS_PX = 3.8;
+const CITY_MARKER_TIER_RADIUS_PX = 0.7;
+
+function campaignMapMarkers(data: CampaignData, opts: DrawOptions): CampaignMarker[] {
+  if (isControlledStage(data) || opts.cam.scale >= 0.5) return [];
+  const markers: CampaignMarker[] = [];
+  data.map.nodes.forEach((node, index) => {
+    if (node.kind !== 'city') return;
+    const minTier = opts.cam.scale < 0.6 ? 3 : opts.cam.scale < 0.85 ? 2 : 1;
+    if (node.tier < minTier) return;
+    if (!fogVisible(opts, node.pos[0], node.pos[1], 0.18)) return;
+    const city = opts.cities.get(index);
+    const owner = city?.owner ?? Math.max(0, data.map.factions.findIndex((faction) => faction.id === node.owner));
+    const allegiance = opts.factionView ? statusOf(opts.factionStatus, owner) : Allegiance.Neutral;
+    markers.push({
+      x: node.pos[0],
+      y: node.pos[1],
+      radius: cityMarkerRadiusPx(node.tier),
+      faction: opts.factionView ? factionColor(data, owner) : [0.16, 0.12, 0.08],
+      allegiance: allegianceColor(allegiance),
+      kind: 'city',
+      selected: index === opts.selectedCity,
+    });
+  });
+  for (const army of visibleCampaignArmies(opts)) {
+    const allegiance = army.mine || army.faction === opts.playerFaction ? Allegiance.Friend : statusOf(opts.factionStatus, army.faction);
+    markers.push({
+      x: army.x,
+      y: army.y,
+      radius: army.id === opts.selected ? 10.5 : 9,
+      faction: factionColor(data, army.faction),
+      allegiance: allegianceColor(allegiance),
+      kind: 'army',
+      selected: army.id === opts.selected,
+    });
+  }
+  return markers;
+}
+
+function statusOf(status: Int8Array, faction: number): Allegiance {
+  return faction >= 0 && faction < status.length ? status[faction] as Allegiance : Allegiance.Neutral;
+}
+
+function factionColor(data: CampaignData, faction: number): [number, number, number] {
+  const color = data.map.factions[faction]?.color ?? [146, 126, 92];
+  return [color[0] / 255, color[1] / 255, color[2] / 255];
+}
+
+function allegianceColor(allegiance: Allegiance): [number, number, number] {
+  if (allegiance === Allegiance.Friend) return [0.31, 0.82, 0.39];
+  if (allegiance === Allegiance.Foe) return [0.88, 0.27, 0.23];
+  return [0.93, 0.78, 0.30];
+}
+
+function campaignCityLabels(data: CampaignData, field: TerrainField, opts: DrawOptions): CampaignLabel[] {
+  const edge = mapEdgeProjector(data);
+  const occupiedCities = occupiedCityLabels(data, opts);
+  const labels: CampaignLabel[] = [];
+  data.map.nodes.forEach((node, index) => {
+    if (node.kind !== 'city') return;
+    if (occupiedCities.has(index)) return;
+    if (!fogVisible(opts, node.pos[0], node.pos[1], 0.18)) return;
+    const city = opts.cities.get(index);
+    const owner = city?.owner ?? Math.max(0, data.map.factions.findIndex((faction) => faction.id === node.owner));
+    const allegiance = opts.factionView ? statusOf(opts.factionStatus, owner) : Allegiance.Neutral;
+    const baseSize = Math.min(15, 9.5 + opts.cam.scale) * (node.tier >= 3 ? 1.15 : 1);
+    const overviewMarkerLabel = opts.cam.scale < 0.6;
+    labels.push({
+      text: node.name.toUpperCase(),
+      x: node.pos[0],
+      y: node.pos[1],
+      kind: 'city',
+      size: baseSize,
+      priority: node.tier,
+      icon: 'city',
+      iconColor: allegianceColor(allegiance),
+      collisionGroup: cityCollisionGroup(index),
+      screenOffsetX: cityLabelOffsetX(opts, node.tier) + horizontalEdgeOffset(edge.x(node.pos[0])),
+      screenOffsetY: cityLabelOffset(opts, baseSize, node.tier, cityReliefRisePx(field, opts, node.pos)) + verticalEdgeOffset(edge.y(node.pos[1])),
+      screenAnchorX: overviewMarkerLabel ? 'left' : 'center',
+      screenAnchorY: overviewMarkerLabel ? 'top' : 'center',
+    });
+  });
+  return labels;
+}
+
+function campaignArmyLabels(data: CampaignData, opts: DrawOptions): CampaignLabel[] {
+  const ordinalOf = new Map<number, number>();
+  const byFaction = new Map<number, number[]>();
+  for (const army of visibleCampaignArmies(opts)) {
+    const ids = byFaction.get(army.faction) ?? [];
+    ids.push(army.id);
+    byFaction.set(army.faction, ids);
+  }
+  for (const ids of byFaction.values()) {
+    ids.sort((a, b) => a - b);
+    ids.forEach((id, index) => ordinalOf.set(id, index + 1));
+  }
+  return visibleCampaignArmies(opts).map((army): CampaignLabel => {
+    const allegiance = army.mine || army.faction === opts.playerFaction ? Allegiance.Friend : statusOf(opts.factionStatus, army.faction);
+    const markerSize = army.id === opts.selected ? 13 : 11;
+    const occupiedCity = occupiedCityForArmy(data, army);
+    const display = occupiedCity ? garrisonDisplayAnchor(data.map.nodes[occupiedCity.index]) : { x: army.x, y: army.y };
+    const cityOverlap = occupiedCity !== null;
+    const selectedOffset = army.id === opts.selected && isControlledStage(data) ? 28 : 0;
+    const overlapClearance = cityOverlap ? (opts.cam.scale >= 3 ? 44 : 38) : 24;
+    return {
+      text: `${ordinal(ordinalOf.get(army.id) ?? 1)} LEGION`,
+      sideText: `${Math.round(army.soldiers / 100) / 10}k`,
+      subText: occupiedCity?.name.toUpperCase(),
+      x: display.x,
+      y: display.y,
+      kind: 'army',
+      size: Math.min(14, 9 + opts.cam.scale),
+      priority: 4,
+      icon: 'army',
+      iconColor: allegianceColor(allegiance),
+      collisionGroup: occupiedCity ? cityCollisionGroup(occupiedCity.index) : undefined,
+      screenOffsetY: markerSize + selectedOffset + overlapClearance,
+    };
+  });
+}
+
+function occupiedCityLabels(data: CampaignData, opts: DrawOptions) {
+  const occupied = new Set<number>();
+  for (const army of visibleCampaignArmies(opts)) {
+    const match = occupiedCityForArmy(data, army);
+    if (match) occupied.add(match.index);
+  }
+  return occupied;
+}
+
+function cityModelRadius(tier: number) {
+  return tier >= 3 ? 6.2 : 5.2;
+}
+
+function citySelectionRadius(tier: number) {
+  return tier >= 3 ? 10.8 : 9.4;
+}
+
+function garrisonDisplayAnchor(city: MapNode) {
+  const cityRadius = cityModelRadius(city.tier);
+  // Keep the garrison inside the city footprint while exposing it at the front gate.
+  return {
+    x: city.pos[0] - cityRadius * 0.28,
+    y: city.pos[1] - cityRadius * 0.36,
+  };
+}
+
+function occupiedCityForArmy(data: CampaignData, army: ArmyView) {
+  let best: { index: number; name: string; d: number } | null = null;
+  for (let index = 0; index < data.map.nodes.length; index++) {
+    const node = data.map.nodes[index];
+    if (node.kind !== 'city') continue;
+    const d = Math.hypot(node.pos[0] - army.x, node.pos[1] - army.y);
+    if (d < 8 && (!best || d < best.d)) best = { index, name: node.name, d };
+  }
+  return best;
+}
+
+function visibleCampaignArmies(opts: DrawOptions) {
+  return opts.armies.filter((army) => {
+    if (!opts.fogOfWar) return true;
+    return fogVisible(opts, army.x, army.y, 0.18);
+  });
+}
+
+function cityLabelOffset(opts: DrawOptions, baseSize: number, tier: number, reliefPx: number) {
+  if (opts.cam.scale < 0.6) return cityMarkerOuterEdgePlusSidePx(tier);
+  // The visible gap below the city model is reliefPx (model rides up over its
+  // raised ground) plus this screen offset (label sits below the flat z=0
+  // anchor). Target ~one label height of gap regardless of elevation, so the
+  // offset goes NEGATIVE for a perched city (label climbs back up to the
+  // model's foot) and stays positive for a coastal-flat one. Old 1.30/1.45 left
+  // two-plus label heights under inland cities.
+  const targetGap = opts.cam.scale < 1.25 ? baseSize * 0.9 : baseSize * 1.1;
+  // Clamp the climb so a freak height never flings the name onto the model top.
+  return Math.max(-baseSize * 2.6, targetGap - reliefPx);
+}
+
+// Screen-space pixels the city model rises above its flat (z=0) label anchor at
+// this camera. From world3dToScreen, a point at height h shifts up by
+// h*zoom/depth (yaw is always 0 on the campaign camera).
+function cityReliefRisePx(field: TerrainField, opts: DrawOptions, pos: readonly [number, number]) {
+  const h = Math.max(0, field.heightAt(pos[0], pos[1]));
+  if (h <= 0) return 0;
+  // Floor depth at 1: the true rise foreshortens near the camera bottom, but
+  // letting depth fall below 1 there inflates the rise for a flat coastal city
+  // (e.g. Ostia) and yanks its name up into the capital's garrison label. A
+  // genuinely raised inland city still has dy>0 (depth>=1) and pulls up.
+  const depth = Math.max(1, 1 + (pos[1] - opts.cam.y) * campaignPerspective(opts.cam.scale));
+  return (h * opts.cam.scale) / depth;
+}
+
+function cityLabelOffsetX(opts: DrawOptions, tier: number) {
+  if (opts.cam.scale >= 0.6) return 0;
+  return cityMarkerOuterEdgePlusSidePx(tier);
+}
+
+function cityMarkerRadiusPx(tier: number) {
+  return CITY_MARKER_BASE_RADIUS_PX + tier * CITY_MARKER_TIER_RADIUS_PX;
+}
+
+function cityMarkerSidePx(tier: number) {
+  return cityMarkerRadiusPx(tier) * 2;
+}
+
+function cityMarkerOuterEdgePlusSidePx(tier: number) {
+  const radius = cityMarkerRadiusPx(tier);
+  return radius + cityMarkerSidePx(tier) - OVERVIEW_LABEL_ICON_PADDING_PX;
+}
+
+const OVERVIEW_LABEL_ICON_PADDING_PX = 5;
+
+function cityCollisionGroup(index: number) {
+  return `city:${index}`;
+}
+
+function ordinal(k: number) {
+  const value = k % 100;
+  const suffix = value >= 11 && value <= 13 ? 'th' : (['th', 'st', 'nd', 'rd'][k % 10] ?? 'th');
+  return `${k}${suffix}`;
+}
+
+function campaignFactionLabels(data: CampaignData, opts: DrawOptions): CampaignLabel[] {
+  if (!opts.factionView) return [];
+  const edge = mapEdgeProjector(data);
+  return opts.factionLabels
+    .filter((label) => !opts.fogOfWar || fogVisible(opts, label.x, label.y, 0.14))
+    .map((label): CampaignLabel => ({
+      text: label.name,
+      x: label.x,
+      y: label.y,
+      kind: 'faction',
+      size: label.minor ? 9 : 17,
+      priority: 4,
+      angle: -0.06,
+      factionRadiusKm: label.radiusKm,
+      factionMinor: label.minor,
+      screenOffsetX: horizontalEdgeOffset(edge.x(label.x)),
+      screenOffsetY: verticalEdgeOffset(edge.y(label.y)),
+    }));
+}
+
+function fogVisible(opts: DrawOptions, x: number, y: number, threshold: number) {
+  if (!opts.fogOfWar) return true;
+  return fogVisibility(opts.visionSources, x, y) >= threshold;
+}
+
+function fogVisibility(sources: CampaignFogSource[], x: number, y: number) {
+  let visible = 0;
+  for (const source of sources) {
+    const d = Math.hypot(x - source.x, y - source.y);
+    const sourceVisible = 1 - smoothstep(source.radius * 0.72, source.radius * 1.08, d);
+    visible = Math.max(visible, sourceVisible);
+  }
+  return visible;
+}
+
+const LABEL_EDGE_INSET_START_X = 0.22;
+const LABEL_EDGE_INSET_RANGE_X = 0.18;
+const LABEL_EDGE_OFFSET_X = 110;
+const LABEL_EDGE_INSET_START_Y = 0.22;
+const LABEL_EDGE_INSET_RANGE_Y = 0.16;
+const LABEL_EDGE_OFFSET_Y = 96;
+
+function mapEdgeProjector(data: CampaignData) {
+  const [minX, minY] = data.bgRect.min;
+  const [maxX, maxY] = data.bgRect.max;
+  const width = Math.max(1, maxX - minX);
+  const height = Math.max(1, maxY - minY);
+  return {
+    x: (worldX: number) => (worldX - minX) / width,
+    y: (worldY: number) => (worldY - minY) / height,
+  };
+}
+
+function horizontalEdgeOffset(t: number) {
+  const rightStart = 1 - LABEL_EDGE_INSET_START_X;
+  if (t > rightStart) return -LABEL_EDGE_OFFSET_X * Math.min(1, (t - rightStart) / LABEL_EDGE_INSET_RANGE_X);
+  if (t < LABEL_EDGE_INSET_START_X) return LABEL_EDGE_OFFSET_X * Math.min(1, (LABEL_EDGE_INSET_START_X - t) / LABEL_EDGE_INSET_RANGE_X);
+  return 0;
+}
+
+function verticalEdgeOffset(t: number) {
+  const topStart = 1 - LABEL_EDGE_INSET_START_Y;
+  if (t > topStart) return LABEL_EDGE_OFFSET_Y * Math.min(1, (t - topStart) / LABEL_EDGE_INSET_RANGE_Y);
+  if (t < LABEL_EDGE_INSET_START_Y) return -LABEL_EDGE_OFFSET_Y * Math.min(1, (LABEL_EDGE_INSET_START_Y - t) / LABEL_EDGE_INSET_RANGE_Y);
+  return 0;
+}
+
+const CAMPAIGN_MOUNTAIN_MIN_SCALE = 0.28;
+const CAMPAIGN_TREE_MIN_SCALE = 0.45;
+const CAMPAIGN_ROCK_MIN_SCALE = 0.45;
+const CAMPAIGN_MAX_MOUNTAINS = 3200;
+const CAMPAIGN_MAX_TREES = 7200;
+const CAMPAIGN_MAX_ROCKS = 1000;
+const CAMPAIGN_MOUNTAIN_VISUAL_SCALE = 2.25;
+const CAMPAIGN_ROCK_VISUAL_SCALE = 1.75;
+const CAMPAIGN_TREE_VISUAL_SCALE = 1.72;
+
+function campaignScenery(candidates: CampaignSceneryInstance[], reservations: CampaignSceneryReservation[] = [], scale = 1): CampaignSceneryInstance[] {
+  const lodFiltered = candidates.filter((item) => scale >= sceneryMinScale(item));
+  return clearCampaignDynamicScenery(lodFiltered, reservations);
+}
+
+const CART_MIN_SCALE = 3.2;
+const CART_SPACING_KM = 78;
+const CART_CITY_CLEARANCE_KM = 7; // keep carts off the city footprints at each spline end
+
+// Road life: a handful of trade carts riding the road splines. Their position is
+// a function of scene time, so they crawl along when the campaign runs and sit
+// at a deterministic spot when it is frozen for a snapshot. Carts live ON the
+// road, so they bypass the road-clearance cull; they only appear at close zoom
+// and obey fog.
+function campaignRoadCarts(data: CampaignData, field: TerrainField, time: number, opts: DrawOptions): CampaignSceneryInstance[] {
+  if (opts.cam.scale < CART_MIN_SCALE) return [];
+  const carts: CampaignSceneryInstance[] = [];
+  data.map.edges.forEach((edge, e) => {
+    if (edge.kind !== 'road' || !edge.via || edge.via.length < 2) return;
+    // Ride the same smoothed centerline the road pass draws, or the cart sits
+    // off in the grass beside the visible ribbon.
+    const via = smoothRoadCenterline(edge.via);
+    const segLen: number[] = [];
+    let total = 0;
+    for (let i = 1; i < via.length; i++) {
+      const d = Math.hypot(via[i][0] - via[i - 1][0], via[i][1] - via[i - 1][1]);
+      segLen.push(d);
+      total += d;
+    }
+    if (total < 28) return; // too short to carry road life
+    const count = Math.max(1, Math.floor(total / CART_SPACING_KM));
+    for (let c = 0; c < count; c++) {
+      const phase = hash2(e * 13 + c * 7 + 1, e * 5 + 3);
+      const dir = hash2(e * 3 + c, 7) < 0.5 ? 1 : -1;
+      const speed = 0.6 + hash2(e + c, e * 2 + 1) * 0.5; // km/s along the spline
+      const dist = (((phase + (time * speed * dir) / total) % 1) + 1) % 1 * total;
+      if (dist < CART_CITY_CLEARANCE_KM || total - dist < CART_CITY_CLEARANCE_KM) continue;
+      let acc = 0;
+      for (let i = 1; i < via.length; i++) {
+        const d = segLen[i - 1];
+        if (acc + d >= dist) {
+          const t = (dist - acc) / Math.max(1e-6, d);
+          const x = via[i - 1][0] + (via[i][0] - via[i - 1][0]) * t;
+          const y = via[i - 1][1] + (via[i][1] - via[i - 1][1]) * t;
+          if (opts.fogOfWar && !fogVisible(opts, x, y, 0.18)) break;
+          const ang = Math.atan2(via[i][1] - via[i - 1][1], via[i][0] - via[i - 1][0]);
+          carts.push({
+            x,
+            y,
+            z: Math.max(0, field.heightAt(x, y)),
+            size: 6.0,
+            height: 4.0,
+            kind: 'cart',
+            shade: 0.55 + phase * 0.35,
+            yaw: dir > 0 ? ang : ang + Math.PI,
+          });
+          break;
+        }
+        acc += d;
+      }
+    }
+  });
+  return carts;
+}
+
+function buildCampaignSceneryCandidates(data: CampaignData, field: TerrainField): CampaignSceneryInstance[] {
+  if (data.map.attribution === 'test') return testStageScenery(data);
+  const mountains: ScoredCampaignSceneryInstance[] = [];
+  const trees: ScoredCampaignSceneryInstance[] = [];
+  const rocks: ScoredCampaignSceneryInstance[] = [];
+  for (let gy = 0; gy < field.h; gy++) {
+    for (let gx = 0; gx < field.w; gx++) {
+      const i = gy * field.w + gx;
+      if (!field.land[i]) continue;
+      const x0 = field.minX + (gx + 0.5) * field.cell;
+      const y0 = field.maxY - (gy + 0.5) * field.cell;
+      const rock = field.biome[i * 4 + 2] / 255;
+      const forest = field.biome[i * 4 + 1] / 255;
+      const height = field.height[i] / Math.max(1, field.maxH);
+      const mountainScore = height * 0.85 + rock * 0.5;
+      // Thinner than before: a few deliberate massifs let the terrain relief and
+      // rock shading carry the range mass, instead of a wall of cones on every
+      // high cell that buries cities and roads.
+      const mountainChance = mountainScore > 0.66
+        ? 0.58
+        : height > 0.20
+          ? 0.60
+          : rock > 0.18 && height > 0.04
+            ? 0.40
+            : 0;
+      if (mountainChance > 0 && hash2(gx * 3 + 1, gy * 7 + 2) < mountainChance) {
+        const x = x0 + (hash2(gx, gy * 2) - 0.5) * field.cell * 0.7;
+        const y = y0 + (hash2(gx * 2, gy) - 0.5) * field.cell * 0.7;
+        const radius = field.cell * 0.5 * (0.7 + rock * 0.5);
+        mountains.push({
+          x,
+          y,
+          z: Math.max(0, field.heightAt(x, y)),
+          size: radius * CAMPAIGN_MOUNTAIN_VISUAL_SCALE,
+          // Lower silhouette: broad ridges rather than spires that tower over
+          // labels. Vertical scale trimmed alongside the broader massif mesh.
+          height: (2.1 + rock * 3.1 + height * 3.3) * 1.0,
+          kind: 'mountain',
+          shade: hash2(gx + 3, gy + 5),
+          yaw: hash2(gx * 9 + 1, gy * 4 + 7) * Math.PI * 2,
+          score: mountainScore + hash2(gx + 17, gy + 29) * 0.08,
+          gx,
+          gy,
+        });
+      } else if (rock > 0.30 && hash2(gx * 5, gy * 9) < rock * 0.60) {
+        const count = 1 + Math.floor(hash2(gx, gy) * 2.5);
+        for (let t = 0; t < count; t++) {
+          const x = x0 + (hash2(gx * 7 + t, gy * 11) - 0.5) * field.cell * 1.2;
+          const y = y0 + (hash2(gx * 5 + t, gy * 13) - 0.5) * field.cell * 1.2;
+          const radius = 0.9 + hash2(gx + t, gy) * 1.7;
+          rocks.push({
+            x,
+            y,
+            z: Math.max(0, field.heightAt(x, y)),
+            size: radius * CAMPAIGN_ROCK_VISUAL_SCALE,
+            height: (0.7 + hash2(gx, gy + t) * 1.4) * 1.12,
+            kind: 'rock',
+            shade: hash2(t + 1, gx),
+            yaw: hash2(gx * 7 + t, gy * 3 + 11) * Math.PI * 2,
+            score: rock + hash2(gx + t * 5, gy + t * 7) * 0.10,
+            gx,
+            gy,
+          });
+        }
+      }
+      if (forest >= 0.16) {
+        const count = Math.max(1, Math.round(forest * 7.0 * (0.6 + hash2(gx, gy) * 0.9)));
+        for (let t = 0; t < count; t++) {
+          const x = x0 + (hash2(gx * 7 + t, gy * 13 + 1) - 0.5) * field.cell * 1.4;
+          const y = y0 + (hash2(gx * 3 + t, gy * 17 + 5) - 0.5) * field.cell * 1.4;
+          const heightScale = 2.0 + hash2(gx + t, gy + t) * 1.8;
+          trees.push({
+            x,
+            y,
+            z: Math.max(0, field.heightAt(x, y) - 0.05),
+            size: heightScale * 0.72 * CAMPAIGN_TREE_VISUAL_SCALE,
+            height: heightScale * 1.10,
+            kind: hash2(gx * 5 + t, gy * 11) < (y > TEMPERATE_Y_KM ? 0.75 : 0.25) ? 'conifer' : 'broadleaf',
+            shade: hash2(gx + t * 19, gy + t * 23),
+            yaw: hash2(gx * 13 + t, gy * 7 + t) * Math.PI * 2,
+            score: forest + hash2(gx + t * 3, gy + t * 11) * 0.08,
+            gx,
+            gy,
+          });
+        }
+      }
+    }
+  }
+  return clearCampaignStaticScenery(data, [
+    ...selectRegionalScenery(mountains, CAMPAIGN_MAX_MOUNTAINS),
+    ...selectRegionalScenery(trees, CAMPAIGN_MAX_TREES),
+    ...selectRegionalScenery(rocks, CAMPAIGN_MAX_ROCKS),
+  ]);
+}
+
+type ScoredCampaignSceneryInstance = CampaignSceneryInstance & { score: number; gx: number; gy: number };
+
+const CAMPAIGN_SCENERY_REGION_CELLS = 24;
+
+function selectRegionalScenery(items: ScoredCampaignSceneryInstance[], limit: number): CampaignSceneryInstance[] {
+  if (items.length <= limit) return items.map(toCampaignSceneryInstance);
+  const buckets = new Map<string, ScoredCampaignSceneryInstance[]>();
+  for (const item of items) {
+    const key = `${Math.floor(item.gx / CAMPAIGN_SCENERY_REGION_CELLS)},${Math.floor(item.gy / CAMPAIGN_SCENERY_REGION_CELLS)}`;
+    const bucket = buckets.get(key);
+    if (bucket) bucket.push(item);
+    else buckets.set(key, [item]);
+  }
+  for (const bucket of buckets.values()) bucket.sort(compareSceneryScore);
+
+  const selected: ScoredCampaignSceneryInstance[] = [];
+  const selectedSet = new Set<ScoredCampaignSceneryInstance>();
+  const regions = [...buckets.values()].sort((a, b) => b[0].score - a[0].score);
+  const regionalReserve = Math.min(limit, Math.floor(limit * 0.32));
+  const perRegionSeed = Math.max(1, Math.floor(regionalReserve / Math.max(1, regions.length)));
+  for (const bucket of regions) {
+    if (selected.length >= limit) break;
+    for (const item of bucket.slice(0, perRegionSeed)) {
+      if (selected.length >= limit) break;
+      selected.push(item);
+      selectedSet.add(item);
+    }
+  }
+
+  const remainingQuota = limit - selected.length;
+  let spent = 0;
+  for (const bucket of regions) {
+    if (spent >= remainingQuota) break;
+    const seeded = bucket.reduce((count, item) => count + (selectedSet.has(item) ? 1 : 0), 0);
+    const quota = Math.min(bucket.length - seeded, Math.floor((bucket.length / items.length) * remainingQuota));
+    let taken = 0;
+    for (const item of bucket) {
+      if (spent >= remainingQuota || taken >= quota) break;
+      if (selectedSet.has(item)) continue;
+      selected.push(item);
+      selectedSet.add(item);
+      spent++;
+      taken++;
+    }
+  }
+
+  if (selected.length < limit) {
+    const global = [...items].sort(compareSceneryScore);
+    for (const item of global) {
+      if (selected.length >= limit) break;
+      if (selectedSet.has(item)) continue;
+      selected.push(item);
+      selectedSet.add(item);
+    }
+  }
+
+  return selected.sort(compareSceneryScore).map(toCampaignSceneryInstance);
+}
+
+function compareSceneryScore(a: ScoredCampaignSceneryInstance, b: ScoredCampaignSceneryInstance) {
+  return b.score - a.score;
+}
+
+function toCampaignSceneryInstance(item: ScoredCampaignSceneryInstance): CampaignSceneryInstance {
+  return {
+    x: item.x,
+    y: item.y,
+    z: item.z,
+    size: item.size,
+    height: item.height,
+    kind: item.kind,
+    shade: item.shade,
+    yaw: item.yaw,
+  };
+}
+
+function testStageScenery(data: CampaignData): CampaignSceneryInstance[] {
+  const [x0, y0] = data.bgRect.min;
+  const [x1, y1] = data.bgRect.max;
+  const cx = (x0 + x1) * 0.5;
+  const cy = (y0 + y1) * 0.5;
+  const items: CampaignSceneryInstance[] = [
+    { z: 0, x: cx - 34, y: y1 - 5, size: 13.2, kind: 'mountain' },
+    { z: 0, x: cx - 26, y: y1 - 2, size: 11.6, kind: 'mountain' },
+    { z: 0, x: cx - 16, y: y1 - 6, size: 12.4, kind: 'mountain' },
+    { z: 0, x: cx - 5, y: y1 - 3, size: 13.8, kind: 'mountain' },
+    { z: 0, x: cx + 18, y: y1 - 7, size: 11.8, kind: 'mountain' },
+    { z: 0, x: cx + 32, y: y1 - 5, size: 12.8, kind: 'mountain' },
+    { z: 0, x: cx - 10, y: cy + 7, size: 9.8, kind: 'mountain' },
+    { z: 0, x: cx + 10, y: cy + 7, size: 9.1, kind: 'mountain' },
+    { z: 0, x: cx - 5, y: cy - 1, size: 10.6, kind: 'mountain' },
+    { z: 0, x: cx + 21, y: cy - 1, size: 9.2, kind: 'mountain' },
+    { z: 0, x: cx + 33, y: cy - 4, size: 9.8, kind: 'mountain' },
+    { z: 0, x: x0 + 31, y: y0 + 9, size: 9.8, kind: 'rock' },
+    { z: 0, x: x0 + 43, y: y0 + 7, size: 10.8, kind: 'rock' },
+    { z: 0, x: x1 - 30, y: y0 + 8, size: 10.2, kind: 'rock' },
+    { z: 0, x: x1 - 15, y: y0 + 13, size: 8.6, kind: 'rock' },
+    { z: 0, x: x1 - 5, y: y0 + 6, size: 12.2, kind: 'rock' },
+    { z: 0, x: cx - 17, y: cy - 15, size: 7.4, kind: 'rock' },
+    { z: 0, x: cx - 4, y: cy - 18, size: 7.9, kind: 'rock' },
+    { z: 0, x: cx + 18, y: cy - 16, size: 7.1, kind: 'rock' },
+    { z: 0, x: cx + 32, y: cy - 10, size: 8.1, kind: 'rock' },
+    { z: 0, x: cx - 18, y: cy + 2, size: 6.6, kind: 'conifer' },
+    { z: 0, x: cx + 24, y: cy + 2, size: 6.2, kind: 'broadleaf' },
+    { z: 0, x: cx + 12, y: cy - 6, size: 5.8, kind: 'broadleaf' },
+    { z: 0, x: cx + 28, y: cy - 7, size: 5.4, kind: 'conifer' },
+    { z: 0, x: cx - 30, y: cy - 9, size: 5.8, kind: 'conifer' },
+  ];
+  for (let i = 0; i < 32; i++) {
+    const x = x0 + 6 + hash2(i * 13, 4) * (x1 - x0 - 12);
+    const y = y0 + 5 + hash2(5, i * 17) * (y1 - y0 - 10);
+    if (Math.abs(y - cy) < 5 && Math.abs(x - cx) < 34) continue;
+    const near = y < cy - 8 ? 1.18 : 1.0;
+    items.push({ z: 0, x, y, size: (3.2 + hash2(i, i + 9) * 2.8) * near, kind: hash2(i, i + 31) > 0.45 ? 'broadleaf' : 'conifer' });
+  }
+  return clearCampaignStaticScenery(data, items.map((item) => {
+    if (item.kind === 'mountain') return { ...item, size: item.size / 3.8, height: item.size / 1.8 };
+    return { ...item, size: item.size / 3.0, height: item.size / 3.0 };
+  }));
+}
+
+interface CampaignSceneryReservation {
+  x: number;
+  y: number;
+  radius: number;
+  kind: 'city' | 'army';
+}
+
+function campaignSceneryReservations(entities: CampaignEntityInstance[]): CampaignSceneryReservation[] {
+  return entities.map((entity) => ({
+    x: entity.x,
+    y: entity.y,
+    radius: entity.radius * (entity.kind === 'city' ? 0.48 : 2.45),
+    kind: entity.kind,
+  }));
+}
+
+function clearCampaignStaticScenery(data: CampaignData, items: CampaignSceneryInstance[]) {
+  const roadSegments = data.map.edges
+    .filter((edge) => edge.kind === 'road')
+    .flatMap((edge) => edge.via.slice(1).map((point, index): [[number, number], [number, number]] => [edge.via[index], point]));
+  const cityFootprints = data.map.nodes
+    .filter((node) => node.kind === 'city')
+    .map((node) => ({
+      x: node.pos[0],
+      y: node.pos[1],
+      tier: node.tier ?? 1,
+    }));
+  return items.filter((item) => {
+    const propRadius = sceneryReservationRadius(item);
+    if (cityFootprints.some((city) => Math.hypot(item.x - city.x, item.y - city.y) < citySceneryClearance(item, city.tier, isControlledStage(data)) + propRadius)) return false;
+    const clearance = roadSceneryClearance(item, isControlledStage(data));
+    return !roadSegments.some(([a, b]) => distanceToSegment(item.x, item.y, a, b) < clearance);
+  });
+}
+
+function clearCampaignDynamicScenery(items: CampaignSceneryInstance[], reservations: CampaignSceneryReservation[]) {
+  if (reservations.length === 0) return items;
+  return items.filter((item) => {
+    const propRadius = sceneryReservationRadius(item);
+    return !reservations.some((entity) => {
+      const radius = entity.kind === 'city' ? entity.radius * 0.92 : entity.radius;
+      return Math.hypot(item.x - entity.x, item.y - entity.y) < radius + propRadius;
+    });
+  });
+}
+
+function sceneryReservationRadius(item: CampaignSceneryInstance) {
+  if (item.kind === 'mountain') return Math.max(4.8, item.size * 0.42);
+  if (item.kind === 'rock') return Math.max(2.8, item.size * 0.34);
+  return Math.max(1.6, item.size * 0.24);
+}
+
+// Only the candidate scenery (mountains/trees/rocks) flows through this LoD
+// filter. Carts are gated by their own scale check in campaignRoadCarts and
+// never reach here.
+function sceneryMinScale(item: CampaignSceneryInstance) {
+  if (item.kind === 'mountain') return CAMPAIGN_MOUNTAIN_MIN_SCALE;
+  if (item.kind === 'rock') return CAMPAIGN_ROCK_MIN_SCALE;
+  return CAMPAIGN_TREE_MIN_SCALE;
+}
+
+function citySceneryClearance(item: CampaignSceneryInstance, tier: number, controlledStage: boolean) {
+  const fixtureScale = controlledStage ? 1.82 : 1;
+  if (controlledStage) return (tier >= 3 ? 12.0 : 10.5) * fixtureScale;
+  // Mountains get a wide apron so no city ends up embedded in the massif.
+  if (item.kind === 'mountain') return tier >= 3 ? 11.0 : 9.4;
+  if (item.kind === 'rock') return tier >= 3 ? 5.2 : 4.4;
+  return tier >= 3 ? 5.4 : 4.4;
+}
+
+function roadSceneryClearance(item: CampaignSceneryInstance, controlledStage: boolean) {
+  const fixtureScale = controlledStage ? 1.36 : 1;
+  const base = item.kind === 'mountain' ? 8.6 : item.kind === 'rock' ? 4.4 : 2.4;
+  const sizeScale = item.kind === 'mountain' ? 0.44 : item.kind === 'rock' ? 0.34 : 0.22;
+  return Math.max(base, item.size * sizeScale) * fixtureScale;
+}
+
+function distanceToSegment(x: number, y: number, a: [number, number], b: [number, number]) {
+  const dx = b[0] - a[0];
+  const dy = b[1] - a[1];
+  const lenSq = dx * dx + dy * dy || 1;
+  const t = clamp(((x - a[0]) * dx + (y - a[1]) * dy) / lenSq, 0, 1);
+  const px = a[0] + dx * t;
+  const py = a[1] + dy * t;
+  return Math.hypot(x - px, y - py);
+}
+
+function isControlledStage(data: CampaignData) {
+  return data.map.attribution === 'test' || data.map.attribution.endsWith('-test');
+}
+
+function hash2(x: number, y: number): number {
+  let n = (x * 374761393 + y * 668265263) | 0;
+  n = Math.imul(n ^ (n >>> 13), 1274126177);
+  return ((n ^ (n >>> 16)) >>> 0) / 4294967296;
+}
+
+function clamp(value: number, min: number, max: number) {
+  if (max < min) return (min + max) * 0.5;
+  return Math.max(min, Math.min(max, value));
+}
+
+function clampControlledAxis(value: number, min: number, max: number, halfVisible: number) {
+  const center = (min + max) * 0.5;
+  const halfSpan = (max - min) * 0.5;
+  if (halfVisible > halfSpan) {
+    const overscan = (halfVisible - halfSpan) * 1.6;
+    return clamp(value, center - overscan, center + overscan);
+  }
+  return clamp(value, min + halfVisible, max - halfVisible);
+}
+
+function publishStats(stats: ReturnType<CampaignRenderer['stats']>) {
+  (window as unknown as { __campaignGpuStats?: unknown }).__campaignGpuStats = stats;
 }

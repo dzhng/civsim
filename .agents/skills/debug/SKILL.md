@@ -22,9 +22,9 @@ effort here — be relentless.
 Construct one, roughly in this order of preference:
 
 1. **Failing test** at whatever seam reaches the bug (`cargo test`).
-2. **Throwaway `examples/` harness** against the public API
-   (`cargo run -p sim --example <name>`; `spawn_class`, `setup_duel`, …) —
-   the workhorse for sim behavior.
+2. **Throwaway `tests/dbgN.rs` probe** against the public API
+   (`crates/sim/tests/dbgN.rs`; `spawn_class`, `setup_duel`, …; run with
+   `--nocapture`, delete after) — the workhorse for sim behavior.
 3. **Sandbox + Playwright**: a `?battle=<name>` sandbox driven by `__game`
    hooks, screenshotting deploy and a few seconds in.
 4. **Differential / seed sweep**: same input through old-vs-new or across
@@ -92,7 +92,7 @@ the claim to fit the code.
 
 - [ ] Original repro no longer reproduces (re-run the loop).
 - [ ] Regression test passes (or the missing seam is documented).
-- [ ] All `[DBG-...]` instrumentation removed; throwaway examples deleted.
+- [ ] All `[DBG-...]` instrumentation removed; throwaway `tests/dbgN.rs` probes deleted.
 - [ ] The winning hypothesis is stated in the commit message.
 
 Then ask: what would have prevented this? If the answer is architectural,

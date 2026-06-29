@@ -4,10 +4,10 @@
 // Pure DOM/Canvas: portraits are drawn once from the class look; the bars and
 // the selected/rout state refresh each frame from the sim.
 
-import { lookForModel, modelLookForClass } from '../shared/soldierModel';
+import { lookForModel, modelLookForClass } from '../../../packages/game-renderer/src/models/shared/soldierModel';
 
-// Faction accents — kept in step with renderer3d's FACTION_ACCENT so a unit's
-// card, its banner and the colour on its soldiers all read as the same side.
+// Faction accents keep cards, banners, and WebGPU soldier colours reading as
+// the same side.
 const FACTION_CSS = ['#3a6cf0', '#e03e34']; // player blue, enemy crimson
 
 export interface UnitCardInit {
@@ -28,7 +28,7 @@ export interface UnitCardState {
   selected: boolean;
 }
 
-const W = 58, H = 62; // portrait canvas size (CSS px; drawn at 2x for crispness)
+const W = 38, H = 48; // portrait canvas size (CSS px; drawn at 2x for crispness)
 
 // A compact side-view soldier (or rider) for class `cls`, facing right, tinted
 // with the faction accent on shield/crest/sash — the same silhouette language

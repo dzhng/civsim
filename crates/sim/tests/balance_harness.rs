@@ -249,20 +249,16 @@ fn formed_heavy_infantry_holds_a_frontal_cav_charge() {
     );
     // The OTHER side of the same duel (folded in from the old
     // `a_frontal_charge_bloodies_the_infantry_even_when_repulsed` — same run).
-    // FLAG (2026-06-26): under the charge-rebuild the repulsed charge no longer
-    // BLOODIES formed heavy — the stun-heavy impact + single-use lance barely dent
-    // plate, so the heavy holds nearly intact (≈0.97±0.01).
-    // RE-DERIVED 2026-06-27: the combat-arcs spine is exactly the "SIM change"
-    // the old note anticipated — the couched lance now spits the foe dead-ahead
-    // (it used to whiff while the seek hunted a flank foe) and the sabre cuts the
-    // target it actually faces, so the repulsed charge draws a bit more blood:
-    // heavy holds ≈90% standing (was ≈97%). It still clearly HOLDS (assertion
-    // above: far more standing than the cav); the charge is just no longer
-    // toothless against plate. Floor relaxed 0.92 -> 0.85.
+    // The repulsed charge BLOODIES formed heavy (heavy holds ~77%) but still loses
+    // every seed (cav survives only ~15%, win-rate 0) — a bloodier-but-losing
+    // frontal charge, in line with the locked "cav is a real frontal threat
+    // (~30-40%)" target. The elite-cav rebalance (rider health 1.8 + cheap movement
+    // so the charge arrives fresh) is what draws the extra blood; re-read the full
+    // cav-vs-heavy win-rate against that target before retuning the cav stats.
     assert!(
-        agg.surv[1].mean >= 0.85 && agg.surv[1].mean <= 1.0,
+        agg.surv[1].mean >= 0.72 && agg.surv[1].mean <= 1.0,
         "the repulsed charge only scratches formed heavy (heavy still holds): \
-         heavy surv {:.0}% (≈90% after the arc-combat spine)",
+         heavy surv {:.0}% (~77% after the elite-cav rebalance)",
         agg.surv[1].mean * 100.0,
     );
 }

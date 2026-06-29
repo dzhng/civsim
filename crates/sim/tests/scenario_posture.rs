@@ -187,6 +187,94 @@ fn cavalry_breaks_off_by_wheeling_not_reversing() {
 }
 
 #[test]
+fn moving_cavalry_keeps_its_body_on_the_travel_line_before_contact() {
+    let mut sim = Sim::new(no_morale(), SEED);
+    let cav = sim.spawn_class(
+        Vec2::new(0.0, 0.0),
+        FRAC_PI_2,
+        12,
+        UnitClassId::ShockCavalry,
+        0,
+    );
+    let _foe = sim.spawn_class(
+        Vec2::new(0.0, 5.0),
+        -FRAC_PI_2,
+        12,
+        UnitClassId::HeavySword,
+        1,
+    );
+    sim.set_pace(cav, sim::Pace::Run);
+    sim.set_move_order(cav, Vec2::new(0.0, 40.0));
+
+    let mut worst_body_off = 0.0f32;
+    let mut worst_travel_slip = 0.0f32;
+    let mut sampled = false;
+    let mut prev = sim.units[cav].centroid;
+    for _ in 0..(1.4 / DT) as usize {
+        sim.tick();
+        let u = &sim.units[cav];
+        let center = u.centroid;
+        let delta = center - prev;
+        prev = center;
+        if u.engaged == 0 && u.frame_speed > 0.2 && delta.len() > 0.02 {
+            sampled = true;
+            let travel = delta.y.atan2(delta.x);
+            worst_travel_slip = worst_travel_slip.max(sim::wrap_angle(travel - u.facing).abs());
+            for i in u.start..u.start + u.count {
+                if sim.alive[i] == 1 {
+                    worst_body_off =
+                        worst_body_off.max(sim::wrap_angle(sim.facings[i] - u.facing).abs());
+                }
+            }
+        }
+    }
+    assert!(sampled, "setup: cav must move before contact");
+    assert!(
+        worst_travel_slip < 0.45,
+        "moving horses should travel along their body before contact: worst slip {worst_travel_slip:.2} rad"
+    );
+    assert!(
+        worst_body_off < 0.35,
+        "moving horses should not crab/broadside before contact: worst body offset {worst_body_off:.2} rad"
+    );
+}
+
+#[test]
+fn disengaging_cavalry_wheels_instead_of_sliding_sideways() {
+    let mut sim = Sim::new(no_morale(), SEED);
+    let cav = sim.spawn_class(
+        Vec2::new(0.0, 0.0),
+        FRAC_PI_2,
+        120,
+        UnitClassId::ShockCavalry,
+        0,
+    );
+    sim.set_pace(cav, sim::Pace::Run);
+    sim.set_disengage_order(cav, Vec2::new(70.0, 0.0));
+
+    let mut worst_slip = 0.0f32;
+    let mut sampled = false;
+    let mut prev = sim.units[cav].centroid;
+    for _ in 0..(4.0 / DT) as usize {
+        sim.tick();
+        let u = &sim.units[cav];
+        let center = u.centroid;
+        let delta = center - prev;
+        prev = center;
+        if !u.pivoting && u.frame_speed > 0.2 && delta.len() > 0.02 {
+            sampled = true;
+            let travel = delta.y.atan2(delta.x);
+            worst_slip = worst_slip.max(sim::wrap_angle(travel - u.facing).abs());
+        }
+    }
+    assert!(sampled, "setup: cav must move under the disengage order");
+    assert!(
+        worst_slip < 0.75,
+        "a disengaging horse should wheel like a body, not slide sideways: worst slip {worst_slip:.2} rad"
+    );
+}
+
+#[test]
 fn engage_move_extracts_from_melee_while_fighting() {
     // A plain Move out of an active melee is never stashed: the unit backs
     // out shields-front, still killing — unlike disengage, which leaves

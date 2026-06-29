@@ -59,7 +59,8 @@ whole feature is done.
    one slice or needs assets/visualizations.
 5. **Build slice by slice:** leave each slice with a runnable artifact and
    verification before depending on it. Keep each artifact small enough to
-   iterate on quickly.
+   iterate on quickly. Keep the README's "Next Agent Prompt" written as the
+   handoff text a future agent should read and follow.
 
 ## Plan Folder
 
@@ -67,13 +68,25 @@ Use `specs/<feature>.md` only for a small, single-slice problem. Large
 features live in:
 
 - `specs/<feature>/README.md` — goal, context, slice graph, review map,
-  contracts, firewalls, and known unknowns.
+  contracts, firewalls, known unknowns, and a "Next Agent Prompt" section with
+  the current status, next pickup point, global TODO checklist, and handoff
+  instructions for the next pass.
 - `specs/<feature>/slices/<NN>-<name>.md` — one independently verifiable
   slice per file.
 - `specs/<feature>/visualizations/*.html` — roadmap diagrams, prototypes,
-  harness mockups, or other human-reviewable artifacts.
+  harness mockups, generated reports, contact sheets, or other
+  human-reviewable artifacts.
 - `specs/<feature>/assets/` — reference images, fixtures, captures, and
   other inputs needed to judge the work.
+
+For visual work, keep feature-owned visual evidence in the spec folder:
+inspiration images, reference screenshots, archived baselines, comparison
+contact sheets, generated candidate captures, and critique artifacts. If those
+files start outside the spec folder, copy them into the spec folder when they
+become part of the feature's review context. Product snapshot folders may still
+hold the active regression baselines their harnesses own, but do not rely on
+those mutable outputs or external paths as the only record of what the feature
+was judged against.
 
 ## Slice File Contract
 
@@ -85,6 +98,24 @@ Each slice file answers:
 - What tests, scenarios, screenshots, probes, or perf gates verify it?
 - What must stay green?
 - What feedback from the human would change this slice?
+
+## README Handoff Prompt
+
+Every multi-slice spec README needs a "Next Agent Prompt" near the top. Write it
+in second person, as the prompt a future agent should read when they resume the
+feature. The README should not merely describe that it is live handoff state;
+the section itself must directly tell the next agent what to do next. It should
+include:
+
+- Current status and last-updated date.
+- The exact next pickup point.
+- Active blockers or warnings.
+- A global TODO checklist, with each item pointing to the owning slice.
+- A direct instruction to the next agent to update this section before ending
+  their pass.
+
+The point is that a fresh agent can open the README and know what to do next
+without reading the chat.
 
 ## Done
 

@@ -225,9 +225,23 @@ pub struct Tunables {
     /// stamina damage is unscaled, at empty it is multiplied by this floor. The
     /// OFFENCE half of fatigue (the guard floor is the defence half). A tiring
     /// man swings just as often (cadence is stamina-independent) but each blow is
-    /// weaker — capped at a gentle 25% reduction so the collapsing guard, not the
-    /// softer blow, is what ends the fight.
+    /// gentler per blow — at full stamina damage is unscaled, fully blown it is
+    /// ~0.78 of fresh. This is the OFFENCE-power half of fatigue; `stamina_cadence_floor`
+    /// is the OFFENCE-rate half and the guard floor the defence half.
     pub stamina_damage_floor: f32,
+    /// SWING RATE under fatigue, as a fraction of fresh: a tiring man swings
+    /// SLOWER (the attack interval lengthens toward base / this floor). At full
+    /// stamina the interval is unscaled; fully blown it is stretched by up to
+    /// 1/floor (floor 0.75 → ~1.33× the interval, ~25% fewer swings). This is the
+    /// OFFENCE-RATE half of fatigue, paired with the softer blow and collapsing
+    /// guard. Kept GENTLE (0.75): a blown attacker's melee OUTPUT falls to ~60%
+    /// (rate × damage), a real drain but not a halving — dropping toward 0.6 here
+    /// halves it but ripples through every grind's pacing (lethality timing,
+    /// survivability, AI scale-verdict). The floor also bounds the slowdown so a
+    /// spent grind can't CRAWL forever (an earlier unbounded version never
+    /// resolved an even fight); sweep it, don't nudge — the kill count is a
+    /// threshold function of output and moves in cliffs.
+    pub stamina_cadence_floor: f32,
     /// "At ease" range (m): a unit with no living, non-routing enemy nearer
     /// than this is at ease — it recovers morale (see morale.rs), and the
     /// renderer reads the same range to relax weapon posture (pikes up). Inside
@@ -342,6 +356,7 @@ impl Default for Tunables {
             combat_drain: 1.0 / 50.0,
             stamina_guard_floor: 0.15,
             stamina_damage_floor: 0.75,
+            stamina_cadence_floor: 0.75,
             at_ease_range: 60.0,
             idle_settle_damp: 0.5,
         }

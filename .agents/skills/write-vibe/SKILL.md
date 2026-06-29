@@ -59,12 +59,12 @@ never hand back a stack of `t###s.png` with no GIF.
   `web/shots/vibe/<name>/timeline.gif` every run, downscaled to 640×400 from the
   same screenshots the per-frame PNGs gate on. The PNGs stay the full-res
   regression baselines; the GIF is review-only, committed alongside them (like
-  `shots/anim/`). Just point the user at it.
+  `shots/models/<owner>/anim/`). Just point the user at it.
 - **Any other series** (an ad-hoc Playwright sweep, a folder of frames you shot
   yourself): `node vibe/gif.mjs <dir> [out] [delayMs=200] [downscale=2]`. It
   orders frames by filename and writes `<dir>/timeline.gif`. Name frames so they
   sort.
-- The encoder is `vibe/_gif.mjs` (`encodeGif` / `downscaleRGBA`,
+- The encoder is `shots/_gif.mjs` (`encodeGif` / `downscaleRGBA`,
   dependency-free — no ffmpeg/imagemagick on this box). Call it directly for a
   bespoke series.
 
@@ -82,7 +82,7 @@ record.
 
 Pairs with [screenshot-regression](../screenshot-regression/SKILL.md) (the snap
 mechanics every frame obeys), [write-scene](../write-scene/SKILL.md) (the
-single-state sibling), [write-turntable](../write-turntable/SKILL.md) (static
+single-state sibling), [write-model-sheet](../write-model-sheet/SKILL.md) (static
 model review) and [write-anim](../write-anim/SKILL.md) (model-motion review) under
 `vibe/`, and [tweak-mechanics](../tweak-mechanics/SKILL.md) (the physics work a
 vibe is the verdict for).

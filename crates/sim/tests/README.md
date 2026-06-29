@@ -56,32 +56,26 @@ automatically.
 
 ## Naming and migration
 
-- Prefer adding new mechanical invariants to the existing focused file:
-  `mechanics_melee.rs`, `mechanics_pressure.rs`, `mechanics_symmetry.rs`,
-  `mechanics_charge.rs`, `mechanics_fatigue.rs`, `mechanics_morale.rs`,
-  `mechanics_weave.rs`, or `mechanics_gang_cap.rs`.
-- Prefer adding new priced outcomes to `balance_harness.rs`,
-  `balance_matrix.rs`, `balance_combat.rs`, or `balance_charge.rs`.
-- Avoid adding new tests to the generic `scenario_general.rs` unless the behavior
-  truly has no clearer home. Prefer a domain-specific `scenario_*` file.
+- Add to an existing focused file whose name already matches the concern — the
+  `mechanics_*` and `balance_*` files are split by topic; `ls` the directory to
+  find the right one. A new file is for a genuinely new topic, not a tidier tree.
+- Avoid the catch-all `scenario_general.rs` unless the behavior truly has no
+  clearer home. Prefer a domain-specific `scenario_*` file.
 - Migrate old scenario coverage opportunistically when the bucket is
   unambiguous. Do not rename files or split tests just to make the tree look
   tidy; a lower-churn test that still reads clearly is better.
 
 ## Shared helpers
 
-`common/` is for tiny, behavior-neutral helpers used by multiple integration
-tests:
+`common/` is for tiny, behavior-neutral helpers shared by multiple integration
+tests — advancing a sim, counting casualties or centroids, and the
+morale-isolating setups mechanics tests build on. Read the module for the
+current set.
 
-- `run` advances a sim for seconds.
-- `deaths` counts dead soldiers in one unit.
-- `living_mean` computes a living-unit centroid.
-- `no_morale` and `no_morale_parade` isolate mechanics from rout timing and
-  terrain jitter.
-
-Keep scenario-specific measurement local to the test file. If a helper starts
-encoding “what this scenario means,” it belongs beside the assertion, not in
-`common/`.
+The line that decides what belongs there: a helper in `common/` may only do
+plumbing every test would do the same way. The moment it encodes *what a
+scenario means* — a measurement that is really the assertion — it belongs beside
+that assertion in the test file, not in `common/`.
 
 ## Pass/fail discipline
 

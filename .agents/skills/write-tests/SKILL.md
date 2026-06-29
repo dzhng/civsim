@@ -158,6 +158,28 @@ Use `crates/sim/tests/common/` only for neutral mechanics like ticking, no-moral
 tunables, death counts, and simple living-unit geometry. Scenario-specific
 measurements stay local so the assertion remains readable.
 
+### Throwaway probes are throwaway — name them so, promote or delete
+
+To READ behavior while diagnosing (a per-tick trajectory, a quick matchup
+sweep), a throwaway Rust probe against the public API is the right tool — see
+[debug](../debug/SKILL.md) — but it is SCRATCH and must be UNMISTAKABLY scratch:
+
+- **A runnable Rust probe goes in `crates/<crate>/tests/dbg*.rs`** — gitignored
+  (so it can never be committed), auto-discovered by cargo, full public API and
+  dev-deps, prints with `cargo test -p <crate> --test dbg<name> -- --nocapture`.
+- **NEVER use `cargo` examples or `src/bin` for a throwaway.** Those dirs are for
+  COMMITTED tools only (e.g. `src/bin/weave_shots.rs`, the weave vibe-shot
+  generator, feature-gated behind `--features shots`). A stray `examples/` probe
+  reads as a durable tool to the next person — exactly the confusion to avoid.
+- **Non-Rust scratch** (data dumps, plots, shell/python one-offs, notes) goes in
+  the gitignored `throwaway/` folder at the repo root.
+
+Delete the probe the moment the question is answered. If it is worth keeping (a
+behavior you'll re-check or tune against), PROMOTE it into a committed harness —
+one of the three buckets above, usually a `scenario_*` contract with a tuning
+helper (e.g. `holding_line_meets_a_charge` in `scenario_morale.rs`) that the
+assertion and future tuning both call.
+
 The two families want OPPOSITE things from a number, and conflating them is the
 single most expensive test-design mistake in this repo:
 

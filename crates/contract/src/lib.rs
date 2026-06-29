@@ -105,6 +105,46 @@ pub const ALL_CLASSES: [UnitClassId; 15] = [
     UnitClassId::MediumPhalanx,
 ];
 
+pub fn unit_class_key(c: UnitClassId) -> &'static str {
+    match c {
+        UnitClassId::HeavySword => "heavy_sword",
+        UnitClassId::LightSpear => "light_spear",
+        UnitClassId::LongSwords => "long_swords",
+        UnitClassId::HeavyPhalanx => "heavy_phalanx",
+        UnitClassId::Archers => "archers",
+        UnitClassId::Skirmishers => "skirmishers",
+        UnitClassId::ShockCavalry => "shock_cavalry",
+        UnitClassId::HorseArchers => "horse_archers",
+        UnitClassId::ArtilleryCrew => "artillery_crew",
+        UnitClassId::Peasant => "peasant",
+        UnitClassId::LightSword => "light_sword",
+        UnitClassId::HeavySpear => "heavy_spear",
+        UnitClassId::MediumInfantry => "medium_infantry",
+        UnitClassId::MediumSpear => "medium_spear",
+        UnitClassId::MediumPhalanx => "medium_phalanx",
+    }
+}
+
+pub fn unit_class_name(c: UnitClassId) -> &'static str {
+    match c {
+        UnitClassId::HeavySword => "Heavy Sword",
+        UnitClassId::LightSpear => "Light Spear",
+        UnitClassId::LongSwords => "Long Swords",
+        UnitClassId::HeavyPhalanx => "Heavy Phalanx",
+        UnitClassId::Archers => "Archers",
+        UnitClassId::Skirmishers => "Skirmishers",
+        UnitClassId::ShockCavalry => "Shock Cavalry",
+        UnitClassId::HorseArchers => "Horse Archers",
+        UnitClassId::ArtilleryCrew => "Artillery Crew",
+        UnitClassId::Peasant => "Peasants",
+        UnitClassId::LightSword => "Light Sword",
+        UnitClassId::HeavySpear => "Heavy Spear",
+        UnitClassId::MediumInfantry => "Medium Infantry",
+        UnitClassId::MediumSpear => "Medium Spear",
+        UnitClassId::MediumPhalanx => "Medium Phalanx",
+    }
+}
+
 /// A battle map as a data-only paint program over a flat terrain grid.
 /// Ops apply in order — later ops overwrite (a bridge paints over its river).
 #[derive(Clone, Debug, Serialize, Deserialize)]

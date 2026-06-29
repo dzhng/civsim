@@ -59,12 +59,6 @@ export class Camera {
       : Math.min(y1 - hh, Math.max(y0 + hh, this.y));
   }
 
-  /** [scaleX, scaleY, centerX, centerY] for the legacy 2D vertex shader (no
-   *  yaw/pitch — that renderer is the flat fallback). */
-  uniform(): [number, number, number, number] {
-    return [(2 * this.zoom) / this.canvas.width, (2 * this.zoom) / this.canvas.height, this.x, this.y];
-  }
-
   /** World coords to CSS-pixel screen coords (for DOM overlays). */
   worldToScreen(wx: number, wy: number): [number, number] {
     const dpr = window.devicePixelRatio || 1;

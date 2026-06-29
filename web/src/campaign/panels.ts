@@ -57,6 +57,7 @@ export function campaignDomHtml(): string {
       #campaign-ui #cmp-pause { min-width:30px;justify-content:center;padding:3px 7px; }
       #campaign-ui #cmp-pause .cmp-ico { margin:0; }
       #campaign-ui .cmp-panel { position:fixed;right:10px;top:44px;width:230px;
+        max-height:calc(100vh - 54px);overflow:auto;
         background:linear-gradient(180deg,rgba(31,27,21,0.96),rgba(14,16,18,0.96));
         color:#eadfca;font:12px system-ui;padding:10px;border:1px solid rgba(151,122,72,0.55);
         box-shadow:0 10px 28px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,236,186,0.12);
@@ -107,6 +108,7 @@ export function campaignDomHtml(): string {
       #campaign-ui .cmp-build-row > span { flex:1; }
       #campaign-ui .cmp-city-meta { color:#b9aa8b;margin-top:3px;line-height:1.25; }
       #campaign-ui .cmp-recruits { display:flex;gap:4px;flex-wrap:wrap;margin-top:6px; }
+      #campaign-ui .cmp-roster { max-height:42vh;overflow:auto;margin:2px 0; }
       #campaign-ui .cmp-sieges { position:fixed;right:10px;top:50%;transform:translateY(-50%);
         width:230px;display:flex;flex-direction:column;gap:8px;z-index:15;pointer-events:none; }
       #campaign-ui .cmp-siege { pointer-events:auto;cursor:pointer;color:#f3e3c4;font:12px system-ui;
@@ -184,7 +186,7 @@ export function armyPanelHtml(
         : '')
     .join('');
   const ambushLabel = me?.stance === 3 ? 'Hidden' : me?.stance === 2 ? 'Settling…' : 'Ambush';
-  return `<div class="cmp-title">${uiIcon('flag')}<b>Army ${selected}</b></div>${rows}<div style="margin-top:6px">
+  return `<div class="cmp-title">${uiIcon('flag')}<b>Army ${selected}</b></div><div class="cmp-roster">${rows}</div><div style="margin-top:6px">
     <label><input type="checkbox" id="cmp-auto-replenish" ${autoReplenish ? 'checked' : ''}> ${uiIcon('replenish')} Auto replenish</label><br>
     <button id="cmp-halt">${uiIcon('stop')} Halt</button>
     <button id="cmp-camp">${uiIcon('shield')} ${me?.stance === 1 ? 'Fortified' : 'Fortify'}</button>
@@ -211,7 +213,7 @@ function classRow(row: ClassDoctrineRow): string {
     .map((o) => {
       const sel = o.id === row.selected;
       const disabled = !o.unlocked || row.cooldown > 0;
-      const cost = o.applyCost == null ? 'cooldown' : `${o.applyCost}g`;
+      const cost = o.applyCost == null ? 'cooldown' : `${o.applyCost.toLocaleString()}g`;
       return `<div class="cmp-unit ${sel ? 'sel' : ''}">
         <div><b>${o.name}</b><br><small>${o.costPerSoldier.toFixed(2)}g recruit · ${o.upkeepPerSoldier.toFixed(3)}g upkeep/day</small></div>
         <button data-class="${row.classIndex}" data-unit="${o.id}" ${disabled || sel ? 'disabled' : ''}>${sel ? uiIcon('check') + ' Selected' : cost}</button>
@@ -219,7 +221,7 @@ function classRow(row: ClassDoctrineRow): string {
     })
     .join('');
   return `<div class="cmp-class-row">
-    <div><div class="cmp-class-name">${className}</div><div class="cmp-class-meta">${row.live}/${row.max} · ${selectedName}${row.cooldown > 0 ? ` · ${Math.ceil(row.cooldown / 1440)}d` : ''}</div>
+    <div><div class="cmp-class-name">${className}</div><div class="cmp-class-meta">${row.live.toLocaleString()}/${row.max.toLocaleString()} · ${selectedName}${row.cooldown > 0 ? ` · ${Math.ceil(row.cooldown / 1440)}d` : ''}</div>
       <div class="cmp-size">${sizes}</div>${row.dirty ? `<button data-apply="${row.classIndex}">${uiIcon('check')} Apply</button>` : ''}</div>
     <div class="cmp-unit-options">${options}</div>
   </div>`;
@@ -261,7 +263,7 @@ export function cityPanelHtml(
   const n = data.map.nodes[node];
   const recruits = mineCity
     ? `<div class="cmp-recruits">${recruitClasses
-        .map((cl, i) => `<button data-recruit="${i}" title="${cl}">${uiIcon('add')} ${cl.replace(/[a-z]/g, '')}</button>`)
+        .map((cl, i) => `<button data-recruit="${i}" title="${cl}">${uiIcon('add')} ${prettyClass(cl)}</button>`)
         .join('')}</div>`
     : '';
   const policy = detail ? policyHtml(detail, mineCity) : '';

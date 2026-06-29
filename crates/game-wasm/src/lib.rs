@@ -193,6 +193,9 @@ impl Game {
                     })
                 });
                 serde_json::json!({
+                    "id": ci,
+                    "key": contract::unit_class_key(id),
+                    "name": contract::unit_class_name(id),
                     "cost": contract::unit_cost(id),
                     "mass": c.mass,
                     "radius": c.soldier_radius,
@@ -201,7 +204,7 @@ impl Game {
                     "evade": c.evade,
                     "training": c.training,
                     "paceMult": c.pace_mult,
-                    "drainMult": c.drain_mult,
+                    "drainMult": c.fight_drain_mult,
                     "health": c.health,
                     "mountHealth": c.mount_health,
                     "mounted": c.mounted,

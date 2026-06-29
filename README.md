@@ -22,10 +22,9 @@ in TypeScript.
   a painted background raster) from source geodata.
 - `web` — Vite + TypeScript shell. Battle: WebGL2 instanced renderer. Campaign:
   a Babylon.js 3D terrain under a transparent Canvas2D marker layer.
-- `web/scene.mjs` and `web/scenes/*.mjs` — Playwright browser scenes
-  for addressable battle checks and screenshots (committed to `web/shots/scenes/`).
-  `web/verify-battle.mjs` is a compatibility wrapper over those scenes; campaign
-  still uses the legacy verify harnesses.
+- `web/scene.mjs` and `web/scenes/*.mjs` — Playwright browser scenes for
+  addressable battle/campaign checks and screenshots; baselines are committed
+  under `web/shots/` (see [Screenshot baselines](#screenshot-baselines)).
 
 Core design: the player issues *intent*; each unit's formation controller
 realizes it over time, rate-limited by **cohesion**. Cohesion is *measured*
@@ -314,6 +313,25 @@ disables anything wired to *Babylon's* loop: its post-process pipeline never
 presented to the canvas, so the screen stayed black until the vignette moved
 into the terrain shader. When you drive a framework's render yourself, expect
 its loop-time conveniences to no-op, and plan to reimplement the ones you want.
+
+## Screenshot baselines
+
+Every committed PNG under `web/shots/` is at once a picture to review and a
+zero-tolerance regression gate — the discipline the "visual tests are ground
+truth" rule demands. They come from three independent generators (the browser
+scene harness, the melee vibe films, and a headless Rust renderer for the weave
+lattice), each owning a different subtree. Rather than repeat the details here,
+the durable knowledge — which generator owns which folder, how to regenerate
+after an intended change, and the traps (a passing snapshot writes nothing;
+swiftshader's sub-percent wobble; free-port hygiene) — lives in:
+
+- [`web/shots/README.md`](web/shots/README.md) — the cross-harness hub: folders,
+  regen commands, gotchas. Start here.
+- [`web/vibe/README.md`](web/vibe/README.md) — what a melee vibe check is and why
+  it films a timeline.
+- [`crates/sim/tests/README.md`](crates/sim/tests/README.md) — the Rust test
+  taxonomy (the weave picture generator lives beside these tests).
+- `.agents/skills/screenshot-regression/` — the re-bless workflow.
 
 ## Develop
 

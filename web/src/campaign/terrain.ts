@@ -16,11 +16,10 @@ const PALETTE: { c: [number, number, number]; land: boolean; h: number }[] = [
   { c: [60, 96, 124], land: true, h: 1.0 }, // river (still territory-worthy land)
 ];
 
-/** The one campaign sun (normalized): the bake below and Terrain3D's
- * specular uniform must agree, or water glints contradict the relief. */
+/** The one campaign sun (normalized): the terrain bake and WebGPU atmosphere
+ * passes share this direction so water glints agree with the relief. */
 /** North of this y (km) the climate turns boreal: snowline, conifers,
- * moisture curve. The terrain3d fragment shader carries the literal 700.0
- * twice (GLSL can't import) — change one, change all three. */
+ * moisture curve. */
 export const TEMPERATE_Y_KM = 700;
 
 export const SUN: [number, number, number] = (() => {
@@ -239,10 +238,13 @@ export class TerrainField {
         const moisture = Math.min(1, Math.max(0,
           lat + river * 0.55 + coast * 0.1 + (vnoise2(gx / 22, gy / 22) - 0.5) * 0.3 * (0.35 + lat)));
         const patch = vnoise2(gx / 16 + 31.7, gy / 16 + 11.3) * 0.7 + vnoise2(gx / 5 + 7.1, gy / 5 + 3.9) * 0.3;
-        const forest = smooth01((moisture - 0.5) / 0.25) * smooth01((patch - 0.42) / 0.25);
+        // Forest reaches into temperate (not just lush) latitudes and a wider
+        // band of patch noise so wooded regions actually carry visible stands of
+        // trees; foothill rock only partly suppresses it so slopes keep cover.
+        const forest = smooth01((moisture - 0.40) / 0.26) * smooth01((patch - 0.34) / 0.30);
         const rock = smooth01((this.height[i] - 6) / 16);
         this.biome[i * 4] = moisture * 255;
-        this.biome[i * 4 + 1] = forest * (1 - rock * 0.7) * 255;
+        this.biome[i * 4 + 1] = forest * (1 - rock * 0.55) * 255;
         this.biome[i * 4 + 2] = rock * 255;
       }
     }
@@ -296,5 +298,22 @@ export class TerrainField {
     const c = this.height[i + this.w];
     const d = this.height[i + this.w + 1];
     return (a * (1 - fx) + b * fx) * (1 - fy) + (c * (1 - fx) + d * fx) * fy;
+  }
+
+  landAt(wx: number, wy: number, radiusKm = 0): boolean {
+    if (radiusKm > 0) {
+      const samples: [number, number][] = [
+        [0, 0],
+        [-radiusKm, 0],
+        [radiusKm, 0],
+        [0, -radiusKm],
+        [0, radiusKm],
+      ];
+      return samples.every(([dx, dy]) => this.landAt(wx + dx, wy + dy));
+    }
+    const gx = Math.round((wx - this.minX) / this.cell - 0.5);
+    const gy = Math.round((this.maxY - wy) / this.cell - 0.5);
+    if (gx < 0 || gy < 0 || gx >= this.w || gy >= this.h) return false;
+    return this.land[gy * this.w + gx] === 1;
   }
 }

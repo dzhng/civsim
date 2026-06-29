@@ -1,14 +1,13 @@
 ---
 name: screenshot-regression
-description: How to take screenshots of the game and use pixel-exact snapshot regression — the shared snapCheck primitive every visual harness flows through. Use when verifying UI/rendering changes, adding a new visual feature, re-blessing baselines after an intentional visual or mechanics change, or debugging a snapshot failure. Pairs with [write-scene](../write-scene/SKILL.md) (battle scenes), [write-vibe](../write-vibe/SKILL.md) (battle timelines), and [write-turntable](../write-turntable/SKILL.md) (model sheets) — all snap through this primitive.
+description: Take, inspect, and maintain deterministic screenshot baselines for visual changes through the shared snapCheck primitive. Use when verifying UI, campaign, battle, model, animation, or rendering changes; adding or re-blessing snapshots; comparing before/after captures; or debugging a visual snapshot failure. Pairs with [write-scene](../write-scene/SKILL.md), [write-vibe](../write-vibe/SKILL.md), and [write-model-sheet](../write-model-sheet/SKILL.md) because all visual gates snap through this primitive.
 ---
 
 # Screenshots and pixel-level regression testing
 
 **One primitive, every shot.** `snapCheck` (`web/snapshot.mjs`) is the single
-path every visual artifact flows through — the verify harnesses, the battle
-scenes, the vibe battle timelines ([write-vibe](../write-vibe/SKILL.md)), and
-the model turntable ([write-turntable](../write-turntable/SKILL.md)). A
+path every visual artifact flows through: verify harnesses, scene runners, vibe
+timelines, model sheets, contact sheets, and focused visual workbenches. A
 committed baseline under `web/shots/<name>.png` is at once the picture
 you review, the image a PR diff shows, and the gate. There is no "review-only"
 tier: every shot is a regression target, so a downstream mechanics change is
@@ -16,20 +15,17 @@ visible as a red frame with a highlighted diff, not just a number that moved.
 
 The verify UI snaps compare at **zero tolerance** — a single differing pixel
 fails — because each is a *deterministic moment* (the discipline below is what
-keeps it that way). Full-battle scenes and the 3D models render through Babylon
-on headless SwiftShader, which wobbles a handful of sub-pixel AA edges run to
-run even when frozen; those callers pass a small `maxDiffRatio` (named in a
-comment) that absorbs the wobble and nothing more.
+keeps it that way). Any nonzero tolerance must name the source it absorbs, such
+as a documented headless raster wobble, and must not hide unknown visual drift.
 
-Each harness owns a folder under `shots/` (the scene/campaign harnesses pass an
-explicit `baseDir`; vibe/turntable carry the folder in the snap `name`):
-`scenes/battle-initial.png` (scene runner), `campaign/campaign-political.png`
-(verify-campaign), `vibe/<scenario>/t###s.png` (vibe timelines),
-`models/<id>-<class>.png` (turntable).
+Each harness owns a folder under `shots/`: `battle/`, `campaign/`, `ui/`,
+`models/{battle,campaign,shared}/`, and `vibe/<scenario>/`. Scene files are
+organized the same way under `web/scenes/<owner>/`; the scene runner writes
+baselines to the matching owner folder.
 
 `web/vibe/shots/` is obsolete. Current review artifacts live under `web/shots/`:
-committed baselines in per-harness folders (`scenes/`, `campaign/`, `vibe/`,
-`models/`, `models-ingame/`, `weave/`), and failure diffs in `web/shots/diff/`.
+committed baselines in per-harness folders (`battle/`, `campaign/`, `ui/`,
+`models/`, `vibe/`, `weave/`), and failure diffs in `web/shots/diff/`.
 
 ## ALWAYS look at the screenshot before you respond
 
@@ -56,6 +52,30 @@ source pixel into a `scale×scale` block, write a new PNG), then Read it. Seeing
 a clean black rectangle vs. a dark-blue-with-edges blob tells you in one look
 whether it's coverage/mip darkening or something else. Let the pixels, not a
 hypothesis, name the bug.
+
+## Visual acceptance gates
+
+A screenshot change is not accepted just because the harness is green. Prove:
+
+1. **Behavior:** the user flow or fixture still reaches the intended state.
+2. **Readability:** the changed object is clear at the intended camera, zoom,
+   device pixel ratio, and UI state.
+3. **Regression scope:** unrelated scenes did not change, or each change is
+   intentional and recorded.
+4. **Human evidence:** the current PNGs, focused crops, and any before/after
+   contact sheet are small enough for a reviewer to inspect.
+
+For migrations or renderer swaps, compare old and new captures only when they
+share the same scene, camera, viewport, DPR, frozen tick/time, browser, and
+hardware. Use `compare-screenshots` when a human review needs quantitative
+support, but never optimize only for a similarity score.
+
+Every visual surface must use the same determinism discipline. If a path adds
+GPU-driven animation, simulation interpolation, async uploads, temporal effects,
+random noise, water, haze, clouds, impostor phase, shader time, or any other
+time-dependent effect, wire it to an existing freeze hook or add a documented
+freeze hook before snapshotting it. "It only jitters a few pixels" is a bug
+until the source is named and intentionally tolerated.
 
 ## Rebuild the wasm before you trust ANY screenshot
 
@@ -95,19 +115,18 @@ Gaul `(-1020, 938, 2.5)`, Egypt/Nile `(1131, -686, 2.5)`, Alps `(-450, 1080, 1.8
 Scratch screenshots go in `web/shots/` but DELETE them before committing —
 `shots/` is tracked; only harness-written artifacts belong there.
 
-## The controlled campaign stage (`verify-campaign-visual.mjs`)
+## Controlled visual stages
 
-For the campaign 3D markers, prefer the **fake map** over the real one. The
-real map is a bad test bed — our red armies sit on red Roman cities (no
-contrast) and any move triggers a garrison battle. `?campaign=test` boots a
-controlled stage (`buildTestCampaign` in `main.ts`): our city (Roma) — a road
-— a neutral city (Neapolis), one mixed-roster player army, a flat green bg
-synthesized in JS (no fetch). The army teleports with the debug hook
-`window.__campaign.place(army, kind, a, b)` (kind 0 = node index, 1 = edge
-tile), so you can pose it over the road / our city / the neutral city exactly
-and deterministically. `verify-campaign-visual.mjs` snapshots all of those —
-extend it when you change an army/city model. Re-bless with
-`UPDATE_SHOTS=1 node verify-campaign-visual.mjs`.
+Prefer a controlled fixture before the full game when the bug is about one
+visual contract: label spacing, prop depth, road continuity, terrain color,
+selection contrast, unit readability, animation pose, or fog visibility. A good
+fixture has one camera, one frozen time/tick, a tiny set of objects, and a
+clear pass/fail crop. After the fixture passes, add the full-scene snapshot that
+proves the same contract survives real data.
+
+For campaign marker work, `?campaign=test` and the `window.__campaign` debug
+hooks provide a deterministic fake map. For battle work, prefer small duel or
+fixture scenes before dense army timelines.
 
 ## Measuring content, not just exact-match (LOD / colour bugs)
 
@@ -123,15 +142,11 @@ catches both the far-zoom **black-block** bug and the mid-zoom **faint-soldier**
 bug with one metric, and isn't fooled by legitimate grass between ranks (the
 flaw in any whole-box "mean colour" check).
 
-Root cause that metric guards: the 2D sprite atlas is **straight-alpha with a
-wide transparent margin per cell**, drawn **opaque with an alpha-test** (no
-blend). The mip chain box-filters those `(0,0,0,0)` margin texels into RGB, so a
-minified soldier samples near-black — and the alpha-test writes it, collapsing a
-zoomed-out block of men into a solid black slab. Fix in the sprite fragment
-shader: divide by coverage, `gl_FragColor = vec4(c.rgb / c.a, 1.0)`, to recover
-the figure's true alpha-weighted colour. Keep per-soldier outline/shadow
-*soft*, never pure black — in an opaque renderer a hard-black rim is the bulk of
-what a minified man averages to.
+Root-cause checks should stay renderer-neutral. If a zoomed model turns into a
+dark block, inspect the crop and then check the current renderer's actual
+coverage, mip, alpha, depth, and outline path. Keep the metric tied to visible
+pixels; put renderer-specific discoveries in the feature spec or code comments
+near the shader they affect.
 
 ## Testing input/selection — and the device-pixel-ratio trap
 
@@ -141,13 +156,10 @@ Click-to-select and drag-box are real input paths; drive them with
 
 1. **dpr=1 hides Retina selection bugs.** The headless default is
    `deviceScaleFactor: 1`, where CSS px == device px and every dpr factor
-   cancels. The renderer, `camera.ts`, and `input.ts` must AGREE on whether the
-   canvas backing store is CSS- or device-sized. The 2D renderer sized it device
-   px (`clientWidth * dpr`); the Babylon engine defaulted to CSS px
-   (`adaptToDeviceRatio` **false**) while camera/input still multiply `clientX`
-   by dpr — so on a real Retina screen every click mapped to the wrong world
-   point and selected nothing. Always add a `deviceScaleFactor: 2` page to the
-   input stage; dpr 1 alone is worthless here.
+   cancels. The renderer, camera, and input code must agree on whether the
+   canvas backing store is CSS- or device-sized. Always add a
+   `deviceScaleFactor: 2` page to the input stage; dpr 1 alone is worthless
+   here.
 2. **Click the TRUE rendered pixel, not `worldToScreen`.** To find where to
    click, project from the canvas BACKING store:
    `cssX = ((wx-camx)*zoom + canvas.width/2) * (canvas.clientWidth/canvas.width)`
@@ -159,10 +171,10 @@ Click-to-select and drag-box are real input paths; drive them with
 
 ## Running just one snapshot
 
-> Battle verification now uses addressable **scenes** (one runner over
-> `web/scenes/*.mjs`); campaign verification is still on the legacy flat
-> harnesses. See `specs/scenes.md` and the `write-scene` skill for the
-> target architecture.
+> Battle, campaign, model, and focused visual workbench verification should use
+> addressable **scenes** (one runner over `web/scenes/<owner>/*.mjs`). Compatibility
+> wrappers may remain, but new work should have a named scene. See
+> `specs/scenes.md` and the `write-scene` skill for the target architecture.
 
 For battle work, run the smallest scene by name:
 `node scene.mjs battle-ai --full`, `node scene.mjs banner-gallery`, or
@@ -172,15 +184,14 @@ a compatibility wrapper over those scenes, so old commands still work.
 Within a selected scene, set `SNAP=<substr>` to compare only snaps whose name
 contains the substring (comma-separated = OR), skipping the rest (no compare, no
 diff written). Snapshots behind `--full` still need `--full` or an explicit
-scene name. For campaign-marker work prefer `verify-campaign-visual.mjs`
-(the fake `?campaign=test` map) — it never spawns a battle, so it won't churn
-the tracked battle scratch shots (`initial.png`, `manual.png`, `cluster-*.png`)
-that the battle harness rewrites every run. Restore those with
-`git checkout -- 'web/shots/*.png'` after a battle run.
+scene name. For campaign-marker work, prefer a deterministic fake campaign map
+over the full live campaign when one exists. For battle visuals, prefer a small
+duel/fixture before dense timelines. If a harness rewrites unrelated tracked
+scratch shots, remove or restore those unrelated changes before committing.
 
 ## Adding a regression snapshot
 
-One call in a verify harness, a vibe scenario, or the turntable:
+One call in a verify harness, a vibe scenario, or the model sheet:
 
 ```js
 import { snapCheck } from './snapshot.mjs';     // from web/; vibe/ uses '../snapshot.mjs'
@@ -196,11 +207,13 @@ plus `<name>-actual.png` on failure (`shots/diff/` is gitignored). Pass an
 already-captured `shot` buffer (a composited contact sheet, a reused frame) to
 skip the internal `page.screenshot()`.
 
-- **Verify harness:** a stage in `verify-battle.mjs` / `verify-campaign*.mjs`.
+- **Campaign/visual:** a `ctx.check` + `ctx.snap` in a scene under
+  `web/scenes/<owner>/`. (`verify-battle.mjs` remains a battle compatibility
+  wrapper.)
 - **Vibe timeline:** don't call `snapCheck` directly — `vibeCapture` does it per
   frame; see [write-vibe](../write-vibe/SKILL.md).
-- **Model turntable:** snap-checks one composited contact sheet per class; see
-  [write-turntable](../write-turntable/SKILL.md).
+- **Model sheet:** snap-checks one composited contact sheet per class; see
+  [write-model-sheet](../write-model-sheet/SKILL.md).
 
 ### The determinism checklist — every snapshot must satisfy ALL of these
 
@@ -232,13 +245,13 @@ skip the internal `page.screenshot()`.
 3. Intentional visual change → re-bless and commit the new baselines:
 
 ```sh
-UPDATE_SHOTS=1 VERIFY_URL=http://localhost:5174 node verify-campaign.mjs
+UPDATE_SHOTS=1 VERIFY_GPU=1 VERIFY_URL=http://localhost:5174 node scene.mjs campaign-lod
 UPDATE_SHOTS=1 VERIFY_URL=http://localhost:5174 node verify-battle.mjs
 ```
 
-Vibe and turntable re-blesses clear their baseline folder first (and the vibe
+Vibe and model-sheet re-blesses clear their baseline folder first (and the vibe
 timeline refuses a `SNAP=`-filtered regen) — those folder-clearing rules live in
-[write-vibe](../write-vibe/SKILL.md) and [write-turntable](../write-turntable/SKILL.md).
+[write-vibe](../write-vibe/SKILL.md) and [write-model-sheet](../write-model-sheet/SKILL.md).
 
 4. Suspected nondeterminism → run the harness twice; if the second run isn't
    `0 px differ`, something on screen escaped the freeze path. Track it down
@@ -250,8 +263,9 @@ timeline refuses a `SNAP=`-filtered regen) — those folder-clearing rules live 
      wall-clock). `freeze()` pins the clock but NOT the tick the sim landed on
      when ~1s of real-time elapsed, so consecutive runs catch adjacent sway
      windows and the snapshot *alternates* 0 px / N px. Fix: freeze at a FIXED
-     absolute tick — `window.__game.freezeAtTick(240)` — so the deployment is
-     byte-identical every run. Don't paper over it with a looser ratio.
+     absolute tick, such as `window.__game.freezeAtTick(240)` or the route-owned
+     equivalent, so the deployment is byte-identical every run. Don't paper over
+     it with a looser ratio.
    - A higher-contrast render can *expose* latent jitter a darker one masked (a
      1-px sway flips far more pixels when soldiers read bright-blue than
      near-black). The jitter was always there; still pin the tick, don't raise

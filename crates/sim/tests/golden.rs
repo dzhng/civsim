@@ -53,10 +53,12 @@ fn golden_state_hash_stable() {
         sim.tick();
     }
     let h = state_hash(&sim);
-    // Re-pinned: turn rate no longer throttled by cohesion (disordered units can
-    // now wheel/about-face at the full geometric rate), which shifts facings and
-    // positions wherever a disordered unit turns. See mechanics_disengage.rs.
-    const EXPECTED: u64 = 0x92773f1cc268a96f;
+    // Re-pinned: melee fatigue now also slows SWING CADENCE (stamina_cadence_floor),
+    // so once these generic units (LightSpear stats) tire over the 45s clash their
+    // swing timing shifts — moving every downstream contact. Intentional (David's
+    // cadence-coupling). (Prior re-pins: LightSpear reach 1.6→1.5 for the one-sided
+    // levy-vs-charge loss; turn rate no longer throttled by cohesion.)
+    const EXPECTED: u64 = 0xc8fad834908e0b0e;
     assert_eq!(
         h, EXPECTED,
         "sim behavior changed: golden hash {h:#018x} != pinned {EXPECTED:#018x}. \

@@ -744,13 +744,16 @@ impl Sim {
             let vice = (self.pressure[i] - net).max(0.0);
             let pinned = (vice / VICE_PIN).clamp(0.0, 1.0);
             let obstruct = crowded * (OBSTRUCT_FLOOR + (1.0 - OBSTRUCT_FLOOR) * pinned);
-            // Swing cadence does NOT slow with fatigue — a tired man swings as
-            // often, but each blow lands SOFTER (see stamina_damage_floor in
-            // strike). Coupling fatigue to cadence instead made grinds CRAWL: a
-            // spent line both swung slow AND still kept its guard up, so almost
-            // nothing landed and an even fight never resolved. The fatigue lever
-            // is power-per-blow + a collapsing guard, not swing rate.
-            let interval = weapon.attack_interval * (1.0 + 0.35 * obstruct);
+            // Swing cadence SLOWS with fatigue: a spent attacker's interval
+            // stretches toward base / stamina_cadence_floor. This is the offence-
+            // RATE half of fatigue (paired with the softer blow, stamina_damage_floor,
+            // and the collapsing guard). It is BOUNDED by the floor — an earlier
+            // unbounded version made grinds CRAWL (a spent line swung ever slower and
+            // never resolved); at the gentle 0.75 floor it's ~1.33× the interval, a
+            // real ~25% rate drop that still lets the fight resolve.
+            let cadence = tun.stamina_cadence_floor
+                + (1.0 - tun.stamina_cadence_floor) * stamina_factor(self.units[ui].stamina);
+            let interval = weapon.attack_interval * (1.0 + 0.35 * obstruct) / cadence;
             self.attack_cd[i] = interval;
 
             // --- resolve the swing ------------------------------------------------
@@ -1010,8 +1013,9 @@ impl Sim {
         };
 
         // A tiring attacker hits SOFTER: damage falls toward stamina_damage_floor
-        // of its fresh value as he spends (a 25% floor when fully blown). This is
-        // the offence half of fatigue; the cadence is unchanged.
+        // of its fresh value as he spends (~0.78 when fully blown). This is the
+        // offence-POWER half of fatigue; the offence-RATE half (slower swings) is
+        // the cadence coupling in the strike loop (stamina_cadence_floor).
         let dmg = weapon.damage
             * (tun.stamina_damage_floor
                 + (1.0 - tun.stamina_damage_floor) * stamina_factor(self.units[ua].stamina));

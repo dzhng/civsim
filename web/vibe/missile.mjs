@@ -22,7 +22,7 @@ const label = (secs, s) =>
   + `shooter ${s.bAlive}/${s.bTotal} ammo ${s.bAmmo}  fighting ${s.aFight}/${s.bFight}  victor ${s.victor}`;
 
 const { frames, resolved, fails } = await vibeCapture(page, process.env.NAME ?? 'missile', {
-  frame: () => fitDuel(page), sample: () => duelSample(page),
+  frame: () => fitDuel(page, { margin: 220 }), sample: () => duelSample(page),
   label, done: (s) => s.victor >= 0,
 });
 

@@ -1,10 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { PNG } from 'pngjs';
 
-const CAMPAIGN_3D_BASELINE = new URL(
-  '../../shots/campaign/campaign-3d.png',
-  import.meta.url,
-);
 const CAMPAIGN_MAP_JSON = new URL('../../public/data/campaign-map.json', import.meta.url);
 const WHOLE_MAP_CAMERA = [-100, 250, 0.16];
 const REGIONAL_ITALY_CAMERA = [-430, 380, 4.0];
@@ -136,7 +132,7 @@ export async function run(ctx) {
       window.__campaign.cam(...camera);
     }, REGIONAL_ITALY_CAMERA),
     stats: (stats) => stats.visibleLabels >= 8 && stats.cityEntities > 20 && stats.armyEntities >= 1 && hasRoadJunctionGeometry(stats) && stats.factionView === false && hasTerrainFeatureDensity(stats),
-    compare3dBaseline: true,
+    checkStructure: true,
     realItalyAlignment: 'regional',
   });
 
@@ -218,7 +214,7 @@ function hasRoadJunctionGeometry(stats) {
   return stats.roadTriangles > 0 && stats.roadJunctionCaps >= 100;
 }
 
-async function snapCampaign(page, ctx, name, { before, stats, compare3dBaseline = false, realItalyAlignment = null, greenTerrainFloor = null }) {
+async function snapCampaign(page, ctx, name, { before, stats, checkStructure = false, realItalyAlignment = null, greenTerrainFloor = null }) {
   await before();
   await page.waitForTimeout(300);
   const webgpuStats = await page.evaluate(() => window.__campaignWebGPUStats);
@@ -227,8 +223,8 @@ async function snapCampaign(page, ctx, name, { before, stats, compare3dBaseline 
   if (realItalyAlignment) {
     await checkRealItalyAlignment(page, ctx, name, PNG.sync.read(shot), realItalyAlignment);
   }
-  if (compare3dBaseline) {
-    checkCampaign3dBaseline(ctx, PNG.sync.read(shot));
+  if (checkStructure) {
+    checkRegionalMapStructure(ctx, PNG.sync.read(shot));
   }
   if (greenTerrainFloor !== null) {
     const metrics = greenTerrainMetrics(PNG.sync.read(shot));
@@ -335,39 +331,37 @@ async function checkRealItalyAlignment(page, ctx, name, current, cameraBand) {
   );
 }
 
-function checkCampaign3dBaseline(ctx, current) {
-  const baseline = PNG.sync.read(readFileSync(CAMPAIGN_3D_BASELINE));
-  const baselineMetrics = campaign3dMetrics(baseline);
-  const currentMetrics = campaign3dMetrics(current);
-  const baselineFeatures = terrainFeatureCropMetrics(baseline);
-  const currentFeatures = terrainFeatureCropMetrics(current);
-  const sameSize = current.width === baseline.width && current.height === baseline.height;
-  const keepsStructure = sameSize
-    && currentMetrics.waterRatio >= baselineMetrics.waterRatio * 0.55
-    && currentMetrics.landRatio >= baselineMetrics.landRatio * 0.55
-    && currentMetrics.roadRatio >= baselineMetrics.roadRatio * 0.40
-    && currentMetrics.labelRatio >= baselineMetrics.labelRatio * 0.35
-    && currentMetrics.politicalWashRatio <= 0.12;
+// The regional natural view must read as a STRUCTURED map: substantial sea and
+// land, visible roads and labels, and natural terrain not bled over by the
+// political wash. Absolute floors, not a cross-render comparison — the scene
+// renders its own evidence, so deleting baselines never breaks it. (This began
+// as a Babylon-vs-WebGPU migration cross-check against campaign-3d.png; the
+// campaign is WebGPU-only now, so the floors stand on their own.)
+function checkRegionalMapStructure(ctx, current) {
+  const m = campaign3dMetrics(current);
   ctx.check(
-    'campaign-lod-regional-italy-natural keeps campaign-3d map structure without chasing model-pixel similarity',
-    keepsStructure,
-    JSON.stringify({ baseline: baselineMetrics, current: currentMetrics }),
+    'campaign-lod-regional-italy-natural reads as a structured map (sea, land, roads, labels; no political wash)',
+    m.waterRatio >= 0.30
+      && m.landRatio >= 0.12
+      && m.roadRatio >= 0.012
+      && m.labelRatio >= 0.002
+      && m.politicalWashRatio <= 0.12,
+    JSON.stringify(m),
   );
+  const features = terrainFeatureCropMetrics(current);
   const featureChecks = Object.fromEntries(Object.keys(TERRAIN_FEATURE_CROPS).map((name) => {
-    const baselineCrop = baselineFeatures[name];
-    const currentCrop = currentFeatures[name];
+    const crop = features[name];
     return [name, {
-      baseline: baselineCrop,
-      current: currentCrop,
+      crop,
       // Mountain/dark floors recalibrated after slice 3 greened the grass: the
       // warm-stone classifier used to count tan plains as "mountain", inflating
       // these crops. With living-green grass only the actual rock props count
       // (sparser in the southern crop), and they read MORE clearly against the
-      // green (verified by critique). Floors keep guarding readability against
-      // the new palette; raised greenRatio floor pins the greening itself.
-      ok: currentCrop.mountainRatio >= 0.07
-        && currentCrop.darkFeatureRatio >= 0.04
-        && currentCrop.greenRatio >= 0.55,
+      // green (verified by critique). Floors guard readability against the new
+      // palette; the greenRatio floor pins the greening itself.
+      ok: crop.mountainRatio >= 0.07
+        && crop.darkFeatureRatio >= 0.04
+        && crop.greenRatio >= 0.55,
     }];
   }));
   ctx.check(

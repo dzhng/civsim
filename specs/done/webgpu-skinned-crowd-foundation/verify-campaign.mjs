@@ -1,3 +1,10 @@
+// ARCHIVED — kept as a record of the Babylon→WebGPU campaign migration, not
+// live code. Its behavioral flow (march → garrison battle → auto-resolve →
+// save/load) and its pixel snaps are now owned by the campaign-webgpu-* scenes
+// under web/scenes/campaign/ (run `VERIFY_WEBGPU=1 node scene.mjs
+// campaign-webgpu-lod …`). The relative imports below no longer resolve from
+// this folder; this file is here to be read, not run.
+//
 // Campaign verification harness. Run from web/: dev server on :5173 (or
 // VERIFY_URL), then `node verify-campaign.mjs`.
 // Drives: menu -> new campaign -> march on an independent city -> garrison

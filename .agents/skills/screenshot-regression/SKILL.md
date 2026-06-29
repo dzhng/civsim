@@ -207,7 +207,9 @@ plus `<name>-actual.png` on failure (`shots/diff/` is gitignored). Pass an
 already-captured `shot` buffer (a composited contact sheet, a reused frame) to
 skip the internal `page.screenshot()`.
 
-- **Verify harness:** a stage in `verify-battle.mjs` / `verify-campaign*.mjs`.
+- **Campaign/visual:** a `ctx.check` + `ctx.snap` in a scene under
+  `web/scenes/<owner>/`. (`verify-battle.mjs` remains a battle compatibility
+  wrapper.)
 - **Vibe timeline:** don't call `snapCheck` directly — `vibeCapture` does it per
   frame; see [write-vibe](../write-vibe/SKILL.md).
 - **Model turntable:** snap-checks one composited contact sheet per class; see
@@ -243,7 +245,7 @@ skip the internal `page.screenshot()`.
 3. Intentional visual change → re-bless and commit the new baselines:
 
 ```sh
-UPDATE_SHOTS=1 VERIFY_URL=http://localhost:5174 node verify-campaign.mjs
+UPDATE_SHOTS=1 VERIFY_WEBGPU=1 VERIFY_URL=http://localhost:5174 node scene.mjs campaign-webgpu-lod
 UPDATE_SHOTS=1 VERIFY_URL=http://localhost:5174 node verify-battle.mjs
 ```
 

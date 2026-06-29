@@ -20,8 +20,7 @@
     "archive:current-renderer": "node scripts/archive-current-renderer-evidence.mjs",
     "verify": "node verify-battle.mjs",
     "verify:full": "node verify-battle.mjs --full",
-    "verify:campaign": "node verify-campaign.mjs",
-    "verify:campaign-visual": "node verify-campaign-visual.mjs",
+    "verify:campaign": "VERIFY_WEBGPU=1 node scene.mjs campaign-webgpu-lod campaign-webgpu-map-alignment campaign-webgpu-visual",
     "probe:webgpu": "node probe-webgpu.mjs",
     "bake:anim": "node ../packages/soldier-assets/bake/soldier-placeholders.mjs",
     "bake:test": "node ../packages/soldier-assets/bake/vat.test.mjs && node ../packages/soldier-assets/bake/gltf.test.mjs && node ../packages/soldier-assets/bake/soldier-placeholders.mjs --check"

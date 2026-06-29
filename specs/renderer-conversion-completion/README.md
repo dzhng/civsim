@@ -116,10 +116,23 @@ final cutover (slice 11) is the integration point that depends on the rest.
 
 ## Next Agent Prompt
 
-You are building the WebGPU conversion completion. Last updated: 2026-06-29.
+You are building the WebGPU conversion completion. Last updated: 2026-06-30.
 
 Current status: **Slices 01–09 implemented; Group D (10–11) is the David-gated
 release integration.**
+
+**Audit-list fix (2026-06-30):** `cutover:renderer`'s `retire-legacy-renderer-files`
+gate was permanently `fail` because `RETIRED_FILES` (in
+`web/scripts/renderer-cutover-report.mjs`) listed `web/src/battle/renderer.ts` and
+`web/src/campaign/renderer.ts` — the *new* raw-WebGPU production renderers, which
+`REQUIRED_NEW_FILES` simultaneously asserts present. The new architecture reuses
+those canonical paths, so the gate demanded a file be both absent and present.
+Removed the two reused paths from `RETIRED_FILES`; it now checks only the
+genuinely-deleted WebGL2/Babylon-era files (all already absent), and the gate is
+`complete`. Remaining `cutover:renderer` blockers are all David/hardware-gated:
+`scenario-run-renderer`/`-campaign` (pending the GPU scenario run + visual-floor
+blessing), `artifact-performance-report` + `hardware-perf` (slice 11 named
+hardware).
 
 **Slice 10 (scenario & visual acceptance reports) — pipeline proven, scoring
 gated on David:**

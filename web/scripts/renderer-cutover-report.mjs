@@ -28,11 +28,14 @@ const EXPECTED_SCENARIOS = [
   { id: 'lab-cutover', file: 'system/renderer-lab-routes.mjs', script: 'scenario:renderer', detail: 'lab route contracts and cutover route stats stay covered' },
 ];
 
+// The raw-WebGPU production renderers deliberately reuse the canonical
+// web/src/battle/renderer.ts and web/src/campaign/renderer.ts paths (asserted
+// present by REQUIRED_NEW_FILES). Only the WebGL2/Babylon-era files that the new
+// architecture actually deletes belong here — listing the reused paths would make
+// this gate require a file to be both absent and present.
 const RETIRED_FILES = [
-  'web/src/battle/renderer.ts',
   'web/src/battle/renderer3d.ts',
   'web/src/battle/turntable.ts',
-  'web/src/campaign/renderer.ts',
   'web/src/campaign/shaders.ts',
   'web/src/campaign/terrain3d.ts',
   'web/src/shared/glutil.ts',

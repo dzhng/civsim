@@ -465,7 +465,10 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
         },
         HorseArchers => UnitClass {
             fight_drain_mult: 0.8,
-            move_drain_mult: 0.8,
+            // The lightest, most mobile arm — it kites all day, so its movement is
+            // cheaper still than the shock arm's (0.6 vs 0.85): the horse carries a
+            // light rider, and skirmishing is the whole job.
+            move_drain_mult: 0.6,
             // ~+30% on the run gait to match the shock arm: 6.5->8.3 m/s at full
             // stamina (no charge — light horse skirmishes and kites).
             pace_mult: 3.9,

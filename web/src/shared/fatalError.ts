@@ -1,6 +1,6 @@
 // A renderer fatal error (failed init, lost device, rejected submission) must
 // never leave a silent blank canvas. This renders one actionable panel over the
-// canvas and records the fault on `window.__webgpuFatal` so the fault-injection
+// canvas and records the fault on `window.__gpuFatal` so the fault-injection
 // lab and scene gates can observe that the renderer reached a defined state.
 
 export interface FatalErrorSurface {
@@ -9,17 +9,17 @@ export interface FatalErrorSurface {
   detail: string;
 }
 
-const SURFACE_ID = 'webgpu-fatal-surface';
+const SURFACE_ID = 'gpu-fatal-surface';
 
 declare global {
   interface Window {
-    __webgpuFatal?: FatalErrorSurface | null;
+    __gpuFatal?: FatalErrorSurface | null;
   }
 }
 
 /** Overlay an actionable fatal-error panel over the canvas (idempotent). */
 export function showFatalErrorSurface(canvas: HTMLCanvasElement, surface: FatalErrorSurface): void {
-  window.__webgpuFatal = surface;
+  window.__gpuFatal = surface;
   const host = canvas.parentElement ?? document.body;
   if (getComputedStyle(host).position === 'static') host.style.position = 'relative';
   let panel = document.getElementById(SURFACE_ID) as HTMLDivElement | null;

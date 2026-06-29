@@ -245,7 +245,7 @@ skip the internal `page.screenshot()`.
 3. Intentional visual change → re-bless and commit the new baselines:
 
 ```sh
-UPDATE_SHOTS=1 VERIFY_WEBGPU=1 VERIFY_URL=http://localhost:5174 node scene.mjs campaign-webgpu-lod
+UPDATE_SHOTS=1 VERIFY_GPU=1 VERIFY_URL=http://localhost:5174 node scene.mjs campaign-lod
 UPDATE_SHOTS=1 VERIFY_URL=http://localhost:5174 node verify-battle.mjs
 ```
 

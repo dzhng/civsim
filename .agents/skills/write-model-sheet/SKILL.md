@@ -14,9 +14,14 @@ whole sheet is the regression target. Motion review lives in
 
 ## Where
 
-- Driver: `web/vibe/model-sheet.mjs` against the WebGPU model-review route. Shared
-  soldier sheets write to
+- Soldier driver: `web/shots/models/scripts/soldier-sheets.mjs` against the GPU renderer model-review route.
+  Shared soldier sheets write to
   `web/shots/models/shared/soldiers/ingame/<id>-<class>.png`.
+- Campaign model driver: `web/scenes/models/campaign-models.mjs` against the
+  campaign model-review route. Campaign entity, prop, terrain, water/fog, and
+  label shots write to `web/shots/models/campaign/{entities,props,terrain,labels}/`.
+  This scene is the repurposed campaign model report harness; it must stay a
+  `web/shots` baseline generator, not a spec report writer.
 - Each sheet is composited in JS and handed to `snapCheck` as a buffer, so the
   one image is the whole gate:
   `snapCheck(page, '${GROUP}/${id}-${name}', check, { threshold: 0.1, maxDiffRatio: 0.003, shot: montage(rows, TW, TH) })`.
@@ -25,21 +30,24 @@ whole sheet is the regression target. Motion review lives in
 
 1. **Rebuild wasm first** — `npm run build:wasm` from `web/`. The harness loads
    the *prebuilt* wasm, never live Rust.
-2. `node vibe/model-sheet.mjs` from `web/` renders all classes. `ONLY=0,3,6 …`
+2. `node shots/models/scripts/soldier-sheets.mjs` from `web/` renders all classes. `ONLY=0,3,6 …`
    limits to class ids. Sheets render at the battle's real top-down tilt
    (0.42 rad) into `shots/models/shared/soldiers/ingame/`.
 3. Re-bless after an intentional model change:
-   `UPDATE_SHOTS=1 node vibe/model-sheet.mjs` (it clears the folder first).
+   `UPDATE_SHOTS=1 node shots/models/scripts/soldier-sheets.mjs` (it clears the folder first).
+4. Campaign model/prop shots use the scene runner:
+   `VERIFY_GPU=1 UPDATE_SHOTS=1 node scene.mjs campaign-models`.
 
 ## When the roster changes
 
 Extend `CLASS_NAMES` (the roster the sheet iterates and names files by) and
-`CLASS_H` (per-class height, which drives framing) in `vibe/model-sheet.mjs` so the
+`CLASS_H` (per-class height, which drives framing) in `shots/models/scripts/soldier-sheets.mjs` so the
 new class gets a sheet; `STANCES` is the fixed four-pose set shown for every
 class — leave it. Give the new class an animation review too
-([write-anim](../write-anim/SKILL.md)). Class 14 is a RENDER-ONLY look (a shock
-lancer with its sabre), not a sim class — keep that distinction when you touch
-the arrays.
+([write-anim](../write-anim/SKILL.md)). Class 14 is the render asset
+`shock-cav-sidearm` (mounted shock cavalry with its sword), while the battle UI
+may still label sim class 14 as medium phalanx — keep that render-vs-sim
+distinction when you touch the arrays.
 
 Pairs with [write-anim](../write-anim/SKILL.md) (the motion twin),
 [aesthetics](../aesthetics/SKILL.md) (the visual north star every model is judged

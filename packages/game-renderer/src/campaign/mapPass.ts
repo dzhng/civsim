@@ -1,8 +1,8 @@
-import type { CameraSnapshot } from '../../../webgpu-core/src/cameraUniform';
-import { worldToScreen } from '../../../webgpu-core/src/cameraUniform';
-import { WORLD_CAMERA_WGSL } from '../../../webgpu-core/src/cameraWgsl';
-import { webGpuAlphaBlendColorTarget, webGpuWorldDepthStencil } from '../../../webgpu-core/src/pipelineContracts';
-import type { BackgroundRenderPass, OverlayRenderPass, RawFrameShell, WorldRenderPass } from '../../../webgpu-core/src/frameShell';
+import type { CameraSnapshot } from '../../../renderer-core/src/cameraUniform';
+import { worldToScreen } from '../../../renderer-core/src/cameraUniform';
+import { WORLD_CAMERA_WGSL } from '../../../renderer-core/src/cameraWgsl';
+import { gpuAlphaBlendColorTarget, gpuWorldDepthStencil } from '../../../renderer-core/src/pipelineContracts';
+import type { BackgroundRenderPass, OverlayRenderPass, RawFrameShell, WorldRenderPass } from '../../../renderer-core/src/frameShell';
 
 type CampaignLineRenderPass = BackgroundRenderPass | WorldRenderPass;
 
@@ -428,7 +428,7 @@ export interface CampaignLabelPassStats {
   atlasWidth: number;
   atlasHeight: number;
   vertices: number;
-  layer: 'raw-webgpu-glyph-atlas';
+  layer: 'raw-gpu-glyph-atlas';
 }
 
 export class CampaignMapPass {
@@ -505,7 +505,7 @@ export class CampaignMapPass {
       },
       fragment: { module, entryPoint: 'fs', targets: [{ format: shell.info.format }] },
       primitive: { topology: 'triangle-list', cullMode: 'none' },
-      depthStencil: webGpuWorldDepthStencil('write'),
+      depthStencil: gpuWorldDepthStencil('write'),
     });
     const mesh = surface ?? flatMapSurface(rect);
     this.indexCount = mesh.indices.length;
@@ -631,7 +631,7 @@ export class CampaignLinePass {
       fragment: {
         module,
         entryPoint: 'fs',
-        targets: [webGpuAlphaBlendColorTarget(this.shell.info.format)],
+        targets: [gpuAlphaBlendColorTarget(this.shell.info.format)],
       },
       primitive: { topology: this.topology },
     });
@@ -680,10 +680,10 @@ export class CampaignWorldLinePass {
       fragment: {
         module,
         entryPoint: 'fs',
-        targets: [webGpuAlphaBlendColorTarget(this.shell.info.format)],
+        targets: [gpuAlphaBlendColorTarget(this.shell.info.format)],
       },
       primitive: { topology: this.topology },
-      depthStencil: webGpuWorldDepthStencil('read'),
+      depthStencil: gpuWorldDepthStencil('read'),
     });
   }
 
@@ -768,10 +768,10 @@ export class CampaignRoadPass {
       fragment: {
         module,
         entryPoint: 'fs',
-        targets: [webGpuAlphaBlendColorTarget(this.shell.info.format)],
+        targets: [gpuAlphaBlendColorTarget(this.shell.info.format)],
       },
       primitive: { topology: 'triangle-list', cullMode: 'none' },
-      depthStencil: webGpuWorldDepthStencil('read'),
+      depthStencil: gpuWorldDepthStencil('read'),
     });
     this.vertexBuffer = device.createBuffer({
       label: 'campaign-road-empty',
@@ -923,7 +923,7 @@ export class CampaignLabelPass {
     atlasWidth: 1,
     atlasHeight: 1,
     vertices: 0,
-    layer: 'raw-webgpu-glyph-atlas',
+    layer: 'raw-gpu-glyph-atlas',
   };
 
   constructor(private shell: RawFrameShell) {
@@ -997,7 +997,7 @@ export class CampaignLabelPass {
         atlasWidth: 1,
         atlasHeight: 1,
         vertices: 0,
-        layer: 'raw-webgpu-glyph-atlas',
+        layer: 'raw-gpu-glyph-atlas',
       };
       return this.statsValue;
     }
@@ -1033,7 +1033,7 @@ export class CampaignLabelPass {
       atlasWidth: atlas.width,
       atlasHeight: atlas.height,
       vertices: this.vertexCount,
-      layer: 'raw-webgpu-glyph-atlas',
+      layer: 'raw-gpu-glyph-atlas',
     };
     return this.statsValue;
   }

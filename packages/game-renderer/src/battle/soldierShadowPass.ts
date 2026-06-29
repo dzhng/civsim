@@ -1,7 +1,7 @@
-import type { RawFrameShell, WorldRenderPass } from '../../../webgpu-core/src/frameShell';
-import { WORLD_CAMERA_WGSL } from '../../../webgpu-core/src/cameraWgsl';
-import { compileShader } from '../../../webgpu-core/src/compileShader';
-import { webGpuAlphaBlendColorTarget, webGpuMultisample, webGpuWorldDepthStencil } from '../../../webgpu-core/src/pipelineContracts';
+import type { RawFrameShell, WorldRenderPass } from '../../../renderer-core/src/frameShell';
+import { WORLD_CAMERA_WGSL } from '../../../renderer-core/src/cameraWgsl';
+import { compileShader } from '../../../renderer-core/src/compileShader';
+import { gpuAlphaBlendColorTarget, gpuMultisample, gpuWorldDepthStencil } from '../../../renderer-core/src/pipelineContracts';
 import type { CrowdInstance } from '../../../crowd-runtime/src/instanceData';
 
 // A grounding shadow per soldier: a soft dark ellipse on the terrain surface at
@@ -56,10 +56,10 @@ export class BattleSoldierShadowPass {
           { arrayStride: 16, stepMode: 'instance', attributes: [{ shaderLocation: 1, offset: 0, format: 'float32x4' }] },
         ],
       },
-      fragment: { module, entryPoint: 'fs', targets: [webGpuAlphaBlendColorTarget(shell.info.format)] },
+      fragment: { module, entryPoint: 'fs', targets: [gpuAlphaBlendColorTarget(shell.info.format)] },
       primitive: { topology: 'triangle-strip' },
-      depthStencil: webGpuWorldDepthStencil('read'),
-      multisample: webGpuMultisample(shell.sampleCount),
+      depthStencil: gpuWorldDepthStencil('read'),
+      multisample: gpuMultisample(shell.sampleCount),
     });
     this.quadBuffer = device.createBuffer({ label: 'battle-soldier-shadow-quad', size: 8 * 4, usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST });
     device.queue.writeBuffer(this.quadBuffer, 0, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]));

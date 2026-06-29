@@ -2,7 +2,7 @@ import { mkdir, readdir, writeFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 import { chromium } from 'playwright';
 import { snapCheck } from './snapshot.mjs';
-import { WEBGPU_HARDWARE_FLAGS, WEBGPU_SWIFTSHADER_FLAGS } from './webgpu-probe-lib.mjs';
+import { GPU_HARDWARE_FLAGS, GPU_SWIFTSHADER_FLAGS } from './renderer-probe-lib.mjs';
 
 const TARGET = process.env.VERIFY_URL ?? 'http://localhost:5173';
 const HERE = new URL('.', import.meta.url);
@@ -131,11 +131,11 @@ function createReporter() {
 }
 
 async function runSelected(selected) {
-  const webgpuArgs = process.env.VERIFY_WEBGPU === '1'
-    ? (process.env.VERIFY_WEBGPU_ADAPTER === 'hardware' ? WEBGPU_HARDWARE_FLAGS : WEBGPU_SWIFTSHADER_FLAGS)
+  const gpuArgs = process.env.VERIFY_GPU === '1'
+    ? (process.env.VERIFY_GPU_ADAPTER === 'hardware' ? GPU_HARDWARE_FLAGS : GPU_SWIFTSHADER_FLAGS)
     : [];
   const launchOptions = {
-    args: webgpuArgs,
+    args: gpuArgs,
   };
   if (process.env.VERIFY_HEADFUL === '1') {
     launchOptions.headless = false;
@@ -198,10 +198,10 @@ async function writeScenarioReport(selected, reporter, exitCode) {
     kind: 'scenario-run-report',
     generatedAt: process.env.SCENARIO_REPORT_GENERATED_AT ?? new Date().toISOString(),
     target: TARGET,
-    webgpu: process.env.VERIFY_WEBGPU === '1',
+    gpu: process.env.VERIFY_GPU === '1',
     headful: process.env.VERIFY_HEADFUL === '1',
     browserChannel: process.env.VERIFY_BROWSER_CHANNEL ?? null,
-    webgpuAdapter: process.env.VERIFY_WEBGPU_ADAPTER ?? (process.env.VERIFY_WEBGPU === '1' ? 'swiftshader' : null),
+    gpuAdapter: process.env.VERIFY_GPU_ADAPTER ?? (process.env.VERIFY_GPU === '1' ? 'swiftshader' : null),
     exitCode,
     status: exitCode === 0 ? 'pass' : 'fail',
     scenarios: selected.map((scenario) => ({

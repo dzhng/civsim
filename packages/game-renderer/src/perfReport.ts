@@ -22,7 +22,7 @@ export interface PerfSceneReport extends PerfSceneInput {
 }
 
 export interface FullGamePerfReport {
-  kind: 'webgpu-full-game-perf';
+  kind: 'rendering-full-game-perf';
   mode: 'headless-liveness' | 'hardware-report';
   generatedAt: string;
   environment: {
@@ -64,7 +64,7 @@ export function makeFullGamePerfReport(input: {
   notes?: string[];
 }): FullGamePerfReport {
   return {
-    kind: 'webgpu-full-game-perf',
+    kind: 'rendering-full-game-perf',
     mode: input.mode,
     generatedAt: new Date().toISOString(),
     environment: input.environment,

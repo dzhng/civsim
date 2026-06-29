@@ -10,7 +10,7 @@ cities, flags, or labels.
 ## API Seam
 
 - `packages/game-renderer/src/campaign/sceneryPass.ts`
-- `web/src/campaign/rendererWebGPU.ts` scenery candidate selection and clearance
+- `web/src/campaign/renderer.ts` scenery candidate selection and clearance
 - `web/src/campaign/terrain.ts` height/biome sampling
 - a terrain-relief fixture scene: raised ridge, foothill road, nearby city, label
   and flag, fixed camera/light
@@ -54,11 +54,11 @@ What changed:
 - **Per-instance yaw** (`sceneryPass.ts` instance slot + shader rotation): every
   cloned mountain/rock/tree now faces a different way, killing the "field of
   identical props" look. Free instance slot, no buffer growth.
-- **Thinner + lower** (`rendererWebGPU.ts`): mountain spawn chance and vertical
+- **Thinner + lower** (`renderer.ts`): mountain spawn chance and vertical
   scale trimmed so a few deliberate massifs sit below label/road priority.
 - **City-aware clearance**: mountain apron widened (city 7→9.4/11 km, road
   7.2→8.6 km) so no city or road is buried in a mass.
-- **Forests** (`terrain.ts` biome + `rendererWebGPU.ts`): forest reaches into
+- **Forests** (`terrain.ts` biome + `renderer.ts`): forest reaches into
   temperate latitudes (gate 0.5→0.40 moisture, wider patch band, less rock
   suppression), the tree cap and per-tree size grew, and the spawn floor
   dropped — wet regions (Cisalpine Gaul, Po, transalpine Gaul) now carry many

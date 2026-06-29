@@ -10,7 +10,7 @@ the real Central Italy camera.
 ## API Seam
 
 - `packages/game-renderer/src/campaign/mapPass.ts` terrain shader/color grading
-- `web/src/campaign/rendererWebGPU.ts` faction-view and terrain upload path
+- `web/src/campaign/renderer.ts` faction-view and terrain upload path
 - `web/src/campaign/terrain.ts` canonical terrain field
 - a natural-terrain fixture scene with land, shoreline, road, city, and faction
   overlay toggles using fixed camera/light

@@ -1,6 +1,6 @@
-import type { RawFrameShell, WorldRenderPass } from '../../../webgpu-core/src/frameShell';
-import { WORLD_CAMERA_WGSL } from '../../../webgpu-core/src/cameraWgsl';
-import { webGpuWorldDepthStencil } from '../../../webgpu-core/src/pipelineContracts';
+import type { RawFrameShell, WorldRenderPass } from '../../../renderer-core/src/frameShell';
+import { WORLD_CAMERA_WGSL } from '../../../renderer-core/src/cameraWgsl';
+import { gpuWorldDepthStencil } from '../../../renderer-core/src/pipelineContracts';
 import type { CampaignMapSurfaceMesh } from './mapPass';
 
 export interface CampaignTerritoryTextureData {
@@ -100,7 +100,7 @@ export class CampaignTerritoryPass {
         }],
       },
       primitive: { topology: 'triangle-list', cullMode: 'none' },
-      depthStencil: webGpuWorldDepthStencil('read'),
+      depthStencil: gpuWorldDepthStencil('read'),
     });
     this.vertexBuffer = device.createBuffer({
       label: 'campaign-territory-surface-vertices',

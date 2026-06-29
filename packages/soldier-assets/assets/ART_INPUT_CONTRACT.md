@@ -3,7 +3,7 @@
 What a rigged `.glb`/`.gltf` must contain to bake cleanly into a `VatBake`
 through `packages/soldier-assets/bake/gltf.mjs`. This is the per-file front door;
 the full pack shape and acceptance bar live in
-[ART_CONTRACT.md](../../../specs/done/webgpu-skinned-crowd-foundation/assets/ART_CONTRACT.md).
+[ART_CONTRACT.md](../../../specs/done/renderer-skinned-crowd-foundation/assets/ART_CONTRACT.md).
 
 **Placeholders remain the shipping default.** A real `.glb` is a drop-in
 replacement, never a precondition: nothing in the build depends on one existing.

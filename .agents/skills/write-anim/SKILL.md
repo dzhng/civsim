@@ -5,7 +5,7 @@ description: Review a model's MOTION as a looping, review-only GIF — pose one 
 
 # Animation review
 
-`vibe/anim.mjs` poses a SINGLE model through an animation cycle — no sim — and
+`web/shots/models/scripts/soldier-animation.mjs` poses a SINGLE model through an animation cycle — no sim — and
 writes a looping GIF you watch frame by frame. It answers "does this model's
 motion read right?", a different question from the sim's emergent behaviour
 ([write-vibe](../write-vibe/SKILL.md)) and the model's static look
@@ -24,7 +24,7 @@ The GIFs are committed review artifacts (like the vibe timeline GIF).
 
 1. **Rebuild wasm first** — `npm run build:wasm` from `web/` (the harness loads
    the prebuilt wasm, never live Rust).
-2. `node vibe/anim.mjs` from `web/` films the representative class set
+2. `node shots/models/scripts/soldier-animation.mjs` from `web/` films the representative class set
    (`[0, 3, 4, 6]`) through every cycle. `ONLY=3 …` picks classes;
    `ANGLE=front …` faces the camera (default is the 3/4 hero view).
 3. Shared soldier GIFs land at
@@ -34,12 +34,12 @@ The GIFs are committed review artifacts (like the vibe timeline GIF).
 ## Authoring a cycle
 
 Each animation is a list of `{ frame, dt }` pose steps plus a GIF delay, in the
-`ANIMS` table in `vibe/anim.mjs` — edit there to add a cycle or retime one.
+`ANIMS` table in `shots/models/scripts/soldier-animation.mjs` — edit there to add a cycle or retime one.
 Walk/run/hit toggle discrete poses; attack/die step through a ladder. The encoder
-is the shared `vibe/_gif.mjs`; the GIF rules every series follows (~200 ms/frame,
+is the shared `shots/_gif.mjs`; the GIF rules every series follows (~200 ms/frame,
 surface it to the user) live in [write-vibe](../write-vibe/SKILL.md).
 
-A new class needs a `NAMES` entry in `vibe/anim.mjs` (it labels the GIF), and the
+A new class needs a `NAMES` entry in `shots/models/scripts/soldier-animation.mjs` (it labels the GIF), and the
 default run films only the representative set `[0, 3, 4, 6]` — so review a
 specific class with `ONLY=<id>`. It also needs a static model sheet — see
 [write-model-sheet](../write-model-sheet/SKILL.md).
@@ -49,7 +49,7 @@ specific class with `ONLY=<id>`. It also needs a static model sheet — see
 Scenery and effect motion — a swaying tree, a banner, fire — is the same shape
 (one asset, no sim, a looping GIF) and belongs here when it is added. The harness
 enumerates the soldier roster today; a new model family needs its own poser wired
-into `anim.mjs`, not a vibe matchup.
+into `soldier-animation.mjs`, not a vibe matchup.
 
 Animation artifacts follow model ownership: battle-only motion goes under
 `web/shots/models/battle/anim/`, campaign-only motion under

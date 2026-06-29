@@ -7,7 +7,7 @@ import { Campaign, Game, start_campaign_battle, report_battle, type InitOutput }
 import type { Scene } from '../scene';
 import { loadCampaignData, nearestLoc, tilePos, type CampaignData } from './data';
 import type { CamView } from './camera';
-import { CampaignRendererWebGPU } from './rendererWebGPU';
+import { CampaignRenderer } from './renderer';
 import { TerrainField } from './terrain';
 import { Territory } from './territory';
 import { Allegiance } from './status';
@@ -78,7 +78,7 @@ interface SiegeView {
 export class CampaignScene implements Scene {
   private canvas!: HTMLCanvasElement;
   private ui!: HTMLDivElement;
-  private renderer!: CampaignRendererWebGPU;
+  private renderer!: CampaignRenderer;
   // Terrain/territory live across battle round-trips (enter/exit cycles).
   private field: TerrainField | null = null;
   private territory: Territory | null = null;
@@ -147,7 +147,7 @@ export class CampaignScene implements Scene {
       this.territory = new Territory(this.cfg.data, this.field);
     }
     this.terrainReady = false;
-    this.renderer = new CampaignRendererWebGPU(this.canvas, this.cfg.data, this.field!, this.territory!);
+    this.renderer = new CampaignRenderer(this.canvas, this.cfg.data, this.field!, this.territory!);
     void this.renderer.ready.then(() => {
       this.terrainReady = true;
       markCampaignReady(true);

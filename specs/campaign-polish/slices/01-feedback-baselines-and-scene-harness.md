@@ -9,7 +9,7 @@ visual seams before the real campaign map is changed.
 
 ## API Seam
 
-- `web/scenes/campaign/campaign-webgpu-lod.mjs`
+- `web/scenes/campaign/campaign-lod.mjs`
 - a new campaign-polish scene/workbench module if the current scene file becomes
   too broad
 - the `write-scene` skill for scene shape, deterministic fixtures, snapshot
@@ -44,9 +44,9 @@ tests without loading the full campaign.
 
 | Feedback image | Defect | Named scene / snapshot |
 | --- | --- | --- |
-| `01-rome-ostia-label-road.png` | Ostia/Portus must keep label + road | `campaign-polish-roads` → `polish-road-continuity` (asserts `city:OSTIA/PORTUS` label visible + Roma→Ostia road unbroken); real map `campaign-webgpu-lod` → `campaign-lod-rome-close` (asserts `city:OSTIA/PORTUS`) |
+| `01-rome-ostia-label-road.png` | Ostia/Portus must keep label + road | `campaign-polish-roads` → `polish-road-continuity` (asserts `city:OSTIA/PORTUS` label visible + Roma→Ostia road unbroken); real map `campaign-lod` → `campaign-lod-rome-close` (asserts `city:OSTIA/PORTUS`) |
 | `02-city-label-distance-tibur.png` | Label floats too far from icon/model | `campaign-polish-markers` → `polish-label-spacing` (Roma/Neapolis city labels over a clean stage) |
-| `03-mountains-roads-trees.png` | brown ground / chunky mountains / no trees / no carts | green: `campaign-polish-markers` → `polish-green-swatch`; mountains+forest: real `campaign-webgpu-lod` → `campaign-lod-regional-italy-natural` (slice 4); carts: slice 5 |
+| `03-mountains-roads-trees.png` | brown ground / chunky mountains / no trees / no carts | green: `campaign-polish-markers` → `polish-green-swatch`; mountains+forest: real `campaign-lod` → `campaign-lod-regional-italy-natural` (slice 4); carts: slice 5 |
 | `04-rome-south-road-cutoff.png` | Road dies before reaching the next city | `campaign-polish-roads` → `polish-road-continuity` (max-consecutive-gap probe per spoke, must reach each city) |
 
 ## Status (2026-06-29)

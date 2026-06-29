@@ -1,7 +1,7 @@
-import type { OverlayRenderPass, RawFrameShell } from '../../../webgpu-core/src/frameShell';
-import { WORLD_CAMERA_WGSL } from '../../../webgpu-core/src/cameraWgsl';
-import { compileShader } from '../../../webgpu-core/src/compileShader';
-import { webGpuAlphaBlendColorTarget, webGpuMultisample } from '../../../webgpu-core/src/pipelineContracts';
+import type { OverlayRenderPass, RawFrameShell } from '../../../renderer-core/src/frameShell';
+import { WORLD_CAMERA_WGSL } from '../../../renderer-core/src/cameraWgsl';
+import { compileShader } from '../../../renderer-core/src/compileShader';
+import { gpuAlphaBlendColorTarget, gpuMultisample } from '../../../renderer-core/src/pipelineContracts';
 
 // Short-lived impact particles — dust on a footfall/hit, blood on a wound —
 // driven by the battle event stream. Instanced soft quads that fade and rise
@@ -77,9 +77,9 @@ export class BattleParticlePass {
           { arrayStride: 16, stepMode: 'instance', attributes: [{ shaderLocation: 2, offset: 0, format: 'float32x4' }] },
         ],
       },
-      fragment: { module, entryPoint: 'fs', targets: [webGpuAlphaBlendColorTarget(shell.info.format)] },
+      fragment: { module, entryPoint: 'fs', targets: [gpuAlphaBlendColorTarget(shell.info.format)] },
       primitive: { topology: 'triangle-strip' },
-      multisample: webGpuMultisample(shell.sampleCount),
+      multisample: gpuMultisample(shell.sampleCount),
     });
     this.quadBuffer = device.createBuffer({ label: 'battle-particle-quad', size: 8 * 4, usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST });
     device.queue.writeBuffer(this.quadBuffer, 0, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]));

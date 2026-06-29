@@ -10,7 +10,7 @@ the real campaign.
 
 ## API Seam
 
-- `web/scenes/campaign/campaign-webgpu-lod.mjs`
+- `web/scenes/campaign/campaign-lod.mjs`
 - screenshot regression harness under `web/`
 - screenshot critique and compare-screenshots skills for visual review
 - slice workbench outputs for roads, labels, terrain color, terrain relief,
@@ -35,9 +35,9 @@ not get hidden by the busy campaign map.
 
 ## Status (2026-06-29)
 
-Done. The full campaign WebGPU scene bundle (`campaign-webgpu-lod`,
-`campaign-polish-roads`, `campaign-polish-markers`, `campaign-webgpu-visual`,
-`campaign-webgpu-map-alignment`) is green — 38 checks, 0 failures — so the five
+Done. The full campaign WebGPU scene bundle (`campaign-lod`,
+`campaign-polish-roads`, `campaign-polish-markers`, `campaign-visual`,
+`campaign-map-alignment`) is green — 38 checks, 0 failures — so the five
 independently-accepted slices hold together in the real campaign. A final
 unbiased `screenshot-critique` (fresh agent, no project context, judging the full
 acceptance views plus tight crops) returned GOOD on label spacing, Ostia/Portus
@@ -91,7 +91,7 @@ original feedback failure: each city icon is fully visible and sits on a cleared
 tan apron at the *foot* of the massif, with the bare-brown mass behind and beside
 it — a hill-town at the mountain foot, which is geographically correct for these
 Apennine towns. The icons are never occluded; the slice-4 clearance keeps them
-readable, and the `campaign-webgpu-lod` named mountain/forest crop metric passes.
+readable, and the `campaign-lod` named mountain/forest crop metric passes.
 What the zero-context critic reacted to is the *label text* crossing the brown
 massif behind it, plus the massif being a large bare shape at regional zoom. Not
 a clearance regression and not a ship blocker. Recorded as a candidate for future

@@ -3,6 +3,14 @@
 Model shots are committed review artifacts for individual model families. Group
 by ownership first, then by model family, then by review mode.
 
+Generators for this folder live in `scripts/`:
+
+- `scripts/soldier-sheets.mjs` writes `shared/soldiers/ingame/`.
+- `scripts/soldier-animation.mjs` writes `shared/soldiers/anim/`.
+- Campaign model shots are captured by the scene-runner entry
+  `web/scenes/models/campaign-models.mjs`, because it uses the shared scene
+  screenshot harness, but the baselines still live here under `campaign/`.
+
 ```text
 shared/
   soldiers/
@@ -14,6 +22,8 @@ battle/
 campaign/
   props/        # campaign-only prop presentations
   entities/     # campaign-only city, town, and army marker models
+  terrain/      # roads, terrain material samples, water, and fog/cloud layers
+  labels/       # campaign label and glyph-atlas review captures
 ```
 
 Prefer `shared/props/` for reusable scenery meshes such as trees, rocks,

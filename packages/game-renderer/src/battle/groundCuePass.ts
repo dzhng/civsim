@@ -1,7 +1,7 @@
-import type { RawFrameShell, WorldRenderPass } from '../../../webgpu-core/src/frameShell';
-import { WORLD_CAMERA_WGSL } from '../../../webgpu-core/src/cameraWgsl';
-import { compileShader } from '../../../webgpu-core/src/compileShader';
-import { webGpuAlphaBlendColorTarget, webGpuMultisample, webGpuWorldDepthStencil } from '../../../webgpu-core/src/pipelineContracts';
+import type { RawFrameShell, WorldRenderPass } from '../../../renderer-core/src/frameShell';
+import { WORLD_CAMERA_WGSL } from '../../../renderer-core/src/cameraWgsl';
+import { compileShader } from '../../../renderer-core/src/compileShader';
+import { gpuAlphaBlendColorTarget, gpuMultisample, gpuWorldDepthStencil } from '../../../renderer-core/src/pipelineContracts';
 
 export interface BattleGroundCueStats {
   vertices: number;
@@ -55,11 +55,11 @@ export class BattleGroundCuePass {
       fragment: {
         module,
         entryPoint: 'fs',
-        targets: [webGpuAlphaBlendColorTarget(shell.info.format)],
+        targets: [gpuAlphaBlendColorTarget(shell.info.format)],
       },
       primitive: { topology: 'line-list' },
-      depthStencil: webGpuWorldDepthStencil('read'),
-      multisample: webGpuMultisample(shell.sampleCount),
+      depthStencil: gpuWorldDepthStencil('read'),
+      multisample: gpuMultisample(shell.sampleCount),
     });
     this.vertexBuffer = device.createBuffer({
       label: 'battle-ground-cue-empty',

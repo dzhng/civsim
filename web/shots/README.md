@@ -9,7 +9,7 @@ touching before you delete or re-bless.
 
 | Folder | Harness | Regen command (run from `web/`, dev server up) |
 | --- | --- | --- |
-| `campaign/` `ui/` `battle/` `models/` | `scene.mjs` (headless Chromium / WebGPU) | `VERIFY_WEBGPU=1 UPDATE_SHOTS=1 node scene.mjs --full` |
+| `campaign/` `ui/` `battle/` `models/` | `scene.mjs` (headless Chromium / WebGPU) | `VERIFY_GPU=1 UPDATE_SHOTS=1 node scene.mjs --full` |
 | `vibe/` | `web/vibe/*.mjs` (melee/duel sim flip-books) | `UPDATE_SHOTS=1 node vibe/all.mjs` |
 | `weave/` | `crates/sim/examples/weave_shots.rs` (Rust sim, no browser) | `cargo run -p sim --example weave_shots` (from repo root) |
 | `diff/` | transient diff output, **gitignored** | n/a — safe to delete, never committed |
@@ -32,7 +32,7 @@ see [`../vibe/README.md`](../vibe/README.md). For the scene catalog and the
 npx vite --port 5185 --strictPort &
 
 # 1. scene harness (campaign / ui / battle / models)
-VERIFY_URL=http://localhost:5185 VERIFY_WEBGPU=1 UPDATE_SHOTS=1 node scene.mjs --full
+VERIFY_URL=http://localhost:5185 VERIFY_GPU=1 UPDATE_SHOTS=1 node scene.mjs --full
 
 # 2. vibe melee flip-books
 VERIFY_URL=http://localhost:5185 UPDATE_SHOTS=1 node vibe/all.mjs
@@ -50,7 +50,7 @@ and should stay deleted.
 - **`--full` matters.** Without it, `scene.mjs` skips `tier: 'full'` scenes
   (the whole-game flow runs, model/soldier gates, perf report). Quick-tier alone
   leaves most `battle/` and `models/` baselines unwritten.
-- **`VERIFY_WEBGPU=1` is mandatory for campaign scenes.** Campaign WebGPU scenes
+- **`VERIFY_GPU=1` is mandatory for campaign scenes.** Campaign WebGPU scenes
   no-op into a skip-check without it, so they neither verify nor regenerate.
 - **A passing snapshot writes nothing.** The harness only writes
   `shots/diff/<name>-actual.png` on **FAIL**. If you are eyeballing a

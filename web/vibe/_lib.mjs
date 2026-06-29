@@ -10,8 +10,8 @@ import { chromium } from 'playwright';
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { clearSnapshotFolder, snapCheck } from '../snapshot.mjs';
-import { encodeGif, pngToRGBA, downscaleRGBA } from './_gif.mjs';
-import { WEBGPU_HARDWARE_FLAGS, WEBGPU_SWIFTSHADER_FLAGS } from '../webgpu-probe-lib.mjs';
+import { encodeGif, pngToRGBA, downscaleRGBA } from '../shots/_gif.mjs';
+import { GPU_HARDWARE_FLAGS, GPU_SWIFTSHADER_FLAGS } from '../renderer-probe-lib.mjs';
 
 const SHOTS = fileURLToPath(new URL('../shots/', import.meta.url));
 
@@ -23,10 +23,10 @@ export const UNIT_CENTER_Y = 31;
 /** Boot straight into a battle (e.g. 'battle=duel&a=0&b=0&ai=off') and wait for
  *  the debug bridge. Returns { browser, page, errs }. */
 export async function openBattle(query) {
-  const webgpuArgs = process.env.VERIFY_WEBGPU === '1'
-    ? (process.env.VERIFY_WEBGPU_ADAPTER === 'hardware' ? WEBGPU_HARDWARE_FLAGS : WEBGPU_SWIFTSHADER_FLAGS)
+  const gpuArgs = process.env.VERIFY_GPU === '1'
+    ? (process.env.VERIFY_GPU_ADAPTER === 'hardware' ? GPU_HARDWARE_FLAGS : GPU_SWIFTSHADER_FLAGS)
     : [];
-  const browser = await chromium.launch({ args: webgpuArgs });
+  const browser = await chromium.launch({ args: gpuArgs });
   const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
   const errs = [];
   page.on('pageerror', (e) => errs.push(e.message));

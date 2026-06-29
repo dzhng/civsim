@@ -1,6 +1,6 @@
-import type { RawFrameShell, WorldRenderPass } from '../../../webgpu-core/src/frameShell';
-import { WORLD_CAMERA_WGSL } from '../../../webgpu-core/src/cameraWgsl';
-import { webGpuAlphaBlendColorTarget, webGpuWorldDepthStencil } from '../../../webgpu-core/src/pipelineContracts';
+import type { RawFrameShell, WorldRenderPass } from '../../../renderer-core/src/frameShell';
+import { WORLD_CAMERA_WGSL } from '../../../renderer-core/src/cameraWgsl';
+import { gpuAlphaBlendColorTarget, gpuWorldDepthStencil } from '../../../renderer-core/src/pipelineContracts';
 
 export interface CampaignSelectionInstance {
   x: number;
@@ -105,10 +105,10 @@ export class CampaignSelectionPass {
       fragment: {
         module,
         entryPoint: 'fs',
-        targets: [webGpuAlphaBlendColorTarget(this.shell.info.format)],
+        targets: [gpuAlphaBlendColorTarget(this.shell.info.format)],
       },
       primitive: { topology: 'triangle-strip' },
-      depthStencil: webGpuWorldDepthStencil('read'),
+      depthStencil: gpuWorldDepthStencil('read'),
     });
   }
 

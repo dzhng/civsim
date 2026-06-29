@@ -2,7 +2,7 @@ import type { Scene } from '../scene';
 import type { BattleKind } from '../battle/scene';
 import { CLASS_NAMES } from '../battle/classData';
 import { MANUAL_HTML } from '../battle/manual';
-import type { WebGpuSupportState } from '../../../packages/game-renderer/src/appShell';
+import type { GpuSupportState } from '../../../packages/game-renderer/src/appShell';
 
 export interface MenuConfig {
   onQuickBattle: (kind: BattleKind) => void;
@@ -12,7 +12,7 @@ export interface MenuConfig {
   /** Load the named save slot; absent slot disables the button. */
   onLoadCampaign: () => void;
   hasSave: () => boolean;
-  webGpuStatus: WebGpuSupportState;
+  gpuStatus: GpuSupportState;
 }
 
 /** Boot scene: plain DOM over a dark backdrop, no GL. Markup lives in #menu-ui. */
@@ -26,7 +26,7 @@ export class MenuScene implements Scene {
     this.root.style.display = 'flex';
     this.ac = new AbortController();
     const { signal } = this.ac;
-    this.updateWebGpuStatus();
+    this.updateGpuStatus();
     this.root.querySelectorAll<HTMLButtonElement>('button[data-battle]').forEach((b) => {
       b.addEventListener('click', () => this.cfg.onQuickBattle(b.dataset.battle as BattleKind), { signal });
     });
@@ -41,7 +41,7 @@ export class MenuScene implements Scene {
       selB.value = String(CLASS_NAMES.length > 6 ? 6 : 0); // cav makes a lively default foe
     }
     this.root.querySelector<HTMLButtonElement>('#menu-1v1')!.addEventListener('click', () => {
-      if (!this.cfg.webGpuStatus.ok) return;
+      if (!this.cfg.gpuStatus.ok) return;
       modal.style.display = 'flex';
       selA.focus();
     }, { signal });
@@ -53,7 +53,7 @@ export class MenuScene implements Scene {
     }, { signal });
     const aiBox = this.root.querySelector<HTMLInputElement>('#duel-ai')!;
     this.root.querySelector<HTMLButtonElement>('#menu-duel')!.addEventListener('click', () => {
-      if (!this.cfg.webGpuStatus.ok) return;
+      if (!this.cfg.gpuStatus.ok) return;
       modal.style.display = 'none';
       this.cfg.onDuel(Number(selA.value), Number(selB.value), aiBox.checked);
     }, { signal });
@@ -66,8 +66,8 @@ export class MenuScene implements Scene {
     const nc = this.root.querySelector<HTMLButtonElement>('#menu-new-campaign')!;
     nc.addEventListener('click', () => this.cfg.onNewCampaign(), { signal });
     const ls = this.root.querySelector<HTMLButtonElement>('#menu-load-save')!;
-    ls.disabled = !this.cfg.webGpuStatus.ok || !this.cfg.hasSave();
-    if (!this.cfg.webGpuStatus.ok) ls.title = this.cfg.webGpuStatus.message;
+    ls.disabled = !this.cfg.gpuStatus.ok || !this.cfg.hasSave();
+    if (!this.cfg.gpuStatus.ok) ls.title = this.cfg.gpuStatus.message;
     ls.addEventListener('click', () => this.cfg.onLoadCampaign(), { signal });
     window.addEventListener('keydown', (event) => {
       if (event.key !== 'Escape') return;
@@ -86,11 +86,11 @@ export class MenuScene implements Scene {
 
   frame() {}
 
-  private updateWebGpuStatus() {
-    const status = this.root.querySelector<HTMLElement>('#menu-webgpu-status')!;
-    status.classList.toggle('ok', this.cfg.webGpuStatus.ok);
-    status.classList.toggle('bad', !this.cfg.webGpuStatus.ok);
-    status.textContent = this.cfg.webGpuStatus.ok ? this.cfg.webGpuStatus.message : `WebGPU unavailable: ${this.cfg.webGpuStatus.message}`;
+  private updateGpuStatus() {
+    const status = this.root.querySelector<HTMLElement>('#menu-renderer-status')!;
+    status.classList.toggle('ok', this.cfg.gpuStatus.ok);
+    status.classList.toggle('bad', !this.cfg.gpuStatus.ok);
+    status.textContent = this.cfg.gpuStatus.ok ? this.cfg.gpuStatus.message : `WebGPU unavailable: ${this.cfg.gpuStatus.message}`;
 
     const launchButtons = [
       ...Array.from(this.root.querySelectorAll<HTMLButtonElement>('button[data-battle]')),
@@ -99,8 +99,8 @@ export class MenuScene implements Scene {
       this.root.querySelector<HTMLButtonElement>('#menu-load-save')!,
     ];
     for (const button of launchButtons) {
-      button.disabled = !this.cfg.webGpuStatus.ok;
-      button.title = this.cfg.webGpuStatus.ok ? '' : this.cfg.webGpuStatus.message;
+      button.disabled = !this.cfg.gpuStatus.ok;
+      button.title = this.cfg.gpuStatus.ok ? '' : this.cfg.gpuStatus.message;
     }
   }
 }

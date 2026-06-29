@@ -4,17 +4,17 @@ import { MenuScene } from './menu/scene';
 import { BattleScene, type BattleKind } from './battle/scene';
 import { CampaignScene, loadCampaignData } from './campaign/scene';
 import type { CampaignData } from './campaign/data';
-import { checkWebGpuSupport, type WebGpuSupportState } from '../../packages/game-renderer/src/appShell';
+import { checkGpuSupport, type GpuSupportState } from '../../packages/game-renderer/src/appShell';
 
 const params = new URLSearchParams(location.search);
 let wasm: InitOutput;
-let webGpuStatus: WebGpuSupportState | null = null;
+let gpuStatus: GpuSupportState | null = null;
 
-if (location.pathname.startsWith('/webgpu')) {
-  const { mountWebgpuLab } = await import('../../apps/webgpu-lab/src/router');
-  await mountWebgpuLab(location.pathname);
+if (location.pathname.startsWith('/renderer')) {
+  const { mountRendererLab } = await import('../../apps/renderer-lab/src/router');
+  await mountRendererLab(location.pathname);
 } else {
-  webGpuStatus = await checkWebGpuSupport({ forceUnsupported: params.get('webgpu') === 'off' });
+  gpuStatus = await checkGpuSupport({ forceUnsupported: params.get('gpu') === 'off' });
   publishAppShellStats();
   wasm = await init();
 
@@ -274,7 +274,7 @@ const menu = new MenuScene({
   onNewCampaign: () => void launchCampaign(false),
   onLoadCampaign: () => void launchCampaign(true),
   hasSave: () => localStorage.getItem(SAVE_KEY) !== null,
-  webGpuStatus: webGpuStatus!,
+  gpuStatus: gpuStatus!,
 });
 
 // ?battle=duel&a=0&b=6&ai=on, ?battle=5v5, ?map=A|B boot straight into the
@@ -287,7 +287,7 @@ const wantsBattle = sandbox === 'duel'
   || sandbox === 'flank'
   || params.has('map')
   || params.has('battle');
-if (!webGpuStatus!.ok && (wantsCampaign || wantsBattle)) switchScene(menu);
+if (!gpuStatus!.ok && (wantsCampaign || wantsBattle)) switchScene(menu);
 else if (params.get('campaign') === 'test') void launchCampaign(false, await buildTestCampaign());
 else if (params.get('campaign') === 'handoff') void launchCampaign(false, await buildHandoffCampaign());
 else if (params.get('campaign') === 'alignment') void launchCampaign(false, await buildAlignmentCampaign());
@@ -305,7 +305,7 @@ requestAnimationFrame(frame);
 
 function publishAppShellStats() {
   (window as unknown as { __appShellStats?: unknown }).__appShellStats = {
-    webgpu: webGpuStatus,
-    postCutoverScreenshots: 'webgpu-only',
+    gpu: gpuStatus,
+    postCutoverScreenshots: 'renderer-only',
   };
 }

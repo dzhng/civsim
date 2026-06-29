@@ -1,6 +1,6 @@
 import { CLASS_DEPTH, CLASS_SPACING, UNIT_INFO } from './unitInfoLayout';
 
-export interface WebGpuBattlePickCamera {
+export interface RendererBattlePickCamera {
   x: number;
   y: number;
   zoom: number;
@@ -56,7 +56,7 @@ export function liveBattlePickUnits(game: BattlePickGame, memory: WebAssembly.Me
   return units;
 }
 
-export function cssToBattleWorld(cssX: number, cssY: number, canvas: HTMLCanvasElement, camera: WebGpuBattlePickCamera) {
+export function cssToBattleWorld(cssX: number, cssY: number, canvas: HTMLCanvasElement, camera: RendererBattlePickCamera) {
   const rect = canvas.getBoundingClientRect();
   const px = (cssX - rect.left) * (canvas.width / Math.max(1, canvas.clientWidth));
   const py = (cssY - rect.top) * (canvas.height / Math.max(1, canvas.clientHeight));
@@ -70,7 +70,7 @@ export function cssToBattleWorld(cssX: number, cssY: number, canvas: HTMLCanvasE
   };
 }
 
-export function battleWorldToCss(x: number, y: number, canvas: HTMLCanvasElement, camera: WebGpuBattlePickCamera) {
+export function battleWorldToCss(x: number, y: number, canvas: HTMLCanvasElement, camera: RendererBattlePickCamera) {
   const rect = canvas.getBoundingClientRect();
   const c = Math.cos(camera.yaw);
   const s = Math.sin(camera.yaw);

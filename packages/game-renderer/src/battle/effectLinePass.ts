@@ -1,7 +1,7 @@
-import type { OverlayRenderPass, RawFrameShell } from '../../../webgpu-core/src/frameShell';
-import { WORLD_CAMERA_WGSL } from '../../../webgpu-core/src/cameraWgsl';
-import { compileShader } from '../../../webgpu-core/src/compileShader';
-import { webGpuAlphaBlendColorTarget, webGpuMultisample } from '../../../webgpu-core/src/pipelineContracts';
+import type { OverlayRenderPass, RawFrameShell } from '../../../renderer-core/src/frameShell';
+import { WORLD_CAMERA_WGSL } from '../../../renderer-core/src/cameraWgsl';
+import { compileShader } from '../../../renderer-core/src/compileShader';
+import { gpuAlphaBlendColorTarget, gpuMultisample } from '../../../renderer-core/src/pipelineContracts';
 
 export interface BattleEffectLineStats {
   vertices: number;
@@ -55,10 +55,10 @@ export class BattleEffectLinePass {
       fragment: {
         module,
         entryPoint: 'fs',
-        targets: [webGpuAlphaBlendColorTarget(shell.info.format)],
+        targets: [gpuAlphaBlendColorTarget(shell.info.format)],
       },
       primitive: { topology: 'line-list' },
-      multisample: webGpuMultisample(shell.sampleCount),
+      multisample: gpuMultisample(shell.sampleCount),
     });
     this.vertexBuffer = device.createBuffer({
       label: 'battle-effect-line-empty',

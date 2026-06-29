@@ -64,7 +64,7 @@ never hand back a stack of `t###s.png` with no GIF.
   yourself): `node vibe/gif.mjs <dir> [out] [delayMs=200] [downscale=2]`. It
   orders frames by filename and writes `<dir>/timeline.gif`. Name frames so they
   sort.
-- The encoder is `vibe/_gif.mjs` (`encodeGif` / `downscaleRGBA`,
+- The encoder is `shots/_gif.mjs` (`encodeGif` / `downscaleRGBA`,
   dependency-free — no ffmpeg/imagemagick on this box). Call it directly for a
   bespoke series.
 

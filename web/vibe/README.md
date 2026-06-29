@@ -26,15 +26,15 @@ is the workflow.
   reuses: booting a battle to its debug bridge, the screenshot-then-regression
   capture loop, and the common two-unit duel framing. Anything that encodes what
   a *specific* scenario means stays in that scenario's script, never here.
-- **Model sheets** (`model-sheet.mjs`) — not a battle: a 360° review of the 3D
-  soldier models at the in-game battle camera pitch, one gated contact sheet per
-  class.
 
 Run the whole sweep with `node vibe/all.mjs` (from `web/`, dev server up), or a
 single scenario script on its own to iterate; all honor `UPDATE_SHOTS=1` to
 re-bless. A full sweep clears each scenario folder before writing, so stale tail
 frames from an older timeline cannot survive. Use `--list` / read `all.mjs` for
 what exists rather than trusting this file.
+
+Static model sheets and single-model animation reviews live under
+`web/shots/models/scripts/`; they are model-shot generators, not vibe matchups.
 
 > **Weave shots are separate.** The WEAVE lattice has its own Rust picture
 > generator (`cargo run -p sim --example weave_shots` → `shots/weave/`),

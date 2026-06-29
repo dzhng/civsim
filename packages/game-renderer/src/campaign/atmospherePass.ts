@@ -1,5 +1,5 @@
-import type { BackgroundRenderPass, OverlayRenderPass, RawFrameShell } from '../../../webgpu-core/src/frameShell';
-import { WORLD_CAMERA_WGSL } from '../../../webgpu-core/src/cameraWgsl';
+import type { BackgroundRenderPass, OverlayRenderPass, RawFrameShell } from '../../../renderer-core/src/frameShell';
+import { WORLD_CAMERA_WGSL } from '../../../renderer-core/src/cameraWgsl';
 
 export interface CampaignAtmosphereRect {
   min: [number, number];

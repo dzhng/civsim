@@ -5,7 +5,7 @@ import { pushGhost, pushPie, pushRing } from '../shared/overlays';
 import { fatalSurfaceFor, showFatalErrorSurface } from '../shared/fatalError';
 import { CLASS_DEPTH, CLASS_SPACING } from '../../../packages/game-renderer/src/battle/unitInfoLayout';
 import { modelLookForUnit } from '../../../packages/game-renderer/src/models/shared/soldierModel';
-import { BattleRendererWebGPU, type BattleTacticalLineFrame } from './rendererWebGPU';
+import { BattleRenderer, type BattleTacticalLineFrame } from './renderer';
 import { CLASS_NAMES } from './classData';
 import { UnitBanner, type BannerChip } from './unitBanner';
 import { UnitCards } from './unitCard';
@@ -40,7 +40,7 @@ export interface BattleConfig {
 
 // One renderer for the page: GPU/device/atlas state is battle-independent;
 // per-battle data arrives through setStatic/setTerrain.
-let sharedRenderer: BattleRendererWebGPU | null = null;
+let sharedRenderer: BattleRenderer | null = null;
 
 export class BattleScene implements Scene {
   private cleanups: (() => void)[] = [];
@@ -77,7 +77,7 @@ export class BattleScene implements Scene {
 
     const canvas = document.getElementById('battlefield') as HTMLCanvasElement;
     const camera = new Camera(canvas);
-    const renderer = (sharedRenderer ??= new BattleRendererWebGPU(canvas));
+    const renderer = (sharedRenderer ??= new BattleRenderer(canvas));
     camera.pitch = renderer.pitch;
     renderer.resize(); // the canvas may have been display:none through a window resize
     const STRIDE = game.unit_info_stride();
@@ -1170,7 +1170,7 @@ export class BattleScene implements Scene {
         tickMs: tickMsAvg,
         fps: fpsAvg,
         victor: game.victor(),
-        renderer: 'webgpu',
+        renderer: 'gpu',
         renderStats: renderer.stats(),
       }),
       setOrder: (u: number, x: number, y: number) => game.set_move_order(u, x, y),

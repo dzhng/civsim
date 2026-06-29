@@ -11,7 +11,7 @@
 // (5 fps) so the whole sequence is easy to follow.
 import fs from 'node:fs';
 import path from 'node:path';
-import { encodeGif, pngToRGBA, downscaleRGBA } from './_gif.mjs';
+import { encodeGif, pngToRGBA, downscaleRGBA } from '../shots/_gif.mjs';
 
 const [dir, outArg, delayArg, scaleArg] = process.argv.slice(2);
 if (!dir) {

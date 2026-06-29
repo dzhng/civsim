@@ -1,7 +1,7 @@
-import type { BackgroundRenderPass, RawFrameShell, WorldRenderPass } from '../../../webgpu-core/src/frameShell';
-import { WORLD_CAMERA_WGSL } from '../../../webgpu-core/src/cameraWgsl';
-import { compileShader } from '../../../webgpu-core/src/compileShader';
-import { webGpuMultisample, webGpuWorldDepthStencil } from '../../../webgpu-core/src/pipelineContracts';
+import type { BackgroundRenderPass, RawFrameShell, WorldRenderPass } from '../../../renderer-core/src/frameShell';
+import { WORLD_CAMERA_WGSL } from '../../../renderer-core/src/cameraWgsl';
+import { compileShader } from '../../../renderer-core/src/compileShader';
+import { gpuMultisample, gpuWorldDepthStencil } from '../../../renderer-core/src/pipelineContracts';
 
 export type BattleTerrainFixture = 'coast' | 'melee' | 'dry-melee' | 'prop-field' | 'sim-tint';
 
@@ -263,7 +263,7 @@ export class BattleTerrainPass {
         }],
       },
       primitive: { topology: 'triangle-strip' },
-      multisample: webGpuMultisample(shell.sampleCount),
+      multisample: gpuMultisample(shell.sampleCount),
     });
     this.propPipeline = device.createRenderPipeline({
       label: 'battle-terrain-world-props-pipeline',
@@ -275,8 +275,8 @@ export class BattleTerrainPass {
         targets: [{ format: shell.info.format }],
       },
       primitive: { topology: 'triangle-strip' },
-      depthStencil: webGpuWorldDepthStencil('read-write', 'less-equal'),
-      multisample: webGpuMultisample(shell.sampleCount),
+      depthStencil: gpuWorldDepthStencil('read-write', 'less-equal'),
+      multisample: gpuMultisample(shell.sampleCount),
     });
     this.quadBuffer = device.createBuffer({
       label: 'battle-terrain-quad',

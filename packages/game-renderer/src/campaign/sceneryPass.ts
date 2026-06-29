@@ -1,6 +1,6 @@
-import type { RawFrameShell, WorldRenderPass } from '../../../webgpu-core/src/frameShell';
-import { WORLD_CAMERA_WGSL } from '../../../webgpu-core/src/cameraWgsl';
-import { webGpuAlphaBlendColorTarget, webGpuOpaqueColorTarget, webGpuWorldDepthStencil } from '../../../webgpu-core/src/pipelineContracts';
+import type { RawFrameShell, WorldRenderPass } from '../../../renderer-core/src/frameShell';
+import { WORLD_CAMERA_WGSL } from '../../../renderer-core/src/cameraWgsl';
+import { gpuAlphaBlendColorTarget, gpuOpaqueColorTarget, gpuWorldDepthStencil } from '../../../renderer-core/src/pipelineContracts';
 import { buildBroadleafTreeMesh, buildCartMesh, buildConiferTreeMesh, buildMountainMesh, buildRockMesh } from '../models/shared/sceneryPropModels';
 
 export type CampaignSceneryKind = 'mountain' | 'tree' | 'conifer' | 'broadleaf' | 'rock' | 'cart';
@@ -175,12 +175,12 @@ export class CampaignSceneryPass {
         entryPoint: 'fs',
         targets: [
           material === 'opaque'
-            ? webGpuOpaqueColorTarget(this.shell.info.format)
-            : webGpuAlphaBlendColorTarget(this.shell.info.format),
+            ? gpuOpaqueColorTarget(this.shell.info.format)
+            : gpuAlphaBlendColorTarget(this.shell.info.format),
         ],
       },
       primitive: { topology: 'triangle-list', cullMode: 'none' },
-      depthStencil: webGpuWorldDepthStencil(material === 'opaque' ? 'read-write' : 'read'),
+      depthStencil: gpuWorldDepthStencil(material === 'opaque' ? 'read-write' : 'read'),
     });
   }
 
@@ -293,7 +293,7 @@ export class CampaignSceneryPass {
       broadleafModelVertices: (this.broadleafMesh.opaque.vertices.length + this.broadleafMesh.shadow.vertices.length) / 10,
       rockModelVertices: (this.rockMesh.opaque.vertices.length + this.rockMesh.shadow.vertices.length) / 10,
       materialClasses: ['opaque-depth-write', 'shadow-depth-read'] as const,
-      layer: 'raw-webgpu-scenery-library-meshes',
+      layer: 'raw-gpu-scenery-library-meshes',
     };
   }
 

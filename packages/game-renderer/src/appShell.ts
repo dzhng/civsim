@@ -1,6 +1,6 @@
-import { probeWebGpuCapabilities, type WebGpuCapabilityOptions } from '../../webgpu-core/src/capabilities';
+import { probeGpuCapabilities, type GpuCapabilityOptions } from '../../renderer-core/src/capabilities';
 
-export interface WebGpuSupportState {
+export interface GpuSupportState {
   checked: boolean;
   ok: boolean;
   adapter: string;
@@ -8,10 +8,10 @@ export interface WebGpuSupportState {
   message: string;
 }
 
-export type WebGpuSupportOptions = WebGpuCapabilityOptions;
+export type GpuSupportOptions = GpuCapabilityOptions;
 
-export async function checkWebGpuSupport(options: WebGpuSupportOptions = {}): Promise<WebGpuSupportState> {
-  const capabilities = await probeWebGpuCapabilities(options);
+export async function checkGpuSupport(options: GpuSupportOptions = {}): Promise<GpuSupportState> {
+  const capabilities = await probeGpuCapabilities(options);
   if (capabilities.ok) {
     return {
       checked: true,

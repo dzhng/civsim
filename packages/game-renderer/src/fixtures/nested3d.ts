@@ -1,14 +1,14 @@
-import type { RawFrameShell, WorldRenderPass } from '../../../webgpu-core/src/frameShell';
-import { WORLD_CAMERA_WGSL } from '../../../webgpu-core/src/cameraWgsl';
-import { compileShader } from '../../../webgpu-core/src/compileShader';
-import { WEBGPU_DEPTH_FORMAT } from '../../../webgpu-core/src/depthContract';
-import { webGpuMultisample, webGpuOpaqueColorTarget, webGpuWorldDepthStencil } from '../../../webgpu-core/src/pipelineContracts';
+import type { RawFrameShell, WorldRenderPass } from '../../../renderer-core/src/frameShell';
+import { WORLD_CAMERA_WGSL } from '../../../renderer-core/src/cameraWgsl';
+import { compileShader } from '../../../renderer-core/src/compileShader';
+import { GPU_DEPTH_FORMAT } from '../../../renderer-core/src/depthContract';
+import { gpuMultisample, gpuOpaqueColorTarget, gpuWorldDepthStencil } from '../../../renderer-core/src/pipelineContracts';
 
 export interface Nested3dFixtureStats {
   layer: 'depth-tested-nested-3d-fixture';
   vertices: number;
   drawCalls: number;
-  depthFormat: typeof WEBGPU_DEPTH_FORMAT;
+  depthFormat: typeof GPU_DEPTH_FORMAT;
   fixtures: string[];
   drawOrder: string;
 }
@@ -67,11 +67,11 @@ export class Nested3dFixturePass {
       fragment: {
         module,
         entryPoint: 'fs',
-        targets: [webGpuOpaqueColorTarget(shell.info.format)],
+        targets: [gpuOpaqueColorTarget(shell.info.format)],
       },
       primitive: { topology: 'triangle-list', cullMode: 'none' },
-      depthStencil: webGpuWorldDepthStencil('read-write'),
-      multisample: webGpuMultisample(shell.sampleCount),
+      depthStencil: gpuWorldDepthStencil('read-write'),
+      multisample: gpuMultisample(shell.sampleCount),
     });
     const vertices = buildNestedFixtureVertices();
     this.vertexCount = vertices.length / 7;
@@ -95,7 +95,7 @@ export class Nested3dFixturePass {
       layer: 'depth-tested-nested-3d-fixture',
       vertices: this.vertexCount,
       drawCalls: 1,
-      depthFormat: WEBGPU_DEPTH_FORMAT,
+      depthFormat: GPU_DEPTH_FORMAT,
       fixtures: ['flag-in-city', 'garrison-in-city-stub', 'rank-overlap', 'ground-ring-occlusion'],
       drawOrder: 'occluders are submitted before late flag/ring geometry; depth test must still hide covered pixels',
     };

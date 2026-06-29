@@ -2,12 +2,12 @@
 // for new work; this keeps the historical npm scripts and SNAP filters alive.
 import { main } from './scene.mjs';
 
-process.env.VERIFY_WEBGPU ??= '1';
+process.env.VERIFY_GPU ??= '1';
 
 const args = process.argv.slice(2);
 const full = args.includes('--full');
 const includeNames = [
-  'battle-webgpu-default',
+  'battle-renderer-default',
   'battle-smoke',
   'battle-lod',
   'battle-selection',

@@ -17,8 +17,8 @@ export const meta = {
 };
 
 export async function run(ctx) {
-  if (process.env.VERIFY_WEBGPU !== '1') {
-    ctx.check('campaign polish markers workbench requires VERIFY_WEBGPU=1', true, 'set VERIFY_WEBGPU=1 to exercise the WebGPU campaign adapter');
+  if (process.env.VERIFY_GPU !== '1') {
+    ctx.check('campaign polish markers workbench requires VERIFY_GPU=1', true, 'set VERIFY_GPU=1 to exercise the WebGPU campaign adapter');
     return;
   }
 
@@ -29,8 +29,8 @@ export async function run(ctx) {
   await page.goto(`${ctx.target}/?campaign=test`);
   await page.waitForFunction(
     () => window.__campaignReady === true
-      && window.__campaignWebGPUStats?.ready === true
-      && window.__campaignWebGPUStats?.renderer === 'webgpu-campaign',
+      && window.__campaignGpuStats?.ready === true
+      && window.__campaignGpuStats?.renderer === 'renderer-campaign',
     undefined,
     { timeout: 30000 },
   );
@@ -47,7 +47,7 @@ export async function run(ctx) {
     window.__campaign.cam(0, 450, 18);
   });
   await page.waitForTimeout(320);
-  const labelStats = await page.evaluate(() => window.__campaignWebGPUStats);
+  const labelStats = await page.evaluate(() => window.__campaignGpuStats);
   ctx.check(
     'label workbench shows both city labels',
     labelStats.visibleLabelNames?.includes('city:ROMA')

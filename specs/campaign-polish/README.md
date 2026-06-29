@@ -6,7 +6,7 @@ Polish the WebGPU campaign experience until the main campaign map feels playable
 legible, and better than the previous renderer. This spec is deliberately narrow:
 campaign visuals, campaign LoD/readability, and campaign life. The WebGPU
 foundation is already closed in
-[../done/webgpu-skinned-crowd-foundation/README.md](../done/webgpu-skinned-crowd-foundation/README.md).
+[../done/renderer-skinned-crowd-foundation/README.md](../done/renderer-skinned-crowd-foundation/README.md).
 
 ## Starting Feedback
 
@@ -26,24 +26,24 @@ underlying systems exist; the work is acceptance plus two genuinely-missing
 features (carts, city-aware clearance). Use these as slice starting pointers:
 
 - **Slice 02 (labels/road):** label offset math lives at
-  `web/src/campaign/rendererWebGPU.ts:575-579` (spacing unverified); the
+  `web/src/campaign/renderer.ts:575-579` (spacing unverified); the
   `Roma`–`Ostia/Portus` road probe is absent — `CENTRAL_ITALY_ROAD_PAIRS`
-  (`web/scenes/campaign/campaign-webgpu-lod.mjs:27-39`) omits that pair, and the
+  (`web/scenes/campaign/campaign-lod.mjs:27-39`) omits that pair, and the
   Rome-south road-continuity workbench scene does not exist yet. Label
-  *visibility* is already safeguarded (`campaign-webgpu-lod.mjs:159,181-182`).
+  *visibility* is already safeguarded (`campaign-lod.mjs:159,181-182`).
 - **Slice 03 (terrain color):** grass defaults tan at
   `packages/game-renderer/src/campaign/mapPass.ts:192`, only greening above
   moisture 0.55 (`mapPass.ts:184-224`).
 - **Slice 04 (clearance/forests):** mountain height grading is range-edge chamfer
   only with no city-aware clearance — `web/src/campaign/terrain.ts:159-170` gets
   city positions but never uses them; only 3D scenery models are cleared
-  (`rendererWebGPU.ts:930-931`), leaving raised terrain over cities. Trees
+  (`renderer.ts:930-931`), leaving raised terrain over cities. Trees
   generate but are LOD-culled at threshold 0.45 vs initial zoom 0.18
-  (`rendererWebGPU.ts:752-771,953-957`).
+  (`renderer.ts:752-771,953-957`).
 - **Slice 05 (road life):** carts are entirely unimplemented — no model in
   `packages/game-renderer/src/campaign/campaignEntityModels.ts:3-93`, not in the
   `CampaignSceneryKind` union (`campaign/sceneryPass.ts:6`), no spawn/path-follow
-  logic (`rendererWebGPU.ts:679-779`).
+  logic (`renderer.ts:679-779`).
 
 Specific blockers:
 
@@ -150,14 +150,14 @@ polish; everything in the original feedback set is resolved.**
 Slice 5 added road life: a small ox-less trade
 cart (`buildCartMesh`, `models/shared/sceneryPropModels.ts`) rides every real
 campaign road as a deterministic, frozen-time prop. Placement lives in
-`campaignRoadCarts` (`rendererWebGPU.ts`): it smooths each `edge.via` with
+`campaignRoadCarts` (`renderer.ts`): it smooths each `edge.via` with
 `smoothRoadVia` (the same 0.72/0.14/0.14 weighting `mapPass` draws with, so carts
 sit on the rendered centerline), drops a cart every `CART_SPACING_KM`, faces it
 down the road via the per-instance `yaw` slot from slice 4, skips the road-
 clearance cull (carts belong on the road) but skips the last ~7 km into each city
 and obeys fog. `'cart'` is fully plumbed through `sceneryPass.ts` (buffers, draw,
 shadows, `sceneryStats.carts`). Determinism is byte-identical on double-run. The
-`campaign-polish-roads` and `campaign-webgpu-lod` rome-close scenes gate on
+`campaign-polish-roads` and `campaign-lod` rome-close scenes gate on
 `sceneryStats.carts >= 1`; all cart-affected baselines re-blessed. Critique:
 unanimous HIGH-confidence positive ("reads as intended, executes cleanly").
 
@@ -172,17 +172,17 @@ gentle alone, so restyled props over rock-shaded terrain is the answer). Slice 3
 `naturalCampaignColor` (`mapPass.ts`) — greens earlier, richer endpoint, a
 low-freq `meadow` patch term — taking the critique from "anemic/flat" to "ship
 with confidence" (close-Rome greenRatio 0.76→0.85). Mountain crop floors in
-`campaign-webgpu-lod.mjs` were recalibrated (old warm-stone classifier counted
+`campaign-lod.mjs` were recalibrated (old warm-stone classifier counted
 tan plains as mountain) and the greenRatio floor raised to 0.55. Workbench scenes `campaign-polish-roads`
 (`?campaign=alignment`) and `campaign-polish-markers` (`?campaign=test`) exist
 with pixel probes. City labels now sit ~one label height under their models via
 relief-aware offset in `cityLabelOffset`/`cityReliefRisePx`
-(`web/src/campaign/rendererWebGPU.ts`); the Roma→Ostia/Portus pair is now in the
+(`web/src/campaign/renderer.ts`); the Roma→Ostia/Portus pair is now in the
 real-map road probe. All labeled baselines re-blessed (20 shots) and critique-
 accepted. Remaining live offenders: **mountains are chunky stacked cone props**
 (the `alignment` fixture is buried in them — see `polish-road-continuity.png`;
 `buildMountainMesh` is three brown cones), **no visible trees/forests** at the
-gameplay camera (generated but LOD-culled — gap review: `rendererWebGPU.ts`
+gameplay camera (generated but LOD-culled — gap review: `renderer.ts`
 tree min-scale 0.45 vs zoom 0.18), **no city-aware terrain clearance** (relief
 ignores city positions, `terrain.ts:159-170`), and **no carts** (slice 5; cart
 model would live in `campaignEntityModels.ts`, kind union `sceneryPass.ts:6`).
@@ -192,12 +192,12 @@ is the Apennine-massif polish noted above (slice 6): the large bare landform
 behind Alba Fucens–Corfinium could get a wider green apron or a broken-up
 silhouette so a zero-context viewer doesn't read those hill-towns as "in the
 mountains." If you take it on, do it as a focused slice-4-style clearance/terrain
-tweak with a fresh critique, and re-bless the affected `campaign-webgpu-lod`
+tweak with a fresh critique, and re-bless the affected `campaign-lod`
 regional baselines.
 
 How this pass runs the harness on this machine: dev server on a free port
 (`npx vite --port 5179 --strictPort` from `web/`), then
-`VERIFY_URL=http://localhost:5179 VERIFY_WEBGPU=1 node scene.mjs <scene>`.
+`VERIFY_URL=http://localhost:5179 VERIFY_GPU=1 node scene.mjs <scene>`.
 Re-bless intentional changes with `UPDATE_SHOTS=1`. Device is swiftshader
 headless; snaps carry a documented sub-percent raster wobble.
 

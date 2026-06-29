@@ -1,6 +1,6 @@
-import type { RawFrameShell, WorldRenderPass } from '../../../webgpu-core/src/frameShell';
-import { WORLD_CAMERA_WGSL } from '../../../webgpu-core/src/cameraWgsl';
-import { webGpuAlphaBlendColorTarget, webGpuOpaqueColorTarget, webGpuWorldDepthStencil } from '../../../webgpu-core/src/pipelineContracts';
+import type { RawFrameShell, WorldRenderPass } from '../../../renderer-core/src/frameShell';
+import { WORLD_CAMERA_WGSL } from '../../../renderer-core/src/cameraWgsl';
+import { gpuAlphaBlendColorTarget, gpuOpaqueColorTarget, gpuWorldDepthStencil } from '../../../renderer-core/src/pipelineContracts';
 import { buildCampaignArmyMarkerMesh, buildCityMesh } from '../models/campaign/campaignEntityModels';
 
 export interface CampaignEntityInstance {
@@ -135,12 +135,12 @@ export class CampaignEntityPass {
         entryPoint: 'fs',
         targets: [
           material === 'opaque'
-            ? webGpuOpaqueColorTarget(this.shell.info.format)
-            : webGpuAlphaBlendColorTarget(this.shell.info.format),
+            ? gpuOpaqueColorTarget(this.shell.info.format)
+            : gpuAlphaBlendColorTarget(this.shell.info.format),
         ],
       },
       primitive: { topology: 'triangle-list', cullMode: 'none' },
-      depthStencil: webGpuWorldDepthStencil(material === 'opaque' ? 'read-write' : 'read'),
+      depthStencil: gpuWorldDepthStencil(material === 'opaque' ? 'read-write' : 'read'),
     });
   }
 
@@ -199,7 +199,7 @@ export class CampaignEntityPass {
       cityModelVertices: (this.cityMesh.opaque.vertices.length + this.cityMesh.shadow.vertices.length) / 10,
       armyModelVertices: (this.armyMesh.opaque.vertices.length + this.armyMesh.shadow.vertices.length) / 10,
       materialClasses: ['opaque-depth-write', 'shadow-depth-read'] as const,
-      layer: 'raw-webgpu-model-library-meshes',
+      layer: 'raw-gpu-model-library-meshes',
     };
   }
 

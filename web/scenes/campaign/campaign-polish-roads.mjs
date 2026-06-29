@@ -30,8 +30,8 @@ const SPOKES = [
 const CAMERA = [-52, 16, 8.0];
 
 export async function run(ctx) {
-  if (process.env.VERIFY_WEBGPU !== '1') {
-    ctx.check('campaign polish roads workbench requires VERIFY_WEBGPU=1', true, 'set VERIFY_WEBGPU=1 to exercise the WebGPU campaign adapter');
+  if (process.env.VERIFY_GPU !== '1') {
+    ctx.check('campaign polish roads workbench requires VERIFY_GPU=1', true, 'set VERIFY_GPU=1 to exercise the WebGPU campaign adapter');
     return;
   }
 
@@ -42,8 +42,8 @@ export async function run(ctx) {
   await page.goto(`${ctx.target}/?campaign=alignment`);
   await page.waitForFunction(
     () => window.__campaignReady === true
-      && window.__campaignWebGPUStats?.ready === true
-      && window.__campaignWebGPUStats?.renderer === 'webgpu-campaign',
+      && window.__campaignGpuStats?.ready === true
+      && window.__campaignGpuStats?.renderer === 'renderer-campaign',
     undefined,
     { timeout: 30000 },
   );
@@ -58,7 +58,7 @@ export async function run(ctx) {
   }, CAMERA);
   await page.waitForTimeout(320);
 
-  const stats = await page.evaluate(() => window.__campaignWebGPUStats);
+  const stats = await page.evaluate(() => window.__campaignGpuStats);
   ctx.check(
     'polish road workbench keeps Ostia/Portus a visible label',
     stats.visibleLabelNames?.includes('city:OSTIA/PORTUS') === true,

@@ -1,6 +1,6 @@
-import type { OverlayRenderPass, RawFrameShell } from '../../../webgpu-core/src/frameShell';
-import { compileShader } from '../../../webgpu-core/src/compileShader';
-import { webGpuMultisample } from '../../../webgpu-core/src/pipelineContracts';
+import type { OverlayRenderPass, RawFrameShell } from '../../../renderer-core/src/frameShell';
+import { compileShader } from '../../../renderer-core/src/compileShader';
+import { gpuMultisample } from '../../../renderer-core/src/pipelineContracts';
 
 export interface MinimapUnit {
   x: number;
@@ -104,7 +104,7 @@ export class BattleMinimapPass {
         }],
       },
       primitive: { topology: 'triangle-strip' },
-      multisample: webGpuMultisample(shell.sampleCount),
+      multisample: gpuMultisample(shell.sampleCount),
     });
     this.quadBuffer = device.createBuffer({
       label: 'battle-minimap-quad',

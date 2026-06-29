@@ -10,7 +10,7 @@ before it is added to the real campaign map.
 ## API Seam
 
 - road geometry from `packages/game-renderer/src/campaign/mapPass.ts`
-- campaign renderer frame data in `web/src/campaign/rendererWebGPU.ts`
+- campaign renderer frame data in `web/src/campaign/renderer.ts`
 - deterministic scene time from the campaign scene harness
 - a cart-on-road fixture scene with one road spline, one cart model, one city
   marker, fixed camera, and deterministic time steps
@@ -39,7 +39,7 @@ Done. Carts ride real campaign roads as deterministic, frozen-time props.
   ox-less trade cart pointing +X — four dark wheels, a plank bed, a shaft, and a
   canvas/sacks load. Kept low and stubby (size 6.0, height 4.0) so it reads as
   road life at the campaign camera without competing with city/army markers.
-- **Placement** (`rendererWebGPU.ts:campaignRoadCarts`): walks `data.map.edges`,
+- **Placement** (`renderer.ts:campaignRoadCarts`): walks `data.map.edges`,
   smooths each `edge.via` with `smoothRoadVia` (the same 0.72/0.14/0.14 weighting
   `mapPass` uses to draw the ribbon, so carts sit on the *rendered* centerline,
   not the raw polyline), then drops carts every `CART_SPACING_KM` along the
@@ -58,7 +58,7 @@ Model-sheet/anim review was scoped to the deterministic fixture frames instead o
 the unit model-sheet infra (which is battle-unit specific): the cart is reviewed
 on real road geometry at frozen frames per this slice's own "review the
 cart-on-road fixture at several deterministic frames" instruction. The
-`campaign-polish-roads` (`?campaign=alignment`) and `campaign-webgpu-lod`
+`campaign-polish-roads` (`?campaign=alignment`) and `campaign-lod`
 rome-close scenes both gate on `sceneryStats.carts >= 1`.
 
 Unbiased `screenshot-critique` (fresh agent, no project context, judging crops):

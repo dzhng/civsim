@@ -11,11 +11,11 @@ their destination cities at the close campaign camera.
 
 - `packages/game-renderer/src/campaign/mapPass.ts` label atlas and collision
   logic
-- `web/src/campaign/rendererWebGPU.ts` campaign label construction
+- `web/src/campaign/renderer.ts` campaign label construction
 - road geometry generation/projection shared by the WebGPU campaign renderer
 - a road-continuity fake scene: two city markers, a terrain plane, a road spline,
   and selectable draw-order/camera conditions
-- `web/scenes/campaign/campaign-webgpu-lod.mjs` visible-label and road probes for the
+- `web/scenes/campaign/campaign-lod.mjs` visible-label and road probes for the
   real close Rome camera
 
 ## Human Review
@@ -46,7 +46,7 @@ city *models* sit at terrain height (`world3dToScreen` adds `wz`). So an inland
 city's model rides up over its raised ground and the old `baseSize*1.30/1.45`
 offset left two-to-three label heights of empty grass under it (Tibur 7.9 km,
 Reate 16 km of relief; Tibur measured ~3.5 label heights). Fix in
-`cityLabelOffset` (`web/src/campaign/rendererWebGPU.ts`): target a constant
+`cityLabelOffset` (`web/src/campaign/renderer.ts`): target a constant
 `~one label height` gap and *subtract* the model's screen rise
 `reliefPx = h*zoom/depth` (`cityReliefRisePx`), so the offset goes negative for a
 perched city (name climbs to the model's foot) and stays positive for a
@@ -55,7 +55,7 @@ over-yank a flat coastal city (Ostia) up into the capital's garrison label.
 
 **Roma→Ostia/Portus road probe added.** The gap review flagged that
 `CENTRAL_ITALY_ROAD_PAIRS` omitted that pair; it is now probed in
-`campaign-webgpu-lod` (continuous, on land). The `polish-road-continuity`
+`campaign-lod` (continuous, on land). The `polish-road-continuity`
 workbench (slice 1) gates Rome-south continuity on the fixture first.
 
 Baselines re-blessed across all labeled campaign scenes (20 shots: lod,

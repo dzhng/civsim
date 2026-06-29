@@ -5,6 +5,7 @@
 // (massively exaggerated, like every campaign map), not real elevation.
 
 import type { CampaignData } from './data';
+import { isControlledStage } from './data';
 
 // Must match crates/mapgen/src/raster.rs. Mountain height is graded later by range
 // size (interior of a broad mass climbs higher than a narrow ridge).
@@ -166,6 +167,35 @@ export class TerrainField {
         if (cls[i] !== 2) continue;
         const crest = 1 - Math.abs(vnoise2(gx / 3.5 + 3.3, gy / 3.5 + 9.1) * 2 - 1);
         this.height[i] = 5 + Math.min(ridgeD[i], 6) * 3.9 * (0.35 + 0.95 * crest);
+      }
+    }
+
+    // City-aware clearance: the grading above shapes ranges blind to the towns,
+    // so a hill-town beside a massif (Alba Fucens, Corfinium) ends up sitting on
+    // graded mountain height — and since the rock color and mountain props both
+    // read off height, the town reads as embedded in a bare brown mass. Pull the
+    // relief down to a lowland apron around every city so each town gets a green
+    // foot; the massif still rises a couple of cells out. Lowering height here is
+    // the single source that also de-rocks the color and thins props near towns.
+    // Real campaign map only — fixture stages place their own controlled terrain.
+    if (!isControlledStage(data)) {
+      const cityMask = new Uint8Array(n);
+      for (const node of data.map.nodes) {
+        if (node.kind !== 'city') continue;
+        const cgx = Math.round((node.pos[0] - this.minX) / this.cell - 0.5);
+        const cgy = Math.round((this.maxY - node.pos[1]) / this.cell - 0.5);
+        if (cgx < 0 || cgy < 0 || cgx >= this.w || cgy >= this.h) continue;
+        cityMask[cgy * this.w + cgx] = 1;
+      }
+      const cityD = chamfer(cityMask, (v) => v === 1, this.w, this.h);
+      const apronKm = 12; // fully cleared to lowland within this radius of a town
+      const skirtKm = 34; // mountain height fully restored beyond this radius
+      const lowland = PALETTE[1].h; // land base (2.2 km)
+      for (let i = 0; i < n; i++) {
+        if (!this.land[i] || this.height[i] <= lowland) continue;
+        const distKm = cityD[i] * this.cell;
+        const keep = smooth01((distKm - apronKm) / (skirtKm - apronKm));
+        if (keep < 1) this.height[i] = lowland + (this.height[i] - lowland) * keep;
       }
     }
 

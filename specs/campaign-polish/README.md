@@ -130,22 +130,33 @@ and use focused fixture worlds before full-map acceptance.
 
 ## Next Agent Prompt
 
-You are picking up campaign polish. Last updated: 2026-06-29 (Slice 6 landed —
-**all six slices done; spec complete**).
+You are picking up campaign polish. Last updated: 2026-06-30 (post-spec polish —
+the one optional follow-up logged in slice 6 is now done; **spec complete with no
+open items**).
 
-Current status: **All slices (1–6) done.** Slice 6 was the acceptance pass: the
-full campaign WebGPU bundle is green (38 checks, 0 fails), all four feedback
-images have before/after notes with durable crops in
-[`assets/acceptance/`](assets/acceptance/), and a final unbiased critique returned
-GOOD on labels, Ostia/Portus, road continuity, green terrain, forests, carts, and
-fog. One non-blocking flag is recorded in slice 6: at regional zoom the
-Alba Fucens–Corfinium cities read as near the bare Apennine massif — a tight crop
-confirms the icons stay legible at the mountain foot (not the embedded failure
-from feedback 03), so it is logged as optional future polish (widen the green
-apron / break up that bare massif), not a blocker. The faction-overlay tint the
-critic noted is the intended political wash over identical geometry. **If you are
-picking this up, the remaining open item is purely that optional Apennine-massif
-polish; everything in the original feedback set is resolved.**
+Current status: **All slices (1–6) done, and the optional Apennine-massif polish
+slice 6 logged is now resolved.** Slice 6 was the acceptance pass: the full
+campaign WebGPU bundle is green, all four feedback images have before/after notes
+with durable crops in [`assets/acceptance/`](assets/acceptance/), and a final
+unbiased critique returned GOOD on labels, Ostia/Portus, road continuity, green
+terrain, forests, carts, and fog.
+
+The slice-6 residual — Alba Fucens / Corfinium reading as embedded in the bare
+Apennine massif at regional zoom — was fixed this pass with **city-aware terrain
+clearance**: the height grading now carves a lowland apron around every real-map
+city (`web/src/campaign/terrain.ts`), so each hill-town gets a green foot while
+the massif still rises in the gap between towns. Because the rock color and
+mountain-prop spawn both read off height, one height carve greens the apron,
+de-rocks the color, and thins props at once. Scoped to the real map
+(`!controlledStage`) so fixture stages are untouched; the nine real-map
+`campaign-lod` baselines were re-blessed and an unbiased critique confirmed the
+towns now read as on clear ground (see slice 6, with a matched before/after at
+`assets/acceptance/03c-hilltown-apron-{before,after}.png`). The faction-overlay
+tint the critic noted is the intended political wash over identical geometry.
+**If you are picking this up, there are no open items in the original feedback set
+or the slice-6 follow-up.** The only remaining terrain-art idea (low priority,
+not entangled with city readability) is improving the multi-hump mountain *mesh*
+silhouette/material at shallow regional camera angles.
 
 Slice 5 added road life: a small ox-less trade
 cart (`buildCartMesh`, `models/shared/sceneryPropModels.ts`) rides every real
@@ -196,14 +207,21 @@ tweak with a fresh critique, and re-bless the affected `campaign-lod`
 regional baselines.
 
 How this pass runs the harness on this machine: dev server on a free port
-(`npx vite --port 5179 --strictPort` from `web/`), then
-`VERIFY_URL=http://localhost:5179 VERIFY_GPU=1 node scene.mjs <scene>`.
-Re-bless intentional changes with `UPDATE_SHOTS=1`. Device is swiftshader
-headless; snaps carry a documented sub-percent raster wobble.
+(`npx vite --port 5180 --strictPort` from `web/` — confirm the server's cwd is
+this checkout; a stale vite from another checkout will silently serve old code
+and your edits won't show), then
+`VERIFY_URL=http://localhost:5180 VERIFY_GPU=1 VERIFY_GPU_ADAPTER=hardware VERIFY_BROWSER_CHANNEL=chrome node scene.mjs <scene>`.
+Re-bless intentional changes with `UPDATE_SHOTS=1` (it rewrites every baseline
+whose pixels differ at all, so re-bless one scene at a time — do not run it across
+the fixture scenes or you bake this machine's raster wobble into their baselines).
+Note on device: bundled-Chromium swiftshader exposes **no** WebGPU adapter here,
+so the harness must use the system Chrome channel + hardware adapter (Apple
+Metal-3). The committed baselines compare clean on Metal (sub-percent diffs,
+under the 2% gate), so re-blessing on Metal is consistent.
 
-Active warning: the harness is green, but most campaign-polish visual issues are
-not solved yet. Do not mark a slice done until its focused scene and real
-campaign crop both pass an unbiased `screenshot-critique` review.
+Standing rule (kept from the build): do not mark any future slice or polish done
+until its focused scene and real campaign crop both pass an unbiased
+`screenshot-critique` review.
 
 Before ending any future pass, update this section with the new status, next
 pickup point, blockers, and checklist state.
@@ -219,6 +237,9 @@ Global TODO:
 - [x] Slice 5: deterministic road-life/cart fixture and campaign crop pass.
 - [x] Slice 6: final campaign acceptance pass has current screenshots, crops,
   and unbiased screenshot critique for every slice.
+- [x] Slice 6 follow-up (2026-06-30): the logged Apennine-massif/hill-town reading
+  is resolved via city-aware terrain clearance; real-map `campaign-lod` baselines
+  re-blessed and critique-confirmed.
 
 ## Slices
 

@@ -82,21 +82,43 @@ correctly-oriented, on-centerline props (slice 5), and **natural ground**
 ([after](../assets/acceptance/06-natural-green.png)) reads green, not brown
 (slice 3).
 
-### Critique flag: Apennine city/mountain reading
+### Critique flag: Apennine city/mountain reading — RESOLVED (2026-06-30)
 
-The fresh critic flagged Asculum, Alba Fucens, and Corfinium as "embedded" in the
-mountains. The tight crop
-([03b](../assets/acceptance/03b-hilltown-clearance.png)) shows the opposite of the
-original feedback failure: each city icon is fully visible and sits on a cleared
-tan apron at the *foot* of the massif, with the bare-brown mass behind and beside
-it — a hill-town at the mountain foot, which is geographically correct for these
-Apennine towns. The icons are never occluded; the slice-4 clearance keeps them
-readable, and the `campaign-lod` named mountain/forest crop metric passes.
-What the zero-context critic reacted to is the *label text* crossing the brown
-massif behind it, plus the massif being a large bare shape at regional zoom. Not
-a clearance regression and not a ship blocker. Recorded as a candidate for future
-polish: widen the green apron / break up the large bare massif behind
-Alba Fucens–Corfinium.
+The slice-6 critic flagged Asculum, Alba Fucens, and Corfinium as "embedded" in
+the mountains: each icon was legible but sat on a cleared tan apron *inside* a
+large bare-brown massif, so a zero-context viewer read the towns as in the
+mountains. The recorded candidate polish was to *widen the green apron / break up
+the large bare massif*.
+
+This was done by giving the terrain-height grading a vote it never had. Slice 4
+cleared mountain *props* around cities but left the *heightfield* under them
+untouched — and since both the rock color (`rock = f(height)`,
+`mapPass.ts`/`terrain.ts`) and mountain-prop spawn read off height, the cleared
+zone stayed painted bare brown with no relief: a flat-looking massif the towns sat
+on. The fix carves a lowland apron into the relief around every real-map city
+after grading (`web/src/campaign/terrain.ts`, the city-aware clearance block):
+within ~12 km a town's ground returns to lowland, ramping back to full massif
+height by ~34 km. Lowering height is the single source that also de-rocks the
+color to green and thins props near the town, so each hill-town now gets a green
+foot while the massif still rises in the gap between towns. Scoped to the real
+map (`!controlledStage`) so the synthetic fixture stages are not reshaped.
+
+Before / after at identical framing:
+[before](../assets/acceptance/03c-hilltown-apron-before.png) (Alba Fucens /
+Corfinium on the bare brown lobe) →
+[after](../assets/acceptance/03c-hilltown-apron-after.png) (both towns on green,
+the brown massif reduced to a compact prop cluster below them). A fresh unbiased
+critique of the after-state confirms the towns now read as "standing on clear
+ground, not embedded." The earlier
+[03b](../assets/acceptance/03b-hilltown-clearance.png) crop is the pre-polish
+state. `campaign-lod` named mountain/forest crops still pass (mountains are pulled
+back, not erased); all nine real-map `campaign-lod` baselines re-blessed.
+
+Residual terrain-art note (unchanged by this pass, lower priority): the
+multi-hump mountain *mesh* still reads somewhat flat at the top-down regional
+zoom. The prior slice-4 critique accepted that mesh ("geological, not geometric");
+improving its silhouette/material at shallow camera angles is a separate
+terrain-art item, no longer entangled with city readability.
 
 The faction-overlay "tint shift" the critic noted is the intended political wash
 (owner-tinted terrain + green faction icons); the natural vs political pair share

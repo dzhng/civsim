@@ -61,6 +61,15 @@ export async function loadCampaignData(): Promise<{ data: CampaignData; mapJson:
   return { data: { map, bg, bgRect, nodeIndex }, mapJson };
 }
 
+/** A synthetic fixture/workbench stage rather than the real campaign map. These
+ * place their own controlled terrain and props, so the real-map readability
+ * heuristics (terrain clearance, wide scenery aprons, border draw) must skip
+ * them. The attribution convention is the single source of truth — keep it here
+ * so renderer and terrain agree. */
+export function isControlledStage(data: CampaignData): boolean {
+  return data.map.attribution === 'test' || data.map.attribution.endsWith('-test');
+}
+
 /** Arc-length-interpolated point of a tile's midpoint along an edge polyline. */
 export function tilePos(e: MapEdge, tile: number): [number, number] {
   const cum: number[] = [0];

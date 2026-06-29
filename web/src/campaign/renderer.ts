@@ -7,6 +7,7 @@ import { campaignBorderVertices, CampaignTerritoryPass } from '../../../packages
 import { createFrameShell, type FrameGraphPass, type RawFrameShell, type WorldRenderPass } from '../../../packages/renderer-core/src/frameShell';
 import { screenToWorld, world3dToScreen } from '../../../packages/renderer-core/src/cameraUniform';
 import type { CampaignData, MapNode } from './data';
+import { isControlledStage } from './data';
 import type { CamView } from './camera';
 import { Allegiance } from './status';
 import { TEMPERATE_Y_KM, type TerrainField } from './terrain';
@@ -1079,10 +1080,6 @@ function distanceToSegment(x: number, y: number, a: [number, number], b: [number
   const px = a[0] + dx * t;
   const py = a[1] + dy * t;
   return Math.hypot(x - px, y - py);
-}
-
-function isControlledStage(data: CampaignData) {
-  return data.map.attribution === 'test' || data.map.attribution.endsWith('-test');
 }
 
 function hash2(x: number, y: number): number {

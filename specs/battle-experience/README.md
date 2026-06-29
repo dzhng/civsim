@@ -88,8 +88,43 @@ Exact next pickup point: start
 3D props on the height field (consume `SCENERY_PROP_MODELS`/`defaultScale`),
 seats production battle soldiers/props on `terrain_height_ptr` via
 `TerrainHeightField`, dramatizes the sealed west/east edges, and applies the
-`groundCover` style — and is the natural home for the prop model-quality fixes
-above (re-bless the slice 01 sheets after).
+`groundCover` style. The prop model-quality fixes are already done.
+
+Slice 03 technical scoping (learned this pass — read before starting):
+
+- FOUNDATION FIRST: the rolling-ground heightfield is the prerequisite for
+  everything else (props/soldiers seated on height look wrong over flat ground).
+  `packages/game-renderer/src/battle/terrainPass.ts` (661 lines) renders the
+  ground as flat run-length-merged QUADS at a fixed `z = 0.08` with a procedural
+  grass shader — it is NOT a fine grid, so it can't displace smoothly. Plan to
+  add a height-displaced ground grid mesh (downsample the 600×400 grid to e.g.
+  ~120×80, sample `terrainHeightAt`, colour by `groundCover` + tint) rather than
+  trying to bend the quad system. Keep the procedural grass/micro detail.
+- Scenery: the instanced shared-mesh renderer already exists as
+  `campaign/sceneryPass.ts` (`CampaignSceneryPass`, takes `CampaignSceneryInstance[]`
+  with `x,y,z,size,kind,yaw`). Reuse it for battle (its name is historical —
+  consider renaming to a neutral `SceneryInstancePass`). Battle-specific logic =
+  a `featuresToBattleScenery(features, heightField, seed)` that maps slice-02
+  forest features → scattered tree instances (denser at edges, sparse inside per
+  the slice's gameplay-clarity note) and rock features → rock instances, each
+  seated at `z = terrainHeightAt(field, x, y)`. Skip water/wall features (those
+  are the horizon pass).
+- Production elevation: `web/src/battle/scene.ts` reads only `terrain_tint_ptr`
+  today; add `terrain_height_ptr`, build a `TerrainHeightField`, thread it
+  through `renderer.setTerrain` and into `buildCrowdInstances({ terrainHeight })`
+  so soldiers + shadows seat on it. Then generalize
+  `web/scenes/system/battle-elevation.mjs` from its synthetic ridge to the real
+  map height (the must-stay-green wants it as the real-source regression gate).
+- New scenes (fresh hardware baselines, like 02b): `battle-terrain-west-east-blockers`,
+  `battle-terrain-north-south-fog`, `battle-terrain-ground-cover`,
+  `battle-terrain-rough-and-micro`, `battle-terrain-elevation-placement`. Every
+  new/re-blessed shot runs the unbiased screenshot-critique (Review Map rule).
+- Baseline provenance: David approved migrating affected baselines to the
+  hardware/Metal adapter (this Mac has no SwiftShader). campaign-models is
+  already fully hardware-blessed; battle-minimap/battle-selection will follow
+  when production rendering changes. Capture with `VERIFY_GPU=1
+  VERIFY_GPU_ADAPTER=hardware VERIFY_HEADFUL=1 VERIFY_BROWSER_CHANNEL=chrome`.
+  Flag the set; CI needs a one-time SwiftShader reconciliation.
 
 Active blockers or warnings: do not delete the duel bench unless David asks; it
 is still the fastest matchup/debug surface. The quick-battle budget default in

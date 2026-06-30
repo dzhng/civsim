@@ -25,9 +25,10 @@ import { buildCampaignMapDrawData, CampaignLabelPass, CampaignMapPass, CampaignM
 import { CampaignSceneryPass, type CampaignSceneryInstance } from '../../../packages/game-renderer/src/campaign/sceneryPass';
 import { PROP_REVIEW_GROUPS } from '../../../packages/game-renderer/src/models/shared/sceneryPropRegistry';
 import { BATTLE_MAP_CATALOG, battleMapById, buildBattleTerrainPresentation, presentationEdgeMismatches } from '../../../packages/game-renderer/src/battle/mapCatalog';
-import { heightSpan, terrainHeightAt, type TerrainHeightField } from '../../../packages/game-renderer/src/terrain/heightField';
+import { flatHeightField, heightSpan, terrainHeightAt, type TerrainHeightField } from '../../../packages/game-renderer/src/terrain/heightField';
 import type { BattleTerrainFeature, BattleTerrainFeatureKind, BattleTerrainGrid } from '../../../packages/game-renderer/src/battle/terrainFeatures';
 import { BattleGroundPass } from '../../../packages/game-renderer/src/battle/groundPass';
+import { BattleGrassPass, type BattleGrassBounds, type BattleGrassParams } from '../../../packages/game-renderer/src/battle/grassPass';
 import { BattleHorizonPass } from '../../../packages/game-renderer/src/battle/horizonPass';
 import { featuresToBattleScenery } from '../../../packages/game-renderer/src/battle/terrainScenery';
 import { CampaignSelectionPass, type CampaignSelectionInstance } from '../../../packages/game-renderer/src/campaign/selectionPass';
@@ -98,11 +99,13 @@ const routes: Record<string, LabRoute> = {
   '/renderer/campaign-ui': routeCampaignUi,
   '/renderer/campaign-models': routeCampaignModelShots,
   '/renderer/shared-prop-models': routeSharedPropModelShots,
+  '/renderer/shared-grass-models': routeSharedGrassModelShots,
   '/renderer/render-graph': routeRenderGraph,
   '/renderer/world-camera': routeWorldCamera,
   '/renderer/battle-terrain': routeBattleTerrain,
   '/renderer/battle-terrain-features': routeBattleTerrainFeatures,
   '/renderer/battle-terrain-3d': routeBattleTerrain3d,
+  '/renderer/battle-grass': routeBattleGrass,
   '/renderer/battle-ui': routeBattleUi,
   '/renderer/battle-input': routeBattleInput,
   '/renderer/battle-live': routeBattleLive,
@@ -1644,6 +1647,44 @@ async function routeSharedPropModelShots(ctx: LabContext) {
   });
 }
 
+// Shared grass primitive review: the reusable tuft mesh posed either as one
+// readable clump or a tiny patch, without sim terrain or battle units competing
+// for the silhouette.
+async function routeSharedGrassModelShots(ctx: LabContext) {
+  const gate = ctx.params.get('gate') === 'patch' ? 'patch' : 'tuft';
+  const config = grassModelShotConfig(gate);
+  const shell = await createConfiguredShell(ctx.canvas, config.camera);
+  const grass = new BattleGrassPass(shell);
+  const field = flatFieldFor(config.bounds);
+  grass.setField(field, config.bounds, 'green-grass', config.params);
+  grass.setWindPhase(numberParam(ctx.params, 'phase', config.params.windPhase ?? 0));
+  shell.drawFrame({
+    clear: { r: 0.09, g: 0.10, b: 0.10, a: 1 },
+    terrainRect: [config.bounds.x - 1.4, config.bounds.y - 1.0, config.bounds.width + 2.8, config.bounds.height + 2.8],
+    passes: [
+      { id: 'shared-grass-model', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => grass.draw(pass) },
+    ],
+  });
+  const grassStats = grass.stats();
+  ctx.status.innerHTML = reportTable({
+    route: 'shared-grass-models',
+    gate,
+    purpose: 'isolated reusable grass primitive model sheet',
+    tufts: grassStats.tuftInstances,
+    blades: grassStats.bladeInstances,
+    windPhase: grassStats.windPhase.toFixed(2),
+  });
+  publish('shared-grass-models', true, {
+    route: 'shared-grass-models',
+    gate,
+    camera: config.camera,
+    ...grassStats,
+    depth: shell.stats().depth,
+    framePhases: shell.stats().phases,
+    postCutoverScreenshots: 'renderer-only',
+  });
+}
+
 type CampaignModelShot =
   | 'overview'
   | 'city'
@@ -2538,6 +2579,55 @@ async function routeBattleTerrain3d(ctx: LabContext) {
   });
 }
 
+async function routeBattleGrass(ctx: LabContext) {
+  const gate = ctx.params.get('gate') === 'sparse' ? 'sparse' : 'flat-field';
+  const bounds: BattleGrassBounds = { x: -18, y: -11, width: 36, height: 22 };
+  const phase = numberParam(ctx.params, 'phase', 0);
+  const params: BattleGrassParams = {
+    seed: 0x4a55,
+    density: numberParam(ctx.params, 'density', gate === 'sparse' ? 0.42 : 0.92),
+    maxTufts: integerParam(ctx.params, 'maxTufts', gate === 'sparse' ? 260 : 720, 0, 2000),
+    bladesPerTuft: integerParam(ctx.params, 'blades', 9, 1, 24),
+    bladeHeight: numberParam(ctx.params, 'bladeHeight', 0.78),
+    bladeWidth: numberParam(ctx.params, 'bladeWidth', 0.058),
+    bend: numberParam(ctx.params, 'bend', 0.28),
+    spread: numberParam(ctx.params, 'spread', 0.16),
+    windPhase: phase,
+    windStrength: numberParam(ctx.params, 'windStrength', 0.10),
+  };
+  const camera = { x: 0, y: -2.2, zoom: 31, pitch: 0.54, yaw: -0.12, perspective: 0.018 };
+  const shell = await createConfiguredShell(ctx.canvas, camera);
+  const grass = new BattleGrassPass(shell);
+  grass.setField(flatFieldFor(bounds), bounds, 'green-grass', params);
+  shell.drawFrame({
+    clear: { r: 0.74, g: 0.83, b: 0.90, a: 1 },
+    terrainRect: [bounds.x, bounds.y, bounds.width, bounds.height],
+    terrainStyle: 'wide-detail',
+    passes: [
+      { id: 'battle-grass-flat-field', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => grass.draw(pass) },
+    ],
+  });
+  const stats = grass.stats();
+  ctx.status.innerHTML = reportTable({
+    route: 'battle-grass',
+    gate,
+    tufts: stats.tuftInstances,
+    blades: stats.bladeInstances,
+    capped: stats.cappedTufts,
+    windPhase: stats.windPhase.toFixed(2),
+  });
+  publish('battle-grass', true, {
+    route: 'battle-grass',
+    gate,
+    camera,
+    bounds,
+    ...stats,
+    depth: shell.stats().depth,
+    framePhases: shell.stats().phases,
+    postCutoverScreenshots: 'renderer-only',
+  });
+}
+
 // Scan the field for the spot with the steepest local slope, so a soldier block
 // planted there visibly climbs the relief.
 function steepestSpot(field: TerrainHeightField, ox: number, oy: number, w: number, h: number, cell: number) {
@@ -3019,6 +3109,58 @@ async function createConfiguredShell(canvas: HTMLCanvasElement, camera: { x: num
   const shell = await createFrameShell(canvas);
   shell.setCamera(camera);
   return shell;
+}
+
+function grassModelShotConfig(gate: 'tuft' | 'patch'): {
+  camera: { x: number; y: number; zoom: number; pitch: number; yaw: number; perspective: number };
+  bounds: BattleGrassBounds;
+  params: BattleGrassParams;
+} {
+  if (gate === 'patch') {
+    return {
+      camera: { x: 0, y: -0.6, zoom: 88, pitch: 0.74, yaw: -0.10, perspective: 0.020 },
+      bounds: { x: -1.2, y: -0.9, width: 2.4, height: 1.8 },
+      params: {
+        seed: 0x2244,
+        density: 10.5,
+        maxTufts: 32,
+        bladesPerTuft: 9,
+        bladeHeight: 0.70,
+        bladeWidth: 0.054,
+        bend: 0.24,
+        spread: 0.14,
+        windPhase: 0.35,
+        windStrength: 0.055,
+      },
+    };
+  }
+  return {
+    camera: { x: 0, y: -0.08, zoom: 178, pitch: 0.84, yaw: -0.06, perspective: 0.024 },
+    bounds: { x: -0.32, y: -0.28, width: 0.64, height: 0.56 },
+    params: {
+      seed: 0x1144,
+      density: 4,
+      maxTufts: 1,
+      bladesPerTuft: 13,
+      bladeHeight: 0.82,
+      bladeWidth: 0.068,
+      bend: 0.30,
+      spread: 0.18,
+      windPhase: 0.20,
+      windStrength: 0.045,
+    },
+  };
+}
+
+function flatFieldFor(bounds: BattleGrassBounds): TerrainHeightField {
+  return flatHeightField(
+    bounds.x,
+    bounds.y,
+    Math.max(1, Math.ceil(bounds.width)),
+    Math.max(1, Math.ceil(bounds.height)),
+    1,
+    'meters',
+  );
 }
 
 async function createSkinnedPipeline(shell: RawFrameShell, accent: [number, number, number], vat?: Awaited<ReturnType<typeof loadPlaceholderVat>>) {

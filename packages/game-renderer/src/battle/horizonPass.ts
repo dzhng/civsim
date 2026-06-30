@@ -1,6 +1,7 @@
 import type { RawFrameShell, WorldRenderPass } from '../../../renderer-core/src/frameShell';
 import { WORLD_CAMERA_WGSL } from '../../../renderer-core/src/cameraWgsl';
 import { gpuOpaqueColorTarget, gpuWorldDepthStencil } from '../../../renderer-core/src/pipelineContracts';
+import { compileShader } from '../../../renderer-core/src/compileShader';
 import { MeshBuilder } from '../models/shared/meshBuilder';
 import type { BattleEdgeRole, BattleEdgeRoles } from './terrainFeatures';
 import { terrainHeightAt, type TerrainHeightField } from '../terrain/heightField';
@@ -59,7 +60,7 @@ export class BattleHorizonPass {
   private builtEdges: Array<{ side: keyof BattleEdgeRoles; role: BattleEdgeRole }> = [];
 
   constructor(private shell: RawFrameShell) {
-    const module = shell.device.createShaderModule({ label: 'battle-horizon-wgsl', code: HORIZON_WGSL });
+    const module = compileShader(shell.device, HORIZON_WGSL, 'battle-horizon');
     this.pipeline = shell.device.createRenderPipeline({
       label: 'battle-horizon-pipeline',
       layout: shell.device.createPipelineLayout({ bindGroupLayouts: [shell.cameraBindGroupLayout] }),

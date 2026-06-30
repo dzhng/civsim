@@ -1,6 +1,7 @@
 import type { RawFrameShell, WorldRenderPass } from '../../../renderer-core/src/frameShell';
 import { WORLD_CAMERA_WGSL } from '../../../renderer-core/src/cameraWgsl';
 import { gpuOpaqueColorTarget, gpuWorldDepthStencil } from '../../../renderer-core/src/pipelineContracts';
+import { compileShader } from '../../../renderer-core/src/compileShader';
 import type { BattleGroundCover, BattleTerrainGrid } from './terrainFeatures';
 import { terrainHeightAt, type TerrainHeightField } from '../terrain/heightField';
 
@@ -110,7 +111,7 @@ export class BattleGroundPass {
   private triangles = 0;
 
   constructor(private shell: RawFrameShell) {
-    const module = shell.device.createShaderModule({ label: 'battle-ground-heightfield-wgsl', code: GROUND_WGSL });
+    const module = compileShader(shell.device, GROUND_WGSL, 'battle-ground-heightfield');
     this.pipeline = shell.device.createRenderPipeline({
       label: 'battle-ground-heightfield-pipeline',
       layout: shell.device.createPipelineLayout({ bindGroupLayouts: [shell.cameraBindGroupLayout] }),

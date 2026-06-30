@@ -89,7 +89,9 @@ function cropAroundFigure(buf, w, h) {
   const out = new PNG({ width: w, height: h });
   for (let yy = 0; yy < h; yy++) {
     const t = yy / h; // top → bottom of the card
-    const bg = [Math.round(34 - 20 * t), Math.round(38 - 22 * t), Math.round(48 - 27 * t)];
+    // Warm bronze-brown backdrop (NOT a cool slate-grey neutral — aesthetics rule)
+    // so the card interior reads as the same worn-metal world as the chassis.
+    const bg = [Math.round(44 - 28 * t), Math.round(33 - 22 * t), Math.round(21 - 15 * t)];
     for (let xx = 0; xx < w; xx++) {
       const si = ((sy + yy) * img.width + (sx + xx)) * 4, di = (yy * w + xx) * 4;
       const fig = isFigure(img.data[si], img.data[si + 1], img.data[si + 2]);

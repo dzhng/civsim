@@ -59,6 +59,9 @@ export interface RawFrameShell {
   cameraBindGroup: GPUBindGroup;
   resize(size?: { width: number; height: number; dpr?: number }): void;
   setCamera(camera: Omit<CameraSnapshot, 'width' | 'height'>): void;
+  /** Advance the animation clock (seconds) written into the camera uniform. Use
+   *  a fixed value for deterministic snapshots, free-running wall time for the eye. */
+  setTime(seconds: number): void;
   drawFrame(commands?: FrameGraphCommands): void;
   destroy(): void;
   stats(): FrameShellStats;
@@ -115,6 +118,10 @@ export interface FrameGraphCommands {
   terrainStyle?: 'default' | 'wide-detail';
   clear?: GPUColor;
   passes?: FrameGraphPass[];
+  /** Optional pre-render compute work (e.g. an IFFT ocean dispatch) recorded
+   *  into the frame's single command encoder before any render pass. Producers
+   *  that need no compute (analytic fields) simply omit it. */
+  precompute?: (encoder: GPUCommandEncoder) => void;
 }
 
 export interface FramePhaseStats {
@@ -452,6 +459,7 @@ export class RawFrameShellImpl implements RawFrameShell {
   private markerCapacity = 0;
   private markerLayer: MarkerLayerIntent = 'none';
   private camera: Omit<CameraSnapshot, 'width' | 'height'> = { x: 0, y: 0, zoom: 12, pitch: 0.35, yaw: 0 };
+  private time = 0;
   private width = 1;
   private height = 1;
   private dpr = 1;
@@ -487,7 +495,11 @@ export class RawFrameShellImpl implements RawFrameShell {
     this.context = context;
     this.cameraBindGroupLayout = this.device.createBindGroupLayout({
       label: 'raw-frame-camera-bgl',
-      entries: [{ binding: 0, visibility: GPUShaderStage.VERTEX, buffer: { type: 'uniform' } }],
+      // VERTEX | FRAGMENT so fragment-stage effects (water foam/glint) can read
+      // the clock/perspective from the same uniform the vertex projection uses.
+      // Widening visibility changes no existing output: no current fragment
+      // shader reads `cam`, and the clock pad is 0 until setTime() is called.
+      entries: [{ binding: 0, visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT, buffer: { type: 'uniform' } }],
     });
     this.cameraBuffer = this.device.createBuffer({
       label: 'raw-frame-camera',
@@ -544,6 +556,11 @@ export class RawFrameShellImpl implements RawFrameShell {
     this.writeCamera();
   }
 
+  setTime(seconds: number) {
+    this.time = seconds;
+    this.writeCamera();
+  }
+
   drawFrame(commands: FrameGraphCommands = {}) {
     const graphPasses = commands.passes ?? [];
     this.assertFrameGraphPasses(graphPasses);
@@ -565,6 +582,7 @@ export class RawFrameShellImpl implements RawFrameShell {
     this.uploadMarkers(markers);
     const lastPhase: FramePhaseKind = overlayPasses.length > 0 ? 'overlay' : worldPasses.length > 0 ? 'world-depth' : 'background';
     const encoder = this.device.createCommandEncoder({ label: 'raw-frame-encoder' });
+    commands.precompute?.(encoder);
     const colorView = this.context.getCurrentTexture().createView();
     const bgTimestamps = this.timestampWrites('background', lastPhase);
     const pass = encoder.beginRenderPass({
@@ -758,7 +776,7 @@ export class RawFrameShellImpl implements RawFrameShell {
   }
 
   private writeCamera() {
-    this.device.queue.writeBuffer(this.cameraBuffer, 0, cameraUniformData({ ...this.camera, width: this.width, height: this.height }));
+    this.device.queue.writeBuffer(this.cameraBuffer, 0, cameraUniformData({ ...this.camera, width: this.width, height: this.height, time: this.time }));
   }
 
   private recordPhase(phase: FramePhaseStats) {

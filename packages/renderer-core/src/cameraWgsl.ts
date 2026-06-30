@@ -1,5 +1,5 @@
 export const CAMERA_UNIFORM_WGSL = `
-struct Camera { x:f32, y:f32, zoom:f32, cosP:f32, width:f32, height:f32, cosYaw:f32, sinYaw:f32, perspective:f32, pad0:f32, pad1:f32, pad2:f32 };
+struct Camera { x:f32, y:f32, zoom:f32, cosP:f32, width:f32, height:f32, cosYaw:f32, sinYaw:f32, perspective:f32, time:f32, pad1:f32, pad2:f32 };
 @group(0) @binding(0) var<uniform> cam: Camera;
 `;
 

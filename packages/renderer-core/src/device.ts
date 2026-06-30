@@ -34,6 +34,8 @@ export interface RequestGpuDeviceOptions {
   powerPreference?: GpuPowerPreference;
   /** Test hook threaded into caps to exercise the depth fallback. */
   forceNoDepth24?: boolean;
+  /** Test hook threaded into caps to exercise the Gerstner water fallback. */
+  forceNoComputeOcean?: boolean;
 }
 
 // Bindings the renderer relies on above the spec's conservative device
@@ -85,6 +87,7 @@ export async function requestGpuDevice(options: RequestGpuDeviceOptions = {}): P
       deviceFeatures: device.features,
       powerPreference,
       forceNoDepth24: options.forceNoDepth24,
+      forceNoComputeOcean: options.forceNoComputeOcean,
     }),
   };
 }

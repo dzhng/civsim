@@ -29,6 +29,8 @@ import { heightSpan, terrainHeightAt, type TerrainHeightField } from '../../../p
 import type { BattleTerrainFeature, BattleTerrainFeatureKind, BattleTerrainGrid } from '../../../packages/game-renderer/src/battle/terrainFeatures';
 import { BattleGroundPass } from '../../../packages/game-renderer/src/battle/groundPass';
 import { BattleHorizonPass } from '../../../packages/game-renderer/src/battle/horizonPass';
+import { createWaterField, type WaterFieldId, type WaterFieldSource } from '../../../packages/game-renderer/src/water/waterField';
+import { WaterPlanePass } from '../../../packages/game-renderer/src/water/waterPlanePass';
 import { featuresToBattleScenery } from '../../../packages/game-renderer/src/battle/terrainScenery';
 import { CampaignSelectionPass, type CampaignSelectionInstance } from '../../../packages/game-renderer/src/campaign/selectionPass';
 import { campaignBorderVertices, CampaignTerritoryPass } from '../../../packages/game-renderer/src/campaign/territoryPass';
@@ -108,6 +110,7 @@ const routes: Record<string, LabRoute> = {
   '/renderer/battle-input': routeBattleInput,
   '/renderer/battle-live': routeBattleLive,
   '/renderer/card-bar': routeCardBar,
+  '/renderer/water-bakeoff': routeWaterBakeoff,
 };
 
 export async function mountRendererLab(path = location.pathname) {
@@ -3015,6 +3018,111 @@ async function routeBattleInput(ctx: LabContext) {
   }, { passive: false });
 
   draw();
+}
+
+// Slice 1 of the water spec: the technique bake-off. One open-sea plane at the
+// battle horizon camera (or the campaign camera for the perf gate), driven by a
+// WaterFieldSource. `?tech=gerstner|ifft` picks the producer; `?compare=1`
+// scissors both side by side; `?t=<seconds>` freezes the clock for snapshots;
+// `?computeUnsupported=1` forces the capability fallback. Neutral grey albedo —
+// this slice judges geometry, foam and glint, not colour.
+async function routeWaterBakeoff(ctx: LabContext) {
+  const requested: WaterFieldId = ctx.params.get('tech') === 'ifft' ? 'ifft' : 'gerstner';
+  const compare = ctx.params.get('compare') === '1';
+  const preset = ctx.params.get('preset') ?? 'dusk';
+  const camName = ctx.params.get('cam') === 'campaign' ? 'campaign' : 'battle';
+  const forceUnsupported = ctx.params.get('computeUnsupported') === '1';
+  const ifftResolution = integerParam(ctx.params, 'n', 128, 64, 256);
+  const fixedT = ctx.params.has('t') ? numberParam(ctx.params, 't', 0) : null;
+
+  const shell = await createFrameShell(ctx.canvas, { enableGpuTimer: true });
+  const computeSupported = shell.info.caps.computeOceanSupported && !forceUnsupported;
+
+  const camera = camName === 'campaign'
+    ? { x: 0, y: 90, zoom: 3.4, pitch: 0.42, yaw: 0, perspective: 0.02 }
+    : { x: 0, y: -6, zoom: 2.4, pitch: 0.13, yaw: 0, perspective: 0.03 };
+  shell.setCamera(camera);
+
+  // The preset only tints the sky clear colour for now; the water albedo stays
+  // neutral grey until the colour/depth slice. Dusk is the reference's mood.
+  const clear: GPUColor = preset === 'golden'
+    ? { r: 0.86, g: 0.80, b: 0.66, a: 1 }
+    : preset === 'overcast'
+      ? { r: 0.80, g: 0.82, b: 0.84, a: 1 }
+      : { r: 0.58, g: 0.61, b: 0.70, a: 1 };
+
+  interface Built { requested: WaterFieldId; field: WaterFieldSource; plane: WaterPlanePass; fallbackTriggered: boolean }
+  const techs: WaterFieldId[] = compare ? ['gerstner', 'ifft'] : [requested];
+  const built: Built[] = techs.map((tech) => {
+    const { field, fallbackTriggered } = createWaterField(shell, { tech, computeSupported, ifftResolution });
+    return { requested: tech, field, plane: new WaterPlanePass(shell, field), fallbackTriggered };
+  });
+
+  const drawAt = (t: number) => {
+    shell.setTime(t);
+    const W = shell.stats().width;
+    const H = shell.stats().height;
+    shell.drawFrame({
+      clear,
+      precompute: (enc) => { for (const b of built) b.field.ensureFrame(enc, t); },
+      passes: [{
+        id: 'water-bakeoff-plane', role: 'world-opaque', phase: 'world-depth', depth: 'read-write',
+        draw: (pass) => {
+          if (compare && built.length === 2) {
+            const half = Math.floor(W / 2);
+            pass.setScissorRect(0, 0, half, H); built[0].plane.draw(pass);
+            pass.setScissorRect(half, 0, W - half, H); built[1].plane.draw(pass);
+            pass.setScissorRect(0, 0, W, H);
+          } else {
+            built[0].plane.draw(pass);
+          }
+        },
+      }],
+    });
+  };
+
+  const publishStats = () => {
+    const s = shell.stats();
+    const live = built.length === 1 ? built[0].field.id : built.map((b) => b.field.id).join('+');
+    publish('water-bakeoff', true, {
+      route: 'water-bakeoff',
+      requestedTech: requested,
+      tech: live,
+      compare,
+      preset,
+      camera: camName,
+      computeSupported,
+      computeOceanSupportedRaw: shell.info.caps.computeOceanSupported,
+      timestampQuery: shell.info.caps.timestampQuery,
+      gpuTimeMs: s.gpuTimeMs,
+      fixedTime: fixedT,
+      fallbackTriggered: built.some((b) => b.fallbackTriggered),
+      fieldResolution: Math.max(...built.map((b) => b.field.stats().fieldResolution)),
+      fields: built.map((b) => ({ requested: b.requested, ...b.field.stats(), fallbackTriggered: b.fallbackTriggered })),
+      cameraContract: s.cameraContract,
+    });
+    ctx.status.innerHTML = reportTable({
+      route: 'water-bakeoff',
+      requested,
+      live,
+      compare,
+      camera: camName,
+      preset,
+      'compute supported': computeSupported,
+      'fallback triggered': built.some((b) => b.fallbackTriggered),
+      'field resolution': built.map((b) => b.field.stats().fieldResolution).join(' / '),
+      'storage bytes': built.map((b) => b.field.stats().storageBytes).join(' / '),
+      'GPU time (ms)': s.gpuTimeMs === null ? 'pending' : s.gpuTimeMs.toFixed(3),
+    });
+  };
+
+  const t0 = performance.now();
+  const tick = () => {
+    drawAt(fixedT ?? (performance.now() - t0) / 1000);
+    publishStats();
+    requestAnimationFrame(tick);
+  };
+  tick();
 }
 
 async function createConfiguredShell(canvas: HTMLCanvasElement, camera: { x: number; y: number; zoom: number; pitch?: number; yaw?: number; perspective?: number }) {

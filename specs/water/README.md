@@ -12,12 +12,14 @@ Reference image (the compare-screenshots target):
 
 ## Next Agent Prompt
 
-> **Status:** Plan complete, not yet started. Last updated 2026-07-01.
+> **Status:** Slice 1 landed. Winner: **Gerstner** (see
+> [`slices/01-bakeoff-decision.md`](slices/01-bakeoff-decision.md)). Last updated 2026-07-01.
 >
-> **You are picking up at Slice 1 (the technique bake-off spike).** Read this README,
-> then open [`slices/01-bakeoff-spike.md`](slices/01-bakeoff-spike.md) and build it. Do
-> not skip the spike — every later slice depends on which technique it picks and on the
-> `WaterFieldSource` seam it freezes.
+> **You are picking up at Slice 2 (wave silhouette / displacement).** Read this README and
+> the decision artifact, then open [`slices/02-wave-silhouette.md`](slices/02-wave-silhouette.md)
+> and tune the **Gerstner** field's displacement on the open-sea `waterPlanePass` in the
+> `/renderer/water-bakeoff` lab route (neutral grey, the winner only). The `WaterFieldSource`
+> seam and the `time` clock are **frozen** — build against the seam, not the technique.
 >
 > **Before you start:** invoke the `aesthetics` skill (the visual north star) and the
 > `renderer` skill (the build/debug workflow for GPU + WGSL work). Every visual slice
@@ -25,22 +27,30 @@ Reference image (the compare-screenshots target):
 > `compare-screenshots` skill against `assets/reference-ifft-ocean-dusk.png` whenever it
 > has a wave-geometry / foam / glint target.
 >
+> **GPU verification on macOS (important):** headless Chromium and SwiftShader have **no
+> working WebGPU adapter** on this host — the only real adapter is Apple Metal, reachable
+> **only headful**. Run GPU scenes as
+> `VERIFY_GPU=1 VERIFY_GPU_ADAPTER=hardware VERIFY_HEADFUL=1 VERIFY_URL=http://localhost:<port> node scene.mjs <scene>`.
+> (The `dpr2 freezeAtTick` check in `renderer-lab-routes` is a known headful-capture flake —
+> re-run it; it passes at 0 diff.)
+>
 > **Active warnings:**
-> - There is **no compute infrastructure anywhere in the source** today. The IFFT branch
->   is net-new infra (capability probe + a compute dispatch in `frameShell`). It lives
->   entirely behind the `WaterFieldSource` seam so it deletes cleanly if it loses.
-> - The shared camera bind group is **`visibility: VERTEX` only** today
->   (`frameShell.ts:488-491`). Fragment-stage foam/glint cannot read the clock/sun
->   uniform until that is resolved (Slice 1, known unknown #1). Whatever you do, prove it
->   moves **zero existing pixels**.
+> - **Gerstner won; IFFT is retained only as the capability/weak-GPU fallback through Slice 8
+>   and is deleted in Slice 11.** The look slices must read acceptably off *either* field
+>   (the pick is reversible via `createWaterField({ tech })`).
+> - The camera BGL is now **`VERTEX | FRAGMENT`** and the camera uniform's first pad is the
+>   `time` clock (`setTime`). This moved zero existing pixels (battle/campaign snapshots are
+>   byte-identical) — keep it that way.
 > - Battle runs **MSAA = 1** today (the "edges use 4" comment is aspirational). New water
->   pipelines must still call `gpuMultisample(shell.sampleCount)` to stay MSAA-safe.
-> - Animated pixels break `snapCheck` unless time is injectable. Copy the existing
->   `fixedTime` pattern (`battle/renderer.ts`) for a frozen-`t` water clock; snap every
->   visual gate at a fixed `t`.
+>   pipelines must still call `gpuMultisample(shell.sampleCount)` to stay MSAA-safe
+>   (`waterPlanePass` already does).
+> - Animated pixels break `snapCheck` unless time is injectable. Use `shell.setTime(t)` with
+>   a fixed `t`; snap every visual gate at a fixed `t` (the bake-off scene snaps `?t=2.0`).
+> - **Known limitation to fix in S2:** the displaced plane shows foreground faceting (grid
+>   undersampling near the camera). Tessellation density / a distance-graded grid is S2's job.
 >
 > **Global TODO (each item → owning slice):**
-> - [ ] S1 — Technique bake-off spike + frozen seam + decision artifact → `slices/01-bakeoff-spike.md`
+> - [x] S1 — Technique bake-off spike + frozen seam + decision artifact → `slices/01-bakeoff-decision.md` (**Gerstner won**)
 > - [ ] S2 — Wave silhouette / displacement (open-sea plane, neutral grey) → `slices/02-wave-silhouette.md`
 > - [ ] S3 — Whitecap foam coverage → `slices/03-foam-coverage.md`
 > - [ ] S4 — Sun-glint streak → `slices/04-sun-glint.md`

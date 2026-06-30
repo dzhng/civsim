@@ -10,12 +10,45 @@ Synthesized from three independent draft plans (they converged hard — the cut 
 
 ## Next Agent Prompt
 
-**Status:** S0 + S1 + S2 shipped (green). _Last updated: 2026-07-01._
+**Status:** S0 + S1 + S2 + S3 shipped (green). **S3 verdict: MIGRATE (Branch A).** _Last updated: 2026-07-01._
 
-**Start at Slice 3** (`slices/03-hud-perf-spike.md`) — the HUD perf SPIKE that decides whether
-the per-frame card bar becomes React. S0 (stack), S1 (one bronze token source), and S2 (React
-menu) are done. **S3 runs the head-to-head measurement and records the verdict S6 consumes.**
-Do not start the static wave (S4/S5) before S3 settles the 60 Hz seam.
+**Start at Slice 4** (`slices/04-army-builder-modals.md`) OR **Slice 5** (`slices/05-campaign-panels.md`)
+— the static wave can now proceed in parallel; S3 has settled the 60 Hz seam. S6 (HUD outcome)
+runs **Branch A — MIGRATE**, per the spike verdict below. S0–S3 are done.
+
+**★ S3 SPIKE VERDICT — MIGRATE (Branch A). The whole migration's load-bearing measurement.**
+Isolated card-update self-time, sim RUNNING, `?map=A` live battle (20 player cards / 40 units /
+~320 frames), two runs, headful hardware GPU:
+| bar | median | p95 | p99 | max |
+|---|---|---|---|---|
+| vanilla | 0.010ms | 0.035–0.040ms | 0.045ms | 0.055ms |
+| React | 0.010ms | 0.040ms | 0.045ms | 0.055ms |
+
+**Δmedian = 0.000ms (gate ≤ 0.30), Δp95 = 0.000–0.005ms (gate ≤ 0.50) → PASS by a huge margin.**
+Frame counts identical (320 vs 320) → **no fps regression** (end-to-end guard met). Both bars sit
+at the `performance.now()` resolution floor — the card update is too cheap to even measure a
+difference. **Why it's free:** S3 extracted the hot-path logic (`cardStateKey` + `applyCardVisual`
++ `applyCardGrid`) into `unitCard.ts` as the ONE source both bars call, and React's render/commit
+**never runs at 60Hz** — the imperative handle writes straight to ref'd nodes. So the hot path is
+literally the same code. **S6 migrates the HUD to React.**
+
+**S3 decisions recorded (read before S6):**
+- `web/src/ui/hud/UnitCardsReact.tsx` — structure in React (rebuilt only on roster change via
+  `build()`/flushSync), 60Hz `update()` via `useImperativeHandle` writing to ref'd nodes through
+  the shared helpers. Drop-in for vanilla `UnitCards` (same `build`/`update` surface). `applyCardGrid`
+  runs in `useLayoutEffect` (not passive) so the grid is set synchronously like vanilla.
+- Flags: `?hud=react` (BattleScene swaps the bar at the same rAF call site, **default stays
+  vanilla**), `?react` (lab `/renderer/card-bar` route — lets the DOM-only gate validate it),
+  `?measurecards` (records per-frame self-time into `window.__cardUpdateSamples`, zero overhead off).
+- **Visual gate met:** React card bar passes the harness `snapCheck` (pixelmatch@0.12) at
+  **0 px / 0.00000** for count 20/30/40 both DPR — byte-identical box/layout. (A raw delta≥1 count
+  shows a faint DPR1 AA shimmer at 3 rows, but it's all below the perceptual threshold the gate uses.)
+- The measurement was a throwaway script (per spec: "a measurement, not a baseline"), not a
+  committed scene. To re-run: boot `?map=A&measurecards[&hud=react]`, read `window.__cardUpdateSamples`.
+
+**S3 verification (green):** `tsc` ✓, `build` ✓, `cardGrid` 8/8 ✓, `card-bar` (headless, vanilla
+default) 0.0000% ✓, `battle-renderer-visual` + `menu-renderer-shell-visual` (headful) 0.0000% ✓,
+React card bar snapCheck 0 px ✓, perf A/B PASS (×2). Default path unchanged (instrumentation gated).
 
 **S2 decisions recorded (read before S3):**
 - **The menu (`#menu-ui` + duel modal) is React** — `web/src/ui/menu/Menu.tsx`, mounted into
@@ -96,7 +129,7 @@ checkpoint:** the (0,0) pass is self-justifying (no pixels moved); proceeded on 
 - [x] S0 — stack setup: React + Vite plugin + Tailwind v4 in `web/`, COOP/COEP preserved, `tsc --noEmit` gate (`slices/00-stack-setup.md`) — **shipped**
 - [x] S1 — one bronze token source (`web/src/ui/theme/bronze.css`): `:root` tokens consumed by vanilla index.html; chassis classes + `@theme` deferred to S2; **zero pixel change** (`slices/01-design-system.md`) — **shipped**
 - [x] S2 — menu proof: `#menu-ui` + duel modal are React (`web/src/ui/menu/Menu.tsx`) into `#ui-root`; army builder stays vanilla; new `menu-quick-battle-modal` baseline (`slices/02-menu-proof.md`) — **shipped**
-- [ ] S3 — **HUD perf SPIKE** (card bar in React, 60 Hz via refs, measured) → migrate/keep verdict (`slices/03-hud-perf-spike.md`)
+- [x] S3 — **HUD perf SPIKE** → **VERDICT: MIGRATE.** React card bar (`UnitCardsReact`) measured Δmedian 0.0ms / Δp95 0.0ms vs vanilla; shared hot-path helpers in `unitCard.ts`; S6 = Branch A (`slices/03-hud-perf-spike.md`) — **shipped**
 - [ ] S4 — static wave: army builder + battle modals (`slices/04-army-builder-modals.md`)
 - [ ] S5 — static wave: campaign panels (+ optional slate→bronze re-theme, David's call) (`slices/05-campaign-panels.md`)
 - [ ] S6 — HUD outcome branch (migrate-to-React OR keep-vanilla-share-tokens) (`slices/06-hud-outcome.md`)

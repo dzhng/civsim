@@ -10,7 +10,7 @@ import { cardThumbUrl } from './classData';
 
 // Faction accents keep cards, banners, and WebGPU soldier colours reading as
 // the same side.
-const FACTION_CSS = ['#3a6cf0', '#e03e34']; // player blue, enemy crimson
+export const FACTION_CSS = ['#3a6cf0', '#e03e34']; // player blue, enemy crimson
 
 // Total-War card-bar constants (the production source of truth — cardGrid.ts
 // only holds matching fallbacks). Cards are a FIXED size; the bar wraps into
@@ -21,8 +21,48 @@ const CARD_W = 72; // fixed card width in px (cardH derives from the 3:4 aspect)
 // centered bar collides once it is wider than viewport − 2×~204. Reserve that
 // zone (symmetric, to stay centered). The lab harness has no minimap and passes
 // a bare margin instead. Tunable at the S2 checkpoint.
-const MINIMAP_RESERVE = 210;
+export const MINIMAP_RESERVE = 210;
 const GRID_OPTS: CardGridOpts = { cardW: CARD_W, aspect: 3 / 4, gap: 4, maxRows: 3 };
+
+/** The four live nodes a card's per-frame update writes into. */
+export interface CardBarRefs { hp: HTMLElement; coh: HTMLElement; mor: HTMLElement; count: HTMLElement }
+
+/** Quantized change key — the hand-diffed skip that keeps the 60Hz card update
+ * cheap: only repaint a card when a visible band actually crosses a step. The
+ * one source of this logic, shared by the vanilla and React card bars (the S3
+ * spike), so the two render strategies are measured on identical work. */
+export function cardStateKey(s: UnitCardState): string {
+  const hpFrac = s.total > 0 ? s.alive / s.total : 0;
+  return `${(hpFrac * 50) | 0}|${(s.cohesion * 30) | 0}|${(s.morale * 30) | 0}|${(s.stamina * 20) | 0}|${s.selected ? 1 : 0}|${s.routing ? 1 : 0}`;
+}
+
+/** Write one card's bars + selected/rout state to its live nodes. The single
+ * source of the per-frame card paint (shared by both card bars). */
+export function applyCardVisual(card: HTMLElement, b: CardBarRefs, s: UnitCardState): void {
+  const hpFrac = s.total > 0 ? s.alive / s.total : 0;
+  b.hp.style.width = (hpFrac * 100).toFixed(0) + '%';
+  b.hp.style.background = hpFrac > 0.5 ? '#5cba46' : hpFrac > 0.25 ? '#d6b13a' : '#cf4a3a';
+  b.coh.style.width = (s.cohesion * 100).toFixed(0) + '%';
+  b.mor.style.width = (s.morale * 100).toFixed(0) + '%';
+  b.count.textContent = String(s.alive);
+  card.classList.toggle('sel', s.selected);
+  card.classList.toggle('rout', s.routing);
+}
+
+/** No-scroll grid pass: pick rows/cols at the fixed card size for the width
+ * budget and hand them to CSS as custom properties on `root`. Layout, never
+ * per-frame. Shared by both card bars. */
+export function applyCardGrid(root: HTMLElement, count: number, sideReserve: number): void {
+  const boxW = window.innerWidth - 2 * sideReserve;
+  const g = computeCardGrid(count, boxW, GRID_OPTS);
+  root.style.setProperty('--cols', String(g.cols));
+  root.style.setProperty('--card-w', g.cardW + 'px');
+  root.style.setProperty('--card-h', g.cardH + 'px');
+  root.classList.toggle('undersized', g.degenerate);
+  (window as unknown as { __cardGrid?: unknown }).__cardGrid = {
+    rows: g.rows, cols: g.cols, cardW: g.cardW, degenerate: g.degenerate,
+  };
+}
 
 export interface UnitCardInit {
   unit: number; // sim unit id (for selection)
@@ -47,7 +87,7 @@ const W = 38, H = 48; // portrait canvas size (CSS px; drawn at 2x for crispness
 // A compact side-view soldier (or rider) for class `cls`, facing right, tinted
 // with the faction accent on shield/crest/sash — the same silhouette language
 // as the 3D model, just flat. Drawn on a 2x backing for sharpness.
-function drawPortrait(canvas: HTMLCanvasElement, cls: number, look: number | undefined, team: 0 | 1) {
+export function drawPortrait(canvas: HTMLCanvasElement, cls: number, look: number | undefined, team: 0 | 1) {
   const L = lookForModel(look ?? modelLookForClass(cls));
   const dpr = 2;
   canvas.width = W * dpr; canvas.height = H * dpr;
@@ -147,15 +187,7 @@ export class UnitCards {
    * itself (which would be circular). Runs on build and on resize — never per
    * frame; `update()` only touches bar widths. */
   private relayout() {
-    const boxW = window.innerWidth - 2 * this.sideReserve;
-    const g = computeCardGrid(this.cards.length, boxW, GRID_OPTS);
-    this.root.style.setProperty('--cols', String(g.cols));
-    this.root.style.setProperty('--card-w', g.cardW + 'px');
-    this.root.style.setProperty('--card-h', g.cardH + 'px');
-    this.root.classList.toggle('undersized', g.degenerate);
-    (window as unknown as { __cardGrid?: unknown }).__cardGrid = {
-      rows: g.rows, cols: g.cols, cardW: g.cardW, degenerate: g.degenerate,
-    };
+    applyCardGrid(this.root, this.cards.length, this.sideReserve);
   }
 
   /** (Re)build a card per unit. Call when the roster is known or grows. */
@@ -205,18 +237,10 @@ export class UnitCards {
       const card = this.cards[i];
       if (!s) { card.style.display = 'none'; continue; }
       card.style.display = '';
-      const hpFrac = s.total > 0 ? s.alive / s.total : 0;
-      const key = `${(hpFrac * 50) | 0}|${(s.cohesion * 30) | 0}|${(s.morale * 30) | 0}|${(s.stamina * 20) | 0}|${s.selected ? 1 : 0}|${s.routing ? 1 : 0}`;
+      const key = cardStateKey(s);
       if (key === this.keys[i]) continue;
       this.keys[i] = key;
-      const b = this.bars[i];
-      b.hp.style.width = (hpFrac * 100).toFixed(0) + '%';
-      b.hp.style.background = hpFrac > 0.5 ? '#5cba46' : hpFrac > 0.25 ? '#d6b13a' : '#cf4a3a';
-      b.coh.style.width = (s.cohesion * 100).toFixed(0) + '%';
-      b.mor.style.width = (s.morale * 100).toFixed(0) + '%';
-      b.count.textContent = String(s.alive);
-      card.classList.toggle('sel', s.selected);
-      card.classList.toggle('rout', s.routing);
+      applyCardVisual(card, this.bars[i], s);
     }
   }
 }

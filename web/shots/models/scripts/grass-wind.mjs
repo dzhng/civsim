@@ -1,5 +1,6 @@
-// Grass wind review: films the BattleGrassPass flat-field workbench at fixed
-// shader phases, then writes one looping GIF for eyeballing the blade rhythm.
+// Grass wind review: films the BattleGrassPass flat-field workbench and a real
+// terrain field at fixed shader phases, then writes looping GIFs for eyeballing
+// blade rhythm and map-scale coherence.
 //
 //   VERIFY_GPU=1 node shots/models/scripts/grass-wind.mjs
 import { chromium } from 'playwright';
@@ -11,9 +12,12 @@ import { encodeGif, pngToRGBA } from '../../_gif.mjs';
 import { GPU_HARDWARE_FLAGS, GPU_SWIFTSHADER_FLAGS } from '../../../renderer-probe-lib.mjs';
 
 const TARGET = process.env.VERIFY_URL ?? 'http://localhost:5173';
-const TW = 520;
-const TH = 250;
-const VIEW_H = 320;
+const FLAT_W = 520;
+const FLAT_H = 250;
+const FLAT_VIEW_H = 320;
+const TERRAIN_W = 640;
+const TERRAIN_H = 320;
+const TERRAIN_VIEW_H = 420;
 const here = path.dirname(fileURLToPath(import.meta.url));
 const WEB_ROOT = path.join(here, '..', '..', '..');
 const OUT = path.join(here, '..', 'shared', 'grass', 'anim');
@@ -26,19 +30,29 @@ const gpuArgs = process.env.VERIFY_GPU === '1'
 const launchOptions = { args: gpuArgs };
 if (process.env.VERIFY_BROWSER_CHANNEL) launchOptions.channel = process.env.VERIFY_BROWSER_CHANNEL;
 const browser = await chromium.launch(launchOptions);
-const page = await browser.newPage({ viewport: { width: TW, height: VIEW_H } });
+const page = await browser.newPage({ viewport: { width: FLAT_W, height: FLAT_VIEW_H } });
 const errs = [];
 page.on('pageerror', (e) => errs.push(e.message));
 page.on('console', (m) => { if (m.type() === 'error') errs.push(m.text()); });
 
-const frames = [];
+const flatFrames = [];
 for (const phase of phases) {
-  frames.push(pngToRGBA(await captureGrass(page, phase)));
+  flatFrames.push(pngToRGBA(await captureGrass(page, phase)));
 }
-const gif = encodeGif(frames, TW, TH, 7, { loop: true });
-const file = path.join(OUT, 'flat-field.gif');
-fs.writeFileSync(file, gif);
-console.log('wrote', path.relative(WEB_ROOT, file), `${frames.length}f ${(gif.length / 1024).toFixed(0)}kb`);
+const flatGif = encodeGif(flatFrames, FLAT_W, FLAT_H, 7, { loop: true });
+const flatFile = path.join(OUT, 'flat-field.gif');
+fs.writeFileSync(flatFile, flatGif);
+console.log('wrote', path.relative(WEB_ROOT, flatFile), `${flatFrames.length}f ${(flatGif.length / 1024).toFixed(0)}kb`);
+
+await page.setViewportSize({ width: TERRAIN_W, height: TERRAIN_VIEW_H });
+const terrainFrames = [];
+for (const phase of phases) {
+  terrainFrames.push(pngToRGBA(await captureTerrainGrass(page, phase)));
+}
+const terrainGif = encodeGif(terrainFrames, TERRAIN_W, TERRAIN_H, 7, { loop: true });
+const terrainFile = path.join(OUT, 'terrain-field.gif');
+fs.writeFileSync(terrainFile, terrainGif);
+console.log('wrote', path.relative(WEB_ROOT, terrainFile), `${terrainFrames.length}f ${(terrainGif.length / 1024).toFixed(0)}kb`);
 if (errs.length) console.log('page errors:', errs.slice(0, 6));
 await browser.close();
 
@@ -58,7 +72,23 @@ async function captureGrass(page, phase) {
     { timeout: 18000 },
   );
   await page.waitForTimeout(60);
-  return cropPng(await canvasScreenshot(page), TW, TH);
+  return cropPng(await canvasScreenshot(page), FLAT_W, FLAT_H);
+}
+
+async function captureTerrainGrass(page, phase) {
+  const url = new URL(`${TARGET}/renderer/battle-terrain-3d`);
+  url.searchParams.set('gate', 'river-and-crags');
+  url.searchParams.set('grassPhase', String(phase));
+  await page.goto(url.href, { waitUntil: 'domcontentloaded' });
+  await page.waitForFunction(
+    (p) => window.__rendererLabReady === true
+      && window.__rendererLabStats?.stats?.route === 'battle-terrain-3d'
+      && Math.abs((window.__rendererLabStats?.stats?.grass?.windPhase ?? -999) - p) < 0.0001,
+    phase,
+    { timeout: 18000 },
+  );
+  await page.waitForTimeout(60);
+  return cropPng(await canvasScreenshot(page), TERRAIN_W, TERRAIN_H);
 }
 
 async function canvasScreenshot(page) {

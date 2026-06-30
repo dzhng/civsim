@@ -61,6 +61,17 @@ export interface BattleTerrainPresentation {
   features: BattleTerrainFeature[];
 }
 
+export function isBattleGrassBlockedTint(tint: number): boolean {
+  return tint === 1 || tint === 2 || tint === 3 || tint === 5;
+}
+
+export function battleGrassTintWeight(tint: number): number {
+  if (tint === 0) return 1;
+  if (tint === 4) return 0.40;
+  if (tint === 6) return 0.16;
+  return 0;
+}
+
 const TINT_TO_KIND: Record<number, BattleTerrainFeatureKind | undefined> = {
   1: 'water',
   2: 'rock',

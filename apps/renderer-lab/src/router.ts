@@ -2798,16 +2798,41 @@ async function routeBattleTerrain3d(ctx: LabContext) {
   ground.setTerrain(grid, field, presentation.groundCover);
   const grass = new BattleGrassPass(shell);
   const grassZoomT = view === 'reference' ? 1.0 : view === 'soldiers' ? 0.82 : 0.58;
+  const grassTechnique = view === 'reference' && isReferenceFixture
+    ? (ctx.params.get('grassTechnique') === 'cards' || ctx.params.get('grassTechnique') === 'carpet' ? ctx.params.get('grassTechnique')! : 'hybrid')
+    : 'cards';
+  if (view === 'reference' && isReferenceFixture && grassTechnique !== 'cards') {
+    ground.setMeadow({
+      depthNear: numberParam(ctx.params, 'meadowDepthNear', 0),
+      depthFar: numberParam(ctx.params, 'meadowDepthFar', 1040),
+      nearStrength: numberParam(ctx.params, 'meadowNear', grassTechnique === 'carpet' ? 0.98 : 0.90),
+      farStrength: numberParam(ctx.params, 'meadowFar', grassTechnique === 'carpet' ? 0.46 : 0.34),
+    });
+  }
+  const referenceGrassBaseTufts = grassTechnique === 'carpet' ? 3000 : grassTechnique === 'hybrid' ? 6000 : 24000;
+  const grassFocus = {
+    x: camera.x,
+    y: camera.y,
+    radius: view === 'reference' ? Number(ctx.params.get('grassRadius') ?? (isReferenceFixture ? 500 : 320)) : view === 'soldiers' ? 150 : 340,
+    ...(view === 'reference' && isReferenceFixture ? {
+      yaw: camera.yaw,
+      depthNear: numberParam(ctx.params, 'grassDepthNear', 35),
+      depthFar: numberParam(ctx.params, 'grassDepthFar', 540),
+      nearBoost: numberParam(ctx.params, 'grassNearBoost', 2.20),
+      farWeight: numberParam(ctx.params, 'grassFarWeight', 0.035),
+    } : {}),
+  };
   grass.setTerrain(grid, field, presentation.groundCover, {
     seed: 0x7a55,
     density: view === 'reference' ? (isReferenceFixture ? 1.15 : 0.72) : 0.50,
-    maxTufts: view === 'reference' ? (isReferenceFixture ? 16000 : 8000) : 4200,
+    maxTufts: view === 'reference' ? (isReferenceFixture ? referenceGrassBaseTufts : 8000) : 4200,
     zoomT: grassZoomT,
-    focus: { x: camera.x, y: camera.y, radius: view === 'reference' ? Number(ctx.params.get('grassRadius') ?? (isReferenceFixture ? 560 : 320)) : view === 'soldiers' ? 150 : 340 },
-    bladeHeight: view === 'reference' ? (isReferenceFixture ? 1.35 : 1.24) : 1.0,
-    bladeWidth: view === 'reference' ? (isReferenceFixture ? 0.090 : 0.088) : 0.072,
-    bend: view === 'reference' ? (isReferenceFixture ? 0.42 : 0.40) : 0.32,
-    spread: view === 'reference' ? (isReferenceFixture ? 0.31 : 0.25) : 0.20,
+    focus: grassFocus,
+    ...(view === 'reference' ? { bladesPerTuft: integerParam(ctx.params, 'grassBlades', 12, 1, 96) } : {}),
+    bladeHeight: view === 'reference' ? numberParam(ctx.params, 'grassBladeHeight', isReferenceFixture ? 1.45 : 1.24) : 1.0,
+    bladeWidth: view === 'reference' ? numberParam(ctx.params, 'grassBladeWidth', isReferenceFixture ? 0.096 : 0.088) : 0.072,
+    bend: view === 'reference' ? numberParam(ctx.params, 'grassBend', isReferenceFixture ? 0.46 : 0.40) : 0.32,
+    spread: view === 'reference' ? numberParam(ctx.params, 'grassSpread', isReferenceFixture ? 0.34 : 0.25) : 0.20,
     windPhase: numberParam(ctx.params, 'grassPhase', 0),
     windStrength: isReferenceFixture ? 0.058 : 0.078,
   });
@@ -2869,12 +2894,15 @@ async function routeBattleTerrain3d(ctx: LabContext) {
 
   const propStats = props.stats();
   const grassStats = grass.stats();
+  const groundStats = ground.stats();
   ctx.status.innerHTML = reportTable({
     route: 'battle-terrain-3d',
     gate: entry.id,
     map: entry.label,
     groundCover: presentation.groundCover,
-    groundTriangles: ground.stats().triangles,
+    groundTriangles: groundStats.triangles,
+    grassTechnique,
+    meadow: groundStats.meadow.enabled ? `${groundStats.meadow.nearStrength.toFixed(2)} → ${groundStats.meadow.farStrength.toFixed(2)}` : 'off',
     grassTufts: grassStats.tuftInstances,
     grassBlades: grassStats.bladeInstances,
     grassBlockedCells: grassStats.blockedTintCells,
@@ -2893,8 +2921,10 @@ async function routeBattleTerrain3d(ctx: LabContext) {
     referenceSky: referenceSky?.stats() ?? null,
     referenceBackdrop: referenceBackdrop?.stats() ?? null,
     groundCover: presentation.groundCover,
-    groundTriangles: ground.stats().triangles,
-    groundLayer: ground.stats().layer,
+    groundTriangles: groundStats.triangles,
+    groundLayer: groundStats.layer,
+    ground: groundStats,
+    grassTechnique,
     props: scenery.length,
     trees: propStats.trees,
     rocks: propStats.rocks,

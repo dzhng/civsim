@@ -33,12 +33,18 @@ export async function run(ctx) {
   }
 
   ctx.check(
-    'reference candidate uses the zoomed-in vista grass budget',
+    'reference candidate uses the hybrid meadow grass architecture',
     stats.grass?.terrainMasked === true
       && stats.grass?.zoomT === 1
-      && stats.grass?.tuftInstances >= 26000
+      && stats.grassTechnique === 'hybrid'
+      && stats.ground?.meadow?.enabled === true
+      && stats.ground?.meadow?.nearStrength >= 0.85
+      && stats.ground?.meadow?.farStrength >= 0.25
+      && stats.grass?.tuftInstances >= 20000
+      && stats.grass?.tuftInstances <= 32000
+      && stats.grass?.bladeInstances >= 240000
       && stats.grass?.invalidTintTufts === 0,
-    JSON.stringify(stats.grass),
+    JSON.stringify({ grassTechnique: stats.grassTechnique, meadow: stats.ground?.meadow, grass: stats.grass }),
   );
   ctx.check(
     'reference candidate uses highland-valley relief fixture',
@@ -61,6 +67,15 @@ export async function run(ctx) {
   const target = PNG.sync.read(await readFile(TARGET));
   const candidateForeground = bandMetrics(candidate, 0.62, 0.98);
   const targetForeground = bandMetrics(target, 0.62, 0.98);
+  ctx.check(
+    'foreground grass crop records density telemetry',
+    true,
+    JSON.stringify({
+      targetForeground,
+      candidateForeground,
+      edgeEnergyRatio: Number((candidateForeground.edgeEnergy / Math.max(0.001, targetForeground.edgeEnergy)).toFixed(3)),
+    }),
+  );
   ctx.check(
     'candidate foreground has visible green grass color',
     candidateForeground.greenRatio > 0.35

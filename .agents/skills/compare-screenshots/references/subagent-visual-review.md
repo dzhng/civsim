@@ -32,10 +32,10 @@ Do not assume either image is the desired target; judge only from visible pixels
 
 ## How To Use The Result
 
-- Treat the subagent result as independent evidence, not a replacement for
-  metrics or your own inspection.
+- Treat the subagent result as independent evidence about which image is less
+  wrong, not a replacement for metrics or your own inspection — and not a vote
+  for whichever image is the baseline.
 - If the subagent flags wrong camera, mismatched state, missing content, or
-  visible artifacts, fix capture/rendering quality before accepting any lower
-  pixel score.
+  visible artifacts, fix capture/rendering quality before judging the rest.
 - Quote the subagent verdict in the working notes when it changes or confirms
   the next implementation target.

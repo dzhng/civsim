@@ -13,18 +13,34 @@
       font-display: swap;
     }
     html, body { margin: 0; height: 100%; overflow: hidden; background: #14161c; }
+    /* Bronze HUD design tokens — the one source for the game-UI chrome (card bar,
+       toolbar, info panel, minimap, buttons all consume these). A chassis is:
+       background: var(--bronze-fill) padding-box, var(--bronze-edge) border-box;
+       border: 3px solid transparent; box-shadow: var(--bronze-frame). */
+    :root {
+      --bronze-fill: linear-gradient(#5e4527, #2a1f11);
+      --bronze-edge: linear-gradient(#c79a54 0%, #6e5128 48%, #241a0e 100%);
+      --bronze-frame: inset 0 1px 0 rgba(236,200,132,0.6), inset 0 0 0 2px rgba(16,10,5,0.7), inset 0 -2px 6px rgba(0,0,0,0.55), 0 0 0 1px rgba(182,142,80,0.6), 0 7px 18px rgba(0,0,0,0.6);
+      --bronze-ink: #e7cfa0;
+      --bronze-ink-bright: #f6e4ba;
+      --well-bg: #1a130b;
+      --well-shadow: inset 0 0 0 1px rgba(150,114,62,0.3), inset 0 0 6px rgba(0,0,0,0.7);
+      --well-hover: inset 0 0 0 1px rgba(201,165,99,0.7), inset 0 0 6px rgba(0,0,0,0.6);
+    }
     #battlefield { display: block; width: 100vw; height: 100vh; }
     #hud {
       position: fixed; top: 12px; left: 12px;
       font: 12px/1.5 ui-monospace, Menlo, monospace;
-      color: #c8cdd8; background: rgba(10, 12, 16, 0.75);
-      padding: 10px 14px; border-radius: 8px; pointer-events: none;
-      min-width: 220px;
+      color: #ecd9b0; pointer-events: none; min-width: 220px;
+      padding: 9px 13px; border: 3px solid transparent; border-radius: 5px;
+      background: var(--bronze-fill) padding-box, var(--bronze-edge) border-box;
+      box-shadow: var(--bronze-frame);
     }
     #hud .bar {
-      height: 6px; background: #2a2e3a; border-radius: 3px; overflow: hidden; margin: 2px 0 6px;
+      height: 6px; background: rgba(6,8,5,0.8); border-radius: 2px; overflow: hidden; margin: 2px 0 6px;
+      box-shadow: inset 0 0 0 1px rgba(150,114,62,0.3);
     }
-    #hud .bar > div { height: 100%; background: #4caf6d; }
+    #hud .bar > div { height: 100%; background: #5cba46; }
     #help {
       position: fixed; bottom: 12px; left: 12px;
       font: 11px ui-monospace, Menlo, monospace; color: #6b7280;
@@ -33,11 +49,12 @@
       position: fixed; top: 12px; right: 12px; display: flex; gap: 8px;
     }
     #buttons button {
-      font: 12px ui-monospace, Menlo, monospace; color: #c8cdd8;
-      background: rgba(10,12,16,0.8); border: 1px solid #3a3f4d;
-      border-radius: 6px; padding: 6px 12px; cursor: pointer;
+      font: 700 11px ui-monospace, Menlo, monospace; color: var(--bronze-ink);
+      background: var(--well-bg); border: 1px solid #3a2c18;
+      border-radius: 2px; padding: 6px 12px; cursor: pointer;
+      box-shadow: var(--well-shadow);
     }
-    #buttons button:hover { background: rgba(40,44,56,0.9); }
+    #buttons button:hover { color: var(--bronze-ink-bright); box-shadow: var(--well-hover); }
     #manual {
       display: none; position: fixed; top: 48px; right: 270px; bottom: 172px; z-index: 50;
       width: min(520px, calc(100vw - 310px)); max-height: none;
@@ -204,10 +221,10 @@
     }
     #banner-gallery .ubanner-cap { font: 600 10px ui-monospace, Menlo, monospace; color: #cfe0bf; }
     #minimap {
-      position: fixed; right: 12px; bottom: 170px;
-      border: 1px solid #3a3f4d; border-radius: 6px;
-      background: #11141a; cursor: crosshair;
-      box-shadow: 0 4px 18px rgba(0,0,0,0.5);
+      position: fixed; right: 12px; bottom: 170px; cursor: crosshair;
+      border: 4px solid transparent; border-radius: 5px;
+      background: var(--bronze-fill) padding-box, var(--bronze-edge) border-box;
+      box-shadow: var(--bronze-frame);
       /* Above the world-space unit banners (#unitlabels, z-index 3) so a banner
          drawn over a unit near the corner can't bleed across the minimap. */
       z-index: 10;

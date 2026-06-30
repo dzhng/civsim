@@ -12,9 +12,36 @@ Synthesized from three independent draft plans (they converged hard — the cut 
 
 **Status:** S0 + S1 + S2 + S3 shipped (green). **S3 verdict: MIGRATE (Branch A).** _Last updated: 2026-07-01._
 
-**Start at Slice 4** (`slices/04-army-builder-modals.md`) OR **Slice 5** (`slices/05-campaign-panels.md`)
-— the static wave can now proceed in parallel; S3 has settled the 60 Hz seam. S6 (HUD outcome)
-runs **Branch A — MIGRATE**, per the spike verdict below. S0–S3 are done.
+**Start at: finish S4 battle modals (S4b)** OR **Slice 5** (`slices/05-campaign-panels.md`).
+S4a (the army builder) is shipped; the remaining S4 piece is the in-battle modals
+(pause/result; the field manual is already a React-toggled overlay). The static wave can
+proceed in parallel; S3 settled the 60 Hz seam. S6 (HUD outcome) runs **Branch A — MIGRATE**.
+S0–S3 done.
+
+**S4a decisions recorded (army builder → React):**
+- `web/src/ui/menu/ArmyBuilder.tsx` (view) + `armyBuilderState.ts` (pure reducer, **node-tested**
+  byte-identical output — `armyBuilderState.test.mjs`, 6 tests). The reducer keeps a real `Map`
+  per side so picks come out in INSERTION order (template-first, then click-added), matching the
+  old builder exactly; a numeric-keyed object would resort integer keys. Catalog imported
+  type-only there so node can run the test (the catalog's deep extensionless imports won't load
+  under node).
+- Deleted vanilla `quickBattleSetup.ts`. Moved its `QuickBattleClassSpec` / `QuickBattleConfig`
+  types to `quickBattleCatalog.ts` (data home); updated `main.ts` import.
+- `Menu` owns `qbOpen` state; Custom Battle opens `<ArmyBuilder>`. **The builder modal is a
+  SIBLING of `#menu-ui`, not a child** — inside `#menu-ui` the `#menu-ui button` rule (spec
+  0,1,1) bloated the `.qb-step`/`.qb-template` buttons (class spec 0,1,0) and broke the layout
+  (18.9% diff → 0.02% once moved out, matching how it was body-level before). Modal gets
+  `pointer-events:auto` (it's a child of the click-through `#ui-root`).
+- `MenuScene.enter()` now `flushSync`-renders the menu so the DOM exists synchronously when the
+  boot/verify harnesses read it (the heavier ArmyBuilder lost the async-commit race S2 won).
+- `menu-renderer-shell` overfill check reads `qb-launch.disabled` **after** a `waitForFunction`
+  (React batches the dispatched clicks) — same assertion, async-aware timing.
+
+**S4a verification (green):** `tsc` ✓, `build` ✓, `test:ui` 14/14 (8 cardGrid + 6 reducer) ✓,
+`menu-renderer-shell` functional fully passes (maps/rows/validation/overfill/launch + duel + 5v5
++ campaign launch through the React builder) ✓, `menu-quick-battle-modal` snapshot **0.018%**
+(no re-bless — pixel-equivalent to the vanilla baseline) ✓, other menu snaps + `battle` +
+`card-bar` 0.0000% ✓.
 
 **★ S3 SPIKE VERDICT — MIGRATE (Branch A). The whole migration's load-bearing measurement.**
 Isolated card-update self-time, sim RUNNING, `?map=A` live battle (20 player cards / 40 units /

@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import type { BattleKind } from '../../battle/scene';
 import type { GpuSupportState } from '../../../../packages/game-renderer/src/appShell';
+import type { QuickBattleClassSpec, QuickBattleConfig } from '../../battle/quickBattleCatalog';
+import { ArmyBuilder } from './ArmyBuilder';
 
 /** Everything the React menu needs from MenuScene. The cfg-shaped callbacks are
  * passed straight through; gpu state + class list + save presence are snapshot
@@ -13,8 +15,10 @@ export interface MenuProps {
   duelDefaultB: number;
   hasSave: boolean;
   onQuickBattle: (kind: BattleKind) => void;
-  /** Opens the still-vanilla custom-battle army builder. */
-  onOpenCustomBattle: () => void;
+  /** Class rows for the custom-battle army builder (now React). */
+  classes: QuickBattleClassSpec[];
+  /** Launch a configured custom battle. */
+  onCustomBattle: (cfg: QuickBattleConfig) => void;
   onDuel: (a: number, b: number, ai: boolean) => void;
   onNewCampaign: () => void;
   onLoadCampaign: () => void;
@@ -35,6 +39,7 @@ export function Menu(props: MenuProps) {
   const msg = gpuStatus.message;
 
   const [duelOpen, setDuelOpen] = useState(false);
+  const [qbOpen, setQbOpen] = useState(false);
   const [duelA, setDuelA] = useState(0);
   const [duelB, setDuelB] = useState(props.duelDefaultB);
   const [duelAi, setDuelAi] = useState(false);
@@ -51,6 +56,7 @@ export function Menu(props: MenuProps) {
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== 'Escape') return;
       setDuelOpen(false);
+      setQbOpen(false);
       props.onHideManual();
     };
     window.addEventListener('keydown', onKey);
@@ -63,6 +69,7 @@ export function Menu(props: MenuProps) {
   ));
 
   return (
+    <>
     <div id="menu-ui" style={{ display: 'flex', pointerEvents: 'auto' }}>
       <h1>BATTLE SIM</h1>
       <p className="tagline">mass &middot; momentum &middot; morale</p>
@@ -98,7 +105,7 @@ export function Menu(props: MenuProps) {
         <button data-battle="5v5" disabled={!ok} title={disabledTitle} onClick={() => props.onQuickBattle('5v5')}>
           Clash of Arms <small>full roster, open field</small>
         </button>
-        <button id="menu-quick-battle" disabled={!ok} title={disabledTitle} onClick={() => ok && props.onOpenCustomBattle()}>
+        <button id="menu-quick-battle" disabled={!ok} title={disabledTitle} onClick={() => ok && setQbOpen(true)}>
           Custom Battle <small>pick a map, build two armies</small>
         </button>
       </div>
@@ -126,6 +133,18 @@ export function Menu(props: MenuProps) {
           <button className="cancel" id="duel-cancel" onClick={() => setDuelOpen(false)}>Cancel</button>
         </div>
       </div>
-    </div>
+      </div>
+
+      {/* Sibling of #menu-ui (not a child) — the custom-battle modal must stay
+          OUTSIDE #menu-ui so the `#menu-ui button` rule doesn't bloat the army
+          builder's .qb-step/.qb-template buttons, exactly as when it was a
+          body-level element. */}
+      <ArmyBuilder
+        open={qbOpen}
+        classes={props.classes}
+        onLaunch={props.onCustomBattle}
+        onClose={() => setQbOpen(false)}
+      />
+    </>
   );
 }

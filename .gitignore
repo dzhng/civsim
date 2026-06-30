@@ -16,9 +16,6 @@ crates/*/tests/dbg*.rs
 # highlighted pixel diffs from a failed snapCheck (regenerated every run)
 web/shots/diff/
 
-# perf/scenario reports regenerated every run by the full-game-rendering-performance
-# scene and scenario:renderer (consumed by the release/cutover audit scripts at run
-# time, never reviewed by hand). The tracked README + *.example.json baseline stay.
-web/reports/rendering/performance/full-game-rendering-performance.json
-web/reports/rendering/rendering-performance-report.html
+# scenario:renderer writes a per-run JSON summary here; regenerated every run,
+# never committed. The tracked README + *.example.json baseline stay.
 web/reports/rendering/scenario-runs/

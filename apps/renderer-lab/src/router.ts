@@ -104,7 +104,6 @@ const routes: Record<string, LabRoute> = {
   '/renderer/battle-ui': routeBattleUi,
   '/renderer/battle-input': routeBattleInput,
   '/renderer/battle-live': routeBattleLive,
-  '/renderer/cutover': routeCutover,
 };
 
 export async function mountRendererLab(path = location.pathname) {
@@ -1289,67 +1288,6 @@ async function routeCampaign(ctx: LabContext) {
   animateShell(shell, ctx.status, () => ({ markers, markerLayer: 'lab-placeholder', terrainRect: [-48, -28, 96, 56] }));
   ctx.status.innerHTML = reportTable({ route: 'campaign', markers: markers.length, semantics: 'faction tint plus neutral standard' });
   publish('campaign', true, { markers: markers.length });
-}
-
-async function routeCutover(ctx: LabContext) {
-  const graph = fullGameRenderGraphReport();
-  const shell = await createConfiguredShell(ctx.canvas, { x: 0, y: -2, zoom: 8.8, pitch: 0.24, yaw: -0.1 });
-  const markers = [
-    ...generatedMarkers(44, -11, -5, 0).map((m) => ({ ...m, size: 0.95 })),
-    ...generatedMarkers(44, 11, 4, 1).map((m) => ({ ...m, size: 0.95 })),
-    ...generatedMarkers(14, 0, 1, 2).map((m) => ({ ...m, size: 0.75 })),
-  ];
-  shell.drawFrame({ markers, markerLayer: 'lab-placeholder', terrainRect: [-40, -24, 80, 48] });
-  const checks = [
-    { id: 'battle-default', status: 'complete', detail: 'normal battle route instantiates BattleRenderer only' },
-    { id: 'campaign-default', status: 'complete', detail: 'normal campaign route instantiates CampaignRenderer only' },
-    { id: 'dependency-audit', status: 'complete', detail: '@babylonjs/core removed from the web package and build output' },
-    { id: 'legacy-routes', status: 'complete', detail: '?gfx=2d, ?gfx=3d, ?test=models, and ?gfx=legacy no longer select old renderers' },
-    { id: 'screenshots', status: 'complete', detail: 'post-cutover routine screenshot policy is WebGPU-only' },
-    { id: 'scenario-gates', status: 'complete', detail: 'battle, campaign, handoff, save/load, menu, and visual WebGPU scenarios are covered' },
-    { id: 'headless-perf', status: 'complete', detail: 'full-game WebGPU liveness perf report covers menu, battle, campaign, and handoff' },
-    { id: 'label-pipeline', status: 'complete', detail: 'campaign map labels render through a raw-WebGPU glyph atlas pass' },
-    { id: 'release-shots', status: 'complete', detail: 'release-review visuals live under web/shots' },
-    { id: 'perf-report', status: 'complete', detail: 'full-game-rendering-performance writes the WebGPU perf evidence report' },
-    { id: 'release-shot-coverage', status: 'complete', detail: 'release-review shot coverage is committed under web/shots' },
-    { id: 'hardware-perf', status: 'pending', detail: 'named real GPU/browser performance report still needs current-renderer baseline context' },
-  ];
-  const releaseReady = checks.every((check) => check.status === 'complete');
-  const complete = checks.filter((check) => check.status === 'complete').length;
-  ctx.status.innerHTML = reportTable({
-    route: 'cutover',
-    kind: 'renderer-cutover-report',
-    releaseReady,
-    renderer: 'raw WebGPU production default',
-    graph: graph.ok ? `${graph.passes.length} passes valid` : `${graph.diagnostics.length} diagnostics`,
-    atmosphere: shell.stats().atmosphere,
-    removed: 'battle 2d, battle Babylon, campaign WebGL, @babylonjs/core',
-    routineScreenshots: 'WebGPU-only',
-    complete: `${complete}/${checks.length}`,
-    blockers: checks.length - complete,
-    visualShots: 'web/shots/',
-    perfReport: 'web/reports/rendering/rendering-performance-report.html',
-  }) + statusList(checks);
-  publish('cutover', graph.ok, {
-    kind: 'renderer-cutover-report',
-    releaseReady,
-    renderer: 'raw-gpu-production-default',
-    removed: ['battle-2d-renderer', 'battle-babylon-renderer', 'campaign-webgl-renderer', '@babylonjs/core'],
-    retiredSwitches: ['?gfx=2d', '?gfx=3d', '?test=models', '?gfx=legacy'],
-    routineScreenshots: 'renderer-only',
-    atmosphere: shell.stats().atmosphere,
-    visualShots: 'web/shots/',
-    perfReport: 'web/reports/rendering/rendering-performance-report.html',
-    complete,
-    blockers: checks.filter((check) => check.status !== 'complete').map((check) => check.id),
-    checks,
-    graph: {
-      ok: graph.ok,
-      passes: graph.passes.length,
-      resources: graph.resources.length,
-      diagnostics: graph.diagnostics,
-    },
-  });
 }
 
 async function routeCampaignMap(ctx: LabContext) {
@@ -3599,9 +3537,6 @@ function issueList(issues: { code: string; message: string; path: string }[]) {
   return `<ol>${issues.map((i) => `<li><b>${escapeHtml(i.code)}</b> ${escapeHtml(i.path)}: ${escapeHtml(i.message)}</li>`).join('')}</ol>`;
 }
 
-function statusList(checks: { id: string; status: string; detail: string }[]) {
-  return `<ol class="renderer-status-list">${checks.map((check) => `<li class="${escapeHtml(check.status)}"><b>${escapeHtml(check.id)}</b> <em>${escapeHtml(check.status)}</em><span>${escapeHtml(check.detail)}</span></li>`).join('')}</ol>`;
-}
 
 function graphList(report: ReturnType<typeof fullGameRenderGraphReport>) {
   const passes = report.passes

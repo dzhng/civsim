@@ -1,4 +1,4 @@
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
 import { basename } from 'node:path';
 
 import { hasBattleWorldDepthContract, hasCampaignWorldDepthContract } from '../_renderer-contract.mjs';
@@ -36,13 +36,11 @@ export async function run(ctx) {
     releaseBudget: release.releaseBudget,
     hardwareReleaseStatus: release.status,
     currentRendererComparison: release.comparison,
-    reportFiles: reportFiles(),
     notes: [
       ...release.notes,
       'Release budgets require named real hardware and archived current-renderer comparison captures.',
     ],
   };
-  await writeReport(report);
 
   ctx.check(
     'headless full-game WebGPU perf report covers menu, battle, campaign, and handoff',
@@ -61,8 +59,6 @@ export async function run(ctx) {
       hardwareReleaseStatus: report.hardwareReleaseStatus,
       releaseBudget: report.releaseBudget,
       comparisonStatus: report.currentRendererComparison.status,
-      html: report.reportFiles.html,
-      json: report.reportFiles.json,
     }),
   );
 }
@@ -576,112 +572,6 @@ function perfStatsOk(perf) {
 function finiteMs(value) {
   const n = Number(value);
   return Number.isFinite(n) && n >= 0 ? n : NaN;
-}
-
-async function writeReport(report) {
-  const files = reportFileUrls();
-  await mkdir(files.dir, { recursive: true });
-  await writeFile(files.json, JSON.stringify(report, null, 2));
-  await writeFile(files.html, renderHtml(report));
-}
-
-function reportFileUrls() {
-  const dir = new URL('../../reports/rendering/performance/', import.meta.url);
-  return {
-    dir,
-    json: new URL('full-game-rendering-performance.json', dir),
-    html: new URL('../rendering-performance-report.html', dir),
-  };
-}
-
-function reportFiles() {
-  return {
-    json: 'web/reports/rendering/performance/full-game-rendering-performance.json',
-    html: 'web/reports/rendering/rendering-performance-report.html',
-  };
-}
-
-function renderHtml(report) {
-  const comparison = report.currentRendererComparison.scenes.map((scene) => `
-    <tr>
-      <td>${escapeHtml(scene.id)}</td>
-      <td>${valueCell(scene.gpuMedianMs)}</td>
-      <td>${valueCell(scene.gpuP95Ms)}</td>
-      <td>${valueCell(scene.gpuStartupMs)}</td>
-      <td>${valueCell(scene.gpuUsedHeapMB)}</td>
-      <td>${valueCell(scene.currentMedianMs)}</td>
-      <td>${valueCell(scene.currentP95Ms)}</td>
-      <td>${valueCell(scene.currentStartupMs)}</td>
-      <td>${valueCell(scene.currentUsedHeapMB)}</td>
-      <td>${valueCell(scene.gpuUploadMs)}</td>
-      <td>${valueCell(scene.currentUploadMs)}</td>
-      <td>${escapeHtml(scene.result)}</td>
-    </tr>
-  `).join('\n');
-  const sceneRows = report.scenes.map((scene) => `
-    <tr>
-      <td>${escapeHtml(scene.label)}</td>
-      <td>${escapeHtml(scene.renderer)}</td>
-      <td>${valueCell(round(scene.frame.medianMs))}</td>
-      <td>${valueCell(round(scene.frame.p95Ms))}</td>
-      <td>${valueCell(round(scene.startupMs))}</td>
-      <td>${valueCell(scene.memory?.usedMB)}</td>
-      <td>${valueCell(round(scene.performance?.uploadMs))}</td>
-      <td>${valueCell(round(scene.performance?.drawMs))}</td>
-      <td>${valueCell(round(scene.performance?.frameCpuMs))}</td>
-      <td>${escapeHtml(String(scene.frame.samples))}</td>
-    </tr>
-  `).join('\n');
-  return `<!doctype html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>Rendering Performance Report</title>
-  <style>
-    body { margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif; background: #191915; color: #e9dfca; }
-    header { padding: 24px 28px; background: #252219; border-bottom: 1px solid #4d412b; }
-    h1 { margin: 0 0 8px; font: 700 26px Georgia, serif; }
-    h2 { margin: 28px 0 10px; font-size: 18px; color: #f0d59c; }
-    p { margin: 0; max-width: 980px; line-height: 1.5; color: #cec0a4; }
-    main { padding: 24px 28px; }
-    table { width: 100%; border-collapse: collapse; margin-bottom: 22px; background: #211f19; border: 1px solid #4d412b; }
-    th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid #403624; font-size: 13px; }
-    th { color: #d7bd82; font-weight: 700; }
-    code { color: #f0d59c; }
-  </style>
-</head>
-<body>
-  <header>
-    <h1>Rendering Performance Report</h1>
-    <p>Status <code>${escapeHtml(report.hardwareReleaseStatus)}</code>, budget <code>${escapeHtml(report.releaseBudget)}</code>. Generated ${escapeHtml(report.generatedAt)} on ${escapeHtml(report.environment.gpu)} with ${escapeHtml(report.environment.browser)}.</p>
-  </header>
-  <main>
-    <h2>WebGPU Scenes</h2>
-    <table>
-      <tr><th>scene</th><th>renderer</th><th>median ms</th><th>p95 ms</th><th>startup ms</th><th>heap MB</th><th>upload ms</th><th>draw ms</th><th>CPU frame ms</th><th>samples</th></tr>
-      ${sceneRows}
-    </table>
-    <h2>Current Renderer Comparison</h2>
-    <table>
-      <tr><th>scene</th><th>gpu median</th><th>gpu p95</th><th>gpu startup</th><th>gpu heap</th><th>current median</th><th>current p95</th><th>current startup</th><th>current heap</th><th>gpu upload</th><th>current upload</th><th>result</th></tr>
-      ${comparison || '<tr><td colspan="12">No archived current-renderer baseline attached.</td></tr>'}
-    </table>
-  </main>
-</body>
-</html>
-`;
-}
-
-function valueCell(value) {
-  return value === null || value === undefined ? 'missing' : escapeHtml(String(value));
-}
-
-function escapeHtml(value) {
-  return String(value)
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;');
 }
 
 function round(value) {

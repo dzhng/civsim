@@ -234,19 +234,6 @@ const routes = [
   ['battle-live?mode=5v5&ticks=36', (s) => s?.ok && s.route === 'battle-live' && s.stats.written > 1000 && s.stats.units >= 10 && s.stats.player > 0 && s.stats.enemy > 0 && s.stats.drawCalls >= 1 && s.stats.drawCalls <= 15 && s.stats.groundCues.lineSegments >= 20 && hasFramePassRole(s.stats.framePhases ?? s.stats.phases, 'battle-live-crowd', 'world-opaque', 'world-depth') && hasFramePassRole(s.stats.framePhases ?? s.stats.phases, 'battle-live-ground-cues', 'world-decal', 'world-depth') && s.stats.cameraContract === 'shared-world-camera-wgsl' && s.stats.groundCues.cameraContract === 'shared-world-camera-wgsl'],
   ['battle-ui?mode=5v5&ticks=36', (s) => s?.ok && s.route === 'battle-ui' && s.stats.written > 1000 && s.stats.units >= 10 && s.stats.drawCalls >= 1 && s.stats.drawCalls <= 15 && s.stats.groundCues.lineSegments >= 20 && hasFramePassRole(s.stats.framePhases ?? s.stats.phases, 'battle-ui-crowd', 'world-opaque', 'world-depth') && hasFramePassRole(s.stats.framePhases ?? s.stats.phases, 'battle-ui-ground-cues', 'world-decal', 'world-depth') && s.stats.ui.cards >= 8 && s.stats.ui.toolbarButtons >= 5 && s.stats.ui.postCutoverScreenshots === 'renderer-only' && s.stats.cameraContract === 'shared-world-camera-wgsl' && s.stats.groundCues.cameraContract === 'shared-world-camera-wgsl'],
   ['battle-input?mode=5v5&ticks=36', (s) => s?.ok && s.route === 'battle-input' && s.stats.written > 1000 && s.stats.units >= 10 && s.stats.drawCalls >= 1 && s.stats.drawCalls <= 15 && s.stats.groundCues.lineSegments >= 20 && hasFramePassRole(s.stats.framePhases ?? s.stats.phases, 'battle-input-crowd', 'world-opaque', 'world-depth') && hasFramePassRole(s.stats.framePhases ?? s.stats.phases, 'battle-input-ground-cues', 'world-decal', 'world-depth') && s.stats.selectedUnits.length === 1 && s.stats.ui.cards >= 8 && s.stats.cameraContract === 'shared-world-camera-wgsl' && s.stats.groundCues.cameraContract === 'shared-world-camera-wgsl'],
-  ['cutover', (s) => s?.ok
-    && s.route === 'cutover'
-    && s.stats.kind === 'renderer-cutover-report'
-    && s.stats.renderer === 'raw-gpu-production-default'
-    && s.stats.routineScreenshots === 'renderer-only'
-    && s.stats.atmosphere === 'aegean-sky-haze'
-    && s.stats.removed.includes('@babylonjs/core')
-    && s.stats.retiredSwitches.includes('?gfx=legacy')
-    && s.stats.complete >= 11
-    && s.stats.releaseReady === false
-    && s.stats.visualShots === 'web/shots/'
-    && s.stats.perfReport === 'web/reports/rendering/rendering-performance-report.html'
-    && s.stats.blockers.includes('hardware-perf')],
 ];
 
 function hasGraphDepthPassMode(passes, id, mode) {

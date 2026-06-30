@@ -20,8 +20,6 @@
     "shots:models:campaign": "VERIFY_GPU=1 node scene.mjs campaign-models",
     "shots:models:props": "VERIFY_GPU=1 UPDATE_SHOTS=1 node scene.mjs shared-prop-models",
     "shots:models:anim": "node shots/models/scripts/soldier-animation.mjs",
-    "cutover:renderer": "node scripts/renderer-cutover-report.mjs",
-    "release:renderer": "node scripts/renderer-cutover-report.mjs && node scripts/renderer-release-audit.mjs",
     "verify": "node verify-battle.mjs",
     "verify:full": "node verify-battle.mjs --full",
     "verify:campaign": "VERIFY_GPU=1 node scene.mjs campaign-lod campaign-map-alignment campaign-visual",

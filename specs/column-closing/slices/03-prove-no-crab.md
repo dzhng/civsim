@@ -70,8 +70,16 @@ names the target and asks for visible defects in both images.
   `specs/column-closing/visualizations/no-crab-timeline.html`. It renders the
   same-file forward-close fixture plus the wiped-file notch and clear-beat
   re-even.
-- Remaining slice-3 work is the fresh unprimed `screenshot-critique` visual gate;
-  do not re-bless shot baselines from the Rust metric or timeline alone.
+- Fresh Chrome WebGPU `vibe/penetration`/`vibe/offense` frames were regenerated
+  and sent to Bacon, a fresh unprimed `screenshot-critique` explorer
+  (`fork_context: false`). Bacon surfaced unresolved defects and preferred the
+  baseline/left for `penetration`, but David reviewed the same shots and judged
+  the current/right less wrong because the baseline middle harrows inward. Bacon
+  also judged the current/right less wrong for `offense`.
+- Remaining slice-3 work is a final visual acceptance pass: preserve the
+  current direction, fix or explicitly accept the retained loose trails/artifact
+  defects, and do not re-bless shot baselines from the Rust metric, timeline, or
+  mixed Bacon verdict alone.
 
 ## What must stay green
 

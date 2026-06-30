@@ -246,9 +246,29 @@ landed, but do treat it as the less-wrong visual direction for this target.
 `parityDistance=0.57014`; contact-crop worst `t048`, `0.56541`). Manual read:
 current improves the side formations into cleaner blocks versus the baseline's
 big curls, but the central contact trail is still dark/muddy with detached
-trails. This continuation did the direct frame/crop inspection and helper
-comparison, but did not re-pin shot baselines and did not complete the fresh
-unprimed `screenshot-critique` gate.
+trails. A later evidence pass regenerated the same current/baseline
+`vibe/penetration` and `vibe/offense` frames from Chrome hardware WebGPU after a
+fresh wasm rebuild, copied the actual diff frames into
+`/private/tmp/civsim-column-closing-critique.IqNCI8/`, and reran
+`compare-screenshots` with central contact crops. Metrics remained in the same
+range: `penetration` pairCount `11`, worst `t192s`, with `t084s full=0.50786
+crop=0.53367`, `t096s full=0.52571 crop=0.51633`, `t120s full=0.51619
+crop=0.47385`, and `t192s full=0.54330 crop=0.50934`; `offense` pairCount `10`,
+worst `t024s`, with `t024s full=0.57014 crop=0.55947`, `t048s full=0.55507
+crop=0.57561`, `t084s full=0.53137 crop=0.56217`, and `t120s full=0.52190
+crop=0.55087`. Bacon, a fresh unprimed `screenshot-critique` explorer
+(`fork_context: false`), surfaced unresolved visible defects rather than a clean
+pass. In the neutral left/right comparison, Bacon judged the left/baseline
+`penetration` less wrong for the column-footprint target (but still with
+high-confidence detached rear stragglers and late mushrooming) and judged the
+right/current `offense` less wrong on formation readability (but still with
+high-confidence dark brown/black trailing artifacts and state ambiguity). David
+then reviewed the same shots and judged current `penetration` better than the
+baseline because the baseline's middle harrows/pinches inward unnaturally. Treat
+Bacon's baseline preference as a disagreement to investigate, not as a reason to
+regress toward the baseline shape. The result is mixed evidence with David
+preferring the retained direction; shot baselines are still not re-blessed from
+this pass.
 
 **Pickup point:** Build on the retained `0.10m` pivot-length slack; do not judge
 the next pass by matching the flawed baseline. The width target is "as close as
@@ -256,18 +276,19 @@ possible to the original deployed column at enemy contact" -- neither narrower
 nor wider -- and current is better than baseline by that ruler because the old
 baseline unnaturally pinches/harrows the column middle. The rear-line no-crab
 metric is now pinned, and the human-viewable timeline artifact exists at
-`specs/column-closing/visualizations/no-crab-timeline.html`. The remaining
-slice-3 gate is fresh unprimed visual critique before any shot baseline is
-accepted. If continuing, improve the remaining looseness without returning to
-lateral `reassign_slots`, without making the defender fragment, and without
-suppressing the magnet pressure needed for wrap/back-fill/bulge. Recreate
-`vibe/penetration`/`vibe/offense`, run the
-`compare-screenshots` helper on baseline/current folders with contact crops, then
-attach the helper artifacts and any focused sheets/crops to a fresh unprimed
-`screenshot-critique` subagent before re-pinning shot baselines. The critique
-prompt must say that the baseline is also flawed and that deployed-width
-preservation is the ruler; ask for visible baseline-vs-current formation/order
-defects in the supplied sheets and crops.
+`specs/column-closing/visualizations/no-crab-timeline.html`. The current retained
+visual pass has now had the required fresh unprimed critique, and David's
+follow-up review judged it visually less wrong than the flawed baseline; shot
+baselines are still not re-blessed. If continuing, fix or materially improve the
+remaining visual defects without returning to lateral
+`reassign_slots`, without making the defender fragment, and without suppressing
+the magnet pressure needed for wrap/back-fill/bulge. Recreate
+`vibe/penetration`/`vibe/offense`, run the `compare-screenshots` helper on
+baseline/current folders with contact crops, then attach the helper artifacts
+and any focused sheets/crops to a fresh unprimed `screenshot-critique` subagent
+before re-pinning shot baselines. The critique prompt must say that the baseline
+is also flawed and that deployed-width preservation is the ruler; ask for visible
+baseline-vs-current formation/order defects in the supplied sheets and crops.
 
 **Locked decisions (from the grilling):**
 - A wiped column leaves a **persistent frontage notch** mid-fight — do NOT slide
@@ -802,11 +823,12 @@ defects in the supplied sheets and crops.
       (latest retained `0.10m` pivot-length slack is closer to the deployed
       column footprint than the flawed baseline, whose middle pinches inward;
       screenshot baselines are still not re-blessed)
-- [ ] Current retained visual pass reviewed by a fresh unprimed
+- [x] Current retained visual pass reviewed by a fresh unprimed
       `screenshot-critique` subagent before any visual baseline is accepted —
-      slice 2/3 gate (older rejected candidates were critiqued; the retained
-      `0.10m` pass still needs a critique prompt that names the deployed-width
-      target and says the baseline is imperfect too)
+      slice 2/3 gate (Bacon raised unresolved defects and preferred
+      baseline/left for `penetration`, but David judged current/right less wrong
+      because the baseline middle harrows inward; current/right was also judged
+      less wrong for `offense`; shot baselines are not blessed yet)
 - [x] Rear-line lateral-travel-while-engaged metric test pinned — slice 3
       (`rear_ranks_do_not_crab_sideways_while_engaged_casualties_close`;
       current `p95=0.296m`, peak `0.327m`, rail is `<0.45m/<0.55m` vs a

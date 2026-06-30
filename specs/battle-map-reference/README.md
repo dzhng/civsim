@@ -8,19 +8,55 @@ a composed master shot judged against the reference.
 
 ## Next Agent Prompt
 
-**Status:** planned, not started (2026-06-30). Nothing built yet.
+**Status:** Slice 00 and Slice 01 landed in `codex/battle-map-reference`
+(2026-06-30). Next pickup is Slice 02.
 
-**Start at Slice 00.** Copy/confirm the reference in `assets/`, build the
-`visualizations/target-vs-current.html` side-by-side, and get David's ruling on
-the **neutral albedos + lighting presets** (grilling Q1) *before writing any
-shader* — that answer parameterizes the neutral base colors (grass 02, ridge 05,
-water 07) and the environment presets (Slice 06). **Then build Slice 01 (the zoom-coupled
-camera) next** — it's independent of the grass ladder but sets the framing every
-later visual slice is judged in (the reference's low oblique vista is just "full
-zoom-in"), so it pays to land it first. Then 02 → 08 in order; **02 → 03 is the only
-hard visual dependency** (the grass primitive must exist before it's instanced),
-04/05/07 are independent of each other once the grass field exists, and 06 (sky+haze)
-should land before 08 because it sets the grade everything else is judged in.
+Slice 00 now has a real side-by-side workbench:
+`visualizations/target-vs-current.html` points at the committed
+`web/shots/battle/terrain-3d/coastal-scrub.png` baseline instead of a placeholder,
+and records the two-preset decision path: neutral albedos, `overcast-foggy` as
+`highland-valley`'s default, and `golden-hour` for Aegean parity.
+
+Slice 01 now wires the production battle camera through a pure
+`web/src/battle/cameraRig.ts` curve. Zoom drives pitch, target offset, perspective,
+and exported `zoomT`; the shared `Camera` projection now matches the existing
+`cameraUniform.ts` perspective math so WebGPU rendering, picking, and DOM overlays
+agree. The focused `battle-camera-zoom` scene publishes top/mid/vista camera stats,
+keeps visible formations in every stop, and snaps the contact sheet at
+`web/shots/battle/battle-camera-zoom.png`. The final vista endpoint is deliberately
+more oblique than the old fixed camera (`pitch=1.02`, `perspective=0.006`), while
+the mid zoom remains in the playable RTS pitch band.
+
+Final verification:
+- `node --experimental-strip-types --test tests/cameraRig.test.ts`
+- `./node_modules/.bin/tsc --noEmit`
+- `npm run build`
+- `VERIFY_URL=http://localhost:5174 VERIFY_GPU=1 VERIFY_GPU_ADAPTER=hardware VERIFY_BROWSER_CHANNEL=chrome node scene.mjs battle-camera-zoom battle-renderer-visual battle-input`
+
+Local verification notes: the default SwiftShader WebGPU path reported
+`requestAdapter returned no WebGPU adapter`; the hardware Chrome path passed.
+`npm run build:wasm` could not regenerate `web/src/wasm` because this machine's
+Homebrew Rust install lacks `wasm32-unknown-unknown`, so verification used an
+ignored wasm build copied from the sibling checkout.
+
+Screenshot critique completed on the final camera contact sheet. It did not find a
+Slice 01 blocker after the endpoint retune: the remaining camera-specific complaint
+is that dense formations can still feel somewhat flat inside their blocks. Record
+the rest as downstream visual debt, not camera wiring debt:
+
+- contact-sheet seams and the current map boundary read as review artifacts;
+- units near trees have ambiguous tree/crowd depth ordering;
+- unit contact shadows are weak relative to tree shadows;
+- dense formations produce moire/barcode striping at the vista;
+- small selection/marker pixels are low contrast;
+- the current brown terrain feature is a blurry decal-like patch;
+- grass/ground detail is soft and scale-blurry;
+- roads, water, labels, and icon styling are not covered by this camera sheet.
+
+**Next pickup:** start Slice 02 (grass-blade primitive). Keep the camera gate as the
+framing contract, but judge Slice 02's grass in its own focused workbench plus this
+full-zoom vista. Do not try to fix the listed unit, terrain-feature, water, road, or
+label debts inside the grass primitive unless the slice explicitly owns that surface.
 
 Every visual slice (01–08) ends with two gates: a `screenshot-regression` baseline
 snap **and** an unprimed `screenshot-critique` of the slice's hero shot against
@@ -32,8 +68,8 @@ landed, and point at the next pickup slice.
 
 ### Global TODO
 
-- [ ] **Slice 00** — reference workbench + palette target lock (`slices/00-reference-workbench.md`)
-- [ ] **Slice 01** — zoom-coupled camera (`slices/01-zoom-coupled-camera.md`)
+- [x] **Slice 00** — reference workbench + palette target lock (`slices/00-reference-workbench.md`)
+- [x] **Slice 01** — zoom-coupled camera (`slices/01-zoom-coupled-camera.md`)
 - [ ] **Slice 02** — grass-blade primitive (`slices/02-grass-blade-primitive.md`)
 - [ ] **Slice 03** — grass over terrain (`slices/03-grass-over-terrain.md`)
 - [ ] **Slice 04** — terrain relief + ground grade (`slices/04-terrain-relief-grade.md`)
@@ -161,10 +197,10 @@ by sim terrain read from wasm in `web/src/battle/scene.ts`.
 - **Map presentation:** `packages/game-renderer/src/battle/mapCatalog.ts` —
   `BATTLE_MAP_CATALOG` (3 maps today), per-map `edges` + `groundCover`,
   `buildBattleTerrainPresentation`. The new `highland-valley` map registers here.
-- **Camera:** `web/src/battle/scene.ts` — an RTS-style `Camera` with
-  `camera.pitch = renderer.pitch` (**fixed today**) and a zoom-fit to map bounds
-  (`zoom = min(fit, 6)`). Pitch is *not* a function of zoom yet — Slice 01 makes it
-  one. The gameplay camera is presentation/input only; it has no effect on the sim.
+- **Camera:** `web/src/battle/scene.ts` + `web/src/battle/cameraRig.ts` — an
+  RTS-style `Camera` with zoom-coupled pitch, target offset, perspective, and
+  exported `zoomT`. The gameplay camera is presentation/input only; it has no
+  effect on the sim.
 - **Sky:** **no sky pass.** The background wash is the ground-plane terrain shader
   in `frameShell.ts` (warm-olive + an `aerialStrength` haze); above the horizon
   line the flat clear color shows. `cameraWgsl.ts` has **no** fog / aerial-

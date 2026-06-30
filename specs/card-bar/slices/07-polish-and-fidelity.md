@@ -33,17 +33,16 @@ README's **Aesthetic contract** and
 Gate: **compare-screenshots is blocking on the aesthetic contract** — a clean grid
 is not enough; the candidate must visibly move toward the reference's chrome.
 
-## Critic callouts (integrated-bar review)
+## Critic callouts (integrated-bar review) — resolved
 
-- **Infantry variants blur together at card size (high confidence).** The several
-  front-facing swordsman looks are near-identical "blue blocky figure" silhouettes
-  at 72px — only a helmet or a subtle weapon pose separates them. Options: bake
-  per *class* instead of per *look*, crop tighter on the distinguishing kit, or
-  decide the **name** carries disambiguation and the portrait only sets the vibe.
-  The call to make: must the portrait alone tell two infantry types apart?
-- **Artillery reads as a siege engine, not a soldier.** The artillery look is a
-  ground object (ballista/cart) with no standing figure to anchor the card. Frame
-  on the crew, or accept it as the engine's portrait.
+- **Infantry blur at card size — RESOLVED (the name carries it).** At 72px the
+  swordsman looks read as "an armored man with a weapon" and the **unit name** does
+  the disambiguation (it's right there on the card). Per-*class* bakes (≈30 PNGs
+  for a marginal silhouette gain) are deferred; the portrait sets the vibe, the
+  name names the unit.
+- **Artillery reads as a siege engine — ACCEPTED.** The artillery look *is* the
+  engine (ballista/cart), so its card shows the engine — correct, not a defect. If
+  a crew-anchored framing is ever wanted it's a re-bake, not a blocker.
 - **Reference deltas — resolved (non-blocking calls, documented):**
   - **Top strength bar — DONE.** HP now runs across the card top with the count
     riding on it (the reference silhouette); cohesion + morale stay at the bottom.

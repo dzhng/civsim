@@ -1,6 +1,6 @@
 ---
 name: feature-slicing
-description: Break large features into independently verifiable, human-reviewable slices under specs/<feature>/. Use for risky or multi-step feature work that needs upfront questioning, API seams, browser-playable checkpoints, HTML visualizations, screenshot gates, or staged implementation plans. Pairs with [write-scene](../write-scene/SKILL.md) and [screenshot-regression](../screenshot-regression/SKILL.md) (the browser checkpoints and screenshot gates) and [review](../review/SKILL.md) (audit each slice before it lands).
+description: Break large features into independently verifiable, human-reviewable slices under specs/<feature>/. Use for risky or multi-step feature work that needs upfront questioning, API seams, browser-playable checkpoints, HTML visualizations, screenshot gates, staged implementation plans, or reslicing when implementation reveals a slice is bigger than expected. Pairs with [write-scene](../write-scene/SKILL.md) and [screenshot-regression](../screenshot-regression/SKILL.md) (the browser checkpoints and screenshot gates) and [review](../review/SKILL.md) (audit each slice before it lands).
 ---
 
 # Feature Slicing
@@ -50,6 +50,13 @@ whole feature is done.
    blind drafts surface slices, seams, and risks a lone plan misses — and where
    they independently agree, you know the cut is solid.
 
+8. **One visual variable per slice.** Visual slices fail when they ask one pass
+   to match the final hero image. Split by the thing being judged: density,
+   silhouette, colour, texture, lighting, fog, water placement, water material,
+   label legibility, animation rhythm. Each slice gets a crop/mask and a verdict
+   for that variable only. Whole-frame comparison belongs at compose/integration,
+   after the variables have their own evidence.
+
 ## Workflow
 
 1. **Interview:** keep asking until you can name the slices without
@@ -86,6 +93,12 @@ whole feature is done.
    verification before depending on it. Keep each artifact small enough to
    iterate on quickly. Keep the README's "Next Agent Prompt" written as the
    handoff text a future agent should read and follow.
+6. **Reslice when the work says so:** if implementation hits a snag and the slice
+   starts changing unrelated variables, stop broadening the patch. Update the spec
+   first: split the slice into smaller contracts, name the frozen inputs, move the
+   extra visual variables to later slices, and rewrite the Next Agent Prompt to
+   resume from the first new slice. Then continue. Reslicing is progress, not
+   failure.
 
 ## Plan Folder
 
@@ -133,6 +146,12 @@ Each slice file answers:
   [compare-screenshots](../compare-screenshots/SKILL.md) to judge
   candidate-against-target: telemetry plus a less-wrong verdict, not a check that
   the shot matches the reference. Write it as an explicit step too.
+- For visual slices with a reference image, state the **slice variable** and the
+  **crop/mask** used to judge it. Also list visible wrongness that is explicitly
+  out of scope. Example: a grass-density slice compares lower-third coverage and
+  falloff only; cliff shape, cliff texture, water, sky, and fog are later slices.
+  A cliff-silhouette slice compares the ridge outline and depth rows only; rock
+  texture and haze are later slices.
 - What must stay green?
 - What feedback from the human would change this slice?
 - If the slice has a human review checkpoint, the slice file must frame it as

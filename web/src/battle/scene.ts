@@ -4,7 +4,7 @@ import { Camera } from '../shared/camera';
 import { pushGhost, pushPie, pushRing } from '../shared/overlays';
 import { fatalSurfaceFor, showFatalErrorSurface } from '../shared/fatalError';
 import { CLASS_DEPTH, CLASS_SPACING } from '../../../packages/game-renderer/src/battle/unitInfoLayout';
-import { modelLookForUnit } from '../../../packages/game-renderer/src/models/shared/soldierModel';
+import { modelLookForClass, modelLookForUnit } from '../../../packages/game-renderer/src/models/shared/soldierModel';
 import {
   HEAVY_PHALANX_REST_CLASS,
   HEAVY_PHALANX_SIDEARM_CLASS,
@@ -18,6 +18,7 @@ import {
   UNIT_CLASS_BY_KEY,
   UNIT_CLASS_KEY_BY_ID,
   UnitClass,
+  cardThumbUrl,
   validateClassSpecCatalog,
   type UnitClassKey,
 } from './classData';
@@ -1164,20 +1165,21 @@ export class BattleScene implements Scene {
         const cohesion = info[o + 4];
         const fatigue = info[o + 8];
         const pace = info[o + 9] > 0.5 ? 'run' : 'walk';
-        const cls = CLASS_NAMES[info[o + 13]] ?? '?';
-        const charge = info[o + 18] === 2 ? '  CHARGING' : '';
-        const ammo = info[o + 19] > 0 ? `  ammo ${info[o + 19]}` : '';
-        const routing = info[o + 21] > 0.5 ? '  ROUTING' : '';
-        const engaged = info[o + 16];
-        lines.push(
-          `${info[o + 6] === 0 ? 'YOUR' : 'ENEMY'} ${cls}  ${pace} ${info[o + 3].toFixed(1)} m/s${charge}`,
-          `men ${info[o + 15]}/${info[o + 7]}${engaged > 0 ? `  engaged ${engaged}` : ''}${ammo}${routing}`,
-          `cohesion ${(cohesion * 100).toFixed(0)}%  disorder ${(info[o + 5] * 100).toFixed(0)}%  stamina ${(fatigue * 100).toFixed(0)}%  morale ${(info[o + 20] * 100).toFixed(0)}%`,
-        );
-        const spec = CLASS_SPECS[info[o + 13]];
+        const clsId = info[o + 13];
+        const cls = CLASS_NAMES[clsId] ?? '?';
+        const side = info[o + 6] === 0 ? 'YOUR' : 'ENEMY';
+        const alive = info[o + 15], total = info[o + 7];
+        const hpFrac = total > 0 ? alive / total : 0;
+        const charge = info[o + 18] === 2 ? ' · CHARGING' : '';
+        const ammo = info[o + 19] > 0 ? ` · ammo ${info[o + 19]}` : '';
+        const routing = info[o + 21] > 0.5 ? ' · ROUTING' : '';
+        const engaged = info[o + 16] > 0 ? ` · engaged ${info[o + 16]}` : '';
+        const thumb = cardThumbUrl(modelLookForClass(clsId));
+        const detail: string[] = [];
+        const spec = CLASS_SPECS[clsId];
         if (spec) {
           const pct = (x: number) => `${(x * 100).toFixed(0)}%`;
-          lines.push(
+          detail.push(
             `cost ${spec.cost} gold  ` +
               `mass ${spec.mass.toFixed(1)}${spec.brace > 1 ? ` (brace x${spec.brace.toFixed(1)})` : ''}  ` +
               `block ${pct(spec.block)}  evade ${pct(spec.evade)}  train ${pct(spec.training)}`,
@@ -1187,7 +1189,7 @@ export class BattleScene implements Scene {
           );
           for (const w of spec.weapons) {
             const deg = ((w.arc * 180) / Math.PI / 2).toFixed(0);
-            lines.push(
+            detail.push(
               `&nbsp;${w.name}: ${w.reach.toFixed(1)}m ±${deg}°  ` +
                 `dmg ${w.damage.toFixed(2)} / ${w.interval.toFixed(1)}s` +
                 (w.minRange > 0 ? `  (dead <${w.minRange.toFixed(1)}m)` : ''),
@@ -1195,16 +1197,24 @@ export class BattleScene implements Scene {
           }
           if (spec.missile) {
             const m = spec.missile;
-            lines.push(
+            detail.push(
               `&nbsp;${m.name}: ${m.range.toFixed(0)}m  dmg ${m.damage.toFixed(2)} / ${m.interval.toFixed(0)}s  ` +
                 `ammo ${m.ammo}${m.mobileFire ? '  fires mounted' : ''}`,
             );
           }
         }
+        const hpColor = hpFrac > 0.5 ? '#5cba46' : hpFrac > 0.25 ? '#d6b13a' : '#cf4a3a';
+        const stat = (label: string, frac: number, color: string) =>
+          `<div class="hud-stat"><span>${label}</span><div class="hud-bar"><div style="width:${(frac * 100).toFixed(0)}%;background:${color}"></div></div></div>`;
         bars =
-          `<div class="bar"><div style="width:${(cohesion * 100).toFixed(0)}%"></div></div>` +
-          `<div class="bar"><div style="width:${(fatigue * 100).toFixed(0)}%;background:#d9a13b"></div></div>` +
-          `<div class="bar"><div style="width:${(info[o + 20] * 100).toFixed(0)}%;background:#c2554e"></div></div>`;
+          `<div class="hud-head">${thumb ? `<img class="hud-port" src="${thumb}" alt="">` : ''}` +
+            `<div><div class="hud-name">${cls}</div>` +
+            `<div class="hud-meta">${side} · ${alive}/${total} men · ${pace}${charge}${routing}${engaged}${ammo}</div></div></div>` +
+          stat('HP', hpFrac, hpColor) +
+          stat('COH', cohesion, '#d9c75a') +
+          stat('STA', fatigue, '#d9a13b') +
+          stat('MOR', info[o + 20], '#c2554e') +
+          (detail.length ? `<div class="hud-detail">${detail.join('<br>')}</div>` : '');
       }
       hud.innerHTML = lines.join('<br>') + bars;
 

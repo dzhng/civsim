@@ -188,7 +188,7 @@ export class UnitCards {
         return fill;
       };
       const coh = mk('coh'), mor = mk('mor');
-      card.append(port, hpTop, name, bars);
+      card.append(hpTop, port, name, bars);
       card.addEventListener('mousedown', (e) => { e.stopPropagation(); this.onSelect(u.unit, e.shiftKey); });
       this.root.appendChild(card);
       this.cards.push(card);

@@ -98,6 +98,7 @@ struct VsOut {
   @location(2) light: f32,
   @location(3) heightT: f32,
   @location(4) terrainT: f32,
+  @location(5) fog: f32,
 };
 
 @vertex
@@ -132,6 +133,8 @@ fn vs(
   out.alpha = colorAndAlpha.a;
   out.heightT = heightT;
   out.terrainT = terrainT;
+  let axes = cameraSpace(world.xy);
+  out.fog = smoothstep(620.0, 1650.0, axes.y) * 0.64;
   return out;
 }
 
@@ -148,7 +151,11 @@ fn fs(in: VsOut) -> @location(0) vec4f {
   let terrainTip = ${GRASS_ALBEDO_NEAR};
   var terrainStubble = mix(terrainRoot, terrainTip, smoothstep(0.12, 1.0, in.heightT));
   terrainStubble = mix(terrainStubble, terrainMid, 0.18);
-  let col = mix(lit, terrainStubble, in.terrainT * 0.58);
+  var col = mix(lit, terrainStubble, in.terrainT * 0.58);
+  let overcastMeadow = vec3f(0.58, 0.66, 0.48);
+  col = mix(col, overcastMeadow, 0.20 + in.terrainT * 0.10);
+  let haze = vec3f(0.78, 0.82, 0.78);
+  col = mix(col, haze, in.fog);
   return vec4f(clamp(col, vec3f(0.0), vec3f(1.0)), in.alpha);
 }`;
 
@@ -287,7 +294,7 @@ export class BattleGrassPass {
     this.terrainMasked = true;
     this.zoomT = zoomT;
     this.density = Math.max(0, merged.density * tune.density);
-    this.maxTufts = clampInt(merged.maxTufts * tune.maxTufts, 0, 32000);
+    this.maxTufts = clampInt(merged.maxTufts * tune.maxTufts, 0, 48000);
     this.bladesPerTuft = clampInt(merged.bladesPerTuft * tune.bladesPerTuft, 1, 96);
     this.windPhase = merged.windPhase;
     this.windStrength = Math.max(0, merged.windStrength * tune.wind);

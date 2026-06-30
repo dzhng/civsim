@@ -3,6 +3,8 @@ import { screenToWorld, world3dToScreen, worldToScreen } from '../../../packages
 import { GPU_DEPTH_FORMAT, GPU_WORLD_DEPTH_ATTACHMENT } from '../../../packages/renderer-core/src/depthContract';
 import { requestGpuDevice, gpuFailureMessage } from '../../../packages/renderer-core/src/device';
 import { assertStorageBufferFits, resolveDeviceCaps } from '../../../packages/renderer-core/src/capabilities';
+import { WORLD_CAMERA_WGSL } from '../../../packages/renderer-core/src/cameraWgsl';
+import { gpuOpaqueColorTarget, gpuWorldDepthStencil } from '../../../packages/renderer-core/src/pipelineContracts';
 import { compileShader, setShaderErrorHandler, shaderCompilationMessages, type ShaderCompilationMessage } from '../../../packages/renderer-core/src/compileShader';
 import { fatalSurfaceFor, showFatalErrorSurface } from '../../../web/src/shared/fatalError';
 import { SkinnedCrowdPipeline } from '../../../packages/renderer-core/src/skinnedPipeline';
@@ -31,6 +33,7 @@ import { BattleGroundPass } from '../../../packages/game-renderer/src/battle/gro
 import { BattleGrassPass, type BattleGrassBounds, type BattleGrassParams } from '../../../packages/game-renderer/src/battle/grassPass';
 import { BattleHorizonPass } from '../../../packages/game-renderer/src/battle/horizonPass';
 import { featuresToBattleScenery } from '../../../packages/game-renderer/src/battle/terrainScenery';
+import { MeshBuilder, type Rgb } from '../../../packages/game-renderer/src/models/shared/meshBuilder';
 import { CampaignSelectionPass, type CampaignSelectionInstance } from '../../../packages/game-renderer/src/campaign/selectionPass';
 import { campaignBorderVertices, CampaignTerritoryPass } from '../../../packages/game-renderer/src/campaign/territoryPass';
 import { Nested3dFixturePass } from '../../../packages/game-renderer/src/fixtures/nested3d';
@@ -2442,6 +2445,275 @@ const REFERENCE_HIGHLAND_ENTRY: Terrain3dEntry = {
   groundCover: 'green-grass',
 };
 
+const REFERENCE_BACKDROP_WGSL = `
+${WORLD_CAMERA_WGSL}
+struct VsOut {
+  @builtin(position) pos: vec4f,
+  @location(0) color: vec3f,
+  @location(1) fog: f32,
+  @location(2) light: f32,
+};
+
+@vertex
+fn vs(@location(0) world: vec3f, @location(1) normal: vec3f, @location(2) color: vec3f, @location(3) alpha: f32) -> VsOut {
+  var out: VsOut;
+  out.pos = projectWorld3d(world, civsimBattleWorldDepth3d(world));
+  let axes = cameraSpace(world.xy);
+  let distanceFog = smoothstep(780.0, 2400.0, axes.y);
+  let heightFog = smoothstep(120.0, 330.0, world.z);
+  out.fog = clamp(distanceFog * 0.72 + heightFog * 0.20 + (1.0 - alpha) * 0.35, 0.0, 0.92);
+  let sun = normalize(vec3f(-0.35, -0.18, 0.92));
+  out.light = clamp(dot(normalize(normal), sun) * 0.22 + 0.88, 0.66, 1.08);
+  out.color = color;
+  return out;
+}
+
+@fragment
+fn fs(in: VsOut) -> @location(0) vec4f {
+  let haze = vec3f(0.80, 0.83, 0.84);
+  let col = mix(in.color * in.light, haze, in.fog);
+  return vec4f(clamp(col, vec3f(0.0), vec3f(1.0)), 1.0);
+}`;
+
+const REFERENCE_SKY_WGSL = `
+struct VsOut {
+  @builtin(position) pos: vec4f,
+  @location(0) uv: vec2f,
+};
+
+fn hash(p: vec2f) -> f32 {
+  let p3 = fract(vec3f(p.xyx) * 0.1031);
+  let q = p3 + dot(p3, p3.yzx + vec3f(33.33));
+  return fract((q.x + q.y) * q.z);
+}
+
+fn vnoise(p: vec2f) -> f32 {
+  let i = floor(p);
+  let f = fract(p);
+  let u = f * f * (3.0 - 2.0 * f);
+  return mix(mix(hash(i), hash(i + vec2f(1.0, 0.0)), u.x),
+             mix(hash(i + vec2f(0.0, 1.0)), hash(i + vec2f(1.0, 1.0)), u.x), u.y);
+}
+
+@vertex
+fn vs(@builtin(vertex_index) index: u32) -> VsOut {
+  let positions = array<vec2f, 6>(
+    vec2f(-1.0, -1.0), vec2f(1.0, -1.0), vec2f(-1.0, 1.0),
+    vec2f(-1.0, 1.0), vec2f(1.0, -1.0), vec2f(1.0, 1.0)
+  );
+  let p = positions[index];
+  var out: VsOut;
+  out.pos = vec4f(p, 0.0, 1.0);
+  out.uv = p * 0.5 + vec2f(0.5);
+  return out;
+}
+
+@fragment
+fn fs(in: VsOut) -> @location(0) vec4f {
+  let top = vec3f(0.73, 0.78, 0.81);
+  let horizon = vec3f(0.86, 0.88, 0.88);
+  var col = mix(horizon, top, smoothstep(0.18, 1.0, in.uv.y));
+  let lowMist = 1.0 - smoothstep(0.20, 0.48, in.uv.y);
+  col = mix(col, vec3f(0.88, 0.90, 0.89), lowMist * 0.45);
+  let cloudP = in.uv * vec2f(3.0, 6.0) + vec2f(1.3, 0.4);
+  let cloud = vnoise(cloudP) * 0.58 + vnoise(cloudP * 2.1 + vec2f(4.0, 7.0)) * 0.42;
+  let cloudMask = smoothstep(0.50, 0.78, cloud) * smoothstep(0.28, 0.94, in.uv.y);
+  col = mix(col, vec3f(0.91, 0.92, 0.91), cloudMask * 0.42);
+  let shadow = smoothstep(0.55, 0.78, cloud) * smoothstep(0.40, 0.98, in.uv.y);
+  col = mix(col, vec3f(0.67, 0.72, 0.76), shadow * 0.10);
+  return vec4f(clamp(col, vec3f(0.0), vec3f(1.0)), 1.0);
+}`;
+
+class ReferenceHighlandSkyPass {
+  private pipeline: GPURenderPipeline;
+
+  constructor(shell: RawFrameShell) {
+    const module = compileShader(shell.device, REFERENCE_SKY_WGSL, 'reference-highland-sky');
+    this.pipeline = shell.device.createRenderPipeline({
+      label: 'reference-highland-sky-pipeline',
+      layout: shell.device.createPipelineLayout({ bindGroupLayouts: [] }),
+      vertex: { module, entryPoint: 'vs' },
+      fragment: { module, entryPoint: 'fs', targets: [gpuOpaqueColorTarget(shell.info.format)] },
+      primitive: { topology: 'triangle-list' },
+    });
+  }
+
+  draw(pass: BackgroundRenderPass) {
+    pass.setPipeline(this.pipeline);
+    pass.draw(6);
+  }
+
+  stats() {
+    return { layer: 'reference-highland-sky' as const };
+  }
+}
+
+class ReferenceHighlandBackdropPass {
+  private pipeline: GPURenderPipeline;
+  private vertexBuffer: GPUBuffer | null = null;
+  private indexBuffer: GPUBuffer | null = null;
+  private indexCount = 0;
+  private triangles = 0;
+
+  constructor(private shell: RawFrameShell) {
+    const module = compileShader(shell.device, REFERENCE_BACKDROP_WGSL, 'reference-highland-backdrop');
+    this.pipeline = shell.device.createRenderPipeline({
+      label: 'reference-highland-backdrop-pipeline',
+      layout: shell.device.createPipelineLayout({ bindGroupLayouts: [shell.cameraBindGroupLayout] }),
+      vertex: {
+        module,
+        entryPoint: 'vs',
+        buffers: [{
+          arrayStride: 40,
+          attributes: [
+            { shaderLocation: 0, offset: 0, format: 'float32x3' },
+            { shaderLocation: 1, offset: 12, format: 'float32x3' },
+            { shaderLocation: 2, offset: 24, format: 'float32x3' },
+            { shaderLocation: 3, offset: 36, format: 'float32' },
+          ],
+        }],
+      },
+      fragment: { module, entryPoint: 'fs', targets: [gpuOpaqueColorTarget(shell.info.format)] },
+      primitive: { topology: 'triangle-list', cullMode: 'none' },
+      depthStencil: gpuWorldDepthStencil('read-write'),
+    });
+  }
+
+  setValley(bounds: { ox: number; oy: number; w: number; h: number; cell: number }, field: TerrainHeightField) {
+    const builder = new MeshBuilder();
+    const x0 = bounds.ox;
+    const x1 = bounds.ox + bounds.w * bounds.cell;
+    const y0 = bounds.oy;
+    const y1 = bounds.oy + bounds.h * bounds.cell;
+
+    this.addDistantValleyFloor(builder, x0, x1, y0, y1);
+    this.addWaterInlet(builder, field);
+    this.addLeftRidgeWall(builder, field, y0, y1);
+    this.addFarRidgeBands(builder, y1);
+    this.addForegroundHummockApron(builder, field);
+
+    const mesh = builder.finish('reference highland backdrop');
+    this.upload(mesh.opaque.vertices, mesh.opaque.indices);
+    this.triangles = mesh.opaque.indices.length / 3;
+  }
+
+  private addDistantValleyFloor(builder: MeshBuilder, x0: number, x1: number, y0: number, y1: number) {
+    const nearGrass: Rgb = [0.50, 0.60, 0.43];
+    const midMist: Rgb = [0.67, 0.74, 0.70];
+    const farMist: Rgb = [0.80, 0.84, 0.83];
+    builder.gradQuad(
+      [x0 + 210, y0 + 610, -9], [x1 - 120, y0 + 520, -12], [x1 + 840, y1 + 1240, -98], [x0 - 220, y1 + 1280, -82],
+      nearGrass, farMist);
+    builder.gradQuad(
+      [x0 + 470, y0 + 780, -5], [x1 - 520, y0 + 850, -7], [x1 - 40, y1 + 940, -86], [x0 + 30, y1 + 860, -62],
+      midMist, farMist);
+  }
+
+  private addWaterInlet(builder: MeshBuilder, field: TerrainHeightField) {
+    const waterNear: Rgb = [0.58, 0.70, 0.73];
+    const waterFar: Rgb = [0.76, 0.82, 0.84];
+    const z0 = terrainHeightAt(field, 620, -120) - 6.5;
+    builder.gradQuad(
+      [520, -170, z0], [1030, -130, z0 - 4], [1160, 360, z0 - 34], [650, 330, z0 - 24],
+      waterNear, waterFar);
+    builder.gradQuad(
+      [690, 290, z0 - 20], [1220, 390, z0 - 32], [1330, 820, z0 - 66], [790, 700, z0 - 52],
+      waterFar, [0.82, 0.86, 0.86]);
+  }
+
+  private addLeftRidgeWall(builder: MeshBuilder, field: TerrainHeightField, y0: number, y1: number) {
+    const nearStone: Rgb = [0.38, 0.42, 0.42];
+    const midStone: Rgb = [0.52, 0.56, 0.56];
+    const haze: Rgb = [0.80, 0.83, 0.84];
+    builder.gradQuad(
+      [-910, y0 + 340, terrainHeightAt(field, -820, y0 + 340) - 2],
+      [-650, y0 + 820, terrainHeightAt(field, -650, y0 + 820) - 10],
+      [-500, y1 + 520, -58],
+      [-930, y1 + 300, -42],
+      [0.42, 0.51, 0.39], [0.76, 0.81, 0.80]);
+    const rows = [
+      { x: -980, yStart: -300, yEnd: 620, radius: 155, height: 175, fog: 0.12, step: 155, salt: 17 },
+      { x: -820, yStart: -70, yEnd: 900, radius: 190, height: 160, fog: 0.46, step: 175, salt: 53 },
+      { x: -610, yStart: 230, yEnd: 1120, radius: 230, height: 130, fog: 0.70, step: 220, salt: 89 },
+    ];
+    for (const row of rows) {
+      const count = Math.ceil((row.yEnd - row.yStart) / row.step);
+      for (let i = 0; i <= count; i++) {
+        const y = row.yStart + i * row.step;
+        const x = row.x + Math.sin((i + row.salt) * 1.7) * row.radius * 0.20;
+        const base = terrainHeightAt(field, x + 80, y) - 18 - row.fog * 34;
+        const radius = row.radius * (0.82 + hashUnit(i, row.salt) * 0.34);
+        const height = row.height * (0.78 + hashUnit(i, row.salt + 11) * 0.34);
+        const baseC = mixRgb(nearStone, haze, row.fog);
+        const topC = mixRgb(midStone, haze, Math.min(0.88, row.fog + 0.18));
+        builder.peak([x, y, base], radius, height, 12, baseC, topC, row.salt + i * 13);
+      }
+    }
+  }
+
+  private addFarRidgeBands(builder: MeshBuilder, y1: number) {
+    const ridgeA: Rgb = [0.54, 0.59, 0.60];
+    const ridgeB: Rgb = [0.70, 0.75, 0.76];
+    const haze: Rgb = [0.82, 0.85, 0.85];
+    const bands = [
+      { y: y1 + 220, x0: -360, x1: 1030, z: -42, h: 135, c: ridgeA, fog: 0.30 },
+      { y: y1 + 610, x0: -150, x1: 1180, z: -78, h: 118, c: ridgeB, fog: 0.58 },
+      { y: y1 + 980, x0: 100, x1: 1320, z: -112, h: 92, c: haze, fog: 0.78 },
+    ];
+    for (const band of bands) {
+      const steps = 7;
+      for (let i = 0; i < steps; i++) {
+        const t0 = i / steps;
+        const t1 = (i + 1) / steps;
+        const xa = band.x0 + (band.x1 - band.x0) * t0;
+        const xb = band.x0 + (band.x1 - band.x0) * t1;
+        const topA = band.z + band.h * (0.78 + Math.sin((i + 1) * 1.7) * 0.18);
+        const topB = band.z + band.h * (0.78 + Math.sin((i + 2) * 1.7) * 0.18);
+        builder.gradQuad(
+          [xa, band.y, band.z], [xb, band.y + 35 * Math.sin(i), band.z - 8], [xb, band.y + 55, topB], [xa, band.y + 25, topA],
+          mixRgb(band.c, haze, band.fog * 0.25), mixRgb(band.c, haze, band.fog));
+      }
+    }
+  }
+
+  private addForegroundHummockApron(builder: MeshBuilder, field: TerrainHeightField) {
+    const grass: Rgb = [0.48, 0.60, 0.39];
+    const hazeGrass: Rgb = [0.66, 0.74, 0.66];
+    builder.gradQuad(
+      [20, -560, terrainHeightAt(field, 20, -560) + 1.0],
+      [650, -520, terrainHeightAt(field, 650, -520) + 1.8],
+      [760, -250, terrainHeightAt(field, 760, -250) - 4.0],
+      [120, -280, terrainHeightAt(field, 120, -280) - 3.0],
+      grass, hazeGrass);
+  }
+
+  private upload(verts: Float32Array, indices: Uint16Array) {
+    const device = this.shell.device;
+    this.vertexBuffer?.destroy();
+    this.indexBuffer?.destroy();
+    this.vertexBuffer = device.createBuffer({ label: 'reference-highland-backdrop-vertices', size: Math.max(4, verts.byteLength), usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST });
+    if (verts.byteLength > 0) device.queue.writeBuffer(this.vertexBuffer, 0, verts);
+    const padded = indices.byteLength % 4 === 0 ? indices : new Uint16Array(indices.length + 1);
+    if (padded !== indices) padded.set(indices);
+    this.indexBuffer = device.createBuffer({ label: 'reference-highland-backdrop-indices', size: Math.max(4, padded.byteLength), usage: GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST });
+    if (padded.byteLength > 0) device.queue.writeBuffer(this.indexBuffer, 0, padded);
+    this.indexCount = indices.length;
+  }
+
+  draw(pass: WorldRenderPass) {
+    if (!this.vertexBuffer || !this.indexBuffer || this.indexCount === 0) return;
+    pass.setPipeline(this.pipeline);
+    pass.setBindGroup(0, this.shell.cameraBindGroup);
+    pass.setVertexBuffer(0, this.vertexBuffer);
+    pass.setIndexBuffer(this.indexBuffer, 'uint16');
+    pass.drawIndexed(this.indexCount);
+  }
+
+  stats() {
+    return { layer: 'reference-highland-backdrop' as const, triangles: this.triangles };
+  }
+}
+
 // The rolling 3D battle terrain: height-displaced ground + shared scenery props
 // seated on the same height, viewed at the gameplay camera. Proves the slice-03
 // foundation — soldiers and props will share this ground.
@@ -2482,7 +2754,9 @@ async function routeBattleTerrain3d(ctx: LabContext) {
   // camera (the sim height stays plausible for later vision/ballistics). One
   // field drives ground, props, and soldiers so they share the exact surface.
   const field = presentation.height;
-  field.verticalScale = 2.6;
+  const view = ctx.params.get('view') ?? 'field';
+  const isReferenceFixture = presentation.mapId === REFERENCE_HIGHLAND_ENTRY.id;
+  field.verticalScale = isReferenceFixture ? 2.35 : 2.6;
   const scenery = featuresToBattleScenery(presentation.features, field, 0x77);
 
   // Frame this map's biggest mid-field land feature (a wood, else a rock/mud
@@ -2500,8 +2774,6 @@ async function routeBattleTerrain3d(ctx: LabContext) {
   // Camera: 'field' frames a mid-field wood; 'west'/'east' look outward toward
   // that sealed edge so its blocker fills the distance. 'reference' uses the
   // zoom-coupled vista endpoint for the battle-map-reference comparison shot.
-  const view = ctx.params.get('view') ?? 'field';
-  const isReferenceFixture = presentation.mapId === REFERENCE_HIGHLAND_ENTRY.id;
   if (view === 'reference') ctx.root.classList.add('reference-shot');
   const halfW = (w * cell) / 2;
   const midY = oy + (h * cell) / 2;
@@ -2518,7 +2790,7 @@ async function routeBattleTerrain3d(ctx: LabContext) {
         ? { x: standX, y: standY + 4, zoom: 9.0, pitch: 0.40, yaw: -0.04 }
         : view === 'reference'
           ? isReferenceFixture
-            ? { x: Number(ctx.params.get('cx') ?? -500), y: Number(ctx.params.get('cy') ?? -690), zoom: Number(ctx.params.get('zoom') ?? 2.18), pitch: 1.04, yaw: -0.055, perspective: 0.0064 }
+            ? { x: Number(ctx.params.get('cx') ?? -380), y: Number(ctx.params.get('cy') ?? -720), zoom: Number(ctx.params.get('zoom') ?? 1.92), pitch: 1.03, yaw: -0.035, perspective: 0.0068 }
             : { x: Number(ctx.params.get('cx') ?? -70), y: Number(ctx.params.get('cy') ?? -650), zoom: Number(ctx.params.get('zoom') ?? 2.4), pitch: 1.02, yaw: -0.04, perspective: 0.006 }
         : { x: Number(ctx.params.get('cx') ?? focus?.x ?? 0), y: Number(ctx.params.get('cy') ?? focus?.y ?? 0) - 110, zoom: 3.3, pitch: 0.44, yaw: -0.05 };
   const shell = await createConfiguredShell(ctx.canvas, camera);
@@ -2528,14 +2800,14 @@ async function routeBattleTerrain3d(ctx: LabContext) {
   const grassZoomT = view === 'reference' ? 1.0 : view === 'soldiers' ? 0.82 : 0.58;
   grass.setTerrain(grid, field, presentation.groundCover, {
     seed: 0x7a55,
-    density: view === 'reference' ? (isReferenceFixture ? 0.92 : 0.72) : 0.50,
-    maxTufts: view === 'reference' ? (isReferenceFixture ? 12000 : 8000) : 4200,
+    density: view === 'reference' ? (isReferenceFixture ? 1.15 : 0.72) : 0.50,
+    maxTufts: view === 'reference' ? (isReferenceFixture ? 16000 : 8000) : 4200,
     zoomT: grassZoomT,
     focus: { x: camera.x, y: camera.y, radius: view === 'reference' ? Number(ctx.params.get('grassRadius') ?? (isReferenceFixture ? 560 : 320)) : view === 'soldiers' ? 150 : 340 },
-    bladeHeight: view === 'reference' ? (isReferenceFixture ? 1.56 : 1.24) : 1.0,
-    bladeWidth: view === 'reference' ? (isReferenceFixture ? 0.112 : 0.088) : 0.072,
-    bend: view === 'reference' ? (isReferenceFixture ? 0.48 : 0.40) : 0.32,
-    spread: view === 'reference' ? (isReferenceFixture ? 0.36 : 0.25) : 0.20,
+    bladeHeight: view === 'reference' ? (isReferenceFixture ? 1.35 : 1.24) : 1.0,
+    bladeWidth: view === 'reference' ? (isReferenceFixture ? 0.090 : 0.088) : 0.072,
+    bend: view === 'reference' ? (isReferenceFixture ? 0.42 : 0.40) : 0.32,
+    spread: view === 'reference' ? (isReferenceFixture ? 0.31 : 0.25) : 0.20,
     windPhase: numberParam(ctx.params, 'grassPhase', 0),
     windStrength: isReferenceFixture ? 0.058 : 0.078,
   });
@@ -2543,6 +2815,9 @@ async function routeBattleTerrain3d(ctx: LabContext) {
   props.upload(scenery);
   const horizon = new BattleHorizonPass(shell);
   horizon.setEdges({ ox, oy, w, h, cell }, presentation.edges, field);
+  const referenceSky = view === 'reference' && isReferenceFixture ? new ReferenceHighlandSkyPass(shell) : null;
+  const referenceBackdrop = view === 'reference' && isReferenceFixture ? new ReferenceHighlandBackdropPass(shell) : null;
+  referenceBackdrop?.setValley({ ox, oy, w, h, cell }, field);
 
   // view=soldiers: plant a block on the rolling ground, seated through the SAME
   // height field as the terrain mesh and props, so feet and shadows ride the
@@ -2575,9 +2850,14 @@ async function routeBattleTerrain3d(ctx: LabContext) {
   }
 
   shell.drawFrame({
-    clear: view === 'reference' && isReferenceFixture ? { r: 0.78, g: 0.82, b: 0.84, a: 1 } : { r: 0.74, g: 0.83, b: 0.90, a: 1 },
+    clear: view === 'reference' && isReferenceFixture ? { r: 0.82, g: 0.85, b: 0.86, a: 1 } : { r: 0.74, g: 0.83, b: 0.90, a: 1 },
     passes: [
-      { id: 'battle-3d-horizon', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => horizon.draw(pass) },
+      ...(referenceSky
+        ? [{ id: 'battle-reference-sky', role: 'background-underpaint' as const, phase: 'background' as const, draw: (pass: BackgroundRenderPass) => referenceSky.draw(pass) }]
+        : []),
+      ...(referenceBackdrop
+        ? [{ id: 'battle-reference-backdrop', role: 'world-opaque' as const, phase: 'world-depth' as const, depth: 'read-write' as const, draw: (pass: WorldRenderPass) => referenceBackdrop.draw(pass) }]
+        : [{ id: 'battle-3d-horizon', role: 'world-opaque' as const, phase: 'world-depth' as const, depth: 'read-write' as const, draw: (pass: WorldRenderPass) => horizon.draw(pass) }]),
       { id: 'battle-3d-ground', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => ground.draw(pass) },
       { id: 'battle-3d-scenery', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => props.drawOpaque(pass) },
       { id: 'battle-3d-grass', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => grass.draw(pass) },
@@ -2609,7 +2889,9 @@ async function routeBattleTerrain3d(ctx: LabContext) {
     mapId: presentation.mapId,
     view,
     edges: presentation.edges,
-    sealedEdges: horizon.stats().sealedEdges,
+    sealedEdges: referenceBackdrop ? [] : horizon.stats().sealedEdges,
+    referenceSky: referenceSky?.stats() ?? null,
+    referenceBackdrop: referenceBackdrop?.stats() ?? null,
     groundCover: presentation.groundCover,
     groundTriangles: ground.stats().triangles,
     groundLayer: ground.stats().layer,
@@ -2644,30 +2926,33 @@ function buildReferenceHighlandGrid(): BattleTerrainGrid {
       const nx = (cx + 0.5) / w;
       const ny = (cy + 0.5) / h;
 
-      const leftWall = Math.pow(clampUnit((0.22 - nx) / 0.22), 1.65) * (5.5 + 2.0 * ny);
-      const leftToe = 2.6 * gaussian2(x, y, -690, -280, 260, 520);
-      const valleyFloor = -3.7 * gaussian2(x, y, 80, -130, 700, 520)
-        - 1.2 * gaussian2(x, y, 270, 170, 620, 300);
-      const nearHummock = 3.0 * gaussian2(x, y, 360, -690, 460, 190)
-        + 1.9 * gaussian2(x, y, -210, -730, 430, 150);
-      const midHummock = 3.3 * gaussian2(x, y, 80, -360, 260, 150)
-        + 2.0 * gaussian2(x, y, 470, -450, 250, 200);
-      const distantShelves = 1.35 * smoothUnit((ny - 0.42) / 0.40);
+      const leftWall = Math.pow(clampUnit((0.24 - nx) / 0.24), 1.55) * (6.0 + 1.8 * ny);
+      const leftToe = 2.2 * gaussian2(x, y, -700, -220, 300, 570);
+      const valleyFloor = -4.8 * gaussian2(x, y, -20, -105, 760, 560)
+        - 2.8 * gaussian2(x, y, 260, 220, 780, 520)
+        - 1.4 * smoothUnit((ny - 0.43) / 0.42);
+      const nearHummock = 4.1 * gaussian2(x, y, 360, -710, 560, 170)
+        + 2.2 * gaussian2(x, y, -210, -760, 470, 125);
+      const midHummock = 2.7 * gaussian2(x, y, 150, -420, 310, 135)
+        + 1.8 * gaussian2(x, y, 520, -485, 290, 175);
+      const distantShelves = 0.9 * smoothUnit((ny - 0.54) / 0.34);
       const roll = 0.42 * Math.sin(x * 0.006 + y * 0.003)
         + 0.33 * Math.sin(x * 0.013 - y * 0.005);
       let z = leftWall + leftToe + valleyFloor + nearHummock + midHummock + distantShelves + roll - 0.8;
 
       let t = 0;
       const westCliff = x < -905 + Math.sin(y * 0.009) * 36 + Math.sin(y * 0.021) * 18;
-      const shore = 420 + Math.sin(y * 0.005) * 110 - smoothUnit((y + 60) / 520) * 180;
-      const eastWater = y > -260 && x > shore;
-      const darkDrain = y > -430 && y < 220 && Math.abs(x + 130 - (y + 280) * 0.42) < 18;
+      const shore = 450 + Math.sin(y * 0.004) * 80 - smoothUnit((y + 80) / 620) * 170;
+      const inletMouth = gaussian2(x, y, 690, 20, 360, 280) > 0.40
+        || gaussian2(x, y, 860, 360, 420, 330) > 0.50;
+      const eastWater = y > -260 && x > shore && inletMouth;
+      const darkDrain = y > -500 && y < 160 && Math.abs(x + 190 - (y + 340) * 0.36) < 11;
       const screeToe = !westCliff && x < -650 + Math.sin(y * 0.006) * 50 && y > -650;
       const rockOutcrop =
-        gaussian2(x, y, -520, -430, 105, 125) > 0.53
-        || gaussian2(x, y, -120, -210, 90, 80) > 0.58
-        || gaussian2(x, y, 210, -310, 95, 85) > 0.56
-        || gaussian2(x, y, 520, -620, 90, 75) > 0.58;
+        gaussian2(x, y, -520, -390, 78, 100) > 0.62
+        || gaussian2(x, y, -80, -210, 64, 66) > 0.66
+        || gaussian2(x, y, 180, -315, 70, 64) > 0.66
+        || gaussian2(x, y, 520, -620, 58, 52) > 0.68;
 
       if (westCliff) {
         t = 2;
@@ -2706,6 +2991,19 @@ function smoothUnit(t: number): number {
 
 function clampUnit(v: number): number {
   return v < 0 ? 0 : v > 1 ? 1 : v;
+}
+
+function mixRgb(a: Rgb, b: Rgb, t: number): Rgb {
+  const u = clampUnit(t);
+  return [a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u, a[2] + (b[2] - a[2]) * u];
+}
+
+function hashUnit(k: number, salt: number): number {
+  let n = Math.imul(k + 1, 0x9e3779b1) ^ Math.imul(salt + 1, 0x85ebca6b);
+  n ^= n >>> 13;
+  n = Math.imul(n, 0xc2b2ae35);
+  n ^= n >>> 16;
+  return (n >>> 0) / 4294967296;
 }
 
 async function routeBattleGrass(ctx: LabContext) {
@@ -3897,7 +4195,8 @@ function installStyles() {
     .renderer-lab { height: 100vh; display: grid; grid-template-rows: 42px 1fr; }
     .renderer-lab.reference-shot { grid-template-rows: 1fr; }
     .renderer-lab.reference-shot .renderer-lab-nav, .renderer-lab.reference-shot .renderer-panel { display: none; }
-    .renderer-lab.reference-shot .renderer-stage { grid-template-columns: 1fr; }
+    .renderer-lab.reference-shot .renderer-stage { grid-template-columns: 1fr; height: 100vh; max-height: 100vh; overflow: hidden; }
+    .renderer-lab.reference-shot #renderer-canvas { height: 100vh; max-height: 100vh; }
     .renderer-lab-nav { display: flex; align-items: center; gap: 4px; overflow-x: auto; padding: 5px 8px; background: #242018; border-bottom: 1px solid #4d4432; }
     .renderer-lab-nav a { color: #c9bea5; text-decoration: none; font-size: 12px; padding: 6px 8px; border-radius: 4px; white-space: nowrap; }
     .renderer-lab-nav a.active, .renderer-lab-nav a:hover { background: #5b4e34; color: #fff7df; }

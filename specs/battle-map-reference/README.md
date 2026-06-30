@@ -16,7 +16,10 @@ plateau and onto a deterministic render-lab `highland-valley` relief fixture
 using the same `BattleTerrainGrid`/`TerrainHeightField` seam as the production
 terrain route. Slice 03 and Slice 04 are still **not visually accepted**: the
 fixture is closer to the right family of scene, but the target relationship still
-fails.
+fails. The latest pass added a fixture-only overcast sky/backdrop pass, cleaned
+the reference-shot canvas capture so it no longer includes a page-background strip,
+softened shared terrain/grass distance haze, and raised the reference vista grass
+budget to `48k` tufts.
 
 Slice 00 now has a real side-by-side workbench:
 `visualizations/target-vs-current.html` points at the committed
@@ -104,37 +107,41 @@ captures the current zoomed-in reference camera and writes
 `reference-comparison.png`, and `grass-crops.png`. It now requests
 `/renderer/battle-terrain-3d?gate=highland-valley&view=reference`, a deterministic
 render-lab highland fixture with cliff/water edge roles, `heightSpan` in the
-Slice 04 readable band, and terrain-masked dense grass. The shot is intentionally
-a diagnostic comparison against the target, not an acceptance baseline for the
-final playable map.
+Slice 04 readable band, terrain-masked dense grass, a reference-only overcast sky,
+and fixture-only distant valley/ridge/water backdrop. The shot is intentionally a
+diagnostic comparison against the target, not an acceptance baseline for the final
+playable map.
 
 **Current Slice 03 visual state — not accepted:** the candidate is much denser
 than the old sparse-stubble shot and no longer hides behind unrelated
 `terrain-3d/*` snapshots. The old flat catalog-map plateau blocker is reduced, but
 the current candidate still reads as a close procedural field, not the reference's
-misty valley panorama. `compare-screenshots` metrics on the current candidate:
-full-frame distance `0.49204`; foreground/midground world-crop distance `0.59845`;
-candidate world-crop edge energy is `3.86572x` the target, which matches the visible
-grass speckle. Treat the comparison verdict as **another pass needed**, not as a
-green Slice 03.
+misty valley panorama. The latest cleaned `compare-screenshots` metrics moved in
+the right direction but are still failing: full-frame distance `0.46663`
+(previously `0.49204`); foreground/midground world-crop distance `0.58006`
+(previously `0.59845`); candidate world-crop edge energy is `3.25764x` the target,
+which still matches the visible grass speckle and hard low-poly forms. Treat the
+comparison verdict as **another pass needed**, not as a green Slice 03.
 
 Neutral subagent review on the current reference/candidate pair says the images do
-not show the same viewport/state/content. The candidate is only useful for
-inspecting close grass/terrain detail; as a full-scene landscape it is less
-complete, with sharper/noisier grass, faceted low-poly mountains clipped by the
-frame, circular/brown ground patches, a flat sea horizon, flatter sky, less
-atmospheric depth, and a weaker valley composition. Do not close the slice until
-the neutral reviewer says the camera/content relationship is comparable.
+not show the same viewport/state/content. The candidate now preserves only the
+rough subject relationship: grassy mountain-and-water vista. It is still a lower,
+flatter, low-poly/game-rendered blockout with pyramidal mountains, broad flat grass
+plane, hard-edged water/shore, flatter lighting, noisier grass, and much weaker
+terrain structure, atmospheric perspective, and depth layering. Do not close the
+slice until the neutral reviewer says the camera/content relationship is
+comparable.
 
 Repair path for the next pass:
 - Keep iterating from the `highland-valley` fixture path; it is the current honest
   comparison surface until Slice 08 turns the composition into a real playable map.
-- Fix the reference camera/composition and midground recession first: the shot needs
-  a visible valley drop, foreground hummock, left cliff wall, and right water inlet
-  in the same relationship as the target before grass color/density can be judged
-  fairly.
+- Fix the reference camera/composition and terrain forms first: the shot still needs
+  a real valley drop, foreground hummock, non-pyramidal left cliff wall, and
+  mid-distance right water inlet in the same relationship as the target before fine
+  grass color/density can be judged fairly.
 - Keep the sparse top-down/gameplay layer for unit readability, but make the
-  zoom-in/reference view softer, less yellow, and less stippled.
+  zoom-in/reference view softer, less yellow, less stippled, and much less
+  geometric.
 - Use the existing side-by-side, crop artifacts, metric diff, and neutral reviewer
   on every iteration; do not accept a screenshot if the neutral reviewer still says
   the target relationship needs another pass.
@@ -145,14 +152,12 @@ Previous broad Slice 03 repair verification:
 - `npm run build`
 - `VERIFY_URL=http://127.0.0.1:5174 VERIFY_GPU=1 VERIFY_GPU_ADAPTER=hardware VERIFY_BROWSER_CHANNEL=chrome node scene.mjs battle-map-reference battle-grass shared-grass-models battle-terrain-3d battle-terrain-features battle-terrain-elevation battle-renderer-visual battle-input full-game-rendering-performance`
 
-Latest focused verification for the highland fixture pass:
-- `node --experimental-strip-types --import ./tests/register-ts-extension-loader.mjs --test tests/cameraRig.test.ts tests/grassModels.test.ts`
+Latest focused verification for the overcast fixture/backdrop pass:
+- `node --experimental-strip-types --import ./web/tests/register-ts-extension-loader.mjs --test web/tests/cameraRig.test.ts web/tests/grassModels.test.ts`
 - `npx tsc --noEmit`
 - `npm run build`
-- `UPDATE_SHOTS=1 VERIFY_URL=http://127.0.0.1:5174 VERIFY_GPU=1 VERIFY_GPU_ADAPTER=hardware VERIFY_BROWSER_CHANNEL=chrome node scene.mjs battle-map-reference`
-- `VERIFY_URL=http://127.0.0.1:5174 VERIFY_GPU=1 VERIFY_GPU_ADAPTER=hardware VERIFY_BROWSER_CHANNEL=chrome node scene.mjs battle-map-reference`
-- `VERIFY_URL=http://127.0.0.1:5174 VERIFY_GPU=1 VERIFY_GPU_ADAPTER=hardware VERIFY_BROWSER_CHANNEL=chrome node scene.mjs battle-terrain-3d battle-terrain-blockers battle-terrain-elevation`
-- `VERIFY_URL=http://127.0.0.1:5174 VERIFY_GPU=1 VERIFY_GPU_ADAPTER=hardware VERIFY_BROWSER_CHANNEL=chrome node scene.mjs battle-input`
+- `UPDATE_SHOTS=1 VERIFY_URL=http://localhost:5174 VERIFY_GPU=1 VERIFY_GPU_ADAPTER=hardware VERIFY_BROWSER_CHANNEL=chrome node scene.mjs battle-map-reference battle-grass battle-terrain-3d battle-terrain-blockers battle-terrain-elevation`
+- `VERIFY_URL=http://localhost:5174 VERIFY_GPU=1 VERIFY_GPU_ADAPTER=hardware VERIFY_BROWSER_CHANNEL=chrome node scene.mjs battle-map-reference battle-grass battle-terrain-3d battle-terrain-blockers battle-terrain-elevation`
 
 Screenshot critique initially blocked on terrain grass reading as random black
 speckle in open fields. After the terrain-only stubble softening, the follow-up
@@ -180,10 +185,11 @@ debt:
 
 **Next pickup:** continue from the `battle-map-reference` highland fixture
 comparison artifact. Do not close Slice 03 or Slice 04 yet. The highest-value next
-move is to make the reference view genuinely comparable: deeper visible valley
-recession, foreground hummock, a non-placeholder left ridge wall, right-side water
-that sits in the mid-distance, and softer overcast atmosphere. Then re-check grass
-softness/color against the same target/candidate/crop artifacts.
+move is to make the terrain/composition genuinely comparable: deeper visible valley
+recession, foreground hummock, a non-pyramidal left ridge wall, and right-side
+water that sits in the mid-distance. The first overcast sky/backdrop layer is in,
+but the candidate still reads as blockout geometry; fix those forms before another
+fine grass color pass.
 
 Every visual slice (01–08) ends with three distinct gates:
 `screenshot-regression` for baseline stability, `compare-screenshots` against

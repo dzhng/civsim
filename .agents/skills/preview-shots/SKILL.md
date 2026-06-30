@@ -17,3 +17,10 @@ Put the review-worthy images in front of the user in a single Preview window the
 
 - macOS only (`open`); pass absolute or repo-root-relative paths.
 - Order the files most-important-first; the first one is what Preview shows on open.
+- **One set at a time — never pile up windows.** Before opening a new set, close
+  any open ones: `osascript -e 'tell application "Preview" to close every window'`.
+- **Close on unattended proceed.** When you opened shots for a non-blocking review
+  and then move on without the user's response, close Preview afterward:
+  `osascript -e 'quit app "Preview"'`. An overnight autonomous run must never wake
+  the user to a wall of Preview windows — at most one set open, and none once
+  you've proceeded past the checkpoint.

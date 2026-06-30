@@ -54,9 +54,10 @@ plan is stale.
   decision and the options, and give the user ~5 minutes to weigh in — keep
   building other non-blocked work meanwhile, never idle. If they don't answer,
   make the call yourself on the evidence, record the decision and its rationale
-  in the spec (the checkpoint's resolution), and keep going. A goal or
-  implementation NEVER stops to wait on the user; it documents the assumption,
-  keeps it reversible, and lets the user course-correct later.
+  in the spec (the checkpoint's resolution), and keep going — and close the shots
+  you opened (preview-shots cleans up Preview) so a long unattended run never piles
+  up windows. A goal or implementation NEVER stops to wait on the user; it documents
+  the assumption, keeps it reversible, and lets the user course-correct later.
 
 ## Done
 

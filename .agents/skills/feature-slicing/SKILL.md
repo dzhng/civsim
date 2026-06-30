@@ -139,9 +139,10 @@ Each slice file answers:
   **non-blocking**: tell the implementing agent to open the shots for the user
   with [preview-shots](../preview-shots/SKILL.md), give a short window (~5 min)
   for a response, and — if the user stays silent — decide on the evidence,
-  record the decision and rationale in the spec, and proceed. Implementation
-  never stalls waiting on sign-off; the checkpoint is a chance to course-correct
-  a reversible call, not a gate that blocks the build.
+  record the decision and rationale in the spec, close the opened shots
+  (preview-shots cleans up Preview, so an overnight run never piles up windows),
+  and proceed. Implementation never stalls waiting on sign-off; the checkpoint is
+  a chance to course-correct a reversible call, not a gate that blocks the build.
 
 ## README Handoff Prompt
 

@@ -24,8 +24,11 @@ gated. Update this section at the end of each pass.
   inline values (and the lab copy). (`slices/01-design-system.md`)
 - [x] S2 — top buttons (`#buttons`) + unit-info panel (`#hud`) → bronze (live).
 - [x] S3 — minimap housing (`#minimap`) → bronze beveled frame (live).
-- [ ] S4 — main menu + quick-battle / duel modals (`slices/04-menu.md`)
-- [ ] S5 — in-battle modals: gameover, pause menu, field manual, banner (`slices/05-modals.md`)
+- [x] S4 — main menu + quick-battle / duel modals → bronze (Cinzel title, bronze
+  panels + well-buttons, brass headers). Minor: native `<select>` keeps its OS
+  focus ring; `#menu-renderer-status` notice still webapp-ish.
+- [~] S5 — in-battle modals: **gameover + pause menu done** (bronze, via the shared
+  modal styles); **field manual (`#manual`) + banner (`#banner`) remain**.
 - [x] _done_ — card bar + order toolbar (in `specs/card-bar/`), the look's reference impl
 
 ## The aesthetic contract (hard rule — same as card-bar)

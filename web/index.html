@@ -70,22 +70,27 @@
       border-radius: 10px; padding: 7px 10px;
       box-shadow: 0 4px 18px rgba(0,0,0,0.5);
     }
-    /* Bottom unit-card strip: one card per player unit (Total War style). */
+    /* Bottom unit-card strip: one card per player unit (Total War style).
+       Fixed-size cards in a no-scroll grid — JS writes --cols/--card-w/--card-h
+       (cardGrid.ts), CSS paints. Cards never resize; the bar wraps into more
+       rows as the roster grows. The bar shrink-wraps to its cards and centers,
+       so a small roster is a few fixed cards, not a wide empty band. */
     #unitcards {
-      position: fixed; bottom: 56px; left: 12px; right: 12px;
-      display: flex; gap: 3px; align-items: flex-end; z-index: 5;
-      justify-content: flex-start; overflow-x: auto; overflow-y: hidden; padding: 4px 4px;
+      position: fixed; bottom: 56px; left: 50%; transform: translateX(-50%); z-index: 5;
+      display: grid; width: max-content; max-width: calc(100vw - 24px);
+      grid-template-columns: repeat(var(--cols, 1), var(--card-w, 72px));
+      grid-auto-rows: var(--card-h, 96px);
+      gap: 4px; justify-content: center; align-content: end;
+      overflow: hidden; padding: 4px;
       background: linear-gradient(rgba(10,12,16,0), rgba(10,12,16,0.78));
-      border-radius: 8px; scrollbar-width: thin;
+      border-radius: 8px;
     }
     @media (max-width: 760px) {
-      #unitcards { left: 8px; right: 8px; justify-content: flex-start; }
       #manual { left: 12px; right: 12px; bottom: 172px; width: auto; }
     }
-    #unitcards::-webkit-scrollbar { height: 6px; }
-    #unitcards::-webkit-scrollbar-thumb { background: #3a3f4d; border-radius: 3px; }
     .ucard {
-      flex: 0 0 auto; width: 44px; display: flex; flex-direction: column; align-items: center;
+      width: var(--card-w); height: var(--card-h); aspect-ratio: 3 / 4; box-sizing: border-box;
+      display: flex; flex-direction: column; align-items: center;
       background: rgba(24,27,34,0.92); border: 1px solid #3a3f4d;
       border-top: 3px solid var(--fac); border-radius: 5px; padding: 2px 2px 3px;
       cursor: pointer; position: relative; transition: transform 0.08s, border-color 0.1s;
@@ -97,10 +102,10 @@
       content: 'ROUT'; position: absolute; top: 20px; left: 0; right: 0; text-align: center;
       font: 700 9px ui-monospace, monospace; color: #ff7a6b; text-shadow: 0 1px 2px #000;
     }
-    .ucard-port { display: block; image-rendering: auto; background: radial-gradient(ellipse at 50% 70%, rgba(120,130,110,0.35), rgba(20,24,20,0.1)); border-radius: 3px; }
-    .ucard-name { font: 600 6px ui-monospace, Menlo, monospace; color: #cfd6e4; margin-top: 1px; white-space: nowrap; max-width: 42px; overflow: hidden; text-overflow: ellipsis; }
-    .ucard-count { position: absolute; top: 3px; right: 4px; font: 700 9px ui-monospace, monospace; color: #fff; text-shadow: 0 1px 2px #000, 0 0 3px #000; }
-    .ucard-bars { width: 40px; margin-top: 2px; }
+    .ucard-port { display: block; width: 100%; flex: 1 1 0; min-height: 0; image-rendering: auto; background: radial-gradient(ellipse at 50% 70%, rgba(120,130,110,0.35), rgba(20,24,20,0.1)); border-radius: 3px; }
+    .ucard-name { font: 600 8px ui-monospace, Menlo, monospace; color: #cfd6e4; margin-top: 1px; white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+    .ucard-count { position: absolute; top: 3px; right: 4px; font: 700 10px ui-monospace, monospace; color: #fff; text-shadow: 0 1px 2px #000, 0 0 3px #000; }
+    .ucard-bars { width: 90%; margin-top: 2px; }
     .ucard-bar { height: 3px; background: rgba(8,9,11,0.7); border-radius: 2px; overflow: hidden; margin-bottom: 1px; }
     .ucard-bar > div { height: 100%; width: 100%; }
     .ucard-bar.hp > div { background: #5cba46; }

@@ -5,10 +5,23 @@
 // the selected/rout state refresh each frame from the sim.
 
 import { lookForModel, modelLookForClass } from '../../../packages/game-renderer/src/models/shared/soldierModel';
+import { computeCardGrid, type CardGridOpts } from './cardGrid';
 
 // Faction accents keep cards, banners, and WebGPU soldier colours reading as
 // the same side.
 const FACTION_CSS = ['#3a6cf0', '#e03e34']; // player blue, enemy crimson
+
+// Total-War card-bar constants (the production source of truth — cardGrid.ts
+// only holds matching fallbacks). Cards are a FIXED size; the bar wraps into
+// more rows as the roster grows (David, 2026-06-30). Tunable at the S2 checkpoint.
+const CARD_W = 72; // fixed card width in px (cardH derives from the 3:4 aspect)
+// The centered bar must clear the bottom-right minimap (a GPU overlay the DOM
+// can't measure): minimapPass sizes it ≤188px wide with a 16px margin, so a
+// centered bar collides once it is wider than viewport − 2×~204. Reserve that
+// zone (symmetric, to stay centered). The lab harness has no minimap and passes
+// a bare margin instead. Tunable at the S2 checkpoint.
+const MINIMAP_RESERVE = 210;
+const GRID_OPTS: CardGridOpts = { cardW: CARD_W, aspect: 3 / 4, gap: 4, maxRows: 3 };
 
 export interface UnitCardInit {
   unit: number; // sim unit id (for selection)
@@ -93,7 +106,34 @@ export class UnitCards {
   private bars: { hp: HTMLElement; coh: HTMLElement; mor: HTMLElement; count: HTMLElement }[] = [];
   private keys: string[] = [];
 
-  constructor(private root: HTMLElement, private onSelect: (unit: number, additive: boolean) => void) {}
+  constructor(
+    private root: HTMLElement,
+    private onSelect: (unit: number, additive: boolean) => void,
+    // px reserved each side of the bar. Defaults to the minimap clearance (live
+    // game); the lab harness, which has no minimap, passes a bare margin.
+    private sideReserve: number = MINIMAP_RESERVE,
+  ) {
+    // Reflow when the viewport width changes — the grid pass is layout, never
+    // per-frame. Roster changes reflow via build().
+    window.addEventListener('resize', () => this.relayout());
+  }
+
+  /** No-scroll grid pass: pick rows/cols for the current roster at the fixed
+   * card size, then hand them to CSS as custom properties. The bar shrink-wraps
+   * to its cards, so the width budget is read from the viewport, not the bar
+   * itself (which would be circular). Runs on build and on resize — never per
+   * frame; `update()` only touches bar widths. */
+  private relayout() {
+    const boxW = window.innerWidth - 2 * this.sideReserve;
+    const g = computeCardGrid(this.cards.length, boxW, GRID_OPTS);
+    this.root.style.setProperty('--cols', String(g.cols));
+    this.root.style.setProperty('--card-w', g.cardW + 'px');
+    this.root.style.setProperty('--card-h', g.cardH + 'px');
+    this.root.classList.toggle('undersized', g.degenerate);
+    (window as unknown as { __cardGrid?: unknown }).__cardGrid = {
+      rows: g.rows, cols: g.cols, cardW: g.cardW, degenerate: g.degenerate,
+    };
+  }
 
   /** (Re)build a card per unit. Call when the roster is known or grows. */
   build(units: UnitCardInit[]) {
@@ -105,7 +145,6 @@ export class UnitCards {
       card.style.setProperty('--fac', FACTION_CSS[u.team]);
       const port = document.createElement('canvas');
       port.className = 'ucard-port';
-      port.style.width = W + 'px'; port.style.height = H + 'px';
       drawPortrait(port, u.cls, u.look, u.team);
       const name = document.createElement('div');
       name.className = 'ucard-name';
@@ -127,6 +166,7 @@ export class UnitCards {
       this.bars.push({ hp, coh, mor, count });
       this.keys.push('');
     }
+    this.relayout();
   }
 
   /** Refresh bars + selected/rout state. `states[i]` null hides a dead unit's card. */

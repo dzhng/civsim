@@ -11,41 +11,48 @@ Plus the harness to *see* 20 / 30 / 40, which the live game (≈5v5) can't show.
 ## API seam
 
 - **`web/src/battle/unitCard.ts` (`UnitCards`):**
-  - Add a private `relayout()` that calls `computeCardGrid(this.cards.length,
-    root.clientWidth, BAND_H, OPTS)` (S1) and writes the result as CSS custom
-    properties on `root` — `--cols`, `--card-w`, `--card-h`. A `ResizeObserver`
-    on `root` calls `relayout()`; `build()` calls it after appending.
-  - Publish a probe for scenes: `window.__cardGrid = { rows, cols, cardW, degenerate }`
-    (set in `relayout()`), so the scene asserts geometry numerically.
-  - `build()` / `update()` public signatures unchanged → both wirings keep working
-    untouched. `update()`'s keyed bar logic stays verbatim.
-  - The portrait `<canvas>` stays for now, but resize its CSS box to the 3:4 card
-    (it will be replaced by `<img>` in S4 — don't over-invest here).
-- **CSS — both copies** (`web/index.html:74-108` and
-  `apps/renderer-lab/src/router.ts` `installStyles` ~3597): replace the flex/scroll
-  rules with a grid that consumes the vars and **removes overflow**:
+  - Add a private `relayout()` that calls `computeCardGrid(this.cards.length, boxW,
+    GRID_OPTS)` (S1) with `boxW = window.innerWidth − 2*sideReserve` and writes the
+    result as CSS custom properties on `root` — `--cols`, `--card-w`, `--card-h`.
+    The bar **shrink-wraps to its cards**, so its width can't be its own input
+    (circular); read the viewport instead. Reflow on window `resize`; `build()`
+    calls it after appending.
+  - **`sideReserve` is a constructor arg** (default `MINIMAP_RESERVE = 210`): the
+    centered bar must clear the bottom-right minimap (a GPU overlay the DOM can't
+    measure, ≤188px + 16px margin). The live game uses the default; the lab route,
+    which has no minimap, passes a bare margin so the demo shows full width.
+  - Publish a probe for scenes: `window.__cardGrid = { rows, cols, cardW, degenerate }`.
+  - `build()` / `update()` public signatures unchanged → both wirings keep working.
+    `update()`'s keyed bar logic stays verbatim.
+  - The portrait `<canvas>` stays (replaced by `<img>` in S4 — don't over-invest);
+    CSS sizes it to fill the card (`width:100%; flex:1 1 0`).
+- **CSS — both copies** (`web/index.html` and `apps/renderer-lab/src/router.ts`
+  `installStyles`): replace the flex/scroll rules with a **shrink-wrapping,
+  centered** grid that consumes the vars and removes overflow:
 
   ```css
   #unitcards {
-    display: grid;
-    grid-template-columns: repeat(var(--cols, 1), var(--card-w, 44px));
-    grid-auto-rows: var(--card-h, 58px);
+    position: fixed; bottom: 56px; left: 50%; transform: translateX(-50%);
+    display: grid; width: max-content; max-width: calc(100vw - 24px);
+    grid-template-columns: repeat(var(--cols, 1), var(--card-w, 72px));
+    grid-auto-rows: var(--card-h, 96px);
     gap: 4px; justify-content: center; align-content: end;
     overflow: hidden;            /* never scroll */
   }
-  .ucard { width: var(--card-w); height: var(--card-h); aspect-ratio: 3 / 4; }
+  .ucard { width: var(--card-w); height: var(--card-h); box-sizing: border-box; }
   ```
 
-  Delete `flex:0 0 auto`, `overflow-x:auto`, the fixed `.ucard { width:44px/62px }`,
-  the `::-webkit-scrollbar` rules, and reconcile the `@media (max-width:760px)`
-  rule (the grid handles narrow widths now). Keep the band's position/background.
+  `box-sizing:border-box` is load-bearing: the grid track is `--card-h`, so the
+  card's padding+border must live *inside* that height or each card overflows its
+  row (a 5px vertical scroll). Delete `flex:0 0 auto`, `overflow-x:auto`, the fixed
+  `.ucard { width:44px/62px }`, the `::-webkit-scrollbar` rules, and the
+  `#unitcards`/`.renderer-unitcards` parts of the `@media` rule (the shrink-wrap
+  centers at any width now).
 
 **CSS-vs-JS rationale (decisive):** the row-count decision depends on **card count
-N**, which CSS and container queries cannot see — `auto-fill` wraps but won't
-*balance* 10+10 or honor a height budget. So JS computes `{cols, card-w, card-h}`;
-CSS grid + `aspect-ratio` does the sizing/painting. The JS pass runs on resize +
-roster change only (`ResizeObserver`), never per frame; `update()` still only
-touches bar widths.
+N**, which CSS and container queries cannot see. So JS computes `{cols, card-w,
+card-h}`; CSS grid paints. The JS pass runs on window-resize + roster change only,
+never per frame; `update()` still only touches bar widths.
 
 ## What a human can run / see
 
@@ -61,11 +68,12 @@ touches bar widths.
 ## Verification
 
 - **New scene `web/scenes/ui/card-bar.mjs`** (`web/scenes/ui/` already exists):
-  visit `/renderer/card-bar` at `count ∈ {20,30,40}` × `dpr ∈ {1,2}`. For each:
-  assert `root.scrollWidth <= root.clientWidth` **and** `scrollHeight <=
-  clientHeight` (no scroll either axis), assert `window.__cardGrid.rows/cols`
-  match S1's expectation, then `snapCheck` the `#unitcards` element →
-  baselines under `web/shots/ui/card-bar-*`.
+  visit `/renderer/card-bar?count=N` at `count ∈ {20,30,40}` × `dpr ∈ {1,2}`. For
+  each: assert no scroll on either axis, `window.__cardGrid.rows/cols` match S1
+  (20→2×10, 30→2×15, 40→3×14 at the 1280px viewport), and `cardW === 72` (the
+  fixed size holds across rosters), then snap the `#unitcards` element via
+  `page.screenshot({clip})` (element.screenshot mis-clips the fixed-position bar) →
+  baselines `web/shots/ui/card-bar-{20,30,40}[-2x].png`.
 - A click probe: click a card on the lab route, assert the synthetic `onSelect`
   fired (keeps selection wiring honest before S4 touches `build`).
 - **compare-screenshots (required):** run
@@ -90,15 +98,17 @@ touches bar widths.
 
 ## Human review checkpoint
 
-David opens real `?battle=5v5` **and** the lab route at 20/30/40: confirms zero
-scrollbars, a clean 2-row stack at the target widths, legible cards, no collision
-with `#toolbar`, and that the stack thresholds match the S1 sign-off. Tune
-`minCardW` / `maxRows` / `BAND_H` here against the reference if needed (changing
-only the constants, not the algorithm).
+**Pending.** David opens real `?battle=5v5` **and** the lab route at 20/30/40:
+confirms zero scrollbars, fixed-size cards (a 5-unit army is a few small cards,
+not a few giant ones), legible cards, **no collision with the bottom-right
+minimap or `#toolbar`**, and that the wrap thresholds read right. Tune `cardW` /
+`maxRows` / `MINIMAP_RESERVE` here if needed (constants, not the algorithm). Below
+a minimum window width the battle shows a placeholder instead — owned by the new
+min-window-gate slice (`slices/06-min-window-gate.md`).
 
 ## Feedback that would change this slice
 
-- "Stacks one row too early/late" → adjust `minCardW` (re-run S1 test).
-- "Partial last row should hug left, not center" → `justify-content: start` on the
-  last row (or a small grid tweak).
-- "Band is too tall / eats the battlefield" → lower `BAND_H` (feeds `boxH`).
+- "Cards too big / too small" → change `cardW` (re-run S1 test; baselines move).
+- "Bar overlaps the minimap" → raise `MINIMAP_RESERVE`.
+- "Partial last row should hug right / center" → CSS `justify-content` tweak.
+- "3 rows eats too much battlefield" → lower `maxRows`.

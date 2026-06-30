@@ -23,7 +23,8 @@ fn fake_weapon(reach: f32) -> Weapon {
         attack_interval: 2.0,
         damage: 0.0,
         cleave: false,
-        impales: false, kind: sim::WeaponKind::Standard,
+        impales: false,
+        kind: sim::WeaponKind::Standard,
     }
 }
 
@@ -51,7 +52,13 @@ fn rig(depth: usize) -> (Sim, usize, usize) {
     for k in sim.units[line].start..sim.units[line].start + sim.units[line].count {
         sim.health[k] = 1.0e9;
     }
-    let cav = sim.spawn_class(Vec2::new(0.0, -40.0), FRAC_PI_2, 64, UnitClassId::ShockCavalry, 0);
+    let cav = sim.spawn_class(
+        Vec2::new(0.0, -40.0),
+        FRAC_PI_2,
+        64,
+        UnitClassId::ShockCavalry,
+        0,
+    );
     let mut ch = class_stats(UnitClassId::ShockCavalry);
     // A flank-lobe sabre (a mounted blade is blind over the horse's head): so the
     // riders' seek DISPERSES across the front, the wide boring-in that disrupts.
@@ -116,7 +123,10 @@ fn trample_move_is_not_a_dive_it_rides_through_in_order() {
     let cav_cy = sim.units[cav].centroid.y;
     let move_coh = sim.units[cav].cohesion;
     eprintln!("move-through: stayed_move={stayed_move} cav cy {cav_cy:.1} coh {move_coh:.2}");
-    assert!(stayed_move, "a MOVE order must never latch the trampler into a fight");
+    assert!(
+        stayed_move,
+        "a MOVE order must never latch the trampler into a fight"
+    );
     assert!(
         cav_cy > 30.0,
         "the trampler must ride THROUGH and on toward its goal, cy {cav_cy:.1}"
@@ -195,7 +205,13 @@ fn a_move_order_pulls_a_diving_trampler_back_out() {
     let coh = sim.units[cav].cohesion;
     let cy = sim.units[cav].centroid.y;
     eprintln!("after move-out: mode={mode:?} coh {coh:.2} cy {cy:.1}");
-    assert!(matches!(mode, OrderMode::Move), "must return to Move mode, was {mode:?}");
+    assert!(
+        matches!(mode, OrderMode::Move),
+        "must return to Move mode, was {mode:?}"
+    );
     assert!(coh > 0.4, "must re-form out of the ~0.2 blob, coh {coh:.2}");
-    assert!(cy < -8.0, "must ride OFF the enemy toward the goal, cy {cy:.1}");
+    assert!(
+        cy < -8.0,
+        "must ride OFF the enemy toward the goal, cy {cy:.1}"
+    );
 }

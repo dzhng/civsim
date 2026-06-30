@@ -200,8 +200,18 @@ fn the_counter_web_holds() {
         ),
         // MediumPhalanx — the medium sarissa: its reach breaks a frontal charge
         // like the heavy phalanx, but the longer heavy sarissa wins the pike duel.
-        (MediumPhalanx, ShockCavalry, 0, "the medium sarissa stops the horse too"),
-        (HeavyPhalanx, MediumPhalanx, 0, "the longer heavy sarissa out-reaches the shorter"),
+        (
+            MediumPhalanx,
+            ShockCavalry,
+            0,
+            "the medium sarissa stops the horse too",
+        ),
+        (
+            HeavyPhalanx,
+            MediumPhalanx,
+            0,
+            "the longer heavy sarissa out-reaches the shorter",
+        ),
         // The anti-cav SPEAR LADDER. Re-derived 2026-06-28 (directional rider-exposure):
         // a spear's REACH now grinds the RIDER over the horse's chest, so the whole
         // braced spear line turns a horse — not just the heaviest. The heavy spear
@@ -211,13 +221,28 @@ fn the_counter_web_holds() {
         // points. (This deliberately replaces the old "medium spear is ridden down"
         // gradient — that was the pre-rider-exposure world where a short point chipped
         // the tanky mount. The gradient now lives in the CHARGE-STOP, not the grind.)
-        (HeavySpear, ShockCavalry, 0, "the braced heavy spear wall stops the charge"),
-        (MediumSpear, ShockCavalry, 0, "the medium spear's reach grinds the rider down"),
+        (
+            HeavySpear,
+            ShockCavalry,
+            0,
+            "the braced heavy spear wall stops the charge",
+        ),
+        (
+            MediumSpear,
+            ShockCavalry,
+            0,
+            "the medium spear's reach grinds the rider down",
+        ),
         // LongSwords is a budget anti-light cleaver: armour (the heavy sword)
         // beats it head-on, but its wide cleave still shreds loose light infantry
         // — the width, not the punch, is its edge.
         (HeavySword, LongSwords, 0, "armour beats the budget cleaver"),
-        (LongSwords, Skirmishers, 0, "the cleaver shreds loose light infantry"),
+        (
+            LongSwords,
+            Skirmishers,
+            0,
+            "the cleaver shreds loose light infantry",
+        ),
     ];
     // A small SEED SET (majority verdict), not one seed: several of these are
     // genuine but CLOSE relationships, so a one-seed gate is a coin that
@@ -248,8 +273,16 @@ fn the_counter_web_holds() {
     // counter-web claim "a sword line cannot out-front a sarissa hedge" measured on
     // the metric the new pacing didn't break.
     for (a, d, why) in [
-        (HeavySword, HeavyPhalanx, "a sword line cannot out-front a sarissa hedge"),
-        (HeavyPhalanx, HeavySword, "the hedge holds the front over swords"),
+        (
+            HeavySword,
+            HeavyPhalanx,
+            "a sword line cannot out-front a sarissa hedge",
+        ),
+        (
+            HeavyPhalanx,
+            HeavySword,
+            "the hedge holds the front over swords",
+        ),
     ] {
         let agg = run_over_seeds(&Scenario::duel(a, d), &base, &tun, &seeds);
         // index of the phalanx side (0 if it's the attacker, else 1)

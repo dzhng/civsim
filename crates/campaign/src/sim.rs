@@ -464,8 +464,7 @@ fn encounters(map: &WorldMap, st: &mut CampaignState) {
                     build_ticks_left: 0
                 }
             );
-            let (a_garrison, b_garrison) =
-                (a.garrison_of.is_some(), b.garrison_of.is_some());
+            let (a_garrison, b_garrison) = (a.garrison_of.is_some(), b.garrison_of.is_some());
             let (attacker_is_a, prep_att, prep_def) = if a_garrison || b_garrison {
                 (b_garrison, siege_prep, siege_prep)
             } else if a_dug_in != b_dug_in {
@@ -572,8 +571,7 @@ pub fn new_state(map: &WorldMap, seed: u64, player_faction: u32) -> CampaignStat
                 .collect();
             // Cities open settled (a fraction of their tier cap) and fully loyal —
             // the realm exists before the player touches it.
-            let population =
-                (tun::city_pop_cap(n.tier) as f32 * tun::POP_START_FRACTION) as u32;
+            let population = (tun::city_pop_cap(n.tier) as f32 * tun::POP_START_FRACTION) as u32;
             (
                 i as u32,
                 CityState {

@@ -53,7 +53,8 @@ fn charge_penetration(depth: usize, brace_mult: f32) -> (f32, f32) {
         attack_interval: 1.79,
         damage: 0.0,
         cleave: false,
-        impales: false, kind: sim::WeaponKind::Standard,
+        impales: false,
+        kind: sim::WeaponKind::Standard,
     });
     sim.units[block].stats = bh;
     for k in sim.units[block].start..sim.units[block].start + sim.units[block].count {
@@ -76,7 +77,8 @@ fn charge_penetration(depth: usize, brace_mult: f32) -> (f32, f32) {
         attack_interval: 2.2,
         damage: 0.0,
         cleave: false,
-        impales: false, kind: sim::WeaponKind::Standard,
+        impales: false,
+        kind: sim::WeaponKind::Standard,
     });
     sim.units[cav].stats = ch;
     for k in sim.units[cav].start..sim.units[cav].start + sim.units[cav].count {
@@ -231,9 +233,19 @@ fn class_charge_mass_progress(def_class: UnitClassId, flank: bool) -> f32 {
     );
     let def = sim.spawn_class_with_files(Vec2::ZERO, FRAC_PI_2, 160, 8, def_class, 1);
     let (start, facing, goal, axis) = if flank {
-        (Vec2::new(-70.0, 0.0), 0.0, Vec2::new(70.0, 0.0), Vec2::new(1.0, 0.0))
+        (
+            Vec2::new(-70.0, 0.0),
+            0.0,
+            Vec2::new(70.0, 0.0),
+            Vec2::new(1.0, 0.0),
+        )
     } else {
-        (Vec2::new(0.0, 70.0), -FRAC_PI_2, Vec2::new(0.0, -70.0), Vec2::new(0.0, -1.0))
+        (
+            Vec2::new(0.0, 70.0),
+            -FRAC_PI_2,
+            Vec2::new(0.0, -70.0),
+            Vec2::new(0.0, -1.0),
+        )
     };
     let cav = sim.spawn_class(start, facing, 96, UnitClassId::ShockCavalry, 0);
     sim.set_files(cav, 24);
@@ -276,7 +288,8 @@ fn cav_closest_approach_to_phalanx(flank: bool) -> f32 {
     );
     // Defender holds facing +y. A phalanx therefore presents points only to the
     // north; a flank charge from the west crosses the shafts, not their tips.
-    let def = sim.spawn_class_with_files(Vec2::ZERO, FRAC_PI_2, 160, 8, UnitClassId::HeavyPhalanx, 1);
+    let def =
+        sim.spawn_class_with_files(Vec2::ZERO, FRAC_PI_2, 160, 8, UnitClassId::HeavyPhalanx, 1);
     let (start, facing, goal) = if flank {
         (Vec2::new(-70.0, 0.0), 0.0, Vec2::new(70.0, 0.0))
     } else {
@@ -287,8 +300,10 @@ fn cav_closest_approach_to_phalanx(flank: bool) -> f32 {
     sim.set_pace(cav, Pace::Run);
     sim.set_attack_move_order(cav, goal);
 
-    let pid: Vec<usize> = (sim.units[def].start..sim.units[def].start + sim.units[def].count).collect();
-    let cid: Vec<usize> = (sim.units[cav].start..sim.units[cav].start + sim.units[cav].count).collect();
+    let pid: Vec<usize> =
+        (sim.units[def].start..sim.units[def].start + sim.units[def].count).collect();
+    let cid: Vec<usize> =
+        (sim.units[cav].start..sim.units[cav].start + sim.units[cav].count).collect();
     let mut min_gap = f32::INFINITY;
     for _ in 0..(25.0 / DT) as usize {
         sim.tick();
@@ -300,7 +315,8 @@ fn cav_closest_approach_to_phalanx(flank: bool) -> f32 {
                 if sim.alive[p] == 0 {
                     continue;
                 }
-                let g = (sim.soldier_pos(c) - sim.soldier_pos(p)).len() - sim.radius[c] - sim.radius[p];
+                let g =
+                    (sim.soldier_pos(c) - sim.soldier_pos(p)).len() - sim.radius[c] - sim.radius[p];
                 min_gap = min_gap.min(g);
             }
         }
@@ -337,11 +353,17 @@ fn flank_wheel_charge(wheel: bool) -> (f32, bool, f32) {
         SEED,
     );
     // Wide immortal heavy line, facing +y (front north, flanks east/west).
-    let block = sim.spawn_class_with_files(Vec2::ZERO, FRAC_PI_2, 160, 20, UnitClassId::HeavySword, 1);
+    let block =
+        sim.spawn_class_with_files(Vec2::ZERO, FRAC_PI_2, 160, 20, UnitClassId::HeavySword, 1);
     let mut bh = class_stats(UnitClassId::HeavySword);
     bh.weapons = sim::class::one(Weapon {
-        reach: 1.1, min_range: 0.0, zones: sim::strike::front(0.7),
-        attack_interval: 1.79, damage: 0.0, cleave: false, impales: false,
+        reach: 1.1,
+        min_range: 0.0,
+        zones: sim::strike::front(0.7),
+        attack_interval: 1.79,
+        damage: 0.0,
+        cleave: false,
+        impales: false,
         kind: sim::WeaponKind::Standard,
     });
     sim.units[block].stats = bh;
@@ -360,8 +382,13 @@ fn flank_wheel_charge(wheel: bool) -> (f32, bool, f32) {
     sim.set_files(cav, 24); // 4-deep shock front
     let mut ch = class_stats(UnitClassId::ShockCavalry);
     ch.weapons = sim::class::one(Weapon {
-        reach: 2.4, min_range: 0.0, zones: sim::strike::front(0.3),
-        attack_interval: 2.2, damage: 0.0, cleave: false, impales: false,
+        reach: 2.4,
+        min_range: 0.0,
+        zones: sim::strike::front(0.3),
+        attack_interval: 2.2,
+        damage: 0.0,
+        cleave: false,
+        impales: false,
         kind: sim::WeaponKind::Standard,
     });
     sim.units[cav].stats = ch;
@@ -375,15 +402,23 @@ fn flank_wheel_charge(wheel: bool) -> (f32, bool, f32) {
     // contact rather than giving the latch up.
     sim.set_attack_order(cav, block);
 
-    let bid: Vec<usize> = (sim.units[block].start..sim.units[block].start + sim.units[block].count).collect();
-    let cid: Vec<usize> = (sim.units[cav].start..sim.units[cav].start + sim.units[cav].count).collect();
+    let bid: Vec<usize> =
+        (sim.units[block].start..sim.units[block].start + sim.units[block].count).collect();
+    let cid: Vec<usize> =
+        (sim.units[cav].start..sim.units[cav].start + sim.units[cav].count).collect();
     let closest_now = |sim: &Sim| -> f32 {
         let mut g = f32::INFINITY;
         for &c in &cid {
-            if sim.alive[c] == 0 { continue; }
+            if sim.alive[c] == 0 {
+                continue;
+            }
             for &b in &bid {
-                if sim.alive[b] == 0 { continue; }
-                g = g.min((sim.soldier_pos(c) - sim.soldier_pos(b)).len() - sim.radius[c] - sim.radius[b]);
+                if sim.alive[b] == 0 {
+                    continue;
+                }
+                g = g.min(
+                    (sim.soldier_pos(c) - sim.soldier_pos(b)).len() - sim.radius[c] - sim.radius[b],
+                );
             }
         }
         g

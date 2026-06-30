@@ -192,7 +192,8 @@ pub fn city_monthly_income(pop: u32, econ_dev: f32, throttle: f32, loyalty: f32)
     let econ_mult = 0.5 + econ_dev.clamp(0.0, 1.0); // 0.5 (raw) … 1.5 (developed)
     let throttle_yield = 1.0 + 0.5 * throttle.clamp(0.0, 1.0); // Exploit earns more now
     let drag = output_loyalty_mult(loyalty); // unrest skims the take
-    let g = pop as f32 * INCOME_PER_POP_MILLIGOLD as f32 / 1000.0 * econ_mult * throttle_yield * drag;
+    let g =
+        pop as f32 * INCOME_PER_POP_MILLIGOLD as f32 / 1000.0 * econ_mult * throttle_yield * drag;
     g.max(0.0) as u32
 }
 /// Low loyalty drags economic output and population growth — never to zero, so a

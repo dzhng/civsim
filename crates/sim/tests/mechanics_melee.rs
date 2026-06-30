@@ -600,7 +600,13 @@ fn phalanx_and_heavy_clash_without_swirling() {
     let mut tun = Tunables::default();
     tun.micro_rough = 0.0;
     let mut sim = Sim::new(tun, 4242);
-    let bot = sim.spawn_class(Vec2::new(0.0, -13.0), FRAC_PI_2, N, UnitClassId::HeavyPhalanx, 0);
+    let bot = sim.spawn_class(
+        Vec2::new(0.0, -13.0),
+        FRAC_PI_2,
+        N,
+        UnitClassId::HeavyPhalanx,
+        0,
+    );
     let top = sim.spawn_class(
         Vec2::new(0.0, 13.0),
         -FRAC_PI_2,
@@ -721,7 +727,13 @@ fn holding_phalanx_backline_does_not_lateral_buzz() {
         UnitClassId::HeavySword,
         0,
     );
-    let phalanx = sim.spawn_class(Vec2::new(0.0, 13.0), -FRAC_PI_2, N, UnitClassId::HeavyPhalanx, 1);
+    let phalanx = sim.spawn_class(
+        Vec2::new(0.0, 13.0),
+        -FRAC_PI_2,
+        N,
+        UnitClassId::HeavyPhalanx,
+        1,
+    );
     sim.set_pace(heavy, Pace::Run);
     sim.set_attack_order(heavy, phalanx);
 
@@ -863,8 +875,12 @@ fn a_wide_line_wraps_a_narrow_block() {
         sim.tick();
     }
     let bu = &sim.units[block];
-    let (mut min_x, mut max_x, mut min_y, mut max_y) =
-        (f32::INFINITY, f32::NEG_INFINITY, f32::INFINITY, f32::NEG_INFINITY);
+    let (mut min_x, mut max_x, mut min_y, mut max_y) = (
+        f32::INFINITY,
+        f32::NEG_INFINITY,
+        f32::INFINITY,
+        f32::NEG_INFINITY,
+    );
     for i in bu.start..bu.start + bu.count {
         if sim.alive[i] == 0 {
             continue;

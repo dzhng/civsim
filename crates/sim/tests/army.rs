@@ -26,9 +26,27 @@ fn fight(mult: usize, seed: u64) -> (Option<u32>, f32, usize) {
     let mut sim = Sim::new(Tunables::default(), seed);
     let n = |base: usize| base * mult;
     let lay = |sim: &mut Sim, team: u32, y: f32, facing: f32| {
-        sim.spawn_class(Vec2::new(-60.0, y), facing, n(30), UnitClassId::HeavySword, team);
-        sim.spawn_class(Vec2::new(0.0, y), facing, n(34), UnitClassId::HeavyPhalanx, team);
-        sim.spawn_class(Vec2::new(60.0, y), facing, n(30), UnitClassId::LightSpear, team);
+        sim.spawn_class(
+            Vec2::new(-60.0, y),
+            facing,
+            n(30),
+            UnitClassId::HeavySword,
+            team,
+        );
+        sim.spawn_class(
+            Vec2::new(0.0, y),
+            facing,
+            n(34),
+            UnitClassId::HeavyPhalanx,
+            team,
+        );
+        sim.spawn_class(
+            Vec2::new(60.0, y),
+            facing,
+            n(30),
+            UnitClassId::LightSpear,
+            team,
+        );
         sim.spawn_class(
             Vec2::new(0.0, y - facing.sin() * 30.0),
             facing,
@@ -36,12 +54,24 @@ fn fight(mult: usize, seed: u64) -> (Option<u32>, f32, usize) {
             UnitClassId::Archers,
             team,
         );
-        sim.spawn_class(Vec2::new(120.0, y), facing, n(10), UnitClassId::ShockCavalry, team);
+        sim.spawn_class(
+            Vec2::new(120.0, y),
+            facing,
+            n(10),
+            UnitClassId::ShockCavalry,
+            team,
+        );
     };
     lay(&mut sim, 0, -80.0, FRAC_PI_2);
     lay(&mut sim, 1, 80.0, -FRAC_PI_2);
     // Slight asymmetry so somebody wins (team 0 gets an extra block).
-    sim.spawn_class(Vec2::new(-120.0, -80.0), FRAC_PI_2, n(20), UnitClassId::HeavySword, 0);
+    sim.spawn_class(
+        Vec2::new(-120.0, -80.0),
+        FRAC_PI_2,
+        n(20),
+        UnitClassId::HeavySword,
+        0,
+    );
 
     let mut victor = None;
     for _ in 0..(900.0 / DT) as usize {
@@ -117,7 +147,12 @@ fn full_battle_spawns_and_runs() {
     let mut sim = Sim::new(Tunables::default(), 11);
     setup_battle(&mut sim, MapId::RiverAndCrags);
     assert_eq!(sim.units.len(), 40, "20 units per side");
-    let per_side: usize = sim.units.iter().filter(|u| u.team == 0).map(|u| u.count).sum();
+    let per_side: usize = sim
+        .units
+        .iter()
+        .filter(|u| u.team == 0)
+        .map(|u| u.count)
+        .sum();
     assert!(
         (6_000..=20_000).contains(&per_side),
         "a full battle must spawn a large army per side, got {per_side}"

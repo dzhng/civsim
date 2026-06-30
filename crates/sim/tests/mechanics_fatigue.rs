@@ -105,7 +105,10 @@ fn fatigue_saps_melee_power() {
     let seeds = [3u64, 11, 37, 73, 101, 146, 211, 449];
     let fresh: usize = seeds.iter().map(|&s| kills_in_40s(1.0, s)).sum();
     let spent: usize = seeds.iter().map(|&s| kills_in_40s(0.15, s)).sum();
-    eprintln!("kills over {} seeds: fresh attacker {fresh}  spent attacker {spent}", seeds.len());
+    eprintln!(
+        "kills over {} seeds: fresh attacker {fresh}  spent attacker {spent}",
+        seeds.len()
+    );
     assert!(
         spent * 4 < fresh * 3,
         "a spent attacker must kill clearly fewer (< 3/4 of fresh) — fatigue is a real drain: fresh {fresh} vs spent {spent}"

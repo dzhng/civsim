@@ -282,7 +282,13 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
         move_drain_mult: 1.0,
         turn_mult: 1.0,
         // Generic one-handed sword; every class below defines its own array.
-        weapons: one(Weapon { reach: 1.1, zones: crate::strike::front(0.7), attack_interval: 4.1, damage: 0.5, ..MELEE }),
+        weapons: one(Weapon {
+            reach: 1.1,
+            zones: crate::strike::front(0.7),
+            attack_interval: 4.1,
+            damage: 0.5,
+            ..MELEE
+        }),
     };
     match id {
         HeavySword => UnitClass {
@@ -302,7 +308,13 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             // an elite that is tanky AND a little more lethal — enough to take the
             // edge off the heavy-vs-heavy slog, but a heavy mirror is STILL the
             // longest grind of the roster. Per-class weapon; no other sword affected.
-            weapons: one(Weapon { reach: 1.1, zones: crate::strike::front(0.7), attack_interval: 4.1, damage: 0.6, ..MELEE }),
+            weapons: one(Weapon {
+                reach: 1.1,
+                zones: crate::strike::front(0.7),
+                attack_interval: 4.1,
+                damage: 0.6,
+                ..MELEE
+            }),
             ..foot
         },
         LightSpear => UnitClass {
@@ -327,7 +339,13 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             // for the LIGHT tier; everything else in the ladder is damage and body.
             // (NB: the impale has a CLIFF near 1.65-1.7 — the matchup flips from cav
             // 88% to spear 75% across that step; keep this value below it.)
-            weapons: one(Weapon { reach: 1.5, zones: crate::strike::front(0.3), attack_interval: 4.4, damage: 0.2375, ..SPEAR }),
+            weapons: one(Weapon {
+                reach: 1.5,
+                zones: crate::strike::front(0.3),
+                attack_interval: 4.4,
+                damage: 0.2375,
+                ..SPEAR
+            }),
             ..foot
         },
         LongSwords => UnitClass {
@@ -348,7 +366,14 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             // the WIDTH, not the punch, is what shreds massed light infantry. With no
             // shield and modest dodge it bleeds against armor (HSD), shock (CAV) and
             // reach (pikes) — a budget anti-light-infantry blender, not a line-breaker.
-            weapons: one(Weapon { reach: 1.6, zones: crate::strike::front(1.2), attack_interval: 5.1, damage: 0.4, cleave: true, ..MELEE }),
+            weapons: one(Weapon {
+                reach: 1.6,
+                zones: crate::strike::front(1.2),
+                attack_interval: 5.1,
+                damage: 0.4,
+                cleave: true,
+                ..MELEE
+            }),
             ..foot
         },
         HeavyPhalanx => UnitClass {
@@ -360,7 +385,7 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             spacing: Vec2::new(0.8, 1.0),
             default_depth: 10,
             health: 1.86, // rescaled into the [1,2] band (was 2.2); the wall is bodies AND bronze
-            block: 0.45, // a big shield, but NOT more than the heavy sword (0.5 is the cap): the
+            block: 0.45,  // a big shield, but NOT more than the heavy sword (0.5 is the cap): the
             // phalanx's frontal edge is its PIKE WALL, not the firmest shield (design rule: the
             // heavy infantry holds the highest block).
             evade: 0.08,
@@ -370,8 +395,21 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             // The sarissa wall (frontal-only, dead zone inside the shafts; cadence×hurl
             // stops a charge, modest per-poke), with a side-sword for off-axis foes.
             weapons: two(
-                Weapon { reach: 3.2, min_range: 1.1, zones: crate::strike::front(0.04), attack_interval: 3.8, damage: 0.4, ..HEDGE },
-                Weapon { reach: 1.2, zones: crate::strike::front(0.6), attack_interval: 4.1, damage: 0.35, ..MELEE },
+                Weapon {
+                    reach: 3.2,
+                    min_range: 1.1,
+                    zones: crate::strike::front(0.04),
+                    attack_interval: 3.8,
+                    damage: 0.4,
+                    ..HEDGE
+                },
+                Weapon {
+                    reach: 1.2,
+                    zones: crate::strike::front(0.6),
+                    attack_interval: 4.1,
+                    damage: 0.35,
+                    ..MELEE
+                },
             ),
             ..foot
         },
@@ -388,7 +426,13 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             block: 0.0, // no shield: a dodge, not a wall — same from any face
             evade: 0.28,
             charge: false,
-            weapons: one(Weapon { reach: 1.1, zones: crate::strike::front(0.7), attack_interval: 4.1, damage: 0.5, ..MELEE }),
+            weapons: one(Weapon {
+                reach: 1.1,
+                zones: crate::strike::front(0.7),
+                attack_interval: 4.1,
+                damage: 0.5,
+                ..MELEE
+            }),
             ..foot
         },
         Skirmishers => UnitClass {
@@ -407,7 +451,13 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             charge: false,
             // A short blade — reach floored at 1.2 so foot can still reach UP to a
             // pressed-in rider, not just chip the horse.
-            weapons: one(Weapon { reach: 1.2, zones: crate::strike::front(0.5), attack_interval: 3.8, damage: 0.275, ..MELEE }),
+            weapons: one(Weapon {
+                reach: 1.2,
+                zones: crate::strike::front(0.5),
+                attack_interval: 3.8,
+                damage: 0.275,
+                ..MELEE
+            }),
             ..foot
         },
         ShockCavalry => UnitClass {
@@ -458,8 +508,20 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             // rider, so foot waste blows on the mount) but loses to heavy. Its real
             // edge is the CHARGE (lance + impact), not the standing grind.
             weapons: two(
-                Weapon { reach: 2.4, zones: crate::strike::front(0.2), attack_interval: 5.0, damage: 1.6, ..CHARGE },
-                Weapon { reach: 1.5, zones: crate::strike::flanks(1.55, 0.85), attack_interval: 4.2, damage: 0.5, ..MELEE },
+                Weapon {
+                    reach: 2.4,
+                    zones: crate::strike::front(0.2),
+                    attack_interval: 5.0,
+                    damage: 1.6,
+                    ..CHARGE
+                },
+                Weapon {
+                    reach: 1.5,
+                    zones: crate::strike::flanks(1.55, 0.85),
+                    attack_interval: 4.2,
+                    damage: 0.5,
+                    ..MELEE
+                },
             ),
             ..foot
         },
@@ -493,7 +555,13 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             charge: false,
             turn_mult: 0.9, // lighter horse, a touch nimbler than the shock arm
             // The cavalry sabre (reach 1.5 to clear the horse); no lance — light horse kites.
-            weapons: one(Weapon { reach: 1.5, zones: crate::strike::flanks(1.55, 0.85), attack_interval: 4.2, damage: 0.5, ..MELEE }),
+            weapons: one(Weapon {
+                reach: 1.5,
+                zones: crate::strike::flanks(1.55, 0.85),
+                attack_interval: 4.2,
+                damage: 0.5,
+                ..MELEE
+            }),
             ..foot
         },
         ArtilleryCrew => UnitClass {
@@ -507,7 +575,13 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             block: 0.0, // no shield wall; same from any face
             evade: 0.18,
             charge: false,
-            weapons: one(Weapon { reach: 1.2, zones: crate::strike::front(0.5), attack_interval: 3.8, damage: 0.275, ..MELEE }),
+            weapons: one(Weapon {
+                reach: 1.2,
+                zones: crate::strike::front(0.5),
+                attack_interval: 3.8,
+                damage: 0.275,
+                ..MELEE
+            }),
             ..foot
         },
         Peasant => UnitClass {
@@ -525,7 +599,13 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             training: 0.3,
             bravery: 0.6,     // a levy's nerve is thin — breaks early
             morale_aura: 0.7, // a wavering mob steadies no one
-            weapons: one(Weapon { reach: 1.2, zones: crate::strike::front(0.5), attack_interval: 3.8, damage: 0.275, ..MELEE }),
+            weapons: one(Weapon {
+                reach: 1.2,
+                zones: crate::strike::front(0.5),
+                attack_interval: 3.8,
+                damage: 0.275,
+                ..MELEE
+            }),
             ..foot
         },
         // The cheap sword line: light infantry's body, a sword instead of a
@@ -543,7 +623,13 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             block: 0.3, // a light shield, a hair less than the spear line's
             evade: 0.18,
             training: 0.55,
-            weapons: one(Weapon { reach: 1.1, zones: crate::strike::front(0.7), attack_interval: 4.1, damage: 0.5, ..MELEE }),
+            weapons: one(Weapon {
+                reach: 1.1,
+                zones: crate::strike::front(0.7),
+                attack_interval: 4.1,
+                damage: 0.5,
+                ..MELEE
+            }),
             ..foot
         },
         MediumInfantry => UnitClass {
@@ -559,7 +645,13 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             block: 0.4,
             evade: 0.13,
             training: 0.65,
-            weapons: one(Weapon { reach: 1.1, zones: crate::strike::front(0.7), attack_interval: 4.1, damage: 0.5, ..MELEE }),
+            weapons: one(Weapon {
+                reach: 1.1,
+                zones: crate::strike::front(0.7),
+                attack_interval: 4.1,
+                damage: 0.5,
+                ..MELEE
+            }),
             ..foot
         },
         // The armoured spear wall: heavy infantry's body and shield, a spear
@@ -583,7 +675,13 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             // (LSP 0.2375 < MSP 0.27 < HSP 0.31) on the heaviest body and brace, so the
             // heavy spear out-grinds the lighter spears and best blunts a charge. Its
             // work rate still sits below any sword (sword beats spear).
-            weapons: one(Weapon { reach: 1.85, zones: crate::strike::front(0.3), attack_interval: 4.4, damage: 0.31, ..SPEAR }),
+            weapons: one(Weapon {
+                reach: 1.85,
+                zones: crate::strike::front(0.3),
+                attack_interval: 4.4,
+                damage: 0.31,
+                ..SPEAR
+            }),
             ..foot
         },
         MediumSpear => UnitClass {
@@ -605,7 +703,13 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             // frontal charge at any reach 1.6-1.85 (its damage/brace/body do that, not
             // the point length). Tier order otherwise is the punch (LSP 0.2375 < MSP
             // 0.27 < HSP 0.31) and body; every value stays below a sword's.
-            weapons: one(Weapon { reach: 1.7, zones: crate::strike::front(0.3), attack_interval: 4.4, damage: 0.27, ..SPEAR }),
+            weapons: one(Weapon {
+                reach: 1.7,
+                zones: crate::strike::front(0.3),
+                attack_interval: 4.4,
+                damage: 0.27,
+                ..SPEAR
+            }),
             ..foot
         },
         // The workhorse pike: a shorter sarissa than the elite HeavyPhalanx. It
@@ -634,8 +738,21 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             // side-sword for off-axis foes — the same two-weapon doctrine as the
             // heavy phalanx, scaled down: less reach (2.6 vs 3.2), less per-poke.
             weapons: two(
-                Weapon { reach: 2.6, min_range: 1.0, zones: crate::strike::front(0.04), attack_interval: 3.9, damage: 0.35, ..HEDGE },
-                Weapon { reach: 1.2, zones: crate::strike::front(0.6), attack_interval: 4.1, damage: 0.3, ..MELEE },
+                Weapon {
+                    reach: 2.6,
+                    min_range: 1.0,
+                    zones: crate::strike::front(0.04),
+                    attack_interval: 3.9,
+                    damage: 0.35,
+                    ..HEDGE
+                },
+                Weapon {
+                    reach: 1.2,
+                    zones: crate::strike::front(0.6),
+                    attack_interval: 4.1,
+                    damage: 0.3,
+                    ..MELEE
+                },
             ),
             ..foot
         },

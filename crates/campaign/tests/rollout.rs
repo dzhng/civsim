@@ -100,5 +100,8 @@ fn forward_does_not_touch_the_live_state() {
     campaign::rollout::forward(&c.map, &mut sb, 3000);
     let after = serde_json::to_string(&c.state).unwrap();
 
-    assert_eq!(before, after, "rolling a clone forward must not mutate the live game");
+    assert_eq!(
+        before, after,
+        "rolling a clone forward must not mutate the live game"
+    );
 }

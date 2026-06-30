@@ -221,7 +221,11 @@ fn roman_names(class: UnitClassId) -> Option<[&'static str; 3]> {
             "Eagle Guard Spearmen",
         ],
         MediumSpear => ["Triarii", "Allied Spear Cohorts", "Campanian Spearmen"],
-        MediumPhalanx => ["Italiote Hoplites", "Allied Phalangites", "Tarentine Phalanx"],
+        MediumPhalanx => [
+            "Italiote Hoplites",
+            "Allied Phalangites",
+            "Tarentine Phalanx",
+        ],
     })
 }
 
@@ -286,7 +290,11 @@ fn carthaginian_names(class: UnitClassId) -> Option<[&'static str; 3]> {
             "Punic Citizen Spearmen",
             "Sicilian Spear Auxilia",
         ],
-        MediumPhalanx => ["Libyan Pikemen", "Punic Levy Phalanx", "Sicilian Phalangites"],
+        MediumPhalanx => [
+            "Libyan Pikemen",
+            "Punic Levy Phalanx",
+            "Sicilian Phalangites",
+        ],
     })
 }
 
@@ -339,7 +347,11 @@ fn macedonian_names(class: UnitClassId) -> Option<[&'static str; 3]> {
             "Peltast Spear Line",
             "Agrianian Spearmen",
         ],
-        MediumPhalanx => ["Conscript Phalangites", "Bronze Shield Levy", "Garrison Sarissas"],
+        MediumPhalanx => [
+            "Conscript Phalangites",
+            "Bronze Shield Levy",
+            "Garrison Sarissas",
+        ],
     })
 }
 
@@ -384,7 +396,11 @@ fn arverni_names(class: UnitClassId) -> Option<[&'static str; 3]> {
             "Client Spear Warband",
             "Hill Spear Retinue",
         ],
-        MediumPhalanx => ["Mercenary Pikemen", "Massed Spear Phalanx", "Greek Hireling Levy"],
+        MediumPhalanx => [
+            "Mercenary Pikemen",
+            "Massed Spear Phalanx",
+            "Greek Hireling Levy",
+        ],
     })
 }
 
@@ -437,7 +453,11 @@ fn egyptian_names(class: UnitClassId) -> Option<[&'static str; 3]> {
             "Greek Settler Spears",
             "Nile Spear Guard",
         ],
-        MediumPhalanx => ["Machimoi Phalangites", "Native Pike Levy", "Settler Phalanx Line"],
+        MediumPhalanx => [
+            "Machimoi Phalangites",
+            "Native Pike Levy",
+            "Settler Phalanx Line",
+        ],
     })
 }
 

@@ -31,6 +31,19 @@ realizes it over time, rate-limited by **cohesion**. Cohesion is *measured*
 from physical soldier state (slot error vs. the intended formation), never
 stored as a freestanding scalar — so it can't drift from what's on screen.
 
+## Formatting
+
+Rust code is formatted with the standard workspace formatter from the repo root:
+
+```sh
+cargo fmt --all
+```
+
+Use `cargo fmt --all -- --check` when you only want to verify formatting.
+Keep broad formatting churn in its own commit, separate from mechanics,
+renderer, balance, or campaign behavior changes, so reviews can focus on the
+actual logic.
+
 ## Formulas read the physical world — a hard rule
 
 Every formula in the sim takes its inputs in physical units: **men, mass,

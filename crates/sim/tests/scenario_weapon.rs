@@ -27,7 +27,13 @@ fn engaged_missile_troops_drop_their_bows_on_their_own() {
     // automatically from the engagement, not a player toggle.
     let mut sim = Sim::new(no_morale(), 808);
     let arch = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 200, UnitClassId::Archers, 0);
-    let foe = sim.spawn_class(Vec2::new(0.0, 18.0), -FRAC_PI_2, 200, UnitClassId::HeavySword, 1);
+    let foe = sim.spawn_class(
+        Vec2::new(0.0, 18.0),
+        -FRAC_PI_2,
+        200,
+        UnitClassId::HeavySword,
+        1,
+    );
     sim.set_fire_at_will(arch, true);
     sim.set_attack_order(foe, arch); // the heavy line charges in
 
@@ -36,7 +42,10 @@ fn engaged_missile_troops_drop_their_bows_on_their_own() {
         sim.tick();
     }
     let fired_at_range = 200 * 30 - sim.units[arch].ammo;
-    assert!(fired_at_range > 50, "bows must volley at range, fired {fired_at_range}");
+    assert!(
+        fired_at_range > 50,
+        "bows must volley at range, fired {fired_at_range}"
+    );
 
     // Let the melee close, then measure: with the line engaged the volleys stop.
     for _ in 0..(9.0 / DT) as usize {

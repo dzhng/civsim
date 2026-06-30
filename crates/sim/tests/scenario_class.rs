@@ -130,7 +130,6 @@ fn wide_line_refaces_slower_than_deep_block() {
     );
 }
 
-
 #[test]
 fn dense_infantry_blunts_a_cavalry_charge_loose_gets_punched_through() {
     // Same men, same count, same frontage discipline — ONLY the spacing

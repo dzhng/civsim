@@ -40,10 +40,14 @@ pub enum Order {
 pub fn apply(map: &WorldMap, st: &mut CampaignState, f: FactionId, order: &Order) -> bool {
     match *order {
         Order::Move { army, dest } => crate::sim::try_move(map, st, army, dest, true),
-        Order::Recruit { node, class, count } => crate::economy::recruit(map, st, node, class, count),
-        Order::SetPolicy { node, focus, throttle } => {
-            crate::economy::set_city_policy(st, node, f, focus, throttle)
+        Order::Recruit { node, class, count } => {
+            crate::economy::recruit(map, st, node, class, count)
         }
+        Order::SetPolicy {
+            node,
+            focus,
+            throttle,
+        } => crate::economy::set_city_policy(st, node, f, focus, throttle),
         Order::Sack { army, on } => set_sack_intent(st, f, army, on),
         Order::Merge { src, dst } => crate::economy::merge(map, st, src, dst),
     }

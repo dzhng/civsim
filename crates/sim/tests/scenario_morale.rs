@@ -995,7 +995,13 @@ fn a_hopeless_wall_of_horse_routs_the_token_line_before_contact() {
 fn holding_line_meets_a_charge(class: UnitClassId) -> (bool, usize) {
     let mut sim = Sim::new(Tunables::default(), SEED);
     let line = sim.spawn_class(Vec2::new(0.0, -40.0), FRAC_PI_2, 200, class, 0);
-    let cav = sim.spawn_class(Vec2::new(0.0, 60.0), -FRAC_PI_2, 120, UnitClassId::ShockCavalry, 1);
+    let cav = sim.spawn_class(
+        Vec2::new(0.0, 60.0),
+        -FRAC_PI_2,
+        120,
+        UnitClassId::ShockCavalry,
+        1,
+    );
     sim.set_pace(cav, sim::Pace::Run);
     sim.set_attack_order(cav, line);
     let cav0 = sim.units[cav].alive_count;
@@ -1043,7 +1049,10 @@ fn a_charge_pre_routs_a_levy_not_a_formed_line() {
     println!(
         "peasant: pre-rout={levy_pre} kills={levy_kills} | heavy wall: pre-rout={wall_pre} kills={wall_kills} | light spear: pre-rout={lsp_pre} kills={lsp_kills}"
     );
-    assert!(levy_pre, "a peasant levy must break before a charge lands (it did not)");
+    assert!(
+        levy_pre,
+        "a peasant levy must break before a charge lands (it did not)"
+    );
     assert!(
         !wall_pre,
         "a drilled shield wall must hold its nerve to contact (it pre-routed)"

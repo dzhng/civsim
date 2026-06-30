@@ -63,8 +63,17 @@ pub fn candidates(
 
     // "focus": concentrate everyone on the diplomatic objective's soft point.
     if let Some(fc) = focus_city(map, st, f, &attackers) {
-        let orders = attackers.iter().map(|&(a, ..)| (a, Loc::Node(fc))).collect();
-        push_unique(&mut plans, Plan { orders, label: "focus" });
+        let orders = attackers
+            .iter()
+            .map(|&(a, ..)| (a, Loc::Node(fc)))
+            .collect();
+        push_unique(
+            &mut plans,
+            Plan {
+                orders,
+                label: "focus",
+            },
+        );
     }
 
     // "rival": a grudge candidate — mass on the nemesis's weakest reachable
@@ -74,8 +83,17 @@ pub fn candidates(
         .rival
         .and_then(|r| weakest_reachable_city(map, st, r, &attackers))
     {
-        let orders = attackers.iter().map(|&(a, ..)| (a, Loc::Node(rc))).collect();
-        push_unique(&mut plans, Plan { orders, label: "rival" });
+        let orders = attackers
+            .iter()
+            .map(|&(a, ..)| (a, Loc::Node(rc)))
+            .collect();
+        push_unique(
+            &mut plans,
+            Plan {
+                orders,
+                label: "rival",
+            },
+        );
     }
 
     // Per-attacker nearest target, split into "any" and "beatable" variants.

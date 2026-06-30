@@ -106,8 +106,14 @@ fn casualty_fractions_stay_in_band() {
         let l = r.units.iter().find(|u| u.team == 1).unwrap();
         let wf = w.survivors as f64 / 100.0;
         let lf = l.survivors as f64 / loser as f64;
-        assert!((0.5..=1.0).contains(&wf), "winner survivors {wf} out of band");
-        assert!((0.0..=0.45).contains(&lf), "loser survivors {lf} out of band");
+        assert!(
+            (0.5..=1.0).contains(&wf),
+            "winner survivors {wf} out of band"
+        );
+        assert!(
+            (0.0..=0.45).contains(&lf),
+            "loser survivors {lf} out of band"
+        );
     }
 }
 

@@ -84,8 +84,7 @@ pub fn score(map: &WorldMap, st: &CampaignState, f: FactionId, w: &Weights) -> f
 
     let threat = threat_to_cities(map, st, f);
 
-    w.territory * cities + w.loyalty * loyal + w.army * army + w.income * income
-        - w.threat * threat
+    w.territory * cities + w.loyalty * loyal + w.army * army + w.income * income - w.threat * threat
 }
 
 /// Total visible hostile strength within `AI_THREAT_RADIUS` road tiles of any

@@ -31,9 +31,23 @@ fn cav_charge_vs_foot(
         tun.morale_enabled = false; // measure killing, not rout
         let mut sim = Sim::new(tun, s);
         let cu = sim.spawn_class_stats_with_files(
-            Vec2::new(0.0, -42.0), FRAC_PI_2, 120, 24, UnitClassId::ShockCavalry, cav, 0);
+            Vec2::new(0.0, -42.0),
+            FRAC_PI_2,
+            120,
+            24,
+            UnitClassId::ShockCavalry,
+            cav,
+            0,
+        );
         let fu = sim.spawn_class_stats_with_files(
-            Vec2::new(0.0, 42.0), -FRAC_PI_2, 120, 30, foot_class, foot, 1);
+            Vec2::new(0.0, 42.0),
+            -FRAC_PI_2,
+            120,
+            30,
+            foot_class,
+            foot,
+            1,
+        );
         sim.set_attack_order(cu, fu);
         sim.set_attack_order(fu, cu);
         for _ in 0..(secs / DT) as usize {
@@ -93,14 +107,23 @@ fn sweep_spearman_grinds_cav() {
     let cav = ref_shock_cav();
     let grind = |foot: sim::UnitClass, class| cav_charge_vs_foot(foot, class, cav, 30.0).2;
     eprintln!("DIAL = point damage. 30s grind. CAV ground down (matched damage):");
-    eprintln!("{:>5} | {:>10} | {:>14} | {:>14}", "dmg", "SWORD 1.1", "spear 2.2 plain", "spear 2.2 BRACED");
+    eprintln!(
+        "{:>5} | {:>10} | {:>14} | {:>14}",
+        "dmg", "SWORD 1.1", "spear 2.2 plain", "spear 2.2 BRACED"
+    );
     for d in [0.3f32, 0.5, 0.7, 0.9, 1.2] {
-        let sword = grind(with_primary(ref_melee(false), |w| w.damage = d), UnitClassId::Peasant);
+        let sword = grind(
+            with_primary(ref_melee(false), |w| w.damage = d),
+            UnitClassId::Peasant,
+        );
         let plain = grind(ref_spear(2.2, d, false), UnitClassId::LightSpear);
         let braced = grind(ref_spear(2.2, d, true), UnitClassId::LightSpear);
         eprintln!("{d:>5} | {sword:>10.0} | {plain:>14.0} | {braced:>14.0}");
     }
-    eprintln!("(ref: real phalanx r3.2 braced grinds {:.0})", grind(ref_pike(), UnitClassId::HeavyPhalanx));
+    eprintln!(
+        "(ref: real phalanx r3.2 braced grinds {:.0})",
+        grind(ref_pike(), UnitClassId::HeavyPhalanx)
+    );
 }
 
 /// A fake MEDIUM SWORD foot — the clean foil for the cav grind (a real medium
@@ -142,16 +165,34 @@ fn cav_walkin_exchange(foe: sim::UnitClass) -> f32 {
         let mut cav = ref_shock_cav();
         cav.charge = false; // WALK in — the cav's edge is the charge, not the grind
         let cu = sim.spawn_class_stats_with_files(
-            Vec2::new(0.0, -30.0), FRAC_PI_2, n0 as usize, 24, UnitClassId::ShockCavalry, cav, 0);
+            Vec2::new(0.0, -30.0),
+            FRAC_PI_2,
+            n0 as usize,
+            24,
+            UnitClassId::ShockCavalry,
+            cav,
+            0,
+        );
         let fu = sim.spawn_class_stats_with_files(
-            Vec2::new(0.0, 30.0), -FRAC_PI_2, n0 as usize, 24, UnitClassId::LightSword, foe, 1);
+            Vec2::new(0.0, 30.0),
+            -FRAC_PI_2,
+            n0 as usize,
+            24,
+            UnitClassId::LightSword,
+            foe,
+            1,
+        );
         sim.set_pace(cu, Pace::Walk);
         sim.set_attack_order(cu, fu);
         sim.set_attack_order(fu, cu);
         for _ in 0..(400.0 / DT) as usize {
             sim.tick();
-            let (cd, id) = (n0 - sim.units[cu].alive_count as i32, n0 - sim.units[fu].alive_count as i32);
-            if cd.max(id) >= 40 || sim.units[cu].alive_count == 0 || sim.units[fu].alive_count == 0 {
+            let (cd, id) = (
+                n0 - sim.units[cu].alive_count as i32,
+                n0 - sim.units[fu].alive_count as i32,
+            );
+            if cd.max(id) >= 40 || sim.units[cu].alive_count == 0 || sim.units[fu].alive_count == 0
+            {
                 break;
             }
         }
@@ -194,9 +235,11 @@ fn a_walked_in_cav_sits_between_medium_and_heavy_foot() {
     // (Morale is OFF here; with morale ON the heavy's edge tells more.)
     assert!(heavy > 0.85, "a walked-in cav must not DOMINATE a heavy sword line — ~tie or worse (exchange {heavy:.2} > 0.85)");
     // Monotone in foe weight: peasants easiest, heavy hardest.
-    assert!(peasant < medium && medium < heavy, "exchange must rise with foe weight: {peasant:.2} < {medium:.2} < {heavy:.2}");
+    assert!(
+        peasant < medium && medium < heavy,
+        "exchange must rise with foe weight: {peasant:.2} < {medium:.2} < {heavy:.2}"
+    );
 }
-
 
 #[test]
 #[ignore = "where does the cav sit vs the REAL foot tiers (walk-in exchange)?"]
@@ -208,8 +251,13 @@ fn probe_cav_vs_real_tiers() {
         ("HeavySword  (2.0 sword blk.5)", UnitClassId::HeavySword),
         ("HeavySpear  (2.0 spear)", UnitClassId::HeavySpear),
     ];
-    eprintln!("CAV walk-in exchange vs REAL foot (cav-deaths per inf-death; <1 cav wins, >1 cav loses):");
+    eprintln!(
+        "CAV walk-in exchange vs REAL foot (cav-deaths per inf-death; <1 cav wins, >1 cav loses):"
+    );
     for (name, id) in cases {
-        eprintln!("  {name:<30} -> {:.2}", cav_walkin_exchange(class_stats(id)));
+        eprintln!(
+            "  {name:<30} -> {:.2}",
+            cav_walkin_exchange(class_stats(id))
+        );
     }
 }

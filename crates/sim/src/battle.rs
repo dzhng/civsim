@@ -115,7 +115,13 @@ fn deploy_army(sim: &mut Sim, base: Vec2, facing: f32, team: u32) {
     deploy_row(sim, &[Skirmishers, Skirmishers], row(45.0), facing, team);
     deploy_row(
         sim,
-        &[HeavySword, HeavyPhalanx, HeavySword, HeavyPhalanx, HeavySword],
+        &[
+            HeavySword,
+            HeavyPhalanx,
+            HeavySword,
+            HeavyPhalanx,
+            HeavySword,
+        ],
         row(0.0),
         facing,
         team,
@@ -441,7 +447,13 @@ pub fn setup_sandbox(sim: &mut Sim, kind: u32) {
         let row = |o: f32, lat: f32| Vec2::new(0.0, y) + f * o + right * lat;
         sim.spawn_class(row(25.0, 30.0), facing, 120, UnitClassId::Skirmishers, team);
         sim.spawn_class(row(0.0, -110.0), facing, 280, UnitClassId::HeavySword, team);
-        sim.spawn_class(row(0.0, -25.0), facing, 280, UnitClassId::HeavyPhalanx, team);
+        sim.spawn_class(
+            row(0.0, -25.0),
+            facing,
+            280,
+            UnitClassId::HeavyPhalanx,
+            team,
+        );
         sim.spawn_class(row(0.0, 55.0), facing, 140, UnitClassId::LongSwords, team);
         sim.spawn_class(row(0.0, 125.0), facing, 220, UnitClassId::LightSpear, team);
         sim.spawn_class(row(-40.0, -30.0), facing, 140, UnitClassId::Archers, team);

@@ -47,7 +47,8 @@ const REF_BLADE: Weapon = Weapon {
     // the old "10 min" figure was a DEEP-block artifact, not a real battle line).
     damage: 0.32,
     cleave: false,
-    impales: false, kind: WeaponKind::Standard,
+    impales: false,
+    kind: WeaponKind::Standard,
 };
 
 fn mean(v: &[f32]) -> f32 {
@@ -74,7 +75,15 @@ fn ref_stats(hp: f32, block: f32, evade: f32) -> UnitClass {
 /// Spawn a fake reference (wide shallow line) at `(0,y)` facing `f`, on `team`.
 fn spawn_ref(sim: &mut Sim, stats: UnitClass, count: usize, y: f32, f: f32, team: u32) -> usize {
     let files = (count / REF_DEPTH).max(4);
-    sim.spawn_class_stats_with_files(Vec2::new(0.0, y), f, count, files, UnitClassId::Peasant, stats, team)
+    sim.spawn_class_stats_with_files(
+        Vec2::new(0.0, y),
+        f,
+        count,
+        files,
+        UnitClassId::Peasant,
+        stats,
+        team,
+    )
 }
 
 /// SURVIVABILITY: seconds for a 60-man victim to lose half its men under a fixed
@@ -84,7 +93,10 @@ fn seconds_to_half(seed: u64, spawn_victim: &dyn Fn(&mut Sim) -> usize) -> f32 {
     let mut sim = Sim::new(no_morale_parade(), seed);
     let victim = spawn_victim(&mut sim);
     let atk = spawn_ref(&mut sim, ref_stats(2.0, 0.0, 0.0), 240, -10.0, FRAC_PI_2, 0);
-    let (s, e) = (sim.units[atk].start, sim.units[atk].start + sim.units[atk].count);
+    let (s, e) = (
+        sim.units[atk].start,
+        sim.units[atk].start + sim.units[atk].count,
+    );
     for k in s..e {
         sim.health[k] = 1.0e9; // immortal: identical, unrelenting incoming for every victim
         sim.mount_health[k] = 1.0e9;
@@ -124,7 +136,12 @@ fn grind_seconds(seed: u64, stats: UnitClass) -> f32 {
 }
 
 fn surv(spawn_victim: &dyn Fn(&mut Sim) -> usize) -> f32 {
-    mean(&SEEDS.iter().map(|&s| seconds_to_half(s, spawn_victim)).collect::<Vec<_>>())
+    mean(
+        &SEEDS
+            .iter()
+            .map(|&s| seconds_to_half(s, spawn_victim))
+            .collect::<Vec<_>>(),
+    )
 }
 
 /// THE LETHALITY ANCHOR. An equal grind of a standard reference line (a typical
@@ -135,7 +152,12 @@ fn surv(spawn_victim: &dyn Fn(&mut Sim) -> usize) -> f32 {
 #[test]
 fn attack_lethality_grinds_a_reference_line_in_about_three_to_four_minutes() {
     let line = ref_stats(1.5, 0.3, 0.1);
-    let t = mean(&SEEDS.iter().map(|&s| grind_seconds(s, line)).collect::<Vec<_>>());
+    let t = mean(
+        &SEEDS
+            .iter()
+            .map(|&s| grind_seconds(s, line))
+            .collect::<Vec<_>>(),
+    );
     eprintln!(
         "REFERENCE GRIND (HP1.5 light-shield line, equal 1v1): {t:.0}s = {:.1} min  [REF_BLADE.damage={}]",
         t / 60.0,
@@ -198,7 +220,19 @@ fn survivability_scales_with_the_reference_stats() {
         };
         // Same wide-shallow width as the references, so the comparison is
         // stat-driven not formation-driven (real default depths vary 6-10).
-        (name, surv(&move |sim| sim.spawn_class_with_files(Vec2::new(0.0, 0.0), -FRAC_PI_2, 60, 60 / REF_DEPTH, c, 1)))
+        (
+            name,
+            surv(&move |sim| {
+                sim.spawn_class_with_files(
+                    Vec2::new(0.0, 0.0),
+                    -FRAC_PI_2,
+                    60,
+                    60 / REF_DEPTH,
+                    c,
+                    1,
+                )
+            }),
+        )
     })
     .collect();
     diag.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap());

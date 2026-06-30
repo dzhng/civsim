@@ -248,7 +248,9 @@ impl Campaign {
                 continue;
             }
             let def = &st.armies[e.defender as usize];
-            let Some(node) = def.garrison_of else { continue }; // garrison defender = a siege
+            let Some(node) = def.garrison_of else {
+                continue;
+            }; // garrison defender = a siege
             if def.faction != st.player_faction {
                 continue; // only the player's own cities raise a notification
             }

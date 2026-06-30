@@ -82,11 +82,23 @@ fn seeded_rivalry_loads_and_survives_a_save() {
       ]
     }"#;
     let c = Campaign::new(map, 7, 0);
-    assert_eq!(rival_of(&c, 0), Some(1), "rome should be seeded with carthage");
-    assert_eq!(rival_of(&c, 1), Some(0), "carthage should be seeded with rome");
+    assert_eq!(
+        rival_of(&c, 0),
+        Some(1),
+        "rome should be seeded with carthage"
+    );
+    assert_eq!(
+        rival_of(&c, 1),
+        Some(0),
+        "carthage should be seeded with rome"
+    );
 
     let reloaded = Campaign::load(map, &c.save()).unwrap();
-    assert_eq!(rival_of(&reloaded, 0), Some(1), "rivalry must survive a save");
+    assert_eq!(
+        rival_of(&reloaded, 0),
+        Some(1),
+        "rivalry must survive a save"
+    );
 }
 
 #[test]
@@ -95,7 +107,11 @@ fn an_attacker_becomes_the_rival() {
     assert_eq!(rival_of(&c, 0), None, "red starts with no grudge");
     besiege(&mut c, 1, 0, 100); // blue's army sits on red's city
     rival::update(&c.map, &mut c.state, 0);
-    assert_eq!(rival_of(&c, 0), Some(1), "the attacker should become the rival");
+    assert_eq!(
+        rival_of(&c, 0),
+        Some(1),
+        "the attacker should become the rival"
+    );
 }
 
 #[test]
@@ -122,12 +138,20 @@ fn hysteresis_holds_against_a_marginal_challenger() {
     besiege(&mut c, 2, 0, 120); // green attacking, only 1.2× blue
 
     rival::update(&c.map, &mut c.state, 0);
-    assert_eq!(rival_of(&c, 0), Some(1), "a marginal challenger shouldn't flip the grudge");
+    assert_eq!(
+        rival_of(&c, 0),
+        Some(1),
+        "a marginal challenger shouldn't flip the grudge"
+    );
 
     // Now green clearly out-powers blue: the grudge switches.
     besiege(&mut c, 2, 0, 200);
     rival::update(&c.map, &mut c.state, 0);
-    assert_eq!(rival_of(&c, 0), Some(2), "a clearly stronger aggressor should win the grudge");
+    assert_eq!(
+        rival_of(&c, 0),
+        Some(2),
+        "a clearly stronger aggressor should win the grudge"
+    );
 }
 
 #[test]
@@ -139,7 +163,11 @@ fn a_lopsided_rivalry_dissolves() {
     c.state.armies[0].roster[0].count = 200;
     c.state.armies[1].roster[0].count = 20;
     rival::update(&c.map, &mut c.state, 0);
-    assert_eq!(rival_of(&c, 0), None, "a giant should stop fixating on a crushed minnow");
+    assert_eq!(
+        rival_of(&c, 0),
+        None,
+        "a giant should stop fixating on a crushed minnow"
+    );
 }
 
 #[test]

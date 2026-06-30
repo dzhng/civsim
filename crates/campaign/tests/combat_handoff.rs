@@ -202,12 +202,17 @@ fn won_assault_occupies_the_city() {
     c.state.armies[0].loc = Loc::Node(1); // red adjacent to C
     c.state.armies[0].roster[0].count = 600;
     c.state.armies[0].roster[0].max = 600;
-    c.state.cities.get_mut(&2).unwrap().garrison.push(RosterEntry {
-        class: contract::UnitClassId::LightSpear,
-        count: 120,
-        max: 120,
-        morale_cap: 1.0,
-    });
+    c.state
+        .cities
+        .get_mut(&2)
+        .unwrap()
+        .garrison
+        .push(RosterEntry {
+            class: contract::UnitClassId::LightSpear,
+            count: 120,
+            max: 120,
+            morale_cap: 1.0,
+        });
     assert!(c.order_move(0, Loc::Node(2)));
     let mut resolved = false;
     for _ in 0..40_000 {
@@ -223,7 +228,11 @@ fn won_assault_occupies_the_city() {
     assert!(resolved, "the assault never came to battle");
     let red = &c.state.armies[0];
     assert!(red.alive(), "red won the assault");
-    assert_eq!(red.loc, Loc::Node(2), "the victor stands in the city it took");
+    assert_eq!(
+        red.loc,
+        Loc::Node(2),
+        "the victor stands in the city it took"
+    );
     assert!(
         matches!(red.stance, Stance::Occupying { city: 2, .. }),
         "the victor occupies its prize, got {:?}",
@@ -251,12 +260,17 @@ fn a_siege_converts_to_a_capture() {
     c.state.armies[0].loc = Loc::Node(1); // strong red army adjacent to C
     c.state.armies[0].roster[0].count = 600;
     c.state.armies[0].roster[0].max = 600;
-    c.state.cities.get_mut(&2).unwrap().garrison.push(RosterEntry {
-        class: contract::UnitClassId::LightSpear,
-        count: 120,
-        max: 120,
-        morale_cap: 1.0,
-    });
+    c.state
+        .cities
+        .get_mut(&2)
+        .unwrap()
+        .garrison
+        .push(RosterEntry {
+            class: contract::UnitClassId::LightSpear,
+            count: 120,
+            max: 120,
+            morale_cap: 1.0,
+        });
     let owner0 = c.state.cities[&2].owner;
     let mut captured = false;
     for _ in 0..40_000 {
@@ -278,7 +292,10 @@ fn a_siege_converts_to_a_capture() {
             break;
         }
     }
-    assert!(captured, "a defended city with no relief must eventually fall");
+    assert!(
+        captured,
+        "a defended city with no relief must eventually fall"
+    );
 }
 
 #[test]

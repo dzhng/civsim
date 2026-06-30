@@ -159,7 +159,13 @@ fn pikes_bite_only_to_the_front() {
     // the attacker walks in and it's the phalanx that pays. No 360° porcupine.
     let trial = |rear: bool| -> (usize, usize) {
         let mut sim = Sim::new(no_morale(), SEED);
-        let ph = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 300, UnitClassId::HeavyPhalanx, 0); // faces +y
+        let ph = sim.spawn_class(
+            Vec2::new(0.0, 0.0),
+            FRAC_PI_2,
+            300,
+            UnitClassId::HeavyPhalanx,
+            0,
+        ); // faces +y
         let y = if rear { -16.0 } else { 16.0 };
         let face = if rear { FRAC_PI_2 } else { -FRAC_PI_2 };
         let atk = sim.spawn_class(Vec2::new(0.0, y), face, 240, UnitClassId::HeavySword, 1);
@@ -342,11 +348,18 @@ fn a_braced_holding_line_absorbs_a_frontal_charge() {
     // DIRECTIONAL brace, a deliberate follow-up; the pike directional stop is
     // already pinned by phalanx_points_stop_horses.)
     let mut sim = Sim::new(no_morale(), SEED);
-    let wall = sim.spawn_class_with_files(Vec2::ZERO, FRAC_PI_2, 200, 20, UnitClassId::HeavySword, 0);
+    let wall =
+        sim.spawn_class_with_files(Vec2::ZERO, FRAC_PI_2, 200, 20, UnitClassId::HeavySword, 0);
     for _ in 0..(2.0 / DT) as usize {
         sim.tick(); // a beat to set the brace before contact
     }
-    let cav = sim.spawn_class(Vec2::new(0.0, -70.0), FRAC_PI_2, 120, UnitClassId::ShockCavalry, 1);
+    let cav = sim.spawn_class(
+        Vec2::new(0.0, -70.0),
+        FRAC_PI_2,
+        120,
+        UnitClassId::ShockCavalry,
+        1,
+    );
     sim.set_pace(cav, sim::Pace::Run);
     sim.set_attack_move_order(cav, Vec2::new(0.0, 70.0));
     let mut deepest = f32::MIN;
@@ -361,7 +374,10 @@ fn a_braced_holding_line_absorbs_a_frontal_charge() {
         deepest < 8.0,
         "a braced line absorbs the charge — the cav must not break through: cav reached y {deepest:.1}"
     );
-    assert!(dead < 60, "the braced line holds, not slaughtered: {dead} dead");
+    assert!(
+        dead < 60,
+        "the braced line holds, not slaughtered: {dead} dead"
+    );
     assert!(
         sim.units[wall].cohesion > 0.4,
         "the line keeps its shape (jostled but not dissolved): cohesion {:.2}",

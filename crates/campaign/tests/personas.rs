@@ -35,7 +35,11 @@ fn every_persona_parses_and_only_neutral_sits_still() {
     for (s, want) in cases {
         assert_eq!(AiPersona::parse(Some(s), false), want, "parse {s}");
         // Every characterful persona campaigns; only Neutral garrisons.
-        assert_eq!(want.campaigns(), want != AiPersona::Neutral, "campaigns {s}");
+        assert_eq!(
+            want.campaigns(),
+            want != AiPersona::Neutral,
+            "campaigns {s}"
+        );
         // Profiles are sane: a real attack threshold and a positive temperature.
         let p = persona::profile(want);
         assert!(p.gate >= 100 && p.select_scale > 0.0, "profile {s}");
@@ -147,8 +151,12 @@ fn battles_started(p: AiPersona, ticks: u32, seed: u64) -> u32 {
 fn warmonger_throws_itself_at_fights_a_turtle_declines() {
     // Sum across seeds — a single campaign's mood swings are noisy, but the brave
     // persona out-attacks the cautious one in aggregate.
-    let warmonger: u32 = (0..6).map(|s| battles_started(AiPersona::Warmonger, 8_000, s)).sum();
-    let defensive: u32 = (0..6).map(|s| battles_started(AiPersona::Defensive, 8_000, s)).sum();
+    let warmonger: u32 = (0..6)
+        .map(|s| battles_started(AiPersona::Warmonger, 8_000, s))
+        .sum();
+    let defensive: u32 = (0..6)
+        .map(|s| battles_started(AiPersona::Defensive, 8_000, s))
+        .sum();
     assert!(
         warmonger > defensive,
         "warmonger ({warmonger}) should start more losing fights than defensive ({defensive})",

@@ -91,7 +91,10 @@ fn same_seed_replays_identically() {
     let map = real_map();
     let a = run(&map, 7, 2500, 16);
     let b = run(&map, 7, 2500, 16);
-    assert_eq!(a.state_json, b.state_json, "a fixed seed must replay byte-for-byte");
+    assert_eq!(
+        a.state_json, b.state_json,
+        "a fixed seed must replay byte-for-byte"
+    );
 }
 
 #[test]

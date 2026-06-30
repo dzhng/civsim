@@ -7,7 +7,7 @@
 pub mod common;
 
 use common::no_morale_parade as no_morale;
-use common::{ref_archer, ref_melee, ref_horse_archer, ref_pike, REF_BOW, REF_HORSE_BOW};
+use common::{ref_archer, ref_horse_archer, ref_melee, ref_pike, REF_BOW, REF_HORSE_BOW};
 use sim::{Pace, Sim, Tunables, UnitClass, UnitClassId, Vec2, DT};
 use std::f32::consts::FRAC_PI_2;
 

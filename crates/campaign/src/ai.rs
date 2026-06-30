@@ -264,7 +264,16 @@ fn think(
             .filter(|(_, _, s)| *s * 4 >= threat)
             .min_by_key(|(_, l, _)| road_dist(map, bfs, *l, cloc, 60).unwrap_or(u32::MAX))
         {
-            issue(map, st, f, log, Order::Move { army: id, dest: cloc });
+            issue(
+                map,
+                st,
+                f,
+                log,
+                Order::Move {
+                    army: id,
+                    dest: cloc,
+                },
+            );
         }
     }
 
@@ -277,7 +286,9 @@ fn think(
     //    bigger monthly bill the commander must already be able to cover.
     let income = economy::faction_monthly_income(st, f);
     let upkeep = economy::faction_monthly_upkeep(map, st, f);
-    let reserve = income.saturating_mul(tun::AI_RESERVE_MONTHS).saturating_add(upkeep);
+    let reserve = income
+        .saturating_mul(tun::AI_RESERVE_MONTHS)
+        .saturating_add(upkeep);
     let solvent = |st: &CampaignState| st.factions[f as usize].treasury > reserve;
     let field_soldiers: u32 = st
         .armies
@@ -320,7 +331,17 @@ fn think(
         // than it holds, or the (rejected) order accomplishes nothing.
         let count = want.min(st.cities[&depot].population);
         if count > 0 {
-            issue(map, st, f, log, Order::Recruit { node: depot, class, count });
+            issue(
+                map,
+                st,
+                f,
+                log,
+                Order::Recruit {
+                    node: depot,
+                    class,
+                    count,
+                },
+            );
         }
     }
 
@@ -342,7 +363,11 @@ fn think(
                 st,
                 f,
                 log,
-                Order::SetPolicy { node: n, focus, throttle: cur.throttle },
+                Order::SetPolicy {
+                    node: n,
+                    focus,
+                    throttle: cur.throttle,
+                },
             );
         }
     }
@@ -416,7 +441,16 @@ fn think(
             .iter()
             .min_by_key(|&&n| road_dist(map, bfs, loc, Loc::Node(n), 60).unwrap_or(u32::MAX))
         {
-            issue(map, st, f, log, Order::Move { army: id, dest: Loc::Node(home) });
+            issue(
+                map,
+                st,
+                f,
+                log,
+                Order::Move {
+                    army: id,
+                    dest: Loc::Node(home),
+                },
+            );
         }
     }
 }

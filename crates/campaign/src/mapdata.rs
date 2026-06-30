@@ -370,10 +370,7 @@ impl WorldMap {
                     color: f.color,
                     playable: f.playable,
                     ai_persona: AiPersona::parse(f.ai_persona.as_deref(), f.playable),
-                    seed_rival: f
-                        .rival
-                        .as_deref()
-                        .and_then(|r| faction_idx.get(r).copied()),
+                    seed_rival: f.rival.as_deref().and_then(|r| faction_idx.get(r).copied()),
                 })
                 .collect(),
             start_armies: raw

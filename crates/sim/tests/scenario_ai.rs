@@ -6,7 +6,6 @@ use std::f32::consts::FRAC_PI_2;
 
 const SEED: u64 = 4242;
 
-
 #[test]
 fn reform_recovers_order_faster() {
     let recovery = |reform: bool| -> f32 {

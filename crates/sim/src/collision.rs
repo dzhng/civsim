@@ -331,8 +331,7 @@ impl Sim {
                                     // (or a near-matched chase) deals ZERO, and only a
                                     // committed charge clears it. Brace lives in w_i (the
                                     // share): a backed man takes a smaller dv, keeps his feet.
-                                    let span =
-                                        (tun.impact_full_speed - tun.impact_floor).max(0.1);
+                                    let span = (tun.impact_full_speed - tun.impact_floor).max(0.1);
                                     let ramp =
                                         ((closing - tun.impact_floor) / span).clamp(0.0, 1.0);
                                     let dv = ramp * w_j / (w_i + w_j);
@@ -438,8 +437,10 @@ impl Sim {
                                             } else {
                                                 1.0
                                             };
-                                            let dmg = tun.impact_damage * knockback * dv * block_mult;
-                                            let quota_left = impact_kill_count[j] < tun.impact_kill_cap;
+                                            let dmg =
+                                                tun.impact_damage * knockback * dv * block_mult;
+                                            let quota_left =
+                                                impact_kill_count[j] < tun.impact_kill_cap;
                                             let pool = if mounted[i] == 1 {
                                                 &mut mount_health[i]
                                             } else {

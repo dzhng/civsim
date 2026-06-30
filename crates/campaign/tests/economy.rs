@@ -71,12 +71,19 @@ fn upkeep_is_half_recruitment_monthly() {
     for &class in &contract::ALL_CLASSES {
         let recruit = tunables::recruit_cost_milligold(class);
         let upkeep = tunables::upkeep_per_soldier_milligold(class);
-        assert_eq!(upkeep, recruit / 2, "{class:?}: monthly upkeep is half raise");
+        assert_eq!(
+            upkeep,
+            recruit / 2,
+            "{class:?}: monthly upkeep is half raise"
+        );
     }
     // And it holds through the unit-type table the sim actually bills against.
     let class = contract::UnitClassId::LightSpear;
     let ut = units::unit_type(&c.map, 0, class, 0);
-    assert_eq!(ut.upkeep_per_soldier_milligold, ut.cost_per_soldier_milligold / 2);
+    assert_eq!(
+        ut.upkeep_per_soldier_milligold,
+        ut.cost_per_soldier_milligold / 2
+    );
 }
 
 #[test]
@@ -97,7 +104,11 @@ fn garrison_regens_only_when_territory_is_clear() {
     for _ in 0..tunables::TICKS_PER_DAY + 2 {
         c.tick();
     }
-    assert_eq!(garr(&c), 0, "an enemy in the city's territory pins its garrison");
+    assert_eq!(
+        garr(&c),
+        0,
+        "an enemy in the city's territory pins its garrison"
+    );
 
     // Pull the enemy out to its own city (well beyond the radius); the walls
     // regenerate again.
@@ -105,7 +116,10 @@ fn garrison_regens_only_when_territory_is_clear() {
     for _ in 0..tunables::TICKS_PER_DAY + 2 {
         c.tick();
     }
-    assert!(garr(&c) > 0, "a city with no enemy near regenerates its garrison");
+    assert!(
+        garr(&c) > 0,
+        "a city with no enemy near regenerates its garrison"
+    );
 }
 
 #[test]
@@ -162,7 +176,9 @@ fn besieged_city_does_not_complete_a_muster() {
     let mustered = |c: &Campaign| {
         c.state.armies.iter().any(|a| {
             a.faction == 0
-                && a.roster.iter().any(|r| r.class == contract::UnitClassId::Archers && r.count > 0)
+                && a.roster
+                    .iter()
+                    .any(|r| r.class == contract::UnitClassId::Archers && r.count > 0)
         }) || c.state.cities[&0]
             .garrison
             .iter()
@@ -173,13 +189,19 @@ fn besieged_city_does_not_complete_a_muster() {
     for _ in 0..4 * tunables::TICKS_PER_DAY + 2 {
         c.tick();
     }
-    assert!(!mustered(&c), "a city under threat must not complete its muster");
+    assert!(
+        !mustered(&c),
+        "a city under threat must not complete its muster"
+    );
     // Pull the enemy out of territory; the muster finishes.
     c.state.armies[1].loc = Loc::Node(2);
     for _ in 0..3 * tunables::TICKS_PER_DAY + 2 {
         c.tick();
     }
-    assert!(mustered(&c), "once the territory clears the muster completes");
+    assert!(
+        mustered(&c),
+        "once the territory clears the muster completes"
+    );
 }
 
 #[test]
@@ -214,7 +236,10 @@ fn population_grows_toward_cap_monthly() {
     for _ in 0..tunables::TICKS_PER_MONTH - 1 {
         c.tick();
     }
-    assert_eq!(c.state.cities[&0].population, p0, "flat between settlements");
+    assert_eq!(
+        c.state.cities[&0].population, p0,
+        "flat between settlements"
+    );
     c.tick();
     let p1 = c.state.cities[&0].population;
     assert!(p1 > p0, "population grows on the monthly pulse");
@@ -224,7 +249,10 @@ fn population_grows_toward_cap_monthly() {
         run_month(&mut c);
     }
     assert!(c.state.cities[&0].population <= cap);
-    assert!(c.state.cities[&0].population > cap * 8 / 10, "fills toward the cap");
+    assert!(
+        c.state.cities[&0].population > cap * 8 / 10,
+        "fills toward the cap"
+    );
 }
 
 #[test]
@@ -241,7 +269,10 @@ fn military_focus_deepens_garrison_over_months() {
     for _ in 0..8 {
         run_month(&mut c);
     }
-    assert!(c.state.cities[&0].mil_dev > 0.5, "military development ramps up");
+    assert!(
+        c.state.cities[&0].mil_dev > 0.5,
+        "military development ramps up"
+    );
     let deep = economy::garrison_establishment(c.map.nodes[0].tier, c.state.cities[&0].mil_dev)
         .iter()
         .map(|(_, n)| *n)
@@ -271,7 +302,10 @@ fn economy_focus_raises_output_and_exploit_trades_growth_for_yield() {
     }
     m.state.cities.get_mut(&0).unwrap().population = c.state.cities[&0].population;
     let mil_income = economy::city_monthly_income(&m.state.cities[&0]);
-    assert!(econ_income > mil_income, "economy focus earns more per head");
+    assert!(
+        econ_income > mil_income,
+        "economy focus earns more per head"
+    );
 
     // Exploit lifts the take but drains population vs. Grow.
     let pop0 = c.state.cities[&0].population;
@@ -280,7 +314,10 @@ fn economy_focus_raises_output_and_exploit_trades_growth_for_yield() {
     let exploit_income = economy::city_monthly_income(&c.state.cities[&0]);
     assert!(exploit_income > grow_income, "exploit yields more now");
     run_month(&mut c);
-    assert!(c.state.cities[&0].population < pop0, "exploit shrinks the city");
+    assert!(
+        c.state.cities[&0].population < pop0,
+        "exploit shrinks the city"
+    );
 }
 
 #[test]
@@ -301,7 +338,10 @@ fn development_decays_when_focus_switches() {
         c.state.cities[&0].mil_dev < peak,
         "military development decays once the focus switches away"
     );
-    assert!(c.state.cities[&0].econ_dev > 0.5, "and economic development grows in");
+    assert!(
+        c.state.cities[&0].econ_dev > 0.5,
+        "and economic development grows in"
+    );
 }
 
 #[test]

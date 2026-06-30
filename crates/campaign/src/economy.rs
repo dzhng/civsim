@@ -146,7 +146,9 @@ pub fn day_tick(map: &WorldMap, st: &mut CampaignState) {
     // A faction whose treasury is empty can't pay its troops: desertion starts
     // and paid replenishment stops. (Upkeep itself is charged at the monthly
     // settlement; between settlements a broke realm just bleeds.)
-    let paid: Vec<bool> = (0..nfactions).map(|f| st.factions[f].treasury > 0).collect();
+    let paid: Vec<bool> = (0..nfactions)
+        .map(|f| st.factions[f].treasury > 0)
+        .collect();
 
     // 3. Desertion / replenishment / rally-scar recovery.
     for i in 0..st.armies.len() {
@@ -664,8 +666,7 @@ pub fn resolve_capture(st: &mut CampaignState, node: NodeId, new_owner: FactionI
     c.loyalty = tun::CONQUEST_LOYALTY;
     c.recruit_queue.clear();
     if sack {
-        let plunder =
-            (c.population as u64 * tun::SACK_GOLD_PER_POP_MILLIGOLD as u64 / 1000) as u32;
+        let plunder = (c.population as u64 * tun::SACK_GOLD_PER_POP_MILLIGOLD as u64 / 1000) as u32;
         c.population = (c.population as f32 * tun::SACK_POP_REMAINING) as u32;
         let t = &mut st.factions[new_owner as usize].treasury;
         *t = t.saturating_add(plunder);
@@ -683,8 +684,7 @@ fn loyalty_month(map: &WorldMap, st: &mut CampaignState) {
     use std::collections::BTreeMap;
     let owners: BTreeMap<NodeId, FactionId> =
         st.cities.iter().map(|(&n, c)| (n, c.owner)).collect();
-    let loyalties: BTreeMap<NodeId, f32> =
-        st.cities.iter().map(|(&n, c)| (n, c.loyalty)).collect();
+    let loyalties: BTreeMap<NodeId, f32> = st.cities.iter().map(|(&n, c)| (n, c.loyalty)).collect();
 
     // Army anchors: (faction, weight∈0..1, loc) for live, in-play armies. An army
     // is a *source* of presence (it doesn't hold loyalty itself); weight scales
@@ -707,7 +707,9 @@ fn loyalty_month(map: &WorldMap, st: &mut CampaignState) {
         let mut friendly = 0.0f32;
         let mut enemy = 0.0f32;
         for &nb in map.city_neighbors(node) {
-            let Some(&nbo) = owners.get(&nb) else { continue };
+            let Some(&nbo) = owners.get(&nb) else {
+                continue;
+            };
             if nbo == owner {
                 friendly += loyalties[&nb]; // gradient: a barely-loyal neighbour lends little
             } else if st.at_war(owner, nbo) {

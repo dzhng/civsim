@@ -591,7 +591,8 @@ fn main() {
             attack_interval: 1.4,
             damage: 0.0,
             cleave: false,
-        impales: true, kind: sim::WeaponKind::Hedge,
+            impales: true,
+            kind: sim::WeaponKind::Hedge,
         };
         let south = sim.spawn_unit(
             Vec2::new(0.0, -25.0),

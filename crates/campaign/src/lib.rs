@@ -332,7 +332,11 @@ impl Campaign {
     /// Submit decisions a worker computed for an earlier snapshot, to apply on
     /// their scheduled tick.
     pub fn submit_decisions(&mut self, apply_at: u64, decisions: Vec<ai::Decision>) {
-        self.sched.queue.entry(apply_at).or_default().extend(decisions);
+        self.sched
+            .queue
+            .entry(apply_at)
+            .or_default()
+            .extend(decisions);
     }
 
     pub fn load(map_json: &str, save: &str) -> Result<Campaign, String> {

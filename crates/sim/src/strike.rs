@@ -42,7 +42,13 @@ pub const fn front(half: f32) -> Zones {
 /// over the horse's head and croup, cutting down to either side.
 pub const fn flanks(center: f32, half: f32) -> Zones {
     Zones {
-        lobes: [Lobe { center, half }, Lobe { center: -center, half }],
+        lobes: [
+            Lobe { center, half },
+            Lobe {
+                center: -center,
+                half,
+            },
+        ],
         len: 2,
     }
 }

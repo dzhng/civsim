@@ -37,16 +37,26 @@ mod tests {
     fn a_dominant_score_almost_always_wins() {
         let mut rng = Pcg32::new(1, 1);
         let scores = [0.0, 100_000.0, 50.0]; // index 1 dwarfs the rest
-        let hits = (0..300).filter(|_| pick_softmax(&scores, 15_000.0, &mut rng) == 1).count();
-        assert!(hits > 285, "a clearly-best plan should win nearly always, got {hits}/300");
+        let hits = (0..300)
+            .filter(|_| pick_softmax(&scores, 15_000.0, &mut rng) == 1)
+            .count();
+        assert!(
+            hits > 285,
+            "a clearly-best plan should win nearly always, got {hits}/300"
+        );
     }
 
     #[test]
     fn close_scores_get_sampled() {
         let mut rng = Pcg32::new(2, 2);
         let scores = [100.0, 110.0]; // within the temperature: both should appear
-        let zeros = (0..300).filter(|_| pick_softmax(&scores, 50.0, &mut rng) == 0).count();
-        assert!((30..270).contains(&zeros), "near-ties should both be sampled, got {zeros}/300");
+        let zeros = (0..300)
+            .filter(|_| pick_softmax(&scores, 50.0, &mut rng) == 0)
+            .count();
+        assert!(
+            (30..270).contains(&zeros),
+            "near-ties should both be sampled, got {zeros}/300"
+        );
     }
 
     #[test]
@@ -54,8 +64,12 @@ mod tests {
         let scores = [10.0, 20.0, 15.0];
         let mut r1 = Pcg32::new(42, 7);
         let mut r2 = Pcg32::new(42, 7);
-        let a: Vec<usize> = (0..40).map(|_| pick_softmax(&scores, 5.0, &mut r1)).collect();
-        let b: Vec<usize> = (0..40).map(|_| pick_softmax(&scores, 5.0, &mut r2)).collect();
+        let a: Vec<usize> = (0..40)
+            .map(|_| pick_softmax(&scores, 5.0, &mut r1))
+            .collect();
+        let b: Vec<usize> = (0..40)
+            .map(|_| pick_softmax(&scores, 5.0, &mut r2))
+            .collect();
         assert_eq!(a, b, "same seed must give the same picks");
     }
 }

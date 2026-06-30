@@ -69,16 +69,18 @@ fn settled(st: &CampaignState, orders: &[(ArmyId, Loc)]) -> bool {
     if st.battle_ready.is_some() {
         return false;
     }
-    orders.iter().all(|&(army, dest)| match st.armies.get(army as usize) {
-        None => true,
-        Some(a) => {
-            !a.alive()
-                || (a.loc == dest
-                    && a.halted()
-                    && a.encounter.is_none()
-                    && !matches!(a.stance, Stance::Occupying { .. } | Stance::Routed { .. }))
-        }
-    })
+    orders
+        .iter()
+        .all(|&(army, dest)| match st.armies.get(army as usize) {
+            None => true,
+            Some(a) => {
+                !a.alive()
+                    || (a.loc == dest
+                        && a.halted()
+                        && a.encounter.is_none()
+                        && !matches!(a.stance, Stance::Occupying { .. } | Stance::Routed { .. }))
+            }
+        })
 }
 
 /// Send any committed army that's idle, alive, free, and not yet at its target

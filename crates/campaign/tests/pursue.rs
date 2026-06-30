@@ -39,7 +39,10 @@ fn line_map() -> &'static str {
 fn pursuit_catches_a_fleeing_army() {
     let mut c = Campaign::new(line_map(), 7, 0);
     // Blue marches away toward its city; red (faster cavalry) chases it down.
-    assert!(c.order_move(1, Loc::Node(4)), "blue should accept the march");
+    assert!(
+        c.order_move(1, Loc::Node(4)),
+        "blue should accept the march"
+    );
     assert!(c.order_pursue(0, 1), "red should accept the pursuit");
     assert!(
         matches!(c.state.armies[0].stance, Stance::Pursuing { target: 1 }),
@@ -64,7 +67,11 @@ fn pursuit_catches_a_fleeing_army() {
     }
     assert!(contacted, "the pursuer never caught its moving quarry");
     // Red left its start and moved down the line after blue.
-    assert_ne!(c.state.armies[0].loc, Loc::Node(0), "red should have given chase");
+    assert_ne!(
+        c.state.armies[0].loc,
+        Loc::Node(0),
+        "red should have given chase"
+    );
 }
 
 #[test]

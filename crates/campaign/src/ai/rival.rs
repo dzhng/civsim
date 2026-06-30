@@ -30,7 +30,8 @@ pub fn faction_strength(map: &WorldMap, st: &CampaignState, g: FactionId) -> u64
 
 /// Whether `g` still exists as a power: holds a city or fields an army.
 fn alive_power(st: &CampaignState, g: FactionId) -> bool {
-    st.cities.values().any(|c| c.owner == g) || st.armies.iter().any(|a| a.faction == g && a.alive())
+    st.cities.values().any(|c| c.owner == g)
+        || st.armies.iter().any(|a| a.faction == g && a.alive())
 }
 
 /// Factions actively bearing down on `f`: at war with it and either locked in

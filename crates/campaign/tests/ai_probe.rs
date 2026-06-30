@@ -81,7 +81,11 @@ fn probe_scores_candidate_futures() {
             );
             let s = eval::score(&c.map, &sb, 0, &w);
             let red_cities = sb.cities.values().filter(|c| c.owner == 0).count();
-            let dests: Vec<String> = p.orders.iter().map(|(a, l)| format!("army{a}->{l:?}")).collect();
+            let dests: Vec<String> = p
+                .orders
+                .iter()
+                .map(|(a, l)| format!("army{a}->{l:?}"))
+                .collect();
             println!(
                 "  candidate {:<18} score {:>12.0}   cities={red_cities} loc={:?}  [{}]",
                 p.label,
@@ -106,7 +110,12 @@ fn probe_scores_candidate_futures() {
 
     // Taste: the winnable conquest must outscore both holding and the assault
     // it cannot win — the whole point of looking ahead.
-    let by = |label: &str| scored.iter().find(|(_, p)| p.label == label).map(|(s, _)| *s);
+    let by = |label: &str| {
+        scored
+            .iter()
+            .find(|(_, p)| p.label == label)
+            .map(|(s, _)| *s)
+    };
     let beatable = by("nearest-beatable").expect("a beatable target exists");
     let hold = by("hold").expect("hold is always present");
     assert!(
@@ -119,7 +128,10 @@ fn probe_scores_candidate_futures() {
             "the winnable city ({beatable:.0}) should beat marching on the wall ({any:.0})",
         );
     }
-    assert_eq!(pick.label, "nearest-beatable", "search should pick the conquest");
+    assert_eq!(
+        pick.label, "nearest-beatable",
+        "search should pick the conquest"
+    );
 }
 
 #[test]
@@ -156,10 +168,13 @@ fn commander_orders_capture_the_decision_and_replay() {
 
     let decision = campaign::ai::commander_decision(&c.map, &c.state, 0);
     assert!(
-        decision
-            .orders
-            .iter()
-            .any(|o| matches!(o, Order::Move { dest: Loc::Node(2), .. })),
+        decision.orders.iter().any(|o| matches!(
+            o,
+            Order::Move {
+                dest: Loc::Node(2),
+                ..
+            }
+        )),
         "the commander should emit a march on the soft city as an Order: {:?}",
         decision.orders,
     );

@@ -1227,7 +1227,8 @@ fn two_braced_walls_hold_a_standoff_neither_centroid_crosses() {
         attack_interval: 1.4,
         damage: 0.0,
         cleave: false,
-        impales: true, kind: sim::WeaponKind::Hedge,
+        impales: true,
+        kind: sim::WeaponKind::Hedge,
     };
 
     // Two deep blocks (10 ranks of rear-rank shove — the exact load that broke
@@ -1361,11 +1362,11 @@ fn front_detach(pusher_deep: usize, def_deep: usize) -> (f32, f32) {
         let df = front(&sim, def, -1.0);
         if step as f32 * DT > 20.0 {
             late_detach += pf - df; // pusher front past defender front
-            // The real pass-through invariant: the pusher's MASS must stay behind
-            // the defender's MASS. If the front-man detach is just the thin defender
-            // COMPRESSING (its front rank shoved back into its own depth) plus the
-            // pusher advancing, the centroids stay well apart; a true walk-through
-            // collapses or crosses this gap.
+                                    // The real pass-through invariant: the pusher's MASS must stay behind
+                                    // the defender's MASS. If the front-man detach is just the thin defender
+                                    // COMPRESSING (its front rank shoved back into its own depth) plus the
+                                    // pusher advancing, the centroids stay well apart; a true walk-through
+                                    // collapses or crosses this gap.
             late_gap += sim.units[def].centroid.y - sim.units[push].centroid.y;
             late_n += 1;
         }

@@ -50,6 +50,7 @@ import { importedRigMesh } from './importedRigMesh';
 import { buildBattleUiModel, BattleUiLayer } from '../../../web/src/battle/uiLayer';
 import { UNIT_CLASS_BY_KEY, UnitClass, CLASS_NAMES } from '../../../web/src/battle/classData';
 import { UnitCards, type UnitCardInit, type UnitCardState } from '../../../web/src/battle/unitCard';
+import { UnitCardsReact } from '../../../web/src/ui/hud/UnitCardsReact';
 import { installViewportGate } from '../../../web/src/battle/viewportGate';
 import { loadCampaignData, nearestLoc, type CampaignData } from '../../../web/src/campaign/data';
 import { Allegiance } from '../../../web/src/campaign/status';
@@ -2765,12 +2766,17 @@ async function routeCardBar(ctx: LabContext) {
   installViewportGate(tooSmall);
 
   let lastSelect: { unit: number; additive: boolean } | null = null;
-  // No minimap in this harness, so reserve only a bare side margin (not the live
-  // game's minimap clearance) — the demo shows the bar at its full width.
-  const cards = new UnitCards(band, (unit, additive) => {
+  const onSelect = (unit: number, additive: boolean) => {
     lastSelect = { unit, additive };
     (window as unknown as { __cardBarLastSelect?: unknown }).__cardBarLastSelect = lastSelect;
-  }, 12);
+  };
+  // No minimap in this harness, so reserve only a bare side margin (not the live
+  // game's minimap clearance) — the demo shows the bar at its full width.
+  // ?react renders the S3-spike React card bar instead, so the same DOM-only
+  // card-bar gate validates it is pixel-identical to the vanilla strip.
+  const cards = ctx.params.get('react') != null
+    ? new UnitCardsReact(band, onSelect, 12)
+    : new UnitCards(band, onSelect, 12);
 
   // Synthetic roster: cycle every class so portraits, names, and faction accent
   // all vary; live-ish bar values so the strip reads like a real fight.

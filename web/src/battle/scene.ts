@@ -24,6 +24,7 @@ import {
 } from './classData';
 import { UnitBanner, type BannerChip } from './unitBanner';
 import { UnitCards } from './unitCard';
+import { UnitCardsReact } from '../ui/hud/UnitCardsReact';
 import { installViewportGate } from './viewportGate';
 import { toolbarIcon } from './toolbarIcons';
 import { Input } from './input';
@@ -684,14 +685,22 @@ export class BattleScene implements Scene {
     // --- Bottom unit-card strip: one card per player unit (Total War style) -------
     const cardsRoot = document.getElementById('unitcards')!;
     let cardUnits: number[] = []; // sim unit id per card, in strip order
-    const unitCards = new UnitCards(cardsRoot, (unit, additive) => {
+    const onCardSelect = (unit: number, additive: boolean) => {
       input.selected = additive
         ? Array.from(new Set([...input.selected, unit]))
         : [unit];
       // Centre the camera on the picked unit, like clicking its banner.
       const [cx, cy] = unitCenter(unit);
       camera.x = cx; camera.y = cy; camera.clampView();
-    });
+    };
+    // S3 perf spike: ?hud=react (or localStorage hud=react) swaps the vanilla
+    // card bar for the React one at the SAME rAF update call site, for the A/B
+    // measurement. Default stays vanilla until S6 reads S3's verdict.
+    const useReactCards = new URLSearchParams(location.search).get('hud') === 'react'
+      || (typeof localStorage !== 'undefined' && localStorage.getItem('hud') === 'react');
+    const unitCards = useReactCards
+      ? new UnitCardsReact(cardsRoot, onCardSelect)
+      : new UnitCards(cardsRoot, onCardSelect);
     const buildCards = () => {
       const info = unitInfo();
       cardUnits = [];
@@ -710,7 +719,10 @@ export class BattleScene implements Scene {
       unitCards.build(inits);
     };
     buildCards();
-    this.cleanups.push(() => { cardsRoot.innerHTML = ''; });
+    this.cleanups.push(() => {
+      if (unitCards instanceof UnitCardsReact) unitCards.destroy();
+      else cardsRoot.innerHTML = '';
+    });
     const updateCards = () => {
       const info = unitInfo();
       const sel = new Set(input.selected);
@@ -724,6 +736,16 @@ export class BattleScene implements Scene {
         };
       }));
     };
+    // S3 perf spike: ?measurecards records each frame's card-update self-time (ms)
+    // into window.__cardUpdateSamples, so the perf harness compares the vanilla
+    // vs React card bar on isolated update cost with the sim RUNNING. Off by
+    // default — zero overhead on the shipping path.
+    const measureCards = new URLSearchParams(location.search).has('measurecards');
+    const cardUpdateSamples: number[] = [];
+    if (measureCards) (window as unknown as { __cardUpdateSamples?: number[] }).__cardUpdateSamples = cardUpdateSamples;
+    const tickCards = measureCards
+      ? () => { const t = performance.now(); updateCards(); cardUpdateSamples.push(performance.now() - t); }
+      : updateCards;
 
     // --- Tactical lines: ground decals plus transient effects ---------------------
     function tacticalLineFrame(withPaths: boolean): BattleTacticalLineFrame {
@@ -1129,7 +1151,7 @@ export class BattleScene implements Scene {
       }
 
       updateUnitBanners();
-      updateCards();
+      tickCards();
       hudTimer += frameDt;
       if (hudTimer > 0.2) {
         hudTimer = 0;

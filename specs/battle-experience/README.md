@@ -2,12 +2,16 @@
 
 ## Next Agent Prompt
 
-Current status, last updated 2026-06-30: Slices 01 and 02 are SHIPPED (02 in
-three commits — 02a canonical terrain height, 02b the typed renderer-side
-presentation/catalog/scene, 02c the campaign seating fix). Slices 03-05 remain
-planned. An unbiased screenshot-critique pass now runs on committed shots (see
-Review Map and "Open visual findings" below). David added a reference for edge
-cliffs, distant
+Current status, last updated 2026-06-30: ALL FIVE SLICES SHIPPED. 01 shared
+scenery props; 02 terrain-feature contract (canonical height + CoastalScrub +
+typed presentation/catalog); 03 3D battle terrain end-to-end including the live
+production cutover (03a ground, 03b sealed edges, 03c soldier elevation, 03d
+renderer cutover); 04 Custom Battle setup flow; 05 seating audit + docs. Plus
+the unbiased screenshot-critique verification (now a spec rule) and the prop
+model-quality fixes. Remaining are polish items and aesthetic calls collected
+under "Open visual findings" below (relief amount, mud/edge look, ground-cover
+hint, Restart-preserves-setup) — none block the feature. David added a reference
+for edge cliffs, distant
 fog, and full-field grass coverage; use
 `specs/battle-experience/assets/edge-cliffs-grass-reference.png` as review
 context alongside the Aegean battle references. The same reference should guide

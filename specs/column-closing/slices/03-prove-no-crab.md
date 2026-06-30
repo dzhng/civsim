@@ -66,9 +66,12 @@ names the target and asks for visible defects in both images.
 - Current output: `NO-CRAB rear lane excursion n=35 p95=0.296m peak=0.327m`.
 - The rail is `p95 < 0.45m` and peak `< 0.55m`, deliberately below a ~`1.0m`
   file relabel but above the harmless spring settle seen in the fixture.
-- Remaining slice-3 work is the human-viewable artifact plus the fresh unprimed
-  `screenshot-critique` visual gate; do not re-bless shot baselines from the Rust
-  metric alone.
+- The human-viewable timeline is committed at
+  `specs/column-closing/visualizations/no-crab-timeline.html`. It renders the
+  same-file forward-close fixture plus the wiped-file notch and clear-beat
+  re-even.
+- Remaining slice-3 work is the fresh unprimed `screenshot-critique` visual gate;
+  do not re-bless shot baselines from the Rust metric or timeline alone.
 
 ## What must stay green
 

@@ -29,7 +29,13 @@ This continuation also pinned the slice-3 rear-line no-crab sentinel:
 `rear_ranks_do_not_crab_sideways_while_engaged_casualties_close` holds engaged
 rear ranks to `p95 < 0.45m` and peak `< 0.55m`, well below a ~`1.0m` file
 relabel. It currently prints `NO-CRAB rear lane excursion n=35 p95=0.296m peak=0.327m`,
-and the full mechanics bucket still passes. Earlier
+and the full mechanics bucket still passes. This pass added the self-contained
+slice-3 timeline at
+`specs/column-closing/visualizations/no-crab-timeline.html`; it shows same-file
+forward casualty closing, a wiped-file notch persisting while engaged, and the
+clear-beat lateral re-even. Headless Chromium rendered it at desktop and mobile
+widths with 7 frames, 301 cells, visible drift bars, and no horizontal overflow.
+Earlier
 browser candidates repeatedly looked worse under unprimed `screenshot-critique`:
 The latest same-file hard collision queue candidate recreated fresh battle shots
 and failed the visual gate under a fresh unprimed critique ("Gauss"); comparison
@@ -249,10 +255,12 @@ the next pass by matching the flawed baseline. The width target is "as close as
 possible to the original deployed column at enemy contact" -- neither narrower
 nor wider -- and current is better than baseline by that ruler because the old
 baseline unnaturally pinches/harrows the column middle. The rear-line no-crab
-metric is now pinned; the remaining slice-3 proof is the human-viewable artifact
-and visual critique gate. If continuing, improve the remaining looseness without
-returning to lateral `reassign_slots`, without making the defender fragment, and
-without suppressing the magnet pressure needed for wrap/back-fill/bulge. Recreate
+metric is now pinned, and the human-viewable timeline artifact exists at
+`specs/column-closing/visualizations/no-crab-timeline.html`. The remaining
+slice-3 gate is fresh unprimed visual critique before any shot baseline is
+accepted. If continuing, improve the remaining looseness without returning to
+lateral `reassign_slots`, without making the defender fragment, and without
+suppressing the magnet pressure needed for wrap/back-fill/bulge. Recreate
 `vibe/penetration`/`vibe/offense`, run the
 `compare-screenshots` helper on baseline/current folders with contact crops, then
 attach the helper artifacts and any focused sheets/crops to a fresh unprimed
@@ -803,7 +811,9 @@ defects in the supplied sheets and crops.
       (`rear_ranks_do_not_crab_sideways_while_engaged_casualties_close`;
       current `p95=0.296m`, peak `0.327m`, rail is `<0.45m/<0.55m` vs a
       ~`1.0m` file relabel)
-- [ ] Human-viewable proof (slot-occupancy timeline + renderer-lab scene) — slice 3
+- [x] Human-viewable proof artifact — slice 3
+      (`specs/column-closing/visualizations/no-crab-timeline.html`; renderer-lab
+      moving-picture scene remains optional/not built)
 - [ ] Gap bridge designed and pinned: adjacent 2+ dead-file lanes fill locally
       from rear/deep reserves without whole-unit lateral crab; optionally lower
       to one-file gaps if shots/tests show it is cleaner — slice 4

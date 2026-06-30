@@ -1,5 +1,6 @@
 import { createElement } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
+import { flushSync } from 'react-dom';
 import '../ui/tailwind.css';
 import type { Scene } from '../scene';
 import type { BattleKind } from '../battle/scene';
@@ -7,7 +8,7 @@ import { CLASS_NAMES, UNIT_CLASS_BY_KEY, UnitClass } from '../battle/classData';
 import { MANUAL_HTML } from '../battle/manual';
 import type { GpuSupportState } from '../../../packages/game-renderer/src/appShell';
 import { Menu } from '../ui/menu/Menu';
-import { mountQuickBattleSetup, type QuickBattleClassSpec, type QuickBattleConfig, type QuickBattleSetup } from './quickBattleSetup';
+import type { QuickBattleClassSpec, QuickBattleConfig } from '../battle/quickBattleCatalog';
 
 export interface MenuConfig {
   onQuickBattle: (kind: BattleKind) => void;
@@ -24,43 +25,40 @@ export interface MenuConfig {
   gpuStatus: GpuSupportState;
 }
 
-/** Boot scene: the menu is React, mounted into the #ui-root overlay. The
- * custom-battle army builder stays vanilla DOM (driven by mountQuickBattleSetup
- * against the body-level #quick-battle-modal) until a later slice; React only
- * renders its trigger. The field manual (#manual) also stays a vanilla overlay
- * React toggles imperatively. No GL. */
+/** Boot scene: the menu, its duel modal, and the custom-battle army builder are
+ * all React, mounted into the #ui-root overlay. The field manual (#manual) stays
+ * a vanilla overlay React toggles imperatively. No GL. */
 export class MenuScene implements Scene {
   private mount = document.getElementById('ui-root')!;
   private reactRoot: Root | null = null;
-  private quickBattle: QuickBattleSetup;
 
-  constructor(private cfg: MenuConfig) {
-    this.quickBattle = mountQuickBattleSetup(document.body, this.cfg.classSpecs, this.cfg.onCustomBattle);
-  }
+  constructor(private cfg: MenuConfig) {}
 
   enter() {
     const manual = document.getElementById('manual')!;
     if (!manual.innerHTML) manual.innerHTML = MANUAL_HTML;
     this.reactRoot ??= createRoot(this.mount);
-    this.reactRoot.render(createElement(Menu, {
+    // flushSync so the menu DOM exists synchronously when enter() returns — the
+    // boot/verify harnesses read it right after the scene switches.
+    flushSync(() => this.reactRoot!.render(createElement(Menu, {
       gpuStatus: this.cfg.gpuStatus,
       classNames: CLASS_NAMES,
       duelDefaultB: UNIT_CLASS_BY_KEY[UnitClass.ShockCavalry], // cav makes a lively default foe
       hasSave: this.cfg.hasSave(),
+      classes: this.cfg.classSpecs,
       onQuickBattle: this.cfg.onQuickBattle,
-      onOpenCustomBattle: () => { if (this.cfg.gpuStatus.ok) this.quickBattle.open(); },
+      onCustomBattle: this.cfg.onCustomBattle,
       onDuel: this.cfg.onDuel,
       onNewCampaign: this.cfg.onNewCampaign,
       onLoadCampaign: this.cfg.onLoadCampaign,
       onToggleManual: () => { manual.style.display = manual.style.display === 'block' ? 'none' : 'block'; },
       onHideManual: () => { manual.style.display = 'none'; },
-    }));
+    })));
   }
 
   exit() {
     this.reactRoot?.unmount();
     this.reactRoot = null;
-    this.quickBattle.close();
     document.getElementById('manual')!.style.display = 'none';
   }
 

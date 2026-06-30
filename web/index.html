@@ -359,25 +359,10 @@
     <p>The battle needs a window of at least 1180 &times; 640. Please enlarge the window to play.</p>
   </div></div>
   <div id="manual"></div>
-  <!-- The menu (#menu-ui) and its duel modal are now React: src/ui/menu/Menu.tsx,
-       mounted into #ui-root by MenuScene. The bronze menu CSS in this file's
-       <style> still styles the React-rendered #menu-ui (same ids/classes). The
-       custom-battle army builder stays VANILLA — this body-level shell is filled
-       by mountQuickBattleSetup; React's Custom Battle button opens it. -->
-  <div id="quick-battle-modal">
-    <div class="panel quick-battle-panel">
-      <h2>CUSTOM BATTLE</h2>
-      <div class="qb-maps" id="qb-maps"></div>
-      <div class="qb-armies">
-        <div class="qb-army" id="qb-army-0"></div>
-        <div class="qb-army" id="qb-army-1"></div>
-      </div>
-      <div class="qb-actions">
-        <button id="qb-launch">Launch</button>
-        <button class="cancel" id="qb-back">Back</button>
-      </div>
-    </div>
-  </div>
+  <!-- The menu (#menu-ui), its duel modal, AND the custom-battle army builder
+       (#quick-battle-modal) are now React: src/ui/menu/Menu.tsx + ArmyBuilder.tsx,
+       mounted into #ui-root by MenuScene. The bronze menu/builder CSS in this
+       file's <style> still styles the React-rendered DOM (same ids/classes). -->
   <div id="battle-ui">
   <canvas id="battlefield"></canvas>
   <div id="gameover">

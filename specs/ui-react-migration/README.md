@@ -1,0 +1,163 @@
+# UI architecture: migrate the web DOM UI to React + Vite + Tailwind
+
+Move civsim's hand-rolled vanilla-TS DOM UI to **React + Vite + Tailwind v4**, so the
+growing interactive surfaces (army builder, campaign panels, future diplomacy/management
+screens) get a real component+state model — **without** regressing the per-frame in-battle
+HUD, which is renderer-bound and hand-optimized today. The end state is React for the
+**static** UI; the **per-frame HUD** is migrated only if a measured perf spike says it's free.
+
+Synthesized from three independent draft plans (they converged hard — the cut is solid).
+
+## Next Agent Prompt
+
+**Status:** planned, not started. _Last updated: 2026-07-01._
+
+**Start at Slice 0** (`slices/00-stack-setup.md`) and go in order. S0→S1 lay the toolchain
+and the one bronze token source; S2 proves the stack on the menu; **S3 is the perf spike
+that decides whether the per-frame HUD becomes React** (it ships the card bar in React
+behind a measurement); S4/S5 migrate the static wave; S6 lands the HUD per S3's verdict;
+S7 deletes the duplication. Do not start the static wave (S4/S5) before S3 settles the
+60 Hz seam.
+
+**Global TODO:**
+- [ ] S0 — stack setup: React + Vite plugin + Tailwind v4 in `web/`, COOP/COEP preserved, `tsc --noEmit` gate (`slices/00-stack-setup.md`)
+- [ ] S1 — one bronze token source (`web/src/ui/theme/bronze.css`), consumed by Tailwind + vanilla + lab; **zero pixel change** (`slices/01-design-system.md`)
+- [ ] S2 — menu proof (first React surface: `#menu-ui` + duel modal) (`slices/02-menu-proof.md`)
+- [ ] S3 — **HUD perf SPIKE** (card bar in React, 60 Hz via refs, measured) → migrate/keep verdict (`slices/03-hud-perf-spike.md`)
+- [ ] S4 — static wave: army builder + battle modals (`slices/04-army-builder-modals.md`)
+- [ ] S5 — static wave: campaign panels (+ optional slate→bronze re-theme, David's call) (`slices/05-campaign-panels.md`)
+- [ ] S6 — HUD outcome branch (migrate-to-React OR keep-vanilla-share-tokens) (`slices/06-hud-outcome.md`)
+- [ ] S7 — cleanup: delete replaced DOM/CSS, dedup the lab, one source proven (`slices/07-cleanup.md`)
+
+**Update this section before ending each pass** (status, date, next pickup, the S3 verdict once measured).
+
+## Architecture decisions (made up front; every slice assumes them)
+
+1. **The canvas never enters React.** `#battlefield` and `#minimap` stay raw DOM owned by
+   the renderer/rAF loop. React mounts a **sibling** fixed-position overlay (`#ui-root`)
+   above the canvas, z-indexed, `pointer-events` per panel. React and the renderer share
+   only two things: the bronze tokens and the zero-copy wasm-state seam. This sidesteps
+   "React over a GPU canvas" — they're siblings, not nested.
+2. **Keep the `Scene`/`switchScene` machine; React mounts per-scene.** `Scene.enter()` does
+   `createRoot(#ui-root).render(<…/>)`, `exit()` unmounts. The rAF loop in `main.ts` is
+   untouched. Per-scene mount lets surfaces migrate **one at a time** (menu React while
+   battle still vanilla). _Optional later:_ once all scenes are React (post-S7), consolidate
+   to a single persistent root + a scene-kind store — recorded as an end-state nicety, not a
+   migration requirement.
+3. **The 60 Hz hot path bypasses React — structure in React, values via refs.** React owns
+   card/HUD **structure** (rebuilt only on roster change, which is rare). The per-frame bar
+   widths/colors/count/`.sel`/`.rout` are written **imperatively to ref'd nodes by the
+   existing rAF loop**, running the *verbatim hand-diffed `key`-skip logic* that
+   `UnitCards.update()` uses today. **React's render/commit never runs at 60 Hz.**
+   `useSyncExternalStore` is reserved for ≤5 Hz state (the throttled info panel/toolbar,
+   selection identity, roster identity, menu/modal/campaign state). The zero-copy
+   `Float32Array` is re-materialized per read (wasm-grow safety) exactly as today; **never
+   copied into React state.** This is the single load-bearing call — **S3 measures it.**
+4. **No state-management library.** A ~30-line module-scope external store
+   (`subscribe`/`getSnapshot`) feeds `useSyncExternalStore` for low-frequency state; local
+   `useState`/`useReducer` for forms (army builder, duel modal). No Redux/Zustand/Jotai.
+5. **One bronze token source.** `web/src/ui/theme/bronze.css` holds the `:root` custom
+   properties (verbatim from index.html) **plus** a `@layer components` set
+   (`.chassis`, `.chassis-tray`, `.well`, …) for the bespoke metal Tailwind can't express —
+   the four corner-rivet `radial-gradient`s, the brushed `repeating-linear-gradient`, the
+   `padding-box`/`border-box` dual background, the 6-layer `box-shadow`. Tailwind v4's
+   `@theme` maps the same vars to utilities. **Both `web/` and the lab import this one file**
+   — that is the dedup the migration exists to deliver.
+6. **Co-locate in `web/src/ui/`, no new package.** The only cross-app consumer (the lab)
+   already imports `web/src/...` by relative path. A `packages/ui` is pure overhead for one
+   consumer; promote later only if a third app needs the components.
+7. **Tailwind v4 (CSS-first `@theme`), SSR off.** v4's CSS-first config co-locates with the
+   token CSS; v3's JS config would fork the token definition. Pure client SPA, `createRoot`
+   only — no Next/hydration. The `@vitejs/plugin-react` + Tailwind wiring **must preserve the
+   COOP/COEP isolation headers** in `web/vite.config.ts` (`crossOriginIsolated === true`).
+
+## The 4 CSS islands (what S1/S7 collapse into one)
+
+Measured: (1) index.html `:root` tokens + class consumers (the canonical set); (2) index.html
+`#unitcards` + `#toolbar` — **literal copies** of the chassis (rivets/brushed/6-layer shadow,
+*not* using the vars); (3) the lab `installStyles()` — re-declares the whole `.ucard*` +
+riveted card chassis as `.renderer-unitcards …` (the lab imports the *real* `UnitCards`
+component — only the CSS is forked); (4) `web/src/campaign/panels.ts` `campaignDomHtml()` —
+its own off-theme slate (`#2a3242`, system-ui, **zero** bronze tokens). S1 makes 1–3 consume
+one source; S5 folds 4 in (optionally re-themed); S7 deletes the forks.
+
+## Slice graph
+
+```
+S0 stack ──► S1 design-system (one bronze source)
+                  │
+                  ├──► S2 MENU proof ─────────────────────┐
+                  │                                        │
+                  └──► S3 HUD PERF SPIKE (gate) ──► S6 HUD outcome branch
+                            │                              (migrate │ keep-vanilla-share-tokens)
+        S2 ─► S4 army builder + battle modals ─┐           │
+        S2 ─► S5 campaign panels ──────────────┴──► S7 cleanup ◄─┘
+                                                    (4 CSS islands → 1; dedup lab)
+```
+
+S0→S1 are sequential foundation. S2 is the first surface. **S3 runs early (right after S2)**
+to settle the seam before the static wave. S4/S5 proceed in parallel after S2; they don't
+depend on S3's *outcome* (they're not on the hot path). S6 consumes S3's measurement. S7 last.
+
+## Standing verification gates (every slice)
+
+- **`tsc --noEmit` + `vite build`** green (S0 adds the typecheck script — there is none today).
+- **Screenshots:** the harness (`web/scene.mjs` + `web/snapshot.mjs`) is the gate; baselines
+  under `web/shots/`. It is **tolerant by default** (`threshold 0.12, maxDiffRatio 0.02`) and
+  supports exact `{0,0}`. **Pure-refactor slices (S0, S1, S7) gate at (0,0) / no-re-bless —
+  a forced re-bless there is a bug signal.** Intentional re-renders (S2 menu, S4/S5 panels)
+  re-bless the reflowed baselines as a *reviewed* change, never a blind `UPDATE_SHOTS=1`.
+  GPU scenes run **headful with hardware flags** (`VERIFY_GPU=1 VERIFY_GPU_ADAPTER=hardware
+  VERIFY_HEADFUL=1 VERIFY_BROWSER_CHANNEL=chrome` — no headless WebGPU adapter on this Mac).
+- **Every visual slice runs the two standing gates** —
+  [compare-screenshots](../../.claude/skills/compare-screenshots/SKILL.md) against the prior
+  vanilla baseline (this is a refactor: the target is "no worse / identical look", and the
+  bronze aesthetic + `assets/reference-tw-cardbar.png` family is the yardstick) **and** an
+  unprimed [screenshot-critique](../../.claude/skills/screenshot-critique/SKILL.md) as the
+  last check — then opens the shots with
+  [preview-shots](../../.claude/skills/preview-shots/SKILL.md).
+- **The gating scenes:** `web/scenes/ui/card-bar.mjs` (lab card bar, DOM-only),
+  `web/scenes/battle/battle-renderer-visual.mjs` (`battle-selection-dpr2`, GPU),
+  `web/scenes/ui/menu-renderer-shell-visual.mjs` (menu), the campaign visual scenes, and
+  `cardGrid.test.mjs` (`node --test`). **Add** a `menu-modals` snapshot in S2 (no baseline of
+  the open duel/quick-battle modal exists today) so S4 has a gate to preserve.
+- **S3's perf gate** is a measurement, not a baseline — see that slice.
+
+## Firewalls — do NOT touch
+
+- The WebGPU/WebGL renderer, WGSL, terrain, soldier/crowd, the **minimap canvas *draw***
+  (`drawMinimap` — React owns only the bronze *frame* around `<canvas id="minimap">`), the
+  Babylon campaign terrain + Canvas2D marker layer.
+- `crates/**` sim/wasm and the **zero-copy `unit_info` buffer layout** (STRIDE + offsets).
+- The screenshot harness *mechanism* (`scene.mjs`/`snapshot.mjs`); baselines re-bless, the
+  machinery does not change.
+- `UnitCards.update()`'s hand-diffed `key`-skip *logic* — it moves into the React card's
+  imperative `update` verbatim; do not "Reactify" it into per-frame state.
+
+## Open forks recorded (decide at the slice, non-blocking)
+
+- **Campaign re-theme (S5):** the campaign panels are off-theme slate today. Option A
+  (default, pure refactor): consolidate their CSS onto the one token source but **keep the
+  slate look** — re-theming to bronze is separate aesthetics work. Option B: re-theme
+  slate→bronze now (the one place screenshots *should* move). Flag to David in S5.
+- **React root (post-S7):** per-scene `createRoot` (migration default) vs one persistent
+  root + scene-kind store (A's end-state nicety). Decide only if/after the whole UI is React.
+- **S3 thresholds** (median/p95/fps floors): proposed in the slice, David tunes at the spike
+  checkpoint against the printed numbers.
+
+## Genuine alternatives considered (and why not)
+
+- **Big-bang in one PR, no spike** — rejected: the 60 Hz zero-copy seam is the one place a
+  wrong default (React state per frame) silently regresses a renderer-bound frame. The spike
+  settles it cheaply and gives a real fork.
+- **`useSyncExternalStore` for the 60 Hz bars** — kept only as the head-to-head the spike
+  measures; refs are the call for the hot path (leaf subscriptions still risk per-frame
+  reconcile at scale).
+- **Carve a `packages/ui`** — rejected for one consumer already cross-importing; promote later.
+- **Tailwind v3 (JS config)** — rejected: forks the token definition vs v4's CSS-first `@theme`.
+- **Keep the whole HUD vanilla forever** — that *is* the S6 keep-branch, a planned outcome
+  the spike may select; either way one token source keeps "one design system" true.
+
+Once shipped, [close-spec](../../.claude/skills/close-spec/SKILL.md) archives this to
+`specs/done/` and rewrites it from a build ladder into a rationale record. This also closes
+`specs/battle-ui/` S1 (the shared-token-extraction) — it was this migration all along.

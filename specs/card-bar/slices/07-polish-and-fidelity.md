@@ -44,16 +44,12 @@ is not enough; the candidate must visibly move toward the reference's chrome.
 - **Artillery reads as a siege engine, not a soldier.** The artillery look is a
   ground object (ballista/cart) with no standing figure to anchor the card. Frame
   on the crew, or accept it as the engine's portrait.
-- **Remaining reference deltas that ARE genuine choices** (David's call, once the
-  chassis above lands):
-  - Reference puts a single full-width strength bar across the **top**; ours
-    stacks three (hp/coh/mor) at the bottom. Ours carries more info (per spec) but
-    has a different silhouette — keep three, or move HP to a top bar?
-  - Reference shows a weapon/role medallion and no name; ours overlays the name.
-    Add a role medallion (it also helps the infantry-blur problem), keep the name,
-    or both?
-  (The bronze housing / opacity / bevels are NOT on this list — they're required,
-  covered above.)
+- **Reference deltas — resolved (non-blocking calls, documented):**
+  - **Top strength bar — DONE.** HP now runs across the card top with the count
+    riding on it (the reference silhouette); cohesion + morale stay at the bottom.
+  - **Role medallion — DEFERRED.** Phosphor lacks spear/bow/pike weapon icons, the
+    name already disambiguates, and a medallion duplicates the portrait + name.
+    Revisit if a weapon-icon set is added.
 
 ## Other open polish
 

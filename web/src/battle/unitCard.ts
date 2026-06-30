@@ -171,8 +171,15 @@ export class UnitCards {
       const name = document.createElement('div');
       name.className = 'ucard-name';
       name.textContent = u.name;
+      // HP runs across the TOP as the strength bar (Total-War reference), with the
+      // count riding on it; cohesion + morale stay at the bottom.
+      const hpTop = document.createElement('div');
+      hpTop.className = 'ucard-hp';
+      const hp = document.createElement('div');
+      hp.className = 'ucard-hp-fill';
       const count = document.createElement('div');
       count.className = 'ucard-count';
+      hpTop.append(hp, count);
       const bars = document.createElement('div');
       bars.className = 'ucard-bars';
       const mk = (cls: string) => {
@@ -180,8 +187,8 @@ export class UnitCards {
         const fill = document.createElement('div'); bar.appendChild(fill); bars.appendChild(bar);
         return fill;
       };
-      const hp = mk('hp'), coh = mk('coh'), mor = mk('mor');
-      card.append(port, name, count, bars);
+      const coh = mk('coh'), mor = mk('mor');
+      card.append(port, hpTop, name, bars);
       card.addEventListener('mousedown', (e) => { e.stopPropagation(); this.onSelect(u.unit, e.shiftKey); });
       this.root.appendChild(card);
       this.cards.push(card);

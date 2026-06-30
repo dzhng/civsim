@@ -10,14 +10,40 @@ Synthesized from three independent draft plans (they converged hard — the cut 
 
 ## Next Agent Prompt
 
-**Status:** S0 + S1 shipped (green). _Last updated: 2026-07-01._
+**Status:** S0 + S1 + S2 shipped (green). _Last updated: 2026-07-01._
 
-**Start at Slice 2** (`slices/02-menu-proof.md`) — first React surface (the menu + duel modal).
-S0 (stack) and S1 (one bronze token source) are done. S2 proves the stack on the menu;
-**S3 is the perf spike that decides whether the per-frame HUD becomes React** (it ships the
-card bar in React behind a measurement); S4/S5 migrate the static wave; S6 lands the HUD per
-S3's verdict; S7 deletes the duplication. Do not start the static wave (S4/S5) before S3
-settles the 60 Hz seam.
+**Start at Slice 3** (`slices/03-hud-perf-spike.md`) — the HUD perf SPIKE that decides whether
+the per-frame card bar becomes React. S0 (stack), S1 (one bronze token source), and S2 (React
+menu) are done. **S3 runs the head-to-head measurement and records the verdict S6 consumes.**
+Do not start the static wave (S4/S5) before S3 settles the 60 Hz seam.
+
+**S2 decisions recorded (read before S3):**
+- **The menu (`#menu-ui` + duel modal) is React** — `web/src/ui/menu/Menu.tsx`, mounted into
+  `#ui-root` by `MenuScene` (createRoot on enter, unmount on exit). `MenuConfig` and main.ts
+  wiring are unchanged. Renders **byte-identical DOM** (same ids/classes) so the existing bronze
+  menu CSS in index.html still styles it — **menu uses the existing bronze CSS, NOT Tailwind
+  utilities**, so the `@theme` bridge + preflight decision stay deferred (no React surface needs
+  a utility yet; revisit when one does, likely S4 army builder).
+- **Army builder stays vanilla** — `#quick-battle-modal` was relocated from inside `#menu-ui`
+  to **body level** (it's `position:fixed`), still driven by `mountQuickBattleSetup(document.body,
+  …)`. React's Custom Battle button calls `quickBattle.open()`. Zero React/vanilla DOM conflict.
+- **`#ui-root` z-index is 20** (was 50), mirroring the old `#menu-ui`, so the body-level
+  `#quick-battle-modal` (z-40) and `#manual` (z-50) layer **above** the React menu exactly as
+  before. (Setting it to 50 hid those overlays behind the menu and ate their clicks — caught by
+  the functional `menu-renderer-shell` scene, not the visual one.)
+- **S0 canary deleted** (`root.tsx`/`Canary.tsx` removed, its `<script>` gone) — MenuScene now
+  owns `#ui-root`. `tailwind.css` import moved to `menu/scene.ts` so Tailwind stays in the bundle.
+- Duel modal focuses `#duel-a` on open (matches the old `selA.focus()` → identical focus ring).
+- **New baseline `menu-quick-battle-modal`** added (the vanilla army builder open) — S4's gate
+  to preserve when it migrates the builder.
+
+**S2 verification (green):** `tsc` ✓, `build` ✓, `cardGrid` 8/8 ✓, `menu-renderer-shell-visual`
+4 snaps (ready/unsupported/duel/quick-battle, headful) **0.0000%** (3 existing no-re-bless, 1 new
+blessed) ✓, **`menu-renderer-shell` functional flow fully passes** — duel + 5v5 + campaign all
+launch through the React menu, manual opens, Escape closes, GPU-off disables ✓,
+`battle-renderer-visual` 0.0000% ✓, `card-bar` (headless) 0.0000% ✓. The 3 prior menu snaps are
+byte-identical to the vanilla baseline, so the screenshot-critique/compare gate is self-justified
+(zero pixels changed); the army-builder baseline is unchanged pre-existing vanilla content.
 
 **S0 decisions recorded (read before S1):**
 - **Tailwind = utilities + theme only, NO preflight** (`web/src/ui/tailwind.css` imports the
@@ -69,7 +95,7 @@ checkpoint:** the (0,0) pass is self-justifying (no pixels moved); proceeded on 
 **Global TODO:**
 - [x] S0 — stack setup: React + Vite plugin + Tailwind v4 in `web/`, COOP/COEP preserved, `tsc --noEmit` gate (`slices/00-stack-setup.md`) — **shipped**
 - [x] S1 — one bronze token source (`web/src/ui/theme/bronze.css`): `:root` tokens consumed by vanilla index.html; chassis classes + `@theme` deferred to S2; **zero pixel change** (`slices/01-design-system.md`) — **shipped**
-- [ ] S2 — menu proof (first React surface: `#menu-ui` + duel modal) (`slices/02-menu-proof.md`)
+- [x] S2 — menu proof: `#menu-ui` + duel modal are React (`web/src/ui/menu/Menu.tsx`) into `#ui-root`; army builder stays vanilla; new `menu-quick-battle-modal` baseline (`slices/02-menu-proof.md`) — **shipped**
 - [ ] S3 — **HUD perf SPIKE** (card bar in React, 60 Hz via refs, measured) → migrate/keep verdict (`slices/03-hud-perf-spike.md`)
 - [ ] S4 — static wave: army builder + battle modals (`slices/04-army-builder-modals.md`)
 - [ ] S5 — static wave: campaign panels (+ optional slate→bronze re-theme, David's call) (`slices/05-campaign-panels.md`)

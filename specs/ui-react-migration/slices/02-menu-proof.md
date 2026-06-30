@@ -18,6 +18,11 @@ surface — the lowest-risk first cut.
   shell and the existing `mountQuickBattleSetup` still drives it (migrated in S4). Coexistence
   behind a button is fine.
 - Menu markup leaves `index.html`; bronze classes become Tailwind utilities + `.chassis`/`.well`.
+- **Inherited from S1 (deferred here):** add the `.chassis` / `.chassis-tray` / `.well`
+  component classes to `bronze.css` and the Tailwind `@theme` bridge (mapping `--bronze-*` /
+  `--well-*` onto utilities) — this slice is the first React consumer that applies them, so it
+  owns wiring them. Decide preflight here too: scope or skip Tailwind's reset so the still-vanilla
+  surfaces don't move (S1 deliberately imported utilities-only, no preflight).
 
 ## What a human can run / see
 Boot to menu; hover/click every button; open the duel modal; toggle AI; see GPU-unavailable

@@ -1,5 +1,13 @@
 # Slice 1 — One bronze token source
 
+> **AS BUILT (shipped 2026-07-01):** bronze.css ships the `:root` token **values** only;
+> `#toolbar`/`#unitcards` now reference `var(--bronze-*)` instead of re-typed literals. The
+> `.chassis`/`.chassis-tray` component **classes** and the Tailwind `@theme` bridge below were
+> **deferred to S2** — moving the chassis onto a class isn't pixel-safe while the renderer-lab
+> card-bar band reuses `id="unitcards"` and depends on the index.html id-rule background (id
+> beats the lab's `.renderer-unitcards` class). The lab dedup is S7; S2 introduces the classes
+> when React applies them. All scenes 0.0000% / no-re-bless. See the README handoff for details.
+
 ## Contract unlocked
 The bronze tokens + chassis exist as **one importable CSS module**, consumed identically by
 (a) Tailwind `@theme`, (b) the remaining vanilla `index.html` CSS, (c) the lab

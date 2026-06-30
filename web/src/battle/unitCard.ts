@@ -1,0 +1,215 @@
+// The bottom unit-card strip — one card per player unit, Total War style: a
+// side-view portrait of the class, the unit name, and live HP / cohesion /
+// morale bars. Clicking a card selects the unit (shift adds to the selection).
+// Pure DOM/Canvas: portraits are drawn once from the class look; the bars and
+// the selected/rout state refresh each frame from the sim.
+
+import { lookForModel, modelLookForClass } from '../../../packages/game-renderer/src/models/shared/soldierModel';
+import { computeCardGrid, type CardGridOpts } from './cardGrid';
+import { cardThumbUrl } from './classData';
+
+// Faction accents keep cards, banners, and WebGPU soldier colours reading as
+// the same side.
+const FACTION_CSS = ['#3a6cf0', '#e03e34']; // player blue, enemy crimson
+
+// Total-War card-bar constants (the production source of truth — cardGrid.ts
+// only holds matching fallbacks). Cards are a FIXED size; the bar wraps into
+// more rows as the roster grows (David, 2026-06-30). Tunable at the S2 checkpoint.
+const CARD_W = 72; // fixed card width in px (cardH derives from the 3:4 aspect)
+// The centered bar must clear the bottom-right minimap (a GPU overlay the DOM
+// can't measure): minimapPass sizes it ≤188px wide with a 16px margin, so a
+// centered bar collides once it is wider than viewport − 2×~204. Reserve that
+// zone (symmetric, to stay centered). The lab harness has no minimap and passes
+// a bare margin instead. Tunable at the S2 checkpoint.
+const MINIMAP_RESERVE = 210;
+const GRID_OPTS: CardGridOpts = { cardW: CARD_W, aspect: 3 / 4, gap: 4, maxRows: 3 };
+
+export interface UnitCardInit {
+  unit: number; // sim unit id (for selection)
+  cls: number;
+  look?: number;
+  team: 0 | 1;
+  name: string;
+}
+
+export interface UnitCardState {
+  alive: number;
+  total: number;
+  cohesion: number; // 0..1
+  morale: number; // 0..1
+  stamina: number; // 0..1
+  routing: boolean;
+  selected: boolean;
+}
+
+const W = 38, H = 48; // portrait canvas size (CSS px; drawn at 2x for crispness)
+
+// A compact side-view soldier (or rider) for class `cls`, facing right, tinted
+// with the faction accent on shield/crest/sash — the same silhouette language
+// as the 3D model, just flat. Drawn on a 2x backing for sharpness.
+function drawPortrait(canvas: HTMLCanvasElement, cls: number, look: number | undefined, team: 0 | 1) {
+  const L = lookForModel(look ?? modelLookForClass(cls));
+  const dpr = 2;
+  canvas.width = W * dpr; canvas.height = H * dpr;
+  const g = canvas.getContext('2d')!;
+  g.scale(dpr, dpr);
+  g.clearRect(0, 0, W, H);
+  const fac = FACTION_CSS[team];
+  const SKIN = '#c8966f', BRONZE = '#b08a3e', LINEN = '#cabf9c', LEATHER = '#5f4426', IRON = '#9aa0a8', WOOD = '#7a5a32';
+  const cx = W / 2;
+  const groundY = H - 6;
+
+  if (L.mounted) {
+    // Horse in profile, rider above.
+    g.fillStyle = '#5b4127';
+    g.beginPath(); g.ellipse(cx, groundY - 12, 20, 9, 0, 0, Math.PI * 2); g.fill();
+    g.fillRect(cx - 16, groundY - 10, 4, 12); g.fillRect(cx + 10, groundY - 10, 4, 12); // legs
+    g.fillRect(cx + 16, groundY - 22, 5, 12); // neck
+    g.fillStyle = '#3a2a18'; g.fillRect(cx + 18, groundY - 26, 7, 6); // head
+    // Rider
+    g.fillStyle = LINEN; g.fillRect(cx - 3, groundY - 30, 8, 12);
+    g.fillStyle = fac; g.fillRect(cx - 3, groundY - 30, 8, 3); // sash
+    g.fillStyle = SKIN; g.fillRect(cx - 1, groundY - 38, 6, 7);
+    g.fillStyle = BRONZE; g.fillRect(cx - 2, groundY - 40, 8, 4); // helmet
+    g.strokeStyle = WOOD; g.lineWidth = 2; g.beginPath(); g.moveTo(cx + 6, groundY - 34); g.lineTo(cx + 24, groundY - 24); g.stroke(); // lance
+    return;
+  }
+
+  // Legs
+  g.fillStyle = LINEN; g.fillRect(cx - 6, groundY - 22, 5, 16); g.fillRect(cx + 1, groundY - 22, 5, 16);
+  g.fillStyle = LEATHER; g.fillRect(cx - 6, groundY - 8, 5, 6); g.fillRect(cx + 1, groundY - 8, 5, 6); // boots
+  // Torso (cuirass) + faction sash
+  g.fillStyle = BRONZE; g.fillRect(cx - 7, groundY - 38, 14, 18);
+  g.fillStyle = fac; g.fillRect(cx - 7, groundY - 34, 14, 3);
+  // Head + helmet
+  g.fillStyle = SKIN; g.fillRect(cx - 4, groundY - 48, 8, 9);
+  g.fillStyle = BRONZE; g.fillRect(cx - 5, groundY - 50, 10, 5);
+  if (L.crest) { g.fillStyle = fac; g.fillRect(cx - 1, groundY - 57, 3, 8); g.fillRect(cx - 4, groundY - 55, 8, 3); }
+  // Weapon (right side)
+  g.strokeStyle = WOOD; g.lineWidth = 2; g.beginPath();
+  const wx = cx + 9;
+  if (L.weapon === 'pike') { g.moveTo(wx, groundY - 2); g.lineTo(wx, groundY - 56); }
+  else if (L.weapon === 'spear' || L.weapon === 'javelin') { g.moveTo(wx, groundY - 4); g.lineTo(wx, groundY - 48); }
+  else if (L.weapon === 'bow') { g.strokeStyle = WOOD; g.arc(wx + 2, groundY - 30, 12, -1.1, 1.1); }
+  else if (L.weapon === 'greatsword') { g.strokeStyle = IRON; g.moveTo(wx, groundY - 6); g.lineTo(wx, groundY - 50); }
+  else if (L.weapon !== 'none') { g.strokeStyle = IRON; g.moveTo(wx, groundY - 20); g.lineTo(wx + 3, groundY - 40); }
+  g.stroke();
+  // Shield (left side, faction-accented)
+  if (L.shield !== 'none') {
+    const sh = { tall: 22, round: 16, small: 12 }[L.shield];
+    g.fillStyle = WOOD; g.fillRect(cx - 12, groundY - 30, 6, sh);
+    g.fillStyle = fac; g.fillRect(cx - 11, groundY - 30 + sh / 2 - 2, 4, 4);
+  }
+}
+
+// The card portrait: the baked 3D-model shot (S3) as an <img>, falling back to
+// the flat canvas drawing if the look is unbaked or the PNG fails to load, so the
+// bar never blanks.
+function portrait(u: UnitCardInit, look: number): HTMLElement {
+  const canvasFallback = () => {
+    const c = document.createElement('canvas');
+    c.className = 'ucard-port';
+    drawPortrait(c, u.cls, u.look, u.team);
+    return c;
+  };
+  const url = cardThumbUrl(look);
+  if (!url) return canvasFallback();
+  const img = document.createElement('img');
+  img.className = 'ucard-port';
+  img.loading = 'eager';
+  img.decoding = 'async';
+  img.alt = u.name;
+  img.src = url;
+  img.onerror = () => img.replaceWith(canvasFallback());
+  return img;
+}
+
+export class UnitCards {
+  private cards: HTMLElement[] = [];
+  private bars: { hp: HTMLElement; coh: HTMLElement; mor: HTMLElement; count: HTMLElement }[] = [];
+  private keys: string[] = [];
+
+  constructor(
+    private root: HTMLElement,
+    private onSelect: (unit: number, additive: boolean) => void,
+    // px reserved each side of the bar. Defaults to the minimap clearance (live
+    // game); the lab harness, which has no minimap, passes a bare margin.
+    private sideReserve: number = MINIMAP_RESERVE,
+  ) {
+    // Reflow when the viewport width changes — the grid pass is layout, never
+    // per-frame. Roster changes reflow via build().
+    window.addEventListener('resize', () => this.relayout());
+  }
+
+  /** No-scroll grid pass: pick rows/cols for the current roster at the fixed
+   * card size, then hand them to CSS as custom properties. The bar shrink-wraps
+   * to its cards, so the width budget is read from the viewport, not the bar
+   * itself (which would be circular). Runs on build and on resize — never per
+   * frame; `update()` only touches bar widths. */
+  private relayout() {
+    const boxW = window.innerWidth - 2 * this.sideReserve;
+    const g = computeCardGrid(this.cards.length, boxW, GRID_OPTS);
+    this.root.style.setProperty('--cols', String(g.cols));
+    this.root.style.setProperty('--card-w', g.cardW + 'px');
+    this.root.style.setProperty('--card-h', g.cardH + 'px');
+    this.root.classList.toggle('undersized', g.degenerate);
+    (window as unknown as { __cardGrid?: unknown }).__cardGrid = {
+      rows: g.rows, cols: g.cols, cardW: g.cardW, degenerate: g.degenerate,
+    };
+  }
+
+  /** (Re)build a card per unit. Call when the roster is known or grows. */
+  build(units: UnitCardInit[]) {
+    this.root.innerHTML = '';
+    this.cards = []; this.bars = []; this.keys = [];
+    for (const u of units) {
+      const card = document.createElement('div');
+      card.className = 'ucard';
+      card.style.setProperty('--fac', FACTION_CSS[u.team]);
+      const look = u.look ?? modelLookForClass(u.cls);
+      const port = portrait(u, look);
+      const name = document.createElement('div');
+      name.className = 'ucard-name';
+      name.textContent = u.name;
+      const count = document.createElement('div');
+      count.className = 'ucard-count';
+      const bars = document.createElement('div');
+      bars.className = 'ucard-bars';
+      const mk = (cls: string) => {
+        const bar = document.createElement('div'); bar.className = 'ucard-bar ' + cls;
+        const fill = document.createElement('div'); bar.appendChild(fill); bars.appendChild(bar);
+        return fill;
+      };
+      const hp = mk('hp'), coh = mk('coh'), mor = mk('mor');
+      card.append(port, name, count, bars);
+      card.addEventListener('mousedown', (e) => { e.stopPropagation(); this.onSelect(u.unit, e.shiftKey); });
+      this.root.appendChild(card);
+      this.cards.push(card);
+      this.bars.push({ hp, coh, mor, count });
+      this.keys.push('');
+    }
+    this.relayout();
+  }
+
+  /** Refresh bars + selected/rout state. `states[i]` null hides a dead unit's card. */
+  update(states: (UnitCardState | null)[]) {
+    for (let i = 0; i < this.cards.length; i++) {
+      const s = i < states.length ? states[i] : null;
+      const card = this.cards[i];
+      if (!s) { card.style.display = 'none'; continue; }
+      card.style.display = '';
+      const hpFrac = s.total > 0 ? s.alive / s.total : 0;
+      const key = `${(hpFrac * 50) | 0}|${(s.cohesion * 30) | 0}|${(s.morale * 30) | 0}|${(s.stamina * 20) | 0}|${s.selected ? 1 : 0}|${s.routing ? 1 : 0}`;
+      if (key === this.keys[i]) continue;
+      this.keys[i] = key;
+      const b = this.bars[i];
+      b.hp.style.width = (hpFrac * 100).toFixed(0) + '%';
+      b.hp.style.background = hpFrac > 0.5 ? '#5cba46' : hpFrac > 0.25 ? '#d6b13a' : '#cf4a3a';
+      b.coh.style.width = (s.cohesion * 100).toFixed(0) + '%';
+      b.mor.style.width = (s.morale * 100).toFixed(0) + '%';
+      b.count.textContent = String(s.alive);
+      card.classList.toggle('sel', s.selected);
+      card.classList.toggle('rout', s.routing);
+    }
+  }
+}

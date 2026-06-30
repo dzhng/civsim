@@ -1,0 +1,624 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Column Closing No-Crab Timeline</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #18212b;
+      --muted: #62717f;
+      --panel: #f7f9fb;
+      --line: #cfd7df;
+      --live: #1f6f9f;
+      --moved: #2ca58d;
+      --fill: #5aa9e6;
+      --dead: #b23a48;
+      --empty: #eef2f5;
+      --rank: #f0b429;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: #ffffff;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.45;
+    }
+
+    main {
+      width: min(1180px, calc(100vw - 32px));
+      margin: 0 auto;
+      padding: 28px 0 36px;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin: 0;
+    }
+
+    h1 {
+      font-size: clamp(1.7rem, 2.4vw, 2.45rem);
+      line-height: 1.08;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      margin-top: 30px;
+      font-size: 1.05rem;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      font-size: 0.88rem;
+      letter-spacing: 0;
+    }
+
+    .intro {
+      display: grid;
+      gap: 14px;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 18px;
+    }
+
+    .summary {
+      max-width: 880px;
+      color: var(--muted);
+      font-size: 0.96rem;
+    }
+
+    .metrics {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .metric {
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 7px 9px;
+      background: var(--panel);
+      font-size: 0.84rem;
+      color: var(--ink);
+    }
+
+    .metric strong {
+      font-weight: 700;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+      padding: 12px 0 2px;
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    .swatch,
+    .cell {
+      position: relative;
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 1px solid transparent;
+      flex: 0 0 auto;
+    }
+
+    .live {
+      background: var(--live);
+    }
+
+    .live_moved {
+      background: var(--moved);
+    }
+
+    .live_fill {
+      background: var(--fill);
+      border-color: var(--dead);
+      box-shadow: 0 0 0 2px rgba(178, 58, 72, 0.12);
+    }
+
+    .dead {
+      background: transparent;
+      border-color: var(--dead);
+    }
+
+    .dead::before,
+    .dead::after {
+      content: "";
+      position: absolute;
+      top: 7px;
+      left: 2px;
+      width: 10px;
+      height: 2px;
+      border-radius: 2px;
+      background: var(--dead);
+    }
+
+    .dead::before {
+      transform: rotate(45deg);
+    }
+
+    .dead::after {
+      transform: rotate(-45deg);
+    }
+
+    .empty {
+      background: var(--empty);
+      border-color: #bcc7d1;
+      border-style: dashed;
+    }
+
+    .frames {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .frame {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #ffffff;
+      padding: 12px;
+      min-width: 0;
+    }
+
+    .frame-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .time {
+      color: var(--muted);
+      font-size: 0.78rem;
+      white-space: nowrap;
+    }
+
+    .grid-wrap {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 8px;
+      align-items: start;
+    }
+
+    .rank-labels {
+      display: grid;
+      gap: 7px;
+      padding-top: 1px;
+      color: var(--muted);
+      font-size: 0.66rem;
+      text-align: right;
+      line-height: 16px;
+    }
+
+    .slot-grid {
+      display: grid;
+      gap: 7px;
+      width: max-content;
+      max-width: 100%;
+    }
+
+    .slot-row {
+      display: grid;
+      grid-template-columns: repeat(var(--files), 16px);
+      gap: 7px;
+      min-height: 16px;
+    }
+
+    .file-labels {
+      display: grid;
+      grid-template-columns: repeat(var(--files), 16px);
+      gap: 7px;
+      grid-column: 2;
+      color: var(--muted);
+      font-size: 0.66rem;
+      text-align: center;
+    }
+
+    .note {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+
+    .drift {
+      margin-top: 14px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .drift-frame {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      background: var(--panel);
+    }
+
+    .bars {
+      display: grid;
+      gap: 5px;
+      margin-top: 9px;
+    }
+
+    .bar-row {
+      display: grid;
+      grid-template-columns: 48px 1fr 50px;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.74rem;
+      color: var(--muted);
+    }
+
+    .track {
+      position: relative;
+      height: 10px;
+      border-radius: 99px;
+      background: #dfe6ec;
+      overflow: hidden;
+    }
+
+    .bar {
+      display: block;
+      height: 100%;
+      border-radius: 99px;
+      background: var(--rank);
+    }
+
+    .threshold {
+      position: absolute;
+      top: -2px;
+      bottom: -2px;
+      width: 2px;
+      background: var(--dead);
+      opacity: 0.75;
+    }
+
+    .foot {
+      margin-top: 26px;
+      border-top: 1px solid var(--line);
+      padding-top: 14px;
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      font-size: 0.92em;
+    }
+
+    @media (max-width: 640px) {
+      main {
+        width: min(100vw - 20px, 1180px);
+        padding-top: 20px;
+      }
+
+      .frames {
+        grid-template-columns: 1fr;
+      }
+
+      .frame {
+        overflow-x: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="intro">
+      <h1>Column Closing No-Crab Timeline</h1>
+      <p class="summary">
+        Deterministic slice-3 capture from the formation fixture: casualties close
+        forward inside their file during contact; lateral re-evening waits for
+        the clear beat after contact is gone.
+      </p>
+      <div class="metrics">
+        <span class="metric"><strong>Scenario:</strong> immortal fake block, seed 7</span>
+        <span class="metric"><strong>No-crab rail:</strong> p95 &lt; 0.45m, peak &lt; 0.55m</span>
+        <span class="metric"><strong>Current test:</strong> p95 0.296m, peak 0.327m</span>
+        <span class="metric"><strong>File relabel:</strong> about 1.0m</span>
+      </div>
+    </section>
+
+    <div class="legend" aria-label="Legend">
+      <span class="legend-item"><span class="swatch live"></span>live</span>
+      <span class="legend-item"><span class="swatch live_fill"></span>forward fill into casualty slot</span>
+      <span class="legend-item"><span class="swatch live_moved"></span>moved from original slot</span>
+      <span class="legend-item"><span class="swatch dead"></span>casualty / notch</span>
+      <span class="legend-item"><span class="swatch empty"></span>empty rear slot</span>
+    </div>
+
+    <section id="forward">
+      <h2>Forward Closure While Engaged</h2>
+      <p class="note">
+        Rows are original ranks from front to rear. The killed file is column 3;
+        live men move forward within that file, leaving rear vacancies in the same
+        column instead of sliding neighbors sideways.
+      </p>
+      <div class="frames" data-scene="forward"></div>
+      <div class="drift" data-drift="forward"></div>
+    </section>
+
+    <section id="notch">
+      <h2>Wiped File Notch And Clear Beat</h2>
+      <p class="note">
+        A one-file wipe remains a dead stripe while contact is live. The final
+        frame is the explicit disengage re-even; it is the permitted lateral
+        movement, not a mid-fight crab.
+      </p>
+      <div class="frames" data-scene="notch"></div>
+    </section>
+
+    <p class="foot">
+      Capture source: deterministic fixture mirroring
+      <code>crates/sim/tests/mechanics_formation.rs</code>. Open this file
+      directly; it has no external assets.
+    </p>
+  </main>
+
+  <script>
+    const CAPTURE = {
+      "forward": {
+        "files": 7,
+        "ranks": 7,
+        "frames": [
+          {
+            "label": "casualties marked",
+            "seconds": 0,
+            "cells": [
+              ["live", "live", "live", "dead", "live", "live", "live"],
+              ["live", "live", "live", "dead", "live", "live", "live"],
+              ["live", "live", "live", "live", "live", "live", "live"],
+              ["live", "live", "live", "live", "live", "live", "live"],
+              ["live", "live", "live", "live", "live", "live", "live"],
+              ["live", "live", "live", "live", "live", "live", "live"],
+              ["live", "live", "live", "live", "live", "live", "live"]
+            ],
+            "rankDrift": [
+              {"rank": 0, "avg": 0, "max": 0, "n": 6},
+              {"rank": 1, "avg": 0, "max": 0, "n": 6},
+              {"rank": 2, "avg": 0, "max": 0, "n": 7},
+              {"rank": 3, "avg": 0, "max": 0, "n": 7},
+              {"rank": 4, "avg": 0, "max": 0, "n": 7},
+              {"rank": 5, "avg": 0, "max": 0, "n": 7},
+              {"rank": 6, "avg": 0, "max": 0, "n": 7}
+            ]
+          },
+          {
+            "label": "engaged 1 tick",
+            "seconds": 0.03,
+            "cells": [
+              ["live", "live", "live", "live_fill", "live", "live", "live"],
+              ["live", "live", "live", "live_fill", "live", "live", "live"],
+              ["live", "live", "live", "live_moved", "live", "live", "live"],
+              ["live", "live", "live", "live_moved", "live", "live", "live"],
+              ["live", "live", "live", "live_moved", "live", "live", "live"],
+              ["live", "live", "live", "empty", "live", "live", "live"],
+              ["live", "live", "live", "empty", "live", "live", "live"]
+            ],
+            "rankDrift": [
+              {"rank": 0, "avg": 0.017, "max": 0.050, "n": 6},
+              {"rank": 1, "avg": 0.018, "max": 0.054, "n": 6},
+              {"rank": 2, "avg": 0.015, "max": 0.054, "n": 7},
+              {"rank": 3, "avg": 0.015, "max": 0.054, "n": 7},
+              {"rank": 4, "avg": 0.015, "max": 0.054, "n": 7},
+              {"rank": 5, "avg": 0, "max": 0, "n": 7},
+              {"rank": 6, "avg": 0, "max": 0, "n": 7}
+            ]
+          },
+          {
+            "label": "engaged 0.5s",
+            "seconds": 0.47,
+            "cells": [
+              ["live", "live", "live", "live_fill", "live", "live", "live"],
+              ["live", "live", "live", "live_fill", "live", "live", "live"],
+              ["live", "live", "live", "live_moved", "live", "live", "live"],
+              ["live", "live", "live", "live_moved", "live", "live", "live"],
+              ["live", "live", "live", "live_moved", "live", "live", "live"],
+              ["live", "live", "live", "empty", "live", "live", "live"],
+              ["live", "live", "live", "empty", "live", "live", "live"]
+            ],
+            "rankDrift": [
+              {"rank": 0, "avg": 0.210, "max": 0.238, "n": 6},
+              {"rank": 1, "avg": 0.221, "max": 0.229, "n": 6},
+              {"rank": 2, "avg": 0.177, "max": 0.256, "n": 7},
+              {"rank": 3, "avg": 0.169, "max": 0.243, "n": 7},
+              {"rank": 4, "avg": 0.126, "max": 0.203, "n": 7},
+              {"rank": 5, "avg": 0.051, "max": 0.091, "n": 7},
+              {"rank": 6, "avg": 0.025, "max": 0.031, "n": 7}
+            ]
+          },
+          {
+            "label": "engaged 1.0s",
+            "seconds": 0.97,
+            "cells": [
+              ["live", "live", "live", "live_fill", "live", "live", "live"],
+              ["live", "live", "live", "live_fill", "live", "live", "live"],
+              ["live", "live", "live", "live_moved", "live", "live", "live"],
+              ["live", "live", "live", "live_moved", "live", "live", "live"],
+              ["live", "live", "live", "live_moved", "live", "live", "live"],
+              ["live", "live", "live", "empty", "live", "live", "live"],
+              ["live", "live", "live", "empty", "live", "live", "live"]
+            ],
+            "rankDrift": [
+              {"rank": 0, "avg": 0.066, "max": 0.082, "n": 6},
+              {"rank": 1, "avg": 0.068, "max": 0.089, "n": 6},
+              {"rank": 2, "avg": 0.054, "max": 0.078, "n": 7},
+              {"rank": 3, "avg": 0.053, "max": 0.082, "n": 7},
+              {"rank": 4, "avg": 0.050, "max": 0.080, "n": 7},
+              {"rank": 5, "avg": 0.042, "max": 0.069, "n": 7},
+              {"rank": 6, "avg": 0.037, "max": 0.065, "n": 7}
+            ]
+          }
+        ]
+      },
+      "notch": {
+        "files": 7,
+        "ranks": 5,
+        "frames": [
+          {
+            "label": "file wiped",
+            "seconds": 0,
+            "cells": [
+              ["live", "live", "live", "dead", "live", "live", "live"],
+              ["live", "live", "live", "dead", "live", "live", "live"],
+              ["live", "live", "live", "dead", "live", "live", "live"],
+              ["live", "live", "live", "dead", "live", "live", "live"],
+              ["live", "live", "live", "dead", "live", "live", "live"]
+            ],
+            "lateralMovers": 0
+          },
+          {
+            "label": "engaged: notch persists",
+            "seconds": 0.03,
+            "cells": [
+              ["live", "live", "live", "dead", "live", "live", "live"],
+              ["live", "live", "live", "dead", "live", "live", "live"],
+              ["live", "live", "live", "dead", "live", "live", "live"],
+              ["live", "live", "live", "dead", "live", "live", "live"],
+              ["live", "live", "live", "dead", "live", "live", "live"]
+            ],
+            "lateralMovers": 0
+          },
+          {
+            "label": "clear beat: re-evened",
+            "seconds": 1.03,
+            "cells": [
+              ["live", "live", "live", "live_fill", "live_moved", "live", "live"],
+              ["live", "live", "live", "live_fill", "live_moved", "live_moved", "live"],
+              ["live", "live_moved", "live_moved", "live_fill", "live_moved", "live", "live_moved"],
+              ["live_moved", "live_moved", "live_moved", "live_fill", "live_moved", "live_moved", "live_moved"],
+              ["empty", "empty", "empty", "dead", "live", "live", "empty"]
+            ],
+            "lateralMovers": 17
+          }
+        ]
+      }
+    };
+
+    const maxDriftScale = 1.0;
+
+    function formatSeconds(value) {
+      return `${value.toFixed(2)}s`;
+    }
+
+    function renderFrame(scene, frame) {
+      const article = document.createElement("article");
+      article.className = "frame";
+      article.innerHTML = `
+        <div class="frame-head">
+          <h3>${frame.label}</h3>
+          <span class="time">${formatSeconds(frame.seconds)}</span>
+        </div>
+      `;
+
+      const wrap = document.createElement("div");
+      wrap.className = "grid-wrap";
+
+      const ranks = document.createElement("div");
+      ranks.className = "rank-labels";
+      for (let rank = 0; rank < scene.ranks; rank += 1) {
+        const label = document.createElement("span");
+        label.textContent = `r${rank}`;
+        ranks.appendChild(label);
+      }
+      wrap.appendChild(ranks);
+
+      const grid = document.createElement("div");
+      grid.className = "slot-grid";
+      grid.style.setProperty("--files", scene.files);
+      for (const row of frame.cells) {
+        const rowEl = document.createElement("div");
+        rowEl.className = "slot-row";
+        for (const cell of row) {
+          const cellEl = document.createElement("span");
+          cellEl.className = `cell ${cell}`;
+          cellEl.title = cell.replace("_", " ");
+          rowEl.appendChild(cellEl);
+        }
+        grid.appendChild(rowEl);
+      }
+      wrap.appendChild(grid);
+
+      const files = document.createElement("div");
+      files.className = "file-labels";
+      files.style.setProperty("--files", scene.files);
+      for (let file = 0; file < scene.files; file += 1) {
+        const label = document.createElement("span");
+        label.textContent = `f${file}`;
+        files.appendChild(label);
+      }
+      wrap.appendChild(files);
+
+      article.appendChild(wrap);
+
+      if (typeof frame.lateralMovers === "number") {
+        const note = document.createElement("p");
+        note.className = "note";
+        note.textContent = `${frame.lateralMovers} lateral movers`;
+        article.appendChild(note);
+      }
+
+      return article;
+    }
+
+    function renderScene(name) {
+      const scene = CAPTURE[name];
+      const host = document.querySelector(`[data-scene="${name}"]`);
+      for (const frame of scene.frames) {
+        host.appendChild(renderFrame(scene, frame));
+      }
+    }
+
+    function renderDrift() {
+      const host = document.querySelector('[data-drift="forward"]');
+      for (const frame of CAPTURE.forward.frames.slice(1)) {
+        const block = document.createElement("div");
+        block.className = "drift-frame";
+        block.innerHTML = `<h3>${frame.label}: max lateral drift by original rank</h3>`;
+        const bars = document.createElement("div");
+        bars.className = "bars";
+        for (const rank of frame.rankDrift) {
+          const row = document.createElement("div");
+          row.className = "bar-row";
+          const value = Math.max(0, Math.min(maxDriftScale, rank.max));
+          row.innerHTML = `
+            <span>r${rank.rank}</span>
+            <span class="track">
+              <span class="bar" style="width:${value * 100}%"></span>
+              <span class="threshold" style="left:100%"></span>
+            </span>
+            <span>${rank.max.toFixed(3)}m</span>
+          `;
+          bars.appendChild(row);
+        }
+        block.appendChild(bars);
+        host.appendChild(block);
+      }
+    }
+
+    renderScene("forward");
+    renderScene("notch");
+    renderDrift();
+  </script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+[package]
+name = "sim"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+contract = { path = "../contract" }
+# Only the `weave_shots` tool needs PNG encoding; keep it OUT of the default
+# (wasm) build behind the `shots` feature.
+png = { version = "0.17", optional = true }
+
+[dev-dependencies]
+serde_json = "1"
+
+[features]
+# The weave vibe-shot generator (`src/bin/weave_shots.rs`) — a committed tool,
+# run on demand, never part of a normal build.
+shots = ["dep:png"]
+
+# `weave_shots` is gated so `cargo build` / the wasm build never pull in `png`.
+# Run it with: cargo run -p sim --bin weave_shots --features shots
+[[bin]]
+name = "weave_shots"
+required-features = ["shots"]

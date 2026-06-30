@@ -1,0 +1,509 @@
+//! CHARGE-ABSORPTION mechanics: how a trample bleeds against bodies.
+//!
+//! A trampler (cavalry) is exempt from the body wall while it charges — it
+//! rides THROUGH bodies. What stops it is a BLEED: every enemy body it rides
+//! into spends a slice of its carried momentum, scaled by that man's BRACE.
+//! Rank by rank the charge bleeds; once its measured mass-advance falls below
+//! trample speed the trample ends and the body wall pins it. So one quantity —
+//! BRACE — sets everything:
+//!   - a STILL, braced line (brace ramped to its full multiplier) brakes the
+//!     charge hard, so a few ranks bog it;
+//!   - a MOVING or just-halted line (brace ~1, ramp not built) barely brakes
+//!     it, so the horse rides deeper / through;
+//!   - enough DEPTH bogs it regardless (even brace ~1 bleeds a little).
+//!
+//! Pure-physics rig: immortal, zero-damage fake units. Nobody dies, so the
+//! trace shows ONLY the bleed-vs-momentum contest, immune to weapon/damage
+//! balance. (A felling blow resolves to ONE state — kill XOR knock-down — and
+//! brace RAMPS over a few seconds, so a line caught on the move isn't braced.)
+
+use sim::{class_stats, Pace, Sim, Tunables, UnitClassId, Vec2, Weapon, DT};
+use std::f32::consts::FRAC_PI_2;
+
+const SEED: u64 = 11;
+
+/// 60 immortal charging horse from y=-40 into an immortal `depth`-rank heavy
+/// block centred on y=0 (front rank at y=0, ranks north). Both sides immortal,
+/// zero-damage. `brace_mult` is the block's bracing (2.0 = a real braced line,
+/// 1.0 = a body that can never brace — the "moving line" stand-in). Returns the
+/// peak depth (in ranks) reached by the leading horse and by the 80th-percentile
+/// horse. The projection solver can leave a single lead body poking past the rear;
+/// the p80 readout asks whether the charge MASS rode through.
+fn charge_penetration(depth: usize, brace_mult: f32) -> (f32, f32) {
+    let mut tun = Tunables::default();
+    tun.micro_rough = 0.0;
+    tun.morale_enabled = false;
+    let mut sim = Sim::new(tun, SEED);
+    let files = 20usize;
+    let block = sim.spawn_unit(
+        Vec2::new(0.0, 0.0),
+        -FRAC_PI_2,
+        files * depth,
+        files,
+        Vec2::new(0.9, 1.1),
+        1,
+        0.8,
+    );
+    let mut bh = class_stats(UnitClassId::HeavySword);
+    bh.brace_mult = brace_mult;
+    bh.weapons = sim::class::one(Weapon {
+        reach: 1.1,
+        min_range: 0.0,
+        zones: sim::strike::front(0.7),
+        attack_interval: 1.79,
+        damage: 0.0,
+        cleave: false,
+        impales: false,
+        kind: sim::WeaponKind::Standard,
+    });
+    sim.units[block].stats = bh;
+    for k in sim.units[block].start..sim.units[block].start + sim.units[block].count {
+        sim.health[k] = 1.0e9;
+        sim.mass[k] = bh.mass;
+        sim.radius[k] = bh.soldier_radius;
+    }
+    let cav = sim.spawn_class(
+        Vec2::new(0.0, -40.0),
+        FRAC_PI_2,
+        60,
+        UnitClassId::ShockCavalry,
+        0,
+    );
+    let mut ch = class_stats(UnitClassId::ShockCavalry);
+    ch.weapons = sim::class::one(Weapon {
+        reach: 2.4,
+        min_range: 0.0,
+        zones: sim::strike::front(0.3),
+        attack_interval: 2.2,
+        damage: 0.0,
+        cleave: false,
+        impales: false,
+        kind: sim::WeaponKind::Standard,
+    });
+    sim.units[cav].stats = ch;
+    for k in sim.units[cav].start..sim.units[cav].start + sim.units[cav].count {
+        sim.health[k] = 1.0e9;
+        sim.mount_health[k] = 1.0e9;
+    }
+    sim.set_pace(cav, Pace::Run);
+    sim.set_attack_order(cav, block);
+    let mut peak_front = f32::MIN;
+    let mut peak_p80 = f32::MIN;
+    for _ in 0..(20.0 / DT) as usize {
+        sim.tick();
+        let u = &sim.units[cav];
+        let mut ys = Vec::with_capacity(u.alive_count);
+        for i in u.start..u.start + u.count {
+            if sim.alive[i] == 1 {
+                ys.push(sim.soldier_pos(i).y / 1.1);
+            }
+        }
+        ys.sort_by(|a, b| a.partial_cmp(b).unwrap());
+        peak_front = peak_front.max(*ys.last().unwrap());
+        peak_p80 = peak_p80.max(ys[(ys.len() * 8 / 10).min(ys.len() - 1)]);
+    }
+    (peak_front, peak_p80)
+}
+
+/// Did the charge MASS ride clean through — most horses out the back, not just
+/// one lead body poking through while the formation bogged?
+fn mass_rode_through(depth: usize, brace_mult: f32) -> bool {
+    charge_penetration(depth, brace_mult).1 > depth as f32 + 1.5
+}
+
+/// A braced block deep enough bogs the charge: the cav bleeds out before its
+/// front reaches the rear — it never rides clean through.
+#[test]
+fn a_charge_bogs_in_a_deep_braced_block() {
+    let (front, mass) = charge_penetration(8, 2.0);
+    eprintln!("braced-8: cav front peaked at {front:.1} ranks, mass at {mass:.1} (rear = 8)");
+    assert!(
+        front > 1.0,
+        "the charge must ride in a few ranks, not stop at the face: {front:.1}"
+    );
+    assert!(
+        !mass_rode_through(8, 2.0),
+        "a deep braced block must bog the charge mass: front {front:.1}, mass {mass:.1}"
+    );
+}
+
+/// A SHALLOW braced block is ridden clean through — the charge clears the few
+/// ranks before it bleeds out, exactly the ride-through that IS cavalry.
+#[test]
+fn a_charge_rides_through_a_shallow_braced_block() {
+    let (front, mass) = charge_penetration(3, 2.0);
+    eprintln!("braced-3: cav front peaked at {front:.1} ranks, mass at {mass:.1} (rear = 3)");
+    assert!(
+        mass_rode_through(3, 2.0),
+        "a shallow braced block must be ridden clean through: front {front:.1}, mass {mass:.1}"
+    );
+}
+
+/// BRACE is the lever. At a depth where a BRACED line bogs the charge, the SAME
+/// line that cannot brace (brace_mult 1 — the moving / not-yet-set stand-in) is
+/// ridden through. Same count, same depth — only the brace differs.
+#[test]
+fn bracing_is_what_stops_the_charge() {
+    let (braced_front, braced_mass) = charge_penetration(6, 2.0);
+    let (unbraced_front, unbraced_mass) = charge_penetration(6, 1.0);
+    eprintln!(
+        "depth 6: braced front/mass {braced_front:.1}/{braced_mass:.1} ranks | unbraced {unbraced_front:.1}/{unbraced_mass:.1}"
+    );
+    // The braced line bogs the charge MASS — the bulk of the horses never
+    // clear the block.
+    assert!(
+        !mass_rode_through(6, 2.0),
+        "the braced line must bog the charge mass at depth 6: front {braced_front:.1}, mass {braced_mass:.1}"
+    );
+    // Same line, same depth, only the brace removed: the charge mass rides
+    // meaningfully deeper. Brace is the lever, not depth. We measure the BULK
+    // (p80), not the single furthest horse — a lone horse squeezed out the back
+    // of a bogged braced pile can spike further forward than the unbraced bulk,
+    // so lead-horse position is squeeze noise, not a ride-through signal.
+    // Measured (post stamina/cadence decouple): braced mass 0.4, unbraced 0.8 —
+    // a 0.4-rank gap. Margin sits just under it with headroom.
+    assert!(
+        unbraced_mass > braced_mass + 0.3,
+        "the horse mass must ride deeper through the unbraced line: {unbraced_mass:.1} vs {braced_mass:.1}",
+    );
+}
+
+/// Depth bogs it REGARDLESS of brace: a man on the move still bleeds the charge
+/// a little, so a deep ENOUGH block (even one that never braces) spends it.
+#[test]
+fn enough_depth_bogs_the_charge_even_unbraced() {
+    let (front, mass) = charge_penetration(8, 1.0);
+    eprintln!("unbraced-8: cav front peaked at {front:.1} ranks, mass at {mass:.1} (rear = 8)");
+    assert!(
+        !mass_rode_through(8, 1.0),
+        "8 ranks must bog the charge mass even with no bracing: front {front:.1}, mass {mass:.1}"
+    );
+}
+
+/// The RAMP: a line needs a few seconds halted to set its brace. A unit caught
+/// on the move, or one that only just stopped, isn't braced yet — which is why
+/// a fast charge rides through it. Measured directly on `brace()` over time.
+#[test]
+fn a_line_takes_a_few_seconds_to_set_its_brace() {
+    let brace_after = |secs: f32| -> f32 {
+        let mut sim = Sim::new(
+            Tunables {
+                micro_rough: 0.0,
+                morale_enabled: false,
+                ..Tunables::default()
+            },
+            SEED,
+        );
+        let u = sim.spawn_class(
+            Vec2::new(0.0, 0.0),
+            FRAC_PI_2,
+            200,
+            UnitClassId::HeavySword,
+            0,
+        );
+        for _ in 0..(secs / DT) as usize {
+            sim.tick();
+        }
+        sim.units[u].brace()
+    };
+    let mult = class_stats(UnitClassId::HeavySword).brace_mult; // 2.0
+    let (early, late) = (brace_after(0.5), brace_after(4.0));
+    eprintln!("brace at 0.5s = {early:.2}, at 4.0s = {late:.2} (mult {mult:.1})");
+    assert!(
+        early < 1.0 + 0.5 * (mult - 1.0),
+        "a line just halted is NOT yet braced: {early:.2}"
+    );
+    assert!(
+        late > mult - 0.1,
+        "after a few seconds it is fully braced: {late:.2} vs {mult:.1}"
+    );
+}
+
+/// Peak p80 progress of the charging cav's mass along the charge axis, past the
+/// defender centre. Used to compare how different defender CLASSES blunt the same
+/// frontal charge (a meat-grinder hedge vs a soft line).
+fn class_charge_mass_progress(def_class: UnitClassId, flank: bool) -> f32 {
+    let mut sim = Sim::new(
+        Tunables {
+            micro_rough: 0.0,
+            morale_enabled: false,
+            ..Tunables::default()
+        },
+        SEED,
+    );
+    let def = sim.spawn_class_with_files(Vec2::ZERO, FRAC_PI_2, 160, 8, def_class, 1);
+    let (start, facing, goal, axis) = if flank {
+        (
+            Vec2::new(-70.0, 0.0),
+            0.0,
+            Vec2::new(70.0, 0.0),
+            Vec2::new(1.0, 0.0),
+        )
+    } else {
+        (
+            Vec2::new(0.0, 70.0),
+            -FRAC_PI_2,
+            Vec2::new(0.0, -70.0),
+            Vec2::new(0.0, -1.0),
+        )
+    };
+    let cav = sim.spawn_class(start, facing, 96, UnitClassId::ShockCavalry, 0);
+    sim.set_files(cav, 24);
+    sim.set_pace(cav, Pace::Run);
+    sim.set_attack_move_order(cav, goal);
+    let def_center = sim.units[def].centroid;
+    let mut peak_p80 = f32::NEG_INFINITY;
+    for _ in 0..(30.0 / DT) as usize {
+        sim.tick();
+        let u = &sim.units[cav];
+        let mut along = Vec::new();
+        for i in u.start..u.start + u.count {
+            if sim.alive[i] == 1 {
+                along.push((sim.soldier_pos(i) - def_center).dot(axis));
+            }
+        }
+        if along.is_empty() {
+            break;
+        }
+        along.sort_by(|a, b| a.partial_cmp(b).unwrap());
+        peak_p80 = peak_p80.max(along[(along.len() * 8 / 10).min(along.len() - 1)]);
+    }
+    peak_p80
+}
+
+/// Closest the charging cav's bodies ever get to a phalanx body. Measures the
+/// directional PIKE STOP cleanly — unlike "how far along the axis did the mass
+/// progress", which conflates the pike stop with grind-advance geometry (the cav
+/// out-frontages a narrow front but grinds a long flank edge). The pike POINTS
+/// hold a frontal charge out; a flank charge crosses the shafts and reaches the
+/// bodies, so it closes nearer.
+fn cav_closest_approach_to_phalanx(flank: bool) -> f32 {
+    let mut sim = Sim::new(
+        Tunables {
+            micro_rough: 0.0,
+            morale_enabled: false,
+            ..Tunables::default()
+        },
+        SEED,
+    );
+    // Defender holds facing +y. A phalanx therefore presents points only to the
+    // north; a flank charge from the west crosses the shafts, not their tips.
+    let def =
+        sim.spawn_class_with_files(Vec2::ZERO, FRAC_PI_2, 160, 8, UnitClassId::HeavyPhalanx, 1);
+    let (start, facing, goal) = if flank {
+        (Vec2::new(-70.0, 0.0), 0.0, Vec2::new(70.0, 0.0))
+    } else {
+        (Vec2::new(0.0, 70.0), -FRAC_PI_2, Vec2::new(0.0, -70.0))
+    };
+    let cav = sim.spawn_class(start, facing, 96, UnitClassId::ShockCavalry, 0);
+    sim.set_files(cav, 24); // 4-deep shock front
+    sim.set_pace(cav, Pace::Run);
+    sim.set_attack_move_order(cav, goal);
+
+    let pid: Vec<usize> =
+        (sim.units[def].start..sim.units[def].start + sim.units[def].count).collect();
+    let cid: Vec<usize> =
+        (sim.units[cav].start..sim.units[cav].start + sim.units[cav].count).collect();
+    let mut min_gap = f32::INFINITY;
+    for _ in 0..(25.0 / DT) as usize {
+        sim.tick();
+        for &c in &cid {
+            if sim.alive[c] == 0 {
+                continue;
+            }
+            for &p in &pid {
+                if sim.alive[p] == 0 {
+                    continue;
+                }
+                let g =
+                    (sim.soldier_pos(c) - sim.soldier_pos(p)).len() - sim.radius[c] - sim.radius[p];
+                min_gap = min_gap.min(g);
+            }
+        }
+    }
+    if std::env::var("PHX_PROBE").is_ok() {
+        let u = &sim.units[cav];
+        eprintln!(
+            "  {} closest {min_gap:.2}m | cav -{} (impale {} grind {} impact {})",
+            if flank { "FLANK" } else { "FRONT" },
+            96 - u.alive_count,
+            u.lost_charge_melee,
+            u.lost_grind_melee,
+            u.lost_impact,
+        );
+    }
+    min_gap
+}
+
+/// Spawn 96 immortal zero-damage charging horse and an immortal wide heavy
+/// block (line facing +y at origin), order an attack, and return: the alignment
+/// of the cav's facing with the direction to the enemy at the moment its lance
+/// first couches (1 = aimed straight at the foe, ~0 = across his front), whether
+/// any horse reached body contact, and the closest approach over the run.
+/// `wheel`=true spawns the cav AT the west flank facing north — perpendicular to
+/// the east charge-in axis, so it must wheel ~90° to attack; =false is a frontal
+/// charge from due north, already aimed at the foe.
+fn flank_wheel_charge(wheel: bool) -> (f32, bool, f32) {
+    let mut sim = Sim::new(
+        Tunables {
+            micro_rough: 0.0,
+            morale_enabled: false,
+            ..Tunables::default()
+        },
+        SEED,
+    );
+    // Wide immortal heavy line, facing +y (front north, flanks east/west).
+    let block =
+        sim.spawn_class_with_files(Vec2::ZERO, FRAC_PI_2, 160, 20, UnitClassId::HeavySword, 1);
+    let mut bh = class_stats(UnitClassId::HeavySword);
+    bh.weapons = sim::class::one(Weapon {
+        reach: 1.1,
+        min_range: 0.0,
+        zones: sim::strike::front(0.7),
+        attack_interval: 1.79,
+        damage: 0.0,
+        cleave: false,
+        impales: false,
+        kind: sim::WeaponKind::Standard,
+    });
+    sim.units[block].stats = bh;
+    for k in sim.units[block].start..sim.units[block].start + sim.units[block].count {
+        sim.health[k] = 1.0e9;
+        sim.mass[k] = bh.mass;
+        sim.radius[k] = bh.soldier_radius;
+    }
+
+    let (start, facing) = if wheel {
+        (Vec2::new(-38.0, -8.0), FRAC_PI_2) // at the west flank, facing NORTH (perpendicular to the charge-in axis)
+    } else {
+        (Vec2::new(0.0, 45.0), -FRAC_PI_2) // due north, facing the front
+    };
+    let cav = sim.spawn_class(start, facing, 96, UnitClassId::ShockCavalry, 0);
+    sim.set_files(cav, 24); // 4-deep shock front
+    let mut ch = class_stats(UnitClassId::ShockCavalry);
+    ch.weapons = sim::class::one(Weapon {
+        reach: 2.4,
+        min_range: 0.0,
+        zones: sim::strike::front(0.3),
+        attack_interval: 2.2,
+        damage: 0.0,
+        cleave: false,
+        impales: false,
+        kind: sim::WeaponKind::Standard,
+    });
+    sim.units[cav].stats = ch;
+    for k in sim.units[cav].start..sim.units[cav].start + sim.units[cav].count {
+        sim.health[k] = 1.0e9;
+        sim.mount_health[k] = 1.0e9;
+    }
+    sim.set_pace(cav, Pace::Run);
+    // Attack the flank immediately; the wheel case must turn ~90° (it faces
+    // north, the charge-in axis is east) over a short approach so it closes to
+    // contact rather than giving the latch up.
+    sim.set_attack_order(cav, block);
+
+    let bid: Vec<usize> =
+        (sim.units[block].start..sim.units[block].start + sim.units[block].count).collect();
+    let cid: Vec<usize> =
+        (sim.units[cav].start..sim.units[cav].start + sim.units[cav].count).collect();
+    let closest_now = |sim: &Sim| -> f32 {
+        let mut g = f32::INFINITY;
+        for &c in &cid {
+            if sim.alive[c] == 0 {
+                continue;
+            }
+            for &b in &bid {
+                if sim.alive[b] == 0 {
+                    continue;
+                }
+                g = g.min(
+                    (sim.soldier_pos(c) - sim.soldier_pos(b)).len() - sim.radius[c] - sim.radius[b],
+                );
+            }
+        }
+        g
+    };
+
+    // Alignment of the unit's lance line (= facing) with the direction to the
+    // enemy, AT THE MOMENT the lance first couches. A charge is a committed
+    // gallop at the foe; couching while still pointed across his front (dot ~0)
+    // is the bug — the burst is then spent on the turn and gone before contact.
+    let mut align_at_couch = f32::NAN;
+    let mut closest_ever = f32::INFINITY;
+    let mut reached_contact = false;
+    for _ in 0..(22.0 / DT) as usize {
+        sim.tick();
+        let g = closest_now(&sim);
+        closest_ever = closest_ever.min(g);
+        if g < 0.5 {
+            reached_contact = true;
+        }
+        if sim.units[cav].charging && align_at_couch.is_nan() {
+            let cu = &sim.units[cav];
+            let to_enemy = sim.units[block].centroid - cu.centroid;
+            let to_enemy = to_enemy * (1.0 / to_enemy.len().max(0.5));
+            align_at_couch = sim::dir(cu.facing).dot(to_enemy);
+        }
+    }
+    (align_at_couch, reached_contact, closest_ever)
+}
+
+/// THE FLANK-WHEEL CHARGE: a cavalry unit that swings to the enemy flank and
+/// wheels ~90° to charge must still couch its lances — the charge is a property
+/// of horses reaching the enemy, not of the approach being a straight line. The
+/// frontal control proves the rig charges; the wheel case is the bug David hit
+/// (the lance never came down after the turn). Both must charge before contact.
+#[test]
+fn a_wheeling_flank_charge_still_couches_its_lances() {
+    let (front_align, front_contact, front_ever) = flank_wheel_charge(false);
+    let (wheel_align, wheel_contact, wheel_ever) = flank_wheel_charge(true);
+    eprintln!("FRONTAL: align@couch={front_align:.2} reached_contact={front_contact} closest={front_ever:.1}m");
+    eprintln!("WHEEL:   align@couch={wheel_align:.2} reached_contact={wheel_contact} closest={wheel_ever:.1}m");
+    // Sanity on the rig: the frontal charge couches pointed straight at the foe.
+    assert!(
+        front_align > 0.6,
+        "frontal control must couch while aimed at the enemy: align {front_align:.2}"
+    );
+    assert!(front_contact, "frontal control must reach contact");
+    // The fix: a unit that swung to the flank must wait out its ~90° wheel and
+    // couch its lance only once it is HEADED at the foe — not fire the burst
+    // across the turn (align ~0), which spends it before the horses arrive.
+    assert!(
+        !wheel_align.is_nan() && wheel_align > 0.6,
+        "the wheeling charge must couch its lance aimed at the enemy, not across his front: align@couch {wheel_align:.2}"
+    );
+    assert!(
+        wheel_contact,
+        "the wheeling charge must still reach contact (closest {wheel_ever:.1}m)"
+    );
+}
+
+#[test]
+fn phalanx_points_stop_horses_only_to_the_front() {
+    let front = cav_closest_approach_to_phalanx(false);
+    let flank = cav_closest_approach_to_phalanx(true);
+    eprintln!("PHALANX-CAV  frontal closest {front:.2}m  flank closest {flank:.2}m");
+    // The frontage-locked pikes are a porcupine only to the FRONT: a frontal charge
+    // is held off by the leveled points, a flank charge crosses the shafts (no tips
+    // there) and rides in to body contact. So the flank closes NEARER than the front
+    // — pikes do not stop horses sideways. (The margin is modest now that the cav
+    // grinds rather than plowing clean through, but the directional sign is firm.)
+    assert!(
+        flank < front - 0.2,
+        "pikes aimed frontally must not behave like a 360° porcupine: flank closed to {flank:.2}m vs frontal {front:.2}m"
+    );
+}
+
+#[test]
+fn ordinary_spears_do_not_wall_cavalry_like_a_phalanx() {
+    let pike = class_charge_mass_progress(UnitClassId::HeavyPhalanx, false);
+    let spear = class_charge_mass_progress(UnitClassId::LightSpear, false);
+    let sword = class_charge_mass_progress(UnitClassId::HeavySword, false);
+    eprintln!(
+        "SPEAR-CAV  phalanx p80 progress {pike:.1}m  light-spear {spear:.1}m  sword {sword:.1}m"
+    );
+    assert!(
+        (spear - sword).abs() < 4.0,
+        "light spears should behave like ordinary infantry bodies, not like a special pike hedge: spear {spear:.1}m vs sword {sword:.1}m"
+    );
+}

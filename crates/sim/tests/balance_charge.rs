@@ -1,0 +1,225 @@
+//! BALANCE tests for cavalry/charge MATCHUPS — how the classes price out
+//! against each other in a charge (a kill RATIO, a class-vs-class comparison).
+//! These assert OUTCOMES that move as the economy and the trample physics are
+//! retuned — distinct from the `mechanics_*` charge INVARIANTS (penetration
+//! depth, the charge develops, the hedge holds at reach). Migrated out of
+//! `class_scenarios.rs` so the physics emergence and the matchup pricing are
+//! no longer interleaved in one file.
+
+use sim::{class_stats, Sim, Tunables, UnitClassId, Vec2, DT, SEEDS};
+use std::f32::consts::PI;
+
+const SEED: u64 = 11;
+
+#[test]
+fn light_horse_tramples_at_a_third_the_butchery() {
+    // The same four-deep frontal charge through 200 light foot two deep:
+    // heavy horse rides men DOWN; light horse (horse archers) picks its way
+    // through at a FRACTION of the deaths — measured at ~a third, not half:
+    // the bow-horse has neither the mass nor the lance to ride a line under.
+    // The per-seed ratio is knife-edge (0.19-0.36 across seeds — a borderline
+    // trample sits right on the chaos), so we AVERAGE over seeds and assert
+    // the robust central tendency, not one lucky roll.
+    let impact_dead = |class: UnitClassId, seed: u64| -> usize {
+        let mut sim = Sim::new(
+            Tunables {
+                morale_enabled: false,
+                ..Tunables::default()
+            },
+            seed,
+        );
+        let line = sim.spawn_unit(
+            Vec2::new(0.0, 40.0),
+            -PI / 2.0,
+            200,
+            100,
+            Vec2::new(1.0, 1.1),
+            0,
+            0.7,
+        );
+        let cav = sim.spawn_class(Vec2::new(0.0, -60.0), PI / 2.0, 400, class, 1);
+        sim.set_files(cav, 100); // 4 deep
+        sim.set_charge_enabled(cav, true); // equal posture: the variable is the HOOF
+        sim.set_pace(cav, sim::Pace::Run);
+        sim.set_attack_order(cav, line);
+        let mut contact_at = None;
+        for step in 0..(40.0 / DT) as usize {
+            sim.tick();
+            if contact_at.is_none() && sim.units[line].engaged > 10 {
+                contact_at = Some(step);
+            }
+            if let Some(c) = contact_at {
+                if step > c + (4.0 / DT) as usize {
+                    break;
+                }
+            }
+        }
+        200 - sim.units[line].alive_count
+    };
+    let (mut heavy_sum, mut light_sum) = (0usize, 0usize);
+    let seeds = [SEED, SEED + 1, SEED + 2, SEED + 3, SEED + 4];
+    for s in seeds {
+        heavy_sum += impact_dead(UnitClassId::ShockCavalry, s);
+        light_sum += impact_dead(UnitClassId::HorseArchers, s);
+    }
+    let ratio = light_sum as f32 / heavy_sum.max(1) as f32;
+    println!(
+        "impact dead over {} seeds: heavy {heavy_sum}, light {light_sum} (ratio {ratio:.2})",
+        seeds.len()
+    );
+    // A clear minority, and unambiguously LESS than heavy (lighter horse, lower
+    // knockback). Through this thin 2-deep line the heavy's mass tells hardest, so
+    // the light horse's shock lands at ~a fifth of the shock arm's. Wide band: the
+    // claim is the magnitude — a clear fraction, not a knife-edge number.
+    assert!(
+        (0.08..=0.45).contains(&ratio),
+        "light horse tramples at a clear fraction of heavy's butchery: ratio {ratio:.2}"
+    );
+}
+
+#[test]
+fn pikes_reach_riders_swords_chip_at_horseflesh() {
+    // Target priority is GEOMETRY: a strike lands on the rider whenever the
+    // weapon spans to his perch (to_center <= reach), and only soaks into
+    // the mount otherwise. Pikes fight at 3.2m and span to the man; swords
+    // at 1.1m almost never do — and a horse is several times the man's
+    // health, so chipping at horseflesh is a losing proposition.
+    let cav_damage = |attacker: UnitClassId, seed: u64| -> (f32, f32) {
+        let mut sim = Sim::new(
+            Tunables {
+                morale_enabled: false,
+                ..Tunables::default()
+            },
+            seed,
+        );
+        let atk = sim.spawn_class(Vec2::new(0.0, -14.0), PI / 2.0, 240, attacker, 0);
+        let cav = sim.spawn_class(
+            Vec2::new(0.0, 14.0),
+            -PI / 2.0,
+            120,
+            UnitClassId::ShockCavalry,
+            1,
+        );
+        sim.set_charge_enabled(atk, false); // isolate weapon geometry
+        sim.set_pace(atk, sim::Pace::Run); // a committed assault
+        sim.set_attack_order(atk, cav);
+        // Early window: frontal geometry dominates before the scrum
+        // interpenetrates and gives swords side access to the riders.
+        // The combat-pacing overhaul (3.8-5.0s attack intervals) stretched
+        // the timeline, so the geometry-valid window now closes earlier: by
+        // 20s the scrum has interpenetrated and the sword rider/mount ratio
+        // catches up; at 15s frontal reach still cleanly dominates.
+        for _ in 0..(15.0 / DT) as usize {
+            sim.tick();
+        }
+        let cav_stats = class_stats(UnitClassId::ShockCavalry);
+        let mut rider = 0.0f32;
+        let mut mount = 0.0f32;
+        let u = &sim.units[cav];
+        for i in u.start..u.start + u.count {
+            rider += (cav_stats.health - sim.health[i].max(0.0)).clamp(0.0, cav_stats.health);
+            mount += (cav_stats.mount_health - sim.mount_health[i].max(0.0))
+                .clamp(0.0, cav_stats.mount_health);
+        }
+        (rider, mount)
+    };
+    // Kill counts in this early geometry window are tiny and knife-edge; the
+    // stable contract is where the damage lands. Sum over a seed set: pikes put
+    // proportionally more harm into riders, while swords mostly hack horseflesh.
+    let seeds = [SEED, SEED + 1, SEED + 2, SEED + 3, SEED + 4];
+    let mut pike_rider = 0.0f32;
+    let mut pike_mount = 0.0f32;
+    let mut sword_rider = 0.0f32;
+    let mut sword_mount = 0.0f32;
+    for s in seeds {
+        let (r, m) = cav_damage(UnitClassId::HeavyPhalanx, s);
+        pike_rider += r;
+        pike_mount += m;
+        let (r, m) = cav_damage(UnitClassId::HeavySword, s);
+        sword_rider += r;
+        sword_mount += m;
+    }
+    let pike_ratio = pike_rider / pike_mount.max(1.0);
+    let sword_ratio = sword_rider / sword_mount.max(1.0);
+    println!(
+        "cav damage over {} seeds: pike rider {pike_rider:.1} mount {pike_mount:.1} (ratio {pike_ratio:.2}); sword rider {sword_rider:.1} mount {sword_mount:.1} (ratio {sword_ratio:.2})",
+        seeds.len()
+    );
+    assert!(
+        pike_rider > sword_rider * 1.25,
+        "pikes should reach riders more often than swords: {pike_rider:.1} vs {sword_rider:.1}"
+    );
+    // Pikes concentrate proportionally more harm on the rider (0.51) than swords
+    // (0.23) over this geometry window — a clear 0.28 gap, with every individual
+    // seed directionally correct. Pin the margin a touch under that measured gap.
+    assert!(
+        pike_ratio > sword_ratio + 0.18,
+        "pikes should concentrate damage higher on the rider than swords do: {pike_ratio:.2} vs {sword_ratio:.2}"
+    );
+}
+
+#[test]
+fn frontal_cavalry_charge_does_not_majority_beat_a_presented_phalanx() {
+    // The slow matrix measures committed duels: both units run at each other.
+    // This contract is narrower and older than that matrix cell: a horse charge
+    // into a PRESENTED pike hedge can bog, scatter, or draw out, but it must not
+    // majority-flip into cavalry beating the braced front. Measure both field
+    // orientations over the canonical balance seed set so this does not hide a
+    // directional bias behind five friendly local seeds.
+    let mut cav_wins = 0usize;
+    let mut pike_wins = 0usize;
+    let mut draws = 0usize;
+
+    for &seed in &SEEDS {
+        for cav_south in [true, false] {
+            let mut sim = Sim::new(Tunables::default(), seed);
+            let (cy, py, cf, pf) = if cav_south {
+                (-90.0, 90.0, PI / 2.0, -PI / 2.0)
+            } else {
+                (90.0, -90.0, -PI / 2.0, PI / 2.0)
+            };
+            let cav = sim.spawn_class(Vec2::new(0.0, cy), cf, 120, UnitClassId::ShockCavalry, 0);
+            let pike = sim.spawn_class(Vec2::new(0.0, py), pf, 240, UnitClassId::HeavyPhalanx, 1);
+            sim.set_pace(cav, sim::Pace::Run);
+            sim.set_attack_order(cav, pike);
+
+            let mut victor = None;
+            for _ in 0..(600.0 / DT) as usize {
+                sim.tick();
+                if let Some(v) = sim.victor() {
+                    victor = Some(v);
+                    break;
+                }
+            }
+            match victor {
+                Some(0) => cav_wins += 1,
+                Some(1) => pike_wins += 1,
+                _ => draws += 1,
+            }
+        }
+    }
+
+    let trials = SEEDS.len() * 2;
+    println!(
+        "presented pike vs frontal cav over {trials} trials: cav {cav_wins}, pike {pike_wins}, draws {draws}"
+    );
+    assert!(
+        cav_wins * 2 <= trials,
+        "frontal cavalry must not majority-beat a presented phalanx: cav {cav_wins}/{trials}, pike {pike_wins}/{trials}, draws {draws}/{trials}"
+    );
+}
+
+// HeavyPhalanx-vs-cavalry is split by FACING, deliberately:
+//   - FRONT: the levelled sarissa hedge is a hard counter — pikes bear only down
+//     the unit's frontage (the `pike_bears` gate in combat.rs keys off both the
+//     foe's bearing and the man still facing along the line), so a head-on charge
+//     is stopped cold. Pinned geometrically by
+//     `mechanics_charge::phalanx_points_stop_horses_only_to_the_front`.
+//   - FLANK: pikes do NOT bear sideways; flanked pikemen drop to their weak
+//     side-arm, so cavalry into a phalanx flank should bite about as hard as into
+//     a heavy-foot flank (slightly harder — the phalanx's secondary is worse).
+// An explicit flank-damage pin for the second half is still OWED (the phalanx
+// currently wheels to re-present its front faster than the locked design wants,
+// under-exposing the flank — tracked with the backing-aware brace work). The old
+// `flanked_phalanx_loses_to_cavalry` pin is gone: it asserted a near-total ROUT
+// that only occurred under the pre-realism instant facing, and is not the design.

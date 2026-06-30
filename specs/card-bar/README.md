@@ -231,17 +231,48 @@ and S2 checkpoints, not guessed in code.** A live HTML prototype to tune them is
    avoid a scroll. Rejected (the original plan): size-to-fit with a `minCardW`
    floor and a `boxH` height budget.
 
-## Visual verification gates (standing, apply to S2, S3, S4)
+## Aesthetic contract — a GAME HUD, not a webapp (hard rule)
+
+The bar must read like the reference (`assets/reference-tw-cardbar.png`) — a
+diegetic Total War game HUD — judged against it and the
+[aesthetics](../../.claude/skills/aesthetics/SKILL.md) north star (bronze/iron,
+worn leather, bone; warm and tactile, never slate-grey UI neutrals). The bar
+**fails** this gate if it shows any of these **webapp tells**, each a defect to
+fix, not a taste call:
+
+- **Transparency / fade.** The strip is a solid, opaque panel with its own
+  material. NEVER a `linear-gradient(transparent → …)` dissolving into the
+  battlefield, and no semi-transparent `rgba` fills.
+- **Floating rounded cards with gutters.** Cards are abutting **wells inside one
+  continuous frame**, not free-floating rounded rectangles separated by gaps and
+  hairline borders.
+- **No chassis.** The row sits in an ornate **bronze/metal housing** — a beveled
+  frame with worn-metal material and corner ornament — that binds the whole strip.
+  This is the single biggest "this is a game" driver and is **required**.
+- **Flat cards.** Card wells are **inset with depth** (rim light + inner shadow),
+  the portrait in a recessed frame — not flat fills with a 1px border.
+- **Web affordances.** No CSS drop-shadow-as-glow, no hover-lighten, no pill
+  buttons, no rounded-corner webapp chrome. Selection is a warm **gold glow/frame**
+  in the in-world selection language (aesthetics rule 6), not a crisp UI outline.
+
+Achieving this almost certainly means the chrome stops being a few flat CSS rules:
+expect a bronze frame asset (9-slice or baked PNG) or richly layered CSS
+(gradients, insets, ornament). That lift is in scope — the bar is not done until it
+reads as game chrome.
+
+## Visual verification gates (standing, apply to every visual slice)
 
 Two complementary gates, both required on any slice that produces an on-screen
 shot, montage, or screenshot — they answer different questions, so run both:
 
 - **[compare-screenshots](../../.claude/skills/compare-screenshots/SKILL.md)** —
-  the **fidelity-to-reference** gate. Put the slice's capture side-by-side with
-  `assets/reference-tw-cardbar.png` (crop/zoom to the card strip) and judge how
-  close it lands: card density, aspect, framing, bar placement, overall Total-War
-  polish. This is the "does it match what David wants?" check, and the reference
-  is the yardstick.
+  the **fidelity-to-reference** gate, and it is **blocking on the aesthetic
+  contract above**, not just layout. Put the capture beside
+  `assets/reference-tw-cardbar.png` and judge chrome, framing, material, opacity,
+  and depth — not only card density/aspect/bar-placement. A clean grid is
+  necessary but **not sufficient**: if the candidate still reads as a web panel
+  (transparent, flat, frameless, guttered), the slice does not pass, however tidy
+  the layout.
 - **[screenshot-critique](../../.claude/skills/screenshot-critique/SKILL.md)** —
   the **unprimed second-opinion** gate. A fresh sub-agent with no context judges
   the shot on its own merits (legibility, scrollbars, collisions, "does this look

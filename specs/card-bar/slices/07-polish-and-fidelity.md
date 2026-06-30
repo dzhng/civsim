@@ -7,6 +7,27 @@ and gated behind a min window size. These are the open polish items — mostly f
 the unprimed screenshot-critiques and David's taste checkpoints. None block the
 feature; each is independently shippable. **This is the goal for the next pass.**
 
+## Required: make it read as a GAME, not a webapp
+
+This is the headline of the pass. The current bar passes layout but still reads as
+a web panel — transparent gradient band, floating rounded cards with gutters, flat
+1px-bordered wells, no frame. Close the gap to `assets/reference-tw-cardbar.png`
+under the README's **Aesthetic contract** (the hard rule) and
+[aesthetics](../../../.claude/skills/aesthetics/SKILL.md):
+
+- Replace the transparent gradient strip with a **solid, opaque bronze/metal
+  chassis** that frames the whole row (beveled frame + corner ornament; a 9-slice
+  or baked frame asset, or richly layered CSS — flat CSS rules won't get there).
+- Cards become **abutting inset wells** (rim light + inner shadow, recessed
+  portrait), not free-floating rounded rectangles with gaps and hairline borders.
+- Materials are bronze/iron/leather/bone, warm and worn — not slate-grey neutrals.
+  Selection is a warm **gold glow/frame**, not a crisp UI outline.
+- Kill every web tell: no `rgba`/gradient transparency, no hover-lighten, no pill
+  buttons, no webapp rounding.
+
+Gate: **compare-screenshots is blocking on the aesthetic contract** — a clean grid
+is not enough; the candidate must visibly move toward the reference's chrome.
+
 ## Critic callouts (integrated-bar review)
 
 - **Infantry variants blur together at card size (high confidence).** The several
@@ -18,16 +39,16 @@ feature; each is independently shippable. **This is the goal for the next pass.*
 - **Artillery reads as a siege engine, not a soldier.** The artillery look is a
   ground object (ballista/cart) with no standing figure to anchor the card. Frame
   on the crew, or accept it as the engine's portrait.
-- **TW-fidelity gaps vs `assets/reference-tw-cardbar.png`** (deliberate design vs
-  polish — David's call):
-  - Reference cards sit in one ornate bronze housing with a continuous frame;
-    ours are individually-bordered cards with gutters. A shared frame/housing
-    would read more "Total War" — the single biggest fidelity driver.
+- **Remaining reference deltas that ARE genuine choices** (David's call, once the
+  chassis above lands):
   - Reference puts a single full-width strength bar across the **top**; ours
     stacks three (hp/coh/mor) at the bottom. Ours carries more info (per spec) but
-    has a different silhouette.
-  - Reference shows a role icon and no name; ours overlays the name. (A choice,
-    not a defect.)
+    has a different silhouette — keep three, or move HP to a top bar?
+  - Reference shows a weapon/role medallion and no name; ours overlays the name.
+    Add a role medallion (it also helps the infantry-blur problem), keep the name,
+    or both?
+  (The bronze housing / opacity / bevels are NOT on this list — they're required,
+  covered above.)
 
 ## Other open polish
 

@@ -1,4 +1,4 @@
-import { createFrameShell, type BackgroundRenderPass, type FrameGraphCommands, type FrameGraphPass, type MarkerInstance, type OverlayRenderPass, type RawFrameShell } from '../../../packages/renderer-core/src/frameShell';
+import { createFrameShell, type BackgroundRenderPass, type FrameGraphCommands, type FrameGraphPass, type MarkerInstance, type OverlayRenderPass, type RawFrameShell, type WorldRenderPass } from '../../../packages/renderer-core/src/frameShell';
 import { screenToWorld, world3dToScreen, worldToScreen } from '../../../packages/renderer-core/src/cameraUniform';
 import { GPU_DEPTH_FORMAT, GPU_WORLD_DEPTH_ATTACHMENT } from '../../../packages/renderer-core/src/depthContract';
 import { requestGpuDevice, gpuFailureMessage } from '../../../packages/renderer-core/src/device';
@@ -25,7 +25,7 @@ import { buildCampaignMapDrawData, CampaignLabelPass, CampaignMapPass, CampaignM
 import { CampaignSceneryPass, type CampaignSceneryInstance } from '../../../packages/game-renderer/src/campaign/sceneryPass';
 import { PROP_REVIEW_GROUPS } from '../../../packages/game-renderer/src/models/shared/sceneryPropRegistry';
 import { BATTLE_MAP_CATALOG, battleMapById, buildBattleTerrainPresentation, presentationEdgeMismatches } from '../../../packages/game-renderer/src/battle/mapCatalog';
-import { heightSpan, terrainHeightAt } from '../../../packages/game-renderer/src/terrain/heightField';
+import { heightSpan, terrainHeightAt, type TerrainHeightField } from '../../../packages/game-renderer/src/terrain/heightField';
 import type { BattleTerrainFeature, BattleTerrainFeatureKind, BattleTerrainGrid } from '../../../packages/game-renderer/src/battle/terrainFeatures';
 import { BattleGroundPass } from '../../../packages/game-renderer/src/battle/groundPass';
 import { BattleHorizonPass } from '../../../packages/game-renderer/src/battle/horizonPass';

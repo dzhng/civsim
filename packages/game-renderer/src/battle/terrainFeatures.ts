@@ -209,6 +209,38 @@ export function edgeSealMismatches(grid: BattleTerrainGrid, edges: BattleEdgeRol
   return out;
 }
 
+/**
+ * Derive edge roles from the grid's edge tints, for terrain that has no catalog
+ * entry (campaign-generated battles). West/east take the dominant impassable
+ * tint in their band — rock→cliff, water→ocean, wall→wall — and fall back to
+ * open-fog; north/south are always open. Catalog maps use their declared roles
+ * instead; this is the graceful default.
+ */
+export function deriveBattleEdgeRoles(grid: BattleTerrainGrid): BattleEdgeRoles {
+  const { w, h, tint } = grid;
+  const band = Math.max(1, Math.round(w * 0.06));
+  const sideRole = (side: 'west' | 'east'): BattleEdgeRole => {
+    let rock = 0;
+    let water = 0;
+    let wall = 0;
+    for (let cy = 0; cy < h; cy++) {
+      for (let b = 0; b < band; b++) {
+        const cx = side === 'west' ? b : w - 1 - b;
+        const t = tint[cy * w + cx];
+        if (t === 2) rock++;
+        else if (t === 1) water++;
+        else if (t === 3) wall++;
+      }
+    }
+    const max = Math.max(rock, water, wall);
+    if (max < h * 0.3) return 'open-fog';
+    if (max === water) return 'ocean';
+    if (max === wall) return 'wall';
+    return 'cliff';
+  };
+  return { north: 'open-fog', south: 'open-fog', west: sideRole('west'), east: sideRole('east') };
+}
+
 function hashCoord(x: number, y: number): number {
   // Quantize to ~0.1m so float jitter is stable; mix into a 32-bit hash.
   const xi = Math.round(x * 10) | 0;

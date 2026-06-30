@@ -152,11 +152,13 @@ Global TODO:
 - [x] Slice 02: battle terrain-feature contract — canonical height + CoastalScrub
   map + wasm export (02a), typed renderer presentation/catalog/scene (02b),
   campaign seating fix (02c).
-- [~] Slice 03: 3D battle terrain. Renderer DONE via lab routes — rolling
-  ground + scenery (03a), sealed-edge cliffs/ocean/wall (03b), soldiers seated
-  on the shared height (03c). REMAINING: the production game-renderer cutover
-  (wire the heightfield + passes into web/src/battle, re-bless battle baselines)
-  — the one high-blast-radius step, scoped above under "03c STILL OPEN".
+- [x] Slice 03: 3D battle terrain — rolling ground + scenery (03a), sealed-edge
+  cliffs/ocean/wall (03b), soldiers on the shared height (03c), and the
+  PRODUCTION CUTOVER (03d): web/src/battle/renderer.ts now renders the heightfield
+  ground + 3D scenery + horizon and seats soldiers on terrain_height_ptr in the
+  live game (×1.6 relief). Battle baselines re-blessed on hardware. Pre-existing
+  hardware-only failures remain in the freeze + minimap-click tests (they pass on
+  the canonical SwiftShader; confirmed not introduced by the cutover via stash).
 - [ ] Slice 04: replace static quick-battle buttons with a map picker, 15,000
   gold army builders for both sides, and prebuilt 20-slot armies. NOT STARTED.
   Build `web/src/battle/quickBattleCatalog.ts` (gold/cap/templates/validate,

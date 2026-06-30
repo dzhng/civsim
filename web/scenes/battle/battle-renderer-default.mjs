@@ -46,9 +46,9 @@ export async function run(ctx) {
   ctx.check(
     'WebGPU battle terrain includes sim-sourced feature detail',
     stats.renderStats?.terrain?.fixture === 'sim-tint'
-      && stats.renderStats.terrain.quads > 1000
-      && stats.renderStats.terrain.sceneryQuads > 800
-      && stats.renderStats.terrain.worldPropQuads > 800,
+      && stats.renderStats.terrain.layer === 'battle-ground-heightfield'
+      && stats.renderStats.terrain.groundTriangles > 1000
+      && stats.renderStats.terrain.scenery > 0,
     JSON.stringify(stats.renderStats?.terrain),
   );
 

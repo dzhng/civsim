@@ -61,6 +61,10 @@ export function battleMapById(id: string): BattleMapCatalogEntry | undefined {
   return BATTLE_MAP_CATALOG.find((m) => m.id === id);
 }
 
+export function battleMapByWasmId(wasmMapId: number): BattleMapCatalogEntry | undefined {
+  return BATTLE_MAP_CATALOG.find((m) => m.wasmMapId === wasmMapId);
+}
+
 /**
  * Assemble the full presentation for a booted map: catalog roles + the
  * height-field view and extracted features over the live terrain grid. This is

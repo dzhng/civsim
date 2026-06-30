@@ -12,11 +12,14 @@ Synthesized from three independent draft plans (they converged hard — the cut 
 
 **Status:** S0 + S1 + S2 + S3 shipped (green). **S3 verdict: MIGRATE (Branch A).** _Last updated: 2026-07-01._
 
-**Start at: finish S4 battle modals (S4b)** OR **Slice 5** (`slices/05-campaign-panels.md`).
-S4a (the army builder) is shipped; the remaining S4 piece is the in-battle modals
-(pause/result; the field manual is already a React-toggled overlay). The static wave can
-proceed in parallel; S3 settled the 60 Hz seam. S6 (HUD outcome) runs **Branch A — MIGRATE**.
-S0–S3 done.
+**Start at Slice 5** (`slices/05-campaign-panels.md`) — campaign panels → React (independent of
+the battle scene, a genuine "React earns its keep" form surface). S0–S3 + **S4a (army builder)**
+are shipped. **RESEQUENCED:** S4b (in-battle modals: pause/result) folds into **S6** — both the
+modals and the HUD need a battle-scene React root, so building it once is cleaner than twice, and
+the modals are static overlays best migrated alongside the HUD (recon confirmed they're woven
+into the game loop's victory/pause flow). The field manual is already a React-toggled overlay.
+S6 still runs **Branch A — MIGRATE** per the spike, now also absorbing the battle modals.
+Remaining order: **S5 → S6 (HUD + battle modals) → S7 (cleanup)**.
 
 **S4a decisions recorded (army builder → React):**
 - `web/src/ui/menu/ArmyBuilder.tsx` (view) + `armyBuilderState.ts` (pure reducer, **node-tested**
@@ -157,7 +160,7 @@ checkpoint:** the (0,0) pass is self-justifying (no pixels moved); proceeded on 
 - [x] S1 — one bronze token source (`web/src/ui/theme/bronze.css`): `:root` tokens consumed by vanilla index.html; chassis classes + `@theme` deferred to S2; **zero pixel change** (`slices/01-design-system.md`) — **shipped**
 - [x] S2 — menu proof: `#menu-ui` + duel modal are React (`web/src/ui/menu/Menu.tsx`) into `#ui-root`; army builder stays vanilla; new `menu-quick-battle-modal` baseline (`slices/02-menu-proof.md`) — **shipped**
 - [x] S3 — **HUD perf SPIKE** → **VERDICT: MIGRATE.** React card bar (`UnitCardsReact`) measured Δmedian 0.0ms / Δp95 0.0ms vs vanilla; shared hot-path helpers in `unitCard.ts`; S6 = Branch A (`slices/03-hud-perf-spike.md`) — **shipped**
-- [ ] S4 — static wave: army builder + battle modals (`slices/04-army-builder-modals.md`)
+- [~] S4 — static wave: **S4a army builder → React shipped** (reducer byte-identical, pixel-equiv); S4b battle modals **resequenced into S6** (shared battle React root) (`slices/04-army-builder-modals.md`)
 - [ ] S5 — static wave: campaign panels (+ optional slate→bronze re-theme, David's call) (`slices/05-campaign-panels.md`)
 - [ ] S6 — HUD outcome branch (migrate-to-React OR keep-vanilla-share-tokens) (`slices/06-hud-outcome.md`)
 - [ ] S7 — cleanup: delete replaced DOM/CSS, dedup the lab, one source proven (`slices/07-cleanup.md`)

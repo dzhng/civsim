@@ -9,13 +9,16 @@ so it stops being copy-pasted.
 
 ## Next Agent Prompt
 
-**Status:** planned. _Last updated: 2026-06-30._ The card bar (`specs/card-bar/`)
-and the order toolbar shipped the bronze look; this spec generalizes it to the
-whole battle UI.
+**Status:** all surfaces rewritten to bronze (S2–S5 done); S1 (full token
+extraction / de-dup) remains. _Last updated: 2026-06-30._
 
-**Start at Slice 1** (the shared design system) — every other slice depends on it.
-Then do the surfaces in any order; each is independently shippable and screenshot-
-gated. Update this section at the end of each pass.
+**What's left:** finish **S1** — the chrome currently lives as `:root` tokens in
+`web/index.html` plus inline values still duplicated in the lab `installStyles` and
+in the card-bar/toolbar rules. Move the tokens + a small class set to one source
+both shells consume, and refactor the duplicates onto it (this also closes the
+card-bar S5 CSS-dedup). Then the polish tail: native `<select>` styling, the
+`#menu-renderer-status` notice, and any surface that still reads cool against the
+references.
 
 **Global TODO:**
 - [~] S1 — shared bronze-chrome design system. **Tokens seeded** in `index.html`
@@ -27,8 +30,10 @@ gated. Update this section at the end of each pass.
 - [x] S4 — main menu + quick-battle / duel modals → bronze (Cinzel title, bronze
   panels + well-buttons, brass headers). Minor: native `<select>` keeps its OS
   focus ring; `#menu-renderer-status` notice still webapp-ish.
-- [~] S5 — in-battle modals: **gameover + pause menu done** (bronze, via the shared
-  modal styles); **field manual (`#manual`) + banner (`#banner`) remain**.
+- [x] S5 — in-battle modals: gameover, pause menu, field manual (`#manual`, bronze
+  scroll + brass headers), and the victory/defeat banner (`#banner`, Cinzel
+  engraved) → bronze. (Manual + banner styled via the shared tokens; not
+  separately screenshotted — they're transient in-battle overlays.)
 - [x] _done_ — card bar + order toolbar (in `specs/card-bar/`), the look's reference impl
 
 ## The aesthetic contract (hard rule — same as card-bar)

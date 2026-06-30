@@ -58,22 +58,21 @@
     #manual {
       display: none; position: fixed; top: 48px; right: 270px; bottom: 172px; z-index: 50;
       width: min(520px, calc(100vw - 310px)); max-height: none;
-      overflow-y: scroll; background: #0c0e13;
-      border: 1px solid #3a3f4d; border-radius: 10px;
-      color: #cdd2dd; font: 13px/1.6 -apple-system, sans-serif;
-      padding: 12px 22px 22px;
-      box-shadow: 0 18px 40px rgba(0,0,0,0.55), inset 0 -18px 18px rgba(0,0,0,0.34);
+      overflow-y: scroll; color: #e7d8b4; font: 13px/1.6 -apple-system, sans-serif;
+      padding: 12px 22px 22px; border: 3px solid transparent; border-radius: 5px;
+      background: var(--bronze-fill) padding-box, var(--bronze-edge) border-box;
+      box-shadow: var(--bronze-frame), inset 0 -18px 18px rgba(0,0,0,0.34);
     }
     #manual::-webkit-scrollbar { width: 10px; }
-    #manual::-webkit-scrollbar-track { background: #151820; border-radius: 10px; }
-    #manual::-webkit-scrollbar-thumb { background: #4b5263; border-radius: 10px; }
-    #manual h1 { font-size: 19px; } #manual h2 { font-size: 15px; margin-top: 18px; color: #e8d9a8; }
+    #manual::-webkit-scrollbar-track { background: rgba(6,8,5,0.6); border-radius: 5px; }
+    #manual::-webkit-scrollbar-thumb { background: #6e5128; border-radius: 5px; }
+    #manual h1 { font-size: 19px; color: #e8cf96; } #manual h2 { font-size: 15px; margin-top: 18px; color: #e8cf96; }
     #manual table { border-collapse: collapse; width: 100%; margin: 6px 0; }
-    #manual td, #manual th { border: 1px solid #333947; padding: 3px 8px; font-size: 12px; text-align: left; }
+    #manual td, #manual th { border: 1px solid rgba(150,114,62,0.35); padding: 3px 8px; font-size: 12px; text-align: left; }
     #banner {
       display: none; position: fixed; top: 38%; left: 0; right: 0;
-      text-align: center; font: bold 42px ui-monospace, Menlo, monospace;
-      text-shadow: 0 2px 14px rgba(0,0,0,0.9); pointer-events: none;
+      text-align: center; font: 700 52px 'Cinzel', ui-serif, Georgia, serif; letter-spacing: 4px;
+      color: #e8cf96; text-shadow: 0 2px 16px rgba(0,0,0,0.95); pointer-events: none;
     }
     #selbox {
       display: none; position: fixed; border: 1px solid rgba(255,255,255,0.7);

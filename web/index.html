@@ -31,16 +31,21 @@
     #hud {
       position: fixed; top: 12px; left: 12px;
       font: 12px/1.5 ui-monospace, Menlo, monospace;
-      color: #ecd9b0; pointer-events: none; min-width: 220px;
-      padding: 9px 13px; border: 3px solid transparent; border-radius: 5px;
+      color: #ecd9b0; pointer-events: none; min-width: 234px; max-width: 282px;
+      padding: 10px 13px 11px; border: 3px solid transparent; border-radius: 5px;
       background: var(--bronze-fill) padding-box, var(--bronze-edge) border-box;
       box-shadow: var(--bronze-frame);
     }
-    #hud .bar {
-      height: 6px; background: rgba(6,8,5,0.8); border-radius: 2px; overflow: hidden; margin: 2px 0 6px;
-      box-shadow: inset 0 0 0 1px rgba(150,114,62,0.3);
-    }
-    #hud .bar > div { height: 100%; background: #5cba46; }
+    /* Visual unit readout: portrait + name header, labeled stat bars, detail. */
+    #hud .hud-head { display: flex; gap: 9px; align-items: center; margin: 7px 0 9px; }
+    #hud .hud-port { width: 46px; height: 60px; flex: none; object-fit: cover; border: 1px solid #2a1d0e; border-radius: 2px; background: #1c150d; box-shadow: inset 0 0 0 1px rgba(150,114,62,0.3); }
+    #hud .hud-name { font: 700 16px 'Cinzel', ui-serif, Georgia, serif; color: #f0e3b0; letter-spacing: 0.5px; line-height: 1.1; }
+    #hud .hud-meta { font-size: 11px; color: #b89a64; margin-top: 3px; }
+    #hud .hud-stat { display: flex; align-items: center; gap: 7px; margin: 3px 0; }
+    #hud .hud-stat > span { width: 26px; flex: none; font-size: 10px; letter-spacing: 1px; color: #c9a461; }
+    #hud .hud-bar { flex: 1; height: 7px; background: rgba(6,8,5,0.8); border-radius: 2px; overflow: hidden; box-shadow: inset 0 0 0 1px rgba(150,114,62,0.3); }
+    #hud .hud-bar > div { height: 100%; }
+    #hud .hud-detail { margin-top: 9px; padding-top: 7px; border-top: 1px solid rgba(150,114,62,0.3); font-size: 11px; line-height: 1.5; color: #cbb486; }
     #help {
       position: fixed; bottom: 12px; left: 12px;
       font: 11px ui-monospace, Menlo, monospace; color: #6b7280;
@@ -104,7 +109,7 @@
       position: fixed; bottom: 52px; left: 50%; transform: translateX(-50%); z-index: 5;
       display: grid; width: max-content; max-width: calc(100vw - 24px);
       grid-template-columns: repeat(var(--cols, 1), var(--card-w, 72px));
-      grid-auto-rows: var(--card-h, 96px);
+      grid-auto-rows: auto;
       gap: 3px; justify-content: center; align-content: end;
       overflow: hidden; padding: 11px 12px;
       /* Opaque worn-bronze chassis: a brushed-metal fill and corner rivets
@@ -131,34 +136,32 @@
     @media (max-width: 760px) {
       #manual { left: 12px; right: 12px; bottom: 172px; width: auto; }
     }
-    /* The portrait fills the whole 3:4 card (same aspect as the baked PNG, so it
-       just fills — no crop, no letterbox); name / count / bars overlay it over a
-       bottom scrim, Total-War style. */
-    /* Each card is an inset well in the chassis (recessed, bronze-rimmed),
-       NOT a floating rounded web card. */
+    /* A card is a column: an HP strength bar, the FULL 3:4 portrait, then the name
+       and cohesion/morale bars — each in its own strip, so the chrome never overlaps
+       the figure (the card is taller than the 3:4 portrait to make room). An inset
+       bronze-rimmed well in the chassis, not a floating rounded web card. */
     .ucard {
-      width: var(--card-w); height: var(--card-h); aspect-ratio: 3 / 4; box-sizing: border-box;
-      position: relative; overflow: hidden;
-      background: #0c0a06; border: 1px solid #2a1d0e;
-      border-top: 3px solid var(--fac); border-radius: 1px;
+      width: var(--card-w); box-sizing: border-box;
+      display: flex; flex-direction: column; overflow: hidden;
+      background: #16100a; border: 1px solid #2a1d0e;
+      border-top: 3px solid var(--fac); border-radius: 2px;
       cursor: pointer; transition: box-shadow 0.1s;
-      box-shadow: inset 0 0 0 1px rgba(150,114,62,0.4), inset 0 0 9px rgba(0,0,0,0.85);
+      box-shadow: inset 0 0 0 1px rgba(150,114,62,0.35);
     }
-    .ucard:hover { box-shadow: inset 0 0 0 1px rgba(201,165,99,0.7), inset 0 0 8px rgba(0,0,0,0.7); }
+    .ucard:hover { box-shadow: inset 0 0 0 1px rgba(201,165,99,0.7); }
     .ucard.sel { border-color: #f0d98a; z-index: 2; box-shadow: inset 0 0 0 1px #f0d98a, 0 0 9px 1px rgba(240,212,122,0.6); }
     .ucard.rout { filter: grayscale(0.5) brightness(0.8); }
     .ucard.rout::after {
-      content: 'ROUT'; position: absolute; top: 20px; left: 0; right: 0; text-align: center; z-index: 3;
+      content: 'ROUT'; position: absolute; top: 26px; left: 0; right: 0; text-align: center; z-index: 3;
       font: 700 9px ui-monospace, monospace; color: #ff7a6b; text-shadow: 0 1px 2px #000;
     }
-    .ucard-port { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; background: #1c150d; }
-    .ucard::before { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 28px; background: linear-gradient(transparent, rgba(6,8,11,0.88)); pointer-events: none; z-index: 1; }
-    /* HP strength bar across the top, with the count riding on it (the reference). */
-    .ucard-hp { position: absolute; top: 0; left: 0; right: 0; height: 13px; z-index: 2; background: rgba(6,8,5,0.82); box-shadow: inset 0 -1px 0 rgba(0,0,0,0.5); overflow: hidden; }
+    /* HP strength bar across the top, count riding on it (the reference). */
+    .ucard-hp { position: relative; flex: none; height: 12px; background: rgba(6,8,5,0.82); box-shadow: inset 0 -1px 0 rgba(0,0,0,0.5); overflow: hidden; }
     .ucard-hp-fill { height: 100%; width: 100%; }
-    .ucard-count { position: absolute; top: 0; right: 5px; z-index: 3; line-height: 13px; font: 700 10px ui-monospace, monospace; color: #fff; text-shadow: 0 1px 2px #000, 0 0 3px #000; }
-    .ucard-name { position: absolute; left: 0; right: 0; bottom: 13px; z-index: 2; text-align: center; padding: 0 2px; font: 700 8px ui-monospace, Menlo, monospace; color: #eef1f7; text-shadow: 0 1px 2px #000, 0 0 3px #000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .ucard-bars { position: absolute; left: 50%; transform: translateX(-50%); bottom: 3px; z-index: 2; width: 86%; }
+    .ucard-count { position: absolute; top: 0; right: 5px; line-height: 12px; font: 700 9px ui-monospace, monospace; color: #fff; text-shadow: 0 1px 2px #000, 0 0 3px #000; }
+    .ucard-port { display: block; flex: none; width: 100%; height: var(--card-h); object-fit: cover; background: #1c150d; }
+    .ucard-name { flex: none; padding: 2px 3px 0; text-align: center; font: 700 8px ui-monospace, Menlo, monospace; color: #ead9b0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ucard-bars { flex: none; padding: 1px 4px 3px; }
     .ucard-bar { height: 3px; background: rgba(8,9,11,0.7); border-radius: 2px; overflow: hidden; margin-bottom: 1px; }
     .ucard-bar > div { height: 100%; width: 100%; }
     .ucard-bar.hp > div { background: #5cba46; }

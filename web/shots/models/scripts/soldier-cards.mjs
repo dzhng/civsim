@@ -61,28 +61,32 @@ function isFigure(r, g, b) {
   return b > g + 5 || r > g + 12 || r + g + b < 140;
 }
 
-// Crop a fixed w×h (3:4) window horizontally centred on the figure and ANCHORED on
-// its feet (a unit card stands its subject on the floor): the feet sit just above
-// the bottom edge, the head gets the headroom, and an over-tall pike clips off the
-// top rather than shrinking the figure.
-const FOOT_MARGIN = 18; // px of ground below the feet
+// Crop a fixed w×h (3:4) window with the figure CENTRED head-to-feet, so the whole
+// soldier shows inside the 3:4 portrait (the card frames it above + below with the
+// HP bar and the name/coh/mor strips — chrome never overlaps the figure). The head
+// is the first row with a SUBSTANTIAL run of figure pixels, so a thin raised pike
+// runs off the top instead of fooling the anchor.
+const HEAD_MIN = 6; // figure px in a row to count as head/shoulders (skip thin weapons)
 function cropAroundFigure(buf, w, h) {
   const img = PNG.sync.read(buf);
-  let minX = img.width, maxX = 0, maxY = 0, found = false;
+  let minX = img.width, maxX = 0, maxY = 0, headTop = -1;
   for (let y = 0; y < img.height; y++) {
+    let row = 0, rowMin = img.width, rowMax = 0;
     for (let x = 0; x < img.width; x++) {
       const i = (y * img.width + x) * 4;
       if (isFigure(img.data[i], img.data[i + 1], img.data[i + 2])) {
-        found = true;
-        if (x < minX) minX = x; if (x > maxX) maxX = x;
-        if (y > maxY) maxY = y;
+        row++; if (x < rowMin) rowMin = x; if (x > rowMax) rowMax = x;
       }
     }
+    if (row > 0) { if (rowMin < minX) minX = rowMin; if (rowMax > maxX) maxX = rowMax; if (y > maxY) maxY = y; }
+    if (headTop < 0 && row >= HEAD_MIN) headTop = y;
   }
+  const found = maxX > 0;
   const cx = found ? (minX + maxX) / 2 : img.width / 2;
-  const feet = found ? maxY : img.height / 2;
+  const head = headTop >= 0 ? headTop : Math.round(img.height / 3);
+  const bodyH = found ? maxY - head : h; // head-to-feet (the pike above `head` is ignored)
   const sx = Math.max(0, Math.min(img.width - w, Math.round(cx - w / 2)));
-  const sy = Math.max(0, Math.min(img.height - h, Math.round(feet + FOOT_MARGIN - h)));
+  const sy = Math.max(0, Math.min(img.height - h, Math.round(head - (h - bodyH) / 2)));
   // Composite the figure onto a dark vertical gradient (drop the bright grass,
   // which washes the figure out and reads like a map tile): field pixels become
   // backdrop, figure pixels are kept — a unit bust, not a battlefield snippet.
@@ -152,7 +156,7 @@ const buffers = [];
 const manifest = {};
 for (let look = 0; look < LOOK_NAMES.length; look++) {
   const h = LOOK_H[look] ?? 1.8;
-  const zoom = Math.max(48, Math.min(108, 158 / h)); // eased so head + feet keep clear margin; tall looks zoom out
+  const zoom = Math.max(36, Math.min(82, 112 / h)); // figure fits the 3:4 with head AND foot margin; tall looks zoom out
   const url = new URL(`${TARGET}/renderer/skinned-soldier`);
   url.searchParams.set('class', String(look));
   url.searchParams.set('clip', 'idle');

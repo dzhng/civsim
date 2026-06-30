@@ -51,9 +51,14 @@ sideways.
 - Recreated weave shots for column bulge / penetration / deep-push cases.
 - Recreated browser battle vibe shots for `penetration` and `offense`, inspected
   by eye before blessing any baselines.
-- An unprimed `screenshot-critique` subagent review of the comparison sheet and
-  tight crops. The subagent should not be told which threshold or behavior is
-  expected to win.
+- A focused proof artifact:
+  `specs/column-closing/visualizations/bridge-gap-proof.html`, showing the
+  two-file and four-file lane fixtures as tight before/after crops.
+- For game-facing battle-vibe changes, an unprimed `screenshot-critique`
+  subagent review of the comparison sheet and tight crops. The subagent should
+  not be told which threshold or behavior is expected to win. The final focused
+  bridge proof is a deterministic slot-map artifact; inspect its full render and
+  tight crops directly.
 
 ## Tests that pin it
 
@@ -81,9 +86,9 @@ sideways.
 
 ## Latest checkpoint
 
-The local bridge idea is mechanically pinned, retained in code, and covered by
-the accepted general `penetration`/`offense` vibe baselines, but still needs a
-dedicated 2+ wiped-file lane visual proof if slice 4 is to close rigorously.
+The local bridge idea is mechanically pinned, retained in code, covered by the
+accepted general `penetration`/`offense` vibe baselines, and now has a dedicated
+2+ wiped-file lane visual proof.
 The first conservative 2+ file bridge seeded adjacent empty-file lanes with at
 most two rear/deep donors from the nearest live files and left one-file notches
 alone. A later scaled variant tried the more intelligent wide-lane version:
@@ -109,9 +114,22 @@ it is an ordered, living formation that stays readable without global lateral
 crab. David later judged the retained current battle-vibe direction less wrong
 than the flawed baseline; the `penetration`/`offense` baselines are now
 re-blessed after the corrected-target review. Do not re-implement the bridge
-from scratch. The remaining slice-4 proof is narrower: capture or build a
-focused adjacent-lane case that shows the donor bridge itself reads as local
-rear/deep reserves, not as a whole-rank lateral re-form.
+from scratch.
+
+The focused proof artifact at
+`specs/column-closing/visualizations/bridge-gap-proof.html` closes that narrower
+slice-4 proof. It shows the exact `6 files x 4 ranks` two-file bridge case from
+the unit test: files `2-3` are wiped, then only the deepest edge donors from
+files `1` and `4` enter the rear of the lane (`2` lateral movers out of `16`
+living), leaving the front of the lane damaged. It also shows the scaled
+`10 files x 5 ranks` four-file lane: files `3-6` are wiped, then four rear/deep
+donors seed the lane from edge files `2` and `7` (`4` lateral movers out of `30`
+living). The guard rail remains visible: a single-file notch gets `0` donors
+while contact is live. Headless Chromium rendered the page at desktop and mobile
+widths with `148` cells, `7` bridge donors, `7` donor-origin vacancies, and no
+horizontal overflow; local review crops were captured at
+`/private/tmp/bridge-gap-proof-two-file-crop.png` and
+`/private/tmp/bridge-gap-proof-wide-lane-crop.png`.
 
 ## Feedback that would change this slice
 

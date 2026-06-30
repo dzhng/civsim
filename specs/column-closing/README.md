@@ -17,15 +17,15 @@ chase his new slot. Stop relabelling laterally while engaged and the crab stops.
 
 ## Next Agent Prompt
 
-**Status:** Slice 2/3 core wiring is accepted and the relevant shot baselines
-are now re-blessed for the corrected visual target. `compact_columns` closes
-casualties forward within files while engaged/advancing,
+**Status:** All planned column-closing slices are implemented. `compact_columns`
+closes casualties forward within files while engaged/advancing,
 `compact_slots_preserving_order` is deleted, disengage gets a clear-beat
-re-even, the scaled local large-gap bridge is mechanically pinned, and focused
-tests are green. The current `0.10m` pivot-length slack keeps the column closer
-to its deployed footprint at contact; David judged it better than the flawed
-baseline, whose pinched/harrowed middle looked unnatural. The golden hash is
-re-pinned.
+re-even, the scaled local large-gap bridge is mechanically pinned, and the
+dedicated bridge visual proof is committed. The current `0.10m` pivot-length
+slack keeps the column closer to its deployed footprint at contact; David judged
+it better than the flawed baseline, whose pinched/harrowed middle looked
+unnatural. The relevant shot baselines are re-blessed for that corrected visual
+target, and the golden hash is re-pinned.
 This continuation also pinned the slice-3 rear-line no-crab sentinel:
 `rear_ranks_do_not_crab_sideways_while_engaged_casualties_close` holds engaged
 rear ranks to `p95 < 0.45m` and peak `< 0.55m`, well below a ~`1.0m` file
@@ -36,6 +36,15 @@ slice-3 timeline at
 forward casualty closing, a wiped-file notch persisting while engaged, and the
 clear-beat lateral re-even. Headless Chromium rendered it at desktop and mobile
 widths with 7 frames, 301 cells, visible drift bars, and no horizontal overflow.
+The slice-4 dedicated proof now lives at
+`specs/column-closing/visualizations/bridge-gap-proof.html`: it shows the exact
+two-file and four-file bridge fixtures, with only rear/deep edge donors entering
+the vacant lane, the front of the gap still damaged, and the single-file notch
+guard at 0 donors. Headless Chromium rendered it at desktop and mobile widths
+with 148 cells, 7 bridge donors, 7 donor-origin vacancies, and no horizontal
+overflow; local review crops were captured at
+`/private/tmp/bridge-gap-proof-two-file-crop.png` and
+`/private/tmp/bridge-gap-proof-wide-lane-crop.png`.
 Earlier
 browser candidates repeatedly looked worse under unprimed `screenshot-critique`:
 The latest same-file hard collision queue candidate recreated fresh battle shots
@@ -286,21 +295,19 @@ regenerated with `cargo run -p sim --bin weave_shots --features shots`; spot
 checks of `t3-col-bulge`, `t3-deep-push-thin`, `t3-deep-push-wide`, and
 `t3-wide-wrap` stayed readable.
 
-**Pickup point:** Build on the retained `0.10m` pivot-length slack; do not judge
-the next pass by matching the flawed baseline. The width target is "as close as
-possible to the original deployed column at enemy contact" -- neither narrower
-nor wider -- and current is better than baseline by that ruler because the old
-baseline unnaturally pinches/harrows the column middle. The rear-line no-crab
-metric is now pinned, and the human-viewable timeline artifact exists at
-`specs/column-closing/visualizations/no-crab-timeline.html`. The current retained
-visual pass has now had the required fresh unprimed critique, David's follow-up
-review judged it visually less wrong than the flawed baseline, and the accepted
-`penetration`/`offense` baselines are re-blessed. If continuing, do not re-open
-closed scalar-green/visual-red contact-order probes unless new evidence names a
-different mechanism. The remaining spec risk is the slice-4 large-gap bridge's
-dedicated visual proof: the donor rule is in code and mechanically pinned, but a
-focused 2+ wiped-file lane scene/crop has not yet separately shown the bridge
-reading as local rear reserves rather than a global lateral crab.
+**Pickup point:** No active implementation pickup remains for this spec. The
+retained `0.10m` pivot-length slack is the accepted contact-width tradeoff; do
+not judge future work by matching the flawed baseline. The width target is "as
+close as possible to the original deployed column at enemy contact" -- neither
+narrower nor wider -- and current is better than baseline by that ruler because
+the old baseline unnaturally pinches/harrows the column middle. The rear-line
+no-crab metric is pinned, the no-crab timeline exists at
+`specs/column-closing/visualizations/no-crab-timeline.html`, and the bridge gap
+proof exists at `specs/column-closing/visualizations/bridge-gap-proof.html`.
+The accepted `penetration`/`offense` baselines are re-blessed. If future work
+touches the carried loose-tail/dark-offense visual debt, treat it as a new
+targeted visual/mechanics pass rather than reopening closed scalar-green/
+visual-red contact-order probes without new evidence.
 
 **Locked decisions (from the grilling):**
 - A wiped column leaves a **persistent frontage notch** mid-fight — do NOT slide
@@ -536,10 +543,11 @@ reading as local rear reserves rather than a global lateral crab.
   confidence blue column loss at `t084/t120/t192`, horizontal smearing, muddy
   contact layering, and unchanged dark offense silhouettes. Lane-biased target
   preference is not sufficient by itself.
-- A bounded large-gap bridge candidate was added and mechanically pinned, but it
-  is **not visually accepted yet**. It detects adjacent runs of 2+ empty slot
-  files after `compact_columns` and seeds the lane with at most two rear/deep
-  edge donors, leaving single-file notches alone. Focused formation tests,
+- A bounded large-gap bridge candidate was added and mechanically pinned, but at
+  that pre-acceptance pass it was **not visually accepted yet**. It detects
+  adjacent runs of 2+ empty slot files after `compact_columns` and seeds the
+  lane with at most two rear/deep edge donors, leaving single-file notches
+  alone. Focused formation tests,
   `compact_columns`/bridge unit tests, `mechanics_melee::attack_latch_behaves_like_a_move_order`,
   `mechanics_disengage`, and `scripts/test-mechanics` were green. Fresh
   `vibe/penetration`, `vibe/offense`, and weave shots were captured and compared
@@ -549,10 +557,10 @@ reading as local rear reserves rather than a global lateral crab.
   scattered spray/blob, red sags into a dense mixed contact arc, `t084` has
   isolated blue stragglers/side clusters, `t120/t192` have ambiguous
   blue/gray/red layering, and current offense still shows high-confidence dark
-  detached trailing figures plus more broken blue wing fragments. Do not bless
-  the bridge as the final spec behavior until the battle-vibe gate no longer
-  finds those high-confidence regressions. The generated `web/shots` from this
-  pass were reverted; comparison evidence lives under
+  detached trailing figures plus more broken blue wing fragments. This warning
+  was resolved later by the corrected-target acceptance pass and the dedicated
+  bridge proof; the generated `web/shots` from this pass were reverted, and
+  comparison evidence lives under
   `/private/tmp/civsim-column-closing-shots/`.
 - A narrow-front lateral damping candidate was tried on top of the bridge and
   rejected, then removed. It only damped lateral velocity that carried a narrow
@@ -581,9 +589,10 @@ reading as local rear reserves rather than a global lateral crab.
   has dark detached figures and crescent/blob formation reads. Target/frontage
   consistency alone is not the missing contact-order primitive.
 - A scaled large-gap bridge candidate was tried on top of the local bridge and
-  is also **not visually accepted**. It raised the per-gap donor cap to one rear
-  donor per empty file (up to six donors) so a four-file lane is seeded from both
-  edges without moving a whole rank. Focused bridge/formation tests and the full
+  was also **not visually accepted** in that pre-acceptance battle-vibe pass. It
+  raised the per-gap donor cap to one rear donor per empty file (up to six
+  donors) so a four-file lane is seeded from both edges without moving a whole
+  rank. Focused bridge/formation tests and the full
   `scripts/test-mechanics` sweep passed, and fresh `vibe/penetration`,
   `vibe/offense`, and weave shots were recreated. A fresh unprimed
   `screenshot-critique` explorer ("Descartes", `fork_context: false`) still
@@ -850,8 +859,8 @@ reading as local rear reserves rather than a global lateral crab.
       (`specs/column-closing/visualizations/no-crab-timeline.html`; renderer-lab
       moving-picture scene remains optional/not built)
 - [x] Gap bridge designed and pinned: adjacent 2+ dead-file lanes fill locally
-      from rear/deep reserves without whole-unit lateral crab; optionally lower
-- [ ] Dedicated gap-bridge visual proof: a focused 2+ wiped-file lane shot/crop
+      from rear/deep reserves without whole-unit lateral crab — slice 4
+- [x] Dedicated gap-bridge visual proof: a focused 2+ wiped-file lane shot/crop
       shows the local rear/deep donor bridge reading as bounded reserves rather
       than a whole-unit lateral re-form — slice 4
 

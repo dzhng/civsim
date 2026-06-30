@@ -5,11 +5,12 @@
   "scripts": {
     "dev": "vite --strictPort",
     "build": "vite build",
+    "typecheck": "tsc --noEmit",
     "preview": "vite preview",
     "build:wasm": "wasm-pack build ../crates/game-wasm --target web --release --out-dir ../../web/src/wasm",
     "scene": "node scene.mjs",
     "scene:full": "node scene.mjs --full",
-    "test:ui": "node --test src/battle/cardGrid.test.mjs",
+    "test:ui": "node --test src/battle/cardGrid.test.mjs src/ui/menu/armyBuilderState.test.mjs",
     "scenario": "node scene.mjs",
     "scenario:full": "node scene.mjs --full",
     "scenario:renderer": "SCENARIO_REPORT_JSON=reports/rendering/scenario-runs/renderer-latest.json VERIFY_GPU=1 node scene.mjs renderer-lab-routes renderer-fault-injection renderer-capabilities asset-workbench per-class-vat soldier-materials mounted-units lod-tiers battle-elevation battle-effects campaign-models full-game-rendering-performance battle-renderer-default battle-input campaign-production campaign-handoff campaign-save-load campaign-visual campaign-map-alignment campaign-lod menu-renderer-shell menu-renderer-shell-visual shared-prop-models battle-terrain-features battle-terrain-3d battle-terrain-blockers battle-terrain-elevation",
@@ -30,10 +31,19 @@
     "bake:test": "node ../packages/soldier-assets/bake/vat.test.mjs && node ../packages/soldier-assets/bake/gltf.test.mjs && node ../packages/soldier-assets/bake/soldier-placeholders.mjs --check && node shots/models/scripts/soldier-cards.mjs --check"
   },
   "devDependencies": {
+    "@tailwindcss/vite": "^4.3.2",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.3",
     "pixelmatch": "^7.2.0",
     "playwright": "^1.60.0",
     "pngjs": "^7.0.0",
+    "tailwindcss": "^4.3.2",
     "typescript": "^6.0.3",
     "vite": "^8.0.16"
+  },
+  "dependencies": {
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7"
   }
 }

@@ -46,14 +46,21 @@ export async function run(ctx) {
     // Overfill side 0 past the slot cap by clicking the cheapest class's + many times.
     const plus = document.querySelector('#qb-army-0 .qb-row:last-child .qb-step:last-child');
     for (let i = 0; i < 30; i++) plus?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-    const overInvalid = document.getElementById('qb-launch')?.disabled === true
-      && document.querySelector('#qb-army-0 .qb-footer')?.classList.contains('over');
-    return { open, maps, rows, defaultValid, overInvalid };
+    return { open, maps, rows, defaultValid };
   });
+  // The builder re-renders the over-budget state on its own clock (React batches
+  // the dispatched clicks), so read the invalidation after it settles.
+  await page.waitForFunction(
+    () => document.getElementById('qb-launch')?.disabled === true
+      && document.querySelector('#qb-army-0 .qb-footer')?.classList.contains('over'),
+    undefined, { timeout: 4000 },
+  ).catch(() => {});
+  const overInvalid = await page.evaluate(() => document.getElementById('qb-launch')?.disabled === true
+    && document.querySelector('#qb-army-0 .qb-footer')?.classList.contains('over'));
   ctx.check(
     'Custom Battle setup is catalog-driven with live army validation',
-    qb.open === true && qb.maps.length === 3 && qb.rows >= 15 && qb.defaultValid && qb.overInvalid,
-    JSON.stringify(qb),
+    qb.open === true && qb.maps.length === 3 && qb.rows >= 15 && qb.defaultValid && overInvalid,
+    JSON.stringify({ ...qb, overInvalid }),
   );
   await page.click('#qb-back');
 

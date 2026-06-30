@@ -19,6 +19,19 @@ export interface QuickBattleUnitPick {
   count: number;
 }
 
+/** A selectable class row in the army builder (id/name/cost from Game.class_specs()). */
+export interface QuickBattleClassSpec {
+  id: number;
+  name: string;
+  cost: number;
+}
+
+/** The launched custom battle: a map and two armies. */
+export interface QuickBattleConfig {
+  mapId: number;
+  teams: [QuickBattleUnitPick[], QuickBattleUnitPick[]];
+}
+
 export interface QuickBattleValidation {
   goldSpent: number;
   slotsUsed: number;

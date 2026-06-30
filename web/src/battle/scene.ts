@@ -4,7 +4,7 @@ import { Camera } from '../shared/camera';
 import { pushGhost, pushPie, pushRing } from '../shared/overlays';
 import { fatalSurfaceFor, showFatalErrorSurface } from '../shared/fatalError';
 import { CLASS_DEPTH, CLASS_SPACING } from '../../../packages/game-renderer/src/battle/unitInfoLayout';
-import { modelLookForUnit } from '../../../packages/game-renderer/src/models/shared/soldierModel';
+import { modelLookForClass, modelLookForUnit } from '../../../packages/game-renderer/src/models/shared/soldierModel';
 import {
   HEAVY_PHALANX_REST_CLASS,
   HEAVY_PHALANX_SIDEARM_CLASS,
@@ -18,12 +18,15 @@ import {
   UNIT_CLASS_BY_KEY,
   UNIT_CLASS_KEY_BY_ID,
   UnitClass,
+  cardThumbUrl,
   validateClassSpecCatalog,
   type UnitClassKey,
 } from './classData';
 import { UnitBanner, type BannerChip } from './unitBanner';
 import { UnitCards } from './unitCard';
+import { UnitCardsReact } from '../ui/hud/UnitCardsReact';
 import { installViewportGate } from './viewportGate';
+import { toolbarIcon } from './toolbarIcons';
 import { Input } from './input';
 import { MANUAL_HTML } from './manual';
 import { groupMoveDests, UnitSnap } from './orders';
@@ -391,6 +394,8 @@ export class BattleScene implements Scene {
     const toolButtons = new Map<string, HTMLButtonElement>();
     document.querySelectorAll<HTMLButtonElement>('#toolbar button').forEach((b) => {
       toolButtons.set(b.dataset.cmd!, b);
+      const icon = toolbarIcon(b.dataset.cmd!);
+      if (icon) b.innerHTML = icon; // Phosphor glyph replaces the text label
     });
     function updateToolbar() {
       const sel = myUnits(input.selected);
@@ -398,10 +403,9 @@ export class BattleScene implements Scene {
       const o = sel.length ? sel[0] * STRIDE : -1;
       const classes = sel.map((u) => info[u * STRIDE + 13]);
       const supports = (allowed: number[]) => classes.some((c) => allowed.includes(c));
-      const set = (cmd: string, on: boolean, label?: string) => {
+      const set = (cmd: string, on: boolean) => {
         const b = toolButtons.get(cmd)!;
         b.classList.toggle('on', on);
-        if (label) b.textContent = label;
         if (!['pause', 'x1', 'x3', 'paths'].includes(cmd)) {
           let applies = sel.length > 0;
           if (cmd === 'kite') applies &&= supports(KITE_CLASS_IDS);
@@ -409,7 +413,7 @@ export class BattleScene implements Scene {
           b.disabled = !applies;
         }
       };
-      set('pace', o >= 0 && info[o + 9] > 0.5, o >= 0 && info[o + 9] > 0.5 ? 'Running' : 'Run');
+      set('pace', o >= 0 && info[o + 9] > 0.5);
       set('reform', false);
       set('pursue', o >= 0 && info[o + 25] > 0.5);
       set('fire', o >= 0 && sel.length > 0 && fireOn);
@@ -681,14 +685,22 @@ export class BattleScene implements Scene {
     // --- Bottom unit-card strip: one card per player unit (Total War style) -------
     const cardsRoot = document.getElementById('unitcards')!;
     let cardUnits: number[] = []; // sim unit id per card, in strip order
-    const unitCards = new UnitCards(cardsRoot, (unit, additive) => {
+    const onCardSelect = (unit: number, additive: boolean) => {
       input.selected = additive
         ? Array.from(new Set([...input.selected, unit]))
         : [unit];
       // Centre the camera on the picked unit, like clicking its banner.
       const [cx, cy] = unitCenter(unit);
       camera.x = cx; camera.y = cy; camera.clampView();
-    });
+    };
+    // S3 perf spike: ?hud=react (or localStorage hud=react) swaps the vanilla
+    // card bar for the React one at the SAME rAF update call site, for the A/B
+    // measurement. Default stays vanilla until S6 reads S3's verdict.
+    const useReactCards = new URLSearchParams(location.search).get('hud') === 'react'
+      || (typeof localStorage !== 'undefined' && localStorage.getItem('hud') === 'react');
+    const unitCards = useReactCards
+      ? new UnitCardsReact(cardsRoot, onCardSelect)
+      : new UnitCards(cardsRoot, onCardSelect);
     const buildCards = () => {
       const info = unitInfo();
       cardUnits = [];
@@ -707,7 +719,10 @@ export class BattleScene implements Scene {
       unitCards.build(inits);
     };
     buildCards();
-    this.cleanups.push(() => { cardsRoot.innerHTML = ''; });
+    this.cleanups.push(() => {
+      if (unitCards instanceof UnitCardsReact) unitCards.destroy();
+      else cardsRoot.innerHTML = '';
+    });
     const updateCards = () => {
       const info = unitInfo();
       const sel = new Set(input.selected);
@@ -721,6 +736,16 @@ export class BattleScene implements Scene {
         };
       }));
     };
+    // S3 perf spike: ?measurecards records each frame's card-update self-time (ms)
+    // into window.__cardUpdateSamples, so the perf harness compares the vanilla
+    // vs React card bar on isolated update cost with the sim RUNNING. Off by
+    // default — zero overhead on the shipping path.
+    const measureCards = new URLSearchParams(location.search).has('measurecards');
+    const cardUpdateSamples: number[] = [];
+    if (measureCards) (window as unknown as { __cardUpdateSamples?: number[] }).__cardUpdateSamples = cardUpdateSamples;
+    const tickCards = measureCards
+      ? () => { const t = performance.now(); updateCards(); cardUpdateSamples.push(performance.now() - t); }
+      : updateCards;
 
     // --- Tactical lines: ground decals plus transient effects ---------------------
     function tacticalLineFrame(withPaths: boolean): BattleTacticalLineFrame {
@@ -1126,7 +1151,7 @@ export class BattleScene implements Scene {
       }
 
       updateUnitBanners();
-      updateCards();
+      tickCards();
       hudTimer += frameDt;
       if (hudTimer > 0.2) {
         hudTimer = 0;
@@ -1162,20 +1187,21 @@ export class BattleScene implements Scene {
         const cohesion = info[o + 4];
         const fatigue = info[o + 8];
         const pace = info[o + 9] > 0.5 ? 'run' : 'walk';
-        const cls = CLASS_NAMES[info[o + 13]] ?? '?';
-        const charge = info[o + 18] === 2 ? '  CHARGING' : '';
-        const ammo = info[o + 19] > 0 ? `  ammo ${info[o + 19]}` : '';
-        const routing = info[o + 21] > 0.5 ? '  ROUTING' : '';
-        const engaged = info[o + 16];
-        lines.push(
-          `${info[o + 6] === 0 ? 'YOUR' : 'ENEMY'} ${cls}  ${pace} ${info[o + 3].toFixed(1)} m/s${charge}`,
-          `men ${info[o + 15]}/${info[o + 7]}${engaged > 0 ? `  engaged ${engaged}` : ''}${ammo}${routing}`,
-          `cohesion ${(cohesion * 100).toFixed(0)}%  disorder ${(info[o + 5] * 100).toFixed(0)}%  stamina ${(fatigue * 100).toFixed(0)}%  morale ${(info[o + 20] * 100).toFixed(0)}%`,
-        );
-        const spec = CLASS_SPECS[info[o + 13]];
+        const clsId = info[o + 13];
+        const cls = CLASS_NAMES[clsId] ?? '?';
+        const side = info[o + 6] === 0 ? 'YOUR' : 'ENEMY';
+        const alive = info[o + 15], total = info[o + 7];
+        const hpFrac = total > 0 ? alive / total : 0;
+        const charge = info[o + 18] === 2 ? ' · CHARGING' : '';
+        const ammo = info[o + 19] > 0 ? ` · ammo ${info[o + 19]}` : '';
+        const routing = info[o + 21] > 0.5 ? ' · ROUTING' : '';
+        const engaged = info[o + 16] > 0 ? ` · engaged ${info[o + 16]}` : '';
+        const thumb = cardThumbUrl(modelLookForClass(clsId));
+        const detail: string[] = [];
+        const spec = CLASS_SPECS[clsId];
         if (spec) {
           const pct = (x: number) => `${(x * 100).toFixed(0)}%`;
-          lines.push(
+          detail.push(
             `cost ${spec.cost} gold  ` +
               `mass ${spec.mass.toFixed(1)}${spec.brace > 1 ? ` (brace x${spec.brace.toFixed(1)})` : ''}  ` +
               `block ${pct(spec.block)}  evade ${pct(spec.evade)}  train ${pct(spec.training)}`,
@@ -1185,7 +1211,7 @@ export class BattleScene implements Scene {
           );
           for (const w of spec.weapons) {
             const deg = ((w.arc * 180) / Math.PI / 2).toFixed(0);
-            lines.push(
+            detail.push(
               `&nbsp;${w.name}: ${w.reach.toFixed(1)}m ±${deg}°  ` +
                 `dmg ${w.damage.toFixed(2)} / ${w.interval.toFixed(1)}s` +
                 (w.minRange > 0 ? `  (dead <${w.minRange.toFixed(1)}m)` : ''),
@@ -1193,16 +1219,24 @@ export class BattleScene implements Scene {
           }
           if (spec.missile) {
             const m = spec.missile;
-            lines.push(
+            detail.push(
               `&nbsp;${m.name}: ${m.range.toFixed(0)}m  dmg ${m.damage.toFixed(2)} / ${m.interval.toFixed(0)}s  ` +
                 `ammo ${m.ammo}${m.mobileFire ? '  fires mounted' : ''}`,
             );
           }
         }
+        const hpColor = hpFrac > 0.5 ? '#5cba46' : hpFrac > 0.25 ? '#d6b13a' : '#cf4a3a';
+        const stat = (label: string, frac: number, color: string) =>
+          `<div class="hud-stat"><span>${label}</span><div class="hud-bar"><div style="width:${(frac * 100).toFixed(0)}%;background:${color}"></div></div></div>`;
         bars =
-          `<div class="bar"><div style="width:${(cohesion * 100).toFixed(0)}%"></div></div>` +
-          `<div class="bar"><div style="width:${(fatigue * 100).toFixed(0)}%;background:#d9a13b"></div></div>` +
-          `<div class="bar"><div style="width:${(info[o + 20] * 100).toFixed(0)}%;background:#c2554e"></div></div>`;
+          `<div class="hud-head">${thumb ? `<img class="hud-port" src="${thumb}" alt="">` : ''}` +
+            `<div><div class="hud-name">${cls}</div>` +
+            `<div class="hud-meta">${side} · ${alive}/${total} men · ${pace}${charge}${routing}${engaged}${ammo}</div></div></div>` +
+          stat('HP', hpFrac, hpColor) +
+          stat('COH', cohesion, '#d9c75a') +
+          stat('STA', fatigue, '#d9a13b') +
+          stat('MOR', info[o + 20], '#c2554e') +
+          (detail.length ? `<div class="hud-detail">${detail.join('<br>')}</div>` : '');
       }
       hud.innerHTML = lines.join('<br>') + bars;
 

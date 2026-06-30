@@ -7,9 +7,30 @@ model, plus a `--check` freshness gate so the build fails when the committed PNG
 go stale. No UI consumes them yet — this slice is assets + pipeline only, fully
 decoupled from the layout work so a baking problem can't block S1/S2.
 
+## Status (implemented 2026-06-30)
+
+Baked a first cut of all 16 looks. Deviations from the plan below, with reasons:
+- **Baker lives at `web/shots/models/scripts/soldier-cards.mjs`** (beside the other
+  GPU baker `soldier-sheets.mjs`), **not** `packages/`: GPU bakers need `playwright`/
+  `pngjs`, which only resolve from `web/node_modules`. The dual-write *targets* the
+  package + `web/public` regardless of script location, so the asset contract holds.
+- **GPU needs a real adapter** — headless swiftshader returns no adapter on this
+  machine, so the baker launches **headful with hardware (Metal) flags**.
+- **`--check` compares the package vs served copies for byte-equality** (the
+  dual-write wasn't forgotten) rather than re-rendering: GPU output isn't
+  byte-reproducible across machines, so the montage `snapCheck` is the render-drift
+  gate and `--check` is the dual-copy-freshness gate.
+- **`cardThumbUrl` deferred to S4** (where it's consumed) to avoid a hardcoded
+  name list that duplicates the generated `manifest.json` — the manifest is the
+  single source of truth; S4's helper reads it.
+- **Framing constants** (pitch 1.1 — near eye-level, NOT a low number; `cam x −3.3`
+  to centre the fixed-position soldier; `zoom 184/h`; figure-following crop) are
+  first-cut defaults for **David's framing checkpoint** — heads have room and the
+  figures read at 72px, but small-size class distinguishability is the open call.
+
 ## API seam
 
-- **New baker `packages/soldier-assets/bake/soldier-cards.mjs`**, modeled on two
+- **New baker `web/shots/models/scripts/soldier-cards.mjs`**, modeled on two
   existing files:
   - `web/shots/models/scripts/soldier-sheets.mjs` for the Playwright drive of
     `/renderer/skinned-soldier` — reuse `captureSoldier()` (URL params

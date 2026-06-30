@@ -16,8 +16,18 @@ Reference look: `assets/reference-tw-cardbar.png`.
 direction). Next: **Slice 3** (`slices/03-bake-thumbnails.md`). _Last updated:
 2026-06-30._
 
-**Pick up at Slice 3** (offline portrait bake — independent of the layout work).
-S1+S2 shipped the fixed-size Total-War card bar:
+**Pick up at Slice 4** (swap the card's placeholder `<canvas>` portrait for the
+baked `<img>`). S1+S2 shipped the fixed-size Total-War card bar; S3 baked the
+portrait PNGs; S6 added the min-window gate.
+
+S4 pointers: portraits are at `web/public/assets/soldiers/cards/NN-name.png`
+keyed by **look** (`manifest.json` maps look→file). Add `cardThumbUrl(look)` to
+`classData.ts` reading that manifest (deferred from S3 to avoid a duplicate name
+list), and in `UnitCards.build()` swap the `<canvas class="ucard-port">` for an
+`<img>` (look = `modelLookForClass(cls)`), keeping the canvas as a 404 fallback.
+Wait on `img.decode()` in the card scene before snapping.
+
+S1+S2 detail — the fixed-size Total-War card bar:
 - `web/src/battle/cardGrid.ts` — `computeCardGrid(count, boxW, {cardW, aspect, gap,
   maxRows})` → `{rows, cols, cardW, cardH, degenerate}`. Cards are a FIXED size;
   the bar wraps into more rows as the roster grows; cards shrink only past
@@ -68,7 +78,7 @@ loop to do this.
 **Global TODO** (each item owned by a slice):
 - [x] S1 — pure `cardGrid.ts` fixed-size grid math + headless `node --test` (`slices/01-grid-math.md`)
 - [x] S2 — fixed-size no-scroll grid inside `UnitCards` + `/renderer/card-bar` lab harness + `web/scenes/ui/card-bar.mjs` (`slices/02-no-scroll-grid.md`) — _pending David's visual checkpoint + `battle-selection-dpr2` re-bless_
-- [ ] S3 — bake one 3:4 model-portrait PNG per look, dual-write + `--check` gate (`slices/03-bake-thumbnails.md`)
+- [x] S3 — bake one 3:4 model-portrait PNG per look, dual-write + `--check` gate (`slices/03-bake-thumbnails.md`) — _first cut baked; pending David's framing checkpoint_
 - [ ] S4 — swap card portrait `<canvas>` → `<img>`, canvas fallback retained (`slices/04-img-portrait.md`)
 - [ ] S5 — _(optional, droppable)_ dedupe the two CSS copies + reconcile data path (`slices/05-cleanup-reconcile.md`)
 - [x] S6 — min-window gate + "window too small" placeholder (`slices/06-min-window-gate.md`) — _new, David 2026-06-30; implemented, pending David's MIN_WINDOW value/copy checkpoint_

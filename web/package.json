@@ -21,12 +21,13 @@
     "shots:models:campaign": "VERIFY_GPU=1 node scene.mjs campaign-models",
     "shots:models:props": "VERIFY_GPU=1 UPDATE_SHOTS=1 node scene.mjs shared-prop-models",
     "shots:models:anim": "node shots/models/scripts/soldier-animation.mjs",
+    "bake:cards": "node shots/models/scripts/soldier-cards.mjs",
     "verify": "node verify-battle.mjs",
     "verify:full": "node verify-battle.mjs --full",
     "verify:campaign": "VERIFY_GPU=1 node scene.mjs campaign-lod campaign-map-alignment campaign-visual",
     "probe:renderer": "node probe-renderer.mjs",
     "bake:anim": "node ../packages/soldier-assets/bake/soldier-placeholders.mjs",
-    "bake:test": "node ../packages/soldier-assets/bake/vat.test.mjs && node ../packages/soldier-assets/bake/gltf.test.mjs && node ../packages/soldier-assets/bake/soldier-placeholders.mjs --check"
+    "bake:test": "node ../packages/soldier-assets/bake/vat.test.mjs && node ../packages/soldier-assets/bake/gltf.test.mjs && node ../packages/soldier-assets/bake/soldier-placeholders.mjs --check && node shots/models/scripts/soldier-cards.mjs --check"
   },
   "devDependencies": {
     "pixelmatch": "^7.2.0",

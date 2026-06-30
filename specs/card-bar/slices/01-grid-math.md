@@ -2,11 +2,13 @@
 
 ## Contract unlocked
 
-A deterministic, DOM-free function that turns (container box, card count, fixed
-aspect, min legible width, gap, max rows) into a balanced, row-major grid that
-**never overflows the box** and is **generic in count** (20 / 30 / 40 / any N).
-This is the load-bearing math, isolated so it is testable in milliseconds without
-a browser, wasm, or the renderer.
+A deterministic, DOM-free function that turns (available width, card count, the
+**fixed** card width, aspect, gap, max rows) into a balanced, row-major grid that
+**never overflows the width** and is **generic in count** (20 / 30 / 40 / any N).
+Cards are a **fixed size** (Total War — David, 2026-06-30); the bar wraps into
+more rows as the roster grows, and shrinks cards only past `maxRows` capacity to
+avoid a scroll. Load-bearing math, isolated so it is testable in milliseconds
+without a browser, wasm, or the renderer.
 
 ## API seam
 
@@ -15,30 +17,30 @@ wasm, no renderer import):
 
 ```ts
 export interface CardGrid {
-  rows: number; cols: number; cardW: number; cardH: number;
+  rows: number; cols: number; cardW: number; cardH: number; degenerate: boolean;
 }
 export interface CardGridOpts {
-  aspect?: number;   // cardW/cardH, default 3/4 (0.75, tall portrait)
-  minCardW?: number; // legibility floor before we add a row
-  gap?: number;      // px between cards and at edges
-  maxRows?: number;  // cap; beyond this, cards shrink rather than add rows
+  cardW?: number;  // FIXED card width in px (the Total-War card size)
+  aspect?: number; // cardW/cardH, default 3/4 (0.75, tall portrait)
+  gap?: number;    // px between cards and at edges
+  maxRows?: number;// cap; beyond this cards shrink rather than add rows
 }
 export function computeCardGrid(
-  count: number, boxW: number, boxH: number, opts?: CardGridOpts,
+  count: number, boxW: number, opts?: CardGridOpts,
 ): CardGrid;
 ```
 
-Algorithm (see README "The no-scroll grid algorithm" for the canonical form):
-iterate `rows = 1..min(count, maxRows)`, `cols = ceil(count/rows)`, take
-`cardW = min(widthBudgetPerCol, heightBudgetPerRow * aspect)`; return the **fewest
-rows** whose `cardW >= minCardW`; if none qualifies, return the row count that
-**maximizes** `cardW` (still no scroll, just undersized). Floor the pixel outputs.
+Algorithm (see README "The fixed-size grid algorithm" for the canonical form):
+`perRow = floor((boxW+gap)/(cardW+gap))`; `rows = min(maxRows, ceil(count/perRow))`;
+`cols = ceil(count/rows)` (balanced). If `cols` fixed-size cards fit `boxW`, keep
+the size (`degenerate:false`); else (roster overflows `maxRows`) shrink to fit and
+flag `degenerate:true`. Floor the pixel outputs. **There is no `boxH`** — the bar
+is content-height.
 
-**Constants — confirmed by David (2026-06-30)** via the
-`visualizations/grid-prototype.html` defaults: `aspect = 3/4`, `gap = 4`,
-`maxRows = 3`, `minCardW = 64`, band height `≈150px` (fed to S2 as `boxH`). Build
-to these; they may still be nudged at the S2 checkpoint once seen at the real
-battle camera, but they are the agreed starting point, not open guesses.
+**Constants — David's direction (2026-06-30):** cards a *fixed* size, `aspect =
+3/4`, `gap = 4`, `maxRows = 3`, `cardW = 72`. Numeric values may be nudged at the
+S2 checkpoint once seen at the real battle camera, but the fixed-size behavior is
+fixed.
 
 ## What a human can run / see
 
@@ -54,17 +56,18 @@ A standalone **`web/src/battle/cardGrid.test.mjs`** following the repo's
 `*.test.mjs` + `node --test` convention (mirror `packages/soldier-assets/bake/vat.test.mjs`).
 Wire it into a `test:ui` script (or fold into the nearest node-test chain). Assert:
 
-- **Generic-N stacking** at a representative narrow band: 20 → 2×10, 30 → 2×15,
-  40 → 2×20; a wide band gives 20 → 1×20; a tiny roster gives 5 → 1×5.
-- **Never overflow:** for every case, `cols*cardW + gap*(cols+1) <= boxW` and
-  `rows*cardH + gap*(rows+1) <= boxH`.
+- **Fixed card size:** 5 / 20 / 30 / 40 units all return the same `cardW`
+  (`= opts.cardW`) — only the row count changes. This is the load-bearing
+  Total-War invariant.
+- **Generic-N stacking** at the 1256px live budget: 5 → 1×5, 20 → 2×10,
+  30 → 2×15, 40 → 3×14; a wide band gives 20 → 1×20.
+- **Never overflow:** for every case, `cols*cardW + gap*(cols+1) <= boxW`.
 - **Coverage:** `rows*cols >= count` and `(rows-1)*cols < count` (no empty row).
-- **Fixed aspect:** `cardW/cardH` equals `aspect` within rounding.
+- **Fixed aspect:** `cardH` equals `cardW/aspect` within rounding.
 - **Monotonic:** raising `count` never *grows* `cardW`.
-- **Legibility preference:** the chosen `rows` is the smallest with
-  `cardW >= minCardW` whenever such a row count exists.
-- **Graceful degenerate:** a box too small for any row to reach `minCardW`
-  returns without throwing, `rows <= maxRows`, still non-overflowing.
+- **Graceful degenerate:** past `maxRows × perRow` capacity the cards shrink
+  (`degenerate:true`, `cardW < opts.cardW`), `rows <= maxRows`, still
+  non-overflowing — never a scroll.
 
 This is the fastest gate in the feature and runs with no browser.
 
@@ -74,19 +77,19 @@ Everything — the module is not imported by any app code yet. No snapshots move
 
 ## Human review checkpoint
 
-**Done** — David approved the `grid-prototype.html` defaults on 2026-06-30
-(`minCardW = 64`, `maxRows = 3`, `gap = 4`, band ≈150px, aspect 3/4). The test
-just needs to encode those and the 20/30/40 expectations. Re-open the prototype
-only if a number is challenged; otherwise this checkpoint is satisfied.
+**Done** — David pinned the behavior on 2026-06-30: **fixed-size cards, wrap into
+more rows, never resize to chase the roster** (the original size-to-fit-with-a-
+`minCardW`-floor plan is retired). Implemented constants: `cardW = 72`,
+`maxRows = 3`, `gap = 4`, aspect 3/4. The numeric `cardW`/`maxRows` may be nudged
+at the S2 visual checkpoint; the fixed-size behavior is settled.
 
 ## Feedback that would change this slice
 
-- "20 should stay one row down to a narrower window" → lower `minCardW`.
-- "Never more than 2 rows even at 60 units" → lower `maxRows` (accept smaller
-  cards).
+- "Cards are too big / too small" → change `cardW` (one number; rows re-derive).
+- "Never more than 2 rows" → lower `maxRows` (a huge roster then shrinks earlier).
 - "Cards are too tall / too squat" → change `aspect`.
-- "Partial last row should be left-aligned, not centered" → that is a paint
-  decision deferred to S2's CSS, not this function.
+- "Partial last row should be centered, not left-aligned" → that is a paint
+  decision in S2's CSS, not this function.
 
 ## Notes
 

@@ -23,6 +23,7 @@ import {
 } from './classData';
 import { UnitBanner, type BannerChip } from './unitBanner';
 import { UnitCards } from './unitCard';
+import { installViewportGate } from './viewportGate';
 import { Input } from './input';
 import { MANUAL_HTML } from './manual';
 import { groupMoveDests, UnitSnap } from './orders';
@@ -122,6 +123,9 @@ export class BattleScene implements Scene {
     const ui = document.getElementById('battle-ui')!;
     ui.style.display = 'block';
     this.cleanups.push(() => { ui.style.display = 'none'; });
+    // Gate the battle behind a minimum window size — the fixed-size card bar,
+    // minimap, and toolbar need the room (see viewportGate.ts).
+    this.cleanups.push(installViewportGate(document.getElementById('viewport-too-small')!));
     const ac = new AbortController();
     const signal = ac.signal;
     this.cleanups.push(() => ac.abort());

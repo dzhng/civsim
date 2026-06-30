@@ -50,6 +50,7 @@ import { importedRigMesh } from './importedRigMesh';
 import { buildBattleUiModel, BattleUiLayer } from '../../../web/src/battle/uiLayer';
 import { UNIT_CLASS_BY_KEY, UnitClass, CLASS_NAMES } from '../../../web/src/battle/classData';
 import { UnitCards, type UnitCardInit, type UnitCardState } from '../../../web/src/battle/unitCard';
+import { installViewportGate } from '../../../web/src/battle/viewportGate';
 import { loadCampaignData, nearestLoc, type CampaignData } from '../../../web/src/campaign/data';
 import { Allegiance } from '../../../web/src/campaign/status';
 import { campaignSurface } from '../../../web/src/campaign/surface';
@@ -2753,6 +2754,15 @@ async function routeCardBar(ctx: LabContext) {
   const band = el('div', 'renderer-unitcards');
   band.id = 'unitcards';
   ctx.root.appendChild(band);
+
+  // Reuse the live "window too small" gate (index.html's CSS survives the lab
+  // mount, but its element doesn't — recreate it) so the scene can exercise the
+  // min-window placeholder headlessly.
+  const tooSmall = el('div', '');
+  tooSmall.id = 'viewport-too-small';
+  tooSmall.innerHTML = '<div class="vts-panel"><h2>Window too small</h2><p>The battle needs a window of at least 1180 &times; 640. Please enlarge the window to play.</p></div>';
+  ctx.root.appendChild(tooSmall);
+  installViewportGate(tooSmall);
 
   let lastSelect: { unit: number; additive: boolean } | null = null;
   // No minimap in this harness, so reserve only a bare side margin (not the live

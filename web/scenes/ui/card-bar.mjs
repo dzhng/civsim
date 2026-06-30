@@ -10,8 +10,8 @@ export const meta = {
   kind: 'visual',
   world: 'ui',
   tier: 'quick',
-  snapshots: ['card-bar-20', 'card-bar-30', 'card-bar-40', 'card-bar-20-2x', 'card-bar-30-2x', 'card-bar-40-2x'],
-  describe: 'Fixed-size 3:4 unit-card grid wrapping 20/30/40 cards into rows at dpr 1 and 2.',
+  snapshots: ['card-bar-20', 'card-bar-30', 'card-bar-40', 'card-bar-20-2x', 'card-bar-30-2x', 'card-bar-40-2x', 'card-bar-too-small'],
+  describe: 'Fixed-size 3:4 unit-card grid wrapping 20/30/40 cards into rows at dpr 1 and 2, plus the min-window gate.',
 };
 
 // At the 1280px viewport (boxW 1256, 16 fixed cards/row) the roster wraps as it
@@ -75,5 +75,18 @@ export async function run(ctx) {
   await page.waitForTimeout(50);
   const sel = await page.evaluate(() => window.__cardBarLastSelect);
   ctx.check('card click fires onSelect', !!sel && sel.unit === 2, JSON.stringify(sel));
+  // The min-window gate is hidden at the supported size...
+  const hidden = await page.$eval('#viewport-too-small', (el) => getComputedStyle(el).display);
+  ctx.check('min-window gate hidden at 1280x800', hidden === 'none', `display=${hidden}`);
   await page.close();
+
+  // ...and shown below the minimum, covering the bar.
+  const small = await ctx.newPage({ viewport: { width: 900, height: 600 }, errorPrefix: 'card-bar-too-small' });
+  await small.goto(`${ctx.target}/renderer/card-bar?count=20`);
+  await small.waitForFunction(() => window.__rendererLabReady === true, undefined, { timeout: 18000 });
+  await small.waitForTimeout(120);
+  const shown = await small.$eval('#viewport-too-small', (el) => getComputedStyle(el).display);
+  ctx.check('min-window gate shown at 900x600', shown === 'flex', `display=${shown}`);
+  await ctx.snap(small, 'card-bar-too-small');
+  await small.close();
 }

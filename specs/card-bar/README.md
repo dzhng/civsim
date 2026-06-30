@@ -37,14 +37,15 @@ S1+S2 shipped the fixed-size Total-War card bar:
 checkpoint): `cardW = 72`, `aspect 3/4`, `gap 4`, `maxRows 3`. At a 1280px viewport
 this gives 5→1×5, 20→2×10, 30→2×15, 40→3×14, same card size throughout.
 
+S6 (min-window gate) is implemented: the bar reserves the minimap zone
+(`MINIMAP_RESERVE = 210`/side) so it never collides with the bottom-right minimap,
+and below `MIN_WINDOW_W/H = 1180×640` (`web/src/battle/viewportGate.ts`) the battle
+shows a "window too small" placeholder (`#viewport-too-small`).
+
 **Still open:**
-- **S6 — min-window gate + "window too small" placeholder** (`slices/06-min-window-gate.md`,
-  new — David 2026-06-30). The bar now reserves the minimap zone
-  (`MINIMAP_RESERVE = 210`/side) so it never collides with the bottom-right minimap;
-  below a min window width (recommend `1180×640`) the battle should show a
-  placeholder instead of cramping. Specced; not yet built.
-- **S2 human visual checkpoint** — David to eyeball the real `?battle=5v5` and the
-  lab 20/30/40 at the battle camera, and confirm/tune `cardW`/`maxRows`/`MINIMAP_RESERVE`.
+- **S2 + S6 human visual checkpoint** — David to eyeball the real `?battle=5v5` and
+  the lab 20/30/40 + the placeholder at the battle camera, and confirm/tune
+  `cardW`/`maxRows`/`MINIMAP_RESERVE` and `MIN_WINDOW_W/H` + the placeholder copy.
 - **Re-bless `battle-selection-dpr2`** (`web/scenes/battle/battle-renderer-visual.mjs`,
   GPU-gated): the live HUD frame's strip is now a fixed-size grid — re-bless with
   `VERIFY_GPU=1 UPDATE_SHOTS=1 node web/scene.mjs battle-renderer-visual` and eyeball
@@ -70,7 +71,7 @@ loop to do this.
 - [ ] S3 — bake one 3:4 model-portrait PNG per look, dual-write + `--check` gate (`slices/03-bake-thumbnails.md`)
 - [ ] S4 — swap card portrait `<canvas>` → `<img>`, canvas fallback retained (`slices/04-img-portrait.md`)
 - [ ] S5 — _(optional, droppable)_ dedupe the two CSS copies + reconcile data path (`slices/05-cleanup-reconcile.md`)
-- [ ] S6 — min-window gate + "window too small" placeholder (`slices/06-min-window-gate.md`) — _new, David 2026-06-30_
+- [x] S6 — min-window gate + "window too small" placeholder (`slices/06-min-window-gate.md`) — _new, David 2026-06-30; implemented, pending David's MIN_WINDOW value/copy checkpoint_
 
 **Before you end your pass:** update this section — move the checkbox, set the
 status line and date, record the next pickup point and any blocker.

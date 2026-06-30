@@ -111,6 +111,20 @@
     .ucard-bar.hp > div { background: #5cba46; }
     .ucard-bar.coh > div { background: #d9c75a; }
     .ucard-bar.mor > div { background: #c2554e; }
+    /* "Window too small" gate — shown by viewportGate.ts when the battle window
+       drops below the minimum the HUD (card bar + minimap + toolbar) needs. */
+    #viewport-too-small {
+      display: none; position: fixed; inset: 0; z-index: 9999;
+      align-items: center; justify-content: center; text-align: center;
+      background: rgba(8,10,14,0.94); color: #cfd6e4;
+      font: 15px ui-monospace, Menlo, monospace;
+    }
+    #viewport-too-small .vts-panel {
+      max-width: 360px; padding: 26px 30px;
+      border: 1px solid #3a3f4d; border-radius: 10px; background: rgba(20,23,30,0.9);
+    }
+    #viewport-too-small h2 { margin: 0 0 8px; font-size: 18px; color: #f0e3b0; }
+    #viewport-too-small p { margin: 0; line-height: 1.5; color: #9aa3b2; }
     #toolbar button {
       font: 12px ui-monospace, Menlo, monospace; color: #c8cdd8;
       background: rgba(34,38,48,0.9); border: 1px solid #444a5a;
@@ -300,6 +314,10 @@
   </style>
 </head>
 <body>
+  <div id="viewport-too-small"><div class="vts-panel">
+    <h2>Window too small</h2>
+    <p>The battle needs a window of at least 1180 &times; 640. Please enlarge the window to play.</p>
+  </div></div>
   <div id="manual"></div>
   <div id="menu-ui">
     <h1>BATTLE SIM</h1>

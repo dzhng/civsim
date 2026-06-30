@@ -63,12 +63,21 @@
       background: rgba(255,255,255,0.08); pointer-events: none;
     }
     #unitlabels { position: fixed; inset: 0; pointer-events: none; z-index: 3; }
+    /* Bronze HUD chassis, matching the card bar — opaque worn-metal housing,
+       NOT a translucent web pill bar. */
     #toolbar {
       position: fixed; bottom: 10px; left: 50%; transform: translateX(-50%);
-      display: flex; gap: 6px; align-items: center; z-index: 5;
-      background: rgba(12,14,19,0.85); border: 1px solid #3a3f4d;
-      border-radius: 10px; padding: 7px 10px;
-      box-shadow: 0 4px 18px rgba(0,0,0,0.5);
+      display: flex; gap: 5px; align-items: center; z-index: 5;
+      padding: 6px 8px; border: 3px solid transparent; border-radius: 5px;
+      background:
+        linear-gradient(#5e4527, #2a1f11) padding-box,
+        linear-gradient(#c79a54 0%, #6e5128 48%, #241a0e 100%) border-box;
+      box-shadow:
+        inset 0 1px 0 rgba(236,200,132,0.6),
+        inset 0 0 0 2px rgba(16,10,5,0.7),
+        inset 0 -2px 6px rgba(0,0,0,0.55),
+        0 0 0 1px rgba(182,142,80,0.6),
+        0 7px 18px rgba(0,0,0,0.6);
     }
     /* Bottom unit-card strip: one card per player unit (Total War style).
        Fixed-size cards in a no-scroll grid — JS writes --cols/--card-w/--card-h
@@ -81,20 +90,27 @@
       grid-template-columns: repeat(var(--cols, 1), var(--card-w, 72px));
       grid-auto-rows: var(--card-h, 96px);
       gap: 3px; justify-content: center; align-content: end;
-      overflow: hidden; padding: 10px 11px;
-      /* Opaque worn-bronze chassis (padding-box) inside a beveled brass edge
-         (border-box) — a game HUD housing, not a translucent web overlay. The
-         wells sit in a recessed dark tray (the inner inset groove). */
+      overflow: hidden; padding: 11px 12px;
+      /* Opaque worn-bronze chassis: a brushed-metal fill and corner rivets
+         (padding-box) inside a beveled brass edge (border-box) — a game HUD
+         housing, not a translucent web overlay. The box-shadow stack builds the
+         frame: top highlight, a dark groove, a brass bead, then the recessed tray. */
       background:
-        linear-gradient(#5a4225, #2c2012) padding-box,
-        linear-gradient(#b8904e 0%, #6e5128 45%, #2a1d0f 100%) border-box;
-      border: 3px solid transparent; border-radius: 5px;
+        radial-gradient(circle at 9px 9px, rgba(234,204,142,0.95) 0 1.1px, rgba(58,42,22,0.95) 1.5px 2.7px, transparent 3.1px) padding-box,
+        radial-gradient(circle at calc(100% - 9px) 9px, rgba(234,204,142,0.95) 0 1.1px, rgba(58,42,22,0.95) 1.5px 2.7px, transparent 3.1px) padding-box,
+        radial-gradient(circle at 9px calc(100% - 9px), rgba(234,204,142,0.95) 0 1.1px, rgba(58,42,22,0.95) 1.5px 2.7px, transparent 3.1px) padding-box,
+        radial-gradient(circle at calc(100% - 9px) calc(100% - 9px), rgba(234,204,142,0.95) 0 1.1px, rgba(58,42,22,0.95) 1.5px 2.7px, transparent 3.1px) padding-box,
+        repeating-linear-gradient(96deg, rgba(255,228,168,0.035) 0 2px, rgba(0,0,0,0.04) 2px 4px) padding-box,
+        linear-gradient(#5e4527, #2a1f11) padding-box,
+        linear-gradient(#c79a54 0%, #6e5128 48%, #241a0e 100%) border-box;
+      border: 4px solid transparent; border-radius: 5px;
       box-shadow:
-        inset 0 1px 0 rgba(232,196,128,0.6),
-        inset 0 0 0 2px rgba(18,12,6,0.7),
-        inset 0 -3px 7px rgba(0,0,0,0.6),
-        0 0 0 1px rgba(176,138,78,0.6),
-        0 8px 22px rgba(0,0,0,0.66);
+        inset 0 1px 0 rgba(236,200,132,0.65),
+        inset 0 0 0 2px rgba(16,10,5,0.78),
+        inset 0 0 0 3px rgba(158,120,66,0.55),
+        inset 0 -3px 8px rgba(0,0,0,0.6),
+        0 0 0 1px rgba(182,142,80,0.65),
+        0 9px 24px rgba(0,0,0,0.68);
     }
     @media (max-width: 760px) {
       #manual { left: 12px; right: 12px; bottom: 172px; width: auto; }
@@ -144,14 +160,16 @@
     #viewport-too-small h2 { margin: 0 0 8px; font-size: 18px; color: #f0e3b0; }
     #viewport-too-small p { margin: 0; line-height: 1.5; color: #9aa3b2; }
     #toolbar button {
-      font: 12px ui-monospace, Menlo, monospace; color: #c8cdd8;
-      background: rgba(34,38,48,0.9); border: 1px solid #444a5a;
-      border-radius: 6px; padding: 5px 10px; cursor: pointer; white-space: nowrap;
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 30px; height: 30px; padding: 0; cursor: pointer;
+      color: #e7cfa0; background: #1a130b; border: 1px solid #3a2c18; border-radius: 2px;
+      box-shadow: inset 0 0 0 1px rgba(150,114,62,0.3), inset 0 0 6px rgba(0,0,0,0.7);
     }
-    #toolbar button:hover { background: rgba(56,62,78,0.95); }
-    #toolbar button.on { background: #4a6; border-color: #6c8; color: #fff; }
-    #toolbar button:disabled { opacity: 0.4; cursor: default; }
-    #toolbar .sep { width: 1px; height: 18px; background: #3a3f4d; }
+    #toolbar button svg { width: 18px; height: 18px; fill: currentColor; display: block; }
+    #toolbar button:hover { color: #f6e4ba; box-shadow: inset 0 0 0 1px rgba(201,165,99,0.7), inset 0 0 6px rgba(0,0,0,0.6); }
+    #toolbar button.on { color: #1a130b; background: linear-gradient(#f0d98a, #c9a14e); border-color: #f0d98a; box-shadow: 0 0 7px rgba(240,212,122,0.55); }
+    #toolbar button:disabled { opacity: 0.32; cursor: default; }
+    #toolbar .sep { width: 1px; height: 18px; background: rgba(150,114,62,0.55); }
     /* Unit banner: one component = standard (SVG flag) + health/cohesion bars + status chips. */
     .ubanner {
       position: absolute; width: 56px; display: none; will-change: transform;
@@ -414,17 +432,17 @@
   <div id="unitlabels"></div>
   <div id="unitcards"></div>
   <div id="toolbar">
-    <button data-cmd="pace" title="Hotkey: R&#10;Toggle walk/run. Running is ~2x speed but burns stamina in ~90s and the formation frays the longer it runs — walk to arrive in order.">Run</button>
-    <button data-cmd="reform" title="Hotkey: G&#10;Halt and re-dress the ranks at double recovery speed (the sergeants shout). Use after a scramble, a defile, or a melee.">Reform</button>
-    <button data-cmd="pursue" title="Hotkey: H&#10;ON: an advance auto-attacks any enemy within a 5s run and chases routers — the chase gives up once it is measurably losing ground. OFF: fight whatever is in reach but keep marching to your destination.">Pursue</button>
-    <button data-cmd="fire" title="Hotkey: V&#10;Missile troops loose on judgment (captains still hold fire into melees involving OTHER friendly units). OFF: hold every shot. Missile units only.">Fire</button>
-    <button data-cmd="kite" title="Hotkey: K&#10;Skirmish reflex: automatically hop away from approaching enemies and keep shooting — the fighting retreat. Skirmishers and horse archers only.">Kite</button>
+    <button data-cmd="pace" aria-label="Walk / Run" title="Hotkey: R&#10;Toggle walk/run. Running is ~2x speed but burns stamina in ~90s and the formation frays the longer it runs — walk to arrive in order."></button>
+    <button data-cmd="reform" aria-label="Reform" title="Hotkey: G&#10;Halt and re-dress the ranks at double recovery speed (the sergeants shout). Use after a scramble, a defile, or a melee."></button>
+    <button data-cmd="pursue" aria-label="Pursue" title="Hotkey: H&#10;ON: an advance auto-attacks any enemy within a 5s run and chases routers — the chase gives up once it is measurably losing ground. OFF: fight whatever is in reach but keep marching to your destination."></button>
+    <button data-cmd="fire" aria-label="Fire at will" title="Hotkey: V&#10;Missile troops loose on judgment (captains still hold fire into melees involving OTHER friendly units). OFF: hold every shot. Missile units only."></button>
+    <button data-cmd="kite" aria-label="Kite" title="Hotkey: K&#10;Skirmish reflex: automatically hop away from approaching enemies and keep shooting — the fighting retreat. Skirmishers and horse archers only."></button>
     <span class="sep"></span>
-    <button data-cmd="pause" title="Pause (P)">⏸</button>
-    <button data-cmd="x1" title="Normal speed (1)">1×</button>
-    <button data-cmd="x3" title="Fast forward (3)">3×</button>
+    <button data-cmd="pause" aria-label="Pause" title="Pause (P)"></button>
+    <button data-cmd="x1" aria-label="Normal speed" title="Normal speed (1)"></button>
+    <button data-cmd="x3" aria-label="Fast forward" title="Fast forward (3)"></button>
     <span class="sep"></span>
-    <button data-cmd="paths" title="Show paths and destination ghosts (hold Space)">Paths</button>
+    <button data-cmd="paths" aria-label="Show paths" title="Show paths and destination ghosts (hold Space)"></button>
   </div>
   </div>
   <script type="module" src="/src/main.ts"></script>

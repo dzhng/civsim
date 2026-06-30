@@ -85,6 +85,7 @@ loop to do this.
 - [x] S4 — swap card portrait `<canvas>` → `<img>`, canvas fallback retained (`slices/04-img-portrait.md`) — _baked portraits live in the bar; pending David's final taste sign-off_
 - [ ] S5 — _(optional, droppable)_ dedupe the two CSS copies + reconcile data path (`slices/05-cleanup-reconcile.md`)
 - [ ] S7 — **next pass:** polish + Total-War fidelity follow-ups (critic callouts, framing, faction bakes, constants sign-off) (`slices/07-polish-and-fidelity.md`)
+- [x] S8 — battle toolbar: bronze chrome + Phosphor icons (`slices/08-toolbar-icons.md`)
 - [x] S6 — min-window gate + "window too small" placeholder (`slices/06-min-window-gate.md`) — _new, David 2026-06-30; implemented, pending David's MIN_WINDOW value/copy checkpoint_
 
 **Before you end your pass:** update this section — move the checkbox, set the

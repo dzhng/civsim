@@ -24,6 +24,7 @@ import {
 import { UnitBanner, type BannerChip } from './unitBanner';
 import { UnitCards } from './unitCard';
 import { installViewportGate } from './viewportGate';
+import { toolbarIcon } from './toolbarIcons';
 import { Input } from './input';
 import { MANUAL_HTML } from './manual';
 import { groupMoveDests, UnitSnap } from './orders';
@@ -391,6 +392,8 @@ export class BattleScene implements Scene {
     const toolButtons = new Map<string, HTMLButtonElement>();
     document.querySelectorAll<HTMLButtonElement>('#toolbar button').forEach((b) => {
       toolButtons.set(b.dataset.cmd!, b);
+      const icon = toolbarIcon(b.dataset.cmd!);
+      if (icon) b.innerHTML = icon; // Phosphor glyph replaces the text label
     });
     function updateToolbar() {
       const sel = myUnits(input.selected);
@@ -398,10 +401,9 @@ export class BattleScene implements Scene {
       const o = sel.length ? sel[0] * STRIDE : -1;
       const classes = sel.map((u) => info[u * STRIDE + 13]);
       const supports = (allowed: number[]) => classes.some((c) => allowed.includes(c));
-      const set = (cmd: string, on: boolean, label?: string) => {
+      const set = (cmd: string, on: boolean) => {
         const b = toolButtons.get(cmd)!;
         b.classList.toggle('on', on);
-        if (label) b.textContent = label;
         if (!['pause', 'x1', 'x3', 'paths'].includes(cmd)) {
           let applies = sel.length > 0;
           if (cmd === 'kite') applies &&= supports(KITE_CLASS_IDS);
@@ -409,7 +411,7 @@ export class BattleScene implements Scene {
           b.disabled = !applies;
         }
       };
-      set('pace', o >= 0 && info[o + 9] > 0.5, o >= 0 && info[o + 9] > 0.5 ? 'Running' : 'Run');
+      set('pace', o >= 0 && info[o + 9] > 0.5);
       set('reform', false);
       set('pursue', o >= 0 && info[o + 25] > 0.5);
       set('fire', o >= 0 && sel.length > 0 && fireOn);

@@ -1,50 +1,56 @@
 ---
 name: compare-screenshots
-description: Compare screenshots for any visual change. Use when a UI, game, document, render, chart, or generated asset needs objective visual telemetry, side-by-side inspection, crop/zoom review, or a fresh second opinion before accepting or rejecting the change.
+description: Compare screenshots to judge which image is less wrong, not to match a baseline. Use when a UI, game, document, render, chart, or generated asset needs objective visual telemetry, side-by-side inspection, crop/zoom review, or a fresh second opinion before accepting or rejecting a visual change.
 ---
 
 # Compare Screenshots
 
-Use this when screenshot telemetry helps judge a visual change. The job is not
-to worship a score; it is to make visual review less hand-wavy by combining
-side-by-side inspection, crops, structural metrics, and a plain-language
-judgment against the actual visual requirement.
+Decide which image is **less wrong** against what the scene should show — not
+whether the candidate matches the baseline. The baseline is just an earlier
+attempt; it can be wrong too. Treat both images as candidates measured against
+a target you establish yourself. Metrics locate where the images differ; they
+never decide who is right.
 
 ## Workflow
 
-1. Name the visual question first: what should be preserved, improved, removed,
-   or made more readable? The question can be parity, but it can also be
-   "does this look better", "did the label move down", "is the shadow under the
-   object", "did the chart stay legible", or "did the layout stop overlapping".
-2. Confirm the pair is comparable enough for that question: same viewport, DPR,
-   route/page, frozen time/tick, camera intent, UI state, data, and font/assets
-   where those matter. If they are not comparable, fix capture setup or compare
-   only a crop/feature where the mismatch does not matter.
-3. Generate artifacts appropriate to the question:
-   - original side-by-side
-   - key-feature crops or zooms
-   - grayscale versions
-   - absolute grayscale heatmap
-   - pixelmatch diff
-   - Sobel/edge maps for each image
-   - edge-difference heatmap
-   - JSON metrics
-4. For disputed or high-stakes visual calls, ask a fresh subagent for an
-   unbiased review using `references/subagent-visual-review.md`. Give it only the
-   two images and neutral labels like Image A/Image B.
-5. Read the artifacts yourself. Use the metrics to guide investigation, but
-   identify the visible issue in plain terms: wrong camera, missing content,
-   bad hierarchy, weak contrast, incorrect depth, text overlap, layout shift,
-   clipped edge, unexpected blur, or a style mismatch.
-6. Decide against the named visual requirement, not against the score alone. Do
-   not hide content, blur details, crop away differences, or make the capture
-   less truthful to improve a number. If the candidate is visibly more complete,
-   dimensional, legible, or beautiful, a distance score may rise; record why and
-   keep going toward the better image.
+1. **Establish the target from first principles.** Before looking at distance,
+   decide what this image *should* show: the visual requirement, the design
+   intent, what the thing depicts in reality, and any domain skill that owns the
+   look (for civsim renders, `aesthetics`). This — not the baseline — is ground
+   truth. Write it down in one or two concrete sentences ("low sun should cast
+   long shadows east; trees fill the canopy; labels stay legible at this zoom").
+   - If the right answer isn't clear — competing valid readings, a taste or
+     product-intent call, a tradeoff only the owner can settle — **stop and ask
+     the user** what the correct answer should be. Show them the comparison.
+     Do not quietly default to the baseline to avoid asking; that bakes in
+     whatever the baseline got wrong.
+2. **Confirm comparability** so the differences you see are real, not capture
+   artifacts: same viewport, DPR, route/page, frozen time/tick, camera intent,
+   UI state, data, fonts/assets where they matter. If not comparable, fix
+   capture setup or compare only a crop/feature where the mismatch is harmless.
+3. **Generate artifacts to locate divergence**, sized to the question:
+   side-by-side, key-feature crops/zooms, grayscale, absolute grayscale heatmap,
+   pixelmatch diff, per-image Sobel/edge maps, edge-difference heatmap, JSON
+   metrics.
+4. **Judge each divergence against the target.** For every place the two images
+   differ, name what is actually there in plain terms — missing content, wrong
+   camera, bad hierarchy, weak contrast, wrong depth, text overlap, layout
+   shift, clipped edge, unexpected blur, style mismatch — and decide which side
+   is closer to correct. The answer can be the candidate, the baseline, both
+   wrong, or a genuine toss-up.
+5. **Get a neutral second opinion** for disputed or high-stakes calls: a fresh
+   subagent given only the two images and neutral labels, per
+   `references/subagent-visual-review.md`.
+6. **Conclude with one verdict:** candidate is less wrong (accept, and re-bless
+   the baseline if one exists), baseline is less wrong (reject), both wrong
+   (another pass needed — say what's still off), or unclear (ask the user).
+   Never accept on a lower score alone or reject on a higher one. Never hide
+   content, blur detail, crop away differences, or make the capture less
+   truthful to move a number.
 
 ## Useful Metrics
 
-Pick metrics that answer the question. For full visual regressions, report:
+Pick metrics that answer the question. For full visual comparisons, report:
 
 - `mae`: mean absolute grayscale difference, 0..255, lower is closer.
 - `rmse`: grayscale root mean square error, lower is closer.
@@ -52,75 +58,65 @@ Pick metrics that answer the question. For full visual regressions, report:
   grayscale delta threshold.
 - `pixelmatchRatio`: mismatch ratio from pixelmatch over grayscale images.
 - `edgeEnergyCurrent` and `edgeEnergyCandidate`: average Sobel edge strength.
-- `edgeEnergyRatio`: candidate/current. Values far below 1 usually mean missing
-  geometry, props, labels, or terrain detail; values far above 1 usually mean
-  noisy/incorrect detail.
+- `edgeEnergyRatio`: candidate/current. Far below 1 usually means missing
+  geometry, props, labels, or terrain; far above 1 usually means noisy or
+  incorrect detail.
 - `edgeDiffRatio32`: fraction of pixels whose Sobel edge differs materially.
-- `avgLuminanceCurrent`, `avgLuminanceCandidate`, and `avgLuminanceDelta`:
-  average grayscale brightness and candidate-current delta. Use this when a
-  render is visibly too dark/light even if a broader parity score improves.
-- Content proxies relevant to the scene, such as black/void ratio, terrain-like
-  ratio, water-like ratio, team-color ratio, or label/text mask ratio.
+- `avgLuminanceCurrent`, `avgLuminanceCandidate`, `avgLuminanceDelta`: average
+  brightness and delta. Use when a render is visibly too dark/light even if a
+  broader distance score improves.
+- Content proxies relevant to the scene: black/void ratio, terrain-like ratio,
+  water-like ratio, team-color ratio, label/text mask ratio.
 
 For UI/document/layout reviews, also use crop bounds, text/foreground mask
 coverage, contrast checks, edge clipping, element positions, and before/after
-dimensions when those are more meaningful than global pixel distance.
+dimensions when those beat global pixel distance.
 
-## Difference Score
+## Distance Score
 
-When a single fixed-pair score is useful, this default score works well for
-structural screenshot changes:
+When a single fixed-pair number is useful, this default works for structural
+changes:
 
-`parityDistance = 0.35 * diffRatio32 + 0.25 * pixelmatchRatio + 0.25 * edgeDiffRatio32 + 0.15 * min(1, abs(log2(edgeEnergyRatio)))`
+`distance = 0.35 * diffRatio32 + 0.25 * pixelmatchRatio + 0.25 * edgeDiffRatio32 + 0.15 * min(1, abs(log2(edgeEnergyRatio)))`
 
-Lower is more similar to the reference. It is **not** always better. This score
-intentionally weights structural edge mismatch as heavily as grayscale mismatch,
-because missing content often shows up as edge loss, but richer terrain,
-clearer models, stronger labels, real depth, or better lighting can legitimately
-increase the score. Rename the field for the task if "parity" is misleading;
-the important part is reporting what the score measures and what it does not.
+It measures **distance from the other image**, nothing more. Because the
+baseline can be wrong, a distance of 0 is not success and a large distance is
+not failure — a richer scene, clearer models, stronger labels, real depth, or
+better lighting all legitimately raise it. Use the score to find *where* the
+images move; decide who is right in step 4. Name the field for what it measures
+(distance, not "parity") so no one reads it as a verdict.
 
-Report the full-frame score and, when UI dominates the shot, a labeled world-crop
-score. Use the world-crop score to locate renderer movement, and keep the
-full-frame score so UI/camera mistakes remain visible.
+Report the full-frame score and, when UI dominates the shot, a labeled
+world-crop score. Use the world-crop score to locate renderer movement and keep
+the full-frame score so UI/camera mistakes stay visible.
 
 ## Score Discipline
 
-- Establish the starting score before editing. Every iteration should quote the
-  previous and new score for the same pair, then explain whether movement is a
-  regression, an intentional improvement over the reference, or diagnostic
-  noise.
-- Prefer edge metrics for missing-content bugs. A flat top-down map can have a
-  deceptively moderate grayscale diff while edge energy proves the 3D trees,
-  roads, city forms, and army silhouettes are absent.
-- Segment out stable UI when it dominates the image and the visual question is
-  the world render. Keep a full-frame score too; label cropped/segmented scores
-  clearly.
+- Quote the previous and new distance for the same pair each iteration, then say
+  whether the movement is toward the target, away from it, or diagnostic noise.
+- Prefer edge metrics for missing-content bugs. A flat top-down map can show a
+  deceptively moderate grayscale diff while edge energy proves trees, roads,
+  city forms, or army silhouettes are absent.
+- Segment out stable UI when it dominates and the question is the world render;
+  keep a full-frame score too, labeled.
 - If the camera is wrong, pixel scores are diagnostic only. Fix camera intent
-  first, then judge the renderer.
-- A lower score is not acceptance, and a higher score is not rejection.
-  Acceptance requires looking at the artifacts and confirming the named visual
-  requirements are visible.
+  first, then judge the render.
 
 ## Tooling
 
-Use this skill's bundled scripts as reusable reference tools. Keep comparison
-scripts inside the skill or a temporary workspace, not in product code, unless
-the product genuinely needs screenshot comparison at runtime.
+Keep comparison scripts inside the skill or a temporary workspace, not in
+product code, unless the product genuinely needs screenshot comparison at
+runtime.
 
-- `.agents/skills/compare-screenshots/scripts/visual-parity-diff.mjs` is a
-  reusable local helper. Run it with `REFERENCE_DIR=<png-folder>`,
-  `CANDIDATE_DIR=<png-folder>`, and optional `OUT_DIR=<artifact-folder>`.
-  Optional `REPORT_ORDER=a,b,c` pins report ordering, and
-  `CROPS_JSON=<file>` adds labeled crops. Crop JSON is keyed by image id and
-  each crop can use pixel values or `{ "unit": "ratio" }` normalized bounds.
-- For other tasks, adapt the same artifact set: side-by-side, crops, grayscale,
-  heatmaps, pixelmatch, edges, JSON metrics, and a short written verdict.
-- If a needed pair is not covered, extend the skill helper or create a
-  task-local comparison script under the skill workflow instead of adding
-  one-off scripts to the application.
+- `scripts/visual-parity-diff.mjs` is a reusable local helper. Run it with
+  `REFERENCE_DIR=<png-folder>`, `CANDIDATE_DIR=<png-folder>`, and optional
+  `OUT_DIR=<artifact-folder>`. `REPORT_ORDER=a,b,c` pins ordering;
+  `CROPS_JSON=<file>` adds labeled crops (keyed by image id, each crop in pixels
+  or `{ "unit": "ratio" }` normalized bounds).
+- For other tasks, adapt the same artifact set rather than adding one-off
+  scripts to the application. Extend the helper if a needed pair is uncovered.
 
 ## References
 
 - `references/subagent-visual-review.md`: neutral subagent prompt/config for an
-  independent screenshot parity judgment.
+  independent judgment when history could bias you.

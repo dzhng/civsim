@@ -29,6 +29,14 @@ Battle (Total War Saga: Troy):
 - `references/battle-formations-melee.jpg` — gameplay framing: lush summer grass,
   units locked in melee, **gold selection glow** boxing the player's selected
   units, corpses littering trampled ground.
+- `references/battle-overcast-highland.png` — a **different lighting/weather
+  condition**, not a different art style: a cool, overcast, semi-foggy day. Flat
+  high-key near-white sky, slate crags, fresh green grass, heavy aerial haze
+  swallowing layered ranges, a pale water sliver. The same world as the golden-hour
+  shots above — same grass, rock, and water *materials* — read under flat cloudy
+  light + deep fog instead of a low warm sun. This is the proof that lighting is an
+  environment layer (see below), and the look civsim's `battle-map-reference` spec
+  targets.
 
 Campaign (grand-strategy map):
 - `references/campaign-map-aegean-wide.png` — the painted parchment overview. Muted
@@ -63,6 +71,29 @@ dark diorama.
 
 Soldier materials should stay warm and tactile: bronze, iron, linen, leather, and
 earth tones. Team accents must stay recognizable at gameplay zoom.
+
+## Lighting & weather is an environment, not a material
+
+The seven rules above describe the **golden-hour default** mood. That warmth comes
+from the *environment* — the sun's color and angle, the sky, the fog — **not** from
+the materials. So:
+
+- **Don't bake light into albedos.** Grass, rock, sand, water, and soldier materials
+  carry a **neutral base color**; their final on-screen look is that albedo *times*
+  the current environment lighting. The golden-hour reference grass samples warm and
+  dark because a low amber sun is on it, not because the grass is painted amber.
+- **The mood is a swappable preset.** Sun color/elevation, sky gradient, fill color,
+  and fog density together form an **environment preset**. Golden-hour Aegean
+  (`battle-coastal-vista`) and the cool overcast-foggy day
+  (`battle-overcast-highland`) are two presets over the **same** assets — both are
+  in-register, neither is a reskin.
+- **Aerial perspective survives every preset.** Whatever the light, far terrain still
+  desaturates toward the sky and near stays higher-contrast (rule 1). Overcast just
+  means a flatter, cooler, higher-key haze instead of a warm one.
+
+When you judge a render, judge the **albedo** against neutral light and the **mood**
+against the matching preset's reference — don't fault neutral grass for not being
+golden, or a golden scene for not being grey.
 
 ## Campaign — the antique chart
 

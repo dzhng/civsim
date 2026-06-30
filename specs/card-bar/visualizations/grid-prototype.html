@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Card-bar grid prototype — tune the no-scroll constants</title>
+<style>
+  :root { color-scheme: dark; }
+  body { margin: 0; background: #0c0e13; color: #c8cdd8;
+         font: 13px ui-monospace, Menlo, monospace; }
+  header { padding: 12px 16px; border-bottom: 1px solid #2a2e38; }
+  h1 { font-size: 14px; margin: 0 0 4px; color: #e6e9f0; }
+  p { margin: 0; color: #8b93a3; }
+  .controls { display: flex; flex-wrap: wrap; gap: 18px; padding: 12px 16px;
+              border-bottom: 1px solid #2a2e38; }
+  .controls label { display: flex; flex-direction: column; gap: 4px; }
+  .controls input[type=range] { width: 160px; }
+  .controls b { color: #f0e3b0; }
+  .readout { padding: 8px 16px; color: #8b93a3; }
+  .readout b { color: #5cba46; }
+  /* The band mimics #unitcards: a fixed-height bottom strip that must never scroll. */
+  .stage { padding: 16px; }
+  .band {
+    margin: 0 auto; background: linear-gradient(#14161c, #0e1015);
+    border: 1px solid #3a3f4d; border-radius: 4px; overflow: hidden;
+    display: grid;
+    grid-template-columns: repeat(var(--cols, 1), var(--card-w, 44px));
+    grid-auto-rows: var(--card-h, 58px);
+    gap: 4px; justify-content: center; align-content: center;
+    padding: 4px;
+  }
+  .ucard {
+    width: var(--card-w); height: var(--card-h); aspect-ratio: 3 / 4;
+    background: #1a1d25; border: 1px solid #3a3f4d; border-radius: 3px;
+    display: flex; align-items: flex-end; justify-content: center;
+    color: #6b7280; font-size: 9px; overflow: hidden;
+  }
+  .ucard .bar { height: 3px; background: #5cba46; }
+  .undersized .ucard { border-color: #cf4a3a; }
+  .warn { color: #cf4a3a; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Card-bar grid prototype</h1>
+  <p>Mirror of <code>computeCardGrid()</code> (slice 01). Drag the sliders and read
+     the rows/cols/cardW it picks. Use this to lock <b>minCardW</b>, <b>maxRows</b>,
+     <b>gap</b>, and the <b>band height</b> before writing any TS.</p>
+</header>
+
+<div class="controls">
+  <label>count <b id="vCount">20</b>
+    <input id="count" type="range" min="1" max="60" value="20" /></label>
+  <label>band width px <b id="vBoxW">1280</b>
+    <input id="boxW" type="range" min="320" max="2400" value="1280" /></label>
+  <label>band height px <b id="vBoxH">150</b>
+    <input id="boxH" type="range" min="60" max="320" value="150" /></label>
+  <label>minCardW px <b id="vMinW">64</b>
+    <input id="minW" type="range" min="24" max="160" value="64" /></label>
+  <label>maxRows <b id="vMaxRows">3</b>
+    <input id="maxRows" type="range" min="1" max="6" value="3" /></label>
+  <label>gap px <b id="vGap">4</b>
+    <input id="gap" type="range" min="0" max="12" value="4" /></label>
+  <label>aspect W:H <b id="vAspect">3:4</b>
+    <input id="aspect" type="range" min="40" max="100" value="75" /></label>
+</div>
+
+<div class="readout" id="readout"></div>
+<div class="stage"><div class="band" id="band"></div></div>
+
+<script type="module">
+// ── canonical algorithm — keep in lockstep with web/src/battle/cardGrid.ts ──
+function computeCardGrid(count, boxW, boxH, { aspect = 3 / 4, minCardW = 64, gap = 4, maxRows = 3 } = {}) {
+  if (count <= 0) return { rows: 0, cols: 0, cardW: 0, cardH: 0, degenerate: false };
+  let best = null;
+  const cap = Math.min(count, maxRows);
+  for (let rows = 1; rows <= cap; rows++) {
+    const cols = Math.ceil(count / rows);
+    const wPerCol = (boxW - gap * (cols + 1)) / cols;
+    const hPerRow = (boxH - gap * (rows + 1)) / rows;
+    const cardW = Math.min(wPerCol, hPerRow * aspect);
+    const cand = { rows, cols, cardW, cardH: cardW / aspect };
+    if (cardW >= minCardW) return floorGrid(cand, false);
+    if (best === null || cardW > best.cardW) best = cand;
+  }
+  return floorGrid(best, true); // none reached minCardW: most-legible, still no scroll
+}
+function floorGrid(g, degenerate) {
+  return { rows: g.rows, cols: g.cols, cardW: Math.floor(g.cardW), cardH: Math.floor(g.cardH), degenerate };
+}
+
+const $ = (id) => document.getElementById(id);
+const ids = ['count', 'boxW', 'boxH', 'minW', 'maxRows', 'gap', 'aspect'];
+const band = $('band'), readout = $('readout');
+
+function render() {
+  const count = +$('count').value, boxW = +$('boxW').value, boxH = +$('boxH').value;
+  const minCardW = +$('minW').value, maxRows = +$('maxRows').value, gap = +$('gap').value;
+  const aw = +$('aspect').value, aspect = aw / 100;
+  $('vCount').textContent = count; $('vBoxW').textContent = boxW; $('vBoxH').textContent = boxH;
+  $('vMinW').textContent = minCardW; $('vMaxRows').textContent = maxRows; $('vGap').textContent = gap;
+  $('vAspect').textContent = `${aw}:100`;
+
+  const g = computeCardGrid(count, boxW, boxH, { aspect, minCardW, gap, maxRows });
+
+  band.style.setProperty('--cols', g.cols);
+  band.style.setProperty('--card-w', g.cardW + 'px');
+  band.style.setProperty('--card-h', g.cardH + 'px');
+  band.style.width = boxW + 'px';
+  band.style.height = boxH + 'px';
+  band.style.gap = gap + 'px';
+  band.classList.toggle('undersized', g.degenerate);
+
+  band.innerHTML = '';
+  for (let i = 0; i < count; i++) {
+    const c = document.createElement('div');
+    c.className = 'ucard';
+    const bar = document.createElement('div');
+    bar.className = 'bar';
+    bar.style.width = (30 + (i * 37) % 70) + '%';
+    c.appendChild(bar);
+    band.appendChild(c);
+  }
+
+  const fits = g.cols * g.cardW + gap * (g.cols + 1) <= boxW &&
+               g.rows * g.cardH + gap * (g.rows + 1) <= boxH;
+  readout.innerHTML =
+    `<b>${g.rows} rows × ${g.cols} cols</b> · card ${g.cardW}×${g.cardH}px · ` +
+    `aspect ${(g.cardW / g.cardH || 0).toFixed(3)} · ` +
+    (fits ? 'fits (no scroll) ✓' : '<span class="warn">OVERFLOW ✗</span>') +
+    (g.degenerate ? ' · <span class="warn">undersized (below minCardW)</span>' : '');
+}
+
+for (const id of ids) $(id).addEventListener('input', render);
+render();
+</script>
+</body>
+</html>

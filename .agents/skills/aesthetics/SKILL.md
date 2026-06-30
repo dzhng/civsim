@@ -1,6 +1,6 @@
 ---
 name: aesthetics
-description: The visual north star for civsim's battle and campaign rendering: a Bronze-Age Aegean / Total War Saga look. Use when adding or changing terrain, sky, lighting, water, models, labels, icons, faction fills, colors, or any visual surface; when a render looks off; or when choosing new visual constants.
+description: The visual north star for civsim's battle and campaign rendering: a Bronze-Age Aegean / Total War Saga look. Use when adding or changing terrain, sky, lighting, water, models, labels, icons, faction fills, colors, HUD/UI panels, cards, or bars, or any visual surface; when a render or UI looks off (e.g. reads like a webapp); or when choosing new visual constants.
 ---
 
 # Aesthetics — the Bronze-Age Aegean look
@@ -46,6 +46,13 @@ Campaign (grand-strategy map):
   territory as **translucent color washes**; the active/aggressor faction's land
   carries a **diagonal hatch** (the red stripes over Macedon). Cinzel-caps city
   names, region names in larger faded caps.
+
+UI / HUD (in-game panels):
+- `references/ui-cardbar-tw.png` — the Total War unit-card bar: the target for any
+  in-game HUD chrome. An **opaque worn-bronze housing** frames a row of **inset,
+  beveled card wells** — recessed portraits, a strength bar, a role medallion. Note
+  what it is NOT: no transparency, no floating rounded cards with gutters, no flat
+  webapp panels. This is the style for civsim's battle/campaign DOM UI.
 
 ## Battle — the seven rules
 
@@ -123,6 +130,29 @@ the whole point.
 - **Scenery stays subordinate.** Mountains, rocks, forests, carts, roads, and
   shadows should enrich the map without covering city labels, roads, or borders.
   At campaign scale, terrain relief usually reads better than oversized props.
+
+## UI & HUD — a game surface, not a webapp (hard rule)
+
+DOM panels, bars, and cards are part of the diegetic game, not a web dashboard.
+Judge HUD chrome against `references/ui-cardbar-tw.png`. A surface **fails** if it
+shows a **webapp tell**:
+
+- **Transparency / fade** — panels are opaque with their own material, never a
+  `linear-gradient(transparent → …)` dissolving into the scene or semi-transparent
+  `rgba` fills.
+- **Floating rounded cards with gutters** — elements are framed, abutting **wells
+  inside a housing**, not free-floating rounded rectangles split by gaps and
+  hairline borders.
+- **No frame** — a real HUD sits in a worn-metal/bronze (battle) or brass/parchment
+  (campaign) **housing with bevel and depth**, not edge-to-edge flat fills.
+- **Flat & web-affordant** — wells are **inset** (rim light + inner shadow); no
+  hover-lighten, pill buttons, or CSS-drop-shadow-as-glow. Selection is a warm
+  **gold glow** (battle, rule 6) or status color (campaign), never a crisp UI
+  outline.
+
+Materials follow the world — bronze, iron, leather, bone (battle); brass and
+parchment (campaign) — never slate-grey webapp neutrals. Flat CSS rules rarely get
+there: expect layered gradients/insets or a 9-slice frame asset.
 
 ## The two-color rule (don't break it)
 

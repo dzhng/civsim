@@ -3676,7 +3676,7 @@ function installStyles() {
     .renderer-unitcards .ucard.sel { border-color: #f0d98a; z-index: 2; box-shadow: inset 0 0 0 1px #f0d98a, 0 0 9px 1px rgba(240,212,122,0.6); }
     .renderer-unitcards .ucard.rout { filter: grayscale(0.5) brightness(0.8); }
     .renderer-unitcards .ucard.rout::after { content: 'ROUT'; position: absolute; top: 20px; left: 0; right: 0; text-align: center; z-index: 3; font: 700 9px ui-monospace, monospace; color: #ff7a6b; text-shadow: 0 1px 2px #000; }
-    .renderer-unitcards .ucard-port { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; background: #14171f; }
+    .renderer-unitcards .ucard-port { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; background: #1c150d; }
     .renderer-unitcards .ucard::before { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 34px; background: linear-gradient(transparent, rgba(6,8,11,0.88)); pointer-events: none; z-index: 1; }
     .renderer-unitcards .ucard-name { position: absolute; left: 0; right: 0; bottom: 15px; z-index: 2; text-align: center; padding: 0 2px; font: 700 8px ui-monospace, Menlo, monospace; color: #eef1f7; text-shadow: 0 1px 2px #000, 0 0 3px #000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .renderer-unitcards .ucard-count { position: absolute; top: 2px; right: 4px; z-index: 2; font: 700 10px ui-monospace, monospace; color: #fff; text-shadow: 0 1px 2px #000, 0 0 3px #000; }

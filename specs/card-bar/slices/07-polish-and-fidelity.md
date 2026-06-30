@@ -9,10 +9,15 @@ feature; each is independently shippable. **This is the goal for the next pass.*
 
 ## Required: make it read as a GAME, not a webapp
 
-This is the headline of the pass. The current bar passes layout but still reads as
-a web panel — transparent gradient band, floating rounded cards with gutters, flat
-1px-bordered wells, no frame. Close the gap to `assets/reference-tw-cardbar.png`
-under the README's **Aesthetic contract** (the hard rule) and
+**In progress (first cut landed).** The bar now has an opaque worn-bronze chassis
+(beveled brass edge, recessed dark tray) framing inset card wells with warm
+bronze-brown interiors (the portrait backdrop was re-baked warm — no more cool
+slate), figures popping, gold-glow selection. The webapp tells (transparency,
+floating rounded cards, no frame, flat/cool) are gone. **Still open toward the
+reference:** frame ornamentation (corner pieces / worn-metal texture), the green
+**top strength bar**, and a **role medallion** (the last two are the David-call
+deltas below). Keep closing the gap to `assets/reference-tw-cardbar.png` under the
+README's **Aesthetic contract** and
 [aesthetics](../../../.claude/skills/aesthetics/SKILL.md):
 
 - Replace the transparent gradient strip with a **solid, opaque bronze/metal

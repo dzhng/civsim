@@ -8,9 +8,11 @@ import type { BattleTerrainFeature } from './terrainFeatures';
 // clarity over literal fill) are battle's call; the meshes are the shared
 // registry. Deterministic: same features + seed → same instances.
 
-// Trees per metre of forest radius, capped so a big wood stays legible.
-const TREES_PER_RADIUS = 0.16;
-const MAX_TREES_PER_FOREST = 54;
+// Trees scale with forest AREA (not radius) so a wood reads as a dense, filled
+// canopy instead of a sparse scattering; capped so the largest wood stays
+// performant and legible.
+const TREES_PER_AREA = 0.034;
+const MAX_TREES_PER_FOREST = 240;
 const ROCKS_PER_RADIUS = 0.07;
 const MAX_ROCKS_PER_OUTCROP = 6;
 
@@ -25,11 +27,11 @@ export function featuresToBattleScenery(
     const f = features[fi];
     const rand = scatterRng(seed ^ Math.imul(fi + 1, 0x9e3779b1));
     if (f.kind === 'forest') {
-      const n = clampInt(Math.round(f.radius * TREES_PER_RADIUS), 3, MAX_TREES_PER_FOREST);
+      const n = clampInt(Math.round(f.radius * f.radius * TREES_PER_AREA), 12, MAX_TREES_PER_FOREST);
       for (let k = 0; k < n; k++) {
-        // Fill the wood with a slight outward bias so the canopy edge stays the
-        // strongest read (gameplay clarity) without a hollow centre.
-        const r = f.radius * (0.2 + 0.8 * Math.sqrt(rand()));
+        // Uniform area fill (sqrt keeps the density even from centre to edge) so
+        // the wood reads as a packed canopy rather than a hollow ring.
+        const r = f.radius * Math.sqrt(rand());
         const a = rand() * Math.PI * 2;
         const x = f.x + Math.cos(a) * r;
         const y = f.y + Math.sin(a) * r;

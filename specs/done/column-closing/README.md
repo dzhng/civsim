@@ -10,8 +10,10 @@ donors.
 The purpose is to remove the back-line crab caused by lateral slot relabeling
 while preserving the battle behaviors that depend on pressure, bulge, wrap, and
 back-fill. Full lateral re-evening still exists, but it belongs to deliberate
-formation moments: pivot, width changes, Reform/rally/at-ease recovery, and the
-one-shot clear-beat recovery after disengage.
+formation moments: pivot, width changes, Reform/rally/at-ease recovery, the
+one-shot clear-beat recovery after disengage, and a limited broad-contact beat
+where most files are already fighting and stale labels would make a deep,
+physically wide front read as pinched.
 
 ## Why This Shape
 
@@ -24,10 +26,12 @@ slot-identity problem.
 
 The shipped rule treats file identity as part of battle identity. A man may be
 shoved by physics, but casualty repair does not decide that he now belongs to a
-different file unless the unit has left live contact or the gap is large enough
-for the explicit local bridge rule. This keeps ordinary casualties forward-only,
-keeps notches legible, and gives deep adjacent gaps a controlled rear reserve
-without re-forming the whole unit.
+different file unless the unit has left live contact, the gap is large enough
+for the explicit local bridge rule, or a broad/deep contact already has most of
+the front fighting and needs a slow re-dress to keep measured width honest. This
+keeps ordinary casualties forward-only, keeps notches legible, and gives deep
+adjacent gaps a controlled rear reserve without using whole-rank sideways motion
+as the normal repair path.
 
 The visual target is the original deployed column footprint at enemy contact,
 not pixel closeness to the old screenshot baseline. In the accepted penetration
@@ -36,6 +40,13 @@ test allows small physical spread but rejects both a pinched column and a broad
 fan-out. The old baseline is itself flawed for this scenario: its middle pinches
 or harrows inward unnaturally, so the accepted current shots are judged as less
 wrong against the deployed-footprint target, not as a perfect final look.
+
+The final contact-width pass also keeps the pivot spring's angular lever capped
+for mounted contact and for a narrow foot column driving into a much wider foot
+front. That cap is a geometry guard, not a winner-preservation rule: an axially
+stretched queue should not turn a bond-angle correction into lateral fan-out.
+Ordinary foot-on-foot wraps still use the live bond length so they can drape
+around exposed flanks.
 
 ## Invariants
 
@@ -46,8 +57,9 @@ wrong against the deployed-footprint target, not as a perfect final look.
   nearest live edges; donor count is capped by the gap, not by unit size.
 - Non-donor rear ranks must stay near the push-only lateral floor; a full file
   relabel is the regression this feature exists to prevent.
-- Lateral re-evening is reserved for deliberate reform moments and the
-  disengage clear beat.
+- Lateral re-evening is reserved for deliberate reform moments, the disengage
+  clear beat, and the broad/deep contact re-dress; it must not be the ordinary
+  answer to live casualty holes.
 - Mechanics that need pressure must keep working: column bulge, attack/move
   latch behavior, mortal wrap back-fill, survivability rails, and weave contact
   cohesion are not optional visual trade-offs.
@@ -64,7 +76,10 @@ wrong against the deployed-footprint target, not as a perfect final look.
   - `reassign_slots` remains the lateral re-even primitive for reform moments.
 - `crates/sim/src/sim.rs`
   - `Sim::tick` separates fighting/advancing casualty closing from pivot,
-    at-ease, and disengage re-evening.
+    at-ease, disengage, and broad/deep contact re-evening.
+  - The weave pivot spring caps axial stretch only where the live-length lever
+    would create physically false fan-out: mounted contact and narrow columns
+    entering much wider foot fronts.
 - `crates/sim/tests/mechanics_formation.rs`
   - `advancing_casualties_close_forward_within_the_same_file`
   - `wiped_file_stays_notched_until_the_clear_beat_reform`

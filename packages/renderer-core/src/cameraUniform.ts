@@ -7,6 +7,10 @@ export interface CameraSnapshot {
   perspective?: number;
   width: number;
   height: number;
+  /** Animation clock (seconds), packed into the camera uniform's first free pad
+   *  so any fragment/vertex stage can drive time-varying effects (water, etc.)
+   *  without a second bind group. Defaults to 0 — unset means a frozen frame. */
+  time?: number;
 }
 
 export function cameraUniformData(camera: CameraSnapshot): Float32Array {
@@ -22,7 +26,7 @@ export function cameraUniformData(camera: CameraSnapshot): Float32Array {
     Math.cos(yaw),
     Math.sin(yaw),
     Math.max(0, camera.perspective ?? 0),
-    0,
+    camera.time ?? 0,
     0,
     0,
   ]);

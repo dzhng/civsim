@@ -49,6 +49,7 @@ declare const GPUMapMode: {
 };
 
 declare const GPUShaderStage: {
+  readonly COMPUTE: number;
   readonly FRAGMENT: number;
   readonly VERTEX: number;
 };
@@ -56,8 +57,11 @@ declare const GPUShaderStage: {
 declare const GPUTextureUsage: {
   readonly COPY_DST: number;
   readonly RENDER_ATTACHMENT: number;
+  readonly STORAGE_BINDING: number;
   readonly TEXTURE_BINDING: number;
 };
+
+type GPUComputePipeline = unknown;
 
 interface GPUAdapterInfo {
   readonly vendor?: string;
@@ -111,6 +115,7 @@ interface GPUDevice {
   createBuffer(descriptor: { label?: string; size: number; usage: number }): GPUBuffer;
   createCommandEncoder(descriptor?: unknown): GPUCommandEncoder;
   createPipelineLayout(descriptor: unknown): unknown;
+  createComputePipeline(descriptor: unknown): GPUComputePipeline;
   createRenderPipeline(descriptor: unknown): GPURenderPipeline;
   createSampler(descriptor?: unknown): GPUSampler;
   createShaderModule(descriptor: { label?: string; code: string }): GPUShaderModule;
@@ -119,9 +124,17 @@ interface GPUDevice {
 
 interface GPUCommandEncoder {
   beginRenderPass(descriptor: unknown): GPURenderPassEncoder;
+  beginComputePass(descriptor?: unknown): GPUComputePassEncoder;
   resolveQuerySet(querySet: GPUQuerySet, firstQuery: number, queryCount: number, destination: GPUBuffer, destinationOffset: number): void;
   copyBufferToBuffer(source: GPUBuffer, sourceOffset: number, destination: GPUBuffer, destinationOffset: number, size: number): void;
   finish(): unknown;
+}
+
+interface GPUComputePassEncoder {
+  setPipeline(pipeline: GPUComputePipeline): void;
+  setBindGroup(index: number, bindGroup: GPUBindGroup): void;
+  dispatchWorkgroups(workgroupCountX: number, workgroupCountY?: number, workgroupCountZ?: number): void;
+  end(): void;
 }
 
 interface GPUMappableBuffer {
@@ -138,6 +151,8 @@ interface GPURenderPassEncoder {
   setIndexBuffer(buffer: GPUBuffer, indexFormat: 'uint16' | 'uint32'): void;
   setPipeline(pipeline: GPURenderPipeline): void;
   setVertexBuffer(slot: number, buffer: GPUBuffer): void;
+  setScissorRect(x: number, y: number, width: number, height: number): void;
+  setViewport(x: number, y: number, width: number, height: number, minDepth: number, maxDepth: number): void;
 }
 
 interface GPURequestAdapterOptions {

@@ -143,13 +143,12 @@
     .ucard {
       width: var(--card-w); height: var(--card-h); aspect-ratio: 3 / 4; box-sizing: border-box;
       position: relative; display: flex; flex-direction: column; overflow: hidden;
-      background: #16100a; border: 1px solid #2a1d0e;
+      background: #16100a; border: 1px solid #3a2c18;
       border-top: 3px solid var(--fac); border-radius: 2px;
-      cursor: pointer; transition: box-shadow 0.1s;
-      box-shadow: inset 0 0 0 1px rgba(150,114,62,0.35);
+      cursor: pointer; transition: box-shadow 0.1s, border-color 0.1s;
     }
-    .ucard:hover { box-shadow: inset 0 0 0 1px rgba(201,165,99,0.7); }
-    .ucard.sel { border-color: #f0d98a; z-index: 2; box-shadow: inset 0 0 0 1px #f0d98a, 0 0 9px 1px rgba(240,212,122,0.6); }
+    .ucard:hover { border-color: #6e5128; }
+    .ucard.sel { border-color: #f0d98a; z-index: 2; box-shadow: 0 0 9px 1px rgba(240,212,122,0.6); }
     .ucard.rout { filter: grayscale(0.5) brightness(0.8); }
     .ucard.rout::after {
       content: 'ROUT'; position: absolute; top: 30px; left: 0; right: 0; text-align: center; z-index: 3;

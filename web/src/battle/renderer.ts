@@ -118,7 +118,7 @@ export class BattleRenderer {
       : { w: grid.w, h: grid.h, cell: grid.cell, ox: grid.ox, oy: grid.oy, height: new Float32Array(grid.w * grid.h), units: 'meters', verticalScale: 1 };
     this.heightField = field;
     const presentation = buildBattleTerrainPresentation(
-      { id: 'live', wasmMapId: -1, label: '', description: '', edges: deriveBattleEdgeRoles(grid), groundCover: this.groundCover },
+      { id: 'live', edges: deriveBattleEdgeRoles(grid), groundCover: this.groundCover },
       grid,
       0x5eed,
     );

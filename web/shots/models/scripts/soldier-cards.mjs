@@ -42,7 +42,10 @@ const LOOK_H = [FOOT, FOOT, FOOT, FOOT, FOOT, FOOT, HORSE, HORSE, 1.7, FOOT, FOO
 // Hero shot: near-front three-quarter at a high pitch (near eye-level, NOT the
 // sheet's near-top-down 0.42 — pitch is tilt-from-straight-down, so higher is more
 // head-on), framed by look height. 3:4 crop window in source px (2× the card).
-const CARD_W = 200, CARD_H = 266;
+// The card stays 3:4, but the portrait is the region BETWEEN the top HP bar and
+// the bottom name/bars strip — wider than tall — so the screenshot is baked to
+// that region's aspect (not 3:4) and fills it with the figure, no chrome overlap.
+const CARD_W = 200, CARD_H = 184;
 const CAM_X = -3.3; // centers the soldier (fixed world position) in the canvas
 const PITCH = 1.1, YAW = 0;
 const FRONT = -Math.PI / 2;
@@ -156,7 +159,7 @@ const buffers = [];
 const manifest = {};
 for (let look = 0; look < LOOK_NAMES.length; look++) {
   const h = LOOK_H[look] ?? 1.8;
-  const zoom = Math.max(36, Math.min(82, 112 / h)); // figure fits the 3:4 with head AND foot margin; tall looks zoom out
+  const zoom = Math.max(40, Math.min(86, 116 / h)); // whole figure (head-to-feet) fits the portrait region with margin
   const url = new URL(`${TARGET}/renderer/skinned-soldier`);
   url.searchParams.set('class', String(look));
   url.searchParams.set('clip', 'idle');

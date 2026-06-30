@@ -38,7 +38,7 @@
     }
     /* Visual unit readout: portrait + name header, labeled stat bars, detail. */
     #hud .hud-head { display: flex; gap: 9px; align-items: center; margin: 7px 0 9px; }
-    #hud .hud-port { width: 46px; height: 60px; flex: none; object-fit: cover; border: 1px solid #2a1d0e; border-radius: 2px; background: #1c150d; box-shadow: inset 0 0 0 1px rgba(150,114,62,0.3); }
+    #hud .hud-port { width: 58px; height: 54px; flex: none; object-fit: cover; border: 1px solid #2a1d0e; border-radius: 2px; background: #1c150d; box-shadow: inset 0 0 0 1px rgba(150,114,62,0.3); }
     #hud .hud-name { font: 700 16px 'Cinzel', ui-serif, Georgia, serif; color: #f0e3b0; letter-spacing: 0.5px; line-height: 1.1; }
     #hud .hud-meta { font-size: 11px; color: #b89a64; margin-top: 3px; }
     #hud .hud-stat { display: flex; align-items: center; gap: 7px; margin: 3px 0; }
@@ -109,7 +109,7 @@
       position: fixed; bottom: 52px; left: 50%; transform: translateX(-50%); z-index: 5;
       display: grid; width: max-content; max-width: calc(100vw - 24px);
       grid-template-columns: repeat(var(--cols, 1), var(--card-w, 72px));
-      grid-auto-rows: auto;
+      grid-auto-rows: var(--card-h, 96px);
       gap: 3px; justify-content: center; align-content: end;
       overflow: hidden; padding: 11px 12px;
       /* Opaque worn-bronze chassis: a brushed-metal fill and corner rivets
@@ -136,13 +136,13 @@
     @media (max-width: 760px) {
       #manual { left: 12px; right: 12px; bottom: 172px; width: auto; }
     }
-    /* A card is a column: an HP strength bar, the FULL 3:4 portrait, then the name
-       and cohesion/morale bars — each in its own strip, so the chrome never overlaps
-       the figure (the card is taller than the 3:4 portrait to make room). An inset
-       bronze-rimmed well in the chassis, not a floating rounded web card. */
+    /* A 3:4 card as a column: HP strength bar / portrait (fills the middle) / name +
+       cohesion-morale bars — each in its own strip so chrome never overlaps the
+       figure. The portrait PNG is baked to the middle region's aspect, not 3:4. An
+       inset bronze-rimmed well in the chassis, not a floating rounded web card. */
     .ucard {
-      width: var(--card-w); box-sizing: border-box;
-      display: flex; flex-direction: column; overflow: hidden;
+      width: var(--card-w); height: var(--card-h); aspect-ratio: 3 / 4; box-sizing: border-box;
+      position: relative; display: flex; flex-direction: column; overflow: hidden;
       background: #16100a; border: 1px solid #2a1d0e;
       border-top: 3px solid var(--fac); border-radius: 2px;
       cursor: pointer; transition: box-shadow 0.1s;
@@ -152,16 +152,16 @@
     .ucard.sel { border-color: #f0d98a; z-index: 2; box-shadow: inset 0 0 0 1px #f0d98a, 0 0 9px 1px rgba(240,212,122,0.6); }
     .ucard.rout { filter: grayscale(0.5) brightness(0.8); }
     .ucard.rout::after {
-      content: 'ROUT'; position: absolute; top: 26px; left: 0; right: 0; text-align: center; z-index: 3;
+      content: 'ROUT'; position: absolute; top: 30px; left: 0; right: 0; text-align: center; z-index: 3;
       font: 700 9px ui-monospace, monospace; color: #ff7a6b; text-shadow: 0 1px 2px #000;
     }
     /* HP strength bar across the top, count riding on it (the reference). */
-    .ucard-hp { position: relative; flex: none; height: 12px; background: rgba(6,8,5,0.82); box-shadow: inset 0 -1px 0 rgba(0,0,0,0.5); overflow: hidden; }
+    .ucard-hp { position: relative; flex: none; height: 10px; background: rgba(6,8,5,0.82); box-shadow: inset 0 -1px 0 rgba(0,0,0,0.5); overflow: hidden; }
     .ucard-hp-fill { height: 100%; width: 100%; }
-    .ucard-count { position: absolute; top: 0; right: 5px; line-height: 12px; font: 700 9px ui-monospace, monospace; color: #fff; text-shadow: 0 1px 2px #000, 0 0 3px #000; }
-    .ucard-port { display: block; flex: none; width: 100%; height: var(--card-h); object-fit: cover; background: #1c150d; }
-    .ucard-name { flex: none; padding: 2px 3px 0; text-align: center; font: 700 8px ui-monospace, Menlo, monospace; color: #ead9b0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .ucard-bars { flex: none; padding: 1px 4px 3px; }
+    .ucard-count { position: absolute; top: 0; right: 5px; line-height: 10px; font: 700 9px ui-monospace, monospace; color: #fff; text-shadow: 0 1px 2px #000, 0 0 3px #000; }
+    .ucard-port { display: block; flex: 1 1 0; min-height: 0; width: 100%; object-fit: cover; background: #1c150d; }
+    .ucard-name { flex: none; padding: 1px 3px 0; text-align: center; font: 700 8px ui-monospace, Menlo, monospace; color: #ead9b0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ucard-bars { flex: none; padding: 0 4px 1px; }
     .ucard-bar { height: 3px; background: rgba(8,9,11,0.7); border-radius: 2px; overflow: hidden; margin-bottom: 1px; }
     .ucard-bar > div { height: 100%; width: 100%; }
     .ucard-bar.hp > div { background: #5cba46; }

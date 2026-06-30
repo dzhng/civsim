@@ -150,6 +150,9 @@
       border: 1px solid #3a3f4d; border-radius: 6px;
       background: #11141a; cursor: crosshair;
       box-shadow: 0 4px 18px rgba(0,0,0,0.5);
+      /* Above the world-space unit banners (#unitlabels, z-index 3) so a banner
+         drawn over a unit near the corner can't bleed across the minimap. */
+      z-index: 10;
     }
     #battle-ui { display: none; }
     #menu-ui {

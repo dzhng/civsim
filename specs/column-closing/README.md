@@ -620,7 +620,7 @@ defects in the supplied sheets and crops.
   (red right wing bent into a snake-like strip with outliers), plus the recurring
   muddy layering and dark ambiguous `offense` figures. Generated `web/shots` and
   wasm were reverted. This is closer than the same-file spring, but still below
-  the same-or-better formation-order bar.
+  the corrected formation-order bar.
 - A narrow blocked-contact weave-gate candidate was tried and removed. The idea
   was to stop a narrow, deep, already-engaged foot column from switching into the
   loose running weave while it was pressed into a much wider foot frontage. A
@@ -658,7 +658,7 @@ defects in the supplied sheets and crops.
   into scattered arcs/isolated sprites. Generated `web/shots`, rebuilt wasm, and
   the collision changes were reverted. Do not revisit hard collision axis
   projection without a more specific physical diagnosis; it preserved scalar
-  contracts only after narrowing, but did not pass the same-or-better shot gate.
+  contracts only after narrowing, but did not pass the less-wrong shot gate.
 - A targetless rear-rank lateral velocity cap was tried and removed. It capped
   lateral speed only for non-fighting, targetless, rear ranks (`rank_id >= 8`) of
   6-12 file advancing foot columns already engaged. Rust diagnostics improved
@@ -674,7 +674,7 @@ defects in the supplied sheets and crops.
   blue formation, ambiguous red/blue contact layering, detached offense arcs and
   threads, and stragglers that looked too evenly spaced/disconnected. Do not
   treat a better width scalar as acceptance unless the current shots also read
-  same-or-better.
+  less wrong against the visual target.
 - A blocked-wider-frontage weave-stiffness candidate was tried and removed. It
   kept the narrow/deep attacking foot column's weave stiff once a soldier was
   already inside a much wider opposing foot frontage, while still preserving
@@ -717,7 +717,7 @@ defects in the supplied sheets and crops.
   stragglers, and hard-to-parse offense spirals. This is a useful diagnostic
   clue, not an accepted fix: the late friendly hard projection contributes to
   onset spread, but removing it for non-strict same-unit pairs is not enough for
-  the same-or-better visual bar.
+  the corrected visual bar.
 - A same-unit non-fighting queue blocker was tried and removed. It counted
   same-unit bodies directly between a soldier and his target as `front_clear`
   blockers even before those bodies were fighting. The Rust onset probe moved in
@@ -781,14 +781,16 @@ defects in the supplied sheets and crops.
 - [ ] `reassign_slots` confirmed reachable ONLY by pivot / files-change /
       reform / rally / at-ease recovery / disengage — slice 2
 - [ ] Golden re-pinned once; weave/charge/impact/disengage buckets green — slice 2
-- [x] Relevant battle/weave shots recreated and inspected for same-or-better
-      formation order, not just nonblank/green tests — slice 2/3 gate
-      (latest live-frontage gather substrate improved approach but still failed
-      this gate at contact)
-- [x] Unprimed `screenshot-critique` subagent reviewed the exact comparison
-      sheets/crops before any visual baseline is accepted — slice 2/3 gate
-      (latest: Locke reviewed the rest-weave stiffness sheets/crops and kept the
-      visual gate blocked)
+- [x] Relevant battle/weave shots recreated and inspected against the corrected
+      formation-order target, not just nonblank/green tests — slice 2/3 gate
+      (latest retained `0.10m` pivot-length slack is closer to the deployed
+      column footprint than the flawed baseline, whose middle pinches inward;
+      screenshot baselines are still not re-blessed)
+- [ ] Current retained visual pass reviewed by a fresh unprimed
+      `screenshot-critique` subagent before any visual baseline is accepted —
+      slice 2/3 gate (older rejected candidates were critiqued; the retained
+      `0.10m` pass still needs a critique prompt that names the deployed-width
+      target and says the baseline is imperfect too)
 - [ ] Rear-line lateral-travel-while-engaged metric test pinned — slice 3
 - [ ] Human-viewable proof (slot-occupancy timeline + renderer-lab scene) — slice 3
 - [ ] Gap bridge designed and pinned: adjacent 2+ dead-file lanes fill locally
@@ -891,14 +893,19 @@ logic for single-file gaps if it proves cleaner than persistent notches.
   impact, that is the knob to revisit (a known unknown, not a silent regression).
 - **Visual order is a required gate.** Numeric mechanics gates are necessary but
   not sufficient. Recreate and inspect the relevant battle/weave shots before
-  accepting this behavior: a fighting formation with fixed-file casualty closing
-  must look at least as ordered as before, and preferably less blobby, because
-  lateral reassignment was one of the visible blob drivers. Do not re-pin cargo
-  or screenshot baselines on a formation that looks worse just because the scalar
-  invariants pass. Before accepting the shots, run the `screenshot-critique`
-  skill with a fresh explorer (`fork_context: false`) and a neutral prompt,
+  accepting this behavior. Compare baseline/current, but judge both against the
+  target, not against pixel closeness to the baseline: the column should keep as
+  close as possible to its deployed footprint at enemy contact, neither pinching
+  narrower nor spreading wider, while the formation stays readable. The current
+  penetration baseline is flawed evidence because its middle pinches/harrows
+  inward; do not regress toward that shape just to reduce a diff. Do not re-pin
+  cargo or screenshot baselines on a formation that looks worse just because the
+  scalar invariants pass. Before accepting the shots, run the
+  `screenshot-critique` skill with a fresh explorer (`fork_context: false`),
   attaching the full comparison sheet plus tight crops around the contested
-  formations. Record any high-confidence critique finding in this spec or the
+  formations. The prompt must establish the deployed-width target and state that
+  the baseline can be wrong too, then ask for visible formation/order defects in
+  both images. Record any high-confidence critique finding in this spec or the
   next task before claiming the visual gate passed.
 - **Gap bridge is local, never a reform.** The conservative default is that a
   one-file wipe remains a notch and a two-or-more-file lane may be narrowed while

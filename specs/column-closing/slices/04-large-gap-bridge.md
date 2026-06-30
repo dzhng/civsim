@@ -73,8 +73,9 @@ sideways.
 - Slice 2 and 3 gates, especially the rear-line no-crab metric.
 - `mechanics_weave` wrap/drape probes. A local bridge must not make attacking
   sheets rigid or stop them from wrapping.
-- Battle/weave shots must look same-or-better: fewer artificial lanes, no new
-  global blob, no visible full-unit sideways shuffle.
+- Battle/weave shots must be less wrong against the physical target: fewer
+  artificial lanes, no new global blob, no visible full-unit sideways shuffle,
+  and no regression toward a pinched or over-wide column at enemy contact.
 - High-confidence `screenshot-critique` findings are blockers unless fixed or
   explicitly carried as follow-up with the reason they are acceptable for now.
 
@@ -104,8 +105,8 @@ figures that read like a third faction. The critique also noted that `HEAD`
 looks too rigid/barcode-like, so the desired endpoint is not the exact old grid;
 it is an ordered, living formation that stays readable without global lateral
 crab. Treat this bridge as mechanically useful substrate, not accepted slice
-completion, until a later contact-order fix makes the battle-vibe shots
-same-or-better.
+completion, until a later contact-order fix makes the battle-vibe shots less
+wrong against the visual target.
 
 ## Feedback that would change this slice
 

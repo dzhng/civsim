@@ -54,15 +54,16 @@ reassign_slots(...) stays the path for, and ONLY for:
 - `scripts/test-mechanics` — the physics inner loop (the bucket this change
   lives in).
 - Recreate the relevant battle/weave shots and inspect them by eye before
-  accepting or re-pinning anything. The expected visual result is same-or-better
-  formation order, preferably less blobbing; this behavior exists because
-  lateral casualty relabeling visibly blobs formations.
+  accepting or re-pinning anything. Compare baseline/current, but judge both
+  against the formation target rather than treating the baseline as truth: the
+  column should preserve its deployed footprint at enemy contact, neither
+  pinching narrower nor spreading wider, with readable formation order.
 - Run `screenshot-critique` with a fresh explorer (`fork_context: false`) on the
   exact comparison sheet and tight crops before accepting the shots. The prompt
-  must be neutral: ask what visible formation/order defects exist, not whether
-  the new behavior is better. It must still be a baseline/current comparison;
-  a general visual audit can inform follow-up work, but does not satisfy the
-  gate.
+  must be neutral about which image should win, but it must name the target and
+  say the baseline can be flawed too; ask what visible formation/order defects
+  exist in both images. It must still be a baseline/current comparison; a general
+  visual audit can inform follow-up work, but does not satisfy the gate.
 - A throwaway `tests/dbgN.rs` (per the debug-probe convention) printing, over a
   deep engaged block taking front-rank casualties, the **max lateral displacement
   of rear-rank men** before vs after — expect it to collapse toward the
@@ -85,11 +86,13 @@ reassign_slots(...) stays the path for, and ONLY for:
   commit after confirming (diff vs a clean baseline) your change is the sole
   mover. The branch may already have it red for unrelated reasons.
 - **Shot evidence.** Cargo tests alone do not prove this slice. Recreated shots
-  must show the changed formation order is not visually worse; do not bless a
-  numeric-only pass if the battle looks blobbed or less ordered. The visual
-  evidence must include an unprimed `screenshot-critique` pass; high-confidence
-  findings from the subagent are blockers until inspected or recorded as follow-up
-  work. This check is mandatory even when `scripts/test-mechanics` is green.
+  must show the behavior is less wrong against the target: deployed-width
+  preservation at enemy contact, readable formation order, and no extra blobbing.
+  The baseline can be wrong too, so do not bless or reject a pass on pixel
+  similarity alone. The visual evidence must include an unprimed
+  `screenshot-critique` pass; high-confidence findings from the subagent are
+  blockers until inspected or recorded as follow-up work. This check is mandatory
+  even when `scripts/test-mechanics` is green.
 
 ## What must stay green
 
@@ -205,7 +208,8 @@ reassign_slots(...) stays the path for, and ONLY for:
   into islands/singles), a vertical drip/string artifact at `t192`, muddy contact
   depth ordering, partially broken red side formations, and the recurring dark
   ambiguous offense bodies. This is the current warning label on scalar-green
-  stiffness gates: they still have to make the battle shots read same-or-better.
+  stiffness gates: they still have to make the battle shots read less wrong
+  against the visual target.
 - A hard-layer friendly collision queue was also tried and removed. The broad
   version resolved same-unit foot collisions near contact along formation-rest
   axes and failed scalar gates: wide-line wrap lost rear envelopment and

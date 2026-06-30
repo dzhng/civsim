@@ -9,12 +9,14 @@ notch evens out cleanly a beat after the unit disengages. This slice is also the
 charge-feel sign-off (the one watched risk from slice 2).
 
 This proof must include recreated battle/weave shots, not just Rust tests. The
-visual acceptance bar is same-or-better formation order: fixed-file casualty
-closing should reduce the blobbing caused by lateral relabeling, and any shot
-that looks more blobbed sends the work back to slice 2 before baselines are
-blessed. The shot review must include a fresh, unprimed `screenshot-critique`
-subagent (`fork_context: false`) looking only at the comparison sheet and tight
-crops with a neutral prompt.
+visual acceptance bar is less-wrong formation order against the physical target:
+fixed-file casualty closing should reduce the blobbing caused by lateral
+relabeling, and the column should stay near its deployed footprint at enemy
+contact rather than pinching narrower or spreading wider. A baseline/current
+comparison is required, but the baseline is not ground truth. The shot review
+must include a fresh, unprimed `screenshot-critique` subagent (`fork_context:
+false`) looking only at the comparison sheet and tight crops with a prompt that
+names the target and asks for visible defects in both images.
 
 ## API seam
 
@@ -67,8 +69,9 @@ Everything from slice 2's "must stay green," plus the new
 - David's eye on the artifact is the real gate. If the notches read as ugly or
   the deep block still looks like it's drifting, that sends work back to slice 2
   (cadence, CLEAR_BEAT, or the engaging/advancing gate), not to new mechanics.
-- If the recreated battle/weave shots show worse formation order or more
-  blobbing, do not re-pin them; fix the behavior first.
+- If the recreated battle/weave shots show worse formation order, more blobbing,
+  or a column that is clearly farther from its deployed-width target, do not
+  re-pin them; fix the behavior first.
 - If the critique subagent catches a visible order/blob/scan-readability issue
   the main pass missed, add it to the visual checklist or fix it before accepting
   the slice.

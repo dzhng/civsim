@@ -49,6 +49,14 @@ plan is stale.
 - When the implementation touches shared behavior, leave docs or spec rationale
   using [write-docs](../write-docs/SKILL.md) principles: durable invariants and
   pointers, not copied inventories.
+- **Human checkpoints never block.** At a slice's review or sign-off gate, open
+  the relevant shots with [preview-shots](../preview-shots/SKILL.md), state the
+  decision and the options, and give the user ~5 minutes to weigh in — keep
+  building other non-blocked work meanwhile, never idle. If they don't answer,
+  make the call yourself on the evidence, record the decision and its rationale
+  in the spec (the checkpoint's resolution), and keep going. A goal or
+  implementation NEVER stops to wait on the user; it documents the assumption,
+  keeps it reversible, and lets the user course-correct later.
 
 ## Done
 

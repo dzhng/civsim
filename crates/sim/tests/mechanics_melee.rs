@@ -11,7 +11,7 @@
 pub mod common;
 
 use common::{deaths, no_morale};
-use sim::{Pace, Sim, Tunables, UnitClassId, Vec2, DT};
+use sim::{setup_duel, Pace, Sim, Tunables, UnitClassId, Vec2, DT};
 use std::f32::consts::FRAC_PI_2;
 
 const N: usize = 240;
@@ -154,6 +154,29 @@ fn max_file_span(sim: &Sim, unit: usize) -> f32 {
         }
     }
     span
+}
+
+fn rank_band_width(sim: &Sim, unit: usize, rank_lo: usize, rank_hi: usize) -> Option<f32> {
+    let u = &sim.units[unit];
+    let files = u.files_eff.max(1);
+    let f = sim::dir(u.facing);
+    let r = Vec2::new(f.y, -f.x);
+    let (mut min_lat, mut max_lat, mut n) = (f32::INFINITY, f32::NEG_INFINITY, 0usize);
+    for i in u.start..u.start + u.count {
+        if sim.alive[i] == 0 {
+            continue;
+        }
+        let slot = sim.soldier_slot[i] as usize;
+        let rank = slot / files;
+        if rank < rank_lo || rank > rank_hi {
+            continue;
+        }
+        let lat = (sim.soldier_pos(i) - u.centroid).dot(r);
+        min_lat = min_lat.min(lat);
+        max_lat = max_lat.max(lat);
+        n += 1;
+    }
+    (n > 0).then_some(max_lat - min_lat)
 }
 
 /// Mean slot error (m) of the REAR ranks only — every man at least
@@ -1347,6 +1370,58 @@ fn separated_columns_dimple_a_held_line_without_tearing_the_sheet() {
     assert!(
         min_line_coh > 0.35 && max_line_gap < 5.0,
         "separate columns must make local dimples in one connected held sheet, not tear it into streamers: cohesion {min_line_coh:.2}, p95 adjacent-file gap {max_line_gap:.1}m",
+    );
+}
+
+#[test]
+fn column_contact_width_stays_near_its_deployed_footprint() {
+    let mut tun = Tunables::default();
+    tun.micro_rough = 0.0;
+    tun.morale_enabled = false;
+    let mut sim = Sim::new(tun, 0x5eed_c0de);
+    setup_duel(&mut sim, UnitClassId::HeavySword, UnitClassId::HeavySword);
+    let column = 0;
+    let line = 1;
+    sim.set_files(line, 70);
+    sim.set_files(column, 8);
+    sim.set_pace(column, Pace::Run);
+    let target = sim.units[line].center();
+    sim.set_attack_move_order(column, Vec2::new(target.x, target.y + 90.0));
+
+    for i in 0..sim.soldier_count() {
+        sim.health[i] = 1.0e9;
+    }
+
+    let deployed_width =
+        (sim.units[column].files_eff.saturating_sub(1) as f32) * sim.units[column].spacing.x;
+    let mut max_width = 0.0f32;
+    let mut min_width = f32::INFINITY;
+    for tick in 0..=(96.0 / DT) as usize {
+        if tick > 0 {
+            sim.tick();
+        }
+        let t = tick as f32 * DT;
+        if !(72.0..=96.0).contains(&t) {
+            continue;
+        }
+        for (lo, hi) in [(0, 1), (2, 5), (6, 99)] {
+            if let Some(width) = rank_band_width(&sim, column, lo, hi) {
+                max_width = max_width.max(width);
+                min_width = min_width.min(width);
+            }
+        }
+    }
+
+    eprintln!(
+        "COLUMN-CONTACT deployed={deployed_width:.1}m min-band={min_width:.1}m max-band={max_width:.1}m"
+    );
+    assert!(
+        min_width > deployed_width - 1.5,
+        "a column should not pinch narrower than its deployed footprint on contact: deployed {deployed_width:.1}m, min band {min_width:.1}m",
+    );
+    assert!(
+        max_width < deployed_width + 8.0,
+        "a column should not fan far wider than its deployed footprint on contact: deployed {deployed_width:.1}m, max band {max_width:.1}m",
     );
 }
 

@@ -17,12 +17,15 @@ chase his new slot. Stop relabelling laterally while engaged and the crab stops.
 
 ## Next Agent Prompt
 
-**Status:** Slice 2 core wiring is in the working tree but is **not accepted**.
+**Status:** Slice 2 core wiring is in the working tree with a retained
+less-wrong contact-width candidate, but shot baselines are **not re-blessed**.
 `compact_columns` now closes casualties forward within files while
 engaged/advancing, `compact_slots_preserving_order` is deleted, disengage gets a
-clear-beat re-even, and focused tests are green. The browser visual gate is
-still red: `vibe/penetration` repeatedly looked worse under unprimed
-`screenshot-critique`, so no screenshot baselines or golden hash were re-pinned.
+clear-beat re-even, and focused tests are green. The current `0.10m` pivot-length
+slack keeps the column closer to its deployed footprint at contact; David judged
+it better than the flawed baseline, whose pinched/harrowed middle looked
+unnatural. The golden hash is re-pinned; screenshot baselines are not. Earlier
+browser candidates repeatedly looked worse under unprimed `screenshot-critique`:
 The latest same-file hard collision queue candidate recreated fresh battle shots
 and failed the visual gate under a fresh unprimed critique ("Gauss"); comparison
 sheets and crops are under `/private/tmp/civsim-column-closing-shots/`. A later
@@ -136,21 +139,119 @@ scalar gate before browser shots: `mechanics_survivability` reported
 `HP4/HP1 = 6.60x`, above the `6.0x` ceiling. Do not retain this exact no-cruise
 candidate; if revisiting it, first explain why survivability will not stretch the
 long grind.
+This continuation set up Rust on the machine (`brew install rust`, Cargo
+1.96.0), then reproduced the failure with a scratch native probe mirroring
+`vibe/penetration` (`0x5eed_c0de`, defender 70 files, attacker 8 files,
+attack-through-centroid order). Baseline scalar tripwires were clean:
+`a_column_bulges_a_held_line_it_does_not_part_it` passed (`1.4m` dimple, no
+crossing), `attack_latch_behaves_like_a_move_order` passed, and
+`mechanics_survivability` passed (`HP4/HP1 = 5.85x`). The native probe showed the
+column is still dressed through `t078` (~`7.5m` wide), then widens after contact
+from `t079` onward while only a small minority is fighting: `t084` whole width
+~`22.5m`, front ~`19.9m`, mid ~`17.6m`, rear ~`21.9m`, `col_eng=18/240`;
+`t096` whole width ~`29.8m`, rear ~`28.5m`. Mass advance has already collapsed
+by the widening (`t079` ~`0.31`), so this is not simply the running-weave-off
+window. Cohesion is a bad diagnostic for this specific setup: it reads ~`0.08`
+even while the column is visually narrow in approach. Three diagnostic paths
+were tried and removed. First, a more local rear queued-man enemy-magnet
+projection (only non-fighting rear footmen with a live same-file filemate ahead,
+inside a much wider frontage) made the probe worse (`t084` width ~`26.2m`);
+lateral seek appears not to be the outward carrier, and may help pull bodies back
+toward the fight. Second, a scoped hard-layer collision slide removal for
+same-unit narrow columns in wide contact also worsened the probe (`t084` ~`23.9m`,
+`t096` ~`31.0m`). Third, global `separation_slide = 0.0` improved the native
+shape (`t084` ~`19.6m`, `t096` ~`23.6m`) and kept the column-bulge and
+attack/move tripwires green, but failed the survivability contract exactly like
+earlier slide/no-cruise paths (`HP4/HP1 = 6.35x`, above the `6.0x` ceiling). Do
+not promote global slide-off or the two scoped variants without a new reason they
+will avoid the long-grind survivability stretch.
+The next pivot-spring pass found the strongest current lead and closed one
+tempting false positive. X-rays showed the width jump happens inside
+`steer_soldiers`, not the hard separation pass; disabling the existing forward
+block had no effect; disabling compression worsened the rear; disabling the
+pivot spring kept the column narrow, identifying the pivot spring as the lateral
+fan-out carrier. Tension-only pivot (`al >= rl`) still fanned out. Global
+`pivot_stiffness = 1` narrowed the native probe but starved contact; `2` was
+still too wide. Scaling the pivot spring's lateral component confirmed the same
+tradeoff: full/near-full lateral damping kept the tail narrow but left too few
+men in the fight. A scoped candidate was then promoted briefly: for a
+non-trampling narrow/deep advancing foot column already engaged with a much
+wider foot wall, remove the lateral component of `pivot_push` only from ranks
+`>= 4`. Native evidence looked attractive (`COLUMN-TAIL rear-width=8.5m`,
+`max-engaged=29`), and `mechanics_melee` (15 tests), the survivability sentinel
+(`HP4/HP1 = 5.85x`), `mechanics_weave` (22 tests), and `mechanics_formation` all
+passed. The browser gate rejected it. After installing `wasm-pack`, rustup
+stable, and the `wasm32-unknown-unknown` target, fresh Chrome WebGPU
+`vibe/penetration` frames differed from baseline starting at `t072` (`t084`
+~`2.94%`, `t120` ~`4.75%`). Manual frame inspection found the current column
+visually worse: `t084` became stringy/porous with detached blue trails, `t120`
+read as a broad smeared wedge rather than a dressed body, and `t192` remained a
+muddy flattened mass. The code, regression test, scratch probe, candidate shots,
+and regenerated GIF were removed. Do not retry simple pivot lateral damping,
+even rear-rank-scoped, unless the browser read explains why it will avoid the
+front-wedge/stringy-tail failure.
+The latest retained candidate is a smaller pivot fix, not lateral pivot damping:
+cap the angular spring's length scale near the bond's rest length
+(`pivot_len = min(al, rl + 0.10)`) so axial queue stretch cannot amplify
+tangential correction into sideways fan-out. This matches the revised visual
+target: the browser baseline is not perfect and should not be chased as ground
+truth; it over-stretches/curves the column at contact. The target is the original
+deployed 8-file footprint: slot width is `(8 - 1) * 0.9 = 6.3m`, and the moving
+approach reads about `7-8m`. The old full-length pivot was much wider in the
+native mirror (`t084` front/mid/rear roughly `18.7/17.9/25.3m`, `t095` rear
+roughly `30.8m`). The pure rest-length cap was less wrong on width (`t084`
+roughly `9.2/11.3/12.0m`, `t095` roughly `10.3/12.2/11.3m`) but still looked
+hollow. A `0.15m` slack briefly improved first-contact fill, but it was rejected:
+`a_mortal_wrapping_line_backfills_casualty_tears` failed and survivability moved
+outside the reference rails (`HP1.5` grind `174s`, `HP2/HP1 = 2.35x`). A scoped
+version preserved those contracts but did not improve the width diagnostic, and a
+wall-side scope worsened width (`max-band=13.9m`). The retained `0.10m` slack is
+the current best scalar tradeoff: `COLUMN-CONTACT deployed=6.3m min-band=7.5m
+max-band=13.1m`, native `t084` front/mid/rear roughly `9.5/11.0/12.2m`, and
+`t096` roughly `13.1/11.5/11.7m`. Focused gates and the full mechanics sweep are
+green: `mechanics_melee` 15/15, `mechanics_survivability` (`HP2/HP1 = 2.07x`,
+`HP4/HP1 = 5.86x`), and
+`scripts/test-mechanics --no-fail-fast -- --nocapture`. The golden hash was
+re-pinned deliberately for this physics change:
+`golden_state_hash_stable` now expects `0xf36fab65928f69e4`.
 
-**Pickup point:** Continue slice 2 at the visual failure, not at the scalar tests.
-Find a mechanism that keeps penetration-column order visually same-or-better
-without returning to full lateral `reassign_slots` while engaged. Recreate
-`vibe/penetration` and the relevant weave shots, attach comparison sheets/crops
-to a fresh unprimed `screenshot-critique` subagent, and only then re-pin shots or
-the golden hash. The critique prompt must ask for visible baseline-vs-current
-formation/order defects in the supplied sheets and crops; a general visual audit
-is useful background, but it does not replace the comparison gate. The current
-failure is still physical/steering-side, not a slot
-map crab: scalar-green local lane/stiffness/damping/magnet variants can improve
-one proxy while leaving the battle read worse. Look for a mechanism that keeps a
-narrow deep column's depth and side-to-side scan readability in contact without
-making the defender fragment, without reintroducing lateral `reassign_slots`, and
-without suppressing the magnet pressure needed for wrap/back-fill/bulge.
+Fresh Chrome WebGPU `vibe/penetration`/`vibe/offense` shots were regenerated
+after rebuilding wasm, but baselines were not re-blessed. `penetration` still
+diffs from `t072` onward (`t084` ~`2.80%`, `t096` ~`3.77%`, `t120` ~`3.02%`,
+`t192` ~`3.39%`). The `compare-screenshots` helper was used from
+`.agents/skills/compare-screenshots/scripts/visual-parity-diff.mjs` with matched
+baseline/current frame folders and central contact crops. Artifacts and JSON are
+under `/private/tmp/civsim-column-closing-compare-helper/`; the helper's
+fixed-pair distance is diagnostic, not an acceptance gate. It located the
+largest `penetration` movement at `t192` (`parityDistance=0.54331`,
+contact-crop `0.50724`) and high contact-crop movement at `t084`
+(`0.51632`). Manual inspection under the revised target: current `penetration`
+is closer to deployed width than baseline and removes the worst flare. David
+reviewed the shown comparison and judged current better than baseline: the
+baseline's pinched/harrowed middle is unnatural even though it is more filled in.
+Current still has visible looseness and dangling trails, so do not claim the
+ideal has landed, but do treat it as the less-wrong visual direction for this
+target. `offense` helper output also shows large movement (worst full-frame
+`t024`, `parityDistance=0.57014`; contact-crop worst `t048`, `0.56530`). Manual
+read: current improves the side formations into cleaner blocks versus the
+baseline's big curls, but the central contact trail is still dark/muddy with
+detached trails. This continuation did the direct frame/crop inspection and
+helper comparison, but did not re-pin shot baselines.
+
+**Pickup point:** Build on the retained `0.10m` pivot-length slack; do not judge
+the next pass by matching the flawed baseline. The width target is "as close as
+possible to the original deployed column at enemy contact" -- neither narrower
+nor wider -- and current is better than baseline by that ruler because the old
+baseline unnaturally pinches/harrows the column middle. If continuing, improve
+the remaining looseness without returning to lateral `reassign_slots`, without
+making the defender fragment, and without suppressing the magnet pressure needed
+for wrap/back-fill/bulge. Recreate `vibe/penetration`/`vibe/offense`, run the
+`compare-screenshots` helper on baseline/current folders with contact crops, then
+attach the helper artifacts and any focused sheets/crops to a fresh unprimed
+`screenshot-critique` subagent before re-pinning shot baselines. The critique
+prompt must say that the baseline is also flawed and that deployed-width
+preservation is the ruler; ask for visible baseline-vs-current formation/order
+defects in the supplied sheets and crops.
 
 **Locked decisions (from the grilling):**
 - A wiped column leaves a **persistent frontage notch** mid-fight — do NOT slide
@@ -167,15 +268,18 @@ without suppressing the magnet pressure needed for wrap/back-fill/bulge.
   (reuse `quiet_ticks`), not the instant melee ends.
 
 **Blockers / warnings:**
-- The golden hash (`golden.rs::golden_state_hash_stable`) WILL move in slice 2.
-  Re-pin it once, in that commit, after confirming your change is the only mover
-  (it may already be red on this branch — diff against a clean baseline first).
+- The golden hash (`golden.rs::golden_state_hash_stable`) already moved for the
+  retained pivot-length change and is re-pinned to `0xf36fab65928f69e4`. If the
+  next pass changes sim behavior again, re-pin it once in that pass after
+  confirming the change is the only mover.
 - Cargo green is not enough for this spec. Before accepting or re-pinning the
-  behavior, recreate and inspect the relevant battle/weave shots, then send the
-  exact comparison sheet/crops to an unprimed `screenshot-critique` subagent
-  (`fork_context: false`). Formation order must look the same or better than
-  before, because the whole point of deleting lateral casualty relabeling is to
-  reduce blobbing, not merely satisfy numeric invariants. The subagent must be
+  behavior, recreate and inspect the relevant battle/weave shots, run
+  `compare-screenshots`'s `scripts/visual-parity-diff.mjs` helper on
+  baseline/current folders with named contact crops, then send the exact helper
+  artifacts plus comparison sheets/crops to an unprimed `screenshot-critique`
+  subagent (`fork_context: false`). Formation order must look the same or better
+  than before, because the whole point of deleting lateral casualty relabeling is
+  to reduce blobbing, not merely satisfy numeric invariants. The subagent must be
   used as a comparison check, not only as a general screenshot-quality audit.
 - Concurrent sessions share the working tree (see `specs/standoff-double-push.md`
   process notes): never `git stash`/`checkout` over the tree; `git add` by path.

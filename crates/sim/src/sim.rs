@@ -1555,7 +1555,7 @@ impl Sim {
         // reach-spring shoving him back when ranks pile him inside reach. No
         // separate force ledger; the same springs that move him measure him.
         let press_alpha = 1.0 - (-dt / tun.press_tau).exp();
-
+        let pivot_stretch_slack = 0.10;
         let mut measures = Vec::with_capacity(units.len());
         for u in units.iter() {
             let f = dir(u.facing);
@@ -1880,7 +1880,18 @@ impl Sim {
                                 // the wrap — a wrap is the same large bend, so any
                                 // sharp angle law that stops a pancake stops a curl.)
                                 let tang = oh - dh * dot;
-                                pivot_push = pivot_push + tang * al;
+                                // Contact queues can stretch a bond axially; that
+                                // stretch is handled by the length spring and
+                                // should not amplify the angular correction into
+                                // sideways fan-out. A small body-scale slack
+                                // keeps first contact from reading hollow without
+                                // returning to the old unbounded live-length lever.
+                                let pivot_len = if al > rl {
+                                    al.min(rl + pivot_stretch_slack)
+                                } else {
+                                    al
+                                };
+                                pivot_push = pivot_push + tang * pivot_len;
                             }
                             // COMPRESSION push: when the bond is shorter than rest,
                             // shove away from the neighbour, the force climbing

@@ -271,6 +271,86 @@ reassign_slots(...) stays the path for, and ONLY for:
   `mechanics_survivability` reported `HP4/HP1 = 6.60x`, above the `6.0x` ceiling.
   Do not retain this exact no-cruise candidate unless a new version preserves the
   survivability curve.
+- This continuation set up the local Rust toolchain via Homebrew (`cargo
+  1.96.0`) and re-ran the core scalar checks before probing. Baseline
+  `a_column_bulges_a_held_line_it_does_not_part_it`, `attack_latch_behaves_like_a_move_order`,
+  and `mechanics_survivability` were green (`HP4/HP1 = 5.85x`). A scratch native
+  probe mirroring `vibe/penetration` showed the contact transition: dressed
+  through `t078` (~`7.5m` wide), then `t084` whole width ~`22.5m` with only
+  `18/240` column men engaged and rear width ~`21.9m`; `t096` whole width
+  ~`29.8m`. `mass_advance` had already collapsed by the spike, and cohesion read
+  ~`0.08` even during the visually dressed approach, so neither running-window
+  nor cohesion alone is the right lens. Three paths were rejected and removed:
+  rear queued-man enemy-magnet projection worsened `t084` to ~`26.2m`; scoped
+  same-unit collision-slide removal for narrow columns in wide contact worsened
+  `t084` to ~`23.9m` and `t096` to ~`31.0m`; global `separation_slide = 0.0`
+  improved the probe (`t084` ~`19.6m`, `t096` ~`23.6m`) but failed
+  `mechanics_survivability` (`HP4/HP1 = 6.35x`). Treat global slide-off and those
+  scoped variants as closed unless a new mechanism explains how to preserve the
+  survivability curve.
+- A pivot-spring diagnosis found that the contact fan-out is carried by
+  `steer_soldiers` and specifically by the lateral component of the pivot
+  spring, not by hard separation, forward-blocking, compression, or target
+  magnet seek. Disabling pivot lateral motion globally or in the rear kept the
+  native tail narrow but starved contact; global `pivot_stiffness = 1` had the
+  same shape, while `2` was still too wide. The best native false positive was a
+  scoped rank-tail rule: for a non-trampling narrow/deep advancing foot column
+  already engaged with a much wider foot wall, remove lateral `pivot_push` from
+  ranks `>= 4`. It passed the native gates (`mechanics_melee` 15 tests,
+  survivability `HP4/HP1 = 5.85x`, `mechanics_weave` 22 tests,
+  `mechanics_formation`) and its focused native probe reported `rear-width=8.5m`
+  with `max-engaged=29`. Fresh Chrome WebGPU `vibe/penetration` rejected it
+  after rebuilding wasm (`wasm-pack`, rustup stable, and the wasm target were
+  installed on this machine): `t084` became stringy/porous with detached blue
+  trails, `t120` read as a broad smeared wedge, and `t192` stayed muddy. The code,
+  regression test, scratch probe, generated candidate frames, and regenerated GIF
+  were removed. Do not retry simple pivot-lateral damping, even rear-rank scoped,
+  unless the browser read has a new reason to avoid this front-wedge/stringy-tail
+  failure.
+- The retained pivot change is narrower: keep the pivot spring, but cap the
+  angular correction's length scale near the bond's rest length
+  (`pivot_len = min(al, rl + 0.10)`). The old rule used the live stretched bond
+  length, so axial queue stretch amplified tangential correction into sideways
+  fan-out. This is not a full visual acceptance yet, but it is less wrong against
+  the corrected ruler. The baseline screenshot itself over-stretches/curves the
+  column and is not the target; the target is the original deployed 8-file
+  footprint at enemy contact. Deployed slot width is `6.3m` and the moving
+  approach reads roughly `7-8m`; old full pivot read roughly `18.7/17.9/25.3m`
+  front/mid/rear at `t084` and `30.8m` rear at `t095`. The pure rest-length cap
+  was less wrong on width but still hollow (`t084` roughly `9.2/11.3/12.0m`,
+  `t095` roughly `10.3/12.2/11.3m`). A `0.15m` slack was rejected because it
+  broke mortal-wrap back-fill and survivability (`HP1.5` grind `174s`,
+  `HP2/HP1 = 2.35x`); a scoped version preserved those contracts but did not
+  improve width, and a wall-side scope worsened the width rail (`max-band=13.9m`).
+  The retained `0.10m` slack is the current best scalar tradeoff:
+  `COLUMN-CONTACT deployed=6.3m min-band=7.5m max-band=13.1m`, native `t084`
+  front/mid/rear roughly `9.5/11.0/12.2m`, and `t096` roughly `13.1/11.5/11.7m`.
+  `mechanics_melee`, the survivability sentinel (`HP2/HP1 = 2.07x`,
+  `HP4/HP1 = 5.86x`), and the full
+  `scripts/test-mechanics --no-fail-fast -- --nocapture` sweep are green. The
+  golden hash was re-pinned deliberately for this physics change:
+  `golden_state_hash_stable` now expects `0xf36fab65928f69e4`.
+- Fresh Chrome WebGPU browser shots were rebuilt from the updated wasm and
+  inspected, but not re-blessed. `penetration` diffs from `t072` onward (`t084`
+  ~`2.80%`, `t096` ~`3.77%`, `t120` ~`3.02%`, `t192` ~`3.39%`). The
+  `compare-screenshots` helper was used from
+  `.agents/skills/compare-screenshots/scripts/visual-parity-diff.mjs` with
+  matched baseline/current frame folders and central contact crops. Artifacts and
+  JSON are under `/private/tmp/civsim-column-closing-compare-helper/`; the helper
+  distance is diagnostic, not an acceptance gate. It located the largest
+  `penetration` movement at `t192` (`parityDistance=0.54331`, contact-crop
+  `0.50724`) and high contact-crop movement at `t084` (`0.51632`). Manual read:
+  current is closer to deployed width than baseline and removes the big flare.
+  David reviewed the shown comparison and judged current better than baseline:
+  the baseline's pinched/harrowed middle is unnatural even though it is more
+  filled in. Current still has visible looseness and dangling trails, so do not
+  call it perfect; do carry it forward as the less-wrong visual direction for
+  this target. `offense` helper output also shows large movement (worst
+  full-frame `t024`, `parityDistance=0.57014`; contact-crop worst `t048`,
+  `0.56530`), and manual read says side blocks are cleaner while the central
+  contact trail remains dark/muddy with detached trails. Run a fresh unprimed
+  `screenshot-critique` before blessing any visual baseline; tell the critic the
+  baseline is imperfect and the deployed-width target is the ruler.
 - A narrower blind-rear queue candidate was also tried and removed. It projected
   same-file compression along the file axis only for targetless soldiers and gave
   targetless deep rear ranks in a stalled advancing foot queue extra lateral pull

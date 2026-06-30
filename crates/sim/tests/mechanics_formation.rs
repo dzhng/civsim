@@ -7,7 +7,7 @@
 mod common;
 
 use common::{no_morale_parade, run};
-use sim::{Pace, Sim, Vec2};
+use sim::{Pace, Sim, Vec2, DT};
 use std::f32::consts::FRAC_PI_2;
 
 const SEED: u64 = 7;
@@ -83,6 +83,47 @@ fn max_lateral_slot_error(sim: &Sim, unit: usize) -> f32 {
         .fold(0.0, f32::max)
 }
 
+fn rear_lane_lateral_excursion(
+    sim: &Sim,
+    unit: usize,
+    before_slots: &[u32],
+    before_positions: &[f32],
+    before_anchor: Vec2,
+    min_rank: usize,
+) -> (f32, f32, usize) {
+    let u = &sim.units[unit];
+    let files = u.files_eff.max(1);
+    let f = sim::dir(u.facing);
+    let r = Vec2::new(f.y, -f.x);
+    let before_frame_lat = before_anchor.dot(r);
+    let frame_lat = u.anchor.dot(r);
+    let mut excursions = Vec::new();
+
+    for i in unit_range(sim, unit) {
+        if sim.alive[i] == 0 {
+            continue;
+        }
+        let old_slot = before_slots[i] as usize;
+        if old_slot / files < min_rank {
+            continue;
+        }
+        let p0 = Vec2::new(before_positions[2 * i], before_positions[2 * i + 1]);
+        let p1 = sim.soldier_pos(i);
+        let before_lane = p0.dot(r) - before_frame_lat;
+        let lane = p1.dot(r) - frame_lat;
+        excursions.push((lane - before_lane).abs());
+    }
+
+    excursions.sort_by(|a, b| a.total_cmp(b));
+    assert!(
+        !excursions.is_empty(),
+        "expected living rear-rank soldiers for no-crab measurement"
+    );
+    let p95 = excursions[((excursions.len() - 1) as f32 * 0.95).round() as usize];
+    let max = *excursions.last().unwrap();
+    (p95, max, excursions.len())
+}
+
 #[test]
 fn advancing_casualties_close_forward_within_the_same_file() {
     let files = 5;
@@ -154,6 +195,50 @@ fn wiped_file_stays_notched_until_the_clear_beat_reform() {
     assert!(
         !sim.units[unit].disengage_reform_pending,
         "the clear-beat re-form is a one-shot"
+    );
+}
+
+#[test]
+fn rear_ranks_do_not_crab_sideways_while_engaged_casualties_close() {
+    let files = 7;
+    let ranks = 7;
+    let killed_file = 3;
+    let (mut sim, unit) = block(files, ranks);
+    let before_slots = sim.soldier_slot.clone();
+    let before_positions = sim.positions.clone();
+    let before_anchor = sim.units[unit].anchor;
+
+    kill_slot(&mut sim, unit, killed_file);
+    kill_slot(&mut sim, unit, files + killed_file);
+
+    let mut max_p95: f32 = 0.0;
+    let mut max_peak: f32 = 0.0;
+    let mut measured = 0usize;
+    for _ in 0..(1.0 / DT) as usize {
+        // This is a scripted contact fixture: keep the unit in the engaged
+        // casualty-closing path without introducing enemy-push noise. Any
+        // sideways motion here is the relabel crab this spec exists to prevent.
+        sim.units[unit].engaged = 2;
+        sim.tick();
+        let (p95, peak, n) = rear_lane_lateral_excursion(
+            &sim,
+            unit,
+            &before_slots,
+            &before_positions,
+            before_anchor,
+            2,
+        );
+        max_p95 = max_p95.max(p95);
+        max_peak = max_peak.max(peak);
+        measured = n;
+    }
+
+    eprintln!("NO-CRAB rear lane excursion n={measured} p95={max_p95:.3}m peak={max_peak:.3}m");
+    // The anti-crab contract is about preventing file-wide sideways relabels
+    // (~1m), not forbidding the small spring settle after the front-rank notch.
+    assert!(
+        max_p95 < 0.45 && max_peak < 0.55,
+        "rear ranks crabbed sideways while engaged casualties closed: p95 {max_p95:.3}m peak {max_peak:.3}m; a file relabel is ~1.0m"
     );
 }
 

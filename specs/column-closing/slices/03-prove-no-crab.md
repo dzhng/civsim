@@ -59,6 +59,17 @@ names the target and asks for visible defects in both images.
    expected give/absorb within `mechanics_charge`/`mechanics_impact` tolerances
    — no new rigidity regression.
 
+## Current checkpoint
+
+- `rear_ranks_do_not_crab_sideways_while_engaged_casualties_close` is pinned in
+  `crates/sim/tests/mechanics_formation.rs`.
+- Current output: `NO-CRAB rear lane excursion n=35 p95=0.296m peak=0.327m`.
+- The rail is `p95 < 0.45m` and peak `< 0.55m`, deliberately below a ~`1.0m`
+  file relabel but above the harmless spring settle seen in the fixture.
+- Remaining slice-3 work is the human-viewable artifact plus the fresh unprimed
+  `screenshot-critique` visual gate; do not re-bless shot baselines from the Rust
+  metric alone.
+
 ## What must stay green
 
 Everything from slice 2's "must stay green," plus the new

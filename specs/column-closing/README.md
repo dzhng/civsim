@@ -24,7 +24,12 @@ engaged/advancing, `compact_slots_preserving_order` is deleted, disengage gets a
 clear-beat re-even, and focused tests are green. The current `0.10m` pivot-length
 slack keeps the column closer to its deployed footprint at contact; David judged
 it better than the flawed baseline, whose pinched/harrowed middle looked
-unnatural. The golden hash is re-pinned; screenshot baselines are not. Earlier
+unnatural. The golden hash is re-pinned; screenshot baselines are not.
+This continuation also pinned the slice-3 rear-line no-crab sentinel:
+`rear_ranks_do_not_crab_sideways_while_engaged_casualties_close` holds engaged
+rear ranks to `p95 < 0.45m` and peak `< 0.55m`, well below a ~`1.0m` file
+relabel. It currently prints `NO-CRAB rear lane excursion n=35 p95=0.296m peak=0.327m`,
+and the full mechanics bucket still passes. Earlier
 browser candidates repeatedly looked worse under unprimed `screenshot-critique`:
 The latest same-file hard collision queue candidate recreated fresh battle shots
 and failed the visual gate under a fresh unprimed critique ("Gauss"); comparison
@@ -243,10 +248,12 @@ unprimed `screenshot-critique` gate.
 the next pass by matching the flawed baseline. The width target is "as close as
 possible to the original deployed column at enemy contact" -- neither narrower
 nor wider -- and current is better than baseline by that ruler because the old
-baseline unnaturally pinches/harrows the column middle. If continuing, improve
-the remaining looseness without returning to lateral `reassign_slots`, without
-making the defender fragment, and without suppressing the magnet pressure needed
-for wrap/back-fill/bulge. Recreate `vibe/penetration`/`vibe/offense`, run the
+baseline unnaturally pinches/harrows the column middle. The rear-line no-crab
+metric is now pinned; the remaining slice-3 proof is the human-viewable artifact
+and visual critique gate. If continuing, improve the remaining looseness without
+returning to lateral `reassign_slots`, without making the defender fragment, and
+without suppressing the magnet pressure needed for wrap/back-fill/bulge. Recreate
+`vibe/penetration`/`vibe/offense`, run the
 `compare-screenshots` helper on baseline/current folders with contact crops, then
 attach the helper artifacts and any focused sheets/crops to a fresh unprimed
 `screenshot-critique` subagent before re-pinning shot baselines. The critique
@@ -792,7 +799,10 @@ defects in the supplied sheets and crops.
       slice 2/3 gate (older rejected candidates were critiqued; the retained
       `0.10m` pass still needs a critique prompt that names the deployed-width
       target and says the baseline is imperfect too)
-- [ ] Rear-line lateral-travel-while-engaged metric test pinned — slice 3
+- [x] Rear-line lateral-travel-while-engaged metric test pinned — slice 3
+      (`rear_ranks_do_not_crab_sideways_while_engaged_casualties_close`;
+      current `p95=0.296m`, peak `0.327m`, rail is `<0.45m/<0.55m` vs a
+      ~`1.0m` file relabel)
 - [ ] Human-viewable proof (slot-occupancy timeline + renderer-lab scene) — slice 3
 - [ ] Gap bridge designed and pinned: adjacent 2+ dead-file lanes fill locally
       from rear/deep reserves without whole-unit lateral crab; optionally lower
@@ -861,7 +871,7 @@ That is a local reserve commitment, not a geometric re-sort of the whole unit.
 |---|-------|---------|--------|------|
 | 1 | [compact-columns](slices/01-compact-columns.md) | `unit::compact_columns` — pure column-major closer, file-fixed, gap-leaving, deterministic, unwired | `mechanics_*` unit tests on `block(files,ranks)`: front-death pulls the file up, mid-death moves only men behind in-file, wiped file stays empty, no man changes file, idempotent | substrate |
 | 2 | [wire-and-gate](slices/02-wire-and-gate.md) | drumbeat uses `compact_columns` while engaged/advancing (deep blocks too); `reassign_slots` only on pivot/files/reform/rally/at-ease/disengage; `compact_slots_preserving_order` deleted; disengage one-shot via `quiet_ticks` | weave/charge/impact/disengage/posture buckets green; golden re-pinned once; a deep engaged block taking front losses shows rear-rank lateral travel ≈ 0 | behavior |
-| 3 | [prove-no-crab](slices/03-prove-no-crab.md) | metric test pinning rear-line lateral travel while engaged < ε; human-viewable slot-occupancy timeline + renderer-lab scene showing notch-persists-then-evens-on-disengage | the metric test; the artifact David can open and judge by eye | behavior + visible |
+| 3 | [prove-no-crab](slices/03-prove-no-crab.md) | rear-line lateral travel metric is pinned; remaining work is a human-viewable slot-occupancy timeline + renderer-lab scene showing notch-persists-then-evens-on-disengage | the metric test; the artifact David can open and judge by eye | behavior + visible |
 | 4 | [large-gap-bridge](slices/04-large-gap-bridge.md) | local reserve rule for adjacent dead-file lanes: start at 2+ files, optionally promote to one-file gaps if the bounded donor rule looks better than a notch | gap-bridge tests, lateral-mover cap, battle/weave shots showing less lane/blob without global crab | behavior + visible |
 
 Slice 1 is pure substrate (no behavior change). Slice 2 is the first behaviour

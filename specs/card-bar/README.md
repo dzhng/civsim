@@ -22,12 +22,13 @@ Total-War strip of cards, each showing a baked 3D-model portrait (`<img>`, canva
 fallback) with live HP/cohesion/morale bars + count; it clears the minimap and
 shows a "window too small" placeholder below the supported size.
 
-**Next pass: Slice 7** (`slices/07-polish-and-fidelity.md`) — the consolidated
-follow-up goal: the critic callouts (infantry blur at card size, artillery-as-engine,
+**Next pass: continue the spec.** The remaining work is polish + Total-War
+fidelity — the critic callouts (infantry blur at card size, artillery-as-engine,
 the bronze-frame / top-bar fidelity gaps), portrait framing fine-tune, deferred
-faction-variant bakes, and David's constant sign-off. **Optional Slice 5** (drop
-if not clearly clean) dedupes the two `.ucard*` CSS copies and the `scene.ts`
-raw-offset → `buildBattleUiModel` reconciliation.
+faction-variant bakes, and David's constant sign-off — with the details and the
+open questions written up in `slices/07-polish-and-fidelity.md`. **Optional**
+cleanup (drop if not clearly clean) dedupes the two `.ucard*` CSS copies and the
+`scene.ts` raw-offset → `buildBattleUiModel` reconciliation.
 
 S1+S2 detail — the fixed-size Total-War card bar:
 - `web/src/battle/cardGrid.ts` — `computeCardGrid(count, boxW, {cardW, aspect, gap,

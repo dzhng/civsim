@@ -6,6 +6,7 @@ import { terrainHeightAt, type TerrainHeightField } from '../terrain/heightField
 import type { BattleGroundCover, BattleTerrainGrid } from './terrainFeatures';
 import {
   DEFAULT_GRASS_TUFT_BLADES,
+  SLICE00_GRASS_ALBEDO,
   buildGrassTuftMesh,
   grassTuftStats,
   type GrassTuftOptions,
@@ -76,6 +77,10 @@ const DEFAULT_GRASS_PARAMS = {
   windStrength: 0.075,
 };
 
+const GRASS_ALBEDO_ROOT = wgslVec3(SLICE00_GRASS_ALBEDO.root);
+const GRASS_ALBEDO_SHADOW = wgslVec3(SLICE00_GRASS_ALBEDO.shadow);
+const GRASS_ALBEDO_NEAR = wgslVec3(SLICE00_GRASS_ALBEDO.near);
+
 const GRASS_WGSL = `
 ${WORLD_CAMERA_WGSL}
 struct GrassUniform {
@@ -135,12 +140,14 @@ fn fs(in: VsOut) -> @location(0) vec4f {
   let warmKey = vec3f(1.04, 1.00, 0.88);
   let coolFill = vec3f(0.76, 0.80, 0.78);
   let grade = mix(coolFill, warmKey, clamp((in.light - 0.58) / 0.52, 0.0, 1.0));
-  let strawTip = vec3f(0.62, 0.59, 0.36);
+  let strawTip = ${GRASS_ALBEDO_NEAR};
   let tipDry = smoothstep(0.62, 1.0, in.heightT) * 0.055;
   let lit = mix(in.color * in.light * grade, strawTip, tipDry);
-  let terrainRoot = vec3f(0.42, 0.47, 0.25);
-  let terrainTip = vec3f(0.62, 0.59, 0.35);
-  let terrainStubble = mix(terrainRoot, terrainTip, smoothstep(0.12, 1.0, in.heightT));
+  let terrainRoot = ${GRASS_ALBEDO_ROOT};
+  let terrainMid = ${GRASS_ALBEDO_SHADOW};
+  let terrainTip = ${GRASS_ALBEDO_NEAR};
+  var terrainStubble = mix(terrainRoot, terrainTip, smoothstep(0.12, 1.0, in.heightT));
+  terrainStubble = mix(terrainStubble, terrainMid, 0.18);
   let col = mix(lit, terrainStubble, in.terrainT * 0.58);
   return vec4f(clamp(col, vec3f(0.0), vec3f(1.0)), in.alpha);
 }`;
@@ -280,8 +287,8 @@ export class BattleGrassPass {
     this.terrainMasked = true;
     this.zoomT = zoomT;
     this.density = Math.max(0, merged.density * tune.density);
-    this.maxTufts = clampInt(merged.maxTufts * tune.maxTufts, 0, 20000);
-    this.bladesPerTuft = clampInt(merged.bladesPerTuft, 1, 96);
+    this.maxTufts = clampInt(merged.maxTufts * tune.maxTufts, 0, 32000);
+    this.bladesPerTuft = clampInt(merged.bladesPerTuft * tune.bladesPerTuft, 1, 96);
     this.windPhase = merged.windPhase;
     this.windStrength = Math.max(0, merged.windStrength * tune.wind);
     this.baseHeight = Math.max(0.05, merged.bladeHeight * tune.height);
@@ -290,9 +297,9 @@ export class BattleGrassPass {
       seed: merged.seed,
       blades: this.bladesPerTuft,
       height: this.baseHeight,
-      width: merged.bladeWidth,
+      width: merged.bladeWidth * tune.width,
       bend: merged.bend,
-      spread: merged.spread,
+      spread: merged.spread * tune.spread,
       palette: cover,
     };
     const mesh = buildGrassTuftMesh(meshOptions);
@@ -312,7 +319,7 @@ export class BattleGrassPass {
     const requested = this.density > 0 && cells.weightedArea > 0 ? Math.max(1, Math.ceil(cells.weightedArea * this.density)) : 0;
     const count = Math.min(requested, this.maxTufts);
     this.cappedTufts = Math.max(0, requested - count);
-    const scattered = scatterTerrainTufts(grid, field, cells.cells, count, merged.seed);
+    const scattered = scatterTerrainTufts(grid, field, cells.cells, count, merged.seed, tune);
     this.invalidTintTufts = scattered.invalidTintTufts;
     this.uploadInstances(scattered.instances);
     this.writeUniforms();
@@ -499,6 +506,7 @@ function scatterTerrainTufts(
   cells: TerrainGrassCell[],
   count: number,
   seed: number,
+  style: TerrainGrassTuning,
 ): { instances: Float32Array; invalidTintTufts: number } {
   const data = new Float32Array(count * 8);
   if (count === 0 || cells.length === 0) return { instances: data, invalidTintTufts: 0 };
@@ -522,7 +530,8 @@ function scatterTerrainTufts(
     const z = terrainHeightAt(field, x, y);
     const tintScale = cell.tint === 6 ? 0.64 : cell.tint === 4 ? 0.78 : 1;
     const distanceScale = 0.54 + cell.lod * 0.46;
-    const scale = (0.76 + hash2(salt, 3) * 0.34) * tintScale * distanceScale;
+    const vistaNear = style.vistaT * cell.lod;
+    const scale = (0.76 + hash2(salt, 3) * 0.34) * tintScale * distanceScale * (1 + vistaNear * 0.42);
     const yaw = hash2(salt, 4) * Math.PI * 2;
     const phase = hash2(salt, 5) * Math.PI * 2;
     const shade = 0.85 + hash2(salt, 6) * 0.85;
@@ -534,7 +543,7 @@ function scatterTerrainTufts(
     data[i + 4] = yaw;
     data[i + 5] = phase;
     data[i + 6] = shade;
-    data[i + 7] = 1;
+    data[i + 7] = style.surfaceBlend;
   }
   return { instances: data, invalidTintTufts };
 }
@@ -549,7 +558,19 @@ function defaultGrassFocus(grid: BattleTerrainGrid): BattleGrassFocus {
   };
 }
 
-function terrainGrassTuning(cover: BattleGroundCover, zoomT: number) {
+interface TerrainGrassTuning {
+  density: number;
+  height: number;
+  maxTufts: number;
+  wind: number;
+  width: number;
+  spread: number;
+  bladesPerTuft: number;
+  vistaT: number;
+  surfaceBlend: number;
+}
+
+function terrainGrassTuning(cover: BattleGroundCover, zoomT: number): TerrainGrassTuning {
   const coverTune = cover === 'green-grass'
     ? { density: 1, height: 1, maxTufts: 1, wind: 1 }
     : cover === 'yellow-grass'
@@ -557,11 +578,17 @@ function terrainGrassTuning(cover: BattleGroundCover, zoomT: number) {
       : cover === 'scrub-grass'
         ? { density: 0.50, height: 0.72, maxTufts: 0.72, wind: 0.86 }
         : { density: 0.12, height: 0.48, maxTufts: 0.36, wind: 0.72 };
+  const vistaT = smoothstepRange(0.86, 1.0, zoomT);
   return {
-    density: coverTune.density * (0.20 + zoomT * 0.80),
-    height: coverTune.height * (0.50 + zoomT * 0.50),
-    maxTufts: coverTune.maxTufts * (0.34 + zoomT * 0.66),
+    density: coverTune.density * (0.20 + zoomT * 0.80 + vistaT * 3.80),
+    height: coverTune.height * (0.50 + zoomT * 0.50 + vistaT * 0.35),
+    maxTufts: coverTune.maxTufts * (0.34 + zoomT * 0.66 + vistaT * 3.00),
     wind: coverTune.wind * (0.58 + zoomT * 0.42),
+    width: 1 + vistaT * 0.26,
+    spread: 1 + vistaT * 0.18,
+    bladesPerTuft: 1 + vistaT * 0.25,
+    vistaT,
+    surfaceBlend: 1 - vistaT * 0.50,
   };
 }
 
@@ -593,4 +620,8 @@ function hash2(x: number, y: number): number {
   let n = ((x * 374761393) | 0) + ((y * 668265263) | 0);
   n = Math.imul(n ^ (n >>> 13), 1274126177);
   return ((n ^ (n >>> 16)) >>> 0) / 4294967296;
+}
+
+function wgslVec3(rgb: readonly [number, number, number]): string {
+  return `vec3f(${rgb.map((v) => v.toFixed(3)).join(', ')})`;
 }

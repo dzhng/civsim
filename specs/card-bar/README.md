@@ -16,16 +16,15 @@ Reference look: `assets/reference-tw-cardbar.png`.
 direction). Next: **Slice 3** (`slices/03-bake-thumbnails.md`). _Last updated:
 2026-06-30._
 
-**Pick up at Slice 4** (swap the card's placeholder `<canvas>` portrait for the
-baked `<img>`). S1+S2 shipped the fixed-size Total-War card bar; S3 baked the
-portrait PNGs; S6 added the min-window gate.
+**The core feature is shipped (S1–S4 + S6).** Only optional S5 (cleanup) and the
+human checkpoints remain. The card bar is a fixed-size, no-scroll, auto-stacking
+Total-War strip of cards, each showing a baked 3D-model portrait (`<img>`, canvas
+fallback) with live HP/cohesion/morale bars + count; it clears the minimap and
+shows a "window too small" placeholder below the supported size.
 
-S4 pointers: portraits are at `web/public/assets/soldiers/cards/NN-name.png`
-keyed by **look** (`manifest.json` maps look→file). Add `cardThumbUrl(look)` to
-`classData.ts` reading that manifest (deferred from S3 to avoid a duplicate name
-list), and in `UnitCards.build()` swap the `<canvas class="ucard-port">` for an
-`<img>` (look = `modelLookForClass(cls)`), keeping the canvas as a 404 fallback.
-Wait on `img.decode()` in the card scene before snapping.
+**Optionally pick up Slice 5** (drop if not clearly clean): dedupe the two CSS
+copies of the `.ucard*` rules and consider the `scene.ts` raw-offset → 
+`buildBattleUiModel` reconciliation (`slices/05-cleanup-reconcile.md`).
 
 S1+S2 detail — the fixed-size Total-War card bar:
 - `web/src/battle/cardGrid.ts` — `computeCardGrid(count, boxW, {cardW, aspect, gap,
@@ -79,7 +78,7 @@ loop to do this.
 - [x] S1 — pure `cardGrid.ts` fixed-size grid math + headless `node --test` (`slices/01-grid-math.md`)
 - [x] S2 — fixed-size no-scroll grid inside `UnitCards` + `/renderer/card-bar` lab harness + `web/scenes/ui/card-bar.mjs` (`slices/02-no-scroll-grid.md`) — _pending David's visual checkpoint + `battle-selection-dpr2` re-bless_
 - [x] S3 — bake one 3:4 model-portrait PNG per look, dual-write + `--check` gate (`slices/03-bake-thumbnails.md`) — _first cut baked; pending David's framing checkpoint_
-- [ ] S4 — swap card portrait `<canvas>` → `<img>`, canvas fallback retained (`slices/04-img-portrait.md`)
+- [x] S4 — swap card portrait `<canvas>` → `<img>`, canvas fallback retained (`slices/04-img-portrait.md`) — _baked portraits live in the bar; pending David's final taste sign-off_
 - [ ] S5 — _(optional, droppable)_ dedupe the two CSS copies + reconcile data path (`slices/05-cleanup-reconcile.md`)
 - [x] S6 — min-window gate + "window too small" placeholder (`slices/06-min-window-gate.md`) — _new, David 2026-06-30; implemented, pending David's MIN_WINDOW value/copy checkpoint_
 

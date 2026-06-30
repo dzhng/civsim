@@ -32,6 +32,12 @@ async function openCase(ctx, count, dpr) {
   await page.goto(`${ctx.target}/renderer/card-bar?count=${count}`);
   await page.waitForFunction(() => window.__rendererLabReady === true, undefined, { timeout: 18000 });
   await page.waitForFunction(() => !!window.__cardGrid, undefined, { timeout: 8000 });
+  // Wait for the baked <img> portraits to decode, or the snapshot flakes on
+  // decode timing.
+  await page.waitForFunction(
+    () => [...document.images].every((i) => i.complete && i.naturalWidth > 0),
+    undefined, { timeout: 10000 },
+  );
   await page.waitForTimeout(120);
   return page;
 }
@@ -53,6 +59,17 @@ export async function run(ctx) {
       ctx.check(`card-bar-${count} rows`, grid.rows === rows, `got ${grid.rows}, want ${rows}`);
       ctx.check(`card-bar-${count} cols`, grid.cols === cols, `got ${grid.cols}, want ${cols}`);
       ctx.check(`card-bar-${count} fixed card size`, grid.cardW === CARD_W, `got ${grid.cardW}, want ${CARD_W}`);
+
+      // Portraits are the baked <img> (S4), not the fallback canvas, and decoded.
+      const ports = await page.$eval('#unitcards', (el) => {
+        const all = [...el.querySelectorAll('.ucard-port')];
+        return {
+          total: all.length,
+          imgs: all.filter((p) => p.tagName === 'IMG').length,
+          loaded: all.filter((p) => p.tagName === 'IMG' && p.naturalWidth > 0 && p.currentSrc).length,
+        };
+      });
+      ctx.check(`card-bar-${count} portraits are baked imgs`, ports.imgs === ports.total && ports.loaded === ports.total, JSON.stringify(ports));
 
       // Clip via page.screenshot (not element.screenshot — it mis-clips the
       // fixed-position band), clamped to the viewport so a centered band that

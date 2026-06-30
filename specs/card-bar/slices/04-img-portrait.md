@@ -1,5 +1,17 @@
 # Slice 4 — Swap card portrait `<canvas>` → `<img>` (baked model shot)
 
+## Status (implemented 2026-06-30)
+
+Done. `cardThumbUrl(look)` (in `classData.ts`) reads the S3 `manifest.json`; the
+card's `<canvas>` portrait is swapped for an `<img>` with the canvas as the
+404/unbaked fallback (`portrait()` in `unitCard.ts`); CSS uses `object-fit:cover`.
+The card scene waits on `img` decode and asserts every `.ucard-port` is a loaded
+`<img>`. compare-screenshots + an unprimed critique ran. **Open for David's
+final sign-off:** the baked portraits sit on the bright **green battlefield**
+backdrop (washes the figures out, reads like a map tile) — a dark-background
+re-bake (S3 follow-up) would make them pop; and the deliberate name+3-bars layout
+differs from the reference's top-spanning bar + role icon. Both are David's call.
+
 ## Contract unlocked
 
 Each card shows the **baked 3D-model portrait** from S3 instead of the flat

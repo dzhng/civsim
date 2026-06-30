@@ -6,6 +6,7 @@
 
 import { lookForModel, modelLookForClass } from '../../../packages/game-renderer/src/models/shared/soldierModel';
 import { computeCardGrid, type CardGridOpts } from './cardGrid';
+import { cardThumbUrl } from './classData';
 
 // Faction accents keep cards, banners, and WebGPU soldier colours reading as
 // the same side.
@@ -101,6 +102,28 @@ function drawPortrait(canvas: HTMLCanvasElement, cls: number, look: number | und
   }
 }
 
+// The card portrait: the baked 3D-model shot (S3) as an <img>, falling back to
+// the flat canvas drawing if the look is unbaked or the PNG fails to load, so the
+// bar never blanks.
+function portrait(u: UnitCardInit, look: number): HTMLElement {
+  const canvasFallback = () => {
+    const c = document.createElement('canvas');
+    c.className = 'ucard-port';
+    drawPortrait(c, u.cls, u.look, u.team);
+    return c;
+  };
+  const url = cardThumbUrl(look);
+  if (!url) return canvasFallback();
+  const img = document.createElement('img');
+  img.className = 'ucard-port';
+  img.loading = 'eager';
+  img.decoding = 'async';
+  img.alt = u.name;
+  img.src = url;
+  img.onerror = () => img.replaceWith(canvasFallback());
+  return img;
+}
+
 export class UnitCards {
   private cards: HTMLElement[] = [];
   private bars: { hp: HTMLElement; coh: HTMLElement; mor: HTMLElement; count: HTMLElement }[] = [];
@@ -143,9 +166,8 @@ export class UnitCards {
       const card = document.createElement('div');
       card.className = 'ucard';
       card.style.setProperty('--fac', FACTION_CSS[u.team]);
-      const port = document.createElement('canvas');
-      port.className = 'ucard-port';
-      drawPortrait(port, u.cls, u.look, u.team);
+      const look = u.look ?? modelLookForClass(u.cls);
+      const port = portrait(u, look);
       const name = document.createElement('div');
       name.className = 'ucard-name';
       name.textContent = u.name;

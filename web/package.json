@@ -1,0 +1,39 @@
+{
+  "name": "battle-web",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --strictPort",
+    "build": "vite build",
+    "preview": "vite preview",
+    "build:wasm": "wasm-pack build ../crates/game-wasm --target web --release --out-dir ../../web/src/wasm",
+    "scene": "node scene.mjs",
+    "scene:full": "node scene.mjs --full",
+    "test:ui": "node --test src/battle/cardGrid.test.mjs",
+    "scenario": "node scene.mjs",
+    "scenario:full": "node scene.mjs --full",
+    "scenario:renderer": "SCENARIO_REPORT_JSON=reports/rendering/scenario-runs/renderer-latest.json VERIFY_GPU=1 node scene.mjs renderer-lab-routes renderer-fault-injection renderer-capabilities asset-workbench per-class-vat soldier-materials mounted-units lod-tiers battle-elevation battle-effects campaign-models full-game-rendering-performance battle-renderer-default battle-input campaign-production campaign-handoff campaign-save-load campaign-visual campaign-map-alignment campaign-lod menu-renderer-shell menu-renderer-shell-visual shared-prop-models battle-terrain-features battle-terrain-3d battle-terrain-blockers battle-terrain-elevation",
+    "scenario:renderer:campaign": "SCENARIO_REPORT_JSON=reports/rendering/scenario-runs/renderer-campaign-latest.json VERIFY_GPU=1 node scene.mjs campaign-production campaign-handoff campaign-save-load campaign-conquest campaign-reinforcements campaign-visual campaign-map-alignment campaign-lod",
+    "perf:renderer": "VERIFY_GPU=1 node scene.mjs full-game-rendering-performance",
+    "perf:renderer:hardware": "VERIFY_GPU=1 VERIFY_GPU_ADAPTER=hardware VERIFY_HEADFUL=1 VERIFY_BROWSER_CHANNEL=chrome node scene.mjs full-game-rendering-performance",
+    "shots:models": "npm run shots:models:soldiers && npm run shots:models:campaign && npm run shots:models:props",
+    "shots:models:soldiers": "node shots/models/scripts/soldier-sheets.mjs",
+    "shots:models:campaign": "VERIFY_GPU=1 node scene.mjs campaign-models",
+    "shots:models:props": "VERIFY_GPU=1 UPDATE_SHOTS=1 node scene.mjs shared-prop-models",
+    "shots:models:anim": "node shots/models/scripts/soldier-animation.mjs",
+    "bake:cards": "node shots/models/scripts/soldier-cards.mjs",
+    "verify": "node verify-battle.mjs",
+    "verify:full": "node verify-battle.mjs --full",
+    "verify:campaign": "VERIFY_GPU=1 node scene.mjs campaign-lod campaign-map-alignment campaign-visual",
+    "probe:renderer": "node probe-renderer.mjs",
+    "bake:anim": "node ../packages/soldier-assets/bake/soldier-placeholders.mjs",
+    "bake:test": "node ../packages/soldier-assets/bake/vat.test.mjs && node ../packages/soldier-assets/bake/gltf.test.mjs && node ../packages/soldier-assets/bake/soldier-placeholders.mjs --check && node shots/models/scripts/soldier-cards.mjs --check"
+  },
+  "devDependencies": {
+    "pixelmatch": "^7.2.0",
+    "playwright": "^1.60.0",
+    "pngjs": "^7.0.0",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.16"
+  }
+}

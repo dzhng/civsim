@@ -1,0 +1,92 @@
+import { MeshBuilder, type MeshData, type Rgb } from './meshBuilder';
+
+// A broad rocky massif, not a single sharp pyramid: one wide low dome with a
+// cluster of lower, offset shoulder-peaks of varied footprint and height. The
+// overlapping humps break the silhouette so a range reads as ridged stone
+// rather than a field of identical cones, and the low height-to-radius ratios
+// keep it from towering over nearby cities, roads, and labels.
+export function buildMountainMesh(): MeshData {
+  const builder = new MeshBuilder();
+  builder.shadow(1.18, 0.74, 0.22);
+  // A cool blue-grey stone: the scenery shader warms lit faces, so the base
+  // leans slightly cool to land on neutral grey rock rather than tan earth.
+  const base: Rgb = [0.42, 0.44, 0.47];
+  const top: Rgb = [0.57, 0.59, 0.62];
+  const shade = (s: number): Rgb => [base[0] * s, base[1] * s, base[2] * s];
+  builder.peak([0.0, 0.0, 0], 1.02, 0.60, 9, base, top, 11); // broad main body
+  builder.peak([-0.46, 0.30, 0], 0.56, 0.74, 8, shade(0.93), top, 23); // taller shoulder
+  builder.peak([0.52, -0.16, 0], 0.52, 0.56, 8, shade(0.97), top, 37);
+  builder.peak([0.18, 0.54, 0], 0.42, 0.46, 7, shade(0.90), [0.56, 0.53, 0.46], 41);
+  builder.peak([-0.62, -0.36, 0], 0.44, 0.50, 7, shade(0.92), top, 53);
+  builder.peak([0.64, 0.40, 0], 0.34, 0.38, 7, shade(0.95), [0.56, 0.53, 0.46], 67);
+  return builder.finish('mountain mesh');
+}
+
+export function buildRockMesh(): MeshData {
+  const builder = new MeshBuilder();
+  builder.shadow(0.86, 0.44, 0.18);
+  // The same cool blue-grey stone as the mountain massif, so the two read as
+  // one material and the rock reads as grey rock, not warm earth.
+  builder.peak([-0.32, -0.08, 0], 0.58, 0.44, 6, [0.43, 0.45, 0.48], [0.57, 0.59, 0.62], 5);
+  builder.peak([0.24, 0.10, 0], 0.50, 0.34, 6, [0.40, 0.42, 0.45], [0.54, 0.56, 0.59], 17);
+  builder.peak([0.64, -0.20, 0], 0.30, 0.24, 5, [0.38, 0.40, 0.43], [0.51, 0.53, 0.56], 29);
+  return builder.finish('rock mesh');
+}
+
+// A small ox-less trade cart, pointing +X (its travel direction): two round
+// wheels per side on an axle, a plank bed, and a canvas-and-sacks load. The
+// wheels are discs (not boxes) so the cart reads as wheeled, not as a four-leg
+// table, at the game camera; kept low and stubby so it stays road life rather
+// than competing with markers.
+export function buildCartMesh(): MeshData {
+  const builder = new MeshBuilder();
+  builder.shadow(0.72, 0.40, 0.18);
+  const wood: Rgb = [0.40, 0.27, 0.15];
+  const darkWood: Rgb = [0.20, 0.14, 0.09];
+  // Worn-wood wheels: light enough that the round rim catches the key light and
+  // reads as a wheel rather than a near-black shadow lump.
+  const wheelWood: Rgb = [0.33, 0.23, 0.13];
+  const canvas: Rgb = [0.66, 0.58, 0.42];
+  // Round wheels (vertical discs facing ±Y), seated just outboard of the bed.
+  const wheelR = 0.21;
+  for (const wx of [-0.30, 0.30]) {
+    for (const wy of [-0.30, 0.30]) {
+      builder.disc([wx, wy, wheelR], wheelR, 'y', wheelWood, 1, 14);
+    }
+    // axle across the wheel pair
+    builder.box([wx, 0.0, wheelR], [0.07, 0.62, 0.07], darkWood, 1);
+  }
+  // plank bed sitting on the axles
+  builder.box([0.0, 0.0, 0.46], [0.86, 0.52, 0.14], wood, 1);
+  // shaft/pole out the front
+  builder.box([0.62, 0.0, 0.40], [0.42, 0.08, 0.08], wood, 1);
+  // canvas load
+  builder.box([-0.04, 0.0, 0.64], [0.60, 0.44, 0.26], canvas, 1);
+  return builder.finish('cart mesh');
+}
+
+export function buildConiferTreeMesh(): MeshData {
+  const builder = new MeshBuilder();
+  builder.shadow(0.62, 0.44, 0.18);
+  builder.box([0, 0, 0.36], [0.16, 0.16, 0.72], [0.32, 0.21, 0.12], 1);
+  builder.cone([0, 0, 0.78], 0.58, 0.58, 7, [0.10, 0.18, 0.09], [0.20, 0.29, 0.15], 41);
+  builder.cone([0, 0, 1.18], 0.46, 0.54, 7, [0.09, 0.17, 0.09], [0.22, 0.31, 0.16], 53);
+  builder.cone([0, 0, 1.54], 0.34, 0.46, 7, [0.08, 0.15, 0.08], [0.24, 0.33, 0.17], 67);
+  builder.box([-0.18, -0.08, 1.07], [0.38, 0.34, 0.28], [0.14, 0.24, 0.12], 1);
+  builder.box([0.18, 0.10, 1.26], [0.34, 0.30, 0.26], [0.16, 0.27, 0.13], 1);
+  return builder.finish('conifer tree mesh');
+}
+
+export function buildBroadleafTreeMesh(): MeshData {
+  const builder = new MeshBuilder();
+  builder.shadow(0.76, 0.46, 0.17);
+  // Shorter, slightly stouter trunk in the same brown as the conifer, under a
+  // broad ROUNDED crown: the top blob sits low and wide so the canopy domes
+  // rather than peaking to a conifer-ish point.
+  builder.box([0, 0, 0.28], [0.19, 0.19, 0.56], [0.32, 0.21, 0.12], 1);
+  builder.blob([-0.26, -0.05, 0.84], [0.54, 0.46, 0.40], [0.15, 0.27, 0.13], 101);
+  builder.blob([0.28, 0.03, 0.92], [0.58, 0.48, 0.44], [0.18, 0.31, 0.15], 113);
+  builder.blob([0.0, 0.06, 1.04], [0.60, 0.56, 0.34], [0.21, 0.35, 0.17], 127);
+  builder.blob([0.0, -0.19, 1.0], [0.46, 0.40, 0.34], [0.12, 0.23, 0.11], 139);
+  return builder.finish('broadleaf tree mesh');
+}

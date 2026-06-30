@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# Big-army INTEGRATION tests (army.rs): full multi-class AI deployments fought to
+# a verdict, swept across army sizes. The heaviest, slowest Rust tests — NOT
+# focused scenarios. Run on demand (e.g. before a push that touches battle-scale
+# behavior), not in the inner loop.
+set -euo pipefail
+cd "$(git rev-parse --show-toplevel)"
+echo "→ cargo test -p sim --test army   (SLOW — full battles across scales)"
+exec cargo test -p sim --test army "$@"

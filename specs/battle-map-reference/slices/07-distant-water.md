@@ -1,45 +1,36 @@
-# Slice 07 — distant water
+# Slice 07A — distant water placement and silhouette
 
-## Contract unlocked
+## Contract
 
-The pale water inlet at the reference's right mid-distance, rendered
-a **neutral turquoise albedo** per aesthetics rule 4 (tan → turquoise → blue), tinted
-by the Slice 06 lighting preset and hazing into the Slice 06 horizon — completing the
-valley.
+Place the reference's pale water inlet in the right mid-distance with the correct
+screen relationship to the foreground hummock and far ridges. This slice is
+placement and silhouette only.
 
-## API seam
+## Fixed Inputs
 
-Reuse the existing water path, don't build a new shader if the existing one
-suffices under the new fog:
+- Grass, terrain, cliffs, sky, and distance fog are frozen.
+- Do not tune water colour, shore material, foam, or haze integration except enough
+  neutral flat colour to see the silhouette.
 
-- The `ocean` edge role + graded water apron in
-  `packages/game-renderer/src/battle/horizonPass.ts`, and/or the ground water tint.
-- Expose a presentation hook so a map can place a far water band on **one side**
-  without it being a sealed `ocean` edge — driven from `BattleTerrainPresentation` /
-  edge roles.
+## Accept / Reject
 
-## What the human can run / see
+Use `compare-screenshots` on a right-midground water mask/crop. Judge:
 
-A map with an `ocean` sealed side (`river-and-crags` east, `coastal-scrub` west)
-plus the new `highland-valley` map (Slice 08).
+- water occupies the right mid-distance, not the foreground or horizon edge;
+- silhouette width and curve are close to the target;
+- terrain partly occludes the inlet like the reference.
+
+Do not reject this slice for wrong water colour, hard shore, or fog mismatch.
 
 ## Verification
 
-- `waterQuads` / `ocean` role present; the water grades shallow → deep → haze with
-  **no bright seam** at the shore against the new haze (the horizon code already
-  worries about this seam).
-- Snapshot.
+- Route stats publish water placement/mask information.
+- `edgeSealMismatches` stays empty; water placement must not lie about passability.
+- The water crop/mask artifact is committed.
+- Run the neutral review/screenshot critique with a prompt scoped to water placement
+  and silhouette only.
 
-## Screenshot-critique
+## Next Slice
 
-**Required:** does the water read as the reference's faint, hazed right-edge inlet —
-turquoise (cool under the overcast preset, warmer under golden-hour), not a flat grey
-sheet — and does it sit *behind* the haze rather than punching through it?
-
-## Must stay green
-
-The coast scenes; `edgeSealMismatches` empty.
-
-## Human feedback that would reshape this slice
-
-Placement; how pale / hazed the water is; which edge it occupies.
+After placement is accepted, freeze the water shape and tune material/shore in
+`07b-water-material.md`.

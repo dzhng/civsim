@@ -2,9 +2,10 @@
 
 Make the battle map read like the reference vista in
 `assets/target-battle-map.png` **as closely as possible while staying inside the
-`aesthetics` skill's Bronze-Age Aegean register.** Build the look bottom-up from a
-single grass primitive through terrain relief, ridge backdrop, and atmosphere, to
-a composed master shot judged against the reference.
+`aesthetics` skill's Bronze-Age Aegean register.** Build the look bottom-up from
+isolated visual variables — grass density, relief shape, cliff silhouette, cliff
+texture, sky, distance fog, water placement, and water material — to a composed
+master shot judged against the reference.
 
 ## Next Agent Prompt
 
@@ -20,6 +21,17 @@ fails. The latest pass added a fixture-only overcast sky/backdrop pass, cleaned
 the reference-shot canvas capture so it no longer includes a page-background strip,
 softened shared terrain/grass distance haze, and raised the reference vista grass
 budget to `48k` tufts.
+
+**Reslice correction (2026-07-01):** the previous plan was still too coarse. It
+kept asking grass, terrain, cliff, fog, and water slices to compare against the
+final reference image all at once, which encouraged broad "make the painting match"
+passes. From here, each open slice owns one visual variable and one comparison crop.
+Do not close or reject a grass-density slice because the cliffs are wrong; do not
+ship a cliff-shape slice by also tuning texture, haze, water, or grass. The final
+whole-frame comparison belongs only to the compose slice after each isolated visual
+relationship has its own evidence. If implementation of any slice hits a snag and
+starts requiring unrelated visual variables, stop the implementation pass and use
+`feature-slicing` to split the slice again before editing more renderer code.
 
 Slice 00 now has a real side-by-side workbench:
 `visualizations/target-vs-current.html` points at the committed
@@ -112,16 +124,15 @@ and fixture-only distant valley/ridge/water backdrop. The shot is intentionally 
 diagnostic comparison against the target, not an acceptance baseline for the final
 playable map.
 
-**Current Slice 03 visual state — not accepted:** the candidate is much denser
+**Current reference visual state — not accepted:** the candidate is much denser
 than the old sparse-stubble shot and no longer hides behind unrelated
 `terrain-3d/*` snapshots. The old flat catalog-map plateau blocker is reduced, but
 the current candidate still reads as a close procedural field, not the reference's
-misty valley panorama. The latest cleaned `compare-screenshots` metrics moved in
-the right direction but are still failing: full-frame distance `0.46663`
-(previously `0.49204`); foreground/midground world-crop distance `0.58006`
-(previously `0.59845`); candidate world-crop edge energy is `3.25764x` the target,
-which still matches the visible grass speckle and hard low-poly forms. Treat the
-comparison verdict as **another pass needed**, not as a green Slice 03.
+misty valley panorama. The latest cleaned whole-frame metrics are retained as
+diagnostic evidence only: full-frame distance `0.46663`; foreground/midground
+world-crop distance `0.58006`; candidate world-crop edge energy is `3.25764x` the
+target. Under the new slice plan, those whole-frame numbers do **not** accept or
+reject any individual slice; each slice records its own crop/mask metric.
 
 Neutral subagent review on the current reference/candidate pair says the images do
 not show the same viewport/state/content. The candidate now preserves only the
@@ -135,16 +146,16 @@ comparable.
 Repair path for the next pass:
 - Keep iterating from the `highland-valley` fixture path; it is the current honest
   comparison surface until Slice 08 turns the composition into a real playable map.
-- Fix the reference camera/composition and terrain forms first: the shot still needs
-  a real valley drop, foreground hummock, non-pyramidal left cliff wall, and
-  mid-distance right water inlet in the same relationship as the target before fine
-  grass color/density can be judged fairly.
-- Keep the sparse top-down/gameplay layer for unit readability, but make the
-  zoom-in/reference view softer, less yellow, less stippled, and much less
-  geometric.
-- Use the existing side-by-side, crop artifacts, metric diff, and neutral reviewer
-  on every iteration; do not accept a screenshot if the neutral reviewer still says
-  the target relationship needs another pass.
+- Start with **Slice 03B foreground grass density**. Compare only the lower-third
+  meadow density/coverage against the reference lower-third crop. Keep cliffs,
+  cliff texture, water, sky, and fog fixed unless a capture bug prevents a fair
+  grass-density comparison.
+- Then continue through the isolated open slices: grass color/texture, valley
+  relief silhouette, cliff silhouette, cliff texture, sky plate, distance fog,
+  water placement, water material, and only then final composition.
+- Use `compare-screenshots` on the slice crop/mask and its neutral subagent review
+  before accepting each visual variable. The subagent prompt must say which variable
+  it is allowed to judge and which visible wrongness belongs to later slices.
 
 Previous broad Slice 03 repair verification:
 - `node --experimental-strip-types --import ./tests/register-ts-extension-loader.mjs --test tests/cameraRig.test.ts tests/grassModels.test.ts`
@@ -183,30 +194,27 @@ debt:
 - grass/ground detail is soft and scale-blurry;
 - roads, water, labels, and icon styling are not covered by this camera sheet.
 
-**Next pickup:** continue from the `battle-map-reference` highland fixture
-comparison artifact. Do not close Slice 03 or Slice 04 yet. The highest-value next
-move is to make the terrain/composition genuinely comparable: deeper visible valley
-recession, foreground hummock, a non-pyramidal left ridge wall, and right-side
-water that sits in the mid-distance. The first overcast sky/backdrop layer is in,
-but the candidate still reads as blockout geometry; fix those forms before another
-fine grass color pass.
+**Next pickup:** implement `slices/03b-foreground-grass-density.md`. It should
+only change grass density/coverage in the reference lower-third crop and preserve
+the sparse gameplay/top-down layer. Do not tune cliffs, cliff texture, fog, water,
+or final composition in that pass. If density cannot be judged because the current
+crop is not comparable, reslice the capture/comparison setup with `feature-slicing`
+instead of folding cliff, fog, or terrain work into Slice 03B.
 
 Every visual slice (01–08) ends with three distinct gates:
-`screenshot-regression` for baseline stability, `compare-screenshots` against
-`assets/target-battle-map.png` for the "less wrong against the reference" verdict,
-and an unprimed `screenshot-critique` of the slice's hero shot against the target
-and the warm `references/battle-*.jpg` aesthetics shots. A green snapshot proves
-*unchanged*, never *good*.
+`screenshot-regression` for baseline stability, `compare-screenshots` against the
+owning target crop/mask for that slice's visual variable, and an unprimed
+`screenshot-critique` or neutral subagent review that is told which variable is in
+scope. A green snapshot proves *unchanged*, never *good*.
 
 `compare-screenshots` is the reference-facing gate. It must establish the target
-from first principles, confirm the candidate/reference captures are comparable,
-generate side-by-side/crop/heatmap/edge artifacts as needed, and ask the skill's
-neutral subagent reviewer to inspect the images without implementation history. If
-the subagent calls out wrong camera, missing content, bad color, weak density, or
-style mismatch, treat that as visual evidence to fix or explicitly explain before
-accepting the slice. If the current map cannot yet be fairly compared to the
-reference, record that as "both wrong / another pass needed" rather than accepting
-on snapshot stability.
+from first principles, confirm the candidate/reference captures are comparable for
+the slice's variable, generate side-by-side/crop/heatmap/edge artifacts as needed,
+and ask the skill's neutral subagent reviewer to inspect the images without
+implementation history. If the reviewer calls out a wrongness outside the slice
+scope, record it as later-slice debt, not as a reason to keep mutating the current
+slice. If the current variable cannot yet be fairly compared, record that as "both
+wrong / another pass needed" rather than accepting on snapshot stability.
 
 **Update this section before you end your pass** — move the status, record what
 landed, and point at the next pickup slice.
@@ -216,11 +224,18 @@ landed, and point at the next pickup slice.
 - [x] **Slice 00** — reference workbench + palette target lock (`slices/00-reference-workbench.md`)
 - [x] **Slice 01** — zoom-coupled camera (`slices/01-zoom-coupled-camera.md`)
 - [x] **Slice 02** — grass-blade primitive (`slices/02-grass-blade-primitive.md`)
-- [ ] **Slice 03** — grass over terrain (`slices/03-grass-over-terrain.md`) — infrastructure and diagnostic reference shot landed; target relationship still failing
-- [ ] **Slice 04** — terrain relief + ground grade (`slices/04-terrain-relief-grade.md`) — diagnostic `highland-valley` fixture landed; relief relationship still too weak
-- [ ] **Slice 05** — ridge backdrop (`slices/05-ridge-backdrop.md`)
-- [ ] **Slice 06** — sky, haze & weather presets (golden-hour ↔ overcast-foggy) (`slices/06-sky-and-haze.md`)
-- [ ] **Slice 07** — distant water (`slices/07-distant-water.md`)
+- [x] **Slice 03A** — grass over terrain infrastructure (`slices/03-grass-over-terrain.md`) — seating/masking/perf landed
+- [ ] **Slice 03B** — foreground grass density (`slices/03b-foreground-grass-density.md`)
+- [ ] **Slice 03C** — grass color, softness, and wind texture (`slices/03c-grass-color-texture.md`)
+- [ ] **Slice 04A** — valley relief and foreground hummock silhouette (`slices/04-terrain-relief-grade.md`)
+- [ ] **Slice 04B** — ground grade and terrain texture (`slices/04b-ground-grade-texture.md`)
+- [ ] **Slice 05A** — cliff/ridge silhouette and depth rows (`slices/05-ridge-backdrop.md`)
+- [ ] **Slice 05B** — cliff face texture and pale streaks (`slices/05b-cliff-texture.md`)
+- [ ] **Slice 06A** — overcast sky plate (`slices/06-sky-and-haze.md`)
+- [ ] **Slice 06B** — distance fog / aerial perspective (`slices/06b-distance-fog.md`)
+- [ ] **Slice 06C** — swappable weather presets (`slices/06c-weather-presets.md`)
+- [ ] **Slice 07A** — distant water placement and silhouette (`slices/07-distant-water.md`)
+- [ ] **Slice 07B** — water material, shore softness, and haze integration (`slices/07b-water-material.md`)
 - [ ] **Slice 08** — reference-map compose + integration (`slices/08-reference-map-compose.md`)
 
 ## Goal & the central tension
@@ -407,27 +422,38 @@ by sim terrain read from wasm in `web/src/battle/scene.ts`.
         ▼
 02 grass-blade-primitive ─ pure mesh builder + flat-field workbench
         │
-03 grass-over-terrain ─ instanced on real maps + LOD/perf; density keyed to zoomT
+03A grass-over-terrain ─ instanced on real maps + LOD/perf; density keyed to zoomT
         │
-04 terrain-relief-grade ─ deeper valley via verticalScale/profile
+03B foreground-grass-density ─ lower-third density/coverage crop only
         │
-05 ridge-backdrop ─ layered aerial-perspective mountains
+03C grass-color-texture ─ colour, softness, wind/noise texture crop only
         │
-06 sky-and-haze ─ sky + shared fog + swappable weather preset   ◀ mood lever
-        │              (overcast-foggy ↔ golden-hour over neutral albedos;
-        │               overcast render compares straight to the reference photo)
+04A terrain-relief-grade ─ valley drop + hummock silhouette via one height source
         │
-07 distant-water ─ hazed turquoise inlet (neutral albedo + preset tint)
+04B ground-grade-texture ─ smooth hummock ground material, no new relief
+        │
+05A ridge-backdrop ─ left cliff silhouette + receding ridge rows, no texture tuning
+        │
+05B cliff-texture ─ vertical pale streaks / face breakup, shape frozen
+        │
+06A sky-plate ─ overcast sky gradient/cloud mass only
+        │
+06B distance-fog ─ near/mid/far contrast falloff only
+        │
+06C weather-presets ─ overcast-foggy ↔ golden-hour over neutral albedos
+        │
+07A distant-water ─ right mid-distance water placement/silhouette
+        │
+07B water-material ─ neutral turquoise + shore softness + fog integration
         │
 08 reference-map-compose ─ new catalog map + full battle + master compare @ zoom-in
 ```
 
-`01` (camera) is independent — it can land any time, but build it early because it
-establishes the vista framing every later visual slice is critiqued in. `02 → 03` is
-the only hard visual coupling (primitive before it's instanced); `04/05/07` are
-independent of each other once the field exists; `06` should land before `08` because
-it sets the grade everything is judged in. Each slice leaves a runnable artifact and
-its own green gate before the next depends on it.
+`01` (camera) is independent and already landed. `02 → 03A → 03B → 03C` is the
+grass ladder. `04A/04B`, `05A/05B`, `06A/06B/06C`, and `07A/07B` each freeze the
+previous variable before tuning the next one. Each slice leaves a runnable artifact
+and its own crop/mask gate before the next depends on it; only `08` judges the full
+frame.
 
 ## Materialize / out-of-band
 

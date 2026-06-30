@@ -17,12 +17,12 @@ plateau and onto a deterministic render-lab `highland-valley` relief fixture
 using the same `BattleTerrainGrid`/`TerrainHeightField` seam as the production
 terrain route. Slice 03 and Slice 04 are still **not visually accepted**: the
 fixture is closer to the right family of scene, but the target relationship still
-fails. The latest grass pass stepped back into an architecture spike: brute-force
-card density was rejected as noisy and expensive, a ground-integrated meadow
-carpet was identified as needing a real field/clump data owner, and foreground
-geometry was split into a separate accent/perf problem. Slice 03B is now a
-recorded spike, not an accepted visual slice. Slice 03B1 has now landed the
-grass field data contract; resume at Slice 03B2.
+fails. The grass work has been split into an architecture ladder: brute-force card
+density was rejected as noisy and expensive, a ground-integrated meadow carpet
+needs a real field/clump data owner, and foreground geometry is a separate
+accent/perf problem. Slice 03B is a recorded spike, not an accepted visual slice.
+Slice 03B1 landed the grass field data contract. Slice 03B2 landed the
+packed-attribute renderer-lab workbench and is verified. Resume at Slice 03B3.
 
 **Reslice correction (2026-07-01):** the previous plan was still too coarse. It
 kept asking grass, terrain, cliff, fog, and water slices to compare against the
@@ -53,6 +53,19 @@ attributes, and tilt/filter in the vertex shader. Only escalate to false-earth's
 compute + visible LOD index buffers + indirect draws if the CPU/packed-field
 version proves visually right but too CPU/upload heavy. Do not port Three.js/TSL,
 Leva, character push/waves, emissive/neon materials, or false-earth colours.
+
+**Slice 03B2 approach/state (2026-07-01):** the current packed-field workbench
+uses the 03B1 records directly instead of another scatter path. `BattleGrassPass`
+now has a `packed-field` prep mode with a 4-vec4 instance layout: pose/terrain
+blend, blade width-height-bend-wind, orientation/seeds/shade, and terrain
+normal/slope mask. The WGSL consumes the terrain normal in the vertex shader:
+bases sit on the local tangent plane, growth blends from terrain normal toward
+world-up at the tip, and steep slopes collapse through a mask. The proof surface
+is `/renderer/battle-grass-field?mode=packed-tilt` plus the `battle-grass-field`
+scene and `web/shots/battle/grass/field-packed-tilt.png`. This workbench is a
+hostile slope/attribute fixture, not a reference-art fixture: it proves packing,
+stats, frame-graph placement, and slope rejection before 03B3 starts the meadow
+material.
 
 Slice 00 now has a real side-by-side workbench:
 `visualizations/target-vs-current.html` points at the committed
@@ -172,6 +185,20 @@ capped records, tint/slope/density rejects, and LOD counts. It is intentionally
 not wired into the renderer yet, so the current `BattleGrassPass` defaults and
 reference spike visuals remain unchanged until Slice 03B2 consumes the data.
 
+Slice 03B2 consumes those records through `BattleGrassPass.setGrassFieldSnapshot`
+and the new `battle-grass-field` route. The route intentionally uses a synthetic
+rolling field with a hostile steep ramp so the slope filter has a visible place
+to fail. The accepted contract is telemetry and scoped visual behavior: packed
+stride is 16 floats, field record stride is 16 floats, instance bytes equal record
+count times the packed stride, records draw as one world-depth opaque pass, and
+slope rejects are nonzero. The neutral critique confirms no discrete blade
+geometry appears on the steep ramp. It also calls out workbench artifacts that
+belong to later slices or fixture polish: the ramp has strong stripe-like ground
+shading, the ramp boundary is too hard/straight, some clumps look weakly seated,
+and some blades lean too far. Do not treat those artifacts as 03B2 blockers
+unless they break the packed slope/normal contract; carry them into 03B3/03B4 as
+meadow material and blade silhouette evidence.
+
 Neutral subagent review on the current reference/candidate pair says the images do
 not show the same viewport/state/content. The candidate now preserves only the
 rough subject relationship: grassy mountain-and-water vista. It is still a lower,
@@ -184,9 +211,7 @@ comparable.
 Repair path for the next pass:
 - Keep iterating from the `highland-valley` fixture path; it is the current honest
   comparison surface until Slice 08 turns the composition into a real playable map.
-- Start with **Slice 03B2 packed-attribute slope tilt**. This is the X-post
-  approach and should be tried before a compute port.
-- Then continue with **Slice 03B3 field-driven meadow material** and
+- Continue with **Slice 03B3 field-driven meadow material** and then
   **Slice 03B4 false-earth blade accents**. Meadow mass and foreground geometry
   stay separate review variables.
 - Use **Slice 03B5 readability/perf** before adopting the architecture broadly.
@@ -216,6 +241,14 @@ Latest Slice 03B1 verification:
 - `node --experimental-strip-types --import ./web/tests/register-ts-extension-loader.mjs --test web/tests/grassField.test.ts`
 - `./node_modules/.bin/tsc --noEmit`
 
+Latest Slice 03B2 verification:
+- `node --experimental-strip-types --import ./web/tests/register-ts-extension-loader.mjs --test web/tests/grassField.test.ts`
+- `./node_modules/.bin/tsc --noEmit`
+- `npm run build`
+- `VERIFY_URL=http://127.0.0.1:5177 VERIFY_GPU=1 VERIFY_GPU_ADAPTER=hardware VERIFY_BROWSER_CHANNEL=chrome node scene.mjs battle-grass-field`
+- `VERIFY_URL=http://127.0.0.1:5177 VERIFY_GPU=1 VERIFY_GPU_ADAPTER=hardware VERIFY_BROWSER_CHANNEL=chrome node scene.mjs renderer-lab-routes`
+- `VERIFY_URL=http://127.0.0.1:5177 VERIFY_GPU=1 VERIFY_GPU_ADAPTER=hardware VERIFY_BROWSER_CHANNEL=chrome node scene.mjs battle-grass battle-terrain-3d battle-terrain-elevation full-game-rendering-performance`
+
 Screenshot critique initially blocked on terrain grass reading as random black
 speckle in open fields. After the terrain-only stubble softening, the follow-up
 critique cleared the blocker: grass reads as sparse terrain stubble, does not bury
@@ -240,12 +273,10 @@ debt:
 - grass/ground detail is soft and scale-blurry;
 - roads, water, labels, and icon styling are not covered by this camera sheet.
 
-**Next pickup:** implement `slices/03b2-packed-attribute-slope-tilt.md`.
-Consume the `grassField.ts` records through the existing CPU instance upload path:
-pack terrain normals and blade params into vertex attributes, filter/tilt on
-slopes, and publish packed stride/bytes/reject counters. Do not tune meadow
-shader constants, cliffs, cliff texture, fog, water, sky, final composition, or
-foreground card count in that pass.
+**Next pickup:** implement `slices/03b3-field-driven-meadow-material.md`. The
+03B3 pass should consume the same field/clump records to create continuous
+lower-third meadow mass. Do not tune cliffs, cliff texture, fog, water, sky, final
+composition, or foreground blade count in that pass.
 
 Every visual slice (01–08) ends with three distinct gates:
 `screenshot-regression` for baseline stability, `compare-screenshots` against the
@@ -273,7 +304,7 @@ landed, and point at the next pickup slice.
 - [x] **Slice 03A** — grass over terrain infrastructure (`slices/03-grass-over-terrain.md`) — seating/masking/perf landed
 - [x] **Slice 03B** — foreground grass density architecture spike (`slices/03b-foreground-grass-density.md`) — evidence recorded, visual target not accepted
 - [x] **Slice 03B1** — grass field baseline and data contract (`slices/03b1-field-baseline-and-data-contract.md`)
-- [ ] **Slice 03B2** — packed-attribute slope tilt spike (`slices/03b2-packed-attribute-slope-tilt.md`)
+- [x] **Slice 03B2** — packed-attribute slope tilt spike (`slices/03b2-packed-attribute-slope-tilt.md`)
 - [ ] **Slice 03B3** — field-driven meadow material (`slices/03b3-field-driven-meadow-material.md`)
 - [ ] **Slice 03B4** — false-earth blade accents (`slices/03b4-false-earth-blade-accents.md`)
 - [ ] **Slice 03B5** — readability and perf gate (`slices/03b5-readability-and-perf-gate.md`)

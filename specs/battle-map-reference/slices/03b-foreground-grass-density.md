@@ -125,6 +125,6 @@ crop.
 
 ## Next Slice
 
-Implement `03b1-field-baseline-and-data-contract.md` next. Do not keep tuning
-foreground card counts or meadow shader constants until the grass field data
-contract exists.
+Implement `03b3-field-driven-meadow-material.md` next. Do not keep tuning
+foreground card counts or meadow shader constants outside the field/clump
+contract.

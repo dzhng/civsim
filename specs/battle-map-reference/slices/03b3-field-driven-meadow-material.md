@@ -17,6 +17,19 @@ drive the material layer:
 - keep the material cheap enough for the reference fixture and optionally for
   production when zoomed in.
 
+Start from the 03B2 packed-field route, not from the old card-density spike. The
+first useful proof is an isolated lower-third meadow crop where visible blade
+geometry is reduced enough that broad coverage, clump direction, and falloff can
+be judged without foreground-card noise. Use the field records as the source of
+clump identity even if the material lives in `BattleGroundPass`: the material must
+not become another private procedural noise owner.
+
+The 03B2 hostile ramp critique is useful here because it exposes what this slice
+must avoid: row-like vertical streaks that read as grass geometry, hard straight
+density seams, and ground texture that feels like a flat painted curtain. Meadow
+streaks should follow terrain/field direction and fade into tone; they should not
+look like combed parallel rows or a visible mask boundary.
+
 This can live in `BattleGroundPass` only if the data contract stays explicit. If
 the material becomes its own pass, it must still render as a world-depth surface
 without breaking the frame graph.
@@ -49,6 +62,9 @@ of scope unless they hide the crop.
   only.
 - Run unprimed `screenshot-critique` scoped to continuous meadow mass and density
   falloff.
+- The critique prompt must mark blade silhouettes, final grass color, cliff
+  shape/texture, fog, water, sky, and final composition as later-slice debt unless
+  they hide the meadow crop.
 - `battle-terrain-3d`, `battle-terrain-elevation`, and
   `full-game-rendering-performance` stay green.
 

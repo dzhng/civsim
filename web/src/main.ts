@@ -1,6 +1,7 @@
 import init, { Campaign, Game, type InitOutput } from './wasm/game_wasm.js';
 import { currentScene, switchScene } from './scene';
 import { MenuScene } from './menu/scene';
+import type { QuickBattleConfig } from './menu/quickBattleSetup';
 import { BattleScene, type BattleKind } from './battle/scene';
 import { CampaignScene, loadCampaignData } from './campaign/scene';
 import type { CampaignData } from './campaign/data';
@@ -67,6 +68,46 @@ function launchBattle(kind: BattleKind) {
     onLaunch: launchBattle,
   }));
 }
+
+// 1x establishment soldiers per class — mirrors contract::unit_size (close-order
+// foot 500, loose foot 350, horse 200, gun crew 80), keyed by class id.
+const QUICK_BATTLE_ESTABLISHMENT = [500, 500, 350, 500, 350, 350, 200, 200, 80, 500, 500, 500, 500, 500, 500];
+
+function createQuickBattleGame(cfg: QuickBattleConfig): Game {
+  const game = new Game(BATTLE_SEED);
+  game.load_map(cfg.mapId);
+  cfg.teams.forEach((picks, team) => {
+    const units = picks.flatMap((p) => Array.from({ length: p.count }, () => p.classId));
+    const y = team === 0 ? -260 : 260;
+    const facing = team === 0 ? Math.PI / 2 : -Math.PI / 2;
+    const spread = Math.min(1700, Math.max(200, units.length * 70));
+    units.forEach((classId, i) => {
+      const x = units.length > 1 ? -spread / 2 + (spread * i) / (units.length - 1) : 0;
+      const soldiers = QUICK_BATTLE_ESTABLISHMENT[classId] ?? 500;
+      const files = Math.max(6, Math.round(Math.sqrt(soldiers * 1.6)));
+      game.spawn_class(x, y, facing, soldiers, files, classId, team);
+    });
+  });
+  if (AI_ON) game.set_ai_team(1);
+  return game;
+}
+
+function launchQuickBattle(cfg: QuickBattleConfig) {
+  switchScene(new BattleScene({
+    wasm,
+    game: createQuickBattleGame(cfg),
+    kind: 'mapA',
+    onExit: () => switchScene(menu),
+    onLaunch: launchBattle,
+  }));
+}
+
+// Canonical class id/name/cost rows for the setup panel, straight from the sim.
+const quickBattleClasses = (() => {
+  const probe = new Game(BATTLE_SEED);
+  const specs = JSON.parse(probe.class_specs()) as Array<{ id: number; name: string; cost: number }>;
+  return specs.map((s) => ({ id: s.id, name: s.name, cost: s.cost }));
+})();
 
 const SAVE_KEY = 'campaign-save';
 
@@ -265,6 +306,8 @@ async function launchCampaign(fromSave: boolean, testData?: { data: CampaignData
 
 const menu = new MenuScene({
   onQuickBattle: launchBattle,
+  onCustomBattle: launchQuickBattle,
+  classSpecs: quickBattleClasses,
   onDuel: (a, b, ai) => {
     duel.a = a;
     duel.b = b;

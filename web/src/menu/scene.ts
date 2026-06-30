@@ -3,11 +3,16 @@ import type { BattleKind } from '../battle/scene';
 import { CLASS_NAMES, UNIT_CLASS_BY_KEY, UnitClass } from '../battle/classData';
 import { MANUAL_HTML } from '../battle/manual';
 import type { GpuSupportState } from '../../../packages/game-renderer/src/appShell';
+import { mountQuickBattleSetup, type QuickBattleClassSpec, type QuickBattleConfig, type QuickBattleSetup } from './quickBattleSetup';
 
 export interface MenuConfig {
   onQuickBattle: (kind: BattleKind) => void;
   /** Head-to-head bench: class index per side + enemy AI toggle. */
   onDuel: (a: number, b: number, ai: boolean) => void;
+  /** Launch a configured custom battle (map + two armies). */
+  onCustomBattle: (cfg: QuickBattleConfig) => void;
+  /** Canonical class rows (id/name/cost) for the custom-battle army builders. */
+  classSpecs: QuickBattleClassSpec[];
   onNewCampaign: () => void;
   /** Load the named save slot; absent slot disables the button. */
   onLoadCampaign: () => void;
@@ -19,8 +24,11 @@ export interface MenuConfig {
 export class MenuScene implements Scene {
   private root = document.getElementById('menu-ui')!;
   private ac: AbortController | null = null;
+  private quickBattle: QuickBattleSetup | null = null;
 
-  constructor(private cfg: MenuConfig) {}
+  constructor(private cfg: MenuConfig) {
+    this.quickBattle = mountQuickBattleSetup(this.root, this.cfg.classSpecs, this.cfg.onCustomBattle);
+  }
 
   enter() {
     this.root.style.display = 'flex';
@@ -30,6 +38,9 @@ export class MenuScene implements Scene {
     this.root.querySelectorAll<HTMLButtonElement>('button[data-battle]').forEach((b) => {
       b.addEventListener('click', () => this.cfg.onQuickBattle(b.dataset.battle as BattleKind), { signal });
     });
+    this.root.querySelector<HTMLButtonElement>('#menu-quick-battle')!.addEventListener('click', () => {
+      if (this.cfg.gpuStatus.ok) this.quickBattle?.open();
+    }, { signal });
     // Duel bench: a modal behind the 1v1 button; pickers populate once.
     const modal = this.root.querySelector<HTMLElement>('#duel-modal')!;
     const selA = this.root.querySelector<HTMLSelectElement>('#duel-a')!;
@@ -95,6 +106,7 @@ export class MenuScene implements Scene {
     const launchButtons = [
       ...Array.from(this.root.querySelectorAll<HTMLButtonElement>('button[data-battle]')),
       this.root.querySelector<HTMLButtonElement>('#menu-1v1')!,
+      this.root.querySelector<HTMLButtonElement>('#menu-quick-battle')!,
       this.root.querySelector<HTMLButtonElement>('#menu-new-campaign')!,
       this.root.querySelector<HTMLButtonElement>('#menu-load-save')!,
     ];

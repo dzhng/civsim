@@ -33,6 +33,30 @@ export async function run(ctx) {
     JSON.stringify(shell),
   );
 
+  // Custom Battle setup: map options come from the shared catalog, both army
+  // builders show class rows + live validation, and a template loads a valid
+  // army while overfilling slots flips the army invalid (validation drives the
+  // launch gate). This exercises quickBattleCatalog through the real UI.
+  await page.click('#menu-quick-battle');
+  const qb = await page.evaluate(() => {
+    const open = document.getElementById('quick-battle-modal')?.classList.contains('open');
+    const maps = Array.from(document.querySelectorAll('#qb-maps .qb-map strong')).map((e) => e.textContent);
+    const rows = document.querySelectorAll('#qb-army-0 .qb-row').length;
+    const defaultValid = document.getElementById('qb-launch')?.disabled === false;
+    // Overfill side 0 past the slot cap by clicking the cheapest class's + many times.
+    const plus = document.querySelector('#qb-army-0 .qb-row:last-child .qb-step:last-child');
+    for (let i = 0; i < 30; i++) plus?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    const overInvalid = document.getElementById('qb-launch')?.disabled === true
+      && document.querySelector('#qb-army-0 .qb-footer')?.classList.contains('over');
+    return { open, maps, rows, defaultValid, overInvalid };
+  });
+  ctx.check(
+    'Custom Battle setup is catalog-driven with live army validation',
+    qb.open === true && qb.maps.length === 3 && qb.rows >= 15 && qb.defaultValid && qb.overInvalid,
+    JSON.stringify(qb),
+  );
+  await page.click('#qb-back');
+
   await page.click('#menu-manual');
   const manualOpen = await page.evaluate(() => ({
     display: getComputedStyle(document.getElementById('manual')).display,

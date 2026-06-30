@@ -79,6 +79,14 @@ adapter; CI needs a one-time SwiftShader reconciliation):
   `buildRockMesh` (and the mountain) cooler.
 - [ ] Minor (David's call): broadleaf canopy apex is slightly peaked (a touch
   conifer-ish); not pursued.
+- Live-battle critique (post-03d cutover) — coherent, readable Total War scene
+  (formations grounded, HUD/minimap clean, no field z-fighting). Open items for
+  David: (1) relief reads FLAT at the gameplay camera — the ×1.6 exaggeration of
+  gentle 8 m relief is subtle; bump `BattleRenderer.RELIEF_EXAGGERATION` if you
+  want it to roll more (vs the spec's "subtle, not mountains"). (2) the
+  translucent info panel lets the world bleed through — pre-existing HUD opacity,
+  not the cutover. (3) mud tint reads as a soft stain and the sealed edge reads
+  as a band/frame at gameplay zoom — polish for a later pass.
 - JUSTIFIED, not a bug: a critic reading the `battle-terrain-elevation` shots
   called the ground "flat." The relief IS gentle by design — the spec wants
   "subtle height variation, not mountains" (8 m over a 2400 m field, ×2.6 for
@@ -159,12 +167,15 @@ Global TODO:
   live game (×1.6 relief). Battle baselines re-blessed on hardware. Pre-existing
   hardware-only failures remain in the freeze + minimap-click tests (they pass on
   the canonical SwiftShader; confirmed not introduced by the cutover via stash).
-- [ ] Slice 04: replace static quick-battle buttons with a map picker, 15,000
-  gold army builders for both sides, and prebuilt 20-slot armies. NOT STARTED.
-  Build `web/src/battle/quickBattleCatalog.ts` (gold/cap/templates/validate,
-  consuming `BATTLE_MAP_CATALOG`), the setup-panel UI in index.html/menu, and a
-  wasm custom-battle launch (start_custom_battle, or load_map + spawn_class).
-  Note: army-validation has no TS unit runner in-repo — test via the menu scene.
+- [x] Slice 04: Custom Battle setup flow — `quickBattleCatalog.ts` (15000 gold,
+  20-unit cap, 4 prebuilt templates, validateQuickBattleArmy; maps = the shared
+  BATTLE_MAP_CATALOG, no parallel metadata); `menu/quickBattleSetup.ts` builds
+  the panel (map cards + two army builders with class rows/±/templates + live
+  validation footers + Launch/Back); main.ts launches via load_map + spawn_class
+  on a fresh Game. Validation is exercised through the menu scene (no TS unit
+  runner). Refinements left: per-map ground-cover hint in the live battle (the
+  renderer defaults green for non-catalog terrain), and Restart preserving the
+  custom setup (currently re-launches a default).
 - [x] Slice 05: z:0 seating audit (production code clean — the only z:0 left are
   documented lab-route ground decals) + durable docs at `docs/battle-terrain.md`.
 

@@ -1,3 +1,8 @@
+// Baked model-portrait manifest (S3), look index → PNG filename. The bake writes
+// it as the single source of truth, so cardThumbUrl reads it rather than
+// re-listing names here.
+import cardManifest from '../../../packages/soldier-assets/assets/cards/manifest.json';
+
 export const UnitClass = {
   HeavySword: 'heavy_sword',
   LightSpear: 'light_spear',
@@ -39,6 +44,13 @@ export const UNIT_CLASS_CATALOG = [
 export type UnitClassId = typeof UNIT_CLASS_CATALOG[number]['id'];
 
 export const CLASS_NAMES = UNIT_CLASS_CATALOG.map((c) => c.name);
+
+// Baked model portrait for a look (served from web/public); undefined if unbaked,
+// so the card falls back to the canvas drawing.
+export function cardThumbUrl(look: number): string | undefined {
+  const file = (cardManifest as Record<string, string>)[String(look)];
+  return file ? `/assets/soldiers/cards/${file}` : undefined;
+}
 
 export const UNIT_CLASS_BY_KEY = Object.fromEntries(
   UNIT_CLASS_CATALOG.map((c) => [c.key, c.id]),

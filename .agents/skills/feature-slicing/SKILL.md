@@ -135,6 +135,14 @@ Each slice file answers:
   the shot matches the reference. Write it as an explicit step too.
 - What must stay green?
 - What feedback from the human would change this slice?
+- If the slice has a human review checkpoint, the slice file must frame it as
+  **non-blocking**: tell the implementing agent to open the shots for the user
+  with [preview-shots](../preview-shots/SKILL.md), give a short window (~5 min)
+  for a response, and — if the user stays silent — decide on the evidence,
+  record the decision and rationale in the spec, close the opened shots
+  (preview-shots cleans up Preview, so an overnight run never piles up windows),
+  and proceed. Implementation never stalls waiting on sign-off; the checkpoint is
+  a chance to course-correct a reversible call, not a gate that blocks the build.
 
 ## README Handoff Prompt
 

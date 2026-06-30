@@ -43,20 +43,18 @@
 <body>
 <header>
   <h1>Card-bar grid prototype</h1>
-  <p>Mirror of <code>computeCardGrid()</code> (slice 01). Drag the sliders and read
-     the rows/cols/cardW it picks. Use this to lock <b>minCardW</b>, <b>maxRows</b>,
-     <b>gap</b>, and the <b>band height</b> before writing any TS.</p>
+  <p>Mirror of <code>computeCardGrid()</code> (slice 01). Cards are a <b>fixed
+     size</b>; the bar wraps into more rows as the roster grows. Drag the sliders to
+     lock the fixed <b>cardW</b>, <b>maxRows</b>, and <b>gap</b>.</p>
 </header>
 
 <div class="controls">
   <label>count <b id="vCount">20</b>
     <input id="count" type="range" min="1" max="60" value="20" /></label>
-  <label>band width px <b id="vBoxW">1280</b>
+  <label>avail width px <b id="vBoxW">1280</b>
     <input id="boxW" type="range" min="320" max="2400" value="1280" /></label>
-  <label>band height px <b id="vBoxH">150</b>
-    <input id="boxH" type="range" min="60" max="320" value="150" /></label>
-  <label>minCardW px <b id="vMinW">64</b>
-    <input id="minW" type="range" min="24" max="160" value="64" /></label>
+  <label>cardW px (fixed) <b id="vCardW">72</b>
+    <input id="cardW" type="range" min="40" max="160" value="72" /></label>
   <label>maxRows <b id="vMaxRows">3</b>
     <input id="maxRows" type="range" min="1" max="6" value="3" /></label>
   <label>gap px <b id="vGap">4</b>
@@ -70,44 +68,42 @@
 
 <script type="module">
 // ── canonical algorithm — keep in lockstep with web/src/battle/cardGrid.ts ──
-function computeCardGrid(count, boxW, boxH, { aspect = 3 / 4, minCardW = 64, gap = 4, maxRows = 3 } = {}) {
+// Fixed-size Total-War cards: the bar wraps into more rows as the roster grows
+// and shrinks cards only past maxRows capacity (degenerate), never to scroll.
+function computeCardGrid(count, boxW, { cardW = 72, aspect = 3 / 4, gap = 4, maxRows = 3 } = {}) {
   if (count <= 0) return { rows: 0, cols: 0, cardW: 0, cardH: 0, degenerate: false };
-  let best = null;
-  const cap = Math.min(count, maxRows);
-  for (let rows = 1; rows <= cap; rows++) {
-    const cols = Math.ceil(count / rows);
-    const wPerCol = (boxW - gap * (cols + 1)) / cols;
-    const hPerRow = (boxH - gap * (rows + 1)) / rows;
-    const cardW = Math.min(wPerCol, hPerRow * aspect);
-    const cand = { rows, cols, cardW, cardH: cardW / aspect };
-    if (cardW >= minCardW) return floorGrid(cand, false);
-    if (best === null || cardW > best.cardW) best = cand;
-  }
-  return floorGrid(best, true); // none reached minCardW: most-legible, still no scroll
+  const cardH = cardW / aspect;
+  const perRow = Math.max(1, Math.floor((boxW + gap) / (cardW + gap)));
+  const rows = Math.min(maxRows, Math.ceil(count / perRow));
+  const cols = Math.ceil(count / rows);
+  const needed = cols * cardW + gap * (cols + 1);
+  if (needed <= boxW) return floorGrid({ rows, cols, cardW, cardH }, false);
+  const shrunk = (boxW - gap * (cols + 1)) / cols;
+  return floorGrid({ rows, cols, cardW: shrunk, cardH: shrunk / aspect }, true);
 }
 function floorGrid(g, degenerate) {
   return { rows: g.rows, cols: g.cols, cardW: Math.floor(g.cardW), cardH: Math.floor(g.cardH), degenerate };
 }
 
 const $ = (id) => document.getElementById(id);
-const ids = ['count', 'boxW', 'boxH', 'minW', 'maxRows', 'gap', 'aspect'];
+const ids = ['count', 'boxW', 'cardW', 'maxRows', 'gap', 'aspect'];
 const band = $('band'), readout = $('readout');
 
 function render() {
-  const count = +$('count').value, boxW = +$('boxW').value, boxH = +$('boxH').value;
-  const minCardW = +$('minW').value, maxRows = +$('maxRows').value, gap = +$('gap').value;
+  const count = +$('count').value, boxW = +$('boxW').value;
+  const cardW = +$('cardW').value, maxRows = +$('maxRows').value, gap = +$('gap').value;
   const aw = +$('aspect').value, aspect = aw / 100;
-  $('vCount').textContent = count; $('vBoxW').textContent = boxW; $('vBoxH').textContent = boxH;
-  $('vMinW').textContent = minCardW; $('vMaxRows').textContent = maxRows; $('vGap').textContent = gap;
+  $('vCount').textContent = count; $('vBoxW').textContent = boxW;
+  $('vCardW').textContent = cardW; $('vMaxRows').textContent = maxRows; $('vGap').textContent = gap;
   $('vAspect').textContent = `${aw}:100`;
 
-  const g = computeCardGrid(count, boxW, boxH, { aspect, minCardW, gap, maxRows });
+  const g = computeCardGrid(count, boxW, { cardW, aspect, gap, maxRows });
 
   band.style.setProperty('--cols', g.cols);
   band.style.setProperty('--card-w', g.cardW + 'px');
   band.style.setProperty('--card-h', g.cardH + 'px');
-  band.style.width = boxW + 'px';
-  band.style.height = boxH + 'px';
+  band.style.width = 'max-content';
+  band.style.height = 'auto';
   band.style.gap = gap + 'px';
   band.classList.toggle('undersized', g.degenerate);
 
@@ -122,8 +118,7 @@ function render() {
     band.appendChild(c);
   }
 
-  const fits = g.cols * g.cardW + gap * (g.cols + 1) <= boxW &&
-               g.rows * g.cardH + gap * (g.rows + 1) <= boxH;
+  const fits = g.cols * g.cardW + gap * (g.cols + 1) <= boxW;
   readout.innerHTML =
     `<b>${g.rows} rows × ${g.cols} cols</b> · card ${g.cardW}×${g.cardH}px · ` +
     `aspect ${(g.cardW / g.cardH || 0).toFixed(3)} · ` +

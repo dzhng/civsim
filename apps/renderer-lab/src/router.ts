@@ -48,7 +48,9 @@ import { bakeGltf } from '../../../packages/soldier-assets/bake/gltf.mjs';
 import type { VatBake, VatClip } from '../../../packages/soldier-assets/src/schema';
 import { importedRigMesh } from './importedRigMesh';
 import { buildBattleUiModel, BattleUiLayer } from '../../../web/src/battle/uiLayer';
-import { UNIT_CLASS_BY_KEY, UnitClass } from '../../../web/src/battle/classData';
+import { UNIT_CLASS_BY_KEY, UnitClass, CLASS_NAMES } from '../../../web/src/battle/classData';
+import { UnitCards, type UnitCardInit, type UnitCardState } from '../../../web/src/battle/unitCard';
+import { installViewportGate } from '../../../web/src/battle/viewportGate';
 import { loadCampaignData, nearestLoc, type CampaignData } from '../../../web/src/campaign/data';
 import { Allegiance } from '../../../web/src/campaign/status';
 import { campaignSurface } from '../../../web/src/campaign/surface';
@@ -104,6 +106,7 @@ const routes: Record<string, LabRoute> = {
   '/renderer/battle-ui': routeBattleUi,
   '/renderer/battle-input': routeBattleInput,
   '/renderer/battle-live': routeBattleLive,
+  '/renderer/card-bar': routeCardBar,
 };
 
 export async function mountRendererLab(path = location.pathname) {
@@ -2741,6 +2744,67 @@ async function routeBattleUi(ctx: LabContext) {
   });
 }
 
+// The only place 20 / 30 / 40 cards can be seen — the live game is ~5v5, too few
+// to exercise the row wrapping. Mounts the real shared `UnitCards` over synthetic
+// rosters (no wasm), so the grid and `<img>` swap reach this harness for free.
+// `?count=` sets the roster; the band width comes from the viewport, so drive
+// wide/narrow by sizing the page.
+async function routeCardBar(ctx: LabContext) {
+  const count = Math.max(1, Math.min(60, Number(ctx.params.get('count') ?? 20)));
+  const band = el('div', 'renderer-unitcards');
+  band.id = 'unitcards';
+  ctx.root.appendChild(band);
+
+  // Reuse the live "window too small" gate (index.html's CSS survives the lab
+  // mount, but its element doesn't — recreate it) so the scene can exercise the
+  // min-window placeholder headlessly.
+  const tooSmall = el('div', '');
+  tooSmall.id = 'viewport-too-small';
+  tooSmall.innerHTML = '<div class="vts-panel"><h2>Window too small</h2><p>The battle needs a window of at least 1180 &times; 640. Please enlarge the window to play.</p></div>';
+  ctx.root.appendChild(tooSmall);
+  installViewportGate(tooSmall);
+
+  let lastSelect: { unit: number; additive: boolean } | null = null;
+  // No minimap in this harness, so reserve only a bare side margin (not the live
+  // game's minimap clearance) — the demo shows the bar at its full width.
+  const cards = new UnitCards(band, (unit, additive) => {
+    lastSelect = { unit, additive };
+    (window as unknown as { __cardBarLastSelect?: unknown }).__cardBarLastSelect = lastSelect;
+  }, 12);
+
+  // Synthetic roster: cycle every class so portraits, names, and faction accent
+  // all vary; live-ish bar values so the strip reads like a real fight.
+  const inits: UnitCardInit[] = Array.from({ length: count }, (_, i) => ({
+    unit: i,
+    cls: i % CLASS_NAMES.length,
+    team: 0,
+    name: CLASS_NAMES[i % CLASS_NAMES.length],
+  }));
+  const states: UnitCardState[] = inits.map((_, i) => ({
+    alive: 180 - (i * 13) % 170,
+    total: 180,
+    cohesion: 0.55 + ((i * 7) % 45) / 100,
+    morale: 0.5 + ((i * 11) % 50) / 100,
+    stamina: 0.6 + ((i * 5) % 40) / 100,
+    routing: i % 9 === 4,
+    selected: i === 0,
+  }));
+  cards.build(inits);
+  cards.update(states);
+
+  const grid = (window as unknown as { __cardGrid?: Record<string, number> }).__cardGrid ?? {};
+  ctx.status.innerHTML = reportTable({
+    route: 'card-bar',
+    count,
+    rows: grid.rows,
+    cols: grid.cols,
+    cardW: grid.cardW,
+    degenerate: grid.degenerate,
+    bandWidth: band.clientWidth,
+  });
+  publish('card-bar', true, { count, grid, lastSelect, bandWidth: band.clientWidth });
+}
+
 async function routeBattleInput(ctx: LabContext) {
   const [{ default: initWasm, Game }, vat] = await Promise.all([
     import('../../../web/src/wasm/game_wasm.js'),
@@ -3604,18 +3668,19 @@ function installStyles() {
     .renderer-battle-summary .hp em { background: #65bd50; }
     .renderer-battle-summary .coh em { background: #d9c75a; }
     .renderer-battle-summary .mor em { background: #c2554e; }
-    .renderer-unitcards { position: absolute; bottom: 58px; left: 226px; right: 18px; display: flex; justify-content: center; gap: 5px; align-items: flex-end; overflow-x: auto; overflow-y: hidden; padding: 5px 7px; pointer-events: auto; background: linear-gradient(rgba(10,12,16,0), rgba(10,12,16,0.82)); border-radius: 8px; scrollbar-width: thin; }
-    .renderer-unitcards::-webkit-scrollbar { height: 6px; }
-    .renderer-unitcards::-webkit-scrollbar-thumb { background: #3a3f4d; border-radius: 3px; }
-    .renderer-unitcards .ucard { flex: 0 0 auto; width: 62px; display: flex; flex-direction: column; align-items: center; background: rgba(24,27,34,0.92); border: 1px solid #3a3f4d; border-top: 3px solid var(--fac); border-radius: 5px; padding: 2px 2px 3px; cursor: pointer; position: relative; transition: transform 0.08s, border-color 0.1s; }
-    .renderer-unitcards .ucard:hover { background: rgba(40,46,58,0.95); }
-    .renderer-unitcards .ucard.sel { border-color: #f0e3b0; box-shadow: 0 0 0 1px #f0e3b0, 0 -2px 10px rgba(240,227,176,0.25); transform: translateY(-3px); }
+    /* Same fixed-size, shrink-wrapping, no-scroll grid as the live #unitcards
+       (unitCard.ts writes --cols/--card-w/--card-h). */
+    .renderer-unitcards { position: absolute; bottom: 58px; left: 50%; transform: translateX(-50%); display: grid; width: max-content; max-width: calc(100% - 36px); grid-template-columns: repeat(var(--cols, 1), var(--card-w, 72px)); grid-auto-rows: var(--card-h, 96px); gap: 3px; justify-content: center; align-content: end; overflow: hidden; padding: 10px 11px; pointer-events: auto; background: linear-gradient(#5a4225, #2c2012) padding-box, linear-gradient(#b8904e 0%, #6e5128 45%, #2a1d0f 100%) border-box; border: 3px solid transparent; border-radius: 5px; box-shadow: inset 0 1px 0 rgba(232,196,128,0.6), inset 0 0 0 2px rgba(18,12,6,0.7), inset 0 -3px 7px rgba(0,0,0,0.6), 0 0 0 1px rgba(176,138,78,0.6), 0 8px 22px rgba(0,0,0,0.66); }
+    .renderer-unitcards .ucard { width: var(--card-w); height: var(--card-h); aspect-ratio: 3 / 4; box-sizing: border-box; position: relative; overflow: hidden; background: #0c0a06; border: 1px solid #2a1d0e; border-top: 3px solid var(--fac); border-radius: 1px; cursor: pointer; transition: box-shadow 0.1s; box-shadow: inset 0 0 0 1px rgba(150,114,62,0.4), inset 0 0 9px rgba(0,0,0,0.85); }
+    .renderer-unitcards .ucard:hover { box-shadow: inset 0 0 0 1px rgba(201,165,99,0.7), inset 0 0 8px rgba(0,0,0,0.7); }
+    .renderer-unitcards .ucard.sel { border-color: #f0d98a; z-index: 2; box-shadow: inset 0 0 0 1px #f0d98a, 0 0 9px 1px rgba(240,212,122,0.6); }
     .renderer-unitcards .ucard.rout { filter: grayscale(0.5) brightness(0.8); }
-    .renderer-unitcards .ucard.rout::after { content: 'ROUT'; position: absolute; top: 20px; left: 0; right: 0; text-align: center; font: 700 9px ui-monospace, monospace; color: #ff7a6b; text-shadow: 0 1px 2px #000; }
-    .renderer-unitcards .ucard-port { display: block; image-rendering: auto; background: radial-gradient(ellipse at 50% 70%, rgba(120,130,110,0.35), rgba(20,24,20,0.1)); border-radius: 3px; }
-    .renderer-unitcards .ucard-name { font: 600 8px ui-monospace, Menlo, monospace; color: #cfd6e4; margin-top: 1px; white-space: nowrap; max-width: 60px; overflow: hidden; text-overflow: ellipsis; }
-    .renderer-unitcards .ucard-count { position: absolute; top: 3px; right: 4px; font: 700 9px ui-monospace, monospace; color: #fff; text-shadow: 0 1px 2px #000, 0 0 3px #000; }
-    .renderer-unitcards .ucard-bars { width: 54px; margin-top: 2px; }
+    .renderer-unitcards .ucard.rout::after { content: 'ROUT'; position: absolute; top: 20px; left: 0; right: 0; text-align: center; z-index: 3; font: 700 9px ui-monospace, monospace; color: #ff7a6b; text-shadow: 0 1px 2px #000; }
+    .renderer-unitcards .ucard-port { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; background: #1c150d; }
+    .renderer-unitcards .ucard::before { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 34px; background: linear-gradient(transparent, rgba(6,8,11,0.88)); pointer-events: none; z-index: 1; }
+    .renderer-unitcards .ucard-name { position: absolute; left: 0; right: 0; bottom: 15px; z-index: 2; text-align: center; padding: 0 2px; font: 700 8px ui-monospace, Menlo, monospace; color: #eef1f7; text-shadow: 0 1px 2px #000, 0 0 3px #000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .renderer-unitcards .ucard-count { position: absolute; top: 2px; right: 4px; z-index: 2; font: 700 10px ui-monospace, monospace; color: #fff; text-shadow: 0 1px 2px #000, 0 0 3px #000; }
+    .renderer-unitcards .ucard-bars { position: absolute; left: 50%; transform: translateX(-50%); bottom: 3px; z-index: 2; width: 86%; }
     .renderer-unitcards .ucard-bar { height: 3px; background: rgba(8,9,11,0.7); border-radius: 2px; overflow: hidden; margin-bottom: 1px; }
     .renderer-unitcards .ucard-bar > div { height: 100%; width: 100%; }
     .renderer-unitcards .ucard-bar.hp > div { background: #5cba46; }

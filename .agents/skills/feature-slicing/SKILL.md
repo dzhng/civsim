@@ -44,17 +44,33 @@ whole feature is done.
    The feature should advance with placeholders, while a separate handoff path
    explains exactly what the human or external partner must provide later.
 
+7. **Draft in parallel, then synthesize.** For any multi-slice feature, don't
+   trust one pass to find the right cut. Fan out a few independent drafts and
+   merge the best into one plan (see the Workflow). Divergence is the point:
+   blind drafts surface slices, seams, and risks a lone plan misses — and where
+   they independently agree, you know the cut is solid.
+
 ## Workflow
 
 1. **Interview:** keep asking until you can name the slices without
    hand-waving. Stop when remaining unknowns can safely be discovered by the
    first slice.
-2. **Recon:** read the relevant code and existing tests. Record measured
-   facts, failed approaches, and scope firewalls with greppable file/test
-   names.
-3. **Map:** define the slice graph, package/app boundaries, dependencies, API
-   seams, playable deliverables, verification gates, and human review
-   checkpoints. When the feature has any visual surface, make
+2. **Draft in parallel:** for a multi-slice feature, spawn **three independent
+   subagents** to draft the whole plan — fresh context each, a git worktree
+   apiece if they must run or build to validate, otherwise have them return the
+   plan inline. Give each the *same* brief from the interview and nothing else
+   (never another draft), so they diverge. Each one: recon the real code and
+   tests (measured facts, failed approaches, scope firewalls, greppable
+   file/test names), then propose the slice graph, package/app boundaries,
+   dependencies, API seams, playable deliverables, verification gates, and human
+   review checkpoints. Skip the fan-out only for a genuinely single-slice
+   problem.
+3. **Synthesize:** read every draft and build the canonical plan yourself —
+   don't anoint one. Take the strongest slicing, union the seams, risks, and
+   firewalls each caught alone, and where drafts disagree pick the
+   better-justified call and record the genuine alternative for the human. Where
+   the drafts independently agree you're on firm ground; where they split is
+   where to think hardest. When the feature has any visual surface, make
    [screenshot-critique](../screenshot-critique/SKILL.md) a standing verification
    gate in the README so every visual slice inherits it: the spec must tell the
    implementing agent to run an unbiased screenshot-critique as the last check on

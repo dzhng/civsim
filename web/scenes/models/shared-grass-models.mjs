@@ -1,7 +1,7 @@
 import { PNG } from 'pngjs';
 
 const gates = [
-  { id: 'tuft', label: 'Grass Tuft', minGrass: 0.010, minDark: 0.12, minDeepBlade: 0.008 },
+  { id: 'tuft', label: 'Grass Tuft', minGrass: 0.010, minDark: 0.12, minDeepBlade: 0.006 },
   { id: 'patch', label: 'Grass Patch', minGrass: 0.035, minDark: 0.25, minDeepBlade: 0.035 },
 ];
 

@@ -2479,8 +2479,10 @@ async function routeBattleTerrain3d(ctx: LabContext) {
     undefined,
   );
   // Camera: 'field' frames a mid-field wood; 'west'/'east' look outward toward
-  // that sealed edge so its blocker fills the distance.
+  // that sealed edge so its blocker fills the distance. 'reference' uses the
+  // zoom-coupled vista endpoint for the battle-map-reference comparison shot.
   const view = ctx.params.get('view') ?? 'field';
+  if (view === 'reference') ctx.root.classList.add('reference-shot');
   const halfW = (w * cell) / 2;
   const midY = oy + (h * cell) / 2;
   // For the soldiers view, find the steepest slope on the field so the block
@@ -2494,22 +2496,24 @@ async function routeBattleTerrain3d(ctx: LabContext) {
       ? { x: halfW - 360, y: midY, zoom: 0.95, pitch: 0.26, yaw: Math.PI / 2 }
       : view === 'soldiers'
         ? { x: standX, y: standY + 4, zoom: 9.0, pitch: 0.40, yaw: -0.04 }
+        : view === 'reference'
+          ? { x: Number(ctx.params.get('cx') ?? -70), y: Number(ctx.params.get('cy') ?? -650), zoom: Number(ctx.params.get('zoom') ?? 2.4), pitch: 1.02, yaw: -0.04, perspective: 0.006 }
         : { x: Number(ctx.params.get('cx') ?? focus?.x ?? 0), y: Number(ctx.params.get('cy') ?? focus?.y ?? 0) - 110, zoom: 3.3, pitch: 0.44, yaw: -0.05 };
   const shell = await createConfiguredShell(ctx.canvas, camera);
   const ground = new BattleGroundPass(shell);
   ground.setTerrain(grid, field, presentation.groundCover);
   const grass = new BattleGrassPass(shell);
-  const grassZoomT = view === 'soldiers' ? 0.82 : 0.58;
+  const grassZoomT = view === 'reference' ? 1.0 : view === 'soldiers' ? 0.82 : 0.58;
   grass.setTerrain(grid, field, presentation.groundCover, {
     seed: 0x7a55,
-    density: 0.50,
-    maxTufts: 4200,
+    density: view === 'reference' ? 0.72 : 0.50,
+    maxTufts: view === 'reference' ? 8000 : 4200,
     zoomT: grassZoomT,
-    focus: { x: camera.x, y: camera.y, radius: view === 'soldiers' ? 150 : 340 },
-    bladeHeight: 1.0,
-    bladeWidth: 0.072,
-    bend: 0.32,
-    spread: 0.20,
+    focus: { x: camera.x, y: camera.y, radius: view === 'reference' ? Number(ctx.params.get('grassRadius') ?? 320) : view === 'soldiers' ? 150 : 340 },
+    bladeHeight: view === 'reference' ? 1.24 : 1.0,
+    bladeWidth: view === 'reference' ? 0.088 : 0.072,
+    bend: view === 'reference' ? 0.40 : 0.32,
+    spread: view === 'reference' ? 0.25 : 0.20,
     windPhase: numberParam(ctx.params, 'grassPhase', 0),
     windStrength: 0.078,
   });
@@ -3787,6 +3791,9 @@ function installStyles() {
   style.textContent = `
     html, body { margin: 0; height: 100%; overflow: hidden; background: #15161a; color: #e6dcc8; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif; }
     .renderer-lab { height: 100vh; display: grid; grid-template-rows: 42px 1fr; }
+    .renderer-lab.reference-shot { grid-template-rows: 1fr; }
+    .renderer-lab.reference-shot .renderer-lab-nav, .renderer-lab.reference-shot .renderer-panel { display: none; }
+    .renderer-lab.reference-shot .renderer-stage { grid-template-columns: 1fr; }
     .renderer-lab-nav { display: flex; align-items: center; gap: 4px; overflow-x: auto; padding: 5px 8px; background: #242018; border-bottom: 1px solid #4d4432; }
     .renderer-lab-nav a { color: #c9bea5; text-decoration: none; font-size: 12px; padding: 6px 8px; border-radius: 4px; white-space: nowrap; }
     .renderer-lab-nav a.active, .renderer-lab-nav a:hover { background: #5b4e34; color: #fff7df; }

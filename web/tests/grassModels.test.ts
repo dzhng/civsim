@@ -3,6 +3,7 @@ import test from 'node:test';
 import {
   DEFAULT_GRASS_TUFT_BLADES,
   GRASS_TUFT_SEGMENTS,
+  SLICE00_GRASS_ALBEDO,
   buildGrassTuftMesh,
   grassTuftStats,
 } from '../../packages/game-renderer/src/models/shared/grassModels.ts';
@@ -63,6 +64,11 @@ test('grass tuft palette carries neutral blade variation without invalid colors'
   assert.ok(colors.distinctGreens > 4, JSON.stringify(colors));
 });
 
+test('green grass palette is anchored to the Slice 00 neutral albedo chips', () => {
+  assert.deepEqual(SLICE00_GRASS_ALBEDO.near.map(toHex), ['c0', 'c1', '78']);
+  assert.deepEqual(SLICE00_GRASS_ALBEDO.shadow.map(toHex), ['99', 'a0', '5c']);
+});
+
 function meshBounds(mesh: MeshData): [number, number, number, number, number, number] {
   const v = mesh.opaque.vertices;
   let minX = Infinity;
@@ -97,4 +103,8 @@ function colorRange(mesh: MeshData) {
     greens.add(Math.round(v[i + 7] * 255));
   }
   return { min, max, distinctReds: reds.size, distinctGreens: greens.size };
+}
+
+function toHex(channel: number) {
+  return Math.round(channel * 255).toString(16).padStart(2, '0');
 }

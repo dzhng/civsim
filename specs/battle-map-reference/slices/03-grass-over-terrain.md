@@ -7,12 +7,15 @@ field, and cheap enough to keep at gameplay zoom. This is the reference's dense,
 waving foreground that dominates the lower third.
 
 The first implementation landed the renderer infrastructure, but **did not satisfy
-the reference visual target**. Current terrain grass reads as sparse gameplay
-stubble on the existing catalog maps; the reference shot needs an order-of-magnitude
-denser green foreground with the Slice 00 neutral grass albedos.
+the reference visual target**. A later repair pass added Slice 00 neutral grass
+albedos, a dense `zoomT=1` vista grass mode, and an explicit reference comparison
+artifact. The target relationship is still not accepted: the candidate is denser,
+but it is still the wrong terrain/composition and the grass reads as bright
+stippled blades rather than a soft meadow mass.
 
 Do not treat the current `terrain-3d/*` screenshots as proof of reference progress.
-They prove masking/seating/depth/perf only.
+They prove masking/seating/depth/perf only. Use the `battle-map-reference` scene for
+reference-facing judgment.
 
 ## API seam
 
@@ -39,31 +42,37 @@ Wire `BattleGrassPass` (Slice 02) into production:
   and reports mask/LOD stats.
 - The grass path has a sparse, softened terrain-stubble shader style so current
   catalog-map play stays readable and avoids black speckle.
+- Green grass now draws from the locked Slice 00 albedo chips, and the terrain path
+  has a separate high-zoom vista density/height/width curve.
 - The field-scale wind GIF now has a terrain-context output.
 
 ## Current blocker
 
-The shipped visual layer is too sparse and too muted for
-`assets/target-battle-map.png`. It was tuned as a safe gameplay stubble layer, not a
-reference foreground. The terrain path also does not yet use the locked Slice 00
-grass chips:
+The shipped visual layer now has enough raw instance budget for a denser foreground,
+but it still fails the reference comparison. The neutral subagent review of
+`target-battle-map.png` versus `web/shots/battle/map-reference/candidate-vista.png`
+called out these blockers with high confidence: wrong camera/composition, flat
+terrain and weak midground depth, bright yellow-green noisy grass, missing overcast
+haze, flat/sharp water, and placeholder-like polygonal mountains.
+
+The green grass path uses the locked Slice 00 chips:
 
 - near grass albedo: `#c0c178`
 - grass shadow / mid hummock: `#99a05c`
 
-Repair this before moving to Slice 04. The fix likely needs a separate dense
-vista/foreground mode or clustered grass field keyed to `zoomT` and camera distance,
-while preserving sparse top-down/gameplay readability. A simple cap bump on the
-current scatter is unlikely to get the reference density without noise/perf trouble.
+Next repair should start with camera/composition and midground terrain depth; grass
+softness/color is hard to judge while the current candidate is still a different
+scene. Preserve sparse top-down/gameplay readability while making the reference view
+softer and less stippled.
 
 ## What the human can run / see
 
 The existing `renderer/battle-terrain-3d?gate=<map>` route now shows grass on all
 three catalog maps (`river-and-crags`, `walled-plain`, `coastal-scrub`).
 
-There is not yet a battle sim shot that matches the reference camera angle and
-terrain composition. Add an explicit reference comparison artifact before declaring
-this slice visually accepted.
+`web/scenes/battle/battle-map-reference.mjs` captures the current comparison shot
+and crops under `web/shots/battle/map-reference/`. It is diagnostic, not acceptance:
+the shot still does not match the reference camera angle and terrain composition.
 
 ## Verification
 

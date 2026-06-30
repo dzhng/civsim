@@ -22,13 +22,19 @@ export interface GrassTuftStats {
 
 export const GRASS_TUFT_SEGMENTS = 2;
 export const DEFAULT_GRASS_TUFT_BLADES = 9;
+export const SLICE00_GRASS_ALBEDO: { root: Rgb; shadow: Rgb; near: Rgb; dry: Rgb } = {
+  root: [0.42, 0.50, 0.24],
+  shadow: [0.600, 0.627, 0.361],
+  near: [0.753, 0.757, 0.471],
+  dry: [0.68, 0.66, 0.40],
+};
 
 const PALETTES: Record<GrassPaletteId, { root: Rgb; mid: Rgb; tip: Rgb; dry: Rgb }> = {
   'green-grass': {
-    root: [0.28, 0.36, 0.17],
-    mid: [0.43, 0.52, 0.24],
-    tip: [0.57, 0.61, 0.31],
-    dry: [0.64, 0.57, 0.31],
+    root: SLICE00_GRASS_ALBEDO.root,
+    mid: SLICE00_GRASS_ALBEDO.shadow,
+    tip: SLICE00_GRASS_ALBEDO.near,
+    dry: SLICE00_GRASS_ALBEDO.dry,
   },
   'yellow-grass': {
     root: [0.38, 0.40, 0.18],

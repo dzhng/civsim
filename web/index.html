@@ -465,6 +465,11 @@
     <button data-cmd="paths" aria-label="Show paths" title="Show paths and destination ghosts (hold Space)"></button>
   </div>
   </div>
+  <!-- React overlay root: a sibling above the canvas, never a parent of it.
+       Fixed full-viewport, click-through by default; individual React panels
+       opt back into pointer events. Empty until S2 mounts the menu here. -->
+  <div id="ui-root" style="position:fixed; inset:0; pointer-events:none; z-index:50"></div>
   <script type="module" src="/src/main.ts"></script>
+  <script type="module" src="/src/ui/root.tsx"></script>
 </body>
 </html>

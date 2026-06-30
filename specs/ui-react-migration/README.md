@@ -10,17 +10,39 @@ Synthesized from three independent draft plans (they converged hard — the cut 
 
 ## Next Agent Prompt
 
-**Status:** planned, not started. _Last updated: 2026-07-01._
+**Status:** S0 shipped (green). _Last updated: 2026-07-01._
 
-**Start at Slice 0** (`slices/00-stack-setup.md`) and go in order. S0→S1 lay the toolchain
-and the one bronze token source; S2 proves the stack on the menu; **S3 is the perf spike
-that decides whether the per-frame HUD becomes React** (it ships the card bar in React
-behind a measurement); S4/S5 migrate the static wave; S6 lands the HUD per S3's verdict;
-S7 deletes the duplication. Do not start the static wave (S4/S5) before S3 settles the
-60 Hz seam.
+**Start at Slice 1** (`slices/01-design-system.md`) — extract the one bronze token source.
+S0 (stack) is done. S1 lays the one bronze token source; S2 proves the stack on the menu;
+**S3 is the perf spike that decides whether the per-frame HUD becomes React** (it ships the
+card bar in React behind a measurement); S4/S5 migrate the static wave; S6 lands the HUD per
+S3's verdict; S7 deletes the duplication. Do not start the static wave (S4/S5) before S3
+settles the 60 Hz seam.
+
+**S0 decisions recorded (read before S1):**
+- **Tailwind = utilities + theme only, NO preflight** (`web/src/ui/tailwind.css` imports the
+  v4 sublayers, not `@import "tailwindcss"`). Preflight is a global CSS reset that would move
+  every baseline; **adopting/scoping preflight is an S1 decision**, made against the gates.
+- **React mounts via a 2nd Vite entry** (`web/src/ui/root.tsx`) into `#ui-root` — a fixed,
+  click-through, `z-50` sibling of the canvas added to `index.html`. `main.ts` untouched.
+- **Canary is flag-gated** (`?canary`) so scenes see nothing → zero baseline drift. It renders
+  `null` on normal load. **S2 deletes the canary** when the real menu mounts here.
+- `web/src/vite-env.d.ts` added (`vite/client` types) so `tsc` accepts `*.css` side-effect
+  imports.
+- **`web/node_modules` was a symlink; `npm install` replaced it with a real dir.** Everything
+  resolves (vite/playwright/pngjs/wasm intact, all gates green) — just note it if another
+  worktree expected the shared store.
+- Versions: react/react-dom 19.2, @vitejs/plugin-react 6.0, tailwindcss + @tailwindcss/vite 4.3.
+
+**S0 verification (all green, no re-bless):** `tsc --noEmit` ✓, `vite build` ✓ (105 modules),
+`crossOriginIsolated === true` ✓ (plugins did not strip COOP/COEP), `card-bar` 0.0000% ✓,
+`battle-renderer-visual` (`battle-selection-dpr2`) 0.0000% ✓, `menu-renderer-shell-visual`
+(3 snaps) 0.0000% ✓, `cardGrid.test.mjs` 8/8 ✓, no page errors. Headful hardware flags used
+for GPU scenes. **S0 human checkpoint:** nothing visual moved (canary off by default), so there
+were no shots to review — proceeded on the green gates per the non-blocking rule.
 
 **Global TODO:**
-- [ ] S0 — stack setup: React + Vite plugin + Tailwind v4 in `web/`, COOP/COEP preserved, `tsc --noEmit` gate (`slices/00-stack-setup.md`)
+- [x] S0 — stack setup: React + Vite plugin + Tailwind v4 in `web/`, COOP/COEP preserved, `tsc --noEmit` gate (`slices/00-stack-setup.md`) — **shipped**
 - [ ] S1 — one bronze token source (`web/src/ui/theme/bronze.css`), consumed by Tailwind + vanilla + lab; **zero pixel change** (`slices/01-design-system.md`)
 - [ ] S2 — menu proof (first React surface: `#menu-ui` + duel modal) (`slices/02-menu-proof.md`)
 - [ ] S3 — **HUD perf SPIKE** (card bar in React, 60 Hz via refs, measured) → migrate/keep verdict (`slices/03-hud-perf-spike.md`)

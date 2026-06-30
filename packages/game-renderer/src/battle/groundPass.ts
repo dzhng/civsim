@@ -35,6 +35,7 @@ struct VsOut {
   @location(0) color: vec3f,
   @location(1) light: f32,
   @location(2) world: vec2f,
+  @location(3) fog: f32,
 };
 
 fn hash(p: vec2f) -> f32 {
@@ -68,6 +69,8 @@ fn vs(@location(0) world: vec3f, @location(1) normal: vec3f, @location(2) color:
   out.light = clamp(dot(normalize(normal), sun) * 0.45 + 0.74, 0.5, 1.18);
   out.color = color;
   out.world = world.xy;
+  let axes = cameraSpace(world.xy);
+  out.fog = smoothstep(720.0, 1850.0, axes.y) * 0.52;
   return out;
 }
 
@@ -100,6 +103,8 @@ fn fs(in: VsOut) -> @location(0) vec4f {
   let ruts = ridge(in.world * vec2f(0.11, 0.045) + vec2f(2.0, 0.0));
   let churn = clamp(0.58 + clods * 0.72 + ruts * 0.28, 0.42, 1.30);
   col = mix(col, col * churn, earth);
+  let haze = vec3f(0.78, 0.82, 0.81);
+  col = mix(col, haze, in.fog);
   return vec4f(clamp(col, vec3f(0.0), vec3f(1.0)), 1.0);
 }`;
 

@@ -11,10 +11,12 @@ sits in the Aegean register.
 The latest pass added a deterministic render-lab
 `renderer/battle-terrain-3d?gate=highland-valley&view=reference` fixture so relief
 can be judged against `assets/target-battle-map.png` without pretending the old
-catalog plateau is the reference map. That fixture is diagnostic only. It still
-fails the target relationship: the valley recession is too weak, the left ridge
-wall is placeholder-like, the right water sits as a flat strip, and the foreground
-grass/ground texture is noisier than the reference meadow.
+catalog plateau is the reference map. It now has a reference-only overcast sky,
+fixture-only distant valley/ridge/water backdrop, and a cleaned canvas capture
+without the old page-background strip. That fixture is still diagnostic only. It
+still fails the target relationship: the valley recession is too weak, the left
+ridge wall reads as pyramidal blockout geometry, the right water is hard-edged, and
+the foreground grass/ground texture is noisier than the reference meadow.
 
 Do not close this slice on `battle-terrain-elevation` or `terrain-3d/*` snapshots
 alone. Those prove seating and stability. Acceptance requires a

@@ -22,7 +22,7 @@ export async function run(ctx) {
     return;
   }
 
-  const page = await ctx.newPage({ viewport: { width: 1600, height: 781 }, errorPrefix: 'battle-map-reference' });
+  const page = await ctx.newPage({ viewport: { width: 1638, height: 800 }, errorPrefix: 'battle-map-reference' });
   await page.goto(`${ctx.target}/renderer/battle-terrain-3d?gate=highland-valley&view=reference`);
   await page.waitForFunction(() => window.__rendererLabReady === true && window.__rendererLabStats?.stats?.view === 'reference', { timeout: 20000 });
   await page.waitForTimeout(180);
@@ -51,8 +51,13 @@ export async function run(ctx) {
     JSON.stringify({ gate: stats.gate, mapId: stats.mapId, heightSpan: stats.heightSpan, edges: stats.edges }),
   );
 
-  const shot = await page.locator('#renderer-canvas').screenshot();
-  const candidate = PNG.sync.read(shot);
+  const rawShot = await page.locator('#renderer-canvas').screenshot();
+  const canvasSize = await page.evaluate(() => {
+    const canvas = document.querySelector('#renderer-canvas');
+    return canvas ? { width: canvas.width, height: canvas.height } : null;
+  });
+  const candidate = cropToSize(PNG.sync.read(rawShot), canvasSize?.width, canvasSize?.height);
+  const shot = PNG.sync.write(candidate);
   const target = PNG.sync.read(await readFile(TARGET));
   const candidateForeground = bandMetrics(candidate, 0.62, 0.98);
   const targetForeground = bandMetrics(target, 0.62, 0.98);
@@ -140,6 +145,19 @@ function cropRatio(src, xRatio, yRatio, wRatio, hRatio) {
   for (let y = 0; y < h; y++) {
     for (let x = 0; x < w; x++) {
       copyPixel(src, x0 + x, y0 + y, out, x, y);
+    }
+  }
+  return out;
+}
+
+function cropToSize(src, width, height) {
+  const w = Math.max(1, Math.min(src.width, Math.floor(width ?? src.width)));
+  const h = Math.max(1, Math.min(src.height, Math.floor(height ?? src.height)));
+  if (w === src.width && h === src.height) return src;
+  const out = new PNG({ width: w, height: h });
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      copyPixel(src, x, y, out, x, y);
     }
   }
   return out;

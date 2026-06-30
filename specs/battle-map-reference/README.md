@@ -155,10 +155,22 @@ debt:
 before starting Slice 04. Build from the now-shared terrain grass path, but do not
 pretend the sparse gameplay layer is the reference foreground.
 
-Every visual slice (01–08) ends with two gates: a `screenshot-regression` baseline
-snap **and** an unprimed `screenshot-critique` of the slice's hero shot against
-`assets/target-battle-map.png` *and* the warm `references/battle-*.jpg` aesthetics
-shots. A green snapshot proves *unchanged*, never *good*.
+Every visual slice (01–08) ends with three distinct gates:
+`screenshot-regression` for baseline stability, `compare-screenshots` against
+`assets/target-battle-map.png` for the "less wrong against the reference" verdict,
+and an unprimed `screenshot-critique` of the slice's hero shot against the target
+and the warm `references/battle-*.jpg` aesthetics shots. A green snapshot proves
+*unchanged*, never *good*.
+
+`compare-screenshots` is the reference-facing gate. It must establish the target
+from first principles, confirm the candidate/reference captures are comparable,
+generate side-by-side/crop/heatmap/edge artifacts as needed, and ask the skill's
+neutral subagent reviewer to inspect the images without implementation history. If
+the subagent calls out wrong camera, missing content, bad color, weak density, or
+style mismatch, treat that as visual evidence to fix or explicitly explain before
+accepting the slice. If the current map cannot yet be fairly compared to the
+reference, record that as "both wrong / another pass needed" rather than accepting
+on snapshot stability.
 
 **Update this section before you end your pass** — move the status, record what
 landed, and point at the next pickup slice.
@@ -319,8 +331,9 @@ by sim terrain read from wasm in `web/src/battle/scene.ts`.
   Routes asserted in `web/scenes/system/renderer-lab-routes.mjs`; handlers in
   `web/src/battle/scene.ts`; snapshots under `web/shots`. Gated behind
   `VERIFY_GPU=1`. Sim correctness stays in `cargo`. `screenshot-regression` owns
-  the snap mechanics; `screenshot-critique` is the mandatory unprimed gate on every
-  visual slice.
+  snap mechanics, `compare-screenshots` owns the reference-facing "less wrong"
+  comparison and neutral subagent review, and `screenshot-critique` remains the
+  mandatory unprimed qualitative gate on every visual slice.
 
 ## Firewalls / sacred contracts (every slice obeys)
 

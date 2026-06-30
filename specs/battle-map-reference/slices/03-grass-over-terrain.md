@@ -72,6 +72,12 @@ this slice visually accepted.
   blades — depth correct).
 - Perf within the `full-game-rendering-performance` budget with the grass instance
   cap + LOD active.
+- **Reference comparison (`compare-screenshots`):** compare the candidate battle
+  shot against `assets/target-battle-map.png`, with crops for foreground grass
+  density/color and midground recession. Use the skill's neutral subagent review
+  on the reference/candidate pair before accepting. If the candidate is still a
+  different map/camera, record the comparison as "both wrong / diagnostic" and do
+  not close the slice.
 - **Wind at field scale (`write-anim`):** loop the grass field swaying in context —
   the wind should read as a travelling breeze across the field, **not** every blade
   in the same phase, and sway must hold up under the zoom-coupled camera (no shimmer

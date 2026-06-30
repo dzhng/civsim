@@ -50,6 +50,7 @@ import { importedRigMesh } from './importedRigMesh';
 import { buildBattleUiModel, BattleUiLayer } from '../../../web/src/battle/uiLayer';
 import { UNIT_CLASS_BY_KEY, UnitClass, CLASS_NAMES } from '../../../web/src/battle/classData';
 import { UnitCards, type UnitCardInit, type UnitCardState } from '../../../web/src/battle/unitCard';
+import { UnitCardsReact } from '../../../web/src/ui/hud/UnitCardsReact';
 import { installViewportGate } from '../../../web/src/battle/viewportGate';
 import { loadCampaignData, nearestLoc, type CampaignData } from '../../../web/src/campaign/data';
 import { Allegiance } from '../../../web/src/campaign/status';
@@ -2765,12 +2766,17 @@ async function routeCardBar(ctx: LabContext) {
   installViewportGate(tooSmall);
 
   let lastSelect: { unit: number; additive: boolean } | null = null;
-  // No minimap in this harness, so reserve only a bare side margin (not the live
-  // game's minimap clearance) — the demo shows the bar at its full width.
-  const cards = new UnitCards(band, (unit, additive) => {
+  const onSelect = (unit: number, additive: boolean) => {
     lastSelect = { unit, additive };
     (window as unknown as { __cardBarLastSelect?: unknown }).__cardBarLastSelect = lastSelect;
-  }, 12);
+  };
+  // No minimap in this harness, so reserve only a bare side margin (not the live
+  // game's minimap clearance) — the demo shows the bar at its full width.
+  // ?react renders the S3-spike React card bar instead, so the same DOM-only
+  // card-bar gate validates it is pixel-identical to the vanilla strip.
+  const cards = ctx.params.get('react') != null
+    ? new UnitCardsReact(band, onSelect, 12)
+    : new UnitCards(band, onSelect, 12);
 
   // Synthetic roster: cycle every class so portraits, names, and faction accent
   // all vary; live-ish bar values so the strip reads like a real fight.
@@ -3670,17 +3676,18 @@ function installStyles() {
     .renderer-battle-summary .mor em { background: #c2554e; }
     /* Same fixed-size, shrink-wrapping, no-scroll grid as the live #unitcards
        (unitCard.ts writes --cols/--card-w/--card-h). */
-    .renderer-unitcards { position: absolute; bottom: 58px; left: 50%; transform: translateX(-50%); display: grid; width: max-content; max-width: calc(100% - 36px); grid-template-columns: repeat(var(--cols, 1), var(--card-w, 72px)); grid-auto-rows: var(--card-h, 96px); gap: 3px; justify-content: center; align-content: end; overflow: hidden; padding: 10px 11px; pointer-events: auto; background: linear-gradient(#5a4225, #2c2012) padding-box, linear-gradient(#b8904e 0%, #6e5128 45%, #2a1d0f 100%) border-box; border: 3px solid transparent; border-radius: 5px; box-shadow: inset 0 1px 0 rgba(232,196,128,0.6), inset 0 0 0 2px rgba(18,12,6,0.7), inset 0 -3px 7px rgba(0,0,0,0.6), 0 0 0 1px rgba(176,138,78,0.6), 0 8px 22px rgba(0,0,0,0.66); }
-    .renderer-unitcards .ucard { width: var(--card-w); height: var(--card-h); aspect-ratio: 3 / 4; box-sizing: border-box; position: relative; overflow: hidden; background: #0c0a06; border: 1px solid #2a1d0e; border-top: 3px solid var(--fac); border-radius: 1px; cursor: pointer; transition: box-shadow 0.1s; box-shadow: inset 0 0 0 1px rgba(150,114,62,0.4), inset 0 0 9px rgba(0,0,0,0.85); }
-    .renderer-unitcards .ucard:hover { box-shadow: inset 0 0 0 1px rgba(201,165,99,0.7), inset 0 0 8px rgba(0,0,0,0.7); }
-    .renderer-unitcards .ucard.sel { border-color: #f0d98a; z-index: 2; box-shadow: inset 0 0 0 1px #f0d98a, 0 0 9px 1px rgba(240,212,122,0.6); }
+    .renderer-unitcards { position: absolute; bottom: 58px; left: 50%; transform: translateX(-50%); display: grid; width: max-content; max-width: calc(100% - 36px); grid-template-columns: repeat(var(--cols, 1), var(--card-w, 72px)); grid-auto-rows: var(--card-h, 96px); gap: 3px; justify-content: center; align-content: end; overflow: hidden; padding: 11px 12px; pointer-events: auto; background: radial-gradient(circle at 9px 9px, rgba(234,204,142,0.95) 0 1.1px, rgba(58,42,22,0.95) 1.5px 2.7px, transparent 3.1px) padding-box, radial-gradient(circle at calc(100% - 9px) 9px, rgba(234,204,142,0.95) 0 1.1px, rgba(58,42,22,0.95) 1.5px 2.7px, transparent 3.1px) padding-box, radial-gradient(circle at 9px calc(100% - 9px), rgba(234,204,142,0.95) 0 1.1px, rgba(58,42,22,0.95) 1.5px 2.7px, transparent 3.1px) padding-box, radial-gradient(circle at calc(100% - 9px) calc(100% - 9px), rgba(234,204,142,0.95) 0 1.1px, rgba(58,42,22,0.95) 1.5px 2.7px, transparent 3.1px) padding-box, repeating-linear-gradient(96deg, rgba(255,228,168,0.035) 0 2px, rgba(0,0,0,0.04) 2px 4px) padding-box, linear-gradient(#5e4527, #2a1f11) padding-box, linear-gradient(#c79a54 0%, #6e5128 48%, #241a0e 100%) border-box; border: 4px solid transparent; border-radius: 5px; box-shadow: inset 0 1px 0 rgba(236,200,132,0.65), inset 0 0 0 2px rgba(16,10,5,0.78), inset 0 0 0 3px rgba(158,120,66,0.55), inset 0 -3px 8px rgba(0,0,0,0.6), 0 0 0 1px rgba(182,142,80,0.65), 0 9px 24px rgba(0,0,0,0.68); }
+    .renderer-unitcards .ucard { width: var(--card-w); height: var(--card-h); aspect-ratio: 3 / 4; box-sizing: border-box; position: relative; display: flex; flex-direction: column; overflow: hidden; background: #16100a; border: 1px solid #3a2c18; border-top: 3px solid var(--fac); border-radius: 2px; cursor: pointer; transition: box-shadow 0.1s, border-color 0.1s; }
+    .renderer-unitcards .ucard:hover { border-color: #6e5128; }
+    .renderer-unitcards .ucard.sel { border-color: #f0d98a; z-index: 2; box-shadow: 0 0 9px 1px rgba(240,212,122,0.6); }
     .renderer-unitcards .ucard.rout { filter: grayscale(0.5) brightness(0.8); }
-    .renderer-unitcards .ucard.rout::after { content: 'ROUT'; position: absolute; top: 20px; left: 0; right: 0; text-align: center; z-index: 3; font: 700 9px ui-monospace, monospace; color: #ff7a6b; text-shadow: 0 1px 2px #000; }
-    .renderer-unitcards .ucard-port { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; background: #1c150d; }
-    .renderer-unitcards .ucard::before { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 34px; background: linear-gradient(transparent, rgba(6,8,11,0.88)); pointer-events: none; z-index: 1; }
-    .renderer-unitcards .ucard-name { position: absolute; left: 0; right: 0; bottom: 15px; z-index: 2; text-align: center; padding: 0 2px; font: 700 8px ui-monospace, Menlo, monospace; color: #eef1f7; text-shadow: 0 1px 2px #000, 0 0 3px #000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .renderer-unitcards .ucard-count { position: absolute; top: 2px; right: 4px; z-index: 2; font: 700 10px ui-monospace, monospace; color: #fff; text-shadow: 0 1px 2px #000, 0 0 3px #000; }
-    .renderer-unitcards .ucard-bars { position: absolute; left: 50%; transform: translateX(-50%); bottom: 3px; z-index: 2; width: 86%; }
+    .renderer-unitcards .ucard.rout::after { content: 'ROUT'; position: absolute; top: 30px; left: 0; right: 0; text-align: center; z-index: 3; font: 700 9px ui-monospace, monospace; color: #ff7a6b; text-shadow: 0 1px 2px #000; }
+    .renderer-unitcards .ucard-hp { position: relative; flex: none; height: 10px; background: rgba(6,8,5,0.82); box-shadow: inset 0 -1px 0 rgba(0,0,0,0.5); overflow: hidden; }
+    .renderer-unitcards .ucard-hp-fill { height: 100%; width: 100%; }
+    .renderer-unitcards .ucard-count { position: absolute; top: 0; right: 5px; line-height: 10px; font: 700 9px ui-monospace, monospace; color: #fff; text-shadow: 0 1px 2px #000, 0 0 3px #000; }
+    .renderer-unitcards .ucard-port { display: block; flex: 1 1 0; min-height: 0; width: 100%; object-fit: cover; background: #1c150d; }
+    .renderer-unitcards .ucard-name { flex: none; padding: 1px 3px 0; text-align: center; font: 700 8px ui-monospace, Menlo, monospace; color: #ead9b0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .renderer-unitcards .ucard-bars { flex: none; padding: 0 4px 1px; }
     .renderer-unitcards .ucard-bar { height: 3px; background: rgba(8,9,11,0.7); border-radius: 2px; overflow: hidden; margin-bottom: 1px; }
     .renderer-unitcards .ucard-bar > div { height: 100%; width: 100%; }
     .renderer-unitcards .ucard-bar.hp > div { background: #5cba46; }

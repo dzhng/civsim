@@ -3,6 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <title>Battle Sim</title>
+  <!-- The one bronze design source: the :root design tokens. Loaded
+       render-blocking before the inline <style> below so var(--bronze-*)
+       resolves at first paint. -->
+  <link rel="stylesheet" href="/src/ui/theme/bronze.css" />
   <style>
     /* Cinzel: an engraved Roman-caps serif (OFL) for the campaign map labels —
        cities, regions, factions. Classical-atlas lettering. */
@@ -13,18 +17,28 @@
       font-display: swap;
     }
     html, body { margin: 0; height: 100%; overflow: hidden; background: #14161c; }
+    /* Bronze design tokens (:root) and the .chassis / .chassis-tray housing
+       classes now live in src/ui/theme/bronze.css — the one bronze source.
+       Everything below still consumes the tokens via var(--bronze-*). */
     #battlefield { display: block; width: 100vw; height: 100vh; }
     #hud {
       position: fixed; top: 12px; left: 12px;
       font: 12px/1.5 ui-monospace, Menlo, monospace;
-      color: #c8cdd8; background: rgba(10, 12, 16, 0.75);
-      padding: 10px 14px; border-radius: 8px; pointer-events: none;
-      min-width: 220px;
+      color: #ecd9b0; pointer-events: none; min-width: 234px; max-width: 282px;
+      padding: 10px 13px 11px; border: 3px solid transparent; border-radius: 5px;
+      background: var(--bronze-fill) padding-box, var(--bronze-edge) border-box;
+      box-shadow: var(--bronze-frame);
     }
-    #hud .bar {
-      height: 6px; background: #2a2e3a; border-radius: 3px; overflow: hidden; margin: 2px 0 6px;
-    }
-    #hud .bar > div { height: 100%; background: #4caf6d; }
+    /* Visual unit readout: portrait + name header, labeled stat bars, detail. */
+    #hud .hud-head { display: flex; gap: 9px; align-items: center; margin: 7px 0 9px; }
+    #hud .hud-port { width: 58px; height: 54px; flex: none; object-fit: cover; border: 1px solid #2a1d0e; border-radius: 2px; background: #1c150d; box-shadow: inset 0 0 0 1px rgba(150,114,62,0.3); }
+    #hud .hud-name { font: 700 16px 'Cinzel', ui-serif, Georgia, serif; color: #f0e3b0; letter-spacing: 0.5px; line-height: 1.1; }
+    #hud .hud-meta { font-size: 11px; color: #b89a64; margin-top: 3px; }
+    #hud .hud-stat { display: flex; align-items: center; gap: 7px; margin: 3px 0; }
+    #hud .hud-stat > span { width: 26px; flex: none; font-size: 10px; letter-spacing: 1px; color: #c9a461; }
+    #hud .hud-bar { flex: 1; height: 7px; background: rgba(6,8,5,0.8); border-radius: 2px; overflow: hidden; box-shadow: inset 0 0 0 1px rgba(150,114,62,0.3); }
+    #hud .hud-bar > div { height: 100%; }
+    #hud .hud-detail { margin-top: 9px; padding-top: 7px; border-top: 1px solid rgba(150,114,62,0.3); font-size: 11px; line-height: 1.5; color: #cbb486; }
     #help {
       position: fixed; bottom: 12px; left: 12px;
       font: 11px ui-monospace, Menlo, monospace; color: #6b7280;
@@ -33,42 +47,44 @@
       position: fixed; top: 12px; right: 12px; display: flex; gap: 8px;
     }
     #buttons button {
-      font: 12px ui-monospace, Menlo, monospace; color: #c8cdd8;
-      background: rgba(10,12,16,0.8); border: 1px solid #3a3f4d;
-      border-radius: 6px; padding: 6px 12px; cursor: pointer;
+      font: 700 11px ui-monospace, Menlo, monospace; color: var(--bronze-ink);
+      background: var(--well-bg); border: 1px solid #3a2c18;
+      border-radius: 2px; padding: 6px 12px; cursor: pointer;
+      box-shadow: var(--well-shadow);
     }
-    #buttons button:hover { background: rgba(40,44,56,0.9); }
+    #buttons button:hover { color: var(--bronze-ink-bright); box-shadow: var(--well-hover); }
     #manual {
       display: none; position: fixed; top: 48px; right: 270px; bottom: 172px; z-index: 50;
       width: min(520px, calc(100vw - 310px)); max-height: none;
-      overflow-y: scroll; background: #0c0e13;
-      border: 1px solid #3a3f4d; border-radius: 10px;
-      color: #cdd2dd; font: 13px/1.6 -apple-system, sans-serif;
-      padding: 12px 22px 22px;
-      box-shadow: 0 18px 40px rgba(0,0,0,0.55), inset 0 -18px 18px rgba(0,0,0,0.34);
+      overflow-y: scroll; color: #e7d8b4; font: 13px/1.6 -apple-system, sans-serif;
+      padding: 12px 22px 22px; border: 3px solid transparent; border-radius: 5px;
+      background: var(--bronze-fill) padding-box, var(--bronze-edge) border-box;
+      box-shadow: var(--bronze-frame), inset 0 -18px 18px rgba(0,0,0,0.34);
     }
     #manual::-webkit-scrollbar { width: 10px; }
-    #manual::-webkit-scrollbar-track { background: #151820; border-radius: 10px; }
-    #manual::-webkit-scrollbar-thumb { background: #4b5263; border-radius: 10px; }
-    #manual h1 { font-size: 19px; } #manual h2 { font-size: 15px; margin-top: 18px; color: #e8d9a8; }
+    #manual::-webkit-scrollbar-track { background: rgba(6,8,5,0.6); border-radius: 5px; }
+    #manual::-webkit-scrollbar-thumb { background: #6e5128; border-radius: 5px; }
+    #manual h1 { font-size: 19px; color: #e8cf96; } #manual h2 { font-size: 15px; margin-top: 18px; color: #e8cf96; }
     #manual table { border-collapse: collapse; width: 100%; margin: 6px 0; }
-    #manual td, #manual th { border: 1px solid #333947; padding: 3px 8px; font-size: 12px; text-align: left; }
+    #manual td, #manual th { border: 1px solid rgba(150,114,62,0.35); padding: 3px 8px; font-size: 12px; text-align: left; }
     #banner {
       display: none; position: fixed; top: 38%; left: 0; right: 0;
-      text-align: center; font: bold 42px ui-monospace, Menlo, monospace;
-      text-shadow: 0 2px 14px rgba(0,0,0,0.9); pointer-events: none;
+      text-align: center; font: 700 52px 'Cinzel', ui-serif, Georgia, serif; letter-spacing: 4px;
+      color: #e8cf96; text-shadow: 0 2px 16px rgba(0,0,0,0.95); pointer-events: none;
     }
     #selbox {
       display: none; position: fixed; border: 1px solid rgba(255,255,255,0.7);
       background: rgba(255,255,255,0.08); pointer-events: none;
     }
     #unitlabels { position: fixed; inset: 0; pointer-events: none; z-index: 3; }
+    /* Worn-bronze chassis from the shared tokens (bronze.css) — opaque
+       worn-metal housing, NOT a translucent web pill bar. */
     #toolbar {
       position: fixed; bottom: 10px; left: 50%; transform: translateX(-50%);
-      display: flex; gap: 6px; align-items: center; z-index: 5;
-      background: rgba(12,14,19,0.85); border: 1px solid #3a3f4d;
-      border-radius: 10px; padding: 7px 10px;
-      box-shadow: 0 4px 18px rgba(0,0,0,0.5);
+      display: flex; gap: 5px; align-items: center; z-index: 5;
+      padding: 6px 8px; border: 3px solid transparent; border-radius: 5px;
+      background: var(--bronze-fill) padding-box, var(--bronze-edge) border-box;
+      box-shadow: var(--bronze-frame);
     }
     /* Bottom unit-card strip: one card per player unit (Total War style).
        Fixed-size cards in a no-scroll grid — JS writes --cols/--card-w/--card-h
@@ -81,49 +97,54 @@
       grid-template-columns: repeat(var(--cols, 1), var(--card-w, 72px));
       grid-auto-rows: var(--card-h, 96px);
       gap: 3px; justify-content: center; align-content: end;
-      overflow: hidden; padding: 10px 11px;
-      /* Opaque worn-bronze chassis (padding-box) inside a beveled brass edge
-         (border-box) — a game HUD housing, not a translucent web overlay. The
-         wells sit in a recessed dark tray (the inner inset groove). */
+      overflow: hidden; padding: 11px 12px;
+      /* Riveted bronze tray: corner rivets + brushed grain over the shared
+         fill/edge tokens; the deeper 6-layer frame is unique to this housing. */
       background:
-        linear-gradient(#5a4225, #2c2012) padding-box,
-        linear-gradient(#b8904e 0%, #6e5128 45%, #2a1d0f 100%) border-box;
-      border: 3px solid transparent; border-radius: 5px;
+        radial-gradient(circle at 9px 9px, rgba(234,204,142,0.95) 0 1.1px, rgba(58,42,22,0.95) 1.5px 2.7px, transparent 3.1px) padding-box,
+        radial-gradient(circle at calc(100% - 9px) 9px, rgba(234,204,142,0.95) 0 1.1px, rgba(58,42,22,0.95) 1.5px 2.7px, transparent 3.1px) padding-box,
+        radial-gradient(circle at 9px calc(100% - 9px), rgba(234,204,142,0.95) 0 1.1px, rgba(58,42,22,0.95) 1.5px 2.7px, transparent 3.1px) padding-box,
+        radial-gradient(circle at calc(100% - 9px) calc(100% - 9px), rgba(234,204,142,0.95) 0 1.1px, rgba(58,42,22,0.95) 1.5px 2.7px, transparent 3.1px) padding-box,
+        repeating-linear-gradient(96deg, rgba(255,228,168,0.035) 0 2px, rgba(0,0,0,0.04) 2px 4px) padding-box,
+        var(--bronze-fill) padding-box,
+        var(--bronze-edge) border-box;
+      border: 4px solid transparent; border-radius: 5px;
       box-shadow:
-        inset 0 1px 0 rgba(232,196,128,0.6),
-        inset 0 0 0 2px rgba(18,12,6,0.7),
-        inset 0 -3px 7px rgba(0,0,0,0.6),
-        0 0 0 1px rgba(176,138,78,0.6),
-        0 8px 22px rgba(0,0,0,0.66);
+        inset 0 1px 0 rgba(236,200,132,0.65),
+        inset 0 0 0 2px rgba(16,10,5,0.78),
+        inset 0 0 0 3px rgba(158,120,66,0.55),
+        inset 0 -3px 8px rgba(0,0,0,0.6),
+        0 0 0 1px rgba(182,142,80,0.65),
+        0 9px 24px rgba(0,0,0,0.68);
     }
     @media (max-width: 760px) {
       #manual { left: 12px; right: 12px; bottom: 172px; width: auto; }
     }
-    /* The portrait fills the whole 3:4 card (same aspect as the baked PNG, so it
-       just fills — no crop, no letterbox); name / count / bars overlay it over a
-       bottom scrim, Total-War style. */
-    /* Each card is an inset well in the chassis (recessed, bronze-rimmed),
-       NOT a floating rounded web card. */
+    /* A 3:4 card as a column: HP strength bar / portrait (fills the middle) / name +
+       cohesion-morale bars — each in its own strip so chrome never overlaps the
+       figure. The portrait PNG is baked to the middle region's aspect, not 3:4. An
+       inset bronze-rimmed well in the chassis, not a floating rounded web card. */
     .ucard {
       width: var(--card-w); height: var(--card-h); aspect-ratio: 3 / 4; box-sizing: border-box;
-      position: relative; overflow: hidden;
-      background: #0c0a06; border: 1px solid #2a1d0e;
-      border-top: 3px solid var(--fac); border-radius: 1px;
-      cursor: pointer; transition: box-shadow 0.1s;
-      box-shadow: inset 0 0 0 1px rgba(150,114,62,0.4), inset 0 0 9px rgba(0,0,0,0.85);
+      position: relative; display: flex; flex-direction: column; overflow: hidden;
+      background: #16100a; border: 1px solid #3a2c18;
+      border-top: 3px solid var(--fac); border-radius: 2px;
+      cursor: pointer; transition: box-shadow 0.1s, border-color 0.1s;
     }
-    .ucard:hover { box-shadow: inset 0 0 0 1px rgba(201,165,99,0.7), inset 0 0 8px rgba(0,0,0,0.7); }
-    .ucard.sel { border-color: #f0d98a; z-index: 2; box-shadow: inset 0 0 0 1px #f0d98a, 0 0 9px 1px rgba(240,212,122,0.6); }
+    .ucard:hover { border-color: #6e5128; }
+    .ucard.sel { border-color: #f0d98a; z-index: 2; box-shadow: 0 0 9px 1px rgba(240,212,122,0.6); }
     .ucard.rout { filter: grayscale(0.5) brightness(0.8); }
     .ucard.rout::after {
-      content: 'ROUT'; position: absolute; top: 20px; left: 0; right: 0; text-align: center; z-index: 3;
+      content: 'ROUT'; position: absolute; top: 30px; left: 0; right: 0; text-align: center; z-index: 3;
       font: 700 9px ui-monospace, monospace; color: #ff7a6b; text-shadow: 0 1px 2px #000;
     }
-    .ucard-port { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; background: #1c150d; }
-    .ucard::before { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 34px; background: linear-gradient(transparent, rgba(6,8,11,0.88)); pointer-events: none; z-index: 1; }
-    .ucard-name { position: absolute; left: 0; right: 0; bottom: 15px; z-index: 2; text-align: center; padding: 0 2px; font: 700 8px ui-monospace, Menlo, monospace; color: #eef1f7; text-shadow: 0 1px 2px #000, 0 0 3px #000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .ucard-count { position: absolute; top: 2px; right: 4px; z-index: 2; font: 700 10px ui-monospace, monospace; color: #fff; text-shadow: 0 1px 2px #000, 0 0 3px #000; }
-    .ucard-bars { position: absolute; left: 50%; transform: translateX(-50%); bottom: 3px; z-index: 2; width: 86%; }
+    /* HP strength bar across the top, count riding on it (the reference). */
+    .ucard-hp { position: relative; flex: none; height: 10px; background: rgba(6,8,5,0.82); box-shadow: inset 0 -1px 0 rgba(0,0,0,0.5); overflow: hidden; }
+    .ucard-hp-fill { height: 100%; width: 100%; }
+    .ucard-count { position: absolute; top: 0; right: 5px; line-height: 10px; font: 700 9px ui-monospace, monospace; color: #fff; text-shadow: 0 1px 2px #000, 0 0 3px #000; }
+    .ucard-port { display: block; flex: 1 1 0; min-height: 0; width: 100%; object-fit: cover; background: #1c150d; }
+    .ucard-name { flex: none; padding: 1px 3px 0; text-align: center; font: 700 8px ui-monospace, Menlo, monospace; color: #ead9b0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ucard-bars { flex: none; padding: 0 4px 1px; }
     .ucard-bar { height: 3px; background: rgba(8,9,11,0.7); border-radius: 2px; overflow: hidden; margin-bottom: 1px; }
     .ucard-bar > div { height: 100%; width: 100%; }
     .ucard-bar.hp > div { background: #5cba46; }
@@ -144,14 +165,16 @@
     #viewport-too-small h2 { margin: 0 0 8px; font-size: 18px; color: #f0e3b0; }
     #viewport-too-small p { margin: 0; line-height: 1.5; color: #9aa3b2; }
     #toolbar button {
-      font: 12px ui-monospace, Menlo, monospace; color: #c8cdd8;
-      background: rgba(34,38,48,0.9); border: 1px solid #444a5a;
-      border-radius: 6px; padding: 5px 10px; cursor: pointer; white-space: nowrap;
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 30px; height: 30px; padding: 0; cursor: pointer;
+      color: #e7cfa0; background: #1a130b; border: 1px solid #3a2c18; border-radius: 2px;
+      box-shadow: inset 0 0 0 1px rgba(150,114,62,0.3), inset 0 0 6px rgba(0,0,0,0.7);
     }
-    #toolbar button:hover { background: rgba(56,62,78,0.95); }
-    #toolbar button.on { background: #4a6; border-color: #6c8; color: #fff; }
-    #toolbar button:disabled { opacity: 0.4; cursor: default; }
-    #toolbar .sep { width: 1px; height: 18px; background: #3a3f4d; }
+    #toolbar button svg { width: 18px; height: 18px; fill: currentColor; display: block; }
+    #toolbar button:hover { color: #f6e4ba; box-shadow: inset 0 0 0 1px rgba(201,165,99,0.7), inset 0 0 6px rgba(0,0,0,0.6); }
+    #toolbar button.on { color: #1a130b; background: linear-gradient(#f0d98a, #c9a14e); border-color: #f0d98a; box-shadow: 0 0 7px rgba(240,212,122,0.55); }
+    #toolbar button:disabled { opacity: 0.32; cursor: default; }
+    #toolbar .sep { width: 1px; height: 18px; background: rgba(150,114,62,0.55); }
     /* Unit banner: one component = standard (SVG flag) + health/cohesion bars + status chips. */
     .ubanner {
       position: absolute; width: 56px; display: none; will-change: transform;
@@ -183,10 +206,10 @@
     }
     #banner-gallery .ubanner-cap { font: 600 10px ui-monospace, Menlo, monospace; color: #cfe0bf; }
     #minimap {
-      position: fixed; right: 12px; bottom: 170px;
-      border: 1px solid #3a3f4d; border-radius: 6px;
-      background: #11141a; cursor: crosshair;
-      box-shadow: 0 4px 18px rgba(0,0,0,0.5);
+      position: fixed; right: 12px; bottom: 170px; cursor: crosshair;
+      border: 4px solid transparent; border-radius: 5px;
+      background: var(--bronze-fill) padding-box, var(--bronze-edge) border-box;
+      box-shadow: var(--bronze-frame);
       /* Above the world-space unit banners (#unitlabels, z-index 3) so a banner
          drawn over a unit near the corner can't bleed across the minimap. */
       z-index: 10;
@@ -203,8 +226,8 @@
       color: #c8cdd8; font: 14px ui-monospace, Menlo, monospace;
     }
     #menu-ui h1 {
-      margin: 0; font: bold 52px ui-monospace, Menlo, monospace; letter-spacing: 10px;
-      color: #e8d9a8; text-shadow: 0 3px 22px rgba(0,0,0,0.9);
+      margin: 0; font: 700 58px 'Cinzel', ui-serif, Georgia, serif; letter-spacing: 7px;
+      color: #e8cf96; text-shadow: 0 3px 22px rgba(0,0,0,0.9);
       animation: title-glow 5s ease-in-out infinite;
     }
     @keyframes title-glow {
@@ -222,32 +245,27 @@
     #menu-ui #menu-renderer-status.bad { border-color: #714447; color: #e2a4a0; }
     #menu-ui .menu-section {
       display: flex; flex-direction: column; gap: 10px; width: min(380px, 84vw);
-      background: rgba(12,14,19,0.82); border: 1px solid #3a3f4d; border-radius: 12px;
-      padding: 16px 20px 20px; box-shadow: 0 8px 30px rgba(0,0,0,0.55);
+      padding: 16px 20px 20px; border: 3px solid transparent; border-radius: 5px;
+      background: var(--bronze-fill) padding-box, var(--bronze-edge) border-box;
+      box-shadow: var(--bronze-frame);
     }
-    /* The campaign is the marquee mode — give it a warm accent. */
-    #menu-ui .menu-section.feature {
-      border-color: #6a6446;
-      box-shadow: 0 8px 34px rgba(60,52,28,0.4), inset 0 0 0 1px rgba(232,217,168,0.05);
-    }
-    #menu-ui .menu-section.feature h2 { color: #c9b88a; border-bottom-color: #45402c; }
-    #menu-ui .section-hint { margin: -4px 0 2px; color: #6b7280; font-size: 11px; letter-spacing: 0.5px; }
+    /* The campaign is the marquee mode — give it a brighter brass edge. */
+    #menu-ui .menu-section.feature { box-shadow: var(--bronze-frame), 0 0 0 1px rgba(232,200,120,0.3); }
+    #menu-ui .menu-section.feature h2 { color: #f0d98a; }
+    #menu-ui .section-hint { margin: -4px 0 2px; color: #9c8048; font-size: 11px; letter-spacing: 0.5px; }
     #menu-ui h2 {
       margin: 0 0 4px; font-size: 13px; letter-spacing: 4px; text-transform: uppercase;
-      color: #8a9099; border-bottom: 1px solid #2a2e3a; padding-bottom: 8px;
+      color: #c9a461; border-bottom: 1px solid rgba(150,114,62,0.4); padding-bottom: 8px;
     }
     #menu-ui button {
-      font: 16px ui-monospace, Menlo, monospace; color: #d8dde8; text-align: left;
-      background: rgba(34,38,48,0.9); border: 1px solid #444a5a;
-      border-radius: 8px; padding: 13px 18px; cursor: pointer;
-      transition: background 0.13s ease, border-color 0.13s ease, transform 0.08s ease;
+      font: 15px ui-monospace, Menlo, monospace; color: var(--bronze-ink); text-align: left;
+      background: var(--well-bg); border: 1px solid #3a2c18; border-radius: 2px;
+      padding: 13px 18px; cursor: pointer; box-shadow: var(--well-shadow);
+      transition: box-shadow 0.12s ease, color 0.12s ease;
     }
-    #menu-ui button:hover:not(:disabled) {
-      background: rgba(64,72,92,0.95); border-color: #6f7a96; transform: translateY(-1px);
-    }
-    #menu-ui button:active:not(:disabled) { transform: translateY(0); }
+    #menu-ui button:hover:not(:disabled) { color: var(--bronze-ink-bright); box-shadow: var(--well-hover); }
     #menu-ui button:disabled { opacity: 0.4; cursor: default; }
-    #menu-ui button small { color: #8a9099; float: right; font-size: 11px; line-height: 20px; }
+    #menu-ui button small { color: #9c8048; float: right; font-size: 11px; line-height: 20px; }
     #menu-ui .duel-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
     #menu-ui .duel-vs { color: #6b7280; font-size: 12px; }
     #menu-ui select {
@@ -267,28 +285,30 @@
     #gameover p { margin: 0 0 18px; color: #8a9099; font-size: 13px; }
     #gameover button {
       display: block; width: 100%; margin: 6px 0; padding: 9px 14px; cursor: pointer;
-      background: rgba(48,54,70,0.95); color: #cfd6e4; border: 1px solid #4a5268;
-      border-radius: 6px; font: inherit;
+      background: var(--well-bg); color: var(--bronze-ink); border: 1px solid #3a2c18;
+      border-radius: 2px; font: inherit; box-shadow: var(--well-shadow);
     }
-    #gameover button:hover { background: rgba(64,72,92,0.95); border-color: #6f7a96; }
-    #gameover .watch { background: none; border: none; color: #6b7280; font-size: 12px; margin-top: 10px; }
+    #gameover button:hover { color: var(--bronze-ink-bright); box-shadow: var(--well-hover); }
+    #gameover .watch { background: none; border: none; box-shadow: none; color: #9c8048; font-size: 12px; margin-top: 10px; }
     #duel-modal, #pausemenu {
       display: none; position: fixed; inset: 0; z-index: 40;
       background: rgba(8,10,14,0.6); align-items: center; justify-content: center;
       font: 14px ui-monospace, Menlo, monospace;
     }
     #duel-modal .panel, #pausemenu .panel {
-      background: rgba(22,26,34,0.97); border: 1px solid #4a5268; border-radius: 10px;
-      padding: 26px 32px; min-width: 320px; color: #c8cdd8;
+      padding: 26px 32px; min-width: 320px; color: #ecd9b0;
+      border: 3px solid transparent; border-radius: 5px;
+      background: var(--bronze-fill) padding-box, var(--bronze-edge) border-box;
+      box-shadow: var(--bronze-frame);
     }
-    #duel-modal h2, #pausemenu h2 { margin: 0 0 16px; font-size: 16px; letter-spacing: 3px; color: #aeb6c6; }
+    #duel-modal h2, #pausemenu h2 { margin: 0 0 16px; font-size: 16px; letter-spacing: 3px; color: #c9a461; }
     #duel-modal button, #pausemenu button {
       display: block; width: 100%; margin: 8px 0 0; padding: 9px 14px; cursor: pointer;
-      background: rgba(48,54,70,0.95); color: #cfd6e4; border: 1px solid #4a5268;
-      border-radius: 6px; font: inherit; text-align: center;
+      background: var(--well-bg); color: var(--bronze-ink); border: 1px solid #3a2c18;
+      border-radius: 2px; font: inherit; text-align: center; box-shadow: var(--well-shadow);
     }
-    #duel-modal button:hover, #pausemenu button:hover { background: rgba(64,72,92,0.95); border-color: #6f7a96; }
-    #duel-modal .cancel, #pausemenu .watch { background: none; border: none; color: #6b7280; font-size: 12px; }
+    #duel-modal button:hover, #pausemenu button:hover { color: var(--bronze-ink-bright); box-shadow: var(--well-hover); }
+    #duel-modal .cancel, #pausemenu .watch { background: none; border: none; box-shadow: none; color: #9c8048; font-size: 12px; }
     #duel-modal .duel-row { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; }
     #duel-modal .duel-vs { color: #6b7280; font-size: 12px; }
     #duel-modal select {
@@ -303,26 +323,28 @@
     }
     #quick-battle-modal.open { display: flex; }
     .quick-battle-panel {
-      background: rgba(22,26,34,0.97); border: 1px solid #4a5268; border-radius: 10px;
-      padding: 22px 26px; color: #c8cdd8; width: min(900px, 94vw); max-height: 90vh; overflow: auto;
+      padding: 22px 26px; color: #ecd9b0; width: min(900px, 94vw); max-height: 90vh; overflow: auto;
+      border: 3px solid transparent; border-radius: 5px;
+      background: var(--bronze-fill) padding-box, var(--bronze-edge) border-box;
+      box-shadow: var(--bronze-frame);
     }
-    .quick-battle-panel h2 { margin: 0 0 14px; font-size: 16px; letter-spacing: 3px; color: #aeb6c6; }
+    .quick-battle-panel h2 { margin: 0 0 14px; font-size: 16px; letter-spacing: 3px; color: #c9a461; }
     .qb-maps { display: flex; gap: 8px; margin-bottom: 14px; }
-    .qb-map { flex: 1; text-align: left; padding: 8px 10px; background: rgba(48,54,70,0.9); border: 1px solid #4a5268; border-radius: 6px; color: #cfd6e4; cursor: pointer; font: inherit; }
-    .qb-map.selected { border-color: #c8a24a; background: rgba(70,62,40,0.9); }
+    .qb-map { flex: 1; text-align: left; padding: 8px 10px; background: var(--well-bg); border: 1px solid #3a2c18; border-radius: 2px; color: var(--bronze-ink); cursor: pointer; font: inherit; box-shadow: var(--well-shadow); }
+    .qb-map.selected { border-color: #f0d98a; box-shadow: inset 0 0 0 1px #f0d98a, 0 0 7px rgba(240,212,122,0.5); }
     .qb-map strong { display: block; }
-    .qb-map small { color: #8a9099; font-size: 11px; }
+    .qb-map small { color: #9c8048; font-size: 11px; }
     .qb-armies { display: flex; gap: 16px; }
     .qb-army { flex: 1; min-width: 0; }
-    .qb-army h3 { margin: 0 0 8px; font-size: 13px; color: #aeb6c6; }
+    .qb-army h3 { margin: 0 0 8px; font-size: 13px; color: #c9a461; }
     .qb-templates { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px; }
-    .qb-template { padding: 4px 8px; background: rgba(48,54,70,0.9); border: 1px solid #4a5268; border-radius: 4px; color: #cfd6e4; cursor: pointer; font: inherit; font-size: 11px; }
+    .qb-template { padding: 4px 8px; background: var(--well-bg); border: 1px solid #3a2c18; border-radius: 2px; color: var(--bronze-ink); cursor: pointer; font: inherit; font-size: 11px; box-shadow: var(--well-shadow); }
     .qb-rows { max-height: 40vh; overflow: auto; }
     .qb-row { display: grid; grid-template-columns: 1fr auto auto auto; gap: 6px; align-items: center; padding: 2px 0; }
     .qb-label { font-size: 12px; }
-    .qb-step { width: 24px; padding: 2px 0; background: rgba(48,54,70,0.9); border: 1px solid #4a5268; border-radius: 4px; color: #cfd6e4; cursor: pointer; }
+    .qb-step { width: 24px; padding: 2px 0; background: var(--well-bg); border: 1px solid #3a2c18; border-radius: 2px; color: var(--bronze-ink); cursor: pointer; box-shadow: var(--well-shadow); }
     .qb-count { min-width: 18px; text-align: center; }
-    .qb-footer { margin-top: 8px; padding-top: 6px; border-top: 1px solid #3a4252; font-size: 12px; color: #9aa0aa; }
+    .qb-footer { margin-top: 8px; padding-top: 6px; border-top: 1px solid rgba(150,114,62,0.4); font-size: 12px; color: #c9a461; }
     .qb-footer.over { color: #e06a5a; }
     .qb-footer.empty { color: #c8a24a; }
     .qb-actions { display: flex; gap: 8px; margin-top: 14px; }
@@ -337,53 +359,10 @@
     <p>The battle needs a window of at least 1180 &times; 640. Please enlarge the window to play.</p>
   </div></div>
   <div id="manual"></div>
-  <div id="menu-ui">
-    <h1>BATTLE SIM</h1>
-    <p class="tagline">mass &middot; momentum &middot; morale</p>
-    <div id="menu-renderer-status" role="status"></div>
-    <div class="menu-section feature">
-      <h2>Campaign</h2>
-      <p class="section-hint">Six powers, real-time. Wage war, forge alliances, gang up on the strong.</p>
-      <button id="menu-new-campaign">New Campaign <small>conquer the ancient world</small></button>
-      <button id="menu-load-save">Load Save <small>resume your war</small></button>
-    </div>
-    <div class="menu-section">
-      <h2>Quick Battle</h2>
-      <button id="menu-1v1">1v1 Duel <small>you pick the matchup</small></button>
-      <button data-battle="5v5">Clash of Arms <small>full roster, open field</small></button>
-      <button id="menu-quick-battle">Custom Battle <small>pick a map, build two armies</small></button>
-    </div>
-    <div class="menu-section">
-      <button id="menu-manual">Field Manual</button>
-    </div>
-    <div id="quick-battle-modal">
-      <div class="panel quick-battle-panel">
-        <h2>CUSTOM BATTLE</h2>
-        <div class="qb-maps" id="qb-maps"></div>
-        <div class="qb-armies">
-          <div class="qb-army" id="qb-army-0"></div>
-          <div class="qb-army" id="qb-army-1"></div>
-        </div>
-        <div class="qb-actions">
-          <button id="qb-launch">Launch</button>
-          <button class="cancel" id="qb-back">Back</button>
-        </div>
-      </div>
-    </div>
-    <div id="duel-modal">
-      <div class="panel">
-        <h2>1v1 DUEL</h2>
-        <div class="duel-row">
-          <select id="duel-a"></select>
-          <span class="duel-vs">vs</span>
-          <select id="duel-b"></select>
-        </div>
-        <label class="duel-ai"><input type="checkbox" id="duel-ai"> enemy AI commander</label>
-        <button id="menu-duel">Fight</button>
-        <button class="cancel" id="duel-cancel">Cancel</button>
-      </div>
-    </div>
-  </div>
+  <!-- The menu (#menu-ui), its duel modal, AND the custom-battle army builder
+       (#quick-battle-modal) are now React: src/ui/menu/Menu.tsx + ArmyBuilder.tsx,
+       mounted into #ui-root by MenuScene. The bronze menu/builder CSS in this
+       file's <style> still styles the React-rendered DOM (same ids/classes). -->
   <div id="battle-ui">
   <canvas id="battlefield"></canvas>
   <div id="gameover">
@@ -414,19 +393,26 @@
   <div id="unitlabels"></div>
   <div id="unitcards"></div>
   <div id="toolbar">
-    <button data-cmd="pace" title="Hotkey: R&#10;Toggle walk/run. Running is ~2x speed but burns stamina in ~90s and the formation frays the longer it runs — walk to arrive in order.">Run</button>
-    <button data-cmd="reform" title="Hotkey: G&#10;Halt and re-dress the ranks at double recovery speed (the sergeants shout). Use after a scramble, a defile, or a melee.">Reform</button>
-    <button data-cmd="pursue" title="Hotkey: H&#10;ON: an advance auto-attacks any enemy within a 5s run and chases routers — the chase gives up once it is measurably losing ground. OFF: fight whatever is in reach but keep marching to your destination.">Pursue</button>
-    <button data-cmd="fire" title="Hotkey: V&#10;Missile troops loose on judgment (captains still hold fire into melees involving OTHER friendly units). OFF: hold every shot. Missile units only.">Fire</button>
-    <button data-cmd="kite" title="Hotkey: K&#10;Skirmish reflex: automatically hop away from approaching enemies and keep shooting — the fighting retreat. Skirmishers and horse archers only.">Kite</button>
+    <button data-cmd="pace" aria-label="Walk / Run" title="Hotkey: R&#10;Toggle walk/run. Running is ~2x speed but burns stamina in ~90s and the formation frays the longer it runs — walk to arrive in order."></button>
+    <button data-cmd="reform" aria-label="Reform" title="Hotkey: G&#10;Halt and re-dress the ranks at double recovery speed (the sergeants shout). Use after a scramble, a defile, or a melee."></button>
+    <button data-cmd="pursue" aria-label="Pursue" title="Hotkey: H&#10;ON: an advance auto-attacks any enemy within a 5s run and chases routers — the chase gives up once it is measurably losing ground. OFF: fight whatever is in reach but keep marching to your destination."></button>
+    <button data-cmd="fire" aria-label="Fire at will" title="Hotkey: V&#10;Missile troops loose on judgment (captains still hold fire into melees involving OTHER friendly units). OFF: hold every shot. Missile units only."></button>
+    <button data-cmd="kite" aria-label="Kite" title="Hotkey: K&#10;Skirmish reflex: automatically hop away from approaching enemies and keep shooting — the fighting retreat. Skirmishers and horse archers only."></button>
     <span class="sep"></span>
-    <button data-cmd="pause" title="Pause (P)">⏸</button>
-    <button data-cmd="x1" title="Normal speed (1)">1×</button>
-    <button data-cmd="x3" title="Fast forward (3)">3×</button>
+    <button data-cmd="pause" aria-label="Pause" title="Pause (P)"></button>
+    <button data-cmd="x1" aria-label="Normal speed" title="Normal speed (1)"></button>
+    <button data-cmd="x3" aria-label="Fast forward" title="Fast forward (3)"></button>
     <span class="sep"></span>
-    <button data-cmd="paths" title="Show paths and destination ghosts (hold Space)">Paths</button>
+    <button data-cmd="paths" aria-label="Show paths" title="Show paths and destination ghosts (hold Space)"></button>
   </div>
   </div>
+  <!-- React overlay root: a sibling above the canvas, never a parent of it.
+       Fixed full-viewport, click-through by default; individual React panels
+       opt back into pointer events. MenuScene mounts the React menu here; later
+       scenes (HUD, campaign) mount their own React into it too. z-index 20 mirrors
+       the old #menu-ui so the body-level #quick-battle-modal (z-40) and #manual
+       (z-50) still layer above the menu, exactly as before. -->
+  <div id="ui-root" style="position:fixed; inset:0; pointer-events:none; z-index:20"></div>
   <script type="module" src="/src/main.ts"></script>
 </body>
 </html>

@@ -3,8 +3,8 @@ export const meta = {
   kind: 'visual',
   world: 'menu',
   tier: 'quick',
-  snapshots: ['menu-renderer-ready', 'menu-renderer-unsupported', 'menu-renderer-duel-modal'],
-  describe: 'Menu shell WebGPU status, unsupported state, and duel modal composition.',
+  snapshots: ['menu-renderer-ready', 'menu-renderer-unsupported', 'menu-renderer-duel-modal', 'menu-quick-battle-modal'],
+  describe: 'Menu shell WebGPU status, unsupported state, duel modal, and the (vanilla) custom-battle army builder.',
 };
 
 export async function run(ctx) {
@@ -28,5 +28,14 @@ export async function run(ctx) {
   await ready.click('#menu-1v1');
   await ready.waitForTimeout(120);
   await ctx.snap(ready, 'menu-renderer-duel-modal');
+  // Close the duel (Escape) and open the still-vanilla custom-battle army
+  // builder from the React menu — proves the React→vanilla coexistence and
+  // gives S4 a baseline of the army builder to preserve when it migrates.
+  await ready.keyboard.press('Escape');
+  await ready.waitForTimeout(80);
+  await ready.click('#menu-quick-battle');
+  await ready.waitForFunction(() => document.getElementById('quick-battle-modal')?.classList.contains('open'), undefined, { timeout: 4000 });
+  await ready.waitForTimeout(120);
+  await ctx.snap(ready, 'menu-quick-battle-modal');
   await ready.close();
 }

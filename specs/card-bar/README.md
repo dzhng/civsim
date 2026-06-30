@@ -12,23 +12,30 @@ Reference look: `assets/reference-tw-cardbar.png`.
 
 ## Next Agent Prompt
 
-**Status:** S1 + S2 implemented (fixed-size redesign per David's 2026-06-30
-direction). Next: **Slice 3** (`slices/03-bake-thumbnails.md`). _Last updated:
-2026-06-30._
+**Status: SHIPPED & COMPLETE** (S1–S8). _Last updated: 2026-06-30._
 
-**The core feature is shipped (S1–S4 + S6).** Only optional S5 (cleanup) and the
-human checkpoints remain. The card bar is a fixed-size, no-scroll, auto-stacking
-Total-War strip of cards, each showing a baked 3D-model portrait (`<img>`, canvas
-fallback) with live HP/cohesion/morale bars + count; it clears the minimap and
-shows a "window too small" placeholder below the supported size.
+The card bar is done: a fixed-size, no-scroll, auto-stacking Total-War strip in an
+opaque worn-bronze chassis (rivets, brass bead) of inset card wells — each a baked
+3D-model portrait (warm interior, `<img>` with canvas fallback) under a green HP
+**strength bar across the top** with the count, cohesion + morale bars at the
+bottom, gold-glow selection. It clears the minimap, shows a "window too small"
+placeholder below the supported size, and the order toolbar beside it is bronze
+with Phosphor icons (S8). Every gate is green and it's on `main`.
 
-**Next pass: continue the spec.** The remaining work is polish + Total-War
-fidelity — the critic callouts (infantry blur at card size, artillery-as-engine,
-the bronze-frame / top-bar fidelity gaps), portrait framing fine-tune, deferred
-faction-variant bakes, and David's constant sign-off — with the details and the
-open questions written up in `slices/07-polish-and-fidelity.md`. **Optional**
-cleanup (drop if not clearly clean) dedupes the two `.ucard*` CSS copies and the
-`scene.ts` raw-offset → `buildBattleUiModel` reconciliation.
+**All slice-07 fidelity calls are resolved or deferred** (documented in
+`slices/07-polish-and-fidelity.md`): infantry blur → the name disambiguates;
+artillery → the engine *is* the portrait; top strength bar → done; role medallion
+& team-1 (red) faction bakes → deferred (revisit if a weapon-icon set / two-faction
+need appears); constants (`cardW 72`, `maxRows 3`, `MINIMAP_RESERVE 210`,
+`MIN_WINDOW 1180×640`) → sensible defaults, tunable at David's eye.
+
+**The look generalized beyond this spec.** The bronze game-HUD aesthetic the card
+bar established is now the standard for the whole battle UI — see
+`specs/battle-ui/` (the menu, HUD panel, minimap, toolbar, modals all rewritten to
+it), and the [aesthetics](../../.claude/skills/aesthetics/SKILL.md) skill's
+"UI & HUD — not a webapp" rule + the card-bar reference image. The card-bar S5
+CSS-dedup is folded into `battle-ui` S1 (the shared-token extraction). Pick up the
+UI work there; nothing remains open in *this* spec.
 
 S1+S2 detail — the fixed-size Total-War card bar:
 - `web/src/battle/cardGrid.ts` — `computeCardGrid(count, boxW, {cardW, aspect, gap,
@@ -84,7 +91,8 @@ loop to do this.
 - [x] S3 — bake one 3:4 model-portrait PNG per look, dual-write + `--check` gate (`slices/03-bake-thumbnails.md`) — _first cut baked; pending David's framing checkpoint_
 - [x] S4 — swap card portrait `<canvas>` → `<img>`, canvas fallback retained (`slices/04-img-portrait.md`) — _baked portraits live in the bar; pending David's final taste sign-off_
 - [ ] S5 — _(optional, droppable)_ dedupe the two CSS copies + reconcile data path (`slices/05-cleanup-reconcile.md`)
-- [ ] S7 — **next pass:** polish + Total-War fidelity follow-ups (critic callouts, framing, faction bakes, constants sign-off) (`slices/07-polish-and-fidelity.md`)
+- [x] S7 — polish + fidelity: bronze chrome, warm interiors, ornate frame, top HP bar all done; critic callouts resolved/deferred (`slices/07-polish-and-fidelity.md`)
+- [x] S8 — battle toolbar: bronze chrome + Phosphor icons (`slices/08-toolbar-icons.md`)
 - [x] S6 — min-window gate + "window too small" placeholder (`slices/06-min-window-gate.md`) — _new, David 2026-06-30; implemented, pending David's MIN_WINDOW value/copy checkpoint_
 
 **Before you end your pass:** update this section — move the checkbox, set the

@@ -1,7 +1,7 @@
 import init, { Campaign, Game, type InitOutput } from './wasm/game_wasm.js';
 import { currentScene, switchScene } from './scene';
 import { MenuScene } from './menu/scene';
-import type { QuickBattleConfig } from './menu/quickBattleSetup';
+import type { QuickBattleConfig } from './battle/quickBattleCatalog';
 import { BattleScene, type BattleKind } from './battle/scene';
 import { CampaignScene, loadCampaignData } from './campaign/scene';
 import type { CampaignData } from './campaign/data';

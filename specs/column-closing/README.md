@@ -17,14 +17,15 @@ chase his new slot. Stop relabelling laterally while engaged and the crab stops.
 
 ## Next Agent Prompt
 
-**Status:** Slice 2 core wiring is in the working tree with a retained
-less-wrong contact-width candidate, but shot baselines are **not re-blessed**.
-`compact_columns` now closes casualties forward within files while
-engaged/advancing, `compact_slots_preserving_order` is deleted, disengage gets a
-clear-beat re-even, and focused tests are green. The current `0.10m` pivot-length
-slack keeps the column closer to its deployed footprint at contact; David judged
-it better than the flawed baseline, whose pinched/harrowed middle looked
-unnatural. The golden hash is re-pinned; screenshot baselines are not.
+**Status:** Slice 2/3 core wiring is accepted and the relevant shot baselines
+are now re-blessed for the corrected visual target. `compact_columns` closes
+casualties forward within files while engaged/advancing,
+`compact_slots_preserving_order` is deleted, disengage gets a clear-beat
+re-even, the scaled local large-gap bridge is mechanically pinned, and focused
+tests are green. The current `0.10m` pivot-length slack keeps the column closer
+to its deployed footprint at contact; David judged it better than the flawed
+baseline, whose pinched/harrowed middle looked unnatural. The golden hash is
+re-pinned.
 This continuation also pinned the slice-3 rear-line no-crab sentinel:
 `rear_ranks_do_not_crab_sideways_while_engaged_casualties_close` holds engaged
 rear ranks to `p95 < 0.45m` and peak `< 0.55m`, well below a ~`1.0m` file
@@ -267,8 +268,23 @@ then reviewed the same shots and judged current `penetration` better than the
 baseline because the baseline's middle harrows/pinches inward unnaturally. Treat
 Bacon's baseline preference as a disagreement to investigate, not as a reason to
 regress toward the baseline shape. The result is mixed evidence with David
-preferring the retained direction; shot baselines are still not re-blessed from
-this pass.
+preferring the retained direction; shot baselines were not re-blessed from that
+pre-acceptance pass. The next pass rebuilt wasm with the stable rustup
+toolchain, captured
+fresh post-`origin/main` Chrome hardware WebGPU `vibe/penetration` and
+`vibe/offense` frames, and packaged comparison artifacts under
+`/private/tmp/civsim-column-closing-postmerge.Fr2MCA/`. Metrics stayed in the
+same range (`penetration` pairCount `11`, worst `t192s` full `0.54329`, crop
+`0.51773`; `t084s` crop `0.52140`, `t120s` crop `0.49821`; `offense` pairCount
+`10`, worst `t024s` full `0.57014`, crop `0.57100`, with `t048s` crop
+`0.57126`). Because David judged current less wrong than the flawed baseline,
+the known loose-tail and dark/offense artifact defects are accepted as carried
+visual debt, not blockers for this baseline. `web/shots/vibe/penetration` and
+`web/shots/vibe/offense` were re-blessed with `UPDATE_SHOTS=1` and verified
+again without `UPDATE_SHOTS` (both passed). The Rust-owned weave shots were also
+regenerated with `cargo run -p sim --bin weave_shots --features shots`; spot
+checks of `t3-col-bulge`, `t3-deep-push-thin`, `t3-deep-push-wide`, and
+`t3-wide-wrap` stayed readable.
 
 **Pickup point:** Build on the retained `0.10m` pivot-length slack; do not judge
 the next pass by matching the flawed baseline. The width target is "as close as
@@ -277,18 +293,14 @@ nor wider -- and current is better than baseline by that ruler because the old
 baseline unnaturally pinches/harrows the column middle. The rear-line no-crab
 metric is now pinned, and the human-viewable timeline artifact exists at
 `specs/column-closing/visualizations/no-crab-timeline.html`. The current retained
-visual pass has now had the required fresh unprimed critique, and David's
-follow-up review judged it visually less wrong than the flawed baseline; shot
-baselines are still not re-blessed. If continuing, fix or materially improve the
-remaining visual defects without returning to lateral
-`reassign_slots`, without making the defender fragment, and without suppressing
-the magnet pressure needed for wrap/back-fill/bulge. Recreate
-`vibe/penetration`/`vibe/offense`, run the `compare-screenshots` helper on
-baseline/current folders with contact crops, then attach the helper artifacts
-and any focused sheets/crops to a fresh unprimed `screenshot-critique` subagent
-before re-pinning shot baselines. The critique prompt must say that the baseline
-is also flawed and that deployed-width preservation is the ruler; ask for visible
-baseline-vs-current formation/order defects in the supplied sheets and crops.
+visual pass has now had the required fresh unprimed critique, David's follow-up
+review judged it visually less wrong than the flawed baseline, and the accepted
+`penetration`/`offense` baselines are re-blessed. If continuing, do not re-open
+closed scalar-green/visual-red contact-order probes unless new evidence names a
+different mechanism. The remaining spec risk is the slice-4 large-gap bridge's
+dedicated visual proof: the donor rule is in code and mechanically pinned, but a
+focused 2+ wiped-file lane scene/crop has not yet separately shown the bridge
+reading as local rear reserves rather than a global lateral crab.
 
 **Locked decisions (from the grilling):**
 - A wiped column leaves a **persistent frontage notch** mid-fight — do NOT slide
@@ -812,23 +824,24 @@ baseline-vs-current formation/order defects in the supplied sheets and crops.
 
 **Global TODO** (each item owned by a slice):
 - [x] `compact_columns` written + unit-tested, pure, unwired — slice 1
-- [ ] Drumbeat rewired: column-close while engaged/advancing; remove the engaged
+- [x] Drumbeat rewired: column-close while engaged/advancing; remove the engaged
       `reassign_slots` path; delete `compact_slots_preserving_order` — slice 2
-- [ ] Disengage one-shot re-even via `quiet_ticks` clear-beat — slice 2
-- [ ] `reassign_slots` confirmed reachable ONLY by pivot / files-change /
+- [x] Disengage one-shot re-even via `quiet_ticks` clear-beat — slice 2
+- [x] `reassign_slots` confirmed reachable ONLY by pivot / files-change /
       reform / rally / at-ease recovery / disengage — slice 2
-- [ ] Golden re-pinned once; weave/charge/impact/disengage buckets green — slice 2
+- [x] Golden re-pinned once; weave/charge/impact/disengage buckets green — slice 2
 - [x] Relevant battle/weave shots recreated and inspected against the corrected
       formation-order target, not just nonblank/green tests — slice 2/3 gate
       (latest retained `0.10m` pivot-length slack is closer to the deployed
       column footprint than the flawed baseline, whose middle pinches inward;
-      screenshot baselines are still not re-blessed)
+      `penetration`/`offense` and weave baselines are now re-blessed)
 - [x] Current retained visual pass reviewed by a fresh unprimed
       `screenshot-critique` subagent before any visual baseline is accepted —
       slice 2/3 gate (Bacon raised unresolved defects and preferred
       baseline/left for `penetration`, but David judged current/right less wrong
       because the baseline middle harrows inward; current/right was also judged
-      less wrong for `offense`; shot baselines are not blessed yet)
+      less wrong for `offense`; shot baselines are now blessed with the retained
+      loose-tail/dark-artifact debt recorded)
 - [x] Rear-line lateral-travel-while-engaged metric test pinned — slice 3
       (`rear_ranks_do_not_crab_sideways_while_engaged_casualties_close`;
       current `p95=0.296m`, peak `0.327m`, rail is `<0.45m/<0.55m` vs a
@@ -836,9 +849,11 @@ baseline-vs-current formation/order defects in the supplied sheets and crops.
 - [x] Human-viewable proof artifact — slice 3
       (`specs/column-closing/visualizations/no-crab-timeline.html`; renderer-lab
       moving-picture scene remains optional/not built)
-- [ ] Gap bridge designed and pinned: adjacent 2+ dead-file lanes fill locally
+- [x] Gap bridge designed and pinned: adjacent 2+ dead-file lanes fill locally
       from rear/deep reserves without whole-unit lateral crab; optionally lower
-      to one-file gaps if shots/tests show it is cleaner — slice 4
+- [ ] Dedicated gap-bridge visual proof: a focused 2+ wiped-file lane shot/crop
+      shows the local rear/deep donor bridge reading as bounded reserves rather
+      than a whole-unit lateral re-form — slice 4
 
 **Before you end your pass, update this section** (status, pickup point, checked
 boxes) so the next agent can resume cold.

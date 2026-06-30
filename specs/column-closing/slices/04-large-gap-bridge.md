@@ -81,7 +81,9 @@ sideways.
 
 ## Latest checkpoint
 
-The local bridge idea is mechanically pinned but still not visually accepted.
+The local bridge idea is mechanically pinned, retained in code, and covered by
+the accepted general `penetration`/`offense` vibe baselines, but still needs a
+dedicated 2+ wiped-file lane visual proof if slice 4 is to close rigorously.
 The first conservative 2+ file bridge seeded adjacent empty-file lanes with at
 most two rear/deep donors from the nearest live files and left one-file notches
 alone. A later scaled variant tried the more intelligent wide-lane version:
@@ -104,9 +106,12 @@ right flank into detached clumps, and current `offense` has dark brown trailing
 figures that read like a third faction. The critique also noted that `HEAD`
 looks too rigid/barcode-like, so the desired endpoint is not the exact old grid;
 it is an ordered, living formation that stays readable without global lateral
-crab. Treat this bridge as mechanically useful substrate, not accepted slice
-completion, until a later contact-order fix makes the battle-vibe shots less
-wrong against the visual target.
+crab. David later judged the retained current battle-vibe direction less wrong
+than the flawed baseline; the `penetration`/`offense` baselines are now
+re-blessed after the corrected-target review. Do not re-implement the bridge
+from scratch. The remaining slice-4 proof is narrower: capture or build a
+focused adjacent-lane case that shows the donor bridge itself reads as local
+rear/deep reserves, not as a whole-rank lateral re-form.
 
 ## Feedback that would change this slice
 

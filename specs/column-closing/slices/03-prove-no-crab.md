@@ -76,10 +76,13 @@ names the target and asks for visible defects in both images.
   baseline/left for `penetration`, but David reviewed the same shots and judged
   the current/right less wrong because the baseline middle harrows inward. Bacon
   also judged the current/right less wrong for `offense`.
-- Remaining slice-3 work is a final visual acceptance pass: preserve the
-  current direction, fix or explicitly accept the retained loose trails/artifact
-  defects, and do not re-bless shot baselines from the Rust metric, timeline, or
-  mixed Bacon verdict alone.
+- A post-merge evidence pass rebuilt wasm, refreshed Chrome hardware WebGPU
+  `vibe/penetration`/`vibe/offense`, reran `compare-screenshots` with central
+  crops under `/private/tmp/civsim-column-closing-postmerge.Fr2MCA/`, and then
+  re-blessed those two vibe baselines after David accepted current as less wrong
+  than the flawed baseline. Follow-up verification without `UPDATE_SHOTS` passed.
+- Slice 3's visual acceptance is closed with the retained loose trails/offense
+  dark-body ambiguity recorded as visual debt, not a blocker.
 
 ## What must stay green
 

@@ -11,12 +11,29 @@ Reference look: `assets/reference-tw-cardbar.png`.
 
 ## Next Agent Prompt
 
-**Status:** planned, not started. _Last updated: 2026-06-30._
+**Status:** S1 done (committed). Next: **Slice 2** (`slices/02-no-scroll-grid.md`).
+_Last updated: 2026-06-30._
 
-**You are picking up a fresh feature.** Start at **Slice 1** (`slices/01-grid-math.md`)
-and go in order. Each slice leaves a runnable artifact and a verification gate
-before the next depends on it. Do not skip ahead — Slice 2 needs Slice 1's
-function, Slice 4 needs Slice 3's PNGs.
+**Pick up at Slice 2.** S1 shipped the pure grid math: `web/src/battle/cardGrid.ts`
+(`computeCardGrid(count, boxW, boxH, opts)` → `{rows, cols, cardW, cardH, degenerate}`)
+plus headless `web/src/battle/cardGrid.test.mjs` (9 cases, `npm --prefix web run test:ui`,
+also runnable as `node --test`). Constants baked to David's 2026-06-30 defaults:
+aspect 3/4, gap 4, maxRows 3, minCardW 64. **S2 owns choosing the production
+constants and passing them into `computeCardGrid` from `UnitCards`** — the module
+takes them as args; the defaults are only a fallback. Feed `boxH ≈ 150` (the
+production band). S2 then writes `--cols/--card-w/--card-h` and paints via CSS grid.
+
+_S1 nuance worth knowing for S2:_ at the real band height (≈150px) two-plus rows
+are always height-capped below `minCardW`, so a wrap can only ever *shrink* a card
+(this is what makes "more cards never grows cardW" hold, and it's tested). The
+README's "~1280px band → 20→2×10" only stacks *legibly* when the band is taller
+(~200px); at 150px a 20-roster renders as one undersized row. If David wants 20 to
+visibly stack into two rows at the real camera, the band needs to be taller than
+150px or `minCardW` lower — flag this at the S2 checkpoint when it's seen at the
+battle camera.
+
+Go in order from here. Each slice leaves a runnable artifact and a verification
+gate before the next depends on it. Do not skip ahead — Slice 4 needs Slice 3's PNGs.
 
 **The single most important framing:** this is a *retrofit*, not a greenfield
 build. A clickable, live-updating Total-War card strip **already ships** —
@@ -29,7 +46,7 @@ portrait for free, with zero merge risk. Do **not** rewrite `scene.ts`'s hot
 loop to do this.
 
 **Global TODO** (each item owned by a slice):
-- [ ] S1 — pure `cardGrid.ts` no-scroll grid math + headless `node --test` (`slices/01-grid-math.md`)
+- [x] S1 — pure `cardGrid.ts` no-scroll grid math + headless `node --test` (`slices/01-grid-math.md`)
 - [ ] S2 — no-scroll fixed-aspect grid inside `UnitCards` + `/renderer/card-bar` lab harness + `web/scenes/ui/card-bar.mjs` (`slices/02-no-scroll-grid.md`)
 - [ ] S3 — bake one 3:4 model-portrait PNG per look, dual-write + `--check` gate (`slices/03-bake-thumbnails.md`)
 - [ ] S4 — swap card portrait `<canvas>` → `<img>`, canvas fallback retained (`slices/04-img-portrait.md`)

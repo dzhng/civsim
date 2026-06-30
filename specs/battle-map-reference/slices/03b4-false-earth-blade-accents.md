@@ -21,6 +21,13 @@ Useful false-earth ideas to copy:
 - height-based AO/dark bases and distance desaturation;
 - view-dependent thickness for side-on readability.
 
+Carry forward the 03B2 critique as geometry guidance. Some packed-field clumps
+look weakly seated because dark base marks and bright blades do not always share
+a convincing root; some blades lean far enough to read as flattened against the
+ground. This slice owns that visual fix. Prefer better base anchoring,
+height-based darkening, tapered silhouettes, and distance fade over simply adding
+more cards.
+
 Things not to copy:
 
 - Three.js/TSL, Leva controls, character push/waves, emissive/neon/metallic

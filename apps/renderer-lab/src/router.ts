@@ -28,9 +28,10 @@ import { CampaignSceneryPass, type CampaignSceneryInstance } from '../../../pack
 import { PROP_REVIEW_GROUPS } from '../../../packages/game-renderer/src/models/shared/sceneryPropRegistry';
 import { BATTLE_MAP_CATALOG, battleMapById, buildBattleTerrainPresentation, presentationEdgeMismatches, type BattleMapCatalogEntry } from '../../../packages/game-renderer/src/battle/mapCatalog';
 import { flatHeightField, heightSpan, terrainHeightAt, type TerrainHeightField } from '../../../packages/game-renderer/src/terrain/heightField';
-import type { BattleTerrainFeature, BattleTerrainFeatureKind, BattleTerrainGrid } from '../../../packages/game-renderer/src/battle/terrainFeatures';
+import { terrainHeightField, type BattleTerrainFeature, type BattleTerrainFeatureKind, type BattleTerrainGrid } from '../../../packages/game-renderer/src/battle/terrainFeatures';
 import { BattleGroundPass } from '../../../packages/game-renderer/src/battle/groundPass';
 import { BattleGrassPass, type BattleGrassBounds, type BattleGrassParams } from '../../../packages/game-renderer/src/battle/grassPass';
+import { sampleGrassField } from '../../../packages/game-renderer/src/battle/grassField';
 import { BattleHorizonPass } from '../../../packages/game-renderer/src/battle/horizonPass';
 import { featuresToBattleScenery } from '../../../packages/game-renderer/src/battle/terrainScenery';
 import { MeshBuilder, type Rgb } from '../../../packages/game-renderer/src/models/shared/meshBuilder';
@@ -109,6 +110,7 @@ const routes: Record<string, LabRoute> = {
   '/renderer/battle-terrain-features': routeBattleTerrainFeatures,
   '/renderer/battle-terrain-3d': routeBattleTerrain3d,
   '/renderer/battle-grass': routeBattleGrass,
+  '/renderer/battle-grass-field': routeBattleGrassField,
   '/renderer/battle-ui': routeBattleUi,
   '/renderer/battle-input': routeBattleInput,
   '/renderer/battle-live': routeBattleLive,
@@ -3083,6 +3085,110 @@ async function routeBattleGrass(ctx: LabContext) {
     framePhases: shell.stats().phases,
     postCutoverScreenshots: 'renderer-only',
   });
+}
+
+async function routeBattleGrassField(ctx: LabContext) {
+  const mode = 'packed-tilt';
+  const grid = buildGrassFieldSlopeGrid();
+  const field = terrainHeightField(grid);
+  const bounds = { x: grid.ox, y: grid.oy, width: grid.w * grid.cell, height: grid.h * grid.cell };
+  const focus = {
+    x: numberParam(ctx.params, 'focusX', 0),
+    y: numberParam(ctx.params, 'focusY', 0),
+    radius: numberParam(ctx.params, 'radius', 86),
+  };
+  const snapshot = sampleGrassField(grid, field, {
+    seed: integerParam(ctx.params, 'seed', 0x31b2, 0, 0x7fff_ffff),
+    focus,
+    fieldCellSize: numberParam(ctx.params, 'fieldCell', 3.0),
+    snapCellSize: numberParam(ctx.params, 'snapCell', 22),
+    clumpCellSize: numberParam(ctx.params, 'clumpCell', 30),
+    density: numberParam(ctx.params, 'density', 1.0),
+    jitter: numberParam(ctx.params, 'jitter', 0.46),
+    minNormalZ: numberParam(ctx.params, 'minNormalZ', 0.66),
+    maxRecords: integerParam(ctx.params, 'maxRecords', 3200, 0, 12000),
+    baseHeight: numberParam(ctx.params, 'bladeHeight', 1.02),
+    baseWidth: numberParam(ctx.params, 'bladeWidth', 0.078),
+    baseBend: numberParam(ctx.params, 'bend', 0.30),
+  });
+  const camera = { x: 10, y: -14, zoom: 40, pitch: 0.66, yaw: -0.18, perspective: 0.020 };
+  const shell = await createConfiguredShell(ctx.canvas, camera);
+  const ground = new BattleGroundPass(shell);
+  ground.setTerrain(grid, field, 'green-grass', 2);
+  const grass = new BattleGrassPass(shell);
+  grass.setGrassFieldSnapshot(snapshot, 'green-grass', {
+    seed: 0x31b2,
+    bladesPerTuft: integerParam(ctx.params, 'blades', 9, 1, 48),
+    bladeHeight: numberParam(ctx.params, 'bladeHeight', 1.02),
+    bladeWidth: numberParam(ctx.params, 'bladeWidth', 0.078),
+    bend: numberParam(ctx.params, 'bend', 0.30),
+    spread: numberParam(ctx.params, 'spread', 0.17),
+    windPhase: numberParam(ctx.params, 'phase', 0.3),
+    windStrength: numberParam(ctx.params, 'windStrength', 0.035),
+    zoomT: 1,
+    focus,
+  });
+  shell.drawFrame({
+    clear: { r: 0.75, g: 0.84, b: 0.90, a: 1 },
+    terrainRect: [bounds.x, bounds.y, bounds.width, bounds.height],
+    terrainStyle: 'wide-detail',
+    passes: [
+      { id: 'battle-grass-field-ground', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => ground.draw(pass) },
+      { id: 'battle-grass-field-packed-tilt', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => grass.draw(pass) },
+    ],
+  });
+  const grassStats = grass.stats();
+  ctx.status.innerHTML = reportTable({
+    route: 'battle-grass-field',
+    mode,
+    records: grassStats.fieldRecords,
+    slopeRejects: grassStats.fieldRejectedSlopeCells,
+    packedStride: grassStats.packedStrideFloats,
+    instanceBytes: grassStats.instanceBytes,
+    submittedTriangles: grassStats.submittedTriangles,
+    drawCalls: grassStats.drawCalls,
+  });
+  publish('battle-grass-field', grassStats.fieldRecords > 0 && grassStats.fieldRejectedSlopeCells > 0 && grassStats.drawCalls === 1, {
+    route: 'battle-grass-field',
+    mode,
+    camera,
+    focus,
+    bounds,
+    grid: { w: grid.w, h: grid.h, cell: grid.cell, ox: grid.ox, oy: grid.oy },
+    field: snapshot.stats,
+    grass: grassStats,
+    ground: ground.stats(),
+    depth: shell.stats().depth,
+    framePhases: shell.stats().phases,
+  });
+}
+
+function buildGrassFieldSlopeGrid(): BattleTerrainGrid {
+  const w = 42;
+  const h = 34;
+  const cell = 4;
+  const ox = -w * cell * 0.5;
+  const oy = -h * cell * 0.5;
+  const tint = new Uint8Array(w * h);
+  const speed = new Float32Array(w * h);
+  const height = new Float32Array(w * h);
+  for (let cy = 0; cy < h; cy++) {
+    for (let cx = 0; cx < w; cx++) {
+      const x = ox + (cx + 0.5) * cell;
+      const y = oy + (cy + 0.5) * cell;
+      const ridge = smoothUnit((x - 6) / 9);
+      const roll = Math.sin(x * 0.055) * 2.1 + Math.cos(y * 0.050) * 1.7;
+      const cross = Math.sin((x + y) * 0.035) * 0.9;
+      const cliffLift = ridge * ridge * 62;
+      const z = roll + cross + cliffLift;
+      const i = cy * w + cx;
+      const water = y < oy + 15 && x > -12 && x < 36;
+      tint[i] = water ? 1 : 0;
+      speed[i] = water ? 0 : 1;
+      height[i] = z;
+    }
+  }
+  return { w, h, cell, ox, oy, tint, speed, height };
 }
 
 // Scan the field for the spot with the steepest local slope, so a soldier block

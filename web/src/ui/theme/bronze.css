@@ -7,9 +7,10 @@
  * renderer-lab (deduped in S7) — resolves against this one :root.
  *
  * Plain CSS on purpose. The reusable .chassis / .chassis-tray housing CLASSES
- * and the Tailwind @theme bridge land in S2, the first React consumer that
- * needs a class to apply — moving the chassis onto a class in S1 is NOT
- * pixel-safe yet, because the renderer-lab card-bar band reuses id="unitcards"
+ * and the Tailwind @theme bridge land when a React surface first needs a utility
+ * or a shared chassis class to apply (the S2 menu reused the existing bronze CSS
+ * for pixel-identity, so it didn't) — moving the chassis onto a class in S1 was
+ * NOT pixel-safe, because the renderer-lab card-bar band reuses id="unitcards"
  * and leans on index.html's #unitcards id-rule background (id specificity beats
  * the lab's own .renderer-unitcards class). S1 keeps the id rules painting and
  * only swaps their hardcoded gradients for var(--bronze-*).

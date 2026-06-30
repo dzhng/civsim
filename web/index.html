@@ -359,50 +359,22 @@
     <p>The battle needs a window of at least 1180 &times; 640. Please enlarge the window to play.</p>
   </div></div>
   <div id="manual"></div>
-  <div id="menu-ui">
-    <h1>BATTLE SIM</h1>
-    <p class="tagline">mass &middot; momentum &middot; morale</p>
-    <div id="menu-renderer-status" role="status"></div>
-    <div class="menu-section feature">
-      <h2>Campaign</h2>
-      <p class="section-hint">Six powers, real-time. Wage war, forge alliances, gang up on the strong.</p>
-      <button id="menu-new-campaign">New Campaign <small>conquer the ancient world</small></button>
-      <button id="menu-load-save">Load Save <small>resume your war</small></button>
-    </div>
-    <div class="menu-section">
-      <h2>Quick Battle</h2>
-      <button id="menu-1v1">1v1 Duel <small>you pick the matchup</small></button>
-      <button data-battle="5v5">Clash of Arms <small>full roster, open field</small></button>
-      <button id="menu-quick-battle">Custom Battle <small>pick a map, build two armies</small></button>
-    </div>
-    <div class="menu-section">
-      <button id="menu-manual">Field Manual</button>
-    </div>
-    <div id="quick-battle-modal">
-      <div class="panel quick-battle-panel">
-        <h2>CUSTOM BATTLE</h2>
-        <div class="qb-maps" id="qb-maps"></div>
-        <div class="qb-armies">
-          <div class="qb-army" id="qb-army-0"></div>
-          <div class="qb-army" id="qb-army-1"></div>
-        </div>
-        <div class="qb-actions">
-          <button id="qb-launch">Launch</button>
-          <button class="cancel" id="qb-back">Back</button>
-        </div>
+  <!-- The menu (#menu-ui) and its duel modal are now React: src/ui/menu/Menu.tsx,
+       mounted into #ui-root by MenuScene. The bronze menu CSS in this file's
+       <style> still styles the React-rendered #menu-ui (same ids/classes). The
+       custom-battle army builder stays VANILLA — this body-level shell is filled
+       by mountQuickBattleSetup; React's Custom Battle button opens it. -->
+  <div id="quick-battle-modal">
+    <div class="panel quick-battle-panel">
+      <h2>CUSTOM BATTLE</h2>
+      <div class="qb-maps" id="qb-maps"></div>
+      <div class="qb-armies">
+        <div class="qb-army" id="qb-army-0"></div>
+        <div class="qb-army" id="qb-army-1"></div>
       </div>
-    </div>
-    <div id="duel-modal">
-      <div class="panel">
-        <h2>1v1 DUEL</h2>
-        <div class="duel-row">
-          <select id="duel-a"></select>
-          <span class="duel-vs">vs</span>
-          <select id="duel-b"></select>
-        </div>
-        <label class="duel-ai"><input type="checkbox" id="duel-ai"> enemy AI commander</label>
-        <button id="menu-duel">Fight</button>
-        <button class="cancel" id="duel-cancel">Cancel</button>
+      <div class="qb-actions">
+        <button id="qb-launch">Launch</button>
+        <button class="cancel" id="qb-back">Back</button>
       </div>
     </div>
   </div>
@@ -451,9 +423,11 @@
   </div>
   <!-- React overlay root: a sibling above the canvas, never a parent of it.
        Fixed full-viewport, click-through by default; individual React panels
-       opt back into pointer events. Empty until S2 mounts the menu here. -->
-  <div id="ui-root" style="position:fixed; inset:0; pointer-events:none; z-index:50"></div>
+       opt back into pointer events. MenuScene mounts the React menu here; later
+       scenes (HUD, campaign) mount their own React into it too. z-index 20 mirrors
+       the old #menu-ui so the body-level #quick-battle-modal (z-40) and #manual
+       (z-50) still layer above the menu, exactly as before. -->
+  <div id="ui-root" style="position:fixed; inset:0; pointer-events:none; z-index:20"></div>
   <script type="module" src="/src/main.ts"></script>
-  <script type="module" src="/src/ui/root.tsx"></script>
 </body>
 </html>

@@ -3,7 +3,7 @@ import { WORLD_CAMERA_WGSL } from '../../../renderer-core/src/cameraWgsl';
 import { compileShader } from '../../../renderer-core/src/compileShader';
 import { gpuOpaqueColorTarget, gpuWorldDepthStencil } from '../../../renderer-core/src/pipelineContracts';
 import { terrainHeightAt, type TerrainHeightField } from '../terrain/heightField';
-import type { BattleGroundCover, BattleTerrainGrid } from './terrainFeatures';
+import { battleGrassTintWeight, isBattleGrassBlockedTint, type BattleGroundCover, type BattleTerrainGrid } from './terrainFeatures';
 import {
   DEFAULT_GRASS_TUFT_BLADES,
   SLICE00_GRASS_ALBEDO,
@@ -23,6 +23,11 @@ export interface BattleGrassFocus {
   x: number;
   y: number;
   radius: number;
+  yaw?: number;
+  depthNear?: number;
+  depthFar?: number;
+  nearBoost?: number;
+  farWeight?: number;
 }
 
 export interface BattleGrassParams {
@@ -294,7 +299,7 @@ export class BattleGrassPass {
     this.terrainMasked = true;
     this.zoomT = zoomT;
     this.density = Math.max(0, merged.density * tune.density);
-    this.maxTufts = clampInt(merged.maxTufts * tune.maxTufts, 0, 48000);
+    this.maxTufts = clampInt(merged.maxTufts * tune.maxTufts, 0, 96000);
     this.bladesPerTuft = clampInt(merged.bladesPerTuft * tune.bladesPerTuft, 1, 96);
     this.windPhase = merged.windPhase;
     this.windStrength = Math.max(0, merged.windStrength * tune.wind);
@@ -483,11 +488,11 @@ function collectTerrainGrassCells(grid: BattleTerrainGrid, focus: BattleGrassFoc
   for (let cy = 0; cy < grid.h; cy++) {
     for (let cx = 0; cx < grid.w; cx++) {
       const tint = grid.tint[cy * grid.w + cx] ?? 0;
-      if (isBlockedGrassTint(tint)) {
+      if (isBattleGrassBlockedTint(tint)) {
         blockedTintCells++;
         continue;
       }
-      const tintWeight = grassTintWeight(tint);
+      const tintWeight = battleGrassTintWeight(tint);
       if (tintWeight <= 0) continue;
       eligibleCells++;
       if (tint === 0) openGrassCells++;
@@ -499,12 +504,33 @@ function collectTerrainGrassCells(grid: BattleTerrainGrid, focus: BattleGrassFoc
       const dist = Math.hypot(x - focus.x, y - focus.y);
       const lod = radius > 0 ? 1 - smoothstepRange(fadeStart, fadeEnd, dist) : 1;
       if (lod <= 0.03) continue;
-      const weight = tintWeight * lod;
+      const weight = tintWeight * lod * depthDensityWeight(focus, x, y);
       cells.push({ cx, cy, tint, weight, lod });
       weightedArea += weight * cellArea;
     }
   }
   return { cells, weightedArea, eligibleCells, blockedTintCells, openGrassCells, forestCells, roughCells };
+}
+
+function depthDensityWeight(focus: BattleGrassFocus, x: number, y: number): number {
+  if (
+    focus.yaw === undefined
+    || focus.depthNear === undefined
+    || focus.depthFar === undefined
+    || !Number.isFinite(focus.yaw)
+    || !Number.isFinite(focus.depthNear)
+    || !Number.isFinite(focus.depthFar)
+    || focus.depthFar <= focus.depthNear
+  ) {
+    return 1;
+  }
+  const dx = x - focus.x;
+  const dy = y - focus.y;
+  const depth = -dx * Math.sin(focus.yaw) + dy * Math.cos(focus.yaw);
+  const t = smoothstepRange(focus.depthNear, focus.depthFar, depth);
+  const farWeight = Math.max(0, Math.min(1, focus.farWeight ?? 0.35));
+  const nearBoost = Math.max(0, focus.nearBoost ?? 0.75);
+  return (farWeight + (1 - farWeight) * (1 - t)) * (1 + nearBoost * (1 - t));
 }
 
 function scatterTerrainTufts(
@@ -530,7 +556,7 @@ function scatterTerrainTufts(
       cumulative += cells[cursor].weight;
     }
     const cell = cells[cursor];
-    if (isBlockedGrassTint(cell.tint)) invalidTintTufts++;
+    if (isBattleGrassBlockedTint(cell.tint)) invalidTintTufts++;
     const salt = seed + n * 7919 + cell.cx * 151 + cell.cy * 313;
     const x = grid.ox + (cell.cx + 0.12 + hash2(salt, 1) * 0.76) * grid.cell;
     const y = grid.oy + (cell.cy + 0.12 + hash2(salt, 2) * 0.76) * grid.cell;
@@ -597,17 +623,6 @@ function terrainGrassTuning(cover: BattleGroundCover, zoomT: number): TerrainGra
     vistaT,
     surfaceBlend: 1 - vistaT * 0.50,
   };
-}
-
-function grassTintWeight(tint: number): number {
-  if (tint === 0) return 1;
-  if (tint === 4) return 0.40;
-  if (tint === 6) return 0.16;
-  return 0;
-}
-
-function isBlockedGrassTint(tint: number): boolean {
-  return tint === 1 || tint === 2 || tint === 3 || tint === 5;
 }
 
 function clampInt(v: number, lo: number, hi: number): number {

@@ -30,12 +30,19 @@ const TINT_COLOR: Record<number, [number, number, number]> = {
 
 const GROUND_WGSL = `
 ${WORLD_CAMERA_WGSL}
+struct GroundUniform {
+  meadow0: vec4f,
+  meadow1: vec4f,
+};
+@group(1) @binding(0) var<uniform> ground: GroundUniform;
+
 struct VsOut {
   @builtin(position) pos: vec4f,
   @location(0) color: vec3f,
   @location(1) light: f32,
   @location(2) world: vec2f,
   @location(3) fog: f32,
+  @location(4) axes: vec2f,
 };
 
 fn hash(p: vec2f) -> f32 {
@@ -61,6 +68,46 @@ fn ridge(p: vec2f) -> f32 {
   return r * r;
 }
 
+fn meadowWeight(axes: vec2f) -> f32 {
+  let enabled = ground.meadow0.x;
+  let depthT = smoothstep(ground.meadow1.x, ground.meadow1.y, axes.y);
+  return enabled * mix(ground.meadow1.z, ground.meadow1.w, depthT);
+}
+
+fn meadowCarpet(world: vec2f, axes: vec2f) -> vec3f {
+  let depthT = smoothstep(ground.meadow1.x, ground.meadow1.y, axes.y);
+  let nearT = 1.0 - depthT;
+  let warp = vec2f(
+    fbm(world * 0.012 + vec2f(13.0, 2.0)) - 0.5,
+    fbm(world * 0.014 + vec2f(5.0, 17.0)) - 0.5
+  );
+  let broad = fbm(world * 0.026 + warp * 3.4 + vec2f(2.0, 9.0));
+  let clump = fbm(world * 0.072 + warp * 5.0 + vec2f(11.0, 4.0));
+  let under = fbm(world * 0.145 + warp * 4.4 + vec2f(6.0, 3.0));
+  let brushed = ridge(vec2f(
+    world.x * 0.155 + world.y * 0.036 + warp.x * 2.2,
+    world.y * 0.050 - world.x * 0.014 + broad * 1.1
+  ));
+  let felt = ridge(vec2f(
+    world.x * 0.46 + world.y * 0.120 + warp.x * 3.8,
+    world.y * 0.165 - world.x * 0.052 + warp.y * 2.6
+  ));
+  let mat = smoothstep(0.30, 0.78, broad);
+  let shadowClump = smoothstep(0.48, 0.84, clump);
+  let rootPocket = smoothstep(0.56, 0.88, under);
+  let root = vec3f(0.38, 0.47, 0.35);
+  let body = vec3f(0.56, 0.63, 0.49);
+  let lift = vec3f(0.66, 0.70, 0.57);
+  let shadow = vec3f(0.30, 0.40, 0.29);
+  var col = mix(body, lift, mat * 0.12 + brushed * (0.035 + nearT * 0.020));
+  col = mix(col, shadow, shadowClump * (0.22 + nearT * 0.28));
+  col = mix(col, root, rootPocket * (0.12 + nearT * 0.12));
+  col = mix(col, lift, felt * (0.020 + nearT * 0.025));
+  col = mix(col, shadow, (1.0 - mat) * (0.08 + nearT * 0.10));
+  col = mix(col, vec3f(0.64, 0.70, 0.62), depthT * 0.20);
+  return col;
+}
+
 @vertex
 fn vs(@location(0) world: vec3f, @location(1) normal: vec3f, @location(2) color: vec3f) -> VsOut {
   var out: VsOut;
@@ -70,6 +117,7 @@ fn vs(@location(0) world: vec3f, @location(1) normal: vec3f, @location(2) color:
   out.color = color;
   out.world = world.xy;
   let axes = cameraSpace(world.xy);
+  out.axes = axes;
   out.fog = smoothstep(720.0, 1850.0, axes.y) * 0.52;
   return out;
 }
@@ -87,6 +135,11 @@ fn fs(in: VsOut) -> @location(0) vec4f {
   let coolFill = vec3f(0.74, 0.79, 0.84);
   let grade = mix(coolFill, warmKey, clamp((in.light - 0.5) / 0.68, 0.0, 1.0));
   var col = in.color * detail * in.light * grade;
+  let meadow = meadowWeight(in.axes);
+  let meadowDepthT = smoothstep(ground.meadow1.x, ground.meadow1.y, in.axes.y);
+  let meadowLight = mix(1.00, in.light, 0.24 + meadowDepthT * 0.18);
+  let meadowCol = meadowCarpet(in.world, in.axes) * meadowLight * vec3f(0.94, 0.94, 0.98);
+  col = mix(col, meadowCol, meadow);
   // Churn: where the ground is earthy (brown, r over g) the mud reads as trodden,
   // broken ground — a patchy dried crust over darker hollows, scored by
   // directional drag ruts — rather than a smooth, uniform stain.
@@ -110,16 +163,30 @@ fn fs(in: VsOut) -> @location(0) vec4f {
 
 export class BattleGroundPass {
   private pipeline: GPURenderPipeline;
+  private groundBindGroupLayout: GPUBindGroupLayout;
+  private groundBindGroup: GPUBindGroup;
+  private uniformBuffer: GPUBuffer;
   private vertexBuffer: GPUBuffer | null = null;
   private indexBuffer: GPUBuffer | null = null;
   private indexCount = 0;
   private triangles = 0;
+  private meadowStats = {
+    enabled: false,
+    depthNear: 0,
+    depthFar: 1,
+    nearStrength: 0,
+    farStrength: 0,
+  };
 
   constructor(private shell: RawFrameShell) {
     const module = compileShader(shell.device, GROUND_WGSL, 'battle-ground-heightfield');
+    this.groundBindGroupLayout = shell.device.createBindGroupLayout({
+      label: 'battle-ground-uniform-layout',
+      entries: [{ binding: 0, visibility: GPUShaderStage.FRAGMENT, buffer: { type: 'uniform' } }],
+    });
     this.pipeline = shell.device.createRenderPipeline({
       label: 'battle-ground-heightfield-pipeline',
-      layout: shell.device.createPipelineLayout({ bindGroupLayouts: [shell.cameraBindGroupLayout] }),
+      layout: shell.device.createPipelineLayout({ bindGroupLayouts: [shell.cameraBindGroupLayout, this.groundBindGroupLayout] }),
       vertex: {
         module,
         entryPoint: 'vs',
@@ -136,6 +203,47 @@ export class BattleGroundPass {
       primitive: { topology: 'triangle-list', cullMode: 'none' },
       depthStencil: gpuWorldDepthStencil('read-write'),
     });
+    this.uniformBuffer = shell.device.createBuffer({
+      label: 'battle-ground-uniforms',
+      size: 8 * 4,
+      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+    });
+    this.groundBindGroup = shell.device.createBindGroup({
+      label: 'battle-ground-uniform-bind-group',
+      layout: this.groundBindGroupLayout,
+      entries: [{ binding: 0, resource: { buffer: this.uniformBuffer } }],
+    });
+    this.setMeadow();
+  }
+
+  setMeadow(params: {
+    depthNear?: number;
+    depthFar?: number;
+    nearStrength?: number;
+    farStrength?: number;
+  } = {}) {
+    const depthNear = Number.isFinite(params.depthNear) ? params.depthNear! : 0;
+    const depthFar = Number.isFinite(params.depthFar) ? params.depthFar! : 1;
+    const nearStrength = Number.isFinite(params.nearStrength) ? params.nearStrength! : 0;
+    const farStrength = Number.isFinite(params.farStrength) ? params.farStrength! : 0;
+    const enabled = Math.max(0, Math.min(1, Math.max(nearStrength, farStrength)));
+    this.meadowStats = {
+      enabled: enabled > 0,
+      depthNear,
+      depthFar: Math.max(depthNear + 0.001, depthFar),
+      nearStrength: Math.max(0, Math.min(1, nearStrength)),
+      farStrength: Math.max(0, Math.min(1, farStrength)),
+    };
+    this.shell.device.queue.writeBuffer(this.uniformBuffer, 0, new Float32Array([
+      enabled,
+      0,
+      0,
+      0,
+      depthNear,
+      this.meadowStats.depthFar,
+      this.meadowStats.nearStrength,
+      this.meadowStats.farStrength,
+    ]));
   }
 
   /** Build the displaced grid mesh from the grid (tint/dims) and a shared height
@@ -214,13 +322,18 @@ export class BattleGroundPass {
     if (!this.vertexBuffer || !this.indexBuffer || this.indexCount === 0) return;
     pass.setPipeline(this.pipeline);
     pass.setBindGroup(0, this.shell.cameraBindGroup);
+    pass.setBindGroup(1, this.groundBindGroup);
     pass.setVertexBuffer(0, this.vertexBuffer);
     pass.setIndexBuffer(this.indexBuffer, 'uint32');
     pass.drawIndexed(this.indexCount);
   }
 
   stats() {
-    return { triangles: this.triangles, layer: 'battle-ground-heightfield' as const };
+    return {
+      triangles: this.triangles,
+      layer: 'battle-ground-heightfield' as const,
+      meadow: this.meadowStats,
+    };
   }
 }
 

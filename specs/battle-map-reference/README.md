@@ -17,10 +17,12 @@ plateau and onto a deterministic render-lab `highland-valley` relief fixture
 using the same `BattleTerrainGrid`/`TerrainHeightField` seam as the production
 terrain route. Slice 03 and Slice 04 are still **not visually accepted**: the
 fixture is closer to the right family of scene, but the target relationship still
-fails. The latest pass added a fixture-only overcast sky/backdrop pass, cleaned
-the reference-shot canvas capture so it no longer includes a page-background strip,
-softened shared terrain/grass distance haze, and raised the reference vista grass
-budget to `48k` tufts.
+fails. The latest grass pass stepped back into an architecture spike: brute-force
+card density was rejected as noisy and expensive, a ground-integrated meadow
+carpet was identified as needing a real field/clump data owner, and foreground
+geometry was split into a separate accent/perf problem. Slice 03B is now a
+recorded spike, not an accepted visual slice. Slice 03B1 has now landed the
+grass field data contract; resume at Slice 03B2.
 
 **Reslice correction (2026-07-01):** the previous plan was still too coarse. It
 kept asking grass, terrain, cliff, fog, and water slices to compare against the
@@ -32,6 +34,25 @@ whole-frame comparison belongs only to the compose slice after each isolated vis
 relationship has its own evidence. If implementation of any slice hits a snag and
 starts requiring unrelated visual variables, stop the implementation pass and use
 `feature-slicing` to split the slice again before editing more renderer code.
+
+**Grass architecture correction (2026-07-01):** the reference foreground grass is
+not a million uniformly scattered readable tufts. Treat it as a field system:
+stable grass records first, packed-attribute slope/normal behavior second,
+field-driven meadow mass third, foreground blade accents fourth, then
+colour/softness/wind texture. Card count alone is not an acceptance metric. Each
+03B follow-on slice now has an explicit `Approach` section; if implementation
+reveals another hidden variable, stop and reslice with `feature-slicing` before
+continuing renderer work.
+
+**False-earth / X-post correction (2026-07-01):** David pointed at
+`momentchan/false-earth` and the X post describing packed terrain-normal instance
+attributes, slope filtering, and vertex-shader tilt. This does make sense and is
+the same family as false-earth, but the X-post path is the smaller first spike:
+CPU-build stable field records, pack normals and blade params as instance
+attributes, and tilt/filter in the vertex shader. Only escalate to false-earth's
+compute + visible LOD index buffers + indirect draws if the CPU/packed-field
+version proves visually right but too CPU/upload heavy. Do not port Three.js/TSL,
+Leva, character push/waves, emissive/neon materials, or false-earth colours.
 
 Slice 00 now has a real side-by-side workbench:
 `visualizations/target-vs-current.html` points at the committed
@@ -134,6 +155,23 @@ world-crop distance `0.58006`; candidate world-crop edge energy is `3.25764x` th
 target. Under the new slice plan, those whole-frame numbers do **not** accept or
 reject any individual slice; each slice records its own crop/mask metric.
 
+The grass-density spike adds one more finding: the lower third should not be
+matched by pushing the instanced grass layer toward card-only density. That path
+fills pixels but produces sparkly stipple and high geometry cost. The current
+experimental hybrid route is cheaper and closer architecturally, but still not
+accepted because the meadow carpet is too procedural and the accent geometry is
+too readable as separate sharp tufts.
+
+Slice 03B1 landed the pure field contract in
+`packages/game-renderer/src/battle/grassField.ts`, plus shared
+`terrainNormalAt(...)` beside the existing height sampler. The field emits stable
+4-vec4 packed records (`position/type`, `width/height/bend/wind`,
+`yaw/clumpSeed/bladeSeed/clumpWeight`, `terrainNormal/reserved`) and explicit
+budget counters: snap cell, field cell, record capacity, accepted records,
+capped records, tint/slope/density rejects, and LOD counts. It is intentionally
+not wired into the renderer yet, so the current `BattleGrassPass` defaults and
+reference spike visuals remain unchanged until Slice 03B2 consumes the data.
+
 Neutral subagent review on the current reference/candidate pair says the images do
 not show the same viewport/state/content. The candidate now preserves only the
 rough subject relationship: grassy mountain-and-water vista. It is still a lower,
@@ -146,10 +184,14 @@ comparable.
 Repair path for the next pass:
 - Keep iterating from the `highland-valley` fixture path; it is the current honest
   comparison surface until Slice 08 turns the composition into a real playable map.
-- Start with **Slice 03B foreground grass density**. Compare only the lower-third
-  meadow density/coverage against the reference lower-third crop. Keep cliffs,
-  cliff texture, water, sky, and fog fixed unless a capture bug prevents a fair
-  grass-density comparison.
+- Start with **Slice 03B2 packed-attribute slope tilt**. This is the X-post
+  approach and should be tried before a compute port.
+- Then continue with **Slice 03B3 field-driven meadow material** and
+  **Slice 03B4 false-earth blade accents**. Meadow mass and foreground geometry
+  stay separate review variables.
+- Use **Slice 03B5 readability/perf** before adopting the architecture broadly.
+  Implement **Slice 03B6 GPU compute/indirect** only if the accepted CPU/packed
+  field path is too expensive.
 - Then continue through the isolated open slices: grass color/texture, valley
   relief silhouette, cliff silhouette, cliff texture, sky plate, distance fog,
   water placement, water material, and only then final composition.
@@ -169,6 +211,10 @@ Latest focused verification for the overcast fixture/backdrop pass:
 - `npm run build`
 - `UPDATE_SHOTS=1 VERIFY_URL=http://localhost:5174 VERIFY_GPU=1 VERIFY_GPU_ADAPTER=hardware VERIFY_BROWSER_CHANNEL=chrome node scene.mjs battle-map-reference battle-grass battle-terrain-3d battle-terrain-blockers battle-terrain-elevation`
 - `VERIFY_URL=http://localhost:5174 VERIFY_GPU=1 VERIFY_GPU_ADAPTER=hardware VERIFY_BROWSER_CHANNEL=chrome node scene.mjs battle-map-reference battle-grass battle-terrain-3d battle-terrain-blockers battle-terrain-elevation`
+
+Latest Slice 03B1 verification:
+- `node --experimental-strip-types --import ./web/tests/register-ts-extension-loader.mjs --test web/tests/grassField.test.ts`
+- `./node_modules/.bin/tsc --noEmit`
 
 Screenshot critique initially blocked on terrain grass reading as random black
 speckle in open fields. After the terrain-only stubble softening, the follow-up
@@ -194,12 +240,12 @@ debt:
 - grass/ground detail is soft and scale-blurry;
 - roads, water, labels, and icon styling are not covered by this camera sheet.
 
-**Next pickup:** implement `slices/03b-foreground-grass-density.md`. It should
-only change grass density/coverage in the reference lower-third crop and preserve
-the sparse gameplay/top-down layer. Do not tune cliffs, cliff texture, fog, water,
-or final composition in that pass. If density cannot be judged because the current
-crop is not comparable, reslice the capture/comparison setup with `feature-slicing`
-instead of folding cliff, fog, or terrain work into Slice 03B.
+**Next pickup:** implement `slices/03b2-packed-attribute-slope-tilt.md`.
+Consume the `grassField.ts` records through the existing CPU instance upload path:
+pack terrain normals and blade params into vertex attributes, filter/tilt on
+slopes, and publish packed stride/bytes/reject counters. Do not tune meadow
+shader constants, cliffs, cliff texture, fog, water, sky, final composition, or
+foreground card count in that pass.
 
 Every visual slice (01–08) ends with three distinct gates:
 `screenshot-regression` for baseline stability, `compare-screenshots` against the
@@ -225,7 +271,13 @@ landed, and point at the next pickup slice.
 - [x] **Slice 01** — zoom-coupled camera (`slices/01-zoom-coupled-camera.md`)
 - [x] **Slice 02** — grass-blade primitive (`slices/02-grass-blade-primitive.md`)
 - [x] **Slice 03A** — grass over terrain infrastructure (`slices/03-grass-over-terrain.md`) — seating/masking/perf landed
-- [ ] **Slice 03B** — foreground grass density (`slices/03b-foreground-grass-density.md`)
+- [x] **Slice 03B** — foreground grass density architecture spike (`slices/03b-foreground-grass-density.md`) — evidence recorded, visual target not accepted
+- [x] **Slice 03B1** — grass field baseline and data contract (`slices/03b1-field-baseline-and-data-contract.md`)
+- [ ] **Slice 03B2** — packed-attribute slope tilt spike (`slices/03b2-packed-attribute-slope-tilt.md`)
+- [ ] **Slice 03B3** — field-driven meadow material (`slices/03b3-field-driven-meadow-material.md`)
+- [ ] **Slice 03B4** — false-earth blade accents (`slices/03b4-false-earth-blade-accents.md`)
+- [ ] **Slice 03B5** — readability and perf gate (`slices/03b5-readability-and-perf-gate.md`)
+- [ ] **Slice 03B6** — optional GPU compute and indirect escalation (`slices/03b6-gpu-compute-and-indirect.md`)
 - [ ] **Slice 03C** — grass color, softness, and wind texture (`slices/03c-grass-color-texture.md`)
 - [ ] **Slice 04A** — valley relief and foreground hummock silhouette (`slices/04-terrain-relief-grade.md`)
 - [ ] **Slice 04B** — ground grade and terrain texture (`slices/04b-ground-grade-texture.md`)
@@ -424,7 +476,19 @@ by sim terrain read from wasm in `web/src/battle/scene.ts`.
         │
 03A grass-over-terrain ─ instanced on real maps + LOD/perf; density keyed to zoomT
         │
-03B foreground-grass-density ─ lower-third density/coverage crop only
+03B foreground-grass-density-architecture ─ spike record + approach ladder
+        │
+03B1 field-data-contract ─ stable records, terrain normals, masks, budgets
+        │
+03B2 packed-attribute-slope-tilt ─ X-post path before compute
+        │
+03B3 field-driven-meadow-material ─ continuous lower-third mass
+        │
+03B4 false-earth-blade-accents ─ foreground silhouettes only
+        │
+03B5 readability-and-perf-gate ─ gameplay cues + perf adoption
+        │
+03B6 gpu-compute-and-indirect ─ optional escalation only after CPU proof
         │
 03C grass-color-texture ─ colour, softness, wind/noise texture crop only
         │
@@ -449,11 +513,12 @@ by sim terrain read from wasm in `web/src/battle/scene.ts`.
 08 reference-map-compose ─ new catalog map + full battle + master compare @ zoom-in
 ```
 
-`01` (camera) is independent and already landed. `02 → 03A → 03B → 03C` is the
-grass ladder. `04A/04B`, `05A/05B`, `06A/06B/06C`, and `07A/07B` each freeze the
-previous variable before tuning the next one. Each slice leaves a runnable artifact
-and its own crop/mask gate before the next depends on it; only `08` judges the full
-frame.
+`01` (camera) is independent and already landed. `02 → 03A → 03B1..03B6 → 03C`
+is the grass ladder, with `03B6` skipped unless accepted CPU/packed grass is too
+expensive. `04A/04B`, `05A/05B`, `06A/06B/06C`, and `07A/07B` each freeze the
+previous variable before tuning the next one. Each slice leaves a runnable
+artifact and its own crop/mask gate before the next depends on it; only `08`
+judges the full frame.
 
 ## Materialize / out-of-band
 

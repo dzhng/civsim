@@ -10,10 +10,10 @@ Synthesized from three independent draft plans (they converged hard — the cut 
 
 ## Next Agent Prompt
 
-**Status:** S0 shipped (green). _Last updated: 2026-07-01._
+**Status:** S0 + S1 shipped (green). _Last updated: 2026-07-01._
 
-**Start at Slice 1** (`slices/01-design-system.md`) — extract the one bronze token source.
-S0 (stack) is done. S1 lays the one bronze token source; S2 proves the stack on the menu;
+**Start at Slice 2** (`slices/02-menu-proof.md`) — first React surface (the menu + duel modal).
+S0 (stack) and S1 (one bronze token source) are done. S2 proves the stack on the menu;
 **S3 is the perf spike that decides whether the per-frame HUD becomes React** (it ships the
 card bar in React behind a measurement); S4/S5 migrate the static wave; S6 lands the HUD per
 S3's verdict; S7 deletes the duplication. Do not start the static wave (S4/S5) before S3
@@ -41,9 +41,34 @@ settles the 60 Hz seam.
 for GPU scenes. **S0 human checkpoint:** nothing visual moved (canary off by default), so there
 were no shots to review — proceeded on the green gates per the non-blocking rule.
 
+**S1 decisions recorded (read before S2):**
+- **bronze.css ships the `:root` token VALUES only** (not the chassis component classes).
+  `#toolbar` and `#unitcards` in index.html were re-typing the fill/edge gradients + frame
+  shadow as literals (3 copies total with :root); they now reference `var(--bronze-*)`. One
+  source for the values. The inline `:root` is deleted; bronze.css is a render-blocking
+  `<link>` in `<head>` before the inline `<style>`.
+- **DEVIATION from the slice as written — `.chassis` / `.chassis-tray` classes + the Tailwind
+  `@theme` bridge are deferred to S2** (the first React consumer that needs a class to apply).
+  Moving the chassis onto a class in S1 is **not pixel-safe**: the renderer-lab card-bar band
+  carries a duplicate `id="unitcards"` and leans on index.html's `#unitcards` *id-rule*
+  background (id specificity 100 beats the lab's own `.renderer-unitcards` class 10). Stripping
+  the id-rule background to a class the band lacks shifts the lab render. The lab dedup is S7's
+  job; until then S1 keeps the id rules painting. S2 adds the classes when React applies them.
+- **Capture-profile gotcha (cost me a detour, noted so the next agent skips it):** the
+  DOM-only `card-bar` scene is blessed **headless** (default chromium). Running it under the
+  GPU headful Chrome-stable flags (`VERIFY_HEADFUL=1 VERIFY_BROWSER_CHANNEL=chrome`) rasterizes
+  fonts/AA differently and shows a tolerated ~0.7% (byte-diff confirmed 0 changed pixels — it's
+  the browser channel, not the render). **Gate `card-bar` headless; gate the GPU scenes
+  (battle/menu/campaign) headful.** Each is 0.0000% under its own profile.
+
+**S1 verification (all green, no re-bless):** `tsc` ✓, `vite build` ✓, `cardGrid.test.mjs` 8/8 ✓,
+`card-bar` (7 snaps, **headless**) 0.0000% ✓, `battle-renderer-visual` (`battle-selection-dpr2`,
+headful) 0.0000% ✓, `menu-renderer-shell-visual` (3 snaps, headful) 0.0000% ✓. **S1 human
+checkpoint:** the (0,0) pass is self-justifying (no pixels moved); proceeded on the green gates.
+
 **Global TODO:**
 - [x] S0 — stack setup: React + Vite plugin + Tailwind v4 in `web/`, COOP/COEP preserved, `tsc --noEmit` gate (`slices/00-stack-setup.md`) — **shipped**
-- [ ] S1 — one bronze token source (`web/src/ui/theme/bronze.css`), consumed by Tailwind + vanilla + lab; **zero pixel change** (`slices/01-design-system.md`)
+- [x] S1 — one bronze token source (`web/src/ui/theme/bronze.css`): `:root` tokens consumed by vanilla index.html; chassis classes + `@theme` deferred to S2; **zero pixel change** (`slices/01-design-system.md`) — **shipped**
 - [ ] S2 — menu proof (first React surface: `#menu-ui` + duel modal) (`slices/02-menu-proof.md`)
 - [ ] S3 — **HUD perf SPIKE** (card bar in React, 60 Hz via refs, measured) → migrate/keep verdict (`slices/03-hud-perf-spike.md`)
 - [ ] S4 — static wave: army builder + battle modals (`slices/04-army-builder-modals.md`)

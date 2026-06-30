@@ -3,6 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <title>Battle Sim</title>
+  <!-- The one bronze design source: the :root design tokens. Loaded
+       render-blocking before the inline <style> below so var(--bronze-*)
+       resolves at first paint. -->
+  <link rel="stylesheet" href="/src/ui/theme/bronze.css" />
   <style>
     /* Cinzel: an engraved Roman-caps serif (OFL) for the campaign map labels —
        cities, regions, factions. Classical-atlas lettering. */
@@ -13,20 +17,9 @@
       font-display: swap;
     }
     html, body { margin: 0; height: 100%; overflow: hidden; background: #14161c; }
-    /* Bronze HUD design tokens — the one source for the game-UI chrome (card bar,
-       toolbar, info panel, minimap, buttons all consume these). A chassis is:
-       background: var(--bronze-fill) padding-box, var(--bronze-edge) border-box;
-       border: 3px solid transparent; box-shadow: var(--bronze-frame). */
-    :root {
-      --bronze-fill: linear-gradient(#5e4527, #2a1f11);
-      --bronze-edge: linear-gradient(#c79a54 0%, #6e5128 48%, #241a0e 100%);
-      --bronze-frame: inset 0 1px 0 rgba(236,200,132,0.6), inset 0 0 0 2px rgba(16,10,5,0.7), inset 0 -2px 6px rgba(0,0,0,0.55), 0 0 0 1px rgba(182,142,80,0.6), 0 7px 18px rgba(0,0,0,0.6);
-      --bronze-ink: #e7cfa0;
-      --bronze-ink-bright: #f6e4ba;
-      --well-bg: #1a130b;
-      --well-shadow: inset 0 0 0 1px rgba(150,114,62,0.3), inset 0 0 6px rgba(0,0,0,0.7);
-      --well-hover: inset 0 0 0 1px rgba(201,165,99,0.7), inset 0 0 6px rgba(0,0,0,0.6);
-    }
+    /* Bronze design tokens (:root) and the .chassis / .chassis-tray housing
+       classes now live in src/ui/theme/bronze.css — the one bronze source.
+       Everything below still consumes the tokens via var(--bronze-*). */
     #battlefield { display: block; width: 100vw; height: 100vh; }
     #hud {
       position: fixed; top: 12px; left: 12px;
@@ -84,21 +77,14 @@
       background: rgba(255,255,255,0.08); pointer-events: none;
     }
     #unitlabels { position: fixed; inset: 0; pointer-events: none; z-index: 3; }
-    /* Bronze HUD chassis, matching the card bar — opaque worn-metal housing,
-       NOT a translucent web pill bar. */
+    /* Worn-bronze chassis from the shared tokens (bronze.css) — opaque
+       worn-metal housing, NOT a translucent web pill bar. */
     #toolbar {
       position: fixed; bottom: 10px; left: 50%; transform: translateX(-50%);
       display: flex; gap: 5px; align-items: center; z-index: 5;
       padding: 6px 8px; border: 3px solid transparent; border-radius: 5px;
-      background:
-        linear-gradient(#5e4527, #2a1f11) padding-box,
-        linear-gradient(#c79a54 0%, #6e5128 48%, #241a0e 100%) border-box;
-      box-shadow:
-        inset 0 1px 0 rgba(236,200,132,0.6),
-        inset 0 0 0 2px rgba(16,10,5,0.7),
-        inset 0 -2px 6px rgba(0,0,0,0.55),
-        0 0 0 1px rgba(182,142,80,0.6),
-        0 7px 18px rgba(0,0,0,0.6);
+      background: var(--bronze-fill) padding-box, var(--bronze-edge) border-box;
+      box-shadow: var(--bronze-frame);
     }
     /* Bottom unit-card strip: one card per player unit (Total War style).
        Fixed-size cards in a no-scroll grid — JS writes --cols/--card-w/--card-h
@@ -112,18 +98,16 @@
       grid-auto-rows: var(--card-h, 96px);
       gap: 3px; justify-content: center; align-content: end;
       overflow: hidden; padding: 11px 12px;
-      /* Opaque worn-bronze chassis: a brushed-metal fill and corner rivets
-         (padding-box) inside a beveled brass edge (border-box) — a game HUD
-         housing, not a translucent web overlay. The box-shadow stack builds the
-         frame: top highlight, a dark groove, a brass bead, then the recessed tray. */
+      /* Riveted bronze tray: corner rivets + brushed grain over the shared
+         fill/edge tokens; the deeper 6-layer frame is unique to this housing. */
       background:
         radial-gradient(circle at 9px 9px, rgba(234,204,142,0.95) 0 1.1px, rgba(58,42,22,0.95) 1.5px 2.7px, transparent 3.1px) padding-box,
         radial-gradient(circle at calc(100% - 9px) 9px, rgba(234,204,142,0.95) 0 1.1px, rgba(58,42,22,0.95) 1.5px 2.7px, transparent 3.1px) padding-box,
         radial-gradient(circle at 9px calc(100% - 9px), rgba(234,204,142,0.95) 0 1.1px, rgba(58,42,22,0.95) 1.5px 2.7px, transparent 3.1px) padding-box,
         radial-gradient(circle at calc(100% - 9px) calc(100% - 9px), rgba(234,204,142,0.95) 0 1.1px, rgba(58,42,22,0.95) 1.5px 2.7px, transparent 3.1px) padding-box,
         repeating-linear-gradient(96deg, rgba(255,228,168,0.035) 0 2px, rgba(0,0,0,0.04) 2px 4px) padding-box,
-        linear-gradient(#5e4527, #2a1f11) padding-box,
-        linear-gradient(#c79a54 0%, #6e5128 48%, #241a0e 100%) border-box;
+        var(--bronze-fill) padding-box,
+        var(--bronze-edge) border-box;
       border: 4px solid transparent; border-radius: 5px;
       box-shadow:
         inset 0 1px 0 rgba(236,200,132,0.65),

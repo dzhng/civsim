@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Water feature — slice roadmap</title>
+<style>
+  :root { --ink:#1b1408; --paper:#f4ecdc; --bronze:#7a5a2e; --sea:#27405a; --foam:#cfe0e6; --muted:#6b6150; }
+  * { box-sizing:border-box; }
+  body { margin:0; font:15px/1.5 "Georgia",serif; color:var(--ink); background:var(--paper); }
+  header { padding:28px 32px; background:linear-gradient(180deg,#2b3f57,#27405a); color:#eef4f6; }
+  header h1 { margin:0 0 4px; font-size:26px; }
+  header p { margin:0; opacity:.85; font-style:italic; }
+  main { padding:28px 32px; max-width:1100px; margin:0 auto; }
+  .ref { display:flex; gap:20px; flex-wrap:wrap; align-items:flex-start; margin-bottom:28px; }
+  .ref img { width:480px; max-width:100%; border:3px solid var(--bronze); border-radius:4px; }
+  .ref div { flex:1; min-width:260px; }
+  .ladder { display:flex; flex-direction:column; gap:10px; }
+  .row { display:flex; gap:12px; align-items:stretch; }
+  .slice { flex:1; border:1px solid #cbbfa6; border-left:6px solid var(--sea); background:#fbf6ea;
+           border-radius:4px; padding:10px 14px; }
+  .slice.spike { border-left-color:#a8431f; background:#f7e9df; }
+  .slice.look  { border-left-color:#2f7d8a; }
+  .slice.integ { border-left-color:#7a5a2e; }
+  .slice.clean { border-left-color:#6b6150; }
+  .slice h3 { margin:0 0 3px; font-size:15px; }
+  .slice .var { font-style:italic; color:var(--muted); font-size:13px; }
+  .slice .art { font-size:12.5px; color:#3a4a5a; margin-top:4px; font-family:ui-monospace,monospace; }
+  .legend { display:flex; gap:18px; flex-wrap:wrap; margin:18px 0 26px; font-size:13px; }
+  .legend span { display:inline-flex; align-items:center; gap:6px; }
+  .chip { width:14px; height:14px; border-radius:3px; display:inline-block; }
+  .note { background:#efe6d2; border:1px solid #d8ccaf; border-radius:4px; padding:12px 16px; margin-top:8px; }
+  .note b { color:#a8431f; }
+  code { background:#e7dcc4; padding:1px 5px; border-radius:3px; font-size:12.5px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Water — IFFT-ocean look across civsim's three surfaces</h1>
+  <p>Replicate Spiri0/Threejs-WebGPU-IFFT-Ocean — in civsim's 2.5D renderer, Aegean palette. Bake off the technique, tune one variable per slice, integrate last.</p>
+</header>
+<main>
+  <section class="ref">
+    <img src="../assets/reference-ifft-ocean-dusk.png" alt="Reference IFFT ocean at dusk" />
+    <div>
+      <h2 style="margin-top:0">The target</h2>
+      <p>Deep choppy open sea, whitecaps everywhere, a single sun-glint streak. We replicate
+      its <b>wave geometry, foam, and glint behavior</b> — but drive color from civsim's
+      lighting preset (warm Aegean by day; dusk-capable). <b>No dusk mood baked into the
+      albedo.</b></p>
+      <p>This image is the <code>compare-screenshots</code> target at
+      <code>assets/reference-ifft-ocean-dusk.png</code>.</p>
+    </div>
+  </section>
+
+  <div class="legend">
+    <span><i class="chip" style="background:#a8431f"></i> Spike (decides technique)</span>
+    <span><i class="chip" style="background:#2f7d8a"></i> Look (one variable, on the lab open-sea plane)</span>
+    <span><i class="chip" style="background:#7a5a2e"></i> Integration (drop into the real product)</span>
+    <span><i class="chip" style="background:#6b6150"></i> Cleanup</span>
+  </div>
+
+  <div class="ladder">
+    <div class="row"><div class="slice spike">
+      <h3>S1 — Technique bake-off spike</h3>
+      <div class="var">variable: Gerstner vs IFFT — picks the winner + freezes the WaterFieldSource seam + the clock</div>
+      <div class="art">/renderer/water-bakeoff?tech=…&amp;compare=1 + perf table + decision artifact</div>
+    </div></div>
+
+    <div class="row"><div class="slice look">
+      <h3>S2 — Wave silhouette / displacement</h3>
+      <div class="var">variable: wave geometry (neutral grey)</div>
+      <div class="art">/renderer/water-bakeoff?tech=&lt;winner&gt; — mid-frame swell band</div>
+    </div></div>
+    <div class="row"><div class="slice look">
+      <h3>S3 — Whitecap foam coverage</h3>
+      <div class="var">variable: foam coverage + threshold</div>
+      <div class="art">open-water whitecap field — coverage vs reference</div>
+    </div></div>
+    <div class="row"><div class="slice look">
+      <h3>S4 — Sun-glint streak</h3>
+      <div class="var">variable: glint shape + sun-tracking</div>
+      <div class="art">the sun-track band</div>
+    </div></div>
+    <div class="row"><div class="slice look">
+      <h3>S5 — Water albedo + depth ramp × env preset</h3>
+      <div class="var">variable: color (introduces waterPalette + waterEnvironment; two-light neutrality proof)</div>
+      <div class="art">?preset=golden|dusk|overcast — near→far gradient</div>
+    </div></div>
+    <div class="row"><div class="slice look">
+      <h3>S6 — Horizon haze / aerial perspective</h3>
+      <div class="var">variable: far desaturation + soft horizon</div>
+      <div class="art">the sea-to-sky seam band</div>
+    </div></div>
+    <div class="row"><div class="slice look">
+      <h3>S7 — Animation rhythm</h3>
+      <div class="var">variable: temporal cadence (judged as a GIF, deterministic at fixed t)</div>
+      <div class="art">?play=1 — full plane over time</div>
+    </div></div>
+
+    <div class="row"><div class="slice integ">
+      <h3>S8 — Integrate: battle open-sea ★ first in-product</h3>
+      <div class="var">variable: seam / depth / MSAA / prop ordering</div>
+      <div class="art">/renderer/battle-terrain-3d?gate=coastal-scrub&amp;view=west</div>
+    </div></div>
+    <div class="row"><div class="slice integ">
+      <h3>S9 — Integrate: battle coastal gameplay water</h3>
+      <div class="var">variable: shore ramp + swash; replaces flat ground tint; projectGround→z-bearing decision</div>
+      <div class="art">…&amp;view=field — shoreline / shallows band</div>
+    </div></div>
+    <div class="row"><div class="slice integ">
+      <h3>S10 — Integrate: campaign sea (subtle / chart-respecting)</h3>
+      <div class="var">variable: zoom-gated subtlety; deliberately NOT the deep-ocean ref</div>
+      <div class="art">/renderer/campaign-map at two zooms</div>
+    </div></div>
+
+    <div class="row"><div class="slice clean">
+      <h3>S11 — Loser deletion + close-spec</h3>
+      <div class="var">delete the dead candidate via the seam; archive to specs/done/</div>
+    </div></div>
+  </div>
+
+  <div class="note">
+    <b>Why this order.</b> The look is judged on the open-sea surface <i>rendered in the lab</i>
+    (the reference's actual subject, isolated from full-scene noise). Geometry → foam → glint are
+    judged in neutral grey before color, so each verdict isolates one variable. Integration
+    (S8–S10) only reconciles seams, depth, MSAA, and label/prop seating — it never re-litigates
+    the look.
+  </div>
+  <div class="note">
+    <b>Biggest risks.</b> No compute infra exists today (IFFT is net-new, lives behind the seam,
+    falls back to Gerstner on weak GPUs). The camera bind group is VERTEX-visibility only — the
+    clock change must move zero existing pixels. Campaign chart-vs-ocean tension is hard-gated to
+    a subtle, zoom-aware treatment.
+  </div>
+</main>
+</body>
+</html>

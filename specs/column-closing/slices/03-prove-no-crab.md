@@ -8,6 +8,14 @@ not shuffle sideways while engaged, (b) a wiped column stays a notch, and (c) th
 notch evens out cleanly a beat after the unit disengages. This slice is also the
 charge-feel sign-off (the one watched risk from slice 2).
 
+This proof must include recreated battle/weave shots, not just Rust tests. The
+visual acceptance bar is same-or-better formation order: fixed-file casualty
+closing should reduce the blobbing caused by lateral relabeling, and any shot
+that looks more blobbed sends the work back to slice 2 before baselines are
+blessed. The shot review must include a fresh, unprimed `screenshot-critique`
+subagent (`fork_context: false`) looking only at the comparison sheet and tight
+crops with a neutral prompt.
+
 ## API seam
 
 - A real test in `crates/sim/tests/mechanics_formation.rs` (the file started in
@@ -28,6 +36,11 @@ charge-feel sign-off (the one watched risk from slice 2).
   drift trace alongside. The story it must tell at a glance: rear-rank dots stay
   in their columns while engaged; a wiped column shows as a persistent empty
   stripe; after the disengage marker, the stripes close in one re-even.
+- Recreate and inspect the relevant battle/weave shots. Treat them as the
+  acceptance evidence for formation order, not as decoration after the tests.
+- Attach the full comparison sheet and tight crops to an unprimed
+  `screenshot-critique` subagent. Record high-confidence visible defects before
+  claiming the proof passes.
 - The renderer-lab scene (if built) for the moving-picture version.
 
 ## Tests that pin it
@@ -54,6 +67,11 @@ Everything from slice 2's "must stay green," plus the new
 - David's eye on the artifact is the real gate. If the notches read as ugly or
   the deep block still looks like it's drifting, that sends work back to slice 2
   (cadence, CLEAR_BEAT, or the engaging/advancing gate), not to new mechanics.
+- If the recreated battle/weave shots show worse formation order or more
+  blobbing, do not re-pin them; fix the behavior first.
+- If the critique subagent catches a visible order/blob/scan-readability issue
+  the main pass missed, add it to the visual checklist or fix it before accepting
+  the slice.
 - If the visualization isn't legible enough to judge, iterate the artifact — its
   whole job is to make the lateral-vs-forward distinction obvious without reading
   code.

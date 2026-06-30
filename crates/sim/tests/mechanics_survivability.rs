@@ -41,11 +41,11 @@ const REF_BLADE: Weapon = Weapon {
     min_range: 0.0,
     zones: sim::strike::front(0.7),
     attack_interval: 4.1,
-    // 0.32 lands an equal wide-LINE grind at ~3.5 min (the anchor). The stock game
-    // sword is 0.5 — that grinds the same reference line in ~2.2 min, i.e. real
-    // melee runs a touch HOTTER than the 3-4 min anchor at wide-line scale (and
-    // the old "10 min" figure was a DEEP-block artifact, not a real battle line).
-    damage: 0.32,
+    // 0.22 lands an equal wide-LINE grind at ~3-4 min (the anchor) with fixed-file
+    // casualty closing. Holding files keeps fresh men feeding the front more
+    // efficiently than the old lateral relabeling, so the fake reference blade is
+    // lower than the stock game sword; real class weapons remain balance-owned.
+    damage: 0.22,
     cleave: false,
     impales: false,
     kind: WeaponKind::Standard,
@@ -243,12 +243,13 @@ fn survivability_scales_with_the_reference_stats() {
     // HP is ~linear in survivability (pure-body references, no block/evade).
     // Mildly super-linear in practice — a tougher front rank holds formation
     // longer, so its later defence is a touch better; band allows that. Upper
-    // bound widened 5.3→5.8 for the cadence-fatigue coupling: a long-lived 4×-HP
-    // line drags its fight into deeper fatigue, where slower tired swings stretch
-    // the tail further than the short 1×-HP fight ever reaches (now 5.63×).
+    // bound widened 5.3→5.8 for the cadence-fatigue coupling, then 5.8→6.0 when
+    // fixed-file casualty closing made the 3-4 min lethality anchor require a
+    // lower fake blade damage: the long-lived 4×-HP line spends more of its fight
+    // in the slow, fatigue-stretched tail than the short 1×-HP fight ever reaches.
     assert!(
-        (3.5..=5.8).contains(&(hp4 / hp1)),
-        "4x HP should last ~4x as long (3.5-5.8x): got {:.2}x",
+        (3.5..=6.0).contains(&(hp4 / hp1)),
+        "4x HP should last ~4x as long (3.5-6.0x): got {:.2}x",
         hp4 / hp1
     );
     assert!(

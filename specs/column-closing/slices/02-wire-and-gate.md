@@ -53,6 +53,16 @@ reassign_slots(...) stays the path for, and ONLY for:
 
 - `scripts/test-mechanics` — the physics inner loop (the bucket this change
   lives in).
+- Recreate the relevant battle/weave shots and inspect them by eye before
+  accepting or re-pinning anything. The expected visual result is same-or-better
+  formation order, preferably less blobbing; this behavior exists because
+  lateral casualty relabeling visibly blobs formations.
+- Run `screenshot-critique` with a fresh explorer (`fork_context: false`) on the
+  exact comparison sheet and tight crops before accepting the shots. The prompt
+  must be neutral: ask what visible formation/order defects exist, not whether
+  the new behavior is better. It must still be a baseline/current comparison;
+  a general visual audit can inform follow-up work, but does not satisfy the
+  gate.
 - A throwaway `tests/dbgN.rs` (per the debug-probe convention) printing, over a
   deep engaged block taking front-rank casualties, the **max lateral displacement
   of rear-rank men** before vs after — expect it to collapse toward the
@@ -74,6 +84,12 @@ reassign_slots(...) stays the path for, and ONLY for:
 - **Golden re-pin.** `golden_state_hash_stable` moves — re-pin ONCE in this
   commit after confirming (diff vs a clean baseline) your change is the sole
   mover. The branch may already have it red for unrelated reasons.
+- **Shot evidence.** Cargo tests alone do not prove this slice. Recreated shots
+  must show the changed formation order is not visually worse; do not bless a
+  numeric-only pass if the battle looks blobbed or less ordered. The visual
+  evidence must include an unprimed `screenshot-critique` pass; high-confidence
+  findings from the subagent are blockers until inspected or recorded as follow-up
+  work. This check is mandatory even when `scripts/test-mechanics` is green.
 
 ## What must stay green
 
@@ -89,6 +105,229 @@ reassign_slots(...) stays the path for, and ONLY for:
 
 ## Feedback that would change this slice
 
+- Fresh screenshot-critique passes on the slice-2 candidates found the browser
+  `penetration` vibe visually worse. The first had blue formation spray at
+  `t084/t120/t192`, a shallow horizontal smear by `t120/t192`, and ambiguous
+  right-flank clusters. A later rear-rank damping candidate reduced the spray but
+  still read as clumps at `t084` and a rounded blue blob at `t120/t192`; it also
+  introduced heavier contact-zone layer ambiguity and dark clutter in
+  `vibe/offense`. A rear-reserve bridge candidate with five frozen contact ranks
+  restored a cleaner macro column, but a fresh unprimed critique still found
+  high-confidence regressions: `penetration` `t084` sheared off-center with a
+  detached blue pocket, `t192` pancaked under the red line, and offense still had
+  dark trailing figures that read like a third faction/material error. Treat this
+  as an active blocker; scalar tests being green is not enough.
+- A file-local `rerank_columns_by_depth` helper was tried as a bounded substitute
+  for the old engaged reassign, then removed. The helper preserved `slot % files`
+  but still failed the gate: 60 ticks gave fragmentation/blob/right-red breakage;
+  15 ticks gave ropes, curved lanes, and layering; casualty-only looked scattered
+  and cluttered; 30 ticks failed
+  `mechanics_melee::attack_latch_behaves_like_a_move_order` in the broad
+  mechanics run (`ATTACK coh=0.65`, `MOVE coh=0.78`) and the fresh unprimed
+  critique still flagged t084 blue strands plus unreadable dark offense bodies.
+  A later narrowed form gated only to deep non-strict infantry already engaged
+  with a much wider foot frontage passed the scalar mechanics buckets
+  (`mechanics_melee`, `mechanics_formation`, `mechanics_weave`,
+  `mechanics_charge`, `mechanics_impact`, and `mechanics_disengage`) but still
+  failed fresh Chrome WebGPU shots. Laplace, a fresh unprimed critique explorer
+  (`fork_context: false`), found high-confidence muddy central red/blue depth
+  ordering and offense wings breaking into loose strands with gaps and isolated
+  singletons. This is evidence that simply reordering ranks inside files
+  perturbs contact order too much even when the scalar contracts stay green.
+- A contact-only deeper-weave variant was also tried and removed. It kept
+  advancing formations loose on approach but restored the wider neighbour net
+  once contact was live. Focused mechanics stayed green, yet fresh browser shots
+  still failed unprimed critique: blue column shape was lost by `t084/t120`, the
+  contact spread sideways by `t120/t192`, the red line fragmented into a wavy
+  ribbon by `t192`, and offense retained dark ambiguous bodies. Treat this as a
+  sign that post-contact stiffness alone does not solve the physical fan-out.
+- A broad-frontage magnet clamp was also tried and removed. It zeroed enemy seek
+  for soldiers inside an opposing foot frontage, while preserving true overhang
+  curl. The scalar sentinels stayed green, but shots regressed: penetration still
+  scattered and over-spread, the red line deformed unevenly, and offense lost its
+  readable wing shape into diagonal snakes/blobs. Treat this as evidence that
+  removing lateral seek in the contact band is not enough and can harm wrapping
+  readability.
+- A same-unit non-fighting queue blocker was tried and removed. It treated
+  non-fighting same-unit bodies directly between a soldier and his target as
+  `front_clear` blockers. The Rust onset probe improved, but scalar mechanics
+  failed: `a_column_bulges_a_held_line_it_does_not_part_it` dimpled only `0.5m`,
+  and `attack_latch_behaves_like_a_move_order` diverged (`ATTACK coh=0.65` vs
+  `MOVE coh=0.85`). A broad same-unit queue block starves the magnet pressure
+  that makes bulge/wrap work.
+- A low-awareness lateral magnet projection was tried and removed before scalar
+  tests. It stripped lateral magnet only for non-fighting, low-awareness,
+  advancing non-strict infantry against much wider foot frontage. The Rust
+  penetration diagnostic worsened later width/cohesion, so it is not the missing
+  contact-order primitive.
+- A live-frontage gather fix is retained as setup substrate, not accepted as the
+  visual solution. `set_files` now arms the existing gather/reform timer so a
+  unit reshaped from line to column dresses around its new slots before running
+  off; a `mechanics_formation` test pins low lateral slot error after a live
+  reshape. This passed `scripts/test-mechanics` and the reshape/reform scenario
+  checks, and the Rust penetration diagnostic showed lower approach slot error,
+  but fresh Chrome WebGPU `penetration`/`offense` shots still failed Carver's
+  unprimed critique (`fork_context: false`) with high-confidence ambiguous
+  red/blue contact depth/order and central formation readability collapse.
+  Continue at the contact-order failure; do not bless shots from this pass.
+- A rear-rank lane-only magnet candidate was tried and removed after a Rust onset
+  probe. The probe mirrored the browser `penetration` distance/shape and showed
+  the current substrate jumping from a dressed ~9m column at `t=78` to ~26m at
+  `t=84`, with only a handful of fighters and rear ranks still mostly
+  `front_clear=1`/high-awareness. Stripping only lateral magnet from non-fighting
+  rear ranks in a narrow-column-vs-wide-foot-frontage contact left the same
+  ~26m width, so the next fix must look at the contact/locomotion equilibrium,
+  not just lateral target choice.
+- A lateral slot-rail variant was also tried and removed. It kept forward
+  blocking unchanged and strengthened only the sideways slot pull inside opposing
+  frontage. The mechanics bucket stayed green through the checked tests, but the
+  screenshot critique still flagged lost column shape, clumps/holes, lateral
+  over-spread, and dark offense streak artifacts. Treat this as evidence that the
+  fan-out is not solved by stronger local lateral slot grip alone.
+- A narrow-column-only slot rail was also tried and removed. It limited the rail
+  to advancing units at most two thirds as wide as the blocking enemy frontage.
+  That avoided the previous offense-side metric shift, but the shot gate still
+  failed: penetration lost column order into blobs/islands with stray single
+  units and muddy contact layering. This closes the "maybe just gate the rail
+  narrower" path for now.
+- A lane-aware target preference was also tried and removed. Narrow advancing
+  foot paid a soft cost for targets far from its slot lane when fighting a much
+  broader enemy. It was mechanically contained and improved some late penetration
+  structure to the main pass, but unprimed critique still found column loss,
+  horizontal smearing, muddy contact layering, and the same offense readability
+  defects. Target lane preference alone does not pass the visual gate.
+- A narrow blocked-contact weave-gate candidate was also tried and removed. It
+  prevented a narrow, deep, already-engaged foot column from using the loose
+  running weave when pressed into a much wider foot frontage. The broad version
+  broke wide-line wrap; the narrowed version passed the full mechanics sweep, but
+  fresh shots failed the mandatory unprimed critique. Planck found high-
+  confidence `penetration` regressions at `t084/t120` (blue soldiers scattered
+  into islands/singles), a vertical drip/string artifact at `t192`, muddy contact
+  depth ordering, partially broken red side formations, and the recurring dark
+  ambiguous offense bodies. This is the current warning label on scalar-green
+  stiffness gates: they still have to make the battle shots read same-or-better.
+- A hard-layer friendly collision queue was also tried and removed. The broad
+  version resolved same-unit foot collisions near contact along formation-rest
+  axes and failed scalar gates: wide-line wrap lost rear envelopment and
+  attack-latch cohesion diverged from move. Narrowing to deep narrow columns
+  inside much wider foot frontage made the mechanics sweep pass, but Epicurus
+  still found `penetration` `t084` side-loop/spiral breakage, muddy `t120/t192`
+  contact ordering, and dark offense artifact bodies. Restricting further to
+  same-file pairs also passed focused mechanics, but Gauss still found current
+  `penetration` `t084` broken into scattered arcs/isolated sprites, high-
+  confidence muddy melee layering, and high-confidence dark offense bodies that
+  read as rendering debris. Hard collision axis projection is closed for now
+  unless a sharper physical diagnosis explains how to avoid those visual defects.
+- A front-clear / same-file queue candidate was also tried and removed before
+  screenshots. A diagnostic of the `penetration` setup showed the visible fan-out
+  starts between `t072` and `t084`: the blue column is still about 7.5m wide at
+  `t072`, then jumps to roughly 20m at `t078` and roughly 37m at `t084` while
+  only a handful of men are fighting. Blocking seek behind non-fighting friends,
+  then gating narrow-vs-wide columns so only front slot ranks seek, reduced the
+  debug width somewhat but broke the physics that must stay live: column bulge,
+  attack/move parity, braced contact closure, depth push, attacking-stem drape,
+  and attacking-line wrap all failed. This closes simple queue-gating of
+  `front_clear`; the next contact-order fix must preserve magnet-driven
+  depth/wrap/bulge instead of suppressing it.
+- The retained substrate was re-shot after reverting that scalar-red queue gate.
+  Chrome WebGPU was required (`VERIFY_BROWSER_CHANNEL=chrome`) because bundled
+  Chromium reported no WebGPU adapter. Fresh sheets/crops are in
+  `/private/tmp/civsim-column-closing-current-shots/`. Faraday, a fresh unprimed
+  screenshot critic, still found high-confidence current regressions:
+  `penetration` `t084` blue-column breakup into right-leaning spray and detached
+  stragglers, `t120/t192` muddy contact depth/layering and isolated blue figures,
+  plus recurring ambiguous dark offense bodies and blob-like contact. Keep the
+  visual gate red.
+- A native browser-duel probe reproduced the current failure without relying on
+  screenshots: after `setFiles(1, 70)`, `setFiles(0, 8)`, and the same
+  attack-through-centroid order as `vibe/penetration`, the column stayed about
+  `7.4m` wide through `t072`, then widened to about `16.4m` at `t084` and
+  `32.6m` at `t096`. Rear ranks with no targets widened too, so the failure is a
+  contact/locomotion equilibrium, not merely target choice. A temporary old raw
+  engaged `reassign_slots` toggle narrowed that native probe but only by
+  relabeling slots laterally and disturbing defender cohesion. Two local
+  replacements were tried and removed before acceptance gates: targetless
+  rear-rank lateral same-rank springs inside wider foot frontage made the native
+  spray worse, and a strong lane cost in foot target selection also made it
+  worse. Do not return to those exact shapes.
+- Two more native-only probes were tried and removed. First, a low-cohesion
+  near-contact gather for non-trampling foot columns approaching a much wider
+  enemy frontage kept the lattice on and suppressed cruise feed-forward, but it
+  prevented contact and made the approach itself too wide (`t048` roughly
+  `20.4m`). Second, immediate `compact_columns` on any casualty while
+  engaged/advancing left `t084` unchanged and widened `t096` slightly, so the
+  browser-visible islands are physical spread rather than delayed forward
+  casualty compaction. Keep both paths closed unless a later version is much more
+  local.
+- A narrower no-cruise candidate was tried and removed before browser shots. Once
+  a non-trampling infantry unit had contact, targetless rear ranks stopped
+  receiving the frame cruise feed-forward while still moving through
+  slot/weave/collision. In the native browser-duel mirror the `rank_id >= 2`
+  version preserved contact and improved late width (`t096` roughly
+  `32.6m -> 24.1m`) while leaving `t084` roughly flat (`16.4m -> 16.0m`). A
+  deeper `rank_id >= 4` gate helped less (`t096` roughly `26.1m`), and a
+  shallower `rank_id >= 1` gate was worse (`t096` roughly `25.6m` and less clean
+  front targeting). The `rank_id >= 2` version failed the scalar gate:
+  `mechanics_survivability` reported `HP4/HP1 = 6.60x`, above the `6.0x` ceiling.
+  Do not retain this exact no-cruise candidate unless a new version preserves the
+  survivability curve.
+- A narrower blind-rear queue candidate was also tried and removed. It projected
+  same-file compression along the file axis only for targetless soldiers and gave
+  targetless deep rear ranks in a stalled advancing foot queue extra lateral pull
+  toward their existing slot. This preserved focused scalar mechanics and
+  improved the diagnostic onset (`t084` rear outliers roughly 130 -> 91), while
+  two stronger variants were rejected at the scalar gate: applying the rear pull
+  to targeted ranks and doubling its strength both failed
+  `a_column_bulges_a_held_line_it_does_not_part_it`. Fresh browser shots still
+  failed the visual gate. Einstein, a fresh unprimed screenshot critic, found
+  high-confidence blue "drips" and detached trails at `t084/t120`, muddy center
+  layering, unreadable formation order by `t192`, and ragged red arcs/clumps.
+  Better diagnostics are not enough; keep this path closed unless the underlying
+  visual failure mode is addressed.
+- A near-edge infantry forward-block candidate was tried and removed. It moved
+  the existing foot `formation_blocks_forward` gate from the enemy centre line to
+  the defender's near edge along the attacker's approach. The scalar buckets
+  stayed green, including the full `mechanics_melee` file and symmetry, but
+  fresh Chrome WebGPU shots were visually worse. Banach, a fresh unprimed
+  screenshot critic, found high-confidence loss of blue column order at
+  `penetration` `t084/t120`, ambiguous melee depth/layering, a flattened late
+  penetration smear at `t192`, dark ambiguous offense bodies, and stringy
+  offense flanks. This is closed as another scalar-green/visual-red path.
+- A same-file friendly-slide damping candidate was tried and removed. It halved
+  same-unit friendly collision slide only for same-file pairs in deep files or
+  held units, aiming to stop axial queue pressure from leaking sideways while
+  preserving wrap/drape elsewhere. The focused Rust onset probe improved
+  (`t084` width roughly `19.9m`, `lat95` roughly `5.6m`) and the full
+  `mechanics_melee` file passed, but acceptance still failed: fresh Chrome WebGPU
+  `penetration`/`offense` shots in
+  `/private/tmp/civsim-column-closing-current-shots/` retained muddy central
+  interpenetration and poor formation readability under Leibniz, an unprimed
+  `screenshot-critique` explorer, and the wider mechanics sweep tripped
+  `mechanics_survivability::survivability_scales_with_the_reference_stats`
+  (`HP4/HP1 = 6.21x`, above the `6.0x` ceiling). Do not reintroduce this as a
+  numeric-only fix.
+- A narrow-frontage rest-weave stiffness candidate was tried and removed. A
+  force sweep of the browser-style penetration onset showed rest-shape stiffness
+  was the only tested scalar lever that materially tightened `t084` without
+  immediately worsening the probe; magnet removal barely helped, while
+  compression/separation changes were worse. A `10/3x` boost failed
+  `mechanics_weave::an_attacking_stem_drapes_along_the_bar`; a scoped `2x` boost
+  for advancing non-strict foot inside a much wider foot frontage passed
+  `mechanics_melee`, `mechanics_formation`, full `mechanics_weave`,
+  `mechanics_charge`, `mechanics_impact`, and `mechanics_disengage`, and improved
+  the Rust onset (`t084` width roughly `25.8m -> 21.7m`, `lat95` roughly
+  `7.8m -> 5.7m`). It still failed the browser visual gate: Locke, a fresh
+  unprimed screenshot critic (`fork_context: false`), found high-confidence
+  worse `penetration t084` blue-column coherence/lateral scatter, high-
+  confidence `penetration t192` red/right-side fragmentation, and muddier offense
+  center/lower color-depth readability. Do not accept simple rest-weave
+  stiffening as a visual fix without a sharper diagnosis.
+- A global post-contact infantry cruise cap was tried and removed before
+  screenshots. It capped rear non-engaged foot cruise at base speed once any
+  contact existed. Focused tripwires passed, but the full melee file failed
+  `a_mortal_wrapping_line_backfills_casualty_tears`: the mortal wrapping line
+  left sustained casualty gaps instead of back-filling them. The rear cruise is
+  part of healthy wrap repair, so a global contact cap is too blunt.
 - If a deep grind visibly lags closing on the 2%-casualty trigger, relax the
   cadence (column closing is cheap and lateral-free — could run per-death).
 - If `CLEAR_BEAT` looks too eager/sluggish on screen, retune it; record the

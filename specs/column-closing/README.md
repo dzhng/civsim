@@ -217,26 +217,27 @@ re-pinned deliberately for this physics change:
 
 Fresh Chrome WebGPU `vibe/penetration`/`vibe/offense` shots were regenerated
 after rebuilding wasm, but baselines were not re-blessed. `penetration` still
-diffs from `t072` onward (`t084` ~`2.80%`, `t096` ~`3.77%`, `t120` ~`3.02%`,
+diffs from `t072` onward (`t084` ~`2.80%`, `t096` ~`3.77%`, `t120` ~`3.01%`,
 `t192` ~`3.39%`). The `compare-screenshots` helper was used from
 `.agents/skills/compare-screenshots/scripts/visual-parity-diff.mjs` with matched
-baseline/current frame folders and central contact crops. Artifacts and JSON are
-under `/private/tmp/civsim-column-closing-compare-helper/`; the helper's
-fixed-pair distance is diagnostic, not an acceptance gate. It located the
-largest `penetration` movement at `t192` (`parityDistance=0.54331`,
-contact-crop `0.50724`) and high contact-crop movement at `t084`
-(`0.51632`). Manual inspection under the revised target: current `penetration`
-is closer to deployed width than baseline and removes the worst flare. David
-reviewed the shown comparison and judged current better than baseline: the
-baseline's pinched/harrowed middle is unnatural even though it is more filled in.
-Current still has visible looseness and dangling trails, so do not claim the
-ideal has landed, but do treat it as the less-wrong visual direction for this
-target. `offense` helper output also shows large movement (worst full-frame
-`t024`, `parityDistance=0.57014`; contact-crop worst `t048`, `0.56530`). Manual
-read: current improves the side formations into cleaner blocks versus the
-baseline's big curls, but the central contact trail is still dark/muddy with
-detached trails. This continuation did the direct frame/crop inspection and
-helper comparison, but did not re-pin shot baselines.
+baseline/current frame folders and central contact crops. Fresh artifacts and
+JSON are under `/private/tmp/civsim-column-closing-refresh.Xy5rPr/`; the
+helper's fixed-pair distance is diagnostic, not an acceptance gate. It located
+the largest `penetration` movement at `t192` (`parityDistance=0.54330`,
+contact-crop `0.50726`) and high contact-crop movement at `t084` (`0.51632`).
+Manual inspection under the revised target: current `penetration` is closer to
+deployed width than baseline and removes the worst flare. David reviewed the
+shown comparison and judged current better than baseline: the baseline's
+pinched/harrowed middle is unnatural even though it is more filled in. Current
+still has visible looseness and dangling trails, so do not claim the ideal has
+landed, but do treat it as the less-wrong visual direction for this target.
+`offense` helper output also shows large movement (worst full-frame `t024`,
+`parityDistance=0.57014`; contact-crop worst `t048`, `0.56541`). Manual read:
+current improves the side formations into cleaner blocks versus the baseline's
+big curls, but the central contact trail is still dark/muddy with detached
+trails. This continuation did the direct frame/crop inspection and helper
+comparison, but did not re-pin shot baselines and did not complete the fresh
+unprimed `screenshot-critique` gate.
 
 **Pickup point:** Build on the retained `0.10m` pivot-length slack; do not judge
 the next pass by matching the flawed baseline. The width target is "as close as
@@ -277,10 +278,10 @@ defects in the supplied sheets and crops.
   `compare-screenshots`'s `scripts/visual-parity-diff.mjs` helper on
   baseline/current folders with named contact crops, then send the exact helper
   artifacts plus comparison sheets/crops to an unprimed `screenshot-critique`
-  subagent (`fork_context: false`). Formation order must look the same or better
-  than before, because the whole point of deleting lateral casualty relabeling is
-  to reduce blobbing, not merely satisfy numeric invariants. The subagent must be
-  used as a comparison check, not only as a general screenshot-quality audit.
+  subagent (`fork_context: false`). The comparison must judge both images against
+  the deployed-width target and formation readability, not against pixel
+  closeness to the flawed baseline. The subagent must be used as a comparison
+  check, not only as a general screenshot-quality audit.
 - Concurrent sessions share the working tree (see `specs/standoff-double-push.md`
   process notes): never `git stash`/`checkout` over the tree; `git add` by path.
 - Rebuild wasm before any browser/renderer-lab check.

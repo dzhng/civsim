@@ -23,7 +23,7 @@ export async function run(ctx) {
   }
 
   const page = await ctx.newPage({ viewport: { width: 1600, height: 781 }, errorPrefix: 'battle-map-reference' });
-  await page.goto(`${ctx.target}/renderer/battle-terrain-3d?gate=river-and-crags&view=reference`);
+  await page.goto(`${ctx.target}/renderer/battle-terrain-3d?gate=highland-valley&view=reference`);
   await page.waitForFunction(() => window.__rendererLabReady === true && window.__rendererLabStats?.stats?.view === 'reference', { timeout: 20000 });
   await page.waitForTimeout(180);
   const stats = await page.evaluate(() => window.__rendererLabStats?.stats ?? null);
@@ -36,9 +36,19 @@ export async function run(ctx) {
     'reference candidate uses the zoomed-in vista grass budget',
     stats.grass?.terrainMasked === true
       && stats.grass?.zoomT === 1
-      && stats.grass?.tuftInstances >= 20000
+      && stats.grass?.tuftInstances >= 26000
       && stats.grass?.invalidTintTufts === 0,
     JSON.stringify(stats.grass),
+  );
+  ctx.check(
+    'reference candidate uses highland-valley relief fixture',
+    stats.gate === 'highland-valley'
+      && stats.mapId === 'highland-valley'
+      && stats.heightSpan > 20
+      && stats.heightSpan < 40
+      && stats.edges?.west === 'cliff'
+      && stats.edges?.east === 'ocean',
+    JSON.stringify({ gate: stats.gate, mapId: stats.mapId, heightSpan: stats.heightSpan, edges: stats.edges }),
   );
 
   const shot = await page.locator('#renderer-canvas').screenshot();

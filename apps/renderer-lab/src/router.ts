@@ -24,7 +24,7 @@ import { CampaignEntityPass, type CampaignEntityInstance } from '../../../packag
 import { buildCampaignMapDrawData, CampaignLabelPass, CampaignMapPass, CampaignMarkerPass, CampaignRoadPass, CampaignWorldLinePass, type CampaignLabel } from '../../../packages/game-renderer/src/campaign/mapPass';
 import { CampaignSceneryPass, type CampaignSceneryInstance } from '../../../packages/game-renderer/src/campaign/sceneryPass';
 import { PROP_REVIEW_GROUPS } from '../../../packages/game-renderer/src/models/shared/sceneryPropRegistry';
-import { BATTLE_MAP_CATALOG, battleMapById, buildBattleTerrainPresentation, presentationEdgeMismatches } from '../../../packages/game-renderer/src/battle/mapCatalog';
+import { BATTLE_MAP_CATALOG, battleMapById, buildBattleTerrainPresentation, presentationEdgeMismatches, type BattleMapCatalogEntry } from '../../../packages/game-renderer/src/battle/mapCatalog';
 import { flatHeightField, heightSpan, terrainHeightAt, type TerrainHeightField } from '../../../packages/game-renderer/src/terrain/heightField';
 import type { BattleTerrainFeature, BattleTerrainFeatureKind, BattleTerrainGrid } from '../../../packages/game-renderer/src/battle/terrainFeatures';
 import { BattleGroundPass } from '../../../packages/game-renderer/src/battle/groundPass';
@@ -2433,31 +2433,50 @@ async function routeBattleTerrainFeatures(ctx: LabContext) {
   });
 }
 
+type Terrain3dEntry = Pick<BattleMapCatalogEntry, 'id' | 'label' | 'edges' | 'groundCover'>;
+
+const REFERENCE_HIGHLAND_ENTRY: Terrain3dEntry = {
+  id: 'highland-valley',
+  label: 'Highland Valley Reference Fixture',
+  edges: { north: 'open-fog', south: 'open-fog', west: 'cliff', east: 'ocean' },
+  groundCover: 'green-grass',
+};
+
 // The rolling 3D battle terrain: height-displaced ground + shared scenery props
 // seated on the same height, viewed at the gameplay camera. Proves the slice-03
 // foundation — soldiers and props will share this ground.
 async function routeBattleTerrain3d(ctx: LabContext) {
-  const { default: initWasm, Game } = await import('../../../web/src/wasm/game_wasm.js');
-  const wasm = await initWasm();
-  const game = new Game(0x5eed_c0de);
-  const entry = battleMapById(ctx.params.get('gate') ?? '') ?? BATTLE_MAP_CATALOG[0];
-  game.load_map(entry.wasmMapId);
+  const requestedGate = ctx.params.get('gate') ?? '';
+  let entry: BattleMapCatalogEntry | Terrain3dEntry;
+  let grid: BattleTerrainGrid;
+  if (requestedGate === REFERENCE_HIGHLAND_ENTRY.id) {
+    entry = REFERENCE_HIGHLAND_ENTRY;
+    grid = buildReferenceHighlandGrid();
+  } else {
+    const { default: initWasm, Game } = await import('../../../web/src/wasm/game_wasm.js');
+    const wasm = await initWasm();
+    const game = new Game(0x5eed_c0de);
+    const catalogEntry = battleMapById(requestedGate) ?? BATTLE_MAP_CATALOG[0];
+    game.load_map(catalogEntry.wasmMapId);
+    entry = catalogEntry;
 
-  const w = game.terrain_w();
-  const h = game.terrain_h();
-  const cell = game.terrain_cell();
-  const ox = game.terrain_origin_x();
-  const oy = game.terrain_origin_y();
-  const grid: BattleTerrainGrid = {
-    w,
-    h,
-    cell,
-    ox,
-    oy,
-    tint: new Uint8Array(wasm.memory.buffer, game.terrain_tint_ptr(), w * h).slice(),
-    speed: new Float32Array(wasm.memory.buffer, game.terrain_speed_ptr(), w * h).slice(),
-    height: new Float32Array(wasm.memory.buffer, game.terrain_height_ptr(), w * h).slice(),
-  };
+    const tw = game.terrain_w();
+    const th = game.terrain_h();
+    const tcell = game.terrain_cell();
+    const tox = game.terrain_origin_x();
+    const toy = game.terrain_origin_y();
+    grid = {
+      w: tw,
+      h: th,
+      cell: tcell,
+      ox: tox,
+      oy: toy,
+      tint: new Uint8Array(wasm.memory.buffer, game.terrain_tint_ptr(), tw * th).slice(),
+      speed: new Float32Array(wasm.memory.buffer, game.terrain_speed_ptr(), tw * th).slice(),
+      height: new Float32Array(wasm.memory.buffer, game.terrain_height_ptr(), tw * th).slice(),
+    };
+  }
+  const { w, h, cell, ox, oy } = grid;
   const presentation = buildBattleTerrainPresentation(entry, grid, 0x1234);
   // Exaggerate the gentle metre-scale relief for readability at the gameplay
   // camera (the sim height stays plausible for later vision/ballistics). One
@@ -2482,6 +2501,7 @@ async function routeBattleTerrain3d(ctx: LabContext) {
   // that sealed edge so its blocker fills the distance. 'reference' uses the
   // zoom-coupled vista endpoint for the battle-map-reference comparison shot.
   const view = ctx.params.get('view') ?? 'field';
+  const isReferenceFixture = presentation.mapId === REFERENCE_HIGHLAND_ENTRY.id;
   if (view === 'reference') ctx.root.classList.add('reference-shot');
   const halfW = (w * cell) / 2;
   const midY = oy + (h * cell) / 2;
@@ -2497,7 +2517,9 @@ async function routeBattleTerrain3d(ctx: LabContext) {
       : view === 'soldiers'
         ? { x: standX, y: standY + 4, zoom: 9.0, pitch: 0.40, yaw: -0.04 }
         : view === 'reference'
-          ? { x: Number(ctx.params.get('cx') ?? -70), y: Number(ctx.params.get('cy') ?? -650), zoom: Number(ctx.params.get('zoom') ?? 2.4), pitch: 1.02, yaw: -0.04, perspective: 0.006 }
+          ? isReferenceFixture
+            ? { x: Number(ctx.params.get('cx') ?? -500), y: Number(ctx.params.get('cy') ?? -690), zoom: Number(ctx.params.get('zoom') ?? 2.18), pitch: 1.04, yaw: -0.055, perspective: 0.0064 }
+            : { x: Number(ctx.params.get('cx') ?? -70), y: Number(ctx.params.get('cy') ?? -650), zoom: Number(ctx.params.get('zoom') ?? 2.4), pitch: 1.02, yaw: -0.04, perspective: 0.006 }
         : { x: Number(ctx.params.get('cx') ?? focus?.x ?? 0), y: Number(ctx.params.get('cy') ?? focus?.y ?? 0) - 110, zoom: 3.3, pitch: 0.44, yaw: -0.05 };
   const shell = await createConfiguredShell(ctx.canvas, camera);
   const ground = new BattleGroundPass(shell);
@@ -2506,16 +2528,16 @@ async function routeBattleTerrain3d(ctx: LabContext) {
   const grassZoomT = view === 'reference' ? 1.0 : view === 'soldiers' ? 0.82 : 0.58;
   grass.setTerrain(grid, field, presentation.groundCover, {
     seed: 0x7a55,
-    density: view === 'reference' ? 0.72 : 0.50,
-    maxTufts: view === 'reference' ? 8000 : 4200,
+    density: view === 'reference' ? (isReferenceFixture ? 0.92 : 0.72) : 0.50,
+    maxTufts: view === 'reference' ? (isReferenceFixture ? 12000 : 8000) : 4200,
     zoomT: grassZoomT,
-    focus: { x: camera.x, y: camera.y, radius: view === 'reference' ? Number(ctx.params.get('grassRadius') ?? 320) : view === 'soldiers' ? 150 : 340 },
-    bladeHeight: view === 'reference' ? 1.24 : 1.0,
-    bladeWidth: view === 'reference' ? 0.088 : 0.072,
-    bend: view === 'reference' ? 0.40 : 0.32,
-    spread: view === 'reference' ? 0.25 : 0.20,
+    focus: { x: camera.x, y: camera.y, radius: view === 'reference' ? Number(ctx.params.get('grassRadius') ?? (isReferenceFixture ? 560 : 320)) : view === 'soldiers' ? 150 : 340 },
+    bladeHeight: view === 'reference' ? (isReferenceFixture ? 1.56 : 1.24) : 1.0,
+    bladeWidth: view === 'reference' ? (isReferenceFixture ? 0.112 : 0.088) : 0.072,
+    bend: view === 'reference' ? (isReferenceFixture ? 0.48 : 0.40) : 0.32,
+    spread: view === 'reference' ? (isReferenceFixture ? 0.36 : 0.25) : 0.20,
     windPhase: numberParam(ctx.params, 'grassPhase', 0),
-    windStrength: 0.078,
+    windStrength: isReferenceFixture ? 0.058 : 0.078,
   });
   const props = new CampaignSceneryPass(shell, 'battle');
   props.upload(scenery);
@@ -2553,7 +2575,7 @@ async function routeBattleTerrain3d(ctx: LabContext) {
   }
 
   shell.drawFrame({
-    clear: { r: 0.74, g: 0.83, b: 0.90, a: 1 },
+    clear: view === 'reference' && isReferenceFixture ? { r: 0.78, g: 0.82, b: 0.84, a: 1 } : { r: 0.74, g: 0.83, b: 0.90, a: 1 },
     passes: [
       { id: 'battle-3d-horizon', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => horizon.draw(pass) },
       { id: 'battle-3d-ground', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => ground.draw(pass) },
@@ -2602,6 +2624,88 @@ async function routeBattleTerrain3d(ctx: LabContext) {
     depth: shell.stats().depth,
     framePhases: shell.stats().phases,
   });
+}
+
+function buildReferenceHighlandGrid(): BattleTerrainGrid {
+  const w = 360;
+  const h = 250;
+  const cell = 6;
+  const ox = -1080;
+  const oy = -930;
+  const tint = new Uint8Array(w * h);
+  const speed = new Float32Array(w * h);
+  const height = new Float32Array(w * h);
+
+  for (let cy = 0; cy < h; cy++) {
+    for (let cx = 0; cx < w; cx++) {
+      const i = cy * w + cx;
+      const x = ox + (cx + 0.5) * cell;
+      const y = oy + (cy + 0.5) * cell;
+      const nx = (cx + 0.5) / w;
+      const ny = (cy + 0.5) / h;
+
+      const leftWall = Math.pow(clampUnit((0.22 - nx) / 0.22), 1.65) * (5.5 + 2.0 * ny);
+      const leftToe = 2.6 * gaussian2(x, y, -690, -280, 260, 520);
+      const valleyFloor = -3.7 * gaussian2(x, y, 80, -130, 700, 520)
+        - 1.2 * gaussian2(x, y, 270, 170, 620, 300);
+      const nearHummock = 3.0 * gaussian2(x, y, 360, -690, 460, 190)
+        + 1.9 * gaussian2(x, y, -210, -730, 430, 150);
+      const midHummock = 3.3 * gaussian2(x, y, 80, -360, 260, 150)
+        + 2.0 * gaussian2(x, y, 470, -450, 250, 200);
+      const distantShelves = 1.35 * smoothUnit((ny - 0.42) / 0.40);
+      const roll = 0.42 * Math.sin(x * 0.006 + y * 0.003)
+        + 0.33 * Math.sin(x * 0.013 - y * 0.005);
+      let z = leftWall + leftToe + valleyFloor + nearHummock + midHummock + distantShelves + roll - 0.8;
+
+      let t = 0;
+      const westCliff = x < -905 + Math.sin(y * 0.009) * 36 + Math.sin(y * 0.021) * 18;
+      const shore = 420 + Math.sin(y * 0.005) * 110 - smoothUnit((y + 60) / 520) * 180;
+      const eastWater = y > -260 && x > shore;
+      const darkDrain = y > -430 && y < 220 && Math.abs(x + 130 - (y + 280) * 0.42) < 18;
+      const screeToe = !westCliff && x < -650 + Math.sin(y * 0.006) * 50 && y > -650;
+      const rockOutcrop =
+        gaussian2(x, y, -520, -430, 105, 125) > 0.53
+        || gaussian2(x, y, -120, -210, 90, 80) > 0.58
+        || gaussian2(x, y, 210, -310, 95, 85) > 0.56
+        || gaussian2(x, y, 520, -620, 90, 75) > 0.58;
+
+      if (westCliff) {
+        t = 2;
+      } else if (eastWater) {
+        t = 1;
+        z = -2.35 + ny * 0.32;
+      } else if (rockOutcrop) {
+        t = 2;
+        z += 0.55;
+      } else if (screeToe) {
+        t = 6;
+      } else if (darkDrain) {
+        t = 5;
+        z -= 0.45;
+      }
+
+      tint[i] = t;
+      speed[i] = t === 1 || t === 2 ? 0 : t === 5 ? 0.72 : t === 6 ? 0.82 : 1;
+      height[i] = z;
+    }
+  }
+
+  return { w, h, cell, ox, oy, tint, speed, height };
+}
+
+function gaussian2(x: number, y: number, cx: number, cy: number, sx: number, sy: number): number {
+  const dx = (x - cx) / sx;
+  const dy = (y - cy) / sy;
+  return Math.exp(-(dx * dx + dy * dy));
+}
+
+function smoothUnit(t: number): number {
+  const u = clampUnit(t);
+  return u * u * (3 - 2 * u);
+}
+
+function clampUnit(v: number): number {
+  return v < 0 ? 0 : v > 1 ? 1 : v;
 }
 
 async function routeBattleGrass(ctx: LabContext) {

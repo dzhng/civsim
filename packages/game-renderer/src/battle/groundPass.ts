@@ -54,6 +54,11 @@ fn fbm(p: vec2f) -> f32 {
   return vnoise(p) * 0.52 + vnoise(p * 2.11 + vec2f(4.3, 1.7)) * 0.31 + vnoise(p * 4.07 + vec2f(9.1, 6.4)) * 0.17;
 }
 
+fn ridge(p: vec2f) -> f32 {
+  let r = 1.0 - abs(vnoise(p) * 2.0 - 1.0);
+  return r * r;
+}
+
 @vertex
 fn vs(@location(0) world: vec3f, @location(1) normal: vec3f, @location(2) color: vec3f) -> VsOut {
   var out: VsOut;
@@ -77,8 +82,24 @@ fn fs(in: VsOut) -> @location(0) vec4f {
   let warmKey = vec3f(1.06, 1.00, 0.86);
   let coolFill = vec3f(0.74, 0.79, 0.84);
   let grade = mix(coolFill, warmKey, clamp((in.light - 0.5) / 0.68, 0.0, 1.0));
-  let col = clamp(in.color * detail * in.light * grade, vec3f(0.0), vec3f(1.0));
-  return vec4f(col, 1.0);
+  var col = in.color * detail * in.light * grade;
+  // Churn: where the ground is earthy (brown, r over g) the mud reads as trodden,
+  // broken ground — a patchy dried crust over darker hollows, scored by
+  // directional drag ruts — rather than a smooth, uniform stain.
+  // Mud is both BROWN (r over g) and DARK; bright yellow/scrub grass is also
+  // warm (r over g) but light, so key on brown AND dark to churn trodden mud
+  // without cracking the dry grass cover.
+  let brown = smoothstep(0.0, 0.05, in.color.r - in.color.g);
+  let dark = 1.0 - smoothstep(0.30, 0.46, (in.color.r + in.color.g + in.color.b) / 3.0);
+  let earth = brown * dark;
+  // Clods at a coarse scale (so individual patches read as broken ground at the
+  // gameplay camera, not sub-pixel speckle that averages back to a flat wash),
+  // scored by long directional drag ruts.
+  let clods = fbm(in.world * 0.07) * 0.6 + fbm(in.world * 0.16 + vec2f(5.0, 2.0)) * 0.4;
+  let ruts = ridge(in.world * vec2f(0.11, 0.045) + vec2f(2.0, 0.0));
+  let churn = clamp(0.58 + clods * 0.72 + ruts * 0.28, 0.42, 1.30);
+  col = mix(col, col * churn, earth);
+  return vec4f(clamp(col, vec3f(0.0), vec3f(1.0)), 1.0);
 }`;
 
 export class BattleGroundPass {

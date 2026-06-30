@@ -8,8 +8,10 @@ import { MeshBuilder, type MeshData, type Rgb } from './meshBuilder';
 export function buildMountainMesh(): MeshData {
   const builder = new MeshBuilder();
   builder.shadow(1.18, 0.74, 0.22);
-  const base: Rgb = [0.45, 0.41, 0.35];
-  const top: Rgb = [0.60, 0.57, 0.50];
+  // A cool blue-grey stone: the scenery shader warms lit faces, so the base
+  // leans slightly cool to land on neutral grey rock rather than tan earth.
+  const base: Rgb = [0.42, 0.44, 0.47];
+  const top: Rgb = [0.57, 0.59, 0.62];
   const shade = (s: number): Rgb => [base[0] * s, base[1] * s, base[2] * s];
   builder.peak([0.0, 0.0, 0], 1.02, 0.60, 9, base, top, 11); // broad main body
   builder.peak([-0.46, 0.30, 0], 0.56, 0.74, 8, shade(0.93), top, 23); // taller shoulder
@@ -23,11 +25,11 @@ export function buildMountainMesh(): MeshData {
 export function buildRockMesh(): MeshData {
   const builder = new MeshBuilder();
   builder.shadow(0.86, 0.44, 0.18);
-  // Lit the same warm grey as the mountain massif (which it shares stone with),
-  // not the muddy dark it used to read as next to that sheet.
-  builder.peak([-0.32, -0.08, 0], 0.58, 0.44, 6, [0.46, 0.42, 0.36], [0.60, 0.56, 0.49], 5);
-  builder.peak([0.24, 0.10, 0], 0.50, 0.34, 6, [0.43, 0.40, 0.34], [0.57, 0.53, 0.46], 17);
-  builder.peak([0.64, -0.20, 0], 0.30, 0.24, 5, [0.40, 0.37, 0.32], [0.54, 0.50, 0.44], 29);
+  // The same cool blue-grey stone as the mountain massif, so the two read as
+  // one material and the rock reads as grey rock, not warm earth.
+  builder.peak([-0.32, -0.08, 0], 0.58, 0.44, 6, [0.43, 0.45, 0.48], [0.57, 0.59, 0.62], 5);
+  builder.peak([0.24, 0.10, 0], 0.50, 0.34, 6, [0.40, 0.42, 0.45], [0.54, 0.56, 0.59], 17);
+  builder.peak([0.64, -0.20, 0], 0.30, 0.24, 5, [0.38, 0.40, 0.43], [0.51, 0.53, 0.56], 29);
   return builder.finish('rock mesh');
 }
 
@@ -78,13 +80,13 @@ export function buildConiferTreeMesh(): MeshData {
 export function buildBroadleafTreeMesh(): MeshData {
   const builder = new MeshBuilder();
   builder.shadow(0.76, 0.46, 0.17);
-  // Shorter, slightly stouter trunk in the same brown as the conifer (was a
-  // longer, redder pole), and a broader canopy lowered to overlap the trunk top
-  // so the crown reads as a full broadleaf rather than a lollipop on a stick.
+  // Shorter, slightly stouter trunk in the same brown as the conifer, under a
+  // broad ROUNDED crown: the top blob sits low and wide so the canopy domes
+  // rather than peaking to a conifer-ish point.
   builder.box([0, 0, 0.28], [0.19, 0.19, 0.56], [0.32, 0.21, 0.12], 1);
   builder.blob([-0.26, -0.05, 0.84], [0.54, 0.46, 0.40], [0.15, 0.27, 0.13], 101);
   builder.blob([0.28, 0.03, 0.92], [0.58, 0.48, 0.44], [0.18, 0.31, 0.15], 113);
-  builder.blob([0.03, 0.18, 1.18], [0.50, 0.42, 0.42], [0.21, 0.35, 0.17], 127);
-  builder.blob([0.0, -0.19, 1.02], [0.46, 0.40, 0.36], [0.12, 0.23, 0.11], 139);
+  builder.blob([0.0, 0.06, 1.04], [0.60, 0.56, 0.34], [0.21, 0.35, 0.17], 127);
+  builder.blob([0.0, -0.19, 1.0], [0.46, 0.40, 0.34], [0.12, 0.23, 0.11], 139);
   return builder.finish('broadleaf tree mesh');
 }

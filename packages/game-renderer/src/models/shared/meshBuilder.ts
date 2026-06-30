@@ -155,6 +155,14 @@ export class MeshBuilder {
     for (let i = 1; i < points.length - 1; i++) this.opaqueIndices.push(backBase, backBase + i + 1, backBase + i);
   }
 
+  // A flat quad graded from a near colour (p0,p3 edge) to a far colour (p1,p2
+  // edge): used for receding backdrops (sea, distant slopes) that should darken
+  // and haze into the horizon rather than read as one flat swatch.
+  gradQuad(p0: [number, number, number], p1: [number, number, number], p2: [number, number, number], p3: [number, number, number], near: Rgb, far: Rgb) {
+    this.triangle(p0, p1, p2, near, far, far, 1);
+    this.triangle(p0, p2, p3, near, far, near, 1);
+  }
+
   finish(label = 'mesh'): MeshData {
     if (this.opaqueIndices.length > 65535 || this.shadowIndices.length > 65535) throw new Error(`${label} exceeds uint16 index range`);
     return {

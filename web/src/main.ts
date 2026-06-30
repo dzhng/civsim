@@ -64,6 +64,7 @@ function launchBattle(kind: BattleKind) {
     wasm,
     game: createGame(kind),
     kind,
+    wasmMapId: kind === 'mapA' ? 0 : kind === 'mapB' ? 1 : undefined,
     onExit: () => switchScene(menu),
     onLaunch: launchBattle,
   }));
@@ -97,6 +98,8 @@ function launchQuickBattle(cfg: QuickBattleConfig) {
     wasm,
     game: createQuickBattleGame(cfg),
     kind: 'mapA',
+    wasmMapId: cfg.mapId,
+    restart: () => launchQuickBattle(cfg),
     onExit: () => switchScene(menu),
     onLaunch: launchBattle,
   }));

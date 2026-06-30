@@ -77,20 +77,27 @@ adapter; CI needs a one-time SwiftShader reconciliation):
   `MeshBuilder.disc`); a re-critique confirms it reads as a wheeled cart.
 - [x] Broadleaf lollipop — shorter trunk, broader lowered canopy, conifer-matched
   trunk colour; re-critique reads it as a tree.
-- [x] Rock cluster underlit — brightened to the mountain's warm stone so the two
-  match. NOTE for David's aesthetic call: a fresh critic still reads the warm
-  tone as tan/earth rather than grey; if Aegean stone should read greyer, retint
-  `buildRockMesh` (and the mountain) cooler.
-- [ ] Minor (David's call): broadleaf canopy apex is slightly peaked (a touch
-  conifer-ish); not pursued.
+- [x] Rock/mountain read as warm tan — retinted to a cool blue-grey base in
+  `buildMountainMesh`/`buildRockMesh` (the scenery shader warms lit faces, so the
+  base leans cool to land on neutral grey stone). Re-critique reads it as grey.
+- [x] Broadleaf canopy peaked (conifer-ish) — top blob lowered and widened so the
+  crown domes. Re-critique reads it as a rounded broadleaf.
 - Live-battle critique (post-03d cutover) — coherent, readable Total War scene
   (formations grounded, HUD/minimap clean, no field z-fighting). Open items for
   David: (1) relief reads FLAT at the gameplay camera — the ×1.6 exaggeration of
   gentle 8 m relief is subtle; bump `BattleRenderer.RELIEF_EXAGGERATION` if you
   want it to roll more (vs the spec's "subtle, not mountains"). (2) the
   translucent info panel lets the world bleed through — pre-existing HUD opacity,
-  not the cutover. (3) mud tint reads as a soft stain and the sealed edge reads
-  as a band/frame at gameplay zoom — polish for a later pass.
+  not the cutover. (3) mud-stain + band/frame edges — ADDRESSED: the ground pass
+  now churns earthy ground (keyed on brown AND dark so dry grass cover is left
+  smooth), and `horizonPass` fills every sealed edge with a receding hazed apron
+  (no white void / see-through gaps), one continuous graded sea (no stripe/seam),
+  and a depth-stepped cliff range + faced wall. RESIDUAL (later pass, non-block):
+  the map's rock/dirt impassable-margin still reads as a thin transition seam
+  where turf meets the blocker — the boundary geometry seats below ground so it
+  can't hide that ground-edge ring; softening it is a terrain-edge-blend job in
+  the ground pass, not the horizon. A fresh critic still judges the stylized
+  low-poly blockers harshly at the grazing edge camera.
 - JUSTIFIED, not a bug: a critic reading the `battle-terrain-elevation` shots
   called the ground "flat." The relief IS gentle by design — the spec wants
   "subtle height variation, not mountains" (8 m over a 2400 m field, ×2.6 for

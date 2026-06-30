@@ -15,8 +15,14 @@ const STONE: [number, number, number] = [0.47, 0.44, 0.39];
 const STONE_TOP: [number, number, number] = [0.60, 0.57, 0.51];
 const WALL: [number, number, number] = [0.55, 0.52, 0.47];
 const WALL_TOP: [number, number, number] = [0.64, 0.61, 0.55];
-const WATER_DEEP: [number, number, number] = [0.16, 0.30, 0.44];
-const WATER_SHALLOW: [number, number, number] = [0.30, 0.46, 0.55];
+// Near-shore colour matches the ground pass's own water tint (a river/lake on
+// the field reads the same as the open sea continuing past the edge, so there is
+// no stripe where field water meets horizon water); it deepens with distance.
+const WATER_DEEP: [number, number, number] = [0.14, 0.26, 0.40];
+const WATER_SHALLOW: [number, number, number] = [0.29, 0.43, 0.48];
+// Neutral light-grey atmospheric haze the distant blockers dissolve into. Kept
+// off-blue so far peaks read as hazy stone, not as slivers of water or sky.
+const HAZE: [number, number, number] = [0.80, 0.81, 0.83];
 
 const HORIZON_WGSL = `
 ${WORLD_CAMERA_WGSL}
@@ -106,47 +112,76 @@ export class BattleHorizonPass {
     this.builtEdges.push({ side, role });
     const outward = side === 'west' ? -1 : 1;
     const span = y1 - y0;
+    const midY = (y0 + y1) * 0.5;
+    const yLo = y0 - 400;
+    const yHi = y1 + 400;
+
     if (role === 'ocean') {
-      // A wide water plane beyond the edge, sloping away.
-      const near = edgeX;
-      const far = edgeX + outward * 1400;
-      const z = baseZ - 4;
-      this.quad(builder,
-        [near, y0 - 200, z], [far, y0 - 200, z - 6], [far, y1 + 200, z - 6], [near, y1 + 200, z],
-        WATER_SHALLOW, WATER_DEEP);
+      // One continuous sea from the shoreline out past the horizon: shallow green
+      // near, deepening and hazing with distance. A single graded plane — no
+      // stacked stripes, no bright seam — lapping the turf so no gap shows at the
+      // shore.
+      const near = edgeX - outward * 24;
+      const far = edgeX + outward * 4000;
+      builder.gradQuad(
+        [near, yLo, baseZ - 4], [far, yLo, baseZ - 80], [far, yHi, baseZ - 80], [near, yHi, baseZ - 4],
+        WATER_SHALLOW, mix3(WATER_DEEP, HAZE, 0.55));
       return;
     }
+
+    // Every land/wall edge first fills the world beyond it with a receding apron
+    // that drops away and hazes into the horizon, so the boundary reads as ground
+    // falling off — never a white void or see-through gaps behind the blocker.
+    const apronNear = edgeX + outward * 12;
+    const apronFar = edgeX + outward * 2600;
+
     if (role === 'wall') {
-      // A solid coursed rampart with crenellations — man-made, flat-faced, and
-      // continuous (so no sky shows between blocks), distinct from a crag ridge.
-      const wallX = edgeX + outward * 55;
-      const wallH = 95;
-      const midY = (y0 + y1) * 0.5;
-      builder.box([wallX, midY, baseZ - 4 + wallH / 2], [70, span + 200, wallH], WALL, 1);
-      // Battlements: alternating merlons along the top.
+      builder.gradQuad(
+        [apronNear, yLo, baseZ - 2], [apronFar, yLo, baseZ - 120], [apronFar, yHi, baseZ - 120], [apronNear, yHi, baseZ - 2],
+        mix3(STONE, HAZE, 0.4), HAZE);
+      // A solid coursed rampart lapping the turf edge: a darker base course under
+      // a lighter wall face so it reads as masonry with depth, capped by merlons —
+      // a wall you cannot cross, not a flat band with a dotted edge.
+      const wallX = edgeX + outward * 20;
+      const wallH = 120;
+      builder.box([wallX, midY, baseZ - 4 + wallH * 0.18], [70, span + 220, wallH * 0.36], mix3(WALL, [0, 0, 0], 0.34), 1);
+      builder.box([wallX, midY, baseZ - 4 + wallH / 2], [62, span + 220, wallH], WALL, 1);
       const merlons = Math.max(10, Math.round(span / 90));
       for (let k = 0; k <= merlons; k += 2) {
         const y = y0 - 80 + ((span + 160) * k) / merlons;
-        builder.box([wallX, y, baseZ - 4 + wallH + 14], [78, 42, 30], WALL_TOP, 1);
+        builder.box([wallX, y, baseZ - 4 + wallH + 16], [72, 44, 34], WALL_TOP, 1);
       }
       return;
     }
-    // Cliff / mountain: a ridge of blocky stone peaks just outside the edge,
-    // dense enough that the ridge reads continuous against the sky.
-    const stepN = Math.max(12, Math.round(span / 90));
-    for (let k = 0; k <= stepN; k++) {
-      const y = y0 - 60 + ((span + 120) * k) / stepN;
-      const jx = hash(k, side === 'west' ? 11 : 23);
-      const cx = edgeX + outward * (30 + jx * 50);
-      const radius = 95 + hash(k, 7) * 95;
-      const height = 90 + hash(k, 5) * 140;
-      builder.peak([cx, y, baseZ - 6], radius, height, 7, STONE, STONE_TOP, k * 7 + 3);
-    }
-  }
 
-  private quad(builder: MeshBuilder, a: [number, number, number], b: [number, number, number], c: [number, number, number], d: [number, number, number], near: [number, number, number], far: [number, number, number]) {
-    builder.panel3d([a, b, c, d], near, 1);
-    void far;
+    // Cliff / mountain: the apron is bare rock falling away; over it a continuous
+    // hazed back ridge seals the silhouette (no sky showing between peaks) and
+    // sharp near peaks break it, so the range reads with real depth — not a flat
+    // sawtooth fence.
+    builder.gradQuad(
+      [apronNear, yLo, baseZ - 6], [apronFar, yLo, baseZ - 200], [apronFar, yHi, baseZ - 200], [apronNear, yHi, baseZ - 6],
+      mix3(STONE, HAZE, 0.25), HAZE);
+    const sideSalt = side === 'west' ? 11 : 23;
+    // `gap` sets spacing as a multiple of radius: near row sparse for a varied
+    // skyline, far row dense so its overlapping peaks form an unbroken seal.
+    const rows = [
+      { dist: 6, radius: 80, height: 86, fog: 0.0, gap: 1.25, salt: 3 },
+      { dist: 90, radius: 120, height: 150, fog: 0.28, gap: 0.85, salt: 31 },
+      { dist: 210, radius: 170, height: 226, fog: 0.55, gap: 0.5, salt: 57 },
+    ];
+    for (const row of rows) {
+      const stepN = Math.max(10, Math.round(span / (row.radius * row.gap)));
+      const baseC = mix3(STONE, HAZE, row.fog);
+      const topC = mix3(STONE_TOP, HAZE, row.fog);
+      for (let k = 0; k <= stepN; k++) {
+        const y = y0 - 100 + ((span + 200) * k) / stepN;
+        const jx = hash(k, sideSalt + row.salt);
+        const cx = edgeX + outward * (row.dist + jx * row.radius * 0.5);
+        const radius = row.radius * (0.78 + hash(k, 7 + row.salt) * 0.5);
+        const height = row.height * (0.74 + hash(k, 5 + row.salt) * 0.55);
+        builder.peak([cx, y, baseZ - 6], radius, height, 7, baseC, topC, k * 7 + 3 + row.salt);
+      }
+    }
   }
 
   private upload(verts: Float32Array, indices: Uint16Array) {
@@ -174,6 +209,10 @@ export class BattleHorizonPass {
   stats() {
     return { sealedEdges: this.builtEdges.map((e) => `${e.side}:${e.role}`), layer: 'battle-horizon-blockers' as const };
   }
+}
+
+function mix3(a: [number, number, number], b: [number, number, number], t: number): [number, number, number] {
+  return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
 }
 
 function hash(k: number, salt: number): number {

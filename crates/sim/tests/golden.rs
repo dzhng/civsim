@@ -53,12 +53,12 @@ fn golden_state_hash_stable() {
         sim.tick();
     }
     let h = state_hash(&sim);
-    // Re-pinned: melee fatigue now also slows SWING CADENCE (stamina_cadence_floor),
-    // so once these generic units (LightSpear stats) tire over the 45s clash their
-    // swing timing shifts — moving every downstream contact. Intentional (David's
-    // cadence-coupling). (Prior re-pins: LightSpear reach 1.6→1.5 for the one-sided
-    // levy-vs-charge loss; turn rate no longer throttled by cohesion.)
-    const EXPECTED: u64 = 0xc8fad834908e0b0e;
+    // Re-pinned: the pivot spring now caps its angular lever near the bond's rest
+    // length, so queue stretch cannot amplify sideways fan-out at contact.
+    // Intentional for column-closing width preservation. (Prior re-pins: stamina
+    // cadence-coupling; LightSpear reach 1.6→1.5; turn rate no longer throttled by
+    // cohesion.)
+    const EXPECTED: u64 = 0xf36fab65928f69e4;
     assert_eq!(
         h, EXPECTED,
         "sim behavior changed: golden hash {h:#018x} != pinned {EXPECTED:#018x}. \

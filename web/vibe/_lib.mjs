@@ -26,7 +26,11 @@ export async function openBattle(query) {
   const gpuArgs = process.env.VERIFY_GPU === '1'
     ? (process.env.VERIFY_GPU_ADAPTER === 'hardware' ? GPU_HARDWARE_FLAGS : GPU_SWIFTSHADER_FLAGS)
     : [];
-  const browser = await chromium.launch({ args: gpuArgs });
+  const launchOptions = { args: gpuArgs };
+  if (process.env.VERIFY_BROWSER_CHANNEL) {
+    launchOptions.channel = process.env.VERIFY_BROWSER_CHANNEL;
+  }
+  const browser = await chromium.launch(launchOptions);
   const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
   const errs = [];
   page.on('pageerror', (e) => errs.push(e.message));

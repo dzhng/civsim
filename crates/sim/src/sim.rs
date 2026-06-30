@@ -9,11 +9,15 @@
 use crate::class::{class_stats, UnitClass, UnitClassId};
 use crate::grid::SpatialHash;
 use crate::math::{dir, rotate_toward, wrap_angle, Vec2};
-use crate::movement::{pace_speed, soldier_charge_speed, soldier_surge_speed, update_unit_motion};
+use crate::movement::{
+    drift_factor, pace_speed, soldier_charge_speed, soldier_surge_speed, update_unit_motion,
+};
 use crate::rng::Pcg32;
 use crate::terrain::{stagger01, Terrain};
 use crate::tunables::{Pace, Tunables, DT};
-use crate::unit::{compact_slots_preserving_order, reassign_slots, slot_local, OrderMode, Unit};
+use crate::unit::{
+    bridge_large_column_gaps, compact_columns, reassign_slots, slot_local, OrderMode, Unit,
+};
 
 /// Idle-fidget drift amplitude (m, peak ≈ this) and glance drift (rad, peak). A
 /// standing man is never a fence-post: he drifts off his slot and his eye
@@ -46,6 +50,9 @@ const FACING_FRONT_ARC: f32 = 1.0;
 /// same rank/file. This keeps a line a connected sheet after a few deaths while
 /// still letting real holes stay open.
 const WEAVE_NEIGHBOR_SKIP: usize = 4;
+/// A unit that has just cleared contact waits this many ticks before lateral
+/// re-evening, so a momentary lull does not erase a fighting notch.
+const DISENGAGE_REFORM_CLEAR_TICKS: u32 = 30;
 
 /// Per-unit aggregates `steer_soldiers` measures over its men in one pass, for
 /// `contact_facing` and `integrate_units` to consume. Centroid is carried as the
@@ -375,6 +382,7 @@ impl Sim {
             contact_hist: [0.0; 12],
             contact_unit: 0,
             quiet_ticks: 0,
+            disengage_reform_pending: false,
             recent_casualties: 0.0,
             lost_impact: 0,
             lost_charge_melee: 0,
@@ -748,6 +756,7 @@ impl Sim {
         let u = &mut self.units[unit];
         u.files = files;
         u.files_eff = files;
+        u.reform_timer = u.reform_timer.max(8.0);
         reassign_slots(
             &self.units[unit],
             &self.positions,
@@ -892,60 +901,48 @@ impl Sim {
             }
         }
 
-        // Re-form slots while pivoting, after casualties opened real gaps in a
-        // non-contact/thick formation, and on a slow drumbeat for DEEP engaged
-        // blocks. Do NOT re-sort a living thin HELD line while it is dimpled:
-        // the neighbour identities are the sheet. Re-labeling a 3-4-rank held
-        // line to its current ragged shape erases that memory and turns a clean
-        // bulge into streamers. Advancing/wrapping sheets still need vacancy
-        // flow, and deep blocks need periodic back-rank flow to keep a grind
-        // from pancaking.
+        // Slot maps change in two distinct ways: fighting/advancing casualties
+        // close forward within fixed files, while lateral re-evening is reserved
+        // for deliberate reform moments or the clear beat after contact.
         for ui in 0..self.units.len() {
-            let ranks = self.units[ui].alive_count as f32 / self.units[ui].files_eff.max(1) as f32;
             let advancing = self.units[ui].move_target.is_some()
                 || matches!(self.units[ui].mode, OrderMode::Attack(_));
-            let mounted_contact = self
-                .units
-                .get(self.units[ui].contact_unit as usize)
-                .map_or(false, Unit::is_mounted);
-            let casualty_reform = self.units[ui].deaths_since_reform * 50
-                > self.units[ui].alive_count.max(1)
-                && (self.units[ui].engaged == 0 || ranks >= 5.0 || advancing);
-            let needs = self.units[ui].pivoting
-                || casualty_reform
-                || (self.units[ui].engaged > 0
-                    && ranks >= 5.0
-                    && self.tick_count % 60 == (ui as u64) % 60)
-                // A SETTLED, AT-EASE unit (halted, no enemy near) that frayed on
-                // the march RE-FORMS on a slow drumbeat so order RECOVERS — without
-                // this a unit kept its march disorder forever (nothing re-sorted a
-                // standing, unengaged line). Gated on at_ease so it NEVER fires near
-                // a fight (re-sorting mid-combat would perturb the scrum).
-                || (self.units[ui].at_ease
-                    && self.units[ui].frame_speed < 0.3
-                    && self.units[ui].cohesion < 0.9
-                    && self.tick_count % 45 == (ui as u64) % 45);
-            if needs {
-                if casualty_reform
-                    && advancing
-                    && ranks < 5.0
-                    && !mounted_contact
-                    && !self.units[ui].pivoting
-                {
-                    compact_slots_preserving_order(
-                        &self.units[ui],
-                        &self.alive,
-                        &mut self.soldier_slot,
-                    );
-                } else {
-                    reassign_slots(
-                        &self.units[ui],
-                        &self.positions,
-                        &self.fidget_offset,
-                        &self.alive,
-                        &mut self.soldier_slot,
-                    );
+            let casualties_to_close =
+                self.units[ui].deaths_since_reform * 50 > self.units[ui].alive_count.max(1);
+            let column_close = casualties_to_close && (self.units[ui].engaged > 0 || advancing);
+            let disengage_reform = self.units[ui].disengage_reform_pending
+                && self.units[ui].quiet_ticks == DISENGAGE_REFORM_CLEAR_TICKS;
+            // A SETTLED, AT-EASE unit (halted, no enemy near) that frayed on
+            // the march RE-FORMS on a slow drumbeat so order RECOVERS — without
+            // this a unit kept its march disorder forever (nothing re-sorted a
+            // standing, unengaged line). Gated on at_ease so it NEVER fires near
+            // a fight (re-sorting mid-combat would perturb the scrum).
+            let at_ease_reform = self.units[ui].at_ease
+                && self.units[ui].frame_speed < 0.3
+                && self.units[ui].cohesion < 0.9
+                && self.tick_count % 45 == (ui as u64) % 45;
+
+            if self.units[ui].pivoting || disengage_reform || at_ease_reform {
+                reassign_slots(
+                    &self.units[ui],
+                    &self.positions,
+                    &self.fidget_offset,
+                    &self.alive,
+                    &mut self.soldier_slot,
+                );
+                self.units[ui].deaths_since_reform = 0;
+                if disengage_reform {
+                    self.units[ui].disengage_reform_pending = false;
                 }
+            } else if column_close {
+                compact_columns(&self.units[ui], &self.alive, &mut self.soldier_slot);
+                bridge_large_column_gaps(
+                    &self.units[ui],
+                    &self.alive,
+                    &self.fighting,
+                    &self.front_clear,
+                    &mut self.soldier_slot,
+                );
                 self.units[ui].deaths_since_reform = 0;
             }
         }
@@ -1445,6 +1442,9 @@ impl Sim {
             let u = &mut self.units[ui];
             // Skirmish screens never volunteer for melee: no halt-and-face —
             // their answer to contact is their legs.
+            if engaged_frac > 0.06 {
+                u.disengage_reform_pending = true;
+            }
             if engaged_frac > 0.06 && u.mode != OrderMode::Disengage && !u.evade_auto {
                 u.quiet_ticks = 0;
                 match u.mode {
@@ -1555,7 +1555,7 @@ impl Sim {
         // reach-spring shoving him back when ranks pile him inside reach. No
         // separate force ledger; the same springs that move him measure him.
         let press_alpha = 1.0 - (-dt / tun.press_tau).exp();
-
+        let pivot_stretch_slack = 0.10;
         let mut measures = Vec::with_capacity(units.len());
         for u in units.iter() {
             let f = dir(u.facing);
@@ -1880,7 +1880,18 @@ impl Sim {
                                 // the wrap — a wrap is the same large bend, so any
                                 // sharp angle law that stops a pancake stops a curl.)
                                 let tang = oh - dh * dot;
-                                pivot_push = pivot_push + tang * al;
+                                // Contact queues can stretch a bond axially; that
+                                // stretch is handled by the length spring and
+                                // should not amplify the angular correction into
+                                // sideways fan-out. A small body-scale slack
+                                // keeps first contact from reading hollow without
+                                // returning to the old unbounded live-length lever.
+                                let pivot_len = if al > rl {
+                                    al.min(rl + pivot_stretch_slack)
+                                } else {
+                                    al
+                                };
+                                pivot_push = pivot_push + tang * pivot_len;
                             }
                             // COMPRESSION push: when the bond is shorter than rest,
                             // shove away from the neighbour, the force climbing
@@ -2263,7 +2274,23 @@ impl Sim {
                 let backing_off = u
                     .move_target
                     .map_or(false, |mt| (mt - p).dot(dir(u.facing)) < 0.0);
-                if advancing
+                if matches!(u.mode, OrderMode::Disengage) {
+                    if let Some(mt) = u.move_target {
+                        let escape = mt - p;
+                        let escape_len = escape.len();
+                        if escape_len > 1e-3 {
+                            let escape_dir = escape * (1.0 / escape_len);
+                            let desired = escape_dir.y.atan2(escape_dir.x);
+                            let escape_speed = soldier_surge_speed(&tun, u);
+                            let escape_factor = drift_factor(desired, facings[i]).max(0.75);
+                            let want = (escape_speed * escape_factor * ground).min(max_sp);
+                            let along = v.dot(escape_dir);
+                            if want > along {
+                                v = v + escape_dir * (want - along);
+                            }
+                        }
+                    }
+                } else if advancing
                     && !engaged_i
                     && !seeking_flank
                     && !backing_off

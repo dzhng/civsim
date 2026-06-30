@@ -129,6 +129,9 @@ pub struct Unit {
     pub contact_unit: u32,
     /// Ticks with no contact, for the resume reflex.
     pub quiet_ticks: u32,
+    /// A unit that has fought must later re-even laterally once contact has
+    /// stayed clear for a short beat.
+    pub disengage_reform_pending: bool,
     /// Recent casualty count, decaying (morale reads this later).
     pub recent_casualties: f32,
     /// Cumulative losses split by CAUSE — measurement only, never read by sim
@@ -345,11 +348,8 @@ impl Unit {
 /// assign slots in the current grid. Full ranks fill every file; a partial rank
 /// keeps its nearest lateral files instead of being left-packed, so wrap/flank
 /// casualties do not relabel survivors into artificial streamers. This is the
-/// formation re-form — it flows the line with whatever has happened to it: a
-/// charge shoves men back and they relabel to nearer slots (the line absorbs,
-/// never an unnaturally rigid wall); the dead vacate slots and the survivors
-/// re-pack without erasing the bend of a partially wrapped line. Run on pivot,
-/// on casualties, and at a slow drumbeat while engaged. O(n log n).
+/// lateral formation re-form: run on pivot, explicit reform, corridor width
+/// changes, at-ease recovery, and the clear beat after contact. O(n log n).
 ///
 /// `fidget_offset[i]` (the idle-liveliness sway the steer pass added in place)
 /// is SUBTRACTED before sorting, so the sort sees each man at his true settled
@@ -399,23 +399,6 @@ pub(crate) fn reassign_slots(
     }
 }
 
-/// Close casualty holes while preserving the living sheet's existing slot order.
-/// This is not a geometric re-form: a thin line already bent into a U has real
-/// neighbour identity along the cloth, and sorting it against the unit's flat
-/// frame erases that identity. Casualty compaction only removes vacant slots so
-/// springs can flow into the gaps without relabelling a curved sheet as a new
-/// rectangle.
-pub(crate) fn compact_slots_preserving_order(u: &Unit, alive: &[u8], soldier_slot: &mut [u32]) {
-    let mut order: Vec<(u32, usize)> = (0..u.count)
-        .filter(|&s| alive[u.start + s] == 1)
-        .map(|s| (soldier_slot[u.start + s], s))
-        .collect();
-    order.sort_by(|a, b| a.0.cmp(&b.0).then_with(|| a.1.cmp(&b.1)));
-    for (slot, &(_, s)) in order.iter().enumerate() {
-        soldier_slot[u.start + s] = slot as u32;
-    }
-}
-
 /// Close casualty holes forward within each file while preserving each man's
 /// column identity. A wiped file stays empty; lateral re-evening belongs to
 /// `reassign_slots` on reform/disengage, not to a fighting line.
@@ -438,9 +421,112 @@ pub(crate) fn compact_columns(u: &Unit, alive: &[u8], soldier_slot: &mut [u32]) 
     }
 }
 
+/// Seed large adjacent dead-file gaps with a tiny number of rear/deep donors
+/// from neighbouring live files. This is not a re-form: most soldiers keep their
+/// file, and donors enter the vacant file at their current depth so a later
+/// column compaction, not this bridge, pulls them forward.
+pub(crate) fn bridge_large_column_gaps(
+    u: &Unit,
+    alive: &[u8],
+    fighting: &[u8],
+    front_clear: &[u8],
+    soldier_slot: &mut [u32],
+) -> usize {
+    const MIN_GAP_FILES: usize = 2;
+    const MAX_DONORS_PER_GAP_RUN: usize = 6;
+
+    let files = u.files_eff.max(1);
+    let mut columns: Vec<Vec<(usize, usize)>> = (0..files).map(|_| Vec::new()).collect();
+    for s in 0..u.count {
+        let i = u.start + s;
+        if alive[i] == 0 {
+            continue;
+        }
+        let slot = soldier_slot[i] as usize;
+        columns[slot % files].push((slot / files, s));
+    }
+    for column in &mut columns {
+        column.sort_by(|a, b| a.0.cmp(&b.0).then_with(|| a.1.cmp(&b.1)));
+    }
+    let occupied: Vec<bool> = columns.iter().map(|c| !c.is_empty()).collect();
+    let mut moved = 0usize;
+    let mut file = 0usize;
+    while file < files {
+        if occupied[file] {
+            file += 1;
+            continue;
+        }
+        let run_start = file;
+        while file < files && !occupied[file] {
+            file += 1;
+        }
+        let run_end = file;
+        let run_len = run_end - run_start;
+        if run_len < MIN_GAP_FILES {
+            continue;
+        }
+
+        let left = (0..run_start).rev().find(|&f| occupied[f]);
+        let right = (run_end..files).find(|&f| occupied[f]);
+        let mut run_moved = 0usize;
+        let run_cap = run_len.min(MAX_DONORS_PER_GAP_RUN);
+        for offset in 0..run_len.div_ceil(2) {
+            let left_target = run_start + offset;
+            let right_target = run_end - 1 - offset;
+            let targets = if left_target == right_target {
+                [(left, left_target), (None, right_target)]
+            } else {
+                [(left, left_target), (right, right_target)]
+            };
+            for (source, target_file) in targets {
+                if run_moved >= run_cap {
+                    break;
+                }
+                if target_file < run_start || target_file >= run_end {
+                    continue;
+                }
+                let Some(source_file) = source else {
+                    continue;
+                };
+                if columns[source_file].len() <= 1 {
+                    continue;
+                }
+                let Some((donor_idx, donor_rank, donor_s)) =
+                    choose_gap_donor(u, &columns[source_file], fighting, front_clear)
+                else {
+                    continue;
+                };
+                columns[source_file].remove(donor_idx);
+                soldier_slot[u.start + donor_s] = (donor_rank * files + target_file) as u32;
+                moved += 1;
+                run_moved += 1;
+            }
+            if run_moved >= run_cap {
+                break;
+            }
+        }
+    }
+
+    moved
+}
+
+fn choose_gap_donor(
+    u: &Unit,
+    column: &[(usize, usize)],
+    fighting: &[u8],
+    front_clear: &[u8],
+) -> Option<(usize, usize, usize)> {
+    let preferred = column.iter().enumerate().rev().find(|&(_, &(_, s))| {
+        let i = u.start + s;
+        fighting[i] == 0 && front_clear[i] == 0
+    });
+    let (idx, &(rank, s)) = preferred.or_else(|| column.iter().enumerate().next_back())?;
+    Some((idx, rank, s))
+}
+
 #[cfg(test)]
 mod tests {
-    use super::compact_columns;
+    use super::{bridge_large_column_gaps, compact_columns};
     use crate::{Sim, Tunables, Vec2};
     use std::f32::consts::FRAC_PI_2;
 
@@ -475,9 +561,26 @@ mod tests {
         compact_columns(&sim.units[unit], &sim.alive, &mut sim.soldier_slot);
     }
 
+    fn bridge(sim: &mut Sim, unit: usize) -> usize {
+        bridge_large_column_gaps(
+            &sim.units[unit],
+            &sim.alive,
+            &sim.fighting,
+            &sim.front_clear,
+            &mut sim.soldier_slot,
+        )
+    }
+
     fn unit_range(sim: &Sim, unit: usize) -> std::ops::Range<usize> {
         let u = &sim.units[unit];
         u.start..u.start + u.count
+    }
+
+    fn file_population(sim: &Sim, unit: usize, file: usize) -> usize {
+        let files = sim.units[unit].files_eff.max(1);
+        unit_range(sim, unit)
+            .filter(|&i| sim.alive[i] == 1 && sim.soldier_slot[i] as usize % files == file)
+            .count()
     }
 
     #[test]
@@ -561,6 +664,108 @@ mod tests {
                 new, before[i] as usize,
                 "neighbouring files must not close sideways"
             );
+        }
+    }
+
+    #[test]
+    fn bridge_large_column_gaps_seeds_two_file_lane_from_rear_edges() {
+        let files = 6;
+        let ranks = 4;
+        let (mut sim, unit) = block(files, ranks);
+        let left_rear = sim.units[unit].start + (3 * files + 1);
+        let right_rear = sim.units[unit].start + (3 * files + 4);
+        for file in [2, 3] {
+            for rank in 0..ranks {
+                kill_slot(&mut sim, unit, rank * files + file);
+            }
+        }
+
+        compact(&mut sim, unit);
+        let moved = bridge(&mut sim, unit);
+
+        assert_eq!(moved, 2, "a two-file lane should get bounded edge donors");
+        assert_eq!(sim.soldier_slot[left_rear] as usize, 3 * files + 2);
+        assert_eq!(sim.soldier_slot[right_rear] as usize, 3 * files + 3);
+        for i in unit_range(&sim, unit) {
+            if sim.alive[i] == 0 || i == left_rear || i == right_rear {
+                continue;
+            }
+            let slot = sim.soldier_slot[i] as usize;
+            assert!(
+                slot % files != 2 && slot % files != 3,
+                "only the bounded donors should seed the lane"
+            );
+        }
+    }
+
+    #[test]
+    fn bridge_large_column_gaps_scales_donors_with_wide_lanes() {
+        let files = 10;
+        let ranks = 5;
+        let (mut sim, unit) = block(files, ranks);
+        for file in 3..=6 {
+            for rank in 0..ranks {
+                kill_slot(&mut sim, unit, rank * files + file);
+            }
+        }
+
+        compact(&mut sim, unit);
+        let before = sim.soldier_slot.clone();
+        let moved = bridge(&mut sim, unit);
+
+        assert_eq!(
+            moved, 4,
+            "a four-file lane should seed each dead file without moving a whole rank"
+        );
+        for file in 3..=6 {
+            assert_eq!(
+                file_population(&sim, unit, file),
+                1,
+                "file {file} should get one rear/deep donor"
+            );
+        }
+        let lateral_movers: Vec<_> = unit_range(&sim, unit)
+            .filter(|&i| {
+                sim.alive[i] == 1
+                    && sim.soldier_slot[i] as usize % files != before[i] as usize % files
+            })
+            .collect();
+        assert_eq!(
+            lateral_movers.len(),
+            4,
+            "only the bounded donors should change file"
+        );
+        for i in lateral_movers {
+            let old_file = before[i] as usize % files;
+            let old_rank = before[i] as usize / files;
+            assert!(
+                old_file == 2 || old_file == 7,
+                "donor {i} should come from a live edge file, not from the whole unit"
+            );
+            assert!(
+                old_rank >= ranks - 2,
+                "donor {i} should come from rear/deep ranks"
+            );
+        }
+    }
+
+    #[test]
+    fn bridge_large_column_gaps_leaves_single_file_notch_alone() {
+        let files = 5;
+        let ranks = 4;
+        let (mut sim, unit) = block(files, ranks);
+        for rank in 0..ranks {
+            kill_slot(&mut sim, unit, rank * files + 2);
+        }
+
+        compact(&mut sim, unit);
+        let moved = bridge(&mut sim, unit);
+
+        assert_eq!(moved, 0, "single-file notch is still preserved mid-fight");
+        for i in unit_range(&sim, unit) {
+            if sim.alive[i] == 1 {
+                assert_ne!(sim.soldier_slot[i] as usize % files, 2);
+            }
         }
     }
 

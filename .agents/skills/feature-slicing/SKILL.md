@@ -74,11 +74,12 @@ whole feature is done.
    [screenshot-critique](../screenshot-critique/SKILL.md) a standing verification
    gate in the README so every visual slice inherits it: the spec must tell the
    implementing agent to run an unbiased screenshot-critique as the last check on
-   any visual shot before accepting it. When a slice *changes an existing* visual
-   surface, the spec must also name
+   any visual shot before accepting it. Whenever a slice has something to compare
+   its shot against — a prior look it changes, or a reference/inspiration image
+   added for the feature — the spec must also name
    [compare-screenshots](../compare-screenshots/SKILL.md) as the gate that judges
-   the before/after — the telemetry and less-wrong verdict that screenshot-critique's
-   single-shot eyes do not give.
+   candidate-against-target: the telemetry and less-wrong verdict that
+   screenshot-critique's single-shot eyes do not give.
 4. **Materialize:** create `specs/<feature>/` when the feature has more than
    one slice or needs assets/visualizations.
 5. **Build slice by slice:** leave each slice with a runnable artifact and
@@ -126,11 +127,12 @@ Each slice file answers:
   the slice is accepted — an unprimed second opinion the regression gates and the
   implementer's own inspection cannot supply. Write this as an explicit
   verification step in the slice, not as a passing mention.
-- If the slice *changes an existing* visual surface, the slice file must also
-  instruct the agent to use [compare-screenshots](../compare-screenshots/SKILL.md)
-  to judge the before/after — telemetry plus a less-wrong verdict against the
-  slice's visual target, not a check that the new shot matches the old one. Write
-  it as an explicit step too.
+- If the slice's shot has a target to compare against — a prior look it changes,
+  or a reference/inspiration image added for the feature — the slice file must
+  also instruct the agent to use
+  [compare-screenshots](../compare-screenshots/SKILL.md) to judge
+  candidate-against-target: telemetry plus a less-wrong verdict, not a check that
+  the shot matches the reference. Write it as an explicit step too.
 - What must stay green?
 - What feedback from the human would change this slice?
 

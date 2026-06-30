@@ -8,7 +8,7 @@ export const meta = {
   world: 'battle-terrain-3d',
   tier: 'full',
   snapshots: MAPS.map((id) => `terrain-3d/${id}`),
-  describe: 'Each quick-battle map rendered as rolling 3D ground with shared scenery props seated on the shared terrain height, at the gameplay camera.',
+  describe: 'Each quick-battle map rendered as rolling 3D ground with terrain-masked grass and shared scenery props seated on the shared terrain height, at the gameplay camera.',
 };
 
 export async function run(ctx) {
@@ -19,6 +19,7 @@ export async function run(ctx) {
   for (const id of MAPS) {
     await gateMap(ctx, id);
   }
+  await gateSoldiers(ctx, 'river-and-crags');
 }
 
 async function gateMap(ctx, id) {
@@ -34,6 +35,9 @@ async function gateMap(ctx, id) {
 
   ctx.check(`${id} ground is a displaced heightfield mesh`, stats.groundTriangles > 1000 && stats.groundLayer === 'battle-ground-heightfield', JSON.stringify({ tris: stats.groundTriangles, layer: stats.groundLayer }));
   ctx.check(`${id} relief is exaggerated for readability`, stats.heightSpan > 5 && stats.heightSpan < 40, `span=${stats.heightSpan}`);
+  ctx.check(`${id} grass is emitted from terrain cover`, stats.grass?.terrainMasked === true && stats.grass?.tuftInstances > 0 && stats.grass?.bladeInstances > stats.grass?.tuftInstances, JSON.stringify(stats.grass));
+  ctx.check(`${id} grass skips blocked water rock wall mud tints`, stats.grass?.invalidTintTufts === 0 && stats.grass?.blockedTintCells > 0 && stats.grass?.eligibleCells > 0, JSON.stringify(stats.grass));
+  ctx.check(`${id} grass stays in world-depth before soldiers`, hasWorldDepthGrassPass(stats.framePhases), JSON.stringify(stats.framePhases));
   ctx.check(`${id} props are placed`, stats.props > 0, `props=${stats.props}`);
   // Green maps grow woods; the dry coast has rock outcrops instead of trees.
   if (stats.groundCover === 'green-grass') {
@@ -52,6 +56,35 @@ async function gateMap(ctx, id) {
   }
   await ctx.snap(page, `terrain-3d/${id}`, { shot });
   await page.close();
+}
+
+async function gateSoldiers(ctx, id) {
+  const page = await ctx.newPage({ viewport: { width: 1280, height: 800 }, errorPrefix: `terrain-3d-${id}-soldiers` });
+  await page.goto(`${ctx.target}/renderer/battle-terrain-3d?gate=${id}&view=soldiers`);
+  await page.waitForFunction((g) => window.__rendererLabReady === true && window.__rendererLabStats?.stats?.gate === g && window.__rendererLabStats?.stats?.view === 'soldiers', id, { timeout: 20000 });
+  await page.waitForTimeout(180);
+  const stats = await page.evaluate(() => window.__rendererLabStats?.stats ?? null);
+  ctx.check(`${id} soldiers are seated on the shared terrain height`, stats?.soldiers > 0 && stats?.soldierElevationMatches === true && stats?.soldierElevationSpan > 0.1, JSON.stringify({
+    soldiers: stats?.soldiers,
+    soldierElevationMatches: stats?.soldierElevationMatches,
+    soldierElevationSpan: stats?.soldierElevationSpan,
+  }));
+  ctx.check(`${id} soldier view keeps grass terrain-masked`, stats?.grass?.terrainMasked === true && stats?.grass?.invalidTintTufts === 0 && stats?.grass?.tuftInstances > 0, JSON.stringify(stats?.grass));
+  await page.close();
+}
+
+function hasWorldDepthGrassPass(phases) {
+  if (!Array.isArray(phases)) return false;
+  return phases.some((phase) => {
+    if (phase?.kind !== 'world-depth') return false;
+    const ids = phase.passIds ?? [];
+    const grass = ids.indexOf('battle-3d-grass');
+    const soldiers = ids.indexOf('battle-3d-soldiers');
+    return grass >= 0
+      && (soldiers < 0 || grass < soldiers)
+      && phase.depthPasses?.some((pass) => pass.id === 'battle-3d-grass' && pass.mode === 'read-write')
+      && phase.passRoles?.some((pass) => pass.id === 'battle-3d-grass' && pass.role === 'world-opaque');
+  });
 }
 
 function groundMetrics(png) {

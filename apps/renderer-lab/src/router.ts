@@ -2498,6 +2498,21 @@ async function routeBattleTerrain3d(ctx: LabContext) {
   const shell = await createConfiguredShell(ctx.canvas, camera);
   const ground = new BattleGroundPass(shell);
   ground.setTerrain(grid, field, presentation.groundCover);
+  const grass = new BattleGrassPass(shell);
+  const grassZoomT = view === 'soldiers' ? 0.82 : 0.58;
+  grass.setTerrain(grid, field, presentation.groundCover, {
+    seed: 0x7a55,
+    density: 0.50,
+    maxTufts: 4200,
+    zoomT: grassZoomT,
+    focus: { x: camera.x, y: camera.y, radius: view === 'soldiers' ? 150 : 340 },
+    bladeHeight: 1.0,
+    bladeWidth: 0.072,
+    bend: 0.32,
+    spread: 0.20,
+    windPhase: numberParam(ctx.params, 'grassPhase', 0),
+    windStrength: 0.078,
+  });
   const props = new CampaignSceneryPass(shell, 'battle');
   props.upload(scenery);
   const horizon = new BattleHorizonPass(shell);
@@ -2539,6 +2554,7 @@ async function routeBattleTerrain3d(ctx: LabContext) {
       { id: 'battle-3d-horizon', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => horizon.draw(pass) },
       { id: 'battle-3d-ground', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => ground.draw(pass) },
       { id: 'battle-3d-scenery', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => props.drawOpaque(pass) },
+      { id: 'battle-3d-grass', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => grass.draw(pass) },
       ...(soldiers ? [{ id: 'battle-3d-soldiers', role: 'world-opaque' as const, phase: 'world-depth' as const, depth: 'read-write' as const, draw: (pass: WorldRenderPass) => soldiers.pipeline.draw(pass) }] : []),
       { id: 'battle-3d-scenery-shadow', role: 'world-decal', phase: 'world-depth', depth: 'read', draw: (pass) => props.drawShadows(pass) },
       ...(soldiers ? [{ id: 'battle-3d-soldier-shadow', role: 'world-decal' as const, phase: 'world-depth' as const, depth: 'read' as const, draw: (pass: WorldRenderPass) => soldiers.shadows.draw(pass) }] : []),
@@ -2546,12 +2562,16 @@ async function routeBattleTerrain3d(ctx: LabContext) {
   });
 
   const propStats = props.stats();
+  const grassStats = grass.stats();
   ctx.status.innerHTML = reportTable({
     route: 'battle-terrain-3d',
     gate: entry.id,
     map: entry.label,
     groundCover: presentation.groundCover,
     groundTriangles: ground.stats().triangles,
+    grassTufts: grassStats.tuftInstances,
+    grassBlades: grassStats.bladeInstances,
+    grassBlockedCells: grassStats.blockedTintCells,
     props: scenery.length,
     trees: propStats.trees,
     rocks: propStats.rocks,
@@ -2570,6 +2590,7 @@ async function routeBattleTerrain3d(ctx: LabContext) {
     props: scenery.length,
     trees: propStats.trees,
     rocks: propStats.rocks,
+    grass: grassStats,
     heightSpan: heightSpan(presentation.height),
     soldiers: soldiers?.count ?? 0,
     soldierElevationMatches: soldiers?.elevationMatches ?? null,

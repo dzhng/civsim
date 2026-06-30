@@ -3,7 +3,7 @@ import { WORLD_CAMERA_WGSL } from '../../../renderer-core/src/cameraWgsl';
 import { compileShader } from '../../../renderer-core/src/compileShader';
 import { gpuOpaqueColorTarget, gpuWorldDepthStencil } from '../../../renderer-core/src/pipelineContracts';
 import { terrainHeightAt, type TerrainHeightField } from '../terrain/heightField';
-import type { BattleGroundCover } from './terrainFeatures';
+import type { BattleGroundCover, BattleTerrainGrid } from './terrainFeatures';
 import {
   DEFAULT_GRASS_TUFT_BLADES,
   buildGrassTuftMesh,
@@ -18,6 +18,12 @@ export interface BattleGrassBounds {
   height: number;
 }
 
+export interface BattleGrassFocus {
+  x: number;
+  y: number;
+  radius: number;
+}
+
 export interface BattleGrassParams {
   seed?: number;
   density?: number;
@@ -29,16 +35,27 @@ export interface BattleGrassParams {
   spread?: number;
   windPhase?: number;
   windStrength?: number;
+  zoomT?: number;
+  focus?: BattleGrassFocus;
 }
 
 export interface BattleGrassStats {
   layer: 'battle-grass-instanced-blades';
   cover: BattleGroundCover;
+  terrainMasked: boolean;
+  zoomT: number;
+  focusRadius: number;
   tuftInstances: number;
   bladeInstances: number;
   cappedTufts: number;
   density: number;
   maxTufts: number;
+  eligibleCells: number;
+  blockedTintCells: number;
+  openGrassCells: number;
+  forestCells: number;
+  roughCells: number;
+  invalidTintTufts: number;
   meshVertices: number;
   meshTriangles: number;
   windPhase: number;
@@ -75,6 +92,7 @@ struct VsOut {
   @location(1) alpha: f32,
   @location(2) light: f32,
   @location(3) heightT: f32,
+  @location(4) terrainT: f32,
 };
 
 @vertex
@@ -87,7 +105,8 @@ fn vs(
 ) -> VsOut {
   let yaw = instStyle.x;
   let phase = instStyle.y;
-  let shade = 0.86 + instStyle.z * 0.22;
+  let terrainT = clamp(instStyle.w, 0.0, 1.0);
+  let shade = mix(0.86 + instStyle.z * 0.22, 0.94 + instStyle.z * 0.12, terrainT);
   let cy = cos(yaw);
   let sy = sin(yaw);
   let scale = instPose.w;
@@ -107,6 +126,7 @@ fn vs(
   out.color = colorAndAlpha.rgb * shade;
   out.alpha = colorAndAlpha.a;
   out.heightT = heightT;
+  out.terrainT = terrainT;
   return out;
 }
 
@@ -117,7 +137,11 @@ fn fs(in: VsOut) -> @location(0) vec4f {
   let grade = mix(coolFill, warmKey, clamp((in.light - 0.58) / 0.52, 0.0, 1.0));
   let strawTip = vec3f(0.62, 0.59, 0.36);
   let tipDry = smoothstep(0.62, 1.0, in.heightT) * 0.055;
-  let col = mix(in.color * in.light * grade, strawTip, tipDry);
+  let lit = mix(in.color * in.light * grade, strawTip, tipDry);
+  let terrainRoot = vec3f(0.42, 0.47, 0.25);
+  let terrainTip = vec3f(0.62, 0.59, 0.35);
+  let terrainStubble = mix(terrainRoot, terrainTip, smoothstep(0.12, 1.0, in.heightT));
+  let col = mix(lit, terrainStubble, in.terrainT * 0.58);
   return vec4f(clamp(col, vec3f(0.0), vec3f(1.0)), in.alpha);
 }`;
 
@@ -139,6 +163,15 @@ export class BattleGrassPass {
   private density = DEFAULT_GRASS_PARAMS.density;
   private maxTufts = DEFAULT_GRASS_PARAMS.maxTufts;
   private cover: BattleGroundCover = 'green-grass';
+  private terrainMasked = false;
+  private zoomT = 1;
+  private focusRadius = 0;
+  private eligibleCells = 0;
+  private blockedTintCells = 0;
+  private openGrassCells = 0;
+  private forestCells = 0;
+  private roughCells = 0;
+  private invalidTintTufts = 0;
   private windPhase = DEFAULT_GRASS_PARAMS.windPhase;
   private windStrength = DEFAULT_GRASS_PARAMS.windStrength;
   private baseHeight = DEFAULT_GRASS_PARAMS.bladeHeight;
@@ -200,6 +233,15 @@ export class BattleGrassPass {
   setField(field: TerrainHeightField, bounds: BattleGrassBounds, cover: BattleGroundCover, params: BattleGrassParams = {}) {
     const merged = { ...DEFAULT_GRASS_PARAMS, ...params };
     this.cover = cover;
+    this.terrainMasked = false;
+    this.zoomT = clamp01(merged.zoomT ?? 1);
+    this.focusRadius = 0;
+    this.eligibleCells = 0;
+    this.blockedTintCells = 0;
+    this.openGrassCells = 0;
+    this.forestCells = 0;
+    this.roughCells = 0;
+    this.invalidTintTufts = 0;
     this.density = Math.max(0, merged.density);
     this.maxTufts = clampInt(merged.maxTufts, 0, 20000);
     this.bladesPerTuft = clampInt(merged.bladesPerTuft, 1, 96);
@@ -230,6 +272,52 @@ export class BattleGrassPass {
     this.writeUniforms();
   }
 
+  setTerrain(grid: BattleTerrainGrid, field: TerrainHeightField, cover: BattleGroundCover, params: BattleGrassParams = {}) {
+    const merged = { ...DEFAULT_GRASS_PARAMS, ...params };
+    const zoomT = clamp01(params.zoomT ?? 0.55);
+    const tune = terrainGrassTuning(cover, zoomT);
+    this.cover = cover;
+    this.terrainMasked = true;
+    this.zoomT = zoomT;
+    this.density = Math.max(0, merged.density * tune.density);
+    this.maxTufts = clampInt(merged.maxTufts * tune.maxTufts, 0, 20000);
+    this.bladesPerTuft = clampInt(merged.bladesPerTuft, 1, 96);
+    this.windPhase = merged.windPhase;
+    this.windStrength = Math.max(0, merged.windStrength * tune.wind);
+    this.baseHeight = Math.max(0.05, merged.bladeHeight * tune.height);
+
+    const meshOptions: GrassTuftOptions = {
+      seed: merged.seed,
+      blades: this.bladesPerTuft,
+      height: this.baseHeight,
+      width: merged.bladeWidth,
+      bend: merged.bend,
+      spread: merged.spread,
+      palette: cover,
+    };
+    const mesh = buildGrassTuftMesh(meshOptions);
+    const meshStats = grassTuftStats(mesh, this.bladesPerTuft);
+    this.meshVertices = meshStats.opaqueVertices;
+    this.meshTriangles = meshStats.opaqueTriangles;
+    this.uploadMesh(mesh.opaque.vertices, mesh.opaque.indices);
+
+    const focus = params.focus ?? defaultGrassFocus(grid);
+    this.focusRadius = Math.max(0, focus.radius);
+    const cells = collectTerrainGrassCells(grid, focus);
+    this.eligibleCells = cells.eligibleCells;
+    this.blockedTintCells = cells.blockedTintCells;
+    this.openGrassCells = cells.openGrassCells;
+    this.forestCells = cells.forestCells;
+    this.roughCells = cells.roughCells;
+    const requested = this.density > 0 && cells.weightedArea > 0 ? Math.max(1, Math.ceil(cells.weightedArea * this.density)) : 0;
+    const count = Math.min(requested, this.maxTufts);
+    this.cappedTufts = Math.max(0, requested - count);
+    const scattered = scatterTerrainTufts(grid, field, cells.cells, count, merged.seed);
+    this.invalidTintTufts = scattered.invalidTintTufts;
+    this.uploadInstances(scattered.instances);
+    this.writeUniforms();
+  }
+
   setWindPhase(phase: number) {
     this.windPhase = phase;
     this.writeUniforms();
@@ -250,11 +338,20 @@ export class BattleGrassPass {
     return {
       layer: 'battle-grass-instanced-blades',
       cover: this.cover,
+      terrainMasked: this.terrainMasked,
+      zoomT: this.zoomT,
+      focusRadius: this.focusRadius,
       tuftInstances: this.tuftCount,
       bladeInstances: this.tuftCount * this.bladesPerTuft,
       cappedTufts: this.cappedTufts,
       density: this.density,
       maxTufts: this.maxTufts,
+      eligibleCells: this.eligibleCells,
+      blockedTintCells: this.blockedTintCells,
+      openGrassCells: this.openGrassCells,
+      forestCells: this.forestCells,
+      roughCells: this.roughCells,
+      invalidTintTufts: this.invalidTintTufts,
       meshVertices: this.meshVertices,
       meshTriangles: this.meshTriangles,
       windPhase: this.windPhase,
@@ -339,8 +436,157 @@ function scatterTufts(field: TerrainHeightField, bounds: BattleGrassBounds, coun
   return data;
 }
 
+interface TerrainGrassCell {
+  cx: number;
+  cy: number;
+  tint: number;
+  weight: number;
+  lod: number;
+}
+
+interface TerrainGrassCells {
+  cells: TerrainGrassCell[];
+  weightedArea: number;
+  eligibleCells: number;
+  blockedTintCells: number;
+  openGrassCells: number;
+  forestCells: number;
+  roughCells: number;
+}
+
+function collectTerrainGrassCells(grid: BattleTerrainGrid, focus: BattleGrassFocus): TerrainGrassCells {
+  const cells: TerrainGrassCell[] = [];
+  let weightedArea = 0;
+  let eligibleCells = 0;
+  let blockedTintCells = 0;
+  let openGrassCells = 0;
+  let forestCells = 0;
+  let roughCells = 0;
+  const radius = Math.max(0, focus.radius);
+  const fadeStart = radius * 0.62;
+  const fadeEnd = Math.max(fadeStart + grid.cell, radius);
+  const cellArea = grid.cell * grid.cell;
+  for (let cy = 0; cy < grid.h; cy++) {
+    for (let cx = 0; cx < grid.w; cx++) {
+      const tint = grid.tint[cy * grid.w + cx] ?? 0;
+      if (isBlockedGrassTint(tint)) {
+        blockedTintCells++;
+        continue;
+      }
+      const tintWeight = grassTintWeight(tint);
+      if (tintWeight <= 0) continue;
+      eligibleCells++;
+      if (tint === 0) openGrassCells++;
+      else if (tint === 4) forestCells++;
+      else if (tint === 6) roughCells++;
+
+      const x = grid.ox + (cx + 0.5) * grid.cell;
+      const y = grid.oy + (cy + 0.5) * grid.cell;
+      const dist = Math.hypot(x - focus.x, y - focus.y);
+      const lod = radius > 0 ? 1 - smoothstepRange(fadeStart, fadeEnd, dist) : 1;
+      if (lod <= 0.03) continue;
+      const weight = tintWeight * lod;
+      cells.push({ cx, cy, tint, weight, lod });
+      weightedArea += weight * cellArea;
+    }
+  }
+  return { cells, weightedArea, eligibleCells, blockedTintCells, openGrassCells, forestCells, roughCells };
+}
+
+function scatterTerrainTufts(
+  grid: BattleTerrainGrid,
+  field: TerrainHeightField,
+  cells: TerrainGrassCell[],
+  count: number,
+  seed: number,
+): { instances: Float32Array; invalidTintTufts: number } {
+  const data = new Float32Array(count * 8);
+  if (count === 0 || cells.length === 0) return { instances: data, invalidTintTufts: 0 };
+  const totalWeight = cells.reduce((sum, cell) => sum + cell.weight, 0);
+  if (totalWeight <= 0) return { instances: new Float32Array(), invalidTintTufts: 0 };
+
+  let cursor = 0;
+  let cumulative = cells[0].weight;
+  let invalidTintTufts = 0;
+  for (let n = 0; n < count; n++) {
+    const target = ((n + hash2(seed, n + 17)) / count) * totalWeight;
+    while (cursor < cells.length - 1 && target > cumulative) {
+      cursor++;
+      cumulative += cells[cursor].weight;
+    }
+    const cell = cells[cursor];
+    if (isBlockedGrassTint(cell.tint)) invalidTintTufts++;
+    const salt = seed + n * 7919 + cell.cx * 151 + cell.cy * 313;
+    const x = grid.ox + (cell.cx + 0.12 + hash2(salt, 1) * 0.76) * grid.cell;
+    const y = grid.oy + (cell.cy + 0.12 + hash2(salt, 2) * 0.76) * grid.cell;
+    const z = terrainHeightAt(field, x, y);
+    const tintScale = cell.tint === 6 ? 0.64 : cell.tint === 4 ? 0.78 : 1;
+    const distanceScale = 0.54 + cell.lod * 0.46;
+    const scale = (0.76 + hash2(salt, 3) * 0.34) * tintScale * distanceScale;
+    const yaw = hash2(salt, 4) * Math.PI * 2;
+    const phase = hash2(salt, 5) * Math.PI * 2;
+    const shade = 0.85 + hash2(salt, 6) * 0.85;
+    const i = n * 8;
+    data[i] = x;
+    data[i + 1] = y;
+    data[i + 2] = z;
+    data[i + 3] = scale;
+    data[i + 4] = yaw;
+    data[i + 5] = phase;
+    data[i + 6] = shade;
+    data[i + 7] = 1;
+  }
+  return { instances: data, invalidTintTufts };
+}
+
+function defaultGrassFocus(grid: BattleTerrainGrid): BattleGrassFocus {
+  const width = grid.w * grid.cell;
+  const height = grid.h * grid.cell;
+  return {
+    x: grid.ox + width * 0.5,
+    y: grid.oy + height * 0.5,
+    radius: Math.max(width, height) * 0.75,
+  };
+}
+
+function terrainGrassTuning(cover: BattleGroundCover, zoomT: number) {
+  const coverTune = cover === 'green-grass'
+    ? { density: 1, height: 1, maxTufts: 1, wind: 1 }
+    : cover === 'yellow-grass'
+      ? { density: 0.74, height: 0.84, maxTufts: 0.86, wind: 0.92 }
+      : cover === 'scrub-grass'
+        ? { density: 0.50, height: 0.72, maxTufts: 0.72, wind: 0.86 }
+        : { density: 0.12, height: 0.48, maxTufts: 0.36, wind: 0.72 };
+  return {
+    density: coverTune.density * (0.20 + zoomT * 0.80),
+    height: coverTune.height * (0.50 + zoomT * 0.50),
+    maxTufts: coverTune.maxTufts * (0.34 + zoomT * 0.66),
+    wind: coverTune.wind * (0.58 + zoomT * 0.42),
+  };
+}
+
+function grassTintWeight(tint: number): number {
+  if (tint === 0) return 1;
+  if (tint === 4) return 0.40;
+  if (tint === 6) return 0.16;
+  return 0;
+}
+
+function isBlockedGrassTint(tint: number): boolean {
+  return tint === 1 || tint === 2 || tint === 3 || tint === 5;
+}
+
 function clampInt(v: number, lo: number, hi: number): number {
   return Math.max(lo, Math.min(hi, Math.floor(v)));
+}
+
+function clamp01(value: number): number {
+  return Math.max(0, Math.min(1, Number.isFinite(value) ? value : 0));
+}
+
+function smoothstepRange(edge0: number, edge1: number, value: number): number {
+  const t = clamp01((value - edge0) / Math.max(0.0001, edge1 - edge0));
+  return t * t * (3 - 2 * t);
 }
 
 function hash2(x: number, y: number): number {

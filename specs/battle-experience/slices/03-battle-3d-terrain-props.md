@@ -103,6 +103,9 @@ systems to consume.
 - If new shared prop variants are added, re-run the slice 01 shared prop sheet.
 - Inspect generated PNGs against the Bronze-Age Aegean references before
   blessing.
+- Every committed battle terrain shot passes an unbiased screenshot-critique
+  pass (see the Review Map in the feature README) before it is accepted; critic
+  findings are fixed or justified in writing.
 
 ## Must Stay Green
 

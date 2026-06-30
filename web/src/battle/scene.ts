@@ -79,6 +79,12 @@ export interface BattleConfig {
   onExit: () => void;
   /** Fresh battle of `kind` (Restart and the map/sandbox buttons). */
   onLaunch: (kind: BattleKind) => void;
+  /** The catalog map index, when this battle is on a quick-battle map — drives
+   *  the renderer's full-field ground cover. */
+  wasmMapId?: number;
+  /** Re-run the exact setup on Restart (a custom battle re-launches its config
+   *  instead of a default `kind`). */
+  restart?: () => void;
   /** Campaign battles: no restart, "Main Menu" reads "Continue". */
   inCampaign?: boolean;
 }
@@ -92,6 +98,12 @@ export class BattleScene implements Scene {
   private frameFn: (now: number) => void = () => {};
 
   constructor(private cfg: BattleConfig) {}
+
+  /** Restart: a custom battle re-launches its exact config; a default battle
+   *  re-launches its map kind. */
+  private restartBattle() {
+    (this.cfg.restart ?? (() => this.cfg.onLaunch(this.cfg.kind)))();
+  }
 
   frame(now: number) {
     this.frameFn(now);
@@ -179,8 +191,9 @@ export class BattleScene implements Scene {
       const tw = game.terrain_w();
       const th = game.terrain_h();
       const tint = new Uint8Array(wasm.memory.buffer, game.terrain_tint_ptr(), tw * th);
+      const height = new Float32Array(wasm.memory.buffer, game.terrain_height_ptr(), tw * th);
       renderer.setTerrain(
-        tw, th, game.terrain_cell(), game.terrain_origin_x(), game.terrain_origin_y(), new Uint8Array(tint),
+        tw, th, game.terrain_cell(), game.terrain_origin_x(), game.terrain_origin_y(), new Uint8Array(tint), new Float32Array(height), this.cfg.wasmMapId,
       );
     }
 
@@ -434,7 +447,7 @@ export class BattleScene implements Scene {
     gameover.style.display = 'none';
     const restartBtn = document.getElementById('gameover-restart')!;
     restartBtn.style.display = this.cfg.inCampaign ? 'none' : 'block';
-    restartBtn.addEventListener('click', () => this.cfg.onLaunch(this.cfg.kind), { signal });
+    restartBtn.addEventListener('click', () => this.restartBattle(), { signal });
     const menuBtn = document.getElementById('gameover-menu')!;
     menuBtn.textContent = this.cfg.inCampaign ? 'Continue' : 'Main Menu';
     menuBtn.addEventListener('click', () => this.cfg.onExit(), { signal });
@@ -825,7 +838,7 @@ export class BattleScene implements Scene {
     }, { signal });
     const pauseRestart = document.getElementById('pause-restart')!;
     pauseRestart.style.display = this.cfg.inCampaign ? 'none' : 'block';
-    pauseRestart.addEventListener('click', () => this.cfg.onLaunch(this.cfg.kind), { signal });
+    pauseRestart.addEventListener('click', () => this.restartBattle(), { signal });
     document.getElementById('pause-exit')!.textContent =
       this.cfg.inCampaign ? 'Exit to Campaign' : 'Exit to Main Menu';
     document.getElementById('pause-manual')!.addEventListener('click', () => {

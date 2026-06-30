@@ -16,26 +16,16 @@ export const meta = {
     'campaign/terrain/road',
     'campaign/terrain/road-only',
     'campaign/entities/selected-city',
-    'campaign/props/trees',
-    'campaign/props/conifer',
-    'campaign/props/broadleaf',
-    'campaign/props/mountain',
-    'campaign/props/rocks',
     'campaign/labels/labels',
     'campaign/terrain/terrain-grass-scrub',
     'campaign/terrain/terrain-stone-relief',
     'campaign/terrain/shoreline-water',
     'campaign/terrain/cloud-fog',
   ],
-  describe: 'Captures campaign model, prop, terrain, road, water, fog, and label baselines under web/shots/models/campaign.',
+  describe: 'Captures campaign model, terrain, road, water, fog, and label baselines under web/shots/models/campaign. Reusable scenery props are reviewed by the shared-prop-models scene.',
 };
 
 const CONTENT_REQUIREMENTS = {
-  trees: { foliageRatio: 0.05, trunkRatio: 0.004 },
-  conifer: { foliageRatio: 0.04 },
-  broadleaf: { foliageRatio: 0.03, trunkRatio: 0.004 },
-  mountain: { stoneRatio: 0.08, darkRatio: 0.01 },
-  rocks: { stoneRatio: 0.05, darkRatio: 0.015 },
   'terrain-grass-scrub': { foliageRatio: 0.03 },
   'terrain-stone-relief': { stoneRatio: 0.12 },
 };
@@ -90,31 +80,6 @@ const gates = [
     id: 'selected-city',
     label: 'Selected City Footprint',
     criteria: 'Selected city footprint sits outside the city shadow, projects with the ground plane, and is occluded by city geometry where covered.',
-  },
-  {
-    id: 'trees',
-    label: 'Tree Props',
-    criteria: 'Tree prop family is visible with separate conifer and broadleaf silhouettes in one comparison capture.',
-  },
-  {
-    id: 'conifer',
-    label: 'Conifer Tree',
-    criteria: 'Individual conifer model has trunk, tiered crown, non-square contact shadow, and campaign lighting.',
-  },
-  {
-    id: 'broadleaf',
-    label: 'Broadleaf Tree',
-    criteria: 'Individual broadleaf model has trunk, rounded low-poly canopy, non-square contact shadow, and campaign lighting.',
-  },
-  {
-    id: 'mountain',
-    label: 'Mountain Props',
-    criteria: 'Mountain massif prop family is visible and anchored to terrain with campaign lighting.',
-  },
-  {
-    id: 'rocks',
-    label: 'Rock Props',
-    criteria: 'Rock/boulder prop family is visible and distinct from mountains.',
   },
   {
     id: 'labels',
@@ -201,9 +166,6 @@ function shotContentCheck(gateId, shot) {
 function shotFolder(gateId) {
   if (['city', 'town', 'army', 'selected-city', 'garrison-outside', 'garrison-city', 'garrison-hidden', 'hostile-depth-order'].includes(gateId)) {
     return 'entities';
-  }
-  if (['trees', 'conifer', 'broadleaf', 'mountain', 'rocks'].includes(gateId)) {
-    return 'props';
   }
   if (gateId === 'labels') {
     return 'labels';

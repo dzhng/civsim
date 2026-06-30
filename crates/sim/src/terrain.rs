@@ -22,6 +22,11 @@ pub struct Terrain {
     /// Render hint per cell (gameplay never reads it):
     /// 0 grass, 1 water, 2 rock, 3 wall, 4 forest, 5 mud, 6 scree/field.
     pub tint: Vec<u8>,
+    /// Ground elevation per cell, meters above the map datum. Presentation and
+    /// asset seating ONLY — movement, collision, and combat never read it, so it
+    /// stays out of the golden hash. Gentle rolling relief; a map that wants high
+    /// ground impassable must also paint speed 0 there.
+    pub height: Vec<f32>,
 }
 
 impl Terrain {
@@ -34,6 +39,7 @@ impl Terrain {
             speed: vec![1.0; w * h],
             rough: vec![0.0; w * h],
             tint: vec![0; w * h],
+            height: vec![0.0; w * h],
         }
     }
 
@@ -53,6 +59,33 @@ impl Terrain {
 
     pub fn rough_at(&self, p: Vec2) -> f32 {
         self.index(p).map_or(0.0, |i| self.rough[i])
+    }
+
+    /// Ground elevation at a world point, bilinearly interpolated between the
+    /// four surrounding cell centers so soldiers and props ride a smooth surface
+    /// instead of stair-stepping per cell. Sample coordinates clamp to the edge
+    /// cells, so a point just off the map seats at the nearest edge height rather
+    /// than dropping to zero. Presentation/seating only — no mechanic reads this.
+    pub fn height_at(&self, p: Vec2) -> f32 {
+        if self.w == 0 || self.h == 0 {
+            return 0.0;
+        }
+        // Cell-center coordinates (cell c is centered at origin + (c+0.5)*cell).
+        let gx = ((p.x - self.origin.x) / self.cell - 0.5).clamp(0.0, (self.w - 1) as f32);
+        let gy = ((p.y - self.origin.y) / self.cell - 0.5).clamp(0.0, (self.h - 1) as f32);
+        let x0 = gx.floor() as usize;
+        let y0 = gy.floor() as usize;
+        let x1 = (x0 + 1).min(self.w - 1);
+        let y1 = (y0 + 1).min(self.h - 1);
+        let tx = gx - x0 as f32;
+        let ty = gy - y0 as f32;
+        let h00 = self.height[y0 * self.w + x0];
+        let h10 = self.height[y0 * self.w + x1];
+        let h01 = self.height[y1 * self.w + x0];
+        let h11 = self.height[y1 * self.w + x1];
+        let top = h00 + (h10 - h00) * tx;
+        let bot = h01 + (h11 - h01) * tx;
+        top + (bot - top) * ty
     }
 }
 
@@ -246,6 +279,61 @@ impl Terrain {
         );
     }
 
+    /// Add a smooth dome (or dip, for negative amplitude) of `amplitude` meters
+    /// peaking at `center` and easing to zero by `radius` through a smoothstep
+    /// falloff. ADDITIVE, so a handful of overlapping rises read as rolling
+    /// ground rather than discrete bumps. Touches only `height` — never speed,
+    /// roughness, or tint — so relief and impassability stay independent.
+    pub fn add_rise(&mut self, center: Vec2, radius: f32, amplitude: f32) {
+        if radius <= 0.0 {
+            return;
+        }
+        for cy in 0..self.h {
+            for cx in 0..self.w {
+                let p = Vec2::new(
+                    self.origin.x + (cx as f32 + 0.5) * self.cell,
+                    self.origin.y + (cy as f32 + 0.5) * self.cell,
+                );
+                let d = (p - center).len() / radius;
+                if d >= 1.0 {
+                    continue;
+                }
+                let f = 1.0 - d;
+                self.height[cy * self.w + cx] += amplitude * f * f * (3.0 - 2.0 * f);
+            }
+        }
+    }
+
+    /// Add a smooth elongated bank/ridge of `amplitude` meters along segment
+    /// a→b, easing to zero by `radius` from the centerline. The capsule sibling
+    /// of `add_rise`: dunes, terrace banks, low ridges. Height-only and additive.
+    pub fn add_ridge(&mut self, a: Vec2, b: Vec2, radius: f32, amplitude: f32) {
+        if radius <= 0.0 {
+            return;
+        }
+        let ab = b - a;
+        let len2 = ab.x * ab.x + ab.y * ab.y;
+        for cy in 0..self.h {
+            for cx in 0..self.w {
+                let p = Vec2::new(
+                    self.origin.x + (cx as f32 + 0.5) * self.cell,
+                    self.origin.y + (cy as f32 + 0.5) * self.cell,
+                );
+                let t = if len2 > 0.0 {
+                    (((p.x - a.x) * ab.x + (p.y - a.y) * ab.y) / len2).clamp(0.0, 1.0)
+                } else {
+                    0.0
+                };
+                let d = (p - Vec2::new(a.x + ab.x * t, a.y + ab.y * t)).len() / radius;
+                if d >= 1.0 {
+                    continue;
+                }
+                let f = 1.0 - d;
+                self.height[cy * self.w + cx] += amplitude * f * f * (3.0 - 2.0 * f);
+            }
+        }
+    }
+
     /// Rasterize a data-only paint program (the campaign↔battle terrain
     /// contract). Ops apply in order; later ops overwrite earlier ones.
     pub fn from_spec(spec: &contract::TerrainSpec) -> Terrain {
@@ -295,6 +383,11 @@ impl Terrain {
                     rough,
                     tint,
                 ),
+                contract::PaintOp::Rise {
+                    center,
+                    radius,
+                    amplitude,
+                } => t.add_rise(Vec2::new(center[0], center[1]), radius, amplitude),
             }
         }
         t

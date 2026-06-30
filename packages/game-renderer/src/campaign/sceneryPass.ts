@@ -1,7 +1,7 @@
 import type { RawFrameShell, WorldRenderPass } from '../../../renderer-core/src/frameShell';
 import { WORLD_CAMERA_WGSL } from '../../../renderer-core/src/cameraWgsl';
 import { gpuAlphaBlendColorTarget, gpuOpaqueColorTarget, gpuWorldDepthStencil } from '../../../renderer-core/src/pipelineContracts';
-import { buildBroadleafTreeMesh, buildCartMesh, buildConiferTreeMesh, buildMountainMesh, buildRockMesh } from '../models/shared/sceneryPropModels';
+import { SCENERY_PROP_MODELS } from '../models/shared/sceneryPropRegistry';
 
 export type CampaignSceneryKind = 'mountain' | 'tree' | 'conifer' | 'broadleaf' | 'rock' | 'cart';
 
@@ -16,6 +16,15 @@ export interface CampaignSceneryInstance {
   /** per-instance yaw (radians) so cloned meshes don't all face the same way */
   yaw?: number;
 }
+
+// Campaign and battle place the same scenery meshes but sort against different
+// world-depth functions; the pass injects the right one so props depth-test
+// correctly against whichever ground they sit on.
+export type SceneryWorldDepth = 'campaign' | 'battle';
+const sceneryWgsl = (depth: SceneryWorldDepth) => SCENERY_WGSL.replace(
+  'civsimCampaignWorldDepth3d(world)',
+  depth === 'battle' ? 'civsimBattleWorldDepth3d(world)' : 'civsimCampaignWorldDepth3d(world)',
+);
 
 const SCENERY_WGSL = `
 ${WORLD_CAMERA_WGSL}
@@ -70,11 +79,11 @@ fn fs(in: VsOut) -> @location(0) vec4f {
 export class CampaignSceneryPass {
   private opaquePipeline: GPURenderPipeline;
   private shadowPipeline: GPURenderPipeline;
-  private mountainMesh = buildMountainMesh();
-  private coniferMesh = buildConiferTreeMesh();
-  private broadleafMesh = buildBroadleafTreeMesh();
-  private rockMesh = buildRockMesh();
-  private cartMesh = buildCartMesh();
+  private mountainMesh = SCENERY_PROP_MODELS.mountain.build();
+  private coniferMesh = SCENERY_PROP_MODELS.conifer.build();
+  private broadleafMesh = SCENERY_PROP_MODELS.broadleaf.build();
+  private rockMesh = SCENERY_PROP_MODELS.rock.build();
+  private cartMesh = SCENERY_PROP_MODELS.cart.build();
   private mountainVertexBuffer: GPUBuffer;
   private mountainIndexBuffer: GPUBuffer;
   private mountainShadowVertexBuffer: GPUBuffer;
@@ -111,9 +120,9 @@ export class CampaignSceneryPass {
   private rockCount = 0;
   private cartCount = 0;
 
-  constructor(private shell: RawFrameShell) {
+  constructor(private shell: RawFrameShell, worldDepth: SceneryWorldDepth = 'campaign') {
     const device = shell.device;
-    const module = device.createShaderModule({ label: 'campaign-scenery-mesh-wgsl', code: SCENERY_WGSL });
+    const module = device.createShaderModule({ label: 'scenery-mesh-wgsl', code: sceneryWgsl(worldDepth) });
     this.opaquePipeline = this.makePipeline(module, 'opaque');
     this.shadowPipeline = this.makePipeline(module, 'shadow');
     this.mountainVertexBuffer = makeVertexBuffer(device, 'campaign-mountain-vertices', this.mountainMesh.opaque.vertices);

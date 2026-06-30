@@ -51,6 +51,9 @@ or campaign UI competing for attention.
 - The campaign model scene no longer lists reusable prop snapshots under
   `campaign/props`.
 - `web/shots/models/shared/props/README.md` documents the owner split.
+- Every committed prop sheet passes an unbiased screenshot-critique pass (see
+  the Review Map in the feature README); critic findings are fixed or justified
+  in writing before the sheet is accepted.
 
 ## Must Stay Green
 

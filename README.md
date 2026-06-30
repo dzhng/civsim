@@ -21,7 +21,10 @@ in TypeScript.
 - `crates/mapgen` — offline pipeline that bakes the campaign map (road graph +
   a painted background raster) from source geodata.
 - `web` — Vite + TypeScript shell. Battle: WebGL2 instanced renderer. Campaign:
-  a Babylon.js 3D terrain under a transparent Canvas2D marker layer.
+  a Babylon.js 3D terrain under a transparent Canvas2D marker layer. How battle
+  terrain becomes a place — rolling ground, sealed edges, shared scenery, and
+  the seating contract — is documented in
+  [docs/battle-terrain.md](docs/battle-terrain.md).
 - `web/scene.mjs` and `web/scenes/*.mjs` — Playwright browser scenes for
   addressable battle/campaign checks and screenshots; baselines are committed
   under `web/shots/` (see [Screenshot baselines](#screenshot-baselines)).

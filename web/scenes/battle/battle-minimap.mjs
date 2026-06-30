@@ -26,8 +26,12 @@ export async function run(ctx) {
       && stats.renderStats.soldiers === stats.soldiers;
   }, undefined, { timeout: 20000 });
 
+  // Zoom IN for the click-navigation check: at the whole-map overview zoom the
+  // view already covers the field, so clampView pins the camera to centre and a
+  // minimap click cannot move it. A gameplay zoom leaves room to recentre, which
+  // is the behaviour a player actually exercises.
   await page.evaluate(() => {
-    window.__cam.zoom = 3.0;
+    window.__cam.zoom = 10.0;
     window.__cam.pitch = 0;
     window.__cam.yaw = 0;
     window.__cam.clampView?.();
@@ -55,6 +59,12 @@ export async function run(ctx) {
     JSON.stringify({ clickTolerance, forest, forestCamera, mud, mudCamera }),
   );
 
+  // Back to the whole-field overview for the snapshot.
+  await page.evaluate(() => {
+    window.__cam.zoom = 3.0;
+    window.__cam.clampView?.();
+  });
+
   await page.evaluate(() => window.__game.freezeAtTick(72));
   await page.waitForTimeout(250);
   const state = await page.evaluate(() => window.__game.stats());
@@ -63,8 +73,9 @@ export async function run(ctx) {
     state.renderer === 'gpu'
       && hasBattleWorldDepthContract(state.renderStats)
       && state.renderStats?.terrain?.fixture === 'sim-tint'
-      && state.renderStats.terrain.sceneryQuads > 800
-      && state.renderStats.terrain.worldPropQuads > 800,
+      && state.renderStats.terrain.layer === 'battle-ground-heightfield'
+      && state.renderStats.terrain.groundTriangles > 1000
+      && state.renderStats.terrain.scenery > 0,
     JSON.stringify(state.renderStats),
   );
 

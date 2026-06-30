@@ -2,8 +2,14 @@ import type { Camera } from '../shared/camera';
 import { buildCrowdInstances, type CrowdInstance } from '../../../packages/crowd-runtime/src/instanceData';
 import { BattleEffectLinePass } from '../../../packages/game-renderer/src/battle/effectLinePass';
 import { BattleGroundCuePass } from '../../../packages/game-renderer/src/battle/groundCuePass';
-import { BattleTerrainPass } from '../../../packages/game-renderer/src/battle/terrainPass';
-import { createFrameShell, type MarkerInstance, type OverlayRenderPass, type RawFrameShell } from '../../../packages/renderer-core/src/frameShell';
+import { BattleGroundPass } from '../../../packages/game-renderer/src/battle/groundPass';
+import { BattleHorizonPass } from '../../../packages/game-renderer/src/battle/horizonPass';
+import { CampaignSceneryPass } from '../../../packages/game-renderer/src/campaign/sceneryPass';
+import { buildBattleTerrainPresentation, battleMapByWasmId } from '../../../packages/game-renderer/src/battle/mapCatalog';
+import { deriveBattleEdgeRoles, type BattleGroundCover, type BattleTerrainGrid } from '../../../packages/game-renderer/src/battle/terrainFeatures';
+import { featuresToBattleScenery } from '../../../packages/game-renderer/src/battle/terrainScenery';
+import { terrainHeightAt, type TerrainHeightField } from '../../../packages/game-renderer/src/terrain/heightField';
+import { createFrameShell, type MarkerInstance, type OverlayRenderPass, type RawFrameShell, type WorldRenderPass } from '../../../packages/renderer-core/src/frameShell';
 import { compileShader } from '../../../packages/renderer-core/src/compileShader';
 import { gpuMultisample } from '../../../packages/renderer-core/src/pipelineContracts';
 import { fatalSurfaceFor, showFatalErrorSurface } from '../shared/fatalError';
@@ -18,8 +24,16 @@ export class BattleRenderer {
   fixedTime: number | null = null;
   preserveFrozenEffects = false;
 
+  // Render exaggeration for the gentle metre-scale relief at the gameplay
+  // camera; the sim height stays plausible. Modest for live play (vs the lab
+  // review value) so soldiers don't visibly stair-step.
+  private static readonly RELIEF_EXAGGERATION = 1.6;
+
   private shell: RawFrameShell | null = null;
-  private terrain: BattleTerrainPass | null = null;
+  private ground: BattleGroundPass | null = null;
+  private scenery: CampaignSceneryPass | null = null;
+  private horizon: BattleHorizonPass | null = null;
+  private heightField: TerrainHeightField | null = null;
   private crowd: SkinnedCrowdPipeline | null = null;
   private groundCues: BattleGroundCuePass | null = null;
   private effectLines: BattleEffectLinePass | null = null;
@@ -30,7 +44,8 @@ export class BattleRenderer {
   private unitTeam: number[] = [];
   private unitClass: number[] = [];
   private terrainRect: [number, number, number, number] = [-220, -180, 440, 360];
-  private terrainGrid: { w: number; h: number; cell: number; ox: number; oy: number; tint: Uint8Array } | null = null;
+  private terrainGrid: BattleTerrainGrid | null = null;
+  private groundCover: BattleGroundCover = 'green-grass';
   private instances: CrowdInstance[] = [];
   private markers: MarkerInstance[] = [];
   private triangleVerts = new Float32Array();
@@ -70,11 +85,38 @@ export class BattleRenderer {
     this.debugBlocks?.upload(this.triangleVerts);
   }
 
-  setTerrain(w: number, h: number, cell: number, ox: number, oy: number, tint?: Uint8Array) {
+  setTerrain(w: number, h: number, cell: number, ox: number, oy: number, tint?: Uint8Array, height?: Float32Array, wasmMapId?: number) {
     this.terrainRect = [ox, oy, w * cell, h * cell];
-    this.terrainGrid = tint ? { w, h, cell, ox, oy, tint: new Uint8Array(tint) } : null;
-    if (this.terrainGrid) this.terrain?.setTintGrid(this.terrainGrid);
-    else this.terrain?.setFieldRect(this.terrainRect);
+    this.terrainGrid = tint
+      ? { w, h, cell, ox, oy, tint: new Uint8Array(tint), height: height ? new Float32Array(height) : undefined }
+      : null;
+    const catalog = wasmMapId !== undefined ? battleMapByWasmId(wasmMapId) : undefined;
+    this.groundCover = catalog?.groundCover ?? 'green-grass';
+    this.applyTerrain();
+  }
+
+  /** Build the height field + scenery from the stored grid and push them to the
+   *  passes. Safe to call before init (passes apply it themselves once ready). */
+  private applyTerrain() {
+    const grid = this.terrainGrid;
+    if (!grid) return;
+    const field: TerrainHeightField = grid.height
+      ? { w: grid.w, h: grid.h, cell: grid.cell, ox: grid.ox, oy: grid.oy, height: grid.height, units: 'meters', verticalScale: BattleRenderer.RELIEF_EXAGGERATION }
+      : { w: grid.w, h: grid.h, cell: grid.cell, ox: grid.ox, oy: grid.oy, height: new Float32Array(grid.w * grid.h), units: 'meters', verticalScale: 1 };
+    this.heightField = field;
+    const presentation = buildBattleTerrainPresentation(
+      { id: 'live', wasmMapId: -1, label: '', description: '', edges: deriveBattleEdgeRoles(grid), groundCover: this.groundCover },
+      grid,
+      0x5eed,
+    );
+    this.ground?.setTerrain(grid, field, this.groundCover);
+    this.scenery?.upload(featuresToBattleScenery(presentation.features, field, 0x77));
+    this.horizon?.setEdges({ ox: grid.ox, oy: grid.oy, w: grid.w, h: grid.h, cell: grid.cell }, presentation.edges, field);
+  }
+
+  private terrainHeightSampler(): ((x: number, y: number) => number) | undefined {
+    const field = this.heightField;
+    return field ? (x, y) => terrainHeightAt(field, x, y) : undefined;
   }
 
   draw(
@@ -110,6 +152,7 @@ export class BattleRenderer {
       unitClass: this.unitClass,
       renderClass: renderClass ?? undefined,
       mountedClasses: this.mountedClasses,
+      terrainHeight: this.terrainHeightSampler(),
       simTick: simTick ?? Math.floor((this.fixedTime ?? performance.now() / 1000) * 30),
       count,
     });
@@ -152,7 +195,7 @@ export class BattleRenderer {
   }
 
   drawTacticalLines(lines: BattleTacticalLineFrame, camera: Camera) {
-    if (!this.shell || !this.terrain || !this.crowd || !this.groundCues || !this.effectLines || !this.tris || !this.debugBlocks) return;
+    if (!this.shell || !this.ground || !this.crowd || !this.groundCues || !this.effectLines || !this.tris || !this.debugBlocks) return;
     if (this.skipFrozenFrame) return;
     this.shell.setCamera(cameraSnapshot(camera));
     if (this.frameStart === 0) this.frameStart = performance.now();
@@ -170,9 +213,11 @@ export class BattleRenderer {
       markers: this.markers,
       markerLayer: this.markers.length > 0 ? 'far-lod-impostor' : undefined,
       passes: [
-        { id: 'battle-terrain-underpaint', role: 'background-underpaint', phase: 'background', draw: (pass) => this.terrain!.draw(pass) },
-        { id: 'battle-terrain-props', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => this.terrain!.drawProps(pass) },
+        { id: 'battle-horizon', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass: WorldRenderPass) => this.horizon!.draw(pass) },
+        { id: 'battle-ground', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass: WorldRenderPass) => this.ground!.draw(pass) },
+        { id: 'battle-terrain-scenery', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass: WorldRenderPass) => this.scenery!.drawOpaque(pass) },
         { id: 'battle-skinned-crowd', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => this.crowd!.draw(pass) },
+        { id: 'battle-terrain-scenery-shadow', role: 'world-decal', phase: 'world-depth', depth: 'read', draw: (pass: WorldRenderPass) => this.scenery!.drawShadows(pass) },
         { id: 'battle-ground-cues', role: 'world-decal', phase: 'world-depth', depth: 'read', draw: (pass) => this.groundCues!.draw(pass) },
         { id: 'battle-effect-lines', role: 'overlay-effect', phase: 'overlay', draw: (pass) => this.effectLines!.draw(pass) },
         { id: 'battle-debug-blocks', role: 'overlay-debug', phase: 'overlay', draw: (pass) => this.debugBlocks!.draw(pass) },
@@ -214,7 +259,7 @@ export class BattleRenderer {
       markerLayer: shell?.markerLayer ?? (markerCount > 0 ? 'far-lod-impostor' : 'none'),
       phases: shell?.phases ?? [],
       depth: shell?.depth ?? null,
-      terrain: this.terrain?.stats() ?? null,
+      terrain: this.ground ? { fixture: 'sim-tint', layer: this.ground.stats().layer, groundTriangles: this.ground.stats().triangles, sealedEdges: this.horizon?.stats().sealedEdges ?? [], groundCover: this.groundCover, scenery: this.scenery?.stats().scenery ?? 0 } : null,
       tacticalLines: {
         groundCues: this.groundCues?.stats() ?? null,
         effects: this.effectLines?.stats() ?? null,
@@ -242,12 +287,10 @@ export class BattleRenderer {
         report.message,
       )),
     });
-    this.terrain = new BattleTerrainPass(this.shell);
-    if (this.terrainGrid) this.terrain.setTintGrid(this.terrainGrid);
-    else {
-      this.terrain.setFieldRect(this.terrainRect);
-      this.terrain.setFixture('dry-melee');
-    }
+    this.ground = new BattleGroundPass(this.shell);
+    this.scenery = new CampaignSceneryPass(this.shell, 'battle');
+    this.horizon = new BattleHorizonPass(this.shell);
+    this.applyTerrain();
     this.groundCues = new BattleGroundCuePass(this.shell);
     this.effectLines = new BattleEffectLinePass(this.shell);
     this.tris = new BattleTrianglePass(this.shell);

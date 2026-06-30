@@ -150,6 +150,9 @@
       border: 1px solid #3a3f4d; border-radius: 6px;
       background: #11141a; cursor: crosshair;
       box-shadow: 0 4px 18px rgba(0,0,0,0.5);
+      /* Above the world-space unit banners (#unitlabels, z-index 3) so a banner
+         drawn over a unit near the corner can't bleed across the minimap. */
+      z-index: 10;
     }
     #battle-ui { display: none; }
     #menu-ui {
@@ -256,6 +259,39 @@
       border-radius: 4px; padding: 6px 8px; font: inherit;
     }
     #duel-modal .duel-ai { display: block; color: #8a9099; font-size: 12px; margin: 2px 0 6px 2px; cursor: pointer; }
+    #quick-battle-modal {
+      display: none; position: fixed; inset: 0; z-index: 40;
+      background: rgba(8,10,14,0.6); align-items: center; justify-content: center;
+      font: 13px ui-monospace, Menlo, monospace;
+    }
+    #quick-battle-modal.open { display: flex; }
+    .quick-battle-panel {
+      background: rgba(22,26,34,0.97); border: 1px solid #4a5268; border-radius: 10px;
+      padding: 22px 26px; color: #c8cdd8; width: min(900px, 94vw); max-height: 90vh; overflow: auto;
+    }
+    .quick-battle-panel h2 { margin: 0 0 14px; font-size: 16px; letter-spacing: 3px; color: #aeb6c6; }
+    .qb-maps { display: flex; gap: 8px; margin-bottom: 14px; }
+    .qb-map { flex: 1; text-align: left; padding: 8px 10px; background: rgba(48,54,70,0.9); border: 1px solid #4a5268; border-radius: 6px; color: #cfd6e4; cursor: pointer; font: inherit; }
+    .qb-map.selected { border-color: #c8a24a; background: rgba(70,62,40,0.9); }
+    .qb-map strong { display: block; }
+    .qb-map small { color: #8a9099; font-size: 11px; }
+    .qb-armies { display: flex; gap: 16px; }
+    .qb-army { flex: 1; min-width: 0; }
+    .qb-army h3 { margin: 0 0 8px; font-size: 13px; color: #aeb6c6; }
+    .qb-templates { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px; }
+    .qb-template { padding: 4px 8px; background: rgba(48,54,70,0.9); border: 1px solid #4a5268; border-radius: 4px; color: #cfd6e4; cursor: pointer; font: inherit; font-size: 11px; }
+    .qb-rows { max-height: 40vh; overflow: auto; }
+    .qb-row { display: grid; grid-template-columns: 1fr auto auto auto; gap: 6px; align-items: center; padding: 2px 0; }
+    .qb-label { font-size: 12px; }
+    .qb-step { width: 24px; padding: 2px 0; background: rgba(48,54,70,0.9); border: 1px solid #4a5268; border-radius: 4px; color: #cfd6e4; cursor: pointer; }
+    .qb-count { min-width: 18px; text-align: center; }
+    .qb-footer { margin-top: 8px; padding-top: 6px; border-top: 1px solid #3a4252; font-size: 12px; color: #9aa0aa; }
+    .qb-footer.over { color: #e06a5a; }
+    .qb-footer.empty { color: #c8a24a; }
+    .qb-actions { display: flex; gap: 8px; margin-top: 14px; }
+    .qb-actions button { flex: 1; padding: 9px 14px; background: rgba(48,54,70,0.95); border: 1px solid #4a5268; border-radius: 6px; color: #cfd6e4; cursor: pointer; font: inherit; }
+    .qb-actions button:disabled { opacity: 0.45; cursor: not-allowed; }
+    .qb-actions .cancel { background: none; border: none; color: #6b7280; }
   </style>
 </head>
 <body>
@@ -274,11 +310,24 @@
       <h2>Quick Battle</h2>
       <button id="menu-1v1">1v1 Duel <small>you pick the matchup</small></button>
       <button data-battle="5v5">Clash of Arms <small>full roster, open field</small></button>
-      <button data-battle="mapA">Map A: Ridge</button>
-      <button data-battle="mapB">Map B: Meeting</button>
+      <button id="menu-quick-battle">Custom Battle <small>pick a map, build two armies</small></button>
     </div>
     <div class="menu-section">
       <button id="menu-manual">Field Manual</button>
+    </div>
+    <div id="quick-battle-modal">
+      <div class="panel quick-battle-panel">
+        <h2>CUSTOM BATTLE</h2>
+        <div class="qb-maps" id="qb-maps"></div>
+        <div class="qb-armies">
+          <div class="qb-army" id="qb-army-0"></div>
+          <div class="qb-army" id="qb-army-1"></div>
+        </div>
+        <div class="qb-actions">
+          <button id="qb-launch">Launch</button>
+          <button class="cancel" id="qb-back">Back</button>
+        </div>
+      </div>
     </div>
     <div id="duel-modal">
       <div class="panel">

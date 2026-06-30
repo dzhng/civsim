@@ -1,4 +1,4 @@
-import { createFrameShell, type BackgroundRenderPass, type FrameGraphCommands, type FrameGraphPass, type MarkerInstance, type OverlayRenderPass, type RawFrameShell } from '../../../packages/renderer-core/src/frameShell';
+import { createFrameShell, type BackgroundRenderPass, type FrameGraphCommands, type FrameGraphPass, type MarkerInstance, type OverlayRenderPass, type RawFrameShell, type WorldRenderPass } from '../../../packages/renderer-core/src/frameShell';
 import { screenToWorld, world3dToScreen, worldToScreen } from '../../../packages/renderer-core/src/cameraUniform';
 import { GPU_DEPTH_FORMAT, GPU_WORLD_DEPTH_ATTACHMENT } from '../../../packages/renderer-core/src/depthContract';
 import { requestGpuDevice, gpuFailureMessage } from '../../../packages/renderer-core/src/device';
@@ -23,6 +23,13 @@ import { campaignWaterFeatures, CampaignCloudPass, CampaignWaterPass } from '../
 import { CampaignEntityPass, type CampaignEntityInstance } from '../../../packages/game-renderer/src/campaign/entityPass';
 import { buildCampaignMapDrawData, CampaignLabelPass, CampaignMapPass, CampaignMarkerPass, CampaignRoadPass, CampaignWorldLinePass, type CampaignLabel } from '../../../packages/game-renderer/src/campaign/mapPass';
 import { CampaignSceneryPass, type CampaignSceneryInstance } from '../../../packages/game-renderer/src/campaign/sceneryPass';
+import { PROP_REVIEW_GROUPS } from '../../../packages/game-renderer/src/models/shared/sceneryPropRegistry';
+import { BATTLE_MAP_CATALOG, battleMapById, buildBattleTerrainPresentation, presentationEdgeMismatches } from '../../../packages/game-renderer/src/battle/mapCatalog';
+import { heightSpan, terrainHeightAt, type TerrainHeightField } from '../../../packages/game-renderer/src/terrain/heightField';
+import type { BattleTerrainFeature, BattleTerrainFeatureKind, BattleTerrainGrid } from '../../../packages/game-renderer/src/battle/terrainFeatures';
+import { BattleGroundPass } from '../../../packages/game-renderer/src/battle/groundPass';
+import { BattleHorizonPass } from '../../../packages/game-renderer/src/battle/horizonPass';
+import { featuresToBattleScenery } from '../../../packages/game-renderer/src/battle/terrainScenery';
 import { CampaignSelectionPass, type CampaignSelectionInstance } from '../../../packages/game-renderer/src/campaign/selectionPass';
 import { campaignBorderVertices, CampaignTerritoryPass } from '../../../packages/game-renderer/src/campaign/territoryPass';
 import { Nested3dFixturePass } from '../../../packages/game-renderer/src/fixtures/nested3d';
@@ -88,13 +95,15 @@ const routes: Record<string, LabRoute> = {
   '/renderer/campaign-map': routeCampaignMap,
   '/renderer/campaign-ui': routeCampaignUi,
   '/renderer/campaign-models': routeCampaignModelShots,
+  '/renderer/shared-prop-models': routeSharedPropModelShots,
   '/renderer/render-graph': routeRenderGraph,
   '/renderer/world-camera': routeWorldCamera,
   '/renderer/battle-terrain': routeBattleTerrain,
+  '/renderer/battle-terrain-features': routeBattleTerrainFeatures,
+  '/renderer/battle-terrain-3d': routeBattleTerrain3d,
   '/renderer/battle-ui': routeBattleUi,
   '/renderer/battle-input': routeBattleInput,
   '/renderer/battle-live': routeBattleLive,
-  '/renderer/cutover': routeCutover,
 };
 
 export async function mountRendererLab(path = location.pathname) {
@@ -1281,67 +1290,6 @@ async function routeCampaign(ctx: LabContext) {
   publish('campaign', true, { markers: markers.length });
 }
 
-async function routeCutover(ctx: LabContext) {
-  const graph = fullGameRenderGraphReport();
-  const shell = await createConfiguredShell(ctx.canvas, { x: 0, y: -2, zoom: 8.8, pitch: 0.24, yaw: -0.1 });
-  const markers = [
-    ...generatedMarkers(44, -11, -5, 0).map((m) => ({ ...m, size: 0.95 })),
-    ...generatedMarkers(44, 11, 4, 1).map((m) => ({ ...m, size: 0.95 })),
-    ...generatedMarkers(14, 0, 1, 2).map((m) => ({ ...m, size: 0.75 })),
-  ];
-  shell.drawFrame({ markers, markerLayer: 'lab-placeholder', terrainRect: [-40, -24, 80, 48] });
-  const checks = [
-    { id: 'battle-default', status: 'complete', detail: 'normal battle route instantiates BattleRenderer only' },
-    { id: 'campaign-default', status: 'complete', detail: 'normal campaign route instantiates CampaignRenderer only' },
-    { id: 'dependency-audit', status: 'complete', detail: '@babylonjs/core removed from the web package and build output' },
-    { id: 'legacy-routes', status: 'complete', detail: '?gfx=2d, ?gfx=3d, ?test=models, and ?gfx=legacy no longer select old renderers' },
-    { id: 'screenshots', status: 'complete', detail: 'post-cutover routine screenshot policy is WebGPU-only' },
-    { id: 'scenario-gates', status: 'complete', detail: 'battle, campaign, handoff, save/load, menu, and visual WebGPU scenarios are covered' },
-    { id: 'headless-perf', status: 'complete', detail: 'full-game WebGPU liveness perf report covers menu, battle, campaign, and handoff' },
-    { id: 'label-pipeline', status: 'complete', detail: 'campaign map labels render through a raw-WebGPU glyph atlas pass' },
-    { id: 'release-shots', status: 'complete', detail: 'release-review visuals live under web/shots' },
-    { id: 'perf-report', status: 'complete', detail: 'full-game-rendering-performance writes the WebGPU perf evidence report' },
-    { id: 'release-shot-coverage', status: 'complete', detail: 'release-review shot coverage is committed under web/shots' },
-    { id: 'hardware-perf', status: 'pending', detail: 'named real GPU/browser performance report still needs current-renderer baseline context' },
-  ];
-  const releaseReady = checks.every((check) => check.status === 'complete');
-  const complete = checks.filter((check) => check.status === 'complete').length;
-  ctx.status.innerHTML = reportTable({
-    route: 'cutover',
-    kind: 'renderer-cutover-report',
-    releaseReady,
-    renderer: 'raw WebGPU production default',
-    graph: graph.ok ? `${graph.passes.length} passes valid` : `${graph.diagnostics.length} diagnostics`,
-    atmosphere: shell.stats().atmosphere,
-    removed: 'battle 2d, battle Babylon, campaign WebGL, @babylonjs/core',
-    routineScreenshots: 'WebGPU-only',
-    complete: `${complete}/${checks.length}`,
-    blockers: checks.length - complete,
-    visualShots: 'web/shots/',
-    perfReport: 'web/reports/rendering/rendering-performance-report.html',
-  }) + statusList(checks);
-  publish('cutover', graph.ok, {
-    kind: 'renderer-cutover-report',
-    releaseReady,
-    renderer: 'raw-gpu-production-default',
-    removed: ['battle-2d-renderer', 'battle-babylon-renderer', 'campaign-webgl-renderer', '@babylonjs/core'],
-    retiredSwitches: ['?gfx=2d', '?gfx=3d', '?test=models', '?gfx=legacy'],
-    routineScreenshots: 'renderer-only',
-    atmosphere: shell.stats().atmosphere,
-    visualShots: 'web/shots/',
-    perfReport: 'web/reports/rendering/rendering-performance-report.html',
-    complete,
-    blockers: checks.filter((check) => check.status !== 'complete').map((check) => check.id),
-    checks,
-    graph: {
-      ok: graph.ok,
-      passes: graph.passes.length,
-      resources: graph.resources.length,
-      diagnostics: graph.diagnostics,
-    },
-  });
-}
-
 async function routeCampaignMap(ctx: LabContext) {
   const [{ default: initWasm, Campaign }, { data, mapJson }] = await Promise.all([
     import('../../../web/src/wasm/game_wasm.js'),
@@ -1648,6 +1596,51 @@ async function routeCampaignModelShots(ctx: LabContext) {
   });
 }
 
+// Reusable scenery props posed for model-sheet review: each family alone on
+// neutral ground, no cities, labels, roads, water, or fog. The compositions are
+// owned by the shared prop registry so battle and campaign review the same poses.
+async function routeSharedPropModelShots(ctx: LabContext) {
+  const requested = ctx.params.get('gate');
+  const group = PROP_REVIEW_GROUPS.find((g) => g.id === requested) ?? PROP_REVIEW_GROUPS[0];
+  const camera = group.camera;
+  const shell = await createConfiguredShell(ctx.canvas, camera);
+  const scenery = new CampaignSceneryPass(shell);
+  const instances: CampaignSceneryInstance[] = group.props.map((prop) => ({
+    x: prop.x,
+    y: prop.y,
+    size: prop.size,
+    kind: prop.kind,
+    shade: prop.shade,
+    yaw: prop.yaw,
+  }));
+  scenery.upload(instances);
+  shell.drawFrame({
+    clear: { r: 0.09, g: 0.10, b: 0.10, a: 1 },
+    terrainRect: [-18, -12, 36, 24],
+    passes: [
+      { id: 'shared-prop-opaque', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => scenery.drawOpaque(pass) },
+      { id: 'shared-prop-shadows', role: 'world-decal', phase: 'world-depth', depth: 'read', draw: (pass) => scenery.drawShadows(pass) },
+    ],
+  });
+  ctx.status.innerHTML = reportTable({
+    route: 'shared-prop-models',
+    gate: group.id,
+    purpose: 'isolated shared scenery prop model sheet',
+    props: instances.length,
+    renderer: 'raw WebGPU shared scenery library meshes',
+  });
+  publish('shared-prop-models', true, {
+    route: 'shared-prop-models',
+    gate: group.id,
+    camera,
+    props: instances.length,
+    sceneryStats: scenery.stats(),
+    depth: shell.stats().depth,
+    framePhases: shell.stats().phases,
+    postCutoverScreenshots: 'renderer-only',
+  });
+}
+
 type CampaignModelShot =
   | 'overview'
   | 'city'
@@ -1660,11 +1653,6 @@ type CampaignModelShot =
   | 'road'
   | 'road-only'
   | 'selected-city'
-  | 'trees'
-  | 'conifer'
-  | 'broadleaf'
-  | 'mountain'
-  | 'rocks'
   | 'labels'
   | 'terrain-grass-scrub'
   | 'terrain-stone-relief'
@@ -1682,11 +1670,6 @@ const CAMPAIGN_MODEL_SHOTS: CampaignModelShot[] = [
   'road',
   'road-only',
   'selected-city',
-  'trees',
-  'conifer',
-  'broadleaf',
-  'mountain',
-  'rocks',
   'labels',
   'terrain-grass-scrub',
   'terrain-stone-relief',
@@ -1710,9 +1693,8 @@ function campaignModelShotCamera(gate: CampaignModelShot) {
   const close = { x: 0, y: 0.3, zoom: 28, pitch: 0.56, yaw: 0, perspective: 0.018 };
   if (gate === 'overview') return { x: 0, y: -0.6, zoom: 28, pitch: 0.54, yaw: 0, perspective: 0.012 };
   if (gate === 'road' || gate === 'road-only') return { x: 0, y: -1.3, zoom: 30, pitch: 0.54, yaw: 0, perspective: 0.012 };
-  if (gate === 'trees' || gate === 'terrain-grass-scrub') return { x: 0, y: -0.3, zoom: 40, pitch: 0.56, yaw: 0, perspective: 0.016 };
-  if (gate === 'conifer' || gate === 'broadleaf') return { x: 0, y: -0.36, zoom: 54, pitch: 0.56, yaw: 0, perspective: 0.018 };
-  if (gate === 'mountain' || gate === 'rocks' || gate === 'terrain-stone-relief') return { x: 0, y: -0.4, zoom: 40, pitch: 0.56, yaw: 0, perspective: 0.014 };
+  if (gate === 'terrain-grass-scrub') return { x: 0, y: -0.3, zoom: 40, pitch: 0.56, yaw: 0, perspective: 0.016 };
+  if (gate === 'terrain-stone-relief') return { x: 0, y: -0.4, zoom: 40, pitch: 0.56, yaw: 0, perspective: 0.014 };
   if (gate === 'shoreline-water') return { x: 0, y: -0.8, zoom: 34, pitch: 0.54, yaw: 0, perspective: 0.014 };
   if (gate === 'cloud-fog') return { x: 0, y: 0, zoom: 26, pitch: 0.50, yaw: 0, perspective: 0.010 };
   return close;
@@ -1796,12 +1778,12 @@ function campaignModelShotFrame(gate: CampaignModelShot) {
       addCity(8.4, -2.0, 5.0, 'NEAPOLIS', amber, neutral);
     }
   }
-  if (gate === 'overview' || gate === 'trees' || gate === 'terrain-grass-scrub') {
+  if (gate === 'overview' || gate === 'terrain-grass-scrub') {
     scenery.push(
-      { x: -3.8, y: gate === 'trees' ? -0.6 : 2.2, size: 3.7, kind: 'conifer' },
-      { x: -1.5, y: gate === 'trees' ? -0.8 : 2.0, size: 3.2, kind: 'broadleaf' },
-      { x: 1.2, y: gate === 'trees' ? -0.5 : 2.3, size: 4.0, kind: 'broadleaf' },
-      { x: 3.6, y: gate === 'trees' ? -0.9 : 1.8, size: 3.0, kind: 'conifer' },
+      { x: -3.8, y: 2.2, size: 3.7, kind: 'conifer' },
+      { x: -1.5, y: 2.0, size: 3.2, kind: 'broadleaf' },
+      { x: 1.2, y: 2.3, size: 4.0, kind: 'broadleaf' },
+      { x: 3.6, y: 1.8, size: 3.0, kind: 'conifer' },
     );
     if (gate === 'terrain-grass-scrub') {
       scenery.push(
@@ -1810,19 +1792,13 @@ function campaignModelShotFrame(gate: CampaignModelShot) {
       );
     }
   }
-  if (gate === 'conifer') scenery.push({ x: 0.0, y: -0.55, size: 4.1, kind: 'conifer', shade: 0.62 });
-  if (gate === 'broadleaf') scenery.push({ x: 0.0, y: -0.55, size: 4.1, kind: 'broadleaf', shade: 0.66 });
-  if (gate === 'overview' || gate === 'mountain' || gate === 'terrain-stone-relief') {
+  if (gate === 'overview' || gate === 'terrain-stone-relief') {
     scenery.push(
-      { x: -2.4, y: gate === 'mountain' ? -0.6 : 4.2, size: gate === 'mountain' ? 4.6 : 6.6, kind: 'mountain' },
-      { x: 2.7, y: gate === 'mountain' ? -0.9 : 3.8, size: gate === 'mountain' ? 3.9 : 5.4, kind: 'mountain' },
-    );
-  }
-  if (gate === 'overview' || gate === 'rocks' || gate === 'terrain-stone-relief') {
-    scenery.push(
-      { x: -3.2, y: gate === 'rocks' ? -1.0 : -6.2, size: 4.0, kind: 'rock' },
-      { x: 0.2, y: gate === 'rocks' ? -1.2 : -6.4, size: 4.8, kind: 'rock' },
-      { x: 3.3, y: gate === 'rocks' ? -0.8 : -5.8, size: 3.5, kind: 'rock' },
+      { x: -2.4, y: 4.2, size: 6.6, kind: 'mountain' },
+      { x: 2.7, y: 3.8, size: 5.4, kind: 'mountain' },
+      { x: -3.2, y: -6.2, size: 4.0, kind: 'rock' },
+      { x: 0.2, y: -6.4, size: 4.8, kind: 'rock' },
+      { x: 3.3, y: -5.8, size: 3.5, kind: 'rock' },
     );
   }
   if (gate === 'terrain-stone-relief') {
@@ -2321,6 +2297,260 @@ async function routeBattleTerrain(ctx: LabContext) {
     fixtureSelectionQuads: stats.selectionQuads,
   });
   publish('battle-terrain', true, stats);
+}
+
+// Boots each quick-battle map's real sim terrain and turns it into the typed
+// presentation (height field + extracted features + catalog edge/cover roles),
+// rendering the tint field and publishing the data the battle-terrain-features
+// scene asserts. The canonical terrain stays in the sim; this route only views it.
+async function routeBattleTerrainFeatures(ctx: LabContext) {
+  const { default: initWasm, Game } = await import('../../../web/src/wasm/game_wasm.js');
+  const wasm = await initWasm();
+  const game = new Game(0x5eed_c0de);
+  const entry = battleMapById(ctx.params.get('gate') ?? '') ?? BATTLE_MAP_CATALOG[0];
+  game.load_map(entry.wasmMapId);
+
+  const w = game.terrain_w();
+  const h = game.terrain_h();
+  const cell = game.terrain_cell();
+  const ox = game.terrain_origin_x();
+  const oy = game.terrain_origin_y();
+  // Copy out of wasm memory: the pointers go stale on any reallocation.
+  const tint = new Uint8Array(wasm.memory.buffer, game.terrain_tint_ptr(), w * h).slice();
+  const speed = new Float32Array(wasm.memory.buffer, game.terrain_speed_ptr(), w * h).slice();
+  const height = new Float32Array(wasm.memory.buffer, game.terrain_height_ptr(), w * h).slice();
+  const grid: BattleTerrainGrid = { w, h, cell, ox, oy, tint, speed, height };
+
+  const presentation = buildBattleTerrainPresentation(entry, grid, 0x1234);
+  const mismatches = presentationEdgeMismatches(entry, grid);
+  const featureCounts: Partial<Record<BattleTerrainFeatureKind, number>> = {};
+  let inBounds = true;
+  for (const f of presentation.features) {
+    featureCounts[f.kind] = (featureCounts[f.kind] ?? 0) + 1;
+    if (f.x < ox || f.x > ox + w * cell || f.y < oy || f.y > oy + h * cell) inBounds = false;
+  }
+  // Height smoothness down the open central corridor: the largest jump between
+  // 4 m samples must stay small enough that soldiers ride it without stair-steps.
+  let heightMaxStep = 0;
+  let prev: number | null = null;
+  for (let y = oy + 20; y < oy + h * cell - 20; y += 4) {
+    const z = terrainHeightAt(presentation.height, 0, y);
+    if (prev !== null) heightMaxStep = Math.max(heightMaxStep, Math.abs(z - prev));
+    prev = z;
+  }
+
+  // Near-top-down and zoomed to fill the frame so the long E–W axis spans the
+  // width: the sealed west/east bands read at the left/right edges and the open
+  // north/south edges run grass to the top/bottom, instead of a thin seal lost
+  // in haze margins.
+  const shell = await createConfiguredShell(ctx.canvas, { x: 0, y: 0, zoom: 0.52, pitch: 0.05, yaw: 0 });
+  const terrain = new BattleTerrainPass(shell);
+  terrain.setTintGrid({ w, h, cell, ox, oy, tint });
+  shell.drawFrame({
+    clear: { r: 0.74, g: 0.83, b: 0.90, a: 1 },
+    terrainRect: [ox, oy, w * cell, h * cell],
+    passes: [
+      { id: 'battle-terrain-features-underpaint', role: 'background-underpaint', phase: 'background', draw: (pass) => terrain.draw(pass) },
+      { id: 'battle-terrain-features-props', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => terrain.drawProps(pass) },
+    ],
+  });
+
+  ctx.status.innerHTML = reportTable({
+    route: 'battle-terrain-features',
+    gate: entry.id,
+    map: entry.label,
+    edges: `W:${entry.edges.west} E:${entry.edges.east} N:${entry.edges.north} S:${entry.edges.south}`,
+    groundCover: entry.groundCover,
+    features: presentation.features.length,
+    featureKinds: Object.entries(featureCounts).map(([k, v]) => `${k}:${v}`).join(' '),
+    edgeMismatches: mismatches.length === 0 ? 'none' : mismatches.join(','),
+    heightSpan: heightSpan(presentation.height).toFixed(2),
+    heightMaxStep: heightMaxStep.toFixed(3),
+  });
+  publish('battle-terrain-features', mismatches.length === 0 && inBounds, {
+    route: 'battle-terrain-features',
+    gate: entry.id,
+    mapId: presentation.mapId,
+    wasmMapId: entry.wasmMapId,
+    edges: presentation.edges,
+    groundCover: presentation.groundCover,
+    intentionallyFlat: entry.intentionallyFlat ?? false,
+    featureTotal: presentation.features.length,
+    featureCounts,
+    inBounds,
+    edgeMismatches: mismatches,
+    heightSpan: heightSpan(presentation.height),
+    heightMaxStep,
+    terrainCell: cell,
+    grid: { w, h, cell, ox, oy },
+    sceneryStats: terrain.stats(),
+    depth: shell.stats().depth,
+    framePhases: shell.stats().phases,
+  });
+}
+
+// The rolling 3D battle terrain: height-displaced ground + shared scenery props
+// seated on the same height, viewed at the gameplay camera. Proves the slice-03
+// foundation — soldiers and props will share this ground.
+async function routeBattleTerrain3d(ctx: LabContext) {
+  const { default: initWasm, Game } = await import('../../../web/src/wasm/game_wasm.js');
+  const wasm = await initWasm();
+  const game = new Game(0x5eed_c0de);
+  const entry = battleMapById(ctx.params.get('gate') ?? '') ?? BATTLE_MAP_CATALOG[0];
+  game.load_map(entry.wasmMapId);
+
+  const w = game.terrain_w();
+  const h = game.terrain_h();
+  const cell = game.terrain_cell();
+  const ox = game.terrain_origin_x();
+  const oy = game.terrain_origin_y();
+  const grid: BattleTerrainGrid = {
+    w,
+    h,
+    cell,
+    ox,
+    oy,
+    tint: new Uint8Array(wasm.memory.buffer, game.terrain_tint_ptr(), w * h).slice(),
+    speed: new Float32Array(wasm.memory.buffer, game.terrain_speed_ptr(), w * h).slice(),
+    height: new Float32Array(wasm.memory.buffer, game.terrain_height_ptr(), w * h).slice(),
+  };
+  const presentation = buildBattleTerrainPresentation(entry, grid, 0x1234);
+  // Exaggerate the gentle metre-scale relief for readability at the gameplay
+  // camera (the sim height stays plausible for later vision/ballistics). One
+  // field drives ground, props, and soldiers so they share the exact surface.
+  const field = presentation.height;
+  field.verticalScale = 2.6;
+  const scenery = featuresToBattleScenery(presentation.features, field, 0x77);
+
+  // Frame this map's biggest mid-field land feature (a wood, else a rock/mud
+  // patch) at a three-quarter gameplay camera so the props stand up and the
+  // relief reads. Edge blockers (water/wall) and the far edges are excluded so
+  // the view stays on the playable field, not the sealed sides.
+  const midField = presentation.features.filter(
+    (f) => Math.abs(f.x) < 800 && Math.abs(f.y) < 550 && (f.kind === 'forest' || f.kind === 'rock' || f.kind === 'mud'),
+  );
+  const woods = midField.filter((f) => f.kind === 'forest');
+  const focus = (woods.length > 0 ? woods : midField).reduce<BattleTerrainFeature | undefined>(
+    (big, f) => (f.radius > (big?.radius ?? 0) ? f : big),
+    undefined,
+  );
+  // Camera: 'field' frames a mid-field wood; 'west'/'east' look outward toward
+  // that sealed edge so its blocker fills the distance.
+  const view = ctx.params.get('view') ?? 'field';
+  const halfW = (w * cell) / 2;
+  const midY = oy + (h * cell) / 2;
+  // For the soldiers view, find the steepest slope on the field so the block
+  // visibly climbs it; other views plant near the focus wood.
+  const slopeSpot = steepestSpot(field, ox, oy, w, h, cell);
+  const standX = Number(ctx.params.get('cx') ?? (view === 'soldiers' ? slopeSpot.x : focus ? focus.x + 220 : 0));
+  const standY = Number(ctx.params.get('cy') ?? (view === 'soldiers' ? slopeSpot.y : focus ? focus.y : 0));
+  const camera = view === 'west'
+    ? { x: -halfW + 360, y: midY, zoom: 0.95, pitch: 0.26, yaw: -Math.PI / 2 }
+    : view === 'east'
+      ? { x: halfW - 360, y: midY, zoom: 0.95, pitch: 0.26, yaw: Math.PI / 2 }
+      : view === 'soldiers'
+        ? { x: standX, y: standY + 4, zoom: 9.0, pitch: 0.40, yaw: -0.04 }
+        : { x: Number(ctx.params.get('cx') ?? focus?.x ?? 0), y: Number(ctx.params.get('cy') ?? focus?.y ?? 0) - 110, zoom: 3.3, pitch: 0.44, yaw: -0.05 };
+  const shell = await createConfiguredShell(ctx.canvas, camera);
+  const ground = new BattleGroundPass(shell);
+  ground.setTerrain(grid, field, presentation.groundCover);
+  const props = new CampaignSceneryPass(shell, 'battle');
+  props.upload(scenery);
+  const horizon = new BattleHorizonPass(shell);
+  horizon.setEdges({ ox, oy, w, h, cell }, presentation.edges, field);
+
+  // view=soldiers: plant a block on the rolling ground, seated through the SAME
+  // height field as the terrain mesh and props, so feet and shadows ride the
+  // surface (the slice-03 movement/seating invariant on the real source).
+  const terrainHeight = (x: number, y: number) => terrainHeightAt(field, x, y);
+  let soldiers: { pipeline: Awaited<ReturnType<typeof createSkinnedPipeline>>; shadows: BattleSoldierShadowPass; count: number; elevationMatches: boolean; elevationSpan: number } | null = null;
+  if (view === 'soldiers') {
+    const vat = await loadPlaceholderVat();
+    const cols = 16;
+    const rows = 12;
+    const positions = new Float32Array(cols * rows * 2);
+    const soldierUnit = new Uint32Array(cols * rows);
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const i = r * cols + c;
+        // Deep ranks running across the slope so the block climbs it.
+        positions[i * 2] = standX + (c - (cols - 1) / 2) * 2.0;
+        positions[i * 2 + 1] = standY + (r - (rows - 1) / 2) * 3.0;
+      }
+    }
+    const built = buildCrowdInstances({ positions, soldierUnit, unitClass: [0], terrainHeight, simTick: 90 });
+    const instances = built.instances.map((inst) => ({ ...inst, facing: Math.PI / 2 }));
+    const elevationMatches = instances.every((inst) => Math.abs((inst.elevation ?? 0) - terrainHeight(inst.x, inst.y)) < 1e-4);
+    const elevs = instances.map((i) => i.elevation ?? 0);
+    const pipeline = await createSkinnedPipeline(shell, [0.30, 0.36, 0.74], vat);
+    pipeline.upload(instances, { forcedClip: 'march', phaseOffset: 0, size: 1 });
+    const shadows = new BattleSoldierShadowPass(shell);
+    shadows.upload(instances);
+    soldiers = { pipeline, shadows, count: instances.length, elevationMatches, elevationSpan: Math.max(...elevs) - Math.min(...elevs) };
+  }
+
+  shell.drawFrame({
+    clear: { r: 0.74, g: 0.83, b: 0.90, a: 1 },
+    passes: [
+      { id: 'battle-3d-horizon', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => horizon.draw(pass) },
+      { id: 'battle-3d-ground', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => ground.draw(pass) },
+      { id: 'battle-3d-scenery', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => props.drawOpaque(pass) },
+      ...(soldiers ? [{ id: 'battle-3d-soldiers', role: 'world-opaque' as const, phase: 'world-depth' as const, depth: 'read-write' as const, draw: (pass: WorldRenderPass) => soldiers.pipeline.draw(pass) }] : []),
+      { id: 'battle-3d-scenery-shadow', role: 'world-decal', phase: 'world-depth', depth: 'read', draw: (pass) => props.drawShadows(pass) },
+      ...(soldiers ? [{ id: 'battle-3d-soldier-shadow', role: 'world-decal' as const, phase: 'world-depth' as const, depth: 'read' as const, draw: (pass: WorldRenderPass) => soldiers.shadows.draw(pass) }] : []),
+    ],
+  });
+
+  const propStats = props.stats();
+  ctx.status.innerHTML = reportTable({
+    route: 'battle-terrain-3d',
+    gate: entry.id,
+    map: entry.label,
+    groundCover: presentation.groundCover,
+    groundTriangles: ground.stats().triangles,
+    props: scenery.length,
+    trees: propStats.trees,
+    rocks: propStats.rocks,
+    heightSpan: heightSpan(presentation.height).toFixed(2),
+  });
+  publish('battle-terrain-3d', true, {
+    route: 'battle-terrain-3d',
+    gate: entry.id,
+    mapId: presentation.mapId,
+    view,
+    edges: presentation.edges,
+    sealedEdges: horizon.stats().sealedEdges,
+    groundCover: presentation.groundCover,
+    groundTriangles: ground.stats().triangles,
+    groundLayer: ground.stats().layer,
+    props: scenery.length,
+    trees: propStats.trees,
+    rocks: propStats.rocks,
+    heightSpan: heightSpan(presentation.height),
+    soldiers: soldiers?.count ?? 0,
+    soldierElevationMatches: soldiers?.elevationMatches ?? null,
+    soldierElevationSpan: soldiers?.elevationSpan ?? 0,
+    depth: shell.stats().depth,
+    framePhases: shell.stats().phases,
+  });
+}
+
+// Scan the field for the spot with the steepest local slope, so a soldier block
+// planted there visibly climbs the relief.
+function steepestSpot(field: TerrainHeightField, ox: number, oy: number, w: number, h: number, cell: number) {
+  let best = { x: 0, y: 0, slope: -1 };
+  const x0 = ox + 200;
+  const x1 = ox + w * cell - 200;
+  const y0 = oy + 200;
+  const y1 = oy + h * cell - 200;
+  for (let x = x0; x < x1; x += 70) {
+    for (let y = y0; y < y1; y += 70) {
+      const dz = Math.abs(terrainHeightAt(field, x + 40, y) - terrainHeightAt(field, x - 40, y))
+        + Math.abs(terrainHeightAt(field, x, y + 40) - terrainHeightAt(field, x, y - 40));
+      if (dz > best.slope) best = { x, y, slope: dz };
+    }
+  }
+  return best;
 }
 
 async function routeBattleLive(ctx: LabContext) {
@@ -3307,9 +3537,6 @@ function issueList(issues: { code: string; message: string; path: string }[]) {
   return `<ol>${issues.map((i) => `<li><b>${escapeHtml(i.code)}</b> ${escapeHtml(i.path)}: ${escapeHtml(i.message)}</li>`).join('')}</ol>`;
 }
 
-function statusList(checks: { id: string; status: string; detail: string }[]) {
-  return `<ol class="renderer-status-list">${checks.map((check) => `<li class="${escapeHtml(check.status)}"><b>${escapeHtml(check.id)}</b> <em>${escapeHtml(check.status)}</em><span>${escapeHtml(check.detail)}</span></li>`).join('')}</ol>`;
-}
 
 function graphList(report: ReturnType<typeof fullGameRenderGraphReport>) {
   const passes = report.passes

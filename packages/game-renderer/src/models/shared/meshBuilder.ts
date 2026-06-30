@@ -123,6 +123,26 @@ export class MeshBuilder {
     }
   }
 
+  // A filled disc (both faces) centered at `center`, facing along `axis`. Used
+  // for things that must read as round at the game camera — cart wheels — where
+  // a box would read as a leg.
+  disc(center: [number, number, number], radius: number, axis: 'x' | 'y' | 'z', color: Rgb, alpha = 1, sides = 12) {
+    const ring: [number, number, number][] = [];
+    for (let i = 0; i < sides; i++) {
+      const a = (i / sides) * Math.PI * 2;
+      const c = Math.cos(a) * radius;
+      const s = Math.sin(a) * radius;
+      if (axis === 'x') ring.push([center[0], center[1] + c, center[2] + s]);
+      else if (axis === 'y') ring.push([center[0] + c, center[1], center[2] + s]);
+      else ring.push([center[0] + c, center[1] + s, center[2]]);
+    }
+    for (let i = 0; i < sides; i++) {
+      const n = (i + 1) % sides;
+      this.triangle(center, ring[i], ring[n], color, color, color, alpha);
+      this.triangle(center, ring[n], ring[i], color, color, color, alpha);
+    }
+  }
+
   panel3d(points: [number, number, number][], color: Rgb, alpha: number) {
     if (points.length < 3) return;
     const normal = faceNormal(points[0], points[1], points[2]);
@@ -133,6 +153,14 @@ export class MeshBuilder {
     const backNormal: [number, number, number] = [-normal[0], -normal[1], -normal[2]];
     for (const point of points) this.opaqueVertices.push(...point, ...backNormal, ...color, alpha);
     for (let i = 1; i < points.length - 1; i++) this.opaqueIndices.push(backBase, backBase + i + 1, backBase + i);
+  }
+
+  // A flat quad graded from a near colour (p0,p3 edge) to a far colour (p1,p2
+  // edge): used for receding backdrops (sea, distant slopes) that should darken
+  // and haze into the horizon rather than read as one flat swatch.
+  gradQuad(p0: [number, number, number], p1: [number, number, number], p2: [number, number, number], p3: [number, number, number], near: Rgb, far: Rgb) {
+    this.triangle(p0, p1, p2, near, far, far, 1);
+    this.triangle(p0, p2, p3, near, far, near, 1);
   }
 
   finish(label = 'mesh'): MeshData {

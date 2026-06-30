@@ -8,8 +8,8 @@ a composed master shot judged against the reference.
 
 ## Next Agent Prompt
 
-**Status:** Slice 00 and Slice 01 landed in `codex/battle-map-reference`
-(2026-06-30). Next pickup is Slice 02.
+**Status:** Slices 00, 01, and 02 landed in `codex/battle-map-reference`
+(2026-06-30). Next pickup is Slice 03.
 
 Slice 00 now has a real side-by-side workbench:
 `visualizations/target-vs-current.html` points at the committed
@@ -39,10 +39,40 @@ Local verification notes: the default SwiftShader WebGPU path reported
 Homebrew Rust install lacks `wasm32-unknown-unknown`, so verification used an
 ignored wasm build copied from the sibling checkout.
 
-Screenshot critique completed on the final camera contact sheet. It did not find a
-Slice 01 blocker after the endpoint retune: the remaining camera-specific complaint
-is that dense formations can still feel somewhat flat inside their blocks. Record
-the rest as downstream visual debt, not camera wiring debt:
+Slice 02 now owns the reusable grass primitive and a flat-field workbench. The pure
+mesh builder lives in `packages/game-renderer/src/models/shared/grassModels.ts`;
+`BattleGrassPass` lives in `packages/game-renderer/src/battle/grassPass.ts` and
+draws instanced tuft meshes as `world-opaque` depth-writing geometry with a
+fixed-phase wind uniform. The model-sheet gate is
+`web/scenes/models/shared-grass-models.mjs`, producing
+`web/shots/models/shared/grass/tuft.png` and `patch.png`. The battle workbench is
+`web/scenes/battle/battle-grass.mjs`, producing
+`web/shots/battle/grass/flat-field.png` and `wind-phase.png`; it also compares the
+two fixed phases to prove the shader sway moves pixels deterministically. The
+review-only wind GIF is
+`web/shots/models/shared/grass/anim/flat-field.gif`.
+
+Final Slice 02 verification:
+- `node --experimental-strip-types --import ./tests/register-ts-extension-loader.mjs --test tests/cameraRig.test.ts tests/grassModels.test.ts`
+- `npx tsc --noEmit`
+- `npm run build`
+- `VERIFY_URL=http://127.0.0.1:5174 VERIFY_GPU=1 VERIFY_GPU_ADAPTER=hardware VERIFY_BROWSER_CHANNEL=chrome node scene.mjs shared-grass-models battle-grass`
+- `VERIFY_URL=http://127.0.0.1:5174 VERIFY_GPU=1 VERIFY_GPU_ADAPTER=hardware VERIFY_BROWSER_CHANNEL=chrome node scene.mjs renderer-lab-routes`
+- `VERIFY_URL=http://127.0.0.1:5174 VERIFY_GPU=1 VERIFY_GPU_ADAPTER=hardware VERIFY_BROWSER_CHANNEL=chrome node scene.mjs battle-camera-zoom battle-renderer-visual battle-input`
+- `VERIFY_URL=http://127.0.0.1:5174 VERIFY_GPU=1 VERIFY_GPU_ADAPTER=hardware VERIFY_BROWSER_CHANNEL=chrome node shots/models/scripts/grass-wind.mjs`
+
+Screenshot critique accepted Slice 02 with no blockers. Non-blocking polish debt:
+the tuft model-sheet ground slab clips hard on the left/bottom and leaves black
+void; close/model-sheet scale has square ground mottling and thin blade aliasing;
+the flat-field workbench is visibly a test slab in blue void. The grass itself
+reads as dry yellow-olive Aegean scrub at game camera, and the patch/GIF are useful
+review artifacts.
+
+Slice 01 screenshot critique completed on the final camera contact sheet. It did
+not find a Slice 01 blocker after the endpoint retune: the remaining
+camera-specific complaint is that dense formations can still feel somewhat flat
+inside their blocks. Record the rest as downstream visual debt, not camera wiring
+debt:
 
 - contact-sheet seams and the current map boundary read as review artifacts;
 - units near trees have ambiguous tree/crowd depth ordering;
@@ -53,10 +83,11 @@ the rest as downstream visual debt, not camera wiring debt:
 - grass/ground detail is soft and scale-blurry;
 - roads, water, labels, and icon styling are not covered by this camera sheet.
 
-**Next pickup:** start Slice 02 (grass-blade primitive). Keep the camera gate as the
-framing contract, but judge Slice 02's grass in its own focused workbench plus this
-full-zoom vista. Do not try to fix the listed unit, terrain-feature, water, road, or
-label debts inside the grass primitive unless the slice explicitly owns that surface.
+**Next pickup:** start Slice 03 (grass over terrain). Wire `BattleGrassPass` into
+the production battle renderer through the shared `TerrainHeightField`, but keep
+the Slice 02 primitive/model-sheet gates as the shape contract. Do not fix the
+listed unit, terrain-feature, water, road, or label debts inside grass terrain
+integration unless the slice explicitly owns that surface.
 
 Every visual slice (01–08) ends with two gates: a `screenshot-regression` baseline
 snap **and** an unprimed `screenshot-critique` of the slice's hero shot against
@@ -70,7 +101,7 @@ landed, and point at the next pickup slice.
 
 - [x] **Slice 00** — reference workbench + palette target lock (`slices/00-reference-workbench.md`)
 - [x] **Slice 01** — zoom-coupled camera (`slices/01-zoom-coupled-camera.md`)
-- [ ] **Slice 02** — grass-blade primitive (`slices/02-grass-blade-primitive.md`)
+- [x] **Slice 02** — grass-blade primitive (`slices/02-grass-blade-primitive.md`)
 - [ ] **Slice 03** — grass over terrain (`slices/03-grass-over-terrain.md`)
 - [ ] **Slice 04** — terrain relief + ground grade (`slices/04-terrain-relief-grade.md`)
 - [ ] **Slice 05** — ridge backdrop (`slices/05-ridge-backdrop.md`)

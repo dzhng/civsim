@@ -156,6 +156,15 @@ const routes = [
     && hasFrameDepthPass(s.stats.framePhases, 'model-shot-scenery-shadows', 'read')
     && s.stats.samples?.hostileDepthOrder?.flagOverLateTree
     && s.stats.samples?.hostileDepthOrder?.lateTreeControl],
+  ['shared-grass-models?gate=tuft', (s) => s?.ok
+    && s.route === 'shared-grass-models'
+    && s.stats.gate === 'tuft'
+    && s.stats.tuftInstances === 1
+    && s.stats.bladeInstances >= 10
+    && s.stats.cameraContract === 'shared-world-camera-wgsl'
+    && hasFramePhaseOrder(s.stats.framePhases)
+    && hasFrameDepthPass(s.stats.framePhases, 'shared-grass-model', 'read-write')
+    && hasFramePassRole(s.stats.framePhases, 'shared-grass-model', 'world-opaque', 'world-depth')],
   ['render-graph', (s) => s?.ok
     && s.route === 'render-graph'
     && s.stats.firstPass === 'camera'
@@ -231,6 +240,15 @@ const routes = [
     && s.stats.nested3d?.fixtures?.includes('rank-overlap')],
   ['battle-terrain?fixture=coast', (s) => s?.ok && s.route === 'battle-terrain' && s.stats.fixture === 'coast' && s.stats.waterQuads >= 3 && s.stats.sceneryQuads >= 8 && s.stats.worldPropQuads >= 4 && s.stats.cameraContract === 'shared-world-camera-wgsl'],
   ['battle-terrain?fixture=melee', (s) => s?.ok && s.route === 'battle-terrain' && s.stats.fixture === 'melee' && s.stats.waterQuads >= 3 && s.stats.sceneryQuads >= 8 && s.stats.worldPropQuads >= 4 && s.stats.selectionQuads === 0 && s.stats.cameraContract === 'shared-world-camera-wgsl'],
+  ['battle-grass?phase=0', (s) => s?.ok
+    && s.route === 'battle-grass'
+    && s.stats.gate === 'flat-field'
+    && s.stats.tuftInstances > 300
+    && s.stats.bladeInstances === s.stats.tuftInstances * 9
+    && s.stats.cappedTufts > 0
+    && s.stats.cameraContract === 'shared-world-camera-wgsl'
+    && hasFrameDepthPass(s.stats.framePhases, 'battle-grass-flat-field', 'read-write')
+    && hasFramePassRole(s.stats.framePhases, 'battle-grass-flat-field', 'world-opaque', 'world-depth')],
   ['battle-live?mode=5v5&ticks=36', (s) => s?.ok && s.route === 'battle-live' && s.stats.written > 1000 && s.stats.units >= 10 && s.stats.player > 0 && s.stats.enemy > 0 && s.stats.drawCalls >= 1 && s.stats.drawCalls <= 15 && s.stats.groundCues.lineSegments >= 20 && hasFramePassRole(s.stats.framePhases ?? s.stats.phases, 'battle-live-crowd', 'world-opaque', 'world-depth') && hasFramePassRole(s.stats.framePhases ?? s.stats.phases, 'battle-live-ground-cues', 'world-decal', 'world-depth') && s.stats.cameraContract === 'shared-world-camera-wgsl' && s.stats.groundCues.cameraContract === 'shared-world-camera-wgsl'],
   ['battle-ui?mode=5v5&ticks=36', (s) => s?.ok && s.route === 'battle-ui' && s.stats.written > 1000 && s.stats.units >= 10 && s.stats.drawCalls >= 1 && s.stats.drawCalls <= 15 && s.stats.groundCues.lineSegments >= 20 && hasFramePassRole(s.stats.framePhases ?? s.stats.phases, 'battle-ui-crowd', 'world-opaque', 'world-depth') && hasFramePassRole(s.stats.framePhases ?? s.stats.phases, 'battle-ui-ground-cues', 'world-decal', 'world-depth') && s.stats.ui.cards >= 8 && s.stats.ui.toolbarButtons >= 5 && s.stats.ui.postCutoverScreenshots === 'renderer-only' && s.stats.cameraContract === 'shared-world-camera-wgsl' && s.stats.groundCues.cameraContract === 'shared-world-camera-wgsl'],
   ['battle-input?mode=5v5&ticks=36', (s) => s?.ok && s.route === 'battle-input' && s.stats.written > 1000 && s.stats.units >= 10 && s.stats.drawCalls >= 1 && s.stats.drawCalls <= 15 && s.stats.groundCues.lineSegments >= 20 && hasFramePassRole(s.stats.framePhases ?? s.stats.phases, 'battle-input-crowd', 'world-opaque', 'world-depth') && hasFramePassRole(s.stats.framePhases ?? s.stats.phases, 'battle-input-ground-cues', 'world-decal', 'world-depth') && s.stats.selectedUnits.length === 1 && s.stats.ui.cards >= 8 && s.stats.cameraContract === 'shared-world-camera-wgsl' && s.stats.groundCues.cameraContract === 'shared-world-camera-wgsl'],

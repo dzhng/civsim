@@ -3671,15 +3671,16 @@ function installStyles() {
     /* Same fixed-size, shrink-wrapping, no-scroll grid as the live #unitcards
        (unitCard.ts writes --cols/--card-w/--card-h). */
     .renderer-unitcards { position: absolute; bottom: 58px; left: 50%; transform: translateX(-50%); display: grid; width: max-content; max-width: calc(100% - 36px); grid-template-columns: repeat(var(--cols, 1), var(--card-w, 72px)); grid-auto-rows: var(--card-h, 96px); gap: 4px; justify-content: center; align-content: end; overflow: hidden; padding: 4px; pointer-events: auto; background: linear-gradient(rgba(10,12,16,0), rgba(10,12,16,0.82)); border-radius: 8px; }
-    .renderer-unitcards .ucard { width: var(--card-w); height: var(--card-h); aspect-ratio: 3 / 4; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; background: rgba(24,27,34,0.92); border: 1px solid #3a3f4d; border-top: 3px solid var(--fac); border-radius: 5px; padding: 2px 2px 3px; cursor: pointer; position: relative; transition: transform 0.08s, border-color 0.1s; }
-    .renderer-unitcards .ucard:hover { background: rgba(40,46,58,0.95); }
+    .renderer-unitcards .ucard { width: var(--card-w); height: var(--card-h); aspect-ratio: 3 / 4; box-sizing: border-box; position: relative; overflow: hidden; background: #14171f; border: 1px solid #3a3f4d; border-top: 3px solid var(--fac); border-radius: 5px; cursor: pointer; transition: transform 0.08s, border-color 0.1s; }
+    .renderer-unitcards .ucard:hover { filter: brightness(1.12); }
     .renderer-unitcards .ucard.sel { border-color: #f0e3b0; box-shadow: 0 0 0 1px #f0e3b0, 0 -2px 10px rgba(240,227,176,0.25); transform: translateY(-3px); }
     .renderer-unitcards .ucard.rout { filter: grayscale(0.5) brightness(0.8); }
-    .renderer-unitcards .ucard.rout::after { content: 'ROUT'; position: absolute; top: 20px; left: 0; right: 0; text-align: center; font: 700 9px ui-monospace, monospace; color: #ff7a6b; text-shadow: 0 1px 2px #000; }
-    .renderer-unitcards .ucard-port { display: block; width: 100%; flex: 1 1 0; min-height: 0; object-fit: cover; object-position: 50% 32%; image-rendering: auto; background: radial-gradient(ellipse at 50% 70%, rgba(120,130,110,0.35), rgba(20,24,20,0.1)); border-radius: 3px; }
-    .renderer-unitcards .ucard-name { font: 600 8px ui-monospace, Menlo, monospace; color: #cfd6e4; margin-top: 1px; white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
-    .renderer-unitcards .ucard-count { position: absolute; top: 3px; right: 4px; font: 700 10px ui-monospace, monospace; color: #fff; text-shadow: 0 1px 2px #000, 0 0 3px #000; }
-    .renderer-unitcards .ucard-bars { width: 90%; margin-top: 2px; }
+    .renderer-unitcards .ucard.rout::after { content: 'ROUT'; position: absolute; top: 20px; left: 0; right: 0; text-align: center; z-index: 3; font: 700 9px ui-monospace, monospace; color: #ff7a6b; text-shadow: 0 1px 2px #000; }
+    .renderer-unitcards .ucard-port { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; background: #14171f; }
+    .renderer-unitcards .ucard::before { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 34px; background: linear-gradient(transparent, rgba(6,8,11,0.88)); pointer-events: none; z-index: 1; }
+    .renderer-unitcards .ucard-name { position: absolute; left: 0; right: 0; bottom: 15px; z-index: 2; text-align: center; padding: 0 2px; font: 700 8px ui-monospace, Menlo, monospace; color: #eef1f7; text-shadow: 0 1px 2px #000, 0 0 3px #000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .renderer-unitcards .ucard-count { position: absolute; top: 2px; right: 4px; z-index: 2; font: 700 10px ui-monospace, monospace; color: #fff; text-shadow: 0 1px 2px #000, 0 0 3px #000; }
+    .renderer-unitcards .ucard-bars { position: absolute; left: 50%; transform: translateX(-50%); bottom: 3px; z-index: 2; width: 86%; }
     .renderer-unitcards .ucard-bar { height: 3px; background: rgba(8,9,11,0.7); border-radius: 2px; overflow: hidden; margin-bottom: 1px; }
     .renderer-unitcards .ucard-bar > div { height: 100%; width: 100%; }
     .renderer-unitcards .ucard-bar.hp > div { background: #5cba46; }

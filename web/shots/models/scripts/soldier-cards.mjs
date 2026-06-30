@@ -83,12 +83,20 @@ function cropAroundFigure(buf, w, h) {
   const feet = found ? maxY : img.height / 2;
   const sx = Math.max(0, Math.min(img.width - w, Math.round(cx - w / 2)));
   const sy = Math.max(0, Math.min(img.height - h, Math.round(feet + FOOT_MARGIN - h)));
+  // Composite the figure onto a dark vertical gradient (drop the bright grass,
+  // which washes the figure out and reads like a map tile): field pixels become
+  // backdrop, figure pixels are kept — a unit bust, not a battlefield snippet.
   const out = new PNG({ width: w, height: h });
   for (let yy = 0; yy < h; yy++) {
+    const t = yy / h; // top → bottom of the card
+    const bg = [Math.round(34 - 20 * t), Math.round(38 - 22 * t), Math.round(48 - 27 * t)];
     for (let xx = 0; xx < w; xx++) {
       const si = ((sy + yy) * img.width + (sx + xx)) * 4, di = (yy * w + xx) * 4;
-      out.data[di] = img.data[si]; out.data[di + 1] = img.data[si + 1];
-      out.data[di + 2] = img.data[si + 2]; out.data[di + 3] = img.data[si + 3];
+      const fig = isFigure(img.data[si], img.data[si + 1], img.data[si + 2]);
+      out.data[di] = fig ? img.data[si] : bg[0];
+      out.data[di + 1] = fig ? img.data[si + 1] : bg[1];
+      out.data[di + 2] = fig ? img.data[si + 2] : bg[2];
+      out.data[di + 3] = 255;
     }
   }
   return PNG.sync.write(out);
@@ -142,7 +150,7 @@ const buffers = [];
 const manifest = {};
 for (let look = 0; look < LOOK_NAMES.length; look++) {
   const h = LOOK_H[look] ?? 1.8;
-  const zoom = Math.max(52, Math.min(120, 184 / h)); // figure fits head-to-toe with headroom; tall looks zoom out
+  const zoom = Math.max(48, Math.min(108, 158 / h)); // eased so head + feet keep clear margin; tall looks zoom out
   const url = new URL(`${TARGET}/renderer/skinned-soldier`);
   url.searchParams.set('class', String(look));
   url.searchParams.set('clip', 'idle');

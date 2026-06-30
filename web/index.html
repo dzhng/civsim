@@ -81,20 +81,27 @@
       grid-template-columns: repeat(var(--cols, 1), var(--card-w, 72px));
       grid-auto-rows: var(--card-h, 96px);
       gap: 3px; justify-content: center; align-content: end;
-      overflow: hidden; padding: 10px 11px;
-      /* Opaque worn-bronze chassis (padding-box) inside a beveled brass edge
-         (border-box) — a game HUD housing, not a translucent web overlay. The
-         wells sit in a recessed dark tray (the inner inset groove). */
+      overflow: hidden; padding: 11px 12px;
+      /* Opaque worn-bronze chassis: a brushed-metal fill and corner rivets
+         (padding-box) inside a beveled brass edge (border-box) — a game HUD
+         housing, not a translucent web overlay. The box-shadow stack builds the
+         frame: top highlight, a dark groove, a brass bead, then the recessed tray. */
       background:
-        linear-gradient(#5a4225, #2c2012) padding-box,
-        linear-gradient(#b8904e 0%, #6e5128 45%, #2a1d0f 100%) border-box;
-      border: 3px solid transparent; border-radius: 5px;
+        radial-gradient(circle at 9px 9px, rgba(234,204,142,0.95) 0 1.1px, rgba(58,42,22,0.95) 1.5px 2.7px, transparent 3.1px) padding-box,
+        radial-gradient(circle at calc(100% - 9px) 9px, rgba(234,204,142,0.95) 0 1.1px, rgba(58,42,22,0.95) 1.5px 2.7px, transparent 3.1px) padding-box,
+        radial-gradient(circle at 9px calc(100% - 9px), rgba(234,204,142,0.95) 0 1.1px, rgba(58,42,22,0.95) 1.5px 2.7px, transparent 3.1px) padding-box,
+        radial-gradient(circle at calc(100% - 9px) calc(100% - 9px), rgba(234,204,142,0.95) 0 1.1px, rgba(58,42,22,0.95) 1.5px 2.7px, transparent 3.1px) padding-box,
+        repeating-linear-gradient(96deg, rgba(255,228,168,0.035) 0 2px, rgba(0,0,0,0.04) 2px 4px) padding-box,
+        linear-gradient(#5e4527, #2a1f11) padding-box,
+        linear-gradient(#c79a54 0%, #6e5128 48%, #241a0e 100%) border-box;
+      border: 4px solid transparent; border-radius: 5px;
       box-shadow:
-        inset 0 1px 0 rgba(232,196,128,0.6),
-        inset 0 0 0 2px rgba(18,12,6,0.7),
-        inset 0 -3px 7px rgba(0,0,0,0.6),
-        0 0 0 1px rgba(176,138,78,0.6),
-        0 8px 22px rgba(0,0,0,0.66);
+        inset 0 1px 0 rgba(236,200,132,0.65),
+        inset 0 0 0 2px rgba(16,10,5,0.78),
+        inset 0 0 0 3px rgba(158,120,66,0.55),
+        inset 0 -3px 8px rgba(0,0,0,0.6),
+        0 0 0 1px rgba(182,142,80,0.65),
+        0 9px 24px rgba(0,0,0,0.68);
     }
     @media (max-width: 760px) {
       #manual { left: 12px; right: 12px; bottom: 172px; width: auto; }

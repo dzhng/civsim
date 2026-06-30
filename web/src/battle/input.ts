@@ -36,7 +36,7 @@ export class Input {
   rightDrag: { x: number; y: number; facing: number } | null = null;
 
   /** All listeners detach (and the pan interval stops) when `signal` aborts. */
-  constructor(canvas: HTMLCanvasElement, camera: Camera, sink: OrderSink, signal: AbortSignal) {
+  constructor(canvas: HTMLCanvasElement, camera: Camera, sink: OrderSink, signal: AbortSignal, onZoomChange: () => void = () => {}) {
     const dpr = () => window.devicePixelRatio || 1;
     const held = new Set<string>();
 
@@ -198,7 +198,7 @@ export class Input {
       'wheel',
       (e) => {
         e.preventDefault();
-        camera.zoomAt(e.clientX * dpr(), e.clientY * dpr(), Math.pow(1.0015, -e.deltaY));
+        camera.zoomAt(e.clientX * dpr(), e.clientY * dpr(), Math.pow(1.0015, -e.deltaY), onZoomChange);
       },
       { passive: false, signal },
     );

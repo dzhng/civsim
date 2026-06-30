@@ -20,7 +20,6 @@ import { createPlaceholderSoldierMeshes } from '../../../packages/soldier-assets
 
 export class BattleRenderer {
   readonly ready: Promise<void>;
-  readonly pitch = 0.32;
   fixedTime: number | null = null;
   preserveFrozenEffects = false;
 
@@ -60,6 +59,16 @@ export class BattleRenderer {
     frameCpuMs: 0,
   };
   private frameStart = 0;
+  private lastCamera = {
+    x: 0,
+    y: 0,
+    zoom: 0,
+    pitch: 0,
+    yaw: 0,
+    zoomT: 0,
+    targetOffset: 0,
+    perspective: 0,
+  };
 
   constructor(private canvas: HTMLCanvasElement) {
     this.ready = this.init();
@@ -140,7 +149,8 @@ export class BattleRenderer {
     }
     this.skipFrozenFrame = false;
     this.frameStart = performance.now();
-    this.shell.setCamera(cameraSnapshot(camera));
+    this.lastCamera = cameraSnapshot(camera);
+    this.shell.setCamera(this.lastCamera);
     const buildStart = performance.now();
     const built = buildCrowdInstances({
       positions,
@@ -187,7 +197,8 @@ export class BattleRenderer {
     if (!this.shell || !this.tris) return;
     this.frozenFrameKey = null;
     this.skipFrozenFrame = false;
-    this.shell.setCamera(cameraSnapshot(camera));
+    this.lastCamera = cameraSnapshot(camera);
+    this.shell.setCamera(this.lastCamera);
     this.triangleVerts = new Float32Array(verts);
     const uploadStart = performance.now();
     this.tris.upload(verts);
@@ -197,7 +208,8 @@ export class BattleRenderer {
   drawTacticalLines(lines: BattleTacticalLineFrame, camera: Camera) {
     if (!this.shell || !this.ground || !this.crowd || !this.groundCues || !this.effectLines || !this.tris || !this.debugBlocks) return;
     if (this.skipFrozenFrame) return;
-    this.shell.setCamera(cameraSnapshot(camera));
+    this.lastCamera = cameraSnapshot(camera);
+    this.shell.setCamera(this.lastCamera);
     if (this.frameStart === 0) this.frameStart = performance.now();
     const uploadStart = performance.now();
     this.groundCues.upload(this.fixedTime !== null ? frozenSelectionGroundCues(lines.groundCues) : lines.groundCues);
@@ -256,6 +268,7 @@ export class BattleRenderer {
       atmosphere: shell?.atmosphere ?? 'initializing',
       cameraContract: shell?.cameraContract ?? 'initializing',
       skinnedCameraContract: crowd?.cameraContract ?? 'initializing',
+      camera: this.lastCamera,
       markerLayer: shell?.markerLayer ?? (markerCount > 0 ? 'far-lod-impostor' : 'none'),
       phases: shell?.phases ?? [],
       depth: shell?.depth ?? null,
@@ -331,22 +344,28 @@ function roundMs(value: number) {
 }
 
 function cameraSnapshot(camera: Camera) {
+  const [x, y] = camera.viewCenter();
   return {
-    x: camera.x,
-    y: camera.y,
+    x,
+    y,
     zoom: camera.zoom,
-    pitch: camera.pitch ?? 0.32,
-    yaw: camera.yaw ?? 0,
+    pitch: camera.pitch,
+    yaw: camera.yaw,
+    zoomT: camera.zoomT,
+    targetOffset: camera.targetOffset,
+    perspective: camera.perspective,
   };
 }
 
 function frozenFrameKey(camera: Camera, count: number, staticSoldiers: number) {
+  const [x, y] = camera.viewCenter();
   return [
-    roundKey(camera.x),
-    roundKey(camera.y),
+    roundKey(x),
+    roundKey(y),
     roundKey(camera.zoom),
     roundKey(camera.pitch ?? 0),
     roundKey(camera.yaw ?? 0),
+    roundKey(camera.perspective ?? 0),
     count,
     staticSoldiers,
   ].join(':');

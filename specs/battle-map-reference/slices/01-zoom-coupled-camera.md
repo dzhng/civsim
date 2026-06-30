@@ -20,7 +20,8 @@ A **pure, unit-testable curve** plus a thin wiring change — no new GPU work:
 
 1. **Pure curve (the tiny library):** `cameraForZoom(zoom: number, zoomRange: { min; max }, bounds): CameraRig`
    in a new `web/src/battle/cameraRig.ts`, where
-   `CameraRig = { pitch; height; targetOffset; zoomT }`. Deterministic, no GPU/DOM.
+   `CameraRig = { pitch; targetOffset; perspective; zoomT }`. Deterministic, no
+   GPU/DOM.
    - `zoomT = 0` at `zoomRange.min` (max zoom-out) → `pitch ≈` straight-down
      top-down; `targetOffset ≈ 0` (look at the formation from above).
    - `zoomT = 1` at `zoomRange.max` (max zoom-in) → `pitch ≈` the reference's low
@@ -28,9 +29,8 @@ A **pure, unit-testable curve** plus a thin wiring change — no new GPU work:
      **forward** so the framing looks *out over* the valley rather than tilting in
      place.
    - Monotonic and eased between the ends; no discontinuity; clamped past both ends.
-2. **Wiring:** replace the fixed `camera.pitch = renderer.pitch` in
-   `web/src/battle/scene.ts` with `cameraForZoom(currentZoom, …)` driving pitch,
-   height, and target. Publish `zoomT` (and the resolved pitch) on the
+2. **Wiring:** `web/src/battle/scene.ts` uses `cameraForZoom(currentZoom, …)` to
+   drive pitch, target offset, and perspective. Publish `zoomT` (and the resolved pitch) on the
    renderer/camera and into `window.__rendererLabStats` for verification, and expose
    `zoomT` to the world passes that want it.
 
@@ -65,9 +65,8 @@ camera angle (low, looking out over the horizon), not merely a tilted top-down?
 
 - `battle-renderer-visual` and any camera/control tests — the new default pitch must
   keep gameplay legible across the playable zoom band.
-- Existing battle snapshots captured at the old fixed pitch will move; **re-bless
-  deliberately** (via `change-report`) for the new default framing — don't blanket-
-  overwrite.
+- Existing battle snapshots captured at the old fixed pitch can move; **re-bless
+  deliberately** for the new default framing — don't blanket-overwrite.
 - `cargo` — the camera is presentation/input only; **no sim change** (no effect on
   pathing, ranges, or `terrainHeightAt`).
 

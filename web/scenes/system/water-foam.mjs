@@ -5,7 +5,7 @@ import { PNG } from "pngjs";
 // white-out), sit on the water rather than the sky, and holds a frozen-clock
 // baseline. Colour and the sun-glint streak are later slices.
 //
-// GPU only (VERIFY_GPU=1); on macOS that means headful + hardware.
+// GPU only (VERIFY_GPU=1); on this Mac use headless Chrome + hardware.
 
 const WINNER = "gerstner";
 

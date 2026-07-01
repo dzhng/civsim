@@ -27,6 +27,8 @@ export interface BattleMapCatalogEntry {
   intentionallyFlat?: boolean;
 }
 
+type BattleTerrainPresentationSource = Pick<BattleMapCatalogEntry, 'id' | 'edges' | 'groundCover'>;
+
 // West and east are the sealed sides on every map (open corridor runs N–S);
 // north and south dissolve into distance fog. These roles present the blockers
 // the sim already paints — they never create or remove passability.
@@ -71,7 +73,7 @@ export function battleMapByWasmId(wasmMapId: number): BattleMapCatalogEntry | un
  * the single seam slice 03's renderer draws from.
  */
 export function buildBattleTerrainPresentation(
-  entry: BattleMapCatalogEntry,
+  entry: BattleTerrainPresentationSource,
   grid: BattleTerrainGrid,
   seed: number,
 ): BattleTerrainPresentation {

@@ -1,54 +1,40 @@
-# Slice 05 — ridge backdrop
+# Slice 05A — cliff/ridge silhouette and depth rows
 
-## Contract unlocked
+## Contract
 
-The reference's defining feature: tall, layered, receding ridge-walls with pale
-light/snow streaks hazing into the distance — replacing today's shallow,
-edge-bound peaks. Rendered as **presentation**, never passability.
+Match the reference's **general cliff and ridge shape**: a continuous left ridge
+wall, receding depth rows, and non-pyramidal skyline. This slice is silhouette and
+layout only.
 
-## API seam
+## Fixed Inputs
 
-Rework the cliff/mountain path in `packages/game-renderer/src/battle/horizonPass.ts`
-(`buildEdge`), or split out a `BattleBackdropPass`:
+- Grass and terrain slices are frozen.
+- Do not tune cliff face texture, pale streaks, sky, distance fog, water, or final
+  whole-frame colour in this slice.
+- The backdrop remains presentation only; edge roles and passability semantics stay
+  unchanged.
 
-- Emit a far panoramic range with **multiple receding depth rows** (`peak()` /
-  `buildMountainMesh`), sharp near crags + soft far ridges, each row hazing further
-  back. Steeper faces and upper-face light/snow streaking for the reference's
-  silhouette; unbroken skyline rather than a sawtooth fence.
-- Keep the `STONE`/`HAZE` mixing, but the crag albedo is **neutral limestone-grey**
-  and the haze/horizon tint comes from the **Slice 06 environment preset** (warm
-  under golden-hour, cool under overcast) — don't bake a fixed warm or blue-grey
-  constant into the rock.
-- Decouple the backdrop from edge-sealing so it can span an open horizon; **edge
-  roles and `edgeSealMismatches` semantics stay untouched.** Typed input roughly
-  `{ bounds, field, ringRadius, rows } → mesh`.
+## Accept / Reject
 
-## What the human can run / see
+Use `compare-screenshots` on a cliff/ridge mask crop. Judge:
 
-`renderer/battle-terrain-3d` on maps whose sealed side is `cliff`/`mountain` (e.g.
-`walled-plain` east, `coastal-scrub` east), now showing layered ranges across the
-horizon.
+- left cliff mass position and height relationship;
+- continuous wall vs. isolated pyramids;
+- number and placement of receding ridge rows;
+- skyline shape and screen occupancy.
+
+Do **not** reject this slice for missing rock streaks, wrong haze strength, grass
+colour, or water material. Those are later slices.
 
 ## Verification
 
-- `ctx.check`: backdrop present even with all edges `open-fog` (proves it's
-  decoupled from sealing).
-- `stats.sealedEdges` unchanged; **`edgeSealMismatches` still `[]`** for sealed maps
-  (`battle-terrain-blockers` stays green).
-- Pixel metric for mountain-band height + the top-down haze gradient (no sky
-  punching between peaks); snapshot.
+- A route publishes backdrop stats separately from sealed edge stats.
+- `battle-terrain-blockers` still proves sealed edges and `edgeSealMismatches`.
+- The cliff/ridge crop and mask artifacts are committed for review.
+- Run the neutral review/screenshot critique with a prompt scoped to cliff/ridge
+  silhouette and depth rows only.
 
-## Screenshot-critique
+## Next Slice
 
-**Required:** does it read as receding ranges with real atmospheric depth, like the
-reference — and is the haze *warm* per aesthetics, not a flat blue-grey fence?
-
-## Must stay green
-
-`battle-terrain-blockers` (sealed cliffs/walls/ocean unchanged), edge-seal
-validation; render-graph `ok`.
-
-## Human feedback that would reshape this slice
-
-Range height; number of depth rows; silhouette sharpness; how aggressively the far
-rows haze; warm-grey vs. blue-grey (ties back to Q1).
+After the cliff/ridge silhouette is accepted, freeze the geometry and tune face
+texture in `05b-cliff-texture.md`.

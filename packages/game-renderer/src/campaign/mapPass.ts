@@ -2,6 +2,7 @@ import type { CameraSnapshot } from '../../../renderer-core/src/cameraUniform';
 import { worldToScreen } from '../../../renderer-core/src/cameraUniform';
 import { WORLD_CAMERA_WGSL } from '../../../renderer-core/src/cameraWgsl';
 import { gpuAlphaBlendColorTarget, gpuWorldDepthStencil } from '../../../renderer-core/src/pipelineContracts';
+import { CAMPAIGN_SEA_PALETTE_WGSL } from '../water/waterPalette';
 import type { BackgroundRenderPass, OverlayRenderPass, RawFrameShell, WorldRenderPass } from '../../../renderer-core/src/frameShell';
 
 type CampaignLineRenderPass = BackgroundRenderPass | WorldRenderPass;
@@ -116,6 +117,7 @@ const ICON_PATHS = {
 
 const MAP_WGSL = `
 ${WORLD_CAMERA_WGSL}
+${CAMPAIGN_SEA_PALETTE_WGSL}
 @group(1) @binding(0) var mapTex: texture_2d<f32>;
 @group(1) @binding(1) var mapSampler: sampler;
 @group(1) @binding(2) var biomeTex: texture_2d<f32>;
@@ -219,7 +221,7 @@ fn naturalCampaignColor(b: vec4f, light: f32, world: vec2f, h: f32) -> vec3f {
   if (water > 0.001) {
     let depth = clamp((0.5 - b.a) * 2.0, 0.0, 1.0);
     let shelf = smoothstep(0.0, 0.28, depth + (nz(world, 0.5, px) - 0.5) * 0.1);
-    var waterCol = mix(vec3f(0.40, 0.56, 0.64), vec3f(0.16, 0.30, 0.44), shelf);
+    var waterCol = mix(CAMPAIGN_SEA_SHALLOW, CAMPAIGN_SEA_DEEP, shelf);
     waterCol += vec3f(0.05) * (nz(world, 1.15, px) - 0.5);
     let foam = smoothstep(0.6, 0.0, (0.5 - b.a) * 24.0) * smoothstep(0.4, 0.8, nz(world, 2.3, px));
     waterCol = mix(waterCol, vec3f(0.88, 0.93, 0.94), foam * 0.55);
@@ -247,8 +249,15 @@ fn fs(in: VsOut) -> @location(0) vec4f {
   let coast = clamp(abs(seaMask - seaN) + abs(seaMask - seaS) + abs(seaMask - seaE) + abs(seaMask - seaW), 0.0, 1.0);
   col = mix(col, vec3f(0.72, 0.76, 0.62), coast * (1.0 - seaMask) * 0.42);
   col = mix(col, vec3f(0.30, 0.48, 0.58), coast * seaMask * 0.20);
-  let wave = sin(in.world.x * 0.045 + in.world.y * 0.018 + vnoise(in.world * 0.022) * 2.2);
-  let cross = sin(in.world.x * -0.021 + in.world.y * 0.052 + vnoise(in.world * 0.011 + vec2f(4.7, 9.2)) * 2.8);
+  // Subtle sea shimmer: the glint waves crawl on cam.time, gated so the map reads as a
+  // still painted chart from altitude and comes gently alive close in — opened by
+  // EITHER zoom (the campaign zooms in to close) OR pitch (it tilts as it descends), so
+  // the gate works both in the top-down lab presets and the tilting live map. cam.time
+  // is 0 in frozen snapshots, so the drift vanishes and the map stays byte-identical.
+  let seaMotion = max(smoothstep(0.8, 2.0, cam.zoom), smoothstep(0.95, 0.70, cam.cosP));
+  let drift = cam.time * 0.09 * seaMotion;
+  let wave = sin(in.world.x * 0.045 + in.world.y * 0.018 + vnoise(in.world * 0.022) * 2.2 + drift);
+  let cross = sin(in.world.x * -0.021 + in.world.y * 0.052 + vnoise(in.world * 0.011 + vec2f(4.7, 9.2)) * 2.8 - drift * 0.7);
   let glint = smoothstep(0.58, 0.96, wave * 0.58 + cross * 0.42);
   let foam = coast * seaMask * smoothstep(0.22, 0.88, vnoise(in.world * 0.055 + vec2f(2.0, 11.0)));
   col = mix(col, vec3f(0.56, 0.70, 0.74), seaMask * glint * 0.14 * __SEA_TINT_MIX__);

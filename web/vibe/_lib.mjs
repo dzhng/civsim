@@ -233,11 +233,11 @@ export async function vibeCapture(
     done,
     requireResolved = false,
     // The sim is fully deterministic (freezeAtTick pins the exact tick), so a frame
-    // SHOULD be byte-identical — except headless SwiftShader rasterizes a dense
-    // melee of overlapping alpha-blended soldiers with ~1% run-to-run wobble. A
-    // higher per-pixel threshold ignores the AA edge jitter; the ratio caps the
-    // count well below any real mechanics change (a moved soldier shifts a
-    // contiguous block, not scattered edges — we measured 5–8% for a 3-tick offset).
+    // SHOULD be byte-identical — except browser/GPU rasterization of dense
+    // overlapping alpha-blended soldiers can wobble around edges. A higher
+    // per-pixel threshold ignores the AA edge jitter; the ratio caps the count
+    // well below any real mechanics change (a moved soldier shifts a contiguous
+    // block, not scattered edges — we measured 5–8% for a 3-tick offset).
     threshold = 0.2,
     maxDiffRatio = 0.02,
   } = {},

@@ -155,6 +155,14 @@ export class MeshBuilder {
     for (let i = 1; i < points.length - 1; i++) this.opaqueIndices.push(backBase, backBase + i + 1, backBase + i);
   }
 
+  groundPanel(points: [number, number, number][], color: Rgb, alpha: number) {
+    if (points.length < 3) return;
+    const normal: [number, number, number] = [0, 0, 1];
+    const base = this.opaqueVertices.length / 10;
+    for (const point of points) this.opaqueVertices.push(...point, ...normal, ...color, alpha);
+    for (let i = 1; i < points.length - 1; i++) this.opaqueIndices.push(base, base + i, base + i + 1);
+  }
+
   // A flat quad graded from a near colour (p0,p3 edge) to a far colour (p1,p2
   // edge): used for receding backdrops (sea, distant slopes) that should darken
   // and haze into the horizon rather than read as one flat swatch.

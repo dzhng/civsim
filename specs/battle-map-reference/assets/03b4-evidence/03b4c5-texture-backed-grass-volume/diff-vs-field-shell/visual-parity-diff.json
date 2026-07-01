@@ -1,0 +1,91 @@
+{
+  "kind": "screenshot-parity-diff",
+  "generatedAt": "2026-07-01T06:33:03.429Z",
+  "note": "Lower parityDistance means the candidate is closer to the reference for this fixed pair. This is a distance metric, not an acceptance gate.",
+  "pairCount": 2,
+  "worstPair": "foreground",
+  "results": [
+    {
+      "id": "foreground",
+      "current": "specs/battle-map-reference/assets/03b4-evidence/03b4c5-texture-backed-grass-volume/field-shell-baseline/foreground.png",
+      "candidate": "specs/battle-map-reference/assets/03b4-evidence/03b4c5-texture-backed-grass-volume/candidate/foreground.png",
+      "dimensions": {
+        "width": 780,
+        "height": 147
+      },
+      "parityDistance": 0.15284,
+      "grayscale": {
+        "mae": 0.63612,
+        "rmse": 4.77812,
+        "diffRatio16": 0.01721,
+        "diffRatio32": 0.00683,
+        "diffRatio64": 0.00065,
+        "pixelmatchRatio": 0.011
+      },
+      "contentProxies": {
+        "blackRatioCurrent": 0,
+        "blackRatioCandidate": 0,
+        "terrainLikeRatioCurrent": 1,
+        "terrainLikeRatioCandidate": 0.99717,
+        "avgLuminanceCurrent": 127.70345,
+        "avgLuminanceCandidate": 127.27243,
+        "avgLuminanceDelta": -0.43102,
+        "edgeEnergyCurrent": 0.02487,
+        "edgeEnergyCandidate": 0.04608,
+        "edgeEnergyRatio": 1.85248,
+        "edgeDiffRatio32": 0.05711
+      },
+      "artifacts": {
+        "sideBySide": "diff-vs-field-shell/foreground-side-by-side.png",
+        "currentGray": "diff-vs-field-shell/foreground-current-gray.png",
+        "candidateGray": "diff-vs-field-shell/foreground-candidate-gray.png",
+        "absDiff": "diff-vs-field-shell/foreground-absdiff.png",
+        "pixelmatch": "diff-vs-field-shell/foreground-pixelmatch.png",
+        "currentEdges": "diff-vs-field-shell/foreground-current-edges.png",
+        "candidateEdges": "diff-vs-field-shell/foreground-candidate-edges.png",
+        "edgeDiff": "diff-vs-field-shell/foreground-edge-diff.png"
+      }
+    },
+    {
+      "id": "midground",
+      "current": "specs/battle-map-reference/assets/03b4-evidence/03b4c5-texture-backed-grass-volume/field-shell-baseline/midground.png",
+      "candidate": "specs/battle-map-reference/assets/03b4-evidence/03b4c5-texture-backed-grass-volume/candidate/midground.png",
+      "dimensions": {
+        "width": 780,
+        "height": 87
+      },
+      "parityDistance": 0.00541,
+      "grayscale": {
+        "mae": 0.01866,
+        "rmse": 0.87005,
+        "diffRatio16": 0.00046,
+        "diffRatio32": 0.00022,
+        "diffRatio64": 0.00004,
+        "pixelmatchRatio": 0.00031
+      },
+      "contentProxies": {
+        "blackRatioCurrent": 0,
+        "blackRatioCandidate": 0,
+        "terrainLikeRatioCurrent": 1,
+        "terrainLikeRatioCandidate": 0.99987,
+        "avgLuminanceCurrent": 130.81446,
+        "avgLuminanceCandidate": 130.80267,
+        "avgLuminanceDelta": -0.01179,
+        "edgeEnergyCurrent": 0.0325,
+        "edgeEnergyCandidate": 0.03323,
+        "edgeEnergyRatio": 1.02238,
+        "edgeDiffRatio32": 0.00184
+      },
+      "artifacts": {
+        "sideBySide": "diff-vs-field-shell/midground-side-by-side.png",
+        "currentGray": "diff-vs-field-shell/midground-current-gray.png",
+        "candidateGray": "diff-vs-field-shell/midground-candidate-gray.png",
+        "absDiff": "diff-vs-field-shell/midground-absdiff.png",
+        "pixelmatch": "diff-vs-field-shell/midground-pixelmatch.png",
+        "currentEdges": "diff-vs-field-shell/midground-current-edges.png",
+        "candidateEdges": "diff-vs-field-shell/midground-candidate-edges.png",
+        "edgeDiff": "diff-vs-field-shell/midground-edge-diff.png"
+      }
+    }
+  ]
+}

@@ -353,6 +353,19 @@ const routes = [
       s.stats.samples?.hostileDepthOrder?.lateTreeControl,
   ],
   [
+    "shared-grass-models?gate=tuft",
+    (s) =>
+      s?.ok &&
+      s.route === "shared-grass-models" &&
+      s.stats.gate === "tuft" &&
+      s.stats.tuftInstances === 1 &&
+      s.stats.bladeInstances >= 80 &&
+      s.stats.cameraContract === "shared-world-camera-wgsl" &&
+      hasFramePhaseOrder(s.stats.framePhases) &&
+      hasFrameDepthPass(s.stats.framePhases, "shared-grass-model", "read-write") &&
+      hasFramePassRole(s.stats.framePhases, "shared-grass-model", "world-opaque", "world-depth"),
+  ],
+  [
     "render-graph",
     (s) =>
       s?.ok &&
@@ -510,6 +523,356 @@ const routes = [
       s.stats.worldPropQuads >= 4 &&
       s.stats.selectionQuads === 0 &&
       s.stats.cameraContract === "shared-world-camera-wgsl",
+  ],
+  [
+    "battle-grass?phase=0",
+    (s) =>
+      s?.ok &&
+      s.route === "battle-grass" &&
+      s.stats.gate === "flat-field" &&
+      s.stats.tuftInstances > 300 &&
+      s.stats.bladeInstances === s.stats.tuftInstances * 9 &&
+      s.stats.cappedTufts > 0 &&
+      s.stats.cameraContract === "shared-world-camera-wgsl" &&
+      hasFrameDepthPass(s.stats.framePhases, "battle-grass-flat-field", "read-write") &&
+      hasFramePassRole(
+        s.stats.framePhases,
+        "battle-grass-flat-field",
+        "world-opaque",
+        "world-depth",
+      ),
+  ],
+  [
+    "battle-grass-field?mode=packed-tilt",
+    (s) =>
+      s?.ok &&
+      s.route === "battle-grass-field" &&
+      s.stats.mode === "packed-tilt" &&
+      s.stats.grass?.prepMode === "packed-field" &&
+      s.stats.grass?.fieldRecords > 100 &&
+      s.stats.grass?.fieldRejectedSlopeCells > 0 &&
+      s.stats.grass?.packedStrideFloats === 16 &&
+      s.stats.grass?.fieldRecordStrideFloats === 16 &&
+      s.stats.grass?.instanceBytes === s.stats.grass?.fieldRecords * 16 * 4 &&
+      s.stats.grass?.submittedTriangles > 0 &&
+      s.stats.grass?.drawCalls === 1 &&
+      hasFrameDepthPass(s.stats.framePhases, "battle-grass-field-packed-tilt", "read-write") &&
+      hasFramePassRole(
+        s.stats.framePhases,
+        "battle-grass-field-packed-tilt",
+        "world-opaque",
+        "world-depth",
+      ),
+  ],
+  [
+    "battle-grass-field?mode=field-meadow",
+    (s) =>
+      s?.ok &&
+      s.route === "battle-grass-field" &&
+      s.stats.mode === "field-meadow" &&
+      s.stats.grass?.prepMode === "packed-field" &&
+      s.stats.grass?.fieldRecords > 100 &&
+      s.stats.grass?.bladeInstances === 0 &&
+      s.stats.grass?.drawCalls === 0 &&
+      s.stats.ground?.meadow?.enabled === true &&
+      s.stats.ground?.meadow?.source === "field" &&
+      s.stats.ground?.meadow?.fieldRecords === s.stats.grass?.fieldRecords &&
+      s.stats.ground?.meadow?.fieldCoverage > 0.5 &&
+      s.stats.ground?.meadow?.avgDensity > 0.18 &&
+      s.stats.ground?.meadow?.rootMassEnabled === false &&
+      s.stats.ground?.meadow?.textureWidth > 1 &&
+      hasFrameDepthPass(s.stats.framePhases, "battle-grass-field-packed-tilt", "read-write") &&
+      hasFramePassRole(
+        s.stats.framePhases,
+        "battle-grass-field-packed-tilt",
+        "world-opaque",
+        "world-depth",
+      ),
+  ],
+  [
+    "battle-grass-field?mode=field-accent",
+    (s) =>
+      s?.ok &&
+      s.route === "battle-grass-field" &&
+      s.stats.mode === "field-accent" &&
+      s.stats.grass?.prepMode === "packed-field" &&
+      s.stats.grass?.fieldRecords > 100 &&
+      s.stats.grass?.accentTufts > 20 &&
+      s.stats.grass?.accentStyle === "field-fiber-shell" &&
+      s.stats.grass?.accentAggregation === "field-near" &&
+      s.stats.grass?.grassPrimitiveFamily === "field-fiber-shell" &&
+      s.stats.grass?.fiberShellVariant === "normal" &&
+      s.stats.grass?.accentClumps === 0 &&
+      s.stats.grass?.accentSourceRecords > s.stats.grass?.accentTufts &&
+      s.stats.grass?.fiberShellSourceRecords === s.stats.grass?.accentSourceRecords &&
+      s.stats.grass?.fiberShellRecords === s.stats.grass?.accentTufts &&
+      s.stats.grass?.fiberShellRibbons === s.stats.grass?.accentRibbons &&
+      s.stats.grass?.fiberShellRibbons >= s.stats.grass?.fiberShellRecords &&
+      s.stats.grass?.fiberShellDepthFar > s.stats.grass?.fiberShellDepthNear &&
+      s.stats.grass?.fiberShellSubmittedTriangles === s.stats.grass?.submittedTriangles &&
+      s.stats.grass?.tuftInstances === s.stats.grass?.accentTufts &&
+      s.stats.grass?.tuftInstances < s.stats.grass?.fieldRecords &&
+      s.stats.grass?.bladeInstances >= s.stats.grass?.tuftInstances &&
+      s.stats.grass?.drawCalls === 1 &&
+      s.stats.ground?.meadow?.enabled === true &&
+      s.stats.ground?.meadow?.source === "field" &&
+      s.stats.ground?.meadow?.fieldRecords === s.stats.grass?.fieldRecords &&
+      s.stats.ground?.meadow?.fieldCoverage > 0.5 &&
+      s.stats.ground?.meadow?.rootMassEnabled === true &&
+      s.stats.ground?.meadow?.rootMassCoverage > 0.05 &&
+      hasFrameDepthPass(s.stats.framePhases, "battle-grass-field-packed-tilt", "read-write") &&
+      hasFramePassRole(
+        s.stats.framePhases,
+        "battle-grass-field-packed-tilt",
+        "world-opaque",
+        "world-depth",
+      ),
+  ],
+  [
+    "battle-grass-field?mode=foreground-close-lab",
+    (s) =>
+      s?.ok &&
+      s.route === "battle-grass-field" &&
+      s.stats.mode === "foreground-close-lab" &&
+      s.stats.lab?.profile === "foreground-close-lab" &&
+      s.stats.lab?.contract === "03B4C5B4B1" &&
+      s.stats.lab?.reviewWindows?.closeHero &&
+      s.stats.lab?.reviewWindows?.transition &&
+      s.stats.lab?.reviewWindows?.midMass &&
+      s.stats.lab?.foregroundWorldUnitsPerPixel < 0.012 &&
+      s.stats.camera?.zoom > 90 &&
+      s.stats.grass?.prepMode === "packed-field" &&
+      s.stats.grass?.fieldRecords > 100 &&
+      s.stats.grass?.accentStyle === "field-fiber-shell" &&
+      s.stats.grass?.accentAggregation === "field-near" &&
+      s.stats.grass?.grassPrimitiveFamily === "field-fiber-shell" &&
+      s.stats.grass?.fiberShellVariant === "normal" &&
+      s.stats.grass?.accentTufts > 20 &&
+      s.stats.grass?.accentTufts < s.stats.grass?.fieldRecords &&
+      s.stats.grass?.drawCalls === 1 &&
+      s.stats.ground?.meadow?.enabled === true &&
+      s.stats.ground?.meadow?.source === "field" &&
+      s.stats.ground?.meadow?.rootMassEnabled === true &&
+      hasFrameDepthPass(s.stats.framePhases, "battle-grass-field-packed-tilt", "read-write") &&
+      hasFramePassRole(
+        s.stats.framePhases,
+        "battle-grass-field-packed-tilt",
+        "world-opaque",
+        "world-depth",
+      ),
+  ],
+  [
+    "battle-grass-field?mode=foreground-close-lab&labCameraProfile=scale-repair-low",
+    (s) =>
+      s?.ok &&
+      s.route === "battle-grass-field" &&
+      s.stats.mode === "foreground-close-lab" &&
+      s.stats.lab?.profile === "foreground-close-lab" &&
+      s.stats.lab?.contract === "03B4C5B4B1R" &&
+      s.stats.lab?.cameraProfile === "scale-repair-low" &&
+      s.stats.lab?.calibration === "neutral-scale-guides" &&
+      s.stats.lab?.reviewWindows?.closeHero &&
+      s.stats.lab?.reviewWindows?.transition &&
+      s.stats.lab?.reviewWindows?.midMass &&
+      s.stats.lab?.foregroundWorldUnitsPerPixel < 0.008 &&
+      s.stats.camera?.zoom > 140 &&
+      s.stats.camera?.pitch > 0.85 &&
+      s.stats.grass?.prepMode === "packed-field" &&
+      s.stats.grass?.fieldRecords > 100 &&
+      s.stats.grass?.accentStyle === "field-fiber-shell" &&
+      s.stats.grass?.accentAggregation === "field-near" &&
+      s.stats.grass?.grassPrimitiveFamily === "field-fiber-shell" &&
+      s.stats.grass?.fiberShellVariant === "normal" &&
+      s.stats.grass?.accentTufts > 20 &&
+      s.stats.grass?.accentTufts < s.stats.grass?.fieldRecords &&
+      s.stats.grass?.drawCalls === 1 &&
+      s.stats.ground?.meadow?.enabled === true &&
+      s.stats.ground?.meadow?.source === "field" &&
+      s.stats.ground?.meadow?.rootMassEnabled === true &&
+      hasFrameDepthPass(s.stats.framePhases, "battle-grass-field-packed-tilt", "read-write") &&
+      hasFramePassRole(
+        s.stats.framePhases,
+        "battle-grass-field-packed-tilt",
+        "world-opaque",
+        "world-depth",
+      ),
+  ],
+  [
+    "battle-grass-field?mode=foreground-close-lab&labCameraProfile=b4b1a0-test-env",
+    (s) =>
+      s?.ok &&
+      s.route === "battle-grass-field" &&
+      s.stats.mode === "foreground-close-lab" &&
+      s.stats.lab?.profile === "foreground-close-lab" &&
+      s.stats.lab?.contract === "03B4C5B4B1A0" &&
+      s.stats.lab?.cameraProfile === "b4b1a0-test-env" &&
+      s.stats.lab?.cropPurpose === "test-environment-comparability-not-body-acceptance" &&
+      s.stats.lab?.calibration === "test-environment-review-windows" &&
+      s.stats.lab?.reviewWindows?.closeHero &&
+      s.stats.lab?.reviewWindows?.transition &&
+      s.stats.lab?.reviewWindows?.midMass &&
+      s.stats.lab?.foregroundWorldUnitsPerPixel < 0.006 &&
+      s.stats.camera?.zoom > 170 &&
+      s.stats.camera?.pitch > 0.9 &&
+      s.stats.grass?.prepMode === "packed-field" &&
+      s.stats.grass?.fieldRecords > 100 &&
+      s.stats.grass?.accentStyle === "field-fiber-shell" &&
+      s.stats.grass?.accentAggregation === "field-near" &&
+      s.stats.grass?.grassPrimitiveFamily === "field-fiber-shell" &&
+      s.stats.grass?.fiberShellVariant === "normal" &&
+      s.stats.grass?.accentTufts > 20 &&
+      s.stats.grass?.accentTufts < s.stats.grass?.fieldRecords &&
+      s.stats.grass?.drawCalls === 1 &&
+      s.stats.ground?.meadow?.enabled === true &&
+      s.stats.ground?.meadow?.source === "field" &&
+      s.stats.ground?.meadow?.rootMassEnabled === true &&
+      hasFrameDepthPass(s.stats.framePhases, "battle-grass-field-packed-tilt", "read-write") &&
+      hasFramePassRole(
+        s.stats.framePhases,
+        "battle-grass-field-packed-tilt",
+        "world-opaque",
+        "world-depth",
+      ),
+  ],
+  [
+    "battle-grass-field?mode=field-accent&grassPrimitiveFamily=volume-card",
+    (s) =>
+      s?.ok &&
+      s.route === "battle-grass-field" &&
+      s.stats.mode === "field-accent" &&
+      s.stats.grass?.prepMode === "packed-field" &&
+      s.stats.grass?.grassPrimitiveFamily === "volume-card" &&
+      s.stats.grass?.grassPrimitiveBaseline === "field-fiber-shell-normal" &&
+      s.stats.grass?.accentStyle === "volume-card" &&
+      s.stats.grass?.accentAggregation === "clump" &&
+      s.stats.grass?.accentClumps > 20 &&
+      s.stats.grass?.accentSourceRecords > s.stats.grass?.accentTufts &&
+      s.stats.grass?.grassPrimitiveSourceRecords === s.stats.grass?.accentSourceRecords &&
+      s.stats.grass?.grassPrimitiveRecords === s.stats.grass?.accentTufts &&
+      s.stats.grass?.grassPrimitiveClumps === s.stats.grass?.accentClumps &&
+      s.stats.grass?.grassPrimitiveDepthFar > s.stats.grass?.grassPrimitiveDepthNear &&
+      s.stats.grass?.submittedTriangles > 0 &&
+      s.stats.grass?.submittedTriangles < 83200 &&
+      s.stats.grass?.drawCalls === 1 &&
+      s.stats.ground?.meadow?.enabled === true &&
+      s.stats.ground?.meadow?.source === "field" &&
+      s.stats.ground?.meadow?.rootMassEnabled === true &&
+      hasFrameDepthPass(s.stats.framePhases, "battle-grass-field-packed-tilt", "read-write") &&
+      hasFramePassRole(
+        s.stats.framePhases,
+        "battle-grass-field-packed-tilt",
+        "world-opaque",
+        "world-depth",
+      ),
+  ],
+  [
+    "battle-grass-field?mode=field-accent&grassPrimitiveFamily=texture-volume",
+    (s) =>
+      s?.ok &&
+      s.route === "battle-grass-field" &&
+      s.stats.mode === "field-accent" &&
+      s.stats.grass?.prepMode === "packed-field" &&
+      s.stats.grass?.grassPrimitiveFamily === "texture-volume" &&
+      s.stats.grass?.grassPrimitiveBaseline === "field-fiber-shell-normal" &&
+      s.stats.grass?.accentStyle === "volume-card" &&
+      s.stats.grass?.accentAggregation === "field-cell" &&
+      s.stats.grass?.accentClumps > 200 &&
+      s.stats.grass?.accentSourceRecords > s.stats.grass?.accentTufts &&
+      s.stats.grass?.grassPrimitiveSourceRecords === s.stats.grass?.accentSourceRecords &&
+      s.stats.grass?.grassPrimitiveRecords === s.stats.grass?.accentTufts &&
+      s.stats.grass?.grassPrimitiveClumps === s.stats.grass?.accentClumps &&
+      s.stats.grass?.grassPrimitiveTextureWidth === 256 &&
+      s.stats.grass?.grassPrimitiveTextureHeight === 64 &&
+      s.stats.grass?.grassPrimitiveTextureTiles === 4 &&
+      s.stats.grass?.grassPrimitiveTextureBytes === 65536 &&
+      s.stats.grass?.grassPrimitiveDepthFar > s.stats.grass?.grassPrimitiveDepthNear &&
+      s.stats.grass?.submittedTriangles > 0 &&
+      s.stats.grass?.submittedTriangles < 83200 &&
+      s.stats.grass?.drawCalls === 1 &&
+      s.stats.ground?.meadow?.enabled === true &&
+      s.stats.ground?.meadow?.source === "field" &&
+      s.stats.ground?.meadow?.rootMassEnabled === true &&
+      hasFrameDepthPass(s.stats.framePhases, "battle-grass-field-packed-tilt", "read-write") &&
+      hasFramePassRole(
+        s.stats.framePhases,
+        "battle-grass-field-packed-tilt",
+        "world-opaque",
+        "world-depth",
+      ),
+  ],
+  [
+    "battle-grass-field?mode=field-accent&grassPrimitiveFamily=texture-carrier",
+    (s) =>
+      s?.ok &&
+      s.route === "battle-grass-field" &&
+      s.stats.mode === "field-accent" &&
+      s.stats.grass?.prepMode === "packed-field" &&
+      s.stats.grass?.grassPrimitiveFamily === "texture-carrier" &&
+      s.stats.grass?.grassPrimitiveBaseline === "field-fiber-shell-normal" &&
+      s.stats.grass?.accentStyle === "volume-card" &&
+      s.stats.grass?.accentAggregation === "field-cell" &&
+      s.stats.grass?.accentClumps > 500 &&
+      s.stats.grass?.accentTufts === s.stats.grass?.accentClumps &&
+      s.stats.grass?.accentSourceRecords > s.stats.grass?.accentTufts &&
+      s.stats.grass?.grassPrimitiveSourceRecords === s.stats.grass?.accentSourceRecords &&
+      s.stats.grass?.grassPrimitiveRecords === s.stats.grass?.accentTufts &&
+      s.stats.grass?.grassPrimitiveClumps === s.stats.grass?.accentClumps &&
+      s.stats.grass?.grassPrimitiveTextureWidth === 256 &&
+      s.stats.grass?.grassPrimitiveTextureHeight === 64 &&
+      s.stats.grass?.grassPrimitiveTextureTiles === 4 &&
+      s.stats.grass?.grassPrimitiveTextureBytes === 65536 &&
+      s.stats.grass?.grassPrimitiveDepthFar > s.stats.grass?.grassPrimitiveDepthNear &&
+      s.stats.grass?.submittedTriangles > 0 &&
+      s.stats.grass?.submittedTriangles < 83200 &&
+      s.stats.grass?.drawCalls === 1 &&
+      s.stats.ground?.meadow?.enabled === true &&
+      s.stats.ground?.meadow?.source === "field" &&
+      s.stats.ground?.meadow?.rootMassEnabled === true &&
+      hasFrameDepthPass(s.stats.framePhases, "battle-grass-field-packed-tilt", "read-write") &&
+      hasFramePassRole(
+        s.stats.framePhases,
+        "battle-grass-field-packed-tilt",
+        "world-opaque",
+        "world-depth",
+      ),
+  ],
+  [
+    "battle-grass-field?mode=field-accent&grassPrimitiveFamily=texture-micro-carrier",
+    (s) =>
+      s?.ok &&
+      s.route === "battle-grass-field" &&
+      s.stats.mode === "field-accent" &&
+      s.stats.grass?.prepMode === "packed-field" &&
+      s.stats.grass?.grassPrimitiveFamily === "texture-micro-carrier" &&
+      s.stats.grass?.grassPrimitiveBaseline === "field-fiber-shell-normal" &&
+      s.stats.grass?.accentStyle === "volume-card" &&
+      s.stats.grass?.accentAggregation === "field-cell" &&
+      s.stats.grass?.accentClumps > 900 &&
+      s.stats.grass?.accentTufts > s.stats.grass?.accentClumps &&
+      s.stats.grass?.accentTufts <= s.stats.grass?.accentClumps * 4 &&
+      s.stats.grass?.grassPrimitiveSourceRecords === s.stats.grass?.accentSourceRecords &&
+      s.stats.grass?.grassPrimitiveRecords === s.stats.grass?.accentTufts &&
+      s.stats.grass?.grassPrimitiveClumps === s.stats.grass?.accentClumps &&
+      s.stats.grass?.grassPrimitiveTextureWidth === 256 &&
+      s.stats.grass?.grassPrimitiveTextureHeight === 64 &&
+      s.stats.grass?.grassPrimitiveTextureTiles === 4 &&
+      s.stats.grass?.grassPrimitiveTextureBytes === 65536 &&
+      s.stats.grass?.grassPrimitiveMicroCards >= s.stats.grass?.accentTufts * 3 &&
+      s.stats.grass?.grassPrimitiveDepthFar > s.stats.grass?.grassPrimitiveDepthNear &&
+      s.stats.grass?.meshTriangles <= 8 &&
+      s.stats.grass?.submittedTriangles > s.stats.grass?.accentTufts &&
+      s.stats.grass?.submittedTriangles < 83200 &&
+      s.stats.grass?.drawCalls === 1 &&
+      s.stats.ground?.meadow?.enabled === true &&
+      s.stats.ground?.meadow?.source === "field" &&
+      s.stats.ground?.meadow?.rootMassEnabled === true &&
+      hasFrameDepthPass(s.stats.framePhases, "battle-grass-field-packed-tilt", "read-write") &&
+      hasFramePassRole(
+        s.stats.framePhases,
+        "battle-grass-field-packed-tilt",
+        "world-opaque",
+        "world-depth",
+      ),
   ],
   [
     "battle-live?mode=5v5&ticks=36",
@@ -982,10 +1345,6 @@ async function findPhaseBrandFootguns() {
         [
           "campaign clouds draw requires overlay pass",
           /export class CampaignCloudPass[\s\S]*?\bdraw\s*\(\s*pass:\s*OverlayRenderPass\s*\)/,
-        ],
-        [
-          "campaign water draw requires background pass",
-          /export class CampaignWaterPass[\s\S]*?\bdraw\s*\(\s*pass:\s*BackgroundRenderPass\s*\)/,
         ],
       ],
     },

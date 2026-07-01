@@ -4,6 +4,7 @@ import {
   type CrowdInstance,
 } from "../../../packages/crowd-runtime/src/instanceData";
 import { BattleEffectLinePass } from "../../../packages/game-renderer/src/battle/effectLinePass";
+import { BattleGrassPass } from "../../../packages/game-renderer/src/battle/grassPass";
 import { BattleGroundCuePass } from "../../../packages/game-renderer/src/battle/groundCuePass";
 import { BattleGroundPass } from "../../../packages/game-renderer/src/battle/groundPass";
 import { BattleHorizonPass } from "../../../packages/game-renderer/src/battle/horizonPass";
@@ -17,6 +18,12 @@ import {
   type BattleGroundCover,
   type BattleTerrainGrid,
 } from "../../../packages/game-renderer/src/battle/terrainFeatures";
+import {
+  BATTLE_ENVIRONMENTS,
+  applyBattleEnvironment,
+  battleEnvironmentStats,
+  skinnedLightingForBattleEnvironment,
+} from "../../../packages/game-renderer/src/environment/environment";
 import { featuresToBattleScenery } from "../../../packages/game-renderer/src/battle/terrainScenery";
 import {
   terrainHeightAt,
@@ -34,6 +41,7 @@ import { gpuMultisample } from "../../../packages/renderer-core/src/pipelineCont
 import { fatalSurfaceFor, showFatalErrorSurface } from "../shared/fatalError";
 import { WORLD_CAMERA_WGSL } from "../../../packages/renderer-core/src/cameraWgsl";
 import { SkinnedCrowdPipeline } from "../../../packages/renderer-core/src/skinnedPipeline";
+import { SoldierShadowDecalPass } from "../../../packages/renderer-core/src/soldierShadowPass";
 import {
   loadClassVats,
   loadPlaceholderKit,
@@ -43,7 +51,6 @@ import { createPlaceholderSoldierMeshes } from "../../../packages/soldier-assets
 
 export class BattleRenderer {
   readonly ready: Promise<void>;
-  readonly pitch = 0.32;
   fixedTime: number | null = null;
   preserveFrozenEffects = false;
 
@@ -54,10 +61,12 @@ export class BattleRenderer {
 
   private shell: RawFrameShell | null = null;
   private ground: BattleGroundPass | null = null;
+  private grass: BattleGrassPass | null = null;
   private scenery: CampaignSceneryPass | null = null;
   private horizon: BattleHorizonPass | null = null;
   private heightField: TerrainHeightField | null = null;
   private crowd: SkinnedCrowdPipeline | null = null;
+  private soldierShadows: SoldierShadowDecalPass | null = null;
   private groundCues: BattleGroundCuePass | null = null;
   private effectLines: BattleEffectLinePass | null = null;
   private tris: BattleTrianglePass | null = null;
@@ -69,6 +78,9 @@ export class BattleRenderer {
   private terrainRect: [number, number, number, number] = [-220, -180, 440, 360];
   private terrainGrid: BattleTerrainGrid | null = null;
   private groundCover: BattleGroundCover = "green-grass";
+  private readonly environment = BATTLE_ENVIRONMENTS["golden-hour"];
+  private grassTerrainKey: string | null = null;
+  private grassWindPhase = 0;
   private instances: CrowdInstance[] = [];
   private markers: MarkerInstance[] = [];
   private triangleVerts = new Float32Array();
@@ -83,6 +95,16 @@ export class BattleRenderer {
     frameCpuMs: 0,
   };
   private frameStart = 0;
+  private lastCamera = {
+    x: 0,
+    y: 0,
+    zoom: 0,
+    pitch: 0,
+    yaw: 0,
+    zoomT: 0,
+    targetOffset: 0,
+    perspective: 0,
+  };
 
   constructor(private canvas: HTMLCanvasElement) {
     this.ready = this.init();
@@ -103,6 +125,7 @@ export class BattleRenderer {
     this.markers = [];
     this.triangleVerts = new Float32Array();
     this.crowd?.upload([]);
+    this.soldierShadows?.upload([]);
     this.effectLines?.upload(this.triangleVerts);
     this.tris?.upload(this.triangleVerts);
     this.debugBlocks?.upload(this.triangleVerts);
@@ -165,9 +188,6 @@ export class BattleRenderer {
     const presentation = buildBattleTerrainPresentation(
       {
         id: "live",
-        wasmMapId: -1,
-        label: "",
-        description: "",
         edges: deriveBattleEdgeRoles(grid),
         groundCover: this.groundCover,
       },
@@ -181,6 +201,8 @@ export class BattleRenderer {
       presentation.edges,
       field,
     );
+    this.grassTerrainKey = null;
+    this.updateGrassForCamera(this.lastCamera);
   }
 
   private terrainHeightSampler(): ((x: number, y: number) => number) | undefined {
@@ -210,7 +232,9 @@ export class BattleRenderer {
     }
     this.skipFrozenFrame = false;
     this.frameStart = performance.now();
-    this.shell.setCamera(cameraSnapshot(camera));
+    this.lastCamera = cameraSnapshot(camera);
+    this.shell.setCamera(this.lastCamera);
+    applyBattleEnvironment(this.shell, this.environment);
     const buildStart = performance.now();
     const built = buildCrowdInstances({
       positions,
@@ -242,7 +266,10 @@ export class BattleRenderer {
       this.markers = [];
     }
     const uploadStart = performance.now();
+    this.updateGrassWindPhase();
+    this.updateGrassForCamera(this.lastCamera);
     this.crowd.upload(this.instances);
+    this.soldierShadows?.upload(this.instances);
     this.debugBlocks?.upload(
       this.blockMode
         ? buildDebugBlockTriangles(positions, alive, this.soldierUnit, this.unitTeam, count)
@@ -261,7 +288,8 @@ export class BattleRenderer {
     if (!this.shell || !this.tris) return;
     this.frozenFrameKey = null;
     this.skipFrozenFrame = false;
-    this.shell.setCamera(cameraSnapshot(camera));
+    this.lastCamera = cameraSnapshot(camera);
+    this.shell.setCamera(this.lastCamera);
     this.triangleVerts = new Float32Array(verts);
     const uploadStart = performance.now();
     this.tris.upload(verts);
@@ -272,7 +300,9 @@ export class BattleRenderer {
     if (
       !this.shell ||
       !this.ground ||
+      !this.grass ||
       !this.crowd ||
+      !this.soldierShadows ||
       !this.groundCues ||
       !this.effectLines ||
       !this.tris ||
@@ -280,9 +310,12 @@ export class BattleRenderer {
     )
       return;
     if (this.skipFrozenFrame) return;
-    this.shell.setCamera(cameraSnapshot(camera));
+    this.lastCamera = cameraSnapshot(camera);
+    this.shell.setCamera(this.lastCamera);
     if (this.frameStart === 0) this.frameStart = performance.now();
     const uploadStart = performance.now();
+    this.updateGrassWindPhase();
+    this.updateGrassForCamera(this.lastCamera);
     this.groundCues.upload(
       this.fixedTime !== null ? frozenSelectionGroundCues(lines.groundCues) : lines.groundCues,
     );
@@ -322,6 +355,13 @@ export class BattleRenderer {
           draw: (pass: WorldRenderPass) => this.scenery!.drawOpaque(pass),
         },
         {
+          id: "battle-grass",
+          role: "world-opaque",
+          phase: "world-depth",
+          depth: "read-write",
+          draw: (pass: WorldRenderPass) => this.grass!.draw(pass),
+        },
+        {
           id: "battle-skinned-crowd",
           role: "world-opaque",
           phase: "world-depth",
@@ -334,6 +374,13 @@ export class BattleRenderer {
           phase: "world-depth",
           depth: "read",
           draw: (pass: WorldRenderPass) => this.scenery!.drawShadows(pass),
+        },
+        {
+          id: "battle-soldier-shadows",
+          role: "world-decal",
+          phase: "world-depth",
+          depth: "read",
+          draw: (pass: WorldRenderPass) => this.soldierShadows!.draw(pass),
         },
         {
           id: "battle-ground-cues",
@@ -394,6 +441,7 @@ export class BattleRenderer {
       atmosphere: shell?.atmosphere ?? "initializing",
       cameraContract: shell?.cameraContract ?? "initializing",
       skinnedCameraContract: crowd?.cameraContract ?? "initializing",
+      camera: this.lastCamera,
       markerLayer: shell?.markerLayer ?? (markerCount > 0 ? "far-lod-impostor" : "none"),
       phases: shell?.phases ?? [],
       depth: shell?.depth ?? null,
@@ -404,7 +452,9 @@ export class BattleRenderer {
             groundTriangles: this.ground.stats().triangles,
             sealedEdges: this.horizon?.stats().sealedEdges ?? [],
             groundCover: this.groundCover,
+            environment: battleEnvironmentStats(this.environment),
             scenery: this.scenery?.stats().scenery ?? 0,
+            grass: this.grass?.stats() ?? null,
           }
         : null,
       tacticalLines: {
@@ -440,9 +490,11 @@ export class BattleRenderer {
           ),
         ),
     });
-    this.ground = new BattleGroundPass(this.shell);
+    applyBattleEnvironment(this.shell, this.environment);
+    this.ground = new BattleGroundPass(this.shell, this.environment);
+    this.grass = new BattleGrassPass(this.shell, this.environment);
     this.scenery = new CampaignSceneryPass(this.shell, "battle");
-    this.horizon = new BattleHorizonPass(this.shell);
+    this.horizon = new BattleHorizonPass(this.shell, this.environment);
     this.applyTerrain();
     this.groundCues = new BattleGroundCuePass(this.shell);
     this.effectLines = new BattleEffectLinePass(this.shell);
@@ -455,7 +507,55 @@ export class BattleRenderer {
       createPlaceholderSoldierMeshes([0.2, 0.42, 0.88]),
       await loadClassVats(kit),
       kit,
+      { lighting: skinnedLightingForBattleEnvironment(this.environment) },
     );
+    this.soldierShadows = new SoldierShadowDecalPass(this.shell);
+  }
+
+  private updateGrassForCamera(camera: typeof this.lastCamera) {
+    if (!this.grass || !this.terrainGrid || !this.heightField) return;
+    const zoomT = clampUnit(camera.zoomT);
+    const radius = grassFocusRadius(zoomT, this.terrainRect);
+    const step = Math.max(24, radius * 0.14);
+    const focus = {
+      x: Math.round(camera.x / step) * step,
+      y: Math.round(camera.y / step) * step,
+      radius,
+    };
+    const zoomBucket = Math.round(zoomT * 5);
+    const key = [
+      this.terrainGrid.w,
+      this.terrainGrid.h,
+      this.terrainGrid.cell,
+      this.terrainGrid.ox,
+      this.terrainGrid.oy,
+      this.groundCover,
+      zoomBucket,
+      Math.round(focus.x),
+      Math.round(focus.y),
+      Math.round(focus.radius),
+    ].join(":");
+    if (key === this.grassTerrainKey) return;
+    this.grassTerrainKey = key;
+    this.grass.setTerrain(this.terrainGrid, this.heightField, this.groundCover, {
+      seed: 0x7a55,
+      density: 0.48,
+      maxTufts: 4200,
+      zoomT: zoomBucket / 5,
+      focus,
+      bladeHeight: 1.0,
+      bladeWidth: 0.072,
+      bend: 0.32,
+      spread: 0.2,
+      windPhase: this.grassWindPhase,
+      windStrength: 0.075,
+    });
+  }
+
+  private updateGrassWindPhase() {
+    const seconds = this.fixedTime ?? performance.now() / 1000;
+    this.grassWindPhase = seconds * 0.58;
+    this.grass?.setWindPhase(this.grassWindPhase);
   }
 }
 
@@ -484,22 +584,28 @@ function roundMs(value: number) {
 }
 
 function cameraSnapshot(camera: Camera) {
+  const [x, y] = camera.viewCenter();
   return {
-    x: camera.x,
-    y: camera.y,
+    x,
+    y,
     zoom: camera.zoom,
-    pitch: camera.pitch ?? 0.32,
-    yaw: camera.yaw ?? 0,
+    pitch: camera.pitch,
+    yaw: camera.yaw,
+    zoomT: camera.zoomT,
+    targetOffset: camera.targetOffset,
+    perspective: camera.perspective,
   };
 }
 
 function frozenFrameKey(camera: Camera, count: number, staticSoldiers: number) {
+  const [x, y] = camera.viewCenter();
   return [
-    roundKey(camera.x),
-    roundKey(camera.y),
+    roundKey(x),
+    roundKey(y),
     roundKey(camera.zoom),
     roundKey(camera.pitch ?? 0),
     roundKey(camera.yaw ?? 0),
+    roundKey(camera.perspective ?? 0),
     count,
     staticSoldiers,
   ].join(":");
@@ -517,6 +623,16 @@ function expandedTerrainRect([x, y, w, h]: [number, number, number, number]): [
 ] {
   const margin = Math.max(120, Math.max(w, h) * 0.22);
   return [x - margin, y - margin, w + margin * 2, h + margin * 2];
+}
+
+function grassFocusRadius(zoomT: number, rect: [number, number, number, number]) {
+  const shortSide = Math.max(1, Math.min(rect[2], rect[3]));
+  const longSide = Math.max(rect[2], rect[3]);
+  return Math.min(longSide * 0.42, Math.max(120, shortSide * (0.34 - zoomT * 0.18)));
+}
+
+function clampUnit(value: number) {
+  return Math.max(0, Math.min(1, Number.isFinite(value) ? value : 0));
 }
 
 function buildDebugBlockTriangles(

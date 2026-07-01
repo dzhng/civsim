@@ -6,8 +6,9 @@ Add the reference's distance falloff: near grass remains readable, midground los
 contrast, far ridges and water fade toward the overcast sky. This slice is fog and
 aerial perspective only.
 
-Reuse the haze behaviour proven by the water work instead of creating a parallel
-battlemap effect. The reference implementation is water Slice S6:
+Reuse the haze behaviour proven by the latest water work instead of creating a
+parallel battlemap effect. The reference implementation is water Slice S6, with
+Slice S7 proving that the same soft seam survives animated water:
 
 - `packages/game-renderer/src/water/waterPlanePass.ts` computes a distance-based
   `haze01 = smoothstep(55.0, 300.0, dist)` for the lab sea plane and clears the
@@ -17,8 +18,8 @@ battlemap effect. The reference implementation is water Slice S6:
 - `packages/game-renderer/src/water/waterEnvironment.ts` owns the preset haze
   colours, with `WATER_ENVIRONMENTS.overcast.hazeColor` as the current overcast
   battlemap reference;
-- `web/scenes/system/water-haze.mjs` gates the soft seam, and the review shots
-  are archived here as
+- `web/scenes/system/water-haze.mjs` gates the soft seam, the latest review shots
+  live in `web/shots/misc/water/`, and feature-owned copies are archived here as
   `assets/water-fog-reference/haze-gerstner.png` and
   `assets/water-fog-reference/albedo-overcast.png`.
 
@@ -35,6 +36,9 @@ same mechanism switches mood by preset: the far sea approaches the pale
 grey-blue overcast haze without repainting the underlying water albedo. The
 battlemap should do the same for distant grass mass, far ridges, terrain, and
 water: fade detail first, then blend final lit colour toward the preset haze.
+Animated or time-varying passes must keep the far seam stable the way the water
+S7 rhythm shots do: motion may continue in the foreground, but distant
+high-frequency motion cannot sparkle through the haze band.
 
 This is a reuse requirement, not an inspiration note. Prefer extracting or
 threading a shared battle atmosphere/environment helper over copying new
@@ -54,6 +58,11 @@ route stats, and record why that surface needs its own distance band.
 - Apply haze in the material/shading stage for each far surface. Avoid a single
   opaque screen-space fog curtain; the reference-like effect comes from surfaces
   losing contrast into the sky while nearby grass stays readable.
+- For grass and terrain, split the water contract into two controls the same way
+  water does: suppress high-frequency detail as haze rises, then mix the lit
+  surface into the environment haze colour. Grass should lose strand/meadow
+  texture before it loses its broad mass; ridges should lose contrast before
+  their silhouette fully dissolves.
 - Publish the active haze colour, falloff bands, and participating passes in route
   stats so `battle-map-reference` evidence can prove the whole battlemap is using
   the water-derived contract.
@@ -91,6 +100,11 @@ Do not judge sky shape, cliff texture, grass density, or water material here.
   water shots. In the overcast preset, far terrain/ridge/water should approach
   the pale grey-blue `WATER_ENVIRONMENTS.overcast.hazeColor`, and the sky clear
   or sky plate should meet that value at the horizon.
+- The implementation proves reuse, not imitation: either the battle passes share
+  a named atmosphere/environment helper with water or the spec records the exact
+  temporary import/copy boundary and the follow-up needed to converge it. A pass
+  with hard-coded private fog colours fails this slice even if the screenshot
+  looks closer.
 - Compare against the archived water haze shots as an architectural reference:
   far ridges and water should dissolve into the sky with the same soft seam
   behaviour, while near grass remains readable. Use `compare-screenshots` on the

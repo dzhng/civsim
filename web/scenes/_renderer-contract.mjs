@@ -166,6 +166,8 @@ export function hasBattleWorldDepthContract(renderStats) {
     ) &&
     hasFrameDepthPass(renderStats?.phases, "battle-skinned-crowd", "read-write") &&
     hasFramePassRole(renderStats?.phases, "battle-skinned-crowd", "world-opaque", "world-depth") &&
+    hasFrameDepthPass(renderStats?.phases, "battle-soldier-shadows", "read") &&
+    hasFramePassRole(renderStats?.phases, "battle-soldier-shadows", "world-decal", "world-depth") &&
     hasFrameDepthPass(renderStats?.phases, "battle-ground-cues", "read") &&
     hasFramePassRole(renderStats?.phases, "battle-ground-cues", "world-decal", "world-depth") &&
     hasFramePass(renderStats?.phases, "battle-effect-lines", "overlay") &&

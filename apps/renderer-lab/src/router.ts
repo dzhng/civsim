@@ -14,7 +14,7 @@ import { buildLiveBattleCrowdFrame } from '../../../packages/game-renderer/src/b
 import { BattleMinimapPass } from '../../../packages/game-renderer/src/battle/minimapPass';
 import { BattleGroundCuePass, selectedUnitGroundCueVertices } from '../../../packages/game-renderer/src/battle/groundCuePass';
 import { BattleEffectLinePass } from '../../../packages/game-renderer/src/battle/effectLinePass';
-import { BattleSoldierShadowPass } from '../../../packages/game-renderer/src/battle/soldierShadowPass';
+import { SoldierShadowDecalPass } from '../../../packages/renderer-core/src/soldierShadowPass';
 import { BattleParticlePass, type BattleParticle } from '../../../packages/game-renderer/src/battle/particlePass';
 import { battleUnitsInRect, cssToBattleWorld, liveBattlePickUnits, pickBattleUnit, type BattlePickUnit, type RendererBattlePickCamera } from '../../../packages/game-renderer/src/battle/pickingDebug';
 import { BattleTerrainPass, type BattleTerrainFixture } from '../../../packages/game-renderer/src/battle/terrainPass';
@@ -222,7 +222,7 @@ async function routeBattleEffects(ctx: LabContext) {
 
   const shell = await createConfiguredShell(ctx.canvas, { x: 0, y: 0, zoom: 24, pitch: 0.28, yaw: 0 });
   const pipeline = await createSkinnedPipeline(shell, [0.20, 0.42, 0.88], vat);
-  const shadows = new BattleSoldierShadowPass(shell);
+  const shadows = new SoldierShadowDecalPass(shell);
   const fx = new BattleParticlePass(shell);
   shadows.upload(instances);
   fx.upload(particles);
@@ -285,7 +285,7 @@ async function routeBattleElevation(ctx: LabContext) {
 
   const shell = await createConfiguredShell(ctx.canvas, { x: 0, y: 0, zoom: 26, pitch: 0.30, yaw: 0 });
   const pipeline = await createSkinnedPipeline(shell, [0.20, 0.42, 0.88], vat);
-  const shadows = new BattleSoldierShadowPass(shell);
+  const shadows = new SoldierShadowDecalPass(shell);
 
   const start = performance.now();
   const tick = () => {
@@ -1625,7 +1625,7 @@ async function routeCampaignCrowdSpike(ctx: LabContext) {
   const vat = await loadPlaceholderVat();
   const meshes = createPlaceholderSoldierMeshes([0.30, 0.36, 0.74]);
   const pipeline = new SkinnedCrowdPipeline(shell, meshes, vat, kit, { worldDepth: 'campaign' });
-  const shadows = new BattleSoldierShadowPass(shell);
+  const shadows = new SoldierShadowDecalPass(shell);
   const ramp = (x: number, _y: number) => x * 0.12;
   const armyX = 0;
   const armyY = 0.5;
@@ -2533,7 +2533,7 @@ async function routeBattleTerrain3d(ctx: LabContext) {
   // height field as the terrain mesh and props, so feet and shadows ride the
   // surface (the slice-03 movement/seating invariant on the real source).
   const terrainHeight = (x: number, y: number) => terrainHeightAt(field, x, y);
-  let soldiers: { pipeline: Awaited<ReturnType<typeof createSkinnedPipeline>>; shadows: BattleSoldierShadowPass; count: number; elevationMatches: boolean; elevationSpan: number } | null = null;
+  let soldiers: { pipeline: Awaited<ReturnType<typeof createSkinnedPipeline>>; shadows: SoldierShadowDecalPass; count: number; elevationMatches: boolean; elevationSpan: number } | null = null;
   if (view === 'soldiers') {
     const vat = await loadPlaceholderVat();
     const cols = 16;
@@ -2554,7 +2554,7 @@ async function routeBattleTerrain3d(ctx: LabContext) {
     const elevs = instances.map((i) => i.elevation ?? 0);
     const pipeline = await createSkinnedPipeline(shell, [0.30, 0.36, 0.74], vat);
     pipeline.upload(instances, { forcedClip: 'march', phaseOffset: 0, size: 1 });
-    const shadows = new BattleSoldierShadowPass(shell);
+    const shadows = new SoldierShadowDecalPass(shell);
     shadows.upload(instances);
     soldiers = { pipeline, shadows, count: instances.length, elevationMatches, elevationSpan: Math.max(...elevs) - Math.min(...elevs) };
   }

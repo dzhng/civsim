@@ -134,8 +134,8 @@ Dependency: 0 informs 1. 1 unblocks 2 and 4. 2 (shadow relocated) is a dependenc
 
 ## Next Agent Prompt
 
-**Status:** Slices 0 (spike) + 1 (depth param) landed. Next: Slice 2 (shared shadow into
-battle). Last updated 2026-07-01.
+**Status:** Slices 0 (spike), 1 (depth param), 2 (shared shadow → battle) landed. Next:
+Slice 3 (figure sampler). Last updated 2026-07-01.
 
 **Environment notes (important):**
 - Build on `feat/unified-soldier-rendering`, cut from `208fdbe7`. Pulling latest
@@ -154,15 +154,19 @@ The spike's remaining value is the campaign-crowd eyeball + perf number; it will
 as a renderer-lab route on top of the real depth param next, doubling as the Slice 4
 de-risk. Read the four Key Seams above before continuing.
 
-**Start here:** Slice 2 — [shared shadow into battle](slices/02-shared-shadow-battle.md).
-Relocate `packages/game-renderer/src/battle/soldierShadowPass.ts` →
-`packages/renderer-core/src/soldierShadowPass.ts`, rename `BattleSoldierShadowPass` →
-`SoldierShadowDecalPass`, add the `worldDepthFn: 'battle' | 'campaign'` option (mirror
-Slice 1's `.replace` of `civsimBattleWorldDepth3d(world)`), and wire it into
-`web/src/battle/renderer.ts` as pass `battle-soldier-shadows` (world-decal, depth read)
-so battle soldiers finally cast shadows. Update the battle contract in
-`web/scenes/_renderer-contract.mjs`. The spike already imports `BattleSoldierShadowPass`
-from the old path — update that import (or leave the spike, since Slice 6 deletes it).
+**Start here:** Slice 3 — [figure sampler](slices/03-figure-sampler.md). Add a pure
+`packages/crowd-runtime/src/stackCrowd.ts`: `buildStackCrowd(unitsByClass, opts) ->
+CrowdInstance[]`, figure count `clamp(round(6 * unitCount / stackUnitCap), 1, 6)`, class
+mix by largest-remainder from `unitsByClass`, class id clamped via `modelLookForClass`,
+deterministic by army id, elevation from a sampler. No render change yet. Then Slice 4
+wires it into the campaign renderer (uses `{ worldDepth: 'campaign' }` +
+`SoldierShadowDecalPass(shell, { worldDepth: 'campaign' })` — both already exist).
+
+**Shared shadow module (Slice 2, done):** `packages/renderer-core/src/soldierShadowPass.ts`
+(`SoldierShadowDecalPass`, `{ worldDepth }` opt). Wired into battle as `battle-soldier-shadows`;
+battle now casts grounding shadows at skinned zoom (re-blessed battle-banner + battle-manual;
+battle-initial is impostor-only, unchanged). Old `game-renderer/.../battle/soldierShadowPass.ts`
+deleted; router.ts repointed. Reuse this exact pass in campaign in Slice 4.
 
 **Spike outcome (Slice 0, done):** GO. Shared crowd renders on campaign depth, seats on
 relief, sorts against campaign geometry, 0.85ms/6 figures. Scale decision: campaign figure
@@ -186,7 +190,9 @@ relief, sorts against campaign geometry, 0.85ms/6 figures. Scale decision: campa
 - [x] Slice 1 — parameterize scene depth in pipeline (`SoldierCrowdDepthScene`,
       `SkinnedCrowdPipeline` `{ worldDepth }` opt; battle byte-identical, verified via
       per-class-vat + battle-terrain-elevation 0px). Shadow-pass half moves to Slice 2.
-- [ ] Slice 2 — relocate shared shadow, wire into battle
+- [x] Slice 2 — relocate shared shadow → `renderer-core/soldierShadowPass.ts`
+      (`SoldierShadowDecalPass`); wired into battle (`battle-soldier-shadows`), contract
+      updated, baselines re-blessed, lab routes 0px. Battle now casts soldier shadows.
 - [ ] Slice 3 — pure representative-figure sampler
 - [ ] Slice 4 — campaign crowd replacement (+ split banner, + faction bucket)
 - [ ] Slice 5 — zoom LOD collapse

@@ -17,7 +17,19 @@ photoreal register the `aesthetics` skill targets.
 (`01`–`05`) + the photoreal-substrate bake-off (`06`). The photoreal *surface*
 slices (`07`+) are sketched in the slice graph below but **not yet authored as
 detailed files** — they are deliberately deferred until slice `06` decides the
-materials substrate (bespoke WGSL vs three.js/TSL). Nothing has been implemented.
+materials substrate (bespoke WGSL vs three.js/TSL).
+
+**Slice `01` is DONE (committed, 2026-07-02).** Landed the pure `camera3d` math
+library + `mat4` (`packages/renderer-core/src/`), reverse-Z infinite-far
+perspective, and the WebGPU-free `/renderer/camera3d-probe` route (ground grid +
+unit cube + formation, project→unproject round-trip readout). 7 unit tests green
+(`web/tests/camera3d.test.ts`). **Infra reconcile:** the `web/tests/*.test.ts`
+node:test suites (camera3d, cameraRig, grassField, grassModels) were orphaned —
+run by no gate. Added `web` script `test:unit` (`node --experimental-strip-types
+--import ./tests/register-ts-extension-loader.mjs --test tests/*.test.ts`) and
+chained it into the root `test:web`, so `check`/CI now runs all 25. camera3d is
+the single projection owner; the 2.5D fake path in `cameraUniform.ts` is untouched
+(it is collapsed in `04`/`05`, per the clean-architecture invariants).
 
 **The one decision that gates the photoreal half — resolve before authoring `07`+:**
 the *camera spine* (`01`–`05`) is settled as **bespoke** (the conversion is a small
@@ -32,10 +44,12 @@ decision procedure in that slice file (perf veto at ~33 ms / 30 fps · look pari
 harness heavily-weighted-but-tradeable · near-tie → three.js), then **re-invokes
 `/feature-slicing` with the results** to author `07`+. No human sign-off gates it.
 
-**Exact next pickup point:** start at **slice `01` (`camera3d` math library)** — it
-is pure, GPU-free, and unblocks everything. It can proceed in parallel with the
-slice `06` bake-off (the bake-off informs `07`+, not the spine). Do NOT start the
-seam flip (`04`) until `01`+`02`+`03` are green.
+**Exact next pickup point:** **slice `02` (real depth + real projection on the
+water route)** — the keystone. It consumes the `camera3d` lib from `01`: grow the
+camera uniform additively, add `projectReal` + reverse-Z depth to the water shell
+only, and prove the dome/streak artifact is gone on `/renderer/water-bakeoff`. The
+`06` bake-off can run in parallel (it only needs `01`+`02`'s water proof). Do NOT
+start the seam flip (`04`) until `01`+`02`+`03` are green.
 
 **Active blockers / coordination warnings:**
 - **Overlap with `specs/battle-map-reference/`** (active, in-flight). That spec is
@@ -57,7 +71,7 @@ seam flip (`04`) until `01`+`02`+`03` are green.
   it the `compare-screenshots` target for every photoreal surface.
 
 **Global TODO checklist:**
-- [ ] `01` — `camera3d` pure math library (renderer-core) + `/renderer/camera3d-probe`
+- [x] `01` — `camera3d` pure math library (renderer-core) + `/renderer/camera3d-probe` **(done)**
 - [ ] `02` — real depth + real projection proven on the **water route** (keystone)
 - [ ] `03` — zoom→camera rig (pure curve), battle + campaign
 - [ ] `04` — flip the shared seam → **battle** engine-wide + 3D ray-cast picking

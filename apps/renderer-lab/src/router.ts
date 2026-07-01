@@ -35,6 +35,7 @@ import { BattleGroundPass } from '../../../packages/game-renderer/src/battle/gro
 import { BattleGrassPass, type BattleGrassBounds, type BattleGrassParams, type GrassAccentAggregation, type GrassFiberShellVariant, type GrassPrimitiveFamily, type TextureVolumeProfile, type TextureVolumeRenderModel } from '../../../packages/game-renderer/src/battle/grassPass';
 import { sampleGrassField } from '../../../packages/game-renderer/src/battle/grassField';
 import { BattleHorizonPass } from '../../../packages/game-renderer/src/battle/horizonPass';
+import { eyePosition, projectPoint, unprojectToPlaneZ, type Camera3DParams } from '../../../packages/renderer-core/src/camera3d';
 import { createWaterField } from '../../../packages/game-renderer/src/water/waterField';
 import { WaterPlanePass } from '../../../packages/game-renderer/src/water/waterPlanePass';
 import {
@@ -131,6 +132,7 @@ const routes: Record<string, LabRoute> = {
   '/renderer/battle-live': routeBattleLive,
   '/renderer/card-bar': routeCardBar,
   '/renderer/water-bakeoff': routeWaterBakeoff,
+  '/renderer/camera3d-probe': routeCamera3dProbe,
 };
 
 export async function mountRendererLab(path = location.pathname) {
@@ -4178,6 +4180,103 @@ async function routeWaterBakeoff(ctx: LabContext) {
     requestAnimationFrame(tick);
   };
   tick();
+}
+
+// Slice 01 deliverable: a pure-CPU, WebGPU-free probe for the real 3D camera. It
+// draws a world ground grid, a unit cube, and a formation of dots projected
+// through `camera3d` on a 2D canvas — so perspective convergence and the
+// project→unproject round-trip are inspectable even where headless/hardware
+// WebGPU renders blank. Rig params come from the URL (?pitch&fov&distance&yaw) so
+// the framing is sweepable without slider UI.
+function routeCamera3dProbe(ctx: LabContext) {
+  ctx.canvas.style.display = 'none';
+  const W = 900, H = 600;
+  const canvas = el('canvas', 'camera3d-probe') as HTMLCanvasElement;
+  canvas.width = W;
+  canvas.height = H;
+  canvas.style.display = 'block';
+  // Take the hidden WebGPU canvas's slot in the stage flex row (before it, so the
+  // status panel stays on the right) rather than appending after the panel.
+  ctx.canvas.before(canvas);
+  const g = canvas.getContext('2d')!;
+
+  const cam: Camera3DParams = {
+    target: [0, 0, 0],
+    distance: numberParam(ctx.params, 'distance', 260),
+    pitch: numberParam(ctx.params, 'pitch', 0.5),
+    yaw: numberParam(ctx.params, 'yaw', 0),
+    fovY: numberParam(ctx.params, 'fov', 0.6),
+    aspect: W / H,
+    near: 1,
+    far: numberParam(ctx.params, 'far', 6000),
+  };
+
+  const toPixel = (world: [number, number, number]): [number, number] | null => {
+    const { ndc, clipW } = projectPoint(cam, world);
+    if (clipW <= 0) return null; // behind the eye
+    return [(ndc[0] * 0.5 + 0.5) * W, (0.5 - ndc[1] * 0.5) * H];
+  };
+  const segment = (a: [number, number, number], b: [number, number, number], style: string) => {
+    const pa = toPixel(a), pb = toPixel(b);
+    if (!pa || !pb) return;
+    g.strokeStyle = style;
+    g.beginPath();
+    g.moveTo(pa[0], pa[1]);
+    g.lineTo(pb[0], pb[1]);
+    g.stroke();
+  };
+
+  g.fillStyle = '#0b1622';
+  g.fillRect(0, 0, W, H);
+
+  // Ground grid on z = 0.
+  const EXT = 300, STEP = 30;
+  for (let x = -EXT; x <= EXT; x += STEP) segment([x, -EXT, 0], [x, EXT, 0], '#24405c');
+  for (let y = -EXT; y <= EXT; y += STEP) segment([-EXT, y, 0], [EXT, y, 0], '#24405c');
+
+  // Unit cube (side 40) sitting on the ground at the target, to read depth/scale.
+  const s = 20;
+  const cx = cam.target[0], cy = cam.target[1];
+  const corners: [number, number, number][] = [
+    [cx - s, cy - s, 0], [cx + s, cy - s, 0], [cx + s, cy + s, 0], [cx - s, cy + s, 0],
+    [cx - s, cy - s, 2 * s], [cx + s, cy - s, 2 * s], [cx + s, cy + s, 2 * s], [cx - s, cy + s, 2 * s],
+  ];
+  const edges = [[0, 1], [1, 2], [2, 3], [3, 0], [4, 5], [5, 6], [6, 7], [7, 4], [0, 4], [1, 5], [2, 6], [3, 7]];
+  for (const [a, b] of edges) segment(corners[a], corners[b], '#e8c887');
+
+  // A formation of dots; also measures the project→unproject round-trip.
+  let maxErr = 0, drawn = 0;
+  for (let fx = -120; fx <= 120; fx += 24) {
+    for (let fy = -120; fy <= 120; fy += 24) {
+      const world: [number, number, number] = [fx, fy, 0];
+      const px = toPixel(world);
+      if (!px) continue;
+      drawn++;
+      const { ndc } = projectPoint(cam, world);
+      const back = unprojectToPlaneZ(cam, ndc[0], ndc[1], 0);
+      if (back) maxErr = Math.max(maxErr, Math.hypot(back[0] - fx, back[1] - fy, back[2]));
+      g.fillStyle = '#6cc6ff';
+      g.beginPath();
+      g.arc(px[0], px[1], 3, 0, Math.PI * 2);
+      g.fill();
+    }
+  }
+
+  const eye = eyePosition(cam);
+  ctx.status.innerHTML = reportTable({
+    route: 'camera3d-probe',
+    'pitch / fov / distance / yaw': `${cam.pitch.toFixed(2)} / ${cam.fovY.toFixed(2)} / ${cam.distance.toFixed(0)} / ${cam.yaw.toFixed(2)}`,
+    'eye (world)': eye.map((v) => v.toFixed(1)).join(', '),
+    'dots projected': drawn,
+    'max round-trip error': maxErr.toExponential(2),
+  });
+  publish('camera3d-probe', true, {
+    route: 'camera3d-probe',
+    params: { pitch: cam.pitch, fovY: cam.fovY, distance: cam.distance, yaw: cam.yaw, aspect: cam.aspect },
+    eye,
+    dotsProjected: drawn,
+    maxRoundTripError: maxErr,
+  });
 }
 
 async function createConfiguredShell(canvas: HTMLCanvasElement, camera: { x: number; y: number; zoom: number; pitch?: number; yaw?: number; perspective?: number }, environment: BattleEnvironment = resolveBattleEnvironment('golden-hour')) {

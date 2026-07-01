@@ -16,7 +16,7 @@
     "fmt:check": "cargo fmt --all -- --check && bun run --cwd web format:check",
     "test": "bun run test:rust && bun run test:web",
     "test:rust": "cargo test --workspace",
-    "test:web": "bun run --cwd web test && bun run --cwd web test:ui",
+    "test:web": "bun run --cwd web test && bun run --cwd web test:ui && bun run --cwd web test:unit",
     "verify": "bun run --cwd web verify",
     "check": "bun run fmt:check && bun run lint && bun run typecheck && bun run test"
   }

@@ -3,29 +3,41 @@
 // untouched), reads zero-copy army/city arrays from wasm each frame, and
 // hands Pending battles to the battle scene (or auto-resolves them).
 
-import { Campaign, Game, start_campaign_battle, report_battle, type InitOutput } from '../wasm/game_wasm.js';
-import type { Scene } from '../scene';
-import { loadCampaignData, nearestLoc, tilePos, type CampaignData } from './data';
-import type { CamView } from './camera';
-import { CampaignRenderer } from './renderer';
-import { TerrainField } from './terrain';
-import { Territory } from './territory';
-import { Allegiance } from './status';
-import { installCampaignDebugApi, markCampaignReady } from './debugApi';
-import { fatalSurfaceFor, showFatalErrorSurface } from '../shared/fatalError';
+import { createElement, Fragment } from "react";
+import { createRoot, type Root } from "react-dom/client";
+import { flushSync } from "react-dom";
 import {
-  armyPanelHtml,
+  Campaign,
+  Game,
+  start_campaign_battle,
+  report_battle,
+  type InitOutput,
+} from "../wasm/game_wasm.js";
+import type { Scene } from "../scene";
+import { CampaignTopBar } from "../ui/campaign/CampaignTopBar";
+import { ArmyPanel } from "../ui/campaign/ArmyPanel";
+import { CityPanel } from "../ui/campaign/CityPanel";
+import { DiplomacyPanel } from "../ui/campaign/DiplomacyPanel";
+import { ClassBuilder } from "../ui/campaign/ClassBuilder";
+import { Sieges } from "../ui/campaign/Sieges";
+import { CampaignBattleModal, type EncounterSideView } from "../ui/campaign/CampaignBattleModal";
+import { loadCampaignData, nearestLoc, tilePos, type CampaignData } from "./data";
+import type { CamView } from "./camera";
+import { CampaignRenderer } from "./renderer";
+import { TerrainField } from "./terrain";
+import { Territory } from "./territory";
+import { Allegiance } from "./status";
+import { installCampaignDebugApi, markCampaignReady } from "./debugApi";
+import { fatalSurfaceFor, showFatalErrorSurface } from "../shared/fatalError";
+import {
   campaignDomHtml,
-  classBuilderHtml,
-  cityPanelHtml,
-  diplomacyHtml,
   type ArmyRosterRow,
   type ClassDoctrineRow,
   type CityDetail,
   type DiplomacyAction,
   type DiplomacyRow,
-} from './panels';
-import { readCampaignViews, type ArmyView, type CityView } from './views';
+} from "./panels";
+import { readCampaignViews, type ArmyView, type CityView } from "./views";
 
 /** Campaign ticks per real second at base speed. A tick covers
  * MINUTES_PER_TICK game-minutes (campaign tunables), so at 10 min/tick the base
@@ -34,7 +46,7 @@ import { readCampaignViews, type ArmyView, type CityView } from './views';
  * the AI cost per real-second tracks the multiplier, not the tick scale. */
 const TICKS_PER_SEC = 60;
 const SPEEDS = [1, 2, 4];
-const SAVE_KEY = 'campaign-save';
+const SAVE_KEY = "campaign-save";
 /** Ticks between a snapshot and applying the decisions it yields — must match
  *  campaign tunables AI_LATENCY. */
 const AI_LATENCY = 60;
@@ -78,6 +90,13 @@ interface SiegeView {
 export class CampaignScene implements Scene {
   private canvas!: HTMLCanvasElement;
   private ui!: HTMLDivElement;
+  private topBarRoot: Root | null = null;
+  private lastTopBarKey = "";
+  private armyRoot: Root | null = null;
+  private cityRoot: Root | null = null;
+  private diploRoot: Root | null = null;
+  private classesRoot: Root | null = null;
+  private siegesRoot: Root | null = null;
   private renderer!: CampaignRenderer;
   // Terrain/territory live across battle round-trips (enter/exit cycles).
   private field: TerrainField | null = null;
@@ -107,9 +126,9 @@ export class CampaignScene implements Scene {
    *  the campaign opens on the full parchment atlas; toggle (F) for gameplay. */
   private fogOfWar = false;
   private diploOpen = false;
-  private diploJson = '';
+  private diploJson = "";
   private classBuilderOpen = false;
-  private classBuilderJson = '';
+  private classBuilderJson = "";
   private classDraft = new Map<number, { unit: number; size: number }>();
   private armies: ArmyView[] = [];
   private cities = new Map<number, CityView>();
@@ -117,12 +136,13 @@ export class CampaignScene implements Scene {
   private stackUnitCap = 1;
   private recruitClasses: string[] = [];
   private spotPos: [number, number][] = [];
-  private modal: HTMLDivElement | null = null;
+  private modalRoot: Root | null = null;
+  private modalOpen = false;
   private autoResolving = false;
   private terrainReady = false;
   /** Signature of the currently-shown siege notifications, to avoid rebuilding
    *  the DOM (and its click handlers) every tick. */
-  private siegeSig = '';
+  private siegeSig = "";
 
   constructor(private cfg: CampaignConfig) {
     this.cam = { x: 0, y: 0, scale: 0.18 };
@@ -131,16 +151,17 @@ export class CampaignScene implements Scene {
   enter() {
     // Warm the map font (Cinzel) so the canvas labels engrave from the first
     // frames rather than flashing the serif fallback.
-    void document.fonts.load('700 40px Cinzel');
-    void document.fonts.load('600 14px Cinzel');
-    if (!document.getElementById('campaign-canvas')) this.buildDom();
-    this.canvas = document.getElementById('campaign-canvas') as HTMLCanvasElement;
-    this.ui = document.getElementById('campaign-ui') as HTMLDivElement;
-    this.canvas.style.display = 'block';
-    this.ui.style.display = 'block';
+    void document.fonts.load("700 40px Cinzel");
+    void document.fonts.load("600 14px Cinzel");
+    if (!document.getElementById("campaign-canvas")) this.buildDom();
+    this.canvas = document.getElementById("campaign-canvas") as HTMLCanvasElement;
+    this.ui = document.getElementById("campaign-ui") as HTMLDivElement;
+    this.canvas.style.display = "block";
+    this.ui.style.display = "block";
     if (this.spotPos.length === 0) {
       this.spotPos = this.cfg.data.map.ambush_spots.map((sp) =>
-        tilePos(this.cfg.data.map.edges[sp.edge], sp.tile));
+        tilePos(this.cfg.data.map.edges[sp.edge], sp.tile),
+      );
     }
     if (!this.field) {
       this.field = new TerrainField(this.cfg.data);
@@ -148,13 +169,15 @@ export class CampaignScene implements Scene {
     }
     this.terrainReady = false;
     this.renderer = new CampaignRenderer(this.canvas, this.cfg.data, this.field!, this.territory!);
-    void this.renderer.ready.then(() => {
-      this.terrainReady = true;
-      markCampaignReady(true);
-    }).catch((error: unknown) => {
-      const message = error instanceof Error ? error.message : String(error);
-      showFatalErrorSurface(this.canvas, fatalSurfaceFor('init', message));
-    });
+    void this.renderer.ready
+      .then(() => {
+        this.terrainReady = true;
+        markCampaignReady(true);
+      })
+      .catch((error: unknown) => {
+        const message = error instanceof Error ? error.message : String(error);
+        showFatalErrorSurface(this.canvas, fatalSurfaceFor("init", message));
+      });
     this.ownerHash = 0; // force a territory recolor on (re)entry
     this.ac = new AbortController();
     this.wireInput(this.ac.signal);
@@ -207,13 +230,13 @@ export class CampaignScene implements Scene {
       /** Test/verify hook: flip the political (faction) overlay on or off. */
       factionView: (on?: boolean) => {
         this.factionView = on ?? !this.factionView;
-        this.syncFactionBtn();
+        this.renderTopBar();
         return this.factionView;
       },
       /** Test/verify hook: flip gameplay fog of war on or off (off = reveal). */
       fogOfWar: (on?: boolean) => {
         this.fogOfWar = on ?? !this.fogOfWar;
-        this.syncFactionBtn();
+        this.renderTopBar();
         return this.fogOfWar;
       },
       /** world km -> CSS px (for synthetic mouse events) */
@@ -226,12 +249,18 @@ export class CampaignScene implements Scene {
         this.clampCam();
         this.drawWorld();
       },
-      camGet: () => ({ ...this.cam, pitchDeg: (this.renderer.pitchForScale(this.cam.scale) * 180) / Math.PI }),
+      camGet: () => ({
+        ...this.cam,
+        pitchDeg: (this.renderer.pitchForScale(this.cam.scale) * 180) / Math.PI,
+      }),
       territoryAlpha: () => this.renderer.territoryAlpha(this.cam.scale),
       /** Fog-of-war probe: player visibility (0..1) at a world point. */
       visAt: (x: number, y: number) => this.renderer.visibleAt(x, y),
       cellInfo: (x: number, y: number) => this.territory!.infoAt(x, y, this.cities),
-      terrainAt: (x: number, y: number) => ({ land: this.field!.landAt(x, y), height: this.field!.heightAt(x, y) }),
+      terrainAt: (x: number, y: number) => ({
+        land: this.field!.landAt(x, y),
+        height: this.field!.heightAt(x, y),
+      }),
       /** Snapshot mode: pin the water clock (campaign is already paused). */
       freeze: (on = true) => {
         this.renderer.fixedTime = on ? 0 : null;
@@ -250,11 +279,11 @@ export class CampaignScene implements Scene {
    *  snapshots, which the host applies on a fixed delay. The AI never runs in
    *  the tick loop, so this is the sole driver. */
   private startAiWorker() {
-    const worker = new Worker(new URL('./ai-worker.ts', import.meta.url), { type: 'module' });
+    const worker = new Worker(new URL("./ai-worker.ts", import.meta.url), { type: "module" });
     worker.onmessage = (e: MessageEvent<{ applyAt: number; json: string }>) => {
       this.cfg.campaign.submit_decisions_json(e.data.applyAt, e.data.json);
     };
-    worker.postMessage({ type: 'init', mapJson: this.cfg.mapJson });
+    worker.postMessage({ type: "init", mapJson: this.cfg.mapJson });
     this.aiWorker = worker;
   }
 
@@ -265,8 +294,8 @@ export class CampaignScene implements Scene {
     this.ac?.abort();
     this.ac = null;
     this.renderer?.destroy();
-    this.canvas.style.display = 'none';
-    this.ui.style.display = 'none';
+    this.canvas.style.display = "none";
+    this.ui.style.display = "none";
     this.closeModal();
   }
 
@@ -281,7 +310,11 @@ export class CampaignScene implements Scene {
       const step = c.advance_external(remaining);
       remaining -= step.advanced;
       if (step.reason === 1) {
-        this.aiWorker?.postMessage({ type: 'snapshot', applyAt: step.tick + AI_LATENCY, snap: c.save() });
+        this.aiWorker?.postMessage({
+          type: "snapshot",
+          applyAt: step.tick + AI_LATENCY,
+          snap: c.save(),
+        });
         c.ack_dispatch();
         continue;
       }
@@ -301,7 +334,7 @@ export class CampaignScene implements Scene {
         this.acc -= n;
         this.advance(n);
         this.refreshViews();
-        if (c.battle_ready() >= 0 && !this.modal) {
+        if (c.battle_ready() >= 0 && !this.modalOpen) {
           this.paused = true; // auto-pause: a battle wants a decision
           this.showBattleModal(c.battle_ready());
         }
@@ -316,7 +349,7 @@ export class CampaignScene implements Scene {
       this.updateHud();
       return;
     }
-    if (!this.autoResolving && !this.modal) this.drawWorld();
+    if (!this.autoResolving && !this.modalOpen) this.drawWorld();
     this.updateHud();
   }
 
@@ -334,7 +367,11 @@ export class CampaignScene implements Scene {
       factionStatus: this.factionStatus,
       playerFaction: this.playerFaction(),
       fogOfWar: this.fogOfWar,
-      visionSources: this.visionSources().map((source) => ({ x: source.x, y: source.y, radius: source.r })),
+      visionSources: this.visionSources().map((source) => ({
+        x: source.x,
+        y: source.y,
+        radius: source.r,
+      })),
       factionView: this.factionView,
     });
   }
@@ -353,7 +390,11 @@ export class CampaignScene implements Scene {
   // ---- state out of wasm ----------------------------------------------------
 
   private refreshViews() {
-    const views = readCampaignViews(this.cfg.campaign, this.cfg.wasm, this.cfg.data.map.edges.length);
+    const views = readCampaignViews(
+      this.cfg.campaign,
+      this.cfg.wasm,
+      this.cfg.data.map.edges.length,
+    );
     this.armies = views.armies;
     this.cities = views.cities;
     this.roadLevels = views.roadLevels;
@@ -377,24 +418,28 @@ export class CampaignScene implements Scene {
     const sieges = JSON.parse(this.cfg.campaign.sieges_json()) as SiegeView[];
     const facName = (f: number) => this.cfg.data.map.factions[f]?.name ?? `faction ${f}`;
     // Rebuild only when the set of besieged cities changes, not every tick.
-    const sig = sieges.map((s) => s.node).join(',');
-    const box = this.ui.querySelector('#cmp-sieges') as HTMLDivElement | null;
-    if (!box) return;
+    const sig = sieges.map((s) => s.node).join(",");
+    const root = this.siegesRoot;
+    if (!root) return;
     if (sig !== this.siegeSig) {
       this.siegeSig = sig;
-      box.innerHTML = sieges
-        .map(
-          (s) => `<div class="cmp-siege" data-node="${s.node}" data-x="${s.x}" data-y="${s.y}">
-            <b>⚔ ${this.cfg.data.map.nodes[s.node].name} under siege</b>
-            <div class="cmp-siege-sub">${facName(s.attacker)} at the walls — click to view</div>
-          </div>`,
-        )
-        .join('');
-      box.querySelectorAll<HTMLDivElement>('.cmp-siege').forEach((el) =>
-        el.addEventListener('click', () => {
-          this.centerCam(Number(el.dataset.x), Number(el.dataset.y));
-          this.openCityPanel(Number(el.dataset.node));
-        }),
+      const rows = sieges.map((s) => ({
+        node: s.node,
+        x: s.x,
+        y: s.y,
+        name: this.cfg.data.map.nodes[s.node].name,
+        attackerName: facName(s.attacker),
+      }));
+      flushSync(() =>
+        root.render(
+          createElement(Sieges, {
+            sieges: rows,
+            onSelect: (node, x, y) => {
+              this.centerCam(x, y);
+              this.openCityPanel(node);
+            },
+          }),
+        ),
       );
     }
   }
@@ -405,63 +450,96 @@ export class CampaignScene implements Scene {
     const cv = this.canvas;
     let dragging = false;
     let moved = false;
-    cv.addEventListener('mousedown', (e) => {
-      if (e.button === 0) {
-        dragging = true;
-        moved = false;
-      }
-    }, { signal });
-    window.addEventListener('mouseup', (e) => {
-      if (e.button === 0 && dragging) {
-        dragging = false;
-        if (!moved) this.click(e.offsetX * devicePixelRatio, e.offsetY * devicePixelRatio);
-      }
-    }, { signal });
-    cv.addEventListener('mousemove', (e) => {
-      if (dragging && (e.movementX || e.movementY)) {
-        moved = true;
-        this.cam.x -= e.movementX / this.cam.scale;
-        this.cam.y += e.movementY / this.cam.scale;
-        return;
-      }
-      // Hover mirrors click: pick the rendered marker, not a ground-plane
-      // inverse that drifts from raised markers under perspective.
-      this.hover = this.nearestRenderedArmy(e.offsetX * devicePixelRatio, e.offsetY * devicePixelRatio);
-    }, { signal });
-    cv.addEventListener('wheel', (e) => {
-      e.preventDefault();
-      const f = Math.exp(-e.deltaY * 0.0015);
-      const [wx, wy] = this.renderer.toWorld(e.offsetX * devicePixelRatio, e.offsetY * devicePixelRatio);
-      this.cam.scale = Math.min(8, this.cam.scale * f);
-      this.clampCam(); // zoom floor + new basis for zoom-to-cursor
-      const [nx, ny] = this.renderer.toWorld(e.offsetX * devicePixelRatio, e.offsetY * devicePixelRatio);
-      this.cam.x += wx - nx;
-      this.cam.y += wy - ny;
-      this.clampCam();
-    }, { signal, passive: false });
-    cv.addEventListener('contextmenu', (e) => {
-      e.preventDefault();
-      this.rightClick(e.offsetX * devicePixelRatio, e.offsetY * devicePixelRatio);
-    }, { signal });
-    window.addEventListener('keydown', (e) => {
-      if (this.modal) return;
-      if (e.key === ' ') {
+    cv.addEventListener(
+      "mousedown",
+      (e) => {
+        if (e.button === 0) {
+          dragging = true;
+          moved = false;
+        }
+      },
+      { signal },
+    );
+    window.addEventListener(
+      "mouseup",
+      (e) => {
+        if (e.button === 0 && dragging) {
+          dragging = false;
+          if (!moved) this.click(e.offsetX * devicePixelRatio, e.offsetY * devicePixelRatio);
+        }
+      },
+      { signal },
+    );
+    cv.addEventListener(
+      "mousemove",
+      (e) => {
+        if (dragging && (e.movementX || e.movementY)) {
+          moved = true;
+          this.cam.x -= e.movementX / this.cam.scale;
+          this.cam.y += e.movementY / this.cam.scale;
+          return;
+        }
+        // Hover mirrors click: pick the rendered marker, not a ground-plane
+        // inverse that drifts from raised markers under perspective.
+        this.hover = this.nearestRenderedArmy(
+          e.offsetX * devicePixelRatio,
+          e.offsetY * devicePixelRatio,
+        );
+      },
+      { signal },
+    );
+    cv.addEventListener(
+      "wheel",
+      (e) => {
         e.preventDefault();
-        this.paused = !this.paused;
-      } else if (e.key === '1') this.setSpeed(0);
-      else if (e.key === '2') this.setSpeed(1);
-      else if (e.key === '3') this.setSpeed(2);
-      else if (e.key === 'h' && this.selected >= 0) {
-        this.cfg.campaign.order_halt(this.selected);
-        this.refreshViews();
-      } else if (e.key === 'v') {
-        this.factionView = !this.factionView;
-        this.syncFactionBtn();
-      } else if (e.key === 'f') {
-        this.fogOfWar = !this.fogOfWar;
-        this.syncFactionBtn();
-      }
-    }, { signal });
+        const f = Math.exp(-e.deltaY * 0.0015);
+        const [wx, wy] = this.renderer.toWorld(
+          e.offsetX * devicePixelRatio,
+          e.offsetY * devicePixelRatio,
+        );
+        this.cam.scale = Math.min(8, this.cam.scale * f);
+        this.clampCam(); // zoom floor + new basis for zoom-to-cursor
+        const [nx, ny] = this.renderer.toWorld(
+          e.offsetX * devicePixelRatio,
+          e.offsetY * devicePixelRatio,
+        );
+        this.cam.x += wx - nx;
+        this.cam.y += wy - ny;
+        this.clampCam();
+      },
+      { signal, passive: false },
+    );
+    cv.addEventListener(
+      "contextmenu",
+      (e) => {
+        e.preventDefault();
+        this.rightClick(e.offsetX * devicePixelRatio, e.offsetY * devicePixelRatio);
+      },
+      { signal },
+    );
+    window.addEventListener(
+      "keydown",
+      (e) => {
+        if (this.modalOpen) return;
+        if (e.key === " ") {
+          e.preventDefault();
+          this.paused = !this.paused;
+        } else if (e.key === "1") this.setSpeed(0);
+        else if (e.key === "2") this.setSpeed(1);
+        else if (e.key === "3") this.setSpeed(2);
+        else if (e.key === "h" && this.selected >= 0) {
+          this.cfg.campaign.order_halt(this.selected);
+          this.refreshViews();
+        } else if (e.key === "v") {
+          this.factionView = !this.factionView;
+          this.renderTopBar();
+        } else if (e.key === "f") {
+          this.fogOfWar = !this.fogOfWar;
+          this.renderTopBar();
+        }
+      },
+      { signal },
+    );
   }
 
   private click(px: number, py: number) {
@@ -470,10 +548,11 @@ export class CampaignScene implements Scene {
     const best = this.nearestRenderedArmy(px, py);
     this.selected = best;
     if (best >= 0) this.selectedCity = -1; // an army takes the selection from a city
-    const loc = best < 0 ? nearestLoc(this.cfg.data.map, wx, wy, Math.max(8, 18 / this.cam.scale)) : null;
-    if (loc && loc.kind === 0 && this.cfg.data.map.nodes[loc.a].kind === 'city') {
+    const loc =
+      best < 0 ? nearestLoc(this.cfg.data.map, wx, wy, Math.max(8, 18 / this.cam.scale)) : null;
+    if (loc && loc.kind === 0 && this.cfg.data.map.nodes[loc.a].kind === "city") {
       this.openCityPanel(loc.a);
-    } else if (loc && loc.kind === 0 && this.cfg.data.map.nodes[loc.a].kind === 'junction') {
+    } else if (loc && loc.kind === 0 && this.cfg.data.map.nodes[loc.a].kind === "junction") {
       this.openJunctionPanel(loc.a);
     } else if (best < 0) {
       const city = this.nearestRenderedCity(px, py);
@@ -507,7 +586,7 @@ export class CampaignScene implements Scene {
     let bestD = maxPx;
     for (let i = 0; i < this.cfg.data.map.nodes.length; i++) {
       const node = this.cfg.data.map.nodes[i];
-      if (node.kind !== 'city') continue;
+      if (node.kind !== "city") continue;
       const [sx, sy] = this.renderer.toScreen(node.pos[0], node.pos[1]);
       const d = Math.hypot(sx - px, sy - py);
       if (d < bestD) {
@@ -558,13 +637,13 @@ export class CampaignScene implements Scene {
     if (!info) return;
     const my = info.player_faction;
     const facName = (f: number) => this.cfg.data.map.factions[f]?.name ?? `faction ${f}`;
-    const side = (s: EncounterSide, label: string, noRetreat: boolean) => `
-      <div class="cmp-side">
-        <h3>${label}${s.garrison ? ' (garrison)' : ''}</h3>
-        <div>${facName(s.faction)}</div>
-        <div>${s.soldiers} soldiers</div>
-        ${noRetreat ? '<div class="cmp-warn">NO RETREAT — destroyed if defeated</div>' : ''}
-      </div>`;
+    const sideView = (s: EncounterSide, label: string, noRetreat: boolean): EncounterSideView => ({
+      label,
+      garrison: s.garrison,
+      factionName: facName(s.faction),
+      soldiers: s.soldiers,
+      noRetreat,
+    });
     const mineInvolved = info.attacker.faction === my || info.defender.faction === my;
     // Jump the camera to where the fight is so the player sees the threat
     // behind the (semi-transparent) modal. Prefer the defender — that is the
@@ -577,36 +656,34 @@ export class CampaignScene implements Scene {
       this.centerCam(at.x, at.y);
       this.drawWorld(); // one render at the new camera before the modal covers it
     }
-    this.modal = document.createElement('div');
-    this.modal.className = 'cmp-modal';
-    this.modal.innerHTML = `
-      <div class="cmp-box">
-        <h2>${info.ambush ? 'AMBUSH!' : 'Battle'}</h2>
-        <div class="cmp-sides">
-          ${side(info.attacker, 'Attacker', info.no_retreat[0])}
-          ${side(info.defender, 'Defender', info.no_retreat[1])}
-        </div>
-        ${info.reinforcements > 0 ? `<div>${info.reinforcements} nearby armies will join with delay</div>` : ''}
-        <div class="cmp-actions">
-          ${mineInvolved ? '<button id="cmp-fight">Fight</button>' : ''}
-          <button id="cmp-auto">Auto-resolve</button>
-        </div>
-      </div>`;
-    this.ui.appendChild(this.modal);
-    this.modal.querySelector('#cmp-fight')?.addEventListener('click', () => this.fight(eid));
-    this.modal.querySelector('#cmp-auto')?.addEventListener('click', () => this.autoResolve(eid));
+    this.modalOpen = true;
+    const root = this.modalRoot;
+    if (root)
+      flushSync(() =>
+        root.render(
+          createElement(CampaignBattleModal, {
+            ambush: info.ambush,
+            attacker: sideView(info.attacker, "Attacker", info.no_retreat[0]),
+            defender: sideView(info.defender, "Defender", info.no_retreat[1]),
+            reinforcements: info.reinforcements,
+            mineInvolved,
+            onFight: () => this.fight(eid),
+            onAuto: () => this.autoResolve(eid),
+          }),
+        ),
+      );
   }
 
   private closeModal() {
-    this.modal?.remove();
-    this.modal = null;
+    this.modalOpen = false;
+    this.modalRoot?.render(null);
   }
 
   private fight(eid: number) {
     this.closeModal();
     const c = this.cfg.campaign;
     try {
-      localStorage.setItem(SAVE_KEY + '-auto', c.save());
+      localStorage.setItem(SAVE_KEY + "-auto", c.save());
     } catch {}
     const game = start_campaign_battle(c, eid);
     if (!game) return;
@@ -623,8 +700,8 @@ export class CampaignScene implements Scene {
     const game = start_campaign_battle(c, eid);
     if (!game) return;
     this.autoResolving = true;
-    const overlay = document.createElement('div');
-    overlay.className = 'cmp-modal';
+    const overlay = document.createElement("div");
+    overlay.className = "cmp-modal";
     overlay.innerHTML = `<div class="cmp-box"><h2>Resolving battle…</h2><div id="cmp-prog">0:00</div></div>`;
     this.ui.appendChild(overlay);
     // Match the native headless auto-resolve cap: long grinds are decided by
@@ -635,8 +712,8 @@ export class CampaignScene implements Scene {
       const v = game.auto_step(30 * 10); // 10 battle-seconds per frame
       ticks += 30 * 10;
       const secs = Math.floor(ticks / 30);
-      overlay.querySelector('#cmp-prog')!.textContent =
-        `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')} battle time`;
+      overlay.querySelector("#cmp-prog")!.textContent =
+        `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, "0")} battle time`;
       if (v >= 0 || ticks >= cap) {
         report_battle(c, game);
         game.free();
@@ -653,60 +730,111 @@ export class CampaignScene implements Scene {
   // ---- DOM --------------------------------------------------------------------
 
   private buildDom() {
-    const cv = document.createElement('canvas');
-    cv.id = 'campaign-canvas';
-    cv.style.cssText = 'position:fixed;inset:0;width:100vw;height:100vh;display:none;';
+    const cv = document.createElement("canvas");
+    cv.id = "campaign-canvas";
+    cv.style.cssText = "position:fixed;inset:0;width:100vw;height:100vh;display:none;";
     document.body.appendChild(cv);
-    const ui = document.createElement('div');
-    ui.id = 'campaign-ui';
-    ui.style.display = 'none';
+    const ui = document.createElement("div");
+    ui.id = "campaign-ui";
+    ui.style.display = "none";
     ui.innerHTML = campaignDomHtml();
     document.body.appendChild(ui);
-    ui.querySelector('#cmp-pause')!.addEventListener('click', () => (this.paused = !this.paused));
-    ui.querySelectorAll<HTMLButtonElement>('button[data-speed]').forEach((b) =>
-      b.addEventListener('click', () => this.setSpeed(Number(b.dataset.speed))),
-    );
-    ui.querySelector('#cmp-save')!.addEventListener('click', () => {
-      const c = this.cfg.campaign;
-      if (c.can_save()) {
-        try {
-          localStorage.setItem(SAVE_KEY, c.save());
-        } catch {}
-      }
-    });
-    ui.querySelector('#cmp-exit')!.addEventListener('click', () => this.cfg.onExit());
-    ui.querySelector('#cmp-diplo-btn')!.addEventListener('click', () => this.toggleDiplomacy());
-    ui.querySelector('#cmp-classes-btn')!.addEventListener('click', () => this.toggleClassBuilder());
-    ui.querySelector('#cmp-factions')!.addEventListener('click', () => {
-      this.factionView = !this.factionView;
-      this.syncFactionBtn();
-    });
-    ui.querySelector('#cmp-fog')!.addEventListener('click', () => {
-      this.fogOfWar = !this.fogOfWar;
-      this.syncFactionBtn();
-    });
-    this.syncFactionBtn();
+    // The top bar is React (CampaignTopBar); its handlers call the same scene
+    // methods the old inline listeners did. renderTopBar() feeds it state and is
+    // the successor of the old imperative #cmp-date/#cmp-gold/.on updates.
+    this.topBarRoot = createRoot(ui.querySelector("#cmp-topbar-root")!);
+    this.renderTopBar();
+    this.armyRoot = createRoot(ui.querySelector("#cmp-army")!);
+    this.cityRoot = createRoot(ui.querySelector("#cmp-city")!);
+    this.diploRoot = createRoot(ui.querySelector("#cmp-diplomacy")!);
+    this.classesRoot = createRoot(ui.querySelector("#cmp-classes")!);
+    this.siegesRoot = createRoot(ui.querySelector("#cmp-sieges")!);
+    this.modalRoot = createRoot(ui.querySelector("#cmp-modal-root")!);
   }
 
-  /** Reflect the view-toggle flags on their HUD buttons (lit when active). */
-  private syncFactionBtn() {
-    this.ui?.querySelector('#cmp-factions')?.classList.toggle('on', this.factionView);
-    this.ui?.querySelector('#cmp-fog')?.classList.toggle('on', this.fogOfWar);
+  private saveCampaign() {
+    const c = this.cfg.campaign;
+    if (c.can_save()) {
+      try {
+        localStorage.setItem(SAVE_KEY, c.save());
+      } catch {}
+    }
+  }
+
+  /** Render the React top bar with current state — the ≤5Hz bridge. Skips when
+   * nothing visible changed (called every updateHud, i.e. per render frame). */
+  private renderTopBar() {
+    if (!this.topBarRoot) return;
+    const t = this.cfg.campaign.current_tick();
+    const day = Math.floor(t / 1440) + 1;
+    const mins = t % 1440;
+    const hh = String(Math.floor(mins / 60)).padStart(2, "0");
+    const mm = String(Math.floor(mins % 60)).padStart(2, "0");
+    const dateText = `Day ${day}, ${hh}:${mm}${this.paused ? "  ⏸ PAUSED" : `  ${SPEEDS[this.speed]}×`}`;
+    const eco = JSON.parse(this.cfg.campaign.economy_json()) as {
+      treasury: number;
+      monthly_income: number;
+      monthly_upkeep: number;
+      monthly_net: number;
+    };
+    const sign = eco.monthly_net >= 0 ? "+" : "";
+    const goldText = `${eco.treasury.toLocaleString()} gold  (${sign}${eco.monthly_net.toLocaleString()}/mo: +${eco.monthly_income.toLocaleString()} −${eco.monthly_upkeep.toLocaleString()})`;
+    const key = `${dateText}|${goldText}|${this.factionView}|${this.fogOfWar}|${this.diploOpen}|${this.classBuilderOpen}`;
+    if (key === this.lastTopBarKey) return;
+    this.lastTopBarKey = key;
+    this.topBarRoot.render(
+      createElement(CampaignTopBar, {
+        dateText,
+        goldText,
+        paused: this.paused,
+        speed: this.speed,
+        factionView: this.factionView,
+        fog: this.fogOfWar,
+        diploOpen: this.diploOpen,
+        classesOpen: this.classBuilderOpen,
+        onPause: () => {
+          this.paused = !this.paused;
+          this.renderTopBar();
+        },
+        onSpeed: (i) => {
+          this.setSpeed(i);
+          this.renderTopBar();
+        },
+        onFactions: () => {
+          this.factionView = !this.factionView;
+          this.renderTopBar();
+        },
+        onFog: () => {
+          this.fogOfWar = !this.fogOfWar;
+          this.renderTopBar();
+        },
+        onDiplomacy: () => {
+          this.toggleDiplomacy();
+          this.renderTopBar();
+        },
+        onClasses: () => {
+          this.toggleClassBuilder();
+          this.renderTopBar();
+        },
+        onSave: () => this.saveCampaign(),
+        onExit: () => this.cfg.onExit(),
+      }),
+    );
   }
 
   private toggleDiplomacy() {
     this.diploOpen = !this.diploOpen;
-    const panel = this.ui.querySelector('#cmp-diplomacy') as HTMLDivElement;
-    panel.style.display = this.diploOpen ? 'block' : 'none';
-    this.ui.querySelector('#cmp-diplo-btn')!.classList.toggle('on', this.diploOpen);
+    const panel = this.ui.querySelector("#cmp-diplomacy") as HTMLDivElement;
+    panel.style.display = this.diploOpen ? "block" : "none";
+    // The #cmp-diplo-btn lit state is the React top bar's (diploOpen prop).
     if (this.diploOpen) this.updateDiplomacyPanel();
   }
 
   private toggleClassBuilder() {
     this.classBuilderOpen = !this.classBuilderOpen;
-    const panel = this.ui.querySelector('#cmp-classes') as HTMLDivElement;
-    panel.style.display = this.classBuilderOpen ? 'block' : 'none';
-    this.ui.querySelector('#cmp-classes-btn')!.classList.toggle('on', this.classBuilderOpen);
+    const panel = this.ui.querySelector("#cmp-classes") as HTMLDivElement;
+    panel.style.display = this.classBuilderOpen ? "block" : "none";
+    // The #cmp-classes-btn lit state is the React top bar's (classesOpen prop).
     if (this.classBuilderOpen) this.updateClassBuilderPanel(true);
   }
 
@@ -715,9 +843,7 @@ export class CampaignScene implements Scene {
     const json = this.cfg.campaign.diplomacy_json();
     if (json === this.diploJson) return; // unchanged — keep the live DOM/listeners
     this.diploJson = json;
-    const panel = this.ui.querySelector('#cmp-diplomacy') as HTMLDivElement;
     const list = JSON.parse(json) as DiplomacyRow[];
-    panel.innerHTML = diplomacyHtml(list);
     const actions: Record<DiplomacyAction, (other: number) => boolean> = {
       declare_war: (other) => this.cfg.campaign.declare_war(other),
       make_peace: (other) => this.cfg.campaign.make_peace(other),
@@ -725,40 +851,26 @@ export class CampaignScene implements Scene {
       break_alliance: (other) => this.cfg.campaign.break_alliance(other),
       gift_gold: (other) => this.cfg.campaign.gift_gold(other, 200),
     };
-    panel.querySelectorAll<HTMLButtonElement>('button[data-act]').forEach((b) =>
-      b.addEventListener('click', () => {
-        const other = Number(b.dataset.f);
-        const act = b.dataset.act as DiplomacyAction | undefined;
-        if (act) actions[act](other);
-        this.refreshViews();
-        this.updateDiplomacyPanel();
-      }),
-    );
-
+    const root = this.diploRoot;
+    if (root)
+      flushSync(() =>
+        root.render(
+          createElement(DiplomacyPanel, {
+            list,
+            onAction: (act, other) => {
+              actions[act](other);
+              this.refreshViews();
+              this.updateDiplomacyPanel();
+            },
+          }),
+        ),
+      );
   }
 
   private updateHud() {
-    const t = this.cfg.campaign.current_tick();
-    const day = Math.floor(t / 1440) + 1;
-    const mins = t % 1440;
-    const hh = String(Math.floor(mins / 60)).padStart(2, '0');
-    const mm = String(Math.floor(mins % 60)).padStart(2, '0');
-    const date = this.ui.querySelector('#cmp-date')!;
-    date.textContent = `Day ${day}, ${hh}:${mm}${this.paused ? '  ⏸ PAUSED' : `  ${SPEEDS[this.speed]}×`}`;
-    // Gold plus the monthly books (income − heavy upkeep = net), the "set policy,
-    // watch the books" payoff. The realm settles once a game-month.
-    const eco = JSON.parse(this.cfg.campaign.economy_json()) as {
-      treasury: number;
-      monthly_income: number;
-      monthly_upkeep: number;
-      monthly_net: number;
-    };
-    const sign = eco.monthly_net >= 0 ? '+' : '';
-    this.ui.querySelector('#cmp-gold')!.textContent =
-      `${eco.treasury.toLocaleString()} gold  (${sign}${eco.monthly_net.toLocaleString()}/mo: +${eco.monthly_income.toLocaleString()} −${eco.monthly_upkeep.toLocaleString()})`;
-    this.ui.querySelectorAll<HTMLButtonElement>('button[data-speed]').forEach((b) =>
-      b.classList.toggle('on', !this.paused && Number(b.dataset.speed) === this.speed),
-    );
+    // The date/gold readout, speed lights, and view-toggle lights are the React
+    // top bar now — renderTopBar() formats them and skips when nothing changed.
+    this.renderTopBar();
     this.updateDiplomacyPanel(); // cheap no-op unless open and changed
     this.updateClassBuilderPanel(); // cheap no-op unless open and changed
   }
@@ -771,55 +883,62 @@ export class CampaignScene implements Scene {
     const rows = (JSON.parse(json) as ClassDoctrineRow[]).map((r) => {
       const d = this.classDraft.get(r.classIndex);
       if (!d) return r;
-      return { ...r, selected: d.unit, sizeMult: d.size, dirty: d.unit !== r.selected || d.size !== r.sizeMult };
+      return {
+        ...r,
+        selected: d.unit,
+        sizeMult: d.size,
+        dirty: d.unit !== r.selected || d.size !== r.sizeMult,
+      };
     });
-    const panel = this.ui.querySelector('#cmp-classes') as HTMLDivElement;
-    panel.innerHTML = classBuilderHtml(rows);
-    panel.querySelectorAll<HTMLButtonElement>('button[data-unit]').forEach((b) =>
-      b.addEventListener('click', () => {
-        const cls = Number(b.dataset.class);
-        const unit = Number(b.dataset.unit);
-        const row = rows.find((r) => r.classIndex === cls);
-        if (!row) return;
-        this.classDraft.set(cls, { unit, size: row.sizeMult });
-        this.updateClassBuilderPanel(true);
-      }),
-    );
-    panel.querySelectorAll<HTMLButtonElement>('button[data-size]').forEach((b) =>
-      b.addEventListener('click', () => {
-        const cls = Number(b.dataset.class);
-        const size = Number(b.dataset.size);
-        const row = rows.find((r) => r.classIndex === cls);
-        if (!row) return;
-        this.classDraft.set(cls, { unit: row.selected, size });
-        this.updateClassBuilderPanel(true);
-      }),
-    );
-    panel.querySelectorAll<HTMLButtonElement>('button[data-apply]').forEach((b) =>
-      b.addEventListener('click', () => {
-        const cls = Number(b.dataset.apply);
-        const draft = this.classDraft.get(cls);
-        if (draft && this.cfg.campaign.order_set_class_doctrine(cls, draft.unit, draft.size)) {
-          this.classDraft.delete(cls);
-          this.refreshViews();
-          this.updateClassBuilderPanel(true);
-        }
-      }),
-    );
+    const root = this.classesRoot;
+    if (root)
+      flushSync(() =>
+        root.render(
+          createElement(ClassBuilder, {
+            rows,
+            // Selecting a unit/size stages it in the draft (its dirty flag lights
+            // Apply); the row's live selected/size drives the fallback for the other.
+            onSelectUnit: (cls, unit) => {
+              const row = rows.find((r) => r.classIndex === cls);
+              if (!row) return;
+              this.classDraft.set(cls, { unit, size: row.sizeMult });
+              this.updateClassBuilderPanel(true);
+            },
+            onSelectSize: (cls, size) => {
+              const row = rows.find((r) => r.classIndex === cls);
+              if (!row) return;
+              this.classDraft.set(cls, { unit: row.selected, size });
+              this.updateClassBuilderPanel(true);
+            },
+            onApply: (cls) => {
+              const draft = this.classDraft.get(cls);
+              if (
+                draft &&
+                this.cfg.campaign.order_set_class_doctrine(cls, draft.unit, draft.size)
+              ) {
+                this.classDraft.delete(cls);
+                this.refreshViews();
+                this.updateClassBuilderPanel(true);
+              }
+            },
+          }),
+        ),
+      );
   }
 
   private updateArmyPanel() {
-    const panel = this.ui.querySelector('#cmp-army') as HTMLDivElement;
-    if (this.selected < 0) {
-      panel.style.display = 'none';
+    const panel = this.ui.querySelector("#cmp-army") as HTMLDivElement;
+    const roster =
+      this.selected < 0
+        ? null
+        : (JSON.parse(this.cfg.campaign.army_roster_json(this.selected)) as ArmyRosterRow[] | null);
+    if (this.selected < 0 || !roster) {
+      panel.style.display = "none";
+      this.armyRoot?.render(null);
       return;
     }
-    const roster = JSON.parse(this.cfg.campaign.army_roster_json(this.selected)) as ArmyRosterRow[] | null;
-    if (!roster) {
-      panel.style.display = 'none';
-      return;
-    }
-    const me = this.armies.find((a) => a.id === this.selected);
+    const id = this.selected;
+    const me = this.armies.find((a) => a.id === id);
     // merge candidate: another of my halted armies on the same/adjacent tile
     const buddy = me
       ? this.armies.find((a) => a.mine && a.id !== me.id && Math.hypot(a.x - me.x, a.y - me.y) < 6)
@@ -828,88 +947,121 @@ export class CampaignScene implements Scene {
     const spotIdx = me
       ? this.spotPos.findIndex(([x, y]) => Math.hypot(x - me.x, y - me.y) < 2.6)
       : -1;
-    const autoReplenish = this.cfg.campaign.army_auto_replenish(this.selected);
-    panel.innerHTML = armyPanelHtml(this.selected, roster, me, buddy, spotIdx, autoReplenish);
-    panel.style.display = 'block';
-    panel.querySelector('#cmp-auto-replenish')?.addEventListener('change', (e) => {
-      const on = (e.currentTarget as HTMLInputElement).checked;
-      this.cfg.campaign.order_auto_replenish(this.selected, on);
-      this.refreshViews();
-      this.updateArmyPanel();
-    });
-    panel.querySelector('#cmp-halt')?.addEventListener('click', () => {
-      this.cfg.campaign.order_halt(this.selected);
-      this.refreshViews();
-    });
-    panel.querySelector('#cmp-ambush')?.addEventListener('click', () => {
-      if (spotIdx >= 0 && this.cfg.campaign.order_ambush(this.selected, spotIdx)) {
-        this.refreshViews();
-        this.updateArmyPanel();
-      }
-    });
-    panel.querySelector('#cmp-camp')?.addEventListener('click', () => {
-      if (this.cfg.campaign.order_camp(this.selected)) {
-        this.refreshViews();
-        this.updateArmyPanel();
-      }
-    });
-    panel.querySelector('#cmp-split')?.addEventListener('click', () => {
-      let mask = 0;
-      panel.querySelectorAll<HTMLInputElement>('input[data-entry]:checked').forEach((b) => {
-        mask |= 1 << Number(b.dataset.entry);
-      });
-      if (mask && this.cfg.campaign.order_split(this.selected, mask)) {
-        this.refreshViews();
-        this.updateArmyPanel();
-      }
-    });
-    panel.querySelector('#cmp-merge')?.addEventListener('click', () => {
-      if (buddy && this.cfg.campaign.order_merge(buddy.id, this.selected)) {
-        this.refreshViews();
-        this.updateArmyPanel();
-      }
-    });
+    const autoReplenish = this.cfg.campaign.army_auto_replenish(id);
+    panel.style.display = "block";
+    const root = this.armyRoot;
+    // flushSync so the panel DOM is live synchronously (matching the old
+    // innerHTML), for the debug API and any synchronous test read.
+    if (root)
+      flushSync(() =>
+        root.render(
+          createElement(ArmyPanel, {
+            armyId: id,
+            roster,
+            me,
+            buddy,
+            spotIdx,
+            autoReplenish,
+            onAutoReplenish: (on) => {
+              this.cfg.campaign.order_auto_replenish(id, on);
+              this.refreshViews();
+              this.updateArmyPanel();
+            },
+            onHalt: () => {
+              this.cfg.campaign.order_halt(id);
+              this.refreshViews();
+            },
+            onAmbush: () => {
+              if (spotIdx >= 0 && this.cfg.campaign.order_ambush(id, spotIdx)) {
+                this.refreshViews();
+                this.updateArmyPanel();
+              }
+            },
+            onCamp: () => {
+              if (this.cfg.campaign.order_camp(id)) {
+                this.refreshViews();
+                this.updateArmyPanel();
+              }
+            },
+            onSplit: (mask) => {
+              if (this.cfg.campaign.order_split(id, mask)) {
+                this.refreshViews();
+                this.updateArmyPanel();
+              }
+            },
+            onMerge: () => {
+              if (buddy && this.cfg.campaign.order_merge(buddy.id, id)) {
+                this.refreshViews();
+                this.updateArmyPanel();
+              }
+            },
+          }),
+        ),
+      );
   }
 
   private openCityPanel(node: number) {
     this.selectedCity = node;
-    const panel = this.ui.querySelector('#cmp-city') as HTMLDivElement;
+    const panel = this.ui.querySelector("#cmp-city") as HTMLDivElement;
     const c = this.cities.get(node);
     if (!c) return;
-    const mineCity = this.cfg.data.map.factions[c.owner]?.playable !== undefined && c.owner === this.playerFaction();
+    const mineCity =
+      this.cfg.data.map.factions[c.owner]?.playable !== undefined &&
+      c.owner === this.playerFaction();
     const detail = JSON.parse(this.cfg.campaign.city_json(node)) as CityDetail | null;
     if (!detail) return;
-    panel.innerHTML = cityPanelHtml(this.cfg.data, node, c, mineCity, detail, this.recruitClasses);
-    panel.style.display = 'block';
-    // Policy dials: drag a slider to set the city's focus/throttle. Read both so
-    // changing one keeps the other; the city auto-develops from here.
-    const policyInputs = panel.querySelectorAll<HTMLInputElement>('input[data-policy]');
-    const applyPolicy = () => {
-      const get = (k: string) =>
-        Number(panel.querySelector<HTMLInputElement>(`input[data-policy="${k}"]`)?.value ?? 0);
-      this.cfg.campaign.order_set_city_policy(node, get('focus'), get('throttle'));
-      this.refreshViews();
-    };
-    policyInputs.forEach((b) => b.addEventListener('change', applyPolicy));
-    panel.querySelectorAll<HTMLButtonElement>('button[data-recruit]').forEach((b) =>
-      b.addEventListener('click', () => {
-        this.cfg.campaign.order_recruit(node, Number(b.dataset.recruit), 240);
-        this.refreshViews();
-        this.openCityPanel(node);
-      }),
-    );
+    const n = this.cfg.data.map.nodes[node];
+    panel.style.display = "block";
+    const root = this.cityRoot;
+    if (root)
+      flushSync(() =>
+        root.render(
+          createElement(CityPanel, {
+            name: n.name,
+            tier: n.tier,
+            factionName: this.cfg.data.map.factions[c.owner]?.name ?? "?",
+            garrison: c.garrison,
+            queue: c.queue,
+            mineCity,
+            detail,
+            recruitClasses: this.recruitClasses,
+            // Read both dials so setting one keeps the other; the city auto-develops.
+            onPolicy: (focus, throttle) => {
+              this.cfg.campaign.order_set_city_policy(node, focus, throttle);
+              this.refreshViews();
+            },
+            onRecruit: (i) => {
+              this.cfg.campaign.order_recruit(node, i, 240);
+              this.refreshViews();
+              this.openCityPanel(node);
+            },
+          }),
+        ),
+      );
   }
 
   private openJunctionPanel(node: number) {
     this.selectedCity = -1;
-    const panel = this.ui.querySelector('#cmp-city') as HTMLDivElement;
-    panel.innerHTML = `<b>${this.cfg.data.map.nodes[node].name}</b> (junction)`;
-    panel.style.display = 'block';
+    const panel = this.ui.querySelector("#cmp-city") as HTMLDivElement;
+    panel.style.display = "block";
+    const root = this.cityRoot;
+    if (root)
+      flushSync(() =>
+        root.render(
+          createElement(
+            Fragment,
+            null,
+            createElement("b", null, this.cfg.data.map.nodes[node].name),
+            " (junction)",
+          ),
+        ),
+      );
   }
 
   private closeCityPanel() {
     this.selectedCity = -1;
-    (this.ui.querySelector('#cmp-city') as HTMLDivElement).style.display = 'none';
+    (this.ui.querySelector("#cmp-city") as HTMLDivElement).style.display = "none";
+    this.cityRoot?.render(null);
   }
 
   private playerFaction(): number {
@@ -926,11 +1078,16 @@ export class CampaignScene implements Scene {
     this.factionStatus.fill(Allegiance.Neutral);
     const pf = this.playerFaction();
     if (pf >= 0 && pf < facs.length) this.factionStatus[pf] = Allegiance.Friend;
-    for (const f of JSON.parse(this.cfg.campaign.diplomacy_json()) as { id: number; relation: string }[]) {
+    for (const f of JSON.parse(this.cfg.campaign.diplomacy_json()) as {
+      id: number;
+      relation: string;
+    }[]) {
       this.factionStatus[f.id] =
-        f.relation === 'war' ? Allegiance.Foe :
-        f.relation === 'alliance' || f.relation === 'self' ? Allegiance.Friend :
-        Allegiance.Neutral;
+        f.relation === "war"
+          ? Allegiance.Foe
+          : f.relation === "alliance" || f.relation === "self"
+            ? Allegiance.Friend
+            : Allegiance.Neutral;
     }
   }
 

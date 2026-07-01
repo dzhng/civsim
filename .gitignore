@@ -17,6 +17,6 @@ crates/*/tests/dbg*.rs
 # highlighted pixel diffs from a failed snapCheck (regenerated every run)
 web/shots/diff/
 
-# scenario:renderer writes a per-run JSON summary here; regenerated every run,
+# scene:renderer writes a per-run JSON summary here; regenerated every run,
 # never committed. The tracked README + *.example.json baseline stay.
 web/reports/rendering/scenario-runs/

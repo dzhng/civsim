@@ -9,22 +9,19 @@ so it stops being copy-pasted.
 
 ## Next Agent Prompt
 
-**Status:** all surfaces rewritten to bronze (S2–S5 done); S1 (full token
-extraction / de-dup) remains. _Last updated: 2026-06-30._
+**Status:** DONE. S2–S5 (bronze rewrite) shipped; **S1 (token extraction / de-dup)
+was subsumed by and completed in the React migration** — see
+`specs/done/ui-react-migration/`. The tokens now live in one source
+(`web/src/ui/theme/bronze.css`), the card-bar/toolbar literals reference them via
+`var()`, and the lab CSS fork was deleted. _Last updated: 2026-07-01._
 
-**What's left:** finish **S1** — the chrome currently lives as `:root` tokens in
-`web/index.html` plus inline values still duplicated in the lab `installStyles` and
-in the card-bar/toolbar rules. Move the tokens + a small class set to one source
-both shells consume, and refactor the duplicates onto it (this also closes the
-card-bar S5 CSS-dedup). Then the polish tail: native `<select>` styling, the
-`#menu-renderer-status` notice, and any surface that still reads cool against the
-references.
+**What's left:** only the optional polish tail (native `<select>` styling, the
+`#menu-renderer-status` notice) — cosmetic, not blocking.
 
 **Global TODO:**
-- [~] S1 — shared bronze-chrome design system. **Tokens seeded** in `index.html`
-  `:root` (`--bronze-fill/-edge/-frame/-ink`, `--well-*`); still to do: move them to
-  one source both shells consume, and refactor the card bar / toolbar off their
-  inline values (and the lab copy). (`slices/01-design-system.md`)
+- [x] S1 — shared bronze-chrome design system. **Done via the React migration**
+  (`specs/done/ui-react-migration/`): tokens in one source `web/src/ui/theme/bronze.css`,
+  card bar / toolbar refactored onto `var()`, lab CSS fork deleted. (`slices/01-design-system.md`)
 - [x] S2 — top buttons (`#buttons`) + unit-info panel (`#hud`) → bronze (live).
 - [x] S3 — minimap housing (`#minimap`) → bronze beveled frame (live).
 - [x] S4 — main menu + quick-battle / duel modals → bronze (Cinzel title, bronze

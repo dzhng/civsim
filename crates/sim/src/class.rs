@@ -361,16 +361,18 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             evade: 0.2, // nimble for shieldless foot, but no shield means it bleeds in a grind
             training: 0.8,
             // A two-hander: reach, a wide cleaving arc, no dead zone (half-swords in
-            // close). CLEAVE (one swing rakes the packed front) is its identity — so
-            // the per-hit damage sits BELOW a normal sword's and the cadence is SLOW;
-            // the WIDTH, not the punch, is what shreds massed light infantry. With no
-            // shield and modest dodge it bleeds against armor (HSD), shock (CAV) and
-            // reach (pikes) — a budget anti-light-infantry blender, not a line-breaker.
+            // close). CLEAVE (one swing rakes across an exposed edge) is its identity
+            // — so the per-hit damage sits BELOW a normal sword's and the cadence is
+            // SLOW. It is a flank/open-order killer, not a frontal pusher: with no
+            // shield and modest mass it bleeds against armor (HSD), shock (CAV) and
+            // reach (pikes) when asked to shove through a formed front.
+            // Its per-hit damage stays low because the cleave's value is the number
+            // of bodies a clean sweep reaches, not the punch of any one cut.
             weapons: one(Weapon {
                 reach: 1.6,
                 zones: crate::strike::front(1.2),
                 attack_interval: 5.1,
-                damage: 0.4,
+                damage: 0.32,
                 cleave: true,
                 ..MELEE
             }),

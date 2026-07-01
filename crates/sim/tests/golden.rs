@@ -53,12 +53,13 @@ fn golden_state_hash_stable() {
         sim.tick();
     }
     let h = state_hash(&sim);
-    // Re-pinned: the pivot spring now caps its angular lever near the bond's rest
-    // length, so queue stretch cannot amplify sideways fan-out at contact.
-    // Intentional for column-closing width preservation. (Prior re-pins: stamina
-    // cadence-coupling; LightSpear reach 1.6→1.5; turn rate no longer throttled by
-    // cohesion.)
-    const EXPECTED: u64 = 0xf36fab65928f69e4;
+    // Re-pinned: broad, deep contacts periodically re-dress slot labels, and
+    // the pivot spring keeps capped leverage for mounted contact and narrow
+    // columns into much wider foot lines. Intentional for contact-width
+    // preservation without overpowering cavalry walk-ins. (Prior re-pins:
+    // stamina cadence-coupling; LightSpear reach 1.6→1.5; turn rate no longer
+    // throttled by cohesion.)
+    const EXPECTED: u64 = 0xc8fad834908e0b0e;
     assert_eq!(
         h, EXPECTED,
         "sim behavior changed: golden hash {h:#018x} != pinned {EXPECTED:#018x}. \

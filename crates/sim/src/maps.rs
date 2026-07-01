@@ -83,7 +83,12 @@ pub fn build(map: MapId) -> Terrain {
             // ridge running the west-of-center, and a shallow fall toward the
             // river — rolling ground, nothing a line cannot cross.
             t.add_rise(Vec2::new(30.0, 0.0), 380.0, 5.0);
-            t.add_ridge(Vec2::new(-420.0, -620.0), Vec2::new(-220.0, 420.0), 220.0, 3.5);
+            t.add_ridge(
+                Vec2::new(-420.0, -620.0),
+                Vec2::new(-220.0, 420.0),
+                220.0,
+                3.5,
+            );
             t.add_rise(Vec2::new(720.0, -120.0), 440.0, -3.0);
         }
         MapId::WalledPlain => {
@@ -132,7 +137,12 @@ pub fn build(map: MapId) -> Terrain {
             // near orchard, so the plain breathes without breaking the line.
             t.add_rise(Vec2::new(-220.0, 200.0), 400.0, 4.5);
             t.add_rise(Vec2::new(320.0, -300.0), 360.0, 3.5);
-            t.add_ridge(Vec2::new(-680.0, -220.0), Vec2::new(-180.0, -220.0), 150.0, 2.5);
+            t.add_ridge(
+                Vec2::new(-680.0, -220.0),
+                Vec2::new(-180.0, -220.0),
+                150.0,
+                2.5,
+            );
         }
         MapId::CoastalScrub => {
             // West flank: the sea — open water with a shelving, rocky shore.

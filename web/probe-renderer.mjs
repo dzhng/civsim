@@ -1,16 +1,16 @@
-import { createServer } from 'node:http';
-import { once } from 'node:events';
-import { PNG } from 'pngjs';
-import { chromium } from 'playwright';
-import { GPU_FLAGS, GPU_PROBE_HTML, gpuPixelLooksCleared } from './renderer-probe-lib.mjs';
+import { createServer } from "node:http";
+import { once } from "node:events";
+import { PNG } from "pngjs";
+import { chromium } from "playwright";
+import { GPU_FLAGS, GPU_PROBE_HTML, gpuPixelLooksCleared } from "./renderer-probe-lib.mjs";
 
 function serveProbe() {
   const server = createServer((req, res) => {
-    res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
+    res.writeHead(200, { "content-type": "text/html; charset=utf-8" });
     res.end(GPU_PROBE_HTML);
   });
-  server.listen(0, '127.0.0.1');
-  return once(server, 'listening').then(() => server);
+  server.listen(0, "127.0.0.1");
+  return once(server, "listening").then(() => server);
 }
 
 function pixelAt(png, x, y) {
@@ -31,7 +31,8 @@ try {
   const png = PNG.sync.read(shot);
   const center = pixelAt(png, 128, 128);
   const clearVisible = gpuPixelLooksCleared(center);
-  const ok = probe.hasNavigatorGpu && probe.adapter && probe.device && probe.rendered && clearVisible;
+  const ok =
+    probe.hasNavigatorGpu && probe.adapter && probe.device && probe.rendered && clearVisible;
   console.log(JSON.stringify({ ok, probe, centerPixel: center, flags: GPU_FLAGS }, null, 2));
   process.exitCode = ok ? 0 : 1;
 } finally {

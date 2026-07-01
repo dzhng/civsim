@@ -49,5 +49,11 @@ export function computeCardGrid(
     return { rows, cols, cardW: Math.floor(cardW), cardH: Math.floor(cardH), degenerate: false };
   }
   const shrunkW = (boxW - gap * (cols + 1)) / cols;
-  return { rows, cols, cardW: Math.floor(shrunkW), cardH: Math.floor(shrunkW / aspect), degenerate: true };
+  return {
+    rows,
+    cols,
+    cardW: Math.floor(shrunkW),
+    cardH: Math.floor(shrunkW / aspect),
+    degenerate: true,
+  };
 }

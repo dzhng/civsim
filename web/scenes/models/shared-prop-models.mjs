@@ -1,21 +1,22 @@
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { PNG } from 'pngjs';
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { PNG } from "pngjs";
 
 export const meta = {
-  name: 'shared-prop-models',
-  kind: 'visual',
-  world: 'shared-prop-models',
-  tier: 'full',
+  name: "shared-prop-models",
+  kind: "visual",
+  world: "shared-prop-models",
+  tier: "full",
   snapshots: [
-    'shared/props/trees',
-    'shared/props/conifer',
-    'shared/props/broadleaf',
-    'shared/props/rocks',
-    'shared/props/mountain',
-    'shared/props/cart',
+    "shared/props/trees",
+    "shared/props/conifer",
+    "shared/props/broadleaf",
+    "shared/props/rocks",
+    "shared/props/mountain",
+    "shared/props/cart",
   ],
-  describe: 'Captures shared reusable scenery prop baselines (trees, rocks, mountains, carts) under web/shots/models/shared/props from the shared prop registry.',
+  describe:
+    "Captures shared reusable scenery prop baselines (trees, rocks, mountains, carts) under web/shots/models/shared/props from the shared prop registry.",
 };
 
 // Each prop family alone on neutral ground. Thresholds gate that the silhouette
@@ -30,23 +31,55 @@ const CONTENT_REQUIREMENTS = {
 };
 
 const gates = [
-  { id: 'trees', label: 'Mixed Trees', criteria: 'Tree family is visible with separate conifer and broadleaf silhouettes in one comparison capture.' },
-  { id: 'conifer', label: 'Conifer Tree', criteria: 'Individual conifer model has trunk, tiered crown, non-square contact shadow, and shared lighting.' },
-  { id: 'broadleaf', label: 'Broadleaf Tree', criteria: 'Individual broadleaf model has trunk, rounded low-poly canopy, non-square contact shadow, and shared lighting.' },
-  { id: 'rocks', label: 'Rock Cluster', criteria: 'Rock/boulder family is visible, low and ridged, distinct from mountains.' },
-  { id: 'mountain', label: 'Mountain Massif', criteria: 'Mountain massif family is visible, broad and ridged, anchored to the ground.' },
-  { id: 'cart', label: 'Cart', criteria: 'Ox-less trade cart reads as road life: dark wheels, plank bed, canvas load, contact shadow.' },
+  {
+    id: "trees",
+    label: "Mixed Trees",
+    criteria:
+      "Tree family is visible with separate conifer and broadleaf silhouettes in one comparison capture.",
+  },
+  {
+    id: "conifer",
+    label: "Conifer Tree",
+    criteria:
+      "Individual conifer model has trunk, tiered crown, non-square contact shadow, and shared lighting.",
+  },
+  {
+    id: "broadleaf",
+    label: "Broadleaf Tree",
+    criteria:
+      "Individual broadleaf model has trunk, rounded low-poly canopy, non-square contact shadow, and shared lighting.",
+  },
+  {
+    id: "rocks",
+    label: "Rock Cluster",
+    criteria: "Rock/boulder family is visible, low and ridged, distinct from mountains.",
+  },
+  {
+    id: "mountain",
+    label: "Mountain Massif",
+    criteria: "Mountain massif family is visible, broad and ridged, anchored to the ground.",
+  },
+  {
+    id: "cart",
+    label: "Cart",
+    criteria:
+      "Ox-less trade cart reads as road life: dark wheels, plank bed, canvas load, contact shadow.",
+  },
 ];
 
 export async function run(ctx) {
   ctx.check(
-    'reusable props are owned by the shared registry',
+    "reusable props are owned by the shared registry",
     sharedRegistryOwnsProps(),
-    'campaign sceneryPass and the renderer-lab route both import builders from sceneryPropRegistry; no parallel build* tables',
+    "campaign sceneryPass and the renderer-lab route both import builders from sceneryPropRegistry; no parallel build* tables",
   );
 
-  if (process.env.VERIFY_GPU !== '1') {
-    ctx.check('shared prop shots require browser GPU flags', true, 'set VERIFY_GPU=1 to capture shared prop shots');
+  if (process.env.VERIFY_GPU !== "1") {
+    ctx.check(
+      "shared prop shots require browser GPU flags",
+      true,
+      "set VERIFY_GPU=1 to capture shared prop shots",
+    );
     return;
   }
 
@@ -55,23 +88,34 @@ export async function run(ctx) {
     captures.push(await captureShot(ctx, gate));
   }
   ctx.check(
-    'shared prop shots captured',
-    captures.every((capture) => capture.stats?.route === 'shared-prop-models' && capture.contentOk !== false),
+    "shared prop shots captured",
+    captures.every(
+      (capture) => capture.stats?.route === "shared-prop-models" && capture.contentOk !== false,
+    ),
     JSON.stringify({ captures: captures.length, shots: captures.map((capture) => capture.shot) }),
   );
 }
 
 async function captureShot(ctx, gate) {
-  const page = await ctx.newPage({ viewport: { width: 1280, height: 800 }, errorPrefix: `prop-shot-${gate.id}` });
+  const page = await ctx.newPage({
+    viewport: { width: 1280, height: 800 },
+    errorPrefix: `prop-shot-${gate.id}`,
+  });
   await page.goto(`${ctx.target}/renderer/shared-prop-models?gate=${gate.id}`);
-  await page.waitForFunction((id) => window.__rendererLabReady === true && window.__rendererLabStats?.stats?.gate === id, gate.id, { timeout: 18000 });
+  await page.waitForFunction(
+    (id) => window.__rendererLabReady === true && window.__rendererLabStats?.stats?.gate === id,
+    gate.id,
+    { timeout: 18000 },
+  );
   await page.waitForTimeout(180);
   const stats = await page.evaluate(() => window.__rendererLabStats?.stats ?? null);
-  if (stats?.route !== 'shared-prop-models' || stats?.gate !== gate.id) {
+  if (stats?.route !== "shared-prop-models" || stats?.gate !== gate.id) {
     await page.close();
-    throw new Error(`shared prop shot ${gate.id} did not publish valid stats: ${JSON.stringify(stats)}`);
+    throw new Error(
+      `shared prop shot ${gate.id} did not publish valid stats: ${JSON.stringify(stats)}`,
+    );
   }
-  const shot = await page.locator('#renderer-canvas').screenshot();
+  const shot = await page.locator("#renderer-canvas").screenshot();
   const content = shotContentCheck(gate.id, shot);
   const shotName = `shared/props/${gate.id}`;
   await ctx.snap(page, shotName, { shot });
@@ -81,7 +125,14 @@ async function captureShot(ctx, gate) {
     content.ok,
     JSON.stringify({ label: gate.label, criteria: gate.criteria, metrics: content.metrics }),
   );
-  return { ...gate, shot: `${shotName}.png`, stats, contentMetrics: content.metrics, contentOk: content.ok, status: 'gpu-evidence' };
+  return {
+    ...gate,
+    shot: `${shotName}.png`,
+    stats,
+    contentMetrics: content.metrics,
+    contentOk: content.ok,
+    status: "gpu-evidence",
+  };
 }
 
 function shotContentCheck(gateId, shot) {
@@ -95,16 +146,18 @@ function shotContentCheck(gateId, shot) {
 // The shared-ownership invariant for slice 01: surfaces place props by id from
 // the registry, never from their own copy of the builder list.
 function sharedRegistryOwnsProps() {
-  const sceneryPass = readSource('../../../packages/game-renderer/src/campaign/sceneryPass.ts');
-  const route = readSource('../../../apps/renderer-lab/src/router.ts');
-  const passUsesRegistry = sceneryPass.includes("from '../models/shared/sceneryPropRegistry'")
-    && !/build(Conifer|Broadleaf|Rock|Mountain|Cart)\w*Mesh\s*\(/.test(sceneryPass);
-  const routeUsesRegistry = route.includes('sceneryPropRegistry') && route.includes('PROP_REVIEW_GROUPS');
+  const sceneryPass = readSource("../../../packages/game-renderer/src/campaign/sceneryPass.ts");
+  const route = readSource("../../../apps/renderer-lab/src/router.ts");
+  const passUsesRegistry =
+    sceneryPass.includes("from '../models/shared/sceneryPropRegistry'") &&
+    !/build(Conifer|Broadleaf|Rock|Mountain|Cart)\w*Mesh\s*\(/.test(sceneryPass);
+  const routeUsesRegistry =
+    route.includes("sceneryPropRegistry") && route.includes("PROP_REVIEW_GROUPS");
   return passUsesRegistry && routeUsesRegistry;
 }
 
 function readSource(relative) {
-  return readFileSync(fileURLToPath(new URL(relative, import.meta.url)), 'utf8');
+  return readFileSync(fileURLToPath(new URL(relative, import.meta.url)), "utf8");
 }
 
 function contentMetrics(png) {
@@ -128,9 +181,19 @@ function contentMetrics(png) {
       total++;
       const max = Math.max(r, g, b);
       const min = Math.min(r, g, b);
-      if (Math.abs(r - g) < 38 && Math.abs(g - b) < 50 && r > 55 && r < 175 && g > 50 && g < 170 && b > 40 && b < 150) stone++;
-      if (g > 45 && g < 125 && r < 90 && b < 85 && g > r * 1.20 && g > b * 1.15) foliage++;
-      if (r > 60 && r < 130 && g > 30 && g < 90 && b < 60 && r > g * 1.10) trunk++;
+      if (
+        Math.abs(r - g) < 38 &&
+        Math.abs(g - b) < 50 &&
+        r > 55 &&
+        r < 175 &&
+        g > 50 &&
+        g < 170 &&
+        b > 40 &&
+        b < 150
+      )
+        stone++;
+      if (g > 45 && g < 125 && r < 90 && b < 85 && g > r * 1.2 && g > b * 1.15) foliage++;
+      if (r > 60 && r < 130 && g > 30 && g < 90 && b < 60 && r > g * 1.1) trunk++;
       if (max < 100 && min > 8) dark++;
     }
   }

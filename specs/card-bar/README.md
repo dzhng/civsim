@@ -41,8 +41,8 @@ S1+S2 detail — the fixed-size Total-War card bar:
 - `web/src/battle/cardGrid.ts` — `computeCardGrid(count, boxW, {cardW, aspect, gap,
   maxRows})` → `{rows, cols, cardW, cardH, degenerate}`. Cards are a FIXED size;
   the bar wraps into more rows as the roster grows; cards shrink only past
-  `maxRows × perRow` capacity. Headless `cardGrid.test.mjs` (8 cases, `npm --prefix
-  web run test:ui`).
+  `maxRows × perRow` capacity. Headless `cardGrid.test.mjs` (8 cases,
+  `bun run --cwd web test:ui`).
 - `web/src/battle/unitCard.ts` (`UnitCards`) — `relayout()` computes the grid from
   the viewport width (`window.innerWidth − 24`) at the fixed `CARD_W = 72`, writes
   `--cols/--card-w/--card-h`, publishes `window.__cardGrid`, and reflows on window
@@ -142,7 +142,7 @@ status line and date, record the next pickup point and any blocker.
   committed copy is stale (`web/package.json` `bake:test` runs it). The new
   portrait baker follows **this** contract.
 - **Verification:** scenes are `.mjs` under `web/scenes/**`, run
-  `npm run scene -- <name>` (note `web/scenes/ui/` already exists). Snapshots via
+  `bun run scene -- <name>` (note `web/scenes/ui/` already exists). Snapshots via
   `web/snapshot.mjs` `snapCheck(page, name, check, {threshold, maxDiffRatio, shot, baseDir})`,
   baselines in `web/shots/`, re-bless with `UPDATE_SHOTS=1`. Headless pure-logic
   tests use the repo's `*.test.mjs` + `node --test` convention (see

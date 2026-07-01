@@ -1,4 +1,7 @@
-import { BATTLE_MAP_CATALOG, type BattleMapCatalogEntry } from '../../../packages/game-renderer/src/battle/mapCatalog';
+import {
+  BATTLE_MAP_CATALOG,
+  type BattleMapCatalogEntry,
+} from "../../../packages/game-renderer/src/battle/mapCatalog";
 
 // Quick Battle setup data: a pure, DOM-free catalog the setup panel and its
 // tests both consume. Map options are the frozen Slice-02 BattleMapCatalogEntry
@@ -19,6 +22,19 @@ export interface QuickBattleUnitPick {
   count: number;
 }
 
+/** A selectable class row in the army builder (id/name/cost from Game.class_specs()). */
+export interface QuickBattleClassSpec {
+  id: number;
+  name: string;
+  cost: number;
+}
+
+/** The launched custom battle: a map and two armies. */
+export interface QuickBattleConfig {
+  mapId: number;
+  teams: [QuickBattleUnitPick[], QuickBattleUnitPick[]];
+}
+
 export interface QuickBattleValidation {
   goldSpent: number;
   slotsUsed: number;
@@ -30,7 +46,10 @@ export interface QuickBattleValidation {
 
 export type ClassCost = (classId: number) => number;
 
-export function validateQuickBattleArmy(army: QuickBattleUnitPick[], cost: ClassCost): QuickBattleValidation {
+export function validateQuickBattleArmy(
+  army: QuickBattleUnitPick[],
+  cost: ClassCost,
+): QuickBattleValidation {
   let slotsUsed = 0;
   let goldSpent = 0;
   for (const pick of army) {
@@ -41,7 +60,14 @@ export function validateQuickBattleArmy(army: QuickBattleUnitPick[], cost: Class
   const overBudget = goldSpent > QUICK_BATTLE_GOLD;
   const overSlots = slotsUsed > QUICK_BATTLE_MAX_UNITS;
   const empty = slotsUsed === 0;
-  return { goldSpent, slotsUsed, overBudget, overSlots, empty, valid: !overBudget && !overSlots && !empty };
+  return {
+    goldSpent,
+    slotsUsed,
+    overBudget,
+    overSlots,
+    empty,
+    valid: !overBudget && !overSlots && !empty,
+  };
 }
 
 export interface QuickBattleArmyTemplate {
@@ -56,34 +82,48 @@ export interface QuickBattleArmyTemplate {
 //  11 HeavySpear, 12 MediumInfantry, 13 MediumSpear, 14 MediumPhalanx.)
 export const QUICK_BATTLE_TEMPLATES: readonly QuickBattleArmyTemplate[] = [
   {
-    id: 'balanced-host',
-    name: 'Balanced Host',
+    id: "balanced-host",
+    name: "Balanced Host",
     units: [
-      { classId: 12, count: 4 }, { classId: 13, count: 4 }, { classId: 4, count: 3 },
-      { classId: 5, count: 2 }, { classId: 6, count: 2 }, { classId: 0, count: 1 }, { classId: 3, count: 1 },
+      { classId: 12, count: 4 },
+      { classId: 13, count: 4 },
+      { classId: 4, count: 3 },
+      { classId: 5, count: 2 },
+      { classId: 6, count: 2 },
+      { classId: 0, count: 1 },
+      { classId: 3, count: 1 },
     ],
   },
   {
-    id: 'cavalry-wing',
-    name: 'Cavalry Wing',
+    id: "cavalry-wing",
+    name: "Cavalry Wing",
     units: [
-      { classId: 6, count: 5 }, { classId: 7, count: 4 }, { classId: 12, count: 2 }, { classId: 1, count: 3 },
+      { classId: 6, count: 5 },
+      { classId: 7, count: 4 },
+      { classId: 12, count: 2 },
+      { classId: 1, count: 3 },
     ],
   },
   {
-    id: 'pike-and-bow',
-    name: 'Pike And Bow',
+    id: "pike-and-bow",
+    name: "Pike And Bow",
     units: [
-      { classId: 3, count: 2 }, { classId: 14, count: 4 }, { classId: 11, count: 2 },
-      { classId: 4, count: 4 }, { classId: 5, count: 4 },
+      { classId: 3, count: 2 },
+      { classId: 14, count: 4 },
+      { classId: 11, count: 2 },
+      { classId: 4, count: 4 },
+      { classId: 5, count: 4 },
     ],
   },
   {
-    id: 'cheap-swarm',
-    name: 'Cheap Swarm',
+    id: "cheap-swarm",
+    name: "Cheap Swarm",
     units: [
-      { classId: 9, count: 8 }, { classId: 10, count: 6 }, { classId: 5, count: 3 },
-      { classId: 12, count: 2 }, { classId: 0, count: 1 },
+      { classId: 9, count: 8 },
+      { classId: 10, count: 6 },
+      { classId: 5, count: 3 },
+      { classId: 12, count: 2 },
+      { classId: 0, count: 1 },
     ],
   },
 ];

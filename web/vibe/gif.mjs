@@ -9,27 +9,30 @@
 //
 // Args: <dir> [outPath] [delayMs=200] [downscale=2]. Default delay is ~200 ms/frame
 // (5 fps) so the whole sequence is easy to follow.
-import fs from 'node:fs';
-import path from 'node:path';
-import { encodeGif, pngToRGBA, downscaleRGBA } from '../shots/_gif.mjs';
+import fs from "node:fs";
+import path from "node:path";
+import { encodeGif, pngToRGBA, downscaleRGBA } from "../shots/_gif.mjs";
 
 const [dir, outArg, delayArg, scaleArg] = process.argv.slice(2);
 if (!dir) {
-  console.error('usage: node vibe/gif.mjs <dir> [outPath] [delayMs=200] [downscale=2]');
+  console.error("usage: node vibe/gif.mjs <dir> [outPath] [delayMs=200] [downscale=2]");
   process.exit(2);
 }
 const delayMs = Number(delayArg ?? 200);
 const downscale = Number(scaleArg ?? 2);
-const out = outArg ?? path.join(dir, 'timeline.gif');
+const out = outArg ?? path.join(dir, "timeline.gif");
 
-const files = fs.readdirSync(dir)
-  .filter((f) => f.toLowerCase().endsWith('.png'))
+const files = fs
+  .readdirSync(dir)
+  .filter((f) => f.toLowerCase().endsWith(".png"))
   .sort();
 if (files.length === 0) {
   console.error(`no PNG frames in ${dir}`);
   process.exit(1);
 }
-const frames = files.map((f) => downscaleRGBA(pngToRGBA(fs.readFileSync(path.join(dir, f))), downscale));
+const frames = files.map((f) =>
+  downscaleRGBA(pngToRGBA(fs.readFileSync(path.join(dir, f))), downscale),
+);
 const gif = encodeGif(frames, frames[0].width, frames[0].height, Math.round(delayMs / 10));
 fs.writeFileSync(out, gif);
 console.log(`wrote ${out}  ${frames.length}f @ ${delayMs}ms  ${(gif.length / 1024).toFixed(0)}kb`);

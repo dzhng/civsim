@@ -36,13 +36,32 @@ stored as a freestanding scalar — so it can't drift from what's on screen.
 
 ## Formatting
 
-Rust code is formatted with the standard workspace formatter from the repo root:
+Two formatters, one per language. Rust uses the standard workspace formatter;
+the `web` app uses [oxfmt](https://oxc.rs) (double quotes, 2-space indent),
+which leaves generated data under `web/public/**` and the lockfile alone via
+`web/.prettierignore`. The `web` app runs on [Bun](https://bun.com) — its
+scripts are invoked with `bun run --cwd web <script>`.
 
 ```sh
-cargo fmt --all
+bun run fmt                      # both languages at once (fmt:check to verify)
+cargo fmt --all                  # Rust only (repo root)
+bun run --cwd web format         # web only: ts/tsx/js/mjs/css/html/config
 ```
 
-Use `cargo fmt --all -- --check` when you only want to verify formatting.
+A tracked **pre-commit hook** (`.githooks/pre-commit`) runs both formatters on
+just the staged files and restages them, so commits land already-formatted.
+Enable it once per clone with `scripts/setup-hooks.sh` (it sets
+`core.hooksPath`). The hook formats whole files, so stage complete files.
+
+The `web` app also carries a linter and tests alongside the formatter:
+
+```sh
+bun run --cwd web lint           # oxlint (react/import/typescript/unicorn)
+bun run --cwd web typecheck      # tsc --noEmit
+bun run --cwd web test           # vitest (React overlay component tests)
+bun run --cwd web test:ui        # node --test (pure DOM-free .mjs suites)
+```
+
 Keep broad formatting churn in its own commit, separate from mechanics,
 renderer, balance, or campaign behavior changes, so reviews can focus on the
 actual logic.
@@ -351,31 +370,45 @@ swiftshader's sub-percent wobble; free-port hygiene) — lives in:
 
 ## Develop
 
+`bun run <task>` from the repo root is the front door: a thin, dependency-free
+`package.json` aliases the common jobs across both languages, forwarding to
+`cargo` and to the web app's own scripts. Those two stay the source of truth —
+the root only carries the daily verbs and the cross-language combos, not a
+mirror of every subcommand. The naming convention: **a bare task runs the whole
+job across every submodule; a `:suffix` runs one named part.**
+
 ```sh
-# one-time / after Rust changes
-npm --prefix web run build:wasm
+bun run setup        # one-time per clone: install web deps + enable the hook
+bun run dev          # web dev server (http://localhost:5173)
+bun run build        # everything: Rust -> wasm, then bundle the web app -> dist/
+bun run build:wasm   #   just the Rust -> wasm step (regenerate web/src/wasm/)
+bun run build:web    #   just the web bundle (assumes wasm is current)
+bun run fmt          # format everything (Rust + web; fmt:rust / fmt:web for one)
+bun run lint         # oxlint the web app
+bun run typecheck    # tsc --noEmit
+bun run test         # everything: Rust workspace + web vitest + node --test
+bun run test:rust    #   just the Rust workspace tests (test:web for the web suites)
+bun run verify       # browser battle verification
+bun run check        # full green gate: fmt:check + lint + typecheck + test
+```
 
-# dev server (http://localhost:5173)
-npm --prefix web run dev
+Reach past the front door for the focused work it deliberately doesn't mirror:
 
-# native tests (fast inner loop) — one crate, or the lot
+```sh
+# one crate at a time, or a focused sim bucket
 cargo test -p sim
 cargo test -p campaign
-cargo test --workspace
-
-# focused sim buckets
 cargo test -p sim --test mechanics_melee
 cargo test -p sim --test balance_harness
 cargo test -p sim --test ranged_scenarios
 
-# browser verification (needs the dev server running)
-node web/scene.mjs                   # battle quick scenes
-node web/scene.mjs battle-ai --full
-node web/verify-battle.mjs           # compatibility wrapper for battle
-node web/verify-campaign.mjs         # campaign (real map: behavior + screenshots)
-node web/verify-campaign-visual.mjs  # campaign markers (controlled test map)
+# browser verification (needs the dev server running) — scenes are addressable
+node web/scene.mjs                   # all quick scenes
+node web/scene.mjs battle-ai --full  # one scene by name
+node web/scene.mjs campaign-visual campaign-map-alignment campaign-lod  # campaign scenes
+# bun run verify / verify:campaign run the packaged battle / campaign subsets.
 # re-bless screenshot baselines after an intentional visual change:
-UPDATE_SHOTS=1 node web/verify-campaign.mjs
+UPDATE_SHOTS=1 node web/scene.mjs campaign-visual
 ```
 
 See `crates/sim/tests/README.md` for the sim test taxonomy and

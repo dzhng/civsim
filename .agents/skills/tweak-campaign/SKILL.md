@@ -131,6 +131,6 @@ is the disproportion itself.
   cadence).
 
 - **The wasm/frontend boundary is thin.** Add a `Campaign` method in `lib.rs`,
-  wrap it in `campaign_bind.rs`, then rebuild (`npm run build:wasm`) before the
+  wrap it in `campaign_bind.rs`, then rebuild (`bun run build:wasm`) before the
   TS sees it. The campaign AI lives in `web/src/campaign/ai-worker.ts`; the host
   protocol is in `scene.ts::advance`.

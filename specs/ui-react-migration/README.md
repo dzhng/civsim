@@ -12,12 +12,16 @@ Synthesized from three independent draft plans (they converged hard — the cut 
 
 **Status:** S0 + S1 + S2 + S3 shipped (green). **S3 verdict: MIGRATE (Branch A).** _Last updated: 2026-07-01._
 
-**Start at S5e** (sieges `#cmp-sieges` + the end-of-turn/battle modal in scene.ts + dedup the lab
-`uiLayer.ts` onto the React components / delete the now-lab-only builders) — then S6 (HUD +
-battle modals), S7 (cleanup). **S5a–d shipped: the top bar, army/city, diplomacy, AND class
-builder are all React.** Every campaign panel builder (`armyPanelHtml`, `cityPanelHtml`,
-`diplomacyHtml`, `classBuilderHtml`) is now used ONLY by the lab (`uiLayer.ts`) — S5e removes
-that last consumer.
+**Start at S6** (HUD migrate Branch A + battle modals). **S5 is effectively done: every
+persistent campaign panel is React** — top bar, army, city, diplomacy, class builder, AND
+sieges (S5a–e). Two items were **resliced out of S5e** with rationale:
+- **The battle-decision modal** (`showBattleModal` — Fight/Auto-resolve) folds into **S6**: it's
+  a battle-decision overlay (same category as the gameover/pause modals) and is coupled to the
+  render loop via the `this.modal` null-gate, so it's cleaner to migrate alongside S6's battle
+  modals than mid-campaign. It stays vanilla until then (works fine).
+- **The lab `uiLayer.ts` dedup** (it still calls `armyPanelHtml`/`cityPanelHtml`/`diplomacyHtml`/
+  `classBuilderHtml`) folds into **S7** with the other lab dedup (renderer-lab card-bar). Those
+  builders + `prettyClass`/`classSort` exports stay only for the lab until S7.
 New reusable piece: `web/src/ui/campaign/UiIcon.tsx` renders `uiIcon()` SVGs as JSX (composable
 with React inputs — use it for S5c/d). Panel renders are `flushSync`'d so the debug API/tests
 see content synchronously (matching the old innerHTML). ArmyPanel/CityPanel take flat props +
@@ -189,7 +193,7 @@ checkpoint:** the (0,0) pass is self-justifying (no pixels moved); proceeded on 
 - [x] S2 — menu proof: `#menu-ui` + duel modal are React (`web/src/ui/menu/Menu.tsx`) into `#ui-root`; army builder stays vanilla; new `menu-quick-battle-modal` baseline (`slices/02-menu-proof.md`) — **shipped**
 - [x] S3 — **HUD perf SPIKE** → **VERDICT: MIGRATE.** React card bar (`UnitCardsReact`) measured Δmedian 0.0ms / Δp95 0.0ms vs vanilla; shared hot-path helpers in `unitCard.ts`; S6 = Branch A (`slices/03-hud-perf-spike.md`) — **shipped**
 - [~] S4 — static wave: **S4a army builder → React shipped** (reducer byte-identical, pixel-equiv); S4b battle modals **resequenced into S6** (shared battle React root) (`slices/04-army-builder-modals.md`)
-- [~] S5 — campaign panels — RESLICED; **S5a (React root + top bar) shipped** (`CampaignTopBar.tsx`, functional scenes pass, visual 0.15% sub-threshold); remaining: S5b (army/city) → S5c (diplomacy) → S5d (class builder) → S5e (sieges/modal + lab dedup) (`slices/05-campaign-panels.md`)
+- [x] S5 — campaign panels → React (top bar, army, city, diplomacy, class builder, sieges — S5a–e). Battle-decision modal resliced → S6; lab `uiLayer.ts` dedup → S7. All campaign-visual + functional scenes pass (`slices/05-campaign-panels.md`) — **shipped**
 - [ ] S6 — HUD outcome branch (migrate-to-React OR keep-vanilla-share-tokens) (`slices/06-hud-outcome.md`)
 - [ ] S7 — cleanup: delete replaced DOM/CSS, dedup the lab, one source proven (`slices/07-cleanup.md`)
 

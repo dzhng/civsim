@@ -52,16 +52,15 @@ export function buildCityMesh(): MeshData {
   return builder.finish('campaign city mesh');
 }
 
-// The army stack's standard: pole, finial, cross-arms, and flag cloth. The
-// soldiers that used to be baked into this marker are now the shared skinned
-// crowd (buildStackCrowd + SkinnedCrowdPipeline); the standard remains as the
-// faction-coloured banner (the flag's white panels take the faction livery),
-// and doubles as the marker the LOD collapses to when zoomed out.
+// The army stack's standard: pole, finial, cross-arms, and flag cloth. The flag's
+// white panels take the faction livery, and the standard doubles as the marker the
+// figure LOD collapses to when the camera is zoomed out over the map. The stack's
+// soldiers are the shared skinned crowd (buildStackCrowd), not part of this mesh.
 export function buildCampaignStandardMesh(): MeshData {
   const builder = new MeshBuilder();
   const timber: Rgb = [0.43, 0.30, 0.17];
-  // A small soft shadow anchors the pole base; the figures carry their own
-  // shared grounding shadows now, so the wide block footprint is gone.
+  // Only a small pole-base shadow: the skinned figures ground themselves with the
+  // shared soldier shadow decal, so this mesh carries no wide block footprint.
   builder.shadow(0.62, 0.42, 0.16, [0.06, -0.14]);
   builder.contactShadow([0.06, -0.02], [0.40, 0.30], 0.09, [0.14, -0.20]);
   builder.box([0, 0, 2.38], [0.16, 0.16, 4.76], timber, 1);

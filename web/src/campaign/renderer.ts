@@ -564,7 +564,9 @@ const CAMPAIGN_CLOSE_PITCH = 0.82;
 
 // Representative figures are drawn larger than battle soldiers (size 1) so they
 // read at the strategic camera; tuned against the campaign-models 'army' zoom.
-const CAMPAIGN_FIGURE_SIZE = 2.4;
+// Exported so the renderer-lab 'army' review surface tracks production by
+// construction instead of re-hardcoding the size/spacing/shadow-radius.
+export const CAMPAIGN_FIGURE_SIZE = 2.4;
 
 // Zoom LOD for the army-stack figures. Below FIGURE_FAR_ZOOM the stack shows the
 // standard banner alone (figures would be sub-readable and cost draw calls over
@@ -573,6 +575,13 @@ const CAMPAIGN_FIGURE_SIZE = 2.4;
 const CAMPAIGN_MAX_FIGURES = 6;
 const FIGURE_FAR_ZOOM = 1.4;
 const FIGURE_NEAR_ZOOM = 3.6;
+
+// Allegiance → the crowd shader's faction accent slot: friend=0 (blue), foe=1
+// (red), neutral=2 (amber). Note this is NOT the raw Allegiance enum order
+// (Neutral=1, Foe=2), so a neutral stack reads amber, not enemy-red.
+function allegianceCrowdFaction(allegiance: Allegiance): 0 | 1 | 2 {
+  return allegiance === Allegiance.Friend ? 0 : allegiance === Allegiance.Foe ? 1 : 2;
+}
 
 function campaignPitch(zoom: number) {
   const t = smoothstep(0.62, 1.6, zoom);
@@ -635,6 +644,12 @@ function buildEntityFrame(
       });
     }
   }
+  // Zoom LOD, computed once per frame: figures fade in as the camera closes on a
+  // stack and drop to zero (the standard banner alone) over the whole map, so the
+  // strategic view stays readable and the draw cost stays bounded.
+  const zoomFigures = Math.round(
+    CAMPAIGN_MAX_FIGURES * smoothstep(FIGURE_FAR_ZOOM, FIGURE_NEAR_ZOOM, opts.cam.scale),
+  );
   for (const army of opts.armies) {
     // Cull by fog visibility, matching visibleCampaignArmies (labels/markers) —
     // not by allegiance. A neutral or allied army standing in the player's
@@ -660,15 +675,9 @@ function buildEntityFrame(
     });
     // Representative figures for this stack, through the shared skinned crowd.
     // Which classes appear is sampled from the live roster; the count scales to
-    // the stack cap. Coloured friend/foe/neutral by allegiance (0/1/2) — the
-    // standard banner above carries the true faction livery.
+    // the stack cap. Figures are tinted by allegiance (friend blue / foe red /
+    // neutral amber); the standard banner above carries the true faction livery.
     const roster = army.unitsByClass.some((n) => n > 0) ? army.unitsByClass : army.roster;
-    // Zoom LOD: fade the figure count in as the camera closes on the stack, and
-    // drop to zero (the standard banner alone) when zoomed out over the map, so
-    // the strategic view stays readable and the draw cost stays bounded.
-    const zoomFigures = Math.round(
-      CAMPAIGN_MAX_FIGURES * smoothstep(FIGURE_FAR_ZOOM, FIGURE_NEAR_ZOOM, opts.cam.scale),
-    );
     if (zoomFigures > 0) {
       crowd.push(
         ...buildStackCrowd(roster, {
@@ -677,7 +686,7 @@ function buildEntityFrame(
           maxFigures: zoomFigures,
           x: display.x,
           y: display.y,
-          faction: allegiance as 0 | 1 | 2,
+          faction: allegianceCrowdFaction(allegiance),
           seed: army.id,
           clip: army.marching ? "march" : "idle",
           phase: animTime,

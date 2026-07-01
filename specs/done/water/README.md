@@ -23,8 +23,8 @@ dusk mood.
   arguments. `agitation` is the single dial from a glassy shallow (0: flat swell, no
   whitecaps, cut glint) to the open sea (1: steep swell, whitecaps, the broad glitter
   track). It composes the frozen look pieces: the analytic wave field
-  (`gerstnerField.ts`), the neutral Aegean albedo × environment preset
-  (`waterPalette.ts` × `waterEnvironment.ts`), and `waterShade` (the lighting +
+  (`gerstnerField.ts`), the neutral Aegean albedo × shared environment preset
+  (`waterPalette.ts` × `environment/environment.ts`), and `waterShade` (the lighting +
   glint + foam + haze).
 - **Battle on-field water** is per-fragment on the existing ground mesh
   (`battle/groundPass.ts` via `water/fieldWaterWgsl.ts`), keyed by a box-filtered
@@ -93,7 +93,7 @@ dusk mood.
 - The material: `water/waterMaterialWgsl.ts` (`CIVSIM_WATER_COLOR_WGSL`, `WATER_SHADE_WGSL`).
 - The field: `water/gerstnerField.ts`; the kept firewall seam `water/waterField.ts`
   (`WaterFieldSource`, `createWaterField`).
-- Palette / preset / ramps: `water/waterPalette.ts`, `water/waterEnvironment.ts`,
+- Palette / preset / ramps: `water/waterPalette.ts`, `environment/environment.ts`,
   `water/waterShoreRamp.ts` (`FIELD_WATER_RAMP`, `LAB_OPEN_SEA_RAMP`, `BATTLE_OCEAN_RAMP`).
 - Surfaces: `water/fieldWaterWgsl.ts` + `battle/groundPass.ts` (field);
   `water/waterPlanePass.ts` + `battle/horizonPass.ts` (open sea); `campaign/mapPass.ts`

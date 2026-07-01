@@ -57,6 +57,9 @@ export async function run(ctx) {
     "WebGPU battle terrain includes sim-sourced feature detail",
     stats.renderStats?.terrain?.fixture === "sim-tint" &&
       stats.renderStats.terrain.layer === "battle-ground-heightfield" &&
+      stats.renderStats.terrain.environment?.id === "golden-hour" &&
+      stats.renderStats.terrain.environment?.source === "CIVSIM_ENVIRONMENTS.golden" &&
+      stats.renderStats.terrain.grass?.environment?.id === "golden-hour" &&
       stats.renderStats.terrain.groundTriangles > 1000 &&
       stats.renderStats.terrain.scenery > 0,
     JSON.stringify(stats.renderStats?.terrain),
@@ -64,19 +67,19 @@ export async function run(ctx) {
 
   const shot = await page.screenshot();
   const png = PNG.sync.read(shot);
-  let warm = 0;
+  let terrain = 0;
   let blue = 0;
   for (let i = 0; i < png.data.length; i += 4) {
     const r = png.data[i];
     const g = png.data[i + 1];
     const b = png.data[i + 2];
-    if (r > 140 && g > 120 && b < 120) warm++;
+    if ((r > 100 && g > 86 && b < 125) || (g > 78 && g >= r - 12 && b < 150)) terrain++;
     if (b > r + 24 && b > g + 8) blue++;
   }
   ctx.check(
     "WebGPU battle frame has visible terrain and team color",
-    warm > 20000 && blue > 300,
-    JSON.stringify({ warm, blue }),
+    terrain > 20000 && blue > 300,
+    JSON.stringify({ terrain, blue }),
   );
   await page.close();
 

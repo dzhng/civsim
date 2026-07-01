@@ -15,7 +15,26 @@ export interface SkinnedCrowdStats {
   clips: string[];
   meshVariants: number;
   vatVariants: number;
+  lighting: SkinnedLightingStats;
   cameraContract: 'shared-world-camera-wgsl';
+}
+
+export interface SkinnedLightingEnvironment {
+  source: string;
+  sunAzimuth: number;
+  sunElevation: number;
+  keyColor: [number, number, number];
+  fillColor: [number, number, number];
+  exposure: number;
+}
+
+export interface SkinnedLightingStats {
+  source: string;
+  sunAzimuth: number;
+  sunElevation: number;
+  keyColor: [number, number, number];
+  fillColor: [number, number, number];
+  exposure: number;
 }
 
 // One GPU VAT resource (storage buffer + bind group + clip layout). Classes that
@@ -45,8 +64,45 @@ export type SkinnedVatInput = VatBake | VatBake[];
 /** Meshes: one (L0), per-class (`[classId]`), or per-class-per-lod (`[classId][lod]`). */
 export type SkinnedMeshInput = SoldierMeshData | SoldierMeshData[] | SoldierMeshData[][];
 
-const SKINNED_WGSL = `
+const DEFAULT_SKINNED_LIGHTING: SkinnedLightingEnvironment = {
+  source: 'skinned-default',
+  sunAzimuth: Math.PI / 2,
+  sunElevation: 0.5,
+  keyColor: [1.12, 1.0, 0.78],
+  fillColor: [0.70, 0.78, 0.92],
+  exposure: 1,
+};
+
+function skinnedLightingWgsl(lighting: SkinnedLightingEnvironment): string {
+  return `
+const SKINNED_KEY = ${wgslVec3(lighting.keyColor)};
+const SKINNED_FILL = ${wgslVec3(lighting.fillColor)};
+const SKINNED_EXPOSURE = ${lighting.exposure.toFixed(3)};
+`;
+}
+
+function skinnedLightingStats(lighting: SkinnedLightingEnvironment): SkinnedLightingStats {
+  return {
+    source: lighting.source,
+    sunAzimuth: roundLighting(lighting.sunAzimuth),
+    sunElevation: roundLighting(lighting.sunElevation),
+    keyColor: lighting.keyColor,
+    fillColor: lighting.fillColor,
+    exposure: lighting.exposure,
+  };
+}
+
+function wgslVec3(c: readonly [number, number, number]): string {
+  return `vec3f(${c[0].toFixed(3)}, ${c[1].toFixed(3)}, ${c[2].toFixed(3)})`;
+}
+
+function roundLighting(value: number): number {
+  return Number(value.toFixed(4));
+}
+
+const SKINNED_WGSL = (lighting: SkinnedLightingEnvironment) => `
 ${WORLD_CAMERA_WGSL}
+${skinnedLightingWgsl(lighting)}
 struct Vat { width:f32, height:f32, bones:f32, pad:f32, data: array<f32> };
 @group(1) @binding(0) var<storage, read> vat: Vat;
 
@@ -117,7 +173,7 @@ fn vs(
   var out: VsOut;
   out.pos = projectWorld3d(world, civsimBattleWorldDepth3d(world));
   out.color = color;
-  let sun = normalize(vec3f(-0.35, -0.45, 0.82));
+  let sun = sunDirection();
   out.light = clamp(dot(n, sun) * 0.42 + 0.74, 0.34, 1.12);
   out.faction = inst0.w;
   out.rim = smoothstep(0.20, 0.92, 1.0 - abs(n.z));
@@ -149,12 +205,10 @@ fn fs(in: VsOut) -> @location(0) vec4f {
   let teamMix = mix(mix(0.44, 0.0, strength), 0.90, teamMask);
   let base = mix(in.color.rgb * albedo, accent, teamMix);
   let light01 = clamp((in.light - 0.34) / 0.78, 0.0, 1.0);
-  let warmKey = vec3f(1.12, 1.00, 0.78);
-  let coolFill = vec3f(0.70, 0.78, 0.92);
-  let grade = mix(coolFill, warmKey, light01);
+  let grade = mix(SKINNED_FILL, SKINNED_KEY, light01);
   let bronzeMask = smoothstep(0.58, 0.78, in.color.r) * smoothstep(0.34, 0.52, in.color.g) * (1.0 - smoothstep(0.28, 0.46, in.color.b));
   let linenMask = smoothstep(0.58, 0.76, in.color.r) * smoothstep(0.48, 0.66, in.color.g) * smoothstep(0.32, 0.48, in.color.b);
-  var shaded = base * (0.62 + light01 * 0.58) * grade;
+  var shaded = base * (0.62 + light01 * 0.58) * grade * SKINNED_EXPOSURE;
   shaded += vec3f(0.10, 0.055, 0.012) * bronzeMask * (0.30 + light01 * 0.70);
   shaded += vec3f(0.055, 0.045, 0.020) * linenMask * (0.25 + light01 * 0.45);
   shaded += accent * in.rim * (0.06 + teamMask * 0.08);
@@ -184,9 +238,11 @@ export class SkinnedCrowdPipeline {
   private materialBindGroup: GPUBindGroup;
   private materialUniform: GPUBuffer;
   private readonly worldDepth: SoldierCrowdDepthScene;
+  private readonly lighting: SkinnedLightingEnvironment;
 
-  constructor(private shell: RawFrameShell, meshes: SkinnedMeshInput, vats: SkinnedVatInput, kit?: SoldierKitManifest, opts: { worldDepth?: SoldierCrowdDepthScene } = {}) {
+  constructor(private shell: RawFrameShell, meshes: SkinnedMeshInput, vats: SkinnedVatInput, kit?: SoldierKitManifest, opts: { worldDepth?: SoldierCrowdDepthScene; lighting?: SkinnedLightingEnvironment } = {}) {
     this.worldDepth = opts.worldDepth ?? 'battle';
+    this.lighting = opts.lighting ?? DEFAULT_SKINNED_LIGHTING;
     const device = shell.device;
     // Normalize to per-class tiers: classId → lod → mesh. A flat list is L0-only.
     const meshTiers: SoldierMeshData[][] = Array.isArray(meshes)
@@ -332,6 +388,7 @@ export class SkinnedCrowdPipeline {
       clips: Array.from(clips),
       meshVariants: this.resources.length,
       vatVariants: this.vatVariants,
+      lighting: skinnedLightingStats(this.lighting),
       cameraContract: 'shared-world-camera-wgsl',
     };
   }
@@ -413,9 +470,10 @@ export class SkinnedCrowdPipeline {
     // Campaign soldiers sort against campaign scenery/cities, which use a
     // different ground/height depth weighting than battle. Swap only the depth
     // function; battle keeps the unchanged WGSL (byte-identical).
+    const baseWgsl = SKINNED_WGSL(this.lighting);
     const wgsl = this.worldDepth === 'campaign'
-      ? SKINNED_WGSL.replace('civsimBattleWorldDepth3d(world)', 'civsimCampaignWorldDepth3d(world)')
-      : SKINNED_WGSL;
+      ? baseWgsl.replace('civsimBattleWorldDepth3d(world)', 'civsimCampaignWorldDepth3d(world)')
+      : baseWgsl;
     const module = compileShader(device, wgsl, `skinned-crowd-${this.worldDepth}`);
     return device.createRenderPipeline({
       label: 'skinned-crowd-pipeline',

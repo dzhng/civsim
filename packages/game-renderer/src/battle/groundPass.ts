@@ -5,7 +5,13 @@ import { compileShader } from '../../../renderer-core/src/compileShader';
 import type { BattleGroundCover, BattleTerrainGrid } from './terrainFeatures';
 import { terrainHeightAt, type TerrainHeightField } from '../terrain/heightField';
 import type { GrassFieldSnapshot } from './grassField';
-import { FIELD_WATER_WGSL } from '../water/fieldWaterWgsl';
+import { fieldWaterWgsl } from '../water/fieldWaterWgsl';
+import {
+  BATTLE_ENVIRONMENTS,
+  battleEnvironmentStats,
+  battleEnvironmentWgsl,
+  type BattleEnvironment,
+} from '../environment/environment';
 
 // The rolling battle ground: a height-displaced grid mesh that replaces the flat
 // terrain quads, so soldiers, shadows, and props (which seat on the same height
@@ -41,8 +47,9 @@ const WATER_TINT = 1;
 // FIELD_WATER_WGSL, single-sourced with the lab terrainPass fixtures and built on
 // the same frozen open-sea look as the horizon plane, so all civsim water is one
 // material.
-const GROUND_WGSL = `
+const GROUND_WGSL = (env: BattleEnvironment) => `
 ${WORLD_CAMERA_WGSL}
+${battleEnvironmentWgsl(env)}
 struct GroundUniform {
   meadow0: vec4f,
   meadow1: vec4f,
@@ -55,7 +62,7 @@ struct GroundUniform {
 @group(1) @binding(1) var meadowSampler: sampler;
 @group(1) @binding(2) var meadowTexture: texture_2d<f32>;
 
-${FIELD_WATER_WGSL}
+${fieldWaterWgsl(env.environment)}
 struct VsOut {
   @builtin(position) pos: vec4f,
   @location(0) color: vec3f,
@@ -295,7 +302,7 @@ fn meadowCarpet(world: vec2f, axes: vec2f, field: vec4f, screen: vec2f) -> vec3f
 fn vs(@location(0) world: vec3f, @location(1) normal: vec3f, @location(2) color: vec3f, @location(3) water: f32) -> VsOut {
   var out: VsOut;
   out.pos = projectWorld3d(world, civsimBattleWorldDepth3d(world));
-  let sun = normalize(vec3f(-0.38, -0.30, 0.87));
+  let sun = sunDirection();
   out.light = clamp(dot(normalize(normal), sun) * 0.45 + 0.74, 0.5, 1.18);
   out.color = color;
   out.world = world.xy;
@@ -315,15 +322,13 @@ fn fs(in: VsOut) -> @location(0) vec4f {
   let mottle = (fbm(in.world * 1.1) - 0.5) * 0.13;
   let blade = (fbm(in.world * 4.7) - 0.5) * 0.10 + (fbm(in.world * 12.0) - 0.5) * 0.06;
   let detail = clamp(1.0 + drift + mottle + blade, 0.68, 1.32);
-  let warmKey = vec3f(1.06, 1.00, 0.86);
-  let coolFill = vec3f(0.74, 0.79, 0.84);
-  let grade = mix(coolFill, warmKey, clamp((in.light - 0.5) / 0.68, 0.0, 1.0));
-  var col = in.color * detail * in.light * grade;
+  let grade = mix(BATTLE_FILL, BATTLE_KEY, clamp((in.light - 0.5) / 0.68, 0.0, 1.0));
+  var col = in.color * detail * in.light * grade * BATTLE_EXPOSURE;
   let meadowFieldData = meadowField(in.world);
   let meadow = meadowWeight(in.axes, meadowFieldData);
   let meadowDepthT = smoothstep(ground.meadow1.x, ground.meadow1.y, in.axes.y);
   let meadowLight = mix(1.00, in.light, 0.24 + meadowDepthT * 0.18);
-  let meadowCol = meadowCarpet(in.world, in.axes, meadowFieldData, in.pos.xy) * meadowLight * vec3f(0.94, 0.94, 0.98);
+  let meadowCol = meadowCarpet(in.world, in.axes, meadowFieldData, in.pos.xy) * meadowLight * vec3f(0.94, 0.94, 0.98) * BATTLE_EXPOSURE;
   col = mix(col, meadowCol, meadow);
   // Churn: where the ground is earthy (brown, r over g) the mud reads as trodden,
   // broken ground — a patchy dried crust over darker hollows, scored by
@@ -350,8 +355,7 @@ fn fs(in: VsOut) -> @location(0) vec4f {
     let water = fieldWaterColor(in.world, in.water);
     col = mix(col, water, clamp(in.water, 0.0, 1.0));
   }
-  let haze = vec3f(0.78, 0.82, 0.81);
-  col = mix(col, haze, in.fog);
+  col = mix(col, BATTLE_HAZE, in.fog);
   return vec4f(clamp(col, vec3f(0.0), vec3f(1.0)), 1.0);
 }`;
 
@@ -409,8 +413,8 @@ export class BattleGroundPass {
     bodyDomainSourceAttached: false,
   };
 
-  constructor(private shell: RawFrameShell) {
-    const module = compileShader(shell.device, GROUND_WGSL, 'battle-ground-heightfield');
+  constructor(private shell: RawFrameShell, private environment: BattleEnvironment = BATTLE_ENVIRONMENTS['golden-hour']) {
+    const module = compileShader(shell.device, GROUND_WGSL(environment), `battle-ground-heightfield-${environment.id}`);
     this.groundBindGroupLayout = shell.device.createBindGroupLayout({
       label: 'battle-ground-uniform-layout',
       entries: [
@@ -746,6 +750,7 @@ export class BattleGroundPass {
     return {
       triangles: this.triangles,
       layer: 'battle-ground-heightfield' as const,
+      environment: battleEnvironmentStats(this.environment),
       meadow: this.meadowStats,
     };
   }

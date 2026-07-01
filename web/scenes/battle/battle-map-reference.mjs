@@ -50,6 +50,20 @@ export async function run(ctx) {
   }
 
   ctx.check(
+    "reference candidate uses the shared overcast-foggy environment",
+    stats.environment?.id === "overcast-foggy" &&
+      stats.environment?.source === "CIVSIM_ENVIRONMENTS.overcast" &&
+      stats.environment?.waterAlias === "WATER_ENVIRONMENTS.overcast" &&
+      stats.ground?.environment?.id === "overcast-foggy" &&
+      stats.grass?.environment?.id === "overcast-foggy",
+    JSON.stringify({
+      route: stats.environment,
+      ground: stats.ground?.environment,
+      grass: stats.grass?.environment,
+    }),
+  );
+
+  ctx.check(
     "reference candidate uses the field-driven meadow plus bounded blade-accent architecture",
     stats.grass?.terrainMasked === true &&
       stats.grass?.zoomT === 1 &&

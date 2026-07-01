@@ -37,7 +37,15 @@ import { sampleGrassField } from '../../../packages/game-renderer/src/battle/gra
 import { BattleHorizonPass } from '../../../packages/game-renderer/src/battle/horizonPass';
 import { createWaterField } from '../../../packages/game-renderer/src/water/waterField';
 import { WaterPlanePass } from '../../../packages/game-renderer/src/water/waterPlanePass';
-import { WATER_ENVIRONMENTS, type WaterEnvironment } from '../../../packages/game-renderer/src/water/waterEnvironment';
+import {
+  WATER_ENVIRONMENTS,
+  applyBattleEnvironment,
+  battleEnvironmentStats,
+  resolveBattleEnvironment,
+  skinnedLightingForBattleEnvironment,
+  type BattleEnvironment,
+  type WaterEnvironment,
+} from '../../../packages/game-renderer/src/environment/environment';
 import { featuresToBattleScenery } from '../../../packages/game-renderer/src/battle/terrainScenery';
 import { MeshBuilder, type Rgb } from '../../../packages/game-renderer/src/models/shared/meshBuilder';
 import type { GrassAccentStyle } from '../../../packages/game-renderer/src/models/shared/grassModels';
@@ -1689,9 +1697,10 @@ async function routeSharedPropModelShots(ctx: LabContext) {
 // for the silhouette.
 async function routeSharedGrassModelShots(ctx: LabContext) {
   const gate = ctx.params.get('gate') === 'patch' ? 'patch' : 'tuft';
+  const environment = resolveBattleEnvironment(ctx.params.get('environment'));
   const config = grassModelShotConfig(gate);
-  const shell = await createConfiguredShell(ctx.canvas, config.camera);
-  const grass = new BattleGrassPass(shell);
+  const shell = await createConfiguredShell(ctx.canvas, config.camera, environment);
+  const grass = new BattleGrassPass(shell, environment);
   const field = flatFieldFor(config.bounds);
   grass.setField(field, config.bounds, 'green-grass', config.params);
   grass.setWindPhase(numberParam(ctx.params, 'phase', config.params.windPhase ?? 0));
@@ -1707,6 +1716,7 @@ async function routeSharedGrassModelShots(ctx: LabContext) {
     route: 'shared-grass-models',
     gate,
     purpose: 'isolated reusable grass primitive model sheet',
+    environment: environment.id,
     tufts: grassStats.tuftInstances,
     blades: grassStats.bladeInstances,
     windPhase: grassStats.windPhase.toFixed(2),
@@ -2776,6 +2786,7 @@ async function routeBattleTerrain3d(ctx: LabContext) {
   const field = presentation.height;
   const view = ctx.params.get('view') ?? 'field';
   const isReferenceFixture = presentation.mapId === REFERENCE_HIGHLAND_ENTRY.id;
+  const environment = resolveBattleEnvironment(ctx.params.get('environment') ?? (view === 'reference' ? 'overcast-foggy' : 'golden-hour'));
   field.verticalScale = isReferenceFixture ? 2.35 : 2.6;
   const scenery = featuresToBattleScenery(presentation.features, field, 0x77);
 
@@ -2814,13 +2825,13 @@ async function routeBattleTerrain3d(ctx: LabContext) {
             ? { x: Number(ctx.params.get('cx') ?? -380), y: Number(ctx.params.get('cy') ?? -720), zoom: Number(ctx.params.get('zoom') ?? 1.92), pitch: 1.03, yaw: -0.035, perspective: 0.0068 }
             : { x: Number(ctx.params.get('cx') ?? -70), y: Number(ctx.params.get('cy') ?? -650), zoom: Number(ctx.params.get('zoom') ?? 2.4), pitch: 1.02, yaw: -0.04, perspective: 0.006 }
         : { x: Number(ctx.params.get('cx') ?? focus?.x ?? 0), y: Number(ctx.params.get('cy') ?? focus?.y ?? 0) - 110, zoom: 3.3, pitch: 0.44, yaw: -0.05 };
-  const shell = await createConfiguredShell(ctx.canvas, camera);
+  const shell = await createConfiguredShell(ctx.canvas, camera, environment);
   // Field water animates on cam.time; snap at a fixed t for deterministic shots
   // (defaults to 0, matching the pre-water frozen frame for non-water maps).
   shell.setTime(numberParam(ctx.params, 't', 0));
-  const ground = new BattleGroundPass(shell);
+  const ground = new BattleGroundPass(shell, environment);
   ground.setTerrain(grid, field, presentation.groundCover);
-  const grass = new BattleGrassPass(shell);
+  const grass = new BattleGrassPass(shell, environment);
   const grassZoomT = view === 'reference' ? 1.0 : view === 'soldiers' ? 0.82 : 0.58;
   const requestedGrassTechnique = ctx.params.get('grassTechnique');
   const grassTechnique = view === 'reference' && isReferenceFixture
@@ -2937,7 +2948,7 @@ async function routeBattleTerrain3d(ctx: LabContext) {
   }
   const props = new CampaignSceneryPass(shell, 'battle');
   props.upload(scenery);
-  const horizon = new BattleHorizonPass(shell);
+  const horizon = new BattleHorizonPass(shell, environment);
   horizon.setEdges({ ox, oy, w, h, cell }, presentation.edges, field);
   const referenceSky = view === 'reference' && isReferenceFixture ? new ReferenceHighlandSkyPass(shell) : null;
   const referenceBackdrop = view === 'reference' && isReferenceFixture ? new ReferenceHighlandBackdropPass(shell) : null;
@@ -2966,7 +2977,7 @@ async function routeBattleTerrain3d(ctx: LabContext) {
     const instances = built.instances.map((inst) => ({ ...inst, facing: Math.PI / 2 }));
     const elevationMatches = instances.every((inst) => Math.abs((inst.elevation ?? 0) - terrainHeight(inst.x, inst.y)) < 1e-4);
     const elevs = instances.map((i) => i.elevation ?? 0);
-    const pipeline = await createSkinnedPipeline(shell, [0.30, 0.36, 0.74], vat);
+    const pipeline = await createSkinnedPipeline(shell, [0.30, 0.36, 0.74], vat, environment);
     pipeline.upload(instances, { forcedClip: 'march', phaseOffset: 0, size: 1 });
     const shadows = new SoldierShadowDecalPass(shell);
     shadows.upload(instances);
@@ -2974,7 +2985,7 @@ async function routeBattleTerrain3d(ctx: LabContext) {
   }
 
   shell.drawFrame({
-    clear: view === 'reference' && isReferenceFixture ? { r: 0.82, g: 0.85, b: 0.86, a: 1 } : { r: 0.74, g: 0.83, b: 0.90, a: 1 },
+    clear: clearForEnvironment(environment),
     passes: [
       ...(referenceSky
         ? [{ id: 'battle-reference-sky', role: 'background-underpaint' as const, phase: 'background' as const, draw: (pass: BackgroundRenderPass) => referenceSky.draw(pass) }]
@@ -2998,6 +3009,7 @@ async function routeBattleTerrain3d(ctx: LabContext) {
     route: 'battle-terrain-3d',
     gate: entry.id,
     map: entry.label,
+    environment: environment.id,
     groundCover: presentation.groundCover,
     groundTriangles: groundStats.triangles,
     grassTechnique,
@@ -3026,6 +3038,7 @@ async function routeBattleTerrain3d(ctx: LabContext) {
     gate: entry.id,
     mapId: presentation.mapId,
     view,
+    environment: battleEnvironmentStats(environment),
     edges: presentation.edges,
     sealedEdges: referenceBackdrop ? [] : horizon.stats().sealedEdges,
     referenceSky: referenceSky?.stats() ?? null,
@@ -3148,6 +3161,7 @@ function hashUnit(k: number, salt: number): number {
 
 async function routeBattleGrass(ctx: LabContext) {
   const gate = ctx.params.get('gate') === 'sparse' ? 'sparse' : 'flat-field';
+  const environment = resolveBattleEnvironment(ctx.params.get('environment'));
   const bounds: BattleGrassBounds = { x: -18, y: -11, width: 36, height: 22 };
   const phase = numberParam(ctx.params, 'phase', 0);
   const params: BattleGrassParams = {
@@ -3163,11 +3177,11 @@ async function routeBattleGrass(ctx: LabContext) {
     windStrength: numberParam(ctx.params, 'windStrength', 0.10),
   };
   const camera = { x: 0, y: -2.2, zoom: 31, pitch: 0.54, yaw: -0.12, perspective: 0.018 };
-  const shell = await createConfiguredShell(ctx.canvas, camera);
-  const grass = new BattleGrassPass(shell);
+  const shell = await createConfiguredShell(ctx.canvas, camera, environment);
+  const grass = new BattleGrassPass(shell, environment);
   grass.setField(flatFieldFor(bounds), bounds, 'green-grass', params);
   shell.drawFrame({
-    clear: { r: 0.74, g: 0.83, b: 0.90, a: 1 },
+    clear: clearForEnvironment(environment),
     terrainRect: [bounds.x, bounds.y, bounds.width, bounds.height],
     terrainStyle: 'wide-detail',
     passes: [
@@ -3201,6 +3215,7 @@ async function routeBattleGrassField(ctx: LabContext) {
     ? requestedMode
     : 'packed-tilt';
   const closeLab = mode === 'foreground-close-lab';
+  const environment = resolveBattleEnvironment(ctx.params.get('environment') ?? (closeLab ? 'overcast-foggy' : 'golden-hour'));
   const accentMode = mode === 'field-accent' || closeLab;
   const closeLabCameraProfile: ForegroundCloseLabCameraProfile | undefined = closeLab
     ? foregroundCloseLabCameraProfileParam(ctx.params, 'labCameraProfile', 'b4b1-current')
@@ -3239,8 +3254,8 @@ async function routeBattleGrassField(ctx: LabContext) {
       perspective: numberParam(ctx.params, 'cameraPerspective', closeLabCamera.perspective),
     }
     : { x: 10, y: -14, zoom: 40, pitch: 0.66, yaw: -0.18, perspective: 0.020 };
-  const shell = await createConfiguredShell(ctx.canvas, camera);
-  const ground = new BattleGroundPass(shell);
+  const shell = await createConfiguredShell(ctx.canvas, camera, environment);
+  const ground = new BattleGroundPass(shell, environment);
   ground.setTerrain(grid, field, 'green-grass', 2);
   const bodyDomainId = bodyDomainIdParam(ctx.params, 'bodyDomainId', 'field-strand-material');
   if (mode !== 'packed-tilt') {
@@ -3265,7 +3280,7 @@ async function routeBattleGrassField(ctx: LabContext) {
       bodyDomainContrast: numberParam(ctx.params, 'bodyDomainContrast', 0.82),
     });
   }
-  const grass = new BattleGrassPass(shell);
+  const grass = new BattleGrassPass(shell, environment);
   const fiberShellVariant = fiberShellVariantParam(ctx.params, 'fiberShellVariant', 'normal');
   const requestedPrimitiveFamily = grassPrimitiveFamilyParam(ctx.params, 'grassPrimitiveFamily', 'field-fiber-shell');
   const accentStyle = grassAccentStyleParam(ctx.params, 'accentStyle', accentMode ? accentStyleForPrimitiveFamily(requestedPrimitiveFamily, fiberShellVariant) : 'tuft');
@@ -3486,6 +3501,7 @@ async function routeBattleGrassField(ctx: LabContext) {
     camera,
     focus,
     bounds,
+    environment: battleEnvironmentStats(environment),
     grid: { w: grid.w, h: grid.h, cell: grid.cell, ox: grid.ox, oy: grid.oy },
     field: snapshot.stats,
     grass: grassStats,
@@ -3501,10 +3517,11 @@ async function routeBattleGrassField(ctx: LabContext) {
       frozenInputs: {
         terrain: 'battle-grass-field-slope-grid',
         palette: 'green-grass',
-        lighting: 'renderer-lab-overcast-clear',
+        lighting: environment.id,
         seed: 0x31b2,
         meadow: 'field-owned',
         rootMass: 'enabled',
+        environment: battleEnvironmentStats(environment),
       },
     } : undefined,
     depth: shell.stats().depth,
@@ -4163,10 +4180,16 @@ async function routeWaterBakeoff(ctx: LabContext) {
   tick();
 }
 
-async function createConfiguredShell(canvas: HTMLCanvasElement, camera: { x: number; y: number; zoom: number; pitch?: number; yaw?: number; perspective?: number }) {
+async function createConfiguredShell(canvas: HTMLCanvasElement, camera: { x: number; y: number; zoom: number; pitch?: number; yaw?: number; perspective?: number }, environment: BattleEnvironment = resolveBattleEnvironment('golden-hour')) {
   const shell = await createFrameShell(canvas);
   shell.setCamera(camera);
+  applyBattleEnvironment(shell, environment);
   return shell;
+}
+
+function clearForEnvironment(environment: BattleEnvironment) {
+  const [r, g, b, a] = environment.clear;
+  return { r, g, b, a };
 }
 
 function grassModelShotConfig(gate: 'tuft' | 'patch'): {
@@ -4221,8 +4244,10 @@ function flatFieldFor(bounds: BattleGrassBounds): TerrainHeightField {
   );
 }
 
-async function createSkinnedPipeline(shell: RawFrameShell, accent: [number, number, number], vat?: Awaited<ReturnType<typeof loadPlaceholderVat>>) {
-  return new SkinnedCrowdPipeline(shell, createPlaceholderSoldierMeshes(accent), vat ?? await loadPlaceholderVat());
+async function createSkinnedPipeline(shell: RawFrameShell, accent: [number, number, number], vat?: Awaited<ReturnType<typeof loadPlaceholderVat>>, environment = resolveBattleEnvironment('golden-hour')) {
+  return new SkinnedCrowdPipeline(shell, createPlaceholderSoldierMeshes(accent), vat ?? await loadPlaceholderVat(), undefined, {
+    lighting: skinnedLightingForBattleEnvironment(environment),
+  });
 }
 
 function numberParam(params: URLSearchParams, key: string, fallback: number) {

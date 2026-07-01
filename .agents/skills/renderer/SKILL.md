@@ -24,7 +24,12 @@ pass orchestration, WGSL layout, depth semantics, or browser-verified output.
    modes, frame phases, semantic roles, vertex strides, and bind group schemas
    should live in one canonical module/source and be imported by renderers,
    shaders, and verifiers.
-5. Validate in the browser. Run the narrowest scenario that exercises the
+5. Fight sediment. When a new requirement reveals that two passes own the same
+   concept (lighting environment, haze, material palette, terrain projection,
+   water mask), refactor to the shared primitive you would design from scratch.
+   Do not bolt an adapter or alias beside the old owner unless it is a tiny
+   temporary bridge with a named removal path.
+6. Validate in the browser. Run the narrowest scenario that exercises the
    changed pass, open the produced PNG, and use `compare-screenshots` when a
    visual before/after needs telemetry.
 
@@ -78,6 +83,11 @@ pass orchestration, WGSL layout, depth semantics, or browser-verified output.
   generated from the same world-space mask that owns the gameplay geography;
   unmasked decorative quads/ellipses are only valid for non-geographic
   atmosphere and must not independently decide where land or water exists.
+- Shared visual concepts are not pass-local knobs. If water, terrain, grass,
+  sky, soldiers, or props all need the same weather, haze, palette, or light,
+  make that a shared renderer contract and have every pass consume it. A wrapper
+  that preserves old duplicated constants is still a failed architecture unless
+  it is explicitly transitional and tracked.
 - Secondary world views need the same contract as the primary view. Minimap,
   overview, reflection, shadow, and debug views should expose or consume
   canonical world-space anchors instead of carrying private scale/offset math;

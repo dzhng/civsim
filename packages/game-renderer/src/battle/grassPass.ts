@@ -15,6 +15,12 @@ import {
   type GrassAccentStyle,
   type GrassTuftOptions,
 } from '../models/shared/grassModels';
+import {
+  BATTLE_ENVIRONMENTS,
+  battleEnvironmentStats,
+  battleEnvironmentWgsl,
+  type BattleEnvironment,
+} from '../environment/environment';
 
 export interface BattleGrassBounds {
   x: number;
@@ -91,6 +97,7 @@ export interface BattleGrassStats {
   layer: 'battle-grass-instanced-blades';
   prepMode: 'legacy-scatter' | 'packed-field';
   cover: BattleGroundCover;
+  environment: ReturnType<typeof battleEnvironmentStats>;
   terrainMasked: boolean;
   zoomT: number;
   focusRadius: number;
@@ -203,8 +210,9 @@ const GRASS_VOLUME_ATLAS_TILES = 4;
 const GRASS_VOLUME_ATLAS_WIDTH = GRASS_VOLUME_ATLAS_TILE_SIZE * GRASS_VOLUME_ATLAS_TILES;
 const GRASS_VOLUME_ATLAS_HEIGHT = GRASS_VOLUME_ATLAS_TILE_SIZE;
 
-const GRASS_WGSL = `
+const GRASS_WGSL = (env: BattleEnvironment) => `
 ${WORLD_CAMERA_WGSL}
+${battleEnvironmentWgsl(env)}
 struct GrassUniform {
   windPhase: f32,
   windStrength: f32,
@@ -262,7 +270,7 @@ fn vs(
   let tiltedNormal = normalize(mix(terrainN, rnormal, 0.38 + heightT * 0.48));
   var out: VsOut;
   out.pos = projectWorld3d(world, civsimBattleWorldDepth3d(world));
-  let sun = normalize(vec3f(-0.38, -0.26, 0.89));
+  let sun = sunDirection();
   out.light = clamp(dot(tiltedNormal, sun) * 0.28 + 0.82, 0.58, 1.10);
   out.color = colorAndAlpha.rgb * shade;
   out.alpha = colorAndAlpha.a;
@@ -275,9 +283,7 @@ fn vs(
 
 @fragment
 fn fs(in: VsOut) -> @location(0) vec4f {
-  let warmKey = vec3f(1.04, 1.00, 0.88);
-  let coolFill = vec3f(0.76, 0.80, 0.78);
-  let grade = mix(coolFill, warmKey, clamp((in.light - 0.58) / 0.52, 0.0, 1.0));
+  let grade = mix(BATTLE_FILL, BATTLE_KEY, clamp((in.light - 0.58) / 0.52, 0.0, 1.0));
   let strawTip = ${GRASS_ALBEDO_NEAR};
   let tipDry = smoothstep(0.62, 1.0, in.heightT) * 0.055 * (1.0 - in.terrainT * 0.82);
   let lit = mix(in.color * in.light * grade, strawTip, tipDry);
@@ -287,15 +293,15 @@ fn fs(in: VsOut) -> @location(0) vec4f {
   var terrainStubble = mix(terrainRoot, terrainTip, smoothstep(0.12, 1.0, in.heightT));
   terrainStubble = mix(terrainStubble, terrainMid, 0.18);
   var col = mix(lit, terrainStubble, in.terrainT * 0.58);
-  let overcastMeadow = vec3f(0.58, 0.66, 0.48);
-  col = mix(col, overcastMeadow, 0.20 + in.terrainT * 0.55);
-  let haze = vec3f(0.78, 0.82, 0.78);
-  col = mix(col, haze, in.fog);
+  let neutralMeadow = vec3f(0.58, 0.66, 0.48);
+  col = mix(col, neutralMeadow, 0.20 + in.terrainT * 0.55);
+  col = mix(col * BATTLE_EXPOSURE, BATTLE_HAZE, in.fog);
   return vec4f(clamp(col, vec3f(0.0), vec3f(1.0)), in.alpha);
 }`;
 
-const TEXTURED_GRASS_WGSL = `
+const TEXTURED_GRASS_WGSL = (env: BattleEnvironment) => `
 ${WORLD_CAMERA_WGSL}
+${battleEnvironmentWgsl(env)}
 struct GrassUniform {
   windPhase: f32,
   windStrength: f32,
@@ -370,7 +376,7 @@ fn vs(
   out.uv = vec2f((tile + clamp(uvTileAlpha.x, 0.0, 1.0)) * tileWidth, clamp(uvTileAlpha.y, 0.0, 1.0));
   out.tile = tile;
   out.alpha = uvTileAlpha.w;
-  let sun = normalize(vec3f(-0.38, -0.26, 0.89));
+  let sun = sunDirection();
   out.light = clamp(dot(tiltedNormal, sun) * 0.24 + 0.84, 0.62, 1.08);
   out.heightT = heightT;
   out.terrainT = terrainT;
@@ -410,21 +416,18 @@ fn fs(in: VsOut) -> @location(0) vec4f {
     discard;
   }
   let rootShade = smoothstep(0.0, 0.34, in.heightT);
-  let warmKey = vec3f(1.03, 1.00, 0.90);
-  let coolFill = vec3f(0.78, 0.82, 0.79);
-  let grade = mix(coolFill, warmKey, clamp((in.light - 0.62) / 0.46, 0.0, 1.0));
-  let overcastMeadow = vec3f(0.58, 0.66, 0.48);
+  let grade = mix(BATTLE_FILL, BATTLE_KEY, clamp((in.light - 0.62) / 0.46, 0.0, 1.0));
+  let neutralMeadow = vec3f(0.58, 0.66, 0.48);
   var grassCol = tex.rgb * in.light * grade;
   grassCol = mix(grassCol * vec3f(0.55, 0.62, 0.48), grassCol, rootShade);
-  let cardBase = overcastMeadow * (0.80 + rootShade * 0.10);
+  let cardBase = neutralMeadow * (0.80 + rootShade * 0.10);
   var col = mix(cardBase, grassCol, coverage);
   if (model > 0.5) {
-    let cutoutRoot = mix(overcastMeadow * 0.64, grassCol, rootShade);
+    let cutoutRoot = mix(neutralMeadow * 0.64, grassCol, rootShade);
     col = mix(cutoutRoot, grassCol, coverage);
   }
-  col = mix(col, overcastMeadow, select((1.0 - coverage) * (0.10 + in.terrainT * 0.18), 0.0, model > 0.5) + in.terrainT * mix(0.18, 0.30, in.carrierT));
-  let haze = vec3f(0.78, 0.82, 0.78);
-  col = mix(col, haze, in.fog);
+  col = mix(col, neutralMeadow, select((1.0 - coverage) * (0.10 + in.terrainT * 0.18), 0.0, model > 0.5) + in.terrainT * mix(0.18, 0.30, in.carrierT));
+  col = mix(col * BATTLE_EXPOSURE, BATTLE_HAZE, in.fog);
   return vec4f(clamp(col, vec3f(0.0), vec3f(1.0)), 1.0);
 }`;
 
@@ -518,10 +521,10 @@ export class BattleGrassPass {
   private textureVolumeProfile: TextureVolumeProfile = 'current';
   private textureVolumeRenderModel: TextureVolumeRenderModel = 'opaque-card';
 
-  constructor(private shell: RawFrameShell) {
+  constructor(private shell: RawFrameShell, private environment: BattleEnvironment = BATTLE_ENVIRONMENTS['golden-hour']) {
     const device = shell.device;
-    const module = compileShader(device, GRASS_WGSL, 'battle-grass');
-    const texturedModule = compileShader(device, TEXTURED_GRASS_WGSL, 'battle-grass-texture-volume');
+    const module = compileShader(device, GRASS_WGSL(environment), `battle-grass-${environment.id}`);
+    const texturedModule = compileShader(device, TEXTURED_GRASS_WGSL(environment), `battle-grass-texture-volume-${environment.id}`);
     this.grassBindGroupLayout = device.createBindGroupLayout({
       label: 'battle-grass-uniform-layout',
       entries: [{ binding: 0, visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT, buffer: { type: 'uniform' } }],
@@ -1164,6 +1167,7 @@ export class BattleGrassPass {
       layer: 'battle-grass-instanced-blades',
       prepMode: this.prepMode,
       cover: this.cover,
+      environment: battleEnvironmentStats(this.environment),
       terrainMasked: this.terrainMasked,
       zoomT: this.zoomT,
       focusRadius: this.focusRadius,

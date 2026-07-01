@@ -16,8 +16,8 @@ lab keeps `WATER_ENVIRONMENTS` frozen for the six scenes.
   `BattleGroundPass`/`BattleHorizonPass` and `battleWaterEnvironment(env)` to the ocean plane.
   Accept an optional preset selector (so a future campaign→battle weather handoff can pass
   overcast; **driving** it from the campaign is out of scope, **accepting** it is in).
-- **Fold audit:** grep that no `battle/` file imports `WATER_ENVIRONMENTS`; document `dusk`
-  as lab-only in `waterEnvironment.ts`.
+- **Fold audit:** grep that no `battle/` file forks water presets; document `dusk`
+  in the shared environment owner before wiring it into battle-facing presets.
 
 ## What the human can run / see
 The real app: `node web/scene.mjs battle-renderer-visual` (and `battle-renderer-default`),

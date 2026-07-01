@@ -9,14 +9,11 @@ A single `BattleEnvironment` flows from the battle route/renderer into every bat
 and into the battle water pipelines (via an adapter), and reproducing today's `golden`
 numbers moves **no pixel anywhere**. Every later slice's "read the env" API exists.
 
-## API seam (module / functions / data / ownership) — owner: game-renderer/battle
-- **New `battle/battleEnvironment.ts`:** the `BattleEnvironment` interface (see README),
-  `BATTLE_ENVIRONMENTS.golden` (only golden this slice), `battleEnvironmentWgsl(env)` (emits
-  the `BATTLE_*` consts — only the ones consumed this slice; sky/fog consts may be present
-  but unused until S2/S4), and `battleWaterEnvironment(env): WaterEnvironment` — the adapter
-  that returns a `WaterEnvironment` reusing `waterEnvironmentWgsl` **unchanged**. Golden's
-  water-facing fields (`keyColor/fillColor/hazeColor/sun/exposure`) must equal
-  `WATER_ENVIRONMENTS.golden` so the battle water is byte-identical this slice.
+## API seam (module / functions / data / ownership) — owner: game-renderer/environment
+- **Shared `environment/environment.ts`:** the `CIVSIM_ENVIRONMENTS` preset family owns
+  sun, key/fill, haze, and exposure. `BATTLE_ENVIRONMENTS.golden-hour` and
+  `WATER_ENVIRONMENTS.golden` are aliases over the same source; `battleEnvironmentWgsl(env)`
+  and `waterEnvironmentWgsl(env)` emit pass-facing constants from that owner.
 - **`battle/groundPass.ts`, `battle/horizonPass.ts`, `water/fieldWaterWgsl.ts`:** replace the
   hardcoded `WATER_ENVIRONMENTS.golden` imports with the env threaded in from the caller
   (constructor/param). `fieldWaterWgsl.ts`'s `FIELD_WATER_WGSL` const becomes
@@ -27,8 +24,8 @@ numbers moves **no pixel anywhere**. Every later slice's "read the env" API exis
   `env = BATTLE_ENVIRONMENTS.golden`, add a `?env=` param (only `golden` valid yet), pass it
   to the ground/horizon passes and `battleWaterEnvironment(env)` to the ocean `WaterPlanePass`.
   The `clear` and (absence of) `setSun` stay exactly as today.
-- **Do NOT touch** `water/waterEnvironment.ts`, `water/waterMaterialWgsl.ts`, the
-  `WaterPlanePass` lab path, or `web/src/battle/renderer.ts` (live wiring is S7).
+- **Do NOT fork** `CIVSIM_ENVIRONMENTS`, `WATER_ENVIRONMENTS`, `water/waterMaterialWgsl.ts`,
+  the `WaterPlanePass` lab path, or `web/src/battle/renderer.ts` (live wiring is S7).
 
 ## What the human can run / see
 `/renderer/battle-terrain-3d?gate=coastal-scrub&view=field&env=golden` — visually identical

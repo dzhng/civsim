@@ -7,8 +7,13 @@ import type { BattleEdgeRole, BattleEdgeRoles } from './terrainFeatures';
 import { terrainHeightAt, type TerrainHeightField } from '../terrain/heightField';
 import { WaterPlanePass } from '../water/waterPlanePass';
 import { GerstnerWaterField } from '../water/gerstnerField';
-import { WATER_ENVIRONMENTS } from '../water/waterEnvironment';
 import { BATTLE_OCEAN_RAMP } from '../water/waterShoreRamp';
+import {
+  BATTLE_ENVIRONMENTS,
+  battleEnvironmentStats,
+  battleEnvironmentWgsl,
+  type BattleEnvironment,
+} from '../environment/environment';
 
 // The sealed-side backdrop: the west/east edges read at a glance as the blocker
 // the sim already enforces — cliffs/mountains as a tall stone ridge, a wall as a
@@ -30,8 +35,9 @@ const OCEAN_FAR = 4000;
 const OCEAN_LAP = 24;
 const OCEAN_RES = 360;
 
-const HORIZON_WGSL = `
+const HORIZON_WGSL = (env: BattleEnvironment) => `
 ${WORLD_CAMERA_WGSL}
+${battleEnvironmentWgsl(env)}
 struct VsOut {
   @builtin(position) pos: vec4f,
   @location(0) color: vec3f,
@@ -42,7 +48,7 @@ struct VsOut {
 fn vs(@location(0) world: vec3f, @location(1) normal: vec3f, @location(2) color: vec3f) -> VsOut {
   var out: VsOut;
   out.pos = projectWorld3d(world, civsimBattleWorldDepth3d(world));
-  let sun = normalize(vec3f(-0.40, -0.28, 0.87));
+  let sun = sunDirection();
   out.light = clamp(dot(normalize(normal), sun) * 0.5 + 0.7, 0.42, 1.2);
   out.color = color;
   return out;
@@ -52,8 +58,7 @@ fn vs(@location(0) world: vec3f, @location(1) normal: vec3f, @location(2) color:
 fn fs(in: VsOut) -> @location(0) vec4f {
   // Push the blocker slightly toward the cool haze with height so it reads as
   // standing off in the distance behind the field.
-  let haze = vec3f(0.74, 0.79, 0.84);
-  let col = clamp(mix(in.color * in.light, haze, 0.10), vec3f(0.0), vec3f(1.0));
+  let col = clamp(mix(in.color * in.light * BATTLE_EXPOSURE, BATTLE_HAZE, 0.10), vec3f(0.0), vec3f(1.0));
   return vec4f(col, 1.0);
 }`;
 
@@ -69,8 +74,8 @@ export class BattleHorizonPass {
   private readonly oceanField = new GerstnerWaterField();
   private oceanPlanes: WaterPlanePass[] = [];
 
-  constructor(private shell: RawFrameShell) {
-    const module = compileShader(shell.device, HORIZON_WGSL, 'battle-horizon');
+  constructor(private shell: RawFrameShell, private environment: BattleEnvironment = BATTLE_ENVIRONMENTS['golden-hour']) {
+    const module = compileShader(shell.device, HORIZON_WGSL(environment), `battle-horizon-${environment.id}`);
     this.pipeline = shell.device.createRenderPipeline({
       label: 'battle-horizon-pipeline',
       layout: shell.device.createPipelineLayout({ bindGroupLayouts: [shell.cameraBindGroupLayout] }),
@@ -142,7 +147,7 @@ export class BattleHorizonPass {
       const outer = edgeX + outward * OCEAN_FAR;
       const rect = { x0: Math.min(inner, outer), y0: yLo, x1: Math.max(inner, outer), y1: yHi, res: OCEAN_RES };
       this.oceanPlanes.push(
-        new WaterPlanePass(this.shell, this.oceanField, rect, WATER_ENVIRONMENTS.golden, { baseZ, shoreX: edgeX, shoreRamp: BATTLE_OCEAN_RAMP }),
+        new WaterPlanePass(this.shell, this.oceanField, rect, this.environment.environment, { baseZ, shoreX: edgeX, shoreRamp: BATTLE_OCEAN_RAMP }),
       );
       return;
     }
@@ -229,7 +234,11 @@ export class BattleHorizonPass {
   }
 
   stats() {
-    return { sealedEdges: this.builtEdges.map((e) => `${e.side}:${e.role}`), layer: 'battle-horizon-blockers' as const };
+    return {
+      sealedEdges: this.builtEdges.map((e) => `${e.side}:${e.role}`),
+      layer: 'battle-horizon-blockers' as const,
+      environment: battleEnvironmentStats(this.environment),
+    };
   }
 
   destroy() {

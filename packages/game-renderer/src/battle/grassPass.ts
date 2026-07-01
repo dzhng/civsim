@@ -34,6 +34,7 @@ export interface BattleGrassFocus {
 
 export type GrassAccentAggregation = 'record' | 'clump' | 'field-cell' | 'field-near';
 export type GrassFiberShellVariant = 'off' | 'normal' | 'visibility' | 'width' | 'lift' | 'view-thickness';
+export type TextureVolumeProfile = 'current' | 'seated-soft' | 'overlap-stagger' | 'broken-lattice';
 export type GrassPrimitiveFamily =
   | 'legacy-tuft'
   | 'root-shadow'
@@ -72,6 +73,7 @@ export interface BattleGrassParams {
   fiberShellVariant?: GrassFiberShellVariant;
   grassPrimitiveFamily?: GrassPrimitiveFamily;
   grassPrimitiveBaseline?: string;
+  textureVolumeProfile?: TextureVolumeProfile;
 }
 
 export interface BattleGrassStats {
@@ -132,6 +134,7 @@ export interface BattleGrassStats {
   grassPrimitiveTextureTiles: number;
   grassPrimitiveTextureBytes: number;
   grassPrimitiveMicroCards: number;
+  textureVolumeProfile: TextureVolumeProfile;
   grassPrimitiveBaseline: string;
   windPhase: number;
   windStrength: number;
@@ -419,6 +422,7 @@ export class BattleGrassPass {
   private grassPrimitiveTextureHeight = 0;
   private grassPrimitiveTextureTiles = 0;
   private grassPrimitiveTextureBytes = 0;
+  private textureVolumeProfile: TextureVolumeProfile = 'current';
 
   constructor(private shell: RawFrameShell) {
     const device = shell.device;
@@ -588,6 +592,7 @@ export class BattleGrassPass {
     this.grassPrimitiveFamily = 'legacy-tuft';
     this.grassPrimitiveBaseline = 'none';
     this.clearGrassPrimitiveTextureStats();
+    this.textureVolumeProfile = 'current';
 
     const meshOptions: GrassTuftOptions = {
       seed: merged.seed,
@@ -656,6 +661,7 @@ export class BattleGrassPass {
     this.grassPrimitiveFamily = 'legacy-tuft';
     this.grassPrimitiveBaseline = 'none';
     this.clearGrassPrimitiveTextureStats();
+    this.textureVolumeProfile = 'current';
 
     const meshOptions: GrassTuftOptions = {
       seed: merged.seed,
@@ -738,6 +744,7 @@ export class BattleGrassPass {
     const fieldFiberShell = isFieldFiberShellStyle(this.accentStyle);
     this.grassPrimitiveFamily = params.grassPrimitiveFamily ?? grassPrimitiveFamilyForStyle(this.accentStyle);
     this.grassPrimitiveBaseline = params.grassPrimitiveBaseline ?? (this.grassPrimitiveFamily === 'field-fiber-shell' ? 'none' : 'field-fiber-shell-normal');
+    this.textureVolumeProfile = this.grassPrimitiveFamily === 'texture-volume' ? params.textureVolumeProfile ?? 'current' : 'current';
     this.fiberShellVariant = fieldFiberShell
       ? requestedFiberShellVariant === 'off'
         ? 'off'
@@ -813,16 +820,16 @@ export class BattleGrassPass {
         baseWidth: this.baseWidth,
         baseBend: merged.bend,
         footprint: this.accentClumpFootprint,
-        footprintScale: microCarrier ? 0.58 : carrier ? 1.52 : 0.78,
+        footprintScale: microCarrier ? 0.58 : carrier ? 1.52 : textureVolumeProfileFootprintScale(this.textureVolumeProfile),
         vertical: true,
-        jitter: this.accentClumpFootprint * (microCarrier ? 0.66 : carrier ? 0.31 : 0.42),
-        jitterMin: microCarrier ? 0.12 : carrier ? 0.05 : 0.18,
-        yawJitter: microCarrier ? 1.75 : carrier ? 0.54 : 1.15,
-        widthScale: microCarrier ? 0.58 : carrier ? 1.32 : 0.60,
-        heightScale: microCarrier ? 0.62 : carrier ? 0.54 : 0.96,
-        copyOffsetScale: microCarrier ? 1.55 : carrier ? 0.38 : 0.95,
-        maxCopies: microCarrier ? 4 : carrier ? 1 : 2,
-        recordBudget: Math.min(explicitBudget, maxCells * (microCarrier ? 4 : carrier ? 1 : 2)),
+        jitter: this.accentClumpFootprint * (microCarrier ? 0.66 : carrier ? 0.31 : textureVolumeProfileJitter(this.textureVolumeProfile)),
+        jitterMin: microCarrier ? 0.12 : carrier ? 0.05 : textureVolumeProfileJitterMin(this.textureVolumeProfile),
+        yawJitter: microCarrier ? 1.75 : carrier ? 0.54 : textureVolumeProfileYawJitter(this.textureVolumeProfile),
+        widthScale: microCarrier ? 0.58 : carrier ? 1.32 : textureVolumeProfileWidthScale(this.textureVolumeProfile),
+        heightScale: microCarrier ? 0.62 : carrier ? 0.54 : textureVolumeProfileHeightScale(this.textureVolumeProfile),
+        copyOffsetScale: microCarrier ? 1.55 : carrier ? 0.38 : textureVolumeProfileCopyOffsetScale(this.textureVolumeProfile),
+        maxCopies: microCarrier ? 4 : carrier ? 1 : textureVolumeProfileMaxCopies(this.textureVolumeProfile),
+        recordBudget: Math.min(explicitBudget, maxCells * (microCarrier ? 4 : carrier ? 1 : textureVolumeProfileMaxCopies(this.textureVolumeProfile))),
         carrier: carrier || microCarrier,
         microCarrier,
       });
@@ -871,7 +878,7 @@ export class BattleGrassPass {
         accentStyle: this.accentStyle,
       };
       const mesh = textureFamily
-        ? buildTextureBackedGrassVolumeMesh(this.baseHeight, this.baseWidth, merged.seed, this.bladesPerTuft, textureGrassVolumeMode(this.grassPrimitiveFamily))
+        ? buildTextureBackedGrassVolumeMesh(this.baseHeight, this.baseWidth, merged.seed, this.bladesPerTuft, textureGrassVolumeMode(this.grassPrimitiveFamily), this.textureVolumeProfile)
         : buildGrassTuftMesh(meshOptions);
       const meshStats = grassTuftStats(mesh, this.bladesPerTuft);
       this.meshVertices = meshStats.opaqueVertices;
@@ -972,6 +979,7 @@ export class BattleGrassPass {
       grassPrimitiveMicroCards: this.grassPrimitiveFamily === 'texture-micro-carrier'
         ? this.tuftCount * Math.floor(this.meshTriangles / 2)
         : 0,
+      textureVolumeProfile: this.textureVolumeProfile,
       grassPrimitiveBaseline: this.grassPrimitiveBaseline,
       windPhase: this.windPhase,
       windStrength: this.windStrength,
@@ -1051,33 +1059,46 @@ function textureGrassVolumeMode(family: GrassPrimitiveFamily): TextureGrassVolum
   return 'volume';
 }
 
-function buildTextureBackedGrassVolumeMesh(baseHeight: number, baseWidth: number, seed: number, blades: number, mode: TextureGrassVolumeMode = 'volume') {
+function buildTextureBackedGrassVolumeMesh(
+  baseHeight: number,
+  baseWidth: number,
+  seed: number,
+  blades: number,
+  mode: TextureGrassVolumeMode = 'volume',
+  profile: TextureVolumeProfile = 'current',
+) {
   const carrier = mode === 'carrier';
   const microCarrier = mode === 'micro-carrier';
+  const repairedVolume = !carrier && !microCarrier && profile !== 'current';
   const cards = microCarrier
     ? Math.max(3, Math.min(4, blades + 2))
     : carrier
       ? Math.max(6, Math.min(8, blades + 4))
-      : Math.max(8, Math.min(10, blades * 2 + 2));
+      : repairedVolume
+        ? textureVolumeProfileCards(profile, blades)
+        : Math.max(8, Math.min(10, blades * 2 + 2));
   const vertices: number[] = [];
   const indices: number[] = [];
   for (let i = 0; i < cards; i++) {
-    const groups = microCarrier ? 4 : carrier ? 3 : 4;
+    const groups = microCarrier ? 4 : carrier ? 3 : textureVolumeProfileGroups(profile);
     const group = i % groups;
-    const localYaw = (group / groups) * Math.PI + (hash2(seed + i * 17, 3) - 0.5) * (microCarrier ? 0.80 : carrier ? 0.28 : 0.46);
+    const localYaw = (group / groups) * Math.PI + (hash2(seed + i * 17, 3) - 0.5) * (
+      microCarrier ? 0.80 : carrier ? 0.28 : textureVolumeProfileLocalYawJitter(profile)
+    );
     const rightX = Math.cos(localYaw);
     const rightY = Math.sin(localYaw);
-    const normal: [number, number, number] = [-rightY, rightX, microCarrier ? 0.28 : carrier ? 0.38 : 0.16];
+    const normal: [number, number, number] = [-rightY, rightX, microCarrier ? 0.28 : carrier ? 0.38 : textureVolumeProfileNormalZ(profile)];
     const normalLen = Math.hypot(normal[0], normal[1], normal[2]) || 1;
     normal[0] /= normalLen;
     normal[1] /= normalLen;
     normal[2] /= normalLen;
     const centerOffset = (i - (cards - 1) * 0.5) / Math.max(1, cards - 1);
+    const widthNoise = hash2(seed + i, 5);
     const halfWidth = baseWidth
-      * (microCarrier ? 2.1 + hash2(seed + i, 5) * 0.9 : carrier ? 8.8 + hash2(seed + i, 5) * 3.2 : 4.8 + hash2(seed + i, 5) * 2.1)
+      * (microCarrier ? 2.1 + widthNoise * 0.9 : carrier ? 8.8 + widthNoise * 3.2 : textureVolumeProfileMeshWidth(profile, widthNoise))
       * (1 - Math.abs(centerOffset) * (microCarrier ? 0.22 : carrier ? 0.08 : 0.14));
-    const height = baseHeight * (microCarrier ? 0.54 + hash2(seed + i, 7) * 0.22 : carrier ? 0.44 + hash2(seed + i, 7) * 0.20 : 0.68 + hash2(seed + i, 7) * 0.32);
-    const zLift = baseHeight * (microCarrier ? 0.004 + hash2(seed + i, 11) * 0.010 : carrier ? 0.006 + hash2(seed + i, 11) * 0.016 : 0.014 + hash2(seed + i, 11) * 0.026);
+    const height = baseHeight * (microCarrier ? 0.54 + hash2(seed + i, 7) * 0.22 : carrier ? 0.44 + hash2(seed + i, 7) * 0.20 : textureVolumeProfileMeshHeight(profile, hash2(seed + i, 7)));
+    const zLift = baseHeight * (microCarrier ? 0.004 + hash2(seed + i, 11) * 0.010 : carrier ? 0.006 + hash2(seed + i, 11) * 0.016 : textureVolumeProfileZLift(profile, hash2(seed + i, 11)));
     const lateral = baseWidth * centerOffset * (microCarrier ? 1.55 : carrier ? 6.9 : 4.8);
     const forward = baseWidth * (hash2(seed + i, 13) - 0.5) * (microCarrier ? 1.35 : carrier ? 3.6 : 2.2);
     const centerX = -rightY * forward + rightX * lateral;
@@ -1086,22 +1107,152 @@ function buildTextureBackedGrassVolumeMesh(baseHeight: number, baseWidth: number
     const leanY = (hash2(seed + i, 23) - 0.5) * baseWidth * (microCarrier ? 1.35 : carrier ? 1.0 : 1.45);
     const p0: [number, number, number] = [centerX - rightX * halfWidth, centerY - rightY * halfWidth, zLift];
     const p1: [number, number, number] = [centerX + rightX * halfWidth, centerY + rightY * halfWidth, zLift];
-    const topWidthScale = microCarrier ? 0.48 : carrier ? 0.90 : 0.72;
+    const topWidthScale = microCarrier ? 0.48 : carrier ? 0.90 : textureVolumeProfileTopWidth(profile, hash2(seed + i, 31));
     const p2: [number, number, number] = [centerX + rightX * halfWidth * topWidthScale + leanX, centerY + rightY * halfWidth * topWidthScale + leanY, zLift + height];
     const p3: [number, number, number] = [centerX - rightX * halfWidth * topWidthScale + leanX, centerY - rightY * halfWidth * topWidthScale + leanY, zLift + height];
     const tile = i % GRASS_VOLUME_ATLAS_TILES;
-    const alpha = microCarrier ? 0.84 + hash2(seed + i, 29) * 0.12 : carrier ? 0.56 + hash2(seed + i, 29) * 0.16 : 0.82 + hash2(seed + i, 29) * 0.16;
+    const alpha = microCarrier ? 0.84 + hash2(seed + i, 29) * 0.12 : carrier ? 0.56 + hash2(seed + i, 29) * 0.16 : textureVolumeProfileAlpha(profile, hash2(seed + i, 29));
+    const rootAlpha = repairedVolume ? alpha * textureVolumeProfileRootAlpha(profile) : alpha;
+    const topAlpha = repairedVolume ? alpha * textureVolumeProfileTopAlpha(profile, hash2(seed + i, 37)) : alpha;
     const base = vertices.length / 10;
-    pushTextureVertex(vertices, p0, normal, 0.02, 0.98, tile, alpha);
-    pushTextureVertex(vertices, p1, normal, 0.98, 0.98, tile, alpha);
-    pushTextureVertex(vertices, p2, normal, 0.98, 0.02, tile, alpha);
-    pushTextureVertex(vertices, p3, normal, 0.02, 0.02, tile, alpha);
+    pushTextureVertex(vertices, p0, normal, 0.02, 0.98, tile, rootAlpha);
+    pushTextureVertex(vertices, p1, normal, 0.98, 0.98, tile, rootAlpha);
+    pushTextureVertex(vertices, p2, normal, 0.98, 0.02, tile, topAlpha);
+    pushTextureVertex(vertices, p3, normal, 0.02, 0.02, tile, topAlpha);
     indices.push(base, base + 1, base + 2, base, base + 2, base + 3);
   }
   return {
     opaque: { vertices: new Float32Array(vertices), indices: new Uint16Array(indices), indexCount: indices.length },
     shadow: { vertices: new Float32Array(), indices: new Uint16Array(), indexCount: 0 },
   };
+}
+
+function textureVolumeProfileMaxCopies(profile: TextureVolumeProfile): number {
+  if (profile === 'broken-lattice') return 3;
+  return 2;
+}
+
+function textureVolumeProfileFootprintScale(profile: TextureVolumeProfile): number {
+  if (profile === 'seated-soft') return 1.10;
+  if (profile === 'overlap-stagger') return 1.28;
+  if (profile === 'broken-lattice') return 0.92;
+  return 0.78;
+}
+
+function textureVolumeProfileJitter(profile: TextureVolumeProfile): number {
+  if (profile === 'seated-soft') return 0.14;
+  if (profile === 'overlap-stagger') return 0.18;
+  if (profile === 'broken-lattice') return 0.12;
+  return 0.42;
+}
+
+function textureVolumeProfileJitterMin(profile: TextureVolumeProfile): number {
+  if (profile === 'seated-soft') return 0.06;
+  if (profile === 'overlap-stagger') return 0.10;
+  if (profile === 'broken-lattice') return 0.04;
+  return 0.18;
+}
+
+function textureVolumeProfileYawJitter(profile: TextureVolumeProfile): number {
+  if (profile === 'seated-soft') return 0.84;
+  if (profile === 'overlap-stagger') return 1.12;
+  if (profile === 'broken-lattice') return 1.46;
+  return 1.15;
+}
+
+function textureVolumeProfileWidthScale(profile: TextureVolumeProfile): number {
+  if (profile === 'seated-soft') return 0.76;
+  if (profile === 'overlap-stagger') return 0.84;
+  if (profile === 'broken-lattice') return 0.64;
+  return 0.60;
+}
+
+function textureVolumeProfileHeightScale(profile: TextureVolumeProfile): number {
+  if (profile === 'seated-soft') return 0.62;
+  if (profile === 'overlap-stagger') return 0.66;
+  if (profile === 'broken-lattice') return 0.54;
+  return 0.96;
+}
+
+function textureVolumeProfileCopyOffsetScale(profile: TextureVolumeProfile): number {
+  if (profile === 'seated-soft') return 0.28;
+  if (profile === 'overlap-stagger') return 0.52;
+  if (profile === 'broken-lattice') return 0.42;
+  return 0.95;
+}
+
+function textureVolumeProfileCards(profile: TextureVolumeProfile, blades: number): number {
+  if (profile === 'seated-soft') return Math.max(10, Math.min(12, blades * 2 + 4));
+  if (profile === 'overlap-stagger') return Math.max(12, Math.min(14, blades * 3 + 2));
+  if (profile === 'broken-lattice') return Math.max(12, Math.min(16, blades * 3 + 4));
+  return Math.max(8, Math.min(10, blades * 2 + 2));
+}
+
+function textureVolumeProfileGroups(profile: TextureVolumeProfile): number {
+  if (profile === 'broken-lattice') return 7;
+  if (profile === 'overlap-stagger') return 6;
+  return 4;
+}
+
+function textureVolumeProfileLocalYawJitter(profile: TextureVolumeProfile): number {
+  if (profile === 'seated-soft') return 0.62;
+  if (profile === 'overlap-stagger') return 0.92;
+  if (profile === 'broken-lattice') return 1.18;
+  return 0.46;
+}
+
+function textureVolumeProfileNormalZ(profile: TextureVolumeProfile): number {
+  if (profile === 'seated-soft') return 0.24;
+  if (profile === 'overlap-stagger') return 0.20;
+  if (profile === 'broken-lattice') return 0.18;
+  return 0.16;
+}
+
+function textureVolumeProfileMeshWidth(profile: TextureVolumeProfile, noise: number): number {
+  if (profile === 'seated-soft') return 4.6 + noise * 1.8;
+  if (profile === 'overlap-stagger') return 5.2 + noise * 2.4;
+  if (profile === 'broken-lattice') return 3.8 + noise * 1.8;
+  return 4.8 + noise * 2.1;
+}
+
+function textureVolumeProfileMeshHeight(profile: TextureVolumeProfile, noise: number): number {
+  if (profile === 'seated-soft') return 0.48 + noise * 0.18;
+  if (profile === 'overlap-stagger') return 0.44 + noise * 0.24;
+  if (profile === 'broken-lattice') return 0.36 + noise * 0.20;
+  return 0.68 + noise * 0.32;
+}
+
+function textureVolumeProfileZLift(profile: TextureVolumeProfile, noise: number): number {
+  if (profile === 'seated-soft') return noise * 0.006;
+  if (profile === 'overlap-stagger') return noise * 0.010;
+  if (profile === 'broken-lattice') return noise * 0.004;
+  return 0.014 + noise * 0.026;
+}
+
+function textureVolumeProfileTopWidth(profile: TextureVolumeProfile, noise: number): number {
+  if (profile === 'seated-soft') return 0.54 + noise * 0.16;
+  if (profile === 'overlap-stagger') return 0.42 + noise * 0.20;
+  if (profile === 'broken-lattice') return 0.34 + noise * 0.18;
+  return 0.72;
+}
+
+function textureVolumeProfileAlpha(profile: TextureVolumeProfile, noise: number): number {
+  if (profile === 'seated-soft') return 0.86 + noise * 0.10;
+  if (profile === 'overlap-stagger') return 0.84 + noise * 0.12;
+  if (profile === 'broken-lattice') return 0.78 + noise * 0.12;
+  return 0.82 + noise * 0.16;
+}
+
+function textureVolumeProfileRootAlpha(profile: TextureVolumeProfile): number {
+  if (profile === 'broken-lattice') return 0.82;
+  return 0.90;
+}
+
+function textureVolumeProfileTopAlpha(profile: TextureVolumeProfile, noise: number): number {
+  if (profile === 'seated-soft') return 0.76 + noise * 0.14;
+  if (profile === 'overlap-stagger') return 0.66 + noise * 0.18;
+  if (profile === 'broken-lattice') return 0.58 + noise * 0.18;
+  return 1;
 }
 
 function pushTextureVertex(

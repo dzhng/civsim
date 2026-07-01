@@ -16,7 +16,7 @@ tilt, atlas colour/content, fog, terrain polish, final reference compose, GPU
 compute, and indirect draws.
 
 Do not begin this slice as a rescue for a weak close-lab result. The input is the
-accepted B4B1A0 lab, B4B1A1R body architecture, B4B1A2 perf envelope, B4B2-B4B5
+accepted B4B1A0 lab, B4B1A1S body render model, B4B1A2 perf envelope, B4B2-B4B5
 close body/strand/clump/palette stack, and accepted B4C0 backend/perf policy; this slice
 changes only the field domain around the camera. B4B1R remains rejected
 camera/proxy evidence, not a prerequisite.

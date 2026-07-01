@@ -95,13 +95,19 @@ an accepted grass-body result; `compare-screenshots` still records
 B4B1A1 has now recorded and rejected the body architecture matrix under
 `assets/03b4-evidence/03b4c5-close-foreground-lab/body-architecture-matrix/`:
 `texture-volume` is least wrong, but still reads as hanging curtain / hay-mat
-islands over exposed flat ground. Continue at
-`03b4c5b4b1a1r-texture-volume-continuity-repair.md`. B4B1A is now a
+islands over exposed flat ground. B4B1A1R then tried continuity/primitive-shape
+repair profiles under
+`assets/03b4-evidence/03b4c5-close-foreground-lab/body-continuity-repair/`;
+that pass is also **rejected**. `current` keeps the hay-mat islands,
+`seated-soft` / `broken-lattice` lose too much body, and `overlap-stagger`
+becomes giant starburst cards. Continue at
+`03b4c5b4b1a1s-texture-volume-alpha-render-model.md`. B4B1A is now a
 parent/reslice memo, not one implementation slice: B4B1A0 built the fair close
 grass test environment, B4B1A1 compared body architecture candidates inside that
-fixed lab, B4B1A1R must repair the least-wrong `texture-volume` continuity, and
-B4B1A2 records the accepted architecture's perf envelope only after that repair
-succeeds. Only after those child slices should B4B2 tune coverage, B4B3 tune
+fixed lab, B4B1A1R proved shape-only repair is insufficient, B4B1A1S must isolate
+the `texture-volume` alpha/render-model problem, and B4B1A2 records the accepted
+architecture's perf envelope only after that render model succeeds. Only after
+those child slices should B4B2 tune coverage, B4B3 tune
 strand scale, B4B4 tune clump softness, B4B5 lock close palette/atlas
 integration, B4C0 prove the camera-relative backend seam, B4C1 add
 camera-relative cells/rings, B4C2 add slope/normal eligibility, B4C3 add surface
@@ -169,19 +175,20 @@ accepted and before the camera-relative implementation:
    records because it is a lab, not the final camera-relative domain.
 3. B4B1A1 records the first close body primitive-family matrix; it rejected all
    families, with `texture-volume` least wrong but not accepted.
-4. B4B1A1R repairs the least-wrong `texture-volume` continuity/primitive shape.
-5. B4B1A2 records the accepted family's density/perf envelope.
-6. B4B2-B4B4 tune coverage, strand scale, and clump rhythm in that fixed close
+4. B4B1A1R records that shape-only `texture-volume` continuity repair fails.
+5. B4B1A1S isolates the `texture-volume` alpha/render-model problem.
+6. B4B1A2 records the accepted family's density/perf envelope.
+7. B4B2-B4B4 tune coverage, strand scale, and clump rhythm in that fixed close
    test surface.
-7. B4B5 locks close-lab palette, atlas opacity, and repeated-tile visibility
+8. B4B5 locks close-lab palette, atlas opacity, and repeated-tile visibility
    without changing density or body shape.
-8. B4C0 proves the camera-relative backend seam and perf gates without changing
+9. B4C0 proves the camera-relative backend seam and perf gates without changing
    the accepted look.
-9. B4C1-B4C3 implement snapped cells/rings, terrain eligibility, and tilt/tip
+10. B4C1-B4C3 implement snapped cells/rings, terrain eligibility, and tilt/tip
    behavior behind the chosen seam.
-10. B4D1-B4D4 solve near/transition/mid LOD collapse in lab crops.
-11. B4E returns to the reference route and judges grass crops/masks only.
-12. 03B5 adopts the result only if gameplay readability and perf gates pass;
+11. B4D1-B4D4 solve near/transition/mid LOD collapse in lab crops.
+12. B4E returns to the reference route and judges grass crops/masks only.
+13. 03B5 adopts the result only if gameplay readability and perf gates pass;
     03B6 is pulled in only as a backend swap when B4C0 or 03B5 proves CPU/upload
     cost is the blocker.
 
@@ -200,13 +207,14 @@ close lab first:
    accepted here.
 4. B4B1A1 compares body techniques inside that fixed test environment and
    records the first matrix; the current result is rejected.
-5. B4B1A1R repairs `texture-volume` continuity so the least-wrong family can
-   become an accepted architecture.
-6. B4B1A2 records the accepted architecture's perf budget and high-water mark.
-7. B4B2-B4B4 tune the chosen close body, strand scale, and clump rhythm.
-8. B4B5 locks the close-lab grass palette/atlas integration so colour is not
+5. B4B1A1R records that shape-only `texture-volume` continuity repair fails.
+6. B4B1A1S tests whether a stricter alpha/cutout/render model can preserve
+   close body without opaque card or curtain artifacts.
+7. B4B1A2 records the accepted architecture's perf budget and high-water mark.
+8. B4B2-B4B4 tune the chosen close body, strand scale, and clump rhythm.
+9. B4B5 locks the close-lab grass palette/atlas integration so colour is not
    hidden inside density, camera, or fog work.
-9. B4C0 proves the camera-relative backend seam and perf envelope; it must not be
+10. B4C0 proves the camera-relative backend seam and perf envelope; it must not be
    used as a shortcut to solve grass art.
 10. B4C then makes that accepted grass camera-relative; it must not be used as a
     shortcut to solve grass art.
@@ -224,16 +232,18 @@ of B4C.
 **Distance-fog reuse correction (2026-07-01):** the latest water work already
 solved the right family of aerial perspective. The water shots under
 `web/shots/misc/water/` show the desired distant dissolve, especially
-`haze-gerstner.png` and `albedo-overcast.png`: far geometry fades into the
-environment clear/haze colour instead of leaving a hard horizon. Slice 06B should
-reuse that same contract for the battlemap's far ridges, far grass/meadow mass,
-and distant water: drive the blend from distance, fade glint/high-frequency
-detail as fog rises, and mix toward the active environment preset's haze colour
-(`WATER_ENVIRONMENTS.overcast.hazeColor` is the current overcast reference
-example, via `waterEnvironmentWgsl` / `waterShade`). Do not invent a private
-battlemap fog palette, and do not use fog to hide unfinished grass, cliff shape,
-or water placement; grass-lab slices must keep fog frozen until the dedicated
-06B pass.
+`haze-gerstner.png` and `albedo-overcast.png`; archived copies live in
+`assets/water-fog-reference/`. The reusable idea is architectural, not
+water-only: clear the far sky toward the active environment preset's haze colour,
+compute a distance/projection `haze01`, fade glint/high-frequency detail as
+`haze01` rises, then mix the final surface toward `WATER_HAZE` so far geometry
+dissolves into the sky instead of leaving a hard horizon. Slice 06B should reuse
+that same contract for the battlemap's far ridges, far grass/meadow mass, and
+distant water (`WATER_ENVIRONMENTS.overcast.hazeColor` is the current overcast
+reference example, via `waterEnvironmentWgsl` / `waterShade`). Do not invent a
+private battlemap fog palette, and do not use fog to hide unfinished grass, cliff
+shape, or water placement; grass-lab slices must keep fog frozen until the
+dedicated 06B pass.
 
 **Slice 03B2 approach/state (2026-07-01):** the current packed-field workbench
 uses the 03B1 records directly instead of another scatter path. `BattleGrassPass`
@@ -590,8 +600,9 @@ that failed scale/perspective gate with neutral calibration proxies and is now
 recorded as rejected: the missing variable is foreground body, not more camera
 overlay tuning. Split the remaining work into B4B1 lab route/review windows, B4B1R
 rejected scale/perspective repair evidence, B4B1A0 close grass test environment,
-B4B1A1 body-architecture matrix, B4B1A1R texture-volume continuity repair, B4B1A2
-body perf envelope, B4B2 close body coverage, B4B3 close strand scale, B4B4
+B4B1A1 body-architecture matrix, B4B1A1R rejected texture-volume continuity
+repair, B4B1A1S texture-volume alpha render model, B4B1A2 body perf envelope,
+B4B2 close body coverage, B4B3 close strand scale, B4B4
 clump softness/height rhythm, B4C0
 backend/perf spike, B4C1
 camera-relative cells/rings, B4C2 terrain-normal eligibility, B4C3
@@ -619,9 +630,10 @@ green ground, missing close blade/body depth, weak ground-plane perspective,
 uniform low-contrast lighting, smear/blur, artifact-like isolated strokes, and
 transition/mid crops that do not yet support judging close grass quality. Treat
 B4B1 as a route/evidence landing and failed scale attempt. The B4B1R repair,
-B4B1A0 test environment, and B4B1A1 body matrix have now been attempted; B4B1A0
-is accepted as the fixed review surface, and B4B1A1 rejected every current family,
-so resume at B4B1A1R for `texture-volume` continuity repair.
+B4B1A0 test environment, B4B1A1 body matrix, and B4B1A1R continuity repair have
+now been attempted; B4B1A0 is accepted as the fixed review surface, B4B1A1
+rejected every current family, and B4B1A1R rejected shape-only texture-volume
+repair. Resume at B4B1A1S for the texture-volume alpha/render-model slice.
 
 **Slice 03B4C5B4B1R rejection memo (2026-07-01):** the scale-repair route added
 named camera profiles and selected `scale-repair-low`
@@ -787,7 +799,7 @@ Repair path for the next pass:
 
 - Keep iterating from the `highland-valley` fixture path; it is the current honest
   comparison surface until Slice 08 turns the composition into a real playable map.
-- Continue at **Slice 03B4C5B4B1A1R texture-volume continuity repair**.
+- Continue at **Slice 03B4C5B4B1A1S texture-volume alpha render model**.
   03B3A
   already accepted the softened field-coverage layer, 03B3B records why
   material-only meadow volume is insufficient, 03B4B records why hard root
@@ -807,8 +819,10 @@ Repair path for the next pass:
   moves the field-shell crop and reads as specks/grit. The next issue is now
   close grass body inside B4B1A0's accepted fair-with-caveats lab: B4B1A1 body
   architecture matrix has now failed with `texture-volume` least wrong but still
-  visibly curtain/island-bound, so B4B1A1R repairs that continuity before B4B1A2
-  local perf envelope, B4B2
+  visibly curtain/island-bound. B4B1A1R then proved shallow
+  continuity/primitive-shape repair is also insufficient: variants either keep
+  hay-mat islands, lose close body, or become giant starburst cards. B4B1A1S now
+  tests only the texture-volume alpha/render model before B4B1A2 local perf envelope, B4B2
   coverage, B4B3 strand scale, B4B4 clump rhythm, and B4B5 close palette/atlas
   lock. Only after that should B4C0 define the camera-relative backend seam,
   B4C1-B4C3 add procedural cells/rings and terrain response, and B4D1-D4 prove
@@ -881,7 +895,7 @@ debt:
 - roads, water, labels, and icon styling are not covered by this camera sheet.
 
 **Next pickup:** implement
-`slices/03b4c5b4b1a1r-texture-volume-continuity-repair.md`. Preserve the
+`slices/03b4c5b4b1a1s-texture-volume-alpha-render-model.md`. Preserve the
 03B4C3 shell harness, 03B4C4 primitive-family workbench, 03B4C5A
 density/soft-coverage record, 03B4C5B placement/scale rejection, 03B4C5B2
 carrier-sheet rejection, 03B4C5B3 micro-density rejection, B4A target crop
@@ -902,8 +916,11 @@ meadow/root base, crop windows, and target/absence sheets fixed while it tried
 body primitive families. `texture-volume` was least wrong, and the neutral
 critique would continue with it, but both direct inspection and the critique
 named the same disqualifying hanging-curtain / hay-mat island artifact. B4B1A1R
-must change only texture-volume continuity/primitive shape until that artifact is
-gone. B4B1A2 then records the accepted body's density/perf envelope. Then
+changed only texture-volume continuity/primitive shape and is rejected: `current`
+keeps hay-mat islands, `seated-soft` / `broken-lattice` remove body, and
+`overlap-stagger` becomes giant starburst cards. B4B1A1S must now change only the
+texture-volume alpha/cutout/depth render model until opaque card/curtain artifacts
+are gone without losing body. B4B1A2 then records the accepted body's density/perf envelope. Then
 continue with B4B2 body coverage, B4B3 strand scale, B4B4 clump
 softness, B4B5 close palette/atlas lock, B4C0 backend/perf spike,
 B4C1 camera-relative domain, B4C2 slope/normal eligibility, B4C3 surface
@@ -962,8 +979,9 @@ have to rediscover.
 - [x] **Slice 03B4C5B4B1A** — close body technique spike parent (`slices/03b4c5b4b1a-close-body-technique-spike.md`) — resliced into B4B1A0-B4B1A2; no renderer pass
 - [x] **Slice 03B4C5B4B1A0** — close grass test environment (`slices/03b4c5b4b1a0-close-grass-test-environment.md`) — accepted fair-with-caveats as labeled fixed close lab; body still absent
 - [x] **Slice 03B4C5B4B1A1** — close body architecture matrix (`slices/03b4c5b4b1a1-close-body-architecture-matrix.md`) — matrix recorded/rejected; `texture-volume` least wrong but curtain/island artifact disqualifies it
-- [ ] **Slice 03B4C5B4B1A1R** — texture-volume continuity repair (`slices/03b4c5b4b1a1r-texture-volume-continuity-repair.md`) — next pickup; repair the least-wrong body shape before perf/coverage
-- [ ] **Slice 03B4C5B4B1A2** — close body perf envelope (`slices/03b4c5b4b1a2-close-body-perf-envelope.md`) — record density/perf budget only after B4B1A1R accepts a body
+- [x] **Slice 03B4C5B4B1A1R** — texture-volume continuity repair (`slices/03b4c5b4b1a1r-texture-volume-continuity-repair.md`) — landed/rejected; shape-only repairs keep islands, lose body, or become starburst cards
+- [ ] **Slice 03B4C5B4B1A1S** — texture-volume alpha render model (`slices/03b4c5b4b1a1s-texture-volume-alpha-render-model.md`) — next pickup; isolate alpha/cutout/depth semantics before perf/coverage
+- [ ] **Slice 03B4C5B4B1A2** — close body perf envelope (`slices/03b4c5b4b1a2-close-body-perf-envelope.md`) — record density/perf budget only after B4B1A1S accepts a body render model
 - [ ] **Slice 03B4C5B4B2** — close body coverage (`slices/03b4c5b4b2-close-body-coverage.md`)
 - [ ] **Slice 03B4C5B4B3** — close strand scale (`slices/03b4c5b4b3-close-strand-scale.md`)
 - [ ] **Slice 03B4C5B4B4** — clump softness and height variation (`slices/03b4c5b4b4-clump-softness-height-variation.md`)
@@ -1233,7 +1251,9 @@ by sim terrain read from wasm in `web/src/battle/scene.ts`.
         │
 03B4C5B4B1A1 close-body-architecture-matrix ─ matrix rejected; texture-volume least wrong
         │
-03B4C5B4B1A1R texture-volume-continuity-repair ─ remove curtain/island artifact
+03B4C5B4B1A1R texture-volume-continuity-repair ─ rejected; shape repair trapped
+        │
+03B4C5B4B1A1S texture-volume-alpha-render-model ─ remove opaque card artifact
         │
 03B4C5B4B1A2 close-body-perf-envelope ─ density/perf budget
         │

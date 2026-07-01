@@ -58,8 +58,10 @@ credible path to camera-relative LOD.
 
 ## Next Slice
 
-This slice rejected the family matrix. Continue with
-`03b4c5b4b1a1r-texture-volume-continuity-repair.md` before any perf envelope or
+This slice rejected the family matrix. The immediate follow-up
+`03b4c5b4b1a1r-texture-volume-continuity-repair.md` has also now been recorded
+as rejected. Continue with
+`03b4c5b4b1a1s-texture-volume-alpha-render-model.md` before any perf envelope or
 coverage tuning.
 
 ## Result - 2026-07-01

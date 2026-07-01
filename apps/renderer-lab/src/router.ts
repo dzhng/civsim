@@ -30,7 +30,7 @@ import { BATTLE_MAP_CATALOG, battleMapById, buildBattleTerrainPresentation, pres
 import { flatHeightField, heightSpan, terrainHeightAt, type TerrainHeightField } from '../../../packages/game-renderer/src/terrain/heightField';
 import { terrainHeightField, type BattleTerrainFeature, type BattleTerrainFeatureKind, type BattleTerrainGrid } from '../../../packages/game-renderer/src/battle/terrainFeatures';
 import { BattleGroundPass } from '../../../packages/game-renderer/src/battle/groundPass';
-import { BattleGrassPass, type BattleGrassBounds, type BattleGrassParams, type GrassAccentAggregation, type GrassFiberShellVariant, type GrassPrimitiveFamily } from '../../../packages/game-renderer/src/battle/grassPass';
+import { BattleGrassPass, type BattleGrassBounds, type BattleGrassParams, type GrassAccentAggregation, type GrassFiberShellVariant, type GrassPrimitiveFamily, type TextureVolumeProfile } from '../../../packages/game-renderer/src/battle/grassPass';
 import { sampleGrassField } from '../../../packages/game-renderer/src/battle/grassField';
 import { BattleHorizonPass } from '../../../packages/game-renderer/src/battle/horizonPass';
 import { createWaterField, type WaterFieldId, type WaterFieldSource } from '../../../packages/game-renderer/src/water/waterField';
@@ -2867,6 +2867,7 @@ async function routeBattleTerrain3d(ctx: LabContext) {
     const texturePrimitive = isTextureGrassPrimitiveFamily(grassPrimitiveFamily);
     const textureCarrier = grassPrimitiveFamily === 'texture-carrier';
     const textureMicroCarrier = grassPrimitiveFamily === 'texture-micro-carrier';
+    const textureVolumeProfile = texturePrimitive ? textureVolumeProfileParam(ctx.params, 'textureVolumeProfile', 'current') : 'current';
     const grassAccentAggregation = grassTechnique === 'field-accent' && texturePrimitive
       ? grassAccentAggregationParam(ctx.params, 'grassAccentAggregation', 'field-cell')
       : grassTechnique === 'field-accent' && isFieldFiberShellStyle(grassAccentStyle)
@@ -2898,6 +2899,7 @@ async function routeBattleTerrain3d(ctx: LabContext) {
       fiberShellVariant,
       grassPrimitiveFamily,
       grassPrimitiveBaseline: grassPrimitiveFamily === 'field-fiber-shell' ? 'none' : 'field-fiber-shell-normal',
+      textureVolumeProfile,
     });
   } else {
     grass.setTerrain(grid, field, presentation.groundCover, {
@@ -2985,6 +2987,7 @@ async function routeBattleTerrain3d(ctx: LabContext) {
     grassTufts: grassStats.tuftInstances,
     grassAccent: `${grassStats.accentStyle}/${grassStats.accentAggregation}`,
     grassPrimitiveFamily: grassStats.grassPrimitiveFamily,
+    textureVolumeProfile: grassStats.textureVolumeProfile,
     grassPrimitiveBaseline: grassStats.grassPrimitiveBaseline,
     grassPrimitiveTexture: grassStats.grassPrimitiveTextureBytes > 0
       ? `${grassStats.grassPrimitiveTextureWidth}x${grassStats.grassPrimitiveTextureHeight} / ${grassStats.grassPrimitiveTextureTiles} tiles`
@@ -3247,6 +3250,7 @@ async function routeBattleGrassField(ctx: LabContext) {
   const texturePrimitive = isTextureGrassPrimitiveFamily(grassPrimitiveFamily);
   const textureCarrier = grassPrimitiveFamily === 'texture-carrier';
   const textureMicroCarrier = grassPrimitiveFamily === 'texture-micro-carrier';
+  const textureVolumeProfile = texturePrimitive ? textureVolumeProfileParam(ctx.params, 'textureVolumeProfile', 'current') : 'current';
   const accentAggregation = accentMode && texturePrimitive
     ? grassAccentAggregationParam(ctx.params, 'accentAggregation', 'field-cell')
     : accentMode && fieldShellStyle
@@ -3278,6 +3282,7 @@ async function routeBattleGrassField(ctx: LabContext) {
     fiberShellVariant,
     grassPrimitiveFamily,
     grassPrimitiveBaseline: grassPrimitiveFamily === 'field-fiber-shell' ? 'none' : 'field-fiber-shell-normal',
+    textureVolumeProfile,
   });
   shell.drawFrame({
     clear: { r: 0.75, g: 0.84, b: 0.90, a: 1 },
@@ -3303,6 +3308,7 @@ async function routeBattleGrassField(ctx: LabContext) {
     accentStyle: grassStats.accentStyle,
     accentAggregation: grassStats.accentAggregation,
     grassPrimitiveFamily: grassStats.grassPrimitiveFamily,
+    textureVolumeProfile: grassStats.textureVolumeProfile,
     grassPrimitiveBaseline: grassStats.grassPrimitiveBaseline,
     grassPrimitiveTexture: grassStats.grassPrimitiveTextureBytes > 0
       ? `${grassStats.grassPrimitiveTextureWidth}x${grassStats.grassPrimitiveTextureHeight} / ${grassStats.grassPrimitiveTextureTiles} tiles`
@@ -4198,6 +4204,11 @@ function grassAccentAggregationParam(params: URLSearchParams, key: string, fallb
 function fiberShellVariantParam(params: URLSearchParams, key: string, fallback: GrassFiberShellVariant): GrassFiberShellVariant {
   const raw = params.get(key);
   return raw === 'off' || raw === 'normal' || raw === 'visibility' || raw === 'width' || raw === 'lift' || raw === 'view-thickness' ? raw : fallback;
+}
+
+function textureVolumeProfileParam(params: URLSearchParams, key: string, fallback: TextureVolumeProfile): TextureVolumeProfile {
+  const raw = params.get(key);
+  return raw === 'current' || raw === 'seated-soft' || raw === 'overlap-stagger' || raw === 'broken-lattice' ? raw : fallback;
 }
 
 function grassPrimitiveFamilyParam(params: URLSearchParams, key: string, fallback: GrassPrimitiveFamily): GrassPrimitiveFamily {

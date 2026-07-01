@@ -11,7 +11,7 @@ slice on cliffs, water, sky, fog, terrain silhouette, or whole-frame parity.
 
 ## Approach
 
-- Reuse the accepted B4B1A0 lab contract, B4B1A1R body technique, B4B1A2 perf
+- Reuse the accepted B4B1A0 lab contract, B4B1A1S body render model, B4B1A2 perf
   envelope, B4B2-B4B5 body/strand/clump/palette stack, B4C0 backend policy,
   B4C1-B4C3 camera-relative and surface-response stack, and B4D1-B4D4
   LOD/falloff stack without inventing another representation.

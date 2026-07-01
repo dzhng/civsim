@@ -1,0 +1,132 @@
+{
+  "kind": "screenshot-parity-diff",
+  "generatedAt": "2026-07-01T11:12:05.956Z",
+  "note": "Lower parityDistance means the candidate is closer to the reference for this fixed pair. This is a distance metric, not an acceptance gate.",
+  "pairCount": 3,
+  "worstPair": "overlap-stagger",
+  "results": [
+    {
+      "id": "overlap-stagger",
+      "current": "specs/battle-map-reference/assets/03b4-evidence/03b4c5-close-foreground-lab/body-continuity-repair/compare-rejected/reference/overlap-stagger.png",
+      "candidate": "specs/battle-map-reference/assets/03b4-evidence/03b4c5-close-foreground-lab/body-continuity-repair/compare-rejected/candidate/overlap-stagger.png",
+      "dimensions": {
+        "width": 814,
+        "height": 192
+      },
+      "parityDistance": 0.38326,
+      "grayscale": {
+        "mae": 17.59637,
+        "rmse": 28.72634,
+        "diffRatio16": 0.37704,
+        "diffRatio32": 0.25253,
+        "diffRatio64": 0.06216,
+        "pixelmatchRatio": 0.33597
+      },
+      "contentProxies": {
+        "blackRatioCurrent": 0,
+        "blackRatioCandidate": 0,
+        "terrainLikeRatioCurrent": 0.97119,
+        "terrainLikeRatioCandidate": 0.89775,
+        "avgLuminanceCurrent": 124.85051,
+        "avgLuminanceCandidate": 118.06759,
+        "avgLuminanceDelta": -6.78292,
+        "edgeEnergyCurrent": 0.06783,
+        "edgeEnergyCandidate": 0.1272,
+        "edgeEnergyRatio": 1.87542,
+        "edgeDiffRatio32": 0.29919
+      },
+      "artifacts": {
+        "sideBySide": "report/overlap-stagger-side-by-side.png",
+        "currentGray": "report/overlap-stagger-current-gray.png",
+        "candidateGray": "report/overlap-stagger-candidate-gray.png",
+        "absDiff": "report/overlap-stagger-absdiff.png",
+        "pixelmatch": "report/overlap-stagger-pixelmatch.png",
+        "currentEdges": "report/overlap-stagger-current-edges.png",
+        "candidateEdges": "report/overlap-stagger-candidate-edges.png",
+        "edgeDiff": "report/overlap-stagger-edge-diff.png"
+      }
+    },
+    {
+      "id": "broken-lattice",
+      "current": "specs/battle-map-reference/assets/03b4-evidence/03b4c5-close-foreground-lab/body-continuity-repair/compare-rejected/reference/broken-lattice.png",
+      "candidate": "specs/battle-map-reference/assets/03b4-evidence/03b4c5-close-foreground-lab/body-continuity-repair/compare-rejected/candidate/broken-lattice.png",
+      "dimensions": {
+        "width": 814,
+        "height": 192
+      },
+      "parityDistance": 0.20924,
+      "grayscale": {
+        "mae": 10.82034,
+        "rmse": 21.79226,
+        "diffRatio16": 0.23874,
+        "diffRatio32": 0.14994,
+        "diffRatio64": 0.0308,
+        "pixelmatchRatio": 0.21203
+      },
+      "contentProxies": {
+        "blackRatioCurrent": 0,
+        "blackRatioCandidate": 0,
+        "terrainLikeRatioCurrent": 0.97119,
+        "terrainLikeRatioCandidate": 0.96576,
+        "avgLuminanceCurrent": 124.85051,
+        "avgLuminanceCandidate": 127.61138,
+        "avgLuminanceDelta": 2.76087,
+        "edgeEnergyCurrent": 0.06783,
+        "edgeEnergyCandidate": 0.05288,
+        "edgeEnergyRatio": 0.77968,
+        "edgeDiffRatio32": 0.1996
+      },
+      "artifacts": {
+        "sideBySide": "report/broken-lattice-side-by-side.png",
+        "currentGray": "report/broken-lattice-current-gray.png",
+        "candidateGray": "report/broken-lattice-candidate-gray.png",
+        "absDiff": "report/broken-lattice-absdiff.png",
+        "pixelmatch": "report/broken-lattice-pixelmatch.png",
+        "currentEdges": "report/broken-lattice-current-edges.png",
+        "candidateEdges": "report/broken-lattice-candidate-edges.png",
+        "edgeDiff": "report/broken-lattice-edge-diff.png"
+      }
+    },
+    {
+      "id": "seated-soft",
+      "current": "specs/battle-map-reference/assets/03b4-evidence/03b4c5-close-foreground-lab/body-continuity-repair/compare-rejected/reference/seated-soft.png",
+      "candidate": "specs/battle-map-reference/assets/03b4-evidence/03b4c5-close-foreground-lab/body-continuity-repair/compare-rejected/candidate/seated-soft.png",
+      "dimensions": {
+        "width": 814,
+        "height": 192
+      },
+      "parityDistance": 0.19976,
+      "grayscale": {
+        "mae": 13.11379,
+        "rmse": 23.98414,
+        "diffRatio16": 0.29162,
+        "diffRatio32": 0.17971,
+        "diffRatio64": 0.03753,
+        "pixelmatchRatio": 0.25697
+      },
+      "contentProxies": {
+        "blackRatioCurrent": 0,
+        "blackRatioCandidate": 0,
+        "terrainLikeRatioCurrent": 0.97119,
+        "terrainLikeRatioCandidate": 0.94357,
+        "avgLuminanceCurrent": 124.85051,
+        "avgLuminanceCandidate": 124.08747,
+        "avgLuminanceDelta": -0.76304,
+        "edgeEnergyCurrent": 0.06783,
+        "edgeEnergyCandidate": 0.07285,
+        "edgeEnergyRatio": 1.07402,
+        "edgeDiffRatio32": 0.22864
+      },
+      "artifacts": {
+        "sideBySide": "report/seated-soft-side-by-side.png",
+        "currentGray": "report/seated-soft-current-gray.png",
+        "candidateGray": "report/seated-soft-candidate-gray.png",
+        "absDiff": "report/seated-soft-absdiff.png",
+        "pixelmatch": "report/seated-soft-pixelmatch.png",
+        "currentEdges": "report/seated-soft-current-edges.png",
+        "candidateEdges": "report/seated-soft-candidate-edges.png",
+        "edgeDiff": "report/seated-soft-edge-diff.png"
+      }
+    }
+  ]
+}

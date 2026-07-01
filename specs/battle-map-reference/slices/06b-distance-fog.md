@@ -7,14 +7,24 @@ contrast, far ridges and water fade toward the overcast sky. This slice is fog a
 aerial perspective only.
 
 Reuse the haze behaviour proven by the water work instead of creating a parallel
-battlemap effect. The reference implementation is the water Slice S6 horizon haze
-path (`web/shots/misc/water/haze-gerstner.png`,
-`web/shots/misc/water/albedo-overcast.png`): distance raises a `haze01` term,
-high-frequency/glint detail fades as haze rises, and the surface mixes toward the
-active environment preset's haze colour so the horizon dissolves into the sky.
-For the overcast battlemap target, start from the same overcast haze colour used
-by `WATER_ENVIRONMENTS.overcast` and keep the fog contract shared across terrain,
-ridge/backdrop, grass LOD mass, and water.
+battlemap effect. The reference implementation is water Slice S6:
+
+- `packages/game-renderer/src/water/waterPlanePass.ts` computes a distance-based
+  `haze01` and clears the sky from the active preset's `hazeColor`;
+- `packages/game-renderer/src/water/waterMaterialWgsl.ts` fades glint/detail by
+  `(1.0 - haze01)` and finishes with `mix(surface, WATER_HAZE, haze01)`;
+- `packages/game-renderer/src/water/waterEnvironment.ts` owns the preset haze
+  colours, with `WATER_ENVIRONMENTS.overcast.hazeColor` as the current overcast
+  battlemap reference;
+- `web/scenes/system/water-haze.mjs` gates the soft seam, and the review shots
+  are archived here as
+  `assets/water-fog-reference/haze-gerstner.png` and
+  `assets/water-fog-reference/albedo-overcast.png`.
+
+For the battlemap, reuse that contract across terrain, ridge/backdrop, grass LOD
+mass, and water: distance/projection raises a shared haze term, high-frequency
+detail/glint fades as haze rises, and every far surface mixes toward the active
+environment preset's haze colour so the horizon dissolves into the sky.
 
 ## Fixed Inputs
 
@@ -41,9 +51,12 @@ Do not judge sky shape, cliff texture, grass density, or water material here.
 - Fog parameters are published in route stats.
 - Ground, grass, scenery, ridge, and water use the same distance-fog contract rather
   than private ad hoc haze constants.
-- Compare against the water haze shots as an architectural reference: far ridges
-  and water should dissolve into the sky with the same soft seam behaviour, while
-  near grass remains readable.
+- Compare against the archived water haze shots as an architectural reference:
+  far ridges and water should dissolve into the sky with the same soft seam
+  behaviour, while near grass remains readable. Use `compare-screenshots` on the
+  battle near/mid/far bands against the prior battle shot and use the water shots
+  to validate the seam character and haze colour family, not to force the terrain
+  to look like ocean.
 - Run the neutral review/screenshot critique with a prompt scoped to near/mid/far
   contrast falloff and aerial perspective only.
 - `battle-renderer-visual`, `battle-terrain-3d`, and `battle-map-reference` pass

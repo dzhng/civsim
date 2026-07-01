@@ -16,7 +16,7 @@ export const FACTION_CSS = ["#3a6cf0", "#e03e34"]; // player blue, enemy crimson
 // Total-War card-bar constants (the production source of truth — cardGrid.ts
 // only holds matching fallbacks). Cards are a FIXED size; the bar wraps into
 // more rows as the roster grows (David, 2026-06-30). Tunable at the S2 checkpoint.
-const CARD_W = 72; // fixed card width in px (cardH derives from the 3:4 aspect)
+const CARD_W = 58; // fixed card width in px (cardH derives from the 3:4 aspect); 20% smaller (David, 2026-07-01)
 // The centered bar must clear the bottom-right minimap (a GPU overlay the DOM
 // can't measure): minimapPass sizes it ≤188px wide with a 16px margin, so a
 // centered bar collides once it is wider than viewport − 2×~204. Reserve that

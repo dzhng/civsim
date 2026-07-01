@@ -1,4 +1,4 @@
-import { PNG } from 'pngjs';
+import { PNG } from "pngjs";
 
 // Campaign-polish workbench: city-label spacing and green-terrain swatch.
 // The `test` fixture is a clean two-city green stage (Roma — road — Neapolis)
@@ -8,29 +8,35 @@ import { PNG } from 'pngjs';
 //   - assets/user-feedback/03-mountains-roads-trees.png      : natural ground
 //     must read green, not brown.
 export const meta = {
-  name: 'campaign-polish-markers',
-  kind: 'visual',
-  world: 'campaign-test',
-  tier: 'quick',
-  snapshots: ['polish-label-spacing', 'polish-green-swatch'],
-  describe: 'Fixture workbench: city label sits tight under its icon; bare natural ground reads green.',
+  name: "campaign-polish-markers",
+  kind: "visual",
+  world: "campaign-test",
+  tier: "quick",
+  snapshots: ["polish-label-spacing", "polish-green-swatch"],
+  describe:
+    "Fixture workbench: city label sits tight under its icon; bare natural ground reads green.",
 };
 
 export async function run(ctx) {
-  if (process.env.VERIFY_GPU !== '1') {
-    ctx.check('campaign polish markers workbench requires VERIFY_GPU=1', true, 'set VERIFY_GPU=1 to exercise the WebGPU campaign adapter');
+  if (process.env.VERIFY_GPU !== "1") {
+    ctx.check(
+      "campaign polish markers workbench requires VERIFY_GPU=1",
+      true,
+      "set VERIFY_GPU=1 to exercise the WebGPU campaign adapter",
+    );
     return;
   }
 
   const page = await ctx.newPage({
     viewport: { width: 1280, height: 800 },
-    errorPrefix: 'campaign-polish-markers',
+    errorPrefix: "campaign-polish-markers",
   });
   await page.goto(`${ctx.target}/?campaign=test`);
   await page.waitForFunction(
-    () => window.__campaignReady === true
-      && window.__campaignGpuStats?.ready === true
-      && window.__campaignGpuStats?.renderer === 'renderer-campaign',
+    () =>
+      window.__campaignReady === true &&
+      window.__campaignGpuStats?.ready === true &&
+      window.__campaignGpuStats?.renderer === "renderer-campaign",
     undefined,
     { timeout: 30000 },
   );
@@ -49,12 +55,12 @@ export async function run(ctx) {
   await page.waitForTimeout(320);
   const labelStats = await page.evaluate(() => window.__campaignGpuStats);
   ctx.check(
-    'label workbench shows both city labels',
-    labelStats.visibleLabelNames?.includes('city:ROMA')
-      && labelStats.visibleLabelNames?.includes('city:NEAPOLIS'),
+    "label workbench shows both city labels",
+    labelStats.visibleLabelNames?.includes("city:ROMA") &&
+      labelStats.visibleLabelNames?.includes("city:NEAPOLIS"),
     JSON.stringify(labelStats.visibleLabelNames),
   );
-  await ctx.snap(page, 'polish-label-spacing');
+  await ctx.snap(page, "polish-label-spacing");
 
   // ---- Green swatch ------------------------------------------------------
   // Drop onto bare ground south of the road, away from cities/army/props, and
@@ -67,11 +73,11 @@ export async function run(ctx) {
   const swatch = PNG.sync.read(await page.screenshot());
   const metrics = greenSwatchMetrics(swatch);
   ctx.check(
-    'bare natural ground reads green, not brown',
+    "bare natural ground reads green, not brown",
     metrics.greenRatio >= 0.88 && metrics.brownRatio <= 0.05,
     JSON.stringify(metrics),
   );
-  await ctx.snap(page, 'polish-green-swatch', { shot: PNG.sync.write(swatch) });
+  await ctx.snap(page, "polish-green-swatch", { shot: PNG.sync.write(swatch) });
 
   await page.close();
 }

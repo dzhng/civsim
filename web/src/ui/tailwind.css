@@ -6,5 +6,5 @@
  * (and how to scope it) is an S1 design-system decision, made deliberately
  * against the screenshot gates — not smuggled in by the stack slice. */
 @layer theme, base, components, utilities;
-@import 'tailwindcss/theme.css' layer(theme);
-@import 'tailwindcss/utilities.css' layer(utilities);
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);

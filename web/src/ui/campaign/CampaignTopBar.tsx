@@ -1,4 +1,4 @@
-import { uiIcon } from '../../campaign/icons';
+import { uiIcon } from "../../campaign/icons";
 
 // S5a: the campaign top bar (.cmp-top) as React — the foundational, lowest-risk
 // piece of the campaign migration. Renders byte-identical DOM (same ids/classes,
@@ -33,17 +33,59 @@ export function CampaignTopBar(p: CampaignTopBarProps) {
     <div className="cmp-top">
       <span id="cmp-date">{p.dateText}</span>
       <span id="cmp-gold">{p.goldText}</span>
-      <button id="cmp-pause" title="Pause" onClick={p.onPause} dangerouslySetInnerHTML={html(uiIcon('pause'))} />
-      {['1×', '3×', '10×'].map((label, i) => (
-        <button key={i} data-speed={i} className={!p.paused && p.speed === i ? 'on' : ''} onClick={() => p.onSpeed(i)}>{label}</button>
+      <button
+        id="cmp-pause"
+        title="Pause"
+        onClick={p.onPause}
+        dangerouslySetInnerHTML={html(uiIcon("pause"))}
+      />
+      {["1×", "3×", "10×"].map((label, i) => (
+        <button
+          key={i}
+          data-speed={i}
+          className={!p.paused && p.speed === i ? "on" : ""}
+          onClick={() => p.onSpeed(i)}
+        >
+          {label}
+        </button>
       ))}
-      <button id="cmp-factions" title="Toggle faction (political) view — V" className={p.factionView ? 'on' : ''} onClick={p.onFactions} dangerouslySetInnerHTML={html(uiIcon('map') + ' Factions')} />
-      <button id="cmp-fog" title="Toggle fog of war — F" className={p.fog ? 'on' : ''} onClick={p.onFog} dangerouslySetInnerHTML={html(uiIcon('cloudFog') + ' Fog')} />
-      <button id="cmp-diplo-btn" className={p.diploOpen ? 'on' : ''} onClick={p.onDiplomacy} dangerouslySetInnerHTML={html(uiIcon('flag') + ' Diplomacy')} />
-      <button id="cmp-classes-btn" className={p.classesOpen ? 'on' : ''} onClick={p.onClasses} dangerouslySetInnerHTML={html(uiIcon('shield') + ' Classes')} />
+      <button
+        id="cmp-factions"
+        title="Toggle faction (political) view — V"
+        className={p.factionView ? "on" : ""}
+        onClick={p.onFactions}
+        dangerouslySetInnerHTML={html(uiIcon("map") + " Factions")}
+      />
+      <button
+        id="cmp-fog"
+        title="Toggle fog of war — F"
+        className={p.fog ? "on" : ""}
+        onClick={p.onFog}
+        dangerouslySetInnerHTML={html(uiIcon("cloudFog") + " Fog")}
+      />
+      <button
+        id="cmp-diplo-btn"
+        className={p.diploOpen ? "on" : ""}
+        onClick={p.onDiplomacy}
+        dangerouslySetInnerHTML={html(uiIcon("flag") + " Diplomacy")}
+      />
+      <button
+        id="cmp-classes-btn"
+        className={p.classesOpen ? "on" : ""}
+        onClick={p.onClasses}
+        dangerouslySetInnerHTML={html(uiIcon("shield") + " Classes")}
+      />
       <span style={{ flex: 1 }} />
-      <button id="cmp-save" onClick={p.onSave} dangerouslySetInnerHTML={html(uiIcon('save') + ' Save')} />
-      <button id="cmp-exit" onClick={p.onExit} dangerouslySetInnerHTML={html(uiIcon('door') + ' Menu')} />
+      <button
+        id="cmp-save"
+        onClick={p.onSave}
+        dangerouslySetInnerHTML={html(uiIcon("save") + " Save")}
+      />
+      <button
+        id="cmp-exit"
+        onClick={p.onExit}
+        dangerouslySetInnerHTML={html(uiIcon("door") + " Menu")}
+      />
     </div>
   );
 }

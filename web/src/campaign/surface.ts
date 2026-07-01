@@ -1,5 +1,5 @@
-import type { CampaignMapSurfaceMesh } from '../../../packages/game-renderer/src/campaign/mapPass';
-import type { TerrainField } from './terrain';
+import type { CampaignMapSurfaceMesh } from "../../../packages/game-renderer/src/campaign/mapPass";
+import type { TerrainField } from "./terrain";
 
 export interface CampaignSurface {
   mesh: CampaignMapSurfaceMesh;

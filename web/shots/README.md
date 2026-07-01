@@ -7,12 +7,12 @@ touching before you delete or re-bless.
 
 ## Who owns which folder
 
-| Folder | Harness | Regen command (run from `web/`, dev server up) |
-| --- | --- | --- |
-| `campaign/` `ui/` `battle/` `models/` | `scene.mjs` (headless Chromium / WebGPU) | `VERIFY_GPU=1 UPDATE_SHOTS=1 node scene.mjs --full` |
-| `vibe/` | `web/vibe/*.mjs` (melee/duel sim flip-books) | `UPDATE_SHOTS=1 node vibe/all.mjs` |
-| `weave/` | `crates/sim/src/bin/weave_shots.rs` (Rust sim, no browser) | `cargo run -p sim --bin weave_shots --features shots` (from repo root) |
-| `diff/` | transient diff output, **gitignored** | n/a — safe to delete, never committed |
+| Folder                                | Harness                                                    | Regen command (run from `web/`, dev server up)                         |
+| ------------------------------------- | ---------------------------------------------------------- | ---------------------------------------------------------------------- |
+| `campaign/` `ui/` `battle/` `models/` | `scene.mjs` (headless Chromium / WebGPU)                   | `VERIFY_GPU=1 UPDATE_SHOTS=1 node scene.mjs --full`                    |
+| `vibe/`                               | `web/vibe/*.mjs` (melee/duel sim flip-books)               | `UPDATE_SHOTS=1 node vibe/all.mjs`                                     |
+| `weave/`                              | `crates/sim/src/bin/weave_shots.rs` (Rust sim, no browser) | `cargo run -p sim --bin weave_shots --features shots` (from repo root) |
+| `diff/`                               | transient diff output, **gitignored**                      | n/a — safe to delete, never committed                                  |
 
 `scene.mjs` routes a scene to a folder by its top-level directory under
 `scenes/` (`battle/ campaign/ ui/ models/`); anything else lands in `misc/`.
@@ -21,7 +21,7 @@ generators, so a blanket `rm -rf shots` is only fully repopulated by running all
 three. Model-shot family layout is documented in [`models/README.md`](models/README.md).
 
 This file is the cross-harness mechanics (where shots come from, how to
-regenerate, what bites). For what a *vibe* check is and why it films a timeline,
+regenerate, what bites). For what a _vibe_ check is and why it films a timeline,
 see [`../vibe/README.md`](../vibe/README.md). For the scene catalog and the
 100%-coverage contract, read the scenes under `scenes/` and `specs/scenes.md`.
 
@@ -55,7 +55,7 @@ and should stay deleted.
 - **A passing snapshot writes nothing.** The harness only writes
   `shots/diff/<name>-actual.png` on **FAIL**. If you are eyeballing a
   `-actual.png` to judge a change, you may be staring at a stale image from an
-  earlier failing run — a pass leaves it untouched. To inspect the *current*
+  earlier failing run — a pass leaves it untouched. To inspect the _current_
   render, re-bless (`UPDATE_SHOTS=1`) and open the baseline, or screenshot the
   page directly. Re-blessing preserves the existing baseline file when the
   decoded pixels are identical, even if the newly captured PNG bytes differ.

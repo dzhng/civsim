@@ -9,17 +9,30 @@
 // default; keep that true — never route a per-frame value through React state.
 
 import {
-  createElement, forwardRef, useEffect, useImperativeHandle, useLayoutEffect, useRef, useState,
+  createElement,
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useLayoutEffect,
+  useRef,
+  useState,
   type CSSProperties,
-} from 'react';
-import { createRoot, type Root } from 'react-dom/client';
-import { flushSync } from 'react-dom';
-import { modelLookForClass } from '../../../../packages/game-renderer/src/models/shared/soldierModel';
-import { cardThumbUrl } from '../../battle/classData';
+} from "react";
+import { createRoot, type Root } from "react-dom/client";
+import { flushSync } from "react-dom";
+import { modelLookForClass } from "../../../../packages/game-renderer/src/models/shared/soldierModel";
+import { cardThumbUrl } from "../../battle/classData";
 import {
-  applyCardGrid, applyCardVisual, cardStateKey, drawPortrait, FACTION_CSS, MINIMAP_RESERVE,
-  type CardBarRefs, type UnitCardInit, type UnitCardState,
-} from '../../battle/unitCard';
+  applyCardGrid,
+  applyCardVisual,
+  cardStateKey,
+  drawPortrait,
+  FACTION_CSS,
+  MINIMAP_RESERVE,
+  type CardBarRefs,
+  type UnitCardInit,
+  type UnitCardState,
+} from "../../battle/unitCard";
 
 /** Imperative handle the rAF loop drives every frame — never triggers a render. */
 export interface UnitCardsHandle {
@@ -41,10 +54,20 @@ function Portrait({ u }: { u: UnitCardInit }) {
   const [failed, setFailed] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
-    if ((!url || failed) && canvasRef.current) drawPortrait(canvasRef.current, u.cls, u.look, u.team);
+    if ((!url || failed) && canvasRef.current)
+      drawPortrait(canvasRef.current, u.cls, u.look, u.team);
   }, [url, failed, u]);
   if (url && !failed) {
-    return <img className="ucard-port" loading="eager" decoding="async" alt={u.name} src={url} onError={() => setFailed(true)} />;
+    return (
+      <img
+        className="ucard-port"
+        loading="eager"
+        decoding="async"
+        alt={u.name}
+        src={url}
+        onError={() => setFailed(true)}
+      />
+    );
   }
   return <canvas className="ucard-port" ref={canvasRef} />;
 }
@@ -58,7 +81,7 @@ const UnitCardsView = forwardRef<UnitCardsHandle, ViewProps>(function UnitCardsV
   const keys = useRef<string[]>([]);
   cardEls.current = [];
   barRefs.current = [];
-  keys.current = props.units.map(() => '');
+  keys.current = props.units.map(() => "");
 
   // Layout effect (not passive) so the grid vars are set synchronously within
   // build()'s flushSync — matching the vanilla bar, which relayouts inline.
@@ -67,26 +90,35 @@ const UnitCardsView = forwardRef<UnitCardsHandle, ViewProps>(function UnitCardsV
   useLayoutEffect(() => {
     applyCardGrid(props.rootEl, props.units.length, props.sideReserve);
     const onResize = () => applyCardGrid(props.rootEl, props.units.length, props.sideReserve);
-    window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
   }, [props.units, props.rootEl, props.sideReserve]);
 
-  useImperativeHandle(ref, () => ({
-    update(states) {
-      const cards = cardEls.current, bars = barRefs.current, ks = keys.current;
-      for (let i = 0; i < cards.length; i++) {
-        const s = i < states.length ? states[i] : null;
-        const card = cards[i];
-        if (!card) continue;
-        if (!s) { card.style.display = 'none'; continue; }
-        card.style.display = '';
-        const key = cardStateKey(s);
-        if (key === ks[i]) continue;
-        ks[i] = key;
-        applyCardVisual(card, bars[i], s);
-      }
-    },
-  }), []);
+  useImperativeHandle(
+    ref,
+    () => ({
+      update(states) {
+        const cards = cardEls.current,
+          bars = barRefs.current,
+          ks = keys.current;
+        for (let i = 0; i < cards.length; i++) {
+          const s = i < states.length ? states[i] : null;
+          const card = cards[i];
+          if (!card) continue;
+          if (!s) {
+            card.style.display = "none";
+            continue;
+          }
+          card.style.display = "";
+          const key = cardStateKey(s);
+          if (key === ks[i]) continue;
+          ks[i] = key;
+          applyCardVisual(card, bars[i], s);
+        }
+      },
+    }),
+    [],
+  );
 
   const bar = (i: number, slot: keyof CardBarRefs) => (el: HTMLElement | null) => {
     if (el) (barRefs.current[i] ??= {} as CardBarRefs)[slot] = el;
@@ -98,19 +130,28 @@ const UnitCardsView = forwardRef<UnitCardsHandle, ViewProps>(function UnitCardsV
         <div
           key={i}
           className="ucard"
-          style={{ ['--fac']: FACTION_CSS[u.team] } as CSSProperties}
-          ref={(el) => { if (el) cardEls.current[i] = el; }}
-          onMouseDown={(e) => { e.stopPropagation(); props.onSelect(u.unit, e.shiftKey); }}
+          style={{ ["--fac"]: FACTION_CSS[u.team] } as CSSProperties}
+          ref={(el) => {
+            if (el) cardEls.current[i] = el;
+          }}
+          onMouseDown={(e) => {
+            e.stopPropagation();
+            props.onSelect(u.unit, e.shiftKey);
+          }}
         >
           <div className="ucard-hp">
-            <div className="ucard-hp-fill" ref={bar(i, 'hp')} />
-            <div className="ucard-count" ref={bar(i, 'count')} />
+            <div className="ucard-hp-fill" ref={bar(i, "hp")} />
+            <div className="ucard-count" ref={bar(i, "count")} />
           </div>
           <Portrait u={u} />
           <div className="ucard-name">{u.name}</div>
           <div className="ucard-bars">
-            <div className="ucard-bar coh"><div ref={bar(i, 'coh')} /></div>
-            <div className="ucard-bar mor"><div ref={bar(i, 'mor')} /></div>
+            <div className="ucard-bar coh">
+              <div ref={bar(i, "coh")} />
+            </div>
+            <div className="ucard-bar mor">
+              <div ref={bar(i, "mor")} />
+            </div>
           </div>
         </div>
       ))}
@@ -136,10 +177,17 @@ export class UnitCardsReact {
    * update() — build is rare (roster change), so the sync commit is fine. */
   build(units: UnitCardInit[]) {
     flushSync(() => {
-      this.root.render(createElement(UnitCardsView, {
-        units, onSelect: this.onSelect, sideReserve: this.sideReserve, rootEl: this.container,
-        ref: (h: UnitCardsHandle | null) => { this.handle = h; },
-      }));
+      this.root.render(
+        createElement(UnitCardsView, {
+          units,
+          onSelect: this.onSelect,
+          sideReserve: this.sideReserve,
+          rootEl: this.container,
+          ref: (h: UnitCardsHandle | null) => {
+            this.handle = h;
+          },
+        }),
+      );
     });
   }
 

@@ -20,16 +20,16 @@
 // Baselines are per-platform (font/GPU rasterization differs across OSes); the
 // threshold below absorbs antialiasing wobble only.
 
-import { readFile, writeFile, mkdir, readdir, rm } from 'node:fs/promises';
-import { PNG } from 'pngjs';
-import pixelmatch from 'pixelmatch';
+import { readFile, writeFile, mkdir, readdir, rm } from "node:fs/promises";
+import { PNG } from "pngjs";
+import pixelmatch from "pixelmatch";
 
-const SHOTS = new URL('./shots/', import.meta.url).pathname;
-const DIFF = new URL('./shots/diff/', import.meta.url).pathname;
+const SHOTS = new URL("./shots/", import.meta.url).pathname;
+const DIFF = new URL("./shots/diff/", import.meta.url).pathname;
 const activeRefreshes = new Map();
 
 function safeSnapshotPath(name) {
-  if (name.startsWith('/') || name.split('/').some((part) => part === '..')) {
+  if (name.startsWith("/") || name.split("/").some((part) => part === "..")) {
     throw new Error(`unsafe snapshot path: ${name}`);
   }
 }
@@ -41,14 +41,14 @@ export async function beginSnapshotFolderRefresh(name) {
   if (!process.env.UPDATE_SHOTS) return;
   if (process.env.SNAP) {
     throw new Error(
-      `Refusing UPDATE_SHOTS with SNAP while refreshing ${name}: `
-      + 'timeline re-blesses must clear the whole folder first so stale frames cannot survive.',
+      `Refusing UPDATE_SHOTS with SNAP while refreshing ${name}: ` +
+        "timeline re-blesses must clear the whole folder first so stale frames cannot survive.",
     );
   }
   safeSnapshotPath(name);
   const dir = SHOTS + name;
   await mkdir(dir, { recursive: true });
-  activeRefreshes.set(dir.endsWith('/') ? dir : `${dir}/`, new Set());
+  activeRefreshes.set(dir.endsWith("/") ? dir : `${dir}/`, new Set());
 }
 
 async function* pngFiles(dir) {
@@ -62,7 +62,7 @@ async function* pngFiles(dir) {
     const path = `${dir}/${entry.name}`;
     if (entry.isDirectory()) {
       yield* pngFiles(path);
-    } else if (entry.isFile() && entry.name.endsWith('.png')) {
+    } else if (entry.isFile() && entry.name.endsWith(".png")) {
       yield path;
     }
   }
@@ -78,7 +78,7 @@ export async function finishSnapshotFolder(name) {
   if (!process.env.UPDATE_SHOTS) return { pruned: 0 };
   safeSnapshotPath(name);
   const dir = SHOTS + name;
-  const key = dir.endsWith('/') ? dir : `${dir}/`;
+  const key = dir.endsWith("/") ? dir : `${dir}/`;
   const touched = activeRefreshes.get(key);
   if (!touched) return { pruned: 0 };
   let pruned = 0;
@@ -93,9 +93,7 @@ export async function finishSnapshotFolder(name) {
 }
 
 function samePixels(a, b) {
-  return a.width === b.width
-    && a.height === b.height
-    && Buffer.compare(a.data, b.data) === 0;
+  return a.width === b.width && a.height === b.height && Buffer.compare(a.data, b.data) === 0;
 }
 
 /** Tolerant by default: a per-pixel colour threshold absorbs anti-aliasing and
@@ -110,19 +108,26 @@ function samePixels(a, b) {
  *  Tighten (pass 0,0) for a snap that must be exact. `baseDir` overrides the
  *  committed-baseline root (default shots/); scene owners pass shots/battle/,
  *  shots/campaign/, shots/ui/, or shots/models/ so each surface owns its folder. */
-export async function snapCheck(page, name, check, { threshold = 0.12, maxDiffRatio = 0.02, shot, baseDir = SHOTS } = {}) {
+export async function snapCheck(
+  page,
+  name,
+  check,
+  { threshold = 0.12, maxDiffRatio = 0.02, shot, baseDir = SHOTS } = {},
+) {
   // SNAP=<substr> runs only the snaps whose name contains <substr> (comma-OR).
   // The harness still drives all setup, but unmatched snaps are skipped — no
   // compare, no diff/actual written. Use it to iterate on one view fast.
   const only = process.env.SNAP;
-  if (only && !only.split(',').some((s) => name.includes(s.trim()))) return;
+  if (only && !only.split(",").some((s) => name.includes(s.trim()))) return;
   safeSnapshotPath(name);
   // `shot` lets callers that already hold a PNG buffer (a composited contact
   // sheet, a reused frame) skip the page.screenshot(); otherwise grab one now.
   if (!shot) shot = await page.screenshot();
   // name may carry a subfolder (e.g. 'vibe/heavy-both/t000s'); make it.
-  await mkdir(baseDir + (name.includes('/') ? name.slice(0, name.lastIndexOf('/')) : ''), { recursive: true });
-  const basePath = baseDir + name + '.png';
+  await mkdir(baseDir + (name.includes("/") ? name.slice(0, name.lastIndexOf("/")) : ""), {
+    recursive: true,
+  });
+  const basePath = baseDir + name + ".png";
   let baseline = null;
   try {
     baseline = PNG.sync.read(await readFile(basePath));
@@ -133,32 +138,42 @@ export async function snapCheck(page, name, check, { threshold = 0.12, maxDiffRa
       const cur = PNG.sync.read(shot);
       markRefreshedSnapshot(basePath);
       if (samePixels(baseline, cur)) {
-        check(`snapshot ${name}`, true, 'baseline unchanged');
-        return { status: 'unchanged' };
+        check(`snapshot ${name}`, true, "baseline unchanged");
+        return { status: "unchanged" };
       }
     }
     await writeFile(basePath, shot);
     markRefreshedSnapshot(basePath);
-    check(`snapshot ${name}`, true, baseline ? 'baseline updated' : 'baseline created');
-    return { status: baseline ? 'updated' : 'created' };
+    check(`snapshot ${name}`, true, baseline ? "baseline updated" : "baseline created");
+    return { status: baseline ? "updated" : "created" };
   }
 
   const cur = PNG.sync.read(shot);
   if (cur.width !== baseline.width || cur.height !== baseline.height) {
-    check(`snapshot ${name}`, false,
-      `size ${cur.width}x${cur.height} vs baseline ${baseline.width}x${baseline.height}`);
-    return { status: 'failed' };
+    check(
+      `snapshot ${name}`,
+      false,
+      `size ${cur.width}x${cur.height} vs baseline ${baseline.width}x${baseline.height}`,
+    );
+    return { status: "failed" };
   }
   const diff = new PNG({ width: cur.width, height: cur.height });
-  const differing = pixelmatch(baseline.data, cur.data, diff.data, cur.width, cur.height, { threshold });
+  const differing = pixelmatch(baseline.data, cur.data, diff.data, cur.width, cur.height, {
+    threshold,
+  });
   const ratio = differing / (cur.width * cur.height);
   const ok = ratio <= maxDiffRatio;
   if (!ok) {
-    await mkdir(DIFF + (name.includes('/') ? name.slice(0, name.lastIndexOf('/')) : ''), { recursive: true });
-    await writeFile(DIFF + name + '.png', PNG.sync.write(diff));
-    await writeFile(DIFF + name + '-actual.png', shot);
+    await mkdir(DIFF + (name.includes("/") ? name.slice(0, name.lastIndexOf("/")) : ""), {
+      recursive: true,
+    });
+    await writeFile(DIFF + name + ".png", PNG.sync.write(diff));
+    await writeFile(DIFF + name + "-actual.png", shot);
   }
-  check(`snapshot ${name}`, ok,
-    `${differing} px differ (${(ratio * 100).toFixed(4)}%)${ok ? '' : ` — see shots/diff/${name}.png`}`);
-  return { status: ok ? 'matched' : 'failed' };
+  check(
+    `snapshot ${name}`,
+    ok,
+    `${differing} px differ (${(ratio * 100).toFixed(4)}%)${ok ? "" : ` — see shots/diff/${name}.png`}`,
+  );
+  return { status: ok ? "matched" : "failed" };
 }

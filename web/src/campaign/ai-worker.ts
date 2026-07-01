@@ -4,10 +4,10 @@
 // the rollouts off the render thread. Determinism is the host's job: it applies
 // these decisions on a fixed tick (apply_at), so however long this takes only
 // ever makes the host wait, never changes the game.
-import init, { Campaign } from '../wasm/game_wasm.js';
+import init, { Campaign } from "../wasm/game_wasm.js";
 
-type InitMsg = { type: 'init'; mapJson: string };
-type SnapshotMsg = { type: 'snapshot'; applyAt: number; snap: string };
+type InitMsg = { type: "init"; mapJson: string };
+type SnapshotMsg = { type: "snapshot"; applyAt: number; snap: string };
 type InMsg = InitMsg | SnapshotMsg;
 
 let mapJson: string | null = null;
@@ -28,7 +28,7 @@ function handle(msg: SnapshotMsg) {
 
 self.onmessage = async (e: MessageEvent<InMsg>) => {
   const msg = e.data;
-  if (msg.type === 'init') {
+  if (msg.type === "init") {
     await init();
     mapJson = msg.mapJson;
     ready = true;

@@ -26,16 +26,18 @@ const waitReady = (page) => page.waitForFunction(
   { timeout: 25000 },
 );
 
-// Warm glint pixels: bright and clearly warm (r well above b), which the white
-// foam (r≈g≈b) and the grey water are not. Returns count and x-centroid.
+// Hot warm glint sparkles: BRIGHT and clearly warm, in the SEA band only (below
+// the horizon) so the warm dusk sky and the dim warm water body don't register —
+// only the specular glitter does. Returns count and x-centroid.
 function glintStats(png) {
   let count = 0;
   let sumX = 0;
-  for (let y = 0; y < png.height; y++) {
+  const seaTop = Math.floor(png.height * 0.4);
+  for (let y = seaTop; y < png.height; y++) {
     for (let x = 0; x < png.width; x++) {
       const o = (y * png.width + x) * 4;
       const r = png.data[o], g = png.data[o + 1], b = png.data[o + 2];
-      if (r > 140 && r - b > 45 && r - g > 18) {
+      if (r > 195 && r - b > 60 && r - g > 25) {
         count++;
         sumX += x;
       }
@@ -47,7 +49,7 @@ function glintStats(png) {
 async function glintAt(ctx, sunAz) {
   const page = await ctx.newPage({ viewport: { width: 1000, height: 600 }, errorPrefix: `az-${sunAz.toFixed(2)}` });
   try {
-    await page.goto(`${ctx.target}/renderer/water-bakeoff?tech=${WINNER}&t=3.0&sunAz=${sunAz}`);
+    await page.goto(`${ctx.target}/renderer/water-bakeoff?tech=${WINNER}&preset=dusk&t=3.0&sunAz=${sunAz}`);
     await waitReady(page);
     const shot = await page.locator('#renderer-canvas').screenshot();
     return { shot, stats: glintStats(PNG.sync.read(shot)) };

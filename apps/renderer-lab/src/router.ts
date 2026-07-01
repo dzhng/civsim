@@ -31,6 +31,7 @@ import { BattleGroundPass } from '../../../packages/game-renderer/src/battle/gro
 import { BattleHorizonPass } from '../../../packages/game-renderer/src/battle/horizonPass';
 import { createWaterField, type WaterFieldId, type WaterFieldSource } from '../../../packages/game-renderer/src/water/waterField';
 import { WaterPlanePass } from '../../../packages/game-renderer/src/water/waterPlanePass';
+import { WATER_ENVIRONMENTS, type WaterEnvironment } from '../../../packages/game-renderer/src/water/waterEnvironment';
 import { featuresToBattleScenery } from '../../../packages/game-renderer/src/battle/terrainScenery';
 import { CampaignSelectionPass, type CampaignSelectionInstance } from '../../../packages/game-renderer/src/campaign/selectionPass';
 import { campaignBorderVertices, CampaignTerritoryPass } from '../../../packages/game-renderer/src/campaign/territoryPass';
@@ -3029,14 +3030,15 @@ async function routeBattleInput(ctx: LabContext) {
 async function routeWaterBakeoff(ctx: LabContext) {
   const requested: WaterFieldId = ctx.params.get('tech') === 'ifft' ? 'ifft' : 'gerstner';
   const compare = ctx.params.get('compare') === '1';
-  const preset = ctx.params.get('preset') ?? 'dusk';
+  const presetName = ctx.params.get('preset') ?? 'golden';
+  const env: WaterEnvironment = WATER_ENVIRONMENTS[presetName as WaterEnvironment['id']] ?? WATER_ENVIRONMENTS.golden;
   const camName = ctx.params.get('cam') === 'campaign' ? 'campaign' : 'battle';
   const forceUnsupported = ctx.params.get('computeUnsupported') === '1';
   const ifftResolution = integerParam(ctx.params, 'n', 128, 64, 256);
-  // Sun azimuth toward +y (the view direction) with a low elevation puts the
-  // glint streak up the centre of the frame; sweep `sunAz` to move it.
-  const sunAz = numberParam(ctx.params, 'sunAz', Math.PI / 2);
-  const sunEl = numberParam(ctx.params, 'sunEl', 0.3);
+  // Sun comes from the preset; `sunAz`/`sunEl` override it (e.g. the glint scene
+  // sweeps the azimuth to prove the streak tracks the sun).
+  const sunAz = ctx.params.has('sunAz') ? numberParam(ctx.params, 'sunAz', env.sunAzimuth) : env.sunAzimuth;
+  const sunEl = ctx.params.has('sunEl') ? numberParam(ctx.params, 'sunEl', env.sunElevation) : env.sunElevation;
   const fixedT = ctx.params.has('t') ? numberParam(ctx.params, 't', 0) : null;
 
   const shell = await createFrameShell(ctx.canvas, { enableGpuTimer: true });
@@ -3048,19 +3050,15 @@ async function routeWaterBakeoff(ctx: LabContext) {
   shell.setCamera(camera);
   shell.setSun(sunAz, sunEl);
 
-  // The preset only tints the sky clear colour for now; the water albedo stays
-  // neutral grey until the colour/depth slice. Dusk is the reference's mood.
-  const clear: GPUColor = preset === 'golden'
-    ? { r: 0.86, g: 0.80, b: 0.66, a: 1 }
-    : preset === 'overcast'
-      ? { r: 0.80, g: 0.82, b: 0.84, a: 1 }
-      : { r: 0.58, g: 0.61, b: 0.70, a: 1 };
+  // Sky clear from the preset's haze colour so the sea meets a matching horizon
+  // (Slice 6 will grade the sea-to-sky seam properly).
+  const clear: GPUColor = { r: env.hazeColor[0], g: env.hazeColor[1], b: env.hazeColor[2], a: 1 };
 
   interface Built { requested: WaterFieldId; field: WaterFieldSource; plane: WaterPlanePass; fallbackTriggered: boolean }
   const techs: WaterFieldId[] = compare ? ['gerstner', 'ifft'] : [requested];
   const built: Built[] = techs.map((tech) => {
     const { field, fallbackTriggered } = createWaterField(shell, { tech, computeSupported, ifftResolution });
-    return { requested: tech, field, plane: new WaterPlanePass(shell, field), fallbackTriggered };
+    return { requested: tech, field, plane: new WaterPlanePass(shell, field, undefined, env), fallbackTriggered };
   });
 
   const drawAt = (t: number) => {
@@ -3094,7 +3092,7 @@ async function routeWaterBakeoff(ctx: LabContext) {
       requestedTech: requested,
       tech: live,
       compare,
-      preset,
+      preset: presetName,
       camera: camName,
       computeSupported,
       computeOceanSupportedRaw: shell.info.caps.computeOceanSupported,
@@ -3112,7 +3110,7 @@ async function routeWaterBakeoff(ctx: LabContext) {
       live,
       compare,
       camera: camName,
-      preset,
+      preset: presetName,
       'compute supported': computeSupported,
       'fallback triggered': built.some((b) => b.fallbackTriggered),
       'field resolution': built.map((b) => b.field.stats().fieldResolution).join(' / '),

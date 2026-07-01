@@ -12,17 +12,25 @@ Reference image (the compare-screenshots target):
 
 ## Next Agent Prompt
 
-> **Status:** Slices 1–4 landed. Winner: **Gerstner** (see
+> **Status:** Slices 1–5 landed. Winner: **Gerstner** (see
 > [`slices/01-bakeoff-decision.md`](slices/01-bakeoff-decision.md)). Last updated 2026-07-01.
 >
-> **You are picking up at Slice 5 (water albedo + depth ramp × env preset).** Read this README
-> and open [`slices/05-albedo-depth-ramp.md`](slices/05-albedo-depth-ramp.md). Introduce
-> `water/waterPalette.ts` (neutral albedo + depth ramp + foam/glint constants) and
-> `water/waterEnvironment.ts` presets, and colour the sea in `waterShade`. **Fold the
-> provisional warm glint tint constant in `waterMaterialWgsl` (`vec3f(1.0, 0.84, 0.52)`) into
-> `waterPalette` — it is a refactor, not new behaviour.** Keep the albedo neutral × preset (do
-> not bake the dusk mood into albedo). The seam, clock, sun uniform, geometry, foam and glint
-> are **frozen**.
+> **You are picking up at Slice 6 (horizon haze / aerial perspective).** Read this README and
+> open [`slices/06-horizon-haze.md`](slices/06-horizon-haze.md). Grade the far sea toward the
+> preset's `hazeColor` (already on each `WaterEnvironment`) so the sea-to-sky seam is soft and
+> the horizon desaturates — drive it from the same distance the depth ramp uses in
+> `waterShade`/the plane fs. Frame the lab camera to the horizon band. The seam, clock, sun
+> uniform, geometry, foam, glint and colour are **frozen**.
+>
+> **Slice 5 result:** water is now **neutral albedo × environment preset** — `waterPalette.ts`
+> (Aegean turquoise→deep-blue albedo, depth-ramped by distance) × `waterEnvironment.ts` presets
+> (golden / dusk / overcast: `keyColor`, `fillColor`, `hazeColor`, `exposure`, sun az/el). The
+> plane pass injects the palette + chosen preset; `waterShade` lights the neutral albedo with
+> warm key + cool fill, adds a broad warm sun-**glitter track** + sharp sparkles (the glint is
+> the sun's own colour — the provisional warm constant is folded into `WATER_KEY`), and lays
+> preset-lit foam. Unprimed aesthetics PASS: same sea re-lit three ways, believable Aegean blue,
+> dusk dim not a dark diorama. The `water-albedo` scene proves two-light neutrality (golden reads
+> warmer than overcast). Default lab preset is now `golden`; the S2–S4 scenes are colour-agnostic.
 >
 > **Slices 2–4 result:** the Gerstner field is a 20-wave discretised spectrum (isotropic swell,
 > fine chop). `waterShade` (shared) shades the body by `normal·sun`, lays height-keyed granular
@@ -68,7 +76,7 @@ Reference image (the compare-screenshots target):
 > - [x] S2 — Wave silhouette / displacement (open-sea plane, neutral grey) → `slices/02-wave-silhouette.md` (**20-wave spectrum + waterShade**)
 > - [x] S3 — Whitecap foam coverage (granular height-keyed whitecaps) → `slices/03-foam-coverage.md`
 > - [x] S4 — Sun-glint streak (banded specular, sun-tracking) → `slices/04-sun-glint.md`
-> - [ ] S5 — Water albedo + depth ramp × env preset (introduces `waterPalette`) → `slices/05-albedo-depth-ramp.md`
+> - [x] S5 — Water albedo + depth ramp × env preset (waterPalette + waterEnvironment) → `slices/05-albedo-depth-ramp.md`
 > - [ ] S6 — Horizon haze / aerial perspective → `slices/06-horizon-haze.md`
 > - [ ] S7 — Animation rhythm (time-series GIF) → `slices/07-animation-rhythm.md`
 > - [ ] S8 — Integrate: battle open-sea (first production surface) → `slices/08-integrate-battle-open-sea.md`

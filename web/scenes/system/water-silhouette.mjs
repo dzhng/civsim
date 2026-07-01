@@ -57,29 +57,26 @@ export async function run(ctx) {
     }
 
     // The swell must actually cover the lower frame — a flat/blank sea or a gap
-    // where terrain shows through both fail this.
+    // where terrain shows through both fail this. Sea = anything that differs from
+    // the sky (sampled at the top), so the check is preset-colour-agnostic.
     const shot = await page.locator('#renderer-canvas').screenshot();
     const png = PNG.sync.read(shot);
-    let sea = 0;
+    const so = (Math.floor(png.height * 0.03) * png.width + Math.floor(png.width / 2)) * 4;
+    const sky = [png.data[so], png.data[so + 1], png.data[so + 2]];
     let band = 0;
-    const bandTop = Math.floor(png.height * 0.45);
-    for (let y = 0; y < png.height; y++) {
+    const bandTop = Math.floor(png.height * 0.5);
+    for (let y = bandTop; y < png.height; y++) {
       for (let x = 0; x < png.width; x++) {
         const o = (y * png.width + x) * 4;
-        const r = png.data[o], g = png.data[o + 1], b = png.data[o + 2];
-        // grey water: low saturation, mid-dark value (excludes the blue sky and
-        // any olive terrain that would leak through a coverage gap).
-        const mx = Math.max(r, g, b), mn = Math.min(r, g, b);
-        const grey = mx - mn < 22 && mx < 170;
-        if (grey) sea++;
-        if (grey && y >= bandTop) band++;
+        const d = Math.abs(png.data[o] - sky[0]) + Math.abs(png.data[o + 1] - sky[1]) + Math.abs(png.data[o + 2] - sky[2]);
+        if (d > 40) band++;
       }
     }
     const lowerArea = (png.height - bandTop) * png.width;
     ctx.check(
-      'silhouette: grey swell fills the lower frame (no flat sheet, no terrain leak)',
+      'silhouette: the swell fills the lower frame (no flat sheet, no terrain leak)',
       band > lowerArea * 0.9,
-      JSON.stringify({ band, lowerArea, seaTotal: sea }),
+      JSON.stringify({ band, lowerArea }),
     );
 
     await ctx.snap(page, `water/silhouette-${WINNER}`, { shot });

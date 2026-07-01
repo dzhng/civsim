@@ -67,3 +67,28 @@ battle renderer in this slice.
 If David wants a different figure silhouette, count, or a fundamentally different
 campaign look (e.g. keep an abstract marker after all), that surfaces here — cheaply,
 before the refactor.
+
+---
+
+## SPIKE FINDINGS (2026-07-01) — resolved, GO for the committed build
+
+Built `routeCampaignCrowdSpike` (`/renderer/campaign-crowd-spike`, router.ts) — 6 skinned
+figures through the shared `SkinnedCrowdPipeline` with `{ worldDepth: 'campaign' }`,
+beside a campaign city + tree, on a ramped ground sampler. Captured via headful Chrome
+(Metal). Verdicts:
+
+1. **Depth sort — GOOD.** Campaign depth fn (Slice 1) sorts the crowd correctly behind
+   the tree, beside/against the city, and figure-to-figure. This is the load-bearing
+   seam and it works.
+2. **Seating — GOOD.** `soldierElevationMatches: true` on the ramp; feet ride relief via
+   `CrowdInstance.elevation` exactly as battle.
+3. **Perf — GOOD.** 0.85 ms draw for 6 figures. N armies × ≤6 is well bounded; no concern.
+4. **Faction — GOOD ENOUGH.** Placeholder blue livery reads clearly. Confirms the Slice 4
+   plan: bucket allegiance → friend/foe/neutral in the shader's existing two-tone, banner
+   carries the true faction color. No instance-stride change needed unless David wants
+   full per-soldier RGB.
+5. **Scale — DECISION.** `size ≈ 2.4` reads well at campaign zoom 28. Slice 4 should pick a
+   figure size in that neighbourhood (tie to camera zoom / marker radius), NOT the battle
+   default size 1 (too small at strategic zoom).
+
+Route is throwaway → deleted in Slice 6. Non-blocking checkpoint shot sent to David.

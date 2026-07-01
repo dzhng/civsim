@@ -11,6 +11,7 @@ import type { Scene } from '../scene';
 import { CampaignTopBar } from '../ui/campaign/CampaignTopBar';
 import { ArmyPanel } from '../ui/campaign/ArmyPanel';
 import { CityPanel } from '../ui/campaign/CityPanel';
+import { DiplomacyPanel } from '../ui/campaign/DiplomacyPanel';
 import { loadCampaignData, nearestLoc, tilePos, type CampaignData } from './data';
 import type { CamView } from './camera';
 import { CampaignRenderer } from './renderer';
@@ -22,7 +23,6 @@ import { fatalSurfaceFor, showFatalErrorSurface } from '../shared/fatalError';
 import {
   campaignDomHtml,
   classBuilderHtml,
-  diplomacyHtml,
   type ArmyRosterRow,
   type ClassDoctrineRow,
   type CityDetail,
@@ -86,6 +86,7 @@ export class CampaignScene implements Scene {
   private lastTopBarKey = '';
   private armyRoot: Root | null = null;
   private cityRoot: Root | null = null;
+  private diploRoot: Root | null = null;
   private renderer!: CampaignRenderer;
   // Terrain/territory live across battle round-trips (enter/exit cycles).
   private field: TerrainField | null = null;
@@ -677,6 +678,7 @@ export class CampaignScene implements Scene {
     this.renderTopBar();
     this.armyRoot = createRoot(ui.querySelector('#cmp-army')!);
     this.cityRoot = createRoot(ui.querySelector('#cmp-city')!);
+    this.diploRoot = createRoot(ui.querySelector('#cmp-diplomacy')!);
   }
 
   private saveCampaign() {
@@ -740,9 +742,7 @@ export class CampaignScene implements Scene {
     const json = this.cfg.campaign.diplomacy_json();
     if (json === this.diploJson) return; // unchanged — keep the live DOM/listeners
     this.diploJson = json;
-    const panel = this.ui.querySelector('#cmp-diplomacy') as HTMLDivElement;
     const list = JSON.parse(json) as DiplomacyRow[];
-    panel.innerHTML = diplomacyHtml(list);
     const actions: Record<DiplomacyAction, (other: number) => boolean> = {
       declare_war: (other) => this.cfg.campaign.declare_war(other),
       make_peace: (other) => this.cfg.campaign.make_peace(other),
@@ -750,16 +750,15 @@ export class CampaignScene implements Scene {
       break_alliance: (other) => this.cfg.campaign.break_alliance(other),
       gift_gold: (other) => this.cfg.campaign.gift_gold(other, 200),
     };
-    panel.querySelectorAll<HTMLButtonElement>('button[data-act]').forEach((b) =>
-      b.addEventListener('click', () => {
-        const other = Number(b.dataset.f);
-        const act = b.dataset.act as DiplomacyAction | undefined;
-        if (act) actions[act](other);
+    const root = this.diploRoot;
+    if (root) flushSync(() => root.render(createElement(DiplomacyPanel, {
+      list,
+      onAction: (act, other) => {
+        actions[act](other);
         this.refreshViews();
         this.updateDiplomacyPanel();
-      }),
-    );
-
+      },
+    })));
   }
 
   private updateHud() {

@@ -12,15 +12,16 @@ Synthesized from three independent draft plans (they converged hard — the cut 
 
 **Status:** S0 + S1 + S2 + S3 shipped (green). **S3 verdict: MIGRATE (Branch A).** _Last updated: 2026-07-01._
 
-**Start at S7** (cleanup). **S6 is done: S6a–c + S6e shipped, S6d no-op.** The battle HUD is
-fully React (card bar, toolbar, info panel, gameover + pause modals). **S7 scope** (folds in the
-deferred items): (1) delete the vanilla `UnitCards` class + point the renderer-lab card-bar route
-at `UnitCardsReact` (remove `?react`/`?hud=vanilla` flags); (2) dedup the campaign lab
-`uiLayer.ts` onto the S5 React components (delete the now-lab-only `armyPanelHtml`/`cityPanelHtml`/
-`diplomacyHtml`/`classBuilderHtml` + `prettyClass`/`classSort` exports once done); (3) migrate the
-campaign `showBattleModal` (Fight/Auto-resolve) — replace the render-loop `this.modal` null-gate
-with a boolean + a React root; (4) grep-prove one chassis source, all baselines unmoved, then
-close-spec. S6 detail:
+**The GAME UI is 100% React.** S7a (delete vanilla `UnitCards`) + S7c (campaign `showBattleModal`
+→ React) shipped; one bronze token source is grep-proven (only `bronze.css` defines `:root`).
+**Remaining S7 = dev-lab housekeeping + finalize:** (1) the renderer-lab `.renderer-unitcards`
+CSS fork (16 lines in `installStyles`) still duplicates the `.ucard*` styles — extract them to a
+shared CSS the lab + index.html import, then delete the fork; (2) the campaign lab `uiLayer.ts`
+still calls the panel builders (`armyPanelHtml`/`cityPanelHtml`/`diplomacyHtml`/`classBuilderHtml`)
+— point it at the S5 React components, then delete the now-unused builders + `prettyClass`/
+`classSort` exports; (3) close-spec (archive to `specs/done/`, rewrite as rationale record; also
+closes `specs/battle-ui/` S1). These are dev-only forks — the shipping game already renders one
+React source. S6 detail:
 - **S6a — card bar React default** ✅ (`?hud=vanilla` escape hatch until S7).
 - **S6b — toolbar** ✅ (`web/src/ui/hud/Toolbar.tsx` into `#toolbar`; icon-only buttons via
   `dangerouslySetInnerHTML` of `toolbarIcon()`; scene's `updateToolbar` computes a `{on,disabled}`

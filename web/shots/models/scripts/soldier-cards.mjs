@@ -14,8 +14,8 @@
 //   UPDATE_SHOTS=1 node web/shots/models/scripts/soldier-cards.mjs   # re-bless montage
 //   node web/shots/models/scripts/soldier-cards.mjs --check    # CI: copies present + in sync
 //
-// GPU note: the lab needs a real WebGPU adapter — run headful with hardware flags
-// (no headless swiftshader adapter on macOS). This baker launches that way.
+// GPU note: the lab needs a real WebGPU adapter. The blessed local path is
+// installed Chrome in headless mode with hardware flags.
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import { chromium } from "playwright";
@@ -213,7 +213,10 @@ if (CHECK) {
 await mkdir(PKG_DIR, { recursive: true });
 await mkdir(WEB_DIR, { recursive: true });
 
-const browser = await chromium.launch({ headless: false, args: GPU_HARDWARE_FLAGS });
+const launchOptions = { args: GPU_HARDWARE_FLAGS };
+if (process.env.VERIFY_HEADFUL === "1") launchOptions.headless = false;
+if (process.env.VERIFY_BROWSER_CHANNEL) launchOptions.channel = process.env.VERIFY_BROWSER_CHANNEL;
+const browser = await chromium.launch(launchOptions);
 const page = await browser.newPage({ viewport: { width: VIEW_W + 360, height: VIEW_H } });
 const errs = [];
 page.on("pageerror", (e) => errs.push(e.message));

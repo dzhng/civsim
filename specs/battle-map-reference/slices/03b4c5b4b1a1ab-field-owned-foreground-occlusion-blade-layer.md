@@ -1,4 +1,4 @@
-# Slice 03B4C5B4B1A1AA - field-owned foreground occlusion blade layer
+# Slice 03B4C5B4B1A1AB - field-owned foreground occlusion blade layer
 
 ## Contract
 
@@ -7,10 +7,18 @@ when the field-owned domain adds a near-foreground vertical/occluding blade
 layer, instead of relying on surface texture, per-cell micro geometry, or
 source-attached mats.
 
+This slice is deferred behind
+`03b4c5b4b1a1aa-false-earth-close-material-replication.md`. Do not implement it
+until the false-earth replication spike records what the source architecture
+actually needs for dense close grass body. If the replication spike accepts, this
+slice may be replaced by a porting slice instead of implemented as written.
+
 B4B1A1Z proved that continuous field-owned strand/nap texture is not enough: it
-spans across cells, but remains flat diagonal scratches on the ground. This
-slice owns the next hidden variable: **foreground occlusion and upright blade
-body at the bottom of the close crop**.
+spans across cells, but remains flat diagonal scratches on the ground. The next
+active slice is now the false-earth exact-replication spike; this slice remains
+the fallback hidden-variable test for **foreground occlusion and upright blade
+body at the bottom of the close crop** if the source-architecture replication
+does not supersede it.
 
 ## Approach
 

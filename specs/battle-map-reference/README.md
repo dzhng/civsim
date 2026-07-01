@@ -154,7 +154,7 @@ domain can publish explicit frequency/material telemetry, but the visual remains
 flat green terrain with faint diagonal scratches: `continuous-nap-field` records
 only `0.23408x` target edge energy and is near-parity with rejected Y micro
 (`parityDistance=0.05460`). Continue at
-`03b4c5b4b1a1aa-field-owned-foreground-occlusion-blade-layer.md`. B4B1A is now a
+`03b4c5b4b1a1aa-false-earth-close-material-replication.md`. B4B1A is now a
 parent/reslice memo, not one implementation slice: B4B1A0 built the fair close
 grass test environment, B4B1A1 compared body architecture candidates inside that
 fixed lab, B4B1A1R proved shape-only repair is insufficient, B4B1A1S isolated
@@ -167,10 +167,11 @@ domains become flat paint, B4B1A1X proved large field-domain shell geometry
 becomes sparse card/stamp swipes, B4B1A1Y proved per-cell micro-strand geometry
 still clusters into flecks instead of continuous body, B4B1A1Z proved
 continuous field-owned strand/nap texture still reads as flat scratched paint,
-B4B1A1AA must test lower-foreground upright/occluding blade body, and B4B1A2
-records the accepted architecture's perf envelope only after a
-representation succeeds. Only after
-those child slices should B4B2 tune
+B4B1A1AA must now reproduce the false-earth close material in its native
+Three.js/WebGPU/TSL architecture, B4B1A1AB keeps the field-owned
+lower-foreground occlusion idea as a fallback/porting slot, and B4B1A2 records
+the accepted architecture's perf envelope only after a representation succeeds.
+Only after those child slices should B4B2 tune
 coverage, B4B3 tune strand scale, B4B4 tune clump softness, B4B5 lock close palette/atlas
 integration, B4C0 prove the camera-relative backend seam, B4C1 add
 camera-relative cells/rings, B4C2 add slope/normal eligibility, B4C3 add surface
@@ -213,12 +214,16 @@ fog frozen and do not use haze to disguise grass, cliff, or water shortcomings.
 **False-earth / X-post correction (2026-07-01):** David pointed at
 `momentchan/false-earth` and the X post describing packed terrain-normal instance
 attributes, slope filtering, and vertex-shader tilt. This does make sense and is
-the same family as false-earth, but the X-post path is the smaller first spike:
-CPU-build stable field records, pack normals and blade params as instance
-attributes, and tilt/filter in the vertex shader. Only escalate to false-earth's
-compute + visible LOD index buffers + indirect draws if the CPU/packed-field
-version proves visually right but too CPU/upload heavy. Do not port Three.js/TSL,
-Leva, character push/waves, emissive/neon materials, or false-earth colours.
+the same family as false-earth, but the earlier CPU-first path skipped the most
+important diagnostic question: can we reproduce the false-earth close material
+itself when the camera is low and near? The next spike therefore uses the source
+architecture first: Three.js/WebGPU/TSL, camera-snapped grid, GPU-computed
+packed 4-vec4 blade data, Voronoi clumps, Bezier blades, terrain-normal
+alignment, view-dependent thickness, procedural shading, and LOD/indirect draw
+where needed. That spike is an isolated lab reproduction, not production
+adoption. Do not port Leva, character push/waves, flowers, post-processing, or
+story content into civsim; only copy enough grass architecture to explain the
+close material.
 
 **Camera-procedural correction (2026-07-01):** the current grass route is not yet
 procedurally generated from camera position like false-earth. Civsim has a
@@ -238,12 +243,14 @@ separate grass technique. Escalate to GPU compute/indirect only when the
 CPU/packed backend is visually right enough for the active gate and the perf
 evidence says CPU rebuild/upload is the blocker.
 
-**Third architecture reslice (2026-07-01):** answer the false-earth question this
-way: **grass should be procedurally generated from camera position in world space;
-GPU-native is an optional backend for that same camera-relative domain.** Do not
-build a separate GPU visual path that competes with the close-lab body decision.
-The spec now stages a dedicated `03B4C5B4C0` spike after the close lab body is
-accepted and before the camera-relative implementation:
+**Fourth architecture reslice (2026-07-01):** answer the false-earth question
+this way: **first reproduce the source close material exactly enough to learn
+the architecture; then translate the winning variables into civsim.** Grass
+should still become procedurally generated from camera position in world space,
+but GPU-native is no longer deferred only as a perf backend: it is allowed in the
+isolated false-earth reproduction because that is the source technique being
+judged. The later `03B4C5B4C0` backend spike still decides production CPU/GPU
+policy after the close look is known.
 
 1. B4B1/B4B1R record that route/camera/proxy work alone is not a fair comparison
    while the foreground body is missing.
@@ -266,19 +273,22 @@ accepted and before the camera-relative implementation:
    isolated fleck clusters.
 12. B4B1A1Z records that continuous field-owned strand/nap texture remains flat
    scratched paint.
-13. B4B1A1AA tests lower-foreground upright/occluding blade body.
-14. B4B1A2 records the accepted family's density/perf envelope.
-15. B4B2-B4B4 tune coverage, strand scale, and clump rhythm in that fixed close
+13. B4B1A1AA reproduces the false-earth close material in its native
+   Three.js/WebGPU/TSL stack using the supplied close-up reference screenshot.
+14. B4B1A1AB translates, replaces, or falls back to the field-owned foreground
+   occlusion idea depending on what the reproduction proves.
+15. B4B1A2 records the accepted family's density/perf envelope.
+16. B4B2-B4B4 tune coverage, strand scale, and clump rhythm in that fixed close
    test surface.
-16. B4B5 locks close-lab palette, atlas opacity, and repeated-tile visibility
+17. B4B5 locks close-lab palette, atlas opacity, and repeated-tile visibility
    without changing density or body shape.
-17. B4C0 proves the camera-relative backend seam and perf gates without changing
+18. B4C0 proves the camera-relative backend seam and perf gates without changing
    the accepted look.
-18. B4C1-B4C3 implement snapped cells/rings, terrain eligibility, and tilt/tip
+19. B4C1-B4C3 implement snapped cells/rings, terrain eligibility, and tilt/tip
    behavior behind the chosen seam.
-19. B4D1-B4D4 solve near/transition/mid LOD collapse in lab crops.
-20. B4E returns to the reference route and judges grass crops/masks only.
-21. 03B5 adopts the result only if gameplay readability and perf gates pass;
+20. B4D1-B4D4 solve near/transition/mid LOD collapse in lab crops.
+21. B4E returns to the reference route and judges grass crops/masks only.
+22. 03B5 adopts the result only if gameplay readability and perf gates pass;
     03B6 is pulled in only as a backend swap when B4C0 or 03B5 proves CPU/upload
     cost is the blocker.
 
@@ -315,12 +325,15 @@ close lab first:
     target-scale micro geometry still becomes isolated fleck clusters.
 13. B4B1A1Z tested continuous field-owned strand/nap texture and rejected it as
     flat scratched paint.
-14. B4B1A1AA tests lower-foreground upright/occluding blade body.
-15. B4B1A2 records the accepted architecture's perf budget and high-water mark.
-16. B4B2-B4B4 tune the chosen close body, strand scale, and clump rhythm.
-17. B4B5 locks the close-lab grass palette/atlas integration so colour is not
+14. B4B1A1AA reproduces the false-earth close material in its native
+    Three.js/WebGPU/TSL stack against the supplied close-up screenshot.
+15. B4B1A1AB translates, replaces, or falls back to the field-owned foreground
+    occlusion test after AA records what the source architecture requires.
+16. B4B1A2 records the accepted architecture's perf budget and high-water mark.
+17. B4B2-B4B4 tune the chosen close body, strand scale, and clump rhythm.
+18. B4B5 locks the close-lab grass palette/atlas integration so colour is not
    hidden inside density, camera, or fog work.
-18. B4C0 proves the camera-relative backend seam and perf envelope; it must not be
+19. B4C0 proves the camera-relative backend seam and perf envelope; it must not be
    used as a shortcut to solve grass art.
 16. B4C then makes that accepted grass camera-relative; it must not be used as a
     shortcut to solve grass art.
@@ -513,9 +526,12 @@ or flowers rather than grass.
   target-scale field-owned micro-strands become isolated fleck clusters.
 - `03b4c5b4b1a1z-field-owned-continuous-strand-texture.md` — recorded/rejected;
   continuous field-owned strand/nap texture reads as flat scratched paint.
-- `03b4c5b4b1a1aa-field-owned-foreground-occlusion-blade-layer.md` — next
-  pickup; keep field ownership and test lower-foreground upright/occluding
-  blade body before perf/coverage.
+- `03b4c5b4b1a1aa-false-earth-close-material-replication.md` — next pickup;
+  reproduce the false-earth close material in a standalone Three.js/WebGPU/TSL
+  lab before more civsim-native approximation.
+- `03b4c5b4b1a1ab-field-owned-foreground-occlusion-blade-layer.md` — deferred
+  fallback/porting slot; only implement after the false-earth reproduction says
+  this is still the right next variable.
 - `03b4c5b4b1a2-close-body-perf-envelope.md` — future density/perf envelope for
   the selected body architecture before tuning coverage.
 - `03b4c5b4b2-close-body-coverage.md` — future dense soft body / exposed-ground
@@ -775,8 +791,9 @@ material-only field domains as flat paint, and B4B1A1X rejected field-owned
 shell geometry as oversized card/stamp swipes, B4B1A1Y rejected field-owned
 micro-strand geometry as isolated fleck clusters, and B4B1A1Z rejected
 continuous field-owned strand/nap texture as flat scratched paint. Resume at
-B4B1A1AA for lower-foreground upright/occluding blade body before perf,
-coverage, palette, LOD, camera-relative generation, or full-vista comparison.
+B4B1A1AA for a standalone false-earth close material replication before perf,
+coverage, palette, LOD, production camera-relative generation, or full-vista
+comparison.
 
 **Slice 03B4C5B4B1R rejection memo (2026-07-01):** the scale-repair route added
 named camera profiles and selected `scale-repair-low`
@@ -945,7 +962,7 @@ Repair path for the next pass:
 
 - Keep iterating from the `highland-valley` fixture path; it is the current honest
   comparison surface until Slice 08 turns the composition into a real playable map.
-- Continue at **Slice 03B4C5B4B1A1AA field-owned foreground occlusion blade layer**.
+- Continue at **Slice 03B4C5B4B1A1AA false-earth close material replication**.
   03B3A
   already accepted the softened field-coverage layer, 03B3B records why
   material-only meadow volume is insufficient, 03B4B records why hard root
@@ -983,11 +1000,14 @@ Repair path for the next pass:
   geometry and rejected it because the crop gains isolated yellow fleck clusters
   over flat paint rather than continuous body. B4B1A1Z then tested continuous
   field-owned strand/nap texture and rejected it because the crop remains flat
-  green terrain with faint diagonal scratches. B4B1A1AA now tests
-  lower-foreground upright/occluding blade body before B4B1A2 local perf
-  envelope, B4B2 coverage, B4B3 strand scale, B4B4 clump rhythm, and B4B5 close
-  palette/atlas lock. Only after an accepted domain/body silhouette should
-  B4C0 define the camera-relative backend seam,
+  green terrain with faint diagonal scratches. B4B1A1AA now reproduces the
+  false-earth close material in a standalone Three.js/WebGPU/TSL lab using the
+  source architecture and supplied close-up screenshot. B4B1A1AB is the deferred
+  field-owned occlusion fallback/porting slot; do not implement it until AA says
+  that is still the right next variable. After AA/AB accepts a plausible body,
+  B4B1A2 records the local perf envelope, then B4B2 coverage, B4B3 strand scale,
+  B4B4 clump rhythm, and B4B5 close palette/atlas lock. Only after an accepted
+  domain/body silhouette should B4C0 define the camera-relative backend seam,
   B4C1-B4C3 add procedural cells/rings and terrain response, and B4D1-D4 prove
   near/transition/mid LOD collapse in lab crops before B4E returns to the
   reference route. Keep meadow mass, root material, atlas content, shader
@@ -1091,11 +1111,12 @@ oversized card/stamp swipes rather than continuous body. B4B1A1Y proved that
 target-scale field-owned micro-strand geometry remains clustered and source-like
 instead of continuous body. B4B1A1Z proved that continuous field-owned
 strand/nap texture removes cell clumps but still reads as flat scratched paint.
-B4B1A1AA must therefore keep the field/domain ownership seam while testing
-lower-foreground upright/occluding blade body, with camera, palette, fog,
-terrain, atlas, source context, and crop windows frozen. B4B1A2 records the
-accepted body's density/perf envelope only after AA or a later
-ownership/silhouette slice accepts a visually plausible body.
+B4B1A1AA must therefore step back and reproduce the false-earth close material
+itself in its native Three.js/WebGPU/TSL stack before another civsim-native
+approximation. Keep civsim's battle route, camera, palette, fog, terrain, atlas,
+source context, and crop windows frozen. B4B1A1AB is the deferred field-owned
+occlusion fallback/porting slot. B4B1A2 records the accepted body's density/perf
+envelope only after AA/AB or a later slice accepts a visually plausible body.
 Then continue with B4B2 body coverage, B4B3 strand scale, B4B4 clump
 softness, B4B5 close palette/atlas lock, B4C0 backend/perf spike, B4C1
 camera-relative domain, B4C2 slope/normal eligibility, B4C3 surface tilt/tip
@@ -1163,8 +1184,9 @@ have to rediscover.
 - [x] **Slice 03B4C5B4B1A1X** — field-owned body silhouette layer (`slices/03b4c5b4b1a1x-field-owned-body-silhouette-layer.md`) — landed/rejected; field-owned shell geometry creates oversized card/stamp swipes over flat paint
 - [x] **Slice 03B4C5B4B1A1Y** — field-owned micro-strand silhouette (`slices/03b4c5b4b1a1y-field-owned-micro-strand-silhouette.md`) — landed/rejected; target-scale field-owned micro-strands become isolated fleck clusters
 - [x] **Slice 03B4C5B4B1A1Z** — field-owned continuous strand texture (`slices/03b4c5b4b1a1z-field-owned-continuous-strand-texture.md`) — landed/rejected; continuous field-owned strand/nap texture reads as flat scratched paint
-- [ ] **Slice 03B4C5B4B1A1AA** — field-owned foreground occlusion blade layer (`slices/03b4c5b4b1a1aa-field-owned-foreground-occlusion-blade-layer.md`) — next pickup; keep field ownership but test lower-foreground upright/occluding blade body before perf/coverage
-- [ ] **Slice 03B4C5B4B1A2** — close body perf envelope (`slices/03b4c5b4b1a2-close-body-perf-envelope.md`) — record density/perf budget only after B4B1A1AA or a later ownership/silhouette slice accepts a body representation
+- [ ] **Slice 03B4C5B4B1A1AA** — false-earth close material replication (`slices/03b4c5b4b1a1aa-false-earth-close-material-replication.md`) — next pickup; use a standalone Three.js/WebGPU/TSL spike to reproduce the supplied false-earth close-up grass material before more civsim-native approximation
+- [ ] **Slice 03B4C5B4B1A1AB** — field-owned foreground occlusion blade layer (`slices/03b4c5b4b1a1ab-field-owned-foreground-occlusion-blade-layer.md`) — deferred fallback/porting slot after AA decides what the source architecture requires
+- [ ] **Slice 03B4C5B4B1A2** — close body perf envelope (`slices/03b4c5b4b1a2-close-body-perf-envelope.md`) — record density/perf budget only after AA/AB or a later ownership/silhouette slice accepts a body representation
 - [ ] **Slice 03B4C5B4B2** — close body coverage (`slices/03b4c5b4b2-close-body-coverage.md`)
 - [ ] **Slice 03B4C5B4B3** — close strand scale (`slices/03b4c5b4b3-close-strand-scale.md`)
 - [ ] **Slice 03B4C5B4B4** — clump softness and height variation (`slices/03b4c5b4b4-clump-softness-height-variation.md`)
@@ -1452,7 +1474,9 @@ by sim terrain read from wasm in `web/src/battle/scene.ts`.
         │
 03B4C5B4B1A1Z field-owned-continuous-strand-texture ─ rejected; flat scratched nap
         │
-03B4C5B4B1A1AA field-owned-foreground-occlusion-blade-layer ─ near occluding blade body
+03B4C5B4B1A1AA false-earth-close-material-replication ─ native TSL/WebGPU close grass proof
+        │
+03B4C5B4B1A1AB field-owned-foreground-occlusion-blade-layer ─ deferred fallback/porting slot
         │
 03B4C5B4B1A2 close-body-perf-envelope ─ density/perf budget
         │

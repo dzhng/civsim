@@ -13,6 +13,12 @@ Reslice the work into:
   grass lab and target/absence crop board.
 - `03b4c5b4b1a1-close-body-architecture-matrix.md` - compare body primitive
   families inside that lab and choose the least-wrong representation.
+- `03b4c5b4b1a1aa-false-earth-close-material-replication.md` - reproduce the
+  source false-earth close material in its native Three.js/WebGPU/TSL shape
+  before translating or approximating it in civsim.
+- `03b4c5b4b1a1ab-field-owned-foreground-occlusion-blade-layer.md` - fallback
+  civsim-native lower-foreground occlusion test, only after the false-earth
+  replication spike decides whether it is still the right next variable.
 - `03b4c5b4b1a2-close-body-perf-envelope.md` - record the selected
   representation's density/perf envelope before coverage tuning.
 
@@ -29,14 +35,20 @@ The ordering is intentional:
 
 1. Build a close grass test environment before trying another body technique.
 2. Select a body architecture in that environment without coverage tuning.
-3. Record the selected architecture's performance envelope.
-4. Only then continue to B4B2 coverage, B4B3 strand scale, B4B4 clump rhythm,
+3. Reproduce the source false-earth close material exactly enough to understand
+   the real close-body architecture before trying another civsim-native
+   approximation.
+4. Translate, replace, or fallback to the field-owned occlusion test based on
+   that evidence.
+5. Record the selected architecture's performance envelope.
+6. Only then continue to B4B2 coverage, B4B3 strand scale, B4B4 clump rhythm,
    and B4B5 close palette/atlas lock.
 
 The current renderer is not procedurally generating grass from camera position
-like false-earth. That comes later in B4C0/B4C1 after the close grass look is
-worth carrying forward. Do not use camera-relative generation as a rescue for a
-weak close body candidate.
+like false-earth, and the earlier CPU-first interpretation was too conservative
+for diagnosis. The next spike may use Three.js/WebGPU/TSL because that is the
+source architecture's native stack. Treat it as a lab reproduction surface, not
+as production adoption into the battle renderer.
 
 ## Accept / Reject
 

@@ -24,7 +24,7 @@ surface is now the smaller campaign-only polish spec:
   `surface.ts`, `terrain.ts`, `icons.ts`, and `uiLayer.ts`, with
   production, handoff, save/load, visual, map-alignment, and LoD scenes.
 - WebGPU reports and gates were wired into `web/package.json`:
-  `scenario:renderer`, `scenario:renderer:campaign`, `cutover:renderer`, and
+  `scene:renderer`, `scene:renderer:campaign`, `cutover:renderer`, and
   `release:renderer`.
 - Model and soldier gates were added so individual assets, animation poses,
   nested objects, labels, and regression crops could be reviewed outside the

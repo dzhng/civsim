@@ -374,21 +374,22 @@ swiftshader's sub-percent wobble; free-port hygiene) — lives in:
 `package.json` aliases the common jobs across both languages, forwarding to
 `cargo` and to the web app's own scripts. Those two stay the source of truth —
 the root only carries the daily verbs and the cross-language combos, not a
-mirror of every subcommand.
+mirror of every subcommand. The naming convention: **a bare task runs the whole
+job across every submodule; a `:suffix` runs one named part.**
 
 ```sh
 bun run setup        # one-time per clone: install web deps + enable the hook
 bun run dev          # web dev server (http://localhost:5173)
-bun run build:wasm   # Rust -> wasm: regenerate web/src/wasm/ after Rust changes
-bun run build:web    # bundle the web app -> dist/ (consumes the wasm above)
-bun run build:all    # build:wasm then build:web — full build from scratch
-bun run fmt          # format Rust + web        (fmt:check to verify only)
+bun run build        # everything: Rust -> wasm, then bundle the web app -> dist/
+bun run build:wasm   #   just the Rust -> wasm step (regenerate web/src/wasm/)
+bun run build:web    #   just the web bundle (assumes wasm is current)
+bun run fmt          # format everything (Rust + web; fmt:rust / fmt:web for one)
 bun run lint         # oxlint the web app
 bun run typecheck    # tsc --noEmit
-bun run test         # cargo --workspace + web vitest + node --test
-bun run test:sim     # just the Rust sim tests
+bun run test         # everything: Rust workspace + web vitest + node --test
+bun run test:rust    #   just the Rust workspace tests (test:web for the web suites)
 bun run verify       # browser battle verification
-bun run check        # full green gate: fmt:check + tests + lint + typecheck
+bun run check        # full green gate: fmt:check + lint + typecheck + test
 ```
 
 Reach past the front door for the focused work it deliberately doesn't mirror:

@@ -119,21 +119,9 @@ export function campaignDomHtml(): string {
       #campaign-ui .cmp-siege b { font-family:Cinzel, Georgia, serif;color:#ffd9a0; }
       #campaign-ui .cmp-siege-sub { color:#d7b69a;font-size:11px;margin-top:2px; }
     </style>
-    <div class="cmp-top">
-      <span id="cmp-date">Day 1</span>
-      <span id="cmp-gold">0 gold</span>
-      <button id="cmp-pause" title="Pause">${uiIcon('pause')}</button>
-      <button data-speed="0">1×</button>
-      <button data-speed="1">3×</button>
-      <button data-speed="2">10×</button>
-      <button id="cmp-factions" title="Toggle faction (political) view — V">${uiIcon('map')} Factions</button>
-      <button id="cmp-fog" title="Toggle fog of war — F">${uiIcon('cloudFog')} Fog</button>
-      <button id="cmp-diplo-btn">${uiIcon('flag')} Diplomacy</button>
-      <button id="cmp-classes-btn">${uiIcon('shield')} Classes</button>
-      <span style="flex:1"></span>
-      <button id="cmp-save">${uiIcon('save')} Save</button>
-      <button id="cmp-exit">${uiIcon('door')} Menu</button>
-    </div>
+    <!-- The top bar (.cmp-top) is React (CampaignTopBar.tsx), mounted here by
+         CampaignScene. The panels below stay vanilla for now. -->
+    <div id="cmp-topbar-root"></div>
     <div class="cmp-panel" id="cmp-army" style="display:none"></div>
     <div class="cmp-panel" id="cmp-city" style="display:none;top:auto;bottom:10px;"></div>
     <div class="cmp-sieges" id="cmp-sieges"></div>
@@ -227,11 +215,11 @@ function classRow(row: ClassDoctrineRow): string {
   </div>`;
 }
 
-function prettyClass(name: string): string {
+export function prettyClass(name: string): string {
   return name.replace(/([a-z])([A-Z])/g, '$1 $2');
 }
 
-function classSort(name: string): number {
+export function classSort(name: string): number {
   const order: Record<string, number> = {
     Peasant: 0,
     LightSword: 10,

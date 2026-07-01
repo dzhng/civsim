@@ -1,12 +1,10 @@
-// The bottom unit-card strip — one card per player unit, Total War style: a
-// side-view portrait of the class, the unit name, and live HP / cohesion /
-// morale bars. Clicking a card selects the unit (shift adds to the selection).
-// Pure DOM/Canvas: portraits are drawn once from the class look; the bars and
-// the selected/rout state refresh each frame from the sim.
+// Shared model + math for the Total-War unit-card strip: the card grid pass, the
+// per-frame key-skip + bar writes, and the flat side-view portrait. Consumed by
+// the React card bar (web/src/ui/hud/UnitCardsReact.tsx); the vanilla DOM
+// UnitCards class was removed once the spike shipped React as the default.
 
 import { lookForModel, modelLookForClass } from '../../../packages/game-renderer/src/models/shared/soldierModel';
 import { computeCardGrid, type CardGridOpts } from './cardGrid';
-import { cardThumbUrl } from './classData';
 
 // Faction accents keep cards, banners, and WebGPU soldier colours reading as
 // the same side.
@@ -142,105 +140,3 @@ export function drawPortrait(canvas: HTMLCanvasElement, cls: number, look: numbe
   }
 }
 
-// The card portrait: the baked 3D-model shot (S3) as an <img>, falling back to
-// the flat canvas drawing if the look is unbaked or the PNG fails to load, so the
-// bar never blanks.
-function portrait(u: UnitCardInit, look: number): HTMLElement {
-  const canvasFallback = () => {
-    const c = document.createElement('canvas');
-    c.className = 'ucard-port';
-    drawPortrait(c, u.cls, u.look, u.team);
-    return c;
-  };
-  const url = cardThumbUrl(look);
-  if (!url) return canvasFallback();
-  const img = document.createElement('img');
-  img.className = 'ucard-port';
-  img.loading = 'eager';
-  img.decoding = 'async';
-  img.alt = u.name;
-  img.src = url;
-  img.onerror = () => img.replaceWith(canvasFallback());
-  return img;
-}
-
-export class UnitCards {
-  private cards: HTMLElement[] = [];
-  private bars: { hp: HTMLElement; coh: HTMLElement; mor: HTMLElement; count: HTMLElement }[] = [];
-  private keys: string[] = [];
-
-  constructor(
-    private root: HTMLElement,
-    private onSelect: (unit: number, additive: boolean) => void,
-    // px reserved each side of the bar. Defaults to the minimap clearance (live
-    // game); the lab harness, which has no minimap, passes a bare margin.
-    private sideReserve: number = MINIMAP_RESERVE,
-  ) {
-    // Reflow when the viewport width changes — the grid pass is layout, never
-    // per-frame. Roster changes reflow via build().
-    window.addEventListener('resize', () => this.relayout());
-  }
-
-  /** No-scroll grid pass: pick rows/cols for the current roster at the fixed
-   * card size, then hand them to CSS as custom properties. The bar shrink-wraps
-   * to its cards, so the width budget is read from the viewport, not the bar
-   * itself (which would be circular). Runs on build and on resize — never per
-   * frame; `update()` only touches bar widths. */
-  private relayout() {
-    applyCardGrid(this.root, this.cards.length, this.sideReserve);
-  }
-
-  /** (Re)build a card per unit. Call when the roster is known or grows. */
-  build(units: UnitCardInit[]) {
-    this.root.innerHTML = '';
-    this.cards = []; this.bars = []; this.keys = [];
-    for (const u of units) {
-      const card = document.createElement('div');
-      card.className = 'ucard';
-      card.style.setProperty('--fac', FACTION_CSS[u.team]);
-      const look = u.look ?? modelLookForClass(u.cls);
-      const port = portrait(u, look);
-      const name = document.createElement('div');
-      name.className = 'ucard-name';
-      name.textContent = u.name;
-      // HP runs across the TOP as the strength bar (Total-War reference), with the
-      // count riding on it; cohesion + morale stay at the bottom.
-      const hpTop = document.createElement('div');
-      hpTop.className = 'ucard-hp';
-      const hp = document.createElement('div');
-      hp.className = 'ucard-hp-fill';
-      const count = document.createElement('div');
-      count.className = 'ucard-count';
-      hpTop.append(hp, count);
-      const bars = document.createElement('div');
-      bars.className = 'ucard-bars';
-      const mk = (cls: string) => {
-        const bar = document.createElement('div'); bar.className = 'ucard-bar ' + cls;
-        const fill = document.createElement('div'); bar.appendChild(fill); bars.appendChild(bar);
-        return fill;
-      };
-      const coh = mk('coh'), mor = mk('mor');
-      card.append(hpTop, port, name, bars);
-      card.addEventListener('mousedown', (e) => { e.stopPropagation(); this.onSelect(u.unit, e.shiftKey); });
-      this.root.appendChild(card);
-      this.cards.push(card);
-      this.bars.push({ hp, coh, mor, count });
-      this.keys.push('');
-    }
-    this.relayout();
-  }
-
-  /** Refresh bars + selected/rout state. `states[i]` null hides a dead unit's card. */
-  update(states: (UnitCardState | null)[]) {
-    for (let i = 0; i < this.cards.length; i++) {
-      const s = i < states.length ? states[i] : null;
-      const card = this.cards[i];
-      if (!s) { card.style.display = 'none'; continue; }
-      card.style.display = '';
-      const key = cardStateKey(s);
-      if (key === this.keys[i]) continue;
-      this.keys[i] = key;
-      applyCardVisual(card, this.bars[i], s);
-    }
-  }
-}

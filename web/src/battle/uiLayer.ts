@@ -1,7 +1,8 @@
 import { UNIT_INFO } from '../../../packages/game-renderer/src/battle/unitInfoLayout';
 import { modelLookForUnit } from '../../../packages/game-renderer/src/models/shared/soldierModel';
 import { CLASS_NAMES } from './classData';
-import { UnitCards, type UnitCardInit, type UnitCardState } from './unitCard';
+import type { UnitCardInit, UnitCardState } from './unitCard';
+import { UnitCardsReact } from '../ui/hud/UnitCardsReact';
 
 export const BATTLE_UI_LAYER_CONTRACT = {
   rendererOwned: [
@@ -142,7 +143,7 @@ export class BattleUiLayer {
   private summary: HTMLDivElement;
   private toolbar: HTMLDivElement;
   private cardsRoot: HTMLDivElement;
-  private cards: UnitCards;
+  private cards: UnitCardsReact;
   private cardKey = '';
   private latest: BattleUiModel | null = null;
 
@@ -159,7 +160,7 @@ export class BattleUiLayer {
     this.toolbar.className = 'renderer-toolbar';
     this.el.append(this.hud, this.summary, this.cardsRoot, this.toolbar);
     this.root.appendChild(this.el);
-    this.cards = new UnitCards(this.cardsRoot, (unit, additive) => this.onSelect(unit, additive));
+    this.cards = new UnitCardsReact(this.cardsRoot, (unit, additive) => this.onSelect(unit, additive));
   }
 
   render(model: BattleUiModel) {
@@ -203,6 +204,7 @@ export class BattleUiLayer {
   }
 
   destroy() {
+    this.cards.destroy();
     this.el.remove();
   }
 }

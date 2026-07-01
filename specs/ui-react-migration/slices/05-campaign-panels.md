@@ -1,5 +1,26 @@
 # Slice 5 — Static wave: campaign panels
 
+> **RESLICED (2026-07-01):** recon showed this is the biggest, most gameplay-critical surface —
+> `panels.ts` is 317 lines of builders and `campaign/scene.ts` is **954 lines with ~69 DOM
+> interaction points** (diplomacy actions, recruitment, city policy sliders, army orders,
+> save/load), shared with the lab via `uiLayer.ts`. A monolithic React port would put core
+> campaign gameplay at risk in one pass. Decomposed into sub-slices, each keeping the slate look
+> (Option A default) and gated by the campaign visual scenes (`campaign-visual`,
+> `campaign-production`, `campaign-conquest`, `campaign-save-load`, …):
+>
+> - **S5a — campaign React root + top bar.** Establish `CampaignScene`'s React root over the
+>   Babylon canvas; migrate the `.cmp-top` bar (date/gold, speed 1×/3×/10×, pause, Factions, Fog,
+>   Diplomacy, Classes, Save, Menu). Mostly static + a handful of handlers — the lowest-risk
+>   foundation the other panels mount into. State bridged ≤5 Hz (turn/gold/speed/paused).
+> - **S5b — army + city panels** (`#cmp-army`, `#cmp-city`): selection-driven; city has the
+>   policy sliders + recruit buttons; army has roster + orders (halt/fortify/ambush/split/merge).
+> - **S5c — diplomacy panel** (`#cmp-diplomacy`): per-faction relation rows + action buttons.
+> - **S5d — class builder** (`#cmp-classes`): doctrine rows, unit options, size buttons, apply.
+> - **S5e — sieges + end-of-turn modal**, then fold `uiLayer.ts` (the lab copy) onto the same
+>   components. The slate→bronze re-theme fork stays deferred to a David call after the port.
+>
+> Do S5a first (it unblocks the rest). The prose below is the original whole-surface intent.
+
 ## Contract unlocked
 The campaign DOM overlay (`campaignDomHtml()` in `web/src/campaign/panels.ts` — today its own
 off-theme slate island with **zero** bronze tokens) is React, mounted over the Babylon campaign

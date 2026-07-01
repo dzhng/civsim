@@ -365,46 +365,23 @@
        file's <style> still styles the React-rendered DOM (same ids/classes). -->
   <div id="battle-ui">
   <canvas id="battlefield"></canvas>
-  <div id="gameover">
-    <div class="panel">
-      <h2 id="gameover-title">VICTORY</h2>
-      <p id="gameover-sub"></p>
-      <button id="gameover-restart">Restart Battle</button>
-      <button id="gameover-menu">Main Menu</button>
-      <button class="watch" id="gameover-watch">keep watching the field</button>
-    </div>
-  </div>
+  <!-- Content is React (src/ui/hud/BattleModals.tsx, GameOver), mounted by
+       BattleScene. This shell keeps the CSS backdrop + display toggle. -->
+  <div id="gameover"></div>
   <div id="hud">loading wasm…</div>
   <div id="buttons">
     <button id="btn-menu">Menu</button>
   </div>
-  <div id="pausemenu">
-    <div class="panel">
-      <h2>MENU</h2>
-      <button id="pause-restart">Restart Battle</button>
-      <button id="pause-manual">Field Manual</button>
-      <button id="pause-exit">Exit to Main Menu</button>
-      <button class="watch" id="pause-close">back to the field</button>
-    </div>
-  </div>
+  <!-- Content is React (src/ui/hud/BattleModals.tsx, PauseMenu), mounted by
+       BattleScene. This shell keeps the CSS backdrop + display toggle. -->
+  <div id="pausemenu"></div>
   <div id="banner"></div>
   <div id="selbox"></div>
   <canvas id="minimap" width="240" height="160"></canvas>
   <div id="unitlabels"></div>
   <div id="unitcards"></div>
-  <div id="toolbar">
-    <button data-cmd="pace" aria-label="Walk / Run" title="Hotkey: R&#10;Toggle walk/run. Running is ~2x speed but burns stamina in ~90s and the formation frays the longer it runs — walk to arrive in order."></button>
-    <button data-cmd="reform" aria-label="Reform" title="Hotkey: G&#10;Halt and re-dress the ranks at double recovery speed (the sergeants shout). Use after a scramble, a defile, or a melee."></button>
-    <button data-cmd="pursue" aria-label="Pursue" title="Hotkey: H&#10;ON: an advance auto-attacks any enemy within a 5s run and chases routers — the chase gives up once it is measurably losing ground. OFF: fight whatever is in reach but keep marching to your destination."></button>
-    <button data-cmd="fire" aria-label="Fire at will" title="Hotkey: V&#10;Missile troops loose on judgment (captains still hold fire into melees involving OTHER friendly units). OFF: hold every shot. Missile units only."></button>
-    <button data-cmd="kite" aria-label="Kite" title="Hotkey: K&#10;Skirmish reflex: automatically hop away from approaching enemies and keep shooting — the fighting retreat. Skirmishers and horse archers only."></button>
-    <span class="sep"></span>
-    <button data-cmd="pause" aria-label="Pause" title="Pause (P)"></button>
-    <button data-cmd="x1" aria-label="Normal speed" title="Normal speed (1)"></button>
-    <button data-cmd="x3" aria-label="Fast forward" title="Fast forward (3)"></button>
-    <span class="sep"></span>
-    <button data-cmd="paths" aria-label="Show paths" title="Show paths and destination ghosts (hold Space)"></button>
-  </div>
+  <!-- Buttons are React now (src/ui/hud/Toolbar.tsx, mounted by BattleScene). -->
+  <div id="toolbar"></div>
   </div>
   <!-- React overlay root: a sibling above the canvas, never a parent of it.
        Fixed full-viewport, click-through by default; individual React panels

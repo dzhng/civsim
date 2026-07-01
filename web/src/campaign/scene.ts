@@ -3,8 +3,17 @@
 // untouched), reads zero-copy army/city arrays from wasm each frame, and
 // hands Pending battles to the battle scene (or auto-resolves them).
 
+import { createElement, Fragment } from 'react';
+import { createRoot, type Root } from 'react-dom/client';
+import { flushSync } from 'react-dom';
 import { Campaign, Game, start_campaign_battle, report_battle, type InitOutput } from '../wasm/game_wasm.js';
 import type { Scene } from '../scene';
+import { CampaignTopBar } from '../ui/campaign/CampaignTopBar';
+import { ArmyPanel } from '../ui/campaign/ArmyPanel';
+import { CityPanel } from '../ui/campaign/CityPanel';
+import { DiplomacyPanel } from '../ui/campaign/DiplomacyPanel';
+import { ClassBuilder } from '../ui/campaign/ClassBuilder';
+import { Sieges } from '../ui/campaign/Sieges';
 import { loadCampaignData, nearestLoc, tilePos, type CampaignData } from './data';
 import type { CamView } from './camera';
 import { CampaignRenderer } from './renderer';
@@ -14,11 +23,7 @@ import { Allegiance } from './status';
 import { installCampaignDebugApi, markCampaignReady } from './debugApi';
 import { fatalSurfaceFor, showFatalErrorSurface } from '../shared/fatalError';
 import {
-  armyPanelHtml,
   campaignDomHtml,
-  classBuilderHtml,
-  cityPanelHtml,
-  diplomacyHtml,
   type ArmyRosterRow,
   type ClassDoctrineRow,
   type CityDetail,
@@ -78,6 +83,13 @@ interface SiegeView {
 export class CampaignScene implements Scene {
   private canvas!: HTMLCanvasElement;
   private ui!: HTMLDivElement;
+  private topBarRoot: Root | null = null;
+  private lastTopBarKey = '';
+  private armyRoot: Root | null = null;
+  private cityRoot: Root | null = null;
+  private diploRoot: Root | null = null;
+  private classesRoot: Root | null = null;
+  private siegesRoot: Root | null = null;
   private renderer!: CampaignRenderer;
   // Terrain/territory live across battle round-trips (enter/exit cycles).
   private field: TerrainField | null = null;
@@ -207,13 +219,13 @@ export class CampaignScene implements Scene {
       /** Test/verify hook: flip the political (faction) overlay on or off. */
       factionView: (on?: boolean) => {
         this.factionView = on ?? !this.factionView;
-        this.syncFactionBtn();
+        this.renderTopBar();
         return this.factionView;
       },
       /** Test/verify hook: flip gameplay fog of war on or off (off = reveal). */
       fogOfWar: (on?: boolean) => {
         this.fogOfWar = on ?? !this.fogOfWar;
-        this.syncFactionBtn();
+        this.renderTopBar();
         return this.fogOfWar;
       },
       /** world km -> CSS px (for synthetic mouse events) */
@@ -378,24 +390,19 @@ export class CampaignScene implements Scene {
     const facName = (f: number) => this.cfg.data.map.factions[f]?.name ?? `faction ${f}`;
     // Rebuild only when the set of besieged cities changes, not every tick.
     const sig = sieges.map((s) => s.node).join(',');
-    const box = this.ui.querySelector('#cmp-sieges') as HTMLDivElement | null;
-    if (!box) return;
+    const root = this.siegesRoot;
+    if (!root) return;
     if (sig !== this.siegeSig) {
       this.siegeSig = sig;
-      box.innerHTML = sieges
-        .map(
-          (s) => `<div class="cmp-siege" data-node="${s.node}" data-x="${s.x}" data-y="${s.y}">
-            <b>⚔ ${this.cfg.data.map.nodes[s.node].name} under siege</b>
-            <div class="cmp-siege-sub">${facName(s.attacker)} at the walls — click to view</div>
-          </div>`,
-        )
-        .join('');
-      box.querySelectorAll<HTMLDivElement>('.cmp-siege').forEach((el) =>
-        el.addEventListener('click', () => {
-          this.centerCam(Number(el.dataset.x), Number(el.dataset.y));
-          this.openCityPanel(Number(el.dataset.node));
-        }),
-      );
+      const rows = sieges.map((s) => ({
+        node: s.node, x: s.x, y: s.y,
+        name: this.cfg.data.map.nodes[s.node].name,
+        attackerName: facName(s.attacker),
+      }));
+      flushSync(() => root.render(createElement(Sieges, {
+        sieges: rows,
+        onSelect: (node, x, y) => { this.centerCam(x, y); this.openCityPanel(node); },
+      })));
     }
   }
 
@@ -456,10 +463,10 @@ export class CampaignScene implements Scene {
         this.refreshViews();
       } else if (e.key === 'v') {
         this.factionView = !this.factionView;
-        this.syncFactionBtn();
+        this.renderTopBar();
       } else if (e.key === 'f') {
         this.fogOfWar = !this.fogOfWar;
-        this.syncFactionBtn();
+        this.renderTopBar();
       }
     }, { signal });
   }
@@ -662,43 +669,63 @@ export class CampaignScene implements Scene {
     ui.style.display = 'none';
     ui.innerHTML = campaignDomHtml();
     document.body.appendChild(ui);
-    ui.querySelector('#cmp-pause')!.addEventListener('click', () => (this.paused = !this.paused));
-    ui.querySelectorAll<HTMLButtonElement>('button[data-speed]').forEach((b) =>
-      b.addEventListener('click', () => this.setSpeed(Number(b.dataset.speed))),
-    );
-    ui.querySelector('#cmp-save')!.addEventListener('click', () => {
-      const c = this.cfg.campaign;
-      if (c.can_save()) {
-        try {
-          localStorage.setItem(SAVE_KEY, c.save());
-        } catch {}
-      }
-    });
-    ui.querySelector('#cmp-exit')!.addEventListener('click', () => this.cfg.onExit());
-    ui.querySelector('#cmp-diplo-btn')!.addEventListener('click', () => this.toggleDiplomacy());
-    ui.querySelector('#cmp-classes-btn')!.addEventListener('click', () => this.toggleClassBuilder());
-    ui.querySelector('#cmp-factions')!.addEventListener('click', () => {
-      this.factionView = !this.factionView;
-      this.syncFactionBtn();
-    });
-    ui.querySelector('#cmp-fog')!.addEventListener('click', () => {
-      this.fogOfWar = !this.fogOfWar;
-      this.syncFactionBtn();
-    });
-    this.syncFactionBtn();
+    // The top bar is React (CampaignTopBar); its handlers call the same scene
+    // methods the old inline listeners did. renderTopBar() feeds it state and is
+    // the successor of the old imperative #cmp-date/#cmp-gold/.on updates.
+    this.topBarRoot = createRoot(ui.querySelector('#cmp-topbar-root')!);
+    this.renderTopBar();
+    this.armyRoot = createRoot(ui.querySelector('#cmp-army')!);
+    this.cityRoot = createRoot(ui.querySelector('#cmp-city')!);
+    this.diploRoot = createRoot(ui.querySelector('#cmp-diplomacy')!);
+    this.classesRoot = createRoot(ui.querySelector('#cmp-classes')!);
+    this.siegesRoot = createRoot(ui.querySelector('#cmp-sieges')!);
   }
 
-  /** Reflect the view-toggle flags on their HUD buttons (lit when active). */
-  private syncFactionBtn() {
-    this.ui?.querySelector('#cmp-factions')?.classList.toggle('on', this.factionView);
-    this.ui?.querySelector('#cmp-fog')?.classList.toggle('on', this.fogOfWar);
+  private saveCampaign() {
+    const c = this.cfg.campaign;
+    if (c.can_save()) {
+      try { localStorage.setItem(SAVE_KEY, c.save()); } catch {}
+    }
+  }
+
+  /** Render the React top bar with current state — the ≤5Hz bridge. Skips when
+   * nothing visible changed (called every updateHud, i.e. per render frame). */
+  private renderTopBar() {
+    if (!this.topBarRoot) return;
+    const t = this.cfg.campaign.current_tick();
+    const day = Math.floor(t / 1440) + 1;
+    const mins = t % 1440;
+    const hh = String(Math.floor(mins / 60)).padStart(2, '0');
+    const mm = String(Math.floor(mins % 60)).padStart(2, '0');
+    const dateText = `Day ${day}, ${hh}:${mm}${this.paused ? '  ⏸ PAUSED' : `  ${SPEEDS[this.speed]}×`}`;
+    const eco = JSON.parse(this.cfg.campaign.economy_json()) as {
+      treasury: number; monthly_income: number; monthly_upkeep: number; monthly_net: number;
+    };
+    const sign = eco.monthly_net >= 0 ? '+' : '';
+    const goldText = `${eco.treasury.toLocaleString()} gold  (${sign}${eco.monthly_net.toLocaleString()}/mo: +${eco.monthly_income.toLocaleString()} −${eco.monthly_upkeep.toLocaleString()})`;
+    const key = `${dateText}|${goldText}|${this.factionView}|${this.fogOfWar}|${this.diploOpen}|${this.classBuilderOpen}`;
+    if (key === this.lastTopBarKey) return;
+    this.lastTopBarKey = key;
+    this.topBarRoot.render(createElement(CampaignTopBar, {
+      dateText, goldText, paused: this.paused, speed: this.speed,
+      factionView: this.factionView, fog: this.fogOfWar,
+      diploOpen: this.diploOpen, classesOpen: this.classBuilderOpen,
+      onPause: () => { this.paused = !this.paused; this.renderTopBar(); },
+      onSpeed: (i) => { this.setSpeed(i); this.renderTopBar(); },
+      onFactions: () => { this.factionView = !this.factionView; this.renderTopBar(); },
+      onFog: () => { this.fogOfWar = !this.fogOfWar; this.renderTopBar(); },
+      onDiplomacy: () => { this.toggleDiplomacy(); this.renderTopBar(); },
+      onClasses: () => { this.toggleClassBuilder(); this.renderTopBar(); },
+      onSave: () => this.saveCampaign(),
+      onExit: () => this.cfg.onExit(),
+    }));
   }
 
   private toggleDiplomacy() {
     this.diploOpen = !this.diploOpen;
     const panel = this.ui.querySelector('#cmp-diplomacy') as HTMLDivElement;
     panel.style.display = this.diploOpen ? 'block' : 'none';
-    this.ui.querySelector('#cmp-diplo-btn')!.classList.toggle('on', this.diploOpen);
+    // The #cmp-diplo-btn lit state is the React top bar's (diploOpen prop).
     if (this.diploOpen) this.updateDiplomacyPanel();
   }
 
@@ -706,7 +733,7 @@ export class CampaignScene implements Scene {
     this.classBuilderOpen = !this.classBuilderOpen;
     const panel = this.ui.querySelector('#cmp-classes') as HTMLDivElement;
     panel.style.display = this.classBuilderOpen ? 'block' : 'none';
-    this.ui.querySelector('#cmp-classes-btn')!.classList.toggle('on', this.classBuilderOpen);
+    // The #cmp-classes-btn lit state is the React top bar's (classesOpen prop).
     if (this.classBuilderOpen) this.updateClassBuilderPanel(true);
   }
 
@@ -715,9 +742,7 @@ export class CampaignScene implements Scene {
     const json = this.cfg.campaign.diplomacy_json();
     if (json === this.diploJson) return; // unchanged — keep the live DOM/listeners
     this.diploJson = json;
-    const panel = this.ui.querySelector('#cmp-diplomacy') as HTMLDivElement;
     const list = JSON.parse(json) as DiplomacyRow[];
-    panel.innerHTML = diplomacyHtml(list);
     const actions: Record<DiplomacyAction, (other: number) => boolean> = {
       declare_war: (other) => this.cfg.campaign.declare_war(other),
       make_peace: (other) => this.cfg.campaign.make_peace(other),
@@ -725,40 +750,21 @@ export class CampaignScene implements Scene {
       break_alliance: (other) => this.cfg.campaign.break_alliance(other),
       gift_gold: (other) => this.cfg.campaign.gift_gold(other, 200),
     };
-    panel.querySelectorAll<HTMLButtonElement>('button[data-act]').forEach((b) =>
-      b.addEventListener('click', () => {
-        const other = Number(b.dataset.f);
-        const act = b.dataset.act as DiplomacyAction | undefined;
-        if (act) actions[act](other);
+    const root = this.diploRoot;
+    if (root) flushSync(() => root.render(createElement(DiplomacyPanel, {
+      list,
+      onAction: (act, other) => {
+        actions[act](other);
         this.refreshViews();
         this.updateDiplomacyPanel();
-      }),
-    );
-
+      },
+    })));
   }
 
   private updateHud() {
-    const t = this.cfg.campaign.current_tick();
-    const day = Math.floor(t / 1440) + 1;
-    const mins = t % 1440;
-    const hh = String(Math.floor(mins / 60)).padStart(2, '0');
-    const mm = String(Math.floor(mins % 60)).padStart(2, '0');
-    const date = this.ui.querySelector('#cmp-date')!;
-    date.textContent = `Day ${day}, ${hh}:${mm}${this.paused ? '  ⏸ PAUSED' : `  ${SPEEDS[this.speed]}×`}`;
-    // Gold plus the monthly books (income − heavy upkeep = net), the "set policy,
-    // watch the books" payoff. The realm settles once a game-month.
-    const eco = JSON.parse(this.cfg.campaign.economy_json()) as {
-      treasury: number;
-      monthly_income: number;
-      monthly_upkeep: number;
-      monthly_net: number;
-    };
-    const sign = eco.monthly_net >= 0 ? '+' : '';
-    this.ui.querySelector('#cmp-gold')!.textContent =
-      `${eco.treasury.toLocaleString()} gold  (${sign}${eco.monthly_net.toLocaleString()}/mo: +${eco.monthly_income.toLocaleString()} −${eco.monthly_upkeep.toLocaleString()})`;
-    this.ui.querySelectorAll<HTMLButtonElement>('button[data-speed]').forEach((b) =>
-      b.classList.toggle('on', !this.paused && Number(b.dataset.speed) === this.speed),
-    );
+    // The date/gold readout, speed lights, and view-toggle lights are the React
+    // top bar now — renderTopBar() formats them and skips when nothing changed.
+    this.renderTopBar();
     this.updateDiplomacyPanel(); // cheap no-op unless open and changed
     this.updateClassBuilderPanel(); // cheap no-op unless open and changed
   }
@@ -773,53 +779,46 @@ export class CampaignScene implements Scene {
       if (!d) return r;
       return { ...r, selected: d.unit, sizeMult: d.size, dirty: d.unit !== r.selected || d.size !== r.sizeMult };
     });
-    const panel = this.ui.querySelector('#cmp-classes') as HTMLDivElement;
-    panel.innerHTML = classBuilderHtml(rows);
-    panel.querySelectorAll<HTMLButtonElement>('button[data-unit]').forEach((b) =>
-      b.addEventListener('click', () => {
-        const cls = Number(b.dataset.class);
-        const unit = Number(b.dataset.unit);
+    const root = this.classesRoot;
+    if (root) flushSync(() => root.render(createElement(ClassBuilder, {
+      rows,
+      // Selecting a unit/size stages it in the draft (its dirty flag lights
+      // Apply); the row's live selected/size drives the fallback for the other.
+      onSelectUnit: (cls, unit) => {
         const row = rows.find((r) => r.classIndex === cls);
         if (!row) return;
         this.classDraft.set(cls, { unit, size: row.sizeMult });
         this.updateClassBuilderPanel(true);
-      }),
-    );
-    panel.querySelectorAll<HTMLButtonElement>('button[data-size]').forEach((b) =>
-      b.addEventListener('click', () => {
-        const cls = Number(b.dataset.class);
-        const size = Number(b.dataset.size);
+      },
+      onSelectSize: (cls, size) => {
         const row = rows.find((r) => r.classIndex === cls);
         if (!row) return;
         this.classDraft.set(cls, { unit: row.selected, size });
         this.updateClassBuilderPanel(true);
-      }),
-    );
-    panel.querySelectorAll<HTMLButtonElement>('button[data-apply]').forEach((b) =>
-      b.addEventListener('click', () => {
-        const cls = Number(b.dataset.apply);
+      },
+      onApply: (cls) => {
         const draft = this.classDraft.get(cls);
         if (draft && this.cfg.campaign.order_set_class_doctrine(cls, draft.unit, draft.size)) {
           this.classDraft.delete(cls);
           this.refreshViews();
           this.updateClassBuilderPanel(true);
         }
-      }),
-    );
+      },
+    })));
   }
 
   private updateArmyPanel() {
     const panel = this.ui.querySelector('#cmp-army') as HTMLDivElement;
-    if (this.selected < 0) {
+    const roster = this.selected < 0
+      ? null
+      : (JSON.parse(this.cfg.campaign.army_roster_json(this.selected)) as ArmyRosterRow[] | null);
+    if (this.selected < 0 || !roster) {
       panel.style.display = 'none';
+      this.armyRoot?.render(null);
       return;
     }
-    const roster = JSON.parse(this.cfg.campaign.army_roster_json(this.selected)) as ArmyRosterRow[] | null;
-    if (!roster) {
-      panel.style.display = 'none';
-      return;
-    }
-    const me = this.armies.find((a) => a.id === this.selected);
+    const id = this.selected;
+    const me = this.armies.find((a) => a.id === id);
     // merge candidate: another of my halted armies on the same/adjacent tile
     const buddy = me
       ? this.armies.find((a) => a.mine && a.id !== me.id && Math.hypot(a.x - me.x, a.y - me.y) < 6)
@@ -828,47 +827,20 @@ export class CampaignScene implements Scene {
     const spotIdx = me
       ? this.spotPos.findIndex(([x, y]) => Math.hypot(x - me.x, y - me.y) < 2.6)
       : -1;
-    const autoReplenish = this.cfg.campaign.army_auto_replenish(this.selected);
-    panel.innerHTML = armyPanelHtml(this.selected, roster, me, buddy, spotIdx, autoReplenish);
+    const autoReplenish = this.cfg.campaign.army_auto_replenish(id);
     panel.style.display = 'block';
-    panel.querySelector('#cmp-auto-replenish')?.addEventListener('change', (e) => {
-      const on = (e.currentTarget as HTMLInputElement).checked;
-      this.cfg.campaign.order_auto_replenish(this.selected, on);
-      this.refreshViews();
-      this.updateArmyPanel();
-    });
-    panel.querySelector('#cmp-halt')?.addEventListener('click', () => {
-      this.cfg.campaign.order_halt(this.selected);
-      this.refreshViews();
-    });
-    panel.querySelector('#cmp-ambush')?.addEventListener('click', () => {
-      if (spotIdx >= 0 && this.cfg.campaign.order_ambush(this.selected, spotIdx)) {
-        this.refreshViews();
-        this.updateArmyPanel();
-      }
-    });
-    panel.querySelector('#cmp-camp')?.addEventListener('click', () => {
-      if (this.cfg.campaign.order_camp(this.selected)) {
-        this.refreshViews();
-        this.updateArmyPanel();
-      }
-    });
-    panel.querySelector('#cmp-split')?.addEventListener('click', () => {
-      let mask = 0;
-      panel.querySelectorAll<HTMLInputElement>('input[data-entry]:checked').forEach((b) => {
-        mask |= 1 << Number(b.dataset.entry);
-      });
-      if (mask && this.cfg.campaign.order_split(this.selected, mask)) {
-        this.refreshViews();
-        this.updateArmyPanel();
-      }
-    });
-    panel.querySelector('#cmp-merge')?.addEventListener('click', () => {
-      if (buddy && this.cfg.campaign.order_merge(buddy.id, this.selected)) {
-        this.refreshViews();
-        this.updateArmyPanel();
-      }
-    });
+    const root = this.armyRoot;
+    // flushSync so the panel DOM is live synchronously (matching the old
+    // innerHTML), for the debug API and any synchronous test read.
+    if (root) flushSync(() => root.render(createElement(ArmyPanel, {
+      armyId: id, roster, me, buddy, spotIdx, autoReplenish,
+      onAutoReplenish: (on) => { this.cfg.campaign.order_auto_replenish(id, on); this.refreshViews(); this.updateArmyPanel(); },
+      onHalt: () => { this.cfg.campaign.order_halt(id); this.refreshViews(); },
+      onAmbush: () => { if (spotIdx >= 0 && this.cfg.campaign.order_ambush(id, spotIdx)) { this.refreshViews(); this.updateArmyPanel(); } },
+      onCamp: () => { if (this.cfg.campaign.order_camp(id)) { this.refreshViews(); this.updateArmyPanel(); } },
+      onSplit: (mask) => { if (this.cfg.campaign.order_split(id, mask)) { this.refreshViews(); this.updateArmyPanel(); } },
+      onMerge: () => { if (buddy && this.cfg.campaign.order_merge(buddy.id, id)) { this.refreshViews(); this.updateArmyPanel(); } },
+    })));
   }
 
   private openCityPanel(node: number) {
@@ -879,37 +851,37 @@ export class CampaignScene implements Scene {
     const mineCity = this.cfg.data.map.factions[c.owner]?.playable !== undefined && c.owner === this.playerFaction();
     const detail = JSON.parse(this.cfg.campaign.city_json(node)) as CityDetail | null;
     if (!detail) return;
-    panel.innerHTML = cityPanelHtml(this.cfg.data, node, c, mineCity, detail, this.recruitClasses);
+    const n = this.cfg.data.map.nodes[node];
     panel.style.display = 'block';
-    // Policy dials: drag a slider to set the city's focus/throttle. Read both so
-    // changing one keeps the other; the city auto-develops from here.
-    const policyInputs = panel.querySelectorAll<HTMLInputElement>('input[data-policy]');
-    const applyPolicy = () => {
-      const get = (k: string) =>
-        Number(panel.querySelector<HTMLInputElement>(`input[data-policy="${k}"]`)?.value ?? 0);
-      this.cfg.campaign.order_set_city_policy(node, get('focus'), get('throttle'));
-      this.refreshViews();
-    };
-    policyInputs.forEach((b) => b.addEventListener('change', applyPolicy));
-    panel.querySelectorAll<HTMLButtonElement>('button[data-recruit]').forEach((b) =>
-      b.addEventListener('click', () => {
-        this.cfg.campaign.order_recruit(node, Number(b.dataset.recruit), 240);
-        this.refreshViews();
-        this.openCityPanel(node);
-      }),
-    );
+    const root = this.cityRoot;
+    if (root) flushSync(() => root.render(createElement(CityPanel, {
+      name: n.name,
+      tier: n.tier,
+      factionName: this.cfg.data.map.factions[c.owner]?.name ?? '?',
+      garrison: c.garrison,
+      queue: c.queue,
+      mineCity,
+      detail,
+      recruitClasses: this.recruitClasses,
+      // Read both dials so setting one keeps the other; the city auto-develops.
+      onPolicy: (focus, throttle) => { this.cfg.campaign.order_set_city_policy(node, focus, throttle); this.refreshViews(); },
+      onRecruit: (i) => { this.cfg.campaign.order_recruit(node, i, 240); this.refreshViews(); this.openCityPanel(node); },
+    })));
   }
 
   private openJunctionPanel(node: number) {
     this.selectedCity = -1;
     const panel = this.ui.querySelector('#cmp-city') as HTMLDivElement;
-    panel.innerHTML = `<b>${this.cfg.data.map.nodes[node].name}</b> (junction)`;
     panel.style.display = 'block';
+    const root = this.cityRoot;
+    if (root) flushSync(() => root.render(createElement(Fragment, null,
+      createElement('b', null, this.cfg.data.map.nodes[node].name), ' (junction)')));
   }
 
   private closeCityPanel() {
     this.selectedCity = -1;
     (this.ui.querySelector('#cmp-city') as HTMLDivElement).style.display = 'none';
+    this.cityRoot?.render(null);
   }
 
   private playerFaction(): number {

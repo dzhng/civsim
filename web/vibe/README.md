@@ -2,9 +2,9 @@
 
 A vibe scenario boots a battle and **films a timeline** — a frame every few
 sim-seconds, from the approach through contact, the grind, and the break — so you
-can flip through and judge whether a fight *looks* like a fight. The sim is
+can flip through and judge whether a fight _looks_ like a fight. The sim is
 emergent: simple physics produce the behavior, and whether that behavior is
-*realistic* is a question only the eye answers (the root README's "visual tests
+_realistic_ is a question only the eye answers (the root README's "visual tests
 are ground truth" rule). This is where that judgement happens for melee.
 
 Every frame is **also a committed pixel baseline** — the same image is the thing
@@ -25,7 +25,7 @@ is the workflow.
 - **Shared plumbing** (`_lib.mjs`) — the behavior-neutral helpers every scenario
   reuses: booting a battle to its debug bridge, the screenshot-then-regression
   capture loop, and the common two-unit duel framing. Anything that encodes what
-  a *specific* scenario means stays in that scenario's script, never here.
+  a _specific_ scenario means stays in that scenario's script, never here.
 
 Run the whole sweep with `node vibe/all.mjs` (from `web/`, dev server up), or a
 single scenario script on its own to iterate; all honor `UPDATE_SHOTS=1` to

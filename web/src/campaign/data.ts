@@ -6,7 +6,7 @@ export interface MapNode {
   id: number;
   name: string;
   pos: [number, number];
-  kind: 'city' | 'junction';
+  kind: "city" | "junction";
   tier: number;
   port: boolean;
   owner: string;
@@ -15,7 +15,7 @@ export interface MapNode {
 export interface MapEdge {
   a: number;
   b: number;
-  kind: 'road' | 'sea';
+  kind: "road" | "sea";
   via: [number, number][];
   tiles: string[];
 }
@@ -49,9 +49,9 @@ export interface CampaignData {
 
 export async function loadCampaignData(): Promise<{ data: CampaignData; mapJson: string }> {
   const [mapRes, bgMetaRes, bgBlob] = await Promise.all([
-    fetch('/data/campaign-map.json'),
-    fetch('/data/campaign-bg.json'),
-    fetch('/data/campaign-bg.png').then((r) => r.blob()),
+    fetch("/data/campaign-map.json"),
+    fetch("/data/campaign-bg.json"),
+    fetch("/data/campaign-bg.png").then((r) => r.blob()),
   ]);
   const mapJson = await mapRes.text();
   const map = JSON.parse(mapJson) as CampaignMap;
@@ -67,7 +67,7 @@ export async function loadCampaignData(): Promise<{ data: CampaignData; mapJson:
  * them. The attribution convention is the single source of truth — keep it here
  * so renderer and terrain agree. */
 export function isControlledStage(data: CampaignData): boolean {
-  return data.map.attribution === 'test' || data.map.attribution.endsWith('-test');
+  return data.map.attribution === "test" || data.map.attribution.endsWith("-test");
 }
 
 /** Arc-length-interpolated point of a tile's midpoint along an edge polyline. */
@@ -105,7 +105,9 @@ export function nearestLoc(
     // Project onto each segment, then snap the arc distance to a tile.
     const cum: number[] = [0];
     for (let i = 1; i < e.via.length; i++) {
-      cum.push(cum[i - 1] + Math.hypot(e.via[i][0] - e.via[i - 1][0], e.via[i][1] - e.via[i - 1][1]));
+      cum.push(
+        cum[i - 1] + Math.hypot(e.via[i][0] - e.via[i - 1][0], e.via[i][1] - e.via[i - 1][1]),
+      );
     }
     const total = cum[cum.length - 1];
     for (let i = 1; i < e.via.length; i++) {
@@ -119,7 +121,10 @@ export function nearestLoc(
       const d = Math.hypot(px - wx, py - wy);
       if (d < maxKm && (!best || d < best.d)) {
         const arc = cum[i - 1] + Math.sqrt(len2) * t;
-        const tile = Math.max(0, Math.min(e.tiles.length - 1, Math.floor((arc / total) * e.tiles.length)));
+        const tile = Math.max(
+          0,
+          Math.min(e.tiles.length - 1, Math.floor((arc / total) * e.tiles.length)),
+        );
         best = { d, loc: { kind: 1, a: ei, b: tile } };
       }
     }

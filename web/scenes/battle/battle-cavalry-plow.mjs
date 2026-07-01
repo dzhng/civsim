@@ -1,12 +1,12 @@
-import { battleReal } from '../worlds.mjs';
+import { battleReal } from "../worlds.mjs";
 
 export const meta = {
-  name: 'battle-cavalry-plow',
-  kind: 'visual',
-  world: 'battle-real',
-  tier: 'full',
-  snapshots: ['battle-cavalry-plow'],
-  describe: 'Shock cavalry threads through friendly infantry — snapshots the dense moving crowd.',
+  name: "battle-cavalry-plow",
+  kind: "visual",
+  world: "battle-real",
+  tier: "full",
+  snapshots: ["battle-cavalry-plow"],
+  describe: "Shock cavalry threads through friendly infantry — snapshots the dense moving crowd.",
 };
 
 // VISUAL only: pose a cavalry unit threading up through friendly infantry and
@@ -18,21 +18,31 @@ export async function run(ctx) {
 
   await page.evaluate(() => window.__game.freezeAtTick(480));
   const info4 = await page.evaluate(() => window.__game.unitInfo(4));
-  await page.evaluate(([ax, ay]) => {
-    window.__game.select(4);
-    window.__game.setOrder(4, ax, ay + 60);
-    window.__game.advance(300);
-  }, [info4[0], info4[1]]);
+  await page.evaluate(
+    ([ax, ay]) => {
+      window.__game.select(4);
+      window.__game.setOrder(4, ax, ay + 60);
+      window.__game.advance(300);
+    },
+    [info4[0], info4[1]],
+  );
 
   const ls = await page.evaluate(() => window.__game.unitInfo(9));
-  await page.evaluate(([x, y]) => {
-    window.__game.setPace(17, 1);
-    window.__game.setOrder(17, x, y);
-    window.__game.advance(2700);
-  }, [ls[0], ls[1]]);
+  await page.evaluate(
+    ([x, y]) => {
+      window.__game.setPace(17, 1);
+      window.__game.setOrder(17, x, y);
+      window.__game.advance(2700);
+    },
+    [ls[0], ls[1]],
+  );
   await page.evaluate(() => window.__game.freezeAtTick(window.__game.tickCount()));
-  await page.waitForFunction(() => (window.__game?.stats?.().renderStats?.drawCalls ?? 0) > 0, undefined, { timeout: 8000 });
+  await page.waitForFunction(
+    () => (window.__game?.stats?.().renderStats?.drawCalls ?? 0) > 0,
+    undefined,
+    { timeout: 8000 },
+  );
 
-  await ctx.snap(page, 'battle-cavalry-plow', { threshold: 0.2, maxDiffRatio: 0.02 });
+  await ctx.snap(page, "battle-cavalry-plow", { threshold: 0.2, maxDiffRatio: 0.02 });
   await page.close();
 }

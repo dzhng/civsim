@@ -3,12 +3,15 @@
 // the React card bar (web/src/ui/hud/UnitCardsReact.tsx); the vanilla DOM
 // UnitCards class was removed once the spike shipped React as the default.
 
-import { lookForModel, modelLookForClass } from '../../../packages/game-renderer/src/models/shared/soldierModel';
-import { computeCardGrid, type CardGridOpts } from './cardGrid';
+import {
+  lookForModel,
+  modelLookForClass,
+} from "../../../packages/game-renderer/src/models/shared/soldierModel";
+import { computeCardGrid, type CardGridOpts } from "./cardGrid";
 
 // Faction accents keep cards, banners, and WebGPU soldier colours reading as
 // the same side.
-export const FACTION_CSS = ['#3a6cf0', '#e03e34']; // player blue, enemy crimson
+export const FACTION_CSS = ["#3a6cf0", "#e03e34"]; // player blue, enemy crimson
 
 // Total-War card-bar constants (the production source of truth — cardGrid.ts
 // only holds matching fallbacks). Cards are a FIXED size; the bar wraps into
@@ -23,7 +26,12 @@ export const MINIMAP_RESERVE = 210;
 const GRID_OPTS: CardGridOpts = { cardW: CARD_W, aspect: 3 / 4, gap: 4, maxRows: 3 };
 
 /** The four live nodes a card's per-frame update writes into. */
-export interface CardBarRefs { hp: HTMLElement; coh: HTMLElement; mor: HTMLElement; count: HTMLElement }
+export interface CardBarRefs {
+  hp: HTMLElement;
+  coh: HTMLElement;
+  mor: HTMLElement;
+  count: HTMLElement;
+}
 
 /** Quantized change key — the hand-diffed skip that keeps the 60Hz card update
  * cheap: only repaint a card when a visible band actually crosses a step. The
@@ -38,13 +46,13 @@ export function cardStateKey(s: UnitCardState): string {
  * source of the per-frame card paint (shared by both card bars). */
 export function applyCardVisual(card: HTMLElement, b: CardBarRefs, s: UnitCardState): void {
   const hpFrac = s.total > 0 ? s.alive / s.total : 0;
-  b.hp.style.width = (hpFrac * 100).toFixed(0) + '%';
-  b.hp.style.background = hpFrac > 0.5 ? '#5cba46' : hpFrac > 0.25 ? '#d6b13a' : '#cf4a3a';
-  b.coh.style.width = (s.cohesion * 100).toFixed(0) + '%';
-  b.mor.style.width = (s.morale * 100).toFixed(0) + '%';
+  b.hp.style.width = (hpFrac * 100).toFixed(0) + "%";
+  b.hp.style.background = hpFrac > 0.5 ? "#5cba46" : hpFrac > 0.25 ? "#d6b13a" : "#cf4a3a";
+  b.coh.style.width = (s.cohesion * 100).toFixed(0) + "%";
+  b.mor.style.width = (s.morale * 100).toFixed(0) + "%";
   b.count.textContent = String(s.alive);
-  card.classList.toggle('sel', s.selected);
-  card.classList.toggle('rout', s.routing);
+  card.classList.toggle("sel", s.selected);
+  card.classList.toggle("rout", s.routing);
 }
 
 /** No-scroll grid pass: pick rows/cols at the fixed card size for the width
@@ -53,12 +61,15 @@ export function applyCardVisual(card: HTMLElement, b: CardBarRefs, s: UnitCardSt
 export function applyCardGrid(root: HTMLElement, count: number, sideReserve: number): void {
   const boxW = window.innerWidth - 2 * sideReserve;
   const g = computeCardGrid(count, boxW, GRID_OPTS);
-  root.style.setProperty('--cols', String(g.cols));
-  root.style.setProperty('--card-w', g.cardW + 'px');
-  root.style.setProperty('--card-h', g.cardH + 'px');
-  root.classList.toggle('undersized', g.degenerate);
+  root.style.setProperty("--cols", String(g.cols));
+  root.style.setProperty("--card-w", g.cardW + "px");
+  root.style.setProperty("--card-h", g.cardH + "px");
+  root.classList.toggle("undersized", g.degenerate);
   (window as unknown as { __cardGrid?: unknown }).__cardGrid = {
-    rows: g.rows, cols: g.cols, cardW: g.cardW, degenerate: g.degenerate,
+    rows: g.rows,
+    cols: g.cols,
+    cardW: g.cardW,
+    degenerate: g.degenerate,
   };
 }
 
@@ -80,63 +91,116 @@ export interface UnitCardState {
   selected: boolean;
 }
 
-const W = 38, H = 48; // portrait canvas size (CSS px; drawn at 2x for crispness)
+const W = 38,
+  H = 48; // portrait canvas size (CSS px; drawn at 2x for crispness)
 
 // A compact side-view soldier (or rider) for class `cls`, facing right, tinted
 // with the faction accent on shield/crest/sash — the same silhouette language
 // as the 3D model, just flat. Drawn on a 2x backing for sharpness.
-export function drawPortrait(canvas: HTMLCanvasElement, cls: number, look: number | undefined, team: 0 | 1) {
+export function drawPortrait(
+  canvas: HTMLCanvasElement,
+  cls: number,
+  look: number | undefined,
+  team: 0 | 1,
+) {
   const L = lookForModel(look ?? modelLookForClass(cls));
   const dpr = 2;
-  canvas.width = W * dpr; canvas.height = H * dpr;
-  const g = canvas.getContext('2d')!;
+  canvas.width = W * dpr;
+  canvas.height = H * dpr;
+  const g = canvas.getContext("2d")!;
   g.scale(dpr, dpr);
   g.clearRect(0, 0, W, H);
   const fac = FACTION_CSS[team];
-  const SKIN = '#c8966f', BRONZE = '#b08a3e', LINEN = '#cabf9c', LEATHER = '#5f4426', IRON = '#9aa0a8', WOOD = '#7a5a32';
+  const SKIN = "#c8966f",
+    BRONZE = "#b08a3e",
+    LINEN = "#cabf9c",
+    LEATHER = "#5f4426",
+    IRON = "#9aa0a8",
+    WOOD = "#7a5a32";
   const cx = W / 2;
   const groundY = H - 6;
 
   if (L.mounted) {
     // Horse in profile, rider above.
-    g.fillStyle = '#5b4127';
-    g.beginPath(); g.ellipse(cx, groundY - 12, 20, 9, 0, 0, Math.PI * 2); g.fill();
-    g.fillRect(cx - 16, groundY - 10, 4, 12); g.fillRect(cx + 10, groundY - 10, 4, 12); // legs
+    g.fillStyle = "#5b4127";
+    g.beginPath();
+    g.ellipse(cx, groundY - 12, 20, 9, 0, 0, Math.PI * 2);
+    g.fill();
+    g.fillRect(cx - 16, groundY - 10, 4, 12);
+    g.fillRect(cx + 10, groundY - 10, 4, 12); // legs
     g.fillRect(cx + 16, groundY - 22, 5, 12); // neck
-    g.fillStyle = '#3a2a18'; g.fillRect(cx + 18, groundY - 26, 7, 6); // head
+    g.fillStyle = "#3a2a18";
+    g.fillRect(cx + 18, groundY - 26, 7, 6); // head
     // Rider
-    g.fillStyle = LINEN; g.fillRect(cx - 3, groundY - 30, 8, 12);
-    g.fillStyle = fac; g.fillRect(cx - 3, groundY - 30, 8, 3); // sash
-    g.fillStyle = SKIN; g.fillRect(cx - 1, groundY - 38, 6, 7);
-    g.fillStyle = BRONZE; g.fillRect(cx - 2, groundY - 40, 8, 4); // helmet
-    g.strokeStyle = WOOD; g.lineWidth = 2; g.beginPath(); g.moveTo(cx + 6, groundY - 34); g.lineTo(cx + 24, groundY - 24); g.stroke(); // lance
+    g.fillStyle = LINEN;
+    g.fillRect(cx - 3, groundY - 30, 8, 12);
+    g.fillStyle = fac;
+    g.fillRect(cx - 3, groundY - 30, 8, 3); // sash
+    g.fillStyle = SKIN;
+    g.fillRect(cx - 1, groundY - 38, 6, 7);
+    g.fillStyle = BRONZE;
+    g.fillRect(cx - 2, groundY - 40, 8, 4); // helmet
+    g.strokeStyle = WOOD;
+    g.lineWidth = 2;
+    g.beginPath();
+    g.moveTo(cx + 6, groundY - 34);
+    g.lineTo(cx + 24, groundY - 24);
+    g.stroke(); // lance
     return;
   }
 
   // Legs
-  g.fillStyle = LINEN; g.fillRect(cx - 6, groundY - 22, 5, 16); g.fillRect(cx + 1, groundY - 22, 5, 16);
-  g.fillStyle = LEATHER; g.fillRect(cx - 6, groundY - 8, 5, 6); g.fillRect(cx + 1, groundY - 8, 5, 6); // boots
+  g.fillStyle = LINEN;
+  g.fillRect(cx - 6, groundY - 22, 5, 16);
+  g.fillRect(cx + 1, groundY - 22, 5, 16);
+  g.fillStyle = LEATHER;
+  g.fillRect(cx - 6, groundY - 8, 5, 6);
+  g.fillRect(cx + 1, groundY - 8, 5, 6); // boots
   // Torso (cuirass) + faction sash
-  g.fillStyle = BRONZE; g.fillRect(cx - 7, groundY - 38, 14, 18);
-  g.fillStyle = fac; g.fillRect(cx - 7, groundY - 34, 14, 3);
+  g.fillStyle = BRONZE;
+  g.fillRect(cx - 7, groundY - 38, 14, 18);
+  g.fillStyle = fac;
+  g.fillRect(cx - 7, groundY - 34, 14, 3);
   // Head + helmet
-  g.fillStyle = SKIN; g.fillRect(cx - 4, groundY - 48, 8, 9);
-  g.fillStyle = BRONZE; g.fillRect(cx - 5, groundY - 50, 10, 5);
-  if (L.crest) { g.fillStyle = fac; g.fillRect(cx - 1, groundY - 57, 3, 8); g.fillRect(cx - 4, groundY - 55, 8, 3); }
+  g.fillStyle = SKIN;
+  g.fillRect(cx - 4, groundY - 48, 8, 9);
+  g.fillStyle = BRONZE;
+  g.fillRect(cx - 5, groundY - 50, 10, 5);
+  if (L.crest) {
+    g.fillStyle = fac;
+    g.fillRect(cx - 1, groundY - 57, 3, 8);
+    g.fillRect(cx - 4, groundY - 55, 8, 3);
+  }
   // Weapon (right side)
-  g.strokeStyle = WOOD; g.lineWidth = 2; g.beginPath();
+  g.strokeStyle = WOOD;
+  g.lineWidth = 2;
+  g.beginPath();
   const wx = cx + 9;
-  if (L.weapon === 'pike') { g.moveTo(wx, groundY - 2); g.lineTo(wx, groundY - 56); }
-  else if (L.weapon === 'spear' || L.weapon === 'javelin') { g.moveTo(wx, groundY - 4); g.lineTo(wx, groundY - 48); }
-  else if (L.weapon === 'bow') { g.strokeStyle = WOOD; g.arc(wx + 2, groundY - 30, 12, -1.1, 1.1); }
-  else if (L.weapon === 'greatsword') { g.strokeStyle = IRON; g.moveTo(wx, groundY - 6); g.lineTo(wx, groundY - 50); }
-  else if (L.weapon !== 'none') { g.strokeStyle = IRON; g.moveTo(wx, groundY - 20); g.lineTo(wx + 3, groundY - 40); }
+  if (L.weapon === "pike") {
+    g.moveTo(wx, groundY - 2);
+    g.lineTo(wx, groundY - 56);
+  } else if (L.weapon === "spear" || L.weapon === "javelin") {
+    g.moveTo(wx, groundY - 4);
+    g.lineTo(wx, groundY - 48);
+  } else if (L.weapon === "bow") {
+    g.strokeStyle = WOOD;
+    g.arc(wx + 2, groundY - 30, 12, -1.1, 1.1);
+  } else if (L.weapon === "greatsword") {
+    g.strokeStyle = IRON;
+    g.moveTo(wx, groundY - 6);
+    g.lineTo(wx, groundY - 50);
+  } else if (L.weapon !== "none") {
+    g.strokeStyle = IRON;
+    g.moveTo(wx, groundY - 20);
+    g.lineTo(wx + 3, groundY - 40);
+  }
   g.stroke();
   // Shield (left side, faction-accented)
-  if (L.shield !== 'none') {
+  if (L.shield !== "none") {
     const sh = { tall: 22, round: 16, small: 12 }[L.shield];
-    g.fillStyle = WOOD; g.fillRect(cx - 12, groundY - 30, 6, sh);
-    g.fillStyle = fac; g.fillRect(cx - 11, groundY - 30 + sh / 2 - 2, 4, 4);
+    g.fillStyle = WOOD;
+    g.fillRect(cx - 12, groundY - 30, 6, sh);
+    g.fillStyle = fac;
+    g.fillRect(cx - 11, groundY - 30 + sh / 2 - 2, 4, 4);
   }
 }
-

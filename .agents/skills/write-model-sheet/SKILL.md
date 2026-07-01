@@ -28,7 +28,7 @@ whole sheet is the regression target. Motion review lives in
 
 ## Run
 
-1. **Rebuild wasm first** — `npm run build:wasm` from `web/`. The harness loads
+1. **Rebuild wasm first** — `bun run build:wasm` from `web/`. The harness loads
    the *prebuilt* wasm, never live Rust.
 2. `node shots/models/scripts/soldier-sheets.mjs` from `web/` renders all classes. `ONLY=0,3,6 …`
    limits to class ids. Sheets render at the battle's real top-down tilt

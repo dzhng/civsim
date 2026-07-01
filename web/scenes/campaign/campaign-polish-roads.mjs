@@ -1,4 +1,4 @@
-import { PNG } from 'pngjs';
+import { PNG } from "pngjs";
 
 // Campaign-polish workbench: the road-continuity fake scene.
 // The `alignment` fixture is Roma with three roads radiating to Tibur, Narnia,
@@ -11,39 +11,66 @@ import { PNG } from 'pngjs';
 // Every road here must paint continuously from Roma to within the destination
 // city's footprint, and Ostia/Portus must stay a visible label.
 export const meta = {
-  name: 'campaign-polish-roads',
-  kind: 'visual',
-  world: 'campaign-alignment',
-  tier: 'quick',
-  snapshots: ['polish-road-continuity'],
-  describe: 'Fixture road-continuity workbench: Roma spokes to Tibur/Narnia/Ostia paint unbroken to each city, Ostia/Portus label kept.',
+  name: "campaign-polish-roads",
+  kind: "visual",
+  world: "campaign-alignment",
+  tier: "quick",
+  snapshots: ["polish-road-continuity"],
+  describe:
+    "Fixture road-continuity workbench: Roma spokes to Tibur/Narnia/Ostia paint unbroken to each city, Ostia/Portus label kept.",
 };
 
 // Roma and its three spokes, copied from buildAlignmentCampaign in web/src/main.ts.
 const ROMA = [-62, 18];
 const SPOKES = [
-  { name: 'Roma-Tibur', via: [[-62, 18], [-46, 19], [-28, 22]] },
-  { name: 'Roma-Narnia', via: [[-62, 18], [-55, 34], [-42, 46]] },
-  { name: 'Roma-Ostia/Portus', via: [[-62, 18], [-70, 5], [-76, -8]] },
+  {
+    name: "Roma-Tibur",
+    via: [
+      [-62, 18],
+      [-46, 19],
+      [-28, 22],
+    ],
+  },
+  {
+    name: "Roma-Narnia",
+    via: [
+      [-62, 18],
+      [-55, 34],
+      [-42, 46],
+    ],
+  },
+  {
+    name: "Roma-Ostia/Portus",
+    via: [
+      [-62, 18],
+      [-70, 5],
+      [-76, -8],
+    ],
+  },
 ];
 // Frame Roma so all three destination cities sit on screen.
 const CAMERA = [-52, 16, 8.0];
 
 export async function run(ctx) {
-  if (process.env.VERIFY_GPU !== '1') {
-    ctx.check('campaign polish roads workbench requires VERIFY_GPU=1', true, 'set VERIFY_GPU=1 to exercise the WebGPU campaign adapter');
+  if (process.env.VERIFY_GPU !== "1") {
+    ctx.check(
+      "campaign polish roads workbench requires VERIFY_GPU=1",
+      true,
+      "set VERIFY_GPU=1 to exercise the WebGPU campaign adapter",
+    );
     return;
   }
 
   const page = await ctx.newPage({
     viewport: { width: 1280, height: 800 },
-    errorPrefix: 'campaign-polish-roads',
+    errorPrefix: "campaign-polish-roads",
   });
   await page.goto(`${ctx.target}/?campaign=alignment`);
   await page.waitForFunction(
-    () => window.__campaignReady === true
-      && window.__campaignGpuStats?.ready === true
-      && window.__campaignGpuStats?.renderer === 'renderer-campaign',
+    () =>
+      window.__campaignReady === true &&
+      window.__campaignGpuStats?.ready === true &&
+      window.__campaignGpuStats?.renderer === "renderer-campaign",
     undefined,
     { timeout: 30000 },
   );
@@ -60,14 +87,14 @@ export async function run(ctx) {
 
   const stats = await page.evaluate(() => window.__campaignGpuStats);
   ctx.check(
-    'polish road workbench keeps Ostia/Portus a visible label',
-    stats.visibleLabelNames?.includes('city:OSTIA/PORTUS') === true,
+    "polish road workbench keeps Ostia/Portus a visible label",
+    stats.visibleLabelNames?.includes("city:OSTIA/PORTUS") === true,
     JSON.stringify(stats.visibleLabelNames),
   );
   // Road life: deterministic carts ride the spokes at this close camera (frozen
   // scene time pins them to a fixed spot for the snapshot).
   ctx.check(
-    'road life: at least one cart rides the Roma spokes',
+    "road life: at least one cart rides the Roma spokes",
     (stats.sceneryStats?.carts ?? 0) >= 1,
     JSON.stringify({ carts: stats.sceneryStats?.carts }),
   );
@@ -75,34 +102,37 @@ export async function run(ctx) {
   // Densely resample each spoke, project to screen, and confirm a road pixel
   // lands near every sample from Roma all the way to the city footprint. A
   // gap-before-the-city (the reported cutoff) shows up as a low tail hit ratio.
-  const projected = await page.evaluate(({ spokes, roma }) => {
-    const resample = (via, stepKm) => {
-      const pts = [];
-      for (let i = 1; i < via.length; i++) {
-        const [ax, ay] = via[i - 1];
-        const [bx, by] = via[i];
-        const len = Math.hypot(bx - ax, by - ay);
-        const steps = Math.max(1, Math.ceil(len / stepKm));
-        for (let s = 0; s <= steps; s++) {
-          const t = s / steps;
-          pts.push([ax + (bx - ax) * t, ay + (by - ay) * t]);
+  const projected = await page.evaluate(
+    ({ spokes, roma }) => {
+      const resample = (via, stepKm) => {
+        const pts = [];
+        for (let i = 1; i < via.length; i++) {
+          const [ax, ay] = via[i - 1];
+          const [bx, by] = via[i];
+          const len = Math.hypot(bx - ax, by - ay);
+          const steps = Math.max(1, Math.ceil(len / stepKm));
+          for (let s = 0; s <= steps; s++) {
+            const t = s / steps;
+            pts.push([ax + (bx - ax) * t, ay + (by - ay) * t]);
+          }
         }
-      }
-      return pts;
-    };
-    return spokes.map((spoke) => {
-      const worldPts = resample(spoke.via, 2);
-      const screen = worldPts.map(([x, y]) => {
-        const [sx, sy] = window.__campaign.project(x, y);
-        // distance (km) from the destination city = last via point
-        const dest = spoke.via[spoke.via.length - 1];
-        const distToDest = Math.hypot(x - dest[0], y - dest[1]);
-        const distToRoma = Math.hypot(x - roma[0], y - roma[1]);
-        return { sx, sy, distToDest, distToRoma };
+        return pts;
+      };
+      return spokes.map((spoke) => {
+        const worldPts = resample(spoke.via, 2);
+        const screen = worldPts.map(([x, y]) => {
+          const [sx, sy] = window.__campaign.project(x, y);
+          // distance (km) from the destination city = last via point
+          const dest = spoke.via[spoke.via.length - 1];
+          const distToDest = Math.hypot(x - dest[0], y - dest[1]);
+          const distToRoma = Math.hypot(x - roma[0], y - roma[1]);
+          return { sx, sy, distToDest, distToRoma };
+        });
+        return { name: spoke.name, screen };
       });
-      return { name: spoke.name, screen };
-    });
-  }, { spokes: SPOKES, roma: ROMA });
+    },
+    { spokes: SPOKES, roma: ROMA },
+  );
 
   const image = PNG.sync.read(await page.screenshot());
   const continuity = projected.map((spoke) => roadContinuity(image, spoke));
@@ -111,12 +141,12 @@ export async function run(ctx) {
   // gap (in ~2 km samples) rather than a brittle tail ratio: a few stray misses
   // where the ribbon passes under a model are fine, a multi-sample hole is not.
   ctx.check(
-    'every Roma spoke paints unbroken from city to city (no mid-road cutoff)',
+    "every Roma spoke paints unbroken from city to city (no mid-road cutoff)",
     continuity.every((c) => c.hitRatio >= 0.85 && c.maxGap <= 3 && c.reachesCity),
     JSON.stringify(continuity),
   );
 
-  await ctx.snap(page, 'polish-road-continuity', { shot: PNG.sync.write(image) });
+  await ctx.snap(page, "polish-road-continuity", { shot: PNG.sync.write(image) });
   await page.close();
 }
 

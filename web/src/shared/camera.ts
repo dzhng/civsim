@@ -29,7 +29,8 @@ export class Camera {
 
   /** Rotate a screen-axes vector (right, up) into world (east, north) by yaw. */
   private screenToWorldDir(right: number, up: number): [number, number] {
-    const c = Math.cos(this.yaw), s = Math.sin(this.yaw);
+    const c = Math.cos(this.yaw),
+      s = Math.sin(this.yaw);
     // right axis = (cos, sin); up axis = (-sin, cos).
     return [right * c - up * s, right * s + up * c];
   }
@@ -47,23 +48,21 @@ export class Camera {
     const cp = this.cosP();
     const bw = x1 - x0;
     const bh = y1 - y0;
-    const minZoom = Math.min(this.canvas.width / bw, (this.canvas.height / cp) / bh);
+    const minZoom = Math.min(this.canvas.width / bw, this.canvas.height / cp / bh);
     this.zoom = Math.min(60, Math.max(minZoom, this.zoom));
     const hw = this.canvas.width / (2 * this.zoom);
     const hh = this.canvas.height / (2 * this.zoom * cp);
-    this.x = hw >= bw / 2
-      ? (x0 + x1) / 2
-      : Math.min(x1 - hw, Math.max(x0 + hw, this.x));
-    this.y = hh >= bh / 2
-      ? (y0 + y1) / 2
-      : Math.min(y1 - hh, Math.max(y0 + hh, this.y));
+    this.x = hw >= bw / 2 ? (x0 + x1) / 2 : Math.min(x1 - hw, Math.max(x0 + hw, this.x));
+    this.y = hh >= bh / 2 ? (y0 + y1) / 2 : Math.min(y1 - hh, Math.max(y0 + hh, this.y));
   }
 
   /** World coords to CSS-pixel screen coords (for DOM overlays). */
   worldToScreen(wx: number, wy: number): [number, number] {
     const dpr = window.devicePixelRatio || 1;
-    const c = Math.cos(this.yaw), s = Math.sin(this.yaw);
-    const dx = wx - this.x, dy = wy - this.y;
+    const c = Math.cos(this.yaw),
+      s = Math.sin(this.yaw);
+    const dx = wx - this.x,
+      dy = wy - this.y;
     // Rotate the ground by -yaw: right = (c,s), forward = (-s,c).
     const rx = dx * c + dy * s;
     const ry = -dx * s + dy * c;

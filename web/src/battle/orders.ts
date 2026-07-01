@@ -45,7 +45,8 @@ export function clusterUnits(units: UnitSnap[], gap = 100): UnitSnap[][] {
 export function groupMoveDests(units: UnitSnap[], tx: number, ty: number): UnitDest[] {
   const clusters = clusterUnits(units);
   // Selection centroid (for bearings).
-  let cx = 0, cy = 0;
+  let cx = 0,
+    cy = 0;
   for (const s of units) {
     cx += s.x;
     cy += s.y;
@@ -54,7 +55,8 @@ export function groupMoveDests(units: UnitSnap[], tx: number, ty: number): UnitD
   cy /= units.length;
 
   const metas = clusters.map((c) => {
-    let mx = 0, my = 0;
+    let mx = 0,
+      my = 0;
     for (const s of c) {
       mx += s.x;
       my += s.y;
@@ -66,12 +68,16 @@ export function groupMoveDests(units: UnitSnap[], tx: number, ty: number): UnitD
     return { c, mx, my, radius, size: c.length };
   });
   // Main body: the biggest cluster (ties: nearest the centroid).
-  metas.sort((a, b) => b.size - a.size || Math.hypot(a.mx - cx, a.my - cy) - Math.hypot(b.mx - cx, b.my - cy));
+  metas.sort(
+    (a, b) =>
+      b.size - a.size || Math.hypot(a.mx - cx, a.my - cy) - Math.hypot(b.mx - cx, b.my - cy),
+  );
   const main = metas[0];
 
   const out: UnitDest[] = [];
   for (const m of metas) {
-    let nx = tx, ny = ty;
+    let nx = tx,
+      ny = ty;
     if (m !== main) {
       // Compressed star: same bearing from the main body, distance shrunk
       // to just clear of it.

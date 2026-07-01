@@ -1,12 +1,13 @@
-import { PNG } from 'pngjs';
+import { PNG } from "pngjs";
 
 export const meta = {
-  name: 'renderer-capabilities',
-  kind: 'flow',
-  world: 'none',
-  tier: 'full',
+  name: "renderer-capabilities",
+  kind: "flow",
+  world: "none",
+  tier: "full",
   snapshots: [],
-  describe: 'Capability probe: granted limits/format, depth fallback decision, VAT-buffer guard, and live GPU-time readout.',
+  describe:
+    "Capability probe: granted limits/format, depth fallback decision, VAT-buffer guard, and live GPU-time readout.",
 };
 
 function countNonBlank(png) {
@@ -36,16 +37,20 @@ function countEdgeBlend(png) {
 }
 
 async function canvasBlend(ctx, sampleCount) {
-  const page = await ctx.newPage({ viewport: { width: 900, height: 620 }, errorPrefix: `renderer-capabilities-msaa${sampleCount}` });
+  const page = await ctx.newPage({
+    viewport: { width: 900, height: 620 },
+    errorPrefix: `renderer-capabilities-msaa${sampleCount}`,
+  });
   try {
     await page.goto(`${ctx.target}/renderer/capabilities?msaa=${sampleCount}`);
     await page.waitForFunction(
-      (n) => window.__rendererLabReady === true && window.__rendererLabStats?.stats?.sampleCount === n,
+      (n) =>
+        window.__rendererLabReady === true && window.__rendererLabStats?.stats?.sampleCount === n,
       sampleCount,
       { timeout: 18000 },
     );
     await page.waitForTimeout(250);
-    const png = PNG.sync.read(await page.locator('#renderer-canvas').screenshot());
+    const png = PNG.sync.read(await page.locator("#renderer-canvas").screenshot());
     return { blend: countEdgeBlend(png), sampleCount };
   } finally {
     await page.close();
@@ -53,7 +58,10 @@ async function canvasBlend(ctx, sampleCount) {
 }
 
 export async function run(ctx) {
-  const page = await ctx.newPage({ viewport: { width: 900, height: 620 }, errorPrefix: 'renderer-capabilities' });
+  const page = await ctx.newPage({
+    viewport: { width: 900, height: 620 },
+    errorPrefix: "renderer-capabilities",
+  });
   try {
     await runProbe(ctx, page);
   } finally {
@@ -64,57 +72,73 @@ export async function run(ctx) {
   const off = await canvasBlend(ctx, 1);
   const on = await canvasBlend(ctx, 4);
   ctx.check(
-    'capabilities: MSAA 4x renders at sampleCount 4 and reduces edge aliasing',
+    "capabilities: MSAA 4x renders at sampleCount 4 and reduces edge aliasing",
     on.sampleCount === 4 && off.sampleCount === 1 && on.blend > off.blend * 1.2,
-    JSON.stringify({ off: off.blend, on: on.blend, ratio: (on.blend / Math.max(1, off.blend)).toFixed(2) }),
+    JSON.stringify({
+      off: off.blend,
+      on: on.blend,
+      ratio: (on.blend / Math.max(1, off.blend)).toFixed(2),
+    }),
   );
 }
 
 async function runProbe(ctx, page) {
   await page.goto(`${ctx.target}/renderer/capabilities`);
   await page.waitForFunction(
-    () => window.__rendererLabReady === true && window.__rendererLabStats?.stats?.route === 'capabilities',
+    () =>
+      window.__rendererLabReady === true &&
+      window.__rendererLabStats?.stats?.route === "capabilities",
     undefined,
     { timeout: 18000 },
   );
   const stats = await page.evaluate(() => window.__rendererLabStats.stats);
   ctx.check(
-    'capabilities: caps object is populated from the granted device',
-    stats.caps?.maxStorageBufferBindingSize > 0
-      && stats.caps?.depthFormat === 'depth24plus'
-      && stats.caps?.msaaSupported === true
-      && ['high-performance', 'low-power', 'default'].includes(stats.caps?.powerPreference),
+    "capabilities: caps object is populated from the granted device",
+    stats.caps?.maxStorageBufferBindingSize > 0 &&
+      stats.caps?.depthFormat === "depth24plus" &&
+      stats.caps?.msaaSupported === true &&
+      ["high-performance", "low-power", "default"].includes(stats.caps?.powerPreference),
     JSON.stringify(stats.caps),
   );
   ctx.check(
-    'capabilities: depth fallback decision selects depth32float with a reason',
-    stats.downgrade?.depthFormat === 'depth32float' && typeof stats.downgrade?.reason === 'string' && stats.downgrade.reason.length > 0,
+    "capabilities: depth fallback decision selects depth32float with a reason",
+    stats.downgrade?.depthFormat === "depth32float" &&
+      typeof stats.downgrade?.reason === "string" &&
+      stats.downgrade.reason.length > 0,
     JSON.stringify(stats.downgrade),
   );
   ctx.check(
-    'capabilities: granted limits expose the requested storage headroom',
+    "capabilities: granted limits expose the requested storage headroom",
     stats.grantedLimits?.maxStorageBufferBindingSize > 0,
     JSON.stringify(stats.grantedLimits),
   );
   ctx.check(
-    'capabilities: VAT storage-buffer guard rejects oversize, accepts real size',
+    "capabilities: VAT storage-buffer guard rejects oversize, accepts real size",
     stats.vatGuard?.oversizeRejected === true && stats.vatGuard?.realSizeFits === true,
     JSON.stringify(stats.vatGuard),
   );
 
   // GPU-time readback lands a frame or two after submission; poll briefly.
-  await page.waitForFunction(
-    () => typeof window.__rendererLabStats?.stats?.gpuTimeMs === 'number',
-    undefined,
-    { timeout: 6000 },
-  ).catch(() => {});
+  await page
+    .waitForFunction(
+      () => typeof window.__rendererLabStats?.stats?.gpuTimeMs === "number",
+      undefined,
+      { timeout: 6000 },
+    )
+    .catch(() => {});
   const gpuTimeMs = await page.evaluate(() => window.__rendererLabStats.stats.gpuTimeMs);
   ctx.check(
-    'capabilities: GPU timestamp readout is present and non-negative (timestamp-query)',
-    stats.caps?.timestampQuery ? (typeof gpuTimeMs === 'number' && gpuTimeMs >= 0) : (gpuTimeMs === null),
+    "capabilities: GPU timestamp readout is present and non-negative (timestamp-query)",
+    stats.caps?.timestampQuery
+      ? typeof gpuTimeMs === "number" && gpuTimeMs >= 0
+      : gpuTimeMs === null,
     JSON.stringify({ timestampQuery: stats.caps?.timestampQuery, gpuTimeMs }),
   );
 
   const pixels = countNonBlank(PNG.sync.read(await page.screenshot()));
-  ctx.check('capabilities: route renders a nonblank frame', pixels > 150000, JSON.stringify({ pixels }));
+  ctx.check(
+    "capabilities: route renders a nonblank frame",
+    pixels > 150000,
+    JSON.stringify({ pixels }),
+  );
 }

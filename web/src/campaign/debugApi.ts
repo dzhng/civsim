@@ -1,5 +1,5 @@
-import type { ArmyView, CityView } from './views';
-import type { Territory } from './territory';
+import type { ArmyView, CityView } from "./views";
+import type { Territory } from "./territory";
 
 export interface CampaignDebugApi {
   tick(n: number): void;
@@ -26,10 +26,10 @@ export interface CampaignDebugApi {
   camGet(): { x: number; y: number; scale: number; pitchDeg: number };
   territoryAlpha(): number;
   visAt(x: number, y: number): number;
-  cellInfo(x: number, y: number): ReturnType<Territory['infoAt']>;
+  cellInfo(x: number, y: number): ReturnType<Territory["infoAt"]>;
   terrainAt(x: number, y: number): { land: boolean; height: number };
   freeze(on?: boolean): void;
-  terrStats(): { filled: number; total: number; labels: Territory['labels'] };
+  terrStats(): { filled: number; total: number; labels: Territory["labels"] };
 }
 
 declare global {

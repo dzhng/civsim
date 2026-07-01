@@ -23,10 +23,11 @@ comparisons, and decision note show the same failure:
   source records with zero texture bytes, so this is not a simple
   "add a few more per-record fibers" problem.
 
-The next slice is
-`03b4c5b4b1a1u-field-fiber-source-topology.md`. It must change the close-body
-source topology inside the fixed B4B1A0 lab: field-cell/subcell-owned dense
-micro-sources, not another primitive shape layered one-per-existing-record.
+The immediate next slice was
+`03b4c5b4b1a1u-field-fiber-source-topology.md`, which changed the close-body
+source topology inside the fixed B4B1A0 lab. That slice and the following
+B4B1A1V strand-mat representation pass are now also rejected. Current work
+continues at `03b4c5b4b1a1w-field-owned-strand-material-domain.md`.
 
 ## Contract
 
@@ -86,6 +87,8 @@ visible, or requires changing unrelated visual variables.
 
 ## Next Slice
 
-Rejected. Continue with
-`03b4c5b4b1a1u-field-fiber-source-topology.md` before perf, coverage, palette,
-LOD, or camera-relative work.
+Rejected. `03b4c5b4b1a1u-field-fiber-source-topology.md` and
+`03b4c5b4b1a1v-continuous-strand-body-representation.md` have since also been
+attempted and rejected. Continue with
+`03b4c5b4b1a1w-field-owned-strand-material-domain.md` before perf, coverage,
+palette, LOD, or camera-relative work.

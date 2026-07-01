@@ -44,6 +44,8 @@ export type GrassPrimitiveFamily =
   | 'field-fiber-shell'
   | 'field-fiber-body'
   | 'field-fiber-bundle'
+  | 'field-strand-mat'
+  | 'field-woven-mat'
   | 'alpha-impostor'
   | 'billboard-cluster'
   | 'volume-card'
@@ -129,6 +131,8 @@ export interface BattleGrassStats {
   fiberShellSubmittedTriangles: number;
   fiberShellVariant: GrassFiberShellVariant;
   grassPrimitiveFamily: GrassPrimitiveFamily;
+  grassPrimitiveRepresentation: string;
+  grassPrimitiveRepresentationTriangles: number;
   grassPrimitiveSourceRecords: number;
   grassPrimitiveSourceTopology: GrassAccentAggregation;
   grassPrimitiveSourceCells: number;
@@ -458,6 +462,7 @@ export class BattleGrassPass {
   private fiberShellSelectedRatio = 0;
   private fiberShellVariant: GrassFiberShellVariant = 'off';
   private grassPrimitiveFamily: GrassPrimitiveFamily = 'legacy-tuft';
+  private grassPrimitiveRepresentation = 'legacy-tuft';
   private grassPrimitiveBaseline = 'none';
   private grassPrimitiveSourceTopology: GrassAccentAggregation = 'record';
   private grassPrimitiveSourceCells = 0;
@@ -636,6 +641,7 @@ export class BattleGrassPass {
     this.fiberShellSelectedRatio = 0;
     this.fiberShellVariant = 'off';
     this.grassPrimitiveFamily = 'legacy-tuft';
+    this.grassPrimitiveRepresentation = 'legacy-tuft';
     this.grassPrimitiveBaseline = 'none';
     this.grassPrimitiveSourceTopology = 'record';
     this.grassPrimitiveSourceCells = 0;
@@ -710,6 +716,7 @@ export class BattleGrassPass {
     this.fiberShellSelectedRatio = 0;
     this.fiberShellVariant = 'off';
     this.grassPrimitiveFamily = 'legacy-tuft';
+    this.grassPrimitiveRepresentation = 'legacy-tuft';
     this.grassPrimitiveBaseline = 'none';
     this.grassPrimitiveSourceTopology = 'record';
     this.grassPrimitiveSourceCells = 0;
@@ -799,6 +806,7 @@ export class BattleGrassPass {
       : requestedAccentStyle;
     const fieldFiberShell = isFieldFiberShellStyle(this.accentStyle);
     this.grassPrimitiveFamily = params.grassPrimitiveFamily ?? grassPrimitiveFamilyForStyle(this.accentStyle);
+    this.grassPrimitiveRepresentation = grassPrimitiveRepresentation(this.grassPrimitiveFamily);
     this.grassPrimitiveBaseline = params.grassPrimitiveBaseline ?? (this.grassPrimitiveFamily === 'field-fiber-shell' ? 'none' : 'field-fiber-shell-normal');
     this.textureVolumeProfile = this.grassPrimitiveFamily === 'texture-volume' ? params.textureVolumeProfile ?? 'current' : 'current';
     this.textureVolumeRenderModel = this.grassPrimitiveFamily === 'texture-volume'
@@ -826,6 +834,7 @@ export class BattleGrassPass {
       && requestedAggregation === 'clump';
     const textureFamily = isTextureGrassPrimitiveFamily(this.grassPrimitiveFamily);
     const bodyFiberFamily = isFieldFiberBodyPrimitiveFamily(this.grassPrimitiveFamily);
+    const strandMatFamily = isContinuousStrandBodyPrimitiveFamily(this.grassPrimitiveFamily);
     const canAggregateFieldCells = this.bladesPerTuft > 0
       && textureFamily
       && requestedAggregation === 'field-cell';
@@ -895,14 +904,50 @@ export class BattleGrassPass {
         baseWidth: this.baseWidth,
         baseBend: merged.bend,
         footprint: this.accentClumpFootprint,
-        footprintScale: this.grassPrimitiveFamily === 'field-fiber-bundle' ? 0.82 : 0.70,
-        vertical: true,
-        jitter: this.accentClumpFootprint * (this.grassPrimitiveFamily === 'field-fiber-bundle' ? 0.42 : 0.58),
-        jitterMin: 0.18,
-        yawJitter: this.grassPrimitiveFamily === 'field-fiber-bundle' ? 1.20 : 1.80,
-        widthScale: this.grassPrimitiveFamily === 'field-fiber-bundle' ? 0.72 : 0.62,
-        heightScale: this.grassPrimitiveFamily === 'field-fiber-bundle' ? 0.78 : 0.72,
-        copyOffsetScale: this.grassPrimitiveFamily === 'field-fiber-bundle' ? 1.10 : 1.38,
+        footprintScale: this.grassPrimitiveFamily === 'field-fiber-bundle'
+          ? 0.82
+          : this.grassPrimitiveFamily === 'field-woven-mat'
+            ? 1.10
+            : this.grassPrimitiveFamily === 'field-strand-mat'
+              ? 1.02
+              : 0.70,
+        vertical: !strandMatFamily,
+        jitter: this.accentClumpFootprint * (
+          this.grassPrimitiveFamily === 'field-fiber-bundle'
+            ? 0.42
+            : this.grassPrimitiveFamily === 'field-woven-mat'
+              ? 0.36
+              : this.grassPrimitiveFamily === 'field-strand-mat'
+                ? 0.44
+                : 0.58
+        ),
+        jitterMin: strandMatFamily ? 0.08 : 0.18,
+        yawJitter: this.grassPrimitiveFamily === 'field-fiber-bundle'
+          ? 1.20
+          : this.grassPrimitiveFamily === 'field-woven-mat'
+            ? 0.84
+            : this.grassPrimitiveFamily === 'field-strand-mat'
+              ? 1.05
+              : 1.80,
+        widthScale: this.grassPrimitiveFamily === 'field-fiber-bundle'
+          ? 0.72
+          : this.grassPrimitiveFamily === 'field-woven-mat'
+            ? 1.58
+            : this.grassPrimitiveFamily === 'field-strand-mat'
+              ? 1.42
+              : 0.62,
+        heightScale: this.grassPrimitiveFamily === 'field-fiber-bundle'
+          ? 0.78
+          : this.grassPrimitiveFamily === 'field-woven-mat'
+            ? 0.36
+            : this.grassPrimitiveFamily === 'field-strand-mat'
+              ? 0.42
+              : 0.72,
+        copyOffsetScale: this.grassPrimitiveFamily === 'field-fiber-bundle'
+          ? 1.10
+          : strandMatFamily
+            ? 0.58
+            : 1.38,
         maxCopies: microSourcesPerCell,
         recordBudget,
         fixedCopies: true,
@@ -1073,6 +1118,8 @@ export class BattleGrassPass {
       fiberShellSubmittedTriangles: this.fiberShellRecords * this.meshTriangles,
       fiberShellVariant: this.fiberShellVariant,
       grassPrimitiveFamily: this.grassPrimitiveFamily,
+      grassPrimitiveRepresentation: this.grassPrimitiveRepresentation,
+      grassPrimitiveRepresentationTriangles: this.meshTriangles * this.tuftCount,
       grassPrimitiveSourceRecords: this.accentSourceRecords,
       grassPrimitiveSourceTopology: this.grassPrimitiveSourceTopology,
       grassPrimitiveSourceCells: this.grassPrimitiveSourceCells,
@@ -2293,6 +2340,8 @@ function grassPrimitiveFamilyForStyle(style: GrassAccentStyle): GrassPrimitiveFa
   if (style === 'field-fiber-shell' || style === 'field-fiber-shell-visibility') return 'field-fiber-shell';
   if (style === 'field-fiber-body') return 'field-fiber-body';
   if (style === 'field-fiber-bundle') return 'field-fiber-bundle';
+  if (style === 'field-strand-mat') return 'field-strand-mat';
+  if (style === 'field-woven-mat') return 'field-woven-mat';
   if (style === 'alpha-impostor') return 'alpha-impostor';
   if (style === 'billboard-cluster') return 'billboard-cluster';
   if (style === 'volume-card') return 'volume-card';
@@ -2309,7 +2358,19 @@ function isTextureGrassPrimitiveFamily(family: GrassPrimitiveFamily): boolean {
 }
 
 function isFieldFiberBodyPrimitiveFamily(family: GrassPrimitiveFamily): boolean {
-  return family === 'field-fiber-body' || family === 'field-fiber-bundle';
+  return family === 'field-fiber-body'
+    || family === 'field-fiber-bundle'
+    || isContinuousStrandBodyPrimitiveFamily(family);
+}
+
+function isContinuousStrandBodyPrimitiveFamily(family: GrassPrimitiveFamily): boolean {
+  return family === 'field-strand-mat' || family === 'field-woven-mat';
+}
+
+function grassPrimitiveRepresentation(family: GrassPrimitiveFamily): string {
+  if (family === 'field-strand-mat') return 'continuous-strand-mat';
+  if (family === 'field-woven-mat') return 'interwoven-strand-mat';
+  return family;
 }
 
 function accentDepthBounds(focus: BattleGrassFocus | undefined, params: BattleGrassParams): { depthNear: number; depthFar: number } {

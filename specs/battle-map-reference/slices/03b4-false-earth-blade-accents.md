@@ -229,12 +229,13 @@ they become dense grass.
   and midground `0.37539x`; versus field-shell, parity barely moves
   (`0.02108` foreground, `0.05422` midground). Density/count alone is not the
   missing variable.
-- 03B4C5B4 is the next pickup. Freeze B3 density, field-cell selection, atlas,
-  palette, meadow/root, camera, terrain, fog, water, sky, and crop windows.
-  Change only the visible grass-body envelope of the existing micro primitives:
-  height/body profile, alpha/coverage response, seating/tip bias, or diagnostic
-  occupancy. Do not change atlas content or midground LOD until B4 proves a
-  visible foreground body.
+- 03B4C5B4 has since been resliced into a close-lab ladder. B4B1A1U and
+  B4B1A1V are rejected: source density and source-attached strand mats still
+  create markers, clumps, or fan/card patches rather than continuous body. The
+  current pickup is B4B1A1W. Freeze atlas, palette, meadow/root, camera, terrain,
+  fog, water, sky, and crop windows; change only the close-body ownership domain
+  so the body is field-owned before any perf, coverage, LOD, or camera-relative
+  pass.
 
 Current approach queue:
 

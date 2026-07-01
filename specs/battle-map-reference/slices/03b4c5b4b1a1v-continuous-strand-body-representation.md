@@ -76,3 +76,32 @@ appears, or only look better by changing frozen variables.
 If accepted, return to `03b4c5b4b1a2-close-body-perf-envelope.md` using the
 accepted representation. If rejected, reslice the close body again before perf,
 coverage, palette, LOD, camera-relative work, or final compose.
+
+## Result - rejected on 2026-07-01
+
+Evidence is archived under
+`assets/03b4-evidence/03b4c5-close-foreground-lab/continuous-strand-body-representation/`.
+
+This pass added two useful renderer/workbench candidates:
+
+- `field-strand-mat`: `7200` field-subcell records, `900` source cells,
+  `691200` submitted triangles, `0` texture bytes, and representation telemetry
+  reported as `continuous-strand-mat`.
+- `field-woven-mat`: `6720` field-subcell records, `840` source cells,
+  `645120` submitted triangles, `0` texture bytes, and representation telemetry
+  reported as `interwoven-strand-mat`.
+
+Both are visually rejected. Against the target close crop, `field-strand-mat`
+recorded `edgeEnergyRatio=0.58440`; `field-woven-mat` recorded
+`edgeEnergyRatio=0.40593`. Against the rejected B4B1A1U subcell crop, they raise
+edge energy (`2.93872x` and `2.04124x` respectively), proving the pass adds
+structure. Direct inspection and neutral critique agree that it is the wrong
+structure: empty center, source-localized perimeter clumps, oversized flat
+fan/card patches, wrong scale, and repeated comb/grouping artifacts.
+
+Learning: changing the mesh representation per source is still source-attached
+geometry. The close crop needs a continuous field-owned body layer whose domain
+covers the review surface before it is expressed as strands, fibers, or material
+detail. Do not proceed to B4B1A2 perf, B4B2 coverage, B4B5 palette, B4C
+camera-relative generation, B4D LOD, or final compose from this result. Continue
+with `03b4c5b4b1a1w-field-owned-strand-material-domain.md`.

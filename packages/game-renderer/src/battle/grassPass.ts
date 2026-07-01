@@ -46,6 +46,7 @@ export type GrassPrimitiveFamily =
   | 'field-fiber-bundle'
   | 'field-strand-mat'
   | 'field-woven-mat'
+  | 'field-domain-shell'
   | 'alpha-impostor'
   | 'billboard-cluster'
   | 'volume-card'
@@ -147,6 +148,20 @@ export interface BattleGrassStats {
   grassPrimitiveTextureTiles: number;
   grassPrimitiveTextureBytes: number;
   grassPrimitiveMicroCards: number;
+  grassPrimitiveDomainId: string;
+  grassPrimitiveDomainGridColumns: number;
+  grassPrimitiveDomainGridRows: number;
+  grassPrimitiveDomainCells: number;
+  grassPrimitiveDomainTiles: number;
+  grassPrimitiveDomainOverlap: number;
+  grassPrimitiveDomainCoverageMin: number;
+  grassPrimitiveDomainCoverageMedian: number;
+  grassPrimitiveDomainCoverageAvg: number;
+  grassPrimitiveDomainExposedGround: number;
+  grassPrimitiveDomainSourceAttached: boolean;
+  grassPrimitiveDomainSubmittedTriangles: number;
+  grassPrimitiveDomainGeometryBytes: number;
+  grassPrimitiveDomainMaterialBytes: number;
   textureVolumeProfile: TextureVolumeProfile;
   textureVolumeRenderModel: TextureVolumeRenderModel;
   grassPrimitiveBaseline: string;
@@ -472,6 +487,19 @@ export class BattleGrassPass {
   private grassPrimitiveTextureHeight = 0;
   private grassPrimitiveTextureTiles = 0;
   private grassPrimitiveTextureBytes = 0;
+  private grassPrimitiveDomainId = 'off';
+  private grassPrimitiveDomainGridColumns = 0;
+  private grassPrimitiveDomainGridRows = 0;
+  private grassPrimitiveDomainCells = 0;
+  private grassPrimitiveDomainTiles = 0;
+  private grassPrimitiveDomainOverlap = 0;
+  private grassPrimitiveDomainCoverageMin = 0;
+  private grassPrimitiveDomainCoverageMedian = 0;
+  private grassPrimitiveDomainCoverageAvg = 0;
+  private grassPrimitiveDomainExposedGround = 1;
+  private grassPrimitiveDomainSourceAttached = true;
+  private grassPrimitiveDomainGeometryBytes = 0;
+  private grassPrimitiveDomainMaterialBytes = 0;
   private textureVolumeProfile: TextureVolumeProfile = 'current';
   private textureVolumeRenderModel: TextureVolumeRenderModel = 'opaque-card';
 
@@ -647,6 +675,7 @@ export class BattleGrassPass {
     this.grassPrimitiveSourceCells = 0;
     this.grassPrimitiveSourcesPerCell = 1;
     this.grassPrimitiveSourceFixedLab = false;
+    this.clearGrassPrimitiveDomainStats();
     this.clearGrassPrimitiveTextureStats();
     this.textureVolumeProfile = 'current';
     this.textureVolumeRenderModel = 'opaque-card';
@@ -722,6 +751,7 @@ export class BattleGrassPass {
     this.grassPrimitiveSourceCells = 0;
     this.grassPrimitiveSourcesPerCell = 1;
     this.grassPrimitiveSourceFixedLab = false;
+    this.clearGrassPrimitiveDomainStats();
     this.clearGrassPrimitiveTextureStats();
     this.textureVolumeProfile = 'current';
     this.textureVolumeRenderModel = 'opaque-card';
@@ -820,6 +850,7 @@ export class BattleGrassPass {
           : requestedFiberShellVariant
       : 'off';
     this.clearGrassPrimitiveTextureStats();
+    this.clearGrassPrimitiveDomainStats();
     const requestedAggregation = params.accentAggregation === 'field-cell'
       ? 'field-cell'
       : params.accentAggregation === 'clump'
@@ -835,6 +866,7 @@ export class BattleGrassPass {
     const textureFamily = isTextureGrassPrimitiveFamily(this.grassPrimitiveFamily);
     const bodyFiberFamily = isFieldFiberBodyPrimitiveFamily(this.grassPrimitiveFamily);
     const strandMatFamily = isContinuousStrandBodyPrimitiveFamily(this.grassPrimitiveFamily);
+    const domainSilhouetteFamily = isFieldDomainSilhouettePrimitiveFamily(this.grassPrimitiveFamily);
     const canAggregateFieldCells = this.bladesPerTuft > 0
       && textureFamily
       && requestedAggregation === 'field-cell';
@@ -847,9 +879,11 @@ export class BattleGrassPass {
         ? 'field-cell'
         : canAggregateFieldSubcells
           ? 'field-subcell'
-        : canAggregateClumps
-          ? 'clump'
-          : 'record';
+        : domainSilhouetteFamily && this.bladesPerTuft > 0
+          ? 'field-cell'
+          : canAggregateClumps
+            ? 'clump'
+            : 'record';
     this.accentClumpFootprint = Math.max(0.25, Number.isFinite(params.accentClumpFootprint) ? params.accentClumpFootprint! : 1);
     this.fiberShellSourceRecords = 0;
     this.fiberShellRecords = 0;
@@ -892,6 +926,36 @@ export class BattleGrassPass {
       this.fiberShellDepthNear = this.accentDepthNear;
       this.fiberShellDepthFar = this.accentDepthFar;
       this.fiberShellSelectedRatio = sourceRecords.length > 0 ? selectedRecords.length / sourceRecords.length : 0;
+    } else if (domainSilhouetteFamily) {
+      const sourceRecords = accentRecordCandidates(snapshot.records, merged.focus, params);
+      const domain = fieldDomainSilhouetteRecords(sourceRecords, merged.focus, params, {
+        baseHeight: this.baseHeight,
+        baseWidth: this.baseWidth,
+        baseBend: merged.bend,
+        seed: merged.seed,
+        footprint: this.accentClumpFootprint,
+        budget: explicitBudget,
+      });
+      selectedRecords = domain.records;
+      this.accentTufts = selectedRecords.length;
+      this.accentSourceRecords = sourceRecords.length;
+      this.accentClumps = domain.cells;
+      this.grassPrimitiveSourceTopology = 'field-cell';
+      this.grassPrimitiveSourceCells = 0;
+      this.grassPrimitiveSourcesPerCell = 0;
+      this.grassPrimitiveSourceFixedLab = true;
+      this.grassPrimitiveDomainId = 'field-domain-shell';
+      this.grassPrimitiveDomainGridColumns = domain.gridColumns;
+      this.grassPrimitiveDomainGridRows = domain.gridRows;
+      this.grassPrimitiveDomainCells = domain.cells;
+      this.grassPrimitiveDomainTiles = domain.tiles;
+      this.grassPrimitiveDomainOverlap = domain.overlap;
+      this.grassPrimitiveDomainCoverageMin = domain.coverageMin;
+      this.grassPrimitiveDomainCoverageMedian = domain.coverageMedian;
+      this.grassPrimitiveDomainCoverageAvg = domain.coverageAvg;
+      this.grassPrimitiveDomainExposedGround = domain.exposedGround;
+      this.grassPrimitiveDomainSourceAttached = false;
+      this.grassPrimitiveDomainMaterialBytes = 0;
     } else if (canAggregateFieldSubcells) {
       const sourceRecords = accentRecordCandidates(snapshot.records, merged.focus, params);
       const maxCells = Number.isFinite(params.accentMaxClumps)
@@ -1034,6 +1098,9 @@ export class BattleGrassPass {
       const meshStats = grassTuftStats(mesh, this.bladesPerTuft);
       this.meshVertices = meshStats.opaqueVertices;
       this.meshTriangles = meshStats.opaqueTriangles;
+      if (domainSilhouetteFamily) {
+        this.grassPrimitiveDomainGeometryBytes = mesh.opaque.vertices.byteLength + mesh.opaque.indices.byteLength;
+      }
       this.uploadMesh(mesh.opaque.vertices, mesh.opaque.indices);
       if (textureFamily) this.setGrassPrimitiveTextureStats();
     } else {
@@ -1136,6 +1203,20 @@ export class BattleGrassPass {
       grassPrimitiveMicroCards: this.grassPrimitiveFamily === 'texture-micro-carrier'
         ? this.tuftCount * Math.floor(this.meshTriangles / 2)
         : 0,
+      grassPrimitiveDomainId: this.grassPrimitiveDomainId,
+      grassPrimitiveDomainGridColumns: this.grassPrimitiveDomainGridColumns,
+      grassPrimitiveDomainGridRows: this.grassPrimitiveDomainGridRows,
+      grassPrimitiveDomainCells: this.grassPrimitiveDomainCells,
+      grassPrimitiveDomainTiles: this.grassPrimitiveDomainTiles,
+      grassPrimitiveDomainOverlap: this.grassPrimitiveDomainOverlap,
+      grassPrimitiveDomainCoverageMin: this.grassPrimitiveDomainCoverageMin,
+      grassPrimitiveDomainCoverageMedian: this.grassPrimitiveDomainCoverageMedian,
+      grassPrimitiveDomainCoverageAvg: this.grassPrimitiveDomainCoverageAvg,
+      grassPrimitiveDomainExposedGround: this.grassPrimitiveDomainExposedGround,
+      grassPrimitiveDomainSourceAttached: this.grassPrimitiveDomainSourceAttached,
+      grassPrimitiveDomainSubmittedTriangles: this.grassPrimitiveDomainCells > 0 ? this.meshTriangles * this.tuftCount : 0,
+      grassPrimitiveDomainGeometryBytes: this.grassPrimitiveDomainGeometryBytes,
+      grassPrimitiveDomainMaterialBytes: this.grassPrimitiveDomainMaterialBytes,
       textureVolumeProfile: this.textureVolumeProfile,
       textureVolumeRenderModel: this.textureVolumeRenderModel,
       grassPrimitiveBaseline: this.grassPrimitiveBaseline,
@@ -1203,6 +1284,22 @@ export class BattleGrassPass {
     this.grassPrimitiveTextureHeight = 0;
     this.grassPrimitiveTextureTiles = 0;
     this.grassPrimitiveTextureBytes = 0;
+  }
+
+  private clearGrassPrimitiveDomainStats() {
+    this.grassPrimitiveDomainId = 'off';
+    this.grassPrimitiveDomainGridColumns = 0;
+    this.grassPrimitiveDomainGridRows = 0;
+    this.grassPrimitiveDomainCells = 0;
+    this.grassPrimitiveDomainTiles = 0;
+    this.grassPrimitiveDomainOverlap = 0;
+    this.grassPrimitiveDomainCoverageMin = 0;
+    this.grassPrimitiveDomainCoverageMedian = 0;
+    this.grassPrimitiveDomainCoverageAvg = 0;
+    this.grassPrimitiveDomainExposedGround = 1;
+    this.grassPrimitiveDomainSourceAttached = true;
+    this.grassPrimitiveDomainGeometryBytes = 0;
+    this.grassPrimitiveDomainMaterialBytes = 0;
   }
 }
 
@@ -1857,6 +1954,28 @@ interface ScoredFieldCell {
   signedLateral: number;
 }
 
+interface FieldDomainSilhouetteOptions {
+  baseHeight: number;
+  baseWidth: number;
+  baseBend: number;
+  seed: number;
+  footprint: number;
+  budget: number;
+}
+
+interface FieldDomainSilhouetteResult {
+  records: GrassFieldRecord[];
+  gridColumns: number;
+  gridRows: number;
+  cells: number;
+  tiles: number;
+  overlap: number;
+  coverageMin: number;
+  coverageMedian: number;
+  coverageAvg: number;
+  exposedGround: number;
+}
+
 function grassFieldInstances(records: readonly GrassFieldRecord[], baseHeight: number, baseWidth: number, baseBend: number, options: GrassFieldInstanceOptions): Float32Array {
   const data = new Float32Array(records.length * GRASS_INSTANCE_STRIDE_FLOATS);
   for (let i = 0; i < records.length; i++) {
@@ -1884,6 +2003,141 @@ function grassFieldInstances(records: readonly GrassFieldRecord[], baseHeight: n
     });
   }
   return data;
+}
+
+function fieldDomainSilhouetteRecords(
+  sourceRecords: readonly GrassFieldRecord[],
+  focus: BattleGrassFocus | undefined,
+  params: BattleGrassParams,
+  options: FieldDomainSilhouetteOptions,
+): FieldDomainSilhouetteResult {
+  if (!focus || sourceRecords.length === 0 || options.budget <= 0) {
+    return emptyFieldDomainSilhouetteResult();
+  }
+  const { depthNear, depthFar } = accentDepthBounds(focus, params);
+  const near = Number.isFinite(depthNear) ? depthNear : 0;
+  const far = Number.isFinite(depthFar) && depthFar > near ? depthFar : near + Math.max(80, focus.radius);
+  const depthSpan = Math.max(24, far - near);
+  const lateralSpan = Math.max(24, focus.radius * 1.55);
+  const cell = Math.max(1.8, Number.isFinite(options.footprint) ? options.footprint : 3.8);
+  const columns = Math.max(6, Math.ceil(lateralSpan / cell));
+  const rows = Math.max(4, Math.ceil(depthSpan / cell));
+  const depthStep = depthSpan / rows;
+  const lateralStep = lateralSpan / columns;
+  const overlap = round3(Math.max(1, (options.baseWidth * 7.6 + options.footprint * 0.26) / Math.max(0.001, Math.min(depthStep, lateralStep))));
+  const rankedSources = [...sourceRecords].sort((a, b) => {
+    const da = focusDepth(a, focus);
+    const db = focusDepth(b, focus);
+    return da - db || focusLateral(a, focus) - focusLateral(b, focus);
+  });
+  const scored: { record: GrassFieldRecord; source: GrassFieldRecord; coverage: number; score: number }[] = [];
+  const coverageValues: number[] = [];
+  const yawBase = Number.isFinite(focus.yaw) ? focus.yaw! : 0;
+  const forwardX = -Math.sin(yawBase);
+  const forwardY = Math.cos(yawBase);
+  const lateralX = Math.cos(yawBase);
+  const lateralY = Math.sin(yawBase);
+  for (let row = 0; row < rows; row++) {
+    const depthT = rows <= 1 ? 0 : row / (rows - 1);
+    const depth = near + (row + 0.5) * depthStep;
+    for (let col = 0; col < columns; col++) {
+      const colT = columns <= 1 ? 0 : col / (columns - 1);
+      const seed = ((Math.imul(row + 17, 73856093) ^ Math.imul(col + 29, 19349663) ^ options.seed) >>> 0);
+      const lateral = (col + 0.5) * lateralStep - lateralSpan * 0.5;
+      const jitterX = (hash2(seed, 3) - 0.5) * lateralStep * 0.34;
+      const jitterY = (hash2(seed, 5) - 0.5) * depthStep * 0.28;
+      const x = focus.x + lateralX * (lateral + jitterX) + forwardX * (depth + jitterY);
+      const y = focus.y + lateralY * (lateral + jitterX) + forwardY * (depth + jitterY);
+      const source = nearestGrassFieldRecord(rankedSources, x, y, focus, depth);
+      if (!source) continue;
+      const nearestDist = Math.hypot(source.x - x, source.y - y);
+      const proximity = 1 - smoothstepRange(cell * 0.85, cell * 2.85, nearestDist);
+      const centerFill = 1 - Math.abs(colT - 0.5) * 0.46;
+      const nearFill = 1 - depthT * 0.28;
+      const coverage = clamp01(0.34 + proximity * 0.42 + source.clumpWeight * 0.18 + centerFill * 0.10 + nearFill * 0.08);
+      coverageValues.push(coverage);
+      const yaw = yawBase
+        + Math.PI * 0.5
+        + (hash2(seed, 7) - 0.5) * 0.42
+        + (row % 2 === 0 ? -0.10 : 0.10);
+      const width = Math.max(0.006, options.baseWidth * (2.3 + coverage * 2.6) + cell * 0.010);
+      const height = Math.max(0.12, options.baseHeight * (0.46 + coverage * 0.30) * (1 - depthT * 0.16));
+      const record: GrassFieldRecord = {
+        ...source,
+        x,
+        y,
+        z: source.z,
+        worldCellX: Math.round(source.worldCellX + (x - source.x) / Math.max(0.001, cell)),
+        worldCellY: Math.round(source.worldCellY + (y - source.y) / Math.max(0.001, cell)),
+        width,
+        height,
+        bend: Math.max(0, options.baseBend * (0.18 + coverage * 0.24)),
+        windPhase: source.windPhase + hash2(seed, 11) * 0.8,
+        yaw,
+        clumpSeed: seed & 0x00ff_ffff,
+        bladeSeed: Math.floor(hash2(seed, 13) * 0x00ff_ffff),
+        clumpWeight: coverage,
+      };
+      scored.push({
+        record,
+        source,
+        coverage,
+        score: coverage * 1.6 + (1 - depthT) * 0.32 - Math.abs(colT - 0.5) * 0.10 + hash2(seed, 17) * 0.04,
+      });
+    }
+  }
+  scored.sort((a, b) => b.score - a.score);
+  const selected = scored.slice(0, Math.max(0, Math.min(options.budget, scored.length)));
+  const selectedCoverage = selected.map((entry) => entry.coverage).sort((a, b) => a - b);
+  const allCoverage = (coverageValues.length > 0 ? coverageValues : selectedCoverage).slice().sort((a, b) => a - b);
+  return {
+    records: selected.map((entry) => entry.record),
+    gridColumns: columns,
+    gridRows: rows,
+    cells: selected.length,
+    tiles: columns * rows,
+    overlap,
+    coverageMin: round3(allCoverage.length > 0 ? allCoverage[0] : 0),
+    coverageMedian: round3(selectedCoverage.length > 0 ? selectedCoverage[Math.floor((selectedCoverage.length - 1) / 2)] : 0),
+    coverageAvg: round3(selected.reduce((sum, entry) => sum + entry.coverage, 0) / Math.max(1, selected.length)),
+    exposedGround: round3((columns * rows - selected.length) / Math.max(1, columns * rows)),
+  };
+}
+
+function emptyFieldDomainSilhouetteResult(): FieldDomainSilhouetteResult {
+  return {
+    records: [],
+    gridColumns: 0,
+    gridRows: 0,
+    cells: 0,
+    tiles: 0,
+    overlap: 0,
+    coverageMin: 0,
+    coverageMedian: 0,
+    coverageAvg: 0,
+    exposedGround: 1,
+  };
+}
+
+function nearestGrassFieldRecord(
+  records: readonly GrassFieldRecord[],
+  x: number,
+  y: number,
+  focus: BattleGrassFocus,
+  targetDepth: number,
+): GrassFieldRecord | null {
+  let best: GrassFieldRecord | null = null;
+  let bestScore = Infinity;
+  for (const record of records) {
+    const depthPenalty = Math.abs(focusDepth(record, focus) - targetDepth) * 0.18;
+    const dist = Math.hypot(record.x - x, record.y - y);
+    const score = dist + depthPenalty - record.clumpWeight * 0.8;
+    if (score < bestScore) {
+      best = record;
+      bestScore = score;
+    }
+  }
+  return best;
 }
 
 function aggregateClumpAccentRecords(
@@ -2342,6 +2596,7 @@ function grassPrimitiveFamilyForStyle(style: GrassAccentStyle): GrassPrimitiveFa
   if (style === 'field-fiber-bundle') return 'field-fiber-bundle';
   if (style === 'field-strand-mat') return 'field-strand-mat';
   if (style === 'field-woven-mat') return 'field-woven-mat';
+  if (style === 'field-domain-shell') return 'field-domain-shell';
   if (style === 'alpha-impostor') return 'alpha-impostor';
   if (style === 'billboard-cluster') return 'billboard-cluster';
   if (style === 'volume-card') return 'volume-card';
@@ -2367,9 +2622,14 @@ function isContinuousStrandBodyPrimitiveFamily(family: GrassPrimitiveFamily): bo
   return family === 'field-strand-mat' || family === 'field-woven-mat';
 }
 
+function isFieldDomainSilhouettePrimitiveFamily(family: GrassPrimitiveFamily): boolean {
+  return family === 'field-domain-shell';
+}
+
 function grassPrimitiveRepresentation(family: GrassPrimitiveFamily): string {
   if (family === 'field-strand-mat') return 'continuous-strand-mat';
   if (family === 'field-woven-mat') return 'interwoven-strand-mat';
+  if (family === 'field-domain-shell') return 'field-owned-body-silhouette';
   return family;
 }
 
@@ -2477,6 +2737,10 @@ function clampInt(v: number, lo: number, hi: number): number {
 
 function clamp01(value: number): number {
   return Math.max(0, Math.min(1, Number.isFinite(value) ? value : 0));
+}
+
+function round3(value: number): number {
+  return Math.round((Number.isFinite(value) ? value : 0) * 1000) / 1000;
 }
 
 function smoothstepRange(edge0: number, edge1: number, value: number): number {

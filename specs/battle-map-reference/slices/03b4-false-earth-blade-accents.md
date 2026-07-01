@@ -230,12 +230,14 @@ they become dense grass.
   (`0.02108` foreground, `0.05422` midground). Density/count alone is not the
   missing variable.
 - 03B4C5B4 has since been resliced into a close-lab ladder. B4B1A1U,
-  B4B1A1V, and B4B1A1W are rejected: source density, source-attached strand
-  mats, and material-only field domains still create markers, fan/card patches,
-  or flat paint rather than continuous body. The current pickup is B4B1A1X.
+  B4B1A1V, B4B1A1W, and B4B1A1X are rejected: source density, source-attached
+  strand mats, material-only field domains, and large field-owned shell geometry
+  still create markers, fan/card patches, flat paint, or oversized stamp swipes
+  rather than continuous body. The current pickup is B4B1A1Y.
   Freeze atlas, palette, meadow/root, camera, terrain, fog, water, sky, and crop
-  windows; keep body ownership field-owned while adding silhouette/height before
-  any perf, coverage, LOD, or camera-relative pass.
+  windows; keep body ownership field-owned while testing pixel-scale
+  micro-strand silhouette before any perf, coverage, LOD, or camera-relative
+  pass.
 
 Current approach queue:
 

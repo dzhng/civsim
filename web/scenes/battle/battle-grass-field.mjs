@@ -40,6 +40,9 @@ export const meta = {
     "grass/foreground-close-lab-field-owned-body-domain-candidates",
     "grass/foreground-close-lab-field-owned-body-domain-crops",
     "grass/foreground-close-lab-field-owned-body-domain-selected",
+    "grass/foreground-close-lab-field-owned-body-silhouette-candidates",
+    "grass/foreground-close-lab-field-owned-body-silhouette-crops",
+    "grass/foreground-close-lab-field-owned-body-silhouette-selected",
   ],
   describe:
     "Grass-field route proving packed terrain-normal attributes, field-driven meadow material, and bounded blade accents.",
@@ -267,6 +270,31 @@ const FIELD_OWNED_BODY_DOMAIN_CANDIDATES = [
       "grassPrimitiveFamily=field-fiber-shell&fiberShellVariant=off&accentTufts=0&blades=0&bodyDomainStrength=1.28&bodyDomainScale=1.18&bodyDomainContrast=0.66",
   },
 ];
+const FIELD_OWNED_BODY_SILHOUETTE_CANDIDATES = [
+  {
+    id: "b4b1a1w-field-material",
+    label: "B4B1A1W MATERIAL",
+    color: [88, 88, 88, 255],
+    query:
+      "grassPrimitiveFamily=field-fiber-shell&fiberShellVariant=off&accentTufts=0&blades=0&bodyDomainStrength=1.10&bodyDomainScale=0.86&bodyDomainContrast=0.72",
+    context: true,
+  },
+  {
+    id: "field-domain-shell",
+    label: "DOMAIN SHELL",
+    color: [50, 132, 78, 255],
+    query:
+      "grassPrimitiveFamily=field-domain-shell&accentTufts=1850&accentFootprint=3.2&blades=10&bladeHeight=0.64&bladeWidth=0.060&bend=0.09&spread=0.34&surfaceBlend=0.54",
+    selected: true,
+  },
+  {
+    id: "field-domain-low-shell",
+    label: "LOW DOMAIN",
+    color: [54, 116, 142, 255],
+    query:
+      "grassPrimitiveFamily=field-domain-shell&accentTufts=1550&accentFootprint=2.7&blades=8&bladeHeight=0.54&bladeWidth=0.054&bend=0.07&spread=0.30&surfaceBlend=0.58",
+  },
+];
 const SCALE_REPAIR_CANDIDATES = [
   { profile: "b4b1-current", color: [88, 88, 88, 255] },
   { profile: "scale-repair-low", color: [60, 116, 62, 255], selected: true },
@@ -305,6 +333,7 @@ export async function run(ctx) {
   await verifyForegroundCloseFieldFiberSourceTopology(ctx);
   await verifyForegroundCloseContinuousStrandBody(ctx);
   await verifyForegroundCloseFieldOwnedBodyDomain(ctx);
+  await verifyForegroundCloseFieldOwnedBodySilhouette(ctx);
 }
 
 async function verifyPackedTilt(ctx) {
@@ -1562,6 +1591,124 @@ async function verifyForegroundCloseFieldOwnedBodyDomain(ctx) {
   });
 }
 
+async function verifyForegroundCloseFieldOwnedBodySilhouette(ctx) {
+  const captures = [];
+  for (const candidate of FIELD_OWNED_BODY_SILHOUETTE_CANDIDATES) {
+    const page = await ctx.newPage({
+      viewport: { width: 900, height: 700 },
+      errorPrefix: `battle-grass-field-field-owned-body-silhouette-${candidate.id}`,
+    });
+    await page.goto(
+      `${ctx.target}/renderer/battle-grass-field?mode=foreground-close-lab&labCameraProfile=b4b1a0-test-env&${candidate.query}`,
+    );
+    await page.waitForFunction(
+      () =>
+        window.__rendererLabReady === true &&
+        window.__rendererLabStats?.stats?.mode === "foreground-close-lab",
+      { timeout: 18000 },
+    );
+    await page.waitForTimeout(160);
+    const stats = await page.evaluate(() => window.__rendererLabStats?.stats ?? null);
+    if (stats?.route !== "battle-grass-field" || stats?.mode !== "foreground-close-lab") {
+      await page.close();
+      throw new Error(
+        `foreground close field-owned body silhouette did not publish valid stats for ${candidate.id}: ${JSON.stringify(stats)}`,
+      );
+    }
+    const shot = await page.locator("#renderer-canvas").screenshot();
+    captures.push({ ...candidate, stats, png: PNG.sync.read(shot) });
+    await page.close();
+  }
+
+  const context = captures.find((capture) => capture.context);
+  const selected =
+    captures.find((capture) => capture.selected) ??
+    captures.find((capture) => !capture.context) ??
+    captures[0];
+  const bodyCaptures = captures.filter((capture) => !capture.context);
+  const windows = context.stats.lab?.reviewWindows;
+  const targetCloseHero = PNG.sync.read(await readFile(TARGET_CLOSE_HERO));
+  const baseCameraKey = JSON.stringify(context.stats.camera);
+  const baseFocusKey = JSON.stringify(context.stats.focus);
+  const baseFrozenKey = JSON.stringify(context.stats.lab?.frozenInputs);
+  const baseField = context.stats.field;
+  const silhouetteStats = captures.map((capture) => ({
+    id: capture.id,
+    grass: capture.stats.grass,
+    meadow: capture.stats.ground?.meadow,
+    lab: capture.stats.lab,
+  }));
+
+  ctx.check(
+    "foreground close field-owned body silhouette freezes the accepted B4B1A0 lab",
+    captures.every(
+      (capture) =>
+        capture.stats.lab?.contract === "03B4C5B4B1A0" &&
+        capture.stats.lab?.cameraProfile === "b4b1a0-test-env" &&
+        capture.stats.lab?.cropPurpose === "test-environment-comparability-not-body-acceptance" &&
+        JSON.stringify(capture.stats.camera) === baseCameraKey &&
+        JSON.stringify(capture.stats.focus) === baseFocusKey &&
+        JSON.stringify(capture.stats.lab?.frozenInputs) === baseFrozenKey &&
+        capture.stats.field?.seed === baseField?.seed &&
+        capture.stats.field?.acceptedRecords === baseField?.acceptedRecords &&
+        capture.stats.field?.candidateCells === baseField?.candidateCells &&
+        capture.stats.ground?.meadow?.source === "field" &&
+        capture.stats.ground?.meadow?.rootMassEnabled === true,
+    ),
+    JSON.stringify(silhouetteStats),
+  );
+  ctx.check(
+    "foreground close field-owned body silhouette keeps B4B1A1W material domain as rejected context",
+    context?.stats.ground?.meadow?.bodyDomainEnabled === true &&
+      context?.stats.ground?.meadow?.bodyDomainMaterialOnly === true &&
+      context?.stats.grass?.submittedTriangles === 0 &&
+      context?.stats.grass?.grassPrimitiveDomainId === "off",
+    JSON.stringify(silhouetteStats),
+  );
+  ctx.check(
+    "foreground close field-owned body silhouette publishes field-domain telemetry",
+    bodyCaptures.length ===
+      FIELD_OWNED_BODY_SILHOUETTE_CANDIDATES.filter((candidate) => !candidate.context).length &&
+      bodyCaptures.every((capture) => {
+        const grass = capture.stats.grass;
+        return (
+          grass?.grassPrimitiveFamily === "field-domain-shell" &&
+          grass?.grassPrimitiveRepresentation === "field-owned-body-silhouette" &&
+          grass?.grassPrimitiveDomainId === "field-domain-shell" &&
+          grass?.grassPrimitiveDomainSourceAttached === false &&
+          grass?.grassPrimitiveDomainGridColumns > 4 &&
+          grass?.grassPrimitiveDomainGridRows > 4 &&
+          grass?.grassPrimitiveDomainCells === grass?.tuftInstances &&
+          grass?.grassPrimitiveDomainTiles >= grass?.grassPrimitiveDomainCells &&
+          grass?.grassPrimitiveDomainOverlap >= 1 &&
+          grass?.grassPrimitiveDomainCoverageAvg > 0.45 &&
+          grass?.grassPrimitiveDomainCoverageMedian > 0.45 &&
+          grass?.grassPrimitiveDomainExposedGround < 0.4 &&
+          grass?.grassPrimitiveDomainSubmittedTriangles === grass?.submittedTriangles &&
+          grass?.grassPrimitiveDomainGeometryBytes > 0 &&
+          grass?.grassPrimitiveDomainMaterialBytes === 0 &&
+          grass?.grassPrimitiveTextureBytes === 0 &&
+          grass?.submittedTriangles > 0 &&
+          grass?.submittedTriangles < 420000 &&
+          grass?.drawCalls === 1
+        );
+      }),
+    JSON.stringify(silhouetteStats),
+  );
+
+  await ctx.snap(null, "grass/foreground-close-lab-field-owned-body-silhouette-candidates", {
+    shot: PNG.sync.write(composeFieldOwnedBodySilhouetteCandidateSheet(targetCloseHero, captures)),
+  });
+  await ctx.snap(null, "grass/foreground-close-lab-field-owned-body-silhouette-crops", {
+    shot: PNG.sync.write(
+      composeFieldOwnedBodySilhouetteCropSheet(targetCloseHero, captures, windows),
+    ),
+  });
+  await ctx.snap(null, "grass/foreground-close-lab-field-owned-body-silhouette-selected", {
+    shot: PNG.sync.write(drawBodyArchitectureFull(selected.png, windows)),
+  });
+}
+
 function hasPackedTelemetry(stats) {
   const grass = stats?.grass;
   return (
@@ -2158,6 +2305,56 @@ function composeFieldOwnedBodyDomainCropSheet(targetCloseHero, captures, windows
   return composeGrid([target, ...closeCrops, ...tightCrops], 4);
 }
 
+function composeFieldOwnedBodySilhouetteCandidateSheet(targetCloseHero, captures) {
+  const target = captioned(
+    bordered(withScaleGuides(resizeToWidth(targetCloseHero, 360)), [190, 42, 28, 255]),
+    "TARGET CLOSE",
+  );
+  const crops = captures.map((capture) =>
+    captioned(
+      bordered(
+        withScaleGuides(
+          resizeToWidth(cropRatio(capture.png, capture.stats.lab.reviewWindows.closeHero), 360),
+          { proxies: true },
+        ),
+        capture.color,
+      ),
+      fieldOwnedBodySilhouetteLabel(capture),
+    ),
+  );
+  return composeGrid([target, ...crops], 4);
+}
+
+function composeFieldOwnedBodySilhouetteCropSheet(targetCloseHero, captures, windows) {
+  const target = captioned(
+    bordered(withScaleGuides(resizeToWidth(targetCloseHero, 360)), [190, 42, 28, 255]),
+    "TARGET CLOSE",
+  );
+  const closeCrops = captures.map((capture) =>
+    captioned(
+      bordered(
+        withScaleGuides(resizeToWidth(cropRatio(capture.png, windows.closeHero), 360), {
+          proxies: true,
+        }),
+        capture.color,
+      ),
+      fieldOwnedBodySilhouetteLabel(capture),
+    ),
+  );
+  const tightCrops = captures.map((capture) =>
+    captioned(
+      bordered(
+        withScaleGuides(resizeToWidth(cropRatio(capture.png, windows.closeTight2x), 360), {
+          proxies: true,
+        }),
+        capture.color,
+      ),
+      `2X ${fieldOwnedBodySilhouetteShortLabel(capture)}`,
+    ),
+  );
+  return composeGrid([target, ...closeCrops, ...tightCrops], 4);
+}
+
 function bodyArchitectureLabel(capture) {
   return `${bodyArchitectureShortLabel(capture.family)} ${capture.stats.grass.submittedTriangles}T`;
 }
@@ -2235,6 +2432,18 @@ function fieldOwnedBodyDomainShortLabel(capture) {
   const meadow = capture.stats.ground?.meadow;
   if (!meadow?.bodyDomainEnabled) return capture.label;
   return `${capture.label} ${meadow.bodyDomainId}`;
+}
+
+function fieldOwnedBodySilhouetteLabel(capture) {
+  const grass = capture.stats.grass;
+  if (grass?.grassPrimitiveDomainId !== "field-domain-shell") return `${capture.label} CTX`;
+  return `${capture.label} ${grass.grassPrimitiveDomainCells}C ${grass.grassPrimitiveDomainOverlap.toFixed(2)}O ${grass.grassPrimitiveDomainExposedGround.toFixed(2)}E`;
+}
+
+function fieldOwnedBodySilhouetteShortLabel(capture) {
+  const grass = capture.stats.grass;
+  if (grass?.grassPrimitiveDomainId !== "field-domain-shell") return capture.label;
+  return `${capture.label} ${grass.grassPrimitiveDomainId}`;
 }
 
 function closeLabProfileLabel(profile) {

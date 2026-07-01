@@ -19,6 +19,28 @@ slices (`07`+) are sketched in the slice graph below but **not yet authored as
 detailed files** — they are deliberately deferred until slice `06` decides the
 materials substrate (bespoke WGSL vs three.js/TSL).
 
+**Slice `06` is DONE — SUBSTRATE VERDICT: three.js WebGPU + TSL for the photoreal
+layer (decided 2026-07-02, evidence-based, autonomous per the locked procedure).**
+The camera spine stays bespoke. Full verdict + frame-time tables + look-parity
+judgments + three.js pain points + the harness re-tooling plan are recorded in
+`slices/06-photoreal-substrate-bakeoff.md` (VERDICT section) — read that before
+touching `07`+. Headlines: **perf veto passed by both prongs ~6× inside the 33 ms
+budget on hardware** (30,400 VAT-skinned soldiers + 200k grass + 3k trees: bespoke
+3.3–4.6 ms GPU with LOD+cull; three.js 5.6–5.8 ms GPU brute-force full meshes, no
+LOD/cull; both hold 60k), so perf did not discriminate. three.js won on **look**
+(neutral judges: its water vista and its IBL sphere grid both "less wrong" — real
+PMREM environment from a raw equirect DataTexture), on **velocity** (all three
+probes in 738 lines vs bespoke needing to build IBL/CSM/post from scratch for
+`07`+), and **harness survival was PROVEN not assumed** (same `__probeStats` seam,
+GPU timestamps via `trackTimestamp` even under SwiftShader, `renderer.info` draw
+calls, SwiftShader renders TSL fine, scene harness unchanged). Spike artifacts:
+bespoke prong `apps/renderer-lab/src/bakeoffProbes.ts` (`/renderer/pbr-probe`,
+`/renderer/water-pbr`, `/renderer/crowd-perf`), three.js prong
+`web/three-{water,pbr,crowd}.html` + `web/src/three-probe/*` (three@0.185.1 in
+`web/package.json`), measurement harness `web/bakeoff-shot.mjs`, evidence shots
+`web/shots-bakeoff/`. All spike-only — nothing merged into production passes;
+delete the probes when `07`+ replaces them.
+
 **Slice `01` is DONE (committed, 2026-07-02).** Landed the pure `camera3d` math
 library + `mat4` (`packages/renderer-core/src/`), reverse-Z infinite-far
 perspective, and the WebGPU-free `/renderer/camera3d-probe` route (ground grid +

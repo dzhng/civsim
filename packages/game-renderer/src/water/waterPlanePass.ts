@@ -3,6 +3,8 @@ import { WORLD_CAMERA_WGSL } from '../../../renderer-core/src/cameraWgsl';
 import { compileShader } from '../../../renderer-core/src/compileShader';
 import { gpuMultisample, gpuOpaqueColorTarget, gpuWorldDepthStencil } from '../../../renderer-core/src/pipelineContracts';
 import { WATER_SHADE_WGSL } from './waterMaterialWgsl';
+import { WATER_PALETTE_WGSL } from './waterPalette';
+import { waterEnvironmentWgsl, WATER_ENVIRONMENTS, type WaterEnvironment } from './waterEnvironment';
 import type { WaterFieldSource } from './waterField';
 
 // The candidate-agnostic open-sea pass: one tessellated plane at the battle
@@ -36,7 +38,7 @@ export class WaterPlanePass {
   private readonly indexBuffer: GPUBuffer;
   private readonly indexCount: number;
 
-  constructor(shell: RawFrameShell, field: WaterFieldSource, rect: WaterPlaneRect = DEFAULT_WATER_PLANE) {
+  constructor(shell: RawFrameShell, field: WaterFieldSource, rect: WaterPlaneRect = DEFAULT_WATER_PLANE, env: WaterEnvironment = WATER_ENVIRONMENTS.golden) {
     this.shell = shell;
     this.field = field;
     const device = shell.device;
@@ -50,7 +52,7 @@ export class WaterPlanePass {
 
     const fieldLayout = field.bindGroupLayout();
     const bindGroupLayouts = fieldLayout ? [shell.cameraBindGroupLayout, fieldLayout] : [shell.cameraBindGroupLayout];
-    const module = compileShader(device, waterPlaneWgsl(field.wgslSample()), `water-plane-${field.id}`);
+    const module = compileShader(device, waterPlaneWgsl(field.wgslSample(), env), `water-plane-${field.id}`);
     this.pipeline = device.createRenderPipeline({
       label: `water-plane-${field.id}-pipeline`,
       layout: device.createPipelineLayout({ bindGroupLayouts }),
@@ -104,10 +106,12 @@ function buildGrid(rect: WaterPlaneRect): { vertices: Float32Array; indices: Uin
   return { vertices, indices };
 }
 
-function waterPlaneWgsl(fieldWgsl: string): string {
+function waterPlaneWgsl(fieldWgsl: string, env: WaterEnvironment): string {
   return `
 ${WORLD_CAMERA_WGSL}
 ${fieldWgsl}
+${WATER_PALETTE_WGSL}
+${waterEnvironmentWgsl(env)}
 ${WATER_SHADE_WGSL}
 
 struct VsOut {
@@ -132,10 +136,14 @@ fn fs(in: VsOut) -> @location(0) vec4f {
   let s = waterField(in.world, cam.time);
   // Glint band: how well the direction from the camera to this fragment aligns
   // with the sun azimuth — 1 up the sun-track, fading to the sides.
-  let toFrag = normalize(in.world - vec2f(cam.x, cam.y));
+  let delta = in.world - vec2f(cam.x, cam.y);
+  let toFrag = normalize(delta);
   let sunAzVec = vec2f(cos(cam.sunAz), sin(cam.sunAz));
   let band = smoothstep(0.1, 0.8, dot(toFrag, sunAzVec));
-  let col = waterShade(s, sunDirection(), band);
+  // Depth ramp for the open sea: near reads as shallow turquoise, the far sea as
+  // deep blue (distance stands in for depth on the horizon plane).
+  let depth01 = smoothstep(20.0, 420.0, length(delta));
+  let col = waterShade(s, sunDirection(), band, depth01);
   return vec4f(col, 1.0);
 }`;
 }

@@ -12,12 +12,52 @@ Reference image (the compare-screenshots target):
 
 ## Next Agent Prompt
 
-> **Status:** Plan complete, not yet started. Last updated 2026-07-01.
+> **Status:** Slices 1–7 landed — the **open-sea look is complete in the lab**. Winner:
+> **Gerstner** (see [`slices/01-bakeoff-decision.md`](slices/01-bakeoff-decision.md)). Last
+> updated 2026-07-01.
 >
-> **You are picking up at Slice 1 (the technique bake-off spike).** Read this README,
-> then open [`slices/01-bakeoff-spike.md`](slices/01-bakeoff-spike.md) and build it. Do
-> not skip the spike — every later slice depends on which technique it picks and on the
-> `WaterFieldSource` seam it freezes.
+> **You are picking up at Slice 8 — the first PRODUCTION integration (battle open-sea).** Read
+> this README and open [`slices/08-integrate-battle-open-sea.md`](slices/08-integrate-battle-open-sea.md).
+> Drop the locked `waterPlanePass` / `waterField` / `waterShade` into the real battle open-sea
+> surface (the sealed `ocean` edge in `battle/horizonPass.ts`), through `projectWorld3d` +
+> `civsimBattleWorldDepth3d` in the world-depth slot, MSAA-safe. The whole look (seam, clock,
+> sun, geometry, foam, glint, colour, haze) is **frozen** — this slice reconciles seams, depth,
+> MSAA and prop/label seating, it does not re-tune the look. Verify on
+> `/renderer/battle-terrain-3d?gate=coastal-scrub&view=west` and a live battle; match the battle
+> environment preset to the terrain lighting so the water sun agrees with the land (the sun
+> uniform already carries the battle-sun default). Watch: no z-fight with `BattleHorizonPass`
+> blockers, no stripe where field water meets the open sea, MSAA=1 today but call
+> `gpuMultisample(shell.sampleCount)`.
+>
+> **Slices 6–7 result:** distance-keyed **haze** in `waterShade` dissolves the far sea into the
+> preset sky (no hard horizon; glint fades with haze) — `water-haze` scene gates the soft seam.
+> **Animation** rides `cam.time` (`shell.setTime`): the 20-wave Gerstner phases advance by
+> dispersion, foam noise drifts, glint shimmers — judged (unprimed) a believable, coherent,
+> pop-free open-sea cadence; deterministic at fixed `t` (the `water-rhythm` scene pins a
+> filmstrip + emits `shots/misc/water/rhythm.gif`). **Known refinement (not a blocker):** foam
+> could linger/decay a touch longer (true foam persistence needs a feedback buffer — a future
+> polish, out of scope for the analytic field).
+>
+> **Slice 5 result:** water is now **neutral albedo × environment preset** — `waterPalette.ts`
+> (Aegean turquoise→deep-blue albedo, depth-ramped by distance) × `waterEnvironment.ts` presets
+> (golden / dusk / overcast: `keyColor`, `fillColor`, `hazeColor`, `exposure`, sun az/el). The
+> plane pass injects the palette + chosen preset; `waterShade` lights the neutral albedo with
+> warm key + cool fill, adds a broad warm sun-**glitter track** + sharp sparkles (the glint is
+> the sun's own colour — the provisional warm constant is folded into `WATER_KEY`), and lays
+> preset-lit foam. Unprimed aesthetics PASS: same sea re-lit three ways, believable Aegean blue,
+> dusk dim not a dark diorama. The `water-albedo` scene proves two-light neutrality (golden reads
+> warmer than overcast). Default lab preset is now `golden`; the S2–S4 scenes are colour-agnostic.
+>
+> **Slices 2–4 result:** the Gerstner field is a 20-wave discretised spectrum (isotropic swell,
+> fine chop). `waterShade` (shared) shades the body by `normal·sun`, lays height-keyed granular
+> whitecap foam, and adds a narrow specular **sun-glint** streak banded to the sun azimuth. The
+> **sun direction lives in the camera uniform's last two pads** (`sunAz`/`sunEl`, `shell.setSun`,
+> `sunDirection()` in `cameraWgsl`), defaulting to the battle sun — this moved zero existing
+> pixels (battle snapshots byte-identical). Glint tracks the sun (proven by the `water-glint`
+> scene sweeping `sunAz`) and carries a provisional warm tint so it separates from white foam in
+> neutral grey. All judged PASS (unprimed). **Known:** the glint column concentrates near the sun
+> and thins toward the foamy near foreground — it will read stronger once S5 darkens the water
+> body; the IFFT *fallback* look is untuned (only shows on no-compute devices).
 >
 > **Before you start:** invoke the `aesthetics` skill (the visual north star) and the
 > `renderer` skill (the build/debug workflow for GPU + WGSL work). Every visual slice
@@ -25,28 +65,36 @@ Reference image (the compare-screenshots target):
 > `compare-screenshots` skill against `assets/reference-ifft-ocean-dusk.png` whenever it
 > has a wave-geometry / foam / glint target.
 >
+> **GPU verification on macOS (important):** headless Chromium and SwiftShader have **no
+> working WebGPU adapter** on this host — the only real adapter is Apple Metal, reachable
+> **only headful**. Run GPU scenes as
+> `VERIFY_GPU=1 VERIFY_GPU_ADAPTER=hardware VERIFY_HEADFUL=1 VERIFY_URL=http://localhost:<port> node scene.mjs <scene>`.
+> (The `dpr2 freezeAtTick` check in `renderer-lab-routes` is a known headful-capture flake —
+> re-run it; it passes at 0 diff.)
+>
 > **Active warnings:**
-> - There is **no compute infrastructure anywhere in the source** today. The IFFT branch
->   is net-new infra (capability probe + a compute dispatch in `frameShell`). It lives
->   entirely behind the `WaterFieldSource` seam so it deletes cleanly if it loses.
-> - The shared camera bind group is **`visibility: VERTEX` only** today
->   (`frameShell.ts:488-491`). Fragment-stage foam/glint cannot read the clock/sun
->   uniform until that is resolved (Slice 1, known unknown #1). Whatever you do, prove it
->   moves **zero existing pixels**.
+> - **Gerstner won; IFFT is retained only as the capability/weak-GPU fallback through Slice 8
+>   and is deleted in Slice 11.** The look slices must read acceptably off *either* field
+>   (the pick is reversible via `createWaterField({ tech })`).
+> - The camera BGL is now **`VERTEX | FRAGMENT`** and the camera uniform's first pad is the
+>   `time` clock (`setTime`). This moved zero existing pixels (battle/campaign snapshots are
+>   byte-identical) — keep it that way.
 > - Battle runs **MSAA = 1** today (the "edges use 4" comment is aspirational). New water
->   pipelines must still call `gpuMultisample(shell.sampleCount)` to stay MSAA-safe.
-> - Animated pixels break `snapCheck` unless time is injectable. Copy the existing
->   `fixedTime` pattern (`battle/renderer.ts`) for a frozen-`t` water clock; snap every
->   visual gate at a fixed `t`.
+>   pipelines must still call `gpuMultisample(shell.sampleCount)` to stay MSAA-safe
+>   (`waterPlanePass` already does).
+> - Animated pixels break `snapCheck` unless time is injectable. Use `shell.setTime(t)` with
+>   a fixed `t`; snap every visual gate at a fixed `t` (the look scenes snap `?t=3.0`).
+> - The displaced plane is a uniform grid (res 340) shaded per-fragment; that keeps the near
+>   field crisp without a graded grid. Foreground faceting (the old S2 risk) is resolved.
 >
 > **Global TODO (each item → owning slice):**
-> - [ ] S1 — Technique bake-off spike + frozen seam + decision artifact → `slices/01-bakeoff-spike.md`
-> - [ ] S2 — Wave silhouette / displacement (open-sea plane, neutral grey) → `slices/02-wave-silhouette.md`
-> - [ ] S3 — Whitecap foam coverage → `slices/03-foam-coverage.md`
-> - [ ] S4 — Sun-glint streak → `slices/04-sun-glint.md`
-> - [ ] S5 — Water albedo + depth ramp × env preset (introduces `waterPalette`) → `slices/05-albedo-depth-ramp.md`
-> - [ ] S6 — Horizon haze / aerial perspective → `slices/06-horizon-haze.md`
-> - [ ] S7 — Animation rhythm (time-series GIF) → `slices/07-animation-rhythm.md`
+> - [x] S1 — Technique bake-off spike + frozen seam + decision artifact → `slices/01-bakeoff-decision.md` (**Gerstner won**)
+> - [x] S2 — Wave silhouette / displacement (open-sea plane, neutral grey) → `slices/02-wave-silhouette.md` (**20-wave spectrum + waterShade**)
+> - [x] S3 — Whitecap foam coverage (granular height-keyed whitecaps) → `slices/03-foam-coverage.md`
+> - [x] S4 — Sun-glint streak (banded specular, sun-tracking) → `slices/04-sun-glint.md`
+> - [x] S5 — Water albedo + depth ramp × env preset (waterPalette + waterEnvironment) → `slices/05-albedo-depth-ramp.md`
+> - [x] S6 — Horizon haze / aerial perspective (distance-keyed haze in waterShade) → `slices/06-horizon-haze.md`
+> - [x] S7 — Animation rhythm (deterministic clock, believable cadence) → `slices/07-animation-rhythm.md`
 > - [ ] S8 — Integrate: battle open-sea (first production surface) → `slices/08-integrate-battle-open-sea.md`
 > - [ ] S9 — Integrate: battle coastal gameplay water → `slices/09-integrate-battle-coastal.md`
 > - [ ] S10 — Integrate: campaign sea (subtle / chart-respecting) → `slices/10-integrate-campaign-sea.md`

@@ -12,7 +12,7 @@ Synthesized from three independent draft plans (they converged hard — the cut 
 
 **Status:** S0 + S1 + S2 + S3 shipped (green). **S3 verdict: MIGRATE (Branch A).** _Last updated: 2026-07-01._
 
-**Start at S6d** (minimap frame). **S6a (card bar) + S6b (toolbar) + S6c (info panel) shipped.** S6 remaining:
+**Start at S6e** (battle modals). **S6a–c shipped; S6d resolved as no-op.** S6 remaining:
 - **S6a — card bar React default** ✅ (`?hud=vanilla` escape hatch until S7).
 - **S6b — toolbar** ✅ (`web/src/ui/hud/Toolbar.tsx` into `#toolbar`; icon-only buttons via
   `dangerouslySetInnerHTML` of `toolbarIcon()`; scene's `updateToolbar` computes a `{on,disabled}`
@@ -20,8 +20,10 @@ Synthesized from three independent draft plans (they converged hard — the cut 
 - **S6c — info panel** (`#hud`): read-only ≤5Hz readout (`updateHud`, throttled 0.2s) — header
   lines + selected/hovered unit detail (portrait, name, meta, stat bars, spec/weapon lines with
   `&nbsp;`/`<br>`). Big faithful port; low risk (no interaction). Convert `&nbsp;`→` `.
-- **S6d — minimap frame**: React bronze chassis around `<canvas id="minimap">`; `drawMinimap`
-  stays raw (firewall). Small.
+- **S6d — minimap frame** ✅ NO-OP: `#minimap` is a single `<canvas>` with the bronze chassis
+  applied directly as CSS (`var(--bronze-fill/edge/frame)` — already the S1 shared tokens); the
+  canvas is a firewall (`drawMinimap` raw). Wrapping it in a React div would add DOM + pixel risk
+  for zero benefit. Left as-is.
 - **S6e — battle modals**: `#gameover`, `#pausemenu`, AND the campaign `showBattleModal`
   (resliced from S4b/S5e). Needs a battle-scene modal root + replacing the `this.modal`
   render-loop null-gate with a boolean. The gameover/pause markup leaves index.html.

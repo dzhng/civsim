@@ -12,24 +12,24 @@ Reference image (the compare-screenshots target):
 
 ## Next Agent Prompt
 
-> **Status:** Slices 1–2 landed. Winner: **Gerstner** (see
+> **Status:** Slices 1–3 landed. Winner: **Gerstner** (see
 > [`slices/01-bakeoff-decision.md`](slices/01-bakeoff-decision.md)). Last updated 2026-07-01.
 >
-> **You are picking up at Slice 3 (whitecap foam coverage).** Read this README and the
-> decision artifact, then open [`slices/03-foam-coverage.md`](slices/03-foam-coverage.md) and
-> add foam to the shared `waterShade` (`water/waterMaterialWgsl.ts`) driven by
-> `WaterSample.foam` (the Gerstner field already computes a crest/curvature foam term). Tune
-> on `/renderer/water-bakeoff?tech=gerstner` in neutral grey. The `WaterFieldSource` seam,
-> the `time` clock, and the Slice-2 wave geometry are **frozen** — build against the seam.
+> **You are picking up at Slice 4 (sun-glint streak).** Read this README and the decision
+> artifact, then open [`slices/04-sun-glint.md`](slices/04-sun-glint.md) and add the specular
+> sun-glint band to the shared `waterShade` (`water/waterMaterialWgsl.ts`), driven by the
+> surface `normal` and the sun direction. Tune on `/renderer/water-bakeoff?tech=gerstner` in
+> neutral grey. The `WaterFieldSource` seam, the `time` clock, and the Slice-2/3 geometry +
+> foam are **frozen** — build against the seam.
 >
-> **Slice 2 result:** the Gerstner field is now a 20-wave discretised spectrum (log-spaced
-> wavelengths 96→6.5 m, stratified full-circle directions, per-wave phase offsets) — an
-> isotropic swell with fine chop, judged (unprimed) as real 3D multi-directional water. It is
-> displaced through `projectWorld3d` and shaded per-fragment by the new shared `waterShade`
-> (neutral grey, `normal·sun` only). Camera raised to pitch 0.30. **Known:** it reads as a
-> *calmer* sea than the reference and its crest occlusion is gentle — the full "swell with
-> body" look depends on foam (S3), glint (S4) and the colour/depth ramp (S5), which are the
-> next slices. Do not chase occlusion by over-amplifying geometry.
+> **Slices 2–3 result:** the Gerstner field is a 20-wave discretised spectrum (isotropic
+> swell, fine chop, per-wave phase offsets), displaced through `projectWorld3d` and shaded
+> per-fragment by the shared `waterShade`. Whitecap foam is a height-keyed crest signal broken
+> into granular spray by three noise octaves (`WaterSample.foam` → `waterShade` mix, neutral
+> white-grey). Both judged PASS by an unprimed critic (real 3D multi-directional water; granular
+> whitecaps at reference-like density). **Known:** foam thins toward the horizon (fine noise
+> goes sub-pixel at distance — S6 haze covers that band); the IFFT *fallback's* foam is
+> untuned (heavy) but only shows on no-compute devices. Do not over-amplify geometry.
 >
 > **Before you start:** invoke the `aesthetics` skill (the visual north star) and the
 > `renderer` skill (the build/debug workflow for GPU + WGSL work). Every visual slice
@@ -62,7 +62,7 @@ Reference image (the compare-screenshots target):
 > **Global TODO (each item → owning slice):**
 > - [x] S1 — Technique bake-off spike + frozen seam + decision artifact → `slices/01-bakeoff-decision.md` (**Gerstner won**)
 > - [x] S2 — Wave silhouette / displacement (open-sea plane, neutral grey) → `slices/02-wave-silhouette.md` (**20-wave spectrum + waterShade**)
-> - [ ] S3 — Whitecap foam coverage → `slices/03-foam-coverage.md`
+> - [x] S3 — Whitecap foam coverage (granular height-keyed whitecaps) → `slices/03-foam-coverage.md`
 > - [ ] S4 — Sun-glint streak → `slices/04-sun-glint.md`
 > - [ ] S5 — Water albedo + depth ramp × env preset (introduces `waterPalette`) → `slices/05-albedo-depth-ramp.md`
 > - [ ] S6 — Horizon haze / aerial perspective → `slices/06-horizon-haze.md`

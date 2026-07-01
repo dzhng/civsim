@@ -1,6 +1,6 @@
 import { GERSTNER_WGSL } from './gerstnerField';
 import { WATER_PALETTE_WGSL } from './waterPalette';
-import { waterEnvironmentWgsl, WATER_ENVIRONMENTS } from './waterEnvironment';
+import { waterEnvironmentWgsl, WATER_ENVIRONMENTS, type WaterEnvironment } from '../environment/environment';
 import { waterShoreRampWgsl, FIELD_WATER_RAMP } from './waterShoreRamp';
 import { WATER_SHADE_WGSL, CIVSIM_WATER_COLOR_WGSL } from './waterMaterialWgsl';
 
@@ -15,10 +15,11 @@ import { WATER_SHADE_WGSL, CIVSIM_WATER_COLOR_WGSL } from './waterMaterialWgsl';
 // WORLD_CAMERA_WGSL before this block. `shoreDist` is the caller's 0..1 distance-from-
 // shore signal: groundPass passes the box-filtered water weight, terrainPass the quad's
 // shore gradient.
-export const FIELD_WATER_WGSL = `
+export function fieldWaterWgsl(env: WaterEnvironment = WATER_ENVIRONMENTS.golden): string {
+  return `
 ${GERSTNER_WGSL}
 ${WATER_PALETTE_WGSL}
-${waterEnvironmentWgsl(WATER_ENVIRONMENTS.golden)}
+${waterEnvironmentWgsl(env)}
 ${waterShoreRampWgsl(FIELD_WATER_RAMP)}
 ${WATER_SHADE_WGSL}
 ${CIVSIM_WATER_COLOR_WGSL}
@@ -33,3 +34,6 @@ fn fieldWaterColor(p: vec2f, shoreDist: f32) -> vec3f {
   return civsimWaterColor(p, ramp.x, ramp.y, 0.0, swash * lace * 0.7);
 }
 `;
+}
+
+export const FIELD_WATER_WGSL = fieldWaterWgsl();

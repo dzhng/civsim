@@ -9,7 +9,13 @@ master shot judged against the reference.
 
 ## Next Agent Prompt
 
-**Status:** Slices 00, 01, and 02 landed. Slice 03's renderer
+**Status:** Slices 00, 01, 02, and 06C landed. Slice 06C now uses
+`CIVSIM_ENVIRONMENTS` as the shared weather owner: `WATER_ENVIRONMENTS` remains
+the water-facing alias, battle uses `golden-hour`/`overcast-foggy` aliases, and
+ground, grass, horizon, water, and skinned soldiers all consume the same sun,
+key/fill, haze, and exposure fields while keeping neutral material albedos.
+Route stats and scene checks prove `golden-hour` in the live battle default and
+`overcast-foggy` in the reference route. Slice 03's renderer
 infrastructure landed in `codex/battle-map-reference` (2026-06-30), and the
 earlier repair pass added a real reference-comparison shot plus a dense `zoomT=1`
 vista grass mode. The latest pass moved that comparison off the old catalog
@@ -358,14 +364,15 @@ compute a distance/projection `haze01`, fade glint/high-frequency detail as
 `haze01` rises, then mix the final surface toward `WATER_HAZE` so far geometry
 dissolves into the sky instead of leaving a hard horizon. Slice 06B must reuse
 that same contract for the battlemap's far ridges, far grass/meadow mass, and
-distant water: `packages/game-renderer/src/water/waterEnvironment.ts` owns the
-environment `hazeColor`, `waterEnvironmentWgsl` exposes it as `WATER_HAZE`, and
+distant water: `packages/game-renderer/src/environment/environment.ts` owns the
+shared `hazeColor`, `waterEnvironmentWgsl` exposes it as `WATER_HAZE`, and
 `packages/game-renderer/src/water/waterMaterialWgsl.ts` demonstrates the final
 `mix(surface, WATER_HAZE, haze01)` plus detail fade. The overcast battlemap fog
-starts from `WATER_ENVIRONMENTS.overcast.hazeColor`; do not invent a private
-battlemap fog palette. Do not use fog to hide unfinished grass, cliff shape, or
-water placement; grass-lab slices must keep fog frozen until the dedicated 06B
-pass.
+starts from `CIVSIM_ENVIRONMENTS.overcast.hazeColor`, with
+`WATER_ENVIRONMENTS.overcast` only as the water-facing alias; do not invent a
+private battlemap fog palette. Do not use fog to hide unfinished grass, cliff
+shape, or water placement; grass-lab slices must keep fog frozen until the
+dedicated 06B pass.
 
 **Slice 03B2 approach/state (2026-07-01):** the current packed-field workbench
 uses the 03B1 records directly instead of another scatter path. `BattleGrassPass`
@@ -1214,7 +1221,7 @@ have to rediscover.
 - [ ] **Slice 05B** — cliff face texture and pale streaks (`slices/05b-cliff-texture.md`)
 - [ ] **Slice 06A** — overcast sky plate (`slices/06-sky-and-haze.md`)
 - [ ] **Slice 06B** — distance fog / aerial perspective via the water haze contract (`slices/06b-distance-fog.md`)
-- [ ] **Slice 06C** — swappable weather presets (`slices/06c-weather-presets.md`)
+- [x] **Slice 06C** — swappable weather presets (`slices/06c-weather-presets.md`) — shared `CIVSIM_ENVIRONMENTS` owner with water and battle aliases
 - [ ] **Slice 07A** — distant water placement and silhouette (`slices/07-distant-water.md`)
 - [ ] **Slice 07B** — water material, shore softness, and haze integration (`slices/07b-water-material.md`)
 - [ ] **Slice 08** — reference-map compose + integration (`slices/08-reference-map-compose.md`)

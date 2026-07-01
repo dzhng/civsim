@@ -18,6 +18,12 @@ import {
   type BattleGroundCover,
   type BattleTerrainGrid,
 } from "../../../packages/game-renderer/src/battle/terrainFeatures";
+import {
+  BATTLE_ENVIRONMENTS,
+  applyBattleEnvironment,
+  battleEnvironmentStats,
+  skinnedLightingForBattleEnvironment,
+} from "../../../packages/game-renderer/src/environment/environment";
 import { featuresToBattleScenery } from "../../../packages/game-renderer/src/battle/terrainScenery";
 import {
   terrainHeightAt,
@@ -72,6 +78,7 @@ export class BattleRenderer {
   private terrainRect: [number, number, number, number] = [-220, -180, 440, 360];
   private terrainGrid: BattleTerrainGrid | null = null;
   private groundCover: BattleGroundCover = "green-grass";
+  private readonly environment = BATTLE_ENVIRONMENTS["golden-hour"];
   private grassTerrainKey: string | null = null;
   private grassWindPhase = 0;
   private instances: CrowdInstance[] = [];
@@ -227,6 +234,7 @@ export class BattleRenderer {
     this.frameStart = performance.now();
     this.lastCamera = cameraSnapshot(camera);
     this.shell.setCamera(this.lastCamera);
+    applyBattleEnvironment(this.shell, this.environment);
     const buildStart = performance.now();
     const built = buildCrowdInstances({
       positions,
@@ -444,6 +452,7 @@ export class BattleRenderer {
             groundTriangles: this.ground.stats().triangles,
             sealedEdges: this.horizon?.stats().sealedEdges ?? [],
             groundCover: this.groundCover,
+            environment: battleEnvironmentStats(this.environment),
             scenery: this.scenery?.stats().scenery ?? 0,
             grass: this.grass?.stats() ?? null,
           }
@@ -481,10 +490,11 @@ export class BattleRenderer {
           ),
         ),
     });
-    this.ground = new BattleGroundPass(this.shell);
-    this.grass = new BattleGrassPass(this.shell);
+    applyBattleEnvironment(this.shell, this.environment);
+    this.ground = new BattleGroundPass(this.shell, this.environment);
+    this.grass = new BattleGrassPass(this.shell, this.environment);
     this.scenery = new CampaignSceneryPass(this.shell, "battle");
-    this.horizon = new BattleHorizonPass(this.shell);
+    this.horizon = new BattleHorizonPass(this.shell, this.environment);
     this.applyTerrain();
     this.groundCues = new BattleGroundCuePass(this.shell);
     this.effectLines = new BattleEffectLinePass(this.shell);
@@ -497,6 +507,7 @@ export class BattleRenderer {
       createPlaceholderSoldierMeshes([0.2, 0.42, 0.88]),
       await loadClassVats(kit),
       kit,
+      { lighting: skinnedLightingForBattleEnvironment(this.environment) },
     );
     this.soldierShadows = new SoldierShadowDecalPass(this.shell);
   }

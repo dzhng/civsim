@@ -35,13 +35,13 @@ battlefield.
 > never disturb.
 >
 > **Load-bearing facts from recon (do not relearn the hard way):**
-> - **Keep `WATER_ENVIRONMENTS` (`water/waterEnvironment.ts`) frozen.** The six lab scenes
+> - **Keep `WATER_ENVIRONMENTS` (`environment/environment.ts`) frozen.** The six lab scenes
 >   `web/scenes/system/water-*.mjs` render the open-sea plane through the `water-bakeoff`
 >   route (`WaterPlanePass` **lab path**, `shoreX == null`) reading `WATER_ENVIRONMENTS`
 >   directly, and `water-albedo` sweeps **all three** presets (golden/dusk/overcast) — so
->   editing ANY field breaks them. The battle environment is a **separate module** that
->   feeds the **battle** water pipelines (`shoreX` set — a different pipeline instance) via
->   an adapter; the lab path is never touched.
+>   editing ANY field breaks them. Current battle weather is an alias over the shared
+>   `CIVSIM_ENVIRONMENTS` owner, so battle-facing names and water-facing names must stay
+>   adapters over one preset family.
 > - **Do not edit `waterShade`/`civsimWaterColor` (`water/waterMaterialWgsl.ts`).** The
 >   sea→sky match is done by **identity**: set the battle water env's `hazeColor` equal to
 >   the sky horizon colour, so its existing `mix(surface, WATER_HAZE, haze01)` dissolves
@@ -117,8 +117,7 @@ battlefield.
 ## The seam that makes this safe
 
 ```ts
-// packages/game-renderer/src/battle/battleEnvironment.ts   (NEW — the whole-battle
-//                                                            analogue of waterEnvironment.ts)
+// packages/game-renderer/src/environment/environment.ts
 export interface BattleEnvironment {
   id: 'golden' | 'overcast';
   skyZenith:  [number, number, number];   // top of the sky gradient
@@ -132,13 +131,12 @@ export interface BattleEnvironment {
 }
 export const BATTLE_ENVIRONMENTS: Record<BattleEnvironment['id'], BattleEnvironment>;
 export function battleEnvironmentWgsl(env): string;          // injects BATTLE_SKY_*/HAZE/SUN_*/EXPOSURE/FOG_*
-export function battleWaterEnvironment(env): WaterEnvironment; // ADAPTER → the frozen waterEnvironmentWgsl, unchanged
+export const WATER_ENVIRONMENTS: Record<WaterEnvironment['id'], WaterEnvironment>; // alias over CIVSIM_ENVIRONMENTS
 ```
 
-The **adapter** returns a `WaterEnvironment` (reusing `waterEnvironmentWgsl` verbatim), so
-the battle water pipelines get their `WATER_KEY/FILL/HAZE/EXPOSURE` from the *battle* env
-with zero edits to the shared water shader. The lab route keeps passing
-`WATER_ENVIRONMENTS[preset]` directly, so the six frozen scenes never see the battle env.
+The battle and water names are aliases over `CIVSIM_ENVIRONMENTS`, reusing
+`waterEnvironmentWgsl` verbatim, so the pipelines get `WATER_KEY/FILL/HAZE/EXPOSURE`
+from one shared source with zero edits to the shared water shader.
 
 The **one aerial helper** `battle/aerialPerspectiveWgsl.ts` emits
 `fn battleAerial(col, worldXY) -> vec3f`, keyed on camera-space distance and mixing toward
@@ -184,10 +182,10 @@ comparison, after the variables have their own evidence.
 
 ## Firewalls / scope guards
 
-1. **The six `web/scenes/system/water-*.mjs` stay byte-identical.** Never edit
-   `water/waterEnvironment.ts`, `water/waterMaterialWgsl.ts`, or the `WaterPlanePass` **lab
-   path** (`shoreX == null`). The battle atmosphere reaches water only through
-   `battleWaterEnvironment(env)` on the **battle** pipelines. This is checked every slice.
+1. **The six `web/scenes/system/water-*.mjs` stay intentional.** Never fork
+   `CIVSIM_ENVIRONMENTS`, `WATER_ENVIRONMENTS`, `water/waterMaterialWgsl.ts`, or the
+   `WaterPlanePass` **lab path** (`shoreX == null`). Battle atmosphere reaches water
+   through shared environment aliases, not private constants. This is checked every slice.
 2. **Seating is untouched.** The aerial helper is a `groundPass` **fragment** step; the
    mesh z stays the gameplay heightfield. `battle-terrain-elevation` (soldiers seat,
    `match=true`) stays byte-identical.

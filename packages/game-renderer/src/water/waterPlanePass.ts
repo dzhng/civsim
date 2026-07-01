@@ -5,7 +5,7 @@ import { gpuMultisample, gpuOpaqueColorTarget, gpuWorldDepthStencil } from '../.
 import { WATER_SHADE_WGSL, CIVSIM_WATER_COLOR_WGSL } from './waterMaterialWgsl';
 import { WATER_PALETTE_WGSL } from './waterPalette';
 import { waterShoreRampWgsl, LAB_OPEN_SEA_RAMP, type WaterShoreRamp } from './waterShoreRamp';
-import { waterEnvironmentWgsl, WATER_ENVIRONMENTS, type WaterEnvironment } from './waterEnvironment';
+import { waterEnvironmentWgsl, WATER_ENVIRONMENTS, type WaterEnvironment } from '../environment/environment';
 import type { WaterFieldSource } from './waterField';
 
 // The candidate-agnostic open-sea pass: one tessellated plane at the battle

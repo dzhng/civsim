@@ -15,9 +15,9 @@ Slice S7 proving that the same soft seam survives animated water:
   sky from the active preset's `hazeColor`;
 - `packages/game-renderer/src/water/waterMaterialWgsl.ts` fades glint/detail by
   `(1.0 - haze01)` and finishes with `mix(surface, WATER_HAZE, haze01)`;
-- `packages/game-renderer/src/water/waterEnvironment.ts` owns the preset haze
-  colours, with `WATER_ENVIRONMENTS.overcast.hazeColor` as the current overcast
-  battlemap reference;
+- `packages/game-renderer/src/environment/environment.ts` owns the preset haze
+  colours, with `CIVSIM_ENVIRONMENTS.overcast.hazeColor` as the current overcast
+  battlemap reference and `WATER_ENVIRONMENTS.overcast` as the water-facing alias;
 - `web/scenes/system/water-haze.mjs` gates the soft seam, the latest review shots
   live in `web/shots/misc/water/`, and feature-owned copies are archived here as
   `assets/water-fog-reference/haze-gerstner.png` and
@@ -52,9 +52,9 @@ route stats, and record why that surface needs its own distance band.
   `haze01`, detail fade by `(1.0 - haze01)`, final `mix(surface, hazeColor,
   haze01)`.
 - Add a battle atmosphere/environment seam rather than scattering fog constants
-  through terrain, grass, ridge, and water passes. If the water environment module
-  stays water-named for now, explicitly document the import/reuse so the shared
-  colour source is still obvious.
+  through terrain, grass, ridge, and water passes. Keep the shared colour source
+  in `CIVSIM_ENVIRONMENTS`; battle-facing and water-facing names are aliases over
+  that source, not duplicate preset tables.
 - Apply haze in the material/shading stage for each far surface. Avoid a single
   opaque screen-space fog curtain; the reference-like effect comes from surfaces
   losing contrast into the sky while nearby grass stays readable.
@@ -98,7 +98,7 @@ Do not judge sky shape, cliff texture, grass density, or water material here.
   than private ad hoc haze constants.
 - The battle route uses the same environment haze colour family as the archived
   water shots. In the overcast preset, far terrain/ridge/water should approach
-  the pale grey-blue `WATER_ENVIRONMENTS.overcast.hazeColor`, and the sky clear
+  the pale grey-blue `CIVSIM_ENVIRONMENTS.overcast.hazeColor`, and the sky clear
   or sky plate should meet that value at the horizon.
 - The implementation proves reuse, not imitation: either the battle passes share
   a named atmosphere/environment helper with water or the spec records the exact

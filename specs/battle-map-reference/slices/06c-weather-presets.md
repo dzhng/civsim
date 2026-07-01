@@ -6,18 +6,18 @@ Prove the warm-vs-cold look is environment lighting, not repainted materials. Th
 same accepted map assets render under `overcast-foggy` for the reference and
 `golden-hour` for the Aegean register.
 
-Do not build a separate battle-only weather stack. Treat the water work's
-`WATER_ENVIRONMENTS` shape as the shared environment contract: sun azimuth/elevation,
-key color, fill color, haze color, and exposure are one preset object consumed by
-water, sky, terrain, ridges, grass, and any later battle atmosphere pass. Battle may
-rename or wrap those presets (`overcast` -> `overcast-foggy`, `golden` ->
-`golden-hour`) to match the spec language, but the implementation should converge on
-one environment source or a tiny shared adapter, not duplicated constants per surface.
+Do not build a separate battle-only weather stack. Promote the water work's
+environment shape into a shared renderer contract: sun azimuth/elevation, key color,
+fill color, haze color, and exposure are one preset object consumed by water, sky,
+terrain, ridges, grass, soldiers, and any later battle atmosphere pass. The clean
+owner is `CIVSIM_ENVIRONMENTS`; `WATER_ENVIRONMENTS` and battle-facing names
+(`overcast-foggy`, `golden-hour`) are aliases over that source, not separate constant
+sets.
 
 `dusk` can remain a water/lab preset until a battle slice explicitly needs it. The
-important merge is architectural: every surface reads the same environment fields and
-keeps material albedos neutral, so adding another weather state later changes preset
-uniforms instead of repainting grass, cliffs, water, or soldiers.
+important merge is architectural: every surface reads the same shared environment
+fields and keeps material albedos neutral, so adding another weather state later
+changes preset uniforms instead of repainting grass, cliffs, water, or soldiers.
 
 ## Fixed Inputs
 
@@ -36,9 +36,9 @@ Use paired captures of the same view under both presets. Judge:
 ## Verification
 
 - Route stats publish the active `EnvironmentPreset`.
-- Route stats also publish the environment source/adaptation path, e.g. shared
-  `WATER_ENVIRONMENTS.overcast` feeding battle `overcast-foggy`, so reviewers can see
-  the battle preset is not a private fork.
+- Route stats also publish the environment source/adaptation path, e.g.
+  `CIVSIM_ENVIRONMENTS.overcast` feeding battle `overcast-foggy` and water alias
+  `WATER_ENVIRONMENTS.overcast`, so reviewers can see neither side is a private fork.
 - A test or probe records that base material colours are unchanged between preset
   captures.
 - A same-albedo paired capture includes water and at least one non-water surface

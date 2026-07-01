@@ -402,14 +402,13 @@ cargo test -p sim --test mechanics_melee
 cargo test -p sim --test balance_harness
 cargo test -p sim --test ranged_scenarios
 
-# browser verification (needs the dev server running)
-node web/scene.mjs                   # battle quick scenes
-node web/scene.mjs battle-ai --full
-node web/verify-battle.mjs           # compatibility wrapper for battle
-node web/verify-campaign.mjs         # campaign (real map: behavior + screenshots)
-node web/verify-campaign-visual.mjs  # campaign markers (controlled test map)
+# browser verification (needs the dev server running) — scenes are addressable
+node web/scene.mjs                   # all quick scenes
+node web/scene.mjs battle-ai --full  # one scene by name
+node web/scene.mjs campaign-visual campaign-map-alignment campaign-lod  # campaign scenes
+# bun run verify / verify:campaign run the packaged battle / campaign subsets.
 # re-bless screenshot baselines after an intentional visual change:
-UPDATE_SHOTS=1 node web/verify-campaign.mjs
+UPDATE_SHOTS=1 node web/scene.mjs campaign-visual
 ```
 
 See `crates/sim/tests/README.md` for the sim test taxonomy and

@@ -14,7 +14,7 @@ export const meta = {
 // delays orders) is pinned in Rust — `cavalry_mass_shoves_through_infantry` and
 // `disordered_unit_delays_orders_with_visible_timer`. Here we only guard the look.
 export async function run(ctx) {
-  const page = await battleReal(ctx);
+  const page = await battleReal(ctx, { settle: 0 });
 
   await page.evaluate(() => window.__game.freezeAtTick(480));
   const info4 = await page.evaluate(() => window.__game.unitInfo(4));
@@ -35,6 +35,12 @@ export async function run(ctx) {
       window.__game.advance(2700);
     },
     [ls[0], ls[1]],
+  );
+  await page.evaluate(() => window.__game.freezeAtTick(window.__game.tickCount()));
+  await page.waitForFunction(
+    () => (window.__game?.stats?.().renderStats?.drawCalls ?? 0) > 0,
+    undefined,
+    { timeout: 8000 },
   );
 
   await ctx.snap(page, "battle-cavalry-plow", { threshold: 0.2, maxDiffRatio: 0.02 });

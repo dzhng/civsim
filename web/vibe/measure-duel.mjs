@@ -8,7 +8,7 @@
 //      unit's centroid moves further up (+y), the bottom unit further down.
 // Usage (from web/, dev server up):
 //   ATK=0 DEF=0 node vibe/measure-duel.mjs
-import { openBattle, UNIT_CENTER_Y } from "./_lib.mjs";
+import { openBattle, closeBattle, UNIT_CENTER_Y } from "./_lib.mjs";
 
 const ATK = Number(process.env.ATK ?? 0);
 const DEF = Number(process.env.DEF ?? 0);
@@ -114,4 +114,4 @@ if (typeof finalTopY === "number" && topRoutY !== null) {
 } else {
   console.log(`3. rout direction:  no clean rout captured in window`);
 }
-await browser.close();
+await closeBattle(browser, page);

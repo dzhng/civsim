@@ -4,7 +4,14 @@
 // through, and not dissolve into a uniform blob. Watch web/shots/vibe/penetration/.
 //   Default: a heavy column vs a wide held heavy line.
 //   Override: COL=6 DEF=0 node vibe/penetration.mjs   (cavalry column)
-import { openBattle, vibeCapture, CLS, UNIT_CENTER_X, UNIT_CENTER_Y } from "./_lib.mjs";
+import {
+  openBattle,
+  closeBattle,
+  vibeCapture,
+  CLS,
+  UNIT_CENTER_X,
+  UNIT_CENTER_Y,
+} from "./_lib.mjs";
 
 const COL = Number(process.env.COL ?? CLS.heavy); // unit 0, the penetrating column
 const DEF = Number(process.env.DEF ?? CLS.heavy); // unit 1, the held defender
@@ -79,5 +86,5 @@ const { frames, fails } = await vibeCapture(page, process.env.NAME ?? "penetrati
 
 console.log(`\n${frames} frames`);
 if (errs.length) console.log("page errors:", errs.slice(0, 3));
-await browser.close();
+await closeBattle(browser, page);
 process.exit(fails);

@@ -951,7 +951,7 @@ async function findPhaseBrandFootguns() {
         ],
         [
           "battle far LOD markers declare impostor marker layer",
-          /markerLayer:\s*this\.markers\.length\s*>\s*0\s*\?\s*'far-lod-impostor'\s*:\s*undefined/,
+          /markerLayer:\s*this\.markers\.length\s*>\s*0\s*\?\s*["']far-lod-impostor["']\s*:\s*undefined/,
         ],
       ],
     },
@@ -1240,15 +1240,15 @@ async function findFrameGraphVerifierFootguns() {
     ],
     [
       "exports shared frame phase kinds",
-      /export\s+const\s+FRAME_PHASE_KINDS\s*=\s*readStringArrayConst\(FRAME_GRAPH_CONTRACT_SOURCE,\s*'FRAME_PHASE_KINDS'\)/,
+      /export\s+const\s+FRAME_PHASE_KINDS\s*=\s*readStringArrayConst\(\s*FRAME_GRAPH_CONTRACT_SOURCE,\s*["']FRAME_PHASE_KINDS["'],?\s*\)/,
     ],
     [
       "exports shared frame graph roles",
-      /export\s+const\s+FRAME_GRAPH_PASS_ROLES\s*=\s*readStringArrayConst\(FRAME_GRAPH_CONTRACT_SOURCE,\s*'FRAME_GRAPH_PASS_ROLES'\)/,
+      /export\s+const\s+FRAME_GRAPH_PASS_ROLES\s*=\s*readStringArrayConst\(\s*FRAME_GRAPH_CONTRACT_SOURCE,\s*["']FRAME_GRAPH_PASS_ROLES["'],?\s*\)/,
     ],
     [
       "exports shared role phase map",
-      /export\s+const\s+FRAME_GRAPH_ROLE_PHASES\s*=\s*readStringObjectConst\(FRAME_GRAPH_CONTRACT_SOURCE,\s*'FRAME_GRAPH_ROLE_PHASES'\)/,
+      /export\s+const\s+FRAME_GRAPH_ROLE_PHASES\s*=\s*readStringObjectConst\(\s*FRAME_GRAPH_CONTRACT_SOURCE,\s*["']FRAME_GRAPH_ROLE_PHASES["'],?\s*\)/,
     ],
     [
       "semantic role helper uses shared role phase map",

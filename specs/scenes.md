@@ -24,6 +24,14 @@ point — deviate where the code disagrees. What you may NOT weaken: the locked
 invariants in **What must NOT change**, and the *(binding)* coverage/mirror
 gates — the 100%-or-fail property is the whole point, not a nice-to-have.
 
+> **Status (partial):** the single runner (`web/scene.mjs` + `web/scenes/*.mjs`)
+> is live and the three flat `verify-*.mjs` harnesses are gone — the campaign
+> pair is archived under `specs/done/renderer-skinned-crowd-foundation/`, and
+> `verify-battle.mjs` was folded into the `verify` / `verify:full` package.json
+> scripts (an inline battle-scene roster). The before-state prose below is kept
+> as rationale. Still open: catalog-driven atomic coverage + the mirror/coverage
+> gates.
+
 ## The contract this unlocks
 
 Today there is no way to run one visual case. Each of `web/verify-battle.mjs`,

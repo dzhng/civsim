@@ -27,10 +27,10 @@ Each layer must be green before the next is worth running. The focused runners i
    Run when re-deriving the economy or before a balance-touching push, never in
    the iteration loop.
 5. **Browser LAST, only when cargo is green**: `node scene.mjs` from `web/`
-   (or `npm run verify`). It covers web-only glue: the wasm boundary, zero-copy
+   (or `bun run verify`). It covers web-only glue: the wasm boundary, zero-copy
    views, UI plumbing, render health, and the shot baselines — NOT sim behavior.
    If a behavior matters it gets a Rust test, never a browser check.
-   - **REBUILD THE WASM FIRST if you touched any Rust** (`npm run build:wasm`
+   - **REBUILD THE WASM FIRST if you touched any Rust** (`bun run build:wasm`
      from `web/`). The verify harness loads the prebuilt wasm, NOT your live
      source — skip the rebuild and you're testing a stale binary. This once let
      a boot-crashing regression (a new class panicking `class_specs`) pass a

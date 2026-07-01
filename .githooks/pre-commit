@@ -2,7 +2,7 @@
 # Format staged sources with the project formatters, then restage them, so
 # every commit lands already-formatted:
 #   Rust    -> rustfmt          (same style as `cargo fmt --all`)
-#   web/**  -> oxfmt --write     (same as `npm --prefix web run format`;
+#   web/**  -> oxfmt --write     (same as `bun run --cwd web format`;
 #                                 honors web/.prettierignore, so generated
 #                                 data under web/public/** and the lockfile
 #                                 are left alone)
@@ -38,7 +38,7 @@ if [ -n "$web" ]; then
       || status=1
     echo "$web" | xargs git add
   else
-    echo "pre-commit: web/node_modules missing (npm --prefix web install); skipping web." >&2
+    echo "pre-commit: web/node_modules missing (bun install --cwd web); skipping web." >&2
   fi
 fi
 

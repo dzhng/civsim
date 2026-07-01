@@ -89,7 +89,7 @@ keeps a leader from snowballing uncatchably. Shipped in `crates/campaign`
 - **Recruiting spends population and can't exceed the pool** (`economy::recruit`).
 - **Save/load round-trips within the current version**; no backward compatibility.
 - **The wasm boundary stays thin** (`campaign_bind.rs`); rebuild
-  (`npm run build:wasm`) before the TS sees new methods.
+  (`bun run build:wasm`) before the TS sees new methods.
 
 ## Pointers into the code
 

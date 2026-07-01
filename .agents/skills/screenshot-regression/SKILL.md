@@ -80,7 +80,7 @@ until the source is named and intentionally tolerated.
 ## Rebuild the wasm before you trust ANY screenshot
 
 The browser loads the **prebuilt** wasm under `web/src/wasm`, never your live
-Rust source. If you touched anything in `crates/`, run `npm run build:wasm` from
+Rust source. If you touched anything in `crates/`, run `bun run build:wasm` from
 `web/` FIRST — otherwise every screenshot, and every green `verify`, reflects a
 STALE binary. This has shipped a boot-crashing regression past a passing verify:
 a new unit class was in the sim source but not in the wasm the browser actually
@@ -92,7 +92,7 @@ Dev server first (5173 is usually taken by the old `/Users/david/dev/game`
 checkout — don't kill it):
 
 ```sh
-cd web && npx vite --port 5174 --strictPort   # then VERIFY_URL=http://localhost:5174
+cd web && bunx vite --port 5174 --strictPort   # then VERIFY_URL=http://localhost:5174
 ```
 
 Drive the game with Playwright through the same debug hooks the harnesses use:
@@ -137,7 +137,7 @@ ONE unit in isolation and measures its own pixels. Spawn a duel
 centroid, and at each zoom compute the screen AABB of its men
 (`worldToScreen` over `soldierPos`) and classify pixels inside it: `darkFrac`
 (near-black) and, among non-grass pixels, the team-colour share. Assert across a
-zoom sweep `[1,2,4,6,9]`. This is the `LOD z*` stage in `verify-battle.mjs`; it
+zoom sweep `[1,2,4,6,9]`. This is the `LOD z*` stage in the `battle-lod` scene; it
 catches both the far-zoom **black-block** bug and the mid-zoom **faint-soldier**
 bug with one metric, and isn't fooled by legitimate grass between ranks (the
 flaw in any whole-box "mean colour" check).
@@ -178,8 +178,8 @@ Click-to-select and drag-box are real input paths; drive them with
 
 For battle work, run the smallest scene by name:
 `node scene.mjs battle-ai --full`, `node scene.mjs banner-gallery`, or
-`node scene.mjs battle-cavalry-plow --full`. `web/verify-battle.mjs` remains
-a compatibility wrapper over those scenes, so old commands still work.
+`node scene.mjs battle-cavalry-plow --full`. `bun run verify` runs the packaged
+battle-acceptance subset over those scenes.
 
 Within a selected scene, set `SNAP=<substr>` to compare only snaps whose name
 contains the substring (comma-separated = OR), skipping the rest (no compare, no
@@ -208,8 +208,7 @@ already-captured `shot` buffer (a composited contact sheet, a reused frame) to
 skip the internal `page.screenshot()`.
 
 - **Campaign/visual:** a `ctx.check` + `ctx.snap` in a scene under
-  `web/scenes/<owner>/`. (`verify-battle.mjs` remains a battle compatibility
-  wrapper.)
+  `web/scenes/<owner>/`.
 - **Vibe timeline:** don't call `snapCheck` directly — `vibeCapture` does it per
   frame; see [write-vibe](../write-vibe/SKILL.md).
 - **Model sheet:** snap-checks one composited contact sheet per class; see
@@ -254,7 +253,7 @@ skip the internal `page.screenshot()`.
 
 ```sh
 UPDATE_SHOTS=1 VERIFY_GPU=1 VERIFY_URL=http://localhost:5174 node scene.mjs campaign-lod
-UPDATE_SHOTS=1 VERIFY_URL=http://localhost:5174 node verify-battle.mjs
+UPDATE_SHOTS=1 VERIFY_GPU=1 VERIFY_URL=http://localhost:5174 node scene.mjs battle-renderer-default
 ```
 
 Vibe and model-sheet re-blesses clear their baseline folder first (and the vibe

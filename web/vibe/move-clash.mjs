@@ -8,6 +8,7 @@
 //   ATK=0 DEF=0 node vibe/move-clash.mjs    # heavy v heavy, both move
 import {
   openBattle,
+  closeBattle,
   vibeCapture,
   fitDuel,
   duelSample,
@@ -35,7 +36,8 @@ await page.evaluate(
 
 const { frames, resolved, fails } = await vibeCapture(page, NAME, {
   stepSecs: 20,
-  maxSteps: 18,
+  maxSteps: 32,
+  requireResolved: true,
   frame: () => fitDuel(page),
   sample: () => duelSample(page),
   label: duelLabel,
@@ -43,5 +45,5 @@ const { frames, resolved, fails } = await vibeCapture(page, NAME, {
 });
 console.log(`${NAME}: ${resolved ? `resolved in ${frames} frames` : "UNRESOLVED"}`);
 if (errs.length) console.log("  page errors:", errs.slice(0, 3));
-await browser.close();
+await closeBattle(browser, page);
 process.exit(fails);

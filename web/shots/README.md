@@ -29,7 +29,7 @@ see [`../vibe/README.md`](../vibe/README.md). For the scene catalog and the
 
 ```bash
 # from web/ — pick a free port; multiple checkouts contend for 5173/5174
-npx vite --port 5185 --strictPort &
+bunx vite --port 5185 --strictPort &
 
 # 1. scene harness (campaign / ui / battle / models)
 VERIFY_URL=http://localhost:5185 VERIFY_GPU=1 UPDATE_SHOTS=1 node scene.mjs --full

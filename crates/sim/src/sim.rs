@@ -1930,16 +1930,15 @@ impl Sim {
                                 // returning to the old unbounded live-length lever.
                                 let fighting_mounted =
                                     target[i] >= 0 && mounted[target[i] as usize] == 1;
-                                let pivot_len =
-                                    if (u.is_mounted()
-                                        || fighting_mounted
-                                        || narrow_against_much_wider_foot)
-                                        && al > rl
-                                    {
-                                        al.min(rl + pivot_stretch_slack)
-                                    } else {
-                                        al
-                                    };
+                                let pivot_len = if (u.is_mounted()
+                                    || fighting_mounted
+                                    || narrow_against_much_wider_foot)
+                                    && al > rl
+                                {
+                                    al.min(rl + pivot_stretch_slack)
+                                } else {
+                                    al
+                                };
                                 pivot_push = pivot_push + tang * pivot_len;
                             }
                             // COMPRESSION push: when the bond is shorter than rest,

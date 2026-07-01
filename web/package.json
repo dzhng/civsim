@@ -6,6 +6,10 @@
     "dev": "vite --strictPort",
     "build": "vite build",
     "typecheck": "tsc --noEmit",
+    "lint": "oxlint",
+    "format": "oxfmt --write --no-error-on-unmatched-pattern",
+    "format:check": "oxfmt --check --no-error-on-unmatched-pattern",
+    "test": "vitest run",
     "preview": "vite preview",
     "build:wasm": "wasm-pack build ../crates/game-wasm --target web --release --out-dir ../../web/src/wasm",
     "scene": "node scene.mjs",
@@ -17,7 +21,7 @@
     "scenario:renderer:campaign": "SCENARIO_REPORT_JSON=reports/rendering/scenario-runs/renderer-campaign-latest.json VERIFY_GPU=1 node scene.mjs campaign-production campaign-handoff campaign-save-load campaign-conquest campaign-reinforcements campaign-visual campaign-map-alignment campaign-lod",
     "perf:renderer": "VERIFY_GPU=1 node scene.mjs full-game-rendering-performance",
     "perf:renderer:hardware": "VERIFY_GPU=1 VERIFY_GPU_ADAPTER=hardware VERIFY_HEADFUL=1 VERIFY_BROWSER_CHANNEL=chrome node scene.mjs full-game-rendering-performance",
-    "shots:models": "npm run shots:models:soldiers && npm run shots:models:campaign && npm run shots:models:props",
+    "shots:models": "bun run shots:models:soldiers && bun run shots:models:campaign && bun run shots:models:props",
     "shots:models:soldiers": "node shots/models/scripts/soldier-sheets.mjs",
     "shots:models:campaign": "VERIFY_GPU=1 node scene.mjs campaign-models",
     "shots:models:props": "VERIFY_GPU=1 UPDATE_SHOTS=1 node scene.mjs shared-prop-models",
@@ -30,20 +34,26 @@
     "bake:anim": "node ../packages/soldier-assets/bake/soldier-placeholders.mjs",
     "bake:test": "node ../packages/soldier-assets/bake/vat.test.mjs && node ../packages/soldier-assets/bake/gltf.test.mjs && node ../packages/soldier-assets/bake/soldier-placeholders.mjs --check && node shots/models/scripts/soldier-cards.mjs --check"
   },
+  "dependencies": {
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7"
+  },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.2",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.3",
+    "jsdom": "^25.0.1",
+    "oxfmt": "^0.35.0",
+    "oxlint": "^1.72.0",
     "pixelmatch": "^7.2.0",
     "playwright": "^1.60.0",
     "pngjs": "^7.0.0",
     "tailwindcss": "^4.3.2",
     "typescript": "^6.0.3",
-    "vite": "^8.0.16"
-  },
-  "dependencies": {
-    "react": "^19.2.7",
-    "react-dom": "^19.2.7"
+    "vite": "^8.0.16",
+    "vitest": "^4.1.9"
   }
 }

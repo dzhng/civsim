@@ -1,4 +1,4 @@
-import { type Campaign, type InitOutput } from '../wasm/game_wasm.js';
+import { type Campaign, type InitOutput } from "../wasm/game_wasm.js";
 
 export interface ArmyView {
   id: number;

@@ -1,4 +1,4 @@
-import { Fragment } from 'react';
+import { Fragment } from "react";
 
 // S6c: the top-left unit info panel (#hud) as React — a read-only ≤5Hz readout.
 // BattleScene computes HudData each throttled tick (the same fields the old
@@ -25,7 +25,10 @@ export interface HudData {
 
 function lines(list: string[]) {
   return list.map((line, i) => (
-    <Fragment key={i}>{i > 0 ? <br /> : null}{line}</Fragment>
+    <Fragment key={i}>
+      {i > 0 ? <br /> : null}
+      {line}
+    </Fragment>
   ));
 }
 
@@ -33,7 +36,9 @@ function Bar({ label, frac, color }: { label: string; frac: number; color: strin
   return (
     <div className="hud-stat">
       <span>{label}</span>
-      <div className="hud-bar"><div style={{ width: `${(frac * 100).toFixed(0)}%`, background: color }} /></div>
+      <div className="hud-bar">
+        <div style={{ width: `${(frac * 100).toFixed(0)}%`, background: color }} />
+      </div>
     </div>
   );
 }
@@ -47,7 +52,10 @@ export function HudPanel({ data }: { data: HudData }) {
         <>
           <div className="hud-head">
             {u.thumb ? <img className="hud-port" src={u.thumb} alt="" /> : null}
-            <div><div className="hud-name">{u.cls}</div><div className="hud-meta">{u.meta}</div></div>
+            <div>
+              <div className="hud-name">{u.cls}</div>
+              <div className="hud-meta">{u.meta}</div>
+            </div>
           </div>
           <Bar label="HP" frac={u.hpFrac} color={u.hpColor} />
           <Bar label="COH" frac={u.cohesion} color="#d9c75a" />

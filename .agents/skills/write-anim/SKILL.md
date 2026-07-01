@@ -22,7 +22,7 @@ The GIFs are committed review artifacts (like the vibe timeline GIF).
 
 ## Run (units)
 
-1. **Rebuild wasm first** — `npm run build:wasm` from `web/` (the harness loads
+1. **Rebuild wasm first** — `bun run build:wasm` from `web/` (the harness loads
    the prebuilt wasm, never live Rust).
 2. `node shots/models/scripts/soldier-animation.mjs` from `web/` films the representative class set
    (`[0, 3, 4, 6]`) through every cycle. `ONLY=3 …` picks classes;

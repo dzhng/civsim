@@ -1,16 +1,13 @@
 export const GPU_SWIFTSHADER_FLAGS = [
-  '--enable-unsafe-gpu',
-  '--enable-unsafe-swiftshader',
-  '--enable-features=Vulkan,WebGPU',
-  '--use-vulkan=swiftshader',
-  '--use-angle=swiftshader',
-  '--use-gpu-adapter=swiftshader',
+  "--enable-unsafe-gpu",
+  "--enable-unsafe-swiftshader",
+  "--enable-features=Vulkan,WebGPU",
+  "--use-vulkan=swiftshader",
+  "--use-angle=swiftshader",
+  "--use-gpu-adapter=swiftshader",
 ];
 
-export const GPU_HARDWARE_FLAGS = [
-  '--enable-unsafe-gpu',
-  '--enable-features=WebGPU',
-];
+export const GPU_HARDWARE_FLAGS = ["--enable-unsafe-gpu", "--enable-features=WebGPU"];
 
 export const GPU_FLAGS = GPU_SWIFTSHADER_FLAGS;
 

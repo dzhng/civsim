@@ -27,7 +27,7 @@ you author, run, read, and re-bless a vibe.
 
 ## Run
 
-1. **Rebuild wasm first** — `npm run build:wasm` from `web/`. The harness loads
+1. **Rebuild wasm first** — `bun run build:wasm` from `web/`. The harness loads
    the *prebuilt* wasm, never live Rust; skip this after a `crates/` change and
    you film a stale binary.
 2. Sweep every scenario with `node vibe/all.mjs` from `web/`; one scenario with

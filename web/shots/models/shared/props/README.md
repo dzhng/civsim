@@ -10,7 +10,7 @@ the single review evidence the campaign road and the battlefield both trust.
 Regenerate after an intentional prop change:
 
 ```sh
-npm --prefix web run shots:models:props
+bun run --cwd web shots:models:props
 ```
 
 Each prop family is posed alone on neutral ground (no cities, labels, roads,

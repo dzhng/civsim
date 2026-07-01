@@ -1,26 +1,26 @@
-import { UNIT_INFO } from '../../../packages/game-renderer/src/battle/unitInfoLayout';
-import { modelLookForUnit } from '../../../packages/game-renderer/src/models/shared/soldierModel';
-import { CLASS_NAMES } from './classData';
-import type { UnitCardInit, UnitCardState } from './unitCard';
-import { UnitCardsReact } from '../ui/hud/UnitCardsReact';
+import { UNIT_INFO } from "../../../packages/game-renderer/src/battle/unitInfoLayout";
+import { modelLookForUnit } from "../../../packages/game-renderer/src/models/shared/soldierModel";
+import { CLASS_NAMES } from "./classData";
+import type { UnitCardInit, UnitCardState } from "./unitCard";
+import { UnitCardsReact } from "../ui/hud/UnitCardsReact";
 
 export const BATTLE_UI_LAYER_CONTRACT = {
   rendererOwned: [
-    'battle terrain',
-    'skinned soldiers',
-    'selection and destination overlays',
-    'minimap compositor',
-    'projectiles and battlefield effects',
+    "battle terrain",
+    "skinned soldiers",
+    "selection and destination overlays",
+    "minimap compositor",
+    "projectiles and battlefield effects",
   ],
   domRetained: [
-    'HUD readouts',
-    'toolbar controls',
-    'unit card strip',
-    'pause and game-over modals',
-    'manual/help panels',
+    "HUD readouts",
+    "toolbar controls",
+    "unit card strip",
+    "pause and game-over modals",
+    "manual/help panels",
   ],
   cutoverRule:
-    'After WebGPU becomes the default renderer, routine screenshots target the WebGPU game only; legacy renderer captures are retained only as migration evidence.',
+    "After WebGPU becomes the default renderer, routine screenshots target the WebGPU game only; legacy renderer captures are retained only as migration evidence.",
 } as const;
 
 export interface BattleUiGame {
@@ -73,10 +73,14 @@ export function buildBattleUiModel(
   const stride = game.unit_info_stride();
   const info = new Float32Array(memory.buffer, game.unit_info_ptr(), game.unit_count() * stride);
   const fallbackSelected = firstPlayerUnit(info, game.unit_count(), stride);
-  const selectedUnits = options.selectedUnits?.length ? options.selectedUnits : fallbackSelected >= 0 ? [fallbackSelected] : [];
+  const selectedUnits = options.selectedUnits?.length
+    ? options.selectedUnits
+    : fallbackSelected >= 0
+      ? [fallbackSelected]
+      : [];
   const selectedSet = new Set(selectedUnits);
   const cards: BattleUnitCard[] = [];
-  let selectedSummary: BattleUiModel['selectedSummary'] = null;
+  let selectedSummary: BattleUiModel["selectedSummary"] = null;
 
   for (let unit = 0; unit < game.unit_count(); unit++) {
     const o = unit * stride;
@@ -123,16 +127,41 @@ export function buildBattleUiModel(
     contract: BATTLE_UI_LAYER_CONTRACT,
     tick: options.tick ?? 0,
     paused: options.paused ?? true,
-    renderer: options.renderer ?? 'raw WebGPU',
+    renderer: options.renderer ?? "raw WebGPU",
     selectedUnits,
     cards,
     selectedSummary,
     toolbar: [
-      { command: 'pace', label: 'Run', active: Boolean(selectedSummary?.running), disabled: !selectedSummary },
-      { command: 'reform', label: 'Reform', active: Boolean(selectedSummary?.atEase), disabled: !selectedSummary },
-      { command: 'pursue', label: 'Pursue', active: Boolean(options.pursueOn), disabled: !selectedSummary },
-      { command: 'fire', label: 'Fire', active: options.fireAtWill ?? true, disabled: !selectedSummary },
-      { command: 'pause', label: options.paused ? 'Play' : 'Pause', active: options.paused ?? true, disabled: false },
+      {
+        command: "pace",
+        label: "Run",
+        active: Boolean(selectedSummary?.running),
+        disabled: !selectedSummary,
+      },
+      {
+        command: "reform",
+        label: "Reform",
+        active: Boolean(selectedSummary?.atEase),
+        disabled: !selectedSummary,
+      },
+      {
+        command: "pursue",
+        label: "Pursue",
+        active: Boolean(options.pursueOn),
+        disabled: !selectedSummary,
+      },
+      {
+        command: "fire",
+        label: "Fire",
+        active: options.fireAtWill ?? true,
+        disabled: !selectedSummary,
+      },
+      {
+        command: "pause",
+        label: options.paused ? "Play" : "Pause",
+        active: options.paused ?? true,
+        disabled: false,
+      },
     ],
   };
 }
@@ -144,28 +173,35 @@ export class BattleUiLayer {
   private toolbar: HTMLDivElement;
   private cardsRoot: HTMLDivElement;
   private cards: UnitCardsReact;
-  private cardKey = '';
+  private cardKey = "";
   private latest: BattleUiModel | null = null;
 
-  constructor(private root: HTMLElement, private onSelect: (unit: number, additive: boolean) => void = () => {}) {
-    this.el = document.createElement('div');
-    this.el.className = 'renderer-battle-ui';
-    this.hud = document.createElement('div');
-    this.hud.className = 'renderer-battle-hud';
-    this.summary = document.createElement('div');
-    this.summary.className = 'renderer-battle-summary';
-    this.cardsRoot = document.createElement('div');
-    this.cardsRoot.className = 'renderer-unitcards';
-    this.toolbar = document.createElement('div');
-    this.toolbar.className = 'renderer-toolbar';
+  constructor(
+    private root: HTMLElement,
+    private onSelect: (unit: number, additive: boolean) => void = () => {},
+  ) {
+    this.el = document.createElement("div");
+    this.el.className = "renderer-battle-ui";
+    this.hud = document.createElement("div");
+    this.hud.className = "renderer-battle-hud";
+    this.summary = document.createElement("div");
+    this.summary.className = "renderer-battle-summary";
+    this.cardsRoot = document.createElement("div");
+    this.cardsRoot.className = "renderer-unitcards";
+    this.toolbar = document.createElement("div");
+    this.toolbar.className = "renderer-toolbar";
     this.el.append(this.hud, this.summary, this.cardsRoot, this.toolbar);
     this.root.appendChild(this.el);
-    this.cards = new UnitCardsReact(this.cardsRoot, (unit, additive) => this.onSelect(unit, additive));
+    this.cards = new UnitCardsReact(this.cardsRoot, (unit, additive) =>
+      this.onSelect(unit, additive),
+    );
   }
 
   render(model: BattleUiModel) {
     this.latest = model;
-    const nextKey = model.cards.map((card) => `${card.init.unit}:${card.init.cls}:${card.init.look ?? -1}:${card.init.team}`).join('|');
+    const nextKey = model.cards
+      .map((card) => `${card.init.unit}:${card.init.cls}:${card.init.look ?? -1}:${card.init.team}`)
+      .join("|");
     if (nextKey !== this.cardKey) {
       this.cardKey = nextKey;
       this.cards.build(model.cards.map((card) => card.init));
@@ -174,21 +210,23 @@ export class BattleUiLayer {
     this.hud.innerHTML = [
       `<b>${escapeHtml(model.renderer)}</b>`,
       `<span>tick ${model.tick}</span>`,
-      `<span>${model.paused ? 'paused' : 'live'}</span>`,
+      `<span>${model.paused ? "paused" : "live"}</span>`,
       `<span>${model.cards.length} units</span>`,
-    ].join('');
+    ].join("");
     this.summary.innerHTML = model.selectedSummary
       ? selectedSummaryHtml(model.selectedSummary)
-      : '<b>No unit</b><span>-</span>';
-    this.toolbar.replaceChildren(...model.toolbar.map((button) => {
-      const el = document.createElement('button');
-      el.type = 'button';
-      el.dataset.cmd = button.command;
-      el.textContent = button.label;
-      el.className = button.active ? 'on' : '';
-      el.disabled = button.disabled;
-      return el;
-    }));
+      : "<b>No unit</b><span>-</span>";
+    this.toolbar.replaceChildren(
+      ...model.toolbar.map((button) => {
+        const el = document.createElement("button");
+        el.type = "button";
+        el.dataset.cmd = button.command;
+        el.textContent = button.label;
+        el.className = button.active ? "on" : "";
+        el.disabled = button.disabled;
+        return el;
+      }),
+    );
   }
 
   stats() {
@@ -199,7 +237,7 @@ export class BattleUiLayer {
       selectedUnit: this.latest?.selectedSummary?.unit ?? -1,
       rendererSurfaces: BATTLE_UI_LAYER_CONTRACT.rendererOwned.length,
       domSurfaces: BATTLE_UI_LAYER_CONTRACT.domRetained.length,
-      postCutoverScreenshots: 'renderer-only',
+      postCutoverScreenshots: "renderer-only",
     };
   }
 
@@ -217,16 +255,16 @@ function firstPlayerUnit(info: Float32Array, count: number, stride: number) {
   return -1;
 }
 
-function selectedSummaryHtml(summary: NonNullable<BattleUiModel['selectedSummary']>) {
+function selectedSummaryHtml(summary: NonNullable<BattleUiModel["selectedSummary"]>) {
   const hp = summary.total > 0 ? summary.alive / summary.total : 0;
   return [
     `<b>${escapeHtml(summary.name)}</b>`,
     `<span>${summary.alive}/${summary.total}</span>`,
-    meter('hp', hp),
-    meter('coh', summary.cohesion),
-    meter('mor', summary.morale),
-    `<span>${summary.routing ? 'routing' : summary.running ? 'running' : summary.atEase ? 'reforming' : 'formed'}</span>`,
-  ].join('');
+    meter("hp", hp),
+    meter("coh", summary.cohesion),
+    meter("mor", summary.morale),
+    `<span>${summary.routing ? "routing" : summary.running ? "running" : summary.atEase ? "reforming" : "formed"}</span>`,
+  ].join("");
 }
 
 function meter(kind: string, value: number) {
@@ -238,5 +276,9 @@ function clamp01(value: number) {
 }
 
 function escapeHtml(s: string) {
-  return s.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
+  return s
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;");
 }

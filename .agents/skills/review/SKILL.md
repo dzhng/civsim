@@ -174,4 +174,4 @@ If no arguments given, review `git diff --staged` or `git diff` (unstaged change
 
 For each issue found, cite the file and line number. Group by category. End with a clean/not-clean verdict.
 
-When the review surfaces simplifications, apply them in the same turn instead of asking for confirmation. After applying, re-run the relevant checks — `cargo test -p sim`, `tsc --noEmit` in `web`, and `npm --prefix web run verify` if browser-visible behavior changed — then summarize what changed. Only stop to ask when a fix is genuinely ambiguous (e.g. two valid interpretations with different downstream impact).
+When the review surfaces simplifications, apply them in the same turn instead of asking for confirmation. After applying, re-run the relevant checks — `cargo test -p sim`, `tsc --noEmit` in `web`, and `bun run --cwd web verify` if browser-visible behavior changed — then summarize what changed. Only stop to ask when a fix is genuinely ambiguous (e.g. two valid interpretations with different downstream impact).

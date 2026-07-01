@@ -9,7 +9,7 @@
 // keeps a real Map per side and the reducer mirrors the vanilla mutations
 // exactly; a plain numeric-keyed object would silently reorder integer keys.
 
-import type { QuickBattleConfig, QuickBattleUnitPick } from '../../battle/quickBattleCatalog';
+import type { QuickBattleConfig, QuickBattleUnitPick } from "../../battle/quickBattleCatalog";
 
 export type Army = Map<number, number>;
 
@@ -19,17 +19,20 @@ export interface ArmyBuilderState {
 }
 
 export type ArmyBuilderAction =
-  | { kind: 'map'; mapId: number }
-  | { kind: 'count'; team: 0 | 1; classId: number; delta: number }
-  | { kind: 'template'; team: 0 | 1; units: readonly { classId: number; count: number }[] };
+  | { kind: "map"; mapId: number }
+  | { kind: "count"; team: 0 | 1; classId: number; delta: number }
+  | { kind: "template"; team: 0 | 1; units: readonly { classId: number; count: number }[] };
 
-const cloneArmies = (armies: [Army, Army]): [Army, Army] => [new Map(armies[0]), new Map(armies[1])];
+const cloneArmies = (armies: [Army, Army]): [Army, Army] => [
+  new Map(armies[0]),
+  new Map(armies[1]),
+];
 
 export function armyBuilderReducer(s: ArmyBuilderState, a: ArmyBuilderAction): ArmyBuilderState {
   switch (a.kind) {
-    case 'map':
+    case "map":
       return { ...s, mapId: a.mapId };
-    case 'count': {
+    case "count": {
       const armies = cloneArmies(s.armies);
       const army = armies[a.team];
       // Mirror vanilla `set`: clamp at 0, KEEP the key (0-count entries hold
@@ -37,7 +40,7 @@ export function armyBuilderReducer(s: ArmyBuilderState, a: ArmyBuilderAction): A
       army.set(a.classId, Math.max(0, (army.get(a.classId) ?? 0) + a.delta));
       return { ...s, armies };
     }
-    case 'template': {
+    case "template": {
       const armies = cloneArmies(s.armies);
       const army = armies[a.team];
       army.clear();

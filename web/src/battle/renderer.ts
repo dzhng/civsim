@@ -1,22 +1,45 @@
-import type { Camera } from '../shared/camera';
-import { buildCrowdInstances, type CrowdInstance } from '../../../packages/crowd-runtime/src/instanceData';
-import { BattleEffectLinePass } from '../../../packages/game-renderer/src/battle/effectLinePass';
-import { BattleGroundCuePass } from '../../../packages/game-renderer/src/battle/groundCuePass';
-import { BattleGroundPass } from '../../../packages/game-renderer/src/battle/groundPass';
-import { BattleHorizonPass } from '../../../packages/game-renderer/src/battle/horizonPass';
-import { CampaignSceneryPass } from '../../../packages/game-renderer/src/campaign/sceneryPass';
-import { buildBattleTerrainPresentation, battleMapByWasmId } from '../../../packages/game-renderer/src/battle/mapCatalog';
-import { deriveBattleEdgeRoles, type BattleGroundCover, type BattleTerrainGrid } from '../../../packages/game-renderer/src/battle/terrainFeatures';
-import { featuresToBattleScenery } from '../../../packages/game-renderer/src/battle/terrainScenery';
-import { terrainHeightAt, type TerrainHeightField } from '../../../packages/game-renderer/src/terrain/heightField';
-import { createFrameShell, type MarkerInstance, type OverlayRenderPass, type RawFrameShell, type WorldRenderPass } from '../../../packages/renderer-core/src/frameShell';
-import { compileShader } from '../../../packages/renderer-core/src/compileShader';
-import { gpuMultisample } from '../../../packages/renderer-core/src/pipelineContracts';
-import { fatalSurfaceFor, showFatalErrorSurface } from '../shared/fatalError';
-import { WORLD_CAMERA_WGSL } from '../../../packages/renderer-core/src/cameraWgsl';
-import { SkinnedCrowdPipeline } from '../../../packages/renderer-core/src/skinnedPipeline';
-import { loadClassVats, loadPlaceholderKit, mountedClassesFromKit } from '../../../packages/soldier-assets/src/placeholders';
-import { createPlaceholderSoldierMeshes } from '../../../packages/soldier-assets/src/soldierMesh';
+import type { Camera } from "../shared/camera";
+import {
+  buildCrowdInstances,
+  type CrowdInstance,
+} from "../../../packages/crowd-runtime/src/instanceData";
+import { BattleEffectLinePass } from "../../../packages/game-renderer/src/battle/effectLinePass";
+import { BattleGroundCuePass } from "../../../packages/game-renderer/src/battle/groundCuePass";
+import { BattleGroundPass } from "../../../packages/game-renderer/src/battle/groundPass";
+import { BattleHorizonPass } from "../../../packages/game-renderer/src/battle/horizonPass";
+import { CampaignSceneryPass } from "../../../packages/game-renderer/src/campaign/sceneryPass";
+import {
+  buildBattleTerrainPresentation,
+  battleMapByWasmId,
+} from "../../../packages/game-renderer/src/battle/mapCatalog";
+import {
+  deriveBattleEdgeRoles,
+  type BattleGroundCover,
+  type BattleTerrainGrid,
+} from "../../../packages/game-renderer/src/battle/terrainFeatures";
+import { featuresToBattleScenery } from "../../../packages/game-renderer/src/battle/terrainScenery";
+import {
+  terrainHeightAt,
+  type TerrainHeightField,
+} from "../../../packages/game-renderer/src/terrain/heightField";
+import {
+  createFrameShell,
+  type MarkerInstance,
+  type OverlayRenderPass,
+  type RawFrameShell,
+  type WorldRenderPass,
+} from "../../../packages/renderer-core/src/frameShell";
+import { compileShader } from "../../../packages/renderer-core/src/compileShader";
+import { gpuMultisample } from "../../../packages/renderer-core/src/pipelineContracts";
+import { fatalSurfaceFor, showFatalErrorSurface } from "../shared/fatalError";
+import { WORLD_CAMERA_WGSL } from "../../../packages/renderer-core/src/cameraWgsl";
+import { SkinnedCrowdPipeline } from "../../../packages/renderer-core/src/skinnedPipeline";
+import {
+  loadClassVats,
+  loadPlaceholderKit,
+  mountedClassesFromKit,
+} from "../../../packages/soldier-assets/src/placeholders";
+import { createPlaceholderSoldierMeshes } from "../../../packages/soldier-assets/src/soldierMesh";
 
 export class BattleRenderer {
   readonly ready: Promise<void>;
@@ -45,14 +68,14 @@ export class BattleRenderer {
   private unitClass: number[] = [];
   private terrainRect: [number, number, number, number] = [-220, -180, 440, 360];
   private terrainGrid: BattleTerrainGrid | null = null;
-  private groundCover: BattleGroundCover = 'green-grass';
+  private groundCover: BattleGroundCover = "green-grass";
   private instances: CrowdInstance[] = [];
   private markers: MarkerInstance[] = [];
   private triangleVerts = new Float32Array();
   private staticSoldiers = 0;
   private frozenFrameKey: string | null = null;
   private skipFrozenFrame = false;
-  private blockMode = new URLSearchParams(location.search).get('debug') === 'blocks';
+  private blockMode = new URLSearchParams(location.search).get("debug") === "blocks";
   private framePerf = {
     buildMs: 0,
     uploadMs: 0,
@@ -63,7 +86,7 @@ export class BattleRenderer {
 
   constructor(private canvas: HTMLCanvasElement) {
     this.ready = this.init();
-    window.addEventListener('resize', () => this.resize());
+    window.addEventListener("resize", () => this.resize());
   }
 
   resize() {
@@ -85,13 +108,30 @@ export class BattleRenderer {
     this.debugBlocks?.upload(this.triangleVerts);
   }
 
-  setTerrain(w: number, h: number, cell: number, ox: number, oy: number, tint?: Uint8Array, height?: Float32Array, wasmMapId?: number) {
+  setTerrain(
+    w: number,
+    h: number,
+    cell: number,
+    ox: number,
+    oy: number,
+    tint?: Uint8Array,
+    height?: Float32Array,
+    wasmMapId?: number,
+  ) {
     this.terrainRect = [ox, oy, w * cell, h * cell];
     this.terrainGrid = tint
-      ? { w, h, cell, ox, oy, tint: new Uint8Array(tint), height: height ? new Float32Array(height) : undefined }
+      ? {
+          w,
+          h,
+          cell,
+          ox,
+          oy,
+          tint: new Uint8Array(tint),
+          height: height ? new Float32Array(height) : undefined,
+        }
       : null;
     const catalog = wasmMapId !== undefined ? battleMapByWasmId(wasmMapId) : undefined;
-    this.groundCover = catalog?.groundCover ?? 'green-grass';
+    this.groundCover = catalog?.groundCover ?? "green-grass";
     this.applyTerrain();
   }
 
@@ -101,17 +141,46 @@ export class BattleRenderer {
     const grid = this.terrainGrid;
     if (!grid) return;
     const field: TerrainHeightField = grid.height
-      ? { w: grid.w, h: grid.h, cell: grid.cell, ox: grid.ox, oy: grid.oy, height: grid.height, units: 'meters', verticalScale: BattleRenderer.RELIEF_EXAGGERATION }
-      : { w: grid.w, h: grid.h, cell: grid.cell, ox: grid.ox, oy: grid.oy, height: new Float32Array(grid.w * grid.h), units: 'meters', verticalScale: 1 };
+      ? {
+          w: grid.w,
+          h: grid.h,
+          cell: grid.cell,
+          ox: grid.ox,
+          oy: grid.oy,
+          height: grid.height,
+          units: "meters",
+          verticalScale: BattleRenderer.RELIEF_EXAGGERATION,
+        }
+      : {
+          w: grid.w,
+          h: grid.h,
+          cell: grid.cell,
+          ox: grid.ox,
+          oy: grid.oy,
+          height: new Float32Array(grid.w * grid.h),
+          units: "meters",
+          verticalScale: 1,
+        };
     this.heightField = field;
     const presentation = buildBattleTerrainPresentation(
-      { id: 'live', wasmMapId: -1, label: '', description: '', edges: deriveBattleEdgeRoles(grid), groundCover: this.groundCover },
+      {
+        id: "live",
+        wasmMapId: -1,
+        label: "",
+        description: "",
+        edges: deriveBattleEdgeRoles(grid),
+        groundCover: this.groundCover,
+      },
       grid,
       0x5eed,
     );
     this.ground?.setTerrain(grid, field, this.groundCover);
     this.scenery?.upload(featuresToBattleScenery(presentation.features, field, 0x77));
-    this.horizon?.setEdges({ ox: grid.ox, oy: grid.oy, w: grid.w, h: grid.h, cell: grid.cell }, presentation.edges, field);
+    this.horizon?.setEdges(
+      { ox: grid.ox, oy: grid.oy, w: grid.w, h: grid.h, cell: grid.cell },
+      presentation.edges,
+      field,
+    );
   }
 
   private terrainHeightSampler(): ((x: number, y: number) => number) | undefined {
@@ -130,9 +199,10 @@ export class BattleRenderer {
     simTick?: number,
   ) {
     if (!this.shell || !this.crowd) return;
-    const frameKey = this.fixedTime !== null
-      ? `${frozenFrameKey(camera, count, this.soldierUnit.length)}|effects=${this.preserveFrozenEffects ? 1 : 0}`
-      : null;
+    const frameKey =
+      this.fixedTime !== null
+        ? `${frozenFrameKey(camera, count, this.soldierUnit.length)}|effects=${this.preserveFrozenEffects ? 1 : 0}`
+        : null;
     if (frameKey && frameKey === this.frozenFrameKey) {
       this.skipFrozenFrame = true;
       this.framePerf = { buildMs: 0, uploadMs: 0, drawMs: 0, frameCpuMs: 0 };
@@ -173,7 +243,11 @@ export class BattleRenderer {
     }
     const uploadStart = performance.now();
     this.crowd.upload(this.instances);
-    this.debugBlocks?.upload(this.blockMode ? buildDebugBlockTriangles(positions, alive, this.soldierUnit, this.unitTeam, count) : new Float32Array());
+    this.debugBlocks?.upload(
+      this.blockMode
+        ? buildDebugBlockTriangles(positions, alive, this.soldierUnit, this.unitTeam, count)
+        : new Float32Array(),
+    );
     const uploadEnd = performance.now();
     this.framePerf = {
       buildMs: buildEnd - buildStart,
@@ -195,13 +269,26 @@ export class BattleRenderer {
   }
 
   drawTacticalLines(lines: BattleTacticalLineFrame, camera: Camera) {
-    if (!this.shell || !this.ground || !this.crowd || !this.groundCues || !this.effectLines || !this.tris || !this.debugBlocks) return;
+    if (
+      !this.shell ||
+      !this.ground ||
+      !this.crowd ||
+      !this.groundCues ||
+      !this.effectLines ||
+      !this.tris ||
+      !this.debugBlocks
+    )
+      return;
     if (this.skipFrozenFrame) return;
     this.shell.setCamera(cameraSnapshot(camera));
     if (this.frameStart === 0) this.frameStart = performance.now();
     const uploadStart = performance.now();
-    this.groundCues.upload(this.fixedTime !== null ? frozenSelectionGroundCues(lines.groundCues) : lines.groundCues);
-    this.effectLines.upload(this.fixedTime !== null && !this.preserveFrozenEffects ? new Float32Array() : lines.effects);
+    this.groundCues.upload(
+      this.fixedTime !== null ? frozenSelectionGroundCues(lines.groundCues) : lines.groundCues,
+    );
+    this.effectLines.upload(
+      this.fixedTime !== null && !this.preserveFrozenEffects ? new Float32Array() : lines.effects,
+    );
     if (this.triangleVerts.length === 0) this.tris.upload(this.triangleVerts);
     this.framePerf.uploadMs += performance.now() - uploadStart;
     const drawStart = performance.now();
@@ -209,19 +296,70 @@ export class BattleRenderer {
       clear: { r: 0.16, g: 0.24, b: 0.15, a: 1 },
       terrainBackdropRect: expandedTerrainRect(this.terrainRect),
       terrainRect: this.terrainRect,
-      terrainStyle: camera.zoom < 1.2 ? 'wide-detail' : 'default',
+      terrainStyle: camera.zoom < 1.2 ? "wide-detail" : "default",
       markers: this.markers,
-      markerLayer: this.markers.length > 0 ? 'far-lod-impostor' : undefined,
+      markerLayer: this.markers.length > 0 ? "far-lod-impostor" : undefined,
       passes: [
-        { id: 'battle-horizon', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass: WorldRenderPass) => this.horizon!.draw(pass) },
-        { id: 'battle-ground', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass: WorldRenderPass) => this.ground!.draw(pass) },
-        { id: 'battle-terrain-scenery', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass: WorldRenderPass) => this.scenery!.drawOpaque(pass) },
-        { id: 'battle-skinned-crowd', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => this.crowd!.draw(pass) },
-        { id: 'battle-terrain-scenery-shadow', role: 'world-decal', phase: 'world-depth', depth: 'read', draw: (pass: WorldRenderPass) => this.scenery!.drawShadows(pass) },
-        { id: 'battle-ground-cues', role: 'world-decal', phase: 'world-depth', depth: 'read', draw: (pass) => this.groundCues!.draw(pass) },
-        { id: 'battle-effect-lines', role: 'overlay-effect', phase: 'overlay', draw: (pass) => this.effectLines!.draw(pass) },
-        { id: 'battle-debug-blocks', role: 'overlay-debug', phase: 'overlay', draw: (pass) => this.debugBlocks!.draw(pass) },
-        { id: 'battle-debug-triangles', role: 'overlay-debug', phase: 'overlay', draw: (pass) => this.tris!.draw(pass) },
+        {
+          id: "battle-horizon",
+          role: "world-opaque",
+          phase: "world-depth",
+          depth: "read-write",
+          draw: (pass: WorldRenderPass) => this.horizon!.draw(pass),
+        },
+        {
+          id: "battle-ground",
+          role: "world-opaque",
+          phase: "world-depth",
+          depth: "read-write",
+          draw: (pass: WorldRenderPass) => this.ground!.draw(pass),
+        },
+        {
+          id: "battle-terrain-scenery",
+          role: "world-opaque",
+          phase: "world-depth",
+          depth: "read-write",
+          draw: (pass: WorldRenderPass) => this.scenery!.drawOpaque(pass),
+        },
+        {
+          id: "battle-skinned-crowd",
+          role: "world-opaque",
+          phase: "world-depth",
+          depth: "read-write",
+          draw: (pass) => this.crowd!.draw(pass),
+        },
+        {
+          id: "battle-terrain-scenery-shadow",
+          role: "world-decal",
+          phase: "world-depth",
+          depth: "read",
+          draw: (pass: WorldRenderPass) => this.scenery!.drawShadows(pass),
+        },
+        {
+          id: "battle-ground-cues",
+          role: "world-decal",
+          phase: "world-depth",
+          depth: "read",
+          draw: (pass) => this.groundCues!.draw(pass),
+        },
+        {
+          id: "battle-effect-lines",
+          role: "overlay-effect",
+          phase: "overlay",
+          draw: (pass) => this.effectLines!.draw(pass),
+        },
+        {
+          id: "battle-debug-blocks",
+          role: "overlay-debug",
+          phase: "overlay",
+          draw: (pass) => this.debugBlocks!.draw(pass),
+        },
+        {
+          id: "battle-debug-triangles",
+          role: "overlay-debug",
+          phase: "overlay",
+          draw: (pass) => this.tris!.draw(pass),
+        },
       ],
     });
     const done = performance.now();
@@ -241,7 +379,7 @@ export class BattleRenderer {
     const markerCount = shell?.markerCount ?? this.markers.length;
     const skinnedCount = crowd?.instances ?? this.instances.length;
     return {
-      renderer: 'gpu',
+      renderer: "gpu",
       ready: this.shell !== null,
       width: shell?.width ?? 0,
       height: shell?.height ?? 0,
@@ -252,14 +390,23 @@ export class BattleRenderer {
         skinned: skinnedCount,
         impostors: markerCount,
       },
-      device: shell?.device ?? 'initializing',
-      atmosphere: shell?.atmosphere ?? 'initializing',
-      cameraContract: shell?.cameraContract ?? 'initializing',
-      skinnedCameraContract: crowd?.cameraContract ?? 'initializing',
-      markerLayer: shell?.markerLayer ?? (markerCount > 0 ? 'far-lod-impostor' : 'none'),
+      device: shell?.device ?? "initializing",
+      atmosphere: shell?.atmosphere ?? "initializing",
+      cameraContract: shell?.cameraContract ?? "initializing",
+      skinnedCameraContract: crowd?.cameraContract ?? "initializing",
+      markerLayer: shell?.markerLayer ?? (markerCount > 0 ? "far-lod-impostor" : "none"),
       phases: shell?.phases ?? [],
       depth: shell?.depth ?? null,
-      terrain: this.ground ? { fixture: 'sim-tint', layer: this.ground.stats().layer, groundTriangles: this.ground.stats().triangles, sealedEdges: this.horizon?.stats().sealedEdges ?? [], groundCover: this.groundCover, scenery: this.scenery?.stats().scenery ?? 0 } : null,
+      terrain: this.ground
+        ? {
+            fixture: "sim-tint",
+            layer: this.ground.stats().layer,
+            groundTriangles: this.ground.stats().triangles,
+            sealedEdges: this.horizon?.stats().sealedEdges ?? [],
+            groundCover: this.groundCover,
+            scenery: this.scenery?.stats().scenery ?? 0,
+          }
+        : null,
       tacticalLines: {
         groundCues: this.groundCues?.stats() ?? null,
         effects: this.effectLines?.stats() ?? null,
@@ -276,19 +423,25 @@ export class BattleRenderer {
   async settlePresentedFrame() {
     if (!this.shell) return;
     await this.shell.device.queue.onSubmittedWorkDone();
-    await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+    await new Promise<void>((resolve) =>
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+    );
     await this.shell.device.queue.onSubmittedWorkDone();
   }
 
   private async init() {
     this.shell = await createFrameShell(this.canvas, {
-      onFatalError: (report) => showFatalErrorSurface(this.canvas, fatalSurfaceFor(
-        report.phase === 'device-lost' ? 'device-lost' : 'submission',
-        report.message,
-      )),
+      onFatalError: (report) =>
+        showFatalErrorSurface(
+          this.canvas,
+          fatalSurfaceFor(
+            report.phase === "device-lost" ? "device-lost" : "submission",
+            report.message,
+          ),
+        ),
     });
     this.ground = new BattleGroundPass(this.shell);
-    this.scenery = new CampaignSceneryPass(this.shell, 'battle');
+    this.scenery = new CampaignSceneryPass(this.shell, "battle");
     this.horizon = new BattleHorizonPass(this.shell);
     this.applyTerrain();
     this.groundCues = new BattleGroundCuePass(this.shell);
@@ -299,7 +452,7 @@ export class BattleRenderer {
     this.mountedClasses = mountedClassesFromKit(kit);
     this.crowd = new SkinnedCrowdPipeline(
       this.shell,
-      createPlaceholderSoldierMeshes([0.20, 0.42, 0.88]),
+      createPlaceholderSoldierMeshes([0.2, 0.42, 0.88]),
       await loadClassVats(kit),
       kit,
     );
@@ -349,14 +502,19 @@ function frozenFrameKey(camera: Camera, count: number, staticSoldiers: number) {
     roundKey(camera.yaw ?? 0),
     count,
     staticSoldiers,
-  ].join(':');
+  ].join(":");
 }
 
 function roundKey(value: number) {
-  return Number.isFinite(value) ? value.toFixed(4) : 'nan';
+  return Number.isFinite(value) ? value.toFixed(4) : "nan";
 }
 
-function expandedTerrainRect([x, y, w, h]: [number, number, number, number]): [number, number, number, number] {
+function expandedTerrainRect([x, y, w, h]: [number, number, number, number]): [
+  number,
+  number,
+  number,
+  number,
+] {
   const margin = Math.max(120, Math.max(w, h) * 0.22);
   return [x - margin, y - margin, w + margin * 2, h + margin * 2];
 }
@@ -368,7 +526,10 @@ function buildDebugBlockTriangles(
   unitTeam: number[],
   count: number,
 ) {
-  const bounds = new Map<number, { x0: number; y0: number; x1: number; y1: number; team: number }>();
+  const bounds = new Map<
+    number,
+    { x0: number; y0: number; x1: number; y1: number; team: number }
+  >();
   for (let i = 0; i < count; i++) {
     if ((alive[i] ?? 0) <= 0.5) continue;
     const unit = soldierUnit[i] ?? 0;
@@ -391,7 +552,8 @@ function buildDebugBlockTriangles(
     const y0 = b.y0 - pad;
     const x1 = b.x1 + pad;
     const y1 = b.y1 + pad;
-    const color: [number, number, number, number] = b.team === 1 ? [0.88, 0.20, 0.16, 0.88] : [0.18, 0.44, 1.0, 0.88];
+    const color: [number, number, number, number] =
+      b.team === 1 ? [0.88, 0.2, 0.16, 0.88] : [0.18, 0.44, 1.0, 0.88];
     pushTri(verts, x0, y0, x1, y0, x1, y1, color);
     pushTri(verts, x0, y0, x1, y1, x0, y1, color);
   }
@@ -419,37 +581,41 @@ class BattleTrianglePass {
 
   constructor(private shell: RawFrameShell) {
     const device = shell.device;
-    const module = compileShader(device, TRIANGLE_WGSL, 'battle-triangle');
+    const module = compileShader(device, TRIANGLE_WGSL, "battle-triangle");
     this.pipeline = device.createRenderPipeline({
-      label: 'battle-triangle-pipeline',
+      label: "battle-triangle-pipeline",
       layout: device.createPipelineLayout({ bindGroupLayouts: [shell.cameraBindGroupLayout] }),
       vertex: {
         module,
-        entryPoint: 'vs',
-        buffers: [{
-          arrayStride: 24,
-          attributes: [
-            { shaderLocation: 0, offset: 0, format: 'float32x2' },
-            { shaderLocation: 1, offset: 8, format: 'float32x4' },
-          ],
-        }],
+        entryPoint: "vs",
+        buffers: [
+          {
+            arrayStride: 24,
+            attributes: [
+              { shaderLocation: 0, offset: 0, format: "float32x2" },
+              { shaderLocation: 1, offset: 8, format: "float32x4" },
+            ],
+          },
+        ],
       },
       fragment: {
         module,
-        entryPoint: 'fs',
-        targets: [{
-          format: shell.info.format,
-          blend: {
-            color: { srcFactor: 'src-alpha', dstFactor: 'one-minus-src-alpha' },
-            alpha: { srcFactor: 'one', dstFactor: 'one-minus-src-alpha' },
+        entryPoint: "fs",
+        targets: [
+          {
+            format: shell.info.format,
+            blend: {
+              color: { srcFactor: "src-alpha", dstFactor: "one-minus-src-alpha" },
+              alpha: { srcFactor: "one", dstFactor: "one-minus-src-alpha" },
+            },
           },
-        }],
+        ],
       },
-      primitive: { topology: 'triangle-list' },
+      primitive: { topology: "triangle-list" },
       multisample: gpuMultisample(this.shell.sampleCount),
     });
     this.vertexBuffer = device.createBuffer({
-      label: 'battle-triangle-empty',
+      label: "battle-triangle-empty",
       size: 6 * 4,
       usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
     });
@@ -460,7 +626,7 @@ class BattleTrianglePass {
     if (this.vertexCount > this.capacity) {
       this.capacity = Math.max(this.vertexCount, this.capacity * 2, 128);
       this.vertexBuffer = this.shell.device.createBuffer({
-        label: 'battle-triangle-vertices',
+        label: "battle-triangle-vertices",
         size: this.capacity * 6 * 4,
         usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
       });

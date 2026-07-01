@@ -14,11 +14,21 @@ export interface GameOverProps {
 export function GameOver({ inCampaign, win, sub, onRestart, onExit, onWatch }: GameOverProps) {
   return (
     <div className="panel">
-      <h2 id="gameover-title" style={{ color: win ? '#6f9ae8' : '#e0604f' }}>{win ? 'VICTORY' : 'DEFEAT'}</h2>
+      <h2 id="gameover-title" style={{ color: win ? "#6f9ae8" : "#e0604f" }}>
+        {win ? "VICTORY" : "DEFEAT"}
+      </h2>
       <p id="gameover-sub">{sub}</p>
-      {!inCampaign ? <button id="gameover-restart" onClick={onRestart}>Restart Battle</button> : null}
-      <button id="gameover-menu" onClick={onExit}>{inCampaign ? 'Continue' : 'Main Menu'}</button>
-      <button className="watch" id="gameover-watch" onClick={onWatch}>keep watching the field</button>
+      {!inCampaign ? (
+        <button id="gameover-restart" onClick={onRestart}>
+          Restart Battle
+        </button>
+      ) : null}
+      <button id="gameover-menu" onClick={onExit}>
+        {inCampaign ? "Continue" : "Main Menu"}
+      </button>
+      <button className="watch" id="gameover-watch" onClick={onWatch}>
+        keep watching the field
+      </button>
     </div>
   );
 }
@@ -35,10 +45,20 @@ export function PauseMenu({ inCampaign, onRestart, onManual, onExit, onClose }: 
   return (
     <div className="panel">
       <h2>MENU</h2>
-      {!inCampaign ? <button id="pause-restart" onClick={onRestart}>Restart Battle</button> : null}
-      <button id="pause-manual" onClick={onManual}>Field Manual</button>
-      <button id="pause-exit" onClick={onExit}>{inCampaign ? 'Exit to Campaign' : 'Exit to Main Menu'}</button>
-      <button className="watch" id="pause-close" onClick={onClose}>back to the field</button>
+      {!inCampaign ? (
+        <button id="pause-restart" onClick={onRestart}>
+          Restart Battle
+        </button>
+      ) : null}
+      <button id="pause-manual" onClick={onManual}>
+        Field Manual
+      </button>
+      <button id="pause-exit" onClick={onExit}>
+        {inCampaign ? "Exit to Campaign" : "Exit to Main Menu"}
+      </button>
+      <button className="watch" id="pause-close" onClick={onClose}>
+        back to the field
+      </button>
     </div>
   );
 }

@@ -27,6 +27,9 @@ export async function openBattle(query) {
     ? (process.env.VERIFY_GPU_ADAPTER === 'hardware' ? GPU_HARDWARE_FLAGS : GPU_SWIFTSHADER_FLAGS)
     : [];
   const launchOptions = { args: gpuArgs };
+  if (process.env.VERIFY_HEADFUL === '1') {
+    launchOptions.headless = false;
+  }
   if (process.env.VERIFY_BROWSER_CHANNEL) {
     launchOptions.channel = process.env.VERIFY_BROWSER_CHANNEL;
   }

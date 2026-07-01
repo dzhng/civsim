@@ -13,7 +13,7 @@
 import { createFrameShell, type RawFrameShell, type WorldRenderPass } from '../../../packages/renderer-core/src/frameShell';
 import { WORLD_CAMERA_WGSL } from '../../../packages/renderer-core/src/cameraWgsl';
 import { compileShader } from '../../../packages/renderer-core/src/compileShader';
-import { gpuMultisample, gpuOpaqueColorTarget, gpuReverseZDepthStencil } from '../../../packages/renderer-core/src/pipelineContracts';
+import { gpuMultisample, gpuOpaqueColorTarget, gpuWorldDepthStencil } from '../../../packages/renderer-core/src/pipelineContracts';
 import { eyePosition, projectPoint, type Camera3DParams } from '../../../packages/renderer-core/src/camera3d';
 import { SkinnedCrowdPipeline } from '../../../packages/renderer-core/src/skinnedPipeline';
 import { SoldierShadowDecalPass } from '../../../packages/renderer-core/src/soldierShadowPass';
@@ -117,7 +117,7 @@ function camera3dFor(preset: { target: readonly number[]; distance: number; pitc
 
 function applyRealCamera(shell: RawFrameShell, cam: Camera3DParams) {
   const eye = eyePosition(cam);
-  shell.setCamera({ x: eye[0], y: eye[1], zoom: 1, pitch: cam.pitch, yaw: cam.yaw, camera3d: cam });
+  shell.setCamera({ x: eye[0], y: eye[1], zoom: 1, camera3d: cam });
 }
 
 function mulberry32(seed: number) {
@@ -246,7 +246,7 @@ fn fs(in: VsOut) -> @location(0) vec4f {
       vertex: { module, entryPoint: 'vs' },
       fragment: { module, entryPoint: 'fs', targets: [gpuOpaqueColorTarget(shell.info.format)] },
       primitive: { topology: 'triangle-list' },
-      depthStencil: gpuReverseZDepthStencil('read', 'greater-equal'),
+      depthStencil: gpuWorldDepthStencil('read', 'greater-equal'),
       multisample: gpuMultisample(shell.sampleCount),
     });
   }
@@ -286,7 +286,7 @@ function buildUvSphere(latBands: number, lonBands: number): { vertices: Float32A
 }
 
 export async function routePbrProbe(ctx: ProbeContext) {
-  const shell = await createFrameShell(ctx.canvas, { enableGpuTimer: true, reverseZ: true });
+  const shell = await createFrameShell(ctx.canvas, { enableGpuTimer: true });
   const aspect = ctx.canvas.clientWidth && ctx.canvas.clientHeight ? ctx.canvas.clientWidth / ctx.canvas.clientHeight : 1000 / 600;
   applyRealCamera(shell, camera3dFor(BAKEOFF_CAMERAS.pbr, aspect));
   shell.setSun(SUN_AZ, SUN_EL);
@@ -374,7 +374,7 @@ fn fs(in: VsOut) -> @location(0) vec4f {
     },
     fragment: { module, entryPoint: 'fs', targets: [gpuOpaqueColorTarget(shell.info.format)] },
     primitive: { topology: 'triangle-list', cullMode: 'back' },
-    depthStencil: gpuReverseZDepthStencil('read-write'),
+    depthStencil: gpuWorldDepthStencil('read-write'),
     multisample: gpuMultisample(shell.sampleCount),
   });
 
@@ -423,7 +423,7 @@ export async function routeWaterPbr(ctx: ProbeContext) {
   // ?agitation=0..1 — same dial as production civsimWaterColor: 1 = the rough
   // reference open sea, 0 = the calm coastal Aegean (flattened swell, no caps).
   const agitation = Math.max(0, Math.min(1, Number(ctx.params.get('agitation') ?? 1)));
-  const shell = await createFrameShell(ctx.canvas, { enableGpuTimer: true, reverseZ: true });
+  const shell = await createFrameShell(ctx.canvas, { enableGpuTimer: true });
   const aspect = ctx.canvas.clientWidth && ctx.canvas.clientHeight ? ctx.canvas.clientWidth / ctx.canvas.clientHeight : 1000 / 600;
   const cam3d = camera3dFor(BAKEOFF_CAMERAS.water, aspect);
   applyRealCamera(shell, cam3d);
@@ -539,7 +539,7 @@ fn fs(in: VsOut) -> @location(0) vec4f {
     vertex: { module, entryPoint: 'vs', buffers: [{ arrayStride: 8, attributes: [{ shaderLocation: 0, offset: 0, format: 'float32x2' }] }] },
     fragment: { module, entryPoint: 'fs', targets: [gpuOpaqueColorTarget(shell.info.format)] },
     primitive: { topology: 'triangle-list', cullMode: 'none' },
-    depthStencil: gpuReverseZDepthStencil('read-write'),
+    depthStencil: gpuWorldDepthStencil('read-write'),
     multisample: gpuMultisample(shell.sampleCount),
   });
 
@@ -585,7 +585,7 @@ fn fs(in: VsOut) -> @location(0) vec4f {
 // /renderer/crowd-perf — the veto probe. 30,400 VAT-skinned soldiers (two
 // formation blocks, per-instance distance LOD through the production tiers,
 // CPU frustum cull) + 20k grass tufts (~200k blades) + 3k instanced trees on a
-// flat green field, all through the production passes with real: true.
+// flat green field, all through the production passes (post-05b: the real camera is the only path).
 
 const CROWD_COUNT_DEFAULT = 30400;
 const FORMATION_COLUMNS = 190;
@@ -600,7 +600,7 @@ export async function routeCrowdPerf(ctx: ProbeContext) {
   const presetName = ctx.params.get('cam') === 'vista' ? 'vista' : 'mid';
   const count = Math.max(2, Math.floor(Number(ctx.params.get('count') ?? CROWD_COUNT_DEFAULT)));
   const env = resolveBattleEnvironment('golden-hour');
-  const shell = await createFrameShell(ctx.canvas, { enableGpuTimer: true, reverseZ: true });
+  const shell = await createFrameShell(ctx.canvas, { enableGpuTimer: true });
   const aspect = ctx.canvas.clientWidth && ctx.canvas.clientHeight ? ctx.canvas.clientWidth / ctx.canvas.clientHeight : 1000 / 600;
   const cam3d = camera3dFor(presetName === 'vista' ? BAKEOFF_CAMERAS.crowdVista : BAKEOFF_CAMERAS.crowdMid, aspect);
   applyRealCamera(shell, cam3d);
@@ -612,10 +612,10 @@ export async function routeCrowdPerf(ctx: ProbeContext) {
     tint: new Uint8Array(150 * 190),
   };
   const field = terrainHeightField(grid);
-  const ground = new BattleGroundPass(shell, env, { real: true });
+  const ground = new BattleGroundPass(shell, env);
   ground.setTerrain(grid, field, 'green-grass', 2);
 
-  const grass = new BattleGrassPass(shell, env, { real: true });
+  const grass = new BattleGrassPass(shell, env);
   const tufts = Math.max(0, Math.floor(Number(ctx.params.get('tufts') ?? 20000)));
   const bladesPerTuft = 10;
   grass.setField(field, { x: SCATTER.x0, y: SCATTER.y0, width: SCATTER.x1 - SCATTER.x0, height: SCATTER.y1 - SCATTER.y0 }, 'green-grass', {
@@ -630,7 +630,7 @@ export async function routeCrowdPerf(ctx: ProbeContext) {
     zoomT: 1,
   });
 
-  const scenery = new CampaignSceneryPass(shell, 'battle', { real: true });
+  const scenery = new CampaignSceneryPass(shell);
   const rng = mulberry32(0xba5e0ff);
   const trees: CampaignSceneryInstance[] = [];
   while (trees.length < TREE_COUNT) {
@@ -650,11 +650,11 @@ export async function routeCrowdPerf(ctx: ProbeContext) {
 
   const vat = await loadPlaceholderVat();
   const tiers = createPlaceholderSoldierMeshTiers([0.2, 0.42, 0.88]);
+  // Post-05b: the real camera is the only path — the migration-era `real` flag is gone.
   const pipeline = new SkinnedCrowdPipeline(shell, tiers, vat, undefined, {
-    real: true,
     lighting: skinnedLightingForBattleEnvironment(env),
   });
-  const shadows = new SoldierShadowDecalPass(shell, { real: true });
+  const shadows = new SoldierShadowDecalPass(shell);
 
   const half = Math.floor(count / 2);
   const all: CrowdInstance[] = generatedFormation(half, { x: 0, y: -70, faction: 0, columns: FORMATION_COLUMNS, frame: 1 })

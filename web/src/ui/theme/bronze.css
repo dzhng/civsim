@@ -39,7 +39,7 @@
 
 /* The shared worn-bronze housing — opaque metal fill inside a beveled edge,
  * framed with depth. This is the plain chassis behind the battle HUD's #hud /
- * #toolbar / #minimap surfaces and the three bottom cards (specs/hud-housings).
+ * #toolbar / #minimap surfaces and the three bottom cards (specs/done/hud-housings).
  * Each surface still sets its own border-width, position, and size; this class
  * owns the MATERIAL only. NOT a translucent web pill. Lives here (not in a
  * component stylesheet) because both the game and the /renderer lab route load

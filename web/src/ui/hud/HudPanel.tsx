@@ -1,7 +1,7 @@
 import { Fragment } from "react";
 import { type ArmySummary } from "../../battle/armySummary";
 
-// The bottom-left info card (specs/hud-housings). A read-only ≤5Hz readout:
+// The bottom-left info card (specs/done/hud-housings). A read-only ≤5Hz readout:
 // BattleScene computes HudData each throttled tick and this renders it. Shows the
 // selected/hovered unit when there is one, otherwise an army-roster summary so the
 // card is never empty. (The old debug header — soldiers/fps/tick — is gone; FPS

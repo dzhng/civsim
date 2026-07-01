@@ -1,5 +1,5 @@
 // The whole battle HUD as ONE React tree under a single root (see
-// specs/hud-housings, slice 01). This collapses the three separate createRoot
+// specs/done/hud-housings, slice 01). This collapses the three separate createRoot
 // calls (#hud, #toolbar, #unitcards) and the imperative minimap canvas that the
 // ui-react-migration left as scaffolding into one <BattleHud>. scene.ts drives it
 // through the imperative BattleHudHandle at the same cadences as before:
@@ -140,7 +140,7 @@ interface CenterHandle {
   setToolbar(state: Record<string, ToolButtonState>): void;
 }
 // The bottom-center housing: card wells on top, order/time control strip below,
-// in ONE bronze tray (specs/hud-housings, slice 05). A structural wrapper holding
+// in ONE bronze tray (specs/done/hud-housings, slice 05). A structural wrapper holding
 // NO data state, so it never re-renders — cards and toolbar stay separate stateful
 // islands (CardsHost / ToolbarHost), and a ≤5Hz toolbar refresh never reconciles
 // the 60Hz card grid. applyCardGrid writes onto this #battle-center element.

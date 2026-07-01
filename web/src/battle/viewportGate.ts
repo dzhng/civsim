@@ -3,7 +3,7 @@
 // the battlefield get cramped, so the battle shows a "window too small"
 // placeholder instead of degrading silently.
 //
-// The floor follows from the card bar's geometry (specs/hud-housings): the bar now
+// The floor follows from the card bar's geometry (specs/done/hud-housings): the bar now
 // sits in the gap between the two corner housings, so its width budget is
 // `viewport − BOTTOM_CARD_LEFT_RESERVE(336) − BOTTOM_CARD_RIGHT_RESERVE(268)`. At
 // the fixed 58px card it wraps to more rows as the roster grows (David: let it

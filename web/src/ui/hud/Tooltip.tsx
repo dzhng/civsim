@@ -1,4 +1,4 @@
-// Diegetic bronze tooltip for icon-only HUD controls (specs/hud-housings, slice
+// Diegetic bronze tooltip for icon-only HUD controls (specs/done/hud-housings, slice
 // 08). Built on Radix Tooltip for the behaviour we don't want to hand-roll — hover
 // AND keyboard-focus triggers, a11y wiring, and top-side collision-aware placement
 // so the chip opens UPWARD (the toolbar sits at the screen bottom) and never clips

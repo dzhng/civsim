@@ -1,5 +1,5 @@
 // Army-wide readout for the bottom-left info card when nothing is selected — so
-// the card is never empty (specs/hud-housings, slice 04). Pure over the same
+// the card is never empty (specs/done/hud-housings, slice 04). Pure over the same
 // unit_info Float32Array the HUD already reads, using the same raw field offsets
 // as scene.ts (team +6, total +7, cohesion +4, alive +15, morale +20, routing
 // +21). Men-weighted so a big battered unit counts more than a small fresh one —

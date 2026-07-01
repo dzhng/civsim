@@ -21,7 +21,7 @@
     "scenario:renderer:campaign": "SCENARIO_REPORT_JSON=reports/rendering/scenario-runs/renderer-campaign-latest.json VERIFY_GPU=1 node scene.mjs campaign-production campaign-handoff campaign-save-load campaign-conquest campaign-reinforcements campaign-visual campaign-map-alignment campaign-lod",
     "perf:renderer": "VERIFY_GPU=1 node scene.mjs full-game-rendering-performance",
     "perf:renderer:hardware": "VERIFY_GPU=1 VERIFY_GPU_ADAPTER=hardware VERIFY_HEADFUL=1 VERIFY_BROWSER_CHANNEL=chrome node scene.mjs full-game-rendering-performance",
-    "shots:models": "npm run shots:models:soldiers && npm run shots:models:campaign && npm run shots:models:props",
+    "shots:models": "bun run shots:models:soldiers && bun run shots:models:campaign && bun run shots:models:props",
     "shots:models:soldiers": "node shots/models/scripts/soldier-sheets.mjs",
     "shots:models:campaign": "VERIFY_GPU=1 node scene.mjs campaign-models",
     "shots:models:props": "VERIFY_GPU=1 UPDATE_SHOTS=1 node scene.mjs shared-prop-models",

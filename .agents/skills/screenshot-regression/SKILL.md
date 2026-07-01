@@ -80,7 +80,7 @@ until the source is named and intentionally tolerated.
 ## Rebuild the wasm before you trust ANY screenshot
 
 The browser loads the **prebuilt** wasm under `web/src/wasm`, never your live
-Rust source. If you touched anything in `crates/`, run `npm run build:wasm` from
+Rust source. If you touched anything in `crates/`, run `bun run build:wasm` from
 `web/` FIRST — otherwise every screenshot, and every green `verify`, reflects a
 STALE binary. This has shipped a boot-crashing regression past a passing verify:
 a new unit class was in the sim source but not in the wasm the browser actually
@@ -92,7 +92,7 @@ Dev server first (5173 is usually taken by the old `/Users/david/dev/game`
 checkout — don't kill it):
 
 ```sh
-cd web && npx vite --port 5174 --strictPort   # then VERIFY_URL=http://localhost:5174
+cd web && bunx vite --port 5174 --strictPort   # then VERIFY_URL=http://localhost:5174
 ```
 
 Drive the game with Playwright through the same debug hooks the harnesses use:

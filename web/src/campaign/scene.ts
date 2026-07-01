@@ -13,6 +13,7 @@ import { ArmyPanel } from '../ui/campaign/ArmyPanel';
 import { CityPanel } from '../ui/campaign/CityPanel';
 import { DiplomacyPanel } from '../ui/campaign/DiplomacyPanel';
 import { ClassBuilder } from '../ui/campaign/ClassBuilder';
+import { Sieges } from '../ui/campaign/Sieges';
 import { loadCampaignData, nearestLoc, tilePos, type CampaignData } from './data';
 import type { CamView } from './camera';
 import { CampaignRenderer } from './renderer';
@@ -88,6 +89,7 @@ export class CampaignScene implements Scene {
   private cityRoot: Root | null = null;
   private diploRoot: Root | null = null;
   private classesRoot: Root | null = null;
+  private siegesRoot: Root | null = null;
   private renderer!: CampaignRenderer;
   // Terrain/territory live across battle round-trips (enter/exit cycles).
   private field: TerrainField | null = null;
@@ -388,24 +390,19 @@ export class CampaignScene implements Scene {
     const facName = (f: number) => this.cfg.data.map.factions[f]?.name ?? `faction ${f}`;
     // Rebuild only when the set of besieged cities changes, not every tick.
     const sig = sieges.map((s) => s.node).join(',');
-    const box = this.ui.querySelector('#cmp-sieges') as HTMLDivElement | null;
-    if (!box) return;
+    const root = this.siegesRoot;
+    if (!root) return;
     if (sig !== this.siegeSig) {
       this.siegeSig = sig;
-      box.innerHTML = sieges
-        .map(
-          (s) => `<div class="cmp-siege" data-node="${s.node}" data-x="${s.x}" data-y="${s.y}">
-            <b>⚔ ${this.cfg.data.map.nodes[s.node].name} under siege</b>
-            <div class="cmp-siege-sub">${facName(s.attacker)} at the walls — click to view</div>
-          </div>`,
-        )
-        .join('');
-      box.querySelectorAll<HTMLDivElement>('.cmp-siege').forEach((el) =>
-        el.addEventListener('click', () => {
-          this.centerCam(Number(el.dataset.x), Number(el.dataset.y));
-          this.openCityPanel(Number(el.dataset.node));
-        }),
-      );
+      const rows = sieges.map((s) => ({
+        node: s.node, x: s.x, y: s.y,
+        name: this.cfg.data.map.nodes[s.node].name,
+        attackerName: facName(s.attacker),
+      }));
+      flushSync(() => root.render(createElement(Sieges, {
+        sieges: rows,
+        onSelect: (node, x, y) => { this.centerCam(x, y); this.openCityPanel(node); },
+      })));
     }
   }
 
@@ -681,6 +678,7 @@ export class CampaignScene implements Scene {
     this.cityRoot = createRoot(ui.querySelector('#cmp-city')!);
     this.diploRoot = createRoot(ui.querySelector('#cmp-diplomacy')!);
     this.classesRoot = createRoot(ui.querySelector('#cmp-classes')!);
+    this.siegesRoot = createRoot(ui.querySelector('#cmp-sieges')!);
   }
 
   private saveCampaign() {

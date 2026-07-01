@@ -17,6 +17,9 @@ Put the review-worthy images in front of the user in a single Preview window the
 
 - macOS only (`open`); pass absolute or repo-root-relative paths.
 - Order the files most-important-first; the first one is what Preview shows on open.
+- Review saved PNG/GIF artifacts, not live Chrome. Do not open or run a headful
+  browser just to show screenshot output; the visual harness should stay
+  headless unless the user explicitly asks for Chrome.
 - **One set at a time — never pile up windows.** Before opening a new set, close
   any open ones: `osascript -e 'tell application "Preview" to close every window'`.
 - **Close on unattended proceed.** When you opened shots for a non-blocking review

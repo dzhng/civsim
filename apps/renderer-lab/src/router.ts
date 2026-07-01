@@ -7,16 +7,18 @@ import { WORLD_CAMERA_WGSL } from '../../../packages/renderer-core/src/cameraWgs
 import { gpuOpaqueColorTarget, gpuWorldDepthStencil } from '../../../packages/renderer-core/src/pipelineContracts';
 import { compileShader, setShaderErrorHandler, shaderCompilationMessages, type ShaderCompilationMessage } from '../../../packages/renderer-core/src/compileShader';
 import { fatalSurfaceFor, showFatalErrorSurface } from '../../../web/src/shared/fatalError';
+import { CAMPAIGN_FIGURE_SIZE } from '../../../web/src/campaign/renderer';
 import { SkinnedCrowdPipeline } from '../../../packages/renderer-core/src/skinnedPipeline';
 import { animationForFrame } from '../../../packages/crowd-runtime/src/animationState';
 import { buildCrowdInstances, generatedFormation, type CrowdInstance } from '../../../packages/crowd-runtime/src/instanceData';
+import { buildStackCrowd } from '../../../packages/crowd-runtime/src/stackCrowd';
 import { assignCrowdLods, assignCrowdLodsByDistance, countLods, lodWithHysteresis } from '../../../packages/crowd-runtime/src/lod';
 import { createPerfAverager } from '../../../packages/crowd-runtime/src/perfStats';
 import { buildLiveBattleCrowdFrame } from '../../../packages/game-renderer/src/battle/crowdPass';
 import { BattleMinimapPass } from '../../../packages/game-renderer/src/battle/minimapPass';
 import { BattleGroundCuePass, selectedUnitGroundCueVertices } from '../../../packages/game-renderer/src/battle/groundCuePass';
 import { BattleEffectLinePass } from '../../../packages/game-renderer/src/battle/effectLinePass';
-import { BattleSoldierShadowPass } from '../../../packages/game-renderer/src/battle/soldierShadowPass';
+import { SoldierShadowDecalPass } from '../../../packages/renderer-core/src/soldierShadowPass';
 import { BattleParticlePass, type BattleParticle } from '../../../packages/game-renderer/src/battle/particlePass';
 import { battleUnitsInRect, cssToBattleWorld, liveBattlePickUnits, pickBattleUnit, type BattlePickUnit, type RendererBattlePickCamera } from '../../../packages/game-renderer/src/battle/pickingDebug';
 import { BattleTerrainPass, type BattleTerrainFixture } from '../../../packages/game-renderer/src/battle/terrainPass';
@@ -44,7 +46,7 @@ import { campaignBorderVertices, CampaignTerritoryPass } from '../../../packages
 import { Nested3dFixturePass } from '../../../packages/game-renderer/src/fixtures/nested3d';
 import { formatPerfSummary, makeFullGamePerfReport } from '../../../packages/game-renderer/src/perfReport';
 import { compileRenderGraph, fullGameRenderGraphReport, type RenderGraphPass } from '../../../packages/game-renderer/src/renderGraph';
-import { loadPlaceholderKit, loadPlaceholderVat, placeholderClipNames } from '../../../packages/soldier-assets/src/placeholders';
+import { loadPlaceholderKit, loadPlaceholderVat, mountedClassesFromKit, placeholderClipNames } from '../../../packages/soldier-assets/src/placeholders';
 import {
   REAL_UNIT_CLASS_COUNT,
   PLACEHOLDER_RENDER_CLASS_COUNT,
@@ -230,7 +232,7 @@ async function routeBattleEffects(ctx: LabContext) {
 
   const shell = await createConfiguredShell(ctx.canvas, { x: 0, y: 0, zoom: 24, pitch: 0.28, yaw: 0 });
   const pipeline = await createSkinnedPipeline(shell, [0.20, 0.42, 0.88], vat);
-  const shadows = new BattleSoldierShadowPass(shell);
+  const shadows = new SoldierShadowDecalPass(shell);
   const fx = new BattleParticlePass(shell);
   shadows.upload(instances);
   fx.upload(particles);
@@ -293,7 +295,7 @@ async function routeBattleElevation(ctx: LabContext) {
 
   const shell = await createConfiguredShell(ctx.canvas, { x: 0, y: 0, zoom: 26, pitch: 0.30, yaw: 0 });
   const pipeline = await createSkinnedPipeline(shell, [0.20, 0.42, 0.88], vat);
-  const shadows = new BattleSoldierShadowPass(shell);
+  const shadows = new SoldierShadowDecalPass(shell);
 
   const start = performance.now();
   const tick = () => {
@@ -1551,13 +1553,39 @@ async function routeCampaignModelShots(ctx: LabContext) {
   roads.upload(frame.roads);
   selection.upload(frame.selections);
   const labelLayer = labelPass.upload(frame.labels, camera);
+  // Army stacks draw the shared skinned crowd (matching the production campaign
+  // renderer), so this isolated 'army'/'garrison-*' review shows the real
+  // representative figures + grounding shadow, not just the standard banner.
+  const soldierKit = await loadPlaceholderKit();
+  const soldierCrowd = new SkinnedCrowdPipeline(shell, createPlaceholderSoldierMeshes([0.30, 0.36, 0.74]), await loadPlaceholderVat(), soldierKit, { worldDepth: 'campaign' });
+  const soldierShadows = new SoldierShadowDecalPass(shell, { worldDepth: 'campaign' });
+  const modelStackRoster = [4, 0, 3, 0, 2, 1];
+  const modelCrowd = frame.entities
+    .filter((entity) => entity.kind === 'army')
+    .flatMap((entity, i) => buildStackCrowd(modelStackRoster, {
+      unitCount: 20,
+      stackUnitCap: 20,
+      x: entity.x,
+      y: entity.y,
+      faction: 0,
+      seed: 100 + i,
+      clip: 'idle',
+      phase: 0,
+      mountedClasses: mountedClassesFromKit(soldierKit),
+      spacing: CAMPAIGN_FIGURE_SIZE * 1.1,
+      terrainHeight: () => entity.z ?? 0,
+    }));
+  soldierCrowd.upload(modelCrowd, { size: CAMPAIGN_FIGURE_SIZE });
+  soldierShadows.upload(modelCrowd, { radius: 0.62 * CAMPAIGN_FIGURE_SIZE });
   const hostileDepthOrder = gate === 'hostile-depth-order';
   const entityOpaquePass: FrameGraphPass = { id: 'model-shot-entities-opaque', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => entities.drawOpaque(pass) };
   const sceneryOpaquePass: FrameGraphPass = { id: 'model-shot-scenery-opaque', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => scenery.drawOpaque(pass) };
   const passes: FrameGraphPass[] = [
     ...(hostileDepthOrder ? [entityOpaquePass, sceneryOpaquePass] : [sceneryOpaquePass, entityOpaquePass]),
+    { id: 'model-shot-soldier-crowd', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => soldierCrowd.draw(pass) },
     { id: 'model-shot-scenery-shadows', role: 'world-decal', phase: 'world-depth', depth: 'read', draw: (pass) => scenery.drawShadows(pass) },
     { id: 'model-shot-entity-shadows', role: 'world-decal', phase: 'world-depth', depth: 'read', draw: (pass) => entities.drawShadows(pass) },
+    { id: 'model-shot-soldier-shadows', role: 'world-decal', phase: 'world-depth', depth: 'read', draw: (pass) => soldierShadows.draw(pass) },
     { id: 'model-shot-roads', role: 'world-decal', phase: 'world-depth', depth: 'read', draw: (pass) => roads.draw(pass) },
     { id: 'model-shot-selection', role: 'world-decal', phase: 'world-depth', depth: 'read', draw: (pass) => selection.draw(pass) },
     ...(clouds ? [{ id: 'model-shot-clouds', role: 'overlay-effect' as const, phase: 'overlay' as const, draw: (pass: OverlayRenderPass) => clouds.draw(pass) }] : []),
@@ -2919,7 +2947,7 @@ async function routeBattleTerrain3d(ctx: LabContext) {
   // height field as the terrain mesh and props, so feet and shadows ride the
   // surface (the slice-03 movement/seating invariant on the real source).
   const terrainHeight = (x: number, y: number) => terrainHeightAt(field, x, y);
-  let soldiers: { pipeline: Awaited<ReturnType<typeof createSkinnedPipeline>>; shadows: BattleSoldierShadowPass; count: number; elevationMatches: boolean; elevationSpan: number } | null = null;
+  let soldiers: { pipeline: Awaited<ReturnType<typeof createSkinnedPipeline>>; shadows: SoldierShadowDecalPass; count: number; elevationMatches: boolean; elevationSpan: number } | null = null;
   if (view === 'soldiers') {
     const vat = await loadPlaceholderVat();
     const cols = 16;
@@ -2940,7 +2968,7 @@ async function routeBattleTerrain3d(ctx: LabContext) {
     const elevs = instances.map((i) => i.elevation ?? 0);
     const pipeline = await createSkinnedPipeline(shell, [0.30, 0.36, 0.74], vat);
     pipeline.upload(instances, { forcedClip: 'march', phaseOffset: 0, size: 1 });
-    const shadows = new BattleSoldierShadowPass(shell);
+    const shadows = new SoldierShadowDecalPass(shell);
     shadows.upload(instances);
     soldiers = { pipeline, shadows, count: instances.length, elevationMatches, elevationSpan: Math.max(...elevs) - Math.min(...elevs) };
   }

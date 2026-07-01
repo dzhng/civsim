@@ -130,7 +130,11 @@ fn vs(
 fn fs(in: VsOut) -> @location(0) vec4f {
   let blue = vec3f(0.20, 0.42, 0.88);
   let red = vec3f(0.84, 0.24, 0.20);
-  let accent = select(blue, red, in.faction > 0.5);
+  // faction 0 = own/friend (blue), 1 = foe (red), 2 = neutral (amber). Battle only
+  // ever sends 0/1, so its output is unchanged; campaign uses 2 for neutral stacks.
+  let neutral = vec3f(0.82, 0.70, 0.34);
+  var accent = select(blue, red, in.faction > 0.5);
+  accent = select(accent, neutral, in.faction > 1.5);
   // Material channels. Placeholder textures are neutral, so albedo/mask keep the
   // default look exact; orm/normal effects are gated by factionMaskStrength.
   let uv = vec2f(0.5, 0.5);
@@ -167,6 +171,11 @@ fn fs(in: VsOut) -> @location(0) vec4f {
   return vec4f(clamp(shaded, vec3f(0.0), vec3f(1.0)), in.color.a);
 }`;
 
+/** Which world-depth sort a soldier crowd uses. Battle and campaign weight
+ *  ground vs height differently in the shared camera WGSL; the crowd geometry
+ *  is otherwise identical, so the scene only swaps the depth function. */
+export type SoldierCrowdDepthScene = 'battle' | 'campaign';
+
 export class SkinnedCrowdPipeline {
   private pipeline: GPURenderPipeline;
   private resources: MeshResource[];
@@ -174,8 +183,10 @@ export class SkinnedCrowdPipeline {
   private vatVariants: number;
   private materialBindGroup: GPUBindGroup;
   private materialUniform: GPUBuffer;
+  private readonly worldDepth: SoldierCrowdDepthScene;
 
-  constructor(private shell: RawFrameShell, meshes: SkinnedMeshInput, vats: SkinnedVatInput, kit?: SoldierKitManifest) {
+  constructor(private shell: RawFrameShell, meshes: SkinnedMeshInput, vats: SkinnedVatInput, kit?: SoldierKitManifest, opts: { worldDepth?: SoldierCrowdDepthScene } = {}) {
+    this.worldDepth = opts.worldDepth ?? 'battle';
     const device = shell.device;
     // Normalize to per-class tiers: classId → lod → mesh. A flat list is L0-only.
     const meshTiers: SoldierMeshData[][] = Array.isArray(meshes)
@@ -399,7 +410,13 @@ export class SkinnedCrowdPipeline {
 
   private makePipeline(vatLayout: GPUBindGroupLayout, materialLayout: GPUBindGroupLayout) {
     const device = this.shell.device;
-    const module = compileShader(device, SKINNED_WGSL, 'skinned-crowd');
+    // Campaign soldiers sort against campaign scenery/cities, which use a
+    // different ground/height depth weighting than battle. Swap only the depth
+    // function; battle keeps the unchanged WGSL (byte-identical).
+    const wgsl = this.worldDepth === 'campaign'
+      ? SKINNED_WGSL.replace('civsimBattleWorldDepth3d(world)', 'civsimCampaignWorldDepth3d(world)')
+      : SKINNED_WGSL;
+    const module = compileShader(device, wgsl, `skinned-crowd-${this.worldDepth}`);
     return device.createRenderPipeline({
       label: 'skinned-crowd-pipeline',
       layout: device.createPipelineLayout({ bindGroupLayouts: [this.shell.cameraBindGroupLayout, vatLayout, materialLayout] }),

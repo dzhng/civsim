@@ -1,16 +1,17 @@
-import type { RawFrameShell, WorldRenderPass } from '../../../renderer-core/src/frameShell';
-import { WORLD_CAMERA_WGSL } from '../../../renderer-core/src/cameraWgsl';
-import { compileShader } from '../../../renderer-core/src/compileShader';
-import { gpuAlphaBlendColorTarget, gpuMultisample, gpuWorldDepthStencil } from '../../../renderer-core/src/pipelineContracts';
-import type { CrowdInstance } from '../../../crowd-runtime/src/instanceData';
+import type { RawFrameShell, WorldRenderPass } from './frameShell';
+import { WORLD_CAMERA_WGSL } from './cameraWgsl';
+import { compileShader } from './compileShader';
+import { gpuAlphaBlendColorTarget, gpuMultisample, gpuWorldDepthStencil } from './pipelineContracts';
+import type { SoldierCrowdDepthScene } from './skinnedPipeline';
+import type { CrowdInstance } from '../../crowd-runtime/src/instanceData';
 
 // A grounding shadow per soldier: a soft dark ellipse on the terrain surface at
 // the soldier's (x, y, elevation), so each figure is anchored to the ground
-// beneath it. This is the battle analogue of the campaign shadow decal — a
-// read-only depth pass under the soldiers, sitting on relief via the same
-// elevation the skinned soldiers use.
+// beneath it. Shared by battle and campaign — the crowd instances drive it, and
+// the world-depth function is selected per scene so the decal sorts on the same
+// relief the skinned soldiers use.
 
-export interface BattleSoldierShadowStats {
+export interface SoldierShadowStats {
   shadows: number;
   cameraContract: 'shared-world-camera-wgsl';
 }
@@ -35,18 +36,24 @@ fn fs(in: VsOut) -> @location(0) vec4f {
   return vec4f(0.06, 0.05, 0.04, alpha);
 }`;
 
-export class BattleSoldierShadowPass {
+export class SoldierShadowDecalPass {
   private pipeline: GPURenderPipeline;
   private quadBuffer: GPUBuffer;
   private instanceBuffer: GPUBuffer;
   private capacity = 0;
   private count = 0;
 
-  constructor(private shell: RawFrameShell) {
+  constructor(private shell: RawFrameShell, opts: { worldDepth?: SoldierCrowdDepthScene } = {}) {
     const device = shell.device;
-    const module = compileShader(device, SHADOW_WGSL, 'battle-soldier-shadow');
+    // Campaign soldiers sort against campaign geometry, which weights ground vs
+    // height differently than battle. Swap only the depth function; battle keeps
+    // the unchanged WGSL.
+    const wgsl = opts.worldDepth === 'campaign'
+      ? SHADOW_WGSL.replace('civsimBattleWorldDepth3d(world)', 'civsimCampaignWorldDepth3d(world)')
+      : SHADOW_WGSL;
+    const module = compileShader(device, wgsl, `soldier-shadow-${opts.worldDepth ?? 'battle'}`);
     this.pipeline = device.createRenderPipeline({
-      label: 'battle-soldier-shadow-pipeline',
+      label: 'soldier-shadow-pipeline',
       layout: device.createPipelineLayout({ bindGroupLayouts: [shell.cameraBindGroupLayout] }),
       vertex: {
         module,
@@ -61,9 +68,9 @@ export class BattleSoldierShadowPass {
       depthStencil: gpuWorldDepthStencil('read'),
       multisample: gpuMultisample(shell.sampleCount),
     });
-    this.quadBuffer = device.createBuffer({ label: 'battle-soldier-shadow-quad', size: 8 * 4, usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST });
+    this.quadBuffer = device.createBuffer({ label: 'soldier-shadow-quad', size: 8 * 4, usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST });
     device.queue.writeBuffer(this.quadBuffer, 0, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]));
-    this.instanceBuffer = device.createBuffer({ label: 'battle-soldier-shadow-empty', size: 4 * 4, usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST });
+    this.instanceBuffer = device.createBuffer({ label: 'soldier-shadow-empty', size: 4 * 4, usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST });
   }
 
   upload(instances: CrowdInstance[], opts: { radius?: number } = {}) {
@@ -71,7 +78,7 @@ export class BattleSoldierShadowPass {
     if (instances.length > this.capacity) {
       this.capacity = Math.max(instances.length, this.capacity * 2, 256);
       this.instanceBuffer = this.shell.device.createBuffer({
-        label: 'battle-soldier-shadow-instances',
+        label: 'soldier-shadow-instances',
         size: this.capacity * 4 * 4,
         usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
       });
@@ -99,7 +106,7 @@ export class BattleSoldierShadowPass {
     pass.draw(4, this.count);
   }
 
-  stats(): BattleSoldierShadowStats {
+  stats(): SoldierShadowStats {
     return { shadows: this.count, cameraContract: 'shared-world-camera-wgsl' };
   }
 }

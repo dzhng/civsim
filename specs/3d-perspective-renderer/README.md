@@ -12,12 +12,23 @@ photoreal register the `aesthetics` skill targets.
 
 ## Next Agent Prompt
 
-**Status:** Plan synthesized 2026-07-02 from three independent architect drafts
-(strong convergence). Spec materialized: this README + the spine slice files
-(`01`–`05`) + the photoreal-substrate bake-off (`06`). The photoreal *surface*
-slices (`07`+) are sketched in the slice graph below but **not yet authored as
-detailed files** — they are deliberately deferred until slice `06` decides the
-materials substrate (bespoke WGSL vs three.js/TSL).
+**Status (updated 2026-07-02):** camera spine `01`–`05a` landed on this branch
+(`05b` authored, landing on the spine track); slice `06` is DONE with a substrate
+verdict (below); and the **photoreal ladder `07`–`17` is now AUTHORED** — synthesized
+from three independent architect drafts against the `06` verdict. The ladder's slice
+files live in `slices/07-*.md` … `17-*.md`; the sketched `07`–`14` graph below was
+replaced by the real `07`–`17` graph. The adoption seam, scaffolding ledger,
+single-owner invariants, and standing gates are recorded in **"Photoreal ladder
+invariants"** below — read that section before implementing any ladder slice.
+
+**Exact next pickup point:** two parallel tracks.
+1. **Spine track:** land `04f` (30k perf gate scene — the instrument every ladder
+   slice re-runs) and `05b` (legacy projector collapse) — **both must land before
+   `08b`** (the production flip deletes passes, not paths, and needs the perf gate
+   in place).
+2. **Ladder track:** slice `07` (`slices/07-photoreal-foundation.md`) **can start
+   immediately, in parallel, in its own worktree** — it is additive + spike deletion,
+   touches no production surface, and doesn't depend on `04f`/`05b`.
 
 **Slice `06` is DONE — SUBSTRATE VERDICT: three.js WebGPU + TSL for the photoreal
 layer (decided 2026-07-02, evidence-based, autonomous per the locked procedure).**
@@ -53,18 +64,14 @@ chained it into the root `test:web`, so `check`/CI now runs all 25. camera3d is
 the single projection owner; the 2.5D fake path in `cameraUniform.ts` is untouched
 (it is collapsed in `04`/`05`, per the clean-architecture invariants).
 
-**The one decision that gates the photoreal half — resolve before authoring `07`+:**
-the *camera spine* (`01`–`05`) is settled as **bespoke** (the conversion is a small
-centralized seam change, and the entire verification harness — seam unit tests,
-`__rendererLabStats` behavioral publishing, screenshot routes — is built on the
-bespoke renderer; moving it to a framework would be a bad trade). The *photoreal
-layer* (PBR/shadows/sky/ocean/post) is the only place a framework earns its keep,
-so slice `06` is a **three.js WebGPU + TSL vs bespoke bake-off** (water vista + PBR
-sphere grid + a **30k-soldier + foliage** crowd-perf probe) that picks the substrate
-on evidence. **The `06` agent makes the substrate call itself** using the locked
-decision procedure in that slice file (perf veto at ~33 ms / 30 fps · look parity ·
-harness heavily-weighted-but-tradeable · near-tie → three.js), then **re-invokes
-`/feature-slicing` with the results** to author `07`+. No human sign-off gates it.
+**The substrate decision that gated the photoreal half is RESOLVED** (see the `06`
+block above and the slice file's VERDICT): three.js WebGPU + TSL for the photoreal
+layer; the camera spine stays bespoke `camera3d` and feeds three's camera through
+`cameraBridge.applyCamera3d` (z-up, `camera.up=(0,0,1)`, proven in the spike). The
+adoption seam is `web/src/battle/renderer.ts::BattleRenderer` — its **public API does
+not move**; slice `08b` swaps its internals onto `PhotorealBattleWorld`
+(`packages/photoreal-renderer/`) on the same canvas, mirroring `04a`'s atomic-flip
+shape. No runtime substrate flag ever ships.
 
 **Slice `02` is DONE (committed, 2026-07-02).** The keystone landed: the water
 route runs on the real 3D perspective camera + a reverse-Z `depth32float` buffer,
@@ -244,60 +251,74 @@ flipped onto the real 3D perspective camera + reverse-Z, mirroring 04a's pattern
   compare vs old look: content preserved (edge-energy ratio 0.98), real perspective
   gained. **Battle byte-identical** (battle-camera-zoom + 3 terrain-elevation
   snapshots 0.0000% diff, seating tripwire `match=true`).
-- **Pre-existing look items flagged by critique** (present in old baselines too, for
-  photoreal slice `13`): label anchors below-left of models, ROMA as army sub-label,
-  low-contrast selection ring, roads pass through city models, glowing beach rim.
-
-**Exact next pickup point:** **slice `05b` (collapse the legacy 2.5D projector —
-resliced, see `slices/05b-collapse-legacy-projector.md`)** — the collapse was sized
-during 05a and is a full pass of its own: 23 files still consume the legacy path,
-including the renderer-lab campaign review routes (legacy shells), the lab battle
-pick harness deferred from 04a, and terrain/particle/nested3d fixtures; the 12
-legacy scalars are not all dead (map sea-shimmer gate reads `cam.zoom`/`cam.cosP`).
-Alternatively land `04b`–`04e` battle polish + the 30k perf gate first. The `06`
-bake-off can still run in parallel.
+- **Pre-existing look items flagged by critique** (present in old baselines too;
+  they land by name in photoreal slice `16d`): label anchors below-left of models,
+  ROMA as army sub-label, low-contrast selection ring, roads pass through city
+  models, glowing beach rim.
 
 **Active blockers / coordination warnings:**
-- **Overlap with `specs/battle-map-reference/`** (active, in-flight). That spec is
-  matching a highland-valley Bronze-Age Aegean vista *under the current 2.5D
-  camera* (deep grass/terrain/cliff/sky/water work, slices up to `07-distant-water`
-  / `08-reference-map-compose`). This feature pulls the projection out from under
-  it. **Recommended sequencing (needs human confirm):** land the camera spine
-  (`01`–`05`) first, then rebase `battle-map-reference`'s look work onto the real
-  camera — tuning the look twice (once under fake perspective, once under real) is
-  wasted, and some of its grass pain is downstream of the projection we're
-  replacing. Until confirmed, treat `battle-map-reference` baselines as
-  will-move-anyway.
-- The env/weather presets moved to `packages/game-renderer/src/environment/environment.ts`
-  (`CIVSIM_ENVIRONMENTS`; `WATER_ENVIRONMENTS` is now an alias). Photoreal lighting
-  slices consume that owner, not the old `waterEnvironment.ts`.
-- The photoreal north star is **`specs/battle-map-reference/assets/target-battle-map.png`**
-  + the `aesthetics` skill (Bronze-Age Aegean / Total War Saga), NOT generic PBR.
-  Copy that image into `assets/` here when photoreal slices are authored, and make
-  it the `compare-screenshots` target for every photoreal surface.
+- **`specs/battle-map-reference` — PAUSE / re-scope (needs David's confirm).** That
+  spec is ~40 slices deep in a grass-architecture ladder tuned under the bespoke
+  substrate that `08b`/`13` replace. Recommended split (recorded in slice `13`):
+  this spec **owns battle look surfaces from `08b` on**; `battle-map-reference` is
+  re-scoped to **target definition** (its target image — now copied to
+  `assets/target-battle-map.png` here — the highland fixture, the environment
+  presets already landed in `CIVSIM_ENVIRONMENTS`, and the `03b1` grass-field data
+  contract that `13b` consumes); its compose gate is absorbed as `13d`; its 03B4*
+  rejection ledger is required reading for `13b`. Its baselines are
+  will-move-anyway. Do not continue implementing it meanwhile.
+- **`04b` — descope to decal depth-bias only (needs David's confirm).** Its
+  billboard items are re-homed to `08` (TSL billboards) and LOD-screen-size to
+  `14b`; spending them on bespoke passes that `08b` orphans is double work. The lab
+  pick harness migrates via `05b`/`08b`.
+- **`three` is PINNED at `0.185.1`** until the ladder closes (`17`). WebGPU
+  internals churn between minors — an upgrade is its own reviewed change with the
+  full suite + perf gate as harness, never a ride-along.
+- Env/weather presets live in `packages/game-renderer/src/environment/environment.ts`
+  (`CIVSIM_ENVIRONMENTS`/`BATTLE_ENVIRONMENTS`) — the ONE preset owner every ladder
+  slice extends, never forks.
+- The photoreal north star is **`assets/target-battle-map.png`** (copied into this
+  spec) + the `aesthetics` skill (Bronze-Age Aegean / Total War Saga), NOT generic
+  PBR — the `compare-screenshots` target for every photoreal surface.
 
 **Global TODO checklist:**
 - [x] `01` — `camera3d` pure math library (renderer-core) + `/renderer/camera3d-probe` **(done)**
 - [x] `02` — real depth + real projection proven on the **water route** (keystone) **(done — dome gone, reverse-Z on SwiftShader confirmed)**
-- [x] `03` — zoom→camera rig (pure curve), battle + campaign **(done — additive `battleCameraRig`/`campaignCameraRig`; legacy `cameraForZoom` untouched until `04`)**
-- [x] `04a` — flip the shared seam → **battle** engine-wide + 3D ray-cast picking **(done — per-pass `real` flag + reverse-Z shell, `Camera` delegates to camera3d, `cameraForZoom` deleted; decals/billboards/LOD resliced to `04b`–`04e`)**
-- [x] `05a` — flip **campaign** to the real camera + campaign picking **(done —
-      per-pass `real` + reverseZ shell, scale-faithful rig wiring, camera3d
-      picking/labels; battle byte-identical)**
-- [ ] `05b` — **delete the legacy projection/depth scaffolding** (no dual path
-      survives the spine; `slices/05b-collapse-legacy-projector.md` + the
-      **legacy-collapse inventory** in the invariants section — lab campaign
-      routes, lab pick harness (`04g`), `fixtures/nested3d` are still legacy)
-- [ ] `04b` — battle polish: decal depth-bias, camera-facing billboards, LOD
-      screen-size, lab pick-harness migration (`slices/04b-battle-polish.md`)
-- [ ] `04f` — **30k-soldier + foliage perf gate**, hardware-only, standing
-      (`slices/04f-30k-perf-gate.md`)
-- [ ] `06` — **photoreal substrate bake-off** (bespoke vs three.js/TSL, 30k-crowd
-      veto) → verdict (`slices/06-photoreal-substrate-bakeoff.md`; unblocked now
-      that `04a` gives the bespoke prong a real-camera crowd)
-- [ ] `07`+ — photoreal ladder (author after `06`): PBR/lighting core, sky+aerial,
-      CSM shadows, sea, terrain, soldiers, campaign surfaces, cleanup/close-spec
-- [ ] Confirm `battle-map-reference` sequencing with the human
+- [x] `03` — zoom→camera rig (pure curve), battle + campaign **(done)**
+- [x] `04a` — flip the shared seam → **battle** engine-wide + 3D ray-cast picking **(done)**
+- [x] `05a` — flip **campaign** to the real camera + campaign picking **(done)**
+- [ ] `05b` — delete the legacy projection/depth scaffolding
+      (`slices/05b-collapse-legacy-projector.md`) — **before `08b`**
+- [ ] `04f` — 30k-soldier + foliage perf gate, hardware-only, standing
+      (`slices/04f-30k-perf-gate.md`) — **before `08b`**
+- [ ] `04b` — battle polish, **descoped to decal depth-bias only** (needs confirm;
+      `slices/04b-battle-polish.md`)
+- [x] `06` — photoreal substrate bake-off → **VERDICT: three.js WebGPU + TSL**
+      (`slices/06-photoreal-substrate-bakeoff.md`)
+- [ ] `07` — photoreal foundation: `packages/photoreal-renderer` + harness
+      re-tooling, spike promoted/deleted (`slices/07-photoreal-foundation.md`) —
+      **can start now, in parallel**
+- [ ] `08` — battle world adoption: `08a` parity lab world → `08b` atomic
+      production flip (`slices/08-battle-world-adoption.md`)
+- [ ] `09` — lighting core: physical sun + IBL + ACES from `CIVSIM_ENVIRONMENTS`
+      (`slices/09-lighting-core.md`)
+- [ ] `10` — physical sky + aerial-perspective ONE owner + presets
+      (`slices/10-sky-atmosphere.md`)
+- [ ] `11` — CSM sun shadows, deletes blob-shadow stand-in
+      (`slices/11-csm-shadows.md`)
+- [ ] `12` — photoreal sea: Gerstner-vs-IFFT spike → surface/foam/shore/glint;
+      `seaLayer` owner (`slices/12-photoreal-sea.md`)
+- [ ] `13` — photoreal terrain + foliage; absorbs battle-map-reference compose as
+      `13d` (`slices/13-photoreal-terrain-foliage.md`)
+- [ ] `14` — photoreal soldiers: materials, 30k LOD/impostors (absorbs `04e`),
+      contact AO (`slices/14-photoreal-soldiers.md`)
+- [ ] `15` — post chain: bloom + refine; ACES-vs-AgX decided here
+      (`slices/15-post-chain.md`)
+- [ ] `16` — campaign photoreal: `16a` register GO/NO-GO + flip, chart grade,
+      entities, territory/labels (`slices/16-campaign-photoreal.md`)
+- [ ] `17` — legacy deletion sweep + close-spec (`slices/17-legacy-sweep-close.md`)
+- [ ] Confirm with David: `battle-map-reference` pause/re-scope (owner: `13`) and
+      the `04b` descope (owner: `08`)
 
 **Instruction to the next agent:** update this section (status, pickup point,
 checklist) before ending your pass.
@@ -410,37 +431,51 @@ a first-class acceptance criterion, not a "later optimization":
       │
       ├── 04a FLIP battle + 3D ray-cast picking               ✅ done (per-pass `real` flag)
       │        │
-      │        ├── 05 FLIP campaign + collapse legacy projector   ← in flight
-      │        │
-      │        ├── 04b battle polish (decal bias · billboards · LOD screen-size ·
-      │        │        lab pick-harness migration)               after 05's collapse
-      │        └── 04f 30k-soldier + foliage perf gate            hardware-only, standing
+      │        ├── 05a FLIP campaign to the real camera           ✅ done
+      │        ├── 05b collapse legacy projector                  authored — BEFORE 08b
+      │        ├── 04f 30k-soldier + foliage perf gate            authored — BEFORE 08b
+      │        └── 04b battle polish (descoped: decal bias only)  needs-human-confirm
       │
-06 PHOTOREAL SUBSTRATE BAKE-OFF (bespoke WGSL vs three.js/TSL)  ← decides 07+
-      │  (water vista · PBR sphere grid · 30k crowd-perf probe)
-      │  gates on 04a: the bespoke prong's crowd must run on the REAL camera,
-      │  or the probe is 2.5D-bespoke vs 3D-three.js apples-to-oranges. Unblocked now.
-      ▼
-   ===== PHOTOREAL LADDER (author after 06 picks substrate) =====
-   07 PBR BRDF + scene-lighting uniform (shared foundation)
-   08 sky + atmosphere + aerial-perspective LUT (a: sky, b: aerial haze, c: sun)
-   09 cascaded shadow maps (new frame-graph phase; retires decal shadows)
-   10 photoreal sea (a: Gerstner-vs-IFFT spike at true horizon, b: PBR+reflection,
-        c: foam, d: depth turbidity, e: glint)
-   11 photoreal terrain (a: PBR mat, b: receive CSM+aerial, c: grass relit/LOD,
-        d: scenery/features)
-   12 photoreal soldiers (a: PBR+CSM cast/receive, b: screen-size LOD under
-        perspective, c: contact AO)
-   13 campaign photoreal surfaces (a: map/sea, b: entities, c: scenery,
-        d: territory/atmosphere)
-   14 post-photoreal cleanup + close-spec (the LEGACY-PROJECTOR deletion belongs to
-        `05`, not here — this is the final sweep: dead decal path once CSM lands,
-        stale fixtures, close-spec archive)
+06 PHOTOREAL SUBSTRATE BAKE-OFF                               ✅ done — VERDICT:
+      │                                                        three.js WebGPU + TSL
+   ===== PHOTOREAL LADDER (authored 2026-07-02 against the 06 verdict) =====
+      │
+07 substrate foundation + harness re-tooling                  can start NOW (parallel,
+      │  packages/photoreal-renderer · spike promoted/deleted   lab-only)
+      │
+08 BATTLE WORLD ADOPTION (the seam flip)
+      │  a: parity battle world in the lab (/renderer/photoreal-battle, overlay ports)
+      │  b: ATOMIC production flip (BattleRenderer internals; no runtime flag)
+      │
+09 lighting core (physical sun + IBL + ACES from CIVSIM_ENVIRONMENTS; neutral albedos)
+      │
+10 physical sky + atmosphere (a: Hillaire sky · b: aerial-perspective ONE owner ·
+      │                        c: presets through the sky model)
+11 CSM sun shadows (deletes 08a blob-shadow stand-in; headline perf re-run)
+      │
+      ├── 12 photoreal sea      a: Gerstner-vs-IFFT spike · b: PBR surface · c: foam ·
+      │                         d: shore blending · e: glint (pairs with 15a)
+      ├── 13 terrain + foliage  a: ground PBR splat · b: grass at density (03b1
+      │                         contract) · c: scenery/cliffs · d: compose vs target
+      ├── 14 photoreal soldiers a: PBR materials · b: 30k LOD/impostors (absorbs 04e) ·
+      │                         c: grounding AO
+      │     (12/13/14 parallelizable in worktrees after 11; 12b needs 10's sky)
+      │
+15 post chain (a: bloom · b: refine; ACES-vs-AgX identity decided here)
+      │
+16 campaign photoreal (a: register GO/NO-GO spike + parity flip — campaign byte-
+      │                identity deliberately ends here IF go · b: chart terrain/sea +
+      │                painted grade · c: entities/scenery · d: territory/labels)
+      │
+17 legacy deletion sweep + close-spec (bespoke world passes, gerstnerField/
+        WaterPlanePass WGSL, frameShell scope-down, grep-audit; refactor-clean +
+        review + close-spec)
 ```
 
 **Milestone after `05`:** entire engine on a real perspective camera, sim
-untouched, playable. Everything from `07` is photorealism, resliced to one visual
-variable per sub-slice with a named crop.
+untouched, playable. **Milestone after `08b`:** three.js owns battle world rendering
+in production at parity — every later look slice lands in the real game. Everything
+from `09` is photorealism, one visual variable per sub-slice with a named crop.
 
 ## Firewalls & "must stay green" (every slice)
 
@@ -455,7 +490,9 @@ variable per sub-slice with a named crop.
   centralized, so passes move together; per-pass verification is the fan-out. `02`
   isolates the reverse-Z proof to the water route first.
 - **All baselines re-blessed deliberately**, never blanket-overwritten. Diff each.
-- **MSAA-safe:** every new/flipped pipeline keeps `gpuMultisample(shell.sampleCount)`.
+- **MSAA-safe:** every new/flipped bespoke pipeline keeps
+  `gpuMultisample(shell.sampleCount)`; from `08b` the photoreal battle world's AA is
+  owned by three (`antialias`) and the bespoke invariant retires surface-by-surface.
 
 ## Clean architecture — end-state invariants (non-negotiable)
 
@@ -493,10 +530,11 @@ owner; divergence from these is the bug class this whole feature exists to kill)
   *extends* that owner; it must NOT introduce a parallel lighting-preset system.
 - **Distance haze/atmosphere collapses to ONE owner.** Today `haze`/`aerial`/`dust`
   is duplicated inline across `frameShell` terrain, `groundPass`, `horizonPass`, and
-  water. The sky/aerial-perspective slice (`08`) **replaces all of them** with a
+  water. The aerial-perspective slice (`10b`) **replaces all of them** with a
   single aerial-perspective source — a net deletion, not a fifth copy.
-- **Water field stays behind the ONE `WaterFieldSource` seam.** Gerstner and any
-  revived IFFT are swappable implementations of that seam, never parallel code paths.
+- **Water stays behind ONE seam.** Bespoke: `WaterFieldSource`. Photoreal battle
+  (post-`12`): `seaLayer`'s displacement seam. Gerstner and any revived IFFT are
+  swappable implementations of that seam, never parallel code paths.
 - **Foliage (trees + grass) has ONE instanced/indirect owner**, shared with the LOD
   system — not per-species bespoke passes accreted over time.
 
@@ -505,6 +543,68 @@ Make ownership visible: publish the active projection/depth/environment identity
 truth (divergence was the original bug). If any slice starts widening into unrelated
 behavior, slice it (`refactor-clean`): land the shared contract first, port consumers
 in reviewable passes, then delete the stale path in the same milestone.
+
+## Photoreal ladder invariants (07–17)
+
+**Single owners** — every ladder slice must leave exactly one owner per concept;
+`__rendererLabStats` identity fields make the ownership assertable:
+
+- **Projection:** `camera3d`. `cameraBridge.applyCamera3d` is the ONLY way a three
+  camera gets posed; `web/tests/photorealCamera.test.ts` pins the two matrix stacks
+  equal.
+- **Environment presets:** `CIVSIM_ENVIRONMENTS`/`BATTLE_ENVIRONMENTS` in
+  `packages/game-renderer/src/environment/environment.ts`. New physical fields are
+  ADDED there, never forked into a parallel table.
+- **Water (battle, post-`12`):** `seaLayer.ts` — one seam, swappable displacement
+  source (Gerstner / IFFT), never parallel water paths.
+- **Atmosphere/aerial:** `10b`'s `aerialPerspective.ts` — one scatter/extinction
+  source applied to every world surface; no material adds its own haze.
+- **Crowd LOD policy:** `packages/crowd-runtime/src/lod.ts` semantics — `14b`
+  consumes them; the three crowd never grows a second policy.
+- **Stats seam:** the `__rendererLabStats` shape, backed by `renderer.info` +
+  `trackTimestamp`, publishing `{ substrate, projection, environment }` identity.
+- **Determinism:** animation keys off `PhotorealWorld.setTime` + seeded RNG; the TSL
+  `time` node is banned in package code.
+- **Version pin:** `three@0.185.1` until `17` closes the ladder.
+
+**Scaffolding ledger** — everything that exists only to die, each with its named
+deleter (a ladder slice is not done while its ledger row is still alive):
+
+| Scaffold | Born | Deleted by |
+|---|---|---|
+| Spike: `web/three-{water,pbr,crowd}.html`, `web/src/three-probe/*`, `apps/renderer-lab/src/bakeoffProbes.ts` + `/renderer/{pbr-probe,water-pbr,crowd-perf}`, `web/bakeoff-shot.mjs`, `web/shots-bakeoff/` | 06 | **07** (promoted or deleted; nothing spike-shaped survives) |
+| `web/src/three-probe/three-shims.d.ts` | 06 | **07** (`@types/three` dev-only) |
+| Procedural equirect `scene.environment` stand-in | 07/09 | **10a** (physical sky feeds the IBL) |
+| Parity `THREE.Fog` haze stand-in in `PhotorealBattleWorld` | 08a | **10b** (aerial-perspective owner) |
+| Blob-shadow parity stand-in (decal replica) | 08a | **11** (real CSM) |
+| Parity Gerstner-family sea shading in `seaLayer` | 08a | **12b–d** (photoreal surface; the seam survives) |
+| Battle instances of bespoke world passes orphaned at the flip (`BattleGroundPass`, `BattleGrassPass`, `BattleHorizonPass`, `BattleGroundCuePass`, `BattleEffectLinePass`, inline `BattleTrianglePass`, battle `SkinnedCrowdPipeline`/`SoldierShadowDecalPass`) — classes live on for campaign/lab | pre-existing | **08b** orphans; **17** deletes (per `16a`'s campaign ruling) |
+| Bespoke campaign world passes + `frameShell` world machinery + `WaterPlanePass`/`gerstnerField.ts` WGSL | pre-existing | **16a** orphans (if GO) → **17** sweeps; if NO-GO, recorded exception |
+
+**Standing gates on EVERY slice `08b`→`17`** (each slice file references this list;
+don't restate it, run it):
+
+1. `cargo test --workspace` — sim firewall; zero diffs under `crates/**`.
+2. `bun run --cwd web test:unit` (incl. the `photoreal*.test.ts` seam pins).
+3. Full battle scene suite under SwiftShader, incl. the `battle-terrain-elevation`
+   seating tripwire `match=true`.
+4. Campaign scene suites **byte-identical until `16a`** (then deliberately
+   re-blessed).
+5. **Hardware perf gate:** `VERIFY_GPU=1 VERIFY_GPU_ADAPTER=hardware
+   VERIFY_BROWSER_CHANNEL=chrome node scene.mjs battle-perf-30k` — 30k+ soldiers +
+   dense foliage, median ≤ ~33 ms **with every photoreal pass landed so far
+   enabled**. Record the numbers in the slice file each run — this is the ladder's
+   frame-time ledger (06 baseline ≈ 6 ms; `11` and `13b`/`14b` are the expected
+   pressure points).
+6. `screenshot-critique` as the required LAST visual check on every shot;
+   `compare-screenshots` whenever a target exists (`assets/target-battle-map.png`,
+   the aesthetics references, or the pre-slice look).
+7. One visual variable per visual slice, with its named crop; all re-blessed
+   baselines diffed individually, never blanket-overwritten.
+8. SwiftShader is the capability-fallback enforcer, never a perf oracle — every
+   adapter-gated feature (sky LUT `10`, CSM `11`, IFFT `12`) ships a fallback tier
+   inside its seam, and the SwiftShader scene asserts *which tier ran* via the stats
+   identity.
 
 ## Standing verification gates (every visual slice)
 
@@ -531,33 +631,36 @@ in reviewable passes, then delete the stale path in the same milestone.
 3. **Losing tactical legibility under perspective** → `03` makes the rig a pure,
    tunable, testable curve with a genuine near-top-down end; `04` gates it with a
    human play-test; "playable" is the explicit bar.
-4. **"Make it photoreal" fog** → never one slice; `07`–`09` are shared foundations,
-   every surface (`10`–`13`) is one visual variable per sub-slice with its own crop
+4. **"Make it photoreal" fog** → never one slice; `07`–`11` are shared foundations,
+   every surface (`12`–`16`) is one visual variable per sub-slice with its own crop
    and critique/compare gate, against `target-battle-map.png`.
 5. **Software-rasterizer CI hiding GPU-only failures** → SwiftShader is the
    weak-GPU proxy that enforces fallbacks (CSM/sky/IFFT); look + perf validate on
    hardware.
 6. **Substrate misjudgment (bespoke vs three.js)** → retired in `06` by an
-   evidence-based bake-off before any photoreal surface is committed.
+   evidence-based bake-off before any photoreal surface is committed. **Resolved:
+   three.js WebGPU + TSL.**
 
 ## Known unknowns → where each resolves
 
 - Reverse-Z + `depth32float` under SwiftShader → `02` (before any fan-out).
 - One FOV/pitch curve keeps formations legible? → `03` curve + `04` play-test;
   fallback is a TW-style "RTS mode" FOV clamp at mid-zoom.
-- Do soldier meshes/decals break under perspective? → `04` (upright/sort) + `12`
-  (LOD, decal retirement).
-- Photoreal substrate (bespoke vs three.js/TSL) → `06`.
-- Gerstner vs IFFT at a true horizon → `10a` replication spike; default Gerstner.
-  The current production water is a bespoke analytic Gerstner field
-  (`packages/game-renderer/src/water/gerstnerField.ts`). Its look target and the
-  origin of the deleted IFFT candidate is the upstream repo
+- Do soldier meshes/decals break under perspective? → `04` (upright/sort) + `11`
+  (decal-shadow retirement) + `14b` (LOD).
+- Photoreal substrate (bespoke vs three.js/TSL) → `06`. **Resolved: three.js.**
+- Gerstner vs IFFT at a true horizon → `12a` technique spike; Gerstner is the
+  guaranteed fallback. The current production water is a bespoke analytic Gerstner
+  field (`packages/game-renderer/src/water/gerstnerField.ts`). The IFFT candidate is
+  the upstream repo
   **[`Spiri0/Threejs-WebGPU-IFFT-Ocean`](https://github.com/Spiri0/Threejs-WebGPU-IFFT-Ocean)**
   (WebGPU compute, JONSWAP→IFFT, storage-buffer cascades). The water spec killed IFFT
   under the *fake* 2.5D camera because dispersion was invisible — that rationale is
-  now **void** under a real perspective horizon, so re-judge it. It is three.js/TSL,
-  so **replicate the technique, do not port** (unless `06` picks three.js).
-- CSM / sky-LUT feasibility on SwiftShader → `08`/`09` verify; adapter-scaled.
+  **void twice over**: the real horizon exists since `02`, and `06` picked three.js,
+  so the old "replicate, don't port" caveat is dissolved — **porting is on the
+  table** at `12a`.
+- CSM / sky-LUT feasibility on SwiftShader → `10`/`11` verify; adapter-scaled
+  fallback tiers inside their seams.
 - Camera uniform buffer growth/alignment (12 → ~48+ floats, mat4 16-byte align) →
   `02` layout assertion test.
 
@@ -568,5 +671,14 @@ Draft research (all three drafts): [WebGPU reversed-Z sample](https://webgpu.git
 [NVIDIA depth precision](https://developer.nvidia.com/blog/visualizing-depth-precision/),
 [Cascaded Shadow Maps (NVIDIA)](https://developer.download.nvidia.com/SDK/10.5/opengl/src/cascaded_shadow_maps/doc/cascaded_shadow_maps.pdf),
 [JolifantoBambla/webgpu-sky-atmosphere (Hillaire LUTs, raw WebGPU)](https://github.com/JolifantoBambla/webgpu-sky-atmosphere),
-[Spiri0/Threejs-WebGPU-IFFT-Ocean (three.js/TSL — replicate, don't port)](https://github.com/Spiri0/Threejs-WebGPU-IFFT-Ocean),
+[Spiri0/Threejs-WebGPU-IFFT-Ocean (three.js/TSL — portable since the `06` verdict; judged at `12a`)](https://github.com/Spiri0/Threejs-WebGPU-IFFT-Ocean),
 [Total War tactical camera](https://lensviewing.com/total-war-camera-angles-up-on-zoom/).
+
+Photoreal ladder research (union of the `07`+ drafts; per-slice pointers live in the
+slice files): [Hillaire, *A Scalable and Production Ready Sky and Atmosphere
+Rendering Technique*, EGSR 2020](https://sebh.github.io/publications/egsr2020.pdf) +
+[sebh/UnrealEngineSkyAtmosphere](https://github.com/sebh/UnrealEngineSkyAtmosphere),
+[TSL wiki](https://github.com/mrdoob/three.js/wiki/Three.js-Shading-Language),
+three.js `webgpu_*` examples (sky, custom fog, shadowmap CSM, ocean, postprocessing
+bloom/TRAA, instancing), `CSMShadowNode` addon source, Tessendorf *Simulating Ocean
+Water*, Ghost of Tsushima grass (GDC 2021), octahedral impostor notes.

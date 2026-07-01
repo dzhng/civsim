@@ -46,7 +46,10 @@ export interface UnitCardsHandle {
 export interface UnitCardsViewProps {
   units: UnitCardInit[];
   onSelect: (unit: number, additive: boolean) => void;
-  sideReserve: number;
+  /** Viewport space reserved for the bottom-corner HUD (info card on the left,
+   * minimap on the right); asymmetric in the game, equal in the lab. */
+  leftReserve: number;
+  rightReserve: number;
   /** The `#unitcards` grid host — applyCardGrid writes its CSS vars here. A
    * RefObject (not a resolved element) so a parent that renders the container can
    * pass its ref before commit; the layout effect reads `.current` post-commit. */
@@ -95,15 +98,15 @@ export const UnitCardsView = forwardRef<UnitCardsHandle, UnitCardsViewProps>(
     // build()'s flushSync — matching the vanilla bar, which relayouts inline.
     // A passive effect runs after paint, leaving a one-frame default-grid reflow
     // that nudged the 3-row layout by a subpixel.
-    const { rootRef, units, sideReserve } = props;
+    const { rootRef, units, leftReserve, rightReserve } = props;
     useLayoutEffect(() => {
       const root = rootRef.current;
       if (!root) return;
-      applyCardGrid(root, units.length, sideReserve);
-      const onResize = () => applyCardGrid(root, units.length, sideReserve);
-      window.addEventListener("resize", onResize);
-      return () => window.removeEventListener("resize", onResize);
-    }, [rootRef, units, sideReserve]);
+      const relayout = () => applyCardGrid(root, units.length, leftReserve, rightReserve);
+      relayout();
+      window.addEventListener("resize", relayout);
+      return () => window.removeEventListener("resize", relayout);
+    }, [rootRef, units, leftReserve, rightReserve]);
 
     useImperativeHandle(
       ref,

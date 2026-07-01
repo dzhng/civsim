@@ -40,7 +40,8 @@ export class UnitCardsReact {
         createElement(UnitCardsView, {
           units,
           onSelect: this.onSelect,
-          sideReserve: this.sideReserve,
+          leftReserve: this.sideReserve,
+          rightReserve: this.sideReserve,
           rootRef: this.rootRef,
           ref: (h: UnitCardsHandle | null) => {
             this.handle = h;

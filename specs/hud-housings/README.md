@@ -23,11 +23,48 @@ contract); it does not change the card-grid math or the sim.
 
 ## Next Agent Prompt
 
-**Status:** Slices 01–02 shipped. Last updated 2026-07-01.
+**Status:** Slices 01–03 shipped. Last updated 2026-07-01.
 
-**Start here:** Slice `03-left-info-card`. Read it, then the firewalls section
+**Start here:** Slice `04-army-roster-idle`. Read it, then the firewalls section
 below, then build. Each slice leaves the battle playable and screenshot-able; do
 not start a later slice until the current one's gate passes.
+
+**What slice 03 landed:** `#hud` moved from top-left to **bottom-left** (`index.html`
+`top:12px`→`bottom:12px`); top-left is now empty battlefield. To keep the card bar
+clear of the wider info panel WITHOUT wrapping it into extra rows, the card-bar
+budget became **asymmetric** — `applyCardGrid(root, count, leftReserve,
+rightReserve)`, `boxW = innerWidth − left − right`, and the bar centers on a new
+`--card-center-x` CSS var (px) that `#unitcards` reads for `left` (falls back to
+`50%`; the lab passes equal reserves so it stays viewport-centered → pixel-identical
+lab). Production passes `BOTTOM_CARD_LEFT_RESERVE (336)` / `MINIMAP_RESERVE (210)`.
+`UnitCardsView` now takes `leftReserve`/`rightReserve`; `UnitCardsReact` (lab) passes
+its single `sideReserve` twice. Verified: `battle-input` selection PASSES (a
+symmetric reserve had broken it — see below), `card-bar` lab col counts unchanged
+(10/15/14), battle snapshots re-blessed (reviewed: hud bottom-left, 1-row bar clears
+the panel).
+
+**Reslice (slice 07's asymmetric reserve pulled into 03 — necessary, not optional):**
+a *symmetric* interim reserve (the original slice-03 plan) is unviable. Reserving
+enough on both sides to clear the 326px info panel narrowed the bar so it wrapped an
+extra row, grew tall, and covered mid-field units — which broke
+`battle-input`'s click-selection (confirmed by stashing the change). The asymmetric
+budget (reserve the panel width on the left, only the minimap on the right) keeps the
+bar wide and short. So slice 07's core math now lives here; **slice 07 is reduced to
+final flush-corner placement + `viewportGate` reconciliation + the crunch decision
+below.**
+
+**Open decision surfaced for slices 06–07 (this is the "corner widths / center shape"
+known-unknown, now concrete):** at 1280px CSS (the battle scenes' width) you cannot
+fit the 326px info panel + a one-row 9-card bar (704px) + full minimap clearance
+(268px) = 1298 > 1280. Today the bar's right edge tucks ~2px under the minimap's
+bottom-left corner (minimap is z-above, so cosmetic only; unprimed critique flagged
+it as a near-miss). Slice 06 moves the minimap to the bottom-right corner, which
+forces this decision: shrink cards, raise MIN_WINDOW, allow the tuck, or let the bar
+wrap at narrow widths. Needs David at the slice-07 checkpoint.
+
+**Pre-existing (not slice-03) issues noted:** the "Artillery Cr…" card label
+truncates mid-word (was already in the baseline); the toolbar sits near the bottom
+edge. Out of scope here.
 
 **What slice 02 landed:** the shared `.hud-chassis` housing class lives in
 `web/src/ui/theme/bronze.css` (material only: border style/color, radius,
@@ -98,7 +135,8 @@ carries the four id rules plus the new `#battle-hud` mount container.
 - [x] 02 — Shared `.hud-chassis` primitive in bronze.css; deduped #hud/#toolbar/
       #minimap onto it (pixel-identical) — shipped. `<Chassis>` component and the
       wholesale CSS move dropped as unsafe/low-value (see handoff notes).
-- [ ] 03 — Left info card → bottom-left corner
+- [x] 03 — Left info card → bottom-left corner; asymmetric card-bar budget
+      (pulled from slice 07 — required to not break selection) — shipped
 - [ ] 04 — Army-roster idle state; drop debug header; FPS → bare top-left
 - [ ] 05 — Merge toolbar into the center card housing
 - [ ] 06 — Minimap → bottom-right corner housing

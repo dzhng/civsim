@@ -10,22 +10,27 @@ already settled as bespoke (`01`–`05`), because the conversion is a small cent
 seam change and the whole verification harness depends on the bespoke renderer. The
 three.js question is *only* about the photoreal layer.
 
-This slice can run **in parallel with `03`–`05`** (it informs `07`+, not the spine).
+**Gates on `04a`** (done): the bespoke prong's 30k crowd probe must run on the REAL
+camera, or the comparison is 2.5D-bespoke vs 3D-three.js apples-to-oranges. It can
+run in parallel with `05` and the `04b`/`04f` follow-ups (own worktree — it adds
+three.js deps and throwaway prototypes).
 
 ## Why this is a real question (not a foregone conclusion)
 
-- **For three.js/TSL:** the photoreal track is the genuinely large, from-scratch
-  part — PBR BRDF+IBL, cascaded shadow maps, Hillaire sky/aerial LUTs, FFT ocean,
-  post (bloom/DOF/TAA). three.js ships most of it; TSL gives node materials +
-  compute + a large example ecosystem (the `Spiri0` ocean is three.js/TSL).
-- **Against:** it's a migration, not an addition. The bespoke `frameShell`, depth
-  contract, marker/minimap/cue/effect passes, and — critically — the verification
-  harness (seam unit tests, `__rendererLabStats` behavioral publishing, screenshot
-  routes) are built on the bespoke renderer. "Write raw WebGPU inside three.js"
-  works (`renderer.backend.device`) but fights three's resource management and is
-  version-fragile. And the drafts found the bespoke photoreal path *also* has clean
-  seams (soldier material bind group already carries albedo/normal/orm/mask; water
-  field already isolated behind `WaterFieldSource`; sun already in the uniform).
+Both arguments are about **end states**, per the anti-incumbency rule below — not
+about what exists today:
+
+- **For three.js/TSL:** the photoreal track is the genuinely large part — PBR
+  BRDF+IBL, cascaded shadow maps, Hillaire sky/aerial LUTs, FFT ocean, post
+  (bloom/DOF/TAA). three.js ships most of it; TSL gives node materials + compute +
+  a large maintained example ecosystem (the `Spiri0` ocean is three.js/TSL).
+- **For bespoke:** living inside three's abstractions has a steady-state cost —
+  "raw WebGPU inside three.js" works (`renderer.backend.device`) but fights three's
+  resource management and its WebGPU internals churn between versions; behavioral
+  introspection (`__rendererLabStats`-style seam publishing) is harder against a
+  more opaque renderer; and a bespoke photoreal layer has clean seams to build on
+  (material bind groups already carry albedo/normal/orm/mask; the water field is
+  isolated behind `WaterFieldSource`; the sun is in the camera uniform).
 
 ## API seam / what to build (three parallel probes, throwaway)
 
@@ -85,18 +90,30 @@ layer's* substrate.
    acceptable, continue.
 3. **Weighted score on the remainder** (only when both survive 1 & 2):
    - **Harness survival — heavily weighted, but tradeable (NOT a veto).** Does the
-     bespoke verification style (seam unit tests, `__rendererLabStats` behavioral
-     publishing, screenshot routes) survive, or go opaque? A big harness loss is a
-     large demerit — but a decisive look/perf/velocity win can outweigh it, and
-     re-tooling the test approach is on the table.
-   - **Interop cost** — for three.js, how painful is keeping the bespoke
-     marker/minimap/cue/effect/picking passes alongside three's renderer.
-   - **Complexity/LOC & velocity** — rough size, how much bespoke infra each prong
-     kept/replaced/fought, and expected speed of authoring `07`+ (three.js ecosystem
-     + TSL examples count here).
+     verification style (seam unit tests, `__rendererLabStats` behavioral
+     publishing, screenshot routes) survive on this substrate, or go opaque? Judge
+     it **forward-looking** — "can we verify photoreal work this way from here on?"
+     — never as sunk cost in the existing harness. A big loss is a large demerit,
+     but a decisive look/perf/velocity win can outweigh it, and re-tooling the test
+     approach is on the table.
+   - **Interop cost** — for three.js, how painful is keeping the
+     marker/minimap/cue/effect/picking passes alongside three's renderer. Score the
+     *steady state* (what living with the composition is like), not the one-time
+     migration.
+   - **Complexity/LOC & velocity** — rough size of each prong and expected speed of
+     authoring `07`+ on it (three.js's ecosystem + TSL examples count here).
+   - **ANTI-INCUMBENCY RULE (human ruling, 2026-07-02): assign ZERO weight to the
+     bespoke renderer being the incumbent.** That it already exists, already works,
+     or already proved the real camera in `01`–`05` is NOT an argument for keeping
+     it; migration effort is NOT a scoring axis — coding-agent budget makes tech
+     swaps cheap and the project is young. "We'd have to rewrite X" never scores a
+     point for bespoke. Score only the END STATES — what each substrate is like to
+     build photoreal on, verify, and run at 30k — objectively.
 4. **Tie-break (explicit human preference): on a near-tie, choose three.js/TSL.**
-   Bet on the ecosystem, examples, and future photoreal velocity. Bespoke wins a
-   near-tie only if it is *clearly* ahead on the weighted axes.
+   The deciding rationale is **community support**: the ecosystem of maintained
+   examples and implementations (ocean, sky, PBR, post) that three.js brings to
+   every future photoreal problem. Bespoke wins a near-tie only if it is *clearly*
+   ahead on the weighted axes.
 
 Write the verdict as: chosen substrate · the perf numbers · the parity verdict · the
 weighted-axis reasoning · and (if three.js) the harness re-tooling plan. Then call

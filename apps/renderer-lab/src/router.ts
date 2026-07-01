@@ -30,7 +30,7 @@ import { BATTLE_MAP_CATALOG, battleMapById, buildBattleTerrainPresentation, pres
 import { flatHeightField, heightSpan, terrainHeightAt, type TerrainHeightField } from '../../../packages/game-renderer/src/terrain/heightField';
 import { terrainHeightField, type BattleTerrainFeature, type BattleTerrainFeatureKind, type BattleTerrainGrid } from '../../../packages/game-renderer/src/battle/terrainFeatures';
 import { BattleGroundPass } from '../../../packages/game-renderer/src/battle/groundPass';
-import { BattleGrassPass, type BattleGrassBounds, type BattleGrassParams, type GrassAccentAggregation, type GrassFiberShellVariant, type GrassPrimitiveFamily, type TextureVolumeProfile } from '../../../packages/game-renderer/src/battle/grassPass';
+import { BattleGrassPass, type BattleGrassBounds, type BattleGrassParams, type GrassAccentAggregation, type GrassFiberShellVariant, type GrassPrimitiveFamily, type TextureVolumeProfile, type TextureVolumeRenderModel } from '../../../packages/game-renderer/src/battle/grassPass';
 import { sampleGrassField } from '../../../packages/game-renderer/src/battle/grassField';
 import { BattleHorizonPass } from '../../../packages/game-renderer/src/battle/horizonPass';
 import { createWaterField, type WaterFieldId, type WaterFieldSource } from '../../../packages/game-renderer/src/water/waterField';
@@ -2868,6 +2868,7 @@ async function routeBattleTerrain3d(ctx: LabContext) {
     const textureCarrier = grassPrimitiveFamily === 'texture-carrier';
     const textureMicroCarrier = grassPrimitiveFamily === 'texture-micro-carrier';
     const textureVolumeProfile = texturePrimitive ? textureVolumeProfileParam(ctx.params, 'textureVolumeProfile', 'current') : 'current';
+    const textureVolumeRenderModel = grassPrimitiveFamily === 'texture-volume' ? textureVolumeRenderModelParam(ctx.params, 'textureVolumeRenderModel', 'opaque-card') : 'opaque-card';
     const grassAccentAggregation = grassTechnique === 'field-accent' && texturePrimitive
       ? grassAccentAggregationParam(ctx.params, 'grassAccentAggregation', 'field-cell')
       : grassTechnique === 'field-accent' && isFieldFiberShellStyle(grassAccentStyle)
@@ -2900,6 +2901,7 @@ async function routeBattleTerrain3d(ctx: LabContext) {
       grassPrimitiveFamily,
       grassPrimitiveBaseline: grassPrimitiveFamily === 'field-fiber-shell' ? 'none' : 'field-fiber-shell-normal',
       textureVolumeProfile,
+      textureVolumeRenderModel,
     });
   } else {
     grass.setTerrain(grid, field, presentation.groundCover, {
@@ -2988,6 +2990,7 @@ async function routeBattleTerrain3d(ctx: LabContext) {
     grassAccent: `${grassStats.accentStyle}/${grassStats.accentAggregation}`,
     grassPrimitiveFamily: grassStats.grassPrimitiveFamily,
     textureVolumeProfile: grassStats.textureVolumeProfile,
+    textureVolumeRenderModel: grassStats.textureVolumeRenderModel,
     grassPrimitiveBaseline: grassStats.grassPrimitiveBaseline,
     grassPrimitiveTexture: grassStats.grassPrimitiveTextureBytes > 0
       ? `${grassStats.grassPrimitiveTextureWidth}x${grassStats.grassPrimitiveTextureHeight} / ${grassStats.grassPrimitiveTextureTiles} tiles`
@@ -3251,6 +3254,7 @@ async function routeBattleGrassField(ctx: LabContext) {
   const textureCarrier = grassPrimitiveFamily === 'texture-carrier';
   const textureMicroCarrier = grassPrimitiveFamily === 'texture-micro-carrier';
   const textureVolumeProfile = texturePrimitive ? textureVolumeProfileParam(ctx.params, 'textureVolumeProfile', 'current') : 'current';
+  const textureVolumeRenderModel = grassPrimitiveFamily === 'texture-volume' ? textureVolumeRenderModelParam(ctx.params, 'textureVolumeRenderModel', 'opaque-card') : 'opaque-card';
   const accentAggregation = accentMode && texturePrimitive
     ? grassAccentAggregationParam(ctx.params, 'accentAggregation', 'field-cell')
     : accentMode && fieldShellStyle
@@ -3283,6 +3287,7 @@ async function routeBattleGrassField(ctx: LabContext) {
     grassPrimitiveFamily,
     grassPrimitiveBaseline: grassPrimitiveFamily === 'field-fiber-shell' ? 'none' : 'field-fiber-shell-normal',
     textureVolumeProfile,
+    textureVolumeRenderModel,
   });
   shell.drawFrame({
     clear: { r: 0.75, g: 0.84, b: 0.90, a: 1 },
@@ -3309,6 +3314,7 @@ async function routeBattleGrassField(ctx: LabContext) {
     accentAggregation: grassStats.accentAggregation,
     grassPrimitiveFamily: grassStats.grassPrimitiveFamily,
     textureVolumeProfile: grassStats.textureVolumeProfile,
+    textureVolumeRenderModel: grassStats.textureVolumeRenderModel,
     grassPrimitiveBaseline: grassStats.grassPrimitiveBaseline,
     grassPrimitiveTexture: grassStats.grassPrimitiveTextureBytes > 0
       ? `${grassStats.grassPrimitiveTextureWidth}x${grassStats.grassPrimitiveTextureHeight} / ${grassStats.grassPrimitiveTextureTiles} tiles`
@@ -4209,6 +4215,17 @@ function fiberShellVariantParam(params: URLSearchParams, key: string, fallback: 
 function textureVolumeProfileParam(params: URLSearchParams, key: string, fallback: TextureVolumeProfile): TextureVolumeProfile {
   const raw = params.get(key);
   return raw === 'current' || raw === 'seated-soft' || raw === 'overlap-stagger' || raw === 'broken-lattice' ? raw : fallback;
+}
+
+function textureVolumeRenderModelParam(params: URLSearchParams, key: string, fallback: TextureVolumeRenderModel): TextureVolumeRenderModel {
+  const raw = params.get(key);
+  return raw === 'opaque-card'
+    || raw === 'alpha-cutout'
+    || raw === 'hard-cutout'
+    || raw === 'dither-cutout'
+    || raw === 'sparse-dither'
+    ? raw
+    : fallback;
 }
 
 function grassPrimitiveFamilyParam(params: URLSearchParams, key: string, fallback: GrassPrimitiveFamily): GrassPrimitiveFamily {

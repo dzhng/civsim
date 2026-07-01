@@ -35,6 +35,7 @@ export interface BattleGrassFocus {
 export type GrassAccentAggregation = 'record' | 'clump' | 'field-cell' | 'field-near';
 export type GrassFiberShellVariant = 'off' | 'normal' | 'visibility' | 'width' | 'lift' | 'view-thickness';
 export type TextureVolumeProfile = 'current' | 'seated-soft' | 'overlap-stagger' | 'broken-lattice';
+export type TextureVolumeRenderModel = 'opaque-card' | 'alpha-cutout' | 'hard-cutout' | 'dither-cutout' | 'sparse-dither';
 export type GrassPrimitiveFamily =
   | 'legacy-tuft'
   | 'root-shadow'
@@ -74,6 +75,7 @@ export interface BattleGrassParams {
   grassPrimitiveFamily?: GrassPrimitiveFamily;
   grassPrimitiveBaseline?: string;
   textureVolumeProfile?: TextureVolumeProfile;
+  textureVolumeRenderModel?: TextureVolumeRenderModel;
 }
 
 export interface BattleGrassStats {
@@ -135,6 +137,7 @@ export interface BattleGrassStats {
   grassPrimitiveTextureBytes: number;
   grassPrimitiveMicroCards: number;
   textureVolumeProfile: TextureVolumeProfile;
+  textureVolumeRenderModel: TextureVolumeRenderModel;
   grassPrimitiveBaseline: string;
   windPhase: number;
   windStrength: number;
@@ -159,6 +162,7 @@ const GRASS_ALBEDO_SHADOW = wgslVec3(SLICE00_GRASS_ALBEDO.shadow);
 const GRASS_ALBEDO_NEAR = wgslVec3(SLICE00_GRASS_ALBEDO.near);
 const GRASS_INSTANCE_STRIDE_FLOATS = 16;
 const GRASS_INSTANCE_STRIDE_BYTES = GRASS_INSTANCE_STRIDE_FLOATS * Float32Array.BYTES_PER_ELEMENT;
+const GRASS_UNIFORM_FLOATS = 8;
 const GRASS_VOLUME_ATLAS_TILE_SIZE = 64;
 const GRASS_VOLUME_ATLAS_TILES = 4;
 const GRASS_VOLUME_ATLAS_WIDTH = GRASS_VOLUME_ATLAS_TILE_SIZE * GRASS_VOLUME_ATLAS_TILES;
@@ -171,6 +175,10 @@ struct GrassUniform {
   windStrength: f32,
   baseHeight: f32,
   baseWidth: f32,
+  textureRenderModel: f32,
+  textureCutoutBias: f32,
+  textureDitherScale: f32,
+  texturePadding: f32,
 };
 @group(1) @binding(0) var<uniform> grass: GrassUniform;
 
@@ -258,6 +266,10 @@ struct GrassUniform {
   windStrength: f32,
   baseHeight: f32,
   baseWidth: f32,
+  textureRenderModel: f32,
+  textureCutoutBias: f32,
+  textureDitherScale: f32,
+  texturePadding: f32,
 };
 @group(1) @binding(0) var<uniform> grass: GrassUniform;
 @group(1) @binding(1) var grassSampler: sampler;
@@ -338,10 +350,28 @@ fn vs(
 fn fs(in: VsOut) -> @location(0) vec4f {
   let tex = textureSample(grassAtlas, grassSampler, in.uv);
   let alpha = tex.a * in.alpha * mix(1.0, 1.18, in.carrierT);
+  let model = grass.textureRenderModel;
   let coverageLow = mix(0.012 + in.dither * 0.010, 0.006 + in.dither * 0.006, in.carrierT);
   let coverageHigh = mix(0.20 + in.dither * 0.035, 0.115 + in.dither * 0.020, in.carrierT);
-  let coverage = smoothstep(coverageLow, coverageHigh, alpha);
-  if (coverage < mix(0.012, 0.006, in.carrierT)) {
+  var coverage = smoothstep(coverageLow, coverageHigh, alpha);
+  var cutoutThreshold = mix(0.012, 0.006, in.carrierT);
+  if (model > 0.5 && model < 1.5) {
+    cutoutThreshold = mix(0.050, 0.034, in.carrierT) + grass.textureCutoutBias;
+    coverage = smoothstep(cutoutThreshold, cutoutThreshold + 0.095, alpha);
+  }
+  if (model >= 1.5 && model < 2.5) {
+    cutoutThreshold = mix(0.120, 0.082, in.carrierT) + grass.textureCutoutBias;
+    coverage = smoothstep(cutoutThreshold, cutoutThreshold + 0.070, alpha);
+  }
+  if (model >= 2.5 && model < 3.5) {
+    cutoutThreshold = mix(0.012, 0.008, in.carrierT) + in.dither * grass.textureDitherScale + grass.textureCutoutBias;
+    coverage = smoothstep(0.018, 0.145, alpha);
+  }
+  if (model >= 3.5) {
+    cutoutThreshold = mix(0.028, 0.018, in.carrierT) + in.dither * grass.textureDitherScale + grass.textureCutoutBias;
+    coverage = smoothstep(0.035, 0.165, alpha);
+  }
+  if (alpha < cutoutThreshold || coverage < mix(0.012, 0.006, in.carrierT)) {
     discard;
   }
   let rootShade = smoothstep(0.0, 0.34, in.heightT);
@@ -353,7 +383,11 @@ fn fs(in: VsOut) -> @location(0) vec4f {
   grassCol = mix(grassCol * vec3f(0.55, 0.62, 0.48), grassCol, rootShade);
   let cardBase = overcastMeadow * (0.80 + rootShade * 0.10);
   var col = mix(cardBase, grassCol, coverage);
-  col = mix(col, overcastMeadow, (1.0 - coverage) * (0.10 + in.terrainT * 0.18) + in.terrainT * mix(0.18, 0.30, in.carrierT));
+  if (model > 0.5) {
+    let cutoutRoot = mix(overcastMeadow * 0.64, grassCol, rootShade);
+    col = mix(cutoutRoot, grassCol, coverage);
+  }
+  col = mix(col, overcastMeadow, select((1.0 - coverage) * (0.10 + in.terrainT * 0.18), 0.0, model > 0.5) + in.terrainT * mix(0.18, 0.30, in.carrierT));
   let haze = vec3f(0.78, 0.82, 0.78);
   col = mix(col, haze, in.fog);
   return vec4f(clamp(col, vec3f(0.0), vec3f(1.0)), 1.0);
@@ -423,6 +457,7 @@ export class BattleGrassPass {
   private grassPrimitiveTextureTiles = 0;
   private grassPrimitiveTextureBytes = 0;
   private textureVolumeProfile: TextureVolumeProfile = 'current';
+  private textureVolumeRenderModel: TextureVolumeRenderModel = 'opaque-card';
 
   constructor(private shell: RawFrameShell) {
     const device = shell.device;
@@ -504,7 +539,7 @@ export class BattleGrassPass {
     });
     this.uniformBuffer = device.createBuffer({
       label: 'battle-grass-uniforms',
-      size: 4 * 4,
+      size: GRASS_UNIFORM_FLOATS * Float32Array.BYTES_PER_ELEMENT,
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
     });
     const atlas = generateGrassVolumeAtlas(0x6a551);
@@ -593,6 +628,7 @@ export class BattleGrassPass {
     this.grassPrimitiveBaseline = 'none';
     this.clearGrassPrimitiveTextureStats();
     this.textureVolumeProfile = 'current';
+    this.textureVolumeRenderModel = 'opaque-card';
 
     const meshOptions: GrassTuftOptions = {
       seed: merged.seed,
@@ -662,6 +698,7 @@ export class BattleGrassPass {
     this.grassPrimitiveBaseline = 'none';
     this.clearGrassPrimitiveTextureStats();
     this.textureVolumeProfile = 'current';
+    this.textureVolumeRenderModel = 'opaque-card';
 
     const meshOptions: GrassTuftOptions = {
       seed: merged.seed,
@@ -745,6 +782,9 @@ export class BattleGrassPass {
     this.grassPrimitiveFamily = params.grassPrimitiveFamily ?? grassPrimitiveFamilyForStyle(this.accentStyle);
     this.grassPrimitiveBaseline = params.grassPrimitiveBaseline ?? (this.grassPrimitiveFamily === 'field-fiber-shell' ? 'none' : 'field-fiber-shell-normal');
     this.textureVolumeProfile = this.grassPrimitiveFamily === 'texture-volume' ? params.textureVolumeProfile ?? 'current' : 'current';
+    this.textureVolumeRenderModel = this.grassPrimitiveFamily === 'texture-volume'
+      ? params.textureVolumeRenderModel ?? 'opaque-card'
+      : 'opaque-card';
     this.fiberShellVariant = fieldFiberShell
       ? requestedFiberShellVariant === 'off'
         ? 'off'
@@ -980,6 +1020,7 @@ export class BattleGrassPass {
         ? this.tuftCount * Math.floor(this.meshTriangles / 2)
         : 0,
       textureVolumeProfile: this.textureVolumeProfile,
+      textureVolumeRenderModel: this.textureVolumeRenderModel,
       grassPrimitiveBaseline: this.grassPrimitiveBaseline,
       windPhase: this.windPhase,
       windStrength: this.windStrength,
@@ -1026,6 +1067,10 @@ export class BattleGrassPass {
       this.windStrength,
       this.baseHeight,
       this.baseWidth,
+      textureVolumeRenderModelCode(this.textureVolumeRenderModel),
+      textureVolumeRenderModelCutoutBias(this.textureVolumeRenderModel),
+      textureVolumeRenderModelDitherScale(this.textureVolumeRenderModel),
+      0,
     ]));
   }
 
@@ -1253,6 +1298,28 @@ function textureVolumeProfileTopAlpha(profile: TextureVolumeProfile, noise: numb
   if (profile === 'overlap-stagger') return 0.66 + noise * 0.18;
   if (profile === 'broken-lattice') return 0.58 + noise * 0.18;
   return 1;
+}
+
+function textureVolumeRenderModelCode(model: TextureVolumeRenderModel): number {
+  if (model === 'alpha-cutout') return 1;
+  if (model === 'hard-cutout') return 2;
+  if (model === 'dither-cutout') return 3;
+  if (model === 'sparse-dither') return 4;
+  return 0;
+}
+
+function textureVolumeRenderModelCutoutBias(model: TextureVolumeRenderModel): number {
+  if (model === 'alpha-cutout') return 0.006;
+  if (model === 'hard-cutout') return 0.006;
+  if (model === 'dither-cutout') return 0.002;
+  if (model === 'sparse-dither') return 0.006;
+  return 0;
+}
+
+function textureVolumeRenderModelDitherScale(model: TextureVolumeRenderModel): number {
+  if (model === 'dither-cutout') return 0.080;
+  if (model === 'sparse-dither') return 0.180;
+  return 0;
 }
 
 function pushTextureVertex(

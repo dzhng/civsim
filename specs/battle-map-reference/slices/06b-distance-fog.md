@@ -10,7 +10,8 @@ Reuse the haze behaviour proven by the water work instead of creating a parallel
 battlemap effect. The reference implementation is water Slice S6:
 
 - `packages/game-renderer/src/water/waterPlanePass.ts` computes a distance-based
-  `haze01` and clears the sky from the active preset's `hazeColor`;
+  `haze01 = smoothstep(55.0, 300.0, dist)` for the lab sea plane and clears the
+  sky from the active preset's `hazeColor`;
 - `packages/game-renderer/src/water/waterMaterialWgsl.ts` fades glint/detail by
   `(1.0 - haze01)` and finishes with `mix(surface, WATER_HAZE, haze01)`;
 - `packages/game-renderer/src/water/waterEnvironment.ts` owns the preset haze
@@ -26,6 +27,12 @@ mass, and water: distance/projection raises a shared haze term, high-frequency
 detail/glint fades as haze rises, and every far surface mixes toward the active
 environment preset's haze colour so the horizon dissolves into the sky.
 
+This is a reuse requirement, not an inspiration note. Prefer extracting or
+threading a shared battle atmosphere/environment helper over copying new
+hard-coded constants into each pass. If a pass needs a different falloff range,
+keep the colour source and final blend semantics shared, publish the range in
+route stats, and record why that surface needs its own distance band.
+
 ## Fixed Inputs
 
 - Freeze sky, grass density/texture, terrain shape/texture, cliff silhouette/texture,
@@ -35,6 +42,9 @@ environment preset's haze colour so the horizon dissolves into the sky.
 - Do not fork a new private fog palette. Use the active environment preset's haze
   colour and document any distance bands as part of the shared battle atmosphere
   contract.
+- Keep grass-body, cliff-shape, cliff-texture, water-placement, and sky-plate
+  variables frozen. This slice may reveal that those surfaces are wrong; it must
+  not repair them while tuning haze.
 
 ## Accept / Reject
 
@@ -51,6 +61,10 @@ Do not judge sky shape, cliff texture, grass density, or water material here.
 - Fog parameters are published in route stats.
 - Ground, grass, scenery, ridge, and water use the same distance-fog contract rather
   than private ad hoc haze constants.
+- The battle route uses the same environment haze colour family as the archived
+  water shots. In the overcast preset, far terrain/ridge/water should approach
+  the pale grey-blue `WATER_ENVIRONMENTS.overcast.hazeColor`, and the sky clear
+  or sky plate should meet that value at the horizon.
 - Compare against the archived water haze shots as an architectural reference:
   far ridges and water should dissolve into the sky with the same soft seam
   behaviour, while near grass remains readable. Use `compare-screenshots` on the

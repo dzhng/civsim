@@ -36,13 +36,32 @@ stored as a freestanding scalar — so it can't drift from what's on screen.
 
 ## Formatting
 
-Rust code is formatted with the standard workspace formatter from the repo root:
+Two formatters, one per language. Rust uses the standard workspace formatter;
+the `web` app uses [oxfmt](https://oxc.rs) (double quotes, 2-space indent),
+which leaves generated data under `web/public/**` and the lockfile alone via
+`web/.prettierignore`.
 
 ```sh
-cargo fmt --all
+cargo fmt --all                  # Rust (repo root)
+npm --prefix web run format      # web: ts/tsx/js/mjs/css/html/config
 ```
 
-Use `cargo fmt --all -- --check` when you only want to verify formatting.
+Add `-- --check` (Rust) or `run format:check` (web) to verify without writing.
+
+A tracked **pre-commit hook** (`.githooks/pre-commit`) runs both formatters on
+just the staged files and restages them, so commits land already-formatted.
+Enable it once per clone with `scripts/setup-hooks.sh` (it sets
+`core.hooksPath`). The hook formats whole files, so stage complete files.
+
+The `web` app also carries a linter and tests alongside the formatter:
+
+```sh
+npm --prefix web run lint        # oxlint (react/import/typescript/unicorn)
+npm --prefix web run typecheck   # tsc --noEmit
+npm --prefix web run test        # vitest (React overlay component tests)
+npm --prefix web run test:ui     # node --test (pure DOM-free .mjs suites)
+```
+
 Keep broad formatting churn in its own commit, separate from mechanics,
 renderer, balance, or campaign behavior changes, so reviews can focus on the
 actual logic.
@@ -352,6 +371,10 @@ swiftshader's sub-percent wobble; free-port hygiene) — lives in:
 ## Develop
 
 ```sh
+# one-time per clone: install web deps + enable the pre-commit formatter
+npm --prefix web install
+scripts/setup-hooks.sh
+
 # one-time / after Rust changes
 npm --prefix web run build:wasm
 

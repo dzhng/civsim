@@ -1,6 +1,7 @@
-import type { CampaignData } from './data';
-import { uiIcon } from './icons';
-import type { ArmyView, CityView } from './views';
+// Campaign panel data types + the #campaign-ui DOM shell. The panels themselves
+// are React (web/src/ui/campaign/*), for both the live scene and the renderer-lab
+// demo — the old innerHTML builders (armyPanelHtml/cityPanelHtml/diplomacyHtml/
+// classBuilderHtml) were deleted once both consumers moved onto the components.
 
 export type DiplomacyAction = 'declare_war' | 'make_peace' | 'propose_alliance' | 'break_alliance' | 'gift_gold';
 
@@ -119,8 +120,8 @@ export function campaignDomHtml(): string {
       #campaign-ui .cmp-siege b { font-family:Cinzel, Georgia, serif;color:#ffd9a0; }
       #campaign-ui .cmp-siege-sub { color:#d7b69a;font-size:11px;margin-top:2px; }
     </style>
-    <!-- The top bar (.cmp-top) is React (CampaignTopBar.tsx), mounted here by
-         CampaignScene. The panels below stay vanilla for now. -->
+    <!-- The top bar + every panel are React (web/src/ui/campaign/*), mounted by
+         CampaignScene into these shells. -->
     <div id="cmp-topbar-root"></div>
     <div class="cmp-panel" id="cmp-army" style="display:none"></div>
     <div class="cmp-panel" id="cmp-city" style="display:none;top:auto;bottom:10px;"></div>
@@ -131,90 +132,6 @@ export function campaignDomHtml(): string {
       style="display:none;left:10px;right:auto;top:44px;width:520px;max-height:84vh;overflow:auto;"></div>
     <!-- Battle-decision modal (Fight / Auto-resolve) — React (CampaignBattleModal). -->
     <div id="cmp-modal-root"></div>`;
-}
-
-export function diplomacyHtml(list: DiplomacyRow[]): string {
-  const rows = list
-    .map((f) => {
-      const col = `rgb(${f.color[0]},${f.color[1]},${f.color[2]})`;
-      const pow = `<span class="cmp-pow">${uiIcon('city')}${f.cities} ${uiIcon('sword')}${f.soldiers}</span>`;
-      if (f.is_player) {
-        return `<div class="cmp-diplo-row"><span class="cmp-swatch" style="background:${col}"></span>
-          <b>${f.name}</b> <span class="cmp-pow">(you)</span><span style="flex:1"></span>${pow}</div>`;
-      }
-      const acts: string[] = [];
-      if (f.relation === 'war') acts.push(actionButton('make_peace', f.id, 'Sue for peace'));
-      if (f.relation === 'peace') {
-        acts.push(actionButton('declare_war', f.id, 'Declare war'));
-        acts.push(actionButton('propose_alliance', f.id, 'Propose alliance'));
-      }
-      if (f.relation === 'alliance') acts.push(actionButton('break_alliance', f.id, 'Break alliance'));
-      acts.push(actionButton('gift_gold', f.id, 'Gift 200g'));
-      return `<div class="cmp-diplo-row">
-        <span class="cmp-swatch" style="background:${col}"></span>
-        <b>${f.name}</b> <span class="cmp-rel ${f.relation}">${f.relation}</span>
-        <span style="flex:1"></span>${pow}
-        <div class="cmp-diplo-acts">${acts.join('')}</div>
-      </div>`;
-    })
-    .join('');
-  return `<div class="cmp-title">${uiIcon('flag')}<b>Diplomacy</b></div>${rows}`;
-}
-
-export function armyPanelHtml(
-  selected: number,
-  roster: ArmyRosterRow[],
-  me: ArmyView | undefined,
-  buddy: ArmyView | undefined,
-  spotIdx: number,
-  autoReplenish: boolean,
-): string {
-  const rows = roster
-    .map((r, i) =>
-      r.count > 0
-        ? `<div><label><input type="checkbox" data-entry="${i}"> ${prettyClass(r.class)}: ${r.count}/${r.max} (morale ${Math.round(r.morale_cap * 100)}%)</label></div>`
-        : '')
-    .join('');
-  const ambushLabel = me?.stance === 3 ? 'Hidden' : me?.stance === 2 ? 'Settling…' : 'Ambush';
-  return `<div class="cmp-title">${uiIcon('flag')}<b>Army ${selected}</b></div><div class="cmp-roster">${rows}</div><div style="margin-top:6px">
-    <label><input type="checkbox" id="cmp-auto-replenish" ${autoReplenish ? 'checked' : ''}> ${uiIcon('replenish')} Auto replenish</label><br>
-    <button id="cmp-halt">${uiIcon('stop')} Halt</button>
-    <button id="cmp-camp">${uiIcon('shield')} ${me?.stance === 1 ? 'Fortified' : 'Fortify'}</button>
-    ${spotIdx >= 0 || (me && me.stance >= 2 && me.stance <= 3) ? `<button id="cmp-ambush" ${me!.stance >= 2 ? 'disabled' : ''}>${ambushLabel}</button>` : ''}
-    <button id="cmp-split">${uiIcon('split')} Split</button>
-    ${buddy ? `<button id="cmp-merge">${uiIcon('split')} Merge ${buddy.id}</button>` : ''}</div>`;
-}
-
-export function classBuilderHtml(rows: ClassDoctrineRow[]): string {
-  const sorted = [...rows].sort((a, b) => classSort(a.class) - classSort(b.class));
-  return `<div class="cmp-title">${uiIcon('shield')}<b>Class Builder</b></div>${sorted.map(classRow).join('')}`;
-}
-
-function classRow(row: ClassDoctrineRow): string {
-  const className = prettyClass(row.class);
-  const currentSize = row.sizeMult;
-  const selectedName = row.options.find((o) => o.id === row.selected)?.name ?? 'Unknown';
-  const sizes = [1, 2, 3]
-    .map((s) =>
-      `<button data-class="${row.classIndex}" data-size="${s}" ${s === currentSize ? 'class="on"' : ''}>${s}x</button>`,
-    )
-    .join('');
-  const options = row.options
-    .map((o) => {
-      const sel = o.id === row.selected;
-      const disabled = !o.unlocked || row.cooldown > 0;
-      const cost = o.applyCost == null ? 'cooldown' : `${o.applyCost.toLocaleString()}g`;
-      return `<div class="cmp-unit ${sel ? 'sel' : ''}">
-        <div><b>${o.name}</b><br><small>${o.costPerSoldier.toFixed(2)}g recruit · ${o.upkeepPerSoldier.toFixed(3)}g upkeep/day</small></div>
-        <button data-class="${row.classIndex}" data-unit="${o.id}" ${disabled || sel ? 'disabled' : ''}>${sel ? uiIcon('check') + ' Selected' : cost}</button>
-      </div>`;
-    })
-    .join('');
-  return `<div class="cmp-class-row">
-    <div><div class="cmp-class-name">${className}</div><div class="cmp-class-meta">${row.live.toLocaleString()}/${row.max.toLocaleString()} · ${selectedName}${row.cooldown > 0 ? ` · ${Math.ceil(row.cooldown / 1440)}d` : ''}</div>
-      <div class="cmp-size">${sizes}</div>${row.dirty ? `<button data-apply="${row.classIndex}">${uiIcon('check')} Apply</button>` : ''}</div>
-    <div class="cmp-unit-options">${options}</div>
-  </div>`;
 }
 
 export function prettyClass(name: string): string {
@@ -242,31 +159,6 @@ export function classSort(name: string): number {
   return order[name] ?? 999;
 }
 
-export function cityPanelHtml(
-  data: CampaignData,
-  node: number,
-  city: CityView,
-  mineCity: boolean,
-  detail: CityDetail,
-  recruitClasses: string[],
-): string {
-  const n = data.map.nodes[node];
-  const recruits = mineCity
-    ? `<div class="cmp-recruits">${recruitClasses
-        .map((cl, i) => `<button data-recruit="${i}" title="${cl}">${uiIcon('add')} ${prettyClass(cl)}</button>`)
-        .join('')}</div>`
-    : '';
-  const policy = detail ? policyHtml(detail, mineCity) : '';
-  const pct = detail ? Math.round((100 * detail.population) / Math.max(1, detail.pop_cap)) : 0;
-  const meta = detail
-    ? `<div class="cmp-city-meta">pop ${detail.population.toLocaleString()} (${pct}% of cap) — loyalty ${Math.round(detail.loyalty * 100)}%</div>
-       <div class="cmp-city-meta">income ${detail.monthly_income.toLocaleString()}/mo</div>`
-    : '';
-  return `<div class="cmp-title">${uiIcon('city')}<b>${n.name}</b></div>
-    <div class="cmp-city-meta">tier ${n.tier} — ${data.map.factions[city.owner]?.name ?? '?'}</div>
-    <div class="cmp-city-meta">garrison ${city.garrison}${city.queue ? ` | recruiting ${city.queue}` : ''}</div>${meta}${policy}${recruits}`;
-}
-
 export interface CityDetail {
   population: number;
   pop_cap: number;
@@ -279,29 +171,3 @@ export interface CityDetail {
 }
 
 /** The two policy dials that replace the build menu. */
-function policyHtml(detail: CityDetail, mineCity: boolean): string {
-  if (!mineCity) {
-    return `<div class="cmp-city-meta">focus ${focusLabel(detail.focus)} — ${throttleLabel(detail.throttle)}</div>`;
-  }
-  return `<div class="cmp-policy">
-    <label>Economy ↔ Military
-      <input type="range" data-policy="focus" min="-1" max="1" step="0.1" value="${detail.focus}">
-    </label>
-    <label>Grow ↔ Exploit
-      <input type="range" data-policy="throttle" min="0" max="1" step="0.1" value="${detail.throttle}">
-    </label>
-  </div>`;
-}
-
-function focusLabel(focus: number): string {
-  if (focus < -0.33) return 'Economy';
-  if (focus > 0.33) return 'Military';
-  return 'Balanced';
-}
-function throttleLabel(throttle: number): string {
-  return throttle > 0.5 ? 'Exploit' : 'Grow';
-}
-
-function actionButton(act: DiplomacyAction, f: number, label: string): string {
-  return `<button data-act="${act}" data-f="${f}">${label}</button>`;
-}

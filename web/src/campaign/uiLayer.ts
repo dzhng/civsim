@@ -1,16 +1,14 @@
+import { createElement } from 'react';
+import { createRoot, type Root } from 'react-dom/client';
+import { flushSync } from 'react-dom';
 import type { Campaign } from '../wasm/game_wasm.js';
 import type { CampaignData } from './data';
-import {
-  armyPanelHtml,
-  classBuilderHtml,
-  cityPanelHtml,
-  diplomacyHtml,
-  type ArmyRosterRow,
-  type CityDetail,
-  type ClassDoctrineRow,
-  type DiplomacyRow,
-} from './panels';
+import type { ArmyRosterRow, CityDetail, ClassDoctrineRow, DiplomacyRow } from './panels';
 import type { ArmyView, CityView } from './views';
+import { ArmyPanel } from '../ui/campaign/ArmyPanel';
+import { CityPanel } from '../ui/campaign/CityPanel';
+import { DiplomacyPanel } from '../ui/campaign/DiplomacyPanel';
+import { ClassBuilder } from '../ui/campaign/ClassBuilder';
 
 export interface CampaignUiModel {
   campaign: Campaign;
@@ -26,6 +24,11 @@ export interface CampaignUiModel {
   classBuilderOpen: boolean;
 }
 
+const NOOP = () => {};
+
+// Renderer-lab campaign UI demo. Renders the SAME React panel components as the
+// live campaign scene (one source — the HTML builders are gone); the demo just
+// feeds snapshot data and no-op action handlers.
 export class CampaignUiLayer {
   private root: HTMLDivElement;
   private armyPanel: HTMLDivElement;
@@ -33,6 +36,10 @@ export class CampaignUiLayer {
   private diplomacyPanel: HTMLDivElement;
   private classesPanel: HTMLDivElement;
   private hud: HTMLDivElement;
+  private armyRoot: Root;
+  private cityRoot: Root;
+  private diploRoot: Root;
+  private classesRoot: Root;
 
   constructor(host: HTMLElement, private onAutoReplenish?: (army: number, on: boolean) => void) {
     host.querySelector('.renderer-campaign-ui')?.remove();
@@ -50,6 +57,10 @@ export class CampaignUiLayer {
     this.cityPanel = this.root.querySelector('.renderer-campaign-panel.city') as HTMLDivElement;
     this.diplomacyPanel = this.root.querySelector('.renderer-campaign-panel.diplomacy') as HTMLDivElement;
     this.classesPanel = this.root.querySelector('.renderer-campaign-panel.classes') as HTMLDivElement;
+    this.armyRoot = createRoot(this.armyPanel);
+    this.cityRoot = createRoot(this.cityPanel);
+    this.diploRoot = createRoot(this.diplomacyPanel);
+    this.classesRoot = createRoot(this.classesPanel);
   }
 
   render(model: CampaignUiModel) {
@@ -78,60 +89,71 @@ export class CampaignUiLayer {
   }
 
   destroy() {
+    this.armyRoot.unmount();
+    this.cityRoot.unmount();
+    this.diploRoot.unmount();
+    this.classesRoot.unmount();
     this.root.remove();
   }
 
   private renderArmy(model: CampaignUiModel) {
-    if (model.selectedArmy < 0) {
+    const roster = model.selectedArmy < 0
+      ? null
+      : (JSON.parse(model.campaign.army_roster_json(model.selectedArmy)) as ArmyRosterRow[] | null);
+    if (model.selectedArmy < 0 || !roster) {
       this.armyPanel.style.display = 'none';
-      return;
-    }
-    const roster = JSON.parse(model.campaign.army_roster_json(model.selectedArmy)) as ArmyRosterRow[] | null;
-    if (!roster) {
-      this.armyPanel.style.display = 'none';
+      this.armyRoot.render(null);
       return;
     }
     const me = model.armies.find((army) => army.id === model.selectedArmy);
     const auto = model.campaign.army_auto_replenish(model.selectedArmy);
-    this.armyPanel.innerHTML = armyPanelHtml(model.selectedArmy, roster, me, undefined, -1, auto);
     this.armyPanel.style.display = 'block';
-    this.armyPanel.querySelector('#cmp-auto-replenish')?.addEventListener('change', (event) => {
-      const on = (event.currentTarget as HTMLInputElement).checked;
-      this.onAutoReplenish?.(model.selectedArmy, on);
-    });
+    flushSync(() => this.armyRoot.render(createElement(ArmyPanel, {
+      armyId: model.selectedArmy, roster, me, buddy: undefined, spotIdx: -1, autoReplenish: auto,
+      onAutoReplenish: (on) => this.onAutoReplenish?.(model.selectedArmy, on),
+      onHalt: NOOP, onAmbush: NOOP, onCamp: NOOP, onSplit: NOOP, onMerge: NOOP,
+    })));
   }
 
   private renderCity(model: CampaignUiModel) {
-    if (model.selectedCity < 0) {
+    const city = model.selectedCity < 0 ? undefined : model.cities.get(model.selectedCity);
+    const detail = city
+      ? (JSON.parse(model.campaign.city_json(model.selectedCity)) as CityDetail | null)
+      : null;
+    if (!city || !detail) {
       this.cityPanel.style.display = 'none';
+      this.cityRoot.render(null);
       return;
     }
-    const city = model.cities.get(model.selectedCity);
-    if (!city) {
-      this.cityPanel.style.display = 'none';
-      return;
-    }
-    const detail = JSON.parse(model.campaign.city_json(model.selectedCity)) as CityDetail | null;
-    if (!detail) {
-      this.cityPanel.style.display = 'none';
-      return;
-    }
+    const n = model.data.map.nodes[model.selectedCity];
     const mineCity = city.owner === model.campaign.player_faction();
-    this.cityPanel.innerHTML = cityPanelHtml(model.data, model.selectedCity, city, mineCity, detail, model.recruitClasses);
     this.cityPanel.style.display = 'block';
+    flushSync(() => this.cityRoot.render(createElement(CityPanel, {
+      name: n.name, tier: n.tier, factionName: model.data.map.factions[city.owner]?.name ?? '?',
+      garrison: city.garrison, queue: city.queue, mineCity, detail, recruitClasses: model.recruitClasses,
+      onPolicy: NOOP, onRecruit: NOOP,
+    })));
   }
 
   private renderDiplomacy(model: CampaignUiModel) {
     this.diplomacyPanel.style.display = model.diplomacyOpen ? 'block' : 'none';
-    if (!model.diplomacyOpen) return;
+    if (!model.diplomacyOpen) {
+      this.diploRoot.render(null);
+      return;
+    }
     const list = JSON.parse(model.campaign.diplomacy_json()) as DiplomacyRow[];
-    this.diplomacyPanel.innerHTML = diplomacyHtml(list);
+    flushSync(() => this.diploRoot.render(createElement(DiplomacyPanel, { list, onAction: NOOP })));
   }
 
   private renderClasses(model: CampaignUiModel) {
     this.classesPanel.style.display = model.classBuilderOpen ? 'block' : 'none';
-    if (!model.classBuilderOpen) return;
+    if (!model.classBuilderOpen) {
+      this.classesRoot.render(null);
+      return;
+    }
     const rows = JSON.parse(model.campaign.class_doctrine_json()) as ClassDoctrineRow[];
-    this.classesPanel.innerHTML = classBuilderHtml(rows);
+    flushSync(() => this.classesRoot.render(createElement(ClassBuilder, {
+      rows, onSelectUnit: NOOP, onSelectSize: NOOP, onApply: NOOP,
+    })));
   }
 }

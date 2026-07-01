@@ -10,7 +10,20 @@ Synthesized from three independent draft plans (they converged hard — the cut 
 
 ## Next Agent Prompt
 
-**Status:** S0 + S1 + S2 + S3 shipped (green). **S3 verdict: MIGRATE (Branch A).** _Last updated: 2026-07-01._
+**Status: COMPLETE (green).** All slices S0–S7 shipped. The entire game UI is React on one
+bronze token source; the perf spike verdict was MIGRATE and the HUD migrated. Ready for
+close-spec. _Last updated: 2026-07-01._
+
+**What shipped:** S0 stack (React 19 + Vite plugin + Tailwind v4, COOP/COEP preserved, tsc gate)
+· S1 one bronze token source (`bronze.css`) · S2 menu + duel modal · S3 HUD perf SPIKE →
+**MIGRATE** (Δmedian/Δp95 ≈ 0) · S4a army builder (byte-identical reducer, node-tested) ·
+S5a–e ALL campaign panels (top bar, army, city, diplomacy, class builder, sieges) · S6a card bar
+React-default (spike payoff) · S6b toolbar · S6c info panel · S6d minimap frame (no-op — already
+shared-token chassis on a firewall canvas) · S6e battle gameover + pause modals · S7 delete
+vanilla `UnitCards`, campaign battle-decision modal → React, dedup both labs (renderer-lab
+`.ucard` CSS fork + campaign `uiLayer.ts` onto the React components), delete the panel builders.
+**Proven:** only `bronze.css` defines the `:root` tokens; every game UI surface is React; both
+labs render the same React components.
 
 **The GAME UI is 100% React.** S7a (delete vanilla `UnitCards`) + S7c (campaign `showBattleModal`
 → React) shipped; one bronze token source is grep-proven (only `bronze.css` defines `:root`).
@@ -218,8 +231,8 @@ checkpoint:** the (0,0) pass is self-justifying (no pixels moved); proceeded on 
 - [x] S3 — **HUD perf SPIKE** → **VERDICT: MIGRATE.** React card bar (`UnitCardsReact`) measured Δmedian 0.0ms / Δp95 0.0ms vs vanilla; shared hot-path helpers in `unitCard.ts`; S6 = Branch A (`slices/03-hud-perf-spike.md`) — **shipped**
 - [~] S4 — static wave: **S4a army builder → React shipped** (reducer byte-identical, pixel-equiv); S4b battle modals **resequenced into S6** (shared battle React root) (`slices/04-army-builder-modals.md`)
 - [x] S5 — campaign panels → React (top bar, army, city, diplomacy, class builder, sieges — S5a–e). Battle-decision modal resliced → S6; lab `uiLayer.ts` dedup → S7. All campaign-visual + functional scenes pass (`slices/05-campaign-panels.md`) — **shipped**
-- [ ] S6 — HUD outcome branch (migrate-to-React OR keep-vanilla-share-tokens) (`slices/06-hud-outcome.md`)
-- [ ] S7 — cleanup: delete replaced DOM/CSS, dedup the lab, one source proven (`slices/07-cleanup.md`)
+- [x] S6 — HUD outcome: **Branch A (MIGRATE)** — card bar default, toolbar, info panel, gameover + pause modals all React; minimap frame no-op (`slices/06-hud-outcome.md`) — **shipped**
+- [x] S7 — cleanup: vanilla `UnitCards` deleted, campaign battle modal → React, both labs deduped onto the React components + card CSS fork removed, panel builders deleted, one source proven (`slices/07-cleanup.md`) — **shipped**
 
 **Update this section before ending each pass** (status, date, next pickup, the S3 verdict once measured).
 

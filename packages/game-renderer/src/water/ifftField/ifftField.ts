@@ -117,7 +117,7 @@ struct WaterSample { height: f32, normal: vec3f, foam: f32 };
 @group(1) @binding(1) var oceanSampler: sampler;
 
 const OCEAN_PATCH: f32 = ${this.p.patch.toFixed(1)};
-const OCEAN_HEIGHT_SCALE: f32 = 150.0;
+const OCEAN_HEIGHT_SCALE: f32 = 260.0;
 const OCEAN_FOAM_SCALE: f32 = 24.0;
 const OCEAN_FOAM_BIAS: f32 = 0.10;
 

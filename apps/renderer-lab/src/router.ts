@@ -3040,7 +3040,7 @@ async function routeWaterBakeoff(ctx: LabContext) {
 
   const camera = camName === 'campaign'
     ? { x: 0, y: 90, zoom: 3.4, pitch: 0.42, yaw: 0, perspective: 0.02 }
-    : { x: 0, y: -6, zoom: 2.4, pitch: 0.13, yaw: 0, perspective: 0.03 };
+    : { x: 0, y: -6, zoom: 2.6, pitch: 0.30, yaw: 0, perspective: 0.032 };
   shell.setCamera(camera);
 
   // The preset only tints the sky clear colour for now; the water albedo stays

@@ -6,7 +6,7 @@
 // disagree about "you can't walk through a body" — the bug the Rust test
 // `attack_latch_behaves_like_a_move_order` pins.
 //   ATK=0 DEF=0 node vibe/move-clash.mjs    # heavy v heavy, both move
-import { openBattle, vibeCapture, fitDuel, duelSample, duelLabel, UNIT_CENTER_X, UNIT_CENTER_Y } from './_lib.mjs';
+import { openBattle, closeBattle, vibeCapture, fitDuel, duelSample, duelLabel, UNIT_CENTER_X, UNIT_CENTER_Y } from './_lib.mjs';
 
 const ATK = Number(process.env.ATK ?? 0);
 const DEF = Number(process.env.DEF ?? 0);
@@ -23,11 +23,11 @@ await page.evaluate(([centerX, centerY]) => {
 }, [UNIT_CENTER_X, UNIT_CENTER_Y]);
 
 const { frames, resolved, fails } = await vibeCapture(page, NAME, {
-  stepSecs: 20, maxSteps: 18,
+  stepSecs: 20, maxSteps: 32, requireResolved: true,
   frame: () => fitDuel(page), sample: () => duelSample(page),
   label: duelLabel, done: (s) => s.victor >= 0,
 });
 console.log(`${NAME}: ${resolved ? `resolved in ${frames} frames` : 'UNRESOLVED'}`);
 if (errs.length) console.log('  page errors:', errs.slice(0, 3));
-await browser.close();
+await closeBattle(browser, page);
 process.exit(fails);

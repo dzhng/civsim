@@ -23,14 +23,21 @@ contract); it does not change the card-grid math or the sim.
 
 ## Next Agent Prompt
 
-**Status:** Slices 01–06 shipped (+ a card-size tweak). Last updated 2026-07-01.
+**Status:** Slices 01–07 shipped (+ a card-size tweak). Last updated 2026-07-01.
 
-**Start here:** Slice `07-asymmetric-reserve` — but most of its reserve math already
-landed in slices 03/06. What remains for 07: final flush-corner polish, the
-`viewportGate` `MIN_WINDOW` reconciliation, and the David "let it wrap" crunch
-decision is already applied (bar wraps; corners reserved). Consider 07 largely a
-review/tune pass, then slices 08 (Radix tooltips) and 09 (fidelity + close-spec).
-Keep a `bun run dev` server at :5173 before any scene run.
+**Start here:** Slice `08-bronze-tooltips` (Radix, approved by David), then slice
+09 (fidelity + close-spec). Keep a `bun run dev` server at :5173 before any scene
+run.
+
+**What slice 07 landed:** mostly a reconciliation — the asymmetric reserve, the
+flush-corner placement (all three housings at a 12px inset on one baseline), and the
+"let it wrap" crunch resolution already shipped in slices 03/06. This pass rewrote
+`viewportGate.ts`'s stale derivation comment (was `2×MINIMAP_RESERVE`; now the
+asymmetric `viewport − 336 − 268` budget) and confirmed the too-small gate still
+trips (`card-bar` min-window test green, 0 px). MIN_WINDOW stays 1180×640 (safe:
+boxW=576 at 1180). Resolved known-unknowns: corner reserves pinned at left 336 /
+right 268; center shape = shrink-wrap-centered-in-gap. Corner inset kept at 12px
+(reads as corner-anchored; drop to 0 in slice 09 if David wants truly flush).
 
 **What slice 06 landed:** the minimap moved to the **bottom-right corner**
 (`#minimap` `bottom:170`→`bottom:12`), completing three flush-corner housings on
@@ -203,7 +210,8 @@ carries the four id rules plus the new `#battle-hud` mount container.
 - [x] 04 — Army-roster idle state; drop debug header; FPS → bare top-left — shipped
 - [x] 05 — Merge toolbar into the center card housing (one bronze tray) — shipped
 - [x] 06 — Minimap → bottom-right corner housing — shipped
-- [ ] 07 — Asymmetric reserve + flush-corner placement (load-bearing math)
+- [x] 07 — Asymmetric reserve + flush-corner placement (mostly in 03/06; viewport
+      gate reconciled here) — shipped
 - [ ] 08 — Bronze tooltip chips on icon-only buttons
 - [ ] 09 — Fidelity pass vs reference + close-spec
 

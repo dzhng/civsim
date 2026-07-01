@@ -59,3 +59,21 @@ Battle contract (now including the new decal pass); campaign entirely untouched.
 Shadow softness, radius, and darkness are the knobs (`SHADOW_WGSL` alpha `0.34`, radius
 `0.62`, mounted `×1.5`). If David finds them too heavy/light, tune here — it sets the look
 campaign inherits.
+
+## Review outcome (2026-07-01) — accepted, one known limitation
+
+Unprimed screenshot-critique on the re-blessed battle line: the shadow **asset is good** —
+soft, desaturated-olive shaded earth (~35% luminance drop), feathered edges, no smear /
+halo / artifact, consistent along the row, correctly pinned under the feet (a slight
+forward offset, minor).
+
+**Known limitation (accepted, not a regression):** in a *dense* multi-rank block only the
+front rank's shadow is visible — each interior soldier's small contact ellipse is occluded
+by the body of the man in the rank ahead (decal is depth-`read`, drawn after the opaque
+crowd; it cannot be reordered before the crowd without violating the world-decal boundary).
+This is inherent to the existing per-soldier decal — the *same* shadow already blessed in
+the terrain-elevation lab block — so battle gaining it is a net improvement over none, not a
+new defect. The feature's real target, **campaign stacks of ≤6 loose figures, does not hit
+this** (figures don't stand rank-behind-rank). Revisit only if David wants denser battle
+blocks fully grounded (would need a per-unit merged blob or a larger radius, a separate
+polish slice that also re-blesses the lab block).

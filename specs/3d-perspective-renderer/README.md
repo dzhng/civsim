@@ -223,10 +223,16 @@ The `06` bake-off can still run in parallel.
 - [x] `03` — zoom→camera rig (pure curve), battle + campaign **(done — additive `battleCameraRig`/`campaignCameraRig`; legacy `cameraForZoom` untouched until `04`)**
 - [x] `04a` — flip the shared seam → **battle** engine-wide + 3D ray-cast picking **(done — per-pass `real` flag + reverse-Z shell, `Camera` delegates to camera3d, `cameraForZoom` deleted; decals/billboards/LOD resliced to `04b`–`04e`)**
 - [ ] `05` — flip **campaign** to the real camera + campaign picking, then **delete
-      the legacy projection/depth scaffolding** (no dual path survives the spine)
-- [ ] `04`→ add the **30k-soldier + foliage perf gate** and keep it green thereafter
+      the legacy projection/depth scaffolding** (no dual path survives the spine;
+      follow the **legacy-collapse inventory** in the invariants section — the lab
+      pick harness + `fixtures/nested3d` are still legacy)
+- [ ] `04b` — battle polish: decal depth-bias, camera-facing billboards, LOD
+      screen-size, lab pick-harness migration (`slices/04b-battle-polish.md`)
+- [ ] `04f` — **30k-soldier + foliage perf gate**, hardware-only, standing
+      (`slices/04f-30k-perf-gate.md`)
 - [ ] `06` — **photoreal substrate bake-off** (bespoke vs three.js/TSL, 30k-crowd
-      veto) → verdict
+      veto) → verdict (`slices/06-photoreal-substrate-bakeoff.md`; unblocked now
+      that `04a` gives the bespoke prong a real-camera crowd)
 - [ ] `07`+ — photoreal ladder (author after `06`): PBR/lighting core, sky+aerial,
       CSM shadows, sea, terrain, soldiers, campaign surfaces, cleanup/close-spec
 - [ ] Confirm `battle-map-reference` sequencing with the human
@@ -260,14 +266,25 @@ those. No pass builds its own projection. The CPU mirrors it in three places:
 `cameraUniform.ts` (`worldToScreen` / `world3dToScreen` / `screenToWorld`),
 `web/src/shared/camera.ts` (the `Camera` class), and `battle/pickingDebug.ts`.
 
-**So the conversion is:** grow the camera uniform *additively* (keep the 12 legacy
+**The conversion as SHIPPED (corrected 2026-07-02 — supersedes the original
+body-rewrite plan):** grow the camera uniform *additively* (keep the 12 legacy
 scalars so un-migrated passes stay byte-identical; append `viewProj`, `invViewProj`,
-`eye`, `near/far`), rewrite the *bodies* of the two WGSL functions to a real matrix
-multiply that writes real clip-space Z, and rewrite the CPU trio to delegate to the
-new `camera3d` library. The ~20 passes convert mechanically without being edited
-one-by-one. This is both the fan-out and the single deepest-risk edit — which is
-exactly why the ladder proves matrices + a real reverse-Z depth buffer on **one
-isolated surface (the water route)** before flipping the shared seam.
+`eye`, `near/far`) and add ONE new WGSL projector, `projectReal(world)`. The
+original plan — rewrite the *bodies* of `projectGround`/`projectWorld3d` — was
+**abandoned during `04a`**: battle and campaign compile the same WGSL source but
+must flip at different times, so a body rewrite would have flipped campaign
+prematurely. What shipped instead: **each pass takes an opt-in `real` compile flag**
+(switches its WGSL to `projectReal` + its depthStencil to
+`gpuReverseZDepthStencil`), and **each shell takes an opt-in `reverseZ` flag**
+(`depth32float`, clear 0). Battle set them in `04a`; campaign sets them in `05`; a
+renderer's world-depth passes flip together (atomic shared depth buffer). The
+per-pass flag is deliberate, *temporary* migration scaffolding — when `05` lands and
+nothing consumes the legacy path, the flags and the legacy fns
+(`projectGround`/`projectWorld3d`/`worldDepth3d`/`civsim*WorldDepth3d`) are deleted
+and `projectReal` becomes the one canonical projector. The CPU trio delegates to
+`camera3d` (done for battle in `04a`). The ladder proved matrices + reverse-Z on
+**one isolated surface (the water route)** before any fan-out — that keystone is
+what made `04a` mechanical.
 
 Verified current facts: `struct Camera` is 12 floats; `zoom` = pixels/world-unit;
 `perspectiveDepth(ry)=max(0.32,1+ry*perspective)`; depth written is a painter value
@@ -287,8 +304,15 @@ world-Z. Depth/overlay ordering is centralized in `depthContract.ts`,
   SwiftShader risk → use it to *enforce* capability fallbacks; run **perf gates on
   hardware only** (`VERIFY_GPU_ADAPTER=hardware VERIFY_BROWSER_CHANNEL=chrome`).
 - Routes: `apps/renderer-lab/src/router.ts`. Scenes: `web/scenes/**`. Baselines:
-  `web/shots/**` via `snapCheck`. Unit tests: `bun run --cwd web test` (vitest).
-  Rust: `cargo test --workspace`. Animated gates snap at a fixed `shell.setTime(t)`.
+  `web/shots/**` via `snapCheck`. **Seam unit tests: `bun run --cwd web test:unit`**
+  (node:test over `web/tests/*.test.ts` — the runner this spec's gates live in;
+  wired into root `test:web` in slice `01`). Vitest (`bun run --cwd web test`) owns
+  the React component tests only. Rust: `cargo test --workspace`. Animated gates
+  snap at a fixed `shell.setTime(t)`.
+- **House style trap:** do NOT run `bunx oxfmt` — it fetches the wrong formatter
+  version (double-quote defaults) and cannot reach `packages/`/`apps/`. Match the
+  single-quote 2-space style of sibling files by hand. The repo format gate is red
+  on committed HEAD (pre-existing); don't chase it.
 
 ## Performance floor (hard requirement)
 
@@ -316,18 +340,24 @@ a first-class acceptance criterion, not a "later optimization":
 ## Slice graph
 
 ```
-01 camera3d math lib (pure, no GPU)
+01 camera3d math lib (pure, no GPU)                          ✅ done
       │
-02 real depth + real projection proven on WATER route      ← keystone: de-risks all
+02 real depth + real projection proven on WATER route        ✅ done (keystone; dome gone)
       │
-03 zoom→camera rig (pure curve, battle + campaign)
+03 zoom→camera rig (pure curve, battle + campaign)           ✅ done
       │
-      ├── 04 FLIP shared seam → BATTLE engine-wide + 3D ray-cast picking   ← the fan-out
+      ├── 04a FLIP battle + 3D ray-cast picking               ✅ done (per-pass `real` flag)
       │        │
-      │        └── 05 FLIP campaign to real camera + campaign picking
+      │        ├── 05 FLIP campaign + collapse legacy projector   ← in flight
+      │        │
+      │        ├── 04b battle polish (decal bias · billboards · LOD screen-size ·
+      │        │        lab pick-harness migration)               after 05's collapse
+      │        └── 04f 30k-soldier + foliage perf gate            hardware-only, standing
       │
-06 PHOTOREAL SUBSTRATE BAKE-OFF (bespoke WGSL vs three.js/TSL)   ← decides 07+; can run parallel to 03–05
-      │  (water vista · PBR sphere grid · crowd-perf probe)
+06 PHOTOREAL SUBSTRATE BAKE-OFF (bespoke WGSL vs three.js/TSL)  ← decides 07+
+      │  (water vista · PBR sphere grid · 30k crowd-perf probe)
+      │  gates on 04a: the bespoke prong's crowd must run on the REAL camera,
+      │  or the probe is 2.5D-bespoke vs 3D-three.js apples-to-oranges. Unblocked now.
       ▼
    ===== PHOTOREAL LADDER (author after 06 picks substrate) =====
    07 PBR BRDF + scene-lighting uniform (shared foundation)
@@ -341,8 +371,9 @@ a first-class acceptance criterion, not a "later optimization":
         perspective, c: contact AO)
    13 campaign photoreal surfaces (a: map/sea, b: entities, c: scenery,
         d: territory/atmosphere)
-   14 cleanup + close-spec (delete vestigial fake fields, decal path,
-        normalizedDepth args)
+   14 post-photoreal cleanup + close-spec (the LEGACY-PROJECTOR deletion belongs to
+        `05`, not here — this is the final sweep: dead decal path once CSM lands,
+        stale fixtures, close-spec archive)
 ```
 
 **Milestone after `05`:** entire engine on a real perspective camera, sim
@@ -382,6 +413,16 @@ owner; divergence from these is the bug class this whole feature exists to kill)
   `projectWorld3d` become the real ones, or are renamed — but there is exactly one).
   The `normalizedDepth` argument and `worldDepth3d`/`civsim*WorldDepth3d` painter
   helpers are **deleted**, not left returning 0.
+- **Legacy-collapse inventory (check BEFORE deleting the legacy projector).** Known
+  consumers still on the legacy path after `04a` — each must be flipped/migrated (or
+  named an exception) before `projectGround`/`projectWorld3d` can be deleted, else
+  those routes break silently: the lab **`routeBattleLive` + `pickingDebug.ts`**
+  (`cssToBattleWorld`/`RendererBattlePickCamera` — the lab pick harness, deliberately
+  left legacy in `04a`), **`fixtures/nested3d.ts`**, and any renderer-lab route whose
+  shell never opts into `reverseZ`. Grep for every `projectGround`/`projectWorld3d`/
+  `worldDepth3d`/`civsim*WorldDepth3d`/`gpuWorldDepthStencil` call site and account
+  for each. **Intentional exception: `minimapPass`** — it uses its own top-down 2D
+  `project()`, not the world camera, and stays 2D by design (record it, don't flip it).
 - **Depth convention has ONE owner: the depth contract** (`depthContract.ts` +
   `pipelineContracts.ts`). One format, one Z direction, one clear value across the
   engine.

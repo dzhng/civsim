@@ -43,12 +43,10 @@ which leaves generated data under `web/public/**` and the lockfile alone via
 scripts are invoked with `bun run --cwd web <script>`.
 
 ```sh
-cargo fmt --all                  # Rust (repo root)
-bun run --cwd web format         # web: ts/tsx/js/mjs/css/html/config
+bun run fmt                      # both languages at once (fmt:check to verify)
+cargo fmt --all                  # Rust only (repo root)
+bun run --cwd web format         # web only: ts/tsx/js/mjs/css/html/config
 ```
-
-Add `-- --check` (Rust) or use `bun run --cwd web format:check` to verify
-without writing.
 
 A tracked **pre-commit hook** (`.githooks/pre-commit`) runs both formatters on
 just the staged files and restages them, so commits land already-formatted.
@@ -372,23 +370,32 @@ swiftshader's sub-percent wobble; free-port hygiene) — lives in:
 
 ## Develop
 
+`bun run <task>` from the repo root is the front door: a thin, dependency-free
+`package.json` aliases the common jobs across both languages, forwarding to
+`cargo` and to the web app's own scripts. Those two stay the source of truth —
+the root only carries the daily verbs and the cross-language combos, not a
+mirror of every subcommand.
+
 ```sh
-# one-time per clone: install web deps + enable the pre-commit formatter
-bun install --cwd web
-scripts/setup-hooks.sh
+bun run setup        # one-time per clone: install web deps + enable the hook
+bun run dev          # web dev server (http://localhost:5173)
+bun run build:wasm   # Rust -> wasm: regenerate web/src/wasm/ after Rust changes
+bun run build        # bundle the web app -> dist/ (consumes the wasm above)
+bun run fmt          # format Rust + web        (fmt:check to verify only)
+bun run lint         # oxlint the web app
+bun run typecheck    # tsc --noEmit
+bun run test         # cargo --workspace + web vitest + node --test
+bun run test:sim     # just the Rust sim tests
+bun run verify       # browser battle verification
+bun run check        # full green gate: fmt:check + tests + lint + typecheck
+```
 
-# one-time / after Rust changes
-bun run --cwd web build:wasm
+Reach past the front door for the focused work it deliberately doesn't mirror:
 
-# dev server (http://localhost:5173)
-bun run --cwd web dev
-
-# native tests (fast inner loop) — one crate, or the lot
+```sh
+# one crate at a time, or a focused sim bucket
 cargo test -p sim
 cargo test -p campaign
-cargo test --workspace
-
-# focused sim buckets
 cargo test -p sim --test mechanics_melee
 cargo test -p sim --test balance_harness
 cargo test -p sim --test ranged_scenarios

@@ -1,0 +1,19 @@
+{
+  "private": true,
+  "name": "civsim",
+  "description": "Repo task runner. Thin aliases over cargo (Rust) and the web app's own bun scripts (bun run --cwd web ...); no dependencies of its own. cargo and web/package.json stay the source of truth — these just give one front door and the cross-language combos.",
+  "scripts": {
+    "setup": "bun install --cwd web && scripts/setup-hooks.sh",
+    "dev": "bun run --cwd web dev",
+    "build": "bun run --cwd web build",
+    "build:wasm": "bun run --cwd web build:wasm",
+    "lint": "bun run --cwd web lint",
+    "typecheck": "bun run --cwd web typecheck",
+    "fmt": "cargo fmt --all && bun run --cwd web format",
+    "fmt:check": "cargo fmt --all -- --check && bun run --cwd web format:check",
+    "test": "cargo test --workspace && bun run --cwd web test && bun run --cwd web test:ui",
+    "test:sim": "cargo test -p sim",
+    "verify": "bun run --cwd web verify",
+    "check": "cargo fmt --all -- --check && cargo test --workspace && bun run --cwd web lint && bun run --cwd web typecheck && bun run --cwd web format:check && bun run --cwd web test && bun run --cwd web test:ui"
+  }
+}

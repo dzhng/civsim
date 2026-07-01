@@ -2,15 +2,17 @@ import type { RawFrameShell, WorldRenderPass } from '../../../renderer-core/src/
 import { WORLD_CAMERA_WGSL } from '../../../renderer-core/src/cameraWgsl';
 import { compileShader } from '../../../renderer-core/src/compileShader';
 import { gpuMultisample, gpuOpaqueColorTarget, gpuWorldDepthStencil } from '../../../renderer-core/src/pipelineContracts';
+import { WATER_SHADE_WGSL } from './waterMaterialWgsl';
 import type { WaterFieldSource } from './waterField';
 
 // The candidate-agnostic open-sea pass: one tessellated plane at the battle
-// horizon camera, displaced and shaded entirely through a `WaterFieldSource`.
-// It calls `field.wgslSample()` to inline the field into its shader and binds
+// horizon camera, displaced and shaded entirely through a `WaterFieldSource`. It
+// calls `field.wgslSample()` to inline the field into its shader and binds
 // `field.bindGroup()` at group(1) when the field has one — it never branches on
-// which technique is live. Shading here is deliberately neutral grey (albedo and
-// the env-preset grade arrive in later slices); this slice judges geometry, foam
-// and glint, not colour.
+// which technique is live. `waterField` is evaluated in the vertex stage to
+// displace and again in the fragment stage for a crisp per-pixel normal, so the
+// swell reads as geometry rather than a flat-shaded facet grid. Shading is the
+// shared neutral-grey `waterShade` (colour/foam/glint arrive in later slices).
 
 export interface WaterPlaneRect {
   x0: number;
@@ -21,7 +23,12 @@ export interface WaterPlaneRect {
   res: number;
 }
 
-export const DEFAULT_WATER_PLANE: WaterPlaneRect = { x0: -360, y0: -160, x1: 360, y1: 1000, res: 240 };
+// Near edge starts behind the camera so the sea fills to the screen bottom; the
+// far edge runs past the horizon. A uniform grid suffices because per-fragment
+// normals keep the near field crisp regardless of triangle size.
+export const DEFAULT_WATER_PLANE: WaterPlaneRect = { x0: -420, y0: -160, x1: 420, y1: 1100, res: 340 };
+
+const WATER_SUN_WGSL = 'normalize(vec3f(-0.40, -0.28, 0.87))';
 
 export class WaterPlanePass {
   private readonly shell: RawFrameShell;
@@ -103,12 +110,11 @@ function waterPlaneWgsl(fieldWgsl: string): string {
   return `
 ${WORLD_CAMERA_WGSL}
 ${fieldWgsl}
+${WATER_SHADE_WGSL}
 
 struct VsOut {
   @builtin(position) pos: vec4f,
   @location(0) world: vec2f,
-  @location(1) normal: vec3f,
-  @location(2) foam: f32,
 };
 
 @vertex
@@ -118,30 +124,15 @@ fn vs(@location(0) world: vec2f) -> VsOut {
   var out: VsOut;
   out.pos = projectWorld3d(p3, civsimBattleWorldDepth3d(p3));
   out.world = world;
-  out.normal = s.normal;
-  out.foam = s.foam;
   return out;
 }
 
 @fragment
 fn fs(in: VsOut) -> @location(0) vec4f {
-  let sun = normalize(vec3f(-0.40, -0.28, 0.87));
-  let n = normalize(in.normal);
-  let lambert = clamp(dot(n, sun), 0.0, 1.0);
-  // Neutral grey water albedo — colour/depth grade is a later slice. The shape,
-  // glint and foam are what this slice judges.
-  let base = vec3f(0.32, 0.35, 0.38);
-  var col = base * (0.42 + 0.58 * lambert);
-  // Specular sun glint along the reflection of the low sun.
-  let viewUp = vec3f(0.0, 0.0, 1.0);
-  let half = normalize(sun + viewUp);
-  let spec = pow(clamp(dot(n, half), 0.0, 1.0), 64.0);
-  col = col + vec3f(0.85, 0.86, 0.82) * spec * 0.35;
-  // Grazing sky reflection.
-  let fres = pow(1.0 - clamp(n.z, 0.0, 1.0), 3.0);
-  col = mix(col, vec3f(0.55, 0.58, 0.62), fres * 0.30);
-  // Whitecaps.
-  col = mix(col, vec3f(0.92, 0.93, 0.95), clamp(in.foam, 0.0, 1.0));
+  // Re-evaluate the field per fragment for a crisp normal (the vertex stage only
+  // owns displacement). Neutral grey via the shared waterShade — silhouette only.
+  let s = waterField(in.world, cam.time);
+  let col = waterShade(s, ${WATER_SUN_WGSL});
   return vec4f(col, 1.0);
 }`;
 }

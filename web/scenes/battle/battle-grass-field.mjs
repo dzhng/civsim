@@ -25,6 +25,9 @@ export const meta = {
     "grass/foreground-close-lab-body-continuity-candidates",
     "grass/foreground-close-lab-body-continuity-crops",
     "grass/foreground-close-lab-body-continuity-selected",
+    "grass/foreground-close-lab-body-alpha-model-candidates",
+    "grass/foreground-close-lab-body-alpha-model-crops",
+    "grass/foreground-close-lab-body-alpha-model-selected",
   ],
   describe:
     "Grass-field route proving packed terrain-normal attributes, field-driven meadow material, and bounded blade accents.",
@@ -102,6 +105,39 @@ const BODY_CONTINUITY_REPAIR_CANDIDATES = [
     artifact: "fine lattice",
   },
 ];
+const BODY_ALPHA_RENDER_MODEL_CANDIDATES = [
+  {
+    renderModel: "opaque-card",
+    label: "OPAQUE CARD",
+    color: [92, 83, 46, 255],
+    artifact: "opaque card base",
+  },
+  {
+    renderModel: "alpha-cutout",
+    label: "ALPHA CUTOUT",
+    color: [78, 116, 62, 255],
+    artifact: "strict texel cutout",
+  },
+  {
+    renderModel: "hard-cutout",
+    label: "HARD CUTOUT",
+    color: [116, 112, 55, 255],
+    artifact: "high-threshold cutout",
+  },
+  {
+    renderModel: "dither-cutout",
+    label: "DITHER CUTOUT",
+    color: [62, 112, 122, 255],
+    artifact: "deterministic soft cutout",
+  },
+  {
+    renderModel: "sparse-dither",
+    label: "SPARSE DITHER",
+    color: [112, 82, 140, 255],
+    artifact: "high-threshold dither",
+    selected: true,
+  },
+];
 const SCALE_REPAIR_CANDIDATES = [
   { profile: "b4b1-current", color: [88, 88, 88, 255] },
   { profile: "scale-repair-low", color: [60, 116, 62, 255], selected: true },
@@ -135,6 +171,7 @@ export async function run(ctx) {
   await verifyForegroundCloseLabTestEnvironment(ctx);
   await verifyForegroundCloseBodyArchitectureMatrix(ctx);
   await verifyForegroundCloseBodyContinuityRepair(ctx);
+  await verifyForegroundCloseBodyAlphaRenderModel(ctx);
 }
 
 async function verifyPackedTilt(ctx) {
@@ -847,6 +884,109 @@ async function verifyForegroundCloseBodyContinuityRepair(ctx) {
   });
 }
 
+async function verifyForegroundCloseBodyAlphaRenderModel(ctx) {
+  const captures = [];
+  for (const candidate of BODY_ALPHA_RENDER_MODEL_CANDIDATES) {
+    const page = await ctx.newPage({
+      viewport: { width: 1280, height: 800 },
+      errorPrefix: `battle-grass-field-close-body-alpha-${candidate.renderModel}`,
+    });
+    await page.goto(
+      `${ctx.target}/renderer/battle-grass-field?mode=foreground-close-lab&labCameraProfile=b4b1a0-test-env&grassPrimitiveFamily=texture-volume&textureVolumeProfile=current&textureVolumeRenderModel=${candidate.renderModel}`,
+    );
+    await page.waitForFunction(
+      () =>
+        window.__rendererLabReady === true &&
+        window.__rendererLabStats?.stats?.mode === "foreground-close-lab",
+      { timeout: 18000 },
+    );
+    await page.waitForTimeout(160);
+    const stats = await page.evaluate(() => window.__rendererLabStats?.stats ?? null);
+    if (stats?.route !== "battle-grass-field" || stats?.mode !== "foreground-close-lab") {
+      await page.close();
+      throw new Error(
+        `foreground close body alpha render-model did not publish valid stats for ${candidate.renderModel}: ${JSON.stringify(stats)}`,
+      );
+    }
+    const shot = await page.locator("#renderer-canvas").screenshot();
+    captures.push({ ...candidate, family: "texture-volume", stats, png: PNG.sync.read(shot) });
+    await page.close();
+  }
+
+  const baseline = captures.find((capture) => capture.renderModel === "opaque-card");
+  const selected = captures.find((capture) => capture.selected) ?? captures[0];
+  const windows = baseline.stats.lab?.reviewWindows;
+  const targetCloseHero = PNG.sync.read(await readFile(TARGET_CLOSE_HERO));
+  const baseCameraKey = JSON.stringify(baseline.stats.camera);
+  const baseFocusKey = JSON.stringify(baseline.stats.focus);
+  const baseFrozenKey = JSON.stringify(baseline.stats.lab?.frozenInputs);
+  const baseField = baseline.stats.field;
+  const alphaStats = captures.map((capture) => ({
+    renderModel: capture.renderModel,
+    artifact: capture.artifact,
+    grass: capture.stats.grass,
+    ground: capture.stats.ground?.meadow,
+    lab: capture.stats.lab,
+  }));
+
+  ctx.check(
+    "foreground close body alpha render-model freezes the accepted B4B1A0 lab",
+    captures.every(
+      (capture) =>
+        capture.stats.lab?.contract === "03B4C5B4B1A0" &&
+        capture.stats.lab?.cameraProfile === "b4b1a0-test-env" &&
+        capture.stats.lab?.cropPurpose === "test-environment-comparability-not-body-acceptance" &&
+        JSON.stringify(capture.stats.camera) === baseCameraKey &&
+        JSON.stringify(capture.stats.focus) === baseFocusKey &&
+        JSON.stringify(capture.stats.lab?.frozenInputs) === baseFrozenKey &&
+        capture.stats.field?.seed === baseField?.seed &&
+        capture.stats.field?.acceptedRecords === baseField?.acceptedRecords &&
+        capture.stats.field?.candidateCells === baseField?.candidateCells &&
+        capture.stats.ground?.meadow?.source === "field" &&
+        capture.stats.ground?.meadow?.rootMassEnabled === true,
+    ),
+    JSON.stringify(alphaStats),
+  );
+  ctx.check(
+    "foreground close body alpha render-model compares render models only",
+    captures.length === BODY_ALPHA_RENDER_MODEL_CANDIDATES.length &&
+      captures.every(
+        (capture) =>
+          capture.stats.grass?.grassPrimitiveFamily === "texture-volume" &&
+          capture.stats.grass?.accentStyle === "volume-card" &&
+          capture.stats.grass?.accentAggregation === "field-cell" &&
+          capture.stats.grass?.textureVolumeProfile === "current" &&
+          capture.stats.grass?.textureVolumeRenderModel === capture.renderModel,
+      ),
+    JSON.stringify(alphaStats),
+  );
+  ctx.check(
+    "foreground close body alpha render-model preserves texture-volume primitive budgets",
+    captures.every(
+      (capture) =>
+        capture.stats.grass?.drawCalls === 1 &&
+        capture.stats.grass?.submittedTriangles === baseline.stats.grass?.submittedTriangles &&
+        capture.stats.grass?.tuftInstances === baseline.stats.grass?.tuftInstances &&
+        capture.stats.grass?.fieldRecords === baseline.stats.grass?.fieldRecords &&
+        capture.stats.grass?.grassPrimitiveRecords ===
+          baseline.stats.grass?.grassPrimitiveRecords &&
+        capture.stats.grass?.grassPrimitiveClumps === baseline.stats.grass?.grassPrimitiveClumps &&
+        capture.stats.grass?.instanceBytes === baseline.stats.grass?.instanceBytes,
+    ),
+    JSON.stringify(alphaStats),
+  );
+
+  await ctx.snap(null, "grass/foreground-close-lab-body-alpha-model-candidates", {
+    shot: PNG.sync.write(composeBodyAlphaRenderModelCandidateSheet(targetCloseHero, captures)),
+  });
+  await ctx.snap(null, "grass/foreground-close-lab-body-alpha-model-crops", {
+    shot: PNG.sync.write(composeBodyAlphaRenderModelCropSheet(targetCloseHero, captures, windows)),
+  });
+  await ctx.snap(null, "grass/foreground-close-lab-body-alpha-model-selected", {
+    shot: PNG.sync.write(drawBodyArchitectureFull(selected.png, windows)),
+  });
+}
+
 function hasPackedTelemetry(stats) {
   const grass = stats?.grass;
   return (
@@ -1193,6 +1333,56 @@ function composeBodyContinuityCropSheet(targetCloseHero, captures, windows) {
   return composeGrid([target, ...closeCrops, ...tightCrops], 3);
 }
 
+function composeBodyAlphaRenderModelCandidateSheet(targetCloseHero, captures) {
+  const target = captioned(
+    bordered(withScaleGuides(resizeToWidth(targetCloseHero, 360)), [190, 42, 28, 255]),
+    "TARGET CLOSE",
+  );
+  const crops = captures.map((capture) =>
+    captioned(
+      bordered(
+        withScaleGuides(
+          resizeToWidth(cropRatio(capture.png, capture.stats.lab.reviewWindows.closeHero), 360),
+          { proxies: true },
+        ),
+        capture.color,
+      ),
+      bodyAlphaRenderModelLabel(capture),
+    ),
+  );
+  return composeGrid([target, ...crops], 4);
+}
+
+function composeBodyAlphaRenderModelCropSheet(targetCloseHero, captures, windows) {
+  const target = captioned(
+    bordered(withScaleGuides(resizeToWidth(targetCloseHero, 360)), [190, 42, 28, 255]),
+    "TARGET CLOSE",
+  );
+  const closeCrops = captures.map((capture) =>
+    captioned(
+      bordered(
+        withScaleGuides(resizeToWidth(cropRatio(capture.png, windows.closeHero), 360), {
+          proxies: true,
+        }),
+        capture.color,
+      ),
+      bodyAlphaRenderModelLabel(capture),
+    ),
+  );
+  const tightCrops = captures.map((capture) =>
+    captioned(
+      bordered(
+        withScaleGuides(resizeToWidth(cropRatio(capture.png, windows.closeTight2x), 360), {
+          proxies: true,
+        }),
+        capture.color,
+      ),
+      `2X ${bodyAlphaRenderModelShortLabel(capture.renderModel)}`,
+    ),
+  );
+  return composeGrid([target, ...closeCrops, ...tightCrops], 4);
+}
+
 function bodyArchitectureLabel(capture) {
   return `${bodyArchitectureShortLabel(capture.family)} ${capture.stats.grass.submittedTriangles}T`;
 }
@@ -1218,6 +1408,19 @@ function bodyContinuityShortLabel(profile) {
   if (profile === "overlap-stagger") return "STAGGER";
   if (profile === "broken-lattice") return "LATTICE";
   return String(profile).toUpperCase();
+}
+
+function bodyAlphaRenderModelLabel(capture) {
+  return `${bodyAlphaRenderModelShortLabel(capture.renderModel)} ${capture.stats.grass.submittedTriangles}T`;
+}
+
+function bodyAlphaRenderModelShortLabel(renderModel) {
+  if (renderModel === "opaque-card") return "OPAQUE";
+  if (renderModel === "alpha-cutout") return "CUTOUT";
+  if (renderModel === "hard-cutout") return "HARD";
+  if (renderModel === "dither-cutout") return "DITHER";
+  if (renderModel === "sparse-dither") return "SPARSE";
+  return String(renderModel).toUpperCase();
 }
 
 function closeLabProfileLabel(profile) {

@@ -43,6 +43,17 @@ Reject if every render-model variant still shows card islands/sheets, if the onl
 improvement is making the grass disappear, if the pass violates the renderer
 depth/blend contract, or if the fix needs unrelated visual variables.
 
+## Result
+
+Rejected on 2026-07-01. Evidence is archived under
+`assets/03b4-evidence/03b4c5-close-foreground-lab/body-alpha-render-model/`.
+The tested models were `opaque-card`, `alpha-cutout`, `hard-cutout`,
+`dither-cutout`, and `sparse-dither`. `opaque-card` preserves the most body but
+keeps obvious card islands; alpha/cutout/dither reduce opaque fill but leave hard
+sheets, chunks, noisy stipple, or exposed empty lanes. The best target metric still
+does not produce the reference's continuous close grass body, and the neutral
+critique rejected every candidate.
+
 ## Verification
 
 - Archive variant contact sheet, full lab shots, close/tight crops, stats JSON,
@@ -59,7 +70,6 @@ depth/blend contract, or if the fix needs unrelated visual variables.
 
 ## Next Slice
 
-If accepted, return to `03b4c5b4b1a2-close-body-perf-envelope.md` using the
-accepted `texture-volume` architecture and render model. If rejected, reslice the
-body architecture search away from texture-volume cards before perf or coverage
-tuning.
+Continue with `03b4c5b4b1a1t-field-fiber-body-architecture.md`. Do not tune
+texture-volume alpha, density, or atlas content again until a non-card body
+representation has been tested.

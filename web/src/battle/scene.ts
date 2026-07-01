@@ -23,10 +23,14 @@ import {
   type UnitClassKey,
 } from './classData';
 import { UnitBanner, type BannerChip } from './unitBanner';
-import { UnitCards } from './unitCard';
+import { createElement } from 'react';
+import { createRoot } from 'react-dom/client';
+import { flushSync } from 'react-dom';
 import { UnitCardsReact } from '../ui/hud/UnitCardsReact';
+import { Toolbar, type ToolButtonState } from '../ui/hud/Toolbar';
+import { HudPanel, type HudUnit } from '../ui/hud/HudPanel';
+import { GameOver, PauseMenu } from '../ui/hud/BattleModals';
 import { installViewportGate } from './viewportGate';
-import { toolbarIcon } from './toolbarIcons';
 import { Input } from './input';
 import { MANUAL_HTML } from './manual';
 import { groupMoveDests, UnitSnap } from './orders';
@@ -390,44 +394,12 @@ export class BattleScene implements Scene {
       }
     }
 
-    // --- Toolbar ------------------------------------------------------------------
-    const toolButtons = new Map<string, HTMLButtonElement>();
-    document.querySelectorAll<HTMLButtonElement>('#toolbar button').forEach((b) => {
-      toolButtons.set(b.dataset.cmd!, b);
-      const icon = toolbarIcon(b.dataset.cmd!);
-      if (icon) b.innerHTML = icon; // Phosphor glyph replaces the text label
-    });
-    function updateToolbar() {
-      const sel = myUnits(input.selected);
-      const info = unitInfo();
-      const o = sel.length ? sel[0] * STRIDE : -1;
-      const classes = sel.map((u) => info[u * STRIDE + 13]);
-      const supports = (allowed: number[]) => classes.some((c) => allowed.includes(c));
-      const set = (cmd: string, on: boolean) => {
-        const b = toolButtons.get(cmd)!;
-        b.classList.toggle('on', on);
-        if (!['pause', 'x1', 'x3', 'paths'].includes(cmd)) {
-          let applies = sel.length > 0;
-          if (cmd === 'kite') applies &&= supports(KITE_CLASS_IDS);
-          if (cmd === 'fire') applies &&= supports(MISSILE_CLASS_IDS);
-          b.disabled = !applies;
-        }
-      };
-      set('pace', o >= 0 && info[o + 9] > 0.5);
-      set('reform', false);
-      set('pursue', o >= 0 && info[o + 25] > 0.5);
-      set('fire', o >= 0 && sel.length > 0 && fireOn);
-      set('kite', o >= 0 && info[o + 26] > 0.5);
-      toolButtons.get('pause')!.classList.toggle('on', paused);
-      toolButtons.get('x1')!.classList.toggle('on', !paused && timeScale === 1);
-      toolButtons.get('x3')!.classList.toggle('on', !paused && timeScale === 3);
-      toolButtons.get('paths')!.classList.toggle('on', showPaths);
-    }
-    document.getElementById('toolbar')!.addEventListener('click', (e) => {
-      const b = (e.target as HTMLElement).closest('button') as HTMLButtonElement | null;
-      if (!b) return;
+    // --- Toolbar (React) ----------------------------------------------------------
+    const toolbarRoot = createRoot(document.getElementById('toolbar')!);
+    this.cleanups.push(() => toolbarRoot.unmount());
+    const onToolbarCmd = (cmd: string) => {
       const sel = input.selected;
-      switch (b.dataset.cmd) {
+      switch (cmd) {
         case 'pace': sink.togglePace(sel); break;
         case 'reform': sink.reform(sel); break;
         case 'pursue': sink.togglePursue(sel); break;
@@ -439,7 +411,33 @@ export class BattleScene implements Scene {
         case 'paths': showPaths = !showPaths; break;
       }
       updateToolbar();
-    }, { signal });
+    };
+    let lastToolbarSig = '';
+    function updateToolbar() {
+      const sel = myUnits(input.selected);
+      const info = unitInfo();
+      const o = sel.length ? sel[0] * STRIDE : -1;
+      const classes = sel.map((u) => info[u * STRIDE + 13]);
+      const supports = (allowed: number[]) => classes.some((c) => allowed.includes(c));
+      const selEmpty = sel.length === 0;
+      // Same command state the old imperative updateToolbar computed: .on per
+      // order/time state, disabled unless a unit (and the right class) is selected.
+      const state: Record<string, ToolButtonState> = {
+        pace: { on: o >= 0 && info[o + 9] > 0.5, disabled: selEmpty },
+        reform: { on: false, disabled: selEmpty },
+        pursue: { on: o >= 0 && info[o + 25] > 0.5, disabled: selEmpty },
+        fire: { on: o >= 0 && sel.length > 0 && fireOn, disabled: selEmpty || !supports(MISSILE_CLASS_IDS) },
+        kite: { on: o >= 0 && info[o + 26] > 0.5, disabled: selEmpty || !supports(KITE_CLASS_IDS) },
+        pause: { on: paused, disabled: false },
+        x1: { on: !paused && timeScale === 1, disabled: false },
+        x3: { on: !paused && timeScale === 3, disabled: false },
+        paths: { on: showPaths, disabled: false },
+      };
+      const sig = JSON.stringify(state);
+      if (sig === lastToolbarSig) return; // ≤5Hz; skip when nothing changed
+      lastToolbarSig = sig;
+      flushSync(() => toolbarRoot.render(createElement(Toolbar, { state, onCmd: onToolbarCmd })));
+    }
 
     // --- Time control ------------------------------------------------------------
     let paused = false;
@@ -453,15 +451,17 @@ export class BattleScene implements Scene {
     let ended = false;
     const gameover = document.getElementById('gameover')!;
     gameover.style.display = 'none';
-    const restartBtn = document.getElementById('gameover-restart')!;
-    restartBtn.style.display = this.cfg.inCampaign ? 'none' : 'block';
-    restartBtn.addEventListener('click', () => this.restartBattle(), { signal });
-    const menuBtn = document.getElementById('gameover-menu')!;
-    menuBtn.textContent = this.cfg.inCampaign ? 'Continue' : 'Main Menu';
-    menuBtn.addEventListener('click', () => this.cfg.onExit(), { signal });
-    document.getElementById('gameover-watch')!.addEventListener('click', () => {
-      gameover.style.display = 'none';
-    }, { signal });
+    const gameoverRoot = createRoot(gameover);
+    this.cleanups.push(() => gameoverRoot.unmount());
+    const showGameover = (win: boolean, sub: string) => {
+      gameoverRoot.render(createElement(GameOver, {
+        inCampaign: this.cfg.inCampaign, win, sub,
+        onRestart: () => this.restartBattle(),
+        onExit: () => this.cfg.onExit(),
+        onWatch: () => { gameover.style.display = 'none'; },
+      }));
+      gameover.style.display = 'flex';
+    };
     let timeScale = 1;
     let showPaths = false;
     let frozenEffects = false;
@@ -681,6 +681,7 @@ export class BattleScene implements Scene {
     const input = new Input(canvas, camera, sink, signal);
     let pursueOn = false;
     let fireOn = true;
+    updateToolbar(); // initial React paint now that paused/timeScale/showPaths/fireOn exist
 
     // --- Bottom unit-card strip: one card per player unit (Total War style) -------
     const cardsRoot = document.getElementById('unitcards')!;
@@ -693,14 +694,8 @@ export class BattleScene implements Scene {
       const [cx, cy] = unitCenter(unit);
       camera.x = cx; camera.y = cy; camera.clampView();
     };
-    // S3 perf spike: ?hud=react (or localStorage hud=react) swaps the vanilla
-    // card bar for the React one at the SAME rAF update call site, for the A/B
-    // measurement. Default stays vanilla until S6 reads S3's verdict.
-    const useReactCards = new URLSearchParams(location.search).get('hud') === 'react'
-      || (typeof localStorage !== 'undefined' && localStorage.getItem('hud') === 'react');
-    const unitCards = useReactCards
-      ? new UnitCardsReact(cardsRoot, onCardSelect)
-      : new UnitCards(cardsRoot, onCardSelect);
+    // The card bar is React (spike verdict: MIGRATE — Δmedian/Δp95 ≈ 0).
+    const unitCards = new UnitCardsReact(cardsRoot, onCardSelect);
     const buildCards = () => {
       const info = unitInfo();
       cardUnits = [];
@@ -719,10 +714,7 @@ export class BattleScene implements Scene {
       unitCards.build(inits);
     };
     buildCards();
-    this.cleanups.push(() => {
-      if (unitCards instanceof UnitCardsReact) unitCards.destroy();
-      else cardsRoot.innerHTML = '';
-    });
+    this.cleanups.push(() => unitCards.destroy());
     const updateCards = () => {
       const info = unitInfo();
       const sel = new Set(input.selected);
@@ -862,22 +854,23 @@ export class BattleScene implements Scene {
     document.getElementById('manual')!.style.display = 'none';
     const pausemenu = document.getElementById('pausemenu')!;
     pausemenu.style.display = 'none';
+    const pausemenuRoot = createRoot(pausemenu);
+    this.cleanups.push(() => pausemenuRoot.unmount());
+    pausemenuRoot.render(createElement(PauseMenu, {
+      inCampaign: this.cfg.inCampaign,
+      onRestart: () => this.restartBattle(),
+      onManual: () => {
+        const el = document.getElementById('manual')!;
+        el.style.display = el.style.display === 'block' ? 'none' : 'block';
+        pausemenu.style.display = 'none';
+      },
+      onExit: () => this.cfg.onExit(),
+      onClose: () => { pausemenu.style.display = 'none'; },
+    }));
+    // #btn-menu (a top button) toggles the pause overlay; a backdrop click closes
+    // it. React owns the .panel content; the container's display stays imperative.
     document.getElementById('btn-menu')!.addEventListener('click', () => {
       pausemenu.style.display = pausemenu.style.display === 'flex' ? 'none' : 'flex';
-    }, { signal });
-    const pauseRestart = document.getElementById('pause-restart')!;
-    pauseRestart.style.display = this.cfg.inCampaign ? 'none' : 'block';
-    pauseRestart.addEventListener('click', () => this.restartBattle(), { signal });
-    document.getElementById('pause-exit')!.textContent =
-      this.cfg.inCampaign ? 'Exit to Campaign' : 'Exit to Main Menu';
-    document.getElementById('pause-manual')!.addEventListener('click', () => {
-      const el = document.getElementById('manual')!;
-      el.style.display = el.style.display === 'block' ? 'none' : 'block';
-      pausemenu.style.display = 'none';
-    }, { signal });
-    document.getElementById('pause-exit')!.addEventListener('click', () => this.cfg.onExit(), { signal });
-    document.getElementById('pause-close')!.addEventListener('click', () => {
-      pausemenu.style.display = 'none';
     }, { signal });
     pausemenu.addEventListener('click', (e) => {
       if (e.target === pausemenu) pausemenu.style.display = 'none';
@@ -906,7 +899,8 @@ export class BattleScene implements Scene {
     // lancer holding anything but its lance has dropped to its sabre for the
     // grind, so the renderer shows the sidearm pseudo-class.
     const classChargeIdx: number[] = CLASS_SPECS.map((c) => c.weapons.findIndex((w) => w.charge));
-    const hud = document.getElementById('hud')!;
+    const hudRoot = createRoot(document.getElementById('hud')!);
+    this.cleanups.push(() => hudRoot.unmount());
     const banner = document.getElementById('banner')!;
     const selbox = document.getElementById('selbox')!;
     banner.style.display = 'none';
@@ -1163,17 +1157,17 @@ export class BattleScene implements Scene {
     };
 
     function updateHud() {
-      const lines = [
+      const header = [
         `soldiers ${game.soldier_count().toLocaleString()}   units ${game.unit_count()}`,
         frozen
           ? 'fps —   tick — ms   PAUSED'
           : `fps ${fpsAvg.toFixed(0)}   tick ${tickMsAvg.toFixed(2)} ms` +
             (paused ? '   PAUSED' : timeScale !== 1 ? `   x${timeScale}` : ''),
       ];
-      let bars = '';
+      let unit: HudUnit | undefined;
       let cardUnit = -1;
       if (input.selected.length > 1) {
-        lines.push(`${input.selected.length} units selected`);
+        header.push(`${input.selected.length} units selected`);
       } else if (input.selected.length === 1) {
         cardUnit = input.selected[0];
       } else if (input.mouseCss[0] >= 0) {
@@ -1211,8 +1205,9 @@ export class BattleScene implements Scene {
           );
           for (const w of spec.weapons) {
             const deg = ((w.arc * 180) / Math.PI / 2).toFixed(0);
+            // Leading indent is a real non-breaking space (was the &nbsp; entity).
             detail.push(
-              `&nbsp;${w.name}: ${w.reach.toFixed(1)}m ±${deg}°  ` +
+              ` ${w.name}: ${w.reach.toFixed(1)}m ±${deg}°  ` +
                 `dmg ${w.damage.toFixed(2)} / ${w.interval.toFixed(1)}s` +
                 (w.minRange > 0 ? `  (dead <${w.minRange.toFixed(1)}m)` : ''),
             );
@@ -1220,25 +1215,16 @@ export class BattleScene implements Scene {
           if (spec.missile) {
             const m = spec.missile;
             detail.push(
-              `&nbsp;${m.name}: ${m.range.toFixed(0)}m  dmg ${m.damage.toFixed(2)} / ${m.interval.toFixed(0)}s  ` +
+              ` ${m.name}: ${m.range.toFixed(0)}m  dmg ${m.damage.toFixed(2)} / ${m.interval.toFixed(0)}s  ` +
                 `ammo ${m.ammo}${m.mobileFire ? '  fires mounted' : ''}`,
             );
           }
         }
         const hpColor = hpFrac > 0.5 ? '#5cba46' : hpFrac > 0.25 ? '#d6b13a' : '#cf4a3a';
-        const stat = (label: string, frac: number, color: string) =>
-          `<div class="hud-stat"><span>${label}</span><div class="hud-bar"><div style="width:${(frac * 100).toFixed(0)}%;background:${color}"></div></div></div>`;
-        bars =
-          `<div class="hud-head">${thumb ? `<img class="hud-port" src="${thumb}" alt="">` : ''}` +
-            `<div><div class="hud-name">${cls}</div>` +
-            `<div class="hud-meta">${side} · ${alive}/${total} men · ${pace}${charge}${routing}${engaged}${ammo}</div></div></div>` +
-          stat('HP', hpFrac, hpColor) +
-          stat('COH', cohesion, '#d9c75a') +
-          stat('STA', fatigue, '#d9a13b') +
-          stat('MOR', info[o + 20], '#c2554e') +
-          (detail.length ? `<div class="hud-detail">${detail.join('<br>')}</div>` : '');
+        const meta = `${side} · ${alive}/${total} men · ${pace}${charge}${routing}${engaged}${ammo}`;
+        unit = { thumb: thumb || undefined, cls, meta, hpFrac, hpColor, cohesion, fatigue, morale: info[o + 20], detail };
       }
-      hud.innerHTML = lines.join('<br>') + bars;
+      flushSync(() => hudRoot.render(createElement(HudPanel, { data: { header, unit } })));
 
       // Game over: one side is dead or wholly routing. The sim keeps
       // RUNNING — routs are locked sim-side, so the pursuit plays out
@@ -1247,12 +1233,9 @@ export class BattleScene implements Scene {
       if (v >= 0 && !ended) {
         ended = true;
         const win = v === 0;
-        document.getElementById('gameover-title')!.textContent = win ? 'VICTORY' : 'DEFEAT';
-        (document.getElementById('gameover-title') as HTMLElement).style.color = win ? '#6f9ae8' : '#e0604f';
-        document.getElementById('gameover-sub')!.textContent = win
+        showGameover(win, win
           ? 'The enemy army is broken. Your army holds the field.'
-          : 'Your army is broken. The enemy holds the field.';
-        gameover.style.display = 'flex';
+          : 'Your army is broken. The enemy holds the field.');
       }
     }
 

@@ -23,10 +23,13 @@ import {
   type UnitClassKey,
 } from './classData';
 import { UnitBanner, type BannerChip } from './unitBanner';
+import { createElement } from 'react';
+import { createRoot } from 'react-dom/client';
+import { flushSync } from 'react-dom';
 import { UnitCards } from './unitCard';
 import { UnitCardsReact } from '../ui/hud/UnitCardsReact';
+import { Toolbar, type ToolButtonState } from '../ui/hud/Toolbar';
 import { installViewportGate } from './viewportGate';
-import { toolbarIcon } from './toolbarIcons';
 import { Input } from './input';
 import { MANUAL_HTML } from './manual';
 import { groupMoveDests, UnitSnap } from './orders';
@@ -390,44 +393,12 @@ export class BattleScene implements Scene {
       }
     }
 
-    // --- Toolbar ------------------------------------------------------------------
-    const toolButtons = new Map<string, HTMLButtonElement>();
-    document.querySelectorAll<HTMLButtonElement>('#toolbar button').forEach((b) => {
-      toolButtons.set(b.dataset.cmd!, b);
-      const icon = toolbarIcon(b.dataset.cmd!);
-      if (icon) b.innerHTML = icon; // Phosphor glyph replaces the text label
-    });
-    function updateToolbar() {
-      const sel = myUnits(input.selected);
-      const info = unitInfo();
-      const o = sel.length ? sel[0] * STRIDE : -1;
-      const classes = sel.map((u) => info[u * STRIDE + 13]);
-      const supports = (allowed: number[]) => classes.some((c) => allowed.includes(c));
-      const set = (cmd: string, on: boolean) => {
-        const b = toolButtons.get(cmd)!;
-        b.classList.toggle('on', on);
-        if (!['pause', 'x1', 'x3', 'paths'].includes(cmd)) {
-          let applies = sel.length > 0;
-          if (cmd === 'kite') applies &&= supports(KITE_CLASS_IDS);
-          if (cmd === 'fire') applies &&= supports(MISSILE_CLASS_IDS);
-          b.disabled = !applies;
-        }
-      };
-      set('pace', o >= 0 && info[o + 9] > 0.5);
-      set('reform', false);
-      set('pursue', o >= 0 && info[o + 25] > 0.5);
-      set('fire', o >= 0 && sel.length > 0 && fireOn);
-      set('kite', o >= 0 && info[o + 26] > 0.5);
-      toolButtons.get('pause')!.classList.toggle('on', paused);
-      toolButtons.get('x1')!.classList.toggle('on', !paused && timeScale === 1);
-      toolButtons.get('x3')!.classList.toggle('on', !paused && timeScale === 3);
-      toolButtons.get('paths')!.classList.toggle('on', showPaths);
-    }
-    document.getElementById('toolbar')!.addEventListener('click', (e) => {
-      const b = (e.target as HTMLElement).closest('button') as HTMLButtonElement | null;
-      if (!b) return;
+    // --- Toolbar (React) ----------------------------------------------------------
+    const toolbarRoot = createRoot(document.getElementById('toolbar')!);
+    this.cleanups.push(() => toolbarRoot.unmount());
+    const onToolbarCmd = (cmd: string) => {
       const sel = input.selected;
-      switch (b.dataset.cmd) {
+      switch (cmd) {
         case 'pace': sink.togglePace(sel); break;
         case 'reform': sink.reform(sel); break;
         case 'pursue': sink.togglePursue(sel); break;
@@ -439,7 +410,33 @@ export class BattleScene implements Scene {
         case 'paths': showPaths = !showPaths; break;
       }
       updateToolbar();
-    }, { signal });
+    };
+    let lastToolbarSig = '';
+    function updateToolbar() {
+      const sel = myUnits(input.selected);
+      const info = unitInfo();
+      const o = sel.length ? sel[0] * STRIDE : -1;
+      const classes = sel.map((u) => info[u * STRIDE + 13]);
+      const supports = (allowed: number[]) => classes.some((c) => allowed.includes(c));
+      const selEmpty = sel.length === 0;
+      // Same command state the old imperative updateToolbar computed: .on per
+      // order/time state, disabled unless a unit (and the right class) is selected.
+      const state: Record<string, ToolButtonState> = {
+        pace: { on: o >= 0 && info[o + 9] > 0.5, disabled: selEmpty },
+        reform: { on: false, disabled: selEmpty },
+        pursue: { on: o >= 0 && info[o + 25] > 0.5, disabled: selEmpty },
+        fire: { on: o >= 0 && sel.length > 0 && fireOn, disabled: selEmpty || !supports(MISSILE_CLASS_IDS) },
+        kite: { on: o >= 0 && info[o + 26] > 0.5, disabled: selEmpty || !supports(KITE_CLASS_IDS) },
+        pause: { on: paused, disabled: false },
+        x1: { on: !paused && timeScale === 1, disabled: false },
+        x3: { on: !paused && timeScale === 3, disabled: false },
+        paths: { on: showPaths, disabled: false },
+      };
+      const sig = JSON.stringify(state);
+      if (sig === lastToolbarSig) return; // ≤5Hz; skip when nothing changed
+      lastToolbarSig = sig;
+      flushSync(() => toolbarRoot.render(createElement(Toolbar, { state, onCmd: onToolbarCmd })));
+    }
 
     // --- Time control ------------------------------------------------------------
     let paused = false;
@@ -681,6 +678,7 @@ export class BattleScene implements Scene {
     const input = new Input(canvas, camera, sink, signal);
     let pursueOn = false;
     let fireOn = true;
+    updateToolbar(); // initial React paint now that paused/timeScale/showPaths/fireOn exist
 
     // --- Bottom unit-card strip: one card per player unit (Total War style) -------
     const cardsRoot = document.getElementById('unitcards')!;

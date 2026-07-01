@@ -12,12 +12,11 @@ Synthesized from three independent draft plans (they converged hard — the cut 
 
 **Status:** S0 + S1 + S2 + S3 shipped (green). **S3 verdict: MIGRATE (Branch A).** _Last updated: 2026-07-01._
 
-**Start at S6b** (battle toolbar → React). **S6a shipped: the card bar is React by default**
-(the spike payoff — battle-selection-dpr2 0.0000%). S6 decomposes into:
+**Start at S6c** (info panel `#hud`). **S6a (card bar default) + S6b (toolbar) shipped.** S6 remaining:
 - **S6a — card bar React default** ✅ (`?hud=vanilla` escape hatch until S7).
-- **S6b — toolbar** (`#toolbar`): 10 data-cmd buttons; `updateToolbar` sets `.on`/`disabled`
-  per selection+order state; delegated click → `sink` commands. React: a `<Toolbar>` fed
-  button state, dedup'd (≤5Hz). Icons via `toolbarIcon()` (make a JSX `<ToolIcon>` like `UiIcon`).
+- **S6b — toolbar** ✅ (`web/src/ui/hud/Toolbar.tsx` into `#toolbar`; icon-only buttons via
+  `dangerouslySetInnerHTML` of `toolbarIcon()`; scene's `updateToolbar` computes a `{on,disabled}`
+  state map, dedup'd + flushSync'd; battle-selection-dpr2 0.0000%, battle-input pass).
 - **S6c — info panel** (`#hud`): read-only ≤5Hz readout (`updateHud`, throttled 0.2s) — header
   lines + selected/hovered unit detail (portrait, name, meta, stat bars, spec/weapon lines with
   `&nbsp;`/`<br>`). Big faithful port; low risk (no interaction). Convert `&nbsp;`→` `.

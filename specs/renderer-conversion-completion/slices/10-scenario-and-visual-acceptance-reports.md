@@ -11,7 +11,7 @@ artifact is not under `web/shots`, it is not part of the release-review surface.
 
 Every gate is blocked on an input report that has never been generated:
 
-- `scenario:renderer` / `:campaign` (`web/package.json:14-15`) write to
+- `scene:renderer` / `:campaign` (`web/package.json:14-15`) write to
   `web/reports/rendering/scenario-runs/renderer-latest.json` and
   `renderer-campaign-latest.json` — neither exists. `scenarioRunCheck()` returns
   `pending` → `releaseReady=false` (`renderer-cutover-report.mjs`). The writer
@@ -25,12 +25,12 @@ Every gate is blocked on an input report that has never been generated:
 
 ## API Seam
 
-- Run `scenario:renderer` and `scenario:renderer:campaign` to completion and persist
+- Run `scene:renderer` and `scene:renderer:campaign` to completion and persist
   `web/reports/rendering/scenario-runs/renderer-latest.json` /
   `renderer-campaign-latest.json`; fix whatever stops the writer
   (`web/scene.mjs:194-220`) from finishing.
 - Ensure the release-review shot inventory is committed under `web/shots`.
-- Keep `campaign-models` in `scenario:renderer` so object shots regenerate through
+- Keep `campaign-models` in `scene:renderer` so object shots regenerate through
   the normal scene runner.
 
 ## Human Review

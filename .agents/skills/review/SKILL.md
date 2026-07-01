@@ -166,6 +166,28 @@ Flag in review:
   HUD would show its side), never the opposing player's orders or unit
   internals.
 
+## 19. Task-runner scripts: the parent runs everything, suffixes are the parts
+
+Package/task scripts follow one shape: a bare script (`build`, `test`, `fmt`)
+runs the COMPLETE job across every submodule it touches; a `:suffix`
+(`build:wasm`, `build:web`, `test:web`) runs one clearly-named part. A bare
+parent that quietly does only half the work is the trap — someone runs `build`,
+ships a stale artifact, and never learns the other stage existed (here `build`
+must run the Rust→wasm step *and* the web bundle, not just `vite build`).
+
+Flag in review:
+- A bare parent that runs a subset of its parts. Either it does everything, or
+  it isn't the parent — rename it to the part it actually runs.
+- Two script keys with identical bodies (the `scene`/`scenario` smell). This is
+  the parallel-literal-set bug of #16 in script form — pick the canonical name,
+  delete the alias.
+- An ambiguous stage name. If `build` could mean the native compile or the
+  bundle, it's underspecified; split into named parts and let the parent chain
+  them.
+- A named alias wrapping an already-short, already-clear native command
+  (`cargo fmt --all`) adds nothing but a place to drift; only wrap a stage when
+  the underlying command is long or non-obvious.
+
 ## Your task
 
 Review: $ARGUMENTS

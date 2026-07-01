@@ -5,6 +5,7 @@ import { requestGpuDevice, gpuFailureMessage } from '../../../packages/renderer-
 import { assertStorageBufferFits, resolveDeviceCaps } from '../../../packages/renderer-core/src/capabilities';
 import { compileShader, setShaderErrorHandler, shaderCompilationMessages, type ShaderCompilationMessage } from '../../../packages/renderer-core/src/compileShader';
 import { fatalSurfaceFor, showFatalErrorSurface } from '../../../web/src/shared/fatalError';
+import { CAMPAIGN_FIGURE_SIZE } from '../../../web/src/campaign/renderer';
 import { SkinnedCrowdPipeline } from '../../../packages/renderer-core/src/skinnedPipeline';
 import { animationForFrame } from '../../../packages/crowd-runtime/src/animationState';
 import { buildCrowdInstances, generatedFormation, type CrowdInstance } from '../../../packages/crowd-runtime/src/instanceData';
@@ -1562,11 +1563,11 @@ async function routeCampaignModelShots(ctx: LabContext) {
       clip: 'idle',
       phase: 0,
       mountedClasses: mountedClassesFromKit(soldierKit),
-      spacing: 2.4 * 1.1,
+      spacing: CAMPAIGN_FIGURE_SIZE * 1.1,
       terrainHeight: () => entity.z ?? 0,
     }));
-  soldierCrowd.upload(modelCrowd, { size: 2.4 });
-  soldierShadows.upload(modelCrowd, { radius: 0.62 * 2.4 });
+  soldierCrowd.upload(modelCrowd, { size: CAMPAIGN_FIGURE_SIZE });
+  soldierShadows.upload(modelCrowd, { radius: 0.62 * CAMPAIGN_FIGURE_SIZE });
   const hostileDepthOrder = gate === 'hostile-depth-order';
   const entityOpaquePass: FrameGraphPass = { id: 'model-shot-entities-opaque', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => entities.drawOpaque(pass) };
   const sceneryOpaquePass: FrameGraphPass = { id: 'model-shot-scenery-opaque', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => scenery.drawOpaque(pass) };

@@ -20,7 +20,7 @@ export interface StackCrowdOpts {
   seed: number;
   /** Facing for the whole stack (radians). Default faces +y like a player unit. */
   facing?: number;
-  /** VAT clip both figures play (e.g. 'idle' | 'march'). Default 'march'. */
+  /** VAT clip all figures play (e.g. 'idle' | 'march'). Default 'march'. */
   clip?: string;
   /** Base animation phase (0..1) from the campaign clock; per-figure offset added. */
   phase?: number;
@@ -52,8 +52,11 @@ export function sampleFigureClasses(unitsByClass: readonly number[], figures: nu
   const byRemainder = exact
     .map((e, c) => ({ c, frac: e - Math.floor(e) }))
     .sort((a, b) => b.frac - a.frac || a.c - b.c);
+  // The leftover slots (figures - sum of floors) equal the sum of the fractional
+  // parts, a whole number strictly less than the class count, so k never exceeds
+  // byRemainder's length.
   for (let k = 0; assigned < figures; k++, assigned++) {
-    counts[byRemainder[k % byRemainder.length].c]++;
+    counts[byRemainder[k].c]++;
   }
   const out: number[] = [];
   for (let c = 0; c < counts.length; c++) {

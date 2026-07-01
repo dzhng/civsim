@@ -130,7 +130,11 @@ fn vs(
 fn fs(in: VsOut) -> @location(0) vec4f {
   let blue = vec3f(0.20, 0.42, 0.88);
   let red = vec3f(0.84, 0.24, 0.20);
-  let accent = select(blue, red, in.faction > 0.5);
+  // faction 0 = own/friend (blue), 1 = foe (red), 2 = neutral (amber). Battle only
+  // ever sends 0/1, so its output is unchanged; campaign uses 2 for neutral stacks.
+  let neutral = vec3f(0.82, 0.70, 0.34);
+  var accent = select(blue, red, in.faction > 0.5);
+  accent = select(accent, neutral, in.faction > 1.5);
   // Material channels. Placeholder textures are neutral, so albedo/mask keep the
   // default look exact; orm/normal effects are gated by factionMaskStrength.
   let uv = vec2f(0.5, 0.5);

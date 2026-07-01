@@ -23,11 +23,33 @@ contract); it does not change the card-grid math or the sim.
 
 ## Next Agent Prompt
 
-**Status:** Planned — not started. Last updated 2026-07-01.
+**Status:** Slice 01 shipped. Last updated 2026-07-01.
 
-**Start here:** Slice `01-single-root-battlehud`. Read it, then the firewalls
-section below, then build. Each slice leaves the battle playable and
-screenshot-able; do not start a later slice until the current one's gate passes.
+**Start here:** Slice `02-extract-chassis`. Read it, then the firewalls section
+below, then build. Each slice leaves the battle playable and screenshot-able; do
+not start a later slice until the current one's gate passes.
+
+**What slice 01 landed (`web/src/ui/hud/BattleHud.tsx`):** one React root
+(`mountBattleHud`) composing `<LeftInfoCard>` (`#hud`), `<CardsHost>`
+(`#unitcards`), `<ToolbarHost>` (`#toolbar`), and the `#minimap` `<canvas>`. The
+three old `createRoot` calls and the imperative canvas grab in `scene.ts` are
+gone; scene drives the HUD through `BattleHudHandle` (`setInfo`/`setToolbar`
+flushSync ≤5 Hz, `buildCards` flushSync, `cards.update` imperative 60 Hz,
+`minimapCanvas` ref). The card leaf is extracted to `UnitCardsView.tsx` (shared by
+`BattleHud` and the `UnitCardsReact` class, which still backs the renderer-lab);
+its grid host is now a `rootRef` (RefObject) rather than a resolved element. The
+`game.victor()` game-over check moved out of `updateHud` into `checkGameover()` in
+the frame loop. Verified: `battle-selection-dpr2`, `battle-minimap-world-dpr2`,
+`battle-initial`, `battle-banner`, `battle-manual` all **0 px differ (no
+re-bless)**; `card-bar` lab green; tsc/lint/vitest/`test:ui` green.
+
+**Architecture decision (deviation from slice text — carry into slice 02):**
+slice 01 did **not** move the `#hud`/`#toolbar`/`#unitcards`/`#minimap` CSS out of
+`index.html`. `<BattleHud>` renders elements with the same ids, so the existing
+id-based CSS applies unchanged and pixel-identity is airtight with a minimal review
+surface. **Moving that inline CSS into a co-located stylesheet is folded into slice
+02** (where `<Chassis>` extraction touches the chrome anyway). index.html still
+carries the four id rules plus the new `#battle-hud` mount container.
 
 **Pickup rules:**
 - Work in the worktree `/Users/homeserver/dev/civsim/.claude/worktrees/card-bar`;
@@ -46,8 +68,9 @@ screenshot-able; do not start a later slice until the current one's gate passes.
 - Update this section (status, pickup point, TODO ticks) before ending your pass.
 
 **Global TODO:**
-- [ ] 01 — Single-root `<BattleHud>` (foundation, pixel-identical)
-- [ ] 02 — Extract `<Chassis>` housing primitive (pixel-identical)
+- [x] 01 — Single-root `<BattleHud>` (foundation, pixel-identical) — shipped
+- [ ] 02 — Extract `<Chassis>` housing primitive (pixel-identical); also move
+      the four surfaces' inline CSS out of index.html (deferred from slice 01)
 - [ ] 03 — Left info card → bottom-left corner
 - [ ] 04 — Army-roster idle state; drop debug header; FPS → bare top-left
 - [ ] 05 — Merge toolbar into the center card housing

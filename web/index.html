@@ -1121,7 +1121,6 @@
       <!-- Content is React (src/ui/hud/BattleModals.tsx, GameOver), mounted by
        BattleScene. This shell keeps the CSS backdrop + display toggle. -->
       <div id="gameover"></div>
-      <div id="hud">loading wasm…</div>
       <div id="buttons">
         <button id="btn-menu">Menu</button>
       </div>
@@ -1130,11 +1129,12 @@
       <div id="pausemenu"></div>
       <div id="banner"></div>
       <div id="selbox"></div>
-      <canvas id="minimap" width="240" height="160"></canvas>
       <div id="unitlabels"></div>
-      <div id="unitcards"></div>
-      <!-- Buttons are React now (src/ui/hud/Toolbar.tsx, mounted by BattleScene). -->
-      <div id="toolbar"></div>
+      <!-- The unit info panel (#hud), unit-card strip (#unitcards), toolbar
+       (#toolbar), and minimap (#minimap) are ONE React tree now
+       (src/ui/hud/BattleHud.tsx), mounted here by BattleScene. Their bronze CSS
+       below still styles the React-rendered elements (same ids). -->
+      <div id="battle-hud"></div>
     </div>
     <!-- React overlay root: a sibling above the canvas, never a parent of it.
        Fixed full-viewport, click-through by default; individual React panels

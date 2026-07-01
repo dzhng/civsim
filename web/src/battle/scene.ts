@@ -32,9 +32,9 @@ import { UnitBanner, type BannerChip } from "./unitBanner";
 import { createElement } from "react";
 import { createRoot } from "react-dom/client";
 import { flushSync } from "react-dom";
-import { UnitCardsReact } from "../ui/hud/UnitCardsReact";
-import { Toolbar, type ToolButtonState } from "../ui/hud/Toolbar";
-import { HudPanel, type HudUnit } from "../ui/hud/HudPanel";
+import { mountBattleHud, type BattleHudHandle } from "../ui/hud/BattleHud";
+import { type ToolButtonState } from "../ui/hud/Toolbar";
+import { type HudData, type HudUnit } from "../ui/hud/HudPanel";
 import { GameOver, PauseMenu } from "../ui/hud/BattleModals";
 import { installViewportGate } from "./viewportGate";
 import { Input } from "./input";
@@ -148,6 +148,18 @@ export class BattleScene implements Scene {
     const signal = ac.signal;
     this.cleanups.push(() => ac.abort());
 
+    // The whole HUD is one React tree (src/ui/hud/BattleHud.tsx). It is mounted
+    // here — before the minimap/toolbar/card wiring below reads its handle — with
+    // late-bound command thunks, since onToolbarCmd/onCardSelect are defined
+    // further down (a user can't click before enter() finishes).
+    let handleToolbarCmd: (cmd: string) => void = () => {};
+    let handleCardSelect: (unit: number, additive: boolean) => void = () => {};
+    const battleHud: BattleHudHandle = mountBattleHud(document.getElementById("battle-hud")!, {
+      onToolbarCmd: (cmd) => handleToolbarCmd(cmd),
+      onCardSelect: (unit, additive) => handleCardSelect(unit, additive),
+    });
+    this.cleanups.push(() => battleHud.destroy());
+
     const positions = () =>
       new Float32Array(wasm.memory.buffer, game.positions_ptr(), game.soldier_count() * 2);
     const facings = () =>
@@ -238,7 +250,9 @@ export class BattleScene implements Scene {
     }
 
     // --- Minimap ---------------------------------------------------------------
-    const minimap = document.getElementById("minimap") as HTMLCanvasElement;
+    // React only DECLARES this <canvas> (inside <BattleHud>); scene.ts owns its
+    // pixels. Same 240×160 element, drawn imperatively below.
+    const minimap = battleHud.minimapCanvas;
     const miniBack = document.createElement("canvas");
     {
       const tw = game.terrain_w();
@@ -442,9 +456,7 @@ export class BattleScene implements Scene {
       }
     }
 
-    // --- Toolbar (React) ----------------------------------------------------------
-    const toolbarRoot = createRoot(document.getElementById("toolbar")!);
-    this.cleanups.push(() => toolbarRoot.unmount());
+    // --- Toolbar (React, inside <BattleHud>) --------------------------------------
     const onToolbarCmd = (cmd: string) => {
       const sel = input.selected;
       switch (cmd) {
@@ -480,6 +492,7 @@ export class BattleScene implements Scene {
       }
       updateToolbar();
     };
+    handleToolbarCmd = onToolbarCmd;
     let lastToolbarSig = "";
     function updateToolbar() {
       const sel = myUnits(input.selected);
@@ -507,7 +520,7 @@ export class BattleScene implements Scene {
       const sig = JSON.stringify(state);
       if (sig === lastToolbarSig) return; // ≤5Hz; skip when nothing changed
       lastToolbarSig = sig;
-      flushSync(() => toolbarRoot.render(createElement(Toolbar, { state, onCmd: onToolbarCmd })));
+      battleHud.setToolbar(state);
     }
 
     // --- Time control ------------------------------------------------------------
@@ -545,6 +558,23 @@ export class BattleScene implements Scene {
     const showGameover = (win: boolean, sub: string) => {
       renderGameover(win, sub);
       gameover.style.display = "flex";
+    };
+    // Game over: one side is dead or wholly routing. The sim keeps RUNNING —
+    // routs are locked sim-side, so the pursuit plays out visibly behind the panel
+    // instead of an abrupt freeze. Battle logic, so it runs from the frame loop,
+    // not the HUD render path.
+    const checkGameover = () => {
+      const v = game.victor();
+      if (v >= 0 && !ended) {
+        ended = true;
+        const win = v === 0;
+        showGameover(
+          win,
+          win
+            ? "The enemy army is broken. Your army holds the field."
+            : "Your army is broken. The enemy holds the field.",
+        );
+      }
     };
     let timeScale = 1;
     let showPaths = false;
@@ -802,7 +832,9 @@ export class BattleScene implements Scene {
     updateToolbar(); // initial React paint now that paused/timeScale/showPaths/fireOn exist
 
     // --- Bottom unit-card strip: one card per player unit (Total War style) -------
-    const cardsRoot = document.getElementById("unitcards")!;
+    // The strip is React (spike verdict: MIGRATE — Δmedian/Δp95 ≈ 0), rendered
+    // inside <BattleHud>; scene.ts drives structure (buildCards) + the 60Hz paint
+    // (battleHud.cards.update) through the handle.
     let cardUnits: number[] = []; // sim unit id per card, in strip order
     const onCardSelect = (unit: number, additive: boolean) => {
       input.selected = additive ? Array.from(new Set([...input.selected, unit])) : [unit];
@@ -812,8 +844,7 @@ export class BattleScene implements Scene {
       camera.y = cy;
       camera.clampView();
     };
-    // The card bar is React (spike verdict: MIGRATE — Δmedian/Δp95 ≈ 0).
-    const unitCards = new UnitCardsReact(cardsRoot, onCardSelect);
+    handleCardSelect = onCardSelect;
     const buildCards = () => {
       const info = unitInfo();
       cardUnits = [];
@@ -829,14 +860,13 @@ export class BattleScene implements Scene {
           name: CLASS_NAMES[info[u * STRIDE + 13]] ?? "?",
         });
       }
-      unitCards.build(inits);
+      battleHud.buildCards(inits);
     };
     buildCards();
-    this.cleanups.push(() => unitCards.destroy());
     const updateCards = () => {
       const info = unitInfo();
       const sel = new Set(input.selected);
-      unitCards.update(
+      battleHud.cards.update(
         cardUnits.map((u) => {
           const o = u * STRIDE;
           const alive = info[o + 15];
@@ -1115,8 +1145,6 @@ export class BattleScene implements Scene {
     // lancer holding anything but its lance has dropped to its sabre for the
     // grind, so the renderer shows the sidearm pseudo-class.
     const classChargeIdx: number[] = CLASS_SPECS.map((c) => c.weapons.findIndex((w) => w.charge));
-    const hudRoot = createRoot(document.getElementById("hud")!);
-    this.cleanups.push(() => hudRoot.unmount());
     const banner = document.getElementById("banner")!;
     const selbox = document.getElementById("selbox")!;
     banner.style.display = "none";
@@ -1398,6 +1426,7 @@ export class BattleScene implements Scene {
         hudTimer = 0;
         tickGroupAttacks();
         updateHud();
+        checkGameover();
         updateToolbar();
         drawMinimap();
       }
@@ -1482,22 +1511,8 @@ export class BattleScene implements Scene {
           detail,
         };
       }
-      flushSync(() => hudRoot.render(createElement(HudPanel, { data: { header, unit } })));
-
-      // Game over: one side is dead or wholly routing. The sim keeps
-      // RUNNING — routs are locked sim-side, so the pursuit plays out
-      // visibly behind the panel instead of an abrupt freeze.
-      const v = game.victor();
-      if (v >= 0 && !ended) {
-        ended = true;
-        const win = v === 0;
-        showGameover(
-          win,
-          win
-            ? "The enemy army is broken. Your army holds the field."
-            : "Your army is broken. The enemy holds the field.",
-        );
-      }
+      const data: HudData = { header, unit };
+      battleHud.setInfo(data);
     }
 
     this.frameFn = frame;

@@ -12,9 +12,29 @@ Synthesized from three independent draft plans (they converged hard — the cut 
 
 **Status:** S0 + S1 + S2 + S3 shipped (green). **S3 verdict: MIGRATE (Branch A).** _Last updated: 2026-07-01._
 
-**Start at Slice 5** (`slices/05-campaign-panels.md`) — campaign panels → React (independent of
-the battle scene, a genuine "React earns its keep" form surface). S0–S3 + **S4a (army builder)**
-are shipped. **RESEQUENCED:** S4b (in-battle modals: pause/result) folds into **S6** — both the
+**Start at S5b** (army + city panels) — or continue the campaign sub-slices in order. **S5a
+(campaign React root + top bar) is shipped.** S0–S3 + S4a done. The campaign React pattern is
+now established: `CampaignScene` owns `this.topBarRoot` (created once in `buildDom`), and
+`renderTopBar()` is the ≤5Hz bridge (formats date/gold, dedups on a key, dispatches to scene
+methods). S5b–e mount their panels the same way (own root per panel region, or one campaign
+root once more panels move).
+
+**S5a decisions recorded:**
+- `web/src/ui/campaign/CampaignTopBar.tsx` renders `.cmp-top` byte-for-byte (same ids/classes;
+  icons via `dangerouslySetInnerHTML` of the same `uiIcon()` SVGs) so the slate `#campaign-ui`
+  CSS still styles it. `.cmp-top` left `campaignDomHtml()`; a `#cmp-topbar-root` mount div took
+  its place. The other panels stay vanilla (S5b–e).
+- `renderTopBar()` replaces the old imperative `#cmp-date`/`#cmp-gold`/`.on` updates in
+  `updateHud()`, `syncFactionBtn()` (deleted), and the `.on` toggles in
+  `toggleDiplomacy`/`toggleClassBuilder`. Handlers call the same scene methods as the old inline
+  listeners. Root persists with the once-built `#campaign-ui` (no exit-unmount, matching the DOM).
+- Preserved the vanilla quirk: speed buttons are labeled `1×/3×/10×` while `SPEEDS = [1,2,4]`
+  (the date suffix uses SPEEDS) — ported verbatim, not "fixed".
+- **Verification:** `tsc`/`build` ✓; `campaign-production` + `campaign-save-load` functional
+  **ALL PASS** (campaign renders/saves/loads through the React top bar); `campaign-visual`
+  8 snaps **pass at 0.15%** (sub-threshold — a migrated-surface rendering delta in the top-bar
+  strip; the bar was visually verified correct: date/gold, speed lights, lit Factions, all 10
+  buttons). Not re-blessed (keeps the vanilla baselines as reference; gate passes tolerantly). **RESEQUENCED:** S4b (in-battle modals: pause/result) folds into **S6** — both the
 modals and the HUD need a battle-scene React root, so building it once is cleaner than twice, and
 the modals are static overlays best migrated alongside the HUD (recon confirmed they're woven
 into the game loop's victory/pause flow). The field manual is already a React-toggled overlay.
@@ -161,7 +181,7 @@ checkpoint:** the (0,0) pass is self-justifying (no pixels moved); proceeded on 
 - [x] S2 — menu proof: `#menu-ui` + duel modal are React (`web/src/ui/menu/Menu.tsx`) into `#ui-root`; army builder stays vanilla; new `menu-quick-battle-modal` baseline (`slices/02-menu-proof.md`) — **shipped**
 - [x] S3 — **HUD perf SPIKE** → **VERDICT: MIGRATE.** React card bar (`UnitCardsReact`) measured Δmedian 0.0ms / Δp95 0.0ms vs vanilla; shared hot-path helpers in `unitCard.ts`; S6 = Branch A (`slices/03-hud-perf-spike.md`) — **shipped**
 - [~] S4 — static wave: **S4a army builder → React shipped** (reducer byte-identical, pixel-equiv); S4b battle modals **resequenced into S6** (shared battle React root) (`slices/04-army-builder-modals.md`)
-- [ ] S5 — static wave: campaign panels — **RESLICED into S5a (React root + top bar) → S5b (army/city) → S5c (diplomacy) → S5d (class builder) → S5e (sieges/modal + lab dedup)**; 954-line gameplay-critical scene, do S5a first (`slices/05-campaign-panels.md`)
+- [~] S5 — campaign panels — RESLICED; **S5a (React root + top bar) shipped** (`CampaignTopBar.tsx`, functional scenes pass, visual 0.15% sub-threshold); remaining: S5b (army/city) → S5c (diplomacy) → S5d (class builder) → S5e (sieges/modal + lab dedup) (`slices/05-campaign-panels.md`)
 - [ ] S6 — HUD outcome branch (migrate-to-React OR keep-vanilla-share-tokens) (`slices/06-hud-outcome.md`)
 - [ ] S7 — cleanup: delete replaced DOM/CSS, dedup the lab, one source proven (`slices/07-cleanup.md`)
 

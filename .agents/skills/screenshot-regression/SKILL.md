@@ -88,13 +88,15 @@ ran, and `class_specs` panicked the moment a real build loaded it.
 
 ## Taking a screenshot (ad-hoc, to look at something)
 
-Run visual harnesses **headless by default**. Do not set `VERIFY_HEADFUL=1`
-or `VERIFY_BROWSER_CHANNEL=chrome` merely to capture screenshots, run scenes,
-run vibes, or show the user something; Playwright screenshots and committed
-PNG/GIF artifacts are the review surface. Use headful Chrome only when the user
-explicitly asks to see a live browser or when you are reproducing a
-headful-only browser bug, and name that reason in your update. If a shot needs
-the hardware GPU, set the GPU adapter env without making the browser visible.
+Browser mode is part of the baseline contract. For exact screenshot regression,
+use the same browser channel, adapter, and headful/headless mode that blessed the
+baseline; do not swap to headless and treat the diffs as product signal until a
+same-scene parity run proves `0 px differ`. On this Mac, WebGPU battle baselines
+match hardware Chrome in headful mode; headless Chrome can capture artifacts but
+does not currently match those baselines, and bundled headless Chromium may not
+boot WebGPU scenes. Use headless for non-regression evidence only, or after an
+intentional re-baseline to headless. The review surface is still the saved
+PNG/GIF artifacts, not the live browser window.
 
 Dev server first (5173 is usually taken by the old `/Users/david/dev/game`
 checkout — don't kill it):

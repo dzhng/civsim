@@ -137,15 +137,20 @@ Dependency: 0 informs 1. 1 unblocks 2 and 4. 2 (shadow relocated) is a dependenc
 **Status:** Slices 0–4 landed (spike, depth param, shared shadow → battle, figure sampler,
 campaign crowd). Next: Slice 5 (zoom LOD). Last updated 2026-07-01.
 
-**BLOCKER for the next agent — rebase pending:** origin/main advanced to a large **water
-feature + headless-baseline** merge (`661247af`) while this branch was built on `208fdbe7`.
-This sandbox **cannot check out or even `git diff` origin/main** — the repo became a partial
-clone and the promisor blobs will not backfill by any fetch method tried (checkout stalls on
-per-blob lazy fetch; `git diff 208fdbe7 origin/main` returns garbage). So the branch could
-NOT be rebased here. It must be rebased onto `origin/main` in a normal-git environment before
-merge. The feature is soldier-rendering and the merge is water — mostly orthogonal — but
-verify the campaign renderer pass list still composes (water may have added a strategic-sea
-pass) and re-bless the campaign scenes headless after rebase.
+**Rebase: DONE.** This branch is rebased onto the latest `main` (`37854aa3`, the water +
+headless merge). The only source conflict was `web/src/campaign/renderer.ts` `sceneryTime`
+(water's `this.shell.setTime(sceneryTime)` for sea shimmer vs this branch's `animTime` — kept
+both; they're the same clock). Binary-baseline conflicts (battle PNGs) took this branch's
+soldier-shadow versions. Post-rebase verification headless: campaign-models army/garrison/labels
+all 0px; campaign-visual contract green (`campaign-soldier-crowd` + `campaign-soldier-shadows`
+coexist with the water passes); battle-banner + terrain-elevation 0px; battle-manual re-blessed
+for upstream field-manual text. Rebasing onto main's headless baselines also resolved the earlier
+UI/text mode-drift (now 0px).
+
+*(Sandbox git note: the pull was hard to land — the repo had degraded to a partial clone from
+earlier `blob:none` workarounds; the fix was `rm .git/objects/pack/*.promisor` + clear the
+partial-clone config + `git gc` + `git clean -fd` the failed-pull leftovers + let the pull run
+to completion. Keep the object store healthy.)*
 
 **Capture mode is now HEADLESS** (blessed local mode, matches origin/main): run from `web/`
 with the dev server up —
@@ -178,8 +183,7 @@ The spike's remaining value is the campaign-crowd eyeball + perf number; it will
 as a renderer-lab route on top of the real depth param next, doubling as the Slice 4
 de-risk. Read the four Key Seams above before continuing.
 
-**Start here (after the rebase above):** Slice 5 —
-[zoom LOD](slices/05-zoom-lod.md). Gate `buildStackCrowd` emission on `cam.scale` in
+**Start here:** Slice 5 — [zoom LOD](slices/05-zoom-lod.md). Gate `buildStackCrowd` emission on `cam.scale` in
 `web/src/campaign/renderer.ts` (mirror battle's `zoom < 1.2` impostor switch): near zoom draws
 the crowd; far zoom draws zero figures and falls back to the banner/`campaignMapMarkers`. Add a
 smoothstep fade so figures don't pop. Perf-bound via `full-game-rendering-performance`; verify

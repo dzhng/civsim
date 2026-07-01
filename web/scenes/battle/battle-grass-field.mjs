@@ -28,6 +28,9 @@ export const meta = {
     "grass/foreground-close-lab-body-alpha-model-candidates",
     "grass/foreground-close-lab-body-alpha-model-crops",
     "grass/foreground-close-lab-body-alpha-model-selected",
+    "grass/foreground-close-lab-field-fiber-body-candidates",
+    "grass/foreground-close-lab-field-fiber-body-crops",
+    "grass/foreground-close-lab-field-fiber-body-selected",
   ],
   describe:
     "Grass-field route proving packed terrain-normal attributes, field-driven meadow material, and bounded blade accents.",
@@ -138,6 +141,42 @@ const BODY_ALPHA_RENDER_MODEL_CANDIDATES = [
     selected: true,
   },
 ];
+const BODY_FIELD_FIBER_CANDIDATES = [
+  {
+    id: "rejected-texture-volume",
+    family: "texture-volume",
+    label: "REJECTED CARD",
+    color: [92, 83, 46, 255],
+    query:
+      "grassPrimitiveFamily=texture-volume&textureVolumeProfile=current&textureVolumeRenderModel=opaque-card",
+    context: true,
+  },
+  {
+    id: "field-fiber-body",
+    family: "field-fiber-body",
+    label: "FIELD FIBER",
+    color: [54, 112, 72, 255],
+    query:
+      "grassPrimitiveFamily=field-fiber-body&blades=8&accentTufts=1554&bladeHeight=0.82&bladeWidth=0.050&bend=0.16&spread=0.085",
+  },
+  {
+    id: "field-fiber-dense",
+    family: "field-fiber-body",
+    label: "DENSE FIBER",
+    color: [58, 126, 116, 255],
+    query:
+      "grassPrimitiveFamily=field-fiber-body&blades=14&accentTufts=1554&bladeHeight=0.72&bladeWidth=0.038&bend=0.14&spread=0.080",
+    selected: true,
+  },
+  {
+    id: "field-fiber-bundle",
+    family: "field-fiber-bundle",
+    label: "BUNDLED FIBER",
+    color: [112, 92, 152, 255],
+    query:
+      "grassPrimitiveFamily=field-fiber-bundle&blades=10&accentTufts=1554&bladeHeight=0.76&bladeWidth=0.044&bend=0.10&spread=0.070",
+  },
+];
 const SCALE_REPAIR_CANDIDATES = [
   { profile: "b4b1-current", color: [88, 88, 88, 255] },
   { profile: "scale-repair-low", color: [60, 116, 62, 255], selected: true },
@@ -172,6 +211,7 @@ export async function run(ctx) {
   await verifyForegroundCloseBodyArchitectureMatrix(ctx);
   await verifyForegroundCloseBodyContinuityRepair(ctx);
   await verifyForegroundCloseBodyAlphaRenderModel(ctx);
+  await verifyForegroundCloseFieldFiberBodyArchitecture(ctx);
 }
 
 async function verifyPackedTilt(ctx) {
@@ -987,6 +1027,109 @@ async function verifyForegroundCloseBodyAlphaRenderModel(ctx) {
   });
 }
 
+async function verifyForegroundCloseFieldFiberBodyArchitecture(ctx) {
+  const captures = [];
+  for (const candidate of BODY_FIELD_FIBER_CANDIDATES) {
+    const page = await ctx.newPage({
+      viewport: { width: 1280, height: 800 },
+      errorPrefix: `battle-grass-field-close-field-fiber-${candidate.id}`,
+    });
+    await page.goto(
+      `${ctx.target}/renderer/battle-grass-field?mode=foreground-close-lab&labCameraProfile=b4b1a0-test-env&${candidate.query}`,
+    );
+    await page.waitForFunction(
+      () =>
+        window.__rendererLabReady === true &&
+        window.__rendererLabStats?.stats?.mode === "foreground-close-lab",
+      { timeout: 18000 },
+    );
+    await page.waitForTimeout(160);
+    const stats = await page.evaluate(() => window.__rendererLabStats?.stats ?? null);
+    if (stats?.route !== "battle-grass-field" || stats?.mode !== "foreground-close-lab") {
+      await page.close();
+      throw new Error(
+        `foreground close field-fiber body did not publish valid stats for ${candidate.id}: ${JSON.stringify(stats)}`,
+      );
+    }
+    const shot = await page.locator("#renderer-canvas").screenshot();
+    captures.push({ ...candidate, stats, png: PNG.sync.read(shot) });
+    await page.close();
+  }
+
+  const context = captures.find((capture) => capture.context);
+  const selected =
+    captures.find((capture) => capture.selected) ??
+    captures.find((capture) => !capture.context) ??
+    captures[0];
+  const bodyCaptures = captures.filter((capture) => !capture.context);
+  const windows = context.stats.lab?.reviewWindows;
+  const targetCloseHero = PNG.sync.read(await readFile(TARGET_CLOSE_HERO));
+  const baseCameraKey = JSON.stringify(context.stats.camera);
+  const baseFocusKey = JSON.stringify(context.stats.focus);
+  const baseFrozenKey = JSON.stringify(context.stats.lab?.frozenInputs);
+  const baseField = context.stats.field;
+  const baseBodySourceRecords = context.stats.grass?.accentSourceRecords;
+  const fieldFiberStats = captures.map((capture) => ({
+    id: capture.id,
+    family: capture.family,
+    grass: capture.stats.grass,
+    ground: capture.stats.ground?.meadow,
+    lab: capture.stats.lab,
+  }));
+
+  ctx.check(
+    "foreground close field-fiber body freezes the accepted B4B1A0 lab",
+    captures.every(
+      (capture) =>
+        capture.stats.lab?.contract === "03B4C5B4B1A0" &&
+        capture.stats.lab?.cameraProfile === "b4b1a0-test-env" &&
+        capture.stats.lab?.cropPurpose === "test-environment-comparability-not-body-acceptance" &&
+        JSON.stringify(capture.stats.camera) === baseCameraKey &&
+        JSON.stringify(capture.stats.focus) === baseFocusKey &&
+        JSON.stringify(capture.stats.lab?.frozenInputs) === baseFrozenKey &&
+        capture.stats.field?.seed === baseField?.seed &&
+        capture.stats.field?.acceptedRecords === baseField?.acceptedRecords &&
+        capture.stats.field?.candidateCells === baseField?.candidateCells &&
+        capture.stats.ground?.meadow?.source === "field" &&
+        capture.stats.ground?.meadow?.rootMassEnabled === true,
+    ),
+    JSON.stringify(fieldFiberStats),
+  );
+  ctx.check(
+    "foreground close field-fiber body compares non-card field-owned fibers",
+    bodyCaptures.length ===
+      BODY_FIELD_FIBER_CANDIDATES.filter((candidate) => !candidate.context).length &&
+      bodyCaptures.every(
+        (capture) =>
+          capture.stats.grass?.grassPrimitiveFamily === capture.family &&
+          capture.stats.grass?.grassPrimitiveTextureBytes === 0 &&
+          capture.stats.grass?.accentAggregation === "record" &&
+          capture.stats.grass?.accentStyle === capture.family &&
+          capture.stats.grass?.accentSourceRecords === baseBodySourceRecords &&
+          capture.stats.grass?.grassPrimitiveRecords === baseBodySourceRecords,
+      ),
+    JSON.stringify(fieldFiberStats),
+  );
+  ctx.check(
+    "foreground close field-fiber body leaves rejected texture-volume as context only",
+    context?.stats.grass?.grassPrimitiveFamily === "texture-volume" &&
+      context?.stats.grass?.textureVolumeRenderModel === "opaque-card" &&
+      context?.stats.grass?.grassPrimitiveTextureBytes > 0 &&
+      bodyCaptures.every((capture) => capture.stats.grass?.grassPrimitiveTextureBytes === 0),
+    JSON.stringify(fieldFiberStats),
+  );
+
+  await ctx.snap(null, "grass/foreground-close-lab-field-fiber-body-candidates", {
+    shot: PNG.sync.write(composeFieldFiberBodyCandidateSheet(targetCloseHero, captures)),
+  });
+  await ctx.snap(null, "grass/foreground-close-lab-field-fiber-body-crops", {
+    shot: PNG.sync.write(composeFieldFiberBodyCropSheet(targetCloseHero, captures, windows)),
+  });
+  await ctx.snap(null, "grass/foreground-close-lab-field-fiber-body-selected", {
+    shot: PNG.sync.write(drawBodyArchitectureFull(selected.png, windows)),
+  });
+}
+
 function hasPackedTelemetry(stats) {
   const grass = stats?.grass;
   return (
@@ -1383,6 +1526,56 @@ function composeBodyAlphaRenderModelCropSheet(targetCloseHero, captures, windows
   return composeGrid([target, ...closeCrops, ...tightCrops], 4);
 }
 
+function composeFieldFiberBodyCandidateSheet(targetCloseHero, captures) {
+  const target = captioned(
+    bordered(withScaleGuides(resizeToWidth(targetCloseHero, 360)), [190, 42, 28, 255]),
+    "TARGET CLOSE",
+  );
+  const crops = captures.map((capture) =>
+    captioned(
+      bordered(
+        withScaleGuides(
+          resizeToWidth(cropRatio(capture.png, capture.stats.lab.reviewWindows.closeHero), 360),
+          { proxies: true },
+        ),
+        capture.color,
+      ),
+      fieldFiberBodyLabel(capture),
+    ),
+  );
+  return composeGrid([target, ...crops], 4);
+}
+
+function composeFieldFiberBodyCropSheet(targetCloseHero, captures, windows) {
+  const target = captioned(
+    bordered(withScaleGuides(resizeToWidth(targetCloseHero, 360)), [190, 42, 28, 255]),
+    "TARGET CLOSE",
+  );
+  const closeCrops = captures.map((capture) =>
+    captioned(
+      bordered(
+        withScaleGuides(resizeToWidth(cropRatio(capture.png, windows.closeHero), 360), {
+          proxies: true,
+        }),
+        capture.color,
+      ),
+      fieldFiberBodyLabel(capture),
+    ),
+  );
+  const tightCrops = captures.map((capture) =>
+    captioned(
+      bordered(
+        withScaleGuides(resizeToWidth(cropRatio(capture.png, windows.closeTight2x), 360), {
+          proxies: true,
+        }),
+        capture.color,
+      ),
+      `2X ${fieldFiberBodyShortLabel(capture)}`,
+    ),
+  );
+  return composeGrid([target, ...closeCrops, ...tightCrops], 4);
+}
+
 function bodyArchitectureLabel(capture) {
   return `${bodyArchitectureShortLabel(capture.family)} ${capture.stats.grass.submittedTriangles}T`;
 }
@@ -1421,6 +1614,15 @@ function bodyAlphaRenderModelShortLabel(renderModel) {
   if (renderModel === "dither-cutout") return "DITHER";
   if (renderModel === "sparse-dither") return "SPARSE";
   return String(renderModel).toUpperCase();
+}
+
+function fieldFiberBodyLabel(capture) {
+  return `${fieldFiberBodyShortLabel(capture)} ${capture.stats.grass.submittedTriangles}T`;
+}
+
+function fieldFiberBodyShortLabel(capture) {
+  if (capture.label) return capture.label;
+  return capture.id.toUpperCase().replaceAll("-", " ");
 }
 
 function closeLabProfileLabel(profile) {

@@ -1,5 +1,33 @@
 # Slice 03B4C5B4B1A1T - field-fiber body architecture
 
+## Result - rejected on 2026-07-01
+
+This slice landed the non-card `field-fiber-body` and `field-fiber-bundle`
+primitive families plus the `foreground-close-lab-field-fiber-body-*` evidence
+snapshots, but the visual result is rejected.
+
+Evidence lives under
+`assets/03b4-evidence/03b4c5-close-foreground-lab/field-fiber-body-architecture/`.
+The candidate sheet, crops, raw captures, stats, target comparisons, rejected-card
+comparisons, and decision note show the same failure:
+
+- `field-fiber-body`, `field-fiber-dense`, and `field-fiber-bundle` remove the
+  worst `texture-volume` card/chunk artifacts;
+- they do so by becoming almost empty: sparse upright pins over smooth green
+  ground, with repeated spacing that reads like debug markers rather than grass;
+- against the target close crop, the fiber candidates retain only
+  `0.13320x`-`0.15347x` of target edge energy;
+- against the rejected `texture-volume` crop, they retain only
+  `0.09140x`-`0.10662x` of the card crop's edge energy;
+- the selected `field-fiber-dense` path submits `193392` triangles from `1343`
+  source records with zero texture bytes, so this is not a simple
+  "add a few more per-record fibers" problem.
+
+The next slice is
+`03b4c5b4b1a1u-field-fiber-source-topology.md`. It must change the close-body
+source topology inside the fixed B4B1A0 lab: field-cell/subcell-owned dense
+micro-sources, not another primitive shape layered one-per-existing-record.
+
 ## Contract
 
 Find a close grass body architecture that is **not** the rejected
@@ -58,6 +86,6 @@ visible, or requires changing unrelated visual variables.
 
 ## Next Slice
 
-If accepted, return to `03b4c5b4b1a2-close-body-perf-envelope.md` using the
-accepted non-card body architecture. If rejected, reslice again at the body
-representation seam before perf, coverage, palette, LOD, or camera-relative work.
+Rejected. Continue with
+`03b4c5b4b1a1u-field-fiber-source-topology.md` before perf, coverage, palette,
+LOD, or camera-relative work.

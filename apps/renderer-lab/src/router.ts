@@ -4192,6 +4192,8 @@ function grassAccentStyleParam(params: URLSearchParams, key: string, fallback: G
     || raw === 'soft-root-fiber'
     || raw === 'field-fiber-shell'
     || raw === 'field-fiber-shell-visibility'
+    || raw === 'field-fiber-body'
+    || raw === 'field-fiber-bundle'
     || raw === 'alpha-impostor'
     || raw === 'billboard-cluster'
     || raw === 'volume-card'
@@ -4235,6 +4237,8 @@ function grassPrimitiveFamilyParam(params: URLSearchParams, key: string, fallbac
     || raw === 'soft-root-mass'
     || raw === 'soft-root-fiber'
     || raw === 'field-fiber-shell'
+    || raw === 'field-fiber-body'
+    || raw === 'field-fiber-bundle'
     || raw === 'alpha-impostor'
     || raw === 'billboard-cluster'
     || raw === 'volume-card'
@@ -4249,6 +4253,8 @@ function grassPrimitiveFamilyParam(params: URLSearchParams, key: string, fallbac
 
 function accentStyleForPrimitiveFamily(family: GrassPrimitiveFamily, fiberShellVariant: GrassFiberShellVariant): GrassAccentStyle {
   if (family === 'field-fiber-shell') return fiberShellVariant === 'visibility' ? 'field-fiber-shell-visibility' : 'field-fiber-shell';
+  if (family === 'field-fiber-body') return 'field-fiber-body';
+  if (family === 'field-fiber-bundle') return 'field-fiber-bundle';
   if (family === 'alpha-impostor') return 'alpha-impostor';
   if (family === 'billboard-cluster') return 'billboard-cluster';
   if (family === 'volume-card' || family === 'texture-volume' || family === 'texture-carrier' || family === 'texture-micro-carrier') return 'volume-card';
@@ -4262,6 +4268,8 @@ function accentStyleForPrimitiveFamily(family: GrassPrimitiveFamily, fiberShellV
 
 function grassPrimitiveFamilyForAccentStyle(style: GrassAccentStyle): GrassPrimitiveFamily {
   if (style === 'field-fiber-shell' || style === 'field-fiber-shell-visibility') return 'field-fiber-shell';
+  if (style === 'field-fiber-body') return 'field-fiber-body';
+  if (style === 'field-fiber-bundle') return 'field-fiber-bundle';
   if (style === 'alpha-impostor') return 'alpha-impostor';
   if (style === 'billboard-cluster') return 'billboard-cluster';
   if (style === 'volume-card') return 'volume-card';
@@ -4290,7 +4298,7 @@ function isClumpGrassAccentStyle(style: GrassAccentStyle): boolean {
 }
 
 function isWorkbenchGrassPrimitiveFamily(family: GrassPrimitiveFamily): boolean {
-  return family === 'alpha-impostor' || family === 'billboard-cluster' || family === 'volume-card' || family === 'texture-volume' || family === 'texture-carrier' || family === 'texture-micro-carrier';
+  return family === 'field-fiber-body' || family === 'field-fiber-bundle' || family === 'alpha-impostor' || family === 'billboard-cluster' || family === 'volume-card' || family === 'texture-volume' || family === 'texture-carrier' || family === 'texture-micro-carrier';
 }
 
 function isFieldFiberShellStyle(style: GrassAccentStyle): boolean {

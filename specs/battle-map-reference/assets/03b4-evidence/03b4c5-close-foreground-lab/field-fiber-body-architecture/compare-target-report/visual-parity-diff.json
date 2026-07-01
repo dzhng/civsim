@@ -1,0 +1,173 @@
+{
+  "kind": "screenshot-parity-diff",
+  "generatedAt": "2026-07-01T12:04:47.159Z",
+  "note": "Lower parityDistance means the candidate is closer to the reference for this fixed pair. This is a distance metric, not an acceptance gate.",
+  "pairCount": 4,
+  "worstPair": "rejected-texture-volume",
+  "results": [
+    {
+      "id": "rejected-texture-volume",
+      "current": "specs/battle-map-reference/assets/03b4-evidence/03b4c5-close-foreground-lab/field-fiber-body-architecture/compare-target-reference/rejected-texture-volume.png",
+      "candidate": "specs/battle-map-reference/assets/03b4-evidence/03b4c5-close-foreground-lab/field-fiber-body-architecture/compare-target-candidates/rejected-texture-volume.png",
+      "dimensions": {
+        "width": 760,
+        "height": 180
+      },
+      "parityDistance": 0.28935,
+      "grayscale": {
+        "mae": 20.56664,
+        "rmse": 25.42743,
+        "diffRatio16": 0.55507,
+        "diffRatio32": 0.18294,
+        "diffRatio64": 0.01647,
+        "pixelmatchRatio": 0.41195
+      },
+      "contentProxies": {
+        "blackRatioCurrent": 0,
+        "blackRatioCandidate": 0,
+        "terrainLikeRatioCurrent": 1,
+        "terrainLikeRatioCandidate": 0.97103,
+        "avgLuminanceCurrent": 133.09698,
+        "avgLuminanceCandidate": 124.85576,
+        "avgLuminanceDelta": -8.24122,
+        "edgeEnergyCurrent": 0.04817,
+        "edgeEnergyCandidate": 0.07006,
+        "edgeEnergyRatio": 1.45452,
+        "edgeDiffRatio32": 0.16501
+      },
+      "artifacts": {
+        "sideBySide": "compare-target-report/rejected-texture-volume-side-by-side.png",
+        "currentGray": "compare-target-report/rejected-texture-volume-current-gray.png",
+        "candidateGray": "compare-target-report/rejected-texture-volume-candidate-gray.png",
+        "absDiff": "compare-target-report/rejected-texture-volume-absdiff.png",
+        "pixelmatch": "compare-target-report/rejected-texture-volume-pixelmatch.png",
+        "currentEdges": "compare-target-report/rejected-texture-volume-current-edges.png",
+        "candidateEdges": "compare-target-report/rejected-texture-volume-candidate-edges.png",
+        "edgeDiff": "compare-target-report/rejected-texture-volume-edge-diff.png"
+      }
+    },
+    {
+      "id": "field-fiber-body",
+      "current": "specs/battle-map-reference/assets/03b4-evidence/03b4c5-close-foreground-lab/field-fiber-body-architecture/compare-target-reference/field-fiber-body.png",
+      "candidate": "specs/battle-map-reference/assets/03b4-evidence/03b4c5-close-foreground-lab/field-fiber-body-architecture/compare-target-candidates/field-fiber-body.png",
+      "dimensions": {
+        "width": 760,
+        "height": 180
+      },
+      "parityDistance": 0.25152,
+      "grayscale": {
+        "mae": 14.80586,
+        "rmse": 18.18682,
+        "diffRatio16": 0.3977,
+        "diffRatio32": 0.0677,
+        "diffRatio64": 0.00003,
+        "pixelmatchRatio": 0.25311
+      },
+      "contentProxies": {
+        "blackRatioCurrent": 0,
+        "blackRatioCandidate": 0,
+        "terrainLikeRatioCurrent": 1,
+        "terrainLikeRatioCandidate": 1,
+        "avgLuminanceCurrent": 133.09698,
+        "avgLuminanceCandidate": 131.68188,
+        "avgLuminanceDelta": -1.4151,
+        "edgeEnergyCurrent": 0.04817,
+        "edgeEnergyCandidate": 0.00739,
+        "edgeEnergyRatio": 0.15347,
+        "edgeDiffRatio32": 0.0582
+      },
+      "artifacts": {
+        "sideBySide": "compare-target-report/field-fiber-body-side-by-side.png",
+        "currentGray": "compare-target-report/field-fiber-body-current-gray.png",
+        "candidateGray": "compare-target-report/field-fiber-body-candidate-gray.png",
+        "absDiff": "compare-target-report/field-fiber-body-absdiff.png",
+        "pixelmatch": "compare-target-report/field-fiber-body-pixelmatch.png",
+        "currentEdges": "compare-target-report/field-fiber-body-current-edges.png",
+        "candidateEdges": "compare-target-report/field-fiber-body-candidate-edges.png",
+        "edgeDiff": "compare-target-report/field-fiber-body-edge-diff.png"
+      }
+    },
+    {
+      "id": "field-fiber-dense",
+      "current": "specs/battle-map-reference/assets/03b4-evidence/03b4c5-close-foreground-lab/field-fiber-body-architecture/compare-target-reference/field-fiber-dense.png",
+      "candidate": "specs/battle-map-reference/assets/03b4-evidence/03b4c5-close-foreground-lab/field-fiber-body-architecture/compare-target-candidates/field-fiber-dense.png",
+      "dimensions": {
+        "width": 760,
+        "height": 180
+      },
+      "parityDistance": 0.251,
+      "grayscale": {
+        "mae": 14.77032,
+        "rmse": 18.14333,
+        "diffRatio16": 0.39704,
+        "diffRatio32": 0.0671,
+        "diffRatio64": 0.00001,
+        "pixelmatchRatio": 0.25281
+      },
+      "contentProxies": {
+        "blackRatioCurrent": 0,
+        "blackRatioCandidate": 0,
+        "terrainLikeRatioCurrent": 1,
+        "terrainLikeRatioCandidate": 1,
+        "avgLuminanceCurrent": 133.09698,
+        "avgLuminanceCandidate": 131.64185,
+        "avgLuminanceDelta": -1.45513,
+        "edgeEnergyCurrent": 0.04817,
+        "edgeEnergyCandidate": 0.007,
+        "edgeEnergyRatio": 0.14531,
+        "edgeDiffRatio32": 0.05723
+      },
+      "artifacts": {
+        "sideBySide": "compare-target-report/field-fiber-dense-side-by-side.png",
+        "currentGray": "compare-target-report/field-fiber-dense-current-gray.png",
+        "candidateGray": "compare-target-report/field-fiber-dense-candidate-gray.png",
+        "absDiff": "compare-target-report/field-fiber-dense-absdiff.png",
+        "pixelmatch": "compare-target-report/field-fiber-dense-pixelmatch.png",
+        "currentEdges": "compare-target-report/field-fiber-dense-current-edges.png",
+        "candidateEdges": "compare-target-report/field-fiber-dense-candidate-edges.png",
+        "edgeDiff": "compare-target-report/field-fiber-dense-edge-diff.png"
+      }
+    },
+    {
+      "id": "field-fiber-bundle",
+      "current": "specs/battle-map-reference/assets/03b4-evidence/03b4c5-close-foreground-lab/field-fiber-body-architecture/compare-target-reference/field-fiber-bundle.png",
+      "candidate": "specs/battle-map-reference/assets/03b4-evidence/03b4c5-close-foreground-lab/field-fiber-body-architecture/compare-target-candidates/field-fiber-bundle.png",
+      "dimensions": {
+        "width": 760,
+        "height": 180
+      },
+      "parityDistance": 0.25056,
+      "grayscale": {
+        "mae": 14.75065,
+        "rmse": 18.11091,
+        "diffRatio16": 0.39645,
+        "diffRatio32": 0.06683,
+        "diffRatio64": 0,
+        "pixelmatchRatio": 0.25246
+      },
+      "contentProxies": {
+        "blackRatioCurrent": 0,
+        "blackRatioCandidate": 0,
+        "terrainLikeRatioCurrent": 1,
+        "terrainLikeRatioCandidate": 1,
+        "avgLuminanceCurrent": 133.09698,
+        "avgLuminanceCandidate": 131.61713,
+        "avgLuminanceDelta": -1.47985,
+        "edgeEnergyCurrent": 0.04817,
+        "edgeEnergyCandidate": 0.00642,
+        "edgeEnergyRatio": 0.1332,
+        "edgeDiffRatio32": 0.0562
+      },
+      "artifacts": {
+        "sideBySide": "compare-target-report/field-fiber-bundle-side-by-side.png",
+        "currentGray": "compare-target-report/field-fiber-bundle-current-gray.png",
+        "candidateGray": "compare-target-report/field-fiber-bundle-candidate-gray.png",
+        "absDiff": "compare-target-report/field-fiber-bundle-absdiff.png",
+        "pixelmatch": "compare-target-report/field-fiber-bundle-pixelmatch.png",
+        "currentEdges": "compare-target-report/field-fiber-bundle-current-edges.png",
+        "candidateEdges": "compare-target-report/field-fiber-bundle-candidate-edges.png",
+        "edgeDiff": "compare-target-report/field-fiber-bundle-edge-diff.png"
+      }
+    }
+  ]
+}

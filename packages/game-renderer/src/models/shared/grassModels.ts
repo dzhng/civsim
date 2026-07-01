@@ -8,6 +8,8 @@ export type GrassAccentStyle =
   | 'soft-root-fiber'
   | 'field-fiber-shell'
   | 'field-fiber-shell-visibility'
+  | 'field-fiber-body'
+  | 'field-fiber-bundle'
   | 'alpha-impostor'
   | 'billboard-cluster'
   | 'volume-card'
@@ -86,6 +88,8 @@ export function buildGrassTuftMesh(options: GrassTuftOptions = {}): MeshData {
   if (accentStyle === 'soft-root-fiber') return buildSoftRootFiberAccentMesh(seed, blades, height, width, bend, spread, palette);
   if (accentStyle === 'field-fiber-shell') return buildFieldFiberShellAccentMesh(seed, blades, height, width, bend, spread, palette, false);
   if (accentStyle === 'field-fiber-shell-visibility') return buildFieldFiberShellAccentMesh(seed, blades, height, width, bend, spread, palette, true);
+  if (accentStyle === 'field-fiber-body') return buildFieldFiberBodyMesh(seed, blades, height, width, bend, spread, palette, false);
+  if (accentStyle === 'field-fiber-bundle') return buildFieldFiberBodyMesh(seed, blades, height, width, bend, spread, palette, true);
   if (accentStyle === 'alpha-impostor') return buildAlphaImpostorPatchMesh(seed, blades, height, width, bend, spread, palette);
   if (accentStyle === 'billboard-cluster') return buildBillboardClusterMesh(seed, blades, height, width, bend, spread, palette);
   if (accentStyle === 'volume-card') return buildNearGrassVolumeCardMesh(seed, blades, height, width, bend, spread, palette);
@@ -178,6 +182,53 @@ function buildFieldFiberShellAccentMesh(
   const builder = new MeshBuilder();
   addFieldFiberShellPanels(builder, seed + 0x51e11, fieldFiberShellRibbonCount(blades), height, width, bend, spread, palette, visibility);
   return builder.finish('grass field-fiber-shell accent mesh');
+}
+
+function buildFieldFiberBodyMesh(
+  seed: number,
+  blades: number,
+  height: number,
+  width: number,
+  bend: number,
+  spread: number,
+  palette: { root: Rgb; mid: Rgb; tip: Rgb; dry: Rgb },
+  bundled: boolean,
+): MeshData {
+  const builder = new MeshBuilder();
+  const fibers = bundled
+    ? Math.max(10, Math.min(14, blades + 4))
+    : Math.max(12, Math.min(18, blades * 2));
+  const lowerTone = scaleColor(mixColor(palette.root, palette.mid, 0.18), bundled ? 0.68 : 0.72);
+  const upperTone = scaleColor(mixColor(palette.mid, palette.tip, 0.28), bundled ? 0.78 : 0.82);
+  for (let i = 0; i < fibers; i++) {
+    const ringT = fibers <= 1 ? 0 : i / (fibers - 1);
+    const rootYaw = (i / fibers) * Math.PI * 2 + jitter(seed + i * 37, 1, bundled ? 0.30 : 0.44);
+    const rootRadius = spread * Math.sqrt(hash2(seed + i, 2)) * (bundled ? 0.34 : 0.62);
+    const root: [number, number, number] = [
+      Math.cos(rootYaw) * rootRadius,
+      Math.sin(rootYaw) * rootRadius,
+      height * (0.008 + hash2(seed + i, 3) * 0.016),
+    ];
+    const yaw = rootYaw + Math.PI * 0.5 + jitter(seed + i * 41, 4, bundled ? 0.34 : 0.62);
+    const heightJitter = 0.58 + hash2(seed + i, 5) * (bundled ? 0.28 : 0.40);
+    const fiberHeight = height * heightJitter * (bundled ? 0.82 : 0.92);
+    const fiberWidth = width * (bundled
+      ? 1.05 + hash2(seed + i, 6) * 0.50
+      : 0.58 + hash2(seed + i, 6) * 0.44);
+    const fiberBend = bend * fiberHeight * (bundled ? 0.08 + ringT * 0.10 : 0.12 + hash2(seed + i, 7) * 0.24);
+    const shade = 0.84 + hash2(seed + i, 8) * 0.20;
+    addTaperedPanel(builder, {
+      root,
+      yaw,
+      height: fiberHeight,
+      width: fiberWidth,
+      bend: fiberBend,
+      lowerColor: scaleColor(lowerTone, shade),
+      upperColor: scaleColor(upperTone, shade),
+      tipScale: bundled ? 0.12 : 0.060,
+    });
+  }
+  return builder.finish(bundled ? 'grass field-fiber-bundle body mesh' : 'grass field-fiber body mesh');
 }
 
 function buildAlphaImpostorPatchMesh(

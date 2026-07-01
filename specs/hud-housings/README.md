@@ -23,11 +23,45 @@ contract); it does not change the card-grid math or the sim.
 
 ## Next Agent Prompt
 
-**Status:** Slices 01–04 shipped. Last updated 2026-07-01.
+**Status:** Slices 01–05 shipped (+ a card-size tweak). Last updated 2026-07-01.
 
-**Start here:** Slice `05-merge-toolbar-center`. Read it, then the firewalls
+**Start here:** Slice `06-right-minimap-card`. Read it, then the firewalls
 section below, then build. Each slice leaves the battle playable and
 screenshot-able; do not start a later slice until the current one's gate passes.
+
+**IMPORTANT — dev server:** the scene runner does NOT start its own server; it
+expects a Vite dev server at `http://localhost:5173` (`bun run dev`, strictPort).
+One must be running before any `node scene.mjs …`. Don't `pkill vite` mid-session
+without restarting it.
+
+**What slice 05 landed:** the toolbar is merged into the center card housing. A new
+`#battle-center` element (`.hud-chassis .hud-chassis--tray`, the ornate riveted
+variant now defined in `bronze.css`) is the single bottom-center housing; it holds
+the bare card grid (`#unitcards`) on top and the bare control strip (`#toolbar`)
+below. `applyCardGrid` now writes its vars (`--cols/--card-w/--card-h/--card-center-x`)
+onto `#battle-center` (passed as the grid root), which inherit down to the grid.
+`BattleHud` gained a `CenterCard` structural wrapper composing `CardsHost` +
+`ToolbarHost` — both **separate stateful islands**, so the ≤5Hz toolbar refresh
+never reconciles the 60Hz card grid (firewall intact; a headful probe confirmed the
+imperative path is unchanged).
+
+**Lab-safety mechanism (important for future HUD CSS):** production and the
+`/renderer` lab share the SAME web SPA and thus the same global `#unitcards`/
+`#toolbar` id rules (id-specificity beats the lab's own class). So the housing strip
+was done with **descendant-scoped** overrides — `#battle-center #unitcards { … }`
+and `#battle-center #toolbar { … }` only touch the production instances (which live
+inside `#battle-center`); the lab's `#unitcards` (not inside `#battle-center`) is
+untouched. Verified: `card-bar` lab stayed **byte-identical (0 px)**.
+
+**Card size:** unit cards are 20% smaller (`CARD_W` 72→58, David) — a separate
+commit; `card-bar.mjs` expectations updated (20→1×20, 30→2×15, 40→2×20).
+
+**Note on the unprimed critique:** it flagged the control strip as "right-shifted
+with a dead left pocket." A headful layout probe (`#battle-center`/`#unitcards`/
+`#toolbar` all center at x703) proved it is actually **centered** — the toolbar is
+just narrower than the card row, leaving symmetric gaps. No fix needed; the
+downscaled-image read was a false positive. (Widening/spreading the control strip to
+fill the housing is an optional slice-09 taste refinement, not a bug.)
 
 **What slice 04 landed:** the debug header (soldiers/tick/PAUSED) is gone from the
 info card. When no unit is selected/hovered, the bottom-left card shows an ARMY
@@ -152,7 +186,7 @@ carries the four id rules plus the new `#battle-hud` mount container.
 - [x] 03 — Left info card → bottom-left corner; asymmetric card-bar budget
       (pulled from slice 07 — required to not break selection) — shipped
 - [x] 04 — Army-roster idle state; drop debug header; FPS → bare top-left — shipped
-- [ ] 05 — Merge toolbar into the center card housing
+- [x] 05 — Merge toolbar into the center card housing (one bronze tray) — shipped
 - [ ] 06 — Minimap → bottom-right corner housing
 - [ ] 07 — Asymmetric reserve + flush-corner placement (load-bearing math)
 - [ ] 08 — Bronze tooltip chips on icon-only buttons

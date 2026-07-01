@@ -231,18 +231,13 @@
         pointer-events: none;
         z-index: 3;
       }
+      /* The order/time control strip — a bare centered button row inside the
+         #battle-center housing (its bronze tray lives on #battle-center). */
       #toolbar {
-        position: fixed;
-        bottom: 10px;
-        left: 50%;
-        transform: translateX(-50%);
         display: flex;
         gap: 5px;
         align-items: center;
-        z-index: 5;
-        padding: 6px 8px;
-        /* Housing material comes from .hud-chassis (bronze.css). */
-        border-width: 3px;
+        justify-content: center;
       }
       /* Bottom unit-card strip: one card per player unit (Total War style).
        Fixed-size cards in a no-scroll grid — JS writes --cols/--card-w/--card-h
@@ -316,6 +311,44 @@
           inset 0 -3px 8px rgba(0, 0, 0, 0.6),
           0 0 0 1px rgba(182, 142, 80, 0.65),
           0 9px 24px rgba(0, 0, 0, 0.68);
+      }
+      /* The merged bottom-center housing (cards + control strip in one bronze
+         tray, .hud-chassis--tray). applyCardGrid writes --card-center-x here and
+         --cols/--card-w/--card-h inherit down to the #unitcards grid inside. The
+         two scoped rules below strip the standalone housing/position from the
+         PRODUCTION #unitcards / #toolbar (they live inside #battle-center now);
+         the renderer-lab's #unitcards is not inside #battle-center, so its global
+         rule above is untouched. */
+      #battle-center {
+        position: fixed;
+        bottom: 12px;
+        left: var(--card-center-x, 50%);
+        transform: translateX(-50%);
+        z-index: 5;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        width: max-content;
+        max-width: calc(100vw - 24px);
+        padding: 10px 11px;
+      }
+      #battle-center #unitcards {
+        position: static;
+        left: auto;
+        transform: none;
+        z-index: auto;
+        max-width: none;
+        padding: 0;
+        background: none;
+        border: 0;
+        box-shadow: none;
+      }
+      /* Full width of the housing so the button group centers under the cards
+         (justify-content:center on #toolbar) instead of floating to one side. */
+      #battle-center #toolbar {
+        width: 100%;
+        padding-top: 2px;
       }
       @media (max-width: 760px) {
         #manual {

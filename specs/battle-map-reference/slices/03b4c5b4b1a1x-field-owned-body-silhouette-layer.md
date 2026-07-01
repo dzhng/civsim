@@ -72,7 +72,19 @@ count before body appears.
 
 ## Next Slice
 
-If accepted, continue to
-`03b4c5b4b1a2-close-body-perf-envelope.md`. If rejected, reslice close-body
-ownership again before perf, coverage, palette, LOD, camera-relative generation,
-or final compose.
+Rejected on 2026-07-01. Evidence lives under
+`assets/03b4-evidence/03b4c5-close-foreground-lab/field-owned-body-silhouette-layer/`.
+
+The field-owned domain and telemetry worked: the selected candidate published a
+`38x34` domain grid, `1292` domain cells, `62016` submitted triangles, zero
+material bytes, and `sourceAttached=false`. The visual failed anyway. The close
+crop still reads as flat paint plus a few oversized shell/card strokes, with
+target `edgeEnergyRatio=0.16780`; the neutral critique called out missing dense
+body, flat empty ground, pasted blade stamps, scale mismatch, and hard polygonal
+edges.
+
+Do not continue to perf. Continue to
+`03b4c5b4b1a1y-field-owned-micro-strand-silhouette.md`, which keeps the same
+field-owned domain seam but tests pixel-scale micro-strand silhouette instead of
+large shell strips. Perf, coverage, palette, LOD, camera-relative generation, and
+final compose remain blocked until a close-body representation is accepted.

@@ -132,8 +132,14 @@ tested a field-owned material domain under
 `assets/03b4-evidence/03b4c5-close-foreground-lab/field-owned-strand-material-domain/`;
 that pass is also **rejected**. It proves domain ownership and zero-geometry
 telemetry are useful, but the visual collapses into flat painted terrain with
-marker posts exposed and only `0.04921x`-`0.05199x` target edge energy. Continue
-at `03b4c5b4b1a1x-field-owned-body-silhouette-layer.md`. B4B1A is now a
+marker posts exposed and only `0.04921x`-`0.05199x` target edge energy. B4B1A1X
+then tested field-owned shell geometry under
+`assets/03b4-evidence/03b4c5-close-foreground-lab/field-owned-body-silhouette-layer/`;
+that pass is also **rejected**. It proves the field-owned domain/telemetry seam
+can own geometry (`1292`-`1550` domain cells, `~62k` submitted triangles,
+`sourceAttached=false`), but the visual remains flat paint plus a few oversized
+shell/card strokes with only `0.15848x`-`0.16780x` target edge energy. Continue
+at `03b4c5b4b1a1y-field-owned-micro-strand-silhouette.md`. B4B1A is now a
 parent/reslice memo, not one implementation slice: B4B1A0 built the fair close
 grass test environment, B4B1A1 compared body architecture candidates inside that
 fixed lab, B4B1A1R proved shape-only repair is insufficient, B4B1A1S isolated
@@ -142,9 +148,11 @@ one non-card fiber primitive per existing field record still collapses into
 body absence, B4B1A1U proved dense source topology still creates markers/clumps
 instead of body, B4B1A1V proved per-source continuous-body representations still
 create fan/card artifacts instead of body, B4B1A1W proved material-only field
-domains become flat paint, B4B1A1X must add field-owned silhouette/height cues,
-and B4B1A2 records the accepted architecture's perf envelope only after a
-representation succeeds. Only after those child slices should B4B2 tune
+domains become flat paint, B4B1A1X proved large field-domain shell geometry
+becomes sparse card/stamp swipes, B4B1A1Y must test field-owned micro-strand
+silhouette at the target visible element scale, and B4B1A2 records the accepted
+architecture's perf envelope only after a representation succeeds. Only after
+those child slices should B4B2 tune
 coverage, B4B3 tune strand scale, B4B4 tune clump softness, B4B5 lock close palette/atlas
 integration, B4C0 prove the camera-relative backend seam, B4C1 add
 camera-relative cells/rings, B4C2 add slope/normal eligibility, B4C3 add surface
@@ -234,20 +242,22 @@ accepted and before the camera-relative implementation:
    source density alone still creates clumps/markers instead of body.
 9. B4B1A1W changes the body ownership domain after B4B1A1V proves
    source-attached strand mats still create fan/card patches instead of body.
-10. B4B1A1X adds field-owned body silhouette/height after B4B1A1W proves
-   material-only domains become flat paint.
-11. B4B1A2 records the accepted family's density/perf envelope.
-12. B4B2-B4B4 tune coverage, strand scale, and clump rhythm in that fixed close
+10. B4B1A1X records that large field-owned shell silhouette becomes card/stamp
+   swipes after B4B1A1W proves material-only domains become flat paint.
+11. B4B1A1Y tests field-owned micro-strand silhouette at the target visible
+   element scale.
+12. B4B1A2 records the accepted family's density/perf envelope.
+13. B4B2-B4B4 tune coverage, strand scale, and clump rhythm in that fixed close
    test surface.
-13. B4B5 locks close-lab palette, atlas opacity, and repeated-tile visibility
+14. B4B5 locks close-lab palette, atlas opacity, and repeated-tile visibility
    without changing density or body shape.
-14. B4C0 proves the camera-relative backend seam and perf gates without changing
+15. B4C0 proves the camera-relative backend seam and perf gates without changing
    the accepted look.
-15. B4C1-B4C3 implement snapped cells/rings, terrain eligibility, and tilt/tip
+16. B4C1-B4C3 implement snapped cells/rings, terrain eligibility, and tilt/tip
    behavior behind the chosen seam.
-16. B4D1-B4D4 solve near/transition/mid LOD collapse in lab crops.
-17. B4E returns to the reference route and judges grass crops/masks only.
-18. 03B5 adopts the result only if gameplay readability and perf gates pass;
+17. B4D1-B4D4 solve near/transition/mid LOD collapse in lab crops.
+18. B4E returns to the reference route and judges grass crops/masks only.
+19. 03B5 adopts the result only if gameplay readability and perf gates pass;
     03B6 is pulled in only as a backend swap when B4C0 or 03B5 proves CPU/upload
     cost is the blocker.
 
@@ -278,10 +288,12 @@ close lab first:
    patches with an empty center.
 10. B4B1A1W tests a continuous field-owned body/material domain before any perf
    or coverage tuning; this is now rejected because it becomes flat paint.
-11. B4B1A1X tests field-owned body silhouette/height before perf or coverage.
-12. B4B1A2 records the accepted architecture's perf budget and high-water mark.
-13. B4B2-B4B4 tune the chosen close body, strand scale, and clump rhythm.
-14. B4B5 locks the close-lab grass palette/atlas integration so colour is not
+11. B4B1A1X tested field-owned body silhouette/height and is rejected because
+    large shell geometry becomes sparse card/stamp swipes.
+12. B4B1A1Y tests field-owned micro-strand silhouette before perf or coverage.
+13. B4B1A2 records the accepted architecture's perf budget and high-water mark.
+14. B4B2-B4B4 tune the chosen close body, strand scale, and clump rhythm.
+15. B4B5 locks the close-lab grass palette/atlas integration so colour is not
    hidden inside density, camera, or fog work.
 15. B4C0 proves the camera-relative backend seam and perf envelope; it must not be
    used as a shortcut to solve grass art.
@@ -470,8 +482,10 @@ or flowers rather than grass.
   source-attached strand mats add fan/card patches, not body.
 - `03b4c5b4b1a1w-field-owned-strand-material-domain.md` — recorded/rejected;
   material-only field domains are continuous but read as flat paint.
-- `03b4c5b4b1a1x-field-owned-body-silhouette-layer.md` — next pickup; prove
-  field-owned close-body silhouette/height before perf/coverage.
+- `03b4c5b4b1a1x-field-owned-body-silhouette-layer.md` — recorded/rejected;
+  field-owned shell geometry becomes oversized card/stamp swipes.
+- `03b4c5b4b1a1y-field-owned-micro-strand-silhouette.md` — next pickup; test
+  field-owned pixel-scale micro-strand silhouette before perf/coverage.
 - `03b4c5b4b1a2-close-body-perf-envelope.md` — future density/perf envelope for
   the selected body architecture before tuning coverage.
 - `03b4c5b4b2-close-body-coverage.md` — future dense soft body / exposed-ground
@@ -690,7 +704,8 @@ B4B1A1 body-architecture matrix, B4B1A1R rejected texture-volume continuity
 repair, B4B1A1S rejected texture-volume alpha render model, B4B1A1T non-card
 field-fiber body architecture, B4B1A1U field-fiber source topology, B4B1A1V
 continuous strand body representation, B4B1A1W field-owned body/material domain,
-B4B1A1X field-owned body silhouette layer, B4B1A2 body perf envelope,
+B4B1A1X field-owned body silhouette layer, B4B1A1Y field-owned micro-strand
+silhouette, B4B1A2 body perf envelope,
 B4B2 close body coverage, B4B3 close strand scale, B4B4
 clump softness/height rhythm, B4C0
 backend/perf spike, B4C1
@@ -726,8 +741,9 @@ repair. B4B1A1S has now rejected texture-volume alpha/cutout/dither render
 semantics. B4B1A1T has since rejected non-card per-record field-fiber body
 primitives, B4B1A1U rejected dense field-cell/subcell source topology, and
 B4B1A1V rejected per-source continuous strand mats, and B4B1A1W rejected
-material-only field domains as flat paint. Resume at B4B1A1X for field-owned
-close-body silhouette/height before perf, coverage, palette, LOD,
+material-only field domains as flat paint, and B4B1A1X rejected field-owned
+shell geometry as oversized card/stamp swipes. Resume at B4B1A1Y for
+field-owned micro-strand silhouette before perf, coverage, palette, LOD,
 camera-relative generation, or full-vista comparison.
 
 **Slice 03B4C5B4B1R rejection memo (2026-07-01):** the scale-repair route added
@@ -897,7 +913,7 @@ Repair path for the next pass:
 
 - Keep iterating from the `highland-valley` fixture path; it is the current honest
   comparison surface until Slice 08 turns the composition into a real playable map.
-- Continue at **Slice 03B4C5B4B1A1X field-owned body silhouette layer**.
+- Continue at **Slice 03B4C5B4B1A1Y field-owned micro-strand silhouette**.
   03B3A
   already accepted the softened field-coverage layer, 03B3B records why
   material-only meadow volume is insufficient, 03B4B records why hard root
@@ -929,9 +945,11 @@ Repair path for the next pass:
   and rejected them because source-attached geometry still creates empty centers
   and perimeter fan/card patches. B4B1A1W then tested a continuous field-owned
   material domain and rejected it because it becomes flat paint with marker posts
-  exposed. B4B1A1X now tests field-owned silhouette/height before B4B1A2 local
-  perf envelope, B4B2 coverage, B4B3 strand scale, B4B4 clump rhythm, and B4B5
-  close palette/atlas lock. Only after an accepted domain/body silhouette should
+  exposed. B4B1A1X then tested field-owned shell geometry and rejected it because
+  the crop gains oversized card/stamp swipes over flat paint rather than
+  continuous body. B4B1A1Y now tests field-owned micro-strand silhouette before
+  B4B1A2 local perf envelope, B4B2 coverage, B4B3 strand scale, B4B4 clump
+  rhythm, and B4B5 close palette/atlas lock. Only after an accepted domain/body silhouette should
   B4C0 define the camera-relative backend seam,
   B4C1-B4C3 add procedural cells/rings and terrain response, and B4D1-D4 prove
   near/transition/mid LOD collapse in lab crops before B4E returns to the
@@ -1022,18 +1040,22 @@ latest rejected strand-mat evidence lives under
 `assets/03b4-evidence/03b4c5-close-foreground-lab/continuous-strand-body-representation/`;
 B4B1A1W's rejected material-domain evidence lives under
 `assets/03b4-evidence/03b4c5-close-foreground-lab/field-owned-strand-material-domain/`.
+B4B1A1X's rejected field-domain shell evidence lives under
+`assets/03b4-evidence/03b4c5-close-foreground-lab/field-owned-body-silhouette-layer/`.
 Use the red close-hero crop and labeled B4B1A0 sheets as the strong
 target/review surface, but do not compare the final wide `battle-map-reference`
 vista while repairing close body architecture. B4B1A1V proved that changing the
 mesh representation per source is still the wrong owner: `field-strand-mat` and
 `field-woven-mat` add structure, but as empty-center, perimeter fan/card patches
 over smooth ground. B4B1A1W proved a continuous material domain can fill coverage
-but still reads as flat painted ground with marker posts exposed. B4B1A1X must
-therefore keep field/domain ownership while adding real near-body
-silhouette/height cues, with camera, palette, fog, terrain, atlas, source
-context, and crop windows frozen. B4B1A2 records the accepted body's density/perf
-envelope only after X or a later ownership/silhouette slice accepts a visually
-plausible body. Then continue with B4B2 body coverage, B4B3 strand scale, B4B4 clump
+but still reads as flat painted ground with marker posts exposed. B4B1A1X proved
+that large field-owned shell geometry adds real triangles but becomes sparse
+oversized card/stamp swipes rather than continuous body. B4B1A1Y must therefore
+keep the field/domain ownership seam while testing pixel-scale micro-strand
+silhouette, with camera, palette, fog, terrain, atlas, source context, and crop
+windows frozen. B4B1A2 records the accepted body's density/perf envelope only
+after Y or a later ownership/silhouette slice accepts a visually plausible body.
+Then continue with B4B2 body coverage, B4B3 strand scale, B4B4 clump
 softness, B4B5 close palette/atlas lock, B4C0 backend/perf spike, B4C1
 camera-relative domain, B4C2 slope/normal eligibility, B4C3 surface tilt/tip
 blend, B4D1-D4 LOD collapse, and B4E grass-only reference compose. Do not move
@@ -1097,8 +1119,9 @@ have to rediscover.
 - [x] **Slice 03B4C5B4B1A1U** — field-fiber source topology (`slices/03b4c5b4b1a1u-field-fiber-source-topology.md`) — landed/rejected; dense field-cell/subcell sources still read as isolated clumps/markers
 - [x] **Slice 03B4C5B4B1A1V** — continuous strand body representation (`slices/03b4c5b4b1a1v-continuous-strand-body-representation.md`) — landed/rejected; source-attached strand mats add perimeter fan/card patches, not continuous body
 - [x] **Slice 03B4C5B4B1A1W** — field-owned strand material domain (`slices/03b4c5b4b1a1w-field-owned-strand-material-domain.md`) — landed/rejected; material-only field domain is continuous but flat paint with marker posts
-- [ ] **Slice 03B4C5B4B1A1X** — field-owned body silhouette layer (`slices/03b4c5b4b1a1x-field-owned-body-silhouette-layer.md`) — next pickup; prove field-owned silhouette/height before perf/coverage
-- [ ] **Slice 03B4C5B4B1A2** — close body perf envelope (`slices/03b4c5b4b1a2-close-body-perf-envelope.md`) — record density/perf budget only after B4B1A1X or a later ownership/silhouette slice accepts a body representation
+- [x] **Slice 03B4C5B4B1A1X** — field-owned body silhouette layer (`slices/03b4c5b4b1a1x-field-owned-body-silhouette-layer.md`) — landed/rejected; field-owned shell geometry creates oversized card/stamp swipes over flat paint
+- [ ] **Slice 03B4C5B4B1A1Y** — field-owned micro-strand silhouette (`slices/03b4c5b4b1a1y-field-owned-micro-strand-silhouette.md`) — next pickup; keep field ownership but test pixel-scale micro-strand body before perf/coverage
+- [ ] **Slice 03B4C5B4B1A2** — close body perf envelope (`slices/03b4c5b4b1a2-close-body-perf-envelope.md`) — record density/perf budget only after B4B1A1Y or a later ownership/silhouette slice accepts a body representation
 - [ ] **Slice 03B4C5B4B2** — close body coverage (`slices/03b4c5b4b2-close-body-coverage.md`)
 - [ ] **Slice 03B4C5B4B3** — close strand scale (`slices/03b4c5b4b3-close-strand-scale.md`)
 - [ ] **Slice 03B4C5B4B4** — clump softness and height variation (`slices/03b4c5b4b4-clump-softness-height-variation.md`)
@@ -1380,7 +1403,9 @@ by sim terrain read from wasm in `web/src/battle/scene.ts`.
         │
 03B4C5B4B1A1W field-owned-strand-material-domain ─ rejected; flat material domain
         │
-03B4C5B4B1A1X field-owned-body-silhouette-layer ─ domain silhouette/height
+03B4C5B4B1A1X field-owned-body-silhouette-layer ─ rejected; shell/card swipes
+        │
+03B4C5B4B1A1Y field-owned-micro-strand-silhouette ─ pixel-scale strand body
         │
 03B4C5B4B1A2 close-body-perf-envelope ─ density/perf budget
         │

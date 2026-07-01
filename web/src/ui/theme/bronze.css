@@ -48,6 +48,34 @@
   box-shadow: var(--bronze-frame);
 }
 
+/* Bronze tooltip chip for icon-only HUD controls (Radix content; see Tooltip.tsx).
+ * Opaque worn-bronze, not a slate webapp chip. Multi-line copy is honored
+ * (white-space: pre-line) so the "Hotkey: X" first line reads as its own row.
+ * pointer-events:none — it's a label, never a click target. */
+.hud-tooltip {
+  max-width: 260px;
+  padding: 6px 9px;
+  border: 2px solid transparent;
+  border-radius: 4px;
+  background:
+    var(--bronze-fill) padding-box,
+    var(--bronze-edge) border-box;
+  box-shadow: var(--bronze-frame);
+  color: var(--bronze-ink);
+  font:
+    11px/1.4 ui-monospace,
+    Menlo,
+    monospace;
+  white-space: pre-line;
+  letter-spacing: 0.2px;
+  pointer-events: none;
+  z-index: 60;
+  user-select: none;
+}
+.hud-tooltip-arrow {
+  fill: #6e5128;
+}
+
 /* The richer riveted tray — corner rivets + brushed grain over the shared
  * fill/edge, with a deeper 6-layer frame. The bottom-center cards+controls
  * housing (#battle-center). Overrides .hud-chassis's plain fill/shadow. */

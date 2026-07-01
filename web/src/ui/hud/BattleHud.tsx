@@ -21,6 +21,7 @@ import { createRoot } from "react-dom/client";
 import { flushSync } from "react-dom";
 import { HudPanel, type HudData } from "./HudPanel";
 import { Toolbar, type ToolButtonState } from "./Toolbar";
+import { TooltipProvider } from "./Tooltip";
 import { UnitCardsView, type UnitCardsHandle } from "./UnitCardsView";
 import {
   BOTTOM_CARD_LEFT_RESERVE,
@@ -195,12 +196,12 @@ const BattleHud = forwardRef<BattleHudInnerHandle, BattleHudProps>(function Batt
     [],
   );
   return (
-    <>
+    <TooltipProvider>
       <LeftInfoCard ref={infoRef} />
       <FpsReadout ref={fpsRef} />
       <CenterCard ref={centerRef} onSelect={props.onCardSelect} onToolbarCmd={props.onToolbarCmd} />
       <canvas id="minimap" className="hud-chassis" width={240} height={160} ref={miniRef} />
-    </>
+    </TooltipProvider>
   );
 });
 

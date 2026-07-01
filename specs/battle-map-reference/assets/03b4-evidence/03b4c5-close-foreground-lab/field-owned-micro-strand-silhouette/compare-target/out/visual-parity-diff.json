@@ -1,0 +1,91 @@
+{
+  "kind": "screenshot-parity-diff",
+  "generatedAt": "2026-07-01T15:59:48.049Z",
+  "note": "Lower parityDistance means the candidate is closer to the reference for this fixed pair. This is a distance metric, not an acceptance gate.",
+  "pairCount": 2,
+  "worstPair": "micro-strand-field",
+  "results": [
+    {
+      "id": "micro-strand-field",
+      "current": "specs/battle-map-reference/assets/03b4-evidence/03b4c5-close-foreground-lab/field-owned-micro-strand-silhouette/compare-target/reference/micro-strand-field.png",
+      "candidate": "specs/battle-map-reference/assets/03b4-evidence/03b4c5-close-foreground-lab/field-owned-micro-strand-silhouette/compare-target/candidate/micro-strand-field.png",
+      "dimensions": {
+        "width": 760,
+        "height": 180
+      },
+      "parityDistance": 0.34655,
+      "grayscale": {
+        "mae": 20.84948,
+        "rmse": 23.71992,
+        "diffRatio16": 0.63707,
+        "diffRatio32": 0.17358,
+        "diffRatio64": 0,
+        "pixelmatchRatio": 0.47227
+      },
+      "contentProxies": {
+        "blackRatioCurrent": 0,
+        "blackRatioCandidate": 0,
+        "terrainLikeRatioCurrent": 1,
+        "terrainLikeRatioCandidate": 0.01882,
+        "avgLuminanceCurrent": 133.09698,
+        "avgLuminanceCandidate": 117.21342,
+        "avgLuminanceDelta": -15.88356,
+        "edgeEnergyCurrent": 0.04817,
+        "edgeEnergyCandidate": 0.00941,
+        "edgeEnergyRatio": 0.19531,
+        "edgeDiffRatio32": 0.0709
+      },
+      "artifacts": {
+        "sideBySide": "out/micro-strand-field-side-by-side.png",
+        "currentGray": "out/micro-strand-field-current-gray.png",
+        "candidateGray": "out/micro-strand-field-candidate-gray.png",
+        "absDiff": "out/micro-strand-field-absdiff.png",
+        "pixelmatch": "out/micro-strand-field-pixelmatch.png",
+        "currentEdges": "out/micro-strand-field-current-edges.png",
+        "candidateEdges": "out/micro-strand-field-candidate-edges.png",
+        "edgeDiff": "out/micro-strand-field-edge-diff.png"
+      }
+    },
+    {
+      "id": "micro-strand-tall",
+      "current": "specs/battle-map-reference/assets/03b4-evidence/03b4c5-close-foreground-lab/field-owned-micro-strand-silhouette/compare-target/reference/micro-strand-tall.png",
+      "candidate": "specs/battle-map-reference/assets/03b4-evidence/03b4c5-close-foreground-lab/field-owned-micro-strand-silhouette/compare-target/candidate/micro-strand-tall.png",
+      "dimensions": {
+        "width": 760,
+        "height": 180
+      },
+      "parityDistance": 0.34573,
+      "grayscale": {
+        "mae": 20.84345,
+        "rmse": 23.71004,
+        "diffRatio16": 0.63756,
+        "diffRatio32": 0.1723,
+        "diffRatio64": 0,
+        "pixelmatchRatio": 0.47167
+      },
+      "contentProxies": {
+        "blackRatioCurrent": 0,
+        "blackRatioCandidate": 0,
+        "terrainLikeRatioCurrent": 1,
+        "terrainLikeRatioCandidate": 0.01241,
+        "avgLuminanceCurrent": 133.09698,
+        "avgLuminanceCandidate": 117.09618,
+        "avgLuminanceDelta": -16.0008,
+        "edgeEnergyCurrent": 0.04817,
+        "edgeEnergyCandidate": 0.00926,
+        "edgeEnergyRatio": 0.19231,
+        "edgeDiffRatio32": 0.07004
+      },
+      "artifacts": {
+        "sideBySide": "out/micro-strand-tall-side-by-side.png",
+        "currentGray": "out/micro-strand-tall-current-gray.png",
+        "candidateGray": "out/micro-strand-tall-candidate-gray.png",
+        "absDiff": "out/micro-strand-tall-absdiff.png",
+        "pixelmatch": "out/micro-strand-tall-pixelmatch.png",
+        "currentEdges": "out/micro-strand-tall-current-edges.png",
+        "candidateEdges": "out/micro-strand-tall-candidate-edges.png",
+        "edgeDiff": "out/micro-strand-tall-edge-diff.png"
+      }
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "fiber-shell": {
+    "unit": "ratio",
+    "label": "foreground grass band",
+    "x": 0,
+    "y": 0.62,
+    "width": 1,
+    "height": 0.34
+  }
+}

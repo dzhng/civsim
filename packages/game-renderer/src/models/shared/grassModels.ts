@@ -1,6 +1,18 @@
 import { MeshBuilder, type MeshData, type Rgb } from './meshBuilder';
 
 export type GrassPaletteId = 'green-grass' | 'yellow-grass' | 'scrub-grass' | 'sand';
+export type GrassAccentStyle =
+  | 'tuft'
+  | 'root-shadow'
+  | 'soft-root-mass'
+  | 'soft-root-fiber'
+  | 'field-fiber-shell'
+  | 'field-fiber-shell-visibility'
+  | 'alpha-impostor'
+  | 'billboard-cluster'
+  | 'volume-card'
+  | 'fiber-ribbon'
+  | 'hybrid-root-fiber';
 
 export interface GrassTuftOptions {
   seed?: number;
@@ -10,6 +22,7 @@ export interface GrassTuftOptions {
   bend?: number;
   spread?: number;
   palette?: GrassPaletteId;
+  accentStyle?: GrassAccentStyle;
 }
 
 export interface GrassTuftStats {
@@ -67,6 +80,17 @@ export function buildGrassTuftMesh(options: GrassTuftOptions = {}): MeshData {
   const bend = Math.max(0, options.bend ?? 0.28);
   const spread = Math.max(0, options.spread ?? 0.18);
   const palette = PALETTES[options.palette ?? 'green-grass'];
+  const accentStyle = options.accentStyle ?? 'tuft';
+  if (accentStyle === 'root-shadow') return buildRootShadowAccentMesh(seed, blades, height, width, bend, spread, palette);
+  if (accentStyle === 'soft-root-mass') return buildSoftRootMassAccentMesh(seed, blades, height, width, bend, spread, palette);
+  if (accentStyle === 'soft-root-fiber') return buildSoftRootFiberAccentMesh(seed, blades, height, width, bend, spread, palette);
+  if (accentStyle === 'field-fiber-shell') return buildFieldFiberShellAccentMesh(seed, blades, height, width, bend, spread, palette, false);
+  if (accentStyle === 'field-fiber-shell-visibility') return buildFieldFiberShellAccentMesh(seed, blades, height, width, bend, spread, palette, true);
+  if (accentStyle === 'alpha-impostor') return buildAlphaImpostorPatchMesh(seed, blades, height, width, bend, spread, palette);
+  if (accentStyle === 'billboard-cluster') return buildBillboardClusterMesh(seed, blades, height, width, bend, spread, palette);
+  if (accentStyle === 'volume-card') return buildNearGrassVolumeCardMesh(seed, blades, height, width, bend, spread, palette);
+  if (accentStyle === 'fiber-ribbon') return buildFiberRibbonAccentMesh(seed, blades, height, width, bend, spread, palette);
+  if (accentStyle === 'hybrid-root-fiber') return buildHybridRootFiberAccentMesh(seed, blades, height, width, bend, spread, palette);
   const builder = new MeshBuilder();
 
   for (let i = 0; i < blades; i++) {
@@ -95,6 +119,202 @@ export function buildGrassTuftMesh(options: GrassTuftOptions = {}): MeshData {
   }
 
   return builder.finish('grass tuft mesh');
+}
+
+function buildRootShadowAccentMesh(
+  seed: number,
+  blades: number,
+  height: number,
+  width: number,
+  bend: number,
+  spread: number,
+  palette: { root: Rgb; mid: Rgb; tip: Rgb; dry: Rgb },
+): MeshData {
+  const builder = new MeshBuilder();
+  addRootShadowAccents(builder, seed, 1, height, width, bend, spread, palette);
+  addRootMatFibers(builder, seed + 0x4a1, Math.max(4, Math.min(6, blades + 1)), height, width, bend, spread, palette);
+  return builder.finish('grass root-shadow accent mesh');
+}
+
+function buildSoftRootMassAccentMesh(
+  seed: number,
+  blades: number,
+  height: number,
+  width: number,
+  bend: number,
+  spread: number,
+  palette: { root: Rgb; mid: Rgb; tip: Rgb; dry: Rgb },
+): MeshData {
+  const builder = new MeshBuilder();
+  addRootMatFibers(builder, seed + 0x5f37, Math.max(3, Math.min(5, blades + 1)), height * 0.82, width * 1.12, bend * 0.72, spread * 0.68, palette);
+  return builder.finish('grass soft-root-mass accent mesh');
+}
+
+function buildSoftRootFiberAccentMesh(
+  seed: number,
+  blades: number,
+  height: number,
+  width: number,
+  bend: number,
+  spread: number,
+  palette: { root: Rgb; mid: Rgb; tip: Rgb; dry: Rgb },
+): MeshData {
+  const builder = new MeshBuilder();
+  addRootMatFibers(builder, seed + 0x5f37, 3, height * 0.72, width * 1.08, bend * 0.64, spread * 0.60, palette);
+  addSoftRootFiberFans(builder, seed + 0x7289, softRootFiberRibbonCount(blades), height, width, bend, spread, palette);
+  return builder.finish('grass soft-root-fiber accent mesh');
+}
+
+function buildFieldFiberShellAccentMesh(
+  seed: number,
+  blades: number,
+  height: number,
+  width: number,
+  bend: number,
+  spread: number,
+  palette: { root: Rgb; mid: Rgb; tip: Rgb; dry: Rgb },
+  visibility: boolean,
+): MeshData {
+  const builder = new MeshBuilder();
+  addFieldFiberShellPanels(builder, seed + 0x51e11, fieldFiberShellRibbonCount(blades), height, width, bend, spread, palette, visibility);
+  return builder.finish('grass field-fiber-shell accent mesh');
+}
+
+function buildAlphaImpostorPatchMesh(
+  seed: number,
+  blades: number,
+  height: number,
+  width: number,
+  bend: number,
+  spread: number,
+  palette: { root: Rgb; mid: Rgb; tip: Rgb; dry: Rgb },
+): MeshData {
+  const builder = new MeshBuilder();
+  const baseTone = scaleColor(mixColor(palette.root, palette.mid, 0.18), 0.58);
+  const strokeLower = scaleColor(mixColor(palette.root, palette.mid, 0.10), 0.70);
+  const strokeUpper = scaleColor(mixColor(palette.mid, palette.tip, 0.24), 0.72);
+  addOvalPatch(builder, [0, 0, height * 0.012], width * 5.2 + spread * 0.18, width * 2.9 + spread * 0.08, jitter(seed, 2, 0.28), baseTone, seed ^ 0x13a7);
+  const strokes = Math.max(4, Math.min(5, blades + 1));
+  for (let i = 0; i < strokes; i++) {
+    const yaw = (i / strokes) * Math.PI * 2 + jitter(seed + i * 17, 1, 0.38);
+    const rootRadius = spread * Math.sqrt(hash2(seed + i, 2)) * 0.34;
+    const root: [number, number, number] = [
+      Math.cos(yaw) * rootRadius,
+      Math.sin(yaw) * rootRadius,
+      height * (0.030 + hash2(seed + i, 3) * 0.018),
+    ];
+    addTaperedPanel(builder, {
+      root,
+      yaw: yaw + Math.PI * 0.5 + jitter(seed + i * 23, 4, 0.30),
+      height: height * (0.22 + hash2(seed + i, 5) * 0.13),
+      width: width * (2.8 + hash2(seed + i, 6) * 1.0),
+      bend: bend * height * (0.10 + hash2(seed + i, 7) * 0.10),
+      lowerColor: scaleColor(strokeLower, 0.88 + hash2(seed + i, 8) * 0.14),
+      upperColor: scaleColor(strokeUpper, 0.92 + hash2(seed + i, 9) * 0.12),
+      tipScale: 0.42,
+    });
+  }
+  return builder.finish('grass alpha-impostor patch mesh');
+}
+
+function buildBillboardClusterMesh(
+  seed: number,
+  blades: number,
+  height: number,
+  width: number,
+  bend: number,
+  spread: number,
+  palette: { root: Rgb; mid: Rgb; tip: Rgb; dry: Rgb },
+): MeshData {
+  const builder = new MeshBuilder();
+  const baseTone = scaleColor(mixColor(palette.root, palette.mid, 0.08), 0.48);
+  const upperTone = scaleColor(mixColor(palette.mid, palette.tip, 0.28), 0.72);
+  const cards = Math.max(4, Math.min(7, blades + 2));
+  for (let i = 0; i < cards; i++) {
+    const cardT = cards <= 1 ? 0 : i / (cards - 1);
+    const rootYaw = (i / cards) * Math.PI * 2 + jitter(seed + i * 29, 1, 0.24);
+    const rootRadius = spread * Math.sqrt(hash2(seed + i, 2)) * 0.28;
+    const root: [number, number, number] = [
+      Math.cos(rootYaw) * rootRadius,
+      Math.sin(rootYaw) * rootRadius,
+      height * (0.012 + hash2(seed + i, 3) * 0.016),
+    ];
+    addTaperedPanel(builder, {
+      root,
+      yaw: rootYaw + Math.PI * 0.5 + (cardT - 0.5) * 1.24 + jitter(seed + i * 31, 4, 0.20),
+      height: height * (0.64 + hash2(seed + i, 5) * 0.22),
+      width: width * (2.4 + hash2(seed + i, 6) * 0.90),
+      bend: bend * height * (0.08 + hash2(seed + i, 7) * 0.16),
+      lowerColor: scaleColor(baseTone, 0.86 + hash2(seed + i, 8) * 0.12),
+      upperColor: scaleColor(upperTone, 0.88 + hash2(seed + i, 9) * 0.16),
+      tipScale: 0.24,
+    });
+  }
+  return builder.finish('grass billboard-cluster mesh');
+}
+
+function buildNearGrassVolumeCardMesh(
+  seed: number,
+  blades: number,
+  height: number,
+  width: number,
+  bend: number,
+  spread: number,
+  palette: { root: Rgb; mid: Rgb; tip: Rgb; dry: Rgb },
+): MeshData {
+  const builder = new MeshBuilder();
+  const layers = Math.max(5, Math.min(8, blades + 3));
+  const rootTone = scaleColor(mixColor(palette.root, palette.mid, 0.04), 0.50);
+  const midTone = scaleColor(mixColor(palette.root, palette.mid, 0.34), 0.70);
+  for (let i = 0; i < layers; i++) {
+    const t = layers <= 1 ? 0 : i / (layers - 1);
+    const yaw = (t - 0.5) * 1.08 + jitter(seed + i * 43, 1, 0.12);
+    const root: [number, number, number] = [
+      jitter(seed + i, 2, spread * 0.18),
+      jitter(seed + i, 3, spread * 0.10),
+      height * (0.018 + t * 0.020),
+    ];
+    addTaperedPanel(builder, {
+      root,
+      yaw,
+      height: height * (0.42 + t * 0.28 + hash2(seed + i, 4) * 0.08),
+      width: width * (3.8 - t * 1.2 + hash2(seed + i, 5) * 0.65),
+      bend: bend * height * (0.05 + t * 0.10),
+      lowerColor: scaleColor(rootTone, 0.86 + hash2(seed + i, 6) * 0.10),
+      upperColor: scaleColor(midTone, 0.90 + hash2(seed + i, 7) * 0.12),
+      tipScale: 0.62 - t * 0.18,
+    });
+  }
+  return builder.finish('grass near volume-card mesh');
+}
+
+function buildFiberRibbonAccentMesh(
+  seed: number,
+  blades: number,
+  height: number,
+  width: number,
+  bend: number,
+  spread: number,
+  palette: { root: Rgb; mid: Rgb; tip: Rgb; dry: Rgb },
+): MeshData {
+  const builder = new MeshBuilder();
+  addFiberRibbons(builder, seed, Math.max(2, Math.min(blades, 8)), height, width, bend, spread, palette);
+  return builder.finish('grass fiber-ribbon accent mesh');
+}
+
+function buildHybridRootFiberAccentMesh(
+  seed: number,
+  blades: number,
+  height: number,
+  width: number,
+  bend: number,
+  spread: number,
+  palette: { root: Rgb; mid: Rgb; tip: Rgb; dry: Rgb },
+): MeshData {
+  const builder = new MeshBuilder();
+  addRootShadowAccents(builder, seed, Math.max(2, Math.min(3, Math.ceil(blades * 0.45))), height, width, bend, spread, palette);
+  addFiberRibbons(builder, seed + 421, Math.max(2, Math.min(4, Math.ceil(blades * 0.55))), height * 0.76, width * 1.55, bend * 0.58, spread * 0.72, palette);
+  return builder.finish('grass hybrid root-fiber accent mesh');
 }
 
 export function grassTuftStats(mesh: MeshData, blades = DEFAULT_GRASS_TUFT_BLADES): GrassTuftStats {
@@ -136,6 +356,299 @@ function addBlade(
     blade.root[0] + fx * blade.bend,
     blade.root[1] + fy * blade.bend,
     blade.height,
+  ];
+  const r0 = edge(blade.root, lx, ly, rootW);
+  const r1 = edge(mid, lx, ly, midW);
+  const r2 = edge(tip, lx, ly, tipW);
+  builder.panel3d([r0[0], r0[1], r1[1], r1[0]], blade.lowerColor, 1);
+  builder.panel3d([r1[0], r1[1], r2[1], r2[0]], blade.upperColor, 1);
+}
+
+function addRootShadowAccents(
+  builder: MeshBuilder,
+  seed: number,
+  count: number,
+  height: number,
+  width: number,
+  bend: number,
+  spread: number,
+  palette: { root: Rgb; mid: Rgb; tip: Rgb; dry: Rgb },
+) {
+  const rootColor = scaleColor(mixColor(palette.root, palette.mid, 0.16), 0.64);
+  for (let i = 0; i < count; i++) {
+    const yaw = (i / count) * Math.PI + jitter(seed + i * 29, 1, 0.64);
+    const rootRadius = spread * (0.06 + hash2(seed + i, 2) * 0.22);
+    const center: [number, number, number] = [
+      Math.cos(yaw + jitter(seed + i, 3, 0.5)) * rootRadius,
+      Math.sin(yaw + jitter(seed + i, 4, 0.5)) * rootRadius,
+      height * (0.010 + hash2(seed + i, 5) * 0.016),
+    ];
+    const rx = width * (5.60 + hash2(seed + i, 6) * 2.10) + bend * height * 0.08;
+    const ry = width * (2.80 + hash2(seed + i, 7) * 1.25);
+    addOvalPatch(builder, center, rx, ry, yaw, rootColor, seed + i * 97);
+  }
+}
+
+function addLowCrownAccents(
+  builder: MeshBuilder,
+  seed: number,
+  count: number,
+  height: number,
+  width: number,
+  bend: number,
+  spread: number,
+  palette: { root: Rgb; mid: Rgb; tip: Rgb; dry: Rgb },
+) {
+  const crownColor = scaleColor(mixColor(palette.root, palette.mid, 0.36), 0.68);
+  for (let i = 0; i < count; i++) {
+    const yaw = (i / Math.max(1, count)) * Math.PI + jitter(seed + i * 31, 1, 0.70);
+    const rootRadius = spread * (0.08 + hash2(seed + i, 2) * 0.30);
+    const root: [number, number, number] = [
+      Math.cos(yaw) * rootRadius,
+      Math.sin(yaw) * rootRadius,
+      height * 0.050,
+    ];
+    addTaperedPanel(builder, {
+      root,
+      yaw,
+      height: height * (0.20 + hash2(seed + i, 3) * 0.13),
+      width: width * (4.2 + hash2(seed + i, 4) * 1.6),
+      bend: bend * height * (0.12 + hash2(seed + i, 5) * 0.16),
+      lowerColor: scaleColor(crownColor, 0.76),
+      upperColor: crownColor,
+      tipScale: 0.50,
+    });
+  }
+}
+
+function addRootMatFibers(
+  builder: MeshBuilder,
+  seed: number,
+  count: number,
+  height: number,
+  width: number,
+  bend: number,
+  spread: number,
+  palette: { root: Rgb; mid: Rgb; tip: Rgb; dry: Rgb },
+) {
+  const lowerTone = scaleColor(mixColor(palette.root, palette.mid, 0.10), 0.70);
+  const upperTone = scaleColor(mixColor(palette.root, palette.mid, 0.32), 0.72);
+  for (let i = 0; i < count; i++) {
+    const rootYaw = (i / count) * Math.PI * 2 + jitter(seed + i * 23, 1, 0.46);
+    const rootRadius = spread * Math.sqrt(hash2(seed + i, 2)) * 0.58;
+    const root: [number, number, number] = [
+      Math.cos(rootYaw) * rootRadius,
+      Math.sin(rootYaw) * rootRadius,
+      height * (0.006 + hash2(seed + i, 3) * 0.010),
+    ];
+    const yaw = rootYaw + Math.PI * 0.5 + jitter(seed + i * 31, 4, 0.62);
+    const fiberHeight = height * (0.08 + hash2(seed + i, 5) * 0.055);
+    const fiberWidth = width * (0.86 + hash2(seed + i, 6) * 0.58);
+    const fiberBend = bend * fiberHeight * (0.14 + hash2(seed + i, 7) * 0.22);
+    const shade = 0.82 + hash2(seed + i, 8) * 0.18;
+    addTaperedPanel(builder, {
+      root,
+      yaw,
+      height: fiberHeight,
+      width: fiberWidth,
+      bend: fiberBend,
+      lowerColor: scaleColor(lowerTone, shade),
+      upperColor: scaleColor(upperTone, shade),
+      tipScale: 0.24,
+    });
+  }
+}
+
+function addSoftRootFiberFans(
+  builder: MeshBuilder,
+  seed: number,
+  count: number,
+  height: number,
+  width: number,
+  bend: number,
+  spread: number,
+  palette: { root: Rgb; mid: Rgb; tip: Rgb; dry: Rgb },
+) {
+  const baseTone = scaleColor(mixColor(palette.root, palette.mid, 0.08), 0.62);
+  const upperTone = scaleColor(mixColor(palette.root, palette.mid, 0.26), 0.66);
+  for (let i = 0; i < count; i++) {
+    const fanT = count <= 1 ? 0 : i / (count - 1);
+    const rootYaw = (i / count) * Math.PI * 2 + jitter(seed + i * 19, 1, 0.34);
+    const yaw = rootYaw + (fanT - 0.5) * 0.92 + jitter(seed + i * 23, 2, 0.22);
+    const rootRadius = spread * Math.sqrt(hash2(seed + i, 3)) * 0.34;
+    const root: [number, number, number] = [
+      Math.cos(rootYaw) * rootRadius,
+      Math.sin(rootYaw) * rootRadius,
+      height * (0.010 + hash2(seed + i, 4) * 0.014),
+    ];
+    const fiberHeight = height * (0.40 + hash2(seed + i, 5) * 0.16);
+    const fiberWidth = width * (3.20 + hash2(seed + i, 6) * 1.20);
+    const fiberBend = bend * fiberHeight * (0.16 + hash2(seed + i, 7) * 0.22);
+    const shade = 0.82 + hash2(seed + i, 8) * 0.16;
+    addTaperedPanel(builder, {
+      root,
+      yaw,
+      height: fiberHeight,
+      width: fiberWidth,
+      bend: fiberBend,
+      lowerColor: scaleColor(baseTone, shade),
+      upperColor: scaleColor(upperTone, shade),
+      tipScale: 0.26,
+    });
+  }
+}
+
+function softRootFiberRibbonCount(blades: number): number {
+  return Math.max(4, Math.min(5, clampInt(blades, 0, 96) + 1));
+}
+
+function addFieldFiberShellPanels(
+  builder: MeshBuilder,
+  seed: number,
+  count: number,
+  height: number,
+  width: number,
+  bend: number,
+  spread: number,
+  palette: { root: Rgb; mid: Rgb; tip: Rgb; dry: Rgb },
+  visibility = false,
+) {
+  const baseTone = visibility
+    ? scaleColor(mixColor(palette.root, palette.mid, 0.02), 0.38)
+    : scaleColor(mixColor(palette.root, palette.mid, 0.05), 0.58);
+  const upperTone = visibility
+    ? scaleColor(mixColor(palette.root, palette.mid, 0.42), 0.74)
+    : scaleColor(mixColor(palette.root, palette.mid, 0.30), 0.64);
+  for (let i = 0; i < count; i++) {
+    const cross = count <= 1 ? 0 : i - (count - 1) * 0.5;
+    const rootYaw = (i / Math.max(1, count)) * Math.PI + jitter(seed + i * 29, 1, 0.22);
+    const yaw = rootYaw + cross * 1.08 + jitter(seed + i * 31, 2, 0.18);
+    const rootRadius = spread * Math.sqrt(hash2(seed + i, 3)) * 0.22;
+    const root: [number, number, number] = [
+      Math.cos(rootYaw) * rootRadius,
+      Math.sin(rootYaw) * rootRadius,
+      height * (0.006 + hash2(seed + i, 4) * 0.010),
+    ];
+    const fiberHeight = height * (visibility ? 0.86 + hash2(seed + i, 5) * 0.12 : 0.56 + hash2(seed + i, 5) * 0.18);
+    const fiberWidth = width * (visibility ? 1.48 + hash2(seed + i, 6) * 0.36 : 0.76 + hash2(seed + i, 6) * 0.28);
+    const fiberBend = bend * fiberHeight * (visibility ? 0.08 + hash2(seed + i, 7) * 0.10 : 0.18 + hash2(seed + i, 7) * 0.18);
+    const shade = visibility ? 0.92 + hash2(seed + i, 8) * 0.10 : 0.84 + hash2(seed + i, 8) * 0.12;
+    addTaperedPanel(builder, {
+      root,
+      yaw,
+      height: fiberHeight,
+      width: fiberWidth,
+      bend: fiberBend,
+      lowerColor: scaleColor(baseTone, shade),
+      upperColor: scaleColor(upperTone, shade),
+      tipScale: visibility ? 0.24 : 0.16,
+    });
+  }
+}
+
+function fieldFiberShellRibbonCount(blades: number): number {
+  return Math.max(1, Math.min(2, clampInt(blades, 0, 96)));
+}
+
+function addFiberRibbons(
+  builder: MeshBuilder,
+  seed: number,
+  count: number,
+  height: number,
+  width: number,
+  bend: number,
+  spread: number,
+  palette: { root: Rgb; mid: Rgb; tip: Rgb; dry: Rgb },
+) {
+  const lowerTone = mixColor(palette.root, palette.mid, 0.24);
+  const upperTone = mixColor(palette.root, palette.mid, 0.50);
+  for (let i = 0; i < count; i++) {
+    const rootYaw = (i / count) * Math.PI * 2 + jitter(seed + i * 19, 1, 0.38);
+    const rootRadius = spread * Math.sqrt(hash2(seed + i, 2)) * 0.56;
+    const root: [number, number, number] = [
+      Math.cos(rootYaw) * rootRadius,
+      Math.sin(rootYaw) * rootRadius,
+      0,
+    ];
+    const yaw = rootYaw + Math.PI * 0.5 + jitter(seed + i * 23, 3, 0.48);
+    const ribbonHeight = height * (0.70 + hash2(seed + i, 4) * 0.26);
+    const ribbonWidth = width * (1.55 + hash2(seed + i, 5) * 0.95);
+    const ribbonBend = bend * ribbonHeight * (0.36 + hash2(seed + i, 6) * 0.42);
+    const shade = 0.70 + hash2(seed + i, 7) * 0.14;
+    addTaperedPanel(builder, {
+      root,
+      yaw,
+      height: ribbonHeight,
+      width: ribbonWidth,
+      bend: ribbonBend,
+      lowerColor: scaleColor(lowerTone, shade * 0.88),
+      upperColor: scaleColor(upperTone, shade),
+      tipScale: 0.18,
+    });
+  }
+}
+
+function addDiamondPatch(builder: MeshBuilder, center: [number, number, number], rx: number, ry: number, yaw: number, color: Rgb) {
+  const fx = Math.cos(yaw);
+  const fy = Math.sin(yaw);
+  const lx = -fy;
+  const ly = fx;
+  builder.panel3d([
+    [center[0] + fx * rx, center[1] + fy * rx, center[2]],
+    [center[0] + lx * ry, center[1] + ly * ry, center[2] + 0.001],
+    [center[0] - fx * rx, center[1] - fy * rx, center[2]],
+    [center[0] - lx * ry, center[1] - ly * ry, center[2] + 0.001],
+  ], color, 1);
+}
+
+function addOvalPatch(builder: MeshBuilder, center: [number, number, number], rx: number, ry: number, yaw: number, color: Rgb, seed: number) {
+  const cy = Math.cos(yaw);
+  const sy = Math.sin(yaw);
+  const points: [number, number, number][] = [];
+  const sides = 10;
+  for (let i = 0; i < sides; i++) {
+    const a = (i / sides) * Math.PI * 2;
+    const px = Math.cos(a) * rx * (0.90 + hash2(seed + i, 11) * 0.18);
+    const py = Math.sin(a) * ry * (0.88 + hash2(seed + i, 17) * 0.20);
+    points.push([
+      center[0] + px * cy - py * sy,
+      center[1] + px * sy + py * cy,
+      center[2] + (i % 2) * 0.0005,
+    ]);
+  }
+  builder.panel3d(points, color, 1);
+}
+
+function addTaperedPanel(
+  builder: MeshBuilder,
+  blade: {
+    root: [number, number, number];
+    yaw: number;
+    height: number;
+    width: number;
+    bend: number;
+    lowerColor: Rgb;
+    upperColor: Rgb;
+    tipScale: number;
+  },
+) {
+  const fx = Math.cos(blade.yaw);
+  const fy = Math.sin(blade.yaw);
+  const lx = -fy;
+  const ly = fx;
+  const h0 = blade.height * 0.58;
+  const rootW = blade.width * 0.5;
+  const midW = blade.width * 0.34;
+  const tipW = blade.width * blade.tipScale;
+  const mid: [number, number, number] = [
+    blade.root[0] + fx * blade.bend * 0.32,
+    blade.root[1] + fy * blade.bend * 0.32,
+    blade.root[2] + h0,
+  ];
+  const tip: [number, number, number] = [
+    blade.root[0] + fx * blade.bend,
+    blade.root[1] + fy * blade.bend,
+    blade.root[2] + blade.height,
   ];
   const r0 = edge(blade.root, lx, ly, rootW);
   const r1 = edge(mid, lx, ly, midW);

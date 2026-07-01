@@ -2,17 +2,19 @@
 
 ## Contract
 
-With the grass field architecture, meadow mass, foreground accent geometry, and
-readability/perf gate frozen, tune the grass to read like the reference meadow:
-cooler neutral-green under overcast light, less yellow, less sparkly, and softer
-as a mass while still resolving as blade geometry up close.
+With the grass field architecture, meadow mass, foreground accent geometry, close
+atlas/palette lock, and readability/perf gate frozen, tune later macro grass tone
+and motion texture to read like the reference meadow: cooler neutral-green under
+overcast light, less yellow, less sparkly, and softer as a mass while still
+preserving the close-lab atlas/base-tip decisions from B4B5.
 
 ## Approach
 
-Treat this as a surface/tone pass on top of an accepted density architecture:
+Treat this as a macro surface/tone and wind-texture pass on top of an accepted
+density architecture:
 
-- tune palette chips, base/tip gradients, height AO, and distance desaturation
-  against foreground and midground grass crops;
+- tune macro palette chips, distance desaturation, height AO carryover, and
+  wind/noise texture against foreground and midground grass crops;
 - soften sparkle by adjusting material contrast, mip/alpha treatment, and
   distance fade, not by hiding missing meadow mass with blur or fog;
 - keep wind as low-frequency field texture plus small blade variation, avoiding

@@ -1,65 +1,119 @@
-import { readFile } from 'node:fs/promises';
-import { PNG } from 'pngjs';
+import { readFile } from "node:fs/promises";
+import { PNG } from "pngjs";
 
-const TARGET = new URL('../../../specs/battle-map-reference/assets/target-battle-map.png', import.meta.url);
+const TARGET = new URL(
+  "../../../specs/battle-map-reference/assets/target-battle-map.png",
+  import.meta.url,
+);
 
 export const meta = {
-  name: 'battle-map-reference',
-  kind: 'visual',
-  world: 'battle-map-reference',
-  tier: 'full',
+  name: "battle-map-reference",
+  kind: "visual",
+  world: "battle-map-reference",
+  tier: "full",
   snapshots: [
-    'map-reference/candidate-vista',
-    'map-reference/reference-comparison',
-    'map-reference/grass-crops',
+    "map-reference/candidate-vista",
+    "map-reference/reference-comparison",
+    "map-reference/grass-crops",
   ],
-  describe: 'Captures the current battle terrain at the zoomed-in reference camera, plus target/candidate comparison artifacts.',
+  describe:
+    "Captures the current battle terrain at the zoomed-in reference camera, plus target/candidate comparison artifacts.",
 };
 
 export async function run(ctx) {
-  if (process.env.VERIFY_GPU !== '1') {
-    ctx.check('battle map reference shots require browser GPU flags', true, 'set VERIFY_GPU=1 to capture');
+  if (process.env.VERIFY_GPU !== "1") {
+    ctx.check(
+      "battle map reference shots require browser GPU flags",
+      true,
+      "set VERIFY_GPU=1 to capture",
+    );
     return;
   }
 
-  const page = await ctx.newPage({ viewport: { width: 1638, height: 800 }, errorPrefix: 'battle-map-reference' });
+  const page = await ctx.newPage({
+    viewport: { width: 1638, height: 800 },
+    errorPrefix: "battle-map-reference",
+  });
   await page.goto(`${ctx.target}/renderer/battle-terrain-3d?gate=highland-valley&view=reference`);
-  await page.waitForFunction(() => window.__rendererLabReady === true && window.__rendererLabStats?.stats?.view === 'reference', { timeout: 20000 });
+  await page.waitForFunction(
+    () =>
+      window.__rendererLabReady === true && window.__rendererLabStats?.stats?.view === "reference",
+    { timeout: 20000 },
+  );
   await page.waitForTimeout(180);
   const stats = await page.evaluate(() => window.__rendererLabStats?.stats ?? null);
-  if (stats?.route !== 'battle-terrain-3d' || stats?.view !== 'reference') {
+  if (stats?.route !== "battle-terrain-3d" || stats?.view !== "reference") {
     await page.close();
-    throw new Error(`battle map reference route did not publish valid stats: ${JSON.stringify(stats)}`);
+    throw new Error(
+      `battle map reference route did not publish valid stats: ${JSON.stringify(stats)}`,
+    );
   }
 
   ctx.check(
-    'reference candidate uses the hybrid meadow grass architecture',
-    stats.grass?.terrainMasked === true
-      && stats.grass?.zoomT === 1
-      && stats.grassTechnique === 'hybrid'
-      && stats.ground?.meadow?.enabled === true
-      && stats.ground?.meadow?.nearStrength >= 0.85
-      && stats.ground?.meadow?.farStrength >= 0.25
-      && stats.grass?.tuftInstances >= 20000
-      && stats.grass?.tuftInstances <= 32000
-      && stats.grass?.bladeInstances >= 240000
-      && stats.grass?.invalidTintTufts === 0,
-    JSON.stringify({ grassTechnique: stats.grassTechnique, meadow: stats.ground?.meadow, grass: stats.grass }),
+    "reference candidate uses the field-driven meadow plus bounded blade-accent architecture",
+    stats.grass?.terrainMasked === true &&
+      stats.grass?.zoomT === 1 &&
+      stats.grass?.prepMode === "packed-field" &&
+      stats.grassTechnique === "field-accent" &&
+      stats.ground?.meadow?.enabled === true &&
+      stats.ground?.meadow?.source === "field" &&
+      stats.ground?.meadow?.nearStrength >= 0.9 &&
+      stats.ground?.meadow?.farStrength >= 0.4 &&
+      stats.ground?.meadow?.fieldRecords === stats.grass?.fieldRecords &&
+      stats.ground?.meadow?.fieldCoverage > 0.06 &&
+      stats.ground?.meadow?.avgDensity > 0.045 &&
+      stats.ground?.meadow?.rootMassEnabled === true &&
+      stats.ground?.meadow?.rootMassStrength > 0 &&
+      stats.ground?.meadow?.rootMassCoverage > 0.01 &&
+      stats.ground?.meadow?.rootMassAvg > 0.005 &&
+      stats.grass?.fieldRecords >= 3000 &&
+      stats.grass?.fieldRecords <= 9000 &&
+      stats.grass?.accentTufts >= 3000 &&
+      stats.grass?.accentTufts <= 5600 &&
+      stats.grass?.accentStyle === "field-fiber-shell" &&
+      stats.grass?.accentAggregation === "field-near" &&
+      stats.grass?.fiberShellVariant === "normal" &&
+      stats.grass?.accentClumps === 0 &&
+      stats.grass?.accentSourceRecords > stats.grass?.accentTufts &&
+      stats.grass?.fiberShellSourceRecords === stats.grass?.accentSourceRecords &&
+      stats.grass?.fiberShellRecords === stats.grass?.accentTufts &&
+      stats.grass?.fiberShellRibbons === stats.grass?.accentRibbons &&
+      stats.grass?.fiberShellRibbons >= stats.grass?.fiberShellRecords &&
+      stats.grass?.fiberShellDepthFar > stats.grass?.fiberShellDepthNear &&
+      stats.grass?.fiberShellSelectedRatio > 0.5 &&
+      stats.grass?.fiberShellSelectedRatio < 1 &&
+      stats.grass?.fiberShellSubmittedTriangles === stats.grass?.submittedTriangles &&
+      stats.grass?.tuftInstances === stats.grass?.accentTufts &&
+      stats.grass?.tuftInstances < stats.grass?.fieldRecords &&
+      stats.grass?.bladeInstances >= stats.grass?.tuftInstances &&
+      stats.grass?.bladeInstances <= 12000 &&
+      stats.grass?.drawCalls === 1 &&
+      stats.grass?.invalidTintTufts === 0,
+    JSON.stringify({
+      grassTechnique: stats.grassTechnique,
+      meadow: stats.ground?.meadow,
+      grass: stats.grass,
+    }),
   );
   ctx.check(
-    'reference candidate uses highland-valley relief fixture',
-    stats.gate === 'highland-valley'
-      && stats.mapId === 'highland-valley'
-      && stats.heightSpan > 20
-      && stats.heightSpan < 40
-      && stats.edges?.west === 'cliff'
-      && stats.edges?.east === 'ocean',
-    JSON.stringify({ gate: stats.gate, mapId: stats.mapId, heightSpan: stats.heightSpan, edges: stats.edges }),
+    "reference candidate uses highland-valley relief fixture",
+    stats.gate === "highland-valley" &&
+      stats.mapId === "highland-valley" &&
+      stats.heightSpan > 20 &&
+      stats.heightSpan < 40 &&
+      stats.edges?.west === "cliff" &&
+      stats.edges?.east === "ocean",
+    JSON.stringify({
+      gate: stats.gate,
+      mapId: stats.mapId,
+      heightSpan: stats.heightSpan,
+      edges: stats.edges,
+    }),
   );
 
-  const rawShot = await page.locator('#renderer-canvas').screenshot();
+  const rawShot = await page.locator("#renderer-canvas").screenshot();
   const canvasSize = await page.evaluate(() => {
-    const canvas = document.querySelector('#renderer-canvas');
+    const canvas = document.querySelector("#renderer-canvas");
     return canvas ? { width: canvas.width, height: canvas.height } : null;
   });
   const candidate = cropToSize(PNG.sync.read(rawShot), canvasSize?.width, canvasSize?.height);
@@ -68,32 +122,40 @@ export async function run(ctx) {
   const candidateForeground = bandMetrics(candidate, 0.62, 0.98);
   const targetForeground = bandMetrics(target, 0.62, 0.98);
   ctx.check(
-    'foreground grass crop records density telemetry',
+    "foreground grass crop records density telemetry",
     true,
     JSON.stringify({
       targetForeground,
       candidateForeground,
-      edgeEnergyRatio: Number((candidateForeground.edgeEnergy / Math.max(0.001, targetForeground.edgeEnergy)).toFixed(3)),
+      edgeEnergyRatio: Number(
+        (candidateForeground.edgeEnergy / Math.max(0.001, targetForeground.edgeEnergy)).toFixed(3),
+      ),
     }),
   );
   ctx.check(
-    'candidate foreground has visible green grass color',
-    candidateForeground.greenRatio > 0.35
-      && candidateForeground.avg[1] > candidateForeground.avg[0]
-      && candidateForeground.avg[1] > candidateForeground.avg[2],
+    "candidate foreground has visible green grass color",
+    candidateForeground.greenRatio > 0.35 &&
+      candidateForeground.avg[1] > candidateForeground.avg[0] &&
+      candidateForeground.avg[1] > candidateForeground.avg[2],
     JSON.stringify({ candidateForeground, targetForeground }),
   );
 
-  await ctx.snap(null, 'map-reference/candidate-vista', { shot });
-  await ctx.snap(null, 'map-reference/reference-comparison', { shot: composeComparison(target, candidate) });
-  await ctx.snap(null, 'map-reference/grass-crops', { shot: composeGrassCrops(target, candidate) });
+  await ctx.snap(null, "map-reference/candidate-vista", { shot });
+  await ctx.snap(null, "map-reference/reference-comparison", {
+    shot: composeComparison(target, candidate),
+  });
+  await ctx.snap(null, "map-reference/grass-crops", { shot: composeGrassCrops(target, candidate) });
   await page.close();
 }
 
 function composeComparison(target, candidate) {
   const targetFit = resizeToHeight(target, candidate.height);
   const gap = 16;
-  const out = solidPng(targetFit.width + gap + candidate.width, candidate.height, [218, 224, 224, 255]);
+  const out = solidPng(
+    targetFit.width + gap + candidate.width,
+    candidate.height,
+    [218, 224, 224, 255],
+  );
   paste(out, targetFit, 0, 0);
   paste(out, candidate, targetFit.width + gap, 0);
   return PNG.sync.write(out);
@@ -102,8 +164,8 @@ function composeComparison(target, candidate) {
 function composeGrassCrops(target, candidate) {
   const targetFg = cropRatio(target, 0, 0.62, 1, 0.34);
   const candidateFg = cropRatio(candidate, 0, 0.62, 1, 0.34);
-  const targetMid = cropRatio(target, 0, 0.42, 1, 0.20);
-  const candidateMid = cropRatio(candidate, 0, 0.42, 1, 0.20);
+  const targetMid = cropRatio(target, 0, 0.42, 1, 0.2);
+  const candidateMid = cropRatio(candidate, 0, 0.42, 1, 0.2);
   const targetFgFit = resizeToWidth(targetFg, 780);
   const candidateFgFit = resizeToWidth(candidateFg, 780);
   const targetMidFit = resizeToWidth(targetMid, 780);
@@ -111,7 +173,11 @@ function composeGrassCrops(target, candidate) {
   const gap = 16;
   const rowGap = 16;
   const rowW = 780 * 2 + gap;
-  const out = solidPng(rowW, targetFgFit.height + rowGap + targetMidFit.height, [218, 224, 224, 255]);
+  const out = solidPng(
+    rowW,
+    targetFgFit.height + rowGap + targetMidFit.height,
+    [218, 224, 224, 255],
+  );
   paste(out, targetFgFit, 0, 0);
   paste(out, candidateFgFit, 780 + gap, 0);
   paste(out, targetMidFit, 0, targetFgFit.height + rowGap);
@@ -143,11 +209,7 @@ function bandMetrics(png, y0Ratio, y1Ratio) {
   return {
     greenRatio: Number((green / count).toFixed(3)),
     edgeEnergy: Number((edge / Math.max(1, count * 2)).toFixed(2)),
-    avg: [
-      Math.round(rSum / count),
-      Math.round(gSum / count),
-      Math.round(bSum / count),
-    ],
+    avg: [Math.round(rSum / count), Math.round(gSum / count), Math.round(bSum / count)],
   };
 }
 

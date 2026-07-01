@@ -22,7 +22,91 @@ density was rejected as noisy and expensive, a ground-integrated meadow carpet
 needs a real field/clump data owner, and foreground geometry is a separate
 accent/perf problem. Slice 03B is a recorded spike, not an accepted visual slice.
 Slice 03B1 landed the grass field data contract. Slice 03B2 landed the
-packed-attribute renderer-lab workbench and is verified. Resume at Slice 03B3.
+packed-attribute renderer-lab workbench and is verified. Slice 03B3 is **not
+visually accepted**, but it now has an evidence-backed handoff. 03B3A landed the
+separate field-space softened coverage channel, which reduces the hard midground
+band while preserving zero-blade field ownership. 03B3B material-only volume was
+rejected by crop comparison and neutral critique: the zero-blade result remains a
+flat painted/combed plane. Remaining foreground volume is now explicitly owned by
+03B4. Slice 03B4A landed the named accent-style workbench, but visual 03B4 is
+still **not accepted**. The old `tuft` mesh is rejected as sparse yellow speckle;
+first-pass `fiber-ribbon` and `hybrid-root-fiber` also speckle before adding
+useful volume. 03B4B landed clump aggregation/stats, but hard root geometry is
+rejected as decal/glyph stains. 03B4B2 landed a named `soft-root-mass` material
+layer and explicit root-mass telemetry, but visual 03B4 is still **not
+accepted**: the current crop reads as a smooth painted/combed carpet without
+blade silhouettes, clumps, or height variation. 03B4C then landed
+`soft-root-fiber` clump-ribbon plumbing and telemetry, but that visual is also
+rejected: it remains a smooth carpet with sparse flecks. 03B4C2 then landed
+`field-fiber-shell` / `field-near` telemetry and proved the near shell can be
+field-owned, but the visual is still rejected: even `5200` one-strip shell
+records read as a smooth green sheet with faint streaks. 03B4C3 now has a
+shell-off/normal/debug-visible/width/lift/view-thickness capture harness and
+explicit `fiberShellVariant` telemetry. That harness is accepted as
+infrastructure, but the one-strip primitive family is visually rejected:
+normal shell is effectively invisible, debug-visible reads as dark
+stipple/scratches, and bounded width/lift/view-thickness variants are nearly
+unchanged from normal. 03B4C4 then landed the primitive-family workbench and
+rejected the mesh-only alternate families: mesh alpha stand-ins, billboard
+clusters, and volume cards remain sparse marks on a painted meadow plane. The
+least-wrong shot is still `field-fiber-shell`, but only because it avoids the
+loudest artifacts; it still lacks clumped upright grass volume. 03B4C5 now has a
+WIP texture-backed route with a real generated atlas and `field-cell`
+aggregation, but it is **not visually accepted**. The 03B4C5A
+density/soft-coverage pass and 03B4C5B distribution/scale pass are both recorded
+as rejected evidence: they can move foreground edge energy, but the visible
+structure still reads as sparse repeated flecks/stamps over exposed flat meadow,
+not continuous soft grass body, and the midground remains almost unchanged from
+the field-shell baseline. 03B4C5B2 proved that fewer large field-cell carrier
+sheets create hard straw/wire islands, exposed ground, and abrupt depth
+transition. 03B4C5B3 then proved that many smaller field-owned micro-primitives
+are not enough either: `texture-micro-carrier` emits `7000` records,
+`28000` micro cards, and `56000` triangles, but it is mostly invisible or pixel
+grit at the reference camera. David then correctly called out that the current
+full shot is too zoomed out to solve close foreground grass: the target has a
+near lower foreground where grass body and some strand direction are visible,
+while mid/background should collapse into meadow mass. 03B4C5B4 is now a reslice
+memo, not the next implementation task. B4A is accepted as a **crop-scale
+diagnosis**, not as a full transition/mid acceptance contract: the red close-hero
+crop is strong and current-side crops are labeled absence probes, while orange
+transition and blue mid-mass remain weak target-derived context cues. B4B1 has
+now landed the `foreground-close-lab` route and evidence pack, but the
+camera/review surface is **not accepted**. The lab shot is useful infrastructure
+and an honest absence probe; it is not yet a fair close grass comparison
+surface. `compare-screenshots` on the normalized close crop records
+`edgeEnergyRatio=0.13997` versus the target, and the unprimed
+`screenshot-critique` verdict was **unfair scale**: the lab still reads as flat
+green ground with too little close blade/body structure, weak perspective cues,
+uniform lighting, and transition/mid crops that do not yet help judge close
+foreground grass. B4B1R then tried a camera/proxy-only scale repair and is also
+**not accepted**. The selected `scale-repair-low` profile moved the camera closer
+and added neutral calibration rods, but `compare-screenshots` still recorded
+`parityDistance=0.25268` and `edgeEnergyRatio=0.13216`, and the unprimed
+critique verdict was **unfair scale**: the crop still reads as smooth ground with
+missing foreground blade/body mass, weak depth progression, and inconsistent crop
+surfaces. Treat that as the learning: the close lab cannot be made fair by camera
+and crop overlays while the grass body is visually absent. B4B1A0 has now landed
+and is accepted **only as a fair-with-caveats review surface**: the labeled
+close-lab target/absence/candidate sheets, fixed crop windows, and decision note
+live under
+`assets/03b4-evidence/03b4c5-close-foreground-lab/test-environment/`. It is not
+an accepted grass-body result; `compare-screenshots` still records
+`edgeEnergyRatio=0.11698`, and that body absence is exactly what B4B1A1 attacked.
+B4B1A1 has now recorded and rejected the body architecture matrix under
+`assets/03b4-evidence/03b4c5-close-foreground-lab/body-architecture-matrix/`:
+`texture-volume` is least wrong, but still reads as hanging curtain / hay-mat
+islands over exposed flat ground. Continue at
+`03b4c5b4b1a1r-texture-volume-continuity-repair.md`. B4B1A is now a
+parent/reslice memo, not one implementation slice: B4B1A0 built the fair close
+grass test environment, B4B1A1 compared body architecture candidates inside that
+fixed lab, B4B1A1R must repair the least-wrong `texture-volume` continuity, and
+B4B1A2 records the accepted architecture's perf envelope only after that repair
+succeeds. Only after those child slices should B4B2 tune coverage, B4B3 tune
+strand scale, B4B4 tune clump softness, B4B5 lock close palette/atlas
+integration, B4C0 prove the camera-relative backend seam, B4C1 add
+camera-relative cells/rings, B4C2 add slope/normal eligibility, B4C3 add surface
+tilt/tip blend, B4D1-D4 solve LOD collapse, and B4E return to grass-only
+reference compose.
 
 **Reslice correction (2026-07-01):** the previous plan was still too coarse. It
 kept asking grass, terrain, cliff, fog, and water slices to compare against the
@@ -54,6 +138,103 @@ compute + visible LOD index buffers + indirect draws if the CPU/packed-field
 version proves visually right but too CPU/upload heavy. Do not port Three.js/TSL,
 Leva, character push/waves, emissive/neon materials, or false-earth colours.
 
+**Camera-procedural correction (2026-07-01):** the current grass route is not yet
+procedurally generated from camera position like false-earth. Civsim has a
+snapped-focus CPU grass sampler and camera-aware selection/fading from stable
+world-space records. That is useful plumbing, but it does not create a
+camera-relative near/transition/mid grass domain with explicit snapped origin,
+cell/ring ids, churn/recycle telemetry, backend id, terrain-normal eligibility,
+and LOD buckets around the viewer. The false-earth repo uses the fuller form:
+grid snapping around the camera, GPU-computed blade placement/terrain/wind,
+packed 4-vec4 blade data, distance LOD draw buffers, and terrain-normal sampling.
+Civsim should borrow that architecture in stages, not port the app: prove close
+foreground grass first, run a backend/perf spike that treats camera-position
+procedural generation as the domain contract, add a CPU-first camera-relative
+domain, prove slope/normal eligibility and surface tilt, then solve LOD collapse.
+GPU-native generation is a backend behind that same record/domain seam, not a
+separate grass technique. Escalate to GPU compute/indirect only when the
+CPU/packed backend is visually right enough for the active gate and the perf
+evidence says CPU rebuild/upload is the blocker.
+
+**Third architecture reslice (2026-07-01):** answer the false-earth question this
+way: **grass should be procedurally generated from camera position in world space;
+GPU-native is an optional backend for that same camera-relative domain.** Do not
+build a separate GPU visual path that competes with the close-lab body decision.
+The spec now stages a dedicated `03B4C5B4C0` spike after the close lab body is
+accepted and before the camera-relative implementation:
+
+1. B4B1/B4B1R record that route/camera/proxy work alone is not a fair comparison
+   while the foreground body is missing.
+2. B4B1A0 builds the close grass test environment. It may use fixed CPU field
+   records because it is a lab, not the final camera-relative domain.
+3. B4B1A1 records the first close body primitive-family matrix; it rejected all
+   families, with `texture-volume` least wrong but not accepted.
+4. B4B1A1R repairs the least-wrong `texture-volume` continuity/primitive shape.
+5. B4B1A2 records the accepted family's density/perf envelope.
+6. B4B2-B4B4 tune coverage, strand scale, and clump rhythm in that fixed close
+   test surface.
+7. B4B5 locks close-lab palette, atlas opacity, and repeated-tile visibility
+   without changing density or body shape.
+8. B4C0 proves the camera-relative backend seam and perf gates without changing
+   the accepted look.
+9. B4C1-B4C3 implement snapped cells/rings, terrain eligibility, and tilt/tip
+   behavior behind the chosen seam.
+10. B4D1-B4D4 solve near/transition/mid LOD collapse in lab crops.
+11. B4E returns to the reference route and judges grass crops/masks only.
+12. 03B5 adopts the result only if gameplay readability and perf gates pass;
+    03B6 is pulled in only as a backend swap when B4C0 or 03B5 proves CPU/upload
+    cost is the blocker.
+
+**Close-grass workflow correction (2026-07-01):** do not keep tuning the wide
+`battle-map-reference` vista to discover foreground grass. That camera is too far
+out: the target's bottom foreground shows a close soft grass body with some
+strand direction, while the mid/background collapses into meadow mass where
+individual strands disappear. The next grass work therefore happens in a fixed
+close lab first:
+
+1. B4B1 creates the route/evidence surface and attempts to lock the
+   close/transition/mid review windows.
+2. B4B1R attempts camera scale/perspective repair with frozen grass inputs; the
+   latest evidence rejects it as still unfair because the body layer is absent.
+3. B4B1A0 creates the true close grass test environment; no body technique is
+   accepted here.
+4. B4B1A1 compares body techniques inside that fixed test environment and
+   records the first matrix; the current result is rejected.
+5. B4B1A1R repairs `texture-volume` continuity so the least-wrong family can
+   become an accepted architecture.
+6. B4B1A2 records the accepted architecture's perf budget and high-water mark.
+7. B4B2-B4B4 tune the chosen close body, strand scale, and clump rhythm.
+8. B4B5 locks the close-lab grass palette/atlas integration so colour is not
+   hidden inside density, camera, or fog work.
+9. B4C0 proves the camera-relative backend seam and perf envelope; it must not be
+   used as a shortcut to solve grass art.
+10. B4C then makes that accepted grass camera-relative; it must not be used as a
+    shortcut to solve grass art.
+11. B4D makes visible close strands collapse into mid/background meadow mass.
+12. B4E is the first return to the full reference route, and it judges grass masks
+    only.
+
+**B4C/B4D ordering decision (2026-07-01):** keep B4C before B4D for now because
+the near/transition/mid/far collapse bands should ride the accepted
+camera-relative domain seam. B4D is still a lab-crop visual gate, not a return to
+the wide reference scene. If B4B5 proves the fixed lab can solve the collapse
+cleanly without camera-relative records, stop and reslice before moving B4D ahead
+of B4C.
+
+**Distance-fog reuse correction (2026-07-01):** the latest water work already
+solved the right family of aerial perspective. The water shots under
+`web/shots/misc/water/` show the desired distant dissolve, especially
+`haze-gerstner.png` and `albedo-overcast.png`: far geometry fades into the
+environment clear/haze colour instead of leaving a hard horizon. Slice 06B should
+reuse that same contract for the battlemap's far ridges, far grass/meadow mass,
+and distant water: drive the blend from distance, fade glint/high-frequency
+detail as fog rises, and mix toward the active environment preset's haze colour
+(`WATER_ENVIRONMENTS.overcast.hazeColor` is the current overcast reference
+example, via `waterEnvironmentWgsl` / `waterShade`). Do not invent a private
+battlemap fog palette, and do not use fog to hide unfinished grass, cliff shape,
+or water placement; grass-lab slices must keep fog frozen until the dedicated
+06B pass.
+
 **Slice 03B2 approach/state (2026-07-01):** the current packed-field workbench
 uses the 03B1 records directly instead of another scatter path. `BattleGrassPass`
 now has a `packed-field` prep mode with a 4-vec4 instance layout: pose/terrain
@@ -66,6 +247,398 @@ scene and `web/shots/battle/grass/field-packed-tilt.png`. This workbench is a
 hostile slope/attribute fixture, not a reference-art fixture: it proves packing,
 stats, frame-graph placement, and slope rejection before 03B3 starts the meadow
 material.
+
+**Slice 03B3 approach/state (2026-07-01):** the recorded field-meadow path
+connects the 03B1 field records to `BattleGroundPass.setMeadowFromGrassField(...)`.
+The pass builds an
+`rgba8unorm` meadow texture where R is raw field density/mass, G is softened
+coverage/falloff, B carries clump/material weight, and A carries clump phase. The
+ground shader samples that texture through explicit meadow uniforms and publishes
+`ground.stats().meadow` telemetry (`source`, texture size/cell, field records,
+raw and soft coverage, average density/coverage, directional coverage, texture
+bytes). The focused proof route is
+`/renderer/battle-grass-field?mode=field-meadow`; the reference fixture now defaults
+to `grassTechnique=field-accent`, while `grassTechnique=field-meadow` remains the
+zero-blade material proof. For this meadow-material slice, `BattleGrassPass`
+allows `bladesPerTuft=0` only on the packed-field snapshot path, so the field can
+own meadow mass while `bladeInstances` and grass draw calls stay zero. Do not
+re-enable foreground blades to make the 03B3 crop look denser; that is 03B4.
+
+**Slice 03B3 visual learning (2026-07-01):** the field texture path is the
+right owner for broad meadow mass, but the visible pass is still wrong. The
+recorded path added a strict zero-blade field-meadow route, an RGBA field texture,
+meadow telemetry, a reference-only `fieldFloor`, damped directional ridges, and a
+screen-scale material thatch term. The focused scenes now pass, but
+`compare-screenshots` still reports weak foreground edge structure
+(`edgeEnergyRatio` about `0.208` for the foreground crop, `0.490` for midground),
+and a neutral critique said the candidate was **not ready**: it read as a smooth
+painted/combed terrain layer with a hard horizontal density band, not continuous
+meadow volume. 03B3A reduced the band; 03B3B then proved the remaining flatness is
+not solved well by material-only shader terms. Treat that as the handoff to 03B4,
+not as acceptance.
+
+**Slice 03B3 approach ledger (2026-07-01):** preserve the field-owned architecture,
+but stop broad shader knob-twiddling. 03B3 now has an accepted base-coverage
+approach and a rejected material-volume approach.
+
+- Keep: 03B1 field records, the 03B2 packed-field route, `BattleGroundPass`'s
+  field meadow texture, explicit meadow telemetry, and `grassBlades=0` while
+  judging the material.
+- Rejected as primary solutions: card-count density, terrain-only procedural
+  grass colour, a localized foreground oval, high `fieldFloor` alone, wider field
+  records alone, long directional ridge/streak detail, and screen-space speckle
+  that turns into combing or rows.
+- Accepted in 03B3A: separate **coverage ownership** from **visual material**.
+  The raw field channel proves ownership while a softened coverage channel drives
+  lower-third/midground falloff and reduces the hard band without adding blades.
+- Rejected in 03B3B: broad tonal volume from clump-local root pockets, lifted
+  centers, non-directional mottle, and restrained short thatch still reads as a
+  painted/combed plane. That evidence hands apparent volume to 03B4 geometry.
+- Future 03B work should only reopen these decisions if a new approach changes
+  the data contract; otherwise continue in 03B4.
+
+**Slice 03B3A/03B3B outcome (2026-07-01):** 03B3A landed the softened coverage
+channel. In the reference fixture, raw field coverage stays sparse
+(`fieldCoverage ~= 0.076`) while soft coverage rises to about `0.170`; `fieldFloor`
+was reduced to `0.07`, and the hard bright horizontal band is visibly reduced.
+Crop metrics improved from the prior zero-blade result (foreground parity distance
+about `0.396`, foreground edge ratio about `0.400`, midground edge ratio about
+`0.625`; artifacts in `/private/tmp/civsim-03b3-current/out/`). 03B3B is rejected
+as a material-only solution: Dalton's neutral critique says the zero-blade crop
+has continuous coverage but reads as a flat painted/combed plane, not soft meadow
+volume. Treat 03B3 as a field-owned base coverage layer and move foreground
+volume into 03B4 geometry.
+
+**Slice 03B4 WIP/learning (2026-07-01):** the reference fixture now supports
+`grassTechnique=field-accent`, and `/renderer/battle-grass-field?mode=field-accent`
+is the isolated proof route. `BattleGrassPass.setGrassFieldSnapshot(...)` can
+select a bounded near-depth subset of the 03B1 field records when blades are
+enabled, keeping `ground.stats().meadow.source === 'field'` as the mass owner.
+Slice 03B4A added `accentStyle` plumbing and route stats for `tuft`,
+`root-shadow`, `fiber-ribbon`, and `hybrid-root-fiber`; the default WIP is now
+`root-shadow`, which submits about `41600` reference-route triangles, roughly half
+the rejected old tuft path. This is useful infrastructure, **not visual
+acceptance**. Target-vs-candidate crop comparison still reports weak grass edge
+structure: foreground `edgeEnergyRatio ~= 0.44`, midground `~= 0.60`. The neutral
+review says the candidate is still too smooth and sparse, with almost no
+fuzzy/clumped volume, weak density falloff, and tiny speckles that read as noise
+or flowers rather than grass.
+
+**Slice 03B4 reslice (2026-07-01):** the first primitive matrix is recorded under
+`assets/03b4-evidence/`. Continue with smaller contracts:
+
+- `03b4a-accent-candidate-workbench.md` — landed candidate plumbing and recorded
+  the first rejected primitive matrix.
+- `03b4b-clump-root-shadow-volume.md` — clump aggregation/stats landed; hard
+  root-mark visuals rejected.
+- `03b4b2-soft-root-mass-impostor.md` — soft root material/stats landed; visual
+  rejected as smooth painted/combed carpet.
+- `03b4c-near-fiber-ribbon-silhouette.md` — clump-emitted `soft-root-fiber`
+  plumbing and ribbon stats landed; visual rejected as sparse flecks over smooth
+  carpet.
+- `03b4c2-near-field-fiber-shell.md` — field-shell telemetry landed; visual
+  rejected as smooth sheet with faint streaks despite 5200 shell records.
+- `03b4c3-fiber-visibility-and-shading.md` — shell harness/telemetry landed;
+  one-strip primitive rejected after material, width, lift, and view-thickness
+  tests.
+- `03b4c4-near-grass-volume-primitive-workbench.md` — primitive-family workbench
+  landed; mesh-only alternate families rejected as sparse marks/stamps.
+- `03b4c5-texture-backed-grass-volume.md` — parked parent/ledger; real atlas telemetry and
+  field-cell aggregation landed; atlas/distribution and density/soft-coverage
+  passes are recorded, but the crop still reads as sparse repeated flecks/stamps
+  over exposed smooth meadow.
+- `03b4c5a-density-and-soft-coverage-record.md` — density and soft shader
+  coverage pass landed/rejected; useful data, not an accepted visual.
+- `03b4c5b-card-cell-distribution-and-scale.md` — verified/rejected; placement,
+  layering, orientation, footprint, and primitive scale still read as sparse
+  flecks.
+- `03b4c5b2-continuous-coverage-carrier-spike.md` — verified/rejected; large
+  carrier sheets read as hard straw/wire islands.
+- `03b4c5b3-micro-blade-density-carrier-spike.md` — verified/rejected; many
+  smaller field-owned carrier primitives are mostly invisible or pixel grit at
+  the reference camera.
+- `03b4c5b4-minimum-visible-grass-body-carrier.md` — reslice memo; do not
+  implement as one wide-reference-camera body-carrier pass.
+- `03b4c5b4a-foreground-grass-scale-and-crop-contract.md` — accepted as
+  crop-scale diagnosis; red close crop is the strong target, orange/blue are
+  context only.
+- `03b4c5b4b-close-foreground-grass-hero-lab.md` — parent memo only; resliced
+  into B4B1, B4B1R, B4B1A, and B4B2-B4B5.
+- `03b4c5b4b1-close-foreground-grass-lab-route.md` — route/evidence landed, but
+  review scale rejected by neutral critique; keep as reproducible absence
+  evidence.
+- `03b4c5b4b1r-close-lab-scale-and-perspective-repair.md` — camera/proxy repair
+  attempted and rejected; the crop still cannot be fairly compared without a real
+  foreground body layer.
+- `03b4c5b4b1a-close-body-technique-spike.md` — parent/reslice memo only;
+  do not implement as one combined test-env/technique/perf pass.
+- `03b4c5b4b1a0-close-grass-test-environment.md` — accepted as a labeled,
+  fair-with-caveats close-lab review surface; not an accepted body visual.
+- `03b4c5b4b1a1-close-body-architecture-matrix.md` — next technique matrix;
+  choose the least-wrong close body architecture inside the accepted lab.
+- `03b4c5b4b1a2-close-body-perf-envelope.md` — future density/perf envelope for
+  the selected body architecture before tuning coverage.
+- `03b4c5b4b2-close-body-coverage.md` — future dense soft body / exposed-ground
+  pass.
+- `03b4c5b4b3-close-strand-scale.md` — future close strand size and direction
+  pass.
+- `03b4c5b4b4-clump-softness-height-variation.md` — future clump envelope and
+  height rhythm pass.
+- `03b4c5b4b5-close-palette-and-atlas-lock.md` — future close-lab colour/atlas
+  lock after density, strand scale, and clump rhythm are accepted.
+- `03b4c5b4c-camera-relative-procedural-field-generation.md` — parent memo only;
+  resliced into B4C0-B4C3.
+- `03b4c5b4c0-camera-relative-backend-spike.md` — future backend/perf spike;
+  camera-position procedural is the domain, CPU is the first backend, and
+  GPU-native is only an optional backend behind the same seam.
+- `03b4c5b4c1-camera-relative-field-domain.md` — future CPU-first snapped
+  cells/rings, origin stability, and churn telemetry.
+- `03b4c5b4c2-terrain-normal-slope-eligibility.md` — future terrain-normal
+  attributes and slope/water/tint rejection.
+- `03b4c5b4c3-surface-tilt-tip-blend.md` — future base seating and tip-upward
+  recovery.
+- `03b4c5b4d-depth-lod-mass-collapse.md` — parent memo only; resliced into
+  B4D1-B4D4.
+- `03b4c5b4d1-lod-band-contract.md` — future near/transition/mid/far ownership
+  bands and telemetry.
+- `03b4c5b4d2-near-to-transition-collapse.md` — future readable-strand to soft-body
+  transition pass.
+- `03b4c5b4d3-mid-mass-continuity.md` — future continuous meadow mass pass.
+- `03b4c5b4d4-depth-falloff-sequence.md` — future close/transition/mid sequence
+  pass.
+- `03b4c5b4e-grass-only-reference-crop-compose.md` — future grass-only return to
+  `battle-map-reference`.
+- `03b4c5c-atlas-tile-content-and-color-integration.md` — future pass only after
+  B4A, B4B1/B4B1R evidence, B4B1A0-B4B1A2, B4B2-B4B5, B4C0-B4C3, B4D1-B4D4, and
+  B4E prove close body, close palette, camera-relative generation, LOD, and
+  reference grass crops.
+- `03b4c5d-midground-continuity-and-depth-falloff.md` — future pass only inside
+  the accepted camera-relative LOD architecture.
+- `03b4d-depth-lod-compose.md` — compose near/mid/far ownership before 03B5.
+
+**Slice 03B4B result/reslice memo (2026-07-01):** the data architecture moved in
+the right direction, but the visual did not. `BattleGrassPass.setGrassFieldSnapshot`
+now supports `accentAggregation='clump'`, `accentMaxClumps`,
+`accentClumpFootprint`, and stats for `accentSourceRecords`, `accentClumps`, and
+submitted `accentTufts`. The reference route currently reports `7000` field
+records, `157` clump groups, `452` submitted root-shadow instances, and about
+`25312` submitted triangles; the old rejected tuft path was about `83200`
+triangles. This proves clump-bounded ownership and should stay. However the hard
+geometry primitive is still wrong. Wide diamond marks, broad oval marks, and a
+short root-fiber mat all read as separated olive stains/glyphs on a smooth plane.
+`compare-screenshots` on `assets/03b4-evidence/03b4b-root-fiber-mat/` reports
+foreground `edgeEnergyRatio=0.287` and midground `0.448`; a neutral crop review
+says Image B has flat decal blobs, sparse/uniform density, smooth painted-plane
+areas, and glyph/stipple artifacts. 03B4B2 kept the clump reducer and moved root
+mass into an explicit material layer; that removed hard glyphs but still failed
+the density target.
+
+**Slice 03B4B2 result/reslice memo (2026-07-01):** `GrassAccentStyle` now includes
+`soft-root-mass`, and `BattleGroundPass.setMeadowFromGrassField(...)` owns a
+stats-visible root material channel (`rootMassStrength`, `rootMassContrast`,
+`rootMassSpread`, `rootMassEnabled`, `rootMassCoverage`, `rootMassAvg`). The
+reference route currently reports `7000` field records, `157` clump groups,
+`452` submitted soft-root accents, `18080` submitted accent triangles,
+`rootMassCoverage=0.061`, and `rootMassAvg=0.055`. This proves a cheaper
+soft-root architecture and removes the hard decal/glyph marks, but the visual is
+still rejected. Compare artifacts under
+`assets/03b4-evidence/03b4b2-soft-root-mass/` report foreground
+`edgeEnergyRatio=0.433` and midground `0.760`; the neutral critique says Image B
+is a smooth painted carpet with no blade silhouettes, clumps, or height
+variation, and the texture streaks make the ground plane feel stretched. 03B4C
+kept meadow/root/camera/fog/terrain fixed and added `soft-root-fiber`
+clump-ribbon geometry from the clump emitters, but that also failed: the
+reference route reports `7000` field records, `157` clumps, `452` accents,
+`2260` accent ribbons, `64` mesh triangles, `28928` submitted accent triangles,
+and `rootMassStrength=1.24`, yet foreground edge ratio stays about `0.435` and
+midground about `0.761`. The learning is that 157 clump emitters are too sparse at
+the reference camera; adding more geometry per clump becomes flecks/stipple before
+it becomes dense grass. The neutral review called the candidate a flat green
+surface with occasional yellow/brown scratches or speckles, inconsistent fiber
+scale, radial/streaming ground streaks, and collapsed scan readability; the target
+has the stronger grass-density read even though its grass is blurred/soft. Resume
+at
+`slices/03b4c2-near-field-fiber-shell.md`: keep meadow/root/camera/fog/terrain
+fixed and test a separate near-field fiber ownership layer fed by field records,
+with strict near-depth, ribbon, selected-record, and triangle telemetry.
+
+**Slice 03B4C2 result/reslice memo (2026-07-01):** `GrassAccentStyle` now
+includes `field-fiber-shell`, `GrassAccentAggregation` includes `field-near`, and
+`BattleGrassStats` reports field-shell source records, selected records, ribbons,
+depth band, selected ratio, and submitted triangles. The workbench and reference
+route now prove the default accent path is field-owned rather than clump-owned.
+The current reference route reports `7000` field records, `5200` shell records,
+`5200` shell ribbons, `fiberShellSelectedRatio=0.743`, `meshTriangles=8`, and
+`submittedTriangles=41600`. This is useful architecture but still visually
+rejected. Compare artifacts under
+`assets/03b4-evidence/03b4c2-field-fiber-shell/` report foreground
+`edgeEnergyRatio=0.301` and midground `0.476`; neutral critique says the
+candidate is missing near-field grass silhouette, has uniform density falloff,
+scratch/streak artifacts, artificial ground-plane perspective, low edge detail,
+weak terrain readability, too-even lighting, tiny stipple noise, and scale
+mismatch. The next missing variable was primitive visibility/material shading, not
+more field-shell count; 03B4C3 then proved the one-strip primitive still fails.
+
+**Slice 03B4C4 result/reslice memo (2026-07-01):** the primitive-family workbench
+landed and is useful evidence, but it did not find an accepted mesh-only path.
+The reference scene now captures `field-fiber-shell`, `alpha-impostor`,
+`billboard-cluster`, and `volume-card` from the same camera and crop. The three
+new families use the clump reducer (`157` clumps, `452` submitted accents) and
+stay below the old rejected all-card tuft cost (`25312..28928` triangles versus
+`83200`), but they still read as sparse marks over a painted meadow. The
+`alpha-impostor` route is only a mesh-stroke stand-in, not a real alpha texture
+yet, and texture telemetry correctly reports zero bytes. Compare artifacts under
+`assets/03b4-evidence/03b4c4-near-grass-volume-primitive-workbench/` show
+foreground edge ratios of about `0.302` for the shell baseline, `0.338` for the
+mesh alpha stand-in, `0.322` for billboard clusters, and `0.321` for volume
+cards; midground stays around `0.475..0.490` for all families. Neutral review
+says `field-fiber-shell` is least wrong only because it has the smoothest falloff
+and avoids loud card artifacts; it still reads as flat brushed terrain with weak
+clumping and almost no upright blade silhouette. Resume at
+`slices/03b4c5-texture-backed-grass-volume.md`.
+
+**Slice 03B4C5 WIP/approach memo (2026-07-01):** the texture-backed route now
+exists, publishes real atlas telemetry, and is green in the primitive-family
+harness, but it is still a rejected visual. `texture-volume` keeps the same
+field records, camera, crop windows, softened meadow, and root material. The
+first attempt reused clump aggregation and failed as large sparse texture stamps.
+The route then switched to `field-cell` aggregation, proving denser field-owned
+texture ownership under the old rejected card cost. A follow-up atlas and
+distribution pass muted/shortened generated strokes, darkened rooted bases,
+clamped tile strokes, added deterministic sub-cell jitter, widened yaw jitter,
+and narrowed cards. The 03B4C5A density/soft-coverage pass then layered up to two
+records per selected field cell, capped the texture card mesh at 20 triangles,
+used lower-alpha meadow-coloured shader coverage, and raised current stats to
+`accentClumps=1900`, `accentTufts=2064`, `bladeInstances=8256`,
+`submittedTriangles=41280`, and `textureBytes=65536`. This moved target-crop
+foreground `edgeEnergyRatio` to `0.73170`, but midground stayed weak at
+`0.48966`; against the field-fiber-shell baseline, foreground edge energy became
+`2.42334x` while midground was only `1.02795x`. Neutral review still rejected
+the result: the candidate is too sparse, reads as repeated stamps/cards/flecks
+with wrong scale, lacks fuzzy continuous grass volume, leaves too much flat
+ground plane exposed, and has poor depth falloff.
+
+**Slice 03B4C5B verified result (2026-07-01):** the placement/scale-only pass is
+also **visually rejected**. It kept atlas content, shader coverage, meadow/root
+material, camera, terrain, fog, and the 1900-cell budget fixed while changing
+field-cell placement: `aggregateFieldCellAccentRecords(...)` distributes selected
+cells across view-depth/lateral buckets instead of taking only the highest-scored
+patch islands; field-cell yaw mixes camera-facing and source-record yaw; cells
+with at least two source records can emit two layers; texture records use more
+off-center jitter plus adjusted footprint/width/height/copy offset; and the
+texture card mesh remains 20 triangles per record with more local yaw variation.
+The current browser evidence reports `accentClumps=1900`, `accentTufts=2064`,
+`bladeInstances=8256`, `submittedTriangles=41280`, and `textureBytes=65536`.
+Against target crops, foreground `edgeEnergyRatio=0.55962` and midground
+`0.48684`; against the field-shell baseline, foreground edge energy is
+`1.85248x` while midground is only `1.02238x`. The full shot and crops still read
+as sparse clumps/flecks over a smooth painted meadow. The unprimed visual critique
+agreed: sparse clustering breaks continuity, individual primitives are too
+legible, depth falloff is abrupt, ground-plane exposure dominates, rows/arcs are
+visible, integration is weak, and the midground adds almost no vegetation read.
+Treat 03B4C5B as evidence that placement/scale alone is not enough; do not move
+to 03B4C5C as if distribution were accepted.
+
+**Slice 03B4C5B2 verified result (2026-07-01):** the continuous carrier spike is
+browser-verified and **visually rejected**. It added `texture-carrier` as a
+separate primitive family, extended the primitive-family capture, and added a
+`battle-grass-field` route contract. The reference route reports `2400`
+field-cell carrier records, `9600` blade instances, `16` mesh triangles per
+record, `38400` submitted triangles, `65536` texture bytes, and a `35..460`
+depth band versus texture-volume's `35..360`. This proves a cheaper same-atlas
+carrier path under the old rejected card budget, but the visible result fails
+the slice target. Against target crops, foreground edge energy overshoots to
+`2.80502x` with `parityDistance=0.61239` and
+`avgLuminanceDelta=-27.67254`; midground remains under target at `0.71075x`
+edge energy with `parityDistance=0.57717` and `avgLuminanceDelta=-46.24101`.
+Against the field-shell baseline, foreground edge energy jumps `9.22257x` while
+midground reaches only `1.47418x`; the movement is hard stick/card structure, not
+soft grass body. The unprimed critique rejected it with high confidence: patchy
+coverage islands, exposed ground plane, stick/wire primitives, too-large
+foreground scale, weak terrain integration, collapsed midground vegetation, and
+an abrupt depth transition. Keep the telemetry route and evidence, but reject
+large overlapping field-cell sheets as the coverage carrier.
+
+**Slice 03B4C5B3 verified result (2026-07-01):** the micro-blade density carrier
+spike is browser-verified and **visually rejected**. It added
+`texture-micro-carrier` as a separate same-atlas primitive family and published
+micro-card telemetry. The reference route reports `4600` selected field cells,
+`7000` emitted micro carrier records, `28000` micro cards, `8` mesh triangles per
+record, `56000` submitted triangles, `448000` instance bytes, `65536` texture
+bytes, and the same `35..460` depth band as B2. This proves a fixed-density,
+fine-carrier path below the old all-card warning line, but the visible result
+fails the slice target. Against target crops, foreground edge energy is only
+`0.27844x` with `parityDistance=0.47629` and
+`avgLuminanceDelta=-21.85549`; midground is `0.37539x` with
+`parityDistance=0.64696` and `avgLuminanceDelta=-45.88860`. Against the
+field-shell baseline, the micro path barely moves the image
+(`parityDistance=0.02108` foreground, `0.05422` midground). Direct inspection and
+unprimed critique agree: the full shot still reads as flat green terrain with
+scattered dark/brown specks, weak midground vegetation, abrupt depth falloff, and
+pixel-grit primitives rather than grass body. Density/count is not the missing
+variable.
+
+**Slice 03B4C5B4 reslice (2026-07-01):** the old fixed-density body-carrier pass
+is now parked as too coarse. The current reference shot is not a valid close
+foreground grass discovery surface because it is too zoomed out relative to the
+target's lower foreground. B4A produced a labeled absence-probe crop board and is
+accepted as crop-scale diagnosis only: red close-hero is the strong handoff crop;
+orange transition and blue mid-mass are weak target-derived context cues, not
+acceptance gates. B4B1 must create clean lab-owned transition and mid-mass
+review windows before later LOD slices rely on those variables. B4B1R attempted
+that failed scale/perspective gate with neutral calibration proxies and is now
+recorded as rejected: the missing variable is foreground body, not more camera
+overlay tuning. Split the remaining work into B4B1 lab route/review windows, B4B1R
+rejected scale/perspective repair evidence, B4B1A0 close grass test environment,
+B4B1A1 body-architecture matrix, B4B1A1R texture-volume continuity repair, B4B1A2
+body perf envelope, B4B2 close body coverage, B4B3 close strand scale, B4B4
+clump softness/height rhythm, B4C0
+backend/perf spike, B4C1
+camera-relative cells/rings, B4C2 terrain-normal eligibility, B4C3
+surface-tilt/tip blend, B4D1 band contract, B4D2 transition collapse, B4D3
+mid-mass continuity, B4D4 depth sequence, and B4E grass-only reference compose.
+Do not move to atlas colour, midground polish, fog, camera, terrain, water,
+cliffs, or sky until that ladder proves close foreground grass and depth collapse
+on their own evidence.
+
+**Slice 03B4C5B4B1 WIP/rejection memo (2026-07-01):** the focused route now
+exists at `/renderer/battle-grass-field?mode=foreground-close-lab`, with matching
+`battle-grass-field` and `renderer-lab-routes` coverage. Evidence is archived in
+`assets/03b4-evidence/03b4c5-close-foreground-lab/lab-route/`: full shot,
+crop board, target/lab close crops, 2x/4x crops, transition/mid crops, rejected
+family contact sheet, comparison artifacts, and `route-stats.json`. The default
+lab uses the same field-owned meadow/root material and packed-field plumbing as
+the existing grass route (`camera={x:0,y:-36,zoom:104,pitch:0.78,yaw:-0.08}`,
+`1554` accepted field records, `1343` field-fiber-shell tufts, `10744` submitted
+triangles). That is good infrastructure, but it fails the slice acceptance. The
+target close crop is `760x180`; the lab close crop is `815x182` and was
+center-cropped only for metric comparability. The normalized comparison reports
+`parityDistance=0.25805`, `edgeEnergyRatio=0.13997`, and much weaker edge detail
+in the lab. The unprimed critique verdict was **unfair scale**, citing flat
+green ground, missing close blade/body depth, weak ground-plane perspective,
+uniform low-contrast lighting, smear/blur, artifact-like isolated strokes, and
+transition/mid crops that do not yet support judging close grass quality. Treat
+B4B1 as a route/evidence landing and failed scale attempt. The B4B1R repair,
+B4B1A0 test environment, and B4B1A1 body matrix have now been attempted; B4B1A0
+is accepted as the fixed review surface, and B4B1A1 rejected every current family,
+so resume at B4B1A1R for `texture-volume` continuity repair.
+
+**Slice 03B4C5B4B1R rejection memo (2026-07-01):** the scale-repair route added
+named camera profiles and selected `scale-repair-low`
+(`camera={x:0,y:-47,zoom:155,pitch:0.92,yaw:-0.06,perspective:0.030}`) with
+neutral calibration guides and evidence under
+`assets/03b4-evidence/03b4c5-close-foreground-lab/scale-repair/`. The inputs were
+kept frozen: same field records, seed, meadow/root base, and
+`field-fiber-shell` primitive family. The repair improved the review surface as
+infrastructure but failed visual acceptance. The selected close crop still does
+not match the target body read (`parityDistance=0.25268`,
+`edgeEnergyRatio=0.13216`), and the unprimed critique verdict was **unfair
+scale**: the crop is smooth green ground with faint smears/scratches, weak
+close/transition/mid progression, inconsistent crop dimensions, and no dense
+vertical grass body. Do not spend another pass on camera/crop/proxy calibration
+alone. B4B1A0 has since built the fair close foreground grass test environment;
+resume at `slices/03b4c5b4b1a1-close-body-architecture-matrix.md` before full
+vista or camera-relative domain work is touched.
 
 Slice 00 now has a real side-by-side workbench:
 `visualizations/target-vs-current.html` points at the committed
@@ -84,6 +657,7 @@ more oblique than the old fixed camera (`pitch=1.02`, `perspective=0.006`), whil
 the mid zoom remains in the playable RTS pitch band.
 
 Final verification:
+
 - `node --experimental-strip-types --test tests/cameraRig.test.ts`
 - `./node_modules/.bin/tsc --noEmit`
 - `npm run build`
@@ -109,6 +683,7 @@ review-only wind GIF is
 `web/shots/models/shared/grass/anim/flat-field.gif`.
 
 Final Slice 02 verification:
+
 - `node --experimental-strip-types --import ./tests/register-ts-extension-loader.mjs --test tests/cameraRig.test.ts tests/grassModels.test.ts`
 - `npx tsc --noEmit`
 - `npm run build`
@@ -209,14 +784,42 @@ slice until the neutral reviewer says the camera/content relationship is
 comparable.
 
 Repair path for the next pass:
+
 - Keep iterating from the `highland-valley` fixture path; it is the current honest
   comparison surface until Slice 08 turns the composition into a real playable map.
-- Continue with **Slice 03B3 field-driven meadow material** and then
-  **Slice 03B4 false-earth blade accents**. Meadow mass and foreground geometry
-  stay separate review variables.
+- Continue at **Slice 03B4C5B4B1A1R texture-volume continuity repair**.
+  03B3A
+  already accepted the softened field-coverage layer, 03B3B records why
+  material-only meadow volume is insufficient, 03B4B records why hard root
+  geometry fails, 03B4B2 records why soft material root mass alone still reads
+  flat, 03B4C records why clump-emitted `soft-root-fiber` ribbons are too sparse
+  at this camera, 03B4C2 records why field-owned shell counts alone are
+  insufficient, and 03B4C3 records why one-strip shell primitive visibility still
+  fails. 03B4C4 records why mesh-only alternate families still become sparse
+  marks before they become grass. 03B4C5 now proves a real texture-backed route,
+  and 03B4C5A records that increasing data density plus softer shader coverage
+  improves foreground edge energy but still produces sparse repeated stamps over
+  flat exposed meadow. 03B4C5B then records that placement/scale-only tuning still
+  reads as isolated flecks and barely moves the midground. 03B4C5B2 then records
+  that fewer large overlapping carrier sheets move foreground edge energy but read
+  as hard straw/wire islands with exposed gaps. 03B4C5B3 then records that
+  shrinking/increasing carriers to `7000` records / `28000` micro cards barely
+  moves the field-shell crop and reads as specks/grit. The next issue is now
+  close grass body inside B4B1A0's accepted fair-with-caveats lab: B4B1A1 body
+  architecture matrix has now failed with `texture-volume` least wrong but still
+  visibly curtain/island-bound, so B4B1A1R repairs that continuity before B4B1A2
+  local perf envelope, B4B2
+  coverage, B4B3 strand scale, B4B4 clump rhythm, and B4B5 close palette/atlas
+  lock. Only after that should B4C0 define the camera-relative backend seam,
+  B4C1-B4C3 add procedural cells/rings and terrain response, and B4D1-D4 prove
+  near/transition/mid LOD collapse in lab crops before B4E returns to the
+  reference route. Keep meadow mass, root material, atlas content, shader
+  coverage, density budget, carrier ownership, camera-relative domain, and
+  foreground silhouette as separate review variables. Do not compensate for the
+  current zoomed-out shot by changing grass constants in the full vista.
 - Use **Slice 03B5 readability/perf** before adopting the architecture broadly.
-  Implement **Slice 03B6 GPU compute/indirect** only if the accepted CPU/packed
-  field path is too expensive.
+  Implement **Slice 03B6 GPU compute/indirect** only if B4C0 or 03B5 proves the
+  accepted CPU/packed field path is too expensive.
 - Then continue through the isolated open slices: grass color/texture, valley
   relief silhouette, cliff silhouette, cliff texture, sky plate, distance fog,
   water placement, water material, and only then final composition.
@@ -225,12 +828,14 @@ Repair path for the next pass:
   it is allowed to judge and which visible wrongness belongs to later slices.
 
 Previous broad Slice 03 repair verification:
+
 - `node --experimental-strip-types --import ./tests/register-ts-extension-loader.mjs --test tests/cameraRig.test.ts tests/grassModels.test.ts`
 - `npx tsc --noEmit`
 - `npm run build`
 - `VERIFY_URL=http://127.0.0.1:5174 VERIFY_GPU=1 VERIFY_GPU_ADAPTER=hardware VERIFY_BROWSER_CHANNEL=chrome node scene.mjs battle-map-reference battle-grass shared-grass-models battle-terrain-3d battle-terrain-features battle-terrain-elevation battle-renderer-visual battle-input full-game-rendering-performance`
 
 Latest focused verification for the overcast fixture/backdrop pass:
+
 - `node --experimental-strip-types --import ./web/tests/register-ts-extension-loader.mjs --test web/tests/cameraRig.test.ts web/tests/grassModels.test.ts`
 - `npx tsc --noEmit`
 - `npm run build`
@@ -238,10 +843,12 @@ Latest focused verification for the overcast fixture/backdrop pass:
 - `VERIFY_URL=http://localhost:5174 VERIFY_GPU=1 VERIFY_GPU_ADAPTER=hardware VERIFY_BROWSER_CHANNEL=chrome node scene.mjs battle-map-reference battle-grass battle-terrain-3d battle-terrain-blockers battle-terrain-elevation`
 
 Latest Slice 03B1 verification:
+
 - `node --experimental-strip-types --import ./web/tests/register-ts-extension-loader.mjs --test web/tests/grassField.test.ts`
 - `./node_modules/.bin/tsc --noEmit`
 
 Latest Slice 03B2 verification:
+
 - `node --experimental-strip-types --import ./web/tests/register-ts-extension-loader.mjs --test web/tests/grassField.test.ts`
 - `./node_modules/.bin/tsc --noEmit`
 - `npm run build`
@@ -273,16 +880,42 @@ debt:
 - grass/ground detail is soft and scale-blurry;
 - roads, water, labels, and icon styling are not covered by this camera sheet.
 
-**Next pickup:** implement `slices/03b3-field-driven-meadow-material.md`. The
-03B3 pass should consume the same field/clump records to create continuous
-lower-third meadow mass. Do not tune cliffs, cliff texture, fog, water, sky, final
-composition, or foreground blade count in that pass.
+**Next pickup:** implement
+`slices/03b4c5b4b1a1r-texture-volume-continuity-repair.md`. Preserve the
+03B4C3 shell harness, 03B4C4 primitive-family workbench, 03B4C5A
+density/soft-coverage record, 03B4C5B placement/scale rejection, 03B4C5B2
+carrier-sheet rejection, 03B4C5B3 micro-density rejection, B4A target crop
+contract, B4B1 lab-route evidence, B4B1R scale-repair rejection, and B4B1A0
+test-environment acceptance as evidence
+surfaces, not as visuals to keep polishing. B4A's artifacts live under
+`assets/03b4-evidence/03b4c5-close-foreground-lab/target-crop-contract/`; B4B1's
+failed lab evidence lives under
+`assets/03b4-evidence/03b4c5-close-foreground-lab/lab-route/`; B4B1R's failed
+scale-repair evidence lives under
+`assets/03b4-evidence/03b4c5-close-foreground-lab/scale-repair/`; B4B1A0's
+accepted fair-with-caveats lab lives under
+`assets/03b4-evidence/03b4c5-close-foreground-lab/test-environment/`. Use the red
+close-hero crop and labeled B4B1A0 sheets as the strong target/review surface,
+but do not compare the final wide `battle-map-reference` vista while repairing
+the body architecture. B4B1A1 kept camera, terrain, fog, lighting, palette,
+meadow/root base, crop windows, and target/absence sheets fixed while it tried
+body primitive families. `texture-volume` was least wrong, and the neutral
+critique would continue with it, but both direct inspection and the critique
+named the same disqualifying hanging-curtain / hay-mat island artifact. B4B1A1R
+must change only texture-volume continuity/primitive shape until that artifact is
+gone. B4B1A2 then records the accepted body's density/perf envelope. Then
+continue with B4B2 body coverage, B4B3 strand scale, B4B4 clump
+softness, B4B5 close palette/atlas lock, B4C0 backend/perf spike,
+B4C1 camera-relative domain, B4C2 slope/normal eligibility, B4C3 surface
+tilt/tip blend, B4D1-D4 LOD collapse, and B4E grass-only reference compose. Do
+not move to 03B4C5C reference-route atlas polish until that ladder proves close
+body, camera-relative generation, LOD collapse, and reference grass crops.
 
 Every visual slice (01–08) ends with three distinct gates:
 `screenshot-regression` for baseline stability, `compare-screenshots` against the
 owning target crop/mask for that slice's visual variable, and an unprimed
 `screenshot-critique` or neutral subagent review that is told which variable is in
-scope. A green snapshot proves *unchanged*, never *good*.
+scope. A green snapshot proves _unchanged_, never _good_.
 
 `compare-screenshots` is the reference-facing gate. It must establish the target
 from first principles, confirm the candidate/reference captures are comparable for
@@ -294,7 +927,9 @@ slice. If the current variable cannot yet be fairly compared, record that as "bo
 wrong / another pass needed" rather than accepting on snapshot stability.
 
 **Update this section before you end your pass** — move the status, record what
-landed, and point at the next pickup slice.
+landed, point at the next pickup slice, and include the implementation approach,
+rejected approaches, and visual learnings that a future goal pass would otherwise
+have to rediscover.
 
 ### Global TODO
 
@@ -305,8 +940,48 @@ landed, and point at the next pickup slice.
 - [x] **Slice 03B** — foreground grass density architecture spike (`slices/03b-foreground-grass-density.md`) — evidence recorded, visual target not accepted
 - [x] **Slice 03B1** — grass field baseline and data contract (`slices/03b1-field-baseline-and-data-contract.md`)
 - [x] **Slice 03B2** — packed-attribute slope tilt spike (`slices/03b2-packed-attribute-slope-tilt.md`)
-- [ ] **Slice 03B3** — field-driven meadow material (`slices/03b3-field-driven-meadow-material.md`)
-- [ ] **Slice 03B4** — false-earth blade accents (`slices/03b4-false-earth-blade-accents.md`)
+- [x] **Slice 03B3A** — field meadow coverage and transition floor (`slices/03b3a-field-meadow-coverage-floor.md`) — softened coverage channel landed; visual base still not final
+- [x] **Slice 03B3B** — material-only meadow volume proxy / handoff decision (`slices/03b3b-material-volume-proxy.md`) — material-only volume rejected; handed to 03B4 geometry
+- [x] **Slice 03B4A** — accent candidate workbench (`slices/03b4a-accent-candidate-workbench.md`) — named primitive plumbing landed; visual candidates rejected/recorded
+- [x] **Slice 03B4B** — clump root-shadow aggregation (`slices/03b4b-clump-root-shadow-volume.md`) — clump stats landed; visible root marks rejected
+- [x] **Slice 03B4B2** — soft root-mass impostor (`slices/03b4b2-soft-root-mass-impostor.md`) — soft material/stats landed; visual rejected as smooth painted/combed carpet
+- [x] **Slice 03B4C** — near fiber ribbon silhouette (`slices/03b4c-near-fiber-ribbon-silhouette.md`) — `soft-root-fiber` telemetry landed; visual rejected as sparse flecks over smooth carpet
+- [x] **Slice 03B4C2** — near field fiber shell (`slices/03b4c2-near-field-fiber-shell.md`) — field-shell telemetry landed; visual rejected as smooth sheet with faint streaks
+- [x] **Slice 03B4C3** — fiber visibility and shading (`slices/03b4c3-fiber-visibility-and-shading.md`) — harness/telemetry landed; one-strip primitive rejected after material and bounded-primitive tests
+- [x] **Slice 03B4C4** — near grass volume primitive workbench (`slices/03b4c4-near-grass-volume-primitive-workbench.md`) — workbench/telemetry landed; mesh-only families rejected as sparse marks
+- [x] **Slice 03B4C5** — texture-backed grass volume (`slices/03b4c5-texture-backed-grass-volume.md`) — parked parent/ledger; texture route/telemetry exists, visual remains rejected, and follow-up work is resliced below
+- [x] **Slice 03B4C5A** — density and soft coverage record (`slices/03b4c5a-density-and-soft-coverage-record.md`) — landed/rejected; higher foreground edge energy still reads as sparse stamps/flecks
+- [x] **Slice 03B4C5B** — card/cell distribution and primitive scale (`slices/03b4c5b-card-cell-distribution-and-scale.md`) — verified/rejected; placement/scale alone still reads as sparse flecks
+- [x] **Slice 03B4C5B2** — continuous coverage carrier spike (`slices/03b4c5b2-continuous-coverage-carrier-spike.md`) — landed/rejected; large carrier sheets read as hard straw/wire islands
+- [x] **Slice 03B4C5B3** — micro-blade density carrier spike (`slices/03b4c5b3-micro-blade-density-carrier-spike.md`) — landed/rejected; many micro carriers read as invisible specks/pixel grit
+- [x] **Slice 03B4C5B4** — minimum visible grass-body carrier (`slices/03b4c5b4-minimum-visible-grass-body-carrier.md`) — resliced into finer child slices; no renderer pass
+- [x] **Slice 03B4C5B4A** — foreground grass scale and crop contract (`slices/03b4c5b4a-foreground-grass-scale-and-crop-contract.md`) — accepted as crop-scale diagnosis; red close crop is strong, orange/blue context only
+- [x] **Slice 03B4C5B4B** — close foreground grass hero lab parent (`slices/03b4c5b4b-close-foreground-grass-hero-lab.md`) — resliced into B4B1, B4B1R, B4B1A, and B4B2-B4B5; no renderer pass
+- [x] **Slice 03B4C5B4B1** — close foreground grass lab route (`slices/03b4c5b4b1-close-foreground-grass-lab-route.md`) — route/evidence landed; camera scale rejected
+- [x] **Slice 03B4C5B4B1R** — close lab scale and perspective repair (`slices/03b4c5b4b1r-close-lab-scale-and-perspective-repair.md`) — attempted/rejected; camera/proxy-only repair cannot make the crop fair while body is missing
+- [x] **Slice 03B4C5B4B1A** — close body technique spike parent (`slices/03b4c5b4b1a-close-body-technique-spike.md`) — resliced into B4B1A0-B4B1A2; no renderer pass
+- [x] **Slice 03B4C5B4B1A0** — close grass test environment (`slices/03b4c5b4b1a0-close-grass-test-environment.md`) — accepted fair-with-caveats as labeled fixed close lab; body still absent
+- [x] **Slice 03B4C5B4B1A1** — close body architecture matrix (`slices/03b4c5b4b1a1-close-body-architecture-matrix.md`) — matrix recorded/rejected; `texture-volume` least wrong but curtain/island artifact disqualifies it
+- [ ] **Slice 03B4C5B4B1A1R** — texture-volume continuity repair (`slices/03b4c5b4b1a1r-texture-volume-continuity-repair.md`) — next pickup; repair the least-wrong body shape before perf/coverage
+- [ ] **Slice 03B4C5B4B1A2** — close body perf envelope (`slices/03b4c5b4b1a2-close-body-perf-envelope.md`) — record density/perf budget only after B4B1A1R accepts a body
+- [ ] **Slice 03B4C5B4B2** — close body coverage (`slices/03b4c5b4b2-close-body-coverage.md`)
+- [ ] **Slice 03B4C5B4B3** — close strand scale (`slices/03b4c5b4b3-close-strand-scale.md`)
+- [ ] **Slice 03B4C5B4B4** — clump softness and height variation (`slices/03b4c5b4b4-clump-softness-height-variation.md`)
+- [ ] **Slice 03B4C5B4B5** — close palette and atlas lock (`slices/03b4c5b4b5-close-palette-and-atlas-lock.md`)
+- [x] **Slice 03B4C5B4C** — camera-relative procedural field generation parent (`slices/03b4c5b4c-camera-relative-procedural-field-generation.md`) — resliced into B4C0-B4C3; no renderer pass
+- [ ] **Slice 03B4C5B4C0** — camera-relative backend spike (`slices/03b4c5b4c0-camera-relative-backend-spike.md`)
+- [ ] **Slice 03B4C5B4C1** — camera-relative field domain (`slices/03b4c5b4c1-camera-relative-field-domain.md`)
+- [ ] **Slice 03B4C5B4C2** — terrain normal and slope eligibility (`slices/03b4c5b4c2-terrain-normal-slope-eligibility.md`)
+- [ ] **Slice 03B4C5B4C3** — surface tilt and tip blend (`slices/03b4c5b4c3-surface-tilt-tip-blend.md`)
+- [x] **Slice 03B4C5B4D** — depth LOD mass collapse parent (`slices/03b4c5b4d-depth-lod-mass-collapse.md`) — resliced into B4D1-B4D4; no renderer pass
+- [ ] **Slice 03B4C5B4D1** — LOD band contract (`slices/03b4c5b4d1-lod-band-contract.md`)
+- [ ] **Slice 03B4C5B4D2** — near-to-transition collapse (`slices/03b4c5b4d2-near-to-transition-collapse.md`)
+- [ ] **Slice 03B4C5B4D3** — mid-mass continuity (`slices/03b4c5b4d3-mid-mass-continuity.md`)
+- [ ] **Slice 03B4C5B4D4** — depth falloff sequence (`slices/03b4c5b4d4-depth-falloff-sequence.md`)
+- [ ] **Slice 03B4C5B4E** — grass-only reference crop compose (`slices/03b4c5b4e-grass-only-reference-crop-compose.md`)
+- [ ] **Slice 03B4C5C** — atlas tile content and color integration (`slices/03b4c5c-atlas-tile-content-and-color-integration.md`)
+- [ ] **Slice 03B4C5D** — midground continuity and depth falloff (`slices/03b4c5d-midground-continuity-and-depth-falloff.md`)
+- [ ] **Slice 03B4D** — depth LOD compose (`slices/03b4d-depth-lod-compose.md`)
 - [ ] **Slice 03B5** — readability and perf gate (`slices/03b5-readability-and-perf-gate.md`)
 - [ ] **Slice 03B6** — optional GPU compute and indirect escalation (`slices/03b6-gpu-compute-and-indirect.md`)
 - [ ] **Slice 03C** — grass color, softness, and wind texture (`slices/03c-grass-color-texture.md`)
@@ -324,7 +999,7 @@ landed, and point at the next pickup slice.
 ## Goal & the central tension
 
 The reference is a **cool, foggy Icelandic/Hebridean highland valley**: a dense,
-waving, *cool meadow-green* grass field filling the lower third; smooth rolling
+waving, _cool meadow-green_ grass field filling the lower third; smooth rolling
 green hummocks in the midground; tall layered grey rock ridge-walls with pale
 light/snow streaks receding into heavy white-grey haze; a cold water inlet on the
 right mid-distance; a flat overcast pale grey-white sky. High-key, very low
@@ -340,20 +1015,20 @@ into `aesthetics` itself — see `references/battle-overcast-highland.png` and t
 "Lighting & weather is an environment" section.) So the reconciliation is:
 
 - **Materials are neutral albedo.** Grass, rock, sand, water carry a base color tuned
-  for neutral daylight; nobody bakes golden-hour amber *or* overcast grey into a
+  for neutral daylight; nobody bakes golden-hour amber _or_ overcast grey into a
   material. (Measured proof: the aesthetics grass samples warm-dark `#858255` only
   because a low amber sun is on it — see Slice 00's compare board.)
 - **The mood is a swappable environment preset** — sun color/elevation + sky gradient
-  + fill + fog density. The reference look is the **overcast-foggy preset**; the
-  classic Aegean look is the **golden-hour preset**. Same map, same assets, both
-  in-register.
+  - fill + fog density. The reference look is the **overcast-foggy preset**; the
+    classic Aegean look is the **golden-hour preset**. Same map, same assets, both
+    in-register.
 - **Composition/form still comes from the reference:** volumetric foreground grass,
   deep valley relief, layered receding ridge-walls, distant water, one continuous
   aerial-haze fade from blade to sky.
 
 So "match the screenshot but still follow aesthetics" = **build the reference's
 composition out of neutral assets, and light it with an overcast preset** that
-`aesthetics` now explicitly blesses — while the *same* map under the golden-hour
+`aesthetics` now explicitly blesses — while the _same_ map under the golden-hour
 preset reads as a sun-drenched Aegean field. Judge **albedo** against neutral light
 and **mood** against the matching preset's reference (overcast-highland for this map;
 the golden-hour `battle-*.jpg` for parity).
@@ -367,7 +1042,8 @@ separate static "vista camera"** — the reference comparison shot is the map ca
 at full zoom-in. This is built in **Slice 01** and supersedes the original plan's
 "don't change the gameplay camera" stance. The normalized zoom factor (`zoomT`) it
 exports is the shared lever the grass (Slice 03) and haze (Slice 06) use to get lush
-+ misty at the vista and clear at top-down.
+
+- misty at the vista and clear at top-down.
 
 ## Grilling (resolve before/at Slice 00)
 
@@ -375,32 +1051,32 @@ Ask one at a time; recommended answer in brackets.
 
 1. **Lighting presets — how many, and which is `highland-valley`'s default?**
    The palette "conflict" is resolved by environment lighting (see central tension):
-   neutral albedos lit by a swappable preset. *[Recommend: ship **two** presets in
+   neutral albedos lit by a swappable preset. _[Recommend: ship **two** presets in
    Slice 06 — `overcast-foggy` (this map's default, matches the reference) and
-   `golden-hour` (parity with the aesthetics `battle-*.jpg`); lock the neutral
-   albedos in Slice 00 against the compare board, judged under neutral light.]*
+   `golden-hour` (parity with the aesthetics `battle-_.jpg`); lock the neutral
+   albedos in Slice 00 against the compare board, judged under neutral light.]\*
    **Blocking** — the albedo/preset split everything downstream inherits.
-2. **New map, or restyle the existing three catalog maps?** *[Recommend: add one
+2. **New map, or restyle the existing three catalog maps?** _[Recommend: add one
    new catalog map `highland-valley` that composes the look, and let the reusable
    primitives (grass, ridge backdrop, sky) lift all maps. Don't break the three
-   existing maps' identities.]*
-3. **Grass: true blade geometry or camera-facing billboards?** *[Recommend: decide
+   existing maps' identities.]_
+3. **Grass: true blade geometry or camera-facing billboards?** _[Recommend: decide
    empirically in the Slice 02 workbench under a GPU-instance budget; lean
-   instanced blade quads with vertex-shader wind.]*
-4. **Deep valley relief — sim height, or render-only exaggeration?** *[Recommend:
+   instanced blade quads with vertex-shader wind.]_
+4. **Deep valley relief — sim height, or render-only exaggeration?** _[Recommend:
    render-only — keep one height source (`terrainHeightAt`); raise only
    `verticalScale`/profile so soldiers, props, shadows, and cues stay seated; sim
-   passability untouched.]*
+   passability untouched.]_
 5. **Legibility across the zoom-coupled camera.** Dense grass + heavy haze fight unit
    readability, and the camera now spans top-down → vista (see Camera decision).
-   *[Recommend: grass density/height and fog depth key off `zoomT` — full at the
+   _[Recommend: grass density/height and fog depth key off `zoomT` — full at the
    zoom-in vista, suppressed toward top-down; at the **playable mid zoom** where
    units are actually micro-managed, units, the gold selection footprint, and
    trampled ground must stay legible. The vista is to admire, the mid zoom is to
-   fight.]*
-6. **Perf ceiling for added grass across the zoom range?** *[Recommend: hold the
+   fight.]_
+6. **Perf ceiling for added grass across the zoom range?** _[Recommend: hold the
    existing `full-game-rendering-performance` budget; grass gets a fixed instance
-   cap + distance LOD, probed in Slices 02/03.]*
+   cap + distance LOD, probed in Slices 02/03.]_
 
 ## Recon — measured facts (greppable seams)
 
@@ -427,8 +1103,8 @@ by sim terrain read from wasm in `web/src/battle/scene.ts`.
   reference's deep overlapping ranges.
 - **Shared height contract (SACRED):** `packages/game-renderer/src/terrain/heightField.ts`
   — `TerrainHeightField` + `terrainHeightAt` bilinear sampler; `verticalScale` is
-  the render exaggeration knob. Comment: *"Matches `sim::Terrain::height_at` so the
-  renderer and the sim agree."* Soldiers, shadows, props, and cues **all seat
+  the render exaggeration knob. Comment: _"Matches `sim::Terrain::height_at` so the
+  renderer and the sim agree."_ Soldiers, shadows, props, and cues **all seat
   through this one field.**
 - **Feature / scenery streams (deterministic):** `terrainFeatures.ts`
   (`extractBattleTerrainFeatures`, `BattleEdgeRoles`, `BattleGroundCover`,
@@ -448,7 +1124,7 @@ by sim terrain read from wasm in `web/src/battle/scene.ts`.
   in `frameShell.ts` (warm-olive + an `aerialStrength` haze); above the horizon
   line the flat clear color shows. `cameraWgsl.ts` has **no** fog / aerial-
   perspective term — ground/grass/scenery don't fade with distance; only
-  `horizonPass` does its own per-vertex haze. The reference is *dominated* by
+  `horizonPass` does its own per-vertex haze. The reference is _dominated_ by
   aerial perspective, so a real graded sky + a shared fog term are genuine gaps.
 - **Render-graph rules (must stay `ok`):** `renderGraph.ts` — frame phases
   `background → world-depth → overlay`; each pass declares `role` + `depth`; phase
@@ -486,7 +1162,7 @@ by sim terrain read from wasm in `web/src/battle/scene.ts`.
 - **Lighting is an environment, not a material.** Every material (grass, rock, sand,
   water, soldiers) stores a **neutral albedo**; the warm/cool mood comes from a
   swappable sun+sky+fill+fog **environment preset** (Slice 06). Never hardcode
-  golden-hour *or* overcast into a base color — if a render looks wrong, fix the
+  golden-hour _or_ overcast into a base color — if a render looks wrong, fix the
   preset, not the albedo. (Mirrors the new `aesthetics` "Lighting & weather is an
   environment" section.)
 - **Camera is presentation only.** The zoom-coupled camera (Slice 01) is a pure
@@ -513,13 +1189,93 @@ by sim terrain read from wasm in `web/src/battle/scene.ts`.
         │
 03B2 packed-attribute-slope-tilt ─ X-post path before compute
         │
-03B3 field-driven-meadow-material ─ continuous lower-third mass
+03B3A field-meadow-coverage-floor ─ field-owned coverage + soft transitions
         │
-03B4 false-earth-blade-accents ─ foreground silhouettes only
+03B3B material-volume-proxy ─ zero-blade volume or handoff decision
+        │
+03B4A accent-candidate-workbench ─ named primitive routes + rejected matrix
+        │
+03B4B clump-root-shadow-volume ─ dark clump/root mass before blades
+        │
+03B4B2 soft-root-mass-impostor ─ soft material root layer, visual still flat
+        │
+03B4C near-fiber-ribbon-silhouette ─ clump ribbon telemetry, visual rejected
+        │
+03B4C2 near-field-fiber-shell ─ field shell telemetry, visual rejected
+        │
+03B4C3 fiber-visibility-and-shading ─ shell harness, one-strip primitive rejected
+        │
+03B4C4 near-grass-volume-primitive-workbench ─ mesh-only families rejected
+        │
+03B4C5 texture-backed-grass-volume ─ parent ledger for texture route
+        │
+03B4C5A density-and-soft-coverage-record ─ landed/rejected; metrics recorded
+        │
+03B4C5B card-cell-distribution-and-scale ─ verified/rejected; still sparse flecks
+        │
+03B4C5B2 continuous-coverage-carrier-spike ─ landed/rejected; large straw sheets
+        │
+03B4C5B3 micro-blade-density-carrier-spike ─ landed/rejected; specks/pixel grit
+        │
+03B4C5B4 minimum-visible-grass-body-carrier ─ resliced; old full-vista B4 parked
+        │
+03B4C5B4A foreground-grass-scale-and-crop-contract ─ accepted diagnosis; red strong
+        │
+03B4C5B4B close-foreground-grass-hero-lab ─ parent memo; resliced
+        │
+03B4C5B4B1 close-foreground-grass-lab-route ─ route landed; scale rejected
+        │
+03B4C5B4B1R close-lab-scale-and-perspective-repair ─ attempted/rejected; body missing
+        │
+03B4C5B4B1A close-body-technique-spike ─ parent memo; resliced
+        │
+03B4C5B4B1A0 close-grass-test-environment ─ accepted fair lab, absence baselines
+        │
+03B4C5B4B1A1 close-body-architecture-matrix ─ matrix rejected; texture-volume least wrong
+        │
+03B4C5B4B1A1R texture-volume-continuity-repair ─ remove curtain/island artifact
+        │
+03B4C5B4B1A2 close-body-perf-envelope ─ density/perf budget
+        │
+03B4C5B4B2 close-body-coverage ─ dense soft body, exposed-ground ratio
+        │
+03B4C5B4B3 close-strand-scale ─ strand size and direction
+        │
+03B4C5B4B4 clump-softness-height-variation ─ clump envelope and height rhythm
+        │
+03B4C5B4B5 close-palette-and-atlas-lock ─ close colour/atlas without density changes
+        │
+03B4C5B4C camera-relative-procedural-field-generation ─ parent memo; resliced
+        │
+03B4C5B4C0 camera-relative-backend-spike ─ CPU-first domain + GPU backend gate
+        │
+03B4C5B4C1 camera-relative-field-domain ─ CPU-first snapped cells/rings
+        │
+03B4C5B4C2 terrain-normal-slope-eligibility ─ normals + slope/water/tint rejects
+        │
+03B4C5B4C3 surface-tilt-tip-blend ─ base seating + upward tip recovery
+        │
+03B4C5B4D depth-lod-mass-collapse ─ parent memo; resliced
+        │
+03B4C5B4D1 lod-band-contract ─ near/transition/mid/far ownership
+        │
+03B4C5B4D2 near-to-transition-collapse ─ strands fade into soft body
+        │
+03B4C5B4D3 mid-mass-continuity ─ mid/far meadow mass without primitives
+        │
+03B4C5B4D4 depth-falloff-sequence ─ close/transition/mid sequence check
+        │
+03B4C5B4E grass-only-reference-crop-compose ─ return to reference via grass crops
+        │
+03B4C5C atlas-tile-content-and-color-integration ─ reference-route atlas regression after B4E
+        │
+03B4C5D midground-continuity-and-depth-falloff ─ future pass inside accepted LOD
+        │
+03B4D depth-lod-compose ─ near/mid/far accent ownership
         │
 03B5 readability-and-perf-gate ─ gameplay cues + perf adoption
         │
-03B6 gpu-compute-and-indirect ─ optional escalation only after CPU proof
+03B6 gpu-compute-and-indirect ─ side-branch backend swap after B4C0/03B5 proof
         │
 03C grass-color-texture ─ colour, softness, wind/noise texture crop only
         │
@@ -544,9 +1300,11 @@ by sim terrain read from wasm in `web/src/battle/scene.ts`.
 08 reference-map-compose ─ new catalog map + full battle + master compare @ zoom-in
 ```
 
-`01` (camera) is independent and already landed. `02 → 03A → 03B1..03B6 → 03C`
-is the grass ladder, with `03B6` skipped unless accepted CPU/packed grass is too
-expensive. `04A/04B`, `05A/05B`, `06A/06B/06C`, and `07A/07B` each freeze the
+`01` (camera) is independent and already landed. `02 → 03A → 03B1..03B5 → 03C`
+is the grass ladder. `B4C0` decides backend policy inside that ladder; `03B6` is
+a side-branch backend swap and is skipped unless B4C0 or 03B5 proves accepted
+CPU/packed grass is too expensive.
+`04A/04B`, `05A/05B`, `06A/06B/06C`, and `07A/07B` each freeze the
 previous variable before tuning the next one. Each slice leaves a runnable
 artifact and its own crop/mask gate before the next depends on it; only `08`
 judges the full frame.

@@ -1,24 +1,25 @@
-import assert from 'node:assert/strict';
-import test from 'node:test';
+import assert from "node:assert/strict";
+import test from "node:test";
 import {
   DEFAULT_GRASS_TUFT_BLADES,
   GRASS_TUFT_SEGMENTS,
   SLICE00_GRASS_ALBEDO,
   buildGrassTuftMesh,
   grassTuftStats,
-} from '../../packages/game-renderer/src/models/shared/grassModels.ts';
-import type { MeshData } from '../../packages/game-renderer/src/models/shared/meshBuilder.ts';
+  type GrassAccentStyle,
+} from "../../packages/game-renderer/src/models/shared/grassModels.ts";
+import type { MeshData } from "../../packages/game-renderer/src/models/shared/meshBuilder.ts";
 
-test('grass tuft mesh is deterministic for identical inputs', () => {
-  const a = buildGrassTuftMesh({ seed: 0xabc, blades: 11, palette: 'green-grass' });
-  const b = buildGrassTuftMesh({ seed: 0xabc, blades: 11, palette: 'green-grass' });
+test("grass tuft mesh is deterministic for identical inputs", () => {
+  const a = buildGrassTuftMesh({ seed: 0xabc, blades: 11, palette: "green-grass" });
+  const b = buildGrassTuftMesh({ seed: 0xabc, blades: 11, palette: "green-grass" });
 
   assert.deepEqual(Array.from(a.opaque.vertices), Array.from(b.opaque.vertices));
   assert.deepEqual(Array.from(a.opaque.indices), Array.from(b.opaque.indices));
   assert.deepEqual(Array.from(a.shadow.vertices), Array.from(b.shadow.vertices));
 });
 
-test('grass tuft blade count maps to stable double-sided panel geometry', () => {
+test("grass tuft blade count maps to stable double-sided panel geometry", () => {
   const blades = 13;
   const mesh = buildGrassTuftMesh({ seed: 99, blades });
   const stats = grassTuftStats(mesh, blades);
@@ -31,7 +32,7 @@ test('grass tuft blade count maps to stable double-sided panel geometry', () => 
   assert.equal(stats.shadowVertices, 0);
 });
 
-test('grass tuft defaults are intentionally small enough for instancing', () => {
+test("grass tuft defaults are intentionally small enough for instancing", () => {
   const mesh = buildGrassTuftMesh();
   const stats = grassTuftStats(mesh);
 
@@ -40,10 +41,10 @@ test('grass tuft defaults are intentionally small enough for instancing', () => 
   assert.ok(mesh.opaque.indexCount < 300, JSON.stringify(stats));
 });
 
-test('grass tuft geometry is finite and stays inside its authored blade envelope', () => {
+test("grass tuft geometry is finite and stays inside its authored blade envelope", () => {
   const height = 0.82;
   const bend = 0.31;
-  const spread = 0.20;
+  const spread = 0.2;
   const width = 0.065;
   const mesh = buildGrassTuftMesh({ seed: 1234, blades: 21, height, bend, spread, width });
   const bounds = meshBounds(mesh);
@@ -51,12 +52,20 @@ test('grass tuft geometry is finite and stays inside its authored blade envelope
   assert.ok(bounds.every(Number.isFinite), JSON.stringify(bounds));
   assert.ok(bounds[4] >= 0, JSON.stringify(bounds));
   assert.ok(bounds[5] <= height * 1.13, JSON.stringify(bounds));
-  const xyRadius = Math.max(Math.abs(bounds[0]), Math.abs(bounds[1]), Math.abs(bounds[2]), Math.abs(bounds[3]));
-  assert.ok(xyRadius <= spread + height * bend * 1.05 + width, JSON.stringify({ bounds, xyRadius }));
+  const xyRadius = Math.max(
+    Math.abs(bounds[0]),
+    Math.abs(bounds[1]),
+    Math.abs(bounds[2]),
+    Math.abs(bounds[3]),
+  );
+  assert.ok(
+    xyRadius <= spread + height * bend * 1.05 + width,
+    JSON.stringify({ bounds, xyRadius }),
+  );
 });
 
-test('grass tuft palette carries neutral blade variation without invalid colors', () => {
-  const mesh = buildGrassTuftMesh({ seed: 77, blades: 17, palette: 'yellow-grass' });
+test("grass tuft palette carries neutral blade variation without invalid colors", () => {
+  const mesh = buildGrassTuftMesh({ seed: 77, blades: 17, palette: "yellow-grass" });
   const colors = colorRange(mesh);
 
   assert.ok(colors.min >= 0 && colors.max <= 1, JSON.stringify(colors));
@@ -64,9 +73,57 @@ test('grass tuft palette carries neutral blade variation without invalid colors'
   assert.ok(colors.distinctGreens > 4, JSON.stringify(colors));
 });
 
-test('green grass palette is anchored to the Slice 00 neutral albedo chips', () => {
-  assert.deepEqual(SLICE00_GRASS_ALBEDO.near.map(toHex), ['c0', 'c1', '78']);
-  assert.deepEqual(SLICE00_GRASS_ALBEDO.shadow.map(toHex), ['99', 'a0', '5c']);
+test("grass accent styles are deterministic and bounded for field rendering", () => {
+  const styles: GrassAccentStyle[] = [
+    "root-shadow",
+    "soft-root-mass",
+    "soft-root-fiber",
+    "field-fiber-shell",
+    "field-fiber-shell-visibility",
+    "alpha-impostor",
+    "billboard-cluster",
+    "volume-card",
+    "fiber-ribbon",
+    "hybrid-root-fiber",
+  ];
+  for (const accentStyle of styles) {
+    const mesh = buildGrassTuftMesh({
+      seed: 0x34ab,
+      blades: 4,
+      height: 0.72,
+      width: 0.044,
+      bend: 0.22,
+      spread: 0.075,
+      accentStyle,
+    });
+    const repeat = buildGrassTuftMesh({
+      seed: 0x34ab,
+      blades: 4,
+      height: 0.72,
+      width: 0.044,
+      bend: 0.22,
+      spread: 0.075,
+      accentStyle,
+    });
+    const stats = grassTuftStats(mesh, 4);
+    const bounds = meshBounds(mesh);
+
+    assert.deepEqual(
+      Array.from(mesh.opaque.vertices),
+      Array.from(repeat.opaque.vertices),
+      accentStyle,
+    );
+    assert.ok(stats.opaqueVertices > 0, JSON.stringify({ accentStyle, stats }));
+    assert.ok(stats.opaqueTriangles > 0, JSON.stringify({ accentStyle, stats }));
+    assert.ok(stats.opaqueTriangles <= 64, JSON.stringify({ accentStyle, stats }));
+    assert.ok(bounds[4] >= 0, JSON.stringify({ accentStyle, bounds }));
+    assert.ok(bounds[5] <= 0.78, JSON.stringify({ accentStyle, bounds }));
+  }
+});
+
+test("green grass palette is anchored to the Slice 00 neutral albedo chips", () => {
+  assert.deepEqual(SLICE00_GRASS_ALBEDO.near.map(toHex), ["c0", "c1", "78"]);
+  assert.deepEqual(SLICE00_GRASS_ALBEDO.shadow.map(toHex), ["99", "a0", "5c"]);
 });
 
 function meshBounds(mesh: MeshData): [number, number, number, number, number, number] {
@@ -106,5 +163,7 @@ function colorRange(mesh: MeshData) {
 }
 
 function toHex(channel: number) {
-  return Math.round(channel * 255).toString(16).padStart(2, '0');
+  return Math.round(channel * 255)
+    .toString(16)
+    .padStart(2, "0");
 }

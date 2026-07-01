@@ -365,28 +365,16 @@
        file's <style> still styles the React-rendered DOM (same ids/classes). -->
   <div id="battle-ui">
   <canvas id="battlefield"></canvas>
-  <div id="gameover">
-    <div class="panel">
-      <h2 id="gameover-title">VICTORY</h2>
-      <p id="gameover-sub"></p>
-      <button id="gameover-restart">Restart Battle</button>
-      <button id="gameover-menu">Main Menu</button>
-      <button class="watch" id="gameover-watch">keep watching the field</button>
-    </div>
-  </div>
+  <!-- Content is React (src/ui/hud/BattleModals.tsx, GameOver), mounted by
+       BattleScene. This shell keeps the CSS backdrop + display toggle. -->
+  <div id="gameover"></div>
   <div id="hud">loading wasm…</div>
   <div id="buttons">
     <button id="btn-menu">Menu</button>
   </div>
-  <div id="pausemenu">
-    <div class="panel">
-      <h2>MENU</h2>
-      <button id="pause-restart">Restart Battle</button>
-      <button id="pause-manual">Field Manual</button>
-      <button id="pause-exit">Exit to Main Menu</button>
-      <button class="watch" id="pause-close">back to the field</button>
-    </div>
-  </div>
+  <!-- Content is React (src/ui/hud/BattleModals.tsx, PauseMenu), mounted by
+       BattleScene. This shell keeps the CSS backdrop + display toggle. -->
+  <div id="pausemenu"></div>
   <div id="banner"></div>
   <div id="selbox"></div>
   <canvas id="minimap" width="240" height="160"></canvas>

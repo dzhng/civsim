@@ -30,6 +30,7 @@ import { UnitCards } from './unitCard';
 import { UnitCardsReact } from '../ui/hud/UnitCardsReact';
 import { Toolbar, type ToolButtonState } from '../ui/hud/Toolbar';
 import { HudPanel, type HudUnit } from '../ui/hud/HudPanel';
+import { GameOver, PauseMenu } from '../ui/hud/BattleModals';
 import { installViewportGate } from './viewportGate';
 import { Input } from './input';
 import { MANUAL_HTML } from './manual';
@@ -451,15 +452,17 @@ export class BattleScene implements Scene {
     let ended = false;
     const gameover = document.getElementById('gameover')!;
     gameover.style.display = 'none';
-    const restartBtn = document.getElementById('gameover-restart')!;
-    restartBtn.style.display = this.cfg.inCampaign ? 'none' : 'block';
-    restartBtn.addEventListener('click', () => this.restartBattle(), { signal });
-    const menuBtn = document.getElementById('gameover-menu')!;
-    menuBtn.textContent = this.cfg.inCampaign ? 'Continue' : 'Main Menu';
-    menuBtn.addEventListener('click', () => this.cfg.onExit(), { signal });
-    document.getElementById('gameover-watch')!.addEventListener('click', () => {
-      gameover.style.display = 'none';
-    }, { signal });
+    const gameoverRoot = createRoot(gameover);
+    this.cleanups.push(() => gameoverRoot.unmount());
+    const showGameover = (win: boolean, sub: string) => {
+      gameoverRoot.render(createElement(GameOver, {
+        inCampaign: this.cfg.inCampaign, win, sub,
+        onRestart: () => this.restartBattle(),
+        onExit: () => this.cfg.onExit(),
+        onWatch: () => { gameover.style.display = 'none'; },
+      }));
+      gameover.style.display = 'flex';
+    };
     let timeScale = 1;
     let showPaths = false;
     let frozenEffects = false;
@@ -861,22 +864,23 @@ export class BattleScene implements Scene {
     document.getElementById('manual')!.style.display = 'none';
     const pausemenu = document.getElementById('pausemenu')!;
     pausemenu.style.display = 'none';
+    const pausemenuRoot = createRoot(pausemenu);
+    this.cleanups.push(() => pausemenuRoot.unmount());
+    pausemenuRoot.render(createElement(PauseMenu, {
+      inCampaign: this.cfg.inCampaign,
+      onRestart: () => this.restartBattle(),
+      onManual: () => {
+        const el = document.getElementById('manual')!;
+        el.style.display = el.style.display === 'block' ? 'none' : 'block';
+        pausemenu.style.display = 'none';
+      },
+      onExit: () => this.cfg.onExit(),
+      onClose: () => { pausemenu.style.display = 'none'; },
+    }));
+    // #btn-menu (a top button) toggles the pause overlay; a backdrop click closes
+    // it. React owns the .panel content; the container's display stays imperative.
     document.getElementById('btn-menu')!.addEventListener('click', () => {
       pausemenu.style.display = pausemenu.style.display === 'flex' ? 'none' : 'flex';
-    }, { signal });
-    const pauseRestart = document.getElementById('pause-restart')!;
-    pauseRestart.style.display = this.cfg.inCampaign ? 'none' : 'block';
-    pauseRestart.addEventListener('click', () => this.restartBattle(), { signal });
-    document.getElementById('pause-exit')!.textContent =
-      this.cfg.inCampaign ? 'Exit to Campaign' : 'Exit to Main Menu';
-    document.getElementById('pause-manual')!.addEventListener('click', () => {
-      const el = document.getElementById('manual')!;
-      el.style.display = el.style.display === 'block' ? 'none' : 'block';
-      pausemenu.style.display = 'none';
-    }, { signal });
-    document.getElementById('pause-exit')!.addEventListener('click', () => this.cfg.onExit(), { signal });
-    document.getElementById('pause-close')!.addEventListener('click', () => {
-      pausemenu.style.display = 'none';
     }, { signal });
     pausemenu.addEventListener('click', (e) => {
       if (e.target === pausemenu) pausemenu.style.display = 'none';
@@ -1239,12 +1243,9 @@ export class BattleScene implements Scene {
       if (v >= 0 && !ended) {
         ended = true;
         const win = v === 0;
-        document.getElementById('gameover-title')!.textContent = win ? 'VICTORY' : 'DEFEAT';
-        (document.getElementById('gameover-title') as HTMLElement).style.color = win ? '#6f9ae8' : '#e0604f';
-        document.getElementById('gameover-sub')!.textContent = win
+        showGameover(win, win
           ? 'The enemy army is broken. Your army holds the field.'
-          : 'Your army is broken. The enemy holds the field.';
-        gameover.style.display = 'flex';
+          : 'Your army is broken. The enemy holds the field.');
       }
     }
 

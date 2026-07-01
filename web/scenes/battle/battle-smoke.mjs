@@ -11,7 +11,12 @@ export const meta = {
 
 export async function run(ctx) {
   const { check, snap } = ctx;
-  const page = await battleReal(ctx);
+  const page = await battleReal(ctx, { settle: 0 });
+  await page.waitForFunction(
+    () => document.getElementById('hud')?.textContent?.includes('soldiers') === true,
+    undefined,
+    { timeout: 8000 },
+  );
 
   const stats = await page.evaluate(() => window.__game.stats());
   check('full battle spawned', stats.soldiers >= 15000 && stats.units === 40,
@@ -56,6 +61,11 @@ export async function run(ctx) {
   // Pixel regression on deterministic battle states: fixed tick, camera, and
   // frozen shader clock. SwiftShader has a tiny sub-pixel wobble on silhouettes.
   await page.evaluate(() => window.__game.freezeAtTick(240));
+  await page.waitForFunction(
+    () => document.getElementById('hud')?.textContent?.includes('PAUSED') === true,
+    undefined,
+    { timeout: 8000 },
+  );
   await page.waitForTimeout(150);
   await snap(page, 'battle-initial', { maxDiffRatio: 0.0008 });
   await page.evaluate(() => window.__game.freeze(false));

@@ -183,39 +183,42 @@ async function measureHandoff(ctx) {
   const page = await ctx.newPage({ viewport: { width: 1280, height: 800 }, errorPrefix: 'perf-handoff' });
   await page.goto(`${ctx.target}/?campaign=handoff`);
   await page.waitForFunction(() => window.__campaignReady === true && window.__campaignGpuStats?.ready === true, undefined, { timeout: 18000 });
-  const handoffMs = await page.evaluate(async () => {
+  const handoffStart = Date.now();
+  const launched = await page.evaluate(() => {
     window.__campaign.place(0, 1, 0, 3);
     window.__campaign.place(1, 1, 0, 4);
     window.__campaign.tick(2000);
-    const start = performance.now();
-    if (!window.__campaign.fightReady()) throw new Error('fightReady failed');
-    await new Promise((resolve, reject) => {
-      const deadline = performance.now() + 22000;
-      const tick = () => {
-        const stats = window.__game?.stats?.();
-        if (window.__ready === true && stats?.renderer === 'gpu' && stats.renderStats?.soldiers === stats.soldiers) {
-          resolve();
-          return;
-        }
-        if (performance.now() > deadline) {
-          reject(new Error('handoff timed out'));
-          return;
-        }
-        requestAnimationFrame(tick);
-      };
-      tick();
-    });
-    return performance.now() - start;
+    return window.__campaign.fightReady();
   });
+  if (!launched) throw new Error('fightReady failed');
+  await page.waitForFunction(() => {
+    const stats = window.__game?.stats?.();
+    return window.__ready === true
+      && stats?.renderer === 'gpu'
+      && stats.renderStats?.soldiers === stats.soldiers;
+  }, undefined, { timeout: 22000 });
+  const handoffMs = Date.now() - handoffStart;
   await page.evaluate(() => window.__game.freezeAtTick(96));
+  await page.waitForFunction(() => {
+    const stats = window.__game?.stats?.();
+    return window.__ready === true
+      && stats?.renderer === 'gpu'
+      && stats.renderStats?.soldiers === stats.soldiers;
+  }, undefined, { timeout: 22000 });
   await page.waitForTimeout(200);
   const frame = await sampleRaf(page, 45);
-  const stats = await page.evaluate(() => window.__game.stats());
+  await page.waitForFunction(() => {
+    const stats = window.__game?.stats?.();
+    return stats?.renderer === 'gpu'
+      && stats.renderStats?.soldiers === stats.soldiers;
+  }, undefined, { timeout: 8000 });
+  const stats = await page.evaluate(() => window.__game?.stats?.() ?? null);
   const memory = await sampleMemory(page);
   await page.close();
   ctx.check(
     'perf handoff reaches a WebGPU campaign battle with matching render count',
-    handoffMs > 0
+    stats
+      && handoffMs > 0
       && handoffMs < 22000
       && stats.renderer === 'gpu'
       && stats.renderStats?.soldiers === stats.soldiers

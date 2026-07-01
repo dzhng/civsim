@@ -104,33 +104,33 @@ export async function run(ctx) {
       && stats.renderStats.soldiers === stats.soldiers;
   }, undefined, { timeout: 30000 });
   const initialBattle = await page.evaluate(() => window.__game.stats());
-  let current = initialBattle;
-  for (let i = 0; i < 60 && current.units <= initialBattle.units; i++) {
-    current = await page.evaluate(() => {
+  const baseSoldiers = pending.encounter.attacker.soldiers + pending.encounter.defender.soldiers;
+  const arrival = await page.evaluate((base) => {
+    let stats = window.__game.stats();
+    const trace = [{ step: 0, units: stats.units, soldiers: stats.soldiers }];
+    for (let step = 1; step <= 90 && stats.soldiers <= base; step++) {
       window.__game.advance(600);
-      return window.__game.stats();
-    });
-    await page.waitForTimeout(20);
-  }
-  await page.waitForFunction(() => {
-    const stats = window.__game?.stats?.();
-    return stats?.renderer === 'gpu'
-      && stats.renderStats?.ready === true
-      && stats.renderStats.soldiers === stats.soldiers
-      && stats.renderStats.expectedSoldiers === stats.soldiers;
-  }, undefined, { timeout: 12000 });
+      stats = window.__game.stats();
+      if (step % 10 === 0 || stats.soldiers > base) {
+        trace.push({ step, units: stats.units, soldiers: stats.soldiers });
+      }
+    }
+    return { stats, trace };
+  }, baseSoldiers);
+  await page.evaluate(() => window.__game.freezeAtTick(window.__game.tickCount()));
   const rendered = await page.evaluate(() => window.__game.stats());
   ctx.check(
     'reinforcement column arrives and renders in the WebGPU battle',
     rendered.renderer === 'gpu'
-      && rendered.units > initialBattle.units
-      && rendered.soldiers > initialBattle.soldiers
+      && rendered.soldiers > baseSoldiers
       && rendered.renderStats?.soldiers === rendered.soldiers
       && rendered.renderStats?.expectedSoldiers === rendered.soldiers
       && hasBattleWorldDepthContract(rendered.renderStats),
     JSON.stringify({
       units: [initialBattle.units, rendered.units],
       soldiers: [initialBattle.soldiers, rendered.soldiers],
+      baseSoldiers,
+      trace: arrival.trace,
       renderStats: rendered.renderStats,
     }),
   );

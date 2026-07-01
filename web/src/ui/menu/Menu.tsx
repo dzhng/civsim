@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
-import type { BattleKind } from '../../battle/scene';
-import type { GpuSupportState } from '../../../../packages/game-renderer/src/appShell';
-import type { QuickBattleClassSpec, QuickBattleConfig } from '../../battle/quickBattleCatalog';
-import { ArmyBuilder } from './ArmyBuilder';
+import { useEffect, useRef, useState } from "react";
+import type { BattleKind } from "../../battle/scene";
+import type { GpuSupportState } from "../../../../packages/game-renderer/src/appShell";
+import type { QuickBattleClassSpec, QuickBattleConfig } from "../../battle/quickBattleCatalog";
+import { ArmyBuilder } from "./ArmyBuilder";
 
 /** Everything the React menu needs from MenuScene. The cfg-shaped callbacks are
  * passed straight through; gpu state + class list + save presence are snapshot
@@ -54,85 +54,138 @@ export function Menu(props: MenuProps) {
   // Escape closes the duel modal and the field manual, matching the old scene.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key !== 'Escape') return;
+      if (e.key !== "Escape") return;
       setDuelOpen(false);
       setQbOpen(false);
       props.onHideManual();
     };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
   }, [props]);
 
-  const disabledTitle = ok ? '' : msg;
+  const disabledTitle = ok ? "" : msg;
   const options = classNames.map((name, i) => (
-    <option key={i} value={String(i)}>{name}</option>
+    <option key={i} value={String(i)}>
+      {name}
+    </option>
   ));
 
   return (
     <>
-    <div id="menu-ui" style={{ display: 'flex', pointerEvents: 'auto' }}>
-      <h1>BATTLE SIM</h1>
-      <p className="tagline">mass &middot; momentum &middot; morale</p>
-      <div
-        id="menu-renderer-status"
-        role="status"
-        className={ok ? 'ok' : 'bad'}
-      >
-        {ok ? msg : `WebGPU unavailable: ${msg}`}
-      </div>
-
-      <div className="menu-section feature">
-        <h2>Campaign</h2>
-        <p className="section-hint">Six powers, real-time. Wage war, forge alliances, gang up on the strong.</p>
-        <button id="menu-new-campaign" disabled={!ok} title={disabledTitle} onClick={props.onNewCampaign}>
-          New Campaign <small>conquer the ancient world</small>
-        </button>
-        <button
-          id="menu-load-save"
-          disabled={!ok || !hasSave}
-          title={disabledTitle}
-          onClick={props.onLoadCampaign}
-        >
-          Load Save <small>resume your war</small>
-        </button>
-      </div>
-
-      <div className="menu-section">
-        <h2>Quick Battle</h2>
-        <button id="menu-1v1" disabled={!ok} title={disabledTitle} onClick={() => ok && setDuelOpen(true)}>
-          1v1 Duel <small>you pick the matchup</small>
-        </button>
-        <button data-battle="5v5" disabled={!ok} title={disabledTitle} onClick={() => props.onQuickBattle('5v5')}>
-          Clash of Arms <small>full roster, open field</small>
-        </button>
-        <button id="menu-quick-battle" disabled={!ok} title={disabledTitle} onClick={() => ok && setQbOpen(true)}>
-          Custom Battle <small>pick a map, build two armies</small>
-        </button>
-      </div>
-
-      <div className="menu-section">
-        <button id="menu-manual" onClick={props.onToggleManual}>Field Manual</button>
-      </div>
-
-      <div
-        id="duel-modal"
-        style={{ display: duelOpen ? 'flex' : 'none' }}
-        onClick={(e) => { if (e.target === e.currentTarget) setDuelOpen(false); }}
-      >
-        <div className="panel">
-          <h2>1v1 DUEL</h2>
-          <div className="duel-row">
-            <select id="duel-a" ref={duelARef} value={String(duelA)} onChange={(e) => setDuelA(Number(e.target.value))}>{options}</select>
-            <span className="duel-vs">vs</span>
-            <select id="duel-b" value={String(duelB)} onChange={(e) => setDuelB(Number(e.target.value))}>{options}</select>
-          </div>
-          <label className="duel-ai">
-            <input type="checkbox" id="duel-ai" checked={duelAi} onChange={(e) => setDuelAi(e.target.checked)} /> enemy AI commander
-          </label>
-          <button id="menu-duel" onClick={() => { setDuelOpen(false); props.onDuel(duelA, duelB, duelAi); }}>Fight</button>
-          <button className="cancel" id="duel-cancel" onClick={() => setDuelOpen(false)}>Cancel</button>
+      <div id="menu-ui" style={{ display: "flex", pointerEvents: "auto" }}>
+        <h1>BATTLE SIM</h1>
+        <p className="tagline">mass &middot; momentum &middot; morale</p>
+        <div id="menu-renderer-status" role="status" className={ok ? "ok" : "bad"}>
+          {ok ? msg : `WebGPU unavailable: ${msg}`}
         </div>
-      </div>
+
+        <div className="menu-section feature">
+          <h2>Campaign</h2>
+          <p className="section-hint">
+            Six powers, real-time. Wage war, forge alliances, gang up on the strong.
+          </p>
+          <button
+            id="menu-new-campaign"
+            disabled={!ok}
+            title={disabledTitle}
+            onClick={props.onNewCampaign}
+          >
+            New Campaign <small>conquer the ancient world</small>
+          </button>
+          <button
+            id="menu-load-save"
+            disabled={!ok || !hasSave}
+            title={disabledTitle}
+            onClick={props.onLoadCampaign}
+          >
+            Load Save <small>resume your war</small>
+          </button>
+        </div>
+
+        <div className="menu-section">
+          <h2>Quick Battle</h2>
+          <button
+            id="menu-1v1"
+            disabled={!ok}
+            title={disabledTitle}
+            onClick={() => ok && setDuelOpen(true)}
+          >
+            1v1 Duel <small>you pick the matchup</small>
+          </button>
+          <button
+            data-battle="5v5"
+            disabled={!ok}
+            title={disabledTitle}
+            onClick={() => props.onQuickBattle("5v5")}
+          >
+            Clash of Arms <small>full roster, open field</small>
+          </button>
+          <button
+            id="menu-quick-battle"
+            disabled={!ok}
+            title={disabledTitle}
+            onClick={() => ok && setQbOpen(true)}
+          >
+            Custom Battle <small>pick a map, build two armies</small>
+          </button>
+        </div>
+
+        <div className="menu-section">
+          <button id="menu-manual" onClick={props.onToggleManual}>
+            Field Manual
+          </button>
+        </div>
+
+        <div
+          id="duel-modal"
+          style={{ display: duelOpen ? "flex" : "none" }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setDuelOpen(false);
+          }}
+        >
+          <div className="panel">
+            <h2>1v1 DUEL</h2>
+            <div className="duel-row">
+              <select
+                id="duel-a"
+                ref={duelARef}
+                value={String(duelA)}
+                onChange={(e) => setDuelA(Number(e.target.value))}
+              >
+                {options}
+              </select>
+              <span className="duel-vs">vs</span>
+              <select
+                id="duel-b"
+                value={String(duelB)}
+                onChange={(e) => setDuelB(Number(e.target.value))}
+              >
+                {options}
+              </select>
+            </div>
+            <label className="duel-ai">
+              <input
+                type="checkbox"
+                id="duel-ai"
+                checked={duelAi}
+                onChange={(e) => setDuelAi(e.target.checked)}
+              />{" "}
+              enemy AI commander
+            </label>
+            <button
+              id="menu-duel"
+              onClick={() => {
+                setDuelOpen(false);
+                props.onDuel(duelA, duelB, duelAi);
+              }}
+            >
+              Fight
+            </button>
+            <button className="cancel" id="duel-cancel" onClick={() => setDuelOpen(false)}>
+              Cancel
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Sibling of #menu-ui (not a child) — the custom-battle modal must stay

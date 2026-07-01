@@ -5,9 +5,9 @@
 // The pinned behavior: cards are a FIXED size and the bar wraps into more rows
 // as the roster grows — cards never resize to chase the count (David, 2026-06-30).
 
-import assert from 'node:assert/strict';
-import test from 'node:test';
-import { computeCardGrid } from './cardGrid.ts';
+import assert from "node:assert/strict";
+import test from "node:test";
+import { computeCardGrid } from "./cardGrid.ts";
 
 const CARD_W = 72;
 const ASPECT = 3 / 4;
@@ -23,7 +23,7 @@ function noOverflow(g, boxW) {
   assert.ok(g.cols * g.cardW + GAP * (g.cols + 1) <= boxW, `fits: ${JSON.stringify(g)} in ${boxW}`);
 }
 
-test('cards keep a FIXED size as the roster grows', () => {
+test("cards keep a FIXED size as the roster grows", () => {
   // The whole point of the Total-War behavior: 5, 20, 30, 40 units all render
   // the same-size card — only the row count changes.
   for (const count of [5, 12, 20, 30, 40]) {
@@ -33,22 +33,27 @@ test('cards keep a FIXED size as the roster grows', () => {
   }
 });
 
-test('generic-N stacking: wrap into more rows, balanced', () => {
-  for (const [count, rows, cols] of [[5, 1, 5], [20, 2, 10], [30, 2, 15], [40, 3, 14]]) {
+test("generic-N stacking: wrap into more rows, balanced", () => {
+  for (const [count, rows, cols] of [
+    [5, 1, 5],
+    [20, 2, 10],
+    [30, 2, 15],
+    [40, 3, 14],
+  ]) {
     const g = computeCardGrid(count, BAND_W, OPTS);
     assert.equal(g.rows, rows, `count ${count} rows`);
     assert.equal(g.cols, cols, `count ${count} cols`);
   }
 });
 
-test('a wide band keeps 20 on one row', () => {
+test("a wide band keeps 20 on one row", () => {
   const g = computeCardGrid(20, 2400, OPTS);
   assert.equal(g.rows, 1);
   assert.equal(g.cols, 20);
   assert.equal(g.cardW, CARD_W);
 });
 
-test('never overflows the width and covers every unit with no empty row', () => {
+test("never overflows the width and covers every unit with no empty row", () => {
   for (const boxW of [BAND_W, 1280, 880, 2400, 640]) {
     for (let count = 1; count <= 60; count++) {
       const g = computeCardGrid(count, boxW, OPTS);
@@ -60,14 +65,14 @@ test('never overflows the width and covers every unit with no empty row', () => 
   }
 });
 
-test('cards hold the fixed aspect within rounding', () => {
+test("cards hold the fixed aspect within rounding", () => {
   for (const count of [5, 20, 40, 60]) {
     const g = computeCardGrid(count, BAND_W, OPTS);
     assert.ok(Math.abs(g.cardH - g.cardW / ASPECT) <= 1, `aspect ${count}: ${JSON.stringify(g)}`);
   }
 });
 
-test('raising count never grows cardW', () => {
+test("raising count never grows cardW", () => {
   let prev = Infinity;
   for (let count = 1; count <= 80; count++) {
     const g = computeCardGrid(count, BAND_W, OPTS);
@@ -76,18 +81,22 @@ test('raising count never grows cardW', () => {
   }
 });
 
-test('extreme overflow shrinks (degenerate) only past maxRows capacity', () => {
+test("extreme overflow shrinks (degenerate) only past maxRows capacity", () => {
   // 16/row × 3 rows = 48 fixed-size cards fit; beyond that, shrink — never scroll.
   const g = computeCardGrid(60, BAND_W, OPTS);
   assert.equal(g.rows, MAX_ROWS);
-  assert.ok(g.degenerate, 'flagged undersized');
-  assert.ok(g.cardW < CARD_W, 'shrunk below the fixed size');
+  assert.ok(g.degenerate, "flagged undersized");
+  assert.ok(g.cardW < CARD_W, "shrunk below the fixed size");
   noOverflow(g, BAND_W);
 });
 
-test('empty roster collapses to zero', () => {
+test("empty roster collapses to zero", () => {
   assert.deepEqual(computeCardGrid(0, BAND_W, OPTS), {
-    rows: 0, cols: 0, cardW: 0, cardH: 0, degenerate: false,
+    rows: 0,
+    cols: 0,
+    cardW: 0,
+    cardH: 0,
+    degenerate: false,
   });
   assert.equal(computeCardGrid(-3, BAND_W, OPTS).cols, 0);
 });

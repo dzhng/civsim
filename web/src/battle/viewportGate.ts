@@ -17,11 +17,13 @@ export function windowTooSmall(): boolean {
 /** Show `overlay` whenever the window is below the supported minimum, and keep it
  * in sync on resize. Returns a cleanup that drops the listener and hides it. */
 export function installViewportGate(overlay: HTMLElement): () => void {
-  const apply = () => { overlay.style.display = windowTooSmall() ? 'flex' : 'none'; };
+  const apply = () => {
+    overlay.style.display = windowTooSmall() ? "flex" : "none";
+  };
   apply();
-  window.addEventListener('resize', apply);
+  window.addEventListener("resize", apply);
   return () => {
-    window.removeEventListener('resize', apply);
-    overlay.style.display = 'none';
+    window.removeEventListener("resize", apply);
+    overlay.style.display = "none";
   };
 }

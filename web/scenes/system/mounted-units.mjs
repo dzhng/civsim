@@ -1,12 +1,13 @@
-import { PNG } from 'pngjs';
+import { PNG } from "pngjs";
 
 export const meta = {
-  name: 'mounted-units',
-  kind: 'flow',
-  world: 'none',
-  tier: 'full',
+  name: "mounted-units",
+  kind: "flow",
+  world: "none",
+  tier: "full",
   snapshots: [],
-  describe: 'Mounted units carry the mount flag and scale with LOD; real medium phalanx stays foot while the render-only shock-cav sidearm remains mounted.',
+  describe:
+    "Mounted units carry the mount flag and scale with LOD; real medium phalanx stays foot while the render-only shock-cav sidearm remains mounted.",
 };
 
 function countNonBlank(png) {
@@ -19,11 +20,16 @@ function countNonBlank(png) {
 }
 
 export async function run(ctx) {
-  const page = await ctx.newPage({ viewport: { width: 900, height: 620 }, errorPrefix: 'mounted-units' });
+  const page = await ctx.newPage({
+    viewport: { width: 900, height: 620 },
+    errorPrefix: "mounted-units",
+  });
   try {
     await page.goto(`${ctx.target}/renderer/mounted-units`);
     await page.waitForFunction(
-      () => window.__rendererLabReady === true && window.__rendererLabStats?.stats?.route === 'mounted-units',
+      () =>
+        window.__rendererLabReady === true &&
+        window.__rendererLabStats?.stats?.route === "mounted-units",
       undefined,
       { timeout: 18000 },
     );
@@ -42,20 +48,29 @@ export async function run(ctx) {
     ctx.check(
       `mounted-units: render-only cavalry sidearm class ${stats.sidearmClass} is LOD-scaled`,
       stats.sidearmScaled === true,
-      JSON.stringify({ footSize: stats.footSize, sidearm: stats.mountedSizes[String(stats.sidearmClass)] }),
+      JSON.stringify({
+        footSize: stats.footSize,
+        sidearm: stats.mountedSizes[String(stats.sidearmClass)],
+      }),
     );
     ctx.check(
-      'mounted-units: the mount flag tracks the mounted archetypes',
-      stats.mountedFlags.find((f) => f.classId === stats.heavySwordClass).mounted === false
-        && stats.mountedFlags.find((f) => f.classId === stats.mediumPhalanxClass).mounted === false
-        && stats.mountedFlags
-          .filter((f) => f.classId !== stats.heavySwordClass && f.classId !== stats.mediumPhalanxClass)
+      "mounted-units: the mount flag tracks the mounted archetypes",
+      stats.mountedFlags.find((f) => f.classId === stats.heavySwordClass).mounted === false &&
+        stats.mountedFlags.find((f) => f.classId === stats.mediumPhalanxClass).mounted === false &&
+        stats.mountedFlags
+          .filter(
+            (f) => f.classId !== stats.heavySwordClass && f.classId !== stats.mediumPhalanxClass,
+          )
           .every((f) => f.mounted === true),
       JSON.stringify(stats.mountedFlags),
     );
 
     const pixels = countNonBlank(PNG.sync.read(await page.screenshot()));
-    ctx.check('mounted-units: cavalry + foot render as horse + rider (nonblank)', pixels > 120000, JSON.stringify({ pixels }));
+    ctx.check(
+      "mounted-units: cavalry + foot render as horse + rider (nonblank)",
+      pixels > 120000,
+      JSON.stringify({ pixels }),
+    );
   } finally {
     await page.close();
   }

@@ -1,20 +1,28 @@
-import { readFile } from 'node:fs/promises';
-import { basename } from 'node:path';
+import { readFile } from "node:fs/promises";
+import { basename } from "node:path";
 
-import { hasBattleWorldDepthContract, hasCampaignWorldDepthContract } from '../_renderer-contract.mjs';
+import {
+  hasBattleWorldDepthContract,
+  hasCampaignWorldDepthContract,
+} from "../_renderer-contract.mjs";
 
 export const meta = {
-  name: 'full-game-rendering-performance',
-  kind: 'flow',
-  world: 'full-game',
-  tier: 'full',
+  name: "full-game-rendering-performance",
+  kind: "flow",
+  world: "full-game",
+  tier: "full",
   snapshots: [],
-  describe: 'Headless liveness performance report for normal WebGPU menu, battle, campaign, and handoff routes.',
+  describe:
+    "Headless liveness performance report for normal WebGPU menu, battle, campaign, and handoff routes.",
 };
 
 export async function run(ctx) {
-  if (process.env.VERIFY_GPU !== '1') {
-    ctx.check('requires WebGPU browser flags', true, 'set VERIFY_GPU=1 to exercise the WebGPU performance report');
+  if (process.env.VERIFY_GPU !== "1") {
+    ctx.check(
+      "requires WebGPU browser flags",
+      true,
+      "set VERIFY_GPU=1 to exercise the WebGPU performance report",
+    );
     return;
   }
 
@@ -28,9 +36,9 @@ export async function run(ctx) {
   const release = classifyReleaseEvidence(environment, scenes, currentRenderer);
 
   const report = {
-    kind: 'rendering-full-game-perf',
+    kind: "rendering-full-game-perf",
     mode: release.mode,
-    generatedAt: process.env.PERF_REPORT_GENERATED_AT ?? 'scenario-generated',
+    generatedAt: process.env.PERF_REPORT_GENERATED_AT ?? "scenario-generated",
     environment,
     scenes,
     releaseBudget: release.releaseBudget,
@@ -38,23 +46,25 @@ export async function run(ctx) {
     currentRendererComparison: release.comparison,
     notes: [
       ...release.notes,
-      'Release budgets require named real hardware and archived current-renderer comparison captures.',
+      "Release budgets require named real hardware and archived current-renderer comparison captures.",
     ],
   };
 
   ctx.check(
-    'headless full-game WebGPU perf report covers menu, battle, campaign, and handoff',
-    scenes.length === 4 && scenes.every((scene) =>
-      scene.frame.samples >= 20
-      && Number.isFinite(scene.frame.medianMs)
-      && Number.isFinite(scene.frame.p95Ms)
-      && scene.frame.p95Ms > 0,
-    ),
+    "headless full-game WebGPU perf report covers menu, battle, campaign, and handoff",
+    scenes.length === 4 &&
+      scenes.every(
+        (scene) =>
+          scene.frame.samples >= 20 &&
+          Number.isFinite(scene.frame.medianMs) &&
+          Number.isFinite(scene.frame.p95Ms) &&
+          scene.frame.p95Ms > 0,
+      ),
     JSON.stringify(compactReport(report)),
   );
   ctx.check(
-    'performance report keeps hardware release gate honest',
-    report.hardwareReleaseStatus !== 'pass' || report.releaseBudget === 'pass',
+    "performance report keeps hardware release gate honest",
+    report.hardwareReleaseStatus !== "pass" || report.releaseBudget === "pass",
     JSON.stringify({
       hardwareReleaseStatus: report.hardwareReleaseStatus,
       releaseBudget: report.releaseBudget,
@@ -64,12 +74,17 @@ export async function run(ctx) {
 }
 
 async function collectEnvironment(ctx) {
-  const page = await ctx.newPage({ viewport: { width: 1280, height: 800 }, errorPrefix: 'perf-environment' });
+  const page = await ctx.newPage({
+    viewport: { width: 1280, height: 800 },
+    errorPrefix: "perf-environment",
+  });
   await page.goto(ctx.target);
-  await page.waitForFunction(() => window.__appShellStats?.gpu?.checked === true, undefined, { timeout: 18000 });
+  await page.waitForFunction(() => window.__appShellStats?.gpu?.checked === true, undefined, {
+    timeout: 18000,
+  });
   const environment = await page.evaluate(() => ({
     browser: navigator.userAgent,
-    gpu: window.__appShellStats?.gpu?.adapter ?? 'unknown',
+    gpu: window.__appShellStats?.gpu?.adapter ?? "unknown",
     viewport: `${window.innerWidth}x${window.innerHeight}`,
     dpr: window.devicePixelRatio || 1,
   }));
@@ -78,21 +93,30 @@ async function collectEnvironment(ctx) {
 }
 
 async function measureMenu(ctx) {
-  const page = await ctx.newPage({ viewport: { width: 1280, height: 800 }, errorPrefix: 'perf-menu' });
+  const page = await ctx.newPage({
+    viewport: { width: 1280, height: 800 },
+    errorPrefix: "perf-menu",
+  });
   const startupStart = performance.now();
   await page.goto(ctx.target);
-  await page.waitForFunction(() => window.__appShellStats?.gpu?.ok === true, undefined, { timeout: 18000 });
+  await page.waitForFunction(() => window.__appShellStats?.gpu?.ok === true, undefined, {
+    timeout: 18000,
+  });
   const startupMs = performance.now() - startupStart;
   const frame = await sampleRaf(page);
   const stats = await page.evaluate(() => window.__appShellStats);
   const memory = await sampleMemory(page);
   await page.close();
-  ctx.check('perf menu shell is WebGPU-ready', stats.gpu.ok === true && stats.postCutoverScreenshots === 'renderer-only', JSON.stringify(stats));
+  ctx.check(
+    "perf menu shell is WebGPU-ready",
+    stats.gpu.ok === true && stats.postCutoverScreenshots === "renderer-only",
+    JSON.stringify(stats),
+  );
   return sceneReport({
-    id: 'menu',
-    label: 'Menu shell',
-    route: '/',
-    renderer: 'gpu-app-shell',
+    id: "menu",
+    label: "Menu shell",
+    route: "/",
+    renderer: "gpu-app-shell",
     frame,
     startupMs,
     memory,
@@ -101,16 +125,25 @@ async function measureMenu(ctx) {
 }
 
 async function measureBattle(ctx) {
-  const page = await ctx.newPage({ viewport: { width: 1280, height: 800 }, errorPrefix: 'perf-battle' });
+  const page = await ctx.newPage({
+    viewport: { width: 1280, height: 800 },
+    errorPrefix: "perf-battle",
+  });
   const startupStart = performance.now();
   await page.goto(`${ctx.target}/?map=A&ai=off`);
-  await page.waitForFunction(() => {
-    const stats = window.__game?.stats?.();
-    return window.__ready === true
-      && stats?.renderer === 'gpu'
-      && stats.renderStats?.ready === true
-      && stats.renderStats.soldiers === stats.soldiers;
-  }, undefined, { timeout: 24000 });
+  await page.waitForFunction(
+    () => {
+      const stats = window.__game?.stats?.();
+      return (
+        window.__ready === true &&
+        stats?.renderer === "gpu" &&
+        stats.renderStats?.ready === true &&
+        stats.renderStats.soldiers === stats.soldiers
+      );
+    },
+    undefined,
+    { timeout: 24000 },
+  );
   const startupMs = performance.now() - startupStart;
   await page.evaluate(() => window.__game.freezeAtTick(180));
   await page.waitForTimeout(200);
@@ -119,21 +152,21 @@ async function measureBattle(ctx) {
   const memory = await sampleMemory(page);
   await page.close();
   ctx.check(
-    'perf battle measures the normal raw-WebGPU max-crowd route',
-    stats.renderer === 'gpu'
-      && stats.soldiers > 0
-      && stats.renderStats?.soldiers === stats.renderStats?.expectedSoldiers
-      && stats.renderStats?.soldiers === stats.soldiers
-      && stats.renderStats?.drawCalls === 1
-      && hasBattleWorldDepthContract(stats.renderStats)
-      && perfStatsOk(stats.renderStats?.performance),
+    "perf battle measures the normal raw-WebGPU max-crowd route",
+    stats.renderer === "gpu" &&
+      stats.soldiers > 0 &&
+      stats.renderStats?.soldiers === stats.renderStats?.expectedSoldiers &&
+      stats.renderStats?.soldiers === stats.soldiers &&
+      stats.renderStats?.drawCalls === 1 &&
+      hasBattleWorldDepthContract(stats.renderStats) &&
+      perfStatsOk(stats.renderStats?.performance),
     JSON.stringify({ frame, stats }),
   );
   return sceneReport({
-    id: 'battle-max-crowd',
-    label: 'Battle max crowd',
-    route: '/?map=A&ai=off',
-    renderer: 'raw-renderer-battle',
+    id: "battle-max-crowd",
+    label: "Battle max crowd",
+    route: "/?map=A&ai=off",
+    renderer: "raw-renderer-battle",
     frame,
     startupMs,
     memory,
@@ -142,12 +175,21 @@ async function measureBattle(ctx) {
 }
 
 async function measureCampaign(ctx) {
-  const page = await ctx.newPage({ viewport: { width: 1280, height: 800 }, errorPrefix: 'perf-campaign' });
+  const page = await ctx.newPage({
+    viewport: { width: 1280, height: 800 },
+    errorPrefix: "perf-campaign",
+  });
   await page.goto(ctx.target);
-  await page.waitForFunction(() => window.__appShellStats?.gpu?.ok === true, undefined, { timeout: 18000 });
+  await page.waitForFunction(() => window.__appShellStats?.gpu?.ok === true, undefined, {
+    timeout: 18000,
+  });
   const startupStart = performance.now();
-  await page.click('#menu-new-campaign');
-  await page.waitForFunction(() => window.__campaignReady === true && window.__campaignGpuStats?.ready === true, undefined, { timeout: 30000 });
+  await page.click("#menu-new-campaign");
+  await page.waitForFunction(
+    () => window.__campaignReady === true && window.__campaignGpuStats?.ready === true,
+    undefined,
+    { timeout: 30000 },
+  );
   const startupMs = performance.now() - startupStart;
   await page.evaluate(() => {
     window.__campaign.freeze(true);
@@ -159,19 +201,19 @@ async function measureCampaign(ctx) {
   const memory = await sampleMemory(page);
   await page.close();
   ctx.check(
-    'perf campaign measures the normal raw-WebGPU campaign route',
-    stats.renderer === 'renderer-campaign'
-      && stats.cityEntities > 20
-      && stats.lineSegments > 1000
-      && hasCampaignWorldDepthContract(stats)
-      && perfStatsOk(stats.performance),
+    "perf campaign measures the normal raw-WebGPU campaign route",
+    stats.renderer === "renderer-campaign" &&
+      stats.cityEntities > 20 &&
+      stats.lineSegments > 1000 &&
+      hasCampaignWorldDepthContract(stats) &&
+      perfStatsOk(stats.performance),
     JSON.stringify({ frame, stats }),
   );
   return sceneReport({
-    id: 'campaign-whole-map',
-    label: 'Campaign whole map',
-    route: '/ -> New Campaign',
-    renderer: 'raw-renderer-campaign',
+    id: "campaign-whole-map",
+    label: "Campaign whole map",
+    route: "/ -> New Campaign",
+    renderer: "raw-renderer-campaign",
     frame,
     startupMs,
     memory,
@@ -180,25 +222,36 @@ async function measureCampaign(ctx) {
 }
 
 async function measureHandoff(ctx) {
-  const page = await ctx.newPage({ viewport: { width: 1280, height: 800 }, errorPrefix: 'perf-handoff' });
+  const page = await ctx.newPage({
+    viewport: { width: 1280, height: 800 },
+    errorPrefix: "perf-handoff",
+  });
   await page.goto(`${ctx.target}/?campaign=handoff`);
-  await page.waitForFunction(() => window.__campaignReady === true && window.__campaignGpuStats?.ready === true, undefined, { timeout: 18000 });
+  await page.waitForFunction(
+    () => window.__campaignReady === true && window.__campaignGpuStats?.ready === true,
+    undefined,
+    { timeout: 18000 },
+  );
   const handoffMs = await page.evaluate(async () => {
     window.__campaign.place(0, 1, 0, 3);
     window.__campaign.place(1, 1, 0, 4);
     window.__campaign.tick(2000);
     const start = performance.now();
-    if (!window.__campaign.fightReady()) throw new Error('fightReady failed');
+    if (!window.__campaign.fightReady()) throw new Error("fightReady failed");
     await new Promise((resolve, reject) => {
       const deadline = performance.now() + 22000;
       const tick = () => {
         const stats = window.__game?.stats?.();
-        if (window.__ready === true && stats?.renderer === 'gpu' && stats.renderStats?.soldiers === stats.soldiers) {
+        if (
+          window.__ready === true &&
+          stats?.renderer === "gpu" &&
+          stats.renderStats?.soldiers === stats.soldiers
+        ) {
           resolve();
           return;
         }
         if (performance.now() > deadline) {
-          reject(new Error('handoff timed out'));
+          reject(new Error("handoff timed out"));
           return;
         }
         requestAnimationFrame(tick);
@@ -214,20 +267,20 @@ async function measureHandoff(ctx) {
   const memory = await sampleMemory(page);
   await page.close();
   ctx.check(
-    'perf handoff reaches a WebGPU campaign battle with matching render count',
-    handoffMs > 0
-      && handoffMs < 22000
-      && stats.renderer === 'gpu'
-      && stats.renderStats?.soldiers === stats.soldiers
-      && hasBattleWorldDepthContract(stats.renderStats)
-      && perfStatsOk(stats.renderStats?.performance),
+    "perf handoff reaches a WebGPU campaign battle with matching render count",
+    handoffMs > 0 &&
+      handoffMs < 22000 &&
+      stats.renderer === "gpu" &&
+      stats.renderStats?.soldiers === stats.soldiers &&
+      hasBattleWorldDepthContract(stats.renderStats) &&
+      perfStatsOk(stats.renderStats?.performance),
     JSON.stringify({ handoffMs, frame, stats }),
   );
   return sceneReport({
-    id: 'campaign-battle-handoff',
-    label: 'Campaign to battle handoff',
-    route: '/?campaign=handoff',
-    renderer: 'raw-renderer-campaign-to-battle',
+    id: "campaign-battle-handoff",
+    label: "Campaign to battle handoff",
+    route: "/?campaign=handoff",
+    renderer: "raw-renderer-campaign-to-battle",
     frame,
     startupMs: handoffMs,
     memory,
@@ -282,7 +335,9 @@ function sceneReport({ id, label, route, renderer, frame, startupMs, memory, sta
 }
 
 function summarize(samples) {
-  const sorted = samples.filter((value) => Number.isFinite(value) && value >= 0).sort((a, b) => a - b);
+  const sorted = samples
+    .filter((value) => Number.isFinite(value) && value >= 0)
+    .sort((a, b) => a - b);
   const sum = sorted.reduce((total, value) => total + value, 0);
   return {
     samples: sorted.length,
@@ -308,7 +363,7 @@ function compactReport(report) {
     releaseBudget: report.releaseBudget,
     environment: {
       gpu: report.environment.gpu,
-      browser: report.environment.browser.includes('Headless') ? 'headless' : 'browser',
+      browser: report.environment.browser.includes("Headless") ? "headless" : "browser",
       viewport: report.environment.viewport,
       dpr: report.environment.dpr,
     },
@@ -333,32 +388,34 @@ function compactReport(report) {
 async function readCurrentRendererBaseline() {
   const path = process.env.PERF_CURRENT_RENDERER_JSON;
   if (!path) return null;
-  const text = await readFile(path, 'utf8');
+  const text = await readFile(path, "utf8");
   return { path, report: JSON.parse(text) };
 }
 
 function classifyReleaseEvidence(environment, scenes, currentRenderer) {
   const hardware = hardwareKind(environment);
-  if (hardware !== 'real-hardware') {
+  if (hardware !== "real-hardware") {
     return {
-      mode: 'headless-liveness',
-      releaseBudget: 'not-set',
-      status: 'headless-liveness-only',
+      mode: "headless-liveness",
+      releaseBudget: "not-set",
+      status: "headless-liveness-only",
       comparison: {
-        status: 'not-applicable-headless',
+        status: "not-applicable-headless",
         currentRendererSource: currentRenderer?.path ?? null,
         scenes: [],
       },
-      notes: [`${environment.gpu} / ${environment.browser} is classified as ${hardware}; do not use it as release performance proof.`],
+      notes: [
+        `${environment.gpu} / ${environment.browser} is classified as ${hardware}; do not use it as release performance proof.`,
+      ],
     };
   }
   if (!currentRenderer) {
     return {
-      mode: 'hardware-report',
-      releaseBudget: 'candidate',
-      status: 'pending-current-renderer-baseline',
+      mode: "hardware-report",
+      releaseBudget: "candidate",
+      status: "pending-current-renderer-baseline",
       comparison: {
-        status: 'missing-archived-current-renderer-baseline',
+        status: "missing-archived-current-renderer-baseline",
         currentRendererSource: null,
         scenes: scenes.map((scene) => ({
           id: scene.id,
@@ -370,33 +427,36 @@ function classifyReleaseEvidence(environment, scenes, currentRenderer) {
           currentP95Ms: null,
           currentStartupMs: null,
           currentUsedHeapMB: null,
-          result: 'missing-current-renderer-baseline',
+          result: "missing-current-renderer-baseline",
         })),
       },
-      notes: ['Real browser/GPU detected, but PERF_CURRENT_RENDERER_JSON was not supplied.'],
+      notes: ["Real browser/GPU detected, but PERF_CURRENT_RENDERER_JSON was not supplied."],
     };
   }
   const comparisonScenes = compareScenes(scenes, currentRenderer.report.scenes ?? []);
-  const pass = comparisonScenes.every((scene) => scene.result === 'pass');
+  const pass = comparisonScenes.every((scene) => scene.result === "pass");
   return {
-    mode: 'hardware-report',
-    releaseBudget: pass ? 'pass' : 'fail',
-    status: pass ? 'pass' : 'fail',
+    mode: "hardware-report",
+    releaseBudget: pass ? "pass" : "fail",
+    status: pass ? "pass" : "fail",
     comparison: {
-      status: pass ? 'gpu-equal-or-better' : 'gpu-regression',
+      status: pass ? "gpu-equal-or-better" : "gpu-regression",
       currentRendererSource: currentRenderer.path,
       scenes: comparisonScenes,
     },
-    notes: [`Compared against archived current-renderer perf report ${basename(currentRenderer.path)}.`],
+    notes: [
+      `Compared against archived current-renderer perf report ${basename(currentRenderer.path)}.`,
+    ],
   };
 }
 
 function hardwareKind(environment) {
   const text = `${environment.browser} ${environment.gpu}`.toLowerCase();
-  if (text.includes('swiftshader') || text.includes('llvmpipe') || text.includes('software')) return 'software-adapter';
-  if (text.includes('headless')) return 'headless-browser';
-  if (environment.gpu === 'unknown') return 'unknown-adapter';
-  return 'real-hardware';
+  if (text.includes("swiftshader") || text.includes("llvmpipe") || text.includes("software"))
+    return "software-adapter";
+  if (text.includes("headless")) return "headless-browser";
+  if (environment.gpu === "unknown") return "unknown-adapter";
+  return "real-hardware";
 }
 
 function compareScenes(gpuScenes, currentScenes) {
@@ -413,7 +473,7 @@ function compareScenes(gpuScenes, currentScenes) {
         currentP95Ms: null,
         currentStartupMs: null,
         currentUsedHeapMB: null,
-        result: 'missing-current-renderer-scene',
+        result: "missing-current-renderer-scene",
       };
     }
     const medianRatio = gpu.frame.medianMs / Math.max(0.001, current.frame.medianMs);
@@ -435,7 +495,7 @@ function compareScenes(gpuScenes, currentScenes) {
         currentUsedHeapMB: currentMemory?.usedMB ?? null,
         medianRatio: round(medianRatio),
         p95Ratio: round(p95Ratio),
-        result: 'missing-current-startup-baseline',
+        result: "missing-current-startup-baseline",
       };
     }
     if (gpuMemory && !currentMemory) {
@@ -452,10 +512,10 @@ function compareScenes(gpuScenes, currentScenes) {
         medianRatio: round(medianRatio),
         p95Ratio: round(p95Ratio),
         startupRatio: round(startupRatio(gpu, current)),
-        result: 'missing-current-memory-baseline',
+        result: "missing-current-memory-baseline",
       };
     }
-    const needsCpuBaseline = gpu.id !== 'menu' && gpuPerf !== null;
+    const needsCpuBaseline = gpu.id !== "menu" && gpuPerf !== null;
     if (needsCpuBaseline && !currentPerf) {
       return {
         id: gpu.id,
@@ -473,26 +533,28 @@ function compareScenes(gpuScenes, currentScenes) {
         gpuDrawMs: round(gpuPerf.drawMs),
         currentUploadMs: null,
         currentDrawMs: null,
-        result: 'missing-current-cpu-baseline',
+        result: "missing-current-cpu-baseline",
       };
     }
-    const uploadRatio = gpuPerf && currentPerf
-      ? gpuPerf.uploadMs / Math.max(0.001, currentPerf.uploadMs)
-      : null;
-    const drawRatio = gpuPerf && currentPerf
-      ? gpuPerf.drawMs / Math.max(0.001, currentPerf.drawMs)
-      : null;
+    const uploadRatio =
+      gpuPerf && currentPerf ? gpuPerf.uploadMs / Math.max(0.001, currentPerf.uploadMs) : null;
+    const drawRatio =
+      gpuPerf && currentPerf ? gpuPerf.drawMs / Math.max(0.001, currentPerf.drawMs) : null;
     const startupMsRatio = startupRatio(gpu, current);
-    const heapRatio = gpuMemory && currentMemory
-      ? gpuMemory.usedMB / Math.max(0.001, currentMemory.usedMB)
-      : null;
-    const framePass = withinMeasurementFloor(gpu.frame.medianMs, current.frame.medianMs, 0.25)
-      && withinMeasurementFloor(gpu.frame.p95Ms, current.frame.p95Ms, 1.5);
-    const cpuPass = !gpuPerf || !currentPerf || (
-      withinMeasurementFloor(gpuPerf.uploadMs, currentPerf.uploadMs, 0.25)
-      && withinMeasurementFloor(gpuPerf.drawMs, currentPerf.drawMs, 0.25)
-    );
-    const startupPass = startupMsRatio === null || startupMsRatio <= 1.05 || withinMeasurementFloor(gpu.startupMs, current.startupMs, 50);
+    const heapRatio =
+      gpuMemory && currentMemory ? gpuMemory.usedMB / Math.max(0.001, currentMemory.usedMB) : null;
+    const framePass =
+      withinMeasurementFloor(gpu.frame.medianMs, current.frame.medianMs, 0.25) &&
+      withinMeasurementFloor(gpu.frame.p95Ms, current.frame.p95Ms, 1.5);
+    const cpuPass =
+      !gpuPerf ||
+      !currentPerf ||
+      (withinMeasurementFloor(gpuPerf.uploadMs, currentPerf.uploadMs, 0.25) &&
+        withinMeasurementFloor(gpuPerf.drawMs, currentPerf.drawMs, 0.25));
+    const startupPass =
+      startupMsRatio === null ||
+      startupMsRatio <= 1.05 ||
+      withinMeasurementFloor(gpu.startupMs, current.startupMs, 50);
     const heapPass = heapRatio === null || heapRatio <= 1.1;
     return {
       id: gpu.id,
@@ -520,7 +582,7 @@ function compareScenes(gpuScenes, currentScenes) {
         cpu: 0.25,
         startup: 50,
       },
-      result: framePass && cpuPass && startupPass && heapPass ? 'pass' : 'fail',
+      result: framePass && cpuPass && startupPass && heapPass ? "pass" : "fail",
     };
   });
 }
@@ -538,9 +600,9 @@ function startupRatio(gpu, current) {
 
 function extractMemory(scene) {
   const memory = scene?.memory;
-  if (!memory || typeof memory !== 'object') return null;
-  const usedMB = Number(memory.usedMB ?? (memory.usedJSHeapSize / 1048576));
-  const totalMB = Number(memory.totalMB ?? (memory.totalJSHeapSize / 1048576));
+  if (!memory || typeof memory !== "object") return null;
+  const usedMB = Number(memory.usedMB ?? memory.usedJSHeapSize / 1048576);
+  const totalMB = Number(memory.totalMB ?? memory.totalJSHeapSize / 1048576);
   return Number.isFinite(usedMB) && usedMB > 0
     ? { usedMB, totalMB: Number.isFinite(totalMB) ? totalMB : null }
     : null;
@@ -548,7 +610,7 @@ function extractMemory(scene) {
 
 function extractRendererPerformance(stats) {
   const perf = stats?.renderStats?.performance ?? stats?.performance;
-  if (!perf || typeof perf !== 'object') return null;
+  if (!perf || typeof perf !== "object") return null;
   const out = {
     buildMs: finiteMs(perf.buildMs),
     uploadMs: finiteMs(perf.uploadMs),
@@ -561,11 +623,11 @@ function extractRendererPerformance(stats) {
 function perfStatsOk(perf) {
   const normalized = extractRendererPerformance({ performance: perf });
   return Boolean(
-    normalized
-      && normalized.frameCpuMs >= normalized.drawMs
-      && normalized.frameCpuMs >= normalized.uploadMs
-      && normalized.uploadMs >= 0
-      && normalized.drawMs >= 0,
+    normalized &&
+    normalized.frameCpuMs >= normalized.drawMs &&
+    normalized.frameCpuMs >= normalized.uploadMs &&
+    normalized.uploadMs >= 0 &&
+    normalized.drawMs >= 0,
   );
 }
 

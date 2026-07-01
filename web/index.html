@@ -1,395 +1,1148 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <title>Battle Sim</title>
-  <!-- The one bronze design source: the :root design tokens. Loaded
+  <head>
+    <meta charset="utf-8" />
+    <title>Battle Sim</title>
+    <!-- The one bronze design source: the :root design tokens. Loaded
        render-blocking before the inline <style> below so var(--bronze-*)
        resolves at first paint. -->
-  <link rel="stylesheet" href="/src/ui/theme/bronze.css" />
-  <style>
-    /* Cinzel: an engraved Roman-caps serif (OFL) for the campaign map labels —
+    <link rel="stylesheet" href="/src/ui/theme/bronze.css" />
+    <style>
+      /* Cinzel: an engraved Roman-caps serif (OFL) for the campaign map labels —
        cities, regions, factions. Classical-atlas lettering. */
-    @font-face {
-      font-family: 'Cinzel';
-      src: url('/fonts/Cinzel.ttf') format('truetype');
-      font-weight: 400 900;
-      font-display: swap;
-    }
-    html, body { margin: 0; height: 100%; overflow: hidden; background: #14161c; }
-    /* Bronze design tokens (:root) and the .chassis / .chassis-tray housing
+      @font-face {
+        font-family: "Cinzel";
+        src: url("/fonts/Cinzel.ttf") format("truetype");
+        font-weight: 400 900;
+        font-display: swap;
+      }
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        overflow: hidden;
+        background: #14161c;
+      }
+      /* Bronze design tokens (:root) and the .chassis / .chassis-tray housing
        classes now live in src/ui/theme/bronze.css — the one bronze source.
        Everything below still consumes the tokens via var(--bronze-*). */
-    #battlefield { display: block; width: 100vw; height: 100vh; }
-    #hud {
-      position: fixed; top: 12px; left: 12px;
-      font: 12px/1.5 ui-monospace, Menlo, monospace;
-      color: #ecd9b0; pointer-events: none; min-width: 234px; max-width: 282px;
-      padding: 10px 13px 11px; border: 3px solid transparent; border-radius: 5px;
-      background: var(--bronze-fill) padding-box, var(--bronze-edge) border-box;
-      box-shadow: var(--bronze-frame);
-    }
-    /* Visual unit readout: portrait + name header, labeled stat bars, detail. */
-    #hud .hud-head { display: flex; gap: 9px; align-items: center; margin: 7px 0 9px; }
-    #hud .hud-port { width: 58px; height: 54px; flex: none; object-fit: cover; border: 1px solid #2a1d0e; border-radius: 2px; background: #1c150d; box-shadow: inset 0 0 0 1px rgba(150,114,62,0.3); }
-    #hud .hud-name { font: 700 16px 'Cinzel', ui-serif, Georgia, serif; color: #f0e3b0; letter-spacing: 0.5px; line-height: 1.1; }
-    #hud .hud-meta { font-size: 11px; color: #b89a64; margin-top: 3px; }
-    #hud .hud-stat { display: flex; align-items: center; gap: 7px; margin: 3px 0; }
-    #hud .hud-stat > span { width: 26px; flex: none; font-size: 10px; letter-spacing: 1px; color: #c9a461; }
-    #hud .hud-bar { flex: 1; height: 7px; background: rgba(6,8,5,0.8); border-radius: 2px; overflow: hidden; box-shadow: inset 0 0 0 1px rgba(150,114,62,0.3); }
-    #hud .hud-bar > div { height: 100%; }
-    #hud .hud-detail { margin-top: 9px; padding-top: 7px; border-top: 1px solid rgba(150,114,62,0.3); font-size: 11px; line-height: 1.5; color: #cbb486; }
-    #help {
-      position: fixed; bottom: 12px; left: 12px;
-      font: 11px ui-monospace, Menlo, monospace; color: #6b7280;
-    }
-    #buttons {
-      position: fixed; top: 12px; right: 12px; display: flex; gap: 8px;
-    }
-    #buttons button {
-      font: 700 11px ui-monospace, Menlo, monospace; color: var(--bronze-ink);
-      background: var(--well-bg); border: 1px solid #3a2c18;
-      border-radius: 2px; padding: 6px 12px; cursor: pointer;
-      box-shadow: var(--well-shadow);
-    }
-    #buttons button:hover { color: var(--bronze-ink-bright); box-shadow: var(--well-hover); }
-    #manual {
-      display: none; position: fixed; top: 48px; right: 270px; bottom: 172px; z-index: 50;
-      width: min(520px, calc(100vw - 310px)); max-height: none;
-      overflow-y: scroll; color: #e7d8b4; font: 13px/1.6 -apple-system, sans-serif;
-      padding: 12px 22px 22px; border: 3px solid transparent; border-radius: 5px;
-      background: var(--bronze-fill) padding-box, var(--bronze-edge) border-box;
-      box-shadow: var(--bronze-frame), inset 0 -18px 18px rgba(0,0,0,0.34);
-    }
-    #manual::-webkit-scrollbar { width: 10px; }
-    #manual::-webkit-scrollbar-track { background: rgba(6,8,5,0.6); border-radius: 5px; }
-    #manual::-webkit-scrollbar-thumb { background: #6e5128; border-radius: 5px; }
-    #manual h1 { font-size: 19px; color: #e8cf96; } #manual h2 { font-size: 15px; margin-top: 18px; color: #e8cf96; }
-    #manual table { border-collapse: collapse; width: 100%; margin: 6px 0; }
-    #manual td, #manual th { border: 1px solid rgba(150,114,62,0.35); padding: 3px 8px; font-size: 12px; text-align: left; }
-    #banner {
-      display: none; position: fixed; top: 38%; left: 0; right: 0;
-      text-align: center; font: 700 52px 'Cinzel', ui-serif, Georgia, serif; letter-spacing: 4px;
-      color: #e8cf96; text-shadow: 0 2px 16px rgba(0,0,0,0.95); pointer-events: none;
-    }
-    #selbox {
-      display: none; position: fixed; border: 1px solid rgba(255,255,255,0.7);
-      background: rgba(255,255,255,0.08); pointer-events: none;
-    }
-    #unitlabels { position: fixed; inset: 0; pointer-events: none; z-index: 3; }
-    /* Worn-bronze chassis from the shared tokens (bronze.css) — opaque
+      #battlefield {
+        display: block;
+        width: 100vw;
+        height: 100vh;
+      }
+      #hud {
+        position: fixed;
+        top: 12px;
+        left: 12px;
+        font:
+          12px/1.5 ui-monospace,
+          Menlo,
+          monospace;
+        color: #ecd9b0;
+        pointer-events: none;
+        min-width: 234px;
+        max-width: 282px;
+        padding: 10px 13px 11px;
+        border: 3px solid transparent;
+        border-radius: 5px;
+        background:
+          var(--bronze-fill) padding-box,
+          var(--bronze-edge) border-box;
+        box-shadow: var(--bronze-frame);
+      }
+      /* Visual unit readout: portrait + name header, labeled stat bars, detail. */
+      #hud .hud-head {
+        display: flex;
+        gap: 9px;
+        align-items: center;
+        margin: 7px 0 9px;
+      }
+      #hud .hud-port {
+        width: 58px;
+        height: 54px;
+        flex: none;
+        object-fit: cover;
+        border: 1px solid #2a1d0e;
+        border-radius: 2px;
+        background: #1c150d;
+        box-shadow: inset 0 0 0 1px rgba(150, 114, 62, 0.3);
+      }
+      #hud .hud-name {
+        font:
+          700 16px "Cinzel",
+          ui-serif,
+          Georgia,
+          serif;
+        color: #f0e3b0;
+        letter-spacing: 0.5px;
+        line-height: 1.1;
+      }
+      #hud .hud-meta {
+        font-size: 11px;
+        color: #b89a64;
+        margin-top: 3px;
+      }
+      #hud .hud-stat {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        margin: 3px 0;
+      }
+      #hud .hud-stat > span {
+        width: 26px;
+        flex: none;
+        font-size: 10px;
+        letter-spacing: 1px;
+        color: #c9a461;
+      }
+      #hud .hud-bar {
+        flex: 1;
+        height: 7px;
+        background: rgba(6, 8, 5, 0.8);
+        border-radius: 2px;
+        overflow: hidden;
+        box-shadow: inset 0 0 0 1px rgba(150, 114, 62, 0.3);
+      }
+      #hud .hud-bar > div {
+        height: 100%;
+      }
+      #hud .hud-detail {
+        margin-top: 9px;
+        padding-top: 7px;
+        border-top: 1px solid rgba(150, 114, 62, 0.3);
+        font-size: 11px;
+        line-height: 1.5;
+        color: #cbb486;
+      }
+      #help {
+        position: fixed;
+        bottom: 12px;
+        left: 12px;
+        font:
+          11px ui-monospace,
+          Menlo,
+          monospace;
+        color: #6b7280;
+      }
+      #buttons {
+        position: fixed;
+        top: 12px;
+        right: 12px;
+        display: flex;
+        gap: 8px;
+      }
+      #buttons button {
+        font:
+          700 11px ui-monospace,
+          Menlo,
+          monospace;
+        color: var(--bronze-ink);
+        background: var(--well-bg);
+        border: 1px solid #3a2c18;
+        border-radius: 2px;
+        padding: 6px 12px;
+        cursor: pointer;
+        box-shadow: var(--well-shadow);
+      }
+      #buttons button:hover {
+        color: var(--bronze-ink-bright);
+        box-shadow: var(--well-hover);
+      }
+      #manual {
+        display: none;
+        position: fixed;
+        top: 48px;
+        right: 270px;
+        bottom: 172px;
+        z-index: 50;
+        width: min(520px, calc(100vw - 310px));
+        max-height: none;
+        overflow-y: scroll;
+        color: #e7d8b4;
+        font:
+          13px/1.6 -apple-system,
+          sans-serif;
+        padding: 12px 22px 22px;
+        border: 3px solid transparent;
+        border-radius: 5px;
+        background:
+          var(--bronze-fill) padding-box,
+          var(--bronze-edge) border-box;
+        box-shadow:
+          var(--bronze-frame),
+          inset 0 -18px 18px rgba(0, 0, 0, 0.34);
+      }
+      #manual::-webkit-scrollbar {
+        width: 10px;
+      }
+      #manual::-webkit-scrollbar-track {
+        background: rgba(6, 8, 5, 0.6);
+        border-radius: 5px;
+      }
+      #manual::-webkit-scrollbar-thumb {
+        background: #6e5128;
+        border-radius: 5px;
+      }
+      #manual h1 {
+        font-size: 19px;
+        color: #e8cf96;
+      }
+      #manual h2 {
+        font-size: 15px;
+        margin-top: 18px;
+        color: #e8cf96;
+      }
+      #manual table {
+        border-collapse: collapse;
+        width: 100%;
+        margin: 6px 0;
+      }
+      #manual td,
+      #manual th {
+        border: 1px solid rgba(150, 114, 62, 0.35);
+        padding: 3px 8px;
+        font-size: 12px;
+        text-align: left;
+      }
+      #banner {
+        display: none;
+        position: fixed;
+        top: 38%;
+        left: 0;
+        right: 0;
+        text-align: center;
+        font:
+          700 52px "Cinzel",
+          ui-serif,
+          Georgia,
+          serif;
+        letter-spacing: 4px;
+        color: #e8cf96;
+        text-shadow: 0 2px 16px rgba(0, 0, 0, 0.95);
+        pointer-events: none;
+      }
+      #selbox {
+        display: none;
+        position: fixed;
+        border: 1px solid rgba(255, 255, 255, 0.7);
+        background: rgba(255, 255, 255, 0.08);
+        pointer-events: none;
+      }
+      #unitlabels {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 3;
+      }
+      /* Worn-bronze chassis from the shared tokens (bronze.css) — opaque
        worn-metal housing, NOT a translucent web pill bar. */
-    #toolbar {
-      position: fixed; bottom: 10px; left: 50%; transform: translateX(-50%);
-      display: flex; gap: 5px; align-items: center; z-index: 5;
-      padding: 6px 8px; border: 3px solid transparent; border-radius: 5px;
-      background: var(--bronze-fill) padding-box, var(--bronze-edge) border-box;
-      box-shadow: var(--bronze-frame);
-    }
-    /* Bottom unit-card strip: one card per player unit (Total War style).
+      #toolbar {
+        position: fixed;
+        bottom: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 5px;
+        align-items: center;
+        z-index: 5;
+        padding: 6px 8px;
+        border: 3px solid transparent;
+        border-radius: 5px;
+        background:
+          var(--bronze-fill) padding-box,
+          var(--bronze-edge) border-box;
+        box-shadow: var(--bronze-frame);
+      }
+      /* Bottom unit-card strip: one card per player unit (Total War style).
        Fixed-size cards in a no-scroll grid — JS writes --cols/--card-w/--card-h
        (cardGrid.ts), CSS paints. Cards never resize; the bar wraps into more
        rows as the roster grows. The bar shrink-wraps to its cards and centers,
        so a small roster is a few fixed cards, not a wide empty band. */
-    #unitcards {
-      position: fixed; bottom: 52px; left: 50%; transform: translateX(-50%); z-index: 5;
-      display: grid; width: max-content; max-width: calc(100vw - 24px);
-      grid-template-columns: repeat(var(--cols, 1), var(--card-w, 72px));
-      grid-auto-rows: var(--card-h, 96px);
-      gap: 3px; justify-content: center; align-content: end;
-      overflow: hidden; padding: 11px 12px;
-      /* Riveted bronze tray: corner rivets + brushed grain over the shared
+      #unitcards {
+        position: fixed;
+        bottom: 52px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 5;
+        display: grid;
+        width: max-content;
+        max-width: calc(100vw - 24px);
+        grid-template-columns: repeat(var(--cols, 1), var(--card-w, 72px));
+        grid-auto-rows: var(--card-h, 96px);
+        gap: 3px;
+        justify-content: center;
+        align-content: end;
+        overflow: hidden;
+        padding: 11px 12px;
+        /* Riveted bronze tray: corner rivets + brushed grain over the shared
          fill/edge tokens; the deeper 6-layer frame is unique to this housing. */
-      background:
-        radial-gradient(circle at 9px 9px, rgba(234,204,142,0.95) 0 1.1px, rgba(58,42,22,0.95) 1.5px 2.7px, transparent 3.1px) padding-box,
-        radial-gradient(circle at calc(100% - 9px) 9px, rgba(234,204,142,0.95) 0 1.1px, rgba(58,42,22,0.95) 1.5px 2.7px, transparent 3.1px) padding-box,
-        radial-gradient(circle at 9px calc(100% - 9px), rgba(234,204,142,0.95) 0 1.1px, rgba(58,42,22,0.95) 1.5px 2.7px, transparent 3.1px) padding-box,
-        radial-gradient(circle at calc(100% - 9px) calc(100% - 9px), rgba(234,204,142,0.95) 0 1.1px, rgba(58,42,22,0.95) 1.5px 2.7px, transparent 3.1px) padding-box,
-        repeating-linear-gradient(96deg, rgba(255,228,168,0.035) 0 2px, rgba(0,0,0,0.04) 2px 4px) padding-box,
-        var(--bronze-fill) padding-box,
-        var(--bronze-edge) border-box;
-      border: 4px solid transparent; border-radius: 5px;
-      box-shadow:
-        inset 0 1px 0 rgba(236,200,132,0.65),
-        inset 0 0 0 2px rgba(16,10,5,0.78),
-        inset 0 0 0 3px rgba(158,120,66,0.55),
-        inset 0 -3px 8px rgba(0,0,0,0.6),
-        0 0 0 1px rgba(182,142,80,0.65),
-        0 9px 24px rgba(0,0,0,0.68);
-    }
-    @media (max-width: 760px) {
-      #manual { left: 12px; right: 12px; bottom: 172px; width: auto; }
-    }
-    /* A 3:4 card as a column: HP strength bar / portrait (fills the middle) / name +
+        background:
+          radial-gradient(
+              circle at 9px 9px,
+              rgba(234, 204, 142, 0.95) 0 1.1px,
+              rgba(58, 42, 22, 0.95) 1.5px 2.7px,
+              transparent 3.1px
+            )
+            padding-box,
+          radial-gradient(
+              circle at calc(100% - 9px) 9px,
+              rgba(234, 204, 142, 0.95) 0 1.1px,
+              rgba(58, 42, 22, 0.95) 1.5px 2.7px,
+              transparent 3.1px
+            )
+            padding-box,
+          radial-gradient(
+              circle at 9px calc(100% - 9px),
+              rgba(234, 204, 142, 0.95) 0 1.1px,
+              rgba(58, 42, 22, 0.95) 1.5px 2.7px,
+              transparent 3.1px
+            )
+            padding-box,
+          radial-gradient(
+              circle at calc(100% - 9px) calc(100% - 9px),
+              rgba(234, 204, 142, 0.95) 0 1.1px,
+              rgba(58, 42, 22, 0.95) 1.5px 2.7px,
+              transparent 3.1px
+            )
+            padding-box,
+          repeating-linear-gradient(
+              96deg,
+              rgba(255, 228, 168, 0.035) 0 2px,
+              rgba(0, 0, 0, 0.04) 2px 4px
+            )
+            padding-box,
+          var(--bronze-fill) padding-box,
+          var(--bronze-edge) border-box;
+        border: 4px solid transparent;
+        border-radius: 5px;
+        box-shadow:
+          inset 0 1px 0 rgba(236, 200, 132, 0.65),
+          inset 0 0 0 2px rgba(16, 10, 5, 0.78),
+          inset 0 0 0 3px rgba(158, 120, 66, 0.55),
+          inset 0 -3px 8px rgba(0, 0, 0, 0.6),
+          0 0 0 1px rgba(182, 142, 80, 0.65),
+          0 9px 24px rgba(0, 0, 0, 0.68);
+      }
+      @media (max-width: 760px) {
+        #manual {
+          left: 12px;
+          right: 12px;
+          bottom: 172px;
+          width: auto;
+        }
+      }
+      /* A 3:4 card as a column: HP strength bar / portrait (fills the middle) / name +
        cohesion-morale bars — each in its own strip so chrome never overlaps the
        figure. The portrait PNG is baked to the middle region's aspect, not 3:4. An
        inset bronze-rimmed well in the chassis, not a floating rounded web card. */
-    .ucard {
-      width: var(--card-w); height: var(--card-h); aspect-ratio: 3 / 4; box-sizing: border-box;
-      position: relative; display: flex; flex-direction: column; overflow: hidden;
-      background: #16100a; border: 1px solid #3a2c18;
-      border-top: 3px solid var(--fac); border-radius: 2px;
-      cursor: pointer; transition: box-shadow 0.1s, border-color 0.1s;
-    }
-    .ucard:hover { border-color: #6e5128; }
-    .ucard.sel { border-color: #f0d98a; z-index: 2; box-shadow: 0 0 9px 1px rgba(240,212,122,0.6); }
-    .ucard.rout { filter: grayscale(0.5) brightness(0.8); }
-    .ucard.rout::after {
-      content: 'ROUT'; position: absolute; top: 30px; left: 0; right: 0; text-align: center; z-index: 3;
-      font: 700 9px ui-monospace, monospace; color: #ff7a6b; text-shadow: 0 1px 2px #000;
-    }
-    /* HP strength bar across the top, count riding on it (the reference). */
-    .ucard-hp { position: relative; flex: none; height: 10px; background: rgba(6,8,5,0.82); box-shadow: inset 0 -1px 0 rgba(0,0,0,0.5); overflow: hidden; }
-    .ucard-hp-fill { height: 100%; width: 100%; }
-    .ucard-count { position: absolute; top: 0; right: 5px; line-height: 10px; font: 700 9px ui-monospace, monospace; color: #fff; text-shadow: 0 1px 2px #000, 0 0 3px #000; }
-    .ucard-port { display: block; flex: 1 1 0; min-height: 0; width: 100%; object-fit: cover; background: #1c150d; }
-    .ucard-name { flex: none; padding: 1px 3px 0; text-align: center; font: 700 8px ui-monospace, Menlo, monospace; color: #ead9b0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .ucard-bars { flex: none; padding: 0 4px 1px; }
-    .ucard-bar { height: 3px; background: rgba(8,9,11,0.7); border-radius: 2px; overflow: hidden; margin-bottom: 1px; }
-    .ucard-bar > div { height: 100%; width: 100%; }
-    .ucard-bar.hp > div { background: #5cba46; }
-    .ucard-bar.coh > div { background: #d9c75a; }
-    .ucard-bar.mor > div { background: #c2554e; }
-    /* "Window too small" gate — shown by viewportGate.ts when the battle window
+      .ucard {
+        width: var(--card-w);
+        height: var(--card-h);
+        aspect-ratio: 3 / 4;
+        box-sizing: border-box;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        background: #16100a;
+        border: 1px solid #3a2c18;
+        border-top: 3px solid var(--fac);
+        border-radius: 2px;
+        cursor: pointer;
+        transition:
+          box-shadow 0.1s,
+          border-color 0.1s;
+      }
+      .ucard:hover {
+        border-color: #6e5128;
+      }
+      .ucard.sel {
+        border-color: #f0d98a;
+        z-index: 2;
+        box-shadow: 0 0 9px 1px rgba(240, 212, 122, 0.6);
+      }
+      .ucard.rout {
+        filter: grayscale(0.5) brightness(0.8);
+      }
+      .ucard.rout::after {
+        content: "ROUT";
+        position: absolute;
+        top: 30px;
+        left: 0;
+        right: 0;
+        text-align: center;
+        z-index: 3;
+        font:
+          700 9px ui-monospace,
+          monospace;
+        color: #ff7a6b;
+        text-shadow: 0 1px 2px #000;
+      }
+      /* HP strength bar across the top, count riding on it (the reference). */
+      .ucard-hp {
+        position: relative;
+        flex: none;
+        height: 10px;
+        background: rgba(6, 8, 5, 0.82);
+        box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.5);
+        overflow: hidden;
+      }
+      .ucard-hp-fill {
+        height: 100%;
+        width: 100%;
+      }
+      .ucard-count {
+        position: absolute;
+        top: 0;
+        right: 5px;
+        line-height: 10px;
+        font:
+          700 9px ui-monospace,
+          monospace;
+        color: #fff;
+        text-shadow:
+          0 1px 2px #000,
+          0 0 3px #000;
+      }
+      .ucard-port {
+        display: block;
+        flex: 1 1 0;
+        min-height: 0;
+        width: 100%;
+        object-fit: cover;
+        background: #1c150d;
+      }
+      .ucard-name {
+        flex: none;
+        padding: 1px 3px 0;
+        text-align: center;
+        font:
+          700 8px ui-monospace,
+          Menlo,
+          monospace;
+        color: #ead9b0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .ucard-bars {
+        flex: none;
+        padding: 0 4px 1px;
+      }
+      .ucard-bar {
+        height: 3px;
+        background: rgba(8, 9, 11, 0.7);
+        border-radius: 2px;
+        overflow: hidden;
+        margin-bottom: 1px;
+      }
+      .ucard-bar > div {
+        height: 100%;
+        width: 100%;
+      }
+      .ucard-bar.hp > div {
+        background: #5cba46;
+      }
+      .ucard-bar.coh > div {
+        background: #d9c75a;
+      }
+      .ucard-bar.mor > div {
+        background: #c2554e;
+      }
+      /* "Window too small" gate — shown by viewportGate.ts when the battle window
        drops below the minimum the HUD (card bar + minimap + toolbar) needs. */
-    #viewport-too-small {
-      display: none; position: fixed; inset: 0; z-index: 9999;
-      align-items: center; justify-content: center; text-align: center;
-      background: rgba(8,10,14,0.94); color: #cfd6e4;
-      font: 15px ui-monospace, Menlo, monospace;
-    }
-    #viewport-too-small .vts-panel {
-      max-width: 360px; padding: 26px 30px;
-      border: 1px solid #3a3f4d; border-radius: 10px; background: rgba(20,23,30,0.9);
-    }
-    #viewport-too-small h2 { margin: 0 0 8px; font-size: 18px; color: #f0e3b0; }
-    #viewport-too-small p { margin: 0; line-height: 1.5; color: #9aa3b2; }
-    #toolbar button {
-      display: inline-flex; align-items: center; justify-content: center;
-      width: 30px; height: 30px; padding: 0; cursor: pointer;
-      color: #e7cfa0; background: #1a130b; border: 1px solid #3a2c18; border-radius: 2px;
-      box-shadow: inset 0 0 0 1px rgba(150,114,62,0.3), inset 0 0 6px rgba(0,0,0,0.7);
-    }
-    #toolbar button svg { width: 18px; height: 18px; fill: currentColor; display: block; }
-    #toolbar button:hover { color: #f6e4ba; box-shadow: inset 0 0 0 1px rgba(201,165,99,0.7), inset 0 0 6px rgba(0,0,0,0.6); }
-    #toolbar button.on { color: #1a130b; background: linear-gradient(#f0d98a, #c9a14e); border-color: #f0d98a; box-shadow: 0 0 7px rgba(240,212,122,0.55); }
-    #toolbar button:disabled { opacity: 0.32; cursor: default; }
-    #toolbar .sep { width: 1px; height: 18px; background: rgba(150,114,62,0.55); }
-    /* Unit banner: one component = standard (SVG flag) + health/cohesion bars + status chips. */
-    .ubanner {
-      position: absolute; width: 56px; display: none; will-change: transform;
-      flex-direction: column; align-items: center; left: 0; top: 0;
-    }
-    .ubanner.sel { filter: drop-shadow(0 0 2.5px rgba(255,255,255,0.9)); }
-    .ubanner-flag { display: block; width: 56px; height: 24px; overflow: visible; }
-    .ubanner.sel .ubanner-flag { transform: scale(1.12); transform-origin: 28px 1px; }
-    .ubanner-bars { width: 52px; margin: 0 2px 1px; }
-    .ubar { height: 3px; background: rgba(10,10,12,0.55); border-radius: 2px; overflow: hidden; margin-bottom: 1px; }
-    .ubar > div { height: 100%; }
-    .ubar.coh > div { background: #d9c75a; }
-    .ubanner-fx { display: flex; flex-wrap: wrap; justify-content: center; gap: 1px; margin-top: 1px; width: 56px; }
-    .ubanner-fx b {
-      font: 600 7px ui-monospace, Menlo, monospace; color: #e8e4d8;
-      background: rgba(14,16,20,0.72); border-radius: 2px; padding: 0 2px;
-    }
-    .ubanner-fx b.hot { color: #ffc46b; }
-    .ubanner-fx b.bad { color: #ff7a6b; }
-    /* Standalone visual-regression gallery (?test=banners). */
-    #banner-gallery {
-      position: fixed; inset: 0; background: #2c3a22; z-index: 50;
-      display: flex; flex-wrap: wrap; align-content: flex-start; gap: 22px; padding: 28px;
-    }
-    #banner-gallery .ubanner-cell {
-      width: 96px; display: flex; flex-direction: column; align-items: center; gap: 8px;
-      background: rgba(0,0,0,0.18); border: 1px solid rgba(255,255,255,0.12);
-      border-radius: 8px; padding: 12px 8px;
-    }
-    #banner-gallery .ubanner-cap { font: 600 10px ui-monospace, Menlo, monospace; color: #cfe0bf; }
-    #minimap {
-      position: fixed; right: 12px; bottom: 170px; cursor: crosshair;
-      border: 4px solid transparent; border-radius: 5px;
-      background: var(--bronze-fill) padding-box, var(--bronze-edge) border-box;
-      box-shadow: var(--bronze-frame);
-      /* Above the world-space unit banners (#unitlabels, z-index 3) so a banner
+      #viewport-too-small {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        background: rgba(8, 10, 14, 0.94);
+        color: #cfd6e4;
+        font:
+          15px ui-monospace,
+          Menlo,
+          monospace;
+      }
+      #viewport-too-small .vts-panel {
+        max-width: 360px;
+        padding: 26px 30px;
+        border: 1px solid #3a3f4d;
+        border-radius: 10px;
+        background: rgba(20, 23, 30, 0.9);
+      }
+      #viewport-too-small h2 {
+        margin: 0 0 8px;
+        font-size: 18px;
+        color: #f0e3b0;
+      }
+      #viewport-too-small p {
+        margin: 0;
+        line-height: 1.5;
+        color: #9aa3b2;
+      }
+      #toolbar button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 30px;
+        height: 30px;
+        padding: 0;
+        cursor: pointer;
+        color: #e7cfa0;
+        background: #1a130b;
+        border: 1px solid #3a2c18;
+        border-radius: 2px;
+        box-shadow:
+          inset 0 0 0 1px rgba(150, 114, 62, 0.3),
+          inset 0 0 6px rgba(0, 0, 0, 0.7);
+      }
+      #toolbar button svg {
+        width: 18px;
+        height: 18px;
+        fill: currentColor;
+        display: block;
+      }
+      #toolbar button:hover {
+        color: #f6e4ba;
+        box-shadow:
+          inset 0 0 0 1px rgba(201, 165, 99, 0.7),
+          inset 0 0 6px rgba(0, 0, 0, 0.6);
+      }
+      #toolbar button.on {
+        color: #1a130b;
+        background: linear-gradient(#f0d98a, #c9a14e);
+        border-color: #f0d98a;
+        box-shadow: 0 0 7px rgba(240, 212, 122, 0.55);
+      }
+      #toolbar button:disabled {
+        opacity: 0.32;
+        cursor: default;
+      }
+      #toolbar .sep {
+        width: 1px;
+        height: 18px;
+        background: rgba(150, 114, 62, 0.55);
+      }
+      /* Unit banner: one component = standard (SVG flag) + health/cohesion bars + status chips. */
+      .ubanner {
+        position: absolute;
+        width: 56px;
+        display: none;
+        will-change: transform;
+        flex-direction: column;
+        align-items: center;
+        left: 0;
+        top: 0;
+      }
+      .ubanner.sel {
+        filter: drop-shadow(0 0 2.5px rgba(255, 255, 255, 0.9));
+      }
+      .ubanner-flag {
+        display: block;
+        width: 56px;
+        height: 24px;
+        overflow: visible;
+      }
+      .ubanner.sel .ubanner-flag {
+        transform: scale(1.12);
+        transform-origin: 28px 1px;
+      }
+      .ubanner-bars {
+        width: 52px;
+        margin: 0 2px 1px;
+      }
+      .ubar {
+        height: 3px;
+        background: rgba(10, 10, 12, 0.55);
+        border-radius: 2px;
+        overflow: hidden;
+        margin-bottom: 1px;
+      }
+      .ubar > div {
+        height: 100%;
+      }
+      .ubar.coh > div {
+        background: #d9c75a;
+      }
+      .ubanner-fx {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 1px;
+        margin-top: 1px;
+        width: 56px;
+      }
+      .ubanner-fx b {
+        font:
+          600 7px ui-monospace,
+          Menlo,
+          monospace;
+        color: #e8e4d8;
+        background: rgba(14, 16, 20, 0.72);
+        border-radius: 2px;
+        padding: 0 2px;
+      }
+      .ubanner-fx b.hot {
+        color: #ffc46b;
+      }
+      .ubanner-fx b.bad {
+        color: #ff7a6b;
+      }
+      /* Standalone visual-regression gallery (?test=banners). */
+      #banner-gallery {
+        position: fixed;
+        inset: 0;
+        background: #2c3a22;
+        z-index: 50;
+        display: flex;
+        flex-wrap: wrap;
+        align-content: flex-start;
+        gap: 22px;
+        padding: 28px;
+      }
+      #banner-gallery .ubanner-cell {
+        width: 96px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        background: rgba(0, 0, 0, 0.18);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 8px;
+        padding: 12px 8px;
+      }
+      #banner-gallery .ubanner-cap {
+        font:
+          600 10px ui-monospace,
+          Menlo,
+          monospace;
+        color: #cfe0bf;
+      }
+      #minimap {
+        position: fixed;
+        right: 12px;
+        bottom: 170px;
+        cursor: crosshair;
+        border: 4px solid transparent;
+        border-radius: 5px;
+        background:
+          var(--bronze-fill) padding-box,
+          var(--bronze-edge) border-box;
+        box-shadow: var(--bronze-frame);
+        /* Above the world-space unit banners (#unitlabels, z-index 3) so a banner
          drawn over a unit near the corner can't bleed across the minimap. */
-      z-index: 10;
-    }
-    #battle-ui { display: none; }
-    #menu-ui {
-      display: none; position: fixed; inset: 0; z-index: 20;
-      flex-direction: column; align-items: center; gap: 34px;
-      overflow-y: auto; padding: 48px 0 64px;
-      background:
-        radial-gradient(ellipse at 50% 20%, rgba(90, 106, 64, 0.22), transparent 60%),
-        radial-gradient(ellipse at 50% 110%, rgba(44, 69, 92, 0.30), transparent 65%),
-        #0c0e13;
-      color: #c8cdd8; font: 14px ui-monospace, Menlo, monospace;
-    }
-    #menu-ui h1 {
-      margin: 0; font: 700 58px 'Cinzel', ui-serif, Georgia, serif; letter-spacing: 7px;
-      color: #e8cf96; text-shadow: 0 3px 22px rgba(0,0,0,0.9);
-      animation: title-glow 5s ease-in-out infinite;
-    }
-    @keyframes title-glow {
-      0%, 100% { text-shadow: 0 3px 22px rgba(0,0,0,0.9); }
-      50% { text-shadow: 0 3px 22px rgba(0,0,0,0.9), 0 0 26px rgba(232,217,168,0.28); }
-    }
-    #menu-ui .tagline { margin: -22px 0 0; color: #6b7280; letter-spacing: 3px; }
-    #menu-ui #menu-renderer-status {
-      width: min(380px, 84vw); box-sizing: border-box;
-      margin-top: -18px; padding: 8px 12px; border-radius: 8px;
-      border: 1px solid #3a3f4d; background: rgba(12,14,19,0.72);
-      color: #aeb6c6; font-size: 11px; line-height: 1.35;
-    }
-    #menu-ui #menu-renderer-status.ok { border-color: #3e6548; color: #9fd4ac; }
-    #menu-ui #menu-renderer-status.bad { border-color: #714447; color: #e2a4a0; }
-    #menu-ui .menu-section {
-      display: flex; flex-direction: column; gap: 10px; width: min(380px, 84vw);
-      padding: 16px 20px 20px; border: 3px solid transparent; border-radius: 5px;
-      background: var(--bronze-fill) padding-box, var(--bronze-edge) border-box;
-      box-shadow: var(--bronze-frame);
-    }
-    /* The campaign is the marquee mode — give it a brighter brass edge. */
-    #menu-ui .menu-section.feature { box-shadow: var(--bronze-frame), 0 0 0 1px rgba(232,200,120,0.3); }
-    #menu-ui .menu-section.feature h2 { color: #f0d98a; }
-    #menu-ui .section-hint { margin: -4px 0 2px; color: #9c8048; font-size: 11px; letter-spacing: 0.5px; }
-    #menu-ui h2 {
-      margin: 0 0 4px; font-size: 13px; letter-spacing: 4px; text-transform: uppercase;
-      color: #c9a461; border-bottom: 1px solid rgba(150,114,62,0.4); padding-bottom: 8px;
-    }
-    #menu-ui button {
-      font: 15px ui-monospace, Menlo, monospace; color: var(--bronze-ink); text-align: left;
-      background: var(--well-bg); border: 1px solid #3a2c18; border-radius: 2px;
-      padding: 13px 18px; cursor: pointer; box-shadow: var(--well-shadow);
-      transition: box-shadow 0.12s ease, color 0.12s ease;
-    }
-    #menu-ui button:hover:not(:disabled) { color: var(--bronze-ink-bright); box-shadow: var(--well-hover); }
-    #menu-ui button:disabled { opacity: 0.4; cursor: default; }
-    #menu-ui button small { color: #9c8048; float: right; font-size: 11px; line-height: 20px; }
-    #menu-ui .duel-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
-    #menu-ui .duel-vs { color: #6b7280; font-size: 12px; }
-    #menu-ui select {
-      flex: 1; background: rgba(40,46,60,0.95); color: #cfd6e4; border: 1px solid #4a5268;
-      border-radius: 4px; padding: 6px 8px; font: inherit;
-    }
-    #menu-ui .duel-ai { display: block; color: #8a9099; font-size: 12px; margin: 0 0 8px 2px; cursor: pointer; }
-    #gameover {
-      display: none; position: absolute; inset: 0; z-index: 30;
-      background: rgba(8,10,14,0.55); align-items: center; justify-content: center;
-    }
-    #gameover .panel {
-      background: rgba(22,26,34,0.97); border: 1px solid #4a5268; border-radius: 10px;
-      padding: 28px 36px; text-align: center; min-width: 280px;
-    }
-    #gameover h2 { margin: 0 0 6px; font-size: 26px; letter-spacing: 4px; }
-    #gameover p { margin: 0 0 18px; color: #8a9099; font-size: 13px; }
-    #gameover button {
-      display: block; width: 100%; margin: 6px 0; padding: 9px 14px; cursor: pointer;
-      background: var(--well-bg); color: var(--bronze-ink); border: 1px solid #3a2c18;
-      border-radius: 2px; font: inherit; box-shadow: var(--well-shadow);
-    }
-    #gameover button:hover { color: var(--bronze-ink-bright); box-shadow: var(--well-hover); }
-    #gameover .watch { background: none; border: none; box-shadow: none; color: #9c8048; font-size: 12px; margin-top: 10px; }
-    #duel-modal, #pausemenu {
-      display: none; position: fixed; inset: 0; z-index: 40;
-      background: rgba(8,10,14,0.6); align-items: center; justify-content: center;
-      font: 14px ui-monospace, Menlo, monospace;
-    }
-    #duel-modal .panel, #pausemenu .panel {
-      padding: 26px 32px; min-width: 320px; color: #ecd9b0;
-      border: 3px solid transparent; border-radius: 5px;
-      background: var(--bronze-fill) padding-box, var(--bronze-edge) border-box;
-      box-shadow: var(--bronze-frame);
-    }
-    #duel-modal h2, #pausemenu h2 { margin: 0 0 16px; font-size: 16px; letter-spacing: 3px; color: #c9a461; }
-    #duel-modal button, #pausemenu button {
-      display: block; width: 100%; margin: 8px 0 0; padding: 9px 14px; cursor: pointer;
-      background: var(--well-bg); color: var(--bronze-ink); border: 1px solid #3a2c18;
-      border-radius: 2px; font: inherit; text-align: center; box-shadow: var(--well-shadow);
-    }
-    #duel-modal button:hover, #pausemenu button:hover { color: var(--bronze-ink-bright); box-shadow: var(--well-hover); }
-    #duel-modal .cancel, #pausemenu .watch { background: none; border: none; box-shadow: none; color: #9c8048; font-size: 12px; }
-    #duel-modal .duel-row { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; }
-    #duel-modal .duel-vs { color: #6b7280; font-size: 12px; }
-    #duel-modal select {
-      flex: 1; background: rgba(40,46,60,0.95); color: #cfd6e4; border: 1px solid #4a5268;
-      border-radius: 4px; padding: 6px 8px; font: inherit;
-    }
-    #duel-modal .duel-ai { display: block; color: #8a9099; font-size: 12px; margin: 2px 0 6px 2px; cursor: pointer; }
-    #quick-battle-modal {
-      display: none; position: fixed; inset: 0; z-index: 40;
-      background: rgba(8,10,14,0.6); align-items: center; justify-content: center;
-      font: 13px ui-monospace, Menlo, monospace;
-    }
-    #quick-battle-modal.open { display: flex; }
-    .quick-battle-panel {
-      padding: 22px 26px; color: #ecd9b0; width: min(900px, 94vw); max-height: 90vh; overflow: auto;
-      border: 3px solid transparent; border-radius: 5px;
-      background: var(--bronze-fill) padding-box, var(--bronze-edge) border-box;
-      box-shadow: var(--bronze-frame);
-    }
-    .quick-battle-panel h2 { margin: 0 0 14px; font-size: 16px; letter-spacing: 3px; color: #c9a461; }
-    .qb-maps { display: flex; gap: 8px; margin-bottom: 14px; }
-    .qb-map { flex: 1; text-align: left; padding: 8px 10px; background: var(--well-bg); border: 1px solid #3a2c18; border-radius: 2px; color: var(--bronze-ink); cursor: pointer; font: inherit; box-shadow: var(--well-shadow); }
-    .qb-map.selected { border-color: #f0d98a; box-shadow: inset 0 0 0 1px #f0d98a, 0 0 7px rgba(240,212,122,0.5); }
-    .qb-map strong { display: block; }
-    .qb-map small { color: #9c8048; font-size: 11px; }
-    .qb-armies { display: flex; gap: 16px; }
-    .qb-army { flex: 1; min-width: 0; }
-    .qb-army h3 { margin: 0 0 8px; font-size: 13px; color: #c9a461; }
-    .qb-templates { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px; }
-    .qb-template { padding: 4px 8px; background: var(--well-bg); border: 1px solid #3a2c18; border-radius: 2px; color: var(--bronze-ink); cursor: pointer; font: inherit; font-size: 11px; box-shadow: var(--well-shadow); }
-    .qb-rows { max-height: 40vh; overflow: auto; }
-    .qb-row { display: grid; grid-template-columns: 1fr auto auto auto; gap: 6px; align-items: center; padding: 2px 0; }
-    .qb-label { font-size: 12px; }
-    .qb-step { width: 24px; padding: 2px 0; background: var(--well-bg); border: 1px solid #3a2c18; border-radius: 2px; color: var(--bronze-ink); cursor: pointer; box-shadow: var(--well-shadow); }
-    .qb-count { min-width: 18px; text-align: center; }
-    .qb-footer { margin-top: 8px; padding-top: 6px; border-top: 1px solid rgba(150,114,62,0.4); font-size: 12px; color: #c9a461; }
-    .qb-footer.over { color: #e06a5a; }
-    .qb-footer.empty { color: #c8a24a; }
-    .qb-actions { display: flex; gap: 8px; margin-top: 14px; }
-    .qb-actions button { flex: 1; padding: 9px 14px; background: rgba(48,54,70,0.95); border: 1px solid #4a5268; border-radius: 6px; color: #cfd6e4; cursor: pointer; font: inherit; }
-    .qb-actions button:disabled { opacity: 0.45; cursor: not-allowed; }
-    .qb-actions .cancel { background: none; border: none; color: #6b7280; }
-  </style>
-</head>
-<body>
-  <div id="viewport-too-small"><div class="vts-panel">
-    <h2>Window too small</h2>
-    <p>The battle needs a window of at least 1180 &times; 640. Please enlarge the window to play.</p>
-  </div></div>
-  <div id="manual"></div>
-  <!-- The menu (#menu-ui), its duel modal, AND the custom-battle army builder
+        z-index: 10;
+      }
+      #battle-ui {
+        display: none;
+      }
+      #menu-ui {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 20;
+        flex-direction: column;
+        align-items: center;
+        gap: 34px;
+        overflow-y: auto;
+        padding: 48px 0 64px;
+        background:
+          radial-gradient(ellipse at 50% 20%, rgba(90, 106, 64, 0.22), transparent 60%),
+          radial-gradient(ellipse at 50% 110%, rgba(44, 69, 92, 0.3), transparent 65%), #0c0e13;
+        color: #c8cdd8;
+        font:
+          14px ui-monospace,
+          Menlo,
+          monospace;
+      }
+      #menu-ui h1 {
+        margin: 0;
+        font:
+          700 58px "Cinzel",
+          ui-serif,
+          Georgia,
+          serif;
+        letter-spacing: 7px;
+        color: #e8cf96;
+        text-shadow: 0 3px 22px rgba(0, 0, 0, 0.9);
+        animation: title-glow 5s ease-in-out infinite;
+      }
+      @keyframes title-glow {
+        0%,
+        100% {
+          text-shadow: 0 3px 22px rgba(0, 0, 0, 0.9);
+        }
+        50% {
+          text-shadow:
+            0 3px 22px rgba(0, 0, 0, 0.9),
+            0 0 26px rgba(232, 217, 168, 0.28);
+        }
+      }
+      #menu-ui .tagline {
+        margin: -22px 0 0;
+        color: #6b7280;
+        letter-spacing: 3px;
+      }
+      #menu-ui #menu-renderer-status {
+        width: min(380px, 84vw);
+        box-sizing: border-box;
+        margin-top: -18px;
+        padding: 8px 12px;
+        border-radius: 8px;
+        border: 1px solid #3a3f4d;
+        background: rgba(12, 14, 19, 0.72);
+        color: #aeb6c6;
+        font-size: 11px;
+        line-height: 1.35;
+      }
+      #menu-ui #menu-renderer-status.ok {
+        border-color: #3e6548;
+        color: #9fd4ac;
+      }
+      #menu-ui #menu-renderer-status.bad {
+        border-color: #714447;
+        color: #e2a4a0;
+      }
+      #menu-ui .menu-section {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        width: min(380px, 84vw);
+        padding: 16px 20px 20px;
+        border: 3px solid transparent;
+        border-radius: 5px;
+        background:
+          var(--bronze-fill) padding-box,
+          var(--bronze-edge) border-box;
+        box-shadow: var(--bronze-frame);
+      }
+      /* The campaign is the marquee mode — give it a brighter brass edge. */
+      #menu-ui .menu-section.feature {
+        box-shadow:
+          var(--bronze-frame),
+          0 0 0 1px rgba(232, 200, 120, 0.3);
+      }
+      #menu-ui .menu-section.feature h2 {
+        color: #f0d98a;
+      }
+      #menu-ui .section-hint {
+        margin: -4px 0 2px;
+        color: #9c8048;
+        font-size: 11px;
+        letter-spacing: 0.5px;
+      }
+      #menu-ui h2 {
+        margin: 0 0 4px;
+        font-size: 13px;
+        letter-spacing: 4px;
+        text-transform: uppercase;
+        color: #c9a461;
+        border-bottom: 1px solid rgba(150, 114, 62, 0.4);
+        padding-bottom: 8px;
+      }
+      #menu-ui button {
+        font:
+          15px ui-monospace,
+          Menlo,
+          monospace;
+        color: var(--bronze-ink);
+        text-align: left;
+        background: var(--well-bg);
+        border: 1px solid #3a2c18;
+        border-radius: 2px;
+        padding: 13px 18px;
+        cursor: pointer;
+        box-shadow: var(--well-shadow);
+        transition:
+          box-shadow 0.12s ease,
+          color 0.12s ease;
+      }
+      #menu-ui button:hover:not(:disabled) {
+        color: var(--bronze-ink-bright);
+        box-shadow: var(--well-hover);
+      }
+      #menu-ui button:disabled {
+        opacity: 0.4;
+        cursor: default;
+      }
+      #menu-ui button small {
+        color: #9c8048;
+        float: right;
+        font-size: 11px;
+        line-height: 20px;
+      }
+      #menu-ui .duel-row {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        margin-bottom: 8px;
+      }
+      #menu-ui .duel-vs {
+        color: #6b7280;
+        font-size: 12px;
+      }
+      #menu-ui select {
+        flex: 1;
+        background: rgba(40, 46, 60, 0.95);
+        color: #cfd6e4;
+        border: 1px solid #4a5268;
+        border-radius: 4px;
+        padding: 6px 8px;
+        font: inherit;
+      }
+      #menu-ui .duel-ai {
+        display: block;
+        color: #8a9099;
+        font-size: 12px;
+        margin: 0 0 8px 2px;
+        cursor: pointer;
+      }
+      #gameover {
+        display: none;
+        position: absolute;
+        inset: 0;
+        z-index: 30;
+        background: rgba(8, 10, 14, 0.55);
+        align-items: center;
+        justify-content: center;
+      }
+      #gameover .panel {
+        background: rgba(22, 26, 34, 0.97);
+        border: 1px solid #4a5268;
+        border-radius: 10px;
+        padding: 28px 36px;
+        text-align: center;
+        min-width: 280px;
+      }
+      #gameover h2 {
+        margin: 0 0 6px;
+        font-size: 26px;
+        letter-spacing: 4px;
+      }
+      #gameover p {
+        margin: 0 0 18px;
+        color: #8a9099;
+        font-size: 13px;
+      }
+      #gameover button {
+        display: block;
+        width: 100%;
+        margin: 6px 0;
+        padding: 9px 14px;
+        cursor: pointer;
+        background: var(--well-bg);
+        color: var(--bronze-ink);
+        border: 1px solid #3a2c18;
+        border-radius: 2px;
+        font: inherit;
+        box-shadow: var(--well-shadow);
+      }
+      #gameover button:hover {
+        color: var(--bronze-ink-bright);
+        box-shadow: var(--well-hover);
+      }
+      #gameover .watch {
+        background: none;
+        border: none;
+        box-shadow: none;
+        color: #9c8048;
+        font-size: 12px;
+        margin-top: 10px;
+      }
+      #duel-modal,
+      #pausemenu {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 40;
+        background: rgba(8, 10, 14, 0.6);
+        align-items: center;
+        justify-content: center;
+        font:
+          14px ui-monospace,
+          Menlo,
+          monospace;
+      }
+      #duel-modal .panel,
+      #pausemenu .panel {
+        padding: 26px 32px;
+        min-width: 320px;
+        color: #ecd9b0;
+        border: 3px solid transparent;
+        border-radius: 5px;
+        background:
+          var(--bronze-fill) padding-box,
+          var(--bronze-edge) border-box;
+        box-shadow: var(--bronze-frame);
+      }
+      #duel-modal h2,
+      #pausemenu h2 {
+        margin: 0 0 16px;
+        font-size: 16px;
+        letter-spacing: 3px;
+        color: #c9a461;
+      }
+      #duel-modal button,
+      #pausemenu button {
+        display: block;
+        width: 100%;
+        margin: 8px 0 0;
+        padding: 9px 14px;
+        cursor: pointer;
+        background: var(--well-bg);
+        color: var(--bronze-ink);
+        border: 1px solid #3a2c18;
+        border-radius: 2px;
+        font: inherit;
+        text-align: center;
+        box-shadow: var(--well-shadow);
+      }
+      #duel-modal button:hover,
+      #pausemenu button:hover {
+        color: var(--bronze-ink-bright);
+        box-shadow: var(--well-hover);
+      }
+      #duel-modal .cancel,
+      #pausemenu .watch {
+        background: none;
+        border: none;
+        box-shadow: none;
+        color: #9c8048;
+        font-size: 12px;
+      }
+      #duel-modal .duel-row {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+      #duel-modal .duel-vs {
+        color: #6b7280;
+        font-size: 12px;
+      }
+      #duel-modal select {
+        flex: 1;
+        background: rgba(40, 46, 60, 0.95);
+        color: #cfd6e4;
+        border: 1px solid #4a5268;
+        border-radius: 4px;
+        padding: 6px 8px;
+        font: inherit;
+      }
+      #duel-modal .duel-ai {
+        display: block;
+        color: #8a9099;
+        font-size: 12px;
+        margin: 2px 0 6px 2px;
+        cursor: pointer;
+      }
+      #quick-battle-modal {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 40;
+        background: rgba(8, 10, 14, 0.6);
+        align-items: center;
+        justify-content: center;
+        font:
+          13px ui-monospace,
+          Menlo,
+          monospace;
+      }
+      #quick-battle-modal.open {
+        display: flex;
+      }
+      .quick-battle-panel {
+        padding: 22px 26px;
+        color: #ecd9b0;
+        width: min(900px, 94vw);
+        max-height: 90vh;
+        overflow: auto;
+        border: 3px solid transparent;
+        border-radius: 5px;
+        background:
+          var(--bronze-fill) padding-box,
+          var(--bronze-edge) border-box;
+        box-shadow: var(--bronze-frame);
+      }
+      .quick-battle-panel h2 {
+        margin: 0 0 14px;
+        font-size: 16px;
+        letter-spacing: 3px;
+        color: #c9a461;
+      }
+      .qb-maps {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 14px;
+      }
+      .qb-map {
+        flex: 1;
+        text-align: left;
+        padding: 8px 10px;
+        background: var(--well-bg);
+        border: 1px solid #3a2c18;
+        border-radius: 2px;
+        color: var(--bronze-ink);
+        cursor: pointer;
+        font: inherit;
+        box-shadow: var(--well-shadow);
+      }
+      .qb-map.selected {
+        border-color: #f0d98a;
+        box-shadow:
+          inset 0 0 0 1px #f0d98a,
+          0 0 7px rgba(240, 212, 122, 0.5);
+      }
+      .qb-map strong {
+        display: block;
+      }
+      .qb-map small {
+        color: #9c8048;
+        font-size: 11px;
+      }
+      .qb-armies {
+        display: flex;
+        gap: 16px;
+      }
+      .qb-army {
+        flex: 1;
+        min-width: 0;
+      }
+      .qb-army h3 {
+        margin: 0 0 8px;
+        font-size: 13px;
+        color: #c9a461;
+      }
+      .qb-templates {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        margin-bottom: 8px;
+      }
+      .qb-template {
+        padding: 4px 8px;
+        background: var(--well-bg);
+        border: 1px solid #3a2c18;
+        border-radius: 2px;
+        color: var(--bronze-ink);
+        cursor: pointer;
+        font: inherit;
+        font-size: 11px;
+        box-shadow: var(--well-shadow);
+      }
+      .qb-rows {
+        max-height: 40vh;
+        overflow: auto;
+      }
+      .qb-row {
+        display: grid;
+        grid-template-columns: 1fr auto auto auto;
+        gap: 6px;
+        align-items: center;
+        padding: 2px 0;
+      }
+      .qb-label {
+        font-size: 12px;
+      }
+      .qb-step {
+        width: 24px;
+        padding: 2px 0;
+        background: var(--well-bg);
+        border: 1px solid #3a2c18;
+        border-radius: 2px;
+        color: var(--bronze-ink);
+        cursor: pointer;
+        box-shadow: var(--well-shadow);
+      }
+      .qb-count {
+        min-width: 18px;
+        text-align: center;
+      }
+      .qb-footer {
+        margin-top: 8px;
+        padding-top: 6px;
+        border-top: 1px solid rgba(150, 114, 62, 0.4);
+        font-size: 12px;
+        color: #c9a461;
+      }
+      .qb-footer.over {
+        color: #e06a5a;
+      }
+      .qb-footer.empty {
+        color: #c8a24a;
+      }
+      .qb-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 14px;
+      }
+      .qb-actions button {
+        flex: 1;
+        padding: 9px 14px;
+        background: rgba(48, 54, 70, 0.95);
+        border: 1px solid #4a5268;
+        border-radius: 6px;
+        color: #cfd6e4;
+        cursor: pointer;
+        font: inherit;
+      }
+      .qb-actions button:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+      .qb-actions .cancel {
+        background: none;
+        border: none;
+        color: #6b7280;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="viewport-too-small">
+      <div class="vts-panel">
+        <h2>Window too small</h2>
+        <p>
+          The battle needs a window of at least 1180 &times; 640. Please enlarge the window to play.
+        </p>
+      </div>
+    </div>
+    <div id="manual"></div>
+    <!-- The menu (#menu-ui), its duel modal, AND the custom-battle army builder
        (#quick-battle-modal) are now React: src/ui/menu/Menu.tsx + ArmyBuilder.tsx,
        mounted into #ui-root by MenuScene. The bronze menu/builder CSS in this
        file's <style> still styles the React-rendered DOM (same ids/classes). -->
-  <div id="battle-ui">
-  <canvas id="battlefield"></canvas>
-  <!-- Content is React (src/ui/hud/BattleModals.tsx, GameOver), mounted by
+    <div id="battle-ui">
+      <canvas id="battlefield"></canvas>
+      <!-- Content is React (src/ui/hud/BattleModals.tsx, GameOver), mounted by
        BattleScene. This shell keeps the CSS backdrop + display toggle. -->
-  <div id="gameover"></div>
-  <div id="hud">loading wasm…</div>
-  <div id="buttons">
-    <button id="btn-menu">Menu</button>
-  </div>
-  <!-- Content is React (src/ui/hud/BattleModals.tsx, PauseMenu), mounted by
+      <div id="gameover"></div>
+      <div id="hud">loading wasm…</div>
+      <div id="buttons">
+        <button id="btn-menu">Menu</button>
+      </div>
+      <!-- Content is React (src/ui/hud/BattleModals.tsx, PauseMenu), mounted by
        BattleScene. This shell keeps the CSS backdrop + display toggle. -->
-  <div id="pausemenu"></div>
-  <div id="banner"></div>
-  <div id="selbox"></div>
-  <canvas id="minimap" width="240" height="160"></canvas>
-  <div id="unitlabels"></div>
-  <div id="unitcards"></div>
-  <!-- Buttons are React now (src/ui/hud/Toolbar.tsx, mounted by BattleScene). -->
-  <div id="toolbar"></div>
-  </div>
-  <!-- React overlay root: a sibling above the canvas, never a parent of it.
+      <div id="pausemenu"></div>
+      <div id="banner"></div>
+      <div id="selbox"></div>
+      <canvas id="minimap" width="240" height="160"></canvas>
+      <div id="unitlabels"></div>
+      <div id="unitcards"></div>
+      <!-- Buttons are React now (src/ui/hud/Toolbar.tsx, mounted by BattleScene). -->
+      <div id="toolbar"></div>
+    </div>
+    <!-- React overlay root: a sibling above the canvas, never a parent of it.
        Fixed full-viewport, click-through by default; individual React panels
        opt back into pointer events. MenuScene mounts the React menu here; later
        scenes (HUD, campaign) mount their own React into it too. z-index 20 mirrors
        the old #menu-ui so the body-level #quick-battle-modal (z-40) and #manual
        (z-50) still layer above the menu, exactly as before. -->
-  <div id="ui-root" style="position:fixed; inset:0; pointer-events:none; z-index:20"></div>
-  <script type="module" src="/src/main.ts"></script>
-</body>
+    <div id="ui-root" style="position: fixed; inset: 0; pointer-events: none; z-index: 20"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
 </html>

@@ -3,14 +3,19 @@
 // demo — the old innerHTML builders (armyPanelHtml/cityPanelHtml/diplomacyHtml/
 // classBuilderHtml) were deleted once both consumers moved onto the components.
 
-export type DiplomacyAction = 'declare_war' | 'make_peace' | 'propose_alliance' | 'break_alliance' | 'gift_gold';
+export type DiplomacyAction =
+  | "declare_war"
+  | "make_peace"
+  | "propose_alliance"
+  | "break_alliance"
+  | "gift_gold";
 
 export interface DiplomacyRow {
   id: number;
   name: string;
   color: [number, number, number];
   is_player: boolean;
-  relation: 'self' | 'war' | 'peace' | 'alliance';
+  relation: "self" | "war" | "peace" | "alliance";
   cities: number;
   soldiers: number;
 }
@@ -135,7 +140,7 @@ export function campaignDomHtml(): string {
 }
 
 export function prettyClass(name: string): string {
-  return name.replace(/([a-z])([A-Z])/g, '$1 $2');
+  return name.replace(/([a-z])([A-Z])/g, "$1 $2");
 }
 
 export function classSort(name: string): number {

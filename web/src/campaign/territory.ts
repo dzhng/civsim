@@ -6,9 +6,9 @@
 // owner. The nearest-city Voronoi is static — only the city → owner lookup
 // changes during play, so a rebuild is a cheap recolor pass.
 
-import type { CampaignData } from './data';
-import type { CityView } from './views';
-import { TerrainField, hash2 } from './terrain';
+import type { CampaignData } from "./data";
+import type { CityView } from "./views";
+import { TerrainField, hash2 } from "./terrain";
 
 /** Land farther than this from any city is no one's (deep deserts, steppe).
  *  Generous enough that a faction's coastal cities reach into one contiguous
@@ -39,10 +39,12 @@ function vnoise(x: number, y: number): number {
 function warp(wx: number, wy: number): [number, number] {
   const big = 230;
   const fine = 90;
-  const dx = (vnoise(wx / big + 11.2, wy / big + 5.7) - 0.5) * 64
-    + (vnoise(wx / fine + 3.1, wy / fine + 7.9) - 0.5) * 26;
-  const dy = (vnoise(wx / big + 31.4, wy / big + 19.3) - 0.5) * 64
-    + (vnoise(wx / fine + 23.5, wy / fine + 13.1) - 0.5) * 26;
+  const dx =
+    (vnoise(wx / big + 11.2, wy / big + 5.7) - 0.5) * 64 +
+    (vnoise(wx / fine + 3.1, wy / fine + 7.9) - 0.5) * 26;
+  const dy =
+    (vnoise(wx / big + 31.4, wy / big + 19.3) - 0.5) * 64 +
+    (vnoise(wx / fine + 23.5, wy / fine + 13.1) - 0.5) * 26;
   return [wx + dx, wy + dy];
 }
 
@@ -73,9 +75,15 @@ function simplifyDP(pts: [number, number][], tol: number): [number, number][] {
       const cx = ax + dx * t;
       const cy = ay + dy * t;
       const d = (pts[i][0] - cx) ** 2 + (pts[i][1] - cy) ** 2;
-      if (d > maxD) { maxD = d; idx = i; }
+      if (d > maxD) {
+        maxD = d;
+        idx = i;
+      }
     }
-    if (maxD > tol2 && idx > 0) { keep[idx] = 1; stack.push([s, idx], [idx, e]); }
+    if (maxD > tol2 && idx > 0) {
+      keep[idx] = 1;
+      stack.push([s, idx], [idx, e]);
+    }
   }
   const out: [number, number][] = [];
   for (let i = 0; i < n; i++) if (keep[i]) out.push(pts[i]);
@@ -129,7 +137,10 @@ export class Territory {
   borders: { pts: [number, number][]; bb: [number, number, number, number] }[] = [];
   labels: FactionLabel[] = [];
 
-  constructor(private data: CampaignData, private field: TerrainField) {
+  constructor(
+    private data: CampaignData,
+    private field: TerrainField,
+  ) {
     const { w, h, cell, minX, maxY, land } = field;
     this.rgba = new Uint8Array(w * h * 4);
     this.nearest = new Int32Array(w * h).fill(-1);
@@ -142,22 +153,20 @@ export class Territory {
     const POWER_W = 0.5;
     // Every city keeps a guaranteed core of its own land within this radius (km).
     const CORE2 = 30 * 30;
-    const powerIds = new Set(
-      data.map.factions.filter((f) => f.playable).map((f) => f.id),
-    );
+    const powerIds = new Set(data.map.factions.filter((f) => f.playable).map((f) => f.id));
 
     // Bucket cities so each cell only checks its 3x3 neighborhood of buckets
     // (bucket = REACH_KM, so that covers everything within reach).
     const cities: { node: number; x: number; y: number; wt: number }[] = [];
     data.map.nodes.forEach((n, i) => {
-      if (n.kind === 'city') {
+      if (n.kind === "city") {
         cities.push({ node: i, x: n.pos[0], y: n.pos[1], wt: powerIds.has(n.owner) ? POWER_W : 1 });
       }
     });
     const bw = Math.ceil((w * cell) / REACH_KM) + 2;
     const buckets = new Map<number, number[]>();
     const bkey = (x: number, y: number) =>
-      (Math.floor((x - minX) / REACH_KM) + 1) + (Math.floor((maxY - y) / REACH_KM) + 1) * bw;
+      Math.floor((x - minX) / REACH_KM) + 1 + (Math.floor((maxY - y) / REACH_KM) + 1) * bw;
     cities.forEach((c, ci) => {
       const k = bkey(c.x, c.y);
       (buckets.get(k) ?? buckets.set(k, []).get(k)!).push(ci);
@@ -168,7 +177,12 @@ export class Territory {
     // winning node and its (weighted) squared distance, -1 if none within `cap`.
     // `weighted` applies the per-city power pull (owner choice); the coverage
     // gate runs unweighted so the claimed footprint is unchanged.
-    const nearestCity = (px: number, py: number, cap: number, weighted: boolean): [number, number] => {
+    const nearestCity = (
+      px: number,
+      py: number,
+      cap: number,
+      weighted: boolean,
+    ): [number, number] => {
       const bx = Math.floor((px - minX) / REACH_KM) + 1;
       const byy = Math.floor((maxY - py) / REACH_KM) + 1;
       let best = -1;
@@ -280,10 +294,12 @@ export class Territory {
       .map((f, fi) => (f.playable && cells[fi] > 0 ? radiusKm(fi) : Infinity))
       .filter((r) => isFinite(r));
     const refRadius = (() => {
-      const rome = factions.findIndex((f) => f.id === 'rome');
+      const rome = factions.findIndex((f) => f.id === "rome");
       return rome >= 0 && cells[rome] > 0
         ? radiusKm(rome)
-        : (playableRadii.length ? Math.min(...playableRadii) : 0);
+        : playableRadii.length
+          ? Math.min(...playableRadii)
+          : 0;
     })();
     const sizeCapKm = refRadius > 0 ? refRadius * 1.5 : Infinity;
 
@@ -292,15 +308,17 @@ export class Territory {
     // their realms are smaller). The empty "independents" sentinel has no cells.
     this.labels = factions.flatMap((fac, fi) => {
       if (cells[fi] === 0) return [];
-      return [{
-        faction: fi,
-        name: fac.name.toUpperCase(),
-        color: fac.color,
-        x: sumX[fi] / cells[fi],
-        y: sumY[fi] / cells[fi],
-        radiusKm: Math.min(radiusKm(fi), sizeCapKm),
-        minor: !fac.playable,
-      }];
+      return [
+        {
+          faction: fi,
+          name: fac.name.toUpperCase(),
+          color: fac.color,
+          x: sumX[fi] / cells[fi],
+          y: sumY[fi] / cells[fi],
+          radiusKm: Math.min(radiusKm(fi), sizeCapKm),
+          minor: !fac.playable,
+        },
+      ];
     });
   }
 
@@ -323,11 +341,17 @@ export class Territory {
         if (o < 0) continue;
         if (gx + 1 < w) {
           const or = owner[gy * w + gx + 1];
-          if (or >= 0 && or !== o) { const v = gy * VW + gx + 1; link(v, v + VW); }
+          if (or >= 0 && or !== o) {
+            const v = gy * VW + gx + 1;
+            link(v, v + VW);
+          }
         }
         if (gy + 1 < h) {
           const od = owner[(gy + 1) * w + gx];
-          if (od >= 0 && od !== o) { const v = (gy + 1) * VW + gx; link(v, v + 1); }
+          if (od >= 0 && od !== o) {
+            const v = (gy + 1) * VW + gx;
+            link(v, v + 1);
+          }
         }
       }
     }
@@ -363,10 +387,15 @@ export class Territory {
     for (const vids of chains) {
       if (vids.length < 2) continue;
       // Trace → world km → drop the per-cell staircase (DP) → smooth (Chaikin).
-      const world = vids.map((vid): [number, number] =>
-        [minX + (vid % VW) * cell, maxY - ((vid / VW) | 0) * cell]);
+      const world = vids.map((vid): [number, number] => [
+        minX + (vid % VW) * cell,
+        maxY - ((vid / VW) | 0) * cell,
+      ]);
       const pts = chaikin(simplifyDP(world, cell * 1.7), 3);
-      let mnx = Infinity, mny = Infinity, mxx = -Infinity, mxy = -Infinity;
+      let mnx = Infinity,
+        mny = Infinity,
+        mxx = -Infinity,
+        mxy = -Infinity;
       for (const [x, y] of pts) {
         if (x < mnx) mnx = x;
         if (y < mny) mny = y;

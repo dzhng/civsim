@@ -31,6 +31,11 @@ export const MINIMAP_RESERVE = 210;
 // cover mid-field units and break click-selection. Keeping the right wide keeps
 // the bar short. The renderer-lab passes MINIMAP_RESERVE on both sides.
 export const BOTTOM_CARD_LEFT_RESERVE = 336;
+// Production HUD right reserve: clears the bottom-right minimap card, now flush in
+// the corner (12px inset + 240px canvas + 8px frame + gap ≈ 268), so the centered
+// card bar doesn't slide under it. Asymmetric with the left. The renderer-lab has
+// no minimap and passes MINIMAP_RESERVE on both sides.
+export const BOTTOM_CARD_RIGHT_RESERVE = 268;
 const GRID_OPTS: CardGridOpts = { cardW: CARD_W, aspect: 3 / 4, gap: 4, maxRows: 3 };
 
 /** The four live nodes a card's per-frame update writes into. */

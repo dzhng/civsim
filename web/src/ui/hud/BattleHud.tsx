@@ -24,7 +24,7 @@ import { Toolbar, type ToolButtonState } from "./Toolbar";
 import { UnitCardsView, type UnitCardsHandle } from "./UnitCardsView";
 import {
   BOTTOM_CARD_LEFT_RESERVE,
-  MINIMAP_RESERVE,
+  BOTTOM_CARD_RIGHT_RESERVE,
   type UnitCardInit,
   type UnitCardState,
 } from "../../battle/unitCard";
@@ -126,7 +126,7 @@ const CardsHost = forwardRef<CardsHostHandle, CardsHostProps>(function CardsHost
         units={units}
         onSelect={props.onSelect}
         leftReserve={BOTTOM_CARD_LEFT_RESERVE}
-        rightReserve={MINIMAP_RESERVE}
+        rightReserve={BOTTOM_CARD_RIGHT_RESERVE}
         rootRef={props.gridRootRef}
       />
     </div>

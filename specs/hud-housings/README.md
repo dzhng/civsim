@@ -23,11 +23,26 @@ contract); it does not change the card-grid math or the sim.
 
 ## Next Agent Prompt
 
-**Status:** Slices 01–05 shipped (+ a card-size tweak). Last updated 2026-07-01.
+**Status:** Slices 01–06 shipped (+ a card-size tweak). Last updated 2026-07-01.
 
-**Start here:** Slice `06-right-minimap-card`. Read it, then the firewalls
-section below, then build. Each slice leaves the battle playable and
-screenshot-able; do not start a later slice until the current one's gate passes.
+**Start here:** Slice `07-asymmetric-reserve` — but most of its reserve math already
+landed in slices 03/06. What remains for 07: final flush-corner polish, the
+`viewportGate` `MIN_WINDOW` reconciliation, and the David "let it wrap" crunch
+decision is already applied (bar wraps; corners reserved). Consider 07 largely a
+review/tune pass, then slices 08 (Radix tooltips) and 09 (fidelity + close-spec).
+Keep a `bun run dev` server at :5173 before any scene run.
+
+**What slice 06 landed:** the minimap moved to the **bottom-right corner**
+(`#minimap` `bottom:170`→`bottom:12`), completing three flush-corner housings on
+one baseline. It already carried `.hud-chassis` (its bronze frame). The card bar's
+right reserve became a production constant `BOTTOM_CARD_RIGHT_RESERVE (268)` (clears
+the now-lower corner minimap: 12 + 240 canvas + 8 frame + gap) — `BattleHud` passes
+`leftReserve=336 / rightReserve=268`; the lab still uses `MINIMAP_RESERVE` both
+sides. Per David's "let it wrap" call, the bar just wraps to more rows within the
+reserved budget (smaller cards keep 5v5 at one row). Verified: selection
+(`battle-input`) and minimap click-to-recenter (`battle-minimap`) both pass; no
+overlap; battle snapshots re-blessed. Full-composition unprimed critique deferred to
+slice 09.
 
 **IMPORTANT — dev server:** the scene runner does NOT start its own server; it
 expects a Vite dev server at `http://localhost:5173` (`bun run dev`, strictPort).
@@ -187,7 +202,7 @@ carries the four id rules plus the new `#battle-hud` mount container.
       (pulled from slice 07 — required to not break selection) — shipped
 - [x] 04 — Army-roster idle state; drop debug header; FPS → bare top-left — shipped
 - [x] 05 — Merge toolbar into the center card housing (one bronze tray) — shipped
-- [ ] 06 — Minimap → bottom-right corner housing
+- [x] 06 — Minimap → bottom-right corner housing — shipped
 - [ ] 07 — Asymmetric reserve + flush-corner placement (load-bearing math)
 - [ ] 08 — Bronze tooltip chips on icon-only buttons
 - [ ] 09 — Fidelity pass vs reference + close-spec

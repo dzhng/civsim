@@ -4,8 +4,9 @@
 
 Record the accepted close-body architecture and render model's density and
 performance envelope before B4B2 tunes coverage. B4B1A1, B4B1A1R, B4B1A1S,
-B4B1A1T, and B4B1A1U did **not** accept a body. This slice may only start after
-a later close-body representation slice accepts a visually plausible body path.
+B4B1A1T, B4B1A1U, and B4B1A1V did **not** accept a body. This slice may only
+start after B4B1A1W or a later close-body ownership/representation slice accepts
+a visually plausible body path.
 This slice owns **budget shape only**: record counts, primitive counts, bytes,
 draw calls, CPU build/upload costs, and obvious LOD pressure.
 

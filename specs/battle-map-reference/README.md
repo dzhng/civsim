@@ -120,17 +120,25 @@ visual still reads as isolated clumps and ruler/marker posts over smooth ground.
 The source variants emit `7200`-`7600` records and `1036800`-`1094400`
 triangles, but retain only `0.16591x`-`0.21339x` of target edge energy. The
 unprimed critique verdict was reject/another pass needed: no candidate preserves
-continuous close grass body without card/marker artifacts. Continue at
-`03b4c5b4b1a1v-continuous-strand-body-representation.md`. B4B1A is now a
+continuous close grass body without card/marker artifacts. B4B1A1V then changed
+the continuous body representation under
+`assets/03b4-evidence/03b4c5-close-foreground-lab/continuous-strand-body-representation/`;
+that pass is also **rejected**. `field-strand-mat` and `field-woven-mat`
+replace marker posts with strand-mat structure, but the structure is still
+source-attached: empty center, perimeter fan/card patches, wrong scale, and
+repeated comb grouping. They record `0.58440x` and `0.40593x` target edge energy,
+and their neutral critique verdict was reject/another pass needed. Continue at
+`03b4c5b4b1a1w-field-owned-strand-material-domain.md`. B4B1A is now a
 parent/reslice memo, not one implementation slice: B4B1A0 built the fair close
 grass test environment, B4B1A1 compared body architecture candidates inside that
 fixed lab, B4B1A1R proved shape-only repair is insufficient, B4B1A1S isolated
 and rejected the `texture-volume` alpha/render-model problem, B4B1A1T proved
 one non-card fiber primitive per existing field record still collapses into
 body absence, B4B1A1U proved dense source topology still creates markers/clumps
-instead of body, B4B1A1V must change the continuous body representation itself,
-and B4B1A2 records the accepted architecture's perf envelope only after a
-representation succeeds. Only after those child slices should B4B2 tune
+instead of body, B4B1A1V proved per-source continuous-body representations still
+create fan/card artifacts instead of body, B4B1A1W must test a continuous
+field-owned body/material domain, and B4B1A2 records the accepted architecture's
+perf envelope only after a representation succeeds. Only after those child slices should B4B2 tune
 coverage, B4B3 tune strand scale, B4B4 tune clump softness, B4B5 lock close palette/atlas
 integration, B4C0 prove the camera-relative backend seam, B4C1 add
 camera-relative cells/rings, B4C2 add slope/normal eligibility, B4C3 add surface
@@ -218,18 +226,20 @@ accepted and before the camera-relative implementation:
    micro-sources after B4B1A1T proves one-per-record fiber primitives are empty.
 8. B4B1A1V changes the continuous body representation after B4B1A1U proves
    source density alone still creates clumps/markers instead of body.
-9. B4B1A2 records the accepted family's density/perf envelope.
-10. B4B2-B4B4 tune coverage, strand scale, and clump rhythm in that fixed close
+9. B4B1A1W changes the body ownership domain after B4B1A1V proves
+   source-attached strand mats still create fan/card patches instead of body.
+10. B4B1A2 records the accepted family's density/perf envelope.
+11. B4B2-B4B4 tune coverage, strand scale, and clump rhythm in that fixed close
    test surface.
-11. B4B5 locks close-lab palette, atlas opacity, and repeated-tile visibility
+12. B4B5 locks close-lab palette, atlas opacity, and repeated-tile visibility
    without changing density or body shape.
-12. B4C0 proves the camera-relative backend seam and perf gates without changing
+13. B4C0 proves the camera-relative backend seam and perf gates without changing
    the accepted look.
-13. B4C1-B4C3 implement snapped cells/rings, terrain eligibility, and tilt/tip
+14. B4C1-B4C3 implement snapped cells/rings, terrain eligibility, and tilt/tip
    behavior behind the chosen seam.
-14. B4D1-B4D4 solve near/transition/mid LOD collapse in lab crops.
-15. B4E returns to the reference route and judges grass crops/masks only.
-16. 03B5 adopts the result only if gameplay readability and perf gates pass;
+15. B4D1-B4D4 solve near/transition/mid LOD collapse in lab crops.
+16. B4E returns to the reference route and judges grass crops/masks only.
+17. 03B5 adopts the result only if gameplay readability and perf gates pass;
     03B6 is pulled in only as a backend swap when B4C0 or 03B5 proves CPU/upload
     cost is the blocker.
 
@@ -255,17 +265,21 @@ close lab first:
 8. B4B1A1U changes the source topology after B4B1A1T proves one-per-record
    non-card fibers are empty and marker-like; this is now rejected too because
    dense source topology still creates isolated clumps/markers.
-9. B4B1A1V changes the continuous body representation itself.
-10. B4B1A2 records the accepted architecture's perf budget and high-water mark.
-11. B4B2-B4B4 tune the chosen close body, strand scale, and clump rhythm.
-12. B4B5 locks the close-lab grass palette/atlas integration so colour is not
+9. B4B1A1V changes the continuous body representation itself; this is now
+   rejected too because source-attached strand mats become perimeter fan/card
+   patches with an empty center.
+10. B4B1A1W tests a continuous field-owned body/material domain before any perf
+   or coverage tuning.
+11. B4B1A2 records the accepted architecture's perf budget and high-water mark.
+12. B4B2-B4B4 tune the chosen close body, strand scale, and clump rhythm.
+13. B4B5 locks the close-lab grass palette/atlas integration so colour is not
    hidden inside density, camera, or fog work.
-13. B4C0 proves the camera-relative backend seam and perf envelope; it must not be
+14. B4C0 proves the camera-relative backend seam and perf envelope; it must not be
    used as a shortcut to solve grass art.
-14. B4C then makes that accepted grass camera-relative; it must not be used as a
+15. B4C then makes that accepted grass camera-relative; it must not be used as a
     shortcut to solve grass art.
-15. B4D makes visible close strands collapse into mid/background meadow mass.
-16. B4E is the first return to the full reference route, and it judges grass masks
+16. B4D makes visible close strands collapse into mid/background meadow mass.
+17. B4E is the first return to the full reference route, and it judges grass masks
     only.
 
 **B4C/B4D ordering decision (2026-07-01):** keep B4C before B4D for now because
@@ -433,8 +447,20 @@ or flowers rather than grass.
   do not implement as one combined test-env/technique/perf pass.
 - `03b4c5b4b1a0-close-grass-test-environment.md` — accepted as a labeled,
   fair-with-caveats close-lab review surface; not an accepted body visual.
-- `03b4c5b4b1a1-close-body-architecture-matrix.md` — next technique matrix;
-  choose the least-wrong close body architecture inside the accepted lab.
+- `03b4c5b4b1a1-close-body-architecture-matrix.md` — recorded/rejected;
+  `texture-volume` least wrong but curtain/island artifacts disqualify it.
+- `03b4c5b4b1a1r-texture-volume-continuity-repair.md` — recorded/rejected;
+  shape-only repair keeps islands, erases body, or creates starburst cards.
+- `03b4c5b4b1a1s-texture-volume-alpha-render-model.md` — recorded/rejected;
+  alpha/cutout/dither semantics still leave cards or erase body.
+- `03b4c5b4b1a1t-field-fiber-body-architecture.md` — recorded/rejected;
+  non-card per-record fibers remove cards by deleting visible body.
+- `03b4c5b4b1a1u-field-fiber-source-topology.md` — recorded/rejected;
+  dense field-cell/subcell sources still read as markers/clumps.
+- `03b4c5b4b1a1v-continuous-strand-body-representation.md` — recorded/rejected;
+  source-attached strand mats add fan/card patches, not body.
+- `03b4c5b4b1a1w-field-owned-strand-material-domain.md` — next pickup; prove a
+  continuous field-owned close body domain before perf/coverage.
 - `03b4c5b4b1a2-close-body-perf-envelope.md` — future density/perf envelope for
   the selected body architecture before tuning coverage.
 - `03b4c5b4b2-close-body-coverage.md` — future dense soft body / exposed-ground
@@ -651,8 +677,9 @@ overlay tuning. Split the remaining work into B4B1 lab route/review windows, B4B
 rejected scale/perspective repair evidence, B4B1A0 close grass test environment,
 B4B1A1 body-architecture matrix, B4B1A1R rejected texture-volume continuity
 repair, B4B1A1S rejected texture-volume alpha render model, B4B1A1T non-card
-field-fiber body architecture, B4B1A1U field-fiber source topology, B4B1A2 body
-perf envelope,
+field-fiber body architecture, B4B1A1U field-fiber source topology, B4B1A1V
+continuous strand body representation, B4B1A1W field-owned body/material domain,
+B4B1A2 body perf envelope,
 B4B2 close body coverage, B4B3 close strand scale, B4B4
 clump softness/height rhythm, B4C0
 backend/perf spike, B4C1
@@ -685,8 +712,11 @@ B4B1A0 test environment, B4B1A1 body matrix, and B4B1A1R continuity repair have
 now been attempted; B4B1A0 is accepted as the fixed review surface, B4B1A1
 rejected every current family, and B4B1A1R rejected shape-only texture-volume
 repair. B4B1A1S has now rejected texture-volume alpha/cutout/dither render
-semantics. B4B1A1T has since rejected the non-card per-record field-fiber body
-slice; resume at B4B1A1U for dense field-cell/subcell source topology.
+semantics. B4B1A1T has since rejected non-card per-record field-fiber body
+primitives, B4B1A1U rejected dense field-cell/subcell source topology, and
+B4B1A1V rejected per-source continuous strand mats. Resume at B4B1A1W for a
+continuous field-owned close-body material/domain before perf, coverage, palette,
+LOD, camera-relative generation, or full-vista comparison.
 
 **Slice 03B4C5B4B1R rejection memo (2026-07-01):** the scale-repair route added
 named camera profiles and selected `scale-repair-low`
@@ -702,8 +732,10 @@ scale**: the crop is smooth green ground with faint smears/scratches, weak
 close/transition/mid progression, inconsistent crop dimensions, and no dense
 vertical grass body. Do not spend another pass on camera/crop/proxy calibration
 alone. B4B1A0 has since built the fair close foreground grass test environment;
-resume at `slices/03b4c5b4b1a1-close-body-architecture-matrix.md` before full
-vista or camera-relative domain work is touched.
+B4B1A1 through B4B1A1V have since rejected the first body technique, render
+model, source topology, and source-attached strand-mat passes. Resume at
+`slices/03b4c5b4b1a1w-field-owned-strand-material-domain.md` before full vista or
+camera-relative domain work is touched.
 
 Slice 00 now has a real side-by-side workbench:
 `visualizations/target-vs-current.html` points at the committed
@@ -852,7 +884,7 @@ Repair path for the next pass:
 
 - Keep iterating from the `highland-valley` fixture path; it is the current honest
   comparison surface until Slice 08 turns the composition into a real playable map.
-- Continue at **Slice 03B4C5B4B1A1U field-fiber source topology**.
+- Continue at **Slice 03B4C5B4B1A1W field-owned strand material domain**.
   03B3A
   already accepted the softened field-coverage layer, 03B3B records why
   material-only meadow volume is insufficient, 03B4B records why hard root
@@ -878,10 +910,14 @@ Repair path for the next pass:
   proved alpha/cutout/dither render semantics still leave card-like sheets or
   erase body. B4B1A1T then left texture-volume cards behind and tested non-card
   field-fiber primitive families, but rejected them because they remove body and
-  become sparse marker-post pins. B4B1A1U now tests dense field-cell/subcell
-  source topology before B4B1A2 local perf envelope, B4B2 coverage,
+  become sparse marker-post pins. B4B1A1U then tested dense field-cell/subcell
+  source topology and rejected it because the crop still reads as isolated
+  clumps/markers. B4B1A1V then tested continuous strand-mat body representations
+  and rejected them because source-attached geometry still creates empty centers
+  and perimeter fan/card patches. B4B1A1W now tests a continuous field-owned
+  body/material domain before B4B1A2 local perf envelope, B4B2 coverage,
   B4B3 strand scale, B4B4 clump rhythm, and B4B5 close palette/atlas lock. Only
-  after that should B4C0 define the camera-relative backend seam,
+  after an accepted domain should B4C0 define the camera-relative backend seam,
   B4C1-B4C3 add procedural cells/rings and terrain response, and B4D1-D4 prove
   near/transition/mid LOD collapse in lab crops before B4E returns to the
   reference route. Keep meadow mass, root material, atlas content, shader
@@ -952,48 +988,38 @@ debt:
 - roads, water, labels, and icon styling are not covered by this camera sheet.
 
 **Next pickup:** implement
-`slices/03b4c5b4b1a1u-field-fiber-source-topology.md`. Preserve the
+`slices/03b4c5b4b1a1w-field-owned-strand-material-domain.md`. Preserve the
 03B4C3 shell harness, 03B4C4 primitive-family workbench, 03B4C5A
 density/soft-coverage record, 03B4C5B placement/scale rejection, 03B4C5B2
 carrier-sheet rejection, 03B4C5B3 micro-density rejection, B4A target crop
-contract, B4B1 lab-route evidence, B4B1R scale-repair rejection, and B4B1A0
-test-environment acceptance as evidence
-surfaces, not as visuals to keep polishing. B4A's artifacts live under
+contract, B4B1 lab-route evidence, B4B1R scale-repair rejection, B4B1A0
+test-environment acceptance, and B4B1A1 through B4B1A1V body-technique
+rejections as evidence surfaces, not as visuals to keep polishing. B4A's
+artifacts live under
 `assets/03b4-evidence/03b4c5-close-foreground-lab/target-crop-contract/`; B4B1's
 failed lab evidence lives under
 `assets/03b4-evidence/03b4c5-close-foreground-lab/lab-route/`; B4B1R's failed
 scale-repair evidence lives under
 `assets/03b4-evidence/03b4c5-close-foreground-lab/scale-repair/`; B4B1A0's
 accepted fair-with-caveats lab lives under
-`assets/03b4-evidence/03b4c5-close-foreground-lab/test-environment/`. Use the red
-close-hero crop and labeled B4B1A0 sheets as the strong target/review surface,
-but do not compare the final wide `battle-map-reference` vista while repairing
-the body architecture. B4B1A1 kept camera, terrain, fog, lighting, palette,
-meadow/root base, crop windows, and target/absence sheets fixed while it tried
-body primitive families. `texture-volume` was least wrong, and the neutral
-critique would continue with it, but both direct inspection and the critique
-named the same disqualifying hanging-curtain / hay-mat island artifact. B4B1A1R
-changed only texture-volume continuity/primitive shape and is rejected: `current`
-keeps hay-mat islands, `seated-soft` / `broken-lattice` remove body, and
-`overlap-stagger` becomes giant starburst cards. B4B1A1S changed only the
-texture-volume alpha/cutout/depth render model and is rejected: `opaque-card`
-keeps the card islands, while alpha/cutout/dither variants remove some fill but
-still read as sheets/chunks or delete the close body. B4B1A1T then left
-texture-volume cards behind and tried a small field-owned fiber/strand body
-architecture inside the same fixed close lab; that pass is rejected because the
-non-card fibers read as sparse pins and preserve only
-`0.13320x`-`0.15347x` of target edge energy. B4B1A1U changed source topology to
-dense field-cell/subcell-owned micro-sources in the same fixed close lab and is
-also rejected: it adds isolated clumps/markers, not continuous body. B4B1A1V
-must change the continuous body representation itself, with camera, palette,
-fog, terrain, atlas, and crop windows frozen. B4B1A2 then records the accepted
-body's density/perf envelope. Then
-continue with B4B2 body coverage, B4B3 strand scale, B4B4 clump
-softness, B4B5 close palette/atlas lock, B4C0 backend/perf spike,
-B4C1 camera-relative domain, B4C2 slope/normal eligibility, B4C3 surface
-tilt/tip blend, B4D1-D4 LOD collapse, and B4E grass-only reference compose. Do
-not move to 03B4C5C reference-route atlas polish until that ladder proves close
-body, camera-relative generation, LOD collapse, and reference grass crops.
+`assets/03b4-evidence/03b4c5-close-foreground-lab/test-environment/`; B4B1A1V's
+latest rejected strand-mat evidence lives under
+`assets/03b4-evidence/03b4c5-close-foreground-lab/continuous-strand-body-representation/`.
+Use the red close-hero crop and labeled B4B1A0 sheets as the strong
+target/review surface, but do not compare the final wide `battle-map-reference`
+vista while repairing close body architecture. B4B1A1V proved that changing the
+mesh representation per source is still the wrong owner: `field-strand-mat` and
+`field-woven-mat` add structure, but as empty-center, perimeter fan/card patches
+over smooth ground. B4B1A1W must therefore test a continuous field-owned
+body/material domain with camera, palette, fog, terrain, atlas, source context,
+and crop windows frozen. B4B1A2 records the accepted body's density/perf
+envelope only after W or a later ownership slice accepts a visually plausible
+body. Then continue with B4B2 body coverage, B4B3 strand scale, B4B4 clump
+softness, B4B5 close palette/atlas lock, B4C0 backend/perf spike, B4C1
+camera-relative domain, B4C2 slope/normal eligibility, B4C3 surface tilt/tip
+blend, B4D1-D4 LOD collapse, and B4E grass-only reference compose. Do not move
+to 03B4C5C reference-route atlas polish until that ladder proves close body,
+camera-relative generation, LOD collapse, and reference grass crops.
 
 Every visual slice (01–08) ends with three distinct gates:
 `screenshot-regression` for baseline stability, `compare-screenshots` against the
@@ -1049,8 +1075,10 @@ have to rediscover.
 - [x] **Slice 03B4C5B4B1A1R** — texture-volume continuity repair (`slices/03b4c5b4b1a1r-texture-volume-continuity-repair.md`) — landed/rejected; shape-only repairs keep islands, lose body, or become starburst cards
 - [x] **Slice 03B4C5B4B1A1S** — texture-volume alpha render model (`slices/03b4c5b4b1a1s-texture-volume-alpha-render-model.md`) — rejected; alpha/cutout/dither still leaves card artifacts or erases body
 - [x] **Slice 03B4C5B4B1A1T** — field-fiber body architecture (`slices/03b4c5b4b1a1t-field-fiber-body-architecture.md`) — landed/rejected; non-card per-record fibers remove cards by deleting body and read as sparse marker pins
-- [ ] **Slice 03B4C5B4B1A1U** — field-fiber source topology (`slices/03b4c5b4b1a1u-field-fiber-source-topology.md`) — next pickup; generate dense field-cell/subcell close-body sources before perf/coverage
-- [ ] **Slice 03B4C5B4B1A2** — close body perf envelope (`slices/03b4c5b4b1a2-close-body-perf-envelope.md`) — record density/perf budget only after B4B1A1U accepts a source/body representation
+- [x] **Slice 03B4C5B4B1A1U** — field-fiber source topology (`slices/03b4c5b4b1a1u-field-fiber-source-topology.md`) — landed/rejected; dense field-cell/subcell sources still read as isolated clumps/markers
+- [x] **Slice 03B4C5B4B1A1V** — continuous strand body representation (`slices/03b4c5b4b1a1v-continuous-strand-body-representation.md`) — landed/rejected; source-attached strand mats add perimeter fan/card patches, not continuous body
+- [ ] **Slice 03B4C5B4B1A1W** — field-owned strand material domain (`slices/03b4c5b4b1a1w-field-owned-strand-material-domain.md`) — next pickup; prove continuous field-owned body/domain ownership before perf/coverage
+- [ ] **Slice 03B4C5B4B1A2** — close body perf envelope (`slices/03b4c5b4b1a2-close-body-perf-envelope.md`) — record density/perf budget only after B4B1A1W or a later ownership slice accepts a body/domain representation
 - [ ] **Slice 03B4C5B4B2** — close body coverage (`slices/03b4c5b4b2-close-body-coverage.md`)
 - [ ] **Slice 03B4C5B4B3** — close strand scale (`slices/03b4c5b4b3-close-strand-scale.md`)
 - [ ] **Slice 03B4C5B4B4** — clump softness and height variation (`slices/03b4c5b4b4-clump-softness-height-variation.md`)
@@ -1326,7 +1354,11 @@ by sim terrain read from wasm in `web/src/battle/scene.ts`.
         │
 03B4C5B4B1A1T field-fiber-body-architecture ─ rejected; non-card per-record pins
         │
-03B4C5B4B1A1U field-fiber-source-topology ─ dense field-cell/subcell sources
+03B4C5B4B1A1U field-fiber-source-topology ─ rejected; dense sources still markers
+        │
+03B4C5B4B1A1V continuous-strand-body-representation ─ rejected; source fan patches
+        │
+03B4C5B4B1A1W field-owned-strand-material-domain ─ continuous body domain
         │
 03B4C5B4B1A2 close-body-perf-envelope ─ density/perf budget
         │

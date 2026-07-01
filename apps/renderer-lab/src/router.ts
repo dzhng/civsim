@@ -3241,7 +3241,10 @@ async function routeBattleGrassField(ctx: LabContext) {
   const texturePrimitive = isTextureGrassPrimitiveFamily(grassPrimitiveFamily);
   const textureCarrier = grassPrimitiveFamily === 'texture-carrier';
   const textureMicroCarrier = grassPrimitiveFamily === 'texture-micro-carrier';
-  const fieldFiberBodyPrimitive = grassPrimitiveFamily === 'field-fiber-body' || grassPrimitiveFamily === 'field-fiber-bundle';
+  const fieldFiberBodyPrimitive = grassPrimitiveFamily === 'field-fiber-body'
+    || grassPrimitiveFamily === 'field-fiber-bundle'
+    || grassPrimitiveFamily === 'field-strand-mat'
+    || grassPrimitiveFamily === 'field-woven-mat';
   const textureVolumeProfile = texturePrimitive ? textureVolumeProfileParam(ctx.params, 'textureVolumeProfile', 'current') : 'current';
   const textureVolumeRenderModel = grassPrimitiveFamily === 'texture-volume' ? textureVolumeRenderModelParam(ctx.params, 'textureVolumeRenderModel', 'opaque-card') : 'opaque-card';
   const accentAggregation = accentMode && texturePrimitive
@@ -4162,6 +4165,8 @@ function grassAccentStyleParam(params: URLSearchParams, key: string, fallback: G
     || raw === 'field-fiber-shell-visibility'
     || raw === 'field-fiber-body'
     || raw === 'field-fiber-bundle'
+    || raw === 'field-strand-mat'
+    || raw === 'field-woven-mat'
     || raw === 'alpha-impostor'
     || raw === 'billboard-cluster'
     || raw === 'volume-card'
@@ -4207,6 +4212,8 @@ function grassPrimitiveFamilyParam(params: URLSearchParams, key: string, fallbac
     || raw === 'field-fiber-shell'
     || raw === 'field-fiber-body'
     || raw === 'field-fiber-bundle'
+    || raw === 'field-strand-mat'
+    || raw === 'field-woven-mat'
     || raw === 'alpha-impostor'
     || raw === 'billboard-cluster'
     || raw === 'volume-card'
@@ -4223,6 +4230,8 @@ function accentStyleForPrimitiveFamily(family: GrassPrimitiveFamily, fiberShellV
   if (family === 'field-fiber-shell') return fiberShellVariant === 'visibility' ? 'field-fiber-shell-visibility' : 'field-fiber-shell';
   if (family === 'field-fiber-body') return 'field-fiber-body';
   if (family === 'field-fiber-bundle') return 'field-fiber-bundle';
+  if (family === 'field-strand-mat') return 'field-strand-mat';
+  if (family === 'field-woven-mat') return 'field-woven-mat';
   if (family === 'alpha-impostor') return 'alpha-impostor';
   if (family === 'billboard-cluster') return 'billboard-cluster';
   if (family === 'volume-card' || family === 'texture-volume' || family === 'texture-carrier' || family === 'texture-micro-carrier') return 'volume-card';
@@ -4238,6 +4247,8 @@ function grassPrimitiveFamilyForAccentStyle(style: GrassAccentStyle): GrassPrimi
   if (style === 'field-fiber-shell' || style === 'field-fiber-shell-visibility') return 'field-fiber-shell';
   if (style === 'field-fiber-body') return 'field-fiber-body';
   if (style === 'field-fiber-bundle') return 'field-fiber-bundle';
+  if (style === 'field-strand-mat') return 'field-strand-mat';
+  if (style === 'field-woven-mat') return 'field-woven-mat';
   if (style === 'alpha-impostor') return 'alpha-impostor';
   if (style === 'billboard-cluster') return 'billboard-cluster';
   if (style === 'volume-card') return 'volume-card';
@@ -4266,7 +4277,7 @@ function isClumpGrassAccentStyle(style: GrassAccentStyle): boolean {
 }
 
 function isWorkbenchGrassPrimitiveFamily(family: GrassPrimitiveFamily): boolean {
-  return family === 'field-fiber-body' || family === 'field-fiber-bundle' || family === 'alpha-impostor' || family === 'billboard-cluster' || family === 'volume-card' || family === 'texture-volume' || family === 'texture-carrier' || family === 'texture-micro-carrier';
+  return family === 'field-fiber-body' || family === 'field-fiber-bundle' || family === 'field-strand-mat' || family === 'field-woven-mat' || family === 'alpha-impostor' || family === 'billboard-cluster' || family === 'volume-card' || family === 'texture-volume' || family === 'texture-carrier' || family === 'texture-micro-carrier';
 }
 
 function isFieldFiberShellStyle(style: GrassAccentStyle): boolean {

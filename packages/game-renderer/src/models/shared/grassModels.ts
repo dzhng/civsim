@@ -10,6 +10,8 @@ export type GrassAccentStyle =
   | 'field-fiber-shell-visibility'
   | 'field-fiber-body'
   | 'field-fiber-bundle'
+  | 'field-strand-mat'
+  | 'field-woven-mat'
   | 'alpha-impostor'
   | 'billboard-cluster'
   | 'volume-card'
@@ -90,6 +92,8 @@ export function buildGrassTuftMesh(options: GrassTuftOptions = {}): MeshData {
   if (accentStyle === 'field-fiber-shell-visibility') return buildFieldFiberShellAccentMesh(seed, blades, height, width, bend, spread, palette, true);
   if (accentStyle === 'field-fiber-body') return buildFieldFiberBodyMesh(seed, blades, height, width, bend, spread, palette, false);
   if (accentStyle === 'field-fiber-bundle') return buildFieldFiberBodyMesh(seed, blades, height, width, bend, spread, palette, true);
+  if (accentStyle === 'field-strand-mat') return buildContinuousStrandBodyMesh(seed, blades, height, width, bend, spread, palette, false);
+  if (accentStyle === 'field-woven-mat') return buildContinuousStrandBodyMesh(seed, blades, height, width, bend, spread, palette, true);
   if (accentStyle === 'alpha-impostor') return buildAlphaImpostorPatchMesh(seed, blades, height, width, bend, spread, palette);
   if (accentStyle === 'billboard-cluster') return buildBillboardClusterMesh(seed, blades, height, width, bend, spread, palette);
   if (accentStyle === 'volume-card') return buildNearGrassVolumeCardMesh(seed, blades, height, width, bend, spread, palette);
@@ -229,6 +233,63 @@ function buildFieldFiberBodyMesh(
     });
   }
   return builder.finish(bundled ? 'grass field-fiber-bundle body mesh' : 'grass field-fiber body mesh');
+}
+
+function buildContinuousStrandBodyMesh(
+  seed: number,
+  blades: number,
+  height: number,
+  width: number,
+  bend: number,
+  spread: number,
+  palette: { root: Rgb; mid: Rgb; tip: Rgb; dry: Rgb },
+  woven: boolean,
+): MeshData {
+  const builder = new MeshBuilder();
+  const strands = woven
+    ? Math.max(22, Math.min(28, blades + 18))
+    : Math.max(18, Math.min(24, blades + 12));
+  const baseTone = scaleColor(mixColor(palette.root, palette.mid, woven ? 0.26 : 0.22), woven ? 0.84 : 0.88);
+  const highTone = scaleColor(mixColor(palette.mid, palette.tip, woven ? 0.34 : 0.30), woven ? 0.92 : 0.96);
+  const shadowTone = scaleColor(mixColor(palette.root, palette.mid, 0.18), woven ? 0.76 : 0.80);
+  const mainYaw = jitter(seed, 17, 0.16);
+  const crossYaw = mainYaw + Math.PI * 0.5 + jitter(seed, 23, 0.10);
+  for (let i = 0; i < strands; i++) {
+    const t = strands <= 1 ? 0 : i / (strands - 1);
+    const crossLayer = woven && i % 3 === 1;
+    const rootYaw = (i / strands) * Math.PI * 2 + jitter(seed + i * 29, 1, woven ? 0.26 : 0.36);
+    const lateral = (t - 0.5) * spread * (woven ? 1.15 : 0.92) + jitter(seed + i * 31, 2, spread * 0.18);
+    const along = jitter(seed + i * 37, 3, spread * (woven ? 0.42 : 0.34));
+    const yaw = (crossLayer ? crossYaw : mainYaw)
+      + jitter(seed + i * 41, 4, woven ? 0.42 : 0.56)
+      + (hash2(seed + i, 5) > 0.54 ? Math.PI : 0);
+    const lx = -Math.sin(yaw);
+    const ly = Math.cos(yaw);
+    const fx = Math.cos(yaw);
+    const fy = Math.sin(yaw);
+    const root: [number, number, number] = [
+      lx * lateral + fx * along,
+      ly * lateral + fy * along,
+      height * (0.010 + hash2(seed + i, 6) * 0.020),
+    ];
+    const strandLength = width * (woven ? 3.2 : 2.8) + spread * (woven ? 0.18 : 0.14);
+    const strandWidth = width * (woven ? 0.78 : 0.66) * (0.72 + hash2(seed + i, 7) * 0.34);
+    const lift = height * (woven ? 0.060 : 0.085) * (0.62 + hash2(seed + i, 8) * 0.42);
+    const curve = bend * (woven ? 0.035 : 0.055) + jitter(seed + i * 43, 9, spread * 0.025);
+    const shade = 0.86 + hash2(seed + i, 10) * 0.18;
+    addGroundStrandStroke(builder, {
+      root,
+      yaw,
+      length: strandLength,
+      width: strandWidth,
+      lift,
+      curve,
+      lowerColor: scaleColor(i % 4 === 0 ? shadowTone : baseTone, shade),
+      upperColor: scaleColor(highTone, shade),
+      tipScale: woven ? 0.32 : 0.22,
+    });
+  }
+  return builder.finish(woven ? 'grass field-woven-mat body mesh' : 'grass field-strand-mat body mesh');
 }
 
 function buildAlphaImpostorPatchMesh(
@@ -706,6 +767,44 @@ function addTaperedPanel(
   const r2 = edge(tip, lx, ly, tipW);
   builder.panel3d([r0[0], r0[1], r1[1], r1[0]], blade.lowerColor, 1);
   builder.panel3d([r1[0], r1[1], r2[1], r2[0]], blade.upperColor, 1);
+}
+
+function addGroundStrandStroke(
+  builder: MeshBuilder,
+  strand: {
+    root: [number, number, number];
+    yaw: number;
+    length: number;
+    width: number;
+    lift: number;
+    curve: number;
+    lowerColor: Rgb;
+    upperColor: Rgb;
+    tipScale: number;
+  },
+) {
+  const fx = Math.cos(strand.yaw);
+  const fy = Math.sin(strand.yaw);
+  const lx = -fy;
+  const ly = fx;
+  const startW = strand.width * 0.48;
+  const midW = strand.width * 0.36;
+  const endW = strand.width * strand.tipScale;
+  const mid: [number, number, number] = [
+    strand.root[0] + fx * strand.length * 0.54 + lx * strand.curve * 0.45,
+    strand.root[1] + fy * strand.length * 0.54 + ly * strand.curve * 0.45,
+    strand.root[2] + strand.lift * 0.55,
+  ];
+  const end: [number, number, number] = [
+    strand.root[0] + fx * strand.length + lx * strand.curve,
+    strand.root[1] + fy * strand.length + ly * strand.curve,
+    strand.root[2] + strand.lift,
+  ];
+  const p0 = edge(strand.root, lx, ly, startW);
+  const p1 = edge(mid, lx, ly, midW);
+  const p2 = edge(end, lx, ly, endW);
+  builder.groundPanel([p0[0], p0[1], p1[1], p1[0]], strand.lowerColor, 1);
+  builder.groundPanel([p1[0], p1[1], p2[1], p2[0]], strand.upperColor, 1);
 }
 
 function edge(center: [number, number, number], lx: number, ly: number, halfWidth: number): [[number, number, number], [number, number, number]] {

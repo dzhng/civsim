@@ -29,7 +29,7 @@ import { heightSpan, terrainHeightAt, type TerrainHeightField } from '../../../p
 import type { BattleTerrainFeature, BattleTerrainFeatureKind, BattleTerrainGrid } from '../../../packages/game-renderer/src/battle/terrainFeatures';
 import { BattleGroundPass } from '../../../packages/game-renderer/src/battle/groundPass';
 import { BattleHorizonPass } from '../../../packages/game-renderer/src/battle/horizonPass';
-import { createWaterField, type WaterFieldId, type WaterFieldSource } from '../../../packages/game-renderer/src/water/waterField';
+import { createWaterField } from '../../../packages/game-renderer/src/water/waterField';
 import { WaterPlanePass } from '../../../packages/game-renderer/src/water/waterPlanePass';
 import { WATER_ENVIRONMENTS, type WaterEnvironment } from '../../../packages/game-renderer/src/water/waterEnvironment';
 import { featuresToBattleScenery } from '../../../packages/game-renderer/src/battle/terrainScenery';
@@ -3008,20 +3008,16 @@ async function routeBattleInput(ctx: LabContext) {
   draw();
 }
 
-// Slice 1 of the water spec: the technique bake-off. One open-sea plane at the
-// battle horizon camera (or the campaign camera for the perf gate), driven by a
-// WaterFieldSource. `?tech=gerstner|ifft` picks the producer; `?compare=1`
-// scissors both side by side; `?t=<seconds>` freezes the clock for snapshots;
-// `?computeUnsupported=1` forces the capability fallback. Neutral grey albedo —
-// this slice judges geometry, foam and glint, not colour.
+// The open-sea plane route (originally the Slice 1 technique bake-off, now the
+// single Gerstner production field). One tessellated plane at the battle horizon
+// camera (or the campaign camera for the perf gate), driven by the WaterFieldSource
+// seam. `?preset=golden|dusk|overcast`, `?sunAz`/`?sunEl`, and `?t=<seconds>` (freeze
+// the clock for snapshots) are the dials; this route is the shared renderer for every
+// water look scene.
 async function routeWaterBakeoff(ctx: LabContext) {
-  const requested: WaterFieldId = ctx.params.get('tech') === 'ifft' ? 'ifft' : 'gerstner';
-  const compare = ctx.params.get('compare') === '1';
   const presetName = ctx.params.get('preset') ?? 'golden';
   const env: WaterEnvironment = WATER_ENVIRONMENTS[presetName as WaterEnvironment['id']] ?? WATER_ENVIRONMENTS.golden;
   const camName = ctx.params.get('cam') === 'campaign' ? 'campaign' : 'battle';
-  const forceUnsupported = ctx.params.get('computeUnsupported') === '1';
-  const ifftResolution = integerParam(ctx.params, 'n', 128, 64, 256);
   // Sun comes from the preset; `sunAz`/`sunEl` override it (e.g. the glint scene
   // sweeps the azimuth to prove the streak tracks the sun).
   const sunAz = ctx.params.has('sunAz') ? numberParam(ctx.params, 'sunAz', env.sunAzimuth) : env.sunAzimuth;
@@ -3029,7 +3025,6 @@ async function routeWaterBakeoff(ctx: LabContext) {
   const fixedT = ctx.params.has('t') ? numberParam(ctx.params, 't', 0) : null;
 
   const shell = await createFrameShell(ctx.canvas, { enableGpuTimer: true });
-  const computeSupported = shell.info.caps.computeOceanSupported && !forceUnsupported;
 
   const camera = camName === 'campaign'
     ? { x: 0, y: 90, zoom: 3.4, pitch: 0.42, yaw: 0, perspective: 0.02 }
@@ -3041,67 +3036,43 @@ async function routeWaterBakeoff(ctx: LabContext) {
   // (Slice 6 will grade the sea-to-sky seam properly).
   const clear: GPUColor = { r: env.hazeColor[0], g: env.hazeColor[1], b: env.hazeColor[2], a: 1 };
 
-  interface Built { requested: WaterFieldId; field: WaterFieldSource; plane: WaterPlanePass; fallbackTriggered: boolean }
-  const techs: WaterFieldId[] = compare ? ['gerstner', 'ifft'] : [requested];
-  const built: Built[] = techs.map((tech) => {
-    const { field, fallbackTriggered } = createWaterField(shell, { tech, computeSupported, ifftResolution });
-    return { requested: tech, field, plane: new WaterPlanePass(shell, field, undefined, env), fallbackTriggered };
-  });
+  // Gerstner is the one production water field (it won the Slice 1 bake-off; the IFFT
+  // loser was deleted in Slice 11). This route renders the open-sea plane and stays
+  // the shared renderer for every look scene (silhouette/foam/glint/albedo/haze/rhythm).
+  const field = createWaterField(shell);
+  const plane = new WaterPlanePass(shell, field, undefined, env);
 
   const drawAt = (t: number) => {
     shell.setTime(t);
-    const W = shell.stats().width;
-    const H = shell.stats().height;
     shell.drawFrame({
       clear,
-      precompute: (enc) => { for (const b of built) b.field.ensureFrame(enc, t); },
+      precompute: (enc) => field.ensureFrame(enc, t),
       passes: [{
         id: 'water-bakeoff-plane', role: 'world-opaque', phase: 'world-depth', depth: 'read-write',
-        draw: (pass) => {
-          if (compare && built.length === 2) {
-            const half = Math.floor(W / 2);
-            pass.setScissorRect(0, 0, half, H); built[0].plane.draw(pass);
-            pass.setScissorRect(half, 0, W - half, H); built[1].plane.draw(pass);
-            pass.setScissorRect(0, 0, W, H);
-          } else {
-            built[0].plane.draw(pass);
-          }
-        },
+        draw: (pass) => plane.draw(pass),
       }],
     });
   };
 
   const publishStats = () => {
     const s = shell.stats();
-    const live = built.length === 1 ? built[0].field.id : built.map((b) => b.field.id).join('+');
     publish('water-bakeoff', true, {
       route: 'water-bakeoff',
-      requestedTech: requested,
-      tech: live,
-      compare,
+      tech: field.id,
+      compare: false,
       preset: presetName,
       camera: camName,
-      computeSupported,
-      computeOceanSupportedRaw: shell.info.caps.computeOceanSupported,
       timestampQuery: shell.info.caps.timestampQuery,
       gpuTimeMs: s.gpuTimeMs,
       fixedTime: fixedT,
-      fallbackTriggered: built.some((b) => b.fallbackTriggered),
-      fieldResolution: Math.max(...built.map((b) => b.field.stats().fieldResolution)),
-      fields: built.map((b) => ({ requested: b.requested, ...b.field.stats(), fallbackTriggered: b.fallbackTriggered })),
+      fieldResolution: field.stats().fieldResolution,
       cameraContract: s.cameraContract,
     });
     ctx.status.innerHTML = reportTable({
       route: 'water-bakeoff',
-      requested,
-      live,
-      compare,
+      tech: field.id,
       camera: camName,
       preset: presetName,
-      'compute supported': computeSupported,
-      'fallback triggered': built.some((b) => b.fallbackTriggered),
-      'field resolution': built.map((b) => b.field.stats().fieldResolution).join(' / '),
-      'storage bytes': built.map((b) => b.field.stats().storageBytes).join(' / '),
       'GPU time (ms)': s.gpuTimeMs === null ? 'pending' : s.gpuTimeMs.toFixed(3),
     });
   };

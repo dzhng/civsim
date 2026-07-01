@@ -119,8 +119,6 @@ export const GERSTNER_WGSL = gerstnerWgsl();
 export class GerstnerWaterField implements WaterFieldSource {
   readonly id: WaterFieldId = 'gerstner';
 
-  constructor(private readonly fallbackFor: WaterFieldId | null = null) {}
-
   wgslSample(): string {
     return GERSTNER_WGSL;
   }
@@ -138,7 +136,7 @@ export class GerstnerWaterField implements WaterFieldSource {
   }
 
   stats(): WaterFieldStats {
-    return { id: this.id, fieldResolution: 1, storageBytes: 0, fallbackFor: this.fallbackFor };
+    return { id: this.id, fieldResolution: 1, storageBytes: 0 };
   }
 
   destroy(): void {

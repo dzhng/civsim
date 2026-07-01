@@ -11,7 +11,7 @@
 // diff) + <name>-actual.png are written for inspection. Re-bless intentional
 // changes (a UI tweak, a deliberate mechanics shift) with:
 //
-//   UPDATE_SHOTS=1 node verify-battle.mjs   # or vibe/all.mjs, shots/models/scripts/soldier-sheets.mjs
+//   UPDATE_SHOTS=1 node scene.mjs <scene>   # or vibe/all.mjs, shots/models/scripts/soldier-sheets.mjs
 //
 // Snapshots only stay green if the moment is deterministic: fixed viewport,
 // fixed camera, sim paused/frozen (battle: window.__game.freeze()), no

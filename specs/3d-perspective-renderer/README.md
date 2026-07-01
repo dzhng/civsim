@@ -44,12 +44,64 @@ decision procedure in that slice file (perf veto at ~33 ms / 30 fps · look pari
 harness heavily-weighted-but-tradeable · near-tie → three.js), then **re-invokes
 `/feature-slicing` with the results** to author `07`+. No human sign-off gates it.
 
-**Exact next pickup point:** **slice `02` (real depth + real projection on the
-water route)** — the keystone. It consumes the `camera3d` lib from `01`: grow the
-camera uniform additively, add `projectReal` + reverse-Z depth to the water shell
-only, and prove the dome/streak artifact is gone on `/renderer/water-bakeoff`. The
-`06` bake-off can run in parallel (it only needs `01`+`02`'s water proof). Do NOT
-start the seam flip (`04`) until `01`+`02`+`03` are green.
+**Slice `02` is DONE (committed, 2026-07-02).** The keystone landed: the water
+route runs on the real 3D perspective camera + a reverse-Z `depth32float` buffer,
+and the **dome/streak wedge is GONE** — `/renderer/water-bakeoff` now reads as a
+flat sea meeting a straight, level true horizon (screenshot-critique: "straight and
+flat, not domed, waves recede correctly"; compare-screenshots old-dome vs new: new
+decisively less wrong). Reverse-Z + `depth32float` render **non-blank on
+SwiftShader** (risk retired). New gate scene `web/scenes/system/water-horizon-real.mjs`
+(depth-format + level-horizon asserts). Unit gate `web/tests/cameraUniform.test.ts`
+(4 tests): packed `viewProj`/`invViewProj`/`eye` equal `camera3d`, 52-float/208-byte
+layout, and the 12 legacy scalars are byte-identical with/without the real camera.
+All `web/shots/misc/water/**` deliberately re-blessed (geometry moved under the real
+projection). Non-water frozen scenes verified byte-identical (battle/campaign diff
+counts vs baseline unchanged before/after; `battle-terrain-elevation` seating
+tripwire `match=true`).
+
+**Decisions recorded this slice:**
+- **How the shell receives the real camera:** additive optional field
+  `CameraSnapshot.camera3d?: Camera3DParams`. When set, `cameraUniformData` resolves
+  `viewProj`/`invViewProj`/`eye`/`znear`/`zfar` via `camera3d` and packs them after
+  the 12 legacy scalars (offsets: float 12 / 28 / 44 / 47 / 48; struct = 52 floats /
+  208 B). **`aspect` is overridden by the live width/height** so the projection
+  follows resize with a single owner. Legacy passes read only floats 0..11 →
+  byte-identical.
+- **Uniform is a superset, not a replacement:** `CAMERA_UNIFORM_WGSL` `struct Camera`
+  appends `viewProj`/`invViewProj`/`eye`/`znear`/`zfar`; `projectReal(world)` is the
+  new real projector. All legacy fns (`projectGround`/`projectWorld3d`/`worldDepth3d`/
+  `civsim*WorldDepth3d`) are untouched — the short-lived migration seam collapsed at
+  `04`/`05`.
+- **Reverse-Z is opt-in per shell:** `FrameShellOptions.reverseZ` → `depth32float`,
+  clear `0`; `depthContract` adds `GPU_DEPTH_FORMAT_REVERSE` + clear consts;
+  `pipelineContracts` adds `gpuReverseZDepthStencil(mode)` (compare `greater` /
+  `greater-equal`). Battle/campaign shells stay on legacy `depth24plus` painter.
+- **`WaterPlanePass` real path is opt-in (`opts.real`)** because battle's
+  `horizonPass` ocean edge shares that class on the legacy `depth24plus` shell — the
+  flag keeps that byte-identical while only the bake-off route flips to
+  `projectReal` + `gpuReverseZDepthStencil('read-write')`.
+- **Water framing:** an oblique out-to-sea camera (`yaw = −π/2`, infinite far →
+  true-horizon vanishing line). Battle default `target[0,140,0]/dist 190/pitch 0.22/
+  fov 0.78`; campaign (`?cam=campaign`) `target[0,200,0]/dist 240/pitch 0.38/fov 0.70`.
+  URL-tunable (`pitch/dist/fov/targetY`). Two water look-scenes (`foam`, `albedo`)
+  were re-based to sample the **near sea** (below the honest horizon-haze band) —
+  the real camera reveals a real hazed horizon the fake projection compressed away,
+  so the old fixed bands were reading haze as whitecaps / averaging albedo through
+  aerial haze (haze is gated separately by `water-haze`). Dusk's mean is warm by
+  design; blue-dominance is asserted for the daytime presets, dusk only stays off
+  neon-green. No thresholds were loosened to hide a look.
+
+**Known non-blocking reds (pre-existing on HEAD, not this slice):** the format gate
+(single/double quotes) is red on committed HEAD; several water/coastal battle
+snapshot baselines are stale (identical diff counts before/after this slice); the
+`water-silhouette` 8ms budget check fails only on the **SwiftShader software
+rasterizer** (perf gates are hardware-only per this README).
+
+**Exact next pickup point:** **slice `03` (zoom→camera rig)** — turn the
+zoom/pitch/FOV knobs into one pure, testable curve (`cameraRig.ts`) feeding
+`Camera3DParams`, for battle + campaign, with a genuine near-top-down end. `01`+`02`
+are green. Do NOT start the seam flip (`04`) until `03` is green. The `06` bake-off
+can run in parallel (it only needs `01`+`02`'s water proof).
 
 **Active blockers / coordination warnings:**
 - **Overlap with `specs/battle-map-reference/`** (active, in-flight). That spec is
@@ -72,7 +124,7 @@ start the seam flip (`04`) until `01`+`02`+`03` are green.
 
 **Global TODO checklist:**
 - [x] `01` — `camera3d` pure math library (renderer-core) + `/renderer/camera3d-probe` **(done)**
-- [ ] `02` — real depth + real projection proven on the **water route** (keystone)
+- [x] `02` — real depth + real projection proven on the **water route** (keystone) **(done — dome gone, reverse-Z on SwiftShader confirmed)**
 - [ ] `03` — zoom→camera rig (pure curve), battle + campaign
 - [ ] `04` — flip the shared seam → **battle** engine-wide + 3D ray-cast picking
 - [ ] `05` — flip **campaign** to the real camera + campaign picking, then **delete

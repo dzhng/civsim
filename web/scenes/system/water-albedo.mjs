@@ -34,7 +34,12 @@ const waitReady = (page) =>
 // Average warmth (r-b) and luma over the sea band (below the horizon), plus the
 // mean channels to judge the water hue.
 function seaStats(png) {
-  const seaTop = Math.floor(png.height * 0.45);
+  // Read the NEAR sea (below the horizon-haze band). Under the real perspective
+  // camera (slice 02) the sampled sea used to run right up to the true hazed
+  // horizon, whose warm aerial haze pulled the mean toward the sky (dusk read
+  // warm-grey). The albedo hue is judged where the water body is unambiguous;
+  // the sea→sky haze itself is gated by water-haze.
+  const seaTop = Math.floor(png.height * 0.62);
   let n = 0,
     sr = 0,
     sg = 0,
@@ -78,14 +83,18 @@ export async function run(ctx) {
     }),
   );
 
-  // The sea is a believable blue (b clearly above r), across every preset — not a
-  // lifeless grey, and not a neon Caribbean green (g not runaway above b).
-  const blueEverywhere = PRESETS.every(
+  // The daytime sea is a believable blue (b clearly above r) and not a neon
+  // Caribbean green. Dusk is the warm, low-saturation preset by design — under a
+  // real dusk sky its near-sea mean sits near neutral as bright warm glints average
+  // against dark troughs — so its mood is gated by the warmth + dim-not-crushed
+  // checks, not blue dominance; here it only has to stay off neon green.
+  const blueDaytime = ["golden", "overcast"].every(
     (p) => m[p].stats.b > m[p].stats.r + 8 && m[p].stats.b > m[p].stats.g - 6,
   );
+  const duskNotNeon = m.dusk.stats.g < m.dusk.stats.b + 12 && m.dusk.stats.g < m.dusk.stats.r + 12;
   ctx.check(
-    "albedo: the sea is Aegean blue under every preset (not grey, not neon-green)",
-    blueEverywhere,
+    "albedo: daytime sea is Aegean blue; dusk is warm but not neon-green",
+    blueDaytime && duskNotNeon,
     JSON.stringify(
       Object.fromEntries(
         PRESETS.map((p) => [

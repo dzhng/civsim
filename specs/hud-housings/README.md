@@ -23,11 +23,25 @@ contract); it does not change the card-grid math or the sim.
 
 ## Next Agent Prompt
 
-**Status:** Slices 01–03 shipped. Last updated 2026-07-01.
+**Status:** Slices 01–04 shipped. Last updated 2026-07-01.
 
-**Start here:** Slice `04-army-roster-idle`. Read it, then the firewalls section
-below, then build. Each slice leaves the battle playable and screenshot-able; do
-not start a later slice until the current one's gate passes.
+**Start here:** Slice `05-merge-toolbar-center`. Read it, then the firewalls
+section below, then build. Each slice leaves the battle playable and
+screenshot-able; do not start a later slice until the current one's gate passes.
+
+**What slice 04 landed:** the debug header (soldiers/tick/PAUSED) is gone from the
+info card. When no unit is selected/hovered, the bottom-left card shows an ARMY
+roster summary (`web/src/battle/armySummary.ts`, a men-weighted pure fn over
+unit_info, unit-tested in `armySummary.test.mjs`, wired into `test:ui`) —
+units-alive/total, "holding the line"/"N routing", and STR/MOR/COH bars.
+`HudData` is now `{ unit?, roster? }`; `HudPanel` renders `UnitReadout` or
+`RosterReadout`. FPS relocated to a bare, transparent, `pointer-events:none`
+`#fps-readout` top-left (React `FpsReadout` in `BattleHud`, fed by
+`handle.setFps`; "fps —" when frozen for deterministic snapshots) — intentionally
+non-diegetic, not HUD chrome. `battle-smoke.mjs` no longer keys on the removed
+header text: it waits on `window.__ready` (load) and `#fps-readout` "—" (frozen).
+Re-blessed battle-selection/-initial/-banner/-manual/-minimap after inspecting the
+roster idle state and the header-less selected-unit panel.
 
 **What slice 03 landed:** `#hud` moved from top-left to **bottom-left** (`index.html`
 `top:12px`→`bottom:12px`); top-left is now empty battlefield. To keep the card bar
@@ -137,7 +151,7 @@ carries the four id rules plus the new `#battle-hud` mount container.
       wholesale CSS move dropped as unsafe/low-value (see handoff notes).
 - [x] 03 — Left info card → bottom-left corner; asymmetric card-bar budget
       (pulled from slice 07 — required to not break selection) — shipped
-- [ ] 04 — Army-roster idle state; drop debug header; FPS → bare top-left
+- [x] 04 — Army-roster idle state; drop debug header; FPS → bare top-left — shipped
 - [ ] 05 — Merge toolbar into the center card housing
 - [ ] 06 — Minimap → bottom-right corner housing
 - [ ] 07 — Asymmetric reserve + flush-corner placement (load-bearing math)

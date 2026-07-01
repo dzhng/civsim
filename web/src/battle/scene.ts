@@ -29,6 +29,7 @@ import {
   type UnitClassKey,
 } from "./classData";
 import { UnitBanner, type BannerChip } from "./unitBanner";
+import { armySummary } from "./armySummary";
 import { createElement } from "react";
 import { createRoot } from "react-dom/client";
 import { flushSync } from "react-dom";
@@ -1433,20 +1434,15 @@ export class BattleScene implements Scene {
     };
 
     function updateHud() {
-      const header = [
-        `soldiers ${game.soldier_count().toLocaleString()}   units ${game.unit_count()}`,
-        frozen
-          ? "fps —   tick — ms   PAUSED"
-          : `fps ${fpsAvg.toFixed(0)}   tick ${tickMsAvg.toFixed(2)} ms` +
-            (paused ? "   PAUSED" : timeScale !== 1 ? `   x${timeScale}` : ""),
-      ];
+      // Bare dev telemetry, not part of the diegetic card: "—" when frozen so
+      // snapshots are deterministic (the sim clock is stopped).
+      battleHud.setFps(frozen ? "fps —" : `fps ${fpsAvg.toFixed(0)}`);
       let unit: HudUnit | undefined;
       let cardUnit = -1;
-      if (input.selected.length > 1) {
-        header.push(`${input.selected.length} units selected`);
-      } else if (input.selected.length === 1) {
+      // One unit selected (or hovered) → its detail; otherwise the army summary.
+      if (input.selected.length === 1) {
         cardUnit = input.selected[0];
-      } else if (input.mouseCss[0] >= 0) {
+      } else if (input.selected.length === 0 && input.mouseCss[0] >= 0) {
         const dpr = window.devicePixelRatio || 1;
         const [wx, wy] = camera.screenToWorld(input.mouseCss[0] * dpr, input.mouseCss[1] * dpr);
         cardUnit = game.pick_unit(wx, wy, 25); // hover: either side
@@ -1511,7 +1507,9 @@ export class BattleScene implements Scene {
           detail,
         };
       }
-      const data: HudData = { header, unit };
+      // No single unit in focus → army-wide summary so the card is never empty.
+      const roster = unit ? undefined : armySummary(unitInfo(), game.unit_count(), STRIDE);
+      const data: HudData = { unit, roster };
       battleHud.setInfo(data);
     }
 

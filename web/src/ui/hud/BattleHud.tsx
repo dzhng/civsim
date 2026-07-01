@@ -32,6 +32,8 @@ import {
 export interface BattleHudHandle {
   /** Left info card content (≤5Hz, flushSync). */
   setInfo(data: HudData): void;
+  /** Bare top-left FPS telemetry text, e.g. "fps 60" (or "fps —" when frozen). */
+  setFps(text: string): void;
   /** Toolbar button state (≤5Hz, flushSync); onCmd is wired at mount. */
   setToolbar(state: Record<string, ToolButtonState>): void;
   /** Rebuild the card structure on a roster change (flushSync). */
@@ -52,6 +54,35 @@ const LeftInfoCard = forwardRef<InfoHandle>(function LeftInfoCard(_props, ref) {
   return (
     <div id="hud" className="hud-chassis">
       {data ? <HudPanel data={data} /> : "loading wasm…"}
+    </div>
+  );
+});
+
+interface FpsHandle {
+  set(text: string): void;
+}
+// Bare, non-diegetic dev telemetry — NOT HUD chrome, so intentionally a faint
+// transparent-background readout with no housing (the aesthetics "no transparency"
+// rule governs game panels, not this). pointer-events:none so it never eats clicks.
+const FpsReadout = forwardRef<FpsHandle>(function FpsReadout(_props, ref) {
+  const [text, setText] = useState("");
+  useImperativeHandle(ref, () => ({ set: (t) => flushSync(() => setText(t)) }), []);
+  return (
+    <div
+      id="fps-readout"
+      style={{
+        position: "fixed",
+        top: 6,
+        left: 10,
+        font: "11px ui-monospace, Menlo, monospace",
+        color: "rgba(240, 235, 220, 0.45)",
+        textShadow: "0 1px 2px rgba(0, 0, 0, 0.5)",
+        pointerEvents: "none",
+        zIndex: 4,
+        letterSpacing: "0.3px",
+      }}
+    >
+      {text}
     </div>
   );
 });
@@ -113,6 +144,7 @@ type BattleHudInnerHandle = Omit<BattleHudHandle, "destroy">;
 
 const BattleHud = forwardRef<BattleHudInnerHandle, BattleHudProps>(function BattleHud(props, ref) {
   const infoRef = useRef<InfoHandle>(null);
+  const fpsRef = useRef<FpsHandle>(null);
   const toolbarRef = useRef<ToolbarHandle>(null);
   const cardsRef = useRef<CardsHostHandle>(null);
   const miniRef = useRef<HTMLCanvasElement>(null);
@@ -120,6 +152,7 @@ const BattleHud = forwardRef<BattleHudInnerHandle, BattleHudProps>(function Batt
     ref,
     () => ({
       setInfo: (d) => infoRef.current?.set(d),
+      setFps: (t) => fpsRef.current?.set(t),
       setToolbar: (s) => toolbarRef.current?.set(s),
       buildCards: (u) => cardsRef.current?.build(u),
       cards: { update: (s) => cardsRef.current?.update(s) },
@@ -132,6 +165,7 @@ const BattleHud = forwardRef<BattleHudInnerHandle, BattleHudProps>(function Batt
   return (
     <>
       <LeftInfoCard ref={infoRef} />
+      <FpsReadout ref={fpsRef} />
       <CardsHost ref={cardsRef} onSelect={props.onCardSelect} />
       <ToolbarHost ref={toolbarRef} onCmd={props.onToolbarCmd} />
       <canvas id="minimap" className="hud-chassis" width={240} height={160} ref={miniRef} />

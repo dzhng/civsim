@@ -1,7 +1,7 @@
 import type { RawFrameShell, WorldRenderPass } from './frameShell';
 import { WORLD_CAMERA_WGSL } from './cameraWgsl';
 import { compileShader } from './compileShader';
-import { gpuAlphaBlendColorTarget, gpuMultisample, gpuWorldDepthStencil } from './pipelineContracts';
+import { gpuAlphaBlendColorTarget, gpuMultisample, gpuReverseZDepthStencil, gpuWorldDepthStencil } from './pipelineContracts';
 import type { SoldierCrowdDepthScene } from './skinnedPipeline';
 import type { CrowdInstance } from '../../crowd-runtime/src/instanceData';
 
@@ -16,15 +16,15 @@ export interface SoldierShadowStats {
   cameraContract: 'shared-world-camera-wgsl';
 }
 
-const SHADOW_WGSL = `
+const SHADOW_WGSL = (real: boolean) => `
 ${WORLD_CAMERA_WGSL}
 struct VsOut { @builtin(position) pos: vec4f, @location(0) local: vec2f };
 @vertex
 fn vs(@location(0) quad: vec2f, @location(1) inst: vec4f) -> VsOut {
   // inst = (x, y, radius, elevation)
-  let world = vec3f(inst.x + quad.x * inst.z, inst.y + quad.y * inst.z * 0.72, inst.w + 0.015);
+  let world = vec3f(inst.x + quad.x * inst.z, ${real ? 'inst.y + quad.y * inst.z' : 'inst.y + quad.y * inst.z * 0.72'}, inst.w + 0.015);
   var out: VsOut;
-  out.pos = projectWorld3d(world, civsimBattleWorldDepth3d(world));
+  out.pos = ${real ? 'projectReal(world)' : 'projectWorld3d(world, civsimBattleWorldDepth3d(world))'};
   out.local = quad;
   return out;
 }
@@ -43,14 +43,15 @@ export class SoldierShadowDecalPass {
   private capacity = 0;
   private count = 0;
 
-  constructor(private shell: RawFrameShell, opts: { worldDepth?: SoldierCrowdDepthScene } = {}) {
+  constructor(private shell: RawFrameShell, opts: { worldDepth?: SoldierCrowdDepthScene; real?: boolean } = {}) {
     const device = shell.device;
+    const real = opts.real ?? false;
     // Campaign soldiers sort against campaign geometry, which weights ground vs
     // height differently than battle. Swap only the depth function; battle keeps
     // the unchanged WGSL.
     const wgsl = opts.worldDepth === 'campaign'
-      ? SHADOW_WGSL.replace('civsimBattleWorldDepth3d(world)', 'civsimCampaignWorldDepth3d(world)')
-      : SHADOW_WGSL;
+      ? SHADOW_WGSL(real).replace('civsimBattleWorldDepth3d(world)', 'civsimCampaignWorldDepth3d(world)')
+      : SHADOW_WGSL(real);
     const module = compileShader(device, wgsl, `soldier-shadow-${opts.worldDepth ?? 'battle'}`);
     this.pipeline = device.createRenderPipeline({
       label: 'soldier-shadow-pipeline',
@@ -65,7 +66,7 @@ export class SoldierShadowDecalPass {
       },
       fragment: { module, entryPoint: 'fs', targets: [gpuAlphaBlendColorTarget(shell.info.format)] },
       primitive: { topology: 'triangle-strip' },
-      depthStencil: gpuWorldDepthStencil('read'),
+      depthStencil: real ? gpuReverseZDepthStencil('read') : gpuWorldDepthStencil('read'),
       multisample: gpuMultisample(shell.sampleCount),
     });
     this.quadBuffer = device.createBuffer({ label: 'soldier-shadow-quad', size: 8 * 4, usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST });

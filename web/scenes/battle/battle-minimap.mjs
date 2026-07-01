@@ -45,7 +45,6 @@ export async function run(ctx) {
   // is the behaviour a player actually exercises.
   await page.evaluate(() => {
     window.__cam.zoom = 10.0;
-    window.__cam.pitch = 0;
     window.__cam.yaw = 0;
     window.__cam.clampView?.();
   });
@@ -118,7 +117,12 @@ async function clickMinimapFeature(page, feature) {
   }, feature);
   await page.mouse.click(point.x, point.y);
   await page.waitForTimeout(120);
-  return page.evaluate(() => ({ x: window.__cam.x, y: window.__cam.y, zoom: window.__cam.zoom }));
+  // The camera moved to the feature when the screen-centre ground point (viewCenter)
+  // lands on it — cam.x/y is offset from that by the perspective look-ahead.
+  return page.evaluate(() => {
+    const [x, y] = window.__cam.viewCenter();
+    return { x, y, zoom: window.__cam.zoom };
+  });
 }
 
 function near(a, b, tolerance) {

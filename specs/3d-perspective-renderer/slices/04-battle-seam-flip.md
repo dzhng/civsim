@@ -1,5 +1,24 @@
 # Slice 04 — Flip the shared seam → BATTLE engine-wide + 3D ray-cast picking
 
+## Status (2026-07-02): resliced — `04a` landed, `04b`–`04e` deferred
+
+`04a` (projection + depth flip of every battle world-depth pass + CPU camera3d
+wiring + 3D ray-cast picking) is **committed**. The decal-re-seat (`04b`),
+particle/marker billboards (`04c`/`04d`), and LOD screen-size (`04e`) sub-slices
+below are deferred as clean follow-ups — the projection is done; those are polish.
+
+**One architectural divergence from the "API seam" section below (deliberate, and
+it is the shipped design):** step 1 said to rewrite the *bodies* of
+`projectGround`/`projectWorld3d` and make the painter-depth helpers return 0. That
+would flip campaign too (they share the WGSL), which must not happen until `05`.
+Instead — exactly like slice 02's water pass — **each battle-owned pass compiles a
+`real` WGSL variant that calls `projectReal(...)` and swaps to
+`gpuReverseZDepthStencil`, and battle's shell opts into `reverseZ`.** The shared
+`projectGround`/`projectWorld3d`/`civsim*WorldDepth3d` bodies are UNTOUCHED, so
+campaign stays byte-identical on its own legacy shell. The one real projector
+collapses the legacy fns + the per-pass `real` flag at the end of `05`, when nothing
+consumes the legacy path. See the README "Slice 04a is DONE" block for specifics.
+
 ## Contract unlocked
 
 The **entire battle renderer** is on the real perspective camera + real depth;

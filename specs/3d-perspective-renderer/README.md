@@ -130,12 +130,73 @@ and deletes `cameraForZoom`. Two rigs coexist only across that short migration s
   camera3d-probe` route; screenshot-critique verdict: reads as a smooth dolly from
   tactical top-down to cinematic horizon vista.
 
-**Exact next pickup point:** **slice `04` (flip the shared seam → battle
-engine-wide + 3D ray-cast picking).** `01`+`02`+`03` are green. `04` swaps
-`scene.ts` onto `battleCameraRig` (filling `yaw=0`, live `aspect`, adding the ground
-view-centre to `rig.target`), deletes the legacy `cameraForZoom`/`CameraRig`/
-`BATTLE_CAMERA_RIG_LIMITS`, and collapses the two-rig seam. The `06` bake-off can
-still run in parallel.
+**Slice `04a` is DONE (committed, 2026-07-02).** The battle engine is flipped onto
+the real 3D perspective camera + reverse-Z depth, and picking is a 3D ray-cast — the
+fan-out landed atomically. **Resliced:** `04` was cut to `04a` (projection/depth flip
++ CPU camera3d wiring + 3D picking, this commit) with the decal/billboard/LOD polish
+deferred to follow-up slices (`04b`–`04e`, below).
+- **Per-pass `real` flag (NOT rewriting the shared `projectGround`/`projectWorld3d`
+  bodies).** Exactly like slice 02's water pass: each battle-owned pass compiles a
+  `real` WGSL variant that calls `projectReal(...)` and swaps its depthStencil to
+  `gpuReverseZDepthStencil`. Battle sets `real: true`; **campaign builds its own shell
+  + its own pass instances and never sets it, so campaign stays byte-identical on the
+  legacy `depth24plus` painter path.** Flags added to `skinnedPipeline`,
+  `soldierShadowPass`, `groundPass`, `grassPass`, `horizonPass` (incl. its
+  `WaterPlanePass` ocean planes), `groundCuePass`, `effectLinePass`,
+  `campaign/sceneryPass` (battle mode), the inline `BattleTrianglePass`, and the
+  `frameShell` builtin terrain/backdrop/marker shaders (gated on the shell's
+  `reverseZ`). Battle shell opts into `reverseZ: true`. `soldierShadowPass` drops the
+  `0.72` y-squash when real.
+- **CPU: `camera3d` is the ONE owner.** `web/src/shared/camera.ts` `Camera` was
+  rewritten to delegate every screen↔world mapping to `camera3d`
+  (`projectPoint`/`unprojectToPlaneZ` against ground z=0); `worldToScreen`/
+  `screenToWorld`/`clampView`/`zoomAt`/`panPixels`/`panWorld` all go through a
+  `params(): Camera3DParams` built from `battleCameraRig`. `scene.ts` feeds the rig
+  (`camera.setRig(range,bounds)`); `renderer.ts` builds `CameraSnapshot.camera3d` and
+  opts the shell into reverse-Z. **`cameraForZoom` + `CameraRig` + `BATTLE_CAMERA_RIG_LIMITS`
+  DELETED** (only consumers were `scene.ts` + `cameraRig.test.ts`); the two-rig seam
+  is collapsed. Picking firewall held: `input.ts` call sites + `pickUnit(wx,wy)` +
+  `terrainHeightAt` untouched.
+- **Verified:** typecheck + 34 unit tests green (incl. new `web/tests/battlePicking.test.ts`
+  — worldToScreen∘screenToWorld round-trips <0.3 px across zoom stops; a centroid click
+  selects its unit). Seating tripwire `battle-terrain-elevation` `match=true` on all 3
+  fixtures (heightfield firewall intact). Full `battle` scene suite green under
+  SwiftShader, no page/validation errors. Depth-sort/upright confirmed
+  (screenshot-critique of the camera-zoom contact sheet: smooth top-down→mid→vista, a
+  proper low-oblique cinematic vista with upright, correctly depth-sorted soldiers;
+  selection-ring ground decal seats on terrain; HUD/banners/minimap intact). Campaign
+  frozen scenes byte-identical (map-alignment + campaign-visual diffs 0.003–0.08%,
+  within SwiftShader noise). All moved `web/shots/battle/**` (24 baselines) re-blessed
+  deliberately after eyeballing representatives. Re-derived the `battle-camera-zoom`
+  behavioral asserts and the `hasBattleWorldDepthContract` depth-format expectation to
+  the camera3d/reverse-Z convention.
+
+**Deferred to follow-up slices (clean handoff — the projection is done, these are
+polish on top):**
+- **`04b` decals:** add `depthBias`/`depthBiasSlopeScale` to the shadow/ground-cue/
+  selection pipelines so decals never z-fight on tilted terrain (they read fine today
+  via the +0.015/+0.02 z-lift + reverse-Z read; bias is the belt-and-braces).
+- **`04c`/`04d` billboards:** particles/effect-lines/markers → camera-facing billboards
+  from `cam.eye` + view right/up (today they project as flat ground quads — correct
+  placement, not yet camera-facing). The `frameShell` far-LOD marker likewise.
+- **`04e` LOD screen-size:** `packages/crowd-runtime/src/lod.ts assignCrowdLodsByDistance`
+  still uses `zoom×distance`; swap to real projected screen-height (∝ clipW) with a
+  min-size floor, and re-derive the `lod-tiers` monotonicity assert. (Battle currently
+  renders full-detail correctly under the real camera; this is a perf/readability tune.)
+- **lab `routeBattleLive` + `pickingDebug.ts`:** the lab pick harness (and its
+  `cssToBattleWorld`/`RendererBattlePickCamera`) is still on the legacy 2.5D camera and
+  was left UNTOUCHED — flipping it means flipping that whole lab route's shell/terrain.
+  The production gameplay picking (the `Camera` class, used by `input.ts`) IS the
+  ray-cast and is verified; the lab harness's camera3d migration is a `04`-followup.
+- **30k-soldier + foliage perf gate:** author it next (README TODO), hardware-only.
+
+**Exact next pickup point:** **slice `05` (flip campaign to the real camera + campaign
+picking), then delete the legacy projection/depth scaffolding** — OR land the `04b`–`04e`
+battle polish + perf gate first. `05` mirrors this slice on `web/src/campaign/renderer.ts`
+(pass `real: true`, `reverseZ` shell, `campaignCameraRig`) and rewrites campaign picking;
+the legacy `projectGround`/`projectWorld3d`/`civsim*WorldDepth3d` + the per-pass `real`
+flag can then collapse into the one real projector once nothing consumes the legacy path.
+The `06` bake-off can still run in parallel.
 
 **Active blockers / coordination warnings:**
 - **Overlap with `specs/battle-map-reference/`** (active, in-flight). That spec is
@@ -160,7 +221,7 @@ still run in parallel.
 - [x] `01` — `camera3d` pure math library (renderer-core) + `/renderer/camera3d-probe` **(done)**
 - [x] `02` — real depth + real projection proven on the **water route** (keystone) **(done — dome gone, reverse-Z on SwiftShader confirmed)**
 - [x] `03` — zoom→camera rig (pure curve), battle + campaign **(done — additive `battleCameraRig`/`campaignCameraRig`; legacy `cameraForZoom` untouched until `04`)**
-- [ ] `04` — flip the shared seam → **battle** engine-wide + 3D ray-cast picking
+- [x] `04a` — flip the shared seam → **battle** engine-wide + 3D ray-cast picking **(done — per-pass `real` flag + reverse-Z shell, `Camera` delegates to camera3d, `cameraForZoom` deleted; decals/billboards/LOD resliced to `04b`–`04e`)**
 - [ ] `05` — flip **campaign** to the real camera + campaign picking, then **delete
       the legacy projection/depth scaffolding** (no dual path survives the spine)
 - [ ] `04`→ add the **30k-soldier + foliage perf gate** and keep it green thereafter

@@ -142,7 +142,6 @@ async function frameUnit(page, unit) {
       const info = window.__game.unitInfo(unit);
       const cam = window.__cam;
       cam.zoom = 3;
-      cam.pitch = 0;
       cam.yaw = 0;
       cam.x = info[unitInfo.x] - 90;
       cam.y = info[unitInfo.y];

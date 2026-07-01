@@ -6,7 +6,7 @@ import { compileShader } from './compileShader';
 import { createVatLayout, resolveVatClip, type VatLayout } from './vatLayout';
 import type { RawFrameShell, WorldRenderPass } from './frameShell';
 import { WORLD_CAMERA_WGSL } from './cameraWgsl';
-import { gpuMultisample, gpuOpaqueColorTarget, gpuWorldDepthStencil } from './pipelineContracts';
+import { gpuMultisample, gpuOpaqueColorTarget, gpuReverseZDepthStencil, gpuWorldDepthStencil } from './pipelineContracts';
 
 export interface SkinnedCrowdStats {
   instances: number;
@@ -100,7 +100,7 @@ function roundLighting(value: number): number {
   return Number(value.toFixed(4));
 }
 
-const SKINNED_WGSL = (lighting: SkinnedLightingEnvironment) => `
+const SKINNED_WGSL = (lighting: SkinnedLightingEnvironment, real: boolean) => `
 ${WORLD_CAMERA_WGSL}
 ${skinnedLightingWgsl(lighting)}
 struct Vat { width:f32, height:f32, bones:f32, pad:f32, data: array<f32> };
@@ -171,7 +171,7 @@ fn vs(
   let world = vec3f(inst0.x + p.x * c - p.y * s, inst0.y + p.x * s + p.y * c, p.z + inst2.x);
 
   var out: VsOut;
-  out.pos = projectWorld3d(world, civsimBattleWorldDepth3d(world));
+  out.pos = ${real ? 'projectReal(world)' : 'projectWorld3d(world, civsimBattleWorldDepth3d(world))'};
   out.color = color;
   let sun = sunDirection();
   out.light = clamp(dot(n, sun) * 0.42 + 0.74, 0.34, 1.12);
@@ -239,10 +239,12 @@ export class SkinnedCrowdPipeline {
   private materialUniform: GPUBuffer;
   private readonly worldDepth: SoldierCrowdDepthScene;
   private readonly lighting: SkinnedLightingEnvironment;
+  private readonly real: boolean;
 
-  constructor(private shell: RawFrameShell, meshes: SkinnedMeshInput, vats: SkinnedVatInput, kit?: SoldierKitManifest, opts: { worldDepth?: SoldierCrowdDepthScene; lighting?: SkinnedLightingEnvironment } = {}) {
+  constructor(private shell: RawFrameShell, meshes: SkinnedMeshInput, vats: SkinnedVatInput, kit?: SoldierKitManifest, opts: { worldDepth?: SoldierCrowdDepthScene; lighting?: SkinnedLightingEnvironment; real?: boolean } = {}) {
     this.worldDepth = opts.worldDepth ?? 'battle';
     this.lighting = opts.lighting ?? DEFAULT_SKINNED_LIGHTING;
+    this.real = opts.real ?? false;
     const device = shell.device;
     // Normalize to per-class tiers: classId → lod → mesh. A flat list is L0-only.
     const meshTiers: SoldierMeshData[][] = Array.isArray(meshes)
@@ -470,7 +472,7 @@ export class SkinnedCrowdPipeline {
     // Campaign soldiers sort against campaign scenery/cities, which use a
     // different ground/height depth weighting than battle. Swap only the depth
     // function; battle keeps the unchanged WGSL (byte-identical).
-    const baseWgsl = SKINNED_WGSL(this.lighting);
+    const baseWgsl = SKINNED_WGSL(this.lighting, this.real);
     const wgsl = this.worldDepth === 'campaign'
       ? baseWgsl.replace('civsimBattleWorldDepth3d(world)', 'civsimCampaignWorldDepth3d(world)')
       : baseWgsl;
@@ -504,7 +506,7 @@ export class SkinnedCrowdPipeline {
       },
       fragment: { module, entryPoint: 'fs', targets: [gpuOpaqueColorTarget(this.shell.info.format)] },
       primitive: { topology: 'triangle-list', cullMode: 'none' },
-      depthStencil: gpuWorldDepthStencil('read-write'),
+      depthStencil: this.real ? gpuReverseZDepthStencil('read-write') : gpuWorldDepthStencil('read-write'),
       multisample: gpuMultisample(this.shell.sampleCount),
     });
   }

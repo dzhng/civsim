@@ -20,7 +20,6 @@ export async function run(ctx) {
       const a = window.__game.unitInfo(4);
       const c = window.__cam;
       c.zoom = 3;
-      c.pitch = 0;
       c.x = a[0] - 90;
       c.y = a[1];
       c.clampView?.();

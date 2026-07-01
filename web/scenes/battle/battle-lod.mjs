@@ -17,10 +17,9 @@ export async function run(ctx) {
     const box = await page.evaluate((zoom) => {
       const a = window.__game.unitInfo(0);
       const c = window.__cam;
-      c.x = a[0];
-      c.y = a[1];
       c.zoom = zoom;
-      c.pitch = 0;
+      // Centre the unit in frame (viewCenter accounts for the perspective look-ahead).
+      c.setViewCenter?.(a[0], a[1]);
       c.clampView?.();
       window.__game.freeze();
       const cnt = a[7];

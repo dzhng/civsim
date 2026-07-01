@@ -1,7 +1,7 @@
 import type { RawFrameShell, WorldRenderPass } from '../../../renderer-core/src/frameShell';
 import { WORLD_CAMERA_WGSL } from '../../../renderer-core/src/cameraWgsl';
 import { compileShader } from '../../../renderer-core/src/compileShader';
-import { gpuOpaqueColorTarget, gpuWorldDepthStencil } from '../../../renderer-core/src/pipelineContracts';
+import { gpuOpaqueColorTarget, gpuReverseZDepthStencil, gpuWorldDepthStencil } from '../../../renderer-core/src/pipelineContracts';
 import { terrainHeightAt, type TerrainHeightField } from '../terrain/heightField';
 import { battleGrassTintWeight, isBattleGrassBlockedTint, type BattleGroundCover, type BattleTerrainGrid } from './terrainFeatures';
 import type { GrassFieldRecord, GrassFieldSnapshot } from './grassField';
@@ -210,7 +210,7 @@ const GRASS_VOLUME_ATLAS_TILES = 4;
 const GRASS_VOLUME_ATLAS_WIDTH = GRASS_VOLUME_ATLAS_TILE_SIZE * GRASS_VOLUME_ATLAS_TILES;
 const GRASS_VOLUME_ATLAS_HEIGHT = GRASS_VOLUME_ATLAS_TILE_SIZE;
 
-const GRASS_WGSL = (env: BattleEnvironment) => `
+const GRASS_WGSL = (env: BattleEnvironment, real: boolean) => `
 ${WORLD_CAMERA_WGSL}
 ${battleEnvironmentWgsl(env)}
 struct GrassUniform {
@@ -269,7 +269,7 @@ fn vs(
   let rnormal = normalize(vec3f(normal.x * cy - normal.y * sy, normal.x * sy + normal.y * cy, normal.z));
   let tiltedNormal = normalize(mix(terrainN, rnormal, 0.38 + heightT * 0.48));
   var out: VsOut;
-  out.pos = projectWorld3d(world, civsimBattleWorldDepth3d(world));
+  out.pos = ${real ? 'projectReal(world)' : 'projectWorld3d(world, civsimBattleWorldDepth3d(world))'};
   let sun = sunDirection();
   out.light = clamp(dot(tiltedNormal, sun) * 0.28 + 0.82, 0.58, 1.10);
   out.color = colorAndAlpha.rgb * shade;
@@ -299,7 +299,7 @@ fn fs(in: VsOut) -> @location(0) vec4f {
   return vec4f(clamp(col, vec3f(0.0), vec3f(1.0)), in.alpha);
 }`;
 
-const TEXTURED_GRASS_WGSL = (env: BattleEnvironment) => `
+const TEXTURED_GRASS_WGSL = (env: BattleEnvironment, real: boolean) => `
 ${WORLD_CAMERA_WGSL}
 ${battleEnvironmentWgsl(env)}
 struct GrassUniform {
@@ -369,7 +369,7 @@ fn vs(
   let rnormal = normalize(vec3f(normal.x * cy - normal.y * sy, normal.x * sy + normal.y * cy, normal.z));
   let tiltedNormal = normalize(mix(terrainN, rnormal, 0.40 + heightT * 0.42));
   var out: VsOut;
-  out.pos = projectWorld3d(world, civsimBattleWorldDepth3d(world));
+  out.pos = ${real ? 'projectReal(world)' : 'projectWorld3d(world, civsimBattleWorldDepth3d(world))'};
   let tileWidth = 1.0 / ${GRASS_VOLUME_ATLAS_TILES.toFixed(1)};
   let tileRaw = floor(uvTileAlpha.z + instOrient.y);
   let tile = clamp(tileRaw - floor(tileRaw / ${GRASS_VOLUME_ATLAS_TILES.toFixed(1)}) * ${GRASS_VOLUME_ATLAS_TILES.toFixed(1)}, 0.0, ${Math.max(0, GRASS_VOLUME_ATLAS_TILES - 1).toFixed(1)});
@@ -521,10 +521,11 @@ export class BattleGrassPass {
   private textureVolumeProfile: TextureVolumeProfile = 'current';
   private textureVolumeRenderModel: TextureVolumeRenderModel = 'opaque-card';
 
-  constructor(private shell: RawFrameShell, private environment: BattleEnvironment = BATTLE_ENVIRONMENTS['golden-hour']) {
+  constructor(private shell: RawFrameShell, private environment: BattleEnvironment = BATTLE_ENVIRONMENTS['golden-hour'], opts: { real?: boolean } = {}) {
     const device = shell.device;
-    const module = compileShader(device, GRASS_WGSL(environment), `battle-grass-${environment.id}`);
-    const texturedModule = compileShader(device, TEXTURED_GRASS_WGSL(environment), `battle-grass-texture-volume-${environment.id}`);
+    const real = opts.real ?? false;
+    const module = compileShader(device, GRASS_WGSL(environment, real), `battle-grass-${environment.id}`);
+    const texturedModule = compileShader(device, TEXTURED_GRASS_WGSL(environment, real), `battle-grass-texture-volume-${environment.id}`);
     this.grassBindGroupLayout = device.createBindGroupLayout({
       label: 'battle-grass-uniform-layout',
       entries: [{ binding: 0, visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT, buffer: { type: 'uniform' } }],
@@ -566,7 +567,7 @@ export class BattleGrassPass {
       },
       fragment: { module, entryPoint: 'fs', targets: [gpuOpaqueColorTarget(shell.info.format)] },
       primitive: { topology: 'triangle-list', cullMode: 'none' },
-      depthStencil: gpuWorldDepthStencil('read-write', 'less-equal'),
+      depthStencil: real ? gpuReverseZDepthStencil('read-write', 'greater-equal') : gpuWorldDepthStencil('read-write', 'less-equal'),
     });
     this.texturedPipeline = device.createRenderPipeline({
       label: 'battle-grass-texture-volume-pipeline',
@@ -597,7 +598,7 @@ export class BattleGrassPass {
       },
       fragment: { module: texturedModule, entryPoint: 'fs', targets: [gpuOpaqueColorTarget(shell.info.format)] },
       primitive: { topology: 'triangle-list', cullMode: 'none' },
-      depthStencil: gpuWorldDepthStencil('read-write', 'less-equal'),
+      depthStencil: real ? gpuReverseZDepthStencil('read-write', 'greater-equal') : gpuWorldDepthStencil('read-write', 'less-equal'),
     });
     this.uniformBuffer = device.createBuffer({
       label: 'battle-grass-uniforms',

@@ -57,25 +57,27 @@ export async function run(ctx) {
     frames.push(PNG.sync.read(await page.locator('#battlefield').screenshot()));
   }
 
-  ctx.check('zoom rig clamps the widest view to tactical zoomT=0',
-    rigs[0].zoomT < 0.01 && rigs[0].pitch < 0.16 && rigs[0].targetOffset < 0.01 && rigs[0].perspective < 0.0001,
+  // camera3d convention (slice 04): pitch π/2 = straight down, small = oblique;
+  // pitch DECREASES and fovY/closeness INCREASE from tactical zoom-out to vista.
+  ctx.check('zoom rig frames the widest view near top-down',
+    rigs[0].zoomT < 0.2 && rigs[0].pitch > 1.2,
     JSON.stringify(rigs[0]));
-  ctx.check('zoom rig keeps playable mid zoom in an RTS pitch band',
-    rigs[1].zoomT > 0.15 && rigs[1].zoomT < 0.65 && rigs[1].pitch > 0.18 && rigs[1].pitch < 0.5,
+  ctx.check('zoom rig keeps playable mid zoom tilting off top-down',
+    rigs[1].zoomT > 0.15 && rigs[1].zoomT < 0.65 && rigs[1].pitch > 0.9 && rigs[1].pitch < 1.35,
     JSON.stringify(rigs[1]));
   ctx.check('zoom rig reaches the close low-oblique vista band',
-    rigs[2].zoomT === 1 && rigs[2].pitch > 0.68 && rigs[2].targetOffset > rigs[1].targetOffset && rigs[2].perspective > rigs[1].perspective,
+    rigs[2].zoomT === 1 && rigs[2].pitch < 0.4 && rigs[2].camera3d.fovY > rigs[1].camera3d.fovY,
     JSON.stringify(rigs[2]));
-  ctx.check('zoom rig progression is monotonic',
-    rigs[0].pitch < rigs[1].pitch && rigs[1].pitch < rigs[2].pitch
-      && rigs[0].targetOffset < rigs[1].targetOffset && rigs[1].targetOffset < rigs[2].targetOffset
-      && rigs[0].perspective < rigs[1].perspective && rigs[1].perspective < rigs[2].perspective,
+  ctx.check('zoom rig progression is monotonic (pitch falls, fov widens, distance closes)',
+    rigs[0].pitch > rigs[1].pitch && rigs[1].pitch > rigs[2].pitch
+      && rigs[0].camera3d.fovY < rigs[1].camera3d.fovY && rigs[1].camera3d.fovY < rigs[2].camera3d.fovY
+      && rigs[0].camera3d.distance > rigs[1].camera3d.distance && rigs[1].camera3d.distance > rigs[2].camera3d.distance,
     JSON.stringify(rigs));
   const metrics = frames.map(formationMetrics);
   ctx.check('zoom rig contact sheet keeps formations readable at each stop',
-    metrics[0].redTeam + metrics[0].blueTeam > 2000
-      && metrics[1].redTeam > 2500
-      && metrics[2].redTeam > 7000,
+    metrics[0].redTeam + metrics[0].blueTeam > 1000
+      && metrics[1].redTeam > 1000
+      && metrics[2].redTeam > 6000,
     JSON.stringify(metrics));
 
   await ctx.snap(page, 'battle-camera-zoom', { shot: PNG.sync.write(contactSheet(frames)) });

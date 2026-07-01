@@ -2442,8 +2442,8 @@ async function routeBattleTerrain3d(ctx: LabContext) {
     (big, f) => (f.radius > (big?.radius ?? 0) ? f : big),
     undefined,
   );
-  // Camera: 'field' frames a mid-field wood; 'west'/'east' look outward toward
-  // that sealed edge so its blocker fills the distance.
+  // Camera: 'field' frames a mid-field wood (pass cx/cy to aim it, e.g. at a
+  // coastal shore); 'west'/'east' look outward toward that sealed edge.
   const view = ctx.params.get('view') ?? 'field';
   const halfW = (w * cell) / 2;
   const midY = oy + (h * cell) / 2;

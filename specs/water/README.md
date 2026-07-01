@@ -12,17 +12,46 @@ Reference image (the compare-screenshots target):
 
 ## Next Agent Prompt
 
-> **Status:** Slices 1–7 landed on **main** (open-sea look complete in the lab). **Slice 8 landed**
-> (2026-07-01, this worktree) — the **coastal FIELD water is now the shared `waterShade` material**.
-> Winner is **Gerstner** (see [`slices/01-bakeoff-decision.md`](slices/01-bakeoff-decision.md)).
+> **Status:** Slices 1–7 on **main** (open-sea look complete in the lab). **Slices 8 + 9 landed**
+> (2026-07-01, this worktree) — all three *battle* water surfaces are now **one material** and the
+> field↔sea shoreline seam is closed by construction. Winner is **Gerstner**.
 >
-> **You are picking up at Slice 9 — battle OPEN-SEA horizon plane onto the S8 material.** S8 built
-> the shared field-water material + `waterShoreRamp`; S9 must drop the open-sea horizon plane onto
-> **the exact same material** so the field↔sea shoreline seam cannot exist by construction. Read
-> [`slices/09-battle-open-sea-horizon.md`](slices/09-battle-open-sea-horizon.md) and
-> [`slices/08-integration-notes.md`](slices/08-integration-notes.md) (the ocean-edge surface map).
-> Invoke the `aesthetics` and `renderer` skills. The whole look is **frozen** — S9 reconciles
-> seam/depth/MSAA, not the look.
+> **You are picking up at Slice 10 — campaign strategic sea** (subtle, zoom/pitch-gated `waterShade`
+> in `mapPass`; delete the dormant `CampaignWaterPass`). Read
+> [`slices/10-campaign-sea.md`](slices/10-campaign-sea.md). Then **S11** deletes the IFFT loser and
+> closes the spec. Invoke `aesthetics` (campaign is the antique chart — the deep-ocean reference is
+> explicitly **not** the campaign target) and `renderer`.
+>
+> **S9 result + facts for S10/S11:**
+> - **The one water material is `civsimWaterColor(p, depth01, haze01, agitation, swash)` in
+>   `waterMaterialWgsl.ts`** — every surface (field water, open sea, lab plane) is this function, so
+>   two surfaces meeting cannot show a stripe if they pass matching args. `agitation` is the single
+>   calm↔open-sea dial: **0** = glassy shallow (flat swell, no whitecaps, cut glint — a river);
+>   **1** = the full reference sea (byte-identical to the frozen lab look). Field water calls it at
+>   agitation 0; the open sea ramps agitation up from 0 *at the shore*, so they match there.
+> - **The open sea is a per-edge `WaterPlanePass`** (`horizonPass.ts`, replacing the flat gradQuad +
+>   `WATER_DEEP/SHALLOW`), seated at `baseZ`, keyed on `abs(worldX − shoreX=edgeX)`. `WaterPlanePass`
+>   gained `{baseZ, shoreRamp, shoreX}` opts; **defaults reproduce the lab plane byte-identical** (all
+>   seven `water-*.mjs` scenes still 0.0000%). The battle ocean ramps **depth on a short distance**
+>   (`OCEAN_DEPTH_FAR`, so the shallow→deep grade shows near shore) and **agitation on a long one**
+>   (`OCEAN_AGITATE_FAR`, so the visible coastal sea stays calm — whitecaps only near the horizon).
+> - **Look adjustment (coupled, deliberate):** the initial integrated sea read too **dark navy** vs the
+>   coastal reference (`battle-advance-coast` — a pale calm sea). Fixed by making the water paler
+>   (`FIELD_WATER_RAMP.depthFar` 1.8→2.6; `OCEAN_SHORE_DEPTH` 0.30 = field deep end, `OCEAN_DEEP_DEPTH`
+>   0.80). This shifts S8's field water too — **intended**, both must match at the shore. The lab open
+>   sea (the deep-ocean look) is unchanged.
+> - **Gate:** new `web/scenes/battle/water-open-sea.mjs` snaps `gate=coastal-scrub&view=field&cx=-1150`
+>   (the default field view frames a mid-field rock — pass cx/cy to aim at the sea). Re-blessed
+>   `terrain-blockers/coastal-scrub-west` + `river-and-crags-east` + `water-coastal/river-shore`.
+> - **Unprimed `screenshot-critique` caveat:** when asked "is there a seam?", the critic repeatedly
+>   read the **frozen sun-glitter track + wave-field grain** as a "seam" — there is **no** material
+>   discontinuity (guaranteed: both sides are `civsimWaterColor`). Trust the material identity + the
+>   byte gates over a seam-primed critic. Its one *true* catch (depth grade looked flat/inverted) was
+>   real — caused by tying depth and agitation to the same ramp — and is fixed (decoupled ramps).
+> - **Known follow-ups (out of scope, for a future polish, not blockers):** (1) the far sea does not
+>   dissolve into a sky horizon at the ortho camera — `WATER_HAZE` (warm-grey) also doesn't match the
+>   battle clear (pale blue), so a true sea→sky horizon needs a battle-sky-matched haze; (2) scenery
+>   props (rocks) can float on the sea near the edge (prop placement, not water).
 >
 > **S8 result + load-bearing facts for S9 (do not relearn):**
 > - The shared field-water material is `packages/game-renderer/src/water/fieldWaterWgsl.ts` —
@@ -135,8 +164,8 @@ Reference image (the compare-screenshots target):
 > - [x] S7 — Animation rhythm (deterministic clock, believable cadence) → `slices/07-animation-rhythm.md`
 > - [x] S8 — Battle **coastal field water** onto `waterShade` (per-fragment on `groundPass`; the
 >   shared `waterShoreRamp` + `fieldWaterColor`; **the seam-foundation slice**) → `slices/08-battle-coastal-field-water.md`
-> - [ ] S9 — Battle **open-sea horizon** plane onto the S8 material (seam closes by construction) →
->   `slices/09-battle-open-sea-horizon.md`
+> - [x] S9 — Battle **open-sea horizon** plane onto the S8 material (seam closed by construction; the
+>   one `civsimWaterColor` material + agitation dial) → `slices/09-battle-open-sea-horizon.md`
 > - [ ] S10 — Campaign strategic sea (subtle, zoom/pitch-gated) + delete `CampaignWaterPass` →
 >   `slices/10-campaign-sea.md`
 > - [ ] S11 — Delete the IFFT loser + `close-spec` → `slices/11-cleanup-close.md`

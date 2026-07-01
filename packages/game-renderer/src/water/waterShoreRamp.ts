@@ -29,11 +29,19 @@ export interface WaterShoreRamp {
 export const LAB_OPEN_SEA_RAMP: WaterShoreRamp = { depthNear: 20, depthFar: 420, hazeNear: 55, hazeFar: 300 };
 
 // On-field battle water (rivers, shallows), keyed on the box-filtered water weight
-// (0..1). Shallow: the depth ramp climbs slowly and never reaches the open sea's
-// abyssal blue — at full weight `smoothstep(0.05, 1.8, 1)` is only ~0.36, so the
-// deepest river stays a mid Aegean blue while the shore reads turquoise. Haze is
-// pinned ~0 (on-field water is close to the camera and must not dissolve into the sky).
-export const FIELD_WATER_RAMP: WaterShoreRamp = { depthNear: 0.05, depthFar: 1.8, hazeNear: 1.5, hazeFar: 2.5 };
+// (0..1). Shallow and pale to match the coastal reference (sun-bleached tan sand →
+// pale turquoise shallows → light blue), never the deep-ocean navy: at full weight
+// `smoothstep(0.05, 2.6, 1)` is only ~0.30, so the deepest field water stays a light
+// Aegean blue while the shore reads bright turquoise. Haze is pinned ~0 (on-field
+// water is close to the camera and must not dissolve into the sky).
+export const FIELD_WATER_RAMP: WaterShoreRamp = { depthNear: 0.05, depthFar: 2.6, hazeNear: 1.5, hazeFar: 2.5 };
+
+// The battle open sea (horizonPass), keyed on distance-from-shore in metres
+// (`abs(worldX − shoreX)`). It meets the S8 field water at the shoreline: shallow
+// turquoise at the shore, deep blue offshore, then hazing into the sky. The haze
+// range is pushed far out because the battle camera stands ~360 m inland (the lab's
+// 55/300 would wash the whole sea to sky).
+export const BATTLE_OCEAN_RAMP: WaterShoreRamp = { depthNear: 12, depthFar: 300, hazeNear: 520, hazeFar: 1900 };
 
 /** Emit `fn waterShoreRamp(shoreDist: f32) -> vec2f` returning (depth01, haze01). */
 export function waterShoreRampWgsl(ramp: WaterShoreRamp = LAB_OPEN_SEA_RAMP): string {

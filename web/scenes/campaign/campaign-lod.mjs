@@ -3,7 +3,11 @@ import { PNG } from "pngjs";
 
 const CAMPAIGN_MAP_JSON = new URL("../../public/data/campaign-map.json", import.meta.url);
 const WHOLE_MAP_CAMERA = [-100, 250, 0.16];
-const REGIONAL_ITALY_CAMERA = [-430, 380, 4.0];
+// Re-derived for the real perspective camera (slice 05): the legacy 2.5D chart
+// foreshortened the vertical axis by cos(pitch) ≈ 0.68, so the same scale showed
+// ~47% more map north-south. This target/scale frames the same mainland-Italy
+// region (all 13 anchor cities on screen) under the camera3d projection.
+const REGIONAL_ITALY_CAMERA = [-430, 445, 3.0];
 const ROME_CLOSE_CAMERA = [-456, 446, 6.0];
 const MAINLAND_ITALY_CITY_NAMES = [
   "Roma",
@@ -34,10 +38,13 @@ const CENTRAL_ITALY_ROAD_PAIRS = [
   ["Minturnae", "Teanum"],
   ["Capua", "Minturnae"],
 ];
+// The same three world-space Apennine regions as before slice 05, reprojected
+// onto REGIONAL_ITALY_CAMERA through the real camera (screen-rect bounding box
+// of the old crops' world corners).
 const TERRAIN_FEATURE_CROPS = {
-  "northern-apennines": { x: 560, y: 80, w: 360, h: 340 },
-  "central-apennines": { x: 430, y: 120, w: 500, h: 390 },
-  "southern-apennines": { x: 735, y: 310, w: 380, h: 250 },
+  "northern-apennines": { x: 578, y: 251, w: 279, h: 366 },
+  "central-apennines": { x: 475, y: 292, w: 393, h: 429 },
+  "southern-apennines": { x: 712, y: 495, w: 304, h: 285 },
 };
 const ROAD_SAMPLE_OFFSETS = roadSampleOffsets();
 const CAMPAIGN_MAP = JSON.parse(readFileSync(CAMPAIGN_MAP_JSON, "utf8"));

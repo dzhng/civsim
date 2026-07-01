@@ -185,7 +185,7 @@ export function hasCampaignWorldDepthContract(stats) {
   return (
     stats?.cameraContract === "shared-world-camera-wgsl" &&
     stats?.depth?.allocated === true &&
-    stats?.depth?.format === GPU_DEPTH_FORMAT &&
+    stats?.depth?.format === GPU_DEPTH_FORMAT_REVERSE &&
     hasFramePhaseOrder(stats?.phases, { requireOverlay: true }) &&
     hasDepthPassPlacement(stats?.phases) &&
     hasSemanticPassRoles(stats?.phases) &&

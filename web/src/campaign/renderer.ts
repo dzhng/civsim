@@ -38,7 +38,13 @@ import {
   type RawFrameShell,
   type WorldRenderPass,
 } from "../../../packages/renderer-core/src/frameShell";
-import { screenToWorld, world3dToScreen } from "../../../packages/renderer-core/src/cameraUniform";
+import {
+  screenToWorld,
+  world3dToScreen,
+  type CameraSnapshot,
+} from "../../../packages/renderer-core/src/cameraUniform";
+import { campaignCameraRig, type CameraRigRange } from "../battle/cameraRig";
+import type { Camera3DParams } from "../../../packages/renderer-core/src/camera3d";
 import { SkinnedCrowdPipeline } from "../../../packages/renderer-core/src/skinnedPipeline";
 import { SoldierShadowDecalPass } from "../../../packages/renderer-core/src/soldierShadowPass";
 import { buildStackCrowd } from "../../../packages/crowd-runtime/src/stackCrowd";
@@ -167,12 +173,8 @@ export class CampaignRenderer {
     const stats = this.shell?.stats();
     return world3dToScreen(
       {
-        x: this.currentCamera.x,
-        y: this.currentCamera.y,
-        zoom: this.currentCamera.zoom,
-        pitch: this.currentCamera.pitch,
+        ...this.currentCamera,
         yaw: 0,
-        perspective: this.currentCamera.perspective,
         width: stats?.width ?? this.canvas.width,
         height: stats?.height ?? this.canvas.height,
       },
@@ -183,11 +185,12 @@ export class CampaignRenderer {
   }
 
   toWorld(sx: number, sy: number): [number, number] {
+    const stats = this.shell?.stats();
     return screenToWorld(
       {
         ...this.currentCamera,
-        width: this.canvas.width || 1,
-        height: this.canvas.height || 1,
+        width: stats?.width ?? (this.canvas.width || 1),
+        height: stats?.height ?? (this.canvas.height || 1),
       },
       sx,
       sy,
@@ -233,6 +236,10 @@ export class CampaignRenderer {
       pitch: this.pitchForScale(opts.cam.scale),
       yaw: 0,
       perspective: campaignPerspective(opts.cam.scale),
+      // The real 3D perspective camera drives every campaign world-depth pass
+      // (slice 05). The legacy scalars above still feed the map fragment's sea
+      // shimmer gate (cam.zoom / cam.cosP); projection is now camera3d's.
+      camera3d: this.cameraParamsFor(opts.cam),
     };
     this.shell.setCamera(this.currentCamera);
     const buildStart = performance.now();
@@ -264,7 +271,13 @@ export class CampaignRenderer {
     this.lastFog = { enabled: opts.fogOfWar, sources: opts.visionSources };
     this.fog.upload(opts.visionSources, opts.fogOfWar);
     const staticLabels = opts.fogOfWar ? [] : this.staticLabels;
-    const cityLabels = campaignCityLabels(this.data, this.field, opts);
+    const labelStats = this.shell.stats();
+    const labelCamera: CameraSnapshot = {
+      ...this.currentCamera,
+      width: labelStats.width,
+      height: labelStats.height,
+    };
+    const cityLabels = campaignCityLabels(this.data, this.field, opts, labelCamera);
     const armyLabels = campaignArmyLabels(this.data, opts);
     const factionLabels = campaignFactionLabels(this.data, opts);
     this.lastLabelComposition = {
@@ -477,10 +490,72 @@ export class CampaignRenderer {
     };
   }
 
-  private currentCamera = { x: 0, y: 0, zoom: 0.18, pitch: this.pitch, yaw: 0, perspective: 0 };
+  private currentCamera: {
+    x: number;
+    y: number;
+    zoom: number;
+    pitch: number;
+    yaw: number;
+    perspective: number;
+    camera3d?: Camera3DParams;
+  } = { x: 0, y: 0, zoom: 0.18, pitch: this.pitch, yaw: 0, perspective: 0 };
+
+  /** The playable field bounds (world km) that the zoom rig frames. */
+  private campaignRigBounds() {
+    const rect = this.data.bgRect;
+    return {
+      width: Math.max(1, rect.max[0] - rect.min[0]),
+      height: Math.max(1, rect.max[1] - rect.min[1]),
+    };
+  }
+
+  /** Zoom range fed to the rig curve (zoomT normalization). Mirrors clampCam's
+   *  aspect-fill floor (with the near-top-down cosP ≈ 1) and its 8× ceiling so
+   *  the framing curve spans the same scale band the camera actually reaches. */
+  private campaignZoomRange(): CameraRigRange {
+    const rect = this.data.bgRect;
+    const cssW = this.canvas.clientWidth || window.innerWidth || 1;
+    const cssH = this.canvas.clientHeight || window.innerHeight || 1;
+    const dpr = window.devicePixelRatio || 1;
+    const controlled = isControlledStage(this.data);
+    const fillZoom =
+      Math.max(cssW / (rect.max[0] - rect.min[0]), cssH / (rect.max[1] - rect.min[1])) * dpr;
+    const min = controlled ? fillZoom * 0.78 : fillZoom;
+    const max = controlled ? Math.max(8, min * 2.2) : 8;
+    return { min, max };
+  }
+
+  /** The real 3D perspective camera for the campaign this frame. yaw = −π/2 keeps
+   *  the map's world orientation (east = +X → screen right, north = +Y → screen
+   *  up) so the geography reads as it did under the 2.5D chart. The rig curve owns
+   *  pitch/fovY (near-top-down chart out, gentle tilt in); distance is derived
+   *  from cam.scale so the vertical ground span at the look target stays exactly
+   *  the chart scale (device px per world km) — labels, clampCam, and every scene
+   *  gate keyed on scale keep their meaning under the real camera. Screen-centre
+   *  ground hit = (cam.x, cam.y): the chart stays centred (no vista look-ahead). */
+  private cameraParamsFor(cam: CamView): Camera3DParams {
+    const rig = campaignCameraRig(cam.scale, this.campaignZoomRange(), this.campaignRigBounds());
+    const stats = this.shell?.stats();
+    const width = stats?.width ?? this.canvas.width ?? 1;
+    const height = Math.max(1, stats?.height ?? this.canvas.height ?? 1);
+    const viewHeight = height / Math.max(0.0001, cam.scale);
+    return {
+      target: [cam.x, cam.y, 0],
+      distance: viewHeight / (2 * Math.tan(rig.fovY / 2)),
+      pitch: rig.pitch,
+      yaw: -Math.PI / 2,
+      fovY: rig.fovY,
+      aspect: width / height,
+      near: 1.0,
+    };
+  }
 
   private async init(territory: Territory) {
-    this.shell = await createFrameShell(this.canvas);
+    // Campaign is on the real 3D perspective camera + reverse-Z depth (slice 05):
+    // the shell clears a depth32float reverse-Z buffer and every world-depth pass
+    // opts into `real` so it projects through camera3d's viewProj and depth-tests
+    // reverse-Z together (one shared depth buffer — they must flip atomically).
+    this.shell = await createFrameShell(this.canvas, { reverseZ: true });
     const controlledStage = isControlledStage(this.data);
     this.map = new CampaignMapPass(
       this.shell,
@@ -498,13 +573,15 @@ export class CampaignRenderer {
             },
           },
       this.surface.mesh,
+      { real: true },
     );
     this.clouds = new CampaignCloudPass(
       this.shell,
       this.data.bgRect,
       controlledStage ? 0.75 : 2.05,
+      { real: true },
     );
-    this.fog = new CampaignFogPass(this.shell, this.data.bgRect);
+    this.fog = new CampaignFogPass(this.shell, this.data.bgRect, { real: true });
     this.territoryPass = new CampaignTerritoryPass(
       this.shell,
       {
@@ -515,14 +592,15 @@ export class CampaignRenderer {
       },
       controlledStage ? undefined : { alpha: 0.55, warmMix: 0.015 },
       this.surface.mesh,
+      { real: true },
     );
-    this.lines = new CampaignWorldLinePass(this.shell, "triangle-list");
-    this.roads = new CampaignRoadPass(this.shell);
-    this.borders = new CampaignWorldLinePass(this.shell);
-    this.markers = new CampaignMarkerPass(this.shell);
-    this.scenery = new CampaignSceneryPass(this.shell);
+    this.lines = new CampaignWorldLinePass(this.shell, "triangle-list", { real: true });
+    this.roads = new CampaignRoadPass(this.shell, { real: true });
+    this.borders = new CampaignWorldLinePass(this.shell, "line-list", { real: true });
+    this.markers = new CampaignMarkerPass(this.shell, { real: true });
+    this.scenery = new CampaignSceneryPass(this.shell, "campaign", { real: true });
     this.sceneryCandidates = buildCampaignSceneryCandidates(this.data, this.field);
-    this.entities = new CampaignEntityPass(this.shell);
+    this.entities = new CampaignEntityPass(this.shell, { real: true });
     // The shared skinned soldier renderer, on campaign depth. Army stacks draw a
     // small representative crowd through the SAME pipeline/meshes/VATs/shadow as
     // battle (buildStackCrowd feeds it per stack); the entity pass now only draws
@@ -534,11 +612,14 @@ export class CampaignRenderer {
       createPlaceholderSoldierMeshes([0.3, 0.36, 0.74]),
       await loadPlaceholderVat(),
       soldierKit,
-      { worldDepth: "campaign" },
+      { worldDepth: "campaign", real: true },
     );
-    this.soldierShadows = new SoldierShadowDecalPass(this.shell, { worldDepth: "campaign" });
-    this.selection = new CampaignSelectionPass(this.shell);
-    this.labels = new CampaignLabelPass(this.shell);
+    this.soldierShadows = new SoldierShadowDecalPass(this.shell, {
+      worldDepth: "campaign",
+      real: true,
+    });
+    this.selection = new CampaignSelectionPass(this.shell, { real: true });
+    this.labels = new CampaignLabelPass(this.shell, { real: true });
     const drawData = buildCampaignMapDrawData(this.data, {
       roadScale: 1.0,
       roadSurfaceAt: (x, y) =>
@@ -787,6 +868,7 @@ function campaignCityLabels(
   data: CampaignData,
   field: TerrainField,
   opts: DrawOptions,
+  cam: CameraSnapshot,
 ): CampaignLabel[] {
   const edge = mapEdgeProjector(data);
   const occupiedCities = occupiedCityLabels(data, opts);
@@ -817,7 +899,7 @@ function campaignCityLabels(
       collisionGroup: cityCollisionGroup(index),
       screenOffsetX: cityLabelOffsetX(opts, node.tier) + horizontalEdgeOffset(edge.x(node.pos[0])),
       screenOffsetY:
-        cityLabelOffset(opts, baseSize, node.tier, cityReliefRisePx(field, opts, node.pos)) +
+        cityLabelOffset(opts, baseSize, node.tier, cityReliefRisePx(field, opts, node.pos, cam)) +
         verticalEdgeOffset(edge.y(node.pos[1])),
       screenAnchorX: overviewMarkerLabel ? "left" : "center",
       screenAnchorY: overviewMarkerLabel ? "top" : "center",
@@ -925,18 +1007,22 @@ function cityLabelOffset(opts: DrawOptions, baseSize: number, tier: number, reli
   return Math.max(-baseSize * 2.6, targetGap - reliefPx);
 }
 
-// Screen-space pixels the city model rises above its flat (z=0) label anchor at
-// this camera. From world3dToScreen, a point at height h shifts up by
-// h*zoom/depth (yaw is always 0 on the campaign camera).
-function cityReliefRisePx(field: TerrainField, opts: DrawOptions, pos: readonly [number, number]) {
+// CSS-pixel screen rise of the city model above its flat (z=0) label anchor at
+// this camera: project the same (x, y) at z=0 and at the terrain height and take
+// the screen-Y difference through the real perspective camera, so the label sits
+// the intended gap below the raised model instead of drifting on relief.
+function cityReliefRisePx(
+  field: TerrainField,
+  opts: DrawOptions,
+  pos: readonly [number, number],
+  cam: CameraSnapshot,
+) {
   const h = Math.max(0, field.heightAt(pos[0], pos[1]));
   if (h <= 0) return 0;
-  // Floor depth at 1: the true rise foreshortens near the camera bottom, but
-  // letting depth fall below 1 there inflates the rise for a flat coastal city
-  // (e.g. Ostia) and yanks its name up into the capital's garrison label. A
-  // genuinely raised inland city still has dy>0 (depth>=1) and pulls up.
-  const depth = Math.max(1, 1 + (pos[1] - opts.cam.y) * campaignPerspective(opts.cam.scale));
-  return (h * opts.cam.scale) / depth;
+  const dpr = window.devicePixelRatio || 1;
+  const [, ground] = world3dToScreen(cam, pos[0], pos[1], 0);
+  const [, raised] = world3dToScreen(cam, pos[0], pos[1], h);
+  return Math.max(0, (ground - raised) / dpr);
 }
 
 function cityLabelOffsetX(opts: DrawOptions, tier: number) {

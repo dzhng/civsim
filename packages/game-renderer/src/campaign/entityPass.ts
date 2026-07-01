@@ -1,6 +1,6 @@
 import type { RawFrameShell, WorldRenderPass } from '../../../renderer-core/src/frameShell';
 import { WORLD_CAMERA_WGSL } from '../../../renderer-core/src/cameraWgsl';
-import { gpuAlphaBlendColorTarget, gpuOpaqueColorTarget, gpuWorldDepthStencil } from '../../../renderer-core/src/pipelineContracts';
+import { gpuAlphaBlendColorTarget, gpuOpaqueColorTarget, gpuReverseZDepthStencil, gpuWorldDepthStencil } from '../../../renderer-core/src/pipelineContracts';
 import { buildCampaignStandardMesh, buildCityMesh } from '../models/campaign/campaignEntityModels';
 
 export interface CampaignEntityInstance {
@@ -85,9 +85,15 @@ export class CampaignEntityPass {
   private cityMesh = buildCityMesh();
   private armyMesh = buildCampaignStandardMesh();
 
-  constructor(private shell: RawFrameShell) {
+  private readonly real: boolean;
+
+  constructor(private shell: RawFrameShell, opts: { real?: boolean } = {}) {
     const device = shell.device;
-    const module = device.createShaderModule({ label: 'campaign-entity-mesh-wgsl', code: ENTITY_WGSL });
+    this.real = opts.real ?? false;
+    const code = this.real
+      ? ENTITY_WGSL.replace('projectWorld3d(world, civsimCampaignWorldDepth3d(world))', 'projectReal(world)')
+      : ENTITY_WGSL;
+    const module = device.createShaderModule({ label: 'campaign-entity-mesh-wgsl', code });
     this.opaquePipeline = this.makePipeline(module, 'opaque');
     this.shadowPipeline = this.makePipeline(module, 'shadow');
     this.cityVertexBuffer = makeVertexBuffer(device, 'campaign-city-model-vertices', this.cityMesh.opaque.vertices);
@@ -140,7 +146,9 @@ export class CampaignEntityPass {
         ],
       },
       primitive: { topology: 'triangle-list', cullMode: 'none' },
-      depthStencil: gpuWorldDepthStencil(material === 'opaque' ? 'read-write' : 'read'),
+      depthStencil: this.real
+        ? gpuReverseZDepthStencil(material === 'opaque' ? 'read-write' : 'read')
+        : gpuWorldDepthStencil(material === 'opaque' ? 'read-write' : 'read'),
     });
   }
 

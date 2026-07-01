@@ -1,6 +1,6 @@
 import type { RawFrameShell, WorldRenderPass } from '../../../renderer-core/src/frameShell';
 import { WORLD_CAMERA_WGSL } from '../../../renderer-core/src/cameraWgsl';
-import { gpuAlphaBlendColorTarget, gpuWorldDepthStencil } from '../../../renderer-core/src/pipelineContracts';
+import { gpuAlphaBlendColorTarget, gpuReverseZDepthStencil, gpuWorldDepthStencil } from '../../../renderer-core/src/pipelineContracts';
 
 export interface CampaignSelectionInstance {
   x: number;
@@ -65,9 +65,18 @@ export class CampaignSelectionPass {
   private garrisonedArmyCount = 0;
   private maxRadius = 0;
 
-  constructor(private shell: RawFrameShell) {
+  private readonly real: boolean;
+
+  constructor(private shell: RawFrameShell, opts: { real?: boolean } = {}) {
     const device = shell.device;
-    const module = device.createShaderModule({ label: 'campaign-selection-wgsl', code: SELECTION_WGSL });
+    this.real = opts.real ?? false;
+    const code = this.real
+      ? SELECTION_WGSL.replace(
+          'projectWorld3d(vec3f(world, z), civsimCampaignWorldDepth3d(vec3f(world, z)))',
+          'projectReal(vec3f(world, z))',
+        )
+      : SELECTION_WGSL;
+    const module = device.createShaderModule({ label: 'campaign-selection-wgsl', code });
     this.pipeline = this.makePipeline(module);
     this.quadBuffer = device.createBuffer({
       label: 'campaign-selection-quad',
@@ -108,7 +117,7 @@ export class CampaignSelectionPass {
         targets: [gpuAlphaBlendColorTarget(this.shell.info.format)],
       },
       primitive: { topology: 'triangle-strip' },
-      depthStencil: gpuWorldDepthStencil('read'),
+      depthStencil: this.real ? gpuReverseZDepthStencil('read') : gpuWorldDepthStencil('read'),
     });
   }
 

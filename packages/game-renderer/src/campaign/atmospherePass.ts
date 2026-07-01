@@ -12,6 +12,18 @@ export interface CampaignFogSource {
   radius: number;
 }
 
+// Swap the legacy 2.5D ground projector for the real camera3d projector so the
+// overlay atmosphere quads (cloud veil / fog-of-war) land in the right place
+// under the real perspective camera (slice 05). A no-op when `real` is false, so
+// the renderer-lab campaign routes stay byte-identical on the legacy path.
+function realProjection(wgsl: string, real: boolean): string {
+  return real
+    ? wgsl
+        .replace('projectGround(world, 0.12)', 'projectReal(vec3f(world, 0.0))')
+        .replace('projectGround(world, 0.11)', 'projectReal(vec3f(world, 0.0))')
+    : wgsl;
+}
+
 const CLOUD_WGSL = `
 ${WORLD_CAMERA_WGSL}
 
@@ -156,9 +168,9 @@ export class CampaignFogPass {
   private sourceCount = 0;
   private enabled = false;
 
-  constructor(private shell: RawFrameShell, rect: CampaignAtmosphereRect) {
+  constructor(private shell: RawFrameShell, rect: CampaignAtmosphereRect, opts: { real?: boolean } = {}) {
     const device = shell.device;
-    const module = device.createShaderModule({ label: 'campaign-fog-wgsl', code: FOG_WGSL });
+    const module = device.createShaderModule({ label: 'campaign-fog-wgsl', code: realProjection(FOG_WGSL, opts.real ?? false) });
     this.bindGroupLayout = device.createBindGroupLayout({
       label: 'campaign-fog-bgl',
       entries: [{ binding: 0, visibility: GPUShaderStage.FRAGMENT, buffer: { type: 'uniform' } }],
@@ -252,9 +264,9 @@ export class CampaignCloudPass {
   private pipeline: GPURenderPipeline;
   private vertexBuffer: GPUBuffer;
 
-  constructor(private shell: RawFrameShell, rect: CampaignAtmosphereRect, alphaScale = 1) {
+  constructor(private shell: RawFrameShell, rect: CampaignAtmosphereRect, alphaScale = 1, opts: { real?: boolean } = {}) {
     const device = shell.device;
-    const code = CLOUD_WGSL.replace('__CLOUD_ALPHA_SCALE__', alphaScale.toFixed(3));
+    const code = realProjection(CLOUD_WGSL, opts.real ?? false).replace('__CLOUD_ALPHA_SCALE__', alphaScale.toFixed(3));
     const module = device.createShaderModule({ label: 'campaign-cloud-wgsl', code });
     this.pipeline = device.createRenderPipeline({
       label: 'campaign-cloud-pipeline',

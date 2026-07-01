@@ -1,6 +1,6 @@
 import type { RawFrameShell, WorldRenderPass } from '../../../renderer-core/src/frameShell';
 import { WORLD_CAMERA_WGSL } from '../../../renderer-core/src/cameraWgsl';
-import { gpuAlphaBlendColorTarget, gpuOpaqueColorTarget, gpuReverseZDepthStencil, gpuWorldDepthStencil } from '../../../renderer-core/src/pipelineContracts';
+import { gpuAlphaBlendColorTarget, gpuOpaqueColorTarget, gpuWorldDepthStencil } from '../../../renderer-core/src/pipelineContracts';
 import { buildCampaignStandardMesh, buildCityMesh } from '../models/campaign/campaignEntityModels';
 
 export interface CampaignEntityInstance {
@@ -39,7 +39,7 @@ fn vs(
   let scale = inst0.z;
   let world = vec3f(inst0.x + local.x * scale, inst0.y + local.y * scale, inst0.w + local.z * scale);
   var out: VsOut;
-  out.pos = projectWorld3d(world, civsimCampaignWorldDepth3d(world));
+  out.pos = projectWorld(world);
   out.color = colorAndAlpha.rgb;
   out.livery = smoothstep(0.94, 0.99, min(colorAndAlpha.r, min(colorAndAlpha.g, colorAndAlpha.b)));
   out.alpha = colorAndAlpha.a;
@@ -85,15 +85,9 @@ export class CampaignEntityPass {
   private cityMesh = buildCityMesh();
   private armyMesh = buildCampaignStandardMesh();
 
-  private readonly real: boolean;
-
-  constructor(private shell: RawFrameShell, opts: { real?: boolean } = {}) {
+  constructor(private shell: RawFrameShell) {
     const device = shell.device;
-    this.real = opts.real ?? false;
-    const code = this.real
-      ? ENTITY_WGSL.replace('projectWorld3d(world, civsimCampaignWorldDepth3d(world))', 'projectReal(world)')
-      : ENTITY_WGSL;
-    const module = device.createShaderModule({ label: 'campaign-entity-mesh-wgsl', code });
+    const module = device.createShaderModule({ label: 'campaign-entity-mesh-wgsl', code: ENTITY_WGSL });
     this.opaquePipeline = this.makePipeline(module, 'opaque');
     this.shadowPipeline = this.makePipeline(module, 'shadow');
     this.cityVertexBuffer = makeVertexBuffer(device, 'campaign-city-model-vertices', this.cityMesh.opaque.vertices);
@@ -146,9 +140,7 @@ export class CampaignEntityPass {
         ],
       },
       primitive: { topology: 'triangle-list', cullMode: 'none' },
-      depthStencil: this.real
-        ? gpuReverseZDepthStencil(material === 'opaque' ? 'read-write' : 'read')
-        : gpuWorldDepthStencil(material === 'opaque' ? 'read-write' : 'read'),
+      depthStencil: gpuWorldDepthStencil(material === 'opaque' ? 'read-write' : 'read'),
     });
   }
 

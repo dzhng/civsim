@@ -73,7 +73,7 @@ fn civsimWaterColor(p: vec2f, depth01: f32, haze01: f32, agitation: f32, swash: 
   // the un-normalised blend — at agitation 1 this is exactly the field normal).
   s.normal = mix(vec3f(0.0, 0.0, 1.0), s.normal, mix(0.30, 1.0, agitation));
   s.foam = max(s.foam * agitation, swash);
-  let delta = p - vec2f(cam.x, cam.y);
+  let delta = p - cam.focus;
   let sunAzVec = vec2f(cos(cam.sunAz), sin(cam.sunAz));
   let band = smoothstep(0.1, 0.8, dot(normalize(delta), sunAzVec)) * mix(0.25, 1.0, agitation);
   return waterShade(s, sunDirection(), band, depth01, haze01);

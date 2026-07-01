@@ -1,7 +1,7 @@
 import type { RawFrameShell, WorldRenderPass } from '../../../renderer-core/src/frameShell';
 import { WORLD_CAMERA_WGSL } from '../../../renderer-core/src/cameraWgsl';
 import { compileShader } from '../../../renderer-core/src/compileShader';
-import { gpuAlphaBlendColorTarget, gpuMultisample, gpuReverseZDepthStencil, gpuWorldDepthStencil } from '../../../renderer-core/src/pipelineContracts';
+import { gpuAlphaBlendColorTarget, gpuMultisample, gpuWorldDepthStencil } from '../../../renderer-core/src/pipelineContracts';
 
 export interface BattleGroundCueStats {
   vertices: number;
@@ -9,7 +9,7 @@ export interface BattleGroundCueStats {
   cameraContract: 'shared-world-camera-wgsl';
 }
 
-const GROUND_CUE_WGSL = (real: boolean) => `
+const GROUND_CUE_WGSL = `
 ${WORLD_CAMERA_WGSL}
 struct VsOut {
   @builtin(position) pos: vec4f,
@@ -19,7 +19,7 @@ struct VsOut {
 @vertex
 fn vs(@location(0) world: vec2f, @location(1) color: vec3f) -> VsOut {
   var out: VsOut;
-  out.pos = ${real ? 'projectReal(vec3f(world, 0.02))' : 'projectGround(world, civsimBattleWorldDepth3d(vec3f(world, 0.02)))'};
+  out.pos = projectWorld(vec3f(world, 0.02));
   out.color = color;
   return out;
 }
@@ -35,10 +35,9 @@ export class BattleGroundCuePass {
   private capacity = 0;
   private vertexCount = 0;
 
-  constructor(private shell: RawFrameShell, opts: { real?: boolean } = {}) {
+  constructor(private shell: RawFrameShell) {
     const device = shell.device;
-    const real = opts.real ?? false;
-    const module = compileShader(device, GROUND_CUE_WGSL(real), 'battle-ground-cue');
+    const module = compileShader(device, GROUND_CUE_WGSL, 'battle-ground-cue');
     this.pipeline = device.createRenderPipeline({
       label: 'battle-ground-cue-line-pipeline',
       layout: device.createPipelineLayout({ bindGroupLayouts: [shell.cameraBindGroupLayout] }),
@@ -59,7 +58,7 @@ export class BattleGroundCuePass {
         targets: [gpuAlphaBlendColorTarget(shell.info.format)],
       },
       primitive: { topology: 'line-list' },
-      depthStencil: real ? gpuReverseZDepthStencil('read') : gpuWorldDepthStencil('read'),
+      depthStencil: gpuWorldDepthStencil('read'),
       multisample: gpuMultisample(shell.sampleCount),
     });
     this.vertexBuffer = device.createBuffer({

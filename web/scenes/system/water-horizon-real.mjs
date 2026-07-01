@@ -1,7 +1,7 @@
 import { PNG } from "pngjs";
 
 // Water Slice 02 (keystone) — the real-camera horizon gate. The finite water quad
-// is projected through the real 3D perspective camera (projectReal / camera3d
+// is projected through the real 3D perspective camera (projectWorld / camera3d
 // viewProj) onto a reverse-Z depth32float buffer. The one visual variable: the
 // horizon is STRAIGHT and flat — the fake-projection "dome + radial streak" wedge
 // is gone. Crop = the top-third horizon band. Frozen clock for determinism.

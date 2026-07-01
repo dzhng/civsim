@@ -1,6 +1,6 @@
 import type { RawFrameShell, WorldRenderPass } from '../../../renderer-core/src/frameShell';
 import { WORLD_CAMERA_WGSL } from '../../../renderer-core/src/cameraWgsl';
-import { gpuAlphaBlendColorTarget, gpuOpaqueColorTarget, gpuReverseZDepthStencil, gpuWorldDepthStencil } from '../../../renderer-core/src/pipelineContracts';
+import { gpuAlphaBlendColorTarget, gpuOpaqueColorTarget, gpuWorldDepthStencil } from '../../../renderer-core/src/pipelineContracts';
 import { SCENERY_PROP_MODELS } from '../models/shared/sceneryPropRegistry';
 
 export type CampaignSceneryKind = 'mountain' | 'tree' | 'conifer' | 'broadleaf' | 'rock' | 'cart';
@@ -16,20 +16,6 @@ export interface CampaignSceneryInstance {
   /** per-instance yaw (radians) so cloned meshes don't all face the same way */
   yaw?: number;
 }
-
-// Campaign and battle place the same scenery meshes but sort against different
-// world-depth functions; the pass injects the right one so props depth-test
-// correctly against whichever ground they sit on.
-export type SceneryWorldDepth = 'campaign' | 'battle';
-const sceneryWgsl = (depth: SceneryWorldDepth, real: boolean) => real
-  ? SCENERY_WGSL.replace(
-      'projectWorld3d(world, civsimCampaignWorldDepth3d(world))',
-      'projectReal(world)',
-    )
-  : SCENERY_WGSL.replace(
-      'civsimCampaignWorldDepth3d(world)',
-      depth === 'battle' ? 'civsimBattleWorldDepth3d(world)' : 'civsimCampaignWorldDepth3d(world)',
-    );
 
 const SCENERY_WGSL = `
 ${WORLD_CAMERA_WGSL}
@@ -61,7 +47,7 @@ fn vs(
   let rly = local.x * sy + local.y * cy;
   let world = vec3f(instPose.x + rlx * scale, instPose.y + rly * scale, baseZ + local.z * heightScale);
   var out: VsOut;
-  out.pos = projectWorld3d(world, civsimCampaignWorldDepth3d(world));
+  out.pos = projectWorld(world);
   let sun = normalize(vec3f(-0.42, -0.34, 0.84));
   let rnormal = vec3f(normal.x * cy - normal.y * sy, normal.x * sy + normal.y * cy, normal.z);
   out.color = colorAndAlpha.rgb;
@@ -124,12 +110,10 @@ export class CampaignSceneryPass {
   private broadleafCount = 0;
   private rockCount = 0;
   private cartCount = 0;
-  private readonly real: boolean;
 
-  constructor(private shell: RawFrameShell, worldDepth: SceneryWorldDepth = 'campaign', opts: { real?: boolean } = {}) {
-    this.real = opts.real ?? false;
+  constructor(private shell: RawFrameShell) {
     const device = shell.device;
-    const module = device.createShaderModule({ label: 'scenery-mesh-wgsl', code: sceneryWgsl(worldDepth, this.real) });
+    const module = device.createShaderModule({ label: 'scenery-mesh-wgsl', code: SCENERY_WGSL });
     this.opaquePipeline = this.makePipeline(module, 'opaque');
     this.shadowPipeline = this.makePipeline(module, 'shadow');
     this.mountainVertexBuffer = makeVertexBuffer(device, 'campaign-mountain-vertices', this.mountainMesh.opaque.vertices);
@@ -196,9 +180,7 @@ export class CampaignSceneryPass {
         ],
       },
       primitive: { topology: 'triangle-list', cullMode: 'none' },
-      depthStencil: this.real
-        ? gpuReverseZDepthStencil(material === 'opaque' ? 'read-write' : 'read')
-        : gpuWorldDepthStencil(material === 'opaque' ? 'read-write' : 'read'),
+      depthStencil: gpuWorldDepthStencil(material === 'opaque' ? 'read-write' : 'read'),
     });
   }
 

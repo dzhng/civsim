@@ -50,7 +50,6 @@ export interface PropReviewCamera {
   zoom: number;
   pitch: number;
   yaw: number;
-  perspective: number;
 }
 
 // A review sheet: one reusable prop family posed on neutral ground with no
@@ -63,9 +62,11 @@ export interface PropReviewGroup {
   props: PropReviewInstance[];
 }
 
-const TREE_CAMERA: PropReviewCamera = { x: 0, y: -0.3, zoom: 40, pitch: 0.56, yaw: 0, perspective: 0.016 };
-const SINGLE_CAMERA: PropReviewCamera = { x: 0, y: -0.36, zoom: 54, pitch: 0.56, yaw: 0, perspective: 0.018 };
-const STONE_CAMERA: PropReviewCamera = { x: 0, y: -0.4, zoom: 40, pitch: 0.56, yaw: 0, perspective: 0.014 };
+// Oblique review pitch: prop elevation is scaled by sin(pitch) under camera3d,
+// so the sheets read the props' height like the old full-z contact sheets.
+const TREE_CAMERA: PropReviewCamera = { x: 0, y: -0.3, zoom: 40, pitch: 1.0, yaw: 0 };
+const SINGLE_CAMERA: PropReviewCamera = { x: 0, y: -0.36, zoom: 54, pitch: 1.0, yaw: 0 };
+const STONE_CAMERA: PropReviewCamera = { x: 0, y: -0.4, zoom: 40, pitch: 1.0, yaw: 0 };
 
 export const PROP_REVIEW_GROUPS: PropReviewGroup[] = [
   {

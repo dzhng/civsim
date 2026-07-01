@@ -1,6 +1,6 @@
 import type { RawFrameShell, WorldRenderPass } from '../../../renderer-core/src/frameShell';
 import { WORLD_CAMERA_WGSL } from '../../../renderer-core/src/cameraWgsl';
-import { gpuAlphaBlendColorTarget, gpuReverseZDepthStencil, gpuWorldDepthStencil } from '../../../renderer-core/src/pipelineContracts';
+import { gpuAlphaBlendColorTarget, gpuWorldDepthStencil } from '../../../renderer-core/src/pipelineContracts';
 
 export interface CampaignSelectionInstance {
   x: number;
@@ -27,7 +27,7 @@ fn vs(@location(0) quad: vec2f, @location(1) inst0: vec4f, @location(2) inst1: v
   // Lift just above the terrain surface; world geometry still occludes via depth.
   let z = inst1.a + 0.045;
   var out: VsOut;
-  out.pos = projectWorld3d(vec3f(world, z), civsimCampaignWorldDepth3d(vec3f(world, z)));
+  out.pos = projectWorld(vec3f(world, z));
   out.local = quad;
   out.color = inst1.rgb;
   out.kind = inst0.w;
@@ -65,18 +65,9 @@ export class CampaignSelectionPass {
   private garrisonedArmyCount = 0;
   private maxRadius = 0;
 
-  private readonly real: boolean;
-
-  constructor(private shell: RawFrameShell, opts: { real?: boolean } = {}) {
+  constructor(private shell: RawFrameShell) {
     const device = shell.device;
-    this.real = opts.real ?? false;
-    const code = this.real
-      ? SELECTION_WGSL.replace(
-          'projectWorld3d(vec3f(world, z), civsimCampaignWorldDepth3d(vec3f(world, z)))',
-          'projectReal(vec3f(world, z))',
-        )
-      : SELECTION_WGSL;
-    const module = device.createShaderModule({ label: 'campaign-selection-wgsl', code });
+    const module = device.createShaderModule({ label: 'campaign-selection-wgsl', code: SELECTION_WGSL });
     this.pipeline = this.makePipeline(module);
     this.quadBuffer = device.createBuffer({
       label: 'campaign-selection-quad',
@@ -117,7 +108,7 @@ export class CampaignSelectionPass {
         targets: [gpuAlphaBlendColorTarget(this.shell.info.format)],
       },
       primitive: { topology: 'triangle-strip' },
-      depthStencil: this.real ? gpuReverseZDepthStencil('read') : gpuWorldDepthStencil('read'),
+      depthStencil: gpuWorldDepthStencil('read'),
     });
   }
 

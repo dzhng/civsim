@@ -44,7 +44,10 @@ import {
   type CameraSnapshot,
 } from "../../../packages/renderer-core/src/cameraUniform";
 import { campaignCameraRig, type CameraRigRange } from "../battle/cameraRig";
-import type { Camera3DParams } from "../../../packages/renderer-core/src/camera3d";
+import {
+  chartCamera3d,
+  type Camera3DParams,
+} from "../../../packages/renderer-core/src/camera3d";
 import { SkinnedCrowdPipeline } from "../../../packages/renderer-core/src/skinnedPipeline";
 import { SoldierShadowDecalPass } from "../../../packages/renderer-core/src/soldierShadowPass";
 import { buildStackCrowd } from "../../../packages/crowd-runtime/src/stackCrowd";
@@ -82,7 +85,6 @@ interface DrawOptions {
 
 export class CampaignRenderer {
   readonly ready: Promise<void>;
-  readonly pitch = CAMPAIGN_CLOSE_PITCH;
   fixedTime: number | null = null;
 
   private shell: RawFrameShell | null = null;
@@ -174,7 +176,6 @@ export class CampaignRenderer {
     return world3dToScreen(
       {
         ...this.currentCamera,
-        yaw: 0,
         width: stats?.width ?? this.canvas.width,
         height: stats?.height ?? this.canvas.height,
       },
@@ -232,13 +233,10 @@ export class CampaignRenderer {
     this.currentCamera = {
       x: opts.cam.x,
       y: opts.cam.y,
+      // cam.scale still feeds the map's sea-shimmer zoom gate (cam.zoom); the
+      // tilt gate now derives from the camera3d pitch inside cameraUniformData.
       zoom: opts.cam.scale,
-      pitch: this.pitchForScale(opts.cam.scale),
-      yaw: 0,
-      perspective: campaignPerspective(opts.cam.scale),
-      // The real 3D perspective camera drives every campaign world-depth pass
-      // (slice 05). The legacy scalars above still feed the map fragment's sea
-      // shimmer gate (cam.zoom / cam.cosP); projection is now camera3d's.
+      // The real 3D perspective camera — the one projection owner.
       camera3d: this.cameraParamsFor(opts.cam),
     };
     this.shell.setCamera(this.currentCamera);
@@ -490,15 +488,14 @@ export class CampaignRenderer {
     };
   }
 
-  private currentCamera: {
-    x: number;
-    y: number;
-    zoom: number;
-    pitch: number;
-    yaw: number;
-    perspective: number;
-    camera3d?: Camera3DParams;
-  } = { x: 0, y: 0, zoom: 0.18, pitch: this.pitch, yaw: 0, perspective: 0 };
+  // Renderable before the first draw(): a whole-map chart framing stands in
+  // until draw() derives the real camera from the live CamView.
+  private currentCamera: Omit<CameraSnapshot, "width" | "height"> = {
+    x: 0,
+    y: 0,
+    zoom: 0.18,
+    camera3d: chartCamera3d({ x: 0, y: 0, zoom: 0.18 }, 800),
+  };
 
   /** The playable field bounds (world km) that the zoom rig frames. */
   private campaignRigBounds() {
@@ -551,11 +548,9 @@ export class CampaignRenderer {
   }
 
   private async init(territory: Territory) {
-    // Campaign is on the real 3D perspective camera + reverse-Z depth (slice 05):
-    // the shell clears a depth32float reverse-Z buffer and every world-depth pass
-    // opts into `real` so it projects through camera3d's viewProj and depth-tests
-    // reverse-Z together (one shared depth buffer — they must flip atomically).
-    this.shell = await createFrameShell(this.canvas, { reverseZ: true });
+    // One projector engine-wide: every pass projects through camera3d's viewProj
+    // and depth-tests reverse-Z against the shell's depth32float world buffer.
+    this.shell = await createFrameShell(this.canvas);
     const controlledStage = isControlledStage(this.data);
     this.map = new CampaignMapPass(
       this.shell,
@@ -573,15 +568,9 @@ export class CampaignRenderer {
             },
           },
       this.surface.mesh,
-      { real: true },
     );
-    this.clouds = new CampaignCloudPass(
-      this.shell,
-      this.data.bgRect,
-      controlledStage ? 0.75 : 2.05,
-      { real: true },
-    );
-    this.fog = new CampaignFogPass(this.shell, this.data.bgRect, { real: true });
+    this.clouds = new CampaignCloudPass(this.shell, this.data.bgRect, controlledStage ? 0.75 : 2.05);
+    this.fog = new CampaignFogPass(this.shell, this.data.bgRect);
     this.territoryPass = new CampaignTerritoryPass(
       this.shell,
       {
@@ -592,17 +581,16 @@ export class CampaignRenderer {
       },
       controlledStage ? undefined : { alpha: 0.55, warmMix: 0.015 },
       this.surface.mesh,
-      { real: true },
     );
-    this.lines = new CampaignWorldLinePass(this.shell, "triangle-list", { real: true });
-    this.roads = new CampaignRoadPass(this.shell, { real: true });
-    this.borders = new CampaignWorldLinePass(this.shell, "line-list", { real: true });
-    this.markers = new CampaignMarkerPass(this.shell, { real: true });
-    this.scenery = new CampaignSceneryPass(this.shell, "campaign", { real: true });
+    this.lines = new CampaignWorldLinePass(this.shell, "triangle-list");
+    this.roads = new CampaignRoadPass(this.shell);
+    this.borders = new CampaignWorldLinePass(this.shell, "line-list");
+    this.markers = new CampaignMarkerPass(this.shell);
+    this.scenery = new CampaignSceneryPass(this.shell);
     this.sceneryCandidates = buildCampaignSceneryCandidates(this.data, this.field);
-    this.entities = new CampaignEntityPass(this.shell, { real: true });
-    // The shared skinned soldier renderer, on campaign depth. Army stacks draw a
-    // small representative crowd through the SAME pipeline/meshes/VATs/shadow as
+    this.entities = new CampaignEntityPass(this.shell);
+    // The shared skinned soldier renderer. Army stacks draw a small
+    // representative crowd through the SAME pipeline/meshes/VATs/shadow as
     // battle (buildStackCrowd feeds it per stack); the entity pass now only draws
     // the city and the army's standard banner.
     const soldierKit = await loadPlaceholderKit();
@@ -612,14 +600,10 @@ export class CampaignRenderer {
       createPlaceholderSoldierMeshes([0.3, 0.36, 0.74]),
       await loadPlaceholderVat(),
       soldierKit,
-      { worldDepth: "campaign", real: true },
     );
-    this.soldierShadows = new SoldierShadowDecalPass(this.shell, {
-      worldDepth: "campaign",
-      real: true,
-    });
-    this.selection = new CampaignSelectionPass(this.shell, { real: true });
-    this.labels = new CampaignLabelPass(this.shell, { real: true });
+    this.soldierShadows = new SoldierShadowDecalPass(this.shell);
+    this.selection = new CampaignSelectionPass(this.shell);
+    this.labels = new CampaignLabelPass(this.shell);
     const drawData = buildCampaignMapDrawData(this.data, {
       roadScale: 1.0,
       roadSurfaceAt: (x, y) =>
@@ -672,10 +656,6 @@ function campaignPitch(zoom: number) {
 function smoothstep(edge0: number, edge1: number, value: number) {
   const t = clamp((value - edge0) / (edge1 - edge0), 0, 1);
   return t * t * (3 - 2 * t);
-}
-
-function campaignPerspective(zoom: number) {
-  return Math.min(0.0048, Math.max(0, (zoom - 1.0) * 0.0032));
 }
 
 function buildEntityFrame(

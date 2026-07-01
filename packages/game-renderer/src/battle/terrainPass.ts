@@ -42,7 +42,7 @@ fn vs(@location(0) quad: vec2f, @location(1) inst0: vec4f, @location(2) inst1: v
   let local01 = quad * 0.5 + vec2f(0.5);
   let world = vec2f(inst0.x + local01.x * inst0.z, inst0.y + local01.y * inst0.w);
   var out: VsOut;
-  out.pos = projectGround(world, civsimBattleWorldDepth3d(vec3f(world, 0.08)));
+  out.pos = projectWorld(vec3f(world, 0.08));
   out.local = quad;
   out.world = world;
   out.kind = inst1.x;
@@ -268,7 +268,7 @@ export class BattleTerrainPass {
         targets: [{ format: shell.info.format }],
       },
       primitive: { topology: 'triangle-strip' },
-      depthStencil: gpuWorldDepthStencil('read-write', 'less-equal'),
+      depthStencil: gpuWorldDepthStencil('read-write', 'greater-equal'),
       multisample: gpuMultisample(shell.sampleCount),
     });
     this.quadBuffer = device.createBuffer({

@@ -1,6 +1,6 @@
 import type { RawFrameShell, WorldRenderPass } from '../../../renderer-core/src/frameShell';
 import { WORLD_CAMERA_WGSL } from '../../../renderer-core/src/cameraWgsl';
-import { gpuMultisample, gpuOpaqueColorTarget, gpuReverseZDepthStencil, gpuWorldDepthStencil } from '../../../renderer-core/src/pipelineContracts';
+import { gpuMultisample, gpuOpaqueColorTarget, gpuWorldDepthStencil } from '../../../renderer-core/src/pipelineContracts';
 import { compileShader } from '../../../renderer-core/src/compileShader';
 import { MeshBuilder } from '../models/shared/meshBuilder';
 import type { BattleEdgeRole, BattleEdgeRoles } from './terrainFeatures';
@@ -35,7 +35,7 @@ const OCEAN_FAR = 4000;
 const OCEAN_LAP = 24;
 const OCEAN_RES = 360;
 
-const HORIZON_WGSL = (env: BattleEnvironment, real: boolean) => `
+const HORIZON_WGSL = (env: BattleEnvironment) => `
 ${WORLD_CAMERA_WGSL}
 ${battleEnvironmentWgsl(env)}
 struct VsOut {
@@ -47,7 +47,7 @@ struct VsOut {
 @vertex
 fn vs(@location(0) world: vec3f, @location(1) normal: vec3f, @location(2) color: vec3f) -> VsOut {
   var out: VsOut;
-  out.pos = ${real ? 'projectReal(world)' : 'projectWorld3d(world, civsimBattleWorldDepth3d(world))'};
+  out.pos = projectWorld(world);
   let sun = sunDirection();
   out.light = clamp(dot(normalize(normal), sun) * 0.5 + 0.7, 0.42, 1.2);
   out.color = color;
@@ -74,12 +74,8 @@ export class BattleHorizonPass {
   private readonly oceanField = new GerstnerWaterField();
   private oceanPlanes: WaterPlanePass[] = [];
 
-  private readonly real: boolean;
-
-  constructor(private shell: RawFrameShell, private environment: BattleEnvironment = BATTLE_ENVIRONMENTS['golden-hour'], opts: { real?: boolean } = {}) {
-    const real = opts.real ?? false;
-    this.real = real;
-    const module = compileShader(shell.device, HORIZON_WGSL(environment, real), `battle-horizon-${environment.id}`);
+  constructor(private shell: RawFrameShell, private environment: BattleEnvironment = BATTLE_ENVIRONMENTS['golden-hour']) {
+    const module = compileShader(shell.device, HORIZON_WGSL(environment), `battle-horizon-${environment.id}`);
     this.pipeline = shell.device.createRenderPipeline({
       label: 'battle-horizon-pipeline',
       layout: shell.device.createPipelineLayout({ bindGroupLayouts: [shell.cameraBindGroupLayout] }),
@@ -97,7 +93,7 @@ export class BattleHorizonPass {
       },
       fragment: { module, entryPoint: 'fs', targets: [gpuOpaqueColorTarget(shell.info.format)] },
       primitive: { topology: 'triangle-list', cullMode: 'none' },
-      depthStencil: real ? gpuReverseZDepthStencil('read-write') : gpuWorldDepthStencil('read-write'),
+      depthStencil: gpuWorldDepthStencil('read-write'),
       multisample: gpuMultisample(shell.sampleCount),
     });
   }
@@ -151,7 +147,7 @@ export class BattleHorizonPass {
       const outer = edgeX + outward * OCEAN_FAR;
       const rect = { x0: Math.min(inner, outer), y0: yLo, x1: Math.max(inner, outer), y1: yHi, res: OCEAN_RES };
       this.oceanPlanes.push(
-        new WaterPlanePass(this.shell, this.oceanField, rect, this.environment.environment, { baseZ, shoreX: edgeX, shoreRamp: BATTLE_OCEAN_RAMP, real: this.real }),
+        new WaterPlanePass(this.shell, this.oceanField, rect, this.environment.environment, { baseZ, shoreX: edgeX, shoreRamp: BATTLE_OCEAN_RAMP }),
       );
       return;
     }

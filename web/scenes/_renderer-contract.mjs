@@ -8,11 +8,20 @@ const FRAME_GRAPH_CONTRACT_SOURCE = readFileSync(
   new URL("../../packages/renderer-core/src/frameGraphContract.ts", import.meta.url),
   "utf8",
 );
+const CAMERA_UNIFORM_SOURCE = readFileSync(
+  new URL("../../packages/renderer-core/src/cameraUniform.ts", import.meta.url),
+  "utf8",
+);
 
+// The ONE engine-wide depth format (reverse-Z depth32float since slice 05b).
 export const GPU_DEPTH_FORMAT = readDepthConst("GPU_DEPTH_FORMAT");
-// Battle flipped to the reverse-Z depth buffer in slice 04; campaign stays legacy.
-export const GPU_DEPTH_FORMAT_REVERSE = readDepthConst("GPU_DEPTH_FORMAT_REVERSE");
 export const GPU_WORLD_DEPTH_ATTACHMENT = readDepthConst("GPU_WORLD_DEPTH_ATTACHMENT");
+// The single projection/depth identity every renderer surface must report.
+export const PROJECTION_IDENTITY = readSourceStringConst(
+  CAMERA_UNIFORM_SOURCE,
+  "PROJECTION_IDENTITY",
+  "shared camera uniform contract",
+);
 export const GPU_DEPTH_MODES = readDepthModes();
 export const FRAME_PHASE_KINDS = readStringArrayConst(
   FRAME_GRAPH_CONTRACT_SOURCE,
@@ -36,10 +45,14 @@ const FRAME_PHASES = new Set(FRAME_PHASE_KINDS);
 const FRAME_ROLES = new Set(FRAME_GRAPH_PASS_ROLES);
 
 function readDepthConst(name) {
-  const match = DEPTH_CONTRACT_SOURCE.match(
+  return readSourceStringConst(DEPTH_CONTRACT_SOURCE, name, "shared WebGPU depth contract");
+}
+
+function readSourceStringConst(source, name, label) {
+  const match = source.match(
     new RegExp(`export\\s+const\\s+${name}\\s*=\\s*['"]([^'"]+)['"]\\s+as\\s+const`),
   );
-  if (!match) throw new Error(`Unable to read ${name} from shared WebGPU depth contract`);
+  if (!match) throw new Error(`Unable to read ${name} from ${label}`);
   return match[1];
 }
 
@@ -153,7 +166,7 @@ export function hasBattleWorldDepthContract(renderStats) {
     renderStats?.cameraContract === "shared-world-camera-wgsl" &&
     renderStats?.skinnedCameraContract === "shared-world-camera-wgsl" &&
     renderStats?.depth?.allocated === true &&
-    renderStats?.depth?.format === GPU_DEPTH_FORMAT_REVERSE &&
+    renderStats?.depth?.format === GPU_DEPTH_FORMAT &&
     hasFramePhaseOrder(renderStats?.phases, { requireOverlay: true }) &&
     hasDepthPassPlacement(renderStats?.phases) &&
     hasSemanticPassRoles(renderStats?.phases) &&
@@ -185,7 +198,7 @@ export function hasCampaignWorldDepthContract(stats) {
   return (
     stats?.cameraContract === "shared-world-camera-wgsl" &&
     stats?.depth?.allocated === true &&
-    stats?.depth?.format === GPU_DEPTH_FORMAT_REVERSE &&
+    stats?.depth?.format === GPU_DEPTH_FORMAT &&
     hasFramePhaseOrder(stats?.phases, { requireOverlay: true }) &&
     hasDepthPassPlacement(stats?.phases) &&
     hasSemanticPassRoles(stats?.phases) &&

@@ -1,8 +1,8 @@
-// The real 3D perspective camera — the single source of truth for view/projection
-// matrices and screen↔world mapping, shared by the GPU uniform packer
-// (cameraUniform.ts), the zoom rig (cameraRig.ts), and CPU picking. Replaces the
-// 2.5D fake-projection math (fixed pixels-per-world-unit `zoom`, world-Y-faked
-// depth). Pure and GPU-free: everything here is unit-tested with no device.
+// The real 3D perspective camera — the ONE projection owner engine-wide: the
+// single source of truth for view/projection matrices and screen↔world mapping,
+// shared by the GPU uniform packer (cameraUniform.ts), the zoom rigs
+// (cameraRig.ts), and CPU picking. Pure and GPU-free: everything here is
+// unit-tested with no device.
 //
 // World convention: XY is the ground plane, +Z is up (matches skinnedPipeline's
 // vertex convention). Matrices are column-major (mat4.ts) so they upload to a
@@ -102,4 +102,44 @@ export function unprojectToPlaneZ(p: Camera3DParams, ndcX: number, ndcY: number,
   const t = (planeZ - origin[2]) / dir[2];
   if (t < 0) return null;
   return [origin[0] + dir[0] * t, origin[1] + dir[1] * t, origin[2] + dir[2] * t];
+}
+
+// A chart-style framing spec: centre the view on a ground point at a given
+// scale (device px per world unit) with a tilt away from top-down. This is how
+// the renderer-lab review routes (and their pick harness) frame fixtures —
+// legibility knobs, not a second projection. `chartCamera3d` resolves the spec
+// into real Camera3DParams; the projection owner stays camera3d.
+export interface ChartCameraSpec {
+  /** Ground point at the screen centre. */
+  x: number;
+  y: number;
+  /** Device pixels per world unit at the centre (screen-x direction). */
+  zoom: number;
+  /** Tilt away from top-down, radians. 0 = straight down. */
+  pitch?: number;
+  /** Bearing, radians. 0 = world +Y up-screen (the 2D chart orientation). */
+  yaw?: number;
+}
+
+// The one vertical FOV every chart-framed lab route shares. Narrow enough that
+// a chart framing stays chart-like; the production battle/campaign rigs own
+// their own curves.
+export const CHART_CAMERA_FOV_Y = 0.55;
+
+export function chartCamera3d(spec: ChartCameraSpec, viewportHeightPx: number): Camera3DParams {
+  const zoom = Math.max(0.0001, spec.zoom);
+  const distance = Math.max(1e-3, viewportHeightPx) / (2 * zoom * Math.tan(CHART_CAMERA_FOV_Y / 2));
+  return {
+    target: [spec.x, spec.y, 0],
+    distance,
+    // Chart pitch tilts away from top-down; camera3d pitch is elevation above
+    // the ground plane (π/2 = top-down).
+    pitch: Math.PI / 2 - Math.min(Math.PI / 2 - 0.05, Math.max(0, spec.pitch ?? 0)),
+    // Chart yaw 0 = +Y up-screen, which is camera3d yaw −π/2 (eye south of the
+    // target looking north).
+    yaw: (spec.yaw ?? 0) - Math.PI / 2,
+    fovY: CHART_CAMERA_FOV_Y,
+    aspect: 1, // overridden by the live viewport in cameraUniformData
+    near: Math.min(1, Math.max(0.05, distance * 0.01)),
+  };
 }

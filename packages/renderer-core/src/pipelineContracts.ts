@@ -1,4 +1,4 @@
-import { GPU_DEPTH_FORMAT, GPU_DEPTH_FORMAT_REVERSE, type GpuDepthMode } from './depthContract';
+import { GPU_DEPTH_FORMAT, type GpuDepthMode } from './depthContract';
 
 const GPU_ALPHA_BLEND: GPUBlendState = {
   color: { srcFactor: 'src-alpha', dstFactor: 'one-minus-src-alpha' },
@@ -20,27 +20,16 @@ export function gpuAlphaBlendColorTarget(format: GPUTextureFormat): GPUColorTarg
   return { format, blend: GPU_ALPHA_BLEND };
 }
 
+// The world depth-stencil contract: reverse-Z (near → 1, far → 0) against the
+// engine-wide depth32float buffer cleared to 0, so the compare is `greater`
+// (`greater-equal` for read-only decals). Write policy follows the declared
+// depth mode exactly.
 export function gpuWorldDepthStencil(
-  mode: Extract<GpuDepthMode, 'read' | 'read-write' | 'write'>,
-  compare: GPUCompareFunction = mode === 'read' ? 'less-equal' : 'less',
-): GPUDepthStencilState {
-  return {
-    format: GPU_DEPTH_FORMAT,
-    depthWriteEnabled: mode === 'write' || mode === 'read-write',
-    depthCompare: compare,
-  };
-}
-
-// Reverse-Z sibling of gpuWorldDepthStencil: near → 1, far → 0, so the compare
-// flips to `greater` (`greater-equal` for read-only decals) against a depth32float
-// buffer cleared to 0. Opt-in per pipeline on a `reverseZ` shell (slice 02: the
-// water route). Write policy matches the mode exactly as the legacy path does.
-export function gpuReverseZDepthStencil(
   mode: Extract<GpuDepthMode, 'read' | 'read-write' | 'write'>,
   compare: GPUCompareFunction = mode === 'read' ? 'greater-equal' : 'greater',
 ): GPUDepthStencilState {
   return {
-    format: GPU_DEPTH_FORMAT_REVERSE,
+    format: GPU_DEPTH_FORMAT,
     depthWriteEnabled: mode === 'write' || mode === 'read-write',
     depthCompare: compare,
   };

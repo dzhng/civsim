@@ -8,21 +8,21 @@ import {
   type CameraSnapshot,
 } from '../../packages/renderer-core/src/cameraUniform.ts';
 
-// Slice 05: campaign picking is a real 3D ray-cast against the ground plane
-// (z = 0) and label/marker placement is a real projection — both flow through
-// cameraUniform's screenToWorld / worldToScreen, which delegate to camera3d when
-// `camera3d` is set. This builds the exact CameraSnapshot the CampaignRenderer
-// does (yaw = −π/2 to keep the map's world orientation) and proves the round-trip
+// Campaign picking is a real 3D ray-cast against the ground plane (z = 0) and
+// label/marker placement is a real projection — both flow through
+// cameraUniform's screenToWorld / worldToScreen, which always project through
+// camera3d. This builds the exact CameraSnapshot the CampaignRenderer does
+// (yaw = −π/2 to keep the map's world orientation) and proves the round-trip
 // without a DOM canvas.
 const W = 1280;
 const H = 800;
 const range = { min: 0.16, max: 8 };
 const bounds = { width: 1600, height: 1200 };
 
-// Mirror CampaignRenderer.cameraParamsFor + the legacy scalars it still packs:
-// the rig owns pitch/fovY, distance derives from the chart scale (device px per
-// world km) so the vertical ground span at the target is height / scale, and the
-// screen-centre ground hit is exactly (x, y).
+// Mirror CampaignRenderer.cameraParamsFor: the rig owns pitch/fovY, distance
+// derives from the chart scale (device px per world km) so the vertical ground
+// span at the target is height / scale, and the screen-centre ground hit is
+// exactly (x, y).
 function snapshot(x: number, y: number, scale: number): CameraSnapshot {
   const rig = campaignCameraRig(scale, range, bounds);
   const viewHeight = H / Math.max(0.0001, scale);
@@ -30,9 +30,6 @@ function snapshot(x: number, y: number, scale: number): CameraSnapshot {
     x,
     y,
     zoom: scale,
-    pitch: 0,
-    yaw: 0,
-    perspective: 0,
     width: W,
     height: H,
     camera3d: {

@@ -12,6 +12,7 @@ import { CampaignTopBar } from '../ui/campaign/CampaignTopBar';
 import { ArmyPanel } from '../ui/campaign/ArmyPanel';
 import { CityPanel } from '../ui/campaign/CityPanel';
 import { DiplomacyPanel } from '../ui/campaign/DiplomacyPanel';
+import { ClassBuilder } from '../ui/campaign/ClassBuilder';
 import { loadCampaignData, nearestLoc, tilePos, type CampaignData } from './data';
 import type { CamView } from './camera';
 import { CampaignRenderer } from './renderer';
@@ -22,7 +23,6 @@ import { installCampaignDebugApi, markCampaignReady } from './debugApi';
 import { fatalSurfaceFor, showFatalErrorSurface } from '../shared/fatalError';
 import {
   campaignDomHtml,
-  classBuilderHtml,
   type ArmyRosterRow,
   type ClassDoctrineRow,
   type CityDetail,
@@ -87,6 +87,7 @@ export class CampaignScene implements Scene {
   private armyRoot: Root | null = null;
   private cityRoot: Root | null = null;
   private diploRoot: Root | null = null;
+  private classesRoot: Root | null = null;
   private renderer!: CampaignRenderer;
   // Terrain/territory live across battle round-trips (enter/exit cycles).
   private field: TerrainField | null = null;
@@ -679,6 +680,7 @@ export class CampaignScene implements Scene {
     this.armyRoot = createRoot(ui.querySelector('#cmp-army')!);
     this.cityRoot = createRoot(ui.querySelector('#cmp-city')!);
     this.diploRoot = createRoot(ui.querySelector('#cmp-diplomacy')!);
+    this.classesRoot = createRoot(ui.querySelector('#cmp-classes')!);
   }
 
   private saveCampaign() {
@@ -779,39 +781,32 @@ export class CampaignScene implements Scene {
       if (!d) return r;
       return { ...r, selected: d.unit, sizeMult: d.size, dirty: d.unit !== r.selected || d.size !== r.sizeMult };
     });
-    const panel = this.ui.querySelector('#cmp-classes') as HTMLDivElement;
-    panel.innerHTML = classBuilderHtml(rows);
-    panel.querySelectorAll<HTMLButtonElement>('button[data-unit]').forEach((b) =>
-      b.addEventListener('click', () => {
-        const cls = Number(b.dataset.class);
-        const unit = Number(b.dataset.unit);
+    const root = this.classesRoot;
+    if (root) flushSync(() => root.render(createElement(ClassBuilder, {
+      rows,
+      // Selecting a unit/size stages it in the draft (its dirty flag lights
+      // Apply); the row's live selected/size drives the fallback for the other.
+      onSelectUnit: (cls, unit) => {
         const row = rows.find((r) => r.classIndex === cls);
         if (!row) return;
         this.classDraft.set(cls, { unit, size: row.sizeMult });
         this.updateClassBuilderPanel(true);
-      }),
-    );
-    panel.querySelectorAll<HTMLButtonElement>('button[data-size]').forEach((b) =>
-      b.addEventListener('click', () => {
-        const cls = Number(b.dataset.class);
-        const size = Number(b.dataset.size);
+      },
+      onSelectSize: (cls, size) => {
         const row = rows.find((r) => r.classIndex === cls);
         if (!row) return;
         this.classDraft.set(cls, { unit: row.selected, size });
         this.updateClassBuilderPanel(true);
-      }),
-    );
-    panel.querySelectorAll<HTMLButtonElement>('button[data-apply]').forEach((b) =>
-      b.addEventListener('click', () => {
-        const cls = Number(b.dataset.apply);
+      },
+      onApply: (cls) => {
         const draft = this.classDraft.get(cls);
         if (draft && this.cfg.campaign.order_set_class_doctrine(cls, draft.unit, draft.size)) {
           this.classDraft.delete(cls);
           this.refreshViews();
           this.updateClassBuilderPanel(true);
         }
-      }),
-    );
+      },
+    })));
   }
 
   private updateArmyPanel() {

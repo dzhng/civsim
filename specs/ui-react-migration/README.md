@@ -12,9 +12,12 @@ Synthesized from three independent draft plans (they converged hard — the cut 
 
 **Status:** S0 + S1 + S2 + S3 shipped (green). **S3 verdict: MIGRATE (Branch A).** _Last updated: 2026-07-01._
 
-**Start at S5d** (class builder — `classBuilderHtml`/`classRow`, the last big campaign panel) —
-then S5e (sieges + end-of-turn modal + lab `uiLayer.ts` dedup), S6 (HUD + battle modals), S7
-(cleanup). **S5a (top bar) + S5b (army/city) + S5c (diplomacy) shipped.**
+**Start at S5e** (sieges `#cmp-sieges` + the end-of-turn/battle modal in scene.ts + dedup the lab
+`uiLayer.ts` onto the React components / delete the now-lab-only builders) — then S6 (HUD +
+battle modals), S7 (cleanup). **S5a–d shipped: the top bar, army/city, diplomacy, AND class
+builder are all React.** Every campaign panel builder (`armyPanelHtml`, `cityPanelHtml`,
+`diplomacyHtml`, `classBuilderHtml`) is now used ONLY by the lab (`uiLayer.ts`) — S5e removes
+that last consumer.
 New reusable piece: `web/src/ui/campaign/UiIcon.tsx` renders `uiIcon()` SVGs as JSX (composable
 with React inputs — use it for S5c/d). Panel renders are `flushSync`'d so the debug API/tests
 see content synchronously (matching the old innerHTML). ArmyPanel/CityPanel take flat props +

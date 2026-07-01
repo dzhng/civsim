@@ -28,8 +28,6 @@ export interface WaterPlaneRect {
 // normals keep the near field crisp regardless of triangle size.
 export const DEFAULT_WATER_PLANE: WaterPlaneRect = { x0: -420, y0: -160, x1: 420, y1: 1100, res: 340 };
 
-const WATER_SUN_WGSL = 'normalize(vec3f(-0.40, -0.28, 0.87))';
-
 export class WaterPlanePass {
   private readonly shell: RawFrameShell;
   private readonly field: WaterFieldSource;
@@ -132,7 +130,12 @@ fn fs(in: VsOut) -> @location(0) vec4f {
   // Re-evaluate the field per fragment for a crisp normal (the vertex stage only
   // owns displacement). Neutral grey via the shared waterShade — silhouette only.
   let s = waterField(in.world, cam.time);
-  let col = waterShade(s, ${WATER_SUN_WGSL});
+  // Glint band: how well the direction from the camera to this fragment aligns
+  // with the sun azimuth — 1 up the sun-track, fading to the sides.
+  let toFrag = normalize(in.world - vec2f(cam.x, cam.y));
+  let sunAzVec = vec2f(cos(cam.sunAz), sin(cam.sunAz));
+  let band = smoothstep(0.1, 0.8, dot(toFrag, sunAzVec));
+  let col = waterShade(s, sunDirection(), band);
   return vec4f(col, 1.0);
 }`;
 }

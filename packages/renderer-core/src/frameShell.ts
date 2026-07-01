@@ -1,4 +1,4 @@
-import { cameraUniformData, type CameraSnapshot } from './cameraUniform';
+import { cameraUniformData, DEFAULT_SUN_AZIMUTH, DEFAULT_SUN_ELEVATION, type CameraSnapshot } from './cameraUniform';
 import { WORLD_CAMERA_WGSL } from './cameraWgsl';
 import { compileShader } from './compileShader';
 import { GPU_DEPTH_FORMAT, isGpuDepthMode, type GpuDepthMode } from './depthContract';
@@ -62,6 +62,8 @@ export interface RawFrameShell {
   /** Advance the animation clock (seconds) written into the camera uniform. Use
    *  a fixed value for deterministic snapshots, free-running wall time for the eye. */
   setTime(seconds: number): void;
+  /** Set the frame sun direction (azimuth, elevation in radians). */
+  setSun(azimuth: number, elevation: number): void;
   drawFrame(commands?: FrameGraphCommands): void;
   destroy(): void;
   stats(): FrameShellStats;
@@ -460,6 +462,8 @@ export class RawFrameShellImpl implements RawFrameShell {
   private markerLayer: MarkerLayerIntent = 'none';
   private camera: Omit<CameraSnapshot, 'width' | 'height'> = { x: 0, y: 0, zoom: 12, pitch: 0.35, yaw: 0 };
   private time = 0;
+  private sunAzimuth = DEFAULT_SUN_AZIMUTH;
+  private sunElevation = DEFAULT_SUN_ELEVATION;
   private width = 1;
   private height = 1;
   private dpr = 1;
@@ -558,6 +562,14 @@ export class RawFrameShellImpl implements RawFrameShell {
 
   setTime(seconds: number) {
     this.time = seconds;
+    this.writeCamera();
+  }
+
+  /** Set the frame sun direction (radians) — the light for water glint and future
+   *  sky/effects. Defaults to the battle sun convention. */
+  setSun(azimuth: number, elevation: number) {
+    this.sunAzimuth = azimuth;
+    this.sunElevation = elevation;
     this.writeCamera();
   }
 
@@ -776,7 +788,7 @@ export class RawFrameShellImpl implements RawFrameShell {
   }
 
   private writeCamera() {
-    this.device.queue.writeBuffer(this.cameraBuffer, 0, cameraUniformData({ ...this.camera, width: this.width, height: this.height, time: this.time }));
+    this.device.queue.writeBuffer(this.cameraBuffer, 0, cameraUniformData({ ...this.camera, width: this.width, height: this.height, time: this.time, sunAzimuth: this.sunAzimuth, sunElevation: this.sunElevation }));
   }
 
   private recordPhase(phase: FramePhaseStats) {

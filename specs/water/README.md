@@ -12,24 +12,28 @@ Reference image (the compare-screenshots target):
 
 ## Next Agent Prompt
 
-> **Status:** Slices 1–3 landed. Winner: **Gerstner** (see
+> **Status:** Slices 1–4 landed. Winner: **Gerstner** (see
 > [`slices/01-bakeoff-decision.md`](slices/01-bakeoff-decision.md)). Last updated 2026-07-01.
 >
-> **You are picking up at Slice 4 (sun-glint streak).** Read this README and the decision
-> artifact, then open [`slices/04-sun-glint.md`](slices/04-sun-glint.md) and add the specular
-> sun-glint band to the shared `waterShade` (`water/waterMaterialWgsl.ts`), driven by the
-> surface `normal` and the sun direction. Tune on `/renderer/water-bakeoff?tech=gerstner` in
-> neutral grey. The `WaterFieldSource` seam, the `time` clock, and the Slice-2/3 geometry +
-> foam are **frozen** — build against the seam.
+> **You are picking up at Slice 5 (water albedo + depth ramp × env preset).** Read this README
+> and open [`slices/05-albedo-depth-ramp.md`](slices/05-albedo-depth-ramp.md). Introduce
+> `water/waterPalette.ts` (neutral albedo + depth ramp + foam/glint constants) and
+> `water/waterEnvironment.ts` presets, and colour the sea in `waterShade`. **Fold the
+> provisional warm glint tint constant in `waterMaterialWgsl` (`vec3f(1.0, 0.84, 0.52)`) into
+> `waterPalette` — it is a refactor, not new behaviour.** Keep the albedo neutral × preset (do
+> not bake the dusk mood into albedo). The seam, clock, sun uniform, geometry, foam and glint
+> are **frozen**.
 >
-> **Slices 2–3 result:** the Gerstner field is a 20-wave discretised spectrum (isotropic
-> swell, fine chop, per-wave phase offsets), displaced through `projectWorld3d` and shaded
-> per-fragment by the shared `waterShade`. Whitecap foam is a height-keyed crest signal broken
-> into granular spray by three noise octaves (`WaterSample.foam` → `waterShade` mix, neutral
-> white-grey). Both judged PASS by an unprimed critic (real 3D multi-directional water; granular
-> whitecaps at reference-like density). **Known:** foam thins toward the horizon (fine noise
-> goes sub-pixel at distance — S6 haze covers that band); the IFFT *fallback's* foam is
-> untuned (heavy) but only shows on no-compute devices. Do not over-amplify geometry.
+> **Slices 2–4 result:** the Gerstner field is a 20-wave discretised spectrum (isotropic swell,
+> fine chop). `waterShade` (shared) shades the body by `normal·sun`, lays height-keyed granular
+> whitecap foam, and adds a narrow specular **sun-glint** streak banded to the sun azimuth. The
+> **sun direction lives in the camera uniform's last two pads** (`sunAz`/`sunEl`, `shell.setSun`,
+> `sunDirection()` in `cameraWgsl`), defaulting to the battle sun — this moved zero existing
+> pixels (battle snapshots byte-identical). Glint tracks the sun (proven by the `water-glint`
+> scene sweeping `sunAz`) and carries a provisional warm tint so it separates from white foam in
+> neutral grey. All judged PASS (unprimed). **Known:** the glint column concentrates near the sun
+> and thins toward the foamy near foreground — it will read stronger once S5 darkens the water
+> body; the IFFT *fallback* look is untuned (only shows on no-compute devices).
 >
 > **Before you start:** invoke the `aesthetics` skill (the visual north star) and the
 > `renderer` skill (the build/debug workflow for GPU + WGSL work). Every visual slice
@@ -55,15 +59,15 @@ Reference image (the compare-screenshots target):
 >   pipelines must still call `gpuMultisample(shell.sampleCount)` to stay MSAA-safe
 >   (`waterPlanePass` already does).
 > - Animated pixels break `snapCheck` unless time is injectable. Use `shell.setTime(t)` with
->   a fixed `t`; snap every visual gate at a fixed `t` (the bake-off scene snaps `?t=2.0`).
-> - **Known limitation to fix in S2:** the displaced plane shows foreground faceting (grid
->   undersampling near the camera). Tessellation density / a distance-graded grid is S2's job.
+>   a fixed `t`; snap every visual gate at a fixed `t` (the look scenes snap `?t=3.0`).
+> - The displaced plane is a uniform grid (res 340) shaded per-fragment; that keeps the near
+>   field crisp without a graded grid. Foreground faceting (the old S2 risk) is resolved.
 >
 > **Global TODO (each item → owning slice):**
 > - [x] S1 — Technique bake-off spike + frozen seam + decision artifact → `slices/01-bakeoff-decision.md` (**Gerstner won**)
 > - [x] S2 — Wave silhouette / displacement (open-sea plane, neutral grey) → `slices/02-wave-silhouette.md` (**20-wave spectrum + waterShade**)
 > - [x] S3 — Whitecap foam coverage (granular height-keyed whitecaps) → `slices/03-foam-coverage.md`
-> - [ ] S4 — Sun-glint streak → `slices/04-sun-glint.md`
+> - [x] S4 — Sun-glint streak (banded specular, sun-tracking) → `slices/04-sun-glint.md`
 > - [ ] S5 — Water albedo + depth ramp × env preset (introduces `waterPalette`) → `slices/05-albedo-depth-ramp.md`
 > - [ ] S6 — Horizon haze / aerial perspective → `slices/06-horizon-haze.md`
 > - [ ] S7 — Animation rhythm (time-series GIF) → `slices/07-animation-rhythm.md`

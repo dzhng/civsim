@@ -46,6 +46,9 @@ export const meta = {
     "grass/foreground-close-lab-field-owned-micro-strand-candidates",
     "grass/foreground-close-lab-field-owned-micro-strand-crops",
     "grass/foreground-close-lab-field-owned-micro-strand-selected",
+    "grass/foreground-close-lab-field-owned-continuous-strand-texture-candidates",
+    "grass/foreground-close-lab-field-owned-continuous-strand-texture-crops",
+    "grass/foreground-close-lab-field-owned-continuous-strand-texture-selected",
   ],
   describe:
     "Grass-field route proving packed terrain-normal attributes, field-driven meadow material, and bounded blade accents.",
@@ -331,6 +334,47 @@ const FIELD_OWNED_MICRO_STRAND_CANDIDATES = [
       "grassPrimitiveFamily=field-domain-micro-strand&accentTufts=1300&accentFootprint=2.6&blades=26&bladeHeight=0.56&bladeWidth=0.036&bend=0.08&spread=0.28&surfaceBlend=0.48",
   },
 ];
+const FIELD_OWNED_CONTINUOUS_STRAND_TEXTURE_CANDIDATES = [
+  {
+    id: "b4b1a1w-field-material",
+    label: "B4B1A1W MATERIAL",
+    color: [88, 88, 88, 255],
+    query:
+      "grassPrimitiveFamily=field-fiber-shell&fiberShellVariant=off&accentTufts=0&blades=0&bodyDomainStrength=1.10&bodyDomainScale=0.86&bodyDomainContrast=0.72",
+    context: true,
+  },
+  {
+    id: "b4b1a1x-domain-shell",
+    label: "B4B1A1X SHELL",
+    color: [128, 88, 44, 255],
+    query:
+      "grassPrimitiveFamily=field-domain-shell&accentTufts=1850&accentFootprint=3.2&blades=10&bladeHeight=0.64&bladeWidth=0.060&bend=0.09&spread=0.34&surfaceBlend=0.54",
+    rejectedGeometry: true,
+  },
+  {
+    id: "b4b1a1y-micro-strand",
+    label: "B4B1A1Y MICRO",
+    color: [54, 116, 142, 255],
+    query:
+      "grassPrimitiveFamily=field-domain-micro-strand&accentTufts=1450&accentFootprint=2.4&blades=22&bladeHeight=0.46&bladeWidth=0.034&bend=0.07&spread=0.24&surfaceBlend=0.50",
+    rejectedGeometry: true,
+  },
+  {
+    id: "continuous-nap-field",
+    label: "CONT NAP",
+    color: [50, 132, 78, 255],
+    query:
+      "grassPrimitiveFamily=field-fiber-shell&fiberShellVariant=off&accentTufts=0&blades=0&bodyDomainId=field-continuous-strand-texture&bodyDomainStrength=1.62&bodyDomainScale=10.5&bodyDomainFiberFrequency=10.5&bodyDomainContrast=0.58",
+    selected: true,
+  },
+  {
+    id: "continuous-nap-fine",
+    label: "FINE NAP",
+    color: [72, 116, 62, 255],
+    query:
+      "grassPrimitiveFamily=field-fiber-shell&fiberShellVariant=off&accentTufts=0&blades=0&bodyDomainId=field-continuous-strand-texture&bodyDomainStrength=1.82&bodyDomainScale=16.5&bodyDomainFiberFrequency=16.5&bodyDomainContrast=0.64",
+  },
+];
 const SCALE_REPAIR_CANDIDATES = [
   { profile: "b4b1-current", color: [88, 88, 88, 255] },
   { profile: "scale-repair-low", color: [60, 116, 62, 255], selected: true },
@@ -371,6 +415,7 @@ export async function run(ctx) {
   await verifyForegroundCloseFieldOwnedBodyDomain(ctx);
   await verifyForegroundCloseFieldOwnedBodySilhouette(ctx);
   await verifyForegroundCloseFieldOwnedMicroStrand(ctx);
+  await verifyForegroundCloseFieldOwnedContinuousStrandTexture(ctx);
 }
 
 async function verifyPackedTilt(ctx) {
@@ -1875,6 +1920,145 @@ async function verifyForegroundCloseFieldOwnedMicroStrand(ctx) {
   });
 }
 
+async function verifyForegroundCloseFieldOwnedContinuousStrandTexture(ctx) {
+  const captures = [];
+  for (const candidate of FIELD_OWNED_CONTINUOUS_STRAND_TEXTURE_CANDIDATES) {
+    const page = await ctx.newPage({
+      viewport: { width: 900, height: 700 },
+      errorPrefix: `battle-grass-field-field-owned-continuous-strand-texture-${candidate.id}`,
+    });
+    await page.goto(
+      `${ctx.target}/renderer/battle-grass-field?mode=foreground-close-lab&labCameraProfile=b4b1a0-test-env&${candidate.query}`,
+    );
+    await page.waitForFunction(
+      () =>
+        window.__rendererLabReady === true &&
+        window.__rendererLabStats?.stats?.mode === "foreground-close-lab",
+      { timeout: 18000 },
+    );
+    await page.waitForTimeout(160);
+    const stats = await page.evaluate(() => window.__rendererLabStats?.stats ?? null);
+    if (stats?.route !== "battle-grass-field" || stats?.mode !== "foreground-close-lab") {
+      await page.close();
+      throw new Error(
+        `foreground close field-owned continuous strand texture did not publish valid stats for ${candidate.id}: ${JSON.stringify(stats)}`,
+      );
+    }
+    const shot = await page.locator("#renderer-canvas").screenshot();
+    captures.push({ ...candidate, stats, png: PNG.sync.read(shot) });
+    await page.close();
+  }
+
+  const context = captures.find((capture) => capture.context);
+  const rejectedGeometry = captures.filter((capture) => capture.rejectedGeometry);
+  const selected =
+    captures.find((capture) => capture.selected) ??
+    captures.find((capture) => !capture.context && !capture.rejectedGeometry) ??
+    captures[0];
+  const bodyCaptures = captures.filter((capture) => !capture.context && !capture.rejectedGeometry);
+  const windows = context.stats.lab?.reviewWindows;
+  const targetCloseHero = PNG.sync.read(await readFile(TARGET_CLOSE_HERO));
+  const baseCameraKey = JSON.stringify(context.stats.camera);
+  const baseFocusKey = JSON.stringify(context.stats.focus);
+  const baseFrozenKey = JSON.stringify(context.stats.lab?.frozenInputs);
+  const baseField = context.stats.field;
+  const domainStats = captures.map((capture) => ({
+    id: capture.id,
+    grass: capture.stats.grass,
+    meadow: capture.stats.ground?.meadow,
+    lab: capture.stats.lab,
+  }));
+
+  ctx.check(
+    "foreground close field-owned continuous strand texture freezes the accepted B4B1A0 lab",
+    captures.every(
+      (capture) =>
+        capture.stats.lab?.contract === "03B4C5B4B1A0" &&
+        capture.stats.lab?.cameraProfile === "b4b1a0-test-env" &&
+        capture.stats.lab?.cropPurpose === "test-environment-comparability-not-body-acceptance" &&
+        JSON.stringify(capture.stats.camera) === baseCameraKey &&
+        JSON.stringify(capture.stats.focus) === baseFocusKey &&
+        JSON.stringify(capture.stats.lab?.frozenInputs) === baseFrozenKey &&
+        capture.stats.field?.seed === baseField?.seed &&
+        capture.stats.field?.acceptedRecords === baseField?.acceptedRecords &&
+        capture.stats.field?.candidateCells === baseField?.candidateCells &&
+        capture.stats.ground?.meadow?.source === "field" &&
+        capture.stats.ground?.meadow?.rootMassEnabled === true,
+    ),
+    JSON.stringify(domainStats),
+  );
+  ctx.check(
+    "foreground close field-owned continuous strand texture keeps rejected W/X/Y contexts",
+    context?.stats.ground?.meadow?.bodyDomainId === "field-strand-material" &&
+      context?.stats.ground?.meadow?.bodyDomainMaterialOnly === true &&
+      rejectedGeometry.some(
+        (capture) =>
+          capture.stats.grass?.grassPrimitiveFamily === "field-domain-shell" &&
+          capture.stats.grass?.grassPrimitiveDomainSourceAttached === false,
+      ) &&
+      rejectedGeometry.some(
+        (capture) =>
+          capture.stats.grass?.grassPrimitiveFamily === "field-domain-micro-strand" &&
+          capture.stats.grass?.grassPrimitiveDomainSourceAttached === false,
+      ),
+    JSON.stringify(domainStats),
+  );
+  ctx.check(
+    "foreground close field-owned continuous strand texture publishes continuous material telemetry",
+    bodyCaptures.length ===
+      FIELD_OWNED_CONTINUOUS_STRAND_TEXTURE_CANDIDATES.filter(
+        (candidate) => !candidate.context && !candidate.rejectedGeometry,
+      ).length &&
+      bodyCaptures.every((capture) => {
+        const meadow = capture.stats.ground?.meadow;
+        const grass = capture.stats.grass;
+        return (
+          meadow?.bodyDomainEnabled === true &&
+          meadow?.bodyDomainId === "field-continuous-strand-texture" &&
+          meadow?.bodyDomainRepresentation === "continuous-strand-texture" &&
+          meadow?.bodyDomainMaterialOnly === true &&
+          meadow?.bodyDomainSourceAttached === false &&
+          meadow?.bodyDomainTextureWidth === meadow?.textureWidth &&
+          meadow?.bodyDomainTextureHeight === meadow?.textureHeight &&
+          meadow?.bodyDomainCellSize === meadow?.textureCellSize &&
+          meadow?.bodyDomainTextureBytes === meadow?.textureBytes &&
+          meadow?.bodyDomainMaterialBytes === meadow?.bodyDomainTextureBytes &&
+          meadow?.bodyDomainSubmittedTriangles === 0 &&
+          meadow?.bodyDomainCoverageAvg > 0.55 &&
+          meadow?.bodyDomainCoverageMedian > 0.55 &&
+          meadow?.bodyDomainCoverageMax <= 1 &&
+          meadow?.bodyDomainExposedGround < 0.18 &&
+          meadow?.bodyDomainFiberFrequency >= 8 &&
+          grass?.grassPrimitiveFamily === "field-fiber-shell" &&
+          grass?.fiberShellVariant === "off" &&
+          grass?.accentTufts === 0 &&
+          grass?.bladeInstances === 0 &&
+          grass?.submittedTriangles === 0 &&
+          grass?.drawCalls === 0
+        );
+      }),
+    JSON.stringify(domainStats),
+  );
+
+  await ctx.snap(
+    null,
+    "grass/foreground-close-lab-field-owned-continuous-strand-texture-candidates",
+    {
+      shot: PNG.sync.write(composeFieldOwnedBodyDomainCandidateSheet(targetCloseHero, captures)),
+    },
+  );
+  await ctx.snap(null, "grass/foreground-close-lab-field-owned-continuous-strand-texture-crops", {
+    shot: PNG.sync.write(composeFieldOwnedBodyDomainCropSheet(targetCloseHero, captures, windows)),
+  });
+  await ctx.snap(
+    null,
+    "grass/foreground-close-lab-field-owned-continuous-strand-texture-selected",
+    {
+      shot: PNG.sync.write(drawBodyArchitectureFull(selected.png, windows)),
+    },
+  );
+}
+
 function hasPackedTelemetry(stats) {
   const grass = stats?.grass;
   return (
@@ -2591,6 +2775,9 @@ function continuousStrandBodyLabel(capture) {
 function fieldOwnedBodyDomainLabel(capture) {
   const meadow = capture.stats.ground?.meadow;
   if (!meadow?.bodyDomainEnabled) return `${capture.label} CTX`;
+  if (meadow.bodyDomainId === "field-continuous-strand-texture") {
+    return `${capture.label} ${meadow.bodyDomainFiberFrequency.toFixed(1)}F ${meadow.bodyDomainCoverageMedian.toFixed(2)}M ${meadow.bodyDomainExposedGround.toFixed(2)}E`;
+  }
   return `${capture.label} ${meadow.bodyDomainCoverageMedian.toFixed(2)}M ${meadow.bodyDomainExposedGround.toFixed(2)}E`;
 }
 

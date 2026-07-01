@@ -49,6 +49,7 @@ struct GroundUniform {
   meadow2: vec4f,
   meadow3: vec4f,
   meadow4: vec4f,
+  meadow5: vec4f,
 };
 @group(1) @binding(0) var<uniform> ground: GroundUniform;
 @group(1) @binding(1) var meadowSampler: sampler;
@@ -131,6 +132,9 @@ fn meadowCarpet(world: vec2f, axes: vec2f, field: vec4f, screen: vec2f) -> vec3f
   let bodyDomainStrength = clamp(ground.meadow4.y, 0.0, 2.0);
   let bodyDomainScale = max(0.01, ground.meadow4.z);
   let bodyDomainContrast = clamp(ground.meadow4.w, 0.35, 2.5);
+  let bodyDomainMode = ground.meadow5.x;
+  let bodyDomainFrequency = max(0.01, ground.meadow5.y);
+  let continuousBodyDomain = step(0.5, bodyDomainMode);
   let fieldClump = rootMassField * rootMassEnabled;
   let rootMassRaw = pow(rootMassField, rootMassContrast);
   let rootMass = smoothstep(0.035, 0.72, rootMassRaw) * rootMassEnabled * fieldEnabled;
@@ -222,6 +226,23 @@ fn meadowCarpet(world: vec2f, axes: vec2f, field: vec4f, screen: vec2f) -> vec3f
   let bodyStrands = bodyStrandA * 0.46 + bodyStrandB * 0.34 + bodyStrandFine * 0.20;
   let bodyLift = smoothstep(0.48, 0.84, bodyStrands);
   let bodyShadow = smoothstep(0.10, 0.38, bodyStrands);
+  let napWarp = vec2f(
+    fbm(world * 0.180 + vec2f(fieldPhase * 9.3, fieldCoverageRaw * 6.1)) - 0.5,
+    fbm(world * 0.230 + vec2f(fieldClump * 8.7, fieldPhase * 6.3)) - 0.5
+  );
+  let napA = ridge(vec2f(
+    along * bodyDomainFrequency + napWarp.x * 7.4 + fieldPhase * 5.1,
+    across * bodyDomainFrequency * 0.075 + napWarp.y * 4.0 + fieldClump * 2.8
+  ));
+  let napB = ridge(vec2f(
+    along * bodyDomainFrequency * 1.67 + napWarp.x * 8.6 + fieldCoverageRaw * 6.2,
+    across * bodyDomainFrequency * 0.120 + napWarp.y * 5.2 + fieldPhase * 4.1
+  ));
+  let napFine = fbm(world * (bodyDomainFrequency * 0.92) + napWarp * 8.8 + vec2f(fieldPhase * 8.7, fieldClump * 7.9));
+  let screenNap = ridge(screen * vec2f(0.170, 0.036) + napWarp * 11.0 + vec2f(fieldPhase * 7.0, fieldClump * 5.0));
+  let continuousNap = napA * 0.36 + napB * 0.28 + napFine * 0.22 + screenNap * 0.14;
+  let continuousLift = smoothstep(0.50, 0.82, continuousNap);
+  let continuousShadow = smoothstep(0.12, 0.40, continuousNap);
   let fieldTone = fieldRaw - 0.48;
   let fieldClumpWeight = smoothstep(0.08, 0.82, fieldClump);
   let mat = mix(smoothstep(0.30, 0.78, broad), fieldCoverage, fieldDetailPresence * 0.82);
@@ -256,9 +277,12 @@ fn meadowCarpet(world: vec2f, axes: vec2f, field: vec4f, screen: vec2f) -> vec3f
   col = mix(col, shadow, fieldThatchShadow * fieldDetailPresence * (0.050 + nearT * 0.046));
   col = mix(col, lift, screenFiberLift * fieldPresence * (0.026 + nearT * 0.028));
   col = mix(col, shadow, screenFiberShadow * fieldPresence * (0.026 + nearT * 0.028));
-  col = mix(col, vec3f(0.57, 0.65, 0.46), bodyDomainPresence * bodyDomainStrength * (0.16 + nearT * 0.10));
-  col = mix(col, lift, bodyLift * bodyDomainPresence * bodyDomainStrength * (0.10 + nearT * 0.09));
-  col = mix(col, shadow, bodyShadow * bodyDomainPresence * bodyDomainStrength * (0.095 + nearT * 0.085));
+  col = mix(col, vec3f(0.57, 0.65, 0.46), bodyDomainPresence * bodyDomainStrength * (1.0 - continuousBodyDomain) * (0.16 + nearT * 0.10));
+  col = mix(col, lift, bodyLift * bodyDomainPresence * bodyDomainStrength * (1.0 - continuousBodyDomain) * (0.10 + nearT * 0.09));
+  col = mix(col, shadow, bodyShadow * bodyDomainPresence * bodyDomainStrength * (1.0 - continuousBodyDomain) * (0.095 + nearT * 0.085));
+  col = mix(col, vec3f(0.55, 0.63, 0.46), bodyDomainPresence * bodyDomainStrength * continuousBodyDomain * (0.10 + nearT * 0.08));
+  col = mix(col, lift, continuousLift * bodyDomainPresence * bodyDomainStrength * continuousBodyDomain * (0.15 + nearT * 0.16));
+  col = mix(col, shadow, continuousShadow * bodyDomainPresence * bodyDomainStrength * continuousBodyDomain * (0.13 + nearT * 0.15));
   col = mix(col, lift, smoothstep(0.54, 0.82, fieldPatch) * fieldDetailPresence * (0.070 + nearT * 0.050));
   col = mix(col, shadow, smoothstep(0.18, 0.42, fieldPatch) * fieldDetailPresence * (0.060 + nearT * 0.055));
   col = mix(col, shadow, (1.0 - fieldMass) * fieldDetailPresence * (0.11 + nearT * 0.07));
@@ -377,8 +401,12 @@ export class BattleGroundPass {
     bodyDomainCoverageMedian: 0,
     bodyDomainExposedGround: 1,
     bodyDomainTextureBytes: 4,
+    bodyDomainMaterialBytes: 0,
     bodyDomainSubmittedTriangles: 0,
     bodyDomainMaterialOnly: true,
+    bodyDomainRepresentation: 'off',
+    bodyDomainFiberFrequency: 0,
+    bodyDomainSourceAttached: false,
   };
 
   constructor(private shell: RawFrameShell) {
@@ -414,7 +442,7 @@ export class BattleGroundPass {
     });
     this.uniformBuffer = shell.device.createBuffer({
       label: 'battle-ground-uniforms',
-      size: 20 * 4,
+      size: 24 * 4,
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
     });
     this.meadowSampler = shell.device.createSampler({
@@ -487,8 +515,12 @@ export class BattleGroundPass {
       bodyDomainCoverageMedian: 0,
       bodyDomainExposedGround: 1,
       bodyDomainTextureBytes: 4,
+      bodyDomainMaterialBytes: 0,
       bodyDomainSubmittedTriangles: 0,
       bodyDomainMaterialOnly: true,
+      bodyDomainRepresentation: 'off',
+      bodyDomainFiberFrequency: 0,
+      bodyDomainSourceAttached: false,
     };
     this.writeMeadowUniforms([
       enabled,
@@ -511,6 +543,10 @@ export class BattleGroundPass {
       0,
       1,
       1,
+      0,
+      0,
+      0,
+      0,
     ]);
   }
 
@@ -525,6 +561,13 @@ export class BattleGroundPass {
     const bodyDomainStrength = Math.max(0, Math.min(2, Number.isFinite(params.bodyDomainStrength) ? params.bodyDomainStrength! : 0));
     const bodyDomainScale = Math.max(0.01, Number.isFinite(params.bodyDomainScale) ? params.bodyDomainScale! : 0.84);
     const bodyDomainContrast = Math.max(0.35, Math.min(2.5, Number.isFinite(params.bodyDomainContrast) ? params.bodyDomainContrast! : 0.82));
+    const requestedBodyDomainId = params.bodyDomainId === 'field-continuous-strand-texture'
+      ? 'field-continuous-strand-texture'
+      : 'field-strand-material';
+    const bodyDomainId = bodyDomainStrength > 0 ? requestedBodyDomainId : 'off';
+    const bodyDomainMode = bodyDomainId === 'field-continuous-strand-texture' ? 1 : 0;
+    const bodyDomainFiberFrequency = bodyDomainStrength > 0 ? Math.max(0.01, Number.isFinite(params.bodyDomainFiberFrequency) ? params.bodyDomainFiberFrequency! : bodyDomainScale) : 0;
+    const bodyDomainTextureBytes = bodyDomainStrength > 0 ? texture.width * texture.height * 4 : 0;
     this.meadowTexture.destroy();
     this.meadowTexture = createMeadowTexture(this.shell.device, texture.width, texture.height, texture.pixels, texture.bytesPerRow);
     this.groundBindGroup = this.createGroundBindGroup();
@@ -554,7 +597,7 @@ export class BattleGroundPass {
       rootMassAvg: texture.rootMassAvg,
       rootMassSpread: texture.rootMassSpread,
       bodyDomainEnabled: bodyDomainStrength > 0,
-      bodyDomainId: bodyDomainStrength > 0 ? 'field-strand-material' : 'off',
+      bodyDomainId,
       bodyDomainTextureWidth: texture.width,
       bodyDomainTextureHeight: texture.height,
       bodyDomainCellSize: texture.cellSize,
@@ -564,8 +607,12 @@ export class BattleGroundPass {
       bodyDomainCoverageMedian: texture.bodyDomainCoverageMedian,
       bodyDomainExposedGround: texture.bodyDomainExposedGround,
       bodyDomainTextureBytes: texture.width * texture.height * 4,
+      bodyDomainMaterialBytes: bodyDomainTextureBytes,
       bodyDomainSubmittedTriangles: 0,
       bodyDomainMaterialOnly: true,
+      bodyDomainRepresentation: bodyDomainId === 'field-continuous-strand-texture' ? 'continuous-strand-texture' : bodyDomainId === 'field-strand-material' ? 'field-strand-material' : 'off',
+      bodyDomainFiberFrequency,
+      bodyDomainSourceAttached: false,
     };
     this.writeMeadowUniforms([
       enabled,
@@ -588,6 +635,10 @@ export class BattleGroundPass {
       bodyDomainStrength,
       bodyDomainScale,
       bodyDomainContrast,
+      bodyDomainMode,
+      bodyDomainFiberFrequency,
+      0,
+      0,
     ]);
   }
 
@@ -732,6 +783,8 @@ export interface BattleMeadowParams {
   bodyDomainStrength?: number;
   bodyDomainScale?: number;
   bodyDomainContrast?: number;
+  bodyDomainId?: 'field-strand-material' | 'field-continuous-strand-texture';
+  bodyDomainFiberFrequency?: number;
 }
 
 function buildMeadowTexture(snapshot: GrassFieldSnapshot, bounds: BattleMeadowBounds, params: BattleMeadowParams) {

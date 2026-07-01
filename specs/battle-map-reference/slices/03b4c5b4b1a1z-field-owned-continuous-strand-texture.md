@@ -70,7 +70,24 @@ an unbounded texture/triangle cost before the continuous body appears.
 
 ## Next Slice
 
-If accepted, continue to
-`03b4c5b4b1a2-close-body-perf-envelope.md`. If rejected, reslice close-body
-ownership/representation again before perf, coverage, palette, LOD,
-camera-relative generation, or final compose.
+Rejected on 2026-07-01. Evidence lives under
+`assets/03b4-evidence/03b4c5-close-foreground-lab/field-owned-continuous-strand-texture/`.
+
+The seam worked mechanically: the selected candidate published
+`field-continuous-strand-texture`, `continuous-strand-texture`, `24x20` texture
+domain, `1920` texture/material bytes, `10.5` fiber frequency, zero submitted
+triangles, and `sourceAttached=false`. The visual failed anyway. The crop reads
+as flat green terrain with faint diagonal scratches, not target-like close
+grass body. Against the target close crop, `continuous-nap-field` records only
+`0.23408x` target edge energy (`parityDistance=0.37502`), and
+`continuous-nap-fine` records `0.35048x` (`parityDistance=0.37718`). Against
+rejected B4B1A1Y micro-strand, `continuous-nap-field` is nearly the same failed
+read (`parityDistance=0.05460`). The unprimed critique called out a flat painted
+plane, wrong ground-plane perspective, too-faint strand scale, missing
+bottom-edge foreground structure, broad smear bands instead of interleaved grass
+clusters, procedural regularity, narrow value range, and weak scan readability.
+
+Do not continue to perf. Continue to
+`03b4c5b4b1a1aa-field-owned-foreground-occlusion-blade-layer.md`, which keeps
+field ownership but tests the newly exposed missing variable: lower-foreground
+upright/occluding blade body over the fixed close lab.

@@ -1,12 +1,12 @@
-// S3 perf-spike card bar: the SAME Total-War unit-card strip as the vanilla
-// UnitCards, but the structure is React and the 60Hz refresh is imperative.
+// The Total-War unit-card strip: structure in React, the 60Hz refresh imperative.
 //
-// The architecture the whole migration hinges on (README decision 3): React
+// The load-bearing seam of the React UI (see specs/done/ui-react-migration): React
 // builds the card STRUCTURE only — and only when the roster changes (rare). The
 // per-frame bar widths / colours / count / sel / rout are written straight to
 // ref'd DOM nodes by the existing rAF loop, through the SAME cardStateKey +
-// applyCardVisual helpers the vanilla bar uses. React's render/commit never runs
-// at 60Hz. S3 measures this against the vanilla bar; S6 keeps whichever wins.
+// applyCardVisual helpers, so React's render/commit never runs at 60Hz. A perf
+// spike measured this against the old vanilla bar (Δ ≈ 0) before it became the
+// default; keep that true — never route a per-frame value through React state.
 
 import {
   createElement, forwardRef, useEffect, useImperativeHandle, useLayoutEffect, useRef, useState,

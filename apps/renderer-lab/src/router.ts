@@ -3033,6 +3033,10 @@ async function routeWaterBakeoff(ctx: LabContext) {
   const camName = ctx.params.get('cam') === 'campaign' ? 'campaign' : 'battle';
   const forceUnsupported = ctx.params.get('computeUnsupported') === '1';
   const ifftResolution = integerParam(ctx.params, 'n', 128, 64, 256);
+  // Sun azimuth toward +y (the view direction) with a low elevation puts the
+  // glint streak up the centre of the frame; sweep `sunAz` to move it.
+  const sunAz = numberParam(ctx.params, 'sunAz', Math.PI / 2);
+  const sunEl = numberParam(ctx.params, 'sunEl', 0.3);
   const fixedT = ctx.params.has('t') ? numberParam(ctx.params, 't', 0) : null;
 
   const shell = await createFrameShell(ctx.canvas, { enableGpuTimer: true });
@@ -3042,6 +3046,7 @@ async function routeWaterBakeoff(ctx: LabContext) {
     ? { x: 0, y: 90, zoom: 3.4, pitch: 0.42, yaw: 0, perspective: 0.02 }
     : { x: 0, y: -6, zoom: 2.6, pitch: 0.30, yaw: 0, perspective: 0.032 };
   shell.setCamera(camera);
+  shell.setSun(sunAz, sunEl);
 
   // The preset only tints the sky clear colour for now; the water albedo stays
   // neutral grey until the colour/depth slice. Dusk is the reference's mood.

@@ -11,7 +11,18 @@ export interface CameraSnapshot {
    *  so any fragment/vertex stage can drive time-varying effects (water, etc.)
    *  without a second bind group. Defaults to 0 — unset means a frozen frame. */
   time?: number;
+  /** Sun azimuth/elevation (radians) packed into the remaining camera pads — the
+   *  frame's light direction for water glint (and future sky/effects). Defaults to
+   *  the battle sun convention so an unset sun matches terrain lighting. */
+  sunAzimuth?: number;
+  sunElevation?: number;
 }
+
+// The battle sun convention (cf. horizonPass/groundPass inline `normalize(...)`),
+// expressed as azimuth/elevation so water glint agrees with terrain lighting when
+// no preset overrides it.
+export const DEFAULT_SUN_AZIMUTH = Math.atan2(-0.28, -0.40);
+export const DEFAULT_SUN_ELEVATION = Math.asin(0.87 / Math.hypot(0.40, 0.28, 0.87));
 
 export function cameraUniformData(camera: CameraSnapshot): Float32Array {
   const pitch = camera.pitch ?? 0;
@@ -27,8 +38,8 @@ export function cameraUniformData(camera: CameraSnapshot): Float32Array {
     Math.sin(yaw),
     Math.max(0, camera.perspective ?? 0),
     camera.time ?? 0,
-    0,
-    0,
+    camera.sunAzimuth ?? DEFAULT_SUN_AZIMUTH,
+    camera.sunElevation ?? DEFAULT_SUN_ELEVATION,
   ]);
 }
 

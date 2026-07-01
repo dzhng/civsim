@@ -22,6 +22,9 @@ export const meta = {
     "grass/foreground-close-lab-body-architecture-candidates",
     "grass/foreground-close-lab-body-architecture-crops",
     "grass/foreground-close-lab-body-architecture-selected",
+    "grass/foreground-close-lab-body-continuity-candidates",
+    "grass/foreground-close-lab-body-continuity-crops",
+    "grass/foreground-close-lab-body-continuity-selected",
   ],
   describe:
     "Grass-field route proving packed terrain-normal attributes, field-driven meadow material, and bounded blade accents.",
@@ -72,6 +75,33 @@ const BODY_ARCHITECTURE_CANDIDATES = [
     artifact: "pixel grit",
   },
 ];
+const BODY_CONTINUITY_REPAIR_CANDIDATES = [
+  {
+    profile: "current",
+    label: "REJECTED CURRENT",
+    color: [92, 83, 46, 255],
+    artifact: "curtain islands",
+  },
+  {
+    profile: "seated-soft",
+    label: "SEATED SOFT",
+    color: [82, 119, 64, 255],
+    artifact: "seated roots",
+  },
+  {
+    profile: "overlap-stagger",
+    label: "OVERLAP STAGGER",
+    color: [62, 112, 122, 255],
+    artifact: "staggered sheets",
+    selected: true,
+  },
+  {
+    profile: "broken-lattice",
+    label: "BROKEN LATTICE",
+    color: [120, 90, 142, 255],
+    artifact: "fine lattice",
+  },
+];
 const SCALE_REPAIR_CANDIDATES = [
   { profile: "b4b1-current", color: [88, 88, 88, 255] },
   { profile: "scale-repair-low", color: [60, 116, 62, 255], selected: true },
@@ -104,6 +134,7 @@ export async function run(ctx) {
   await verifyForegroundCloseLabScaleRepair(ctx);
   await verifyForegroundCloseLabTestEnvironment(ctx);
   await verifyForegroundCloseBodyArchitectureMatrix(ctx);
+  await verifyForegroundCloseBodyContinuityRepair(ctx);
 }
 
 async function verifyPackedTilt(ctx) {
@@ -713,6 +744,109 @@ async function verifyForegroundCloseBodyArchitectureMatrix(ctx) {
   });
 }
 
+async function verifyForegroundCloseBodyContinuityRepair(ctx) {
+  const captures = [];
+  for (const candidate of BODY_CONTINUITY_REPAIR_CANDIDATES) {
+    const page = await ctx.newPage({
+      viewport: { width: 1280, height: 800 },
+      errorPrefix: `battle-grass-field-close-body-repair-${candidate.profile}`,
+    });
+    await page.goto(
+      `${ctx.target}/renderer/battle-grass-field?mode=foreground-close-lab&labCameraProfile=b4b1a0-test-env&grassPrimitiveFamily=texture-volume&textureVolumeProfile=${candidate.profile}`,
+    );
+    await page.waitForFunction(
+      () =>
+        window.__rendererLabReady === true &&
+        window.__rendererLabStats?.stats?.mode === "foreground-close-lab",
+      { timeout: 18000 },
+    );
+    await page.waitForTimeout(160);
+    const stats = await page.evaluate(() => window.__rendererLabStats?.stats ?? null);
+    if (stats?.route !== "battle-grass-field" || stats?.mode !== "foreground-close-lab") {
+      await page.close();
+      throw new Error(
+        `foreground close body continuity repair did not publish valid stats for ${candidate.profile}: ${JSON.stringify(stats)}`,
+      );
+    }
+    const shot = await page.locator("#renderer-canvas").screenshot();
+    captures.push({ ...candidate, family: "texture-volume", stats, png: PNG.sync.read(shot) });
+    await page.close();
+  }
+
+  const baseline = captures.find((capture) => capture.profile === "current");
+  const selected = captures.find((capture) => capture.selected) ?? captures[0];
+  const windows = baseline.stats.lab?.reviewWindows;
+  const targetCloseHero = PNG.sync.read(await readFile(TARGET_CLOSE_HERO));
+  const baseCameraKey = JSON.stringify(baseline.stats.camera);
+  const baseFocusKey = JSON.stringify(baseline.stats.focus);
+  const baseFrozenKey = JSON.stringify(baseline.stats.lab?.frozenInputs);
+  const baseField = baseline.stats.field;
+  const repairStats = captures.map((capture) => ({
+    profile: capture.profile,
+    artifact: capture.artifact,
+    grass: capture.stats.grass,
+    ground: capture.stats.ground?.meadow,
+    lab: capture.stats.lab,
+  }));
+
+  ctx.check(
+    "foreground close body continuity repair freezes the accepted B4B1A0 lab",
+    captures.every(
+      (capture) =>
+        capture.stats.lab?.contract === "03B4C5B4B1A0" &&
+        capture.stats.lab?.cameraProfile === "b4b1a0-test-env" &&
+        capture.stats.lab?.cropPurpose === "test-environment-comparability-not-body-acceptance" &&
+        JSON.stringify(capture.stats.camera) === baseCameraKey &&
+        JSON.stringify(capture.stats.focus) === baseFocusKey &&
+        JSON.stringify(capture.stats.lab?.frozenInputs) === baseFrozenKey &&
+        capture.stats.field?.seed === baseField?.seed &&
+        capture.stats.field?.acceptedRecords === baseField?.acceptedRecords &&
+        capture.stats.field?.candidateCells === baseField?.candidateCells &&
+        capture.stats.ground?.meadow?.source === "field" &&
+        capture.stats.ground?.meadow?.rootMassEnabled === true,
+    ),
+    JSON.stringify(repairStats),
+  );
+  ctx.check(
+    "foreground close body continuity repair compares texture-volume profiles only",
+    captures.length === BODY_CONTINUITY_REPAIR_CANDIDATES.length &&
+      captures.every(
+        (capture) =>
+          capture.stats.grass?.grassPrimitiveFamily === "texture-volume" &&
+          capture.stats.grass?.accentStyle === "volume-card" &&
+          capture.stats.grass?.accentAggregation === "field-cell" &&
+          capture.stats.grass?.textureVolumeProfile === capture.profile,
+      ),
+    JSON.stringify(repairStats),
+  );
+  ctx.check(
+    "foreground close body continuity repair keeps comparable primitive budgets",
+    captures.every(
+      (capture) =>
+        capture.stats.grass?.drawCalls === 1 &&
+        capture.stats.grass?.submittedTriangles > 0 &&
+        capture.stats.grass?.submittedTriangles < 83200 &&
+        capture.stats.grass?.tuftInstances > 20 &&
+        capture.stats.grass?.tuftInstances <= capture.stats.grass?.fieldRecords &&
+        capture.stats.grass?.fieldRecords === baseField?.acceptedRecords &&
+        capture.stats.grass?.grassPrimitiveSourceRecords > 0 &&
+        capture.stats.grass?.grassPrimitiveRecords === capture.stats.grass?.tuftInstances &&
+        capture.stats.grass?.instanceBytes === capture.stats.grass?.tuftInstances * 16 * 4,
+    ),
+    JSON.stringify(repairStats),
+  );
+
+  await ctx.snap(null, "grass/foreground-close-lab-body-continuity-candidates", {
+    shot: PNG.sync.write(composeBodyContinuityCandidateSheet(targetCloseHero, captures)),
+  });
+  await ctx.snap(null, "grass/foreground-close-lab-body-continuity-crops", {
+    shot: PNG.sync.write(composeBodyContinuityCropSheet(targetCloseHero, captures, windows)),
+  });
+  await ctx.snap(null, "grass/foreground-close-lab-body-continuity-selected", {
+    shot: PNG.sync.write(drawBodyArchitectureFull(selected.png, windows)),
+  });
+}
+
 function hasPackedTelemetry(stats) {
   const grass = stats?.grass;
   return (
@@ -1009,6 +1143,56 @@ function composeBodyArchitectureCropSheet(targetCloseHero, captures, windows) {
   return composeGrid([target, ...closeCrops, ...tightCrops], 4);
 }
 
+function composeBodyContinuityCandidateSheet(targetCloseHero, captures) {
+  const target = captioned(
+    bordered(withScaleGuides(resizeToWidth(targetCloseHero, 360)), [190, 42, 28, 255]),
+    "TARGET CLOSE",
+  );
+  const crops = captures.map((capture) =>
+    captioned(
+      bordered(
+        withScaleGuides(
+          resizeToWidth(cropRatio(capture.png, capture.stats.lab.reviewWindows.closeHero), 360),
+          { proxies: true },
+        ),
+        capture.color,
+      ),
+      bodyContinuityLabel(capture),
+    ),
+  );
+  return composeGrid([target, ...crops], 3);
+}
+
+function composeBodyContinuityCropSheet(targetCloseHero, captures, windows) {
+  const target = captioned(
+    bordered(withScaleGuides(resizeToWidth(targetCloseHero, 360)), [190, 42, 28, 255]),
+    "TARGET CLOSE",
+  );
+  const closeCrops = captures.map((capture) =>
+    captioned(
+      bordered(
+        withScaleGuides(resizeToWidth(cropRatio(capture.png, windows.closeHero), 360), {
+          proxies: true,
+        }),
+        capture.color,
+      ),
+      bodyContinuityLabel(capture),
+    ),
+  );
+  const tightCrops = captures.map((capture) =>
+    captioned(
+      bordered(
+        withScaleGuides(resizeToWidth(cropRatio(capture.png, windows.closeTight2x), 360), {
+          proxies: true,
+        }),
+        capture.color,
+      ),
+      `2X ${bodyContinuityShortLabel(capture.profile)}`,
+    ),
+  );
+  return composeGrid([target, ...closeCrops, ...tightCrops], 3);
+}
+
 function bodyArchitectureLabel(capture) {
   return `${bodyArchitectureShortLabel(capture.family)} ${capture.stats.grass.submittedTriangles}T`;
 }
@@ -1022,6 +1206,18 @@ function bodyArchitectureShortLabel(family) {
   if (family === "texture-carrier") return "TEX CARRIER";
   if (family === "texture-micro-carrier") return "MICRO CARRIER";
   return String(family).toUpperCase();
+}
+
+function bodyContinuityLabel(capture) {
+  return `${bodyContinuityShortLabel(capture.profile)} ${capture.stats.grass.submittedTriangles}T`;
+}
+
+function bodyContinuityShortLabel(profile) {
+  if (profile === "current") return "CURRENT";
+  if (profile === "seated-soft") return "SEATED";
+  if (profile === "overlap-stagger") return "STAGGER";
+  if (profile === "broken-lattice") return "LATTICE";
+  return String(profile).toUpperCase();
 }
 
 function closeLabProfileLabel(profile) {

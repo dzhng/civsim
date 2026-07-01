@@ -56,6 +56,17 @@ variables, or if the variant has no credible path to camera-relative LOD.
 
 ## Next Slice
 
-If accepted, continue with `03b4c5b4b1a2-close-body-perf-envelope.md` using the
-repaired `texture-volume` architecture. If rejected, reslice the architecture
-search again before perf or coverage tuning.
+Result: rejected. Evidence lives under
+`assets/03b4-evidence/03b4c5-close-foreground-lab/body-continuity-repair/`.
+The tested profiles (`current`, `seated-soft`, `overlap-stagger`,
+`broken-lattice`) did not produce an acceptable body. Direct inspection,
+`compare-screenshots`, and unprimed `screenshot-critique` all agree: the path is
+trapped between separated curtain/hay-mat islands, giant starburst/card sheets,
+and smooth exposed ground.
+
+Continue with
+`03b4c5b4b1a1s-texture-volume-alpha-render-model.md` before any perf envelope or
+coverage tuning. If that render-model slice is accepted, then continue with
+`03b4c5b4b1a2-close-body-perf-envelope.md` using the repaired `texture-volume`
+architecture and render model. If rejected, reslice the architecture search away
+from texture-volume cards before perf or coverage tuning.

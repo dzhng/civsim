@@ -12,7 +12,7 @@ fog, terrain silhouette, and full `battle-map-reference` compose.
 
 ## Approach
 
-- Freeze the accepted B4B1A0 close test surface, B4B1A1R body technique, B4B1A2
+- Freeze the accepted B4B1A0 close test surface, B4B1A1S body render model, B4B1A2
   perf envelope, B4B2 body coverage, B4B3 strand scale, and B4B4 clump rhythm.
 - Use the battle-map-reference/aesthetics grass palette and existing grass colour
   constants as the source of truth. Do not introduce generic saturated greens or

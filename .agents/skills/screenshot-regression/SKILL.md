@@ -88,6 +88,15 @@ ran, and `class_specs` panicked the moment a real build loaded it.
 
 ## Taking a screenshot (ad-hoc, to look at something)
 
+Headless Chrome + hardware GPU is the blessed local capture mode for WebGPU
+visual baselines. Use `VERIFY_BROWSER_CHANNEL=chrome
+VERIFY_GPU_ADAPTER=hardware` with `VERIFY_GPU=1`, and do not set
+`VERIFY_HEADFUL=1` unless the user explicitly asks to watch a live browser or
+you are reproducing a headful-only bug. Bundled headless Chromium may fail to
+boot WebGPU scenes on this Mac, so use the installed Chrome channel for
+baseline work. The review surface is the saved PNG/GIF artifacts, not the live
+browser window.
+
 Dev server first (5173 is usually taken by the old `/Users/david/dev/game`
 checkout — don't kill it):
 
@@ -234,14 +243,12 @@ skip the internal `page.screenshot()`.
 5. **Wait ~250 ms after moving the camera** so a frame actually renders; the
    `cam()` hook updates the projection synchronously but the canvas repaints
    on the next rAF.
-6. **Record adapter provenance when SwiftShader is unavailable.** The canonical
-   WebGPU baseline device is SwiftShader. If this Mac cannot obtain a
-   SwiftShader adapter and you must capture with hardware/Metal, prove the shot
-   is deterministic on that adapter with a second run, record the exact adapter
-   env, and warn that stone-dense model or terrain sheets may need a one-time
-   SwiftShader re-bless in CI. Do not treat a hardware-vs-baseline diff over the
-   2% budget as a product regression until you have compared against pre-change
-   code or a canonical SwiftShader capture.
+6. **Record adapter provenance.** WebGPU baselines in this repo are blessed on
+   this Mac with installed Chrome in headless mode using hardware/Metal:
+   `VERIFY_GPU=1 VERIFY_GPU_ADAPTER=hardware VERIFY_BROWSER_CHANNEL=chrome`.
+   If another adapter, channel, or headful/headless mode is used, name it in the
+   handoff and prove determinism with a second run before treating the pixels as
+   canonical.
 
 ## When a snapshot fails
 
@@ -252,8 +259,8 @@ skip the internal `page.screenshot()`.
 3. Intentional visual change → re-bless and commit the new baselines:
 
 ```sh
-UPDATE_SHOTS=1 VERIFY_GPU=1 VERIFY_URL=http://localhost:5174 node scene.mjs campaign-lod
-UPDATE_SHOTS=1 VERIFY_GPU=1 VERIFY_URL=http://localhost:5174 node scene.mjs battle-renderer-default
+UPDATE_SHOTS=1 VERIFY_GPU=1 VERIFY_GPU_ADAPTER=hardware VERIFY_BROWSER_CHANNEL=chrome VERIFY_URL=http://localhost:5174 node scene.mjs campaign-lod
+UPDATE_SHOTS=1 VERIFY_GPU=1 VERIFY_GPU_ADAPTER=hardware VERIFY_BROWSER_CHANNEL=chrome VERIFY_URL=http://localhost:5174 node scene.mjs battle-renderer-default
 ```
 
 Vibe and model-sheet re-blesses clear their baseline folder first (and the vibe
@@ -284,5 +291,5 @@ After touching `snapshot.mjs` or the freeze paths, run a mutation test: make
 a small visible change (a shader color constant, a marker size), run the
 harness, and confirm the snapshot FAILS. A subtle real change once slipped
 under pixelmatch's default 0.1 threshold — that's why comparisons are exact.
-Baselines are per-platform (font/GPU rasterization differs across OSes); they
-are blessed on this Mac, headless chromium.
+Baselines are per-platform and per browser mode (font/GPU rasterization differs
+across OSes, adapters, channels, and headful/headless capture).

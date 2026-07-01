@@ -1,10 +1,11 @@
 import type { RawFrameShell, WorldRenderPass } from '../../../renderer-core/src/frameShell';
 import { WORLD_CAMERA_WGSL } from '../../../renderer-core/src/cameraWgsl';
-import { gpuOpaqueColorTarget, gpuWorldDepthStencil } from '../../../renderer-core/src/pipelineContracts';
+import { gpuMultisample, gpuOpaqueColorTarget, gpuWorldDepthStencil } from '../../../renderer-core/src/pipelineContracts';
 import { compileShader } from '../../../renderer-core/src/compileShader';
 import type { BattleGroundCover, BattleTerrainGrid } from './terrainFeatures';
 import { terrainHeightAt, type TerrainHeightField } from '../terrain/heightField';
 import type { GrassFieldSnapshot } from './grassField';
+import { FIELD_WATER_WGSL } from '../water/fieldWaterWgsl';
 
 // The rolling battle ground: a height-displaced grid mesh that replaces the flat
 // terrain quads, so soldiers, shadows, and props (which seat on the same height
@@ -20,8 +21,10 @@ const GROUND_COVER_COLOR: Record<BattleGroundCover, [number, number, number]> = 
 };
 
 // Feature tints (sim tint byte → overlay colour); grass (0) keeps the cover.
+// Water (tint 1, WATER_TINT) is deliberately absent — it is no longer a flat overlay
+// colour but the shared `waterShade` material, keyed per-vertex by the box-filtered
+// water weight (the location(3) `water` attribute) and blended in the fs water branch.
 const TINT_COLOR: Record<number, [number, number, number]> = {
-  1: [0.26, 0.40, 0.52], // water
   2: [0.50, 0.47, 0.42], // rock
   3: [0.55, 0.52, 0.47], // wall
   4: [0.24, 0.34, 0.19], // forest floor
@@ -29,6 +32,15 @@ const TINT_COLOR: Record<number, [number, number, number]> = {
   6: [0.56, 0.53, 0.45], // scree/rough
 };
 
+// The sim tint byte that means water — its cells carry the shared water material.
+const WATER_TINT = 1;
+
+// The field-water material is analytic Gerstner (no GPU resources, no bind group)
+// evaluated per-fragment on the ground mesh — the mesh z stays the gameplay height
+// field, so soldiers and props seat exactly as before. The water WGSL is the shared
+// FIELD_WATER_WGSL, single-sourced with the lab terrainPass fixtures and built on
+// the same frozen open-sea look as the horizon plane, so all civsim water is one
+// material.
 const GROUND_WGSL = `
 ${WORLD_CAMERA_WGSL}
 struct GroundUniform {
@@ -41,13 +53,15 @@ struct GroundUniform {
 @group(1) @binding(1) var meadowSampler: sampler;
 @group(1) @binding(2) var meadowTexture: texture_2d<f32>;
 
+${FIELD_WATER_WGSL}
 struct VsOut {
   @builtin(position) pos: vec4f,
   @location(0) color: vec3f,
   @location(1) light: f32,
   @location(2) world: vec2f,
-  @location(3) fog: f32,
-  @location(4) axes: vec2f,
+  @location(3) water: f32,
+  @location(4) fog: f32,
+  @location(5) axes: vec2f,
 };
 
 fn hash(p: vec2f) -> f32 {
@@ -228,7 +242,7 @@ fn meadowCarpet(world: vec2f, axes: vec2f, field: vec4f, screen: vec2f) -> vec3f
 }
 
 @vertex
-fn vs(@location(0) world: vec3f, @location(1) normal: vec3f, @location(2) color: vec3f) -> VsOut {
+fn vs(@location(0) world: vec3f, @location(1) normal: vec3f, @location(2) color: vec3f, @location(3) water: f32) -> VsOut {
   var out: VsOut;
   out.pos = projectWorld3d(world, civsimBattleWorldDepth3d(world));
   let sun = normalize(vec3f(-0.38, -0.30, 0.87));
@@ -238,6 +252,7 @@ fn vs(@location(0) world: vec3f, @location(1) normal: vec3f, @location(2) color:
   let axes = cameraSpace(world.xy);
   out.axes = axes;
   out.fog = smoothstep(720.0, 1850.0, axes.y) * 0.52;
+  out.water = water;
   return out;
 }
 
@@ -276,6 +291,15 @@ fn fs(in: VsOut) -> @location(0) vec4f {
   let ruts = ridge(in.world * vec2f(0.11, 0.045) + vec2f(2.0, 0.0));
   let churn = clamp(0.58 + clods * 0.72 + ruts * 0.28, 0.42, 1.30);
   col = mix(col, col * churn, earth);
+  // Field water: where the water weight is present, shade the fragment with the
+  // shared water material and blend it over the ground by the weight, so the shore
+  // fades cleanly from turf/sand into the sea instead of a hard tint edge. The
+  // mesh z is untouched (no displacement) — this is a per-fragment ripple normal +
+  // foam only, so soldiers and props still ride the ground.
+  if (in.water > 0.001) {
+    let water = fieldWaterColor(in.world, in.water);
+    col = mix(col, water, clamp(in.water, 0.0, 1.0));
+  }
   let haze = vec3f(0.78, 0.82, 0.81);
   col = mix(col, haze, in.fog);
   return vec4f(clamp(col, vec3f(0.0), vec3f(1.0)), 1.0);
@@ -335,17 +359,19 @@ export class BattleGroundPass {
         module,
         entryPoint: 'vs',
         buffers: [{
-          arrayStride: 36,
+          arrayStride: 40,
           attributes: [
             { shaderLocation: 0, offset: 0, format: 'float32x3' },
             { shaderLocation: 1, offset: 12, format: 'float32x3' },
             { shaderLocation: 2, offset: 24, format: 'float32x3' },
+            { shaderLocation: 3, offset: 36, format: 'float32' },
           ],
         }],
       },
       fragment: { module, entryPoint: 'fs', targets: [gpuOpaqueColorTarget(shell.info.format)] },
       primitive: { topology: 'triangle-list', cullMode: 'none' },
       depthStencil: gpuWorldDepthStencil('read-write'),
+      multisample: gpuMultisample(shell.sampleCount),
     });
     this.uniformBuffer = shell.device.createBuffer({
       label: 'battle-ground-uniforms',
@@ -497,7 +523,7 @@ export class BattleGroundPass {
     const base = GROUND_COVER_COLOR[cover] ?? GROUND_COVER_COLOR['green-grass'];
     const nx = Math.floor(grid.w / step) + 1;
     const ny = Math.floor(grid.h / step) + 1;
-    const verts = new Float32Array(nx * ny * 9);
+    const verts = new Float32Array(nx * ny * 10);
     const cellWorld = (ci: number, cj: number): [number, number] => [
       grid.ox + Math.min(ci, grid.w - 1) * grid.cell + grid.cell * 0.5,
       grid.oy + Math.min(cj, grid.h - 1) * grid.cell + grid.cell * 0.5,
@@ -518,6 +544,23 @@ export class BattleGroundPass {
       }
       return n > 0 ? [r / n, g / n, b / n] : base;
     };
+    // Water weight, box-filtered exactly like the tint colour so the shore fades
+    // across cells instead of stair-stepping: the fraction of the step block that
+    // is water tint. This is the field water's distance-from-shore proxy (0 at the
+    // edge → 1 deep in the body) that the shared shore ramp keys on.
+    const cellWater = (ci: number, cj: number): number => {
+      let water = 0, n = 0;
+      for (let dy = -step; dy <= step; dy++) {
+        for (let dx = -step; dx <= step; dx++) {
+          const sx = ci + dx;
+          const sy = cj + dy;
+          if (sx < 0 || sy < 0 || sx >= grid.w || sy >= grid.h) continue;
+          if (grid.tint[sy * grid.w + sx] === WATER_TINT) water++;
+          n++;
+        }
+      }
+      return n > 0 ? water / n : 0;
+    };
     let v = 0;
     for (let j = 0; j < ny; j++) {
       for (let i = 0; i < nx; i++) {
@@ -534,6 +577,7 @@ export class BattleGroundPass {
         verts[v++] = x; verts[v++] = y; verts[v++] = z;
         verts[v++] = -hx / nlen; verts[v++] = -hy / nlen; verts[v++] = (2 * d) / nlen;
         verts[v++] = color[0]; verts[v++] = color[1]; verts[v++] = color[2];
+        verts[v++] = cellWater(ci, cj);
       }
     }
     const indices: number[] = [];

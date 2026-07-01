@@ -223,7 +223,11 @@ export class CampaignRenderer {
     const buildEnd = performance.now();
     this.lastEntities = { cityEntities: frame.cityEntities, armyEntities: frame.armyEntities };
     const uploadStart = performance.now();
+    // One clock drives every animated surface: crawling scenery AND the subtle sea
+    // shimmer in mapPass (cam.time). Frozen snapshots pin fixedTime = 0, so the sea's
+    // cam.time term is 0 and the map stays byte-identical; runtime advances it live.
     const sceneryTime = this.fixedTime ?? performance.now() / 1000;
+    this.shell.setTime(sceneryTime);
     this.scenery.upload(
       campaignScenery(
         this.sceneryCandidates,

@@ -108,7 +108,10 @@ const gpuArgs =
       ? GPU_HARDWARE_FLAGS
       : GPU_SWIFTSHADER_FLAGS
     : [];
-const browser = await chromium.launch({ args: gpuArgs });
+const launchOptions = { args: gpuArgs };
+if (process.env.VERIFY_HEADFUL === "1") launchOptions.headless = false;
+if (process.env.VERIFY_BROWSER_CHANNEL) launchOptions.channel = process.env.VERIFY_BROWSER_CHANNEL;
+const browser = await chromium.launch(launchOptions);
 const page = await browser.newPage({
   viewport: { width: TW + LAB_PANEL_W, height: TH + LAB_HEADER_H },
 });

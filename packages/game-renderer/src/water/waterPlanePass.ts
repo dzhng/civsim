@@ -4,6 +4,7 @@ import { compileShader } from '../../../renderer-core/src/compileShader';
 import { gpuMultisample, gpuOpaqueColorTarget, gpuWorldDepthStencil } from '../../../renderer-core/src/pipelineContracts';
 import { WATER_SHADE_WGSL } from './waterMaterialWgsl';
 import { WATER_PALETTE_WGSL } from './waterPalette';
+import { waterShoreRampWgsl } from './waterShoreRamp';
 import { waterEnvironmentWgsl, WATER_ENVIRONMENTS, type WaterEnvironment } from './waterEnvironment';
 import type { WaterFieldSource } from './waterField';
 
@@ -112,6 +113,7 @@ ${WORLD_CAMERA_WGSL}
 ${fieldWgsl}
 ${WATER_PALETTE_WGSL}
 ${waterEnvironmentWgsl(env)}
+${waterShoreRampWgsl()}
 ${WATER_SHADE_WGSL}
 
 struct VsOut {
@@ -140,14 +142,14 @@ fn fs(in: VsOut) -> @location(0) vec4f {
   let toFrag = normalize(delta);
   let sunAzVec = vec2f(cos(cam.sunAz), sin(cam.sunAz));
   let band = smoothstep(0.1, 0.8, dot(toFrag, sunAzVec));
-  // Depth ramp for the open sea: near reads as shallow turquoise, the far sea as
-  // deep blue (distance stands in for depth on the horizon plane).
+  // Depth + haze ramps via the shared shore helper. On the open-sea plane there is
+  // no real shore, so camera distance stands in for distance-from-shore: near reads
+  // shallow turquoise, the far sea deep blue and dissolving into the sky's haze
+  // with no hard horizon line. The field water (Slice 8) calls the same helper
+  // keyed on its water weight so both sides of a shoreline are one material.
   let dist = length(delta);
-  let depth01 = smoothstep(20.0, 420.0, dist);
-  // Aerial-perspective haze: ramps up over the far distance, reaching ~1 near the
-  // plane's far edge so the sea dissolves into the sky with no hard horizon line.
-  let haze01 = smoothstep(55.0, 300.0, dist);
-  let col = waterShade(s, sunDirection(), band, depth01, haze01);
+  let ramp = waterShoreRamp(dist);
+  let col = waterShade(s, sunDirection(), band, ramp.x, ramp.y);
   return vec4f(col, 1.0);
 }`;
 }

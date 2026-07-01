@@ -12,25 +12,42 @@ Reference image (the compare-screenshots target):
 
 ## Next Agent Prompt
 
-> **Status:** Slices 1–7 landed on **main** — the **open-sea look is complete in the lab**. The
-> remaining integration + cleanup was **re-sliced** (2026-07-01) after a first battle-integration
-> attempt hit a shoreline seam; three independent drafts converged on the plan below. Winner:
-> **Gerstner** (see [`slices/01-bakeoff-decision.md`](slices/01-bakeoff-decision.md)). Last
-> updated 2026-07-01.
+> **Status:** Slices 1–7 landed on **main** (open-sea look complete in the lab). **Slice 8 landed**
+> (2026-07-01, this worktree) — the **coastal FIELD water is now the shared `waterShade` material**.
+> Winner is **Gerstner** (see [`slices/01-bakeoff-decision.md`](slices/01-bakeoff-decision.md)).
 >
-> **You are picking up at Slice 8 — coastal FIELD water (the new first integration).** The old
-> S8/S9 order is **inverted**: the reverted attempt proved the field↔sea shoreline seam is a
-> *material mismatch* (the sea plane and the field water were two different shaders meeting at the
-> shore), not a geometry bug — you cannot caulk a seam between two materials, you remove it by
-> making both sides one material. So **S8 unifies the on-field battle water onto `waterShade`
-> first** (defining a shared `waterShoreRamp` depth/haze helper), and **S9 drops the open-sea
-> horizon plane onto that same material** so the seam cannot exist by construction.
+> **You are picking up at Slice 9 — battle OPEN-SEA horizon plane onto the S8 material.** S8 built
+> the shared field-water material + `waterShoreRamp`; S9 must drop the open-sea horizon plane onto
+> **the exact same material** so the field↔sea shoreline seam cannot exist by construction. Read
+> [`slices/09-battle-open-sea-horizon.md`](slices/09-battle-open-sea-horizon.md) and
+> [`slices/08-integration-notes.md`](slices/08-integration-notes.md) (the ocean-edge surface map).
+> Invoke the `aesthetics` and `renderer` skills. The whole look is **frozen** — S9 reconciles
+> seam/depth/MSAA, not the look.
 >
-> **Before you start:** read [`slices/08-integration-notes.md`](slices/08-integration-notes.md)
-> (the attempt's verified findings + the exact blocker), then
-> [`slices/08-battle-coastal-field-water.md`](slices/08-battle-coastal-field-water.md). Invoke the
-> `aesthetics` and `renderer` skills. The whole look (clock, sun, geometry, foam, glint, colour,
-> haze) is **frozen** — these slices reconcile seam/depth/MSAA/seating, not the look.
+> **S8 result + load-bearing facts for S9 (do not relearn):**
+> - The shared field-water material is `packages/game-renderer/src/water/fieldWaterWgsl.ts` —
+>   `FIELD_WATER_WGSL` (Gerstner field + Aegean palette × golden preset + shore ramp + `waterShade`)
+>   and `fn fieldWaterColor(p: vec2f, shoreDist: f32) -> vec3f` (calms the swell, thins foam to a
+>   waterline swash, cuts the glint). Built on `waterShoreRamp.ts`:
+>   `waterShoreRampWgsl(ramp)` → `fn waterShoreRamp(shoreDist) -> vec2f` (depth01, haze01), with
+>   presets `LAB_OPEN_SEA_RAMP` (open sea, camera-distance metres) and `FIELD_WATER_RAMP` (field,
+>   0..1 weight, haze≈0). **S9's open sea MUST call `waterShade`/`waterShoreRamp` with the SAME
+>   `golden` constants** — do not invent a second ramp/material.
+> - **Live field water = per-fragment on `groundPass`** (not a separate pass): a box-filtered
+>   water-weight vertex attribute (stride 36→40) keys `fieldWaterColor`; the mesh z is **untouched**,
+>   so seating is unchanged (proven: `battle-terrain-elevation` byte-identical + soldier seat
+>   `match=true`). `waterPlanePass` now calls the shared `waterShoreRamp` (default = `LAB_OPEN_SEA_RAMP`)
+>   → all seven `water-*.mjs` lab scenes stayed **byte-identical (0.0000%)**.
+> - **The `screenshot-critique` on the S8 river confirmed the field water "grades plausibly on its
+>   own." Its 3 dominant defects — deep water lighter than shallow, a hard seam, a dead flat fill —
+>   are ALL the still-old S9 ocean gradQuad** (`horizonPass.ts` `role:'ocean'`). S9 replaces that
+>   quad with the shared material and every one of those defects disappears with the seam.
+> - `battle-terrain-3d` route now takes a `t` param (`shell.setTime`, default 0) for deterministic
+>   animated-water shots. `terrainPass` kind-0/kind-10 lab water was folded onto `fieldWaterColor`
+>   (parity; invisible in committed top-down baselines — water isn't framed there).
+> - **Re-blessed at S8:** `terrain-blockers/river-and-crags-east` + `coastal-scrub-west` (the water
+>   edges; both include the temporary S8↔S9 seam at the bottom — **S9 re-blesses them again**), and
+>   new `battle/water-coastal/river-shore`. Non-water blockers were restored (capture-wobble only).
 >
 > **Load-bearing facts from recon (do not relearn the hard way):**
 > - The **live battle does NOT use `terrainPass.ts`** — only `BattleHorizonPass` + `BattleGroundPass`
@@ -116,8 +133,8 @@ Reference image (the compare-screenshots target):
 > - [x] S5 — Water albedo + depth ramp × env preset (waterPalette + waterEnvironment) → `slices/05-albedo-depth-ramp.md`
 > - [x] S6 — Horizon haze / aerial perspective (distance-keyed haze in waterShade) → `slices/06-horizon-haze.md`
 > - [x] S7 — Animation rhythm (deterministic clock, believable cadence) → `slices/07-animation-rhythm.md`
-> - [ ] S8 — Battle **coastal field water** onto `waterShade` (per-fragment on `groundPass`; the
->   shared `waterShoreRamp`; **the seam-foundation slice**) → `slices/08-battle-coastal-field-water.md`
+> - [x] S8 — Battle **coastal field water** onto `waterShade` (per-fragment on `groundPass`; the
+>   shared `waterShoreRamp` + `fieldWaterColor`; **the seam-foundation slice**) → `slices/08-battle-coastal-field-water.md`
 > - [ ] S9 — Battle **open-sea horizon** plane onto the S8 material (seam closes by construction) →
 >   `slices/09-battle-open-sea-horizon.md`
 > - [ ] S10 — Campaign strategic sea (subtle, zoom/pitch-gated) + delete `CampaignWaterPass` →

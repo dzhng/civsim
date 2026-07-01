@@ -2,6 +2,7 @@ import type { BackgroundRenderPass, RawFrameShell, WorldRenderPass } from '../..
 import { WORLD_CAMERA_WGSL } from '../../../renderer-core/src/cameraWgsl';
 import { compileShader } from '../../../renderer-core/src/compileShader';
 import { gpuMultisample, gpuWorldDepthStencil } from '../../../renderer-core/src/pipelineContracts';
+import { FIELD_WATER_WGSL } from '../water/fieldWaterWgsl';
 
 export type BattleTerrainFixture = 'coast' | 'melee' | 'dry-melee' | 'prop-field' | 'sim-tint';
 
@@ -27,6 +28,7 @@ interface TerrainQuad {
 
 const BATTLE_TERRAIN_WGSL = `
 ${WORLD_CAMERA_WGSL}
+${FIELD_WATER_WGSL}
 struct VsOut {
   @builtin(position) pos: vec4f,
   @location(0) local: vec2f,
@@ -87,20 +89,11 @@ fn terrainColor(in: VsOut) -> vec4f {
   let n = fbm(in.world * 0.72) * 0.20 + fbm(in.world * 0.11) * 0.18;
 
   if (in.kind < 0.5) {
-    let shore = smoothstep(-1.0, 1.0, in.local.y);
-    let shallow = vec3f(0.46, 0.72, 0.76);
-    let deep = vec3f(0.11, 0.28, 0.45);
-    let longWave = sin((in.world.x * 0.18 - in.world.y * 0.34) + sin(in.world.x * 0.035) * 1.8) * 0.5 + 0.5;
-    let crossWave = sin(in.world.x * 0.52 + in.world.y * 0.17 + fbm(in.world * 0.032) * 4.0) * 0.5 + 0.5;
-    let crest = smoothstep(0.72, 0.96, longWave) * smoothstep(0.48, 0.90, crossWave);
-    let streak = smoothstep(0.86, 0.995, sin(in.world.x * 0.95 - in.world.y * 0.11 + fbm(in.world * 0.055) * 5.0) * 0.5 + 0.5);
-    let shoreFoamBand = smoothstep(0.18, -0.12, abs(in.local.y + 0.58));
-    let farBreak = smoothstep(0.48, 0.86, shore) * crest * 0.26;
-    let foam = (shoreFoamBand * (0.52 + crest * 0.48) + farBreak) * (0.74 + fbm(in.world * 0.95) * 0.26);
-    let sunTrack = smoothstep(0.18, 0.0, abs(in.local.x + in.local.y * 0.24)) * smoothstep(-0.92, 0.28, in.local.y);
-    let glint = (streak * 0.12 + crest * 0.08 + sunTrack * 0.16) * (1.0 - shore * 0.28);
-    let water = mix(shallow, deep, shore) + vec3f(0.09, 0.11, 0.08) * glint;
-    return vec4f(mix(water, vec3f(0.90, 0.91, 0.84), clamp(foam * 0.48, 0.0, 0.78)), in.alpha * edgeFeather(in.local));
+    // Lab coastal-fixture water: the shared field-water material, so /renderer
+    // /battle-terrain fixtures match the live groundPass sea. shoreDist keys on the
+    // quad's local Y (bottom = shore, top = offshore).
+    let shoreDist = smoothstep(-1.0, 1.0, in.local.y);
+    return vec4f(fieldWaterColor(in.world, shoreDist), in.alpha * edgeFeather(in.local));
   }
 
   if (in.kind < 1.5) {
@@ -159,10 +152,10 @@ fn terrainColor(in: VsOut) -> vec4f {
   }
 
   if (in.kind < 10.5) {
-    let shore = smoothstep(-1.0, 1.0, in.local.y);
-    let water = mix(vec3f(0.42, 0.67, 0.72), vec3f(0.10, 0.25, 0.40), shore);
-    let ripple = smoothstep(0.78, 0.98, sin(in.world.x * 0.55 + in.world.y * 0.18 + fbm(in.world * 0.05) * 4.0) * 0.5 + 0.5);
-    return vec4f(water + vec3f(0.08, 0.09, 0.06) * ripple, in.alpha);
+    // Lab sim-tint water (kind 10): the shared field-water material, so the
+    // /renderer/battle-terrain-features top-down fixture matches the live sea.
+    let shoreDist = smoothstep(-1.0, 1.0, in.local.y);
+    return vec4f(fieldWaterColor(in.world, shoreDist), in.alpha);
   }
 
   if (in.kind < 11.5) {

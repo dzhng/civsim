@@ -2460,6 +2460,9 @@ async function routeBattleTerrain3d(ctx: LabContext) {
         ? { x: standX, y: standY + 4, zoom: 9.0, pitch: 0.40, yaw: -0.04 }
         : { x: Number(ctx.params.get('cx') ?? focus?.x ?? 0), y: Number(ctx.params.get('cy') ?? focus?.y ?? 0) - 110, zoom: 3.3, pitch: 0.44, yaw: -0.05 };
   const shell = await createConfiguredShell(ctx.canvas, camera);
+  // Field water animates on cam.time; snap at a fixed t for deterministic shots
+  // (defaults to 0, matching the pre-water frozen frame for non-water maps).
+  shell.setTime(numberParam(ctx.params, 't', 0));
   const ground = new BattleGroundPass(shell);
   ground.setTerrain(grid, field, presentation.groundCover);
   const props = new CampaignSceneryPass(shell, 'battle');

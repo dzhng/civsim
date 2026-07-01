@@ -110,7 +110,11 @@ fn waterField(p: vec2f, t: f32) -> WaterSample {
 }`;
 }
 
-const GERSTNER_WGSL = gerstnerWgsl();
+// The analytic field WGSL: the `WaterSample` struct + `waterField(p, t)` + its noise
+// helpers. Exported so the per-fragment field-water material (fieldWaterWgsl) can
+// inline it directly — field water is always analytic Gerstner (a per-fragment pass
+// cannot bind a compute-IFFT field), so it needs the WGSL, not the seam.
+export const GERSTNER_WGSL = gerstnerWgsl();
 
 export class GerstnerWaterField implements WaterFieldSource {
   readonly id: WaterFieldId = 'gerstner';

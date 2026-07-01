@@ -42,6 +42,8 @@ export type GrassPrimitiveFamily =
   | 'soft-root-mass'
   | 'soft-root-fiber'
   | 'field-fiber-shell'
+  | 'field-fiber-body'
+  | 'field-fiber-bundle'
   | 'alpha-impostor'
   | 'billboard-cluster'
   | 'volume-card'
@@ -2218,6 +2220,8 @@ function isVerticalClumpAccentStyle(style: GrassAccentStyle): boolean {
 
 function grassPrimitiveFamilyForStyle(style: GrassAccentStyle): GrassPrimitiveFamily {
   if (style === 'field-fiber-shell' || style === 'field-fiber-shell-visibility') return 'field-fiber-shell';
+  if (style === 'field-fiber-body') return 'field-fiber-body';
+  if (style === 'field-fiber-bundle') return 'field-fiber-bundle';
   if (style === 'alpha-impostor') return 'alpha-impostor';
   if (style === 'billboard-cluster') return 'billboard-cluster';
   if (style === 'volume-card') return 'volume-card';

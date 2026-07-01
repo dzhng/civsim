@@ -27,11 +27,36 @@ mass, and water: distance/projection raises a shared haze term, high-frequency
 detail/glint fades as haze rises, and every far surface mixes toward the active
 environment preset's haze colour so the horizon dissolves into the sky.
 
+The shot-level target is the water folder's latest fog behavior, not a generic
+grey overlay. In `web/shots/misc/water/haze-gerstner.png`, the foreground still
+has wave contrast and glint, but the horizon band loses surface detail and blends
+into the haze-coloured sky. In `web/shots/misc/water/albedo-overcast.png`, the
+same mechanism switches mood by preset: the far sea approaches the pale
+grey-blue overcast haze without repainting the underlying water albedo. The
+battlemap should do the same for distant grass mass, far ridges, terrain, and
+water: fade detail first, then blend final lit colour toward the preset haze.
+
 This is a reuse requirement, not an inspiration note. Prefer extracting or
 threading a shared battle atmosphere/environment helper over copying new
 hard-coded constants into each pass. If a pass needs a different falloff range,
 keep the colour source and final blend semantics shared, publish the range in
 route stats, and record why that surface needs its own distance band.
+
+## Approach
+
+- Treat water S6 as the prototype: shared environment preset, distance/projection
+  `haze01`, detail fade by `(1.0 - haze01)`, final `mix(surface, hazeColor,
+  haze01)`.
+- Add a battle atmosphere/environment seam rather than scattering fog constants
+  through terrain, grass, ridge, and water passes. If the water environment module
+  stays water-named for now, explicitly document the import/reuse so the shared
+  colour source is still obvious.
+- Apply haze in the material/shading stage for each far surface. Avoid a single
+  opaque screen-space fog curtain; the reference-like effect comes from surfaces
+  losing contrast into the sky while nearby grass stays readable.
+- Publish the active haze colour, falloff bands, and participating passes in route
+  stats so `battle-map-reference` evidence can prove the whole battlemap is using
+  the water-derived contract.
 
 ## Fixed Inputs
 
@@ -52,6 +77,7 @@ Use `compare-screenshots` on near/mid/far horizontal bands. Judge:
 
 - luminance/contrast drop by distance;
 - far ridge desaturation toward sky colour;
+- far grass/meadow detail fading before it becomes a visible fog wall;
 - no hard fog seam at terrain, cliff, or water intersections.
 
 Do not judge sky shape, cliff texture, grass density, or water material here.

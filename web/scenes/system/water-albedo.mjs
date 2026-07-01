@@ -7,7 +7,7 @@ import { PNG } from "pngjs";
 // a believable blue (not grey, not neon-green), and that dusk is dim not
 // dark-albedo'd. Holds one frozen-clock baseline per preset.
 //
-// GPU only (VERIFY_GPU=1); on macOS that means headful + hardware.
+// GPU only (VERIFY_GPU=1); on this Mac use headless Chrome + hardware.
 
 const WINNER = "gerstner";
 const PRESETS = ["golden", "dusk", "overcast"];

@@ -7,7 +7,7 @@ import { PNG } from "pngjs";
 // the glint carries a provisional warm tint (formalised into waterPalette at S5)
 // so it separates from the white foam.
 //
-// GPU only (VERIFY_GPU=1); on macOS that means headful + hardware.
+// GPU only (VERIFY_GPU=1); on this Mac use headless Chrome + hardware.
 
 const WINNER = "gerstner";
 

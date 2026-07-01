@@ -9,9 +9,9 @@ import { PNG } from "pngjs";
 // are run by hand (compare-screenshots / screenshot-critique) and recorded in
 // slices/01-bakeoff-decision.md; this scene pins the machine-checkable contracts.
 //
-// GPU only: needs VERIFY_GPU=1 (a real adapter). On macOS that means headful +
-// hardware (VERIFY_HEADFUL=1 VERIFY_GPU_ADAPTER=hardware), since headless
-// Chromium and SwiftShader have no working adapter there.
+// GPU only: needs VERIFY_GPU=1 with a real adapter. On this Mac the blessed
+// path is installed Chrome in headless mode with hardware/Metal:
+// VERIFY_GPU_ADAPTER=hardware VERIFY_BROWSER_CHANNEL=chrome.
 
 export const meta = {
   name: "water-bakeoff",

@@ -17,9 +17,9 @@ Put the review-worthy images in front of the user in a single Preview window the
 
 - macOS only (`open`); pass absolute or repo-root-relative paths.
 - Order the files most-important-first; the first one is what Preview shows on open.
-- Review saved PNG/GIF artifacts, not live Chrome. If exact regression capture
-  needs headful Chrome to match the blessed baseline, use it only as the capture
-  runner; do not leave the window open as the review surface.
+- Review saved PNG/GIF artifacts, not live Chrome. Exact regression capture
+  should run headless by default; only open Chrome when the user explicitly asks
+  for a live browser or when reproducing a headful-only bug.
 - **One set at a time — never pile up windows.** Before opening a new set, close
   any open ones: `osascript -e 'tell application "Preview" to close every window'`.
 - **Close on unattended proceed.** When you opened shots for a non-blocking review

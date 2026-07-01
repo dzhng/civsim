@@ -1313,6 +1313,9 @@ async function routeCampaignMap(ctx: LabContext) {
   const preset = ctx.params.get('preset') ?? 'whole';
   const camera = campaignPresetCamera(preset);
   const shell = await createConfiguredShell(ctx.canvas, camera);
+  // The sea shimmer rides cam.time (pitch-gated); snap at a fixed t for deterministic
+  // shots (default 0 = the still painted chart, matching production snapshots).
+  shell.setTime(numberParam(ctx.params, 't', 0));
   const map = new CampaignMapPass(shell, data.bg, data.bgRect, { seaTintMix: 1 }, surface.mesh);
   const clouds = new CampaignCloudPass(shell, data.bgRect);
   const territory = new CampaignTerritoryPass(shell, {

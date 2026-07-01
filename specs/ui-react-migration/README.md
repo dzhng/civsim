@@ -161,7 +161,7 @@ checkpoint:** the (0,0) pass is self-justifying (no pixels moved); proceeded on 
 - [x] S2 — menu proof: `#menu-ui` + duel modal are React (`web/src/ui/menu/Menu.tsx`) into `#ui-root`; army builder stays vanilla; new `menu-quick-battle-modal` baseline (`slices/02-menu-proof.md`) — **shipped**
 - [x] S3 — **HUD perf SPIKE** → **VERDICT: MIGRATE.** React card bar (`UnitCardsReact`) measured Δmedian 0.0ms / Δp95 0.0ms vs vanilla; shared hot-path helpers in `unitCard.ts`; S6 = Branch A (`slices/03-hud-perf-spike.md`) — **shipped**
 - [~] S4 — static wave: **S4a army builder → React shipped** (reducer byte-identical, pixel-equiv); S4b battle modals **resequenced into S6** (shared battle React root) (`slices/04-army-builder-modals.md`)
-- [ ] S5 — static wave: campaign panels (+ optional slate→bronze re-theme, David's call) (`slices/05-campaign-panels.md`)
+- [ ] S5 — static wave: campaign panels — **RESLICED into S5a (React root + top bar) → S5b (army/city) → S5c (diplomacy) → S5d (class builder) → S5e (sieges/modal + lab dedup)**; 954-line gameplay-critical scene, do S5a first (`slices/05-campaign-panels.md`)
 - [ ] S6 — HUD outcome branch (migrate-to-React OR keep-vanilla-share-tokens) (`slices/06-hud-outcome.md`)
 - [ ] S7 — cleanup: delete replaced DOM/CSS, dedup the lab, one source proven (`slices/07-cleanup.md`)
 

@@ -9,7 +9,7 @@ import { encodeGif, pngToRGBA, downscaleRGBA } from "../../shots/_gif.mjs";
 // without teleporting (no popping). `?t=<fixed>` freezes for snaps; the GIF
 // sweeps `t` over a few seconds.
 //
-// GPU only (VERIFY_GPU=1); on macOS that means headful + hardware.
+// GPU only (VERIFY_GPU=1); on this Mac use headless Chrome + hardware.
 
 const WINNER = "gerstner";
 const SHOTS_MISC = new URL("../../shots/misc/", import.meta.url).pathname;

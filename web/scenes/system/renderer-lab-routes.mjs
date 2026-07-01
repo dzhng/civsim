@@ -1346,10 +1346,6 @@ async function findPhaseBrandFootguns() {
           "campaign clouds draw requires overlay pass",
           /export class CampaignCloudPass[\s\S]*?\bdraw\s*\(\s*pass:\s*OverlayRenderPass\s*\)/,
         ],
-        [
-          "campaign water draw requires background pass",
-          /export class CampaignWaterPass[\s\S]*?\bdraw\s*\(\s*pass:\s*BackgroundRenderPass\s*\)/,
-        ],
       ],
     },
     {

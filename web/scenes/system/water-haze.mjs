@@ -6,7 +6,7 @@ import { PNG } from "pngjs";
 // and that the far sea is desaturated toward the sky relative to the near sea.
 // Holds a frozen-clock baseline of the horizon band.
 //
-// GPU only (VERIFY_GPU=1); on macOS that means headful + hardware.
+// GPU only (VERIFY_GPU=1); on this Mac use headless Chrome + hardware.
 
 const WINNER = "gerstner";
 

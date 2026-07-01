@@ -21,7 +21,7 @@ import { BattleParticlePass, type BattleParticle } from '../../../packages/game-
 import { battleUnitsInRect, cssToBattleWorld, liveBattlePickUnits, pickBattleUnit, type BattlePickUnit, type RendererBattlePickCamera } from '../../../packages/game-renderer/src/battle/pickingDebug';
 import { BattleTerrainPass, type BattleTerrainFixture } from '../../../packages/game-renderer/src/battle/terrainPass';
 import { CLASS_DEPTH, CLASS_SPACING, UNIT_INFO } from '../../../packages/game-renderer/src/battle/unitInfoLayout';
-import { campaignWaterFeatures, CampaignCloudPass, CampaignWaterPass } from '../../../packages/game-renderer/src/campaign/atmospherePass';
+import { CampaignCloudPass } from '../../../packages/game-renderer/src/campaign/atmospherePass';
 import { CampaignEntityPass, type CampaignEntityInstance } from '../../../packages/game-renderer/src/campaign/entityPass';
 import { buildCampaignMapDrawData, CampaignLabelPass, CampaignMapPass, CampaignMarkerPass, CampaignRoadPass, CampaignWorldLinePass, type CampaignLabel } from '../../../packages/game-renderer/src/campaign/mapPass';
 import { CampaignSceneryPass, type CampaignSceneryInstance } from '../../../packages/game-renderer/src/campaign/sceneryPass';
@@ -33,7 +33,7 @@ import { BattleGroundPass } from '../../../packages/game-renderer/src/battle/gro
 import { BattleGrassPass, type BattleGrassBounds, type BattleGrassParams, type GrassAccentAggregation, type GrassFiberShellVariant, type GrassPrimitiveFamily, type TextureVolumeProfile, type TextureVolumeRenderModel } from '../../../packages/game-renderer/src/battle/grassPass';
 import { sampleGrassField } from '../../../packages/game-renderer/src/battle/grassField';
 import { BattleHorizonPass } from '../../../packages/game-renderer/src/battle/horizonPass';
-import { createWaterField, type WaterFieldId, type WaterFieldSource } from '../../../packages/game-renderer/src/water/waterField';
+import { createWaterField } from '../../../packages/game-renderer/src/water/waterField';
 import { WaterPlanePass } from '../../../packages/game-renderer/src/water/waterPlanePass';
 import { WATER_ENVIRONMENTS, type WaterEnvironment } from '../../../packages/game-renderer/src/water/waterEnvironment';
 import { featuresToBattleScenery } from '../../../packages/game-renderer/src/battle/terrainScenery';
@@ -1322,6 +1322,9 @@ async function routeCampaignMap(ctx: LabContext) {
   const preset = ctx.params.get('preset') ?? 'whole';
   const camera = campaignPresetCamera(preset);
   const shell = await createConfiguredShell(ctx.canvas, camera);
+  // The sea shimmer rides cam.time (pitch-gated); snap at a fixed t for deterministic
+  // shots (default 0 = the still painted chart, matching production snapshots).
+  shell.setTime(numberParam(ctx.params, 't', 0));
   const map = new CampaignMapPass(shell, data.bg, data.bgRect, { seaTintMix: 1 }, surface.mesh);
   const clouds = new CampaignCloudPass(shell, data.bgRect);
   const territory = new CampaignTerritoryPass(shell, {
@@ -1542,19 +1545,16 @@ async function routeCampaignModelShots(ctx: LabContext) {
   const cityStandardSamples = campaignModelShotCityStandardSamples(gate, ctx.canvas, camera);
   const garrisonSamples = campaignModelShotGarrisonSamples(gate, ctx.canvas, camera);
   const selectionSamples = campaignModelShotSelectionSamples(gate, ctx.canvas, camera);
-  const water = frame.water.length > 0 ? new CampaignWaterPass(shell) : null;
   const clouds = frame.cloudRect ? new CampaignCloudPass(shell, frame.cloudRect) : null;
   entities.upload(frame.entities);
   scenery.upload(frame.scenery);
   roads.upload(frame.roads);
   selection.upload(frame.selections);
-  water?.upload(frame.water);
   const labelLayer = labelPass.upload(frame.labels, camera);
   const hostileDepthOrder = gate === 'hostile-depth-order';
   const entityOpaquePass: FrameGraphPass = { id: 'model-shot-entities-opaque', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => entities.drawOpaque(pass) };
   const sceneryOpaquePass: FrameGraphPass = { id: 'model-shot-scenery-opaque', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => scenery.drawOpaque(pass) };
   const passes: FrameGraphPass[] = [
-    ...(water ? [{ id: 'model-shot-water', role: 'background-underpaint' as const, phase: 'background' as const, draw: (pass: BackgroundRenderPass) => water.draw(pass) }] : []),
     ...(hostileDepthOrder ? [entityOpaquePass, sceneryOpaquePass] : [sceneryOpaquePass, entityOpaquePass]),
     { id: 'model-shot-scenery-shadows', role: 'world-decal', phase: 'world-depth', depth: 'read', draw: (pass) => scenery.drawShadows(pass) },
     { id: 'model-shot-entity-shadows', role: 'world-decal', phase: 'world-depth', depth: 'read', draw: (pass) => entities.drawShadows(pass) },
@@ -1575,7 +1575,6 @@ async function routeCampaignModelShots(ctx: LabContext) {
     entities: frame.entities.length,
     scenery: frame.scenery.length,
     roadTriangles: roads.stats().triangles,
-    waterFeatures: water?.stats().waterFeatures ?? 0,
     cloudQuads: clouds?.stats().cloudQuads ?? 0,
     labels: `${labelLayer.visibleLabels}/${labelLayer.labels}`,
     cityStandard: cityStandardSamples ? 'embedded-depth-sampled' : 'n/a',
@@ -1598,7 +1597,6 @@ async function routeCampaignModelShots(ctx: LabContext) {
     scenery: frame.scenery.length,
     sceneryStats: scenery.stats(),
     roadTriangles: roads.stats().triangles,
-    waterFeatures: water?.stats().waterFeatures ?? 0,
     cloudQuads: clouds?.stats().cloudQuads ?? 0,
     selections: frame.selections.length,
     labels: labelLayer.labels,
@@ -1711,7 +1709,6 @@ type CampaignModelShot =
   | 'labels'
   | 'terrain-grass-scrub'
   | 'terrain-stone-relief'
-  | 'shoreline-water'
   | 'cloud-fog';
 
 const CAMPAIGN_MODEL_SHOTS: CampaignModelShot[] = [
@@ -1728,7 +1725,6 @@ const CAMPAIGN_MODEL_SHOTS: CampaignModelShot[] = [
   'labels',
   'terrain-grass-scrub',
   'terrain-stone-relief',
-  'shoreline-water',
   'cloud-fog',
 ];
 
@@ -1750,7 +1746,6 @@ function campaignModelShotCamera(gate: CampaignModelShot) {
   if (gate === 'road' || gate === 'road-only') return { x: 0, y: -1.3, zoom: 30, pitch: 0.54, yaw: 0, perspective: 0.012 };
   if (gate === 'terrain-grass-scrub') return { x: 0, y: -0.3, zoom: 40, pitch: 0.56, yaw: 0, perspective: 0.016 };
   if (gate === 'terrain-stone-relief') return { x: 0, y: -0.4, zoom: 40, pitch: 0.56, yaw: 0, perspective: 0.014 };
-  if (gate === 'shoreline-water') return { x: 0, y: -0.8, zoom: 34, pitch: 0.54, yaw: 0, perspective: 0.014 };
   if (gate === 'cloud-fog') return { x: 0, y: 0, zoom: 26, pitch: 0.50, yaw: 0, perspective: 0.010 };
   return close;
 }
@@ -1766,7 +1761,6 @@ function campaignModelShotFrame(gate: CampaignModelShot) {
   const labels: CampaignLabel[] = [];
   let roads: Float32Array<ArrayBufferLike> = new Float32Array();
   let terrainRect: [number, number, number, number] = [-18, -12, 36, 24];
-  let water: ReturnType<typeof campaignWaterFeatures> = [];
   let cloudRect: { min: [number, number]; max: [number, number] } | null = null;
   const addCity = (x: number, y: number, radius: number, text: string, faction = red, allegiance = green, selected = false) => {
     entities.push({ x, y, radius, faction, allegiance, kind: 'city', strength: 1 });
@@ -1862,19 +1856,9 @@ function campaignModelShotFrame(gate: CampaignModelShot) {
       { x: 5.3, y: 0.7, size: 2.6, kind: 'rock', shade: 0.58 },
     );
   }
-  if (gate === 'shoreline-water') {
-    terrainRect = [-18, -8, 36, 20];
-    water = [
-      { x: -5.8, y: 3.0, rx: 8.5, ry: 2.0, angle: -0.06, alpha: 0.84 },
-      { x: 4.8, y: 3.5, rx: 7.0, ry: 1.6, angle: 0.08, alpha: 0.64 },
-      { x: 0.0, y: 1.4, rx: 13.5, ry: 0.9, angle: 0.0, alpha: 0.36 },
-    ];
-    scenery.push({ x: -7.2, y: -1.6, size: 3.4, kind: 'rock', shade: 0.54 });
-  }
   if (gate === 'cloud-fog') {
     terrainRect = [-22, -14, 44, 28];
     cloudRect = { min: [-22, -14], max: [22, 14] };
-    water = [{ x: -1.5, y: 4.2, rx: 13.0, ry: 2.6, angle: -0.16, alpha: 0.42 }];
   }
   if (gate === 'labels') {
     addCity(-3.8, -2.0, 4.6, 'ROMA');
@@ -1882,7 +1866,7 @@ function campaignModelShotFrame(gate: CampaignModelShot) {
     labels.push({ text: 'LATIUM', x: -1.5, y: 4.0, kind: 'faction', size: 18, priority: 4, angle: -0.06 });
     labels.push({ text: 'Tyrrhenian Sea', x: 0.0, y: -7.0, kind: 'sea', size: 17, priority: 3, angle: -0.12 });
   }
-  return { entities, scenery, selections, labels, roads, terrainRect, water, cloudRect };
+  return { entities, scenery, selections, labels, roads, terrainRect, cloudRect };
 }
 
 function campaignModelShotHostileDepthSamples() {
@@ -2779,9 +2763,10 @@ async function routeBattleTerrain3d(ctx: LabContext) {
     (big, f) => (f.radius > (big?.radius ?? 0) ? f : big),
     undefined,
   );
-  // Camera: 'field' frames a mid-field wood; 'west'/'east' look outward toward
-  // that sealed edge so its blocker fills the distance. 'reference' uses the
-  // zoom-coupled vista endpoint for the battle-map-reference comparison shot.
+  // Camera: 'field' frames a mid-field wood (pass cx/cy to aim it, e.g. at a
+  // coastal shore); 'west'/'east' look outward toward that sealed edge so its
+  // blocker fills the distance. 'reference' uses the zoom-coupled vista endpoint
+  // for the battle-map-reference comparison shot.
   if (view === 'reference') ctx.root.classList.add('reference-shot');
   const halfW = (w * cell) / 2;
   const midY = oy + (h * cell) / 2;
@@ -2802,6 +2787,9 @@ async function routeBattleTerrain3d(ctx: LabContext) {
             : { x: Number(ctx.params.get('cx') ?? -70), y: Number(ctx.params.get('cy') ?? -650), zoom: Number(ctx.params.get('zoom') ?? 2.4), pitch: 1.02, yaw: -0.04, perspective: 0.006 }
         : { x: Number(ctx.params.get('cx') ?? focus?.x ?? 0), y: Number(ctx.params.get('cy') ?? focus?.y ?? 0) - 110, zoom: 3.3, pitch: 0.44, yaw: -0.05 };
   const shell = await createConfiguredShell(ctx.canvas, camera);
+  // Field water animates on cam.time; snap at a fixed t for deterministic shots
+  // (defaults to 0, matching the pre-water frozen frame for non-water maps).
+  shell.setTime(numberParam(ctx.params, 't', 0));
   const ground = new BattleGroundPass(shell);
   ground.setTerrain(grid, field, presentation.groundCover);
   const grass = new BattleGrassPass(shell);
@@ -4008,20 +3996,16 @@ async function routeBattleInput(ctx: LabContext) {
   draw();
 }
 
-// Slice 1 of the water spec: the technique bake-off. One open-sea plane at the
-// battle horizon camera (or the campaign camera for the perf gate), driven by a
-// WaterFieldSource. `?tech=gerstner|ifft` picks the producer; `?compare=1`
-// scissors both side by side; `?t=<seconds>` freezes the clock for snapshots;
-// `?computeUnsupported=1` forces the capability fallback. Neutral grey albedo —
-// this slice judges geometry, foam and glint, not colour.
+// The open-sea plane route (originally the Slice 1 technique bake-off, now the
+// single Gerstner production field). One tessellated plane at the battle horizon
+// camera (or the campaign camera for the perf gate), driven by the WaterFieldSource
+// seam. `?preset=golden|dusk|overcast`, `?sunAz`/`?sunEl`, and `?t=<seconds>` (freeze
+// the clock for snapshots) are the dials; this route is the shared renderer for every
+// water look scene.
 async function routeWaterBakeoff(ctx: LabContext) {
-  const requested: WaterFieldId = ctx.params.get('tech') === 'ifft' ? 'ifft' : 'gerstner';
-  const compare = ctx.params.get('compare') === '1';
   const presetName = ctx.params.get('preset') ?? 'golden';
   const env: WaterEnvironment = WATER_ENVIRONMENTS[presetName as WaterEnvironment['id']] ?? WATER_ENVIRONMENTS.golden;
   const camName = ctx.params.get('cam') === 'campaign' ? 'campaign' : 'battle';
-  const forceUnsupported = ctx.params.get('computeUnsupported') === '1';
-  const ifftResolution = integerParam(ctx.params, 'n', 128, 64, 256);
   // Sun comes from the preset; `sunAz`/`sunEl` override it (e.g. the glint scene
   // sweeps the azimuth to prove the streak tracks the sun).
   const sunAz = ctx.params.has('sunAz') ? numberParam(ctx.params, 'sunAz', env.sunAzimuth) : env.sunAzimuth;
@@ -4029,7 +4013,6 @@ async function routeWaterBakeoff(ctx: LabContext) {
   const fixedT = ctx.params.has('t') ? numberParam(ctx.params, 't', 0) : null;
 
   const shell = await createFrameShell(ctx.canvas, { enableGpuTimer: true });
-  const computeSupported = shell.info.caps.computeOceanSupported && !forceUnsupported;
 
   const camera = camName === 'campaign'
     ? { x: 0, y: 90, zoom: 3.4, pitch: 0.42, yaw: 0, perspective: 0.02 }
@@ -4041,67 +4024,43 @@ async function routeWaterBakeoff(ctx: LabContext) {
   // (Slice 6 will grade the sea-to-sky seam properly).
   const clear: GPUColor = { r: env.hazeColor[0], g: env.hazeColor[1], b: env.hazeColor[2], a: 1 };
 
-  interface Built { requested: WaterFieldId; field: WaterFieldSource; plane: WaterPlanePass; fallbackTriggered: boolean }
-  const techs: WaterFieldId[] = compare ? ['gerstner', 'ifft'] : [requested];
-  const built: Built[] = techs.map((tech) => {
-    const { field, fallbackTriggered } = createWaterField(shell, { tech, computeSupported, ifftResolution });
-    return { requested: tech, field, plane: new WaterPlanePass(shell, field, undefined, env), fallbackTriggered };
-  });
+  // Gerstner is the one production water field (it won the Slice 1 bake-off; the IFFT
+  // loser was deleted in Slice 11). This route renders the open-sea plane and stays
+  // the shared renderer for every look scene (silhouette/foam/glint/albedo/haze/rhythm).
+  const field = createWaterField(shell);
+  const plane = new WaterPlanePass(shell, field, undefined, env);
 
   const drawAt = (t: number) => {
     shell.setTime(t);
-    const W = shell.stats().width;
-    const H = shell.stats().height;
     shell.drawFrame({
       clear,
-      precompute: (enc) => { for (const b of built) b.field.ensureFrame(enc, t); },
+      precompute: (enc) => field.ensureFrame(enc, t),
       passes: [{
         id: 'water-bakeoff-plane', role: 'world-opaque', phase: 'world-depth', depth: 'read-write',
-        draw: (pass) => {
-          if (compare && built.length === 2) {
-            const half = Math.floor(W / 2);
-            pass.setScissorRect(0, 0, half, H); built[0].plane.draw(pass);
-            pass.setScissorRect(half, 0, W - half, H); built[1].plane.draw(pass);
-            pass.setScissorRect(0, 0, W, H);
-          } else {
-            built[0].plane.draw(pass);
-          }
-        },
+        draw: (pass) => plane.draw(pass),
       }],
     });
   };
 
   const publishStats = () => {
     const s = shell.stats();
-    const live = built.length === 1 ? built[0].field.id : built.map((b) => b.field.id).join('+');
     publish('water-bakeoff', true, {
       route: 'water-bakeoff',
-      requestedTech: requested,
-      tech: live,
-      compare,
+      tech: field.id,
+      compare: false,
       preset: presetName,
       camera: camName,
-      computeSupported,
-      computeOceanSupportedRaw: shell.info.caps.computeOceanSupported,
       timestampQuery: shell.info.caps.timestampQuery,
       gpuTimeMs: s.gpuTimeMs,
       fixedTime: fixedT,
-      fallbackTriggered: built.some((b) => b.fallbackTriggered),
-      fieldResolution: Math.max(...built.map((b) => b.field.stats().fieldResolution)),
-      fields: built.map((b) => ({ requested: b.requested, ...b.field.stats(), fallbackTriggered: b.fallbackTriggered })),
+      fieldResolution: field.stats().fieldResolution,
       cameraContract: s.cameraContract,
     });
     ctx.status.innerHTML = reportTable({
       route: 'water-bakeoff',
-      requested,
-      live,
-      compare,
+      tech: field.id,
       camera: camName,
       preset: presetName,
-      'compute supported': computeSupported,
-      'fallback triggered': built.some((b) => b.fallbackTriggered),
-      'field resolution': built.map((b) => b.field.stats().fieldResolution).join(' / '),
-      'storage bytes': built.map((b) => b.field.stats().storageBytes).join(' / '),
       'GPU time (ms)': s.gpuTimeMs === null ? 'pending' : s.gpuTimeMs.toFixed(3),
     });
   };

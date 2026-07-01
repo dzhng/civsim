@@ -6,15 +6,6 @@ export interface CampaignAtmosphereRect {
   max: [number, number];
 }
 
-export interface CampaignWaterFeature {
-  x: number;
-  y: number;
-  rx: number;
-  ry: number;
-  angle: number;
-  alpha: number;
-}
-
 export interface CampaignFogSource {
   x: number;
   y: number;
@@ -74,48 +65,6 @@ fn fs(in: VsOut) -> @location(0) vec4f {
   let body = clamp((rim * 0.82 + topBias + bottomBias + cornerBias) * veil, 0.0, 1.0);
   let color = mix(vec3f(0.80, 0.84, 0.83), vec3f(0.97, 0.98, 0.96), smoothstep(0.35, 0.82, n));
   return vec4f(color, body * 0.40 * __CLOUD_ALPHA_SCALE__);
-}`;
-
-const WATER_WGSL = `
-${WORLD_CAMERA_WGSL}
-
-struct VsOut {
-  @builtin(position) pos: vec4f,
-  @location(0) local: vec2f,
-  @location(1) alpha: f32,
-  @location(2) world: vec2f,
-};
-
-@vertex
-fn vs(@location(0) quad: vec2f, @location(1) inst0: vec4f, @location(2) inst1: vec4f) -> VsOut {
-  let c = cos(inst0.w);
-  let s = sin(inst0.w);
-  let localWorld = vec2f(quad.x * inst0.z, quad.y * inst1.x);
-  let world = inst0.xy + vec2f(localWorld.x * c - localWorld.y * s, localWorld.x * s + localWorld.y * c);
-  var out: VsOut;
-  out.pos = projectGround(world, 0.10);
-  out.local = quad;
-  out.alpha = inst1.y;
-  out.world = world;
-  return out;
-}
-
-fn hash(p: vec2f) -> f32 {
-  let p3 = fract(vec3f(p.xyx) * 0.1031);
-  let q = p3 + dot(p3, p3.yzx + vec3f(33.33));
-  return fract((q.x + q.y) * q.z);
-}
-
-@fragment
-fn fs(in: VsOut) -> @location(0) vec4f {
-  let d = dot(in.local, in.local);
-  if (d > 1.0) { discard; }
-  let feather = smoothstep(1.0, 0.18, d);
-  let stripe = 0.5 + 0.5 * sin(in.local.x * 18.0 + in.local.y * 7.0 + hash(floor(in.world * 0.018)) * 2.4);
-  let glint = pow(max(0.0, 1.0 - abs(in.local.y + 0.12)), 5.0) * smoothstep(0.45, 0.92, stripe);
-  let foam = smoothstep(0.55, 0.98, stripe) * smoothstep(0.86, 0.45, abs(in.local.y)) * 0.18;
-  let water = mix(vec3f(0.17, 0.33, 0.45), vec3f(0.54, 0.67, 0.72), glint * 0.62 + foam);
-  return vec4f(water, feather * in.alpha * (0.23 + glint * 0.34 + foam));
 }`;
 
 const MAX_FOG_SOURCES = 64;
@@ -360,108 +309,4 @@ export class CampaignCloudPass {
   stats() {
     return { cloudQuads: 1 };
   }
-}
-
-export class CampaignWaterPass {
-  private pipeline: GPURenderPipeline;
-  private quadBuffer: GPUBuffer;
-  private instanceBuffer: GPUBuffer;
-  private capacity = 0;
-  private featureCount = 0;
-
-  constructor(private shell: RawFrameShell) {
-    const device = shell.device;
-    const module = device.createShaderModule({ label: 'campaign-water-wgsl', code: WATER_WGSL });
-    this.pipeline = device.createRenderPipeline({
-      label: 'campaign-water-pipeline',
-      layout: device.createPipelineLayout({ bindGroupLayouts: [shell.cameraBindGroupLayout] }),
-      vertex: {
-        module,
-        entryPoint: 'vs',
-        buffers: [
-          { arrayStride: 8, attributes: [{ shaderLocation: 0, offset: 0, format: 'float32x2' }] },
-          {
-            arrayStride: 32,
-            stepMode: 'instance',
-            attributes: [
-              { shaderLocation: 1, offset: 0, format: 'float32x4' },
-              { shaderLocation: 2, offset: 16, format: 'float32x4' },
-            ],
-          },
-        ],
-      },
-      fragment: {
-        module,
-        entryPoint: 'fs',
-        targets: [{
-          format: shell.info.format,
-          blend: {
-            color: { srcFactor: 'src-alpha', dstFactor: 'one-minus-src-alpha' },
-            alpha: { srcFactor: 'one', dstFactor: 'one-minus-src-alpha' },
-          },
-        }],
-      },
-      primitive: { topology: 'triangle-strip' },
-    });
-    this.quadBuffer = device.createBuffer({
-      label: 'campaign-water-quad',
-      size: 8 * 4,
-      usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
-    });
-    device.queue.writeBuffer(this.quadBuffer, 0, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]));
-    this.instanceBuffer = device.createBuffer({
-      label: 'campaign-water-empty',
-      size: 8 * 4,
-      usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
-    });
-  }
-
-  upload(features: CampaignWaterFeature[]) {
-    this.featureCount = features.length;
-    if (features.length > this.capacity) {
-      this.capacity = Math.max(features.length, this.capacity * 2, 8);
-      this.instanceBuffer = this.shell.device.createBuffer({
-        label: 'campaign-water-instances',
-        size: this.capacity * 8 * 4,
-        usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
-      });
-    }
-    if (features.length === 0) return;
-    const data = new Float32Array(features.length * 8);
-    for (let i = 0; i < features.length; i++) {
-      const feature = features[i];
-      const o = i * 8;
-      data[o] = feature.x;
-      data[o + 1] = feature.y;
-      data[o + 2] = feature.rx;
-      data[o + 3] = feature.angle;
-      data[o + 4] = feature.ry;
-      data[o + 5] = feature.alpha;
-    }
-    this.shell.device.queue.writeBuffer(this.instanceBuffer, 0, data);
-  }
-
-  draw(pass: BackgroundRenderPass) {
-    if (this.featureCount === 0) return;
-    pass.setPipeline(this.pipeline);
-    pass.setBindGroup(0, this.shell.cameraBindGroup);
-    pass.setVertexBuffer(0, this.quadBuffer);
-    pass.setVertexBuffer(1, this.instanceBuffer);
-    pass.draw(4, this.featureCount);
-  }
-
-  stats() {
-    return { waterFeatures: this.featureCount };
-  }
-}
-
-export function campaignWaterFeatures(): CampaignWaterFeature[] {
-  return [
-    { x: 210, y: -520, rx: 900, ry: 170, angle: -0.05, alpha: 0.42 },
-    { x: -300, y: 40, rx: 360, ry: 150, angle: -0.48, alpha: 0.32 },
-    { x: 60, y: -140, rx: 260, ry: 110, angle: -0.78, alpha: 0.30 },
-    { x: 605, y: 150, rx: 330, ry: 126, angle: -0.62, alpha: 0.33 },
-    { x: 1080, y: 1120, rx: 480, ry: 120, angle: 0.08, alpha: 0.30 },
-    { x: 85, y: 680, rx: 280, ry: 92, angle: -0.68, alpha: 0.24 },
-  ];
 }

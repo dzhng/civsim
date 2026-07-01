@@ -40,16 +40,14 @@ whole sheet is the regression target. Motion review lives in
 
 ## Adapter provenance
 
-The canonical model-shot baseline device is the SwiftShader WebGPU path used by
-the screenshot harness. If SwiftShader cannot create a WebGPU adapter locally,
-capture with the repo's hardware fallback (`VERIFY_GPU_ADAPTER=hardware`,
-`VERIFY_BROWSER_CHANNEL=chrome`, and headful when needed), then immediately
-re-run the same gate without `UPDATE_SHOTS` on that adapter and require `0 px`
-diff before calling the baseline deterministic. In the handoff, name the exact
-command that exists in the current checkout. Stone-dense props and terrain
-samples are the risky cases: their hardware/Metal pixels can exceed the shared
-2% snapshot budget against SwiftShader-blessed baselines, so flag them as
-possible one-time CI re-blesses rather than hiding the provenance.
+The canonical local model-shot baseline device is installed Chrome in headless
+mode on hardware/Metal: `VERIFY_GPU=1 VERIFY_GPU_ADAPTER=hardware
+VERIFY_BROWSER_CHANNEL=chrome`. Do not add `VERIFY_HEADFUL=1` for model sheets
+unless the user explicitly asks to watch the browser or you are reproducing a
+headful-only bug. After a re-bless, immediately re-run the same gate without
+`UPDATE_SHOTS` on that adapter and require `0 px` diff before calling the
+baseline deterministic. In the handoff, name the exact command that exists in
+the current checkout.
 
 ## When the roster changes
 

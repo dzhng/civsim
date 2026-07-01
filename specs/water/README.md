@@ -22,6 +22,28 @@ Reference image (the compare-screenshots target):
 > closes the spec. Invoke `aesthetics` (campaign is the antique chart — the deep-ocean reference is
 > explicitly **not** the campaign target) and `renderer`.
 >
+> **S10 recon (verified 2026-07-01 — the campaign renderer was rewritten, so re-check the spec's
+> file/line refs):**
+> - The files DO exist: `packages/game-renderer/src/campaign/mapPass.ts` (the sea is
+>   `naturalCampaignColor` `:219-227` biome grade + the `fs` raster sea `:240-255`, which **already
+>   has static procedural glint + coast foam** via `sin(world…)` — S10 makes it **animate on
+>   `cam.time`** and zoom/pitch-gate it). Sea albedo endpoints to migrate into `waterPalette`:
+>   `mapPass.ts:222` `mix(vec3f(0.40,0.56,0.64), vec3f(0.16,0.30,0.44))`. The `__SEA_TINT_MIX__`
+>   string-injection knob is `mapPass.ts:450`/`:241`.
+> - **`CampaignWaterPass` + `WATER_WGSL` + `campaignWaterFeatures` + `CampaignWaterFeature` still
+>   exist** in `campaign/atmospherePass.ts` (`:79/:365/:458/:9`), used ONLY by the lab route
+>   `routeCampaignModelShots` (`router.ts:22` import, `:1536/:1542/:1548/:1569`, and `frame.water`
+>   from the model-shot frame builder) and asserted structurally in
+>   `web/scenes/system/renderer-lab-routes.mjs:988`. Dormant (never in production). Deleting it
+>   removes the water backdrop from the `campaign-models` lab shots → re-bless those.
+> - **Determinism wrinkle (the real S10 cost):** the campaign **never calls `shell.setTime`** today,
+>   so `cam.time` is 0. If you add `+ cam.time * speed` to the existing glint phase, **at t=0 it is
+>   byte-identical to now → all campaign production snapshots stay green for free**, and a new lab
+>   `water-sea.mjs` can `setTime(t)` to prove the motion. To make the sea *actually* animate in the
+>   running game you must (a) advance `cam.time` in the campaign render loop (`web/src/campaign/
+>   scene.ts`) and (b) pin it in the snapshot **freeze** (`web/snapshot.mjs`, like the battle side)
+>   or production snapshots go nondeterministic. That freeze/clock wiring is the slice's main risk.
+>
 > **S9 result + facts for S10/S11:**
 > - **The one water material is `civsimWaterColor(p, depth01, haze01, agitation, swash)` in
 >   `waterMaterialWgsl.ts`** — every surface (field water, open sea, lab plane) is this function, so

@@ -1,7 +1,7 @@
 import type { CameraSnapshot } from '../../../renderer-core/src/cameraUniform';
 import { worldToScreen } from '../../../renderer-core/src/cameraUniform';
 import { WORLD_CAMERA_WGSL } from '../../../renderer-core/src/cameraWgsl';
-import { gpuAlphaBlendColorTarget, gpuWorldDepthStencil } from '../../../renderer-core/src/pipelineContracts';
+import { gpuAlphaBlendColorTarget, gpuReverseZDepthStencil, gpuWorldDepthStencil } from '../../../renderer-core/src/pipelineContracts';
 import { CAMPAIGN_SEA_PALETTE_WGSL } from '../water/waterPalette';
 import type { BackgroundRenderPass, OverlayRenderPass, RawFrameShell, WorldRenderPass } from '../../../renderer-core/src/frameShell';
 
@@ -390,7 +390,24 @@ fn fs(in: VsOut) -> @location(0) vec4f {
   return vec4f(mix(fill, selectedEdge, outline * (1.0 - pennant) * 0.75), alpha);
 }`;
 
-const LABEL_WGSL = `
+// Swap the legacy 2.5D projector calls for the real camera3d projector
+// (projectReal) so a campaign pass renders under the real perspective camera +
+// reverse-Z (slice 05). A no-op when `real` is false, so the pass stays
+// byte-identical on the legacy depth24plus painter path — the renderer-lab
+// campaign review routes still build these passes on a non-reverse-Z shell.
+function realProjection(wgsl: string, real: boolean): string {
+  if (!real) return wgsl;
+  return wgsl
+    .replace('projectWorld3d(world, civsimCampaignWorldDepth3d(world))', 'projectReal(world)')
+    .replace('projectGround(world, civsimCampaignGroundDepth(world, 0.05))', 'projectReal(vec3f(world, 0.0))')
+    .replace('projectGround(inst0.xy, 0.08)', 'projectReal(vec3f(inst0.xy, 0.0))');
+}
+
+// The label anchor projection: legacy 2.5D screen-space, or the real camera3d
+// projection (projectReal → NDC → device pixels). Both return device-pixel
+// screen space (y-down); the CPU visibility cull (visibleLabels) uses the
+// matching cameraUniform.worldToScreen so atlas placement and the GPU agree.
+const labelWgsl = (real: boolean) => `
 ${WORLD_CAMERA_WGSL}
 @group(1) @binding(0) var labelTex: texture_2d<f32>;
 @group(1) @binding(1) var labelSampler: sampler;
@@ -401,12 +418,16 @@ struct VsOut {
 };
 
 fn projectScreen(world: vec2f) -> vec2f {
-  let axes = cameraSpace(world);
+${real
+    ? `  let clip = projectReal(vec3f(world, 0.0));
+  let ndc = clip.xy / clip.w;
+  return vec2f((ndc.x * 0.5 + 0.5) * cam.width, (1.0 - (ndc.y * 0.5 + 0.5)) * cam.height);`
+    : `  let axes = cameraSpace(world);
   let depth = perspectiveDepth(axes.y);
   return vec2f(
     (axes.x * cam.zoom) / depth + cam.width * 0.5,
     (-axes.y * cam.zoom * cam.cosP) / depth + cam.height * 0.5
-  );
+  );`}
 }
 
 @vertex
@@ -449,13 +470,14 @@ export class CampaignMapPass {
   private terrainMix: number;
   private terrainTextureSize: [number, number] | null;
 
-  constructor(private shell: RawFrameShell, image: ImageBitmap, rect: { min: [number, number]; max: [number, number] }, style: CampaignMapStyle = {}, surface?: CampaignMapSurfaceMesh) {
+  constructor(private shell: RawFrameShell, image: ImageBitmap, rect: { min: [number, number]; max: [number, number] }, style: CampaignMapStyle = {}, surface?: CampaignMapSurfaceMesh, opts: { real?: boolean } = {}) {
     const device = shell.device;
+    const real = opts.real ?? false;
     this.terrainMix = style.terrainMix ?? (style.terrain ? 1 : 0);
     this.terrainTextureSize = style.terrain ? [style.terrain.width, style.terrain.height] : null;
     const module = device.createShaderModule({
       label: 'campaign-map-wgsl',
-      code: MAP_WGSL
+      code: realProjection(MAP_WGSL, real)
         .replaceAll('__SEA_TINT_MIX__', (style.seaTintMix ?? 0).toFixed(3))
         .replaceAll('__TERRAIN_MIX__', this.terrainMix.toFixed(3)),
     });
@@ -514,7 +536,7 @@ export class CampaignMapPass {
       },
       fragment: { module, entryPoint: 'fs', targets: [{ format: shell.info.format }] },
       primitive: { topology: 'triangle-list', cullMode: 'none' },
-      depthStencil: gpuWorldDepthStencil('write'),
+      depthStencil: real ? gpuReverseZDepthStencil('write') : gpuWorldDepthStencil('write'),
     });
     const mesh = surface ?? flatMapSurface(rect);
     this.indexCount = mesh.indices.length;
@@ -614,9 +636,9 @@ export class CampaignLinePass {
   private pipeline: GPURenderPipeline;
   private geometry: CampaignLineGeometry;
 
-  constructor(private shell: RawFrameShell, private topology: GPUPrimitiveTopology = 'line-list') {
+  constructor(private shell: RawFrameShell, private topology: GPUPrimitiveTopology = 'line-list', opts: { real?: boolean } = {}) {
     const device = shell.device;
-    const module = device.createShaderModule({ label: 'campaign-line-wgsl', code: LINE_WGSL });
+    const module = device.createShaderModule({ label: 'campaign-line-wgsl', code: realProjection(LINE_WGSL, opts.real ?? false) });
     this.pipeline = this.makePipeline(module);
     this.geometry = new CampaignLineGeometry(shell, topology, 'campaign-line-empty');
   }
@@ -663,9 +685,12 @@ export class CampaignWorldLinePass {
   private pipeline: GPURenderPipeline;
   private geometry: CampaignLineGeometry;
 
-  constructor(private shell: RawFrameShell, private topology: GPUPrimitiveTopology = 'line-list') {
+  private readonly real: boolean;
+
+  constructor(private shell: RawFrameShell, private topology: GPUPrimitiveTopology = 'line-list', opts: { real?: boolean } = {}) {
     const device = shell.device;
-    const module = device.createShaderModule({ label: 'campaign-world-line-wgsl', code: LINE_WGSL });
+    this.real = opts.real ?? false;
+    const module = device.createShaderModule({ label: 'campaign-world-line-wgsl', code: realProjection(LINE_WGSL, this.real) });
     this.pipeline = this.makePipeline(module);
     this.geometry = new CampaignLineGeometry(shell, topology, 'campaign-world-line-empty');
   }
@@ -692,7 +717,7 @@ export class CampaignWorldLinePass {
         targets: [gpuAlphaBlendColorTarget(this.shell.info.format)],
       },
       primitive: { topology: this.topology },
-      depthStencil: gpuWorldDepthStencil('read'),
+      depthStencil: this.real ? gpuReverseZDepthStencil('read') : gpuWorldDepthStencil('read'),
     });
   }
 
@@ -755,9 +780,10 @@ export class CampaignRoadPass {
   private capacity = 0;
   private vertexCount = 0;
 
-  constructor(private shell: RawFrameShell) {
+  constructor(private shell: RawFrameShell, opts: { real?: boolean } = {}) {
     const device = shell.device;
-    const module = device.createShaderModule({ label: 'campaign-road-wgsl', code: ROAD_WGSL });
+    const real = opts.real ?? false;
+    const module = device.createShaderModule({ label: 'campaign-road-wgsl', code: realProjection(ROAD_WGSL, real) });
     this.pipeline = device.createRenderPipeline({
       label: 'campaign-road-depth-pipeline',
       layout: device.createPipelineLayout({ bindGroupLayouts: [this.shell.cameraBindGroupLayout] }),
@@ -780,7 +806,7 @@ export class CampaignRoadPass {
         targets: [gpuAlphaBlendColorTarget(this.shell.info.format)],
       },
       primitive: { topology: 'triangle-list', cullMode: 'none' },
-      depthStencil: gpuWorldDepthStencil('read'),
+      depthStencil: real ? gpuReverseZDepthStencil('read') : gpuWorldDepthStencil('read'),
     });
     this.vertexBuffer = device.createBuffer({
       label: 'campaign-road-empty',
@@ -822,9 +848,9 @@ export class CampaignMarkerPass {
   private capacity = 0;
   private markerCount = 0;
 
-  constructor(private shell: RawFrameShell) {
+  constructor(private shell: RawFrameShell, opts: { real?: boolean } = {}) {
     const device = shell.device;
-    const module = device.createShaderModule({ label: 'campaign-marker-wgsl', code: MARKER_WGSL });
+    const module = device.createShaderModule({ label: 'campaign-marker-wgsl', code: realProjection(MARKER_WGSL, opts.real ?? false) });
     this.pipeline = device.createRenderPipeline({
       label: 'campaign-marker-pipeline',
       layout: device.createPipelineLayout({ bindGroupLayouts: [shell.cameraBindGroupLayout] }),
@@ -935,9 +961,9 @@ export class CampaignLabelPass {
     layer: 'raw-gpu-glyph-atlas',
   };
 
-  constructor(private shell: RawFrameShell) {
+  constructor(private shell: RawFrameShell, opts: { real?: boolean } = {}) {
     const device = shell.device;
-    const module = device.createShaderModule({ label: 'campaign-label-wgsl', code: LABEL_WGSL });
+    const module = device.createShaderModule({ label: 'campaign-label-wgsl', code: labelWgsl(opts.real ?? false) });
     this.bindGroupLayout = device.createBindGroupLayout({
       label: 'campaign-label-atlas-bgl',
       entries: [

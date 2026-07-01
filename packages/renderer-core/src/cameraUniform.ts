@@ -1,4 +1,4 @@
-import { eyePosition, invViewProj, viewProjMatrix, type Camera3DParams } from './camera3d';
+import { eyePosition, invViewProj, projectPoint, unprojectToPlaneZ, viewProjMatrix, type Camera3DParams } from './camera3d';
 
 export interface CameraSnapshot {
   x: number;
@@ -83,7 +83,22 @@ export function cameraUniformData(camera: CameraSnapshot): Float32Array {
   return data;
 }
 
+// camera3d params for the CPU projection helpers, aspect pinned to the live
+// viewport (single owner, matching cameraUniformData's GPU packing).
+function realParams(camera: CameraSnapshot): Camera3DParams {
+  return { ...(camera.camera3d as Camera3DParams), aspect: camera.width / Math.max(1, camera.height) };
+}
+
+// World point (device-pixel screen space, y-down). Points behind the camera
+// return far off-screen so callers cull them, matching the legacy contract.
+function realWorldToScreen(camera: CameraSnapshot, world: [number, number, number]): [number, number] {
+  const { ndc, clipW } = projectPoint(realParams(camera), world);
+  if (clipW <= 0) return [-1e5, -1e5];
+  return [(ndc[0] * 0.5 + 0.5) * camera.width, (1 - (ndc[1] * 0.5 + 0.5)) * camera.height];
+}
+
 export function worldToScreen(camera: CameraSnapshot, wx: number, wy: number): [number, number] {
+  if (camera.camera3d) return realWorldToScreen(camera, [wx, wy, 0]);
   const c = Math.cos(camera.yaw ?? 0);
   const s = Math.sin(camera.yaw ?? 0);
   const dx = wx - camera.x;
@@ -100,6 +115,7 @@ export function worldToScreen(camera: CameraSnapshot, wx: number, wy: number): [
 }
 
 export function world3dToScreen(camera: CameraSnapshot, wx: number, wy: number, wz: number): [number, number] {
+  if (camera.camera3d) return realWorldToScreen(camera, [wx, wy, wz]);
   const c = Math.cos(camera.yaw ?? 0);
   const s = Math.sin(camera.yaw ?? 0);
   const dx = wx - camera.x;
@@ -116,6 +132,14 @@ export function world3dToScreen(camera: CameraSnapshot, wx: number, wy: number, 
 }
 
 export function screenToWorld(camera: CameraSnapshot, sx: number, sy: number): [number, number] {
+  if (camera.camera3d) {
+    const params = realParams(camera);
+    const ndcX = (sx / Math.max(1, camera.width)) * 2 - 1;
+    const ndcY = 1 - (sy / Math.max(1, camera.height)) * 2;
+    const hit = unprojectToPlaneZ(params, ndcX, ndcY, 0);
+    if (hit) return [hit[0], hit[1]];
+    return [camera.camera3d.target[0], camera.camera3d.target[1]];
+  }
   const zoom = Math.max(0.0001, camera.zoom);
   const cosP = Math.max(0.2, Math.cos(camera.pitch ?? 0));
   const perspective = Math.max(0, camera.perspective ?? 0);

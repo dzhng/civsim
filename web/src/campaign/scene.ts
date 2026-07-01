@@ -14,6 +14,7 @@ import { CityPanel } from '../ui/campaign/CityPanel';
 import { DiplomacyPanel } from '../ui/campaign/DiplomacyPanel';
 import { ClassBuilder } from '../ui/campaign/ClassBuilder';
 import { Sieges } from '../ui/campaign/Sieges';
+import { CampaignBattleModal, type EncounterSideView } from '../ui/campaign/CampaignBattleModal';
 import { loadCampaignData, nearestLoc, tilePos, type CampaignData } from './data';
 import type { CamView } from './camera';
 import { CampaignRenderer } from './renderer';
@@ -129,7 +130,8 @@ export class CampaignScene implements Scene {
   private stackUnitCap = 1;
   private recruitClasses: string[] = [];
   private spotPos: [number, number][] = [];
-  private modal: HTMLDivElement | null = null;
+  private modalRoot: Root | null = null;
+  private modalOpen = false;
   private autoResolving = false;
   private terrainReady = false;
   /** Signature of the currently-shown siege notifications, to avoid rebuilding
@@ -313,7 +315,7 @@ export class CampaignScene implements Scene {
         this.acc -= n;
         this.advance(n);
         this.refreshViews();
-        if (c.battle_ready() >= 0 && !this.modal) {
+        if (c.battle_ready() >= 0 && !this.modalOpen) {
           this.paused = true; // auto-pause: a battle wants a decision
           this.showBattleModal(c.battle_ready());
         }
@@ -328,7 +330,7 @@ export class CampaignScene implements Scene {
       this.updateHud();
       return;
     }
-    if (!this.autoResolving && !this.modal) this.drawWorld();
+    if (!this.autoResolving && !this.modalOpen) this.drawWorld();
     this.updateHud();
   }
 
@@ -451,7 +453,7 @@ export class CampaignScene implements Scene {
       this.rightClick(e.offsetX * devicePixelRatio, e.offsetY * devicePixelRatio);
     }, { signal });
     window.addEventListener('keydown', (e) => {
-      if (this.modal) return;
+      if (this.modalOpen) return;
       if (e.key === ' ') {
         e.preventDefault();
         this.paused = !this.paused;
@@ -565,13 +567,9 @@ export class CampaignScene implements Scene {
     if (!info) return;
     const my = info.player_faction;
     const facName = (f: number) => this.cfg.data.map.factions[f]?.name ?? `faction ${f}`;
-    const side = (s: EncounterSide, label: string, noRetreat: boolean) => `
-      <div class="cmp-side">
-        <h3>${label}${s.garrison ? ' (garrison)' : ''}</h3>
-        <div>${facName(s.faction)}</div>
-        <div>${s.soldiers} soldiers</div>
-        ${noRetreat ? '<div class="cmp-warn">NO RETREAT — destroyed if defeated</div>' : ''}
-      </div>`;
+    const sideView = (s: EncounterSide, label: string, noRetreat: boolean): EncounterSideView => ({
+      label, garrison: s.garrison, factionName: facName(s.faction), soldiers: s.soldiers, noRetreat,
+    });
     const mineInvolved = info.attacker.faction === my || info.defender.faction === my;
     // Jump the camera to where the fight is so the player sees the threat
     // behind the (semi-transparent) modal. Prefer the defender — that is the
@@ -584,29 +582,22 @@ export class CampaignScene implements Scene {
       this.centerCam(at.x, at.y);
       this.drawWorld(); // one render at the new camera before the modal covers it
     }
-    this.modal = document.createElement('div');
-    this.modal.className = 'cmp-modal';
-    this.modal.innerHTML = `
-      <div class="cmp-box">
-        <h2>${info.ambush ? 'AMBUSH!' : 'Battle'}</h2>
-        <div class="cmp-sides">
-          ${side(info.attacker, 'Attacker', info.no_retreat[0])}
-          ${side(info.defender, 'Defender', info.no_retreat[1])}
-        </div>
-        ${info.reinforcements > 0 ? `<div>${info.reinforcements} nearby armies will join with delay</div>` : ''}
-        <div class="cmp-actions">
-          ${mineInvolved ? '<button id="cmp-fight">Fight</button>' : ''}
-          <button id="cmp-auto">Auto-resolve</button>
-        </div>
-      </div>`;
-    this.ui.appendChild(this.modal);
-    this.modal.querySelector('#cmp-fight')?.addEventListener('click', () => this.fight(eid));
-    this.modal.querySelector('#cmp-auto')?.addEventListener('click', () => this.autoResolve(eid));
+    this.modalOpen = true;
+    const root = this.modalRoot;
+    if (root) flushSync(() => root.render(createElement(CampaignBattleModal, {
+      ambush: info.ambush,
+      attacker: sideView(info.attacker, 'Attacker', info.no_retreat[0]),
+      defender: sideView(info.defender, 'Defender', info.no_retreat[1]),
+      reinforcements: info.reinforcements,
+      mineInvolved,
+      onFight: () => this.fight(eid),
+      onAuto: () => this.autoResolve(eid),
+    })));
   }
 
   private closeModal() {
-    this.modal?.remove();
-    this.modal = null;
+    this.modalOpen = false;
+    this.modalRoot?.render(null);
   }
 
   private fight(eid: number) {
@@ -679,6 +670,7 @@ export class CampaignScene implements Scene {
     this.diploRoot = createRoot(ui.querySelector('#cmp-diplomacy')!);
     this.classesRoot = createRoot(ui.querySelector('#cmp-classes')!);
     this.siegesRoot = createRoot(ui.querySelector('#cmp-sieges')!);
+    this.modalRoot = createRoot(ui.querySelector('#cmp-modal-root')!);
   }
 
   private saveCampaign() {

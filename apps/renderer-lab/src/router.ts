@@ -29,6 +29,9 @@ import { heightSpan, terrainHeightAt, type TerrainHeightField } from '../../../p
 import type { BattleTerrainFeature, BattleTerrainFeatureKind, BattleTerrainGrid } from '../../../packages/game-renderer/src/battle/terrainFeatures';
 import { BattleGroundPass } from '../../../packages/game-renderer/src/battle/groundPass';
 import { BattleHorizonPass } from '../../../packages/game-renderer/src/battle/horizonPass';
+import { createWaterField, type WaterFieldId, type WaterFieldSource } from '../../../packages/game-renderer/src/water/waterField';
+import { WaterPlanePass } from '../../../packages/game-renderer/src/water/waterPlanePass';
+import { WATER_ENVIRONMENTS, type WaterEnvironment } from '../../../packages/game-renderer/src/water/waterEnvironment';
 import { featuresToBattleScenery } from '../../../packages/game-renderer/src/battle/terrainScenery';
 import { CampaignSelectionPass, type CampaignSelectionInstance } from '../../../packages/game-renderer/src/campaign/selectionPass';
 import { campaignBorderVertices, CampaignTerritoryPass } from '../../../packages/game-renderer/src/campaign/territoryPass';
@@ -108,6 +111,7 @@ const routes: Record<string, LabRoute> = {
   '/renderer/battle-input': routeBattleInput,
   '/renderer/battle-live': routeBattleLive,
   '/renderer/card-bar': routeCardBar,
+  '/renderer/water-bakeoff': routeWaterBakeoff,
 };
 
 export async function mountRendererLab(path = location.pathname) {
@@ -3017,6 +3021,113 @@ async function routeBattleInput(ctx: LabContext) {
   draw();
 }
 
+// Slice 1 of the water spec: the technique bake-off. One open-sea plane at the
+// battle horizon camera (or the campaign camera for the perf gate), driven by a
+// WaterFieldSource. `?tech=gerstner|ifft` picks the producer; `?compare=1`
+// scissors both side by side; `?t=<seconds>` freezes the clock for snapshots;
+// `?computeUnsupported=1` forces the capability fallback. Neutral grey albedo —
+// this slice judges geometry, foam and glint, not colour.
+async function routeWaterBakeoff(ctx: LabContext) {
+  const requested: WaterFieldId = ctx.params.get('tech') === 'ifft' ? 'ifft' : 'gerstner';
+  const compare = ctx.params.get('compare') === '1';
+  const presetName = ctx.params.get('preset') ?? 'golden';
+  const env: WaterEnvironment = WATER_ENVIRONMENTS[presetName as WaterEnvironment['id']] ?? WATER_ENVIRONMENTS.golden;
+  const camName = ctx.params.get('cam') === 'campaign' ? 'campaign' : 'battle';
+  const forceUnsupported = ctx.params.get('computeUnsupported') === '1';
+  const ifftResolution = integerParam(ctx.params, 'n', 128, 64, 256);
+  // Sun comes from the preset; `sunAz`/`sunEl` override it (e.g. the glint scene
+  // sweeps the azimuth to prove the streak tracks the sun).
+  const sunAz = ctx.params.has('sunAz') ? numberParam(ctx.params, 'sunAz', env.sunAzimuth) : env.sunAzimuth;
+  const sunEl = ctx.params.has('sunEl') ? numberParam(ctx.params, 'sunEl', env.sunElevation) : env.sunElevation;
+  const fixedT = ctx.params.has('t') ? numberParam(ctx.params, 't', 0) : null;
+
+  const shell = await createFrameShell(ctx.canvas, { enableGpuTimer: true });
+  const computeSupported = shell.info.caps.computeOceanSupported && !forceUnsupported;
+
+  const camera = camName === 'campaign'
+    ? { x: 0, y: 90, zoom: 3.4, pitch: 0.42, yaw: 0, perspective: 0.02 }
+    : { x: 0, y: -6, zoom: 2.6, pitch: 0.30, yaw: 0, perspective: 0.032 };
+  shell.setCamera(camera);
+  shell.setSun(sunAz, sunEl);
+
+  // Sky clear from the preset's haze colour so the sea meets a matching horizon
+  // (Slice 6 will grade the sea-to-sky seam properly).
+  const clear: GPUColor = { r: env.hazeColor[0], g: env.hazeColor[1], b: env.hazeColor[2], a: 1 };
+
+  interface Built { requested: WaterFieldId; field: WaterFieldSource; plane: WaterPlanePass; fallbackTriggered: boolean }
+  const techs: WaterFieldId[] = compare ? ['gerstner', 'ifft'] : [requested];
+  const built: Built[] = techs.map((tech) => {
+    const { field, fallbackTriggered } = createWaterField(shell, { tech, computeSupported, ifftResolution });
+    return { requested: tech, field, plane: new WaterPlanePass(shell, field, undefined, env), fallbackTriggered };
+  });
+
+  const drawAt = (t: number) => {
+    shell.setTime(t);
+    const W = shell.stats().width;
+    const H = shell.stats().height;
+    shell.drawFrame({
+      clear,
+      precompute: (enc) => { for (const b of built) b.field.ensureFrame(enc, t); },
+      passes: [{
+        id: 'water-bakeoff-plane', role: 'world-opaque', phase: 'world-depth', depth: 'read-write',
+        draw: (pass) => {
+          if (compare && built.length === 2) {
+            const half = Math.floor(W / 2);
+            pass.setScissorRect(0, 0, half, H); built[0].plane.draw(pass);
+            pass.setScissorRect(half, 0, W - half, H); built[1].plane.draw(pass);
+            pass.setScissorRect(0, 0, W, H);
+          } else {
+            built[0].plane.draw(pass);
+          }
+        },
+      }],
+    });
+  };
+
+  const publishStats = () => {
+    const s = shell.stats();
+    const live = built.length === 1 ? built[0].field.id : built.map((b) => b.field.id).join('+');
+    publish('water-bakeoff', true, {
+      route: 'water-bakeoff',
+      requestedTech: requested,
+      tech: live,
+      compare,
+      preset: presetName,
+      camera: camName,
+      computeSupported,
+      computeOceanSupportedRaw: shell.info.caps.computeOceanSupported,
+      timestampQuery: shell.info.caps.timestampQuery,
+      gpuTimeMs: s.gpuTimeMs,
+      fixedTime: fixedT,
+      fallbackTriggered: built.some((b) => b.fallbackTriggered),
+      fieldResolution: Math.max(...built.map((b) => b.field.stats().fieldResolution)),
+      fields: built.map((b) => ({ requested: b.requested, ...b.field.stats(), fallbackTriggered: b.fallbackTriggered })),
+      cameraContract: s.cameraContract,
+    });
+    ctx.status.innerHTML = reportTable({
+      route: 'water-bakeoff',
+      requested,
+      live,
+      compare,
+      camera: camName,
+      preset: presetName,
+      'compute supported': computeSupported,
+      'fallback triggered': built.some((b) => b.fallbackTriggered),
+      'field resolution': built.map((b) => b.field.stats().fieldResolution).join(' / '),
+      'storage bytes': built.map((b) => b.field.stats().storageBytes).join(' / '),
+      'GPU time (ms)': s.gpuTimeMs === null ? 'pending' : s.gpuTimeMs.toFixed(3),
+    });
+  };
+
+  const t0 = performance.now();
+  const tick = () => {
+    drawAt(fixedT ?? (performance.now() - t0) / 1000);
+    publishStats();
+    requestAnimationFrame(tick);
+  };
+  tick();
+}
+
 async function createConfiguredShell(canvas: HTMLCanvasElement, camera: { x: number; y: number; zoom: number; pitch?: number; yaw?: number; perspective?: number }) {
   const shell = await createFrameShell(canvas);
   shell.setCamera(camera);
@@ -3673,22 +3784,6 @@ function installStyles() {
     /* Same fixed-size, shrink-wrapping, no-scroll grid as the live #unitcards
        (unitCard.ts writes --cols/--card-w/--card-h). */
     .renderer-unitcards { position: absolute; bottom: 58px; left: 50%; transform: translateX(-50%); display: grid; width: max-content; max-width: calc(100% - 36px); grid-template-columns: repeat(var(--cols, 1), var(--card-w, 72px)); grid-auto-rows: var(--card-h, 96px); gap: 3px; justify-content: center; align-content: end; overflow: hidden; padding: 11px 12px; pointer-events: auto; background: radial-gradient(circle at 9px 9px, rgba(234,204,142,0.95) 0 1.1px, rgba(58,42,22,0.95) 1.5px 2.7px, transparent 3.1px) padding-box, radial-gradient(circle at calc(100% - 9px) 9px, rgba(234,204,142,0.95) 0 1.1px, rgba(58,42,22,0.95) 1.5px 2.7px, transparent 3.1px) padding-box, radial-gradient(circle at 9px calc(100% - 9px), rgba(234,204,142,0.95) 0 1.1px, rgba(58,42,22,0.95) 1.5px 2.7px, transparent 3.1px) padding-box, radial-gradient(circle at calc(100% - 9px) calc(100% - 9px), rgba(234,204,142,0.95) 0 1.1px, rgba(58,42,22,0.95) 1.5px 2.7px, transparent 3.1px) padding-box, repeating-linear-gradient(96deg, rgba(255,228,168,0.035) 0 2px, rgba(0,0,0,0.04) 2px 4px) padding-box, linear-gradient(#5e4527, #2a1f11) padding-box, linear-gradient(#c79a54 0%, #6e5128 48%, #241a0e 100%) border-box; border: 4px solid transparent; border-radius: 5px; box-shadow: inset 0 1px 0 rgba(236,200,132,0.65), inset 0 0 0 2px rgba(16,10,5,0.78), inset 0 0 0 3px rgba(158,120,66,0.55), inset 0 -3px 8px rgba(0,0,0,0.6), 0 0 0 1px rgba(182,142,80,0.65), 0 9px 24px rgba(0,0,0,0.68); }
-    .renderer-unitcards .ucard { width: var(--card-w); height: var(--card-h); aspect-ratio: 3 / 4; box-sizing: border-box; position: relative; display: flex; flex-direction: column; overflow: hidden; background: #16100a; border: 1px solid #3a2c18; border-top: 3px solid var(--fac); border-radius: 2px; cursor: pointer; transition: box-shadow 0.1s, border-color 0.1s; }
-    .renderer-unitcards .ucard:hover { border-color: #6e5128; }
-    .renderer-unitcards .ucard.sel { border-color: #f0d98a; z-index: 2; box-shadow: 0 0 9px 1px rgba(240,212,122,0.6); }
-    .renderer-unitcards .ucard.rout { filter: grayscale(0.5) brightness(0.8); }
-    .renderer-unitcards .ucard.rout::after { content: 'ROUT'; position: absolute; top: 30px; left: 0; right: 0; text-align: center; z-index: 3; font: 700 9px ui-monospace, monospace; color: #ff7a6b; text-shadow: 0 1px 2px #000; }
-    .renderer-unitcards .ucard-hp { position: relative; flex: none; height: 10px; background: rgba(6,8,5,0.82); box-shadow: inset 0 -1px 0 rgba(0,0,0,0.5); overflow: hidden; }
-    .renderer-unitcards .ucard-hp-fill { height: 100%; width: 100%; }
-    .renderer-unitcards .ucard-count { position: absolute; top: 0; right: 5px; line-height: 10px; font: 700 9px ui-monospace, monospace; color: #fff; text-shadow: 0 1px 2px #000, 0 0 3px #000; }
-    .renderer-unitcards .ucard-port { display: block; flex: 1 1 0; min-height: 0; width: 100%; object-fit: cover; background: #1c150d; }
-    .renderer-unitcards .ucard-name { flex: none; padding: 1px 3px 0; text-align: center; font: 700 8px ui-monospace, Menlo, monospace; color: #ead9b0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .renderer-unitcards .ucard-bars { flex: none; padding: 0 4px 1px; }
-    .renderer-unitcards .ucard-bar { height: 3px; background: rgba(8,9,11,0.7); border-radius: 2px; overflow: hidden; margin-bottom: 1px; }
-    .renderer-unitcards .ucard-bar > div { height: 100%; width: 100%; }
-    .renderer-unitcards .ucard-bar.hp > div { background: #5cba46; }
-    .renderer-unitcards .ucard-bar.coh > div { background: #d9c75a; }
-    .renderer-unitcards .ucard-bar.mor > div { background: #c2554e; }
     .renderer-toolbar { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; align-items: center; padding: 7px 10px; pointer-events: auto; background: rgba(12,14,19,0.85); border: 1px solid #3a3f4d; border-radius: 8px; box-shadow: 0 4px 18px rgba(0,0,0,0.45); }
 	    .renderer-toolbar button { font: 12px ui-monospace, Menlo, monospace; color: #c8cdd8; background: rgba(34,38,48,0.9); border: 1px solid #444a5a; border-radius: 6px; padding: 5px 10px; cursor: pointer; white-space: nowrap; }
 	    .renderer-toolbar button.on { background: #4f774e; border-color: #84a76b; color: #fff; }
